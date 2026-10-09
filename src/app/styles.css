@@ -2406,3 +2406,15 @@ body {
 .ag-table tr.ag-ql-sub-row td { text-align: left; white-space: normal; padding-top: 0; font-size: 11px; line-height: 1.4; color: var(--chalk-dim); }
 /* Kept in view when a phone scrolls a wide table sideways, and as wide as the screen at most. */
 .ag-ql-sub { display: block; position: sticky; left: 10px; max-width: calc(100vw - 64px); }
+
+/* "Reward quotes live-prep"'s real-money page (LpLiveDetail, 2026-10-09): its stop line, and the gates of its last turn
+   as small wrapping chips, so a phone keeps them inside the screen. */
+.ag-lpl-stop-line { font-size: 11px; line-height: 1.5; margin: 4px 0 8px; overflow-wrap: anywhere; }
+.ag-lpl-stop-line.is-tripped { color: var(--loss); }
+.ag-lpl-gates { display: flex; flex-wrap: wrap; gap: 4px 6px; font-size: 10.5px; }
+.ag-lpl-gate { display: inline-flex; align-items: center; gap: 3px; padding: 1px 6px; border-radius: 3px; border: 1px solid var(--line, rgba(255,255,255,0.12)); color: var(--chalk-dim); white-space: nowrap; }
+.ag-lpl-gate.is-pass .ag-lpl-gate-mark { color: var(--gain); }
+.ag-lpl-gate.is-fail { color: var(--loss); border-color: var(--loss); }
+.ag-lpl-gate.is-na { color: var(--chalk-mute); }
+.ag-lpl-gates-sum { font-size: 11px; margin-top: 6px; }
+.ag-state-live, .ag-state-expired { color: var(--chalk-dim); }

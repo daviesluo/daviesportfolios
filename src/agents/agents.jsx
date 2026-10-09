@@ -16,7 +16,7 @@ import { SurfaceBoundary } from '../app/surface_boundary.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, paperOnly, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, MID_ROW_ID, LP_ROW_ID, isPrepRowId, prepStopText, positionLines, readAgentsCache, readChartCache, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, rowMoney, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwFillView, rwHeldOf, rwTestedSince, rweCheckWarn, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxSourceText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, tabStrategies, testedForText, venueHue, venueLabel, venueRows, paperTestRows, rwRoundText,
+  AGENT_TABS, LP_LIVE_ROW_ID, fmtR, liveExtraRows, lpLiveGates, lpLiveRow, lpLiveStopText, lpSideText, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, MID_ROW_ID, LP_ROW_ID, isPrepRowId, prepStopText, positionLines, readAgentsCache, readChartCache, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, rowMoney, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwFillView, rwHeldOf, rwTestedSince, rweCheckWarn, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxSourceText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows, rwRoundText,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -281,7 +281,6 @@ function ShareSegment({ s }) {
 function VenueSplit({ dash, tab, m, tests = [] }) {
   const rows = venueRows(dash, tab, tests);
   const segments = shareSegments(rows);
-  const onTab = tabStrategies(dash, tab);
   if (!rows.length) return null;
   const gl = (/** @type {number} */ usd, /** @type {number | null} */ pct) => <span className="ag-gl" style={{ color: pctColor(usd) }}>{m(glText(usd, pct))}</span>;
   return (
@@ -312,7 +311,7 @@ function VenueSplit({ dash, tab, m, tests = [] }) {
               <div className="ag-venue-col">
                 {/* Funded is the capital the venue's strategies on this tab are allotted, not the account's balance: a
                     real balance here only misled while every row traded paper (Davies, 2026-09-23). */}
-                <FigLabel name={`funded${r.test || paperOnly(onTab, r.id) ? ' (Paper)' : ''}`} title="the capital this venue's strategies are allotted" /><span>{m(fmtUsd(r.capitalUsd))}</span>
+                <FigLabel name={`funded${r.paper ? ' (Paper)' : ''}`} title="the capital this venue's strategies are allotted" /><span>{m(fmtUsd(r.capitalUsd))}</span>
                 <FigLabel name="deployed" />
                 <span className="hl-strong">{m(fmtUsd(r.valueUsd))}{r.deployedPct != null ? <span className="dim ag-fig-pct"> ({fmtPct2(r.deployedPct)})</span> : null}</span>
                 <FigLabel name="today" />{gl(r.todayUsd, r.todayPct)}
@@ -596,6 +595,180 @@ function QuotesLiveDetail({ q, m, at, nowMs, twin = false }) {
       {exitOrders.length > 0 && <LiveOrdersTable title="EXIT ORDERS" cls="ag-ql-exits" orders={exitOrders} m={m} empty={empty} />}
       <LiveOrdersTable title="ENTRY ORDERS" cls="ag-ql-entries" orders={entryOrders} m={m} empty={empty} />
       <div className="ag-updated dim mono ag-ql-foot">as of {when(at)} {UK_TZ} · refreshes every minute</div>
+    </div>
+  );
+}
+
+/**
+ * One of live-prep's live page's two order tables: its resting orders (what each has filled so far, or "pending" until the
+ * venue has answered) or its newest ended ones (how each ended), newest first, each side as a holder reads it.
+ * @param {{ title: string, cls: string, orders: any[], empty: string, ended?: boolean, m: (s: string) => string }} props
+ */
+function LpOrdersTable({ title, cls, orders, empty, ended = false, m }) {
+  return (
+    <section className={`ag-section ${cls} ag-ql-tables`}>
+      <div className="ag-section-title mono">{title}</div>
+      <div className="hl-scroll">
+        <table className="hl-table ag-table ag-log mono">
+          <thead><tr>
+            <th className="hl-th">Sent ({UK_TZ})</th><th className="hl-th">Market</th><th className="hl-th">Side</th>
+            <th className="hl-th">Price</th><th className="hl-th">Shares</th><th className="hl-th">{ended ? 'State' : 'Filled'}</th>
+          </tr></thead>
+          <tbody>
+            {orders.length === 0 && <tr><td className="hl-empty dim" colSpan={6}>{empty}</td></tr>}
+            {orders.map((o) => (
+              <tr key={o.id} className={`txn-row txn-row-${o.side === 'BUY' ? 'buy' : 'sell'}`}>
+                <td className="dim"><Stamp iso={o.ts} /></td>
+                <td className="hl-strong"><span className="ag-rw-q" title={o.q}>{marketName(o.q)}</span></td>
+                <td><span className={`ag-side ag-side-${o.side === 'BUY' ? 'buy' : 'sell'}`}><span className="ag-side-mark" aria-hidden="true" />{lpSideText(o)}</span></td>
+                <td>{m(fmtCents(o.price))}</td>
+                <td>{m(rwShareText(o.size))}</td>
+                <td>{ended
+                  ? <span className={`ag-state-pill ag-state-${o.state}`}>{o.state}</span>
+                  : o.state === 'pending' ? <span className="ag-state-pill ag-state-pending">pending</span> : m(rwShareText(o.matched))}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * "Reward quotes live-prep"'s real-money book, opened from its row of LIVE over the list in the same window, as PR5's
+ * live executor's page is (Davies, 2026-10-09: "网站的agents live页怎么看不到这个上线"). Its scoreboard is its LIVE row's
+ * own (`lpLiveRow`), so the two read the same figures; then the formula's rewards apart, its total stop and the gates of
+ * its last turn, what it holds, its orders resting and its newest ended ones, its fills (an unconfirmed one listed but
+ * not counted) and the days Polymarket has paid, against the formula's figure (R). Everything is the dashboard's
+ * `lpLive`, read from the order path's live rows alone (`pm_lp_live_view.ts`); none of its paper layer's record is here.
+ * @param {{ l: any, m: (s: string) => string, at: any, nowMs: number }} props
+ */
+function LpLiveDetail({ l, m, at, nowMs }) {
+  const row = lpLiveRow(l);
+  if (!row) return null;
+  const gates = lpLiveGates(l);
+  /** @param {number | null | undefined} x */
+  const usd = (x) => m(fmtUsd(Number(x) || 0, true));
+  const resting = l.resting ?? [], recent = l.recent ?? [], fills = l.recentFills ?? [], held = l.held ?? [], days = l.days ?? [];
+  return (
+    <div className="ag-detail ag-lp-live-detail">
+      <div className="ag-detail-head">
+        <ModeBadge mode="live" />
+        <VenueBadge id="polymarket" />
+        <StatusDot status={row.status} since={l.liveSince ?? null} nowMs={nowMs} live />
+      </div>
+      <h3 className="ag-detail-title mono sr-only">{row.name}</h3>
+      <div className="ag-scoreboard ag-scoreboard-sm">
+        <FundedCells fundedUsd={row.capitalUsd} deployedUsd={row.valueUsd} m={m} />
+        <div className="ag-sb-divider" />
+        <GlCell label="TODAY" usd={row.todayUsd} pct={row.todayPct} m={m} />
+        <div className="ag-sb-divider" />
+        <GlCell label="UNREALIZED G/L" usd={row.unrealisedUsd} pct={row.unrealisedPct} m={m} />
+        <div className="ag-sb-divider" />
+        <GlCell label="REALIZED G/L" usd={row.realisedUsd} pct={row.realisedPct} m={m} cls="ag-sb-realised" aside={`(incl. fees ${m(fmtUsd(row.feesUsd))})`}
+          split={[['rewards paid', row.rewards.realisedUsd], ['orders', row.orders.realisedUsd]]} />
+      </div>
+      {/* The formula's rewards are what the minute's formula gave our quotes: shown apart, counted in no figure above. */}
+      <p className="ag-note dim ag-lpl-formula">
+        Formula rewards, not counted: {m(fmtUsd(Number(l.formulaUsd) || 0))} over {days.length} day{days.length === 1 ? '' : 's'} read · R {fmtR(l.r)} (paid ÷ formula)
+      </p>
+      {!l.running && <div className="ag-warn-line">{row.status.detail}</div>}
+      {l.lastError && <div className="ag-warn-line">last turn: {m(String(l.lastError))}</div>}
+      <section className="ag-section ag-lpl-stop">
+        <div className="ag-section-title mono">STOP AND GATES</div>
+        <div className={`ag-lpl-stop-line mono${l.stop?.trippedAt ? ' is-tripped' : ''}`}>{lpLiveStopText(l, m)}</div>
+        {gates ? (
+          <>
+            <div className="ag-lpl-gates mono">
+              {gates.rows.map((g) => (
+                <span key={g.key} className={`ag-lpl-gate is-${g.state === 'n/a' ? 'na' : g.state}`} title={g.key}>
+                  <span className="ag-lpl-gate-mark" aria-hidden="true">{g.state === 'pass' ? '✓' : g.state === 'fail' ? '✕' : '–'}</span> {g.label}
+                </span>
+              ))}
+            </div>
+            <div className="ag-lpl-gates-sum dim mono">
+              {gates.mode === 'dry_run' ? 'its last turn was a dry-run: nothing was sent' : gates.openBlockedBy ? `opening held by ${gates.openBlockedBy}` : 'every gate open'}
+              {gates.reduceBlockedBy ? ` · sells held by ${gates.reduceBlockedBy}` : ''}
+            </div>
+          </>
+        ) : <div className="ag-empty dim">Its last turn's gates are not in this answer.</div>}
+      </section>
+      <section className="ag-section ag-lpl-held ag-ql-tables">
+        <div className="ag-section-title mono">HELD</div>
+        <div className="hl-scroll">
+          <table className="hl-table ag-table ag-log mono">
+            <thead><tr>
+              <th className="hl-th">Market</th><th className="hl-th">Token</th><th className="hl-th">Shares</th><th className="hl-th">Cost</th>
+              <th className="hl-th">Mark</th><th className="hl-th">Unrealised</th>
+            </tr></thead>
+            <tbody>
+              {held.length === 0 && <tr><td className="hl-empty dim" colSpan={6}>Nothing held.</td></tr>}
+              {held.map((h) => (
+                <tr key={`${h.cond}|${h.outcome}`}>
+                  <td className="hl-strong"><span className="ag-rw-q" title={h.q}>{marketName(h.q)}</span></td>
+                  <td>{h.outcome === 'yes' ? 'Yes' : h.outcome === 'no' ? 'No' : '?'}</td>
+                  <td>{m(rwShareText(h.shares))}</td>
+                  <td>{m(fmtCents(h.avgCost))}</td>
+                  <td>{h.mark == null ? '—' : m(fmtCents(h.mark))}</td>
+                  <td className="ag-gl" style={{ color: pctColor(h.unrealisedUsd) }}>{usd(h.unrealisedUsd)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <LpOrdersTable title="RESTING ORDERS" cls="ag-lpl-resting" orders={resting} empty="Nothing resting." m={m} />
+      <LpOrdersTable title="RECENT ORDERS" cls="ag-lpl-recent" orders={recent} empty="No order has ended yet." ended m={m} />
+      <section className="ag-section ag-lpl-fills ag-ql-tables">
+        <div className="ag-section-title mono">FILLS</div>
+        <div className="hl-scroll">
+          <table className="hl-table ag-table ag-log mono">
+            <thead><tr>
+              <th className="hl-th">When ({UK_TZ})</th><th className="hl-th">Market</th><th className="hl-th">Side</th><th className="hl-th">Price</th>
+              <th className="hl-th">Shares</th><th className="hl-th">Status</th>
+            </tr></thead>
+            <tbody>
+              {fills.length === 0 && <tr><td className="hl-empty dim" colSpan={6}>No fill yet.</td></tr>}
+              {fills.map((f) => (
+                <tr key={f.tradeId} className={`txn-row txn-row-${f.side === 'BUY' ? 'buy' : 'sell'}`}>
+                  <td className="dim">{f.ts ? <Stamp iso={f.ts} /> : '—'}</td>
+                  <td className="hl-strong"><span className="ag-rw-q" title={f.q}>{marketName(f.q)}</span></td>
+                  <td><span className={`ag-side ag-side-${f.side === 'BUY' ? 'buy' : 'sell'}`}><span className="ag-side-mark" aria-hidden="true" />{lpSideText(f)}</span></td>
+                  <td>{m(fmtCents(f.price))}</td>
+                  <td>{m(rwShareText(f.size))}</td>
+                  <td className={f.counted ? undefined : 'dim'} title={f.counted ? undefined : 'not counted until Polymarket confirms it'}>{String(f.status).toLowerCase()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section className="ag-section ag-lpl-days ag-ql-tables">
+        <div className="ag-section-title mono">DAYS</div>
+        <div className="hl-scroll">
+          <table className="hl-table ag-table ag-log mono">
+            <thead><tr>
+              <th className="hl-th">Day (UTC)</th><th className="hl-th">Markets</th><th className="hl-th">Formula</th><th className="hl-th">Paid</th>
+              <th className="hl-th">R</th><th className="hl-th">Rebates</th>
+            </tr></thead>
+            <tbody>
+              {days.length === 0 && <tr><td className="hl-empty dim" colSpan={6}>No day read yet: Polymarket's payouts are read an hour after each UTC day.</td></tr>}
+              {days.map((d) => (
+                <tr key={d.day}>
+                  <td className="dim">{dayLabel(d.day)}</td>
+                  <td>{d.markets}</td>
+                  <td>{m(fmtUsd(d.formulaUsd))}</td>
+                  <td className="ag-gl" style={{ color: pctColor(d.paidUsd) }}>{usd(d.paidUsd)}</td>
+                  <td>{fmtR(d.r)}</td>
+                  <td>{m(fmtUsd(d.rebateUsd))}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <div className="ag-updated dim mono ag-lpl-foot">as of {when(at)} {UK_TZ} · refreshes every minute</div>
     </div>
   );
 }
@@ -1473,8 +1646,9 @@ function AgentsModal({ hideValues, onClose }) {
   const testing = React.useMemo(() => [...split.testing, ...tests], [split, tests]);
   // PR5's live executor is a row of LIVE once it trades real money (Davies, 2026-09-26), in LIVE's scoreboard and its
   // Revolut X card; its twin is on TESTING.
-  const quotesLive = React.useMemo(() => quotesLiveRow(dash?.quotes?.live), [dash]);
-  const liveExtras = React.useMemo(() => (quotesLive ? [quotesLive] : []), [quotesLive]);
+  // Live-prep's real-money book is one too since it went live (Davies, 2026-10-09), in LIVE's scoreboard and its Polymarket
+  // card; its paper layer's row stays on TESTING (`liveExtraRows`).
+  const liveExtras = React.useMemo(() => liveExtraRows(dash), [dash]);
   const liveRows = React.useMemo(() => [...split.live, ...liveExtras], [split, liveExtras]);
   const tabsView = React.useMemo(() => agentsTabsView(dash, tests.length), [dash, tests]);
   // The page opens on LIVE while anything trades real money, else on TESTING, and follows the data until a tab is
@@ -1494,6 +1668,7 @@ function AgentsModal({ hideValues, onClose }) {
   const rwxOpen = rwxRow ? (dash?.rwx ?? []).find((/** @type {any} */ x) => `${RWX_ROW_PREFIX}${x.id}` === rwxRow.id) ?? null : null;
   const midOpen = selected === MID_ROW_ID && !!dash?.prepMid && !!mid;
   const lpOpen = selected === LP_ROW_ID && !!dash?.prepLp && !!lp;
+  const lpLiveOpen = selected === LP_LIVE_ROW_ID && !!lpLiveRow(dash?.lpLive);
   const notReady = !!dash?.notReady;
   const tabRows = tab === 'live' ? liveRows : testing;
 
@@ -1560,6 +1735,19 @@ function AgentsModal({ hideValues, onClose }) {
         </header>
         <div className="modal-body ag-body">
           <PageGuard gen={gen}><QuotesLiveDetail q={dash.quotes.live} m={m} at={dash.at} nowMs={now} /></PageGuard>
+        </div>
+      </Modal>
+    )}
+    {lpLiveOpen && (
+      <Modal onClose={() => setSelected(null)} size="lg">
+        <header className="modal-head">
+          <div>
+            <h2 className="modal-title mono ag-title-wraps">Reward quotes live-prep</h2>
+          </div>
+          <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
+        </header>
+        <div className="modal-body ag-body">
+          <PageGuard gen={gen}><LpLiveDetail l={dash.lpLive} m={m} at={dash.at} nowMs={now} /></PageGuard>
         </div>
       </Modal>
     )}

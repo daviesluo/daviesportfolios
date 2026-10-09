@@ -397,6 +397,24 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
   `.claude/CLAUDE.md`, the working-with-davies skill and its two Cursor copies say so. Live-prep's watch was restarted
   on it (Sonnet, high) at about 02:03 UTC.
 
+### [2026-10-09 01:56 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep's real money is a row of LIVE** (Davies: "网站的agents live页怎么看不到这个上线"; it went live 10-09 01:32:21
+  UTC). `agents/pm_lp_live_view.ts` + `readLpLive` send the dashboard's `lpLive` from `pm_lp_*` live rows only: funded
+  is the cap (`cap_total_usd`, not the pUSD read, which also holds the stop's room and moves with fills); deployed the
+  resting live buys' collateral plus holdings at cost; P&L `tokenBooks`/`bookPnl` on CONFIRMED fills and settlements at
+  the last turn's mids, realised plus `pm_lp_reward_days` live actual (native + sponsored) and rebates; formula apart,
+  R; fees 0 (post-only); the −$75 stop as the path reads it. Page `LpLiveDetail` (STOP AND GATES, HELD, RESTING/RECENT
+  ORDERS, FILLS, DAYS). The venue card's "(Paper)" now follows the books on it (a live book folded on LIVE was "(Paper)").
+  Not pushed: sub-agent commit for the main session to land; `pm_live.ts` and `pm_lp.ts` untouched.
+
+### [2026-10-09 01:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LPRESEL6 frozen** (Davies on the 6-hour re-selection: "这个你觉得有必要加吗？有必要的话就加上"): an offline forward test of
+  live-prep's rule against it re-selecting at 06/12/18 UTC, on pm-rec's whole-universe record 10-09 → 10-23, bar at
+  R = 0.40 under both fill models (paired day bootstrap seed 20261023 index 100, market-days less the best, worst day no
+  worse). In sample (10-05 → 10-08, this pipeline): +$61.63 at-price, −$56.11 at R = 1, bootstrap negative on four days.
+  Retention read: `pm_rec_archive` rows and `pm-rec` objects are never deleted (URLs 365 days, re-signed); frames go after
+  7 days once archived. No new Edge call, no instance, no change to live-prep.
+
 ### [2026-10-09 01:51 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep may send 12,000 POSTs a UTC day, up from 6,000** (Davies: "同意提到 12000"; branch `lp-governor-12k`, not
   pushed). Live it posted 98 between 01:33:04 and 01:48:05 UTC (about 392 an hour, 9,100 to 9,400 a day): the 6,000
@@ -425,14 +443,6 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
   not show it yet: a live row and page for it are being built (opus-high, branch `lp-live-row`). Kill switches:
   `update public.pm_lp_config set live_confirmed_at = null where id = 1;` (no new buys; sells stay), `dry_run = true`
   (cancels its live orders), `agent_risk.global_pause`.
-
-### [2026-10-09 01:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **LPRESEL6 frozen** (Davies on the 6-hour re-selection: "这个你觉得有必要加吗？有必要的话就加上"): an offline forward test of
-  live-prep's rule against it re-selecting at 06/12/18 UTC, on pm-rec's whole-universe record 10-09 → 10-23, bar at
-  R = 0.40 under both fill models (paired day bootstrap seed 20261023 index 100, market-days less the best, worst day no
-  worse). In sample (10-05 → 10-08, this pipeline): +$61.63 at-price, −$56.11 at R = 1, bootstrap negative on four days.
-  Retention read: `pm_rec_archive` rows and `pm-rec` objects are never deleted (URLs 365 days, re-signed); frames go after
-  7 days once archived. No new Edge call, no instance, no change to live-prep.
 
 ### [2026-10-09 01:34 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The review's 10-08 sections of batches 1–4, landed and closed, moved to the archive** (`docs/handover.md` Part 2,

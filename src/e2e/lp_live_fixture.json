@@ -1,0 +1,701 @@
+{
+ "input": {
+  "nowMs": 1789686000000,
+  "config": {
+   "dry_run": false,
+   "live_confirmed_at": "2026-09-16T01:32:21.000Z",
+   "cap_total_usd": 320,
+   "loss_total_usd": 75
+  },
+  "state": {
+   "updated_at": "2026-09-17T22:59:01.000Z",
+   "last_error": null,
+   "state": {
+    "mode": "live",
+    "armed": true,
+    "openBlockedBy": null,
+    "reduceBlockedBy": null,
+    "gates": {
+     "global_pause": true,
+     "risk_readable": true,
+     "armed": true,
+     "region": true,
+     "geoblock": true,
+     "closed_only": true,
+     "attestation": true,
+     "inventory": true,
+     "loss_day": true,
+     "loss_total": true,
+     "ctf_approval": true
+    },
+    "markets": [
+     {
+      "cond": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+      "quoting": true,
+      "book": {
+       "bestBid": 0.44,
+       "bestAsk": 0.46
+      }
+     },
+     {
+      "cond": "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+      "quoting": true,
+      "book": {
+       "bestBid": 0.7,
+       "bestAsk": 0.72
+      }
+     },
+     {
+      "cond": "0xc3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+      "quoting": true,
+      "book": {
+       "bestBid": 0.3,
+       "bestAsk": 0.32
+      }
+     }
+    ]
+   }
+  },
+  "open": [
+   {
+    "id": 109,
+    "ts": "2026-09-17T22:58:10.000Z",
+    "cond": "0xc3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+    "token": "c3c3c3-no",
+    "outcome": "no",
+    "side": "BUY",
+    "price": 0.68,
+    "size": 10,
+    "state": "pending",
+    "size_matched": 0,
+    "gate": "open",
+    "reason": null,
+    "cancel_reason": null,
+    "filled_at": null,
+    "cancelled_at": null
+   },
+   {
+    "id": 108,
+    "ts": "2026-09-17T22:50:00.000Z",
+    "cond": "0xc3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+    "token": "c3c3c3-yes",
+    "outcome": "yes",
+    "side": "BUY",
+    "price": 0.3,
+    "size": 15,
+    "state": "live",
+    "size_matched": 5,
+    "gate": "open",
+    "reason": null,
+    "cancel_reason": null,
+    "filled_at": null,
+    "cancelled_at": null
+   },
+   {
+    "id": 107,
+    "ts": "2026-09-17T22:40:00.000Z",
+    "cond": "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+    "token": "b2b2b2-no",
+    "outcome": "no",
+    "side": "SELL",
+    "price": 0.3,
+    "size": 10,
+    "state": "live",
+    "size_matched": 0,
+    "gate": "reduce",
+    "reason": null,
+    "cancel_reason": null,
+    "filled_at": null,
+    "cancelled_at": null
+   },
+   {
+    "id": 106,
+    "ts": "2026-09-17T22:30:00.000Z",
+    "cond": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "token": "a1a1a1-no",
+    "outcome": "no",
+    "side": "BUY",
+    "price": 0.54,
+    "size": 20,
+    "state": "live",
+    "size_matched": 0,
+    "gate": "open",
+    "reason": null,
+    "cancel_reason": null,
+    "filled_at": null,
+    "cancelled_at": null
+   },
+   {
+    "id": 105,
+    "ts": "2026-09-17T22:20:00.000Z",
+    "cond": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "token": "a1a1a1-yes",
+    "outcome": "yes",
+    "side": "BUY",
+    "price": 0.44,
+    "size": 20,
+    "state": "live",
+    "size_matched": 0,
+    "gate": "open",
+    "reason": null,
+    "cancel_reason": null,
+    "filled_at": null,
+    "cancelled_at": null
+   }
+  ],
+  "recent": [
+   {
+    "id": 104,
+    "ts": "2026-09-17T14:00:00.000Z",
+    "cond": "0xc3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+    "token": "c3c3c3-yes",
+    "outcome": "yes",
+    "side": "BUY",
+    "price": 0.3,
+    "size": 10,
+    "state": "filled",
+    "size_matched": 10,
+    "gate": "open",
+    "reason": null,
+    "cancel_reason": null,
+    "filled_at": "2026-09-17T14:00:00.000Z",
+    "cancelled_at": null
+   },
+   {
+    "id": 103,
+    "ts": "2026-09-17T09:00:00.000Z",
+    "cond": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "token": "a1a1a1-yes",
+    "outcome": "yes",
+    "side": "SELL",
+    "price": 0.43,
+    "size": 20,
+    "state": "filled",
+    "size_matched": 20,
+    "gate": "reduce",
+    "reason": null,
+    "cancel_reason": null,
+    "filled_at": "2026-09-17T09:00:00.000Z",
+    "cancelled_at": null
+   },
+   {
+    "id": 102,
+    "ts": "2026-09-16T13:00:00.000Z",
+    "cond": "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+    "token": "b2b2b2-yes",
+    "outcome": "yes",
+    "side": "BUY",
+    "price": 0.7,
+    "size": 10,
+    "state": "expired",
+    "size_matched": 0,
+    "gate": "open",
+    "reason": null,
+    "cancel_reason": null,
+    "filled_at": null,
+    "cancelled_at": "2026-09-16T13:00:00.000Z"
+   },
+   {
+    "id": 101,
+    "ts": "2026-09-16T12:00:00.000Z",
+    "cond": "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+    "token": "b2b2b2-no",
+    "outcome": "no",
+    "side": "BUY",
+    "price": 0.28,
+    "size": 10,
+    "state": "filled",
+    "size_matched": 10,
+    "gate": "open",
+    "reason": null,
+    "cancel_reason": null,
+    "filled_at": "2026-09-16T12:00:00.000Z",
+    "cancelled_at": null
+   },
+   {
+    "id": 100,
+    "ts": "2026-09-16T10:30:00.000Z",
+    "cond": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "token": "a1a1a1-no",
+    "outcome": "no",
+    "side": "BUY",
+    "price": 0.55,
+    "size": 20,
+    "state": "cancelled",
+    "size_matched": 0,
+    "gate": "open",
+    "reason": null,
+    "cancel_reason": "re-quoted",
+    "filled_at": null,
+    "cancelled_at": "2026-09-16T10:30:00.000Z"
+   },
+   {
+    "id": 99,
+    "ts": "2026-09-16T10:00:00.000Z",
+    "cond": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "token": "a1a1a1-yes",
+    "outcome": "yes",
+    "side": "BUY",
+    "price": 0.4,
+    "size": 20,
+    "state": "filled",
+    "size_matched": 20,
+    "gate": "open",
+    "reason": null,
+    "cancel_reason": null,
+    "filled_at": "2026-09-16T10:00:00.000Z",
+    "cancelled_at": null
+   }
+  ],
+  "fills": [
+   {
+    "trade_id": "t-1",
+    "hash": "0xh99",
+    "cond": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "token": "a1a1a1-yes",
+    "side": "BUY",
+    "price": 0.4,
+    "size": 20,
+    "status": "CONFIRMED",
+    "match_time": "2026-09-16T10:00:00.000Z"
+   },
+   {
+    "trade_id": "t-2",
+    "hash": "0xh101",
+    "cond": "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+    "token": "b2b2b2-no",
+    "side": "BUY",
+    "price": 0.28,
+    "size": 10,
+    "status": "CONFIRMED",
+    "match_time": "2026-09-16T12:00:00.000Z"
+   },
+   {
+    "trade_id": "t-3",
+    "hash": "0xh103",
+    "cond": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "token": "a1a1a1-yes",
+    "side": "SELL",
+    "price": 0.43,
+    "size": 20,
+    "status": "CONFIRMED",
+    "match_time": "2026-09-17T09:00:00.000Z"
+   },
+   {
+    "trade_id": "t-4",
+    "hash": "0xh104",
+    "cond": "0xc3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+    "token": "c3c3c3-yes",
+    "side": "BUY",
+    "price": 0.3,
+    "size": 10,
+    "status": "CONFIRMED",
+    "match_time": "2026-09-17T14:00:00.000Z"
+   },
+   {
+    "trade_id": "t-5",
+    "hash": "0xh108",
+    "cond": "0xc3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+    "token": "c3c3c3-yes",
+    "side": "BUY",
+    "price": 0.3,
+    "size": 5,
+    "status": "MATCHED",
+    "match_time": "2026-09-17T22:58:00.000Z"
+   }
+  ],
+  "settlements": [],
+  "rewardDays": [
+   {
+    "day": "2026-09-16",
+    "cond": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "minutes": 840,
+    "minutes_scored": 700,
+    "formula_usd": 2,
+    "actual_usd": 0.8,
+    "actual_sponsored_usd": 0.2,
+    "rebate_usd": 0.05
+   },
+   {
+    "day": "2026-09-16",
+    "cond": "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+    "minutes": 720,
+    "minutes_scored": 600,
+    "formula_usd": 3,
+    "actual_usd": 1.2,
+    "actual_sponsored_usd": 0,
+    "rebate_usd": 0
+   }
+  ],
+  "markets": [
+   {
+    "day": "2026-09-17",
+    "cond": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "question": "Will G happen?",
+    "yes_token": "a1a1a1-yes",
+    "no_token": "a1a1a1-no"
+   },
+   {
+    "day": "2026-09-16",
+    "cond": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "question": "Will G happen?",
+    "yes_token": "a1a1a1-yes",
+    "no_token": "a1a1a1-no"
+   },
+   {
+    "day": "2026-09-17",
+    "cond": "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+    "question": "Will H happen?",
+    "yes_token": "b2b2b2-yes",
+    "no_token": "b2b2b2-no"
+   },
+   {
+    "day": "2026-09-16",
+    "cond": "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+    "question": "Will H happen?",
+    "yes_token": "b2b2b2-yes",
+    "no_token": "b2b2b2-no"
+   },
+   {
+    "day": "2026-09-17",
+    "cond": "0xc3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+    "question": "Will J happen?",
+    "yes_token": "c3c3c3-yes",
+    "no_token": "c3c3c3-no"
+   }
+  ],
+  "stop": null
+ },
+ "output": {
+  "armed": true,
+  "dryRun": false,
+  "liveSince": "2026-09-16T01:32:21.000Z",
+  "tradedLive": true,
+  "lastTurn": "2026-09-17T22:59:01.000Z",
+  "lagMinutes": 1,
+  "running": true,
+  "lastError": null,
+  "capUsd": 320,
+  "valueUsd": 35.2,
+  "restingBuysUsd": 29.4,
+  "costUsd": 5.8,
+  "heldValueUsd": 6,
+  "todayUsd": 0.8,
+  "unrealisedUsd": 0.2,
+  "realisedUsd": 2.85,
+  "realisedFillsUsd": 0.6,
+  "paidUsd": 2.2,
+  "rebateUsd": 0.05,
+  "totalUsd": 3.05,
+  "feesUsd": 0,
+  "formulaUsd": 5,
+  "r": 0.44,
+  "stop": {
+   "limitUsd": 75,
+   "fillsPnlUsd": 0.8,
+   "paidUsd": 2.2,
+   "basisUsd": 3,
+   "roomUsd": 78,
+   "trippedAt": null
+  },
+  "gates": {
+   "mode": "live",
+   "armed": true,
+   "verdicts": {
+    "global_pause": true,
+    "risk_readable": true,
+    "armed": true,
+    "region": true,
+    "geoblock": true,
+    "closed_only": true,
+    "attestation": true,
+    "inventory": true,
+    "loss_day": true,
+    "loss_total": true,
+    "ctf_approval": true
+   },
+   "openBlockedBy": null,
+   "reduceBlockedBy": null
+  },
+  "openOrders": 5,
+  "markets": 3,
+  "fills": 4,
+  "resting": [
+   {
+    "id": 109,
+    "ts": "2026-09-17T22:58:10.000Z",
+    "cond": "0xc3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+    "q": "Will J happen?",
+    "outcome": "no",
+    "side": "BUY",
+    "price": 0.68,
+    "size": 10,
+    "matched": 0,
+    "state": "pending",
+    "gate": "open",
+    "reason": null,
+    "cancelReason": null,
+    "endedAt": null
+   },
+   {
+    "id": 108,
+    "ts": "2026-09-17T22:50:00.000Z",
+    "cond": "0xc3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+    "q": "Will J happen?",
+    "outcome": "yes",
+    "side": "BUY",
+    "price": 0.3,
+    "size": 15,
+    "matched": 5,
+    "state": "live",
+    "gate": "open",
+    "reason": null,
+    "cancelReason": null,
+    "endedAt": null
+   },
+   {
+    "id": 107,
+    "ts": "2026-09-17T22:40:00.000Z",
+    "cond": "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+    "q": "Will H happen?",
+    "outcome": "no",
+    "side": "SELL",
+    "price": 0.3,
+    "size": 10,
+    "matched": 0,
+    "state": "live",
+    "gate": "reduce",
+    "reason": null,
+    "cancelReason": null,
+    "endedAt": null
+   },
+   {
+    "id": 106,
+    "ts": "2026-09-17T22:30:00.000Z",
+    "cond": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "q": "Will G happen?",
+    "outcome": "no",
+    "side": "BUY",
+    "price": 0.54,
+    "size": 20,
+    "matched": 0,
+    "state": "live",
+    "gate": "open",
+    "reason": null,
+    "cancelReason": null,
+    "endedAt": null
+   },
+   {
+    "id": 105,
+    "ts": "2026-09-17T22:20:00.000Z",
+    "cond": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "q": "Will G happen?",
+    "outcome": "yes",
+    "side": "BUY",
+    "price": 0.44,
+    "size": 20,
+    "matched": 0,
+    "state": "live",
+    "gate": "open",
+    "reason": null,
+    "cancelReason": null,
+    "endedAt": null
+   }
+  ],
+  "recent": [
+   {
+    "id": 104,
+    "ts": "2026-09-17T14:00:00.000Z",
+    "cond": "0xc3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+    "q": "Will J happen?",
+    "outcome": "yes",
+    "side": "BUY",
+    "price": 0.3,
+    "size": 10,
+    "matched": 10,
+    "state": "filled",
+    "gate": "open",
+    "reason": null,
+    "cancelReason": null,
+    "endedAt": "2026-09-17T14:00:00.000Z"
+   },
+   {
+    "id": 103,
+    "ts": "2026-09-17T09:00:00.000Z",
+    "cond": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "q": "Will G happen?",
+    "outcome": "yes",
+    "side": "SELL",
+    "price": 0.43,
+    "size": 20,
+    "matched": 20,
+    "state": "filled",
+    "gate": "reduce",
+    "reason": null,
+    "cancelReason": null,
+    "endedAt": "2026-09-17T09:00:00.000Z"
+   },
+   {
+    "id": 102,
+    "ts": "2026-09-16T13:00:00.000Z",
+    "cond": "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+    "q": "Will H happen?",
+    "outcome": "yes",
+    "side": "BUY",
+    "price": 0.7,
+    "size": 10,
+    "matched": 0,
+    "state": "expired",
+    "gate": "open",
+    "reason": null,
+    "cancelReason": null,
+    "endedAt": "2026-09-16T13:00:00.000Z"
+   },
+   {
+    "id": 101,
+    "ts": "2026-09-16T12:00:00.000Z",
+    "cond": "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+    "q": "Will H happen?",
+    "outcome": "no",
+    "side": "BUY",
+    "price": 0.28,
+    "size": 10,
+    "matched": 10,
+    "state": "filled",
+    "gate": "open",
+    "reason": null,
+    "cancelReason": null,
+    "endedAt": "2026-09-16T12:00:00.000Z"
+   },
+   {
+    "id": 100,
+    "ts": "2026-09-16T10:30:00.000Z",
+    "cond": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "q": "Will G happen?",
+    "outcome": "no",
+    "side": "BUY",
+    "price": 0.55,
+    "size": 20,
+    "matched": 0,
+    "state": "cancelled",
+    "gate": "open",
+    "reason": null,
+    "cancelReason": "re-quoted",
+    "endedAt": "2026-09-16T10:30:00.000Z"
+   },
+   {
+    "id": 99,
+    "ts": "2026-09-16T10:00:00.000Z",
+    "cond": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "q": "Will G happen?",
+    "outcome": "yes",
+    "side": "BUY",
+    "price": 0.4,
+    "size": 20,
+    "matched": 20,
+    "state": "filled",
+    "gate": "open",
+    "reason": null,
+    "cancelReason": null,
+    "endedAt": "2026-09-16T10:00:00.000Z"
+   }
+  ],
+  "recentFills": [
+   {
+    "tradeId": "t-5",
+    "ts": "2026-09-17T22:58:00.000Z",
+    "cond": "0xc3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+    "q": "Will J happen?",
+    "outcome": "yes",
+    "side": "BUY",
+    "price": 0.3,
+    "size": 5,
+    "status": "MATCHED",
+    "counted": false
+   },
+   {
+    "tradeId": "t-4",
+    "ts": "2026-09-17T14:00:00.000Z",
+    "cond": "0xc3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+    "q": "Will J happen?",
+    "outcome": "yes",
+    "side": "BUY",
+    "price": 0.3,
+    "size": 10,
+    "status": "CONFIRMED",
+    "counted": true
+   },
+   {
+    "tradeId": "t-3",
+    "ts": "2026-09-17T09:00:00.000Z",
+    "cond": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "q": "Will G happen?",
+    "outcome": "yes",
+    "side": "SELL",
+    "price": 0.43,
+    "size": 20,
+    "status": "CONFIRMED",
+    "counted": true
+   },
+   {
+    "tradeId": "t-2",
+    "ts": "2026-09-16T12:00:00.000Z",
+    "cond": "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+    "q": "Will H happen?",
+    "outcome": "no",
+    "side": "BUY",
+    "price": 0.28,
+    "size": 10,
+    "status": "CONFIRMED",
+    "counted": true
+   },
+   {
+    "tradeId": "t-1",
+    "ts": "2026-09-16T10:00:00.000Z",
+    "cond": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "q": "Will G happen?",
+    "outcome": "yes",
+    "side": "BUY",
+    "price": 0.4,
+    "size": 20,
+    "status": "CONFIRMED",
+    "counted": true
+   }
+  ],
+  "held": [
+   {
+    "cond": "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+    "q": "Will H happen?",
+    "outcome": "no",
+    "shares": 10,
+    "avgCost": 0.28,
+    "mark": 0.29,
+    "costUsd": 2.8,
+    "valueUsd": 2.9,
+    "unrealisedUsd": 0.1
+   },
+   {
+    "cond": "0xc3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+    "q": "Will J happen?",
+    "outcome": "yes",
+    "shares": 10,
+    "avgCost": 0.3,
+    "mark": 0.31,
+    "costUsd": 3,
+    "valueUsd": 3.1,
+    "unrealisedUsd": 0.1
+   }
+  ],
+  "days": [
+   {
+    "day": "2026-09-16",
+    "markets": 2,
+    "minutesScored": 1300,
+    "formulaUsd": 5,
+    "paidUsd": 2.2,
+    "rebateUsd": 0.05,
+    "r": 0.44
+   }
+  ]
+ }
+}

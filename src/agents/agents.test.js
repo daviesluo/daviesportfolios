@@ -6,6 +6,7 @@ import {
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
   newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwxSourceText, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, rwNotRunningText, paperTestRows, rwRoundText, PREP_ROW_ID, MID_ROW_ID, LP_ROW_ID, isPrepRowId, lpRow, midRow, prepRow, prepStopText, rwQuoteRows,
+  LP_LIVE_ROW_ID, fmtR, liveExtraRows, lpLiveGates, lpLiveRow, lpLiveStopText, lpSideText,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies,
   fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney } from './agents.js';
 // The live quotes page's fixture: what the dashboard serves for a book worked out by hand (the agents function's test
@@ -17,6 +18,8 @@ import prepFixture from '../e2e/prep_fixture.json';
 // Mid-pool's: a record of its band worked out by hand, and the same summary's answer for it (pm_prep_view.test.ts).
 import midFixture from '../e2e/mid_fixture.json';
 import lpFixture from '../e2e/lp_fixture.json';
+// Live-prep's real-money book: a live record worked out by hand, and the dashboard's answer for it (pm_lp_live_view.test.ts).
+import lpLiveFixture from '../e2e/lp_live_fixture.json';
 import {
   chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText, plotLabelY,
 } from './agents_chart.js';
@@ -1764,5 +1767,77 @@ describe('midRow ("Reward quotes mid-pool", 0081)', () => {
     expect([today?.stressUsd, r.days[0].stressUsd]).toEqual([1.9, 2.3]);
     expect(today?.totalUsd).toBeCloseTo(4.6, 12);
     expect((today?.totalUsd ?? 0) + r.days.reduce((s, d) => s + d.totalUsd, 0)).toBeCloseTo(r.totalUsd, 12);
+  });
+});
+
+describe('lpLiveRow ("Reward quotes live-prep" on LIVE, 2026-10-09)', () => {
+  const l = /** @type {any} */ (lpLiveFixture.output);
+  const paperRow = { id: 'trend-4h', venue: 'revx', mode: 'paper', capitalUsd: 100, costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 1, feesUsd: 0, todayUsd: 0, positions: [] };
+  it('is a LIVE row on Polymarket, named without " · live", its figures the live book\'s on their own bases', () => {
+    const r = /** @type {any} */ (lpLiveRow(l));
+    expect([r.id, r.name, r.mode, r.venueId, r.venue, r.capitalUsd, r.valueUsd, r.costUsd, r.feesUsd, r.openPositions, r.openOrders, r.holdsLive, r.armed])
+      .toEqual([LP_LIVE_ROW_ID, 'Reward quotes live-prep', 'live', 'polymarket', 'Polymarket', 320, 35.2, 5.8, 0, 3, 5, true, true]);
+    expect([r.todayUsd, r.unrealisedUsd, r.realisedUsd]).toEqual([0.8, 0.2, 2.85]);
+    expect(r.todayPct).toBeCloseTo(0.8 / 320 * 100, 12);
+    expect(r.unrealisedPct).toBeCloseTo(0.2 / 5.8 * 100, 12);
+    expect(r.realisedPct).toBeCloseTo(2.85 / 320 * 100, 12);
+    // Realised splits into what Polymarket paid (rewards and rebates) and what its orders closed, to the cent.
+    expect([r.rewards.realisedUsd, r.orders.realisedUsd, r.orders.unrealisedUsd]).toEqual([2.25, 0.6, 0.2]);
+    expect(r.status).toEqual({ label: 'live', running: true, tone: 'running', detail: 'quoting real money in 3 markets' });
+    // In dollars, the row's own currency.
+    expect(rowMoney(r).ccy).toBe('USD');
+    // Not its paper layer's row: another id, so TESTING's live-prep row and this one never open each other's page.
+    expect(r.id).not.toBe(LP_ROW_ID);
+  });
+  it('is no row until armed or traded; a stale, stopped or disarmed book says so', () => {
+    expect(lpLiveRow(null)).toBe(null);
+    expect(lpLiveRow({ ...l, armed: false, tradedLive: false })).toBe(null);
+    expect(lpLiveRow({ ...l, armed: true, tradedLive: false })?.id).toBe(LP_LIVE_ROW_ID);
+    expect(lpLiveRow({ ...l, running: false, lagMinutes: 9 })?.status).toEqual({ label: 'live', running: false, tone: 'stale', detail: 'its last turn was 9 min ago' });
+    expect(lpLiveRow({ ...l, stop: { ...l.stop, trippedAt: '2026-09-17T20:00:00.000Z' } })?.status.detail).toBe('its total loss stop has tripped: it only sells what it holds');
+    expect(lpLiveRow({ ...l, armed: false })?.status.detail).toBe('disarmed · its sells of what it holds still run');
+  });
+  it("opens the page on LIVE, counts once on LIVE's bar, scoreboard and Polymarket card, and never on TESTING's", () => {
+    const dash = { risk: { global_pause: false, live_confirmed_at: null }, strategies: [paperRow], prepLp: lpFixture.output, lpLive: l };
+    expect(defaultAgentsTab(dash)).toBe('live');
+    expect(defaultAgentsTab({ ...dash, lpLive: null })).toBe('testing');
+    const r = /** @type {any} */ (lpLiveRow(l));
+    expect(liveExtraRows(dash).map((x) => x.id)).toEqual([LP_LIVE_ROW_ID]);
+    const v = agentsTabsView(dash, 1);
+    expect([v.live.count, v.live.text, v.live.tone]).toEqual([1, 'Real money · trading', 'armed']);
+    // With PR5's live executor too: both, PR5's first.
+    const both = { ...dash, quotes: { live: { tradedLive: true, armed: false, heldRungs: 0, capitalUsd: 10 } } };
+    expect(liveExtraRows(both).map((x) => x.id)).toEqual([QUOTES_LIVE_ROW_ID, LP_LIVE_ROW_ID]);
+    expect([agentsTabsView(both, 1).live.count, agentsTabsView(both, 1).live.tone]).toEqual([2, 'armed']);
+    const live = scoreboardView(dash, 'live', [r]);
+    expect([live.capitalUsd, live.valueUsd, live.costUsd, live.todayUsd, live.unrealisedUsd, live.realisedUsd, live.feesUsd]).toEqual([320, 35.2, 5.8, 0.8, 0.2, 2.85, 0]);
+    expect(live.unrealisedPct).toBeCloseTo(0.2 / 5.8 * 100, 12);
+    // Its Polymarket card on LIVE: real money, so not "(Paper)", its cost and fees its own, rewards and orders under realised.
+    const [card] = venueRows(dash, 'live', [r]);
+    expect([card.id, card.paper, card.live, card.capitalUsd, card.valueUsd, card.costUsd, card.feesUsd, card.realisedUsd, card.todayUsd])
+      .toEqual(['polymarket', false, 1, 320, 35.2, 5.8, 0, 2.85, 0.8]);
+    expect([card.test.rewards.realisedUsd, card.test.orders.realisedUsd]).toEqual([2.25, 0.6]);
+    // TESTING keeps the paper layer's row alone, its card still paper.
+    const tests = paperTestRows(dash);
+    expect(tests.map((t) => t.id)).toEqual([LP_ROW_ID]);
+    const testing = scoreboardView(dash, 'testing', tests);
+    expect(testing.capitalUsd).toBe(100 + 320);
+    expect(testing.realisedUsd).toBeCloseTo(1 + Number(lpFixture.output.realisedUsd), 12);
+    expect(venueRows(dash, 'testing', tests).find((c) => c.id === 'polymarket')?.paper).toBe(true);
+  });
+  it("lists the gates of its last turn in the path's order, and its stop in words, masked under hide-values", () => {
+    const g = lpLiveGates(l);
+    expect(g?.rows.map((x) => `${x.key}:${x.state}`)).toEqual([
+      'global_pause:pass', 'risk_readable:pass', 'armed:pass', 'region:pass', 'geoblock:pass', 'closed_only:pass', 'attestation:pass', 'inventory:pass',
+      'loss_total:pass', 'ctf_approval:pass']);
+    expect([g?.openBlockedBy, g?.reduceBlockedBy, g?.mode]).toEqual([null, null, 'live']);
+    const blocked = lpLiveGates({ gates: { ...l.gates, verdicts: { ...l.gates.verdicts, geoblock: false, armed: null }, openBlockedBy: 'geoblock' } });
+    expect(blocked?.rows.filter((x) => x.state !== 'pass').map((x) => `${x.key}:${x.state}`)).toEqual(['armed:n/a', 'geoblock:fail']);
+    expect(lpLiveGates({})).toBe(null);
+    expect(lpLiveStopText(l)).toBe('Stops at -$75 on its fills plus what was paid: now +$3 (fills +$0.80, paid +$2.20), $78 to go.');
+    expect(/\d/.test(lpLiveStopText(l, (s) => s.replace(/\d/g, '•')))).toBe(false);
+    expect(lpLiveStopText({ stop: { ...l.stop, trippedAt: '2026-09-17T20:00:00.000Z' } })).toMatch(/^Tripped 17 Sep 21:00: nothing opens again/);
+    expect([lpSideText({ side: 'BUY', outcome: 'yes' }), lpSideText({ side: 'SELL', outcome: 'no' })]).toEqual(['buy Yes', 'sell No']);
+    expect([fmtR(0.44), fmtR(null), fmtR(1)]).toEqual(['0.44', '—', '1.00']);
   });
 });

@@ -166,6 +166,7 @@ import { PM_LIVE_TIMEOUT_MS, PM_MINI_INSTANCE, runPmLive, type PmSettlement } fr
 import { PREP_INSTANCE, runPmPrep, type PrepInstance } from "./pm_prep.ts";
 import { PM_MID_INSTANCE, PREP_MID_INSTANCE } from "./pm_mid.ts";
 import { PM_LP_INSTANCE, PREP_LP_INSTANCE } from "./pm_lp.ts";
+import { LP_LIVE_FILL_COLUMNS, LP_LIVE_ORDER_COLUMNS, LP_LIVE_RECENT_ORDERS, LP_LIVE_REWARD_COLUMNS, lpLiveConds, lpLiveSummary, type LpLiveConfigRow, type LpLiveFillRow, type LpLiveMarketRow, type LpLiveOrderRow, type LpLiveRewardDayRow, type LpLiveStateRow, type LpLiveStopRow } from "./pm_lp_live_view.ts";
 import { PREP_STRESS_TABLE, recordPrepStress, stressLayer } from "./pm_prep_stress.ts";
 import { prepSummary, type PrepDayRow, type PrepStressDayRow, type PrepFillRow, type PrepMarketRow, type PrepMinuteRow, type PrepRateRow, type PrepStateRow } from "./pm_prep_view.ts";
 import { JEV_QUESTION_VERSION, positionFromFills, unrealisedUsd, type CategoricalState, type Position, type StrategyKind } from "../_shared/agents_strategy.ts";
@@ -1633,6 +1634,35 @@ export async function readPrepSummary(d: Db, inst: PrepInstance, now: number, da
   } catch { return null; }
 }
 
+/**
+ * "Reward quotes live-prep"'s real-money book (`pm_lp_live_view.ts`), the dashboard's `lpLive`: the order path's own live
+ * rows (`pm_lp_*`, mode `live`) and nothing of its paper layer. Its state is read first, as the path writes its fills
+ * and orders before the state that follows them. Null while it has never been armed nor sent a live order, or when a
+ * read fails: the rest of the page stands without it.
+ */
+export async function readLpLive(d: Db, now: number) {
+  const T = PM_LP_INSTANCE.tables;
+  try {
+    const cfg = await d.select<LpLiveConfigRow>(T.config, "id=eq.1&select=dry_run,live_confirmed_at,cap_total_usd,loss_total_usd");
+    if (!cfg[0]) return null;
+    const st = await d.select<LpLiveStateRow>(T.state, "id=eq.1&select=state,updated_at,last_error");
+    const [open, recent, fills, settlements, rewardDays, stop] = await Promise.all([
+      d.select<LpLiveOrderRow>(T.orders, `mode=eq.live&state=in.(pending,live)&select=${LP_LIVE_ORDER_COLUMNS}&order=id.desc&limit=200`),
+      d.select<LpLiveOrderRow>(T.orders, `mode=eq.live&state=in.(filled,cancelled,expired,rejected)&select=${LP_LIVE_ORDER_COLUMNS}&order=id.desc&limit=${LP_LIVE_RECENT_ORDERS}`),
+      // Paged: every fill counts towards the book, and PostgREST stops at 1,000 rows without a word.
+      d.selectAll<LpLiveFillRow>(T.fills, `select=${LP_LIVE_FILL_COLUMNS}&order=trade_id.asc,hash.asc`),
+      d.selectAll<PmSettlement>(T.settlements, "select=cond,yes_token,no_token,payout,settled_at&order=cond.asc"),
+      d.selectAll<LpLiveRewardDayRow>(T.rewardDays, `mode=eq.live&select=${LP_LIVE_REWARD_COLUMNS}&order=mode.asc,day.asc,cond.asc`),
+      d.select<LpLiveStopRow>(T.events, "mode=eq.live&kind=eq.loss_stop_total&select=minute,detail&order=minute.asc&limit=1"),
+    ]);
+    const conds = lpLiveConds({ fills, open, recent });
+    const markets = conds.length
+      ? await d.select<LpLiveMarketRow>(T.markets, `cond=in.(${conds.map(encodeURIComponent).join(",")})&select=day,cond,question,yes_token,no_token&order=day.desc&limit=1000`)
+      : [];
+    return lpLiveSummary({ config: cfg[0], state: st[0] ?? null, open, recent, fills, settlements, rewardDays, markets, stop: stop[0] ?? null, nowMs: now });
+  } catch { return null; }
+}
+
 export async function runDashboard(now = Date.now()) {
   try {
     return await dashboard(now);
@@ -1875,6 +1905,8 @@ async function dashboard(now: number) {
   const prepMid = await readPrepSummary(d, PREP_MID_INSTANCE, now, dayStartMs);
   // "Reward quotes live-prep" (`0091`): the path on RW's universe with live-prep's rules, its paper layer read the same way.
   const prepLp = await readPrepSummary(d, PREP_LP_INSTANCE, now, dayStartMs);
+  // Its real-money book since it went live (2026-10-09), a row of LIVE with a page of its own: its live rows alone.
+  const lpLive = await readLpLive(d, now);
   const quotesVariant = await quotesVariantRead;
   const quotesRuled = await quotesRuledRead;
 
@@ -1921,6 +1953,11 @@ async function dashboard(now: number) {
     prepMid,
     /** "Reward quotes live-prep", the path on $10 and over with live-prep's rules, filled on paper (`0091`); likewise. */
     prepLp,
+    /**
+     * "Reward quotes live-prep"'s real money (`pm_lp_live_view.ts`): a row of LIVE, its figures from the path's live rows
+     * only, never added to TESTING's; null until it is armed or has sent a live order.
+     */
+    lpLive,
   };
 }
 

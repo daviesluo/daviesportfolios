@@ -508,7 +508,7 @@ export function tabStrategies(dash, tab) {
 
 /** The tab the page opens on: LIVE while anything trades real money, else TESTING. @param {any} dash @returns {AgentsTab} */
 export function defaultAgentsTab(dash) {
-  return tabStrategies(dash, 'live').length > 0 || !!quotesLiveRow(dash?.quotes?.live) ? 'live' : 'testing';
+  return tabStrategies(dash, 'live').length > 0 || liveExtraRows(dash).length > 0 ? 'live' : 'testing';
 }
 
 /**
@@ -538,14 +538,14 @@ export function liveArming(dash) {
 export function agentsTabsView(dash, tests = 0) {
   const strategies = tabStrategies(dash, 'testing').length;
   const arming = liveArming(dash);
-  // PR5's live executor is a LIVE row of its own once it trades real money; with no strategy on LIVE, its own switch
-  // and what it holds say what kind of money is on the tab.
-  const pr5 = quotesLiveRow(dash?.quotes?.live);
+  // PR5's live executor and live-prep's live book are LIVE rows of their own once they trade real money
+  // (`liveExtraRows`); with no strategy on LIVE, their own switches and what they hold say what kind of money is on the tab.
+  const extras = liveExtraRows(dash);
   // Plain words, for anyone reading the page (Davies, 2026-09-24): "armed" and "awaiting arming" were the loop's.
   // Unarmed, a row that holds coins is still selling them: its floor and its rule's exit run whatever the switch says.
-  const pr5State = !pr5 ? 'none' : pr5.armed ? 'armed' : pr5.holdsLive ? 'winding' : 'unarmed';
-  const state = arming.state === 'none' ? pr5State : arming.state;
-  const holding = arming.state === 'none' ? !!pr5?.holdsLive : arming.holding;
+  const extraState = !extras.length ? 'none' : extras.some((r) => r.armed) ? 'armed' : extras.some((r) => r.holdsLive) ? 'winding' : 'unarmed';
+  const state = arming.state === 'none' ? extraState : arming.state;
+  const holding = arming.state === 'none' ? extras.some((r) => r.holdsLive) : arming.holding;
   const liveWords = state === 'none' ? 'Nothing is live'
     : arming.paused ? 'Real money · paused'
       : state === 'stopped' ? 'Real money · stopped'
@@ -553,7 +553,7 @@ export function agentsTabsView(dash, tests = 0) {
           : state === 'armed' ? 'Real money · trading' : 'Real money · not trading yet';
   const tone = state === 'none' ? 'none' : arming.paused || state === 'stopped' ? 'paused' : state;
   return {
-    live: { id: /** @type {AgentsTab} */ ('live'), label: 'LIVE', count: arming.count + (pr5 ? 1 : 0), text: liveWords, tone },
+    live: { id: /** @type {AgentsTab} */ ('live'), label: 'LIVE', count: arming.count + extras.length, text: liveWords, tone },
     testing: {
       // The count is beside the label, so the line is the kind of money alone (Davies, 2026-09-27: "上面已经有9了").
       id: /** @type {AgentsTab} */ ('testing'), label: 'TESTING', count: strategies + tests, text: 'Paper', tone: 'paper',
@@ -924,6 +924,8 @@ export function venueRows(dash, tab = null, tests = []) {
     return [id, {
       ...sumRows([...on, ...folded]), strategies: on.length, tests: folded.length,
       live: [...on, ...folded].filter((/** @type {any} */ s) => s.mode === 'live').length,
+      // Paper only while no row on it, a strategy or a folded book, trades real money (`paperOnly`).
+      paper: paperOnly(on, id) && folded.every((t) => t?.mode !== 'live'),
       unrealisedBase: cost + deployed,
       unrealisedOf: folded.some(isDeployed) ? 'cost and deployed' : 'cost',
     }];
@@ -936,7 +938,7 @@ export function venueRows(dash, tab = null, tests = []) {
     const value = b.valueUsd ?? 0, capital = b.capitalUsd ?? 0, cost = b.costUsd ?? 0;
     const unrealised = b.unrealisedUsd ?? 0, realised = b.realisedUsd ?? 0, today = b.todayUsd ?? 0;
     return {
-      id, label: venueLabel(id), test: /** @type {any} */ (null),
+      id, label: venueLabel(id), test: /** @type {any} */ (null), paper: !!b.paper,
       capitalUsd: capital, valueUsd: value, costUsd: cost, unrealisedUsd: unrealised, realisedUsd: realised, feesUsd: /** @type {number | null} */ (b.feesUsd ?? 0),
       // The same bases as the scoreboard: unrealised on the cost of what is held, realised and today on the venue's capital on the tab.
       unrealisedPct: pct(unrealised, b.unrealisedBase ?? cost), realisedPct: pct(realised, capital), todayPct: pct(today, capital), deployedPct: pct(value, capital),
@@ -948,10 +950,12 @@ export function venueRows(dash, tab = null, tests = []) {
   });
   // A venue no strategy trades on is its paper tests' card, every test on it summed: Polymarket carries RW and RW-E
   // since 2026-09-26, and its card must read what TESTING's scoreboard adds for it (the first version kept the first
-  // test's card and dropped the second).
+  // test's card and dropped the second). On LIVE it is the card of the real-money books folded there (live-prep's on
+  // Polymarket since 2026-10-09): not paper, its cost and fees its own.
   for (const id of [...new Set(tests.map((t) => t?.venueId).filter((x) => x && !ids.includes(x)))]) {
     const ts = tests.filter((t) => t?.venueId === id);
     const sum = (/** @type {(t: any) => unknown} */ f) => ts.reduce((a, t) => a + (Number(f(t)) || 0), 0);
+    const live = ts.filter((t) => t?.mode === 'live');
     const capital = sum((t) => t.capitalUsd), value = sum((t) => t.valueUsd);
     const unrealised = sum((t) => t.unrealisedUsd), realised = sum((t) => t.realisedUsd), today = sum((t) => t.todayUsd);
     // Each test's unrealised percent is on its own base (RW's: what its inventory cost); the card's, on those summed.
@@ -964,12 +968,13 @@ export function venueRows(dash, tab = null, tests = []) {
       } : {}),
     };
     cards.push({
-      id, label: venueLabel(id), test,
-      capitalUsd: capital, valueUsd: value, costUsd: 0, unrealisedUsd: unrealised, realisedUsd: realised, feesUsd: null,
+      id, label: venueLabel(id), test, paper: live.length === 0,
+      capitalUsd: capital, valueUsd: value, costUsd: live.reduce((a, t) => a + (Number(t.costUsd) || 0), 0), unrealisedUsd: unrealised, realisedUsd: realised,
+      feesUsd: live.length ? live.reduce((a, t) => a + (Number(t.feesUsd) || 0), 0) : null,
       unrealisedPct: ts.length === 1 ? ts[0].unrealisedPct ?? null : pct(unrealised, base), realisedPct: pct(realised, capital), todayPct: pct(today, capital),
       deployedPct: pct(value, capital),
       unrealisedOf: ts[0]?.unrealisedOf ?? 'deployed',
-      strategies: 0, tests: ts.length, live: 0, todayUsd: today, apart: [],
+      strategies: 0, tests: ts.length, live: live.length, todayUsd: today, apart: [],
       balanceUsd: null, balances: null, canTrade: false, feeBps: null, note: null,
     });
   }
@@ -1271,6 +1276,109 @@ export function quotesPageFor(selected, dash) {
   if (selected === QUOTES_LIVE_ROW_ID) return quotesLiveRow(dash?.quotes?.live) ? 'live' : null;
   return quotesTwinRow(quotesTwinOf(selected, dash)) ? 'twin' : null;
 }
+
+/** "Reward quotes live-prep"'s real-money book's id among LIVE's rows (its paper layer's TESTING row is `LP_ROW_ID`). */
+export const LP_LIVE_ROW_ID = '__lp_live';
+
+/**
+ * "Reward quotes live-prep"'s real-money book as a row of LIVE (Davies, 2026-10-09: "网站的agents live页怎么看不到这个上
+ * 线", the morning it went live), as PR5's live executor is one (`quotesLiveRow`): the dashboard's `lpLive`, made by the
+ * server from the order path's live rows alone (`pm_lp_live_view.ts`), so nothing of its paper layer, whose row stays on
+ * TESTING, is in it. Funded is the path's total cap; deployed what its resting buys tie up and what it holds at cost;
+ * today and realised are on that cap, unrealised on what its holdings cost; realised is its fills' and settlements' plus what
+ * Polymarket paid (rewards and maker rebates), split for the Polymarket card into rewards and orders, to the cent. Its
+ * name carries no " · live", as no LIVE row's does. null while it has never been armed nor sent a live order.
+ * @param {any} l  the dashboard's `lpLive`
+ */
+export function lpLiveRow(l) {
+  if (!l || !(l.tradedLive || l.armed)) return null;
+  const capital = Number(l.capUsd) || 0, cost = Number(l.costUsd) || 0;
+  /** @param {number} usd @param {number} base */
+  const pct = (usd, base) => (base > 0 ? (usd / base) * 100 : null);
+  const realised = Number(l.realisedUsd) || 0, unrealised = Number(l.unrealisedUsd) || 0, today = Number(l.todayUsd) || 0;
+  const rewards = (Number(l.paidUsd) || 0) + (Number(l.rebateUsd) || 0);
+  const split = splitCents(realised, [rewards, Number(l.realisedFillsUsd) || 0]);
+  const stopped = !!l.stop?.trippedAt;
+  return {
+    id: LP_LIVE_ROW_ID,
+    name: 'Reward quotes live-prep',
+    venue: venueLabel('polymarket'),
+    venueId: 'polymarket',
+    mode: 'live',
+    capitalUsd: capital, valueUsd: Number(l.valueUsd) || 0, costUsd: cost, feesUsd: Number(l.feesUsd) || 0,
+    todayUsd: today, todayPct: pct(today, capital),
+    unrealisedUsd: unrealised, unrealisedPct: pct(unrealised, cost),
+    realisedUsd: realised, realisedPct: pct(realised, capital),
+    rewards: { realisedUsd: split.parts[0], unrealisedUsd: 0 },
+    orders: { realisedUsd: split.parts[1], unrealisedUsd: unrealised },
+    nextText: 'every minute',
+    // "N open" is the markets it is at work in, as a Reward quotes row's (its resting orders' and what it holds).
+    openPositions: Number(l.markets) || 0, openOrders: Number(l.openOrders) || 0,
+    holdsLive: cost > 0, armed: !!l.armed,
+    status: !l.running
+      ? { label: 'live', running: false, tone: 'stale', detail: l.lagMinutes == null ? 'it has not turned yet' : `its last turn was ${l.lagMinutes} min ago` }
+      : stopped
+        ? { label: 'live', running: true, tone: 'stale', detail: 'its total loss stop has tripped: it only sells what it holds' }
+        : l.armed
+          ? { label: 'live', running: true, tone: 'running', detail: `quoting real money in ${Number(l.markets) || 0} market${Number(l.markets) === 1 ? '' : 's'}` }
+          : { label: 'live', running: true, tone: 'stale', detail: 'disarmed · its sells of what it holds still run' },
+  };
+}
+
+/**
+ * LIVE's rows beyond its strategies, in the order the table lists them: PR5's live executor (`quotesLiveRow`) and
+ * live-prep's live book (`lpLiveRow`), each once it trades real money. LIVE's scoreboard and venue cards add each once;
+ * TESTING never does.
+ * @param {any} dash
+ */
+export function liveExtraRows(dash) {
+  return [quotesLiveRow(dash?.quotes?.live), lpLiveRow(dash?.lpLive)].filter((r) => !!r);
+}
+
+/** The order path's gates as its page lists them, each in a few words: the path's own order (`PM_OPEN_GATES`, pm_live.ts). */
+const LP_GATE_WORDS = /** @type {const} */ ([
+  ['global_pause', 'no global pause'], ['risk_readable', 'risk row read'], ['armed', 'armed'], ['region', 'sent from eu-west-1'],
+  ['geoblock', 'geoblock reads Ireland'], ['closed_only', 'account not close-only'], ['attestation', 'Ireland attestation current'],
+  ['inventory', 'balances read'], ['loss_total', 'total loss stop clear'], ['ctf_approval', 'token approvals read'],
+]);
+
+/**
+ * Live-prep's live page's GATES: each gate of its last turn, passed, failed, or not judged that turn, with what the
+ * failures stop (opening, or every order). Live-prep has no day stop, so its always-passing verdict is not listed.
+ * null when the last turn's gates are not in the answer.
+ * @param {any} l  the dashboard's `lpLive`
+ * @returns {{ rows: Array<{ key: string, label: string, state: 'pass' | 'fail' | 'n/a' }>, openBlockedBy: string | null, reduceBlockedBy: string | null, mode: string | null } | null}
+ */
+export function lpLiveGates(l) {
+  const g = l?.gates;
+  if (!g || !g.verdicts || typeof g.verdicts !== 'object') return null;
+  const rows = LP_GATE_WORDS.filter(([k]) => k in g.verdicts).map(([key, label]) => {
+    const v = g.verdicts[key];
+    return { key, label, state: /** @type {'pass' | 'fail' | 'n/a'} */ (v === true ? 'pass' : v === false ? 'fail' : 'n/a') };
+  });
+  return { rows, openBlockedBy: g.openBlockedBy ?? null, reduceBlockedBy: g.reduceBlockedBy ?? null, mode: g.mode ?? null };
+}
+
+/**
+ * Live-prep's total loss stop in words: where its reading stands against the limit, the path's own sum (its CONFIRMED
+ * fills' P&L at the last mids plus what Polymarket paid), or when it tripped.
+ * @param {any} l  the dashboard's `lpLive`
+ * @param {(s: string) => string} [m]
+ */
+export function lpLiveStopText(l, m = (s) => s) {
+  const st = l?.stop;
+  if (!st) return '';
+  const lim = st.limitUsd == null ? null : Number(st.limitUsd);
+  if (st.trippedAt) return `Tripped ${fmtChartStamp(st.trippedAt)}: nothing opens again until a person clears it; its sells stay armed.`;
+  return `Stops at ${lim == null ? '—' : m(fmtUsd(-lim))} on its fills plus what was paid: now ${m(fmtUsd(Number(st.basisUsd) || 0, true))}`
+    + ` (fills ${m(fmtUsd(Number(st.fillsPnlUsd) || 0, true))}, paid ${m(fmtUsd(Number(st.paidUsd) || 0, true))}), ${st.roomUsd == null ? '—' : m(fmtUsd(Number(st.roomUsd)))} to go.`;
+}
+
+/** An order or a fill of live-prep's as its page says it: "buy Yes", "sell No". @param {{ side: string, outcome: string | null }} o */
+export const lpSideText = (o) => `${o.side === 'BUY' ? 'buy' : 'sell'} ${o.outcome === 'yes' ? 'Yes' : o.outcome === 'no' ? 'No' : '?'}`;
+
+/** R, what Polymarket paid over what the formula gave, to two places; a dash without a formula figure. @param {number | null | undefined} r */
+export const fmtR = (r) => (r == null || !Number.isFinite(Number(r)) ? '—' : Number(r).toFixed(2));
 
 /**
  * Pounds, the stablecoin quotes' own currency: their capital, P&L, loss stop and balances (Davies, 2026-10-01). Written
