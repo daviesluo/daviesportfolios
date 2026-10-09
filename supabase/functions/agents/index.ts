@@ -1057,7 +1057,31 @@ export type LiveRung = {
   held: boolean; dust: number; costGbp: number; valueGbp: number;
   /** The conversion fees its closed trips carry (`withConversionFees`), in its fills' fees and its realised. */
   convFeesGbp: number;
+  /** The coins its exits bought beyond what it held, and what they cost (`exitOverbuy`): the account's coin, not the rung's. */
+  overCoins: number; overGbp: number;
 };
+
+/**
+ * What a rung's exits and stops traded beyond what it held, and what that cost: `rungBook` books an exit only up to the
+ * holding. Since the 2026-10-09 review's F1 an ask rung's buy-back at the venue's minimum buys what its whole penny buys
+ * (`pennyExit`), a hair more than the rung sold short; the hair is coin in the account, at the exit's price (the pounds
+ * the venue moved over the coins). Counted as coin the account holds and paid for, a book's coins and their cost stay
+ * the account's (`liveCoinBooks`). Signed as the coin moves: a bid rung's exit sells, so its excess (none: its sells are
+ * capped at what it holds) would be coin out.
+ */
+export function exitOverbuy(side: Side, fills: RungFill[]): { coins: number; gbp: number } {
+  let held = 0, coins = 0, gbp = 0;
+  const sign = side === "ask" ? 1 : -1;
+  for (const f of [...fills].sort((a, b) => a.ts - b.ts || a.id - b.id)) {
+    if (!(f.base > 0)) continue;
+    if (f.leg === "entry") { held += f.base; continue; }
+    if (f.leg !== "exit" && f.leg !== "stop") continue;
+    const over = Number(Math.max(0, f.base - held).toPrecision(12));
+    if (over > 0) { coins += sign * over; gbp += sign * over * f.price; }
+    held = Math.max(0, Number((held - f.base).toPrecision(12)));
+  }
+  return { coins, gbp };
+}
 
 /**
  * The conversion fee each live ask entry carries (Davies, 2026-10-01: a round trip's fees are its own and the conversion
@@ -1142,11 +1166,12 @@ export function liveRungs(orders: QuoteLiveOrderView[], paper: QuoteStateRow | n
       }));
       const fills = withConversionFees(side, own, shares, dayStartMs, d);
       const rb = rungBook(side, fills, dayStartMs, d);
-      const held = rb.held > d;
+      const held = rb.held > d, over = exitOverbuy(side, own);
       out.push({
         book: b, side, k, mark, fills, rb, marked: markedGbp(side, rb, mark), held, dust: d,
         costGbp: held ? rb.held * rb.avgEntry : 0, valueGbp: held ? rb.held * (mark ?? rb.avgEntry) : 0,
         convFeesGbp: fills.reduce((a, f) => a + f.feeGbp, 0) - own.reduce((a, f) => a + f.feeGbp, 0),
+        overCoins: over.coins, overGbp: over.gbp,
       });
     }
   }
@@ -1163,9 +1188,10 @@ export type LiveCoinBook = {
  * Each book's coins as the account holds them, against what they cost (Davies, 2026-10-01: his account page shows each
  * coin's unrealised P&L, which the page left out). The coins are the account's own: the executor's last read of its
  * balances, or, where it could not read them, the book's own count (what the conversions bought, plus what its bids
- * hold, less what its asks have sold). What they cost: the pounds the conversions paid, fee included, less the
- * conversion fees already booked to closed trips (`withConversionFees`), plus what the bids holding paid, less what the
- * asks holding sold for. Valued at the book's index price, as Revolut X's account page values them (`liveIndexPrices`), or
+ * hold, less what its asks have sold, plus what its buy-backs bought beyond the holding, `exitOverbuy`). What they cost:
+ * the pounds the conversions paid, fee included, less the conversion fees already booked to closed trips
+ * (`withConversionFees`), plus what the bids holding paid, less what the asks holding sold for, plus what the buy-backs'
+ * excess cost. Valued at the book's index price, as Revolut X's account page values them (`liveIndexPrices`), or
  * at its last print while no fresh index is to hand, value less cost is the unrealised of every coin the book holds: the
  * rungs' marks, and the conversions' own (their price, their fee and the pound's moves since). A book with neither price
  * is valued at its cost, its unrealised unknown.
@@ -1176,9 +1202,9 @@ export function liveCoinBooks(orders: QuoteLiveOrderView[], rungs: LiveRung[], b
     const mine = rungs.filter((r) => r.book === b);
     const lots = conversions.filter((o) => o.book === b);
     const signed = (r: LiveRung) => (r.side === "bid" ? 1 : -1) * r.rb.held;
-    const ownCount = lots.reduce((a, o) => a + Number(o.filled_base), 0) + mine.reduce((a, r) => a + signed(r), 0);
+    const ownCount = lots.reduce((a, o) => a + Number(o.filled_base), 0) + mine.reduce((a, r) => a + signed(r) + (r.overCoins ?? 0), 0);
     const paid = lots.reduce((a, o) => a + Number(o.filled_base) * Number(o.avg_fill_price ?? o.price) + Number(o.fee_gbp || 0), 0);
-    const costGbp = paid - mine.reduce((a, r) => a + r.convFeesGbp, 0) + mine.reduce((a, r) => a + signed(r) * r.rb.avgEntry, 0);
+    const costGbp = paid - mine.reduce((a, r) => a + r.convFeesGbp, 0) + mine.reduce((a, r) => a + signed(r) * r.rb.avgEntry + (r.overGbp ?? 0), 0);
     const read = balances?.[coinOf(b)];
     const coins = read != null && Number.isFinite(Number(read)) ? Number(read) : ownCount;
     const mark = index[b] ?? mine[0]?.mark ?? null;

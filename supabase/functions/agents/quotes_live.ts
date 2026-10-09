@@ -332,7 +332,18 @@ export const isAutoConvert = (o: { leg?: string; request?: unknown }) =>
  *   * a buy (an ask rung's exit) pays the penny above: one penny less buys all but a hair, which the rung still owes.
  * Either way the rung gains the hair's worth or more, never less, and what it keeps (under a penny of coin, far under
  * `dust`) is carried into its next trip, as any dust is: the next exit trades it. The 24-hour stop is not trimmed.
- * Returns `base` itself when there is nothing to trim, or when the trim would leave more than `dust` or trade under it.
+ *
+ * A buy-back the trim would take under the venue's minimum (a notional from £0.10 to £0.11: the trim's £0.10 of coin,
+ * floored to the step, is worth a hair under £0.10) cannot pay the penny below, so it pays the one above whatever it
+ * buys. It buys what that whole penny buys instead (`floorToStep(pennyUp(n) / price)`), the holding and a hair more,
+ * which stays in the account as coin the asks use (the 2026-10-09 review's F1, Davies the same day: "修复 F1，应用所有
+ * stablecoin quotes包括live的"). A £0.10 print that nibbles a resting entry leaves such a holding: live fills 3956
+ * (0.13587 USDT at 0.7567), 4245 (0.13584 at 0.7545) and 4304 (0.13792 at 0.7543) each paid £0.11, £0.0207 together for
+ * £0.3093 of coin, and would have bought 0.14536, 0.14579 and 0.14583 for the same pennies. A sell is not sized up: it
+ * can sell no more than the rung holds. Nothing changes at £0.11 or more.
+ *
+ * Returns `base` itself when there is nothing to trim, or when the trim would leave more than `dust` or trade under it
+ * (a buy that would trade under it: what its whole penny buys).
  */
 export function pennyExit(exitSide: "buy" | "sell", base: string, price: number, pair: PairConfig, dust: number): string {
   const b = Number(base), n = b * price;
@@ -341,6 +352,10 @@ export function pennyExit(exitSide: "buy" | "sell", base: string, price: number,
   if (Math.abs(n * 100 - Math.round(n * 100)) < 1e-6) return base;          // on a whole penny already: nothing rounds
   const trimmed = exitSide === "sell" ? ceilToStep(pennies / 100 / price, pair.base_step) : floorToStep(pennies / 100 / price, pair.base_step);
   const t = Number(trimmed);
+  if (exitSide === "buy" && t < b && !(t >= dustBase(pair, price))) {
+    const whole = floorToStep(pennyUp(n) / price, pair.base_step);
+    return Number(whole) > b ? whole : base;
+  }
   if (!(t < b) || b - t > dust || !(t >= dustBase(pair, price))) return base;
   return trimmed;
 }

@@ -142,10 +142,12 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      2026-10-04 16:00 → 2026-11-02 00:00 UTC (extended a week at a time to 11-30 until 15 have closed); read on or
      after the window's end + 2 days by a script committed before it ends, whose K2 mirrors the prereg's deviation 1;
      K1 held at 05:03 on 10-03 and is checked again over the whole span.
-   - **The review of 2026-10-09** (`reviews/2026-10-09-stablecoin-quotes-review.md`, not blind): open with Davies, the
-     buy-back at the venue's £0.10 minimum sized to the penny it pays (F1; a change to the live order path, recorded as a
-     deviation of the twins' and TAKE's pre-registrations), and the draft `p50x1` twin, an exit one tick beyond fair (F3;
-     needs a rule extension and its own frozen file). Every reading named here should cite the review as a non-blind read.
+   - **The review of 2026-10-09** (`reviews/2026-10-09-stablecoin-quotes-review.md`, not blind). **F1 built on Davies'
+     word** (10-09: a buy-back at the venue's £0.10 minimum buys what its whole penny buys, LIVE and every twin; the twins'
+     deviation 3, p50's deviation 2, TAKE's addendum 2, the live design's addendum). After its deploy: the next LIVE or
+     twin buy-back worth £0.10–£0.11 has `base_size` = floor(£0.11 / price), is debited £0.11, and the rung reads flat.
+     The 10-21 and 10-28 readouts count such buy-backs before and after the deploy. Every reading named here should
+     cite the review as a non-blind read.
    - **PR5V and variant-2 (rule D), frozen 2026-09-28** (`reviews/2026-09-28-pr5-variant-prereg.md`,
      `reviews/2026-09-28-pr5-rule-d-prereg.md`; governor 900/950 since their deviations of 2026-10-01): PR5V's window
      09-29 → 10-26 by entry day, E = 10-28 00:30 UTC; both reading scripts committed before **2026-10-27 00:00 UTC**
@@ -396,6 +398,13 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 "LEDGER.md, archived 2026-10-09", and the 2026-10-08 22:49 → 23:58 UTC sections under "LEDGER.md, archived 2026-10-09
 (second)"; each oldest first.
 
+### [2026-10-09 16:37 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **F1 fixed on every Stablecoin quotes row, LIVE included** (Davies: "修复 F1，应用所有tablecoin quotes包括live的"):
+  `pennyExit` sizes a buy-back worth £0.10–£0.11 to `floorToStep(pennyUp(n) / price)`; the page books the hair as the
+  account's coin at cost (`exitOverbuy`). Pins: LIVE fills 3956/4245/4304 by hand (£0.020663 → £0.000008), and end to
+  end on `revx_sim` beside the frozen executor (0.135 → 0.14561, £0.11 both); each fails on the old code. Deviations
+  recorded (twins §14, p50 §8, TAKE addendum 2, live design addendum, reference item 35); no frozen hash moves.
+
 ### [2026-10-09 17:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - DAYS' 7-day annualised now counts the seven CALENDAR days before today, not the last seven rows: a day with no order
   has no row (weekends, outages), so seven rows reached back nine days and overstated by up to 9/7 (Davies asked why the
@@ -405,6 +414,7 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 ### [2026-10-09 16:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - Every Stablecoin quotes page (LIVE and the twins) heads DAYS with "- 7-day annualised ±x%": the last seven closed UTC
   days' realised over the capital, a year of them (`quoteDaysAnnualPct`; Davies: "days表格标题days旁边加上近七天平均年化收益率").
+
 
 ### [2026-10-09 16:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Stablecoin quotes reviewed, read-only, not blind** (Davies: "testing的4个Stablecoin quotes进展如何？live的进展如何？…testing的策略有改进

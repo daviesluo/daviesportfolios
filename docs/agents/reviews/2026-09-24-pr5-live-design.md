@@ -190,3 +190,14 @@ and $12.50 each of USDC and USDT in it (converted by the loop or funded by Davie
   pins the committed copy's sha256 `56fbad85…`, the pre-registered file with only its input path changed).
 * `backtests/pr5_live/inputs/`: the public prints since 2026-09-23 00:00, the USD books' hourly candles, Yahoo's
   GBP/USD minutes, tickers, books and pair list, pulled 2026-09-24 00:12 UTC (gzipped).
+
+## Addendum (2026-10-09): a buy-back at the venue's minimum buys what its whole penny buys
+
+Davies, 2026-10-09, after the stablecoin quotes review (`2026-10-09-stablecoin-quotes-review.md`, F1), verbatim: "修复
+F1，应用所有tablecoin quotes包括live的" (fix F1 on every Stablecoin quotes row, LIVE included). The live executor's exits
+are sized to the penny the venue moves (`pennyExit`, since 2026-10-01). A buy-back worth £0.10–£0.11, which a £0.10 print
+nibbling a resting ask leaves, could not be trimmed under the venue's minimum and paid the next whole penny for a hair
+under it: LIVE's fills 3956, 4245 and 4304 paid £0.0207 that way, a tenth of its realised to 10-09. From this change it
+buys what that penny buys (`floorToStep(pennyUp(n) / price)`), and the hair over the holding stays in the account as coin
+the asks use. Nothing else about the order path changes; the realistic twins run the same code (their pre-registration's
+deviation 3). Not blind: a change made after reading the live record.

@@ -347,3 +347,29 @@ book as before.
 
 §11 and §12 keep the hashes the files had before; this table names them from this deviation on. `src/twins_prereg.test.js`
 pins all of them.
+
+## 14. Deviation 3 (2026-10-09): a buy-back at the venue's minimum buys what its whole penny buys (F1), live and in every twin
+
+**On whose word.** Davies, 2026-10-09, after reading `2026-10-09-stablecoin-quotes-review.md`, verbatim: "修复 F1，应用所有
+tablecoin quotes包括live的" (fix F1, and apply it to every Stablecoin quotes row, LIVE included).
+
+**What changes.** One rule of the live executor, `pennyExit` in `quotes_live.ts`, which every twin runs as its own (§1:
+"a change to it is a change to both"). A resting buy-back worth from £0.10 to £0.11 (an ask rung's holding after a
+£0.10 print nibbled its entry, plus any hair carried) cannot be trimmed to the penny below, because that trim is under
+the venue's £0.10 minimum; it used to go out as it was and pay the next whole penny for a hair under it. It now buys what
+that whole penny buys, `floorToStep(pennyUp(n) / price)`: the same pounds, the holding and a hair more, which stays in
+the account as coin the asks use (the page books the hair as the account's coin at its cost, `exitOverbuy` in
+`index.ts`, not as the rung's trip). Nothing changes for a buy-back worth £0.11 or more, for any sell, or for the 24-hour
+stop. `revx_sim.ts`, `quotes_twin.ts`, `0087` and every backfill are untouched (no hash in §11–§13 moves): the twins'
+records to 2026-10-02 21:05 hold no such exit (the first dust print in any record is 2026-10-08), so the backfills built
+again would be the same bytes.
+
+**What it is worth.** The review priced it on the recorded orders (`backtests/scq_review/results/dust_exit.json`): on
+LIVE's three whole-filled cases (fills 3956, 4245, 4304) £0.020663 paid for nothing, £0.000008 with the fix
+(`quotes_live.test.ts` works them by hand); in the twins pr5 £0.0434, p50 £0.0351, take50 £0.0374 and d £0.1169 of such
+pennies since 10-08, part of them partial fills the review could not price. From the deploy on, every row pays the
+penny only for coin.
+
+**For the readings.** The twins' readouts of 10-21 and 10-28 read a rule that changed on the day this lands: each says
+how many buy-backs before and after it were sized to the minimum and what they paid, and reads the days apart where
+that matters. Not blind: the review read every twin's records, and this deviation was written after it.

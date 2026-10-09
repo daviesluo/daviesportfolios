@@ -135,3 +135,14 @@ The window becomes take trips opened 2026-10-04 16:00 → 2026-11-02 00:00 UTC; 
 reading's date are unchanged. For C3's day blocks, 2026-10-04 is a day of its own (a Sunday, eight hours). K1 reads
 variant-2 against variant-1 before 16:00. Nothing of either twin's trips or P&L has been read; K1's interim count
 (10-03 05:03) was orders only.
+
+## Addendum 2 (2026-10-09): a buy-back at the venue's minimum buys what its whole penny buys (F1), in both arms
+
+Davies, 2026-10-09, verbatim: "修复 F1，应用所有tablecoin quotes包括live的" (fix F1 on every Stablecoin quotes row, LIVE
+included). The live executor's `pennyExit` (`quotes_live.ts`), which both of this test's arms run (variant-2, `take50`,
+and its comparator variant-1, `p50`), now sizes a buy-back worth £0.10–£0.11 to what its whole penny buys instead of
+paying that penny for a hair under it (the twins' pre-registration's deviation 3, its §14). It touches both arms alike
+and only an exit, so C4 (variant-2 above variant-1) compares the same thing before and after; C1–C3 count take trips,
+whose exits it touches only when what a take's rung holds is worth under £0.11 (a take is a £50 rung, so only a
+remainder that small). The window, bar, seed and reading are unchanged. Not blind: written after the 2026-10-09 review, which read both arms'
+records (its F8 counted 5 takes since 10-04 16:00, 3 won, +£0.2926).

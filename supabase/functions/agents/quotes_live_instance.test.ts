@@ -10,7 +10,7 @@
 // governor closing entries, the global pause, and a stretch unarmed. Without the coverage this test also asserts, an
 // equality would prove nothing.
 
-import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { REVX_REGION, revxVenue } from "../_shared/revx.ts";
 import { newBookState, QUOTE_BOOKS, stepMinute, type BookState, type Print, type QuoteBook } from "./quotes.ts";
 import * as Now from "./quotes_live.ts";
@@ -152,4 +152,45 @@ Deno.test("the executor's default instance is the frozen executor: the same tabl
   seen.topups = orders.filter((o) => o.leg === "convert" && (o.request as Row)?.auto === true).length;
   // What the hours went through, or the equality above proves nothing.
   for (const [k, v] of Object.entries(seen)) assert(v > 0, `the simulated hours never reached ${k}: ${JSON.stringify(seen)}`);
+});
+
+Deno.test("F1 through the executor and the simulated account: a £0.10 print nibbles an ask; the buy-back buys what its whole penny buys (the frozen executor paid it for nothing)", async () => {
+  // The 2026-10-09 review's F1 end to end, on today's executor and on the frozen one, each against its own simulated
+  // Revolut X account fed the same prints: a buyer of 0.135 USDC (£0.1021 at the 0.1 % ask, 0.7562) takes part of the
+  // resting ask; the rung withdraws the rest of its entry and buys back its 0.135 at fair (0.7554), £0.1020: the trim to
+  // £0.10 (0.13238) is under the venue's minimum. A seller under it fills the buy-back; the account is debited the notional
+  // rounded up, £0.11, either way. The frozen executor sent 0.13500 (£0.0080 for nothing); today's sends 0.14561, what
+  // 0.11 / 0.7554 = 0.145618… buys to the step (£0.109993794), and the 0.01061 over the holding stays in the account.
+  const results: Array<{ exit: Row; usdc: number; gbp: number }> = [];
+  for (const mod of [Now, Frozen] as Mod[]) {
+    const w = world(mod);
+    w.sim.st.balances.USDC = 40;
+    const books = Object.fromEntries(QUOTE_BOOKS.map((bk) => [bk, newBookState(bk, { id: "seed", ts: T0 - 30e3, ticks: bk === "USDC-GBP" ? 7553 : 7551, qty: 10, side: "sell" })])) as Record<QuoteBook, BookState>;
+    let before: { usdc: number; gbp: number } | null = null;
+    for (let t = T0; t < T0 + 12 * M; t += M) {
+      const prints: Record<QuoteBook, Print[]> = { "USDC-GBP": [], "USDT-GBP": [] };
+      if (t === T0 + 5 * M) prints["USDC-GBP"].push({ id: "dust", ts: t + 10e3, ticks: 7563, qty: 0.135, side: "buy" });
+      if (t === T0 + 9 * M) prints["USDC-GBP"].push({ id: "under", ts: t + 10e3, ticks: 7553, qty: 5, side: "sell" });
+      if (t === T0 + 9 * M) before = { usdc: w.sim.st.balances.USDC, gbp: w.sim.st.balances.GBP };
+      for (const bk of QUOTE_BOOKS) for (const p of prints[bk]) w.print(bk, p);
+      for (const bk of QUOTE_BOOKS) stepMinute(books[bk], t, { x: 1.3238, fairU: 1.0, prints: prints[bk] });
+      await w.mem.db.upsert("agent_quote_state", [{ id: 1, state: { lastMinute: t, books: JSON.parse(JSON.stringify(books)), fetchedTo: {}, hourFetchedFor: 0 }, last_minute: iso(t), updated_at: iso(t), last_error: null }], "id");
+      await w.turn(t + M + 30e3);
+    }
+    const orders = w.mem.tables.agent_quote_live_orders as Row[];
+    const mine = orders.filter((o) => o.book === "USDC-GBP" && o.rung_side === "ask" && Number(o.k) === 0.001);
+    const entry = mine.find((o) => o.leg === "entry" && Number(o.filled_base) > 0)!;
+    const exits = mine.filter((o) => o.leg === "exit");
+    assertEquals([Number(entry.filled_base), Number(entry.price), exits.length], [0.135, 0.7562, 1]);
+    assert(before);
+    results.push({ exit: exits[0], usdc: w.sim.st.balances.USDC - before.usdc, gbp: Math.round((w.sim.st.balances.GBP - before.gbp) * 1e8) / 1e8 });
+  }
+  const [now, frozen] = results;
+  // Both buy back at fair, 0.7554, filled whole by the seller's print, and both are debited £0.11.
+  for (const r of results) assertEquals([Number(r.exit.price), r.exit.state, Number(r.exit.filled_base), r.gbp], [0.7554, "filled", Number(r.exit.base_size), -0.11]);
+  assertEquals([Number(frozen.exit.base_size), Math.round(frozen.usdc * 1e5) / 1e5], [0.135, 0.135]);
+  assertEquals([Number(now.exit.base_size), Math.round(now.usdc * 1e5) / 1e5], [0.14561, 0.14561]);
+  // What the penny bought, at the exit's price: £0.1019790 frozen (£0.0080210 for nothing), £0.109993794 now.
+  assertAlmostEquals(0.11 - 0.135 * 0.7554, 0.008021, 1e-12);
+  assertAlmostEquals(0.11 - 0.14561 * 0.7554, 0.000006206, 1e-12);
 });

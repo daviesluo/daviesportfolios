@@ -8,7 +8,7 @@ import {
   STATE_VOCAB, strategyBooks, SYMBOLS, probeSummary, quotesDelayMs, quotesSummary, quoteDays, QUOTES_CAPITAL_USD, QUOTES_RECENT_TRIPS, tickErrorReport, crashReport, type ProbeSummaryRow,
   REVX_KEY_NAMES, REVX2_PROBE_SYMBOLS, runProbe, PROBE_PARTS, newestDecisions, quotesLiveSummary, type QuoteLiveOrderView, quotesVariantSummary, quotesRuledSummary,
   serveRequest, type ServeDeps, type Who,
-  liveBookGbp, liveCoinBooks, liveConversionShares, liveIndexPrices, liveOrderReason, liveRestingBuysGbp, liveRungs, liveRungTrips, quotesLiveDetail, tripEnds, QUOTE_LIVE_ORDER_COLUMNS,
+  exitOverbuy, liveBookGbp, liveCoinBooks, liveConversionShares, liveIndexPrices, liveOrderReason, liveRestingBuysGbp, liveRungs, liveRungTrips, quotesLiveDetail, tripEnds, QUOTE_LIVE_ORDER_COLUMNS,
   QUOTE_TICKER_FRESH_MS,
   QUOTE_LIVE_REASON_COLUMNS, QUOTE_LIVE_SUMMARY_COLUMNS, QUOTES_LIVE_KNOWN_REFUSALS, QUOTES_LIVE_ORDERS_FILTER, QUOTES_LIVE_PAGE_ROWS, type QuoteLiveRecentRow, withConversionFees,
   liveDays, readQuotesTwin, twinsDelayMs, TWINS_START_MS,
@@ -1042,6 +1042,38 @@ Deno.test("liveIndexPrices and liveRestingBuysGbp: a fresh index prices the coin
     o(3, { state: "pending" }),                                                       // sent, unanswered: £99
     o(4, { side: "sell" }), o(5, { state: "filled", filled_base: 132 }), o(6, { mode: "dry_run" }),
   ]), 132 * 0.75 + 100 * 0.75 + 132 * 0.75, 1e-12);
+});
+
+Deno.test("exitOverbuy and liveCoinBooks: a buy-back sized to its whole penny (F1) leaves its hair as the account's coin, at its cost, not as a gain", () => {
+  // quotes_live_instance.test.ts's F1 case: the 0.1 % ask sold 0.135 USDC at 0.7562 (credited £0.10: the venue's average
+  // 0.74074…), and its buy-back bought 0.14561 at 0.7554 for £0.11 (the venue's average 0.11 / 0.14561). The rung books
+  // 0.135 of it; the 0.01061 over is the account's coin, costing 0.01061 × 0.11 / 0.14561 = £0.0080152…
+  const day = Date.UTC(2026, 9, 9), h = 3600e3;
+  const o = (id: number, over: Partial<QuoteLiveOrderView>): QuoteLiveOrderView => ({
+    id, ts: new Date(day + id * h).toISOString(), mode: "live", book: "USDC-GBP", rung_side: "ask", k: 0.001, leg: "entry", state: "filled",
+    filled_base: 0, avg_fill_price: 0, price: 0, fee_gbp: 0, filled_at: new Date(day + id * h).toISOString(), ...over,
+  });
+  const orders = [
+    o(1, { filled_base: 0.135, avg_fill_price: 0.1 / 0.135, price: 0.7562 }),
+    o(2, { leg: "exit", side: "buy", filled_base: 0.14561, avg_fill_price: 0.11 / 0.14561, price: 0.7554 }),
+  ];
+  const paper = { state: { books: { "USDC-GBP": { lastX: 1.3238, lastPrint: { ticks: 7554 } }, "USDT-GBP": { lastX: 1.3238, lastPrint: { ticks: 7552 } } } }, last_minute: null, updated_at: "", last_error: null };
+  // deno-lint-ignore no-explicit-any
+  const rungs = liveRungs(orders, paper as any, day);
+  const r = rungs.find((x) => x.book === "USDC-GBP" && x.side === "ask" && x.k === 0.001)!;
+  assertEquals([r.rb.held, r.held], [0, false]);
+  assertAlmostEquals(r.overCoins, 0.01061, 1e-12);
+  assertAlmostEquals(r.overGbp, 0.01061 * 0.11 / 0.14561, 1e-12);
+  // The trip is the 0.135 sold for £0.10 and bought back at 0.7554442…: the rung's P&L is the coins it traded, not the hair.
+  assertAlmostEquals(r.rb.realisedGbp, 0.135 * (0.1 / 0.135 - 0.11 / 0.14561), 1e-12);
+  // Read: the account holds the hair; it costs what it cost, so its unrealised is its mark against that, a hair of a penny.
+  const usdc = liveCoinBooks(orders, rungs, { USDC: 0.01061 }).find((c) => c.coin === "USDC")!;
+  assertAlmostEquals(usdc.costGbp, 0.01061 * 0.11 / 0.14561, 1e-12);
+  assertAlmostEquals(usdc.unrealisedGbp!, 0.01061 * 0.7554 - 0.01061 * 0.11 / 0.14561, 1e-12);
+  // Unread: the book's own count is the hair.
+  assertAlmostEquals(liveCoinBooks(orders, rungs, null).find((c) => c.coin === "USDC")!.coins, 0.01061, 1e-12);
+  // A rung that never bought beyond its holding has none (every exit before F1, and every bid rung).
+  assertEquals(exitOverbuy("ask", [{ id: 1, ts: 1, leg: "entry", base: 13.2, price: 0.76, feeGbp: 0 }, { id: 2, ts: 2, leg: "exit", base: 13.2, price: 0.759, feeGbp: 0 }]), { coins: 0, gbp: 0 });
 });
 
 Deno.test("liveCoinBooks: the account's coins against what they cost; the book's own count where its balances went unread", () => {

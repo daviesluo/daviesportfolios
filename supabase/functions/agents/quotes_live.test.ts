@@ -17,8 +17,9 @@ import {
   bookInputs, crossesBook, dustBase, entryBookOf, pennyExit, entryGuards, exitMayGo, governorLevel, lossStopHit, markedGbp, paperEntryTarget, paperRefused, parseBook, postsOf, QUOTE_LIVE_429_WAIT_MS, QUOTE_LIVE_CANCEL_REREAD_MS,
   QUOTE_LIVE_ENTRY_POSTS, QUOTE_LIVE_POST_GAP_MS, QUOTE_LIVE_STOPS_ONLY_POSTS, rungBase, rungBook, rungGbp, runQuotesConvert, runQuotesLive, stopDue, stopLimitTicks,
   venueSideOf, wasRateLimited, wasSent, asksNeedOf, makerBuyTicks, planTopUps, isAutoConvert, QUOTE_LIVE_TOPUP_REST_MS,
-  deadmanWatchReason, QUOTE_LIVE_DEADMAN_WATCH_MS,
+  deadmanWatchReason, QUOTE_LIVE_DEADMAN_WATCH_MS, pennyUp,
 } from "./quotes_live.ts";
+import { floorToStep } from "../_shared/agents_strategy.ts";
 import { bookLiveBuy } from "./tick.ts";
 import { FakeRevx, GBP_BOOK_PAIR, memDb, type Row } from "./testing.ts";
 import { revxDeadmanVenue, runDeadman } from "../monitor/deadman.ts";
@@ -154,7 +155,43 @@ Deno.test("pennyExit: a resting exit trades to the penny the venue rounds to —
   assertEquals(pennyExit("buy", "10.00000", 0.75, GBP_BOOK_PAIR, dust), "10.00000");
   assertEquals(pennyExit("sell", "10.00000", 0.75, GBP_BOOK_PAIR, dust), "10.00000");
   assertEquals(pennyExit("buy", "13.18565", 0.7578, GBP_BOOK_PAIR, 0.001), "13.18565");
-  assertEquals(pennyExit("buy", "0.13200", 0.7578, GBP_BOOK_PAIR, dust), "0.13200");
+  // At the venue's minimum a sell still trims to the least coin credited its penny (0.13197, £0.1000068); a buy cannot
+  // trim to its £0.10 (0.13196, a hair under it), so it is sized up to what its whole penny buys (the next test, F1).
+  assertEquals(pennyExit("sell", "0.13200", 0.7578, GBP_BOOK_PAIR, dust), "0.13197");
+  assertEquals(pennyExit("buy", "0.13200", 0.7578, GBP_BOOK_PAIR, dust), "0.14515");
+});
+
+Deno.test("pennyExit at the venue's minimum (the 2026-10-09 review's F1): a buy-back that cannot be trimmed buys what its whole penny buys — live fills 3956, 4245, 4304", () => {
+  // Three LIVE buy-backs after a £0.10 print nibbled an ask's entry (agent_quote_live_orders; the review's
+  // results/dust_exit.json). Each notional sat between £0.10 and £0.11, so the trim to £0.10 fell under the venue's minimum
+  // and the exit went out as it was: Revolut X debited £0.11 for each (the notional rounded up: `pennyUp`, revx_sim.ts rule 2).
+  // Worked by hand: 0.11 / 0.7567 = 0.145368…, floored to the step 0.14536, worth £0.109993912, debited £0.11 again.
+  const debited = (base: string, p: number) => pennyUp(Number(base) * p);
+  const cases: Array<{ id: number; base: string; price: number; was: number; now: string; nowWorth: number }> = [
+    { id: 3956, base: "0.13587", price: 0.7567, was: 0.102812829, now: "0.14536", nowWorth: 0.109993912 },
+    { id: 4245, base: "0.13584", price: 0.7545, was: 0.10249128, now: "0.14579", nowWorth: 0.109998555 },
+    { id: 4304, base: "0.13792", price: 0.7543, was: 0.104033056, now: "0.14583", nowWorth: 0.109999569 },
+  ];
+  let wasted = 0, wastedNow = 0;
+  for (const c of cases) {
+    const dust = dustBase(GBP_BOOK_PAIR, c.price);
+    assertAlmostEquals(Number(c.base) * c.price, c.was, 1e-12, `${c.id}`);
+    // The trim to the penny below (£0.10) is under the venue's minimum: the exit cannot be trimmed.
+    assert(Number(floorToStep(0.10 / c.price, GBP_BOOK_PAIR.base_step)) < dust, `${c.id}`);
+    const sent = pennyExit("buy", c.base, c.price, GBP_BOOK_PAIR, dust);
+    assertEquals(sent, c.now, `${c.id}`);
+    assertAlmostEquals(Number(sent) * c.price, c.nowWorth, 1e-12, `${c.id}`);
+    // The same penny is debited either way; one more step would cost the next penny.
+    assertEquals([debited(c.base, c.price), debited(sent, c.price), debited((Number(sent) + 0.00001).toFixed(5), c.price)], [0.11, 0.11, 0.12], `${c.id}`);
+    assert(Number(sent) > Number(c.base) && Number(sent) * c.price >= dust * c.price);
+    wasted += 0.11 - c.was;
+    wastedNow += 0.11 - c.nowWorth;
+  }
+  // The pennies paid for nothing on the three: £0.020662835 (the review's £0.0207), and £0.000007964 sized to the penny.
+  assertAlmostEquals(wasted, 0.020662835, 1e-12);
+  assertAlmostEquals(wastedNow, 0.000007964, 1e-12);
+  // Nothing changes at £0.11 or more: an exit worth £0.1100–£0.1199 is trimmed to £0.11 as before.
+  assertEquals(pennyExit("buy", "0.14600", 0.7567, GBP_BOOK_PAIR, dustBase(GBP_BOOK_PAIR, 0.7567)), "0.14536");
 });
 
 Deno.test("rungBook: a bid rung's round trip and an ask rung's, in GBP; fees come off; dust is carried, never held against a stop", () => {

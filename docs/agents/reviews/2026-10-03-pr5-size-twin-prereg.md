@@ -165,3 +165,13 @@ K1), so this twin is its base as well; nothing of this twin's own readout change
 
 §5 keeps the hashes the files were frozen at; this table names them from this deviation on (`src/size_twin_prereg.test.js`
 pins both).
+
+## 8. Deviation 2 (2026-10-09): a buy-back at the venue's minimum buys what its whole penny buys (F1)
+
+Davies, 2026-10-09, verbatim: "修复 F1，应用所有tablecoin quotes包括live的" (fix F1 on every Stablecoin quotes row, LIVE
+included). The live executor's `pennyExit` (`quotes_live.ts`, not frozen here: it is every twin's) now sizes a buy-back
+worth £0.10–£0.11, which it cannot trim under the venue's minimum, to what its whole penny buys instead of paying that
+penny for a hair under it; the twins' pre-registration's deviation 3 (its §14) says exactly what changed. No file §5 or §7
+froze changes, and `p50.json.gz` holds no such exit (dust prints begin 2026-10-08). This twin met five such buy-backs
+on 10-08 and 10-09 (£0.0351 of pennies in all, the review's `dust_exit.json`); the 10-21 readout says how many came
+before and after the deploy. Not blind: written after the 2026-10-09 review read this twin's records.
