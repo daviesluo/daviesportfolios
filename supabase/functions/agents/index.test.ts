@@ -21,6 +21,7 @@ import { RULED_ARMS } from "./quotes_ruled.ts";
 // The realistic twins' fixture: the live fixture's rows run as each twin's tables, and what the dashboard serves for them.
 import twinFixture from "../../../src/e2e/quotes_twin_fixture.json" with { type: "json" };
 import type { OrderRow } from "./tick.ts";
+import type { Db } from "./db.ts";
 import type { RungFill } from "./quotes_live.ts";
 // The live quotes page's fixture: a book worked out by hand, its rows and what the dashboard serves for them. The browser
 // test serves `live` to the page; the test below proves it is this function's own answer for those rows.
@@ -429,6 +430,9 @@ function polymarketHosts(hostile = false) {
       : p === "polymarket.com/api/geoblock" ? { blocked: true, ip: "203.0.113.9", country: "GB", region: "ENG" }
       : p === "clob.polymarket.com/auth/api-keys" ? { apiKeys: [PM_API_KEY, "another-key-of-the-account"] }
       : p === "clob.polymarket.com/auth/ban-status/closed-only" ? { closed_only: true }
+      // A conditional-token read: the token's balance and the account's operator approvals (the Neg Risk CTF Exchange not).
+      : p === "clob.polymarket.com/balance-allowance" && url.searchParams.get("asset_type") === "CONDITIONAL"
+      ? { balance: "5000000", allowances: { "0xE111180000d2663C0091e4f400237545B87B996B": MAX_ALLOWANCE, "0xe2222d279d744050d28e00520010520000310F59": "0", "0xd91E80cF2E7be2e162c6513ceD06f1dD0dA35296": MAX_ALLOWANCE } }
       : p === "clob.polymarket.com/balance-allowance" ? { balance: "12345678", allowances: { "0xE111180000d2663C0091e4f400237545B87B996B": MAX_ALLOWANCE, "0xe3333700cA9d93003F00f0F71f8515005F6c00Aa": MAX_ALLOWANCE, "0x00000000000000000000000000000000000000aa": "5" } }
       : p === "clob.polymarket.com/data/orders"
       ? (url.searchParams.get("next_cursor") === "MA==" ? { limit: 100, count: 1, next_cursor: "MTAw", data: [{ id: "0x1" }] } : { limit: 100, count: 1, next_cursor: "LTE=", data: [{ id: "0x2" }] })
@@ -481,7 +485,7 @@ Deno.test("runProbe(polymarket) — GETs to its listed reads only, L2 signed the
   }
   // L2: the CLOB host only, as the signer, the signature over timestamp + GET + the path WITHOUT its query.
   const l2 = hosts.calls.filter((c) => c.headers.has("POLY_API_KEY"));
-  assertEquals(l2.map((c) => c.url.pathname), ["/auth/api-keys", "/auth/ban-status/closed-only", "/balance-allowance", "/data/orders", "/data/orders"]);
+  assertEquals(l2.map((c) => c.url.pathname), ["/auth/api-keys", "/auth/ban-status/closed-only", "/balance-allowance", "/data/orders", "/data/orders", "/balance-allowance"]);
   for (const c of l2) {
     assertEquals(c.url.origin, "https://clob.polymarket.com");
     assertEquals([c.headers.get("POLY_ADDRESS"), c.headers.get("POLY_API_KEY"), c.headers.get("POLY_PASSPHRASE")], [PM_SIGNER, PM_API_KEY, PM_PASSPHRASE]);
@@ -509,11 +513,39 @@ Deno.test("runProbe(polymarket) — GETs to its listed reads only, L2 signed the
   assertEquals(pm.openOrders, { status: 200, count: 2, pages: 2 });
   assertEquals(pm.funderProfile, { status: 200, proxyWallet: PM_FUNDER, matchesFunder: true });
   assertEquals([pm.book.market.question, pm.book.tokenId, pm.book.bestBid, pm.book.bestAsk], ["Q?", "777", { price: 0.4, size: 5 }, { price: 0.41, size: 3 }]);
+  // The outcome tokens' approvals (F1, live-prep's P5): with no selection to read, the busiest book's token.
+  assertEquals([l2[5].url.searchParams.get("asset_type"), l2[5].url.searchParams.get("token_id"), l2[5].url.searchParams.get("signature_type")], ["CONDITIONAL", "777", "1"]);
+  assertEquals(pm.conditional, {
+    status: 200, tokenId: "777", tokenFrom: "the busiest book", signatureType: 1, balance: "5000000",
+    allowances: [
+      { spender: "0xE111180000d2663C0091e4f400237545B87B996B", contract: "CTF Exchange", allowance: "max" },
+      { spender: "0xe2222d279d744050d28e00520010520000310F59", contract: "Neg Risk CTF Exchange", allowance: "0" },
+      { spender: "0xd91E80cF2E7be2e162c6513ceD06f1dD0dA35296", contract: "Neg Risk Adapter (CLOB v1, deprecated)", allowance: "max" },
+    ],
+    sellsApproved: { ctfExchange: true, negRiskCtfExchange: false },
+  });
 
   // And no part of any secret, nor the profile's personal fields, anywhere in the report.
   const text = JSON.stringify(out);
   assertEquals(leaksPart(text, PM_SECRETS), null, "a planted secret reached the report");
   assert(!text.includes("not for the report") && !text.includes("someone"));
+});
+
+Deno.test("runProbe(polymarket) — the outcome tokens' approvals are read on a token of live-prep's selection today when there is one (F1)", async () => {
+  const hosts = polymarketHosts();
+  const asked: string[] = [];
+  const lpDb = {
+    select: (table: string, q: string) => {
+      asked.push(`${table}?${q}`);
+      return Promise.resolve(table === "pm_lp_markets" ? [{ yes_token: "4242" }] : []);
+    },
+  } as unknown as Db;
+  const out = await withPolymarketEnv(() => runProbe(new Set(["polymarket"]), hosts.fetchImpl, { db: lpDb }));
+  const pm = out.polymarket as Record<string, any>;
+  assertEquals(asked, [`pm_lp_markets?day=eq.${new Date().toISOString().slice(0, 10)}&select=yes_token&order=rank.asc&limit=1`]);
+  const cond = hosts.calls.filter((c) => c.url.pathname === "/balance-allowance" && c.url.searchParams.get("asset_type") === "CONDITIONAL");
+  assertEquals(cond.map((c) => [c.method, c.url.searchParams.get("token_id")]), [["GET", "4242"]]);
+  assertEquals([pm.conditional.tokenId, pm.conditional.tokenFrom, pm.conditional.sellsApproved], ["4242", "live-prep's selection", { ctfExchange: true, negRiskCtfExchange: false }]);
 });
 
 Deno.test("runProbe(polymarket) — a server that echoes every header and secret back gets none of them into the report", async () => {

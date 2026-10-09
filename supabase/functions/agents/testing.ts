@@ -1145,6 +1145,14 @@ export class FakePolymarket {
   onRewardsPage: ((offset: number, sponsored: boolean) => void) | null = null;
   /** How long an order must rest before it scores. */
   scoringDelayS = 0;
+  /**
+   * The approvals a conditional-token read lists, by operator (the account's, the same for every token): both exchanges
+   * approved for good, as a funded Polymarket account's are. A test sets one to "0" or removes it, or sets `{}`.
+   */
+  ctfAllowances: Record<string, string> = {
+    "0xE111180000d2663C0091e4f400237545B87B996B": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+    "0xe2222d279d744050d28e00520010520000310F59": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+  };
   /** The account's live share of each pool, in percent (GET /rewards/user/percentages). */
   percentages: Record<string, number> = {};
   /** What the account earned, by UTC day: native, and sponsored only (GET /rewards/user). */
@@ -1338,7 +1346,7 @@ export class FakePolymarket {
       if (this.down.balance) return err(500, "Internal server error");
       if (q.get("asset_type") !== "CONDITIONAL" || !q.get("token_id")) return err(400, "Invalid asset type");
       const shares = this.tokens.get(q.get("token_id") ?? "") ?? 0;
-      return { status: 200, body: { balance: String(Math.round(shares * 1e6)), allowances: {} } };
+      return { status: 200, body: { balance: String(Math.round(shares * 1e6)), allowances: { ...this.ctfAllowances } } };
     }
     if (method === "GET" && path.startsWith("clob.polymarket.com/data/order/")) {
       if (this.orderReadDown) return err(500, "Internal server error");
@@ -1480,6 +1488,10 @@ export class FakePolymarket {
     if (this.closedOnlyFlag && (side === "BUY" || size > (this.tokens.get(token) ?? 0) - this.reserved(token) + 1e-9)) return bad(`'${PM_TEST_FUNDER}' address in closed only mode`);
     const t = this.touch(token)!;
     if (b.postOnly && (side === "BUY" ? price >= t.ask - 1e-9 : price <= t.bid + 1e-9)) return bad("invalid post-only order: order crosses book");
+    // A sell moves our tokens through the market's exchange, which the account must have approved as an operator.
+    const operator = exchangeFor(x.m.negRisk).toLowerCase();
+    const approved = Object.entries(this.ctfAllowances).some(([k, v]) => k.toLowerCase() === operator && /^\d+$/.test(v) && BigInt(v) > 0n);
+    if (side === "SELL" && !approved) return bad("not enough balance / allowance");
     if (side === "BUY" ? this.pusd - this.reserved("pusd") + 1e-9 < price * size : (this.tokens.get(token) ?? 0) - this.reserved(token) + 1e-9 < size) {
       return bad("not enough balance / allowance");
     }

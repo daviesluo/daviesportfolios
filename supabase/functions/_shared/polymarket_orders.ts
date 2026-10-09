@@ -637,7 +637,11 @@ export interface PmVenue {
   closedOnly(): Promise<PmReply<{ closed_only?: boolean }>>;
   /** The account's pUSD, in base units (GET /balance-allowance?asset_type=COLLATERAL, L2): the proxy wallet's for type 1. */
   collateral(): Promise<PmReply<{ balance?: string }>>;
-  conditionalBalance(tokenId: string): Promise<PmReply<{ balance?: string }>>;
+  /**
+   * One outcome token's balance in base units (GET /balance-allowance?asset_type=CONDITIONAL, L2), and the approvals of
+   * the account's tokens it lists, keyed by operator (the exchanges a sell goes through).
+   */
+  conditionalBalance(tokenId: string): Promise<PmReply<{ balance?: string; allowances?: Record<string, string> }>>;
   order(id: string): Promise<PmReply<PmOpenOrder>>;
   trade(id: string): Promise<PmReply<{ data?: PmTrade[] }>>;
   /** Is this order of ours scoring for the liquidity rewards now (GET /order-scoring, L2)? */

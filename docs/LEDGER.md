@@ -389,6 +389,16 @@ archived 2026-09-26", the 2026-09-25 → 09-28 sections, with the what-remains l
 under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC sections, with the list as it stood on
 2026-10-08, under "LEDGER.md, archived 2026-10-08"; each oldest first.
 
+### [2026-10-09 01:06 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep's go-live audit fixed, one commit each, branch `pm-prego`, not pushed** (the coordinator's batch, on
+  Davies' "期间你再验证一下所有系统和下单等所有上线会用到的细节都确保没有问题"; nothing armed, no order sent).
+  - **F1, the outcome tokens' approvals** (live-prep's P5). The probe's polymarket part reads
+    `/balance-allowance?asset_type=CONDITIONAL` on a token of live-prep's selection today, else the busiest book's, and
+    reports `conditional.allowances` named as the collateral block's and `sellsApproved` for the two exchanges. Live-prep's
+    LIVE turn opens nothing while its own conditional reads (already made each minute) list either exchange missing or
+    at 0: gate `ctf_approval`, said once; sells are never held back by it; no listing at all stops nothing; dry-run and
+    the other instances have no such gate. The fake lists both exchanges approved and refuses a sell through one that
+    is not. Pinned in `pm_lp.test.ts` and `index.test.ts`. Platform: Claude Code | Model: not recorded (session policy)
 ### [2026-10-09 01:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **LPRESEL6 frozen** (Davies on the 6-hour re-selection: "这个你觉得有必要加吗？有必要的话就加上"): an offline forward test of
   live-prep's rule against it re-selecting at 06/12/18 UTC, on pm-rec's whole-universe record 10-09 → 10-23, bar at

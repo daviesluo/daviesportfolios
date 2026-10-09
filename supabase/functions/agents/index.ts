@@ -2262,7 +2262,7 @@ async function probeRevxAccount(rx: { env: RevxEnv; keyForm: string }, symbols: 
   return r;
 }
 
-export async function runProbe(only: Set<string> | null = null, f: typeof fetch = fetch, opts: { sleep?: (ms: number) => Promise<void> } = {}): Promise<Record<string, unknown>> {
+export async function runProbe(only: Set<string> | null = null, f: typeof fetch = fetch, opts: { sleep?: (ms: number) => Promise<void>; db?: Db } = {}): Promise<Record<string, unknown>> {
   const want = (part: string) => !only || only.has(part);
   const out: Record<string, unknown> = { at: new Date().toISOString(), parts: only ? [...only] : [...PROBE_PARTS] };
   // Every symbol an active row trades — AVAX and SUI joined by migration after the probe was written, and a pair the venue
@@ -2380,7 +2380,16 @@ export async function runProbe(only: Set<string> | null = null, f: typeof fetch 
   }
 
   // --- Polymarket: read-only until phase 2 (reference §2d). The report is scrubbed of every secret it could echo. ----
-  if (want("polymarket")) out.polymarket = await polymarketProbe(loadPolymarketEnv(), { fetchImpl: f });
+  // Its conditional-token read (the account's approvals for selling outcome tokens, live-prep's P5) is of a token of
+  // live-prep's selection today when there is one, else of the busiest book's (`polymarketProbe`).
+  if (want("polymarket")) {
+    let conditionalToken: string | null = null;
+    try {
+      const rows = await (opts.db ?? db()).select<{ yes_token: string }>("pm_lp_markets", `day=eq.${new Date().toISOString().slice(0, 10)}&select=yes_token&order=rank.asc&limit=1`);
+      conditionalToken = typeof rows[0]?.yes_token === "string" ? rows[0].yes_token : null;
+    } catch { /* unreadable: the busiest book's token stands in */ }
+    out.polymarket = await polymarketProbe(loadPolymarketEnv(), { fetchImpl: f }, { conditionalToken });
+  }
 
   // --- YouTube: public view counts behind Polymarket's view markets (youtube.ts). The key rides in a header, never a URL.
   if (want("youtube")) {

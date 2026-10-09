@@ -442,7 +442,14 @@ export function summariseBook(book: any): Record<string, unknown> {
  * type, and its open orders; then whether Polymarket's public profile of the signer names the stored funder as its
  * proxy wallet, and one public order book. It places nothing and reports no key, secret, passphrase or key id.
  */
-export async function polymarketProbe(env: PolymarketEnv, given: PmOpts = {}): Promise<Record<string, unknown>> {
+export async function polymarketProbe(
+  env: PolymarketEnv, given: PmOpts = {},
+  /**
+   * The outcome token whose conditional-token read shows the account's approvals (2026-10-09, the go-live audit's F1):
+   * one of live-prep's selection when the caller has it, else the probe's busiest book's token.
+   */
+  extra: { conditionalToken?: string | null } = {},
+): Promise<Record<string, unknown>> {
   const opts: PmOpts = { ...given, redactText: (s) => env.scrub(s) };   // every upstream error is scrubbed before it is cut
   const now = opts.now ?? Date.now;
   const out: Record<string, unknown> = { config: { ...env.config, ...env.check } };
@@ -554,6 +561,34 @@ export async function polymarketProbe(env: PolymarketEnv, given: PmOpts = {}): P
       },
       ...(bk.ok ? { status: bk.status, ms: bk.ms, ...summariseBook(bk.data) } : { status: bk.status, error: bk.error }),
     };
+  }
+
+  // The approvals of the account's outcome tokens (2026-10-09, the go-live audit's F1; live-prep's pre-registration P5): a
+  // sell of what is held moves them through the market's exchange, which must be an approved operator. An ERC-1155
+  // approval is the owner's for an operator, so one token's read shows the account's. Read-only, as the rest.
+  const token = /^\d+$/.test(extra.conditionalToken ?? "") ? extra.conditionalToken! : pick?.tokenId ?? null;
+  if (!env.creds || !address) out.conditional = { skipped: !env.creds ? "no complete L2 credentials" : "no signer address" };
+  else if (env.config.sigType === null) out.conditional = { skipped: "no valid POLYMARKET_SIG_TYPE" };
+  else if (!token) out.conditional = { skipped: "no outcome token to read" };
+  else {
+    const cb = await pmL2Get(env.creds, address, "/balance-allowance", { asset_type: "CONDITIONAL", token_id: token, signature_type: String(env.config.sigType) }, opts);
+    if (cb.ok) {
+      const allowances = Object.entries(cb.data?.allowances ?? {}).map(([spender, v]) => ({
+        spender, contract: POLYMARKET_CONTRACTS[spender.toLowerCase()] ?? null, allowance: String(v) === MAX_UINT256 ? "max" : String(v),
+      }));
+      const approved = (contract: string) => {
+        const a = allowances.find((x) => x.contract === contract);
+        return a ? a.allowance === "max" || (/^\d+$/.test(a.allowance) && BigInt(a.allowance) > 0n) : false;
+      };
+      out.conditional = {
+        status: cb.status, tokenId: token, tokenFrom: token === extra.conditionalToken ? "live-prep's selection" : "the busiest book",
+        signatureType: env.config.sigType, balance: String(cb.data?.balance ?? ""), allowances,
+        // What a sell of what live-prep holds needs: both exchanges approved (the Neg Risk Adapter is listed, not required).
+        sellsApproved: { ctfExchange: approved("CTF Exchange"), negRiskCtfExchange: approved("Neg Risk CTF Exchange") },
+      };
+    } else {
+      out.conditional = { status: cb.status, tokenId: token, error: cb.error };
+    }
   }
 
   return env.scrub(out);

@@ -16,7 +16,7 @@ import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@
 import { lpQuotes, PM_LP_BAND, PM_LP_CANDIDATE, PM_LP_CAP_MARKET_USD, PM_LP_INSTANCE, PM_LP_INV_CAP, PM_LP_PAUSE, PM_LP_TIGHT, PREP_LP_INSTANCE } from "./pm_lp.ts";
 import { isTight } from "./pmrw_x.ts";
 import {
-  candidateOf, effectiveLimits, inUniverse, inYesBook, lpCandidateOf, lpLimits, onTick, pauseAfterJump, PM_LIVE_INSTANCE, PM_MINI_INSTANCE, pmLiveDbTables, pmLpDbTables,
+  candidateOf, ctfApproval, effectiveLimits, gates, inUniverse, inYesBook, lpCandidateOf, lpLimits, onTick, pauseAfterJump, PM_LIVE_INSTANCE, PM_MINI_INSTANCE, pmLiveDbTables, pmLpDbTables,
   runPmLive, rwQuotes, type PmBookNow, type PmIntent, type PmLiveConfig, type PmMarketRow, type PmPauseState, type PmRewardRow,
 } from "./pm_live.ts";
 import { classifyLp, decideLp, PREP_INSTANCE, prepDbTables, prepReads, runPmPrep, stepSides, type PrepOrder } from "./pm_prep.ts";
@@ -552,4 +552,60 @@ Deno.test("armed: the account's holdings, not the paper's; a sell once it holds 
   };
   assertEquals(await run(0), [["live", 0]]);
   assertEquals(await run(0.1), []);                                            // −0.35 + 0.10 = −0.25, inside −0.30
+});
+
+// ------------------------------------------------------------------ F1: the outcome tokens' approvals (2026-10-09)
+
+const MAXU = "115792089237316195423570985008687907853269984665640564039457584007913129639935";
+const CTF = "0xE111180000d2663C0091e4f400237545B87B996B", NEG = "0xe2222d279d744050d28e00520010520000310F59";
+
+Deno.test("ctfApproval: both exchanges positive in every listing is true; either missing or 0 is false; no listing at all is null", () => {
+  assertEquals(ctfApproval([{ [CTF]: MAXU, [NEG]: MAXU }, { [CTF.toLowerCase()]: "1", [NEG.toLowerCase()]: MAXU }]), true);
+  assertEquals(ctfApproval([{ [CTF]: MAXU, [NEG]: "0" }]), false);
+  assertEquals(ctfApproval([{ [CTF]: MAXU }]), false);
+  assertEquals(ctfApproval([{ [CTF]: MAXU, [NEG]: MAXU }, { [CTF]: "0", [NEG]: MAXU }]), false);
+  assertEquals(ctfApproval([undefined, {}, null, "x", []]), null);
+  assertEquals(ctfApproval([]), null);
+});
+
+Deno.test("gates: an exchange not approved stops opening and names itself, never a sell; unread or not live-prep's, it stops nothing", () => {
+  const base = {
+    mode: "live" as const, globalPause: false, riskReadable: true, armed: true, sbRegion: "eu-west-1", geo: { ok: true, country: "IE", region: "L", blocked: true },
+    closedOnly: false, attested: true, inventoryReadable: true, lossDay: false, lossTotal: false,
+  };
+  const no = gates({ ...base, ctfApproved: false });
+  assertEquals([no.open, no.openBlockedBy, no.reduce, no.reduceBlockedBy, no.verdicts.ctf_approval], [false, "ctf_approval", true, null, false]);
+  const unread = gates({ ...base, ctfApproved: null });
+  assertEquals([unread.open, unread.verdicts.ctf_approval], [true, null]);
+  // Not given (every other instance, and live-prep's dry-run): no such gate, and the verdicts are what they were.
+  assertEquals("ctf_approval" in gates(base).verdicts, false);
+  // A gate listed earlier still decides first.
+  assertEquals(gates({ ...base, ctfApproved: false, attested: false }).openBlockedBy, "attestation");
+});
+
+Deno.test("armed, F1: with the Neg Risk CTF Exchange not approved nothing opens and it is said once; a sell of what is held still goes; dry-run unchanged", async () => {
+  const live = { dry_run: false, live_confirmed_at: "2026-10-05T09:00:00.000Z" };
+  const w = world({ config: live });
+  w.pm.ctfAllowances = { [CTF]: MAXU, [NEG]: "0" };
+  w.pm.tokens.set(tok(1, "yes"), 5);                                                 // the account holds 5 YES of L1
+  const r = await w.turn(T0);
+  const orders = w.rows("pm_lp_orders").filter((x) => x.mode === "live");
+  assertEquals(orders.filter((x) => x.side === "BUY").length, 0);
+  // L1 is a standard market: its sell goes through the CTF Exchange, which is approved, and the venue takes it.
+  assertEquals(orders.filter((x) => x.side === "SELL").map((x) => [x.cond, x.outcome, Number(x.price), Number(x.size), x.state]), [[w.L1.cond, "yes", 0.47, 5, "live"]]);
+  assertEquals([r.gates?.open, r.gates?.openBlockedBy, r.gates?.reduce], [false, "ctf_approval", true]);
+  assertEquals(r.errors.filter((e) => e.includes("not approved")).length, 1);
+  const r2 = await w.turn(T0 + M);
+  assertEquals(r2.errors.filter((e) => e.includes("not approved")).length, 0);            // said once, on the turn it closed
+  // Approved again: it opens.
+  w.pm.ctfAllowances = { [CTF]: MAXU, [NEG]: MAXU };
+  const r3 = await w.turn(T0 + 2 * M);
+  assertEquals([r3.gates?.open, r3.gates?.verdicts.ctf_approval], [true, true]);
+  assert(w.rows("pm_lp_orders").some((x) => x.mode === "live" && x.side === "BUY" && x.state === "live"));
+  // The same account in dry-run: no such gate, and its buys are recorded as before.
+  const d = world();
+  d.pm.ctfAllowances = { [CTF]: MAXU, [NEG]: "0" };
+  const rd = await d.turn(T0);
+  assertEquals(["ctf_approval" in (rd.gates?.verdicts ?? {}), rd.gates?.open], [false, true]);
+  assert(d.rows("pm_lp_orders").some((x) => x.side === "BUY"));
 });

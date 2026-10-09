@@ -70,7 +70,7 @@
 // same decisions with or without it (`pm_instance.test.ts`, `pm_mid_formula.test.ts`).
 
 import {
-  asTickSize, buildOrder, newSalt, orderProblems, PM_GTD_EARLY_S, PM_ORDER_REGION, type PmBookReply, type PmOpenOrder, type PmOrder, type PmReply,
+  asTickSize, buildOrder, newSalt, orderProblems, PM_EXCHANGE, PM_GTD_EARLY_S, PM_ORDER_REGION, type PmBookReply, type PmOpenOrder, type PmOrder, type PmReply,
   type PmRebate, type PmSendReply, type PmSigner, type PmTickSize, type PmTrade, type PmUserEarning, type PmVenue,
 } from "../_shared/polymarket_orders.ts";
 import type { PmLevel, PmPublicOpts } from "../_shared/polymarket_public.ts";
@@ -404,6 +404,12 @@ export type GateInputs = {
   /** The account's closed-only flag; null when it could not be read. */
   closedOnly: boolean | null;
   attested: boolean; inventoryReadable: boolean; lossDay: boolean; lossTotal: boolean;
+  /**
+   * Live-prep's live turn only (2026-10-09): whether this turn's conditional-token reads show both exchanges approved to
+   * move our outcome tokens (`ctfApproval`). False stops opening, never a sell; null (no allowances in the replies) stops
+   * nothing. Absent, the gate is not listed at all, so every other turn's verdicts are what they were.
+   */
+  ctfApproved?: boolean | null;
 };
 export type Gates = {
   /** May an order that opens or enlarges a position be placed? */
@@ -441,7 +447,8 @@ export function gates(i: GateInputs): Gates {
     loss_day: !i.lossDay,
     loss_total: !i.lossTotal,
   };
-  const openBlockedBy = PM_OPEN_GATES.find((k) => v[k] === false) ?? null;
+  if (i.ctfApproved !== undefined) v.ctf_approval = i.ctfApproved;
+  const openBlockedBy = [...PM_OPEN_GATES, "ctf_approval"].find((k) => v[k] === false) ?? null;
   const country = i.geo.country ?? "", region = i.geo.region ?? "";
   const ofac = i.geo.ok && (OFAC_COUNTRIES.has(country) || OFAC_REGIONS.has(`${country}-${region}`) || OFAC_REGIONS.has(region));
   const reduceBlockedBy = i.globalPause ? "global_pause" : !v.region ? "region" : ofac ? "geoblock" : !i.inventoryReadable ? "inventory" : null;
@@ -1256,6 +1263,28 @@ export function geoOf(r: PmReply<{ blocked?: boolean; country?: string; region?:
   return { geo: { ok: false, country: null, region: null, blocked: null, cachedFrom: null }, good: g, staleReported: true, fault };
 }
 
+/**
+ * The two exchanges a sell of our outcome tokens goes through (`PM_EXCHANGE`), lower-cased, as the conditional-token
+ * reads key their `allowances`: an ERC-1155 approval is the owner's for an operator, so every token's read shows the same.
+ */
+export const PM_CTF_OPERATORS = [PM_EXCHANGE.standard.toLowerCase(), PM_EXCHANGE.negRisk.toLowerCase()] as const;
+/**
+ * Whether this turn's conditional-token reads (`GET /balance-allowance?asset_type=CONDITIONAL`) show both exchanges
+ * approved to move our tokens (2026-10-09, the go-live audit's F1): true when every reply that lists allowances shows a
+ * positive one for each; false when one lists allowances and either exchange's is missing or 0 (a sell through it would
+ * be refused "not enough balance / allowance", so a buy would hold what could not be sold); null when no reply lists any
+ * (nothing is known, and nothing is stopped). It judges the reads; it never blocks a sell (`gates`).
+ */
+export function ctfApproval(replies: unknown[]): boolean | null {
+  const lists = replies
+    .map((a) => (a && typeof a === "object" && !Array.isArray(a) ? Object.entries(a as Record<string, unknown>) : []))
+    .filter((e) => e.length > 0)
+    .map((e) => new Map(e.map(([k, v]) => [k.toLowerCase(), String(v ?? "")])));
+  if (!lists.length) return null;
+  const positive = (s: string | undefined) => !!s && /^\d+$/.test(s) && BigInt(s) > 0n;
+  return lists.every((l) => PM_CTF_OPERATORS.every((op) => positive(l.get(op))));
+}
+
 // ------------------------------------------------------------------ the executor
 
 export type PmLiveDeps = {
@@ -1481,6 +1510,8 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   else report.errors.push(`pUSD balance unreadable (${cr.status} ${cr.error ?? "no balance"})${mode === "live" ? ": no new buy is sent this turn; the funded ones resting stay" : ""}`);
   const books = new Map<string, PmBookNow | null>();
   const heldOf = new Map<string, number>();
+  /** Each conditional read's `allowances`, for live-prep's approval gate (`ctfApproval`). */
+  const ctfAllowances: unknown[] = [];
   let inventoryReadable = true;
   const goneNow: Array<{ cond: string; status: number; error: string }> = [];
   const conditions: Record<string, string> = {};
@@ -1499,6 +1530,7 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
     for (const token of [m.yes_token, m.no_token]) {
       const br = await venue.conditionalBalance(token);
       const units = br.ok ? Number(br.data?.balance) : NaN;
+      if (br.ok) ctfAllowances.push(br.data?.allowances);
       if (Number.isFinite(units) && units >= 0) heldOf.set(token, units / 1e6);
       else { inventoryReadable = false; report.errors.push(`balance of ${token.slice(0, 10)}… unreadable: ${br.status} ${br.error ?? "no balance"}`); }
     }
@@ -1728,9 +1760,15 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
 
   // ── 3. the gates ──────────────────────────────────────────────────────────────────────────────────────────────────
   const attested = attestationCurrent(cfg, d.now);
+  // Live-prep sells what it holds, so in a live turn it opens nothing while the reads show an exchange not approved to
+  // move its tokens (the go-live audit's F1); its sells are never held back by it, and a dry-run is judged as before.
+  const ctfApproved = inst.lp && mode === "live" ? ctfApproval(ctfAllowances) : undefined;
   const g = gates({
     mode, globalPause, riskReadable, armed: !!cfg.live_confirmed_at, sbRegion: d.sbRegion, geo, closedOnly, attested, inventoryReadable, lossDay, lossTotal,
+    ...(ctfApproved !== undefined ? { ctfApproved } : {}),
   });
+  // Reported once, on the turn it closes (the gate's own event records each change).
+  if (ctfApproved === false && prev.gates?.ctf_approval !== false) report.errors.push("the conditional-token reads show the CTF Exchange or the Neg Risk CTF Exchange not approved to move our tokens: nothing opens; sells stay armed");
   report.gates = g;
 
   // ── 4. what each slot should hold ─────────────────────────────────────────────────────────────────────────────────
