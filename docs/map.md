@@ -577,7 +577,9 @@ Startup, the root component, sign-in, what the browser keeps, error reports, and
 | `board/header_sidebar.jsx` | The scoreboard, Top Movers, Market Conditions, Upcoming Earnings and the rest of the sidebar. |
 | `board/pitch.jsx` | The tactics board, with drag-to-swap in edit mode. |
 | `board/heatmap.jsx` | The heat map: one tile per holding, sized by value. |
-| `board/modals.jsx` | The sector drill-down, the lot and sale editor, the add-ticker and cash dialogs, and the confirm dialog. On a phone the top one is the page itself, so it fills the strip under the toolbar. |
+| `board/modals.jsx` | The frame every modal draws in and the confirm dialog. On a phone the top modal is the page itself, so it fills the strip under the toolbar. |
+| `board/position_drill.jsx` | The sector drill-down and its player cards, a chunk loaded after the first paint. |
+| `board/edit_modals.jsx` | The lot and sale editor and the add-ticker and cash dialogs, a chunk loaded after the first paint. |
 
 #### `tables/` — the three tables and their export
 

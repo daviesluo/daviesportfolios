@@ -269,12 +269,13 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      (PITR add-on unverified); size budget 1.76 kB of headroom. Full report: this session's transcript; evidence
      paths in the reviewer's scratchpad.
    - **Batch 5** (Davies, 2026-10-08: "以上内容都修"; L1, L2 and PITR are handled outside the repository): done on
-     `review-fixes`, not yet landed: the board's first paint at 1:1 FX; T1; T2 (the full Chromium on CI); M7 again;
-     D1 (0104, `edge_calls.active_from`: migrations.yml applies it on landing, and the watchdog redeploys); A2 (the
-     `agents` function redeploys); A3; A4; A6; A7. **A1 not done, stopped as the batch said:** rounding `applyFill`'s base to 12
-     digits moves `backtest.ts`'s `run` (ret, drawdown, fees, realised in all 24 runs of four coins × three kinds × two
-     stop rules, at most 8.4e-10 relative), because a buy from flat (`cash / price`) carries 17 digits; a snap of a
-     residue under 1e-12 of the sizes to flat moves nothing tested. The choice is Davies'.
+     `review-fixes`, not yet landed: the board's first paint at 1:1 FX; T1; T2 (the full Chromium on CI); M7 again; D1
+     (0104, `edge_calls.active_from`: migrations.yml applies it on landing, and the watchdog redeploys); A2 (the
+     `agents` function redeploys); A3; A4; A6; A7; the size budget (`@size-limit/file`; 3.58 kB of headroom). **A1 not
+     done, stopped as the batch said:** rounding `applyFill`'s base to 12 digits moves `backtest.ts`'s `run` (ret,
+     drawdown, fees, realised in all 24 runs of four coins × three kinds × two stop rules, at most 8.4e-10 relative),
+     because a buy from flat (`cash / price`) carries 17 digits; a snap of a residue under 1e-12 of the sizes to flat
+     moves nothing tested. The choice is Davies'.
 
 ## Machine and platform setup
 
@@ -402,6 +403,17 @@ under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC s
   Kill switches read in code: `pm_lp_config.live_confirmed_at` (opening), `global_pause` (cancel-all), the −$75 total
   stop, the cancel read-back and the attestation and region gates. Left for Davies: fund pUSD (≥ $81; $400 for the
   design's ten markets), the probe's allowance read from Ireland, and step 8lp in the conversation where he says go.
+
+### [2026-10-08 23:58 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The size budget has lasting room again: the drill-in and the editors left the main bundle** (batch 5's size item).
+  Batch 5's first-paint waiting had left 1.35 kB of the 122 kB. A position's drill-in with its player cards
+  (`board/position_drill.jsx`) and the lot editor, add-a-holding and cash dialogs (`board/edit_modals.jsx`) open only
+  on a click, so they are chunks of their own now, fetched after the first paint with the lists, the ticker chart and
+  Agents (`prefetchModalChunks`), each opening in its own frame (`ModalFrame`) should a click beat its code;
+  `board/modals.jsx` keeps the frame and the confirm the board itself uses. The budget's figure is 118.42 kB (3.58 kB
+  of headroom, from 1.35). What the first paint loads (the entry and the chunk it preloads, gzip -9): 123,360 bytes
+  before, 119,771 after (the shared chunk is now formatters and ticker classes, 1,441 bytes; `ops_error.js` moved
+  into the entry). The editors' tests read the new modules; the whole unit suite: 1,369 passed.
 
 ### [2026-10-08 23:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep against itself: nothing further adopted** (live-prep's Addendum 3, `backtests/lpself/`). Every change to

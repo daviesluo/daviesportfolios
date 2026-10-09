@@ -8,7 +8,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, cleanup, within, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { EditTickerModal, AddTickerModal, useConfirm, PositionDrillModal } from './modals.jsx';
+import { useConfirm } from './modals.jsx';
+import { PositionDrillModal } from './position_drill.jsx';
+import { EditTickerModal, AddTickerModal } from './edit_modals.jsx';
 
 const POSITIONS = {
   GK:  { label: 'GK',  subtitle: 'Cash',     role: 'GK',  tickers: ['CASH'] },

@@ -25,14 +25,7 @@ import { Header, Sidebar, MarketConditions, PerfPanel, SidebarFoot, UpcomingEarn
 import { useIsDesktop } from './ops_error_badge.jsx';
 import { Pitch } from '../board/pitch.jsx';
 import { Heatmap } from '../board/heatmap.jsx';
-import {
-  Modal,
-  PositionDrillModal,
-  EditTickerModal,
-  AddTickerModal,
-  CashModal,
-  useConfirm,
-} from '../board/modals.jsx';
+import { Modal, useConfirm } from '../board/modals.jsx';
 // The four modals nobody can reach without a click, split out of the main
 // bundle. Together with everything only they pull in — the chart modal's
 // data hook, its geometry and the indicator maths — they were a fifth of
@@ -53,6 +46,12 @@ const HoldingsListModal = lazyPage(() => import('../tables/holdings_list.jsx'), 
 const SectorsListModal = lazyPage(() => import('../tables/sectors_list.jsx'), (m) => ({ default: m.SectorsListModal }));
 const TransactionHistoryModal = lazyPage(() => import('../tables/transaction_history.jsx'), (m) => ({ default: m.TransactionHistoryModal }));
 const AgentsModal = lazyPage(() => import('../agents/agents.jsx'), (m) => ({ default: m.AgentsModal }));
+// A position's drill-in, and the editors (a holding's lots, adding one, cash on hand): always a click away (batch 5's
+// size budget).
+const PositionDrillModal = lazyPage(() => import('../board/position_drill.jsx'), (m) => ({ default: m.PositionDrillModal }));
+const EditTickerModal = lazyPage(() => import('../board/edit_modals.jsx'), (m) => ({ default: m.EditTickerModal }));
+const AddTickerModal = lazyPage(() => import('../board/edit_modals.jsx'), (m) => ({ default: m.AddTickerModal }));
+const CashModal = lazyPage(() => import('../board/edit_modals.jsx'), (m) => ({ default: m.CashModal }));
 
 /**
  * What a menu page shows while its code is still arriving: its own frame —
@@ -123,7 +122,7 @@ function prefetchModalChunks() {
   // Through each page's own `preload`, so the page knows its code is here and its first open renders it at once
   // instead of suspending into its frame (see lazyPage). Best-effort: a chunk that fails here is retried, healed and
   // reported by `lazyPage` at the click, so a failure in the warm-up is not a second report.
-  for (const page of [TickerChartModal, HoldingsListModal, SectorsListModal, TransactionHistoryModal, AgentsModal]) page.preload();
+  for (const page of [TickerChartModal, HoldingsListModal, SectorsListModal, TransactionHistoryModal, AgentsModal, PositionDrillModal, EditTickerModal, AddTickerModal, CashModal]) page.preload();
   // The Agents page's data too, so it opens on a drawn page rather than a spinner.
   import('../agents/agents.js').then((m) => m.prefetchAgentsDashboard()).catch(() => {});
 }
@@ -1753,6 +1752,7 @@ function Board({ isReadOnly }) {
           load, its own frame says so and the board behind it keeps working. */}
       {drillPos && (
         <ModalBoundary name="position" title={positionTitle(metrics.positions[drillPos], 'Position')} onClose={() => setDrillPos(null)}>
+        <React.Suspense fallback={<ModalFrame title={positionTitle(metrics.positions[drillPos], 'Position')} onClose={() => setDrillPos(null)} />}>
         <PositionDrillModal
           posKey={drillPos}
           position={metrics.positions[drillPos]}
@@ -1770,6 +1770,7 @@ function Board({ isReadOnly }) {
           hideValues={hideValues}
           fxPending={fxPending}
         />
+        </React.Suspense>
         </ModalBoundary>
       )}
 
@@ -1860,6 +1861,7 @@ function Board({ isReadOnly }) {
 
       {editingTicker && !isReadOnly && portfolio.holdings[editingTicker] && (
         <ModalBoundary name="edit-holding" title={editingTicker} onClose={() => setEditingTicker(null)}>
+        <React.Suspense fallback={<ModalFrame title={editingTicker} onClose={() => setEditingTicker(null)} />}>
         <EditTickerModal
           ticker={editingTicker}
           holding={portfolio.holdings[editingTicker]}
@@ -1872,11 +1874,13 @@ function Board({ isReadOnly }) {
           onDelete={async () => { if (await askConfirm({ title: 'REMOVE HOLDING', message: `Remove ${editingTicker}?`, confirmLabel: 'Remove', danger: true })) { removeHolding(editingTicker); setEditingTicker(null); } }}
           onMove={(toPosKey) => { moveHolding(editingTicker, toPosKey); setEditingTicker(null); }}
         />
+        </React.Suspense>
         </ModalBoundary>
       )}
 
       {addingToPos && !isReadOnly && (
         <ModalBoundary name="add-holding" title={positionTitle(portfolio.positions[addingToPos], 'Add a holding')} onClose={() => setAddingToPos(null)}>
+        <React.Suspense fallback={<ModalFrame title={positionTitle(portfolio.positions[addingToPos], 'Add a holding')} onClose={() => setAddingToPos(null)} />}>
         <AddTickerModal
           posKey={addingToPos}
           position={portfolio.positions[addingToPos]}
@@ -1916,11 +1920,13 @@ function Board({ isReadOnly }) {
             setAddingToPos(null);
           }}
         />
+        </React.Suspense>
         </ModalBoundary>
       )}
 
       {editingCash && !isReadOnly && (
         <ModalBoundary name="cash" title="Cash on hand" onClose={() => setEditingCash(false)}>
+        <React.Suspense fallback={<ModalFrame title="Cash on hand" onClose={() => setEditingCash(false)} />}>
         <CashModal
           amount={portfolio.holdings.CASH ? portfolio.holdings.CASH.lastPrice : 0}
           onClose={() => setEditingCash(false)}
@@ -1942,6 +1948,7 @@ function Board({ isReadOnly }) {
             setEditingCash(false);
           }}
         />
+        </React.Suspense>
         </ModalBoundary>
       )}
 
