@@ -571,6 +571,46 @@ describe('pg_cron jobs', () => {
     expect([...cronJobs(FILES.filter((f) => f <= T))]).toEqual([...cronJobs(FILES.filter((f) => f < T))]);
   });
 
+  // The CoinJar recorder (Davies, 2026-10-09, "建起来": CJ5's books recorded keyless before any paper test).
+  it("adds the CoinJar recorder's call to the list: every minute, its beat first, every other row as it was, and a prune of SQL alone", () => {
+    const T = FILES.find((f) => /^\d{4}_cj_recorder\.sql$/.test(f)) ?? '';
+    expect(T).not.toBe('');
+    const before = replayList(sqlsOf(FILES.filter((f) => f < T))), after = replayList(sqlsOf(FILES.filter((f) => f <= T)));
+    expect(after.slice(0, before.length)).toEqual(before);
+    const shape = ({ path: p, timeout, every, lastHour, enabled, retry }) => ({ path: p, timeout, every, lastHour, enabled, retry });
+    expect(after.slice(before.length).map(shape)).toEqual([
+      { path: 'agents?action=cjrec', timeout: 30000, every: 1, lastHour: 23, enabled: true, retry: true },
+    ]);
+    expect(beatKeyOfPath(after.at(-1).path)).toBe('agents?action=cjrec');
+    const day = Date.UTC(2026, 9, 10);
+    let added = 0;
+    for (let m = 0; m < 1440; m++) {
+      const at = day + m * 60e3;
+      const was = before.filter((c) => c.enabled && isDue(c, at)).map((c) => c.path);
+      const is = after.filter((c) => c.enabled && isDue(c, at)).map((c) => c.path);
+      expect(is.slice(0, was.length)).toEqual(was);
+      added += is.length - was.length;
+    }
+    expect(added).toBe(1440);
+    const src = fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/index.ts'), 'utf8');
+    expect(src).toContain('if (action === "cjrec" && req.method === "POST" && operator) return json(200, await runCjRecAction());');
+    const jobsBefore = cronJobs(FILES.filter((f) => f < T)), jobsAfter = cronJobs(FILES.filter((f) => f <= T));
+    expect([...jobsAfter.keys()].filter((n) => !jobsBefore.has(n))).toEqual(['cj-rec-prune']);
+    expect(jobsAfter.get('cj-rec-prune').command.trim()).toBe("delete from public.cj_book where ts < now() - interval '35 days';");
+    expect(httpJobs(jobsAfter).map(([n]) => n)).toEqual(['edge-calls-every-minute']);
+    // The tables' checks hold what the module writes: its books, and the sides its parser keeps. No grant, no policy.
+    const sql = fs.readFileSync(path.join(DIR, T), 'utf8').replace(/--[^\n]*/g, '');
+    const rec = fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/cj_rec.ts'), 'utf8');
+    const books = JSON.parse(/^export const CJ_PRODUCTS = (\[[^\]]*\]) as const;$/m.exec(rec)?.[1] ?? 'null');
+    expect(books).toEqual(['USDCGBP', 'USDTGBP']);
+    const list = books.map((b) => `'${b}'`).join(', ');
+    expect(count(sql, `product    text not null check (product in (${list}))`) + count(sql, `product     text not null check (product in (${list}))`)).toBe(2);
+    expect(JSON.parse(/^const SIDES: readonly string\[\] = (\[[^\]]*\]);$/m.exec(rec)?.[1] ?? 'null')).toEqual(['buy', 'sell', 'auction']);
+    expect(sql).toContain("taker_side  text not null check (taker_side in ('buy', 'sell', 'auction'))");
+    for (const t of ['cj_trades', 'cj_book', 'cj_rec_state']) expect(sql).toMatch(new RegExp(`alter table public\\.${t} +enable row level security;`));
+    expect(sql).not.toMatch(/\bgrant\b|create policy/i);
+  });
+
   // 0103 (Davies, 2026-10-08: stop mini-pool's two calls, and what no reading still needs now RW's round 1 ends):
   // mini-pool's two calls leave the list when it applies; RW's four only once the last day their readings read is
   // closed, turned off by a function a job runs every five minutes (so a push before 10-09 00:05 cannot cut RW's last

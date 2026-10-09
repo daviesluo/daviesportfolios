@@ -3908,6 +3908,39 @@ go-live candidate); `pmlp`, `pmlpprep` (live-prep, the lead candidate); `views`,
 study or horizon is Davies'); `trend-1h` (MX-1 judges its exits) and `momentum-1d` (no reading, no Edge call of its own:
 its retirement is Davies' call) as rows of the tick. No weather call is recurring.
 
+57. **CoinJar UK's GBP stablecoin books are recorded keyless for CJ5 (2026-10-09, migration `0110`, `agents/cj_rec.ts`,
+`backtests/cjrec/`).** Davies: "建起来" — CJ5 (the stat-arb search's second, PR5's rule on CoinJar UK's USDC/GBP and
+USDT/GBP at 0.00 % maker; `reviews/2026-10-09-stat-arb-search.md` §5.2) is recorded before any paper test, with no
+account and no key. **Measured first, keyless** (CoinJar's Data API, `https://data.exchange.coinjar.com`, "does not
+require authentication", GET only, market data not rate limited): `/products/{id}/trades` takes `after` and `before` in
+unix seconds; `after` is inclusive (a print at 17:24:51.686837 comes back for 1791566691, not for 1791566692) and its page
+is ascending, `before` exclusive and descending, a thousand a page at most (`limit=5000` returns 1,000). **The search's
+"about eight days of history" was the default page:** `after=0` pages forward from each book's first print (USDC/GBP
+2020-04-02, USDT/GBP 2021-08-27, USDC/AUD 2019-10-16), and the newest thousand's span paged forward with `after` gave the
+same 1,000 records field for field on both GBP books. So CJ5's prints need no wait: its paper test can read them back to
+2020; only the book has no history. From 2026-09-01 to 10-09: USDC/GBP 2,283 prints (59 a day, £19,153 a day), USDT/GBP
+1,247 (32, £14,120), USDC/AUD 19,022 (491, A$327,065). A print is `{ tid, price, size, value, taker_side, timestamp }`:
+`tid` is one sequence across books, `taker_side` is `buy`, `sell` or `auction`, `value` is price × size in the quote
+currency to about a penny (41 of 42 in the fixture to the nearest; one a penny over), the time to the microsecond.
+`/products/{id}/book?level=2` served 40 levels a side (its docs say 20; `level=1` the touch, `3` the whole book); the
+touch was 27.8 bps wide on USDC/GBP and 34.4 on USDT/GBP (18:26 UTC), and within 40 bps of the mid it held 17–20 and 10–13
+levels, both sides together, in ten readings a minute apart (18:26–18:35), each book different from every reading to the
+next (the touch the same in all ten). CoinJar offers **Maker Or Cancel** (`MOC`, its post-only time in force: "cancelled immediately if any part of it
+would fill on entry"; `docs/order-types`), which answers the condition CJ5's draft added. **What it keeps, every minute**
+(`agents?action=cjrec`, `edge_calls` row 30 s, `retry` on): each new print once (`cj_trades`, primary key `(product,
+tid)`, index `(product, ts)`), read from the newest stored print's second (prints of that second told apart by `tid`; a
+second fuller than a page is passed and said), an empty table starting at 2026-09-01 and five pages a book a run until it
+has caught up; and each book's levels within 40 bps of its mid, the best always, 25 a side at most (`cj_book`, a row when
+they change, `seen_until` and `reads` extended when not, as `agent_book_levels`). USDC/AUD is left out: dead on S1's
+screen, 491 prints a day and a third book a minute, for nothing CJ5 reads; it is one word of `CJ_PRODUCTS` and of 0110's
+checks. **Size:** prints about 175 bytes each with both indexes, ~16 KB a day, kept; books ~830 and ~450 bytes a row,
+2,880 rows a day, ~1.8 MB a day, kept 35 days (`cj-rec-prune`, daily), ~65 MB at most, on a database of 1.29 GB. **Faults**
+go to `ops_errors` as `agents.cj_rec`, at once and then at most hourly while one lasts (its state row `cj_rec_state`).
+**Not among the monitor's health readings:** they say whether the trading loop is alive, and a research recorder that
+stops trades nothing. Nothing of a trading path reads it. **Live** would need Davies' CoinJar UK account and a key he
+creates himself with the trades scope (JWT-signed, `docs/advanced-api-key`), stored by him as a Supabase secret, never
+printed; no order path exists.
+
 ### Twin variants
 
 The realistic twins, a row each of `agent_quote_twin_specs`, in the page's order. A new one is a row here in the commit

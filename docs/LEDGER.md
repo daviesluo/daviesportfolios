@@ -283,6 +283,17 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      Function redeploys (`bin/edge-changed.sh`); the tick fix is in `agents`; the UNREALIZED fix is a new bundle
      (`dist/`).
 
+11. **CJ5's keyless CoinJar recorder: built, not yet deployed** (Davies, 2026-10-09: "建起来"; reference §4 item 57,
+   migration `0110`, `agents/cj_rec.ts`). After it lands: the `agents` deploy and the migration, then 15 minutes
+   (`active_from`); check `select product, count(*), min(ts), max(ts) from cj_trades group by 1` (from 2026-09-01:
+   about 2,280 USDC/GBP and 1,250 USDT/GBP prints at the first run), `select product, count(*), max(seen_until) from
+   cj_book group by 1` (a row a minute a book), `select * from cj_rec_state`, the `agents?action=cjrec` beats in
+   `edge_call_beats`, and no `agents.cj_rec` row in `ops_errors`. CJ5's prints need no waiting: CoinJar's trades
+   endpoint pages back to 2020 with `after` (the search's "eight days" was its default page), so CJ5's paper test can be
+   pre-registered and built on history now; only its book (queue) history starts at the deploy. CoinJar offers post-only
+   (`MOC`). Live needs Davies' CoinJar UK account and a trades-scope key he creates himself (never printed), stored by
+   him as a Supabase secret, and an order path that does not exist.
+
 ## Machine and platform setup
 
 A rebuilt container loses every line below. Run them before working.
@@ -402,6 +413,17 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 2026-10-08, under "LEDGER.md, archived 2026-10-08", the 2026-10-08 16:59 → 18:35 UTC sections under
 "LEDGER.md, archived 2026-10-09", and the 2026-10-08 22:49 → 23:58 UTC sections under "LEDGER.md, archived 2026-10-09
 (second)"; each oldest first.
+
+### [2026-10-09 18:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **CJ5's CoinJar recorder built** (Davies: "建起来"; what-remains item 11; reference §4 item 57): `agents?action=cjrec`
+  every minute (`edge_calls` row, 30 s, `retry` on, beat via `serveRequest`), migration `0110` (`cj_trades`, `cj_book`,
+  `cj_rec_state`, RLS on, no grant; `cj-rec-prune` drops books after 35 days, prints kept), `agents/cj_rec.ts` and
+  `cj_rec.test.ts` on a fixture of CoinJar's own answers (`backtests/cjrec/`). Keyless GETs of
+  `data.exchange.coinjar.com` only; nothing trades. USDC/GBP and USDT/GBP; USDC/AUD left out (dead on S1, 491 prints a
+  day). Not a monitor health reading (a research recorder).
+- **Found:** CoinJar's full print history is keyless (`/trades?after=<unix s>`, inclusive, ascending, 1,000 a page;
+  back to 2020-04-02 on USDC/GBP), so the search's "~500 prints, about eight days" was the default page; and CoinJar has
+  a post-only time in force (`MOC`). The review's §5.2 still says otherwise; not edited here.
 
 ### [2026-10-09 18:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **`p50x1` withdrawn, rule D's twin "variant-3" again** (Davies: "删掉 p50x1：回到 4 个测试版本，规则 D 改回 variant-3。",

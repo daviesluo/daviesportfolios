@@ -92,6 +92,12 @@
 //                             markets, and each closed hour of frames moved
 //                             to Supabase Storage (bucket pm-rec, private)
 //                             with a signed URL. Cron or admin.
+//   POST ?action=cjrec      — the CoinJar recorder (cj_rec.ts, 0110): every
+//                             minute, every new print of CoinJar UK's USDC/GBP
+//                             and USDT/GBP books, once by its trade id, and
+//                             each book's levels near its touch when they
+//                             change, for CJ5's paper test. Keyless reads of
+//                             CoinJar's public Data API only. Cron or admin.
 //   GET  ?action=dashboard  — everything the Agents page shows: strategies
 //                             with positions and P&L derived from fills,
 //                             the latest observation per symbol, the caps,
@@ -192,6 +198,7 @@ import { runPmrwE, RWCE_REPLAY } from "./pmrw_e.ts";
 import { parseRwxSpecs, researchRwx, runPmrwX, RWCX_REPLAY, type RwxReplay } from "./pmrw_x.ts";
 import { booksDelayMs, runBooks } from "./books.ts";
 import { PM_REC_VENUE_TIMEOUT_MS, pmRecStorage, runPmRec, runPmRecMeta } from "./pm_book_rec.ts";
+import { runCjRec } from "./cj_rec.ts";
 import { dayOpenOf, dayPnl, decisionBarMs, isOffBook, jevViewOf, resolveBook, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
 
 export { constantTimeEqual, verifyToken } from "../_shared/token.ts";
@@ -435,6 +442,23 @@ export async function runPmRecMetaAction(deps: { db?: Db; fetchImpl?: typeof fet
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     await reportServerError("agents.pm_rec", { message: message.slice(0, 500), context: { at: new Date().toISOString() } });
+    return { error: message.slice(0, 300) };
+  }
+}
+
+/**
+ * The CoinJar recorder's minute (cj_rec.ts, 0110): keyless reads of CoinJar's public Data API into its own tables. A fault
+ * goes to `ops_errors` as `agents.cj_rec` when it first appears and at most hourly while it lasts (`report.report`); the
+ * minute's whole list is its state row's `last_error`. It never throws past here.
+ */
+export async function runCjRecAction(deps: { db?: Db; fetchImpl?: typeof fetch; now?: number } = {}) {
+  try {
+    const report = await runCjRec({ db: deps.db ?? db(), now: deps.now ?? Date.now(), fetchImpl: deps.fetchImpl });
+    if (report.report) await reportServerError("agents.cj_rec", tickErrorReport(report));
+    return report;
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    await reportServerError("agents.cj_rec", { message: message.slice(0, 500), context: { at: new Date().toISOString() } });
     return { error: message.slice(0, 300) };
   }
 }
@@ -2588,6 +2612,8 @@ async function route(req: Request, who: Exclude<Who, null>, url: URL, action: st
   // The Polymarket book recorder (pm_book_rec.ts, 0092): its minute, and its housekeeping every five. Keyless reads.
   if (action === "pmrec" && req.method === "POST" && operator) return json(200, await runPmRecAction());
   if (action === "pmrec-meta" && req.method === "POST" && operator) return json(200, await runPmRecMetaAction());
+  // The CoinJar recorder (cj_rec.ts, 0110): CJ5's two books' prints and books, every minute. Keyless reads.
+  if (action === "cjrec" && req.method === "POST" && operator) return json(200, await runCjRecAction());
   // Polymarket's order path (pm_live.ts, 0074): its dry-run, called from eu-west-1 by the one-minute job. Cron bearer only.
   if (action === "pmlive" && req.method === "POST" && who === "cron") return json(200, await runPmLiveAction());
   // "Reward quotes small-pool" (pm_prep.ts, 0077): the path's dry-run filled on paper. Keyless public reads only.
