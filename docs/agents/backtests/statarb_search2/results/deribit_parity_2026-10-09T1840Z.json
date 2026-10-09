@@ -1,0 +1,169 @@
+{
+ "by_currency": {
+  "BTC": {
+   "net_bps_quantiles": {
+    "0": -12.45,
+    "0.01": -16.61,
+    "0.05": -20.65,
+    "0.5": -33.3
+   },
+   "pairs_scored": 475,
+   "positive_after_fees": 0,
+   "top": [
+    {
+     "F_mid": 83243.75,
+     "expiry": "25DEC26",
+     "net_bps": -12.45,
+     "side": "conversion",
+     "strike": 20000.0
+    },
+    {
+     "F_mid": 83243.75,
+     "expiry": "25DEC26",
+     "net_bps": -16.15,
+     "side": "reversal",
+     "strike": 35000.0
+    },
+    {
+     "F_mid": 82338.75,
+     "expiry": "10OCT26",
+     "net_bps": -16.25,
+     "side": "conversion",
+     "strike": 82500.0
+    },
+    {
+     "F_mid": 82613.75,
+     "expiry": "30OCT26",
+     "net_bps": -16.31,
+     "side": "reversal",
+     "strike": 40000.0
+    },
+    {
+     "F_mid": 82513.75,
+     "expiry": "23OCT26",
+     "net_bps": -16.61,
+     "side": "conversion",
+     "strike": 83000.0
+    },
+    {
+     "F_mid": 83243.75,
+     "expiry": "25DEC26",
+     "net_bps": -16.64,
+     "side": "conversion",
+     "strike": 40000.0
+    },
+    {
+     "F_mid": 83243.75,
+     "expiry": "25DEC26",
+     "net_bps": -16.98,
+     "side": "reversal",
+     "strike": 82000.0
+    },
+    {
+     "F_mid": 83243.75,
+     "expiry": "25DEC26",
+     "net_bps": -17.61,
+     "side": "conversion",
+     "strike": 30000.0
+    },
+    {
+     "F_mid": 82348.75,
+     "expiry": "11OCT26",
+     "net_bps": -17.9,
+     "side": "conversion",
+     "strike": 83000.0
+    },
+    {
+     "F_mid": 82953.75,
+     "expiry": "27NOV26",
+     "net_bps": -18.23,
+     "side": "conversion",
+     "strike": 83000.0
+    }
+   ]
+  },
+  "ETH": {
+   "net_bps_quantiles": {
+    "0": -14.39,
+    "0.01": -18.81,
+    "0.05": -21.49,
+    "0.5": -40.98
+   },
+   "pairs_scored": 422,
+   "positive_after_fees": 0,
+   "top": [
+    {
+     "F_mid": 2482.875,
+     "expiry": "30OCT26",
+     "net_bps": -14.39,
+     "side": "conversion",
+     "strike": 1200.0
+    },
+    {
+     "F_mid": 2482.875,
+     "expiry": "30OCT26",
+     "net_bps": -15.25,
+     "side": "reversal",
+     "strike": 1000.0
+    },
+    {
+     "F_mid": 2479.875,
+     "expiry": "16OCT26",
+     "net_bps": -16.9,
+     "side": "reversal",
+     "strike": 2500.0
+    },
+    {
+     "F_mid": 2478.625,
+     "expiry": "10OCT26",
+     "net_bps": -17.46,
+     "side": "reversal",
+     "strike": 2480.0
+    },
+    {
+     "F_mid": 2500.625,
+     "expiry": "25DEC26",
+     "net_bps": -18.81,
+     "side": "reversal",
+     "strike": 800.0
+    },
+    {
+     "F_mid": 2482.875,
+     "expiry": "30OCT26",
+     "net_bps": -19.07,
+     "side": "reversal",
+     "strike": 2500.0
+    },
+    {
+     "F_mid": 2481.375,
+     "expiry": "23OCT26",
+     "net_bps": -19.38,
+     "side": "reversal",
+     "strike": 2450.0
+    },
+    {
+     "F_mid": 2490.625,
+     "expiry": "27NOV26",
+     "net_bps": -19.74,
+     "side": "reversal",
+     "strike": 2550.0
+    },
+    {
+     "F_mid": 2482.875,
+     "expiry": "30OCT26",
+     "net_bps": -20.35,
+     "side": "conversion",
+     "strike": 1400.0
+    },
+    {
+     "F_mid": 2490.625,
+     "expiry": "27NOV26",
+     "net_bps": -20.38,
+     "side": "reversal",
+     "strike": 2500.0
+    }
+   ]
+  }
+ },
+ "read_at": "2026-10-09T1840Z"
+}

@@ -1,0 +1,234 @@
+{
+ "AVAX": {
+  "days": 101,
+  "from": "2026-06-30",
+  "hl_mean_bps_day": 1.866,
+  "mean_D_bps_day": 0.766,
+  "mean_abs_D_bps_day": 1.425,
+  "okx_mean_bps_day": 1.1,
+  "rules": {
+   "tau10bp": {
+    "annualised_pct": 0.0,
+    "changes": 0,
+    "days_held": 0,
+    "pnl_bps_on_notional": 0.0
+   },
+   "tau2bp": {
+    "annualised_pct": 0.07,
+    "changes": 2,
+    "days_held": 9,
+    "pnl_bps_on_notional": 1.7
+   },
+   "tau5bp": {
+    "annualised_pct": 0.0,
+    "changes": 0,
+    "days_held": 0,
+    "pnl_bps_on_notional": 0.0
+   }
+  },
+  "to": "2026-10-08"
+ },
+ "BTC": {
+  "days": 101,
+  "from": "2026-06-30",
+  "hl_mean_bps_day": 2.447,
+  "mean_D_bps_day": 0.906,
+  "mean_abs_D_bps_day": 1.121,
+  "okx_mean_bps_day": 1.541,
+  "rules": {
+   "tau10bp": {
+    "annualised_pct": 0.0,
+    "changes": 0,
+    "days_held": 0,
+    "pnl_bps_on_notional": 0.0
+   },
+   "tau2bp": {
+    "annualised_pct": 0.0,
+    "changes": 0,
+    "days_held": 0,
+    "pnl_bps_on_notional": 0.0
+   },
+   "tau5bp": {
+    "annualised_pct": 0.0,
+    "changes": 0,
+    "days_held": 0,
+    "pnl_bps_on_notional": 0.0
+   }
+  },
+  "to": "2026-10-08"
+ },
+ "DOGE": {
+  "days": 101,
+  "from": "2026-06-30",
+  "hl_mean_bps_day": 2.949,
+  "mean_D_bps_day": 0.98,
+  "mean_abs_D_bps_day": 1.25,
+  "okx_mean_bps_day": 1.968,
+  "rules": {
+   "tau10bp": {
+    "annualised_pct": 0.0,
+    "changes": 0,
+    "days_held": 0,
+    "pnl_bps_on_notional": 0.0
+   },
+   "tau2bp": {
+    "annualised_pct": -0.01,
+    "changes": 4,
+    "days_held": 16,
+    "pnl_bps_on_notional": -0.2
+   },
+   "tau5bp": {
+    "annualised_pct": 0.0,
+    "changes": 0,
+    "days_held": 0,
+    "pnl_bps_on_notional": 0.0
+   }
+  },
+  "to": "2026-10-08"
+ },
+ "ETH": {
+  "days": 101,
+  "from": "2026-06-30",
+  "hl_mean_bps_day": 2.597,
+  "mean_D_bps_day": 1.397,
+  "mean_abs_D_bps_day": 1.459,
+  "okx_mean_bps_day": 1.201,
+  "rules": {
+   "tau10bp": {
+    "annualised_pct": 0.0,
+    "changes": 0,
+    "days_held": 0,
+    "pnl_bps_on_notional": 0.0
+   },
+   "tau2bp": {
+    "annualised_pct": 0.35,
+    "changes": 4,
+    "days_held": 22,
+    "pnl_bps_on_notional": 9.0
+   },
+   "tau5bp": {
+    "annualised_pct": 0.0,
+    "changes": 0,
+    "days_held": 0,
+    "pnl_bps_on_notional": 0.0
+   }
+  },
+  "to": "2026-10-08"
+ },
+ "LINK": {
+  "days": 101,
+  "from": "2026-06-30",
+  "hl_mean_bps_day": 3.077,
+  "mean_D_bps_day": 1.256,
+  "mean_abs_D_bps_day": 1.518,
+  "okx_mean_bps_day": 1.82,
+  "rules": {
+   "tau10bp": {
+    "annualised_pct": 0.0,
+    "changes": 0,
+    "days_held": 0,
+    "pnl_bps_on_notional": 0.0
+   },
+   "tau2bp": {
+    "annualised_pct": -1.47,
+    "changes": 6,
+    "days_held": 16,
+    "pnl_bps_on_notional": -38.0
+   },
+   "tau5bp": {
+    "annualised_pct": -0.54,
+    "changes": 2,
+    "days_held": 5,
+    "pnl_bps_on_notional": -13.9
+   }
+  },
+  "to": "2026-10-08"
+ },
+ "SOL": {
+  "days": 101,
+  "from": "2026-06-30",
+  "hl_mean_bps_day": 1.997,
+  "mean_D_bps_day": 1.101,
+  "mean_abs_D_bps_day": 1.244,
+  "okx_mean_bps_day": 0.895,
+  "rules": {
+   "tau10bp": {
+    "annualised_pct": 0.0,
+    "changes": 0,
+    "days_held": 0,
+    "pnl_bps_on_notional": 0.0
+   },
+   "tau2bp": {
+    "annualised_pct": -0.81,
+    "changes": 4,
+    "days_held": 10,
+    "pnl_bps_on_notional": -20.8
+   },
+   "tau5bp": {
+    "annualised_pct": 0.0,
+    "changes": 0,
+    "days_held": 0,
+    "pnl_bps_on_notional": 0.0
+   }
+  },
+  "to": "2026-10-08"
+ },
+ "SUI": {
+  "days": 101,
+  "from": "2026-06-30",
+  "hl_mean_bps_day": 3.164,
+  "mean_D_bps_day": 1.363,
+  "mean_abs_D_bps_day": 1.571,
+  "okx_mean_bps_day": 1.801,
+  "rules": {
+   "tau10bp": {
+    "annualised_pct": 0.0,
+    "changes": 0,
+    "days_held": 0,
+    "pnl_bps_on_notional": 0.0
+   },
+   "tau2bp": {
+    "annualised_pct": -1.68,
+    "changes": 9,
+    "days_held": 20,
+    "pnl_bps_on_notional": -43.4
+   },
+   "tau5bp": {
+    "annualised_pct": -1.41,
+    "changes": 4,
+    "days_held": 3,
+    "pnl_bps_on_notional": -36.4
+   }
+  },
+  "to": "2026-10-08"
+ },
+ "XRP": {
+  "days": 101,
+  "from": "2026-06-30",
+  "hl_mean_bps_day": 2.434,
+  "mean_D_bps_day": 1.118,
+  "mean_abs_D_bps_day": 1.377,
+  "okx_mean_bps_day": 1.316,
+  "rules": {
+   "tau10bp": {
+    "annualised_pct": 0.0,
+    "changes": 0,
+    "days_held": 0,
+    "pnl_bps_on_notional": 0.0
+   },
+   "tau2bp": {
+    "annualised_pct": -0.81,
+    "changes": 4,
+    "days_held": 14,
+    "pnl_bps_on_notional": -21.0
+   },
+   "tau5bp": {
+    "annualised_pct": 0.0,
+    "changes": 0,
+    "days_held": 0,
+    "pnl_bps_on_notional": 0.0
+   }
+  },
+  "to": "2026-10-08"
+ }
+}

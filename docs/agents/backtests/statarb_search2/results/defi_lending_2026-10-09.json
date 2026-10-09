@@ -1,0 +1,253 @@
+{
+ "coins": {
+  "USDC": {
+   "best_supply": [
+    {
+     "borrow_base_pct": 13.354,
+     "chain": "Avalanche",
+     "project": "benqi-lending",
+     "supply_base_pct": 10.325,
+     "supply_usd_m": 16.3,
+     "utilisation": 0.922
+    },
+    {
+     "borrow_base_pct": 12.498,
+     "chain": "Near",
+     "project": "rhea-lend",
+     "supply_base_pct": 7.96,
+     "supply_usd_m": 11.4,
+     "utilisation": 0.834
+    },
+    {
+     "borrow_base_pct": 8.906,
+     "chain": "Avalanche",
+     "project": "aave-v3",
+     "supply_base_pct": 7.574,
+     "supply_usd_m": 70.4,
+     "utilisation": 0.945
+    },
+    {
+     "borrow_base_pct": 11.108,
+     "chain": "Stellar",
+     "project": "blend-pools-v2",
+     "supply_base_pct": 6.675,
+     "supply_usd_m": 54.9,
+     "utilisation": 0.792
+    },
+    {
+     "borrow_base_pct": 7.848,
+     "chain": "Solana",
+     "project": "kamino-lend",
+     "supply_base_pct": 6.641,
+     "supply_usd_m": 28.7,
+     "utilisation": 0.946
+    }
+   ],
+   "cheapest_borrow": [
+    {
+     "borrow_base_pct": 3.799,
+     "chain": "Sui",
+     "project": "current",
+     "supply_base_pct": 1.782,
+     "supply_usd_m": 60.4,
+     "utilisation": 0.586
+    },
+    {
+     "borrow_base_pct": 3.84,
+     "chain": "Arbitrum",
+     "project": "compound-v3",
+     "supply_base_pct": 3.033,
+     "supply_usd_m": 14.9,
+     "utilisation": 0.842
+    },
+    {
+     "borrow_base_pct": 3.952,
+     "chain": "Arbitrum",
+     "project": "aave-v3",
+     "supply_base_pct": 3.163,
+     "supply_usd_m": 180.3,
+     "utilisation": 0.89
+    },
+    {
+     "borrow_base_pct": 4.113,
+     "chain": "BSC",
+     "project": "aave-v3",
+     "supply_base_pct": 3.115,
+     "supply_usd_m": 13.3,
+     "utilisation": 0.841
+    },
+    {
+     "borrow_base_pct": 4.369,
+     "chain": "Ethereum",
+     "project": "sparklend",
+     "supply_base_pct": 3.559,
+     "supply_usd_m": 48.5,
+     "utilisation": 0.905
+    }
+   ],
+   "median_supply_base_pct": 4.208,
+   "pools": 27,
+   "spread_best_supply_minus_cheapest_borrow_pct": 6.526
+  },
+  "USDT": {
+   "best_supply": [
+    {
+     "borrow_base_pct": 13.644,
+     "chain": "Near",
+     "project": "rhea-lend",
+     "supply_base_pct": 8.744,
+     "supply_usd_m": 11.9,
+     "utilisation": 0.84
+    },
+    {
+     "borrow_base_pct": 6.069,
+     "chain": "Solana",
+     "project": "kamino-lend",
+     "supply_base_pct": 4.615,
+     "supply_usd_m": 11.1,
+     "utilisation": 0.93
+    },
+    {
+     "borrow_base_pct": 4.948,
+     "chain": "Ethereum",
+     "project": "flux-finance",
+     "supply_base_pct": 4.437,
+     "supply_usd_m": 19.4,
+     "utilisation": 0.899
+    },
+    {
+     "borrow_base_pct": 4.215,
+     "chain": "Ethereum",
+     "project": "sparklend",
+     "supply_base_pct": 3.609,
+     "supply_usd_m": 328.9,
+     "utilisation": 0.951
+    },
+    {
+     "borrow_base_pct": 4.302,
+     "chain": "Ethereum",
+     "project": "aave-v3",
+     "supply_base_pct": 3.558,
+     "supply_usd_m": 2719.3,
+     "utilisation": 0.919
+    }
+   ],
+   "cheapest_borrow": [
+    {
+     "borrow_base_pct": 3.398,
+     "chain": "Arbitrum",
+     "project": "compound-v3",
+     "supply_base_pct": 2.459,
+     "supply_usd_m": 14.8,
+     "utilisation": 0.683
+    },
+    {
+     "borrow_base_pct": 3.898,
+     "chain": "Tron",
+     "project": "justlend-v1",
+     "supply_base_pct": 2.188,
+     "supply_usd_m": 228.8,
+     "utilisation": 0.624
+    },
+    {
+     "borrow_base_pct": 3.899,
+     "chain": "Avalanche",
+     "project": "aave-v3",
+     "supply_base_pct": 2.779,
+     "supply_usd_m": 28.5,
+     "utilisation": 0.792
+    },
+    {
+     "borrow_base_pct": 3.968,
+     "chain": "Ethereum",
+     "project": "compound-v3",
+     "supply_base_pct": 3.199,
+     "supply_usd_m": 165.0,
+     "utilisation": 0.889
+    },
+    {
+     "borrow_base_pct": 4.129,
+     "chain": "BSC",
+     "project": "aave-v3",
+     "supply_base_pct": 3.138,
+     "supply_usd_m": 63.6,
+     "utilisation": 0.844
+    }
+   ],
+   "median_supply_base_pct": 3.482,
+   "pools": 11,
+   "spread_best_supply_minus_cheapest_borrow_pct": 5.346
+  }
+ },
+ "read": "2026-10-09",
+ "reference_carries": [
+  {
+   "apy_30d_mean_pct": 3.61391,
+   "apy_base_pct": 3.8,
+   "chain": "Ethereum",
+   "project": "sky-lending",
+   "symbol": "SUSDS",
+   "tvl_usd_m": 4906
+  },
+  {
+   "apy_30d_mean_pct": 4.94183,
+   "apy_base_pct": 4.84,
+   "chain": "Ethereum",
+   "project": "ethena-usde",
+   "symbol": "SUSDE",
+   "tvl_usd_m": 1218
+  },
+  {
+   "apy_30d_mean_pct": 3.61391,
+   "apy_base_pct": 3.8,
+   "chain": "Arbitrum",
+   "project": "sky-lending",
+   "symbol": "SUSDS",
+   "tvl_usd_m": 364
+  },
+  {
+   "apy_30d_mean_pct": 1.25,
+   "apy_base_pct": 1.25,
+   "chain": "Ethereum",
+   "project": "sky-lending",
+   "symbol": "SDAI",
+   "tvl_usd_m": 201
+  },
+  {
+   "apy_30d_mean_pct": 0.11518,
+   "apy_base_pct": 0,
+   "chain": "Plasma",
+   "project": "aave-v3",
+   "symbol": "SUSDE",
+   "tvl_usd_m": 200
+  },
+  {
+   "apy_30d_mean_pct": 0.03737,
+   "apy_base_pct": 0,
+   "chain": "Ethereum",
+   "project": "aave-v3",
+   "symbol": "SUSDE",
+   "tvl_usd_m": 133
+  },
+  {
+   "apy_30d_mean_pct": 0,
+   "apy_base_pct": 0,
+   "chain": "Ethereum",
+   "project": "morpho-blue",
+   "symbol": "SUSDE",
+   "tvl_usd_m": 111
+  },
+  {
+   "apy_30d_mean_pct": 0.17435,
+   "apy_base_pct": 0,
+   "chain": "Mantle",
+   "project": "aave-v3",
+   "symbol": "SUSDE",
+   "tvl_usd_m": 89
+  }
+ ],
+ "us_3m_bill": {
+  "date": "2026-10-07",
+  "rate_pct": 4.05
+ }
+}

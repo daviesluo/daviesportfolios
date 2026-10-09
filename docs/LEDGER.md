@@ -414,6 +414,18 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 "LEDGER.md, archived 2026-10-09", and the 2026-10-08 22:49 → 23:58 UTC sections under "LEDGER.md, archived 2026-10-09
 (second)"; each oldest first.
 
+### [2026-10-09 18:56 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **STATARB-2, the second stat-arb search** (Davies: "除了这三个还有别的好的吗？还有别的统计套利吗？而且不一定要和现有策略类似的"):
+  `reviews/2026-10-09-stat-arb-search-2.md`, evidence `backtests/statarb_search2/` (map row). Keyless public data only;
+  nothing traded, opened or signed up for; no production read; nothing frozen. Ranked:
+  1. **VB-K**: value bets at UK books against the exchange's kick-off price, +5.83 % on 1,133 bets (t 1.37), Pinnacle
+     anchor +6.88 % on 2,645 (t 2.20); manual, and books limit winners. Stage 1 is a re-run on 2026-27 next June.
+  2. **FXW-AUD**: fade AUD/USD's Sunday-open gap, +21.8 bps on 85 weekends on FXCM (t 5.58); needs a broker's own
+     Sunday quotes first.
+  3. **DCS**: the cheaper class of a dual-class holding, +0.59 %/yr: an overlay.
+- **Dead:** pairs (−0.69 %/yr gross), ADR switching, the 4 pm fix, Deribit parity, the volatility premium (gone in 2026),
+  Hyperliquid–OKX funding, DeFi lending (cash), staking tokens but rETH (31 bps, redemption-gated).
+
 ### [2026-10-09 18:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **CJ5's CoinJar recorder built** (Davies: "建起来"; what-remains item 11; reference §4 item 57): `agents?action=cjrec`
   every minute (`edge_calls` row, 30 s, `retry` on, beat via `serveRequest`), migration `0110` (`cj_trades`, `cj_book`,
@@ -434,6 +446,7 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
   tables. `exitOffset` stays in `quotes_twin.ts`/`quotes_live.ts`, named by no row (removing it changes the hash two
   pre-registrations pin). Removed `p50x1.json.gz`, `src/p50x1_twin.test.js`; fixture regenerated (`fixture.ts` applies
   deletes; byte-identical to the pre-`0108` one). Notes: p50x1 prereg §7, twins §17, p50 §11, rule D §10.
+
 
 ### [2026-10-09 17:58 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **STATARB, the stat-arb search** (Davies: "…还有没有其他有statistical arbitrage的策略，其他平台也可以，并先不考虑合规问题"; then

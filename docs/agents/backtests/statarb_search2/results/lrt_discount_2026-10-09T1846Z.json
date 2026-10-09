@@ -1,0 +1,57 @@
+{
+ "read_at": "2026-10-09T1846Z",
+ "tokens": {
+  "cbETH": {
+   "rate_eth_per_token": 1.1413018934338741,
+   "sell_10": {
+    "discount_bps": 11.01,
+    "gas_usd": "0.408588",
+    "paid_eth": 11.400449651706905
+   },
+   "sell_100": {
+    "discount_bps": 879.49,
+    "gas_usd": "1.016011",
+    "paid_eth": 104.09256737536356
+   }
+  },
+  "rETH": {
+   "rate_eth_per_token": 1.1734502445801789,
+   "sell_10": {
+    "discount_bps": 31.13,
+    "gas_usd": "0.158238",
+    "paid_eth": 11.697968740933316
+   },
+   "sell_100": {
+    "discount_bps": 32.07,
+    "gas_usd": "0.630663",
+    "paid_eth": 116.96873665350492
+   }
+  },
+  "weETH": {
+   "rate_eth_per_token": 1.1054113725253791,
+   "sell_10": {
+    "discount_bps": 1.72,
+    "gas_usd": "0.120931",
+    "paid_eth": 11.0522161744133
+   },
+   "sell_100": {
+    "discount_bps": 1.85,
+    "gas_usd": "0.120931",
+    "paid_eth": 110.52063905473771
+   }
+  },
+  "wstETH": {
+   "rate_eth_per_token": 1.2459380791267287,
+   "sell_10": {
+    "discount_bps": 2.13,
+    "gas_usd": "0.086674",
+    "paid_eth": 12.45672970969227
+   },
+   "sell_100": {
+    "discount_bps": 2.14,
+    "gas_usd": "0.192105",
+    "paid_eth": 124.56717699048582
+   }
+  }
+ }
+}

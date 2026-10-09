@@ -1,0 +1,38 @@
+{
+ "BTC": {
+  "by_year_mean_vol_pts": {
+   "2021": 17.93,
+   "2022": 12.25,
+   "2023": 6.51,
+   "2024": 7.01,
+   "2025": 6.59,
+   "2026": -0.56
+  },
+  "days": 1996,
+  "from": "2021-03-24",
+  "share_iv_above_rv": 0.716,
+  "to": "2026-09-09",
+  "var_swap_proxy_mean": 5.75,
+  "vrp_vol_pts_mean": 8.39,
+  "vrp_vol_pts_median": 10.15,
+  "worst_vol_pts": -46.1
+ },
+ "ETH": {
+  "by_year_mean_vol_pts": {
+   "2021": 11.47,
+   "2022": 8.83,
+   "2023": 5.6,
+   "2024": 3.26,
+   "2025": -2.76,
+   "2026": 0.37
+  },
+  "days": 1996,
+  "from": "2021-03-24",
+  "share_iv_above_rv": 0.639,
+  "to": "2026-09-09",
+  "var_swap_proxy_mean": 1.13,
+  "vrp_vol_pts_mean": 4.41,
+  "vrp_vol_pts_median": 7.36,
+  "worst_vol_pts": -108.4
+ }
+}

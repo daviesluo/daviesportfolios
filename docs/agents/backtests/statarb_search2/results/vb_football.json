@@ -1,0 +1,4301 @@
+{
+ "devig": {
+  "power": {
+   "1x2.close.exch_c2.th2": {
+    "bets": 2203,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 446,
+      "mean_clv": null,
+      "roi": -0.0082
+     },
+     "3-5": {
+      "bets": 726,
+      "mean_clv": null,
+      "roi": -0.0455
+     },
+     "<2": {
+      "bets": 182,
+      "mean_clv": null,
+      "roi": -0.0102
+     },
+     ">=5": {
+      "bets": 849,
+      "mean_clv": null,
+      "roi": -0.035
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 1030,
+      "roi": 0.0079
+     },
+     "2526": {
+      "bets": 1173,
+      "roi": -0.0651
+     }
+    },
+    "max_dd_units": 152.98,
+    "roi": -0.031,
+    "se": 0.0457,
+    "t": -0.68,
+    "units": -68.24
+   },
+   "1x2.close.exch_c2.th4": {
+    "bets": 1167,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 217,
+      "mean_clv": null,
+      "roi": 0.004
+     },
+     "3-5": {
+      "bets": 361,
+      "mean_clv": null,
+      "roi": -0.1111
+     },
+     "<2": {
+      "bets": 57,
+      "mean_clv": null,
+      "roi": 0.1457
+     },
+     ">=5": {
+      "bets": 532,
+      "mean_clv": null,
+      "roi": 0.0003
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 417,
+      "roi": 0.0813
+     },
+     "2526": {
+      "bets": 750,
+      "roi": -0.0862
+     }
+    },
+    "max_dd_units": 123.77,
+    "roi": -0.0264,
+    "se": 0.0667,
+    "t": -0.39,
+    "units": -30.75
+   },
+   "1x2.close.exch_c2.th6": {
+    "bets": 746,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 123,
+      "mean_clv": null,
+      "roi": -0.0005
+     },
+     "3-5": {
+      "bets": 228,
+      "mean_clv": null,
+      "roi": -0.0968
+     },
+     "<2": {
+      "bets": 22,
+      "mean_clv": null,
+      "roi": 0.0586
+     },
+     ">=5": {
+      "bets": 373,
+      "mean_clv": null,
+      "roi": -0.0712
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 237,
+      "roi": 0.0941
+     },
+     "2526": {
+      "bets": 509,
+      "roi": -0.137
+     }
+    },
+    "max_dd_units": 118.7,
+    "roi": -0.0636,
+    "se": 0.0879,
+    "t": -0.72,
+    "units": -47.41
+   },
+   "1x2.close.exch_c2_all": {
+    "bets": 31926,
+    "by_season": {
+     "2425": {
+      "bets": 23040,
+      "roi": -0.0249
+     },
+     "2526": {
+      "bets": 8886,
+      "roi": -0.0294
+     }
+    },
+    "max_dd_units": 859.91,
+    "roi": -0.0261,
+    "se": 0.0091,
+    "t": -2.88,
+    "units": -834.72
+   },
+   "1x2.close.exch_c5.th2": {
+    "bets": 1099,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 228,
+      "mean_clv": null,
+      "roi": 0.0048
+     },
+     "3-5": {
+      "bets": 323,
+      "mean_clv": null,
+      "roi": -0.0967
+     },
+     "<2": {
+      "bets": 85,
+      "mean_clv": null,
+      "roi": 0.1137
+     },
+     ">=5": {
+      "bets": 463,
+      "mean_clv": null,
+      "roi": -0.0124
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 365,
+      "roi": 0.1427
+     },
+     "2526": {
+      "bets": 734,
+      "roi": -0.1067
+     }
+    },
+    "max_dd_units": 110.81,
+    "roi": -0.0238,
+    "se": 0.0664,
+    "t": -0.36,
+    "units": -26.2
+   },
+   "1x2.close.exch_c5.th4": {
+    "bets": 692,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 124,
+      "mean_clv": null,
+      "roi": -0.0532
+     },
+     "3-5": {
+      "bets": 217,
+      "mean_clv": null,
+      "roi": -0.1374
+     },
+     "<2": {
+      "bets": 30,
+      "mean_clv": null,
+      "roi": 0.0621
+     },
+     ">=5": {
+      "bets": 321,
+      "mean_clv": null,
+      "roi": -0.0807
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 196,
+      "roi": 0.1048
+     },
+     "2526": {
+      "bets": 496,
+      "roi": -0.1633
+     }
+    },
+    "max_dd_units": 109.85,
+    "roi": -0.0873,
+    "se": 0.087,
+    "t": -1.0,
+    "units": -60.44
+   },
+   "1x2.close.exch_c5.th6": {
+    "bets": 452,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 67,
+      "mean_clv": null,
+      "roi": -0.1719
+     },
+     "3-5": {
+      "bets": 142,
+      "mean_clv": null,
+      "roi": -0.1585
+     },
+     "<2": {
+      "bets": 12,
+      "mean_clv": null,
+      "roi": 0.0409
+     },
+     ">=5": {
+      "bets": 231,
+      "mean_clv": null,
+      "roi": -0.1328
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 120,
+      "roi": 0.0276
+     },
+     "2526": {
+      "bets": 332,
+      "roi": -0.2034
+     }
+    },
+    "max_dd_units": 99.78,
+    "roi": -0.1421,
+    "se": 0.1148,
+    "t": -1.24,
+    "units": -64.21
+   },
+   "1x2.close.exch_c5_all": {
+    "bets": 31926,
+    "by_season": {
+     "2425": {
+      "bets": 23040,
+      "roi": -0.0445
+     },
+     "2526": {
+      "bets": 8886,
+      "roi": -0.0489
+     }
+    },
+    "max_dd_units": 1476.7,
+    "roi": -0.0458,
+    "se": 0.0089,
+    "t": -5.16,
+    "units": -1460.72
+   },
+   "1x2.close.pinnacle_all": {
+    "bets": 102195,
+    "by_season": {
+     "2122": {
+      "bets": 23463,
+      "roi": -0.0455
+     },
+     "2223": {
+      "bets": 23400,
+      "roi": -0.0532
+     },
+     "2324": {
+      "bets": 23397,
+      "roi": -0.0494
+     },
+     "2425": {
+      "bets": 23043,
+      "roi": -0.0477
+     },
+     "2526": {
+      "bets": 8892,
+      "roi": -0.0497
+     }
+    },
+    "max_dd_units": 5031.36,
+    "roi": -0.049,
+    "se": 0.0049,
+    "t": -10.11,
+    "units": -5011.95
+   },
+   "1x2.close.soft.th2": {
+    "bets": 4833,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 1317,
+      "mean_clv": null,
+      "roi": 0.0732
+     },
+     "3-5": {
+      "bets": 2044,
+      "mean_clv": null,
+      "roi": 0.0551
+     },
+     "<2": {
+      "bets": 770,
+      "mean_clv": null,
+      "roi": 0.0361
+     },
+     ">=5": {
+      "bets": 702,
+      "mean_clv": null,
+      "roi": -0.091
+     }
+    },
+    "by_season": {
+     "2122": {
+      "bets": 1840,
+      "roi": 0.0476
+     },
+     "2223": {
+      "bets": 740,
+      "roi": 0.0787
+     },
+     "2324": {
+      "bets": 891,
+      "roi": 0.072
+     },
+     "2425": {
+      "bets": 696,
+      "roi": 0.0734
+     },
+     "2526": {
+      "bets": 666,
+      "roi": -0.132
+     }
+    },
+    "max_dd_units": 112.01,
+    "roi": 0.0358,
+    "se": 0.0226,
+    "t": 1.58,
+    "units": 173.09
+   },
+   "1x2.close.soft.th4": {
+    "bets": 2645,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 816,
+      "mean_clv": null,
+      "roi": 0.1085
+     },
+     "3-5": {
+      "bets": 999,
+      "mean_clv": null,
+      "roi": 0.1224
+     },
+     "<2": {
+      "bets": 381,
+      "mean_clv": null,
+      "roi": 0.0623
+     },
+     ">=5": {
+      "bets": 449,
+      "mean_clv": null,
+      "roi": -0.1173
+     }
+    },
+    "by_season": {
+     "2122": {
+      "bets": 1026,
+      "roi": 0.1181
+     },
+     "2223": {
+      "bets": 385,
+      "roi": 0.053
+     },
+     "2324": {
+      "bets": 457,
+      "roi": 0.1414
+     },
+     "2425": {
+      "bets": 387,
+      "roi": 0.0408
+     },
+     "2526": {
+      "bets": 390,
+      "roi": -0.1028
+     }
+    },
+    "max_dd_units": 68.59,
+    "roi": 0.0688,
+    "se": 0.0313,
+    "t": 2.2,
+    "units": 181.91
+   },
+   "1x2.close.soft.th6": {
+    "bets": 1582,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 541,
+      "mean_clv": null,
+      "roi": 0.1651
+     },
+     "3-5": {
+      "bets": 530,
+      "mean_clv": null,
+      "roi": 0.0667
+     },
+     "<2": {
+      "bets": 213,
+      "mean_clv": null,
+      "roi": 0.1151
+     },
+     ">=5": {
+      "bets": 298,
+      "mean_clv": null,
+      "roi": -0.1911
+     }
+    },
+    "by_season": {
+     "2122": {
+      "bets": 637,
+      "roi": 0.0989
+     },
+     "2223": {
+      "bets": 248,
+      "roi": 0.0805
+     },
+     "2324": {
+      "bets": 266,
+      "roi": 0.0553
+     },
+     "2425": {
+      "bets": 208,
+      "roi": 0.0591
+     },
+     "2526": {
+      "bets": 223,
+      "roi": -0.0798
+     }
+    },
+    "max_dd_units": 34.95,
+    "roi": 0.0583,
+    "se": 0.0404,
+    "t": 1.44,
+    "units": 92.22
+   },
+   "1x2.close.soft_all": {
+    "bets": 102195,
+    "by_season": {
+     "2122": {
+      "bets": 23463,
+      "roi": -0.0455
+     },
+     "2223": {
+      "bets": 23400,
+      "roi": -0.0619
+     },
+     "2324": {
+      "bets": 23397,
+      "roi": -0.0547
+     },
+     "2425": {
+      "bets": 23043,
+      "roi": -0.0609
+     },
+     "2526": {
+      "bets": 8892,
+      "roi": -0.049
+     }
+    },
+    "max_dd_units": 5660.73,
+    "roi": -0.0552,
+    "se": 0.0048,
+    "t": -11.45,
+    "units": -5637.01
+   },
+   "1x2.close.soft_vs_exch.th2": {
+    "bets": 1248,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 269,
+      "mean_clv": null,
+      "roi": 0.0596
+     },
+     "3-5": {
+      "bets": 712,
+      "mean_clv": null,
+      "roi": 0.05
+     },
+     "<2": {
+      "bets": 152,
+      "mean_clv": null,
+      "roi": 0.0953
+     },
+     ">=5": {
+      "bets": 115,
+      "mean_clv": null,
+      "roi": -0.1217
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 624,
+      "roi": 0.0053
+     },
+     "2526": {
+      "bets": 555,
+      "roi": 0.0798
+     },
+     "2627": {
+      "bets": 69,
+      "roi": 0.0657
+     }
+    },
+    "max_dd_units": 48.94,
+    "roi": 0.0417,
+    "se": 0.0431,
+    "t": 0.97,
+    "units": 52.09
+   },
+   "1x2.close.soft_vs_exch.th4": {
+    "bets": 502,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 148,
+      "mean_clv": null,
+      "roi": 0.1148
+     },
+     "3-5": {
+      "bets": 240,
+      "mean_clv": null,
+      "roi": 0.1001
+     },
+     "<2": {
+      "bets": 53,
+      "mean_clv": null,
+      "roi": 0.0868
+     },
+     ">=5": {
+      "bets": 61,
+      "mean_clv": null,
+      "roi": -0.2336
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 312,
+      "roi": -0.0025
+     },
+     "2526": {
+      "bets": 164,
+      "roi": 0.1585
+     },
+     "2627": {
+      "bets": 26,
+      "roi": 0.2365
+     }
+    },
+    "max_dd_units": 31.41,
+    "roi": 0.0625,
+    "se": 0.0684,
+    "t": 0.91,
+    "units": 31.37
+   },
+   "1x2.close.soft_vs_exch.th6": {
+    "bets": 263,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 93,
+      "mean_clv": null,
+      "roi": 0.2562
+     },
+     "3-5": {
+      "bets": 106,
+      "mean_clv": null,
+      "roi": 0.0901
+     },
+     "<2": {
+      "bets": 30,
+      "mean_clv": null,
+      "roi": 0.134
+     },
+     ">=5": {
+      "bets": 34,
+      "mean_clv": null,
+      "roi": 0.2206
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 177,
+      "roi": 0.0499
+     },
+     "2526": {
+      "bets": 76,
+      "roi": 0.4508
+     },
+     "2627": {
+      "bets": 10,
+      "roi": 0.18
+     }
+    },
+    "max_dd_units": 17.06,
+    "roi": 0.1707,
+    "se": 0.0997,
+    "t": 1.71,
+    "units": 44.9
+   },
+   "1x2.close.soft_vs_exch_odds_lt5.th2": {
+    "bets": 1133,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 269,
+      "mean_clv": null,
+      "roi": 0.0596
+     },
+     "3-5": {
+      "bets": 712,
+      "mean_clv": null,
+      "roi": 0.05
+     },
+     "<2": {
+      "bets": 152,
+      "mean_clv": null,
+      "roi": 0.0953
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 580,
+      "roi": 0.0462
+     },
+     "2526": {
+      "bets": 499,
+      "roi": 0.0732
+     },
+     "2627": {
+      "bets": 54,
+      "roi": 0.0515
+     }
+    },
+    "max_dd_units": 32.44,
+    "roi": 0.0583,
+    "se": 0.0425,
+    "t": 1.37,
+    "units": 66.09
+   },
+   "1x2.close.soft_vs_exch_odds_lt5.th4": {
+    "bets": 441,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 148,
+      "mean_clv": null,
+      "roi": 0.1148
+     },
+     "3-5": {
+      "bets": 240,
+      "mean_clv": null,
+      "roi": 0.1001
+     },
+     "<2": {
+      "bets": 53,
+      "mean_clv": null,
+      "roi": 0.0868
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 286,
+      "roi": 0.055
+     },
+     "2526": {
+      "bets": 134,
+      "roi": 0.2163
+     },
+     "2627": {
+      "bets": 21,
+      "roi": 0.0429
+     }
+    },
+    "max_dd_units": 26.41,
+    "roi": 0.1034,
+    "se": 0.0671,
+    "t": 1.54,
+    "units": 45.62
+   },
+   "1x2.close.soft_vs_exch_odds_lt5.th6": {
+    "bets": 229,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 93,
+      "mean_clv": null,
+      "roi": 0.2562
+     },
+     "3-5": {
+      "bets": 106,
+      "mean_clv": null,
+      "roi": 0.0901
+     },
+     "<2": {
+      "bets": 30,
+      "mean_clv": null,
+      "roi": 0.134
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 160,
+      "roi": 0.1021
+     },
+     "2526": {
+      "bets": 60,
+      "roi": 0.3877
+     },
+     "2627": {
+      "bets": 9,
+      "roi": -0.2444
+     }
+    },
+    "max_dd_units": 13.37,
+    "roi": 0.1633,
+    "se": 0.0909,
+    "t": 1.8,
+    "units": 37.4
+   },
+   "1x2.pre.exch_c2.th2": {
+    "bets": 996,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 106,
+      "mean_clv": 0.0159,
+      "roi": -0.0677
+     },
+     "3-5": {
+      "bets": 353,
+      "mean_clv": 0.0036,
+      "roi": 0.0409
+     },
+     "<2": {
+      "bets": 67,
+      "mean_clv": -0.0002,
+      "roi": 0.0998
+     },
+     ">=5": {
+      "bets": 470,
+      "mean_clv": 0.0059,
+      "roi": -0.185
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 607,
+      "roi": -0.0297
+     },
+     "2526": {
+      "bets": 389,
+      "roi": -0.1414
+     }
+    },
+    "clv_positive_share": 0.497,
+    "max_dd_units": 114.33,
+    "mean_clv": 0.0057,
+    "roi": -0.0733,
+    "se": 0.0616,
+    "t": -1.19,
+    "units": -73.0
+   },
+   "1x2.pre.exch_c2.th4": {
+    "bets": 394,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 22,
+      "mean_clv": 0.0113,
+      "roi": -0.2952
+     },
+     "3-5": {
+      "bets": 107,
+      "mean_clv": 0.0262,
+      "roi": 0.0712
+     },
+     "<2": {
+      "bets": 7,
+      "mean_clv": 0.0801,
+      "roi": 0.4983
+     },
+     ">=5": {
+      "bets": 258,
+      "mean_clv": 0.0146,
+      "roi": -0.2445
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 218,
+      "roi": -0.1264
+     },
+     "2526": {
+      "bets": 176,
+      "roi": -0.1756
+     }
+    },
+    "clv_positive_share": 0.548,
+    "max_dd_units": 72.65,
+    "mean_clv": 0.0187,
+    "roi": -0.1484,
+    "se": 0.102,
+    "t": -1.46,
+    "units": -58.47
+   },
+   "1x2.pre.exch_c2.th6": {
+    "bets": 196,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 11,
+      "mean_clv": 0.0087,
+      "roi": -0.3246
+     },
+     "3-5": {
+      "bets": 41,
+      "mean_clv": 0.0468,
+      "roi": 0.2385
+     },
+     "<2": {
+      "bets": 5,
+      "mean_clv": 0.0926,
+      "roi": 0.4762
+     },
+     ">=5": {
+      "bets": 139,
+      "mean_clv": 0.0226,
+      "roi": -0.4111
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 100,
+      "roi": -0.2362
+     },
+     "2526": {
+      "bets": 96,
+      "roi": -0.2597
+     }
+    },
+    "clv_positive_share": 0.551,
+    "max_dd_units": 53.66,
+    "mean_clv": 0.0287,
+    "roi": -0.2477,
+    "se": 0.1431,
+    "t": -1.73,
+    "units": -48.56
+   },
+   "1x2.pre.exch_c2_all": {
+    "bets": 31557,
+    "by_season": {
+     "2425": {
+      "bets": 22863,
+      "roi": -0.0723
+     },
+     "2526": {
+      "bets": 8694,
+      "roi": -0.0601
+     }
+    },
+    "clv_positive_share": 0.267,
+    "max_dd_units": 2191.79,
+    "mean_clv": -0.0661,
+    "roi": -0.069,
+    "se": 0.0086,
+    "t": -8.01,
+    "units": -2176.42
+   },
+   "1x2.pre.exch_c5.th2": {
+    "bets": 346,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 23,
+      "mean_clv": -0.0085,
+      "roi": -0.2405
+     },
+     "3-5": {
+      "bets": 95,
+      "mean_clv": 0.004,
+      "roi": -0.0253
+     },
+     "<2": {
+      "bets": 18,
+      "mean_clv": 0.0219,
+      "roi": 0.0658
+     },
+     ">=5": {
+      "bets": 210,
+      "mean_clv": -0.0074,
+      "roi": -0.2205
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 194,
+      "roi": -0.1333
+     },
+     "2526": {
+      "bets": 152,
+      "roi": -0.1789
+     }
+    },
+    "clv_positive_share": 0.48,
+    "max_dd_units": 65.46,
+    "mean_clv": -0.0028,
+    "roi": -0.1533,
+    "se": 0.105,
+    "t": -1.46,
+    "units": -53.05
+   },
+   "1x2.pre.exch_c5.th4": {
+    "bets": 154,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 11,
+      "mean_clv": -0.0098,
+      "roi": -0.3369
+     },
+     "3-5": {
+      "bets": 31,
+      "mean_clv": 0.0324,
+      "roi": 0.2297
+     },
+     "<2": {
+      "bets": 6,
+      "mean_clv": 0.0647,
+      "roi": 0.4176
+     },
+     ">=5": {
+      "bets": 106,
+      "mean_clv": 0.0082,
+      "roi": -0.3693
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 74,
+      "roi": -0.1859
+     },
+     "2526": {
+      "bets": 80,
+      "roi": -0.2433
+     }
+    },
+    "clv_positive_share": 0.506,
+    "max_dd_units": 40.64,
+    "mean_clv": 0.014,
+    "roi": -0.2157,
+    "se": 0.1633,
+    "t": -1.32,
+    "units": -33.23
+   },
+   "1x2.pre.exch_c5.th6": {
+    "bets": 66,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 6,
+      "mean_clv": 0.0121,
+      "roi": -0.6212
+     },
+     "3-5": {
+      "bets": 9,
+      "mean_clv": 0.1118,
+      "roi": 0.2147
+     },
+     "<2": {
+      "bets": 1,
+      "mean_clv": 0.0913,
+      "roi": 0.8835
+     },
+     ">=5": {
+      "bets": 50,
+      "mean_clv": -0.0055,
+      "roi": -0.6436
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 33,
+      "roi": -0.4231
+     },
+     "2526": {
+      "bets": 33,
+      "roi": -0.5797
+     }
+    },
+    "clv_positive_share": 0.5,
+    "max_dd_units": 34.61,
+    "mean_clv": 0.0136,
+    "roi": -0.5014,
+    "se": 0.1807,
+    "t": -2.77,
+    "units": -33.09
+   },
+   "1x2.pre.exch_c5_all": {
+    "bets": 31557,
+    "by_season": {
+     "2425": {
+      "bets": 22863,
+      "roi": -0.0905
+     },
+     "2526": {
+      "bets": 8694,
+      "roi": -0.0787
+     }
+    },
+    "clv_positive_share": 0.19,
+    "max_dd_units": 2767.43,
+    "mean_clv": -0.0845,
+    "roi": -0.0873,
+    "se": 0.0084,
+    "t": -10.37,
+    "units": -2753.82
+   },
+   "1x2.pre.pinnacle_all": {
+    "bets": 101943,
+    "by_season": {
+     "2122": {
+      "bets": 23439,
+      "roi": -0.051
+     },
+     "2223": {
+      "bets": 23367,
+      "roi": -0.0536
+     },
+     "2324": {
+      "bets": 23334,
+      "roi": -0.0521
+     },
+     "2425": {
+      "bets": 23010,
+      "roi": -0.0604
+     },
+     "2526": {
+      "bets": 8793,
+      "roi": -0.0605
+     }
+    },
+    "max_dd_units": 5604.86,
+    "roi": -0.0548,
+    "se": 0.0048,
+    "t": -11.46,
+    "units": -5584.14
+   },
+   "1x2.pre.soft.th2": {
+    "bets": 2486,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 400,
+      "mean_clv": 0.0515,
+      "roi": 0.0423
+     },
+     "3-5": {
+      "bets": 1232,
+      "mean_clv": 0.0201,
+      "roi": 0.07
+     },
+     "<2": {
+      "bets": 276,
+      "mean_clv": 0.0382,
+      "roi": -0.0053
+     },
+     ">=5": {
+      "bets": 578,
+      "mean_clv": 0.0082,
+      "roi": -0.122
+     }
+    },
+    "by_season": {
+     "2122": {
+      "bets": 817,
+      "roi": 0.0742
+     },
+     "2223": {
+      "bets": 508,
+      "roi": -0.0572
+     },
+     "2324": {
+      "bets": 504,
+      "roi": -0.0462
+     },
+     "2425": {
+      "bets": 375,
+      "roi": 0.0871
+     },
+     "2526": {
+      "bets": 282,
+      "roi": -0.0343
+     }
+    },
+    "clv_positive_share": 0.625,
+    "max_dd_units": 67.37,
+    "mean_clv": 0.0244,
+    "roi": 0.0126,
+    "se": 0.0342,
+    "t": 0.37,
+    "units": 31.27
+   },
+   "1x2.pre.soft.th4": {
+    "bets": 1053,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 186,
+      "mean_clv": 0.0857,
+      "roi": 0.1418
+     },
+     "3-5": {
+      "bets": 472,
+      "mean_clv": 0.0372,
+      "roi": 0.0363
+     },
+     "<2": {
+      "bets": 69,
+      "mean_clv": 0.0865,
+      "roi": -0.0081
+     },
+     ">=5": {
+      "bets": 326,
+      "mean_clv": 0.0333,
+      "roi": -0.1917
+     }
+    },
+    "by_season": {
+     "2122": {
+      "bets": 369,
+      "roi": 0.0858
+     },
+     "2223": {
+      "bets": 229,
+      "roi": -0.0781
+     },
+     "2324": {
+      "bets": 203,
+      "roi": -0.1275
+     },
+     "2425": {
+      "bets": 160,
+      "roi": 0.1258
+     },
+     "2526": {
+      "bets": 92,
+      "roi": -0.2995
+     }
+    },
+    "clv_positive_share": 0.68,
+    "max_dd_units": 68.45,
+    "mean_clv": 0.0478,
+    "roi": -0.0186,
+    "se": 0.0548,
+    "t": -0.34,
+    "units": -19.55
+   },
+   "1x2.pre.soft.th6": {
+    "bets": 540,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 114,
+      "mean_clv": 0.108,
+      "roi": 0.1429
+     },
+     "3-5": {
+      "bets": 195,
+      "mean_clv": 0.0634,
+      "roi": 0.221
+     },
+     "<2": {
+      "bets": 37,
+      "mean_clv": 0.113,
+      "roi": 0.1349
+     },
+     ">=5": {
+      "bets": 194,
+      "mean_clv": 0.045,
+      "roi": -0.2358
+     }
+    },
+    "by_season": {
+     "2122": {
+      "bets": 199,
+      "roi": 0.1265
+     },
+     "2223": {
+      "bets": 113,
+      "roi": -0.225
+     },
+     "2324": {
+      "bets": 98,
+      "roi": 0.022
+     },
+     "2425": {
+      "bets": 84,
+      "roi": 0.2895
+     },
+     "2526": {
+      "bets": 46,
+      "roi": -0.1652
+     }
+    },
+    "clv_positive_share": 0.719,
+    "max_dd_units": 39.62,
+    "mean_clv": 0.0696,
+    "roi": 0.0345,
+    "se": 0.0781,
+    "t": 0.44,
+    "units": 18.63
+   },
+   "1x2.pre.soft_all": {
+    "bets": 101940,
+    "by_season": {
+     "2122": {
+      "bets": 23439,
+      "roi": -0.0545
+     },
+     "2223": {
+      "bets": 23367,
+      "roi": -0.0638
+     },
+     "2324": {
+      "bets": 23334,
+      "roi": -0.0589
+     },
+     "2425": {
+      "bets": 23007,
+      "roi": -0.0629
+     },
+     "2526": {
+      "bets": 8793,
+      "roi": -0.0505
+     }
+    },
+    "clv_positive_share": 0.265,
+    "max_dd_units": 6054.38,
+    "mean_clv": -0.0531,
+    "roi": -0.0592,
+    "se": 0.0048,
+    "t": -12.42,
+    "units": -6033.55
+   },
+   "1x2.pre.soft_vs_exch.th2": {
+    "bets": 2242,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 425,
+      "mean_clv": -0.0397,
+      "roi": 0.0384
+     },
+     "3-5": {
+      "bets": 1276,
+      "mean_clv": -0.0257,
+      "roi": -0.0588
+     },
+     "<2": {
+      "bets": 248,
+      "mean_clv": -0.0136,
+      "roi": -0.0328
+     },
+     ">=5": {
+      "bets": 293,
+      "mean_clv": -0.1237,
+      "roi": -0.0841
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 1178,
+      "roi": -0.1138
+     },
+     "2526": {
+      "bets": 971,
+      "roi": 0.0312
+     },
+     "2627": {
+      "bets": 93,
+      "roi": 0.1312
+     }
+    },
+    "clv_positive_share": 0.363,
+    "max_dd_units": 172.64,
+    "mean_clv": -0.0398,
+    "roi": -0.0408,
+    "se": 0.0346,
+    "t": -1.18,
+    "units": -91.53
+   },
+   "1x2.pre.soft_vs_exch.th4": {
+    "bets": 1693,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 332,
+      "mean_clv": -0.0512,
+      "roi": 0.0504
+     },
+     "3-5": {
+      "bets": 916,
+      "mean_clv": -0.0356,
+      "roi": -0.0873
+     },
+     "<2": {
+      "bets": 179,
+      "mean_clv": -0.0174,
+      "roi": -0.0761
+     },
+     ">=5": {
+      "bets": 266,
+      "mean_clv": -0.134,
+      "roi": -0.0536
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 981,
+      "roi": -0.1042
+     },
+     "2526": {
+      "bets": 650,
+      "roi": 0.0224
+     },
+     "2627": {
+      "bets": 62,
+      "roi": -0.0553
+     }
+    },
+    "clv_positive_share": 0.307,
+    "max_dd_units": 141.1,
+    "mean_clv": -0.0522,
+    "roi": -0.0538,
+    "se": 0.0408,
+    "t": -1.32,
+    "units": -91.09
+   },
+   "1x2.pre.soft_vs_exch.th6": {
+    "bets": 1487,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 301,
+      "mean_clv": -0.0507,
+      "roi": 0.1121
+     },
+     "3-5": {
+      "bets": 785,
+      "mean_clv": -0.0433,
+      "roi": -0.0845
+     },
+     "<2": {
+      "bets": 153,
+      "mean_clv": -0.0234,
+      "roi": -0.107
+     },
+     ">=5": {
+      "bets": 248,
+      "mean_clv": -0.1452,
+      "roi": -0.0796
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 891,
+      "roi": -0.0917
+     },
+     "2526": {
+      "bets": 546,
+      "roi": 0.0433
+     },
+     "2627": {
+      "bets": 50,
+      "roi": -0.2132
+     }
+    },
+    "clv_positive_share": 0.277,
+    "max_dd_units": 121.09,
+    "mean_clv": -0.0598,
+    "roi": -0.0462,
+    "se": 0.0441,
+    "t": -1.05,
+    "units": -68.73
+   },
+   "1x2.pre.soft_vs_exch_odds_lt5.th2": {
+    "bets": 1949,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 425,
+      "mean_clv": -0.0397,
+      "roi": 0.0384
+     },
+     "3-5": {
+      "bets": 1276,
+      "mean_clv": -0.0257,
+      "roi": -0.0588
+     },
+     "<2": {
+      "bets": 248,
+      "mean_clv": -0.0136,
+      "roi": -0.0328
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 1010,
+      "roi": -0.1382
+     },
+     "2526": {
+      "bets": 857,
+      "roi": 0.0577
+     },
+     "2627": {
+      "bets": 82,
+      "roi": 0.2829
+     }
+    },
+    "clv_positive_share": 0.381,
+    "max_dd_units": 171.87,
+    "mean_clv": -0.0272,
+    "roi": -0.0343,
+    "se": 0.0322,
+    "t": -1.07,
+    "units": -66.88
+   },
+   "1x2.pre.soft_vs_exch_odds_lt5.th4": {
+    "bets": 1427,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 332,
+      "mean_clv": -0.0512,
+      "roi": 0.0504
+     },
+     "3-5": {
+      "bets": 916,
+      "mean_clv": -0.0356,
+      "roi": -0.0873
+     },
+     "<2": {
+      "bets": 179,
+      "mean_clv": -0.0174,
+      "roi": -0.0761
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 821,
+      "roi": -0.1276
+     },
+     "2526": {
+      "bets": 552,
+      "roi": 0.0422
+     },
+     "2627": {
+      "bets": 54,
+      "roi": 0.0846
+     }
+    },
+    "clv_positive_share": 0.323,
+    "max_dd_units": 127.55,
+    "mean_clv": -0.0369,
+    "roi": -0.0538,
+    "se": 0.0373,
+    "t": -1.44,
+    "units": -76.84
+   },
+   "1x2.pre.soft_vs_exch_odds_lt5.th6": {
+    "bets": 1239,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 301,
+      "mean_clv": -0.0507,
+      "roi": 0.1121
+     },
+     "3-5": {
+      "bets": 785,
+      "mean_clv": -0.0433,
+      "roi": -0.0845
+     },
+     "<2": {
+      "bets": 153,
+      "mean_clv": -0.0234,
+      "roi": -0.107
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 739,
+      "roi": -0.1106
+     },
+     "2526": {
+      "bets": 457,
+      "roi": 0.0796
+     },
+     "2627": {
+      "bets": 43,
+      "roi": -0.0851
+     }
+    },
+    "clv_positive_share": 0.292,
+    "max_dd_units": 95.59,
+    "mean_clv": -0.0426,
+    "roi": -0.0395,
+    "se": 0.0401,
+    "t": -0.99,
+    "units": -48.98
+   },
+   "logloss.close.exchange": {
+    "bets": 10642,
+    "by_season": {
+     "2425": {
+      "bets": 7680,
+      "roi": 0.9971
+     },
+     "2526": {
+      "bets": 2962,
+      "roi": 1.0031
+     }
+    },
+    "max_dd_units": 0.0,
+    "roi": 0.9988,
+    "se": 0.0042,
+    "t": 239.49,
+    "units": 10629.17
+   },
+   "logloss.close.pinnacle": {
+    "bets": 10642,
+    "by_season": {
+     "2425": {
+      "bets": 7680,
+      "roi": 0.9966
+     },
+     "2526": {
+      "bets": 2962,
+      "roi": 1.0042
+     }
+    },
+    "max_dd_units": 0.0,
+    "roi": 0.9987,
+    "se": 0.0042,
+    "t": 238.08,
+    "units": 10628.38
+   },
+   "logloss.pre.exchange": {
+    "bets": 10519,
+    "by_season": {
+     "2425": {
+      "bets": 7621,
+      "roi": 1.0084
+     },
+     "2526": {
+      "bets": 2898,
+      "roi": 1.0092
+     }
+    },
+    "max_dd_units": 0.0,
+    "roi": 1.0086,
+    "se": 0.0047,
+    "t": 214.38,
+    "units": 10609.94
+   },
+   "logloss.pre.pinnacle": {
+    "bets": 10519,
+    "by_season": {
+     "2425": {
+      "bets": 7621,
+      "roi": 0.9997
+     },
+     "2526": {
+      "bets": 2898,
+      "roi": 1.0069
+     }
+    },
+    "max_dd_units": 0.0,
+    "roi": 1.0017,
+    "se": 0.0042,
+    "t": 239.96,
+    "units": 10536.63
+   },
+   "ou.close.exch_c2.th2": {
+    "bets": 755,
+    "by_season": {
+     "2425": {
+      "bets": 254,
+      "roi": 0.0183
+     },
+     "2526": {
+      "bets": 501,
+      "roi": 0.0197
+     }
+    },
+    "max_dd_units": 29.5,
+    "roi": 0.0193,
+    "se": 0.0414,
+    "t": 0.46,
+    "units": 14.54
+   },
+   "ou.close.exch_c2.th4": {
+    "bets": 332,
+    "by_season": {
+     "2425": {
+      "bets": 73,
+      "roi": 0.0188
+     },
+     "2526": {
+      "bets": 259,
+      "roi": 0.0899
+     }
+    },
+    "max_dd_units": 19.89,
+    "roi": 0.0743,
+    "se": 0.0708,
+    "t": 1.05,
+    "units": 24.66
+   },
+   "ou.close.exch_c2.th6": {
+    "bets": 166,
+    "by_season": {
+     "2425": {
+      "bets": 31,
+      "roi": 0.3156
+     },
+     "2526": {
+      "bets": 135,
+      "roi": 0.159
+     }
+    },
+    "max_dd_units": 13.85,
+    "roi": 0.1882,
+    "se": 0.1145,
+    "t": 1.64,
+    "units": 31.25
+   },
+   "ou.close.exch_c2_all": {
+    "bets": 21222,
+    "by_season": {
+     "2425": {
+      "bets": 15324,
+      "roi": -0.0189
+     },
+     "2526": {
+      "bets": 5898,
+      "roi": -0.0158
+     }
+    },
+    "max_dd_units": 385.89,
+    "roi": -0.018,
+    "se": 0.007,
+    "t": -2.58,
+    "units": -382.38
+   },
+   "ou.close.exch_c5.th2": {
+    "bets": 402,
+    "by_season": {
+     "2425": {
+      "bets": 102,
+      "roi": -0.0071
+     },
+     "2526": {
+      "bets": 300,
+      "roi": 0.0459
+     }
+    },
+    "max_dd_units": 23.42,
+    "roi": 0.0325,
+    "se": 0.0602,
+    "t": 0.54,
+    "units": 13.05
+   },
+   "ou.close.exch_c5.th4": {
+    "bets": 182,
+    "by_season": {
+     "2425": {
+      "bets": 33,
+      "roi": 0.2736
+     },
+     "2526": {
+      "bets": 149,
+      "roi": 0.1147
+     }
+    },
+    "max_dd_units": 14.6,
+    "roi": 0.1435,
+    "se": 0.1042,
+    "t": 1.38,
+    "units": 26.11
+   },
+   "ou.close.exch_c5.th6": {
+    "bets": 89,
+    "by_season": {
+     "2425": {
+      "bets": 17,
+      "roi": 0.6592
+     },
+     "2526": {
+      "bets": 72,
+      "roi": 0.3205
+     }
+    },
+    "max_dd_units": 7.92,
+    "roi": 0.3852,
+    "se": 0.1797,
+    "t": 2.14,
+    "units": 34.28
+   },
+   "ou.close.exch_c5_all": {
+    "bets": 21222,
+    "by_season": {
+     "2425": {
+      "bets": 15324,
+      "roi": -0.0336
+     },
+     "2526": {
+      "bets": 5898,
+      "roi": -0.0306
+     }
+    },
+    "max_dd_units": 698.63,
+    "roi": -0.0328,
+    "se": 0.0069,
+    "t": -4.76,
+    "units": -695.5
+   },
+   "ou.close.soft.th2": {
+    "bets": 385,
+    "by_season": {
+     "2122": {
+      "bets": 84,
+      "roi": -0.0925
+     },
+     "2223": {
+      "bets": 47,
+      "roi": -0.0272
+     },
+     "2324": {
+      "bets": 29,
+      "roi": -0.521
+     },
+     "2425": {
+      "bets": 23,
+      "roi": 0.3822
+     },
+     "2526": {
+      "bets": 202,
+      "roi": 0.0813
+     }
+    },
+    "max_dd_units": 31.43,
+    "roi": 0.0027,
+    "se": 0.0585,
+    "t": 0.05,
+    "units": 1.05
+   },
+   "ou.close.soft.th4": {
+    "bets": 195,
+    "by_season": {
+     "2122": {
+      "bets": 37,
+      "roi": -0.08
+     },
+     "2223": {
+      "bets": 21,
+      "roi": 0.1352
+     },
+     "2324": {
+      "bets": 16,
+      "roi": -0.6919
+     },
+     "2425": {
+      "bets": 14,
+      "roi": 0.1721
+     },
+     "2526": {
+      "bets": 107,
+      "roi": 0.0149
+     }
+    },
+    "max_dd_units": 22.98,
+    "roi": -0.0369,
+    "se": 0.0872,
+    "t": -0.42,
+    "units": -7.19
+   },
+   "ou.close.soft.th6": {
+    "bets": 111,
+    "by_season": {
+     "2122": {
+      "bets": 23,
+      "roi": -0.277
+     },
+     "2223": {
+      "bets": 12,
+      "roi": 0.055
+     },
+     "2324": {
+      "bets": 10,
+      "roi": -1.0
+     },
+     "2425": {
+      "bets": 12,
+      "roi": 0.2692
+     },
+     "2526": {
+      "bets": 54,
+      "roi": 0.0089
+     }
+    },
+    "max_dd_units": 24.41,
+    "roi": -0.1081,
+    "se": 0.1284,
+    "t": -0.84,
+    "units": -12.0
+   },
+   "ou.close.soft_all": {
+    "bets": 67968,
+    "by_season": {
+     "2122": {
+      "bets": 15630,
+      "roi": -0.0548
+     },
+     "2223": {
+      "bets": 15570,
+      "roi": -0.0551
+     },
+     "2324": {
+      "bets": 15532,
+      "roi": -0.0574
+     },
+     "2425": {
+      "bets": 15326,
+      "roi": -0.0518
+     },
+     "2526": {
+      "bets": 5910,
+      "roi": -0.0505
+     }
+    },
+    "max_dd_units": 3698.89,
+    "roi": -0.0544,
+    "se": 0.0037,
+    "t": -14.52,
+    "units": -3696.74
+   },
+   "ou.pre.exch_c2.th2": {
+    "bets": 92,
+    "by_season": {
+     "2425": {
+      "bets": 51,
+      "roi": -0.099
+     },
+     "2526": {
+      "bets": 41,
+      "roi": -0.2297
+     }
+    },
+    "clv_positive_share": 0.674,
+    "max_dd_units": 21.75,
+    "mean_clv": 0.027,
+    "roi": -0.1573,
+    "se": 0.1229,
+    "t": -1.28,
+    "units": -14.47
+   },
+   "ou.pre.exch_c2.th4": {
+    "bets": 27,
+    "by_season": {
+     "2425": {
+      "bets": 11,
+      "roi": 0.2849
+     },
+     "2526": {
+      "bets": 16,
+      "roi": -0.1938
+     }
+    },
+    "clv_positive_share": 0.815,
+    "max_dd_units": 9.18,
+    "mean_clv": 0.0744,
+    "roi": 0.0012,
+    "se": 0.2819,
+    "t": 0.0,
+    "units": 0.03
+   },
+   "ou.pre.exch_c2.th6": {
+    "bets": 18,
+    "by_season": {
+     "2425": {
+      "bets": 7,
+      "roi": 0.473
+     },
+     "2526": {
+      "bets": 11,
+      "roi": -0.0448
+     }
+    },
+    "clv_positive_share": 0.833,
+    "max_dd_units": 8.0,
+    "mean_clv": 0.1013,
+    "roi": 0.1566,
+    "se": 0.3857,
+    "t": 0.41,
+    "units": 2.82
+   },
+   "ou.pre.exch_c2_all": {
+    "bets": 20220,
+    "by_season": {
+     "2425": {
+      "bets": 14602,
+      "roi": -0.0573
+     },
+     "2526": {
+      "bets": 5618,
+      "roi": -0.0553
+     }
+    },
+    "clv_positive_share": 0.213,
+    "max_dd_units": 1148.19,
+    "mean_clv": -0.0582,
+    "roi": -0.0567,
+    "se": 0.0069,
+    "t": -8.26,
+    "units": -1146.6
+   },
+   "ou.pre.exch_c5.th2": {
+    "bets": 33,
+    "by_season": {
+     "2425": {
+      "bets": 14,
+      "roi": 0.3606
+     },
+     "2526": {
+      "bets": 19,
+      "roi": -0.2517
+     }
+    },
+    "clv_positive_share": 0.697,
+    "max_dd_units": 11.2,
+    "mean_clv": 0.0374,
+    "roi": 0.0081,
+    "se": 0.2336,
+    "t": 0.03,
+    "units": 0.27
+   },
+   "ou.pre.exch_c5.th4": {
+    "bets": 17,
+    "by_season": {
+     "2425": {
+      "bets": 6,
+      "roi": 0.6812
+     },
+     "2526": {
+      "bets": 11,
+      "roi": -0.0629
+     }
+    },
+    "clv_positive_share": 0.882,
+    "max_dd_units": 8.0,
+    "mean_clv": 0.087,
+    "roi": 0.1997,
+    "se": 0.3938,
+    "t": 0.51,
+    "units": 3.39
+   },
+   "ou.pre.exch_c5.th6": {
+    "bets": 10,
+    "by_season": {
+     "2425": {
+      "bets": 3,
+      "roi": -1.0
+     },
+     "2526": {
+      "bets": 7,
+      "roi": -0.375
+     }
+    },
+    "clv_positive_share": 0.9,
+    "max_dd_units": 7.0,
+    "mean_clv": 0.1204,
+    "roi": -0.5625,
+    "se": 0.2927,
+    "t": -1.92,
+    "units": -5.62
+   },
+   "ou.pre.exch_c5_all": {
+    "bets": 20220,
+    "by_season": {
+     "2425": {
+      "bets": 14602,
+      "roi": -0.0708
+     },
+     "2526": {
+      "bets": 5618,
+      "roi": -0.0689
+     }
+    },
+    "clv_positive_share": 0.153,
+    "max_dd_units": 1422.41,
+    "mean_clv": -0.0718,
+    "roi": -0.0703,
+    "se": 0.0068,
+    "t": -10.4,
+    "units": -1420.99
+   },
+   "ou.pre.soft.th2": {
+    "bets": 182,
+    "by_season": {
+     "2122": {
+      "bets": 78,
+      "roi": 0.1245
+     },
+     "2223": {
+      "bets": 49,
+      "roi": 0.3412
+     },
+     "2324": {
+      "bets": 29,
+      "roi": -0.2017
+     },
+     "2425": {
+      "bets": 4,
+      "roi": -0.5425
+     },
+     "2526": {
+      "bets": 22,
+      "roi": -0.1436
+     }
+    },
+    "clv_positive_share": 0.665,
+    "max_dd_units": 15.44,
+    "mean_clv": 0.0273,
+    "roi": 0.0838,
+    "se": 0.0803,
+    "t": 1.04,
+    "units": 15.25
+   },
+   "ou.pre.soft.th4": {
+    "bets": 60,
+    "by_season": {
+     "2122": {
+      "bets": 20,
+      "roi": 0.0975
+     },
+     "2223": {
+      "bets": 12,
+      "roi": 0.295
+     },
+     "2324": {
+      "bets": 13,
+      "roi": -0.4054
+     },
+     "2425": {
+      "bets": 2,
+      "roi": -1.0
+     },
+     "2526": {
+      "bets": 13,
+      "roi": 0.0354
+     }
+    },
+    "clv_positive_share": 0.783,
+    "max_dd_units": 10.47,
+    "mean_clv": 0.0538,
+    "roi": -0.022,
+    "se": 0.1664,
+    "t": -0.13,
+    "units": -1.32
+   },
+   "ou.pre.soft.th6": {
+    "bets": 29,
+    "by_season": {
+     "2122": {
+      "bets": 12,
+      "roi": 0.1992
+     },
+     "2223": {
+      "bets": 5,
+      "roi": 0.6
+     },
+     "2324": {
+      "bets": 6,
+      "roi": -1.0
+     },
+     "2425": {
+      "bets": 1,
+      "roi": -1.0
+     },
+     "2526": {
+      "bets": 5,
+      "roi": -0.694
+     }
+    },
+    "clv_positive_share": 0.828,
+    "max_dd_units": 10.47,
+    "mean_clv": 0.0774,
+    "roi": -0.1752,
+    "se": 0.2724,
+    "t": -0.64,
+    "units": -5.08
+   },
+   "ou.pre.soft_all": {
+    "bets": 67716,
+    "by_season": {
+     "2122": {
+      "bets": 15574,
+      "roi": -0.0531
+     },
+     "2223": {
+      "bets": 15526,
+      "roi": -0.0564
+     },
+     "2324": {
+      "bets": 15478,
+      "roi": -0.0567
+     },
+     "2425": {
+      "bets": 15296,
+      "roi": -0.0518
+     },
+     "2526": {
+      "bets": 5842,
+      "roi": -0.0506
+     }
+    },
+    "clv_positive_share": 0.179,
+    "max_dd_units": 3669.95,
+    "mean_clv": -0.0542,
+    "roi": -0.0542,
+    "se": 0.0037,
+    "t": -14.52,
+    "units": -3668.38
+   }
+  },
+  "prop": {
+   "1x2.close.exch_c2.th2": {
+    "bets": 3790,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 326,
+      "mean_clv": null,
+      "roi": -0.0128
+     },
+     "3-5": {
+      "bets": 1119,
+      "mean_clv": null,
+      "roi": 0.0091
+     },
+     "<2": {
+      "bets": 56,
+      "mean_clv": null,
+      "roi": 0.072
+     },
+     ">=5": {
+      "bets": 2289,
+      "mean_clv": null,
+      "roi": -0.0546
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 2295,
+      "roi": 0.0164
+     },
+     "2526": {
+      "bets": 1495,
+      "roi": -0.102
+     }
+    },
+    "max_dd_units": 249.4,
+    "roi": -0.0303,
+    "se": 0.0389,
+    "t": -0.78,
+    "units": -114.94
+   },
+   "1x2.close.exch_c2.th4": {
+    "bets": 2354,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 171,
+      "mean_clv": null,
+      "roi": 0.0168
+     },
+     "3-5": {
+      "bets": 498,
+      "mean_clv": null,
+      "roi": -0.0577
+     },
+     "<2": {
+      "bets": 21,
+      "mean_clv": null,
+      "roi": 0.123
+     },
+     ">=5": {
+      "bets": 1664,
+      "mean_clv": null,
+      "roi": -0.0541
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 1334,
+      "roi": 0.0141
+     },
+     "2526": {
+      "bets": 1020,
+      "roi": -0.1294
+     }
+    },
+    "max_dd_units": 201.42,
+    "roi": -0.0481,
+    "se": 0.0547,
+    "t": -0.88,
+    "units": -113.2
+   },
+   "1x2.close.exch_c2.th6": {
+    "bets": 1566,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 92,
+      "mean_clv": null,
+      "roi": -0.0761
+     },
+     "3-5": {
+      "bets": 274,
+      "mean_clv": null,
+      "roi": -0.1013
+     },
+     "<2": {
+      "bets": 9,
+      "mean_clv": null,
+      "roi": 0.0249
+     },
+     ">=5": {
+      "bets": 1191,
+      "mean_clv": null,
+      "roi": -0.0259
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 862,
+      "roi": 0.0085
+     },
+     "2526": {
+      "bets": 704,
+      "roi": -0.1033
+     }
+    },
+    "max_dd_units": 176.93,
+    "roi": -0.0418,
+    "se": 0.073,
+    "t": -0.57,
+    "units": -65.39
+   },
+   "1x2.close.exch_c2_all": {
+    "bets": 31926,
+    "by_season": {
+     "2425": {
+      "bets": 23040,
+      "roi": -0.0249
+     },
+     "2526": {
+      "bets": 8886,
+      "roi": -0.0294
+     }
+    },
+    "max_dd_units": 859.91,
+    "roi": -0.0261,
+    "se": 0.0091,
+    "t": -2.88,
+    "units": -834.72
+   },
+   "1x2.close.exch_c5.th2": {
+    "bets": 2132,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 176,
+      "mean_clv": null,
+      "roi": 0.0327
+     },
+     "3-5": {
+      "bets": 439,
+      "mean_clv": null,
+      "roi": -0.0533
+     },
+     "<2": {
+      "bets": 28,
+      "mean_clv": null,
+      "roi": 0.0189
+     },
+     ">=5": {
+      "bets": 1489,
+      "mean_clv": null,
+      "roi": -0.0254
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 1149,
+      "roi": 0.072
+     },
+     "2526": {
+      "bets": 983,
+      "roi": -0.1401
+     }
+    },
+    "max_dd_units": 185.01,
+    "roi": -0.0258,
+    "se": 0.0575,
+    "t": -0.45,
+    "units": -54.97
+   },
+   "1x2.close.exch_c5.th4": {
+    "bets": 1419,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 93,
+      "mean_clv": null,
+      "roi": -0.0805
+     },
+     "3-5": {
+      "bets": 253,
+      "mean_clv": null,
+      "roi": -0.1187
+     },
+     "<2": {
+      "bets": 11,
+      "mean_clv": null,
+      "roi": 0.1632
+     },
+     ">=5": {
+      "bets": 1062,
+      "mean_clv": null,
+      "roi": -0.0388
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 758,
+      "roi": 0.0098
+     },
+     "2526": {
+      "bets": 661,
+      "roi": -0.1277
+     }
+    },
+    "max_dd_units": 178.38,
+    "roi": -0.0542,
+    "se": 0.076,
+    "t": -0.71,
+    "units": -76.95
+   },
+   "1x2.close.exch_c5.th6": {
+    "bets": 1028,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 53,
+      "mean_clv": null,
+      "roi": -0.1507
+     },
+     "3-5": {
+      "bets": 179,
+      "mean_clv": null,
+      "roi": -0.1643
+     },
+     "<2": {
+      "bets": 3,
+      "mean_clv": null,
+      "roi": -0.3785
+     },
+     ">=5": {
+      "bets": 793,
+      "mean_clv": null,
+      "roi": -0.0421
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 535,
+      "roi": -0.0244
+     },
+     "2526": {
+      "bets": 493,
+      "roi": -0.1194
+     }
+    },
+    "max_dd_units": 172.45,
+    "roi": -0.07,
+    "se": 0.0932,
+    "t": -0.75,
+    "units": -71.92
+   },
+   "1x2.close.exch_c5_all": {
+    "bets": 31926,
+    "by_season": {
+     "2425": {
+      "bets": 23040,
+      "roi": -0.0445
+     },
+     "2526": {
+      "bets": 8886,
+      "roi": -0.0489
+     }
+    },
+    "max_dd_units": 1476.7,
+    "roi": -0.0458,
+    "se": 0.0089,
+    "t": -5.16,
+    "units": -1460.72
+   },
+   "1x2.close.pinnacle_all": {
+    "bets": 102195,
+    "by_season": {
+     "2122": {
+      "bets": 23463,
+      "roi": -0.0455
+     },
+     "2223": {
+      "bets": 23400,
+      "roi": -0.0532
+     },
+     "2324": {
+      "bets": 23397,
+      "roi": -0.0494
+     },
+     "2425": {
+      "bets": 23043,
+      "roi": -0.0477
+     },
+     "2526": {
+      "bets": 8892,
+      "roi": -0.0497
+     }
+    },
+    "max_dd_units": 5031.36,
+    "roi": -0.049,
+    "se": 0.0049,
+    "t": -10.11,
+    "units": -5011.95
+   },
+   "1x2.close.soft.th2": {
+    "bets": 6225,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 1089,
+      "mean_clv": null,
+      "roi": 0.0847
+     },
+     "3-5": {
+      "bets": 2612,
+      "mean_clv": null,
+      "roi": 0.0138
+     },
+     "<2": {
+      "bets": 389,
+      "mean_clv": null,
+      "roi": 0.0305
+     },
+     ">=5": {
+      "bets": 2135,
+      "mean_clv": null,
+      "roi": -0.103
+     }
+    },
+    "by_season": {
+     "2122": {
+      "bets": 2218,
+      "roi": -0.0108
+     },
+     "2223": {
+      "bets": 1030,
+      "roi": 0.0166
+     },
+     "2324": {
+      "bets": 1313,
+      "roi": 0.0004
+     },
+     "2425": {
+      "bets": 850,
+      "roi": 0.0579
+     },
+     "2526": {
+      "bets": 814,
+      "roi": -0.1508
+     }
+    },
+    "max_dd_units": 124.65,
+    "roi": -0.0128,
+    "se": 0.0251,
+    "t": -0.51,
+    "units": -79.93
+   },
+   "1x2.close.soft.th4": {
+    "bets": 3595,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 670,
+      "mean_clv": null,
+      "roi": 0.1347
+     },
+     "3-5": {
+      "bets": 1257,
+      "mean_clv": null,
+      "roi": 0.0614
+     },
+     "<2": {
+      "bets": 212,
+      "mean_clv": null,
+      "roi": 0.1143
+     },
+     ">=5": {
+      "bets": 1456,
+      "mean_clv": null,
+      "roi": -0.0989
+     }
+    },
+    "by_season": {
+     "2122": {
+      "bets": 1297,
+      "roi": 0.0457
+     },
+     "2223": {
+      "bets": 585,
+      "roi": 0.0389
+     },
+     "2324": {
+      "bets": 741,
+      "roi": -0.0112
+     },
+     "2425": {
+      "bets": 479,
+      "roi": 0.0719
+     },
+     "2526": {
+      "bets": 493,
+      "roi": -0.1228
+     }
+    },
+    "max_dd_units": 89.46,
+    "roi": 0.0132,
+    "se": 0.0357,
+    "t": 0.37,
+    "units": 47.6
+   },
+   "1x2.close.soft.th6": {
+    "bets": 2232,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 443,
+      "mean_clv": null,
+      "roi": 0.1953
+     },
+     "3-5": {
+      "bets": 654,
+      "mean_clv": null,
+      "roi": 0.0887
+     },
+     "<2": {
+      "bets": 135,
+      "mean_clv": null,
+      "roi": 0.1938
+     },
+     ">=5": {
+      "bets": 1000,
+      "mean_clv": null,
+      "roi": -0.1121
+     }
+    },
+    "by_season": {
+     "2122": {
+      "bets": 812,
+      "roi": 0.0999
+     },
+     "2223": {
+      "bets": 375,
+      "roi": 0.0335
+     },
+     "2324": {
+      "bets": 456,
+      "roi": -0.0396
+     },
+     "2425": {
+      "bets": 267,
+      "roi": 0.1541
+     },
+     "2526": {
+      "bets": 322,
+      "roi": -0.1806
+     }
+    },
+    "max_dd_units": 89.25,
+    "roi": 0.0262,
+    "se": 0.0469,
+    "t": 0.56,
+    "units": 58.59
+   },
+   "1x2.close.soft_all": {
+    "bets": 102195,
+    "by_season": {
+     "2122": {
+      "bets": 23463,
+      "roi": -0.0455
+     },
+     "2223": {
+      "bets": 23400,
+      "roi": -0.0619
+     },
+     "2324": {
+      "bets": 23397,
+      "roi": -0.0547
+     },
+     "2425": {
+      "bets": 23043,
+      "roi": -0.0609
+     },
+     "2526": {
+      "bets": 8892,
+      "roi": -0.049
+     }
+    },
+    "max_dd_units": 5660.73,
+    "roi": -0.0552,
+    "se": 0.0048,
+    "t": -11.45,
+    "units": -5637.01
+   },
+   "1x2.close.soft_vs_exch.th2": {
+    "bets": 1291,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 246,
+      "mean_clv": null,
+      "roi": 0.055
+     },
+     "3-5": {
+      "bets": 800,
+      "mean_clv": null,
+      "roi": 0.0594
+     },
+     "<2": {
+      "bets": 98,
+      "mean_clv": null,
+      "roi": 0.039
+     },
+     ">=5": {
+      "bets": 147,
+      "mean_clv": null,
+      "roi": -0.1667
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 644,
+      "roi": -0.0073
+     },
+     "2526": {
+      "bets": 574,
+      "roi": 0.0788
+     },
+     "2627": {
+      "bets": 73,
+      "roi": -0.0023
+     }
+    },
+    "max_dd_units": 63.94,
+    "roi": 0.0313,
+    "se": 0.0442,
+    "t": 0.71,
+    "units": 40.35
+   },
+   "1x2.close.soft_vs_exch.th4": {
+    "bets": 534,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 137,
+      "mean_clv": null,
+      "roi": 0.1218
+     },
+     "3-5": {
+      "bets": 262,
+      "mean_clv": null,
+      "roi": 0.1145
+     },
+     "<2": {
+      "bets": 48,
+      "mean_clv": null,
+      "roi": 0.1313
+     },
+     ">=5": {
+      "bets": 87,
+      "mean_clv": null,
+      "roi": -0.1322
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 317,
+      "roi": -0.0116
+     },
+     "2526": {
+      "bets": 187,
+      "roi": 0.244
+     },
+     "2627": {
+      "bets": 30,
+      "roi": -0.015
+     }
+    },
+    "max_dd_units": 30.19,
+    "roi": 0.0777,
+    "se": 0.0706,
+    "t": 1.1,
+    "units": 41.5
+   },
+   "1x2.close.soft_vs_exch.th6": {
+    "bets": 271,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 89,
+      "mean_clv": null,
+      "roi": 0.2835
+     },
+     "3-5": {
+      "bets": 111,
+      "mean_clv": null,
+      "roi": 0.1077
+     },
+     "<2": {
+      "bets": 23,
+      "mean_clv": null,
+      "roi": 0.207
+     },
+     ">=5": {
+      "bets": 48,
+      "mean_clv": null,
+      "roi": -0.026
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 173,
+      "roi": 0.038
+     },
+     "2526": {
+      "bets": 89,
+      "roi": 0.322
+     },
+     "2627": {
+      "bets": 9,
+      "roi": 0.6056
+     }
+    },
+    "max_dd_units": 22.79,
+    "roi": 0.1501,
+    "se": 0.0995,
+    "t": 1.51,
+    "units": 40.69
+   },
+   "1x2.close.soft_vs_exch_odds_lt5.th2": {
+    "bets": 1144,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 246,
+      "mean_clv": null,
+      "roi": 0.055
+     },
+     "3-5": {
+      "bets": 800,
+      "mean_clv": null,
+      "roi": 0.0594
+     },
+     "<2": {
+      "bets": 98,
+      "mean_clv": null,
+      "roi": 0.039
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 594,
+      "roi": 0.0418
+     },
+     "2526": {
+      "bets": 496,
+      "roi": 0.0766
+     },
+     "2627": {
+      "bets": 54,
+      "roi": 0.0385
+     }
+    },
+    "max_dd_units": 38.22,
+    "roi": 0.0567,
+    "se": 0.0439,
+    "t": 1.29,
+    "units": 64.85
+   },
+   "1x2.close.soft_vs_exch_odds_lt5.th4": {
+    "bets": 447,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 137,
+      "mean_clv": null,
+      "roi": 0.1218
+     },
+     "3-5": {
+      "bets": 262,
+      "mean_clv": null,
+      "roi": 0.1145
+     },
+     "<2": {
+      "bets": 48,
+      "mean_clv": null,
+      "roi": 0.1313
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 285,
+      "roi": 0.0661
+     },
+     "2526": {
+      "bets": 143,
+      "roi": 0.2369
+     },
+     "2627": {
+      "bets": 19,
+      "roi": 0.0158
+     }
+    },
+    "max_dd_units": 25.19,
+    "roi": 0.1186,
+    "se": 0.0684,
+    "t": 1.73,
+    "units": 53.0
+   },
+   "1x2.close.soft_vs_exch_odds_lt5.th6": {
+    "bets": 223,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 89,
+      "mean_clv": null,
+      "roi": 0.2835
+     },
+     "3-5": {
+      "bets": 111,
+      "mean_clv": null,
+      "roi": 0.1077
+     },
+     "<2": {
+      "bets": 23,
+      "mean_clv": null,
+      "roi": 0.207
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 154,
+      "roi": 0.1044
+     },
+     "2526": {
+      "bets": 63,
+      "roi": 0.439
+     },
+     "2627": {
+      "bets": 6,
+      "roi": -0.3
+     }
+    },
+    "max_dd_units": 14.1,
+    "roi": 0.1881,
+    "se": 0.094,
+    "t": 2.0,
+    "units": 41.94
+   },
+   "1x2.pre.exch_c2.th2": {
+    "bets": 2514,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 44,
+      "mean_clv": 0.0048,
+      "roi": -0.0631
+     },
+     "3-5": {
+      "bets": 684,
+      "mean_clv": 0.0077,
+      "roi": -0.0242
+     },
+     "<2": {
+      "bets": 7,
+      "mean_clv": 0.0604,
+      "roi": 0.4983
+     },
+     ">=5": {
+      "bets": 1779,
+      "mean_clv": 0.0415,
+      "roi": -0.151
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 1693,
+      "roi": -0.0856
+     },
+     "2526": {
+      "bets": 821,
+      "roi": -0.1701
+     }
+    },
+    "clv_positive_share": 0.571,
+    "max_dd_units": 301.77,
+    "mean_clv": 0.0317,
+    "roi": -0.1132,
+    "se": 0.0473,
+    "t": -2.39,
+    "units": -284.49
+   },
+   "1x2.pre.exch_c2.th4": {
+    "bets": 1585,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 15,
+      "mean_clv": 0.0124,
+      "roi": 0.0337
+     },
+     "3-5": {
+      "bets": 258,
+      "mean_clv": 0.0235,
+      "roi": -0.0045
+     },
+     "<2": {
+      "bets": 5,
+      "mean_clv": 0.0728,
+      "roi": 0.4762
+     },
+     ">=5": {
+      "bets": 1307,
+      "mean_clv": 0.0534,
+      "roi": -0.1125
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 1059,
+      "roi": -0.0383
+     },
+     "2526": {
+      "bets": 526,
+      "roi": -0.1992
+     }
+    },
+    "clv_positive_share": 0.611,
+    "max_dd_units": 181.78,
+    "mean_clv": 0.0482,
+    "roi": -0.0917,
+    "se": 0.0662,
+    "t": -1.39,
+    "units": -145.34
+   },
+   "1x2.pre.exch_c2.th6": {
+    "bets": 1021,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 8,
+      "mean_clv": 0.0134,
+      "roi": -0.3703
+     },
+     "3-5": {
+      "bets": 86,
+      "mean_clv": 0.0538,
+      "roi": 0.2006
+     },
+     "<2": {
+      "bets": 1,
+      "mean_clv": 0.0893,
+      "roi": 0.9114
+     },
+     ">=5": {
+      "bets": 926,
+      "mean_clv": 0.0688,
+      "roi": -0.088
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 682,
+      "roi": -0.0241
+     },
+     "2526": {
+      "bets": 339,
+      "roi": -0.1469
+     }
+    },
+    "clv_positive_share": 0.642,
+    "max_dd_units": 110.6,
+    "mean_clv": 0.0671,
+    "roi": -0.0649,
+    "se": 0.091,
+    "t": -0.71,
+    "units": -66.25
+   },
+   "1x2.pre.exch_c2_all": {
+    "bets": 31557,
+    "by_season": {
+     "2425": {
+      "bets": 22863,
+      "roi": -0.0723
+     },
+     "2526": {
+      "bets": 8694,
+      "roi": -0.0601
+     }
+    },
+    "clv_positive_share": 0.276,
+    "max_dd_units": 2191.79,
+    "mean_clv": -0.0573,
+    "roi": -0.069,
+    "se": 0.0086,
+    "t": -8.01,
+    "units": -2176.42
+   },
+   "1x2.pre.exch_c5.th2": {
+    "bets": 1387,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 14,
+      "mean_clv": -0.0024,
+      "roi": -0.119
+     },
+     "3-5": {
+      "bets": 206,
+      "mean_clv": 0.0044,
+      "roi": -0.0427
+     },
+     "<2": {
+      "bets": 5,
+      "mean_clv": 0.0576,
+      "roi": 0.4555
+     },
+     ">=5": {
+      "bets": 1162,
+      "mean_clv": 0.0301,
+      "roi": -0.1405
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 927,
+      "roi": -0.0636
+     },
+     "2526": {
+      "bets": 460,
+      "roi": -0.2446
+     }
+    },
+    "clv_positive_share": 0.537,
+    "max_dd_units": 205.51,
+    "mean_clv": 0.026,
+    "roi": -0.1236,
+    "se": 0.0705,
+    "t": -1.75,
+    "units": -171.47
+   },
+   "1x2.pre.exch_c5.th4": {
+    "bets": 874,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 8,
+      "mean_clv": -0.0052,
+      "roi": -0.3819
+     },
+     "3-5": {
+      "bets": 64,
+      "mean_clv": 0.0257,
+      "roi": 0.0969
+     },
+     "<2": {
+      "bets": 1,
+      "mean_clv": 0.0734,
+      "roi": 0.8835
+     },
+     ">=5": {
+      "bets": 801,
+      "mean_clv": 0.048,
+      "roi": -0.1504
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 584,
+      "roi": -0.0723
+     },
+     "2526": {
+      "bets": 290,
+      "roi": -0.2559
+     }
+    },
+    "clv_positive_share": 0.582,
+    "max_dd_units": 133.5,
+    "mean_clv": 0.0459,
+    "roi": -0.1332,
+    "se": 0.0969,
+    "t": -1.38,
+    "units": -116.43
+   },
+   "1x2.pre.exch_c5.th6": {
+    "bets": 607,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 4,
+      "mean_clv": 0.0089,
+      "roi": -1.0
+     },
+     "3-5": {
+      "bets": 22,
+      "mean_clv": 0.0428,
+      "roi": 0.266
+     },
+     "<2": {
+      "bets": 1,
+      "mean_clv": 0.0734,
+      "roi": 0.8835
+     },
+     ">=5": {
+      "bets": 580,
+      "mean_clv": 0.0627,
+      "roi": -0.1672
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 401,
+      "roi": -0.1018
+     },
+     "2526": {
+      "bets": 206,
+      "roi": -0.2591
+     }
+    },
+    "clv_positive_share": 0.608,
+    "max_dd_units": 106.19,
+    "mean_clv": 0.0616,
+    "roi": -0.1552,
+    "se": 0.1254,
+    "t": -1.24,
+    "units": -94.21
+   },
+   "1x2.pre.exch_c5_all": {
+    "bets": 31557,
+    "by_season": {
+     "2425": {
+      "bets": 22863,
+      "roi": -0.0905
+     },
+     "2526": {
+      "bets": 8694,
+      "roi": -0.0787
+     }
+    },
+    "clv_positive_share": 0.194,
+    "max_dd_units": 2767.43,
+    "mean_clv": -0.076,
+    "roi": -0.0873,
+    "se": 0.0084,
+    "t": -10.37,
+    "units": -2753.82
+   },
+   "1x2.pre.pinnacle_all": {
+    "bets": 101943,
+    "by_season": {
+     "2122": {
+      "bets": 23439,
+      "roi": -0.051
+     },
+     "2223": {
+      "bets": 23367,
+      "roi": -0.0536
+     },
+     "2324": {
+      "bets": 23334,
+      "roi": -0.0521
+     },
+     "2425": {
+      "bets": 23010,
+      "roi": -0.0604
+     },
+     "2526": {
+      "bets": 8793,
+      "roi": -0.0605
+     }
+    },
+    "max_dd_units": 5604.86,
+    "roi": -0.0548,
+    "se": 0.0048,
+    "t": -11.46,
+    "units": -5584.14
+   },
+   "1x2.pre.soft.th2": {
+    "bets": 4461,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 275,
+      "mean_clv": 0.0578,
+      "roi": 0.0845
+     },
+     "3-5": {
+      "bets": 1791,
+      "mean_clv": 0.0217,
+      "roi": 0.0595
+     },
+     "<2": {
+      "bets": 64,
+      "mean_clv": 0.0707,
+      "roi": 0.0464
+     },
+     ">=5": {
+      "bets": 2331,
+      "mean_clv": 0.0303,
+      "roi": -0.1124
+     }
+    },
+    "by_season": {
+     "2122": {
+      "bets": 1206,
+      "roi": 0.007
+     },
+     "2223": {
+      "bets": 902,
+      "roi": 0.0121
+     },
+     "2324": {
+      "bets": 1049,
+      "roi": -0.1247
+     },
+     "2425": {
+      "bets": 771,
+      "roi": 0.0871
+     },
+     "2526": {
+      "bets": 533,
+      "roi": -0.1598
+     }
+    },
+    "clv_positive_share": 0.597,
+    "max_dd_units": 178.39,
+    "mean_clv": 0.0291,
+    "roi": -0.029,
+    "se": 0.0332,
+    "t": -0.87,
+    "units": -129.34
+   },
+   "1x2.pre.soft.th4": {
+    "bets": 2463,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 143,
+      "mean_clv": 0.0922,
+      "roi": 0.1885
+     },
+     "3-5": {
+      "bets": 681,
+      "mean_clv": 0.0365,
+      "roi": 0.0427
+     },
+     "<2": {
+      "bets": 35,
+      "mean_clv": 0.0943,
+      "roi": 0.1569
+     },
+     ">=5": {
+      "bets": 1604,
+      "mean_clv": 0.0463,
+      "roi": -0.0857
+     }
+    },
+    "by_season": {
+     "2122": {
+      "bets": 642,
+      "roi": 0.0236
+     },
+     "2223": {
+      "bets": 510,
+      "roi": -0.0559
+     },
+     "2324": {
+      "bets": 570,
+      "roi": -0.1175
+     },
+     "2425": {
+      "bets": 445,
+      "roi": 0.1556
+     },
+     "2526": {
+      "bets": 296,
+      "roi": -0.2191
+     }
+    },
+    "clv_positive_share": 0.628,
+    "max_dd_units": 130.53,
+    "mean_clv": 0.0469,
+    "roi": -0.0308,
+    "se": 0.0487,
+    "t": -0.63,
+    "units": -75.95
+   },
+   "1x2.pre.soft.th6": {
+    "bets": 1506,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 88,
+      "mean_clv": 0.1079,
+      "roi": 0.2016
+     },
+     "3-5": {
+      "bets": 285,
+      "mean_clv": 0.0544,
+      "roi": 0.123
+     },
+     "<2": {
+      "bets": 21,
+      "mean_clv": 0.1027,
+      "roi": 0.1376
+     },
+     ">=5": {
+      "bets": 1112,
+      "mean_clv": 0.06,
+      "roi": -0.178
+     }
+    },
+    "by_season": {
+     "2122": {
+      "bets": 390,
+      "roi": 0.0343
+     },
+     "2223": {
+      "bets": 318,
+      "roi": -0.1805
+     },
+     "2324": {
+      "bets": 349,
+      "roi": -0.2249
+     },
+     "2425": {
+      "bets": 267,
+      "roi": 0.0984
+     },
+     "2526": {
+      "bets": 182,
+      "roi": -0.253
+     }
+    },
+    "clv_positive_share": 0.649,
+    "max_dd_units": 169.44,
+    "mean_clv": 0.0624,
+    "roi": -0.0945,
+    "se": 0.0646,
+    "t": -1.46,
+    "units": -142.26
+   },
+   "1x2.pre.soft_all": {
+    "bets": 101940,
+    "by_season": {
+     "2122": {
+      "bets": 23439,
+      "roi": -0.0545
+     },
+     "2223": {
+      "bets": 23367,
+      "roi": -0.0638
+     },
+     "2324": {
+      "bets": 23334,
+      "roi": -0.0589
+     },
+     "2425": {
+      "bets": 23007,
+      "roi": -0.0629
+     },
+     "2526": {
+      "bets": 8793,
+      "roi": -0.0505
+     }
+    },
+    "clv_positive_share": 0.269,
+    "max_dd_units": 6054.38,
+    "mean_clv": -0.0449,
+    "roi": -0.0592,
+    "se": 0.0048,
+    "t": -12.42,
+    "units": -6033.55
+   },
+   "1x2.pre.soft_vs_exch.th2": {
+    "bets": 2334,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 197,
+      "mean_clv": -0.0417,
+      "roi": 0.0617
+     },
+     "3-5": {
+      "bets": 1556,
+      "mean_clv": -0.0251,
+      "roi": -0.0392
+     },
+     "<2": {
+      "bets": 51,
+      "mean_clv": 0.0046,
+      "roi": -0.0304
+     },
+     ">=5": {
+      "bets": 530,
+      "mean_clv": -0.1049,
+      "roi": -0.1545
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 1212,
+      "roi": -0.0978
+     },
+     "2526": {
+      "bets": 1016,
+      "roi": -0.0025
+     },
+     "2627": {
+      "bets": 106,
+      "roi": -0.1058
+     }
+    },
+    "clv_positive_share": 0.36,
+    "max_dd_units": 183.72,
+    "mean_clv": -0.044,
+    "roi": -0.0567,
+    "se": 0.0377,
+    "t": -1.5,
+    "units": -132.29
+   },
+   "1x2.pre.soft_vs_exch.th4": {
+    "bets": 1618,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 138,
+      "mean_clv": -0.0553,
+      "roi": 0.1263
+     },
+     "3-5": {
+      "bets": 1029,
+      "mean_clv": -0.036,
+      "roi": -0.066
+     },
+     "<2": {
+      "bets": 30,
+      "mean_clv": 0.0004,
+      "roi": -0.0297
+     },
+     ">=5": {
+      "bets": 421,
+      "mean_clv": -0.1216,
+      "roi": -0.1049
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 917,
+      "roi": -0.0797
+     },
+     "2526": {
+      "bets": 629,
+      "roi": -0.0055
+     },
+     "2627": {
+      "bets": 72,
+      "roi": -0.2621
+     }
+    },
+    "clv_positive_share": 0.302,
+    "max_dd_units": 112.91,
+    "mean_clv": -0.0593,
+    "roi": -0.059,
+    "se": 0.0469,
+    "t": -1.26,
+    "units": -95.49
+   },
+   "1x2.pre.soft_vs_exch.th6": {
+    "bets": 1333,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 110,
+      "mean_clv": -0.0522,
+      "roi": 0.1938
+     },
+     "3-5": {
+      "bets": 829,
+      "mean_clv": -0.0438,
+      "roi": -0.0741
+     },
+     "<2": {
+      "bets": 23,
+      "mean_clv": -0.003,
+      "roi": -0.1217
+     },
+     ">=5": {
+      "bets": 371,
+      "mean_clv": -0.1281,
+      "roi": -0.121
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 787,
+      "roi": -0.0931
+     },
+     "2526": {
+      "bets": 494,
+      "roi": 0.009
+     },
+     "2627": {
+      "bets": 52,
+      "roi": -0.3644
+     }
+    },
+    "clv_positive_share": 0.272,
+    "max_dd_units": 115.64,
+    "mean_clv": -0.0673,
+    "roi": -0.0659,
+    "se": 0.0522,
+    "t": -1.26,
+    "units": -87.78
+   },
+   "1x2.pre.soft_vs_exch_odds_lt5.th2": {
+    "bets": 1804,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 197,
+      "mean_clv": -0.0417,
+      "roi": 0.0617
+     },
+     "3-5": {
+      "bets": 1556,
+      "mean_clv": -0.0251,
+      "roi": -0.0392
+     },
+     "<2": {
+      "bets": 51,
+      "mean_clv": 0.0046,
+      "roi": -0.0304
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 937,
+      "roi": -0.1182
+     },
+     "2526": {
+      "bets": 792,
+      "roi": 0.0512
+     },
+     "2627": {
+      "bets": 75,
+      "roi": 0.2637
+     }
+    },
+    "clv_positive_share": 0.395,
+    "max_dd_units": 135.02,
+    "mean_clv": -0.0261,
+    "roi": -0.0279,
+    "se": 0.0365,
+    "t": -0.77,
+    "units": -50.39
+   },
+   "1x2.pre.soft_vs_exch_odds_lt5.th4": {
+    "bets": 1197,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 138,
+      "mean_clv": -0.0553,
+      "roi": 0.1263
+     },
+     "3-5": {
+      "bets": 1029,
+      "mean_clv": -0.036,
+      "roi": -0.066
+     },
+     "<2": {
+      "bets": 30,
+      "mean_clv": 0.0004,
+      "roi": -0.0297
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 683,
+      "roi": -0.1228
+     },
+     "2526": {
+      "bets": 461,
+      "roi": 0.0703
+     },
+     "2627": {
+      "bets": 53,
+      "roi": 0.0025
+     }
+    },
+    "clv_positive_share": 0.334,
+    "max_dd_units": 102.21,
+    "mean_clv": -0.0373,
+    "roi": -0.0429,
+    "se": 0.0445,
+    "t": -0.96,
+    "units": -51.34
+   },
+   "1x2.pre.soft_vs_exch_odds_lt5.th6": {
+    "bets": 962,
+    "by_odds_band": {
+     "2-3": {
+      "bets": 110,
+      "mean_clv": -0.0522,
+      "roi": 0.1938
+     },
+     "3-5": {
+      "bets": 829,
+      "mean_clv": -0.0438,
+      "roi": -0.0741
+     },
+     "<2": {
+      "bets": 23,
+      "mean_clv": -0.003,
+      "roi": -0.1217
+     }
+    },
+    "by_season": {
+     "2425": {
+      "bets": 576,
+      "roi": -0.1202
+     },
+     "2526": {
+      "bets": 349,
+      "roi": 0.0869
+     },
+     "2627": {
+      "bets": 37,
+      "roi": -0.1068
+     }
+    },
+    "clv_positive_share": 0.296,
+    "max_dd_units": 83.11,
+    "mean_clv": -0.0438,
+    "roi": -0.0446,
+    "se": 0.0495,
+    "t": -0.9,
+    "units": -42.88
+   },
+   "logloss.close.exchange": {
+    "bets": 10642,
+    "by_season": {
+     "2425": {
+      "bets": 7680,
+      "roi": 0.9972
+     },
+     "2526": {
+      "bets": 2962,
+      "roi": 1.0029
+     }
+    },
+    "max_dd_units": 0.0,
+    "roi": 0.9987,
+    "se": 0.0041,
+    "t": 241.63,
+    "units": 10628.61
+   },
+   "logloss.close.pinnacle": {
+    "bets": 10642,
+    "by_season": {
+     "2425": {
+      "bets": 7680,
+      "roi": 0.9967
+     },
+     "2526": {
+      "bets": 2962,
+      "roi": 1.0044
+     }
+    },
+    "max_dd_units": 0.0,
+    "roi": 0.9989,
+    "se": 0.004,
+    "t": 249.08,
+    "units": 10630.07
+   },
+   "logloss.pre.exchange": {
+    "bets": 10519,
+    "by_season": {
+     "2425": {
+      "bets": 7621,
+      "roi": 1.0078
+     },
+     "2526": {
+      "bets": 2898,
+      "roi": 1.011
+     }
+    },
+    "max_dd_units": 0.0,
+    "roi": 1.0087,
+    "se": 0.004,
+    "t": 251.95,
+    "units": 10610.36
+   },
+   "logloss.pre.pinnacle": {
+    "bets": 10519,
+    "by_season": {
+     "2425": {
+      "bets": 7621,
+      "roi": 1.0
+     },
+     "2526": {
+      "bets": 2898,
+      "roi": 1.0071
+     }
+    },
+    "max_dd_units": 0.0,
+    "roi": 1.0019,
+    "se": 0.0039,
+    "t": 254.03,
+    "units": 10539.51
+   },
+   "ou.close.exch_c2.th2": {
+    "bets": 979,
+    "by_season": {
+     "2425": {
+      "bets": 419,
+      "roi": 0.1065
+     },
+     "2526": {
+      "bets": 560,
+      "roi": 0.0251
+     }
+    },
+    "max_dd_units": 37.71,
+    "roi": 0.0599,
+    "se": 0.0414,
+    "t": 1.45,
+    "units": 58.66
+   },
+   "ou.close.exch_c2.th4": {
+    "bets": 419,
+    "by_season": {
+     "2425": {
+      "bets": 124,
+      "roi": 0.0795
+     },
+     "2526": {
+      "bets": 295,
+      "roi": 0.0792
+     }
+    },
+    "max_dd_units": 14.55,
+    "roi": 0.0793,
+    "se": 0.068,
+    "t": 1.17,
+    "units": 33.22
+   },
+   "ou.close.exch_c2.th6": {
+    "bets": 196,
+    "by_season": {
+     "2425": {
+      "bets": 45,
+      "roi": -0.1342
+     },
+     "2526": {
+      "bets": 151,
+      "roi": 0.1962
+     }
+    },
+    "max_dd_units": 15.58,
+    "roi": 0.1204,
+    "se": 0.1078,
+    "t": 1.12,
+    "units": 23.59
+   },
+   "ou.close.exch_c2_all": {
+    "bets": 21222,
+    "by_season": {
+     "2425": {
+      "bets": 15324,
+      "roi": -0.0189
+     },
+     "2526": {
+      "bets": 5898,
+      "roi": -0.0158
+     }
+    },
+    "max_dd_units": 385.89,
+    "roi": -0.018,
+    "se": 0.007,
+    "t": -2.58,
+    "units": -382.38
+   },
+   "ou.close.exch_c5.th2": {
+    "bets": 448,
+    "by_season": {
+     "2425": {
+      "bets": 133,
+      "roi": 0.007
+     },
+     "2526": {
+      "bets": 315,
+      "roi": 0.0591
+     }
+    },
+    "max_dd_units": 20.37,
+    "roi": 0.0436,
+    "se": 0.0623,
+    "t": 0.7,
+    "units": 19.53
+   },
+   "ou.close.exch_c5.th4": {
+    "bets": 207,
+    "by_season": {
+     "2425": {
+      "bets": 48,
+      "roi": -0.0991
+     },
+     "2526": {
+      "bets": 159,
+      "roi": 0.119
+     }
+    },
+    "max_dd_units": 15.5,
+    "roi": 0.0684,
+    "se": 0.0991,
+    "t": 0.69,
+    "units": 14.16
+   },
+   "ou.close.exch_c5.th6": {
+    "bets": 116,
+    "by_season": {
+     "2425": {
+      "bets": 29,
+      "roi": -0.0691
+     },
+     "2526": {
+      "bets": 87,
+      "roi": 0.165
+     }
+    },
+    "max_dd_units": 11.74,
+    "roi": 0.1065,
+    "se": 0.1512,
+    "t": 0.7,
+    "units": 12.35
+   },
+   "ou.close.exch_c5_all": {
+    "bets": 21222,
+    "by_season": {
+     "2425": {
+      "bets": 15324,
+      "roi": -0.0336
+     },
+     "2526": {
+      "bets": 5898,
+      "roi": -0.0306
+     }
+    },
+    "max_dd_units": 698.63,
+    "roi": -0.0328,
+    "se": 0.0069,
+    "t": -4.76,
+    "units": -695.5
+   },
+   "ou.close.soft.th2": {
+    "bets": 489,
+    "by_season": {
+     "2122": {
+      "bets": 107,
+      "roi": -0.2304
+     },
+     "2223": {
+      "bets": 76,
+      "roi": -0.0558
+     },
+     "2324": {
+      "bets": 50,
+      "roi": -0.3202
+     },
+     "2425": {
+      "bets": 43,
+      "roi": 0.0972
+     },
+     "2526": {
+      "bets": 213,
+      "roi": 0.0418
+     }
+    },
+    "max_dd_units": 61.69,
+    "roi": -0.0651,
+    "se": 0.0576,
+    "t": -1.13,
+    "units": -31.82
+   },
+   "ou.close.soft.th4": {
+    "bets": 239,
+    "by_season": {
+     "2122": {
+      "bets": 45,
+      "roi": -0.2538
+     },
+     "2223": {
+      "bets": 32,
+      "roi": 0.4519
+     },
+     "2324": {
+      "bets": 24,
+      "roi": -0.355
+     },
+     "2425": {
+      "bets": 24,
+      "roi": -0.0821
+     },
+     "2526": {
+      "bets": 114,
+      "roi": -0.0145
+     }
+    },
+    "max_dd_units": 25.4,
+    "roi": -0.0381,
+    "se": 0.0891,
+    "t": -0.43,
+    "units": -9.1
+   },
+   "ou.close.soft.th6": {
+    "bets": 136,
+    "by_season": {
+     "2122": {
+      "bets": 25,
+      "roi": -0.1848
+     },
+     "2223": {
+      "bets": 18,
+      "roi": 0.3283
+     },
+     "2324": {
+      "bets": 18,
+      "roi": -0.4428
+     },
+     "2425": {
+      "bets": 17,
+      "roi": 0.2959
+     },
+     "2526": {
+      "bets": 58,
+      "roi": -0.1678
+     }
+    },
+    "max_dd_units": 19.79,
+    "roi": -0.0837,
+    "se": 0.1252,
+    "t": -0.67,
+    "units": -11.38
+   },
+   "ou.close.soft_all": {
+    "bets": 67968,
+    "by_season": {
+     "2122": {
+      "bets": 15630,
+      "roi": -0.0548
+     },
+     "2223": {
+      "bets": 15570,
+      "roi": -0.0551
+     },
+     "2324": {
+      "bets": 15532,
+      "roi": -0.0574
+     },
+     "2425": {
+      "bets": 15326,
+      "roi": -0.0518
+     },
+     "2526": {
+      "bets": 5910,
+      "roi": -0.0505
+     }
+    },
+    "max_dd_units": 3698.89,
+    "roi": -0.0544,
+    "se": 0.0037,
+    "t": -14.52,
+    "units": -3696.74
+   },
+   "ou.pre.exch_c2.th2": {
+    "bets": 153,
+    "by_season": {
+     "2425": {
+      "bets": 98,
+      "roi": 0.0576
+     },
+     "2526": {
+      "bets": 55,
+      "roi": -0.1717
+     }
+    },
+    "clv_positive_share": 0.627,
+    "max_dd_units": 21.92,
+    "mean_clv": 0.0262,
+    "roi": -0.0248,
+    "se": 0.1099,
+    "t": -0.23,
+    "units": -3.8
+   },
+   "ou.pre.exch_c2.th4": {
+    "bets": 52,
+    "by_season": {
+     "2425": {
+      "bets": 30,
+      "roi": -0.2166
+     },
+     "2526": {
+      "bets": 22,
+      "roi": -0.0934
+     }
+    },
+    "clv_positive_share": 0.788,
+    "max_dd_units": 16.47,
+    "mean_clv": 0.0774,
+    "roi": -0.1644,
+    "se": 0.2029,
+    "t": -0.81,
+    "units": -8.55
+   },
+   "ou.pre.exch_c2.th6": {
+    "bets": 32,
+    "by_season": {
+     "2425": {
+      "bets": 16,
+      "roi": -0.1216
+     },
+     "2526": {
+      "bets": 16,
+      "roi": -0.211
+     }
+    },
+    "clv_positive_share": 0.906,
+    "max_dd_units": 10.55,
+    "mean_clv": 0.1208,
+    "roi": -0.1663,
+    "se": 0.2723,
+    "t": -0.61,
+    "units": -5.32
+   },
+   "ou.pre.exch_c2_all": {
+    "bets": 20220,
+    "by_season": {
+     "2425": {
+      "bets": 14602,
+      "roi": -0.0573
+     },
+     "2526": {
+      "bets": 5618,
+      "roi": -0.0553
+     }
+    },
+    "clv_positive_share": 0.203,
+    "max_dd_units": 1148.19,
+    "mean_clv": -0.0565,
+    "roi": -0.0567,
+    "se": 0.0069,
+    "t": -8.26,
+    "units": -1146.6
+   },
+   "ou.pre.exch_c5.th2": {
+    "bets": 51,
+    "by_season": {
+     "2425": {
+      "bets": 29,
+      "roi": 0.021
+     },
+     "2526": {
+      "bets": 22,
+      "roi": -0.1541
+     }
+    },
+    "clv_positive_share": 0.804,
+    "max_dd_units": 10.62,
+    "mean_clv": 0.0659,
+    "roi": -0.0546,
+    "se": 0.2015,
+    "t": -0.27,
+    "units": -2.78
+   },
+   "ou.pre.exch_c5.th4": {
+    "bets": 31,
+    "by_season": {
+     "2425": {
+      "bets": 15,
+      "roi": -0.0835
+     },
+     "2526": {
+      "bets": 16,
+      "roi": -0.2275
+     }
+    },
+    "clv_positive_share": 0.871,
+    "max_dd_units": 10.62,
+    "mean_clv": 0.0992,
+    "roi": -0.1578,
+    "se": 0.2736,
+    "t": -0.58,
+    "units": -4.89
+   },
+   "ou.pre.exch_c5.th6": {
+    "bets": 23,
+    "by_season": {
+     "2425": {
+      "bets": 10,
+      "roi": -0.192
+     },
+     "2526": {
+      "bets": 13,
+      "roi": -0.0492
+     }
+    },
+    "clv_positive_share": 0.913,
+    "max_dd_units": 7.55,
+    "mean_clv": 0.1234,
+    "roi": -0.1113,
+    "se": 0.3328,
+    "t": -0.33,
+    "units": -2.56
+   },
+   "ou.pre.exch_c5_all": {
+    "bets": 20220,
+    "by_season": {
+     "2425": {
+      "bets": 14602,
+      "roi": -0.0708
+     },
+     "2526": {
+      "bets": 5618,
+      "roi": -0.0689
+     }
+    },
+    "clv_positive_share": 0.142,
+    "max_dd_units": 1422.41,
+    "mean_clv": -0.0701,
+    "roi": -0.0703,
+    "se": 0.0068,
+    "t": -10.4,
+    "units": -1420.99
+   },
+   "ou.pre.soft.th2": {
+    "bets": 211,
+    "by_season": {
+     "2122": {
+      "bets": 76,
+      "roi": 0.0299
+     },
+     "2223": {
+      "bets": 65,
+      "roi": 0.2697
+     },
+     "2324": {
+      "bets": 32,
+      "roi": -0.0431
+     },
+     "2425": {
+      "bets": 12,
+      "roi": 0.1875
+     },
+     "2526": {
+      "bets": 26,
+      "roi": -0.0996
+     }
+    },
+    "clv_positive_share": 0.654,
+    "max_dd_units": 14.55,
+    "mean_clv": 0.0373,
+    "roi": 0.0857,
+    "se": 0.0909,
+    "t": 0.94,
+    "units": 18.08
+   },
+   "ou.pre.soft.th4": {
+    "bets": 78,
+    "by_season": {
+     "2122": {
+      "bets": 26,
+      "roi": -0.0262
+     },
+     "2223": {
+      "bets": 18,
+      "roi": 0.0889
+     },
+     "2324": {
+      "bets": 13,
+      "roi": -0.4231
+     },
+     "2425": {
+      "bets": 8,
+      "roi": -0.0312
+     },
+     "2526": {
+      "bets": 13,
+      "roi": 0.0523
+     }
+    },
+    "clv_positive_share": 0.782,
+    "max_dd_units": 14.02,
+    "mean_clv": 0.0832,
+    "roi": -0.0532,
+    "se": 0.1715,
+    "t": -0.31,
+    "units": -4.15
+   },
+   "ou.pre.soft.th6": {
+    "bets": 46,
+    "by_season": {
+     "2122": {
+      "bets": 15,
+      "roi": 0.436
+     },
+     "2223": {
+      "bets": 10,
+      "roi": -0.2
+     },
+     "2324": {
+      "bets": 9,
+      "roi": -0.5556
+     },
+     "2425": {
+      "bets": 5,
+      "roi": 0.55
+     },
+     "2526": {
+      "bets": 7,
+      "roi": -0.21
+     }
+    },
+    "clv_positive_share": 0.87,
+    "max_dd_units": 11.0,
+    "mean_clv": 0.1202,
+    "roi": 0.0178,
+    "se": 0.2408,
+    "t": 0.07,
+    "units": 0.82
+   },
+   "ou.pre.soft_all": {
+    "bets": 67716,
+    "by_season": {
+     "2122": {
+      "bets": 15574,
+      "roi": -0.0531
+     },
+     "2223": {
+      "bets": 15526,
+      "roi": -0.0564
+     },
+     "2324": {
+      "bets": 15478,
+      "roi": -0.0567
+     },
+     "2425": {
+      "bets": 15296,
+      "roi": -0.0518
+     },
+     "2526": {
+      "bets": 5842,
+      "roi": -0.0506
+     }
+    },
+    "clv_positive_share": 0.164,
+    "max_dd_units": 3669.95,
+    "mean_clv": -0.0526,
+    "roi": -0.0542,
+    "se": 0.0037,
+    "t": -14.52,
+    "units": -3668.38
+   }
+  }
+ },
+ "matches": 40163,
+ "matches_by_season": {
+  "2122": 7822,
+  "2223": 7830,
+  "2324": 7799,
+  "2425": 7681,
+  "2526": 7646,
+  "2627": 1385
+ }
+}

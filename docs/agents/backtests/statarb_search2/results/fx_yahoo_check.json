@@ -1,0 +1,54 @@
+{
+ "AUDUSD": {
+  "corr_yahoo_gap_vs_fxcm_gap_at_1h": 0.455,
+  "corr_yahoo_gap_vs_fxcm_gap_at_open": 0.402,
+  "fxcm_gaps_ge_20bps": 26,
+  "late_fade_on_yahoo": {
+   "mean_bps": 20.78,
+   "n": 28,
+   "t": 1.72
+  },
+  "median_abs_friday_close_diff_bps": 3.25,
+  "of_which_share_of_gap_left_at_yahoo_start": 0.625,
+  "weekends_both": 123
+ },
+ "EURUSD": {
+  "corr_yahoo_gap_vs_fxcm_gap_at_1h": 0.264,
+  "corr_yahoo_gap_vs_fxcm_gap_at_open": 0.257,
+  "fxcm_gaps_ge_20bps": 24,
+  "late_fade_on_yahoo": {
+   "mean_bps": 4.68,
+   "n": 27,
+   "t": 0.53
+  },
+  "median_abs_friday_close_diff_bps": 3.29,
+  "of_which_share_of_gap_left_at_yahoo_start": 0.596,
+  "weekends_both": 122
+ },
+ "GBPUSD": {
+  "corr_yahoo_gap_vs_fxcm_gap_at_1h": 0.239,
+  "corr_yahoo_gap_vs_fxcm_gap_at_open": 0.235,
+  "fxcm_gaps_ge_20bps": 16,
+  "late_fade_on_yahoo": {
+   "mean_bps": 22.73,
+   "n": 17,
+   "t": 2.02
+  },
+  "median_abs_friday_close_diff_bps": 1.42,
+  "of_which_share_of_gap_left_at_yahoo_start": 0.535,
+  "weekends_both": 123
+ },
+ "USDJPY": {
+  "corr_yahoo_gap_vs_fxcm_gap_at_1h": 0.411,
+  "corr_yahoo_gap_vs_fxcm_gap_at_open": 0.351,
+  "fxcm_gaps_ge_20bps": 22,
+  "late_fade_on_yahoo": {
+   "mean_bps": -7.09,
+   "n": 33,
+   "t": -0.71
+  },
+  "median_abs_friday_close_diff_bps": 2.0,
+  "of_which_share_of_gap_left_at_yahoo_start": 0.56,
+  "weekends_both": 123
+ }
+}
