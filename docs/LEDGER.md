@@ -414,6 +414,12 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 - Running: a backtest of TB1 skipping only BUYS (resting the sells of what is held) against the live rule (skip both),
   on RWC-OPT's simulator; Davies: "测好了按照更优的方法直接上线".
 
+### [2026-10-09 03:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **TB1-SELLS** (Davies: "持有时卖单也不挂吗？"): the TB1 skip as tested skipped held sells too; skip-buys (held sells rest)
+  is behind L1 on C1's record (R .4: −30.67 strict, −47.23 at-price) and its tight-minute sells mark out −4 ¢ vs −2 ¢
+  (sim and paper). Keep TB1 as is; no live change. `rwc_opt/results/tb1_sells.txt`. Davies had said "测好了按照更优的方法
+  直接上线": the better rule is the one live, so nothing was deployed.
+
 ### [2026-10-09 02:46 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Fees on every Reward quotes page and the Polymarket card** (Davies: "像live一样加入fees行"; "按照实际情况估算"), and HELD
   off LIVE's page ("QUOTES表里已经有了"). `agents/pm_fees.ts`: fee = C × rate × (p(1−p))^e, 5 dp, makers never charged

@@ -1,0 +1,172 @@
+TB1-SELLS (2026-10-09): does live-prep's TB1 skip have to skip the SELLS of what it holds too?
+=============================================================================================
+Asked by Davies, 2026-10-09: "持有时卖单也不挂吗？之前研究的确定可以吗？" (a held Gemini 4.0 NO had no sell resting, because
+pm_lp.ts's lpQuotes returns nothing at all when the raw touch is <= 1 tick, PM_LP_TIGHT, Addendum 2).
+
+The earlier research, confirmed: RWC-OPT's simulator (scripts/sim.ts:307) and LPSELF's (../lpself/scripts/sim2.ts) run TB1
+as tight {mode: "skip"}, which sets quoting = false for the whole market, so the sells of held tokens (reduce-first sells
+of a selected market, and close-only sells of a carried one) were skipped in the tested rule exactly as the live path
+skips them. A rule that skips only the buys was never tested before this file.
+
+What was run (read-only; nothing of the live path changed, sim.ts / sim2.ts untouched, they stay frozen):
+- scripts/tb1s_sim.ts: a copy of LPSELF's sim2.ts with one more mode, tight {mode: "skip-buys", maxTicks: 1}: in a tight
+  minute only a side that is a SELL of a held token rests (>= N held under reduce-first, or a close-only sell of a
+  carried market / under the stop); no buy rests; a tight minute with nothing to sell is "skip" exactly. A lone sell
+  earns what the simulator's formula gives it (RW's min rule: nothing, as one side); close-only quotes earn nothing.
+  Plus counters: holdings at cost each minute, tight minutes with a holding, and a fill log for mark-outs.
+- scripts/tb1s_run.ts rw|pr [--at-price], scripts/tb1s_analyse.py, results/tb1s_*.json.
+  L1 = live-prep's current rule as LPSELF's lpgrid.ts defines it (= RWC-OPT's C1): S2 (10 markets / $200, caps $320 /
+  $100 a market, reduce-first, 5N, x2's pause 15 c / 60 min, the -$75 "paid" stop) + TB1 skip at one tick; carried
+  markets by Phase A's passive model on RW's record (as C1 was judged), by close-only quotes on the full universe.
+- The copy reproduces every committed series exactly (float equality, every day's total, rewards and stress): RWC-OPT's
+  C1, S2 and C2-C1 (rw_arms.json, both fill models) and LPSELF's L1 and L0 (lp_rw*, lp_pr*.json).
+- Records: RW's (2026-09-25 -> 10-08 23:10 UTC, 14 days) and LPSELF's full-universe pm-rec record (10-05 -> 10-08 22:59,
+  4 days; data/pr_record.json is not committed, sha256 c855d12c...eaf2de9 as ../lpself/MANIFEST.json names it).
+- Live-prep's own forward record: sql/tb1s_forward.sql on pm_lpprep_* (10-04 17:55 -> 10-09 01:32 UTC) through the
+  Supabase connector, read-only, 2026-10-09 ~03:15 UTC. The live path's own fills since 01:32: 8, all buys, in 4 markets
+  (to 03:17 UTC), so no live sell to read yet.
+
+Headline (skip-buys less L1, R = 0.40; bootstrap = random.Random(20261023), 2,000 draws of the day differences, index 100)
+                                                   strict                         at-price
+  RW, passive exits (as C1/L1 were judged)   -30.67, 5/14 days ahead,      -47.23, 4/14 ahead,
+                                             boot -65.22, P>0 0.04         boot -121.69, P>0 0.11
+  RW, close-only exits (C2's)                +42.66, 8/14 ahead,           -95.09, 5/14 ahead,
+                                             boot -66.68, P>0 0.74         boot -179.69, P>0 0.01
+  full universe, close-only exits (4 days)   -3.60, 2/4 ahead,             +25.97, 2/4 ahead,
+                                             boot -18.74, P>0 0.32         boot -24.48, P>0 0.79
+  At R = 1: RW passive -16.45 / -34.01; RW close-only +197.68 / -66.03; full universe +7.67 / +41.89 (strict / at-price).
+  No bootstrap index 100 is > 0 anywhere at R = 0.40; the only positive one is RW close-only, strict, R = 1 (+9.30).
+
+The direct effect is one-signed. The totals above mix the sells' own result with path effects (what a sell frees changes
+every later cap, side and stop), whose sign flips with the exit model and the fill model. Measured directly, the sells
+that skip-buys adds in tight minutes mark out worse than sells in other minutes on 5 of 6 runs, and lose money in 6 of 6:
+  60-minute mark-out, cents a share in our favour      tight-minute sells      other sells (same arm)   $ of the tight sells
+  RW passive, strict / at-price                        -4.26 / -2.13           -1.93 / -1.56            -29.85 / -31.71
+  RW close-only, strict / at-price                     -4.17 / -3.05           -1.89 / -1.17            -27.55 / -35.69
+  full universe, strict / at-price                     -4.34 / -1.51           -2.72 / -2.33            -11.39 / -11.68
+  Live-prep's own paper fills (10-04 -> 10-09 01:32, before and after Addendum 2's deploy, judged by the stored touch):
+  sells in one-tick minutes -4.03 c (37 fills, 521 shares, 13 markets, 25 market-hours) against -1.83 c for other sells
+  (174 fills); a market-hour cluster bootstrap (seed 20261023, 2,000) puts the gap at -2.20 c, 90 % interval -4.20 to
+  -0.08, worse in 96 % of draws; 19 of 23 tight clusters negative. (Buys go the other way: -0.91 c in tight minutes
+  against -2.54 c, which is where Addendum 2's "one-tick minutes mark out better" figure came from.)
+  A sell that does NOT fill costs nothing to wait: the held side's mid moves +0.12 c over 60 minutes after a tight minute
+  with a sellable holding (10,624 minutes, 27 markets) and +0.19 c after other such minutes, i.e. no drift either way.
+
+Inventory: letting the sells rest barely moves it, because they rarely fill (RW strict: 45 fills in 11,899 sellable tight
+minutes). Held $ at cost, mean / max: RW passive strict L1 113.60 / 218.19, skip-buys 108.77 / 234.41; at-price 140.08 /
+292.18 vs 142.46 / 303.28. Full universe strict 190.76 / 303.30 vs 184.55 / 288.48; at-price 191.27 / 324.97 vs 184.92 /
+302.36. Tight minutes with a holding are common: under L1, RW strict 17,176 of 24,696 tight minutes held something and
+13,671 held >= N (sellable); full universe 11,738 and 11,285 of 13,769.
+
+Reading: in a one-tick book a resting sell is filled mostly when the price is running through it, the same adverse
+selection that TB1 skips buys for; waiting costs nothing on average. The earlier research is right to skip the sells
+as well. Recommendation: keep TB1 skipping sells (no change to pm_lp.ts). Confidence: moderate. The direct effect is
+consistent across both records, both fill models and the forward paper record, but it is about $10-$35 a fortnight. The
+totals are path-noisy (two of six R = 0.40 cells favour skip-buys), and the forward paper sample is 37 fills.
+Not modelled: Polymarket's docs score a lone quote at a third when the mid is in [0.10, 0.90]; the simulator (RW's min rule)
+gives a lone sell nothing, so skip-buys could earn some reward this file does not count (an upside bounded by the formula
+at a third, for the few markets whose touch is tight; the min rule is what every earlier table used too).
+
+Machine output of scripts/tb1s_analyse.py follows.
+-------------------------------------------------------------------------------------------------------------------------
+== the copy reproduces the frozen simulators (day changes in total, rewards and stress, exact float equality)
+  rw          L1                       vs LPSELF lp_rw.json: identical
+  rw          L0 (no TB1)              vs LPSELF lp_rw.json: identical
+  rw_atprice  L1                       vs LPSELF lp_rw_atprice.json: identical
+  rw_atprice  L0 (no TB1)              vs LPSELF lp_rw_atprice.json: identical
+  pr          L1                       vs LPSELF lp_pr.json: identical
+  pr          L0 (no TB1)              vs LPSELF lp_pr.json: identical
+  pr_atprice  L1                       vs LPSELF lp_pr_atprice.json: identical
+  pr_atprice  L0 (no TB1)              vs LPSELF lp_pr_atprice.json: identical
+  rw          L1                       vs RWC-OPT rw_arms 'C1 S2+tb1-skip | strict': identical
+  rw          L0 (no TB1)              vs RWC-OPT rw_arms 'S2 | strict': identical
+  rw          L1 exitCarried           vs RWC-OPT rw_arms 'C2 C1 exitCarried | strict': identical
+  rw_atprice  L1                       vs RWC-OPT rw_arms 'C1 S2+tb1-skip | at-price': identical
+  rw_atprice  L0 (no TB1)              vs RWC-OPT rw_arms 'S2 | at-price': identical
+  rw_atprice  L1 exitCarried           vs RWC-OPT rw_arms 'C2 C1 exitCarried | at-price': identical
+  all identical: True
+
+== RW's record, 14 days, carried markets by Phase A's passive model (as L1 / C1 were judged)
+   14 days 2026-09-25 .. 2026-10-08
+   fill        R |        L1 skip-buys     diff | ahead behind equal | worst L1 worst SB | boot idx100   P>0 |  h1 diff  h2 diff
+   strict    0.2 |    268.63    233.23   -35.41 |     4     10     0 |   -24.21   -19.58 |      -70.11  0.02 |   -12.69   -22.72
+   strict    0.4 |    537.73    507.07   -30.67 |     5      9     0 |    -5.64    -0.99 |      -65.22  0.04 |    -8.96   -21.71
+   strict    1.0 |   1345.03   1328.59   -16.45 |     4     10     0 |    31.55    30.05 |      -58.07  0.23 |    +2.22   -18.67
+   at-price  0.2 |    236.14    184.51   -51.63 |     4     10     0 |   -55.58   -34.41 |     -124.75  0.09 |   -19.40   -32.23
+   at-price  0.4 |    504.22    456.99   -47.23 |     4     10     0 |   -37.52   -16.16 |     -121.69  0.11 |   -16.19   -31.04
+   at-price  1.0 |   1308.45   1274.44   -34.01 |     5      9     0 |    16.68    31.53 |     -113.36  0.22 |    -6.53   -27.48
+   per day at R = 0.40 (skip-buys less L1), strict | at-price:
+   09-25 +3.80|+1.20  09-26 -4.16|-5.23  09-27 -1.68|-5.26  09-28 -3.57|-3.58  09-29 -1.50|-2.49  09-30 +0.10|+6.30  10-01 -1.95|-7.12  10-02 +0.10|-6.20  10-03 -4.47|-1.46  10-04 -18.16|-35.66  10-05 -4.55|-9.65  10-06 +1.14|+1.02  10-07 -0.43|-0.44  10-08 +4.66|+21.35
+   fill     arm                         fills  rewards fills P&L   stress | held $ mean     max | tight min any held sellable | tight sell fills   shares
+   strict   L1                          15402  1345.50     -0.47   560.31 |      113.60  218.19 |     24696    17176    13671 |                0      0.0
+   strict   L1 skip-buys                14218  1369.20    -40.62   523.16 |      108.77  234.41 |     24696    16114    11899 |               45    761.2
+   at-price L1                          18313  1340.39    -31.94   498.33 |      140.08  292.18 |     24696    19686    15152 |                0      0.0
+   at-price L1 skip-buys                15515  1362.41    -87.97   436.22 |      142.46  303.28 |     24696    19618    10816 |               94   1611.4
+
+== RW's record, carried markets by close-only quotes (RWC-OPT's C2; the record holds a carried book only while RW quotes it)
+   14 days 2026-09-25 .. 2026-10-08
+   fill        R |        L1 skip-buys     diff | ahead behind equal | worst L1 worst SB | boot idx100   P>0 |  h1 diff  h2 diff
+   strict    0.2 |    273.89    264.88    -9.01 |     6      8     0 |   -25.24   -31.67 |      -96.41  0.45 |   +11.27   -20.28
+   strict    0.4 |    450.92    493.58   +42.66 |     8      6     0 |    -8.95   -18.20 |      -66.68  0.74 |   +44.01    -1.35
+   strict    1.0 |    982.01   1179.69  +197.68 |     9      5     0 |    17.34    22.23 |       +9.30  0.96 |  +142.23   +55.45
+   at-price  0.2 |    337.86    233.09  -104.77 |     5      9     0 |   -38.14   -31.86 |     -191.77  0.00 |   -64.84   -39.93
+   at-price  0.4 |    500.40    405.31   -95.09 |     5      9     0 |   -27.38   -19.34 |     -179.69  0.01 |   -66.46   -28.63
+   at-price  1.0 |    988.00    921.97   -66.03 |     6      8     0 |     4.89    18.22 |     -153.07  0.09 |   -71.32    +5.28
+   per day at R = 0.40 (skip-buys less L1), strict | at-price:
+   09-25 +3.80|+1.20  09-26 -3.00|-7.43  09-27 -1.10|+8.04  09-28 -2.84|-6.52  09-29 -9.44|-39.29  09-30 +37.19|-14.49  10-01 +19.40|-7.97  10-02 -37.84|-3.19  10-03 +1.77|-6.07  10-04 -12.56|-25.12  10-05 +10.40|+1.95  10-06 +16.95|+6.39  10-07 +18.03|+0.26  10-08 +1.90|-2.85
+   fill     arm                         fills  rewards fills P&L   stress | held $ mean     max | tight min any held sellable | tight sell fills   shares
+   strict   L1 exitCarried                699   885.15     96.86   412.13 |      240.50  319.47 |     24696    15772    11969 |                0      0.0
+   strict   L1 skip-buys exitCarried      856  1143.51     36.18   453.88 |      223.76  315.36 |     24696    15525    10403 |               44    721.2
+   at-price L1 exitCarried                820   812.68    175.33   441.01 |      256.54  319.80 |     24696    16825    11259 |                0      0.0
+   at-price L1 skip-buys exitCarried      967   861.10     60.87   334.37 |      249.51  319.54 |     24696    16836     8707 |               73   1289.0
+
+== full-universe record (pm-rec), 10-05 -> 10-08 22:59 UTC, close-only exits as the live path runs them
+   4 days 2026-10-05 .. 2026-10-08
+   fill        R |        L1 skip-buys     diff | ahead behind equal | worst L1 worst SB | boot idx100   P>0 |  h1 diff  h2 diff
+   strict    0.2 |     44.41     37.05    -7.35 |     2      2     0 |   -37.47   -37.06 |      -22.89  0.25 |    -8.07    +0.71
+   strict    0.4 |    114.81    111.22    -3.60 |     2      2     0 |   -24.25   -21.86 |      -18.74  0.32 |    -7.35    +3.75
+   strict    1.0 |    326.04    333.71    +7.67 |     2      2     0 |    15.41    23.74 |      -10.13  0.74 |    -5.18   +12.86
+   at-price  0.2 |      4.40     25.06   +20.66 |     2      2     0 |   -82.65   -56.30 |      -27.30  0.74 |   -13.65   +34.32
+   at-price  0.4 |     71.05     97.02   +25.97 |     2      2     0 |   -72.46   -44.35 |      -24.48  0.79 |   -12.24   +38.21
+   at-price  1.0 |    271.00    312.89   +41.89 |     2      2     0 |   -41.89    -8.51 |       -8.60  0.92 |    -8.00   +49.89
+   per day at R = 0.40 (skip-buys less L1), strict | at-price:
+   10-05 -0.30|-0.30  10-06 -7.05|-11.94  10-07 +1.35|+10.10  10-08 +2.39|+28.11
+   fill     arm                         fills  rewards fills P&L   stress | held $ mean     max | tight min any held sellable | tight sell fills   shares
+   strict   L1                            297   352.04    -26.00    97.26 |      190.76  303.30 |     13769    11738    11285 |                0      0.0
+   strict   L1 skip-buys                  304   370.83    -37.11    91.34 |      184.55  288.48 |     12761     9913     9377 |               16    262.5
+   at-price L1                            392   333.25    -62.25    29.60 |      191.27  324.97 |     14087    12430    12248 |                0      0.0
+   at-price L1 skip-buys                  462   359.78    -46.89    52.31 |      184.92  302.36 |     14087    11638    10972 |               74    824.4
+
+== the direct effect: mark-outs of the resting fills in the simulation (cents a share in our favour, the record's mid
+   15 / 60 minutes later or the payout; $ = the shares marked x the 60-minute mark-out)
+   record      arm                        fills of                 n  shares  mo15 c  mo60 c   mo60 $
+   rw          L1                         sell, other minute     301    4116   -1.03   -1.82   -69.88
+   rw          L1                         buy, other minute      771    7632   -1.23   -1.07   -76.43
+   rw          L1 skip-buys               sell, tight minute      45     761   -3.84   -4.26   -29.85
+   rw          L1 skip-buys               sell, other minute     289    3938   -1.04   -1.93   -70.77
+   rw          L1 skip-buys               buy, other minute      796    7991   -1.25   -1.06   -78.84
+   rw          L1 exitCarried             sell, other minute     229    3106   -0.80   -1.36   -39.37
+   rw          L1 exitCarried             buy, other minute      470    5875   -1.35   -1.24   -68.10
+   rw          L1 skip-buys exitCarried   sell, tight minute      44     721   -3.80   -4.17   -27.55
+   rw          L1 skip-buys exitCarried   sell, other minute     254    3500   -1.13   -1.89   -62.13
+   rw          L1 skip-buys exitCarried   buy, other minute      558    7134   -1.27   -1.11   -73.27
+   rw_atprice  L1                         sell, other minute     380    5227   -0.75   -1.24   -60.27
+   rw_atprice  L1                         buy, other minute      907    9293   -1.01   -0.77   -66.65
+   rw_atprice  L1 skip-buys               sell, tight minute      94    1611   -1.73   -2.13   -31.71
+   rw_atprice  L1 skip-buys               sell, other minute     363    4783   -0.94   -1.56   -69.36
+   rw_atprice  L1 skip-buys               buy, other minute      920   10005   -0.90   -0.66   -61.49
+   rw_atprice  L1 exitCarried             sell, other minute     260    3532   -0.44   -0.86   -27.70
+   rw_atprice  L1 exitCarried             buy, other minute      560    6697   -1.23   -0.97   -59.50
+   rw_atprice  L1 skip-buys exitCarried   sell, tight minute      73    1289   -2.32   -3.05   -35.69
+   rw_atprice  L1 skip-buys exitCarried   sell, other minute     260    3422   -0.60   -1.17   -36.36
+   rw_atprice  L1 skip-buys exitCarried   buy, other minute      634    7699   -1.27   -1.14   -79.46
+   pr          L1                         sell, other minute     119    1693   -2.54   -3.08   -46.94
+   pr          L1                         buy, other minute      178    2831   -1.16   -2.41   -61.12
+   pr          L1 skip-buys               sell, tight minute      16     262   -3.59   -4.34   -11.39
+   pr          L1 skip-buys               sell, other minute      99    1574   -1.95   -2.72   -38.13
+   pr          L1 skip-buys               buy, other minute      189    2923   -1.51   -2.70   -70.97
+   pr_atprice  L1                         sell, other minute     152    2313   -1.11   -2.10   -43.93
+   pr_atprice  L1                         buy, other minute      240    3478   -1.10   -2.25   -70.33
+   pr_atprice  L1 skip-buys               sell, tight minute      74     824   -0.98   -1.51   -11.68
+   pr_atprice  L1 skip-buys               sell, other minute     139    1980   -1.05   -2.33   -40.83
+   pr_atprice  L1 skip-buys               buy, other minute      249    3623   -1.34   -2.13   -69.80
