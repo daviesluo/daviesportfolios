@@ -398,6 +398,11 @@ under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC s
     LIVE turn opens nothing while its own conditional reads (already made each minute) list either exchange missing or
     at 0: gate `ctf_approval`, said once; sells are never held back by it; no listing at all stops nothing; dry-run and
     the other instances have no such gate. The fake lists both exchanges approved and refuses a sell through one that
+    is not. Pinned in `pm_lp.test.ts` and `index.test.ts`.
+  - **F3, a POST the venue never took no longer holds its slot for good.** A live row the venue shows nowhere (404) once
+    its expiration less the venue's minute has passed cannot rest: closed `expired` with `cancelled_at`, its slot and
+    cap freed, said once if it was pending; before that moment it stays for a person, as before. Every path's live
+    read-back and cancel; dry-run untouched. Pin `pm_live.test.ts` "unknown is never rejected … (F3)". Platform: Claude Code | Model: not recorded (session policy)
     is not. Pinned in `pm_lp.test.ts` and `index.test.ts`. Platform: Claude Code | Model: not recorded (session policy)
 ### [2026-10-09 01:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **LPRESEL6 frozen** (Davies on the 6-hour re-selection: "这个你觉得有必要加吗？有必要的话就加上"): an offline forward test of

@@ -1512,20 +1512,33 @@ Deno.test("a POST whose reply is lost stays pending; the next turn settles it by
   assertEquals([posts(), w.open("live").filter((o) => o.state === "live").length], [4, 4]);
 });
 
-Deno.test("unknown is never rejected: a 5xx leaves the order pending; one the venue shows nowhere stays pending for a person, and its slot sends nothing", async () => {
+Deno.test("unknown is never rejected: a 5xx leaves the order pending; one the venue shows nowhere stays pending for a person, its slot sending nothing, until it is past its expiration: then it is closed as expired and its slot quotes again (F3)", async () => {
   const w = makeWorld({ live: true });
   w.pm.postMode = "500";
   const r = await w.turn(T0);
   assertEquals(w.open("live").map((o) => o.state), ["pending", "pending", "pending", "pending"]);
   assert(r.errors.every((e) => e.includes("outcome unknown")), r.errors.join("\n"));
+  const expiration = Number(w.open("live")[0].expiration);
   w.pm.postMode = "ok";
-  for (const t of [T0 + 2 * M, T0 + 10 * M]) {
+  // Until the venue's expiry (the expiration less its minute) nothing is known: pending, for a person, no second order.
+  for (const t of [T0 + 2 * M, (expiration - 61) * 1000]) {
     const rr = await w.turn(t);
     assertEquals(w.open("live").map((o) => o.state), ["pending", "pending", "pending", "pending"]);
     assert(rr.errors.some((e) => e.includes("shown nowhere by the venue") && e.includes("for a person")), rr.errors.join("\n"));
     assert(!rr.errors.some((e) => e.includes("another open order holds this slot")), rr.errors.join("\n"));
   }
   assertEquals(w.pm.calls.filter((c) => c.startsWith("POST")).length, 4);
+  // From then it cannot rest: each row is closed as expired, said once, and the freed slots quote again in the same turn.
+  const t1 = (expiration - 60) * 1000;
+  const r1 = await w.turn(t1);
+  const closed = w.orders().filter((o) => o.mode === "live" && o.state === "expired");
+  assertEquals(closed.length, 4);
+  assert(closed.every((o) => o.cancelled_at === new Date(t1).toISOString()), JSON.stringify(closed.map((o) => o.cancelled_at)));
+  assertEquals(r1.errors.filter((e) => e.includes("closed as expired")).length, 4);
+  assertEquals(w.open("live").map((o) => o.state), ["live", "live", "live", "live"]);
+  assertEquals(w.pm.calls.filter((c) => c.startsWith("POST")).length, 8);
+  const r2 = await w.turn(t1 + M);
+  assert(!r2.errors.some((e) => e.includes("shown nowhere") || e.includes("closed as expired")), r2.errors.join("\n"));
   const v = makeWorld({ live: true });
   v.pm.postMode = "500-after-accept";
   await v.turn(T0);

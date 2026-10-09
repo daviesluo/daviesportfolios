@@ -1619,8 +1619,27 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
     }
     return r;
   };
+  /**
+   * An order the venue shows nowhere (404) once the venue would have expired it (its expiration less the venue's minute)
+   * can no longer rest, whatever became of it: a POST the venue never took (a 5xx, a 503 in cancel-only mode, a timeout)
+   * was never an order, and one it took would read back CANCELED or MATCHED, not 404 (docs: the read "includes canceled
+   * or fully matched orders"). So it is closed as `expired`, which frees its slot and its cap (the go-live audit's F3,
+   * 2026-10-09); before that moment it stays as it was, for a person. Returns whether it closed the row.
+   */
+  const closeIfExpired = async (o: PmOrderRow, r: PmReply<PmOpenOrder>): Promise<boolean> => {
+    if (r.status !== 404 || !(Number(o.expiration) - PM_GTD_EARLY_S <= nowS)) return false;
+    const was = o.state;
+    await patch(o, {
+      state: "expired", cancelled_at: nowIso,
+      response: { ...(o.response as object ?? {}), readBack: { status: 404, why: "shown nowhere by the venue after its expiration less the venue's minute: it cannot rest" } },
+    });
+    report.settled.push({ hash: o.hash, state: o.state });
+    if (was === "pending") report.errors.push(`${o.hash.slice(0, 12)}… (pending since ${o.ts}) was never shown by the venue and is past its expiration: closed as expired, its slot free again`);
+    return true;
+  };
   const readBack = async (o: PmOrderRow, afterCancel = false): Promise<boolean> => {
     const r = afterCancel ? await readAfterCancel(o) : await venue.order(o.hash);
+    if (await closeIfExpired(o, r)) return true;
     if (r.status === 404) {
       report.errors.push(o.state === "pending"
         ? `${o.hash.slice(0, 12)}… (pending ${Math.round((d.now - Date.parse(o.ts)) / M)} min) is shown nowhere by the venue: outcome unknown; it stays pending for a person to settle, and its slot places nothing`
@@ -1932,6 +1951,7 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
       if (!c.ok) report.errors.push(`${slotLabel(o)}: cancel of ${o.hash.slice(0, 12)}… ${c.refused ? `refused here (${c.error})` : `answered ${c.status} ${c.error}`}`);
     } catch (e) { report.errors.push(`${slotLabel(o)}: cancel of ${o.hash.slice(0, 12)}… has no reply (${msg(e)}); read back`); }
     const r = await readAfterCancel(o);
+    if (await closeIfExpired(o, r)) return done("cancelled");
     if (!r.ok || !r.data) { report.errors.push(`${slotLabel(o)}: cancel of ${o.hash.slice(0, 12)}… could not be read back (${r.status} ${r.error}); the slot is FROZEN until it is`); return done("frozen"); }
     await applyReadBack(o, r.data);
     if (o.state === "cancelled" || o.state === "rejected") return done("cancelled");
