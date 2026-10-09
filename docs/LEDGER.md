@@ -237,7 +237,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      `select minute from public.edge_call_beats where path = 'monitor?action=deadman' order by minute desc limit 5;`
      (a row a minute). `healthcheck.yml` stays for its warm pings and its not-found chunk probe.
    - **A migration that adds an `edge_calls` row for an action its function learns in the same push** can meet the old
-     function once (0100, 2026-10-08; history 16:59). From 0104 (batch 5, not yet landed) the row waits 15 minutes for
+     function once (0100, 2026-10-08; archived history 16:59). From 0104 (batch 5, not yet landed) the row waits 15 minutes for
      the deploy (`active_from`); until it is live, land the function first unless the call is resumable.
 
 10. **The repository review of 2026-10-08** (`opus-high`; batches 1–4 approved by Davies, F2, F3 and F11 not):
@@ -245,13 +245,13 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      one frozen rate per currency (reported, not built: it changes the Deposited line and needs FX history by date that
      nothing stores; few deposits are in another currency than USD); #233 (the open `ci-failure` issue, every
      failure since 10-04 green again); eight worktrees under `.claude/worktrees/` and three detached ones with a commit
-     not in main (history 17:25); `refreshPrices` still asks for sold-out holdings' quotes.
+     not in main (archived history 10-08 17:25); `refreshPrices` still asks for sold-out holdings' quotes.
    - **Batch 4's deploy order, kept:** `overnight-fetch` requires the app token from the commit after the page's
      bundle that sends it went live (app-1b24810b.js, 2026-10-08 ~17:50 UTC); an older tab still open gets no new
      overnight points until it reloads.
    - **M7 (the site's own fonts) reverted, redone in batch 5:** CI's Chromium drew the sweep with Inter for the first
      time (the sweep had aborted Google Fonts, so every earlier run drew a fallback) and three layout checks failed
-     (history 17:45). They fail in the headless shell alone; CI launches the full Chromium from T2 (history 23:06, 23:16).
+     (archived history 10-08 17:45). They fail in the headless shell alone; CI launches the full Chromium from T2 (history 23:06, 23:16).
    - **Second review done (2026-10-08 ~18:30 UTC), read-only; awaiting Davies' pick, nothing fixed:**
      T1 vitest reaches production (four perf_chart test files leave `price_snapshots.js` / `overnight_intraday.js`
      unmocked; ~560 GETs a day; fix: fail any non-localhost fetch in `test_setup.js`); T2 CI's sweep runs the
@@ -387,8 +387,9 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's archive: the 2026-09-05 → 09-21
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
-under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC sections, with the list as it stood on
-2026-10-08, under "LEDGER.md, archived 2026-10-08"; each oldest first.
+under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC sections, with the list as it stood on
+2026-10-08, under "LEDGER.md, archived 2026-10-08", and the 2026-10-08 16:59 → 18:35 UTC sections under
+"LEDGER.md, archived 2026-10-09"; each oldest first.
 
 ### [2026-10-09 01:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Reward quotes live-prep is LIVE since 2026-10-09 01:32:21 UTC** (Davies: "可以按原计划上线 … 期间你再验证一下所有系统和
@@ -411,6 +412,12 @@ under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC s
   worse). In sample (10-05 → 10-08, this pipeline): +$61.63 at-price, −$56.11 at R = 1, bootstrap negative on four days.
   Retention read: `pm_rec_archive` rows and `pm-rec` objects are never deleted (URLs 365 days, re-signed); frames go after
   7 days once archived. No new Edge call, no instance, no change to live-prep.
+
+### [2026-10-09 01:34 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The review's 10-08 sections of batches 1–4, landed and closed, moved to the archive** (`docs/handover.md` Part 2,
+  "LEDGER.md, archived 2026-10-09", word for word, oldest first): with batch 5's follow-ups the ledger stood at
+  86,571 bytes, over its 81,920 (`src/ledger_budget.test.js`, the hook's gate 3). Three
+  what-remains pointers to them now say archived.
 
 ### [2026-10-09 01:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **UNREALIZED G/L reads a dash or its own figure, never the gain before dividends** (Davies, 10-09: "其他似乎都订住了但score
@@ -773,130 +780,3 @@ under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC s
   `BRIT VUAA: $490.00 before $612.50` and the fund's card `$300.00 before $30.00`; green on this one. Pins in
   `metrics.test.js`, `pitch.test.jsx`, `header_sidebar.test.jsx`, `heatmap.test.js`, `perf_chart.test.jsx`,
   `modals.test.jsx`, `holdings_list.test.jsx` and `sectors_list.test.jsx`: the eleven new waiting cases fail on main.
-
-### [2026-10-08 18:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Batch 4 finished in production; the second, read-only review reported** (item 10 lists its findings). fc2e8209
-  pushed once the page that sends the token was live (e7f0cafe, app-1b24810b.js): overnight-fetch v39 answers the anon
-  key alone with 401 `invalid token`. Checked by hand from the report: `applyFill` subtracts a sell unrounded
-  (`_shared/agents_strategy.ts:100`), and `perf_chart.test.jsx` mocks neither `price_snapshots.js` nor
-  `overnight_intraday.js`, which is how vitest reaches production.
-
-### [2026-10-08 17:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Review batch 4 landed less M7, which is reverted; `overnight-fetch`'s token check waits for a green main.** Batch
-  4's eight commits went out as 9ba3d76e with the gates green here, and check.yml went red on CI's browser
-  (run 37818540386): `phone/tabs/pr5-page` (ROUND TRIPS and the orders past their boxes by 6 px) and three desktop
-  checks, `tabs/rwx-waiting` among them (a variant's NEXT on three lines). The sweep aborts every third-party host, so
-  until M7 it drew the page in a fallback font; M7 served Inter from the site and CI's Chromium (headless shell 1243)
-  drew it wider than this container's 1194. The site has always shown Inter, from Google, so the checks may be
-  catching a real 6 px overflow on phones; that is for the redo (item 10). pages-deploy publishes only on a green
-  check, so the site stayed on batch 3's bundle the whole time; the Edge Functions deployed (trading212 without the
-  cash walk, every function for `_shared/token.ts`).
-
-### [2026-10-08 17:34 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **The ledger is slimmed and has a size budget** (review F15, approved by Davies 2026-10-08). It had reached 372,764
-  bytes (about 93,000 tokens, read whole on every resume): the what-remains list 74,931, the setup 7,835, 168 history
-  sections 280,557. MOVED: the list as it stood and the 159 sections from 2026-09-30 to 10-08 16:52 UTC, word for word,
-  to `docs/handover.md` Part 2 under "LEDGER.md, archived 2026-10-08", the sections oldest first; a script checked that
-  each arrived byte for byte and that nothing else of the handover changed. KEPT here: the setup, unchanged, and the
-  nine newest sections (the coordinator's of 16:59 and batch 4's eight). The list is rewritten to a paragraph per open item
-  under the same numbers, every open instruction, date, script, wake and deadline kept, each item pointing at its
-  archived record; closed or aged-out lines went to the archive only (the errors-box rows of 10-01, PR5's go-live
-  preparation, the recorders' first audit, the dry runs' hashes). Item 10 is new: this review's open ends. The
-  commit hook's gate 3 refuses a commit that leaves the ledger over 81,920 bytes (80 KiB), naming the move to make;
-  `LEDGER_BUDGET_OK=1` commits anyway. Pinned in `src/ledger_budget.test.js` against the hook itself in a scratch
-  repository (a ledger at the budget passes, a byte over is refused with the move to make, the hatch passes, a commit
-  that does not stage the ledger is not weighed, and this ledger is under it); on the old hook two of its three fail.
-  Now 44.7 KB.
-
-### [2026-10-08 17:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Issue #234 closed, #233 left, six worktrees removed** (review M8, approved by Davies 2026-10-08; no code).
-  - **#234** ("Production monitor: Supabase's minute loop failing", 52 comments since 10-07 03:06) closed with a
-    comment: every check has read ok since the last recovery, 2026-10-07 20:35 UTC, and `ops_errors` has no `monitor.*`
-    row after it. `monitor-alert.yml` opens a new issue on the next alert and drops a recovery with none open, so
-    closing loses nothing.
-  - **#233** ("pages-deploy failed on main", 10-02) is open as the one `ci-failure` issue every failing workflow
-    bumps: five `check` failures since (10-04 `afa53647` and `768f6fb8`, 10-07 `dd2e979e`, and the two sweep flakes
-    `6c141a9a` and `b24cbf30`). `check` and `pages-deploy` have passed on main since (`a4926a3e` 17:02 UTC); left
-    open for Davies.
-  - **Worktrees:** 19 before. Removed, each clean, its head an ancestor of `origin/main`, with no process's working
-    directory or open file in it and no file changed in 90 minutes: `/home/user/dp-fillccy`, `dp-rwcwarm`, `dp-tb1`,
-    `dp-tb1rwc`, `wt-rwmerge` (its branch `rw-merge-1791422591` kept) and a scratch checkout of mine. Kept: the
-    primary; `dp-review` (this batch); `dp-divs`, `dp-flake` and `dp-movers` (detached, one commit each not in main by
-    patch); and the eight under `/home/user/daviesportfolios/.claude/worktrees/`, inside the primary checkout, left
-    alone: `agent-ae8f87d2…` (`lp-phase-b`) and `coord` (`coord-main`) are merged, `agent-a16b8130…`
-    (`realized-fix`), `agent-a3c95fae…` and `agent-a5a85cb5…` have every commit in main under another hash, and
-    `agent-a84c1de2…`, `agent-ac18e281…` (`mid-pool-live-prep`) and `agent-ae80ba22…` hold one commit each not in main.
-
-### [2026-10-08 17:13 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **The stated test counts are today's** (review M4, approved by Davies 2026-10-08). The docs said 603 sweep checks
-  (CLAUDE.md, README) and 300 (the map), over 1,150 unit and over 950 Edge tests, and 60 perf cases. Counted on this
-  branch: the sweep 644 (322 at each width: `main` 242 and 250, the rest 80 and 72), Vitest 71 files and 1,336 tests,
-  Deno 1,081 (and 12 steps), the perf matrix 76 cases (60 and 16 of 24H). CLAUDE.md now says 644 on its date, the
-  README and the map "over 640", "over 1,300", "over 1,000" and 76, so they stay true as tests are added; the perf
-  step in `check.yml` is named with 76. The ledger's history keeps the counts of its day. **Review M5 needed nothing
-  more:** F7 already took the build out of the sweep's job, so its "serves the COMMITTED bundle" is true, and
-  `build_stamp.test.js` pins that neither bundle job builds.
-
-### [2026-10-08 17:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **`_shared/token.ts` says what is true of it** (review M3, approved by Davies 2026-10-08): its header described the
-  inline token checks `data`, `trading212` and `ops-error` carried and a migration still to come; all three, and
-  `prices`, `chart`, `fundamentals`, `agents` and `overnight-fetch`, import `verifyToken` from it, and the
-  constant-time comparison's rationale pointed at a copy in `data` that is gone. Comments only. **A change under
-  `_shared/` redeploys every function** (`bin/edge-changed.sh`), so this commit alone of the batch redeploys `agents`
-  and the rest with the code they run unchanged: land it when a redeploy of every function is acceptable, or hold it.
-
-### [2026-10-08 17:09 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **`overnight-fetch` requires the app token** (review M6, second half; approved by Davies 2026-10-08). The handler is
-  now `handle()`: the preflight as before, then `verifyToken` on `x-app-token` (any valid role) before the table is
-  read, a 401 `{"error":"invalid token"}` otherwise; the Supabase JWT gate stays on. The health check probes it with
-  `check_token_gated` (401 is healthy), and its unused `check_anon` went. Deno pin in `overnight-fetch/index.test.ts`
-  (no token and a forged one refused before any read, a valid one served, the preflight free and still allowing
-  `x-app-token`); 9 pass. **Deploy order:** the function deploys minutes after a push, the page only once
-  `check.yml` has passed, so a tab still on a bundle older than the commit before this one gets no new overnight
-  points until it reloads (it keeps its cached ones). Push this commit after that bundle is live, or accept that.
-  A health-check run in the minutes between this push and the deploy reads 200 and would open an issue.
-
-### [2026-10-08 17:08 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **The page sends its app token to `overnight-fetch` too** (review M6, first half; approved by Davies 2026-10-08).
-  The function is anonymous: anyone with the public anon key could ask it about up to 100 tickers a call and learn
-  which US holdings have overnight points. Its callers, found: the page (`fetchOvernightSeries`, from `app.jsx` and
-  the ticker chart's data hook), the health check (`healthcheck.yml`, anonymous, expects 200), and the two browser
-  tests' mocks; nothing in `workers/`, no job. This commit is the client half, so that no open tab is refused when
-  the function starts requiring the token: `edgeHeaders()` (now exported from `yahoo_fetch.js`, the one copy) on the
-  call, and `/overnight-fetch` among the sweep's token-required functions. Pins: `overnight_intraday.test.js` (the
-  header; fails on the old client), and the sweep's `token` check, which on the previous bundle fails "calls without
-  X-App-Token: /overnight-fetch" and on this one passes (desktop `main` 242). The function and the health check
-  change in the next commit.
-
-### [2026-10-08 17:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **The sweep's Binance venue is the one the dashboard sends, and the London pin says why it stays** (review M2,
-  approved by Davies 2026-10-08). The fixture's Binance venue read an account (`canTrade: true`, USDT and BNB
-  balances) that the dashboard has not read since Binance became a keyless paper venue (`binancePaperVenue`, `0049`):
-  it is now `canTrade: false`, no balances, and the paused fixture's fault is worded as the dashboard words one now
-  (`quotes: binance … 451`). The three Binance paper rows `0065` deleted STAY in the fixture: its comment says why (a
-  venue with rows of its own beside Revolut X, and Binance's card, stay tested), and a venue with no row getting no
-  card is pinned in `agents.test.js`; my finding missed that comment. `agents.js` and its test: the dashboard stays
-  pinned to London, beside the database; Binance's 451 to US regions is now the reason only for a Binance row. Sweep
-  `main` 242 and 250 green on the rebuilt bundle; agents unit tests 129 pass.
-
-### [2026-10-08 17:02 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **The Trading 212 cash-movement walk is gone from `trading212`** (review M1, approved by Davies 2026-10-08):
-  `?action=history-sync`, `?action=transactions`, the walk, its page fetcher, shaper and cursor helpers, about 400
-  lines and their 8 tests. Dead since the 2026-08-18 rollback: no client or job calls either action (the function's
-  log for the last 24 h has only `orders`, `orders-sync`, `dividends` and the holdings read), and
-  `t212_transactions_sync` was last written 2026-08-18. **The tables `t212_transactions` and
-  `t212_transactions_sync` stay** (nothing written to either since 2026-08-18): no migration drops them, and a
-  later reader of the cash history starts from them. `orders-sync` answers as before less its always-false
-  `transactionsComplete`, which nothing read. Deno: 67 pass.
-
-### [2026-10-08 16:59 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Review batch 2 verified in production; batch 3 (F7, F12, F13, F14) landed as the reviewer committed it**,
-  fast-forward on 1bcf9079 with the same hashes; a rebuild at the head leaves dist/ unchanged (F7's stamp).
-  - Batch 2's runs all succeeded: agents v149, trading212 v75, monitor v4; 0098–0101's jobs present.
-  - **A deploy-order hazard, seen once**: 0100's `trading212?action=orders-sync` row went live with migrations.yml
-    before edge-functions.yml finished trading212 v75 (15:50:34 UTC), so the 15:50:13 call and the watchdog's retry
-    met v74, which refused every POST (405, one `edge-watchdog.retry` row). From 16:00 it works: POST 200 on v75,
-    about 10 s, its beat written. The walk resumes, so nothing was lost. A migration adding an `edge_calls` row for an
-    action its function learns in the same push can meet the old function once; harmless when the call is
-    resumable, otherwise land the function first.
-
