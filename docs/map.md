@@ -789,6 +789,7 @@ before touching migration state.
 | `0106_pm_lp_reinvest.sql` | Gives live-prep's config a switch that makes its total cap follow the account's equity, and a ceiling on it ($1,000), and turns it on, so payouts and deposits are used the next minute. |
 | `0107_pm_lp_live_hours.sql` | A view of live-prep's live formula reward by UTC hour and market over the last two days, which LIVE's Reward quotes page reads to estimate today's rewards. |
 | `0108_quote_twin_p50x1.sql` | Renames rule D's twin "Stablecoin quotes variant-4" and adds `p50x1`, "Stablecoin quotes variant-3": variant-1 with its exit a tick beyond fair from 2026-10-12, as a row and its tables. |
+| `0109_quote_twin_p50x1_off.sql` | Takes `p50x1` off before its window (its row, tables and lease) and names rule D's twin "Stablecoin quotes variant-3" again. |
 | `0096_pm_rw_x_tb1_arms.sql` | Lets the variants' day tables, RW's and RW-C's, take TB1's two arms on x1 (tb1-skip, tb1-back). |
 | `0086_quote_live_deadman.sql` | Adds the kind `deadman` to `agent_quote_live_events`, for the row the monitor's dead-man switch writes when it cancels PR5's resting orders. |
 | `0087_quote_twins.sql` | The realistic twins' tables (each the live executor's four, a replica's and a simulated account's), their config rows and leases, and the one call that runs them. |

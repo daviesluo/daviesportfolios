@@ -431,3 +431,15 @@ but for its id. Not blind: written after the 2026-10-09 review.
 
 §11–§15 keep the hashes the file had before; this table names it from this deviation on. `src/twins_prereg.test.js`
 pins all of them.
+
+## 17. Deviation 5 withdrawn (2026-10-09): `p50x1` taken off, rule D's twin "variant-3" again
+
+**On whose word.** Davies, 2026-10-09, after the F3 replay (`docs/agents/backtests/scq_f3/`), verbatim: "删掉 p50x1：回到
+4 个测试版本，规则 D 改回 variant-3。" (delete p50x1: back to four test variants, and rule D's twin back to variant-3).
+Migration `0109` deletes `p50x1`'s row (before its window opened, its offset never started), drops its six tables and its
+lease row, and renames `d` "Stablecoin quotes variant-3" again (row first, then the rename). `d`'s id, tables, record,
+order (40) and rule are unchanged; its page name was "variant-4" only between `0108` and `0109` the same day. The
+page shows four twins again, `pr5`, `p50`, `take50`, `d`, as before §16.
+
+**What does not change.** `quotes_twin.ts` and `quotes_live.ts` keep `exitOffset` as §16 left them: no row names it, so
+no twin runs it, and §16's hash stays the file's. `p50x1`'s withdrawal is its own pre-registration's §7.

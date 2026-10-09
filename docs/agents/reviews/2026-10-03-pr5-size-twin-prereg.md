@@ -203,3 +203,10 @@ readouts are unchanged. Not blind (written after the 2026-10-09 review).
 | `supabase/functions/agents/quotes_twin.ts` | aac594d3266bf17444c1c17ed7201f8f5ff06d33206cd9c7c5d57cfe0fce7457 |
 
 §5, §7 and §9 keep the hashes the file had before; this table names it from this deviation on (`src/size_twin_prereg.test.js`).
+
+## 11. Deviation 4's twin withdrawn (2026-10-09)
+
+`p50x1` was taken off by `0109` before its window opened (Davies, 2026-10-09: "删掉 p50x1：回到 4 个测试版本，规则 D 改回
+variant-3。"; the F3 replay, `docs/agents/backtests/scq_f3/`; `2026-10-09-p50x1-prereg.md` §7). This twin is no longer
+anyone's comparator: §10's "it must keep running through that window" lapses, and what 10-21 decides for it stands on
+its own readouts. Its row, record and code are unchanged; §10's hash stays the file's.

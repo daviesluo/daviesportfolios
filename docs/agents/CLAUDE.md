@@ -312,12 +312,14 @@ that follow from that evidence, in short:
   size; pennies as the venue moves them; maker conversions), "Stablecoin
   quotes" carrying out PR5's decisions at £100 a rung, "Stablecoin quotes
   variant-1" (`p50`) the same decisions at £50 a rung, and "Stablecoin quotes
-  variant-4" (`d`; variant-1 until 2026-10-03, variant-3 until 10-09) rule D's
-  arm `d` at £50 (rule D's file calls it variant-2; PR5V is off the page; from
-  2026-10-10 the twin alone quotes no entry on its 0.03 % rungs, `RULED_D_RETIRED`);
-  "variant-2" is TAKE's (`take50`, `0089`, `reviews/2026-10-03-take-prereg.md`),
-  "variant-3" `p50x1` (`0108`, `reviews/2026-10-09-p50x1-prereg.md`, Davies
-  2026-10-09): `p50` with its exit a tick beyond fair from 10-12 (`exitOffset`). TESTING's scoreboard and the
+  variant-3" (`d`; variant-1 until 2026-10-03) rule D's arm `d` at £50 (rule
+  D's file calls it variant-2; PR5V is off the page; from 2026-10-10 the twin
+  alone quotes no entry on its 0.03 % rungs, `RULED_D_RETIRED`); "variant-2" is
+  TAKE's (`take50`, `0089`, `reviews/2026-10-03-take-prereg.md`). `p50x1`
+  (`0108`, `p50` with its exit a tick beyond fair) was withdrawn before its
+  window by `0109` (Davies 2026-10-09, after the F3 replay, `backtests/scq_f3/`),
+  `d` "variant-3" again; the rule `exitOffset` stays in the code, named by no
+  row. TESTING's scoreboard and the
   Revolut X card include them. **Since `0088` each twin is a row of
   `agent_quote_twin_specs`** (reference §4 item 51's "Twin variants" table):
   the call and the page read the enabled rows. A variant that differs only in

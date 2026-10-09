@@ -3911,15 +3911,16 @@ its retirement is Davies' call) as rows of the tick. No weather call is recurrin
 ### Twin variants
 
 The realistic twins, a row each of `agent_quote_twin_specs`, in the page's order. A new one is a row here in the commit
-that adds its migration.
+that adds its migration. Withdrawn: `p50x1` ("variant-3" from `0108`, `p50` with each exit a tick beyond fair from
+2026-10-12, `rules.exitOffset`), taken off with its tables by `0109` before its window opened (Davies, 2026-10-09: "删掉
+p50x1：回到 4 个测试版本，规则 D 改回 variant-3。"; the F3 replay, `backtests/scq_f3/`; `reviews/2026-10-09-p50x1-prereg.md` §7).
 
 | id | page name | base | size | rule | window | pre-registration |
 |---|---|---|---|---|---|---|
 | `pr5` | Stablecoin quotes | PR5's paper engine | £1,200: £100 a rung, 3 a side of each book, one key | PR5's (`stepMinute`) | from 2026-09-23 15:09; read 2026-10-21, beside PR5's verdict | `reviews/2026-10-02-pr5-realistic-twins-prereg.md` |
 | `p50` | Stablecoin quotes variant-1 | `pr5` | £600: £50 a rung, 3 a side, one key | PR5's, unchanged | from 2026-10-04 00:00; read 2026-10-21 beside `pr5`, and beside `d` after rule D's reading; descriptive | `reviews/2026-10-03-pr5-size-twin-prereg.md` |
 | `take50` | Stablecoin quotes variant-2 | `p50` | £600: £50 a rung, 3 a side, one key | PR5's, and from 2026-10-05 00:00 a taker IOC at k + 0.09 % from fair when the recorded book (`agent_book_levels`, at most 90 s old) is through it, filled against the recorder's next read (`rules.take`; item 52) | take trips opened 2026-10-05 → 11-02 (to 15 trips, 11-30 at most); read 2 days after, four conditions | `reviews/2026-10-03-take-prereg.md` |
-| `p50x1` | Stablecoin quotes variant-3 | `p50` | £600: £50 a rung, 3 a side, one key | PR5's, and from 2026-10-12 00:00 each exit, placed or re-priced, a tick beyond fair in its favour (`rules.exitOffset`, `QuoteLiveInstance.exitOffset`; the 2026-10-09 review's F3) | trips opened 2026-10-12 → 11-09 against `p50`'s; read on or after 11-11, three conditions | `reviews/2026-10-09-p50x1-prereg.md` |
-| `d` | Stablecoin quotes variant-4 (variant-3 until 2026-10-09, `0108`) | rule D's paper engine | £1,800: £50 a rung, 9 a side, four keys | rule D's arm `d` (`stepVariantMinute`); from 2026-10-10 00:00 no entries on the 0.03 % rungs (`RULED_D_RETIRED`, its deviation 4) | from 2026-09-28 00:00; read after rule D's reading, 2026-10-28, its two spans apart | `reviews/2026-10-02-pr5-realistic-twins-prereg.md` |
+| `d` | Stablecoin quotes variant-3 (variant-4 from `0108` to `0109`, 2026-10-09) | rule D's paper engine | £1,800: £50 a rung, 9 a side, four keys | rule D's arm `d` (`stepVariantMinute`); from 2026-10-10 00:00 no entries on the 0.03 % rungs (`RULED_D_RETIRED`, its deviation 4) | from 2026-09-28 00:00; read after rule D's reading, 2026-10-28, its two spans apart | `reviews/2026-10-02-pr5-realistic-twins-prereg.md` |
 
 ## 5. Questions that blocked the build — answered 2026-09-20
 

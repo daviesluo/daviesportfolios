@@ -275,14 +275,9 @@ places stay when the number is not whole.
 - **Stablecoin quotes variant-2.** After it: variant-1 again, and from 5 Oct
   it also buys or sells at once, as a taker, when the order book has moved
   past a rung by at least the taker's fee, then exits like any other fill.
-- **Stablecoin quotes variant-3.** After it, since 9 Oct: variant-1 again,
-  and from 12 Oct each exit waits one tick (0.0001) further from fair, in its
-  favour, to see whether exits that fill a little later earn more. Before
-  12 Oct its record is variant-1's.
-- **Stablecoin quotes variant-4.** After it (called variant-1 until 3 Oct,
-  variant-3 until 9 Oct): the same, for the rule with nine rungs a side,
-  from 0.03 % to 0.3 %, whose quotes move at every 0.03 % move of fair, an
-  entry only once fair has moved
+- **Stablecoin quotes variant-3.** After it (called variant-1 until 3 Oct):
+  the same, for the rule with nine rungs a side, from 0.03 % to 0.3 %, whose
+  quotes move at every 0.03 % move of fair, an entry only once fair has moved
   at least a third of its rung's distance: on £1,800, £50 a rung, from
   28 Sep. Its page is the same, with nine rungs a side in each book; from
   10 Oct the innermost, 0.03 %, quotes nothing (it earned about nothing),

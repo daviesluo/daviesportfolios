@@ -22,16 +22,28 @@ const INSERT = /insert into public\.agent_quote_twin_specs\s+select \* from json
 const inserted = FILES.flatMap((file) => [...sqlOf(file).matchAll(INSERT)].flatMap((m) => JSON.parse(m[1]).map((row) => ({ file, row }))));
 /**
  * A page name a later migration gives a row, guarded on the name it replaces (0108: rule D's twin "variant-3" to
- * "variant-4", Davies 2026-10-09: the new p50x1 takes its name and place).
+ * "variant-4", Davies 2026-10-09: the new p50x1 takes its name and place; 0109: back to "variant-3", p50x1 withdrawn).
  */
 const RENAME = /update public\.agent_quote_twin_specs\s+set display_name = '([^']+)'\s+where id = '(\w+)' and display_name = '([^']+)';/g;
+/** A row a later migration takes off, by its id (0109: p50x1, Davies 2026-10-09: "删掉 p50x1"), its tables dropped with it. */
+const DELETE = /delete from public\.agent_quote_twin_specs\s+where id = '(\w+)';/g;
 const renames = FILES.flatMap((file) => [...sqlOf(file).matchAll(RENAME)].map((m) => ({ file, to: m[1], id: m[2], from: m[3] })));
+const deletes = FILES.flatMap((file) => [...sqlOf(file).matchAll(DELETE)].map((m) => ({ file, id: m[1] })));
 /**
- * The rows as the migrations leave them: the first insert of an id stands (`on conflict do nothing`), each rename applied
- * in the migrations' order, in the page's order.
+ * What later migrations did to the rows, in the migrations' order and each file's: renames and deletes, as
+ * docs/agents/backtests/twins/scripts/fixture.ts applies them.
  */
-const ROWS = inserted.filter((x, i) => inserted.findIndex((y) => y.row.id === x.row.id) === i).map((x) => ({ ...x.row }))
-  .map((r) => { for (const n of renames) if (n.id === r.id && n.from === r.display_name) r.display_name = n.to; return r; })
+const OPS = FILES.flatMap((file) => [
+  ...[...sqlOf(file).matchAll(RENAME)].map((m) => ({ at: m.index ?? 0, op: { kind: 'rename', to: m[1], id: m[2], from: m[3] } })),
+  ...[...sqlOf(file).matchAll(DELETE)].map((m) => ({ at: m.index ?? 0, op: { kind: 'delete', id: m[1] } })),
+].sort((a, b) => a.at - b.at).map((x) => x.op));
+/**
+ * The rows as the migrations leave them: the first insert of an id stands (`on conflict do nothing`), each rename and
+ * delete applied in the migrations' order, in the page's order.
+ */
+const ROWS = OPS.reduce((rows, n) => n.kind === 'delete' ? rows.filter((r) => r.id !== n.id)
+  : rows.map((r) => (n.id === r.id && n.from === r.display_name ? { ...r, display_name: n.to } : r)),
+inserted.filter((x, i) => inserted.findIndex((y) => y.row.id === x.row.id) === i).map((x) => ({ ...x.row })))
   .sort((a, b) => a.display_order - b.display_order);
 const firstOf = (id) => inserted.find((x) => x.row.id === id);
 const RULE_MOVE = /update public\.agent_quote_twin_specs\s+set rules = jsonb_set\(rules, '\{\w+,from\}', '"[0-9T:Z-]+"'::jsonb\)\s+where id = '\w+' and rules->'\w+'->>'from' = '[0-9T:Z-]+';/g;
@@ -79,32 +91,47 @@ describe("the twins' spec rows", () => {
     }
   });
 
-  it('are touched by no migration in any other way than 0088 creates them, a migration inserts them, moves one rule date, or renames one', () => {
+  it('are touched by no migration in any other way than 0088 creates them, a migration inserts them, moves one rule date, renames one, or takes one off', () => {
     for (const f of FILES) {
       const sql = sqlOf(f);
       const named = (sql.match(/agent_quote_twin_specs/g) ?? []).length;
       const inserts = [...sql.matchAll(INSERT)].length;
       const moves = [...sql.matchAll(RULE_MOVE)].length;
       const names = [...sql.matchAll(RENAME)].length;
+      const offs = [...sql.matchAll(DELETE)].length;
       // An insert names the table twice; 0088 also creates it, enables its row level security, and its function reads it
       // (its type, its select and its refusal). A pre-registration's addendum may move one rule's date of one row, guarded
       // on the date it replaces (0090: TAKE's take.from, its Addendum 1): that names it once. A page name may change,
-      // guarded on the name it replaces (0108): once.
-      expect(named, f).toBe(2 * inserts + moves + names + (f === SPECS_0088 ? 5 : 0));
+      // guarded on the name it replaces (0108, 0109): once. A row may be taken off by its id (0109): once.
+      expect(named, f).toBe(2 * inserts + moves + names + offs + (f === SPECS_0088 ? 5 : 0));
     }
     expect(FILES.filter((f) => [...sqlOf(f).matchAll(RULE_MOVE)].length).map((f) => f.slice(0, 4))).toEqual(['0090']);
-    expect(renames.map((n) => [n.file.slice(0, 4), n.id, n.from, n.to])).toEqual([['0108', 'd', 'Stablecoin quotes variant-3', 'Stablecoin quotes variant-4']]);
-    // A rename comes before an insert in the same migration that takes the old name (names are unique), and every name
-    // as the rows stand is distinct.
-    const sql0108 = sqlOf('0108_quote_twin_p50x1.sql');
+    expect(renames.map((n) => [n.file.slice(0, 4), n.id, n.from, n.to])).toEqual([
+      ['0108', 'd', 'Stablecoin quotes variant-3', 'Stablecoin quotes variant-4'], ['0109', 'd', 'Stablecoin quotes variant-4', 'Stablecoin quotes variant-3'],
+    ]);
+    expect(deletes.map((n) => [n.file.slice(0, 4), n.id])).toEqual([['0109', 'p50x1']]);
+    // Names are unique, so a rename comes before an insert in the same migration that takes the old name (0108), and a
+    // delete before a rename that takes the deleted row's name (0109); every name as the rows stand is distinct.
+    const sql0108 = sqlOf('0108_quote_twin_p50x1.sql'), sql0109 = sqlOf('0109_quote_twin_p50x1_off.sql');
     expect(sql0108.search(RENAME)).toBeLessThan(sql0108.search(INSERT));
+    expect(sql0109.search(DELETE)).toBeGreaterThanOrEqual(0);
+    expect(sql0109.search(DELETE)).toBeLessThan(sql0109.search(RENAME));
     expect(new Set(ROWS.map((r) => r.display_name)).size).toBe(ROWS.length);
+    // A row taken off takes its six tables and its lease with it, in the same migration, after the row.
+    for (const n of deletes) {
+      const sql = sqlOf(n.file);
+      for (const t of ['config', 'orders', 'events', 'state', 'paper', 'sim']) {
+        expect(sql.indexOf(`public.agent_quote_twin_${n.id}_${t}`), `${n.id}_${t}`).toBeGreaterThan(sql.search(DELETE));
+      }
+      expect(/drop table if exists\s+public\.agent_quote_twin_/.test(sql), n.id).toBe(true);
+      expect(sql.includes(`delete from public.agent_locks where name = 'quotes-twin-${n.id}';`), n.id).toBe(true);
+    }
   });
 
-  it("are, as they stand, the page's five stablecoin rows in Davies' order (2026-10-09: p50x1 in variant-3's place, rule D's twin variant-4 after it)", () => {
+  it("are, as they stand, the page's four stablecoin rows in Davies' order (2026-10-09: p50x1 withdrawn, rule D's twin variant-3 again)", () => {
     expect(ROWS.map((r) => [r.id, r.display_name, r.display_order])).toEqual([
       ['pr5', 'Stablecoin quotes', 10], ['p50', 'Stablecoin quotes variant-1', 20], ['take50', 'Stablecoin quotes variant-2', 30],
-      ['p50x1', 'Stablecoin quotes variant-3', 35], ['d', 'Stablecoin quotes variant-4', 40],
+      ['d', 'Stablecoin quotes variant-3', 40],
     ]);
   });
 

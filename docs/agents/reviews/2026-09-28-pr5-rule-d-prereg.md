@@ -208,3 +208,9 @@ it says it was not blind (the review read both arms' records) and names this dev
 0.03 % rungs (its trips there taken out over the whole window, both before and after 10-10, since the paper arm never
 changed), and on the twin's two spans (nine rungs to 10-09 23:59, eight from 10-10) apart. Neither is a condition; a rule D
 without that rung for a live executor would be a pre-registration of its own.
+
+## 10. Note (2026-10-09): the twin's page name
+
+Rule D's realistic twin (`d`) was "Stablecoin quotes variant-4" only from `0108` to `0109` the same day; `0109` names
+it "Stablecoin quotes variant-3" again, as `p50x1` is withdrawn (Davies, 2026-10-09: "删掉 p50x1：回到 4 个测试版本，规则 D
+改回 variant-3。"). Page name only: nothing of this file's engine, arms or reading changes.

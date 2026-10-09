@@ -599,8 +599,9 @@ const AGENTS_RWE_RWC = (dayStartMs) => ({ ...AGENTS_RW_RWC(dayStartMs), lastMinu
  * (`quotes_twin_fixture.json`, made from the spec rows by docs/agents/backtests/twins/scripts/fixture.ts, which the agents
  * function's test proves is that function's answer), in the page's order: "Stablecoin quotes" at its £1,200, every figure
  * the live fixture's (below, at QUOTES_LIVE_FIXTURE); "Stablecoin quotes variant-1" (p50, 2026-10-03), PR5's rule at
- * £600; variant-2 (TAKE) and variant-3 (p50x1, 2026-10-09) at £600 too; "Stablecoin quotes variant-4" (rule D; variant-1
- * until 2026-10-03, variant-3 until 2026-10-09) at £1,800, the same fills on three of its nine rungs a side. Each has the same money on its own capital. Their starts are moved before this sweep's clock.
+ * £600; variant-2 (TAKE) at £600 too; "Stablecoin quotes variant-3" (rule D; variant-1 until 2026-10-03, variant-4 for a
+ * few hours of 2026-10-09 while p50x1 held its name, 0108 to 0109) at £1,800, the same fills on three of its nine rungs a
+ * side. Each has the same money on its own capital. Their starts are moved before this sweep's clock.
  */
 const QUOTES_TWIN_FIXTURE = JSON.parse(fs.readFileSync(new URL('./quotes_twin_fixture.json', import.meta.url), 'utf8'));
 /**
@@ -3598,8 +3599,8 @@ async function run() {
       else fail(S('agents'), `funded labels: ${JSON.stringify(fundedLines)}`);
       // The realistic twins of the live executor are the stablecoin rows of TESTING STRATEGIES (Davies, 2026-10-02), after
       // the strategies, a row each in their spec rows' order (TW.rows): "Stablecoin quotes" (PR5's rule) at £1,200,
-      // "Stablecoin quotes variant-1" (PR5's rule, p50, since 2026-10-03) at £600, … and "Stablecoin quotes variant-4" (rule D;
-      // variant-1 until 2026-10-03, variant-3 until 2026-10-09) at £1,800, in a strategy's cells and in pounds, each the live fixture's book
+      // "Stablecoin quotes variant-1" (PR5's rule, p50, since 2026-10-03) at £600, … and "Stablecoin quotes variant-3" (rule D;
+      // variant-1 until 2026-10-03) at £1,800, in a strategy's cells and in pounds, each the live fixture's book
       // (QUOTES_TWIN_FIXTURE): 2 open (B's short and E's long), deployed £999.14 (the coins at the index and the pounds in
       // four resting buys), today +£0.23, unrealised -£0.13, realised -£0.03, each percent on its own capital; a variant's
       // name on two lines. The paper test, PR5V and rule D, which the payload still carries, are no rows.
@@ -3648,7 +3649,7 @@ async function run() {
       if (qHeads.join(',') === 'Refresh,Close') ok(S('agents'), 'the twin page has the same refresh button beside close');
       else fail(S('agents'), `twin page actions ${qHeads.join(',')}`);
       await closeBy(page, () => page.locator('.ag-detail-close').click().catch(() => {}));
-      // Rule D's twin ("variant-4" since 2026-10-09; its name is its spec row's): its own title on two lines, nine rungs a
+      // Rule D's twin ("variant-3"; its name is its spec row's): its own title on two lines, nine rungs a
       // side, £1,800 and its loss stop of 1 % of it, £18.
       const dName = TWINS.find((t) => t.twin.engine === 'ruled-d')?.twin.name ?? 'rule D';
       await twinRowOf(dName).first().click();

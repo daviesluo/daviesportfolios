@@ -28,23 +28,31 @@ const SIMS = {
 };
 
 /**
- * A page name a later migration gave a row (0108: rule D's twin, "variant-3" to "variant-4", Davies 2026-10-09), each
- * `update … set display_name = '<new>' where id = '<id>' and display_name = '<old>'` in the migrations' order;
- * src/twin_specs.test.js reads them the same way. spec_rows.ts (frozen with p50's pre-registration) returns the rows as
- * first inserted; this makes them the rows as they stand.
+ * What later migrations did to the rows, in the migrations' order and each file's: a page name given (0108: rule D's twin,
+ * "variant-3" to "variant-4"; 0109: back to "variant-3", Davies 2026-10-09), each `update … set display_name = '<new>'
+ * where id = '<id>' and display_name = '<old>'`, and a row taken off (0109: `p50x1`), each `delete from
+ * public.agent_quote_twin_specs where id = '<id>'`; src/twin_specs.test.js reads them the same way. spec_rows.ts (frozen
+ * with p50's pre-registration) returns the rows as first inserted; this makes them the rows as they stand.
  */
 const RENAME = /update public\.agent_quote_twin_specs\s+set display_name = '([^']+)'\s+where id = '(\w+)' and display_name = '([^']+)';/g;
+const DELETE = /delete from public\.agent_quote_twin_specs\s+where id = '(\w+)';/g;
 const MIGRATIONS = new URL("../../../../../supabase/migrations/", import.meta.url);
-const renamed = async <T extends { id: string; display_name: string }>(rows: T[]): Promise<T[]> => {
+const asTheyStand = async <T extends { id: string; display_name: string }>(first: T[]): Promise<T[]> => {
+  let rows = first;
   const files: string[] = [];
   for await (const e of Deno.readDir(MIGRATIONS)) if (e.isFile && /^\d{4}_.*\.sql$/.test(e.name)) files.push(e.name);
   for (const f of files.sort()) {
     const sql = (await Deno.readTextFile(new URL(f, MIGRATIONS))).replace(/--[^\n]*/g, "");
-    for (const [, to, id, from] of sql.matchAll(RENAME)) for (const r of rows) if (r.id === id && r.display_name === from) r.display_name = to;
+    const ops = [...[...sql.matchAll(RENAME)].map((m) => ({ at: m.index ?? 0, m })), ...[...sql.matchAll(DELETE)].map((m) => ({ at: m.index ?? 0, m }))]
+      .sort((a, b) => a.at - b.at);
+    for (const { m } of ops) {
+      if (m.length === 2) rows = rows.filter((r) => r.id !== m[1]);
+      else for (const r of rows) if (r.id === m[2] && r.display_name === m[3]) r.display_name = m[1];
+    }
   }
   return rows;
 };
-const rows = (await renamed(await specRowsOfMigrations())).filter((r) => r.enabled);
+const rows = (await asTheyStand(await specRowsOfMigrations())).filter((r) => r.enabled);
 const starts: Record<string, string> = {}, sims: Record<string, unknown> = {}, twins: unknown[] = [];
 for (const row of rows) {
   const spec = specFromRow(row), e = SIMS[row.engine];
