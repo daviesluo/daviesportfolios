@@ -398,10 +398,10 @@ function QuoteBooks({ books, m, empty = null }) {
  * The quote pages' DAYS, newest first (Davies, 2026-09-28; on the live page under INVENTORY, 2026-10-01): each UTC day's
  * orders, entry fills, the round trips that closed and what it realised, in pounds. The days add up to REALIZED. Beside
  * its heading, the last seven closed days' realised a year, over the capital (`quoteDaysAnnualPct`; Davies, 2026-10-09).
- * @param {{ days: any[], m: (s: string) => string, empty?: string | null, capitalGbp?: number | null }} props
+ * @param {{ days: any[], m: (s: string) => string, empty?: string | null, capitalGbp?: number | null, nowMs?: number }} props
  */
-function QuoteDaysTable({ days, m, empty = null, capitalGbp = null }) {
-  const annual = quoteDaysAnnualPct(days, capitalGbp);
+function QuoteDaysTable({ days, m, empty = null, capitalGbp = null, nowMs = Date.now() }) {
+  const annual = quoteDaysAnnualPct(days, capitalGbp, nowMs);
   return (
     <section className="ag-section ag-quote-days">
       <div className="ag-section-title mono">DAYS{annual != null && (
@@ -570,7 +570,7 @@ function QuotesLiveDetail({ q, m, at, nowMs, twin = false }) {
           </div>
         ) : <div className="ag-empty dim">{empty ?? 'Its last turn could not read the account.'}</div>}
       </section>
-      <QuoteDaysTable days={d?.days ?? []} m={m} empty={empty} capitalGbp={x.ccy === 'GBP' ? x.capital : null} />
+      <QuoteDaysTable days={d?.days ?? []} m={m} empty={empty} capitalGbp={x.ccy === 'GBP' ? x.capital : null} nowMs={nowMs} />
       <section className="ag-section ag-ql-trips ag-ql-tables">
         <div className="ag-section-title mono">ROUND TRIPS</div>
         <div className="hl-scroll">

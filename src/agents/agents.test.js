@@ -1894,13 +1894,21 @@ describe('Reward quotes fees, in LIVE\'s design on every page and card (2026-10-
   });
 });
 
-describe("the Stablecoin quotes pages' DAYS heading: the last seven closed days a year", () => {
-  it('sums the seven newest closed days, leaves today out, and annualises over the capital', () => {
-    const days = [{ day: '2026-10-09', today: true, realisedGbp: 5 }, ...Array.from({ length: 9 }, (_, i) => ({ day: `2026-10-0${8 - i}`, realisedGbp: 0.01 * (i + 1) }))];
-    // By hand: the seven closed days 0.01 … 0.07 sum to 0.28; over £120, 365 / 7 of them: 0.28 / 120 × 365 / 7 × 100 = 12.1666… %.
-    expect(quoteDaysAnnualPct(days, 120)).toBeCloseTo((0.28 / 120) * (365 / 7) * 100, 10);
-    // Fewer closed days than seven: those there are, a year of them. 0.01 + 0.02 over £600 in 2 days.
-    expect(quoteDaysAnnualPct(days.slice(0, 3), 600)).toBeCloseTo((0.03 / 600) * (365 / 2) * 100, 10);
-    expect([quoteDaysAnnualPct([days[0]], 120), quoteDaysAnnualPct(days, 0), quoteDaysAnnualPct([], 120)]).toEqual([null, null, null]);
+describe("the Stablecoin quotes pages' DAYS heading: the seven calendar days before today, a year of them", () => {
+  const NOW = Date.parse('2026-10-09T15:00:00Z');
+  it('sums the seven days before today by the calendar, a missing day earning nothing, and annualises over the capital', () => {
+    // Rows for 10-09 (today, left out), 10-08 … 10-02 but the weekend 10-04/10-05 (no orders, no rows), and 10-01 (8 days
+    // back, left out). By hand: 0.05 + 0.04 + 0.03 + 0.02 + 0.01 = 0.15 over £120, 365 / 7: 6.5178… %.
+    const days = [['2026-10-09', 5], ['2026-10-08', 0.05], ['2026-10-07', 0.04], ['2026-10-06', 0.03], ['2026-10-03', 0.02], ['2026-10-02', 0.01], ['2026-10-01', 9]]
+      .map(([day, realisedGbp]) => ({ day: String(day), realisedGbp: Number(realisedGbp) }));
+    expect(quoteDaysAnnualPct(days, 120, NOW)).toBeCloseTo((0.15 / 120) * (365 / 7) * 100, 10);
+    // Seven rows would have reached back to 10-01 across the weekend: that is the overstatement this rules out.
+    expect(quoteDaysAnnualPct(days, 120, NOW)).not.toBeCloseTo(((0.15 + 9) / 120) * (365 / 7) * 100, 2);
+  });
+  it('reads a row younger than a week over the days since its first, and nothing without a closed day or a capital', () => {
+    const young = [{ day: '2026-10-09', realisedGbp: 1 }, { day: '2026-10-07', realisedGbp: 0.03 }];
+    // First row 10-07: two closed days (10-07, 10-08). 0.03 over £600, 365 / 2.
+    expect(quoteDaysAnnualPct(young, 600, NOW)).toBeCloseTo((0.03 / 600) * (365 / 2) * 100, 10);
+    expect([quoteDaysAnnualPct([{ day: '2026-10-09', realisedGbp: 1 }], 120, NOW), quoteDaysAnnualPct(young, 0, NOW), quoteDaysAnnualPct([], 120, NOW)]).toEqual([null, null, null]);
   });
 });

@@ -396,6 +396,12 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 "LEDGER.md, archived 2026-10-09", and the 2026-10-08 22:49 → 23:58 UTC sections under "LEDGER.md, archived 2026-10-09
 (second)"; each oldest first.
 
+### [2026-10-09 17:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- DAYS' 7-day annualised now counts the seven CALENDAR days before today, not the last seven rows: a day with no order
+  has no row (weekends, outages), so seven rows reached back nine days and overstated by up to 9/7 (Davies asked why the
+  twins' read so far above LIVE's). What is left of the gap is real: LIVE alone took 10-02's stall and the go-live
+  conversions' fee; from 10-04 LIVE and PR5's twin earn the same per pound (review 2026-10-09, 0.200 % vs 0.208 %).
+
 ### [2026-10-09 16:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - Every Stablecoin quotes page (LIVE and the twins) heads DAYS with "- 7-day annualised ±x%": the last seven closed UTC
   days' realised over the capital, a year of them (`quoteDaysAnnualPct`; Davies: "days表格标题days旁边加上近七天平均年化收益率").

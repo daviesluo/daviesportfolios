@@ -672,19 +672,27 @@ export function glTextIn(n, pct, ccy) {
  */
 /**
  * The Stablecoin quotes pages' DAYS heading figure (Davies, 2026-10-09: "在每个stablecoin quotes子页面（live+testings）的days
- * 表格标题days旁边加上近七天平均年化收益率"): what the last seven closed UTC days realised, over the row's capital, a year's worth
- * of them — fewer days while there are fewer, today left out because it is not over. null without a closed day or a
- * capital.
- * @param {Array<{ day: string, today?: boolean, realisedGbp: number }>} days  newest first, as the page lists them
+ * 表格标题days旁边加上近七天平均年化收益率"): what the seven calendar days before today realised, over the row's capital, a year
+ * of them. Calendar days, not rows: a day with no order has no row (a weekend, an outage) and earned nothing, so seven
+ * rows could span nine days and overstate the rate by 9/7 (it did, 2026-10-09). A row younger than seven days is read over
+ * the days since its first. null without a closed day or a capital.
+ * @param {Array<{ day: string, realisedGbp: number }>} days  the page's rows, any order
  * @param {number | null | undefined} capitalGbp
+ * @param {number} nowMs
  * @returns {number | null} percent a year
  */
-export function quoteDaysAnnualPct(days, capitalGbp) {
+export function quoteDaysAnnualPct(days, capitalGbp, nowMs) {
   const cap = Number(capitalGbp);
-  const closed = (days ?? []).filter((d) => !d.today).slice(0, 7);
-  if (!closed.length || !(cap > 0)) return null;
-  const sum = closed.reduce((s, d) => s + (Number(d.realisedGbp) || 0), 0);
-  return (sum / cap) * (365 / closed.length) * 100;
+  if (!(cap > 0) || !days?.length) return null;
+  const DAY = 86400e3, todayMs = Math.floor(nowMs / DAY) * DAY;
+  const iso = (ms) => new Date(ms).toISOString().slice(0, 10);
+  const from = iso(todayMs - 7 * DAY), today = iso(todayMs);
+  const first = days.reduce((m, d) => (d.day < m ? d.day : m), days[0].day);
+  const start = first > from ? first : from;
+  const n = Math.round((todayMs - Date.parse(`${start}T00:00:00Z`)) / DAY);
+  if (!(n > 0)) return null;
+  const sum = days.filter((d) => d.day >= start && d.day < today).reduce((s, d) => s + (Number(d.realisedGbp) || 0), 0);
+  return (sum / cap) * (365 / n) * 100;
 }
 
 export function rowMoney(r) {
