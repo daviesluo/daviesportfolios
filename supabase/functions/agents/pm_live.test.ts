@@ -24,7 +24,7 @@ import type { PmLevel } from "../_shared/polymarket_public.ts";
 import { choose, firstScore, newAcc, RW_INV_CAP, scoreS, sizeN, stepRw, summarize, type BookRow } from "./pmrw.ts";
 import { excludedByDay } from "./pmrw_e.ts";
 import {
-  attestationCurrent, bookNow, bookPnl, bookQualityOf, candidateOf, closeOnly, crosses, cursorOffset, effectiveLimits, gates, geoOf, inUniverse, inYesBook, minuteFormula, onTick,
+  attestationCurrent, bookNow, bookPnl, bookProtocol, bookQualityOf, candidateOf, closeOnly, crosses, cursorOffset, effectiveLimits, gates, geoOf, inUniverse, inYesBook, minuteFormula, onTick,
   othersLevels, placeholderQuotes, PM_LIVE_INSTANCE, PM_MINI_INSTANCE, PM_MINI_QUALITY, scoresAt, withOwnLevels, PM_LIVE_CANCEL_REREAD_MS, PM_LISTING_OVERLAP, refusalWait, PM_LIVE_DB_TABLES, PM_LIVE_GEO_CACHE_MS, PM_LIVE_LEASE_MS, PM_LIVE_LIFETIME_S, PM_LIVE_MAX_N,
   PM_LIVE_CAP_TOTAL_USD, PM_LIVE_LOSS_TOTAL_USD, PM_LIVE_MIN_FORMULA_DAY_USD, PM_LIVE_MIN_HORIZON_MS, PM_LIVE_REWARD_FLOOR, PM_LIVE_REWARD_RATE_MAX, PM_LIVE_SELECT_UNTIL_MS, PM_LIVE_SEND_UNTIL_MS,
   PM_LIVE_TIMEOUT_MS, PM_OPEN_GATES, pmTime, postOutcome, rewardListing, rewardRate, runPmLive, rweSameDay, rwQuotes, selectMarkets, settlementFills,
@@ -1868,4 +1868,61 @@ Deno.test("agents?action=pmlive: it loads the key only for the stored signer, re
   // Missing secrets are named in the report, and the turn still runs its public reads.
   const r3 = await runPmLiveAction({ db: makeWorld().db, fetchImpl: w.pm.fetch, read: (n) => (n === "SB_REGION" ? "eu-west-1" : undefined), now: T0 }) as Awaited<ReturnType<typeof runPmLive>>;
   assert(r3.errors.some((e) => e.startsWith("secrets:")) && r3.errors.some((e) => e.startsWith("closed-only flag unreadable")), r3.errors.join("\n"));
+});
+
+// ------------------------------------------------------------------ F4: a V2-protocol book; a refusal of the order's version
+
+Deno.test("bookProtocol / bookNow: a book that names a protocol (a Polymarket Protocol V2 book) is unquotable; a CTF book omits it", () => {
+  const ctf = { bids: [{ price: "0.40", size: "10" }], asks: [{ price: "0.42", size: "10" }], tick_size: "0.01", min_order_size: "5", neg_risk: false, timestamp: "1790000000000" };
+  assertEquals(bookProtocol(ctf), null);
+  assert(bookNow(ctf) !== null);
+  for (const version of ["v2", "2", "ctf"]) {
+    assertEquals(bookProtocol({ ...ctf, version }), version);
+    assertEquals(bookNow({ ...ctf, version }), null);
+  }
+  assertEquals([bookProtocol({ ...ctf, version: null }), bookProtocol({ ...ctf, version: "" })], [null, null]);
+});
+
+Deno.test("a V2-protocol book is never selected, and one that turns V2 while selected is withdrawn and recorded as a condition, not a fault (F4)", async () => {
+  // Selection: A, RW's first pick, names a protocol; it is passed over and nothing is ever placed in it.
+  const v = makeWorld({ live: true });
+  v.A.version = "v2";
+  await v.turn(T0);
+  assert(!v.markets().some((m) => m.cond === v.A.cond), JSON.stringify(v.markets().map((m) => m.cond)));
+  assert(v.markets().length > 0);
+  assert(!v.orders().some((o) => o.cond === v.A.cond));
+  // A selected market whose book turns V2: its orders are withdrawn, nothing replaces them, and the minute says why.
+  const w = makeWorld({ live: true });
+  await w.turn(T0);
+  assert(w.open("live").some((o) => o.cond === w.A.cond));
+  w.A.version = "v2";
+  const r = await w.turn(T0 + M);
+  assertEquals(w.open("live").filter((o) => o.cond === w.A.cond).length, 0);
+  assert(!w.orders().some((o) => o.cond === w.A.cond && Date.parse(String(o.ts)) >= T0 + M));
+  assertEquals(r.conditions[w.A.cond], "a Polymarket Protocol v2 book: unquotable here");
+  assert(!r.errors.some((e) => e.includes(w.A.cond.slice(0, 10))), r.errors.join("\n"));
+});
+
+Deno.test("a refusal of the order's version is reported once an hour, not every minute (F4)", async () => {
+  const w = makeWorld({ live: true });
+  w.pm.postMode = "version-mismatch";
+  const said = (r: { errors: string[] }) => r.errors.filter((e) => e.includes("refused the order's version")).length;
+  const r0 = await w.turn(T0);
+  assert(w.orders().filter((o) => o.mode === "live").every((o) => o.state === "rejected"));
+  assertEquals(said(r0), 1);
+  assertEquals(w.state().versionMismatchAt, iso(T0));
+  // New quotes (the book moved) are refused the same way: within the hour, nothing more is said.
+  w.A.bid = 0.44; w.A.ask = 0.46;
+  const r1 = await w.turn(T0 + 30 * M);
+  assert(w.orders().some((o) => o.mode === "live" && Date.parse(String(o.ts)) === T0 + 30 * M), "sent again on new information");
+  assertEquals(said(r1), 0);
+  // An hour on, it is said again.
+  w.A.bid = 0.45; w.A.ask = 0.47;
+  const r2 = await w.turn(T0 + 61 * M);
+  assertEquals(said(r2), 1);
+  assertEquals(w.state().versionMismatchAt, iso(T0 + 61 * M));
+  // A turn that never met one keeps no such field.
+  const d = makeWorld({ live: true });
+  await d.turn(T0);
+  assertEquals("versionMismatchAt" in d.state(), false);
 });

@@ -1077,6 +1077,8 @@ type FakePmMarket = {
   /** Gamma's `outcomePrices[0]` once resolved: YES's payout; and its `closedTime`, as Gamma writes it. */
   payout?: number;
   closedTime?: string;
+  /** A Polymarket Protocol V2 market: its book names `version` ("v2"), which CTF books omit (docs, 2026-10-09). */
+  version?: string;
 };
 type FakePmOrder = {
   hash: string; token: string; side: "BUY" | "SELL"; price: number; size: number; matched: number; status: string; expiration: number;
@@ -1131,7 +1133,7 @@ export class FakePolymarket {
   orders = new Map<string, FakePmOrder>();
   trades = new Map<string, FakePmTrade>();
   restart = false;
-  postMode: "ok" | "lose-reply" | "500-after-accept" | "500" | "429" | "503" = "ok";
+  postMode: "ok" | "lose-reply" | "500-after-accept" | "500" | "429" | "503" | "version-mismatch" = "ok";
   cancelMode: "ok" | "lost" | "throw" = "ok";
   /** Reads of an order that still show it resting after its cancel was taken (0: carried out at once). */
   cancelLagReads = 1;
@@ -1298,6 +1300,7 @@ export class FakePolymarket {
         body: {
           market: x.m.cond, asset_id: q.get("token_id"), timestamp: String(this.now()), hash: `h${this.seq++}`, tick_size: x.m.tick, min_order_size: String(x.m.minSize), neg_risk: x.m.negRisk,
           bids: out(side.bids.slice().sort((a, b2) => a[0] - b2[0])), asks: out(side.asks.slice().sort((a, b2) => b2[0] - a[0])),
+          ...(x.m.version ? { version: x.m.version } : {}),
         },
       };
     }
@@ -1453,6 +1456,8 @@ export class FakePolymarket {
     if (this.postMode === "429") return { status: 429, body: { error: "Too Many Requests" } };
     if (this.postMode === "503") return { status: 503, body: { error: "Trading is currently disabled. Check polymarket.com for updates" } };
     if (this.postMode === "500") return { status: 500, body: { error: "order timed out" } };
+    // The CLOB signing another exchange version than the order's (clob-client-v2's ORDER_VERSION_MISMATCH_ERROR).
+    if (this.postMode === "version-mismatch") return { status: 400, body: { error: "order_version_mismatch" } };
     let b: { order?: Record<string, unknown>; owner?: string; orderType?: string; postOnly?: boolean; deferExec?: boolean };
     try { b = JSON.parse(raw); } catch { return { status: 400, body: { error: "Invalid order payload" } }; }
     const o = b.order ?? {};

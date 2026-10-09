@@ -461,10 +461,24 @@ export type PmLevels = { bids: PmLevel[]; asks: PmLevel[] };
 export type PmBookNow = {
   bestBid: number; bestAsk: number; tick: PmTickSize; minSize: number; negRisk: boolean; at: string | null; hash: string | null; levels: PmLevels;
 };
-/** GET /book as served, reduced to its touch and levels; null unless it is two-sided with both prices inside [tick, 1 − tick]. */
+/**
+ * The market protocol a book names, or null for a CTF book. "Polymarket Protocol V2 order books return `version: "v2"`,
+ * and CTF books omit `version`" (docs, trading/orders/create, read 2026-10-09): a V2 book's orders are signed for another
+ * exchange (0xe3333700…, domain version "3") with a position id as the token, which this path never signs, so a book
+ * that names any protocol is unquotable (the go-live audit's F4).
+ */
+export function bookProtocol(raw: unknown): string | null {
+  const v = raw && typeof raw === "object" ? (raw as Record<string, unknown>).version : undefined;
+  return v === undefined || v === null || v === "" ? null : String(v).slice(0, 20);
+}
+
+/**
+ * GET /book as served, reduced to its touch and levels; null unless it is a CTF book (`bookProtocol` null), two-sided,
+ * with both prices inside [tick, 1 − tick].
+ */
 export function bookNow(raw: unknown): PmBookNow | null {
   const b = raw && typeof raw === "object" ? raw as Record<string, unknown> : null;
-  if (!b) return null;
+  if (!b || bookProtocol(b) !== null) return null;
   // The CLOB lists bids low to high and asks high to low (reference §2d): the best of each is found, not assumed.
   const lv = (xs: unknown): PmLevel[] => (Array.isArray(xs) ? xs : [])
     .map((l) => [Number((l as Record<string, unknown>)?.price), Number((l as Record<string, unknown>)?.size)] as PmLevel)
@@ -1525,6 +1539,7 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
     books.set(m.cond, b && b.negRisk === m.neg_risk ? b : null);
     if (gone) conditions[m.cond] = "left the book (404)";
     else if (!r.ok) report.errors.push(`${m.cond.slice(0, 10)}…: book unreadable (${r.status} ${r.error})`);
+    else if (bookProtocol(r.data) !== null) conditions[m.cond] = `a Polymarket Protocol ${bookProtocol(r.data)} book: unquotable here`;
     else if (!b) conditions[m.cond] = "one-sided book";
     else if (b.negRisk !== m.neg_risk) conditions[m.cond] = `the book's neg_risk is ${b.negRisk}, the selection's ${m.neg_risk}`;
     for (const token of [m.yes_token, m.no_token]) {
@@ -1965,6 +1980,8 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
 
   /** The rows this turn wrote, as `patch` leaves them: with `openAll`'s, what rests after the turn (`detail.after`). */
   const posted: PmOrderRow[] = [];
+  /** When a refusal of the order's version was last reported (`post`), so it is said once an hour. */
+  let versionMismatchAt: string | null = typeof prev.versionMismatchAt === "string" ? prev.versionMismatchAt : null;
   /** Write the order `pending` (the slot's claim), then send it (live) or record what the venue would say (dry-run). */
   const post = async (w: Want, reason: string) => {
     const label = slotLabel(w);
@@ -2020,6 +2037,15 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
       return;
     }
     const out = postOutcome(reply, built.hash);
+    // A refusal for the order's version means the CLOB now signs orders for another exchange version than this path's
+    // (clob-client-v2 re-reads GET /version on "order_version_mismatch"): every order will be refused until the code
+    // follows. Reported once an hour, not every minute (the go-live audit's F4).
+    if (out.state === "rejected" && /order[_ ]version[_ ]mismatch/i.test(out.why)) {
+      if (!versionMismatchAt || d.now - Date.parse(versionMismatchAt) >= 3600e3) {
+        report.errors.push(`${label}: the venue refused the order's version (${out.why.slice(0, 120)}): this path signs CTF Exchange V2 orders only; nothing it sends will rest until the code follows the venue`);
+        versionMismatchAt = nowIso;
+      }
+    }
     const response = { status: reply.status, ok: reply.ok, data: reply.data ?? null, error: reply.error ?? null, refused: reply.refused ?? null, retryAfterS: reply.retryAfterS ?? null, why: out.why, retry: out.retry ?? false };
     if (out.state === "pending") {
       await patch(row, { response });
@@ -2167,6 +2193,8 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
         selectionDay: day, selectionTriedAt, goneDay: day, gone: [...goneToday, ...goneNow.map((x) => x.cond)],
         conditions, conditionKey, readouts, readoutTriedAt,
         // Settled markets whose tokens a turn has read gone from the chain: redeemed, no longer watched.
+        // Kept only once a refusal of the order's version has been reported (`post`), so every other state is as it was.
+        ...(versionMismatchAt ? { versionMismatchAt } : {}),
         redeemed: [...redeemed, ...[...unredeemed, ...newSettlements].filter((s) => [s.yes_token, s.no_token].every((t) => heldOf.has(t) && heldOf.get(t) === 0)).map((s) => s.cond)],
         markets: report.markets, minutes: report.minutes, withheld: report.withheld,
         open: (await db.select<{ id: number }>(T.orders, "state=in.(pending,live)&select=id&limit=50")).length,

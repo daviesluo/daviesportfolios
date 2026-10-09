@@ -402,6 +402,13 @@ under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC s
   - **F3, a POST the venue never took no longer holds its slot for good.** A live row the venue shows nowhere (404) once
     its expiration less the venue's minute has passed cannot rest: closed `expired` with `cancelled_at`, its slot and
     cap freed, said once if it was pending; before that moment it stays for a person, as before. Every path's live
+    read-back and cancel; dry-run untouched. Pin `pm_live.test.ts` "unknown is never rejected … (F3)".
+  - **F4, a Polymarket Protocol V2 book is unquotable.** The docs (2026-10-09) give V2 books `version: "v2"`, signed for
+    0xe3333700… with domain version "3" and a position id; CTF books omit `version`. `bookNow` is null for a book naming
+    any protocol (`bookProtocol`), so the selection passes it over and a selected market whose book turns V2 is withdrawn,
+    recorded as the condition "a Polymarket Protocol v2 book: unquotable here". None of 10-09's ten books names one, and
+    the CLOB's `GET /version` read 2. A refusal "order_version_mismatch" is reported once an hour (`state.versionMismatchAt`,
+    kept only once one is). Pinned in `pm_live.test.ts` (three tests). Platform: Claude Code | Model: not recorded (session policy)
     read-back and cancel; dry-run untouched. Pin `pm_live.test.ts` "unknown is never rejected … (F3)". Platform: Claude Code | Model: not recorded (session policy)
     is not. Pinned in `pm_lp.test.ts` and `index.test.ts`. Platform: Claude Code | Model: not recorded (session policy)
 ### [2026-10-09 01:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
