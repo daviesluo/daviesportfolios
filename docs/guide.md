@@ -391,10 +391,12 @@ places stay when the number is not whole.
   tile is R (ACTUAL), what Polymarket paid over what the reward formula gave
   on the days a payout has been read (a dash until the first); then DAYS,
   each of those days with the formula, what was paid, R and the rebates;
-  and the TESTING pages' QUOTES (each of the day's ten markets, then any
-  still held from an earlier day: its pool, the prices its live orders rest
-  at, a dash while nothing rests there, our share of the pool, what it holds
-  of each token, and what it has made) and FILLS (a fill Polymarket has not confirmed
+  and QUOTES, the TESTING pages' table less its share and rewards columns
+  (each market with an order resting now or a token held, the day's
+  first, then any held from an earlier day: its pool, the prices its live
+  orders rest at, a dash on a side with nothing resting, what it holds of each token and the average price it paid for it,
+  what its orders have made, and its total with what Polymarket paid for it)
+  and FILLS (a fill Polymarket has not confirmed
   yet is marked and counted nowhere). Should its −$75 total stop ever trip,
   a red line under the scoreboard says so. Hide values masks every amount on it.
 - **Fees on the Reward quotes pages.** Every Reward quotes page shows,

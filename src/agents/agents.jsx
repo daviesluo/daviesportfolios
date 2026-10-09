@@ -16,7 +16,7 @@ import { SurfaceBoundary } from '../app/surface_boundary.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, LP_LIVE_ROW_ID, fmtR, lpLiveStatus, rwFeeAsides, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, MID_ROW_ID, LP_ROW_ID, isPrepRowId, prepStopText, positionLines, readAgentsCache, readChartCache, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, rowMoney, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwFillView, rwHeldOf, rwTestedSince, rweCheckWarn, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxSourceText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows, rwRoundText,
+  AGENT_TABS, LP_LIVE_ROW_ID, fmtR, lpLiveStatus, rwFeeAsides, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, MID_ROW_ID, LP_ROW_ID, isPrepRowId, prepStopText, positionLines, readAgentsCache, readChartCache, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, rowMoney, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwCostOf, rwHeldOf, rwTestedSince, rweCheckWarn, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxSourceText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows, rwRoundText,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -673,7 +673,7 @@ function LpLiveDetail({ l, m, at, nowMs }) {
       </section>
       {/* QUOTES and FILLS are the TESTING page's tables, from the live book (Davies, 2026-10-09: "RESTING ORDERS表格还是改为
           testing页的QUOTES表格吧，fills也一样"). */}
-      <RwQuotesTable markets={l.quotes ?? []} m={m} usd={usd} />
+      <RwQuotesTable markets={lpLiveQuoteRows(l.quotes)} m={m} usd={usd} live waiting="Nothing resting and nothing held right now." />
       <RwFillsTable recent={fills} m={m} />
       <div className="ag-updated dim mono ag-lpl-foot">as of {when(at)} {UK_TZ} · refreshes every minute</div>
     </div>
@@ -717,21 +717,23 @@ function RwBar({ v, r, usd, rText = null }) {
  * The Reward quotes pages' QUOTES: each market quoted today, then each still held from an earlier day, with its pool, its
  * quote, our share of the pool, what it holds and what it has made, its rewards and its orders adding up to its total to
  * the cent. TESTING's pages draw it from their paper; LIVE's "Reward quotes" from its live book (Davies, 2026-10-09:
- * "RESTING ORDERS表格还是改为testing页的QUOTES表格吧").
- * @param {{ markets: any[], m: (s: string) => string, usd: (x: number | null | undefined) => string, waiting?: string | null }} props
+ * "RESTING ORDERS表格还是改为testing页的QUOTES表格吧"). LIVE's (`live`) shows no Share and no Rewards and, after Held, the
+ * average price paid for what it holds (Davies, 2026-10-09: "shares列和rewards列也删了，可以在适当位置加一个投入的价格列"); its
+ * Total still counts what Polymarket paid.
+ * @param {{ markets: any[], m: (s: string) => string, usd: (x: number | null | undefined) => string, waiting?: string | null, live?: boolean }} props
  */
-function RwQuotesTable({ markets, m, usd, waiting = null }) {
+function RwQuotesTable({ markets, m, usd, waiting = null, live = false }) {
   return (
     <section className="ag-section ag-rw-markets">
       <div className="ag-section-title mono">QUOTES</div>
       <div className="hl-scroll">
         <table className="hl-table ag-table ag-log mono">
           <thead><tr>
-            <th className="hl-th">Market</th><th className="hl-th">Pool/day</th><th className="hl-th">Quote</th><th className="hl-th">Share</th>
-            <th className="hl-th">Held</th><th className="hl-th">Rewards</th><th className="hl-th">Orders</th><th className="hl-th">Total</th>
+            <th className="hl-th">Market</th><th className="hl-th">Pool/day</th><th className="hl-th">Quote</th>{!live && <th className="hl-th">Share</th>}
+            <th className="hl-th">Held</th>{live ? <th className="hl-th">Avg cost</th> : <th className="hl-th">Rewards</th>}<th className="hl-th">Orders</th><th className="hl-th">Total</th>
           </tr></thead>
           <tbody>
-            {markets.length === 0 && <tr><td className="hl-empty dim" colSpan={8}>{waiting ?? 'No market chosen today yet.'}</td></tr>}
+            {markets.length === 0 && <tr><td className="hl-empty dim" colSpan={live ? 7 : 8}>{waiting ?? 'No market chosen today yet.'}</td></tr>}
             {markets.map((x) => {
               const s = splitCents(Number(x.totalUsd) || 0, [Number(x.rewardUsd) || 0, Number(x.fillsPnlUsd) || 0]);
               const c = { total: s.total, a: s.parts[0], b: s.parts[1] };
@@ -741,9 +743,9 @@ function RwQuotesTable({ markets, m, usd, waiting = null }) {
                   <td>{x.ratePerDay != null ? m(fmtUsd(x.ratePerDay)) : '—'}</td>
                   {/* A paper layer's market whose resting orders are not RW's quote says why: none rest, or they differ. */}
                   <td>{x.bid != null || x.ask != null ? `${m(fmtCents(x.bid))} / ${m(fmtCents(x.ask))}` : x.cls === 'diverged' ? 'not RW’s quote' : '—'}</td>
-                  <td>{x.share != null ? `${Math.round(x.share * 100)} %` : '—'}</td>
+                  {!live && <td>{x.share != null ? `${Math.round(x.share * 100)} %` : '—'}</td>}
                   <td>{m(rwHeldOf(x))}</td>
-                  <td className="ag-gl" style={{ color: pctColor(c.a) }}>{usd(c.a)}</td>
+                  {live ? <td>{m(rwCostOf(x))}</td> : <td className="ag-gl" style={{ color: pctColor(c.a) }}>{usd(c.a)}</td>}
                   <td className="ag-gl" style={{ color: pctColor(c.b) }}>{usd(c.b)}</td>
                   <td className="ag-gl" style={{ color: pctColor(c.total) }}>{usd(c.total)}</td>
                 </tr>

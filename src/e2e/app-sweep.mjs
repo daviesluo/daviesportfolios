@@ -4740,8 +4740,10 @@ async function run() {
           days: ['16 Sep | 2 | $5 | +$2.20 | 0.44 | $0.05'],
           // TESTING's QUOTES from the live book: each market's pool, the quote its live orders rest at in YES's book, our share
           // at the last live minute, what it holds, and what Polymarket paid for it and its orders made, adding up to its total.
-          quotes: ['Will G happen? | $20 | 44¢ / 46¢ | 36 % | — | +$1.05 | +$0.60 | +$1.65', 'Will H happen? | $120 | 70¢ / — | 2 % | 10 No | +$1.20 | +$0.10 | +$1.30',
-            'Will J happen? | $15 | 30¢ / 32¢ | — | 10 Yes | $0 | +$0.10 | +$0.10'],
+          // LIVE's QUOTES has no Share and no Rewards; Avg cost after Held (Davies: "shares列和rewards列也删了，可以在适当位置加一个
+          // 投入的价格列"): H's 10 NO bought at 28¢, J's 10 YES at 30¢; Total still counts what was paid (G 1.05 + 0.60).
+          quotes: ['Will G happen? | $20 | 44¢ / 46¢ | — | — | +$0.60 | +$1.65', 'Will H happen? | $120 | 70¢ / — | 10 No | 28¢ | +$0.10 | +$1.30',
+            'Will J happen? | $15 | 30¢ / 32¢ | 10 Yes | 30¢ | +$0.10 | +$0.10'],
           // TESTING's FILLS: newest first, the MATCHED one marked and counted nowhere. Times are UK (BST).
           fills: ['17 Sep 23:58 not confirmed | Will J happen? | bought Yes | 5 | 30¢', '17 Sep 15:00 | Will J happen? | bought Yes | 10 | 30¢',
             '17 Sep 10:00 | Will G happen? | sold Yes | 20 | 43¢', '16 Sep 13:00 | Will H happen? | bought No | 10 | 28¢', '16 Sep 11:00 | Will G happen? | bought Yes | 20 | 40¢'],
@@ -4750,7 +4752,7 @@ async function run() {
           && lv.held.length === 0 && JSON.stringify(lv.days) === JSON.stringify(WANT.days)
           && JSON.stringify(lv.quotes) === JSON.stringify(WANT.quotes) && JSON.stringify(lv.fills) === JSON.stringify(WANT.fills)
           && /^as of \d{1,2} \w{3} \d{2}:\d{2} [A-Z]+ · refreshes every minute$/.test(lv.foot)) {
-          ok(LT('page'), `its sections are ${WANT.sections}: STATUS ${lv.tiles}; DAYS first, 16 Sep paid $2.20 against a formula of $5 (R 0.44); no STOP AND GATES and no HELD; TESTING's QUOTES (3 markets, H's 10 No and J's 10 Yes in Held) and FILLS (5, one not confirmed)`);
+          ok(LT('page'), `its sections are ${WANT.sections}: STATUS ${lv.tiles}; DAYS first, 16 Sep paid $2.20 against a formula of $5 (R 0.44); no STOP AND GATES and no HELD; QUOTES without Share or Rewards (3 markets, H's 10 No at 28¢ and J's 10 Yes at 30¢) and FILLS (5, one not confirmed)`);
         } else fail(LT('page'), `sections ${lv?.sections}, tiles "${lv?.tiles}", stop-and-gates boxes ${lv?.stopAndGates}, held ${lv?.held.length}, days ${JSON.stringify(lv?.days)}, quotes ${JSON.stringify(lv?.quotes)}, fills ${JSON.stringify(lv?.fills)}, foot "${lv?.foot}"`);
         if (lv && lv.overflow <= 1 && lv.pageOverflow <= 1 && lv.off === 0 && (phoneView || lv.tableOverflow <= 1)) {
           ok(LT('width'), `nothing on its page is wider than the screen (page ${lv.overflow}px, document ${lv.pageOverflow}px, ${lv.off} boxes outside${phoneView ? `, tables scroll inside their boxes by ${lv.tableOverflow}px at most` : ', no table past its box'})`);
@@ -4787,8 +4789,8 @@ async function run() {
         const hRow = hq.rows.find((r) => r.name === 'Reward quotes');
         const hiddenOk = !!hv && !!hRow && !/\$\d/.test(hv.scoreboard) && !/\$\d/.test(hv.split) && hv.tiles === WANT.tiles
           && !hRow.gl.some((t) => /\$\d/.test(t)) && !/\$\d/.test(hRow.sub)
-          && !cellsAt(hv.quotes, [1, 2, 4, 5, 6, 7]).some(digits) && !cellsAt(hv.fills, [3, 4]).some(digits)
-          && !cellsAt(hv.days, [2, 3, 5]).some(digits) && cellsAt(hv.days, [1, 4]).join(',') === '2,0.44' && cellsAt(hv.quotes, [3]).join(',') === '36 %,2 %,—' && hv.fills.length === 5;
+          && !cellsAt(hv.quotes, [1, 2, 3, 4, 5, 6]).some(digits) && hv.quotes.every((r) => r.split(' | ').length === 7) && !cellsAt(hv.fills, [3, 4]).some(digits)
+          && !cellsAt(hv.days, [2, 3, 5]).some(digits) && cellsAt(hv.days, [1, 4]).join(',') === '2,0.44' && hv.fills.length === 5;
         if (hiddenOk) ok(LT('hidden'), "hide-values masks LIVE's Reward quotes row and page: its scoreboard, stop, quotes, holdings, pools, payouts, prices and sizes; its counts, shares, R and times stay");
         else fail(LT('hidden'), `under the mask: row ${JSON.stringify(hRow)}, scoreboard "${hv?.scoreboard}", tiles "${hv?.tiles}", stop "${hv?.stop}", quotes ${JSON.stringify(hv?.quotes)}, days ${JSON.stringify(hv?.days)}`);
         await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));

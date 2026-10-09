@@ -48,6 +48,9 @@ Deno.test("live-prep's live figures for the hand-worked record: the fixture the 
   assertEquals([out.openOrders, out.markets, out.fills, out.armed, out.running, out.lagMinutes, out.liveSince], [5, 3, 4, true, true, 1, "2026-09-16T01:32:21.000Z"]);
   // What it holds is QUOTES' held column (its HELD table went, 2026-10-09): H 10 NO, J 10 YES.
   assertEquals(out.quotes.map((x) => [x.q, x.yes, x.no, x.mark]), [["Will G happen?", 0, 0, 0.45], ["Will H happen?", 0, 10, 0.71], ["Will J happen?", 10, 0, 0.31]]);
+  // And the average price paid for what it still holds (LIVE's Avg cost column): H's NO at 0.28, J's YES at 0.30; G sold
+  // all it bought, so none.
+  assertEquals(out.quotes.map((x) => [x.q, x.yesCost, x.noCost]), [["Will G happen?", null, null], ["Will H happen?", null, 0.28], ["Will J happen?", 0.3, null]]);
   assertEquals(out.days.map((d) => [d.day, d.markets, d.formulaUsd, d.paidUsd, d.r, d.rebateUsd]), [["2026-09-16", 2, 5, 2.2, 0.44, 0.05]]);
   // Newest first, everywhere; the MATCHED fill listed and not counted.
   assertEquals(out.quotes.map((x) => [x.q, x.quoting, x.ratePerDay, x.bid, x.ask, x.share, x.yes, x.no, x.rewardUsd, x.fillsPnlUsd, x.totalUsd]), [

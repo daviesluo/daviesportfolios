@@ -392,6 +392,15 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 "LEDGER.md, archived 2026-10-09", and the 2026-10-08 22:49 → 23:58 UTC sections under "LEDGER.md, archived 2026-10-09
 (second)"; each oldest first.
 
+### [2026-10-09 03:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+- LIVE's "Reward quotes" QUOTES drops Share and Rewards and gains Avg cost after Held (Davies: "shares列和rewards列也删了，
+  可以在适当位置加一个投入的价格列"): `pm_lp_live_view.ts` adds each row's `yesCost` / `noCost` (the average price of what is
+  still held, null for a token not held), `rwCostOf` prints it. TESTING's QUOTES is unchanged. Total still counts what
+  Polymarket paid. The `agents` function redeploys for the new fields; the order path is untouched.
+- Its QUOTES lists only markets with an order resting or a token held (Davies: "只看正在挂单或有持仓的市场",
+  `lpLiveQuoteRows`); QUOTING TODAY still counts the day's chosen markets.
+
 ### [2026-10-09 03:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
 - LIVE's "Reward quotes" page loses STOP AND GATES (Davies: "live页的子页面中stopandgates那部分也删掉"); a tripped

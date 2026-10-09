@@ -1637,6 +1637,29 @@ export function rwHeldOf(x) {
 }
 
 /**
+ * LIVE's QUOTES rows: only the markets with an order resting now or a token held (Davies, 2026-10-09: "只看正在挂单或有持仓的
+ * 市场"). A chosen market the rule is not quoting this minute (TB1's one-tick skip, the pause, no adjusted midpoint, the
+ * caps) and holding nothing has no row; QUOTING TODAY still counts it, and its money stays in the totals.
+ * @param {any[] | null | undefined} quotes  the dashboard's `lpLive.quotes`
+ */
+export function lpLiveQuoteRows(quotes) {
+  return (quotes ?? []).filter((x) => x.bid != null || x.ask != null || (Number(x.yes) || 0) > 0 || (Number(x.no) || 0) > 0);
+}
+
+/**
+ * The average price paid for what a market still holds, as LIVE's QUOTES lists it beside Held (Davies, 2026-10-09:
+ * "可以在适当位置加一个投入的价格列"): each held token's, YES then NO, as Held lists them; a dash when it holds nothing.
+ * @param {{ yes?: number | string | null, no?: number | string | null, yesCost?: number | null, noCost?: number | null }} x
+ */
+export function rwCostOf(x) {
+  const parts = [
+    ...((Number(x.yes) || 0) > 0 && x.yesCost != null ? [fmtCents(x.yesCost)] : []),
+    ...((Number(x.no) || 0) > 0 && x.noCost != null ? [fmtCents(x.noCost)] : []),
+  ];
+  return parts.length ? parts.join(' · ') : '—';
+}
+
+/**
  * A fill as the Reward quotes pages list it: what was done, and at what price. RW's are in its one YES book (a bid bought
  * YES, an ask sold it); the order path's paper layers' are the path's own token trades, "bought No" at the NO price, as
  * the venue would list them.

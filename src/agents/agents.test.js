@@ -6,7 +6,7 @@ import {
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
   newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwxSourceText, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, rwNotRunningText, paperTestRows, rwRoundText, PREP_ROW_ID, MID_ROW_ID, LP_ROW_ID, isPrepRowId, lpRow, midRow, prepRow, prepStopText, rwQuoteRows,
-  LP_LIVE_ROW_ID, fmtR, liveExtraRows, lpLiveRow, lpLiveStatus, rwFeeAsides, rwFeeCells,
+  LP_LIVE_ROW_ID, fmtR, liveExtraRows, lpLiveQuoteRows, lpLiveRow, lpLiveStatus, rwCostOf, rwFeeAsides, rwFeeCells,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies,
   fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney } from './agents.js';
 // The live quotes page's fixture: what the dashboard serves for a book worked out by hand (the agents function's test
@@ -1824,6 +1824,23 @@ describe('lpLiveRow (live-prep\'s real money, "Reward quotes" on LIVE, 2026-10-0
     expect(testing.capitalUsd).toBe(100 + 320);
     expect(testing.realisedUsd).toBeCloseTo(1 + Number(lpFixture.output.realisedUsd), 12);
     expect(venueRows(dash, 'testing', tests).find((c) => c.id === 'polymarket')?.paper).toBe(true);
+  });
+  it("LIVE's QUOTES lists the average price paid for what each market still holds, YES then NO, a dash for none", () => {
+    expect(lpLiveFixture.output.quotes.map((/** @type {any} */ x) => rwCostOf(x))).toEqual(['—', '28¢', '30¢']);
+    expect(rwCostOf({ yes: 46, no: 20, yesCost: 0.5866667, noCost: 0.40 })).toBe('58.7¢ · 40¢');
+    // A cost with nothing held is not shown: what was sold out of is gone.
+    expect(rwCostOf({ yes: 0, no: 0, yesCost: 0.4, noCost: null })).toBe('—');
+  });
+  it("LIVE's QUOTES lists only the markets with an order resting or a token held", () => {
+    const q = lpLiveFixture.output.quotes;
+    expect(lpLiveQuoteRows(q).map((/** @type {any} */ x) => x.q)).toEqual(['Will G happen?', 'Will H happen?', 'Will J happen?']);
+    // A chosen market resting nothing and holding nothing goes; one resting on one side only, or only holding, stays.
+    const rows = [
+      { q: 'quiet', bid: null, ask: null, yes: 0, no: 0 }, { q: 'bid', bid: 0.4, ask: null, yes: 0, no: 0 },
+      { q: 'held', bid: null, ask: null, yes: 0, no: 20 }, { q: 'ask', bid: null, ask: 0.6, yes: 0, no: 0 },
+    ];
+    expect(lpLiveQuoteRows(rows).map((x) => x.q)).toEqual(['bid', 'held', 'ask']);
+    expect(lpLiveQuoteRows(undefined)).toEqual([]);
   });
   it("prints R to two places, a dash without a formula figure", () => {
     expect([fmtR(0.44), fmtR(null), fmtR(1)]).toEqual(['0.44', '—', '1.00']);

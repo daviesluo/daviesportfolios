@@ -187,9 +187,16 @@ export function lpLiveSummary(input: {
     return { bid, ask };
   };
   const minute = new Map((input.minutes ?? []).map((x) => [x.cond, x]));
+  // What it holds of each token, and the average price it paid for what it still holds (null for a token it does not hold):
+  // QUOTES' Held and Avg cost on LIVE (Davies, 2026-10-09: "可以在适当位置加一个投入的价格列").
   const heldOf = (cond: string) => {
     const m = market.get(cond);
-    return m ? { yes: r6(books[m.yes_token]?.held ?? 0), no: r6(books[m.no_token]?.held ?? 0) } : { yes: 0, no: 0 };
+    if (!m) return { yes: 0, no: 0, yesCost: null, noCost: null };
+    const y = books[m.yes_token], n = books[m.no_token];
+    return {
+      yes: r6(y?.held ?? 0), no: r6(n?.held ?? 0),
+      yesCost: y && y.held > 0 ? r6(y.avgCost) : null, noCost: n && n.held > 0 ? r6(n.avgCost) : null,
+    };
   };
   const quotes: Array<Record<string, unknown>> = [];
   const seen = new Set<string>();
