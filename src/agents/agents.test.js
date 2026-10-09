@@ -6,7 +6,7 @@ import {
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
   newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwxSourceText, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, rwNotRunningText, paperTestRows, rwRoundText, PREP_ROW_ID, MID_ROW_ID, LP_ROW_ID, isPrepRowId, lpRow, midRow, prepRow, prepStopText, rwQuoteRows,
-  LP_LIVE_ROW_ID, fmtR, liveExtraRows, lpLiveGates, lpLiveRow, lpLiveStopText, lpSideText,
+  LP_LIVE_ROW_ID, fmtR, liveExtraRows, lpLiveGates, lpLiveRow, lpLiveStatus, lpLiveStopText,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies,
   fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney } from './agents.js';
 // The live quotes page's fixture: what the dashboard serves for a book worked out by hand (the agents function's test
@@ -1770,13 +1770,13 @@ describe('midRow ("Reward quotes mid-pool", 0081)', () => {
   });
 });
 
-describe('lpLiveRow ("Reward quotes live-prep" on LIVE, 2026-10-09)', () => {
+describe('lpLiveRow (live-prep\'s real money, "Reward quotes" on LIVE, 2026-10-09)', () => {
   const l = /** @type {any} */ (lpLiveFixture.output);
   const paperRow = { id: 'trend-4h', venue: 'revx', mode: 'paper', capitalUsd: 100, costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 1, feesUsd: 0, todayUsd: 0, positions: [] };
-  it('is a LIVE row on Polymarket, named without " · live", its figures the live book\'s on their own bases', () => {
+  it('is a LIVE row on Polymarket named "Reward quotes", its figures the live book\'s on their own bases', () => {
     const r = /** @type {any} */ (lpLiveRow(l));
     expect([r.id, r.name, r.mode, r.venueId, r.venue, r.capitalUsd, r.valueUsd, r.costUsd, r.feesUsd, r.openPositions, r.openOrders, r.holdsLive, r.armed])
-      .toEqual([LP_LIVE_ROW_ID, 'Reward quotes live-prep', 'live', 'polymarket', 'Polymarket', 320, 35.2, 5.8, 0, 3, 5, true, true]);
+      .toEqual([LP_LIVE_ROW_ID, 'Reward quotes', 'live', 'polymarket', 'Polymarket', 320, 35.2, 5.8, 0, 3, 5, true, true]);
     expect([r.todayUsd, r.unrealisedUsd, r.realisedUsd]).toEqual([0.8, 0.2, 2.85]);
     expect(r.todayPct).toBeCloseTo(0.8 / 320 * 100, 12);
     expect(r.unrealisedPct).toBeCloseTo(0.2 / 5.8 * 100, 12);
@@ -1786,8 +1786,8 @@ describe('lpLiveRow ("Reward quotes live-prep" on LIVE, 2026-10-09)', () => {
     expect(r.status).toEqual({ label: 'live', running: true, tone: 'running', detail: 'quoting real money in 3 markets' });
     // In dollars, the row's own currency.
     expect(rowMoney(r).ccy).toBe('USD');
-    // Not its paper layer's row: another id, so TESTING's live-prep row and this one never open each other's page.
-    expect(r.id).not.toBe(LP_ROW_ID);
+    // Not TESTING's "Reward quotes" (RW's) nor live-prep's paper row: an id of its own, so no two rows share a page.
+    expect(new Set([r.id, RW_ROW_ID, LP_ROW_ID]).size).toBe(3);
   });
   it('is no row until armed or traded; a stale, stopped or disarmed book says so', () => {
     expect(lpLiveRow(null)).toBe(null);
@@ -1819,7 +1819,7 @@ describe('lpLiveRow ("Reward quotes live-prep" on LIVE, 2026-10-09)', () => {
     expect([card.test.rewards.realisedUsd, card.test.orders.realisedUsd]).toEqual([2.25, 0.6]);
     // TESTING keeps the paper layer's row alone, its card still paper.
     const tests = paperTestRows(dash);
-    expect(tests.map((t) => t.id)).toEqual([LP_ROW_ID]);
+    expect(tests.map((t) => [t.id, t.name])).toEqual([[LP_ROW_ID, 'Reward quotes live-prep']]);
     const testing = scoreboardView(dash, 'testing', tests);
     expect(testing.capitalUsd).toBe(100 + 320);
     expect(testing.realisedUsd).toBeCloseTo(1 + Number(lpFixture.output.realisedUsd), 12);
@@ -1837,7 +1837,14 @@ describe('lpLiveRow ("Reward quotes live-prep" on LIVE, 2026-10-09)', () => {
     expect(lpLiveStopText(l)).toBe('Stops at -$75 on its fills plus what was paid: now +$3 (fills +$0.80, paid +$2.20), $78 to go.');
     expect(/\d/.test(lpLiveStopText(l, (s) => s.replace(/\d/g, '•')))).toBe(false);
     expect(lpLiveStopText({ stop: { ...l.stop, trippedAt: '2026-09-17T20:00:00.000Z' } })).toMatch(/^Tripped 17 Sep 21:00: nothing opens again/);
-    expect([lpSideText({ side: 'BUY', outcome: 'yes' }), lpSideText({ side: 'SELL', outcome: 'no' })]).toEqual(['buy Yes', 'sell No']);
     expect([fmtR(0.44), fmtR(null), fmtR(1)]).toEqual(['0.44', '—', '1.00']);
+  });
+  it("its STATUS is the TESTING page's, R (ACTUAL) where the worst case was: '—' until a payout is read", () => {
+    expect(rwBarTileKeys('run', true)).toEqual(['R (ACTUAL)', 'TOP SHARE', 'QUOTING TODAY', 'POSITIONS STILL HELD']);
+    expect(rwBarTileKeys('run')).toEqual(['WORST CASE', 'TOP SHARE', 'QUOTING TODAY', 'POSITIONS STILL HELD']);
+    // G's 1.65 of 3.05 (54 %); before any payout G's 0.60 of 0.80 (75 %), and R a dash.
+    expect(lpLiveStatus(l)).toEqual({ phase: 'run', rText: '0.44', bestShareText: '54 %', quoting: 3, open: 2 });
+    expect(lpLiveStatus(lpLiveFixture.noPayout)).toEqual({ phase: 'run', rText: '—', bestShareText: '75 %', quoting: 3, open: 2 });
+    expect(lpLiveStatus({ ...l, totalUsd: 0 }).bestShareText).toBe('—');
   });
 });

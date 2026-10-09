@@ -377,21 +377,24 @@ places stay when the number is not whole.
   out with its own quotes in the market's order book, as Polymarket works
   them out. It never picks a market that the other Reward quotes tests
   quote, and leaves out the ones close to them too.
-- **Reward quotes live-prep on LIVE.** Its real-money book, a row of its
-  own on Polymarket since it went live on 9 October, beside its paper row
-  on TESTING (which stays as it was and never adds the real money in).
-  Funded is its cap, the most it may commit; deployed is what its resting
-  buys tie up plus what it holds at cost; today, unrealised and realised
-  come from its confirmed fills at the last minute's mid prices, and
-  realised also counts the rewards and rebates Polymarket actually paid.
-  Tap it for a page of its own: the same scoreboard, the formula's rewards
-  shown apart (counted nowhere) with R, what was paid over what the
-  formula gave; STOP AND GATES, where its −$75 total stop stands and each
-  check of its last minute; HELD, what it holds at cost and at the mid;
-  RESTING ORDERS and RECENT ORDERS, newest first; FILLS, a fill not yet
-  confirmed by Polymarket listed but not counted; and DAYS, each day
-  Polymarket's payouts were read, paid against the formula. Hide values
-  masks every amount on it.
+- **Reward quotes on LIVE.** Live-prep's real-money book, a row of its own
+  on Polymarket since it went live on 9 October, called Reward quotes
+  there; its paper row stays on TESTING as Reward quotes live-prep, beside
+  TESTING's own Reward quotes, and never adds the real money in. Funded is
+  its cap, the most it may commit; deployed is what its resting buys tie up
+  plus what it holds at cost; today, unrealised and realised come from its
+  confirmed fills at the last minute's mid prices, and realised also counts
+  the rewards and rebates Polymarket actually paid. Tap it for a page of its
+  own: the same scoreboard, then STATUS as on the TESTING pages, except that
+  its first tile is R (ACTUAL), what Polymarket paid over what the reward
+  formula gave on the days a payout has been read (a dash until the first);
+  then DAYS, each of those days with the formula, what was paid, R and the
+  rebates; STOP AND GATES, where its −$75 total stop stands and each check of
+  its last minute; HELD, what it holds at cost and at the mid; and the
+  TESTING pages' QUOTES (each market's pool, the prices its live orders rest
+  at, our share of the pool, what it holds, and what it has made) and FILLS
+  (a fill Polymarket has not confirmed yet is marked and counted nowhere).
+  Hide values masks every amount on it.
 - **Reward quotes mini-pool** (markets paying $6 to under $10 a day, the
   first test of that account) left the list and stopped on 8 October: its
   checks had closed and it is not a candidate to go live.

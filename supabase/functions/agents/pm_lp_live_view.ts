@@ -1,6 +1,7 @@
 // "Reward quotes live-prep"'s real-money book as the Agents page shows it: a row of LIVE and a page of its own (Davies,
 // 2026-10-09: "网站的agents live页怎么看不到这个上线", the morning it went live), the way PR5's live executor became one
-// (`quotesLiveRow`). Every figure is read from the order path's own live rows (`pm_lp_*`, mode `live`) through the
+// (`quotesLiveRow`). On LIVE it is called "Reward quotes" (the same day: "live页里"Reward quotes live-prep"改名为"Reward
+// quotes""), and its page's STATUS is the TESTING page's, its worst case replaced by the actual R (`status`). Every figure is read from the order path's own live rows (`pm_lp_*`, mode `live`) through the
 // functions the path judges its stop with: `tokenBooks` on its CONFIRMED fills and its settlements, `bookPnl` at the
 // mids its last turn read. Nothing of the paper layer (`pm_lpprep_*`) or of a dry-run row is read, so its TESTING row
 // stays what it was and the two never add into one another.
@@ -22,8 +23,6 @@
 import { bookPnl, settlementFills, tokenBooks, type PmFill, type PmSettlement } from "./pm_live.ts";
 
 const M = 60e3, DAY = 86400e3;
-/** The newest ended orders the page lists. */
-export const LP_LIVE_RECENT_ORDERS = 30;
 /** The newest fills the page lists. */
 export const LP_LIVE_RECENT_FILLS = 50;
 /** The path turns every minute: a last turn older than this means it has stopped. */
@@ -44,7 +43,12 @@ export type LpLiveRewardDayRow = {
   day: string; cond: string; minutes: number | string | null; minutes_scored: number | string | null; formula_usd: number | string | null;
   actual_usd: number | string | null; actual_sponsored_usd: number | string | null; rebate_usd: number | string | null;
 };
-export type LpLiveMarketRow = { day: string; cond: string; question: string | null; yes_token: string; no_token: string };
+/** The path's selection (`pm_lp_markets`), every day since it went live. */
+export type LpLiveMarketRow = {
+  day: string; cond: string; question: string | null; yes_token: string; no_token: string; reward_rate?: number | string | null; rank?: number | string | null;
+};
+/** The path's live minute (`pm_lp_minutes`, mode `live`) at its last turn: the formula's reward for our quotes and the pool's rate. */
+export type LpLiveMinuteRow = { cond: string; rate: number | string | null; formula_usd: number | string | null };
 /** The live total stop's event (`pm_lp_events`, kind `loss_stop_total`, mode `live`), if it has tripped. */
 export type LpLiveStopRow = { minute: string; detail: unknown };
 
@@ -52,32 +56,36 @@ export type LpLiveStopRow = { minute: string; detail: unknown };
 export const LP_LIVE_ORDER_COLUMNS = "id,ts,cond,token,outcome,side,price,size,state,size_matched,gate,reason,cancel_reason,filled_at,cancelled_at";
 export const LP_LIVE_FILL_COLUMNS = "trade_id,hash,cond,token,side,price,size,status,match_time";
 export const LP_LIVE_REWARD_COLUMNS = "day,cond,minutes,minutes_scored,formula_usd,actual_usd,actual_sponsored_usd,rebate_usd";
+export const LP_LIVE_MARKET_COLUMNS = "day,cond,question,yes_token,no_token,reward_rate,rank";
+export const LP_LIVE_MINUTE_COLUMNS = "cond,rate,formula_usd";
 
 const num = (x: unknown) => { const v = Number(x); return Number.isFinite(v) ? v : 0; };
+const nz = (x: unknown) => (x === null || x === undefined || x === "" ? null : Number(x));
 const r6 = (x: number) => Math.round(x * 1e6) / 1e6;
 const iso = (ms: number) => new Date(ms).toISOString();
 const dayOf = (d: string) => String(d).slice(0, 10);
 
-/** The conditions a summary needs named and marked: those of every fill and every order it lists. */
-export function lpLiveConds(rows: { fills: Array<{ cond: string }>; open: Array<{ cond: string }>; recent: Array<{ cond: string }> }): string[] {
-  return [...new Set([...rows.fills, ...rows.open, ...rows.recent].map((r) => r.cond))].sort();
+/** When the book went live: the arming's time, else (disarmed since) its first live order's; null for neither. */
+export function lpLiveSince(cfg: Pick<LpLiveConfigRow, "live_confirmed_at"> | null, firstLiveOrderTs: string | null): string | null {
+  return cfg?.live_confirmed_at ?? firstLiveOrderTs ?? null;
 }
 
 /**
  * The dashboard's `lpLive`: live-prep's real-money book from its live rows, or null while it is no LIVE row — the
  * config unread, or never armed and never sent a live order. `open` are its live orders resting (pending or live),
- * `recent` its newest ended live orders, `fills` every fill of a live order (the table holds nothing else: a dry-run
+ * `firstLive` its first live order's time, `fills` every fill of a live order (the table holds nothing else: a dry-run
  * never fills), `settlements` the path's own (written only by a live turn), `rewardDays` the readout's live rows,
- * `markets` the path's selection rows for the conditions named, any day, newest first.
+ * `markets` the path's selection since it went live, `minutes` its live minute at the last turn (`state.minute`).
  */
 export function lpLiveSummary(input: {
-  config: LpLiveConfigRow | null; state: LpLiveStateRow | null; open: LpLiveOrderRow[]; recent: LpLiveOrderRow[]; fills: LpLiveFillRow[];
-  settlements: PmSettlement[]; rewardDays: LpLiveRewardDayRow[]; markets: LpLiveMarketRow[]; stop: LpLiveStopRow | null; nowMs: number;
+  config: LpLiveConfigRow | null; state: LpLiveStateRow | null; open: LpLiveOrderRow[]; firstLive: string | null; fills: LpLiveFillRow[];
+  settlements: PmSettlement[]; rewardDays: LpLiveRewardDayRow[]; markets: LpLiveMarketRow[]; minutes?: LpLiveMinuteRow[]; stop: LpLiveStopRow | null;
+  nowMs: number;
 }) {
   const cfg = input.config;
   if (!cfg) return null;
   const armed = cfg.dry_run === false && !!cfg.live_confirmed_at;
-  const tradedLive = input.open.length > 0 || input.recent.length > 0 || input.fills.length > 0;
+  const tradedLive = input.open.length > 0 || !!input.firstLive || input.fills.length > 0;
   if (!armed && !tradedLive) return null;
   const todayStart = Math.floor(input.nowMs / DAY) * DAY, today = iso(todayStart).slice(0, 10);
 
@@ -111,6 +119,7 @@ export function lpLiveSummary(input: {
   const pnl = bookPnl(books, marks);
   let realisedFills = 0, heldCost = 0, heldValue = 0;
   const condOfToken = new Map<string, string>();
+  for (const m of market.values()) { condOfToken.set(m.yes_token, m.cond); condOfToken.set(m.no_token, m.cond); }
   for (const f of input.fills) condOfToken.set(f.token, f.cond);
   const held: Array<Record<string, unknown>> = [];
   for (const [token, t] of Object.entries(books)) {
@@ -146,15 +155,66 @@ export function lpLiveSummary(input: {
 
   // Resting buys tie up their collateral: price × what is left of each.
   const restingBuys = input.open.filter((o) => o.side === "BUY").reduce((s, o) => s + num(o.price) * Math.max(0, num(o.size) - num(o.size_matched)), 0);
-  const orderOut = (o: LpLiveOrderRow) => ({
-    id: Number(o.id), ts: o.ts, cond: o.cond, q: qOf(o.cond), outcome: o.outcome, side: o.side, price: num(o.price), size: num(o.size),
-    matched: num(o.size_matched), state: o.state, gate: o.gate ?? null, reason: o.reason ?? null, cancelReason: o.cancel_reason ?? null,
-    endedAt: o.filled_at ?? o.cancelled_at ?? null,
-  });
+  // Each market's part, as the TESTING page splits it: what Polymarket paid for it (rewards and rebates) and what its two
+  // tokens made at the marks; the parts add up to the total.
+  const partOf = (cond: string) => {
+    const m = market.get(cond);
+    const own: typeof books = {};
+    for (const t of m ? [m.yes_token, m.no_token] : []) if (books[t]) own[t] = books[t];
+    const fillsPnl = m ? bookPnl(own, { [m.yes_token]: marks[m.yes_token] ?? null, [m.no_token]: marks[m.no_token] ?? null }).total : 0;
+    const rewardUsd = input.rewardDays.filter((r) => r.cond === cond).reduce((s, r) => s + num(r.actual_usd) + num(r.actual_sponsored_usd) + num(r.rebate_usd), 0);
+    return { rewardUsd: r6(rewardUsd), fillsPnlUsd: r6(fillsPnl), totalUsd: r6(rewardUsd + fillsPnl) };
+  };
+  let best = -Infinity;
+  for (const cond of new Set([...input.rewardDays.map((r) => r.cond), ...Object.keys(books).map((t) => condOfToken.get(t) ?? t)])) best = Math.max(best, partOf(cond).totalUsd);
+
+  // QUOTES, the TESTING page's table from the live book: today's markets by rank, then those still held from an earlier
+  // day. A market's quote is what its live orders rest at, in YES's book (a buy of YES or a sell of NO is a bid, a buy of
+  // NO or a sell of YES an ask; the best of each side); its share is the formula's reward for our quotes at the last live
+  // minute over the pool's rate a minute, as RW's page shows it.
+  const restingOn = (cond: string) => {
+    let bid: number | null = null, ask: number | null = null;
+    for (const o of input.open.filter((x) => x.cond === cond)) {
+      const p = num(o.price), isBid = (o.outcome === "yes") === (o.side === "BUY"), yes = o.outcome === "yes" ? p : r6(1 - p);
+      if (isBid) bid = bid === null ? yes : Math.max(bid, yes); else ask = ask === null ? yes : Math.min(ask, yes);
+    }
+    return { bid, ask };
+  };
+  const minute = new Map((input.minutes ?? []).map((x) => [x.cond, x]));
+  const heldOf = (cond: string) => {
+    const m = market.get(cond);
+    return m ? { yes: r6(books[m.yes_token]?.held ?? 0), no: r6(books[m.no_token]?.held ?? 0) } : { yes: 0, no: 0 };
+  };
+  const quotes: Array<Record<string, unknown>> = [];
+  const seen = new Set<string>();
+  for (const m of input.markets.filter((x) => dayOf(x.day) === today).sort((x, y) => num(x.rank) - num(y.rank))) {
+    if (seen.has(m.cond)) continue;
+    seen.add(m.cond);
+    const q = restingOn(m.cond), x = minute.get(m.cond), f = nz(x?.formula_usd), rate = nz(x?.rate);
+    quotes.push({
+      cond: m.cond, q: m.question || qOf(m.cond), rank: num(m.rank), quoting: true, ratePerDay: nz(m.reward_rate),
+      cls: q.bid !== null || q.ask !== null ? "matched" : "dark", bid: q.bid, ask: q.ask, ...heldOf(m.cond), mark: mid.get(m.cond) ?? null,
+      share: f !== null && f > 0 && rate !== null && rate > 0 ? r6((f * 1440) / rate) : null, ...partOf(m.cond),
+    });
+  }
+  for (const h of held) {
+    const cond = String(h.cond);
+    if (seen.has(cond)) continue;
+    seen.add(cond);
+    const q = restingOn(cond);
+    quotes.push({
+      cond, q: qOf(cond), rank: null, quoting: false, ratePerDay: null, cls: q.bid !== null || q.ask !== null ? "matched" : "dark", bid: q.bid, ask: q.ask,
+      ...heldOf(cond), mark: mid.get(cond) ?? null, share: null, ...partOf(cond),
+    });
+  }
+  const quotingToday = quotes.filter((x) => x.quoting).length;
+  // FILLS, the TESTING page's table: each fill as the venue lists it, newest first; one not yet CONFIRMED is listed,
+  // marked, and counted nowhere.
   const fillTs = (f: LpLiveFillRow) => (f.match_time ? Date.parse(f.match_time) : input.nowMs);
   const recentFills = [...input.fills].sort((a, b) => fillTs(b) - fillTs(a) || (a.trade_id < b.trade_id ? 1 : a.trade_id > b.trade_id ? -1 : 0))
     .slice(0, LP_LIVE_RECENT_FILLS).map((f) => ({
-      tradeId: f.trade_id, ts: f.match_time, cond: f.cond, q: qOf(f.cond), outcome: outcomeOf(f.cond, f.token), side: f.side, price: num(f.price), size: num(f.size),
+      tradeId: f.trade_id, ts: iso(fillTs(f)), minute: iso(Math.floor(fillTs(f) / M) * M), cond: f.cond, q: qOf(f.cond), side: f.side === "BUY" ? "bid" : "ask",
+      price: num(f.price), size: num(f.size), tokenSide: f.side, outcome: outcomeOf(f.cond, f.token), tokenPrice: num(f.price),
       status: f.status, counted: f.status === "CONFIRMED",
     }));
 
@@ -164,7 +224,7 @@ export function lpLiveSummary(input: {
   const lagMinutes = lastTurn ? Math.max(0, Math.round((input.nowMs - Date.parse(lastTurn)) / M)) : null;
   const marketsAtWork = new Set([...input.open.map((o) => o.cond), ...held.map((h) => String(h.cond))]);
   return {
-    armed, dryRun: !!cfg.dry_run, liveSince: cfg.live_confirmed_at, tradedLive,
+    armed, dryRun: !!cfg.dry_run, liveSince: lpLiveSince(cfg, input.firstLive), tradedLive,
     lastTurn, lagMinutes, running: lagMinutes !== null && lagMinutes <= LP_LIVE_STALE_MINUTES, lastError: input.state?.last_error ?? null,
     capUsd: num(cfg.cap_total_usd),
     valueUsd: r6(restingBuys + heldCost), restingBuysUsd: r6(restingBuys), costUsd: r6(heldCost), heldValueUsd: r6(heldValue),
@@ -172,7 +232,11 @@ export function lpLiveSummary(input: {
     unrealisedUsd: r6(pnl.total - realisedFills),
     realisedUsd: r6(realisedFills + paid + rebates), realisedFillsUsd: r6(realisedFills), paidUsd: r6(paid), rebateUsd: r6(rebates),
     totalUsd: r6(pnl.total + paid + rebates), feesUsd: 0,
+    // R, the actual over the formula on the live days whose payout has been read; null before the first is.
     formulaUsd: r6(formula), r: formula > 0 ? r6(paid / formula) : null,
+    // The TESTING page's STATUS tiles, but R (ACTUAL) for its worst case: the largest market's part (TOP SHARE is it over
+    // the total), the markets chosen today, and the markets still holding tokens.
+    status: { bestMarketUsd: Number.isFinite(best) ? r6(best) : null, quoting: quotingToday, held: quotes.filter((x) => Number(x.yes) + Number(x.no) > 0).length },
     stop: {
       limitUsd: limit, fillsPnlUsd: r6(pnl.total), paidUsd: r6(paid), basisUsd: r6(basis), roomUsd: limit == null ? null : r6(limit + basis),
       trippedAt: input.stop?.minute ?? null,
@@ -182,8 +246,6 @@ export function lpLiveSummary(input: {
       ? { mode: st.mode ?? null, armed: !!st.armed, verdicts: st.gates, openBlockedBy: st.openBlockedBy ?? null, reduceBlockedBy: st.reduceBlockedBy ?? null }
       : null,
     openOrders: input.open.length, markets: marketsAtWork.size, fills: confirmed.length,
-    resting: [...input.open].sort((a, b) => Number(b.id) - Number(a.id)).map(orderOut),
-    recent: [...input.recent].sort((a, b) => Number(b.id) - Number(a.id)).slice(0, LP_LIVE_RECENT_ORDERS).map(orderOut),
-    recentFills, held, days,
+    quotes, recentFills, held, days,
   };
 }

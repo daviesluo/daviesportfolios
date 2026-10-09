@@ -1287,7 +1287,8 @@ export const LP_LIVE_ROW_ID = '__lp_live';
  * TESTING, is in it. Funded is the path's total cap; deployed what its resting buys tie up and what it holds at cost;
  * today and realised are on that cap, unrealised on what its holdings cost; realised is its fills' and settlements' plus what
  * Polymarket paid (rewards and maker rebates), split for the Polymarket card into rewards and orders, to the cent. Its
- * name carries no " · live", as no LIVE row's does. null while it has never been armed nor sent a live order.
+ * name carries no " · live", as no LIVE row's does, and on LIVE it is "Reward quotes". null while it has never been armed
+ * nor sent a live order.
  * @param {any} l  the dashboard's `lpLive`
  */
 export function lpLiveRow(l) {
@@ -1301,7 +1302,9 @@ export function lpLiveRow(l) {
   const stopped = !!l.stop?.trippedAt;
   return {
     id: LP_LIVE_ROW_ID,
-    name: 'Reward quotes live-prep',
+    // "Reward quotes" on LIVE (Davies, 2026-10-09: "live页里"Reward quotes live-prep"改名为"Reward quotes""); its id
+    // keeps it apart from TESTING's "Reward quotes" (RW's, `RW_ROW_ID`) and its paper row (`LP_ROW_ID`).
+    name: 'Reward quotes',
     venue: venueLabel('polymarket'),
     venueId: 'polymarket',
     mode: 'live',
@@ -1374,11 +1377,24 @@ export function lpLiveStopText(l, m = (s) => s) {
     + ` (fills ${m(fmtUsd(Number(st.fillsPnlUsd) || 0, true))}, paid ${m(fmtUsd(Number(st.paidUsd) || 0, true))}), ${st.roomUsd == null ? '—' : m(fmtUsd(Number(st.roomUsd)))} to go.`;
 }
 
-/** An order or a fill of live-prep's as its page says it: "buy Yes", "sell No". @param {{ side: string, outcome: string | null }} o */
-export const lpSideText = (o) => `${o.side === 'BUY' ? 'buy' : 'sell'} ${o.outcome === 'yes' ? 'Yes' : o.outcome === 'no' ? 'No' : '?'}`;
 
 /** R, what Polymarket paid over what the formula gave, to two places; a dash without a formula figure. @param {number | null | undefined} r */
 export const fmtR = (r) => (r == null || !Number.isFinite(Number(r)) ? '—' : Number(r).toFixed(2));
+
+/**
+ * The STATUS block of LIVE's "Reward quotes" page, the TESTING page's (`RwBar`) from the live book: R (ACTUAL) in place of
+ * the worst case, "—" until a payout is read; TOP SHARE, the largest market's part of the total, as `rwView` reads it;
+ * the markets chosen today; the markets still holding tokens.
+ * @param {any} l  the dashboard's `lpLive`
+ */
+export function lpLiveStatus(l) {
+  const best = l?.status?.bestMarketUsd == null ? null : Number(l.status.bestMarketUsd), total = Number(l?.totalUsd) || 0;
+  return {
+    phase: 'run', rText: fmtR(l?.r),
+    bestShareText: best != null && total > 0 ? `${Math.round((100 * best) / total)} %` : '—',
+    quoting: Number(l?.status?.quoting) || 0, open: Number(l?.status?.held) || 0,
+  };
+}
 
 /**
  * Pounds, the stablecoin quotes' own currency: their capital, P&L, loss stop and balances (Davies, 2026-10-01). Written
@@ -1604,9 +1620,14 @@ export function rwSplit(r) {
   };
 }
 
-/** Tiles under RW's status: the pessimistic total, how concentrated it is, markets quoting today, positions still held. @param {string} [_phase] */
-export function rwBarTileKeys(_phase) {
-  return ['WORST CASE', 'TOP SHARE', 'QUOTING TODAY', 'POSITIONS STILL HELD'];
+/**
+ * Tiles under RW's status: the pessimistic total, how concentrated it is, markets quoting today, positions still held. A
+ * real-money book (LIVE's "Reward quotes") has no worst case: its first tile is the actual R, what Polymarket paid over
+ * what the formula gave (Davies, 2026-10-09: "STATUS里WORST CASE部分改为实际R值").
+ * @param {string} [_phase] @param {boolean} [live]
+ */
+export function rwBarTileKeys(_phase, live = false) {
+  return [live ? 'R (ACTUAL)' : 'WORST CASE', 'TOP SHARE', 'QUOTING TODAY', 'POSITIONS STILL HELD'];
 }
 
 /**

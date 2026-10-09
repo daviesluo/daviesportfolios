@@ -166,7 +166,7 @@ import { PM_LIVE_TIMEOUT_MS, PM_MINI_INSTANCE, runPmLive, type PmSettlement } fr
 import { PREP_INSTANCE, runPmPrep, type PrepInstance } from "./pm_prep.ts";
 import { PM_MID_INSTANCE, PREP_MID_INSTANCE } from "./pm_mid.ts";
 import { PM_LP_INSTANCE, PREP_LP_INSTANCE } from "./pm_lp.ts";
-import { LP_LIVE_FILL_COLUMNS, LP_LIVE_ORDER_COLUMNS, LP_LIVE_RECENT_ORDERS, LP_LIVE_REWARD_COLUMNS, lpLiveConds, lpLiveSummary, type LpLiveConfigRow, type LpLiveFillRow, type LpLiveMarketRow, type LpLiveOrderRow, type LpLiveRewardDayRow, type LpLiveStateRow, type LpLiveStopRow } from "./pm_lp_live_view.ts";
+import { LP_LIVE_FILL_COLUMNS, LP_LIVE_MARKET_COLUMNS, LP_LIVE_MINUTE_COLUMNS, LP_LIVE_ORDER_COLUMNS, LP_LIVE_REWARD_COLUMNS, lpLiveSince, lpLiveSummary, type LpLiveConfigRow, type LpLiveFillRow, type LpLiveMarketRow, type LpLiveMinuteRow, type LpLiveOrderRow, type LpLiveRewardDayRow, type LpLiveStateRow, type LpLiveStopRow } from "./pm_lp_live_view.ts";
 import { PREP_STRESS_TABLE, recordPrepStress, stressLayer } from "./pm_prep_stress.ts";
 import { prepSummary, type PrepDayRow, type PrepStressDayRow, type PrepFillRow, type PrepMarketRow, type PrepMinuteRow, type PrepRateRow, type PrepStateRow } from "./pm_prep_view.ts";
 import { JEV_QUESTION_VERSION, positionFromFills, unrealisedUsd, type CategoricalState, type Position, type StrategyKind } from "../_shared/agents_strategy.ts";
@@ -1646,20 +1646,24 @@ export async function readLpLive(d: Db, now: number) {
     const cfg = await d.select<LpLiveConfigRow>(T.config, "id=eq.1&select=dry_run,live_confirmed_at,cap_total_usd,loss_total_usd");
     if (!cfg[0]) return null;
     const st = await d.select<LpLiveStateRow>(T.state, "id=eq.1&select=state,updated_at,last_error");
-    const [open, recent, fills, settlements, rewardDays, stop] = await Promise.all([
+    const first = await d.select<{ ts: string }>(T.orders, "mode=eq.live&select=ts&order=id.asc&limit=1");
+    const firstDay = (lpLiveSince(cfg[0], first[0]?.ts ?? null) ?? new Date(now).toISOString()).slice(0, 10);
+    const minute = (st[0]?.state as { minute?: unknown } | null)?.minute;
+    const [open, fills, settlements, rewardDays, stop, markets, minutes] = await Promise.all([
       d.select<LpLiveOrderRow>(T.orders, `mode=eq.live&state=in.(pending,live)&select=${LP_LIVE_ORDER_COLUMNS}&order=id.desc&limit=200`),
-      d.select<LpLiveOrderRow>(T.orders, `mode=eq.live&state=in.(filled,cancelled,expired,rejected)&select=${LP_LIVE_ORDER_COLUMNS}&order=id.desc&limit=${LP_LIVE_RECENT_ORDERS}`),
       // Paged: every fill counts towards the book, and PostgREST stops at 1,000 rows without a word.
       d.selectAll<LpLiveFillRow>(T.fills, `select=${LP_LIVE_FILL_COLUMNS}&order=trade_id.asc,hash.asc`),
       d.selectAll<PmSettlement>(T.settlements, "select=cond,yes_token,no_token,payout,settled_at&order=cond.asc"),
       d.selectAll<LpLiveRewardDayRow>(T.rewardDays, `mode=eq.live&select=${LP_LIVE_REWARD_COLUMNS}&order=mode.asc,day.asc,cond.asc`),
       d.select<LpLiveStopRow>(T.events, "mode=eq.live&kind=eq.loss_stop_total&select=minute,detail&order=minute.asc&limit=1"),
+      // The path's selection since it went live (ten markets a day at most): every market it can have quoted or held live.
+      d.select<LpLiveMarketRow>(T.markets, `day=gte.${firstDay}&select=${LP_LIVE_MARKET_COLUMNS}&order=day.asc,cond.asc&limit=1000`),
+      // Its live minute at the last turn: each market's formula reward for our quotes, which QUOTES' share reads.
+      typeof minute === "string"
+        ? d.select<LpLiveMinuteRow>(T.minutes, `mode=eq.live&minute=eq.${encodeURIComponent(minute)}&select=${LP_LIVE_MINUTE_COLUMNS}&order=cond.asc`)
+        : Promise.resolve([] as LpLiveMinuteRow[]),
     ]);
-    const conds = lpLiveConds({ fills, open, recent });
-    const markets = conds.length
-      ? await d.select<LpLiveMarketRow>(T.markets, `cond=in.(${conds.map(encodeURIComponent).join(",")})&select=day,cond,question,yes_token,no_token&order=day.desc&limit=1000`)
-      : [];
-    return lpLiveSummary({ config: cfg[0], state: st[0] ?? null, open, recent, fills, settlements, rewardDays, markets, stop: stop[0] ?? null, nowMs: now });
+    return lpLiveSummary({ config: cfg[0], state: st[0] ?? null, open, firstLive: first[0]?.ts ?? null, fills, settlements, rewardDays, markets, minutes, stop: stop[0] ?? null, nowMs: now });
   } catch { return null; }
 }
 

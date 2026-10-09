@@ -391,6 +391,14 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 2026-10-08, under "LEDGER.md, archived 2026-10-08", and the 2026-10-08 16:59 → 18:35 UTC sections under
 "LEDGER.md, archived 2026-10-09"; each oldest first.
 
+### [2026-10-09 02:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LIVE's live-prep row is "Reward quotes", its page below the scoreboard reshaped** (Davies, three messages: rename;
+  "STATUS里WORST CASE部分改为实际R值"; "表格部分还是用现在的live页里的设计…RECENT ORDERS表删了，DAYS表放在所有表最上面";
+  "RESTING ORDERS表格还是改为testing页的QUOTES表格吧，fills也一样"). Page: TESTING's STATUS with R (ACTUAL) = Σ paid ÷ Σ formula
+  on live days read ("—" before), then DAYS, STOP AND GATES, HELD, TESTING's QUOTES and FILLS (`RwQuotesTable`,
+  `RwFillsTable`, now shared). `lpLive` gains `status`, `quotes`, TESTING-shaped fills and the live minute's share; no
+  `pm_lpprep_*` read. TESTING's two rows keep their names (distinct ids). Not pushed.
+
 ### [2026-10-09 02:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The Sonnet sub-agent tier runs at high effort: `sonnet-high` replaces `sonnet-max`** (Davies, 2026-10-09: "以后sonnet的都
   从max改为…", then "改成 sonnet-high吧"). `.claude/agents/sonnet-max.md` is now `sonnet-high.md` (`effort: high`);

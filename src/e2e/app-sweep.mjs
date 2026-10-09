@@ -837,7 +837,7 @@ const AGENTS_NOT_READY = {
  * `rw-cents` (RW's figures where each part rounds on its own), `rwc-warmup` (a dashboard that still sends RW-C in its
  * warm-up, which adds no row), `rwc-running` (from RW-C's first minute: every Reward quotes row reads RW-C's run) and `quotesv` (the quote test's variant beside it).
  */
-let agentsMode = /** @type {'ok' | 'notReady' | 'error' | 'paused' | 'live' | 'live-unarmed' | 'rw-cents' | 'pr5-live' | 'pr5-live-noexit' | 'rwx-waiting' | 'rwc-warmup' | 'rwc-running' | 'quotesv' | 'prep' | 'mid' | 'lp' | 'lp-live' | 'lp-live-off'} */ ('ok');
+let agentsMode = /** @type {'ok' | 'notReady' | 'error' | 'paused' | 'live' | 'live-unarmed' | 'rw-cents' | 'pr5-live' | 'pr5-live-noexit' | 'rwx-waiting' | 'rwc-warmup' | 'rwc-running' | 'quotesv' | 'prep' | 'mid' | 'lp' | 'lp-live' | 'lp-live-off' | 'lp-live-nopay'} */ ('ok');
 /**
  * The reload section's levers: the book the `data` function hands back (a
  * server row's prices are those of its last SAVE, not what the page showed),
@@ -1152,10 +1152,12 @@ const LP_FIXTURE = JSON.parse(fs.readFileSync(new URL('./lp_fixture.json', impor
  * held at cost), today +$0.80, unrealised +$0.20, realised +$2.85 = paid +$2.20 and rebates +$0.05 (rewards +$2.25) and
  * orders +$0.60; the formula's $5 apart, R 0.44; its stop reads +$3, $78 to go. Served beside PR5's live executor (the
  * `lp-live` mode), so LIVE adds two books, and its paper layer's TESTING row beside them; `lp-live-off` is the same
- * without it, to show TESTING does not move.
+ * without it, to show TESTING does not move; `lp-live-nopay` the same book before any payout is read (its `noPayout`).
+ * On LIVE it is "Reward quotes"; its page's STATUS reads R (ACTUAL) 0.44, TOP SHARE 54 % (G's 1.65 of 3.05), 3 quoting
+ * today, 2 held; its QUOTES rows G 44¢ / 46¢ 36 %, H 70¢ / — 2 %, J 30¢ / 32¢.
  */
 const LP_LIVE_FIXTURE = JSON.parse(fs.readFileSync(new URL('./lp_live_fixture.json', import.meta.url), 'utf8'));
-const AGENTS_LP_LIVE = (/** @type {boolean} */ withLive) => ({ ...AGENTS_PR5_LIVE(), prepLp: LP_FIXTURE.output, ...(withLive ? { lpLive: LP_LIVE_FIXTURE.output } : {}) });
+const AGENTS_LP_LIVE = (/** @type {false | 'output' | 'noPayout'} */ which) => ({ ...AGENTS_PR5_LIVE(), prepLp: LP_FIXTURE.output, ...(which ? { lpLive: LP_LIVE_FIXTURE[which] } : {}) });
 const AGENTS_PR5_LIVE = () => {
   const d = AGENTS_DASHBOARD;
   return { ...d, quotes: { ...d.quotes, live: QUOTES_LIVE_FIXTURE.live } };
@@ -1514,7 +1516,7 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
       if (agentsMode === 'prep') return json({ ...AGENTS_DASHBOARD, prep: PREP_FIXTURE.output });
       if (agentsMode === 'mid') return json({ ...AGENTS_DASHBOARD, prep: PREP_FIXTURE.output, prepMid: MID_FIXTURE.output });
       if (agentsMode === 'lp') return json({ ...AGENTS_DASHBOARD, prep: PREP_FIXTURE.output, prepMid: MID_FIXTURE.output, prepLp: LP_FIXTURE.output });
-      if (agentsMode === 'lp-live' || agentsMode === 'lp-live-off') return json(AGENTS_LP_LIVE(agentsMode === 'lp-live'));
+      if (agentsMode === 'lp-live' || agentsMode === 'lp-live-off' || agentsMode === 'lp-live-nopay') return json(AGENTS_LP_LIVE(agentsMode === 'lp-live' ? 'output' : agentsMode === 'lp-live-nopay' ? 'noPayout' : false));
       if (agentsMode === 'error') {
         return route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ error: 'agents crashed', message: 'db GET agent_strategies → 500: {"code":"57014","message":"canceling statement due to statement timeout"}' }) });
       }
@@ -4614,8 +4616,10 @@ async function run() {
 
       // ---- "Reward quotes live-prep" on LIVE (Davies, 2026-10-09: "网站的agents live页怎么看不到这个上线") -----------
       // Its real-money book (LP_LIVE_FIXTURE, worked by hand there) beside PR5's: a LIVE row of its own on Polymarket,
-      // named without " · live", in LIVE's scoreboard and a Polymarket card once each; its paper layer stays on TESTING,
-      // whose totals do not move; its page opens over the list; hide-values masks its amounts; nothing wider than the screen.
+      // named "Reward quotes" (the same day: "改名为"Reward quotes""), in LIVE's scoreboard and a Polymarket card once each;
+      // its paper layer stays on TESTING as "Reward quotes live-prep", whose totals do not move, beside TESTING's own
+      // "Reward quotes"; its page opens over the list: the TESTING page's STATUS with R (ACTUAL), DAYS first, then STOP AND
+      // GATES, HELD, and TESTING's QUOTES and FILLS; hide-values masks its amounts; nothing wider than the screen.
       {
         const LT = (n) => S(`lp-live/${n}`);
         const L = LP_LIVE_FIXTURE.output, Q = QUOTES_LIVE_FIXTURE.live;
@@ -4633,10 +4637,10 @@ async function run() {
         await atRest(page);
         const q0 = await readAgentsPanel(page);
         await shot(page, 'agents-lp-live-list');
-        const lpr = q0.rows.find((r) => r.name === 'Reward quotes live-prep');
-        if (opened(q0) === 'live' && barText(q0).startsWith('LIVE 2 Real money · trading armed / ') && q0.rows.map((r) => r.name).join(',') === 'Stablecoin quotes,Reward quotes live-prep'
+        const lpr = q0.rows.find((r) => r.name === 'Reward quotes');
+        if (opened(q0) === 'live' && barText(q0).startsWith('LIVE 2 Real money · trading armed / ') && q0.rows.map((r) => r.name).join(',') === 'Stablecoin quotes,Reward quotes'
           && lpr && lpr.badges === 0 && lpr.venue === 'Polymarket' && lpr.sub === '3 open · $320 cap' && JSON.stringify(lpr.gl.map((t) => t.replace(/\s+/g, ' '))) === JSON.stringify(LP_GL)) {
-          ok(LT('row'), `LIVE opens on two books, PR5's and live-prep's: "Reward quotes live-prep", no badge, Polymarket, 3 open · $320 cap, ${LP_GL.join(' / ')}`);
+          ok(LT('row'), `LIVE opens on two books, PR5's and live-prep's: "Reward quotes", no badge, Polymarket, 3 open · $320 cap, ${LP_GL.join(' / ')}`);
         } else fail(LT('row'), `open ${opened(q0)}, bar ${barText(q0)}, rows ${JSON.stringify(q0.rows.map((r) => [r.name, r.badges, r.venue, r.sub, r.gl]))}, wanted ${LP_GL.join(' / ')}`);
         // The scoreboard is PR5's and live-prep's added once, to the cent; the two venue cards add up to it.
         const sb = sbText(q0);
@@ -4658,10 +4662,11 @@ async function run() {
         await openAgentsPage(page);
         await clickTab('testing');
         const t0 = await readAgentsPanel(page);
-        const lpPaper = t1.rows.filter((r) => r.name === 'Reward quotes live-prep');
-        if (sbText(t1) === sbText(t0) && JSON.stringify(t1.venues.map((v) => v.pairs)) === JSON.stringify(t0.venues.map((v) => v.pairs)) && lpPaper.length === 1 && t1.rows.length === t0.rows.length) {
-          ok(LT('testing'), `TESTING keeps live-prep's paper row alone and reads the same with the live book as without it (${sbText(t1)})`);
-        } else fail(LT('testing'), `TESTING with ${sbText(t1)} / without ${sbText(t0)}, its live-prep rows ${lpPaper.length}`);
+        const lpPaper = t1.rows.filter((r) => r.name === 'Reward quotes live-prep'), rwRows = t1.rows.filter((r) => r.name === 'Reward quotes');
+        if (sbText(t1) === sbText(t0) && JSON.stringify(t1.venues.map((v) => v.pairs)) === JSON.stringify(t0.venues.map((v) => v.pairs)) && lpPaper.length === 1 && rwRows.length === 1
+          && JSON.stringify(t1.rows.map((r) => r.name)) === JSON.stringify(t0.rows.map((r) => r.name))) {
+          ok(LT('testing'), `TESTING keeps "Reward quotes" and "Reward quotes live-prep" under their names and reads the same with the live book as without it (${sbText(t1)})`);
+        } else fail(LT('testing'), `TESTING with ${sbText(t1)} / without ${sbText(t0)}, its live-prep rows ${lpPaper.length}, its Reward quotes rows ${rwRows.length}, names ${t1.rows.map((r) => r.name)}`);
         await closeBy(page, () => page.keyboard.press('Escape'));
 
         // Its page, over the list in the same window.
@@ -4673,7 +4678,7 @@ async function run() {
           const rows = (/** @type {string} */ sel) => [...root.querySelectorAll(`${sel} tbody tr`)].map((tr) => [...tr.querySelectorAll('td')].map(txt).join(' | '));
           const titles = document.querySelectorAll('.modal .modal-title');
           const vw = document.documentElement.clientWidth;
-          const off = [...root.querySelectorAll('.ag-scoreboard, .ag-lpl-gate, .ag-lpl-stop-line, .ag-note, .ag-section-title, .hl-scroll, .ag-updated')]
+          const off = [...root.querySelectorAll('.ag-scoreboard, .ag-rw-tile, .ag-lpl-gate, .ag-lpl-stop-line, .ag-section-title, .hl-scroll, .ag-updated')]
             .map((el) => el.getBoundingClientRect()).filter((r) => r.width > 0 && (r.left < -1 || r.right > vw + 1)).length;
           return {
             title: txt(titles[titles.length - 1]), modals: document.querySelectorAll('.modal').length, refresh: !!document.querySelectorAll('.modal')[1]?.querySelector('button[aria-label="Refresh"]'),
@@ -4683,11 +4688,12 @@ async function run() {
               const asides = [...c.querySelectorAll('.ag-sb-aside')].map(txt);
               return `${txt(c.querySelector('.ag-sb-name'))}${asides.length ? ` [${asides.join('; ')}]` : ''}=${txt(c.querySelector('.sb-value'))}`;
             }).join(' | '),
-            split: [...root.querySelectorAll('.ag-sb-split-line')].map(txt).join(' / '), formula: txt(root.querySelector('.ag-lpl-formula')),
+            split: [...root.querySelectorAll('.ag-sb-split-line')].map(txt).join(' / '),
+            tiles: [...root.querySelectorAll('.ag-rw-bar .ag-rw-tile')].map((t) => `${txt(t.querySelector('.ag-rw-tile-k'))}=${txt(t.querySelector('.ag-rw-tile-v'))}`).join(' | '),
             sections: [...root.querySelectorAll('.ag-section > .ag-section-title')].map(txt),
             stop: txt(root.querySelector('.ag-lpl-stop-line')), gates: [...root.querySelectorAll('.ag-lpl-gate')].map((g) => `${txt(g)}:${[...g.classList].find((c) => /^is-/.test(c))}`),
             gatesSum: txt(root.querySelector('.ag-lpl-gates-sum')),
-            held: rows('.ag-lpl-held'), resting: rows('.ag-lpl-resting'), recent: rows('.ag-lpl-recent'), fills: rows('.ag-lpl-fills'), days: rows('.ag-lpl-days'),
+            held: rows('.ag-lpl-held'), quotes: rows('.ag-rw-markets'), fills: rows('.ag-rw-fills'), days: rows('.ag-lpl-days'),
             paperPage: document.querySelectorAll('.ag-rw-detail').length, foot: txt(root.querySelector('.ag-lpl-foot')),
             overflow: root.scrollWidth - root.clientWidth, pageOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth, off,
             tableOverflow: Math.max(0, ...[...root.querySelectorAll('.hl-scroll')].map((el) => el.scrollWidth - el.clientWidth)),
@@ -4695,37 +4701,41 @@ async function run() {
         });
         await openAgentsPage(page);
         await waitFor(async () => (await page.locator('#ag-modetab-live .ag-modetab-count').textContent()) === '2');
-        await page.locator('.ag-strategies-live .ag-row', { has: nameBtn(page, 'Reward quotes live-prep') }).first().click();
+        await page.locator('.ag-strategies-live .ag-row', { has: nameBtn(page, 'Reward quotes') }).first().click();
         await settled(page, '.ag-lp-live-detail');
         const lv = await readLpLivePage();
         await shot(page, 'agents-lp-live-page');
-        for (const [sel, name] of [['.ag-lpl-resting', 'agents-lp-live-orders'], ['.ag-lpl-days', 'agents-lp-live-days']]) {
+        for (const [sel, name] of [['.ag-lpl-held', 'agents-lp-live-held'], ['.ag-rw-markets', 'agents-lp-live-quotes'], ['.ag-rw-fills', 'agents-lp-live-fills']]) {
           await page.locator(`.ag-lp-live-detail ${sel}`).first().scrollIntoViewIfNeeded().catch(() => {});
           await shot(page, name);
         }
         const phoneView = vpWidth <= 760;
         const PAGE_SB = `FUNDED=$320 | DEPLOYED=$35.20(11%) | TODAY=${LP_GL[0].replace(' ', '')} | UNREALIZED G/L=${LP_GL[1].replace(' ', '')} | REALIZED G/L [(incl. fees $0)]=${LP_GL[2].replace(' ', '')}`;
-        if (lv && lv.title === 'Reward quotes live-prep' && lv.modals === 2 && lv.refresh && lv.head === 'LIVE Polymarket' && lv.status === 'running' && /^live 1d 21h$/.test(lv.tested)
+        if (lv && lv.title === 'Reward quotes' && lv.modals === 2 && lv.refresh && lv.head === 'LIVE Polymarket' && lv.status === 'running' && /^live 1d 21h$/.test(lv.tested)
           && lv.paperPage === 0 && lv.scoreboard === PAGE_SB && lv.split === 'rewards paid +$2.25 / orders +$0.60') {
           ok(LT('page'), `its row opens its own page over the list, with a refresh button: LIVE Polymarket, running · ${lv.tested}; its scoreboard is the row's (${lv.scoreboard}), realised split into rewards paid and orders`);
         } else fail(LT('page'), `page ${JSON.stringify(lv && { title: lv.title, modals: lv.modals, refresh: lv.refresh, head: lv.head, status: lv.status, tested: lv.tested, paper: lv.paperPage, sb: lv.scoreboard, split: lv.split })}, wanted ${PAGE_SB}`);
         const WANT = {
-          sections: 'STOP AND GATES,HELD,RESTING ORDERS,RECENT ORDERS,FILLS,DAYS',
-          formula: 'Formula rewards, not counted: $5 over 1 day read · R 0.44 (paid ÷ formula)',
+          sections: 'STATUS,DAYS,STOP AND GATES,HELD,QUOTES,FILLS',
+          tiles: 'R (ACTUAL)=0.44 | TOP SHARE=54 % | QUOTING TODAY=3 | POSITIONS STILL HELD=2',
           stop: 'Stops at -$75 on its fills plus what was paid: now +$3 (fills +$0.80, paid +$2.20), $78 to go.',
           held: ['Will H happen? | No | 10 | 28¢ | 29¢ | +$0.10', 'Will J happen? | Yes | 10 | 30¢ | 31¢ | +$0.10'],
           days: ['16 Sep | 2 | $5 | +$2.20 | 0.44 | $0.05'],
+          // TESTING's QUOTES from the live book: each market's pool, the quote its live orders rest at in YES's book, our share
+          // at the last live minute, what it holds, and what Polymarket paid for it and its orders made, adding up to its total.
+          quotes: ['Will G happen? | $20 | 44¢ / 46¢ | 36 % | — | +$1.05 | +$0.60 | +$1.65', 'Will H happen? | $120 | 70¢ / — | 2 % | 10 No | +$1.20 | +$0.10 | +$1.30',
+            'Will J happen? | $15 | 30¢ / 32¢ | — | 10 Yes | $0 | +$0.10 | +$0.10'],
+          // TESTING's FILLS: newest first, the MATCHED one marked and counted nowhere. Times are UK (BST).
+          fills: ['17 Sep 23:58 not confirmed | Will J happen? | bought Yes | 5 | 30¢', '17 Sep 15:00 | Will J happen? | bought Yes | 10 | 30¢',
+            '17 Sep 10:00 | Will G happen? | sold Yes | 20 | 43¢', '16 Sep 13:00 | Will H happen? | bought No | 10 | 28¢', '16 Sep 11:00 | Will G happen? | bought Yes | 20 | 40¢'],
         };
-        const restingStates = (lv?.resting ?? []).map((r) => r.split(' | ').slice(2).join(' | '));
-        if (lv && lv.sections.join(',') === WANT.sections && lv.formula === WANT.formula && lv.stop === WANT.stop
+        if (lv && lv.sections.join(',') === WANT.sections && lv.tiles === WANT.tiles && lv.stop === WANT.stop
           && lv.gates.length === 10 && lv.gates.every((g) => g.endsWith(':is-pass')) && lv.gatesSum === 'every gate open'
           && JSON.stringify(lv.held) === JSON.stringify(WANT.held) && JSON.stringify(lv.days) === JSON.stringify(WANT.days)
-          && JSON.stringify(restingStates) === JSON.stringify(['buy No | 68¢ | 10 | pending', 'buy Yes | 30¢ | 15 | 5', 'sell No | 30¢ | 10 | 0', 'buy No | 54¢ | 20 | 0', 'buy Yes | 44¢ | 20 | 0'])
-          && lv.recent.length === 6 && lv.recent.map((r) => r.split(' | ').at(-1)).join(',') === 'filled,filled,expired,filled,cancelled,filled'
-          && lv.fills.length === 5 && lv.fills[0].endsWith('| matched') && lv.fills.slice(1).every((r) => r.endsWith('| confirmed'))
+          && JSON.stringify(lv.quotes) === JSON.stringify(WANT.quotes) && JSON.stringify(lv.fills) === JSON.stringify(WANT.fills)
           && /^as of \d{1,2} \w{3} \d{2}:\d{2} [A-Z]+ · refreshes every minute$/.test(lv.foot)) {
-          ok(LT('page'), `its sections are ${WANT.sections}: the stop (${lv.stop}), ten gates open, 2 held, 5 resting newest first (a pending one), 6 ended, 5 fills (one matched, not counted), 16 Sep paid $2.20 against a formula of $5 (R 0.44)`);
-        } else fail(LT('page'), `sections ${lv?.sections}, formula "${lv?.formula}", stop "${lv?.stop}", gates ${JSON.stringify(lv?.gates)} "${lv?.gatesSum}", held ${JSON.stringify(lv?.held)}, resting ${JSON.stringify(restingStates)}, recent ${JSON.stringify(lv?.recent)}, fills ${JSON.stringify(lv?.fills)}, days ${JSON.stringify(lv?.days)}, foot "${lv?.foot}"`);
+          ok(LT('page'), `its sections are ${WANT.sections}: STATUS ${lv.tiles}; DAYS first, 16 Sep paid $2.20 against a formula of $5 (R 0.44); the stop and ten gates open; 2 held; TESTING's QUOTES (3 markets) and FILLS (5, one not confirmed)`);
+        } else fail(LT('page'), `sections ${lv?.sections}, tiles "${lv?.tiles}", stop "${lv?.stop}", gates ${JSON.stringify(lv?.gates)} "${lv?.gatesSum}", held ${JSON.stringify(lv?.held)}, days ${JSON.stringify(lv?.days)}, quotes ${JSON.stringify(lv?.quotes)}, fills ${JSON.stringify(lv?.fills)}, foot "${lv?.foot}"`);
         if (lv && lv.overflow <= 1 && lv.pageOverflow <= 1 && lv.off === 0 && (phoneView || lv.tableOverflow <= 1)) {
           ok(LT('width'), `nothing on its page is wider than the screen (page ${lv.overflow}px, document ${lv.pageOverflow}px, ${lv.off} boxes outside${phoneView ? `, tables scroll inside their boxes by ${lv.tableOverflow}px at most` : ', no table past its box'})`);
         } else fail(LT('width'), `page overflow ${lv?.overflow}, document ${lv?.pageOverflow}, boxes outside ${lv?.off}, tables ${lv?.tableOverflow}`);
@@ -4734,23 +4744,37 @@ async function run() {
         else fail(LT('page'), 'its page did not close back to LIVE');
         await closeBy(page, () => page.keyboard.press('Escape'));
 
+        // Before Polymarket's first payout is read: R (ACTUAL) is a dash and DAYS has no day; TOP SHARE is G's 0.60 of 0.80.
+        agentsMode = 'lp-live-nopay';
+        await openAgentsPage(page);
+        await waitFor(async () => (await page.locator('#ag-modetab-live .ag-modetab-count').textContent()) === '2');
+        await page.locator('.ag-strategies-live .ag-row', { has: nameBtn(page, 'Reward quotes') }).first().click();
+        await settled(page, '.ag-lp-live-detail');
+        const np = await readLpLivePage();
+        if (np && np.tiles === 'R (ACTUAL)=— | TOP SHARE=75 % | QUOTING TODAY=3 | POSITIONS STILL HELD=2' && np.days.length === 1 && /^No day read yet/.test(np.days[0])) {
+          ok(LT('r'), `with no payout read, R (ACTUAL) is a dash: ${np.tiles}; DAYS: "${np.days[0]}"`);
+        } else fail(LT('r'), `no payout: tiles "${np?.tiles}", days ${JSON.stringify(np?.days)}`);
+        await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
+        await closeBy(page, () => page.keyboard.press('Escape'));
+        agentsMode = 'lp-live';
+
         // Under hide-values, every amount, price and size on its row and its page is masked; counts, R and times are not.
         await toggleHidden(page);
         await openAgentsPage(page);
         await waitFor(async () => (await page.locator('#ag-modetab-live .ag-modetab-count').textContent()) === '2');
         const hq = await readAgentsPanel(page);
-        await page.locator('.ag-strategies-live .ag-row', { has: nameBtn(page, 'Reward quotes live-prep') }).first().click();
+        await page.locator('.ag-strategies-live .ag-row', { has: nameBtn(page, 'Reward quotes') }).first().click();
         await settled(page, '.ag-lp-live-detail');
         const hv = await readLpLivePage();
         const digits = (/** @type {string} */ t) => /\d/.test(t);
         const cellsAt = (/** @type {string[]} */ rows, /** @type {number[]} */ at) => rows.flatMap((r) => at.map((i) => r.split(' | ')[i] ?? ''));
-        const hRow = hq.rows.find((r) => r.name === 'Reward quotes live-prep');
-        const hiddenOk = !!hv && !!hRow && !/\$\d/.test(hv.scoreboard) && !/\$\d/.test(hv.split) && !/\$\d/.test(hv.stop) && !/\$\d/.test(hv.formula) && /R 0\.44/.test(hv.formula)
+        const hRow = hq.rows.find((r) => r.name === 'Reward quotes');
+        const hiddenOk = !!hv && !!hRow && !/\$\d/.test(hv.scoreboard) && !/\$\d/.test(hv.split) && !/\$\d/.test(hv.stop) && hv.tiles === WANT.tiles
           && !hRow.gl.some((t) => /\$\d/.test(t)) && !/\$\d/.test(hRow.sub)
-          && !cellsAt(hv.held, [2, 3, 4, 5]).some(digits) && !cellsAt([...hv.resting, ...hv.recent], [3, 4]).some(digits) && !cellsAt(hv.fills, [3, 4]).some(digits)
-          && !cellsAt(hv.days, [2, 3, 5]).some(digits) && cellsAt(hv.days, [1, 4]).join(',') === '2,0.44' && hv.resting.length === 5;
-        if (hiddenOk) ok(LT('hidden'), "hide-values masks live-prep's row and page: its scoreboard, stop, formula, holdings, prices, sizes and payouts; its counts, R and times stay");
-        else fail(LT('hidden'), `under the mask: row ${JSON.stringify(hRow)}, scoreboard "${hv?.scoreboard}", stop "${hv?.stop}", held ${JSON.stringify(hv?.held)}, resting ${JSON.stringify(hv?.resting?.[0])}, days ${JSON.stringify(hv?.days)}`);
+          && !cellsAt(hv.held, [2, 3, 4, 5]).some(digits) && !cellsAt(hv.quotes, [1, 2, 4, 5, 6, 7]).some(digits) && !cellsAt(hv.fills, [3, 4]).some(digits)
+          && !cellsAt(hv.days, [2, 3, 5]).some(digits) && cellsAt(hv.days, [1, 4]).join(',') === '2,0.44' && cellsAt(hv.quotes, [3]).join(',') === '36 %,2 %,—' && hv.fills.length === 5;
+        if (hiddenOk) ok(LT('hidden'), "hide-values masks LIVE's Reward quotes row and page: its scoreboard, stop, holdings, quotes, pools, payouts, prices and sizes; its counts, shares, R and times stay");
+        else fail(LT('hidden'), `under the mask: row ${JSON.stringify(hRow)}, scoreboard "${hv?.scoreboard}", tiles "${hv?.tiles}", stop "${hv?.stop}", held ${JSON.stringify(hv?.held)}, quotes ${JSON.stringify(hv?.quotes)}, days ${JSON.stringify(hv?.days)}`);
         await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
         await closeBy(page, () => page.keyboard.press('Escape'));
         await toggleHidden(page);                       // values shown again for everything after this

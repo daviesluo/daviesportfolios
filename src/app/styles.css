@@ -2417,4 +2417,3 @@ body {
 .ag-lpl-gate.is-fail { color: var(--loss); border-color: var(--loss); }
 .ag-lpl-gate.is-na { color: var(--chalk-mute); }
 .ag-lpl-gates-sum { font-size: 11px; margin-top: 6px; }
-.ag-state-live, .ag-state-expired { color: var(--chalk-dim); }
