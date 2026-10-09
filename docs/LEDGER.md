@@ -391,6 +391,20 @@ archived 2026-09-26", the 2026-09-25 → 09-28 sections, with the what-remains l
 under "LEDGER.md, archived 2026-10-01", and the 2026-09-30 → 10-08 16:52 UTC sections, with the list as it stood on
 2026-10-08, under "LEDGER.md, archived 2026-10-08"; each oldest first.
 
+### [2026-10-09 01:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Reward quotes live-prep is LIVE since 2026-10-09 01:32:21 UTC** (Davies: "可以按原计划上线 … 期间你再验证一下所有系统和
+  下单等所有上线会用到的细节都确保没有问题", then "live-prep等代理修好后你再审核一遍，确定所有都没问题了再上线，并且上线后派个便宜
+  代理盯着"). Before it: the go-live audit's fixes landed (1e41c315, `pm_live.ts` `a208878b…`, live-prep Addendum 5),
+  deployed by edge-functions at ~01:31; the coordinator reviewed the diff; the probe (pg_net, 01:32) read the account
+  funded at the design's size, `conditional.sellsApproved` both true, 0 open orders; step 8lp's pre-read (keyed, no
+  signer problem, pUSD read 14 s before, eu-west-1, mini-pool and mid-pool unarmed, attested, no global pause). Step
+  8lp ran word for word; read back `dry_run` false, `live_confirmed_at` 01:32:21.868885, `cap_total_usd` 320. First live
+  turn 01:33: mode live, every gate true (`ctf_approval` true), 14 live post-only BUYs, no error. A `sonnet-max` watch
+  reads it every 5 min to 02:40 and every 15 to 07:40 UTC and reports to the session. The Agents page's LIVE tab does
+  not show it yet: a live row and page for it are being built (opus-high, branch `lp-live-row`). Kill switches:
+  `update public.pm_lp_config set live_confirmed_at = null where id = 1;` (no new buys; sells stay), `dry_run = true`
+  (cancels its live orders), `agent_risk.global_pause`.
+
 ### [2026-10-09 01:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **LPRESEL6 frozen** (Davies on the 6-hour re-selection: "这个你觉得有必要加吗？有必要的话就加上"): an offline forward test of
   live-prep's rule against it re-selecting at 06/12/18 UTC, on pm-rec's whole-universe record 10-09 → 10-23, bar at
