@@ -414,6 +414,14 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 "LEDGER.md, archived 2026-10-09", and the 2026-10-08 22:49 → 23:58 UTC sections under "LEDGER.md, archived 2026-10-09
 (second)"; each oldest first.
 
+### [2026-10-09 20:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **VB-K design** (Davies: "VB-K也可以自动化…交给grokbot给我点…和polymarket也可以结合"): `reviews/2026-10-09-vbk-design.md`,
+  `backtests/vbk/` (map row); keyless, nothing bet or signed up for. Out of sample, edge ≥ 2 %, odds < 5 against the
+  exchange: +5.7 % on 1,134 bets (t 1.33); year 1 at £1,000 with limits and a 5-min delay about £180 (P(loss) 33 %),
+  plus about £470 of sign-up offers once.
+- Polymarket is a fair-price source, not a value venue or a cheap lay leg. Open: the paper phase (§7 draft) needs
+  Davies' Odds API key and his word.
+
 ### [2026-10-09 18:56 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **STATARB-2, the second stat-arb search** (Davies: "除了这三个还有别的好的吗？还有别的统计套利吗？而且不一定要和现有策略类似的"):
   `reviews/2026-10-09-stat-arb-search-2.md`, evidence `backtests/statarb_search2/` (map row). Keyless public data only;

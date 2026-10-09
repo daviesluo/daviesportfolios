@@ -1,0 +1,724 @@
+{
+ "plan": {
+  "1000": {
+   "a_no_limits.n_central": {
+    "bets_placed_mean": 400,
+    "mean": 401,
+    "p5": -560,
+    "p50": 404,
+    "p95": 1360,
+    "p_loss": 0.245
+   },
+   "a_no_limits.n_high": {
+    "bets_placed_mean": 550,
+    "mean": 548,
+    "p5": -564,
+    "p50": 547,
+    "p95": 1685,
+    "p_loss": 0.212
+   },
+   "a_no_limits.n_low": {
+    "bets_placed_mean": 250,
+    "mean": 255,
+    "p5": -497,
+    "p50": 251,
+    "p95": 1017,
+    "p_loss": 0.288
+   },
+   "a_no_limits.r_central": {
+    "bets_placed_mean": 400,
+    "mean": 380,
+    "p5": -570,
+    "p50": 376,
+    "p95": 1334,
+    "p_loss": 0.258
+   },
+   "a_no_limits.r_central.kelly_q_cap2": {
+    "bets_placed_mean": 400,
+    "mean": 209,
+    "p5": -129,
+    "p50": 204,
+    "p95": 552,
+    "p_loss": 0.152
+   },
+   "a_no_limits.r_high": {
+    "bets_placed_mean": 400,
+    "mean": 620,
+    "p5": -327,
+    "p50": 607,
+    "p95": 1599,
+    "p_loss": 0.139
+   },
+   "a_no_limits.r_low": {
+    "bets_placed_mean": 400,
+    "mean": 220,
+    "p5": -726,
+    "p50": 212,
+    "p95": 1175,
+    "p_loss": 0.359
+   },
+   "a_no_limits.r_zero": {
+    "bets_placed_mean": 400,
+    "mean": -18,
+    "p5": -951,
+    "p50": -19,
+    "p95": 927,
+    "p_loss": 0.514
+   },
+   "b_limits_central.two_years": {
+    "bets_placed_mean": 377,
+    "mean": 366,
+    "p5": -545,
+    "p50": 353,
+    "p95": 1330,
+    "p_loss": 0.26
+   },
+   "b_limits_central.year1": {
+    "bets_placed_mean": 281,
+    "mean": 269,
+    "p5": -523,
+    "p50": 257,
+    "p95": 1102,
+    "p_loss": 0.296
+   },
+   "b_limits_fast.two_years": {
+    "bets_placed_mean": 176,
+    "mean": 170,
+    "p5": -425,
+    "p50": 160,
+    "p95": 807,
+    "p_loss": 0.334
+   },
+   "b_limits_fast.year1": {
+    "bets_placed_mean": 154,
+    "mean": 139,
+    "p5": -422,
+    "p50": 130,
+    "p95": 733,
+    "p_loss": 0.354
+   },
+   "b_limits_slow.two_years": {
+    "bets_placed_mean": 657,
+    "mean": 654,
+    "p5": -564,
+    "p50": 640,
+    "p95": 1867,
+    "p_loss": 0.196
+   },
+   "b_limits_slow.year1": {
+    "bets_placed_mean": 379,
+    "mean": 368,
+    "p5": -571,
+    "p50": 359,
+    "p95": 1312,
+    "p_loss": 0.27
+   },
+   "c_limits_central_delay_10min.year1": {
+    "bets_placed_mean": 190,
+    "mean": 132,
+    "p5": -494,
+    "p50": 126,
+    "p95": 794,
+    "p_loss": 0.379
+   },
+   "c_limits_central_delay_2min.year1": {
+    "bets_placed_mean": 255,
+    "mean": 236,
+    "p5": -515,
+    "p50": 225,
+    "p95": 989,
+    "p_loss": 0.305
+   },
+   "c_limits_central_delay_5min.two_years": {
+    "bets_placed_mean": 329,
+    "mean": 244,
+    "p5": -600,
+    "p50": 233,
+    "p95": 1082,
+    "p_loss": 0.322
+   },
+   "c_limits_central_delay_5min.year1": {
+    "bets_placed_mean": 225,
+    "mean": 182,
+    "p5": -498,
+    "p50": 180,
+    "p95": 884,
+    "p_loss": 0.333
+   },
+   "c_limits_central_delay_5min.year1.kelly_q_cap2": {
+    "bets_placed_mean": 225,
+    "mean": 103,
+    "p5": -139,
+    "p50": 100,
+    "p95": 355,
+    "p_loss": 0.252
+   },
+   "c_no_limits_delay_10min.year1": {
+    "bets_placed_mean": 220,
+    "mean": 156,
+    "p5": -543,
+    "p50": 151,
+    "p95": 854,
+    "p_loss": 0.356
+   },
+   "c_no_limits_delay_2min.year1": {
+    "bets_placed_mean": 340,
+    "mean": 308,
+    "p5": -560,
+    "p50": 306,
+    "p95": 1178,
+    "p_loss": 0.28
+   },
+   "c_no_limits_delay_5min.year1": {
+    "bets_placed_mean": 280,
+    "mean": 222,
+    "p5": -562,
+    "p50": 213,
+    "p95": 1018,
+    "p_loss": 0.323
+   }
+  },
+  "500": {
+   "a_no_limits.n_central": {
+    "bets_placed_mean": 400,
+    "mean": 201,
+    "p5": -280,
+    "p50": 202,
+    "p95": 680,
+    "p_loss": 0.245
+   },
+   "a_no_limits.n_high": {
+    "bets_placed_mean": 550,
+    "mean": 274,
+    "p5": -282,
+    "p50": 273,
+    "p95": 843,
+    "p_loss": 0.212
+   },
+   "a_no_limits.n_low": {
+    "bets_placed_mean": 250,
+    "mean": 128,
+    "p5": -248,
+    "p50": 126,
+    "p95": 509,
+    "p_loss": 0.288
+   },
+   "a_no_limits.r_central": {
+    "bets_placed_mean": 400,
+    "mean": 190,
+    "p5": -285,
+    "p50": 188,
+    "p95": 667,
+    "p_loss": 0.258
+   },
+   "a_no_limits.r_central.kelly_q_cap2": {
+    "bets_placed_mean": 400,
+    "mean": 104,
+    "p5": -64,
+    "p50": 102,
+    "p95": 276,
+    "p_loss": 0.152
+   },
+   "a_no_limits.r_high": {
+    "bets_placed_mean": 400,
+    "mean": 310,
+    "p5": -164,
+    "p50": 304,
+    "p95": 799,
+    "p_loss": 0.139
+   },
+   "a_no_limits.r_low": {
+    "bets_placed_mean": 400,
+    "mean": 110,
+    "p5": -363,
+    "p50": 106,
+    "p95": 588,
+    "p_loss": 0.359
+   },
+   "a_no_limits.r_zero": {
+    "bets_placed_mean": 400,
+    "mean": -9,
+    "p5": -476,
+    "p50": -9,
+    "p95": 463,
+    "p_loss": 0.514
+   },
+   "b_limits_central.two_years": {
+    "bets_placed_mean": 377,
+    "mean": 183,
+    "p5": -273,
+    "p50": 176,
+    "p95": 665,
+    "p_loss": 0.26
+   },
+   "b_limits_central.year1": {
+    "bets_placed_mean": 281,
+    "mean": 135,
+    "p5": -261,
+    "p50": 129,
+    "p95": 551,
+    "p_loss": 0.296
+   },
+   "b_limits_fast.two_years": {
+    "bets_placed_mean": 176,
+    "mean": 85,
+    "p5": -212,
+    "p50": 80,
+    "p95": 404,
+    "p_loss": 0.334
+   },
+   "b_limits_fast.year1": {
+    "bets_placed_mean": 154,
+    "mean": 70,
+    "p5": -211,
+    "p50": 65,
+    "p95": 367,
+    "p_loss": 0.354
+   },
+   "b_limits_slow.two_years": {
+    "bets_placed_mean": 657,
+    "mean": 327,
+    "p5": -282,
+    "p50": 320,
+    "p95": 933,
+    "p_loss": 0.196
+   },
+   "b_limits_slow.year1": {
+    "bets_placed_mean": 379,
+    "mean": 184,
+    "p5": -286,
+    "p50": 180,
+    "p95": 656,
+    "p_loss": 0.27
+   },
+   "c_limits_central_delay_10min.year1": {
+    "bets_placed_mean": 190,
+    "mean": 66,
+    "p5": -247,
+    "p50": 63,
+    "p95": 397,
+    "p_loss": 0.379
+   },
+   "c_limits_central_delay_2min.year1": {
+    "bets_placed_mean": 255,
+    "mean": 118,
+    "p5": -257,
+    "p50": 112,
+    "p95": 495,
+    "p_loss": 0.305
+   },
+   "c_limits_central_delay_5min.two_years": {
+    "bets_placed_mean": 329,
+    "mean": 122,
+    "p5": -300,
+    "p50": 117,
+    "p95": 541,
+    "p_loss": 0.322
+   },
+   "c_limits_central_delay_5min.year1": {
+    "bets_placed_mean": 225,
+    "mean": 91,
+    "p5": -249,
+    "p50": 90,
+    "p95": 442,
+    "p_loss": 0.333
+   },
+   "c_limits_central_delay_5min.year1.kelly_q_cap2": {
+    "bets_placed_mean": 225,
+    "mean": 52,
+    "p5": -70,
+    "p50": 50,
+    "p95": 178,
+    "p_loss": 0.252
+   },
+   "c_no_limits_delay_10min.year1": {
+    "bets_placed_mean": 220,
+    "mean": 78,
+    "p5": -271,
+    "p50": 76,
+    "p95": 427,
+    "p_loss": 0.356
+   },
+   "c_no_limits_delay_2min.year1": {
+    "bets_placed_mean": 340,
+    "mean": 154,
+    "p5": -280,
+    "p50": 153,
+    "p95": 589,
+    "p_loss": 0.28
+   },
+   "c_no_limits_delay_5min.year1": {
+    "bets_placed_mean": 280,
+    "mean": 111,
+    "p5": -281,
+    "p50": 106,
+    "p95": 509,
+    "p_loss": 0.323
+   }
+  },
+  "5000": {
+   "a_no_limits.n_central": {
+    "bets_placed_mean": 400,
+    "mean": 2007,
+    "p5": -2802,
+    "p50": 2020,
+    "p95": 6799,
+    "p_loss": 0.245
+   },
+   "a_no_limits.n_high": {
+    "bets_placed_mean": 550,
+    "mean": 2738,
+    "p5": -2822,
+    "p50": 2734,
+    "p95": 8426,
+    "p_loss": 0.212
+   },
+   "a_no_limits.n_low": {
+    "bets_placed_mean": 250,
+    "mean": 1276,
+    "p5": -2484,
+    "p50": 1257,
+    "p95": 5086,
+    "p_loss": 0.288
+   },
+   "a_no_limits.r_central": {
+    "bets_placed_mean": 400,
+    "mean": 1899,
+    "p5": -2848,
+    "p50": 1879,
+    "p95": 6670,
+    "p_loss": 0.258
+   },
+   "a_no_limits.r_central.kelly_q_cap2": {
+    "bets_placed_mean": 400,
+    "mean": 1043,
+    "p5": -644,
+    "p50": 1020,
+    "p95": 2759,
+    "p_loss": 0.152
+   },
+   "a_no_limits.r_high": {
+    "bets_placed_mean": 400,
+    "mean": 3102,
+    "p5": -1636,
+    "p50": 3037,
+    "p95": 7995,
+    "p_loss": 0.139
+   },
+   "a_no_limits.r_low": {
+    "bets_placed_mean": 400,
+    "mean": 1102,
+    "p5": -3629,
+    "p50": 1059,
+    "p95": 5877,
+    "p_loss": 0.359
+   },
+   "a_no_limits.r_zero": {
+    "bets_placed_mean": 400,
+    "mean": -90,
+    "p5": -4757,
+    "p50": -94,
+    "p95": 4635,
+    "p_loss": 0.514
+   },
+   "b_limits_central.two_years": {
+    "bets_placed_mean": 377,
+    "mean": 1832,
+    "p5": -2726,
+    "p50": 1763,
+    "p95": 6648,
+    "p_loss": 0.26
+   },
+   "b_limits_central.year1": {
+    "bets_placed_mean": 281,
+    "mean": 1345,
+    "p5": -2613,
+    "p50": 1286,
+    "p95": 5512,
+    "p_loss": 0.296
+   },
+   "b_limits_fast.two_years": {
+    "bets_placed_mean": 176,
+    "mean": 852,
+    "p5": -2123,
+    "p50": 800,
+    "p95": 4036,
+    "p_loss": 0.334
+   },
+   "b_limits_fast.year1": {
+    "bets_placed_mean": 154,
+    "mean": 695,
+    "p5": -2112,
+    "p50": 650,
+    "p95": 3667,
+    "p_loss": 0.354
+   },
+   "b_limits_slow.two_years": {
+    "bets_placed_mean": 657,
+    "mean": 3272,
+    "p5": -2819,
+    "p50": 3199,
+    "p95": 9333,
+    "p_loss": 0.196
+   },
+   "b_limits_slow.year1": {
+    "bets_placed_mean": 379,
+    "mean": 1841,
+    "p5": -2855,
+    "p50": 1796,
+    "p95": 6561,
+    "p_loss": 0.27
+   },
+   "c_limits_central_delay_10min.year1": {
+    "bets_placed_mean": 190,
+    "mean": 659,
+    "p5": -2472,
+    "p50": 628,
+    "p95": 3968,
+    "p_loss": 0.379
+   },
+   "c_limits_central_delay_2min.year1": {
+    "bets_placed_mean": 255,
+    "mean": 1179,
+    "p5": -2574,
+    "p50": 1125,
+    "p95": 4946,
+    "p_loss": 0.305
+   },
+   "c_limits_central_delay_5min.two_years": {
+    "bets_placed_mean": 329,
+    "mean": 1219,
+    "p5": -2998,
+    "p50": 1166,
+    "p95": 5408,
+    "p_loss": 0.322
+   },
+   "c_limits_central_delay_5min.year1": {
+    "bets_placed_mean": 225,
+    "mean": 908,
+    "p5": -2492,
+    "p50": 899,
+    "p95": 4421,
+    "p_loss": 0.333
+   },
+   "c_limits_central_delay_5min.year1.kelly_q_cap2": {
+    "bets_placed_mean": 225,
+    "mean": 516,
+    "p5": -697,
+    "p50": 502,
+    "p95": 1775,
+    "p_loss": 0.252
+   },
+   "c_no_limits_delay_10min.year1": {
+    "bets_placed_mean": 220,
+    "mean": 780,
+    "p5": -2713,
+    "p50": 757,
+    "p95": 4271,
+    "p_loss": 0.356
+   },
+   "c_no_limits_delay_2min.year1": {
+    "bets_placed_mean": 340,
+    "mean": 1542,
+    "p5": -2802,
+    "p50": 1529,
+    "p95": 5892,
+    "p_loss": 0.28
+   },
+   "c_no_limits_delay_5min.year1": {
+    "bets_placed_mean": 280,
+    "mean": 1110,
+    "p5": -2812,
+    "p50": 1064,
+    "p95": 5092,
+    "p_loss": 0.323
+   }
+  }
+ },
+ "pool": {
+  "bets": 1134,
+  "mean_edge": 0.0497,
+  "mean_odds": 3.04
+ },
+ "replay": {
+  "oos_bets_1x2_close_exc.csv.gz": {
+   "flat1": {
+    "bets": 201,
+    "bets_per_year": 94,
+    "final_multiple": 1.5662,
+    "growth_per_year": 0.2328,
+    "longest_losing_streak": 5,
+    "max_drawdown": 0.0545,
+    "roi_on_turnover": 0.2817,
+    "turnover_per_year_x_start": 0.94,
+    "years": 2.14
+   },
+   "flat2": {
+    "bets": 201,
+    "bets_per_year": 94,
+    "final_multiple": 2.1324,
+    "growth_per_year": 0.4237,
+    "longest_losing_streak": 5,
+    "max_drawdown": 0.0929,
+    "roi_on_turnover": 0.2817,
+    "turnover_per_year_x_start": 1.88,
+    "years": 2.14
+   },
+   "kelly_h_cap5": {
+    "bets": 201,
+    "bets_per_year": 94,
+    "final_multiple": 6.0837,
+    "growth_per_year": 1.3216,
+    "longest_losing_streak": 5,
+    "max_drawdown": 0.1815,
+    "roi_on_turnover": 0.3325,
+    "turnover_per_year_x_start": 7.13,
+    "years": 2.14
+   },
+   "kelly_q_cap2": {
+    "bets": 201,
+    "bets_per_year": 94,
+    "final_multiple": 2.3447,
+    "growth_per_year": 0.4881,
+    "longest_losing_streak": 5,
+    "max_drawdown": 0.0819,
+    "roi_on_turnover": 0.3179,
+    "turnover_per_year_x_start": 1.97,
+    "years": 2.14
+   }
+  },
+  "oos_bets_1x2_close_exc_th2_cap5.csv.gz": {
+   "flat1": {
+    "bets": 1134,
+    "bets_per_year": 519,
+    "final_multiple": 1.6443,
+    "growth_per_year": 0.2556,
+    "longest_losing_streak": 16,
+    "max_drawdown": 0.2784,
+    "roi_on_turnover": 0.0568,
+    "turnover_per_year_x_start": 5.19,
+    "years": 2.18
+   },
+   "flat2": {
+    "bets": 1134,
+    "bets_per_year": 519,
+    "final_multiple": 2.2886,
+    "growth_per_year": 0.4608,
+    "longest_losing_streak": 16,
+    "max_drawdown": 0.4255,
+    "roi_on_turnover": 0.0568,
+    "turnover_per_year_x_start": 10.38,
+    "years": 2.18
+   },
+   "kelly_h_cap5": {
+    "bets": 1134,
+    "bets_per_year": 519,
+    "final_multiple": 7.0215,
+    "growth_per_year": 1.4402,
+    "longest_losing_streak": 16,
+    "max_drawdown": 0.2174,
+    "roi_on_turnover": 0.1429,
+    "turnover_per_year_x_start": 19.29,
+    "years": 2.18
+   },
+   "kelly_q_cap2": {
+    "bets": 1134,
+    "bets_per_year": 519,
+    "final_multiple": 2.493,
+    "growth_per_year": 0.5191,
+    "longest_losing_streak": 16,
+    "max_drawdown": 0.1132,
+    "roi_on_turnover": 0.1293,
+    "turnover_per_year_x_start": 5.29,
+    "years": 2.18
+   }
+  },
+  "wf_bets_1x2_close.csv.gz": {
+   "flat1": {
+    "bets": 375,
+    "bets_per_year": 120,
+    "final_multiple": 1.5958,
+    "growth_per_year": 0.1614,
+    "longest_losing_streak": 9,
+    "max_drawdown": 0.0942,
+    "roi_on_turnover": 0.1589,
+    "turnover_per_year_x_start": 1.2,
+    "years": 3.12
+   },
+   "flat2": {
+    "bets": 375,
+    "bets_per_year": 120,
+    "final_multiple": 2.1916,
+    "growth_per_year": 0.2855,
+    "longest_losing_streak": 9,
+    "max_drawdown": 0.1863,
+    "roi_on_turnover": 0.1589,
+    "turnover_per_year_x_start": 2.4,
+    "years": 3.12
+   },
+   "kelly_h_cap5": {
+    "bets": 375,
+    "bets_per_year": 120,
+    "final_multiple": 7.1466,
+    "growth_per_year": 0.8768,
+    "longest_losing_streak": 9,
+    "max_drawdown": 0.2871,
+    "roi_on_turnover": 0.2476,
+    "turnover_per_year_x_start": 7.95,
+    "years": 3.12
+   },
+   "kelly_q_cap2": {
+    "bets": 375,
+    "bets_per_year": 120,
+    "final_multiple": 2.6357,
+    "growth_per_year": 0.3638,
+    "longest_losing_streak": 9,
+    "max_drawdown": 0.135,
+    "roi_on_turnover": 0.2149,
+    "turnover_per_year_x_start": 2.44,
+    "years": 3.12
+   }
+  }
+ },
+ "scenarios": {
+  "delay_survive_haircut": {
+   "10min": [
+    0.55,
+    0.7
+   ],
+   "2min": [
+    0.85,
+    0.9
+   ],
+   "5min": [
+    0.7,
+    0.8
+   ]
+  },
+  "limits_accounts_median_bets": {
+   "central": [
+    12,
+    40
+   ],
+   "fast": [
+    12,
+    15
+   ],
+   "slow": [
+    12,
+    120
+   ]
+  },
+  "roi": {
+   "central": 0.05,
+   "high": 0.08,
+   "low": 0.03,
+   "zero": 0.0
+  },
+  "slips_per_year": {
+   "central": 400,
+   "high": 550,
+   "low": 250
+  }
+ }
+}

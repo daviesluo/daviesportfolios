@@ -1,0 +1,614 @@
+{
+ "external_inputs": {
+  "../statarb_search2/inputs/football/2122_B1.csv.gz": {
+   "bytes": 37198,
+   "sha256": "a0f9490a48becd59d4904b9dbc58f53131bbcb7137a4792bf1eb3e24f78432f8"
+  },
+  "../statarb_search2/inputs/football/2122_D1.csv.gz": {
+   "bytes": 37740,
+   "sha256": "d46e417cbde9104b6fb360146cf233776653baf46684fd4472100cea3c737437"
+  },
+  "../statarb_search2/inputs/football/2122_D2.csv.gz": {
+   "bytes": 35787,
+   "sha256": "c624d4108d44ab7cb48a81fe7e501998beafa483eb9987e1597977a12d821a45"
+  },
+  "../statarb_search2/inputs/football/2122_E0.csv.gz": {
+   "bytes": 47894,
+   "sha256": "587e5e07db40239a87ab643793efc4d1a60c397a28c0108f6b0e395a67179efe"
+  },
+  "../statarb_search2/inputs/football/2122_E1.csv.gz": {
+   "bytes": 64675,
+   "sha256": "f40db044d13b7abe3f72b39d96b8c046dcaabfeff1590dfbbf0f9dde9d88a8e6"
+  },
+  "../statarb_search2/inputs/football/2122_E2.csv.gz": {
+   "bytes": 65962,
+   "sha256": "f9857d81401c08f52fd01ab60410d90d690dd4b9f43c9bd4b7b6248848948d24"
+  },
+  "../statarb_search2/inputs/football/2122_E3.csv.gz": {
+   "bytes": 64564,
+   "sha256": "e7e1a2d61f7b1d5ba154b238d80dea4e566cd16a8a0ea4490c717064ed73f595"
+  },
+  "../statarb_search2/inputs/football/2122_EC.csv.gz": {
+   "bytes": 56851,
+   "sha256": "b9c5449510dfd3cf3c612aa2e7aa036ac905ed7f58c32e0287bd7b63165b51d0"
+  },
+  "../statarb_search2/inputs/football/2122_F1.csv.gz": {
+   "bytes": 45876,
+   "sha256": "ae3ffe2b8c77eb8a1dfbf25c2f55ac7c2f35bc243e8c1071c2a92fea2066ca62"
+  },
+  "../statarb_search2/inputs/football/2122_F2.csv.gz": {
+   "bytes": 44604,
+   "sha256": "a88e60dea9d50ca61f44cdf553186113c7ef54f598157c50ee24bb4f3d1b843b"
+  },
+  "../statarb_search2/inputs/football/2122_G1.csv.gz": {
+   "bytes": 30000,
+   "sha256": "acbb9b1e90a7f2a4c294d22bce3b90e5ce90e41ef0a27ddc1e628a570092d597"
+  },
+  "../statarb_search2/inputs/football/2122_I1.csv.gz": {
+   "bytes": 46306,
+   "sha256": "956bdccbea3d7ae04125a46a61bf8db6c764a64fecccff164f195c1530ee488c"
+  },
+  "../statarb_search2/inputs/football/2122_I2.csv.gz": {
+   "bytes": 43839,
+   "sha256": "1bc5263628f8f06011a7868980a3111b002fbc1406bf56a44581ec3fd08b47f9"
+  },
+  "../statarb_search2/inputs/football/2122_N1.csv.gz": {
+   "bytes": 38139,
+   "sha256": "772e4a16543f0bd2ec2ce277bca67094bcee82097eb76c1c8a7fedb197a6a515"
+  },
+  "../statarb_search2/inputs/football/2122_P1.csv.gz": {
+   "bytes": 37898,
+   "sha256": "297b432463a082657817e8c1eb2204aacc57bd574ea1f494e06f0035f8a58a8a"
+  },
+  "../statarb_search2/inputs/football/2122_SC0.csv.gz": {
+   "bytes": 28630,
+   "sha256": "ef1c338af2233cc0a4136bc43fd41a0acd944cd9ec539974d49fcd67ac71b40a"
+  },
+  "../statarb_search2/inputs/football/2122_SC1.csv.gz": {
+   "bytes": 22132,
+   "sha256": "7f864e50f4e08b7651040bbbab34428eff364658cc063805aa626bf4b3bc25c6"
+  },
+  "../statarb_search2/inputs/football/2122_SC2.csv.gz": {
+   "bytes": 22284,
+   "sha256": "1a756e8e21a29976d11918460dabfc54f49602a8707c3d2c9fcba5e3da8513b0"
+  },
+  "../statarb_search2/inputs/football/2122_SC3.csv.gz": {
+   "bytes": 22261,
+   "sha256": "320c332acbd52bce2f6fcf56b86d6bcc49deb68a88f30f917f28a98234361047"
+  },
+  "../statarb_search2/inputs/football/2122_SP1.csv.gz": {
+   "bytes": 46482,
+   "sha256": "c21c619508e54a89bb3c1972546348bb5a8cd4d602435477ecb8fb88974cece5"
+  },
+  "../statarb_search2/inputs/football/2122_SP2.csv.gz": {
+   "bytes": 53905,
+   "sha256": "438fc026f2dbddf5f87054604dc9138ac3063d42b60b81658549cbab17415ae4"
+  },
+  "../statarb_search2/inputs/football/2122_T1.csv.gz": {
+   "bytes": 44611,
+   "sha256": "51f7b523d56133857aadd3d58daabdb270b17edb24fb48ea1bced285cfbd215f"
+  },
+  "../statarb_search2/inputs/football/2223_B1.csv.gz": {
+   "bytes": 36244,
+   "sha256": "d415d3cb6251525fbdb211677d2ad66e7fd847764f0cfb5df564921898035da3"
+  },
+  "../statarb_search2/inputs/football/2223_D1.csv.gz": {
+   "bytes": 37105,
+   "sha256": "44926609b1d7feec3bdb329338a9afcd96e57529138d9ebf4cf2e99ab428abbc"
+  },
+  "../statarb_search2/inputs/football/2223_D2.csv.gz": {
+   "bytes": 35520,
+   "sha256": "4b07309716a687f3d534d0d4cbd9da57c1c1f33beb2d957bd3472fc1f97045ed"
+  },
+  "../statarb_search2/inputs/football/2223_E0.csv.gz": {
+   "bytes": 47216,
+   "sha256": "8c75e82e28ccebc5111985585d77742c20a4a707b9a3706f1ba02e33b227303c"
+  },
+  "../statarb_search2/inputs/football/2223_E1.csv.gz": {
+   "bytes": 63474,
+   "sha256": "b2f13834cfb362f2a9a2d7c3d4aea3ca8fc7df4e160175d61a64fc862091298a"
+  },
+  "../statarb_search2/inputs/football/2223_E2.csv.gz": {
+   "bytes": 65460,
+   "sha256": "3f05f9a33e93aea0ee16471c8c09a31b94197086b6bed1f84cdf4ba84f7328df"
+  },
+  "../statarb_search2/inputs/football/2223_E3.csv.gz": {
+   "bytes": 63553,
+   "sha256": "5c895f1ac498b0c50f91e172594a405a445307102148cdeb97348009c821aee6"
+  },
+  "../statarb_search2/inputs/football/2223_EC.csv.gz": {
+   "bytes": 61332,
+   "sha256": "f0313298d713685ccaa4e4392a22bfb429a37ba3d4f4b23ef5dbf0517fd659b9"
+  },
+  "../statarb_search2/inputs/football/2223_F1.csv.gz": {
+   "bytes": 46015,
+   "sha256": "d8c9e56a4bda2f32ad2fa78b86fd916b7370a2c7bc4aac10d9c5d5b741895c95"
+  },
+  "../statarb_search2/inputs/football/2223_F2.csv.gz": {
+   "bytes": 43370,
+   "sha256": "86298a9e0ad639117ff02dd7abe7250f7ccdb9b07f74905438e018a619bb2541"
+  },
+  "../statarb_search2/inputs/football/2223_G1.csv.gz": {
+   "bytes": 29912,
+   "sha256": "cc9f6188334977f9aa34a82cd16acc26a7243adeb5cf35d8eb7ff5fbf85144de"
+  },
+  "../statarb_search2/inputs/football/2223_I1.csv.gz": {
+   "bytes": 45737,
+   "sha256": "59dbd0b5f4db8de64147ce88831726b429b9bb4901d17ee7924eae265ac3d708"
+  },
+  "../statarb_search2/inputs/football/2223_I2.csv.gz": {
+   "bytes": 42126,
+   "sha256": "45889756f50e0fa9b1eeb4083d2e07c958699bb06ba1bc2fb0d943a4a13322c8"
+  },
+  "../statarb_search2/inputs/football/2223_N1.csv.gz": {
+   "bytes": 37948,
+   "sha256": "fcf908330a527b9ce091efa4af986b72bbace6888c052357e3a3d9844e57b1e6"
+  },
+  "../statarb_search2/inputs/football/2223_P1.csv.gz": {
+   "bytes": 37099,
+   "sha256": "24686750c84257ab0ed50be737272d7ac3a9f8289d106a307e0102b868c4f9e5"
+  },
+  "../statarb_search2/inputs/football/2223_SC0.csv.gz": {
+   "bytes": 28177,
+   "sha256": "493a23c57c50623e95a18e889eeec9f1ecaabe2206827cc8287d1669645dd877"
+  },
+  "../statarb_search2/inputs/football/2223_SC1.csv.gz": {
+   "bytes": 22276,
+   "sha256": "8bcf3205606cb257532b7526d8062d4953e34bdcf36797f712dcebf49c55d9ea"
+  },
+  "../statarb_search2/inputs/football/2223_SC2.csv.gz": {
+   "bytes": 22513,
+   "sha256": "e68127292479d9f9a3be83ab43291f90a89353f8c60fa93df0849434d8774ac5"
+  },
+  "../statarb_search2/inputs/football/2223_SC3.csv.gz": {
+   "bytes": 21739,
+   "sha256": "83f97a05f50673e0df972c5da4d2fdabd12d7dd673c67a7e55dad87443acbd26"
+  },
+  "../statarb_search2/inputs/football/2223_SP1.csv.gz": {
+   "bytes": 46178,
+   "sha256": "fa29b48c55b77df17f5b196a9443021cc12149c96fcfd5a7f5556204aa7bafb5"
+  },
+  "../statarb_search2/inputs/football/2223_SP2.csv.gz": {
+   "bytes": 52621,
+   "sha256": "64e78efab8fe44b362ef0bd3e8c54b26df151b4011d124a98955414e7d4e77f3"
+  },
+  "../statarb_search2/inputs/football/2223_T1.csv.gz": {
+   "bytes": 37922,
+   "sha256": "321fa2df126f01bb5aecf4a624758b2a70a8974c408eea5f7fed344eeddd5a36"
+  },
+  "../statarb_search2/inputs/football/2324_B1.csv.gz": {
+   "bytes": 36239,
+   "sha256": "0eb7bac8a0024f88359f440dee64c7f338b50345e21d3d548ceb3284bdd01741"
+  },
+  "../statarb_search2/inputs/football/2324_D1.csv.gz": {
+   "bytes": 36892,
+   "sha256": "fc32f4042694f502721c2283c2446342d526d64e3233563b64cf89f70d05f924"
+  },
+  "../statarb_search2/inputs/football/2324_D2.csv.gz": {
+   "bytes": 35083,
+   "sha256": "bd6912509dacab60b283bf142c8abe03e3608edebcedd3e7adfd48f6eec8900b"
+  },
+  "../statarb_search2/inputs/football/2324_E0.csv.gz": {
+   "bytes": 47575,
+   "sha256": "3c96f62beab5f79fff151d604b23a76b762ca35f2f5ebb2eba878792e62f499c"
+  },
+  "../statarb_search2/inputs/football/2324_E1.csv.gz": {
+   "bytes": 65314,
+   "sha256": "0bbad0102efb45dbfa75918d4734b818311e8bbca51288b9a2a60bfd4210680b"
+  },
+  "../statarb_search2/inputs/football/2324_E2.csv.gz": {
+   "bytes": 63288,
+   "sha256": "511cf7cf797d74acdc3675930b6272e27ebcc96d1213af4529c4dc4f01904c20"
+  },
+  "../statarb_search2/inputs/football/2324_E3.csv.gz": {
+   "bytes": 62633,
+   "sha256": "bbb4d1783d2ad962d0b4348b7880111012a1b766952afb66c162e496afa2cfcf"
+  },
+  "../statarb_search2/inputs/football/2324_EC.csv.gz": {
+   "bytes": 59152,
+   "sha256": "067deca15c71552d4847439a9ac5d8fb47e61d6a52af32a416a56b045d4d8944"
+  },
+  "../statarb_search2/inputs/football/2324_F1.csv.gz": {
+   "bytes": 36694,
+   "sha256": "6353c1c0a86b45af212c49919b26c7d9108962a542466544eb5eaf33ac685e12"
+  },
+  "../statarb_search2/inputs/football/2324_F2.csv.gz": {
+   "bytes": 42843,
+   "sha256": "2abcace346a6952e06c993d233a5c5b035e596489169ca11d43a24f93b6166ba"
+  },
+  "../statarb_search2/inputs/football/2324_G1.csv.gz": {
+   "bytes": 29005,
+   "sha256": "c37bdeb9d1e5f6880ce800d5e536de5cc4c8be2b0e49c46273a05b00c9ba86e9"
+  },
+  "../statarb_search2/inputs/football/2324_I1.csv.gz": {
+   "bytes": 45260,
+   "sha256": "3db5ca6bf8552af4458d7d3f86c45ab117eb1b2f0e0fd593fc0e197df7dc1cc3"
+  },
+  "../statarb_search2/inputs/football/2324_I2.csv.gz": {
+   "bytes": 42471,
+   "sha256": "f56d3fcc8bbdd8b5aa126beee4c31f9b34f66131345d81fcb119baebe9258138"
+  },
+  "../statarb_search2/inputs/football/2324_N1.csv.gz": {
+   "bytes": 37357,
+   "sha256": "ad214d294afda095bba58ecf4b6284bd9198f76c4d2f83f616d808f5b860daae"
+  },
+  "../statarb_search2/inputs/football/2324_P1.csv.gz": {
+   "bytes": 36991,
+   "sha256": "82256a005b12995e23a642031e95841e7e8acba58588755d49279b7014c42bee"
+  },
+  "../statarb_search2/inputs/football/2324_SC0.csv.gz": {
+   "bytes": 28062,
+   "sha256": "8ff45a2e0fc047d3cf833e5ca48abdd5351e54050f079bca2c2be9ed3d80c4d8"
+  },
+  "../statarb_search2/inputs/football/2324_SC1.csv.gz": {
+   "bytes": 21924,
+   "sha256": "75dd752e2f44b77bc8810d0a893e06d098cce7fe63240fd3dac1a6b3d54f2285"
+  },
+  "../statarb_search2/inputs/football/2324_SC2.csv.gz": {
+   "bytes": 22726,
+   "sha256": "924ae5ae740b73b2cb6804c382a2b4bd4cd237928afde8971ae616695ba45695"
+  },
+  "../statarb_search2/inputs/football/2324_SC3.csv.gz": {
+   "bytes": 21188,
+   "sha256": "43e597624e9cff9c50d797f6c56654008338729cdad236cb5c14833d16c2dad9"
+  },
+  "../statarb_search2/inputs/football/2324_SP1.csv.gz": {
+   "bytes": 45774,
+   "sha256": "60546409997bb3416f235ffcfcce668176714447281cbf3e8e520841dd141a54"
+  },
+  "../statarb_search2/inputs/football/2324_SP2.csv.gz": {
+   "bytes": 51471,
+   "sha256": "54dd912ac57228b925f64abacde965a816f126e5fa34338c59bba8292c4720f9"
+  },
+  "../statarb_search2/inputs/football/2324_T1.csv.gz": {
+   "bytes": 44567,
+   "sha256": "5bf8c97bcab7df0d99af6ac52a1dc288090a4be571cdd43e2f25c061e6ec6c6f"
+  },
+  "../statarb_search2/inputs/football/2425_B1.csv.gz": {
+   "bytes": 43173,
+   "sha256": "6da19c0fdaedf70e05dd184837b1a085795a8b83e742de8085eae34baae78627"
+  },
+  "../statarb_search2/inputs/football/2425_D1.csv.gz": {
+   "bytes": 43111,
+   "sha256": "044b153d9ac080b4300573b5fe3b09417d6d4e8fff462f119e050cb403b919b2"
+  },
+  "../statarb_search2/inputs/football/2425_D2.csv.gz": {
+   "bytes": 41626,
+   "sha256": "fbb1a3ff5f2adb3fa5b4615c87ec89a4e06edbb42e06cde05f42dd6fdc771f0e"
+  },
+  "../statarb_search2/inputs/football/2425_E0.csv.gz": {
+   "bytes": 54119,
+   "sha256": "640b0e0aff055a0fb0f1c4105f13f338578651db41601b4eb2ea41f6bb017ddb"
+  },
+  "../statarb_search2/inputs/football/2425_E1.csv.gz": {
+   "bytes": 75578,
+   "sha256": "a3ff8a7fc598203ccedf07abefb11da6d2ca7964fd8b67f94156269671552b78"
+  },
+  "../statarb_search2/inputs/football/2425_E2.csv.gz": {
+   "bytes": 76159,
+   "sha256": "af1c308fcd26be8720cdb9ca4c2550057ad77f5467c4168746a905cd39184adb"
+  },
+  "../statarb_search2/inputs/football/2425_E3.csv.gz": {
+   "bytes": 75000,
+   "sha256": "33dd73c28ba9f2b998b3615bfa6bd741c1ee32f4e01ed77b746a4533d0366c6c"
+  },
+  "../statarb_search2/inputs/football/2425_EC.csv.gz": {
+   "bytes": 71457,
+   "sha256": "85bc7a3027989ca7b8a00fac7790d4ce6e052968617ba059260cd691999846c4"
+  },
+  "../statarb_search2/inputs/football/2425_F1.csv.gz": {
+   "bytes": 42820,
+   "sha256": "472299986d2a35adba9eb3f19bc4d297966c7eb264119336f3c44e616871e057"
+  },
+  "../statarb_search2/inputs/football/2425_F2.csv.gz": {
+   "bytes": 41393,
+   "sha256": "0e707be901b76e698b34db1f3b15783bda49d02f083fb305e348d5aeabbc9b22"
+  },
+  "../statarb_search2/inputs/football/2425_G1.csv.gz": {
+   "bytes": 33521,
+   "sha256": "1227af2ec739901828228772cce4a606142575252ccdaab2e8914e6d354ff6e7"
+  },
+  "../statarb_search2/inputs/football/2425_I1.csv.gz": {
+   "bytes": 52445,
+   "sha256": "fef4fa607e2456427872071b39a83497837292972d452648cc98206fe6a49f25"
+  },
+  "../statarb_search2/inputs/football/2425_I2.csv.gz": {
+   "bytes": 50535,
+   "sha256": "ed2303364d9ea63ee4df8b2ca382d1f067c6ec27ce319e2449b5d862176b5cdb"
+  },
+  "../statarb_search2/inputs/football/2425_N1.csv.gz": {
+   "bytes": 43596,
+   "sha256": "3b43c0ad87caed87c68c76df10dc6d1f6e1c3471c8d59c776d883158a9197927"
+  },
+  "../statarb_search2/inputs/football/2425_P1.csv.gz": {
+   "bytes": 43599,
+   "sha256": "bcc3570ca7e24970e2104b1f35162e8b6e2c534856411f2eb45f7c9c3854c0e9"
+  },
+  "../statarb_search2/inputs/football/2425_SC0.csv.gz": {
+   "bytes": 32987,
+   "sha256": "00d7a56c1f62c93bd0e5420dc938e36e7ca764aa8f2e24e72fbf4a2f6f6d29c3"
+  },
+  "../statarb_search2/inputs/football/2425_SC1.csv.gz": {
+   "bytes": 26110,
+   "sha256": "1e727b9c50cee5581b609d7b1e31223a27ac467c8fd1b112700b78920b81f280"
+  },
+  "../statarb_search2/inputs/football/2425_SC2.csv.gz": {
+   "bytes": 24985,
+   "sha256": "e660d0cc46ec0a956d305ca7d31b35abbe2c50a98e2912b98f6c37bc6b751c07"
+  },
+  "../statarb_search2/inputs/football/2425_SC3.csv.gz": {
+   "bytes": 25312,
+   "sha256": "ebea3778085a7443c1a20864c018f980fcbe1f2327cac93b1624ad194f5d3281"
+  },
+  "../statarb_search2/inputs/football/2425_SP1.csv.gz": {
+   "bytes": 53635,
+   "sha256": "9dd6ab5d2efbfa88e025330210f2da7a37232b433c1112b307666e56f57bb997"
+  },
+  "../statarb_search2/inputs/football/2425_SP2.csv.gz": {
+   "bytes": 62541,
+   "sha256": "1f37f4acaf9493b7523d03148adcf62fcf7e28e57db187665045f434d35a01ef"
+  },
+  "../statarb_search2/inputs/football/2425_T1.csv.gz": {
+   "bytes": 48048,
+   "sha256": "e4a5ad77b9c64fb11c7546eb852ffc89d36882ee8eafffeba0aa713585615aa1"
+  },
+  "../statarb_search2/inputs/football/2526_B1.csv.gz": {
+   "bytes": 39933,
+   "sha256": "e1f53583735177c7c7c2687c2c1e5cbb2d8d02f5c21f6d2d77a7f817d1220ce9"
+  },
+  "../statarb_search2/inputs/football/2526_D1.csv.gz": {
+   "bytes": 40693,
+   "sha256": "22e8a587f3112c0d86b358a3ee758d5d08c105bd95bf2d87f8d2a4e0ffba3736"
+  },
+  "../statarb_search2/inputs/football/2526_D2.csv.gz": {
+   "bytes": 38020,
+   "sha256": "cf8bb49a82691ed749af2436b23fa73c52c19b5c7afec716277e9753e1641446"
+  },
+  "../statarb_search2/inputs/football/2526_E0.csv.gz": {
+   "bytes": 51258,
+   "sha256": "fa574adf45dbd334a662a6b45d54c70695ba980acd8f053e6d70c9d06c0a8ac0"
+  },
+  "../statarb_search2/inputs/football/2526_E1.csv.gz": {
+   "bytes": 71196,
+   "sha256": "e70e98724d885ef780d23f0384dd0fe64db8f5919108d90e948b09d790780e3c"
+  },
+  "../statarb_search2/inputs/football/2526_E2.csv.gz": {
+   "bytes": 70395,
+   "sha256": "16ffe8daf51f8775a05fac34afc0d85394d25aa69cf9cc4fb2ee7a50c2c14754"
+  },
+  "../statarb_search2/inputs/football/2526_E3.csv.gz": {
+   "bytes": 69632,
+   "sha256": "90c0dfd466223430ecb743c98fdaf758c0fc09b8b692b741c6413defe73acbd8"
+  },
+  "../statarb_search2/inputs/football/2526_EC.csv.gz": {
+   "bytes": 66049,
+   "sha256": "55a2679d92e97e23db3cd0b1fff024a9aefc80cc71a33750c596a8e32ed50d70"
+  },
+  "../statarb_search2/inputs/football/2526_F1.csv.gz": {
+   "bytes": 40865,
+   "sha256": "571c48676edabf8508df766b6440a7c0defa741289a54089aeb6156117ea6b50"
+  },
+  "../statarb_search2/inputs/football/2526_F2.csv.gz": {
+   "bytes": 38590,
+   "sha256": "7b947baacc41c029a127da15117c461f2704eee23e4dd1064ada4d7a480f083a"
+  },
+  "../statarb_search2/inputs/football/2526_G1.csv.gz": {
+   "bytes": 31198,
+   "sha256": "ffda7fcd49758cdce28d8584b9607d87b674276c7d7a3c3aed0dd2a623ffc65a"
+  },
+  "../statarb_search2/inputs/football/2526_I1.csv.gz": {
+   "bytes": 49776,
+   "sha256": "c28b30dd1cc8c5914b22e7e566dfba5e6d335e7318d9289c484a303ca61f6eae"
+  },
+  "../statarb_search2/inputs/football/2526_I2.csv.gz": {
+   "bytes": 47170,
+   "sha256": "000f15346299120586773dcdc2b6bda513097b65fbf08a70736d88133419abd9"
+  },
+  "../statarb_search2/inputs/football/2526_N1.csv.gz": {
+   "bytes": 41175,
+   "sha256": "d16551d7e5165e2473d7d33c877b0e75c76443794062433c4fdfac86207c2618"
+  },
+  "../statarb_search2/inputs/football/2526_P1.csv.gz": {
+   "bytes": 41779,
+   "sha256": "895b193b37fcd1ce591411147175351643b937500988b0e8665bdbe553cfd2d1"
+  },
+  "../statarb_search2/inputs/football/2526_SC0.csv.gz": {
+   "bytes": 30308,
+   "sha256": "fe12db161219cb5d4d58604f47c628df47ab978bc30cfedf45d6aa37a4e85c86"
+  },
+  "../statarb_search2/inputs/football/2526_SC1.csv.gz": {
+   "bytes": 23695,
+   "sha256": "2c9593b3326e8d3e085a45e6fe57565f70f2201e61667f86f2e655871f940f8c"
+  },
+  "../statarb_search2/inputs/football/2526_SC2.csv.gz": {
+   "bytes": 23240,
+   "sha256": "95ae4d70ef3bcd9becef344ab573cc20133d182897b444d743fcf562d29ddc50"
+  },
+  "../statarb_search2/inputs/football/2526_SC3.csv.gz": {
+   "bytes": 23279,
+   "sha256": "de4806c0b642f042776a282901f108d0497a1bda28e500b75d2431e8693d20f8"
+  },
+  "../statarb_search2/inputs/football/2526_SP1.csv.gz": {
+   "bytes": 50328,
+   "sha256": "c622bd8a5966647fafb2691cd363828a9914c9e777bb2be04acdd95696e54cee"
+  },
+  "../statarb_search2/inputs/football/2526_SP2.csv.gz": {
+   "bytes": 59714,
+   "sha256": "7178feda7bb0a40f23647b6a044620cde146c29f3123c5656f9986b99eec9c84"
+  },
+  "../statarb_search2/inputs/football/2526_T1.csv.gz": {
+   "bytes": 41288,
+   "sha256": "f2f6951439dd79fb1f92ed9bc79845cd87126fd337590f1e6c540589013b0a70"
+  },
+  "../statarb_search2/inputs/football/2627_B1.csv.gz": {
+   "bytes": 8795,
+   "sha256": "8c08bbc16fa1604060be87183f4d9506a27acf7d6c8c5ce76eddf0df955a5eb9"
+  },
+  "../statarb_search2/inputs/football/2627_D1.csv.gz": {
+   "bytes": 5440,
+   "sha256": "fdac4953bfab7011f05f0045176dee219c3df105a860e0e31f15b7ac903e0719"
+  },
+  "../statarb_search2/inputs/football/2627_D2.csv.gz": {
+   "bytes": 7435,
+   "sha256": "be9f2293adc959ce61c02c8c00acaeb2094da82921f2ba59d47fe92a731b80b5"
+  },
+  "../statarb_search2/inputs/football/2627_E0.csv.gz": {
+   "bytes": 7271,
+   "sha256": "09c290e353ba66bcc1376920cc62833c386b173063fa7402b570bf7909560da8"
+  },
+  "../statarb_search2/inputs/football/2627_E1.csv.gz": {
+   "bytes": 12198,
+   "sha256": "7a5f4728eb4d03eaaa7e2874a18e4a22641089ef12362e76eb7d3f39a219ecbc"
+  },
+  "../statarb_search2/inputs/football/2627_E2.csv.gz": {
+   "bytes": 11989,
+   "sha256": "81e6156b43ac8143bfe9ce8efe35c1f759f379e9008a96c09f65c3be5a787fa0"
+  },
+  "../statarb_search2/inputs/football/2627_E3.csv.gz": {
+   "bytes": 13075,
+   "sha256": "847bf942d4fac59c3cb4d2bd03305d60796f430366f97728b3c046cee7327e72"
+  },
+  "../statarb_search2/inputs/football/2627_EC.csv.gz": {
+   "bytes": 17263,
+   "sha256": "b0ef1356d50ed5416823e900f09a80c4012bedf8ac789d50c823567b49fc9635"
+  },
+  "../statarb_search2/inputs/football/2627_F1.csv.gz": {
+   "bytes": 6350,
+   "sha256": "b479790e87152808ddb9bd590d1d0048519a8d1b7c484bdd6c402995172c7af9"
+  },
+  "../statarb_search2/inputs/football/2627_F2.csv.gz": {
+   "bytes": 8153,
+   "sha256": "5f5bacbcf92469ef5c003c3e6640a2a242bb89bcbd340dd40a2f9733d9df872f"
+  },
+  "../statarb_search2/inputs/football/2627_G1.csv.gz": {
+   "bytes": 5240,
+   "sha256": "f15b43d1fbe2ed4bf65d4c73bfa7734201182c56e7be1eaebdd7dc240ecc6b2a"
+  },
+  "../statarb_search2/inputs/football/2627_I1.csv.gz": {
+   "bytes": 6930,
+   "sha256": "dd84926e8fc57579fc9d95cd958189ccb6e54e0d40e7eb6feb1916883f3d151b"
+  },
+  "../statarb_search2/inputs/football/2627_I2.csv.gz": {
+   "bytes": 6814,
+   "sha256": "b479a09dec581d2a1d815f23e82ce960b3686bbd09fb70d14c49966ac65e9610"
+  },
+  "../statarb_search2/inputs/football/2627_N1.csv.gz": {
+   "bytes": 8923,
+   "sha256": "dce3f73102e17c27f40137c01e054cd54541610efc364230f148b1ff5b108569"
+  },
+  "../statarb_search2/inputs/football/2627_P1.csv.gz": {
+   "bytes": 8654,
+   "sha256": "993e5837572c6b52fd1af8f06aaa6bdaa9189f8dceecfa71ef42ff7c089ef304"
+  },
+  "../statarb_search2/inputs/football/2627_SC0.csv.gz": {
+   "bytes": 6237,
+   "sha256": "1a7bfa965eb655821d775f160359ef1221f94e746eb2016faba4cdd406e114c2"
+  },
+  "../statarb_search2/inputs/football/2627_SC1.csv.gz": {
+   "bytes": 5993,
+   "sha256": "ad688982cde48d1e2aef925af9a3e297b2d18b07de2ba3f4046d09953b8d31af"
+  },
+  "../statarb_search2/inputs/football/2627_SC2.csv.gz": {
+   "bytes": 6250,
+   "sha256": "d81d56b1e1ba8a79fb583e18dd6746e3f3857f42e48fcdcb1532b4030f32ed04"
+  },
+  "../statarb_search2/inputs/football/2627_SC3.csv.gz": {
+   "bytes": 5983,
+   "sha256": "1114f96b920a0d5ac2f9e802dc0aa8aea8577c880bf941e8679e91e3f0073951"
+  },
+  "../statarb_search2/inputs/football/2627_SP1.csv.gz": {
+   "bytes": 9488,
+   "sha256": "e5e7d08a9e4d00c1c160f3cabb5541616106c6576002521cffa50b1ddd94670a"
+  },
+  "../statarb_search2/inputs/football/2627_SP2.csv.gz": {
+   "bytes": 11420,
+   "sha256": "6ecfdbf025cd53bd0e4be3ce982d68dd0c6d84a048d7f27f9089fc1c7fd6e140"
+  },
+  "../statarb_search2/inputs/football/2627_T1.csv.gz": {
+   "bytes": 7630,
+   "sha256": "37c2d8fa0d4e4a8a2ecb7070c59de658e2dfece8de8698f9c6cbe6de26e7e568"
+  }
+ },
+ "files": {
+  "inputs/live/2026-10-09T1933Z.json.gz": {
+   "bytes": 257231,
+   "sha256": "d67d0e2fbfa902979c6cf3e8c41a73751fd3486e2ba6bb2c0f6490c675bfefd8"
+  },
+  "inputs/pm_drift/2026-10-09T1941Z.json.gz": {
+   "bytes": 100600,
+   "sha256": "7597a5c9f1729d06dac6a446b5c472f6a95feb574d22e44eac759a2245c25f4b"
+  },
+  "results/live_snapshot_2026-10-09T1933Z.json": {
+   "bytes": 214082,
+   "sha256": "808d2cc0a0a4684d77786135be122af93bbf5007f3195bc35d93dc9f0cf17acd"
+  },
+  "results/oos_bets_1x2_close_exc.csv.gz": {
+   "bytes": 4813,
+   "sha256": "14b4cfe15e00752ba96a7e89a38516dd58dd0415983a78c542a7c013d103a694"
+  },
+  "results/oos_bets_1x2_close_exc_th2_cap5.csv.gz": {
+   "bytes": 22545,
+   "sha256": "402ff25a3132482940facab2da5f0fe681f354abc9166d94ace823365b61c99b"
+  },
+  "results/pm_drift_2026-10-09T1941Z.json": {
+   "bytes": 98522,
+   "sha256": "47516aa2d509a4cb5addb0f22863a21393fa656e0981fce5ec87e0b44cfb55b9"
+  },
+  "results/vbk_backtest.json": {
+   "bytes": 486115,
+   "sha256": "a11a69dcc0b1e5374e6de0f4dee6da8024fd7ec7a72fb3d88432375937c67113"
+  },
+  "results/vbk_bankroll.json": {
+   "bytes": 14322,
+   "sha256": "fa64305c14d867b9bd1861394573839057fb0e0ad1ac891cd903923b00e98a43"
+  },
+  "results/vbk_matched.json": {
+   "bytes": 980,
+   "sha256": "55e20e6e7990f57236326be1bf69d02a17d540b630e38e661be78b7d2d7d4623"
+  },
+  "results/wf_bets_1x2_close.csv.gz": {
+   "bytes": 5267,
+   "sha256": "f86dcca95cc4ade49b728742a12ab5ed760dcd3365f6ea83d84ae5e02f2803cd"
+  },
+  "scripts/build_manifest.py": {
+   "bytes": 2386,
+   "sha256": "b64e905a334c660bd2fe9248e6207ee6dbee227aa8d7b3d04eba19a3e31a319d"
+  },
+  "scripts/vbk_backtest.py": {
+   "bytes": 28119,
+   "sha256": "921f42d1d8e7f7da84917f26811f0d14ce8c9c3ab21d96e0fd41fd0b1f380690"
+  },
+  "scripts/vbk_bankroll.py": {
+   "bytes": 8415,
+   "sha256": "59288b28133ddd2128799e587efc5e78b5f85c2cf86016db2f6f70b556e44221"
+  },
+  "scripts/vbk_live_snapshot.py": {
+   "bytes": 12450,
+   "sha256": "9a84931dbb6fd35b6580bb6ad6908120c8229e5d9d5a68b13542fefcd59f8093"
+  },
+  "scripts/vbk_matched.py": {
+   "bytes": 3873,
+   "sha256": "6919f2392a38a538052c6f3d1cbe3ed3f2db6289b1b53dad7f3849d768a6bf13"
+  },
+  "scripts/vbk_pm_drift.py": {
+   "bytes": 6669,
+   "sha256": "ee1160189a3bd58f8a2772a3f5ca2e0fb9544a43d77f5e5305a0560c5e9818b9"
+  }
+ },
+ "keyless_sources": [
+  "football-data.co.uk season CSVs (via STATARB-2)",
+  "api.smarkets.com/v3 events, markets, contracts, quotes, volumes",
+  "gamma-api.polymarket.com events",
+  "clob.polymarket.com book and prices-history"
+ ],
+ "run": [
+  "cd scripts; python3 -I vbk_backtest.py      # football-data (STATARB-2's files) -> results/vbk_backtest.json + bet lists; byte-identical on re-run",
+  "cd scripts; python3 -I vbk_bankroll.py      # bet lists -> results/vbk_bankroll.json (seeded); byte-identical on re-run",
+  "cd scripts; python3 -I vbk_live_snapshot.py # keyless Smarkets x Polymarket now -> inputs/live/, results/live_snapshot_<stamp>.json (a re-run reads a later book)",
+  "cd scripts; python3 -I vbk_pm_drift.py      # keyless Polymarket minute history -> inputs/pm_drift/, results/pm_drift_<stamp>.json",
+  "cd scripts; python3 -I vbk_matched.py       # newest live snapshot -> results/vbk_matched.json",
+  "cd scripts; python3 -I build_manifest.py"
+ ],
+ "study": "VB-K design: value bets at UK bookmakers against a sharp price, out-of-sample, staking, limits, delay, Polymarket and Smarkets live legs, matched-betting arithmetic (2026-10-09)",
+ "write_up": "docs/agents/reviews/2026-10-09-vbk-design.md"
+}

@@ -1,0 +1,42 @@
+{
+ "all": {
+  "n": 238,
+  "pm_better_share": 0.79,
+  "qualifying_result_per_unit_median_pm": -0.1449,
+  "qualifying_result_per_unit_median_smarkets": -0.223,
+  "snr_retention_median_pm": 0.616,
+  "snr_retention_median_smarkets": 0.551
+ },
+ "outcomes": 238,
+ "signup_plan": {
+  "central": {
+   "free_bet_gbp": 30,
+   "gbp_one_off": 472,
+   "offers": 25,
+   "qualifying_stake_gbp": 10
+  },
+  "high": {
+   "free_bet_gbp": 35,
+   "gbp_one_off": 776,
+   "offers": 35,
+   "qualifying_stake_gbp": 10
+  },
+  "low": {
+   "free_bet_gbp": 20,
+   "gbp_one_off": 184,
+   "offers": 15,
+   "qualifying_stake_gbp": 10
+  },
+  "qualifying_result_used": -0.0932,
+  "retention_used": 0.66
+ },
+ "smarkets_spread_le_3pt": {
+  "n": 15,
+  "pm_better_share": 0.133,
+  "qualifying_result_per_unit_median_pm": -0.132,
+  "qualifying_result_per_unit_median_smarkets": -0.0932,
+  "snr_retention_median_pm": 0.618,
+  "snr_retention_median_smarkets": 0.66
+ },
+ "snapshot": "live_snapshot_2026-10-09T1933Z.json"
+}
