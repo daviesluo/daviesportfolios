@@ -635,3 +635,124 @@ $25.60. **Dry-run decisions** change only for near-certain buys, by the same rul
 - `pm_lp.test.ts`, "the near-certain limit on the path": a dry-run day at $100 and at $320 of the config's cap. The path
   reads its capital from the config. The paper buys only while the buy rests, and every minute is matched or dark.
 - `src/pm_live_hash.test.js`: the bytes and the chain of addenda.
+
+## Addendum 8 (2026-10-09, about 15:30 UTC): the total cap follows the equity, live
+
+This addendum was written while live-prep is live and before the deploy it records. Under "The window", a change to
+`pm_live.ts` deployed after d1 is a deviation an addendum records. Addendum 7 limits buys of tokens priced 0.95 and over
+to 8 % of the path's capital, which the turn passes its rule (`capital`, the turn's `capTotal`); this addendum makes that
+capital follow the equity, so the limit follows it too. It does not touch `pm_lp.ts`. Davies, 2026-10-09, verbatim:
+
+> 每天的rewards受益payout之后立马运用资金进策略，你研究一下最好的方式，如果我补充资金的话也可以立马运用资金，另外也研究下不同本金的受益会有区别吗，最多能投入多少
+
+In English: as soon as each day's reward payout arrives, put that money to work in the strategy; research the best way;
+if he adds funds, use them at once too; and research whether returns differ with the capital, and the most that can be
+put in.
+
+**What changes.** "The account" above gave a total cap of $320, set once at the go (step 8lp: the pUSD then less the
+$75 stop and $5). From this deploy, with `pm_lp_config.reinvest` on (migration `0106_pm_lp_reinvest.sql` adds it and
+sets it on), a live turn computes the cap again every minute (`lpCapital`):
+
+- **The equity at cost:** pUSD + what the CONFIRMED fills hold at cost + settled tokens not yet redeemed, at their
+  payout. The venue's pUSD is gross of our resting buys. Checked on 2026-10-09 at 14:50 UTC: $235.44 of pUSD plus the
+  $166.59 the CONFIRMED fills had spent net is the deposit, $402.03, to the cent, with $61.24 of buys resting.
+- **The cap:** floor(equity − $75 − $5), the go-time statement's own figure, read every turn, at most
+  `cap_ceiling_usd` (0106: $1,000, CHECK ≤ 1,000) and the code's `PM_LP_CAP_CEILING_USD` ($1,000), never below 0.
+- **Down at once.** A withdrawal or a realised loss lowers the cap that turn. While holdings at cost and resting buys
+  are over it, every buy is withheld (`cap_total`). The sells of what is held stay armed, so holdings stay inside the
+  cap and shrink towards it.
+- **Up on two readings.** A raise needs this turn's equity and the last turn's (at most five minutes apart), and takes
+  the lower of the two. No fill may still be settling (MATCHED, MINED or RETRYING). So a payout or a deposit is used the
+  turn after it is first read, about a minute later. A balance read once mid-settlement never raises the cap.
+- **Unread holds.** An unread pUSD, or a token balance unread, holds the last turn's cap. It never raises it, and
+  in a live turn an unread pUSD already sends no new buy (the collateral check).
+- **Off, or in dry-run,** the cap is `cap_total_usd` ($320), as before. That is the fallback: `update
+  public.pm_lp_config set reinvest = false where id = 1;` turns the rule off in one statement.
+
+**What stays fixed, and why** (the capacity study, LPCAP, `docs/agents/backtests/lpcap/`):
+
+- **The −$75 total stop** stays fixed in dollars. It is what Davies agreed to lose of the $400. The stop's basis
+  counts what was paid, so a payout widens the room under it by itself. Scaling it with the equity would put more of
+  his money at risk, and that is his call. The record cannot price it either way: L1's stop never trips there ("no
+  stop" and "stop $50" are both +$0.00, LPSELF).
+- **N, 5N, $100 a market, ten markets and $200 of first quotes** stay fixed. Each scale-up is priced below, and none
+  pays at R = 0.4 on both records without a large rise in fills.
+- **The $5 margin** stays fixed: it is the go-time statement's.
+
+**The evidence.** The study first checks that a copy of LPSELF's simulator reproduces L1 byte for byte on both records
+and both fill models. It then runs L1 at total caps of $320 to $10,000 in four ways (the stop scaled with the cap in
+each). The records: RW's (14 days) and the full-universe one (4 days). The figures are per day, at R = 1 / 0.4, paper
+fills:
+
+| capital | the cap alone | more markets | bigger orders (k = s) | both (√s each) |
+|---|---|---|---|---|
+| $320 (L1), RW | $96.1 / $38.4 | — | — | — |
+| $640, RW | $96.1 / $38.4 | $99.0 / $39.3 | $134.9 / $52.0 | $117.4 / $46.3 |
+| $1,000, RW | $96.1 / $38.4 | $99.0 / $39.3 | $152.6 / $53.9 | $130.9 / $51.5 |
+| $2,000, RW | $96.1 / $38.4 | $99.0 / $39.3 | $171.7 / $42.2 | $153.2 / $60.0 |
+| $5,000, RW | $96.1 / $38.4 | $99.0 / $39.3 | $217.5 / $48.2 | $171.4 / $59.2 |
+| $320 (L1), full universe | $81.5 / $28.7 | — | — | — |
+| $640, full universe | $83.0 / $22.2 | $110.7 / $30.6 | $121.6 / $36.4 | $109.4 / $34.3 |
+| $1,000, full universe | $83.0 / $22.2 | $133.3 / $31.7 | $142.1 / $33.1 | $135.9 / $26.5 |
+| $2,000, full universe | $83.0 / $22.2 | $180.5 / $24.6 | $127.5 / −$34.9 | $214.8 / $41.4 |
+| $5,000, full universe | $83.0 / $22.2 | $184.0 / $24.1 | $83.0 / −$198.1 | $203.4 / −$93.3 |
+
+- **At today's sizes, more capital does nothing.** The rule holds at most $368 (RW) to $491 (full universe) in
+  holdings at cost and resting buys, whatever the cap above that. Its return in dollars stays put, and its return on
+  capital falls as 1 / capital: 12.0 % a day at R = 0.4 on $320, 6.0 % on $640, 1.9 % on $2,000 (RW).
+- **Reinvesting the payouts at today's sizes is neutral.** L1 with its cap following its equity earned the same as L1
+  on RW's record ($96.12 / $38.39 against $96.07 / $38.41): its cap reached $861 by the 14th day and was never used
+  past $368. On the full universe's four days it earned −$1.1 at R = 1 and −$7.2 at 0.4 a day, because a cap that no
+  longer binds also lets through fills the $320 had held back. Four days is too short to read that sign.
+- **Bigger orders saturate the pools.** Our share of the pools we sat in went from 0.22 to 0.38 at three times the
+  size (RW) and 0.74 at 31 times, while fills grow with the size.
+- **More markets.** RW's record has only its own six a day. On the full universe, 20 markets at $640 earn +$29 a day at
+  R = 1 but +$1.9 at R = 0.4 and −$7 at R = 0.2. About 20 markets is also where the 12,000 POSTs a day bind: the live
+  path sent 229 an hour over ten markets today, about 550 a market-day.
+- **The most that can be put to work** at a positive margin, with orders and markets both scaled by √(capital ÷ 320):
+  - At R = 1, about $2,000, flattening after.
+  - At R = 0.4, the records agree only up to $640. RW's 14 days gain up to $2,000 ($38 → $60 a day). The full universe's
+    4 days gain at $640 ($29 → $34) and at $2,000 ($41), but not at $1,000 ($27). With every print at our price filling
+    us, no arm there beats L1 by more than $5 a day but bigger orders at $1,000 ($18 → $39), the arm that loses most one
+    step further ($2,000: −$60).
+  - Past $2,000, every arm loses at R = 0.4 on the full universe.
+  - At R = 0.2, nothing past $640 pays.
+- **The rewarded universe:** 1,396 to 1,995 markets of $10 a day and over on the last three days' selections; 116 to 185
+  of them clear the $2.50 formula floor; ten are taken.
+
+**Recommendation, for Davies to decide (not applied):**
+
+- Keep today's sizes until the first week of live R is read.
+- If R holds at about 0.4 or better, the one step both records support is $640 with orders and markets both raised by
+  √2: orders of 1.4 N, 14 markets, $400 of first quotes, $141 a market. On RW's record that is +$7.9 a day at R = 0.4;
+  on the full universe +$5.6, and +$1.2 with at-price fills.
+- That step needs new code for size multiples, and the POST governor checked: 14 markets is about 7,700 POSTs a day at
+  today's rate.
+- Past $640, wait for more record.
+- The stop's size is his call either way.
+
+**The code it deploys:** `pm_live.ts` sha256 `7e3e8c95823fa9ba3b8b7ca067aa745f41bde5340ed5686b661b4572b31709a3`, where Addendum 7 named `749bfcdb…ef09`
+(`lpCapital`, `PM_LP_CAP_CEILING_USD`, `PM_LP_CAP_MARGIN_USD`, `PM_LP_EQUITY_FRESH_MS`; the turn computes the cap
+before its quotes and writes it to its state as `lp.capital` and `limits.capTotal`). `0106_pm_lp_reinvest.sql` sha256
+`6aa9b3f5f4c1d39ccc7223cd1d3638524c7fae4a88f5257075319701fe86309e`. `pm_lp.ts`, `pm_prep.ts`, 0091, `lp_check.sql` and `lp_readout.sql` are unchanged by it. The capital the
+turn holds its buys to is `lim.capTotal`, set before its quotes, so Addendum 7's limit (`capital` in the rule's input)
+reads the same figure: at a cap of $400 its 8 % is $32.
+
+**In a live turn:** only the total cap, and through it Addendum 7's limit on near-certain buys (8 % of it). No other rule, and no stop, gate, quote, size, market or governor, changes. The first turn
+after both deploys holds $320, because there is no earlier reading to agree with; the next sets it from the equity
+(about $322 on today's figures). The first payout (after 2026-10-10 00:00 UTC) raises it the turn after it is read.
+**No dry-run decision changes:** with reinvest off, or in dry-run, `lpCapital` returns the config's cap. Mini-pool and
+mid-pool never call it, and their configs have no such column. `pm_instance.test.ts`, `pm_mid_formula.test.ts`,
+`pm_payouts.test.ts`, `pm_lp.test.ts`, `pm_live.test.ts`, `pm_mid.test.ts`, `pm_prep.test.ts` and `pm_daystop.test.ts`
+pass on it unchanged.
+
+**Pinned** (`agents/pm_lp_capital.test.ts`, each failing on the code before):
+
+- The rule by hand-worked cases.
+- Armed turns on the fake venue: a payout raises the cap the turn after it is read, and a deposit likewise; off, the
+  cap stays $320.
+- An unread pUSD never raises it, nor does one high reading between two lower ones.
+- A withdrawal lowers it at once, and no buy is sent while holdings and resting buys are over it, while the sell of
+  what is held rests.
+- A fill still settling holds a raise until it is CONFIRMED.
+- `src/pm_live_hash.test.js`: the bytes and the chain of addenda.

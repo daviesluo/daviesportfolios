@@ -323,6 +323,8 @@ export type PmLiveConfig = {
   max_posts_day: number | string; gtd_lifetime_s: number | string;
   /** The day's markets at most, and the first-quote capital they may take (0076). */
   max_markets?: number | string; select_budget_usd?: number | string;
+  /** Live-prep's only (0106): its cap follows its equity (`lpCapital`), at most `cap_ceiling_usd`. */
+  reinvest?: boolean | null; cap_ceiling_usd?: number | string | null;
 };
 export type PmMarketRow = {
   day: string; kind: "standard" | "neg_risk"; cond: string; yes_token: string; no_token: string; neg_risk: boolean;
@@ -395,6 +397,92 @@ export function lpLimits(c: PmLiveConfig, lp: Pick<PmLpOptions, "capMarketCeilin
     ...effectiveLimits(c), capMarket: Number.isFinite(n) && n >= 0 ? Math.min(n, lp.capMarketCeiling) : lp.capMarketCeiling, lossDay: Infinity,
     maxPosts: Math.floor(Number.isFinite(p) && p >= 0 ? Math.min(p, PM_LP_MAX_POSTS_DAY) : PM_LP_MAX_POSTS_DAY),
   };
+}
+
+/**
+ * Live-prep's capital follows its equity (Addendum 8 of its pre-registration; Davies, 2026-10-09: "每天的rewards受益payout之后
+ * 立马运用资金进策略…如果我补充资金的话也可以立马运用资金"). The most its total cap can reach, whatever the equity: ten markets of
+ * $100 each (`PM_LP_CAP_MARKET_USD`), the most the day's markets can hold under today's rules. The capacity study (LPCAP,
+ * `backtests/lpcap/`) found the rule holding at most $491 in holdings and resting buys with any cap from $640 up, so the
+ * ceiling does not bind at today's sizes; a larger book needs more markets or bigger orders, which are Davies' to choose.
+ */
+export const PM_LP_CAP_CEILING_USD = 1000;
+/** What the cap keeps below the equity beside the total stop: the go-time statement's $5 (`balance − 75 − 5`). */
+export const PM_LP_CAP_MARGIN_USD = 5;
+/** A raise needs the equity read at the turn before too, at most this long before (two reads agreeing, a minute apart). */
+export const PM_LP_EQUITY_FRESH_MS = 5 * M;
+
+/** What `lpCapital` reads: the config's switch, ceiling and fixed cap, this turn's reads, and the last turn's answer. */
+export type LpCapitalInputs = {
+  mode: PmLiveMode;
+  /** `pm_lp_config.reinvest`: off, the cap is the config's own (`fixedCap`), as before Addendum 8. */
+  reinvest: boolean;
+  /** The config's cap (`cap_total_usd`, at most $320): the cap while reinvest is off, in dry-run, and before any read. */
+  fixedCap: number;
+  /** `pm_lp_config.cap_ceiling_usd`, at most `PM_LP_CAP_CEILING_USD`. */
+  ceiling: number;
+  /** The total stop (`loss_total_usd`): the equity it may lose stays out of the cap. */
+  lossTotal: number;
+  /**
+   * This turn's pUSD (null: unread). The venue's balance is gross of our resting buys: on 2026-10-09 at 14:50 UTC the
+   * pUSD plus what the CONFIRMED fills had spent net was the deposit to the cent, with $61.24 of buys resting.
+   */
+  pusd: number | null;
+  /** What the CONFIRMED fills hold, at cost (`tokenBooks`; a settlement is booked as a sale at its payout). */
+  heldAtCostUsd: number;
+  /** Settled markets' tokens still on chain, at their payout: money that has not come back as pUSD yet. */
+  unredeemedUsd: number;
+  /** Fills the venue matched and has not yet CONFIRMED or FAILED (MATCHED, MINED, RETRYING): pUSD and holdings may disagree. */
+  unsettledFills: number;
+  /** Whether every token balance read this turn. */
+  inventoryReadable: boolean;
+  /** The last turn's answer (`state.lp.capital`); null on the first turn. */
+  prev: { equityUsd: number | null; at: string | null; capTotal: number | null } | null;
+  now: number;
+};
+export type LpCapital = {
+  /** The total cap this turn's buys are held to. */
+  capTotal: number;
+  /** pUSD + held at cost + unredeemed; null when it could not be read. */
+  equityUsd: number | null;
+  /** What the equity alone would allow: floor(equity − stop − margin), inside [0, ceiling]. */
+  targetUsd: number | null;
+  basis: "fixed" | "equity" | "held";
+  why: string;
+};
+
+/**
+ * Live-prep's total cap for this turn. Off (`reinvest` false) or in dry-run, it is the config's cap, as before. On and
+ * live, it is the equity at cost, pUSD + what is held at cost + what settled and waits to be redeemed, less the total
+ * stop and $5 (the go-time statement's `balance − 75 − 5`, read every turn), at most the ceiling and never below 0:
+ *   - it goes DOWN at once (a withdrawal, a realised loss): buys stop while what is held and resting is over it, sells
+ *     stay armed, so holdings stay inside it and shrink to it;
+ *   - it goes UP only on two readings agreeing (this turn's and the last turn's, at most five minutes apart, the lower of
+ *     the two), with no fill still settling: a payout or a deposit is used the turn after it is first read, and a
+ *     balance read once mid-settlement never raises it;
+ *   - an unread pUSD or token balance holds the last turn's cap (never raises it).
+ * Holdings count at cost because the caps count them at cost; a loss the marks show is the stop's to judge.
+ */
+export function lpCapital(i: LpCapitalInputs): LpCapital {
+  const ceiling = Math.max(0, Math.min(PM_LP_CAP_CEILING_USD, Number.isFinite(i.ceiling) ? i.ceiling : PM_LP_CAP_CEILING_USD));
+  const equity = i.pusd !== null && Number.isFinite(i.pusd) && i.inventoryReadable
+    ? Math.round((i.pusd + i.heldAtCostUsd + i.unredeemedUsd) * 1e6) / 1e6 : null;
+  const capOf = (e: number) => Math.max(0, Math.min(ceiling, Math.floor(e - i.lossTotal - PM_LP_CAP_MARGIN_USD)));
+  const target = equity === null ? null : capOf(equity);
+  if (!i.reinvest || i.mode !== "live") {
+    return { capTotal: i.fixedCap, equityUsd: equity, targetUsd: target, basis: "fixed", why: !i.reinvest ? "reinvest is off: the config's cap" : "dry-run: the config's cap" };
+  }
+  const last = i.prev?.capTotal != null && Number.isFinite(i.prev.capTotal) ? Math.min(i.prev.capTotal, ceiling) : Math.min(i.fixedCap, ceiling);
+  if (equity === null || target === null) {
+    return { capTotal: last, equityUsd: null, targetUsd: null, basis: "held", why: i.pusd === null ? "the pUSD balance is unread: the last cap holds" : "a token balance is unread: the last cap holds" };
+  }
+  if (target <= last) return { capTotal: target, equityUsd: equity, targetUsd: target, basis: "equity", why: target < last ? "the equity fell: the cap follows it down at once" : "the cap is the equity's" };
+  if (i.unsettledFills > 0) return { capTotal: last, equityUsd: equity, targetUsd: target, basis: "held", why: `${i.unsettledFills} fill(s) still settling: no raise until they are CONFIRMED or FAILED` };
+  const prevAt = i.prev?.at ? Date.parse(i.prev.at) : NaN, prevEq = i.prev?.equityUsd;
+  if (prevEq == null || !Number.isFinite(prevEq) || !(i.now - prevAt <= PM_LP_EQUITY_FRESH_MS && i.now > prevAt)) {
+    return { capTotal: last, equityUsd: equity, targetUsd: target, basis: "held", why: "a raise waits for a second reading of the equity next turn" };
+  }
+  return { capTotal: Math.max(last, capOf(Math.min(equity, prevEq))), equityUsd: equity, targetUsd: target, basis: "equity", why: "the equity rose and two readings agree: the cap rises" };
 }
 
 /**
@@ -1847,6 +1935,29 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   if (ctfApproved === false && prev.gates?.ctf_approval !== false) report.errors.push("the conditional-token reads show the CTF Exchange or the Neg Risk CTF Exchange not approved to move our tokens: nothing opens; sells stay armed");
   report.gates = g;
 
+  // Live-prep's capital (`lpCapital`, Addendum 8): with `reinvest` on and live, the total cap this turn's buys are held to
+  // follows the equity at cost, so a payout or a deposit is used the turn after it is read; the rule's other sizes do not
+  // move. Every other instance, and live-prep with reinvest off or in dry-run, keeps the config's cap, as before.
+  let lpCap: LpCapital | null = null;
+  if (inst.lp) {
+    let unsettledFills = 0;
+    if (mode === "live" && cfg.reinvest === true) {
+      try { unsettledFills = (await db.select(T.fills, "status=in.(MATCHED,MINED,RETRYING)&select=trade_id&limit=1")).length; }
+      catch { unsettledFills = 1; }
+    }
+    const heldAtCostUsd = Object.values(tb).reduce((s, t) => s + (t.held > 0 ? t.held * t.avgCost : 0), 0);
+    const unredeemedUsd = [...unredeemed, ...newSettlements].reduce((s, x) => s + (heldOf.get(x.yes_token) ?? 0) * Number(x.payout) + (heldOf.get(x.no_token) ?? 0) * (1 - Number(x.payout)), 0);
+    const pc = (prev.lp as { capital?: { equityUsd?: unknown; at?: unknown; capTotal?: unknown } } | undefined)?.capital;
+    const ceilingCfg = Number(cfg.cap_ceiling_usd);
+    lpCap = lpCapital({
+      mode, reinvest: cfg.reinvest === true, fixedCap: lim.capTotal, ceiling: cfg.cap_ceiling_usd != null && Number.isFinite(ceilingCfg) && ceilingCfg >= 0 ? ceilingCfg : PM_LP_CAP_CEILING_USD,
+      lossTotal: lim.lossTotal, pusd, heldAtCostUsd, unredeemedUsd, unsettledFills, inventoryReadable,
+      prev: pc ? { equityUsd: typeof pc.equityUsd === "number" ? pc.equityUsd : null, at: typeof pc.at === "string" ? pc.at : null, capTotal: typeof pc.capTotal === "number" ? pc.capTotal : null } : null,
+      now: d.now,
+    });
+    lim.capTotal = lpCap.capTotal;
+  }
+
   // ── 4. what each slot should hold ─────────────────────────────────────────────────────────────────────────────────
   const rule = d.rule ?? inst.lp?.rule ?? rwQuotes;
   const wants = new Map<string, Want>();
@@ -2249,6 +2360,8 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
             lastMid: Object.fromEntries(Object.entries(pauseState.lastMid).filter(([c]) => markets.some((m) => m.cond === c))),
             pausedUntil: Object.fromEntries(Object.entries(pauseState.pausedUntil).filter(([c, u]) => u > Math.floor(d.now / M) * M && markets.some((m) => m.cond === c))),
             paid, holdings: paper ? "paper" : "account",
+            // Its capital (`lpCapital`): what the next turn compares a raise with, and what the page shows.
+            ...(lpCap ? { capital: { ...lpCap, at: nowIso } } : {}),
           },
         } : {}),
       },

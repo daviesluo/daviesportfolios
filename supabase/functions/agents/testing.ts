@@ -596,7 +596,9 @@ export function schemaRefusal(table: string, r: Row): string | null {
   }
   if (isPmLiveTable(table)) {
     const shape = pmLiveShape(table), mid = isMidTable(table), lp = isLpTable(table);
-    const unknown = Object.keys(r).find((c) => !PM_LIVE_SCHEMA[shape].columns.includes(c) && !((mid || lp) && shape === "pm_live_config" && c === "created_at"));
+    // Live-prep's config also has 0106's `reinvest` and `cap_ceiling_usd` (2026-10-09).
+    const unknown = Object.keys(r).find((c) => !PM_LIVE_SCHEMA[shape].columns.includes(c) && !((mid || lp) && shape === "pm_live_config" && c === "created_at")
+      && !(lp && shape === "pm_live_config" && (c === "reinvest" || c === "cap_ceiling_usd")));
     if (unknown) return `Could not find the '${unknown}' column of '${table}' in the schema cache`;
     // A CHECK passes on NULL, as Postgres's does; NOT NULL is what refuses a missing value.
     const ok = (c: string, f: (v: unknown) => boolean) => r[c] == null || f(r[c]);
@@ -613,6 +615,8 @@ export function schemaRefusal(table: string, r: Row): string | null {
         // Live-prep's from 0105 (2026-10-09): up to 12,000; mini-pool's and mid-pool's 6,000, as 0074 and 0081 have it.
         ?? check("max_posts_day", within("max_posts_day", 0, lp ? 12000 : 6000, false)) ?? check("gtd_lifetime_s", within("gtd_lifetime_s", 180, 600, false))
         ?? check("max_markets", within("max_markets", 0, 12, false)) ?? check("select_budget_usd", within("select_budget_usd", 0, 320))
+        // 0106: live-prep's ceiling on the cap its equity sets, (0, 1000]; its switch a boolean.
+        ?? (lp ? check("cap_ceiling_usd", within("cap_ceiling_usd", 0, 1000)) ?? check("reinvest", r.reinvest == null || typeof r.reinvest === "boolean") : null)
         ?? (r.ireland_until == null || r.ireland_attested_at != null ? null : `new row for relation "${table}" violates check constraint "${table}_check"`);
     }
     if (shape === "pm_live_minutes") {

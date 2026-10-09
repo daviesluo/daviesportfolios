@@ -9,6 +9,7 @@
 //   a208878b…  live-prep's Addendum 5, mid-pool's Addendum 6 (A6, A7 and the go-live audit's F1, F3–F5, U1)
 //   8920e0c2…  live-prep's Addendum 6, mid-pool's Addendum 7 (live-prep's 12,000 POSTs a day, 2026-10-09)
 //   749bfcdb…  live-prep's Addendum 7, mid-pool's Addendum 8 (the rule's input carries the path's capital, 2026-10-09)
+//   7e3e8c95…  live-prep's Addendum 8, mid-pool's Addendum 9 (live-prep's cap follows its equity, 2026-10-09)
 import { describe, expect, it } from 'vitest';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -33,13 +34,14 @@ const addendum = (doc, n) => {
 const namedPath = (text) => /`pm_live\.ts` sha256\s+`([0-9a-f]{64})`/.exec(text)?.[1];
 const A208 = 'a208878b0f3b3c70fccee0fef34127ff28fa8fbd96c857e507bb494a88ed2703';
 const A892 = '8920e0c25306b85784a9255840bb2144045a78404020370a0d3e83ec4100466a';
+const A749 = '749bfcdb2b9170ddc455f18c4a5b691c89450c3bd9c8fd9784ada3d9ef2def09';
 
 describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", () => {
-  it("live-prep's latest addendum (7) and mid-pool's (8) name today's pm_live.ts", () => {
-    expect(lastNumber(LP)).toBe(7);
-    expect(lastNumber(MID)).toBe(8);
-    expect(namedPath(addendum(LP, 7))).toBe(sha);
-    expect(namedPath(addendum(MID, 8))).toBe(sha);
+  it("live-prep's latest addendum (8) and mid-pool's (9) name today's pm_live.ts", () => {
+    expect(lastNumber(LP)).toBe(8);
+    expect(lastNumber(MID)).toBe(9);
+    expect(namedPath(addendum(LP, 8))).toBe(sha);
+    expect(namedPath(addendum(MID, 9))).toBe(sha);
   });
 
   it('each addendum of the chain names what it changed from', () => {
@@ -57,6 +59,11 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     expect(addendum(LP, 7)).toContain('`8920e0c2…466a`');
     expect(addendum(MID, 8)).toContain('`8920e0c2…466a`');
     expect(addendum(MID, 8)).toContain('deviation 8');
+    expect(namedPath(addendum(LP, 7))).toBe(A749);
+    expect(namedPath(addendum(MID, 8))).toBe(A749);
+    expect(addendum(LP, 8)).toContain('`749bfcdb…ef09`');
+    expect(addendum(MID, 9)).toContain('`749bfcdb…ef09`');
+    expect(addendum(MID, 9)).toContain('deviation 9');
   });
 
   it("live-prep's Addendum 5 and mid-pool's 6 name every change of the go-live audit, and the dry-run decisions unchanged", () => {
@@ -110,5 +117,27 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     expect(mig).toContain('update public.pm_lp_config set max_posts_day = 12000 where id = 1');
     // It writes live-prep's config alone, and of it the one column.
     expect(mig.replace(/--[^\n]*/g, '')).not.toMatch(/pm_live_config|pm_mid_config|dry_run|live_confirmed_at|cap_total_usd|updated_at/);
+  });
+
+  it("live-prep's Addendum 8 and mid-pool's 9 record the cap following the equity, in Davies' word, live-prep's alone", () => {
+    expect(addendum(LP, 8)).toContain('> 每天的rewards受益payout之后立马运用资金进策略，你研究一下最好的方式，如果我补充资金的话也可以立马运用资金');
+    for (const doc of [addendum(LP, 8), addendum(MID, 9)]) {
+      expect(doc).toContain('`0106_pm_lp_reinvest.sql`');
+      expect(doc).toContain('`lpCapital`');
+    }
+    expect(addendum(LP, 8)).toMatch(/No dry-run decision changes/);
+    expect(addendum(MID, 9)).toContain("Mid-pool's caps are unchanged");
+    const src = read(PATH);
+    expect(src).toContain('export function lpCapital(');
+    expect(src).toContain('export const PM_LP_CAP_CEILING_USD = 1000;');
+    expect(src).toContain('lim.capTotal = lpCap.capTotal;');
+    // The cap is set before the rule is asked, so Addendum 7's limit reads the equity's cap.
+    expect(src.indexOf('lim.capTotal = lpCap.capTotal;')).toBeLessThan(src.indexOf('rule({ market: m, book: b, held, own, capital: lim.capTotal })'));
+    const mig = read('supabase/migrations/0106_pm_lp_reinvest.sql');
+    expect(mig).toContain('check (cap_ceiling_usd > 0 and cap_ceiling_usd <= 1000)');
+    expect(mig).toContain('update public.pm_lp_config set reinvest = true where id = 1');
+    // It writes live-prep's config alone, and of it the one column.
+    expect(mig.replace(/--[^\n]*/g, '')).not.toMatch(/pm_live_config|pm_mid_config|dry_run|live_confirmed_at|cap_total_usd|updated_at/);
+    expect(addendum(LP, 8)).toContain(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/migrations/0106_pm_lp_reinvest.sql'))).digest('hex'));
   });
 });

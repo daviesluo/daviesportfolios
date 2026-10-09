@@ -475,3 +475,22 @@ beside the path this file froze, minute by minute, and find every decision the s
 
 **What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
 of the Edge deploy that carries it, as deviation 8.
+
+## Addendum 9 (2026-10-09, about 15:30 UTC): deviation 9, live-prep's cap follows its equity
+
+This addendum was written inside the window, before the deploy it records. Its readout runs at or after 2026-10-17
+00:10 UTC.
+
+**Deviation 9 is live-prep's total cap following its equity** (Davies, 2026-10-09: "每天的rewards受益payout之后立马运用资金进策略
+…如果我补充资金的话也可以立马运用资金"; live-prep's pre-registration, Addendum 8, gives the rule and the evidence). It changes the
+shared `pm_live.ts`: after it, `pm_live.ts` sha256 `7e3e8c95823fa9ba3b8b7ca067aa745f41bde5340ed5686b661b4572b31709a3`, where Addendum 8 above named `749bfcdb…ef09`. The
+change: a new pure function, `lpCapital`, and its constants. A turn calls it only for an instance with live-prep's
+options (`inst.lp`), and only that instance's config has the switch it reads (`0106_pm_lp_reinvest.sql` adds
+`reinvest` and `cap_ceiling_usd` to `pm_lp_config` alone).
+
+**Mid-pool's caps are unchanged.** Its limits are `effectiveLimits`, its cap its config's $320 at most, and its config
+and CHECKs are untouched. No decision of mid-pool changes: `agents/pm_mid_formula.test.ts` and `agents/pm_payouts.test.ts`
+run it beside the path this file froze, minute by minute, and find every decision the same.
+
+**What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
+of the Edge deploy that carries it, as deviation 9.

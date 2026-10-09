@@ -489,7 +489,10 @@ that follow from that evidence, in short:
   its instance sets (a sell of what is held before a buy, 5N, x2's pause,
   exits from carried markets, no end-date horizon, no weather market, ten
   markets and $200, $100 a market, a −$75 stop on fills plus what was paid,
-  no day stop); in dry-run it decides on its paper layer's holdings. Its
+  no day stop); in dry-run it decides on its paper layer's holdings. **Live, its total cap follows its equity since
+  `0106`** (Davies, 2026-10-09: payouts and deposits used at once; its pre-registration's Addendum 8): every turn
+  floor(pUSD + held at cost + unredeemed − $75 − $5), at most $1,000, down at once, up only on two agreeing readings with
+  no fill settling, never on an unread balance (`lpCapital`); `reinvest = false` on its config puts the fixed $320 back. Its
   pre-registration (`reviews/2026-10-04-polymarket-lp-prereg.md`) checks
   d1, the first full UTC day after `pm_lp_config.created_at`; its go-time
   statement is the design doc's step 8lp, and its go also needs the

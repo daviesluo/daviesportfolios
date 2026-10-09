@@ -404,6 +404,17 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
   **Open:** lands with the main session's push (Edge deploy); then read that LIVE's resting NO buy on 0xecc209a6 was
   cancelled with gate `rule` and its NO sell still rests.
 
+### [2026-10-09 15:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep's cap follows its equity** (Davies: "每天的rewards受益payout之后立马运用资金进策略…如果我补充资金的话也可以立马运用资金";
+  its pre-registration's Addendum 8, mid-pool's deviation 9): `lpCapital` in `pm_live.ts` (sha256 7e3e8c95…), `0106`
+  (`pm_lp_config.reinvest` on, `cap_ceiling_usd` 1000). Live, each turn: floor(pUSD + held at cost + unredeemed − 75 −
+  5), at most $1,000; down at once, up only on two agreeing reads a minute apart with no fill settling, held on an unread
+  balance; off or dry-run, `cap_total_usd` ($320). Stop, N, 5N, $100 a market, 10 markets, $200 stay (LPCAP). Addendum 7's 8 % reads the same cap.
+  Pinned: `pm_lp_capital.test.ts` (7), `src/pm_live_hash.test.js`. **Deploying changes live:** after the Edge deploy
+  and 0106 both land, the second live turn sets the cap from the equity (about $322 now); the first payout (after
+  10-10 00:00 UTC) raises it the turn after it is read. Off: `update public.pm_lp_config set reinvest = false where id = 1;`.
+  **Open:** read `select state->'lp'->'capital', state->'limits'->'capTotal' from public.pm_lp_state;` after the deploy.
+
 ### [2026-10-09 14:57 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **LPCAP** (Davies: "另外也研究下不同本金的受益会有区别吗，最多能投入多少"): live-prep's L1 at total caps of $320 to $10,000,
   four ways of using the capital (the cap alone, more markets, bigger orders, both by sqrt), on RW's record (14 d) and the
