@@ -147,9 +147,13 @@ describe('the live-prep pre-registration', () => {
     const add10 = DOC.slice(DOC.indexOf('## Addendum 10'), DOC.indexOf('## Addendum 11'));
     expect(add10).toContain('`c7e3a7ec…73c7`');
     expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add10)?.[1]).toBe('be8947b58517510dbf91b19ba167a183d6ec20d433a651771e1ba26a9d0356e2');
-    const add12 = DOC.slice(DOC.indexOf('## Addendum 12'));
+    const add12 = DOC.slice(DOC.indexOf('## Addendum 12'), DOC.indexOf('## Addendum 13'));
     expect(add12).toContain('`be8947b5…56e2`');
-    expect(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex')).toBe(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add12)?.[1]);
+    // Addendum 12's bytes were the instance until Addendum 13 (the refill), which names what it changed from and today's.
+    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add12)?.[1]).toBe('de26be30aaa06feed4d55397b9d8ce1acafeb9db001f980173550fa1342fd1ed');
+    const add13 = DOC.slice(DOC.indexOf('## Addendum 13'));
+    expect(add13).toContain('`de26be30…d1ed`');
+    expect(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex')).toBe(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add13)?.[1]);
     const lp = src('supabase/functions/agents/pm_lp.ts');
     expect(lp).toContain('export const PM_LP_NEAR_CERTAIN = { minPrice: 0.95, share: 0.08 } as const;');
     expect(lp).toContain('else if (nearCertainBuyOk(bYes, N, held.yes, q.m, capital))');

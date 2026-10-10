@@ -426,7 +426,11 @@ places stay when the number is not whole.
   reward formula gave in the minutes Polymarket itself confirmed our orders
   scoring, on the days a payout has been read (a dash until the first;
   Polymarket's payout is read from five minutes past midnight UTC, so it
-  moves within minutes of arriving); the markets quoting today; the positions still held; and REWARDS
+  moves within minutes of arriving); the markets quoting today (today's markets less
+  any taken out right now: a market taken out, its reward changed or ended, is
+  replaced after fifteen minutes, at once if none is quoting, by the next best
+  market of a reserve the strategy keeps up to date every minute, at most ten a
+  day, and never takes one back the same day); the positions still held; and REWARDS
   TODAY (EST.), in green, what today's quotes have earned since midnight
   UTC as a range from low to best, counting only the minutes Polymarket
   confirmed them scoring. It moves every minute, starts again

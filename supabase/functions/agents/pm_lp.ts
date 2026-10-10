@@ -45,7 +45,7 @@
 // of 0091 lets one of the three configs be armed at a time, and only Davies arms one, in the conversation where he
 // says go (the design doc's step 8lp).
 
-import { onTick, othersLevels, type PmCandidateRules, type PmIntent, type PmLiveInstance, type PmQuoteRule } from "./pm_live.ts";
+import { onTick, othersLevels, type LpRefillOptions, type PmCandidateRules, type PmIntent, type PmLiveInstance, type PmQuoteRule } from "./pm_live.ts";
 import { bookReplies } from "./pm_mid.ts";
 import { quote, RW_MIN_RATE, sizeN, summarize } from "./pmrw.ts";
 import { isTight } from "./pmrw_x.ts";
@@ -137,6 +137,17 @@ export function lpMarketType(q: string): string {
  */
 export const PM_LP_EXCLUDE_AI = { why: "an AI market (model releases, rankings, AI companies): live-prep leaves them out (Addendum 12)", test: (q: string) => lpMarketType(q) === "AI" } as const;
 
+/**
+ * The refill's numbers (`PmLpOptions.refill`, Addendum 13), every one of them here: the research agent's values drop in
+ * by name. Conservative defaults until then (the main session's brief, 2026-10-10): a slot out 15 minutes is refilled,
+ * at once when every slot is out; ten refills a day, one a turn, three candidates tried a turn, a failed candidate tried
+ * again 15 minutes later; a reserve of 30 in RW's order, its first 15 programmes read every minute, the whole re-ranked
+ * every 5 minutes; no slot quoting for 30 minutes while a candidate is in the universe is a fault.
+ */
+export const PM_LP_REFILL: LpRefillOptions = {
+  afterMin: 15, afterMinAllOut: 0, maxPerDay: 10, perTurn: 1, triesPerTurn: 3, retryMin: 15, reserveSize: 30, refreshTop: 15, rerankEveryMin: 5, idleAlarmMin: 30,
+};
+
 /** Its candidate rules: no 48-hour end-date horizon (RW-E's same-day rule only), weather markets out (RW-X's x1), AI markets out (Addendum 12). */
 export const PM_LP_CANDIDATE: PmCandidateRules = { endHorizon: false, excludeFeeTypes: ["weather_fees"], excludeQuestion: PM_LP_EXCLUDE_AI };
 
@@ -196,6 +207,7 @@ export const PM_LP_INSTANCE: PmLiveInstance = {
     pause: PM_LP_PAUSE,
     rewardCheck: { ...PM_LP_REWARD_CHECK },
     readout: { ...PM_LP_READOUT },
+    refill: { ...PM_LP_REFILL, table: "pm_lp_reserve" },
     paper: { fills: "pm_lpprep_fills", settlements: "pm_lpprep_settlements", days: "pm_lpprep_days" },
   },
 };

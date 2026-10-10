@@ -1056,3 +1056,77 @@ markets, Mistral, the Arena leaderboard, Fable, Meta Muse, OpenAI, Vatican x Ant
 share and tokens, SpaceXAI, Musk's net worth, MrBeast, UBS, Ethereum, Rotten Tomatoes are not); a candidate list with an
 AI market and another leaves the AI market out and changes nothing else; the selection never takes one; one selected
 before the rule takes no entry from the next turn while its sell rests and the other markets quote on.
+
+## Addendum 13 (2026-10-10, about 14:00 UTC): the refill, from a live reserve
+
+This addendum was written while live-prep is live and before the deploy it records. Not blind.
+
+**Why.** Davies, 2026-10-10, verbatim: "现在就做补选吧，不然资金利用率太低了，研究出一套最合理的机制" (do the refill now,
+or too little of the money works; work out the most reasonable mechanism), then, of the candidates it takes from:
+"这个候补名单也要在当天中实时更新比如每分钟之类的" (the reserve must be kept up to date through the day, every minute or
+so). On 10-10 the reward check (Addendum 9) and the AI rule (Addendum 12) took today's ten markets out one after another;
+what the ten earned by the formula fell from $4.906 in the 00:00 hour to $0.022, $0.107, $0.015 and $0.160 in the hours
+from 10:00 (`backtests/lprefill/results/today_formula.txt`, from `sql/today_formula.sql`; what still scored was mostly
+the sells of what they hold). The cash of a market taken out sat idle until the next 00:00.
+
+**The rule.** One constant holds every number, `PM_LP_REFILL` in `pm_lp.ts`:
+
+    export const PM_LP_REFILL: LpRefillOptions = {
+      afterMin: 15, afterMinAllOut: 0, maxPerDay: 10, perTurn: 1, triesPerTurn: 3, retryMin: 15, reserveSize: 30, refreshTop: 15, rerankEveryMin: 5, idleAlarmMin: 30,
+    };
+
+- **The live reserve** (`pm_lp_reserve.ts`, its own call `agents?action=pmlpreserve` every minute, its own lease
+  `pm-lp-reserve` and row `pm_lp_reserve`, 0116). Every `rerankEveryMin` minutes, and on a new UTC day once the day's
+  selection has landed, the full re-rank: `selectMarkets` itself (the reward listing whole, Gamma, every candidate's
+  book, RW's `firstScore`, the formula floor, live-prep's candidate rules) with no market to choose and the next
+  `reserveSize` kept in RW's order (`PmSelectOpts.reserve`), every market of today's rows excluded. Every minute, the
+  light refresh: the CLOB's programme (`/rewards/markets/{id}` and the sponsored listing's first page, as the reward
+  check reads them) of the first `refreshTop`, each marked in the universe or not. A run that cannot rank keeps the last
+  reserve and says why (`agents.pm_lp_reserve`). The quoting turn only reads the stored row, so the heavy reads never
+  delay a turn.
+- **A slot is out** while today's market takes no entry: the reward check, the backstop, the AI rule, or gone from the
+  book or the listing, or simply not quoting this turn. Its time out starts at the first turn it is out and resets when it quotes again.
+- **The refill.** After the turn's orders, so it never delays a quote or an exit: a slot out `afterMin` minutes
+  (`afterMinAllOut`, 0, once no slot quotes: never all idle) is refilled from the reserve in its order, the
+  longest-out slot first. A candidate must pass at that minute: Gamma's market (open, accepting orders, live-prep's
+  candidate rules: the AI rule, the weather fee type, not ending today), its programme now (the native rate or the
+  sponsored one, whichever is higher) inside the N ≤ 20 universe, its book scored as the selection scores it (`scoreBook`,
+  RW's `firstScore`, the formula floor), and its capital within $200 beside the other slots'. A candidate that fails is
+  skipped, not consumed, and tried again after `retryMin`. Bounds: `perTurn` refills a turn, `triesPerTurn` candidates
+  read a turn, `maxPerDay` a UTC day, none once the day's posts reach the 12,000 governor or the turn is past its
+  sending deadline. A market of today's rows, replaced or not, is never taken again, and the replaced market takes no
+  entry for the rest of the day (its sells rest as the reward check's do).
+- **Records.** Each refill is an event of the new kind `refill` (0116: the slot, why it was out and since when, the
+  market taken, its rank, its $/day per dollar, capital, formula $/day and rate, the tries, the day's count), written
+  before its row of `pm_lp_markets` (`detail.refill`), so a refused event books nothing. The page, the paper layer and
+  the readout read it as a market of the day. The 00:00 selection is the day's rows without `detail.refill`, which is what LPRESEL6's
+  comparison with live-prep's own selection (`2026-10-09-lp-reselect6h-prereg.md`) should read. QUOTING TODAY counts today's markets less those out now
+  (`state.lp.outNow`).
+- **Health.** Zero slots quoting for `idleAlarmMin` minutes while the reserve holds a candidate in the universe is an
+  error of `agents.pm_lp` (the site's errors box), once every `idleAlarmMin` while it lasts.
+
+Nothing else changes: ten markets at 00:00, $200 of first quotes, N ≤ 20, $100 a market, 5N, the −$75 stop, the equity
+cap, the reward check, the AI rule. The numbers are a first setting; a research pass may change them, by an addendum.
+
+**Measured** (`backtests/lprefill/results/rerank_measure.txt`, `scripts/rerank_measure.ts`, against Polymarket from
+this container, not from eu-west-1): one full re-rank took 10,019 ms cold and 1,819 ms warm, 102 requests each (48 GETs
+of the reward listing, 40 of Gamma's keyset, 14 POSTs of `/books`); a universe of 1,978, 1,312 eligible, 185 and 189
+scored, a reserve of 30. The light refresh is 16 GETs a minute. At one re-rank every 5 minutes that is about 20
+requests a minute on average, all public reads, none of them a POST of an order.
+
+**Forward test:** live-prep's live days after the deploy: the share of minutes with ten slots quoting, the formula
+reward a day against 10-10's, the refills' fills' P&L against the markets they replaced, and that no market is taken
+twice in a day.
+
+**The code it deploys:** `pm_live.ts` sha256 `ef036c76a0cc75cf8a9f3bcec2de9e554f0bfb7f44a6b658b89c35aac477c480`, where Addendum 12 named `062ee916…7a50` (`scoreBook`,
+`scoredRow`, `PmSelectOpts.reserve`, `LpRefillOptions`, the refill in a live-prep turn); `pm_lp.ts` sha256
+`0a85f529d26a397a26ed3e709ab7477ff71a29531b32212fc3805c05e1a32b25`, where Addendum 12 named `de26be30…d1ed` (`PM_LP_REFILL`, the instance's `refill`); `pm_lp_reserve.ts`
+(`runPmLpReserve`, new); `0116_pm_lp_refill.sql` sha256 `f30e7c47e82e57d8cd739a8ab9128f99f90c0a0ca507d2f4b37fdd5449a39698` (the reserve's table and lease,
+the event kind `refill`, the call's `edge_calls` row). 0116 must apply with or before the Edge deploy: before it, the
+refill finds no reserve and refills nothing. Mini-pool and mid-pool set no `lp` options and are unchanged.
+
+**Pinned** (`agents/pm_lp.test.ts`): the reserve's run ranks past today's markets and marks a candidate whose programme
+left the universe; a market out 15 minutes is replaced by the first candidate that passes at that minute while one
+that fails is skipped and stays in the reserve, with the event and the row written and the replaced market never
+taken again; the daily cap holds; once every slot is out the refill starts on the next turn; the alarm fires once after
+30 minutes with no slot quoting. `agents/pm_lp_live_view.test.ts`: QUOTING TODAY leaves out the markets out now.

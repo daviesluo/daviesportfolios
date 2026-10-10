@@ -306,6 +306,37 @@ export type PmLpOptions = {
    * `READOUT_RETRY_MS` later. After that a zero is a zero, and a day is still never read twice in one UTC day.
    */
   readout?: { fromMs: number; acceptZeroAfterMs: number };
+  /**
+   * Its refill (Addendum 13; Davies, 2026-10-10: "现在就做补选吧，不然资金利用率太低了，研究出一套最合理的机制", and
+   * "这个候补名单也要在当天中实时更新"): a market of today's selection out (the reward check, the backstop, the AI rule) or gone
+   * for `afterMin` minutes (0 once every slot is out) is replaced by the next candidate of its live reserve
+   * (`table`, ranked by `pm_lp_reserve.ts` in a call of its own) that passes the candidate rules, the book's score and the
+   * budget at that minute; `PM_LP_REFILL` in pm_lp.ts holds every number.
+   */
+  refill?: LpRefillOptions & { table: string };
+};
+/** The refill's numbers (`PM_LP_REFILL`, pm_lp.ts): the research agent's values drop in there. */
+export type LpRefillOptions = {
+  /** Minutes a slot must be out before it is refilled, while any other slot quotes. */
+  afterMin: number;
+  /** Minutes once every slot is out (0: the next turn). */
+  afterMinAllOut: number;
+  /** Refills a UTC day at most. */
+  maxPerDay: number;
+  /** Refills a turn at most. */
+  perTurn: number;
+  /** Reserve candidates a turn may try before it gives up until the next. */
+  triesPerTurn: number;
+  /** Minutes before a candidate that failed is tried again (it stays in the reserve). */
+  retryMin: number;
+  /** Candidates the reserve keeps, in RW's order. */
+  reserveSize: number;
+  /** How many of the reserve's first candidates have their programme read again every minute. */
+  refreshTop: number;
+  /** Minutes between the reserve's full re-ranks (listing, Gamma, books). */
+  rerankEveryMin: number;
+  /** Minutes with no slot quoting, while the reserve holds a candidate in the universe, before it is an error. */
+  idleAlarmMin: number;
 };
 /**
  * Mini-pool's book-quality rule (Addendum 6 of `reviews/2026-10-01-polymarket-live-prep-prereg.md`, 2026-10-04): books
@@ -338,7 +369,7 @@ export const PM_MINI_INSTANCE: PmLiveInstance = { ...PM_LIVE_INSTANCE, bookQuali
 /** The tables an instance's turn may touch: its own nine, `agent_risk` (read) and `agent_locks` (its lease). */
 export const pmLiveDbTables = (inst: PmLiveInstance): readonly string[] => [...Object.values(inst.tables), "agent_risk", "agent_locks"];
 /** What live-prep's turn may touch beside those: its paper layer's fills, settlements and days, which its dry-run reads. */
-export const pmLpDbTables = (inst: PmLiveInstance): readonly string[] => [...pmLiveDbTables(inst), ...(inst.lp ? Object.values(inst.lp.paper) : [])];
+export const pmLpDbTables = (inst: PmLiveInstance): readonly string[] => [...pmLiveDbTables(inst), ...(inst.lp ? Object.values(inst.lp.paper) : []), ...(inst.lp?.refill ? [inst.lp.refill.table] : [])];
 
 export type PmLiveMode = "dry_run" | "live";
 export type PmLiveConfig = {
@@ -1303,7 +1334,40 @@ export async function rewardListing(venue: PmVenue, dl: PmDeadline = NO_DEADLINE
 }
 
 /** One market RW's first round scored at the selection. */
-type Scored = { cond: string; perDollar: number; cap: number; c: PmCandidate; book: PmBookNow; formulaDay: number };
+export type Scored = { cond: string; perDollar: number; cap: number; c: PmCandidate; book: PmBookNow; formulaDay: number };
+
+/**
+ * One candidate's YES book (`GET /book`'s reply) as the selection scores it, the one function the 00:00 selection and
+ * live-prep's refill (Addendum 13) both use: two-sided and agreeing with Gamma about `neg_risk`; RW's `firstScore` on the
+ * book as the rest of the market made it (`own`, our orders resting there, taken out: with them in, a market we quoted
+ * would rank against itself); a formula reward of at least `PM_LIVE_MIN_FORMULA_DAY_USD` a day; then the instance's
+ * book-quality rule, which a candidate failing is passed over by (`behind`), not dropped.
+ */
+export function scoreBook(c: PmCandidate, data: unknown, own: PmOwnOrder[], bookQuality?: PmBookQualityRule):
+  { kind: "scored"; x: Scored } | { kind: "behind"; x: Scored; why: string } | { kind: "oneSided" } | { kind: "mismatched" } | { kind: "none" } {
+  const b = bookNow(data);
+  if (!b) return { kind: "oneSided" };
+  if (b.negRisk !== c.negRisk) return { kind: "mismatched" };
+  const tick = Number(b.tick);
+  const lv = othersLevels(b.levels, own);
+  const fs = firstScore(summarize(lv.bids, lv.asks, c.v, c.minSize), tick, c.v, c.minSize, c.rate);
+  if (!fs) return { kind: "none" };
+  const formulaDay = fs.perDollar * 1440 * fs.cap;
+  if (formulaDay < PM_LIVE_MIN_FORMULA_DAY_USD - 1e-9) return { kind: "none" };
+  const why = bookQuality ? bookQualityOf({ v: c.v, minSize: c.minSize, levels: lv, tick }, bookQuality) : null;
+  const x = { cond: c.cond, perDollar: fs.perDollar, cap: fs.cap, c, book: b, formulaDay };
+  return why ? { kind: "behind", x, why } : { kind: "scored", x };
+}
+
+/** A scored candidate as its day's row of the markets table, at `rank`. */
+export function scoredRow(x: Scored, day: string, rank: number): PmMarketRow {
+  return {
+    day, kind: x.c.negRisk ? "neg_risk" : "standard", cond: x.cond, yes_token: x.c.yes, no_token: x.c.no, neg_risk: x.c.negRisk,
+    tick: Number(x.book.tick), min_size: x.c.minSize, reward_rate: x.c.rate, rank, question: x.c.question,
+    max_spread: x.c.v, n_size: sizeN(x.c.minSize), per_dollar_day: x.perDollar * 1440, capital: x.cap, formula_day: x.formulaDay,
+    end_date: x.c.endDate, game_start: x.c.gameStart,
+  };
+}
 export type PmSelectOpts = {
   maxMarkets: number; budget: number;
   /** Our own orders resting at the venue as the selection reads the books (live only: yesterday's, until withdrawn), by market. */
@@ -1319,6 +1383,8 @@ export type PmSelectOpts = {
   bookQuality?: PmBookQualityRule;
   /** Live-prep's candidate rules (`PmLpOptions.candidate`); the default's 48-hour horizon and no fee type when absent. */
   candidate?: PmCandidateRules;
+  /** How many candidates past the day's markets to keep as its reserve, in RW's order (live-prep's refill); none when absent. */
+  reserve?: number;
 };
 
 /**
@@ -1333,7 +1399,7 @@ export type PmSelectOpts = {
  * its markets out of the universe before anything else is read; one that cannot say fails the selection too, and only
  * how many markets of the universe it took out is recorded (`note.exclusion.excluded`), never which.
  */
-export async function selectMarkets(venue: PmVenue, day: string, opts: PmSelectOpts, exclude: Set<string>, dl: PmDeadline = NO_DEADLINE, nowMs: number = Date.parse(`${day}T00:00:00Z`)): Promise<{ picks: PmMarketRow[]; note: Record<string, unknown> }> {
+export async function selectMarkets(venue: PmVenue, day: string, opts: PmSelectOpts, exclude: Set<string>, dl: PmDeadline = NO_DEADLINE, nowMs: number = Date.parse(`${day}T00:00:00Z`)): Promise<{ picks: PmMarketRow[]; note: Record<string, unknown>; reserve?: PmMarketRow[] }> {
   const note: Record<string, unknown> = {};
   const fail = (error: string) => ({ picks: [] as PmMarketRow[], note: { ...note, error } });
   const listing = await rewardListing(venue, dl);
@@ -1393,23 +1459,12 @@ export async function selectMarkets(venue: PmVenue, day: string, opts: PmSelectO
       if (!r.ok && r.status !== 404) { r = await venue.book(c.yes); booksRead++; }                    // once more, then it decides
     }
     if (!r.ok) { if (r.status === 404) gone++; else bookError ||= `book of ${c.cond.slice(0, 10)}…: ${r.status} ${r.error}`; return; }
-    const b = bookNow(r.data);
-    if (!b) { oneSided++; return; }
-    if (b.negRisk !== c.negRisk) { mismatched++; return; }
-    const tick = Number(b.tick);
-    // RW's first round on the book as the rest of the market made it: our own orders still resting from the day before
-    // are taken out, as the rule takes them out every minute (with them in, a market we quoted would rank against itself).
-    const lv = othersLevels(b.levels, opts.own?.get(c.cond) ?? []);
-    const fs = firstScore(summarize(lv.bids, lv.asks, c.v, c.minSize), tick, c.v, c.minSize, c.rate);
-    if (!fs) return;
-    const formulaDay = fs.perDollar * 1440 * fs.cap;
-    if (formulaDay < PM_LIVE_MIN_FORMULA_DAY_USD - 1e-9) return;
-    // The instance's book-quality rule, on the same book: a candidate it fails is passed over, and RW's ranking takes the
-    // next that passes; it comes back only for the slots and the budget those leave (below).
-    const why = opts.bookQuality ? bookQualityOf({ v: c.v, minSize: c.minSize, levels: lv, tick }, opts.bookQuality) : null;
-    const x = { cond: c.cond, perDollar: fs.perDollar, cap: fs.cap, c, book: b, formulaDay };
-    if (why) { passedOver[why] = (passedOver[why] ?? 0) + 1; behind.push(x); return; }
-    scored.push(x);
+    const sc = scoreBook(c, r.data, opts.own?.get(c.cond) ?? [], opts.bookQuality);
+    if (sc.kind === "oneSided") { oneSided++; return; }
+    if (sc.kind === "mismatched") { mismatched++; return; }
+    if (sc.kind === "none") return;
+    if (sc.kind === "behind") { passedOver[sc.why] = (passedOver[sc.why] ?? 0) + 1; behind.push(sc.x); return; }
+    scored.push(sc.x);
   }, () => !!bookError || late);
   Object.assign(note, { booksRead, booksGone: gone, mismatched, oneSided, scored: scored.length });
   const quality = opts.bookQuality ? { rule: opts.bookQuality.name, passedOver: Object.values(passedOver).reduce((s, n) => s + n, 0), why: passedOver } : null;
@@ -1426,13 +1481,16 @@ export async function selectMarkets(venue: PmVenue, day: string, opts: PmSelectO
   note.chosen = chosen.length;
   note.capital = Math.round(chosen.reduce((s, x) => s + x.cap, 0) * 100) / 100;
   note.formulaDay = Math.round(chosen.reduce((s, x) => s + x.formulaDay, 0) * 100) / 100;
-  const picks: PmMarketRow[] = chosen.map((x, i) => ({
-    day, kind: x.c.negRisk ? "neg_risk" : "standard", cond: x.cond, yes_token: x.c.yes, no_token: x.c.no, neg_risk: x.c.negRisk,
-    tick: Number(x.book.tick), min_size: x.c.minSize, reward_rate: x.c.rate, rank: i + 1, question: x.c.question,
-    max_spread: x.c.v, n_size: sizeN(x.c.minSize), per_dollar_day: x.perDollar * 1440, capital: x.cap, formula_day: x.formulaDay,
-    end_date: x.c.endDate, game_start: x.c.gameStart,
-  }));
-  return { picks, note };
+  const picks: PmMarketRow[] = chosen.map((x, i) => scoredRow(x, day, i + 1));
+  // Live-prep's reserve (`PmSelectOpts.reserve`, Addendum 13): the next candidates in RW's own order, past the day's
+  // markets, for its refill. None asked for, none kept: every other instance's selection is as it was.
+  if (!(opts.reserve && opts.reserve > 0)) return { picks, note };
+  const taken = new Set(chosen.map((x) => x.cond));
+  const rest = [...scored, ...behind].filter((x) => !taken.has(x.cond))
+    .sort((x, y) => (y.perDollar - x.perDollar) || (x.cond < y.cond ? -1 : x.cond > y.cond ? 1 : 0)).slice(0, opts.reserve);
+  const reserve = rest.map((x, i) => scoredRow(x, day, chosen.length + i + 1));
+  note.reserve = reserve.length;
+  return { picks, note, reserve };
 }
 
 /** What a read-back's status makes of our row: LIVE rests, MATCHED filled, CANCELED (the market resolving too) cancelled, INVALID refused. */
@@ -1853,6 +1911,8 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   };
   const lpReward = new Map<string, PmRewardVerdict>();
   const lpOut = new Map<string, string>();
+  /** This turn's sponsored listing (the reward check's read), for the refill's programme reads too. */
+  let sponsoredNow: Map<string, number> | null = null;
   if (rc) {
     const quoted = markets.filter((m) => m.quoting);
     const reads = new Map<string, PmRewardNow>();
@@ -1863,6 +1923,7 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
       else {
         const sponsored = new Map<string, number>();
         for (const r of spo.pages.flat()) { const c = condOf(r); if (c) sponsored.set(c, Math.max(sponsored.get(c) ?? 0, rewardRate(r))); }
+        sponsoredNow = sponsored;
         await pool(quoted, BOOK_CONCURRENCY, async (m) => {
           if (pastDeadline(deadline)) return;
           const r = await venue.rewardMarket(m.cond);
@@ -1888,6 +1949,22 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   }
   // Live-prep's excluded questions (Addendum 12): a market of today's selection its candidate rules now pass over (an AI
   // market selected before the rule) takes no entry from this turn, worked as the reward check's `lpOut` is.
+  // Live-prep's refill (Addendum 13): a market a refill replaced today takes no entry for the rest of the day; it is never
+  // taken again, and its sells of what it holds rest at the rule's prices, as a carried market's.
+  const rf = inst.lp?.refill;
+  type RefillState = { day: string; outSince: Record<string, string>; replaced: Record<string, { by: string; at: string }>; count: number; tried: Record<string, string>; zeroSince: string | null; alarmAt: string | null };
+  const prevRf = (prev.lp as { refill?: RefillState } | undefined)?.refill;
+  const refill: RefillState = prevRf && prevRf.day === day
+    ? { ...prevRf, outSince: { ...prevRf.outSince }, replaced: { ...prevRf.replaced }, tried: { ...prevRf.tried } }
+    : { day, outSince: {}, replaced: {}, count: 0, tried: {}, zeroSince: null, alarmAt: null };
+  if (rf) {
+    for (const [c, r] of Object.entries(refill.replaced)) {
+      if (!markets.some((m) => m.quoting && m.cond === c)) continue;
+      const why = `replaced by a refill (${r.by.slice(0, 10)}…) at ${r.at}: not taken again today`;
+      lpOut.set(c, why);
+      conditions[c] = `no entry: ${why}`;
+    }
+  }
   const exq = inst.lp?.candidate.excludeQuestion;
   if (exq) {
     for (const m of markets) {
@@ -2551,6 +2628,91 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   }
   for (const k of Object.keys(readouts)) if (k < dayOf(dayStart - 7 * DAY)) delete readouts[k];
 
+  // ── live-prep's refill (Addendum 13) ─────────────────────────────────────────────────────────────────────────────
+  // After the orders, so it never delays a quote or an exit: a slot of today's selection out (the reward check, the
+  // backstop, the AI rule) or gone for `afterMin` minutes (`afterMinAllOut` once no slot quotes) takes the next candidate
+  // of the live reserve (`refill.table`, `pm_lp_reserve.ts`) that passes, at this minute, the candidate rules on Gamma's
+  // record and the CLOB's programme (`lpCandidateOf`), the selection's own score of its book (`scoreBook`) and the
+  // first-quote budget. A candidate that fails stays in the reserve and is tried again `retryMin` later. At most `perTurn`
+  // refills a turn, `maxPerDay` a UTC day, none past the governor or the deadline; a market of today's rows, replaced or
+  // not, is never taken again. Each refill is an event (`refill`, 0116) and a row of the day's markets, so the page, the
+  // paper layer and the readout see it as selected; it quotes from the next turn, with every minute's check.
+  let quotingSlots: number | null = null;
+  if (rf) {
+    const gone = new Set<string>([...goneToday, ...goneNow.map((x) => x.cond)]);
+    const active = todayRows.filter((m) => !refill.replaced[m.cond]);
+    for (const m of active) {
+      const out = lpOut.has(m.cond) || gone.has(m.cond) || !markets.some((x) => x.quoting && x.cond === m.cond);
+      if (out) refill.outSince[m.cond] ??= nowIso; else delete refill.outSince[m.cond];
+    }
+    quotingSlots = active.filter((m) => !refill.outSince[m.cond]).length;
+    const wait = (quotingSlots === 0 ? rf.afterMinAllOut : rf.afterMin) * M;
+    let reserve: Array<PmMarketRow & { programme?: { inUniverse?: boolean } }> = [];
+    try {
+      const row = (await db.select<{ day: string; rows: unknown }>(rf.table, "id=eq.1&select=day,rows"))[0];
+      if (row && String(row.day).slice(0, 10) === day && Array.isArray(row.rows)) reserve = row.rows as typeof reserve;
+    } catch { /* no reserve yet (0116 not run): nothing to refill from */ }
+    const todayConds = new Set(todayRows.map((m) => m.cond));
+    const passing = reserve.filter((r) => !todayConds.has(r.cond) && r.programme?.inUniverse !== false).length;
+    let done = 0;
+    const vacant = () => active.filter((m) => refill.outSince[m.cond] && d.now - Date.parse(refill.outSince[m.cond]) >= wait && !refill.replaced[m.cond])
+      .sort((a, b) => refill.outSince[a.cond].localeCompare(refill.outSince[b.cond]) || a.rank - b.rank);
+    let tries = 0;
+    for (const v of vacant()) {
+      if (done >= rf.perTurn || refill.count >= rf.maxPerDay || tries >= rf.triesPerTurn) break;
+      if (posts >= lim.maxPosts || elapsed() > PM_LIVE_SEND_UNTIL_MS || pastDeadline(deadline)) break;
+      const usedCap = active.filter((m) => m.cond !== v.cond && !refill.replaced[m.cond]).reduce((a, m) => a + num(m.capital), 0);
+      for (const cand of reserve) {
+        if (tries >= rf.triesPerTurn || pastDeadline(deadline)) break;
+        if (todayConds.has(cand.cond) || (refill.tried[cand.cond] && d.now - Date.parse(refill.tried[cand.cond]) < rf.retryMin * M)) continue;
+        tries++;
+        refill.tried[cand.cond] = nowIso;
+        const why = await (async (): Promise<string | { row: PmMarketRow; x: Scored }> => {
+          const g = await venue.gammaByConditions([cand.cond], false);
+          const gm = g.ok ? (g.data?.markets ?? []).find((x) => String(x.conditionId ?? "").toLowerCase() === cand.cond) : undefined;
+          if (!gm) return g.ok ? "Gamma lists it closed or not at all" : `Gamma unread (${g.status})`;
+          const pr = await venue.rewardMarket(cand.cond);
+          const cfg = pr.ok ? rewardConfigOf(pr.data, cand.cond, day) : null;
+          if (!cfg) return `its programme unread (${pr.status})`;
+          const rate = Math.max(cfg.native, sponsoredNow?.get(cand.cond) ?? 0);
+          const listing = new Map<string, PmRewardRow>([[cand.cond, { rate, v: cfg.v ?? 0, minSize: cfg.minSize ?? 0 }]]);
+          const c = lpCandidateOf(gm, listing, d.now, inst.band, inst.lp!.candidate);
+          if (!c) return `the candidate rules pass it over now (rate ${rate}, minimum ${cfg.minSize})`;
+          const br = await venue.book(c.yes);
+          if (!br.ok) return `its book unread (${br.status})`;
+          const sc = scoreBook(c, br.data, [], inst.bookQuality);
+          if (sc.kind !== "scored") return `its book does not score (${sc.kind})`;
+          if (usedCap + sc.x.cap > lim.budget + 1e-9) return `${(usedCap + sc.x.cap).toFixed(2)} USD of first quotes would pass the budget of ${lim.budget}`;
+          const rank = Math.max(0, ...todayRows.map((m) => Number(m.rank) || 0)) + 1;
+          return { row: scoredRow(sc.x, day, rank), x: sc.x };
+        })().catch((e) => `a read failed (${msg(e)})`);
+        if (typeof why === "string") continue;                                  // stays in the reserve; tried again `retryMin` later
+        // Booked: the event first (a refused event books nothing), then the day's row.
+        try {
+          await db.upsert(T.events, [{ mode, minute, kind: "refill", detail: { for: v.cond, outSince: refill.outSince[v.cond], why: lpOut.get(v.cond) ?? (gone.has(v.cond) ? "left the book" : "out"), took: why.row.cond, rank: why.row.rank, perDollarDay: why.row.per_dollar_day, capital: why.row.capital, formulaDay: why.row.formula_day, rate: why.row.reward_rate, tries, n: refill.count + 1 } }], "mode,minute,kind");
+          await db.upsert(T.markets, [{ ...why.row, detail: { refill: { for: v.cond, at: nowIso } }, selected_at: nowIso }], "day,cond");
+        } catch (e) { report.errors.push(`refill of ${v.cond.slice(0, 10)}… by ${why.row.cond.slice(0, 10)}… not booked (${msg(e)})`); break; }
+        refill.replaced[v.cond] = { by: why.row.cond, at: nowIso };
+        refill.count++;
+        done++;
+        todayRows.push(why.row);
+        todayConds.add(why.row.cond);
+        delete refill.tried[why.row.cond];
+        break;
+      }
+    }
+    // The health reading: no slot quoting for `idleAlarmMin` minutes while the reserve holds a candidate in the universe
+    // is a fault (once each `idleAlarmMin` while it lasts).
+    if (quotingSlots === 0 && passing > 0) {
+      refill.zeroSince ??= nowIso;
+      if (d.now - Date.parse(refill.zeroSince) >= rf.idleAlarmMin * M && (!refill.alarmAt || d.now - Date.parse(refill.alarmAt) >= rf.idleAlarmMin * M)) {
+        refill.alarmAt = nowIso;
+        report.errors.push(`no slot has quoted since ${refill.zeroSince} while the reserve holds ${passing} candidate(s) in the universe; refills today ${refill.count} of ${rf.maxPerDay}`);
+      }
+    } else { refill.zeroSince = null; refill.alarmAt = null; }
+    for (const c of Object.keys(refill.tried)) if (d.now - Date.parse(refill.tried[c]) >= rf.retryMin * M) delete refill.tried[c];
+  }
+
   // ── live-prep's FUNDED: the money put in (Addendum 10, `lpFunding`) ──────────────────────────────────────────────
   // Live only: pUSD + what the CONFIRMED fills spent net − what redeemed settlements paid in − what Polymarket paid
   // (rewards and maker rebates, the readout's live rows). A move of it is booked as a deposit or a withdrawal, an event
@@ -2632,6 +2794,9 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
             } : {}),
             // Its capital (`lpCapital`): what the next turn compares a raise with, and what the page shows.
             ...(lpCap ? { capital: { ...lpCap, at: nowIso } } : {}),
+            // The refill (Addendum 13): each slot's time out, what was replaced and by what, the day's count, the candidates
+            // that failed and when, the health reading; and the markets out this turn, for the page's QUOTING TODAY.
+            ...(rf ? { refill, quotingSlots, outNow: [...lpOut.keys()] } : {}),
             // The money put in (`lpFunding`, Addendum 10): FUNDED on its LIVE row and page; and this turn's reading of it,
             // which the page shows until the first booking (never the cap).
             ...(funding ? { funding } : {}),

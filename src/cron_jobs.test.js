@@ -709,6 +709,28 @@ describe('pg_cron jobs', () => {
     for (const fn of ['pm_prog_rate_at(text, timestamptz)', 'pm_prog_day(text, date)', 'pm_prog_refresh()']) expect(sql).toContain(`revoke all on function public.${fn} from public, anon, authenticated;`);
   });
 
+  // 0116 (Davies, 2026-10-10: "现在就做补选吧…", "这个候补名单也要在当天中实时更新"): live-prep's live reserve, its own call.
+  it("adds live-prep's live reserve as one call every minute (0116), its beat its own, its lease, its table, and the refill's event kind", () => {
+    const T = FILES.find((f) => /^0116_pm_lp_refill\.sql$/.test(f)) ?? '';
+    expect(T).not.toBe('');
+    const before = replayList(sqlsOf(FILES.filter((f) => f < T))), after = replayList(sqlsOf(FILES.filter((f) => f <= T)));
+    expect(after.slice(0, before.length)).toEqual(before);
+    const shape = ({ path: p, timeout, every, lastHour, enabled, retry }) => ({ path: p, timeout, every, lastHour, enabled, retry });
+    expect(after.slice(before.length).map(shape)).toEqual([
+      { path: 'agents?action=pmlpreserve', timeout: 58000, every: 1, lastHour: 23, enabled: true, retry: true },
+    ]);
+    expect(beatKeyOfPath(after.at(-1).path)).toBe('agents?action=pmlpreserve');
+    const src = fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/index.ts'), 'utf8');
+    expect(src).toContain('if (action === "pmlpreserve" && req.method === "POST" && operator) return json(200, await runPmLpReserveAction());');
+    const jobsBefore = cronJobs(FILES.filter((f) => f < T)), jobsAfter = cronJobs(FILES.filter((f) => f <= T));
+    expect([...jobsAfter.keys()].filter((n) => !jobsBefore.has(n))).toEqual([]);
+    const sql = fs.readFileSync(path.join(DIR, T), 'utf8').replace(/--[^\n]*/g, '');
+    expect(sql).toContain("insert into public.agent_locks (name) values ('pm-lp-reserve') on conflict (name) do nothing;");
+    expect(sql).toMatch(/alter table public\.pm_lp_reserve +enable row level security;/);
+    expect(sql).toContain("'readout', 'funding', 'refill'");
+    expect(sql).not.toMatch(/\bgrant\b|create policy/i);
+  });
+
   // 0103 (Davies, 2026-10-08: stop mini-pool's two calls, and what no reading still needs now RW's round 1 ends):
   // mini-pool's two calls leave the list when it applies; RW's four only once the last day their readings read is
   // closed, turned off by a function a job runs every five minutes (so a push before 10-09 00:05 cannot cut RW's last

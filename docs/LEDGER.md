@@ -26,10 +26,13 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
 1. **Closed: fp5's ranked list.**
 
 2. **Polymarket reward quotes (paper; RW, RW-E, RW-X, TB1, RW-C) and the three order paths (dry-run, unarmed).**
-   - **Live-prep's Addenda 9–11 are live** (the reward check, FUNDED and the early readout, FUNDED at once: $402.028365
-     booked 02:32 UTC 10-10). **TO LAND: Addendum 12, AI markets out**, on branch `lp-no-ai` (10-10 03:00 section).
-     Its paper layer's calls stay on until LPRESEL6 has read 10-09 → 10-22 (then a migration turns them off). Left for
-     Davies: refilling a freed slot, and ranking on a rate that does not flip within the hour (both not built).
+   - **Live-prep's Addenda 9–12 are on main** (the reward check, FUNDED and the early readout, FUNDED at once: $402.028365
+     booked 02:32 UTC 10-10; AI markets out). **TO LAND: Addendum 13, the refill from a live reserve**, on branch
+     `lp-refill-build` (10-10 14:00 section); **migration 0116 must apply with or before its Edge deploy**. Its numbers are
+     `PM_LP_REFILL` in `pm_lp.ts`, for the research pass to replace by an addendum. Its paper layer's calls stay on until
+     LPRESEL6 has read 10-09 → 10-22 (then a migration turns them off); LPRESEL6's "live-prep's own selection" is now the
+     day's `pm_lp_markets` rows without `detail.refill`. Left for Davies: ranking on a rate that does not flip within the
+     hour (not built).
    - **RW's verdict: read 2026-10-09 00:42–00:50 UTC** (`reviews/2026-10-09-polymarket-rw-paper-result.md`, reference
      §3.46, `backtests/rwverdict/`). RW 6/6, RW-E 7/7, x1–x3 7/7 each; step b (all 4,116 fills by `stepRw`) and c (13,634
      prints re-pulled, none missed) clean; **RW-NEXT's candidate is RW-E**, to RW-C (Part 3's bar on or after 10-23
@@ -437,6 +440,25 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 "LEDGER.md, archived 2026-10-09", the 2026-10-08 22:49 → 23:58 UTC sections under "LEDGER.md, archived 2026-10-09
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10"; each oldest first.
+
+### [2026-10-10 14:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep's refill from a live reserve (Addendum 13, mid-pool's 14, branch `lp-refill-build`)**, on Davies'
+  "现在就做补选吧，不然资金利用率太低了，研究出一套最合理的机制" and "这个候补名单也要在当天中实时更新比如每分钟之类的". 10-10's ten
+  markets were taken out one by one: their formula fell from $4.906 in the 00:00 hour to $0.015–$0.160 an hour after
+  10:00 (`backtests/lprefill/results/today_formula.txt`). Now a slot out 15 minutes (0 once none quotes) is refilled
+  after the turn's orders from the reserve, by the first candidate that passes at that minute (Gamma, the candidate
+  rules, its programme in N ≤ 20, its book scored as the selection scores it, $200 in all); a failing one is skipped
+  and kept; at most 1 a turn, 3 reads a turn, 10 a day, none past the governor or the deadline; a market of today's
+  rows is never taken again. Event `refill` then a `pm_lp_markets` row (`detail.refill`); QUOTING TODAY leaves out
+  `state.lp.outNow`; zero slots quoting 30 minutes with a candidate in the universe is an `agents.pm_lp` error.
+- The reserve is its own call, `agents?action=pmlpreserve` every minute (`pm_lp_reserve.ts`, 0116's `edge_calls` row,
+  lease `pm-lp-reserve`, table `pm_lp_reserve`): the full re-rank (`selectMarkets` with `reserve: 30`) every 5 minutes,
+  the first 15 candidates' programmes every minute. Measured against Polymarket from the container: 10,019 ms cold,
+  1,819 ms warm, 102 requests (48 listing, 40 Gamma, 14 `/books`); the light refresh 16 GETs.
+- Shared code: `pm_live.ts` `ef036c76…c480` (was `062ee916…7a50`: `scoreBook`/`scoredRow` taken out, `PmSelectOpts.reserve`,
+  the refill), `pm_lp.ts` `0a85f529…2b25` (was `de26be30…d1ed`); hash chain and prereg pins extended. Not done: the
+  reserve's freshness is not among `monitor/health.ts`'s readings; the browser sweep was not run (no `src/` change but
+  tests). **Deploy order: 0116 with or before the Edge deploy.**
 
 ### [2026-10-10 03:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - The ledger had reached its 80 KiB budget: the 26 sections of 2026-10-09 (03:20 → 22:53 UTC) moved verbatim to

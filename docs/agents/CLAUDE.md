@@ -506,7 +506,9 @@ that follow from that evidence, in short:
   rest on the formula Polymarket scored. Since Addendum 10 (`0113`) its FUNDED is the money put in, its payout is read
   from 00:05 UTC, and every paper Reward quotes row on the page is shown at its live R (pre-registered readings keep their
   own). Since Addendum 12 (2026-10-10) it leaves AI markets out (LP-ALLOC's `typeOf`, `lpMarketType` in `pm_lp.ts`):
-  none is selected, and one already selected takes no entry. **Live, its total cap follows its equity since
+  none is selected, and one already selected takes no entry. Since Addendum 13 (`0116`) a slot taken out is refilled
+  after 15 minutes (at once when none quotes, at most ten a day, never the same market twice a day) from a live reserve
+  that its own call keeps (`agents?action=pmlpreserve`, `pm_lp_reserve.ts`); every number is `PM_LP_REFILL` in `pm_lp.ts`. **Live, its total cap follows its equity since
   `0106`** (Davies, 2026-10-09: payouts and deposits used at once; its pre-registration's Addendum 8): every turn
   floor(pUSD + held at cost + unredeemed − $75 − $5), at most $1,000, down at once, up only on two agreeing readings with
   no fill settling, never on an unread balance (`lpCapital`); `reinvest = false` on its config puts the fixed $320 back. Its

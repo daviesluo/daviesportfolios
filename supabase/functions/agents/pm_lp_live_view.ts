@@ -275,7 +275,11 @@ export function lpLiveSummary(input: {
       ...heldOf(cond), mark: mid.get(cond) ?? null, share: null, ...partOf(cond),
     });
   }
-  const quotingToday = quotes.filter((x) => x.quoting).length;
+  // QUOTING TODAY is the current set (Addendum 13): today's markets less those the path's last turn had out (the reward
+  // check, the backstop, the AI rule, a refill's replaced market: `state.lp.outNow`); without that reading, today's markets.
+  const outNow = (st as { lp?: { outNow?: unknown } } | null)?.lp?.outNow;
+  const outSet = new Set(Array.isArray(outNow) ? outNow.map(String) : []);
+  const quotingToday = quotes.filter((x) => x.quoting && !outSet.has(String(x.cond))).length;
   // FILLS, the TESTING page's table: each fill as the venue lists it, newest first; one not yet CONFIRMED is listed,
   // marked, and counted nowhere.
   const fillTs = (f: LpLiveFillRow) => (f.match_time ? Date.parse(f.match_time) : input.nowMs);

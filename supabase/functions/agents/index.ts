@@ -75,6 +75,11 @@
 //   POST ?action=pmlpprep   — live-prep's paper layer (pm_prep.ts on 0091's
 //                             tables): it fills the path's own orders, sells
 //                             included. Every minute.
+//   POST ?action=pmlpreserve — live-prep's live reserve (pm_lp_reserve.ts,
+//                             0116): its refill's candidates, re-ranked on the
+//                             selection's own functions every five minutes,
+//                             their programmes read every minute. Keyless
+//                             reads only. Every minute.
 //   POST ?action=views      — the view-count recorder (views.ts, 0062):
 //                             Polymarket's view markets, their YES books and
 //                             the YouTube counters they resolve on, every
@@ -185,6 +190,7 @@ import { PM_LIVE_TIMEOUT_MS, PM_MINI_INSTANCE, runPmLive, type PmSettlement } fr
 import { PREP_INSTANCE, runPmPrep, type PrepInstance } from "./pm_prep.ts";
 import { PM_MID_INSTANCE, PREP_MID_INSTANCE } from "./pm_mid.ts";
 import { PM_LP_INSTANCE, PREP_LP_INSTANCE } from "./pm_lp.ts";
+import { runPmLpReserve } from "./pm_lp_reserve.ts";
 import { atLiveR, LP_LIVE_FILL_COLUMNS, LP_LIVE_HOUR_COLUMNS, LP_LIVE_HOURS_VIEW, LP_LIVE_MARKET_COLUMNS, LP_LIVE_MINUTE_COLUMNS, LP_LIVE_ORDER_COLUMNS, LP_LIVE_REWARD_COLUMNS, lpLiveR, lpLiveSince, lpLiveSummary, type LpLiveRPrice, type LpLiveConfigRow, type LpLiveFillRow, type LpLiveHourRow, type LpLiveMarketRow, type LpLiveMinuteRow, type LpLiveOrderRow, type LpLiveRewardDayRow, type LpLiveStateRow, type LpLiveStopRow } from "./pm_lp_live_view.ts";
 import { PREP_STRESS_TABLE, recordPrepStress, stressLayer } from "./pm_prep_stress.ts";
 import { prepSummary, type PrepDayRow, type PrepStressDayRow, type PrepFillRow, type PrepMarketRow, type PrepMinuteRow, type PrepRateRow, type PrepStateRow } from "./pm_prep_view.ts";
@@ -727,6 +733,22 @@ export async function runPmLpAction(deps: { db?: Db; fetchImpl?: typeof fetch; r
     await reportServerError(PM_LP_INSTANCE.errorKind, { message: message.slice(0, 500), context: { at: new Date().toISOString() } });
     return { error: message.slice(0, 300) };
   }
+}
+
+/**
+ * Live-prep's live reserve, one run (`pm_lp_reserve.ts`, 0116): the candidates its refill takes a vacated slot from,
+ * re-ranked every five minutes on the selection's own functions and their programmes read every minute, in a call of its
+ * own so the quoting turn never waits on it. Keyless reads through the order path's client with no credentials (no key,
+ * no order). Faults go to `ops_errors` as `agents.pm_lp_reserve`.
+ */
+export async function runPmLpReserveAction(deps: { db?: Db; now?: number; fetchImpl?: typeof fetch } = {}) {
+  const report = await runPmLpReserve({
+    db: deps.db ?? db(), now: deps.now ?? Date.now(), holder: crypto.randomUUID(), inst: PM_LP_INSTANCE,
+    venue: pmVenue({ fetchImpl: deps.fetchImpl, sigType: 1, timeoutMs: PM_LIVE_TIMEOUT_MS }),
+    pm: { fetchImpl: deps.fetchImpl, timeoutMs: PM_LIVE_TIMEOUT_MS },
+  });
+  if (report.errors.length) await reportServerError("agents.pm_lp_reserve", { message: report.errors.join(" | ").slice(0, 500), context: { at: report.at, reads: report.reads, rankMs: report.rankMs } });
+  return report;
 }
 
 /** Live-prep's paper layer, one run (`pm_prep.ts` on 0091's tables). Keyless. Faults go to `ops_errors` as `agents.pm_lpprep`. */
@@ -2753,6 +2775,8 @@ async function route(req: Request, who: Exclude<Who, null>, url: URL, action: st
   if (action === "pmlp" && req.method === "POST" && who === "cron") return json(200, await runPmLpAction());
   // Its paper layer (pm_prep.ts on 0091's tables). Keyless public reads only.
   if (action === "pmlpprep" && req.method === "POST" && operator) return json(200, await runPmLpPrepAction());
+  // Its live reserve (pm_lp_reserve.ts, 0116): the refill's candidates, ranked in a call of their own. Keyless reads only.
+  if (action === "pmlpreserve" && req.method === "POST" && operator) return json(200, await runPmLpReserveAction());
   // The view-count recorder (views.ts, 0062): Polymarket's view markets and the YouTube counters they resolve on. Reads only.
   if (action === "views" && req.method === "POST" && operator) {
     const key = youtubeKey();

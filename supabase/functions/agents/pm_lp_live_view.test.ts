@@ -342,3 +342,12 @@ Deno.test("atLiveR: a paper Reward quotes summary priced at the live R, its wors
   assertEquals(atLiveR(null, R), null);
 });
 
+Deno.test("Addendum 13: QUOTING TODAY is the current set, today's markets less those the last turn had out", () => {
+  const out = F.input.markets.filter((m: { day: string }) => String(m.day).slice(0, 10) === new Date(Math.floor(F.input.nowMs / 86400e3) * 86400e3).toISOString().slice(0, 10)).map((m: { cond: string }) => m.cond);
+  const withOut = (outNow: string[]) => ({ ...F.input, state: { ...F.input.state, state: { ...F.input.state.state, lp: { ...(F.input.state.state.lp ?? {}), outNow } } } });
+  const all = lpLiveSummary(F.input)!.status.quoting;
+  assertEquals(all, out.length);
+  assertEquals(lpLiveSummary(withOut([out[0]]))!.status.quoting, all - 1);
+  assertEquals(lpLiveSummary(withOut(out))!.status.quoting, 0);
+});
+

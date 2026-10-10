@@ -13,12 +13,13 @@
 // mini-pool's or mid-pool's tables is touched.
 
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { lpMarketType, lpQuotes, nearCertainBuyOk, PM_LP_EXCLUDE_AI, PM_LP_READOUT, PM_LP_REWARD_CHECK, PM_LP_BAND, PM_LP_CANDIDATE, PM_LP_CAP_MARKET_USD, PM_LP_INSTANCE, PM_LP_INV_CAP, PM_LP_NEAR_CERTAIN, PM_LP_PAUSE, PM_LP_TIGHT, PREP_LP_INSTANCE } from "./pm_lp.ts";
+import { lpMarketType, lpQuotes, nearCertainBuyOk, PM_LP_EXCLUDE_AI, PM_LP_READOUT, PM_LP_REFILL, PM_LP_REWARD_CHECK, PM_LP_BAND, PM_LP_CANDIDATE, PM_LP_CAP_MARKET_USD, PM_LP_INSTANCE, PM_LP_INV_CAP, PM_LP_NEAR_CERTAIN, PM_LP_PAUSE, PM_LP_TIGHT, PREP_LP_INSTANCE } from "./pm_lp.ts";
 import { isTight } from "./pmrw_x.ts";
 import {
   candidateOf, ctfApproval, effectiveLimits, gates, heldFromBalance, inUniverse, inYesBook, lpCandidateOf, lpLimits, onTick, PM_LIVE_MAX_POSTS_DAY, PM_LP_MAX_POSTS_DAY, pauseAfterJump, PM_LIVE_INSTANCE, PM_MINI_INSTANCE, pmLiveDbTables, pmLpDbTables,
-  lpFunding, lpRewardVerdict, PM_LP_FUNDING, rewardConfigOf, runPmLive, rwQuotes, scoringStreak, type PmRewardNow, type PmBookNow, type PmIntent, type PmLiveConfig, type PmMarketRow, type PmPauseState, type PmRewardRow,
+  lpFunding, lpRewardVerdict, PM_LP_FUNDING, type LpRefillOptions, rewardConfigOf, runPmLive, rwQuotes, scoringStreak, type PmRewardNow, type PmBookNow, type PmIntent, type PmLiveConfig, type PmMarketRow, type PmPauseState, type PmRewardRow,
 } from "./pm_live.ts";
+import { runPmLpReserve } from "./pm_lp_reserve.ts";
 import { classifyLp, decideLp, PREP_INSTANCE, prepDbTables, prepReads, runPmPrep, stepSides, type PrepOrder } from "./pm_prep.ts";
 import { PM_MID_INSTANCE, PREP_MID_INSTANCE } from "./pm_mid.ts";
 import { newAcc, quote, sizeN, stepRw, summarize, type BookRow } from "./pmrw.ts";
@@ -373,10 +374,11 @@ type P = [number, "BUY" | "SELL", number, number, number];
  * would pass it over), and four that live-prep never takes: WX (weather), TODAY (ends this UTC day), GAME (starts within
  * two days) and LOW ($8). Mini-pool's and mid-pool's tables sit beside its own, each with a row, as in production.
  */
-function world(o: { config?: Record<string, unknown>; days?: Array<Record<string, unknown>>; onCost?: boolean; nearCertain?: boolean } = {}) {
+function world(o: { config?: Record<string, unknown>; days?: Array<Record<string, unknown>>; onCost?: boolean; nearCertain?: boolean; refill?: Partial<LpRefillOptions>; extra?: number[] } = {}) {
   const clock = { now: T0 };
   // `onCost`: the day stop as the pre-registrations froze it (`dayStopOnCost`), which no action runs (2026-10-07).
-  const inst = o.onCost ? { ...PM_LP_INSTANCE, dayStopOnCost: true } : PM_LP_INSTANCE, prepInst = o.onCost ? { ...PREP_LP_INSTANCE, dayStopOnCost: true } : PREP_LP_INSTANCE;
+  const base = o.refill ? { ...PM_LP_INSTANCE, lp: { ...PM_LP_INSTANCE.lp!, refill: { ...PM_LP_INSTANCE.lp!.refill!, ...o.refill } } } : PM_LP_INSTANCE;
+  const inst = o.onCost ? { ...base, dayStopOnCost: true } : base, prepInst = o.onCost ? { ...PREP_LP_INSTANCE, dayStopOnCost: true } : PREP_LP_INSTANCE;
   const pm = new FakePolymarket(() => clock.now);
   const add = (n: number, rate: number, extra: Record<string, unknown> = {}) =>
     pm.addMarket({ cond: cond(n), yes: tok(n, "yes"), no: tok(n, "no"), rate, sponsoredRate: null, minSize: 5, depth: [[0, 50]], ...extra });
@@ -387,8 +389,11 @@ function world(o: { config?: Record<string, unknown>; days?: Array<Record<string
   const GAME = add(6, 20, { gameStartTime: "2026-10-06 20:00:00+00" }), LOW = add(7, 8);
   // `nearCertain`: NC, YES at 0.96 / 0.98 (N 5), whose bid is a BUY of a token at 0.95 or more (Addendum 7's limit).
   const NC = o.nearCertain ? add(8, 50, { bid: 0.96, ask: 0.98, depth: [[0, 5]] }) : null;
+  // `extra`: more ordinary markets at these daily rates (cond 20, 21, …), for a reserve to refill from.
+  const X = (o.extra ?? []).map((rate, i) => add(20 + i, rate, { bid: 0.40 + i * 0.03, ask: 0.42 + i * 0.03, depth: [[0, 5]] }));
   const mem = memDb({
-    agent_locks: [{ name: "pm-lp", lease_until: iso(0), holder: null }, { name: "pm-lpprep", lease_until: iso(0), holder: null }],
+    agent_locks: [{ name: "pm-lp", lease_until: iso(0), holder: null }, { name: "pm-lpprep", lease_until: iso(0), holder: null }, { name: "pm-lp-reserve", lease_until: iso(0), holder: null }],
+    pm_lp_reserve: [],
     agent_risk: [{ id: 1, global_pause: false }],
     pm_lp_config: [{ ...LP_CONFIG, ...o.config }],
     ...Object.fromEntries([...LP_TABLES.filter((t) => t !== "pm_lp_config"), ...LPPREP_TABLES].map((t) => [t, []])),
@@ -397,13 +402,19 @@ function world(o: { config?: Record<string, unknown>; days?: Array<Record<string
     pm_mid_config: [{ ...OTHER_CONFIG }], pm_mid_markets: [{ day: "2026-10-05", cond: cond(2) }], pm_midprep_fills: [{ cond: cond(2) }],
   }, { now: () => clock.now });
   const others = JSON.stringify(Object.entries(mem.tables).filter(([t]) => /^pm_(live|prep|mid|midprep)_/.test(t)));
-  const db = onlyTables(mem.db, pmLpDbTables(PM_LP_INSTANCE), { lease: "pm-lp", readOnly: ["agent_risk", ...Object.values(PM_LP_INSTANCE.lp!.paper)] });
+  const db = onlyTables(mem.db, pmLpDbTables(PM_LP_INSTANCE), { lease: "pm-lp", readOnly: ["agent_risk", ...Object.values(PM_LP_INSTANCE.lp!.paper), "pm_lp_reserve"] });
   const prepDb = onlyTables(mem.db, prepDbTables(PREP_LP_INSTANCE), { lease: "pm-lpprep", readOnly: prepReads(PREP_LP_INSTANCE) });
+  const reserveDb = onlyTables(mem.db, ["pm_lp_config", "pm_lp_markets", "pm_lp_orders", "pm_lp_reserve", "agent_locks"], { lease: "pm-lp-reserve", readOnly: ["pm_lp_config", "pm_lp_markets", "pm_lp_orders"] });
   const key = new PmOrderKey(PM_TEST_KEY);
   let salt = 1;
   const errors: string[] = [];
   const w = {
-    clock, pm, mem, L1, BIG, E30, WX, TODAY, GAME, LOW, NC, errors,
+    clock, pm, mem, L1, BIG, E30, WX, TODAY, GAME, LOW, NC, X, errors, inst,
+    /** One run of the live reserve (`pm_lp_reserve.ts`) at `t`, as its own call. */
+    async reserve(t: number) {
+      clock.now = t;
+      return await runPmLpReserve({ db: reserveDb, now: t, holder: `r${t}`, venue: pm.venue(), inst, clock: () => clock.now, pm: { fetchImpl: pm.publicFetch } });
+    },
     async turn(t: number) {
       clock.now = t;
       const r = await runPmLive({
@@ -1127,3 +1138,86 @@ Deno.test("AI markets out, at once: the selection never takes one; one selected 
   assert(w.rows("pm_lp_orders").some((x) => x.mode === "live" && x.cond === w.BIG.cond && x.side === "BUY" && x.state === "live"));
 });
 
+
+// ------------------------------------------------------------------ the refill and its live reserve (2026-10-10, Addendum 13)
+
+const day0 = (w: ReturnType<typeof world>) => w.rows("pm_lp_markets").filter((m) => m.day === "2026-10-05");
+const resRows = (w: ReturnType<typeof world>) => ((w.rows("pm_lp_reserve")[0] as any)?.rows ?? []) as Array<{ cond: string; rank: number; programme?: { inUniverse?: boolean } | null }>;
+const fakeOf = (w: ReturnType<typeof world>, c: string) => [w.L1, w.BIG, w.E30, ...w.X].find((m) => m.cond === c)!;
+const buysIn = (w: ReturnType<typeof world>, c: string) => w.rows("pm_lp_orders").filter((x) => x.mode === "live" && x.cond === c && x.side === "BUY" && x.state === "live").length;
+
+Deno.test("the live reserve: after the day's selection, the next candidates in RW's order, none of the day's markets; their programmes read every minute", async () => {
+  assertEquals(PM_LP_REFILL, { afterMin: 15, afterMinAllOut: 0, maxPerDay: 10, perTurn: 1, triesPerTurn: 3, retryMin: 15, reserveSize: 30, refreshTop: 15, rerankEveryMin: 5, idleAlarmMin: 30 });
+  assertEquals(PM_LP_INSTANCE.lp!.refill, { ...PM_LP_REFILL, table: "pm_lp_reserve" });
+  const w = world({ config: { ...LIVE, max_markets: 2 }, extra: [100, 90] });
+  assertEquals((await w.reserve(T0 - 20e3)).skipped, "the day's selection has not landed yet");
+  await w.turn(T0);
+  const r = await w.reserve(T0 + 20e3);
+  const sel = day0(w).map((m) => m.cond), res = resRows(w);
+  assertEquals([sel.length, res.length, r.ranked], [2, 3, true]);
+  assert(res.every((x) => !sel.includes(x.cond)) && res.every((x) => x.programme?.inUniverse === true), JSON.stringify(res));
+  assertEquals(res.map((x) => x.rank), [1, 2, 3]);                                          // the reserve's own order
+  // A minute later: no re-rank (every five minutes), the programmes read again; one fallen under the floor is marked.
+  fakeOf(w, res[0].cond).rate = 8;
+  const r2 = await w.reserve(T0 + M + 20e3);
+  assertEquals([r2.ranked, resRows(w)[0].programme?.inUniverse, r2.reads.programmes], [false, false, 3]);
+});
+
+Deno.test("refill: a market out 15 minutes takes the next reserve candidate that passes; a failing one is skipped, kept, and the dropped market is never taken again", async () => {
+  const w = world({ config: { ...LIVE, max_markets: 2 }, extra: [100, 90] });
+  await w.turn(T0);
+  await w.reserve(T0 + 20e3);
+  const [S, K] = day0(w).map((m) => String(m.cond)), [A, B, C] = resRows(w).map((x) => x.cond);
+  fakeOf(w, S).rewardsMinSize = 50;                                                         // S out from T0 + 1 min
+  for (let k = 1; k <= 15; k++) { await w.turn(T0 + k * M); await w.reserve(T0 + k * M + 20e3); }
+  assertEquals(day0(w).length, 2);                                                           // 14 minutes out: not yet
+  assertEquals(resRows(w).map((x) => x.cond), [A, B, C]);
+  fakeOf(w, A).rate = 8;                                                                     // A fails the band at the refill's minute
+  await w.turn(T0 + 16 * M);
+  const rows = day0(w).map((m) => String(m.cond));
+  assertEquals([...rows].sort(), [S, K, B].sort());
+  assertEquals(rows.includes(A), false);
+  const ev = w.rows("pm_lp_events").filter((e) => e.kind === "refill").map((e) => e.detail as any);
+  assertEquals(ev.map((e) => [e.for, e.took, e.n]), [[S, B, 1]]);
+  assertEquals((day0(w).find((m) => m.cond === B)!.detail as any).refill.for, S);
+  const st = (w.rows("pm_lp_state")[0].state as any).lp.refill;
+  assertEquals([st.count, st.replaced[S].by, typeof st.tried[A]], [1, B, "string"]);
+  // B quotes from the next turn, with every minute's check; S stays out though its programme comes back.
+  fakeOf(w, S).rewardsMinSize = 5;
+  await w.turn(T0 + 17 * M);
+  assert(buysIn(w, B) > 0, "the refilled market quotes");
+  assertEquals(buysIn(w, S), 0);
+  assert(String(minuteOf(w, S, T0 + 17 * M).detail.lp.out).startsWith("replaced by a refill"));
+  // B out in turn: the next refill takes A once it passes again (tried 15 minutes after its failure), never S.
+  fakeOf(w, A).rate = 100;
+  fakeOf(w, B).rewardsMinSize = 50;
+  for (let k = 18; k <= 34; k++) { await w.turn(T0 + k * M); await w.reserve(T0 + k * M + 20e3); }
+  const taken = w.rows("pm_lp_events").filter((e) => e.kind === "refill").map((e) => (e.detail as any).took);
+  assertEquals(taken.includes(S), false);
+  assertEquals(taken[0], B);
+  assert(taken.length === 2 && [A, C].includes(taken[1]), JSON.stringify(taken));
+});
+
+Deno.test("refill: the daily cap holds; with every slot out, refills start on the next turn when passing candidates exist", async () => {
+  // One slot (max_markets 1): out, it is every slot, so the wait is 0.
+  const w = world({ config: { ...LIVE, max_markets: 1 }, extra: [100, 90] });
+  await w.turn(T0);
+  await w.reserve(T0 + 20e3);
+  const [S] = day0(w).map((m) => String(m.cond));
+  fakeOf(w, S).rewardsMinSize = 50;
+  await w.turn(T0 + M);                                                                      // out from this turn
+  await w.turn(T0 + 2 * M);
+  assertEquals(w.rows("pm_lp_events").filter((e) => e.kind === "refill").length, 1);
+  assertEquals(day0(w).length, 2);
+  // The cap: none a day, none refilled, though every slot is out and the reserve holds passing candidates; after 30
+  // minutes of no slot quoting the health reading is a fault.
+  const c = world({ config: { ...LIVE, max_markets: 1 }, extra: [100, 90], refill: { maxPerDay: 0 } });
+  await c.turn(T0);
+  await c.reserve(T0 + 20e3);
+  fakeOf(c, String(day0(c)[0].cond)).rewardsMinSize = 50;
+  const errs: string[] = [];
+  for (let k = 1; k <= 32; k++) { const r = await c.turn(T0 + k * M); errs.push(...r.errors.filter((e) => /no slot has quoted/.test(e))); if (k % 5 === 0) await c.reserve(T0 + k * M + 20e3); }
+  assertEquals([c.rows("pm_lp_events").filter((e) => e.kind === "refill").length, day0(c).length], [0, 1]);
+  assertEquals(errs.length, 1);
+  assert(errs[0].includes(`since ${iso(T0 + M)}`), errs[0]);
+});

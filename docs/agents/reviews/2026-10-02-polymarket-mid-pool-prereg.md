@@ -566,3 +566,21 @@ path this file froze and find every decision the same.
 
 **What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
 of the Edge deploy that carries it, as deviation 13.
+
+## Addendum 14 (2026-10-10, about 14:00 UTC): deviation 14, live-prep's refill
+
+This addendum was written inside the window, before the deploy it records. Its readout runs at or after 2026-10-17
+00:10 UTC.
+
+**Deviation 14 is live-prep's refill** (live-prep's pre-registration, Addendum 13). It changes the shared `pm_live.ts`:
+after it, `pm_live.ts` sha256 `ef036c76a0cc75cf8a9f3bcec2de9e554f0bfb7f44a6b658b89c35aac477c480`, where Addendum 13 above named `062ee916…7a50`. The change: the
+selection's book score and row taken out into functions of their own (`scoreBook`, `scoredRow`) that it calls as
+before, an optional reserve the selection keeps only when asked (`PmSelectOpts.reserve`), and a refill run only in a
+turn whose instance sets `lp.refill`, which only live-prep's does.
+
+**Mid-pool is unchanged.** It asks for no reserve and sets no `lp` options, so its selection chooses the same markets
+and its turns refill nothing. No decision of mid-pool changes: `agents/pm_mid_formula.test.ts` and
+`agents/pm_payouts.test.ts` run it beside the path this file froze and find every decision the same.
+
+**What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
+of the Edge deploy that carries it, as deviation 14.

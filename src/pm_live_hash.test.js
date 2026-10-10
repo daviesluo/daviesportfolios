@@ -13,7 +13,8 @@
 //   e76d0234…  live-prep's Addendum 9, mid-pool's Addendum 10 (live-prep's reward check every minute, 2026-10-10)
 //   c990ef3e…  live-prep's Addendum 10, mid-pool's Addendum 11 (live-prep's FUNDED and early readout, 2026-10-10)
 //   2ae0e729…  live-prep's Addendum 11, mid-pool's Addendum 12 (FUNDED at once, the paper row off TESTING, 2026-10-10)
-//   (Addendum 12's)  live-prep's Addendum 12, mid-pool's Addendum 13 (AI markets out, 2026-10-10)
+//   062ee916…  live-prep's Addendum 12, mid-pool's Addendum 13 (AI markets out, 2026-10-10)
+//   (Addendum 13's)  live-prep's Addendum 13, mid-pool's Addendum 14 (live-prep's refill from a live reserve, 2026-10-10)
 import { describe, expect, it } from 'vitest';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -45,15 +46,16 @@ const LP_A7 = '98c060072ebac964df345930122a045a06ec1191f57b094e2dfead928565762c'
 const AE76 = 'e76d0234d1b3454d0a4e5b0cdbe7fc1c43f92425626a0d593b91f31035cc6809';
 const AC99 = 'c990ef3e3ad2700f5552c7a913e1376b7a1fc08368e7b39bd5589ad865a53616';
 const A2AE = '2ae0e7296fd2038fd90bcba61a3daae1e52546fd9f22146789acd5db4a600ca3';
+const A062 = '062ee9160c77edafd3c48e36ba3cd4857aed512e4ecc6e0219483818b78d7a50';
 /** The pm_lp.ts live-prep's Addendum 9 named (the reward check), its instance until Addendum 10. */
 const LP_A9 = 'c7e3a7ec271b8e798dcc756c3f9d83da2421ddee03f3fede6e3e66a541d173c7';
 
 describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", () => {
-  it("live-prep's latest addendum (12) and mid-pool's (13) name today's pm_live.ts", () => {
-    expect(lastNumber(LP)).toBe(12);
-    expect(lastNumber(MID)).toBe(13);
-    expect(namedPath(addendum(LP, 12))).toBe(sha);
-    expect(namedPath(addendum(MID, 13))).toBe(sha);
+  it("live-prep's latest addendum (13) and mid-pool's (14) name today's pm_live.ts", () => {
+    expect(lastNumber(LP)).toBe(13);
+    expect(lastNumber(MID)).toBe(14);
+    expect(namedPath(addendum(LP, 13))).toBe(sha);
+    expect(namedPath(addendum(MID, 14))).toBe(sha);
   });
 
   it('each addendum of the chain names what it changed from', () => {
@@ -96,6 +98,11 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     expect(addendum(LP, 12)).toContain('`2ae0e729…0ca3`');
     expect(addendum(MID, 13)).toContain('`2ae0e729…0ca3`');
     expect(addendum(MID, 13)).toContain('deviation 13');
+    expect(namedPath(addendum(LP, 12))).toBe(A062);
+    expect(namedPath(addendum(MID, 13))).toBe(A062);
+    expect(addendum(LP, 13)).toContain('`062ee916…7a50`');
+    expect(addendum(MID, 14)).toContain('`062ee916…7a50`');
+    expect(addendum(MID, 14)).toContain('deviation 14');
   });
 
   it("live-prep's Addendum 5 and mid-pool's 6 name every change of the go-live audit, and the dry-run decisions unchanged", () => {
@@ -249,5 +256,31 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     const page = read('src/agents/agents.js');
     expect(page).toContain('...one(midRow(dash?.prepMid)),\n  ];');
     expect(page).not.toContain('...one(lpRow(dash?.prepLp))');
+  });
+
+  it("live-prep's Addendum 13 and mid-pool's 14 record the refill from a live reserve, in Davies' words, and mid-pool unchanged", () => {
+    const lp13 = addendum(LP, 13), mid14 = addendum(MID, 14);
+    expect(lp13).toContain('现在就做补选吧，不然资金利用率太低了，研究出一套最合理的机制');
+    expect(lp13).toContain('这个候补名单也要在当天中实时更新比如每分钟之类的');
+    expect(mid14).toContain('**Mid-pool is unchanged.**');
+    const lp = read('supabase/functions/agents/pm_lp.ts');
+    // The constant the addendum quotes is the instance's, word for word.
+    const line = 'afterMin: 15, afterMinAllOut: 0, maxPerDay: 10, perTurn: 1, triesPerTurn: 3, retryMin: 15, reserveSize: 30, refreshTop: 15, rerankEveryMin: 5, idleAlarmMin: 30,';
+    expect(lp).toContain(`export const PM_LP_REFILL: LpRefillOptions = {\n  ${line}\n};`);
+    expect(lp13).toContain(line);
+    expect(lp).toContain('refill: { ...PM_LP_REFILL, table: "pm_lp_reserve" },');
+    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(lp13)?.[1]).toBe(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex'));
+    expect(lp13).toContain('`de26be30…d1ed`');
+    expect(read('supabase/functions/agents/pm_lp_reserve.ts')).toContain('export async function runPmLpReserve(');
+    expect(lp13).toContain(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/migrations/0116_pm_lp_refill.sql'))).digest('hex'));
+    // 0116 adds the reserve's table and lease, one event kind and one call, and touches no other path's table.
+    const body = read('supabase/migrations/0116_pm_lp_refill.sql').replace(/--[^\n]*/g, '');
+    expect(body).not.toMatch(/pm_live_|pm_mid_/);
+    expect(body).toContain("'funding', 'refill'");
+    expect(body).toContain("'agents?action=pmlpreserve'");
+    // Only live-prep's instance keeps a reserve or refills.
+    const src = read(PATH);
+    expect(src).toContain('const rf = inst.lp?.refill;');
+    expect(read('supabase/functions/agents/pm_mid.ts')).not.toContain('refill');
   });
 });

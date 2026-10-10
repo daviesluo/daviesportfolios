@@ -1,0 +1,19 @@
+{
+ "study": "LPREFILL (2026-10-10): live-prep's refill from a live reserve (its pre-registration's Addendum 13): one full re-rank of the reserve timed against Polymarket with its requests by route, cold and warm, and what 10-10's ten selected markets earned by the formula hour by hour as they were taken out",
+ "asked": "Davies: \"现在就做补选吧，不然资金利用率太低了，研究出一套最合理的机制\" and \"这个候补名单也要在当天中实时更新比如每分钟之类的\"; the main session's brief the same day",
+ "write_up": "docs/agents/reviews/2026-10-04-polymarket-lp-prereg.md, Addendum 13",
+ "inputs": {
+  "Polymarket's public CLOB and Gamma APIs": "keyless reads at 2026-10-10 about 13:30 UTC, from this container (not eu-west-1)",
+  "sql/today_formula.sql": "read-only, through the Supabase connector at 2026-10-10 13:55 UTC; its rows typed into results/today_formula.txt"
+ },
+ "run": [
+  "cd docs/agents/backtests/lprefill",
+  "deno run --allow-net --allow-env --allow-read --no-check scripts/rerank_measure.ts <today's conds…> > results/rerank_measure.txt"
+ ],
+ "sha256": {
+  "results/rerank_measure.txt": "5e8e3d98eb0c1e1fc4e8ab95d034768294040cb6fe541ea62effaba14117d236",
+  "results/today_formula.txt": "46678db3d68a46138e4dcf8b1dc547be45579607101e1e79799e35bb08294a92",
+  "scripts/rerank_measure.ts": "9a003a5466730a400dc07ed5f3b0049efb4162951793cd149dad669cdd1f0753",
+  "sql/today_formula.sql": "783f12865061294e0cc821e9c42dd69c4c951a0694a381831a33819cbe751197"
+ }
+}
