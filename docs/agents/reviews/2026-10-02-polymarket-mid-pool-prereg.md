@@ -549,3 +549,20 @@ run it beside the path this file froze and find every decision the same.
 
 **What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
 of the Edge deploy that carries it, as deviation 12.
+
+## Addendum 13 (2026-10-10, about 03:00 UTC): deviation 13, live-prep leaves AI markets out
+
+This addendum was written inside the window, before the deploy it records. Its readout runs at or after 2026-10-17
+00:10 UTC.
+
+**Deviation 13 is live-prep's AI rule** (live-prep's pre-registration, Addendum 12). It changes the shared `pm_live.ts`:
+after it, `pm_live.ts` sha256 `062ee9160c77edafd3c48e36ba3cd4857aed512e4ecc6e0219483818b78d7a50`, where Addendum 12 above named `2ae0e729…0ca3`. The change: an optional
+field of the candidate rules (`excludeQuestion`), which only live-prep's sets, and its use in `lpCandidateOf` and in a
+live-prep turn.
+
+**Mid-pool is unchanged.** It sets no candidate rules, so its selection reads no question and its turns take nothing
+out. No decision of mid-pool changes: `agents/pm_mid_formula.test.ts` and `agents/pm_payouts.test.ts` run it beside the
+path this file froze and find every decision the same.
+
+**What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
+of the Edge deploy that carries it, as deviation 13.

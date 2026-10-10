@@ -1083,6 +1083,8 @@ type FakePmMarket = {
   endDate?: string | null; gameStartTime?: string | null;
   /** Gamma's fee type (`feeType`, RW's `cat`: "weather_fees" for a weather market); absent when Gamma gives none. */
   feeType?: string;
+  /** Gamma's `question`; "Q <id>" when not given. */
+  question?: string;
   /** Closed or resolved: its book is gone (`/book` answers 404, as the CLOB does) and Gamma shows it closed. */
   resolved?: boolean;
   /** Gamma's `outcomePrices[0]` once resolved: YES's payout; and its `closedTime`, as Gamma writes it. */
@@ -1349,7 +1351,7 @@ export class FakePolymarket {
       if (!ids.length || ids.length > 50 || !["true", "false"].includes(q.get("closed") ?? "")) return err(422, "the order path asks for up to fifty markets by condition id, open or closed");
       const closed = q.get("closed") === "true";
       const markets = this.markets.filter((m) => ids.includes(m.cond.toLowerCase()) && !!m.resolved === closed).map((m) => ({
-        conditionId: m.cond, question: `Q ${m.cond.slice(2, 8)}`, clobTokenIds: JSON.stringify([m.yes, m.no]), outcomes: '["Yes","No"]',
+        conditionId: m.cond, question: m.question ?? `Q ${m.cond.slice(2, 8)}`, clobTokenIds: JSON.stringify([m.yes, m.no]), outcomes: '["Yes","No"]',
         enableOrderBook: true, acceptingOrders: m.accepting && !m.resolved, closed: !!m.resolved, negRisk: m.negRisk,
         ...(m.resolved && m.payout !== undefined ? { outcomePrices: JSON.stringify([String(m.payout), String(1 - m.payout)]) } : {}),
         ...(m.resolved && m.closedTime !== undefined ? { closedTime: m.closedTime } : {}),

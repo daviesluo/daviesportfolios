@@ -12,7 +12,8 @@
 //   7e3e8c95…  live-prep's Addendum 8, mid-pool's Addendum 9 (live-prep's cap follows its equity, 2026-10-09)
 //   e76d0234…  live-prep's Addendum 9, mid-pool's Addendum 10 (live-prep's reward check every minute, 2026-10-10)
 //   c990ef3e…  live-prep's Addendum 10, mid-pool's Addendum 11 (live-prep's FUNDED and early readout, 2026-10-10)
-//   (Addendum 11's)  live-prep's Addendum 11, mid-pool's Addendum 12 (FUNDED at once, the paper row off TESTING, 2026-10-10)
+//   2ae0e729…  live-prep's Addendum 11, mid-pool's Addendum 12 (FUNDED at once, the paper row off TESTING, 2026-10-10)
+//   (Addendum 12's)  live-prep's Addendum 12, mid-pool's Addendum 13 (AI markets out, 2026-10-10)
 import { describe, expect, it } from 'vitest';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -43,15 +44,16 @@ const A7E3 = '7e3e8c95823fa9ba3b8b7ca067aa745f41bde5340ed5686b661b4572b31709a3';
 const LP_A7 = '98c060072ebac964df345930122a045a06ec1191f57b094e2dfead928565762c';
 const AE76 = 'e76d0234d1b3454d0a4e5b0cdbe7fc1c43f92425626a0d593b91f31035cc6809';
 const AC99 = 'c990ef3e3ad2700f5552c7a913e1376b7a1fc08368e7b39bd5589ad865a53616';
+const A2AE = '2ae0e7296fd2038fd90bcba61a3daae1e52546fd9f22146789acd5db4a600ca3';
 /** The pm_lp.ts live-prep's Addendum 9 named (the reward check), its instance until Addendum 10. */
 const LP_A9 = 'c7e3a7ec271b8e798dcc756c3f9d83da2421ddee03f3fede6e3e66a541d173c7';
 
 describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", () => {
-  it("live-prep's latest addendum (11) and mid-pool's (12) name today's pm_live.ts", () => {
-    expect(lastNumber(LP)).toBe(11);
-    expect(lastNumber(MID)).toBe(12);
-    expect(namedPath(addendum(LP, 11))).toBe(sha);
-    expect(namedPath(addendum(MID, 12))).toBe(sha);
+  it("live-prep's latest addendum (12) and mid-pool's (13) name today's pm_live.ts", () => {
+    expect(lastNumber(LP)).toBe(12);
+    expect(lastNumber(MID)).toBe(13);
+    expect(namedPath(addendum(LP, 12))).toBe(sha);
+    expect(namedPath(addendum(MID, 13))).toBe(sha);
   });
 
   it('each addendum of the chain names what it changed from', () => {
@@ -89,6 +91,11 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     expect(addendum(LP, 11)).toContain('`c990ef3e…3616`');
     expect(addendum(MID, 12)).toContain('`c990ef3e…3616`');
     expect(addendum(MID, 12)).toContain('deviation 12');
+    expect(namedPath(addendum(LP, 11))).toBe(A2AE);
+    expect(namedPath(addendum(MID, 12))).toBe(A2AE);
+    expect(addendum(LP, 12)).toContain('`2ae0e729…0ca3`');
+    expect(addendum(MID, 13)).toContain('`2ae0e729…0ca3`');
+    expect(addendum(MID, 13)).toContain('deviation 13');
   });
 
   it("live-prep's Addendum 5 and mid-pool's 6 name every change of the go-live audit, and the dry-run decisions unchanged", () => {
@@ -214,8 +221,9 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     expect(src).toContain('const ro = inst.lp?.readout;');
     expect(lp).toContain('export const PM_LP_READOUT = { fromMs: 5 * 60e3, acceptZeroAfterMs: 3 * 3600e3 } as const;');
     expect(lp).toContain('readout: { ...PM_LP_READOUT },');
-    const lpSha = crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex');
-    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(lp10)?.[1]).toBe(lpSha);
+    // The pm_lp.ts it named, the instance until Addendum 12 (AI markets out), which names it.
+    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(lp10)?.[1]).toBe('be8947b58517510dbf91b19ba167a183d6ec20d433a651771e1ba26a9d0356e2');
+    expect(addendum(LP, 12)).toContain('`be8947b5…56e2`');
     expect(lp10).toContain('`c7e3a7ec…73c7`');
     expect(lp10).toContain(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/migrations/0113_pm_lp_funding.sql'))).digest('hex'));
     // 0113 widens live-prep's events' kinds by one and touches nothing else.

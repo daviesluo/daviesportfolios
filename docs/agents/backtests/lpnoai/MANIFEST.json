@@ -1,0 +1,19 @@
+{
+ "study": "LPNOAI (2026-10-10): live-prep's AI markets out (its pre-registration's Addendum 12): the classifier's hit lists on every live-prep selection since 10-05, AI markets' share of the formula reward on live-prep's paper record, and LP-ALLOC's day-by-day trade-off without AI markets, rewards counted",
+ "asked": "Davies: \"由你来决定吧，并且考虑rewards\"; the main session's decision and brief the same night",
+ "write_up": "docs/agents/reviews/2026-10-04-polymarket-lp-prereg.md, Addendum 12",
+ "inputs": {
+  "data/lp_record.json": "sql/lp_record.sql, its payload cut out of the saved reply",
+  "../lp_alloc/results/raw/{lb0,lb120}/": "LP-ALLOC's committed arm outputs"
+ },
+ "run": [
+  "cd docs/agents/backtests/lpnoai",
+  "deno run --allow-read --no-check scripts/noai.ts data/lp_record.json ../lp_alloc/results/raw > results/noai.txt"
+ ],
+ "sha256": {
+  "data/lp_record.json": "f383c2110228590cb7fce5a665414bbf5c4bd073143942670f82ead2c8e8e7f8",
+  "results/noai.txt": "be80223331a33a85f9cf093b3cf4c1266462428446ebf48954cbe122ec40d121",
+  "scripts/noai.ts": "8aa46791eef98f841991b3e67084ab4f61cb2bfd8dbc95986bfaa287ba27fdc4",
+  "sql/lp_record.sql": "ae0dfcee303df27e0d8c2a107c67d2876d4008fc0e366767ec59097bc0736ab4"
+ }
+}

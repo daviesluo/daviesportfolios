@@ -467,7 +467,8 @@ places stay when the number is not whole.
   five times its order size, buys a side priced 0.95 or more only while
   what it holds of that side plus the order stays within 8 % of its
   capital (so the limit grows with the capital), stays out of a market for an hour after its
-  price jumps 15 cents, leaves out weather markets, and keeps selling what
+  price jumps 15 cents, leaves out weather markets and, since 10 October, markets about AI
+  (model releases, model rankings, AI companies), and keeps selling what
   it still holds in a market it no longer picks. Every minute, before it
   places anything, it checks each market's reward programme again: a
   market whose rewards have ended, dropped under $10 a day or now need

@@ -64,7 +64,9 @@ describe('the live-prep pre-registration', () => {
     expect(lp).toContain('export const PM_LP_INV_CAP = 5;');
     expect(lp).toContain('export const PM_LP_CAP_MARKET_USD = 100;');
     expect(lp).toContain('export const PM_LP_PAUSE = { cents: 15, minutes: 60 } as const;');
-    expect(lp).toContain('export const PM_LP_CANDIDATE: PmCandidateRules = { endHorizon: false, excludeFeeTypes: ["weather_fees"] };');
+    // Addendum 12 (2026-10-10) adds the AI markets to what its candidate rules leave out; the rest is as frozen.
+    expect(lp).toContain('export const PM_LP_CANDIDATE: PmCandidateRules = { endHorizon: false, excludeFeeTypes: ["weather_fees"], excludeQuestion: PM_LP_EXCLUDE_AI };');
+    expect(DOC.slice(DOC.indexOf('## Addendum 12'))).toContain('由你来决定吧，并且考虑rewards');
     expect(lp).toContain('export const PM_LP_BAND = { floor: RW_MIN_RATE, ceiling: Infinity } as const;');
     expect(mig).toContain('cap_market_usd      numeric not null default 100 check (cap_market_usd > 0 and cap_market_usd <= 100)');
     expect(mig).toContain('loss_day_usd        numeric check (loss_day_usd is null)');
@@ -142,9 +144,12 @@ describe('the live-prep pre-registration', () => {
     expect(add9).toContain('`98c06007…762c`');
     // Addendum 9's bytes were the instance until Addendum 10, which names what it changed from and today's.
     expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add9)?.[1]).toBe('c7e3a7ec271b8e798dcc756c3f9d83da2421ddee03f3fede6e3e66a541d173c7');
-    const add10 = DOC.slice(DOC.indexOf('## Addendum 10'));
+    const add10 = DOC.slice(DOC.indexOf('## Addendum 10'), DOC.indexOf('## Addendum 11'));
     expect(add10).toContain('`c7e3a7ec…73c7`');
-    expect(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex')).toBe(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add10)?.[1]);
+    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add10)?.[1]).toBe('be8947b58517510dbf91b19ba167a183d6ec20d433a651771e1ba26a9d0356e2');
+    const add12 = DOC.slice(DOC.indexOf('## Addendum 12'));
+    expect(add12).toContain('`be8947b5…56e2`');
+    expect(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex')).toBe(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add12)?.[1]);
     const lp = src('supabase/functions/agents/pm_lp.ts');
     expect(lp).toContain('export const PM_LP_NEAR_CERTAIN = { minPrice: 0.95, share: 0.08 } as const;');
     expect(lp).toContain('else if (nearCertainBuyOk(bYes, N, held.yes, q.m, capital))');

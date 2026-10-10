@@ -26,11 +26,10 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
 1. **Closed: fp5's ranked list.**
 
 2. **Polymarket reward quotes (paper; RW, RW-E, RW-X, TB1, RW-C) and the three order paths (dry-run, unarmed).**
-   - **Live-prep's reward check (Addendum 9) and follow-on (Addendum 10) are live** (deployed 01:14 and 01:45 UTC 10-10;
-     0111, 0113). **TO LAND: Addendum 11** on branch `lp-funded-now` (10-10 02:30 section): FUNDED books at once once the
-     payout is read and never shows the cap; live-prep's paper row off TESTING (its calls stay: LPRESEL6 reads
-     `pm_lpprep_days` for 10-09 → 10-22; turn them off by migration after its 10-23 reading). Left for Davies: refilling a
-     freed slot, and ranking on a rate that does not flip within the hour (both not built).
+   - **Live-prep's Addenda 9–11 are live** (the reward check, FUNDED and the early readout, FUNDED at once: $402.028365
+     booked 02:32 UTC 10-10). **TO LAND: Addendum 12, AI markets out**, on branch `lp-no-ai` (10-10 03:00 section).
+     Its paper layer's calls stay on until LPRESEL6 has read 10-09 → 10-22 (then a migration turns them off). Left for
+     Davies: refilling a freed slot, and ranking on a rate that does not flip within the hour (both not built).
    - **RW's verdict: read 2026-10-09 00:42–00:50 UTC** (`reviews/2026-10-09-polymarket-rw-paper-result.md`, reference
      §3.46, `backtests/rwverdict/`). RW 6/6, RW-E 7/7, x1–x3 7/7 each; step b (all 4,116 fills by `stepRw`) and c (13,634
      prints re-pulled, none missed) clean; **RW-NEXT's candidate is RW-E**, to RW-C (Part 3's bar on or after 10-23
@@ -438,6 +437,15 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 "LEDGER.md, archived 2026-10-09", the 2026-10-08 22:49 → 23:58 UTC sections under "LEDGER.md, archived 2026-10-09
 (second)", and the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)"; each oldest
 first.
+
+### [2026-10-10 03:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep leaves AI markets out (Addendum 12, branch `lp-no-ai`)**, the main session's decision on Davies' "由你来决定吧，
+  并且考虑rewards", from LP-ALLOC. `lpMarketType` is LP-ALLOC's `typeOf` word for word; `PM_LP_CANDIDATE.excludeQuestion`
+  keeps AI markets out of the 00:00 selection, and one already selected takes no entry from the next turn (as the reward
+  check's `lpOut`). Hit lists: 10-09 4 of 10, 10-10 1 (0xa0ab5c59, already out on rate). Rewards counted
+  (`backtests/lpnoai/results/noai.txt`): LP-ALLOC gives up $48.64 of $153.18 formula (31.8 %) for $42.63 of fills, +$3.95
+  a day at R; AI markets carried 35.2 % of live-prep's paper formula and 32.3 % of 10-09's payout. `pm_live.ts` changed
+  (mid-pool's Addendum 13); no page change, no migration.
 
 ### [2026-10-10 02:24 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Coinbase's order books recorded keyless** (sub-agent, branch `cb-books`; Davies: "Coinbase的订单簿要不要像 Revolut X

@@ -110,8 +110,35 @@ export const PM_LP_REWARD_CHECK = { staleMs: 5 * 60e3, backstopMinutes: 3 } as c
  */
 export const PM_LP_READOUT = { fromMs: 5 * 60e3, acceptZeroAfterMs: 3 * 3600e3 } as const;
 
-/** Its candidate rules: no 48-hour end-date horizon (RW-E's same-day rule only), weather markets out (RW-X's x1). */
-export const PM_LP_CANDIDATE: PmCandidateRules = { endHorizon: false, excludeFeeTypes: ["weather_fees"] };
+/**
+ * A market's type by its question: LP-ALLOC's `typeOf` (`backtests/lp_alloc/scripts/alloc_run.ts`, the list of its
+ * `sql/markouts.sql`), word for word and in its order, so a question an earlier type claims is that type (a question
+ * about OpenRouter's market share or tokens is "counts", not "AI"). Keep the three the same.
+ */
+export function lpMarketType(q: string): string {
+  const x = q.toLowerCase(), t = (re: string) => new RegExp(re).test(x);
+  if (t("(highest temperature|lowest temperature|rain |rain\\?|precipitation|wind gust|drought|earthquake|water level|peak at category|°)")) return "weather/nature";
+  if (t("(mtv|video music)")) return "entertainment/sports";
+  if (t("(views|video|posts? |tweets|truth social|monthly listeners|streams|first week sales|spotify|song this week|netflix show|tokens the week|market share|deaths)")) return "counts";
+  if (t("(box office|rotten tomatoes|tomatometer)")) return "box office/reviews";
+  if (t("(ai model|anthropic|openai|gemini|gpt|grok|claude|deepseek|mistral|llm|arena|livebench|meta muse|fable model)")) return "AI";
+  if (t("(inflation|cpi|pce|gdp|jobs|jolts|pmi|fed |bps|s&p|spx|spy|wti|crude|etf|\\(low\\)|\\(high\\)|closes above|up or down|home value|net worth|diesel|committed to|combined ratio)")) return "macro/markets";
+  if (t("(election|presidential|mayor|senate|parliament|nomination|votes|trump|xi jinping|iran|saudi|yemen|houthi|hormuz|russia|ukraine|israel|military|troops|sanaa|bab el|ships|summit|white house|vatican|zelensky|khamenei|moratorium|plague|ubs|lula|bolsonaro|centcom)")) return "politics/geo";
+  if (t("(mtv|video music|coachella|dancing with the stars|award|mlb|nba|nfl|nhl|lcs|major|grand prix|game|bruins|minecraft|messi)")) return "entertainment/sports";
+  return "other";
+}
+
+/**
+ * AI markets out (Addendum 12, 2026-10-10; Davies left it to the main session, "由你来决定吧，并且考虑rewards", which decided
+ * on LP-ALLOC's evidence, `reviews/2026-10-10-lp-capital-allocation.md`): a market `lpMarketType` calls "AI" — model
+ * releases, model rankings, named AI companies and models — is no candidate, and one selected before the rule takes no
+ * entry from the next turn. AI markets were the worst type by markout on RW's, RW-C's and live-prep's paper fills, and
+ * leaving them out earned +$3.95 a day at $330 on LP-ALLOC's five days, their rewards counted.
+ */
+export const PM_LP_EXCLUDE_AI = { why: "an AI market (model releases, rankings, AI companies): live-prep leaves them out (Addendum 12)", test: (q: string) => lpMarketType(q) === "AI" } as const;
+
+/** Its candidate rules: no 48-hour end-date horizon (RW-E's same-day rule only), weather markets out (RW-X's x1), AI markets out (Addendum 12). */
+export const PM_LP_CANDIDATE: PmCandidateRules = { endHorizon: false, excludeFeeTypes: ["weather_fees"], excludeQuestion: PM_LP_EXCLUDE_AI };
 
 /**
  * Live-prep's quoting rule. RW's `summarize` and `quote` on the book WITHOUT our orders, as `rwQuotes`, at N = RW's

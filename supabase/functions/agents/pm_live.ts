@@ -260,6 +260,11 @@ export type PmCandidateRules = {
   endHorizon: boolean;
   /** Gamma's `feeType` values whose markets are passed over (RW-X's `noCats`: RW's `cat` is that field). */
   excludeFeeTypes: readonly string[];
+  /**
+   * Markets passed over by their question (live-prep's AI markets, Addendum 12): `test` on Gamma's `question`, and `why`
+   * the reason a market selected before the rule, or carried, is told it takes no entry.
+   */
+  excludeQuestion?: { why: string; test: (question: string) => boolean };
 };
 /**
  * "Reward quotes live-prep"'s rules (2026-10-04; `pm_lp.ts`, its pre-registration
@@ -1166,6 +1171,7 @@ export function candidateOf(m: Record<string, unknown>, listing: Map<string, PmR
  */
 export function lpCandidateOf(m: Record<string, unknown>, listing: Map<string, PmRewardRow>, nowMs: number | undefined, band: PmLiveInstance["band"], rules: PmCandidateRules): PmCandidate | null {
   if (typeof m.feeType === "string" && rules.excludeFeeTypes.includes(m.feeType)) return null;
+  if (rules.excludeQuestion?.test(String(m.question ?? ""))) return null;
   if (rules.endHorizon) return candidateOf(m, listing, nowMs, band);
   const c = candidateOf({ ...m, endDate: null }, listing, nowMs, band);
   if (!c) return null;
@@ -1878,6 +1884,16 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
       }
       // Said only once no read is young enough to stand: a failed read inside `staleMs` is the last good one, quietly.
       if (!v.fresh && (!v.cfg || !(d.now - Date.parse(v.cfg.at) <= rc.staleMs))) report.errors.push(`${m.cond.slice(0, 10)}…: ${v.why}${unread ? ` (${unread})` : ""}`);
+    }
+  }
+  // Live-prep's excluded questions (Addendum 12): a market of today's selection its candidate rules now pass over (an AI
+  // market selected before the rule) takes no entry from this turn, worked as the reward check's `lpOut` is.
+  const exq = inst.lp?.candidate.excludeQuestion;
+  if (exq) {
+    for (const m of markets) {
+      if (!m.quoting || lpOut.has(m.cond) || !exq.test(String(m.question ?? ""))) continue;
+      lpOut.set(m.cond, exq.why);
+      conditions[m.cond] ??= `no entry: ${exq.why}`;
     }
   }
   /** The programme a live-prep market is scored and quoted on this turn: the check's, where it has one; the selection's otherwise. */

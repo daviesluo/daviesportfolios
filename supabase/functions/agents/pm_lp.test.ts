@@ -13,7 +13,7 @@
 // mini-pool's or mid-pool's tables is touched.
 
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { lpQuotes, nearCertainBuyOk, PM_LP_READOUT, PM_LP_REWARD_CHECK, PM_LP_BAND, PM_LP_CANDIDATE, PM_LP_CAP_MARKET_USD, PM_LP_INSTANCE, PM_LP_INV_CAP, PM_LP_NEAR_CERTAIN, PM_LP_PAUSE, PM_LP_TIGHT, PREP_LP_INSTANCE } from "./pm_lp.ts";
+import { lpMarketType, lpQuotes, nearCertainBuyOk, PM_LP_EXCLUDE_AI, PM_LP_READOUT, PM_LP_REWARD_CHECK, PM_LP_BAND, PM_LP_CANDIDATE, PM_LP_CAP_MARKET_USD, PM_LP_INSTANCE, PM_LP_INV_CAP, PM_LP_NEAR_CERTAIN, PM_LP_PAUSE, PM_LP_TIGHT, PREP_LP_INSTANCE } from "./pm_lp.ts";
 import { isTight } from "./pmrw_x.ts";
 import {
   candidateOf, ctfApproval, effectiveLimits, gates, heldFromBalance, inUniverse, inYesBook, lpCandidateOf, lpLimits, onTick, PM_LIVE_MAX_POSTS_DAY, PM_LP_MAX_POSTS_DAY, pauseAfterJump, PM_LIVE_INSTANCE, PM_MINI_INSTANCE, pmLiveDbTables, pmLpDbTables,
@@ -48,7 +48,7 @@ Deno.test("the instance: live-prep's own tables, leases, band and rules; mini-po
   assertEquals([PM_LP_INSTANCE.action, PM_LP_INSTANCE.path, PM_LP_INSTANCE.errorKind], ["pmlp", "agents?action=pmlp&forceFunctionRegion=eu-west-1", "agents.pm_lp"]);
   assertEquals(PM_LP_INSTANCE.migrations, { tables: "0091", selection: "0091" });
   const lp = PM_LP_INSTANCE.lp!;
-  assertEquals([lp.rule, lp.candidate, lp.capMarketCeiling, lp.pause], [lpQuotes, { endHorizon: false, excludeFeeTypes: ["weather_fees"] }, 100, { cents: 15, minutes: 60 }]);
+  assertEquals([lp.rule, lp.candidate, lp.capMarketCeiling, lp.pause], [lpQuotes, { endHorizon: false, excludeFeeTypes: ["weather_fees"], excludeQuestion: PM_LP_EXCLUDE_AI }, 100, { cents: 15, minutes: 60 }]);
   assertEquals(lp.paper, { fills: "pm_lpprep_fills", settlements: "pm_lpprep_settlements", days: "pm_lpprep_days" });
   assertEquals(lp.rewardCheck, { ...PM_LP_REWARD_CHECK });                                 // Addendum 9's check, live-prep's alone
   assertEquals([PM_LP_INV_CAP, PM_LP_CAP_MARKET_USD, PM_LP_PAUSE, PM_LP_CANDIDATE], [5, 100, { cents: 15, minutes: 60 }, lp.candidate]);
@@ -1067,5 +1067,63 @@ Deno.test("armed, FUNDED at 02:20 UTC: with yesterday's payout read the first tu
   (w.rows("pm_lp_state")[0].state as any).readouts["2026-10-05"] = { reads: 0, at: "" };
   await w.turn(at0220 + M);
   assertEquals([st().funding, st().fundingResidual?.usd], [undefined, 1000]);
+});
+
+// ------------------------------------------------------------------ AI markets out (2026-10-10, Addendum 12)
+
+Deno.test("lpMarketType is LP-ALLOC's typeOf: real questions of model releases, rankings and AI companies are AI; an earlier type claims what it matches first", () => {
+  const ai = [
+    "Gemini 4.0 released by October 16, 2026?", "Gemini Argon released by October 16, 2026?", "Will Gemini Argon be released on October 10, 2026?",
+    "Will Anthropic have a #1 AI model by December 31, 2026?", "Will Claude Sonnet's output price be at or below $8 in 2026?",
+    "Will Mistral Large 4 debut at a score of at least 1450 by June 30, 2027?",
+    "Will the next Google Gemini Pro model added to the Arena Leaderboard debut at a score of at least 14",
+    "Next Fable Model (5.2+) released by October 10, 2026?", "Will the next Meta Muse Spark model be released on October 7, 2026?",
+    "Will OpenAI’s valuation be at least $1.30T at the end of November 2026?", "Will OpenAI not announce that it has resumed training by October 20, 2026?",
+    "Another Vatican x Anthropic meeting by December 31?",
+  ];
+  for (const q of ai) { assertEquals(lpMarketType(q), "AI", q); assertEquals(PM_LP_EXCLUDE_AI.test(q), true, q); }
+  // A question that merely touches the field, but an earlier type (or none) claims it, stays in, as LP-ALLOC's rule has it.
+  const not: Array<[string, string]> = [
+    ["Will Google have the highest OpenRouter market share the week of September 28?", "counts"],
+    ["Will OpenRouter process between 165T and 170T tokens the week of September 28?", "counts"],
+    ["Will SpaceXAI officially rename itself to SpaceXSI by October 31?", "other"],
+    ["Will Elon Musk’s net worth be between $1.00T and $1.10T on October 31?", "macro/markets"],
+    ["Will MrBeast's next video get between 215 and 223 million views on week 1?", "counts"],
+    ["UBS announces move out of Switzerland by June 30, 2027?", "politics/geo"],
+    ["Will Ethereum hit $4k by December 31, 2027?", "other"],
+    ["Will \"Street Fighter\" score at least 40 on the Rotten Tomatoes Tomatometer?", "box office/reviews"],
+  ];
+  for (const [q, t] of not) { assertEquals(lpMarketType(q), t, q); assertEquals(PM_LP_EXCLUDE_AI.test(q), false, q); }
+});
+
+Deno.test("AI markets out (Addendum 12): a candidate list with an AI market and another leaves the AI market out and changes nothing else", () => {
+  const listing = new Map<string, PmRewardRow>([[cond(1), { rate: 50, v: 4.5, minSize: 20 }], [cond(2), { rate: 50, v: 4.5, minSize: 20 }]]);
+  const gm = (n: number, question: string) => ({ conditionId: cond(n), question, clobTokenIds: JSON.stringify([tok(n, "yes"), tok(n, "no")]), enableOrderBook: true, acceptingOrders: true, closed: false, negRisk: false });
+  const now = Date.parse("2026-10-10T00:00:30Z");
+  const ai = gm(1, "Will Claude Sonnet's output price be at or below $8 in 2026?"), other = gm(2, "Will the 30-year Treasury yield hit 5.73% in October?");
+  assertEquals(lpCandidateOf(ai, listing, now, PM_LP_BAND, PM_LP_CANDIDATE), null);
+  const without = { ...PM_LP_CANDIDATE, excludeQuestion: undefined };
+  assertEquals(lpCandidateOf(other, listing, now, PM_LP_BAND, PM_LP_CANDIDATE), lpCandidateOf(other, listing, now, PM_LP_BAND, without));
+  assert(lpCandidateOf(ai, listing, now, PM_LP_BAND, without) !== null, "without the rule it was a candidate");
+});
+
+Deno.test("AI markets out, at once: the selection never takes one; one selected before the rule takes no entry from the next turn, its sells resting", async () => {
+  const w = world({ config: LIVE });
+  w.E30.question = "Will Anthropic have a #1 AI model by December 31, 2026?";
+  await w.turn(T0);
+  assertEquals(w.rows("pm_lp_markets").map((m) => m.cond).sort(), [w.L1.cond, w.BIG.cond].sort());       // E30 is AI now: not taken
+  // L1 selected as an ordinary market; the account holds 5 YES; then its question reads as AI (selected before the rule).
+  const yesBuy = w.rows("pm_lp_orders").find((x) => x.mode === "live" && x.cond === w.L1.cond && x.outcome === "yes" && x.side === "BUY" && x.state === "live");
+  w.pm.settle(w.pm.fill(String(yesBuy!.hash), 5), "CONFIRMED");
+  for (let k = 1; k <= 2; k++) await w.turn(T0 + k * M);
+  const live = (side: "BUY" | "SELL") => w.rows("pm_lp_orders").filter((x) => x.mode === "live" && x.cond === w.L1.cond && x.side === side && x.state === "live");
+  assertEquals([live("BUY").length, live("SELL").length], [1, 1]);
+  w.rows("pm_lp_markets").find((m) => m.cond === w.L1.cond)!.question = "Will Claude Sonnet's output price be at or below $8 in 2026?";
+  const r = await w.turn(T0 + 3 * M);
+  assertEquals([live("BUY").length, live("SELL").map((x) => [x.outcome, Number(x.price), Number(x.size)])], [0, [["yes", 0.47, 5]]]);
+  assert(w.rows("pm_lp_orders").some((x) => x.cond === w.L1.cond && x.side === "BUY" && x.cancel_gate === "reward" && x.cancel_reason === `no entry: ${PM_LP_EXCLUDE_AI.why}`));
+  assertEquals([minuteOf(w, w.L1.cond, T0 + 3 * M).detail.lp.state, minuteOf(w, w.L1.cond, T0 + 3 * M).detail.lp.out, r.conditions[w.L1.cond]], ["carried", PM_LP_EXCLUDE_AI.why, `no entry: ${PM_LP_EXCLUDE_AI.why}`]);
+  // The other market quotes on.
+  assert(w.rows("pm_lp_orders").some((x) => x.mode === "live" && x.cond === w.BIG.cond && x.side === "BUY" && x.state === "live"));
 });
 

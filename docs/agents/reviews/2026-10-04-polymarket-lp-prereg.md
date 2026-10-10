@@ -1005,3 +1005,54 @@ the quiet hours; an armed turn at 02:20 with the readout counted books it, and o
 reading for the page; the summary's FUNDED is the booking, else the reading, never the cap; `paperTestRows` lists no
 live-prep row though `prepLp` is carried, and TESTING's scoreboard and cards are as without it (unit test and the
 browser sweep).
+
+## Addendum 12 (2026-10-10, about 03:00 UTC): AI markets out
+
+This addendum was written while live-prep is live and before the deploy it records. It is LP-ALLOC's "Addendum 11"
+proposal (`reviews/2026-10-10-lp-capital-allocation.md`), renumbered: Addendum 11 above is FUNDED. Davies left the call
+to the main session, verbatim: "由你来决定吧，并且考虑rewards" (you decide, and take the rewards into account). It decided:
+live-prep leaves AI markets out. Not blind.
+
+**The rule.** A market whose question `lpMarketType` calls "AI" is not a candidate (`PM_LP_CANDIDATE.excludeQuestion`,
+beside the weather fee type), so no 00:00 selection takes one. `lpMarketType` is LP-ALLOC's `typeOf`
+(`backtests/lp_alloc/scripts/alloc_run.ts`) word for word, in its order: AI is model releases, model rankings, named AI
+companies and models ("ai model", anthropic, openai, gemini, gpt, grok, claude, deepseek, mistral, llm, arena,
+livebench, "meta muse", "fable model"), and a question an earlier type claims stays that type (OpenRouter's market
+share or token counts are "counts"; "SpaceXAI" matches no keyword). A market of today's selection the rule now passes
+over takes no entry from the next turn, worked exactly as the reward check's (Addendum 9): its buys cancelled (gate
+`reward`), the sells of what it holds resting at the rule's prices, the reason in `detail.lp.out` and the condition
+text. Carried markets keep their close-only sells. Nothing else changes: ten markets, $200 of first quotes, N ≤ 20,
+$100 a market, 5N, the −$75 stop, the equity cap, the reward check.
+
+**The hit lists** (`backtests/lpnoai/results/noai.txt`): 10-09's selection had four AI markets of ten (`0x045fdf4b…`
+and `0xa326c49f…` "Gemini … by October 16", `0xf0503539…` "Gemini Argon … October 10", `0x5b3350e2…` "Anthropic … #1 AI
+model"); 10-10's has one, `0xa0ab5c59…` "Claude Sonnet's output price" (rank 6, already out by the reward check, its
+rate fallen to 3). 10-05 to 10-08 had 1, 3, 2 and 6.
+
+**The evidence, rewards counted** (Davies asked for them):
+- LP-ALLOC's five-day full-universe replay at $330 (at-price fills, R = 0.47 in its units, the live 0.81): without AI
+  markets the rule gives up $48.64 of formula reward over the five days, 31.8 % of today's rule's $153.18 (net of the
+  places other markets take), and saves $42.63 of fills' losses: at R that is $22.86 of reward for $42.63 of fills,
+  **+$19.77 net, +$3.95 a day**, ahead on 4 of 5 days. By day: 10-05 +0.51, 10-06 −19.05 (it gave up $30.96 of
+  reward, 68 % of that day's), 10-07 +13.15, 10-08 +17.56, 10-09 +7.59. With the listing read two hours late,
+  +$5.09 a day. The worst day improves from −$57.93 to −$37.70.
+- On live-prep's own paper record (its formula, R = 1), AI markets carried $183.44 of $521.18, 35.2 %: 0.6 % on 10-05,
+  18.0 %, 12.3 %, 71.6 % on 10-08 and 57.5 % of 10-09's last 93 dry-run minutes.
+- What Polymarket paid on 10-09, the one live day: $2.105 of $6.524 (32.3 %) for the four AI markets.
+- AI markets are the worst type by markout at 120 minutes on RW's, RW-C's and live-prep's paper fills (−2.80, −3.28,
+  −2.99 ¢ a share).
+So about a third of the rewards go with them, and on this record their fills cost more than those rewards bring.
+
+**Forward test:** live-prep's live days after the deploy: how the rewards and the fills' P&L compare with LP-ALLOC's
+figures, and that no AI-type market is selected.
+
+**The code it deploys:** `pm_live.ts` sha256 `062ee9160c77edafd3c48e36ba3cd4857aed512e4ecc6e0219483818b78d7a50`, where Addendum 11 named `2ae0e729…0ca3` (`PmCandidateRules.excludeQuestion`,
+applied by `lpCandidateOf` and to today's markets in the turn); `pm_lp.ts` sha256 `de26be30aaa06feed4d55397b9d8ce1acafeb9db001f980173550fa1342fd1ed`, where Addendum 10 named
+`be8947b5…56e2` (`lpMarketType`, `PM_LP_EXCLUDE_AI`, `PM_LP_CANDIDATE`). Mini-pool and mid-pool set no candidate rules
+and are unchanged.
+
+**Pinned** (`agents/pm_lp.test.ts`): `lpMarketType` on real questions (the Gemini, Anthropic #1 and Claude Sonnet price
+markets, Mistral, the Arena leaderboard, Fable, Meta Muse, OpenAI, Vatican x Anthropic are AI; OpenRouter's market
+share and tokens, SpaceXAI, Musk's net worth, MrBeast, UBS, Ethereum, Rotten Tomatoes are not); a candidate list with an
+AI market and another leaves the AI market out and changes nothing else; the selection never takes one; one selected
+before the rule takes no entry from the next turn while its sell rests and the other markets quote on.

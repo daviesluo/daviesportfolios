@@ -1,0 +1,50 @@
+== 1. the hit lists: each live-prep selection since 10-05, the markets lpMarketType calls AI
+  2026-10-05: 1 of 10
+    #9 0x48638b37 46/day  Will the next Meta Muse Spark model be released on October 7, 2026?
+  2026-10-06: 3 of 10
+    #4 0xf030beaa 117/day  Will OpenAI not announce that it has resumed training by October 20, 2026?
+    #6 0x35f643e4 50/day  Another Vatican x Anthropic meeting by December 31?
+    #8 0x770afa49 200/day  Next Fable Model (5.2+) released by October 10, 2026?
+  2026-10-07: 2 of 10
+    #4 0x770afa49 200/day  Next Fable Model (5.2+) released by October 10, 2026?
+    #5 0x3d16b5b5 24/day  Will OpenAI’s valuation be at least $1.30T at the end of November 2026?
+  2026-10-08: 6 of 10
+    #2 0x0edb2842 200/day  Will Mistral Large 4 debut at a score of at least 1450 by June 30, 2027?
+    #3 0x001dbe01 201.99872/day  Will Mistral Large 4 debut at a score of at least 1470 by June 30, 2027?
+    #5 0x770afa49 223.98464/day  Next Fable Model (5.2+) released by October 10, 2026?
+    #6 0xf0cbcf85 200/day  Will the next Google Gemini Pro model added to the Arena Leaderboard debut at a score of at least 14
+    #9 0xe4c73435 200/day  Will the next Google Gemini Pro model added to the Arena Leaderboard debut at a score of at least 14
+    #10 0x3cd580b5 200/day  Will Mistral Large 4 debut at a score of at least 1430 by June 30, 2027?
+  2026-10-09: 4 of 10
+    #1 0x045fdf4b 200/day  Gemini 4.0 released by October 16, 2026?
+    #2 0xa326c49f 200/day  Gemini Argon released by October 16, 2026?
+    #8 0xf0503539 146/day  Will Gemini Argon be released on October 10, 2026?
+    #9 0x5b3350e2 40/day  Will Anthropic have a #1 AI model by December 31, 2026?
+  2026-10-10: 1 of 10
+    #6 0xa0ab5c59 40/day  Will Claude Sonnet's output price be at or below $8 in 2026?
+
+== 2. AI markets' share of the formula reward on live-prep's paper record (R = 1, the path's own formula)
+  2026-10-05: AI 0.53 of 82.92 (0.6 %)
+  2026-10-06: AI 28.25 of 157.37 (18.0 %)
+  2026-10-07: AI 9.41 of 76.64 (12.3 %)
+  2026-10-08: AI 141.17 of 197.14 (71.6 %)
+  2026-10-09: AI 4.09 of 7.11 (57.5 %)  (the dry-run's last 93 minutes)
+  the five days: AI 183.44 of 521.18 (35.2 %)
+
+== 3. LP-ALLOC's replay, $330, today's rule against it without AI markets (at-price fills, R = 0.47 sim units = live 0.81)
+  listing read as it stood (lb0):
+    day         formula given up  fills saved  net change at R  (today's rule's net -> without AI)
+    2026-10-05     -1.81 (-8.2 %)     -0.33      0.51  (6.68 -> 7.19)
+    2026-10-06     30.96 (68.1 %)     -4.50    -19.05  (16.32 -> -2.72)
+    2026-10-07      8.26 (25.2 %)     17.03     13.15  (62.57 -> 75.72)
+    2026-10-08     11.12 (29.1 %)     22.78     17.56  (-48.74 -> -31.19)
+    2026-10-09      0.12 (0.8 %)      7.64      7.59  (0.59 -> 8.17)
+    five days   48.64 of 153.18 (31.8 %)  fills 42.63  net 19.77, 3.95 a day; at R: 22.86 of reward given up for 42.63 of fills
+  listing read two hours late (lb120):
+    day         formula given up  fills saved  net change at R  (today's rule's net -> without AI)
+    2026-10-05     -1.79 (-6.4 %)     -0.33      0.51  (9.38 -> 9.89)
+    2026-10-06     30.25 (56.9 %)     -4.50    -18.72  (19.94 -> 1.22)
+    2026-10-07      8.53 (23.8 %)     18.23     14.22  (62.82 -> 77.04)
+    2026-10-08      8.17 (17.4 %)     21.15     17.31  (-43.66 -> -26.35)
+    2026-10-09     -2.31 (-14.4 %)     11.06     12.15  (-0.53 -> 11.62)
+    five days   42.86 of 179.89 (23.8 %)  fills 45.61  net 25.47, 5.09 a day; at R: 20.14 of reward given up for 45.61 of fills
