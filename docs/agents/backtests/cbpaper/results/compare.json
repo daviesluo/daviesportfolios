@@ -1,0 +1,3690 @@
+{
+ "allocation": {
+  "last_12_months": {
+   "1000": {
+    "capital_used": 990.0,
+    "coinbase_capital": 0,
+    "gbp_per_year": 914.32,
+    "pct_per_year": 91.43,
+    "revx_capital": 990.0,
+    "rungs": {
+     "revx:USDC-GBP": 15,
+     "revx:USDT-GBP": 150
+    }
+   },
+   "2000": {
+    "capital_used": 1980.0,
+    "coinbase_capital": 0,
+    "gbp_per_year": 1427.94,
+    "pct_per_year": 71.4,
+    "revx_capital": 1980.0,
+    "rungs": {
+     "revx:USDC-GBP": 30,
+     "revx:USDT-GBP": 300
+    }
+   },
+   "500": {
+    "capital_used": 450.0,
+    "coinbase_capital": 0,
+    "gbp_per_year": 544.4,
+    "pct_per_year": 108.88,
+    "revx_capital": 450.0,
+    "rungs": {
+     "revx:USDT-GBP": 75
+    }
+   },
+   "5000": {
+    "capital_used": 4950.0,
+    "coinbase_capital": 0,
+    "gbp_per_year": 2360.14,
+    "pct_per_year": 47.2,
+    "revx_capital": 4950.0,
+    "rungs": {
+     "revx:USDC-GBP": 75,
+     "revx:USDT-GBP": 750
+    }
+   }
+  },
+  "last_28_days": {
+   "1000": {
+    "capital_used": 990.0,
+    "coinbase_capital": 900.0,
+    "gbp_per_year": 299.94,
+    "pct_per_year": 29.99,
+    "revx_capital": 90.0,
+    "rungs": {
+     "coinbase:USDC-GBP": 150,
+     "revx:USDT-GBP": 15
+    }
+   },
+   "2000": {
+    "capital_used": 1980.0,
+    "coinbase_capital": 1800.0,
+    "gbp_per_year": 595.39,
+    "pct_per_year": 29.77,
+    "revx_capital": 180.0,
+    "rungs": {
+     "coinbase:USDC-GBP": 300,
+     "revx:USDT-GBP": 30
+    }
+   },
+   "500": {
+    "capital_used": 450.0,
+    "coinbase_capital": 450.0,
+    "gbp_per_year": 139.58,
+    "pct_per_year": 27.92,
+    "revx_capital": 0,
+    "rungs": {
+     "coinbase:USDC-GBP": 75
+    }
+   },
+   "5000": {
+    "capital_used": 4950.0,
+    "coinbase_capital": 4500.0,
+    "gbp_per_year": 1476.53,
+    "pct_per_year": 29.53,
+    "revx_capital": 450.0,
+    "rungs": {
+     "coinbase:USDC-GBP": 750,
+     "revx:USDT-GBP": 75
+    }
+   }
+  },
+  "last_90_days": {
+   "1000": {
+    "capital_used": 990.0,
+    "coinbase_capital": 0,
+    "gbp_per_year": 527.87,
+    "pct_per_year": 52.79,
+    "revx_capital": 990.0,
+    "rungs": {
+     "revx:USDC-GBP": 15,
+     "revx:USDT-GBP": 150
+    }
+   },
+   "2000": {
+    "capital_used": 1980.0,
+    "coinbase_capital": 0,
+    "gbp_per_year": 871.24,
+    "pct_per_year": 43.56,
+    "revx_capital": 1980.0,
+    "rungs": {
+     "revx:USDC-GBP": 30,
+     "revx:USDT-GBP": 300
+    }
+   },
+   "500": {
+    "capital_used": 450.0,
+    "coinbase_capital": 0,
+    "gbp_per_year": 299.36,
+    "pct_per_year": 59.87,
+    "revx_capital": 450.0,
+    "rungs": {
+     "revx:USDT-GBP": 75
+    }
+   },
+   "5000": {
+    "capital_used": 4980.0,
+    "coinbase_capital": 180.0,
+    "gbp_per_year": 1562.96,
+    "pct_per_year": 31.26,
+    "revx_capital": 4800.0,
+    "rungs": {
+     "coinbase:USDC-GBP": 30,
+     "revx:USDC-GBP": 50,
+     "revx:USDT-GBP": 750
+    }
+   }
+  },
+  "since_2026-08-24": {
+   "1000": {
+    "capital_used": 990.0,
+    "coinbase_capital": 90.0,
+    "gbp_per_year": 218.36,
+    "pct_per_year": 21.84,
+    "revx_capital": 900.0,
+    "rungs": {
+     "coinbase:USDC-GBP": 15,
+     "revx:USDT-GBP": 150
+    }
+   },
+   "2000": {
+    "capital_used": 1980.0,
+    "coinbase_capital": 1800.0,
+    "gbp_per_year": 415.33,
+    "pct_per_year": 20.77,
+    "revx_capital": 180.0,
+    "rungs": {
+     "coinbase:USDC-GBP": 300,
+     "revx:USDT-GBP": 30
+    }
+   },
+   "500": {
+    "capital_used": 480.0,
+    "coinbase_capital": 180.0,
+    "gbp_per_year": 112.19,
+    "pct_per_year": 22.44,
+    "revx_capital": 300.0,
+    "rungs": {
+     "coinbase:USDC-GBP": 30,
+     "revx:USDT-GBP": 50
+    }
+   },
+   "5000": {
+    "capital_used": 4950.0,
+    "coinbase_capital": 4500.0,
+    "gbp_per_year": 1026.76,
+    "pct_per_year": 20.54,
+    "revx_capital": 450.0,
+    "rungs": {
+     "coinbase:USDC-GBP": 750,
+     "revx:USDT-GBP": 75
+    }
+   }
+  }
+ },
+ "books": {
+  "coinbase:USDC-EUR": {
+   "last_12_months": {
+    "by_rung": {
+     "10": {
+      "fills_gbp_per_day": 13.89,
+      "gbp_per_year": 3.52,
+      "trips": 507
+     },
+     "100": {
+      "fills_gbp_per_day": 138.43,
+      "gbp_per_year": 35.2,
+      "trips": 507
+     },
+     "1000": {
+      "fills_gbp_per_day": 1350.94,
+      "gbp_per_year": 354.13,
+      "trips": 507
+     },
+     "15": {
+      "fills_gbp_per_day": 20.83,
+      "gbp_per_year": 5.29,
+      "trips": 507
+     },
+     "150": {
+      "fills_gbp_per_day": 207.23,
+      "gbp_per_year": 52.79,
+      "trips": 507
+     },
+     "20": {
+      "fills_gbp_per_day": 27.76,
+      "gbp_per_year": 7.05,
+      "trips": 507
+     },
+     "200": {
+      "fills_gbp_per_day": 275.85,
+      "gbp_per_year": 70.48,
+      "trips": 507
+     },
+     "25": {
+      "fills_gbp_per_day": 34.69,
+      "gbp_per_year": 8.81,
+      "trips": 507
+     },
+     "30": {
+      "fills_gbp_per_day": 41.63,
+      "gbp_per_year": 10.58,
+      "trips": 507
+     },
+     "300": {
+      "fills_gbp_per_day": 412.96,
+      "gbp_per_year": 105.91,
+      "trips": 507
+     },
+     "40": {
+      "fills_gbp_per_day": 55.49,
+      "gbp_per_year": 14.1,
+      "trips": 507
+     },
+     "400": {
+      "fills_gbp_per_day": 549.27,
+      "gbp_per_year": 141.32,
+      "trips": 507
+     },
+     "50": {
+      "fills_gbp_per_day": 69.34,
+      "gbp_per_year": 17.63,
+      "trips": 507
+     },
+     "500": {
+      "fills_gbp_per_day": 684.86,
+      "gbp_per_year": 176.91,
+      "trips": 507
+     },
+     "75": {
+      "fills_gbp_per_day": 103.93,
+      "gbp_per_year": 26.42,
+      "trips": 507
+     },
+     "750": {
+      "fills_gbp_per_day": 1020.19,
+      "gbp_per_year": 265.83,
+      "trips": 507
+     }
+    },
+    "days": 365.0
+   },
+   "last_28_days": {
+    "by_rung": {
+     "10": {
+      "fills_gbp_per_day": 25.71,
+      "gbp_per_year": 9.57,
+      "trips": 72
+     },
+     "100": {
+      "fills_gbp_per_day": 257.13,
+      "gbp_per_year": 95.68,
+      "trips": 72
+     },
+     "1000": {
+      "fills_gbp_per_day": 2558.08,
+      "gbp_per_year": 954.1,
+      "trips": 72
+     },
+     "15": {
+      "fills_gbp_per_day": 38.57,
+      "gbp_per_year": 14.35,
+      "trips": 72
+     },
+     "150": {
+      "fills_gbp_per_day": 385.69,
+      "gbp_per_year": 143.52,
+      "trips": 72
+     },
+     "20": {
+      "fills_gbp_per_day": 51.43,
+      "gbp_per_year": 19.14,
+      "trips": 72
+     },
+     "200": {
+      "fills_gbp_per_day": 514.25,
+      "gbp_per_year": 191.36,
+      "trips": 72
+     },
+     "25": {
+      "fills_gbp_per_day": 64.28,
+      "gbp_per_year": 23.92,
+      "trips": 72
+     },
+     "30": {
+      "fills_gbp_per_day": 77.14,
+      "gbp_per_year": 28.7,
+      "trips": 72
+     },
+     "300": {
+      "fills_gbp_per_day": 771.38,
+      "gbp_per_year": 287.04,
+      "trips": 72
+     },
+     "40": {
+      "fills_gbp_per_day": 102.85,
+      "gbp_per_year": 38.27,
+      "trips": 72
+     },
+     "400": {
+      "fills_gbp_per_day": 1028.5,
+      "gbp_per_year": 382.72,
+      "trips": 72
+     },
+     "50": {
+      "fills_gbp_per_day": 128.56,
+      "gbp_per_year": 47.84,
+      "trips": 72
+     },
+     "500": {
+      "fills_gbp_per_day": 1285.63,
+      "gbp_per_year": 478.41,
+      "trips": 72
+     },
+     "75": {
+      "fills_gbp_per_day": 192.84,
+      "gbp_per_year": 71.76,
+      "trips": 72
+     },
+     "750": {
+      "fills_gbp_per_day": 1924.2,
+      "gbp_per_year": 716.74,
+      "trips": 72
+     }
+    },
+    "days": 28.0
+   },
+   "last_90_days": {
+    "by_rung": {
+     "10": {
+      "fills_gbp_per_day": 11.67,
+      "gbp_per_year": 3.61,
+      "trips": 105
+     },
+     "100": {
+      "fills_gbp_per_day": 116.66,
+      "gbp_per_year": 36.13,
+      "trips": 105
+     },
+     "1000": {
+      "fills_gbp_per_day": 1162.52,
+      "gbp_per_year": 360.42,
+      "trips": 105
+     },
+     "15": {
+      "fills_gbp_per_day": 17.5,
+      "gbp_per_year": 5.42,
+      "trips": 105
+     },
+     "150": {
+      "fills_gbp_per_day": 174.99,
+      "gbp_per_year": 54.19,
+      "trips": 105
+     },
+     "20": {
+      "fills_gbp_per_day": 23.33,
+      "gbp_per_year": 7.23,
+      "trips": 105
+     },
+     "200": {
+      "fills_gbp_per_day": 233.32,
+      "gbp_per_year": 72.25,
+      "trips": 105
+     },
+     "25": {
+      "fills_gbp_per_day": 29.17,
+      "gbp_per_year": 9.03,
+      "trips": 105
+     },
+     "30": {
+      "fills_gbp_per_day": 35.0,
+      "gbp_per_year": 10.84,
+      "trips": 105
+     },
+     "300": {
+      "fills_gbp_per_day": 349.98,
+      "gbp_per_year": 108.38,
+      "trips": 105
+     },
+     "40": {
+      "fills_gbp_per_day": 46.66,
+      "gbp_per_year": 14.45,
+      "trips": 105
+     },
+     "400": {
+      "fills_gbp_per_day": 466.65,
+      "gbp_per_year": 144.51,
+      "trips": 105
+     },
+     "50": {
+      "fills_gbp_per_day": 58.33,
+      "gbp_per_year": 18.06,
+      "trips": 105
+     },
+     "500": {
+      "fills_gbp_per_day": 583.31,
+      "gbp_per_year": 180.63,
+      "trips": 105
+     },
+     "75": {
+      "fills_gbp_per_day": 87.5,
+      "gbp_per_year": 27.09,
+      "trips": 105
+     },
+     "750": {
+      "fills_gbp_per_day": 873.64,
+      "gbp_per_year": 270.68,
+      "trips": 105
+     }
+    },
+    "days": 90.0
+   },
+   "since_2025-11-26": {
+    "by_rung": {
+     "10": {
+      "fills_gbp_per_day": 12.93,
+      "gbp_per_year": 2.66,
+      "trips": 410
+     },
+     "100": {
+      "fills_gbp_per_day": 129.13,
+      "gbp_per_year": 26.56,
+      "trips": 410
+     },
+     "1000": {
+      "fills_gbp_per_day": 1258.87,
+      "gbp_per_year": 266.06,
+      "trips": 410
+     },
+     "15": {
+      "fills_gbp_per_day": 19.4,
+      "gbp_per_year": 3.99,
+      "trips": 410
+     },
+     "150": {
+      "fills_gbp_per_day": 193.36,
+      "gbp_per_year": 39.82,
+      "trips": 410
+     },
+     "20": {
+      "fills_gbp_per_day": 25.87,
+      "gbp_per_year": 5.33,
+      "trips": 410
+     },
+     "200": {
+      "fills_gbp_per_day": 257.4,
+      "gbp_per_year": 53.2,
+      "trips": 410
+     },
+     "25": {
+      "fills_gbp_per_day": 32.33,
+      "gbp_per_year": 6.66,
+      "trips": 410
+     },
+     "30": {
+      "fills_gbp_per_day": 38.8,
+      "gbp_per_year": 7.99,
+      "trips": 410
+     },
+     "300": {
+      "fills_gbp_per_day": 385.3,
+      "gbp_per_year": 80.01,
+      "trips": 410
+     },
+     "40": {
+      "fills_gbp_per_day": 51.73,
+      "gbp_per_year": 10.65,
+      "trips": 410
+     },
+     "400": {
+      "fills_gbp_per_day": 512.27,
+      "gbp_per_year": 106.81,
+      "trips": 410
+     },
+     "50": {
+      "fills_gbp_per_day": 64.66,
+      "gbp_per_year": 13.31,
+      "trips": 410
+     },
+     "500": {
+      "fills_gbp_per_day": 638.65,
+      "gbp_per_year": 133.6,
+      "trips": 410
+     },
+     "75": {
+      "fills_gbp_per_day": 96.91,
+      "gbp_per_year": 19.94,
+      "trips": 410
+     },
+     "750": {
+      "fills_gbp_per_day": 951.39,
+      "gbp_per_year": 200.18,
+      "trips": 410
+     }
+    },
+    "days": 317.0
+   },
+   "since_2026-08-24": {
+    "by_rung": {
+     "10": {
+      "fills_gbp_per_day": 19.56,
+      "gbp_per_year": 7.78,
+      "trips": 90
+     },
+     "100": {
+      "fills_gbp_per_day": 195.65,
+      "gbp_per_year": 77.76,
+      "trips": 90
+     },
+     "1000": {
+      "fills_gbp_per_day": 1948.43,
+      "gbp_per_year": 776.0,
+      "trips": 90
+     },
+     "15": {
+      "fills_gbp_per_day": 29.35,
+      "gbp_per_year": 11.66,
+      "trips": 90
+     },
+     "150": {
+      "fills_gbp_per_day": 293.47,
+      "gbp_per_year": 116.65,
+      "trips": 90
+     },
+     "20": {
+      "fills_gbp_per_day": 39.13,
+      "gbp_per_year": 15.55,
+      "trips": 90
+     },
+     "200": {
+      "fills_gbp_per_day": 391.29,
+      "gbp_per_year": 155.53,
+      "trips": 90
+     },
+     "25": {
+      "fills_gbp_per_day": 48.91,
+      "gbp_per_year": 19.44,
+      "trips": 90
+     },
+     "30": {
+      "fills_gbp_per_day": 58.69,
+      "gbp_per_year": 23.33,
+      "trips": 90
+     },
+     "300": {
+      "fills_gbp_per_day": 586.94,
+      "gbp_per_year": 233.29,
+      "trips": 90
+     },
+     "40": {
+      "fills_gbp_per_day": 78.26,
+      "gbp_per_year": 31.11,
+      "trips": 90
+     },
+     "400": {
+      "fills_gbp_per_day": 782.58,
+      "gbp_per_year": 311.06,
+      "trips": 90
+     },
+     "50": {
+      "fills_gbp_per_day": 97.82,
+      "gbp_per_year": 38.88,
+      "trips": 90
+     },
+     "500": {
+      "fills_gbp_per_day": 978.23,
+      "gbp_per_year": 388.82,
+      "trips": 90
+     },
+     "75": {
+      "fills_gbp_per_day": 146.73,
+      "gbp_per_year": 58.32,
+      "trips": 90
+     },
+     "750": {
+      "fills_gbp_per_day": 1464.75,
+      "gbp_per_year": 582.7,
+      "trips": 90
+     }
+    },
+    "days": 46.0
+   }
+  },
+  "coinbase:USDC-GBP": {
+   "last_12_months": {
+    "by_rung": {
+     "10": {
+      "fills_gbp_per_day": 15.49,
+      "gbp_per_year": 3.75,
+      "trips": 571
+     },
+     "100": {
+      "fills_gbp_per_day": 151.34,
+      "gbp_per_year": 36.25,
+      "trips": 571
+     },
+     "1000": {
+      "fills_gbp_per_day": 1402.73,
+      "gbp_per_year": 331.68,
+      "trips": 571
+     },
+     "15": {
+      "fills_gbp_per_day": 23.17,
+      "gbp_per_year": 5.62,
+      "trips": 571
+     },
+     "150": {
+      "fills_gbp_per_day": 225.18,
+      "gbp_per_year": 53.66,
+      "trips": 571
+     },
+     "20": {
+      "fills_gbp_per_day": 30.83,
+      "gbp_per_year": 7.47,
+      "trips": 571
+     },
+     "200": {
+      "fills_gbp_per_day": 298.4,
+      "gbp_per_year": 70.86,
+      "trips": 571
+     },
+     "25": {
+      "fills_gbp_per_day": 38.46,
+      "gbp_per_year": 9.33,
+      "trips": 571
+     },
+     "30": {
+      "fills_gbp_per_day": 46.08,
+      "gbp_per_year": 11.18,
+      "trips": 571
+     },
+     "300": {
+      "fills_gbp_per_day": 443.23,
+      "gbp_per_year": 104.56,
+      "trips": 571
+     },
+     "40": {
+      "fills_gbp_per_day": 61.28,
+      "gbp_per_year": 14.85,
+      "trips": 571
+     },
+     "400": {
+      "fills_gbp_per_day": 585.43,
+      "gbp_per_year": 137.73,
+      "trips": 571
+     },
+     "50": {
+      "fills_gbp_per_day": 76.42,
+      "gbp_per_year": 18.49,
+      "trips": 571
+     },
+     "500": {
+      "fills_gbp_per_day": 724.86,
+      "gbp_per_year": 170.8,
+      "trips": 571
+     },
+     "75": {
+      "fills_gbp_per_day": 114.03,
+      "gbp_per_year": 27.41,
+      "trips": 571
+     },
+     "750": {
+      "fills_gbp_per_day": 1066.93,
+      "gbp_per_year": 252.15,
+      "trips": 571
+     }
+    },
+    "days": 365.0
+   },
+   "last_28_days": {
+    "by_rung": {
+     "10": {
+      "fills_gbp_per_day": 33.91,
+      "gbp_per_year": 18.7,
+      "trips": 96
+     },
+     "100": {
+      "fills_gbp_per_day": 333.15,
+      "gbp_per_year": 185.68,
+      "trips": 96
+     },
+     "1000": {
+      "fills_gbp_per_day": 3146.48,
+      "gbp_per_year": 1830.84,
+      "trips": 96
+     },
+     "15": {
+      "fills_gbp_per_day": 50.7,
+      "gbp_per_year": 28.02,
+      "trips": 96
+     },
+     "150": {
+      "fills_gbp_per_day": 495.85,
+      "gbp_per_year": 277.26,
+      "trips": 96
+     },
+     "20": {
+      "fills_gbp_per_day": 67.48,
+      "gbp_per_year": 37.34,
+      "trips": 96
+     },
+     "200": {
+      "fills_gbp_per_day": 657.0,
+      "gbp_per_year": 368.7,
+      "trips": 96
+     },
+     "25": {
+      "fills_gbp_per_day": 84.27,
+      "gbp_per_year": 46.67,
+      "trips": 96
+     },
+     "30": {
+      "fills_gbp_per_day": 101.05,
+      "gbp_per_year": 55.99,
+      "trips": 96
+     },
+     "300": {
+      "fills_gbp_per_day": 978.43,
+      "gbp_per_year": 551.54,
+      "trips": 96
+     },
+     "40": {
+      "fills_gbp_per_day": 134.62,
+      "gbp_per_year": 74.64,
+      "trips": 96
+     },
+     "400": {
+      "fills_gbp_per_day": 1297.71,
+      "gbp_per_year": 734.49,
+      "trips": 96
+     },
+     "50": {
+      "fills_gbp_per_day": 168.2,
+      "gbp_per_year": 93.28,
+      "trips": 96
+     },
+     "500": {
+      "fills_gbp_per_day": 1608.81,
+      "gbp_per_year": 918.32,
+      "trips": 96
+     },
+     "75": {
+      "fills_gbp_per_day": 251.01,
+      "gbp_per_year": 139.58,
+      "trips": 96
+     },
+     "750": {
+      "fills_gbp_per_day": 2378.63,
+      "gbp_per_year": 1375.01,
+      "trips": 96
+     }
+    },
+    "days": 28.0
+   },
+   "last_90_days": {
+    "by_rung": {
+     "10": {
+      "fills_gbp_per_day": 14.2,
+      "gbp_per_year": 6.35,
+      "trips": 130
+     },
+     "100": {
+      "fills_gbp_per_day": 138.97,
+      "gbp_per_year": 62.74,
+      "trips": 130
+     },
+     "1000": {
+      "fills_gbp_per_day": 1303.32,
+      "gbp_per_year": 614.11,
+      "trips": 130
+     },
+     "15": {
+      "fills_gbp_per_day": 21.2,
+      "gbp_per_year": 9.5,
+      "trips": 130
+     },
+     "150": {
+      "fills_gbp_per_day": 206.81,
+      "gbp_per_year": 93.56,
+      "trips": 130
+     },
+     "20": {
+      "fills_gbp_per_day": 28.2,
+      "gbp_per_year": 12.66,
+      "trips": 130
+     },
+     "200": {
+      "fills_gbp_per_day": 274.17,
+      "gbp_per_year": 124.33,
+      "trips": 130
+     },
+     "25": {
+      "fills_gbp_per_day": 35.2,
+      "gbp_per_year": 15.81,
+      "trips": 130
+     },
+     "30": {
+      "fills_gbp_per_day": 42.2,
+      "gbp_per_year": 18.97,
+      "trips": 130
+     },
+     "300": {
+      "fills_gbp_per_day": 408.1,
+      "gbp_per_year": 185.78,
+      "trips": 130
+     },
+     "40": {
+      "fills_gbp_per_day": 56.2,
+      "gbp_per_year": 25.28,
+      "trips": 130
+     },
+     "400": {
+      "fills_gbp_per_day": 540.76,
+      "gbp_per_year": 247.19,
+      "trips": 130
+     },
+     "50": {
+      "fills_gbp_per_day": 70.2,
+      "gbp_per_year": 31.58,
+      "trips": 130
+     },
+     "500": {
+      "fills_gbp_per_day": 669.38,
+      "gbp_per_year": 308.6,
+      "trips": 130
+     },
+     "75": {
+      "fills_gbp_per_day": 104.8,
+      "gbp_per_year": 47.24,
+      "trips": 130
+     },
+     "750": {
+      "fills_gbp_per_day": 986.65,
+      "gbp_per_year": 461.49,
+      "trips": 130
+     }
+    },
+    "days": 90.0
+   },
+   "since_2025-11-26": {
+    "by_rung": {
+     "10": {
+      "fills_gbp_per_day": 14.04,
+      "gbp_per_year": 3.2,
+      "trips": 450
+     },
+     "100": {
+      "fills_gbp_per_day": 138.37,
+      "gbp_per_year": 31.32,
+      "trips": 450
+     },
+     "1000": {
+      "fills_gbp_per_day": 1305.07,
+      "gbp_per_year": 294.9,
+      "trips": 450
+     },
+     "15": {
+      "fills_gbp_per_day": 21.01,
+      "gbp_per_year": 4.79,
+      "trips": 450
+     },
+     "150": {
+      "fills_gbp_per_day": 206.36,
+      "gbp_per_year": 46.68,
+      "trips": 450
+     },
+     "20": {
+      "fills_gbp_per_day": 27.96,
+      "gbp_per_year": 6.37,
+      "trips": 450
+     },
+     "200": {
+      "fills_gbp_per_day": 274.05,
+      "gbp_per_year": 62.0,
+      "trips": 450
+     },
+     "25": {
+      "fills_gbp_per_day": 34.9,
+      "gbp_per_year": 7.95,
+      "trips": 450
+     },
+     "30": {
+      "fills_gbp_per_day": 41.85,
+      "gbp_per_year": 9.53,
+      "trips": 450
+     },
+     "300": {
+      "fills_gbp_per_day": 408.43,
+      "gbp_per_year": 92.17,
+      "trips": 450
+     },
+     "40": {
+      "fills_gbp_per_day": 55.73,
+      "gbp_per_year": 12.68,
+      "trips": 450
+     },
+     "400": {
+      "fills_gbp_per_day": 541.07,
+      "gbp_per_year": 121.69,
+      "trips": 450
+     },
+     "50": {
+      "fills_gbp_per_day": 69.59,
+      "gbp_per_year": 15.82,
+      "trips": 450
+     },
+     "500": {
+      "fills_gbp_per_day": 671.4,
+      "gbp_per_year": 151.19,
+      "trips": 450
+     },
+     "75": {
+      "fills_gbp_per_day": 104.1,
+      "gbp_per_year": 23.61,
+      "trips": 450
+     },
+     "750": {
+      "fills_gbp_per_day": 990.99,
+      "gbp_per_year": 223.81,
+      "trips": 450
+     }
+    },
+    "days": 317.0
+   },
+   "since_2026-08-24": {
+    "by_rung": {
+     "10": {
+      "fills_gbp_per_day": 23.87,
+      "gbp_per_year": 12.57,
+      "trips": 112
+     },
+     "100": {
+      "fills_gbp_per_day": 232.77,
+      "gbp_per_year": 124.34,
+      "trips": 112
+     },
+     "1000": {
+      "fills_gbp_per_day": 2187.91,
+      "gbp_per_year": 1223.5,
+      "trips": 112
+     },
+     "15": {
+      "fills_gbp_per_day": 35.61,
+      "gbp_per_year": 18.83,
+      "trips": 112
+     },
+     "150": {
+      "fills_gbp_per_day": 345.93,
+      "gbp_per_year": 185.42,
+      "trips": 112
+     },
+     "20": {
+      "fills_gbp_per_day": 47.35,
+      "gbp_per_year": 25.08,
+      "trips": 112
+     },
+     "200": {
+      "fills_gbp_per_day": 458.15,
+      "gbp_per_year": 246.41,
+      "trips": 112
+     },
+     "25": {
+      "fills_gbp_per_day": 59.09,
+      "gbp_per_year": 31.33,
+      "trips": 112
+     },
+     "30": {
+      "fills_gbp_per_day": 70.83,
+      "gbp_per_year": 37.58,
+      "trips": 112
+     },
+     "300": {
+      "fills_gbp_per_day": 682.07,
+      "gbp_per_year": 368.37,
+      "trips": 112
+     },
+     "40": {
+      "fills_gbp_per_day": 94.3,
+      "gbp_per_year": 50.08,
+      "trips": 112
+     },
+     "400": {
+      "fills_gbp_per_day": 904.67,
+      "gbp_per_year": 490.41,
+      "trips": 112
+     },
+     "50": {
+      "fills_gbp_per_day": 117.78,
+      "gbp_per_year": 62.59,
+      "trips": 112
+     },
+     "500": {
+      "fills_gbp_per_day": 1121.5,
+      "gbp_per_year": 613.09,
+      "trips": 112
+     },
+     "75": {
+      "fills_gbp_per_day": 175.7,
+      "gbp_per_year": 93.61,
+      "trips": 112
+     },
+     "750": {
+      "fills_gbp_per_day": 1655.3,
+      "gbp_per_year": 918.55,
+      "trips": 112
+     }
+    },
+    "days": 46.0
+   }
+  },
+  "coinbase:USDT-EUR": {
+   "last_12_months": {
+    "by_rung": {
+     "10": {
+      "fills_gbp_per_day": 16.43,
+      "gbp_per_year": 2.26,
+      "trips": 603
+     },
+     "100": {
+      "fills_gbp_per_day": 162.56,
+      "gbp_per_year": 22.03,
+      "trips": 603
+     },
+     "1000": {
+      "fills_gbp_per_day": 1428.44,
+      "gbp_per_year": 213.17,
+      "trips": 603
+     },
+     "15": {
+      "fills_gbp_per_day": 24.62,
+      "gbp_per_year": 3.38,
+      "trips": 603
+     },
+     "150": {
+      "fills_gbp_per_day": 241.69,
+      "gbp_per_year": 32.77,
+      "trips": 603
+     },
+     "20": {
+      "fills_gbp_per_day": 32.81,
+      "gbp_per_year": 4.5,
+      "trips": 603
+     },
+     "200": {
+      "fills_gbp_per_day": 319.5,
+      "gbp_per_year": 43.24,
+      "trips": 603
+     },
+     "25": {
+      "fills_gbp_per_day": 41.0,
+      "gbp_per_year": 5.63,
+      "trips": 603
+     },
+     "30": {
+      "fills_gbp_per_day": 49.18,
+      "gbp_per_year": 6.74,
+      "trips": 603
+     },
+     "300": {
+      "fills_gbp_per_day": 470.41,
+      "gbp_per_year": 65.32,
+      "trips": 603
+     },
+     "40": {
+      "fills_gbp_per_day": 65.51,
+      "gbp_per_year": 8.96,
+      "trips": 603
+     },
+     "400": {
+      "fills_gbp_per_day": 617.0,
+      "gbp_per_year": 86.85,
+      "trips": 603
+     },
+     "50": {
+      "fills_gbp_per_day": 81.81,
+      "gbp_per_year": 11.18,
+      "trips": 603
+     },
+     "500": {
+      "fills_gbp_per_day": 759.25,
+      "gbp_per_year": 108.17,
+      "trips": 603
+     },
+     "75": {
+      "fills_gbp_per_day": 122.35,
+      "gbp_per_year": 16.67,
+      "trips": 603
+     },
+     "750": {
+      "fills_gbp_per_day": 1103.82,
+      "gbp_per_year": 161.31,
+      "trips": 603
+     }
+    },
+    "days": 365.0
+   },
+   "last_28_days": {
+    "by_rung": {
+     "10": {
+      "fills_gbp_per_day": 20.71,
+      "gbp_per_year": 2.74,
+      "trips": 58
+     },
+     "100": {
+      "fills_gbp_per_day": 207.1,
+      "gbp_per_year": 27.43,
+      "trips": 58
+     },
+     "1000": {
+      "fills_gbp_per_day": 2022.52,
+      "gbp_per_year": 278.07,
+      "trips": 58
+     },
+     "15": {
+      "fills_gbp_per_day": 31.07,
+      "gbp_per_year": 4.12,
+      "trips": 58
+     },
+     "150": {
+      "fills_gbp_per_day": 310.65,
+      "gbp_per_year": 41.15,
+      "trips": 58
+     },
+     "20": {
+      "fills_gbp_per_day": 41.42,
+      "gbp_per_year": 5.49,
+      "trips": 58
+     },
+     "200": {
+      "fills_gbp_per_day": 413.96,
+      "gbp_per_year": 54.82,
+      "trips": 58
+     },
+     "25": {
+      "fills_gbp_per_day": 51.78,
+      "gbp_per_year": 6.86,
+      "trips": 58
+     },
+     "30": {
+      "fills_gbp_per_day": 62.13,
+      "gbp_per_year": 8.23,
+      "trips": 58
+     },
+     "300": {
+      "fills_gbp_per_day": 617.49,
+      "gbp_per_year": 81.52,
+      "trips": 58
+     },
+     "40": {
+      "fills_gbp_per_day": 82.84,
+      "gbp_per_year": 10.97,
+      "trips": 58
+     },
+     "400": {
+      "fills_gbp_per_day": 821.02,
+      "gbp_per_year": 108.21,
+      "trips": 58
+     },
+     "50": {
+      "fills_gbp_per_day": 103.55,
+      "gbp_per_year": 13.72,
+      "trips": 58
+     },
+     "500": {
+      "fills_gbp_per_day": 1022.71,
+      "gbp_per_year": 135.81,
+      "trips": 58
+     },
+     "75": {
+      "fills_gbp_per_day": 155.33,
+      "gbp_per_year": 20.58,
+      "trips": 58
+     },
+     "750": {
+      "fills_gbp_per_day": 1522.61,
+      "gbp_per_year": 206.94,
+      "trips": 58
+     }
+    },
+    "days": 28.0
+   },
+   "last_90_days": {
+    "by_rung": {
+     "10": {
+      "fills_gbp_per_day": 9.89,
+      "gbp_per_year": 1.12,
+      "trips": 89
+     },
+     "100": {
+      "fills_gbp_per_day": 98.87,
+      "gbp_per_year": 11.22,
+      "trips": 89
+     },
+     "1000": {
+      "fills_gbp_per_day": 965.17,
+      "gbp_per_year": 111.2,
+      "trips": 89
+     },
+     "15": {
+      "fills_gbp_per_day": 14.83,
+      "gbp_per_year": 1.68,
+      "trips": 89
+     },
+     "150": {
+      "fills_gbp_per_day": 148.31,
+      "gbp_per_year": 16.83,
+      "trips": 89
+     },
+     "20": {
+      "fills_gbp_per_day": 19.77,
+      "gbp_per_year": 2.24,
+      "trips": 89
+     },
+     "200": {
+      "fills_gbp_per_day": 197.67,
+      "gbp_per_year": 22.42,
+      "trips": 89
+     },
+     "25": {
+      "fills_gbp_per_day": 24.72,
+      "gbp_per_year": 2.8,
+      "trips": 89
+     },
+     "30": {
+      "fills_gbp_per_day": 29.66,
+      "gbp_per_year": 3.37,
+      "trips": 89
+     },
+     "300": {
+      "fills_gbp_per_day": 295.44,
+      "gbp_per_year": 33.41,
+      "trips": 89
+     },
+     "40": {
+      "fills_gbp_per_day": 39.55,
+      "gbp_per_year": 4.49,
+      "trips": 89
+     },
+     "400": {
+      "fills_gbp_per_day": 393.2,
+      "gbp_per_year": 44.4,
+      "trips": 89
+     },
+     "50": {
+      "fills_gbp_per_day": 49.44,
+      "gbp_per_year": 5.61,
+      "trips": 89
+     },
+     "500": {
+      "fills_gbp_per_day": 490.39,
+      "gbp_per_year": 55.67,
+      "trips": 89
+     },
+     "75": {
+      "fills_gbp_per_day": 74.16,
+      "gbp_per_year": 8.41,
+      "trips": 89
+     },
+     "750": {
+      "fills_gbp_per_day": 729.51,
+      "gbp_per_year": 83.88,
+      "trips": 89
+     }
+    },
+    "days": 90.0
+   },
+   "since_2025-11-26": {
+    "by_rung": {
+     "10": {
+      "fills_gbp_per_day": 16.57,
+      "gbp_per_year": 2.4,
+      "trips": 528
+     },
+     "100": {
+      "fills_gbp_per_day": 164.22,
+      "gbp_per_year": 23.55,
+      "trips": 528
+     },
+     "1000": {
+      "fills_gbp_per_day": 1466.39,
+      "gbp_per_year": 227.48,
+      "trips": 528
+     },
+     "15": {
+      "fills_gbp_per_day": 24.84,
+      "gbp_per_year": 3.59,
+      "trips": 528
+     },
+     "150": {
+      "fills_gbp_per_day": 244.34,
+      "gbp_per_year": 35.2,
+      "trips": 528
+     },
+     "20": {
+      "fills_gbp_per_day": 33.1,
+      "gbp_per_year": 4.79,
+      "trips": 528
+     },
+     "200": {
+      "fills_gbp_per_day": 323.62,
+      "gbp_per_year": 46.87,
+      "trips": 528
+     },
+     "25": {
+      "fills_gbp_per_day": 41.37,
+      "gbp_per_year": 5.99,
+      "trips": 528
+     },
+     "30": {
+      "fills_gbp_per_day": 49.62,
+      "gbp_per_year": 7.18,
+      "trips": 528
+     },
+     "300": {
+      "fills_gbp_per_day": 478.43,
+      "gbp_per_year": 70.38,
+      "trips": 528
+     },
+     "40": {
+      "fills_gbp_per_day": 66.09,
+      "gbp_per_year": 9.54,
+      "trips": 528
+     },
+     "400": {
+      "fills_gbp_per_day": 629.29,
+      "gbp_per_year": 93.03,
+      "trips": 528
+     },
+     "50": {
+      "fills_gbp_per_day": 82.54,
+      "gbp_per_year": 11.9,
+      "trips": 528
+     },
+     "500": {
+      "fills_gbp_per_day": 776.11,
+      "gbp_per_year": 115.57,
+      "trips": 528
+     },
+     "75": {
+      "fills_gbp_per_day": 123.52,
+      "gbp_per_year": 17.77,
+      "trips": 528
+     },
+     "750": {
+      "fills_gbp_per_day": 1131.06,
+      "gbp_per_year": 172.09,
+      "trips": 528
+     }
+    },
+    "days": 317.0
+   },
+   "since_2026-08-24": {
+    "by_rung": {
+     "10": {
+      "fills_gbp_per_day": 15.0,
+      "gbp_per_year": 2.5,
+      "trips": 69
+     },
+     "100": {
+      "fills_gbp_per_day": 149.97,
+      "gbp_per_year": 25.02,
+      "trips": 69
+     },
+     "1000": {
+      "fills_gbp_per_day": 1453.59,
+      "gbp_per_year": 248.24,
+      "trips": 69
+     },
+     "15": {
+      "fills_gbp_per_day": 22.5,
+      "gbp_per_year": 3.75,
+      "trips": 69
+     },
+     "150": {
+      "fills_gbp_per_day": 224.96,
+      "gbp_per_year": 37.52,
+      "trips": 69
+     },
+     "20": {
+      "fills_gbp_per_day": 29.99,
+      "gbp_per_year": 5.0,
+      "trips": 69
+     },
+     "200": {
+      "fills_gbp_per_day": 299.8,
+      "gbp_per_year": 50.0,
+      "trips": 69
+     },
+     "25": {
+      "fills_gbp_per_day": 37.49,
+      "gbp_per_year": 6.25,
+      "trips": 69
+     },
+     "30": {
+      "fills_gbp_per_day": 44.99,
+      "gbp_per_year": 7.5,
+      "trips": 69
+     },
+     "300": {
+      "fills_gbp_per_day": 447.59,
+      "gbp_per_year": 74.57,
+      "trips": 69
+     },
+     "40": {
+      "fills_gbp_per_day": 59.99,
+      "gbp_per_year": 10.01,
+      "trips": 69
+     },
+     "400": {
+      "fills_gbp_per_day": 595.39,
+      "gbp_per_year": 99.13,
+      "trips": 69
+     },
+     "50": {
+      "fills_gbp_per_day": 74.99,
+      "gbp_per_year": 12.51,
+      "trips": 69
+     },
+     "500": {
+      "fills_gbp_per_day": 742.07,
+      "gbp_per_year": 124.25,
+      "trips": 69
+     },
+     "75": {
+      "fills_gbp_per_day": 112.48,
+      "gbp_per_year": 18.76,
+      "trips": 69
+     },
+     "750": {
+      "fills_gbp_per_day": 1101.21,
+      "gbp_per_year": 187.12,
+      "trips": 69
+     }
+    },
+    "days": 46.0
+   }
+  },
+  "coinbase:USDT-GBP": {
+   "last_12_months": {
+    "by_rung": {
+     "10": {
+      "fills_gbp_per_day": 31.49,
+      "gbp_per_year": 10.22,
+      "trips": 1163
+     },
+     "100": {
+      "fills_gbp_per_day": 300.74,
+      "gbp_per_year": 99.47,
+      "trips": 1163
+     },
+     "1000": {
+      "fills_gbp_per_day": 2471.2,
+      "gbp_per_year": 882.02,
+      "trips": 1163
+     },
+     "15": {
+      "fills_gbp_per_day": 46.99,
+      "gbp_per_year": 15.29,
+      "trips": 1163
+     },
+     "150": {
+      "fills_gbp_per_day": 444.54,
+      "gbp_per_year": 148.22,
+      "trips": 1163
+     },
+     "20": {
+      "fills_gbp_per_day": 62.39,
+      "gbp_per_year": 20.34,
+      "trips": 1163
+     },
+     "200": {
+      "fills_gbp_per_day": 585.42,
+      "gbp_per_year": 196.51,
+      "trips": 1163
+     },
+     "25": {
+      "fills_gbp_per_day": 77.72,
+      "gbp_per_year": 25.36,
+      "trips": 1163
+     },
+     "30": {
+      "fills_gbp_per_day": 92.95,
+      "gbp_per_year": 30.36,
+      "trips": 1163
+     },
+     "300": {
+      "fills_gbp_per_day": 859.16,
+      "gbp_per_year": 291.05,
+      "trips": 1163
+     },
+     "40": {
+      "fills_gbp_per_day": 123.27,
+      "gbp_per_year": 40.36,
+      "trips": 1163
+     },
+     "400": {
+      "fills_gbp_per_day": 1120.89,
+      "gbp_per_year": 383.03,
+      "trips": 1163
+     },
+     "50": {
+      "fills_gbp_per_day": 153.41,
+      "gbp_per_year": 50.32,
+      "trips": 1163
+     },
+     "500": {
+      "fills_gbp_per_day": 1373.14,
+      "gbp_per_year": 472.76,
+      "trips": 1163
+     },
+     "75": {
+      "fills_gbp_per_day": 227.52,
+      "gbp_per_year": 74.94,
+      "trips": 1163
+     },
+     "750": {
+      "fills_gbp_per_day": 1951.11,
+      "gbp_per_year": 684.48,
+      "trips": 1163
+     }
+    },
+    "days": 365.0
+   },
+   "last_28_days": {
+    "by_rung": {
+     "10": {
+      "fills_gbp_per_day": 5.71,
+      "gbp_per_year": 0.41,
+      "trips": 16
+     },
+     "100": {
+      "fills_gbp_per_day": 50.85,
+      "gbp_per_year": 6.45,
+      "trips": 16
+     },
+     "1000": {
+      "fills_gbp_per_day": 483.37,
+      "gbp_per_year": 65.25,
+      "trips": 16
+     },
+     "15": {
+      "fills_gbp_per_day": 8.35,
+      "gbp_per_year": 0.75,
+      "trips": 16
+     },
+     "150": {
+      "fills_gbp_per_day": 75.85,
+      "gbp_per_year": 9.81,
+      "trips": 16
+     },
+     "20": {
+      "fills_gbp_per_day": 10.85,
+      "gbp_per_year": 1.08,
+      "trips": 16
+     },
+     "200": {
+      "fills_gbp_per_day": 100.85,
+      "gbp_per_year": 13.17,
+      "trips": 16
+     },
+     "25": {
+      "fills_gbp_per_day": 13.35,
+      "gbp_per_year": 1.42,
+      "trips": 16
+     },
+     "30": {
+      "fills_gbp_per_day": 15.85,
+      "gbp_per_year": 1.75,
+      "trips": 16
+     },
+     "300": {
+      "fills_gbp_per_day": 150.85,
+      "gbp_per_year": 19.88,
+      "trips": 16
+     },
+     "40": {
+      "fills_gbp_per_day": 20.85,
+      "gbp_per_year": 2.42,
+      "trips": 16
+     },
+     "400": {
+      "fills_gbp_per_day": 200.85,
+      "gbp_per_year": 26.59,
+      "trips": 16
+     },
+     "50": {
+      "fills_gbp_per_day": 25.85,
+      "gbp_per_year": 3.1,
+      "trips": 16
+     },
+     "500": {
+      "fills_gbp_per_day": 250.85,
+      "gbp_per_year": 33.3,
+      "trips": 16
+     },
+     "75": {
+      "fills_gbp_per_day": 38.35,
+      "gbp_per_year": 4.77,
+      "trips": 16
+     },
+     "750": {
+      "fills_gbp_per_day": 375.85,
+      "gbp_per_year": 50.09,
+      "trips": 16
+     }
+    },
+    "days": 28.0
+   },
+   "last_90_days": {
+    "by_rung": {
+     "10": {
+      "fills_gbp_per_day": 11.91,
+      "gbp_per_year": 3.34,
+      "trips": 108
+     },
+     "100": {
+      "fills_gbp_per_day": 114.73,
+      "gbp_per_year": 33.87,
+      "trips": 108
+     },
+     "1000": {
+      "fills_gbp_per_day": 990.83,
+      "gbp_per_year": 303.59,
+      "trips": 108
+     },
+     "15": {
+      "fills_gbp_per_day": 17.77,
+      "gbp_per_year": 5.05,
+      "trips": 108
+     },
+     "150": {
+      "fills_gbp_per_day": 169.52,
+      "gbp_per_year": 50.34,
+      "trips": 108
+     },
+     "20": {
+      "fills_gbp_per_day": 23.5,
+      "gbp_per_year": 6.73,
+      "trips": 108
+     },
+     "200": {
+      "fills_gbp_per_day": 223.42,
+      "gbp_per_year": 66.51,
+      "trips": 108
+     },
+     "25": {
+      "fills_gbp_per_day": 29.22,
+      "gbp_per_year": 8.42,
+      "trips": 108
+     },
+     "30": {
+      "fills_gbp_per_day": 34.94,
+      "gbp_per_year": 10.11,
+      "trips": 108
+     },
+     "300": {
+      "fills_gbp_per_day": 326.83,
+      "gbp_per_year": 97.6,
+      "trips": 108
+     },
+     "40": {
+      "fills_gbp_per_day": 46.39,
+      "gbp_per_year": 13.49,
+      "trips": 108
+     },
+     "400": {
+      "fills_gbp_per_day": 428.13,
+      "gbp_per_year": 128.37,
+      "trips": 108
+     },
+     "50": {
+      "fills_gbp_per_day": 57.83,
+      "gbp_per_year": 16.87,
+      "trips": 108
+     },
+     "500": {
+      "fills_gbp_per_day": 529.0,
+      "gbp_per_year": 159.13,
+      "trips": 108
+     },
+     "75": {
+      "fills_gbp_per_day": 86.4,
+      "gbp_per_year": 25.33,
+      "trips": 108
+     },
+     "750": {
+      "fills_gbp_per_day": 764.91,
+      "gbp_per_year": 232.41,
+      "trips": 108
+     }
+    },
+    "days": 90.0
+   },
+   "since_2025-11-26": {
+    "by_rung": {
+     "10": {
+      "fills_gbp_per_day": 31.22,
+      "gbp_per_year": 9.84,
+      "trips": 1001
+     },
+     "100": {
+      "fills_gbp_per_day": 298.32,
+      "gbp_per_year": 96.09,
+      "trips": 1001
+     },
+     "1000": {
+      "fills_gbp_per_day": 2420.12,
+      "gbp_per_year": 842.82,
+      "trips": 1001
+     },
+     "15": {
+      "fills_gbp_per_day": 46.59,
+      "gbp_per_year": 14.72,
+      "trips": 1001
+     },
+     "150": {
+      "fills_gbp_per_day": 440.71,
+      "gbp_per_year": 143.23,
+      "trips": 1001
+     },
+     "20": {
+      "fills_gbp_per_day": 61.84,
+      "gbp_per_year": 19.57,
+      "trips": 1001
+     },
+     "200": {
+      "fills_gbp_per_day": 580.07,
+      "gbp_per_year": 189.82,
+      "trips": 1001
+     },
+     "25": {
+      "fills_gbp_per_day": 77.05,
+      "gbp_per_year": 24.41,
+      "trips": 1001
+     },
+     "30": {
+      "fills_gbp_per_day": 92.17,
+      "gbp_per_year": 29.25,
+      "trips": 1001
+     },
+     "300": {
+      "fills_gbp_per_day": 850.54,
+      "gbp_per_year": 280.84,
+      "trips": 1001
+     },
+     "40": {
+      "fills_gbp_per_day": 122.3,
+      "gbp_per_year": 38.93,
+      "trips": 1001
+     },
+     "400": {
+      "fills_gbp_per_day": 1108.3,
+      "gbp_per_year": 369.08,
+      "trips": 1001
+     },
+     "50": {
+      "fills_gbp_per_day": 152.27,
+      "gbp_per_year": 48.58,
+      "trips": 1001
+     },
+     "500": {
+      "fills_gbp_per_day": 1356.01,
+      "gbp_per_year": 455.05,
+      "trips": 1001
+     },
+     "75": {
+      "fills_gbp_per_day": 225.77,
+      "gbp_per_year": 72.38,
+      "trips": 1001
+     },
+     "750": {
+      "fills_gbp_per_day": 1917.79,
+      "gbp_per_year": 656.07,
+      "trips": 1001
+     }
+    },
+    "days": 317.0
+   },
+   "since_2026-08-24": {
+    "by_rung": {
+     "10": {
+      "fills_gbp_per_day": 5.65,
+      "gbp_per_year": 0.41,
+      "trips": 26
+     },
+     "100": {
+      "fills_gbp_per_day": 50.22,
+      "gbp_per_year": 5.67,
+      "trips": 26
+     },
+     "1000": {
+      "fills_gbp_per_day": 422.87,
+      "gbp_per_year": 44.66,
+      "trips": 26
+     },
+     "15": {
+      "fills_gbp_per_day": 8.34,
+      "gbp_per_year": 0.7,
+      "trips": 26
+     },
+     "150": {
+      "fills_gbp_per_day": 73.17,
+      "gbp_per_year": 8.42,
+      "trips": 26
+     },
+     "20": {
+      "fills_gbp_per_day": 10.85,
+      "gbp_per_year": 0.98,
+      "trips": 26
+     },
+     "200": {
+      "fills_gbp_per_day": 95.84,
+      "gbp_per_year": 11.03,
+      "trips": 26
+     },
+     "25": {
+      "fills_gbp_per_day": 13.35,
+      "gbp_per_year": 1.26,
+      "trips": 26
+     },
+     "30": {
+      "fills_gbp_per_day": 15.85,
+      "gbp_per_year": 1.54,
+      "trips": 26
+     },
+     "300": {
+      "fills_gbp_per_day": 139.32,
+      "gbp_per_year": 15.23,
+      "trips": 26
+     },
+     "40": {
+      "fills_gbp_per_day": 20.85,
+      "gbp_per_year": 2.1,
+      "trips": 26
+     },
+     "400": {
+      "fills_gbp_per_day": 182.8,
+      "gbp_per_year": 19.43,
+      "trips": 26
+     },
+     "50": {
+      "fills_gbp_per_day": 25.85,
+      "gbp_per_year": 2.66,
+      "trips": 26
+     },
+     "500": {
+      "fills_gbp_per_day": 226.28,
+      "gbp_per_year": 23.64,
+      "trips": 26
+     },
+     "75": {
+      "fills_gbp_per_day": 38.26,
+      "gbp_per_year": 4.09,
+      "trips": 26
+     },
+     "750": {
+      "fills_gbp_per_day": 330.25,
+      "gbp_per_year": 34.61,
+      "trips": 26
+     }
+    },
+    "days": 46.0
+   }
+  },
+  "revx:USDC-GBP": {
+   "last_12_months": {
+    "by_rung": {
+     "10": {
+      "fills_gbp_per_day": 45.77,
+      "gbp_per_year": 24.04,
+      "trips": 1971
+     },
+     "100": {
+      "fills_gbp_per_day": 266.7,
+      "gbp_per_year": 146.35,
+      "trips": 1971
+     },
+     "1000": {
+      "fills_gbp_per_day": 883.79,
+      "gbp_per_year": 489.42,
+      "trips": 1971
+     },
+     "15": {
+      "fills_gbp_per_day": 63.85,
+      "gbp_per_year": 33.82,
+      "trips": 1971
+     },
+     "150": {
+      "fills_gbp_per_day": 347.32,
+      "gbp_per_year": 191.51,
+      "trips": 1971
+     },
+     "20": {
+      "fills_gbp_per_day": 80.57,
+      "gbp_per_year": 42.91,
+      "trips": 1971
+     },
+     "200": {
+      "fills_gbp_per_day": 412.07,
+      "gbp_per_year": 228.17,
+      "trips": 1971
+     },
+     "25": {
+      "fills_gbp_per_day": 96.07,
+      "gbp_per_year": 51.33,
+      "trips": 1971
+     },
+     "30": {
+      "fills_gbp_per_day": 110.9,
+      "gbp_per_year": 59.36,
+      "trips": 1971
+     },
+     "300": {
+      "fills_gbp_per_day": 512.59,
+      "gbp_per_year": 284.09,
+      "trips": 1971
+     },
+     "40": {
+      "fills_gbp_per_day": 138.17,
+      "gbp_per_year": 74.03,
+      "trips": 1971
+     },
+     "400": {
+      "fills_gbp_per_day": 594.56,
+      "gbp_per_year": 330.16,
+      "trips": 1971
+     },
+     "50": {
+      "fills_gbp_per_day": 163.23,
+      "gbp_per_year": 88.17,
+      "trips": 1971
+     },
+     "500": {
+      "fills_gbp_per_day": 662.52,
+      "gbp_per_year": 368.09,
+      "trips": 1971
+     },
+     "75": {
+      "fills_gbp_per_day": 218.41,
+      "gbp_per_year": 119.61,
+      "trips": 1971
+     },
+     "750": {
+      "fills_gbp_per_day": 792.16,
+      "gbp_per_year": 438.63,
+      "trips": 1971
+     }
+    },
+    "days": 317.0
+   },
+   "last_28_days": {
+    "by_rung": {
+     "10": {
+      "fills_gbp_per_day": 15.53,
+      "gbp_per_year": 7.87,
+      "trips": 50
+     },
+     "100": {
+      "fills_gbp_per_day": 120.96,
+      "gbp_per_year": 70.31,
+      "trips": 50
+     },
+     "1000": {
+      "fills_gbp_per_day": 756.14,
+      "gbp_per_year": 419.76,
+      "trips": 50
+     },
+     "15": {
+      "fills_gbp_per_day": 22.39,
+      "gbp_per_year": 11.61,
+      "trips": 50
+     },
+     "150": {
+      "fills_gbp_per_day": 170.04,
+      "gbp_per_year": 99.42,
+      "trips": 50
+     },
+     "20": {
+      "fills_gbp_per_day": 28.92,
+      "gbp_per_year": 15.28,
+      "trips": 50
+     },
+     "200": {
+      "fills_gbp_per_day": 214.7,
+      "gbp_per_year": 123.05,
+      "trips": 50
+     },
+     "25": {
+      "fills_gbp_per_day": 35.29,
+      "gbp_per_year": 18.93,
+      "trips": 50
+     },
+     "30": {
+      "fills_gbp_per_day": 41.54,
+      "gbp_per_year": 22.55,
+      "trips": 50
+     },
+     "300": {
+      "fills_gbp_per_day": 303.99,
+      "gbp_per_year": 170.27,
+      "trips": 50
+     },
+     "40": {
+      "fills_gbp_per_day": 53.7,
+      "gbp_per_year": 29.72,
+      "trips": 50
+     },
+     "400": {
+      "fills_gbp_per_day": 380.85,
+      "gbp_per_year": 211.07,
+      "trips": 50
+     },
+     "50": {
+      "fills_gbp_per_day": 65.67,
+      "gbp_per_year": 36.85,
+      "trips": 50
+     },
+     "500": {
+      "fills_gbp_per_day": 453.38,
+      "gbp_per_year": 250.18,
+      "trips": 50
+     },
+     "75": {
+      "fills_gbp_per_day": 93.99,
+      "gbp_per_year": 54.02,
+      "trips": 50
+     },
+     "750": {
+      "fills_gbp_per_day": 617.12,
+      "gbp_per_year": 339.33,
+      "trips": 50
+     }
+    },
+    "days": 28.0
+   },
+   "last_90_days": {
+    "by_rung": {
+     "10": {
+      "fills_gbp_per_day": 22.34,
+      "gbp_per_year": 10.09,
+      "trips": 290
+     },
+     "100": {
+      "fills_gbp_per_day": 151.21,
+      "gbp_per_year": 69.13,
+      "trips": 290
+     },
+     "1000": {
+      "fills_gbp_per_day": 747.74,
+      "gbp_per_year": 350.33,
+      "trips": 290
+     },
+     "15": {
+      "fills_gbp_per_day": 31.63,
+      "gbp_per_year": 14.4,
+      "trips": 290
+     },
+     "150": {
+      "fills_gbp_per_day": 207.77,
+      "gbp_per_year": 94.46,
+      "trips": 290
+     },
+     "20": {
+      "fills_gbp_per_day": 40.43,
+      "gbp_per_year": 18.43,
+      "trips": 290
+     },
+     "200": {
+      "fills_gbp_per_day": 258.17,
+      "gbp_per_year": 116.96,
+      "trips": 290
+     },
+     "25": {
+      "fills_gbp_per_day": 48.51,
+      "gbp_per_year": 22.13,
+      "trips": 290
+     },
+     "30": {
+      "fills_gbp_per_day": 56.3,
+      "gbp_per_year": 25.73,
+      "trips": 290
+     },
+     "300": {
+      "fills_gbp_per_day": 348.3,
+      "gbp_per_year": 157.83,
+      "trips": 290
+     },
+     "40": {
+      "fills_gbp_per_day": 71.33,
+      "gbp_per_year": 32.69,
+      "trips": 290
+     },
+     "400": {
+      "fills_gbp_per_day": 427.48,
+      "gbp_per_year": 193.33,
+      "trips": 290
+     },
+     "50": {
+      "fills_gbp_per_day": 85.69,
+      "gbp_per_year": 39.23,
+      "trips": 290
+     },
+     "500": {
+      "fills_gbp_per_day": 495.71,
+      "gbp_per_year": 225.53,
+      "trips": 290
+     },
+     "75": {
+      "fills_gbp_per_day": 119.56,
+      "gbp_per_year": 54.65,
+      "trips": 290
+     },
+     "750": {
+      "fills_gbp_per_day": 637.22,
+      "gbp_per_year": 293.91,
+      "trips": 290
+     }
+    },
+    "days": 90.0
+   },
+   "since_2025-11-26": {
+    "by_rung": {
+     "10": {
+      "fills_gbp_per_day": 45.77,
+      "gbp_per_year": 24.04,
+      "trips": 1971
+     },
+     "100": {
+      "fills_gbp_per_day": 266.7,
+      "gbp_per_year": 146.35,
+      "trips": 1971
+     },
+     "1000": {
+      "fills_gbp_per_day": 883.79,
+      "gbp_per_year": 489.42,
+      "trips": 1971
+     },
+     "15": {
+      "fills_gbp_per_day": 63.85,
+      "gbp_per_year": 33.82,
+      "trips": 1971
+     },
+     "150": {
+      "fills_gbp_per_day": 347.32,
+      "gbp_per_year": 191.51,
+      "trips": 1971
+     },
+     "20": {
+      "fills_gbp_per_day": 80.57,
+      "gbp_per_year": 42.91,
+      "trips": 1971
+     },
+     "200": {
+      "fills_gbp_per_day": 412.07,
+      "gbp_per_year": 228.17,
+      "trips": 1971
+     },
+     "25": {
+      "fills_gbp_per_day": 96.07,
+      "gbp_per_year": 51.33,
+      "trips": 1971
+     },
+     "30": {
+      "fills_gbp_per_day": 110.9,
+      "gbp_per_year": 59.36,
+      "trips": 1971
+     },
+     "300": {
+      "fills_gbp_per_day": 512.59,
+      "gbp_per_year": 284.09,
+      "trips": 1971
+     },
+     "40": {
+      "fills_gbp_per_day": 138.17,
+      "gbp_per_year": 74.03,
+      "trips": 1971
+     },
+     "400": {
+      "fills_gbp_per_day": 594.56,
+      "gbp_per_year": 330.16,
+      "trips": 1971
+     },
+     "50": {
+      "fills_gbp_per_day": 163.23,
+      "gbp_per_year": 88.17,
+      "trips": 1971
+     },
+     "500": {
+      "fills_gbp_per_day": 662.52,
+      "gbp_per_year": 368.09,
+      "trips": 1971
+     },
+     "75": {
+      "fills_gbp_per_day": 218.41,
+      "gbp_per_year": 119.61,
+      "trips": 1971
+     },
+     "750": {
+      "fills_gbp_per_day": 792.16,
+      "gbp_per_year": 438.63,
+      "trips": 1971
+     }
+    },
+    "days": 317.0
+   },
+   "since_2026-08-24": {
+    "by_rung": {
+     "10": {
+      "fills_gbp_per_day": 15.35,
+      "gbp_per_year": 7.4,
+      "trips": 83
+     },
+     "100": {
+      "fills_gbp_per_day": 122.15,
+      "gbp_per_year": 65.31,
+      "trips": 83
+     },
+     "1000": {
+      "fills_gbp_per_day": 802.73,
+      "gbp_per_year": 406.43,
+      "trips": 83
+     },
+     "15": {
+      "fills_gbp_per_day": 22.25,
+      "gbp_per_year": 10.87,
+      "trips": 83
+     },
+     "150": {
+      "fills_gbp_per_day": 173.72,
+      "gbp_per_year": 92.92,
+      "trips": 83
+     },
+     "20": {
+      "fills_gbp_per_day": 28.84,
+      "gbp_per_year": 14.31,
+      "trips": 83
+     },
+     "200": {
+      "fills_gbp_per_day": 221.55,
+      "gbp_per_year": 116.83,
+      "trips": 83
+     },
+     "25": {
+      "fills_gbp_per_day": 35.26,
+      "gbp_per_year": 17.71,
+      "trips": 83
+     },
+     "30": {
+      "fills_gbp_per_day": 41.55,
+      "gbp_per_year": 21.08,
+      "trips": 83
+     },
+     "300": {
+      "fills_gbp_per_day": 315.03,
+      "gbp_per_year": 164.21,
+      "trips": 83
+     },
+     "40": {
+      "fills_gbp_per_day": 53.74,
+      "gbp_per_year": 27.71,
+      "trips": 83
+     },
+     "400": {
+      "fills_gbp_per_day": 398.96,
+      "gbp_per_year": 206.05,
+      "trips": 83
+     },
+     "50": {
+      "fills_gbp_per_day": 65.78,
+      "gbp_per_year": 34.3,
+      "trips": 83
+     },
+     "500": {
+      "fills_gbp_per_day": 475.08,
+      "gbp_per_year": 242.85,
+      "trips": 83
+     },
+     "75": {
+      "fills_gbp_per_day": 94.43,
+      "gbp_per_year": 50.11,
+      "trips": 83
+     },
+     "750": {
+      "fills_gbp_per_day": 650.57,
+      "gbp_per_year": 327.46,
+      "trips": 83
+     }
+    },
+    "days": 46.0
+   }
+  },
+  "revx:USDT-GBP": {
+   "last_12_months": {
+    "by_rung": {
+     "10": {
+      "fills_gbp_per_day": 172.21,
+      "gbp_per_year": 108.87,
+      "trips": 6417
+     },
+     "100": {
+      "fills_gbp_per_day": 1038.64,
+      "gbp_per_year": 670.35,
+      "trips": 6417
+     },
+     "1000": {
+      "fills_gbp_per_day": 3826.57,
+      "gbp_per_year": 2558.14,
+      "trips": 6417
+     },
+     "15": {
+      "fills_gbp_per_day": 241.19,
+      "gbp_per_year": 152.61,
+      "trips": 6417
+     },
+     "150": {
+      "fills_gbp_per_day": 1359.53,
+      "gbp_per_year": 880.51,
+      "trips": 6417
+     },
+     "20": {
+      "fills_gbp_per_day": 305.37,
+      "gbp_per_year": 193.61,
+      "trips": 6417
+     },
+     "200": {
+      "fills_gbp_per_day": 1639.54,
+      "gbp_per_year": 1064.94,
+      "trips": 6417
+     },
+     "25": {
+      "fills_gbp_per_day": 365.25,
+      "gbp_per_year": 231.99,
+      "trips": 6417
+     },
+     "30": {
+      "fills_gbp_per_day": 421.91,
+      "gbp_per_year": 268.41,
+      "trips": 6417
+     },
+     "300": {
+      "fills_gbp_per_day": 2097.63,
+      "gbp_per_year": 1368.58,
+      "trips": 6417
+     },
+     "40": {
+      "fills_gbp_per_day": 527.73,
+      "gbp_per_year": 336.73,
+      "trips": 6417
+     },
+     "400": {
+      "fills_gbp_per_day": 2468.14,
+      "gbp_per_year": 1617.1,
+      "trips": 6417
+     },
+     "50": {
+      "fills_gbp_per_day": 626.58,
+      "gbp_per_year": 400.91,
+      "trips": 6417
+     },
+     "500": {
+      "fills_gbp_per_day": 2784.37,
+      "gbp_per_year": 1828.87,
+      "trips": 6417
+     },
+     "75": {
+      "fills_gbp_per_day": 846.48,
+      "gbp_per_year": 544.4,
+      "trips": 6417
+     },
+     "750": {
+      "fills_gbp_per_day": 3380.04,
+      "gbp_per_year": 2240.53,
+      "trips": 6417
+     }
+    },
+    "days": 297.0
+   },
+   "last_28_days": {
+    "by_rung": {
+     "10": {
+      "fills_gbp_per_day": 27.65,
+      "gbp_per_year": 15.39,
+      "trips": 90
+     },
+     "100": {
+      "fills_gbp_per_day": 232.46,
+      "gbp_per_year": 130.35,
+      "trips": 90
+     },
+     "1000": {
+      "fills_gbp_per_day": 1454.08,
+      "gbp_per_year": 830.0,
+      "trips": 90
+     },
+     "15": {
+      "fills_gbp_per_day": 40.66,
+      "gbp_per_year": 22.68,
+      "trips": 90
+     },
+     "150": {
+      "fills_gbp_per_day": 330.13,
+      "gbp_per_year": 184.52,
+      "trips": 90
+     },
+     "20": {
+      "fills_gbp_per_day": 53.35,
+      "gbp_per_year": 29.75,
+      "trips": 90
+     },
+     "200": {
+      "fills_gbp_per_day": 419.42,
+      "gbp_per_year": 234.23,
+      "trips": 90
+     },
+     "25": {
+      "fills_gbp_per_day": 65.74,
+      "gbp_per_year": 36.8,
+      "trips": 90
+     },
+     "30": {
+      "fills_gbp_per_day": 78.01,
+      "gbp_per_year": 43.85,
+      "trips": 90
+     },
+     "300": {
+      "fills_gbp_per_day": 590.06,
+      "gbp_per_year": 330.56,
+      "trips": 90
+     },
+     "40": {
+      "fills_gbp_per_day": 101.71,
+      "gbp_per_year": 57.38,
+      "trips": 90
+     },
+     "400": {
+      "fills_gbp_per_day": 751.38,
+      "gbp_per_year": 423.2,
+      "trips": 90
+     },
+     "50": {
+      "fills_gbp_per_day": 124.54,
+      "gbp_per_year": 70.13,
+      "trips": 90
+     },
+     "500": {
+      "fills_gbp_per_day": 905.1,
+      "gbp_per_year": 511.27,
+      "trips": 90
+     },
+     "75": {
+      "fills_gbp_per_day": 180.53,
+      "gbp_per_year": 101.53,
+      "trips": 90
+     },
+     "750": {
+      "fills_gbp_per_day": 1200.28,
+      "gbp_per_year": 675.3,
+      "trips": 90
+     }
+    },
+    "days": 28.0
+   },
+   "last_90_days": {
+    "by_rung": {
+     "10": {
+      "fills_gbp_per_day": 89.71,
+      "gbp_per_year": 55.38,
+      "trips": 952
+     },
+     "100": {
+      "fills_gbp_per_day": 606.63,
+      "gbp_per_year": 375.99,
+      "trips": 952
+     },
+     "1000": {
+      "fills_gbp_per_day": 2723.17,
+      "gbp_per_year": 1747.08,
+      "trips": 952
+     },
+     "15": {
+      "fills_gbp_per_day": 127.94,
+      "gbp_per_year": 78.97,
+      "trips": 952
+     },
+     "150": {
+      "fills_gbp_per_day": 825.02,
+      "gbp_per_year": 513.47,
+      "trips": 952
+     },
+     "20": {
+      "fills_gbp_per_day": 162.8,
+      "gbp_per_year": 100.45,
+      "trips": 952
+     },
+     "200": {
+      "fills_gbp_per_day": 1021.05,
+      "gbp_per_year": 637.22,
+      "trips": 952
+     },
+     "25": {
+      "fills_gbp_per_day": 195.94,
+      "gbp_per_year": 121.01,
+      "trips": 952
+     },
+     "30": {
+      "fills_gbp_per_day": 228.29,
+      "gbp_per_year": 141.11,
+      "trips": 952
+     },
+     "300": {
+      "fills_gbp_per_day": 1358.9,
+      "gbp_per_year": 845.5,
+      "trips": 952
+     },
+     "40": {
+      "fills_gbp_per_day": 289.94,
+      "gbp_per_year": 179.3,
+      "trips": 952
+     },
+     "400": {
+      "fills_gbp_per_day": 1648.25,
+      "gbp_per_year": 1023.75,
+      "trips": 952
+     },
+     "50": {
+      "fills_gbp_per_day": 348.73,
+      "gbp_per_year": 215.55,
+      "trips": 952
+     },
+     "500": {
+      "fills_gbp_per_day": 1905.98,
+      "gbp_per_year": 1186.79,
+      "trips": 952
+     },
+     "75": {
+      "fills_gbp_per_day": 483.81,
+      "gbp_per_year": 299.36,
+      "trips": 952
+     },
+     "750": {
+      "fills_gbp_per_day": 2384.22,
+      "gbp_per_year": 1504.76,
+      "trips": 952
+     }
+    },
+    "days": 90.0
+   },
+   "since_2025-11-26": {
+    "by_rung": {
+     "10": {
+      "fills_gbp_per_day": 172.21,
+      "gbp_per_year": 108.87,
+      "trips": 6417
+     },
+     "100": {
+      "fills_gbp_per_day": 1038.64,
+      "gbp_per_year": 670.35,
+      "trips": 6417
+     },
+     "1000": {
+      "fills_gbp_per_day": 3826.57,
+      "gbp_per_year": 2558.14,
+      "trips": 6417
+     },
+     "15": {
+      "fills_gbp_per_day": 241.19,
+      "gbp_per_year": 152.61,
+      "trips": 6417
+     },
+     "150": {
+      "fills_gbp_per_day": 1359.53,
+      "gbp_per_year": 880.51,
+      "trips": 6417
+     },
+     "20": {
+      "fills_gbp_per_day": 305.37,
+      "gbp_per_year": 193.61,
+      "trips": 6417
+     },
+     "200": {
+      "fills_gbp_per_day": 1639.54,
+      "gbp_per_year": 1064.94,
+      "trips": 6417
+     },
+     "25": {
+      "fills_gbp_per_day": 365.25,
+      "gbp_per_year": 231.99,
+      "trips": 6417
+     },
+     "30": {
+      "fills_gbp_per_day": 421.91,
+      "gbp_per_year": 268.41,
+      "trips": 6417
+     },
+     "300": {
+      "fills_gbp_per_day": 2097.63,
+      "gbp_per_year": 1368.58,
+      "trips": 6417
+     },
+     "40": {
+      "fills_gbp_per_day": 527.73,
+      "gbp_per_year": 336.73,
+      "trips": 6417
+     },
+     "400": {
+      "fills_gbp_per_day": 2468.14,
+      "gbp_per_year": 1617.1,
+      "trips": 6417
+     },
+     "50": {
+      "fills_gbp_per_day": 626.58,
+      "gbp_per_year": 400.91,
+      "trips": 6417
+     },
+     "500": {
+      "fills_gbp_per_day": 2784.37,
+      "gbp_per_year": 1828.87,
+      "trips": 6417
+     },
+     "75": {
+      "fills_gbp_per_day": 846.48,
+      "gbp_per_year": 544.4,
+      "trips": 6417
+     },
+     "750": {
+      "fills_gbp_per_day": 3380.04,
+      "gbp_per_year": 2240.53,
+      "trips": 6417
+     }
+    },
+    "days": 297.0
+   },
+   "since_2026-08-24": {
+    "by_rung": {
+     "10": {
+      "fills_gbp_per_day": 30.26,
+      "gbp_per_year": 17.23,
+      "trips": 159
+     },
+     "100": {
+      "fills_gbp_per_day": 245.05,
+      "gbp_per_year": 139.71,
+      "trips": 159
+     },
+     "1000": {
+      "fills_gbp_per_day": 1557.89,
+      "gbp_per_year": 891.59,
+      "trips": 159
+     },
+     "15": {
+      "fills_gbp_per_day": 43.92,
+      "gbp_per_year": 25.04,
+      "trips": 159
+     },
+     "150": {
+      "fills_gbp_per_day": 350.17,
+      "gbp_per_year": 199.53,
+      "trips": 159
+     },
+     "20": {
+      "fills_gbp_per_day": 56.97,
+      "gbp_per_year": 32.4,
+      "trips": 159
+     },
+     "200": {
+      "fills_gbp_per_day": 445.32,
+      "gbp_per_year": 253.62,
+      "trips": 159
+     },
+     "25": {
+      "fills_gbp_per_day": 69.74,
+      "gbp_per_year": 39.71,
+      "trips": 159
+     },
+     "30": {
+      "fills_gbp_per_day": 82.29,
+      "gbp_per_year": 46.95,
+      "trips": 159
+     },
+     "300": {
+      "fills_gbp_per_day": 623.1,
+      "gbp_per_year": 352.86,
+      "trips": 159
+     },
+     "40": {
+      "fills_gbp_per_day": 106.72,
+      "gbp_per_year": 61.02,
+      "trips": 159
+     },
+     "400": {
+      "fills_gbp_per_day": 794.81,
+      "gbp_per_year": 449.76,
+      "trips": 159
+     },
+     "50": {
+      "fills_gbp_per_day": 130.62,
+      "gbp_per_year": 74.61,
+      "trips": 159
+     },
+     "500": {
+      "fills_gbp_per_day": 952.71,
+      "gbp_per_year": 539.0,
+      "trips": 159
+     },
+     "75": {
+      "fills_gbp_per_day": 189.53,
+      "gbp_per_year": 108.2,
+      "trips": 159
+     },
+     "750": {
+      "fills_gbp_per_day": 1272.97,
+      "gbp_per_year": 719.88,
+      "trips": 159
+     }
+    },
+    "days": 46.0
+   }
+  }
+ },
+ "correlation_100": {
+  "last_90_days": {
+   "coinbase_gbp": 35.5,
+   "daily": -0.1086,
+   "days": 90,
+   "revx_gbp": 109.76,
+   "weekly": -0.5636
+  },
+  "since_2025-11-26": {
+   "coinbase_gbp": 154.18,
+   "daily": 0.0927,
+   "days": 317,
+   "revx_gbp": 672.57,
+   "weekly": -0.1546
+  },
+  "since_2026-08-24": {
+   "coinbase_gbp": 29.34,
+   "daily": 0.0865,
+   "days": 46,
+   "revx_gbp": 25.84,
+   "weekly": -0.0718
+  }
+ },
+ "first": {
+  "coinbase:USDC-EUR": "2025-10-01",
+  "coinbase:USDC-GBP": "2025-10-01",
+  "coinbase:USDT-EUR": "2025-10-01",
+  "coinbase:USDT-GBP": "2025-10-01",
+  "revx:USDC-GBP": "2025-11-26",
+  "revx:USDT-GBP": "2025-12-16"
+ },
+ "rungs": [
+  10.0,
+  15.0,
+  20.0,
+  25.0,
+  30.0,
+  40.0,
+  50.0,
+  75.0,
+  100.0,
+  150.0,
+  200.0,
+  300.0,
+  400.0,
+  500.0,
+  750.0,
+  1000.0
+ ],
+ "simple_split": {
+  "1000": {
+   "capital_used": 900.0,
+   "coinbase_capital": 0.0,
+   "coinbase_rung": 0.0,
+   "gbp_per_year": {
+    "last_12_months": 664.01,
+    "last_28_days": 155.55,
+    "last_90_days": 354.01,
+    "since_2026-08-24": 158.31
+   },
+   "revx_capital": 900.0,
+   "revx_rung": 75.0,
+   "worse_of_90d_and_since_08_24": 158.31
+  },
+  "2000": {
+   "capital_used": 1800.0,
+   "coinbase_capital": 0.0,
+   "coinbase_rung": 0.0,
+   "gbp_per_year": {
+    "last_12_months": 1072.02,
+    "last_28_days": 283.94,
+    "last_90_days": 607.93,
+    "since_2026-08-24": 292.45
+   },
+   "revx_capital": 1800.0,
+   "revx_rung": 150.0,
+   "worse_of_90d_and_since_08_24": 292.45
+  },
+  "500": {
+   "capital_used": 480.0,
+   "coinbase_capital": 0.0,
+   "coinbase_rung": 0.0,
+   "gbp_per_year": {
+    "last_12_months": 410.75,
+    "last_28_days": 87.1,
+    "last_90_days": 211.99,
+    "since_2026-08-24": 88.73
+   },
+   "revx_capital": 480.0,
+   "revx_rung": 40.0,
+   "worse_of_90d_and_since_08_24": 88.73
+  },
+  "5000": {
+   "capital_used": 4800.0,
+   "coinbase_capital": 0.0,
+   "coinbase_rung": 0.0,
+   "gbp_per_year": {
+    "last_12_months": 1947.26,
+    "last_28_days": 634.27,
+    "last_90_days": 1217.07,
+    "since_2026-08-24": 655.81
+   },
+   "revx_capital": 4800.0,
+   "revx_rung": 400.0,
+   "worse_of_90d_and_since_08_24": 655.81
+  }
+ },
+ "venues": {
+  "coinbase": {
+   "last_12_months": {
+    "10": {
+     "capital_gbp": 240.0,
+     "gbp_per_year": 19.75,
+     "pct_per_year": 8.23
+    },
+    "100": {
+     "capital_gbp": 2400.0,
+     "gbp_per_year": 192.95,
+     "pct_per_year": 8.04
+    },
+    "1000": {
+     "capital_gbp": 24000.0,
+     "gbp_per_year": 1781.0,
+     "pct_per_year": 7.42
+    },
+    "15": {
+     "capital_gbp": 360.0,
+     "gbp_per_year": 29.58,
+     "pct_per_year": 8.22
+    },
+    "150": {
+     "capital_gbp": 3600.0,
+     "gbp_per_year": 287.44,
+     "pct_per_year": 7.98
+    },
+    "20": {
+     "capital_gbp": 480.0,
+     "gbp_per_year": 39.36,
+     "pct_per_year": 8.2
+    },
+    "200": {
+     "capital_gbp": 4800.0,
+     "gbp_per_year": 381.09,
+     "pct_per_year": 7.94
+    },
+    "25": {
+     "capital_gbp": 600.0,
+     "gbp_per_year": 49.13,
+     "pct_per_year": 8.19
+    },
+    "30": {
+     "capital_gbp": 720.0,
+     "gbp_per_year": 58.86,
+     "pct_per_year": 8.17
+    },
+    "300": {
+     "capital_gbp": 7200.0,
+     "gbp_per_year": 566.84,
+     "pct_per_year": 7.87
+    },
+    "40": {
+     "capital_gbp": 960.0,
+     "gbp_per_year": 78.27,
+     "pct_per_year": 8.15
+    },
+    "400": {
+     "capital_gbp": 9600.0,
+     "gbp_per_year": 748.92,
+     "pct_per_year": 7.8
+    },
+    "50": {
+     "capital_gbp": 1200.0,
+     "gbp_per_year": 97.61,
+     "pct_per_year": 8.13
+    },
+    "500": {
+     "capital_gbp": 12000.0,
+     "gbp_per_year": 928.63,
+     "pct_per_year": 7.74
+    },
+    "75": {
+     "capital_gbp": 1800.0,
+     "gbp_per_year": 145.44,
+     "pct_per_year": 8.08
+    },
+    "750": {
+     "capital_gbp": 18000.0,
+     "gbp_per_year": 1363.77,
+     "pct_per_year": 7.58
+    }
+   },
+   "last_28_days": {
+    "10": {
+     "capital_gbp": 240.0,
+     "gbp_per_year": 31.41,
+     "pct_per_year": 13.09
+    },
+    "100": {
+     "capital_gbp": 2400.0,
+     "gbp_per_year": 315.24,
+     "pct_per_year": 13.14
+    },
+    "1000": {
+     "capital_gbp": 24000.0,
+     "gbp_per_year": 3128.26,
+     "pct_per_year": 13.03
+    },
+    "15": {
+     "capital_gbp": 360.0,
+     "gbp_per_year": 47.23,
+     "pct_per_year": 13.12
+    },
+    "150": {
+     "capital_gbp": 3600.0,
+     "gbp_per_year": 471.74,
+     "pct_per_year": 13.1
+    },
+    "20": {
+     "capital_gbp": 480.0,
+     "gbp_per_year": 63.05,
+     "pct_per_year": 13.13
+    },
+    "200": {
+     "capital_gbp": 4800.0,
+     "gbp_per_year": 628.05,
+     "pct_per_year": 13.08
+    },
+    "25": {
+     "capital_gbp": 600.0,
+     "gbp_per_year": 78.86,
+     "pct_per_year": 13.14
+    },
+    "30": {
+     "capital_gbp": 720.0,
+     "gbp_per_year": 94.68,
+     "pct_per_year": 13.15
+    },
+    "300": {
+     "capital_gbp": 7200.0,
+     "gbp_per_year": 939.98,
+     "pct_per_year": 13.06
+    },
+    "40": {
+     "capital_gbp": 960.0,
+     "gbp_per_year": 126.31,
+     "pct_per_year": 13.16
+    },
+    "400": {
+     "capital_gbp": 9600.0,
+     "gbp_per_year": 1252.02,
+     "pct_per_year": 13.04
+    },
+    "50": {
+     "capital_gbp": 1200.0,
+     "gbp_per_year": 157.94,
+     "pct_per_year": 13.16
+    },
+    "500": {
+     "capital_gbp": 12000.0,
+     "gbp_per_year": 1565.85,
+     "pct_per_year": 13.05
+    },
+    "75": {
+     "capital_gbp": 1800.0,
+     "gbp_per_year": 236.69,
+     "pct_per_year": 13.15
+    },
+    "750": {
+     "capital_gbp": 18000.0,
+     "gbp_per_year": 2348.77,
+     "pct_per_year": 13.05
+    }
+   },
+   "last_90_days": {
+    "10": {
+     "capital_gbp": 240.0,
+     "gbp_per_year": 14.42,
+     "pct_per_year": 6.01
+    },
+    "100": {
+     "capital_gbp": 2400.0,
+     "gbp_per_year": 143.96,
+     "pct_per_year": 6.0
+    },
+    "1000": {
+     "capital_gbp": 24000.0,
+     "gbp_per_year": 1389.32,
+     "pct_per_year": 5.79
+    },
+    "15": {
+     "capital_gbp": 360.0,
+     "gbp_per_year": 21.65,
+     "pct_per_year": 6.01
+    },
+    "150": {
+     "capital_gbp": 3600.0,
+     "gbp_per_year": 214.91,
+     "pct_per_year": 5.97
+    },
+    "20": {
+     "capital_gbp": 480.0,
+     "gbp_per_year": 28.86,
+     "pct_per_year": 6.01
+    },
+    "200": {
+     "capital_gbp": 4800.0,
+     "gbp_per_year": 285.51,
+     "pct_per_year": 5.95
+    },
+    "25": {
+     "capital_gbp": 600.0,
+     "gbp_per_year": 36.07,
+     "pct_per_year": 6.01
+    },
+    "30": {
+     "capital_gbp": 720.0,
+     "gbp_per_year": 43.28,
+     "pct_per_year": 6.01
+    },
+    "300": {
+     "capital_gbp": 7200.0,
+     "gbp_per_year": 425.17,
+     "pct_per_year": 5.91
+    },
+    "40": {
+     "capital_gbp": 960.0,
+     "gbp_per_year": 57.7,
+     "pct_per_year": 6.01
+    },
+    "400": {
+     "capital_gbp": 9600.0,
+     "gbp_per_year": 564.46,
+     "pct_per_year": 5.88
+    },
+    "50": {
+     "capital_gbp": 1200.0,
+     "gbp_per_year": 72.13,
+     "pct_per_year": 6.01
+    },
+    "500": {
+     "capital_gbp": 12000.0,
+     "gbp_per_year": 704.03,
+     "pct_per_year": 5.87
+    },
+    "75": {
+     "capital_gbp": 1800.0,
+     "gbp_per_year": 108.07,
+     "pct_per_year": 6.0
+    },
+    "750": {
+     "capital_gbp": 18000.0,
+     "gbp_per_year": 1048.45,
+     "pct_per_year": 5.82
+    }
+   },
+   "since_2025-11-26": {
+    "10": {
+     "capital_gbp": 240.0,
+     "gbp_per_year": 18.1,
+     "pct_per_year": 7.54
+    },
+    "100": {
+     "capital_gbp": 2400.0,
+     "gbp_per_year": 177.52,
+     "pct_per_year": 7.4
+    },
+    "1000": {
+     "capital_gbp": 24000.0,
+     "gbp_per_year": 1631.25,
+     "pct_per_year": 6.8
+    },
+    "15": {
+     "capital_gbp": 360.0,
+     "gbp_per_year": 27.1,
+     "pct_per_year": 7.53
+    },
+    "150": {
+     "capital_gbp": 3600.0,
+     "gbp_per_year": 264.92,
+     "pct_per_year": 7.36
+    },
+    "20": {
+     "capital_gbp": 480.0,
+     "gbp_per_year": 36.06,
+     "pct_per_year": 7.51
+    },
+    "200": {
+     "capital_gbp": 4800.0,
+     "gbp_per_year": 351.89,
+     "pct_per_year": 7.33
+    },
+    "25": {
+     "capital_gbp": 600.0,
+     "gbp_per_year": 45.0,
+     "pct_per_year": 7.5
+    },
+    "30": {
+     "capital_gbp": 720.0,
+     "gbp_per_year": 53.94,
+     "pct_per_year": 7.49
+    },
+    "300": {
+     "capital_gbp": 7200.0,
+     "gbp_per_year": 523.4,
+     "pct_per_year": 7.27
+    },
+    "40": {
+     "capital_gbp": 960.0,
+     "gbp_per_year": 71.8,
+     "pct_per_year": 7.48
+    },
+    "400": {
+     "capital_gbp": 9600.0,
+     "gbp_per_year": 690.61,
+     "pct_per_year": 7.19
+    },
+    "50": {
+     "capital_gbp": 1200.0,
+     "gbp_per_year": 89.61,
+     "pct_per_year": 7.47
+    },
+    "500": {
+     "capital_gbp": 12000.0,
+     "gbp_per_year": 855.42,
+     "pct_per_year": 7.13
+    },
+    "75": {
+     "capital_gbp": 1800.0,
+     "gbp_per_year": 133.7,
+     "pct_per_year": 7.43
+    },
+    "750": {
+     "capital_gbp": 18000.0,
+     "gbp_per_year": 1252.15,
+     "pct_per_year": 6.96
+    }
+   },
+   "since_2026-08-24": {
+    "10": {
+     "capital_gbp": 240.0,
+     "gbp_per_year": 23.26,
+     "pct_per_year": 9.69
+    },
+    "100": {
+     "capital_gbp": 2400.0,
+     "gbp_per_year": 232.79,
+     "pct_per_year": 9.7
+    },
+    "1000": {
+     "capital_gbp": 24000.0,
+     "gbp_per_year": 2292.4,
+     "pct_per_year": 9.55
+    },
+    "15": {
+     "capital_gbp": 360.0,
+     "gbp_per_year": 34.94,
+     "pct_per_year": 9.71
+    },
+    "150": {
+     "capital_gbp": 3600.0,
+     "gbp_per_year": 348.01,
+     "pct_per_year": 9.67
+    },
+    "20": {
+     "capital_gbp": 480.0,
+     "gbp_per_year": 46.61,
+     "pct_per_year": 9.71
+    },
+    "200": {
+     "capital_gbp": 4800.0,
+     "gbp_per_year": 462.97,
+     "pct_per_year": 9.65
+    },
+    "25": {
+     "capital_gbp": 600.0,
+     "gbp_per_year": 58.28,
+     "pct_per_year": 9.71
+    },
+    "30": {
+     "capital_gbp": 720.0,
+     "gbp_per_year": 69.95,
+     "pct_per_year": 9.72
+    },
+    "300": {
+     "capital_gbp": 7200.0,
+     "gbp_per_year": 691.47,
+     "pct_per_year": 9.6
+    },
+    "40": {
+     "capital_gbp": 960.0,
+     "gbp_per_year": 93.29,
+     "pct_per_year": 9.72
+    },
+    "400": {
+     "capital_gbp": 9600.0,
+     "gbp_per_year": 920.04,
+     "pct_per_year": 9.58
+    },
+    "50": {
+     "capital_gbp": 1200.0,
+     "gbp_per_year": 116.63,
+     "pct_per_year": 9.72
+    },
+    "500": {
+     "capital_gbp": 12000.0,
+     "gbp_per_year": 1149.8,
+     "pct_per_year": 9.58
+    },
+    "75": {
+     "capital_gbp": 1800.0,
+     "gbp_per_year": 174.78,
+     "pct_per_year": 9.71
+    },
+    "750": {
+     "capital_gbp": 18000.0,
+     "gbp_per_year": 1722.98,
+     "pct_per_year": 9.57
+    }
+   }
+  },
+  "revx": {
+   "last_12_months": {
+    "10": {
+     "capital_gbp": 120.0,
+     "gbp_per_year": 132.91,
+     "pct_per_year": 110.76
+    },
+    "100": {
+     "capital_gbp": 1200.0,
+     "gbp_per_year": 816.7,
+     "pct_per_year": 68.06
+    },
+    "1000": {
+     "capital_gbp": 12000.0,
+     "gbp_per_year": 3047.56,
+     "pct_per_year": 25.4
+    },
+    "15": {
+     "capital_gbp": 180.0,
+     "gbp_per_year": 186.43,
+     "pct_per_year": 103.57
+    },
+    "150": {
+     "capital_gbp": 1800.0,
+     "gbp_per_year": 1072.02,
+     "pct_per_year": 59.56
+    },
+    "20": {
+     "capital_gbp": 240.0,
+     "gbp_per_year": 236.52,
+     "pct_per_year": 98.55
+    },
+    "200": {
+     "capital_gbp": 2400.0,
+     "gbp_per_year": 1293.11,
+     "pct_per_year": 53.88
+    },
+    "25": {
+     "capital_gbp": 300.0,
+     "gbp_per_year": 283.32,
+     "pct_per_year": 94.44
+    },
+    "30": {
+     "capital_gbp": 360.0,
+     "gbp_per_year": 327.77,
+     "pct_per_year": 91.05
+    },
+    "300": {
+     "capital_gbp": 3600.0,
+     "gbp_per_year": 1652.67,
+     "pct_per_year": 45.91
+    },
+    "40": {
+     "capital_gbp": 480.0,
+     "gbp_per_year": 410.75,
+     "pct_per_year": 85.57
+    },
+    "400": {
+     "capital_gbp": 4800.0,
+     "gbp_per_year": 1947.26,
+     "pct_per_year": 40.57
+    },
+    "50": {
+     "capital_gbp": 600.0,
+     "gbp_per_year": 489.08,
+     "pct_per_year": 81.51
+    },
+    "500": {
+     "capital_gbp": 6000.0,
+     "gbp_per_year": 2196.96,
+     "pct_per_year": 36.62
+    },
+    "75": {
+     "capital_gbp": 900.0,
+     "gbp_per_year": 664.01,
+     "pct_per_year": 73.78
+    },
+    "750": {
+     "capital_gbp": 9000.0,
+     "gbp_per_year": 2679.17,
+     "pct_per_year": 29.77
+    }
+   },
+   "last_28_days": {
+    "10": {
+     "capital_gbp": 120.0,
+     "gbp_per_year": 23.26,
+     "pct_per_year": 19.39
+    },
+    "100": {
+     "capital_gbp": 1200.0,
+     "gbp_per_year": 200.67,
+     "pct_per_year": 16.72
+    },
+    "1000": {
+     "capital_gbp": 12000.0,
+     "gbp_per_year": 1249.75,
+     "pct_per_year": 10.41
+    },
+    "15": {
+     "capital_gbp": 180.0,
+     "gbp_per_year": 34.29,
+     "pct_per_year": 19.05
+    },
+    "150": {
+     "capital_gbp": 1800.0,
+     "gbp_per_year": 283.94,
+     "pct_per_year": 15.77
+    },
+    "20": {
+     "capital_gbp": 240.0,
+     "gbp_per_year": 45.03,
+     "pct_per_year": 18.76
+    },
+    "200": {
+     "capital_gbp": 2400.0,
+     "gbp_per_year": 357.28,
+     "pct_per_year": 14.89
+    },
+    "25": {
+     "capital_gbp": 300.0,
+     "gbp_per_year": 55.73,
+     "pct_per_year": 18.58
+    },
+    "30": {
+     "capital_gbp": 360.0,
+     "gbp_per_year": 66.4,
+     "pct_per_year": 18.45
+    },
+    "300": {
+     "capital_gbp": 3600.0,
+     "gbp_per_year": 500.83,
+     "pct_per_year": 13.91
+    },
+    "40": {
+     "capital_gbp": 480.0,
+     "gbp_per_year": 87.1,
+     "pct_per_year": 18.15
+    },
+    "400": {
+     "capital_gbp": 4800.0,
+     "gbp_per_year": 634.27,
+     "pct_per_year": 13.21
+    },
+    "50": {
+     "capital_gbp": 600.0,
+     "gbp_per_year": 106.98,
+     "pct_per_year": 17.83
+    },
+    "500": {
+     "capital_gbp": 6000.0,
+     "gbp_per_year": 761.45,
+     "pct_per_year": 12.69
+    },
+    "75": {
+     "capital_gbp": 900.0,
+     "gbp_per_year": 155.55,
+     "pct_per_year": 17.28
+    },
+    "750": {
+     "capital_gbp": 9000.0,
+     "gbp_per_year": 1014.63,
+     "pct_per_year": 11.27
+    }
+   },
+   "last_90_days": {
+    "10": {
+     "capital_gbp": 120.0,
+     "gbp_per_year": 65.47,
+     "pct_per_year": 54.56
+    },
+    "100": {
+     "capital_gbp": 1200.0,
+     "gbp_per_year": 445.12,
+     "pct_per_year": 37.09
+    },
+    "1000": {
+     "capital_gbp": 12000.0,
+     "gbp_per_year": 2097.42,
+     "pct_per_year": 17.48
+    },
+    "15": {
+     "capital_gbp": 180.0,
+     "gbp_per_year": 93.38,
+     "pct_per_year": 51.88
+    },
+    "150": {
+     "capital_gbp": 1800.0,
+     "gbp_per_year": 607.93,
+     "pct_per_year": 33.77
+    },
+    "20": {
+     "capital_gbp": 240.0,
+     "gbp_per_year": 118.88,
+     "pct_per_year": 49.53
+    },
+    "200": {
+     "capital_gbp": 2400.0,
+     "gbp_per_year": 754.18,
+     "pct_per_year": 31.42
+    },
+    "25": {
+     "capital_gbp": 300.0,
+     "gbp_per_year": 143.15,
+     "pct_per_year": 47.72
+    },
+    "30": {
+     "capital_gbp": 360.0,
+     "gbp_per_year": 166.84,
+     "pct_per_year": 46.35
+    },
+    "300": {
+     "capital_gbp": 3600.0,
+     "gbp_per_year": 1003.34,
+     "pct_per_year": 27.87
+    },
+    "40": {
+     "capital_gbp": 480.0,
+     "gbp_per_year": 211.99,
+     "pct_per_year": 44.16
+    },
+    "400": {
+     "capital_gbp": 4800.0,
+     "gbp_per_year": 1217.07,
+     "pct_per_year": 25.36
+    },
+    "50": {
+     "capital_gbp": 600.0,
+     "gbp_per_year": 254.78,
+     "pct_per_year": 42.46
+    },
+    "500": {
+     "capital_gbp": 6000.0,
+     "gbp_per_year": 1412.31,
+     "pct_per_year": 23.54
+    },
+    "75": {
+     "capital_gbp": 900.0,
+     "gbp_per_year": 354.01,
+     "pct_per_year": 39.33
+    },
+    "750": {
+     "capital_gbp": 9000.0,
+     "gbp_per_year": 1798.67,
+     "pct_per_year": 19.99
+    }
+   },
+   "since_2025-11-26": {
+    "10": {
+     "capital_gbp": 120.0,
+     "gbp_per_year": 132.91,
+     "pct_per_year": 110.76
+    },
+    "100": {
+     "capital_gbp": 1200.0,
+     "gbp_per_year": 816.7,
+     "pct_per_year": 68.06
+    },
+    "1000": {
+     "capital_gbp": 12000.0,
+     "gbp_per_year": 3047.56,
+     "pct_per_year": 25.4
+    },
+    "15": {
+     "capital_gbp": 180.0,
+     "gbp_per_year": 186.43,
+     "pct_per_year": 103.57
+    },
+    "150": {
+     "capital_gbp": 1800.0,
+     "gbp_per_year": 1072.02,
+     "pct_per_year": 59.56
+    },
+    "20": {
+     "capital_gbp": 240.0,
+     "gbp_per_year": 236.52,
+     "pct_per_year": 98.55
+    },
+    "200": {
+     "capital_gbp": 2400.0,
+     "gbp_per_year": 1293.11,
+     "pct_per_year": 53.88
+    },
+    "25": {
+     "capital_gbp": 300.0,
+     "gbp_per_year": 283.32,
+     "pct_per_year": 94.44
+    },
+    "30": {
+     "capital_gbp": 360.0,
+     "gbp_per_year": 327.77,
+     "pct_per_year": 91.05
+    },
+    "300": {
+     "capital_gbp": 3600.0,
+     "gbp_per_year": 1652.67,
+     "pct_per_year": 45.91
+    },
+    "40": {
+     "capital_gbp": 480.0,
+     "gbp_per_year": 410.75,
+     "pct_per_year": 85.57
+    },
+    "400": {
+     "capital_gbp": 4800.0,
+     "gbp_per_year": 1947.26,
+     "pct_per_year": 40.57
+    },
+    "50": {
+     "capital_gbp": 600.0,
+     "gbp_per_year": 489.08,
+     "pct_per_year": 81.51
+    },
+    "500": {
+     "capital_gbp": 6000.0,
+     "gbp_per_year": 2196.96,
+     "pct_per_year": 36.62
+    },
+    "75": {
+     "capital_gbp": 900.0,
+     "gbp_per_year": 664.01,
+     "pct_per_year": 73.78
+    },
+    "750": {
+     "capital_gbp": 9000.0,
+     "gbp_per_year": 2679.17,
+     "pct_per_year": 29.77
+    }
+   },
+   "since_2026-08-24": {
+    "10": {
+     "capital_gbp": 120.0,
+     "gbp_per_year": 24.62,
+     "pct_per_year": 20.52
+    },
+    "100": {
+     "capital_gbp": 1200.0,
+     "gbp_per_year": 205.02,
+     "pct_per_year": 17.08
+    },
+    "1000": {
+     "capital_gbp": 12000.0,
+     "gbp_per_year": 1298.02,
+     "pct_per_year": 10.82
+    },
+    "15": {
+     "capital_gbp": 180.0,
+     "gbp_per_year": 35.91,
+     "pct_per_year": 19.95
+    },
+    "150": {
+     "capital_gbp": 1800.0,
+     "gbp_per_year": 292.45,
+     "pct_per_year": 16.25
+    },
+    "20": {
+     "capital_gbp": 240.0,
+     "gbp_per_year": 46.71,
+     "pct_per_year": 19.46
+    },
+    "200": {
+     "capital_gbp": 2400.0,
+     "gbp_per_year": 370.45,
+     "pct_per_year": 15.44
+    },
+    "25": {
+     "capital_gbp": 300.0,
+     "gbp_per_year": 57.42,
+     "pct_per_year": 19.14
+    },
+    "30": {
+     "capital_gbp": 360.0,
+     "gbp_per_year": 68.04,
+     "pct_per_year": 18.9
+    },
+    "300": {
+     "capital_gbp": 3600.0,
+     "gbp_per_year": 517.08,
+     "pct_per_year": 14.36
+    },
+    "40": {
+     "capital_gbp": 480.0,
+     "gbp_per_year": 88.73,
+     "pct_per_year": 18.49
+    },
+    "400": {
+     "capital_gbp": 4800.0,
+     "gbp_per_year": 655.81,
+     "pct_per_year": 13.66
+    },
+    "50": {
+     "capital_gbp": 600.0,
+     "gbp_per_year": 108.91,
+     "pct_per_year": 18.15
+    },
+    "500": {
+     "capital_gbp": 6000.0,
+     "gbp_per_year": 781.85,
+     "pct_per_year": 13.03
+    },
+    "75": {
+     "capital_gbp": 900.0,
+     "gbp_per_year": 158.31,
+     "pct_per_year": 17.59
+    },
+    "750": {
+     "capital_gbp": 9000.0,
+     "gbp_per_year": 1047.34,
+     "pct_per_year": 11.64
+    }
+   }
+  }
+ },
+ "windows": {
+  "last_12_months": "2025-10-09",
+  "last_28_days": "2026-09-11",
+  "last_90_days": "2026-07-11",
+  "since_2025-11-26": "2025-11-26",
+  "since_2026-08-24": "2026-08-24"
+ }
+}

@@ -1,0 +1,44 @@
+{
+ "files": {
+  "results/allocation.json": {
+   "bytes": 7155,
+   "sha256": "41ce7df52340e0066862668072a71649614d41bc1eb31c9f0c8f7fa0460c23ce"
+  },
+  "results/compare.json": {
+   "bytes": 75161,
+   "sha256": "2888b1d4a9fc2031bfdebe034cce717aa60afeefe78122d1e7054f6811b76e53"
+  },
+  "scripts/allocate.py": {
+   "bytes": 3868,
+   "sha256": "a4475d4c97e9cb6e825bb8ff5168ad4118357b72ed931b5dd1ef8b1f5f2b42da"
+  },
+  "scripts/build_manifest.py": {
+   "bytes": 1811,
+   "sha256": "11fcd4092a851821e469fa29672312fbf5c8a42826be8c5bb8c03a9c615151fe"
+  },
+  "scripts/compare.py": {
+   "bytes": 9274,
+   "sha256": "ef4952e335f5711e56738812d0f56651a39cbbc79cf2061b88269721f390c31b"
+  },
+  "scripts/replay.py": {
+   "bytes": 5011,
+   "sha256": "6fa4029248ee933177ff45bde862e373c2373345bfb9971ddbe3f8fb0292bca7"
+  }
+ },
+ "imports_read_only": {
+  "docs/agents/backtests/cj5/": "paired.py's Revolut X book, GBP/USD, the USD hourly series",
+  "docs/agents/backtests/scq_venues/": "sv_sim.py's Coinbase books on its minute bars",
+  "docs/agents/scripts/pr5/pr5_sim.py": "56fbad85ee4df6292f596188d091ad064d030180f33cefe3bd09089d7e772a1a"
+ },
+ "run": [
+  "cd scripts; python3 -I compare.py   # -> results/compare.json (about 15 minutes, four processes)",
+  "cd scripts; python3 -I allocate.py  # -> results/allocation.json",
+  "cd scripts; python3 -I replay.py EXPORT.json   # the pre-registration's bar 1, at the reading",
+  "cd scripts; python3 -I build_manifest.py"
+ ],
+ "study": "Revolut X against Coinbase for PR5's frozen rule, the budget split between them, and the Coinbase paper test's faithfulness check (2026-10-10)",
+ "write_up": [
+  "docs/agents/reviews/2026-10-10-coinbase-vs-revolutx.md",
+  "docs/agents/reviews/2026-10-10-coinbase-paper-prereg.md"
+ ]
+}

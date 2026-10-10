@@ -301,6 +301,15 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    (`reviews/2026-10-09-cj5-paper-test.md`): an edge in every year, shrinking; a forward paper test is drafted, not frozen
    (`reviews/2026-10-09-cj5-forward-paper-prereg.md`), and waits on a design and his word.
 
+12. **Coinbase recorder and paper test "Stablecoin quotes Coinbase": built, not yet deployed** (Davies, 2026-10-10;
+   reference §4 item 58, migration `0112`, `agents?action=cbrec`). After it lands and its 15 minutes pass: check
+   `select last_report->'reached', last_error from cb_rec_state` (true: the Edge region reaches Coinbase; never
+   confirmed before), `select product, count(*), min(ts), max(ts) from cb_trades group by 1`, `select last_minute,
+   last_error from cb_quote_state`, and no `agents.cb_rec` row in `ops_errors`. Pre-registration
+   `reviews/2026-10-10-coinbase-paper-prereg.md` (frozen): 28 UTC days from the first 00:00 after its first decided
+   minute, read on day 29 with `backtests/cbpaper/scripts/replay.py` on an export of the window (a wake to set once the
+   start is known). The budget split is `reviews/2026-10-10-coinbase-vs-revolutx.md`.
+
 ## Machine and platform setup
 
 A rebuilt container loses every line below. Run them before working.
@@ -421,6 +430,13 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 "LEDGER.md, archived 2026-10-09", the 2026-10-08 22:49 → 23:58 UTC sections under "LEDGER.md, archived 2026-10-09
 (second)", and the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)"; each oldest
 first.
+
+### [2026-10-10 01:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Coinbase paper test pre-registered and frozen; Revolut X against Coinbase** (`reviews/2026-10-10-coinbase-paper-prereg.md`,
+  `reviews/2026-10-10-coinbase-vs-revolutx.md`, `backtests/cbpaper/`, map row, reference §4 item 58, what-remains item 12).
+  Since 2026-08-24 at £100 a rung: Revolut X 17.1 %/yr on £1,200, Coinbase 9.7 % on £2,400 (USDC-GBP 20.7 %, flat to £1,000
+  a rung); Revolut X's rate falls with size. Robust split: £1,000 → £690 Revolut X + £300 Coinbase USDC-GBP; £5,000 →
+  £2,580 + £2,400.
 
 ### [2026-10-10 00:53 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Coinbase recorder and paper test built** (Davies: "先建起来吧，并且和Revolute X对比看哪个更好"): `agents?action=cbrec`

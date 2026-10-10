@@ -3941,6 +3941,45 @@ stops trades nothing. Nothing of a trading path reads it. **Live** would need Da
 creates himself with the trades scope (JWT-signed, `docs/advanced-api-key`), stored by him as a Supabase secret, never
 printed; no order path exists.
 
+58. **Coinbase's four stablecoin books are recorded keyless, and PR5's rule runs on them on paper: TESTING's
+"Stablecoin quotes Coinbase" (2026-10-10, migration `0112`, `agents/cb_rec.ts`, `agents/cb_quotes.ts`, `agents/cb_view.ts`,
+`backtests/cbrec/`, `backtests/cbpaper/`).** Davies: "先建起来吧，并且和Revolute X对比看哪个更好，投入的话资金该如何安排", after
+the venue screen (`reviews/2026-10-09-stablecoin-venues.md`) put Coinbase first.
+- **Measured first, keyless** (Coinbase Exchange's public market data, `https://api.exchange.coinbase.com`, GET only, 10
+  requests a second per IP).
+  - `/products/{id}/trades` serves 1,000 a page, newest first. `after=N` gives the ids below N; `before=N` gives the
+    NEWEST page above N, not the nearest, so nothing pages forward.
+  - Trade ids run one a print in each book with no gap: two years of all four books, paged back, had every id.
+  - `side` is the MAKER's ("The side of a trade indicates the maker order side"), so the aggressor is the other.
+  - `/book?level=1` is the touch.
+- **What it keeps, every minute** (`agents?action=cbrec`, `edge_calls` row 30 s, `retry` on):
+  - every print of USDC-GBP, USDT-GBP, USDC-EUR and USDT-EUR once, by trade id (`cb_trades`), read from the newest page
+    back to the newest stored id. A burst past six pages becomes a hole paged back first, and coverage does not move
+    until it closes;
+  - each book's touch (`cb_touch`).
+- **Then the paper engine** runs PR5's `stepMinute`, called unchanged (PR5-W's freeze line). Inputs:
+  - the stored prints;
+  - PR5's stored GBP/USD and USD-book hourly closes (`agent_quote_inputs`);
+  - Yahoo's EURUSD=X (`cb_quote_inputs`).
+- **What differs passes through those inputs alone.**
+  - X is the pounds per unit of the book's currency and fairU is over GBP/USD, so one rung is £100 (six a book, £2,400)
+    and every P&L is pounds.
+  - USDT-EUR's 0.00001 step goes in ×10.
+  - A stop's exit moves from PR5's cost to Coinbase's 0.0045 % plus half the touch read 2026-10-09.
+  - Pinned by hand-worked trips (`cb_quotes.test.ts`), and by `replay.py`, the frozen Python simulator on the engine's
+    own minute records.
+- **Size.** About 47,000 prints a day, about 6 MB, kept 10 days. Touch rows are kept 35 days; minute records (X, fair
+  and the minute's bar, which replays it) 120 days. Events and trips are kept. The daily prune is `cb-rec-prune`.
+- **Faults** go to `ops_errors` as `agents.cb_rec`. It is not among the monitor's health readings, as the CoinJar
+  recorder is not. Whether the Edge region reaches Coinbase is `cb_rec_state.last_report.reached`; it was not checked
+  before the first deploy.
+- **The page.** Its row follows the twins, on a Coinbase card of its own. Its page is the twins' page without INVENTORY,
+  each EUR book's prices in euros.
+- **The test** is `reviews/2026-10-10-coinbase-paper-prereg.md`, frozen: 28 days and a five-part bar against PR5's twin.
+- **The comparison and the budget split** are `reviews/2026-10-10-coinbase-vs-revolutx.md`.
+- **Live** would need Davies' Coinbase account (a UK one: GBP and EUR balances) and a trade-only key he makes himself.
+  No order path exists.
+
 ### Twin variants
 
 The realistic twins, a row each of `agent_quote_twin_specs`, in the page's order. A new one is a row here in the commit

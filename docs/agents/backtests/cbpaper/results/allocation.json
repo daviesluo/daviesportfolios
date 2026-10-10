@@ -1,0 +1,330 @@
+{
+ "references": {
+  "coinbase_100_four_books": {
+   "coinbase_capital": 2400,
+   "gbp_per_year": {
+    "last_12_months": 192.95,
+    "last_28_days": 315.24,
+    "last_90_days": 143.96,
+    "since_2026-08-24": 232.79
+   },
+   "revx_capital": 0,
+   "rungs": {
+    "coinbase:USDC-EUR": 100,
+    "coinbase:USDC-GBP": 100,
+    "coinbase:USDT-EUR": 100,
+    "coinbase:USDT-GBP": 100
+   }
+  },
+  "revx_100_both_books": {
+   "coinbase_capital": 0,
+   "gbp_per_year": {
+    "last_12_months": 816.7,
+    "last_28_days": 200.66,
+    "last_90_days": 445.12,
+    "since_2026-08-24": 205.02
+   },
+   "revx_capital": 1200,
+   "rungs": {
+    "revx:USDC-GBP": 100,
+    "revx:USDT-GBP": 100
+   }
+  }
+ },
+ "splits": {
+  "1000": {
+   "last_12_months": {
+    "coinbase_capital": 0,
+    "gbp_per_year": {
+     "last_12_months": 914.33,
+     "last_28_days": 196.13,
+     "last_90_days": 527.87,
+     "since_2026-08-24": 210.4
+    },
+    "revx_capital": 990,
+    "rungs": {
+     "revx:USDC-GBP": 15,
+     "revx:USDT-GBP": 150
+    }
+   },
+   "last_28_days": {
+    "coinbase_capital": 900,
+    "gbp_per_year": {
+     "last_12_months": 206.27,
+     "last_28_days": 299.94,
+     "last_90_days": 172.53,
+     "since_2026-08-24": 210.46
+    },
+    "revx_capital": 90,
+    "rungs": {
+     "coinbase:USDC-GBP": 150,
+     "revx:USDT-GBP": 15
+    }
+   },
+   "last_90_days": {
+    "coinbase_capital": 0,
+    "gbp_per_year": {
+     "last_12_months": 914.33,
+     "last_28_days": 196.13,
+     "last_90_days": 527.87,
+     "since_2026-08-24": 210.4
+    },
+    "revx_capital": 990,
+    "rungs": {
+     "revx:USDC-GBP": 15,
+     "revx:USDT-GBP": 150
+    }
+   },
+   "robust": {
+    "coinbase_capital": 300,
+    "gbp_per_year": {
+     "last_12_months": 722.66,
+     "last_28_days": 235.24,
+     "last_90_days": 421.97,
+     "since_2026-08-24": 213.17
+    },
+    "revx_capital": 690,
+    "rungs": {
+     "coinbase:USDC-GBP": 50,
+     "revx:USDC-GBP": 15,
+     "revx:USDT-GBP": 100
+    },
+    "worst_shortfall_vs_each_windows_best": 0.2157
+   },
+   "since_2026-08-24": {
+    "coinbase_capital": 90,
+    "gbp_per_year": {
+     "last_12_months": 886.13,
+     "last_28_days": 212.54,
+     "last_90_days": 522.97,
+     "since_2026-08-24": 218.36
+    },
+    "revx_capital": 900,
+    "rungs": {
+     "coinbase:USDC-GBP": 15,
+     "revx:USDT-GBP": 150
+    }
+   }
+  },
+  "2000": {
+   "last_12_months": {
+    "coinbase_capital": 0,
+    "gbp_per_year": {
+     "last_12_months": 1427.94,
+     "last_28_days": 353.11,
+     "last_90_days": 871.23,
+     "since_2026-08-24": 373.94
+    },
+    "revx_capital": 1980,
+    "rungs": {
+     "revx:USDC-GBP": 30,
+     "revx:USDT-GBP": 300
+    }
+   },
+   "last_28_days": {
+    "coinbase_capital": 1800,
+    "gbp_per_year": {
+     "last_12_months": 372.97,
+     "last_28_days": 595.39,
+     "last_90_days": 326.89,
+     "since_2026-08-24": 415.32
+    },
+    "revx_capital": 180,
+    "rungs": {
+     "coinbase:USDC-GBP": 300,
+     "revx:USDT-GBP": 30
+    }
+   },
+   "last_90_days": {
+    "coinbase_capital": 0,
+    "gbp_per_year": {
+     "last_12_months": 1427.94,
+     "last_28_days": 353.11,
+     "last_90_days": 871.23,
+     "since_2026-08-24": 373.94
+    },
+    "revx_capital": 1980,
+    "rungs": {
+     "revx:USDC-GBP": 30,
+     "revx:USDT-GBP": 300
+    }
+   },
+   "robust": {
+    "coinbase_capital": 780,
+    "gbp_per_year": {
+     "last_12_months": 1111.77,
+     "last_28_days": 448.61,
+     "last_90_days": 710.8,
+     "since_2026-08-24": 401.29
+    },
+    "revx_capital": 1200,
+    "rungs": {
+     "coinbase:USDC-EUR": 30,
+     "coinbase:USDC-GBP": 100,
+     "revx:USDT-GBP": 200
+    },
+    "worst_shortfall_vs_each_windows_best": 0.2465
+   },
+   "since_2026-08-24": {
+    "coinbase_capital": 1800,
+    "gbp_per_year": {
+     "last_12_months": 372.97,
+     "last_28_days": 595.39,
+     "last_90_days": 326.89,
+     "since_2026-08-24": 415.32
+    },
+    "revx_capital": 180,
+    "rungs": {
+     "coinbase:USDC-GBP": 300,
+     "revx:USDT-GBP": 30
+    }
+   }
+  },
+  "500": {
+   "last_12_months": {
+    "coinbase_capital": 0,
+    "gbp_per_year": {
+     "last_12_months": 544.4,
+     "last_28_days": 101.53,
+     "last_90_days": 299.36,
+     "since_2026-08-24": 108.2
+    },
+    "revx_capital": 450,
+    "rungs": {
+     "revx:USDT-GBP": 75
+    }
+   },
+   "last_28_days": {
+    "coinbase_capital": 450,
+    "gbp_per_year": {
+     "last_12_months": 27.41,
+     "last_28_days": 139.58,
+     "last_90_days": 47.24,
+     "since_2026-08-24": 93.61
+    },
+    "revx_capital": 0,
+    "rungs": {
+     "coinbase:USDC-GBP": 75
+    }
+   },
+   "last_90_days": {
+    "coinbase_capital": 0,
+    "gbp_per_year": {
+     "last_12_months": 544.4,
+     "last_28_days": 101.53,
+     "last_90_days": 299.36,
+     "since_2026-08-24": 108.2
+    },
+    "revx_capital": 450,
+    "rungs": {
+     "revx:USDT-GBP": 75
+    }
+   },
+   "robust": {
+    "coinbase_capital": 120,
+    "gbp_per_year": {
+     "last_12_months": 432.42,
+     "last_28_days": 115.34,
+     "last_90_days": 238.3,
+     "since_2026-08-24": 107.09
+    },
+    "revx_capital": 360,
+    "rungs": {
+     "coinbase:USDC-GBP": 20,
+     "revx:USDC-GBP": 10,
+     "revx:USDT-GBP": 50
+    },
+    "worst_shortfall_vs_each_windows_best": 0.2057
+   },
+   "since_2026-08-24": {
+    "coinbase_capital": 180,
+    "gbp_per_year": {
+     "last_12_months": 412.09,
+     "last_28_days": 126.12,
+     "last_90_days": 234.52,
+     "since_2026-08-24": 112.19
+    },
+    "revx_capital": 300,
+    "rungs": {
+     "coinbase:USDC-GBP": 30,
+     "revx:USDT-GBP": 50
+    }
+   }
+  },
+  "5000": {
+   "last_12_months": {
+    "coinbase_capital": 0,
+    "gbp_per_year": {
+     "last_12_months": 2360.14,
+     "last_28_days": 729.32,
+     "last_90_days": 1559.41,
+     "since_2026-08-24": 769.99
+    },
+    "revx_capital": 4950,
+    "rungs": {
+     "revx:USDC-GBP": 75,
+     "revx:USDT-GBP": 750
+    }
+   },
+   "last_28_days": {
+    "coinbase_capital": 4500,
+    "gbp_per_year": {
+     "last_12_months": 796.55,
+     "last_28_days": 1476.54,
+     "last_90_days": 760.85,
+     "since_2026-08-24": 1026.75
+    },
+    "revx_capital": 450,
+    "rungs": {
+     "coinbase:USDC-GBP": 750,
+     "revx:USDT-GBP": 75
+    }
+   },
+   "last_90_days": {
+    "coinbase_capital": 180,
+    "gbp_per_year": {
+     "last_12_months": 2339.88,
+     "last_28_days": 768.14,
+     "last_90_days": 1562.96,
+     "since_2026-08-24": 791.76
+    },
+    "revx_capital": 4800,
+    "rungs": {
+     "coinbase:USDC-GBP": 30,
+     "revx:USDC-GBP": 50,
+     "revx:USDT-GBP": 750
+    }
+   },
+   "robust": {
+    "coinbase_capital": 2400,
+    "gbp_per_year": {
+     "last_12_months": 1814.19,
+     "last_28_days": 1180.24,
+     "last_90_days": 1296.67,
+     "since_2026-08-24": 961.25
+    },
+    "revx_capital": 2580,
+    "rungs": {
+     "coinbase:USDC-GBP": 400,
+     "revx:USDC-GBP": 30,
+     "revx:USDT-GBP": 400
+    },
+    "worst_shortfall_vs_each_windows_best": 0.2313
+   },
+   "since_2026-08-24": {
+    "coinbase_capital": 4500,
+    "gbp_per_year": {
+     "last_12_months": 796.55,
+     "last_28_days": 1476.54,
+     "last_90_days": 760.85,
+     "since_2026-08-24": 1026.75
+    },
+    "revx_capital": 450,
+    "rungs": {
+     "coinbase:USDC-GBP": 750,
+     "revx:USDT-GBP": 75
+    }
+   }
+  }
+ }
+}
