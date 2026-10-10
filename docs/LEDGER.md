@@ -441,6 +441,25 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10"; each oldest first.
 
+### [2026-10-10 14:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LP-REFILL (Davies, 10-10: "现在就做补选吧…你说的亏损还没控制你研究下"), research only**
+  (`reviews/2026-10-10-lp-refill-and-guards.md`, `backtests/lp_refill/`; sub-agent on branch `lp-refill`, not pushed by
+  it). Live-prep's rule on a full-universe record from 10-05 to 10-10 13:00 UTC, using the programme as read each
+  minute, at-price fills and $300. Figures are $ a day at R 0.47 in simulator units (0.81 live).
+  - **A refill pays, and its cap of ten a day must stay.** Addendum 13 as deployed earns $17.53, +$6.37 [−5.19, +17.61]
+    against no refill; its worst day is −$19.09 against −$37.94. The minutes with no slot quoting fall from 89 a day to
+    0. Uncapped, the same rule earns $5.65.
+  - **The live re-rank fills the cap with held shares.** After that its formula reward collapses: $7.4 a day on
+    10-06..10-09 against $19.4 with no refill, and $0 on 10-09 and 10-10. All nine settings tested (every 5, 15 or 60
+    minutes) do it. The 00:00 reserve keeps earning: $16.26 net, formula $20.4 on 10-06..10-09, ahead on 4 of 5 days.
+  - **Proposed (Addendum 14, not applied).** `PM_LP_REFILL.rerankEveryMin` goes from 5 to 1440; every other number
+    stays. Add a per-market guard: no BUY while the market's fills are marked $10 down. On the record that guard costs
+    about $0. On live-prep's 10-09/10-10 replay it cuts MrBeast wk1's loss from $36.91 to $8.95. $7.5 or $5 costs
+    $4–$13 a day.
+  - **Every other guard was priced and rejected:** no buys near the end, band and 3N side caps, mid moves, drift, and
+    count markets out. oneWay helps with no refill but costs money on a live refill. Capital stays at about $300.
+  - Not blind, nothing out of sample in earnest.
+
 ### [2026-10-10 14:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep's refill from a live reserve (Addendum 13, mid-pool's 14, branch `lp-refill-build`)**, on Davies'
   "现在就做补选吧，不然资金利用率太低了，研究出一套最合理的机制" and "这个候补名单也要在当天中实时更新比如每分钟之类的". 10-10's ten
@@ -459,6 +478,7 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
   the refill), `pm_lp.ts` `0a85f529…2b25` (was `de26be30…d1ed`); hash chain and prereg pins extended. Not done: the
   reserve's freshness is not among `monitor/health.ts`'s readings; the browser sweep was not run (no `src/` change but
   tests). **Deploy order: 0116 with or before the Edge deploy.**
+
 
 ### [2026-10-10 03:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - The ledger had reached its 80 KiB budget: the 26 sections of 2026-10-09 (03:20 → 22:53 UTC) moved verbatim to

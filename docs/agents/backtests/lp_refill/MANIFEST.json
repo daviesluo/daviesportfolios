@@ -1,0 +1,55 @@
+{
+ "study": "LP-REFILL (2026-10-10): how live-prep should refill a slot its reward check or AI rule takes out, and which loss guards are worth their cost. Live-prep's rule on a full-universe record 10-05 00:00 -> 10-10 13:00 UTC (LP-ALLOC's builder), quoted under the programme in force each minute, at-price and strict fills, with the refill as a family (the 00:00 reserve, a live re-rank every 5/15/60 minutes, the freshest 2-hour ranking, re-selection; minutes out 0/5/15/60; a cap a day; a steady-programme test; refill at once when every slot is out; a holdings gate), Addendum 13's deployed setting and its neighbours, the loss guards (mid move, one-way fills, a side cap outside a band, no buy near the end, a per-market marked loss, drift, count markets out, 3N) on no refill and on refill carriers, totals $300/$400/$500, and live-prep's own 10-09/10-10 selections replayed for the MrBeast and Anthropic episodes",
+ "asked": "Davies, 2026-10-10: \"现在就做补选吧，不然资金利用率太低了，研究出一套最合理的机制，你说的亏损还没控制你研究下\", then \"这个候补名单也要在当天中实时更新比如每分钟之类的\"; the coordinator's brief (live reserve re-ranked every 5/15/60 minutes, refill at once when all slots are out, zero-slot minutes)",
+ "write_up": "docs/agents/reviews/2026-10-10-lp-refill-and-guards.md",
+ "inputs": {
+  "<pmrec dir> (not committed)": "421 pm-rec archive objects to 2026-10-10 13:00 UTC, fetched by ../lpself/scripts/fetch.py from the signed URLs of sql/archive_urls.sql (the reply is never written to this folder), each checked against pm_rec_archive.sha256",
+  "<pr_record.json> (not committed, large)": "../lp_alloc/scripts/build.ts over 2026-10-05T00:00Z -> 2026-10-10T13:00Z with NMAX 200: 7,756 minutes, 2,135 markets, 4,056,394 rows, 67,147 prints; sha256 833cb052ad6509d3a7409b647976c087cc1caa3fd20c7a33cde2088b8b97c237",
+  "data/aux.json": "sql/aux.sql (read-only, about 13:40 UTC 10-10), the payload cut out of the connector's padded reply",
+  "data/lp_orders_live.json.gz": "sql/lp_orders_live.sql (read-only, about 13:40 UTC 10-10): live-prep's live orders, taken out of the recorded books by the builder",
+  "data/progs.json.gz": "../lp_alloc/scripts/split_progs.py on the record"
+ },
+ "run": [
+  "cd docs/agents/backtests/lp_alloc && deno run --v8-flags=--max-old-space-size=12000 --allow-read --allow-write --allow-env --no-check scripts/build.ts <pmrec dir> ../lp_refill/data/aux.json <pr_record.json> 2026-10-05T00:00:00Z 2026-10-10T13:00:00Z ../lp_refill/data/lp_orders_live.json.gz 200",
+  "cd ../lp_refill && python3 -I ../lp_alloc/scripts/split_progs.py <pr_record.json> data/progs.json && gzip -9f data/progs.json",
+  "for STAGE in episodes refill guards combo final final2 deployed; for FILL in --at-price '': deno run --v8-flags=--max-old-space-size=7000 --allow-read --allow-write --allow-env --no-check scripts/refill_run.ts <pr_record.json> data/progs.json.gz $STAGE $FILL  (Deno 1.46.3; writes results/raw/<stage>[_atprice].json; each stage 1-5 minutes)",
+  "python3 -I scripts/refill_analyse.py > results/analysis.txt"
+ ],
+ "reproduced": [
+  "the refill stage was run again after a fix: with offMin 0 the first version dropped every chosen market every minute, programme on or not (`n >= offMin` with n = 0); the condition is now `(!on && n >= max(1, offMin)) || allOff`. Only offMin 0 was affected: guards, combo and final use no refill or offMin >= 15, final2 and deployed ran after the fix, episodes use no refill",
+  "the options liveTop (the deployed reserve's 30) and maxHeld (a holdings gate) were added for the deployed stage after the other stages ran; both default off, so the other stages' results are what the committed code gives"
+ ],
+ "notes": [
+  "refill_sim.ts is ../lp_alloc/scripts/alloc_sim.ts with options only (refill.source/offMin/maxPerDay/rerankMin/allOut/liveTop/maxHeld/ok, midMove, oneWay, bandCap, noBuyEndH, marketLoss) and counters (refills, guardBlocks, activeMean, zeroSlotMin); with them unset it is alloc_sim.ts",
+  "R is in the simulator's units: 0.47 is live-prep's 0.81 on its own formula (LP-ALLOC's calibration); 0.38-0.58 the band, 0.23 the stress",
+  "the simulator counts a slot out only while its programme is off; Addendum 13 also counts a market out while it does not quote (a tight-book skip, a pause)",
+  "nothing here is blind; the guard levels were chosen on the same days they are scored on"
+ ],
+ "sha256": {
+  "data/aux.json": "5b6cbb7a4a66f2291c230dd47eaff16520526df040f92c5f3f13135cd27a0676",
+  "data/lp_orders_live.json.gz": "eb75139b2d0bc851ca586e3505e4134dc3b5248301df13ba16afe77698aa7925",
+  "data/progs.json.gz": "9225539e60967e0986bd63435bda004188bb9461880a6cd625a879441e5fc4df",
+  "results/analysis.txt": "1efd0a1e1c1d357385ebb16959d22b8a8cec0cd1ef527b486ca58011e2040242",
+  "results/raw/combo.json": "6ba5af1d955849915f78570a138b0c79eeacaf2314e9c1b09af61bd7c6aa25dc",
+  "results/raw/combo_atprice.json": "9450dc2426287613126f63cc5ee3558d26f542e0b636601f2ce6025ad8767a56",
+  "results/raw/deployed.json": "670b0c4b4b99fffed1d6421863f039fa64aeee4b5fba0e6ed8fff0b5371a93b9",
+  "results/raw/deployed_atprice.json": "3bd8935a4275252bec08b32e314a5121b532eba27a846736ed0fabfd1449f040",
+  "results/raw/episodes.json": "c536cbdbb052dc9f586e128e63d4c2a2347c3a2c644bc1176becc82c900c8094",
+  "results/raw/episodes_atprice.json": "15d7c400b6b109580051bf3a0255b4039f3d357f9335209f85e7d9ddeee14d77",
+  "results/raw/final.json": "10a09abd40819730b90d604118f1483110ff6d273a22071fae1eb9268b009ce4",
+  "results/raw/final2.json": "24777f6d1c8f375a1d4e5ad03f95b1d7cb9f421875270e73ee9092688c1c3e55",
+  "results/raw/final2_atprice.json": "5800b8ce896d46065007007fdcbc077f77f39ac544aba7ed851f1c31add3e21f",
+  "results/raw/final_atprice.json": "9bcfb892b7c0e06d352c9e23915c1ada78f599ad2c71802afab7598c68ee6d34",
+  "results/raw/guards.json": "ada7607b0e993fbef9a2d34422e776f3277b163083615ac0eb6738de49bab528",
+  "results/raw/guards_atprice.json": "1341479ec48443355c16836fcd629f212d84b50834e1b7ba28e6822ee6c43211",
+  "results/raw/refill.json": "bdfdd2e3543f97fd83da07e4a47c3565551461328690e6a1d1412e12873d2e20",
+  "results/raw/refill_atprice.json": "deb91c6a327aac05d2e940e79a22108ad47192bf220cff1cf6d22644de160970",
+  "scripts/rec_alloc.ts": "d705c9b1b1451ddd7f6957b4772ea3fd6c9fe1f859b130435e8e907954c0691a",
+  "scripts/refill_analyse.py": "32a190e2a6b1c1c8b44eb3728d26e972fdd410a61b8ee46a8e32f3ec4c06481f",
+  "scripts/refill_run.ts": "d48e329061851a492b2bd30b2cd579cce20d8beea3c2ea341fc61722984c8524",
+  "scripts/refill_sim.ts": "e085ac65cefef749583fa129f8d3815c07b8ba9c04d52580478e3f47edb2159b",
+  "sql/archive_urls.sql": "31152445c70f21b3a2cd7f607cf591977f79c5c25d2f59a7fa3addf38fb80923",
+  "sql/aux.sql": "935ee2122109f96745c08a92a75a1b56a7f19758a5d278c6f6c6c9eea8c3f4a8",
+  "sql/lp_orders_live.sql": "96a82b1d5b2f035028330f153c182602ea3c81bb00d1bbab59df7cd1c93e51b9"
+ }
+}
