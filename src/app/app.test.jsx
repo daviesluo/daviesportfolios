@@ -693,7 +693,9 @@ describe('App — the extended-hours bars outside the session', () => {
   });
 
   it('the 30 s tick reuses the bars for two minutes, a Refresh by hand asks again, and a sold-out holding is never asked for', async () => {
-    vi.useFakeTimers({ shouldAdvanceTime: true });
+    // A weekday's after-hours, pinned: from Friday 20:00 ET to Sunday 20:00 ET the page refreshes every 5 minutes, not
+    // every 30 s, and this test read the real clock, so it failed every weekend (first seen Saturday 2026-10-10).
+    vi.useFakeTimers({ shouldAdvanceTime: true, now: new Date('2026-10-06T22:30:00Z') });
     setAdminToken();
     vi.mocked(fetchHistoricalBatch).mockResolvedValue({ NVDA: [{ t: Date.now() - 300e3, close: 120 }, { t: Date.now(), close: 121 }] });
     vi.mocked(loadPortfolioRemote).mockResolvedValueOnce(/** @type {any} */ (structuredClone(SERVER_PORTFOLIO)));

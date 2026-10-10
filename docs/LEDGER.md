@@ -436,6 +436,9 @@ first.
   `lp-reward-refresh`): the reward config read every minute before anything rests (Davies: "策略每分钟读的时候都检查奖励
   配置"), a market that no longer pays takes no entry that minute (its sells keep resting), Polymarket's scoring
   verdict as a backstop, the estimate on scored formula; Addendum 9 of live-prep's pre-registration records it.
+- **A unit test that failed every weekend**: `app.test.jsx`'s "the 30 s tick reuses the bars…" read the real clock,
+  and from Friday 20:00 ET to Sunday 20:00 ET the page refreshes every 5 minutes, so it failed from 10-10 00:00 UTC
+  (the test is from review F12, its first weekend). Pinned to a weekday's after-hours; fails on the old line, passes now.
 
 ### [2026-10-09 22:39 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **IG research** (Davies: "ig的api可以做所有cfd trading吗？…可以深度研究下有什么机会"): `reviews/2026-10-09-ig-opportunities.md`,
