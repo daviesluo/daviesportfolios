@@ -679,6 +679,36 @@ describe('pg_cron jobs', () => {
     expect(sql).not.toMatch(/\bgrant\b|create policy/i);
   });
 
+  // The programme factor (Davies, 2026-10-10: "之前testing的每一个不都赚了很多吗"): TESTING's Reward quotes rows priced on the
+  // programme the listing showed each 15 minutes.
+  it("adds the programme factor's reader as one call every five minutes (0115), its beat first, a refresh and a prune of SQL alone", () => {
+    const T = FILES.find((f) => /^0115_pm_prog_factor\.sql$/.test(f)) ?? '';
+    expect(T).not.toBe('');
+    const before = replayList(sqlsOf(FILES.filter((f) => f < T))), after = replayList(sqlsOf(FILES.filter((f) => f <= T)));
+    expect(after.slice(0, before.length)).toEqual(before);
+    const shape = ({ path: p, timeout, every, lastHour, enabled, retry }) => ({ path: p, timeout, every, lastHour, enabled, retry });
+    expect(after.slice(before.length).map(shape)).toEqual([
+      { path: 'agents?action=pmprog', timeout: 30000, every: 5, lastHour: 23, enabled: true, retry: true },
+    ]);
+    expect(beatKeyOfPath(after.at(-1).path)).toBe('agents?action=pmprog');
+    const src = fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/index.ts'), 'utf8');
+    expect(src).toContain('if (action === "pmprog" && req.method === "POST" && operator) return json(200, await runPmProgAction());');
+    const jobsBefore = cronJobs(FILES.filter((f) => f < T)), jobsAfter = cronJobs(FILES.filter((f) => f <= T));
+    expect([...jobsAfter.keys()].filter((n) => !jobsBefore.has(n))).toEqual(['pm-prog-refresh', 'pm-prog-prune']);
+    expect([jobsAfter.get('pm-prog-refresh').schedule, jobsAfter.get('pm-prog-refresh').command.trim()]).toEqual(['7,22,37,52 * * * *', 'select public.pm_prog_refresh();']);
+    expect(jobsAfter.get('pm-prog-prune').command.trim()).toBe("delete from public.pm_prog_reads where minute < now() - interval '30 days';");
+    // Neither on a minute the five-minute batch or another job takes.
+    for (const n of ['pm-prog-refresh', 'pm-prog-prune']) expect([...jobsBefore.values()].some((j) => j.schedule === jobsAfter.get(n).schedule)).toBe(false);
+    expect(httpJobs(jobsAfter).map(([n]) => n)).toEqual(['edge-calls-every-minute']);
+    for (const [n, j] of jobsBefore) expect([n, jobsAfter.get(n)]).toEqual([n, j]);
+    // Its lease row exists before its first run; no grant, no policy; row level security on its three tables.
+    const sql = fs.readFileSync(path.join(DIR, T), 'utf8').replace(/--[^\n]*/g, '');
+    expect(sql).toContain("insert into public.agent_locks (name) values ('pm-prog') on conflict (name) do nothing;");
+    for (const t of ['pm_prog_reads', 'pm_prog_factors', 'pm_prog_state']) expect(sql).toMatch(new RegExp(`alter table public\\.${t} +enable row level security;`));
+    expect(sql).not.toMatch(/\bgrant\b|create policy/i);
+    for (const fn of ['pm_prog_rate_at(text, timestamptz)', 'pm_prog_day(text, date)', 'pm_prog_refresh()']) expect(sql).toContain(`revoke all on function public.${fn} from public, anon, authenticated;`);
+  });
+
   // 0103 (Davies, 2026-10-08: stop mini-pool's two calls, and what no reading still needs now RW's round 1 ends):
   // mini-pool's two calls leave the list when it applies; RW's four only once the last day their readings read is
   // closed, turned off by a function a job runs every five minutes (so a push before 10-09 00:05 cannot cut RW's last

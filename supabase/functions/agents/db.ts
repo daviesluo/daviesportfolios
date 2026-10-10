@@ -54,6 +54,8 @@ const PAGED_KEYS: Record<string, string> = {
   // Coinbase's recorder and paper test (0112): its prints by trade id, its EUR/USD minutes, its events and its minutes.
   cb_trades: "product,trade_id", cb_quote_inputs: "kind,t", cb_quote_events: "book,minute,side,k,kind", cb_quote_minutes: "book,minute",
   cb_quote_trips: "book,side,k,t_entry",
+  // The programme factor (0115): a row a source, day and market; the listing's readings by market and minute.
+  pm_prog_factors: "source,day,cond", pm_prog_reads: "cond,minute",
 };
 
 export function assertPagedOrder(table: string, query: string): void {

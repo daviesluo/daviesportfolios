@@ -1,0 +1,13 @@
+closed form: MATCHES programmeFactor (5 in all, 3.075 true, 1 uncovered)
+2026-10-02  formula 25.19  true 25.19  factor 1.000  uncovered 3869 of 3869
+2026-10-03  formula 43.75  true 43.75  factor 1.000  uncovered 8458 of 8458
+2026-10-04  formula 30.99  true 27.98  factor 0.903  uncovered 7374 of 9236
+2026-10-05  formula 0.07  true 0.07  factor 0.924  uncovered 0 of 14
+2026-10-07  formula 0.06  true 0.04  factor 0.745  uncovered 0 of 8
+2026-10-08  formula 25.49  true 16.43  factor 0.645  uncovered 0 of 6465
+2026-10-09  formula 34.40  true 7.53  factor 0.219  uncovered 0 of 8413
+2026-10-10  formula 4.23  true 4.54  factor 1.073  uncovered 0 of 1182
+closed form: MATCHES programmeFactor (5 in all, 3.075 true, 1 uncovered)
+2026-10-08  formula 155.68  true 71.08  factor 0.457  uncovered 0 of 10604
+2026-10-09  formula 127.17  true 84.03  factor 0.661  uncovered 0 of 8597
+2026-10-10  formula 30.54  true 28.47  factor 0.932  uncovered 0 of 1731

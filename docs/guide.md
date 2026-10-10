@@ -325,7 +325,11 @@ places stay when the number is not whole.
   rows) shows the formula's rewards times the latest live R, what was
   paid over what the formula gave, and its worst case at the low end of
   R's range, so each payout read moves them all. Until the first payout it
-  is the studies' middle guess. Only what the pages show moves: every test's
+  is the studies' middle guess. Before that, each row's formula is priced on the
+  reward programme as Polymarket's listing showed it every 15 minutes, not on the
+  one its 00:00 selection read for the whole day: a market whose rate was cut or
+  whose programme ended earns its row that much less from then on. A day the
+  listing was not yet recorded keeps its formula. Only what the pages show moves: every test's
   pre-registered verdict keeps the R it was frozen with. The first day was
   a warm-up that counts nowhere.
   Reward quotes runs in two rounds. Round 1 is its first fourteen days,

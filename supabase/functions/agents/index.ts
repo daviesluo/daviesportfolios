@@ -211,6 +211,7 @@ import { runPmrwE, RWCE_REPLAY } from "./pmrw_e.ts";
 import { parseRwxSpecs, researchRwx, runPmrwX, RWCX_REPLAY, type RwxReplay } from "./pmrw_x.ts";
 import { booksDelayMs, runBooks } from "./books.ts";
 import { PM_REC_VENUE_TIMEOUT_MS, pmRecStorage, runPmRec, runPmRecMeta } from "./pm_book_rec.ts";
+import { atProgramme, progFx, runPmProg, type PmProgFactorRow } from "./pm_prog.ts";
 import { runCjRec } from "./cj_rec.ts";
 import { runCbRec } from "./cb_rec.ts";
 import { cbBooksDelayMs, runCbBooks } from "./cb_books.ts";
@@ -485,6 +486,24 @@ export async function runCjRecAction(deps: { db?: Db; fetchImpl?: typeof fetch; 
  * reads the four books' top levels into their own table. Nothing of the paper test reads them. A fault goes to
  * `ops_errors` as `agents.cb_books` when it first appears and at most hourly while it lasts; it never throws past here.
  */
+/**
+ * The programme factor's reader (pm_prog.ts, 0115): the next archived hours of pm-rec's listing, for the markets the
+ * TESTING Reward quotes rows selected. A fault goes to `ops_errors` as `agents.pm_prog` when it first appears and at most
+ * hourly while it lasts; it never throws past here.
+ */
+export async function runPmProgAction(deps: { db?: Db; fetchImpl?: typeof fetch; now?: number } = {}) {
+  try {
+    const now = deps.now ?? Date.now();
+    const report = await runPmProg({ db: deps.db ?? db(), now, holder: crypto.randomUUID(), fetchImpl: deps.fetchImpl });
+    if (report.report) await reportServerError("agents.pm_prog", tickErrorReport({ errors: report.errors, at: new Date(now).toISOString() }));
+    return report;
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    await reportServerError("agents.pm_prog", { message: message.slice(0, 500), context: { at: new Date().toISOString() } });
+    return { error: message.slice(0, 300) };
+  }
+}
+
 export async function runCbBooksAction(wait: boolean, deps: { db?: Db; fetchImpl?: typeof fetch } = {}) {
   try {
     if (wait) await new Promise((r) => setTimeout(r, cbBooksDelayMs(Date.now())));
@@ -2061,14 +2080,25 @@ async function dashboard(now: number) {
   // 的r"): read once, here, and passed to each (`atLiveR`); before live-prep's first payout, the prior's. The pre-registered
   // readings keep their own frozen R: none of them reads the dashboard.
   const liveR: LpLiveRPrice = lpLive?.estimate?.r ?? lpLiveR([], now);
+  // The programme factor (0115, pm_prog.ts; Davies: "之前testing的每一个不都赚了很多吗"): each row's formula rescaled to the
+  // rate the listing showed each 15 minutes, before the live R prices it (that R was measured on the formula so read).
+  // RW-C's factors serve variant-1 and the RW-X arms too: they replay RW-C's minutes. No factors read: each row as before.
+  const progRows = await d.selectAll<PmProgFactorRow>("pm_prog_factors", "select=source,day,cond,formula,formula_true,uncovered,read_through&order=source.asc,day.asc,cond.asc").catch(() => [] as PmProgFactorRow[]);
+  const todayDay = new Date(dayStartMs).toISOString().slice(0, 10);
+  // deno-lint-ignore no-explicit-any
+  const priced = <T extends Record<string, any> | null | undefined>(s: T, source: "rwc" | "prep" | "midprep" | "lpprep"): T => {
+    if (!s || !progRows.length) return atLiveR(s, liveR);
+    const from = typeof s.startedAt === "string" ? s.startedAt.slice(0, 10) : null;
+    return atLiveR(atProgramme(s, progFx(progRows, source, from), todayDay), liveR);
+  };
   const page = await readRwPage(d, now, dayStartMs);
-  const rw = atLiveR(page.rw, liveR), rwe = atLiveR(page.rwe, liveR), rwx = page.rwx.map((x) => atLiveR(x, liveR));
+  const rw = priced(page.rw, "rwc"), rwe = priced(page.rwe, "rwc"), rwx = page.rwx.map((x) => priced(x, "rwc"));
   // "Reward quotes small-pool" (`0077`) and "Reward quotes mid-pool" (`0081`): an order path's dry-run filled on paper,
   // each a row of TESTING with RW's page, each read by `readPrepSummary` from its own instance's tables.
-  const prep = atLiveR(await readPrepSummary(d, PREP_INSTANCE, now, dayStartMs), liveR);
-  const prepMid = atLiveR(await readPrepSummary(d, PREP_MID_INSTANCE, now, dayStartMs), liveR);
+  const prep = priced(await readPrepSummary(d, PREP_INSTANCE, now, dayStartMs), "prep");
+  const prepMid = priced(await readPrepSummary(d, PREP_MID_INSTANCE, now, dayStartMs), "midprep");
   // "Reward quotes live-prep" (`0091`): the path on RW's universe with live-prep's rules, its paper layer read the same way.
-  const prepLp = atLiveR(await readPrepSummary(d, PREP_LP_INSTANCE, now, dayStartMs), liveR);
+  const prepLp = priced(await readPrepSummary(d, PREP_LP_INSTANCE, now, dayStartMs), "lpprep");
   const quotesVariant = await quotesVariantRead;
   const quotesRuled = await quotesRuledRead;
 
@@ -2707,6 +2737,8 @@ async function route(req: Request, who: Exclude<Who, null>, url: URL, action: st
   if (action === "cbrec" && req.method === "POST" && operator) return json(200, await runCbRecAction());
   // Coinbase's order books (cb_books.ts, 0114): the top ten levels a side, 30 s into the minute. Keyless reads.
   if (action === "cbbooks" && req.method === "POST" && operator) return json(200, await runCbBooksAction(url.searchParams.get("wait") !== "0"));
+  // The programme factor's reader (pm_prog.ts, 0115): pm-rec's archived listing into `pm_prog_reads`. Reads only.
+  if (action === "pmprog" && req.method === "POST" && operator) return json(200, await runPmProgAction());
   // Polymarket's order path (pm_live.ts, 0074): its dry-run, called from eu-west-1 by the one-minute job. Cron bearer only.
   if (action === "pmlive" && req.method === "POST" && who === "cron") return json(200, await runPmLiveAction());
   // "Reward quotes small-pool" (pm_prep.ts, 0077): the path's dry-run filled on paper. Keyless public reads only.

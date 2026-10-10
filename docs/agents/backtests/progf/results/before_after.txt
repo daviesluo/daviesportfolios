@@ -1,0 +1,41 @@
+Rewards before and after the programme factor, at the live R 0.807 (stress at 0.65). Days with no reading of the listing keep factor 1.
+row                                           day           formula  factor   before    after  stress before   after
+"Reward quotes" (RW-C)                        2026-10-08     155.68   0.457   125.63    57.37         101.19   46.21
+"Reward quotes" (RW-C)                        2026-10-09     127.17   0.661   102.63    67.82          82.66   54.62
+"Reward quotes" (RW-C)                        2026-10-10      30.54   0.932    24.64    22.98          19.85   18.51
+"Reward quotes" (RW-C)                        all            313.38   0.586   252.90   148.16         203.70  119.33
+Reward quotes mid-pool (paper)                2026-10-02      25.19   1.000    20.33    20.33          16.38   16.38
+Reward quotes mid-pool (paper)                2026-10-03      43.75   1.000    35.31    35.31          28.44   28.44
+Reward quotes mid-pool (paper)                2026-10-04      30.99   0.903    25.01    22.58          20.15   18.19
+Reward quotes mid-pool (paper)                2026-10-05       0.07   0.924     0.06     0.05           0.05    0.04
+Reward quotes mid-pool (paper)                2026-10-07       0.06   0.745     0.05     0.03           0.04    0.03
+Reward quotes mid-pool (paper)                2026-10-08      25.49   0.645    20.57    13.26          16.57   10.68
+Reward quotes mid-pool (paper)                2026-10-09      34.40   0.219    27.76     6.08          22.36    4.90
+Reward quotes mid-pool (paper)                2026-10-10       4.23   1.073     3.41     3.66           2.75    2.95
+Reward quotes mid-pool (paper)                all            164.19   0.765   132.50   101.31         106.72   81.60
+Reward quotes live-prep (paper)               2026-10-04      55.29   0.616    44.62    27.50          35.94   22.15
+Reward quotes live-prep (paper)               2026-10-05      82.92   0.482    66.91    32.25          53.90   25.97
+Reward quotes live-prep (paper)               2026-10-06     157.37   0.645   127.00    81.95         102.29   66.01
+Reward quotes live-prep (paper)               2026-10-07      76.64   0.479    61.85    29.60          49.82   23.84
+Reward quotes live-prep (paper)               2026-10-08     197.14   0.336   159.09    53.50         128.14   43.09
+Reward quotes live-prep (paper)               2026-10-09       7.11   0.902     5.74     5.17           4.62    4.17
+Reward quotes live-prep (paper)               all            576.47   0.494   465.21   229.97         374.70  185.23
+Reward quotes mini-pool (paper; off the page) 2026-10-01       0.24   1.000     0.20     0.20           0.16    0.16
+Reward quotes mini-pool (paper; off the page) 2026-10-02      14.75   1.000    11.90    11.90           9.59    9.59
+Reward quotes mini-pool (paper; off the page) 2026-10-03      16.46   1.000    13.29    13.29          10.70   10.70
+Reward quotes mini-pool (paper; off the page) 2026-10-04      15.66   0.857    12.64    10.83          10.18    8.73
+Reward quotes mini-pool (paper; off the page) 2026-10-05      18.72   0.569    15.10     8.60          12.16    6.92
+Reward quotes mini-pool (paper; off the page) 2026-10-06      13.51   1.006    10.91    10.97           8.78    8.84
+Reward quotes mini-pool (paper; off the page) 2026-10-07      12.00   0.621     9.69     6.01           7.80    4.84
+Reward quotes mini-pool (paper; off the page) 2026-10-08      14.40   0.884    11.62    10.28           9.36    8.28
+Reward quotes mini-pool (paper; off the page) all            105.75   0.845    85.34    72.07          68.73   58.05
+Reward quotes variant-1 (RW-E)                2026-10-09      88.80   0.661    71.66    47.35          57.72   38.14
+RW-X arm tb1-back                             2026-10-09      65.84   0.661    53.13    35.11          42.80   28.28
+RW-X arm tb1-skip                             2026-10-09      44.79   0.661    36.14    23.88          29.11   19.24
+RW-X arm x1                                   2026-10-09      71.47   0.661    57.67    38.11          46.45   30.70
+RW-X arm x2                                   2026-10-09      90.53   0.661    73.05    48.27          58.84   38.88
+RW-X arm x3                                   2026-10-09      71.47   0.661    57.67    38.11          46.45   30.70
+RW-X arm x4                                   2026-10-09      71.60   0.661    57.78    38.18          46.54   30.75
+RW-X arm x5                                   2026-10-09      66.96   0.661    54.03    35.71          43.52   28.76
+
+2026-10-10 is a partial day: its minutes after the last archived hour read (2026-10-09 23:59 in this run) use that reading.

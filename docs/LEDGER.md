@@ -439,6 +439,34 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 first.
 
 ### [2026-10-10 03:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The programme factor: TESTING's Reward quotes rows priced on the programme as read** (display only; Davies:
+  "之前testing的每一个不都赚了很多吗"; sub-agent on branch `prog-factor`, not pushed by it).
+  - **The definition.** Each row's formula is multiplied by its factor before the live R prices it (`atProgramme`, then
+    `atLiveR`). The factor is Σ formula × (the listing's rate then ÷ the rate the row used) ÷ Σ formula, per source, day and
+    market. "The rate then" is pm-rec's 15-minute universe reads; a market missing from its phase's frame has rate 0. A
+    minute no reading covers keeps factor 1, and so does a day before the archive (10-04 19:00).
+  - **Migration `0115_pm_prog_factor.sql`.**
+    - Three tables: `pm_prog_reads`, `pm_prog_factors` and `pm_prog_state`. RLS on, no grants.
+    - Lease `pm-prog`.
+    - Functions `pm_prog_rate_at`, `pm_prog_day` and `pm_prog_refresh`, run by pg_cron at :07/:22/:37/:52.
+    - A 30-day prune of the reads.
+    - The `edge_calls` row `agents?action=pmprog`: every 5 minutes, 30 s, retry true.
+  - **The reader (`agents/pm_prog.ts`).** It reads four archived universe hours a run through `pm_rec_archive`'s signed
+    URLs and checks each sha256. It waits on a gap until the hour is 8 h past, then marks it lost. The URL is never logged.
+  - **Edge feasibility, checked on Deno 1.46.3.** node:zlib reads the concatenated gzip members whole: 60 of 60 frames,
+    about 70 ms of CPU per hour. That run was local; nothing was deployed.
+  - **Pins.** `pm_prog.test.ts` (6) covers the archive format, the factor on a hand case, the summary arithmetic composed
+    with `atLiveR`, the cursor, a bad hash and the lost-hour rule. `src/cron_jobs.test.js` covers 0115.
+  - **The SQL, checked on PGlite.** It gives the hand case, and matches `backtests/progf/scripts/factor.py` to the cent on
+    every day of mid-pool's and RW-C's records.
+  - **Evidence (`backtests/progf/results/before_after.txt`), rewards at the live R before → after:**
+    - RW-C $252.90 → $148.16 (factor 0.586). Its 10-09 factor, 0.661, also serves variant-1 and the RW-X arms.
+    - Mid-pool $132.50 → $101.31 (0.765).
+    - Live-prep paper $465.21 → $229.97 (0.494).
+    - Mini-pool $85.34 → $72.07 (0.845).
+  - **Lands with the full gates.** The factors appear after the backfill: about 125 hours at 4 a run, about 2.5 h after
+    the deploy. Until then each row reads as before.
+
 - **Live-prep leaves AI markets out (Addendum 12, branch `lp-no-ai`)**, the main session's decision on Davies' "由你来决定吧，
   并且考虑rewards", from LP-ALLOC. `lpMarketType` is LP-ALLOC's `typeOf` word for word; `PM_LP_CANDIDATE.excludeQuestion`
   keeps AI markets out of the 00:00 selection, and one already selected takes no entry from the next turn (as the reward
@@ -446,6 +474,7 @@ first.
   (`backtests/lpnoai/results/noai.txt`): LP-ALLOC gives up $48.64 of $153.18 formula (31.8 %) for $42.63 of fills, +$3.95
   a day at R; AI markets carried 35.2 % of live-prep's paper formula and 32.3 % of 10-09's payout. `pm_live.ts` changed
   (mid-pool's Addendum 13); no page change, no migration.
+
 
 ### [2026-10-10 02:24 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Coinbase's order books recorded keyless** (sub-agent, branch `cb-books`; Davies: "Coinbase的订单簿要不要像 Revolut X

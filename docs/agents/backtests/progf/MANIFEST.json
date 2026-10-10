@@ -1,0 +1,30 @@
+{
+ "study": "PROGF (2026-10-10): each TESTING Reward quotes row's programme factor (its formula at the rate the CLOB's reward listing showed each 15 minutes over the rate it priced, per market-day) and its rewards before and after at the live R; and 0115's SQL checked on PGlite against a case worked by hand and against this folder's factors",
+ "asked": "Davies, 2026-10-10: \"之前testing的每一个不都赚了很多吗\"; the coordinating session's brief the same night (display only, nothing frozen touched)",
+ "inputs": {
+  "<pmrec dir> (not committed)": "the pm-rec archive objects 2026-10-04 19:00 -> 10-09 23:00 UTC, as LP-ALLOC downloaded them (../lp_alloc/MANIFEST.json), each checked by its sha256",
+  "<saved minute pulls> (not committed, 2-6 MB each)": "sql/minutes.sql, one statement per source: each row's rewarded minutes with the rate it priced them at",
+  "data/arm_days.json": "the replay arms' closed days' formula rewards (pm_rwc_e_days, pm_rwc_x_days)"
+ },
+ "run": [
+  "cd docs/agents/backtests/progf",
+  "DUMP_READS=<reads.json> python3 -I scripts/factor.py <pmrec dir> <minute pulls>... > results/factor.txt   # writes results/factor_by_market_day.json",
+  "python3 -I scripts/before_after.py > results/before_after.txt",
+  "node scripts/pglite_check.mjs <@electric-sql/pglite 0.2.17 dir> <reads.json> <midprep pull> midprep; and the same with the RW-C pull and rwc   # results/pglite_check.txt"
+ ],
+ "notes": [
+  "factor.py, 0115's pm_prog_day and pm_prog.ts's programmeFactor are one definition (lpcfg/scripts/rtrue.py's): sum(formula x rate then / rate used) / sum(formula), the rate then the last listing reading at or before the minute, else the first within 30 minutes after, 0 where the reading does not list the market; a minute no reading covers keeps factor 1",
+  "pglite_check: 0115's functions give factor.py's figures to the cent on every day of mid-pool's and RW-C's records, and the hand case's 5 / 3.075 / 1 uncovered"
+ ],
+ "sha256": {
+  "data/arm_days.json": "2f56515ee36cd3b3b375c08f295d7eb37c61b94f8e7b4787fbdc898f31a2a9ef",
+  "scripts/before_after.py": "5184519b421f97bc74ca7c0b53c1abdb7fa8501e3553458d8824d95f7734fe04",
+  "scripts/factor.py": "e6a1b06209336110de375bb11139d001c9e616bf33806897715c7522fc3e5880",
+  "scripts/pglite_check.mjs": "705733c7faaa7ae266d59dee4fe427d1f73665f0750696a8cb2bfdfbf4e96828",
+  "sql/minutes.sql": "18a925119560904cc0aea094c760ed7c6e5789bc294c4df1d0b564d93f202052",
+  "results/before_after.txt": "ebf741aac2dce1b18723348cc0dbd0ff21866a5ef4cae31d7a5c27ede262fc5c",
+  "results/factor.txt": "7e37adc8a8bd50f8adf602b0fd8dfd487b5f2f1eb1a7075e04401cad53353275",
+  "results/factor_by_market_day.json": "8eaa41c69014a2811f0269c5325b959d789a5822b2ba81669d1277817ba6d954",
+  "results/pglite_check.txt": "b233fe8accaf0876d1f230cd27315a0c68645399d6274d29cf51633d1fc48530"
+ }
+}
