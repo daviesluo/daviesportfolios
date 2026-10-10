@@ -45,4 +45,16 @@ inputs: 13362 market-minutes, 77 fills, programme timeline of 10 markets at 15-m
   the payout as the pUSD rise at 00:00 (no fill 23:57-00:05:01): $6.53
   R on the recorded formula 0.0424; on the recorded scored formula 0.3298
   R on the fixed formula 0.8638; on the fixed scored formula 0.9133
-  the readout of 10-09 was not yet written when this ran: R by market waits for it
+  the readout of 10-09 (pm_lp_reward_days, live, read 2026-10-10T01:00:01.129Z): paid $6.5242 over 10 markets
+    R on: recorded 0.0424, recorded scored 0.3295, fixed 0.8630, fixed scored 0.9124
+    market         paid  recorded   rec sc    fixed fixed sc  R(fixed) R(fixed sc)
+    0x045fdf4b   0.8650     23.29     0.88     0.90     0.88     0.960    0.983
+    0x5b3350e2   0.2680      3.44     3.20     0.12     0.08     2.306    3.310
+    0x5fec6675   1.4518      2.91     2.86     1.93     1.88     0.752    0.770
+    0x9235351e   1.4827      8.04     7.98     1.63     1.57     0.908    0.943
+    0xa326c49f   0.9725     10.88     0.97     1.19     0.97     0.820    1.004
+    0xecc209a6   0.1657      9.39     0.35     0.37     0.35     0.448    0.478
+    0xeee73848   0.6589      2.51     2.35     0.74     0.74     0.895    0.895
+    0xf0503539   0.0000     84.14     0.00     0.00     0.00         -        -
+    0xf6f3f159   0.5678      0.66     0.66     0.66     0.66     0.865    0.865
+    0xfbd3437c   0.0919      8.62     0.56     0.03     0.02     3.006    3.880

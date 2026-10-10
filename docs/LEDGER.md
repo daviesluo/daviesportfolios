@@ -29,8 +29,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    - **TO LAND: live-prep's reward check (Addendum 9)**, committed on branch `lp-reward-refresh` (10-10 01:00 section):
      the reward programme read every minute, no entry where it no longer pays, a 3-minute scoring backstop, R and the
      estimate on scored formula. The main session rebases it, runs full gates and pushes; **migration 0111 must apply
-     with or before the Edge deploy**. Then re-read R on scored formula from the 10-09 readout on. Left for Davies:
-     whether a slot freed during the day is refilled (not built).
+     with or before the Edge deploy**. Left for Davies: whether a slot freed during the day is refilled (not built), and
+     whether 10-09 (R 0.33 on a stale-programme formula, ≈ 0.9 on the fixed one) counts in the estimate's R.
    - **RW's verdict: read 2026-10-09 00:42–00:50 UTC** (`reviews/2026-10-09-polymarket-rw-paper-result.md`, reference
      §3.46, `backtests/rwverdict/`). RW 6/6, RW-E 7/7, x1–x3 7/7 each; step b (all 4,116 fills by `stepRw`) and c (13,634
      prints re-pulled, none missed) clean; **RW-NEXT's candidate is RW-E**, to RW-C (Part 3's bar on or after 10-23
@@ -434,6 +434,10 @@ first.
   Replay (`backtests/lpcfg/`): 10-09's $153.90 of formula is $7.56 under the fixed rules; 8,150 of 13,362
   market-minutes and 29 buy fills were in markets that no longer paid. Gamma was measured and not chosen (lags the CLOB,
   cached 5 min). Replacement of a freed slot not built. Page unchanged (its inputs are the same fields), no `dist/`.
+- **10-09's readout landed at 01:00:01** (paid $6.5242 over ten markets): R is 0.042 on the recorded formula, 0.330 on
+  its scored minutes, 0.863 on the fixed rules' formula, 0.912 on its scored minutes (`backtests/lpcfg/results/replay.txt`;
+  Addendum 9). The estimate will still learn 10-09 at ≈ 0.33, since its scored formula used the stale programme:
+  whether to leave 10-09 out of R's calibration is Davies' call (listed under item 2).
 
 ### [2026-10-10 00:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **RW-C's 10-10 check PASSED** (wake `trig_0147EKGhR4aHoVq5QWUFy1mr`, fired 00:20): `pm_rwc_e_state` `checkMaxUsd` 0;

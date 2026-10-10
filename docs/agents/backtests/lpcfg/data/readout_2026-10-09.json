@@ -1,0 +1,127 @@
+{
+ "source": "sql/readout.sql at 2026-10-10 01:02 UTC (pm_lp_reward_days, mode live, day 2026-10-09); the account's day total from /rewards/user/total was 6.525988 USDC.e at asset_rate 0.999723",
+ "read_at": "2026-10-10T01:00:01.129Z",
+ "day_total_earnings": 6.525988,
+ "rows": [
+  {
+   "cond": "0x045fdf4be2f890a3f846357a5160834685bb7dfae65909d3d307e5547898e1ad",
+   "minutes": 1021,
+   "minutes_two_sided": 950,
+   "minutes_scored": 95,
+   "formula_usd": "23.294995",
+   "formula_scored_usd": "0.879838",
+   "rate": "200",
+   "actual_usd": "0.865011325473",
+   "actual_sponsored_usd": "0",
+   "rebate_usd": "0.799889"
+  },
+  {
+   "cond": "0x5b3350e20f05e072422dbb35a02cc87a7c83c63052794a9d91a3c25c8c1f5dd0",
+   "minutes": 1218,
+   "minutes_two_sided": 358,
+   "minutes_scored": 332,
+   "formula_usd": "3.437806",
+   "formula_scored_usd": "3.196407",
+   "rate": "40",
+   "actual_usd": "0.267989746272",
+   "actual_sponsored_usd": "0",
+   "rebate_usd": "0.265249"
+  },
+  {
+   "cond": "0x5fec667514efa90a507dc672f18706a38eff7643cb80e77be606219da1fa2ad0",
+   "minutes": 621,
+   "minutes_two_sided": 574,
+   "minutes_scored": 568,
+   "formula_usd": "2.91499",
+   "formula_scored_usd": "2.855921",
+   "rate": "39",
+   "actual_usd": "1.451805738384",
+   "actual_sponsored_usd": "0",
+   "rebate_usd": "0.189616"
+  },
+  {
+   "cond": "0x9235351ee3dd6313185e3b7d75730d3be90cf8c736985fa03ebb69cece650522",
+   "minutes": 1327,
+   "minutes_two_sided": 710,
+   "minutes_scored": 762,
+   "formula_usd": "8.041094",
+   "formula_scored_usd": "7.981701",
+   "rate": "50",
+   "actual_usd": "1.4826651879480002",
+   "actual_sponsored_usd": "0",
+   "rebate_usd": "0"
+  },
+  {
+   "cond": "0xa326c49fad38dd03d04d67c5acb334f4fb851a88784153b5e55bec1a5d75e96b",
+   "minutes": 1296,
+   "minutes_two_sided": 1193,
+   "minutes_scored": 163,
+   "formula_usd": "10.877126",
+   "formula_scored_usd": "0.968556",
+   "rate": "200",
+   "actual_usd": "0.972502542156",
+   "actual_sponsored_usd": "0",
+   "rebate_usd": "0.651458"
+  },
+  {
+   "cond": "0xecc209a690169d2ccf22be5db33e42bec5ff01930e9773d2ccc1ab0ed81e6301",
+   "minutes": 863,
+   "minutes_two_sided": 733,
+   "minutes_scored": 18,
+   "formula_usd": "9.390524",
+   "formula_scored_usd": "0.346739",
+   "rate": "200",
+   "actual_usd": "0.16565410109999998",
+   "actual_sponsored_usd": "0",
+   "rebate_usd": "0"
+  },
+  {
+   "cond": "0xeee7384867f13b7aa044eb5c52cb52cf193e4f520aa1349b7f3f63a98857eb87",
+   "minutes": 733,
+   "minutes_two_sided": 277,
+   "minutes_scored": 273,
+   "formula_usd": "2.514396",
+   "formula_scored_usd": "2.354669",
+   "rate": "50",
+   "actual_usd": "0.658899434286",
+   "actual_sponsored_usd": "0",
+   "rebate_usd": "0.068627"
+  },
+  {
+   "cond": "0xf050353934ca8adbf3a2706a763afd2190c27f2e067daf28d5ccb060894ca337",
+   "minutes": 1189,
+   "minutes_two_sided": 1182,
+   "minutes_scored": 0,
+   "formula_usd": "84.142902",
+   "formula_scored_usd": "0",
+   "rate": "146",
+   "actual_usd": "0",
+   "actual_sponsored_usd": "0",
+   "rebate_usd": "0.001789"
+  },
+  {
+   "cond": "0xf6f3f159e6d96c5f875705c1257b02b87711fa7c08edac71a73e7dbbea984978",
+   "minutes": 153,
+   "minutes_two_sided": 153,
+   "minutes_scored": 153,
+   "formula_usd": "0.661711",
+   "formula_scored_usd": "0.661711",
+   "rate": "190",
+   "actual_usd": "0.567759686991",
+   "actual_sponsored_usd": "0",
+   "rebate_usd": "0"
+  },
+  {
+   "cond": "0xfbd3437ca9a83c2d96f09df6a9278451a175dc7ed155cc6ac890064410df74c4",
+   "minutes": 1245,
+   "minutes_two_sided": 1119,
+   "minutes_scored": 279,
+   "formula_usd": "8.622448",
+   "formula_scored_usd": "0.555318",
+   "rate": "28",
+   "actual_usd": "0.09189253871400001",
+   "actual_sponsored_usd": "0",
+   "rebate_usd": "0"
+  }
+ ]
+}

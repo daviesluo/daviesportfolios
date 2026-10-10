@@ -845,6 +845,20 @@ programme held, the fixed formula is the recorded one; the $0.40 of it in minute
 (`0x9235351e…` from 10:11) keeps the recorded score and is approximate. `0x5b3350e2…` counts as out in the 852
 minutes the listing read it at 3 a day; what Polymarket paid for it is the readout's, below.
 
+**The readout of 10-09** (`pm_lp_reward_days`, written 2026-10-10 01:00:01 UTC; `data/readout_2026-10-09.json`): paid
+$6.5242 over the ten markets (the account's day total 6.525988 USDC.e). R over the whole recorded formula is 0.042,
+over its scored minutes 0.330, over the fixed rules' formula 0.863, and over their scored formula 0.912. By market, on
+the fixed scored formula: `0x045fdf4b…` 0.98 and `0xa326c49f…` 1.00 (their scored minutes, all before the change),
+`0x9235351e…` 0.94, `0xeee73848…` 0.90, `0xf6f3f159…` 0.87, `0x5fec6675…` 0.77 (a rate that moves all day),
+`0xecc209a6…` 0.48, `0xf0503539…` nothing paid and nothing scored. `0x5b3350e2…` (3.3) and `0xfbd3437c…` (3.9) were paid
+in minutes the replay has out: at 3 or 1 to 2 a day, under the floor but not nothing. On the programme Polymarket
+actually ran, the formula and the payout agree to about 0.9.
+
+**What it means for R now.** The readout's `formula_scored_usd` for 10-09 was scored on the selection's programme, so
+the day enters the estimate at R ≈ 0.33 though the fixed formula reads about 0.9. The prior and its weight are kept as
+they were (one day says little about them); whether 10-09 should count in R's calibration at all is Davies' call: the
+rows themselves are the readout's and stay as written.
+
 **Replacement is not built.** A slot freed during the day stays empty. Refilling it would run the selection again,
 which reads the whole listing (38 pages), Gamma and about 1,400 books, inside a turn that also quotes; and the paper
 layer and the page take a day's markets as chosen at 00:00. It is left for Davies.
