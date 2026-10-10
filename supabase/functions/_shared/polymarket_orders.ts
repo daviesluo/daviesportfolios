@@ -494,11 +494,14 @@ type Route = { method: "GET" | "POST" | "DELETE"; url: string; l2: boolean };
  * `getRewardPercentages`, `isOrderScoring`; py-clob-client-v2 the same, snake-cased): what the account earned per market
  * on a day (`/rewards/user`, paged), its day's total (`/rewards/user/total`), its live share of each market's pool
  * (`/rewards/user/percentages`), whether one order is scoring (`/order-scoring`), all L2; and the maker rebates paid to
- * an address on a day (`/rebates/current`, keyless, which neither client wraps).
+ * an address on a day (`/rebates/current`, keyless, which neither client wraps). And one market's reward programme as the
+ * CLOB holds it now (`/rewards/markets/{condition_id}`, keyless; 2026-10-10, live-prep's every-minute reward check): its
+ * `{id}` is a condition id, the same 0x and 64 hex digits as an order id.
  */
 export const PM_ORDER_ROUTES: readonly Route[] = [
   { method: "GET", url: `${POLYMARKET_CLOB_HOST}/book`, l2: false },
   { method: "GET", url: `${POLYMARKET_CLOB_HOST}/rewards/markets/current`, l2: false },
+  { method: "GET", url: `${POLYMARKET_CLOB_HOST}/rewards/markets/{id}`, l2: false },
   { method: "GET", url: `${POLYMARKET_GAMMA_HOST}/markets/keyset`, l2: false },
   { method: "GET", url: POLYMARKET_GEOBLOCK_URL, l2: false },
   { method: "GET", url: `${POLYMARKET_CLOB_HOST}/rebates/current`, l2: false },
@@ -632,6 +635,12 @@ export interface PmVenue {
   book(tokenId: string): Promise<PmReply<PmBookReply>>;
   /** One page of `/rewards/markets/current`; `cursor` is the venue's: base64 of the row offset ("" for the first page). */
   rewardsPage(sponsored: boolean, cursor: string): Promise<PmReply<{ data?: Array<Record<string, unknown>>; next_cursor?: string; limit?: number; count?: number }>>;
+  /**
+   * One market's reward programme as the CLOB holds it now (GET /rewards/markets/{condition_id}, keyless): `rewards_config`
+   * (each programme's `rate_per_day`, `start_date`, `end_date`), `rewards_max_spread`, `rewards_min_size`; an empty `data`
+   * when it has none. Native rates only: a sponsored rate is in the sponsored listing (`rewardsPage(true, …)`).
+   */
+  rewardMarket(cond: string): Promise<PmReply<{ data?: Array<Record<string, unknown>> }>>;
   /** Gamma's records of up to fifty markets by condition id, open ones (`closed` false) or closed ones. */
   gammaByConditions(conds: string[], closed: boolean): Promise<PmReply<{ markets?: Array<Record<string, unknown>>; next_cursor?: string }>>;
   closedOnly(): Promise<PmReply<{ closed_only?: boolean }>>;
@@ -671,6 +680,7 @@ export function pmVenue(o: PmWireOpts & { sigType: number }): PmVenue {
     geoblock: () => get(POLYMARKET_GEOBLOCK_URL),
     book: (tokenId) => get(`${C}/book`, { token_id: tokenId }),
     rewardsPage: (sponsored, cursor) => get(`${C}/rewards/markets/current`, cursor ? { sponsored: String(sponsored), next_cursor: cursor } : { sponsored: String(sponsored) }),
+    rewardMarket: (cond) => get(`${C}/rewards/markets/${cond}`),
     gammaByConditions: (conds, closed) => get(`${POLYMARKET_GAMMA_HOST}/markets/keyset`, [["limit", "100"], ["closed", String(closed)], ...conds.map((c): [string, string] => ["condition_ids", c])]),
     closedOnly: () => get(`${C}/auth/ban-status/closed-only`),
     collateral: () => get(`${C}/balance-allowance`, { asset_type: "COLLATERAL", signature_type: sig }),

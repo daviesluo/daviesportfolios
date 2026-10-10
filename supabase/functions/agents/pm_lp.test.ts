@@ -13,11 +13,11 @@
 // mini-pool's or mid-pool's tables is touched.
 
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { lpQuotes, nearCertainBuyOk, PM_LP_BAND, PM_LP_CANDIDATE, PM_LP_CAP_MARKET_USD, PM_LP_INSTANCE, PM_LP_INV_CAP, PM_LP_NEAR_CERTAIN, PM_LP_PAUSE, PM_LP_TIGHT, PREP_LP_INSTANCE } from "./pm_lp.ts";
+import { lpQuotes, nearCertainBuyOk, PM_LP_REWARD_CHECK, PM_LP_BAND, PM_LP_CANDIDATE, PM_LP_CAP_MARKET_USD, PM_LP_INSTANCE, PM_LP_INV_CAP, PM_LP_NEAR_CERTAIN, PM_LP_PAUSE, PM_LP_TIGHT, PREP_LP_INSTANCE } from "./pm_lp.ts";
 import { isTight } from "./pmrw_x.ts";
 import {
   candidateOf, ctfApproval, effectiveLimits, gates, heldFromBalance, inUniverse, inYesBook, lpCandidateOf, lpLimits, onTick, PM_LIVE_MAX_POSTS_DAY, PM_LP_MAX_POSTS_DAY, pauseAfterJump, PM_LIVE_INSTANCE, PM_MINI_INSTANCE, pmLiveDbTables, pmLpDbTables,
-  runPmLive, rwQuotes, type PmBookNow, type PmIntent, type PmLiveConfig, type PmMarketRow, type PmPauseState, type PmRewardRow,
+  lpRewardVerdict, rewardConfigOf, runPmLive, rwQuotes, scoringStreak, type PmRewardNow, type PmBookNow, type PmIntent, type PmLiveConfig, type PmMarketRow, type PmPauseState, type PmRewardRow,
 } from "./pm_live.ts";
 import { classifyLp, decideLp, PREP_INSTANCE, prepDbTables, prepReads, runPmPrep, stepSides, type PrepOrder } from "./pm_prep.ts";
 import { PM_MID_INSTANCE, PREP_MID_INSTANCE } from "./pm_mid.ts";
@@ -50,6 +50,7 @@ Deno.test("the instance: live-prep's own tables, leases, band and rules; mini-po
   const lp = PM_LP_INSTANCE.lp!;
   assertEquals([lp.rule, lp.candidate, lp.capMarketCeiling, lp.pause], [lpQuotes, { endHorizon: false, excludeFeeTypes: ["weather_fees"] }, 100, { cents: 15, minutes: 60 }]);
   assertEquals(lp.paper, { fills: "pm_lpprep_fills", settlements: "pm_lpprep_settlements", days: "pm_lpprep_days" });
+  assertEquals(lp.rewardCheck, { ...PM_LP_REWARD_CHECK });                                 // Addendum 9's check, live-prep's alone
   assertEquals([PM_LP_INV_CAP, PM_LP_CAP_MARKET_USD, PM_LP_PAUSE, PM_LP_CANDIDATE], [5, 100, { cents: 15, minutes: 60 }, lp.candidate]);
   assertEquals([PREP_LP_INSTANCE.lp, prepReads(PREP_LP_INSTANCE)], [true, ["pm_lp_config", "pm_lp_markets", "pm_lp_minutes", "pm_lp_orders"]]);
   // Every table either may touch is live-prep's own: nothing of mini-pool's, mid-pool's, RW's or RW-C's.
@@ -793,4 +794,175 @@ Deno.test("armed, the governor: with its config at 12,000 live-prep still posts 
   const c = await day(6000, 6000);
   assert(c.posted === 0 && c.governed > 0, JSON.stringify(c));
   assertEquals(c.limit, 6000);
+});
+
+// ------------------------------------------------------------------ the reward check (2026-10-10, Addendum 9)
+
+Deno.test("rewardConfigOf: the CLOB's programme in force that day; none listed is a programme ended; any other shape is unread, never an end", () => {
+  const c = "0x045fdf4be2f890a3f846357a5160834685bb7dfae65909d3d307e5547898e1ad";
+  // GET /rewards/markets/0x045fdf4b… as it answered on 2026-10-10 00:20 UTC (the selection of 10-09 read 200 a day, minimum 20).
+  const reply = { data: [{ condition_id: c, rewards_config: [{ asset_address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174", start_date: "2026-10-09", end_date: "2500-12-31", id: 3326402, rate_per_day: 50, total_rewards: 0, total_days: 173209 }], rewards_max_spread: 6.5, rewards_min_size: 50 }], next_cursor: "LTE=", limit: 100, count: 1 };
+  assertEquals(rewardConfigOf(reply, c, "2026-10-10"), { native: 50, v: 6.5, minSize: 50 });
+  // A programme not yet started, or over, is not in force; two in force add up.
+  assertEquals(rewardConfigOf(reply, c, "2026-10-08"), { native: 0, v: 6.5, minSize: 50 });
+  const two = { data: [{ ...reply.data[0], rewards_config: [...reply.data[0].rewards_config, { start_date: "2026-10-01", end_date: "2026-10-10", rate_per_day: 7 }] }] };
+  assertEquals([rewardConfigOf(two, c, "2026-10-10")?.native, rewardConfigOf(two, c, "2026-10-11")?.native], [57, 50]);
+  // 0xf0503539… on 2026-10-10: no programme at all.
+  assertEquals(rewardConfigOf({ data: [], next_cursor: "LTE=", limit: 100, count: 0 }, c, "2026-10-10"), { native: 0, v: null, minSize: null });
+  // Unread: no data array, another market's row, a rate that is not a number.
+  for (const bad of [null, {}, { data: "x" }, { data: [{ ...reply.data[0], condition_id: "0x1" }] }, { data: [{ ...reply.data[0], rewards_config: [{ rate_per_day: "n/a" }] }] }, { data: [{ ...reply.data[0], rewards_config: null }] }]) {
+    assertEquals(rewardConfigOf(bad, c, "2026-10-10"), null, JSON.stringify(bad));
+  }
+});
+
+Deno.test("lpRewardVerdict: in the universe it may enter; ended, under $10, a minimum past N = 20 it may not; a failed read keeps the last good one for five minutes, then none", () => {
+  const band = PM_LP_INSTANCE.band, t = Date.parse("2026-10-09T05:00:00Z"), stale = PM_LP_REWARD_CHECK.staleMs;
+  const cfg = (rate: number, minSize: number | null = 20, v: number | null = 6.5, at = iso(t)): PmRewardNow => ({ rate, native: rate, sponsored: 0, v, minSize, at });
+  assertEquals(PM_LP_REWARD_CHECK, { staleMs: 5 * M, backstopMinutes: 3 });
+  assertEquals(lpRewardVerdict(cfg(200), null, band, t, stale), { ok: true, why: null, cfg: cfg(200), fresh: true });
+  const no = (x: PmRewardNow | null, last: PmRewardNow | null = null, now = t) => lpRewardVerdict(x, last, band, now, stale);
+  assertEquals([no(cfg(0, null, null)).ok, no(cfg(0, null, null)).why], [false, "its reward programme has ended: the CLOB lists none for it"]);
+  assertEquals(no(cfg(9.99)).why, "its reward rate is now 9.99 a day, under the floor of 10");
+  assertEquals(no(cfg(10)).ok, true);
+  // 0x045fdf4b… from 04:59 on 2026-10-09: 50 a day, minimum 50 against our 20.
+  assertEquals(no(cfg(50, 50)).why, "its reward minimum is now 50 shares, more than the 20 it may quote");
+  assertEquals(no(cfg(50, 19)).ok, true);
+  // A failed read: the last good one stands for five minutes, whatever it said, then nothing enters until a read succeeds.
+  assertEquals(no(null, cfg(200), t + 5 * M), { ok: true, why: null, cfg: cfg(200), fresh: false });
+  const late = no(null, cfg(200), t + 5 * M + 1);
+  assertEquals([late.ok, late.why], [false, `its reward programme has not been read since ${iso(t)}, over 5 minutes: no entry until a read succeeds`]);
+  assertEquals(no(null, cfg(50, 50), t + M).ok, false);
+  assertEquals([no(null).ok, no(null).why], [false, "its reward programme has not been read: no entry until it is"]);
+});
+
+Deno.test("scoringStreak: both sides read not scoring while the formula scores both adds one; either side scoring starts again; a minute that says neither changes nothing", () => {
+  const not = { bid_scoring: false, ask_scoring: false }, both = { qBid: 3, qAsk: 2 };
+  let n = 0;
+  for (let k = 0; k < 2; k++) n = scoringStreak(n, not, both);
+  assertEquals(n, 2);
+  assertEquals(n + 1 >= PM_LP_REWARD_CHECK.backstopMinutes, true);                      // the third fires
+  assertEquals(scoringStreak(2, { bid_scoring: true, ask_scoring: false }, both), 0);
+  assertEquals(scoringStreak(2, { bid_scoring: false, ask_scoring: true }, both), 0);
+  assertEquals(scoringStreak(2, { bid_scoring: null, ask_scoring: false }, both), 2);    // a side unread or with no order
+  assertEquals(scoringStreak(2, not, { qBid: 3, qAsk: 0 }), 2);                           // the formula scores one side only
+});
+
+const LIVE = { dry_run: false, live_confirmed_at: "2026-10-05T09:00:00.000Z" };
+const minuteOf = (w: ReturnType<typeof world>, c: string, t: number) => w.rows("pm_lp_minutes").find((m) => m.cond === c && Date.parse(String(m.minute)) === Math.floor(t / M) * M) as any;
+const sentIn = (w: ReturnType<typeof world>, c: string, t: number, side: "BUY" | "SELL") => w.rows("pm_lp_orders").filter((x) => x.cond === c && x.side === side && Date.parse(String(x.ts)) >= t && Date.parse(String(x.ts)) < t + M);
+
+Deno.test("the reward check, armed: a programme change seen in minute t stops entries in minute t itself; the formula follows the programme; the sells of what is held rest on", async () => {
+  const w = world({ config: LIVE });
+  await w.turn(T0);
+  const yesBuy = w.rows("pm_lp_orders").find((x) => x.mode === "live" && x.cond === w.L1.cond && x.outcome === "yes" && x.side === "BUY" && x.state === "live");
+  assert(yesBuy, "a live BUY of YES rests");
+  w.pm.settle(w.pm.fill(String(yesBuy.hash), 5), "CONFIRMED");                       // the account holds 5 YES
+  for (let k = 1; k <= 3; k++) await w.turn(T0 + k * M);
+  const live = (side: "BUY" | "SELL") => w.rows("pm_lp_orders").filter((x) => x.mode === "live" && x.cond === w.L1.cond && x.side === side && x.state === "live");
+  assertEquals([live("BUY").length, live("SELL").length], [1, 1]);
+  // The rate rises from 12 to 30 a day: the next minute's formula of the same quotes on the same book is 30 / 12 of it.
+  const f3 = minuteOf(w, w.L1.cond, T0 + 3 * M);
+  w.L1.rate = 30;
+  await w.turn(T0 + 4 * M);
+  const f4 = minuteOf(w, w.L1.cond, T0 + 4 * M);
+  assertEquals([Number(f3.rate), Number(f4.rate), f4.detail.reward.fresh], [12, 30, true]);
+  assert(Number(f3.formula_usd) > 0);
+  assertAlmostEquals(Number(f4.formula_usd), Number(f3.formula_usd) * 30 / 12, 1e-9);
+  // Its minimum rises to 50, past the 20 it may quote: in THAT turn its buy is cancelled for the check and nothing is
+  // bought; the sell of the 5 YES rests on; the minute is scored on the minimum as read (our 5 score nothing).
+  w.L1.rewardsMinSize = 50;
+  const r5 = await w.turn(T0 + 5 * M);
+  const why = "its reward minimum is now 50 shares, more than the 20 it may quote";
+  assertEquals(live("BUY").length, 0);
+  assertEquals(sentIn(w, w.L1.cond, T0 + 5 * M, "BUY").length, 0);
+  assertEquals([yesBuy.state === "cancelled" || w.rows("pm_lp_orders").some((x) => x.cond === w.L1.cond && x.side === "BUY" && x.cancel_gate === "reward" && x.cancel_reason === `no entry: ${why}`)], [true]);
+  assertEquals(live("SELL").map((x) => [x.outcome, Number(x.price), Number(x.size)]), [["yes", 0.47, 5]]);
+  const f5 = minuteOf(w, w.L1.cond, T0 + 5 * M);
+  assertEquals([Number(f5.min_size), Number(f5.formula_usd), f5.detail.lp.state, f5.detail.lp.out], [50, 0, "carried", why]);
+  assertEquals(r5.conditions[w.L1.cond], `no entry: ${why}`);
+  assert(w.rows("pm_lp_events").some((e) => e.kind === "condition" && (e.detail as any).now[w.L1.cond] === `no entry: ${why}`));
+  // The other markets quote on.
+  assert(w.rows("pm_lp_orders").some((x) => x.mode === "live" && x.cond === w.BIG.cond && x.side === "BUY" && x.state === "live"));
+  // Back in the universe the next minute: it buys again.
+  w.L1.rewardsMinSize = 5;
+  await w.turn(T0 + 6 * M);
+  assertEquals(live("BUY").length, 1);
+  // The programme ends (the CLOB lists none, nor does the sponsored listing): no entry, said so.
+  w.L1.rate = null; w.L1.sponsoredRate = null;
+  const r7 = await w.turn(T0 + 7 * M);
+  assertEquals([live("BUY").length, r7.conditions[w.L1.cond]], [0, "no entry: its reward programme has ended: the CLOB lists none for it"]);
+  assertEquals([Number(minuteOf(w, w.L1.cond, T0 + 7 * M).rate), Number(minuteOf(w, w.L1.cond, T0 + 7 * M).formula_usd)], [0, 0]);
+  // Under the floor: 8 a day.
+  w.L1.rate = 8;
+  const r8 = await w.turn(T0 + 8 * M);
+  assertEquals([live("BUY").length, r8.conditions[w.L1.cond]], [0, "no entry: its reward rate is now 8 a day, under the floor of 10"]);
+  assertEquals(w.errors.filter((e) => /reward|minutes not recorded/.test(e)), []);
+  assert(w.othersUntouched());
+});
+
+Deno.test("the reward check, dry-run too: a minimum past N stops the market's paper buys the minute it is read", async () => {
+  const w = world();
+  await w.turn(T0);
+  assert(w.rows("pm_lp_orders").some((x) => x.cond === w.L1.cond && x.side === "BUY" && x.state === "live"));
+  w.L1.rewardsMinSize = 25;
+  await w.turn(T0 + M);
+  assertEquals(w.rows("pm_lp_orders").filter((x) => x.cond === w.L1.cond && x.side === "BUY" && x.state === "live").length, 0);
+  assertEquals(minuteOf(w, w.L1.cond, T0 + M).detail.lp.state, "carried");
+});
+
+Deno.test("the reward check: a failed read keeps the last good programme for five minutes, never as an end; past that no entry until a read succeeds", async () => {
+  const w = world({ config: LIVE });
+  await w.turn(T0);
+  w.L1.rate = 30;
+  await w.turn(T0 + M);                                                                  // read: 30 a day, at T0 + 1 min
+  w.pm.down.rewardMarket = true;
+  w.L1.rate = 8;                                                                         // under the floor, but no read sees it
+  const buys = () => w.rows("pm_lp_orders").filter((x) => x.mode === "live" && x.cond === w.L1.cond && x.side === "BUY" && x.state === "live").length;
+  const errs: string[][] = [];
+  for (let k = 2; k <= 6; k++) {
+    const r = await w.turn(T0 + k * M);
+    errs.push(r.errors.filter((e) => /reward programme/.test(e)));
+    const f = minuteOf(w, w.L1.cond, T0 + k * M);
+    assertEquals([buys(), Number(f.rate), f.detail.reward.fresh, f.detail.lp.state], [2, 30, false, "quote"], `minute ${k}`);
+  }
+  assertEquals(errs.flat(), []);                                                        // a read inside five minutes fails quietly
+  // Six minutes since the last good read: nothing enters until a read succeeds, and it is said.
+  const r7 = await w.turn(T0 + 7 * M);
+  assertEquals(buys(), 0);
+  assert(r7.errors.some((e) => e.includes(`has not been read since ${iso(T0 + M)}, over 5 minutes`)), JSON.stringify(r7.errors));
+  assertEquals(minuteOf(w, w.L1.cond, T0 + 7 * M).detail.lp.state, "carried");
+  // Read again: 8 a day, under the floor; then 12, and it enters.
+  w.pm.down.rewardMarket = false;
+  const r8 = await w.turn(T0 + 8 * M);
+  assertEquals([buys(), r8.conditions[w.L1.cond]], [0, "no entry: its reward rate is now 8 a day, under the floor of 10"]);
+  w.L1.rate = 12;
+  await w.turn(T0 + 9 * M);
+  assertEquals(buys(), 2);
+});
+
+Deno.test("the backstop, armed: both sides read not scoring for three live minutes while the formula scores both takes the market out, in that minute, for the rest of the day; two do not", async () => {
+  const w = world({ config: LIVE });
+  w.pm.scoringDelayS = 1e9;                                                              // Polymarket reads nothing of ours scoring
+  const buys = (c: string) => w.rows("pm_lp_orders").filter((x) => x.mode === "live" && x.cond === c && x.side === "BUY" && x.state === "live").length;
+  await w.turn(T0);                                                                      // nothing rested when the book was read: no verdict
+  assertEquals(minuteOf(w, w.L1.cond, T0).detail.reward.streak, 0);
+  await w.turn(T0 + M);
+  await w.turn(T0 + 2 * M);
+  const m2 = minuteOf(w, w.L1.cond, T0 + 2 * M);
+  assertEquals([m2.bid_scoring, m2.ask_scoring, m2.detail.reward.streak, m2.detail.lp.state, buys(w.L1.cond)], [false, false, 2, "quote", 2]);
+  assert(m2.detail.qBid > 0 && m2.detail.qAsk > 0);
+  const r3 = await w.turn(T0 + 3 * M);
+  const why = "Polymarket read neither of its sides scoring for 3 live minutes running while the formula scored both";
+  assertEquals([buys(w.L1.cond), r3.conditions[w.L1.cond], minuteOf(w, w.L1.cond, T0 + 3 * M).detail.lp.state], [0, `no entry: ${why}`, "carried"]);
+  assertEquals(sentIn(w, w.L1.cond, T0 + 3 * M, "BUY").length, 0);
+  assertEquals((w.rows("pm_lp_state")[0].state as any).lp.backstop.dropped[w.L1.cond], { at: iso(T0 + 3 * M), why });
+  // It stays out for the day, whatever Polymarket reads after.
+  w.pm.scoringDelayS = 0;
+  await w.turn(T0 + 4 * M);
+  assertEquals(buys(w.L1.cond), 0);
+  // Scoring from the start, the same minutes take nothing out.
+  const s = world({ config: LIVE });
+  for (let k = 0; k <= 4; k++) await s.turn(T0 + k * M);
+  assertEquals(s.rows("pm_lp_orders").filter((x) => x.cond === s.L1.cond && x.side === "BUY" && x.state === "live").length, 2);
+  assertEquals((s.rows("pm_lp_state")[0].state as any).lp.backstop.dropped, {});
 });

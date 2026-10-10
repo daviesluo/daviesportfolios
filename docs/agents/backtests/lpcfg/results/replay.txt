@@ -1,0 +1,48 @@
+LPCFG replay of live-prep, 2026-10-09 (UTC), live minutes 01:33-23:59
+inputs: 13362 market-minutes, 77 fills, programme timeline of 10 markets at 15-minute reads
+
+== M, the backstop: runs on the five markets that kept a paying programme (the brief), and when it fires elsewhere
+  M=1: fires on the kept five 1 time(s); fires on 0x045fdf4b at 04:38, 0xecc209a6 at 03:31, 0xfbd3437c at 15:47; on kept: 0x5fec6675 at 21:40
+  M=2: fires on the kept five 0 time(s); fires on 0x045fdf4b at 04:39, 0xecc209a6 at 03:32, 0xfbd3437c at 15:49
+  M=3: fires on the kept five 0 time(s); fires on 0x045fdf4b at 04:40, 0xecc209a6 at 03:34, 0xfbd3437c at 15:50
+  M=4: fires on the kept five 0 time(s); fires on 0x045fdf4b at 04:41, 0xecc209a6 at 03:35, 0xfbd3437c at 15:51
+  M=5: fires on the kept five 0 time(s); fires on 0x045fdf4b at 04:42, 0xecc209a6 at 03:36, 0xfbd3437c at 15:52
+  M=6: fires on the kept five 0 time(s); fires on 0x045fdf4b at 04:43, 0xecc209a6 at 03:37, 0xfbd3437c at 15:53
+
+== per market, M = 3 (formula in $; mm = market-minutes recorded; out = minutes the fixed rules take no entry)
+  market      recorded rec scored    fixed fixed sc    mm   out   cfg bstop 2-sided out  backstop   why out (minutes)
+  0x045fdf4b     23.29       0.88     0.90     0.88  1347  1160  1141    19         853  04:40      {'minimum over 20': 1141}
+  0x5b3350e2      3.44       3.20     0.12     0.08  1347   852   852     0         345  -          {'rate under $10': 852}
+  0x5fec6675      2.91       2.86     1.93     1.88  1347     0     0     0           0  -          {}
+  0x9235351e      8.04       7.98     1.63     1.57  1347   724   724     0         297  -          {'rate under $10': 724}
+  0xa326c49f     10.88       0.97     1.19     0.97  1347  1087  1087     0        1028  -          {'minimum over 20': 1087}
+  0xecc209a6      9.39       0.35     0.37     0.35  1239  1118  1104    14         713  03:34      {'programme ended': 474, 'minimum over 20': 630}
+  0xeee73848      2.51       2.35     0.74     0.74  1347   600   600     0          68  -          {'rate under $10': 600}
+  0xf0503539     84.14       0.00     0.00     0.00  1347  1252  1252     0        1182  -          {'programme ended': 1252}
+  0xf6f3f159      0.66       0.66     0.66     0.66  1347    41    41     0           0  -          {'minimum over 20': 41}
+  0xfbd3437c      8.62       0.56     0.03     0.02  1347  1316  1242    74        1111  15:50      {'rate under $10': 316, 'programme ended': 926}
+  all           153.90      19.80     7.56     7.15 13362  8150  8043   107        5597
+  of the fixed formula, 0.40 is in minutes whose spread had changed (approximate: the recorded score kept)
+
+== fills in minutes the fixed rules have the market out (would not have rested: buys; sells are counted, not removed)
+  BUY  in :  22 fills,   383.8 shares, $ 212.39
+  BUY  out:  29 fills,   541.2 shares, $ 222.12
+  SELL in :   6 fills,    70.0 shares, $  30.80
+  SELL out:  20 fills,   350.0 shares, $ 220.90
+    0x045fdf4b BUY :   8 fills,  148.3 shares, $ 76.53
+    0x045fdf4b SELL:   7 fills,  107.3 shares, $ 49.35
+    0x5b3350e2 BUY :   5 fills,   91.5 shares, $ 55.80
+    0x9235351e BUY :   2 fills,   40.0 shares, $ 25.00
+    0x9235351e SELL:   1 fills,   20.0 shares, $ 11.80
+    0xa326c49f BUY :   2 fills,   40.0 shares, $ 16.00
+    0xa326c49f SELL:   6 fills,  102.7 shares, $ 42.67
+    0xecc209a6 BUY :   9 fills,  161.3 shares, $ 40.00
+    0xecc209a6 SELL:   6 fills,  120.0 shares, $117.08
+    0xeee73848 BUY :   1 fills,   20.0 shares, $  8.60
+    0xf0503539 BUY :   2 fills,   40.0 shares, $  0.18
+
+== R
+  the payout as the pUSD rise at 00:00 (no fill 23:57-00:05:01): $6.53
+  R on the recorded formula 0.0424; on the recorded scored formula 0.3298
+  R on the fixed formula 0.8638; on the fixed scored formula 0.9133
+  the readout of 10-09 was not yet written when this ran: R by market waits for it

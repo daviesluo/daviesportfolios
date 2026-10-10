@@ -621,7 +621,9 @@ export function schemaRefusal(table: string, r: Row): string | null {
     }
     if (shape === "pm_live_minutes") {
       return notNull(["mode", "minute", "cond", "rate", "max_spread", "min_size", "tick", "ours", "others", "formula_usd", "detail"])
-        ?? check("mode", MODES.includes(String(r.mode))) ?? check("rate", inBand(r.rate))
+        // Live-prep's minute records the programme its reward check read, which may have fallen under its band or ended
+        // (0111, 2026-10-10: rate ≥ 0); its markets keep 0091's band.
+        ?? check("mode", MODES.includes(String(r.mode))) ?? check("rate", lp ? Number(r.rate) >= 0 : inBand(r.rate))
         ?? check("max_spread", Number(r.max_spread) >= 0) ?? check("min_size", Number(r.min_size) >= 0) ?? check("tick", Number(r.tick) > 0)
         ?? check("ours", Number(r.ours) >= 0) ?? check("others", Number(r.others) >= 0) ?? check("formula_usd", Number(r.formula_usd) >= 0);
     }
@@ -1143,7 +1145,7 @@ export class FakePolymarket {
   /** Reads of an order that still show it resting after its cancel was taken (0: carried out at once). */
   cancelLagReads = 1;
   orderReadDown = false;
-  down: Partial<Record<"geoblock" | "closedOnly" | "balance" | "collateral" | "book" | "rewards" | "gamma" | "scoring" | "earnings" | "rebates", boolean>> = {};
+  down: Partial<Record<"geoblock" | "closedOnly" | "balance" | "collateral" | "book" | "rewards" | "rewardMarket" | "gamma" | "scoring" | "earnings" | "rebates", boolean>> = {};
   /** The OpenAPI's spelling of a trade status (TRADE_STATUS_…) instead of the clients' (CONFIRMED …). */
   tradeStatusPrefix = "";
   /** The reward listing's page size (the CLOB's is 500). */
@@ -1324,6 +1326,18 @@ export class FakePolymarket {
       const rows = this.listing(sponsored), size = this.rewardsPageSize;
       const page = at < 0 ? [] : rows.slice(at, at + size);
       return { status: 200, body: { data: page, next_cursor: at >= 0 && at + size < rows.length ? btoa(String(at + size)) : "LTE=", limit: size, count: page.length } };
+    }
+    // One market's reward programme (GET /rewards/markets/{condition_id}, measured 2026-10-10): the native rate in force
+    // as `rewards_config`, the programme's spread and minimum; `data` empty for a market with no programme.
+    if (method === "GET" && /^clob\.polymarket\.com\/rewards\/markets\/0x[0-9a-f]{64}$/.test(path)) {
+      if (this.down.rewardMarket) return err(500, "Internal server error");
+      const c = path.slice(path.lastIndexOf("/") + 1), m = this.markets.find((x) => x.cond.toLowerCase() === c);
+      const data = m && m.rate != null ? [{
+        condition_id: m.cond, question: `Q ${m.cond.slice(2, 8)}`, market_competitiveness: 0, tokens: [],
+        rewards_config: [{ asset_address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174", start_date: "2026-01-01", end_date: "2500-12-31", id: 1, rate_per_day: m.rate, total_rewards: 0 }],
+        rewards_max_spread: m.maxSpread, rewards_min_size: m.rewardsMinSize,
+      }] : [];
+      return { status: 200, body: { data, next_cursor: "LTE=", limit: 100, count: data.length } };
     }
     if (method === "GET" && path === "gamma-api.polymarket.com/markets/keyset") {
       if (this.down.gamma) return err(503, "down");
@@ -1557,6 +1571,7 @@ export class FakePolymarket {
       geoblock: () => call("GET", "https://polymarket.com/api/geoblock"),
       book: (t) => call("GET", `${C}/book?token_id=${t}`),
       rewardsPage: (s, c) => call("GET", `${C}/rewards/markets/current?sponsored=${s}${c ? `&next_cursor=${encodeURIComponent(c)}` : ""}`),
+      rewardMarket: (c) => call("GET", `${C}/rewards/markets/${c}`),
       gammaByConditions: (conds, closed) => call("GET", `https://gamma-api.polymarket.com/markets/keyset?limit=100&closed=${closed}${conds.map((c) => `&condition_ids=${c}`).join("")}`),
       closedOnly: () => call("GET", `${C}/auth/ban-status/closed-only`),
       collateral: () => call("GET", `${C}/balance-allowance?asset_type=COLLATERAL&signature_type=1`),

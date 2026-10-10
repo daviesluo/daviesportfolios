@@ -26,10 +26,11 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
 1. **Closed: fp5's ranked list.**
 
 2. **Polymarket reward quotes (paper; RW, RW-E, RW-X, TB1, RW-C) and the three order paths (dry-run, unarmed).**
-   - **IN FLIGHT: live-prep (LIVE since 10-08) reads each market's reward config only at 00:00** and quoted all of 10-09
-     in three markets Polymarket had changed or ended (10-10 00:25 section). Fix on branch `lp-reward-refresh`
-     (`opus-high`): read every minute, no entry where it no longer pays, Addendum 9; land it with full gates, then
-     re-read R on scored formula from the 10-09 readout on.
+   - **TO LAND: live-prep's reward check (Addendum 9)**, committed on branch `lp-reward-refresh` (10-10 01:00 section):
+     the reward programme read every minute, no entry where it no longer pays, a 3-minute scoring backstop, R and the
+     estimate on scored formula. The main session rebases it, runs full gates and pushes; **migration 0111 must apply
+     with or before the Edge deploy**. Then re-read R on scored formula from the 10-09 readout on. Left for Davies:
+     whether a slot freed during the day is refilled (not built).
    - **RW's verdict: read 2026-10-09 00:42–00:50 UTC** (`reviews/2026-10-09-polymarket-rw-paper-result.md`, reference
      §3.46, `backtests/rwverdict/`). RW 6/6, RW-E 7/7, x1–x3 7/7 each; step b (all 4,116 fills by `stepRw`) and c (13,634
      prints re-pulled, none missed) clean; **RW-NEXT's candidate is RW-E**, to RW-C (Part 3's bar on or after 10-23
@@ -420,6 +421,19 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 "LEDGER.md, archived 2026-10-09", the 2026-10-08 22:49 → 23:58 UTC sections under "LEDGER.md, archived 2026-10-09
 (second)", and the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)"; each oldest
 first.
+
+### [2026-10-10 01:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep's reward check, built on branch `lp-reward-refresh`** (sub-agent; Davies: "策略每分钟读的时候都检查奖励配置，
+  避免再次出现这种白挂了并且承担风险并且没奖励的事情"; Addendum 9 of `reviews/2026-10-04-polymarket-lp-prereg.md`, mid-pool's
+  Addendum 10). Every turn, before anything rests, each quoted market's programme is read from the CLOB
+  (`GET /rewards/markets/{cond}`, a new keyless route, plus the sponsored listing): out of the universe ($10, N ≤ 20,
+  ended) means no entry that minute, buys cancelled (gate `reward`), sells rest; the formula uses the programme read; a
+  failed read keeps the last good one 5 minutes. Backstop: 3 live minutes of both sides not scoring while the formula
+  scores both, out for the UTC day (M = 3: 0 false positives on 10-09's kept markets). R, DAYS and REWARDS TODAY (EST.)
+  on `formula_scored_usd`, R itself one function (`lpLiveR`, for the TESTING-pages follow-on); `0111` relaxes `pm_lp_minutes.rate` to ≥ 0 and adds the scored columns to the hours view.
+  Replay (`backtests/lpcfg/`): 10-09's $153.90 of formula is $7.56 under the fixed rules; 8,150 of 13,362
+  market-minutes and 29 buy fills were in markets that no longer paid. Gamma was measured and not chosen (lags the CLOB,
+  cached 5 min). Replacement of a freed slot not built. Page unchanged (its inputs are the same fields), no `dist/`.
 
 ### [2026-10-10 00:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **RW-C's 10-10 check PASSED** (wake `trig_0147EKGhR4aHoVq5QWUFy1mr`, fired 00:20): `pm_rwc_e_state` `checkMaxUsd` 0;

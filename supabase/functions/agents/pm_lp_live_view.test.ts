@@ -33,7 +33,7 @@
 
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import fixture from "../../../src/e2e/lp_live_fixture.json" with { type: "json" };
-import { LP_LIVE_HOURS_VIEW, lpLiveSince, lpLiveSummary, lpRewardEstimate, type LpLiveHourRow } from "./pm_lp_live_view.ts";
+import { LP_LIVE_HOURS_VIEW, lpLiveR, lpLiveSince, lpLiveSummary, lpRewardEstimate, type LpLiveHourRow } from "./pm_lp_live_view.ts";
 import { readLpLive } from "./index.ts";
 import { PM_LP_INSTANCE } from "./pm_lp.ts";
 import { memDb, onlyTables } from "./testing.ts";
@@ -187,8 +187,8 @@ const G = F.input.markets[0].cond, H = F.input.markets[1].cond;
 const DAY0 = Date.parse("2026-10-10T00:00:00Z");
 /** `n` hours of G from 00:00 at `f` a full hour, the last one `lastMin` minutes long. */
 const hoursOf = (n: number, f: number, lastMin = 60): LpLiveHourRow[] =>
-  Array.from({ length: n }, (_, i) => ({ hour: new Date(DAY0 + i * 3600e3).toISOString(), cond: G, minutes: i === n - 1 ? lastMin : 60, formula_usd: i === n - 1 ? (f * lastMin) / 60 : f }));
-const paid = (day: string, formula: number, paidUsd: number, cond = G) => ({ day, cond, minutes: 1440, minutes_scored: 1400, formula_usd: formula, actual_usd: paidUsd, actual_sponsored_usd: 0, rebate_usd: 0 });
+  Array.from({ length: n }, (_, i) => { const x = i === n - 1 ? (f * lastMin) / 60 : f; return { hour: new Date(DAY0 + i * 3600e3).toISOString(), cond: G, minutes: i === n - 1 ? lastMin : 60, formula_usd: x, formula_scored_usd: x }; });
+const paid = (day: string, formula: number, paidUsd: number, cond = G) => ({ day, cond, minutes: 1440, minutes_scored: 1400, formula_usd: formula, formula_scored_usd: formula, actual_usd: paidUsd, actual_sponsored_usd: 0, rebate_usd: 0 });
 
 Deno.test("today's estimate grows as the day's minutes accrue, every dashboard read, and starts again from nothing at 00:00 UTC", () => {
   const days = [paid("2026-10-09", 100, 40)];
@@ -235,7 +235,7 @@ Deno.test("a payout read moves R's band by itself: none, one day, two days, as t
 });
 
 Deno.test("QUOTES' Rewards (est.): paid plus the unread days' formula at the market's point R; grows in a day, carries yesterday over 00:00 until it is read", () => {
-  const C = "2026-10-10T", h = (hour: string, f: number, cond = G): LpLiveHourRow => ({ hour: `${hour}:00:00.000Z`, cond, minutes: 60, formula_usd: f });
+  const C = "2026-10-10T", h = (hour: string, f: number, cond = G): LpLiveHourRow => ({ hour: `${hour}:00:00.000Z`, cond, minutes: 60, formula_usd: f, formula_scored_usd: f });
   const read8 = [paid("2026-10-08", 5, 2.2, G)];                                // one day read, G at 0.44
   // 10-09 not read yet: its 10 of formula and today's count at G's point R, exp((2 μ + ln 0.44) / 3) with μ the overall
   // shrunk mean (2 ln √0.2 + ln 0.44) / 3 = −0.810139 → G's (2 × −0.810139 + ln 0.44) / 3 = −0.813753, R 0.443192.
@@ -256,3 +256,33 @@ Deno.test("QUOTES' Rewards (est.): paid plus the unread days' formula at the mar
   const q = lpLiveSummary(F.input)!.quotes[0];
   near(Number(q.rewardEstUsd), Number(q.rewardUsd) + 0.277491, "G"); near(Number(q.totalEstUsd), Number(q.rewardEstUsd) + Number(q.fillsPnlUsd), "adds up");
 });
+
+Deno.test("Addendum 9: R and today's estimate rest on the minutes Polymarket read scoring, not on the whole formula (10-09: 153.90 counted, 19.80 scored, 6.53 paid)", () => {
+  // 2026-10-09's live day as the readout books it, in one market: R over the scored formula, not over the whole.
+  const day = { day: "2026-10-09", cond: G, minutes: 1347, minutes_scored: 500, formula_usd: 153.9, formula_scored_usd: 19.8, actual_usd: 6.53, actual_sponsored_usd: 0, rebate_usd: 0 };
+  const now = Date.parse("2026-10-10T06:00:00Z");
+  const e = lpRewardEstimate({ rewardDays: [day], hours: [], nowMs: now });
+  // One day of ln(6.53 / 19.80) against the prior's two days of ln 0.447: exp((2 ln 0.447214 + ln 0.329798) / 3).
+  assertAlmostEquals(e.r.point, Math.exp((2 * Math.log(Math.sqrt(0.2)) + Math.log(6.53 / 19.8)) / 3), 1e-6, "R's point on the scored formula (to six places)");
+  assert(e.r.point > 0.39, `on the whole formula it would be exp((2 ln 0.447 + ln 0.0424) / 3) = 0.203; it is ${e.r.point}`);
+  // Today: an hour whose formula is 1.00 of which Polymarket scored 0.25 counts 0.25.
+  const h = { hour: "2026-10-10T05:00:00.000Z", cond: G, minutes: 60, formula_usd: 1, formula_scored_usd: 0.25 };
+  const t = lpRewardEstimate({ rewardDays: [day], hours: [h], nowMs: now });
+  near(t.soFar.formulaUsd, 0.25, "today so far: the scored formula");
+  near(t.markets[G].unreadFormulaUsd, 0.25, "the unread days' formula: scored");
+  // The summary's R (ACTUAL) and DAYS: paid over the scored formula, the whole formula beside it.
+  const s = lpLiveSummary({ ...F.input, rewardDays: [day], hours: [] })!;
+  assertAlmostEquals(s.r!, 6.53 / 19.8, 1e-6, "R (ACTUAL), to six places");
+  assertEquals(s.days.map((d) => [d.formulaUsd, d.formulaAllUsd, d.r]), [[19.8, 153.9, Math.round((6.53 / 19.8) * 1e6) / 1e6]]);
+});
+
+Deno.test("lpLiveR is the one live R: the estimate's R is its, from the readout rows alone, the prior until a day is read", () => {
+  const day = { day: "2026-10-09", cond: G, minutes: 1347, minutes_scored: 500, formula_usd: 153.9, formula_scored_usd: 19.8, actual_usd: 6.53, actual_sponsored_usd: 0, rebate_usd: 0 };
+  const now = Date.parse("2026-10-10T06:00:00Z");
+  const R = lpLiveR([day], now), e = lpRewardEstimate({ rewardDays: [day], hours: [], nowMs: now });
+  assertEquals({ point: R.point, low: R.low, high: R.high, days: R.days, basis: R.basis }, e.r);
+  assertEquals([R.days, R.basis], [1, "live"]);
+  // Today's row is not yet a day of R; with none read it is the prior's.
+  assertEquals([lpLiveR([{ ...day, day: "2026-10-10" }], now).basis, lpLiveR([], now).point], ["prior", 0.447214]);
+});
+

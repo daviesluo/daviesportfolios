@@ -47,6 +47,8 @@ export type LpLiveFillRow = {
 };
 export type LpLiveRewardDayRow = {
   day: string; cond: string; minutes: number | string | null; minutes_scored: number | string | null; formula_usd: number | string | null;
+  /** The formula over the minutes Polymarket read both our sides scoring (Addendum 9: what R and the estimate rest on). */
+  formula_scored_usd?: number | string | null;
   actual_usd: number | string | null; actual_sponsored_usd: number | string | null; rebate_usd: number | string | null;
 };
 /** The path's selection (`pm_lp_markets`), every day since it went live. */
@@ -57,19 +59,20 @@ export type LpLiveMarketRow = {
 export type LpLiveMinuteRow = { cond: string; rate: number | string | null; formula_usd: number | string | null };
 /**
  * One market's live hour (`pm_lp_live_hours`, migration 0107: `pm_lp_minutes`' live rows of the last 48 hours summed by
- * UTC hour and market): the minutes the path recorded in it and the formula's reward for our quotes over them.
+ * UTC hour and market): the minutes the path recorded in it and the formula's reward for our quotes over them; since
+ * 0111 (2026-10-10, Addendum 9) also the formula over the minutes Polymarket read both our sides scoring.
  */
-export type LpLiveHourRow = { hour: string; cond: string; minutes: number | string | null; formula_usd: number | string | null };
+export type LpLiveHourRow = { hour: string; cond: string; minutes: number | string | null; formula_usd: number | string | null; formula_scored_usd?: number | string | null };
 /** The live total stop's event (`pm_lp_events`, kind `loss_stop_total`, mode `live`), if it has tripped. */
 export type LpLiveStopRow = { minute: string; detail: unknown };
 
 /** The columns each read takes. */
 export const LP_LIVE_ORDER_COLUMNS = "id,ts,cond,token,outcome,side,price,size,state,size_matched,gate,reason,cancel_reason,filled_at,cancelled_at";
 export const LP_LIVE_FILL_COLUMNS = "trade_id,hash,cond,token,side,price,size,status,match_time,trader_side:detail->trade->>trader_side,fee_rate_bps:detail->trade->>fee_rate_bps";
-export const LP_LIVE_REWARD_COLUMNS = "day,cond,minutes,minutes_scored,formula_usd,actual_usd,actual_sponsored_usd,rebate_usd";
+export const LP_LIVE_REWARD_COLUMNS = "day,cond,minutes,minutes_scored,formula_usd,formula_scored_usd,actual_usd,actual_sponsored_usd,rebate_usd";
 export const LP_LIVE_MARKET_COLUMNS = "day,cond,question,yes_token,no_token,reward_rate,rank";
 export const LP_LIVE_MINUTE_COLUMNS = "cond,rate,formula_usd";
-export const LP_LIVE_HOUR_COLUMNS = "hour,cond,minutes,formula_usd";
+export const LP_LIVE_HOUR_COLUMNS = "hour,cond,minutes,formula_usd,formula_scored_usd";
 /** The view the dashboard reads the day's formula from (0107). */
 export const LP_LIVE_HOURS_VIEW = "pm_lp_live_hours";
 
@@ -152,22 +155,25 @@ export function lpLiveSummary(input: {
   }
   held.sort((a, b) => String(a.q).localeCompare(String(b.q)) || String(a.outcome).localeCompare(String(b.outcome)));
 
-  // What Polymarket paid, by the readout's live rows, and the formula's figure beside it.
-  type Day = { day: string; markets: number; minutesScored: number; formulaUsd: number; paidUsd: number; rebateUsd: number };
+  // What Polymarket paid, by the readout's live rows, and the formula's figure beside it: since 2026-10-10 (Addendum 9)
+  // the formula over the minutes Polymarket read both our sides scoring (`formula_scored_usd`), which R is over; the whole
+  // formula, scored or not, is `formulaAllUsd`. On 2026-10-09 the whole formula counted programmes Polymarket had already
+  // cut (backtests/lpcfg/): R over it read 0.04, over the scored minutes about 0.33.
+  type Day = { day: string; markets: number; minutesScored: number; formulaUsd: number; formulaAllUsd: number; paidUsd: number; rebateUsd: number };
   const byDay = new Map<string, Day>();
   for (const r of input.rewardDays) {
     const d = dayOf(r.day);
-    const x = byDay.get(d) ?? { day: d, markets: 0, minutesScored: 0, formulaUsd: 0, paidUsd: 0, rebateUsd: 0 };
-    x.markets++; x.minutesScored += num(r.minutes_scored); x.formulaUsd += num(r.formula_usd);
+    const x = byDay.get(d) ?? { day: d, markets: 0, minutesScored: 0, formulaUsd: 0, formulaAllUsd: 0, paidUsd: 0, rebateUsd: 0 };
+    x.markets++; x.minutesScored += num(r.minutes_scored); x.formulaUsd += num(r.formula_scored_usd); x.formulaAllUsd += num(r.formula_usd);
     x.paidUsd += num(r.actual_usd) + num(r.actual_sponsored_usd); x.rebateUsd += num(r.rebate_usd);
     byDay.set(d, x);
   }
   const days = [...byDay.values()].sort((a, b) => b.day.localeCompare(a.day)).map((d) => ({
-    day: d.day, markets: d.markets, minutesScored: d.minutesScored, formulaUsd: r6(d.formulaUsd), paidUsd: r6(d.paidUsd), rebateUsd: r6(d.rebateUsd),
+    day: d.day, markets: d.markets, minutesScored: d.minutesScored, formulaUsd: r6(d.formulaUsd), formulaAllUsd: r6(d.formulaAllUsd), paidUsd: r6(d.paidUsd), rebateUsd: r6(d.rebateUsd),
     r: d.formulaUsd > 0 ? r6(d.paidUsd / d.formulaUsd) : null,
   }));
   const sum = (f: (d: Day) => number, only?: (d: Day) => boolean) => [...byDay.values()].filter((d) => !only || only(d)).reduce((s, d) => s + f(d), 0);
-  const paid = sum((d) => d.paidUsd), rebates = sum((d) => d.rebateUsd), formula = sum((d) => d.formulaUsd);
+  const paid = sum((d) => d.paidUsd), rebates = sum((d) => d.rebateUsd), formula = sum((d) => d.formulaUsd), formulaAll = sum((d) => d.formulaAllUsd);
   const paidToday = sum((d) => d.paidUsd + d.rebateUsd, (d) => d.day === today);
 
   // Resting buys tie up their collateral: price × what is left of each.
@@ -262,7 +268,7 @@ export function lpLiveSummary(input: {
     realisedUsd: r6(realisedFills + paid + rebates - fees), realisedFillsUsd: r6(realisedFills - fees), paidUsd: r6(paid), rebateUsd: r6(rebates),
     totalUsd: r6(pnl.total + paid + rebates - fees), feesUsd: r6(fees),
     // R, the actual over the formula on the live days whose payout has been read; null before the first is.
-    formulaUsd: r6(formula), r: formula > 0 ? r6(paid / formula) : null,
+    formulaUsd: r6(formula), formulaAllUsd: r6(formulaAll), r: formula > 0 ? r6(paid / formula) : null,
     // The TESTING page's STATUS tiles, but R (ACTUAL) for its worst case: the largest market's part (TOP SHARE is it over
     // the total), the markets chosen today, and the markets still holding tokens.
     status: { bestMarketUsd: Number.isFinite(best) ? r6(best) : null, quoting: quotingToday, held: quotes.filter((x) => Number(x.yes) + Number(x.no) > 0).length },
@@ -302,37 +308,26 @@ export const LP_EST_MIN_PAYOUT_USD = 1;
 export const LP_EST_RECENT_MINUTES = 60;
 
 /**
- * Today's rewards, estimated: what the formula has given our quotes since 00:00 UTC times a band of R, and the same for the
- * whole day with the rest of it projected. A pure function of the stored rows, so it recalibrates by itself: each payout
- * the readout books (`rewardDays`, the live rows of `pm_lp_reward_days`) moves R's band at the next dashboard read, and the
- * day's window is whatever `hours` hold from today's 00:00 UTC, so it starts from nothing at each UTC midnight.
- *
- * R. Each live day with a formula of at least $1 gives ln(max(paid ÷ formula, 0.02)). Their mean is shrunk towards the
- * prior's (ln 0.447) as if the prior were two such days; their spread likewise towards the prior's σ (until two days are
- * read, the spread is the prior's). A market seen on earlier days has its own mean, shrunk towards the overall one with
- * the same two days' weight; a market never seen takes the overall. The band is exp(mean ± 1.2816 σ): the 10th to the
- * 90th percentile of one day's R, which is what today is; it narrows as the days' own spread replaces the prior's, not
- * to nothing, because one day's R keeps its day-to-day spread.
- *
- * The formula. So far: the sum of today's hours, per market. The rest of the day: the minutes left at the lowest and the
- * highest of three rates (the newest hour's, today's own, and the earlier live days' mean a minute), a market's share of
- * the projection its share of today so far. Low: each market's so-far at its R's low end; for the whole day, a market
- * whose projected low is under $1 counts as nothing (the payout minimum, if it applies per market). High: the high ends.
+ * Live R as the live readout has calibrated it at `nowMs`: one function, so every figure priced at "the live R" reads the
+ * same one (the estimate below, and what else the page prices at it). Each live day before today whose scored formula is
+ * at least $1 gives ln(max(paid ÷ scored formula, 0.02)); their mean and spread are shrunk towards the prior's as if it
+ * were two such days (`LP_EST_PRIOR`). `point` is exp(mean), `low`–`high` the 10th to 90th percentile of one day's R;
+ * `basis` "prior" until a day is read. `muOf` is a market's own mean, shrunk towards the overall one, and `band` the
+ * band about a mean; `pastFormula` and `pastDays` the scored formula of the days before today and how many there are.
  */
-export function lpRewardEstimate(input: { rewardDays: LpLiveRewardDayRow[]; hours: LpLiveHourRow[]; nowMs: number }) {
-  const dayStart = Math.floor(input.nowMs / DAY) * DAY, today = iso(dayStart).slice(0, 10);
-  const minutesLeft = Math.max(0, Math.round((dayStart + DAY - input.nowMs) / M));
+export function lpLiveR(rewardDays: LpLiveRewardDayRow[], nowMs: number) {
+  const dayStart = Math.floor(nowMs / DAY) * DAY, today = iso(dayStart).slice(0, 10);
   const z = LP_EST_Z, mu0 = Math.log(Math.sqrt(LP_EST_PRIOR.low * LP_EST_PRIOR.high)), s0 = Math.log(LP_EST_PRIOR.high / LP_EST_PRIOR.low) / (2 * z), k = LP_EST_PRIOR.days;
   const lnR = (paid: number, f: number) => Math.log(Math.max(paid / f, LP_EST_R_FLOOR));
 
   // The live days before today, whole and by market.
   type D = { formula: number; paid: number; byCond: Map<string, { formula: number; paid: number }> };
   const days = new Map<string, D>();
-  for (const r of input.rewardDays) {
+  for (const r of rewardDays) {
     const d = dayOf(r.day);
     if (d >= today) continue;
     const x = days.get(d) ?? { formula: 0, paid: 0, byCond: new Map() };
-    const f = num(r.formula_usd), p = num(r.actual_usd) + num(r.actual_sponsored_usd);
+    const f = num(r.formula_scored_usd), p = num(r.actual_usd) + num(r.actual_sponsored_usd);
     x.formula += f; x.paid += p;
     const c = x.byCond.get(r.cond) ?? { formula: 0, paid: 0 };
     c.formula += f; c.paid += p; x.byCond.set(r.cond, c);
@@ -350,12 +345,46 @@ export function lpRewardEstimate(input: { rewardDays: LpLiveRewardDayRow[]; hour
   const muOf = (c: string) => { const l = own.get(c) ?? []; return (k * mu + l.reduce((a, b) => a + b, 0)) / (k + l.length); };
   const band = (m: number) => ({ low: Math.exp(m - z * sigma), high: Math.exp(m + z * sigma) });
 
+  const all = band(mu);
+  return {
+    point: r6(Math.exp(mu)), low: r6(all.low), high: r6(all.high), days: n, basis: n ? "live" as const : "prior" as const,
+    mu, sigma, muOf, band, pastFormula: [...days.values()].reduce((a, d) => a + d.formula, 0), pastDays: days.size,
+  };
+}
+
+/**
+ * Today's rewards, estimated: what the formula has given our quotes since 00:00 UTC times a band of R, and the same for the
+ * whole day with the rest of it projected. Since 2026-10-10 (the pre-registration's Addendum 9) every formula figure here
+ * is the formula over the minutes Polymarket read both our sides scoring (`formula_scored_usd`, the readout's per day and
+ * 0111's per hour): R is calibrated on it and today is estimated from it, so a minute the venue did not score, a
+ * programme it had cut, counts in neither. The prior band and its weight are as they were. A pure function of the stored rows, so it recalibrates by itself: each payout
+ * the readout books (`rewardDays`, the live rows of `pm_lp_reward_days`) moves R's band at the next dashboard read, and the
+ * day's window is whatever `hours` hold from today's 00:00 UTC, so it starts from nothing at each UTC midnight.
+ *
+ * R. Each live day with a formula of at least $1 gives ln(max(paid ÷ formula, 0.02)). Their mean is shrunk towards the
+ * prior's (ln 0.447) as if the prior were two such days; their spread likewise towards the prior's σ (until two days are
+ * read, the spread is the prior's). A market seen on earlier days has its own mean, shrunk towards the overall one with
+ * the same two days' weight; a market never seen takes the overall. The band is exp(mean ± 1.2816 σ): the 10th to the
+ * 90th percentile of one day's R, which is what today is; it narrows as the days' own spread replaces the prior's, not
+ * to nothing, because one day's R keeps its day-to-day spread.
+ *
+ * The formula. So far: the sum of today's hours, per market. The rest of the day: the minutes left at the lowest and the
+ * highest of three rates (the newest hour's, today's own, and the earlier live days' mean a minute), a market's share of
+ * the projection its share of today so far. Low: each market's so-far at its R's low end; for the whole day, a market
+ * whose projected low is under $1 counts as nothing (the payout minimum, if it applies per market). High: the high ends.
+ */
+export function lpRewardEstimate(input: { rewardDays: LpLiveRewardDayRow[]; hours: LpLiveHourRow[]; nowMs: number }) {
+  const dayStart = Math.floor(input.nowMs / DAY) * DAY;
+  const minutesLeft = Math.max(0, Math.round((dayStart + DAY - input.nowMs) / M));
+  const R = lpLiveR(input.rewardDays, input.nowMs);
+  const { mu, muOf, band } = R;
+
   // Today's hours, and the rates.
   const hours = input.hours.filter((h) => { const t = Date.parse(h.hour); return t >= dayStart && t < dayStart + DAY && t <= input.nowMs; });
   const soFarOf = new Map<string, number>();
   const perHour = new Map<number, { f: number; m: number }>();
   for (const h of hours) {
-    const t = Date.parse(h.hour), f = num(h.formula_usd), m = num(h.minutes);
+    const t = Date.parse(h.hour), f = num(h.formula_scored_usd), m = num(h.minutes);
     soFarOf.set(h.cond, (soFarOf.get(h.cond) ?? 0) + f);
     const x = perHour.get(t) ?? { f: 0, m: 0 };
     x.f += f; x.m = Math.max(x.m, m);                                     // a minute is one row per market: the hour's minutes are its fullest market's
@@ -366,11 +395,10 @@ export function lpRewardEstimate(input: { rewardDays: LpLiveRewardDayRow[]; hour
   const recorded = hs.reduce((a, [, x]) => a + x.m, 0);
   let rf = 0, rm = 0;
   for (const [, x] of hs) { if (rm >= LP_EST_RECENT_MINUTES) break; rf += x.f; rm += x.m; }
-  const pastFormula = [...days.values()].reduce((a, d) => a + d.formula, 0);
   const rates = {
     recent: rm > 0 ? rf / rm : null,
     today: recorded > 0 ? soFar / recorded : null,
-    days: days.size ? pastFormula / days.size / 1440 : null,
+    days: R.pastDays ? R.pastFormula / R.pastDays / 1440 : null,
   };
   const known = [rates.recent, rates.today, rates.days].filter((x): x is number => x !== null);
   const restLow = known.length ? Math.min(...known) * minutesLeft : 0, restHigh = known.length ? Math.max(...known) * minutesLeft : 0;
@@ -394,7 +422,7 @@ export function lpRewardEstimate(input: { rewardDays: LpLiveRewardDayRow[]; hour
   for (const h of input.hours) {
     const t = Date.parse(h.hour);
     if (!(t <= input.nowMs) || readDays.has(iso(Math.floor(t / DAY) * DAY).slice(0, 10))) continue;
-    unread.set(h.cond, (unread.get(h.cond) ?? 0) + num(h.formula_usd));
+    unread.set(h.cond, (unread.get(h.cond) ?? 0) + num(h.formula_scored_usd));
   }
   const markets: Record<string, { r: number; unreadFormulaUsd: number; estUsd: number }> = {};
   for (const c of [...unread.keys()].sort()) {
@@ -402,12 +430,11 @@ export function lpRewardEstimate(input: { rewardDays: LpLiveRewardDayRow[]; hour
     markets[c] = { r: r6(r), unreadFormulaUsd: r6(f), estUsd: r6(f * r) };
   }
   const r6n = (x: number | null) => (x === null ? null : r6(x));
-  const all = band(mu);
   return {
-    day: today, minutesLeft,
+    day: iso(dayStart).slice(0, 10), minutesLeft,
     soFar: { formulaUsd: r6(soFar), lowUsd: r6(soLow), highUsd: r6(soHigh) },
     fullDay: { formulaLowUsd: r6(soFar + restLow), formulaHighUsd: r6(soFar + restHigh), lowUsd: r6(dayLow), highUsd: r6(dayHigh) },
-    r: { point: r6(Math.exp(mu)), low: r6(all.low), high: r6(all.high), days: n, basis: n ? "live" as const : "prior" as const },
+    r: { point: R.point, low: R.low, high: R.high, days: R.days, basis: R.basis },
     rates: { recent: r6n(rates.recent), today: r6n(rates.today), days: r6n(rates.days) },
     markets,
   };

@@ -494,3 +494,24 @@ run it beside the path this file froze, minute by minute, and find every decisio
 
 **What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
 of the Edge deploy that carries it, as deviation 9.
+
+## Addendum 10 (2026-10-10, about 01:00 UTC): deviation 10, live-prep's reward check every minute
+
+This addendum was written inside the window, before the deploy it records. Its readout runs at or after 2026-10-17
+00:10 UTC.
+
+**Deviation 10 is live-prep's reward check** (Davies, 2026-10-10: "策略每分钟读的时候都检查奖励配置，避免再次出现这种白挂了并且承担风险并且没奖励的事情";
+live-prep's pre-registration, Addendum 9, gives the rule and the evidence). It changes the shared `pm_live.ts`: after
+it, `pm_live.ts` sha256 `e76d0234d1b3454d0a4e5b0cdbe7fc1c43f92425626a0d593b91f31035cc6809`, where Addendum 9 above named `7e3e8c95…09a3`. The change: three pure functions
+(`rewardConfigOf`, `lpRewardVerdict`, `scoringStreak`), an option of live-prep's (`PmLpOptions.rewardCheck`), and the
+turn's use of them, reached only through that option. The venue client gains one keyless read
+(`GET /rewards/markets/{condition_id}`) that only live-prep's turn makes. `0111_pm_lp_reward_check.sql` changes
+live-prep's minutes table and its live-hours view alone.
+
+**Mid-pool is unchanged.** Its instance sets no `lp` and so no `rewardCheck`: its turns read no programme, its minutes
+are scored on its selection's programme as before, and its tables and CHECKs are untouched. No decision of mid-pool
+changes: `agents/pm_mid_formula.test.ts` and `agents/pm_payouts.test.ts` run it beside the path this file froze, minute
+by minute, and find every decision the same.
+
+**What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
+of the Edge deploy that carries it, as deviation 10.

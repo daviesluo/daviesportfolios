@@ -136,8 +136,11 @@ describe('the live-prep pre-registration', () => {
     const add7 = DOC.slice(DOC.indexOf('## Addendum 7'));
     expect(add7).toContain('> 加上，但你研究下这个最多买的数值最优的设定后再加，并且以持仓比例来算不是硬数值');
     expect(add7).toContain('`backtests/rwc_opt/results/expensive_limit.txt`');
-    const named = /`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add7)?.[1];
-    expect(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex')).toBe(named);
+    // The bytes it named were the instance until Addendum 9 (the reward check), which names what it changed from.
+    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add7)?.[1]).toBe('98c060072ebac964df345930122a045a06ec1191f57b094e2dfead928565762c');
+    const add9 = DOC.slice(DOC.indexOf('## Addendum 9'));
+    expect(add9).toContain('`98c06007…762c`');
+    expect(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex')).toBe(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add9)?.[1]);
     const lp = src('supabase/functions/agents/pm_lp.ts');
     expect(lp).toContain('export const PM_LP_NEAR_CERTAIN = { minPrice: 0.95, share: 0.08 } as const;');
     expect(lp).toContain('else if (nearCertainBuyOk(bYes, N, held.yes, q.m, capital))');

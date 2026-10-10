@@ -271,6 +271,9 @@ Deno.test("pmOrderCall reaches only its routes: every other path, method, host o
     ["POST", "https://gamma-api.polymarket.com/markets/keyset"], ["GET", "https://relayer-v2.polymarket.com/submit"], ["GET", "not a url"],
     ["POST", "https://clob.polymarket.com/orders-scoring"], ["GET", "https://clob.polymarket.com/rewards/user/markets"], ["POST", "https://clob.polymarket.com/order-scoring"],
     ["GET", "https://clob.polymarket.com/rebates/current/extra"], ["DELETE", "https://clob.polymarket.com/rewards/user"],
+    // One market's reward programme takes a condition id and nothing else (2026-10-10).
+    ["GET", "https://clob.polymarket.com/rewards/markets/0xabc"], ["GET", `https://clob.polymarket.com/rewards/markets/0x${"a".repeat(64)}/x`],
+    ["GET", "https://clob.polymarket.com/rewards/markets/sampling"], ["POST", `https://clob.polymarket.com/rewards/markets/0x${"a".repeat(64)}`],
   ] as Array<["GET" | "POST" | "DELETE", string]>) {
     const r = await withRegion("eu-west-1", () => pmOrderCall(method, url, method === "GET" ? undefined : "{}", o));
     assertEquals(r.refused, "route", `${method} ${url}`);
@@ -282,7 +285,7 @@ Deno.test("pmOrderCall reaches only its routes: every other path, method, host o
   // The reads, each with whether it carries the account's L2 headers: the market's, the geoblock and the maker rebates
   // keyless; the account's (closed-only, balances, its orders and trades, order scoring, its earnings) signed.
   assertEquals(PM_ORDER_ROUTES.filter((r) => r.method === "GET").map((r) => `${r.url} ${r.l2 ? "L2" : "-"}`), [
-    "https://clob.polymarket.com/book -", "https://clob.polymarket.com/rewards/markets/current -", "https://gamma-api.polymarket.com/markets/keyset -",
+    "https://clob.polymarket.com/book -", "https://clob.polymarket.com/rewards/markets/current -", "https://clob.polymarket.com/rewards/markets/{id} -", "https://gamma-api.polymarket.com/markets/keyset -",
     "https://polymarket.com/api/geoblock -", "https://clob.polymarket.com/rebates/current -",
     "https://clob.polymarket.com/auth/ban-status/closed-only L2", "https://clob.polymarket.com/balance-allowance L2", "https://clob.polymarket.com/data/order/{id} L2",
     "https://clob.polymarket.com/data/trades L2", "https://clob.polymarket.com/order-scoring L2", "https://clob.polymarket.com/rewards/user L2",
@@ -314,6 +317,7 @@ Deno.test("a GET goes out as a GET, follows no redirect, carries L2 headers only
   await v.userEarnings("2026-10-01", true, "");
   await v.userEarningsTotal("2026-10-01", true);
   await v.rebates("2026-10-01", maker);
+  await v.rewardMarket(c1);
   assertEquals(seen.map((s) => [s.method, s.redirect]).every(([m, r]) => m === "GET" && r === "manual"), true);
   assertEquals(seen.map((s) => s.url), [
     "https://polymarket.com/api/geoblock",
@@ -332,9 +336,10 @@ Deno.test("a GET goes out as a GET, follows no redirect, carries L2 headers only
     "https://clob.polymarket.com/rewards/user?date=2026-10-01&signature_type=1&sponsored=true",
     "https://clob.polymarket.com/rewards/user/total?date=2026-10-01&signature_type=1&sponsored=true",
     `https://clob.polymarket.com/rebates/current?date=2026-10-01&maker_address=${maker}`,
+    `https://clob.polymarket.com/rewards/markets/${c1}`,
   ]);
   const l2 = seen.map((s) => Object.keys(s.headers).some((k) => k.startsWith("POLY_")));
-  assertEquals(l2, [false, false, true, true, true, true, false, false, false, true, true, true, true, true, true, false]);
+  assertEquals(l2, [false, false, true, true, true, true, false, false, false, true, true, true, true, true, true, false, false]);
   const bal = seen[2].headers;
   assertEquals([bal.POLY_ADDRESS, bal.POLY_TIMESTAMP], [TEST_ADDRESS, "1790000000"]);
   assertEquals(bal.POLY_SIGNATURE, await polyHmacSignature(btoa("PLANTED-L2-SECRET-32-BYTES-LONG!"), 1790000000, "GET", "/balance-allowance"));

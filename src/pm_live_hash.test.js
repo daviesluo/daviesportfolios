@@ -10,6 +10,7 @@
 //   8920e0c2…  live-prep's Addendum 6, mid-pool's Addendum 7 (live-prep's 12,000 POSTs a day, 2026-10-09)
 //   749bfcdb…  live-prep's Addendum 7, mid-pool's Addendum 8 (the rule's input carries the path's capital, 2026-10-09)
 //   7e3e8c95…  live-prep's Addendum 8, mid-pool's Addendum 9 (live-prep's cap follows its equity, 2026-10-09)
+//   (Addendum 9's)  live-prep's Addendum 9, mid-pool's Addendum 10 (live-prep's reward check every minute, 2026-10-10)
 import { describe, expect, it } from 'vitest';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -35,13 +36,16 @@ const namedPath = (text) => /`pm_live\.ts` sha256\s+`([0-9a-f]{64})`/.exec(text)
 const A208 = 'a208878b0f3b3c70fccee0fef34127ff28fa8fbd96c857e507bb494a88ed2703';
 const A892 = '8920e0c25306b85784a9255840bb2144045a78404020370a0d3e83ec4100466a';
 const A749 = '749bfcdb2b9170ddc455f18c4a5b691c89450c3bd9c8fd9784ada3d9ef2def09';
+const A7E3 = '7e3e8c95823fa9ba3b8b7ca067aa745f41bde5340ed5686b661b4572b31709a3';
+/** The pm_lp.ts live-prep's Addendum 7 named (the near-certain limit), its instance until Addendum 9. */
+const LP_A7 = '98c060072ebac964df345930122a045a06ec1191f57b094e2dfead928565762c';
 
 describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", () => {
-  it("live-prep's latest addendum (8) and mid-pool's (9) name today's pm_live.ts", () => {
-    expect(lastNumber(LP)).toBe(8);
-    expect(lastNumber(MID)).toBe(9);
-    expect(namedPath(addendum(LP, 8))).toBe(sha);
-    expect(namedPath(addendum(MID, 9))).toBe(sha);
+  it("live-prep's latest addendum (9) and mid-pool's (10) name today's pm_live.ts", () => {
+    expect(lastNumber(LP)).toBe(9);
+    expect(lastNumber(MID)).toBe(10);
+    expect(namedPath(addendum(LP, 9))).toBe(sha);
+    expect(namedPath(addendum(MID, 10))).toBe(sha);
   });
 
   it('each addendum of the chain names what it changed from', () => {
@@ -64,6 +68,11 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     expect(addendum(LP, 8)).toContain('`749bfcdb…ef09`');
     expect(addendum(MID, 9)).toContain('`749bfcdb…ef09`');
     expect(addendum(MID, 9)).toContain('deviation 9');
+    expect(namedPath(addendum(LP, 8))).toBe(A7E3);
+    expect(namedPath(addendum(MID, 9))).toBe(A7E3);
+    expect(addendum(LP, 9)).toContain('`7e3e8c95…09a3`');
+    expect(addendum(MID, 10)).toContain('`7e3e8c95…09a3`');
+    expect(addendum(MID, 10)).toContain('deviation 10');
   });
 
   it("live-prep's Addendum 5 and mid-pool's 6 name every change of the go-live audit, and the dry-run decisions unchanged", () => {
@@ -90,11 +99,12 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     expect(addendum(LP, 7)).toMatch(/dry-run decision/i);
     expect(addendum(MID, 8)).toContain('**Mid-pool is unchanged.**');
     const src = read(PATH), lp = read('supabase/functions/agents/pm_lp.ts');
-    expect(src.match(/rule\(\{ market: m, book: b, held, own, capital: lim\.capTotal \}\)/g)?.length).toBe(2);
+    // Two calls of the rule, each given the capital: a quoted market's (on the programme its reward check read, Addendum
+    // 9) and a carried one's.
+    expect(src.match(/rule\(\{ market(: m)?, book: b, held, own, capital: lim\.capTotal \}\)/g)?.length).toBe(2);
     expect(lp).toContain('export const PM_LP_NEAR_CERTAIN = { minPrice: 0.95, share: 0.08 } as const;');
-    // The pm_lp.ts the addendum names is today's.
-    const lpSha = crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex');
-    expect(/`pm_lp\.ts` sha256 `([0-9a-f]{64})`/.exec(addendum(LP, 7))?.[1]).toBe(lpSha);
+    // The pm_lp.ts the addendum names, the instance until Addendum 9.
+    expect(/`pm_lp\.ts` sha256 `([0-9a-f]{64})`/.exec(addendum(LP, 7))?.[1]).toBe(LP_A7);
   });
 
   it('the code and the migration carry what the addenda name', () => {
@@ -132,6 +142,7 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     expect(src).toContain('export const PM_LP_CAP_CEILING_USD = 1000;');
     expect(src).toContain('lim.capTotal = lpCap.capTotal;');
     // The cap is set before the rule is asked, so Addendum 7's limit reads the equity's cap.
+    expect(src.indexOf('lim.capTotal = lpCap.capTotal;')).toBeLessThan(src.indexOf('rule({ market, book: b, held, own, capital: lim.capTotal })'));
     expect(src.indexOf('lim.capTotal = lpCap.capTotal;')).toBeLessThan(src.indexOf('rule({ market: m, book: b, held, own, capital: lim.capTotal })'));
     const mig = read('supabase/migrations/0106_pm_lp_reinvest.sql');
     expect(mig).toContain('check (cap_ceiling_usd > 0 and cap_ceiling_usd <= 1000)');
@@ -139,5 +150,37 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     // It writes live-prep's config alone, and of it the one column.
     expect(mig.replace(/--[^\n]*/g, '')).not.toMatch(/pm_live_config|pm_mid_config|dry_run|live_confirmed_at|cap_total_usd|updated_at/);
     expect(addendum(LP, 8)).toContain(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/migrations/0106_pm_lp_reinvest.sql'))).digest('hex'));
+  });
+
+  it("live-prep's Addendum 9 and mid-pool's 10 record the reward check every minute, in Davies' word, live-prep's alone", () => {
+    const words = '策略每分钟读的时候都检查奖励配置，避免再次出现这种白挂了并且承担风险并且没奖励的事情';
+    for (const doc of [addendum(LP, 9), addendum(MID, 10)]) {
+      expect(doc).toContain(words);
+      expect(doc).toContain('`0111_pm_lp_reward_check.sql`');
+      expect(doc).toContain('`lpRewardVerdict`');
+    }
+    expect(addendum(LP, 9)).toContain('`docs/agents/backtests/lpcfg/`');
+    expect(addendum(MID, 10)).toContain('**Mid-pool is unchanged.**');
+    const src = read(PATH), lp = read('supabase/functions/agents/pm_lp.ts');
+    expect(src).toContain('export function lpRewardVerdict(');
+    expect(src).toContain('export function rewardConfigOf(');
+    expect(src).toContain('export function scoringStreak(');
+    expect(src).toContain('const rc = inst.lp?.rewardCheck;');
+    // The check reads before the minute's formula, and the formula and the backstop before the quotes.
+    expect(src.indexOf('const rc = inst.lp?.rewardCheck;')).toBeLessThan(src.indexOf('const f = minuteFormula({ rate, v, minSize, levels: b.levels, inBook, quotes });'));
+    expect(src.indexOf('backstop.dropped[m.cond] = { at: nowIso, why };')).toBeLessThan(src.indexOf('rule({ market, book: b, held, own, capital: lim.capTotal })'));
+    expect(lp).toContain('export const PM_LP_REWARD_CHECK = { staleMs: 5 * 60e3, backstopMinutes: 3 } as const;');
+    expect(lp).toContain('rewardCheck: { ...PM_LP_REWARD_CHECK },');
+    // The instance and the migration are the bytes Addendum 9 names; the instance changed from Addendum 7's.
+    const lpSha = crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex');
+    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(addendum(LP, 9))?.[1]).toBe(lpSha);
+    expect(addendum(LP, 9)).toContain('`98c06007…762c`');
+    const mig = read('supabase/migrations/0111_pm_lp_reward_check.sql');
+    expect(addendum(LP, 9)).toContain(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/migrations/0111_pm_lp_reward_check.sql'))).digest('hex'));
+    // It touches live-prep's minutes and its live-hours view alone, and of the minutes only the rate's CHECK.
+    const body = mig.replace(/--[^\n]*/g, '');
+    expect([...body.matchAll(/public\.([a-z_]+)/g)].map((m) => m[1]).filter((t, i, a) => a.indexOf(t) === i).sort()).toEqual(['pm_lp_live_hours', 'pm_lp_minutes']);
+    expect(body).toContain('add constraint pm_lp_minutes_rate_check check (rate >= 0)');
+    expect(body).not.toMatch(/pm_live_|pm_mid_|insert|update|delete/);
   });
 });

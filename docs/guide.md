@@ -395,14 +395,15 @@ places stay when the number is not whole.
   records show (none so far: its orders only ever rest, and Polymarket
   charges only the side that takes). Tap it for a page of its own: the same
   scoreboard, then STATUS: R (ACTUAL), what Polymarket paid over what the
-  reward formula gave on the days a payout has been read (a dash until the
-  first); the markets quoting today; the positions still held; and REWARDS
+  reward formula gave in the minutes Polymarket itself confirmed our orders
+  scoring, on the days a payout has been read (a dash until the first); the markets quoting today; the positions still held; and REWARDS
   TODAY (EST.), in green, what today's quotes have earned since midnight
-  UTC as a range from low to best. It moves every minute, starts again
+  UTC as a range from low to best, counting only the minutes Polymarket
+  confirmed them scoring. It moves every minute, starts again
   from nothing at midnight UTC, and its band of R comes from the days
   Polymarket has paid (until the first, from the studies' 0.2 to 1), so
   each payout read narrows it by itself. Then DAYS,
-  each of those days with the formula, what was paid, R and the rebates;
+  each of those days with the formula in its scored minutes, what was paid, R and the rebates;
   and QUOTES, the TESTING pages' table less its share column (each
   market with an order resting now or a token held, the day's first, then
   any held from an earlier day: its pool, the prices its live orders rest
@@ -438,7 +439,12 @@ places stay when the number is not whole.
   what it holds of that side plus the order stays within 8 % of its
   capital (so the limit grows with the capital), stays out of a market for an hour after its
   price jumps 15 cents, leaves out weather markets, and keeps selling what
-  it still holds in a market it no longer picks. It stops for good if its
+  it still holds in a market it no longer picks. Every minute, before it
+  places anything, it checks each market's reward programme again: a
+  market whose rewards have ended, dropped under $10 a day or now need
+  bigger orders than it places stops buying that minute (it keeps selling
+  what it holds), and one where Polymarket says three minutes running that
+  its orders are not earning stops buying for the rest of the day. It stops for good if its
   orders' result plus what Polymarket paid falls to −$75. Until Davies
   says go it only writes down what it would send, deciding as if it held
   what this row's paper holds, and this row fills those orders on paper

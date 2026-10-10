@@ -1,0 +1,27 @@
+{
+ "study": "LPCFG (2026-10-10): live-prep's live minutes of 2026-10-09 replayed under its reward check and backstop (the pre-registration's Addendum 9), on each market's programme through the day from pm-rec's 15-minute listing reads",
+ "write_up": "docs/agents/reviews/2026-10-04-polymarket-lp-prereg.md, Addendum 9",
+ "inputs": {
+  "data/minutes_2026-10-09.json": "sql/minutes.sql, cut out with ../rwc_opt/scripts/grab_payload.py",
+  "data/fills_2026-10-09.json": "sql/fills.sql, cut out the same way",
+  "data/config_timeline.json": "scripts/timeline.py on the pm-rec universe objects named by sql/universe_urls.sql, downloaded and sha256-checked by ../lpresel6/scripts/fetch.py (the objects and the reply are not committed)",
+  "data/readout_2026-10-09.json (once written)": "sql/readout.sql"
+ },
+ "run": [
+  "cd docs/agents/backtests/lpcfg",
+  "python3 -I scripts/timeline.py <dir of universe_*.gz> > data/config_timeline.json",
+  "python3 -I scripts/replay.py data/minutes_2026-10-09.json data/fills_2026-10-09.json data/config_timeline.json [data/readout_2026-10-09.json] > results/replay.txt"
+ ],
+ "sha256": {
+  "data/config_timeline.json": "fc7845f14a4538b816887605c88786ed79da80065329128864b8e35a1bfc3b88",
+  "data/fills_2026-10-09.json": "2768fe358edba8c17697665ddc5220832f2707109e19b8c5c7c8f605c66515ac",
+  "data/minutes_2026-10-09.json": "0fd7b52f4323b07a13234e31f1517a43085da47344fbba844a2d38b3485578dc",
+  "results/replay.txt": "0840b077b5a3bb79594bed03d8296fb00d3135a8690e772affee0f23f4b8f2f2",
+  "scripts/replay.py": "2ad274d8106e761f99235020ece2c36d3d10421d5828fcfa8aebe5b6ecda7c3e",
+  "scripts/timeline.py": "3e7a55e2581c1efeac26784eba3da7c875c15ab37bb838b77a4c389f3262de09",
+  "sql/fills.sql": "d78bd4369963eed679ffb869187f387f63e5f940a6fd8b58f2a9037015953335",
+  "sql/minutes.sql": "42a03294b97d8fb8dbde858ad0b0a91b48202c913b3b3dfe6cec964d22202081",
+  "sql/readout.sql": "c35ef3d797d381d5c6c09b33a13f2744935af80c0a31739902ab673263089c7d",
+  "sql/universe_urls.sql": "0cdbf075262571f32529c3bce4b8b7299f9920a3fa93bef98784cc346e60cfdc"
+ }
+}

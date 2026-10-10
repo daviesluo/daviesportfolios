@@ -756,3 +756,124 @@ pass on it unchanged.
   what is held rests.
 - A fill still settling holds a raise until it is CONFIRMED.
 - `src/pm_live_hash.test.js`: the bytes and the chain of addenda.
+
+## Addendum 9 (2026-10-10, about 01:00 UTC): the reward programme checked every minute
+
+This addendum was written while live-prep is live and before the deploy it records. Under "The window", a change to
+`pm_live.ts` deployed after d1 is a deviation an addendum records. Davies, 2026-10-10, verbatim:
+
+> 策略每分钟读的时候都检查奖励配置，避免再次出现这种白挂了并且承担风险并且没奖励的事情
+
+In English: on every minute's read, check the reward programme, so that we never again rest orders that carry the risk
+and earn nothing.
+
+**The defect.** The path read each market's reward programme (daily rate, maximum spread, minimum size) once, at the
+00:00 UTC selection, and used it all day, to quote and to score each minute's formula (`minuteFormula`). Polymarket
+changes programmes during the day, and on 2026-10-09, the first live day, it changed most of the ten. Each market's
+programme through the day, as pm-rec's listing reads saw it every 15 minutes (`docs/agents/backtests/lpcfg/`,
+`data/config_timeline.json`):
+
+- `0x045fdf4b…` and `0xa326c49f…` ("Gemini 4.0 / Argon released by October 16"): selected at 200 a day, minimum 20;
+  from 04:59 and 05:53, 50 a day at a minimum of 50. Our orders are 20 shares.
+- `0xecc209a6…` (Iran, Trump voicemail): 200 a day; from 05:18, 20 a day at a minimum of 50; gone from the listing
+  from 16:03.
+- `0xf0503539…` ("Gemini Argon released on October 10", neg-risk): listed at 98 to 318 a day until 03:53, gone from
+  04:08. Not one of its 1,182 two-sided minutes read scoring, yet it carried $84.14 of the day's $153.90 of formula.
+- `0xfbd3437c…` (100 Thieves): minimum 50 from 05:49, then 1 to 28 a day, in and out of the listing, gone from 18:49.
+- `0x9235351e…`: spread 4.5 → 6.5 from 10:11, 50 → 3 a day from 11:56. `0xeee73848…`: 50 → 5 a day from 14:00.
+  `0xf6f3f159…`: minimum 50 from 23:19. `0x5b3350e2…`: 3 or 40 a day by turns all day (the CLOB's own read of it gave
+  40 at 00:20 on 10-10 and 3 at 00:40). `0x5fec6675…`: 18 to 44 a day, never under $10.
+
+The formula kept counting the morning's programme, and the path kept quoting markets that no longer paid us.
+
+**What changes** (`PmLpOptions.rewardCheck`, set by live-prep's instance alone, `PM_LP_REWARD_CHECK`):
+
+- **The check, every turn, before anything is posted or kept.** For every market quoted today the turn reads the CLOB's
+  own programme (`GET /rewards/markets/{condition_id}`, keyless, a new route of the order path's client) and the
+  sponsored listing (`/rewards/markets/current?sponsored=true`, read whole as the selection reads it), all at once. The
+  rate is the larger of the native rates in force that UTC day and the sponsored listing's row, as `rewardListing`
+  keeps it (`rewardConfigOf`). A market may take entries only while that programme keeps it in the universe the
+  selection used (`inUniverse`: $10 a day or more, a maximum spread, N = max(minimum, 5) ≤ 20) (`lpRewardVerdict`).
+- **A market that fails it** takes no entry that turn: its buys are withheld and cancelled (gate `reward`), and it is
+  worked as a carried market, the sells of what it holds resting at the rule's prices on its selection's programme.
+  The minute records why (`detail.lp.out`, `detail.reward`, and the condition text, so a `condition` event when it
+  changes). It is judged again the next minute, so a programme that comes back is quoted again.
+- **The formula uses the programme as read**: rate, spread and minimum, so `formula_usd` is what the programme pays (an
+  ended programme scores 0; a minimum over our size scores 0). The rule quotes on the read spread and minimum too.
+- **A read that fails** is never an end. The last good read stands for five minutes (`staleMs`), quietly; after that
+  the market takes no entry until a read succeeds, and the turn says so in its errors.
+- **The backstop: Polymarket's own verdict.** A live minute in which both of a market's sides read `scoring: false`
+  while the formula scores both (`qBid`, `qAsk` > 0) adds one; either side scoring starts the count again; a minute
+  that says neither leaves it (`scoringStreak`). At **M = 3** the market takes no entry for the rest of the UTC day.
+- **R and today's estimate rest on the minutes Polymarket confirmed scoring** (`lpRewardEstimate`, `lpLiveSummary`):
+  R is calibrated on the readout's `formula_scored_usd`, today is estimated from the scored formula by hour (0111 adds
+  it to `pm_lp_live_hours`), and LIVE's R (ACTUAL) and DAYS read paid over the scored formula, the whole formula kept
+  beside it (`formulaAllUsd`). The prior band (0.2 to 1) and its weight (two days) are unchanged: one live day does not
+  say they are wrong. R itself is one exported function, `lpLiveR`, which the estimate calls, so anything else priced
+  at the live R can read the same figure.
+
+**Which read, and why the CLOB's.** Measured 2026-10-10 00:25–00:35 UTC on 109 markets (the 20 of 10-09 and 10-10, the
+sponsored listing's 30, 60 more of $10 and over at random): the CLOB's per-market programme agreed with the listing's
+native rate on 98, and the other 11 were rates that move minute to minute; Gamma's (`clobRewards`, one batched read)
+disagreed with the listing on 22, and lags it (`0x3090f7aa…`: Gamma 238, the 00:00 figure, the CLOB 233; `0x1a01bf78…`
+Gamma 1,000, the CLOB 923). Gamma is cached five minutes (`max-age=300`), the CLOB's read five seconds. All three agreed
+on every minimum and spread, and neither the CLOB's per-market read nor Gamma carries a sponsored rate. So the check
+reads the CLOB: one GET a quoted market (ten at most) and one of the sponsored listing, at once, within the turn's
+deadline.
+
+**M, from the record** (`results/replay.txt`). On the five markets whose programme kept paying (`0x9235351e…`,
+`0x5b3350e2…`, `0x5fec6675…`, `0xeee73848…`, `0xf6f3f159…`) the longest run of the backstop's minutes was 2: M = 1
+fires once (`0x5fec6675…` at 21:40), M = 2 and M = 3 never. M = 3 is the shortest that never fires there, with a
+minute's margin; **0 false positives at M = 3**. It fires on `0xecc209a6…` at 03:34 (before the listing showed its
+change), `0x045fdf4b…` at 04:40 (before the listing's 04:59 read) and `0xfbd3437c…` at 15:50.
+
+**The replay of 10-09** (`scripts/replay.py`; the programme known only at pm-rec's 15-minute reads, so the live check,
+every minute, would stop entries up to 15 minutes sooner than here):
+
+| | recorded (selection's programme) | the fixed rules (M = 3) |
+|---|---|---|
+| formula, the day | $153.90 | $7.56 |
+| formula over minutes both sides read scoring | $19.80 | $7.15 |
+| market-minutes in markets that no longer paid | — | 8,150 of 13,362 (8,043 by the check, 107 by the backstop) |
+| of them two-sided (a buy resting on each side) | — | 5,597 |
+| buys filled in those minutes | — | 29 fills, 541.2 shares, $222.12 |
+| sells filled in those minutes | — | 20 fills, 350.0 shares, $220.90 |
+| R, on the $6.53 paid (the pUSD rise at 00:00) | 0.042 (whole), 0.330 (scored) | 0.864 (whole), 0.913 (scored) |
+
+The 29 buys are inventory the fixed rules would not have taken: no buy rests in a market they have out. Where the
+programme held, the fixed formula is the recorded one; the $0.40 of it in minutes whose spread had changed
+(`0x9235351e…` from 10:11) keeps the recorded score and is approximate. `0x5b3350e2…` counts as out in the 852
+minutes the listing read it at 3 a day; what Polymarket paid for it is the readout's, below.
+
+**Replacement is not built.** A slot freed during the day stays empty. Refilling it would run the selection again,
+which reads the whole listing (38 pages), Gamma and about 1,400 books, inside a turn that also quotes; and the paper
+layer and the page take a day's markets as chosen at 00:00. It is left for Davies.
+
+**Deploy.** `0111_pm_lp_reward_check.sql` lets a live-prep minute record a rate under $10 (0091's CHECK `rate >= 10`
+becomes `rate >= 0`) and adds the scored columns to `pm_lp_live_hours`. It must apply with or before the Edge deploy:
+until it runs, a minute holding a market whose programme fell under $10 fails to record.
+
+**The code it deploys:** `pm_live.ts` sha256 `e76d0234d1b3454d0a4e5b0cdbe7fc1c43f92425626a0d593b91f31035cc6809`, where Addendum 8 named `7e3e8c95…09a3`; `pm_lp.ts` sha256
+`c7e3a7ec271b8e798dcc756c3f9d83da2421ddee03f3fede6e3e66a541d173c7`, where Addendum 7 named `98c06007…762c`; `0111_pm_lp_reward_check.sql` sha256 `647cf2ecdfc103eef3aa26c72ca58bc2edb64a7afd4fd3feec06a4a458aab354`;
+`_shared/polymarket_orders.ts` (the route and `rewardMarket`) and `agents/pm_lp_live_view.ts` (`lpRewardEstimate` and
+`lpLiveSummary` on the scored formula). `pm_prep.ts`, 0091, `lp_check.sql` and `lp_readout.sql` are unchanged.
+
+**In a turn:** dry-run and live alike, the check (it is the rule's); live only, the backstop (a dry-run reads no
+scoring). A market that passes is quoted exactly as before on the programme as read; mini-pool and mid-pool set no
+`rewardCheck` and read no programme (`pm_instance.test.ts`, `pm_mid_formula.test.ts` and `pm_payouts.test.ts` pass on it
+unchanged), and every earlier test of live-prep passes unchanged.
+
+**Pinned** (`agents/pm_lp.test.ts`, `agents/pm_lp_live_view.test.ts`; the four turn pins fail with the check switched
+off, and the estimator's on the code before):
+
+- `rewardConfigOf` on the CLOB's reply of 10-10; `lpRewardVerdict` by hand; `scoringStreak` counts, resets and holds.
+- Armed: a minimum past N seen in minute t stops the market's entries in minute t itself (its buy cancelled, gate
+  `reward`, none sent) while its sell rests and the other markets quote on; the formula follows a rate change (30 / 12
+  of the minute before); an ended programme and a rate under $10 stop it too; back in the universe it buys again.
+- Dry-run: the same check stops the paper's buys the minute it is read.
+- A failed read keeps the last good programme five minutes with no error, never as an end; the sixth minute stops
+  entries and says so; a read again decides.
+- The backstop fires at the third live minute both sides read not scoring and not at the second, holds for the day,
+  and never fires while Polymarket reads us scoring.
+- R and today's estimate on the scored formula (10-09's 6.53 over 19.80, not over 153.90).
+- `src/pm_live_hash.test.js`, `src/pm_lp_prereg.test.js`: the bytes and the chain of addenda.

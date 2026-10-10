@@ -494,7 +494,11 @@ that follow from that evidence, in short:
   its instance sets (a sell of what is held before a buy, 5N, x2's pause,
   exits from carried markets, no end-date horizon, no weather market, ten
   markets and $200, $100 a market, a −$75 stop on fills plus what was paid,
-  no day stop); in dry-run it decides on its paper layer's holdings. **Live, its total cap follows its equity since
+  no day stop); in dry-run it decides on its paper layer's holdings. **Since 2026-10-10 it reads each quoted market's
+  reward programme every minute before anything rests** (Addendum 9, `0111`; Davies: "策略每分钟读的时候都检查奖励配置"): a
+  market whose programme ended, fell under $10 or now asks more than N = 20 takes no entry that minute (its sells rest
+  on), three live minutes of Polymarket reading neither side scoring take it out for the day, and R and today's estimate
+  rest on the formula Polymarket scored. **Live, its total cap follows its equity since
   `0106`** (Davies, 2026-10-09: payouts and deposits used at once; its pre-registration's Addendum 8): every turn
   floor(pUSD + held at cost + unredeemed − $75 − $5), at most $1,000, down at once, up only on two agreeing readings with
   no fill settling, never on an unread balance (`lpCapital`); `reinvest = false` on its config puts the fixed $320 back. Its

@@ -26,7 +26,9 @@
 //      with a book-quality rule (mini-pool's, since 2026-10-04) ranks the books that pass it first.
 //   2. What the venue says: each market's book (today's, and any held from an earlier day), the geoblock (a good answer
 //      kept for ten minutes), the account's closed-only flag and what it holds; in live mode every open order read back
-//      by its hash and its trades until CONFIRMED or FAILED.
+//      by its hash and its trades until CONFIRMED or FAILED. Live-prep (since 2026-10-10, `PmLpOptions.rewardCheck`) also
+//      reads the reward programme of each market it quotes, every turn, before anything rests: one that no longer pays
+//      takes no entry that turn, and the minute is scored on the programme as read.
 //   3. The gates (`gates`): the global pause, `live_confirmed_at` (live only), the region, the geoblock's country, the
 //      closed-only flag, Davies' Ireland attestation, the inventory read, the loss stops. While any of them stops
 //      opening, the path is close-only exactly as RW-NEXT Part 4 words it (`closeOnly`). Since 2026-10-07 the day stop
@@ -282,6 +284,16 @@ export type PmLpOptions = {
    * rewards its stop counts at R = 0.40.
    */
   paper: { fills: string; settlements: string; days: string };
+  /**
+   * Its reward check (2026-10-10, the pre-registration's Addendum 9; Davies: "策略每分钟读的时候都检查奖励配置，避免再次出现这种白挂了
+   * 并且承担风险并且没奖励的事情"): every turn, before anything is posted or kept, each market it quotes has its reward programme
+   * read again (`lpRewardVerdict`); a market whose programme ended, whose rate fell under the band's floor or whose
+   * minimum passed what it may quote takes no entry that turn and is worked as a carried market, and the minute's formula
+   * uses the programme as read. A read that fails keeps the last good one for `staleMs`, then no entry until a read
+   * succeeds. Polymarket's own verdict backs it: both sides read not scoring for `backstopMinutes` live minutes running
+   * while the formula scores both, and the market takes no entry for the rest of the UTC day (`scoringStreak`).
+   */
+  rewardCheck?: { staleMs: number; backstopMinutes: number };
 };
 /**
  * Mini-pool's book-quality rule (Addendum 6 of `reviews/2026-10-01-polymarket-live-prep-prereg.md`, 2026-10-04): books
@@ -483,6 +495,75 @@ export function lpCapital(i: LpCapitalInputs): LpCapital {
     return { capTotal: last, equityUsd: equity, targetUsd: target, basis: "held", why: "a raise waits for a second reading of the equity next turn" };
   }
   return { capTotal: Math.max(last, capOf(Math.min(equity, prevEq))), equityUsd: equity, targetUsd: target, basis: "equity", why: "the equity rose and two readings agree: the cap rises" };
+}
+
+// ------------------------------------------------------------------ live-prep's reward check (2026-10-10, Addendum 9)
+
+/**
+ * A market's reward programme as a turn read it: the CLOB's own (`/rewards/markets/{condition_id}`, the native rates in
+ * force that UTC day) beside the sponsored listing's row (`/rewards/markets/current?sponsored=true`), the rate the larger
+ * of the two as `rewardListing` keeps it; `v` and `minSize` null when the CLOB lists no programme.
+ */
+export type PmRewardNow = { rate: number; native: number; sponsored: number; v: number | null; minSize: number | null; at: string };
+
+/**
+ * The reply of GET /rewards/markets/{cond} as the programme in force on UTC day `day`: the `rate_per_day` of every
+ * `rewards_config` whose dates hold `day`, summed, and the programme's spread and minimum. An empty `data` is a market
+ * with no programme (rate 0; 0xf0503539… on 2026-10-10). Anything else, a row of another market, a rate that is not a
+ * number, is unread (null): never taken as the programme ending.
+ */
+export function rewardConfigOf(reply: unknown, cond: string, day: string): { native: number; v: number | null; minSize: number | null } | null {
+  const rows = (reply as { data?: unknown } | null)?.data;
+  if (!Array.isArray(rows)) return null;
+  if (!rows.length) return { native: 0, v: null, minSize: null };
+  const r = rows.find((x) => String((x as Record<string, unknown>)?.condition_id ?? "").toLowerCase() === cond.toLowerCase()) as Record<string, unknown> | undefined;
+  if (!r || !Array.isArray(r.rewards_config)) return null;
+  let native = 0;
+  for (const c of r.rewards_config as Array<Record<string, unknown>>) {
+    const start = typeof c?.start_date === "string" ? c.start_date.slice(0, 10) : null, end = typeof c?.end_date === "string" ? c.end_date.slice(0, 10) : null;
+    if ((start && start > day) || (end && end < day)) continue;
+    const x = Number(c?.rate_per_day);
+    if (!Number.isFinite(x) || x < 0) return null;
+    native += x;
+  }
+  const v = Number(r.rewards_max_spread), ms = Number(r.rewards_min_size);
+  return { native, v: Number.isFinite(v) && v > 0 ? v : null, minSize: Number.isFinite(ms) && ms >= 0 ? ms : null };
+}
+
+/** What the reward check says of one market this turn: whether it may take entries, why not, and the programme it used. */
+export type PmRewardVerdict = { ok: boolean; why: string | null; cfg: PmRewardNow | null; fresh: boolean };
+/**
+ * Live-prep's reward check on one market (`PmLpOptions.rewardCheck`): this turn's read, else the last good one while it is
+ * at most `staleMs` old. It may take entries only while that programme would put it in the instance's universe
+ * (`inUniverse`: a rate at or over the band's floor, a maximum spread, N within `PM_LIVE_MAX_N`); otherwise, or with no
+ * read young enough, it may not, and `why` says which.
+ */
+export function lpRewardVerdict(read: PmRewardNow | null, last: PmRewardNow | null, band: PmLiveInstance["band"], nowMs: number, staleMs: number): PmRewardVerdict {
+  const cfg = read ?? last;
+  if (!cfg) return { ok: false, why: "its reward programme has not been read: no entry until it is", cfg: null, fresh: false };
+  const fresh = !!read;
+  if (!fresh && !(nowMs - Date.parse(cfg.at) <= staleMs)) {
+    return { ok: false, why: `its reward programme has not been read since ${cfg.at}, over ${Math.round(staleMs / M)} minutes: no entry until a read succeeds`, cfg, fresh };
+  }
+  const r = { rate: cfg.rate, v: cfg.v ?? 0, minSize: cfg.minSize ?? 0 };
+  if (inUniverse(r, band)) return { ok: true, why: null, cfg, fresh };
+  const why = !(cfg.rate > 0) ? "its reward programme has ended: the CLOB lists none for it"
+    : cfg.rate < band.floor ? `its reward rate is now ${cfg.rate} a day, under the floor of ${band.floor}`
+    : !(r.v > 0) ? "its reward programme lists no maximum spread"
+    : sizeN(r.minSize) > PM_LIVE_MAX_N ? `its reward minimum is now ${r.minSize} shares, more than the ${PM_LIVE_MAX_N} it may quote`
+    : `its reward rate is now ${cfg.rate} a day, outside the band`;
+  return { ok: false, why, cfg, fresh };
+}
+
+/**
+ * The backstop's count for one market (`PmLpOptions.rewardCheck.backstopMinutes`): a live minute in which Polymarket read
+ * both sides not scoring while the formula scored both (`qBid`, `qAsk` over 0) adds one; a minute either side read
+ * scoring starts it again; a minute that says neither (a side with no order, a read not made) leaves it as it was.
+ */
+export function scoringStreak(n: number, row: Pick<PmMinuteRow, "bid_scoring" | "ask_scoring">, f: Pick<PmMinuteFormula, "qBid" | "qAsk">): number {
+  if (row.bid_scoring === true || row.ask_scoring === true) return 0;
+  if (row.bid_scoring === false && row.ask_scoring === false && f.qBid > 0 && f.qAsk > 0) return n + 1;
+  return n;
 }
 
 /**
@@ -1704,6 +1785,60 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
     catch (e) { report.errors.push(`selection not recorded (${msg(e)})`); }
   }
 
+  // ── live-prep's reward check (2026-10-10, Addendum 9) ─────────────────────────────────────────────────────────────
+  // Before anything is posted or kept, every market it quotes today has its reward programme read again: one read of the
+  // sponsored listing (whole, as the selection reads it) and the CLOB's own programme of each market, at once. A market
+  // the check fails (`lpRewardVerdict`), or one the backstop took out today, takes no entry this turn (`lpOut`): it is
+  // worked as a carried market, its buys cancelled, the sells of what it holds resting at the rule's prices. The minute's
+  // formula uses the programme as read (`lpReward`).
+  const rc = inst.lp?.rewardCheck;
+  const lpPrevRc = (prev.lp ?? {}) as { rewards?: Record<string, PmRewardNow>; backstop?: { day?: string; streak?: Record<string, number>; dropped?: Record<string, { at: string; why: string }> } };
+  const rewardsLast: Record<string, PmRewardNow> = { ...(lpPrevRc.rewards ?? {}) };
+  const backstop = {
+    streak: { ...(lpPrevRc.backstop?.day === day ? lpPrevRc.backstop.streak ?? {} : {}) } as Record<string, number>,
+    dropped: { ...(lpPrevRc.backstop?.day === day ? lpPrevRc.backstop.dropped ?? {} : {}) } as Record<string, { at: string; why: string }>,
+  };
+  const lpReward = new Map<string, PmRewardVerdict>();
+  const lpOut = new Map<string, string>();
+  if (rc) {
+    const quoted = markets.filter((m) => m.quoting);
+    const reads = new Map<string, PmRewardNow>();
+    let unread = "";
+    if (quoted.length && !pastDeadline(deadline)) {
+      const spo = await listingPages(venue, true, deadline);
+      if (!spo.ok) unread = `the sponsored listing: ${spo.error ?? "unread"}`;
+      else {
+        const sponsored = new Map<string, number>();
+        for (const r of spo.pages.flat()) { const c = condOf(r); if (c) sponsored.set(c, Math.max(sponsored.get(c) ?? 0, rewardRate(r))); }
+        await pool(quoted, BOOK_CONCURRENCY, async (m) => {
+          if (pastDeadline(deadline)) return;
+          const r = await venue.rewardMarket(m.cond);
+          const c = r.ok ? rewardConfigOf(r.data, m.cond, day) : null;
+          if (!c) { unread ||= `${m.cond.slice(0, 10)}…: ${r.ok ? "a reply not in the documented shape" : `${r.status} ${r.error}`}`; return; }
+          const sp = sponsored.get(m.cond) ?? 0;
+          reads.set(m.cond, { rate: Math.max(c.native, sp), native: c.native, sponsored: sp, v: c.v, minSize: c.minSize, at: nowIso });
+        });
+      }
+    } else if (quoted.length) unread = "the deadline came before it was read";
+    for (const m of quoted) {
+      const v = lpRewardVerdict(reads.get(m.cond) ?? null, rewardsLast[m.cond] ?? null, inst.band, d.now, rc.staleMs);
+      if (reads.has(m.cond)) rewardsLast[m.cond] = reads.get(m.cond)!;
+      lpReward.set(m.cond, v);
+      const out = backstop.dropped[m.cond]?.why ?? v.why;
+      if (out) {
+        lpOut.set(m.cond, out);
+        conditions[m.cond] ??= `no entry: ${out}`;
+      }
+      // Said only once no read is young enough to stand: a failed read inside `staleMs` is the last good one, quietly.
+      if (!v.fresh && (!v.cfg || !(d.now - Date.parse(v.cfg.at) <= rc.staleMs))) report.errors.push(`${m.cond.slice(0, 10)}…: ${v.why}${unread ? ` (${unread})` : ""}`);
+    }
+  }
+  /** The programme a live-prep market is scored and quoted on this turn: the check's, where it has one; the selection's otherwise. */
+  const programme = (m: PmMarketRow) => {
+    const c = lpReward.get(m.cond)?.cfg;
+    return c ? { rate: c.rate, v: c.v ?? num(m.max_spread), minSize: c.minSize ?? num(m.min_size) } : { rate: num(m.reward_rate), v: num(m.max_spread), minSize: num(m.min_size) };
+  };
+
   // ── live orders read back by hash, and their trades ───────────────────────────────────────────────────────────────
   const unreadable = new Set<number>();
   const patch = async (o: PmOrderRow, p: Partial<PmOrderRow>) => {
@@ -1834,7 +1969,7 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
     const rows = resting(m.cond, mode);
     const quotes = rows.map(ownOf), inBook = mode === "live" ? quotes : [];
     inBookAtRead.set(m.cond, inBook);
-    const rate = num(m.reward_rate), v = num(m.max_spread), minSize = num(m.min_size);
+    const { rate, v, minSize } = programme(m);
     const f = minuteFormula({ rate, v, minSize, levels: b.levels, inBook, quotes });
     if (f.row && (f.row[2] === null || f.row[3] === null)) conditions[m.cond] ??= "no adjusted midpoint: a side has no level of the reward minimum";
     const sideScoring = (side: "bid" | "ask") => {
@@ -1849,6 +1984,24 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
       bid_scoring: sideScoring("bid"), ask_scoring: sideScoring("ask"), ours: f.ours, others: f.others, formula_usd: f.formula,
       pct: pct ? (pct[m.cond] ?? 0) : null, detail: { qBid: f.qBid, qAsk: f.qAsk, m: f.m, mRw: f.mRw, orders: rows.length },
     });
+    // Live-prep: the programme the minute was scored on, and the backstop. A live minute in which Polymarket read both our
+    // sides not scoring while the formula scores both adds to the market's count; at `backstopMinutes` it takes no entry
+    // for the rest of the UTC day, from this turn on.
+    const rv = lpReward.get(m.cond);
+    if (rc && rv) {
+      const row = minuteRows[minuteRows.length - 1];
+      if (mode === "live" && !lpOut.has(m.cond)) {
+        const n = scoringStreak(backstop.streak[m.cond] ?? 0, row, f);
+        backstop.streak[m.cond] = n;
+        if (n >= rc.backstopMinutes) {
+          const why = `Polymarket read neither of its sides scoring for ${n} live minutes running while the formula scored both`;
+          backstop.dropped[m.cond] = { at: nowIso, why };
+          lpOut.set(m.cond, why);
+          conditions[m.cond] = `no entry: ${why}`;
+        }
+      } else if (lpOut.has(m.cond)) delete backstop.streak[m.cond];
+      row.detail.reward = { rate: rv.cfg?.rate ?? null, native: rv.cfg?.native ?? null, sponsored: rv.cfg?.sponsored ?? null, v: rv.cfg?.v ?? null, minSize: rv.cfg?.minSize ?? null, at: rv.cfg?.at ?? null, fresh: rv.fresh, out: lpOut.get(m.cond) ?? null, streak: backstop.streak[m.cond] ?? 0 };
+    }
     report.minutes.push({ cond: m.cond, formula: f.formula, ours: f.ours, others: f.others, bid: f.bid?.price ?? null, ask: f.ask?.price ?? null });
   }
 
@@ -1980,13 +2133,17 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
       if (b) {
         const own0 = mode === "live" ? openAll.filter((o) => o.mode === "live" && o.cond === m.cond && o.state === "live").map(ownOf) : [];
         const o0 = othersLevels(b.levels, own0);
-        const row0 = summarize(o0.bids, o0.asks, num(m.max_spread), num(m.min_size));
+        const pg = programme(m);
+        const row0 = summarize(o0.bids, o0.asks, pg.v, pg.minSize);
         const mid = row0 && row0[2] !== null && row0[3] !== null ? (row0[2] + row0[3]) / 2 : null;
         paused = pauseAfterJump(pauseState, m.cond, Math.floor(d.now / M) * M, mid, inst.lp.pause);
       } else paused = (pauseState.pausedUntil[m.cond] ?? 0) > Math.floor(d.now / M) * M;
+      // A market the reward check takes out (`lpOut`) is worked as a carried one, and says why.
       lpDetail.set(m.cond, {
-        state: paused ? "paused" : !m.quoting ? "carried" : g.open ? "quote" : "close", held, n: sizeN(num(m.min_size)),
+        state: paused ? "paused" : !m.quoting || lpOut.has(m.cond) ? "carried" : g.open ? "quote" : "close", held,
+        n: sizeN(lpOut.has(m.cond) ? num(m.min_size) : programme(m).minSize),
         pausedUntil: paused ? iso(pauseState.pausedUntil[m.cond]) : null, stopTotal: lossTotal, paid,
+        ...(lpOut.has(m.cond) ? { out: lpOut.get(m.cond) } : {}),
       });
     }
     if (!b || g.cancelAll) continue;
@@ -1997,9 +2154,15 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
     let intents: PmIntent[] = [];
     // A market held from an earlier day is not quoted: RW holds what a market it left still holds. Live-prep works it
     // off instead: the rule's quote on it, close-only, so only the sells of what it holds rest, at the rule's prices.
-    if (m.quoting) {
-      try { intents = rule({ market: m, book: b, held, own, capital: lim.capTotal }); } catch (e) { report.errors.push(`${m.cond.slice(0, 10)}…: the rule threw (${msg(e)}); nothing quoted`); continue; }
+    // Live-prep quotes on the programme its reward check read (rate, spread, minimum); a market the check takes out is
+    // worked off as a carried one, on its selection's programme, and its buys are withheld for the check.
+    const out = lpOut.get(m.cond);
+    if (m.quoting && !out) {
+      const pg = programme(m);
+      const market = rc ? { ...m, reward_rate: pg.rate, max_spread: pg.v, min_size: pg.minSize } : m;
+      try { intents = rule({ market, book: b, held, own, capital: lim.capTotal }); } catch (e) { report.errors.push(`${m.cond.slice(0, 10)}…: the rule threw (${msg(e)}); nothing quoted`); continue; }
     } else if (inst.lp) {
+      if (out) for (const token of [m.yes_token, m.no_token]) withhold(slotKey({ cond: m.cond, token, side: "BUY" }), "reward", `no entry: ${out}`);
       try { intents = closeOnly(rule({ market: m, book: b, held, own, capital: lim.capTotal }), held, b); } catch (e) { report.errors.push(`${m.cond.slice(0, 10)}…: the rule threw (${msg(e)}); nothing quoted`); continue; }
     }
     const tokenOf = (o: "yes" | "no") => (o === "yes" ? m.yes_token : m.no_token);
@@ -2251,7 +2414,8 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
           // Live-prep manages the markets it carries as well (its exits rest there).
           const managed = markets.some((m) => m.cond === o.cond && (m.quoting || !!inst.lp));
           await cancel(o, withheld.get(slot) ?? (!managed ? "selection" : books.get(o.cond) ? "rule" : "book"),
-            !managed ? "the market is not in today's selection" : books.get(o.cond) ? "the rule wants nothing resting here" : "the book is unreadable or one-sided");
+            !managed ? "the market is not in today's selection" : withheld.get(slot) === "reward" ? `no entry: ${lpOut.get(o.cond)}`
+            : books.get(o.cond) ? "the rule wants nothing resting here" : "the book is unreadable or one-sided");
           continue;
         }
         const samePrice = Math.abs(Number(o.price) - w.price) < 1e-9 && Math.abs(Number(o.size) - w.size) < 1e-9;
@@ -2360,6 +2524,11 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
             lastMid: Object.fromEntries(Object.entries(pauseState.lastMid).filter(([c]) => markets.some((m) => m.cond === c))),
             pausedUntil: Object.fromEntries(Object.entries(pauseState.pausedUntil).filter(([c, u]) => u > Math.floor(d.now / M) * M && markets.some((m) => m.cond === c))),
             paid, holdings: paper ? "paper" : "account",
+            // The reward check (Addendum 9): the last good programme of each market quoted today, and the backstop's day.
+            ...(rc ? {
+              rewards: Object.fromEntries(Object.entries(rewardsLast).filter(([c]) => markets.some((m) => m.quoting && m.cond === c))),
+              backstop: { day, streak: backstop.streak, dropped: backstop.dropped },
+            } : {}),
             // Its capital (`lpCapital`): what the next turn compares a raise with, and what the page shows.
             ...(lpCap ? { capital: { ...lpCap, at: nowIso } } : {}),
           },

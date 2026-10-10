@@ -28,6 +28,12 @@
 //   - The near-certain side (Davies, 2026-10-09; Addendum 7): a BUY of a token at 0.95 or more rests only while that
 //     token's holding at the mark plus the order stays within 8 % of the path's capital (`PM_LP_NEAR_CERTAIN`).
 //   - A market held from an earlier day and not selected rests only the sells of what it holds, at the rule's prices.
+//   - The reward check (Davies, 2026-10-10: "策略每分钟读的时候都检查奖励配置，避免再次出现这种白挂了并且承担风险并且没奖励的事情";
+//     the pre-registration's Addendum 9): every turn, before anything is posted or kept, each market quoted today has its
+//     reward programme read again from the CLOB (`PM_LP_REWARD_CHECK`); one whose programme ended, whose rate fell under
+//     $10 a day or whose minimum passed N ≤ 20 takes no entry and is worked as a carried market, and the minute's formula
+//     uses the programme as read. Polymarket's own word backs it: both sides read not scoring for three live minutes
+//     running while the formula scores both, and the market takes no entry for the rest of the UTC day.
 //   - Caps: $320 in all and $100 a market (holdings at cost and resting buys); a total stop of −$75 on the fills plus what
 //     was paid (live: the readout's payouts; in dry-run: its paper's closed days at R = 0.40); no day stop.
 //
@@ -86,6 +92,16 @@ export function nearCertainBuyOk(price: number, size: number, held: number, mark
   return Math.max(0, held) * Math.max(0, mark) + size * price <= PM_LP_NEAR_CERTAIN.share * c + 1e-9;
 }
 
+/**
+ * The reward check (`PmLpOptions.rewardCheck`, Addendum 9). `staleMs`: how long the last good read of a programme stands
+ * when this turn's read fails (Davies' brief, 2026-10-10: five minutes, then no entry until a read succeeds).
+ * `backstopMinutes`: on the live record of 2026-10-09 the five markets whose programme stayed in the universe never had
+ * both sides read not scoring, while the formula scored both, for more than 2 minutes running (0xeee73848…, once), and
+ * the shortest run that never fires on them is 3 (`backtests/lpcfg/`); the markets whose programme changed ran to 465
+ * and more.
+ */
+export const PM_LP_REWARD_CHECK = { staleMs: 5 * 60e3, backstopMinutes: 3 } as const;
+
 /** Its candidate rules: no 48-hour end-date horizon (RW-E's same-day rule only), weather markets out (RW-X's x1). */
 export const PM_LP_CANDIDATE: PmCandidateRules = { endHorizon: false, excludeFeeTypes: ["weather_fees"] };
 
@@ -143,6 +159,7 @@ export const PM_LP_INSTANCE: PmLiveInstance = {
     candidate: PM_LP_CANDIDATE,
     capMarketCeiling: PM_LP_CAP_MARKET_USD,
     pause: PM_LP_PAUSE,
+    rewardCheck: { ...PM_LP_REWARD_CHECK },
     paper: { fills: "pm_lpprep_fills", settlements: "pm_lpprep_settlements", days: "pm_lpprep_days" },
   },
 };

@@ -222,7 +222,8 @@
     "formula_usd": 2,
     "actual_usd": 0.8,
     "actual_sponsored_usd": 0.2,
-    "rebate_usd": 0.05
+    "rebate_usd": 0.05,
+    "formula_scored_usd": 2
    },
    {
     "day": "2026-09-16",
@@ -232,7 +233,8 @@
     "formula_usd": 3,
     "actual_usd": 1.2,
     "actual_sponsored_usd": 0,
-    "rebate_usd": 0
+    "rebate_usd": 0,
+    "formula_scored_usd": 3
    }
   ],
   "markets": [
@@ -305,37 +307,43 @@
     "hour": "2026-09-16T23:00:00.000Z",
     "cond": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
     "minutes": 60,
-    "formula_usd": 0.5
+    "formula_usd": 0.5,
+    "formula_scored_usd": 0.5
    },
    {
     "hour": "2026-09-17T21:00:00.000Z",
     "cond": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
     "minutes": 60,
-    "formula_usd": 0.3
+    "formula_usd": 0.3,
+    "formula_scored_usd": 0.3
    },
    {
     "hour": "2026-09-17T21:00:00.000Z",
     "cond": "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
     "minutes": 60,
-    "formula_usd": 0.12
+    "formula_usd": 0.12,
+    "formula_scored_usd": 0.12
    },
    {
     "hour": "2026-09-17T22:00:00.000Z",
     "cond": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
     "minutes": 60,
-    "formula_usd": 0.3
+    "formula_usd": 0.3,
+    "formula_scored_usd": 0.3
    },
    {
     "hour": "2026-09-17T22:00:00.000Z",
     "cond": "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
     "minutes": 60,
-    "formula_usd": 0.18
+    "formula_usd": 0.18,
+    "formula_scored_usd": 0.18
    },
    {
     "hour": "2026-09-17T22:00:00.000Z",
     "cond": "0xc3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
     "minutes": 60,
-    "formula_usd": 0
+    "formula_usd": 0,
+    "formula_scored_usd": 0
    }
   ]
  },
@@ -362,6 +370,7 @@
   "totalUsd": 3.05,
   "feesUsd": 0,
   "formulaUsd": 5,
+  "formulaAllUsd": 5,
   "r": 0.44,
   "status": {
    "bestMarketUsd": 1.65,
@@ -584,6 +593,7 @@
     "markets": 2,
     "minutesScored": 1300,
     "formulaUsd": 5,
+    "formulaAllUsd": 5,
     "paidUsd": 2.2,
     "rebateUsd": 0.05,
     "r": 0.44
@@ -613,6 +623,7 @@
   "totalUsd": 0.8,
   "feesUsd": 0,
   "formulaUsd": 0,
+  "formulaAllUsd": 0,
   "r": null,
   "status": {
    "bestMarketUsd": 0.6,
