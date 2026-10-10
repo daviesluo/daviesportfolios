@@ -10,6 +10,8 @@ import { QUOTE_TICK } from "./quotes.ts";
 export const CB_ROW_NAME = "Stablecoin quotes Coinbase";
 const M = 60e3;
 const iso = (ms: number) => new Date(ms).toISOString();
+/** A price from the rule's ticks, in the book's currency, without the float's tail (0.86581, not 0.8658100000000001). */
+const px = (ticks: number, scale: number) => Number((ticks * QUOTE_TICK / scale).toFixed(8));
 
 export type CbStateRow = { state: CbQuoteState | Record<string, never>; last_minute: string | null; updated_at: string; last_error: string | null };
 export type CbTripRow = { book: string; side: string; k: number | string; t_entry: string; t_exit: string; entry: number | string; exit: number | string; qty: number | string; how: string; pnl_gbp: number | string };
@@ -42,7 +44,7 @@ export function cbQuotesView(input: {
     const bs = s.books[b];
     if (!bs) continue;
     const sc = CB_BOOK[b].scale;
-    const lastPx = last[b]?.last != null ? Number(last[b].last) : bs.lastPrint ? bs.lastPrint.ticks * QUOTE_TICK / sc : null;
+    const lastPx = last[b]?.last != null ? Number(last[b].last) : bs.lastPrint ? px(bs.lastPrint.ticks, sc) : null;
     const x = bs.lastX ?? null;
     for (const r of bs.rungs) {
       if (r.mode === "position") {
@@ -51,11 +53,11 @@ export function cbQuotesView(input: {
         costGbp += cost;
         const made = lastPx == null || x == null ? null : (r.side === "bid" ? qty * (lastPx - entry) : qty * (entry - lastPx)) * x;
         if (made != null) unrealisedGbp += made;
-        rungs.push({ book: b, side: r.side, k: r.k, order: r.o ? { price: r.o.ticks * QUOTE_TICK / sc, leg: "exit", state: r.o.state } : null,
+        rungs.push({ book: b, side: r.side, k: r.k, order: r.o ? { price: px(r.o.ticks, sc), leg: "exit", state: r.o.state } : null,
           held: { base: qty, avgEntry: entry, since: r.tEntry != null ? iso(r.tEntry) : null, costGbp: cost, unrealisedGbp: made } });
       } else if (r.mode === "quote" && r.o) {
         quoting++;
-        rungs.push({ book: b, side: r.side, k: r.k, order: { price: r.o.ticks * QUOTE_TICK / sc, leg: "entry", state: r.o.state }, held: null });
+        rungs.push({ book: b, side: r.side, k: r.k, order: { price: px(r.o.ticks, sc), leg: "entry", state: r.o.state }, held: null });
       } else rungs.push({ book: b, side: r.side, k: r.k, order: null, held: null });
     }
   }
@@ -76,7 +78,7 @@ export function cbQuotesView(input: {
         const mine = trips.filter((t) => t.book === b);
         const bs = s.books[b];
         return {
-          book: b, lastPrice: last[b]?.last != null ? Number(last[b].last) : bs?.lastPrint ? bs.lastPrint.ticks * QUOTE_TICK / CB_BOOK[b].scale : null,
+          book: b, lastPrice: last[b]?.last != null ? Number(last[b].last) : bs?.lastPrint ? px(bs.lastPrint.ticks, CB_BOOK[b].scale) : null,
           fair: last[b]?.fair != null ? Number(last[b].fair) : null, index: null,
           realisedGbp: mine.reduce((a, t) => a + Number(t.pnl_gbp), 0), trips: mine.length, won: mine.filter((t) => Number(t.pnl_gbp) > 0).length,
         };
@@ -93,7 +95,7 @@ export function cbQuotesView(input: {
         const venueSide = (e.side === "bid") === (leg !== "exit") ? "buy" : "sell";
         return {
           id: `${e.book}|${e.minute}|${e.side}|${e.k}|${e.kind}`, ts: e.minute, book: e.book, side: e.side, k: Number(e.k), leg, venueSide,
-          price: e.ticks == null ? null : e.ticks * QUOTE_TICK / sc, base: null,
+          price: e.ticks == null ? null : px(e.ticks, sc), base: null,
           state: e.kind === "refused" ? "rejected" : "new", reason: e.kind === "refused" ? "post-only: the market was already through it" : null,
         };
       }),

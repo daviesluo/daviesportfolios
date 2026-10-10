@@ -427,6 +427,8 @@ first.
   (`cb_rec.ts`, `cb_quotes.ts`, `cb_view.ts`, migration 0112, map rows). Keyless: every print of USDC-GBP, USDT-GBP,
   USDC-EUR, USDT-EUR by trade id with no gap, the touch each minute, then PR5's `stepMinute` unchanged on them in pounds
   (£100 a rung, £2,400). Not pushed; whether the Edge region reaches Coinbase shows in `cb_rec_state.last_report.reached`.
+- Its TESTING row "Stablecoin quotes Coinbase" (after the twins, its own Coinbase card) and page (the twins' page, no
+  INVENTORY, EUR books in euros), `dist/` built, the sweep's checks for both (all green, both viewports), a guide line.
 
 ### [2026-10-10 01:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep's reward check, built on branch `lp-reward-refresh`** (sub-agent; Davies: "策略每分钟读的时候都检查奖励配置，

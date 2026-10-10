@@ -285,6 +285,14 @@ places stay when the number is not whole.
   variant's name in the table is two lines, and the first is the whole of
   "Stablecoin quotes". The paper test of that rule keeps running behind the
   page until its reading.
+- **Stablecoin quotes Coinbase.** After the variants, on Coinbase (its own
+  badge and venue card): the same rule on paper on Coinbase's four stablecoin
+  books, USDC and USDT against pounds and against euros, from Coinbase's own
+  public trades recorded every minute since 10 Oct. £100 a rung, six a book,
+  £2,400 in all, every figure in pounds (a euro book's prices are shown in
+  euros). Its page is the twins' page without INVENTORY, since a paper test
+  has no account, so its DAYS and 7-day annualised figure read straight
+  beside the live row's on Revolut X.
 - **Reward quotes.** After them, on Polymarket (its badge in Polymarket's
   blue): a fourteen-day paper test of small quotes on both sides of the
   markets that pay liquidity rewards, $300 of them chosen afresh each UTC

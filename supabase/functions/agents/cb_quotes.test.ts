@@ -159,3 +159,9 @@ Deno.test("the page's view of the test: a twin's shape in pounds, its rungs in e
   assertEquals(v.detail.books.map((b) => b.book), ["USDC-GBP", "USDT-GBP", "USDC-EUR", "USDT-EUR"]);
   assertEquals([v.detail.days[0].today, v.detail.trips.length, v.detail.inventory], [true, 1, null]);
 });
+
+Deno.test("the browser test's Coinbase fixture is the driver and the dashboard's view run again on its world, byte for byte", async () => {
+  const { buildCoinbasePageFixture } = await import("../../../docs/agents/backtests/cbrec/page_fixture.ts");
+  const committed = (await import("../../../src/e2e/quotes_coinbase_fixture.json", { with: { type: "json" } })).default;
+  assertEquals(JSON.parse(JSON.stringify(await buildCoinbasePageFixture())), committed);
+});

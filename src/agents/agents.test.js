@@ -8,12 +8,15 @@ import {
   newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwxSourceText, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, rwNotRunningText, paperTestRows, rwRoundText, PREP_ROW_ID, MID_ROW_ID, LP_ROW_ID, isPrepRowId, lpRow, midRow, prepRow, prepStopText, rwQuoteRows,
   LP_LIVE_ROW_ID, fmtR, liveExtraRows, lpEstimateTexts, lpLiveQuoteRows, lpLiveRow, quoteDaysAnnualPct, lpLiveStatus, rwFeeAsides, rwFeeCells,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies,
-  fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney } from './agents.js';
+  fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney,
+  QUOTES_COINBASE_ROW_ID, quotesCoinbaseRow } from './agents.js';
 // The live quotes page's fixture: what the dashboard serves for a book worked out by hand (the agents function's test
 // proves it is the server's own answer for its rows; the browser test serves it).
 import liveFixture from '../e2e/quotes_live_fixture.json';
 // The realistic twins' fixture: the live fixture's rows run as each twin's, and the dashboard's answer for them.
 import twinFixture from '../e2e/quotes_twin_fixture.json';
+// "Stablecoin quotes Coinbase"'s: its driver and the dashboard's view run on a small recorded world (cb_quotes.test.ts).
+import cbFixture from '../e2e/quotes_coinbase_fixture.json';
 import prepFixture from '../e2e/prep_fixture.json';
 // Mid-pool's: a record of its band worked out by hand, and the same summary's answer for it (pm_prep_view.test.ts).
 import midFixture from '../e2e/mid_fixture.json';
@@ -1318,6 +1321,21 @@ describe('quoteLadderRows — a book as the page draws it', () => {
   it('writes a book as a pair and a price as pounds to four places', () => {
     expect(quoteBookLabel('USDT-GBP')).toBe('USDT/GBP');
     expect([fmtQuotePrice(0.75), fmtQuotePrice(null)]).toEqual(['£0.7500', '—']);
+    // A EUR book's in euros, USDT-EUR's to its five-place step (Coinbase, 0112).
+    expect([fmtQuotePrice(0.8649, 'USDC-EUR'), fmtQuotePrice(0.86493, 'USDT-EUR'), fmtQuotePrice(0.7568, 'USDC-GBP')]).toEqual(['€0.8649', '€0.86493', '£0.7568']);
+  });
+  it('"Stablecoin quotes Coinbase" is a TESTING row after the twins, on Coinbase, in pounds, and opens its own page', () => {
+    const q = cbFixture.quotesCoinbase;
+    const row = quotesCoinbaseRow(q);
+    expect(row).toMatchObject({ id: QUOTES_COINBASE_ROW_ID, name: 'Stablecoin quotes Coinbase', venue: 'Coinbase', venueId: 'coinbase', mode: 'paper', ccy: 'GBP' });
+    expect(row?.gbp).toMatchObject({ capital: 2400, value: q.valueGbp, realised: q.realisedGbp });
+    expect(row?.status.running).toBe(true);
+    const dash = { quotesTwins: twinFixture.twins, quotesCoinbase: q };
+    const names = paperTestRows(dash).map((r) => r.name);
+    expect(names.indexOf('Stablecoin quotes Coinbase')).toBe(twinFixture.twins.length);
+    expect(quotesPageFor(QUOTES_COINBASE_ROW_ID, dash)).toBe('coinbase');
+    expect(quotesPageFor(QUOTES_COINBASE_ROW_ID, { quotesTwins: [] })).toBe(null);
+    expect(quotesCoinbaseRow(null)).toBe(null);
   });
 });
 

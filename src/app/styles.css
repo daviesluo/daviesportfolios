@@ -1959,6 +1959,7 @@ body {
 .ag-venue-revx { color: #8ec5ff; border-color: rgba(142,197,255,0.35); background: rgba(142,197,255,0.1); }
 .ag-venue-binance { color: #f0b90b; border-color: rgba(240,185,11,0.4); background: rgba(240,185,11,0.1); }
 .ag-venue-polymarket { color: #7d8bff; border-color: rgba(125,139,255,0.4); background: rgba(125,139,255,0.1); }
+.ag-venue-coinbase { color: #9fd8c8; border-color: rgba(159,216,200,0.4); background: rgba(159,216,200,0.1); }
 .ag-venue-signal { font-weight: 500; letter-spacing: 0; opacity: 0.8; }
 .ag-venues { margin-bottom: 14px; }
 .ag-share-bar { display: flex; height: 18px; border-radius: 4px; overflow: hidden; background: rgba(255,255,255,0.04); border: 1px solid var(--line); margin-bottom: 8px; }
@@ -2395,7 +2396,7 @@ body {
 /* The live quotes' own page (Davies, 2026-10-01): the paper page's BOOKS and DAYS as they are, its inventory in a card
    of the quote cards' rules, and an order's reason on a line under its row, read from the left. */
 .ag-ql-balances { margin-bottom: 10px; }
-.ag-quotes-live-detail .hl-sub, .ag-quotes-twin-detail .hl-sub { display: block; }
+.ag-quotes-live-detail .hl-sub, .ag-quotes-twin-detail .hl-sub, .ag-quotes-cb-detail .hl-sub { display: block; }
 .ag-table tr.ag-ql-has-sub td { border-bottom: none; padding-bottom: 2px; }
 /* The live page's round trips and orders on a phone: every column inside the screen, Size included (Davies,
    2026-10-01). A time stacks its date over its clock, a book is its coin, a size its number, and the cells sit closer. */

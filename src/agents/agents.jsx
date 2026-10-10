@@ -16,7 +16,7 @@ import { SurfaceBoundary } from '../app/surface_boundary.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, LP_LIVE_ROW_ID, fmtR, lpEstimateTexts, lpLiveStatus, rwFeeAsides, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, MID_ROW_ID, LP_ROW_ID, isPrepRowId, prepStopText, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, rowMoney, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwTestedSince, rweCheckWarn, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxSourceText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows, rwRoundText,
+  AGENT_TABS, LP_LIVE_ROW_ID, fmtR, lpEstimateTexts, lpLiveStatus, rwFeeAsides, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, MID_ROW_ID, LP_ROW_ID, isPrepRowId, prepStopText, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwTestedSince, rweCheckWarn, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxSourceText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows, rwRoundText,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -345,12 +345,12 @@ function VenueSplit({ dash, tab, m, tests = [] }) {
 
 
 /** One side of a rung in the ladder: idle, the price it quotes, or what it holds and has made at the last print, in pounds. */
-function LadderCell({ c, m }) {
+function LadderCell({ c, m, book = null }) {
   if (c.state === 'idle') return <span className="dim">idle</span>;
-  if (c.state === 'quoting') return <span>{m(fmtQuotePrice(c.price))}</span>;
+  if (c.state === 'quoting') return <span>{m(fmtQuotePrice(c.price, book))}</span>;
   return (
     <span className="ag-qheld">
-      <span className="ag-state-pill ag-state-filled">held</span> {m(fmtQuotePrice(c.price))}
+      <span className="ag-state-pill ag-state-filled">held</span> {m(fmtQuotePrice(c.price, book))}
       {c.unrealisedGbp != null && <span className="ag-gl" style={{ color: pctColor(c.unrealisedGbp) }}> {m(fmtGbp4(c.unrealisedGbp))}</span>}
     </span>
   );
@@ -373,13 +373,13 @@ function QuoteBooks({ books, m, empty = null }) {
           <div key={b.book} className="ag-quotes-card">
             <div className="ag-quotes-head">
               <span className="hl-strong mono">{quoteBookLabel(b.book)}</span>
-              <span className="dim mono ag-venue-meta">last trade {m(fmtQuotePrice(b.lastPrice))}{b.fair != null ? ` · fair ${m(fmtQuotePrice(b.fair))}` : ''}{b.index != null ? ` · index ${m(fmtQuotePrice(b.index))}` : ''}</span>
+              <span className="dim mono ag-venue-meta">last trade {m(fmtQuotePrice(b.lastPrice, b.book))}{b.fair != null ? ` · fair ${m(fmtQuotePrice(b.fair, b.book))}` : ''}{b.index != null ? ` · index ${m(fmtQuotePrice(b.index, b.book))}` : ''}</span>
             </div>
             <table className="ag-ladder mono">
               <thead><tr><th className="dim">Rung</th><th className="dim">Bid</th><th className="dim">Ask</th></tr></thead>
               <tbody>
                 {quoteLadderRows(b).map((r) => (
-                  <tr key={r.k}><td className="dim">{r.label}</td><td><LadderCell c={r.bid} m={m} /></td><td><LadderCell c={r.ask} m={m} /></td></tr>
+                  <tr key={r.k}><td className="dim">{r.label}</td><td><LadderCell c={r.bid} m={m} book={b.book} /></td><td><LadderCell c={r.ask} m={m} book={b.book} /></td></tr>
                 ))}
               </tbody>
             </table>
@@ -490,7 +490,7 @@ function LiveOrdersTable({ title, cls, orders, m, empty }) {
                   <td className="hl-strong"><BookName book={o.book} /></td>
                   <td className="ag-ph dim">{`${o.side} ${quoteRungLabel(o.k)}`}</td>
                   <td><RungSide side={o.venueSide}>{o.venueSide ?? '—'}</RungSide></td>
-                  <td>{m(fmtQuotePrice(o.price))}</td>
+                  <td>{m(fmtQuotePrice(o.price, o.book))}</td>
                   <td><Qty qty={o.base} book={o.book} m={m} /></td>
                   <td><span className={`ag-state-pill ag-state-${o.state}`}>{orderStateText(o.state)}</span></td>
                 </tr>
@@ -516,13 +516,14 @@ function LiveOrdersTable({ title, cls, orders, m, empty }) {
  * A realistic twin's page is the same page (`twin`; Davies, 2026-10-02: the twins are laid out as the live executor's),
  * on its simulated account and its TESTING row (`quotesTwinRow`), PAPER, its name for a title, and a line under its
  * scoreboard for what it is and for each book whose asks wait for their coin. Each page has a container of its own: the
- * sweep tells them apart by it.
- * @param {{ q: any, m: (s: string) => string, at: any, nowMs: number, twin?: boolean }} props
+ * sweep tells them apart by it. "Stablecoin quotes Coinbase" (`coinbase`, 0112) opens the same page as a twin, on Coinbase:
+ * a paper test with no account, so no INVENTORY, and each EUR book's prices in euros.
+ * @param {{ q: any, m: (s: string) => string, at: any, nowMs: number, twin?: boolean, coinbase?: boolean }} props
  */
-function QuotesLiveDetail({ q, m, at, nowMs, twin = false }) {
-  const row = twin ? quotesTwinRow(q) : quotesLiveRow(q);
+function QuotesLiveDetail({ q, m, at, nowMs, twin = false, coinbase = false }) {
+  const row = coinbase ? quotesCoinbaseRow(q) : twin ? quotesTwinRow(q) : quotesLiveRow(q);
   if (!row) return null;
-  const lines = twin ? quotesTwinLines(q, m) : null;
+  const lines = twin || coinbase ? quotesTwinLines(q, m) : null;
   const x = rowMoney(row);
   const d = q.detail ?? null;
   const inv = quotesLiveInventory(q, m);
@@ -531,11 +532,11 @@ function QuotesLiveDetail({ q, m, at, nowMs, twin = false }) {
   const entryOrders = orders.filter((/** @type {any} */ o) => o.leg === 'entry');
   const empty = d ? null : 'Not in this answer: the next refresh brings it.';
   return (
-    <div className={`ag-detail ${twin ? 'ag-quotes-twin-detail' : 'ag-quotes-live-detail'}`}>
+    <div className={`ag-detail ${coinbase ? 'ag-quotes-cb-detail' : twin ? 'ag-quotes-twin-detail' : 'ag-quotes-live-detail'}`}>
       <div className="ag-detail-head">
-        <ModeBadge mode={twin ? 'paper' : 'live'} />
-        <VenueBadge id="revx" />
-        <StatusDot status={row.status} since={twin ? q.twin?.startedAt ?? null : q.armed ? q.armedAt : null} nowMs={nowMs} live={!twin} />
+        <ModeBadge mode={twin || coinbase ? 'paper' : 'live'} />
+        <VenueBadge id={coinbase ? 'coinbase' : 'revx'} />
+        <StatusDot status={row.status} since={twin || coinbase ? q.twin?.startedAt ?? null : q.armed ? q.armedAt : null} nowMs={nowMs} live={!twin && !coinbase} />
       </div>
       <h3 className="ag-detail-title mono sr-only">{row.name}</h3>
       <div className="ag-scoreboard ag-scoreboard-sm">
@@ -551,7 +552,7 @@ function QuotesLiveDetail({ q, m, at, nowMs, twin = false }) {
       {!q.running && <div className="ag-warn-line">{row.status.detail}</div>}
       {q.lastError && <div className="ag-warn-line">last turn: {m(String(q.lastError))}</div>}
       <QuoteBooks books={quotesLiveBooks(q)} m={m} empty={empty} />
-      <section className="ag-section ag-ql-inventory">
+      {!coinbase && <section className="ag-section ag-ql-inventory">
         <div className="ag-section-title mono">INVENTORY</div>
         {inv ? (
           <div className="ag-ql-card ag-ql-balances">
@@ -569,7 +570,7 @@ function QuotesLiveDetail({ q, m, at, nowMs, twin = false }) {
             </div>
           </div>
         ) : <div className="ag-empty dim">{empty ?? 'Its last turn could not read the account.'}</div>}
-      </section>
+      </section>}
       <QuoteDaysTable days={d?.days ?? []} m={m} empty={empty} capitalGbp={x.ccy === 'GBP' ? x.capital : null} nowMs={nowMs} />
       <section className="ag-section ag-ql-trips ag-ql-tables">
         <div className="ag-section-title mono">ROUND TRIPS</div>
@@ -587,8 +588,8 @@ function QuotesLiveDetail({ q, m, at, nowMs, twin = false }) {
                   <td className="hl-strong"><BookName book={t.book} /></td>
                   <td><RungSide side={t.side}>{t.side === 'bid' ? 'bought' : 'sold'}</RungSide></td>
                   <td className="ag-ph dim">{quoteRungLabel(t.k)}</td>
-                  <td>{m(fmtQuotePrice(t.entry))}</td>
-                  <td>{m(fmtQuotePrice(t.exit))}</td>
+                  <td>{m(fmtQuotePrice(t.entry, t.book))}</td>
+                  <td>{m(fmtQuotePrice(t.exit, t.book))}</td>
                   <td className="dim"><Qty qty={t.qty} book={t.book} m={m} /></td>
                   <td className="ag-ph dim">{m(fmtFeeGbp4(t.feesGbp))}</td>
                   <td className="ag-gl" style={{ color: pctColor(t.pnlGbp) }}>{m(fmtGbp4(t.pnlGbp))}</td>
@@ -1612,6 +1613,7 @@ function AgentsModal({ hideValues, onClose }) {
   const quotesPage = quotesPageFor(selected, dash);
   const quotesLiveOpen = quotesPage === 'live';
   const twinOpen = quotesPage === 'twin' ? quotesTwinOf(selected, dash) : null;
+  const coinbaseOpen = quotesPage === 'coinbase' ? dash.quotesCoinbase : null;
   const rwOpen = selected === RW_ROW_ID && !!dash?.rw;
   const rweOpen = selected === RWE_ROW_ID && !!dash?.rwe && !!rwe;
   const rwxRow = rwx.find((x) => x.id === selected) ?? null;
@@ -1711,6 +1713,19 @@ function AgentsModal({ hideValues, onClose }) {
         </header>
         <div className="modal-body ag-body">
           <PageGuard gen={gen}><QuotesLiveDetail q={twinOpen} m={m} at={dash.at} nowMs={now} twin /></PageGuard>
+        </div>
+      </Modal>
+    )}
+    {coinbaseOpen && (
+      <Modal onClose={() => setSelected(null)} size="lg">
+        <header className="modal-head">
+          <div>
+            <h2 className="modal-title mono"><NameText name={String(coinbaseOpen.twin.name)} /></h2>
+          </div>
+          <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
+        </header>
+        <div className="modal-body ag-body">
+          <PageGuard gen={gen}><QuotesLiveDetail q={coinbaseOpen} m={m} at={dash.at} nowMs={now} coinbase /></PageGuard>
         </div>
       </Modal>
     )}

@@ -643,21 +643,47 @@ const TW = (() => {
   };
 })();
 /**
+ * "Stablecoin quotes Coinbase" (`cb_quotes.ts`, 0112; Davies, 2026-10-10): the dashboard's own view (`cbQuotesView`) of the
+ * paper test's own driver run on a small recorded world (quotes_coinbase_fixture.json, made by
+ * docs/agents/backtests/cbrec/page_fixture.ts, which the agents function's test proves is that driver's and view's answer):
+ * £2,400 on four books, three round trips (two on USDC-GBP, one on USDC-EUR) and USDT-EUR's 0.1 % bid held, at 1.32.
+ */
+const QUOTES_COINBASE_FIXTURE = JSON.parse(fs.readFileSync(new URL('./quotes_coinbase_fixture.json', import.meta.url), 'utf8'));
+const CBQ = (() => {
+  const q = QUOTES_COINBASE_FIXTURE.quotesCoinbase;
+  const ms = Date.parse(CLOCK.toISOString()), h = Math.floor((ms - Date.parse(q.twin.startedAt)) / 3600e3);
+  // DAYS' heading: the closed days of the last seven, a year, over the capital (`quoteDaysAnnualPct`), to one place.
+  const today = new Date(Math.floor(ms / 86400e3) * 86400e3).toISOString().slice(0, 10);
+  const first = q.detail.days.reduce((m, d) => (d.day < m ? d.day : m), q.detail.days[0].day);
+  const n = Math.round((Date.parse(`${today}T00:00:00Z`) - Date.parse(`${first}T00:00:00Z`)) / 86400e3);
+  const annual = (q.detail.days.filter((d) => d.day < today).reduce((a, d) => a + d.realisedGbp, 0) / q.capitalGbp) * (365 / n) * 100;
+  return {
+    q, name: q.twin.name, tested: `tested ${h >= 24 ? `${Math.floor(h / 24)}d ` : ''}${h % 24}h`,
+    open: `${q.heldRungs} open · ${TW.money(q.capitalGbp, '£')} cap`, deployed: TW.money(q.valueGbp, '£'),
+    today: TW.gl(q.todayGbp, q.capitalGbp, '£'), unrealised: TW.gl(q.unrealisedGbp, q.costGbp, '£'), realised: TW.gl(q.realisedGbp, q.capitalGbp, '£'),
+    scoreboard: `FUNDED=${TW.money(q.capitalGbp, '£')} | DEPLOYED=${TW.money(q.valueGbp, '£')}(${TW.pct((q.valueGbp / q.capitalGbp) * 100, false)}) | TODAY=`
+      + `${TW.money(q.todayGbp, '£', true)}(${TW.pct((q.todayGbp / q.capitalGbp) * 100)}) | UNREALIZED G/L=${TW.money(q.unrealisedGbp, '£', true)}(${TW.pct((q.unrealisedGbp / q.costGbp) * 100)}) | `
+      + `REALIZED G/L [(incl. fees ${TW.money(q.feesGbp, '£')})]=${TW.money(q.realisedGbp, '£', true)}(${TW.pct((q.realisedGbp / q.capitalGbp) * 100)})`,
+    annual: `- 7-day annualised ${annual > 0 ? '+' : ''}${annual.toFixed(1)}%`,
+  };
+})();
+/**
  * TESTING's totals in dollars, as its scoreboard adds them: the trend strategy's (funded 100 + 40 + 40 on Revolut X and
  * 180 on Binance, deployed 21.50, today +0.42, unrealised +1.50 on a cost of 20, realised +12.34, fees 0.08), RW's and
  * RW-E's and its three variants' on the page (funded $1,000 each; deployed 73.20 + 4 × 44.80; today 12.50 + 4 × 7.50;
  * unrealised -1 - 4 × 1.20 on 14.40 + 4 × 5.60; realised 42 + 4 × 23.60), and every twin's (its capital, every pound at
- * work, today, unrealised on its coins' cost, realised and fees, at 1.32; Davies, 2026-10-01). Eleven rows and the twins.
+ * work, today, unrealised on its coins' cost, realised and fees, at 1.32; Davies, 2026-10-01), and "Stablecoin quotes
+ * Coinbase"'s (CBQ, at 1.32). Eleven rows, the twins and Coinbase's.
  */
 const TESTING = {
-  rows: 11 + TW.n,
-  funded: 360 + 5 * 1000 + TW.sum('capitalUsd'),
-  deployed: 21.5 + 73.2 + 4 * 44.8 + TW.sum('valueUsd'),
-  today: 0.42 + 12.5 + 4 * 7.5 + TW.sum('todayUsd'),
-  unrealised: 1.5 - 1 - 4 * 1.2 + TW.sum('unrealisedUsd'),
-  cost: 20 + 14.4 + 4 * 5.6 + TW.sum('costUsd'),
-  realised: 12.34 + 42 + 4 * 23.6 + TW.sum('realisedUsd'),
-  fees: 0.08 + TW.sum('feesUsd'),
+  rows: 12 + TW.n,
+  funded: 360 + 5 * 1000 + TW.sum('capitalUsd') + CBQ.q.capitalUsd,
+  deployed: 21.5 + 73.2 + 4 * 44.8 + TW.sum('valueUsd') + CBQ.q.valueUsd,
+  today: 0.42 + 12.5 + 4 * 7.5 + TW.sum('todayUsd') + CBQ.q.todayUsd,
+  unrealised: 1.5 - 1 - 4 * 1.2 + TW.sum('unrealisedUsd') + CBQ.q.unrealisedUsd,
+  cost: 20 + 14.4 + 4 * 5.6 + TW.sum('costUsd') + CBQ.q.costUsd,
+  realised: 12.34 + 42 + 4 * 23.6 + TW.sum('realisedUsd') + CBQ.q.realisedUsd,
+  fees: 0.08 + TW.sum('feesUsd') + CBQ.q.feesUsd,
   /** The Revolut X card: the trend strategies' three rows and the twins. */
   revx: { rows: 3 + TW.n, funded: 180 + TW.sum('capitalUsd'), deployed: 21.5 + TW.sum('valueUsd'), realised: 12.34 + TW.sum('realisedUsd') },
 };
@@ -768,6 +794,8 @@ const AGENTS_DASHBOARD = (() => {
         openOrders: 0, heldRungs: 0, unmarked: 0, pending: [], fills: 0, realisedUsd: 0, todayUsd: 0, unrealisedUsd: 0, costUsd: 0, valueUsd: 0, feesUsd: 0 } }),
     // The twins: the stablecoin rows of TESTING since 2026-10-02, in place of the paper test above, its variants and rule D.
     quotesTwins: QUOTES_TWIN_FIXTURE.twins,
+    // "Stablecoin quotes Coinbase" (0112), the row after the twins.
+    quotesCoinbase: QUOTES_COINBASE_FIXTURE.quotesCoinbase,
     rw: AGENTS_RW(dayStartMs),
     rwe: AGENTS_RWE(dayStartMs),
     rwx: AGENTS_RWX(dayStartMs),
@@ -3443,8 +3471,8 @@ async function run() {
       // rule D; one a spec row since 0088), RW's paper test on Polymarket since 2026-09-24, RW-E since 2026-09-26, and three
       // of its variants (variant-2 since 2026-09-27; variant-3 and -4, TB1's two on x1, since 2026-10-07, Davies).
       // RW-C (0069) is no row of its own: it is RW's rule's round 2, read by "Reward quotes" from 2026-10-09 (Davies, 2026-10-08).
-      if (rows === TESTING.rows) ok(S('agents'), `${TESTING.rows} rows — the three 0046 leaves, their Binance twins (0049), the ${TW.n} realistic twins, RW, RW-E and three variants; no RW-C row, the deleted ones absent`);
-      else fail(S('agents'), `expected ${TESTING.rows} rows (six strategies, ${TW.n} twins, RW, RW-E and three variants), got ${rows}`);
+      if (rows === TESTING.rows) ok(S('agents'), `${TESTING.rows} rows — the three 0046 leaves, their Binance twins (0049), the ${TW.n} realistic twins, Coinbase's paper test, RW, RW-E and three variants; no RW-C row, the deleted ones absent`);
+      else fail(S('agents'), `expected ${TESTING.rows} rows (six strategies, ${TW.n} twins, Coinbase's, RW, RW-E and three variants), got ${rows}`);
       // Every row's last DECISION is 35 min old — two of the trend rule's
       // bars would call that stale. What keeps them running is the
       // observation the tick wrote 40 s ago.
@@ -3482,7 +3510,7 @@ async function run() {
       // (+0.02 % and 0 % of £1,200), unrealised -£0.1330 on the £599.27 its coins cost (-0.02 %).
       const poundCells = glCells.filter((g) => /£/.test(g)).map((g) => g.trim());
       if (glCells.length === rows * 3 && glCells.every((g) => /^[+-]?[$£][\d,.]+( \([+-]?[\d.]+%\))?$/.test(g.trim()))
-        && poundCells.join(' | ') === TW.rows.map((r) => [r.today, r.unrealised, r.realised].join(' | ')).join(' | ')) {
+        && poundCells.join(' | ') === [...TW.rows, CBQ].map((r) => [r.today, r.unrealised, r.realised].join(' | ')).join(' | ')) {
         ok(S('agents'), `today, unrealised and realised read like the scoreboard ("${glCells[0].trim()}"), the stablecoin quotes' in pounds (${poundCells.join(', ')})`);
       } else fail(S('agents'), `G/L cells: ${glCells.join(' | ')}`);
       // NEXT reads whole on every row. The quote test's "every minute" needs 93 px where the table gives the column
@@ -3508,12 +3536,12 @@ async function run() {
       // its £0.23 is rounded. 0.42 + 12.50 + 4 × 7.50 and each twin's 0.29978 (TESTING.today).
       const poundToday = rowToday.filter((t) => /£/.test(t));
       const rowTodaySum = Math.round((rowToday.filter((t) => !/£/.test(t)).reduce((a, t) => a + money(String(t).split('(')[0]), 0)
-        + (poundToday.join(' | ') === TW.rows.map((r) => r.today).join(' | ') ? TW.sum('todayUsd') : NaN)) * 100);
+        + (poundToday.join(' | ') === [...TW.rows, CBQ].map((r) => r.today).join(' | ') ? TW.sum('todayUsd') + CBQ.q.todayUsd : NaN)) * 100);
       if (rowTodaySum === Math.round(money(sbToday) * 100) && /^\+/.test((sbToday || '').trim()) && signedToday === 1) {
         ok(S('agents'), `today on the scoreboard (${(sbToday || '').trim()}) is the rows' today added up, and the row with a book still reads +$0.42`);
       } else fail(S('agents'), `scoreboard today "${sbToday}", row today cells ${rowToday.join(' | ')}`);
       const badgeTexts = await page.locator('.ag-strategies .ag-venue').allTextContents();
-      if (badgeTexts.length === rows && badgeTexts.every((b) => /^(Revolut X|Binance|Polymarket)$/.test(b.trim()))) ok(S('agents'), 'the venue badge is the venue name alone');
+      if (badgeTexts.length === rows && badgeTexts.every((b) => /^(Revolut X|Binance|Polymarket|Coinbase)$/.test(b.trim()))) ok(S('agents'), 'the venue badge is the venue name alone');
       else fail(S('agents'), `badges: ${badgeTexts.join(' | ')}`);
       // The badge fits its cell: a cell that clips draws the first dot of an ellipsis after the badge — the
       // "small white dot" beside Revolut X the owner saw — so overflow must be zero, not just invisible.
@@ -3619,9 +3647,17 @@ async function run() {
           && text.includes(r.today) && text.includes(r.unrealised) && text.includes(r.realised) && /every minute/.test(text) && !/\$/.test(text) && (!r.qual || (head === r.head && qual === r.qual));
         if (!rowOk) twinBad.push(`${r.name}: ${n} rows, "${text.trim()}", name "${head}" + "${qual}"`);
       }
-      if (twinAt === 6 && twinBad.length === 0 && testingNames.filter((n) => /^Stablecoin quotes/.test(n)).length === TW.n && oldCard === 0) {
+      if (twinAt === 6 && twinBad.length === 0 && testingNames.filter((n) => TW.names.includes(n)).length === TW.n && oldCard === 0) {
         ok(S('agents'), `the ${TW.n} twins are the testing rows after the strategies, in pounds, in their rows' order (${TW.rows.map((r) => `"${r.name}" ${r.open}`).join(', ')}), each deployed £999.14, today +£0.23, unrealised -£0.13, realised -£0.03 on its own capital, a variant's name on two lines; no paper test row, no card below`);
       } else fail(S('agents'), `twin rows at ${twinAt} of ${testingNames.join(' | ')}: ${twinBad.join(' / ')}; old card sections ${oldCard}`);
+      // "Stablecoin quotes Coinbase" (Davies, 2026-10-10): the row after the twins, on Coinbase, in pounds, in a twin's cells.
+      const cbRowEl = twinRowOf(CBQ.name);
+      const cbText = ` ${(await cbRowEl.first().innerText().catch(() => '')).replace(/\s+/g, ' ')} `;
+      if (await cbRowEl.count() === 1 && testingNames[twinAt + TW.n] === CBQ.name && /Coinbase/.test(cbText) && !/Revolut X/.test(cbText) && cbText.includes(CBQ.open)
+        && cbText.includes(` ${CBQ.deployed} `) && cbText.includes(CBQ.today) && cbText.includes(CBQ.unrealised) && cbText.includes(CBQ.realised) && /every minute/.test(cbText) && !/\$/.test(cbText)
+        && await cbRowEl.first().locator('.ag-venue-coinbase').count() === 1) {
+        ok(S('agents'), `"${CBQ.name}" is the testing row after the twins, on Coinbase, in pounds: ${CBQ.open}, deployed ${CBQ.deployed}, today ${CBQ.today}, unrealised ${CBQ.unrealised}, realised ${CBQ.realised}`);
+      } else fail(S('agents'), `Coinbase row "${cbText.trim()}" at ${testingNames.indexOf(CBQ.name)} of ${testingNames.join(' | ')}`);
       const quotesInVenues = await page.locator('.ag-venue-cards .ag-quotes-card, .ag-quotes-cards .ag-venue-card').count();
       if (quotesInVenues === 0) ok(S('agents'), 'no quote card is a venue card, and no venue selector reaches one');
       else fail(S('agents'), `${quotesInVenues} quotes/venue cards cross-classed`);
@@ -3687,6 +3723,25 @@ async function run() {
       } else fail(S('agents'), `twin pages: ${twinPageBad.join(' / ')}`);
       if (await page.locator('.ag-quotes-twin-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === TESTING.rows) ok(S('agents'), 'closing a twin page returns to the list');
       else fail(S('agents'), 'the twin page did not close back to the list');
+      // Its page is a twin's, PAPER on Coinbase (Davies, 2026-10-10: compared directly with LIVE on Revolut X): its
+      // scoreboard on £2,400, BOOKS of four books (each EUR book's prices in euros, USDT-EUR's to five places), no INVENTORY
+      // (a paper test has no account), DAYS with its 7-day annualised heading, its three round trips and its orders.
+      await cbRowEl.first().click();
+      await settled(page, '.ag-quotes-cb-detail');
+      const cp = await readQuotesBookPage(page, '.ag-quotes-cb-detail');
+      await shot(page, 'agents-quotes-coinbase');
+      const cbCard = (/** @type {string} */ b) => cp?.cards.find((c) => c.head === b.replace('-', '/'));
+      if (cp && cp.title === CBQ.name && cp.modals === 2 && cp.head === 'PAPER Coinbase' && cp.status === 'running' && cp.tested === CBQ.tested && cp.twinPages === 0 && cp.livePages === 0
+        && cp.scoreboard === CBQ.scoreboard && cp.sections[0] === 'BOOKS' && !cp.sections.includes('INVENTORY') && cp.sections.includes('DAYS') && cp.sections.includes('ROUND TRIPS')
+        && cp.annual === CBQ.annual && cp.cards.length === 4 && cp.cards.every((c) => c.ladder.length === 3)
+        && /^last trade £0\.7574 · fair £0\.7576$/.test(cbCard('USDC-GBP')?.meta ?? '') && /€0\.86500 · fair €0\.86580$/.test(cbCard('USDT-EUR')?.meta ?? '')
+        && (cbCard('USDT-EUR')?.ladder[0] ?? '').startsWith('0.1 % | held €0.86493') && cp.trips.length === 3 && cp.trips.some((t) => t.includes('| USDC/EUR |') && t.includes('€0.8649'))
+        && cp.days.length === 2 && cp.overflow <= 1) {
+        ok(S('agents'), `"${CBQ.name}"'s page: PAPER Coinbase, running · ${CBQ.tested}, ${CBQ.scoreboard.split(' | ')[0]}, four books (euros on the EUR books), no INVENTORY, DAYS ${CBQ.annual}, three round trips`);
+      } else fail(S('agents'), `Coinbase page ${JSON.stringify(cp && { ...cp, cards: cp.cards.map((c) => `${c.head} ${c.meta} :: ${c.ladder.join(' / ')}`) })}`);
+      await closeBy(page, () => page.locator('.ag-detail-close').click().catch(() => {}));
+      if (await page.locator('.ag-quotes-cb-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === TESTING.rows) ok(S('agents'), 'closing the Coinbase page returns to the list');
+      else fail(S('agents'), 'the Coinbase page did not close back to the list');
       // RW's paper test on Polymarket (Davies, 2026-09-24): a row of TESTING STRATEGIES, in a strategy's cells, with its
       // own badge, before RW-E and three of its variants; the fixture's figures are rwSummary's own (AGENTS_RW).
       const rwRowEl = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes') });
@@ -3875,14 +3930,18 @@ async function run() {
       // Every row says where it trades; the split says how the book divides.
       const badges = await page.locator('.ag-row .ag-venue').allTextContents();
       const revxRows = badges.filter((b) => b.startsWith('Revolut X')).length, binanceRows = badges.filter((b) => b.startsWith('Binance')).length;
-      // Revolut X: the three strategies and the realistic twins; then RW, RW-E and its three variants on the page on Polymarket, last.
-      if (revxRows === TESTING.revx.rows && binanceRows === 3 && badges.slice(-5 - TW.n, -5).join('|') === Array(TW.n).fill('Revolut X').join('|') && badges.slice(-5).join('|') === Array(5).fill('Polymarket').join('|')) ok(S('agents'), `venue badge on every row: 3 Revolut X strategies, their 3 paper twins on Binance, the ${TW.n} realistic twins on Revolut X, and RW, RW-E and its three variants on Polymarket`);
+      // Revolut X: the three strategies and the realistic twins; then Coinbase's paper test on Coinbase; then RW, RW-E and its
+      // three variants on the page on Polymarket, last.
+      if (revxRows === TESTING.revx.rows && binanceRows === 3 && badges.slice(-6 - TW.n, -6).join('|') === Array(TW.n).fill('Revolut X').join('|') && badges.at(-6) === 'Coinbase' && badges.slice(-5).join('|') === Array(5).fill('Polymarket').join('|')) ok(S('agents'), `venue badge on every row: 3 Revolut X strategies, their 3 paper twins on Binance, the ${TW.n} realistic twins on Revolut X, Coinbase's paper test on Coinbase, and RW, RW-E and its three variants on Polymarket`);
       else fail(S('agents'), `venue badges: ${badges.join(' | ')}`);
       // Deployed value, by card: Revolut X (its strategy, $21.50, plus each twin's every pound at work, £999.14 at 1.32,
       // $1,318.86: Davies, 2026-10-01; TESTING.revx.deployed) and RW, RW-E and its three variants on Polymarket $252.40 (what
       // each holds and its quotes tie up: 73.20 + 4 × 44.80), each to the nearest whole percent of the two (with three twins
       // 94 % and 6 % of $4,230.49).
-      const revxShare = Math.round((TESTING.revx.deployed / (TESTING.revx.deployed + 252.4)) * 100), pmShare = 100 - revxShare;
+      // Coinbase's paper test is a card of its own (its £2,400 at work, $3,168), between Binance and Polymarket; each share is
+      // rounded on its own (`shareSegments`).
+      const depAll = TESTING.revx.deployed + CBQ.q.valueUsd + 252.4;
+      const revxShare = Math.round((TESTING.revx.deployed / depAll) * 100), cbShare = Math.round((CBQ.q.valueUsd / depAll) * 100), pmShare = Math.round((252.4 / depAll) * 100);
       // The bar shows the venue and its percent when that line fits the slice, the percent alone when only that fits, and
       // nothing when not even the percent does (the title still says it). A fixed cutoff left the middle of "Polymarket"
       // on a slice that was still a bit wider than the cutoff, and a 2 % slice on a phone the middle of "2%".
@@ -3897,8 +3956,8 @@ async function run() {
           text, title: el.getAttribute('title') || '', textW, box: el.clientWidth, lines: rects.length,
         };
       }));
-      const shareOk = shareGeom.length === 3 && shareGeom[0].id === 'ag-share-revx' && shareGeom[1].id === 'ag-share-binance' && shareGeom[2].id === 'ag-share-polymarket'
-        && shareGeom[1].text === '' && String(shareGeom[0].title).includes(`Revolut X: ${revxShare}%`) && String(shareGeom[2].title).includes(`Polymarket: ${pmShare}%`)
+      const shareOk = shareGeom.length === 4 && shareGeom[0].id === 'ag-share-revx' && shareGeom[1].id === 'ag-share-binance' && shareGeom[2].id === 'ag-share-coinbase' && shareGeom[3].id === 'ag-share-polymarket'
+        && shareGeom[1].text === '' && String(shareGeom[0].title).includes(`Revolut X: ${revxShare}%`) && String(shareGeom[2].title).includes(`Coinbase: ${cbShare}%`) && String(shareGeom[3].title).includes(`Polymarket: ${pmShare}%`)
         && shareGeom.filter((g) => g.text).every((g) => g.lines === 1 && g.textW <= g.box + 1);
       if (shareOk) ok(S('agents'), `share bar fits its slices (${shareGeom.map((g) => g.text || '·').join(' | ')})`);
       else fail(S('agents'), `share bar ${JSON.stringify(shareGeom)}`);
@@ -3924,7 +3983,7 @@ async function run() {
       if (pinched && pinchedTitle === `Polymarket: ${pmShare}% of deployed value`) ok(S('agents'), `a slice too narrow for its percent paints nothing, and its title still says Polymarket: ${pmShare}%`);
       else fail(S('agents'), `pinched share: blank ${pinched}, title "${pinchedTitle}"`);
       const cards = await page.locator('.ag-venue-card').count();
-      if (cards === 3) ok(S('agents'), 'one venue card per venue TESTING trades on: Revolut X, Binance, Polymarket');
+      if (cards === 4) ok(S('agents'), 'one venue card per venue TESTING trades on: Revolut X, Binance, Coinbase, Polymarket');
       else fail(S('agents'), `venue cards ${cards}`);
       // Polymarket's card is its tests summed (Davies, 2026-09-24: Polymarket in TESTING's venues; 2026-09-26: RW-E is a
       // row of its own; 2026-09-27: so are its variants, three of them on the page since 2026-10-02; RW-C is not a row
@@ -3940,6 +3999,14 @@ async function run() {
         && pm.pairs.rewards === '+$134.40' && pm.pairs.orders === '+$2' && !('fees' in pm.pairs) && pm.subs.join('|') === 'rewards+12|orders+12') {
         ok(S('agents'), "Polymarket's card is RW, RW-E and its three variants summed: funded (Paper) $5,000, deployed $252.40 (5.05%), today +$42.50 (+0.85%), unrealised -$5.80 (-13.62%), realised +$136.40 (+2.73%) = rewards +$134.40 + orders +$2");
       } else fail(S('agents'), `Polymarket card ${JSON.stringify(pm)}`);
+      // Coinbase's card is its paper test alone (Davies, 2026-10-10): funded its £2,400, all of it at work, its today,
+      // unrealised and realised at 1.32, no fees (a maker pays 0 %).
+      const cbCardP = await readAgentsPanel(page).then((p) => p.venues.find((v) => v.id === 'coinbase'));
+      const cbUsd = (/** @type {number} */ n, /** @type {number} */ base) => TW.gl(n, base);
+      if (cbCardP && cbCardP.meta === '1 strategy' && cbCardP.pairs['funded (Paper)'] === TW.money(CBQ.q.capitalUsd) && cbCardP.pairs.deployed === `${TW.money(CBQ.q.valueUsd)} (100%)`
+        && cbCardP.pairs.realised === cbUsd(CBQ.q.realisedUsd, CBQ.q.capitalUsd) && cbCardP.pairs.fees === '$0') {
+        ok(S('agents'), `Coinbase's card is its paper test: funded (Paper) ${cbCardP.pairs['funded (Paper)']}, deployed ${cbCardP.pairs.deployed}, realised ${cbCardP.pairs.realised}, fees $0`);
+      } else fail(S('agents'), `Coinbase card ${JSON.stringify(cbCardP)}`);
       const revxApart = await page.locator('.ag-venue-card-revx .ag-venue-apart').count();
       if (revxApart === 0) ok(S('agents'), 'the Revolut X card no longer leaves Stablecoin quotes out');
       else fail(S('agents'), `Revolut X card still has an apart note (${revxApart})`);
@@ -3957,7 +4024,7 @@ async function run() {
       // are read back from the page, not from the stylesheet: a rule that never applies would pass a source check.
       const venuesText = await page.locator('.ag-venues').textContent().catch(() => '');
       const cardIds = await page.locator('.ag-venue-card').evaluateAll((els) => els.map((el) => [...el.classList].find((c) => /^ag-venue-card-/.test(c))));
-      if (!/Kraken/.test(venuesText || '') && cardIds.join(',') === 'ag-venue-card-revx,ag-venue-card-binance,ag-venue-card-polymarket') ok(S('agents'), 'VENUES is Revolut X, Binance, then Polymarket; Kraken is not on it');
+      if (!/Kraken/.test(venuesText || '') && cardIds.join(',') === 'ag-venue-card-revx,ag-venue-card-binance,ag-venue-card-coinbase,ag-venue-card-polymarket') ok(S('agents'), 'VENUES is Revolut X, Binance, Coinbase (its paper test), then Polymarket; Kraken is not on it');
       else fail(S('agents'), `VENUES cards ${cardIds.join(',')}, text mentions Kraken: ${/Kraken/.test(venuesText || '')}`);
       const binanceInk = await page.locator('.ag-venue-card-binance .ag-venue-binance').first().evaluate((el) => getComputedStyle(el).color).catch(() => '');
       if (binanceInk === 'rgb(240, 185, 11)') ok(S('agents'), 'Binance wears its yellow');
@@ -3970,7 +4037,7 @@ async function run() {
       // Four rules count down to a bar close; the minute rule decides every
       // minute, which is a rhythm, not a countdown.
       const nexts = await page.locator('.ag-row .ag-next').allTextContents();
-      if (nexts.length === rows && nexts.filter((t) => t === '2h 13m').length === rows - TW.n - 5 && nexts.slice(rows - TW.n - 5).every((t) => t === 'every minute')) ok(S('agents'), `every rule counts down to its next bar close; the ${TW.n} twins, RW, RW-E and its three variants decide every minute`);
+      if (nexts.length === rows && nexts.filter((t) => t === '2h 13m').length === rows - TW.n - 6 && nexts.slice(rows - TW.n - 6).every((t) => t === 'every minute')) ok(S('agents'), `every rule counts down to its next bar close; the ${TW.n} twins, Coinbase's, RW, RW-E and its three variants decide every minute`);
       else fail(S('agents'), `next column: ${nexts.join(' | ')}`);
       const names = await page.locator('.ag-row .ag-name-btn').allTextContents();
       const subs = await page.locator('.ag-row .ag-name-cell .hl-sub').allTextContents();
@@ -3991,7 +4058,8 @@ async function run() {
       const depCells = (await page.locator(depSel).allTextContents()).map((t) => t.trim());
       // A row in pounds (a stablecoin twin's, £999.14) adds its dollars, $1,318.86: its pounds are its dollars over 1.32.
       // The reward rows' cells are what each holds and its quotes tie up: RW $73.20, RW-E and its two variants $44.80.
-      const depSum = Math.round(depCells.reduce((a, t) => a + (/£/.test(t) ? (t === '£999.14' ? 999.139417255 * 1.32 : NaN) : money(t)), 0) * 100);
+      // Coinbase's paper test's £2,400 adds $3,168 (CBQ).
+      const depSum = Math.round(depCells.reduce((a, t) => a + (/£/.test(t) ? (t === '£999.14' ? 999.139417255 * 1.32 : t === CBQ.deployed ? CBQ.q.valueUsd : NaN) : money(t)), 0) * 100);
       const sbDep = await page.locator('.ag-modepanel > .ag-scoreboard .ag-sb-cell-deployed .sb-value').textContent().catch(() => '');
       const sbDepUsd = Math.round(money(String(sbDep).split('(')[0]) * 100);
       // From $1,000 the scoreboard writes whole dollars, so there the sum is compared to the dollar.
@@ -4410,7 +4478,7 @@ async function run() {
         meta: `${TESTING.revx.rows} strategies · maker 0% / taker 0.09%`, funded: TW.money(TESTING.revx.funded),
         deployed: `${TW.money(TESTING.revx.deployed)} (${TW.pct((TESTING.revx.deployed / TESTING.revx.funded) * 100, false)})`, realised: TW.gl(TESTING.revx.realised, TESTING.revx.funded),
       };
-      if (a1.venues.length === 3 && rv && bn && rv.meta === rvWant.meta && rv.pairs['funded (Paper)'] === rvWant.funded && rv.pairs.deployed === rvWant.deployed
+      if (a1.venues.length === 4 && rv && bn && rv.meta === rvWant.meta && rv.pairs['funded (Paper)'] === rvWant.funded && rv.pairs.deployed === rvWant.deployed
         && rv.pairs.realised === rvWant.realised && rv.apart === '' && bn.pairs['funded (Paper)'] === '$180' && a1.shareBar === 1) {
         ok(T('armed'), `TESTING's Revolut X card includes the ${TW.n} twins (funded (Paper) ${rvWant.funded}, deployed ${rvWant.deployed}, realised ${rvWant.realised}), beside Binance's and Polymarket's`);
       } else fail(T('armed'), `TESTING venues ${JSON.stringify(a1.venues)}, share bars ${a1.shareBar}; wanted Revolut X ${JSON.stringify(rvWant)}`);
@@ -5280,7 +5348,7 @@ async function run() {
       await shot(page, 'agents-testing-twins');
       const qvWant = [TW.money(TESTING.revx.funded), `${TW.money(TESTING.revx.deployed)} (${TW.pct((TESTING.revx.deployed / TESTING.revx.funded) * 100, false)})`];
       const v2 = (/** @type {string[]} */ names) => names.filter((n) => n === 'Stablecoin quotes variant-2').length;
-      if (qvNames.filter((n) => /^Stablecoin quotes/.test(n)).join(' | ') === TW.names.join(' | ') && v2(qvNames) === v2(TW.names)
+      if (qvNames.filter((n) => /^Stablecoin quotes/.test(n)).join(' | ') === [...TW.names, CBQ.name].join(' | ') && v2(qvNames) === v2(TW.names)
         && qvRevx?.pairs['funded (Paper)'] === qvWant[0] && qvRevx?.pairs.deployed === qvWant[1]) {
         ok(T('quotesv'), `with the paper tests in the payload, TESTING still has the twins alone (${TW.names.map((n) => `"${n}"`).join(', ')}), "variant-2" ${v2(TW.names)} time(s) as the twins name it, and its Revolut X card counts the twins (${qvWant[0]} funded, ${qvWant[1]} deployed)`);
       } else fail(T('quotesv'), `stablecoin rows ${qvNames.join(' | ')}; Revolut X ${JSON.stringify(qvRevx?.pairs)}, wanted ${qvWant.join(', ')}`);

@@ -12,7 +12,7 @@ import { fmtChartStamp } from './agents_chart.js';
 // Kraken keeps its label, not a place on the page: it is the signal venue every rule reads candles from, and nothing
 // trades there since `0046`. VENUES shows Revolut X, where the loop executes, and Binance, the account it may use next.
 // Polymarket is the venue of RW's paper test, a row of TESTING STRATEGIES; it has no card in VENUES.
-export const VENUE_LABELS = { revx: 'Revolut X', binance: 'Binance', kraken: 'Kraken', polymarket: 'Polymarket' };
+export const VENUE_LABELS = { revx: 'Revolut X', binance: 'Binance', kraken: 'Kraken', polymarket: 'Polymarket', coinbase: 'Coinbase' };
 export const KIND_LABELS = { 'trend-4h': 'Trend 4h', 'trend-1h': 'Trend 1h', 'momentum-1d': 'Momentum 30d', 'rotation-1d': 'Rotation', 'dislocation-1m': 'Dislocation' };
 /**
  * The venue hues the badges, the share bar and the detail chart all share. Binance's is its own yellow, which is why
@@ -20,7 +20,7 @@ export const KIND_LABELS = { 'trend-4h': 'Trend 4h', 'trend-1h': 'Trend 1h', 'mo
  * colour vision and 15.7 under deuteranopia, and further from Binance's, the gain green and the loss red (checked with
  * the dataviz validator, 2026-09-24). Every badge also says the venue's name.
  */
-export const VENUE_HUES = { revx: '#8ec5ff', binance: '#f0b90b', polymarket: '#7d8bff' };
+export const VENUE_HUES = { revx: '#8ec5ff', binance: '#f0b90b', polymarket: '#7d8bff', coinbase: '#9fd8c8' };
 
 /** @param {string} id */
 export const venueLabel = (id) => VENUE_LABELS[id] ?? id;
@@ -1242,6 +1242,30 @@ export function quotesTwinRow(t) {
 /** The twins' rows, in the payload's order. @param {any} dash */
 export const quotesTwinRows = (dash) => (dash?.quotesTwins ?? []).map(quotesTwinRow).filter(Boolean);
 
+/** "Stablecoin quotes Coinbase"'s id among TESTING's rows. */
+export const QUOTES_COINBASE_ROW_ID = '__quotes_coinbase';
+
+/**
+ * "Stablecoin quotes Coinbase" as a row of TESTING (`cb_quotes.ts`, 0112; Davies, 2026-10-10: "先建起来吧，并且和Revolute X
+ * 对比看哪个更好"): PR5's rule on paper on Coinbase's four GBP and EUR stablecoin books, from its recorder's prints, in a
+ * twin's shape and in pounds, so it reads beside the twins and LIVE on Revolut X. null before it has decided a minute.
+ * @param {any} q  the dashboard's `quotesCoinbase`
+ */
+export function quotesCoinbaseRow(q) {
+  if (!q?.twin) return null;
+  return {
+    id: QUOTES_COINBASE_ROW_ID,
+    name: String(q.twin.name),
+    venue: venueLabel('coinbase'),
+    venueId: 'coinbase',
+    mode: 'paper',
+    ...quoteBookCells(q),
+    status: q.running
+      ? { label: 'paper', running: true, tone: 'running', detail: `PR5's rule on Coinbase's recorded prints · last minute ${Number(q.lagMinutes) || 0} min ago` }
+      : { label: 'paper', running: false, tone: 'stale', detail: `its last decided minute was ${q.lagMinutes ?? '?'} min ago` },
+  };
+}
+
 /** The twin a row opens, or null. @param {string | null} selected @param {any} dash */
 export function quotesTwinOf(selected, dash) {
   if (!selected || !selected.startsWith(QUOTES_TWIN_ROW_PREFIX)) return null;
@@ -1296,10 +1320,11 @@ export function quotesLiveRow(q) {
  * nothing to show: the live page needs its LIVE row (`quotesLiveRow`), a twin's page its twin.
  * @param {string | null} selected  the row opened
  * @param {any} dash
- * @returns {'live' | 'twin' | null}
+ * @returns {'live' | 'twin' | 'coinbase' | null}
  */
 export function quotesPageFor(selected, dash) {
   if (selected === QUOTES_LIVE_ROW_ID) return quotesLiveRow(dash?.quotes?.live) ? 'live' : null;
+  if (selected === QUOTES_COINBASE_ROW_ID) return quotesCoinbaseRow(dash?.quotesCoinbase) ? 'coinbase' : null;
   return quotesTwinRow(quotesTwinOf(selected, dash)) ? 'twin' : null;
 }
 
@@ -1472,8 +1497,15 @@ export function quotesLiveInventory(q, m = (s) => s) {
   };
 }
 
-/** A price in GBP a coin, as the book quotes it: four places. @param {number | null | undefined} p */
-export const fmtQuotePrice = (p) => (p == null || !Number.isFinite(Number(p)) ? '—' : `£${Number(p).toFixed(4)}`);
+/**
+ * A price a coin, as its book quotes it: pounds to four places; a EUR book's in euros, USDT-EUR's to five (Coinbase's step,
+ * "Stablecoin quotes Coinbase"). @param {number | null | undefined} p @param {string | null} [book]
+ */
+export const fmtQuotePrice = (p, book = null) => {
+  if (p == null || !Number.isFinite(Number(p))) return '—';
+  const eur = /EUR$/.test(String(book ?? ''));
+  return `${eur ? '€' : '£'}${Number(p).toFixed(book === 'USDT-EUR' ? 5 : 4)}`;
+};
 
 /**
  * A round trip's size, in coins of its book: "99.30 USDC". It replaced the "exit as" column (Davies, 2026-09-28), which
@@ -2057,7 +2089,7 @@ export const RWX_ROW_PREFIX = '__rwx-';
 export function paperTestRows(dash) {
   const one = (/** @type {any} */ row) => (row ? [row] : []);
   return [
-    ...quotesTwinRows(dash), ...one(rwRow(dash?.rw)), ...one(rweRow(dash?.rwe)), ...rwxRows(dash?.rwx),
+    ...quotesTwinRows(dash), ...one(quotesCoinbaseRow(dash?.quotesCoinbase)), ...one(rwRow(dash?.rw)), ...one(rweRow(dash?.rwe)), ...rwxRows(dash?.rwx),
     ...one(midRow(dash?.prepMid)), ...one(lpRow(dash?.prepLp)),
   ];
 }

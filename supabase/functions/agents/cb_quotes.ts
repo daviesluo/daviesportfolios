@@ -99,8 +99,8 @@ export function cbStopExit(t: Trip, book: CbProduct): Trip {
 export function cbTripRow(book: CbProduct, t: Trip) {
   const s = CB_BOOK[book].scale;
   return {
-    book, side: t.side, k: t.k, t_entry: iso(t.tEntry), fill_ts: iso(t.fillTs), fill_trade_id: Number(t.fillId), entry: t.entry / s, qty: t.qty * s,
-    x_entry: t.xEntry, fair_entry: t.fairEntry == null ? null : t.fairEntry / s, entry_oid: t.entryOid, t_exit: iso(t.tExit), exit: t.exit / s,
+    book, side: t.side, k: t.k, t_entry: iso(t.tEntry), fill_ts: iso(t.fillTs), fill_trade_id: Number(t.fillId), entry: Number((t.entry / s).toFixed(10)), qty: t.qty * s,
+    x_entry: t.xEntry, fair_entry: t.fairEntry == null ? null : t.fairEntry / s, entry_oid: t.entryOid, t_exit: iso(t.tExit), exit: Number((t.exit / s).toFixed(10)),
     how: t.how, exit_trade_id: t.exitPrintId == null ? null : Number(t.exitPrintId), exit_oid: t.exitOid, notional_gbp: t.notionalUsd, pnl_gbp: t.pnlUsd,
   };
 }
