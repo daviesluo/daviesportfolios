@@ -26,6 +26,10 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
 1. **Closed: fp5's ranked list.**
 
 2. **Polymarket reward quotes (paper; RW, RW-E, RW-X, TB1, RW-C) and the three order paths (dry-run, unarmed).**
+   - **IN FLIGHT: live-prep (LIVE since 10-08) reads each market's reward config only at 00:00** and quoted all of 10-09
+     in three markets Polymarket had changed or ended (10-10 00:25 section). Fix on branch `lp-reward-refresh`
+     (`opus-high`): read every minute, no entry where it no longer pays, Addendum 9; land it with full gates, then
+     re-read R on scored formula from the 10-09 readout on.
    - **RW's verdict: read 2026-10-09 00:42–00:50 UTC** (`reviews/2026-10-09-polymarket-rw-paper-result.md`, reference
      §3.46, `backtests/rwverdict/`). RW 6/6, RW-E 7/7, x1–x3 7/7 each; step b (all 4,116 fills by `stepRw`) and c (13,634
      prints re-pulled, none missed) clean; **RW-NEXT's candidate is RW-E**, to RW-C (Part 3's bar on or after 10-23
@@ -40,9 +44,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      `rwx` entry's `source` are "RW-C", `startedAt` 2026-10-09T00:00:00.000Z, `notStarted` false (`rwe` once
      `pm_rwc_e_state` exists), and it sends no `rwc`.
    - **RW-C (RW-NEXT Part 2; round 2 of RW's rule, 10-09 → 10-23 UTC, no page row of its own):** warm-up checked WARM
-     on 10-08 00:33. After 10-09 00:05, `pm_rwc_days` holds 10-08 with `detail->>'phase'` = `warm-up`; after 10-10 00:05
-     (wake `trig_0147EKGhR4aHoVq5QWUFy1mr`) both replays' `checkMaxUsd`, and the x replay's `checkEMaxUsd` over
-     `checkEDays`, under $0.01, read as scalars. **Verdict on or after 2026-10-23 00:05 UTC** (wake
+     on 10-08 00:33. After 10-09 00:05, `pm_rwc_days` holds 10-08 with `detail->>'phase'` = `warm-up`; the 10-10 check
+     PASSED at 00:21 UTC: both replays' `checkMaxUsd` 0 and the x replay's `checkEMaxUsd` 0 over `checkEDays` 1 (10-09,
+     closed in `pm_rwc_days` as `run` and in both replays' days), read as scalars. **Verdict on or after 2026-10-23 00:05 UTC** (wake
      `trig_018MBeyZsWkLBmbMq9ta3GNf`, 10-23 00:40) by the frozen RW-NEXT, then a migration disables the four `pmrwc*`
      rows. The same wake reads RW-X4/X5's **Test 2** on RW-C's minutes (`pmrwc-x`, seed 20261023, against x1; an arm
      passing both tests goes to Davies). **TB1** is read after RW-C's verdict too, though that wake's prompt predates it
@@ -416,6 +420,22 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 "LEDGER.md, archived 2026-10-09", the 2026-10-08 22:49 → 23:58 UTC sections under "LEDGER.md, archived 2026-10-09
 (second)", and the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)"; each oldest
 first.
+
+### [2026-10-10 00:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **RW-C's 10-10 check PASSED** (wake `trig_0147EKGhR4aHoVq5QWUFy1mr`, fired 00:20): `pm_rwc_e_state` `checkMaxUsd` 0;
+  `pm_rwc_x_state` `checkMaxUsd` 0, `checkEMaxUsd` 0 over `checkEDays` 1; both replays decided to 00:17, 10-09 closed in
+  `pm_rwc_days` (`run`), `pm_rwc_e_days` and `pm_rwc_x_days`. Scalars and day keys only.
+- **live-prep's first payout, and why it read low.** 10-09's rewards landed at 00:00 (+$6.53 of pUSD, no fill between
+  23:57 and 00:05:01); `lpCapital` followed it, 322 → 329. Against the day's live formula ($153.90) that is R ≈ 0.04,
+  but the formula is wrong: the path reads each market's reward config once, at the 00:00 selection, and Polymarket
+  changed three of the day's ten during it (Gamma now: the two "Gemini … by October 16" markets at minimum 50 and
+  50/day, selected at 20 and 200/day; "Gemini Argon … October 10" with no `clobRewards`, $84.14 of the formula, not one
+  minute scored). Polymarket's `order-scoring` and `pct` turned false/0 there from about 04:20–05:36 UTC while the path
+  kept quoting at the old figures. Over minutes both sides read scoring the formula is ≈ $19.80 (R ≈ 0.33), and where
+  the config held, `pct` tracks our share (7.39 % vs 8.16 %, 2.10 vs 2.13). A fix is being built (`opus-high`, branch
+  `lp-reward-refresh`): the reward config read every minute before anything rests (Davies: "策略每分钟读的时候都检查奖励
+  配置"), a market that no longer pays takes no entry that minute (its sells keep resting), Polymarket's scoring
+  verdict as a backstop, the estimate on scored formula; Addendum 9 of live-prep's pre-registration records it.
 
 ### [2026-10-09 22:39 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **IG research** (Davies: "ig的api可以做所有cfd trading吗？…可以深度研究下有什么机会"): `reviews/2026-10-09-ig-opportunities.md`,
