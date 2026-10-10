@@ -1,0 +1,139 @@
+{
+ "USDCGBP": {
+  "full_size_10": {
+   "equal": true,
+   "pnl": 469.788486,
+   "pnl_bars": 469.788486,
+   "trips": 28922
+  },
+  "full_size_100": {
+   "equal": true,
+   "pnl": 4697.884859,
+   "pnl_bars": 4697.884859,
+   "trips": 28922
+  },
+  "side_aware_10": {
+   "equal": false,
+   "pnl": 368.961699,
+   "pnl_bars": 369.183755,
+   "trips": 25665
+  },
+  "side_aware_100": {
+   "equal": false,
+   "pnl": 2507.698083,
+   "pnl_bars": 2510.404311,
+   "trips": 25665
+  },
+  "stress_10": {
+   "equal": true,
+   "pnl": 350.443992,
+   "pnl_bars": 350.443992,
+   "trips": 25194
+  },
+  "stress_100": {
+   "equal": true,
+   "pnl": 2378.752329,
+   "pnl_bars": 2378.752329,
+   "trips": 25194
+  },
+  "through_10": {
+   "equal": true,
+   "pnl": 422.07157,
+   "pnl_bars": 422.07157,
+   "trips": 28922
+  },
+  "through_100": {
+   "equal": true,
+   "pnl": 2827.566675,
+   "pnl_bars": 2827.566675,
+   "trips": 28922
+  },
+  "through_100_at_price": {
+   "equal": true,
+   "pnl": 3285.742737,
+   "pnl_bars": 3285.742737,
+   "trips": 33215
+  },
+  "through_100_committed_encoding": {
+   "equal": false,
+   "pnl": 2827.566675,
+   "pnl_bars": 2827.566715,
+   "trips": 28922
+  },
+  "through_10_committed_encoding": {
+   "equal": false,
+   "pnl": 422.07157,
+   "pnl_bars": 422.071631,
+   "trips": 28922
+  }
+ },
+ "USDTGBP": {
+  "full_size_10": {
+   "equal": true,
+   "pnl": 132.522939,
+   "pnl_bars": 132.522939,
+   "trips": 9688
+  },
+  "full_size_100": {
+   "equal": true,
+   "pnl": 1325.229392,
+   "pnl_bars": 1325.229392,
+   "trips": 9688
+  },
+  "side_aware_10": {
+   "equal": true,
+   "pnl": 105.153349,
+   "pnl_bars": 105.153349,
+   "trips": 8560
+  },
+  "side_aware_100": {
+   "equal": true,
+   "pnl": 682.444666,
+   "pnl_bars": 682.444666,
+   "trips": 8560
+  },
+  "stress_10": {
+   "equal": true,
+   "pnl": 93.585006,
+   "pnl_bars": 93.585006,
+   "trips": 8768
+  },
+  "stress_100": {
+   "equal": true,
+   "pnl": 606.217392,
+   "pnl_bars": 606.217392,
+   "trips": 8768
+  },
+  "through_10": {
+   "equal": true,
+   "pnl": 122.559858,
+   "pnl_bars": 122.559858,
+   "trips": 9688
+  },
+  "through_100": {
+   "equal": true,
+   "pnl": 789.087042,
+   "pnl_bars": 789.087042,
+   "trips": 9688
+  },
+  "through_100_at_price": {
+   "equal": true,
+   "pnl": 919.870847,
+   "pnl_bars": 919.870847,
+   "trips": 10818
+  },
+  "through_100_committed_encoding": {
+   "equal": false,
+   "pnl": 789.087042,
+   "pnl_bars": 789.087073,
+   "trips": 9688
+  },
+  "through_10_committed_encoding": {
+   "equal": false,
+   "pnl": 122.559858,
+   "pnl_bars": 122.559878,
+   "trips": 9688
+  }
+ },
+ "all_equal_but_side_aware": true
+}

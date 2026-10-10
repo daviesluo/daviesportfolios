@@ -1,0 +1,2828 @@
+{
+ "bitstamp_usdc_eur": {
+  "arms": {
+   "at_price_100": {
+    "last_12_months": {
+     "fill_gbp_per_day": 229.01,
+     "gbp_per_year": 50.69,
+     "pnl_gbp": 50.69,
+     "stops": 16,
+     "trips": 912
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 240.15,
+     "gbp_per_year": 19.62,
+     "pnl_gbp": 1.51,
+     "stops": 2,
+     "trips": 70
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 220.09,
+     "gbp_per_year": 34.81,
+     "pnl_gbp": 4.39,
+     "stops": 2,
+     "trips": 104
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 206.33,
+     "gbp_per_year": 53.48,
+     "pnl_gbp": 13.48,
+     "stops": 11,
+     "trips": 266
+    },
+    "y2025": {
+     "fill_gbp_per_day": 324.45,
+     "gbp_per_year": 41.8,
+     "pnl_gbp": 41.8,
+     "stops": 32,
+     "trips": 1286
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 240.87,
+     "gbp_per_year": 50.85,
+     "pnl_gbp": 39.15,
+     "stops": 11,
+     "trips": 735
+    }
+   },
+   "stress_100": {
+    "last_12_months": {
+     "fill_gbp_per_day": 209.34,
+     "gbp_per_year": 44.59,
+     "pnl_gbp": 44.59,
+     "stops": 16,
+     "trips": 825
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 204.44,
+     "gbp_per_year": 14.0,
+     "pnl_gbp": 1.07,
+     "stops": 2,
+     "trips": 60
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 191.84,
+     "gbp_per_year": 31.33,
+     "pnl_gbp": 3.95,
+     "stops": 2,
+     "trips": 91
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 198.93,
+     "gbp_per_year": 53.98,
+     "pnl_gbp": 13.61,
+     "stops": 11,
+     "trips": 250
+    },
+    "y2025": {
+     "fill_gbp_per_day": 301.36,
+     "gbp_per_year": 34.63,
+     "pnl_gbp": 34.63,
+     "stops": 32,
+     "trips": 1182
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 220.57,
+     "gbp_per_year": 46.48,
+     "pnl_gbp": 35.79,
+     "stops": 11,
+     "trips": 667
+    }
+   },
+   "through_10": {
+    "last_12_months": {
+     "fill_gbp_per_day": 23.23,
+     "gbp_per_year": 5.1,
+     "pnl_gbp": 5.1,
+     "stops": 16,
+     "trips": 871
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 22.38,
+     "gbp_per_year": 2.13,
+     "pnl_gbp": 0.16,
+     "stops": 2,
+     "trips": 63
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 20.58,
+     "gbp_per_year": 3.59,
+     "pnl_gbp": 0.45,
+     "stops": 2,
+     "trips": 95
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 26.6,
+     "gbp_per_year": 6.45,
+     "pnl_gbp": 1.63,
+     "stops": 11,
+     "trips": 259
+    },
+    "y2025": {
+     "fill_gbp_per_day": 33.09,
+     "gbp_per_year": 4.08,
+     "pnl_gbp": 4.08,
+     "stops": 32,
+     "trips": 1231
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 24.3,
+     "gbp_per_year": 5.14,
+     "pnl_gbp": 3.96,
+     "stops": 11,
+     "trips": 701
+    }
+   },
+   "through_100": {
+    "last_12_months": {
+     "fill_gbp_per_day": 219.82,
+     "gbp_per_year": 50.06,
+     "pnl_gbp": 50.06,
+     "stops": 16,
+     "trips": 871
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 215.16,
+     "gbp_per_year": 18.78,
+     "pnl_gbp": 1.44,
+     "stops": 2,
+     "trips": 63
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 200.53,
+     "gbp_per_year": 34.33,
+     "pnl_gbp": 4.33,
+     "stops": 2,
+     "trips": 95
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 203.32,
+     "gbp_per_year": 56.26,
+     "pnl_gbp": 14.18,
+     "stops": 11,
+     "trips": 259
+    },
+    "y2025": {
+     "fill_gbp_per_day": 311.78,
+     "gbp_per_year": 39.12,
+     "pnl_gbp": 39.12,
+     "stops": 32,
+     "trips": 1231
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 230.96,
+     "gbp_per_year": 50.56,
+     "pnl_gbp": 38.92,
+     "stops": 11,
+     "trips": 701
+    }
+   },
+   "through_1000": {
+    "last_12_months": {
+     "fill_gbp_per_day": 2009.48,
+     "gbp_per_year": 483.04,
+     "pnl_gbp": 483.04,
+     "stops": 16,
+     "trips": 871
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 2004.7,
+     "gbp_per_year": 168.1,
+     "pnl_gbp": 12.9,
+     "stops": 2,
+     "trips": 63
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 1915.9,
+     "gbp_per_year": 331.34,
+     "pnl_gbp": 41.76,
+     "stops": 2,
+     "trips": 95
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 1378.92,
+     "gbp_per_year": 401.92,
+     "pnl_gbp": 101.31,
+     "stops": 11,
+     "trips": 259
+    },
+    "y2025": {
+     "fill_gbp_per_day": 2640.03,
+     "gbp_per_year": 373.45,
+     "pnl_gbp": 373.45,
+     "stops": 32,
+     "trips": 1231
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 2115.67,
+     "gbp_per_year": 490.54,
+     "pnl_gbp": 377.65,
+     "stops": 11,
+     "trips": 701
+    }
+   },
+   "through_300": {
+    "last_12_months": {
+     "fill_gbp_per_day": 636.79,
+     "gbp_per_year": 146.87,
+     "pnl_gbp": 146.87,
+     "stops": 16,
+     "trips": 871
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 628.32,
+     "gbp_per_year": 54.33,
+     "pnl_gbp": 4.17,
+     "stops": 2,
+     "trips": 63
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 591.15,
+     "gbp_per_year": 101.77,
+     "pnl_gbp": 12.83,
+     "stops": 2,
+     "trips": 95
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 508.41,
+     "gbp_per_year": 139.29,
+     "pnl_gbp": 35.11,
+     "stops": 11,
+     "trips": 259
+    },
+    "y2025": {
+     "fill_gbp_per_day": 885.71,
+     "gbp_per_year": 113.53,
+     "pnl_gbp": 113.53,
+     "stops": 32,
+     "trips": 1231
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 669.74,
+     "gbp_per_year": 148.87,
+     "pnl_gbp": 114.61,
+     "stops": 11,
+     "trips": 701
+    }
+   },
+   "through_50": {
+    "last_12_months": {
+     "fill_gbp_per_day": 111.94,
+     "gbp_per_year": 25.18,
+     "pnl_gbp": 25.18,
+     "stops": 16,
+     "trips": 871
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 108.99,
+     "gbp_per_year": 9.49,
+     "pnl_gbp": 0.73,
+     "stops": 2,
+     "trips": 63
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 101.13,
+     "gbp_per_year": 17.22,
+     "pnl_gbp": 2.17,
+     "stops": 2,
+     "trips": 95
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 112.74,
+     "gbp_per_year": 30.52,
+     "pnl_gbp": 7.69,
+     "stops": 11,
+     "trips": 259
+    },
+    "y2025": {
+     "fill_gbp_per_day": 159.91,
+     "gbp_per_year": 19.87,
+     "pnl_gbp": 19.87,
+     "stops": 32,
+     "trips": 1231
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 117.38,
+     "gbp_per_year": 25.31,
+     "pnl_gbp": 19.49,
+     "stops": 11,
+     "trips": 701
+    }
+   }
+  },
+  "around_2026-09-25_100": {
+   "08-24_to_09-25_gbp_per_year": 50.04,
+   "from_09-25_gbp_per_year": -2.84,
+   "from_09-25_trips": 40
+  },
+  "books": [
+   "bitstamp:usdceur"
+  ],
+  "bootstrap_last_12_months_100": {
+   "best_day_share": 0.0465,
+   "days_negative": 44,
+   "days_positive": 204,
+   "index100_gbp_per_year": 41.7,
+   "share_draws_gt_0": 1.0,
+   "sum_gbp": 50.06
+  },
+  "by_month_100": {
+   "2024-10": 2.9,
+   "2024-11": 9.49,
+   "2024-12": 1.79,
+   "2025-01": -3.84,
+   "2025-02": 4.44,
+   "2025-03": 8.52,
+   "2025-04": 5.2,
+   "2025-05": 2.11,
+   "2025-06": 3.69,
+   "2025-07": 5.39,
+   "2025-08": 0.85,
+   "2025-09": 1.64,
+   "2025-10": 1.68,
+   "2025-11": 5.52,
+   "2025-12": 3.93,
+   "2026-01": 2.42,
+   "2026-02": 6.31,
+   "2026-03": 4.28,
+   "2026-04": 5.9,
+   "2026-05": 6.3,
+   "2026-06": 2.03,
+   "2026-07": 2.75,
+   "2026-08": 5.47,
+   "2026-09": 3.64,
+   "2026-10": -0.16
+  },
+  "capital_gbp_at_100": 600,
+  "volume_gbp_per_day_last_12_months": 7126098
+ },
+ "coinbase_eea": {
+  "arms": {
+   "at_price_100": {
+    "last_12_months": {
+     "fill_gbp_per_day": 235.12,
+     "gbp_per_year": 50.32,
+     "pnl_gbp": 50.32,
+     "stops": 16,
+     "trips": 862
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 378.51,
+     "gbp_per_year": 112.57,
+     "pnl_gbp": 8.64,
+     "stops": 3,
+     "trips": 106
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 284.75,
+     "gbp_per_year": 97.28,
+     "pnl_gbp": 12.26,
+     "stops": 3,
+     "trips": 131
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 513.7,
+     "gbp_per_year": 150.22,
+     "pnl_gbp": 37.86,
+     "stops": 20,
+     "trips": 477
+    },
+    "y2025": {
+     "fill_gbp_per_day": 597.78,
+     "gbp_per_year": 132.71,
+     "pnl_gbp": 132.71,
+     "stops": 32,
+     "trips": 2201
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 233.39,
+     "gbp_per_year": 40.68,
+     "pnl_gbp": 31.31,
+     "stops": 13,
+     "trips": 658
+    }
+   },
+   "stress_100": {
+    "last_12_months": {
+     "fill_gbp_per_day": 95.79,
+     "gbp_per_year": 26.85,
+     "pnl_gbp": 26.85,
+     "stops": 27,
+     "trips": 350
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 178.56,
+     "gbp_per_year": 66.75,
+     "pnl_gbp": 5.12,
+     "stops": 5,
+     "trips": 50
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 141.29,
+     "gbp_per_year": 62.19,
+     "pnl_gbp": 7.84,
+     "stops": 5,
+     "trips": 65
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 316.69,
+     "gbp_per_year": 96.79,
+     "pnl_gbp": 24.4,
+     "stops": 22,
+     "trips": 294
+    },
+    "y2025": {
+     "fill_gbp_per_day": 290.24,
+     "gbp_per_year": 69.36,
+     "pnl_gbp": 69.36,
+     "stops": 36,
+     "trips": 1063
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 83.5,
+     "gbp_per_year": 19.54,
+     "pnl_gbp": 15.04,
+     "stops": 16,
+     "trips": 235
+    }
+   },
+   "through_10": {
+    "last_12_months": {
+     "fill_gbp_per_day": 13.89,
+     "gbp_per_year": 3.52,
+     "pnl_gbp": 3.52,
+     "stops": 15,
+     "trips": 507
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 25.71,
+     "gbp_per_year": 9.57,
+     "pnl_gbp": 0.73,
+     "stops": 3,
+     "trips": 72
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 19.56,
+     "gbp_per_year": 7.78,
+     "pnl_gbp": 0.98,
+     "stops": 3,
+     "trips": 90
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 39.02,
+     "gbp_per_year": 11.1,
+     "pnl_gbp": 2.8,
+     "stops": 19,
+     "trips": 359
+    },
+    "y2025": {
+     "fill_gbp_per_day": 40.03,
+     "gbp_per_year": 9.26,
+     "pnl_gbp": 9.26,
+     "stops": 31,
+     "trips": 1463
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 13.06,
+     "gbp_per_year": 2.48,
+     "pnl_gbp": 1.91,
+     "stops": 12,
+     "trips": 367
+    }
+   },
+   "through_100": {
+    "last_12_months": {
+     "fill_gbp_per_day": 138.43,
+     "gbp_per_year": 35.2,
+     "pnl_gbp": 35.2,
+     "stops": 15,
+     "trips": 507
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 257.13,
+     "gbp_per_year": 95.68,
+     "pnl_gbp": 7.34,
+     "stops": 3,
+     "trips": 72
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 195.65,
+     "gbp_per_year": 77.76,
+     "pnl_gbp": 9.8,
+     "stops": 3,
+     "trips": 90
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 386.93,
+     "gbp_per_year": 111.11,
+     "pnl_gbp": 28.01,
+     "stops": 19,
+     "trips": 359
+    },
+    "y2025": {
+     "fill_gbp_per_day": 398.42,
+     "gbp_per_year": 92.37,
+     "pnl_gbp": 92.37,
+     "stops": 31,
+     "trips": 1463
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 130.56,
+     "gbp_per_year": 24.75,
+     "pnl_gbp": 19.06,
+     "stops": 12,
+     "trips": 367
+    }
+   },
+   "through_1000": {
+    "last_12_months": {
+     "fill_gbp_per_day": 1350.94,
+     "gbp_per_year": 354.13,
+     "pnl_gbp": 354.13,
+     "stops": 15,
+     "trips": 507
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 2558.08,
+     "gbp_per_year": 954.1,
+     "pnl_gbp": 73.19,
+     "stops": 3,
+     "trips": 72
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 1948.43,
+     "gbp_per_year": 776.0,
+     "pnl_gbp": 97.8,
+     "stops": 3,
+     "trips": 90
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 3537.69,
+     "gbp_per_year": 1062.9,
+     "pnl_gbp": 267.91,
+     "stops": 19,
+     "trips": 359
+    },
+    "y2025": {
+     "fill_gbp_per_day": 3703.19,
+     "gbp_per_year": 888.72,
+     "pnl_gbp": 888.72,
+     "stops": 31,
+     "trips": 1463
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 1275.28,
+     "gbp_per_year": 249.61,
+     "pnl_gbp": 192.17,
+     "stops": 12,
+     "trips": 367
+    }
+   },
+   "through_300": {
+    "last_12_months": {
+     "fill_gbp_per_day": 412.96,
+     "gbp_per_year": 105.91,
+     "pnl_gbp": 105.91,
+     "stops": 15,
+     "trips": 507
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 771.38,
+     "gbp_per_year": 287.04,
+     "pnl_gbp": 22.02,
+     "stops": 3,
+     "trips": 72
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 586.94,
+     "gbp_per_year": 233.29,
+     "pnl_gbp": 29.4,
+     "stops": 3,
+     "trips": 90
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 1135.71,
+     "gbp_per_year": 327.81,
+     "pnl_gbp": 82.63,
+     "stops": 19,
+     "trips": 359
+    },
+    "y2025": {
+     "fill_gbp_per_day": 1179.23,
+     "gbp_per_year": 272.89,
+     "pnl_gbp": 272.89,
+     "stops": 31,
+     "trips": 1463
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 389.66,
+     "gbp_per_year": 74.76,
+     "pnl_gbp": 57.56,
+     "stops": 12,
+     "trips": 367
+    }
+   },
+   "through_50": {
+    "last_12_months": {
+     "fill_gbp_per_day": 69.34,
+     "gbp_per_year": 17.63,
+     "pnl_gbp": 17.63,
+     "stops": 15,
+     "trips": 507
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 128.56,
+     "gbp_per_year": 47.84,
+     "pnl_gbp": 3.67,
+     "stops": 3,
+     "trips": 72
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 97.82,
+     "gbp_per_year": 38.88,
+     "pnl_gbp": 4.9,
+     "stops": 3,
+     "trips": 90
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 194.73,
+     "gbp_per_year": 55.52,
+     "pnl_gbp": 13.99,
+     "stops": 19,
+     "trips": 359
+    },
+    "y2025": {
+     "fill_gbp_per_day": 199.72,
+     "gbp_per_year": 46.3,
+     "pnl_gbp": 46.3,
+     "stops": 31,
+     "trips": 1463
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 65.3,
+     "gbp_per_year": 12.39,
+     "pnl_gbp": 9.54,
+     "stops": 12,
+     "trips": 367
+    }
+   }
+  },
+  "around_2026-09-25_100": {
+   "08-24_to_09-25_gbp_per_year": 93.31,
+   "from_09-25_gbp_per_year": 40.99,
+   "from_09-25_trips": 37
+  },
+  "books": [
+   "coinbase:USDC-EUR"
+  ],
+  "bootstrap_last_12_months_100": {
+   "best_day_share": 0.049,
+   "days_negative": 58,
+   "days_positive": 112,
+   "index100_gbp_per_year": 25.49,
+   "share_draws_gt_0": 1.0,
+   "sum_gbp": 35.2
+  },
+  "by_month_100": {
+   "2024-10": 5.79,
+   "2024-11": 8.56,
+   "2024-12": 13.65,
+   "2025-01": 14.84,
+   "2025-02": 13.73,
+   "2025-03": 7.0,
+   "2025-04": 7.53,
+   "2025-05": 3.47,
+   "2025-06": 11.6,
+   "2025-07": 4.14,
+   "2025-08": 6.82,
+   "2025-09": 6.44,
+   "2025-10": 5.31,
+   "2025-11": 8.29,
+   "2025-12": 3.2,
+   "2026-01": 5.25,
+   "2026-02": 1.71,
+   "2026-03": 1.82,
+   "2026-04": 0.98,
+   "2026-05": 0.78,
+   "2026-06": -0.17,
+   "2026-07": -1.14,
+   "2026-08": 0.16,
+   "2026-09": 8.99,
+   "2026-10": 0.68
+  },
+  "capital_gbp_at_100": 600,
+  "volume_gbp_per_day_last_12_months": 22155840
+ },
+ "coinbase_uk": {
+  "arms": {
+   "at_price_100": {
+    "last_12_months": {
+     "fill_gbp_per_day": 1059.52,
+     "gbp_per_year": 279.89,
+     "pnl_gbp": 279.89,
+     "stops": 47,
+     "trips": 4109
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 1150.89,
+     "gbp_per_year": 394.14,
+     "pnl_gbp": 30.24,
+     "stops": 6,
+     "trips": 336
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 847.26,
+     "gbp_per_year": 298.3,
+     "pnl_gbp": 37.59,
+     "stops": 6,
+     "trips": 409
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 2616.4,
+     "gbp_per_year": 961.74,
+     "pnl_gbp": 242.41,
+     "stops": 76,
+     "trips": 2504
+    },
+    "y2025": {
+     "fill_gbp_per_day": 2167.77,
+     "gbp_per_year": 577.36,
+     "pnl_gbp": 577.36,
+     "stops": 102,
+     "trips": 8406
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 1061.56,
+     "gbp_per_year": 263.85,
+     "pnl_gbp": 203.13,
+     "stops": 35,
+     "trips": 3163
+    }
+   },
+   "stress_100": {
+    "last_12_months": {
+     "fill_gbp_per_day": 595.52,
+     "gbp_per_year": 148.44,
+     "pnl_gbp": 148.44,
+     "stops": 66,
+     "trips": 2228
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 695.37,
+     "gbp_per_year": 231.96,
+     "pnl_gbp": 17.79,
+     "stops": 10,
+     "trips": 196
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 518.99,
+     "gbp_per_year": 183.38,
+     "pnl_gbp": 23.11,
+     "stops": 10,
+     "trips": 241
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 1716.05,
+     "gbp_per_year": 644.74,
+     "pnl_gbp": 162.51,
+     "stops": 83,
+     "trips": 1615
+    },
+    "y2025": {
+     "fill_gbp_per_day": 1296.95,
+     "gbp_per_year": 343.74,
+     "pnl_gbp": 343.74,
+     "stops": 122,
+     "trips": 4848
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 586.61,
+     "gbp_per_year": 134.27,
+     "pnl_gbp": 103.37,
+     "stops": 39,
+     "trips": 1683
+    }
+   },
+   "through_10": {
+    "last_12_months": {
+     "fill_gbp_per_day": 77.3,
+     "gbp_per_year": 19.75,
+     "pnl_gbp": 19.75,
+     "stops": 52,
+     "trips": 2844
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 86.04,
+     "gbp_per_year": 31.41,
+     "pnl_gbp": 2.41,
+     "stops": 5,
+     "trips": 242
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 64.08,
+     "gbp_per_year": 23.26,
+     "pnl_gbp": 2.93,
+     "stops": 5,
+     "trips": 297
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 206.79,
+     "gbp_per_year": 76.58,
+     "pnl_gbp": 19.3,
+     "stops": 77,
+     "trips": 1912
+    },
+    "y2025": {
+     "fill_gbp_per_day": 165.32,
+     "gbp_per_year": 43.71,
+     "pnl_gbp": 43.71,
+     "stops": 107,
+     "trips": 6080
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 76.58,
+     "gbp_per_year": 18.07,
+     "pnl_gbp": 13.91,
+     "stops": 34,
+     "trips": 2168
+    }
+   },
+   "through_100": {
+    "last_12_months": {
+     "fill_gbp_per_day": 753.07,
+     "gbp_per_year": 192.95,
+     "pnl_gbp": 192.95,
+     "stops": 52,
+     "trips": 2844
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 848.23,
+     "gbp_per_year": 315.24,
+     "pnl_gbp": 24.18,
+     "stops": 5,
+     "trips": 242
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 628.61,
+     "gbp_per_year": 232.79,
+     "pnl_gbp": 29.34,
+     "stops": 5,
+     "trips": 297
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 2022.3,
+     "gbp_per_year": 755.0,
+     "pnl_gbp": 190.3,
+     "stops": 77,
+     "trips": 1912
+    },
+    "y2025": {
+     "fill_gbp_per_day": 1605.39,
+     "gbp_per_year": 427.01,
+     "pnl_gbp": 427.01,
+     "stops": 107,
+     "trips": 6080
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 748.03,
+     "gbp_per_year": 176.89,
+     "pnl_gbp": 136.18,
+     "stops": 34,
+     "trips": 2168
+    }
+   },
+   "through_1000": {
+    "last_12_months": {
+     "fill_gbp_per_day": 6653.31,
+     "gbp_per_year": 1781.0,
+     "pnl_gbp": 1781.0,
+     "stops": 52,
+     "trips": 2844
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 8210.45,
+     "gbp_per_year": 3128.26,
+     "pnl_gbp": 239.98,
+     "stops": 5,
+     "trips": 242
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 6012.8,
+     "gbp_per_year": 2292.4,
+     "pnl_gbp": 288.91,
+     "stops": 5,
+     "trips": 297
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 17997.05,
+     "gbp_per_year": 7058.56,
+     "pnl_gbp": 1779.14,
+     "stops": 77,
+     "trips": 1912
+    },
+    "y2025": {
+     "fill_gbp_per_day": 14088.19,
+     "gbp_per_year": 4040.11,
+     "pnl_gbp": 4040.11,
+     "stops": 107,
+     "trips": 6080
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 6611.28,
+     "gbp_per_year": 1620.3,
+     "pnl_gbp": 1247.41,
+     "stops": 34,
+     "trips": 2168
+    }
+   },
+   "through_300": {
+    "last_12_months": {
+     "fill_gbp_per_day": 2185.76,
+     "gbp_per_year": 566.84,
+     "pnl_gbp": 566.84,
+     "stops": 52,
+     "trips": 2844
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 2518.15,
+     "gbp_per_year": 939.98,
+     "pnl_gbp": 72.11,
+     "stops": 5,
+     "trips": 242
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 1855.92,
+     "gbp_per_year": 691.47,
+     "pnl_gbp": 87.14,
+     "stops": 5,
+     "trips": 297
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 5876.13,
+     "gbp_per_year": 2224.32,
+     "pnl_gbp": 560.65,
+     "stops": 77,
+     "trips": 1912
+    },
+    "y2025": {
+     "fill_gbp_per_day": 4630.77,
+     "gbp_per_year": 1259.37,
+     "pnl_gbp": 1259.37,
+     "stops": 107,
+     "trips": 6080
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 2176.63,
+     "gbp_per_year": 521.24,
+     "pnl_gbp": 401.29,
+     "stops": 34,
+     "trips": 2168
+    }
+   },
+   "through_50": {
+    "last_12_months": {
+     "fill_gbp_per_day": 380.98,
+     "gbp_per_year": 97.61,
+     "pnl_gbp": 97.61,
+     "stops": 52,
+     "trips": 2844
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 426.16,
+     "gbp_per_year": 157.94,
+     "pnl_gbp": 12.12,
+     "stops": 5,
+     "trips": 242
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 316.44,
+     "gbp_per_year": 116.63,
+     "pnl_gbp": 14.7,
+     "stops": 5,
+     "trips": 297
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 1021.38,
+     "gbp_per_year": 379.27,
+     "pnl_gbp": 95.6,
+     "stops": 77,
+     "trips": 1912
+    },
+    "y2025": {
+     "fill_gbp_per_day": 813.72,
+     "gbp_per_year": 215.34,
+     "pnl_gbp": 215.34,
+     "stops": 107,
+     "trips": 6080
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 377.92,
+     "gbp_per_year": 89.38,
+     "pnl_gbp": 68.81,
+     "stops": 34,
+     "trips": 2168
+    }
+   }
+  },
+  "around_2026-09-25_100": {
+   "08-24_to_09-25_gbp_per_year": 213.79,
+   "from_09-25_gbp_per_year": 277.75,
+   "from_09-25_trips": 135
+  },
+  "books": [
+   "coinbase:USDC-GBP",
+   "coinbase:USDT-GBP",
+   "coinbase:USDC-EUR",
+   "coinbase:USDT-EUR"
+  ],
+  "bootstrap_last_12_months_100": {
+   "best_day_share": 0.0229,
+   "days_negative": 32,
+   "days_positive": 243,
+   "index100_gbp_per_year": 166.1,
+   "share_draws_gt_0": 1.0,
+   "sum_gbp": 192.95
+  },
+  "by_month_100": {
+   "2024-10": 31.83,
+   "2024-11": 68.13,
+   "2024-12": 90.35,
+   "2025-01": 88.97,
+   "2025-02": 73.88,
+   "2025-03": 65.78,
+   "2025-04": 35.02,
+   "2025-05": 19.02,
+   "2025-06": 25.55,
+   "2025-07": 19.63,
+   "2025-08": 18.65,
+   "2025-09": 20.47,
+   "2025-10": 14.95,
+   "2025-11": 30.2,
+   "2025-12": 14.89,
+   "2026-01": 23.22,
+   "2026-02": 21.39,
+   "2026-03": 9.69,
+   "2026-04": 18.7,
+   "2026-05": 17.97,
+   "2026-06": 7.14,
+   "2026-07": 6.46,
+   "2026-08": 2.98,
+   "2026-09": 22.18,
+   "2026-10": 6.44
+  },
+  "capital_gbp_at_100": 2400,
+  "volume_gbp_per_day_last_12_months": 37027793
+ },
+ "coinbase_uk_gbp_only": {
+  "arms": {
+   "at_price_100": {
+    "last_12_months": {
+     "fill_gbp_per_day": 654.54,
+     "gbp_per_year": 204.89,
+     "pnl_gbp": 204.89,
+     "stops": 13,
+     "trips": 2612
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 558.13,
+     "gbp_per_year": 256.82,
+     "pnl_gbp": 19.7,
+     "stops": 2,
+     "trips": 170
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 408.19,
+     "gbp_per_year": 177.19,
+     "pnl_gbp": 22.33,
+     "stops": 2,
+     "trips": 207
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 1637.94,
+     "gbp_per_year": 706.01,
+     "pnl_gbp": 177.95,
+     "stops": 35,
+     "trips": 1594
+    },
+    "y2025": {
+     "fill_gbp_per_day": 1204.42,
+     "gbp_per_year": 426.5,
+     "pnl_gbp": 426.5,
+     "stops": 39,
+     "trips": 4829
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 646.77,
+     "gbp_per_year": 195.59,
+     "pnl_gbp": 150.58,
+     "stops": 10,
+     "trips": 1986
+    }
+   },
+   "stress_100": {
+    "last_12_months": {
+     "fill_gbp_per_day": 348.12,
+     "gbp_per_year": 101.37,
+     "pnl_gbp": 101.37,
+     "stops": 21,
+     "trips": 1312
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 331.14,
+     "gbp_per_year": 148.43,
+     "pnl_gbp": 11.39,
+     "stops": 4,
+     "trips": 94
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 240.77,
+     "gbp_per_year": 102.23,
+     "pnl_gbp": 12.88,
+     "stops": 4,
+     "trips": 113
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 961.35,
+     "gbp_per_year": 447.66,
+     "pnl_gbp": 112.84,
+     "stops": 40,
+     "trips": 912
+    },
+    "y2025": {
+     "fill_gbp_per_day": 673.61,
+     "gbp_per_year": 261.36,
+     "pnl_gbp": 261.36,
+     "stops": 52,
+     "trips": 2537
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 340.87,
+     "gbp_per_year": 90.99,
+     "pnl_gbp": 70.05,
+     "stops": 12,
+     "trips": 986
+    }
+   },
+   "through_10": {
+    "last_12_months": {
+     "fill_gbp_per_day": 46.98,
+     "gbp_per_year": 13.97,
+     "pnl_gbp": 13.97,
+     "stops": 18,
+     "trips": 1734
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 39.62,
+     "gbp_per_year": 19.1,
+     "pnl_gbp": 1.47,
+     "stops": 1,
+     "trips": 112
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 29.52,
+     "gbp_per_year": 12.98,
+     "pnl_gbp": 1.64,
+     "stops": 1,
+     "trips": 138
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 122.23,
+     "gbp_per_year": 55.22,
+     "pnl_gbp": 13.92,
+     "stops": 37,
+     "trips": 1134
+    },
+    "y2025": {
+     "fill_gbp_per_day": 89.56,
+     "gbp_per_year": 32.82,
+     "pnl_gbp": 32.82,
+     "stops": 45,
+     "trips": 3305
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 46.04,
+     "gbp_per_year": 13.05,
+     "pnl_gbp": 10.05,
+     "stops": 9,
+     "trips": 1308
+    }
+   },
+   "through_100": {
+    "last_12_months": {
+     "fill_gbp_per_day": 452.08,
+     "gbp_per_year": 135.71,
+     "pnl_gbp": 135.71,
+     "stops": 18,
+     "trips": 1734
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 384.0,
+     "gbp_per_year": 192.13,
+     "pnl_gbp": 14.74,
+     "stops": 1,
+     "trips": 112
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 282.99,
+     "gbp_per_year": 130.01,
+     "pnl_gbp": 16.38,
+     "stops": 1,
+     "trips": 138
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 1185.38,
+     "gbp_per_year": 540.45,
+     "pnl_gbp": 136.22,
+     "stops": 37,
+     "trips": 1134
+    },
+    "y2025": {
+     "fill_gbp_per_day": 857.8,
+     "gbp_per_year": 319.8,
+     "pnl_gbp": 319.8,
+     "stops": 45,
+     "trips": 3305
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 443.83,
+     "gbp_per_year": 127.12,
+     "pnl_gbp": 97.87,
+     "stops": 9,
+     "trips": 1308
+    }
+   },
+   "through_1000": {
+    "last_12_months": {
+     "fill_gbp_per_day": 3873.93,
+     "gbp_per_year": 1213.7,
+     "pnl_gbp": 1213.7,
+     "stops": 18,
+     "trips": 1734
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 3629.85,
+     "gbp_per_year": 1896.09,
+     "pnl_gbp": 145.45,
+     "stops": 1,
+     "trips": 112
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 2610.78,
+     "gbp_per_year": 1268.16,
+     "pnl_gbp": 159.82,
+     "stops": 1,
+     "trips": 138
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 10345.69,
+     "gbp_per_year": 5050.1,
+     "pnl_gbp": 1272.9,
+     "stops": 37,
+     "trips": 1134
+    },
+    "y2025": {
+     "fill_gbp_per_day": 7423.16,
+     "gbp_per_year": 3029.68,
+     "pnl_gbp": 3029.68,
+     "stops": 45,
+     "trips": 3305
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 3776.36,
+     "gbp_per_year": 1125.01,
+     "pnl_gbp": 866.1,
+     "stops": 9,
+     "trips": 1308
+    }
+   },
+   "through_300": {
+    "last_12_months": {
+     "fill_gbp_per_day": 1302.39,
+     "gbp_per_year": 395.61,
+     "pnl_gbp": 395.61,
+     "stops": 18,
+     "trips": 1734
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 1129.28,
+     "gbp_per_year": 571.42,
+     "pnl_gbp": 43.83,
+     "stops": 1,
+     "trips": 112
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 821.39,
+     "gbp_per_year": 383.61,
+     "pnl_gbp": 48.35,
+     "stops": 1,
+     "trips": 138
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 3416.41,
+     "gbp_per_year": 1595.32,
+     "pnl_gbp": 402.11,
+     "stops": 37,
+     "trips": 1134
+    },
+    "y2025": {
+     "fill_gbp_per_day": 2450.9,
+     "gbp_per_year": 945.02,
+     "pnl_gbp": 945.02,
+     "stops": 45,
+     "trips": 3305
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 1280.65,
+     "gbp_per_year": 371.63,
+     "pnl_gbp": 286.1,
+     "stops": 9,
+     "trips": 1308
+    }
+   },
+   "through_50": {
+    "last_12_months": {
+     "fill_gbp_per_day": 229.83,
+     "gbp_per_year": 68.8,
+     "pnl_gbp": 68.8,
+     "stops": 18,
+     "trips": 1734
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 194.05,
+     "gbp_per_year": 96.38,
+     "pnl_gbp": 7.39,
+     "stops": 1,
+     "trips": 112
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 143.63,
+     "gbp_per_year": 65.24,
+     "pnl_gbp": 8.22,
+     "stops": 1,
+     "trips": 138
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 600.27,
+     "gbp_per_year": 272.22,
+     "pnl_gbp": 68.62,
+     "stops": 37,
+     "trips": 1134
+    },
+    "y2025": {
+     "fill_gbp_per_day": 437.05,
+     "gbp_per_year": 161.4,
+     "pnl_gbp": 161.4,
+     "stops": 45,
+     "trips": 3305
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 225.49,
+     "gbp_per_year": 64.35,
+     "pnl_gbp": 49.54,
+     "stops": 9,
+     "trips": 1308
+    }
+   }
+  },
+  "around_2026-09-25_100": {
+   "08-24_to_09-25_gbp_per_year": 71.17,
+   "from_09-25_gbp_per_year": 269.22,
+   "from_09-25_trips": 68
+  },
+  "books": [
+   "coinbase:USDC-GBP",
+   "coinbase:USDT-GBP"
+  ],
+  "bootstrap_last_12_months_100": {
+   "best_day_share": 0.0251,
+   "days_negative": 28,
+   "days_positive": 236,
+   "index100_gbp_per_year": 114.75,
+   "share_draws_gt_0": 1.0,
+   "sum_gbp": 135.71
+  },
+  "by_month_100": {
+   "2024-10": 18.11,
+   "2024-11": 47.96,
+   "2024-12": 70.15,
+   "2025-01": 74.06,
+   "2025-02": 55.86,
+   "2025-03": 53.45,
+   "2025-04": 25.41,
+   "2025-05": 16.46,
+   "2025-06": 14.89,
+   "2025-07": 16.14,
+   "2025-08": 11.89,
+   "2025-09": 12.53,
+   "2025-10": 9.91,
+   "2025-11": 18.43,
+   "2025-12": 10.77,
+   "2026-01": 16.86,
+   "2026-02": 13.31,
+   "2026-03": 4.33,
+   "2026-04": 14.37,
+   "2026-05": 15.45,
+   "2026-06": 6.26,
+   "2026-07": 8.75,
+   "2026-08": 2.39,
+   "2026-09": 9.04,
+   "2026-10": 7.1
+  },
+  "capital_gbp_at_100": 1200,
+  "volume_gbp_per_day_last_12_months": 8817730
+ },
+ "kraken_usde_eur": {
+  "arms": {
+   "at_price_100": {
+    "last_12_months": {
+     "fill_gbp_per_day": 19.31,
+     "gbp_per_year": -4.99,
+     "pnl_gbp": -4.99,
+     "stops": 19,
+     "trips": 103
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 30.37,
+     "gbp_per_year": 12.13,
+     "pnl_gbp": 0.93,
+     "stops": 0,
+     "trips": 12
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 18.48,
+     "gbp_per_year": 7.39,
+     "pnl_gbp": 0.93,
+     "stops": 0,
+     "trips": 12
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 0,
+     "gbp_per_year": null,
+     "pnl_gbp": 0,
+     "stops": 0,
+     "trips": 0
+    },
+    "y2025": {
+     "fill_gbp_per_day": 18.55,
+     "gbp_per_year": 0.82,
+     "pnl_gbp": 0.22,
+     "stops": 14,
+     "trips": 34
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 19.67,
+     "gbp_per_year": -7.2,
+     "pnl_gbp": -5.55,
+     "stops": 11,
+     "trips": 79
+    }
+   },
+   "stress_100": {
+    "last_12_months": {
+     "fill_gbp_per_day": 11.58,
+     "gbp_per_year": -6.15,
+     "pnl_gbp": -6.15,
+     "stops": 23,
+     "trips": 55
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 28.19,
+     "gbp_per_year": 3.8,
+     "pnl_gbp": 0.29,
+     "stops": 5,
+     "trips": 10
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 17.16,
+     "gbp_per_year": 2.31,
+     "pnl_gbp": 0.29,
+     "stops": 5,
+     "trips": 10
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 0,
+     "gbp_per_year": null,
+     "pnl_gbp": 0,
+     "stops": 0,
+     "trips": 0
+    },
+    "y2025": {
+     "fill_gbp_per_day": 10.31,
+     "gbp_per_year": -1.78,
+     "pnl_gbp": -0.48,
+     "stops": 12,
+     "trips": 20
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 12.16,
+     "gbp_per_year": -7.99,
+     "pnl_gbp": -6.15,
+     "stops": 18,
+     "trips": 42
+    }
+   },
+   "through_10": {
+    "last_12_months": {
+     "fill_gbp_per_day": 1.66,
+     "gbp_per_year": -0.67,
+     "pnl_gbp": -0.67,
+     "stops": 27,
+     "trips": 75
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 3.93,
+     "gbp_per_year": 0.94,
+     "pnl_gbp": 0.07,
+     "stops": 4,
+     "trips": 11
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 2.39,
+     "gbp_per_year": 0.57,
+     "pnl_gbp": 0.07,
+     "stops": 4,
+     "trips": 11
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 0,
+     "gbp_per_year": null,
+     "pnl_gbp": 0,
+     "stops": 0,
+     "trips": 0
+    },
+    "y2025": {
+     "fill_gbp_per_day": 1.35,
+     "gbp_per_year": -0.38,
+     "pnl_gbp": -0.1,
+     "stops": 15,
+     "trips": 25
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 1.79,
+     "gbp_per_year": -0.8,
+     "pnl_gbp": -0.62,
+     "stops": 18,
+     "trips": 57
+    }
+   },
+   "through_100": {
+    "last_12_months": {
+     "fill_gbp_per_day": 13.48,
+     "gbp_per_year": -6.05,
+     "pnl_gbp": -6.05,
+     "stops": 27,
+     "trips": 75
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 28.94,
+     "gbp_per_year": 8.13,
+     "pnl_gbp": 0.62,
+     "stops": 4,
+     "trips": 11
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 17.61,
+     "gbp_per_year": 4.95,
+     "pnl_gbp": 0.62,
+     "stops": 4,
+     "trips": 11
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 0,
+     "gbp_per_year": null,
+     "pnl_gbp": 0,
+     "stops": 0,
+     "trips": 0
+    },
+    "y2025": {
+     "fill_gbp_per_day": 10.44,
+     "gbp_per_year": -2.26,
+     "pnl_gbp": -0.61,
+     "stops": 15,
+     "trips": 25
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 14.59,
+     "gbp_per_year": -7.61,
+     "pnl_gbp": -5.86,
+     "stops": 18,
+     "trips": 57
+    }
+   },
+   "through_1000": {
+    "last_12_months": {
+     "fill_gbp_per_day": 102.74,
+     "gbp_per_year": -29.04,
+     "pnl_gbp": -29.04,
+     "stops": 27,
+     "trips": 75
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 141.2,
+     "gbp_per_year": 67.08,
+     "pnl_gbp": 5.15,
+     "stops": 4,
+     "trips": 11
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 85.95,
+     "gbp_per_year": 40.83,
+     "pnl_gbp": 5.15,
+     "stops": 4,
+     "trips": 11
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 0,
+     "gbp_per_year": null,
+     "pnl_gbp": 0,
+     "stops": 0,
+     "trips": 0
+    },
+    "y2025": {
+     "fill_gbp_per_day": 86.29,
+     "gbp_per_year": -5.42,
+     "pnl_gbp": -1.47,
+     "stops": 15,
+     "trips": 25
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 108.13,
+     "gbp_per_year": -38.17,
+     "pnl_gbp": -29.38,
+     "stops": 18,
+     "trips": 57
+    }
+   },
+   "through_300": {
+    "last_12_months": {
+     "fill_gbp_per_day": 36.7,
+     "gbp_per_year": -15.2,
+     "pnl_gbp": -15.2,
+     "stops": 27,
+     "trips": 75
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 64.66,
+     "gbp_per_year": 21.23,
+     "pnl_gbp": 1.63,
+     "stops": 4,
+     "trips": 11
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 39.36,
+     "gbp_per_year": 12.92,
+     "pnl_gbp": 1.63,
+     "stops": 4,
+     "trips": 11
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 0,
+     "gbp_per_year": null,
+     "pnl_gbp": 0,
+     "stops": 0,
+     "trips": 0
+    },
+    "y2025": {
+     "fill_gbp_per_day": 30.54,
+     "gbp_per_year": -6.36,
+     "pnl_gbp": -1.73,
+     "stops": 15,
+     "trips": 25
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 39.09,
+     "gbp_per_year": -19.15,
+     "pnl_gbp": -14.74,
+     "stops": 18,
+     "trips": 57
+    }
+   },
+   "through_50": {
+    "last_12_months": {
+     "fill_gbp_per_day": 7.13,
+     "gbp_per_year": -3.08,
+     "pnl_gbp": -3.08,
+     "stops": 27,
+     "trips": 75
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 17.53,
+     "gbp_per_year": 3.99,
+     "pnl_gbp": 0.31,
+     "stops": 4,
+     "trips": 11
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 10.67,
+     "gbp_per_year": 2.43,
+     "pnl_gbp": 0.31,
+     "stops": 4,
+     "trips": 11
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 0,
+     "gbp_per_year": null,
+     "pnl_gbp": 0,
+     "stops": 0,
+     "trips": 0
+    },
+    "y2025": {
+     "fill_gbp_per_day": 5.39,
+     "gbp_per_year": -1.22,
+     "pnl_gbp": -0.33,
+     "stops": 15,
+     "trips": 25
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 7.76,
+     "gbp_per_year": -3.85,
+     "pnl_gbp": -2.97,
+     "stops": 18,
+     "trips": 57
+    }
+   }
+  },
+  "around_2026-09-25_100": {
+   "08-24_to_09-25_gbp_per_year": 3.9,
+   "from_09-25_gbp_per_year": 7.42,
+   "from_09-25_trips": 7
+  },
+  "books": [
+   "kraken:USDEEUR"
+  ],
+  "bootstrap_last_12_months_100": {
+   "best_day_share": null,
+   "days_negative": 34,
+   "days_positive": 20,
+   "index100_gbp_per_year": -11.43,
+   "share_draws_gt_0": 0.012,
+   "sum_gbp": -6.05
+  },
+  "by_month_100": {
+   "2025-09": 0.0,
+   "2025-10": -0.85,
+   "2025-11": 0.16,
+   "2025-12": 0.07,
+   "2026-01": -1.39,
+   "2026-02": -0.74,
+   "2026-03": -0.58,
+   "2026-04": -0.09,
+   "2026-06": -2.57,
+   "2026-07": -0.36,
+   "2026-08": -0.76,
+   "2026-09": 0.35,
+   "2026-10": 0.28
+  },
+  "capital_gbp_at_100": 600,
+  "volume_gbp_per_day_last_12_months": 39219
+ },
+ "kraken_usdg_usd": {
+  "arms": {
+   "at_price_100": {
+    "last_12_months": {
+     "fill_gbp_per_day": 23.58,
+     "gbp_per_year": 17.07,
+     "pnl_gbp": 17.07,
+     "stops": 0,
+     "trips": 101
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 21.43,
+     "gbp_per_year": 16.07,
+     "pnl_gbp": 1.23,
+     "stops": 0,
+     "trips": 6
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 19.71,
+     "gbp_per_year": 15.11,
+     "pnl_gbp": 1.9,
+     "stops": 0,
+     "trips": 24
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 38.93,
+     "gbp_per_year": 22.14,
+     "pnl_gbp": 3.52,
+     "stops": 3,
+     "trips": 73
+    },
+    "y2025": {
+     "fill_gbp_per_day": 72.22,
+     "gbp_per_year": 48.74,
+     "pnl_gbp": 48.74,
+     "stops": 0,
+     "trips": 348
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 10.7,
+     "gbp_per_year": 7.67,
+     "pnl_gbp": 5.9,
+     "stops": 0,
+     "trips": 45
+    }
+   },
+   "stress_100": {
+    "last_12_months": {
+     "fill_gbp_per_day": 16.16,
+     "gbp_per_year": 11.43,
+     "pnl_gbp": 11.43,
+     "stops": 12,
+     "trips": 59
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 10.74,
+     "gbp_per_year": 7.47,
+     "pnl_gbp": 0.57,
+     "stops": 3,
+     "trips": 3
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 13.06,
+     "gbp_per_year": 9.77,
+     "pnl_gbp": 1.23,
+     "stops": 3,
+     "trips": 6
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 32.04,
+     "gbp_per_year": 16.58,
+     "pnl_gbp": 2.63,
+     "stops": 8,
+     "trips": 64
+    },
+    "y2025": {
+     "fill_gbp_per_day": 46.87,
+     "gbp_per_year": 31.8,
+     "pnl_gbp": 31.8,
+     "stops": 23,
+     "trips": 228
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 7.12,
+     "gbp_per_year": 4.9,
+     "pnl_gbp": 3.77,
+     "stops": 8,
+     "trips": 20
+    }
+   },
+   "through_10": {
+    "last_12_months": {
+     "fill_gbp_per_day": 1.84,
+     "gbp_per_year": 1.35,
+     "pnl_gbp": 1.35,
+     "stops": 0,
+     "trips": 73
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 1.07,
+     "gbp_per_year": 0.83,
+     "pnl_gbp": 0.06,
+     "stops": 0,
+     "trips": 3
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 1.35,
+     "gbp_per_year": 1.06,
+     "pnl_gbp": 0.13,
+     "stops": 0,
+     "trips": 12
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 6.08,
+     "gbp_per_year": 2.82,
+     "pnl_gbp": 0.45,
+     "stops": 3,
+     "trips": 70
+    },
+    "y2025": {
+     "fill_gbp_per_day": 6.64,
+     "gbp_per_year": 4.58,
+     "pnl_gbp": 4.58,
+     "stops": 7,
+     "trips": 286
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 0.72,
+     "gbp_per_year": 0.52,
+     "pnl_gbp": 0.4,
+     "stops": 0,
+     "trips": 26
+    }
+   },
+   "through_100": {
+    "last_12_months": {
+     "fill_gbp_per_day": 18.36,
+     "gbp_per_year": 13.51,
+     "pnl_gbp": 13.51,
+     "stops": 0,
+     "trips": 73
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 10.75,
+     "gbp_per_year": 8.26,
+     "pnl_gbp": 0.63,
+     "stops": 0,
+     "trips": 3
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 13.11,
+     "gbp_per_year": 10.29,
+     "pnl_gbp": 1.3,
+     "stops": 0,
+     "trips": 12
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 37.65,
+     "gbp_per_year": 21.5,
+     "pnl_gbp": 3.42,
+     "stops": 3,
+     "trips": 70
+    },
+    "y2025": {
+     "fill_gbp_per_day": 58.43,
+     "gbp_per_year": 40.47,
+     "pnl_gbp": 40.47,
+     "stops": 7,
+     "trips": 286
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 7.13,
+     "gbp_per_year": 5.18,
+     "pnl_gbp": 3.99,
+     "stops": 0,
+     "trips": 26
+    }
+   },
+   "through_1000": {
+    "last_12_months": {
+     "fill_gbp_per_day": 183.58,
+     "gbp_per_year": 135.04,
+     "pnl_gbp": 135.04,
+     "stops": 0,
+     "trips": 73
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 107.49,
+     "gbp_per_year": 82.59,
+     "pnl_gbp": 6.34,
+     "stops": 0,
+     "trips": 3
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 130.69,
+     "gbp_per_year": 102.53,
+     "pnl_gbp": 12.92,
+     "stops": 0,
+     "trips": 12
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 133.76,
+     "gbp_per_year": 77.15,
+     "pnl_gbp": 12.26,
+     "stops": 3,
+     "trips": 70
+    },
+    "y2025": {
+     "fill_gbp_per_day": 494.12,
+     "gbp_per_year": 347.54,
+     "pnl_gbp": 347.54,
+     "stops": 7,
+     "trips": 286
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 71.22,
+     "gbp_per_year": 51.73,
+     "pnl_gbp": 39.82,
+     "stops": 0,
+     "trips": 26
+    }
+   },
+   "through_300": {
+    "last_12_months": {
+     "fill_gbp_per_day": 55.08,
+     "gbp_per_year": 40.52,
+     "pnl_gbp": 40.52,
+     "stops": 0,
+     "trips": 73
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 32.25,
+     "gbp_per_year": 24.78,
+     "pnl_gbp": 1.9,
+     "stops": 0,
+     "trips": 3
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 39.24,
+     "gbp_per_year": 30.79,
+     "pnl_gbp": 3.88,
+     "stops": 0,
+     "trips": 12
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 69.31,
+     "gbp_per_year": 40.43,
+     "pnl_gbp": 6.43,
+     "stops": 3,
+     "trips": 70
+    },
+    "y2025": {
+     "fill_gbp_per_day": 163.17,
+     "gbp_per_year": 113.8,
+     "pnl_gbp": 113.8,
+     "stops": 7,
+     "trips": 286
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 21.37,
+     "gbp_per_year": 15.52,
+     "pnl_gbp": 11.95,
+     "stops": 0,
+     "trips": 26
+    }
+   },
+   "through_50": {
+    "last_12_months": {
+     "fill_gbp_per_day": 9.18,
+     "gbp_per_year": 6.76,
+     "pnl_gbp": 6.76,
+     "stops": 0,
+     "trips": 73
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 5.37,
+     "gbp_per_year": 4.13,
+     "pnl_gbp": 0.32,
+     "stops": 0,
+     "trips": 3
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 6.58,
+     "gbp_per_year": 5.16,
+     "pnl_gbp": 0.65,
+     "stops": 0,
+     "trips": 12
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 23.84,
+     "gbp_per_year": 12.97,
+     "pnl_gbp": 2.06,
+     "stops": 3,
+     "trips": 70
+    },
+    "y2025": {
+     "fill_gbp_per_day": 30.54,
+     "gbp_per_year": 21.07,
+     "pnl_gbp": 21.07,
+     "stops": 7,
+     "trips": 286
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 3.57,
+     "gbp_per_year": 2.59,
+     "pnl_gbp": 2.0,
+     "stops": 0,
+     "trips": 26
+    }
+   }
+  },
+  "around_2026-09-25_100": {
+   "08-24_to_09-25_gbp_per_year": 7.48,
+   "from_09-25_gbp_per_year": 16.92,
+   "from_09-25_trips": 3
+  },
+  "books": [
+   "kraken:USDGUSD"
+  ],
+  "bootstrap_last_12_months_100": {
+   "best_day_share": 0.1781,
+   "days_negative": 0,
+   "days_positive": 19,
+   "index100_gbp_per_year": 7.68,
+   "share_draws_gt_0": 1.0,
+   "sum_gbp": 13.51
+  },
+  "by_month_100": {
+   "2024-11": 2.49,
+   "2024-12": 0.92,
+   "2025-01": 2.41,
+   "2025-02": 0.06,
+   "2025-03": 1.34,
+   "2025-04": 3.8,
+   "2025-05": 2.97,
+   "2025-06": 1.22,
+   "2025-07": 7.73,
+   "2025-08": 1.81,
+   "2025-09": 5.19,
+   "2025-10": 12.48,
+   "2025-11": 1.35,
+   "2025-12": 0.11,
+   "2026-01": 2.15,
+   "2026-06": 0.54,
+   "2026-09": 0.66,
+   "2026-10": 0.63
+  },
+  "capital_gbp_at_100": 600,
+  "volume_gbp_per_day_last_12_months": 1275739
+ },
+ "okx_eea": {
+  "arms": {
+   "at_price_100": {
+    "last_12_months": {
+     "fill_gbp_per_day": 380.75,
+     "gbp_per_year": 115.57,
+     "pnl_gbp": 115.57,
+     "stops": 57,
+     "trips": 2586
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 1087.67,
+     "gbp_per_year": 650.4,
+     "pnl_gbp": 49.89,
+     "stops": 3,
+     "trips": 1035
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 863.11,
+     "gbp_per_year": 518.96,
+     "pnl_gbp": 65.4,
+     "stops": 3,
+     "trips": 1424
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 86.63,
+     "gbp_per_year": 18.75,
+     "pnl_gbp": 4.73,
+     "stops": 17,
+     "trips": 119
+    },
+    "y2025": {
+     "fill_gbp_per_day": 186.99,
+     "gbp_per_year": 39.1,
+     "pnl_gbp": 39.1,
+     "stops": 44,
+     "trips": 975
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 402.51,
+     "gbp_per_year": 145.62,
+     "pnl_gbp": 112.11,
+     "stops": 39,
+     "trips": 2469
+    }
+   },
+   "stress_100": {
+    "last_12_months": {
+     "fill_gbp_per_day": 309.14,
+     "gbp_per_year": 90.5,
+     "pnl_gbp": 90.5,
+     "stops": 58,
+     "trips": 1994
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 908.95,
+     "gbp_per_year": 540.29,
+     "pnl_gbp": 41.45,
+     "stops": 3,
+     "trips": 872
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 714.71,
+     "gbp_per_year": 434.14,
+     "pnl_gbp": 54.71,
+     "stops": 3,
+     "trips": 1168
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 81.91,
+     "gbp_per_year": 14.89,
+     "pnl_gbp": 3.75,
+     "stops": 20,
+     "trips": 110
+    },
+    "y2025": {
+     "fill_gbp_per_day": 177.73,
+     "gbp_per_year": 34.71,
+     "pnl_gbp": 34.71,
+     "stops": 42,
+     "trips": 921
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 326.72,
+     "gbp_per_year": 115.16,
+     "pnl_gbp": 88.65,
+     "stops": 39,
+     "trips": 1881
+    }
+   },
+   "through_10": {
+    "last_12_months": {
+     "fill_gbp_per_day": 71.17,
+     "gbp_per_year": 24.58,
+     "pnl_gbp": 24.58,
+     "stops": 59,
+     "trips": 2275
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 273.23,
+     "gbp_per_year": 178.43,
+     "pnl_gbp": 13.69,
+     "stops": 3,
+     "trips": 953
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 219.99,
+     "gbp_per_year": 145.63,
+     "pnl_gbp": 18.35,
+     "stops": 3,
+     "trips": 1288
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 10.65,
+     "gbp_per_year": 0.97,
+     "pnl_gbp": 0.24,
+     "stops": 19,
+     "trips": 113
+    },
+    "y2025": {
+     "fill_gbp_per_day": 22.85,
+     "gbp_per_year": 4.89,
+     "pnl_gbp": 4.89,
+     "stops": 42,
+     "trips": 948
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 73.1,
+     "gbp_per_year": 31.43,
+     "pnl_gbp": 24.2,
+     "stops": 41,
+     "trips": 2158
+    }
+   },
+   "through_100": {
+    "last_12_months": {
+     "fill_gbp_per_day": 345.1,
+     "gbp_per_year": 104.69,
+     "pnl_gbp": 104.69,
+     "stops": 59,
+     "trips": 2275
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 990.58,
+     "gbp_per_year": 598.29,
+     "pnl_gbp": 45.9,
+     "stops": 3,
+     "trips": 953
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 778.15,
+     "gbp_per_year": 476.41,
+     "pnl_gbp": 60.04,
+     "stops": 3,
+     "trips": 1288
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 84.05,
+     "gbp_per_year": 18.41,
+     "pnl_gbp": 4.64,
+     "stops": 19,
+     "trips": 113
+    },
+    "y2025": {
+     "fill_gbp_per_day": 183.14,
+     "gbp_per_year": 38.73,
+     "pnl_gbp": 38.73,
+     "stops": 42,
+     "trips": 948
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 364.71,
+     "gbp_per_year": 131.32,
+     "pnl_gbp": 101.1,
+     "stops": 41,
+     "trips": 2158
+    }
+   },
+   "through_1000": {
+    "last_12_months": {
+     "fill_gbp_per_day": 1381.15,
+     "gbp_per_year": 354.97,
+     "pnl_gbp": 354.97,
+     "stops": 59,
+     "trips": 2275
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 2218.72,
+     "gbp_per_year": 688.59,
+     "pnl_gbp": 52.82,
+     "stops": 3,
+     "trips": 953
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 1681.13,
+     "gbp_per_year": 521.34,
+     "pnl_gbp": 65.7,
+     "stops": 3,
+     "trips": 1288
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 573.08,
+     "gbp_per_year": 169.92,
+     "pnl_gbp": 42.83,
+     "stops": 19,
+     "trips": 113
+    },
+    "y2025": {
+     "fill_gbp_per_day": 1122.14,
+     "gbp_per_year": 230.44,
+     "pnl_gbp": 230.44,
+     "stops": 42,
+     "trips": 948
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 1508.0,
+     "gbp_per_year": 418.89,
+     "pnl_gbp": 322.49,
+     "stops": 41,
+     "trips": 2158
+    }
+   },
+   "through_300": {
+    "last_12_months": {
+     "fill_gbp_per_day": 667.27,
+     "gbp_per_year": 182.89,
+     "pnl_gbp": 182.89,
+     "stops": 59,
+     "trips": 2275
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 1423.37,
+     "gbp_per_year": 702.2,
+     "pnl_gbp": 53.87,
+     "stops": 3,
+     "trips": 953
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 1085.29,
+     "gbp_per_year": 543.89,
+     "pnl_gbp": 68.54,
+     "stops": 3,
+     "trips": 1288
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 222.33,
+     "gbp_per_year": 55.47,
+     "pnl_gbp": 13.98,
+     "stops": 19,
+     "trips": 113
+    },
+    "y2025": {
+     "fill_gbp_per_day": 453.38,
+     "gbp_per_year": 95.21,
+     "pnl_gbp": 95.21,
+     "stops": 42,
+     "trips": 948
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 719.22,
+     "gbp_per_year": 224.2,
+     "pnl_gbp": 172.6,
+     "stops": 41,
+     "trips": 2158
+    }
+   },
+   "through_50": {
+    "last_12_months": {
+     "fill_gbp_per_day": 227.77,
+     "gbp_per_year": 73.11,
+     "pnl_gbp": 73.11,
+     "stops": 59,
+     "trips": 2275
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 749.36,
+     "gbp_per_year": 475.09,
+     "pnl_gbp": 36.45,
+     "stops": 3,
+     "trips": 953
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 595.85,
+     "gbp_per_year": 382.17,
+     "pnl_gbp": 48.16,
+     "stops": 3,
+     "trips": 1288
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 45.5,
+     "gbp_per_year": 7.88,
+     "pnl_gbp": 1.99,
+     "stops": 19,
+     "trips": 113
+    },
+    "y2025": {
+     "fill_gbp_per_day": 100.1,
+     "gbp_per_year": 21.2,
+     "pnl_gbp": 21.2,
+     "stops": 42,
+     "trips": 948
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 237.76,
+     "gbp_per_year": 92.62,
+     "pnl_gbp": 71.31,
+     "stops": 41,
+     "trips": 2158
+    }
+   }
+  },
+  "around_2026-09-25_100": {
+   "08-24_to_09-25_gbp_per_year": 492.64,
+   "from_09-25_gbp_per_year": 438.01,
+   "from_09-25_trips": 393
+  },
+  "books": [
+   "okx:USDC-EUR",
+   "okx:USDG-EUR"
+  ],
+  "bootstrap_last_12_months_100": {
+   "best_day_share": 0.0405,
+   "days_negative": 59,
+   "days_positive": 202,
+   "index100_gbp_per_year": 81.82,
+   "share_draws_gt_0": 1.0,
+   "sum_gbp": 104.69
+  },
+  "by_month_100": {
+   "2024-10": -0.17,
+   "2024-11": 2.66,
+   "2024-12": 2.15,
+   "2025-01": -2.33,
+   "2025-02": 7.88,
+   "2025-03": 9.75,
+   "2025-04": 10.35,
+   "2025-05": 0.14,
+   "2025-06": 3.97,
+   "2025-07": 1.76,
+   "2025-08": 2.11,
+   "2025-09": 0.05,
+   "2025-10": 0.95,
+   "2025-11": 1.61,
+   "2025-12": 2.49,
+   "2026-01": 2.62,
+   "2026-02": 7.41,
+   "2026-03": 9.3,
+   "2026-04": 3.03,
+   "2026-05": 1.91,
+   "2026-06": 2.15,
+   "2026-07": 0.96,
+   "2026-08": 14.21,
+   "2026-09": 51.08,
+   "2026-10": 8.43
+  },
+  "capital_gbp_at_100": 1200,
+  "volume_gbp_per_day_last_12_months": 2990980
+ },
+ "okx_usdg_eur": {
+  "arms": {
+   "at_price_100": {
+    "last_12_months": {
+     "fill_gbp_per_day": 212.99,
+     "gbp_per_year": 136.48,
+     "pnl_gbp": 85.26,
+     "stops": 18,
+     "trips": 1843
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 938.78,
+     "gbp_per_year": 665.13,
+     "pnl_gbp": 51.02,
+     "stops": 1,
+     "trips": 991
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 757.27,
+     "gbp_per_year": 529.05,
+     "pnl_gbp": 66.67,
+     "stops": 1,
+     "trips": 1373
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 0,
+     "gbp_per_year": null,
+     "pnl_gbp": 0,
+     "stops": 0,
+     "trips": 0
+    },
+    "y2025": {
+     "fill_gbp_per_day": 0,
+     "gbp_per_year": null,
+     "pnl_gbp": 0,
+     "stops": 0,
+     "trips": 0
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 212.99,
+     "gbp_per_year": 136.48,
+     "pnl_gbp": 85.26,
+     "stops": 18,
+     "trips": 1843
+    }
+   },
+   "stress_100": {
+    "last_12_months": {
+     "fill_gbp_per_day": 156.87,
+     "gbp_per_year": 107.66,
+     "pnl_gbp": 67.25,
+     "stops": 14,
+     "trips": 1322
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 781.39,
+     "gbp_per_year": 557.44,
+     "pnl_gbp": 42.76,
+     "stops": 1,
+     "trips": 834
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 624.02,
+     "gbp_per_year": 447.79,
+     "pnl_gbp": 56.43,
+     "stops": 1,
+     "trips": 1124
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 0,
+     "gbp_per_year": null,
+     "pnl_gbp": 0,
+     "stops": 0,
+     "trips": 0
+    },
+    "y2025": {
+     "fill_gbp_per_day": 0,
+     "gbp_per_year": null,
+     "pnl_gbp": 0,
+     "stops": 0,
+     "trips": 0
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 156.87,
+     "gbp_per_year": 107.66,
+     "pnl_gbp": 67.25,
+     "stops": 14,
+     "trips": 1322
+    }
+   },
+   "through_10": {
+    "last_12_months": {
+     "fill_gbp_per_day": 52.44,
+     "gbp_per_year": 34.39,
+     "pnl_gbp": 21.48,
+     "stops": 17,
+     "trips": 1562
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 259.66,
+     "gbp_per_year": 180.08,
+     "pnl_gbp": 13.81,
+     "stops": 1,
+     "trips": 915
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 210.43,
+     "gbp_per_year": 146.96,
+     "pnl_gbp": 18.52,
+     "stops": 1,
+     "trips": 1244
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 0,
+     "gbp_per_year": null,
+     "pnl_gbp": 0,
+     "stops": 0,
+     "trips": 0
+    },
+    "y2025": {
+     "fill_gbp_per_day": 0,
+     "gbp_per_year": null,
+     "pnl_gbp": 0,
+     "stops": 0,
+     "trips": 0
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 52.44,
+     "gbp_per_year": 34.39,
+     "pnl_gbp": 21.48,
+     "stops": 17,
+     "trips": 1562
+    }
+   },
+   "through_100": {
+    "last_12_months": {
+     "fill_gbp_per_day": 183.62,
+     "gbp_per_year": 120.69,
+     "pnl_gbp": 75.39,
+     "stops": 17,
+     "trips": 1562
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 861.34,
+     "gbp_per_year": 612.0,
+     "pnl_gbp": 46.95,
+     "stops": 1,
+     "trips": 915
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 686.44,
+     "gbp_per_year": 487.96,
+     "pnl_gbp": 61.5,
+     "stops": 1,
+     "trips": 1244
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 0,
+     "gbp_per_year": null,
+     "pnl_gbp": 0,
+     "stops": 0,
+     "trips": 0
+    },
+    "y2025": {
+     "fill_gbp_per_day": 0,
+     "gbp_per_year": null,
+     "pnl_gbp": 0,
+     "stops": 0,
+     "trips": 0
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 183.62,
+     "gbp_per_year": 120.69,
+     "pnl_gbp": 75.39,
+     "stops": 17,
+     "trips": 1562
+    }
+   },
+   "through_1000": {
+    "last_12_months": {
+     "fill_gbp_per_day": 316.05,
+     "gbp_per_year": 191.8,
+     "pnl_gbp": 119.81,
+     "stops": 17,
+     "trips": 1562
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 1163.85,
+     "gbp_per_year": 782.03,
+     "pnl_gbp": 59.99,
+     "stops": 1,
+     "trips": 915
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 908.62,
+     "gbp_per_year": 610.34,
+     "pnl_gbp": 76.92,
+     "stops": 1,
+     "trips": 1244
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 0,
+     "gbp_per_year": null,
+     "pnl_gbp": 0,
+     "stops": 0,
+     "trips": 0
+    },
+    "y2025": {
+     "fill_gbp_per_day": 0,
+     "gbp_per_year": null,
+     "pnl_gbp": 0,
+     "stops": 0,
+     "trips": 0
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 316.05,
+     "gbp_per_year": 191.8,
+     "pnl_gbp": 119.81,
+     "stops": 17,
+     "trips": 1562
+    }
+   },
+   "through_300": {
+    "last_12_months": {
+     "fill_gbp_per_day": 249.31,
+     "gbp_per_year": 157.82,
+     "pnl_gbp": 98.58,
+     "stops": 17,
+     "trips": 1562
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 1053.22,
+     "gbp_per_year": 731.32,
+     "pnl_gbp": 56.1,
+     "stops": 1,
+     "trips": 915
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 820.86,
+     "gbp_per_year": 571.25,
+     "pnl_gbp": 71.99,
+     "stops": 1,
+     "trips": 1244
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 0,
+     "gbp_per_year": null,
+     "pnl_gbp": 0,
+     "stops": 0,
+     "trips": 0
+    },
+    "y2025": {
+     "fill_gbp_per_day": 0,
+     "gbp_per_year": null,
+     "pnl_gbp": 0,
+     "stops": 0,
+     "trips": 0
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 249.31,
+     "gbp_per_year": 157.82,
+     "pnl_gbp": 98.58,
+     "stops": 17,
+     "trips": 1562
+    }
+   },
+   "through_50": {
+    "last_12_months": {
+     "fill_gbp_per_day": 141.41,
+     "gbp_per_year": 93.13,
+     "pnl_gbp": 58.18,
+     "stops": 17,
+     "trips": 1562
+    },
+    "last_28_days": {
+     "fill_gbp_per_day": 683.72,
+     "gbp_per_year": 482.22,
+     "pnl_gbp": 36.99,
+     "stops": 1,
+     "trips": 915
+    },
+    "since_2026-08-24": {
+     "fill_gbp_per_day": 549.37,
+     "gbp_per_year": 388.11,
+     "pnl_gbp": 48.91,
+     "stops": 1,
+     "trips": 1244
+    },
+    "y2024_q4": {
+     "fill_gbp_per_day": 0,
+     "gbp_per_year": null,
+     "pnl_gbp": 0,
+     "stops": 0,
+     "trips": 0
+    },
+    "y2025": {
+     "fill_gbp_per_day": 0,
+     "gbp_per_year": null,
+     "pnl_gbp": 0,
+     "stops": 0,
+     "trips": 0
+    },
+    "y2026_to_10-09": {
+     "fill_gbp_per_day": 141.41,
+     "gbp_per_year": 93.13,
+     "pnl_gbp": 58.18,
+     "stops": 17,
+     "trips": 1562
+    }
+   }
+  },
+  "around_2026-09-25_100": {
+   "08-24_to_09-25_gbp_per_year": 495.38,
+   "from_09-25_gbp_per_year": 470.38,
+   "from_09-25_trips": 361
+  },
+  "books": [
+   "okx:USDG-EUR"
+  ],
+  "bootstrap_last_12_months_100": {
+   "best_day_share": 0.0563,
+   "days_negative": 24,
+   "days_positive": 107,
+   "index100_gbp_per_year": 54.38,
+   "share_draws_gt_0": 1.0,
+   "sum_gbp": 75.39
+  },
+  "by_month_100": {
+   "2026-02": -0.09,
+   "2026-03": 0.03,
+   "2026-04": -0.06,
+   "2026-05": 0.18,
+   "2026-06": 0.23,
+   "2026-07": 0.72,
+   "2026-08": 13.35,
+   "2026-09": 51.39,
+   "2026-10": 9.63
+  },
+  "capital_gbp_at_100": 600,
+  "volume_gbp_per_day_last_12_months": 20393
+ }
+}

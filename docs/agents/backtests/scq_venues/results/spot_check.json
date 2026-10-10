@@ -1,0 +1,282 @@
+{
+ "bitstamp": [
+  {
+   "pair": "usdteur",
+   "same": true,
+   "start": 1761160800
+  },
+  {
+   "pair": "usdteur",
+   "same": true,
+   "start": 1784080800
+  },
+  {
+   "pair": "usdceur",
+   "same": true,
+   "start": 1747300800
+  },
+  {
+   "pair": "usdteur",
+   "same": true,
+   "start": 1736920800
+  },
+  {
+   "pair": "usdceur",
+   "same": true,
+   "start": 1777660800
+  },
+  {
+   "pair": "usdceur",
+   "same": true,
+   "start": 1752760800
+  }
+ ],
+ "coinbase": [
+  {
+   "after": 5699550,
+   "same": true,
+   "seg": "USDC-GBP__5500000"
+  },
+  {
+   "after": 2146537,
+   "same": true,
+   "seg": "USDC-GBP_3757537_0"
+  },
+  {
+   "after": 3826001,
+   "same": true,
+   "seg": "USDC-GBP_5500001_3757536"
+  },
+  {
+   "after": 2618537,
+   "same": true,
+   "seg": "USDC-GBP_3757537_0"
+  },
+  {
+   "after": 4755001,
+   "same": true,
+   "seg": "USDC-GBP_5500001_3757536"
+  },
+  {
+   "after": 3070537,
+   "same": true,
+   "seg": "USDC-GBP_3757537_0"
+  },
+  {
+   "after": 2179537,
+   "same": true,
+   "seg": "USDC-GBP_3757537_0"
+  },
+  {
+   "after": 5718550,
+   "same": true,
+   "seg": "USDC-GBP__5500000"
+  },
+  {
+   "after": 5636201,
+   "same": true,
+   "seg": "USDT-GBP__5047865"
+  },
+  {
+   "after": 6098201,
+   "same": true,
+   "seg": "USDT-GBP__5047865"
+  },
+  {
+   "after": 6405201,
+   "same": true,
+   "seg": "USDT-GBP__5047865"
+  },
+  {
+   "after": 5051201,
+   "same": true,
+   "seg": "USDT-GBP__5047865"
+  },
+  {
+   "after": 4101866,
+   "same": true,
+   "seg": "USDT-GBP_5047866_0"
+  },
+  {
+   "after": 4659866,
+   "same": true,
+   "seg": "USDT-GBP_5047866_0"
+  },
+  {
+   "after": 6402201,
+   "same": true,
+   "seg": "USDT-GBP__5047865"
+  },
+  {
+   "after": 5515201,
+   "same": true,
+   "seg": "USDT-GBP__5047865"
+  },
+  {
+   "after": 19007001,
+   "same": true,
+   "seg": "USDC-EUR_19450001_19000000"
+  },
+  {
+   "after": 21419001,
+   "same": true,
+   "seg": "USDC-EUR_21500001_19450000"
+  },
+  {
+   "after": 23908001,
+   "same": true,
+   "seg": "USDC-EUR_24000001_21900000"
+  },
+  {
+   "after": 20099001,
+   "same": true,
+   "seg": "USDC-EUR_21500001_19450000"
+  },
+  {
+   "after": 27670709,
+   "same": true,
+   "seg": "USDC-EUR__26850000"
+  },
+  {
+   "after": 22415001,
+   "same": true,
+   "seg": "USDC-EUR_24000001_21900000"
+  },
+  {
+   "after": 22316001,
+   "same": true,
+   "seg": "USDC-EUR_24000001_21900000"
+  },
+  {
+   "after": 24834001,
+   "same": true,
+   "seg": "USDC-EUR_26500001_24430000"
+  },
+  {
+   "after": 16292001,
+   "same": true,
+   "seg": "USDT-EUR_17900001_16283095"
+  },
+  {
+   "after": 14228001,
+   "same": true,
+   "seg": "USDT-EUR_14500001_0"
+  },
+  {
+   "after": 17217001,
+   "same": true,
+   "seg": "USDT-EUR_17900001_16283095"
+  },
+  {
+   "after": 17726001,
+   "same": true,
+   "seg": "USDT-EUR_17900001_16283095"
+  },
+  {
+   "after": 14780096,
+   "same": true,
+   "seg": "USDT-EUR_16283096_14500000"
+  },
+  {
+   "after": 12882001,
+   "same": true,
+   "seg": "USDT-EUR_14500001_0"
+  },
+  {
+   "after": 17857001,
+   "same": true,
+   "seg": "USDT-EUR_17900001_16283095"
+  },
+  {
+   "after": 14616096,
+   "same": true,
+   "seg": "USDT-EUR_16283096_14500000"
+  }
+ ],
+ "kraken": [
+  {
+   "pair": "USDGUSD",
+   "same_body": true,
+   "same_last": true,
+   "since": 1754592488708840832
+  },
+  {
+   "pair": "USDGUSD",
+   "same_body": true,
+   "same_last": true,
+   "since": 1765909367825625722
+  },
+  {
+   "pair": "USDGUSD",
+   "same_body": true,
+   "same_last": true,
+   "since": 1764598209650376658
+  },
+  {
+   "pair": "USDGUSD",
+   "same_body": true,
+   "same_last": true,
+   "since": 1787169679887818910
+  },
+  {
+   "pair": "USDGUSD",
+   "same_body": true,
+   "same_last": true,
+   "since": 1757394346957693388
+  },
+  {
+   "pair": "USDGUSD",
+   "same_body": true,
+   "same_last": true,
+   "since": 1780398141085775424
+  }
+ ],
+ "okx": [
+  {
+   "file": "USDC-EUR/2026-09-01",
+   "same": true
+  },
+  {
+   "file": "USDC-EUR/2025-10-22",
+   "same": true
+  },
+  {
+   "file": "USDT-EUR/2024-11-01",
+   "same": true
+  },
+  {
+   "file": "USDG-EUR/2026-06-07",
+   "same": true
+  },
+  {
+   "file": "USDT-EUR/2026-09-17",
+   "same": true
+  },
+  {
+   "file": "USDC-EUR/2025-04-05",
+   "same": true
+  },
+  {
+   "file": "USDT-EUR/2026-04-11",
+   "same": true
+  },
+  {
+   "file": "USDC-EUR/2025-12-11",
+   "same": true
+  },
+  {
+   "file": "USDT-EUR/2024-10-12",
+   "same": true
+  },
+  {
+   "file": "USDT-EUR/2025-02-24",
+   "same": true
+  }
+ ],
+ "summary": {
+  "bitstamp": "6/6",
+  "coinbase": "32/32",
+  "kraken": "6/6",
+  "okx": "10/10"
+ }
+}

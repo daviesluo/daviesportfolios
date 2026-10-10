@@ -1,0 +1,237 @@
+{
+ "books": {
+  "bitstamp:rlusdeur": {
+   "total_gbp": 0.2328,
+   "vs_cj5": {
+    "daily": 0.0469,
+    "weekly": 0.311
+   },
+   "vs_pr5": {
+    "daily": -0.0498,
+    "weekly": -0.0728
+   }
+  },
+  "bitstamp:usdceur": {
+   "total_gbp": 43.569,
+   "vs_cj5": {
+    "daily": 0.137,
+    "weekly": 0.165
+   },
+   "vs_pr5": {
+    "daily": 0.2142,
+    "weekly": 0.2667
+   }
+  },
+  "bitstamp:usdteur": {
+   "total_gbp": -1.1638,
+   "vs_cj5": {
+    "daily": 0.198,
+    "weekly": 0.3719
+   },
+   "vs_pr5": {
+    "daily": -0.097,
+    "weekly": -0.1206
+   }
+  },
+  "coinbase:USDC-EUR": {
+   "total_gbp": 23.0635,
+   "vs_cj5": {
+    "daily": 0.0128,
+    "weekly": 0.3601
+   },
+   "vs_pr5": {
+    "daily": -0.0031,
+    "weekly": -0.2868
+   }
+  },
+  "coinbase:USDC-GBP": {
+   "total_gbp": 27.2055,
+   "vs_cj5": {
+    "daily": 0.3022,
+    "weekly": 0.4932
+   },
+   "vs_pr5": {
+    "daily": -0.1053,
+    "weekly": -0.4449
+   }
+  },
+  "coinbase:USDT-EUR": {
+   "total_gbp": 20.4525,
+   "vs_cj5": {
+    "daily": 0.1288,
+    "weekly": 0.3261
+   },
+   "vs_pr5": {
+    "daily": 0.0705,
+    "weekly": 0.1354
+   }
+  },
+  "coinbase:USDT-GBP": {
+   "total_gbp": 83.4551,
+   "vs_cj5": {
+    "daily": 0.1595,
+    "weekly": 0.1344
+   },
+   "vs_pr5": {
+    "daily": 0.1768,
+    "weekly": 0.1311
+   }
+  },
+  "kraken:USDEEUR": {
+   "total_gbp": -5.7905,
+   "vs_cj5": {
+    "daily": 0.1175,
+    "weekly": -0.0239
+   },
+   "vs_pr5": {
+    "daily": -0.1589,
+    "weekly": -0.2877
+   }
+  },
+  "kraken:USDGUSD": {
+   "total_gbp": 4.0965,
+   "vs_cj5": {
+    "daily": 0.036,
+    "weekly": 0.2071
+   },
+   "vs_pr5": {
+    "daily": -0.0674,
+    "weekly": -0.1358
+   }
+  },
+  "okx:USDC-EUR": {
+   "total_gbp": 28.6096,
+   "vs_cj5": {
+    "daily": 0.1777,
+    "weekly": 0.115
+   },
+   "vs_pr5": {
+    "daily": 0.1868,
+    "weekly": 0.4595
+   }
+  },
+  "okx:USDG-EUR": {
+   "total_gbp": 75.3897,
+   "vs_cj5": {
+    "daily": 0.198,
+    "weekly": 0.2193
+   },
+   "vs_pr5": {
+    "daily": -0.1515,
+    "weekly": -0.5488
+   }
+  },
+  "okx:USDT-EUR": {
+   "total_gbp": 38.5072,
+   "vs_cj5": {
+    "daily": -0.0249,
+    "weekly": -0.163
+   },
+   "vs_pr5": {
+    "daily": 0.2654,
+    "weekly": 0.3568
+   }
+  }
+ },
+ "cj5_total_gbp": 136.537,
+ "days": 317,
+ "pr5_revx_total_gbp": 672.5656,
+ "pr5_vs_cj5": {
+  "daily": 0.0753,
+  "weekly": -0.2687
+ },
+ "venues": {
+  "bitstamp_usdc_eur": {
+   "total_gbp": 43.569,
+   "vs_cj5": {
+    "daily": 0.137,
+    "weekly": 0.165
+   },
+   "vs_pr5": {
+    "daily": 0.2142,
+    "weekly": 0.2667
+   }
+  },
+  "coinbase_eea": {
+   "total_gbp": 23.0635,
+   "vs_cj5": {
+    "daily": 0.0128,
+    "weekly": 0.3601
+   },
+   "vs_pr5": {
+    "daily": -0.0031,
+    "weekly": -0.2868
+   }
+  },
+  "coinbase_uk": {
+   "total_gbp": 154.1765,
+   "vs_cj5": {
+    "daily": 0.2837,
+    "weekly": 0.5356
+   },
+   "vs_pr5": {
+    "daily": 0.0927,
+    "weekly": -0.1546
+   }
+  },
+  "coinbase_uk_gbp_only": {
+   "total_gbp": 110.6606,
+   "vs_cj5": {
+    "daily": 0.2832,
+    "weekly": 0.4083
+   },
+   "vs_pr5": {
+    "daily": 0.0811,
+    "weekly": -0.1472
+   }
+  },
+  "kraken_usde_eur": {
+   "total_gbp": -5.7905,
+   "vs_cj5": {
+    "daily": 0.1175,
+    "weekly": -0.0239
+   },
+   "vs_pr5": {
+    "daily": -0.1589,
+    "weekly": -0.2877
+   }
+  },
+  "kraken_usdg_usd": {
+   "total_gbp": 4.0965,
+   "vs_cj5": {
+    "daily": 0.036,
+    "weekly": 0.2071
+   },
+   "vs_pr5": {
+    "daily": -0.0674,
+    "weekly": -0.1358
+   }
+  },
+  "okx_eea": {
+   "total_gbp": 103.9992,
+   "vs_cj5": {
+    "daily": 0.2627,
+    "weekly": 0.264
+   },
+   "vs_pr5": {
+    "daily": -0.0643,
+    "weekly": -0.4448
+   }
+  },
+  "okx_usdg_eur": {
+   "total_gbp": 75.3897,
+   "vs_cj5": {
+    "daily": 0.198,
+    "weekly": 0.2193
+   },
+   "vs_pr5": {
+    "daily": -0.1515,
+    "weekly": -0.5488
+   }
+  }
+ },
+ "window": [
+  "2025-11-26",
+  "2026-10-08"
+ ]
+}

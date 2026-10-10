@@ -1,0 +1,180 @@
+{
+ "bitstamp_pages": 3189,
+ "coinbase_pages": 34332,
+ "exness/Exness_EURUSD_2024_09.zip": {
+  "bytes": 7526071,
+  "member": "Exness_EURUSD_2024_09.csv",
+  "minutes": 30303,
+  "sha256": "a25ead7009481fa04834d8c31508690780baaf2fed6dde0c2d5015cd3c911a32"
+ },
+ "exness/Exness_EURUSD_2024_10.zip": {
+  "bytes": 7873978,
+  "member": "Exness_EURUSD_2024_10.csv",
+  "minutes": 33043,
+  "sha256": "9b72eb52e77b639e89b6f5e11c8124857a285f889bcea39cea4cc9f70ddae33a"
+ },
+ "exness/Exness_EURUSD_2024_11.zip": {
+  "bytes": 10575547,
+  "member": "Exness_EURUSD_2024_11.csv",
+  "minutes": 29996,
+  "sha256": "c5adbfab6cda52ed26756d9e79084aeb4a18f824494c12d0c1cec0b3bead1082"
+ },
+ "exness/Exness_EURUSD_2024_12.zip": {
+  "bytes": 9400111,
+  "member": "Exness_EURUSD_2024_12.csv",
+  "minutes": 29993,
+  "sha256": "c79f73e1a3d8d5c057ebe9339e3da3a27963f2224abc36d6c55039a4e9ed55e2"
+ },
+ "exness/Exness_EURUSD_2025_01.zip": {
+  "bytes": 11337963,
+  "member": "Exness_EURUSD_2025_01.csv",
+  "minutes": 31545,
+  "sha256": "70086d27f7c52dc4c1c23358720cd82a69b1fae8a54c5dd7858b61c1652fd8a3"
+ },
+ "exness/Exness_EURUSD_2025_02.zip": {
+  "bytes": 9598001,
+  "member": "Exness_EURUSD_2025_02.csv",
+  "minutes": 28761,
+  "sha256": "049e10b6b480f8de1ac435923c0d9e40ca90ecd1062769626c2624dcf8e9626b"
+ },
+ "exness/Exness_EURUSD_2025_03.zip": {
+  "bytes": 11277923,
+  "member": "Exness_EURUSD_2025_03.csv",
+  "minutes": 30359,
+  "sha256": "a753b92ef8bde09d3fc30bd52c333ed4c2d10cd215d2e3ed182cce7dc5471f89"
+ },
+ "exness/Exness_EURUSD_2025_04.zip": {
+  "bytes": 20474422,
+  "member": "Exness_EURUSD_2025_04.csv",
+  "minutes": 31547,
+  "sha256": "4b3f0499ecd33cec2bce3a00d4a32b00f39fbe0b1a783532981b086aa2bacd6a"
+ },
+ "exness/Exness_EURUSD_2025_05.zip": {
+  "bytes": 12903873,
+  "member": "Exness_EURUSD_2025_05.csv",
+  "minutes": 31462,
+  "sha256": "59234822537f196f8244cb3edaad34672f16c3181aea44a201e4bf60a50e2051"
+ },
+ "exness/Exness_EURUSD_2025_06.zip": {
+  "bytes": 10945509,
+  "member": "Exness_EURUSD_2025_06.csv",
+  "minutes": 30377,
+  "sha256": "bf19c4f5d38bbc89f4ffe83a8c4557cf06dd526c609de5c1cf164a233d4b06ed"
+ },
+ "exness/Exness_EURUSD_2025_07.zip": {
+  "bytes": 10219866,
+  "member": "Exness_EURUSD_2025_07.csv",
+  "minutes": 33064,
+  "sha256": "065779532551f0c42760f04c886a4bd05ac078bae63a4fe3332426a805b59454"
+ },
+ "exness/Exness_EURUSD_2025_08.zip": {
+  "bytes": 8519456,
+  "member": "Exness_EURUSD_2025_08.csv",
+  "minutes": 30165,
+  "sha256": "726db0b42046700499acc738fe03ba50e41a62d765fb9a7f7d6efbee26eaec60"
+ },
+ "exness/Exness_EURUSD_2025_09.zip": {
+  "bytes": 7586602,
+  "member": "Exness_EURUSD_2025_09.csv",
+  "minutes": 31575,
+  "sha256": "7c4270f5df118ba171dae6dcc7b6acce2bcd7ef0ed5e8ae64705a569b8c3e607"
+ },
+ "exness/Exness_EURUSD_2025_10.zip": {
+  "bytes": 7782940,
+  "member": "Exness_EURUSD_2025_10.csv",
+  "minutes": 32839,
+  "sha256": "acf15ce5f50c81cf62072be1ba4eefcf33f28f45be8f97317dbf8fa5a6ab8705"
+ },
+ "exness/Exness_EURUSD_2025_11.zip": {
+  "bytes": 5373035,
+  "member": "Exness_EURUSD_2025_11.csv",
+  "minutes": 28636,
+  "sha256": "51364ba2c2129fca4a0dfb5355dba73999028b05222796e34d61b8569e7381c7"
+ },
+ "exness/Exness_EURUSD_2025_12.zip": {
+  "bytes": 5651770,
+  "member": "Exness_EURUSD_2025_12.csv",
+  "minutes": 31383,
+  "sha256": "d2e560f6209c1964333f9cac1209c681158ecc4fdbdaa9eeae07575ee33a7cbc"
+ },
+ "exness/Exness_EURUSD_2026_01.zip": {
+  "bytes": 7515516,
+  "member": "Exness_EURUSD_2026_01.csv",
+  "minutes": 30112,
+  "sha256": "a83502472db7504bf7137e447739ef86330bf1d6fc0032d258b5dae311942405"
+ },
+ "exness/Exness_EURUSD_2026_02.zip": {
+  "bytes": 6287560,
+  "member": "Exness_EURUSD_2026_02.csv",
+  "minutes": 28654,
+  "sha256": "d05a01821819f83a9433ef021cd1351d32761f2126cf011b3c5c84a407443d7c"
+ },
+ "exness/Exness_EURUSD_2026_03.zip": {
+  "bytes": 11670227,
+  "member": "Exness_EURUSD_2026_03.csv",
+  "minutes": 31739,
+  "sha256": "f3461bf0284dc407a78756862cf723828de50245c0297cda0f3d9ec4de89f548"
+ },
+ "exness/Exness_EURUSD_2026_04.zip": {
+  "bytes": 7229161,
+  "member": "Exness_EURUSD_2026_04.csv",
+  "minutes": 31457,
+  "sha256": "5737197e72c96022b1bd5fa232d157c33b9c4631a48cbbc90ac9e990ac835685"
+ },
+ "exness/Exness_EURUSD_2026_05.zip": {
+  "bytes": 5741214,
+  "member": "Exness_EURUSD_2026_05.csv",
+  "minutes": 30017,
+  "sha256": "aab518d31cb7e22467f79be6d20a3510f69fbdb0779949b2cb1418c3983f16cf"
+ },
+ "exness/Exness_EURUSD_2026_06.zip": {
+  "bytes": 6099097,
+  "member": "Exness_EURUSD_2026_06.csv",
+  "minutes": 31449,
+  "sha256": "cfa36e1dcdc5daaf39c0d0490321da63613ac9a99ec7f55a7dd4a3d6d18482d6"
+ },
+ "exness/Exness_EURUSD_2026_07.zip": {
+  "bytes": 5965838,
+  "member": "Exness_EURUSD_2026_07.csv",
+  "minutes": 32674,
+  "sha256": "c1f76419abfce2f7d41df4fd3820853ecc399b31ad33ec8e99622de1e9897755"
+ },
+ "exness/Exness_EURUSD_2026_08.zip": {
+  "bytes": 4670617,
+  "member": "Exness_EURUSD_2026_08.csv",
+  "minutes": 30154,
+  "sha256": "90026b4f341a6359753409f8a5209ccda19229d71b69d590b94c4625f9ab72f3"
+ },
+ "exness/Exness_EURUSD_2026_09.zip": {
+  "bytes": 5467945,
+  "member": "Exness_EURUSD_2026_09.csv",
+  "minutes": 31438,
+  "sha256": "67f15e7d270e211ee234c3531b880173f094511654023110dd6a37914e5c51cc"
+ },
+ "kraken_pages": 1791,
+ "okx_files_200": 1706,
+ "usd/bitstamp_rlusdusd_3600.json": {
+  "bytes": 2027779,
+  "sha256": "29b7d3c219e9c5d42a62abb10a510e015a1488bd9e1305155e45ec60121b8fc2"
+ },
+ "yahoo/EURUSD_1m_1788998400.json": {
+  "bytes": 625360,
+  "sha256": "9a764d3b1fb4298fe5dc0c51b903e5ab246c656c2cc4e1911cf8a22f59dc4cea"
+ },
+ "yahoo/EURUSD_1m_1789603200.json": {
+  "bytes": 631227,
+  "sha256": "8c07945c4fc60c4d44d89559a25cc939bdd5b5e0e2d736971de9673177412995"
+ },
+ "yahoo/EURUSD_1m_1790208000.json": {
+  "bytes": 629952,
+  "sha256": "19a4445f154c792e1ab10390d7a3d55aa0e8cee1437f8f8c5b46646b5b7e9da8"
+ },
+ "yahoo/EURUSD_1m_1790812800.json": {
+  "bytes": 629592,
+  "sha256": "0d38f3bc637268bfdbb050f56e7f14aece1028a7d925b714041b0d8f28a6a6a8"
+ },
+ "yahoo/EURUSD_1m_1791417600.json": {
+  "bytes": 128144,
+  "sha256": "48f89c603457c92ccc3b4d08a99ece3afd55b0ee77c489bbec2d591ae0c75e41"
+ }
+}

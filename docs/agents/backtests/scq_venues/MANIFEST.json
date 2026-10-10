@@ -1,0 +1,205 @@
+{
+ "files": {
+  "inputs/bars_bitstamp_rlusdeur.json.gz": {
+   "bytes": 258310,
+   "sha256": "3743cb299709096bcd2e4b64841b0167a455ddfdef1ba6f5756e66ac6fe10287"
+  },
+  "inputs/bars_bitstamp_usdceur.json.gz": {
+   "bytes": 1997944,
+   "sha256": "7dc21563f40d995689c03f2161320f9ada0796715b1d0d2e86ff402ff4bfda05"
+  },
+  "inputs/bars_bitstamp_usdteur.json.gz": {
+   "bytes": 2075845,
+   "sha256": "b90bc57505e0b5dc057fa2af43b472668386df4bf3c6e4285592a4e08e886942"
+  },
+  "inputs/bars_coinbase_USDC-EUR.json.gz": {
+   "bytes": 5504350,
+   "sha256": "4e8a7662fcdc2374c3101fdecd2ccbbab27860d6b1df095bbad5425556783311"
+  },
+  "inputs/bars_coinbase_USDC-GBP.json.gz": {
+   "bytes": 4348263,
+   "sha256": "94620ae2db104f5d474ddccf13301b89e3d0d2e2e5f79a5d66bbc20c9810c79c"
+  },
+  "inputs/bars_coinbase_USDT-EUR.json.gz": {
+   "bytes": 5066412,
+   "sha256": "5e026dcaf013bc1b1c7935a34846d18aa717ea2d8de0ed6a56efd09778d190fa"
+  },
+  "inputs/bars_coinbase_USDT-GBP.json.gz": {
+   "bytes": 3545884,
+   "sha256": "92bcf565a7952c348134121e3975ed4c4fb8b4a0253f8c72b6f6cc2f9922c8f6"
+  },
+  "inputs/bars_kraken_USDEEUR.json.gz": {
+   "bytes": 55383,
+   "sha256": "9f1c5b2ad0cc5a7337245abb4834d92e48284d22b80193c5df9544a2dbc0a683"
+  },
+  "inputs/bars_kraken_USDGUSD.json.gz": {
+   "bytes": 1821694,
+   "sha256": "7c9a73357e84df3e3b8dd452b1ebe9940d66c491f56cda410a1fa0fdac93c683"
+  },
+  "inputs/bars_okx_USDC-EUR.json.gz": {
+   "bytes": 1679777,
+   "sha256": "42a8acc6534b62f8b4be4504240a49dedaaba0ee4592ddce77832cf528e8dc1a"
+  },
+  "inputs/bars_okx_USDG-EUR.json.gz": {
+   "bytes": 76921,
+   "sha256": "7ef4dd47e6b59f5e230bfb192ec28703ad01ef26c860907f8ec618fb0070613e"
+  },
+  "inputs/bars_okx_USDT-EUR.json.gz": {
+   "bytes": 2715919,
+   "sha256": "45285686de2a6fe55d2fa0db8f7abbed4d7d7cffad13e43737635e68ac6c1b7c"
+  },
+  "inputs/fx_eurusd_1m.json.gz": {
+   "bytes": 772411,
+   "sha256": "c190b45fc83716bff086cee8ed2138ea39c3fe0b2bd2e352448855df2e0dda7a"
+  },
+  "inputs/raw_manifest.json": {
+   "bytes": 6024,
+   "sha256": "a33fea714fa5f7fad46609f3ceb066b46cd062f477be87c1ac5a16a0a0b308f3"
+  },
+  "inputs/raw_pages/bitstamp_pages.txt.gz": {
+   "bytes": 134040,
+   "sha256": "a499ebeb1be4efdba8a99bbf3aa994a3609456d86ad138e082d3f34565bb34c9"
+  },
+  "inputs/raw_pages/coinbase_pages.txt.gz": {
+   "bytes": 1676327,
+   "sha256": "054c053e86f24d0c81b6e11e859db67aba6f3d2b75b7c582f6d9aa0771e5a48b"
+  },
+  "inputs/raw_pages/kraken_pages.txt.gz": {
+   "bytes": 97845,
+   "sha256": "81b193794ebbcb51a45d4edfcba76b3f348a2fef9d502593ff4829d588be1548"
+  },
+  "inputs/raw_pages/okx_files.json.gz": {
+   "bytes": 82224,
+   "sha256": "e60939b3b99004385b80d6f6a57379ae849aadf4b133ef9f92e3d8bf7ce6d525"
+  },
+  "inputs/touch.json": {
+   "bytes": 7535,
+   "sha256": "21bacfa6158d10faac9801d94a460556659c3231ef690e866b4ac522b0fb119b"
+  },
+  "inputs/usd_hourly_extra.json.gz": {
+   "bytes": 17453,
+   "sha256": "b561d1759cde0add2eb2bf9953bae772c4e1535ea5a12ae0ac2fd3a81dd73b18"
+  },
+  "results/calibrate_bars.json": {
+   "bytes": 2574,
+   "sha256": "a53f5a7c289d854c76a877039b4ca0a7e6c360a24302b6c680844f6feb3addfe"
+  },
+  "results/daily_100.json": {
+   "bytes": 98960,
+   "sha256": "b7659a156715a4feb7227e8f49406ed69e3d60cd0b0486bb71255ce399ce092c"
+  },
+  "results/pairing.json": {
+   "bytes": 3779,
+   "sha256": "3fed5e962ad410425f439eae38c735687a958f1f8168f56911e6aa3df37d5304"
+  },
+  "results/pr5_revx_daily_100.json": {
+   "bytes": 6450,
+   "sha256": "d93583bb5d62d9cf290c6ac3b3f259d32da1bcc78a1e1d85b8c250f2df71dfe5"
+  },
+  "results/spot_check.json": {
+   "bytes": 4445,
+   "sha256": "d4a4f30ca86d66a3067cee5a89564fe917c5fdb7e5ab2f9c1d150ee03a4e2e36"
+  },
+  "results/sv.json": {
+   "bytes": 397377,
+   "sha256": "150455ad3d9d910ac7a8c85e8fb769fb4cc08a2900b3053bf0209fe0395b1943"
+  },
+  "results/trips_100.json.gz": {
+   "bytes": 306740,
+   "sha256": "2af280074cfcef5e55bf47949d4565df4fc515eb08a8148e703451210a19a73e"
+  },
+  "results/venues.json": {
+   "bytes": 58472,
+   "sha256": "5087ad4e30e1246c632c94bcc3f9f28424015ab52d48554d5c412cd9159d41cf"
+  },
+  "scripts/bars.py": {
+   "bytes": 5662,
+   "sha256": "866c3d87122b520ac39c4e7911af123a77b2ece65cf968619881b41f1811d374"
+  },
+  "scripts/build_manifest.py": {
+   "bytes": 3836,
+   "sha256": "5db0567c818ab76b8b13fbd19c261dc760d199d874408874cbedfc6b9a9561ca"
+  },
+  "scripts/calibrate_bars.py": {
+   "bytes": 2195,
+   "sha256": "7768c302afb05e4fa8f175b9cb19a48507eee693546ac0a79f6059c0fd8c0db1"
+  },
+  "scripts/pairing.py": {
+   "bytes": 4288,
+   "sha256": "b6401d59e40d08e8fed281702aea161c8fa4d46aa9e123a5d861386d47f10af4"
+  },
+  "scripts/pull_bitstamp.py": {
+   "bytes": 2082,
+   "sha256": "e1fe913f9525d32547787788b2bf652549fe0157fbf81fff9de6d63f46548cb8"
+  },
+  "scripts/pull_coinbase.py": {
+   "bytes": 5138,
+   "sha256": "5743ebb3a59c8343725d875f18fd608ed2b4c09294e44172e01e50d3092df790"
+  },
+  "scripts/pull_fx_eur.py": {
+   "bytes": 3074,
+   "sha256": "9281e785e5b966f6d8a578644246f2d30ab180983a34f1fb54583470fee361d0"
+  },
+  "scripts/pull_kraken.py": {
+   "bytes": 2480,
+   "sha256": "0c8cd0df0300518092b413a31e27e3a0917743b18d288a8f40bb7acf5fea24d3"
+  },
+  "scripts/pull_okx.py": {
+   "bytes": 3551,
+   "sha256": "baca58973b98fc9e8ce9c3377f8bb015f6347bab994c8a93184a8265c8ba1329"
+  },
+  "scripts/pull_usd_extra.py": {
+   "bytes": 1104,
+   "sha256": "1f26685ac9b1d70ce0903d249cf0e290afffd4ccc3cfa5a72e45c2b6a8067c80"
+  },
+  "scripts/read_touch.py": {
+   "bytes": 2936,
+   "sha256": "293f1d2125d0673a63637f93294608e06bde6787ec2bc8d10d4b85b7e9b7c3be"
+  },
+  "scripts/spot_check.py": {
+   "bytes": 3145,
+   "sha256": "05a1bba15c467918b2b17b6c699060bee0e5937116211f4224d0f92caf34c2a3"
+  },
+  "scripts/sv_inputs.py": {
+   "bytes": 9584,
+   "sha256": "3791b8d90ca7ac2e0cdbd3058c477c525acb90fc22119a597601865b575d167e"
+  },
+  "scripts/sv_sim.py": {
+   "bytes": 12955,
+   "sha256": "2b532b5aaff277d52236ec85139574f19af8f50bcd0691f77b8cb05c9dd2c4f0"
+  },
+  "scripts/venues.py": {
+   "bytes": 5598,
+   "sha256": "53fa8d7a33982a1bf53e5e2bbffefbad2cea7fce66329003e7452c462543a247"
+  }
+ },
+ "imports_read_only": {
+  "docs/agents/backtests/cj5/inputs/": "GBP/USD (EXN + Yahoo), USDC/USDT hourly dollar values, CoinJar prints (calibrate_bars.py), CJ5's trips (pairing.py)",
+  "docs/agents/backtests/cj5/scripts/paired.py": "PR5 on Revolut X's UK books, the same days (pairing.py)",
+  "docs/agents/backtests/cj5/scripts/vbook.py": "9a553183e604398c94b9b7a25674de12ffc708ce34d7ef40fb6d4a79312eb5ca",
+  "docs/agents/scripts/pr5/pr5_sim.py": "56fbad85ee4df6292f596188d091ad064d030180f33cefe3bd09089d7e772a1a"
+ },
+ "keyless_sources": [
+  "api.exchange.coinbase.com /products/{USDC-GBP,USDT-GBP,USDC-EUR,USDT-EUR}/trades and /book",
+  "static.okx.com /cdn/okex/traderecords/trades/daily (USDC-EUR, USDT-EUR, USDG-EUR); www.okx.com /api/v5/market/books",
+  "api.kraken.com /0/public/Trades (USDEEUR, USDEUSD, USDGUSD), AssetPairs, Ticker, Depth",
+  "www.bitstamp.net /api/v2/ohlc (usdceur, usdteur, rlusdeur 1m; rlusdusd 1h), order_book, trading-pairs-info",
+  "ticks.ex2archive.com EURUSD monthly ticks (EXN)",
+  "query1.finance.yahoo.com EURUSD=X 1m",
+  "api.gemini.com, api.crypto.com/exchange/v1, api.luno.com (listings only)"
+ ],
+ "run": [
+  "cd scripts; python3 -I pull_coinbase.py RAW USDC-GBP::5500000 USDC-GBP:5500001:3757536 ...   # keyless, resumable; segments side by side (see the log's segment names)",
+  "cd scripts; python3 -I pull_okx.py RAW USDG-EUR USDC-EUR USDT-EUR; python3 -I pull_kraken.py RAW USDEEUR USDEUSD USDGUSD",
+  "cd scripts; python3 -I pull_bitstamp.py RAW usdceur usdteur rlusdeur; python3 -I pull_fx_eur.py RAW; python3 -I pull_usd_extra.py RAW",
+  "cd scripts; python3 -I read_touch.py   # -> inputs/touch.json (live; read 2026-10-09 ~22:25 UTC)",
+  "cd scripts; python3 -I sv_inputs.py build RAW   # -> inputs/ (raw page / file sha256 in inputs/raw_pages/ and inputs/raw_manifest.json)",
+  "cd scripts; python3 -I calibrate_bars.py   # -> results/calibrate_bars.json: bars == prints for PR5's simulator on CJ5's CoinJar record",
+  "cd scripts; python3 -I sv_sim.py   # -> results/sv.json, daily_100.json, trips_100.json.gz",
+  "cd scripts; python3 -I pairing.py   # -> results/pairing.json, pr5_revx_daily_100.json",
+  "cd scripts; python3 -I spot_check.py   # live re-read of sampled raw pages -> results/spot_check.json",
+  "cd scripts; python3 -I build_manifest.py"
+ ],
+ "study": "SCQ-VENUES: which venue besides Revolut X UK and CoinJar can run PR5's frozen rule (0 % maker quotes 0.1/0.2/0.3 % around interbank fair on stablecoin-vs-fiat books); fee screen of every UK/Irish-reachable venue, then PR5's simulator on the keyless print history (2024-10-01 -> 2026-10-09) of those at maker <= 0.02 %",
+ "write_up": "docs/agents/reviews/2026-10-09-stablecoin-venues.md"
+}

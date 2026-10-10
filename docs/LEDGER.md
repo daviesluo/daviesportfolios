@@ -440,6 +440,12 @@ first.
   and from Friday 20:00 ET to Sunday 20:00 ET the page refreshes every 5 minutes, so it failed from 10-10 00:00 UTC
   (the test is from review F12, its first weekend). Pinned to a weekday's after-hours; fails on the old line, passes now.
 
+### [2026-10-10 00:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **SCQ-VENUES, other venues for PR5's rule** (Davies: "还有没有其他平台可以做这种策略的？"): `reviews/2026-10-09-stablecoin-venues.md`,
+  `backtests/scq_venues/` (map row). PR5's frozen simulator on two years of keyless prints, as minute bars proven equal; nothing opened or traded.
+  At £100 a rung, last 12 months: Coinbase UK's four books £192.95 (28-day rate £315/yr; £1,781 at £1,000 a rung),
+  OKX EEA £104.69 (USDG-EUR, £598/yr over 28 days, young and thin), Kraken and the rest dead. Recommendation: Coinbase (UK) next, OKX (Irish, spot-only) paper first.
+
 ### [2026-10-09 22:39 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **IG research** (Davies: "ig的api可以做所有cfd trading吗？…可以深度研究下有什么机会"): `reviews/2026-10-09-ig-opportunities.md`,
   `backtests/ig_research/` (map row); keyless, no account, key or trade. The API reaches spread-bet, CFD and IG's options
