@@ -270,13 +270,16 @@ export async function fetchPrints(book: QuoteBook, from: number, to: number, cal
   return [...out.values()].sort((p, q) => p.ts - q.ts || (p.id < q.id ? -1 : p.id > q.id ? 1 : 0));
 }
 
-/** Yahoo's GBPUSD=X one-minute closes, complete bars only (a bar that has not ended by `now` is left out). */
-export async function fetchFx(now: number, f: typeof fetch): Promise<Array<[number, number]>> {
-  const res = await f("https://query1.finance.yahoo.com/v8/finance/chart/GBPUSD=X?interval=1m&range=1d", {
+/**
+ * Yahoo's GBPUSD=X one-minute closes, complete bars only (a bar that has not ended by `now` is left out). Another pair by
+ * its Yahoo symbol: Coinbase's EUR books read EURUSD=X here (`cb_quotes.ts`).
+ */
+export async function fetchFx(now: number, f: typeof fetch, symbol = "GBPUSD=X"): Promise<Array<[number, number]>> {
+  const res = await f(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1m&range=1d`, {
     headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36", Accept: "application/json,text/plain,*/*" },
     signal: AbortSignal.timeout(8_000),
   });
-  if (!res.ok) throw new Error(`yahoo GBPUSD=X → ${res.status}`);
+  if (!res.ok) throw new Error(`yahoo ${symbol} → ${res.status}`);
   const j = await res.json();
   const r = j?.chart?.result?.[0];
   const ts: number[] = r?.timestamp ?? [], cl: Array<number | null> = r?.indicators?.quote?.[0]?.close ?? [];

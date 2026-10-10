@@ -1,0 +1,221 @@
+{
+ "read_at": "2026-10-10T00:47:40Z",
+ "host": "https://api.exchange.coinbase.com",
+ "note": "keyless public market data, as served",
+ "requests": {
+  "/products/USDC-GBP/trades?limit=5": [
+   {
+    "trade_id": 7319013,
+    "side": "sell",
+    "size": "264.66000000",
+    "price": "0.75570000",
+    "time": "2026-10-10T00:47:30.933390Z"
+   },
+   {
+    "trade_id": 7319012,
+    "side": "sell",
+    "size": "92.63000000",
+    "price": "0.75570000",
+    "time": "2026-10-10T00:47:19.356766Z"
+   },
+   {
+    "trade_id": 7319011,
+    "side": "buy",
+    "size": "1019.87000000",
+    "price": "0.75560000",
+    "time": "2026-10-10T00:47:16.609533Z"
+   },
+   {
+    "trade_id": 7319010,
+    "side": "sell",
+    "size": "13.23000000",
+    "price": "0.75570000",
+    "time": "2026-10-10T00:47:04.909746Z"
+   },
+   {
+    "trade_id": 7319009,
+    "side": "sell",
+    "size": "128.36000000",
+    "price": "0.75570000",
+    "time": "2026-10-10T00:46:45.317030Z"
+   }
+  ],
+  "/products/USDC-GBP/trades?limit=5&after=7319009": [
+   {
+    "trade_id": 7319008,
+    "side": "sell",
+    "size": "457.00000000",
+    "price": "0.75570000",
+    "time": "2026-10-10T00:46:12.873754Z"
+   },
+   {
+    "trade_id": 7319007,
+    "side": "sell",
+    "size": "2.00000000",
+    "price": "0.75570000",
+    "time": "2026-10-10T00:46:12.873657Z"
+   },
+   {
+    "trade_id": 7319006,
+    "side": "sell",
+    "size": "1524.00000000",
+    "price": "0.75570000",
+    "time": "2026-10-10T00:46:12.844485Z"
+   },
+   {
+    "trade_id": 7319005,
+    "side": "sell",
+    "size": "6.62000000",
+    "price": "0.75570000",
+    "time": "2026-10-10T00:45:57.399809Z"
+   },
+   {
+    "trade_id": 7319004,
+    "side": "buy",
+    "size": "413.33000000",
+    "price": "0.75560000",
+    "time": "2026-10-10T00:45:46.721069Z"
+   }
+  ],
+  "/products/USDC-GBP/trades?limit=5&before=7318909": [
+   {
+    "trade_id": 7319013,
+    "side": "sell",
+    "size": "264.66000000",
+    "price": "0.75570000",
+    "time": "2026-10-10T00:47:30.933390Z"
+   },
+   {
+    "trade_id": 7319012,
+    "side": "sell",
+    "size": "92.63000000",
+    "price": "0.75570000",
+    "time": "2026-10-10T00:47:19.356766Z"
+   },
+   {
+    "trade_id": 7319011,
+    "side": "buy",
+    "size": "1019.87000000",
+    "price": "0.75560000",
+    "time": "2026-10-10T00:47:16.609533Z"
+   },
+   {
+    "trade_id": 7319010,
+    "side": "sell",
+    "size": "13.23000000",
+    "price": "0.75570000",
+    "time": "2026-10-10T00:47:04.909746Z"
+   },
+   {
+    "trade_id": 7319009,
+    "side": "sell",
+    "size": "128.36000000",
+    "price": "0.75570000",
+    "time": "2026-10-10T00:46:45.317030Z"
+   }
+  ],
+  "/products/USDC-GBP/book?level=1": {
+   "bids": [
+    [
+     "0.7556",
+     "19701.57",
+     3
+    ]
+   ],
+   "asks": [
+    [
+     "0.7557",
+     "186815.56",
+     1
+    ]
+   ],
+   "sequence": 523202958,
+   "auction_mode": false,
+   "auction": null,
+   "time": "2026-10-10T00:47:38.069710392Z"
+  },
+  "/products/USDT-GBP/book?level=1": {
+   "bids": [
+    [
+     "0.7551",
+     "1200",
+     1
+    ]
+   ],
+   "asks": [
+    [
+     "0.7552",
+     "12782.39",
+     2
+    ]
+   ],
+   "sequence": 1023102151,
+   "auction_mode": false,
+   "auction": null,
+   "time": "2026-10-10T00:47:38.069952728Z"
+  },
+  "/products/USDC-EUR/book?level=1": {
+   "bids": [
+    [
+     "0.8931",
+     "15253.97",
+     2
+    ]
+   ],
+   "asks": [
+    [
+     "0.8932",
+     "117395.75",
+     9
+    ]
+   ],
+   "sequence": 703450939,
+   "auction_mode": false,
+   "auction": null,
+   "time": "2026-10-10T00:47:32.200225443Z"
+  },
+  "/products/USDT-EUR/book?level=1": {
+   "bids": [
+    [
+     "0.89244",
+     "10005.2",
+     1
+    ]
+   ],
+   "asks": [
+    [
+     "0.89248",
+     "3500",
+     1
+    ]
+   ],
+   "sequence": 2712737831,
+   "auction_mode": false,
+   "auction": null,
+   "time": "2026-10-10T00:47:36.359677960Z"
+  },
+  "/products/USDT-EUR/trades?limit=3": [
+   {
+    "trade_id": 19466239,
+    "side": "sell",
+    "size": "42.43000000",
+    "price": "0.89249000",
+    "time": "2026-10-10T00:39:41.557514Z"
+   },
+   {
+    "trade_id": 19466238,
+    "side": "sell",
+    "size": "11.50000000",
+    "price": "0.89249000",
+    "time": "2026-10-10T00:39:21.366147Z"
+   },
+   {
+    "trade_id": 19466237,
+    "side": "buy",
+    "size": "252.00000000",
+    "price": "0.89246000",
+    "time": "2026-10-10T00:38:28.024665Z"
+   }
+  ]
+ }
+}

@@ -51,6 +51,9 @@ const PAGED_KEYS: Record<string, string> = {
   pm_prep_stress_days: "layer,day",
   // Rule D's events (0072), by their primary key: the realistic twin checks its replica of arm d against them (quotes_twin.ts).
   agent_quoted_events: "arm,book,minute,side,k,kind",
+  // Coinbase's recorder and paper test (0112): its prints by trade id, its EUR/USD minutes, its events and its minutes.
+  cb_trades: "product,trade_id", cb_quote_inputs: "kind,t", cb_quote_events: "book,minute,side,k,kind", cb_quote_minutes: "book,minute",
+  cb_quote_trips: "book,side,k,t_entry",
 };
 
 export function assertPagedOrder(table: string, query: string): void {

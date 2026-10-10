@@ -98,6 +98,12 @@
 //                             each book's levels near its touch when they
 //                             change, for CJ5's paper test. Keyless reads of
 //                             CoinJar's public Data API only. Cron or admin.
+//   POST ?action=cbrec      — Coinbase's recorder and its paper test (cb_rec.ts,
+//                             cb_quotes.ts, 0112): every minute, every new print
+//                             of the four GBP and EUR stablecoin books by trade
+//                             id and their touch, then PR5's rule on them on
+//                             paper. Keyless reads of Coinbase Exchange's public
+//                             market data only. Cron or admin.
 //   GET  ?action=dashboard  — everything the Agents page shows: strategies
 //                             with positions and P&L derived from fills,
 //                             the latest observation per symbol, the caps,
@@ -199,6 +205,9 @@ import { parseRwxSpecs, researchRwx, runPmrwX, RWCX_REPLAY, type RwxReplay } fro
 import { booksDelayMs, runBooks } from "./books.ts";
 import { PM_REC_VENUE_TIMEOUT_MS, pmRecStorage, runPmRec, runPmRecMeta } from "./pm_book_rec.ts";
 import { runCjRec } from "./cj_rec.ts";
+import { runCbRec } from "./cb_rec.ts";
+import { runCbQuotes } from "./cb_quotes.ts";
+import { cbQuotesView, CB_PAGE_ROWS, type CbDayRow, type CbEventRow, type CbMinuteRow, type CbStateRow, type CbTripRow } from "./cb_view.ts";
 import { dayOpenOf, dayPnl, decisionBarMs, isOffBook, jevViewOf, resolveBook, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
 
 export { constantTimeEqual, verifyToken } from "../_shared/token.ts";
@@ -459,6 +468,31 @@ export async function runCjRecAction(deps: { db?: Db; fetchImpl?: typeof fetch; 
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     await reportServerError("agents.cj_rec", { message: message.slice(0, 500), context: { at: new Date().toISOString() } });
+    return { error: message.slice(0, 300) };
+  }
+}
+
+/**
+ * Coinbase's minute (0112): the recorder (cb_rec.ts: keyless reads of Coinbase Exchange's public trades and touch for the
+ * four GBP and EUR stablecoin books into its own tables), then the forward paper test of PR5's rule on them (cb_quotes.ts:
+ * PR5's own `stepMinute` on the recorded prints). The second runs even when the first reports a fault, on whatever
+ * coverage the recorder holds. A fault goes to `ops_errors` as `agents.cb_rec` when it first appears and at most hourly
+ * while it lasts (`report.report`, the recorder's state row keeping what was last reported); it never throws past here.
+ */
+export async function runCbRecAction(deps: { db?: Db; fetchImpl?: typeof fetch; now?: number } = {}) {
+  try {
+    const dbi = deps.db ?? db();
+    const now = deps.now ?? Date.now();
+    const rec = await runCbRec({ db: dbi, now, fetchImpl: deps.fetchImpl });
+    const quotes = await runCbQuotes({ db: dbi, now, holder: crypto.randomUUID(), fetchImpl: deps.fetchImpl, rec: rec.state })
+      .catch((e) => ({ errors: [e instanceof Error ? e.message : String(e)], report: true }));
+    const { state: _state, ...recReport } = rec;
+    const errors = [...rec.errors, ...quotes.errors.map((e) => `paper: ${e}`)];
+    if (rec.report || quotes.report) await reportServerError("agents.cb_rec", tickErrorReport({ errors, at: rec.at }));
+    return { ...recReport, quotes };
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    await reportServerError("agents.cb_rec", { message: message.slice(0, 500), context: { at: new Date().toISOString() } });
     return { error: message.slice(0, 300) };
   }
 }
@@ -1900,6 +1934,23 @@ async function dashboard(now: number) {
     return Promise.all(specs.map((spec) => readQuotesTwin(d, spec, now, dayStartMs, tickers)));
   });
 
+  // "Stablecoin quotes Coinbase" (0112, cb_quotes.ts): the paper test of PR5's rule on Coinbase's four books, in a twin's
+  // shape (`cbQuotesView`). Missing tables (before the migration), or no decided minute yet, leave it off the page.
+  const quotesCoinbaseRead = (async () => {
+    try {
+      const [st, trips, days, events, fx] = await Promise.all([
+        d.select<CbStateRow>("cb_quote_state", "id=eq.1&select=state,last_minute,updated_at,last_error"),
+        d.selectAll<CbTripRow>("cb_quote_trips", "select=book,side,k,t_entry,t_exit,entry,exit,qty,how,pnl_gbp&order=book.asc,side.asc,k.asc,t_entry.asc"),
+        d.select<CbDayRow>("cb_quote_days", "select=day,orders,fills,trips,won,realised_gbp&order=day.desc&limit=60"),
+        d.select<CbEventRow>("cb_quote_events", `kind=in.(order,refused)&select=book,minute,side,k,kind,ticks,detail&order=minute.desc&limit=${CB_PAGE_ROWS}`),
+        d.select<{ value: number }>("agent_quote_inputs", "kind=eq.fx&select=value&order=t.desc&limit=1"),
+      ]);
+      if (!st[0]?.last_minute) return null;
+      const minutes = await d.select<CbMinuteRow>("cb_quote_minutes", `minute=eq.${encodeURIComponent(new Date(Date.parse(st[0].last_minute)).toISOString())}&select=book,minute,fair,x,last`);
+      return cbQuotesView({ st: st[0], trips, days, events, minutes, nowMs: now, dayStartMs, gbpusd: fx[0] ? Number(fx[0].value) : null });
+    } catch { return null; }
+  })();
+
   // "Stablecoin quotes - variant" (`0071`), read beside PR5's: its own tables; missing ones (before the migration), or no
   // state yet, leave it off the page, and a failed read leaves the rest of the page as it is.
   const quotesVariantRead = (async () => {
@@ -2015,6 +2066,11 @@ async function dashboard(now: number) {
      * live executor's shape (`quotesLiveSummary`, its `detail`) with `twin`; a twin not yet loaded is null.
      */
     quotesTwins: await quotesTwinsRead,
+    /**
+     * "Stablecoin quotes Coinbase" (`0112`, cb_quotes.ts): PR5's rule on paper on Coinbase's four GBP and EUR stablecoin
+     * books, in a twin's shape with `venue: "coinbase"`; null until it has decided a minute.
+     */
+    quotesCoinbase: await quotesCoinbaseRead,
     /**
      * "Reward quotes": RW's quotes for Polymarket's liquidity rewards, on paper (`0053`, reference §4 item 36), and from
      * RW-C's first minute RW-C's run of the same rule, its round 2 (`rwPageRun`); null until it has a state. RW-C sends no
@@ -2614,6 +2670,8 @@ async function route(req: Request, who: Exclude<Who, null>, url: URL, action: st
   if (action === "pmrec-meta" && req.method === "POST" && operator) return json(200, await runPmRecMetaAction());
   // The CoinJar recorder (cj_rec.ts, 0110): CJ5's two books' prints and books, every minute. Keyless reads.
   if (action === "cjrec" && req.method === "POST" && operator) return json(200, await runCjRecAction());
+  // Coinbase's recorder and the paper test of PR5's rule on its four books (cb_rec.ts, cb_quotes.ts, 0112). Keyless reads.
+  if (action === "cbrec" && req.method === "POST" && operator) return json(200, await runCbRecAction());
   // Polymarket's order path (pm_live.ts, 0074): its dry-run, called from eu-west-1 by the one-minute job. Cron bearer only.
   if (action === "pmlive" && req.method === "POST" && who === "cron") return json(200, await runPmLiveAction());
   // "Reward quotes small-pool" (pm_prep.ts, 0077): the path's dry-run filled on paper. Keyless public reads only.

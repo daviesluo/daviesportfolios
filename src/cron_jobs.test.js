@@ -611,6 +611,38 @@ describe('pg_cron jobs', () => {
     expect(sql).not.toMatch(/\bgrant\b|create policy/i);
   });
 
+  // Coinbase's recorder and its paper test (Davies, 2026-10-10: "先建起来吧，并且和Revolute X对比看哪个更好").
+  it("adds Coinbase's recorder and paper test as one call a minute (0112), its beat first, every other row as it was, and a prune of SQL alone", () => {
+    const T = FILES.find((f) => /^0112_cb_recorder_paper\.sql$/.test(f)) ?? '';
+    expect(T).not.toBe('');
+    const before = replayList(sqlsOf(FILES.filter((f) => f < T))), after = replayList(sqlsOf(FILES.filter((f) => f <= T)));
+    expect(after.slice(0, before.length)).toEqual(before);
+    const shape = ({ path: p, timeout, every, lastHour, enabled, retry }) => ({ path: p, timeout, every, lastHour, enabled, retry });
+    expect(after.slice(before.length).map(shape)).toEqual([
+      { path: 'agents?action=cbrec', timeout: 30000, every: 1, lastHour: 23, enabled: true, retry: true },
+    ]);
+    expect(beatKeyOfPath(after.at(-1).path)).toBe('agents?action=cbrec');
+    const src = fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/index.ts'), 'utf8');
+    expect(src).toContain('if (action === "cbrec" && req.method === "POST" && operator) return json(200, await runCbRecAction());');
+    const jobsBefore = cronJobs(FILES.filter((f) => f < T)), jobsAfter = cronJobs(FILES.filter((f) => f <= T));
+    expect([...jobsAfter.keys()].filter((n) => !jobsBefore.has(n))).toEqual(['cb-rec-prune']);
+    const prune = jobsAfter.get('cb-rec-prune');
+    expect(prune.command).not.toContain('net.http_post');
+    expect(Number(prune.schedule.split(' ')[0]) % 5).not.toBe(0);
+    expect(httpJobs(jobsAfter).map(([n]) => n)).toEqual(['edge-calls-every-minute']);
+    // The tables' checks hold the books the recorder writes. No grant, no policy; row level security on every table.
+    const sql = fs.readFileSync(path.join(DIR, T), 'utf8').replace(/--[^\n]*/g, '');
+    const rec = fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/cb_rec.ts'), 'utf8');
+    const books = JSON.parse(/^export const CB_PRODUCTS = (\[[^\]]*\]) as const;$/m.exec(rec)?.[1] ?? 'null');
+    expect(books).toEqual(['USDC-GBP', 'USDT-GBP', 'USDC-EUR', 'USDT-EUR']);
+    expect(count(sql, `check (product in (${books.map((b) => `'${b}'`).join(', ')}))`)).toBe(2);
+    expect(count(sql, `check (book in (${books.map((b) => `'${b}'`).join(', ')}))`)).toBe(3);
+    for (const t of ['cb_trades', 'cb_touch', 'cb_rec_state', 'cb_quote_state', 'cb_quote_inputs', 'cb_quote_events', 'cb_quote_trips', 'cb_quote_minutes']) {
+      expect(sql).toMatch(new RegExp(`alter table public\\.${t} +enable row level security;`));
+    }
+    expect(sql).not.toMatch(/\bgrant\b|create policy/i);
+  });
+
   // 0103 (Davies, 2026-10-08: stop mini-pool's two calls, and what no reading still needs now RW's round 1 ends):
   // mini-pool's two calls leave the list when it applies; RW's four only once the last day their readings read is
   // closed, turned off by a function a job runs every five minutes (so a push before 10-09 00:05 cannot cut RW's last

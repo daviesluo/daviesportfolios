@@ -422,6 +422,12 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", and the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)"; each oldest
 first.
 
+### [2026-10-10 00:53 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Coinbase recorder and paper test built** (Davies: "先建起来吧，并且和Revolute X对比看哪个更好"): `agents?action=cbrec`
+  (`cb_rec.ts`, `cb_quotes.ts`, `cb_view.ts`, migration 0112, map rows). Keyless: every print of USDC-GBP, USDT-GBP,
+  USDC-EUR, USDT-EUR by trade id with no gap, the touch each minute, then PR5's `stepMinute` unchanged on them in pounds
+  (£100 a rung, £2,400). Not pushed; whether the Edge region reaches Coinbase shows in `cb_rec_state.last_report.reached`.
+
 ### [2026-10-10 01:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep's reward check, built on branch `lp-reward-refresh`** (sub-agent; Davies: "策略每分钟读的时候都检查奖励配置，
   避免再次出现这种白挂了并且承担风险并且没奖励的事情"; Addendum 9 of `reviews/2026-10-04-polymarket-lp-prereg.md`, mid-pool's
@@ -438,6 +444,7 @@ first.
   its scored minutes, 0.863 on the fixed rules' formula, 0.912 on its scored minutes (`backtests/lpcfg/results/replay.txt`;
   Addendum 9). The estimate will still learn 10-09 at ≈ 0.33, since its scored formula used the stale programme:
   whether to leave 10-09 out of R's calibration is Davies' call (listed under item 2).
+
 
 ### [2026-10-10 00:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **RW-C's 10-10 check PASSED** (wake `trig_0147EKGhR4aHoVq5QWUFy1mr`, fired 00:20): `pm_rwc_e_state` `checkMaxUsd` 0;
