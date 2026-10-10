@@ -969,7 +969,7 @@ Deno.test("the backstop, armed: both sides read not scoring for three live minut
 
 // ------------------------------------------------------------------ FUNDED and the early readout (2026-10-10, Addendum 10)
 
-Deno.test("lpFunding: the money put in from the account's own figures; a move books on two agreeing readings, never in the posting hours, before the payout is read, or with a fill settling", () => {
+Deno.test("lpFunding: the money put in from the account's own figures, booked first as soon as the payout is read; a move books on two agreeing readings, never in the posting hours, before the payout is read, or with a fill settling", () => {
   assertEquals(PM_LP_FUNDING, { minMoveUsd: 1, agreeUsd: 0.01, freshMs: 5 * M, quietMs: 3 * H + 10 * M });
   // 2026-10-10 01:17 UTC on the record: pUSD 172.810385, the CONFIRMED fills' net 237.718788, paid 6.524180 and 1.976628.
   const residual = Math.round((172.810385 + 237.718788 - 6.52418030132400019 - 1.976628) * 1e6) / 1e6;
@@ -978,11 +978,16 @@ Deno.test("lpFunding: the money put in from the account's own figures; a move bo
   const base = { nowMs: t, dayStartMs: day0, unsettledFills: 0, payoutRead: true };
   const first = lpFunding({ ...base, prev: null, residualUsd: residual });
   assertEquals([first.booked, first.next?.depositUsd], [{ moveUsd: 402.028365, depositUsd: 402.028365, first: true }, 402.028365]);
-  // Nothing booked in the posting hours, before yesterday's payout is read, with a fill settling, or unread.
-  for (const [x, why] of [[{ nowMs: day0 + 3 * H }, "before 03:10"], [{ payoutRead: false }, "payout is not read"], [{ unsettledFills: 1 }, "settling"]] as const) {
+  // The first booking: at 02:20 UTC, yesterday's payout read, it books (no quiet hours for it, Davies 2026-10-10 02:18);
+  // never before the payout is read, with a fill settling, or unread.
+  assertEquals(lpFunding({ ...base, nowMs: day0 + 2 * H + 20 * M, prev: null, residualUsd: residual }).booked, { moveUsd: 402.028365, depositUsd: 402.028365, first: true });
+  for (const [x, why] of [[{ payoutRead: false }, "payout is not read"], [{ unsettledFills: 1 }, "settling"]] as const) {
     const r = lpFunding({ ...base, ...x, prev: null, residualUsd: residual });
     assert(r.booked === null && r.next === null && r.why.includes(why), r.why);
   }
+  // A later move still waits out the posting hours.
+  const early = lpFunding({ ...base, nowMs: day0 + 3 * H, prev: first.next, residualUsd: residual + 100 });
+  assert(early.booked === null && early.next?.candidate === null && early.why.includes("before 03:10"), early.why);
   assertEquals(lpFunding({ ...base, prev: first.next, residualUsd: null }).booked, null);
   // A drift under $1 moves nothing; a deposit of $100 books on the second agreeing reading, not the first.
   assertEquals(lpFunding({ ...base, prev: first.next, residualUsd: residual + 0.99 }).booked, null);
@@ -1044,5 +1049,23 @@ Deno.test("the early readout (Addendum 10): from 00:05 it waits for yesterday's 
   };
   await paid(true);
   await paid(false);
+});
+
+Deno.test("armed, FUNDED at 02:20 UTC: with yesterday's payout read the first turn books the money put in; before that the page has the reading, never the cap", async () => {
+  const w = world({ config: LIVE });
+  const at0220 = Date.parse("2026-10-06T02:20:30Z");
+  await w.turn(T0);                                                                        // 10-05, booked at 1000
+  // A fresh path (no booking yet), its 10-05 payout already read at 01:00 as live-prep's was on 10-10.
+  const st = () => (w.rows("pm_lp_state")[0].state as any).lp;
+  delete st().funding;
+  (w.rows("pm_lp_state")[0].state as any).readouts["2026-10-05"] = { reads: 1, at: "2026-10-06T01:00:00.000Z" };
+  await w.turn(at0220);
+  assertEquals([st().funding?.depositUsd, st().fundingResidual?.usd], [1000, 1000]);
+  assertEquals(w.rows("pm_lp_events").filter((e) => e.kind === "funding" && Date.parse(String(e.minute)) >= at0220 - 30e3).map((e) => (e.detail as any).first), [true]);
+  // Not yet read: nothing booked, but the reading is kept for the page.
+  delete st().funding;
+  (w.rows("pm_lp_state")[0].state as any).readouts["2026-10-05"] = { reads: 0, at: "" };
+  await w.turn(at0220 + M);
+  assertEquals([st().funding, st().fundingResidual?.usd], [undefined, 1000]);
 });
 

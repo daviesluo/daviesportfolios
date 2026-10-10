@@ -308,10 +308,14 @@ Deno.test("Addendum 10: 10-09 enters R at its like-for-like figure (0.807, rtrue
   assertAlmostEquals(lpLiveR(later, Date.parse("2026-10-11T06:00:00Z")).point, Math.exp((2 * Math.log(Math.sqrt(0.2)) + Math.log(paid / 19.801095)) / 3), 1e-5);
 });
 
-Deno.test("Addendum 10, FUNDED: the money put in as the path's last live turn booked it; the cap until it has", () => {
-  const withFunding = { ...F.input, state: { ...F.input.state, state: { ...F.input.state.state, lp: { funding: { depositUsd: 402.028365, at: "x", residualUsd: 402.03, candidate: null } } } } };
-  assertEquals([lpLiveSummary(withFunding)!.fundedUsd, lpLiveSummary(withFunding)!.capUsd], [402.028365, 320]);
-  assertEquals(lpLiveSummary(F.input)!.fundedUsd, null);
+Deno.test("Addendum 10, FUNDED: the money put in as booked; before a booking the path's reading of it; never the cap", () => {
+  const withLp = (lp: unknown) => ({ ...F.input, state: { ...F.input.state, state: { ...F.input.state.state, lp } } });
+  const booked = lpLiveSummary(withLp({ funding: { depositUsd: 402.028365, at: "x", residualUsd: 402.03, candidate: null }, fundingResidual: { usd: 402.03, at: "x" } }))!;
+  assertEquals([booked.fundedUsd, booked.fundedBasis, booked.capUsd], [402.028365, "booked", 320]);
+  const reading = lpLiveSummary(withLp({ fundingResidual: { usd: 402.028365, at: "x" } }))!;
+  assertEquals([reading.fundedUsd, reading.fundedBasis], [402.028365, "reading"]);
+  // Neither: no figure, and never the cap's 320.
+  assertEquals([lpLiveSummary(withLp({}))!.fundedUsd, lpLiveSummary(withLp({}))!.fundedBasis], [null, null]);
 });
 
 Deno.test("atLiveR: a paper Reward quotes summary priced at the live R, its worst case at the band's low; fills, holdings and capital unmoved", () => {

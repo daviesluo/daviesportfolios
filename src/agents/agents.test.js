@@ -1198,8 +1198,9 @@ describe('rwRow / rwView — RW\'s paper test as a row of TESTING STRATEGIES', (
     const without = { strategies: [], venues: [], rw: r, prepMid: p, prepLp: p };
     const dash = { ...without, prep: p };
     const tests = paperTestRows(dash);
-    expect(tests.map((t) => [t.id, t.name])).toEqual([[RW_ROW_ID, 'Reward quotes'], [MID_ROW_ID, 'Reward quotes mid-pool'], [LP_ROW_ID, 'Reward quotes live-prep']]);
-    expect(tests.some((t) => t.id === PREP_ROW_ID || /mini-pool/.test(t.name))).toBe(false);
+    // Nor for live-prep's paper layer since 2026-10-10 (Davies: "testing里Reward quotes live-prep这个可以删了"), though `prepLp` is carried.
+    expect(tests.map((t) => [t.id, t.name])).toEqual([[RW_ROW_ID, 'Reward quotes'], [MID_ROW_ID, 'Reward quotes mid-pool']]);
+    expect(tests.some((t) => t.id === PREP_ROW_ID || t.id === LP_ROW_ID || /mini-pool|live-prep/.test(t.name))).toBe(false);
     expect(scoreboardView(dash, 'testing', tests)).toEqual(scoreboardView(without, 'testing', paperTestRows(without)));
     expect(venueRows(dash, 'testing', tests)).toEqual(venueRows(without, 'testing', paperTestRows(without)));
     // Alone, it adds nothing at all.
@@ -1833,10 +1834,11 @@ describe('lpLiveRow (live-prep\'s real money, "Reward quotes" on LIVE, 2026-10-0
   });
   it('is no row until armed or traded; a stale, stopped or disarmed book says so', () => {
     expect(lpLiveRow(null)).toBe(null);
-    // FUNDED is the money put in once the path has booked it (Addendum 10), the cap until then; percents are on it.
+    // FUNDED is the money put in, booked or as read (Addendum 10); percents are on it; unknown, a dash, never the cap.
     const funded = /** @type {any} */ (lpLiveRow({ ...l, fundedUsd: 400, realisedUsd: 4 }));
     expect([funded.capitalUsd, funded.realisedPct]).toEqual([400, 1]);
-    expect(/** @type {any} */ (lpLiveRow({ ...l, fundedUsd: null })).capitalUsd).toBe(Number(l.capUsd));
+    const unknown = /** @type {any} */ (lpLiveRow({ ...l, fundedUsd: null }));
+    expect([unknown.capitalUsd, unknown.fundedKnown, funded.fundedKnown]).toEqual([0, false, true]);
     expect(lpLiveRow({ ...l, armed: false, tradedLive: false })).toBe(null);
     expect(lpLiveRow({ ...l, armed: true, tradedLive: false })?.id).toBe(LP_LIVE_ROW_ID);
     expect(lpLiveRow({ ...l, running: false, lagMinutes: 9 })?.status).toEqual({ label: 'live', running: false, tone: 'stale', detail: 'its last turn was 9 min ago' });
@@ -1863,13 +1865,12 @@ describe('lpLiveRow (live-prep\'s real money, "Reward quotes" on LIVE, 2026-10-0
     expect([card.id, card.paper, card.live, card.capitalUsd, card.valueUsd, card.costUsd, card.feesUsd, card.realisedUsd, card.todayUsd])
       .toEqual(['polymarket', false, 1, 320, 35.2, 5.8, 0, 2.85, 0.8]);
     expect([card.test.rewards.realisedUsd, card.test.orders.realisedUsd]).toEqual([2.25, 0.6]);
-    // TESTING keeps the paper layer's row alone, its card still paper.
+    // TESTING has no row of its paper layer since 2026-10-10: the strategy's row alone, nothing of live-prep's.
     const tests = paperTestRows(dash);
-    expect(tests.map((t) => [t.id, t.name])).toEqual([[LP_ROW_ID, 'Reward quotes live-prep']]);
+    expect(tests).toEqual([]);
     const testing = scoreboardView(dash, 'testing', tests);
-    expect(testing.capitalUsd).toBe(100 + 320);
-    expect(testing.realisedUsd).toBeCloseTo(1 + Number(lpFixture.output.realisedUsd), 12);
-    expect(venueRows(dash, 'testing', tests).find((c) => c.id === 'polymarket')?.paper).toBe(true);
+    expect(testing.capitalUsd).toBe(100);
+    expect(venueRows(dash, 'testing', tests).find((c) => c.id === 'polymarket')).toBe(undefined);
   });
   it("LIVE's QUOTES has Rewards (est.) and Total (est.): what was paid plus the unread days at each market's point R, adding up to the cent", () => {
     const q = /** @type {any[]} */ (lpLiveFixture.output.quotes);

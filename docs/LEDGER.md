@@ -26,12 +26,11 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
 1. **Closed: fp5's ranked list.**
 
 2. **Polymarket reward quotes (paper; RW, RW-E, RW-X, TB1, RW-C) and the three order paths (dry-run, unarmed).**
-   - **Live-prep's reward check (Addendum 9) is live** since 10-10 01:14:15 UTC (f664823c, 02c0f191; 0111 applied).
-     **TO LAND: its follow-on (Addendum 10)**, committed on branch `lp-followon` (10-10 02:00 section): FUNDED is the money
-     put in ($402.028365), the payout read from 00:05, every paper Reward quotes row at the live R, 10-09 at R 0.807.
-     **Migration 0113 must apply with or before the Edge deploy**, and `dist/` goes with it. Left for Davies: whether a
-     slot freed during the day is refilled (not built), and whether to rank the selection on a rate that does not flip
-     within the hour (native rates flip, e.g. 3 ↔ 40; not built).
+   - **Live-prep's reward check (Addendum 9) and follow-on (Addendum 10) are live** (deployed 01:14 and 01:45 UTC 10-10;
+     0111, 0113). **TO LAND: Addendum 11** on branch `lp-funded-now` (10-10 02:30 section): FUNDED books at once once the
+     payout is read and never shows the cap; live-prep's paper row off TESTING (its calls stay: LPRESEL6 reads
+     `pm_lpprep_days` for 10-09 → 10-22; turn them off by migration after its 10-23 reading). Left for Davies: refilling a
+     freed slot, and ranking on a rate that does not flip within the hour (both not built).
    - **RW's verdict: read 2026-10-09 00:42–00:50 UTC** (`reviews/2026-10-09-polymarket-rw-paper-result.md`, reference
      §3.46, `backtests/rwverdict/`). RW 6/6, RW-E 7/7, x1–x3 7/7 each; step b (all 4,116 fills by `stepRw`) and c (13,634
      prints re-pulled, none missed) clean; **RW-NEXT's candidate is RW-E**, to RW-C (Part 3's bar on or after 10-23
@@ -433,6 +432,14 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 "LEDGER.md, archived 2026-10-09", the 2026-10-08 22:49 → 23:58 UTC sections under "LEDGER.md, archived 2026-10-09
 (second)", and the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)"; each oldest
 first.
+
+### [2026-10-10 02:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Addendum 11, branch `lp-funded-now`** (sub-agent). FUNDED showed the $322 cap at 02:18 (Davies: "FUNDED还是显示的是$322"):
+  `lpFunding` held its first booking to 03:10. Now the first booking needs only a readable residual, no fill settling and
+  yesterday's payout read; later moves keep every guard; each live turn writes `state.lp.fundingResidual`, which the page
+  shows until the booking, never the cap (a dash if neither). Live-prep's paper row is off TESTING (Davies: "testing里Reward
+  quotes live-prep这个可以删了"); its calls stay on: LPRESEL6's frozen bar reads `pm_lpprep_days` over 10-09 → 10-22, and
+  the path's dry-run decides on its paper whenever disarmed. Mid-pool's Addendum 12. `dist/` rebuilt; sweep updated.
 
 ### [2026-10-10 02:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **LP-ALLOC (Davies' 10-10 question: how much to add to live-prep, and whether to quote more markets), research only**

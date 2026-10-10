@@ -534,3 +534,18 @@ R this file froze.
 
 **What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
 of the Edge deploy that carries it, as deviation 11.
+
+## Addendum 12 (2026-10-10, about 02:30 UTC): deviation 12, live-prep's first FUNDED booking
+
+This addendum was written inside the window, before the deploy it records. Its readout runs at or after 2026-10-17
+00:10 UTC.
+
+**Deviation 12 is live-prep's first funding booking** (live-prep's pre-registration, Addendum 11). It changes the shared
+`pm_live.ts`: after it, `pm_live.ts` sha256 `2ae0e7296fd2038fd90bcba61a3daae1e52546fd9f22146789acd5db4a600ca3`, where Addendum 11 above named `c990ef3e…3616`. The
+change is inside `lpFunding` and live-prep's funding block, which only live-prep's live turns reach.
+
+**Mid-pool is unchanged.** No decision of mid-pool changes: `agents/pm_mid_formula.test.ts` and `agents/pm_payouts.test.ts`
+run it beside the path this file froze and find every decision the same.
+
+**What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
+of the Edge deploy that carries it, as deviation 12.

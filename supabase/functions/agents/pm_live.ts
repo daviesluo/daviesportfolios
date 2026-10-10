@@ -577,8 +577,8 @@ export function scoringStreak(n: number, row: Pick<PmMinuteRow, "bid_scoring" | 
 
 /**
  * The deposit rule's constants. A move of the residual of at least `minMoveUsd` is a deposit or a withdrawal once two
- * readings agree to `agreeUsd`, at most `freshMs` apart, with no fill settling; none is booked before `quietMs` after
- * 00:00 UTC, nor before yesterday's payout has been read (the rewards post at 00:00, the maker rebates later: on
+ * readings agree to `agreeUsd`, at most `freshMs` apart, with no fill settling; no move is booked before `quietMs` after
+ * 00:00 UTC (the first booking is, once the payout is read), nor any booking before yesterday's payout has been read (the rewards post at 00:00, the maker rebates later: on
  * 2026-10-10 between 00:27 and 01:17 UTC), so a payout is never booked as a deposit.
  */
 export const PM_LP_FUNDING = { minMoveUsd: 1, agreeUsd: 0.01, freshMs: 5 * M, quietMs: 3 * 3600e3 + 10 * M } as const;
@@ -597,10 +597,13 @@ export function lpFunding(i: {
   const hold = (why: string) => ({ next: i.prev ? { ...i.prev, residualUsd: r } : null, booked: null, why });
   if (r === null || !Number.isFinite(r)) return hold("the residual could not be read (pUSD or a balance unread)");
   if (i.unsettledFills > 0) return hold(`${i.unsettledFills} fill(s) still settling`);
-  if (i.nowMs - i.dayStartMs < PM_LP_FUNDING.quietMs) return hold("before 03:10 UTC: the day's rewards and rebates are still posting");
   if (!i.payoutRead) return hold("yesterday's payout is not read yet");
   const round = (x: number) => Math.round(x * 1e6) / 1e6;
+  // The first booking needs no quiet hours (Davies, 2026-10-10 02:18 UTC: "live的Reward quotes子页面中FUNDED还是显示的是$322，
+  // 而不是我实际投入的402左右"): with yesterday's payout read, the residual is the money put in. Only a later move waits for
+  // them, since a payout landing then must never be booked as a deposit.
   if (!i.prev) return { next: { depositUsd: round(r), at, residualUsd: r, candidate: null }, booked: { moveUsd: round(r), depositUsd: round(r), first: true }, why: "the first reading" };
+  if (i.nowMs - i.dayStartMs < PM_LP_FUNDING.quietMs) return hold("before 03:10 UTC: the day's rewards and rebates are still posting");
   const move = r - i.prev.depositUsd;
   if (Math.abs(move) < PM_LP_FUNDING.minMoveUsd) return { next: { ...i.prev, residualUsd: r, candidate: null }, booked: null, why: "no move of $1 or more" };
   const c = i.prev.candidate;
@@ -2538,6 +2541,7 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   // of kind `funding` (0113); until the event is written nothing is booked, and the move is tried again.
   const prevFunding = ((prev.lp ?? {}) as { funding?: LpFunding }).funding ?? null;
   let funding: LpFunding | null = prevFunding;
+  let fundingResidual: { usd: number; at: string } | null = null;
   if (inst.lp && mode === "live") {
     try {
       const nowRedeemed = new Set([...redeemed, ...[...unredeemed, ...newSettlements].filter((s) => [s.yes_token, s.no_token].every((t) => heldOf.has(t) && heldOf.get(t) === 0)).map((s) => s.cond)]);
@@ -2552,6 +2556,7 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
       const paidIn = pays.reduce((a, x) => a + num(x.actual_usd) + num(x.actual_sponsored_usd) + num(x.rebate_usd), 0);
       const unsettled = (await db.select(T.fills, "status=in.(MATCHED,MINED,RETRYING)&select=trade_id&limit=1")).length;
       const residual = pusd === null || !inventoryReadable ? null : Math.round((pusd + net - proceeds - paidIn) * 1e6) / 1e6;
+      if (residual !== null) fundingResidual = { usd: residual, at: nowIso };
       const f = lpFunding({ prev: prevFunding, residualUsd: residual, nowMs: d.now, dayStartMs: dayStart, unsettledFills: unsettled, payoutRead: (readouts[dayOf(dayStart - DAY)]?.reads ?? 0) >= 1 });
       if (f.booked) {
         try {
@@ -2611,8 +2616,10 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
             } : {}),
             // Its capital (`lpCapital`): what the next turn compares a raise with, and what the page shows.
             ...(lpCap ? { capital: { ...lpCap, at: nowIso } } : {}),
-            // The money put in (`lpFunding`, Addendum 10): FUNDED on its LIVE row and page.
+            // The money put in (`lpFunding`, Addendum 10): FUNDED on its LIVE row and page; and this turn's reading of it,
+            // which the page shows until the first booking (never the cap).
             ...(funding ? { funding } : {}),
+            ...(fundingResidual ? { fundingResidual } : {}),
           },
         } : {}),
       },

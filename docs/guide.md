@@ -408,7 +408,9 @@ places stay when the number is not whole.
   what the account holds and what it has done, so rewards and trading never
   move it, and a deposit or a withdrawal shows a few minutes after it lands
   (none is counted between midnight and 03:10 UTC, while Polymarket's
-  payouts arrive). Behind it, the most it may commit follows the account:
+  payouts arrive). It never shows the cap: until the strategy has
+  recorded the money put in, it shows its latest reading of it, and a dash
+  when there is none. Behind it, the most it may commit follows the account:
   each day's rewards and any money added raise that the minute after they
   arrive, a withdrawal or a loss lowers it at once, up to $1,000; deployed is what its resting buys tie up
   plus what it holds at cost; today, unrealised and realised come from its
@@ -452,7 +454,10 @@ places stay when the number is not whole.
 - **Reward quotes mini-pool** (markets paying $6 to under $10 a day, the
   first test of that account) left the list and stopped on 8 October: its
   checks had closed and it is not a candidate to go live.
-- **Reward quotes live-prep.** The last row, on Polymarket: the strategy
+- **Reward quotes live-prep.** No longer a row of TESTING since 10 October
+  (it trades real money and is on LIVE as Reward quotes); its paper copy
+  keeps running in the background because a pending study reads it. What
+  follows describes the strategy, the same on LIVE. On Polymarket: the strategy
   the study of 4 October found best on everything recorded, and since
   that day the lead candidate to go live. It is the same account and
   the same real order path, on every market paying $10 a day or more in

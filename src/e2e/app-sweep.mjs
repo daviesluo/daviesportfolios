@@ -4723,7 +4723,7 @@ async function run() {
       // ---- "Reward quotes live-prep" on LIVE (Davies, 2026-10-09: "网站的agents live页怎么看不到这个上线") -----------
       // Its real-money book (LP_LIVE_FIXTURE, worked by hand there) beside PR5's: a LIVE row of its own on Polymarket,
       // named "Reward quotes" (the same day: "改名为"Reward quotes""), in LIVE's scoreboard and a Polymarket card once each;
-      // its paper layer stays on TESTING as "Reward quotes live-prep", whose totals do not move, beside TESTING's own
+      // its paper layer is no row of TESTING since 2026-10-10, whose totals do not move, beside TESTING's own
       // "Reward quotes"; its page opens over the list: the TESTING page's STATUS with R (ACTUAL), DAYS first, then STOP AND
       // GATES, HELD, and TESTING's QUOTES and FILLS; hide-values masks its amounts; nothing wider than the screen.
       {
@@ -4768,10 +4768,11 @@ async function run() {
         await openAgentsPage(page);
         await clickTab('testing');
         const t0 = await readAgentsPanel(page);
-        const lpPaper = t1.rows.filter((r) => r.name === 'Reward quotes live-prep'), rwRows = t1.rows.filter((r) => r.name === 'Reward quotes');
-        if (sbText(t1) === sbText(t0) && JSON.stringify(t1.venues.map((v) => v.pairs)) === JSON.stringify(t0.venues.map((v) => v.pairs)) && lpPaper.length === 1 && rwRows.length === 1
+        // Its paper layer is no row of TESTING since 2026-10-10 (Davies: "testing里Reward quotes live-prep这个可以删了").
+        const lpPaper = t1.rows.filter((r) => /live-prep/.test(r.name)), rwRows = t1.rows.filter((r) => r.name === 'Reward quotes');
+        if (sbText(t1) === sbText(t0) && JSON.stringify(t1.venues.map((v) => v.pairs)) === JSON.stringify(t0.venues.map((v) => v.pairs)) && lpPaper.length === 0 && rwRows.length === 1
           && JSON.stringify(t1.rows.map((r) => r.name)) === JSON.stringify(t0.rows.map((r) => r.name))) {
-          ok(LT('testing'), `TESTING keeps "Reward quotes" and "Reward quotes live-prep" under their names and reads the same with the live book as without it (${sbText(t1)})`);
+          ok(LT('testing'), `TESTING keeps "Reward quotes", has no "Reward quotes live-prep" row, and reads the same with the live book as without it (${sbText(t1)})`);
         } else fail(LT('testing'), `TESTING with ${sbText(t1)} / without ${sbText(t0)}, its live-prep rows ${lpPaper.length}, its Reward quotes rows ${rwRows.length}, names ${t1.rows.map((r) => r.name)}`);
         await closeBy(page, () => page.keyboard.press('Escape'));
 
@@ -4916,7 +4917,7 @@ async function run() {
         await clickTab('testing');
         const f0 = await readAgentsPanel(page);
         const pmCard = f0.venues.find((v) => v.id === 'polymarket');
-        const rowFees = [0, 0, 0, 0, 0, MID_FIXTURE.output.fees.feesUsd, LP_FIXTURE.output.fees.feesUsd];
+        const rowFees = [0, 0, 0, 0, 0, MID_FIXTURE.output.fees.feesUsd];
         if (pmCard && pmCard.pairs.fees === '$0' && cents(pmCard.pairs.fees) === Math.round(rowFees.reduce((a, x) => a + x, 0) * 100) && pmCard.subs.some((x) => x.startsWith('fees+'))) {
           ok(FT('card'), `TESTING's Polymarket card has its fees line, the Reward quotes rows' fees summed: ${pmCard.pairs.fees} (every paper fill a maker's)`);
         } else fail(FT('card'), `Polymarket card ${JSON.stringify(pmCard?.pairs)}, subs ${JSON.stringify(pmCard?.subs)}`);
@@ -4924,7 +4925,7 @@ async function run() {
         const RQ_PAGES = [
           ['Reward quotes', RQ_REBATES.rw], ['Reward quotes variant-1', RQ_REBATES.rwe],
           ...AGENTS_DASHBOARD.rwx.map((/** @type {any} */ x) => [x.name, RQ_REBATES.rwx]),
-          ['Reward quotes mid-pool', MID_FIXTURE.output.fees.rebatesEstUsd], ['Reward quotes live-prep', LP_FIXTURE.output.fees.rebatesEstUsd],
+          ['Reward quotes mid-pool', MID_FIXTURE.output.fees.rebatesEstUsd],
         ];
         const readRealised = () => page.evaluate(() => {
           const txt = (/** @type {Element | null | undefined} */ el) => (el?.textContent || '').replace(/\s+/g, ' ').trim();
@@ -4944,7 +4945,7 @@ async function run() {
           const got = await readRealised();
           const want = ['(incl. fees $0)', `(est. maker rebates ${TW.money(Number(rebate), '$', true)}, not counted)`];
           if (!got || JSON.stringify(got.asides) !== JSON.stringify(want) || got.off > 0 || got.overflow > 1) bad.push(`${name}: ${JSON.stringify(got)} wanted ${JSON.stringify(want)}`);
-          if (name === 'Reward quotes live-prep') await shot(page, 'agents-rq-fees-page');
+          if (name === 'Reward quotes mid-pool') await shot(page, 'agents-rq-fees-page');
           await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
         }
         if (bad.length === 0) ok(FT('pages'), `every Reward quotes page (${RQ_PAGES.length}) reads "(incl. fees $0)" and its estimated maker rebates beside REALIZED, inside the screen`);
@@ -4955,7 +4956,7 @@ async function run() {
         await openAgentsPage(page);
         await clickTab('testing');
         const fh = await readAgentsPanel(page);
-        await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes live-prep') }).first().click();
+        await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes mid-pool') }).first().click();
         await settled(page, '.ag-rw-detail');
         const hr = await readRealised();
         const hpm = fh.venues.find((v) => v.id === 'polymarket');
@@ -5279,11 +5280,9 @@ async function run() {
       await toggleHidden(page);                       // values shown again for everything after this
       agentsMode = 'ok';
 
-      // "Reward quotes live-prep" (0091; Davies, 2026-10-04: the lead candidate to go live): the order path on every pool of
-      // $10 a day and over with live-prep's rules, filled on paper by the same layer, the last row of TESTING after
-      // mid-pool's, on the Polymarket card, with RW's page (LP_FIXTURE). The name is this row's alone (mini-pool's row carried
-      // it until 2026-10-02, and mini-pool has no row since 0103). What it adds to TESTING's scoreboard and the card is read
-      // against the page with mid-pool's.
+      // "Reward quotes live-prep"'s paper layer (0091) is no row of TESTING since 2026-10-10 (Davies: "testing里Reward quotes
+      // live-prep这个可以删了"): with its record in the payload (`prepLp`, LP_FIXTURE), TESTING reads exactly as without it,
+      // the last row mid-pool's, and its scoreboard and Polymarket card add nothing of it. Its live book is on LIVE.
       agentsMode = 'mid';
       await openAgentsPage(page);
       await waitFor(async () => (await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes mid-pool') }).count()) === 1);
@@ -5292,55 +5291,15 @@ async function run() {
       await closeBy(page, () => page.keyboard.press('Escape'));
       agentsMode = 'lp';
       await openAgentsPage(page);
-      const lpRowEl = page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes live-prep') });
-      await waitFor(async () => (await lpRowEl.count()) === 1);
+      await waitFor(async () => (await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Reward quotes mid-pool') }).count()) === 1);
       await atRest(page);
-      const lpText = (await lpRowEl.first().innerText().catch(() => '')).replace(/\s+/g, ' ');
-      const lpGreen = await lpRowEl.first().locator('.ag-dot-running').count();
       const lpNames = (await page.locator('.ag-strategies-testing .ag-row .ag-name-btn').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
       const lpAfter = await readAgentsPanel(page);
-      // Today +$4.90, 1.53 % of $320; one position open (F's 10 NO; E's 20 YES were sold).
-      if (lpNames.slice(-2).join(' | ') === 'Reward quotes mid-pool | Reward quotes live-prep' && !lpNames.some((n) => /mini-pool/.test(n)) && lpNames.filter((n) => /live-prep/.test(n)).length === 1
-        && /Polymarket/.test(lpText) && /2 open · \$320 cap/.test(lpText) && /\+\$4\.90 \(\+1\.53%\)/.test(lpText) && /every minute/.test(lpText) && lpGreen === 1) {
-        ok(T('lp'), 'the last two testing rows are "Reward quotes mid-pool" and "Reward quotes live-prep" (no mini-pool row), one row of that name, on Polymarket: 2 open of its $320 cap, today +$4.90 (+1.53%), every minute, green');
-      } else fail(T('lp'), `live-prep row "${lpText}" (rows ${lpNames.join(' | ')}), green dots ${lpGreen}`);
-      const lpCell = (/** @type {any} */ p, /** @type {string} */ name) => p.scoreboard.find((/** @type {any} */ c) => c.name === name)?.value;
-      const lpAmount = (/** @type {string | undefined} */ v) => { const x = /([+-]?)\$([\d,]+(?:\.\d+)?)/.exec(v || ''); return x ? (x[1] === '-' ? -1 : 1) * Number(x[2].replace(/,/g, '')) : NaN; };
-      const lpSbDiff = ['FUNDED', 'DEPLOYED', 'TODAY', 'UNREALIZED G/L', 'REALIZED G/L'].map((k) => Math.round((lpAmount(lpCell(lpAfter, k)) - lpAmount(lpCell(lpBefore, k))) * 100) / 100);
-      const lpPmB = lpBefore.venues.find((v) => v.id === 'polymarket'), lpPmA = lpAfter.venues.find((v) => v.id === 'polymarket');
-      const lpCardDiff = ['funded (Paper)', 'deployed', 'today', 'unrealised', 'realised', 'rewards', 'orders'].map((k) => Math.round((lpAmount(lpPmA?.pairs[k]) - lpAmount(lpPmB?.pairs[k])) * 100) / 100);
-      // Deployed: $2.90 held and $29.20 its quotes tie up, $32.10; the scoreboard shows it to the dollar from $1,000.
-      const lpSbDeployed = Math.round(TESTING.deployed + 40.4 + 32.1) - Math.round(TESTING.deployed + 40.4);
-      if (lpSbDiff.join(',') === `320,${lpSbDeployed},4.9,0.1,9.6` && lpCardDiff.join(',') === '320,32.1,4.9,0.1,9.6,9,0.6' && lpPmA?.meta === '7 strategies') {
-        ok(T('lp'), `TESTING's scoreboard and the Polymarket card add exactly its figures: funded $320, deployed $32.10 (${lpSbDeployed} more on the scoreboard, shown to the dollar), today +$4.90, unrealised +$0.10, realised +$9.60 (rewards +$9.00, orders +$0.60); the card counts 7`);
-      } else fail(T('lp'), `scoreboard adds ${lpSbDiff.join(',')}, card adds ${lpCardDiff.join(',')} (meta "${lpPmA?.meta}")`);
-      await lpRowEl.first().click().catch(() => {});
-      await settled(page, '.ag-rw-detail');
-      const lpp = await page.evaluate(() => {
-        const txt = (/** @type {Element | null | undefined} */ el) => (el?.textContent || '').replace(/\s+/g, ' ').trim();
-        const d = document.querySelector('.ag-rw-detail');
-        const rows = (/** @type {string} */ sel) => [...(d?.querySelectorAll(`${sel} tbody tr`) ?? [])].map((tr) => [...tr.querySelectorAll('td')].map(txt));
-        return {
-          title: txt([...document.querySelectorAll('.modal .modal-title')].at(-1)),
-          sections: [...(d?.querySelectorAll('.ag-section-title') ?? [])].map(txt),
-          split: [...(d?.querySelectorAll('.ag-scoreboard-sm .ag-sb-split-line') ?? [])].map(txt),
-          tiles: [...(d?.querySelectorAll('.ag-rw-tile') ?? [])].map((t) => `${txt(t.querySelector('.ag-rw-tile-k'))}=${txt(t.querySelector('.ag-rw-tile-v'))}`),
-          days: rows('.ag-rw-days'), markets: rows('.ag-rw-markets'), fills: rows('.ag-rw-fills'),
-          overflow: d ? d.scrollWidth - d.clientWidth : -1,
-          docOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
-        };
-      });
-      await shot(page, 'agents-lp');
-      // Its fills newest first, the sell of what it held among them; F's pool of $120 a day, over mid-pool's ceiling.
-      const lpFillOk = lpp.fills.map((r) => r.slice(1).join('|')).join(' / ') === 'Will E happen?|sold Yes|20|43¢ / Will F happen?|bought No|10|28¢ / Will E happen?|bought Yes|20|40¢';
-      const lpMktOk = lpp.markets.length === 2 && lpp.markets[0][0] === 'Will E happen?' && lpp.markets[1][0] === 'Will F happen?' && lpp.markets[1][1] === '$120' && lpp.markets[1][4] === '10 No';
-      // Its worst case: +$4.80 in all (E 1.95, F 2.65); by day 16 Sep +$2.30 and today, live, +$2.50, adding up to it.
-      const lpDayOk = lpp.days.length === 2 && /· today$/.test(lpp.days[0][0]) && lpp.days[0][3] === '+$2.50' && /^16 Sep/.test(lpp.days[1][0]) && lpp.days[1][3] === '+$2.30';
-      if (lpp.title === 'Reward quotes live-prep' && lpp.sections.join(',') === 'STATUS,DAYS,QUOTES,FILLS' && lpp.split.join('|') === 'rewards +$9|orders +$0.60'
-        && /^WORST CASE=\+\$4\.80$/.test(lpp.tiles[0] ?? '') && lpDayOk && lpFillOk && lpMktOk && lpp.overflow >= 0 && lpp.overflow <= 1 && lpp.docOverflow <= 0) {
-        ok(T('lp'), "its page is RW's, as the other layers': realised = rewards +$9 + orders +$0.60; worst case +$4.80, by day today +$2.50 (live) and 16 Sep +$2.30; its three fills newest first, the sell of the YES it held at 43¢ first; F's pool of $120 a day; nothing wider than the screen");
-      } else fail(T('lp'), `live-prep page: ${JSON.stringify(lpp)}`);
-      await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
+      const lpSb = (/** @type {any} */ p) => JSON.stringify(p.scoreboard);
+      if (lpNames.at(-1) === 'Reward quotes mid-pool' && !lpNames.some((n) => /live-prep|mini-pool/.test(n)) && lpSb(lpAfter) === lpSb(lpBefore)
+        && JSON.stringify(lpAfter.venues.map((v) => v.pairs)) === JSON.stringify(lpBefore.venues.map((v) => v.pairs))) {
+        ok(T('lp'), `with live-prep's paper record in the payload TESTING has no "Reward quotes live-prep" row, ends on "Reward quotes mid-pool", and its scoreboard and cards are as without it (${lpSb(lpAfter)})`);
+      } else fail(T('lp'), `rows ${lpNames.join(' | ')}; scoreboard ${lpSb(lpAfter)} against ${lpSb(lpBefore)}`);
       await closeBy(page, () => page.keyboard.press('Escape'));
       agentsMode = 'ok';
 

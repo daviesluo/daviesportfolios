@@ -1339,7 +1339,7 @@ export const LP_LIVE_ROW_ID = '__lp_live';
  * "Reward quotes live-prep"'s real-money book as a row of LIVE (Davies, 2026-10-09: "网站的agents live页怎么看不到这个上
  * 线", the morning it went live), as PR5's live executor is one (`quotesLiveRow`): the dashboard's `lpLive`, made by the
  * server from the order path's live rows alone (`pm_lp_live_view.ts`), so nothing of its paper layer, whose row stays on
- * TESTING, is in it. Funded is the money Davies put in (`fundedUsd`, Addendum 10), the path's total cap until the path has booked it; deployed what its resting buys tie up and what it holds at cost;
+ * TESTING, is in it. Funded is the money Davies put in (`fundedUsd`, Addendum 10), as booked or as read, never the cap (a dash when unknown); deployed what its resting buys tie up and what it holds at cost;
  * today and realised are on what is funded, unrealised on what its holdings cost; realised is its fills' and settlements' plus what
  * Polymarket paid (rewards and maker rebates), split for the Polymarket card into rewards and orders, to the cent. Its
  * name carries no " · live", as no LIVE row's does, and on LIVE it is "Reward quotes". null while it has never been armed
@@ -1348,7 +1348,9 @@ export const LP_LIVE_ROW_ID = '__lp_live';
  */
 export function lpLiveRow(l) {
   if (!l || !(l.tradedLive || l.armed)) return null;
-  const capital = Number(l.fundedUsd ?? l.capUsd) || 0, cost = Number(l.costUsd) || 0;
+  // FUNDED is the money put in, booked or as read; never the cap (Davies, 2026-10-10). Unknown, the page shows a dash.
+  const fundedKnown = l.fundedUsd != null && Number.isFinite(Number(l.fundedUsd));
+  const capital = fundedKnown ? Number(l.fundedUsd) : 0, cost = Number(l.costUsd) || 0;
   /** @param {number} usd @param {number} base */
   const pct = (usd, base) => (base > 0 ? (usd / base) * 100 : null);
   const realised = Number(l.realisedUsd) || 0, unrealised = Number(l.unrealisedUsd) || 0, today = Number(l.todayUsd) || 0;
@@ -1363,7 +1365,7 @@ export function lpLiveRow(l) {
     venue: venueLabel('polymarket'),
     venueId: 'polymarket',
     mode: 'live',
-    capitalUsd: capital, valueUsd: Number(l.valueUsd) || 0, costUsd: cost, feesUsd: Number(l.feesUsd) || 0,
+    capitalUsd: capital, fundedKnown, valueUsd: Number(l.valueUsd) || 0, costUsd: cost, feesUsd: Number(l.feesUsd) || 0,
     todayUsd: today, todayPct: pct(today, capital),
     unrealisedUsd: unrealised, unrealisedPct: pct(unrealised, cost),
     realisedUsd: realised, realisedPct: pct(realised, capital),
@@ -2079,7 +2081,7 @@ export const RWX_ROW_PREFIX = '__rwx-';
 
 /**
  * TESTING's paper tests, the rows its scoreboard and venue cards add after its strategies, in the page's order: the
- * realistic twins, "Reward quotes", its variant-1 and the other variants, then mid-pool and live-prep. Each is one run's
+ * realistic twins, "Reward quotes", its variant-1 and the other variants, then mid-pool. Each is one run's
  * row, added once. From RW-C's first minute "Reward quotes" IS RW-C's run (the dashboard's `rw`), and RW-C is no row of
  * its own (Davies, 2026-10-08), so a dashboard that still carries an `rwc` adds nothing for it: the totals never hold
  * RW-C's figures beside RW's, or twice.
@@ -2088,13 +2090,18 @@ export const RWX_ROW_PREFIX = '__rwx-';
  * 调用 … 把你觉得前台和后台不需要和没必要再继续测的策略都可以关掉"): its check windows closed with its pre-registration's
  * Addendum 7 and it is no go-live candidate. Its two calls stop with the same migration; the dashboard still carries
  * `prep` (its last record) and adds nothing for it, as one carrying PR5V's or rule D's run adds nothing for them.
+ *
+ * "Reward quotes live-prep" (the dashboard's `prepLp`, its paper layer) is no row since 2026-10-10 (Davies: "testing里Reward
+ * quotes live-prep这个可以删了"): its strategy is live, a row of LIVE. Its paper layer keeps running, because LPRESEL6's
+ * frozen reading reports L1 against its paper days of 10-09 → 10-22 and its path's dry-run decides on it whenever it is
+ * disarmed; the dashboard still carries `prepLp` and adds nothing for it (`lpRow` makes its row should it come back).
  * @param {any} dash
  */
 export function paperTestRows(dash) {
   const one = (/** @type {any} */ row) => (row ? [row] : []);
   return [
     ...quotesTwinRows(dash), ...one(quotesCoinbaseRow(dash?.quotesCoinbase)), ...one(rwRow(dash?.rw)), ...one(rweRow(dash?.rwe)), ...rwxRows(dash?.rwx),
-    ...one(midRow(dash?.prepMid)), ...one(lpRow(dash?.prepLp)),
+    ...one(midRow(dash?.prepMid)),
   ];
 }
 

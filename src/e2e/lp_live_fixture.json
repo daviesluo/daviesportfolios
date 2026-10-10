@@ -54,7 +54,19 @@
        "bestAsk": 0.32
       }
      }
-    ]
+    ],
+    "lp": {
+     "funding": {
+      "depositUsd": 320,
+      "at": "2026-09-16T03:10:01.000Z",
+      "residualUsd": 320,
+      "candidate": null
+     },
+     "fundingResidual": {
+      "usd": 320,
+      "at": "2026-09-17T22:59:01.000Z"
+     }
+    }
    }
   },
   "firstLive": "2026-09-16T01:33:04.000Z",
@@ -357,7 +369,8 @@
   "running": true,
   "lastError": null,
   "capUsd": 320,
-  "fundedUsd": null,
+  "fundedUsd": 320,
+  "fundedBasis": "booked",
   "valueUsd": 35.2,
   "restingBuysUsd": 29.4,
   "costUsd": 5.8,
@@ -611,7 +624,8 @@
   "running": true,
   "lastError": null,
   "capUsd": 320,
-  "fundedUsd": null,
+  "fundedUsd": 320,
+  "fundedBasis": "booked",
   "valueUsd": 35.2,
   "restingBuysUsd": 29.4,
   "costUsd": 5.8,

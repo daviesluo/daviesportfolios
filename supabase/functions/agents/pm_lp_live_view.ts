@@ -9,9 +9,8 @@
 // What the row's cells are:
 //   funded     since 2026-10-10 (Addendum 10) the money Davies put in (`fundedUsd`): pUSD + what the CONFIRMED fills spent net
 //              − what redeemed settlements paid in − the rewards and rebates paid, kept by the path (`lpFunding`) and moved
-//              only by a deposit or a withdrawal it books. Until the path has booked it, the cap, as before: the total cap
-//              the path's last turn held its buys to (`capUsd`, `state.limits.capTotal`, following the equity since
-//              Addendum 8), else the config's.
+//              only by a deposit or a withdrawal it books; until the path has booked it, its last turn's reading of the same
+//              sum; never the cap (`capUsd`, `state.limits.capTotal`, which stays the most its buys may commit).
 //   deployed   the collateral of its resting live buys (price × what is left of each) and what it holds at cost.
 //   today      the day's realised P&L plus every holding against its cost (`bookPnl`'s day, the path's own day reading;
 //              live-prep keeps no opening marks, having no day stop), plus what Polymarket paid for today's date.
@@ -298,7 +297,14 @@ export function lpLiveSummary(input: {
     capUsd: (() => { const c = Number((st as { limits?: { capTotal?: unknown } } | null)?.limits?.capTotal); return Number.isFinite(c) && c >= 0 ? c : num(cfg.cap_total_usd); })(),
     // FUNDED (Addendum 10; Davies: "子页面中的FUNDED得显示我实际真实投入的钱"): the money put in, as the path's last live turn
     // booked it (`lpFunding`, `state.lp.funding`); null until it has, when the row falls back to the cap.
-    fundedUsd: (() => { const f = Number((st as { lp?: { funding?: { depositUsd?: unknown } } } | null)?.lp?.funding?.depositUsd); return Number.isFinite(f) && f > 0 ? r6(f) : null; })(),
+    // Until the path has booked it, this turn's reading of it (`fundingResidual`); never the cap (Davies, 2026-10-10:
+    // "FUNDED还是显示的是$322，而不是我实际投入的402左右"). Null when neither is there: the page shows a dash.
+    ...(() => {
+      const lp = (st as { lp?: { funding?: { depositUsd?: unknown }; fundingResidual?: { usd?: unknown } } } | null)?.lp;
+      const f = Number(lp?.funding?.depositUsd), r = Number(lp?.fundingResidual?.usd);
+      return Number.isFinite(f) && f > 0 ? { fundedUsd: r6(f), fundedBasis: "booked" as const }
+        : Number.isFinite(r) && r > 0 ? { fundedUsd: r6(r), fundedBasis: "reading" as const } : { fundedUsd: null, fundedBasis: null };
+    })(),
     valueUsd: r6(restingBuys + heldCost), restingBuysUsd: r6(restingBuys), costUsd: r6(heldCost), heldValueUsd: r6(heldValue),
     todayUsd: r6(pnl.day + paidToday),
     unrealisedUsd: r6(pnl.total - realisedFills),

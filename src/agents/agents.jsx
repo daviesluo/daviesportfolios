@@ -160,16 +160,17 @@ function GlCell({ label, usd, pct, m, aside = null, split = null, cls = '', ccy 
 /**
  * The scoreboard's first two cells (Davies, 2026-09-24): what the strategies are funded with, then what they have
  * deployed of it, as a percent beside the figure. On a tab, FUNDED also says how many strategies the board adds up.
- * @param {{ fundedUsd: number, deployedUsd: number, m: (s: string) => string, aside?: string | null, ccy?: string }} props
+ * `known` false shows FUNDED as a dash (LIVE's Reward quotes before its money put in is read: never its cap).
+ * @param {{ fundedUsd: number, deployedUsd: number, m: (s: string) => string, aside?: string | null, ccy?: string, known?: boolean }} props
  */
-function FundedCells({ fundedUsd, deployedUsd, m, aside = null, ccy = 'USD' }) {
+function FundedCells({ fundedUsd, deployedUsd, m, aside = null, ccy = 'USD', known = true }) {
   const pct = fundedUsd > 0 ? (deployedUsd / fundedUsd) * 100 : null;
   const hasPct = pct != null && Number.isFinite(pct);
   return (
     <>
       <div className="ag-sb-cell ag-sb-cell-main ag-sb-cell-funded">
         <SbLabel label="FUNDED" asides={[aside]} />
-        <div className="sb-value sb-value-lg mono">{m(fmtIn(fundedUsd, ccy))}</div>
+        <div className="sb-value sb-value-lg mono">{known ? m(fmtIn(fundedUsd, ccy)) : '—'}</div>
         <div className="ag-sb-extra" />
       </div>
       <div className="ag-sb-divider" />
@@ -636,7 +637,7 @@ function LpLiveDetail({ l, m, at, nowMs }) {
       </div>
       <h3 className="ag-detail-title mono sr-only">{row.name}</h3>
       <div className="ag-scoreboard ag-scoreboard-sm">
-        <FundedCells fundedUsd={row.capitalUsd} deployedUsd={row.valueUsd} m={m} />
+        <FundedCells fundedUsd={row.capitalUsd} deployedUsd={row.valueUsd} m={m} known={row.fundedKnown} />
         <div className="ag-sb-divider" />
         <GlCell label="TODAY" usd={row.todayUsd} pct={row.todayPct} m={m} />
         <div className="ag-sb-divider" />

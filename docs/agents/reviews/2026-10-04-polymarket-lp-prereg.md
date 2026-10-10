@@ -971,3 +971,37 @@ read; their paper rows on the page are priced at the live R like every other.
 - 10-09 enters R at 0.807 from the readout's own rows and the pinned table; a later day stands as read.
 - `atLiveR` by hand; at R = 1 and a low of 0.5 it leaves a summary as it was.
 - `src/pm_live_hash.test.js`, `src/pm_lp_prereg.test.js`: the bytes and the chain of addenda.
+
+## Addendum 11 (2026-10-10, about 02:30 UTC): FUNDED at once, and the paper row off TESTING
+
+This addendum was written while live-prep is live and before the deploy it records. Addendum 10 deployed at 01:45 UTC.
+
+**1. FUNDED shows the money put in at once.** Davies, at 02:18 UTC: "live的Reward quotes子页面中FUNDED还是显示的是$322，而不是我
+实际投入的402左右，之前和你说过这事". `lpFunding` held its FIRST booking until 03:10 UTC like every later move, so at 02:18
+`state.lp.funding` was null and the page fell back to the cap. The quiet hours exist so that a payout landing is never
+booked as a deposit; the first booking books no move, and once yesterday's payout has been read (10-09's counted at
+01:00, its rebates in pUSD by 01:17) the residual is the money put in. So the first booking now needs the residual
+readable, no fill settling and yesterday's readout counted, and not the quiet hours; every later move keeps every guard.
+And the page never shows the cap as FUNDED: the path writes each live turn's reading (`state.lp.fundingResidual`), which
+the page shows until the first booking (`fundedBasis` "reading"), and a dash when there is neither.
+
+**2. Its paper row is off TESTING.** Davies: "testing里Reward quotes live-prep这个可以删了". `paperTestRows` no longer lists
+`LP_ROW_ID`; the dashboard still carries `prepLp` and adds nothing for it, as it carries mini-pool's since 0103. **Its
+paper layer's calls stay on**, because two things still read it: LPRESEL6's frozen reading
+(`reviews/2026-10-09-lp-reselect6h-prereg.md`, `backtests/lpresel6/scripts/bar.py`, `sql/aux.sql`) reports L1 against
+`pm_lpprep_days` over its window of 10-09 → 10-22, read on or after 10-23; and the path's own dry-run decides on its
+paper's holdings and stop (`PmLpOptions.paper`) whenever live-prep is disarmed. RWC-OPT's paper studies
+(`exp_paper.sql`, `explim_paper.sql`, `tb1s_forward.sql`) read the record before 10-09 01:32 UTC, which stays; pm-rec
+reads `pm_lpprep_minutes` only to know what to record, and the live stop reads none of it. No migration: the calls
+can be turned off once LPRESEL6 has read its window.
+
+**The code it deploys:** `pm_live.ts` sha256 `2ae0e7296fd2038fd90bcba61a3daae1e52546fd9f22146789acd5db4a600ca3`, where Addendum 10 named `c990ef3e…3616`; `pm_lp.ts`
+and the migrations unchanged; `agents/pm_lp_live_view.ts` (`fundedUsd` from the booking or the reading, `fundedBasis`)
+and the page (`src/agents/agents.js`, `agents.jsx`: FUNDED never the cap, a dash when unknown; no live-prep row on
+TESTING).
+
+**Pinned:** `lpFunding` books the first reading at 02:20 UTC once the payout is read, and a later move still waits out
+the quiet hours; an armed turn at 02:20 with the readout counted books it, and one with the readout uncounted keeps the
+reading for the page; the summary's FUNDED is the booking, else the reading, never the cap; `paperTestRows` lists no
+live-prep row though `prepLp` is carried, and TESTING's scoreboard and cards are as without it (unit test and the
+browser sweep).
