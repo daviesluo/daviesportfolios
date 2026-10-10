@@ -163,6 +163,7 @@ named.
 | Luno | — | — | stablecoin books only against ZAR, NGN, KES, IDR (public tickers) | — | — | — | — | — | no book |
 | Uphold | a broker | — | no public maker order book | — | — | — | — | — | not applicable |
 | LMAX Digital, Archax | institutional | institutions | — | — | — | — | — | — | not checked further |
+| Hyperliquid (spot; added 2026-10-10) | an on-chain order book, no licence; a self-custody wallet, with USDC bridged in (its spot is not caught by the FCA's derivatives ban) | anyone with a wallet; no account | dollar against dollar only. USDT0/USDC trades $545k a day; USDe, FEUSD, USDH and USDHL against USDC $0–7k | base 0.040 % / 0.070 %. "Spot pairs between two spot quote assets have 80% lower taker fees, maker rebates, and user volume contribution", and the page's formula scales the maker rate by 0.2 on them: 0.008 % / 0.014 % | post-only (ALO); a keyless `info` API, signed actions | — | crypto only, by bridge | a wallet, a bridge, gas | **dead**: USDT0/USDC's minute closes sit a median 1.0 bps from fair (p90 2.4, max 5.3). Its 15-minute bars reach 10 bps in 0.44 % of 52 days. Two trips in its 3.5 days of 1-minute candles, about 3 %/yr after fees. No FX gap for the rule to quote around (`backtests/scq_venues/results/hl_screen.json`) |
 | Revolut X EEA | Revolut Digital Assets Europe (CySEC, MiCA, secondary sources) | one Revolut account per person, tied to the residence country | USDC/EUR | 0 % maker | — | — | — | moving Revolut residence to Ireland closes the UK account that runs PR5 | blocked (first search, §3) |
 
 **The screen's rule.** A book is simulated if its maker fee is at most 0.02 % or has a realistic path to it, and its
@@ -174,6 +175,18 @@ history is keyless:
 - Bitstamp's three EUR books, at an assumed 0 %, as a best case.
 
 Kraken's 0.02 % tier needs $1m of 30-day volume. The rule's own volume, £20–£30k a month at £100 a rung, never reaches it.
+
+**Hyperliquid (added 2026-10-10, Davies' question).** It was earlier used as a feed (PMSC), for its funding (STATARB-2) and
+for its HLP vault (STATARB), never for PR5's rule on its spot stablecoin books.
+
+- **Keyless history.** `candleSnapshot` serves the newest 5,000 candles of an interval: 1-minute candles reach 3.5 days
+  back, 15-minute 52 days, hourly 208 days. `recentTrades` serves the last 10 prints. So the screen is candle-grade
+  (`hl_screen.py`).
+- **The anchor.** Every book is dollar against dollar, so X is 1.0 and fair is PR5's F3 on the book's own hourly closes.
+  The rule runs unchanged, but it loses its reason: PR5's edge is retail paying across an FX gap. Here USDT0/USDC is
+  held within a basis point or two by arbitrage.
+- **What deciding would need.** A forward recorder of every print (the websocket `trades` feed, since REST keeps ten)
+  and of `l2Book`, for 28 days. Nothing here suggests it is worth building.
 
 ## 3. By book and by year (£100 a rung, fills strictly through)
 

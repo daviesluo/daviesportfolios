@@ -1,0 +1,101 @@
+{
+ "bars_15m_reaching": {
+  "10bps": 0.0044,
+  "20bps": 0.0024,
+  "30bps": 0.0016,
+  "5bps": 0.018,
+  "bars": 5005
+ },
+ "books": [
+  {
+   "coin": "@166",
+   "mark": "0.99929",
+   "mid": "0.999295",
+   "pair": "USDT0/USDC",
+   "volume_usd_24h": 545475
+  },
+  {
+   "coin": "@180",
+   "mark": "0.96021",
+   "mid": "0.979505",
+   "pair": "USDHL/USDC",
+   "volume_usd_24h": 7018
+  },
+  {
+   "coin": "@153",
+   "mark": "0.999",
+   "mid": "0.99995",
+   "pair": "FEUSD/USDC",
+   "volume_usd_24h": 3597
+  },
+  {
+   "coin": "@230",
+   "mark": "0.99481",
+   "mid": "0.997305",
+   "pair": "USDH/USDC",
+   "volume_usd_24h": 2441
+  },
+  {
+   "coin": "@150",
+   "mark": "0.9998",
+   "mid": "0.99975",
+   "pair": "USDE/USDC",
+   "volume_usd_24h": 2435
+  },
+  {
+   "coin": "@302",
+   "mark": "0.002483",
+   "mid": "0.0024935",
+   "pair": "USDUC/USDC",
+   "volume_usd_24h": 645
+  },
+  {
+   "coin": "@152",
+   "mark": "1.0",
+   "mid": "1.440325",
+   "pair": "USDXL/USDC",
+   "volume_usd_24h": 0
+  },
+  {
+   "coin": "@244",
+   "mark": "1.1",
+   "mid": "2.18715",
+   "pair": "USDXL/USDT0",
+   "volume_usd_24h": 0
+  }
+ ],
+ "fees": {
+  "maker": 8e-05,
+  "source": "hyperliquid.gitbook.io/hyperliquid-docs/trading/fees: base 0.040 % / 0.070 %, x0.2 on a pair of two spot quote assets (scaleIfStablePair)",
+  "taker": 0.00014
+ },
+ "history_depth": {
+  "15m": [
+   "2026-08-18T22:15Z",
+   5005
+  ],
+  "1h": [
+   "2026-03-15T17:00Z",
+   5001
+  ],
+  "1m": [
+   "2026-10-06T12:57Z",
+   5061
+  ]
+ },
+ "minute_close_vs_fair_bps": {
+  "max": 5.3,
+  "median": 1.0,
+  "p90": 2.4
+ },
+ "recent_trades_served": 10,
+ "sim_1m": {
+  "gross_usd": 0.2028,
+  "net_usd": 0.1708,
+  "net_usd_per_year_on_600": 17.75,
+  "orders_per_day": 4.3,
+  "stops": 0,
+  "trips": 2,
+  "window_days": 3.51
+ }
+}

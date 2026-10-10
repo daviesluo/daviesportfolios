@@ -431,20 +431,17 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", and the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)"; each oldest
 first.
 
+### [2026-10-10 01:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Hyperliquid's spot stable books screened** (Davies asked; `backtests/scq_venues/scripts/hl_screen.py`, a row in
+  `reviews/2026-10-09-stablecoin-venues.md` §2): dead. Only USDT0/USDC trades ($545k a day), its minute closes a median
+  1.0 bps from fair; 0.008 % maker on stable pairs (Hyperliquid's fee page); 3.5 days of 1-minute candles, no print history.
+
 ### [2026-10-10 01:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Coinbase paper test pre-registered and frozen; Revolut X against Coinbase** (`reviews/2026-10-10-coinbase-paper-prereg.md`,
   `reviews/2026-10-10-coinbase-vs-revolutx.md`, `backtests/cbpaper/`, map row, reference §4 item 58, what-remains item 12).
   Since 2026-08-24 at £100 a rung: Revolut X 17.1 %/yr on £1,200, Coinbase 9.7 % on £2,400 (USDC-GBP 20.7 %, flat to £1,000
   a rung); Revolut X's rate falls with size. Robust split: £1,000 → £690 Revolut X + £300 Coinbase USDC-GBP; £5,000 →
   £2,580 + £2,400.
-
-### [2026-10-10 00:53 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Coinbase recorder and paper test built** (Davies: "先建起来吧，并且和Revolute X对比看哪个更好"): `agents?action=cbrec`
-  (`cb_rec.ts`, `cb_quotes.ts`, `cb_view.ts`, migration 0112, map rows). Keyless: every print of USDC-GBP, USDT-GBP,
-  USDC-EUR, USDT-EUR by trade id with no gap, the touch each minute, then PR5's `stepMinute` unchanged on them in pounds
-  (£100 a rung, £2,400). Not pushed; whether the Edge region reaches Coinbase shows in `cb_rec_state.last_report.reached`.
-- Its TESTING row "Stablecoin quotes Coinbase" (after the twins, its own Coinbase card) and page (the twins' page, no
-  INVENTORY, EUR books in euros), `dist/` built, the sweep's checks for both (all green, both viewports), a guide line.
 
 ### [2026-10-10 01:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep's reward check, built on branch `lp-reward-refresh`** (sub-agent; Davies: "策略每分钟读的时候都检查奖励配置，
@@ -463,6 +460,14 @@ first.
   Addendum 9). The estimate will still learn 10-09 at ≈ 0.33, since its scored formula used the stale programme:
   whether to leave 10-09 out of R's calibration is Davies' call (listed under item 2).
 
+
+### [2026-10-10 00:53 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Coinbase recorder and paper test built** (Davies: "先建起来吧，并且和Revolute X对比看哪个更好"): `agents?action=cbrec`
+  (`cb_rec.ts`, `cb_quotes.ts`, `cb_view.ts`, migration 0112, map rows). Keyless: every print of USDC-GBP, USDT-GBP,
+  USDC-EUR, USDT-EUR by trade id with no gap, the touch each minute, then PR5's `stepMinute` unchanged on them in pounds
+  (£100 a rung, £2,400). Not pushed; whether the Edge region reaches Coinbase shows in `cb_rec_state.last_report.reached`.
+- Its TESTING row "Stablecoin quotes Coinbase" (after the twins, its own Coinbase card) and page (the twins' page, no
+  INVENTORY, EUR books in euros), `dist/` built, the sweep's checks for both (all green, both viewports), a guide line.
 
 ### [2026-10-10 00:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **RW-C's 10-10 check PASSED** (wake `trig_0147EKGhR4aHoVq5QWUFy1mr`, fired 00:20): `pm_rwc_e_state` `checkMaxUsd` 0;

@@ -52,6 +52,10 @@
    "bytes": 772411,
    "sha256": "c190b45fc83716bff086cee8ed2138ea39c3fe0b2bd2e352448855df2e0dda7a"
   },
+  "inputs/hl_candles_@166.json.gz": {
+   "bytes": 175403,
+   "sha256": "90995951641fc46b4543168668067b24d72e53dbaad1f230073dc43f42848111"
+  },
   "inputs/raw_manifest.json": {
    "bytes": 6024,
    "sha256": "a33fea714fa5f7fad46609f3ceb066b46cd062f477be87c1ac5a16a0a0b308f3"
@@ -88,6 +92,10 @@
    "bytes": 98960,
    "sha256": "b7659a156715a4feb7227e8f49406ed69e3d60cd0b0486bb71255ce399ce092c"
   },
+  "results/hl_screen.json": {
+   "bytes": 1750,
+   "sha256": "cee93abafc17e3a09eb6b3a14c85a194a7004452a19fc0eeaf794ea14a3d3ab6"
+  },
   "results/pairing.json": {
    "bytes": 3779,
    "sha256": "3fed5e962ad410425f439eae38c735687a958f1f8168f56911e6aa3df37d5304"
@@ -123,6 +131,10 @@
   "scripts/calibrate_bars.py": {
    "bytes": 2195,
    "sha256": "7768c302afb05e4fa8f175b9cb19a48507eee693546ac0a79f6059c0fd8c0db1"
+  },
+  "scripts/hl_screen.py": {
+   "bytes": 6746,
+   "sha256": "1c54a0968a6b9c0e6796868d9060e1a4d85e808255498d0b8722d07841e64b8f"
   },
   "scripts/pairing.py": {
    "bytes": 4288,
