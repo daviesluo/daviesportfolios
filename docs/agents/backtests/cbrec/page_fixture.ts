@@ -1,4 +1,4 @@
-// The browser test's "Stablecoin quotes Coinbase" fixture (src/e2e/quotes_coinbase_fixture.json), written from
+// The browser test's "Stablecoin quotes with Euros" fixture (src/e2e/quotes_coinbase_fixture.json), written from
 // `coinbasePageFixture` (supabase/functions/agents/testing.ts): the paper test's own driver (`runCbQuotes`) run on a small
 // recorded world, then the dashboard's own view of it (`cbQuotesView`), so the page is checked against what the function
 // would send. `cb_quotes.test.ts` builds it again and asserts the committed file.

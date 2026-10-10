@@ -11,6 +11,10 @@ pre-registration (`2026-10-10-coinbase-paper-prereg.md`). It is history, in samp
 - **Sources.** Scripts and results are in `backtests/cbpaper/`: `compare.py` → `compare.json` and `allocate.py` →
   `allocation.json`.
 - **Nothing was traded.**
+- **2026-10-10, later: €100 a rung on the EUR books.** The paper test now runs €100 a rung on its EUR books, not £100's
+  worth of euros (its pre-registration's Deviation 1). This note's figures stay at £100 a rung: Coinbase's rate does not
+  move with rung size (§4), so on £1,200 + €1,200 they change by at most 0.3 points a year (9.7 % → 9.8 % since 08-24,
+  at EUR/GBP 0.8468), and nothing below changes its answer.
 
 ## 1. The answer
 

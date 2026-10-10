@@ -1,6 +1,7 @@
 // The forward PAPER test of PR5's frozen rule on Coinbase's four stablecoin books (USDC-GBP, USDT-GBP, USDC-EUR, USDT-EUR),
-// TESTING's "Stablecoin quotes Coinbase". Davies, 2026-10-10: "先建起来吧，并且和Revolute X对比看哪个更好，投入的话资金该如何
-// 安排". Pre-registered in docs/agents/reviews/2026-10-10-coinbase-paper-prereg.md; the venue screen that chose it is
+// TESTING's "Stablecoin quotes with Euros" ("Stablecoin quotes Coinbase" until 2026-10-10). Davies, 2026-10-10:
+// "先建起来吧，并且和Revolute X对比看哪个更好，投入的话资金该如何安排". Pre-registered in
+// docs/agents/reviews/2026-10-10-coinbase-paper-prereg.md; the venue screen that chose it is
 // docs/agents/reviews/2026-10-09-stablecoin-venues.md. It never calls an order endpoint and holds no key: its inputs are the
 // recorder's prints (`cb_rec.ts`, 0112), PR5's own stored GBP/USD minutes and USD-book hourly closes (`agent_quote_inputs`,
 // what PR5's paper engine and its twins decide on), and Yahoo's EURUSD=X minutes, which it stores itself.
@@ -8,11 +9,14 @@
 // THE RULE IS PR5's, NOT A COPY: each minute of each book is `stepMinute` from quotes.ts, the function PR5's paper engine
 // and its realistic twins' replicas run, called unchanged (its freeze line, PR5-W's, forbids editing it). What differs
 // between the venues is passed through its inputs alone, exactly:
-//   * Pounds. A book's X is the pound value of one unit of its quote currency — 1 for the GBP books, EUR/USD ÷ GBP/USD for
-//     the EUR books — and its fairU is the stablecoin's dollar fair over GBP/USD. So fair = fairU / X is the book's own
-//     fair (dollars over its currency's dollar rate), one rung is `QUOTE_SIZE_USD` = 100 POUNDS (the twin "Stablecoin
-//     quotes"'s £100), the 10 % volume cap is pounds, and every P&L `stepMinute` writes (`pnlUsd`) is pounds. A minute
-//     with either rate older than ten minutes is dark, as PR5's is.
+//   * Each book's own currency. A book's X, as `stepMinute` is given it, is 1, and its fairU is the book's own fair (the
+//     stablecoin's dollar fair over its currency's dollar rate: GBP/USD, or Yahoo's EUR/USD for the EUR books). So one
+//     rung is `QUOTE_SIZE_USD` = 100 of the book's currency, £100 on a GBP book and €100 on a EUR book, the 10 % volume
+//     cap is in that currency, and every P&L `stepMinute` writes (`pnlUsd`) is too. The driver turns a round trip into
+//     pounds at the book's pounds per unit (`xGbp`: 1, or EUR/USD ÷ GBP/USD) when it closes, and keeps the pounds per
+//     unit each position was entered at (`xEntry` in its state). Deviation 1 of the pre-registration (2026-10-10, before
+//     the window opened; Davies: "每一档100磅/100欧元"): until then a EUR book's X was its pounds per euro, so its rung was
+//     £100's worth of euros. A minute with either rate older than ten minutes is dark, as PR5's is.
 //   * The price step. `stepMinute` prices in 0.0001 steps; USDT-EUR's is 0.00001, so that book's prices go in ×10 and its
 //     sizes ÷10 (`CB_BOOK.scale`): every price, size and P&L comes back the same once scaled back (pinned).
 //   * The stop's cost. `stepMinute` charges PR5's 0.09 % + 0.0067 %; Coinbase's stable pairs charge a taker 0.0045 %, plus
@@ -49,9 +53,12 @@ export const CB_BOOK: Record<CbProduct, { quote: "GBP" | "EUR"; coin: "USDC" | "
   "USDC-EUR": { quote: "EUR", coin: "USDC", tick: 1e-4, scale: 1, halfSpread: 0.000056 },
   "USDT-EUR": { quote: "EUR", coin: "USDT", tick: 1e-5, scale: 10, halfSpread: 0.0000112 },
 };
-/** £100 a rung, six a book: £600 a book, £2,400 in all (the twin "Stablecoin quotes"'s rung). */
-export const CB_RUNG_GBP = 100;
-export const CB_CAPITAL_GBP = CB_RUNG_GBP * 6 * CB_PRODUCTS.length;
+/** 100 of the book's currency a rung (£100 on a GBP book, €100 on a EUR book; Deviation 1), six a book. */
+export const CB_RUNG = 100;
+/** The capital in each currency: £1,200 on the two GBP books, €1,200 on the two EUR books. */
+export const CB_CAPITAL = { GBP: CB_RUNG * 6 * 2, EUR: CB_RUNG * 6 * 2 } as const;
+/** The capital in pounds, the euros at `eurGbp` pounds a euro. */
+export const cbCapitalGbp = (eurGbp: number) => CB_CAPITAL.GBP + CB_CAPITAL.EUR * eurGbp;
 /** The USD book PR5 reads each coin's fair from (its stored hourly closes, `agent_quote_inputs`). */
 export const CB_FAIR_KIND: Record<"USDC" | "USDT", string> = { USDC: "fair:USDC-USD", USDT: "fair:USDT-USD" };
 /** Minutes decided in one call at most (a call's 30 s), and where an empty record starts at the latest. */
@@ -68,14 +75,29 @@ export function cbPrint(book: CbProduct, r: { trade_id: number | string; ts: str
 }
 
 /**
- * A minute's X and fairU for `stepMinute`, from GBP/USD (`gbp`), EUR/USD (`eur`) and the coin's dollar fair (`fairU`):
- * X is the pound value of one unit of the book's currency, fairU the dollar fair over GBP/USD, scaled with the book's
- * prices, so that fairU / X is the book's fair on `stepMinute`'s grid. Either rate dark, the minute is dark.
+ * A minute's X and fairU for `stepMinute`, from GBP/USD (`gbp`), EUR/USD (`eur`) and the coin's dollar fair (`fairU`), and
+ * the book's pounds per unit (`xGbp`). X is 1 (Deviation 1: the rule's money is the book's own currency) and fairU the
+ * book's fair, the dollar fair over the book's currency's dollar rate, scaled with its prices, so that fairU / X is the
+ * book's fair on `stepMinute`'s grid. `xGbp` is 1 for a GBP book and EUR/USD ÷ GBP/USD for a EUR book. Either rate dark,
+ * the minute is dark: every book needs GBP/USD (its pounds), a EUR book EUR/USD too.
  */
-export function cbMinuteInputs(book: CbProduct, gbp: number | null, eur: number | null, fairU: number | null): { x: number | null; fairU: number | null } {
+export function cbMinuteInputs(book: CbProduct, gbp: number | null, eur: number | null, fairU: number | null): { x: number | null; fairU: number | null; xGbp: number | null } {
   const b = CB_BOOK[book];
-  const x = !gbp ? null : b.quote === "GBP" ? 1 : eur ? eur / gbp : null;
-  return { x, fairU: x && fairU ? (fairU / gbp!) * b.scale : null };
+  const xGbp = !gbp ? null : b.quote === "GBP" ? 1 : eur ? eur / gbp : null;
+  if (xGbp == null) return { x: null, fairU: null, xGbp: null };
+  const own = b.quote === "GBP" ? gbp! : eur!;
+  return { x: 1, fairU: fairU ? (fairU / own) * b.scale : null, xGbp };
+}
+
+/**
+ * A closed round trip in pounds: `stepMinute` wrote its notional and P&L in its X's money (`notionalUsd / nq` is the X it
+ * closed at: 1 from Deviation 1, a EUR book's pounds per euro before it), so each is turned back into the book's currency
+ * and then into pounds at `xGbp`, the book's pounds per unit when it closed; `xEntry` is the pounds per unit it was
+ * entered at. A GBP book's trip is unchanged.
+ */
+export function cbTripInPounds(t: Trip, xGbp: number, xEntry: number): Trip {
+  const xr = t.nq > 0 ? t.notionalUsd / t.nq : 1;
+  return { ...t, xEntry, notionalUsd: (t.notionalUsd / xr) * xGbp, pnlUsd: (t.pnlUsd / xr) * xGbp };
 }
 
 /**
@@ -119,7 +141,7 @@ export function cbEventRow(book: CbProduct, e: QuoteEvent) {
  * volume in the book's currency), all PR5's simulator reads of a minute (docs/agents/backtests/scq_venues/scripts/bars.py,
  * proven equal to the prints), so the test can be replayed after the prints are pruned.
  */
-export function cbMinuteRow(book: CbProduct, t: number, bar: [number, number] | null, eurBar: [number, number] | null, hoursN: number, inp: MinuteInputs) {
+export function cbMinuteRow(book: CbProduct, t: number, bar: [number, number] | null, eurBar: [number, number] | null, hoursN: number, inp: MinuteInputs, xGbp: number | null) {
   const s = CB_BOOK[book].scale, tick = CB_BOOK[book].tick;
   const ps = inp.prints;
   const px = (p: Print) => Number((p.ticks * tick).toFixed(8));
@@ -129,7 +151,8 @@ export function cbMinuteRow(book: CbProduct, t: number, bar: [number, number] | 
   };
   const last = ps.at(-1) ?? null;
   return {
-    book, minute: iso(t), x: inp.x, x_t: bar ? iso(bar[0]) : null, eur_t: eurBar ? iso(eurBar[0]) : null,
+    // `x` is the book's pounds per unit (0112's column), not the rule's X (1 from Deviation 1).
+    book, minute: iso(t), x: xGbp, x_t: bar ? iso(bar[0]) : null, eur_t: eurBar ? iso(eurBar[0]) : null,
     fair: inp.x && inp.fairU ? inp.fairU / inp.x / s : null, hours_n: hoursN, prints_n: ps.length,
     vol: ps.reduce((a, p) => a + p.qty * s * px(p), 0),
     sell_lo: ext("sell", Math.min), sell_hi: ext("sell", Math.max), buy_lo: ext("buy", Math.min), buy_hi: ext("buy", Math.max),
@@ -147,6 +170,10 @@ export type CbQuoteState = {
   startedAt: number;
   /** The fault last reported to `ops_errors`, at most hourly while it lasts. */
   fault?: { key: string; at: number };
+  /** Each book's pounds per unit at its last lit minute (Deviation 1): what a round trip closing is turned into pounds at. */
+  xGbp?: Partial<Record<CbProduct, number>>;
+  /** Each held rung's pounds per unit when it filled, by `side|k` (Deviation 1): its entry's cost in pounds. */
+  xEntry?: Partial<Record<CbProduct, Record<string, number>>>;
 };
 export type CbQuoteReport = {
   skipped?: string; minutes: number; from: number | null; to: number | null; prints: number; fills: number; exits: number; stops: number;
@@ -207,8 +234,19 @@ export async function runCbQuotes(d: CbQuoteDeps): Promise<CbQuoteReport> {
         const io = cbMinuteInputs(b, bar ? bar[1] : null, eb ? eb[1] : null, median(window));
         const inp: MinuteInputs = { ...io, prints: mine };
         const out = stepMinute(st.books[b], t, inp);
-        minutes.push(cbMinuteRow(b, t, bar, CB_BOOK[b].quote === "EUR" ? eb : null, window.length, inp));
-        trips.push(...out.trips.map((x) => cbTripRow(b, cbStopExit(x, b))));
+        minutes.push(cbMinuteRow(b, t, bar, CB_BOOK[b].quote === "EUR" ? eb : null, window.length, inp, io.xGbp));
+        // Pounds (Deviation 1): a trip closing at the book's last known pounds per unit, from the one its rung filled at.
+        if (io.xGbp != null) st.xGbp = { ...st.xGbp, [b]: io.xGbp };
+        const xNow = st.xGbp?.[b] ?? (CB_BOOK[b].quote === "GBP" ? 1 : null);
+        const entered = (st.xEntry ??= {})[b] ??= {};
+        for (const x of out.trips) {
+          const key = `${x.side}|${x.k}`;
+          const xe = entered[key] ?? x.xEntry;
+          delete entered[key];
+          const c = cbStopExit(x, b);
+          trips.push(cbTripRow(b, xNow == null ? c : cbTripInPounds(c, xNow, xe)));
+        }
+        for (const e of out.events) if (e.kind === "fill" && xNow != null) entered[`${e.side}|${e.k}`] = xNow;
         events.push(...out.events.map((e) => cbEventRow(b, e)));
         report.orders += out.orders;
       }

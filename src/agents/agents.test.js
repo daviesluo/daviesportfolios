@@ -1,9 +1,11 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi } from 'vitest';
+import fs from 'node:fs';
+import path from 'node:path';
 import {
   defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fmtBps, fmtFees, FULL_HISTORY_LIMIT, historyLimitOf, lastChangeText, showFullHistory, symbolOrderRows,
   fmtFrac, fmtPct2, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
-  strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows,
+  strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows, VENUE_LABELS,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
   newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwxSourceText, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, rwNotRunningText, paperTestRows, rwRoundText, PREP_ROW_ID, MID_ROW_ID, LP_ROW_ID, isPrepRowId, lpRow, midRow, prepRow, prepStopText, rwQuoteRows,
   LP_LIVE_ROW_ID, fmtR, liveExtraRows, lpEstimateTexts, lpLiveQuoteRows, lpLiveRow, quoteDaysAnnualPct, lpLiveStatus, rwFeeAsides, rwFeeCells,
@@ -15,7 +17,7 @@ import {
 import liveFixture from '../e2e/quotes_live_fixture.json';
 // The realistic twins' fixture: the live fixture's rows run as each twin's, and the dashboard's answer for them.
 import twinFixture from '../e2e/quotes_twin_fixture.json';
-// "Stablecoin quotes Coinbase"'s: its driver and the dashboard's view run on a small recorded world (cb_quotes.test.ts).
+// "Stablecoin quotes with Euros"'s: its driver and the dashboard's view run on a small recorded world (cb_quotes.test.ts).
 import cbFixture from '../e2e/quotes_coinbase_fixture.json';
 import prepFixture from '../e2e/prep_fixture.json';
 // Mid-pool's: a record of its band worked out by hand, and the same summary's answer for it (pm_prep_view.test.ts).
@@ -1324,16 +1326,38 @@ describe('quoteLadderRows — a book as the page draws it', () => {
     // A EUR book's in euros, USDT-EUR's to its five-place step (Coinbase, 0112).
     expect([fmtQuotePrice(0.8649, 'USDC-EUR'), fmtQuotePrice(0.86493, 'USDT-EUR'), fmtQuotePrice(0.7568, 'USDC-GBP')]).toEqual(['€0.8649', '€0.86493', '£0.7568']);
   });
-  it('"Stablecoin quotes Coinbase" is a TESTING row after the twins, on Coinbase, in pounds, and opens its own page', () => {
+  it('"Stablecoin quotes with Euros" is the TESTING row right after "Stablecoin quotes variant-3", on Coinbase, in pounds, and opens its own page', () => {
     const q = cbFixture.quotesCoinbase;
     const row = quotesCoinbaseRow(q);
-    expect(row).toMatchObject({ id: QUOTES_COINBASE_ROW_ID, name: 'Stablecoin quotes Coinbase', venue: 'Coinbase', venueId: 'coinbase', mode: 'paper', ccy: 'GBP' });
-    expect(row?.gbp).toMatchObject({ capital: 2400, value: q.valueGbp, realised: q.realisedGbp });
+    expect(row).toMatchObject({ id: QUOTES_COINBASE_ROW_ID, name: 'Stablecoin quotes with Euros', venue: 'Coinbase', venueId: 'coinbase', mode: 'paper', ccy: 'GBP' });
+    // £1,200 + €1,200 at the fixture's £0.875 a euro (Davies, 2026-10-10: "每一档100磅/100欧元").
+    expect(row?.gbp).toMatchObject({ capital: 2250, value: q.valueGbp, realised: q.realisedGbp });
+    expect(q.capitalGbp).toBe(1200 + 1200 * q.eurGbp);
     expect(row?.status.running).toBe(true);
     const dash = { quotesTwins: twinFixture.twins, quotesCoinbase: q };
     const names = paperTestRows(dash).map((r) => r.name);
-    expect(names.indexOf('Stablecoin quotes Coinbase')).toBe(twinFixture.twins.length);
+    expect(names.indexOf('Stablecoin quotes with Euros')).toBe(twinFixture.twins.length);
+    expect(names[names.indexOf('Stablecoin quotes with Euros') - 1]).toBe('Stablecoin quotes variant-3');
+    // On two lines, as the variants are: the same run of rows.
+    expect(strategyNameParts(String(row?.name))).toEqual({ head: 'Stablecoin quotes', qual: 'with Euros', twoLines: true });
     expect(quotesPageFor(QUOTES_COINBASE_ROW_ID, dash)).toBe('coinbase');
+    // VENUES' share bar on TESTING has a Coinbase slice, in its own colour, and the slices add up to the whole (Davies,
+    // 2026-10-10: "testing页面venue中最上面的占比条里没有coinbase"). The bar is each venue's share of the tab's deployed
+    // value (of its funded capital while nothing is deployed).
+    const tests = paperTestRows(dash);
+    const venues = venueRows(dash, 'testing', tests);
+    const segs = shareSegments(venues);
+    expect(venues.map((r) => r.id)).toEqual(['revx', 'coinbase']);
+    expect(venues[0].shareOf).toBe('value');
+    expect(venues.reduce((a, r) => a + r.share, 0)).toBeCloseTo(1, 12);
+    const cbSeg = segs.find((x) => x.id === 'coinbase');
+    expect(cbSeg?.pct).toBe(Math.round((q.valueUsd / venues.reduce((a, r) => a + r.valueUsd, 0)) * 100));
+    expect(cbSeg?.pct).toBeGreaterThan(0);
+    expect(cbSeg?.title).toMatch(/^Coinbase: \d+% of deployed value$/);
+    const css = fs.readFileSync(path.join(process.cwd(), 'app/styles.css'), 'utf8');
+    for (const id of Object.keys(VENUE_LABELS).filter((v) => v !== 'kraken')) {
+      expect([id, /background:\s*rgba\(/.test(new RegExp(`\\.ag-share-${id} \\{([^}]*)\\}`).exec(css)?.[1] ?? '')]).toEqual([id, true]);
+    }
     expect(quotesPageFor(QUOTES_COINBASE_ROW_ID, { quotesTwins: [] })).toBe(null);
     expect(quotesCoinbaseRow(null)).toBe(null);
   });

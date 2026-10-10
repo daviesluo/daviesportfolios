@@ -302,14 +302,16 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    (`reviews/2026-10-09-cj5-paper-test.md`): an edge in every year, shrinking; a forward paper test is drafted, not frozen
    (`reviews/2026-10-09-cj5-forward-paper-prereg.md`), and waits on a design and his word.
 
-12. **Coinbase recorder and paper test "Stablecoin quotes Coinbase": built, not yet deployed** (Davies, 2026-10-10;
+12. **Coinbase recorder and paper test "Stablecoin quotes with Euros" ("…Coinbase" until its Deviation 1): deployed
+   2026-10-10 01:46 UTC; Deviation 1 (€100 a rung on the EUR books, the name, the window 2026-10-11 → 11-08) must deploy
+   before 10-11 00:00 UTC** (Davies, 2026-10-10;
    reference §4 item 58, migration `0112`, `agents?action=cbrec`). After it lands and its 15 minutes pass: check
    `select last_report->'reached', last_error from cb_rec_state` (true: the Edge region reaches Coinbase; never
    confirmed before), `select product, count(*), min(ts), max(ts) from cb_trades group by 1`, `select last_minute,
    last_error from cb_quote_state`, and no `agents.cb_rec` row in `ops_errors`. Pre-registration
-   `reviews/2026-10-10-coinbase-paper-prereg.md` (frozen): 28 UTC days from the first 00:00 after its first decided
-   minute, read on day 29 with `backtests/cbpaper/scripts/replay.py` on an export of the window (a wake to set once the
-   start is known). The budget split is `reviews/2026-10-10-coinbase-vs-revolutx.md`.
+   `reviews/2026-10-10-coinbase-paper-prereg.md` (frozen; Deviation 1 in §7): 28 UTC days 2026-10-11 00:00 → 11-08
+   00:00, read on 11-08 from 00:30 with `backtests/cbpaper/scripts/replay.py` on the export Deviation 1 names (a wake to
+   set). The budget split is `reviews/2026-10-10-coinbase-vs-revolutx.md`.
 
 ## Machine and platform setup
 
@@ -451,6 +453,7 @@ first.
   - AI is the worst type for markouts on all three paper records: −2.80 to −3.28 ¢ a share at 120 minutes.
   - L1 reproduces LPSELF byte for byte on the builder with LPSELF's seed.
 
+
 ### [2026-10-10 02:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep's follow-on, built on branch `lp-followon`** (sub-agent; Addendum 10 of
   `reviews/2026-10-04-polymarket-lp-prereg.md`, mid-pool's Addendum 11). FUNDED (Davies: "子页面中的FUNDED得显示我实际真实投入的钱"):
@@ -463,6 +466,23 @@ first.
   table write). Sponsored: not the cause (none of 0x5b3350e2, 0xa0ab5c59, 0xd23c714e has a sponsor; their native rate
   flips), rule unchanged. 10-10 was quoted on stale programmes 00:00–01:15. LIVE row's FUNDED reads `fundedUsd`
   (`src/agents/agents.js`, `dist/` rebuilt).
+
+### [2026-10-10 01:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Coinbase's paper test renamed "Stablecoin quotes with Euros", €100 a rung on its EUR books** (sub-agent, branch
+  `cb-euro`; Davies: "测试名字就叫Stablecoin quotes - with Euro吧，列表里放在Stablecoin quotes variant-3 后面，每一档100磅/100欧元",
+  then "策略名字也改为Stablecoin quotes with Euros").
+  Deviation 1 of `reviews/2026-10-10-coinbase-paper-prereg.md`: `stepMinute` unchanged, X = 1 on every book and fairU the
+  book's own fair, each trip turned into pounds when it closes (`cbTripInPounds`, state `xGbp`/`xEntry`); capital
+  £1,200 + €1,200 (£2,216 at 0.8468). By §3's words the window began 10-10 00:00 (`startedAt` 10-09 23:14 from
+  back-filled prints); the deviation moves it to 10-11 → 11-08 and says how bar 1's replay and bar 3 read. History moves
+  ≤ 0.3 points a year. The row was already right after variant-3; its name now splits on two lines like the variants'.
+  The capital's euros fall back to the last stored EUR/USD ÷ GBP/USD while every minute is dark (weekends: the engine
+  has had no lit minute since it started, Yahoo's FX last bar 10-09 21:29). **VENUES' share bar** (Davies:
+  "testing页面venue中最上面的占比条里没有coinbase"): `.ag-share-coinbase` had no style, so its slice was unpainted; it and
+  `.ag-venue-card-coinbase` now take the badge's green, pinned in `agents.test.js` (every venue's slice styled, Coinbase's
+  share > 0, shares sum to 1) and the sweep (every slice painted, slices fill the bar). The bar is each venue's share of
+  TESTING's deployed value (of funded capital while nothing is deployed), so Coinbase's slice is 0 % while its minutes
+  are dark and no quote rests. `dist/` rebuilt; page fixture regenerated.
 
 ### [2026-10-10 01:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Hyperliquid's spot stable books screened** (Davies asked; `backtests/scq_venues/scripts/hl_screen.py`, a row in

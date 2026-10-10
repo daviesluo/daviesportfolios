@@ -643,10 +643,11 @@ const TW = (() => {
   };
 })();
 /**
- * "Stablecoin quotes Coinbase" (`cb_quotes.ts`, 0112; Davies, 2026-10-10): the dashboard's own view (`cbQuotesView`) of the
+ * "Stablecoin quotes with Euros" (`cb_quotes.ts`, 0112; Davies, 2026-10-10): the dashboard's own view (`cbQuotesView`) of the
  * paper test's own driver run on a small recorded world (quotes_coinbase_fixture.json, made by
  * docs/agents/backtests/cbrec/page_fixture.ts, which the agents function's test proves is that driver's and view's answer):
- * £2,400 on four books, three round trips (two on USDC-GBP, one on USDC-EUR) and USDT-EUR's 0.1 % bid held, at 1.32.
+ * £1,200 + €1,200 on four books (£2,250 at £0.875 a euro: £100 a rung on a GBP book, €100 on a EUR book), three round
+ * trips (two on USDC-GBP, one on USDC-EUR) and USDT-EUR's 0.1 % bid held, at 1.32.
  */
 const QUOTES_COINBASE_FIXTURE = JSON.parse(fs.readFileSync(new URL('./quotes_coinbase_fixture.json', import.meta.url), 'utf8'));
 const CBQ = (() => {
@@ -673,7 +674,7 @@ const CBQ = (() => {
  * RW-E's and its three variants' on the page (funded $1,000 each; deployed 73.20 + 4 × 44.80; today 12.50 + 4 × 7.50;
  * unrealised -1 - 4 × 1.20 on 14.40 + 4 × 5.60; realised 42 + 4 × 23.60), and every twin's (its capital, every pound at
  * work, today, unrealised on its coins' cost, realised and fees, at 1.32; Davies, 2026-10-01), and "Stablecoin quotes
- * Coinbase"'s (CBQ, at 1.32). Eleven rows, the twins and Coinbase's.
+ * with Euros"'s (CBQ, at 1.32). Eleven rows, the twins and Coinbase's.
  */
 const TESTING = {
   rows: 12 + TW.n,
@@ -794,7 +795,7 @@ const AGENTS_DASHBOARD = (() => {
         openOrders: 0, heldRungs: 0, unmarked: 0, pending: [], fills: 0, realisedUsd: 0, todayUsd: 0, unrealisedUsd: 0, costUsd: 0, valueUsd: 0, feesUsd: 0 } }),
     // The twins: the stablecoin rows of TESTING since 2026-10-02, in place of the paper test above, its variants and rule D.
     quotesTwins: QUOTES_TWIN_FIXTURE.twins,
-    // "Stablecoin quotes Coinbase" (0112), the row after the twins.
+    // "Stablecoin quotes with Euros" (0112), the row after the twins: right after "Stablecoin quotes variant-3".
     quotesCoinbase: QUOTES_COINBASE_FIXTURE.quotesCoinbase,
     rw: AGENTS_RW(dayStartMs),
     rwe: AGENTS_RWE(dayStartMs),
@@ -3650,7 +3651,8 @@ async function run() {
       if (twinAt === 6 && twinBad.length === 0 && testingNames.filter((n) => TW.names.includes(n)).length === TW.n && oldCard === 0) {
         ok(S('agents'), `the ${TW.n} twins are the testing rows after the strategies, in pounds, in their rows' order (${TW.rows.map((r) => `"${r.name}" ${r.open}`).join(', ')}), each deployed £999.14, today +£0.23, unrealised -£0.13, realised -£0.03 on its own capital, a variant's name on two lines; no paper test row, no card below`);
       } else fail(S('agents'), `twin rows at ${twinAt} of ${testingNames.join(' | ')}: ${twinBad.join(' / ')}; old card sections ${oldCard}`);
-      // "Stablecoin quotes Coinbase" (Davies, 2026-10-10): the row after the twins, on Coinbase, in pounds, in a twin's cells.
+      // "Stablecoin quotes with Euros" (Davies, 2026-10-10): the row after the twins (the last "Stablecoin quotes
+      // variant-3"), on Coinbase, in pounds, in a twin's cells.
       const cbRowEl = twinRowOf(CBQ.name);
       const cbText = ` ${(await cbRowEl.first().innerText().catch(() => '')).replace(/\s+/g, ' ')} `;
       if (await cbRowEl.count() === 1 && testingNames[twinAt + TW.n] === CBQ.name && /Coinbase/.test(cbText) && !/Revolut X/.test(cbText) && cbText.includes(CBQ.open)
@@ -3724,8 +3726,8 @@ async function run() {
       if (await page.locator('.ag-quotes-twin-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === TESTING.rows) ok(S('agents'), 'closing a twin page returns to the list');
       else fail(S('agents'), 'the twin page did not close back to the list');
       // Its page is a twin's, PAPER on Coinbase (Davies, 2026-10-10: compared directly with LIVE on Revolut X): its
-      // scoreboard on £2,400, BOOKS of four books (each EUR book's prices in euros, USDT-EUR's to five places), no INVENTORY
-      // (a paper test has no account), DAYS with its 7-day annualised heading, its three round trips and its orders.
+      // scoreboard on £1,200 + €1,200, BOOKS of four books (each EUR book's prices in euros, USDT-EUR's to five places), no INVENTORY
+      // (a paper test has no account and no coin), DAYS with its 7-day annualised heading, its three round trips and its orders.
       await cbRowEl.first().click();
       await settled(page, '.ag-quotes-cb-detail');
       const cp = await readQuotesBookPage(page, '.ag-quotes-cb-detail');
@@ -3938,7 +3940,7 @@ async function run() {
       // $1,318.86: Davies, 2026-10-01; TESTING.revx.deployed) and RW, RW-E and its three variants on Polymarket $252.40 (what
       // each holds and its quotes tie up: 73.20 + 4 × 44.80), each to the nearest whole percent of the two (with three twins
       // 94 % and 6 % of $4,230.49).
-      // Coinbase's paper test is a card of its own (its £2,400 at work, $3,168), between Binance and Polymarket; each share is
+      // Coinbase's paper test is a card of its own (its £2,250 at work, $2,970), between Binance and Polymarket; each share is
       // rounded on its own (`shareSegments`).
       const depAll = TESTING.revx.deployed + CBQ.q.valueUsd + 252.4;
       const revxShare = Math.round((TESTING.revx.deployed / depAll) * 100), cbShare = Math.round((CBQ.q.valueUsd / depAll) * 100), pmShare = Math.round((252.4 / depAll) * 100);
@@ -3954,8 +3956,18 @@ async function run() {
         return {
           id: [...el.classList].find((c) => c.startsWith('ag-share-') && c !== 'ag-share') || '',
           text, title: el.getAttribute('title') || '', textW, box: el.clientWidth, lines: rects.length,
+          // Its colour and width: a slice with no colour of its own is not seen (Coinbase's, until 2026-10-10).
+          bg: getComputedStyle(el).backgroundColor, w: el.getBoundingClientRect().width, bar: el.parentElement?.clientWidth ?? 0,
         };
       }));
+      // Every slice is painted, Coinbase's in its badge's green, and the slices fill the bar (Davies, 2026-10-10:
+      // "testing页面venue中最上面的占比条里没有coinbase").
+      const painted = shareGeom.every((g) => g.bg && g.bg !== 'rgba(0, 0, 0, 0)' && g.bg !== 'transparent')
+        && shareGeom.find((g) => g.id === 'ag-share-coinbase')?.bg === 'rgba(159, 216, 200, 0.35)'
+        && (shareGeom.find((g) => g.id === 'ag-share-coinbase')?.w ?? 0) > 0
+        && Math.abs(shareGeom.reduce((a, g) => a + g.w, 0) - (shareGeom[0]?.bar ?? 0)) <= 2;
+      if (painted) ok(S('agents'), `every share-bar slice is painted and they fill the bar: ${shareGeom.map((g) => `${g.id.slice(9)} ${g.w.toFixed(0)}px`).join(', ')} of ${shareGeom[0]?.bar}px`);
+      else fail(S('agents'), `share bar slices ${JSON.stringify(shareGeom.map((g) => ({ id: g.id, bg: g.bg, w: g.w, bar: g.bar })))}`);
       const shareOk = shareGeom.length === 4 && shareGeom[0].id === 'ag-share-revx' && shareGeom[1].id === 'ag-share-binance' && shareGeom[2].id === 'ag-share-coinbase' && shareGeom[3].id === 'ag-share-polymarket'
         && shareGeom[1].text === '' && String(shareGeom[0].title).includes(`Revolut X: ${revxShare}%`) && String(shareGeom[2].title).includes(`Coinbase: ${cbShare}%`) && String(shareGeom[3].title).includes(`Polymarket: ${pmShare}%`)
         && shareGeom.filter((g) => g.text).every((g) => g.lines === 1 && g.textW <= g.box + 1);
@@ -3999,7 +4011,7 @@ async function run() {
         && pm.pairs.rewards === '+$134.40' && pm.pairs.orders === '+$2' && !('fees' in pm.pairs) && pm.subs.join('|') === 'rewards+12|orders+12') {
         ok(S('agents'), "Polymarket's card is RW, RW-E and its three variants summed: funded (Paper) $5,000, deployed $252.40 (5.05%), today +$42.50 (+0.85%), unrealised -$5.80 (-13.62%), realised +$136.40 (+2.73%) = rewards +$134.40 + orders +$2");
       } else fail(S('agents'), `Polymarket card ${JSON.stringify(pm)}`);
-      // Coinbase's card is its paper test alone (Davies, 2026-10-10): funded its £2,400, all of it at work, its today,
+      // Coinbase's card is its paper test alone (Davies, 2026-10-10): funded its £2,250, all of it at work, its today,
       // unrealised and realised at 1.32, no fees (a maker pays 0 %).
       const cbCardP = await readAgentsPanel(page).then((p) => p.venues.find((v) => v.id === 'coinbase'));
       const cbUsd = (/** @type {number} */ n, /** @type {number} */ base) => TW.gl(n, base);
@@ -4058,7 +4070,7 @@ async function run() {
       const depCells = (await page.locator(depSel).allTextContents()).map((t) => t.trim());
       // A row in pounds (a stablecoin twin's, £999.14) adds its dollars, $1,318.86: its pounds are its dollars over 1.32.
       // The reward rows' cells are what each holds and its quotes tie up: RW $73.20, RW-E and its two variants $44.80.
-      // Coinbase's paper test's £2,400 adds $3,168 (CBQ).
+      // Coinbase's paper test's £2,250 adds $2,970 (CBQ).
       const depSum = Math.round(depCells.reduce((a, t) => a + (/£/.test(t) ? (t === '£999.14' ? 999.139417255 * 1.32 : t === CBQ.deployed ? CBQ.q.valueUsd : NaN) : money(t)), 0) * 100);
       const sbDep = await page.locator('.ag-modepanel > .ag-scoreboard .ag-sb-cell-deployed .sb-value').textContent().catch(() => '');
       const sbDepUsd = Math.round(money(String(sbDep).split('(')[0]) * 100);

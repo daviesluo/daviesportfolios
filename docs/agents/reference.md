@@ -3942,7 +3942,7 @@ creates himself with the trades scope (JWT-signed, `docs/advanced-api-key`), sto
 printed; no order path exists.
 
 58. **Coinbase's four stablecoin books are recorded keyless, and PR5's rule runs on them on paper: TESTING's
-"Stablecoin quotes Coinbase" (2026-10-10, migration `0112`, `agents/cb_rec.ts`, `agents/cb_quotes.ts`, `agents/cb_view.ts`,
+"Stablecoin quotes with Euros" ("Stablecoin quotes Coinbase" until its Deviation 1) (2026-10-10, migration `0112`, `agents/cb_rec.ts`, `agents/cb_quotes.ts`, `agents/cb_view.ts`,
 `backtests/cbrec/`, `backtests/cbpaper/`).** Davies: "先建起来吧，并且和Revolute X对比看哪个更好，投入的话资金该如何安排", after
 the venue screen (`reviews/2026-10-09-stablecoin-venues.md`) put Coinbase first.
 - **Measured first, keyless** (Coinbase Exchange's public market data, `https://api.exchange.coinbase.com`, GET only, 10
@@ -3962,8 +3962,10 @@ the venue screen (`reviews/2026-10-09-stablecoin-venues.md`) put Coinbase first.
   - PR5's stored GBP/USD and USD-book hourly closes (`agent_quote_inputs`);
   - Yahoo's EURUSD=X (`cb_quote_inputs`).
 - **What differs passes through those inputs alone.**
-  - X is the pounds per unit of the book's currency and fairU is over GBP/USD, so one rung is £100 (six a book, £2,400)
-    and every P&L is pounds.
+  - X is 1 and fairU the book's own fair (over GBP/USD, or EUR/USD for the EUR books), so one rung is 100 of the book's
+    currency: £100 on a GBP book, €100 on a EUR book, six a book, £1,200 + €1,200. Each trip is turned into pounds at the
+    book's pounds per unit when it closes (`cbTripInPounds`). Until Deviation 1 a EUR book's X was its pounds per euro,
+    so its rung was £100's worth of euros.
   - USDT-EUR's 0.00001 step goes in ×10.
   - A stop's exit moves from PR5's cost to Coinbase's 0.0045 % plus half the touch read 2026-10-09.
   - Pinned by hand-worked trips (`cb_quotes.test.ts`), and by `replay.py`, the frozen Python simulator on the engine's
@@ -3973,8 +3975,13 @@ the venue screen (`reviews/2026-10-09-stablecoin-venues.md`) put Coinbase first.
 - **Faults** go to `ops_errors` as `agents.cb_rec`. It is not among the monitor's health readings, as the CoinJar
   recorder is not. Whether the Edge region reaches Coinbase is `cb_rec_state.last_report.reached`; it was not checked
   before the first deploy.
-- **The page.** Its row follows the twins, on a Coinbase card of its own. Its page is the twins' page without INVENTORY,
-  each EUR book's prices in euros.
+- **The page.** Its row follows the twins, right after "Stablecoin quotes variant-3", its name on two lines as theirs, on
+  a Coinbase card of its own. Its page is the twins' page without INVENTORY (a paper test holds no coin), each EUR
+  book's prices in euros.
+- **Deviation 1** (2026-10-10, before 10-11 00:00 UTC; Davies: "测试名字就叫Stablecoin quotes - with Euro吧，列表里放在
+  Stablecoin quotes variant-3 后面，每一档100磅/100欧元", then "策略名字也改为Stablecoin quotes with Euros"): €100 a rung on the EUR books, the name, the window moved to
+  2026-10-11 → 11-08 (by §3's words it began 10-10, from back-filled prints), bar 1's replay read in each book's own
+  currency and bar 3 on £1,200 + €1,200. History moves by at most 0.3 points a year (9.7 % → 9.8 % since 08-24).
 - **The test** is `reviews/2026-10-10-coinbase-paper-prereg.md`, frozen: 28 days and a five-part bar against PR5's twin.
 - **The comparison and the budget split** are `reviews/2026-10-10-coinbase-vs-revolutx.md`.
 - **Live** would need Davies' Coinbase account (a UK one: GBP and EUR balances) and a trade-only key he makes himself.

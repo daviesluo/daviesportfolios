@@ -7,19 +7,20 @@
   "running": true,
   "lagMinutes": 2,
   "lastError": null,
-  "capitalGbp": 2400,
-  "costGbp": 100,
-  "valueGbp": 2400,
-  "unrealisedGbp": 0.008093140485358872,
-  "realisedGbp": 0.3399994342442767,
-  "todayGbp": 0.2342911890011447,
+  "capitalGbp": 2250,
+  "eurGbp": 0.875,
+  "costGbp": 87.5,
+  "valueGbp": 2250,
+  "unrealisedGbp": 0.007081497924689014,
+  "realisedGbp": 0.3255468963786275,
+  "todayGbp": 0.2198386511354955,
   "feesGbp": 0,
-  "capitalUsd": 3168,
-  "costUsd": 132,
-  "valueUsd": 3168,
-  "unrealisedUsd": 0.01068294544067371,
-  "realisedUsd": 0.4487992532024453,
-  "todayUsd": 0.30926436948151104,
+  "capitalUsd": 2970,
+  "costUsd": 115.5,
+  "valueUsd": 2970,
+  "unrealisedUsd": 0.009347577260589499,
+  "realisedUsd": 0.4297219032197883,
+  "todayUsd": 0.29018701949885406,
   "feesUsd": 0,
   "heldRungs": 1,
   "openOrders": 23,
@@ -48,7 +49,7 @@
      "lastPrice": 0.866,
      "fair": 0.8658008658008658,
      "index": null,
-     "realisedGbp": 0.11562030292519379,
+     "realisedGbp": 0.10116776505954456,
      "trips": 1,
      "won": 1
     },
@@ -271,11 +272,11 @@
       "state": "live"
      },
      "held": {
-      "base": 132.1329058833828,
+      "base": 115.61629264795995,
       "avgEntry": 0.86493,
       "since": "2026-09-17T22:10:00.000Z",
-      "costGbp": 100,
-      "unrealisedGbp": 0.008093140485358872
+      "costGbp": 87.5,
+      "unrealisedGbp": 0.007081497924689014
      }
     },
     {
@@ -342,7 +343,7 @@
      "fills": 3,
      "trips": 2,
      "won": 2,
-     "realisedGbp": 0.2342911890011447,
+     "realisedGbp": 0.2198386511354955,
      "today": true
     },
     {
@@ -377,10 +378,10 @@
      "tExit": "2026-09-17T18:03:00.000Z",
      "entry": 0.8649,
      "exit": 0.8659,
-     "qty": 132.1374890573642,
+     "qty": 115.62030292519367,
      "how": "maker",
      "feesGbp": 0,
-     "pnlGbp": 0.11562030292519379
+     "pnlGbp": 0.10116776505954456
     },
     {
      "book": "USDC-GBP",
@@ -793,7 +794,7 @@
   },
   "twin": {
    "id": "coinbase",
-   "name": "Stablecoin quotes Coinbase",
+   "name": "Stablecoin quotes with Euros",
    "startedAt": "2026-09-16T17:00:00.000Z",
    "mode": "running",
    "lastTurn": "2026-09-17T22:58:00.000Z",

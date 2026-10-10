@@ -110,4 +110,52 @@ no-peek rule (Davies, 2026-10-04): the page shows the test as it runs. This read
 
 ## 7. Deviations
 
-None yet.
+### Deviation 1 (2026-10-10, written before 2026-10-11 00:00 UTC): €100 a rung on the EUR books, and a new name
+
+**On whose word.** Davies, 2026-10-10: "Coinbase的测试策略…子页面仿照目前Revolut X的，测试名字就叫Stablecoin quotes - with
+Euro吧，列表里放在Stablecoin quotes variant-3 后面，每一档100磅/100欧元" — its page modelled on Revolut X's, its row right
+after "Stablecoin quotes variant-3", and each rung £100 or €100. Then, the same night and before this deviation was
+committed: "策略名字也改为Stablecoin quotes with Euros" — its name is "Stablecoin quotes with Euros" ("Stablecoin quotes
+Coinbase" before; "Stablecoin quotes - with Euro" was never deployed).
+
+**What changes.**
+
+- **Rung size.** £100 a rung on the GBP books, as before, and **€100 a rung on the EUR books** (until now £100's worth of
+  euros). `stepMinute` is still called unchanged: X is passed as 1 on every book, and fairU as the book's own fair (the
+  coin's dollar fair over GBP/USD, or over Yahoo's EUR/USD for the EUR books). So a rung, the 10 % volume cap and every
+  P&L `stepMinute` writes are in the book's own currency. The driver turns each round trip into pounds at the book's
+  pounds per unit (EUR/USD ÷ GBP/USD) when it closes, and keeps the rate each rung filled at for its cost
+  (`cbTripInPounds`, the state's `xGbp` and `xEntry`). `cb_quote_minutes.x` stays the pounds per unit, as 0112 says; it
+  is no longer the X `stepMinute` was given. A GBP book is unchanged in every respect.
+- **Capital.** £1,200 on the two GBP books and €1,200 on the two EUR books: **£1,200 + €1,200 × EUR/GBP**, £2,216 at
+  the rates last stored before this was written (EUR/USD 1.12057, GBP/USD 1.32331, 2026-10-09 21:29 UTC).
+- **Name and page.** TESTING's row and its page are "Stablecoin quotes with Euros" (code ids stay `coinbase`); the page
+  is the twins' page. It has no INVENTORY: a paper test holds no coin of its own, and what a rung holds is in BOOKS.
+- **Files.** `cb_quotes.ts`, `cb_view.ts` and `cb_quotes.test.ts`, all frozen by §5, change for this alone. The test pins
+  one €100 trip on USDT-EUR worked out by hand: €100 at €0.90818 is 110.1103 USDT; sold at €0.90910 it makes
+  100 × 0.00092 / 0.90818 = €0.101301, which is £0.089145 at £0.88 a euro, on a notional of £88.
+
+**The bar, read with it.**
+
+- **Window.** By §3's words the window began 2026-10-10 00:00 UTC: the engine's first decided minute,
+  `startedAt` 2026-10-09 23:14 UTC, came from the prints the recorder's first page reached back to, though the engine
+  first ran at 2026-10-10 01:46 UTC. This deviation moves the window to **2026-10-11 00:00 UTC → 2026-11-08 00:00 UTC**,
+  read on 2026-11-08 from 00:30 UTC, so that every one of its 28 days runs on the rule as it stands now. A rung entered
+  before 2026-10-11 is not in the window (trips count by entry minute); one still held then closes in pounds at the rate
+  it closes at, as every trip does.
+- **Bar 1 (faithful).** `replay.py` is run unchanged, on an export that gives it the rule's own money. The minutes'
+  `x` is 1 on every book (`case when x is null then null else 1 end as x`): the simulator then sizes 100 of the book's
+  currency a rung, as the engine does. Each trip's `pnl_gbp` is replaced by its P&L in the book's currency
+  (`pnl_gbp * qty * entry / notional_gbp`, the same on a GBP book). So the GBP books compare in pounds and the EUR books
+  in euros, the engine's and the simulator's alike, and the 5 % and 10 % bounds are read as written.
+- **Bar 3 (enough).** At least 6 % a year on **£1,200 + €1,200**, the euros at EUR/GBP at the window's last minute that
+  had both rates (EUR/USD ÷ GBP/USD from the stored bars that minute read), taken as the window's realised P&L in
+  pounds × 365 / 28 over that capital.
+- **Bars 2, 4 and 5** are unchanged; their P&L is the trips' `pnl_gbp`, in pounds.
+
+**Does the history change?** Not materially. Coinbase's yearly rate does not move with rung size from £10 to £1,000
+(the companion note, §4), so a €100 rung earns the £100 rung's figure × EUR/GBP on each EUR book. At 0.8468, the
+companion note's rates on the new capital are 8.3 % over 12 months (8.0 % before), 6.2 % over 90 days (6.0 %), 9.8 %
+since 2026-08-24 (9.7 %) and 13.4 % over the last 28 days (13.1 %). §6's comparisons with Revolut X come out the same
+way: the half-of-Revolut-X floor holds since 08-24 (9.8 % against 17.1 %) and over 28 days (13.4 % against 16.8 %), and
+fails over 90 days (6.2 % against 37.1 %). The companion note's figures are left as they were, with a line saying so.

@@ -320,11 +320,12 @@ that follow from that evidence, in short:
   window by `0109` (Davies 2026-10-09, after the F3 replay, `backtests/scq_f3/`),
   `d` "variant-3" again; the rule `exitOffset` stays in the code, named by no
   row. TESTING's scoreboard and the
-  Revolut X card include them. **"Stablecoin quotes Coinbase"** (`0112`,
-  reference §4 item 58) follows them: PR5's `stepMinute`, unchanged, on
-  Coinbase's four GBP and EUR books from a keyless recorder, on paper, in
-  pounds at £100 a rung, its own Coinbase card; pre-registered in
-  `reviews/2026-10-10-coinbase-paper-prereg.md`. **Since `0088` each twin is a row of
+  Revolut X card include them. **"Stablecoin quotes with Euros"** (`0112`,
+  reference §4 item 58; "Stablecoin quotes Coinbase" until 2026-10-10) follows
+  them: PR5's `stepMinute`, unchanged, on Coinbase's four GBP and EUR books
+  from a keyless recorder, on paper, £100 a rung on a GBP book and €100 on a
+  EUR book (its Deviation 1), counted in pounds, its own Coinbase card;
+  pre-registered in `reviews/2026-10-10-coinbase-paper-prereg.md`. **Since `0088` each twin is a row of
   `agent_quote_twin_specs`** (reference §4 item 51's "Twin variants" table):
   the call and the page read the enabled rows. A variant that differs only in
   its parameters is a migration of two statements, its row then

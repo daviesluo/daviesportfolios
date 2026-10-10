@@ -1934,20 +1934,21 @@ async function dashboard(now: number) {
     return Promise.all(specs.map((spec) => readQuotesTwin(d, spec, now, dayStartMs, tickers)));
   });
 
-  // "Stablecoin quotes Coinbase" (0112, cb_quotes.ts): the paper test of PR5's rule on Coinbase's four books, in a twin's
+  // "Stablecoin quotes with Euros" (0112, cb_quotes.ts): the paper test of PR5's rule on Coinbase's four books, in a twin's
   // shape (`cbQuotesView`). Missing tables (before the migration), or no decided minute yet, leave it off the page.
   const quotesCoinbaseRead = (async () => {
     try {
-      const [st, trips, days, events, fx] = await Promise.all([
+      const [st, trips, days, events, fx, eurFx] = await Promise.all([
         d.select<CbStateRow>("cb_quote_state", "id=eq.1&select=state,last_minute,updated_at,last_error"),
         d.selectAll<CbTripRow>("cb_quote_trips", "select=book,side,k,t_entry,t_exit,entry,exit,qty,how,pnl_gbp&order=book.asc,side.asc,k.asc,t_entry.asc"),
         d.select<CbDayRow>("cb_quote_days", "select=day,orders,fills,trips,won,realised_gbp&order=day.desc&limit=60"),
         d.select<CbEventRow>("cb_quote_events", `kind=in.(order,refused)&select=book,minute,side,k,kind,ticks,detail&order=minute.desc&limit=${CB_PAGE_ROWS}`),
         d.select<{ value: number }>("agent_quote_inputs", "kind=eq.fx&select=value&order=t.desc&limit=1"),
+        d.select<{ value: number }>("cb_quote_inputs", "kind=eq.fx%3AEURUSD&select=value&order=t.desc&limit=1"),
       ]);
       if (!st[0]?.last_minute) return null;
       const minutes = await d.select<CbMinuteRow>("cb_quote_minutes", `minute=eq.${encodeURIComponent(new Date(Date.parse(st[0].last_minute)).toISOString())}&select=book,minute,fair,x,last`);
-      return cbQuotesView({ st: st[0], trips, days, events, minutes, nowMs: now, dayStartMs, gbpusd: fx[0] ? Number(fx[0].value) : null });
+      return cbQuotesView({ st: st[0], trips, days, events, minutes, nowMs: now, dayStartMs, gbpusd: fx[0] ? Number(fx[0].value) : null, eurusd: eurFx[0] ? Number(eurFx[0].value) : null });
     } catch { return null; }
   })();
 
@@ -2073,7 +2074,7 @@ async function dashboard(now: number) {
      */
     quotesTwins: await quotesTwinsRead,
     /**
-     * "Stablecoin quotes Coinbase" (`0112`, cb_quotes.ts): PR5's rule on paper on Coinbase's four GBP and EUR stablecoin
+     * "Stablecoin quotes with Euros" (`0112`, cb_quotes.ts): PR5's rule on paper on Coinbase's four GBP and EUR stablecoin
      * books, in a twin's shape with `venue: "coinbase"`; null until it has decided a minute.
      */
     quotesCoinbase: await quotesCoinbaseRead,

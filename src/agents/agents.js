@@ -1175,7 +1175,8 @@ export function positionLines(s) {
  * @returns {{ head: string, qual: string | null, twoLines: boolean }}
  */
 export function strategyNameParts(name) {
-  const variant = /^(Stablecoin quotes) (variant-\d+)$/.exec(name);
+  // The stablecoin quotes' variants, and Coinbase's "with Euros" (Davies, 2026-10-10), on two lines in the same run.
+  const variant = /^(Stablecoin quotes) (variant-\d+|with Euros)$/.exec(name);
   if (variant) return { head: variant[1], qual: variant[2], twoLines: true };
   const q = /^(.*\S)\s+(\([^()]*\))$/.exec(name);
   if (q) return { head: q[1], qual: q[2], twoLines: false };
@@ -1242,13 +1243,16 @@ export function quotesTwinRow(t) {
 /** The twins' rows, in the payload's order. @param {any} dash */
 export const quotesTwinRows = (dash) => (dash?.quotesTwins ?? []).map(quotesTwinRow).filter(Boolean);
 
-/** "Stablecoin quotes Coinbase"'s id among TESTING's rows. */
+/** "Stablecoin quotes with Euros"'s id among TESTING's rows ("Stablecoin quotes Coinbase", then for a few hours
+ * "Stablecoin quotes - with Euro", until 2026-10-10). */
 export const QUOTES_COINBASE_ROW_ID = '__quotes_coinbase';
 
 /**
- * "Stablecoin quotes Coinbase" as a row of TESTING (`cb_quotes.ts`, 0112; Davies, 2026-10-10: "先建起来吧，并且和Revolute X
- * 对比看哪个更好"): PR5's rule on paper on Coinbase's four GBP and EUR stablecoin books, from its recorder's prints, in a
- * twin's shape and in pounds, so it reads beside the twins and LIVE on Revolut X. null before it has decided a minute.
+ * "Stablecoin quotes with Euros" as a row of TESTING (`cb_quotes.ts`, 0112; Davies, 2026-10-10: "先建起来吧，并且和Revolute X
+ * 对比看哪个更好", and its name, place and size: "测试名字就叫Stablecoin quotes - with Euro吧，列表里放在Stablecoin quotes
+ * variant-3 后面，每一档100磅/100欧元", then "策略名字也改为Stablecoin quotes with Euros"): PR5's rule on paper on Coinbase's four GBP and EUR stablecoin books, from its
+ * recorder's prints, in a twin's shape and in pounds (£1,200 + €1,200), so it reads beside the twins and LIVE on Revolut X;
+ * `paperTestRows` puts it right after the last twin, "Stablecoin quotes variant-3". null before it has decided a minute.
  * @param {any} q  the dashboard's `quotesCoinbase`
  */
 export function quotesCoinbaseRow(q) {
@@ -1499,7 +1503,7 @@ export function quotesLiveInventory(q, m = (s) => s) {
 
 /**
  * A price a coin, as its book quotes it: pounds to four places; a EUR book's in euros, USDT-EUR's to five (Coinbase's step,
- * "Stablecoin quotes Coinbase"). @param {number | null | undefined} p @param {string | null} [book]
+ * "Stablecoin quotes with Euros"). @param {number | null | undefined} p @param {string | null} [book]
  */
 export const fmtQuotePrice = (p, book = null) => {
   if (p == null || !Number.isFinite(Number(p))) return '—';

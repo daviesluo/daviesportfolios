@@ -516,8 +516,8 @@ function LiveOrdersTable({ title, cls, orders, m, empty }) {
  * A realistic twin's page is the same page (`twin`; Davies, 2026-10-02: the twins are laid out as the live executor's),
  * on its simulated account and its TESTING row (`quotesTwinRow`), PAPER, its name for a title, and a line under its
  * scoreboard for what it is and for each book whose asks wait for their coin. Each page has a container of its own: the
- * sweep tells them apart by it. "Stablecoin quotes Coinbase" (`coinbase`, 0112) opens the same page as a twin, on Coinbase:
- * a paper test with no account, so no INVENTORY, and each EUR book's prices in euros.
+ * sweep tells them apart by it. "Stablecoin quotes with Euros" (`coinbase`, 0112) opens the same page as a twin, on
+ * Coinbase: a paper test with no account and no coin of its own, so no INVENTORY, and each EUR book's prices in euros.
  * @param {{ q: any, m: (s: string) => string, at: any, nowMs: number, twin?: boolean, coinbase?: boolean }} props
  */
 function QuotesLiveDetail({ q, m, at, nowMs, twin = false, coinbase = false }) {

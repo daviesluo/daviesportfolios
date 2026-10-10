@@ -2301,6 +2301,10 @@ body {
 .ag-venue-col > span.dim.ag-fig-sub { padding-left: 12px; }
 .ag-venue-card-polymarket { border-left-color: rgba(125,139,255,0.75); }
 .ag-share-polymarket { background: rgba(125,139,255,0.35); color: #eef0ff; }
+/* Coinbase's card and its slice of the share bar, in its badge's green (VENUE_HUES.coinbase, #9fd8c8). Without them its
+   slice was drawn with no colour at all (Davies, 2026-10-10: "testing页面venue中最上面的占比条里没有coinbase"). */
+.ag-venue-card-coinbase { border-left-color: rgba(159,216,200,0.75); }
+.ag-share-coinbase { background: rgba(159,216,200,0.35); color: #eafaf5; }
 
 /* RW's bar: where the run is, then four tiles — the total and its rewards and orders, the pessimistic total, the
    fills against the 100 it needs, the best market's share. Polymarket's blue marks the run and the fills. */

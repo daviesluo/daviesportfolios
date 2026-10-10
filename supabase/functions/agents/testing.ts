@@ -2015,7 +2015,7 @@ export function jevFetch(opts: { healthy?: number; caution?: number; fail?: bool
   };
 }
 
-// ------------------------------------------------------------------ the browser test's "Stablecoin quotes Coinbase" fixture
+// ------------------------------------------------------------------ the browser test's "Stablecoin quotes with Euros" fixture
 // (src/e2e/quotes_coinbase_fixture.json; docs/agents/backtests/cbrec/page_fixture.ts writes it, cb_quotes.test.ts checks
 // it): the Coinbase paper test's own driver (`runCbQuotes`) on a small recorded world, then the dashboard's view of it
 // (`cbQuotesView`), at the browser test's clock (2026-09-17 23:00 UTC), from 30 hours before it: GBP/USD 1.32, EUR/USD
