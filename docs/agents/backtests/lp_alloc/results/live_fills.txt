@@ -1,0 +1,9 @@
+0x045fdf4b fills  21 shares    336  YES    64.9 NO    16.1  mark 0.590  P&L    3.13
+0x5b3350e2 fills   6 shares    112  YES   111.5 NO     0.0  mark 0.525  P&L   -9.45
+0x5fec6675 fills   6 shares     80  YES    40.3 NO     0.0  mark 0.470  P&L    3.04
+0x9235351e no mark in the record [7, 126.0]
+0xa326c49f fills  15 shares    270  YES     0.0 NO    44.8  mark 0.600  P&L   -1.42
+0xecc209a6 fills  19 shares    361  YES   120.0 NO     1.3  mark 0.006  P&L    1.41
+0xeee73848 fills   1 shares     20  YES     0.0 NO    20.0  mark 0.495  P&L    1.50
+0xf0503539 fills   2 shares     40  YES    40.0 NO     0.0  mark 0.021  P&L    0.64
+total over marked markets: -1.15; fills 77, shares 1345

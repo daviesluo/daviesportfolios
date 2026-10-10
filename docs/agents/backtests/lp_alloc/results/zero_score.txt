@@ -1,0 +1,14 @@
+Quotes resting while the formula scores them 0 (sql/zero_score.sql).
+  RW          minutes with a side resting  206267; formula 0 in  64190 (31 %)
+  RW-C        minutes with a side resting   27207; formula 0 in   6946 (26 %)
+  LP live     minutes with a side resting   10977; formula 0 in   3305 (30 %)
+  LP dry_run  minutes with a side resting   76166; formula 0 in  41494 (54 %)
+  LP dry_run  bid resting 60206, its own score 0 in 15886 (26 %); ask 59732, 0 in 11615 (19 %)
+  LP live     bid resting 9643, its own score 0 in 1550 (16 %); ask 10482, 0 in 1988 (19 %)
+Fills by their minute's score (RW / RW-C: the market's formula; LP paper: the filled side's own score), markout in cents a share at 5 / 30 / 120 min:
+  LP paper  scoring  fills   440 shares     6687   -1.64  -2.44  -2.54   $ at 120:  -150.06
+  LP paper  score 0  fills    64 shares      814   -1.62  -4.26  -3.30   $ at 120:   -24.58
+  RW        scoring  fills  3220 shares    41056   -1.41  -1.65  -1.97   $ at 120:  -655.17
+  RW        score 0  fills  1022 shares    13432    0.66   0.42   1.41   $ at 120:   140.56
+  RW-C      scoring  fills   508 shares     6948   -1.60  -2.11  -2.80   $ at 120:  -161.00
+  RW-C      score 0  fills   101 shares     1494   -0.57  -0.73   2.48   $ at 120:    27.64

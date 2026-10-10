@@ -1,0 +1,432 @@
+LP-ALLOC, programme reading lookback 120 min. columns: mk/d markets chosen a day; R.xx net $ a day over the five days, at-price fills; str.47 the same with strict fills at R = 0.47;
+IS.47 / OOS.47 at-price at R = 0.47 on 10-05..10-07 / 10-08..10-09; worst the worst day and maxDD the deepest fall of the running sum, at-price at R = 0.23;
+peak$ / mean$ holdings at cost + resting buys (the cap's count); held$ / hMax$ holdings at cost at the day's close, mean / most; POST/d the counter x 1.8;
+form$ the formula reward a day (at-price); fills$ the fills' P&L a day (at-price); chg chosen markets a day whose programme changed or ended inside the day; stp days the -$75 stop held.
+
+arm                                mk/d   R.23   R.38   R.47   R.58  str.47   IS.47  OOS.47   worst   maxDD  peak$  mean$  held$  hMax$ POST/d  form$  fills$   chg stp
+L1                                 10.0   4.99  17.15  24.44  33.36   35.58   51.94  -16.81  -80.35  -80.35    325    258    223    304   5806   81.1  -13.65   0.0   0
+L1-now C330                        10.0   0.96   6.35   9.59  13.55   12.79   30.71  -22.09  -54.94  -59.31    330    227    180    254   5191   36.0   -7.32   8.4   0
+L1-now C330 formula at 00:00 programme 10.0   6.85  19.59  27.23  36.58   35.13   52.27  -10.32  -80.24  -80.24    337    263    217    308   6032   84.9  -12.69   0.0   0
+L1-now C330 no near-certain        10.0   0.52   5.93   9.17  13.13   12.37   29.98  -22.05  -54.86  -59.22    330    228    189    254   5197   36.0   -7.76   8.4   0
+
+== total cap $330: 125 arms; the 15 best by IS.47 (at-price, R = 0.47, 10-05..10-07), then today's knobs at this cap
+arm                                mk/d   R.23   R.38   R.47   R.58  str.47   IS.47  OOS.47   worst   maxDD  peak$  mean$  held$  hMax$ POST/d  form$  fills$   chg stp
+C330 M10 k3 n20 cm300               5.0  10.50  16.35  19.86  24.15    8.85   53.23  -30.19  -57.13  -73.83    364    244    194    281   2035   39.0    1.53   4.2   0
+C330 M15 k3 n20 cm300               5.0  10.50  16.35  19.86  24.15    8.85   53.23  -30.19  -57.13  -73.83    364    244    194    281   2035   39.0    1.53   4.2   0
+C330 M20 k3 n20 cm300               5.0  10.50  16.35  19.86  24.15    8.85   53.23  -30.19  -57.13  -73.83    364    244    194    281   2035   39.0    1.53   4.2   0
+C330 M30 k3 n20 cm300               5.0  10.50  16.35  19.86  24.15    8.85   53.23  -30.19  -57.13  -73.83    364    244    194    281   2035   39.0    1.53   4.2   0
+C330 M40 k3 n20 cm300               5.0  10.50  16.35  19.86  24.15    8.85   53.23  -30.19  -57.13  -73.83    364    244    194    281   2035   39.0    1.53   4.2   0
+C330 M10 k2 n20 cm200               8.2   8.78  13.64  16.55  20.11    1.78   50.01  -33.64  -71.29  -74.13    404    278    238    348   2729   32.4    1.34   7.2   0
+C330 M15 k2 n20 cm200               8.2   8.78  13.64  16.55  20.11    1.78   50.01  -33.64  -71.29  -74.13    404    278    238    348   2729   32.4    1.34   7.2   0
+C330 M20 k2 n20 cm200               8.2   8.78  13.64  16.55  20.11    1.78   50.01  -33.64  -71.29  -74.13    404    278    238    348   2729   32.4    1.34   7.2   0
+C330 M30 k2 n20 cm200               8.2   8.78  13.64  16.55  20.11    1.78   50.01  -33.64  -71.29  -74.13    404    278    238    348   2729   32.4    1.34   7.2   0
+C330 M40 k2 n20 cm200               8.2   8.78  13.64  16.55  20.11    1.78   50.01  -33.64  -71.29  -74.13    404    278    238    348   2729   32.4    1.34   7.2   0
+C330 M10 k2 n50 cm200               7.4  -1.80   2.91   5.74   9.19    8.90   46.35  -55.18 -103.49 -118.36    334    252    198    316   2378   31.4   -9.02   6.2   0
+C330 M10 k2 n50 cm400               7.4  -1.80   2.91   5.74   9.19    8.90   46.35  -55.18 -103.49 -118.36    334    252    198    316   2378   31.4   -9.02   6.2   0
+C330 M20 k2 n50 cm200               7.4  -1.80   2.91   5.74   9.19    8.90   46.35  -55.18 -103.49 -118.36    334    252    198    316   2378   31.4   -9.02   6.2   0
+C330 M20 k2 n50 cm400               7.4  -1.80   2.91   5.74   9.19    8.90   46.35  -55.18 -103.49 -118.36    334    252    198    316   2378   31.4   -9.02   6.2   0
+C330 M30 k2 n50 cm200               7.4  -1.80   2.91   5.74   9.19    8.90   46.35  -55.18 -103.49 -118.36    334    252    198    316   2378   31.4   -9.02   6.2   0
+C330 M10 k1 n20 cm100              10.0   0.96   6.35   9.59  13.55   12.79   30.71  -22.09  -54.94  -59.31    330    227    180    254   5191   36.0   -7.32   8.4   0   <- today's knobs
+
+== total cap $430: 125 arms; the 15 best by IS.47 (at-price, R = 0.47, 10-05..10-07), then today's knobs at this cap
+arm                                mk/d   R.23   R.38   R.47   R.58  str.47   IS.47  OOS.47   worst   maxDD  peak$  mean$  held$  hMax$ POST/d  form$  fills$   chg stp
+C430 M10 k3 n20 cm300               7.0  16.94  22.81  26.33  30.64   -1.43   55.18  -16.93  -40.76  -44.09    474    346    289    444   2600   39.1    7.94   6.0   0
+C430 M15 k3 n20 cm300               7.0  16.94  22.81  26.33  30.64   -1.43   55.18  -16.93  -40.76  -44.09    474    346    289    444   2600   39.1    7.94   6.0   0
+C430 M20 k3 n20 cm300               7.0  16.94  22.81  26.33  30.64   -1.43   55.18  -16.93  -40.76  -44.09    474    346    289    444   2600   39.1    7.94   6.0   0
+C430 M30 k3 n20 cm300               7.0  16.94  22.81  26.33  30.64   -1.43   55.18  -16.93  -40.76  -44.09    474    346    289    444   2600   39.1    7.94   6.0   0
+C430 M40 k3 n20 cm300               7.0  16.94  22.81  26.33  30.64   -1.43   55.18  -16.93  -40.76  -44.09    474    346    289    444   2600   39.1    7.94   6.0   0
+C430 M10 k1.5 n20 cm150 noAI       10.0   9.54  14.35  17.23  20.76    5.92   42.61  -20.85  -56.51  -56.51    430    324    271    347   4500   32.0    2.17   7.8   0
+C430 M10 k1.5 n20 cm150 refill15 noAI 10.0  13.31  17.69  20.31  23.53   13.90   41.63  -11.66  -46.88  -46.88    431    368    334    404   5306   29.2    6.59  10.8   0
+C430 M10 k1.5 n20 cm150 drift10    10.0   1.32   6.58   9.74  13.60    6.62   38.89  -33.99  -71.52  -78.71    433    307    249    308   4753   35.1   -6.75   8.4   0
+C430 M20 k1 n100 cm100             16.8  -0.63   5.16   8.63  12.88    6.23   38.83  -36.65  -64.66  -79.23    442    405    369    425   5133   38.6   -9.51  12.2   0
+C430 M30 k1 n100 cm100             16.8  -0.63   5.16   8.63  12.88    6.23   38.83  -36.65  -64.66  -79.23    442    405    369    425   5133   38.6   -9.51  12.2   0
+C430 M10 k1.5 n20 cm150 zero-side  10.0   6.82  12.60  16.07  20.30   10.71   37.74  -16.44  -48.03  -48.03    456    314    261    338   4267   38.5   -2.04   8.4   0
+C430 M10 k1.5 n20 cm150 zero-market 10.0   6.81  12.60  16.07  20.31   10.67   37.71  -16.39  -47.98  -47.98    456    314    261    338   4233   38.6   -2.06   8.4   0
+C430 M10 k1.5 n20 cm150            10.0   1.23   6.74  10.05  14.09    4.56   37.60  -31.29  -71.35  -73.12    437    306    238    316   4742   36.8   -7.23   8.4   0
+C430 M10 k1.5 n20 cm150 drift20    10.0   1.08   6.52   9.79  13.78   16.16   37.02  -31.06  -68.49  -72.54    439    308    242    343   4791   36.3   -7.27   8.4   0
+C430 M10 k2 n100 cm200              8.8 -18.23 -12.58  -9.19  -5.05    1.71   36.95  -78.41 -134.13 -166.93    468    336    265    406   3334   37.7  -26.89   7.0   1
+C430 M10 k1 n20 cm100              10.0  -2.09   3.60   7.02  11.19   11.35   30.52  -28.25  -69.91  -73.56    430    259    202    307   5332   37.9  -10.81   8.4   0   <- today's knobs
+
+== total cap $580: 125 arms; the 15 best by IS.47 (at-price, R = 0.47, 10-05..10-07), then today's knobs at this cap
+arm                                mk/d   R.23   R.38   R.47   R.58  str.47   IS.47  OOS.47   worst   maxDD  peak$  mean$  held$  hMax$ POST/d  form$  fills$   chg stp
+C580 M10 k2 n50 cm400              10.0   3.67  10.38  14.41  19.34  -11.36   53.19  -43.75  -76.49  -96.16    658    466    408    588   3543   44.8   -6.64   8.0   0
+C580 M10 k2 n50 cm200              10.0   3.65  10.35  14.37  19.29  -11.36   53.13  -43.75  -76.49  -96.16    658    466    408    588   3543   44.7   -6.64   8.0   0
+C580 M10 k1.5 n20 cm150 refill15 noAI 10.0   9.82  15.89  19.53  23.97   10.83   43.43  -16.34  -62.68  -62.68    580    449    375    467   6414   40.4    0.52  10.8   0
+C580 M10 k2 n100 cm400             10.0 -18.19 -10.95  -6.60  -1.30   -4.07   42.27  -79.92 -126.26 -170.37    686    504    460    670   3600   48.3  -29.29   8.0   0
+C580 M10 k2 n100 cm200             10.0 -18.32 -11.17  -6.87  -1.63    5.21   41.82  -79.92 -126.26 -170.37    686    503    460    670   3595   47.7  -29.29   8.0   0
+C580 M20 k2 n50 cm400              12.4  -7.88  -1.10   2.97   7.95    0.24   41.73  -55.17  -90.32 -118.06    649    515    455    536   3933   45.2  -18.29   9.4   0
+C580 M30 k2 n50 cm400              12.4  -7.88  -1.10   2.97   7.95    0.24   41.73  -55.17  -90.32 -118.06    649    515    455    536   3933   45.2  -18.29   9.4   0
+C580 M20 k2 n50 cm200              12.4  -7.90  -1.13   2.93   7.89    0.24   41.66  -55.17  -90.32 -118.06    649    515    455    536   3933   45.1  -18.29   9.4   0
+C580 M30 k2 n50 cm200              12.4  -7.90  -1.13   2.93   7.89    0.24   41.66  -55.17  -90.32 -118.06    649    515    455    536   3933   45.1  -18.29   9.4   0
+C580 M10 k1.5 n20 cm150 noAI       10.0   5.27  10.66  13.90  17.85    8.48   40.81  -26.47  -73.53  -73.53    580    376    316    450   4826   35.9   -2.99   7.8   0
+C580 M20 k1.5 n20 cm150            20.0 -17.27  -9.67  -5.10   0.48   -8.03   39.29  -71.69  -86.59 -157.99    590    502    426    538   7809   50.7  -28.94  15.8   0
+C580 M30 k1.5 n20 cm150            20.0 -17.27  -9.67  -5.10   0.48   -8.03   39.29  -71.69  -86.59 -157.99    590    502    426    538   7809   50.7  -28.94  15.8   0
+C580 M40 k1.5 n20 cm150            20.0 -17.27  -9.67  -5.10   0.48   -8.03   39.29  -71.69  -86.59 -157.99    590    502    426    538   7809   50.7  -28.94  15.8   0
+C580 M10 k1.5 n20 cm150 drift10    10.0   2.63   8.69  12.32  16.77   -2.54   38.05  -26.26  -65.84  -68.48    580    360    285    381   5205   40.4   -6.66   8.4   0
+C580 M10 k2 n20 cm200              10.0   3.98  11.34  15.76  21.16    1.55   37.52  -16.89  -49.44  -52.82    580    411    322    407   5077   49.1   -7.32   8.4   0
+C580 M10 k1 n20 cm100              10.0  -1.67   4.31   7.89  12.27   11.50   30.52  -26.06  -69.91  -71.48    496    261    202    307   5433   39.8  -10.83   8.4   0   <- today's knobs
+
+== total cap $830: 125 arms; the 15 best by IS.47 (at-price, R = 0.47, 10-05..10-07), then today's knobs at this cap
+arm                                mk/d   R.23   R.38   R.47   R.58  str.47   IS.47  OOS.47   worst   maxDD  peak$  mean$  held$  hMax$ POST/d  form$  fills$   chg stp
+C830 M10 k2 n50 cm200              10.0 -12.35  -4.76  -0.20   5.36   -5.21   56.08  -84.63 -142.26 -182.50    854    662    568    776   3863   50.6  -23.99   8.0   0
+C830 M10 k2 n50 cm400              10.0  -3.39   3.23   7.19  12.04   -5.21   51.85  -59.79 -104.63 -130.91    891    671    595    774   3522   44.1  -13.52   8.0   0
+C830 M30 k1 n200 cm200             29.0  -9.48  -0.06   5.60  12.51  -10.03   49.88  -60.82  -97.18 -132.94    903    811    717    807   8680   62.8  -23.93  21.8   0
+C830 M30 k1 n100 cm200             29.8 -12.22  -2.80   2.85   9.76   -1.41   45.57  -61.23  -98.65 -134.54    891    808    715    833   8805   62.8  -26.66  22.4   0
+C830 M20 k1 n50 cm200              20.0 -18.34  -8.34  -2.34   4.99  -17.15   44.87  -73.16 -119.57 -162.42    874    716    620    853   8902   66.6  -33.67  14.8   0
+C830 M20 k1 n100 cm200             20.0 -17.51  -7.95  -2.22   4.79  -16.00   43.84  -71.31 -128.54 -156.39    857    740    634    857   8302   63.7  -32.16  15.2   0
+C830 M10 k1.5 n20 cm150 refill15 noAI 10.0   5.04  11.52  15.40  20.15   10.19   42.52  -25.27  -82.26  -82.26    786    487    410    531   6556   43.2   -4.89  10.8   0
+C830 M10 k1.5 n20 cm150 noAI       10.0   5.46  10.97  14.28  18.33    8.56   40.81  -25.50  -73.53  -73.53    653    378    317    454   4835   36.8   -3.00   7.8   0
+C830 M10 k2 n100 cm400             10.0 -23.78 -15.56 -10.63  -4.60   -6.82   40.39  -87.16 -134.03 -191.55    915    681    586    816   3560   54.8  -36.38   8.0   1
+C830 M10 k1.5 n20 cm150 drift10    10.0   0.31   7.02  11.04  15.96   -2.08   38.05  -29.46  -81.25  -81.25    747    370    287    392   5277   44.7   -9.97   8.4   0
+C830 M30 k1.5 n20 cm150            28.8 -22.35 -12.45  -6.50   0.76   -9.32   37.47  -72.46 -100.04 -160.28    830    683    575    760   9908   66.0  -37.54  22.4   1
+C830 M40 k1.5 n20 cm150            28.8 -22.35 -12.45  -6.50   0.76   -9.32   37.47  -72.46 -100.04 -160.28    830    683    575    760   9908   66.0  -37.54  22.4   1
+C830 M10 k1.5 n20 cm150            10.0  -3.47   3.93   8.36  13.78    5.31   36.69  -34.14  -86.75  -92.45    722    383    290    437   5430   49.3  -14.81   8.4   0
+C830 M10 k1.5 n20 cm150 zero-side  10.0  -3.50   4.08   8.63  14.20    8.03   36.39  -33.00  -85.36  -90.99    748    391    317    463   5146   50.6  -15.13   8.4   0
+C830 M10 k1.5 n20 cm150 zero-market 10.0  -1.58   6.06  10.64  16.24    9.44   36.15  -27.63  -74.82  -80.45    720    374    301    435   5099   50.9  -13.29   8.4   0
+C830 M10 k1 n20 cm100              10.0  -1.64   4.34   7.93  12.31   11.50   30.52  -25.97  -69.91  -71.31    510    263    202    307   5458   39.8  -10.80   8.4   0   <- today's knobs
+
+== total cap $1330: 125 arms; the 15 best by IS.47 (at-price, R = 0.47, 10-05..10-07), then today's knobs at this cap
+arm                                mk/d   R.23   R.38   R.47   R.58  str.47   IS.47  OOS.47   worst   maxDD  peak$  mean$  held$  hMax$ POST/d  form$  fills$   chg stp
+C1330 M30 k1 n100 cm200            30.0  -9.88   3.28  11.18  20.83    2.94   77.13  -87.76 -103.20 -194.95   1369   1217   1100   1324  11621   87.7  -30.05  22.8   0
+C1330 M10 k2 n50 cm400             10.0 -42.59 -32.46 -26.38 -18.96    8.56   59.62 -155.39 -284.03 -336.87   1330    863    730   1170   4359   67.5  -58.12   8.0   1
+C1330 M10 k2 n50 cm200             10.0 -70.15 -59.83 -53.64 -46.07    8.56   58.09 -221.22 -371.88 -470.50   1483    877    770   1419   4397   68.8  -85.97   8.0   1
+C1330 M20 k1 n100 cm200            20.0 -42.65 -29.94 -22.32 -13.00   -8.70   49.60 -130.20 -207.28 -287.33   1330    943    785   1163   9629   84.7  -62.14  15.2   1
+C1330 M30 k1 n200 cm200            30.0 -20.78  -9.41  -2.58   5.76  -20.90   47.43  -77.61 -112.95 -165.34   1408   1225   1129   1337  10075   75.8  -38.23  22.8   0
+C1330 M20 k1 n50 cm200             20.0 -49.32 -37.50 -30.41 -21.75  -10.47   46.12 -145.21 -238.18 -317.35   1330    839    709   1101   9624   78.8  -67.44  14.8   1
+C1330 M10 k1.5 n20 cm150 refill15 noAI 10.0   5.11  11.60  15.50  20.25   10.19   42.53  -25.06  -82.22  -82.22    844    492    412    529   6546   43.3   -4.83  10.8   0
+C1330 M10 k1.5 n20 cm150 noAI      10.0   5.53  11.06  14.38  18.43    8.56   40.83  -25.30  -73.49  -73.49    653    382    319    443   4825   36.9   -2.94   7.8   0
+C1330 M10 k1.5 n20 cm150 drift10   10.0   0.38   7.10  11.13  16.06   -2.41   38.06  -29.26  -81.21  -81.21    747    375    289    392   5267   44.8   -9.92   8.4   0
+C1330 M10 k1.5 n20 cm150           10.0  -3.39   4.01   8.45  13.88    5.31   36.71  -33.93  -86.70  -92.13    745    388    292    437   5420   49.4  -14.75   8.4   0
+C1330 M10 k1.5 n20 cm150 zero-side 10.0  -3.45   4.15   8.71  14.28    8.03   36.39  -32.82  -85.36  -90.71    748    395    315    463   5136   50.6  -15.10   8.4   0
+C1330 M10 k1.5 n20 cm150 zero-market 10.0  -1.52   6.12  10.71  16.32    9.44   36.15  -27.45  -74.82  -80.18    720    378    299    435   5088   51.0  -13.25   8.4   0
+C1330 M10 k1.5 n20 cm150 drift20   10.0  -3.26   4.10   8.52  13.92    7.20   36.13  -32.89  -84.82  -90.13    753    391    295    446   5409   49.1  -14.55   8.4   0
+C1330 M10 k2 n100 cm400            10.0 -12.74  -5.94  -1.86   3.12   -6.74   33.67  -55.16  -83.71 -110.32   1330    779    668    957   3033   45.3  -23.16   8.0   1
+C1330 M15 k1 n20 cm100 refill15 noAI 15.0   0.03   6.62  10.58  15.41   12.48   31.77  -21.22  -62.20  -62.57    605    356    274    359   8579   43.9  -10.08  14.2   0
+C1330 M10 k1 n20 cm100             10.0  -1.49   4.50   8.09  12.48   11.51   30.54  -25.59  -69.85  -70.64    529    266    207    307   5469   39.9  -10.67   8.4   0   <- today's knobs
+
+== knobs against their own base (same cap, markets, size, market cap), at-price, R = 0.47: mean a day, its change, the paired day bootstrap of the change (5th-95th), days ahead, the worst day and the deepest fall at R = 0.23, mean holdings at close, the worst market's fills, refills a day
+  -- C330 M10 k1 n20 cm100:   9.59 a day (worst -54.94, maxDD -59.31, held 180)
+     inv3N                              2.15   -7.44 [-16.66, -1.02] 0/5  worst  -54.59 maxDD  -61.15 held  167 worstMkt  -25.70 refills  0.0
+     inv2N                              0.42   -9.17 [-26.78, +8.37] 1/5  worst  -31.63 maxDD  -37.46 held  155 worstMkt  -21.72 refills  0.0
+     drift5                           -15.57  -25.16 [-63.21, -4.28] 0/5  worst  -57.72 maxDD -108.53 held  176 worstMkt  -21.62 refills  0.0
+     drift10                           11.52   +1.92 [ +0.11, +3.89] 3/5  worst  -49.44 maxDD  -52.69 held  172 worstMkt  -23.38 refills  0.0
+     drift20                            9.14   -0.45 [ -0.87, -0.12] 0/5  worst  -55.29 maxDD  -60.04 held  179 worstMkt  -34.88 refills  0.0
+     noAI                              14.68   +5.09 [ -4.86,+14.42] 4/5  worst  -35.67 maxDD  -35.67 held  159 worstMkt  -24.52 refills  0.0
+     noAI-counts                       -6.23  -15.82 [-41.48, +9.84] 3/5  worst  -34.87 maxDD  -69.78 held  183 worstMkt  -24.52 refills  0.0
+     refill15                           8.12   -1.47 [-14.33,+10.36] 3/5  worst  -56.48 maxDD  -59.48 held  223 worstMkt  -33.98 refills  7.0
+     refill60                           7.58   -2.01 [-13.42, +8.10] 3/5  worst  -57.30 maxDD  -57.30 held  224 worstMkt  -33.98 refills  7.0
+     inv3N drift10                      4.48   -5.11 [-12.70, +1.68] 2/5  worst  -48.16 maxDD  -51.83 held  168 worstMkt  -20.89 refills  0.0
+     inv3N drift10 refill15            -2.13  -11.72 [-22.74, -0.71] 2/5  worst  -62.07 maxDD  -63.07 held  218 worstMkt  -20.89 refills  7.0
+     inv3N drift10 refill15 noAI        8.50   -1.09 [-20.15,+17.58] 3/5  worst  -25.07 maxDD  -25.07 held  192 worstMkt  -16.46 refills  6.8
+     refill15 noAI                     20.12  +10.53 [-11.54,+31.73] 4/5  worst  -33.18 maxDD  -33.18 held  199 worstMkt  -16.46 refills  6.8
+     zero-side                          9.64   +0.04 [ -2.51, +2.15] 3/5  worst  -60.69 maxDD  -64.57 held  185 worstMkt  -35.13 refills  0.0
+     zero-side refill15                 5.53   -4.06 [-12.85, +5.66] 1/5  worst  -57.46 maxDD  -62.50 held  222 worstMkt  -29.89 refills  7.0
+     zero-side inv3N drift10 refill15  -0.11   -9.70 [-19.60, +0.68] 1/5  worst  -59.82 maxDD  -67.90 held  216 worstMkt  -20.89 refills  7.0
+     zero-market                       10.47   +0.88 [ -0.46, +2.19] 3/5  worst  -56.71 maxDD  -60.60 held  185 worstMkt  -35.13 refills  0.0
+     zero-market refill15               6.03   -3.56 [-12.36, +6.21] 2/5  worst  -55.13 maxDD  -59.95 held  222 worstMkt  -30.22 refills  7.0
+     zero-market inv3N drift10 refill15  -0.84  -10.43 [-19.84, +0.19] 1/5  worst  -62.27 maxDD  -71.11 held  223 worstMkt  -20.89 refills  7.0
+  -- C330 M15 k1 n20 cm100:   6.59 a day (worst -59.46, maxDD -60.86, held 227)
+     inv3N                             -0.63   -7.22 [-21.14, +1.38] 2/5  worst  -60.27 maxDD  -60.27 held  225 worstMkt  -25.91 refills  0.0
+     inv2N                             -7.11  -13.70 [-36.68, +1.19] 1/5  worst  -50.11 maxDD  -68.61 held  232 worstMkt  -22.86 refills  0.0
+     drift5                           -19.77  -26.36 [-61.53, -3.60] 0/5  worst  -77.99 maxDD -132.55 held  205 worstMkt  -22.62 refills  0.0
+     drift10                            8.22   +1.63 [ -0.27, +3.80] 3/5  worst  -58.75 maxDD  -58.75 held  225 worstMkt  -23.38 refills  0.0
+     drift20                           10.20   +3.61 [ -0.27, +7.78] 2/5  worst  -46.59 maxDD  -46.59 held  221 worstMkt  -33.21 refills  0.0
+     noAI                               8.60   +2.01 [ -9.89,+15.61] 2/5  worst  -31.91 maxDD  -45.69 held  241 worstMkt  -22.43 refills  0.0
+     noAI-counts                       -2.78   -9.37 [-35.27,+13.94] 2/5  worst  -32.88 maxDD  -56.95 held  211 worstMkt  -16.46 refills  0.0
+     refill15                           3.43   -3.16 [ -8.16, +1.84] 1/5  worst  -74.30 maxDD  -79.04 held  222 worstMkt  -33.28 refills  6.4
+     refill60                           2.53   -4.06 [ -8.13, +0.40] 1/5  worst  -68.42 maxDD  -74.47 held  216 worstMkt  -37.13 refills  5.8
+     inv3N drift10                      2.72   -3.87 [-16.42, +5.95] 3/5  worst  -49.66 maxDD  -49.66 held  232 worstMkt  -16.46 refills  0.0
+     inv3N drift10 refill15             1.66   -4.93 [-17.96, +6.04] 3/5  worst  -46.80 maxDD  -46.96 held  230 worstMkt  -17.43 refills  6.4
+     inv3N drift10 refill15 noAI        5.13   -1.46 [-13.96, +9.74] 2/5  worst  -40.21 maxDD  -43.47 held  213 worstMkt  -19.64 refills  7.0
+     refill15 noAI                     14.60   +8.01 [ +1.01,+15.66] 4/5  worst  -40.18 maxDD  -40.18 held  214 worstMkt  -19.64 refills  7.0
+     zero-side                          6.63   +0.04 [ -7.84, +7.41] 2/5  worst  -50.75 maxDD  -54.09 held  227 worstMkt  -30.34 refills  0.0
+     zero-side refill15                 4.44   -2.15 [-11.61, +4.40] 3/5  worst  -62.49 maxDD  -63.26 held  229 worstMkt  -29.25 refills  6.4
+     zero-side inv3N drift10 refill15   3.09   -3.50 [-21.21,+10.58] 2/5  worst  -38.63 maxDD  -42.38 held  228 worstMkt  -20.89 refills  6.4
+     zero-market                        7.60   +1.01 [ -7.34, +8.76] 2/5  worst  -48.21 maxDD  -50.19 held  232 worstMkt  -35.53 refills  0.0
+     zero-market refill15               4.74   -1.85 [-11.65, +4.56] 3/5  worst  -61.34 maxDD  -62.45 held  224 worstMkt  -30.95 refills  6.4
+     zero-market inv3N drift10 refill15   3.93   -2.66 [-20.64,+11.93] 2/5  worst  -36.52 maxDD  -39.07 held  232 worstMkt  -20.89 refills  6.4
+  -- C330 M10 k1.5 n20 cm150:  16.89 a day (worst -37.98, maxDD -43.53, held 201)
+     inv3N                              0.65  -16.24 [-30.22, -2.92] 0/5  worst  -72.07 maxDD  -78.46 held  212 worstMkt  -34.84 refills  0.0
+     inv2N                             -0.17  -17.06 [-37.74, -3.52] 0/5  worst  -48.87 maxDD  -55.83 held  205 worstMkt  -30.49 refills  0.0
+     drift5                           -15.76  -32.65 [-73.18, -6.89] 0/5  worst  -60.25 maxDD -109.09 held  225 worstMkt  -35.02 refills  0.0
+     drift10                           16.99   +0.10 [ -3.31, +4.74] 1/5  worst  -42.36 maxDD  -49.14 held  225 worstMkt  -35.25 refills  0.0
+     drift20                           17.08   +0.19 [ -1.73, +2.41] 1/5  worst  -31.83 maxDD  -39.69 held  203 worstMkt  -49.22 refills  0.0
+     noAI                              20.31   +3.42 [-12.85,+21.39] 3/5  worst  -27.34 maxDD  -28.95 held  228 worstMkt  -25.68 refills  0.0
+     noAI-counts                       -2.05  -18.94 [-46.25, +7.10] 2/5  worst  -43.49 maxDD  -49.28 held  219 worstMkt  -25.68 refills  0.0
+     refill15                          16.31   -0.59 [-16.97,+14.02] 4/5  worst  -38.24 maxDD  -38.24 held  273 worstMkt  -25.68 refills  7.0
+     refill60                          13.43   -3.47 [-28.07,+20.95] 2/5  worst  -47.64 maxDD  -49.83 held  279 worstMkt  -25.08 refills  6.2
+     inv3N drift10                      7.29   -9.60 [-23.74, -1.42] 0/5  worst  -38.74 maxDD  -42.85 held  233 worstMkt  -16.54 refills  0.0
+     inv3N drift10 refill15           -11.44  -28.33 [-60.85, -2.26] 1/5  worst  -44.81 maxDD  -92.28 held  273 worstMkt  -25.68 refills  7.0
+     inv3N drift10 refill15 noAI        4.01  -12.88 [-28.14, +2.37] 2/5  worst  -36.66 maxDD  -36.66 held  271 worstMkt  -25.68 refills  6.8
+     refill15 noAI                     20.83   +3.93 [-18.96,+27.19] 3/5  worst  -37.06 maxDD  -37.06 held  271 worstMkt  -25.68 refills  6.8
+     zero-side                         11.62   -5.27 [-12.51, +0.34] 1/5  worst  -57.57 maxDD  -65.32 held  219 worstMkt  -42.07 refills  0.0
+     zero-side refill15                 4.04  -12.85 [-24.27, -0.50] 1/5  worst  -58.05 maxDD  -59.96 held  299 worstMkt  -27.86 refills  7.0
+     zero-side inv3N drift10 refill15 -10.46  -27.35 [-65.91, -0.29] 2/5  worst  -48.72 maxDD  -86.98 held  286 worstMkt  -22.46 refills  7.0
+     zero-market                       11.60   -5.29 [-12.53, +0.34] 1/5  worst  -57.58 maxDD  -65.32 held  219 worstMkt  -42.07 refills  0.0
+     zero-market refill15               3.22  -13.67 [-25.04, -2.22] 1/5  worst  -57.22 maxDD  -62.54 held  297 worstMkt  -30.06 refills  7.0
+     zero-market inv3N drift10 refill15 -10.51  -27.40 [-65.91, -0.34] 2/5  worst  -48.72 maxDD  -87.36 held  286 worstMkt  -22.46 refills  7.0
+  -- C430 M10 k1 n20 cm100:   7.02 a day (worst -69.91, maxDD -73.56, held 202)
+     inv3N                              3.03   -3.99 [-13.44, +5.37] 1/5  worst  -54.06 maxDD  -58.44 held  164 worstMkt  -24.90 refills  0.0
+     inv2N                              0.46   -6.56 [-26.77,+13.36] 1/5  worst  -32.13 maxDD  -37.58 held  155 worstMkt  -21.72 refills  0.0
+     drift5                            -8.13  -15.14 [-55.86,+16.21] 1/5  worst  -50.09 maxDD  -65.42 held  148 worstMkt  -19.27 refills  0.0
+     drift10                            8.68   +1.67 [ -0.03, +3.56] 3/5  worst  -65.23 maxDD  -67.74 held  196 worstMkt  -24.20 refills  0.0
+     drift20                            7.04   +0.02 [ -0.61, +0.58] 2/5  worst  -68.94 maxDD  -72.18 held  200 worstMkt  -34.88 refills  0.0
+     noAI                              14.75   +7.73 [ -4.33,+20.63] 4/5  worst  -35.67 maxDD  -35.67 held  159 worstMkt  -24.52 refills  0.0
+     noAI-counts                       -6.05  -13.07 [-40.94,+13.12] 3/5  worst  -34.64 maxDD  -69.55 held  183 worstMkt  -24.52 refills  0.0
+     refill15                           0.80   -6.21 [-19.72, +7.29] 2/5  worst  -91.85 maxDD -100.63 held  265 worstMkt  -35.38 refills  7.0
+     refill60                           4.43   -2.59 [-13.83, +8.06] 3/5  worst  -80.08 maxDD  -80.08 held  258 worstMkt  -34.78 refills  7.0
+     inv3N drift10                      3.51   -3.51 [-12.03, +4.93] 2/5  worst  -54.85 maxDD  -58.41 held  170 worstMkt  -20.89 refills  0.0
+     inv3N drift10 refill15            -3.72  -10.73 [-22.60, +0.37] 1/5  worst  -70.96 maxDD  -75.54 held  235 worstMkt  -20.89 refills  7.0
+     inv3N drift10 refill15 noAI        8.06   +1.04 [-19.20,+21.29] 3/5  worst  -25.06 maxDD  -25.06 held  200 worstMkt  -16.46 refills  6.8
+     refill15 noAI                     15.73   +8.71 [-13.07,+28.36] 4/5  worst  -32.87 maxDD  -32.87 held  235 worstMkt  -24.52 refills  6.8
+     zero-side                          7.42   +0.40 [ -0.39, +1.21] 2/5  worst  -69.19 maxDD  -73.10 held  211 worstMkt  -35.13 refills  0.0
+     zero-side refill15                 2.64   -4.37 [-12.51, +4.95] 1/5  worst  -79.53 maxDD  -86.43 held  259 worstMkt  -35.13 refills  7.0
+     zero-side inv3N drift10 refill15  -0.51   -7.52 [-19.64, +3.73] 2/5  worst  -66.60 maxDD  -71.65 held  231 worstMkt  -20.89 refills  7.0
+     zero-market                        9.44   +2.43 [ -0.38, +6.49] 3/5  worst  -59.24 maxDD  -62.76 held  194 worstMkt  -35.13 refills  0.0
+     zero-market refill15               4.51   -2.50 [-11.67, +7.14] 2/5  worst  -68.01 maxDD  -77.93 held  238 worstMkt  -35.13 refills  7.0
+     zero-market inv3N drift10 refill15   0.07   -6.95 [-19.50, +5.37] 2/5  worst  -63.05 maxDD  -68.06 held  224 worstMkt  -20.89 refills  7.0
+  -- C430 M15 k1 n20 cm100:   9.22 a day (worst -49.31, maxDD -54.78, held 271)
+     inv3N                              1.38   -7.83 [-21.40, +0.49] 2/5  worst  -48.70 maxDD  -55.30 held  252 worstMkt  -24.90 refills  0.0
+     inv2N                             -2.93  -12.15 [-35.39, +2.59] 2/5  worst  -39.94 maxDD  -60.83 held  242 worstMkt  -21.72 refills  0.0
+     drift5                           -11.77  -20.99 [-60.17, +1.34] 1/5  worst  -30.86 maxDD  -93.31 held  220 worstMkt  -19.27 refills  0.0
+     drift10                           10.07   +0.86 [ -1.84, +3.74] 2/5  worst  -52.07 maxDD  -53.36 held  268 worstMkt  -23.38 refills  0.0
+     drift20                            8.18   -1.04 [ -3.66, +1.35] 1/5  worst  -56.18 maxDD  -58.05 held  275 worstMkt  -34.28 refills  0.0
+     noAI                               3.30   -5.92 [-13.95, +2.11] 2/5  worst  -51.91 maxDD  -77.44 held  292 worstMkt  -34.01 refills  0.0
+     noAI-counts                       -8.00  -17.22 [-44.24, +1.18] 2/5  worst  -43.55 maxDD  -79.29 held  241 worstMkt  -24.52 refills  0.0
+     refill15                           4.29   -4.92 [-10.82, +1.10] 2/5  worst  -66.56 maxDD  -77.84 held  271 worstMkt  -34.18 refills  6.4
+     refill60                           4.11   -5.10 [ -8.96, -0.98] 1/5  worst  -61.75 maxDD  -73.07 held  275 worstMkt  -35.38 refills  5.8
+     inv3N drift10                      2.86   -6.35 [-17.79, +1.47] 3/5  worst  -45.82 maxDD  -49.87 held  259 worstMkt  -20.89 refills  0.0
+     inv3N drift10 refill15             0.11   -9.11 [-21.50, -0.55] 2/5  worst  -57.78 maxDD  -66.94 held  248 worstMkt  -20.89 refills  6.4
+     inv3N drift10 refill15 noAI        3.29   -5.92 [-18.56, +1.45] 2/5  worst  -51.35 maxDD  -54.71 held  233 worstMkt  -19.64 refills  7.0
+     refill15 noAI                     11.96   +2.75 [ -1.96, +8.01] 3/5  worst  -54.16 maxDD  -56.17 held  250 worstMkt  -19.64 refills  7.0
+     zero-side                          7.01   -2.21 [ -8.88, +4.31] 1/5  worst  -53.75 maxDD  -60.90 held  266 worstMkt  -33.73 refills  0.0
+     zero-side refill15                 5.48   -3.73 [-12.97, +5.54] 2/5  worst  -63.88 maxDD  -76.74 held  260 worstMkt  -35.13 refills  6.4
+     zero-side inv3N drift10 refill15   2.19   -7.02 [-23.49, +3.44] 2/5  worst  -48.92 maxDD  -58.91 held  245 worstMkt  -20.89 refills  6.4
+     zero-market                        8.34   -0.87 [ -8.23, +6.04] 2/5  worst  -48.98 maxDD  -56.31 held  259 worstMkt  -33.73 refills  0.0
+     zero-market refill15               5.86   -3.36 [-12.59, +5.57] 2/5  worst  -62.18 maxDD  -75.04 held  260 worstMkt  -35.13 refills  6.4
+     zero-market inv3N drift10 refill15   1.79   -7.43 [-23.08, +3.01] 1/5  worst  -52.73 maxDD  -61.09 held  240 worstMkt  -20.89 refills  6.4
+  -- C430 M10 k1.5 n20 cm150:  10.05 a day (worst -71.35, maxDD -73.12, held 238)
+     inv3N                              2.57   -7.48 [-23.18, +0.89] 2/5  worst  -69.21 maxDD  -72.23 held  223 worstMkt  -35.08 refills  0.0
+     inv2N                              6.23   -3.82 [-25.40,+16.84] 1/5  worst  -28.84 maxDD  -33.86 held  222 worstMkt  -28.77 refills  0.0
+     drift5                           -12.98  -23.02 [-69.19, +8.04] 1/5  worst  -44.97 maxDD  -99.83 held  249 worstMkt  -35.02 refills  0.0
+     drift10                            9.74   -0.31 [ -3.13, +2.66] 2/5  worst  -71.52 maxDD  -78.71 held  249 worstMkt  -35.25 refills  0.0
+     drift20                            9.79   -0.26 [ -1.79, +1.37] 1/5  worst  -68.49 maxDD  -72.54 held  242 worstMkt  -50.03 refills  0.0
+     noAI                              17.23   +7.18 [ -8.73,+26.19] 3/5  worst  -56.51 maxDD  -56.51 held  271 worstMkt  -25.68 refills  0.0
+     noAI-counts                       -6.55  -16.60 [-45.51,+10.70] 2/5  worst  -47.63 maxDD  -72.14 held  272 worstMkt  -25.68 refills  0.0
+     refill15                          15.35   +5.30 [-15.55,+24.78] 4/5  worst  -39.83 maxDD  -39.83 held  334 worstMkt  -36.76 refills  7.0
+     refill60                           9.60   -0.45 [-23.13,+18.11] 3/5  worst  -54.08 maxDD  -61.51 held  340 worstMkt  -41.61 refills  6.2
+     inv3N drift10                      0.62   -9.43 [-22.30, -1.99] 0/5  worst  -75.75 maxDD  -81.65 held  255 worstMkt  -19.04 refills  0.0
+     inv3N drift10 refill15            -1.11  -11.16 [-31.15, +9.89] 2/5  worst  -39.22 maxDD  -50.50 held  367 worstMkt  -25.68 refills  7.0
+     inv3N drift10 refill15 noAI        6.26   -3.79 [-24.65,+15.90] 3/5  worst  -39.57 maxDD  -39.57 held  318 worstMkt  -25.68 refills  6.8
+     refill15 noAI                     20.31  +10.27 [-18.92,+37.74] 4/5  worst  -46.88 maxDD  -46.88 held  334 worstMkt  -25.68 refills  6.8
+     zero-side                         16.07   +6.02 [ -0.15,+14.79] 4/5  worst  -48.03 maxDD  -48.03 held  261 worstMkt  -42.26 refills  0.0
+     zero-side refill15                -6.47  -16.51 [-41.28, +2.94] 2/5  worst  -67.32 maxDD  -84.12 held  355 worstMkt  -43.85 refills  7.0
+     zero-side inv3N drift10 refill15  -5.00  -15.05 [-34.20, +2.01] 2/5  worst  -64.36 maxDD  -79.31 held  359 worstMkt  -22.46 refills  7.0
+     zero-market                       16.07   +6.02 [ -0.19,+14.83] 4/5  worst  -47.98 maxDD  -47.98 held  261 worstMkt  -42.26 refills  0.0
+     zero-market refill15              -6.44  -16.48 [-41.32, +3.02] 2/5  worst  -67.23 maxDD  -84.11 held  355 worstMkt  -43.85 refills  7.0
+     zero-market inv3N drift10 refill15  -5.02  -15.06 [-34.25, +2.02] 2/5  worst  -64.36 maxDD  -79.30 held  359 worstMkt  -22.46 refills  7.0
+  -- C580 M10 k1 n20 cm100:   7.89 a day (worst -69.91, maxDD -71.48, held 202)
+     inv3N                              3.65   -4.24 [-13.69, +4.87] 1/5  worst  -54.06 maxDD  -56.97 held  164 worstMkt  -24.90 refills  0.0
+     inv2N                              0.59   -7.30 [-27.97,+12.79] 1/5  worst  -32.10 maxDD  -38.50 held  155 worstMkt  -21.72 refills  0.0
+     drift5                            -8.01  -15.90 [-56.38,+15.19] 1/5  worst  -49.50 maxDD  -64.83 held  148 worstMkt  -19.27 refills  0.0
+     drift10                            9.23   +1.34 [ -0.31, +3.28] 3/5  worst  -65.72 maxDD  -66.86 held  199 worstMkt  -24.20 refills  0.0
+     drift20                            7.89   +0.00 [ -0.61, +0.54] 2/5  worst  -68.94 maxDD  -70.15 held  200 worstMkt  -34.88 refills  0.0
+     noAI                              14.73   +6.84 [ -4.94,+19.75] 4/5  worst  -35.67 maxDD  -35.67 held  159 worstMkt  -24.52 refills  0.0
+     noAI-counts                       -6.06  -13.95 [-40.94,+10.45] 3/5  worst  -34.64 maxDD  -69.54 held  183 worstMkt  -24.52 refills  0.0
+     refill15                           2.72   -5.17 [-18.24, +8.44] 2/5  worst  -90.64 maxDD  -94.02 held  273 worstMkt  -35.38 refills  7.0
+     refill60                           3.59   -4.30 [-16.97, +7.44] 3/5  worst  -88.25 maxDD  -88.25 held  274 worstMkt  -35.38 refills  7.0
+     inv3N drift10                      4.13   -3.76 [-12.19, +4.52] 1/5  worst  -54.85 maxDD  -56.94 held  170 worstMkt  -20.89 refills  0.0
+     inv3N drift10 refill15            -3.31  -11.20 [-22.59, -0.39] 1/5  worst  -72.41 maxDD  -75.26 held  235 worstMkt  -20.89 refills  7.0
+     inv3N drift10 refill15 noAI        8.05   +0.16 [-19.20,+20.08] 3/5  worst  -25.06 maxDD  -25.06 held  200 worstMkt  -16.46 refills  6.8
+     refill15 noAI                     15.73   +7.84 [-14.08,+27.97] 4/5  worst  -32.87 maxDD  -32.87 held  235 worstMkt  -24.52 refills  6.8
+     zero-side                          8.33   +0.44 [ -0.33, +1.21] 2/5  worst  -69.19 maxDD  -70.93 held  211 worstMkt  -35.13 refills  0.0
+     zero-side refill15                 3.59   -4.30 [-13.04, +5.15] 1/5  worst  -81.56 maxDD  -85.15 held  266 worstMkt  -35.13 refills  7.0
+     zero-side inv3N drift10 refill15   0.24   -7.65 [-19.77, +3.73] 2/5  worst  -66.60 maxDD  -69.87 held  231 worstMkt  -20.89 refills  7.0
+     zero-market                       10.19   +2.30 [ -0.51, +6.49] 2/5  worst  -59.24 maxDD  -60.98 held  194 worstMkt  -35.13 refills  0.0
+     zero-market refill15               5.46   -2.44 [-11.33, +6.72] 1/5  worst  -71.62 maxDD  -75.20 held  250 worstMkt  -35.13 refills  7.0
+     zero-market inv3N drift10 refill15   0.80   -7.09 [-19.50, +5.23] 2/5  worst  -63.05 maxDD  -66.33 held  224 worstMkt  -20.89 refills  7.0
+  -- C580 M15 k1 n20 cm100:   4.31 a day (worst -73.51, maxDD -79.36, held 311)
+     inv3N                              1.05   -3.25 [-16.16, +7.23] 3/5  worst  -58.11 maxDD  -60.75 held  256 worstMkt  -24.90 refills  0.0
+     inv2N                             -4.26   -8.57 [-31.66, +9.26] 2/5  worst  -48.48 maxDD  -72.73 held  247 worstMkt  -21.72 refills  0.0
+     drift5                           -14.89  -19.19 [-60.92, +7.57] 1/5  worst  -42.92 maxDD -109.37 held  228 worstMkt  -23.36 refills  0.0
+     drift10                            5.34   +1.03 [ -0.56, +2.96] 3/5  worst  -71.10 maxDD  -75.81 held  307 worstMkt  -24.20 refills  0.0
+     drift20                            4.42   +0.12 [ -0.60, +0.73] 2/5  worst  -72.51 maxDD  -77.74 held  309 worstMkt  -34.88 refills  0.0
+     noAI                               1.91   -2.40 [-13.75, +9.66] 2/5  worst  -55.58 maxDD  -88.01 held  303 worstMkt  -40.81 refills  0.0
+     noAI-counts                       -7.54  -11.84 [-37.01, +9.63] 2/5  worst  -42.46 maxDD  -78.15 held  241 worstMkt  -24.52 refills  0.0
+     refill15                           2.48   -1.82 [ -6.15, +2.56] 2/5  worst  -84.96 maxDD  -94.95 held  315 worstMkt  -35.38 refills  6.4
+     refill60                          -0.51   -4.81 [ -8.76, -0.86] 1/5  worst  -88.21 maxDD -100.21 held  320 worstMkt  -35.38 refills  5.8
+     inv3N drift10                      1.18   -3.12 [-14.00, +5.71] 3/5  worst  -59.25 maxDD  -61.07 held  262 worstMkt  -20.89 refills  0.0
+     inv3N drift10 refill15            -3.08   -7.38 [-18.44, -0.07] 2/5  worst  -78.37 maxDD  -87.79 held  277 worstMkt  -20.89 refills  6.4
+     inv3N drift10 refill15 noAI        3.82   -0.49 [-11.50, +9.18] 3/5  worst  -51.24 maxDD  -53.59 held  233 worstMkt  -19.64 refills  7.0
+     refill15 noAI                     10.37   +6.07 [ +0.98,+11.28] 4/5  worst  -62.26 maxDD  -63.41 held  269 worstMkt  -24.52 refills  7.0
+     zero-side                          6.64   +2.34 [ -5.59, +9.30] 3/5  worst  -63.16 maxDD  -67.41 held  291 worstMkt  -35.13 refills  0.0
+     zero-side refill15                 2.51   -1.79 [-10.64, +6.36] 2/5  worst  -82.35 maxDD  -94.07 held  306 worstMkt  -35.13 refills  6.4
+     zero-side inv3N drift10 refill15  -0.62   -4.93 [-20.30, +5.33] 2/5  worst  -68.01 maxDD  -77.72 held  265 worstMkt  -20.89 refills  6.4
+     zero-market                        8.76   +4.45 [ -5.06,+13.36] 3/5  worst  -53.21 maxDD  -56.93 held  274 worstMkt  -35.13 refills  0.0
+     zero-market refill15               4.58   +0.27 [ -9.24, +7.44] 3/5  worst  -72.30 maxDD  -83.58 held  290 worstMkt  -35.13 refills  6.4
+     zero-market inv3N drift10 refill15  -0.05   -4.35 [-20.75, +6.70] 2/5  worst  -64.46 maxDD  -74.14 held  258 worstMkt  -20.89 refills  6.4
+  -- C580 M10 k1.5 n20 cm150:   8.77 a day (worst -83.50, maxDD -87.04, held 280)
+     inv3N                              2.26   -6.50 [-21.91, +6.27] 2/5  worst  -67.72 maxDD  -76.32 held  242 worstMkt  -34.08 refills  0.0
+     inv2N                              0.39   -8.38 [-29.97,+11.91] 1/5  worst  -46.91 maxDD  -60.05 held  243 worstMkt  -28.43 refills  0.0
+     drift5                           -16.78  -25.54 [-87.57,+18.04] 1/5  worst  -87.33 maxDD -114.78 held  206 worstMkt  -35.00 refills  0.0
+     drift10                           12.32   +3.55 [ -0.78, +8.31] 2/5  worst  -65.84 maxDD  -68.48 held  285 worstMkt  -34.75 refills  0.0
+     drift20                            8.43   -0.34 [ -1.03, +0.04] 1/5  worst  -83.52 maxDD  -87.23 held  279 worstMkt  -54.17 refills  0.0
+     noAI                              13.90   +5.13 [ -9.21,+22.81] 3/5  worst  -73.53 maxDD  -73.53 held  316 worstMkt  -32.80 refills  0.0
+     noAI-counts                      -12.42  -21.19 [-48.14, +2.18] 1/5  worst  -59.59 maxDD  -93.88 held  286 worstMkt  -32.80 refills  0.0
+     refill15                           8.77   -0.00 [-16.92,+15.51] 3/5  worst  -65.50 maxDD  -76.32 held  382 worstMkt  -50.69 refills  7.0
+     refill60                           1.36   -7.41 [-26.67,+15.12] 2/5  worst  -97.16 maxDD -117.63 held  391 worstMkt  -49.74 refills  6.2
+     inv3N drift10                      6.75   -2.02 [-17.25,+13.22] 1/5  worst  -47.59 maxDD  -52.90 held  249 worstMkt  -20.52 refills  0.0
+     inv3N drift10 refill15            -8.64  -17.41 [-28.96, -4.39] 1/5  worst  -85.48 maxDD -106.81 held  395 worstMkt  -25.68 refills  7.0
+     inv3N drift10 refill15 noAI        6.93   -1.84 [-23.92,+19.29] 3/5  worst  -43.52 maxDD  -43.52 held  348 worstMkt  -25.68 refills  6.8
+     refill15 noAI                     19.53  +10.76 [-12.33,+33.29] 4/5  worst  -62.68 maxDD  -62.68 held  375 worstMkt  -25.68 refills  6.8
+     zero-side                          6.18   -2.59 [ -5.71, +0.30] 2/5  worst  -91.03 maxDD  -97.95 held  317 worstMkt  -51.71 refills  0.0
+     zero-side refill15                 5.39   -3.38 [-11.80, +5.04] 2/5  worst  -72.63 maxDD  -82.71 held  402 worstMkt  -46.41 refills  7.0
+     zero-side inv3N drift10 refill15  -4.87  -13.64 [-30.69, +2.69] 2/5  worst  -70.15 maxDD  -88.41 held  383 worstMkt  -22.46 refills  7.0
+     zero-market                       10.06   +1.29 [ -2.87, +5.88] 3/5  worst  -73.57 maxDD  -80.58 held  301 worstMkt  -50.06 refills  0.0
+     zero-market refill15               5.23   -3.54 [-11.49, +4.71] 2/5  worst  -71.88 maxDD  -81.37 held  401 worstMkt  -49.55 refills  7.0
+     zero-market inv3N drift10 refill15  -4.35  -13.12 [-30.23, +3.68] 2/5  worst  -68.48 maxDD  -86.34 held  389 worstMkt  -22.46 refills  7.0
+  -- C830 M10 k1 n20 cm100:   7.93 a day (worst -69.91, maxDD -71.31, held 202)
+     inv3N                              3.66   -4.27 [-13.71, +4.80] 1/5  worst  -54.03 maxDD  -56.86 held  164 worstMkt  -24.90 refills  0.0
+     inv2N                              0.59   -7.33 [-28.01,+12.72] 1/5  worst  -32.10 maxDD  -38.50 held  155 worstMkt  -21.72 refills  0.0
+     drift5                            -8.01  -15.94 [-56.41,+15.19] 1/5  worst  -49.50 maxDD  -64.83 held  148 worstMkt  -19.27 refills  0.0
+     drift10                            9.27   +1.34 [ -0.31, +3.28] 3/5  worst  -65.72 maxDD  -66.69 held  199 worstMkt  -24.20 refills  0.0
+     drift20                            7.93   +0.00 [ -0.61, +0.54] 2/5  worst  -68.94 maxDD  -69.98 held  200 worstMkt  -34.88 refills  0.0
+     noAI                              14.77   +6.84 [ -4.94,+19.75] 4/5  worst  -35.67 maxDD  -35.67 held  159 worstMkt  -24.52 refills  0.0
+     noAI-counts                       -6.03  -13.95 [-40.94,+10.45] 3/5  worst  -34.64 maxDD  -69.54 held  183 worstMkt  -24.52 refills  0.0
+     refill15                           2.76   -5.17 [-18.24, +8.44] 2/5  worst  -90.64 maxDD  -93.85 held  273 worstMkt  -35.38 refills  7.0
+     refill60                           3.63   -4.30 [-16.97, +7.44] 3/5  worst  -88.25 maxDD  -88.25 held  274 worstMkt  -35.38 refills  7.0
+     inv3N drift10                      4.14   -3.78 [-12.22, +4.45] 1/5  worst  -54.82 maxDD  -56.84 held  170 worstMkt  -20.89 refills  0.0
+     inv3N drift10 refill15            -3.30  -11.23 [-22.59, -0.51] 1/5  worst  -72.38 maxDD  -75.16 held  235 worstMkt  -20.89 refills  7.0
+     inv3N drift10 refill15 noAI        8.06   +0.13 [-19.19,+20.10] 3/5  worst  -25.06 maxDD  -25.06 held  200 worstMkt  -16.46 refills  6.8
+     refill15 noAI                     15.77   +7.84 [-14.08,+27.97] 4/5  worst  -32.87 maxDD  -32.87 held  235 worstMkt  -24.52 refills  6.8
+     zero-side                          8.37   +0.44 [ -0.33, +1.21] 2/5  worst  -69.19 maxDD  -70.76 held  211 worstMkt  -35.13 refills  0.0
+     zero-side refill15                 3.63   -4.30 [-13.04, +5.15] 1/5  worst  -81.56 maxDD  -84.98 held  266 worstMkt  -35.13 refills  7.0
+     zero-side inv3N drift10 refill15   0.25   -7.67 [-19.80, +3.76] 2/5  worst  -66.57 maxDD  -69.77 held  231 worstMkt  -20.89 refills  7.0
+     zero-market                       10.23   +2.30 [ -0.51, +6.49] 2/5  worst  -59.24 maxDD  -60.81 held  194 worstMkt  -35.13 refills  0.0
+     zero-market refill15               5.49   -2.44 [-11.33, +6.72] 1/5  worst  -71.62 maxDD  -75.03 held  250 worstMkt  -35.13 refills  7.0
+     zero-market inv3N drift10 refill15   0.81   -7.12 [-19.48, +5.21] 2/5  worst  -63.02 maxDD  -66.22 held  224 worstMkt  -20.89 refills  7.0
+  -- C830 M15 k1 n20 cm100:   5.47 a day (worst -73.44, maxDD -76.45, held 311)
+     inv3N                              1.07   -4.40 [-16.60, +5.62] 3/5  worst  -58.08 maxDD  -60.62 held  256 worstMkt  -24.90 refills  0.0
+     inv2N                             -4.26   -9.74 [-31.69, +7.19] 1/5  worst  -48.48 maxDD  -72.73 held  247 worstMkt  -21.72 refills  0.0
+     drift5                           -14.89  -20.36 [-61.16, +7.09] 1/5  worst  -42.92 maxDD -109.37 held  228 worstMkt  -23.36 refills  0.0
+     drift10                            6.47   +0.99 [ -0.69, +3.04] 3/5  worst  -69.58 maxDD  -72.17 held  308 worstMkt  -24.20 refills  0.0
+     drift20                            5.47   +0.00 [ -0.61, +0.54] 2/5  worst  -72.46 maxDD  -75.12 held  309 worstMkt  -34.88 refills  0.0
+     noAI                               2.10   -3.37 [-16.34, +9.59] 2/5  worst  -55.58 maxDD  -87.53 held  303 worstMkt  -40.81 refills  0.0
+     noAI-counts                       -7.54  -13.01 [-37.04, +8.43] 1/5  worst  -42.46 maxDD  -78.15 held  241 worstMkt  -24.52 refills  0.0
+     refill15                           1.44   -4.03 [-10.24, +1.88] 2/5  worst  -92.52 maxDD -102.87 held  326 worstMkt  -35.38 refills  6.4
+     refill60                          -0.26   -5.73 [-10.69, -0.90] 1/5  worst  -93.16 maxDD -102.92 held  326 worstMkt  -35.38 refills  5.8
+     inv3N drift10                      1.20   -4.27 [-14.01, +4.53] 3/5  worst  -59.22 maxDD  -60.94 held  262 worstMkt  -20.89 refills  0.0
+     inv3N drift10 refill15            -2.96   -8.44 [-19.46, -0.93] 2/5  worst  -78.34 maxDD  -87.43 held  277 worstMkt  -20.89 refills  6.4
+     inv3N drift10 refill15 noAI        3.83   -1.65 [-11.94, +7.72] 2/5  worst  -51.21 maxDD  -53.48 held  233 worstMkt  -19.64 refills  7.0
+     refill15 noAI                     10.41   +4.94 [ -0.24,+10.64] 4/5  worst  -62.26 maxDD  -63.24 held  269 worstMkt  -24.52 refills  7.0
+     zero-side                          7.03   +1.56 [ -6.23, +9.10] 2/5  worst  -63.16 maxDD  -66.38 held  291 worstMkt  -35.13 refills  0.0
+     zero-side refill15                 3.01   -2.47 [-11.30, +5.90] 2/5  worst  -82.24 maxDD  -92.80 held  306 worstMkt  -35.13 refills  6.4
+     zero-side inv3N drift10 refill15  -0.58   -6.05 [-20.28, +4.25] 2/5  worst  -67.98 maxDD  -77.52 held  265 worstMkt  -20.89 refills  6.4
+     zero-market                        8.93   +3.46 [ -6.36,+12.47] 2/5  worst  -53.21 maxDD  -56.43 held  274 worstMkt  -35.13 refills  0.0
+     zero-market refill15               4.87   -0.60 [ -9.83, +7.44] 3/5  worst  -72.30 maxDD  -82.86 held  290 worstMkt  -35.13 refills  6.4
+     zero-market inv3N drift10 refill15  -0.02   -5.49 [-20.73, +5.67] 2/5  worst  -64.43 maxDD  -73.98 held  258 worstMkt  -20.89 refills  6.4
+  -- C830 M10 k1.5 n20 cm150:   8.36 a day (worst -86.75, maxDD -92.45, held 290)
+     inv3N                              2.99   -5.37 [-21.95, +6.18] 2/5  worst  -69.60 maxDD  -75.70 held  245 worstMkt  -31.23 refills  0.0
+     inv2N                              1.98   -6.38 [-28.46,+13.50] 1/5  worst  -46.68 maxDD  -56.96 held  244 worstMkt  -28.43 refills  0.0
+     drift5                           -16.78  -25.14 [-87.16,+18.81] 1/5  worst  -87.33 maxDD -114.78 held  206 worstMkt  -35.00 refills  0.0
+     drift10                           11.04   +2.68 [ +0.22, +5.07] 3/5  worst  -81.25 maxDD  -81.25 held  287 worstMkt  -33.96 refills  0.0
+     drift20                            8.43   +0.07 [ -0.70, +0.84] 2/5  worst  -84.86 maxDD  -90.45 held  293 worstMkt  -50.87 refills  0.0
+     noAI                              14.28   +5.92 [ -8.80,+23.22] 3/5  worst  -73.53 maxDD  -73.53 held  317 worstMkt  -32.80 refills  0.0
+     noAI-counts                      -12.42  -20.78 [-48.13, +2.59] 1/5  worst  -59.59 maxDD  -93.87 held  286 worstMkt  -32.80 refills  0.0
+     refill15                          -4.22  -12.58 [-37.07,+11.46] 2/5  worst  -46.08 maxDD  -79.35 held  390 worstMkt  -39.32 refills  7.0
+     refill60                          -4.26  -12.62 [-34.81, +9.45] 2/5  worst  -54.04 maxDD  -85.24 held  392 worstMkt  -39.32 refills  6.2
+     inv3N drift10                      4.19   -4.17 [-20.29, +7.51] 2/5  worst  -67.39 maxDD  -67.93 held  253 worstMkt  -20.52 refills  0.0
+     inv3N drift10 refill15            -8.16  -16.52 [-51.10,+14.14] 2/5  worst  -33.44 maxDD  -86.89 held  354 worstMkt  -25.68 refills  7.0
+     inv3N drift10 refill15 noAI        3.99   -4.37 [-24.30,+14.53] 3/5  worst  -59.20 maxDD  -59.20 held  367 worstMkt  -25.68 refills  6.8
+     refill15 noAI                     15.40   +7.04 [-17.04,+31.12] 4/5  worst  -82.26 maxDD  -82.26 held  410 worstMkt  -32.80 refills  6.8
+     zero-side                          8.63   +0.27 [ -1.99, +2.05] 4/5  worst  -85.36 maxDD  -90.99 held  317 worstMkt  -50.06 refills  0.0
+     zero-side refill15                -1.32   -9.68 [-16.25, +0.94] 1/5  worst -102.09 maxDD -123.58 held  472 worstMkt  -49.81 refills  7.0
+     zero-side inv3N drift10 refill15 -11.96  -20.32 [-35.77, -4.96] 1/5  worst  -97.46 maxDD -121.31 held  410 worstMkt  -22.46 refills  7.0
+     zero-market                       10.64   +2.28 [ -1.92, +6.73] 4/5  worst  -74.82 maxDD  -80.45 held  301 worstMkt  -50.06 refills  0.0
+     zero-market refill15              -1.10   -9.47 [-17.33, +0.38] 1/5  worst  -98.48 maxDD -122.20 held  464 worstMkt  -50.06 refills  7.0
+     zero-market inv3N drift10 refill15  -9.92  -18.28 [-35.95, -1.72] 1/5  worst  -87.30 maxDD -112.07 held  393 worstMkt  -22.46 refills  7.0
+  -- C1330 M10 k1 n20 cm100:   8.09 a day (worst -69.85, maxDD -70.64, held 207)
+     inv3N                              3.21   -4.88 [-14.89, +4.51] 1/5  worst  -54.00 maxDD  -56.83 held  167 worstMkt  -24.90 refills  0.0
+     inv2N                              0.59   -7.50 [-28.17,+12.41] 1/5  worst  -32.10 maxDD  -38.50 held  155 worstMkt  -21.72 refills  0.0
+     drift5                            -8.01  -16.10 [-56.60,+15.16] 1/5  worst  -49.50 maxDD  -64.83 held  148 worstMkt  -19.27 refills  0.0
+     drift10                            9.44   +1.34 [ -0.31, +3.28] 3/5  worst  -65.66 maxDD  -66.02 held  204 worstMkt  -24.20 refills  0.0
+     drift20                            8.09   +0.00 [ -0.61, +0.54] 2/5  worst  -68.88 maxDD  -69.31 held  205 worstMkt  -34.88 refills  0.0
+     noAI                              14.93   +6.84 [ -4.94,+19.75] 4/5  worst  -35.61 maxDD  -35.61 held  164 worstMkt  -24.52 refills  0.0
+     noAI-counts                       -5.89  -13.98 [-40.95,+10.44] 3/5  worst  -34.64 maxDD  -69.54 held  183 worstMkt  -24.52 refills  0.0
+     refill15                           2.93   -5.17 [-18.24, +8.44] 2/5  worst  -90.58 maxDD  -93.18 held  278 worstMkt  -35.38 refills  7.0
+     refill60                           3.80   -4.30 [-16.97, +7.44] 3/5  worst  -88.19 maxDD  -88.19 held  279 worstMkt  -35.38 refills  7.0
+     inv3N drift10                      3.69   -4.40 [-13.29, +4.16] 1/5  worst  -54.79 maxDD  -56.81 held  173 worstMkt  -20.89 refills  0.0
+     inv3N drift10 refill15            -3.75  -11.84 [-23.53, -0.93] 1/5  worst  -72.35 maxDD  -75.13 held  238 worstMkt  -20.89 refills  7.0
+     inv3N drift10 refill15 noAI        7.61   -0.48 [-20.12,+20.08] 2/5  worst  -25.06 maxDD  -25.06 held  203 worstMkt  -16.46 refills  6.8
+     refill15 noAI                     15.93   +7.84 [-14.08,+27.97] 4/5  worst  -32.87 maxDD  -32.87 held  241 worstMkt  -24.52 refills  6.8
+     zero-side                          8.53   +0.44 [ -0.33, +1.21] 2/5  worst  -69.13 maxDD  -70.09 held  217 worstMkt  -35.13 refills  0.0
+     zero-side refill15                 3.79   -4.30 [-13.04, +5.15] 1/5  worst  -81.50 maxDD  -84.31 held  272 worstMkt  -35.13 refills  7.0
+     zero-side inv3N drift10 refill15  -0.20   -8.29 [-20.41, +3.45] 2/5  worst  -66.54 maxDD  -69.74 held  235 worstMkt  -20.89 refills  7.0
+     zero-market                       10.39   +2.30 [ -0.51, +6.49] 2/5  worst  -59.18 maxDD  -60.14 held  200 worstMkt  -35.13 refills  0.0
+     zero-market refill15               5.66   -2.44 [-11.33, +6.72] 1/5  worst  -71.56 maxDD  -74.36 held  255 worstMkt  -35.13 refills  7.0
+     zero-market inv3N drift10 refill15   0.37   -7.72 [-20.41, +4.97] 2/5  worst  -62.99 maxDD  -66.19 held  227 worstMkt  -20.89 refills  7.0
+  -- C1330 M15 k1 n20 cm100:   5.64 a day (worst -73.38, maxDD -75.78, held 316)
+     inv3N                              0.62   -5.02 [-18.15, +5.33] 2/5  worst  -58.05 maxDD  -60.59 held  260 worstMkt  -24.90 refills  0.0
+     inv2N                             -4.26   -9.90 [-31.74, +7.03] 1/5  worst  -48.48 maxDD  -72.73 held  247 worstMkt  -21.72 refills  0.0
+     drift5                           -14.89  -20.52 [-61.21, +7.06] 1/5  worst  -42.92 maxDD -109.37 held  228 worstMkt  -23.36 refills  0.0
+     drift10                            6.63   +0.99 [ -0.69, +3.04] 3/5  worst  -69.52 maxDD  -71.50 held  313 worstMkt  -24.20 refills  0.0
+     drift20                            5.64   +0.00 [ -0.61, +0.54] 2/5  worst  -72.40 maxDD  -74.45 held  314 worstMkt  -34.88 refills  0.0
+     noAI                               2.26   -3.37 [-16.34, +9.59] 2/5  worst  -55.52 maxDD  -86.86 held  308 worstMkt  -40.81 refills  0.0
+     noAI-counts                       -7.54  -13.17 [-37.17, +8.19] 1/5  worst  -42.46 maxDD  -78.15 held  241 worstMkt  -24.52 refills  0.0
+     refill15                           1.61   -4.03 [-10.24, +1.88] 2/5  worst  -92.46 maxDD -102.21 held  331 worstMkt  -35.38 refills  6.4
+     refill60                          -0.10   -5.73 [-10.69, -0.90] 1/5  worst  -93.10 maxDD -102.25 held  331 worstMkt  -35.38 refills  5.8
+     inv3N drift10                      0.75   -4.88 [-15.47, +4.33] 3/5  worst  -59.19 maxDD  -60.91 held  266 worstMkt  -20.89 refills  0.0
+     inv3N drift10 refill15            -3.41   -9.05 [-20.93, -1.01] 2/5  worst  -78.31 maxDD  -87.40 held  281 worstMkt  -20.89 refills  6.4
+     inv3N drift10 refill15 noAI        3.38   -2.26 [-13.37, +7.71] 2/5  worst  -51.18 maxDD  -53.45 held  236 worstMkt  -19.64 refills  7.0
+     refill15 noAI                     10.58   +4.94 [ -0.24,+10.64] 4/5  worst  -62.20 maxDD  -62.57 held  274 worstMkt  -24.52 refills  7.0
+     zero-side                          7.20   +1.56 [ -6.23, +9.10] 2/5  worst  -63.10 maxDD  -65.71 held  297 worstMkt  -35.13 refills  0.0
+     zero-side refill15                 3.17   -2.47 [-11.30, +5.90] 2/5  worst  -82.18 maxDD  -92.13 held  312 worstMkt  -35.13 refills  6.4
+     zero-side inv3N drift10 refill15  -1.02   -6.66 [-21.68, +4.10] 2/5  worst  -67.95 maxDD  -77.49 held  269 worstMkt  -20.89 refills  6.4
+     zero-market                        9.09   +3.46 [ -6.36,+12.47] 2/5  worst  -53.15 maxDD  -55.76 held  280 worstMkt  -35.13 refills  0.0
+     zero-market refill15               5.03   -0.60 [ -9.83, +7.44] 3/5  worst  -72.24 maxDD  -82.19 held  295 worstMkt  -35.13 refills  6.4
+     zero-market inv3N drift10 refill15  -0.46   -6.09 [-22.11, +5.52] 2/5  worst  -64.40 maxDD  -73.95 held  261 worstMkt  -20.89 refills  6.4
+  -- C1330 M10 k1.5 n20 cm150:   8.45 a day (worst -86.70, maxDD -92.13, held 292)
+     inv3N                              2.50   -5.95 [-23.54, +6.18] 2/5  worst  -69.54 maxDD  -75.50 held  245 worstMkt  -31.23 refills  0.0
+     inv2N                              1.32   -7.13 [-30.04,+13.51] 1/5  worst  -46.62 maxDD  -57.56 held  243 worstMkt  -28.43 refills  0.0
+     drift5                           -16.78  -25.23 [-87.27,+18.79] 1/5  worst  -87.33 maxDD -114.78 held  206 worstMkt  -35.00 refills  0.0
+     drift10                           11.13   +2.68 [ +0.22, +5.07] 3/5  worst  -81.21 maxDD  -81.21 held  289 worstMkt  -33.96 refills  0.0
+     drift20                            8.52   +0.07 [ -0.70, +0.84] 2/5  worst  -84.82 maxDD  -90.13 held  295 worstMkt  -50.87 refills  0.0
+     noAI                              14.38   +5.92 [ -8.80,+23.22] 3/5  worst  -73.49 maxDD  -73.49 held  319 worstMkt  -32.80 refills  0.0
+     noAI-counts                      -12.42  -20.87 [-48.15, +2.51] 1/5  worst  -59.59 maxDD  -93.87 held  286 worstMkt  -32.80 refills  0.0
+     refill15                          -4.22  -12.67 [-37.15,+11.43] 2/5  worst  -46.08 maxDD  -79.35 held  390 worstMkt  -39.32 refills  7.0
+     refill60                          -4.26  -12.72 [-34.84, +9.29] 2/5  worst  -54.04 maxDD  -85.24 held  392 worstMkt  -39.32 refills  6.2
+     inv3N drift10                      3.22   -5.24 [-23.32, +7.40] 2/5  worst  -67.33 maxDD  -67.73 held  258 worstMkt  -20.52 refills  0.0
+     inv3N drift10 refill15            -8.16  -16.61 [-51.19,+13.98] 2/5  worst  -33.44 maxDD  -86.89 held  354 worstMkt  -25.68 refills  7.0
+     inv3N drift10 refill15 noAI        3.02   -5.43 [-26.37,+14.37] 3/5  worst  -59.14 maxDD  -59.14 held  372 worstMkt  -25.68 refills  6.8
+     refill15 noAI                     15.50   +7.04 [-17.04,+31.12] 4/5  worst  -82.22 maxDD  -82.22 held  412 worstMkt  -32.80 refills  6.8
+     zero-side                          8.71   +0.25 [ -2.02, +2.03] 4/5  worst  -85.36 maxDD  -90.71 held  315 worstMkt  -50.06 refills  0.0
+     zero-side refill15                -7.15  -15.60 [-25.55, -3.96] 1/5  worst -114.74 maxDD -145.05 held  472 worstMkt  -50.06 refills  7.0
+     zero-side inv3N drift10 refill15 -12.95  -21.40 [-37.93, -5.11] 1/5  worst  -97.40 maxDD -126.31 held  417 worstMkt  -22.46 refills  7.0
+     zero-market                       10.71   +2.26 [ -1.94, +6.69] 4/5  worst  -74.82 maxDD  -80.18 held  299 worstMkt  -50.06 refills  0.0
+     zero-market refill15              -1.42   -9.88 [-16.59, +0.76] 1/5  worst -103.91 maxDD -126.71 held  469 worstMkt  -50.06 refills  7.0
+     zero-market inv3N drift10 refill15 -10.89  -19.35 [-38.19, -1.79] 1/5  worst  -87.24 maxDD -116.97 held  400 worstMkt  -22.46 refills  7.0
+
+== at each cap: the arm chosen in sample, read out of sample and on all five days, against today's knobs at $330 (paired day bootstrap of the five days, seed 20261010, 2,000 draws, 5th-95th)
+  $330   C330 M10 k3 n20 cm300            all  19.86  IS  53.23  OOS -30.19   vs today's: +10.27 [-11.29, +44.63], 2/5 days ahead
+  $430   C430 M10 k3 n20 cm300            all  26.33  IS  55.18  OOS -16.93   vs today's: +16.74 [-1.18, +44.64], 3/5 days ahead
+  $580   C580 M10 k2 n50 cm400            all  14.41  IS  53.19  OOS -43.75   vs today's:  +4.82 [-15.12, +29.05], 3/5 days ahead
+  $830   C830 M10 k2 n50 cm200            all  -0.20  IS  56.08  OOS -84.63   vs today's:  -9.79 [-48.21, +28.62], 3/5 days ahead
+  $1330  C1330 M30 k1 n100 cm200          all  11.18  IS  77.13  OOS -87.76   vs today's:  +1.59 [-44.17, +50.07], 2/5 days ahead
+
+== HEADLINE: at each total cap, at-price fills; net $ a day at R = 0.23 / 0.47 / 0.58 (simulator units), strict at 0.47, in / out of sample at 0.47,
+   the change against today's rule at $330 (paired day bootstrap, 5th-95th, days ahead), worst day and deepest fall at R = 0.23, capital used (peak / mean), held at close, POSTs a day, stop tripped
+  $330  today       C330 M10 k1 n20 cm100                         0.96   9.59  13.55  12.79  30.71 -22.09   +0.00 [ +0.00, +0.00] 0/5  -54.94  -59.31   330/ 227  180   5191 no
+  $330  recommended C330 M10 k1 n20 cm100 noAI                    8.11  14.68  17.70  14.87  29.38  -7.37   +5.09 [ -4.86,+14.42] 4/5  -35.67  -35.67   330/ 202  159   4523 no
+  $330  best IS     C330 M10 k3 n20 cm300                        10.50  19.86  24.15   8.85  53.23 -30.19  +10.27 [-11.29,+44.63] 2/5  -57.13  -73.83   364/ 244  194   2035 no
+  $430  today       C430 M10 k1 n20 cm100                        -2.09   7.02  11.19  11.35  30.52 -28.25   -2.58 [ -8.14, +0.76] 1/5  -69.91  -73.56   430/ 259  202   5332 no
+  $430  recommended C430 M10 k1 n20 cm100 noAI                    8.14  14.75  17.78  14.93  29.38  -7.21   +5.16 [ -4.79,+14.49] 4/5  -35.67  -35.67   380/ 202  159   4527 no
+  $430  best IS     C430 M10 k3 n20 cm300                        16.94  26.33  30.64  -1.43  55.18 -16.93  +16.74 [ -1.18,+44.64] 3/5  -40.76  -44.09   474/ 346  289   2600 no
+  $580  today       C580 M10 k1 n20 cm100                        -1.67   7.89  12.27  11.50  30.52 -26.06   -1.70 [ -7.27, +2.51] 1/5  -69.91  -71.48   496/ 261  202   5433 no
+  $580  recommended C580 M10 k1 n20 cm100 noAI                    8.12  14.73  17.76  14.95  29.38  -7.24   +5.14 [ -4.81,+14.47] 4/5  -35.67  -35.67   380/ 203  159   4571 no
+  $580  best IS     C580 M10 k2 n50 cm400                         3.67  14.41  19.34 -11.36  53.19 -43.75   +4.82 [-15.12,+29.05] 3/5  -76.49  -96.16   658/ 466  408   3543 no
+  $830  today       C830 M10 k1 n20 cm100                        -1.64   7.93  12.31  11.50  30.52 -25.97   -1.66 [ -7.23, +2.58] 1/5  -69.91  -71.31   510/ 263  202   5458 no
+  $830  recommended C830 M10 k1 n20 cm100 noAI                    8.15  14.77  17.80  14.95  29.39  -7.15   +5.18 [ -4.77,+14.51] 4/5  -35.67  -35.67   386/ 205  159   4595 no
+  $830  best IS     C830 M10 k2 n50 cm200                       -12.35  -0.20   5.36  -5.21  56.08 -84.63   -9.79 [-48.21,+28.62] 3/5 -142.26 -182.50   854/ 662  568   3863 no
+  $1330 today       C1330 M10 k1 n20 cm100                       -1.49   8.09  12.48  11.51  30.54 -25.59   -1.50 [ -7.05, +2.86] 1/5  -69.85  -70.64   529/ 266  207   5469 no
+  $1330 recommended C1330 M10 k1 n20 cm100 noAI                   8.30  14.93  17.98  14.96  29.41  -6.77   +5.34 [ -4.63,+14.90] 4/5  -35.61  -35.61   423/ 209  164   4607 no
+  $1330 best IS     C1330 M30 k1 n100 cm200                      -9.88  11.18  20.83   2.94  77.13 -87.76   +1.59 [-44.17,+50.07] 2/5 -103.20 -194.95  1369/1217 1100  11621 no

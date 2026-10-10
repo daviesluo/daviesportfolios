@@ -1,0 +1,20 @@
+per market, live 2026-10-09 (01:33 -> 23:59 UTC)
+market                  min           min_F        min_Fcur        min_both      agree_both cur_not_scoring scoring_not_cur           F_sel           F_cur          F_both      F_cur_both   v_changed_min    paid
+0x045fdf4b             1347             950             116              95              95              21               0           23.29            1.06            0.88            0.88               0    0.87
+0x5b3350e2             1347             358              13             332               8               5             324            3.44            0.12            3.20            0.08               0    0.27
+0x5fec6675             1347             574             574             568             568               6               0            2.91            1.93            2.86            1.88               0    1.45
+0x9235351e             1347             710             413             762             411               2             351            8.04            1.63            7.98            1.57             105    1.48
+0xa326c49f             1347            1193             165             163             162               3               1           10.88            1.19            0.97            0.97               0    0.97
+0xecc209a6             1239             733              24              18              18               6               0            9.39            0.44            0.35            0.35               0    0.17
+0xeee73848             1347             277             209             273             209               0              64            2.51            0.74            2.35            0.74               0    0.66
+0xf0503539             1347            1182               0               0               0               0               0           84.14            0.00            0.00            0.00               0    0.00
+0xf6f3f159             1347             153             153             153             153               0               0            0.66            0.66            0.66            0.66               0    0.57
+0xfbd3437c             1347            1119              63             279              25              38             254            8.62            0.26            0.56            0.07               0    0.09
+total                 13362            7249            1730            2643            1649              81             994          153.90            8.02           19.80            7.20             105    6.52
+
+F_sel 153.90, F_cur 8.02, F_both 19.80, F_cur_both 7.20
+of the minutes the current-programme formula scores (1730), Polymarket said both sides scored in 1649 (95 %)
+paid 6.52 / F_sel = R 0.042
+paid 6.52 / F_cur = R 0.813
+paid 6.52 / F_both = R 0.329
+paid 6.52 / F_cur_both = R 0.907

@@ -1,0 +1,5 @@
+# Built or downloaded locally, never committed: the pm-rec archive objects, the record built from them (~206 MB) and the
+# seed-check record (scripts/build.ts with LPSELF_SEED=1).
+data/pmrec/
+data/pr_record.json
+data/pr_seedcheck.json

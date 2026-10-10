@@ -1,0 +1,16 @@
+LP-ALLOC's reproduction check (2026-10-10 ~01:25 UTC).
+
+scripts/build.ts with LPSELF_SEED=1 (LPSELF's programme seed: the first day's dump and every archived hour before START),
+window 2026-10-05T00:00Z -> 2026-10-09T00:00Z, NMAX 200, the live orders given (none rest before 10-09), wrote a record
+of 5,536 minutes, 1,667 markets, 2,510,524 rows, 43,660 prints (sha256 dab5efd8b2278444421676c0ca02414104b585817061cadc37c9052d22517126).
+`scripts/alloc_run.ts <that record> <its progs> check` then printed, for each fill model:
+
+  L1 on this record to 2026-10-08T22:59:00.000Z: REPRODUCES LPSELF's lp_pr.json byte for byte
+  L1 on this record to 2026-10-08T22:59:00.000Z (at-price): REPRODUCES LPSELF's lp_pr_atprice.json byte for byte
+
+So the builder's three additions (markets of N over 20 kept beside the old 60, the programme timelines, our live orders
+taken out) change nothing L1 reads on LPSELF's window. The study's own record (LPRESEL6's seed: the window's first day's
+dump, hours from an hour before START) gives the same L1 days on 10-06, 10-07 and 10-08 to the cent and LPRESEL6's 10-05
+reward to the cent ($72.90; LPSELF's seed gave $88.73): the one difference is the seed of 10-05's first hour, as LPRESEL6
+recorded. The seed-check record and the run's JSON were not kept (the container's disk was full; the run's lines above
+are its own byte-for-byte comparison, copied from its output).

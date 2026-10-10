@@ -432,6 +432,25 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", and the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)"; each oldest
 first.
 
+### [2026-10-10 02:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LP-ALLOC (Davies' 10-10 question: how much to add to live-prep, and whether to quote more markets), research only**
+  (`reviews/2026-10-10-lp-capital-allocation.md`, `backtests/lp_alloc/`; sub-agent on branch `lp-alloc`, not pushed by it).
+  On a five-day full-universe pm-rec record, live-prep's rule was scored on each minute's programme. That is the reward
+  check: the formula falls by 64 % against the 00:00 programme. Fills were at-price, which reproduced 10-09's live fills:
+  69 / 1,216 against 70 / 1,219.
+  - **Verdict: add nothing now.** Today's knobs earn less with more money: −$3.34 a day at +$100, [−7.23, −0.56], 0 of 5
+    days ahead.
+  - More markets, N over 20, bigger orders, the market cap and the budget do not pay. N over 20 trips the −$75 stop at
+    $580.
+  - The one change the record supports is leaving AI markets out: +$3.95 a day [−5.89, +12.92], 4 of 5 days, worst day
+    −$37.70 against −$57.93. It is drafted as an Addendum-11 PROPOSAL in the review, not applied.
+  - R is in simulator units: 0.47 corresponds to live's 0.81, because the simulator's formula is 1.72× the path's.
+  - Re-selecting every 6 hours is rejected: its gain is carried-inventory fills while its rewards collapse.
+  - The 3N and 2N side caps cost $8–10 a day. Drift stops and the zero-score-buy rule are noise. Refill is mixed.
+  - Programmes are off 51 % of the top-10's minutes.
+  - AI is the worst type for markouts on all three paper records: −2.80 to −3.28 ¢ a share at 120 minutes.
+  - L1 reproduces LPSELF byte for byte on the builder with LPSELF's seed.
+
 ### [2026-10-10 02:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep's follow-on, built on branch `lp-followon`** (sub-agent; Addendum 10 of
   `reviews/2026-10-04-polymarket-lp-prereg.md`, mid-pool's Addendum 11). FUNDED (Davies: "子页面中的FUNDED得显示我实际真实投入的钱"):
