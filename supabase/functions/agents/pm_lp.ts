@@ -148,6 +148,15 @@ export const PM_LP_REFILL: LpRefillOptions = {
   afterMin: 15, afterMinAllOut: 0, maxPerDay: 10, perTurn: 1, triesPerTurn: 3, retryMin: 15, reserveSize: 30, refreshTop: 15, rerankEveryMin: 5, idleAlarmMin: 30,
 };
 
+/**
+ * Its per-market loss guard (`PmLpOptions.marketLoss`, Addendum 14), in dollars: no BUY in a market of today's while its
+ * fills are marked this much or more down, realised plus held at RW's adjusted mid from its first fill, rewards not
+ * counted; sells rest, and it lifts when the mark recovers. LP-REFILL (`reviews/2026-10-10-lp-refill-and-guards.md`): free
+ * on the five-day record (+$0.47 a day on no refill), and on live-prep's own 10-09/10-10 selections it cut MrBeast wk1's
+ * loss from $36.91 to $8.95; $7.5 and $5 cost $4 to $13 a day, so not below $10.
+ */
+export const PM_LP_MARKET_LOSS = 10;
+
 /** Its candidate rules: no 48-hour end-date horizon (RW-E's same-day rule only), weather markets out (RW-X's x1), AI markets out (Addendum 12). */
 export const PM_LP_CANDIDATE: PmCandidateRules = { endHorizon: false, excludeFeeTypes: ["weather_fees"], excludeQuestion: PM_LP_EXCLUDE_AI };
 
@@ -208,6 +217,7 @@ export const PM_LP_INSTANCE: PmLiveInstance = {
     rewardCheck: { ...PM_LP_REWARD_CHECK },
     readout: { ...PM_LP_READOUT },
     refill: { ...PM_LP_REFILL, table: "pm_lp_reserve" },
+    marketLoss: PM_LP_MARKET_LOSS,
     paper: { fills: "pm_lpprep_fills", settlements: "pm_lpprep_settlements", days: "pm_lpprep_days" },
   },
 };

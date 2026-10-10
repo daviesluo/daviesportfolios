@@ -1130,3 +1130,46 @@ left the universe; a market out 15 minutes is replaced by the first candidate th
 that fails is skipped and stays in the reserve, with the event and the row written and the replaced market never
 taken again; the daily cap holds; once every slot is out the refill starts on the next turn; the alarm fires once after
 30 minutes with no slot quoting. `agents/pm_lp_live_view.test.ts`: QUOTING TODAY leaves out the markets out now.
+
+## Addendum 14 (2026-10-10, about 15:00 UTC): a per-market loss guard on buys
+
+This addendum was written while live-prep is live and before the deploy it records. Not blind. Its scope is the guard
+alone: the refill's numbers (Addendum 13, `PM_LP_REFILL`) are unchanged, `rerankEveryMin` among them, which waits on
+Davies.
+
+**Why.** LP-REFILL (`reviews/2026-10-10-lp-refill-and-guards.md`, its recommendation 2;
+`backtests/lp_refill/results/analysis.txt`, stage `guards`) replayed the loss guards on live-prep's record. At $300, at-price fills, R 0.47, 10-05..10-09, on no refill:
+- a $10 guard is free: $11.63 a day against $11.16 with none, +$0.47 [−0.61, +1.78]; worst day −$34.56 against −$37.94;
+- on live-prep's own 10-09/10-10 selections, quoted as it quoted them, it cut MrBeast wk1 (`0x3090f7aa`) from −$36.91 to
+  −$8.95 (its buys stopped after 1,071 shares) and the book's fills from −$44.31 to −$17.66, for $7.78 of formula
+  ($200.83 → $193.05);
+- on a refill carrier it is free too: under Addendum 13's rule $17.53 → $17.65 a day, worst day −$19.09 → −$15.80;
+- below $10 it costs: $7.5 −$3.98 a day, $5 −$11.62.
+
+**The rule.** `PM_LP_MARKET_LOSS = 10` in `pm_lp.ts` (`PmLpOptions.marketLoss`). No BUY rests in a market of today's
+(selected at 00:00 or refilled) while its fills are marked $10 or more down: `lpMarketMark`, what its two tokens
+realised plus what each holds at RW's adjusted mid of the rest of the book against its average cost (YES at m, NO at
+1 − m), from the market's first fill, rewards not counted. A market so marked is worked exactly as the reward check's
+`lpOut` is: its buys are cancelled (gate `loss`), the sells of what it holds rest at the rule's prices, its minute says
+`carried` with the reason in `detail.lp.out` and the condition text. It is not latched: the turn the mark is above −$10
+again, it buys again. A turn with no mark (no book, or a holding and no adjusted mid) keeps the last turn's verdict
+(`state.lp.guard`). A market held back by the guard alone still holds its slot: the refill does not count it out, as
+LP-REFILL's simulator did not; QUOTING TODAY leaves it out while it lasts, as it takes no entry. A market already out
+for another reason keeps that reason.
+
+Nothing else changes: ten markets at 00:00, $200 of first quotes, N ≤ 20, $100 a market, 5N, the −$75 stop, the equity
+cap, the reward check, the AI rule, the refill and its numbers.
+
+**Forward test** (LP-REFILL's): the guard's blocks on live-prep's live days, each with the market's mark a day later.
+
+**The code it deploys:** `pm_live.ts` sha256 `59a1201a35b0ef2ccbdf16de933ea7b4469a1c4404146b252c481aa99068a510`, where Addendum 13 named `ef036c76…c480` (`lpMarketMark`,
+`PmLpOptions.marketLoss`, the guard in a live-prep turn); `pm_lp.ts` sha256 `a745ca4f7f074a98a320514495f7747184310f300673be80ffb416041f41bc12`, where Addendum 13
+named `0a85f529…2b25` (`PM_LP_MARKET_LOSS`, the instance's `marketLoss`). No migration. Mini-pool and mid-pool set no
+`lp` options and are unchanged.
+
+**Pinned** (`agents/pm_lp.test.ts`): `lpMarketMark` by hand (−10.01 and −9.99 realised, a NO holding at 1 − m, none
+without a fill or without a mark for a holding); a market marked −$10.01 rests no BUY and says why while the other
+market quotes on, its slot not out for the refill; at −$9.99 it buys; a further fill that brings the mark to −$9.99
+lifts the guard the next turn; with 5 YES held, its buy is cancelled for the guard and the sell of the 5 keeps resting,
+the mark counting the 5 at RW's adjusted mid, and the guard holds the next turn from the turn it started. Both turn
+tests fail with `marketLoss` unset.

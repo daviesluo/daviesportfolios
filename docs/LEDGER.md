@@ -26,10 +26,11 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
 1. **Closed: fp5's ranked list.**
 
 2. **Polymarket reward quotes (paper; RW, RW-E, RW-X, TB1, RW-C) and the three order paths (dry-run, unarmed).**
-   - **Live-prep's Addenda 9–12 are on main** (the reward check, FUNDED and the early readout, FUNDED at once: $402.028365
-     booked 02:32 UTC 10-10; AI markets out). **TO LAND: Addendum 13, the refill from a live reserve**, on branch
-     `lp-refill-build` (10-10 14:00 section); **migration 0116 must apply with or before its Edge deploy**. Its numbers are
-     `PM_LP_REFILL` in `pm_lp.ts`, for the research pass to replace by an addendum. Its paper layer's calls stay on until
+   - **Live-prep's Addenda 9–13 are live** (the reward check, FUNDED and the early readout, FUNDED at once: $402.028365
+     booked 02:32 UTC 10-10; AI markets out; the refill, `b84cec4f`, first six refills 14:23–14:28 UTC with no error).
+     **TO LAND: Addendum 14, the per-market loss guard** (`PM_LP_MARKET_LOSS = 10`, LP-REFILL's recommendation 2), on
+     branch `lp-market-loss` (10-10 15:00 section); no migration. **Waits on Davies:** LP-REFILL's recommendation 1
+     (`rerankEveryMin` 5 → 1440, the reserve ranked at 00:00); the refill's numbers stay `PM_LP_REFILL` until he says. Its paper layer's calls stay on until
      LPRESEL6 has read 10-09 → 10-22 (then a migration turns them off); LPRESEL6's "live-prep's own selection" is now the
      day's `pm_lp_markets` rows without `detail.refill`. Left for Davies: ranking on a rate that does not flip within the
      hour (not built).
@@ -441,6 +442,18 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10"; each oldest first.
 
+### [2026-10-10 15:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep's per-market loss guard (Addendum 14, mid-pool's 15, branch `lp-market-loss`)**, from LP-REFILL
+  (`reviews/2026-10-10-lp-refill-and-guards.md`, recommendation 2): no BUY in a market of today's (selected or refilled)
+  while its fills are marked $10 or more down (`lpMarketMark`: realised plus held at RW's adjusted mid, from its first
+  fill, rewards not counted). Worked as `lpOut` (buys cancelled, gate `loss`; sells rest; `detail.lp.out` and the
+  condition text); lifts the turn the mark recovers; a turn with no mark keeps the last verdict (`state.lp.guard`). A
+  market held back by the guard alone keeps its slot (the refill does not count it out, as LP-REFILL's simulator did not),
+  and QUOTING TODAY leaves it out while it lasts. Evidence quoted: +$0.47 a day on the record; MrBeast wk1 −$36.91 →
+  −$8.95 on the live episodes. `rerankEveryMin` untouched (waits on Davies).
+- `pm_live.ts` `59a1201a…a510` (was `ef036c76…c480`), `pm_lp.ts` `a745ca4f…bc12` (was `0a85f529…2b25`); hash chain and
+  prereg pins extended; the two turn tests fail with `marketLoss` unset. No migration, no `src/` change but tests.
+
 ### [2026-10-10 14:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **LP-REFILL (Davies, 10-10: "现在就做补选吧…你说的亏损还没控制你研究下"), research only**
   (`reviews/2026-10-10-lp-refill-and-guards.md`, `backtests/lp_refill/`; sub-agent on branch `lp-refill`, not pushed by
@@ -459,6 +472,7 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
   - **Every other guard was priced and rejected:** no buys near the end, band and 3N side caps, mid moves, drift, and
     count markets out. oneWay helps with no refill but costs money on a live refill. Capital stays at about $300.
   - Not blind, nothing out of sample in earnest.
+
 
 ### [2026-10-10 14:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep's refill from a live reserve (Addendum 13, mid-pool's 14, branch `lp-refill-build`)**, on Davies'

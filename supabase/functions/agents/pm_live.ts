@@ -314,6 +314,14 @@ export type PmLpOptions = {
    * budget at that minute; `PM_LP_REFILL` in pm_lp.ts holds every number.
    */
   refill?: LpRefillOptions & { table: string };
+  /**
+   * Its per-market loss guard (Addendum 14, from LP-REFILL, `reviews/2026-10-10-lp-refill-and-guards.md`): no BUY rests
+   * in a market of today's while its fills are marked `marketLoss` dollars or more down (`lpMarketMark`: realised plus what
+   * is held at RW's adjusted mid, from the market's first fill, rewards not counted). It is worked as the reward check's
+   * `lpOut` is (the sells of what it holds rest), it lifts the turn the mark recovers above −`marketLoss`, and it does not
+   * count the market out for the refill. `PM_LP_MARKET_LOSS` in pm_lp.ts.
+   */
+  marketLoss?: number;
 };
 /** The refill's numbers (`PM_LP_REFILL`, pm_lp.ts): the research agent's values drop in there. */
 export type LpRefillOptions = {
@@ -1038,6 +1046,27 @@ export function settlementFills(s: PmSettlement[]): PmFill[] {
     const p = Number(x.payout), ts = Date.parse(x.settled_at);
     return [{ token: x.yes_token, side: "SELL" as const, price: p, size: 1e12, ts }, { token: x.no_token, side: "SELL" as const, price: 1 - p, size: 1e12, ts }];
   });
+}
+
+/**
+ * A market's fills marked now (live-prep's loss guard, Addendum 14): what its two tokens realised plus what each holds at
+ * `mid` against its average cost, YES at `mid` and NO at 1 − `mid`, from the market's first fill (rewards not counted).
+ * That is the cash of its fills plus what is held at the mark. Null when it has no fill, or holds something and has no
+ * mark.
+ */
+export function lpMarketMark(books: ReturnType<typeof tokenBooks>, yesToken: string, noToken: string, mid: number | null): number | null {
+  const y = books[yesToken], n = books[noToken];
+  if (!y && !n) return null;
+  let v = 0;
+  for (const [t, mark] of [[y, mid], [n, mid === null ? null : 1 - mid]] as const) {
+    if (!t) continue;
+    v += t.realised;
+    if (t.held > 0) {
+      if (mark === null) return null;
+      v += t.held * (mark - t.avgCost);
+    }
+  }
+  return Math.round(v * 1e8) / 1e8;
 }
 
 /** The day's and the run's P&L: realised plus every holding marked against its cost (all of it counts today: stricter). */
@@ -2262,6 +2291,23 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   const lpPrev = (prev.lp ?? {}) as Partial<PmPauseState>;
   const pauseState: PmPauseState = { lastMid: { ...(lpPrev.lastMid ?? {}) }, pausedUntil: { ...(lpPrev.pausedUntil ?? {}) } };
   const lpDetail = new Map<string, Record<string, unknown>>();
+  // Live-prep's loss guard (Addendum 14): each guarded market of today's, since when and at what mark, kept from turn to
+  // turn so a turn with no mark (no book, no adjusted mid) keeps the last verdict.
+  type LpGuard = { since: string; mark: number | null; why: string };
+  const guardPrev = ((prev.lp ?? {}) as { guard?: Record<string, LpGuard> }).guard ?? {};
+  const guardNow: Record<string, LpGuard> = {};
+  const lpGuard = (m: TurnMarket, mark: number | null) => {
+    const limit = inst.lp!.marketLoss!, was = guardPrev[m.cond];
+    if (!(mark === null ? !!was : mark <= -limit)) return;                    // under the limit, or no mark and not guarded
+    const at = mark ?? was!.mark;
+    const why = `its fills are marked ${at ?? "?"} USD since its first fill (held at the adjusted mid, rewards not counted), at or past −${limit}: no buy until the mark recovers`;
+    guardNow[m.cond] = { since: was?.since ?? nowIso, mark: at, why };
+    if (lpOut.has(m.cond)) return;                                          // already out for another reason, which it keeps
+    lpOut.set(m.cond, why);
+    conditions[m.cond] ??= `no entry: ${why}`;
+  };
+  /** A market out for the loss guard alone: it takes no buy, but its slot is not out for the refill. */
+  const guardOnly = (c: string) => !!guardNow[c] && lpOut.get(c) === guardNow[c].why;
   for (const m of markets) {
     const b = books.get(m.cond);
     const held = { yes: heldOf.get(m.yes_token) ?? 0, no: heldOf.get(m.no_token) ?? 0 };
@@ -2277,7 +2323,11 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
         const row0 = summarize(o0.bids, o0.asks, pg.v, pg.minSize);
         const mid = row0 && row0[2] !== null && row0[3] !== null ? (row0[2] + row0[3]) / 2 : null;
         paused = pauseAfterJump(pauseState, m.cond, Math.floor(d.now / M) * M, mid, inst.lp.pause);
-      } else paused = (pauseState.pausedUntil[m.cond] ?? 0) > Math.floor(d.now / M) * M;
+        if (inst.lp.marketLoss !== undefined && m.quoting) lpGuard(m, lpMarketMark(tb, m.yes_token, m.no_token, mid));
+      } else {
+        paused = (pauseState.pausedUntil[m.cond] ?? 0) > Math.floor(d.now / M) * M;
+        if (inst.lp.marketLoss !== undefined && m.quoting) lpGuard(m, null);
+      }
       // A market the reward check takes out (`lpOut`) is worked as a carried one, and says why.
       lpDetail.set(m.cond, {
         state: paused ? "paused" : !m.quoting || lpOut.has(m.cond) ? "carried" : g.open ? "quote" : "close", held,
@@ -2302,7 +2352,7 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
       const market = rc ? { ...m, reward_rate: pg.rate, max_spread: pg.v, min_size: pg.minSize } : m;
       try { intents = rule({ market, book: b, held, own, capital: lim.capTotal }); } catch (e) { report.errors.push(`${m.cond.slice(0, 10)}…: the rule threw (${msg(e)}); nothing quoted`); continue; }
     } else if (inst.lp) {
-      if (out) for (const token of [m.yes_token, m.no_token]) withhold(slotKey({ cond: m.cond, token, side: "BUY" }), "reward", `no entry: ${out}`);
+      if (out) for (const token of [m.yes_token, m.no_token]) withhold(slotKey({ cond: m.cond, token, side: "BUY" }), guardOnly(m.cond) ? "loss" : "reward", `no entry: ${out}`);
       try { intents = closeOnly(rule({ market: m, book: b, held, own, capital: lim.capTotal }), held, b); } catch (e) { report.errors.push(`${m.cond.slice(0, 10)}…: the rule threw (${msg(e)}); nothing quoted`); continue; }
     }
     const tokenOf = (o: "yes" | "no") => (o === "yes" ? m.yes_token : m.no_token);
@@ -2554,7 +2604,7 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
           // Live-prep manages the markets it carries as well (its exits rest there).
           const managed = markets.some((m) => m.cond === o.cond && (m.quoting || !!inst.lp));
           await cancel(o, withheld.get(slot) ?? (!managed ? "selection" : books.get(o.cond) ? "rule" : "book"),
-            !managed ? "the market is not in today's selection" : withheld.get(slot) === "reward" ? `no entry: ${lpOut.get(o.cond)}`
+            !managed ? "the market is not in today's selection" : (withheld.get(slot) === "reward" || withheld.get(slot) === "loss") ? `no entry: ${lpOut.get(o.cond)}`
             : books.get(o.cond) ? "the rule wants nothing resting here" : "the book is unreadable or one-sided");
           continue;
         }
@@ -2642,7 +2692,8 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
     const gone = new Set<string>([...goneToday, ...goneNow.map((x) => x.cond)]);
     const active = todayRows.filter((m) => !refill.replaced[m.cond]);
     for (const m of active) {
-      const out = lpOut.has(m.cond) || gone.has(m.cond) || !markets.some((x) => x.quoting && x.cond === m.cond);
+      // A market held back by the loss guard alone still holds its slot: the guard lifts when its mark recovers.
+      const out = (lpOut.has(m.cond) && !guardOnly(m.cond)) || gone.has(m.cond) || !markets.some((x) => x.quoting && x.cond === m.cond);
       if (out) refill.outSince[m.cond] ??= nowIso; else delete refill.outSince[m.cond];
     }
     quotingSlots = active.filter((m) => !refill.outSince[m.cond]).length;
@@ -2787,6 +2838,8 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
             lastMid: Object.fromEntries(Object.entries(pauseState.lastMid).filter(([c]) => markets.some((m) => m.cond === c))),
             pausedUntil: Object.fromEntries(Object.entries(pauseState.pausedUntil).filter(([c, u]) => u > Math.floor(d.now / M) * M && markets.some((m) => m.cond === c))),
             paid, holdings: paper ? "paper" : "account",
+            // The loss guard (Addendum 14): the markets it holds back now, since when and at what mark.
+            ...(inst.lp.marketLoss !== undefined ? { guard: guardNow } : {}),
             // The reward check (Addendum 9): the last good programme of each market quoted today, and the backstop's day.
             ...(rc ? {
               rewards: Object.fromEntries(Object.entries(rewardsLast).filter(([c]) => markets.some((m) => m.quoting && m.cond === c))),

@@ -14,7 +14,8 @@
 //   c990ef3e…  live-prep's Addendum 10, mid-pool's Addendum 11 (live-prep's FUNDED and early readout, 2026-10-10)
 //   2ae0e729…  live-prep's Addendum 11, mid-pool's Addendum 12 (FUNDED at once, the paper row off TESTING, 2026-10-10)
 //   062ee916…  live-prep's Addendum 12, mid-pool's Addendum 13 (AI markets out, 2026-10-10)
-//   (Addendum 13's)  live-prep's Addendum 13, mid-pool's Addendum 14 (live-prep's refill from a live reserve, 2026-10-10)
+//   ef036c76…  live-prep's Addendum 13, mid-pool's Addendum 14 (live-prep's refill from a live reserve, 2026-10-10)
+//   (Addendum 14's)  live-prep's Addendum 14, mid-pool's Addendum 15 (live-prep's per-market loss guard, 2026-10-10)
 import { describe, expect, it } from 'vitest';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -47,15 +48,16 @@ const AE76 = 'e76d0234d1b3454d0a4e5b0cdbe7fc1c43f92425626a0d593b91f31035cc6809';
 const AC99 = 'c990ef3e3ad2700f5552c7a913e1376b7a1fc08368e7b39bd5589ad865a53616';
 const A2AE = '2ae0e7296fd2038fd90bcba61a3daae1e52546fd9f22146789acd5db4a600ca3';
 const A062 = '062ee9160c77edafd3c48e36ba3cd4857aed512e4ecc6e0219483818b78d7a50';
+const AEF0 = 'ef036c76a0cc75cf8a9f3bcec2de9e554f0bfb7f44a6b658b89c35aac477c480';
 /** The pm_lp.ts live-prep's Addendum 9 named (the reward check), its instance until Addendum 10. */
 const LP_A9 = 'c7e3a7ec271b8e798dcc756c3f9d83da2421ddee03f3fede6e3e66a541d173c7';
 
 describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", () => {
-  it("live-prep's latest addendum (13) and mid-pool's (14) name today's pm_live.ts", () => {
-    expect(lastNumber(LP)).toBe(13);
-    expect(lastNumber(MID)).toBe(14);
-    expect(namedPath(addendum(LP, 13))).toBe(sha);
-    expect(namedPath(addendum(MID, 14))).toBe(sha);
+  it("live-prep's latest addendum (14) and mid-pool's (15) name today's pm_live.ts", () => {
+    expect(lastNumber(LP)).toBe(14);
+    expect(lastNumber(MID)).toBe(15);
+    expect(namedPath(addendum(LP, 14))).toBe(sha);
+    expect(namedPath(addendum(MID, 15))).toBe(sha);
   });
 
   it('each addendum of the chain names what it changed from', () => {
@@ -103,6 +105,11 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     expect(addendum(LP, 13)).toContain('`062ee916…7a50`');
     expect(addendum(MID, 14)).toContain('`062ee916…7a50`');
     expect(addendum(MID, 14)).toContain('deviation 14');
+    expect(namedPath(addendum(LP, 13))).toBe(AEF0);
+    expect(namedPath(addendum(MID, 14))).toBe(AEF0);
+    expect(addendum(LP, 14)).toContain('`ef036c76…c480`');
+    expect(addendum(MID, 15)).toContain('`ef036c76…c480`');
+    expect(addendum(MID, 15)).toContain('deviation 15');
   });
 
   it("live-prep's Addendum 5 and mid-pool's 6 name every change of the go-live audit, and the dry-run decisions unchanged", () => {
@@ -269,7 +276,9 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     expect(lp).toContain(`export const PM_LP_REFILL: LpRefillOptions = {\n  ${line}\n};`);
     expect(lp13).toContain(line);
     expect(lp).toContain('refill: { ...PM_LP_REFILL, table: "pm_lp_reserve" },');
-    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(lp13)?.[1]).toBe(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex'));
+    // The pm_lp.ts it named, the instance until Addendum 14 (the loss guard), which names it.
+    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(lp13)?.[1]).toBe('0a85f529d26a397a26ed3e709ab7477ff71a29531b32212fc3805c05e1a32b25');
+    expect(addendum(LP, 14)).toContain('`0a85f529…2b25`');
     expect(lp13).toContain('`de26be30…d1ed`');
     expect(read('supabase/functions/agents/pm_lp_reserve.ts')).toContain('export async function runPmLpReserve(');
     expect(lp13).toContain(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/migrations/0116_pm_lp_refill.sql'))).digest('hex'));
@@ -282,5 +291,24 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     const src = read(PATH);
     expect(src).toContain('const rf = inst.lp?.refill;');
     expect(read('supabase/functions/agents/pm_mid.ts')).not.toContain('refill');
+  });
+
+  it("live-prep's Addendum 14 and mid-pool's 15 record the per-market loss guard, its constant and its evidence, and mid-pool unchanged", () => {
+    const lp14 = addendum(LP, 14), mid15 = addendum(MID, 15);
+    expect(lp14).toContain('`reviews/2026-10-10-lp-refill-and-guards.md`');
+    expect(lp14).toContain('`PM_LP_MARKET_LOSS = 10`');
+    expect(lp14).toContain('`rerankEveryMin` among them, which waits on\nDavies');
+    expect(lp14).toContain('No migration.');
+    expect(mid15).toContain('**Mid-pool is unchanged.**');
+    const lp = read('supabase/functions/agents/pm_lp.ts');
+    expect(lp).toContain('export const PM_LP_MARKET_LOSS = 10;');
+    expect(lp).toContain('    marketLoss: PM_LP_MARKET_LOSS,');
+    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(lp14)?.[1]).toBe(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex'));
+    const src = read(PATH);
+    expect(src).toContain('export function lpMarketMark(');
+    expect(src).toContain('if (!(mark === null ? !!was : mark <= -limit)) return;');
+    // A market held back by the guard alone keeps its slot for the refill.
+    expect(src).toContain('const out = (lpOut.has(m.cond) && !guardOnly(m.cond)) || gone.has(m.cond)');
+    for (const f of ['pm_mid.ts', 'pm_mini.ts']) if (fs.existsSync(path.join(ROOT, 'supabase/functions/agents', f))) expect(read(`supabase/functions/agents/${f}`)).not.toContain('marketLoss');
   });
 });

@@ -584,3 +584,20 @@ and its turns refill nothing. No decision of mid-pool changes: `agents/pm_mid_fo
 
 **What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
 of the Edge deploy that carries it, as deviation 14.
+
+## Addendum 15 (2026-10-10, about 15:00 UTC): deviation 15, live-prep's loss guard
+
+This addendum was written inside the window, before the deploy it records. Its readout runs at or after 2026-10-17
+00:10 UTC.
+
+**Deviation 15 is live-prep's per-market loss guard** (live-prep's pre-registration, Addendum 14). It changes the
+shared `pm_live.ts`: after it, `pm_live.ts` sha256 `59a1201a35b0ef2ccbdf16de933ea7b4469a1c4404146b252c481aa99068a510`, where Addendum 14 above named `ef036c76…c480`. The
+change: a pure function (`lpMarketMark`), an optional field of live-prep's options (`marketLoss`), and the guard in a
+turn whose instance sets it, which only live-prep's does.
+
+**Mid-pool is unchanged.** It sets no `lp` options, so its turns compute no mark and hold back no buy. No decision of
+mid-pool changes: `agents/pm_mid_formula.test.ts` and `agents/pm_payouts.test.ts` run it beside the path this file
+froze and find every decision the same.
+
+**What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
+of the Edge deploy that carries it, as deviation 15.

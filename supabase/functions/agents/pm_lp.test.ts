@@ -13,11 +13,11 @@
 // mini-pool's or mid-pool's tables is touched.
 
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { lpMarketType, lpQuotes, nearCertainBuyOk, PM_LP_EXCLUDE_AI, PM_LP_READOUT, PM_LP_REFILL, PM_LP_REWARD_CHECK, PM_LP_BAND, PM_LP_CANDIDATE, PM_LP_CAP_MARKET_USD, PM_LP_INSTANCE, PM_LP_INV_CAP, PM_LP_NEAR_CERTAIN, PM_LP_PAUSE, PM_LP_TIGHT, PREP_LP_INSTANCE } from "./pm_lp.ts";
+import { lpMarketType, lpQuotes, nearCertainBuyOk, PM_LP_EXCLUDE_AI, PM_LP_MARKET_LOSS, PM_LP_READOUT, PM_LP_REFILL, PM_LP_REWARD_CHECK, PM_LP_BAND, PM_LP_CANDIDATE, PM_LP_CAP_MARKET_USD, PM_LP_INSTANCE, PM_LP_INV_CAP, PM_LP_NEAR_CERTAIN, PM_LP_PAUSE, PM_LP_TIGHT, PREP_LP_INSTANCE } from "./pm_lp.ts";
 import { isTight } from "./pmrw_x.ts";
 import {
   candidateOf, ctfApproval, effectiveLimits, gates, heldFromBalance, inUniverse, inYesBook, lpCandidateOf, lpLimits, onTick, PM_LIVE_MAX_POSTS_DAY, PM_LP_MAX_POSTS_DAY, pauseAfterJump, PM_LIVE_INSTANCE, PM_MINI_INSTANCE, pmLiveDbTables, pmLpDbTables,
-  lpFunding, lpRewardVerdict, PM_LP_FUNDING, type LpRefillOptions, rewardConfigOf, runPmLive, rwQuotes, scoringStreak, type PmRewardNow, type PmBookNow, type PmIntent, type PmLiveConfig, type PmMarketRow, type PmPauseState, type PmRewardRow,
+  lpFunding, lpMarketMark, lpRewardVerdict, PM_LP_FUNDING, tokenBooks, type LpRefillOptions, rewardConfigOf, runPmLive, rwQuotes, scoringStreak, type PmRewardNow, type PmBookNow, type PmIntent, type PmLiveConfig, type PmMarketRow, type PmPauseState, type PmRewardRow,
 } from "./pm_live.ts";
 import { runPmLpReserve } from "./pm_lp_reserve.ts";
 import { classifyLp, decideLp, PREP_INSTANCE, prepDbTables, prepReads, runPmPrep, stepSides, type PrepOrder } from "./pm_prep.ts";
@@ -1220,4 +1220,82 @@ Deno.test("refill: the daily cap holds; with every slot out, refills start on th
   assertEquals([c.rows("pm_lp_events").filter((e) => e.kind === "refill").length, day0(c).length], [0, 1]);
   assertEquals(errs.length, 1);
   assert(errs[0].includes(`since ${iso(T0 + M)}`), errs[0]);
+});
+
+// ------------------------------------------------------------------ the per-market loss guard (2026-10-10, Addendum 14)
+
+/** A round trip on L1's YES token booked before the day: it realises `pnl` dollars and leaves nothing held. */
+const roundTrip = (w: ReturnType<typeof world>, id: string, pnl: number, sellAt = "2026-10-04T12:00:00.000Z") => {
+  const base = { cond: w.L1.cond, token: tok(1, "yes"), status: "CONFIRMED", size: 100 };
+  w.rows("pm_lp_fills").push({ ...base, trade_id: `${id}-b`, hash: `0x${id}b`, side: "BUY", price: 0.6, match_time: "2026-10-04T11:00:00.000Z" });
+  w.rows("pm_lp_fills").push({ ...base, trade_id: `${id}-s`, hash: `0x${id}s`, side: "SELL", price: Math.round((0.6 + pnl / 100) * 1e6) / 1e6, match_time: sellAt });
+};
+const lpState = (w: ReturnType<typeof world>) => (w.rows("pm_lp_state")[0] as any)?.state?.lp ?? {};
+
+Deno.test("lpMarketMark: realised plus what is held at the adjusted mid against its cost, YES at m and NO at 1 − m; no fill or no mark for a holding is null", () => {
+  const fills = (xs: Array<[string, "BUY" | "SELL", number, number]>) => tokenBooks(xs.map(([token, side, price, size], i) => ({ token, side, price, size, ts: i })), 0);
+  assertEquals(PM_LP_MARKET_LOSS, 10);
+  assertEquals(lpMarketMark(fills([["y", "BUY", 0.6, 100], ["y", "SELL", 0.4999, 100]]), "y", "n", null), -10.01);
+  assertEquals(lpMarketMark(fills([["y", "BUY", 0.6, 100], ["y", "SELL", 0.5001, 100]]), "y", "n", null), -9.99);
+  // 10 NO at 0.50 with m = 0.30: NO marks at 0.70, +2; with 10 YES at 0.40 beside it, −1.
+  assertEquals(lpMarketMark(fills([["n", "BUY", 0.5, 10]]), "y", "n", 0.3), 2);
+  assertEquals(lpMarketMark(fills([["n", "BUY", 0.5, 10], ["y", "BUY", 0.4, 10]]), "y", "n", 0.3), 1);
+  assertEquals(lpMarketMark(fills([["n", "BUY", 0.5, 10]]), "y", "n", null), null);
+  assertEquals(lpMarketMark(fills([["z", "BUY", 0.5, 10]]), "y", "n", 0.3), null);
+});
+
+Deno.test("the loss guard (Addendum 14): a market marked −$10.01 rests no BUY, at −$9.99 it does; the other markets quote on; it lifts the turn the mark recovers", async () => {
+  const at = async (pnl: number) => {
+    const w = world({ config: LIVE });
+    roundTrip(w, "a", pnl);
+    const r = await w.turn(T0);
+    return { w, r };
+  };
+  const { w, r } = await at(-10.01);
+  assertEquals(buysIn(w, w.L1.cond), 0);
+  assertEquals(sentIn(w, w.L1.cond, T0, "BUY").length, 0);
+  assert(buysIn(w, w.BIG.cond) > 0, "the other market quotes on");
+  const why = `its fills are marked -10.01 USD since its first fill (held at the adjusted mid, rewards not counted), at or past −${PM_LP_MARKET_LOSS}: no buy until the mark recovers`;
+  assertEquals([minuteOf(w, w.L1.cond, T0).detail.lp.state, minuteOf(w, w.L1.cond, T0).detail.lp.out, r.conditions[w.L1.cond]], ["carried", why, `no entry: ${why}`]);
+  assertEquals(lpState(w).guard, { [w.L1.cond]: { since: iso(T0), mark: -10.01, why } });
+  assertEquals(lpState(w).refill.outSince[w.L1.cond], undefined);                // its slot is not out for the refill
+  // −$9.99: it buys.
+  const ok = await at(-9.99);
+  assert(buysIn(ok.w, ok.w.L1.cond) > 0, "a BUY rests at −9.99");
+  assertEquals([lpState(ok.w).guard, ok.r.conditions[ok.w.L1.cond]], [{}, undefined]);
+  // The mark recovers: a further round trip realises +0.02, −9.99 in all, and the next turn buys again.
+  w.rows("pm_lp_fills").push({ cond: w.L1.cond, token: tok(1, "yes"), status: "CONFIRMED", size: 1, trade_id: "c-b", hash: "0xcb", side: "BUY", price: 0.4, match_time: "2026-10-04T13:00:00.000Z" });
+  w.rows("pm_lp_fills").push({ cond: w.L1.cond, token: tok(1, "yes"), status: "CONFIRMED", size: 1, trade_id: "c-s", hash: "0xcs", side: "SELL", price: 0.42, match_time: "2026-10-04T13:01:00.000Z" });
+  await w.turn(T0 + M);
+  assert(buysIn(w, w.L1.cond) > 0, "the guard lifts once the mark is above −10");
+  assertEquals(lpState(w).guard, {});
+  assertEquals(minuteOf(w, w.L1.cond, T0 + M).detail.lp.out, undefined);
+  assertEquals(w.errors.filter((e) => /guard|marked/.test(e)), []);
+});
+
+Deno.test("the loss guard: its buys are cancelled for the guard and the sells of what it holds keep resting; the mark counts what is held at the adjusted mid", async () => {
+  const w = world({ config: LIVE });
+  await w.turn(T0);
+  const yesBuy = w.rows("pm_lp_orders").find((x) => x.mode === "live" && x.cond === w.L1.cond && x.outcome === "yes" && x.side === "BUY" && x.state === "live");
+  assert(yesBuy, "a live BUY of YES rests");
+  w.pm.settle(w.pm.fill(String(yesBuy.hash), 5), "CONFIRMED");                       // the account holds 5 YES at 0.45
+  for (let k = 1; k <= 2; k++) await w.turn(T0 + k * M);
+  const live = (side: "BUY" | "SELL") => w.rows("pm_lp_orders").filter((x) => x.mode === "live" && x.cond === w.L1.cond && x.side === side && x.state === "live");
+  assertEquals([live("BUY").length, live("SELL").length], [1, 1]);
+  // Earlier round trips realised −10.10: with the 5 YES at the mid the mark is past −10.
+  roundTrip(w, "a", -10.1);
+  await w.turn(T0 + 3 * M);
+  const g = lpState(w).guard[w.L1.cond];
+  assert(g && g.mark <= -10, `guarded at ${g?.mark}`);
+  assertEquals(live("BUY").length, 0);
+  assert(w.rows("pm_lp_orders").some((x) => x.cond === w.L1.cond && x.side === "BUY" && x.cancel_gate === "loss" && x.cancel_reason === `no entry: ${g.why}`));
+  assertEquals(live("SELL").map((x) => [x.outcome, Number(x.price), Number(x.size)]), [["yes", 0.47, 5]]);
+  // The mark is −10.10 plus the 5 YES at RW's adjusted mid against 0.45.
+  const mRw = Number(minuteOf(w, w.L1.cond, T0 + 3 * M).detail.mRw);
+  assertAlmostEquals(g.mark, -10.1 + 5 * (mRw - 0.45), 1e-8);
+  // The guard holds while the mark stays down, from the turn it started.
+  await w.turn(T0 + 4 * M);
+  assertEquals([live("BUY").length, lpState(w).guard[w.L1.cond]?.since], [0, iso(T0 + 3 * M)]);
+  assertEquals(live("SELL").length, 1);
+  assert(w.othersUntouched());
 });
