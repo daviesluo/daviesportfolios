@@ -312,6 +312,12 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    00:00, read on 11-08 from 00:30 with `backtests/cbpaper/scripts/replay.py` on the export Deviation 1 names (a wake to
    set). The budget split is `reviews/2026-10-10-coinbase-vs-revolutx.md`.
 
+13. **Coinbase's order books recorded, ten levels a side: built on branch `cb-books`, not yet deployed** (Davies,
+   2026-10-10; reference §4 item 59, migration `0114`, `agents?action=cbbooks`). After it lands and its 15 minutes
+   pass: `select last_error, last_report from cb_book_state` (`recorded` 4 a minute, `reached` true) and `select product,
+   count(*), max(ts) from cb_book_levels group by 1`; no `agents.cb_books` row in `ops_errors`. Nothing reads it until a
+   queue-model study of the Coinbase books is pre-registered.
+
 ## Machine and platform setup
 
 A rebuilt container loses every line below. Run them before working.
@@ -433,6 +439,16 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", and the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)"; each oldest
 first.
 
+### [2026-10-10 02:24 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Coinbase's order books recorded keyless** (sub-agent, branch `cb-books`; Davies: "Coinbase的订单簿要不要像 Revolut X
+  一样也记录上用来inform策略"). `agents/cb_books.ts`, `0114`: USDC-GBP, USDT-GBP, USDC-EUR and USDT-EUR's
+  `/book?level=2`, top ten levels a side as integer arrays (price steps, hundredths of a coin, order counts) with
+  `sequence` and `time`, a row when they change, 30 s into the minute after the recorder, 250 ms apart, stopping at a
+  429: 4 requests a minute beside the recorder's 8 (32 at most). 524 bytes a row on production, about 3.2 MB a day,
+  35 days (`cb-books-prune`, 10:57 UTC), about 113 MB. For a queue model (pre-registered before it is read) and rung
+  placement; the frozen paper test reads none of it. Fixture `backtests/cbrec/books_2026-10-10.json` (two readings a
+  minute apart; every book changed); 7 Deno pins, each of 8 mutations fails one; `cron_jobs.test.js` pins the row.
+
 ### [2026-10-10 02:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Addendum 11, branch `lp-funded-now`** (sub-agent). FUNDED showed the $322 cap at 02:18 (Davies: "FUNDED还是显示的是$322"):
   `lpFunding` held its first booking to 03:10. Now the first booking needs only a readable residual, no fill settling and
@@ -473,6 +489,7 @@ first.
   table write). Sponsored: not the cause (none of 0x5b3350e2, 0xa0ab5c59, 0xd23c714e has a sponsor; their native rate
   flips), rule unchanged. 10-10 was quoted on stale programmes 00:00–01:15. LIVE row's FUNDED reads `fundedUsd`
   (`src/agents/agents.js`, `dist/` rebuilt).
+
 
 ### [2026-10-10 01:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Coinbase's paper test renamed "Stablecoin quotes with Euros", €100 a rung on its EUR books** (sub-agent, branch

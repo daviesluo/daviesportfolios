@@ -104,6 +104,13 @@
 //                             id and their touch, then PR5's rule on them on
 //                             paper. Keyless reads of Coinbase Exchange's public
 //                             market data only. Cron or admin.
+//   POST ?action=cbbooks    — Coinbase's order books (cb_books.ts, 0114): 30 s
+//                             into every minute, after the recorder, the top
+//                             ten levels a side of the same four books, kept
+//                             when they change, for a queue model and rung
+//                             placement; the paper test reads none of it.
+//                             Keyless public reads only. Cron or admin
+//                             (`wait=0`: read at once).
 //   GET  ?action=dashboard  — everything the Agents page shows: strategies
 //                             with positions and P&L derived from fills,
 //                             the latest observation per symbol, the caps,
@@ -206,6 +213,7 @@ import { booksDelayMs, runBooks } from "./books.ts";
 import { PM_REC_VENUE_TIMEOUT_MS, pmRecStorage, runPmRec, runPmRecMeta } from "./pm_book_rec.ts";
 import { runCjRec } from "./cj_rec.ts";
 import { runCbRec } from "./cb_rec.ts";
+import { cbBooksDelayMs, runCbBooks } from "./cb_books.ts";
 import { runCbQuotes } from "./cb_quotes.ts";
 import { cbQuotesView, CB_PAGE_ROWS, type CbDayRow, type CbEventRow, type CbMinuteRow, type CbStateRow, type CbTripRow } from "./cb_view.ts";
 import { dayOpenOf, dayPnl, decisionBarMs, isOffBook, jevViewOf, resolveBook, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
@@ -468,6 +476,24 @@ export async function runCjRecAction(deps: { db?: Db; fetchImpl?: typeof fetch; 
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     await reportServerError("agents.cj_rec", { message: message.slice(0, 500), context: { at: new Date().toISOString() } });
+    return { error: message.slice(0, 300) };
+  }
+}
+
+/**
+ * Coinbase's order books (cb_books.ts, 0114): the call waits until 30 s into the minute, after the recorder's reads, then
+ * reads the four books' top levels into their own table. Nothing of the paper test reads them. A fault goes to
+ * `ops_errors` as `agents.cb_books` when it first appears and at most hourly while it lasts; it never throws past here.
+ */
+export async function runCbBooksAction(wait: boolean, deps: { db?: Db; fetchImpl?: typeof fetch } = {}) {
+  try {
+    if (wait) await new Promise((r) => setTimeout(r, cbBooksDelayMs(Date.now())));
+    const report = await runCbBooks({ db: deps.db ?? db(), now: Date.now(), fetchImpl: deps.fetchImpl });
+    if (report.report) await reportServerError("agents.cb_books", tickErrorReport(report));
+    return report;
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    await reportServerError("agents.cb_books", { message: message.slice(0, 500), context: { at: new Date().toISOString() } });
     return { error: message.slice(0, 300) };
   }
 }
@@ -2679,6 +2705,8 @@ async function route(req: Request, who: Exclude<Who, null>, url: URL, action: st
   if (action === "cjrec" && req.method === "POST" && operator) return json(200, await runCjRecAction());
   // Coinbase's recorder and the paper test of PR5's rule on its four books (cb_rec.ts, cb_quotes.ts, 0112). Keyless reads.
   if (action === "cbrec" && req.method === "POST" && operator) return json(200, await runCbRecAction());
+  // Coinbase's order books (cb_books.ts, 0114): the top ten levels a side, 30 s into the minute. Keyless reads.
+  if (action === "cbbooks" && req.method === "POST" && operator) return json(200, await runCbBooksAction(url.searchParams.get("wait") !== "0"));
   // Polymarket's order path (pm_live.ts, 0074): its dry-run, called from eu-west-1 by the one-minute job. Cron bearer only.
   if (action === "pmlive" && req.method === "POST" && who === "cron") return json(200, await runPmLiveAction());
   // "Reward quotes small-pool" (pm_prep.ts, 0077): the path's dry-run filled on paper. Keyless public reads only.

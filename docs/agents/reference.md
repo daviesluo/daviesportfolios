@@ -3987,6 +3987,28 @@ the venue screen (`reviews/2026-10-09-stablecoin-venues.md`) put Coinbase first.
 - **Live** would need Davies' Coinbase account (a UK one: GBP and EUR balances) and a trade-only key he makes himself.
   No order path exists.
 
+59. **Coinbase's four stablecoin order books are recorded keyless, ten levels a side (2026-10-10, migration `0114`,
+`agents/cb_books.ts`, `backtests/cbrec/books_2026-10-10.json`).** Davies: "Coinbase的订单簿要不要像 Revolut X 一样也记录上用来
+inform策略". As Revolut X's are (`books.ts`, read by the QUEUE study): on a pegged book a quote fills by its place in the queue.
+- **What it is for.** A queue model of the Coinbase books, the same use as Revolut X's QUEUE study, pre-registered before
+  any of it is read; and where a rung sits and how deep the book is behind it. **Nothing in the frozen paper test
+  (item 58) reads it**, and it touches none of that test's files.
+- **What it keeps** (`agents?action=cbbooks`, `edge_calls` row 58 s, `retry` on): `GET /products/{id}/book?level=2` for
+  USDC-GBP, USDT-GBP, USDC-EUR and USDT-EUR; the top ten levels a side (`cb_book_levels`) as prices in the book's steps
+  (0.0001; USDT-EUR 0.00001), sizes in hundredths of a coin and order counts, with Coinbase's `sequence` and `time`; a
+  row only when the levels changed, else `seen_until` and `reads` extended. A price or size off that grid is a fault and
+  skips the book, so a change of step is never stored wrong.
+- **Measured first** (2026-10-10, keyless): level-2 depth 96/177 (USDC-GBP), 57/61 (USDT-GBP), 323/154 (USDC-EUR) and
+  10/15 (USDT-EUR) levels; all four books changed between two readings a minute apart; Coinbase's CDN keeps a book up to
+  2 s (`max-age=2`).
+- **Budget.** Coinbase serves public data at 10 requests a second per IP. It reads 30 s into the minute, after the
+  recorder (from :00, none past 15 s, each 8 s at most), the four books 250 ms apart, and stops at a 429: 4 requests a
+  minute beside the recorder's 8 (28 in a burst), never more than 4 a second from it.
+- **Size.** 524 bytes a row (`pg_column_size` on production), about 560 with its key: about 3.2 MB a day, kept 35 days
+  (`cb-books-prune`, 10:57 UTC), about 113 MB.
+- **Faults** go to `ops_errors` as `agents.cb_books`, at most hourly while one lasts; a 429 is named by its place in the
+  minute, so a lasting limit keeps one key. Not among the monitor's health readings.
+
 ### Twin variants
 
 The realistic twins, a row each of `agent_quote_twin_specs`, in the page's order. A new one is a row here in the commit

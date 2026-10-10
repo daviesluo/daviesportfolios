@@ -643,6 +643,42 @@ describe('pg_cron jobs', () => {
     expect(sql).not.toMatch(/\bgrant\b|create policy/i);
   });
 
+  // Coinbase's order books (Davies, 2026-10-10: "Coinbase的订单簿要不要像 Revolut X 一样也记录上用来inform策略").
+  it("adds Coinbase's book recorder as one call a minute (0114), its beat first, every other row as it was, and a prune of SQL alone", () => {
+    const T = FILES.find((f) => /^0114_cb_books\.sql$/.test(f)) ?? '';
+    expect(T).not.toBe('');
+    const before = replayList(sqlsOf(FILES.filter((f) => f < T))), after = replayList(sqlsOf(FILES.filter((f) => f <= T)));
+    expect(after.slice(0, before.length)).toEqual(before);
+    const shape = ({ path: p, timeout, every, lastHour, enabled, retry }) => ({ path: p, timeout, every, lastHour, enabled, retry });
+    expect(after.slice(before.length).map(shape)).toEqual([
+      { path: 'agents?action=cbbooks', timeout: 58000, every: 1, lastHour: 23, enabled: true, retry: true },
+    ]);
+    expect(beatKeyOfPath(after.at(-1).path)).toBe('agents?action=cbbooks');
+    const src = fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/index.ts'), 'utf8');
+    expect(src).toContain('if (action === "cbbooks" && req.method === "POST" && operator) return json(200, await runCbBooksAction(url.searchParams.get("wait") !== "0"));');
+    const jobsBefore = cronJobs(FILES.filter((f) => f < T)), jobsAfter = cronJobs(FILES.filter((f) => f <= T));
+    expect([...jobsAfter.keys()].filter((n) => !jobsBefore.has(n))).toEqual(['cb-books-prune']);
+    const prune = jobsAfter.get('cb-books-prune');
+    expect(prune.command.trim()).toBe("delete from public.cb_book_levels where ts < now() - interval '35 days';");
+    expect(Number(prune.schedule.split(' ')[0]) % 5).not.toBe(0);
+    // No other job shares its minute and hour.
+    expect([...jobsBefore.values()].some((j) => j.schedule === prune.schedule)).toBe(false);
+    expect(httpJobs(jobsAfter).map(([n]) => n)).toEqual(['edge-calls-every-minute']);
+    for (const [n, j] of jobsBefore) expect([n, jobsAfter.get(n)]).toEqual([n, j]);
+    // Its table's check holds the books the recorder reads (cb_rec.ts's list, which cb_books.ts imports); its levels are
+    // ten a side at most, as `CB_BOOK_LEVELS`. No grant, no policy; row level security on both tables.
+    const sql = fs.readFileSync(path.join(DIR, T), 'utf8').replace(/--[^\n]*/g, '');
+    const rec = fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/cb_rec.ts'), 'utf8');
+    const books = JSON.parse(/^export const CB_PRODUCTS = (\[[^\]]*\]) as const;$/m.exec(rec)?.[1] ?? 'null');
+    expect(count(sql, `check (product in (${books.map((b) => `'${b}'`).join(', ')}))`)).toBe(1);
+    const mod = fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/cb_books.ts'), 'utf8');
+    expect(mod).toContain('import { CB_API, CB_PRODUCTS, type CbProduct } from "./cb_rec.ts";');
+    const levels = Number(/^export const CB_BOOK_LEVELS = (\d+);$/m.exec(mod)?.[1]);
+    expect(count(sql, `cardinality(bid_px) <= ${levels}`) + count(sql, `cardinality(ask_px) <= ${levels}`)).toBe(2);
+    for (const t of ['cb_book_levels', 'cb_book_state']) expect(sql).toMatch(new RegExp(`alter table public\\.${t} +enable row level security;`));
+    expect(sql).not.toMatch(/\bgrant\b|create policy/i);
+  });
+
   // 0103 (Davies, 2026-10-08: stop mini-pool's two calls, and what no reading still needs now RW's round 1 ends):
   // mini-pool's two calls leave the list when it applies; RW's four only once the last day their readings read is
   // closed, turned off by a function a job runs every five minutes (so a push before 10-09 00:05 cannot cut RW's last
