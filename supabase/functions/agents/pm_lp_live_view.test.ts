@@ -33,7 +33,8 @@
 
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import fixture from "../../../src/e2e/lp_live_fixture.json" with { type: "json" };
-import { LP_LIVE_HOURS_VIEW, lpLiveR, lpLiveSince, lpLiveSummary, lpRewardEstimate, type LpLiveHourRow } from "./pm_lp_live_view.ts";
+import readout109 from "../../../docs/agents/backtests/lpcfg/data/readout_2026-10-09.json" with { type: "json" };
+import { atLiveR, LP_LIVE_HOURS_VIEW, LP_R_DAY_CORRECTIONS, lpLiveR, lpLiveSince, lpLiveSummary, lpRewardEstimate, type LpLiveHourRow, type LpLiveRewardDayRow } from "./pm_lp_live_view.ts";
 import { readLpLive } from "./index.ts";
 import { PM_LP_INSTANCE } from "./pm_lp.ts";
 import { memDb, onlyTables } from "./testing.ts";
@@ -284,5 +285,56 @@ Deno.test("lpLiveR is the one live R: the estimate's R is its, from the readout 
   assertEquals([R.days, R.basis], [1, "live"]);
   // Today's row is not yet a day of R; with none read it is the prior's.
   assertEquals([lpLiveR([{ ...day, day: "2026-10-10" }], now).basis, lpLiveR([], now).point], ["prior", 0.447214]);
+});
+
+Deno.test("Addendum 10: 10-09 enters R at its like-for-like figure (0.807, rtrue.py), by market, and its rows are not rewritten; other days stand as read", () => {
+  const ro = readout109 as { rows: Array<Record<string, unknown>> };
+  const rows = ro.rows.map((r) => ({ ...r, day: "2026-10-09" })) as unknown as LpLiveRewardDayRow[];
+  const c = LP_R_DAY_CORRECTIONS["2026-10-09"].formulaScoredUsd;
+  assertEquals(Object.keys(c).sort(), rows.map((r) => r.cond).sort());
+  const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
+  assertAlmostEquals(sum(Object.values(c)), 8.081876, 1e-6);
+  const paid = sum(rows.map((r) => Number(r.actual_usd) + Number(r.actual_sponsored_usd)));
+  assertAlmostEquals(paid / sum(Object.values(c)), 0.807261, 1e-6);
+  // One read day: R's point is the prior's two days and 10-09's ln 0.807261, not ln 0.33.
+  const R = lpLiveR(rows, Date.parse("2026-10-10T06:00:00Z"));
+  assertAlmostEquals(R.point, Math.exp((2 * Math.log(Math.sqrt(0.2)) + Math.log(paid / 8.081876)) / 3), 1e-6);
+  // The summary's R (ACTUAL) and DAYS read the same figure; the whole formula is beside it.
+  const s = lpLiveSummary({ ...F.input, rewardDays: rows, hours: [], nowMs: Date.parse("2026-10-10T06:00:00Z") })!;
+  assertAlmostEquals(s.r!, paid / 8.081876, 1e-6);
+  assertEquals(s.days.map((d) => [d.day, d.formulaUsd, d.formulaAllUsd]), [["2026-10-09", 8.081875, 153.897992]]);
+  // A day with no correction stands as read.
+  const later = rows.map((r) => ({ ...r, day: "2026-10-10" }));
+  assertAlmostEquals(lpLiveR(later, Date.parse("2026-10-11T06:00:00Z")).point, Math.exp((2 * Math.log(Math.sqrt(0.2)) + Math.log(paid / 19.801095)) / 3), 1e-5);
+});
+
+Deno.test("Addendum 10, FUNDED: the money put in as the path's last live turn booked it; the cap until it has", () => {
+  const withFunding = { ...F.input, state: { ...F.input.state, state: { ...F.input.state.state, lp: { funding: { depositUsd: 402.028365, at: "x", residualUsd: 402.03, candidate: null } } } } };
+  assertEquals([lpLiveSummary(withFunding)!.fundedUsd, lpLiveSummary(withFunding)!.capUsd], [402.028365, 320]);
+  assertEquals(lpLiveSummary(F.input)!.fundedUsd, null);
+});
+
+Deno.test("atLiveR: a paper Reward quotes summary priced at the live R, its worst case at the band's low; fills, holdings and capital unmoved", () => {
+  const R = { point: 0.5, low: 0.2, high: 1.2, days: 1, basis: "live" as const };
+  const s = {
+    totalUsd: 10, rewardUsd: 8, fillsPnlUsd: 2, realisedUsd: 9, unrealisedUsd: 1, mismatchUsd: 0, stressUsd: 4, todayUsd: 3, capitalUsd: 50, bestMarketUsd: 7, todayStressUsd: 1,
+    days: [{ day: "2026-10-09", totalUsd: 4, rewardUsd: 3, stressUsd: 1, runningUsd: 4 }, { day: "2026-10-08", totalUsd: 3, rewardUsd: 2, stressUsd: 0.5, runningUsd: 0 }],
+    markets: [{ cond: "a", rewardUsd: 6, totalUsd: 7 }, { cond: "b", rewardUsd: 2, totalUsd: 3 }],
+  };
+  // deno-lint-ignore no-explicit-any
+  const o = atLiveR(s, R) as any;
+  // Rewards 8 → 4; the total and realised lose 4; the worst case trades half of 8 for 0.2 of it: 4 − 4 + 1.6.
+  assertEquals([o.rewardUsd, o.totalUsd, o.realisedUsd, o.stressUsd, o.fillsPnlUsd, o.unrealisedUsd, o.capitalUsd, o.mismatchUsd], [4, 6, 5, 1.6, 2, 1, 50, 0]);
+  // Today: 8 less the closed days' 5 is 3 of reward, at 0.5: 3 − 1.5; its worst case 1 − 1.5 + 0.6.
+  assertEquals([o.todayUsd, o.todayStressUsd], [1.5, 0.1]);
+  // Each day; the running total at each close loses its rewards to that day (10-08's 2, then 10-09's 5).
+  assertEquals(o.days.map((d: Record<string, number>) => [d.rewardUsd, d.totalUsd, d.stressUsd, d.runningUsd]), [[1.5, 2.5, 0.1, 1.5], [1, 2, -0.1, -1]]);
+  assertEquals(o.markets.map((m: Record<string, number>) => [m.rewardUsd, m.totalUsd]), [[3, 4], [1, 2]]);
+  assertEquals([o.bestMarketUsd, o.rPricing], [4, { point: 0.5, low: 0.2, high: 1.2, days: 1, basis: "live", stressAt: "low" }]);
+  // At R = 1 and a low of 0.5 it is the summary as it was; null stays null.
+  // deno-lint-ignore no-explicit-any
+  const same = atLiveR(s, { point: 1, low: 0.5, high: 1, days: 0, basis: "prior" }) as any;
+  assertEquals([same.totalUsd, same.stressUsd, same.todayUsd, same.days[0].runningUsd], [10, 4, 3, 4]);
+  assertEquals(atLiveR(null, R), null);
 });
 

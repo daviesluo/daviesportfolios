@@ -102,6 +102,14 @@ export function nearCertainBuyOk(price: number, size: number, held: number, mark
  */
 export const PM_LP_REWARD_CHECK = { staleMs: 5 * 60e3, backstopMinutes: 3 } as const;
 
+/**
+ * Its readout's timing (`PmLpOptions.readout`, Addendum 10; Davies saw "rewards paid $0" and R unchanged after midnight):
+ * from 00:05 UTC, yesterday read again every ten minutes while its day total reads nothing, a zero taken as one only
+ * from 03:00 UTC. Polymarket pays at 00:00 (docs, Liquidity Rewards: "distributed directly to maker addresses daily at
+ * midnight UTC"); on 2026-10-10 the rewards were in the account by 00:05 and the maker rebates between 00:27 and 01:17.
+ */
+export const PM_LP_READOUT = { fromMs: 5 * 60e3, acceptZeroAfterMs: 3 * 3600e3 } as const;
+
 /** Its candidate rules: no 48-hour end-date horizon (RW-E's same-day rule only), weather markets out (RW-X's x1). */
 export const PM_LP_CANDIDATE: PmCandidateRules = { endHorizon: false, excludeFeeTypes: ["weather_fees"] };
 
@@ -160,6 +168,7 @@ export const PM_LP_INSTANCE: PmLiveInstance = {
     capMarketCeiling: PM_LP_CAP_MARKET_USD,
     pause: PM_LP_PAUSE,
     rewardCheck: { ...PM_LP_REWARD_CHECK },
+    readout: { ...PM_LP_READOUT },
     paper: { fills: "pm_lpprep_fills", settlements: "pm_lpprep_settlements", days: "pm_lpprep_days" },
   },
 };

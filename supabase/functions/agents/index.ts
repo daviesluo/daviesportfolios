@@ -178,7 +178,7 @@ import { PM_LIVE_TIMEOUT_MS, PM_MINI_INSTANCE, runPmLive, type PmSettlement } fr
 import { PREP_INSTANCE, runPmPrep, type PrepInstance } from "./pm_prep.ts";
 import { PM_MID_INSTANCE, PREP_MID_INSTANCE } from "./pm_mid.ts";
 import { PM_LP_INSTANCE, PREP_LP_INSTANCE } from "./pm_lp.ts";
-import { LP_LIVE_FILL_COLUMNS, LP_LIVE_HOUR_COLUMNS, LP_LIVE_HOURS_VIEW, LP_LIVE_MARKET_COLUMNS, LP_LIVE_MINUTE_COLUMNS, LP_LIVE_ORDER_COLUMNS, LP_LIVE_REWARD_COLUMNS, lpLiveSince, lpLiveSummary, type LpLiveConfigRow, type LpLiveFillRow, type LpLiveHourRow, type LpLiveMarketRow, type LpLiveMinuteRow, type LpLiveOrderRow, type LpLiveRewardDayRow, type LpLiveStateRow, type LpLiveStopRow } from "./pm_lp_live_view.ts";
+import { atLiveR, LP_LIVE_FILL_COLUMNS, LP_LIVE_HOUR_COLUMNS, LP_LIVE_HOURS_VIEW, LP_LIVE_MARKET_COLUMNS, LP_LIVE_MINUTE_COLUMNS, LP_LIVE_ORDER_COLUMNS, LP_LIVE_REWARD_COLUMNS, lpLiveR, lpLiveSince, lpLiveSummary, type LpLiveRPrice, type LpLiveConfigRow, type LpLiveFillRow, type LpLiveHourRow, type LpLiveMarketRow, type LpLiveMinuteRow, type LpLiveOrderRow, type LpLiveRewardDayRow, type LpLiveStateRow, type LpLiveStopRow } from "./pm_lp_live_view.ts";
 import { PREP_STRESS_TABLE, recordPrepStress, stressLayer } from "./pm_prep_stress.ts";
 import { prepSummary, type PrepDayRow, type PrepStressDayRow, type PrepFillRow, type PrepMarketRow, type PrepMinuteRow, type PrepRateRow, type PrepStateRow } from "./pm_prep_view.ts";
 import { JEV_QUESTION_VERSION, positionFromFills, unrealisedUsd, type CategoricalState, type Position, type StrategyKind } from "../_shared/agents_strategy.ts";
@@ -2027,15 +2027,21 @@ async function dashboard(now: number) {
   // of its own, with RW-E ("variant-1", `0056`) and its variants after it, all read by `readRwPage`. From RW-C's first
   // minute, 2026-10-09 00:00 UTC, every one of them reads RW-C's run, round 2 of RW's rule (Davies, 2026-10-08: "合并进
   // Reward quotes"), and RW-C is no row of its own, before or after (`RW_PAGE_SWITCH`).
-  const { rw, rwe, rwx } = await readRwPage(d, now, dayStartMs);
+  // Live-prep's real-money book since it went live (2026-10-09), a row of LIVE with a page of its own: its live rows alone.
+  // Read first: its R (`estimate.r`, `lpLiveR` on its readout) prices every TESTING Reward quotes row below.
+  const lpLive = await readLpLive(d, now);
+  // The live R every paper Reward quotes row is shown at (Addendum 10, Davies: "确保r更新后所有testing的策略都用这个最新的来算他们
+  // 的r"): read once, here, and passed to each (`atLiveR`); before live-prep's first payout, the prior's. The pre-registered
+  // readings keep their own frozen R: none of them reads the dashboard.
+  const liveR: LpLiveRPrice = lpLive?.estimate?.r ?? lpLiveR([], now);
+  const page = await readRwPage(d, now, dayStartMs);
+  const rw = atLiveR(page.rw, liveR), rwe = atLiveR(page.rwe, liveR), rwx = page.rwx.map((x) => atLiveR(x, liveR));
   // "Reward quotes small-pool" (`0077`) and "Reward quotes mid-pool" (`0081`): an order path's dry-run filled on paper,
   // each a row of TESTING with RW's page, each read by `readPrepSummary` from its own instance's tables.
-  const prep = await readPrepSummary(d, PREP_INSTANCE, now, dayStartMs);
-  const prepMid = await readPrepSummary(d, PREP_MID_INSTANCE, now, dayStartMs);
+  const prep = atLiveR(await readPrepSummary(d, PREP_INSTANCE, now, dayStartMs), liveR);
+  const prepMid = atLiveR(await readPrepSummary(d, PREP_MID_INSTANCE, now, dayStartMs), liveR);
   // "Reward quotes live-prep" (`0091`): the path on RW's universe with live-prep's rules, its paper layer read the same way.
-  const prepLp = await readPrepSummary(d, PREP_LP_INSTANCE, now, dayStartMs);
-  // Its real-money book since it went live (2026-10-09), a row of LIVE with a page of its own: its live rows alone.
-  const lpLive = await readLpLive(d, now);
+  const prepLp = atLiveR(await readPrepSummary(d, PREP_LP_INSTANCE, now, dayStartMs), liveR);
   const quotesVariant = await quotesVariantRead;
   const quotesRuled = await quotesRuledRead;
 

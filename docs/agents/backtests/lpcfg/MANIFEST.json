@@ -5,12 +5,13 @@
   "data/minutes_2026-10-09.json": "sql/minutes.sql, cut out with ../rwc_opt/scripts/grab_payload.py",
   "data/fills_2026-10-09.json": "sql/fills.sql, cut out the same way",
   "data/config_timeline.json": "scripts/timeline.py on the pm-rec universe objects named by sql/universe_urls.sql, downloaded and sha256-checked by ../lpresel6/scripts/fetch.py (the objects and the reply are not committed)",
-  "data/readout_2026-10-09.json (once written)": "sql/readout.sql"
+  "data/readout_2026-10-09.json": "sql/readout.sql"
  },
  "run": [
   "cd docs/agents/backtests/lpcfg",
   "python3 -I scripts/timeline.py <dir of universe_*.gz> > data/config_timeline.json",
-  "python3 -I scripts/replay.py data/minutes_2026-10-09.json data/fills_2026-10-09.json data/config_timeline.json [data/readout_2026-10-09.json] > results/replay.txt"
+  "python3 -I scripts/replay.py data/minutes_2026-10-09.json data/fills_2026-10-09.json data/config_timeline.json [data/readout_2026-10-09.json] > results/replay.txt",
+  "python3 -I scripts/rtrue.py data/minutes_2026-10-09.json data/config_timeline.json data/readout_2026-10-09.json > results/rtrue.txt"
  ],
  "sha256": {
   "data/config_timeline.json": "fc7845f14a4538b816887605c88786ed79da80065329128864b8e35a1bfc3b88",
@@ -18,7 +19,9 @@
   "data/minutes_2026-10-09.json": "0fd7b52f4323b07a13234e31f1517a43085da47344fbba844a2d38b3485578dc",
   "data/readout_2026-10-09.json": "7ef746aa4f697353b3cb20d57c6ff2722d100fca91761c74b82ca0d41c705fef",
   "results/replay.txt": "706889ef94a8f9a1470d96cab81eda5c8b6b8c384725fd938356a22487fa43eb",
+  "results/rtrue.txt": "c7b870a32688b7e7fe88e70bad14d42d13ff7eace7968aec7737e9389b76de3c",
   "scripts/replay.py": "2ad274d8106e761f99235020ece2c36d3d10421d5828fcfa8aebe5b6ecda7c3e",
+  "scripts/rtrue.py": "647ffc8e86f9965ff944bf423889cce797e0bab3bc0a3c6642488346a1b6abbe",
   "scripts/timeline.py": "3e7a55e2581c1efeac26784eba3da7c875c15ab37bb838b77a4c389f3262de09",
   "sql/fills.sql": "d78bd4369963eed679ffb869187f387f63e5f940a6fd8b58f2a9037015953335",
   "sql/minutes.sql": "42a03294b97d8fb8dbde858ad0b0a91b48202c913b3b3dfe6cec964d22202081",

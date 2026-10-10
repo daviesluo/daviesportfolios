@@ -662,7 +662,8 @@ export function schemaRefusal(table: string, r: Row): string | null {
     }
     if (shape === "pm_live_events") {
       return notNull(["mode", "minute", "kind", "detail"]) ?? check("mode", MODES.includes(String(r.mode)))
-        ?? check("kind", ["gates", "selection", "loss_stop_day", "loss_stop_total", "governor", "alert", "condition", "readout"].includes(String(r.kind)));
+        // Live-prep's deposits and withdrawals (0113, 2026-10-10): `funding`, its table's alone.
+        ?? check("kind", ["gates", "selection", "loss_stop_day", "loss_stop_total", "governor", "alert", "condition", "readout", ...(lp ? ["funding"] : [])].includes(String(r.kind)));
     }
     return check("id", r.id === 1) ?? notNull(["state"]);
   }

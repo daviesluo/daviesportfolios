@@ -891,3 +891,83 @@ off, and the estimator's on the code before):
   and never fires while Polymarket reads us scoring.
 - R and today's estimate on the scored formula (10-09's 6.53 over 19.80, not over 153.90).
 - `src/pm_live_hash.test.js`, `src/pm_lp_prereg.test.js`: the bytes and the chain of addenda.
+
+## Addendum 10 (2026-10-10, about 02:00 UTC): FUNDED, the payout read at once, R for 10-09, every paper row at the live R
+
+This addendum was written while live-prep is live and before the deploy it records. Addendum 9 deployed at 01:14:15
+UTC on 2026-10-10; until then 10-10 was quoted, from 00:00 to 01:15, on its 00:00 selection's programmes, as 10-09 was.
+Five changes, in Davies' words where they are his, relayed by the main session the same night.
+
+**1. FUNDED is the money put in.** Davies: "子页面中的FUNDED得显示我实际真实投入的钱（应该是402左右）" (the page's FUNDED must show the
+money he actually put in, about 402). It showed the total cap. The path now reads it every live turn (`lpFunding`): pUSD +
+what the CONFIRMED fills spent net − what redeemed settlements paid in − the rewards and maker rebates paid (the
+readout's live rows). On 2026-10-10 at 01:17 UTC: 172.810385 + 237.718788 − 6.524180 − 1.976628 = **$402.028365**, the
+$402.03 found on 10-09 at 14:50 UTC before any payout. The first live turn after 03:10 UTC books it; after that a move
+of $1 or more, read alike (to a cent) on two turns at most five minutes apart, with no fill settling, after 03:10 UTC
+and once yesterday's payout is read, is booked as a deposit or a withdrawal, each a `pm_lp_events` row of kind
+`funding` (`0113_pm_lp_funding.sql` allows the kind; until it runs nothing is booked and the turn says so). The quiet
+hours are evidence, not caution: on 2026-10-10 the rewards were in pUSD by 00:05 and the maker rebates ($1.976628)
+landed between 00:27 and 01:17, so a residual read in between would have booked them as a deposit. LIVE's row and page
+show it as FUNDED (`fundedUsd`), the cap until the path has booked it; today and realised percents are on it.
+
+**2. The payout read at once.** Davies saw "rewards paid $0" and R (ACTUAL) unchanged after midnight: the readout ran
+from 01:00 UTC. It now runs from 00:05 (`PM_LP_READOUT`). Before 03:00 yesterday is read every ten minutes while the
+account's day total reads nothing, and once it reads a payout it is written (paid, rebates, R) and read again every ten
+minutes without counting, since the rebates post later; the read that counts is the first after 03:00, which also
+takes a zero as a zero. A day is still never read twice in one UTC day otherwise. Realised, paid and R (ACTUAL) move
+within minutes of the payout.
+
+**3. Every paper Reward quotes row at the live R.** Davies: "确保r更新后所有testing的策略都用这个最新的来算他们的r". The pages
+showed RW-C's "Reward quotes" and its variants, and the three paper layers, with rewards at the formula (R = 1) and
+their worst case at half. The dashboard now reads the live R once (`lpLiveR`, as LIVE's estimate uses it; the prior's
+before a payout) and prices each of those rows at it (`atLiveR`): every reward is the formula's times R's point, the
+worst case's half becomes R's band's low, in the total, today, realised, each day and each market; fills, holdings and
+capital do not move, and each row carries the R it used (`rPricing`). Only what the pages show moves. **Every
+pre-registered reading keeps the R it froze**: RW's and RW-C's verdicts, TB1, the RW-X tests, mid-pool's readout,
+LPRESEL6 and RWC-OPT read their own tables and scripts, and the paper layers' stops still count closed days at
+R = 0.40 (`PREP_R_BREAK_EVEN`); none of them reads the dashboard.
+
+**4. R for 10-09: 0.807, like for like.** The readout's scored formula for 10-09 priced the minutes Polymarket scored at
+the 00:00 selection's rates, which it had cut (R 0.33); the fixed rules' formula (Addendum 9's replay, 0.91) leaves out
+minutes we quoted that Polymarket still paid at a cut rate (`0x5b3350e2…` reads 3.31 there). The like-for-like figure
+is paid over the minutes both sides read scoring, each at its recorded formula times the rate the CLOB listing showed
+at that minute over the selected rate (`backtests/lpcfg/scripts/rtrue.py`, `results/rtrue.txt`): **$6.524180 /
+$8.081876 = 0.807**. `lpLiveR` reads 10-09 at that figure, market by market (`LP_R_DAY_CORRECTIONS`, pinned to the
+script's output), and so do LIVE's R (ACTUAL) and DAYS; the readout's rows are never rewritten. Days from 10-10 on are
+measured with the check in place and stand as read (10-10's first 75 minutes were not, as said above).
+
+**5. Sponsored rewards are not why the selection read too high, and the rule is unchanged.** The three markets selected
+above what the check then read, `0x5b3350e2…` (40, read 3 on 10-09), `0xa0ab5c59…` (40) and `0xd23c714e…` (47, both
+taken out in the check's first minute on 10-10, native 3 and 2, sponsored 0), are in no sponsored listing: it held 30
+rows on 10-10 at about 00:20 UTC, $0.001 to $34 a day of sponsors on other markets, and the per-market read folding
+sponsors in (`sponsored=true`) gives the same 3 and 2. What moves is their NATIVE programme: pm-rec's 15-minute reads
+show `0xa0ab5c59…` at 40 and 3 by turns through 10-09, `0xd23c714e…` at 2 to 8 until 20:22 and then 46 to 54 for two
+hours, `0x5b3350e2…` at 3 and 40 by turns all day, and the CLOB's own read of `0xa0ab5c59…` gave 40 at 00:25 and 3 at
+01:15. The selection took them at the moment their rate was high. Polymarket's docs say rewards are paid to maker
+addresses daily at midnight UTC and the API keeps sponsored earnings as their own stream (`/rewards/user?sponsored=true`,
+summed into `/rewards/user/total`), which the readout already reads; no live-prep market has had a sponsored rate, so
+there is no record of one paid to this account either way (`actual_sponsored_usd` is 0 on every row of all three
+paths). So nothing here shows sponsored rewards unpaid, and taking them out would not have changed 10-09 or 10-10: the
+selection and the check keep the listing's total. What would change it is ranking on a rate that does not flip within
+the hour (a recommendation for Davies, not built); the check, every minute, already takes such a market out the
+minute its rate falls.
+
+**The code it deploys:** `pm_live.ts` sha256 `c990ef3e3ad2700f5552c7a913e1376b7a1fc08368e7b39bd5589ad865a53616`, where Addendum 9 named `e76d0234…6809` (`lpFunding`,
+`PM_LP_FUNDING`, `PmLpOptions.readout`, the readout's early read); `pm_lp.ts` sha256 `be8947b58517510dbf91b19ba167a183d6ec20d433a651771e1ba26a9d0356e2`, where Addendum 9 named
+`c7e3a7ec…73c7` (`PM_LP_READOUT`); `0113_pm_lp_funding.sql` sha256 `eed1edbfdefb93112f834a51f5784849d93d9ee16add88afad9070a90437e49c`; `agents/pm_lp_live_view.ts`
+(`fundedUsd`, `LP_R_DAY_CORRECTIONS`, `scoredFormulaOf`, `atLiveR`), `agents/index.ts` (one R for every paper row) and
+the page (`src/agents/agents.js`: FUNDED is `fundedUsd`). Mini-pool and mid-pool set no `readout` and keep their 01:00
+read; their paper rows on the page are priced at the live R like every other.
+
+**Pinned** (`agents/pm_lp.test.ts`, `agents/pm_lp_live_view.test.ts`):
+
+- `lpFunding` by hand: the 01:17 figures give 402.028365; the first reading books it; a $100 deposit books on the
+  second agreeing reading and not the first; a withdrawal likewise; nothing in the quiet hours, before the payout is
+  read, with a fill settling, or on a move under $1.
+- Armed: the first reading is an event of kind `funding`; a deposit books after two turns; a payout the readout books is
+  never a deposit.
+- The early readout: nothing before 00:05; from 00:06 nothing written while the day total reads nothing; once paid,
+  written and not counted; counted from 03:01; a zero taken from 03:01.
+- 10-09 enters R at 0.807 from the readout's own rows and the pinned table; a later day stands as read.
+- `atLiveR` by hand; at R = 1 and a low of 0.5 it leaves a summary as it was.
+- `src/pm_live_hash.test.js`, `src/pm_lp_prereg.test.js`: the bytes and the chain of addenda.

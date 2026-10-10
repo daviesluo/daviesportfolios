@@ -502,7 +502,9 @@ that follow from that evidence, in short:
   reward programme every minute before anything rests** (Addendum 9, `0111`; Davies: "策略每分钟读的时候都检查奖励配置"): a
   market whose programme ended, fell under $10 or now asks more than N = 20 takes no entry that minute (its sells rest
   on), three live minutes of Polymarket reading neither side scoring take it out for the day, and R and today's estimate
-  rest on the formula Polymarket scored. **Live, its total cap follows its equity since
+  rest on the formula Polymarket scored. Since Addendum 10 (`0113`) its FUNDED is the money put in, its payout is read
+  from 00:05 UTC, and every paper Reward quotes row on the page is shown at its live R (pre-registered readings keep their
+  own). **Live, its total cap follows its equity since
   `0106`** (Davies, 2026-10-09: payouts and deposits used at once; its pre-registration's Addendum 8): every turn
   floor(pUSD + held at cost + unredeemed − $75 − $5), at most $1,000, down at once, up only on two agreeing readings with
   no fill settling, never on an unread balance (`lpCapital`); `reinvest = false` on its config puts the fixed $320 back. Its

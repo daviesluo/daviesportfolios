@@ -315,9 +315,16 @@ places stay when the number is not whole.
   is when the page was read, and that it refreshes every minute. A fill is one print, so the fills table has no profit
   of its own — that sits on the quote row and on realised. Every part that is printed beside a total adds up, to the cent, to
   that total. The rewards are worked out from
-  Polymarket's published formula against the book as it stood, so they
-  are an upper bound: only an account that quotes shows what Polymarket
-  actually pays. The first day was a warm-up that counts nowhere.
+  Polymarket's published formula against the book as it stood, then
+  priced at what Polymarket has actually been paying the live Reward
+  quotes account: since 10 October every Reward quotes row on TESTING
+  (this one, its variants, and the small-pool, mid-pool and live-prep
+  rows) shows the formula's rewards times the latest live R, what was
+  paid over what the formula gave, and its worst case at the low end of
+  R's range, so each payout read moves them all. Until the first payout it
+  is the studies' middle guess. Only what the pages show moves: every test's
+  pre-registered verdict keeps the R it was frozen with. The first day was
+  a warm-up that counts nowhere.
   Reward quotes runs in two rounds. Round 1 is its first fourteen days,
   25 September to 9 October. From 9 October 01:00 UK time the row and
   its page read round 2: the same rule run again on fresh days, 9 to 23
@@ -394,9 +401,13 @@ places stay when the number is not whole.
   on Polymarket since it went live on 9 October, called Reward quotes
   there; its paper row stays on TESTING as Reward quotes live-prep, beside
   TESTING's own Reward quotes, and never adds the real money in. Funded is
-  its cap, the most it may commit, which follows the account: each day's
-  rewards and any money added raise it the minute after they arrive, a
-  withdrawal or a loss lowers it at once, up to $1,000; deployed is what its resting buys tie up
+  the money Davies has put into its account: worked out every minute from
+  what the account holds and what it has done, so rewards and trading never
+  move it, and a deposit or a withdrawal shows a few minutes after it lands
+  (none is counted between midnight and 03:10 UTC, while Polymarket's
+  payouts arrive). Behind it, the most it may commit follows the account:
+  each day's rewards and any money added raise that the minute after they
+  arrive, a withdrawal or a loss lowers it at once, up to $1,000; deployed is what its resting buys tie up
   plus what it holds at cost; today, unrealised and realised come from its
   confirmed fills at the last minute's mid prices, and realised also counts
   the rewards and rebates Polymarket actually paid, less any fee its trade
@@ -404,7 +415,9 @@ places stay when the number is not whole.
   charges only the side that takes). Tap it for a page of its own: the same
   scoreboard, then STATUS: R (ACTUAL), what Polymarket paid over what the
   reward formula gave in the minutes Polymarket itself confirmed our orders
-  scoring, on the days a payout has been read (a dash until the first); the markets quoting today; the positions still held; and REWARDS
+  scoring, on the days a payout has been read (a dash until the first;
+  Polymarket's payout is read from five minutes past midnight UTC, so it
+  moves within minutes of arriving); the markets quoting today; the positions still held; and REWARDS
   TODAY (EST.), in green, what today's quotes have earned since midnight
   UTC as a range from low to best, counting only the minutes Polymarket
   confirmed them scoring. It moves every minute, starts again

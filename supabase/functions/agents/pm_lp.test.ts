@@ -13,11 +13,11 @@
 // mini-pool's or mid-pool's tables is touched.
 
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { lpQuotes, nearCertainBuyOk, PM_LP_REWARD_CHECK, PM_LP_BAND, PM_LP_CANDIDATE, PM_LP_CAP_MARKET_USD, PM_LP_INSTANCE, PM_LP_INV_CAP, PM_LP_NEAR_CERTAIN, PM_LP_PAUSE, PM_LP_TIGHT, PREP_LP_INSTANCE } from "./pm_lp.ts";
+import { lpQuotes, nearCertainBuyOk, PM_LP_READOUT, PM_LP_REWARD_CHECK, PM_LP_BAND, PM_LP_CANDIDATE, PM_LP_CAP_MARKET_USD, PM_LP_INSTANCE, PM_LP_INV_CAP, PM_LP_NEAR_CERTAIN, PM_LP_PAUSE, PM_LP_TIGHT, PREP_LP_INSTANCE } from "./pm_lp.ts";
 import { isTight } from "./pmrw_x.ts";
 import {
   candidateOf, ctfApproval, effectiveLimits, gates, heldFromBalance, inUniverse, inYesBook, lpCandidateOf, lpLimits, onTick, PM_LIVE_MAX_POSTS_DAY, PM_LP_MAX_POSTS_DAY, pauseAfterJump, PM_LIVE_INSTANCE, PM_MINI_INSTANCE, pmLiveDbTables, pmLpDbTables,
-  lpRewardVerdict, rewardConfigOf, runPmLive, rwQuotes, scoringStreak, type PmRewardNow, type PmBookNow, type PmIntent, type PmLiveConfig, type PmMarketRow, type PmPauseState, type PmRewardRow,
+  lpFunding, lpRewardVerdict, PM_LP_FUNDING, rewardConfigOf, runPmLive, rwQuotes, scoringStreak, type PmRewardNow, type PmBookNow, type PmIntent, type PmLiveConfig, type PmMarketRow, type PmPauseState, type PmRewardRow,
 } from "./pm_live.ts";
 import { classifyLp, decideLp, PREP_INSTANCE, prepDbTables, prepReads, runPmPrep, stepSides, type PrepOrder } from "./pm_prep.ts";
 import { PM_MID_INSTANCE, PREP_MID_INSTANCE } from "./pm_mid.ts";
@@ -966,3 +966,83 @@ Deno.test("the backstop, armed: both sides read not scoring for three live minut
   assertEquals(s.rows("pm_lp_orders").filter((x) => x.cond === s.L1.cond && x.side === "BUY" && x.state === "live").length, 2);
   assertEquals((s.rows("pm_lp_state")[0].state as any).lp.backstop.dropped, {});
 });
+
+// ------------------------------------------------------------------ FUNDED and the early readout (2026-10-10, Addendum 10)
+
+Deno.test("lpFunding: the money put in from the account's own figures; a move books on two agreeing readings, never in the posting hours, before the payout is read, or with a fill settling", () => {
+  assertEquals(PM_LP_FUNDING, { minMoveUsd: 1, agreeUsd: 0.01, freshMs: 5 * M, quietMs: 3 * H + 10 * M });
+  // 2026-10-10 01:17 UTC on the record: pUSD 172.810385, the CONFIRMED fills' net 237.718788, paid 6.524180 and 1.976628.
+  const residual = Math.round((172.810385 + 237.718788 - 6.52418030132400019 - 1.976628) * 1e6) / 1e6;
+  assertEquals(residual, 402.028365);
+  const day0 = Date.parse("2026-10-10T00:00:00Z"), t = day0 + 4 * H;
+  const base = { nowMs: t, dayStartMs: day0, unsettledFills: 0, payoutRead: true };
+  const first = lpFunding({ ...base, prev: null, residualUsd: residual });
+  assertEquals([first.booked, first.next?.depositUsd], [{ moveUsd: 402.028365, depositUsd: 402.028365, first: true }, 402.028365]);
+  // Nothing booked in the posting hours, before yesterday's payout is read, with a fill settling, or unread.
+  for (const [x, why] of [[{ nowMs: day0 + 3 * H }, "before 03:10"], [{ payoutRead: false }, "payout is not read"], [{ unsettledFills: 1 }, "settling"]] as const) {
+    const r = lpFunding({ ...base, ...x, prev: null, residualUsd: residual });
+    assert(r.booked === null && r.next === null && r.why.includes(why), r.why);
+  }
+  assertEquals(lpFunding({ ...base, prev: first.next, residualUsd: null }).booked, null);
+  // A drift under $1 moves nothing; a deposit of $100 books on the second agreeing reading, not the first.
+  assertEquals(lpFunding({ ...base, prev: first.next, residualUsd: residual + 0.99 }).booked, null);
+  const one = lpFunding({ ...base, prev: first.next, residualUsd: residual + 100 });
+  assertEquals([one.booked, one.next?.candidate?.residualUsd], [null, residual + 100]);
+  const two = lpFunding({ ...base, nowMs: t + M, prev: one.next, residualUsd: residual + 100 });
+  assertEquals([two.booked?.moveUsd, two.next?.depositUsd, two.why], [100, 502.028365, "a deposit"]);
+  // Two readings that disagree start again; one more than five minutes later does not agree with the first.
+  const off = lpFunding({ ...base, nowMs: t + M, prev: one.next, residualUsd: residual + 50 });
+  assertEquals([off.booked, off.next?.candidate?.residualUsd], [null, residual + 50]);
+  assertEquals(lpFunding({ ...base, nowMs: t + 6 * M, prev: one.next, residualUsd: residual + 100 }).booked, null);
+  // A withdrawal likewise.
+  const w1 = lpFunding({ ...base, prev: first.next, residualUsd: residual - 40 }), w2 = lpFunding({ ...base, nowMs: t + M, prev: w1.next, residualUsd: residual - 40 });
+  assertEquals([w2.booked?.moveUsd, w2.why], [-40, "a withdrawal"]);
+});
+
+Deno.test("armed, FUNDED: the first reading is the money put in; a deposit books as an event after two turns; a payout read is never a deposit", async () => {
+  const w = world({ config: LIVE });
+  await w.turn(T0);                                                                       // reads 10-04's payout (nothing: a zero after 03:00)
+  const st = () => (w.rows("pm_lp_state")[0].state as any).lp.funding;
+  const ev = () => w.rows("pm_lp_events").filter((e) => e.kind === "funding").map((e) => (e.detail as any));
+  assertEquals([st().depositUsd, ev().map((e) => [e.first, e.moveUsd])], [1000, [[true, 1000]]]);
+  // Davies adds $100: booked on the second turn that reads it, not the first.
+  w.pm.pusd += 100;
+  await w.turn(T0 + M);
+  assertEquals([st().depositUsd, ev().length], [1000, 1]);
+  await w.turn(T0 + 2 * M);
+  assertEquals([st().depositUsd, ev().at(-1).moveUsd, ev().at(-1).why], [1100, 100, "a deposit"]);
+  // Polymarket pays $5 and the readout books it: the residual does not move, nothing is booked.
+  w.pm.pusd += 5;
+  w.rows("pm_lp_reward_days").push({ mode: "live", day: "2026-10-04", cond: w.L1.cond, minutes: 10, minutes_two_sided: 10, minutes_scored: 10, formula_usd: 5, formula_scored_usd: 5, rate: 12, actual_usd: 5, actual_sponsored_usd: 0, rebate_usd: 0, read_at: iso(T0), detail: {} });
+  await w.turn(T0 + 3 * M);
+  await w.turn(T0 + 4 * M);
+  assertEquals([st().depositUsd, ev().length], [1100, 2]);
+  // The page's FUNDED is it.
+  assertEquals(w.errors.filter((e) => /funding/.test(e)), []);
+});
+
+Deno.test("the early readout (Addendum 10): from 00:05 it waits for yesterday's payout to post, writes it once posted without counting it, and counts the read from 03:00; a zero is a zero from 03:00", async () => {
+  assertEquals(PM_LP_READOUT, { fromMs: 5 * M, acceptZeroAfterMs: 3 * H });
+  const day1 = Date.parse("2026-10-06T00:00:00Z");
+  const paid = async (pay: boolean) => {
+    const w = world({ config: LIVE });
+    await w.turn(T0);                                                                     // a live day of 10-05 in L1
+    const rows = () => w.rows("pm_lp_reward_days").filter((r) => r.day === "2026-10-05");
+    const ro = () => (w.rows("pm_lp_state")[0].state as any).readouts["2026-10-05"];
+    await w.turn(day1 + 4 * M);                                                           // 00:04: not yet
+    assertEquals([rows().length, ro()], [0, undefined]);
+    await w.turn(day1 + 6 * M);                                                           // 00:06: read, nothing posted
+    assertEquals([rows().length, ro()], [0, undefined]);
+    if (pay) w.pm.earnings["2026-10-05"] = { native: [{ cond: w.L1.cond, usd: 0.5 }], sponsored: [] };
+    await w.turn(day1 + 17 * M);                                                          // ten minutes on: read again
+    if (pay) {
+      assertEquals([rows().map((r) => Number(r.actual_usd)).reduce((a, b) => a + b, 0), ro().reads, typeof ro().earlyAt], [0.5, 0, "string"]);
+    } else assertEquals([rows().length, ro()], [0, undefined]);
+    await w.turn(day1 + 3 * H + M);                                                       // 03:01: the read that counts
+    assertEquals([rows().length > 0, rows().map((r) => Number(r.actual_usd)).reduce((a, b) => a + b, 0), ro().reads], [true, pay ? 0.5 : 0, 1]);
+    return w;
+  };
+  await paid(true);
+  await paid(false);
+});
+

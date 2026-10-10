@@ -7,10 +7,11 @@
 // stays what it was and the two never add into one another.
 //
 // What the row's cells are:
-//   funded     the total cap the path's last turn held its buys to (`state.limits.capTotal`): since Addendum 8 it follows
-//              the equity (`lpCapital`), so a payout or a deposit shows here the minute after it is used; without a turn's
-//              figure, the config's (`cap_total_usd`, $320), as PR5's funded is its config's capital. The pUSD the account held at arming is not it: that balance also holds the room under
-//              the −$75 stop and the reserve the cap was set below, and the state's `pusd` moves with every fill.
+//   funded     since 2026-10-10 (Addendum 10) the money Davies put in (`fundedUsd`): pUSD + what the CONFIRMED fills spent net
+//              − what redeemed settlements paid in − the rewards and rebates paid, kept by the path (`lpFunding`) and moved
+//              only by a deposit or a withdrawal it books. Until the path has booked it, the cap, as before: the total cap
+//              the path's last turn held its buys to (`capUsd`, `state.limits.capTotal`, following the equity since
+//              Addendum 8), else the config's.
 //   deployed   the collateral of its resting live buys (price × what is left of each) and what it holds at cost.
 //   today      the day's realised P&L plus every holding against its cost (`bookPnl`'s day, the path's own day reading;
 //              live-prep keeps no opening marks, having no day stop), plus what Polymarket paid for today's date.
@@ -85,6 +86,39 @@ const dayOf = (d: string) => String(d).slice(0, 10);
 /** When the book went live: the arming's time, else (disarmed since) its first live order's; null for neither. */
 export function lpLiveSince(cfg: Pick<LpLiveConfigRow, "live_confirmed_at"> | null, firstLiveOrderTs: string | null): string | null {
   return cfg?.live_confirmed_at ?? firstLiveOrderTs ?? null;
+}
+
+/**
+ * A live day whose readout's scored formula was measured on a stale programme, read instead at its like-for-like figure
+ * (the pre-registration's Addendum 10; Davies' main session, 2026-10-10). 2026-10-09 was quoted all day on the 00:00
+ * selection's programmes, which Polymarket cut during the day, so its `formula_scored_usd` priced the minutes Polymarket
+ * scored at rates it no longer paid: R 0.33. Its like-for-like formula is each of those minutes' recorded formula times
+ * the rate the CLOB's listing showed at that minute over the selected rate (`backtests/lpcfg/scripts/rtrue.py`, its output
+ * `results/rtrue.txt`): $8.081876 in all, R = 6.524180 / 8.081876 = 0.807. The table is never written to: the readout's
+ * rows stay as read, and only the figure R is calibrated on is this. Days from 2026-10-10 on are measured with the
+ * reward check in place and stand as read.
+ */
+export const LP_R_DAY_CORRECTIONS: Readonly<Record<string, { source: string; formulaScoredUsd: Readonly<Record<string, number>> }>> = {
+  "2026-10-09": {
+    source: "docs/agents/backtests/lpcfg/results/rtrue.txt",
+    formulaScoredUsd: {
+      "0x045fdf4be2f890a3f846357a5160834685bb7dfae65909d3d307e5547898e1ad": 0.879838,
+      "0x5b3350e20f05e072422dbb35a02cc87a7c83c63052794a9d91a3c25c8c1f5dd0": 0.314623,
+      "0x5fec667514efa90a507dc672f18706a38eff7643cb80e77be606219da1fa2ad0": 1.884818,
+      "0x9235351ee3dd6313185e3b7d75730d3be90cf8c736985fa03ebb69cece650522": 1.973267,
+      "0xa326c49fad38dd03d04d67c5acb334f4fb851a88784153b5e55bec1a5d75e96b": 0.968556,
+      "0xecc209a690169d2ccf22be5db33e42bec5ff01930e9773d2ccc1ab0ed81e6301": 0.346739,
+      "0xeee7384867f13b7aa044eb5c52cb52cf193e4f520aa1349b7f3f63a98857eb87": 0.897922,
+      "0xf050353934ca8adbf3a2706a763afd2190c27f2e067daf28d5ccb060894ca337": 0.0,
+      "0xf6f3f159e6d96c5f875705c1257b02b87711fa7c08edac71a73e7dbbea984978": 0.65654,
+      "0xfbd3437ca9a83c2d96f09df6a9278451a175dc7ed155cc6ac890064410df74c4": 0.159572,
+    },
+  },
+};
+/** A live reward-day row's scored formula, as R is calibrated on it: the readout's, or its day's like-for-like figure. */
+export function scoredFormulaOf(r: Pick<LpLiveRewardDayRow, "day" | "cond" | "formula_scored_usd">): number {
+  const c = LP_R_DAY_CORRECTIONS[dayOf(r.day)]?.formulaScoredUsd;
+  return c && r.cond in c ? c[r.cond] : num(r.formula_scored_usd);
 }
 
 /**
@@ -164,7 +198,7 @@ export function lpLiveSummary(input: {
   for (const r of input.rewardDays) {
     const d = dayOf(r.day);
     const x = byDay.get(d) ?? { day: d, markets: 0, minutesScored: 0, formulaUsd: 0, formulaAllUsd: 0, paidUsd: 0, rebateUsd: 0 };
-    x.markets++; x.minutesScored += num(r.minutes_scored); x.formulaUsd += num(r.formula_scored_usd); x.formulaAllUsd += num(r.formula_usd);
+    x.markets++; x.minutesScored += num(r.minutes_scored); x.formulaUsd += scoredFormulaOf(r); x.formulaAllUsd += num(r.formula_usd);
     x.paidUsd += num(r.actual_usd) + num(r.actual_sponsored_usd); x.rebateUsd += num(r.rebate_usd);
     byDay.set(d, x);
   }
@@ -262,6 +296,9 @@ export function lpLiveSummary(input: {
     armed, dryRun: !!cfg.dry_run, liveSince: lpLiveSince(cfg, input.firstLive), tradedLive,
     lastTurn, lagMinutes, running: lagMinutes !== null && lagMinutes <= LP_LIVE_STALE_MINUTES, lastError: input.state?.last_error ?? null,
     capUsd: (() => { const c = Number((st as { limits?: { capTotal?: unknown } } | null)?.limits?.capTotal); return Number.isFinite(c) && c >= 0 ? c : num(cfg.cap_total_usd); })(),
+    // FUNDED (Addendum 10; Davies: "子页面中的FUNDED得显示我实际真实投入的钱"): the money put in, as the path's last live turn
+    // booked it (`lpFunding`, `state.lp.funding`); null until it has, when the row falls back to the cap.
+    fundedUsd: (() => { const f = Number((st as { lp?: { funding?: { depositUsd?: unknown } } } | null)?.lp?.funding?.depositUsd); return Number.isFinite(f) && f > 0 ? r6(f) : null; })(),
     valueUsd: r6(restingBuys + heldCost), restingBuysUsd: r6(restingBuys), costUsd: r6(heldCost), heldValueUsd: r6(heldValue),
     todayUsd: r6(pnl.day + paidToday),
     unrealisedUsd: r6(pnl.total - realisedFills),
@@ -327,7 +364,7 @@ export function lpLiveR(rewardDays: LpLiveRewardDayRow[], nowMs: number) {
     const d = dayOf(r.day);
     if (d >= today) continue;
     const x = days.get(d) ?? { formula: 0, paid: 0, byCond: new Map() };
-    const f = num(r.formula_scored_usd), p = num(r.actual_usd) + num(r.actual_sponsored_usd);
+    const f = scoredFormulaOf(r), p = num(r.actual_usd) + num(r.actual_sponsored_usd);
     x.formula += f; x.paid += p;
     const c = x.byCond.get(r.cond) ?? { formula: 0, paid: 0 };
     c.formula += f; c.paid += p; x.byCond.set(r.cond, c);
@@ -438,4 +475,64 @@ export function lpRewardEstimate(input: { rewardDays: LpLiveRewardDayRow[]; hour
     rates: { recent: r6n(rates.recent), today: r6n(rates.today), days: r6n(rates.days) },
     markets,
   };
+}
+
+// ------------------------------------------------------------------ TESTING's Reward quotes rows at the live R (Addendum 10)
+
+/** The live R a page prices rewards at: `lpLiveR`'s point and band, as `lpRewardEstimate` returns them (`estimate.r`). */
+export type LpLiveRPrice = { point: number; low: number; high: number; days: number; basis: "live" | "prior" };
+
+/**
+ * A paper Reward quotes summary (RW-C's "Reward quotes" and its variants, `pmrw_view.ts`; the order paths' paper layers,
+ * `pm_prep_view.ts`) priced at the live R (Davies, 2026-10-10: "确保r更新后所有testing的策略都用这个最新的来算他们的r"). Those
+ * summaries count the formula's rewards at R = 1 and their worst case at half; here each reward is the formula's times
+ * the live R's point, and the worst case's half becomes the band's low, everywhere the page shows them: the total, today,
+ * realised, each day, each market. Fills, holdings and capital do not move. The dashboard passes the one R it read
+ * (`lpLive.estimate.r`, else the prior's) to every row, and `rPricing` says which. What the PAGES show moves only:
+ * every pre-registered reading keeps the R it froze (RW's and RW-C's verdicts, TB1, the RW-X tests, mid-pool's readout,
+ * LPRESEL6, RWC-OPT, and the paper layers' own stops at R = 0.40), none of which reads this.
+ */
+// deno-lint-ignore no-explicit-any
+export function atLiveR<T extends Record<string, any> | null | undefined>(s: T, R: LpLiveRPrice): T {
+  if (!s || typeof s !== "object") return s;
+  const k = R.point, lo = R.low;
+  const n = (x: unknown) => (typeof x === "number" && Number.isFinite(x) ? x : null);
+  const F = n(s.rewardUsd) ?? 0;
+  // deno-lint-ignore no-explicit-any
+  const out: Record<string, any> = { ...s, rPricing: { point: R.point, low: R.low, high: R.high, days: R.days, basis: R.basis, stressAt: "low" } };
+  const shift = (x: unknown, f: number) => (n(x) === null ? x : r6(Number(x) - (1 - k) * f));
+  const stress = (x: unknown, f: number) => (n(x) === null ? x : r6(Number(x) - 0.5 * f + lo * f));
+  out.rewardUsd = n(s.rewardUsd) === null ? s.rewardUsd : r6(k * F);
+  out.totalUsd = shift(s.totalUsd, F);
+  out.realisedUsd = shift(s.realisedUsd, F);
+  out.stressUsd = stress(s.stressUsd, F);
+  // Today's rewards: the run's less every closed day's.
+  const days = Array.isArray(s.days) ? s.days : [];
+  const closed = days.reduce((a: number, d: Record<string, unknown>) => a + (n(d.rewardUsd) ?? 0), 0);
+  const todayF = F - closed;
+  out.todayUsd = shift(s.todayUsd, todayF);
+  if ("todayStressUsd" in s) out.todayStressUsd = stress(s.todayStressUsd, todayF);
+  // Each closed day, and the running total at its close (oldest first for the running sum, in the order given).
+  const order = days.map((d: Record<string, unknown>, i: number) => [String(d.day ?? ""), i] as const).sort((a: readonly [string, number], b: readonly [string, number]) => a[0].localeCompare(b[0]));
+  const cum = new Map<number, number>();
+  let run = 0;
+  for (const [, i] of order) { run += n(days[i].rewardUsd) ?? 0; cum.set(i, run); }
+  if (Array.isArray(s.days)) {
+    out.days = days.map((d: Record<string, unknown>, i: number) => {
+      const f = n(d.rewardUsd) ?? 0;
+      return {
+        ...d, rewardUsd: n(d.rewardUsd) === null ? d.rewardUsd : r6(k * f), totalUsd: shift(d.totalUsd, f), stressUsd: stress(d.stressUsd, f),
+        ...("runningUsd" in d ? { runningUsd: shift(d.runningUsd, cum.get(i) ?? 0) } : {}),
+      };
+    });
+  }
+  if (Array.isArray(s.markets)) {
+    out.markets = s.markets.map((m: Record<string, unknown>) => {
+      const f = n(m.rewardUsd) ?? 0;
+      return { ...m, rewardUsd: n(m.rewardUsd) === null ? m.rewardUsd : r6(k * f), totalUsd: shift(m.totalUsd, f) };
+    });
+    const best = out.markets.map((m: Record<string, unknown>) => n(m.totalUsd)).filter((x: number | null): x is number => x !== null);
+    if (best.length && n(s.bestMarketUsd) !== null) out.bestMarketUsd = r6(Math.max(...best));
+  }
+  return out as T;
 }

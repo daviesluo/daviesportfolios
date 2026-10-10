@@ -10,7 +10,8 @@
 //   8920e0c2…  live-prep's Addendum 6, mid-pool's Addendum 7 (live-prep's 12,000 POSTs a day, 2026-10-09)
 //   749bfcdb…  live-prep's Addendum 7, mid-pool's Addendum 8 (the rule's input carries the path's capital, 2026-10-09)
 //   7e3e8c95…  live-prep's Addendum 8, mid-pool's Addendum 9 (live-prep's cap follows its equity, 2026-10-09)
-//   (Addendum 9's)  live-prep's Addendum 9, mid-pool's Addendum 10 (live-prep's reward check every minute, 2026-10-10)
+//   e76d0234…  live-prep's Addendum 9, mid-pool's Addendum 10 (live-prep's reward check every minute, 2026-10-10)
+//   (Addendum 10's)  live-prep's Addendum 10, mid-pool's Addendum 11 (live-prep's FUNDED and early readout, 2026-10-10)
 import { describe, expect, it } from 'vitest';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -39,13 +40,16 @@ const A749 = '749bfcdb2b9170ddc455f18c4a5b691c89450c3bd9c8fd9784ada3d9ef2def09';
 const A7E3 = '7e3e8c95823fa9ba3b8b7ca067aa745f41bde5340ed5686b661b4572b31709a3';
 /** The pm_lp.ts live-prep's Addendum 7 named (the near-certain limit), its instance until Addendum 9. */
 const LP_A7 = '98c060072ebac964df345930122a045a06ec1191f57b094e2dfead928565762c';
+const AE76 = 'e76d0234d1b3454d0a4e5b0cdbe7fc1c43f92425626a0d593b91f31035cc6809';
+/** The pm_lp.ts live-prep's Addendum 9 named (the reward check), its instance until Addendum 10. */
+const LP_A9 = 'c7e3a7ec271b8e798dcc756c3f9d83da2421ddee03f3fede6e3e66a541d173c7';
 
 describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", () => {
-  it("live-prep's latest addendum (9) and mid-pool's (10) name today's pm_live.ts", () => {
-    expect(lastNumber(LP)).toBe(9);
-    expect(lastNumber(MID)).toBe(10);
-    expect(namedPath(addendum(LP, 9))).toBe(sha);
-    expect(namedPath(addendum(MID, 10))).toBe(sha);
+  it("live-prep's latest addendum (10) and mid-pool's (11) name today's pm_live.ts", () => {
+    expect(lastNumber(LP)).toBe(10);
+    expect(lastNumber(MID)).toBe(11);
+    expect(namedPath(addendum(LP, 10))).toBe(sha);
+    expect(namedPath(addendum(MID, 11))).toBe(sha);
   });
 
   it('each addendum of the chain names what it changed from', () => {
@@ -73,6 +77,11 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     expect(addendum(LP, 9)).toContain('`7e3e8c95…09a3`');
     expect(addendum(MID, 10)).toContain('`7e3e8c95…09a3`');
     expect(addendum(MID, 10)).toContain('deviation 10');
+    expect(namedPath(addendum(LP, 9))).toBe(AE76);
+    expect(namedPath(addendum(MID, 10))).toBe(AE76);
+    expect(addendum(LP, 10)).toContain('`e76d0234…6809`');
+    expect(addendum(MID, 11)).toContain('`e76d0234…6809`');
+    expect(addendum(MID, 11)).toContain('deviation 11');
   });
 
   it("live-prep's Addendum 5 and mid-pool's 6 name every change of the go-live audit, and the dry-run decisions unchanged", () => {
@@ -172,8 +181,7 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     expect(lp).toContain('export const PM_LP_REWARD_CHECK = { staleMs: 5 * 60e3, backstopMinutes: 3 } as const;');
     expect(lp).toContain('rewardCheck: { ...PM_LP_REWARD_CHECK },');
     // The instance and the migration are the bytes Addendum 9 names; the instance changed from Addendum 7's.
-    const lpSha = crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex');
-    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(addendum(LP, 9))?.[1]).toBe(lpSha);
+    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(addendum(LP, 9))?.[1]).toBe(LP_A9);
     expect(addendum(LP, 9)).toContain('`98c06007…762c`');
     const mig = read('supabase/migrations/0111_pm_lp_reward_check.sql');
     expect(addendum(LP, 9)).toContain(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/migrations/0111_pm_lp_reward_check.sql'))).digest('hex'));
@@ -182,5 +190,34 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     expect([...body.matchAll(/public\.([a-z_]+)/g)].map((m) => m[1]).filter((t, i, a) => a.indexOf(t) === i).sort()).toEqual(['pm_lp_live_hours', 'pm_lp_minutes']);
     expect(body).toContain('add constraint pm_lp_minutes_rate_check check (rate >= 0)');
     expect(body).not.toMatch(/pm_live_|pm_mid_|insert|update|delete/);
+  });
+
+  it("live-prep's Addendum 10 and mid-pool's 11 record FUNDED, the early readout, R for 10-09 and the paper rows at the live R", () => {
+    const lp10 = addendum(LP, 10), mid11 = addendum(MID, 11);
+    expect(lp10).toContain('子页面中的FUNDED得显示我实际真实投入的钱（应该是402左右）');
+    expect(lp10).toContain('确保r更新后所有testing的策略都用这个最新的来算他们的r');
+    expect(lp10).toContain('**$402.028365**');
+    expect(lp10).toContain('**$6.524180 /\n$8.081876 = 0.807**');
+    expect(lp10).toContain('**Every\npre-registered reading keeps the R it froze**');
+    for (const doc of [lp10, mid11]) expect(doc).toContain('`lpFunding`');
+    expect(mid11).toContain('**Mid-pool is unchanged.**');
+    const src = read(PATH), lp = read('supabase/functions/agents/pm_lp.ts');
+    expect(src).toContain('export function lpFunding(');
+    expect(src).toContain('export const PM_LP_FUNDING = { minMoveUsd: 1, agreeUsd: 0.01, freshMs: 5 * M, quietMs: 3 * 3600e3 + 10 * M } as const;');
+    expect(src).toContain('const ro = inst.lp?.readout;');
+    expect(lp).toContain('export const PM_LP_READOUT = { fromMs: 5 * 60e3, acceptZeroAfterMs: 3 * 3600e3 } as const;');
+    expect(lp).toContain('readout: { ...PM_LP_READOUT },');
+    const lpSha = crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex');
+    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(lp10)?.[1]).toBe(lpSha);
+    expect(lp10).toContain('`c7e3a7ec…73c7`');
+    expect(lp10).toContain(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/migrations/0113_pm_lp_funding.sql'))).digest('hex'));
+    // 0113 widens live-prep's events' kinds by one and touches nothing else.
+    const body = read('supabase/migrations/0113_pm_lp_funding.sql').replace(/--[^\n]*/g, '');
+    expect([...body.matchAll(/public\.([a-z_]+)/g)].map((m) => m[1]).filter((t, i, a) => a.indexOf(t) === i)).toEqual(['pm_lp_events']);
+    expect(body).toContain("'readout', 'funding'");
+    // The dashboard prices the paper rows at one R, read once.
+    const idx = read('supabase/functions/agents/index.ts');
+    expect(idx.match(/lpLiveR\(\[\], now\)/g)?.length).toBe(1);
+    expect(idx).toContain('const liveR: LpLiveRPrice = lpLive?.estimate?.r ?? lpLiveR([], now);');
   });
 });

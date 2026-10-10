@@ -1809,6 +1809,10 @@ describe('lpLiveRow (live-prep\'s real money, "Reward quotes" on LIVE, 2026-10-0
   });
   it('is no row until armed or traded; a stale, stopped or disarmed book says so', () => {
     expect(lpLiveRow(null)).toBe(null);
+    // FUNDED is the money put in once the path has booked it (Addendum 10), the cap until then; percents are on it.
+    const funded = /** @type {any} */ (lpLiveRow({ ...l, fundedUsd: 400, realisedUsd: 4 }));
+    expect([funded.capitalUsd, funded.realisedPct]).toEqual([400, 1]);
+    expect(/** @type {any} */ (lpLiveRow({ ...l, fundedUsd: null })).capitalUsd).toBe(Number(l.capUsd));
     expect(lpLiveRow({ ...l, armed: false, tradedLive: false })).toBe(null);
     expect(lpLiveRow({ ...l, armed: true, tradedLive: false })?.id).toBe(LP_LIVE_ROW_ID);
     expect(lpLiveRow({ ...l, running: false, lagMinutes: 9 })?.status).toEqual({ label: 'live', running: false, tone: 'stale', detail: 'its last turn was 9 min ago' });

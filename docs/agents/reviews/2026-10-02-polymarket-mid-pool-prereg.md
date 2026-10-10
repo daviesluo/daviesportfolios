@@ -515,3 +515,22 @@ by minute, and find every decision the same.
 
 **What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
 of the Edge deploy that carries it, as deviation 10.
+
+## Addendum 11 (2026-10-10, about 02:00 UTC): deviation 11, live-prep's FUNDED and early readout
+
+This addendum was written inside the window, before the deploy it records. Its readout runs at or after 2026-10-17
+00:10 UTC.
+
+**Deviation 11 is live-prep's FUNDED and its early readout** (live-prep's pre-registration, Addendum 10). It changes the
+shared `pm_live.ts`: after it, `pm_live.ts` sha256 `c990ef3e3ad2700f5552c7a913e1376b7a1fc08368e7b39bd5589ad865a53616`, where Addendum 10 above named `e76d0234…6809`. The
+change: a pure function (`lpFunding`) and a block that books live-prep's deposits, and an option of live-prep's
+(`PmLpOptions.readout`) that reads its payout from 00:05 UTC, each reached only through live-prep's options.
+
+**Mid-pool is unchanged.** It sets no `readout`, so it reads its payouts from 01:00 as before, books no funding and
+writes no event of the new kind. No decision of mid-pool changes: `agents/pm_mid_formula.test.ts` and
+`agents/pm_payouts.test.ts` run it beside the path this file froze and find every decision the same. Its paper row on
+the page is shown at live-prep's live R (Addendum 10's item 3); its readout and `mid_readout.sql` are not, and keep the
+R this file froze.
+
+**What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
+of the Edge deploy that carries it, as deviation 11.

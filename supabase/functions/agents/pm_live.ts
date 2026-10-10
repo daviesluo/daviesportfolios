@@ -294,6 +294,13 @@ export type PmLpOptions = {
    * while the formula scores both, and the market takes no entry for the rest of the UTC day (`scoringStreak`).
    */
   rewardCheck?: { staleMs: number; backstopMinutes: number };
+  /**
+   * Its readout's timing (2026-10-10, the pre-registration's Addendum 10; Davies saw "rewards paid $0" after midnight):
+   * from `fromMs` after 00:00 UTC (not `PM_LIVE_READOUT_AFTER_MS`), and yesterday's read is not taken while the account's
+   * day total reads nothing (missing or 0) before `acceptZeroAfterMs`: nothing is written, and it is tried again
+   * `READOUT_RETRY_MS` later. After that a zero is a zero, and a day is still never read twice in one UTC day.
+   */
+  readout?: { fromMs: number; acceptZeroAfterMs: number };
 };
 /**
  * Mini-pool's book-quality rule (Addendum 6 of `reviews/2026-10-01-polymarket-live-prep-prereg.md`, 2026-10-04): books
@@ -564,6 +571,43 @@ export function scoringStreak(n: number, row: Pick<PmMinuteRow, "bid_scoring" | 
   if (row.bid_scoring === true || row.ask_scoring === true) return 0;
   if (row.bid_scoring === false && row.ask_scoring === false && f.qBid > 0 && f.qAsk > 0) return n + 1;
   return n;
+}
+
+// ------------------------------------------------------------------ live-prep's FUNDED: the money put in (2026-10-10, Addendum 10)
+
+/**
+ * The deposit rule's constants. A move of the residual of at least `minMoveUsd` is a deposit or a withdrawal once two
+ * readings agree to `agreeUsd`, at most `freshMs` apart, with no fill settling; none is booked before `quietMs` after
+ * 00:00 UTC, nor before yesterday's payout has been read (the rewards post at 00:00, the maker rebates later: on
+ * 2026-10-10 between 00:27 and 01:17 UTC), so a payout is never booked as a deposit.
+ */
+export const PM_LP_FUNDING = { minMoveUsd: 1, agreeUsd: 0.01, freshMs: 5 * M, quietMs: 3 * 3600e3 + 10 * M } as const;
+export type LpFunding = { depositUsd: number; at: string; residualUsd: number | null; candidate: { residualUsd: number; at: string } | null };
+/**
+ * The money put into live-prep's account, from what the account holds and what it has done: pUSD + what the CONFIRMED
+ * fills spent net − what settlements paid into pUSD once redeemed − the rewards and maker rebates Polymarket paid. With
+ * nothing put in or taken out since, it stays where it was to the cent; on 2026-10-10 at 01:17 UTC it read 172.810385 +
+ * 237.718788 − 6.524180 − 1.976628 = 402.028365, the deposit. `lpFunding` keeps it, and books a move of it as a deposit
+ * or a withdrawal by `PM_LP_FUNDING`: `booked` is that move (null when none), and the new state is `next`.
+ */
+export function lpFunding(i: {
+  prev: LpFunding | null; residualUsd: number | null; nowMs: number; dayStartMs: number; unsettledFills: number; payoutRead: boolean;
+}): { next: LpFunding | null; booked: { moveUsd: number; depositUsd: number; first: boolean } | null; why: string } {
+  const r = i.residualUsd, at = new Date(i.nowMs).toISOString();
+  const hold = (why: string) => ({ next: i.prev ? { ...i.prev, residualUsd: r } : null, booked: null, why });
+  if (r === null || !Number.isFinite(r)) return hold("the residual could not be read (pUSD or a balance unread)");
+  if (i.unsettledFills > 0) return hold(`${i.unsettledFills} fill(s) still settling`);
+  if (i.nowMs - i.dayStartMs < PM_LP_FUNDING.quietMs) return hold("before 03:10 UTC: the day's rewards and rebates are still posting");
+  if (!i.payoutRead) return hold("yesterday's payout is not read yet");
+  const round = (x: number) => Math.round(x * 1e6) / 1e6;
+  if (!i.prev) return { next: { depositUsd: round(r), at, residualUsd: r, candidate: null }, booked: { moveUsd: round(r), depositUsd: round(r), first: true }, why: "the first reading" };
+  const move = r - i.prev.depositUsd;
+  if (Math.abs(move) < PM_LP_FUNDING.minMoveUsd) return { next: { ...i.prev, residualUsd: r, candidate: null }, booked: null, why: "no move of $1 or more" };
+  const c = i.prev.candidate;
+  if (c && i.nowMs - Date.parse(c.at) <= PM_LP_FUNDING.freshMs && i.nowMs > Date.parse(c.at) && Math.abs(c.residualUsd - r) <= PM_LP_FUNDING.agreeUsd) {
+    return { next: { depositUsd: round(r), at, residualUsd: r, candidate: null }, booked: { moveUsd: round(move), depositUsd: round(r), first: false }, why: move > 0 ? "a deposit" : "a withdrawal" };
+  }
+  return { next: { ...i.prev, residualUsd: r, candidate: { residualUsd: r, at } }, booked: null, why: "a move waits for a second reading next turn" };
 }
 
 /**
@@ -2006,7 +2050,7 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   }
 
   // ── P&L from CONFIRMED live fills (this turn's read-backs and settlements included), and the loss stops ─────────────
-  const { tb, all: allFills } = await fillsBook(newSettlements);
+  const { tb, all: allFills, rows: fillRowsNow } = await fillsBook(newSettlements);
   // Live-prep, live: what each token holds whichever way the venue reads its balance (`heldFromBalance`, U1), our own
   // sells resting on it as this turn's read-backs left them. Its dry-run holds its paper's, and nothing else changes.
   if (inst.lp && mode === "live") {
@@ -2457,9 +2501,10 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   }
 
   // ── 7. the readout: once a UTC day, after Polymarket's midnight payout ───────────────────────────────────────────
-  const readouts: Record<string, { reads: number; at: string }> = { ...(prev.readouts ?? {}) };
+  const readouts: Record<string, { reads: number; at: string; earlyAt?: string }> = { ...(prev.readouts ?? {}) };
   let readoutTriedAt: string | null = prev.readoutTriedAt ?? null;
-  if (d.now - dayStart >= PM_LIVE_READOUT_AFTER_MS && (!readoutTriedAt || d.now - Date.parse(readoutTriedAt) >= READOUT_RETRY_MS)) {
+  const ro = inst.lp?.readout;
+  if (d.now - dayStart >= (ro?.fromMs ?? PM_LIVE_READOUT_AFTER_MS) && (!readoutTriedAt || d.now - Date.parse(readoutTriedAt) >= READOUT_RETRY_MS)) {
     // Yesterday once, the day before a second time (a late posting); never a day twice on one UTC day.
     const due = Array.from({ length: PM_LIVE_READOUT_DAYS }, (_, k) => dayOf(dayStart - (k + 1) * DAY))
       .filter((dd, k) => (readouts[dd]?.reads ?? 0) < k + 1 && readouts[dd]?.at?.slice(0, 10) !== day);
@@ -2468,9 +2513,14 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
       if (pastDeadline(deadline)) break;
       readoutTriedAt = nowIso;
       try {
-        const r = await readout(d, inst, dd, nowIso, deadline);
+        // Live-prep's early read of yesterday (`PmLpOptions.readout`): before `acceptZeroAfterMs` it waits for the payout to
+        // post, and once it has, writes it and reads it again every ten minutes (the maker rebates post later than the
+        // rewards: on 2026-10-10 between 00:27 and 01:17) without counting it; the read that counts is the first after.
+        const early = !!ro && dd === dayOf(dayStart - DAY) && d.now - dayStart < ro.acceptZeroAfterMs;
+        const r = await readout(d, inst, dd, nowIso, deadline, early);
         if (r.error) { report.errors.push(`readout of ${dd}: ${r.error}`); break; }
-        readouts[dd] = { reads: (readouts[dd]?.reads ?? 0) + 1, at: nowIso };
+        if (r.pending) break;                                                            // not posted yet: tried again in ten minutes
+        readouts[dd] = early ? { ...(readouts[dd] ?? { reads: 0, at: "" }), earlyAt: nowIso } : { reads: (readouts[dd]?.reads ?? 0) + 1, at: nowIso };
         report.readout.push({ day: dd, markets: r.markets, actual: r.actual, formula: r.formula });
         done.push({ day: dd, read: readouts[dd].reads, ...r });
       } catch (e) { report.errors.push(`readout of ${dd}: ${msg(e)}`); break; }
@@ -2481,6 +2531,36 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
     }
   }
   for (const k of Object.keys(readouts)) if (k < dayOf(dayStart - 7 * DAY)) delete readouts[k];
+
+  // ── live-prep's FUNDED: the money put in (Addendum 10, `lpFunding`) ──────────────────────────────────────────────
+  // Live only: pUSD + what the CONFIRMED fills spent net − what redeemed settlements paid in − what Polymarket paid
+  // (rewards and maker rebates, the readout's live rows). A move of it is booked as a deposit or a withdrawal, an event
+  // of kind `funding` (0113); until the event is written nothing is booked, and the move is tried again.
+  const prevFunding = ((prev.lp ?? {}) as { funding?: LpFunding }).funding ?? null;
+  let funding: LpFunding | null = prevFunding;
+  if (inst.lp && mode === "live") {
+    try {
+      const nowRedeemed = new Set([...redeemed, ...[...unredeemed, ...newSettlements].filter((s) => [s.yes_token, s.no_token].every((t) => heldOf.has(t) && heldOf.get(t) === 0)).map((s) => s.cond)]);
+      const confirmed = (fillRowsNow as FillRow[]).filter((f) => f.status === "CONFIRMED");
+      const net = confirmed.reduce((a, f) => a + (f.side === "BUY" ? 1 : -1) * Number(f.price) * Number(f.size), 0);
+      // What a redeemed settlement paid in: the tokens the fills held when it settled, at its payout.
+      const fillOnly = tokenBooks(confirmed.map((f): PmFill => ({ token: f.token, side: f.side, price: Number(f.price), size: Number(f.size), ts: f.match_time ? Date.parse(f.match_time) : d.now })), dayStart);
+      const proceeds = settlements.filter((x) => nowRedeemed.has(x.cond))
+        .reduce((a, x) => a + (fillOnly[x.yes_token]?.held ?? 0) * Number(x.payout) + (fillOnly[x.no_token]?.held ?? 0) * (1 - Number(x.payout)), 0);
+      const pays = await db.selectAll<{ actual_usd: number | string | null; actual_sponsored_usd: number | string | null; rebate_usd: number | string | null }>(T.rewardDays,
+        "mode=eq.live&select=actual_usd,actual_sponsored_usd,rebate_usd&order=mode.asc,day.asc,cond.asc");
+      const paidIn = pays.reduce((a, x) => a + num(x.actual_usd) + num(x.actual_sponsored_usd) + num(x.rebate_usd), 0);
+      const unsettled = (await db.select(T.fills, "status=in.(MATCHED,MINED,RETRYING)&select=trade_id&limit=1")).length;
+      const residual = pusd === null || !inventoryReadable ? null : Math.round((pusd + net - proceeds - paidIn) * 1e6) / 1e6;
+      const f = lpFunding({ prev: prevFunding, residualUsd: residual, nowMs: d.now, dayStartMs: dayStart, unsettledFills: unsettled, payoutRead: (readouts[dayOf(dayStart - DAY)]?.reads ?? 0) >= 1 });
+      if (f.booked) {
+        try {
+          await db.upsert(T.events, [{ mode, minute, kind: "funding", detail: { ...f.booked, why: f.why, pusd, netSpent: net, proceeds, paidIn, before: prevFunding?.depositUsd ?? null } }], "mode,minute,kind");
+          funding = f.next;
+        } catch (e) { funding = prevFunding; report.errors.push(`funding not booked (${msg(e)}): ${f.why} of ${f.booked.moveUsd} USD waits`); }
+      } else funding = f.next;
+    } catch (e) { report.errors.push(`funding unreadable (${msg(e)})`); }
+  }
 
   // ── the record: the gates and the market conditions when they change, the governor, and this turn ────────────────
   for (const c of goneToday) conditions[c] ??= "left the book (404)";
@@ -2531,6 +2611,8 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
             } : {}),
             // Its capital (`lpCapital`): what the next turn compares a raise with, and what the page shows.
             ...(lpCap ? { capital: { ...lpCap, at: nowIso } } : {}),
+            // The money put in (`lpFunding`, Addendum 10): FUNDED on its LIVE row and page.
+            ...(funding ? { funding } : {}),
           },
         } : {}),
       },
@@ -2538,7 +2620,7 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   } catch (e) { report.errors.push(`state not recorded (${msg(e)})`); }
 }
 
-type ReadoutResult = { markets: number; actual: number; sponsored: number; formula: number; formulaScored: number; rebates: number; total: number | null; error?: string };
+type ReadoutResult = { markets: number; actual: number; sponsored: number; formula: number; formulaScored: number; rebates: number; total: number | null; error?: string; pending?: string };
 
 /**
  * One UTC day's readout, written whole or not at all: what Polymarket paid the account per market (`/rewards/user`,
@@ -2556,7 +2638,7 @@ type ReadoutResult = { markets: number; actual: number; sponsored: number; formu
  * (`readsPayouts` false) reads them only for a day its own minutes show it quoting live; otherwise its rows are its own
  * minutes' formula sums and nothing of the account is read.
  */
-async function readout(d: PmLiveDeps, inst: PmLiveInstance, dd: string, nowIso: string, dl: PmDeadline): Promise<ReadoutResult> {
+async function readout(d: PmLiveDeps, inst: PmLiveInstance, dd: string, nowIso: string, dl: PmDeadline, waitForPay = false): Promise<ReadoutResult> {
   const { db, venue } = d;
   const T = inst.tables;
   const empty: ReadoutResult = { markets: 0, actual: 0, sponsored: 0, formula: 0, formulaScored: 0, rebates: 0, total: null };
@@ -2595,6 +2677,12 @@ async function readout(d: PmLiveDeps, inst: PmLiveInstance, dd: string, nowIso: 
     got = p;
   }
   const usd = (e: PmUserEarning) => num(e.earnings) * (Number(e.asset_rate) > 0 ? Number(e.asset_rate) : 1);
+  // Live-prep's early read (`PmLpOptions.readout`): a day total that reads nothing yet is a payout not posted yet, not
+  // a day paid nothing. Nothing is written, and the turn tries again.
+  if (waitForPay && inst.readsPayouts) {
+    const t = Array.isArray(got.tot?.data) ? got.tot!.data.reduce((s, e) => s + usd(e), 0) : null;
+    if (t === null || !(t > 0)) return { ...empty, pending: `the account's total for ${dd} reads ${t === null ? "nothing" : "0"} yet` };
+  }
   const paid = (rows: PmUserEarning[]) => {
     const out = new Map<string, number>();
     for (const e of rows) { const c = String(e.condition_id ?? "").toLowerCase(); if (c) out.set(c, (out.get(c) ?? 0) + usd(e)); }

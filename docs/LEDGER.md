@@ -26,11 +26,12 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
 1. **Closed: fp5's ranked list.**
 
 2. **Polymarket reward quotes (paper; RW, RW-E, RW-X, TB1, RW-C) and the three order paths (dry-run, unarmed).**
-   - **TO LAND: live-prep's reward check (Addendum 9)**, committed on branch `lp-reward-refresh` (10-10 01:00 section):
-     the reward programme read every minute, no entry where it no longer pays, a 3-minute scoring backstop, R and the
-     estimate on scored formula. The main session rebases it, runs full gates and pushes; **migration 0111 must apply
-     with or before the Edge deploy**. Left for Davies: whether a slot freed during the day is refilled (not built), and
-     whether 10-09 (R 0.33 on a stale-programme formula, ≈ 0.9 on the fixed one) counts in the estimate's R.
+   - **Live-prep's reward check (Addendum 9) is live** since 10-10 01:14:15 UTC (f664823c, 02c0f191; 0111 applied).
+     **TO LAND: its follow-on (Addendum 10)**, committed on branch `lp-followon` (10-10 02:00 section): FUNDED is the money
+     put in ($402.028365), the payout read from 00:05, every paper Reward quotes row at the live R, 10-09 at R 0.807.
+     **Migration 0113 must apply with or before the Edge deploy**, and `dist/` goes with it. Left for Davies: whether a
+     slot freed during the day is refilled (not built), and whether to rank the selection on a rate that does not flip
+     within the hour (native rates flip, e.g. 3 ↔ 40; not built).
    - **RW's verdict: read 2026-10-09 00:42–00:50 UTC** (`reviews/2026-10-09-polymarket-rw-paper-result.md`, reference
      §3.46, `backtests/rwverdict/`). RW 6/6, RW-E 7/7, x1–x3 7/7 each; step b (all 4,116 fills by `stepRw`) and c (13,634
      prints re-pulled, none missed) clean; **RW-NEXT's candidate is RW-E**, to RW-C (Part 3's bar on or after 10-23
@@ -431,6 +432,19 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", and the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)"; each oldest
 first.
 
+### [2026-10-10 02:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep's follow-on, built on branch `lp-followon`** (sub-agent; Addendum 10 of
+  `reviews/2026-10-04-polymarket-lp-prereg.md`, mid-pool's Addendum 11). FUNDED (Davies: "子页面中的FUNDED得显示我实际真实投入的钱"):
+  pUSD + CONFIRMED fills' net − redeemed settlements − rewards and rebates paid = $402.028365 at 01:17 (`lpFunding`); a
+  move of ≥ $1 is booked as a deposit or withdrawal on two agreeing readings, no fill settling, after 03:10 UTC and once
+  yesterday is read (rebates landed 00:27–01:17 on 10-10), each an event of kind `funding` (`0113`). Readout from 00:05,
+  re-read every 10 min until paid, counted from 03:00. Every TESTING Reward quotes row (RW-C, its variants, the three
+  paper layers) priced at `lpLiveR`'s point, worst case at its low (`atLiveR`, one R per dashboard read); pre-registered
+  readings keep their frozen R. 10-09 enters R at 0.807 (`backtests/lpcfg/scripts/rtrue.py`, `LP_R_DAY_CORRECTIONS`, no
+  table write). Sponsored: not the cause (none of 0x5b3350e2, 0xa0ab5c59, 0xd23c714e has a sponsor; their native rate
+  flips), rule unchanged. 10-10 was quoted on stale programmes 00:00–01:15. LIVE row's FUNDED reads `fundedUsd`
+  (`src/agents/agents.js`, `dist/` rebuilt).
+
 ### [2026-10-10 01:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Hyperliquid's spot stable books screened** (Davies asked; `backtests/scq_venues/scripts/hl_screen.py`, a row in
   `reviews/2026-10-09-stablecoin-venues.md` §2): dead. Only USDT0/USDC trades ($545k a day), its minute closes a median
@@ -442,6 +456,7 @@ first.
   Since 2026-08-24 at £100 a rung: Revolut X 17.1 %/yr on £1,200, Coinbase 9.7 % on £2,400 (USDC-GBP 20.7 %, flat to £1,000
   a rung); Revolut X's rate falls with size. Robust split: £1,000 → £690 Revolut X + £300 Coinbase USDC-GBP; £5,000 →
   £2,580 + £2,400.
+
 
 ### [2026-10-10 01:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep's reward check, built on branch `lp-reward-refresh`** (sub-agent; Davies: "策略每分钟读的时候都检查奖励配置，

@@ -1335,8 +1335,8 @@ export const LP_LIVE_ROW_ID = '__lp_live';
  * "Reward quotes live-prep"'s real-money book as a row of LIVE (Davies, 2026-10-09: "网站的agents live页怎么看不到这个上
  * 线", the morning it went live), as PR5's live executor is one (`quotesLiveRow`): the dashboard's `lpLive`, made by the
  * server from the order path's live rows alone (`pm_lp_live_view.ts`), so nothing of its paper layer, whose row stays on
- * TESTING, is in it. Funded is the path's total cap; deployed what its resting buys tie up and what it holds at cost;
- * today and realised are on that cap, unrealised on what its holdings cost; realised is its fills' and settlements' plus what
+ * TESTING, is in it. Funded is the money Davies put in (`fundedUsd`, Addendum 10), the path's total cap until the path has booked it; deployed what its resting buys tie up and what it holds at cost;
+ * today and realised are on what is funded, unrealised on what its holdings cost; realised is its fills' and settlements' plus what
  * Polymarket paid (rewards and maker rebates), split for the Polymarket card into rewards and orders, to the cent. Its
  * name carries no " · live", as no LIVE row's does, and on LIVE it is "Reward quotes". null while it has never been armed
  * nor sent a live order.
@@ -1344,7 +1344,7 @@ export const LP_LIVE_ROW_ID = '__lp_live';
  */
 export function lpLiveRow(l) {
   if (!l || !(l.tradedLive || l.armed)) return null;
-  const capital = Number(l.capUsd) || 0, cost = Number(l.costUsd) || 0;
+  const capital = Number(l.fundedUsd ?? l.capUsd) || 0, cost = Number(l.costUsd) || 0;
   /** @param {number} usd @param {number} base */
   const pct = (usd, base) => (base > 0 ? (usd / base) * 100 : null);
   const realised = Number(l.realisedUsd) || 0, unrealised = Number(l.unrealisedUsd) || 0, today = Number(l.todayUsd) || 0;
