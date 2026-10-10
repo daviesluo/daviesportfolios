@@ -429,7 +429,8 @@ places stay when the number is not whole.
   moves within minutes of arriving); the markets quoting today (today's markets less
   any taken out right now: a market taken out, its reward changed or ended, is
   replaced after fifteen minutes, at once if none is quoting, by the next best
-  market of a reserve the strategy keeps up to date every minute, at most ten a
+  market of a reserve the strategy ranks once a day after midnight UTC and
+  whose reward it checks every minute, at most ten a
   day, and never takes one back the same day; a market whose trades are
   $10 or more down, what it holds valued at the market's middle price, buys
   nothing more until that recovers, while what it holds stays on sale);

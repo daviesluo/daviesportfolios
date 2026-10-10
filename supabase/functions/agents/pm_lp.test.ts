@@ -1147,7 +1147,7 @@ const fakeOf = (w: ReturnType<typeof world>, c: string) => [w.L1, w.BIG, w.E30, 
 const buysIn = (w: ReturnType<typeof world>, c: string) => w.rows("pm_lp_orders").filter((x) => x.mode === "live" && x.cond === c && x.side === "BUY" && x.state === "live").length;
 
 Deno.test("the live reserve: after the day's selection, the next candidates in RW's order, none of the day's markets; their programmes read every minute", async () => {
-  assertEquals(PM_LP_REFILL, { afterMin: 15, afterMinAllOut: 0, maxPerDay: 10, perTurn: 1, triesPerTurn: 3, retryMin: 15, reserveSize: 30, refreshTop: 15, rerankEveryMin: 5, idleAlarmMin: 30 });
+  assertEquals(PM_LP_REFILL, { afterMin: 15, afterMinAllOut: 0, maxPerDay: 10, perTurn: 1, triesPerTurn: 3, retryMin: 15, reserveSize: 30, refreshTop: 15, rerankEveryMin: 1440, idleAlarmMin: 30 });
   assertEquals(PM_LP_INSTANCE.lp!.refill, { ...PM_LP_REFILL, table: "pm_lp_reserve" });
   const w = world({ config: { ...LIVE, max_markets: 2 }, extra: [100, 90] });
   assertEquals((await w.reserve(T0 - 20e3)).skipped, "the day's selection has not landed yet");
@@ -1157,10 +1157,21 @@ Deno.test("the live reserve: after the day's selection, the next candidates in R
   assertEquals([sel.length, res.length, r.ranked], [2, 3, true]);
   assert(res.every((x) => !sel.includes(x.cond)) && res.every((x) => x.programme?.inUniverse === true), JSON.stringify(res));
   assertEquals(res.map((x) => x.rank), [1, 2, 3]);                                          // the reserve's own order
-  // A minute later: no re-rank (every five minutes), the programmes read again; one fallen under the floor is marked.
+  // A minute later: no re-rank, the programmes read again; one fallen under the floor is marked.
   fakeOf(w, res[0].cond).rate = 8;
   const r2 = await w.reserve(T0 + M + 20e3);
   assertEquals([r2.ranked, resRows(w)[0].programme?.inUniverse, r2.reads.programmes], [false, false, 3]);
+  // Ranked once a day (Addendum 15): six minutes and six hours on, still no re-rank and no listing read, while every
+  // minute's run still reads the candidates' programmes and marks what changed.
+  const rankedAt = (w.rows("pm_lp_reserve")[0] as any).ranked_at;
+  fakeOf(w, res[0].cond).rate = 100;
+  const r3 = await w.reserve(T0 + 6 * M + 20e3);
+  assertEquals([r3.ranked, r3.reads.listing, r3.reads.programmes, resRows(w)[0].programme?.inUniverse], [false, 0, 3, true]);
+  fakeOf(w, res[1].cond).rate = 8;
+  const r4 = await w.reserve(T0 + 6 * H + 20e3);
+  assertEquals([r4.ranked, r4.reads.listing, r4.reads.programmes, resRows(w)[1].programme?.inUniverse], [false, 0, 3, false]);
+  assertEquals([(w.rows("pm_lp_reserve")[0] as any).ranked_at, (w.rows("pm_lp_reserve")[0] as any).refreshed_at], [rankedAt, iso(T0 + 6 * H + 20e3)]);
+  assertEquals(resRows(w).map((x) => x.cond), res.map((x) => x.cond));
 });
 
 Deno.test("refill: a market out 15 minutes takes the next reserve candidate that passes; a failing one is skipped, kept, and the dropped market is never taken again", async () => {

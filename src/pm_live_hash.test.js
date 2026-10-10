@@ -53,9 +53,11 @@ const AEF0 = 'ef036c76a0cc75cf8a9f3bcec2de9e554f0bfb7f44a6b658b89c35aac477c480';
 const LP_A9 = 'c7e3a7ec271b8e798dcc756c3f9d83da2421ddee03f3fede6e3e66a541d173c7';
 
 describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", () => {
-  it("live-prep's latest addendum (14) and mid-pool's (15) name today's pm_live.ts", () => {
-    expect(lastNumber(LP)).toBe(14);
+  it("live-prep's latest addendum (15) and mid-pool's (15) name today's pm_live.ts", () => {
+    expect(lastNumber(LP)).toBe(15);
     expect(lastNumber(MID)).toBe(15);
+    // Live-prep's Addendum 15 changes pm_lp.ts alone: it names pm_live.ts unchanged, as Addendum 14 did.
+    expect(namedPath(addendum(LP, 15))).toBe(sha);
     expect(namedPath(addendum(LP, 14))).toBe(sha);
     expect(namedPath(addendum(MID, 15))).toBe(sha);
   });
@@ -273,8 +275,10 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     const lp = read('supabase/functions/agents/pm_lp.ts');
     // The constant the addendum quotes is the instance's, word for word.
     const line = 'afterMin: 15, afterMinAllOut: 0, maxPerDay: 10, perTurn: 1, triesPerTurn: 3, retryMin: 15, reserveSize: 30, refreshTop: 15, rerankEveryMin: 5, idleAlarmMin: 30,';
-    expect(lp).toContain(`export const PM_LP_REFILL: LpRefillOptions = {\n  ${line}\n};`);
     expect(lp13).toContain(line);
+    // Addendum 15 changed one of its numbers (`rerankEveryMin` 5 → 1440) and quotes the constant as it is now, word for word.
+    expect(lp).toContain(`export const PM_LP_REFILL: LpRefillOptions = {\n  ${line.replace('rerankEveryMin: 5,', 'rerankEveryMin: 1440,')}\n};`);
+    expect(addendum(LP, 15)).toContain(line.replace('rerankEveryMin: 5,', 'rerankEveryMin: 1440,'));
     expect(lp).toContain('refill: { ...PM_LP_REFILL, table: "pm_lp_reserve" },');
     // The pm_lp.ts it named, the instance until Addendum 14 (the loss guard), which names it.
     expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(lp13)?.[1]).toBe('0a85f529d26a397a26ed3e709ab7477ff71a29531b32212fc3805c05e1a32b25');
@@ -303,7 +307,12 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     const lp = read('supabase/functions/agents/pm_lp.ts');
     expect(lp).toContain('export const PM_LP_MARKET_LOSS = 10;');
     expect(lp).toContain('    marketLoss: PM_LP_MARKET_LOSS,');
-    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(lp14)?.[1]).toBe(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex'));
+    // The pm_lp.ts it named, the instance until Addendum 15 (the reserve ranked at 00:00), which names it and today's.
+    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(lp14)?.[1]).toBe('a745ca4f7f074a98a320514495f7747184310f300673be80ffb416041f41bc12');
+    expect(addendum(LP, 15)).toContain('`a745ca4f…bc12`');
+    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(addendum(LP, 15))?.[1]).toBe(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex'));
+    expect(addendum(LP, 15)).toContain('这个候补名单也要在当天中实时更新比如每分钟之类的');
+    expect(addendum(LP, 15)).toContain("**It ships only on\nDavies' word**");
     const src = read(PATH);
     expect(src).toContain('export function lpMarketMark(');
     expect(src).toContain('if (!(mark === null ? !!was : mark <= -limit)) return;');

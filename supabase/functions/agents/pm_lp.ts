@@ -141,11 +141,14 @@ export const PM_LP_EXCLUDE_AI = { why: "an AI market (model releases, rankings, 
  * The refill's numbers (`PmLpOptions.refill`, Addendum 13), every one of them here: the research agent's values drop in
  * by name. Conservative defaults until then (the main session's brief, 2026-10-10): a slot out 15 minutes is refilled,
  * at once when every slot is out; ten refills a day, one a turn, three candidates tried a turn, a failed candidate tried
- * again 15 minutes later; a reserve of 30 in RW's order, its first 15 programmes read every minute, the whole re-ranked
- * every 5 minutes; no slot quoting for 30 minutes while a candidate is in the universe is a fault.
+ * again 15 minutes later; a reserve of 30 in RW's order, its first 15 programmes read every minute; no slot quoting for
+ * 30 minutes while a candidate is in the universe is a fault. The reserve is ranked once a day, once the 00:00 selection
+ * has landed (Addendum 15, LP-REFILL: a reserve re-ranked through the day, every 5 minutes until then, filled the cap
+ * with held shares and its formula fell to nothing; one ranked at 00:00 kept earning); a run that cannot rank tries again
+ * the next minute.
  */
 export const PM_LP_REFILL: LpRefillOptions = {
-  afterMin: 15, afterMinAllOut: 0, maxPerDay: 10, perTurn: 1, triesPerTurn: 3, retryMin: 15, reserveSize: 30, refreshTop: 15, rerankEveryMin: 5, idleAlarmMin: 30,
+  afterMin: 15, afterMinAllOut: 0, maxPerDay: 10, perTurn: 1, triesPerTurn: 3, retryMin: 15, reserveSize: 30, refreshTop: 15, rerankEveryMin: 1440, idleAlarmMin: 30,
 };
 
 /**

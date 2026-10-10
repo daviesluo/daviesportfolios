@@ -26,11 +26,11 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
 1. **Closed: fp5's ranked list.**
 
 2. **Polymarket reward quotes (paper; RW, RW-E, RW-X, TB1, RW-C) and the three order paths (dry-run, unarmed).**
-   - **Live-prep's Addenda 9–13 are live** (the reward check, FUNDED and the early readout, FUNDED at once: $402.028365
-     booked 02:32 UTC 10-10; AI markets out; the refill, `b84cec4f`, first six refills 14:23–14:28 UTC with no error).
-     **TO LAND: Addendum 14, the per-market loss guard** (`PM_LP_MARKET_LOSS = 10`, LP-REFILL's recommendation 2), on
-     branch `lp-market-loss` (10-10 15:00 section); no migration. **Waits on Davies:** LP-REFILL's recommendation 1
-     (`rerankEveryMin` 5 → 1440, the reserve ranked at 00:00); the refill's numbers stay `PM_LP_REFILL` until he says. Its paper layer's calls stay on until
+   - **Live-prep's Addenda 9–15 are live** (the reward check, FUNDED and the early readout, FUNDED at once: $402.028365
+     booked 02:32 UTC 10-10; AI markets out; the refill, `b84cec4f`, ten refills 14:23–14:52 UTC; the $10 loss guard,
+     `65650793`, 15:02 UTC; Addendum 15, the reserve ranked once a day at 00:00, `rerankEveryMin` 5 → 1440, pushed
+     10-11 on Davies' "同意" of 10-10 23:59, quoted in the addendum; its programmes still read every minute;
+     no migration, `pm_live.ts` unchanged). Its paper layer's calls stay on until
      LPRESEL6 has read 10-09 → 10-22 (then a migration turns them off); LPRESEL6's "live-prep's own selection" is now the
      day's `pm_lp_markets` rows without `detail.refill`. Left for Davies: ranking on a rate that does not flip within the
      hour (not built).
@@ -441,6 +441,25 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 "LEDGER.md, archived 2026-10-09", the 2026-10-08 22:49 → 23:58 UTC sections under "LEDGER.md, archived 2026-10-09
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10"; each oldest first.
+
+### [2026-10-11 00:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep's Addendum 15 shipped** (the 10-10 19:45 section's branch `lp-reserve-0000`, rebased onto `65650793`) on
+  Davies' "同意" at 23:59 UTC 10-10, quoted verbatim in the prereg's Addendum 15. The reserve now re-ranks once, on its
+  first run after the 00:00 selection; `ranked_at` should stay put through the day while `refreshed_at` moves each
+  minute (the top-15 programme read). Check that on 10-11 after the deploy.
+
+### [2026-10-10 19:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Prepared, not pushed: live-prep's Addendum 15, the reserve ranked once a day** (branch `lp-reserve-0000`), waiting
+  on Davies' OK because he asked for a live reserve. `PM_LP_REFILL.rerankEveryMin` 5 → 1440: the full re-rank runs on
+  the reserve's first run after the 00:00 selection (a failed one retries the next minute); every minute's run still
+  reads the first 15 candidates' programmes (pinned: runs 6 minutes and 6 hours on rank nothing, read no listing, and
+  still mark programme changes), and a refill still checks its candidate at that minute.
+- Evidence: LP-REFILL (Addendum 13 as deployed fills the cap and its formula falls to $0–$14 a day by 10-08; a 00:00
+  reserve keeps $25.9 a day of formula) and live today (`backtests/lprefill/results/after_refill.txt`, read 19:32 UTC):
+  ten refills 14:23–14:52, then the formula per hour $1.111, 1.619, 1.672, 0.852, 0.576, 0.339 while holdings reached
+  18 positions and about $270 at cost (the main session's reading); `0x3090f7aa` settled YES at 18:05 (settlement row),
+  −$32.54 on its 86 fills at the payout, rewards not counted.
+- `pm_lp.ts` `277baa7a…e8cb` (was `a745ca4f…bc12`); `pm_live.ts` unchanged (`59a1201a…a510`), so no mid-pool addendum.
 
 ### [2026-10-10 15:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep's per-market loss guard (Addendum 14, mid-pool's 15, branch `lp-market-loss`)**, from LP-REFILL

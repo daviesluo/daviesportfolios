@@ -1173,3 +1173,51 @@ market quotes on, its slot not out for the refill; at −$9.99 it buys; a furthe
 lifts the guard the next turn; with 5 YES held, its buy is cancelled for the guard and the sell of the 5 keeps resting,
 the mark counting the 5 at RW's adjusted mid, and the guard holds the next turn from the turn it started. Both turn
 tests fail with `marketLoss` unset.
+
+## Addendum 15 (2026-10-10, about 19:45 UTC): the reserve ranked once a day, at 00:00
+
+This addendum was written while live-prep is live and before the deploy it records. Not blind. **It ships only on
+Davies' word**, because he asked for the reserve to be kept up to date through the day ("这个候补名单也要在当天中实时更新比如每分钟之类的",
+Addendum 13). His answer, 2026-10-10 23:59 UTC, verbatim: "同意" (agreed), given after the main session laid out LP-REFILL's evidence and the live hours above.
+
+**The change.** One number of `PM_LP_REFILL` (Addendum 13): `rerankEveryMin` 5 → 1440.
+
+    export const PM_LP_REFILL: LpRefillOptions = {
+      afterMin: 15, afterMinAllOut: 0, maxPerDay: 10, perTurn: 1, triesPerTurn: 3, retryMin: 15, reserveSize: 30, refreshTop: 15, rerankEveryMin: 1440, idleAlarmMin: 30,
+    };
+
+The full re-rank (`selectMarkets`, the listing, Gamma, every book) runs once a UTC day, on the reserve's first run after
+the 00:00 selection has landed; a run that cannot rank tries again the next minute. What stays live is the part of
+"every minute" the record supports: every minute's run still reads the CLOB programme of the first `refreshTop` (15)
+candidates and marks each in or out of the universe, and the refill still checks a candidate at the minute it takes it
+(Gamma, the candidate rules, the programme, the book's score, the budget). Every other number, the loss guard
+(Addendum 14) and the rest of the path are unchanged.
+
+**Why: LP-REFILL** (`reviews/2026-10-10-lp-refill-and-guards.md`, recommendation 1; `backtests/lp_refill/results/analysis.txt`,
+at $300, at-price fills, R 0.47 in its units, 10-05..10-09):
+- Addendum 13 as deployed earns $17.53 a day, but its refills fill the cap with inventory and its reward then
+  collapses: held at the day's close $253–$338 from the first evening, formula $76.5, $5.4, $19.3, $4.9, $0.0 a day
+  (no refill: $23.9, $14.5, $24.4, $26.1, $12.7). All nine re-rank settings tested (every 5, 15 or 60 minutes) reach
+  $0–$14 a day of formula by 10-08.
+- A reserve ranked once at 00:00, its programmes still read every minute, keeps earning: net $16.26 a day, +$5.10
+  [−3.97, +13.24] against no refill, ahead on 4 of 5 days; formula $25.9 a day ($20.4 on 10-06..10-09); held at close
+  $157–$288; worst day −$27.18.
+
+**Why now: live today** (`backtests/lprefill/sql/after_refill.sql`, `results/after_refill.txt`, read at 19:32 UTC).
+The refill took ten markets between 14:23 and 14:52 UTC, the day's cap. The day's markets then earned by the formula
+$1.111 in the 14:00 hour, then $1.619, $1.672, $0.852, $0.576 and $0.339 (19:00 to :31), while live-prep's holdings
+grew to 18 positions and about $270 at cost (the main session's reading). That is LP-REFILL's own forward-test trigger
+for this change: formula falling while holdings stay above $250. MrBeast wk1 (`0x3090f7aa`, the first market a refill
+replaced) settled YES (`pm_lp_settlements`, 18:05 UTC); its 86 confirmed fills come to −$32.54 at the payout, rewards
+not counted (its 49.94 NO left at 0).
+
+**Forward test** (LP-REFILL's): the formula reward a day, holdings at the day's close, buys withheld by the cap, and
+the refills' fills' P&L against the markets they replaced, over live-prep's first three live days after the deploy.
+
+**The code it deploys:** `pm_lp.ts` sha256 `277baa7ad0fb7f79e10ef08c0426e873b4de105fbf9deb060f06a96fcd7de8cb`, where Addendum 14 named `a745ca4f…bc12` (`rerankEveryMin`
+and its comment). `pm_live.ts` sha256 `59a1201a35b0ef2ccbdf16de933ea7b4469a1c4404146b252c481aa99068a510` is unchanged, as Addendum 14 named it, so mid-pool's
+pre-registration takes no addendum. `pm_lp_reserve.ts` and the migrations are unchanged.
+
+**Pinned** (`agents/pm_lp.test.ts`): the constant; after the day's ranking, runs six minutes and six hours later rank
+nothing and read no listing, yet read the candidates' programmes each time and mark one that left the universe and one
+that came back, `ranked_at` unchanged and `refreshed_at` moving. The refill's tests run unchanged on it.

@@ -1,0 +1,16 @@
+1. formula by hour, the day's markets (00:00 ten and refills), live
+hour (UTC)  markets scoring  formula $
+13          1                0.160
+14          10               1.111
+15          6                1.619
+16          8                1.672
+17          6                0.852
+18          4                0.576
+19 (to :31) 5                0.339
+
+2. refills (for -> took): 14:23 0x3090f7aa->0xd5734dd2, 14:24 0x0477b4ad->0x5e96323f, 14:25 0xd23c714e->0x89067ac9,
+   14:26 0xac42f143->0x9572cbd3, 14:27 0xa0ab5c59->0x225b0d56, 14:28 0x5d7a9bad->0x191e066d, 14:29 0x31e2f3df->0xcc5dbca9,
+   14:30 0x668b6976->0x8c76cbb8, 14:35 0xcfc7d2a2->0xbfb4f78b, 14:52 0xcc5dbca9->0xc50683fa (ten: the day's cap)
+   settlement: 0x3090f7aa payout 1 (YES), settled_at 2026-10-10 18:05:01 UTC
+
+3. 0x3090f7aa: 86 confirmed fills, cash -33.1627, YES net 0.6179, NO net 49.9372, at the payout -32.5447 (rewards not counted)
