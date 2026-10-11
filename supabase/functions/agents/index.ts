@@ -75,6 +75,7 @@
 //   POST ?action=pmlpprep   — live-prep's paper layer (pm_prep.ts on 0091's
 //                             tables): it fills the path's own orders, sells
 //                             included. Every minute.
+//   POST ?action=pmlpskew — LP-SKEW-FT's paper arms (lpskew.ts, 0117)
 //   POST ?action=pmlpreserve — live-prep's live reserve (pm_lp_reserve.ts,
 //                             0116): its refill's candidates, re-ranked on the
 //                             selection's own functions every five minutes,
@@ -191,6 +192,7 @@ import { PREP_INSTANCE, runPmPrep, type PrepInstance } from "./pm_prep.ts";
 import { PM_MID_INSTANCE, PREP_MID_INSTANCE } from "./pm_mid.ts";
 import { PM_LP_INSTANCE, PREP_LP_INSTANCE } from "./pm_lp.ts";
 import { runPmLpReserve } from "./pm_lp_reserve.ts";
+import { runLpSkew } from "./lpskew.ts";
 import { atLiveR, LP_LIVE_CLOSE_COLUMNS, LP_LIVE_CLOSE_MINUTES, LP_LIVE_FILL_COLUMNS, LP_LIVE_HOUR_COLUMNS, LP_LIVE_HOURS_VIEW, LP_LIVE_MARKET_COLUMNS, LP_LIVE_MINUTE_COLUMNS, LP_LIVE_ORDER_COLUMNS, LP_LIVE_REWARD_COLUMNS, lpCloseMinutes, lpLiveR, lpLiveSince, lpLiveSummary, type LpLiveRPrice, type LpLiveCloseRow, type LpLiveConfigRow, type LpLiveFillRow, type LpLiveHourRow, type LpLiveMarketRow, type LpLiveMinuteRow, type LpLiveOrderRow, type LpLiveRewardDayRow, type LpLiveStateRow, type LpLiveStopRow } from "./pm_lp_live_view.ts";
 import { PREP_STRESS_TABLE, recordPrepStress, stressLayer } from "./pm_prep_stress.ts";
 import { prepSummary, type PrepDayRow, type PrepStressDayRow, type PrepFillRow, type PrepMarketRow, type PrepMinuteRow, type PrepRateRow, type PrepStateRow } from "./pm_prep_view.ts";
@@ -772,6 +774,17 @@ export async function runPmLpAction(deps: { db?: Db; fetchImpl?: typeof fetch; r
     await reportServerError(PM_LP_INSTANCE.errorKind, { message: message.slice(0, 500), context: { at: new Date().toISOString() } });
     return { error: message.slice(0, 300) };
   }
+}
+
+/**
+ * LP-SKEW-FT, one run (`lpskew.ts`, 0117; `docs/agents/reviews/2026-10-11-lp-skew-ft-prereg.md`): three paper quoting arms
+ * replayed on live-prep's recorded minutes (`pm_lp_minutes`) and settlements, written to `pm_lpskew_*` only. No venue, no
+ * order. Faults go to `ops_errors` as `agents.pm_lpskew`.
+ */
+export async function runLpSkewAction(deps: { db?: Db; now?: number } = {}) {
+  const report = await runLpSkew({ db: deps.db ?? db(), now: deps.now ?? Date.now(), holder: crypto.randomUUID() });
+  if (report.errors.length) await reportServerError("agents.pm_lpskew", { message: report.errors.join(" | ").slice(0, 500), context: { at: report.at, minutes: report.minutes } });
+  return report;
 }
 
 /**
@@ -2827,6 +2840,8 @@ async function route(req: Request, who: Exclude<Who, null>, url: URL, action: st
   if (action === "pmlpprep" && req.method === "POST" && operator) return json(200, await runPmLpPrepAction());
   // Its live reserve (pm_lp_reserve.ts, 0116): the refill's candidates, ranked in a call of their own. Keyless reads only.
   if (action === "pmlpreserve" && req.method === "POST" && operator) return json(200, await runPmLpReserveAction());
+  // LP-SKEW-FT (lpskew.ts, 0117): three paper quoting arms replayed on live-prep's recorded minutes. Reads only, but its own two tables.
+  if (action === "pmlpskew" && req.method === "POST" && operator) return json(200, await runLpSkewAction());
   // The view-count recorder (views.ts, 0062): Polymarket's view markets and the YouTube counters they resolve on. Reads only.
   if (action === "views" && req.method === "POST" && operator) {
     const key = youtubeKey();
