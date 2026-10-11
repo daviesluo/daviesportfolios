@@ -198,6 +198,8 @@ folders hold a pointer it loads the same way. What must never be missed, whereve
   every record may be read for research at any time. A pre-registered reading still runs as its pre-registration says
   (its script, bar and date), and its report says it was not blind.
 - Every recurring Edge call is a row of `public.edge_calls` and joins the watchdog in the migration that adds it.
+- Watching the live strategies ("盯盘") and fixing what the watch finds follows `.agents/skills/live-watch/SKILL.md`,
+  written so any model can run it: read-only SQL, no config or rule change, Davies decides every live change.
 
 ## Git workflow
 

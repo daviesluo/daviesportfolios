@@ -23,6 +23,18 @@ him); a frozen rule changes only as a recorded deviation (spec, reference, ledge
 a pre-registered reading runs as its pre-registration says (script, bar, date) and, since 2026-10-04, says it was not
 blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
 
+0. **HANDOVER, 2026-10-11 ~03:30 UTC: Claude Code's weekly limit is near; Cursor (Grok 4.7) continues.** The watch and
+   safe-maintenance procedure is `.agents/skills/live-watch/SKILL.md` (pointers in `.claude/skills/` and
+   `.cursor/skills/`): copy-paste read-only SQL, OK/NOTE/ALERT/URGENT rules, the error box, the safe-fix workflow, the
+   proposal path and the dated reads. The in-session watcher sub-agent ends with this session; the next platform runs
+   watch cycles itself (Davies triggers them). State at 03:15 UTC 10-11: live-prep live and armed, Addenda 9–18 deployed
+   (`ac162cc9`; Addendum 18 seen working: `state.lp.refill.deferred` set at 02:22 with $10.53 free), stop basis −$13.71
+   (fills −48.92 marked at mid, rewards 28.41, rebates 6.79), **room $61.29**; error box empty since 00:12; PR5 fresh.
+   `state.pnl.total` is the fills alone, never the stop's number (the skill's Step 2). Dates: 10-13 forward tests and
+   LP-RULES item 1; **10-16 ≥ 01:00 the 7-day end-rule read with `backtests/pmlp/lp_readout_a18.sql` only** and the $40
+   buffer re-read; 10-22/23 LPRESEL6, TB1 C1, 14-day readout. Showcase (`daviesluo/personal`) not yet updated for this
+   week's strategy changes (Addenda 9–18, LP studies): left for Claude Code.
+
 1. **Closed: fp5's ranked list.**
 
 2. **Polymarket reward quotes (paper; RW, RW-E, RW-X, TB1, RW-C) and the three order paths (dry-run, unarmed).**
@@ -451,7 +463,17 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 2026-10-08, under "LEDGER.md, archived 2026-10-08", the 2026-10-08 16:59 → 18:35 UTC sections under
 "LEDGER.md, archived 2026-10-09", the 2026-10-08 22:49 → 23:58 UTC sections under "LEDGER.md, archived 2026-10-09
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
-03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10"; each oldest first.
+03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
+archived 2026-10-11"; each oldest first.
+
+### [2026-10-11 03:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Handover to Cursor (Grok 4.7) before the weekly limit** (Davies: "把这套盯盘+自动维护修复问题的机制详细总结成一个skill…
+  低级的模型也可以看懂并完美实施"). Wrote `.agents/skills/live-watch/SKILL.md` (+ two pointers, `docs/map.md`'s agents
+  row): fourteen NEVER rules, setup with a read-only Supabase MCP URL, an eight-step cycle whose SQL was each run
+  read-only on production at 03:15–03:20 UTC, an error-box classifier, a decision tree, the safe-fix workflow (repro,
+  counterfactual, dist, gates, deploy check), ledger rules, the proposal path and the dated reads. Found while writing:
+  `state.pnl.total` (−50.55 at 03:11) is the fills alone; the stop's basis was −15 (room ≈ $60), so the skill reads the
+  room from rewards and rebates too. Archived the 2026-10-10 history sections to `docs/handover.md` (ledger 78 → 55 KB).
 
 ### [2026-10-11 02:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep's Addendum 18 (mid-pool's 18)** (sub-agent, landed by the main session; Davies' "同意，这些都按你推荐的来", 01:41 UTC, quoted).
@@ -571,243 +593,3 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
   Davies' "同意" at 23:59 UTC 10-10, quoted verbatim in the prereg's Addendum 15. The reserve now re-ranks once, on its
   first run after the 00:00 selection; `ranked_at` should stay put through the day while `refreshed_at` moves each
   minute (the top-15 programme read). Check that on 10-11 after the deploy.
-
-### [2026-10-10 19:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Prepared, not pushed: live-prep's Addendum 15, the reserve ranked once a day** (branch `lp-reserve-0000`), waiting
-  on Davies' OK because he asked for a live reserve. `PM_LP_REFILL.rerankEveryMin` 5 → 1440: the full re-rank runs on
-  the reserve's first run after the 00:00 selection (a failed one retries the next minute); every minute's run still
-  reads the first 15 candidates' programmes (pinned: runs 6 minutes and 6 hours on rank nothing, read no listing, and
-  still mark programme changes), and a refill still checks its candidate at that minute.
-- Evidence: LP-REFILL (Addendum 13 as deployed fills the cap and its formula falls to $0–$14 a day by 10-08; a 00:00
-  reserve keeps $25.9 a day of formula) and live today (`backtests/lprefill/results/after_refill.txt`, read 19:32 UTC):
-  ten refills 14:23–14:52, then the formula per hour $1.111, 1.619, 1.672, 0.852, 0.576, 0.339 while holdings reached
-  18 positions and about $270 at cost (the main session's reading); `0x3090f7aa` settled YES at 18:05 (settlement row),
-  −$32.54 on its 86 fills at the payout, rewards not counted.
-- `pm_lp.ts` `277baa7a…e8cb` (was `a745ca4f…bc12`); `pm_live.ts` unchanged (`59a1201a…a510`), so no mid-pool addendum.
-
-### [2026-10-10 15:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Live-prep's per-market loss guard (Addendum 14, mid-pool's 15, branch `lp-market-loss`)**, from LP-REFILL
-  (`reviews/2026-10-10-lp-refill-and-guards.md`, recommendation 2): no BUY in a market of today's (selected or refilled)
-  while its fills are marked $10 or more down (`lpMarketMark`: realised plus held at RW's adjusted mid, from its first
-  fill, rewards not counted). Worked as `lpOut` (buys cancelled, gate `loss`; sells rest; `detail.lp.out` and the
-  condition text); lifts the turn the mark recovers; a turn with no mark keeps the last verdict (`state.lp.guard`). A
-  market held back by the guard alone keeps its slot (the refill does not count it out, as LP-REFILL's simulator did not),
-  and QUOTING TODAY leaves it out while it lasts. Evidence quoted: +$0.47 a day on the record; MrBeast wk1 −$36.91 →
-  −$8.95 on the live episodes. `rerankEveryMin` untouched (waits on Davies).
-- `pm_live.ts` `59a1201a…a510` (was `ef036c76…c480`), `pm_lp.ts` `a745ca4f…bc12` (was `0a85f529…2b25`); hash chain and
-  prereg pins extended; the two turn tests fail with `marketLoss` unset. No migration, no `src/` change but tests.
-
-### [2026-10-10 14:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **LP-REFILL (Davies, 10-10: "现在就做补选吧…你说的亏损还没控制你研究下"), research only**
-  (`reviews/2026-10-10-lp-refill-and-guards.md`, `backtests/lp_refill/`; sub-agent on branch `lp-refill`, not pushed by
-  it). Live-prep's rule on a full-universe record from 10-05 to 10-10 13:00 UTC, using the programme as read each
-  minute, at-price fills and $300. Figures are $ a day at R 0.47 in simulator units (0.81 live).
-  - **A refill pays, and its cap of ten a day must stay.** Addendum 13 as deployed earns $17.53, +$6.37 [−5.19, +17.61]
-    against no refill; its worst day is −$19.09 against −$37.94. The minutes with no slot quoting fall from 89 a day to
-    0. Uncapped, the same rule earns $5.65.
-  - **The live re-rank fills the cap with held shares.** After that its formula reward collapses: $7.4 a day on
-    10-06..10-09 against $19.4 with no refill, and $0 on 10-09 and 10-10. All nine settings tested (every 5, 15 or 60
-    minutes) do it. The 00:00 reserve keeps earning: $16.26 net, formula $20.4 on 10-06..10-09, ahead on 4 of 5 days.
-  - **Proposed (Addendum 14, not applied).** `PM_LP_REFILL.rerankEveryMin` goes from 5 to 1440; every other number
-    stays. Add a per-market guard: no BUY while the market's fills are marked $10 down. On the record that guard costs
-    about $0. On live-prep's 10-09/10-10 replay it cuts MrBeast wk1's loss from $36.91 to $8.95. $7.5 or $5 costs
-    $4–$13 a day.
-  - **Every other guard was priced and rejected:** no buys near the end, band and 3N side caps, mid moves, drift, and
-    count markets out. oneWay helps with no refill but costs money on a live refill. Capital stays at about $300.
-  - Not blind, nothing out of sample in earnest.
-
-
-### [2026-10-10 14:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Live-prep's refill from a live reserve (Addendum 13, mid-pool's 14, branch `lp-refill-build`)**, on Davies'
-  "现在就做补选吧，不然资金利用率太低了，研究出一套最合理的机制" and "这个候补名单也要在当天中实时更新比如每分钟之类的". 10-10's ten
-  markets were taken out one by one: their formula fell from $4.906 in the 00:00 hour to $0.015–$0.160 an hour after
-  10:00 (`backtests/lprefill/results/today_formula.txt`). Now a slot out 15 minutes (0 once none quotes) is refilled
-  after the turn's orders from the reserve, by the first candidate that passes at that minute (Gamma, the candidate
-  rules, its programme in N ≤ 20, its book scored as the selection scores it, $200 in all); a failing one is skipped
-  and kept; at most 1 a turn, 3 reads a turn, 10 a day, none past the governor or the deadline; a market of today's
-  rows is never taken again. Event `refill` then a `pm_lp_markets` row (`detail.refill`); QUOTING TODAY leaves out
-  `state.lp.outNow`; zero slots quoting 30 minutes with a candidate in the universe is an `agents.pm_lp` error.
-- The reserve is its own call, `agents?action=pmlpreserve` every minute (`pm_lp_reserve.ts`, 0116's `edge_calls` row,
-  lease `pm-lp-reserve`, table `pm_lp_reserve`): the full re-rank (`selectMarkets` with `reserve: 30`) every 5 minutes,
-  the first 15 candidates' programmes every minute. Measured against Polymarket from the container: 10,019 ms cold,
-  1,819 ms warm, 102 requests (48 listing, 40 Gamma, 14 `/books`); the light refresh 16 GETs.
-- Shared code: `pm_live.ts` `ef036c76…c480` (was `062ee916…7a50`: `scoreBook`/`scoredRow` taken out, `PmSelectOpts.reserve`,
-  the refill), `pm_lp.ts` `0a85f529…2b25` (was `de26be30…d1ed`); hash chain and prereg pins extended. Not done: the
-  reserve's freshness is not among `monitor/health.ts`'s readings; the browser sweep was not run (no `src/` change but
-  tests). **Deploy order: 0116 with or before the Edge deploy.**
-
-
-### [2026-10-10 03:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- The ledger had reached its 80 KiB budget: the 26 sections of 2026-10-09 (03:20 → 22:53 UTC) moved verbatim to
-  `docs/handover.md` Part 2, "LEDGER.md, archived 2026-10-10", oldest first.
-
-### [2026-10-10 03:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **The programme factor: TESTING's Reward quotes rows priced on the programme as read** (display only; Davies:
-  "之前testing的每一个不都赚了很多吗"; sub-agent on branch `prog-factor`, not pushed by it).
-  - **The definition.** Each row's formula is multiplied by its factor before the live R prices it (`atProgramme`, then
-    `atLiveR`). The factor is Σ formula × (the listing's rate then ÷ the rate the row used) ÷ Σ formula, per source, day and
-    market. "The rate then" is pm-rec's 15-minute universe reads; a market missing from its phase's frame has rate 0. A
-    minute no reading covers keeps factor 1, and so does a day before the archive (10-04 19:00).
-  - **Migration `0115_pm_prog_factor.sql`.**
-    - Three tables: `pm_prog_reads`, `pm_prog_factors` and `pm_prog_state`. RLS on, no grants.
-    - Lease `pm-prog`.
-    - Functions `pm_prog_rate_at`, `pm_prog_day` and `pm_prog_refresh`, run by pg_cron at :07/:22/:37/:52.
-    - A 30-day prune of the reads.
-    - The `edge_calls` row `agents?action=pmprog`: every 5 minutes, 30 s, retry true.
-  - **The reader (`agents/pm_prog.ts`).** It reads four archived universe hours a run through `pm_rec_archive`'s signed
-    URLs and checks each sha256. It waits on a gap until the hour is 8 h past, then marks it lost. The URL is never logged.
-  - **Edge feasibility, checked on Deno 1.46.3.** node:zlib reads the concatenated gzip members whole: 60 of 60 frames,
-    about 70 ms of CPU per hour. That run was local; nothing was deployed.
-  - **Pins.** `pm_prog.test.ts` (6) covers the archive format, the factor on a hand case, the summary arithmetic composed
-    with `atLiveR`, the cursor, a bad hash and the lost-hour rule. `src/cron_jobs.test.js` covers 0115.
-  - **The SQL, checked on PGlite.** It gives the hand case, and matches `backtests/progf/scripts/factor.py` to the cent on
-    every day of mid-pool's and RW-C's records.
-  - **Evidence (`backtests/progf/results/before_after.txt`), rewards at the live R before → after:**
-    - RW-C $252.90 → $148.16 (factor 0.586). Its 10-09 factor, 0.661, also serves variant-1 and the RW-X arms.
-    - Mid-pool $132.50 → $101.31 (0.765).
-    - Live-prep paper $465.21 → $229.97 (0.494).
-    - Mini-pool $85.34 → $72.07 (0.845).
-  - **Lands with the full gates.** The factors appear after the backfill: about 125 hours at 4 a run, about 2.5 h after
-    the deploy. Until then each row reads as before.
-
-- **Live-prep leaves AI markets out (Addendum 12, branch `lp-no-ai`)**, the main session's decision on Davies' "由你来决定吧，
-  并且考虑rewards", from LP-ALLOC. `lpMarketType` is LP-ALLOC's `typeOf` word for word; `PM_LP_CANDIDATE.excludeQuestion`
-  keeps AI markets out of the 00:00 selection, and one already selected takes no entry from the next turn (as the reward
-  check's `lpOut`). Hit lists: 10-09 4 of 10, 10-10 1 (0xa0ab5c59, already out on rate). Rewards counted
-  (`backtests/lpnoai/results/noai.txt`): LP-ALLOC gives up $48.64 of $153.18 formula (31.8 %) for $42.63 of fills, +$3.95
-  a day at R; AI markets carried 35.2 % of live-prep's paper formula and 32.3 % of 10-09's payout. `pm_live.ts` changed
-  (mid-pool's Addendum 13); no page change, no migration.
-
-
-### [2026-10-10 02:24 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Coinbase's order books recorded keyless** (sub-agent, branch `cb-books`; Davies: "Coinbase的订单簿要不要像 Revolut X
-  一样也记录上用来inform策略"). `agents/cb_books.ts`, `0114`: USDC-GBP, USDT-GBP, USDC-EUR and USDT-EUR's
-  `/book?level=2`, top ten levels a side as integer arrays (price steps, hundredths of a coin, order counts) with
-  `sequence` and `time`, a row when they change, 30 s into the minute after the recorder, 250 ms apart, stopping at a
-  429: 4 requests a minute beside the recorder's 8 (32 at most). 524 bytes a row on production, about 3.2 MB a day,
-  35 days (`cb-books-prune`, 10:57 UTC), about 113 MB. For a queue model (pre-registered before it is read) and rung
-  placement; the frozen paper test reads none of it. Fixture `backtests/cbrec/books_2026-10-10.json` (two readings a
-  minute apart; every book changed); 7 Deno pins, each of 8 mutations fails one; `cron_jobs.test.js` pins the row.
-
-### [2026-10-10 02:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Addendum 11, branch `lp-funded-now`** (sub-agent). FUNDED showed the $322 cap at 02:18 (Davies: "FUNDED还是显示的是$322"):
-  `lpFunding` held its first booking to 03:10. Now the first booking needs only a readable residual, no fill settling and
-  yesterday's payout read; later moves keep every guard; each live turn writes `state.lp.fundingResidual`, which the page
-  shows until the booking, never the cap (a dash if neither). Live-prep's paper row is off TESTING (Davies: "testing里Reward
-  quotes live-prep这个可以删了"); its calls stay on: LPRESEL6's frozen bar reads `pm_lpprep_days` over 10-09 → 10-22, and
-  the path's dry-run decides on its paper whenever disarmed. Mid-pool's Addendum 12. `dist/` rebuilt; sweep updated.
-
-### [2026-10-10 02:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **LP-ALLOC (Davies' 10-10 question: how much to add to live-prep, and whether to quote more markets), research only**
-  (`reviews/2026-10-10-lp-capital-allocation.md`, `backtests/lp_alloc/`; sub-agent on branch `lp-alloc`, not pushed by it).
-  On a five-day full-universe pm-rec record, live-prep's rule was scored on each minute's programme. That is the reward
-  check: the formula falls by 64 % against the 00:00 programme. Fills were at-price, which reproduced 10-09's live fills:
-  69 / 1,216 against 70 / 1,219.
-  - **Verdict: add nothing now.** Today's knobs earn less with more money: −$3.34 a day at +$100, [−7.23, −0.56], 0 of 5
-    days ahead.
-  - More markets, N over 20, bigger orders, the market cap and the budget do not pay. N over 20 trips the −$75 stop at
-    $580.
-  - The one change the record supports is leaving AI markets out: +$3.95 a day [−5.89, +12.92], 4 of 5 days, worst day
-    −$37.70 against −$57.93. It is drafted as an Addendum-11 PROPOSAL in the review, not applied.
-  - R is in simulator units: 0.47 corresponds to live's 0.81, because the simulator's formula is 1.72× the path's.
-  - Re-selecting every 6 hours is rejected: its gain is carried-inventory fills while its rewards collapse.
-  - The 3N and 2N side caps cost $8–10 a day. Drift stops and the zero-score-buy rule are noise. Refill is mixed.
-  - Programmes are off 51 % of the top-10's minutes.
-  - AI is the worst type for markouts on all three paper records: −2.80 to −3.28 ¢ a share at 120 minutes.
-  - L1 reproduces LPSELF byte for byte on the builder with LPSELF's seed.
-
-
-### [2026-10-10 02:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Live-prep's follow-on, built on branch `lp-followon`** (sub-agent; Addendum 10 of
-  `reviews/2026-10-04-polymarket-lp-prereg.md`, mid-pool's Addendum 11). FUNDED (Davies: "子页面中的FUNDED得显示我实际真实投入的钱"):
-  pUSD + CONFIRMED fills' net − redeemed settlements − rewards and rebates paid = $402.028365 at 01:17 (`lpFunding`); a
-  move of ≥ $1 is booked as a deposit or withdrawal on two agreeing readings, no fill settling, after 03:10 UTC and once
-  yesterday is read (rebates landed 00:27–01:17 on 10-10), each an event of kind `funding` (`0113`). Readout from 00:05,
-  re-read every 10 min until paid, counted from 03:00. Every TESTING Reward quotes row (RW-C, its variants, the three
-  paper layers) priced at `lpLiveR`'s point, worst case at its low (`atLiveR`, one R per dashboard read); pre-registered
-  readings keep their frozen R. 10-09 enters R at 0.807 (`backtests/lpcfg/scripts/rtrue.py`, `LP_R_DAY_CORRECTIONS`, no
-  table write). Sponsored: not the cause (none of 0x5b3350e2, 0xa0ab5c59, 0xd23c714e has a sponsor; their native rate
-  flips), rule unchanged. 10-10 was quoted on stale programmes 00:00–01:15. LIVE row's FUNDED reads `fundedUsd`
-  (`src/agents/agents.js`, `dist/` rebuilt).
-
-
-### [2026-10-10 01:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Coinbase's paper test renamed "Stablecoin quotes with Euros", €100 a rung on its EUR books** (sub-agent, branch
-  `cb-euro`; Davies: "测试名字就叫Stablecoin quotes - with Euro吧，列表里放在Stablecoin quotes variant-3 后面，每一档100磅/100欧元",
-  then "策略名字也改为Stablecoin quotes with Euros").
-  Deviation 1 of `reviews/2026-10-10-coinbase-paper-prereg.md`: `stepMinute` unchanged, X = 1 on every book and fairU the
-  book's own fair, each trip turned into pounds when it closes (`cbTripInPounds`, state `xGbp`/`xEntry`); capital
-  £1,200 + €1,200 (£2,216 at 0.8468). By §3's words the window began 10-10 00:00 (`startedAt` 10-09 23:14 from
-  back-filled prints); the deviation moves it to 10-11 → 11-08 and says how bar 1's replay and bar 3 read. History moves
-  ≤ 0.3 points a year. The row was already right after variant-3; its name now splits on two lines like the variants'.
-  The capital's euros fall back to the last stored EUR/USD ÷ GBP/USD while every minute is dark (weekends: the engine
-  has had no lit minute since it started, Yahoo's FX last bar 10-09 21:29). **VENUES' share bar** (Davies:
-  "testing页面venue中最上面的占比条里没有coinbase"): `.ag-share-coinbase` had no style, so its slice was unpainted; it and
-  `.ag-venue-card-coinbase` now take the badge's green, pinned in `agents.test.js` (every venue's slice styled, Coinbase's
-  share > 0, shares sum to 1) and the sweep (every slice painted, slices fill the bar). The bar is each venue's share of
-  TESTING's deployed value (of funded capital while nothing is deployed), so Coinbase's slice is 0 % while its minutes
-  are dark and no quote rests. `dist/` rebuilt; page fixture regenerated.
-
-### [2026-10-10 01:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Hyperliquid's spot stable books screened** (Davies asked; `backtests/scq_venues/scripts/hl_screen.py`, a row in
-  `reviews/2026-10-09-stablecoin-venues.md` §2): dead. Only USDT0/USDC trades ($545k a day), its minute closes a median
-  1.0 bps from fair; 0.008 % maker on stable pairs (Hyperliquid's fee page); 3.5 days of 1-minute candles, no print history.
-
-### [2026-10-10 01:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Coinbase paper test pre-registered and frozen; Revolut X against Coinbase** (`reviews/2026-10-10-coinbase-paper-prereg.md`,
-  `reviews/2026-10-10-coinbase-vs-revolutx.md`, `backtests/cbpaper/`, map row, reference §4 item 58, what-remains item 12).
-  Since 2026-08-24 at £100 a rung: Revolut X 17.1 %/yr on £1,200, Coinbase 9.7 % on £2,400 (USDC-GBP 20.7 %, flat to £1,000
-  a rung); Revolut X's rate falls with size. Robust split: £1,000 → £690 Revolut X + £300 Coinbase USDC-GBP; £5,000 →
-  £2,580 + £2,400.
-
-
-### [2026-10-10 01:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Live-prep's reward check, built on branch `lp-reward-refresh`** (sub-agent; Davies: "策略每分钟读的时候都检查奖励配置，
-  避免再次出现这种白挂了并且承担风险并且没奖励的事情"; Addendum 9 of `reviews/2026-10-04-polymarket-lp-prereg.md`, mid-pool's
-  Addendum 10). Every turn, before anything rests, each quoted market's programme is read from the CLOB
-  (`GET /rewards/markets/{cond}`, a new keyless route, plus the sponsored listing): out of the universe ($10, N ≤ 20,
-  ended) means no entry that minute, buys cancelled (gate `reward`), sells rest; the formula uses the programme read; a
-  failed read keeps the last good one 5 minutes. Backstop: 3 live minutes of both sides not scoring while the formula
-  scores both, out for the UTC day (M = 3: 0 false positives on 10-09's kept markets). R, DAYS and REWARDS TODAY (EST.)
-  on `formula_scored_usd`, R itself one function (`lpLiveR`, for the TESTING-pages follow-on); `0111` relaxes `pm_lp_minutes.rate` to ≥ 0 and adds the scored columns to the hours view.
-  Replay (`backtests/lpcfg/`): 10-09's $153.90 of formula is $7.56 under the fixed rules; 8,150 of 13,362
-  market-minutes and 29 buy fills were in markets that no longer paid. Gamma was measured and not chosen (lags the CLOB,
-  cached 5 min). Replacement of a freed slot not built. Page unchanged (its inputs are the same fields), no `dist/`.
-- **10-09's readout landed at 01:00:01** (paid $6.5242 over ten markets): R is 0.042 on the recorded formula, 0.330 on
-  its scored minutes, 0.863 on the fixed rules' formula, 0.912 on its scored minutes (`backtests/lpcfg/results/replay.txt`;
-  Addendum 9). The estimate will still learn 10-09 at ≈ 0.33, since its scored formula used the stale programme:
-  whether to leave 10-09 out of R's calibration is Davies' call (listed under item 2).
-
-
-### [2026-10-10 00:53 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Coinbase recorder and paper test built** (Davies: "先建起来吧，并且和Revolute X对比看哪个更好"): `agents?action=cbrec`
-  (`cb_rec.ts`, `cb_quotes.ts`, `cb_view.ts`, migration 0112, map rows). Keyless: every print of USDC-GBP, USDT-GBP,
-  USDC-EUR, USDT-EUR by trade id with no gap, the touch each minute, then PR5's `stepMinute` unchanged on them in pounds
-  (£100 a rung, £2,400). Not pushed; whether the Edge region reaches Coinbase shows in `cb_rec_state.last_report.reached`.
-- Its TESTING row "Stablecoin quotes Coinbase" (after the twins, its own Coinbase card) and page (the twins' page, no
-  INVENTORY, EUR books in euros), `dist/` built, the sweep's checks for both (all green, both viewports), a guide line.
-
-### [2026-10-10 00:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **RW-C's 10-10 check PASSED** (wake `trig_0147EKGhR4aHoVq5QWUFy1mr`, fired 00:20): `pm_rwc_e_state` `checkMaxUsd` 0;
-  `pm_rwc_x_state` `checkMaxUsd` 0, `checkEMaxUsd` 0 over `checkEDays` 1; both replays decided to 00:17, 10-09 closed in
-  `pm_rwc_days` (`run`), `pm_rwc_e_days` and `pm_rwc_x_days`. Scalars and day keys only.
-- **live-prep's first payout, and why it read low.** 10-09's rewards landed at 00:00 (+$6.53 of pUSD, no fill between
-  23:57 and 00:05:01); `lpCapital` followed it, 322 → 329. Against the day's live formula ($153.90) that is R ≈ 0.04,
-  but the formula is wrong: the path reads each market's reward config once, at the 00:00 selection, and Polymarket
-  changed three of the day's ten during it (Gamma now: the two "Gemini … by October 16" markets at minimum 50 and
-  50/day, selected at 20 and 200/day; "Gemini Argon … October 10" with no `clobRewards`, $84.14 of the formula, not one
-  minute scored). Polymarket's `order-scoring` and `pct` turned false/0 there from about 04:20–05:36 UTC while the path
-  kept quoting at the old figures. Over minutes both sides read scoring the formula is ≈ $19.80 (R ≈ 0.33), and where
-  the config held, `pct` tracks our share (7.39 % vs 8.16 %, 2.10 vs 2.13). A fix is being built (`opus-high`, branch
-  `lp-reward-refresh`): the reward config read every minute before anything rests (Davies: "策略每分钟读的时候都检查奖励
-  配置"), a market that no longer pays takes no entry that minute (its sells keep resting), Polymarket's scoring
-  verdict as a backstop, the estimate on scored formula; Addendum 9 of live-prep's pre-registration records it.
-- **A unit test that failed every weekend**: `app.test.jsx`'s "the 30 s tick reuses the bars…" read the real clock,
-  and from Friday 20:00 ET to Sunday 20:00 ET the page refreshes every 5 minutes, so it failed from 10-10 00:00 UTC
-  (the test is from review F12, its first weekend). Pinned to a weekday's after-hours; fails on the old line, passes now.
-
-### [2026-10-10 00:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **SCQ-VENUES, other venues for PR5's rule** (Davies: "还有没有其他平台可以做这种策略的？"): `reviews/2026-10-09-stablecoin-venues.md`,
-  `backtests/scq_venues/` (map row). PR5's frozen simulator on two years of keyless prints, as minute bars proven equal; nothing opened or traded.
-  At £100 a rung, last 12 months: Coinbase UK's four books £192.95 (28-day rate £315/yr; £1,781 at £1,000 a rung),
-  OKX EEA £104.69 (USDG-EUR, £598/yr over 28 days, young and thin), Kraken and the rest dead. Recommendation: Coinbase (UK) next, OKX (Irish, spot-only) paper first.
