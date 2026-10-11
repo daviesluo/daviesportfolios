@@ -1,0 +1,26 @@
+sql/refill_audit.sql, run 2026-10-11 ~01:38 UTC. Every live refill (pm_lp_events kind 'refill', 11 in all).
+budget = rebuilt cap - held at cost at that minute (resting buys <= pUSD - 80). want = the buys the day's markets quoting
+then (a book wider than a tick) wanted. free = budget - want: what rank order (Addendum 17) leaves the refill, funded last.
+took_*: the refill market to the end of its UTC day (minutes after it, in 'quote', two-sided, formula scored).
+back: minutes the REPLACED market's stored programme was back in the universe (rate >= 10, minimum <= 20) later that day.
+
+at           replaced    took        rk  need   held    budget  want    free    own?  at once?  q    two  formula  back (of min)  first back  why out
+10-10 14:23  0x3090f7aa  0xd5734dd2  11  19.00  130.51  170.49    0.00  170.49  yes   yes       328   70  0.150      0 of 35    -           programme ended (MrBeast wk1)
+10-10 14:24  0x0477b4ad  0x5e96323f  12  19.40  130.51  170.49   18.60  151.89  yes   yes       361  152  1.022    363 of 575   17:57       minimum 100
+10-10 14:25  0xd23c714e  0x89067ac9  13  18.20  130.51  170.49   38.20  132.29  yes   yes       306   74  0.438      0 of 574   -           rate 3
+10-10 14:26  0xac42f143  0x9572cbd3  14  19.40  130.51  170.49   56.80  113.69  yes   yes       355  215  1.071      0 of 573   -           minimum 100
+10-10 14:27  0xa0ab5c59  0x225b0d56  15  19.00  130.51  170.49   56.80  113.69  yes   yes       411  561  1.774    416 of 572   14:28       AI rule (programme fine; stays out)
+10-10 14:28  0x5d7a9bad  0x191e066d  16  19.60  130.51  170.49   75.00   95.49  yes   yes       511  394  1.681      0 of 571   -           rate 5
+10-10 14:29  0x31e2f3df  0xcc5dbca9  17  19.60  130.51  170.49   95.20   75.29  yes   yes         6    6  0.031      0 of 570   -           rate 5
+10-10 14:30  0x668b6976  0x8c76cbb8  18  18.80  130.51  170.49   75.40   95.09  yes   yes       182  159  0.164      0 of 569   -           rate 5
+10-10 14:35  0xcfc7d2a2  0xbfb4f78b  19  17.80  162.53  138.47  131.80    6.67  yes   NO        354  240  0.777      0 of 564   -           rate 2
+10-10 14:52  0xcc5dbca9  0xc50683fa  20  18.40  183.53  117.47   60.00   57.47  yes   yes       350   79  0.536     87 of 547   15:20       programme ended
+10-11 00:21  0x0386c36c  0x85b5135d  11  18.60  284.91   37.09  105.40  -68.31  yes   NO         70    0  0.000     27 of 70    00:48       rate 2 (flickers 2 <-> 27)
+
+own? = budget >= its own need (what the refill's $200 first-quote test effectively passes: the day's need was $185-191).
+at once? = free after the quoting markets' buys >= its need: could rank order fund it at the minute it was taken.
+- 2 of 11 refills were taken into a slot the cash could not fund at once: 10-10 14:35 (funded later that day, under the
+  slot order then: 240 two-sided minutes) and 10-11 00:21 (none of 70 minutes two-sided; under rank order it is last).
+- The 10-10 refills' formula: 7.644 in all (about $5.63 at R 0.737).
+- Replaced markets back in the universe later that day: 3 of the 10 not taken out by the AI rule (0x0477b4ad after
+  3 h 33 min out, 0xcc5dbca9 after 44 min, 0x0386c36c after 42 min, flickering since).

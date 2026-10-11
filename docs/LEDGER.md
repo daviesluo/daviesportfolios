@@ -38,10 +38,16 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    - **LP-RULES (10-11): no rule change today** (`reviews/2026-10-11-lp-rules-audit.md`). Reads it leaves: capital held
      by carried stock over 10-11 → 10-13 (its triggers and three options for Davies are in the review); TB1, LPRESEL6,
      near-end inventory and 3N/5N by 10-23.
+   - **LP-CAPDEEP (10-11): keep the cap's $80 buffer; re-read 10-16** (`reviews/2026-10-11-lp-capital-deep.md`): release
+     $40 only if the budget still binds most minutes of 10-13 → 10-15, ranks 5+ buys have not lost at 6 h, and the stop's
+     room is ≥ $100. **For Davies' word:** the refill waits while the turn's free buy budget (min(cap − committed, pUSD
+     left)) is under $20 (an addendum and a pin test; about +$0.5 a day, lowers risk).
+
    - **LP-OBS-DEEP (10-11):** three fixes for the coordinator and Davies: the 7-day end rule's R must read 10-09 like for
      like before **10-16 01:00 UTC** (addendum; it reads 0.154 now), TESTING rows priced on one basis, rebates in the
      stop (addendum). The pause change for close-only markets waits for the next `pm_live.ts` addendum
      (`reviews/2026-10-11-lp-observations-deep.md`).
+
    - **RW's verdict: read 2026-10-09 00:42–00:50 UTC** (`reviews/2026-10-09-polymarket-rw-paper-result.md`, reference
      §3.46, `backtests/rwverdict/`). RW 6/6, RW-E 7/7, x1–x3 7/7 each; step b (all 4,116 fills by `stepRw`) and c (13,634
      prints re-pulled, none missed) clean; **RW-NEXT's candidate is RW-E**, to RW-C (Part 3's bar on or after 10-23
@@ -450,6 +456,21 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10"; each oldest first.
 
+### [2026-10-11 01:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LP-CAPDEEP filed** (sub-agent, landed by the main session; `reviews/2026-10-11-lp-capital-deep.md`, `backtests/lpcapdeep/`; Davies,
+  2026-10-11: "这几项深度研究下并推荐我该怎么操作"). Item 1, release the total cap's $80 buffer: **keep it.** LP-CAPINV's
+  +$11.1 was rewards only with fills frozen (+$10.14 at R 0.737; +$7.67 on top of rank order); LP-REFILL's $400/$300 pair
+  re-priced at the live R is −$2.29 [−5.45, +0.60] a day for +$80 (fills −5.95, formula +7.05 per +$100; break-even sim R
+  0.84). The $80 (the stop's $75 + $5) no longer guards collateral since Addendum 8; it brakes stock building while
+  carried stock fills the cap. Since A17 (00:51–01:27) rank order funds 65.3 % of the quoting weight; +$80 would fund
+  ranks 5–11, three ending 10-13..10-16 beside Citigroup (10-13) and Prologis (10-15), whose worst path is −$81.5 against
+  $70.42 of stop room. $40, ranks-1–5-only and held-stock conditions priced, none better. Re-read 10-16 (release $40 only
+  if the budget still binds, ranks 5+ buys have not lost at 6 h, and the stop's room ≥ $100). Item 2, the refill's $200
+  budget test: 2 of 11 live refills were unfundable at once (10-10 14:35; 10-11 00:21 `0x85b5135d`, 0 of 70 minutes
+  two-sided; it dropped the flickering `0x0386c36c`). **Proposed for an addendum on Davies' word:** no refill while
+  min(cap − committed, pUSD left) after the turn's funded buys is under $20; about +$0.5 a day, lowers risk. Re-check
+  window (afterMin 60) and count-only-funded priced: keep. `pm_lp.ts`/`pm_live.ts` untouched.
+
 ### [2026-10-11 01:33 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **LP-OBS-DEEP filed** (sub-agent, landed by the main session; `reviews/2026-10-11-lp-observations-deep.md`, `backtests/lpobsdeep/`):
   Davies' items 3–5 ("这几项深度研究下并推荐我该怎么操作"), LP-RULES' observations 1, 3, 4. **Defect 1 (fix before the
@@ -464,6 +485,7 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
   to +$0.19 a day; recommend it with the next `pm_live.ts` change; keep the pause for selected markets.
   `pm_lp.ts`, `pm_live.ts` and the view are untouched.
 
+
 ### [2026-10-11 01:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **LP-RULES filed** (sub-agent, landed by the main session; `reviews/2026-10-11-lp-rules-audit.md`, `backtests/lprules/`): every live
   rule of live-prep audited on the live record (10-09 01:32 → 10-11 00:52) and the paper and study records. Live net
@@ -474,7 +496,7 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
   (10-11 → 10-13, Addendum 17's forward test), re-select 6 h and TB1 (10-23), near-end inventory and 3N/5N (by 10-23).
 
 ### [2026-10-11 01:03 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **LIVE's Reward quotes page: DAYS has an Orders column** (sub-agent, not pushed; Davies, 2026-10-11:
+- **LIVE's Reward quotes page: DAYS has an Orders column** (sub-agent, landed by the main session; Davies, 2026-10-11:
   "live的Reward quotes页面days表格中在合适的位置加上orders列展示orders的盈亏"). Day | Markets | Orders | Formula | Paid | R |
   Rebates. A day's Orders is `lpDayOrders` (`pm_lp_live_view.ts`): the page's own fills P&L (`bookPnl` total over
   `tokenBooks`, settlements as `settlementFills`) at the day's close less at its open, less the day's fees, so the days
@@ -497,7 +519,7 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
   `82d1aa94…a850` (was `2e5ca3ee…9e3c`); both turn tests fail on Addendum 16's `pm_live.ts`.
 
 ### [2026-10-11 00:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Live-prep's Addendum 16 (mid-pool's 16), a defect fix** (sub-agent, not pushed): a market worked close-only
+- **Live-prep's Addendum 16 (mid-pool's 16), a defect fix** (sub-agent, landed by the main session): a market worked close-only
   (carried, taken out, or any while opening is stopped) rests its exit in a one-tick book. TB1's skip had emptied
   `lpQuotes` before `closeOnly` (LP-CAPINV: `0x5fec6675…` a sell in 25 of 1,454 carried minutes, `0xd5734dd2…` 0 of
   14). New `lpExitQuotes` (`lpQuotes` without the skip, one shared function) via `PmLpOptions.exitRule`; RW's `quote`

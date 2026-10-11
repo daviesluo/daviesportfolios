@@ -1,0 +1,5 @@
+sql/buy_markouts.sql, run 2026-10-11 ~01:30 UTC. Every CONFIRMED live BUY fill to then.
+group        fills  shares  $       n60  60-min markout $  % of $   n6h  6-hour markout $  % of $
+all other     92    1578.0  770.92  84   -17.82            -2.38    73   +15.69            +2.36
+MrBeast wk1   41     722.7  187.31  41   -30.11           -16.07    26   +156.26           (settlement inside 6 h; not a guide)
+all          133    2300.7  958.23  125  -47.93            -5.13    99   +171.96

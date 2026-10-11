@@ -1,0 +1,29 @@
+sql/alloc_extra.sql, run 2026-10-11 ~01:28 UTC, window 00:51-01:27 UTC (37 live minutes, all after Addendum 17's deploy).
+Rebuilt cap 322 (equity less $80), held at cost $284.2, so the budget for buys B = cap - held = $37.53-37.86 (mean 37.76).
+w = the selection's formula a minute (formula_day / 1440) of today's markets in 'quote' with a book wider than a tick.
+funded = funded two-sided by whole markets in rank order at B + extra; two_live = minutes the live path did rest both sides.
+
+variant      extra  rule                        market-min  funded  w_all  w_funded  share
+e0           0      as live                     242         107     6.759  4.417     65.3 %
+e20          20     all ranks                   242         149     6.759  5.252     77.7 %
+e40          40     all ranks                   242         187     6.759  5.784     85.6 %
+e60          60     all ranks                   242         226     6.759  6.359     94.1 %
+e80          80     all ranks (the $80 gone)    242         241     6.759  6.725     99.5 %
+top5         80     ranks 1-5 only              242         120     6.759  4.687     69.3 %
+held_lt_150  80     only while held < $150      242         107     6.759  4.417     65.3 %  (held was $284: never)
+held_lt_200  80     only while held < $200      242         107     6.759  4.417     65.3 %  (never)
+live (two_live)                                 242          92                              (replay e0 107; the gap is
+                                                                                              price, 5N and the touch)
+
+by market (funded market-minutes of its quoting ones)
+cond        rank  quoting  e0   e40  e80   two_live  note
+0x666c7561  1     8        8    8    8     7         rank 1 one tick wide in most minutes (TB1's skip)
+0x0608b79b  2     37       37   37   37    36
+0x58dc3bc0  3     1        1    1    1     0         one tick wide almost always; holds 65 YES
+0xdcaba6ed  4     37       37   37   37    36        two-sided but scored 0 formula (outside the spread band)
+0xff489738  5     37       23   37   37    13
+0xe8a60ae6  7     36       1    36   36    0
+0xb2b5ae16  8     37       0    28   37    0
+0x6af9d14a  10    37       0    3    37    0
+0x85b5135d  11    12       0    0    11    0         the 00:21 refill
+(rank 6, 0x0386c36c, replaced; rank 9, 0x5b8c4999, one tick wide in every quoting minute of the window)

@@ -1,0 +1,7 @@
+sql/replaced_flicker.sql, run 2026-10-11 ~01:25 UTC. 0x0386c36c (10-11 rank 6, rate 27 at 00:00, formula 27.00 a day).
+stretch                              minutes  rate >= 10  rate < 10
+a 00:00-00:05 (quoting)              6        6           0
+b 00:06-00:21 (out, before refill)   16       0           16
+c 00:22-01:24 (replaced)             63       20          43
+The stored rate read 27 at 00:00-00:05, 2 from 00:06 to 00:45, 27 from 00:48 to about 01:02, 2 at 01:05-01:15, 26 at
+01:20: a programme that flickers. Replaced, it takes no entry for the rest of the day whatever it reads.

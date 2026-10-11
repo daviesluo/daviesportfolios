@@ -1,0 +1,16 @@
+{
+  "study": "LP-CAPDEEP: live-prep's $80 cash buffer (release it or not) and refills the cash cannot fund (2026-10-11)",
+  "review": "docs/agents/reviews/2026-10-11-lp-capital-deep.md",
+  "code_read": {"commit": "a31ea31c", "pm_live.ts": "a01c8560 (Addendum 17's bytes)", "pm_lp.ts": "82d1aa94 (Addendum 17's bytes)"},
+  "database": "flmvxigozjuizpckllvk, read-only selects, 2026-10-11 01:19-01:40 UTC",
+  "files": {
+    "sql/alloc_extra.sql": "results/alloc_extra.txt (the budget at +0/20/40/60/80, ranks 1-5 only, held-stock conditions; 00:51-01:27 UTC)",
+    "sql/realisation.sql": "results/realisation.txt (k: formula of a two-sided minute over the selection's, by rank group)",
+    "sql/turnover.sql": "results/turnover.txt (fills per resting buy dollar a day)",
+    "sql/buy_markouts.sql": "results/buy_markouts.txt (live BUY fills at 60 minutes and 6 hours)",
+    "sql/holdings_jump.sql": "results/holdings_jump.txt (held stock by end date; the stop's room)",
+    "sql/refill_audit.sql": "results/refill_audit.txt (every live refill: budget, free cash after the quoting markets, what it and the replaced market did)",
+    "sql/replaced_flicker.sql": "results/replaced_flicker.txt (0x0386c36c's programme rate after it was replaced)",
+    "scripts/capital_reprice.py": "results/capital_reprice.txt (LP-REFILL's $400/$300 pairs from ../lp_refill/results/raw/final2_atprice.json re-priced with a paired day bootstrap; LP-CAPINV and this replay at R 0.737)"
+  }
+}

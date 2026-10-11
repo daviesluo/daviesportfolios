@@ -1,0 +1,10 @@
+sql/realisation.sql, run 2026-10-11 ~01:20 UTC.
+day    ranks  quote mm  two-sided mm  one-tick mm  formula  formula two-sided  k_two  k_all
+10-10  1-3    1011      516           333          17.155   17.155             0.694  0.378
+10-10  4-10   2072      850           1071          5.544    5.544             0.218  0.093
+10-10  11+    3164      1788          1144          7.643    7.643             0.202  0.104
+10-11  1-3     249      106           108           1.256    1.256             0.189  0.086
+10-11  4-10    504       53            51           0.105    0.105             0.091  0.012
+10-11  11+      61        0            20           0.000    -                 -      0.000
+k_two: formula scored in two-sided minutes over the selection's formula of those minutes. Pooled 10-10 ranks 4+ = 0.208
+(13.187 over 63.27). The extra budget of item 1 funds ranks 5-11 only (alloc_extra.txt), so 0.208 and 0.091 bound it.

@@ -1,0 +1,6 @@
+sql/turnover.sql, run 2026-10-11 ~01:22 UTC.
+day    minutes  resting buys (mean $)  held at cost (mean $)  BUY fills $  fills  fills per resting $ a day
+10-09  1320     75.73                  169.98                 434.51       51      6.26
+10-10  1440     32.72                  202.00                 444.71       68     13.59  (MrBeast wk1 $187 of it; 7.9 without)
+10-11  84       38.77                  277.65                  79.01       14     34.94  (84 minutes)
+A resting buy dollar filled about 6-14 times a day: an extra $80 of buys becomes held stock within about 2-4 hours.
