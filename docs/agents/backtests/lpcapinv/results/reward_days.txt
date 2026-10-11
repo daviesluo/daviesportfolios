@@ -1,0 +1,7 @@
+sql/reward_days.sql, run 2026-10-11 ~00:11 UTC. 10-10, paid $21.893 (formula 30.49, scored 29.14: R 0.718 whole, 0.751 scored).
+Paid on 10-10 to markets carried from 10-09 (one-sided sells only): 0x9235351e 0.214, 0x5b3350e2 0.050, 0xa326c49f 0.056,
+0x5fec6675 0.016, 0xeee73848 0, 0xf0503539 0, 0x045fdf4b 0, 0xecc209a6 0: $0.336 in all (1.5 % of the day).
+The day's markets: 0x3090f7aa 10.505 (rank 1), refills 0x225b0d56 1.421, 0x191e066d 1.338, 0x9572cbd3 0.883,
+0x5e96323f 0.811, 0xbfb4f78b 0.637, 0xc50683fa 0.564, 0x89067ac9 0.302, 0x8c76cbb8 0.132, 0xd5734dd2 0.128, 0xcc5dbca9 0.035;
+00:00 picks 0xac42f143 1.335, 0x0477b4ad 1.087, 0x668b6976 0.673, 0x31e2f3df 0.638, 0x5d7a9bad 0.516, 0xd23c714e 0.240,
+0xcfc7d2a2 0.235, 0xf7159e63 0.079, 0xa0ab5c59 0.

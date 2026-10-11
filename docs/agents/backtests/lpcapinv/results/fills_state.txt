@@ -1,0 +1,8 @@
+sql/fills_state.sql, run 2026-10-11 ~00:16 UTC, 219 CONFIRMED fills. Edge = sold above / bought below the minute's
+adjusted mid, in cents a share; markout = the same against the mid 60 min and 5-6 h later.
+state    side  fills shares  usd      edge_usd edge_c  mo60_c mo6h_c n6h
+carried  SELL  29    428.0   168.86   6.69     1.56    0.04   -2.17  16
+paused   SELL  1     20.0    8.00     -2.90    -14.50  -16.50 -8.00  1
+quote    BUY   122   2170.5  911.42   26.18    1.21    -1.86  7.25   110
+quote    SELL  67    1070.2  442.57   10.80    1.01    -1.59  -21.07 66
+all            219   3688.7  1530.85  40.78    1.11    -1.65  -2.61  193

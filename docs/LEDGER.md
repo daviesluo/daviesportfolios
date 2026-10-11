@@ -442,6 +442,14 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10"; each oldest first.
 
+### [2026-10-11 00:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LP-CAPINV filed** (`reviews/2026-10-11-lp-cap-inventory.md`, `backtests/lpcapinv/`): live-prep's `cap_total` reduces to
+  resting buys ≤ pUSD − $80, so carried inventory (about 96 % of holdings at 00:15 UTC 10-11) leaves today's selection
+  about half its formula weight; it bound 212 minutes on 10-10 and from 00:00 on 10-11. Proposal to Davies (not built):
+  fund the cap in the day's rank order, a market's buys together or not at all (+$3.9 a day central, no added dollar
+  risk). Not proposed: a bigger budget, crossing carried stock. **Defect found:** a carried market in a one-tick book
+  rests no exit (TB1's skip empties `lpQuotes` before `closeOnly`), fix in hand.
+
 ### [2026-10-11 00:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - Davies (00:0x UTC): "以后盯盘代理也要盯error框里的内容". The working-with-davies skill (and its two Cursor copies) now
   says every watcher check reads `ops_errors` since its last check, all kinds, and escalates repeats (3+ in 2 h), new

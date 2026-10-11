@@ -1,0 +1,12 @@
+sql/alloc_replay.sql, run 2026-10-11 ~00:19 UTC (minutes to 00:19), at params.extra = 0 and = 80.
+w = the selection's formula a minute (formula_day / 1440) of today's markets in 'quote' with a book wider than a tick;
+two_now / w_now: two-sided under the turn's order (slot key, each BUY funded if it fits); two_rank / w_rank: whole
+markets in rank order. bound_minutes: the wanted buys cost more than the budget.
+extra  day    minutes mkt_min bound_min two_now two_rank one_sided_buys_now w_all   w_now   w_rank
+0      10-09  1347    9805    0         9805    9805     0                  334.73  334.73  334.73
+0      10-10  1110    3699    169       3469    3483     37                 106.70  99.06   100.04
+0      10-11  20      177     20        58      64       25                 5.16    2.54    3.27
+80     10-09  1347    9805    0         9805    9805     0                  334.73  334.73  334.73
+80     10-10  1110    3699    0         3699    3699     0                  106.70  106.70  106.70
+80     10-11  20      177     17        149     149      11                 5.16    4.58    4.80
+10-11 share of w funded two-sided: as live 49.2 %; rank order 63.4 %; +$80 88.8 %; +$80 and rank 93.0 %.

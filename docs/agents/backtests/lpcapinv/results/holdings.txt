@@ -1,0 +1,23 @@
+sql/holdings.sql, run 2026-10-11 ~00:10 UTC (marks: the 00:09 live minute). Shares, average cost, $ at cost, mark, $ at mid.
+cond        tok  first-day  today  held      avg     at_cost  mark    at_mid  realised  sell resting
+0x5b3350e2  YES  10-09      no     111.5300  0.6097  68.00    0.5050  56.32   0.00      20 @ 0.53
+0x225b0d56  YES  10-10      no      60.0000  0.7600  45.60    0.8300  49.80   1.40      20 @ 0.84
+0xc50683fa  NO   10-10      no      36.1613  0.7232  26.15    0.7450  26.94   0.00      20 @ 0.83
+0x191e066d  NO   10-10      no      45.0000  0.5300  23.85    0.4500  20.25   0.00      20 @ 0.58
+0x5e96323f  NO   10-10      no      40.0000  0.5800  23.20    0.6300  25.20   0.00      20 @ 0.64
+0x5fec6675  YES  10-07      no      40.2700  0.4145  16.69    0.4650  18.73   0.80      none (1-tick book)
+0x9235351e  YES  10-09      no      26.0000  0.6080  15.81    0.7050  18.33   0.65      20 @ 0.84
+0x58dc3bc0  YES  10-11      YES     20.0000  0.5300  10.60    0.5300  10.60   0.00      20 @ 0.54
+0xbfb4f78b  YES  10-10      no      20.0000  0.3000   6.00    0.4100   8.20   0.00      20 @ 0.42
+0xd5734dd2  YES  10-10      no      20.0000  0.2300   4.60    0.2250   4.50   0.00      none (1-tick book)
+0x045fdf4b  YES  10-09      no       4.9123  0.5650   2.78    0.5550   2.73   1.93      none (under min size 5)
+0x89067ac9  NO   10-10      no       3.5714  0.7200   2.57    0.6950   2.48   0.00      none (under min size 5)
+0xa326c49f  NO   10-09      no       4.8200  0.4066   1.96    0.4250   2.05   0.01      none (under min size 5)
+0x225b0d56  NO   10-10      no       8.1375  0.2000   1.63    0.1700   1.38   0.00      8.13 @ 0.18
+0xecc209a6  NO   10-09      no       1.3400  0.9629   1.29    0.9950   1.33   0.89      none (under min size 5)
+0xecc209a6  YES  10-09      no     100.0000  0.0020   0.20    0.0050   0.50   0.12      20 @ 0.008
+0xf0503539  YES  10-09      no      40.0000  0.0045   0.18    0.0110   0.44   0.00      20 @ 0.021
+(two dust rows under $0.01 left out)
+Totals: at cost 251.11, at mid 249.78 (cost - mid = 1.33). Today's markets: 10.60 / 10.60. Carried: 240.51 at cost, 239.18 at mid.
+State at 00:06: pUSD 150.843737, equity at cost 402.574975 (= pUSD + held at cost 251.73), capTotal 321 (target 322).
+State at 00:15: pUSD 117.043737 after four more buys in today's markets (0x58dc 2 x 20, 0x666c 2 x 20: $33.80), capTotal 322.

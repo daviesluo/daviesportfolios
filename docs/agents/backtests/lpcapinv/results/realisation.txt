@@ -1,0 +1,9 @@
+sql/realisation.sql, run 2026-10-11 ~00:12 UTC.
+day    top3  quote_mm  formula  formula_scored  selection's  k_all  k_scored  formula per quote market-day
+10-09  no    8545      111.66   9.94            216.88       0.515  0.046     18.82
+10-09  yes   4041      42.21    9.83            213.80       0.197  0.046     15.04
+10-09  all   12586     153.87   19.77           430.69       0.357  0.046     17.60
+10-10  no    5236      13.19    12.56           132.95       0.099  0.095     3.63
+10-10  yes   1011      17.16    16.58           45.38        0.378  0.365     24.44
+10-10  all   6247      30.34    29.14           178.33       0.170  0.163     6.99
+(10-09's formula was scored on programmes Polymarket had cut, Addendum 9; 10-10 is the first day with the reward check.)
