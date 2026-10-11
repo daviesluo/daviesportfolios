@@ -40,7 +40,8 @@
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import fixture from "../../../src/e2e/lp_live_fixture.json" with { type: "json" };
 import readout109 from "../../../docs/agents/backtests/lpcfg/data/readout_2026-10-09.json" with { type: "json" };
-import { atLiveR, LP_LIVE_HOURS_VIEW, LP_R_DAY_CORRECTIONS, lpCloseMinutes, lpDayOrders, lpLiveR, lpLiveSince, lpLiveSummary, lpMinuteMid, lpRewardEstimate, type LpLiveCloseRow, type LpLiveHourRow, type LpLiveRewardDayRow } from "./pm_lp_live_view.ts";
+import rewardDays1011 from "../../../docs/agents/backtests/lpobsdeep/data/reward_days.json" with { type: "json" };
+import { atLiveR, LP_LIVE_HOURS_VIEW, LP_R_DAY_CORRECTIONS, lpLivePrice, wholeFormulaOf, lpCloseMinutes, lpDayOrders, lpLiveR, lpLiveSince, lpLiveSummary, lpMinuteMid, lpRewardEstimate, type LpLiveCloseRow, type LpLiveHourRow, type LpLiveRewardDayRow } from "./pm_lp_live_view.ts";
 import { settlementFills, type PmFill } from "./pm_live.ts";
 import { readLpLive } from "./index.ts";
 import { PM_LP_INSTANCE } from "./pm_lp.ts";
@@ -358,7 +359,7 @@ Deno.test("lpLiveR is the one live R: the estimate's R is its, from the readout 
   const day = { day: "2026-10-09", cond: G, minutes: 1347, minutes_scored: 500, formula_usd: 153.9, formula_scored_usd: 19.8, actual_usd: 6.53, actual_sponsored_usd: 0, rebate_usd: 0 };
   const now = Date.parse("2026-10-10T06:00:00Z");
   const R = lpLiveR([day], now), e = lpRewardEstimate({ rewardDays: [day], hours: [], nowMs: now });
-  assertEquals({ point: R.point, low: R.low, high: R.high, days: R.days, basis: R.basis }, e.r);
+  assertEquals({ point: R.point, low: R.low, high: R.high, days: R.days, basis: R.basis, formula: "scored" }, e.r);
   assertEquals([R.days, R.basis], [1, "live"]);
   // Today's row is not yet a day of R; with none read it is the prior's.
   assertEquals([lpLiveR([{ ...day, day: "2026-10-10" }], now).basis, lpLiveR([], now).point], ["prior", 0.447214]);
@@ -428,3 +429,36 @@ Deno.test("Addendum 13: QUOTING TODAY is the current set, today's markets less t
   assertEquals(lpLiveSummary(withOut(out))!.status.quoting, 0);
 });
 
+
+// LP-OBS-DEEP (`reviews/2026-10-11-lp-observations-deep.md`, item 4, `backtests/lpobsdeep/`): one R. The page's headline is
+// paid ÷ the whole formula, every live quoted minute, 10-09 like for like; the scored figure beside it; TESTING's paper
+// rows, whose formula is whole, priced at `lpLiveR` on the whole formula (defect 2: the scored R priced them high).
+Deno.test("LP-OBS-DEEP: the whole formula takes 10-09 like for like and every other day as read", () => {
+  const G9 = Object.keys(LP_R_DAY_CORRECTIONS["2026-10-09"].formulaScoredUsd)[0];
+  near(wholeFormulaOf({ day: "2026-10-09", cond: G9, formula_usd: 23.294995 }), 0.879838, "10-09: rtrue.py's like-for-like figure, not the readout's 23.29");
+  near(wholeFormulaOf({ day: "2026-10-10", cond: G9, formula_usd: 23.294995 }), 23.294995, "a later day: the readout's whole formula");
+  near(wholeFormulaOf({ day: "2026-10-09", cond: "0xnot-in-the-table", formula_usd: 4 }), 4, "a market the table does not name stands as read");
+});
+
+Deno.test("LP-OBS-DEEP on the live record of 10-11 01:19 UTC: R 0.7366 over the whole formula, 0.7633 over the scored, the paper rows' R its whole point", () => {
+  const rows = rewardDays1011 as unknown as LpLiveRewardDayRow[];
+  const now = Date.parse("2026-10-11T01:30:00Z");
+  const s = lpLiveSummary({ ...F.input, rewardDays: rows, hours: [], nowMs: now })!;
+  // By hand (results/r_bases.txt: 10-10 0.7179 whole and 0.7511 scored, 10-09 0.8072 on both): paid 28.4143; whole 8.081876 (10-09 like for like) + 30.493357 (10-10) = 38.575233;
+  // scored 8.081876 + 29.144150 = 37.226026.
+  assertAlmostEquals(s.formulaWholeUsd, 38.575233, 2e-6, "the whole formula, 10-09 like for like");
+  assertAlmostEquals(s.rWhole!, 0.7366, 1e-4, "R (paid ÷ formula)");
+  assertAlmostEquals(s.r!, 0.7633, 1e-4, "R on the scored minutes, beside it");
+  assertEquals(s.days.filter((d) => d.read).map((d) => [d.day, d.rWhole, d.r]), [["2026-10-10", 0.717886, 0.75112], ["2026-10-09", 0.807182, 0.807182]]);
+  // The prior-weighted points (prior 0.2–1 as two days, two days read): scored 0.5901, whole 0.5835.
+  assertAlmostEquals(s.estimate.r.point, 0.5901, 1e-4, "the estimate's: the scored formula");
+  assertAlmostEquals(s.rWholeLive.point, 0.5835, 1e-4, "the paper rows': the whole formula");
+  assertEquals([s.rWholeLive.formula, s.estimate.r.formula], ["whole", "scored"]);
+  // Defect 2, by hand: RW-C's 78.99 of programme formula on 10-10 is $46.09 at the whole point, not the $46.61 the scored
+  // point gave (+$0.52).
+  const row = { rewardUsd: 78.99, totalUsd: 78.99, realisedUsd: 78.99, stressUsd: 39.495, todayUsd: 0, days: [{ day: "2026-10-10", rewardUsd: 78.99, totalUsd: 78.99, stressUsd: 39.495 }] };
+  assertAlmostEquals(atLiveR(row, s.rWholeLive).rewardUsd, 46.09, 0.005);
+  assertAlmostEquals(atLiveR(row, lpLivePrice(lpLiveR(rows, now))).rewardUsd, 46.61, 0.005);
+  // deno-lint-ignore no-explicit-any
+  assertEquals((atLiveR(row, s.rWholeLive) as any).rPricing.formula, "whole");
+});

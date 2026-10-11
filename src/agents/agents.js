@@ -1398,8 +1398,11 @@ export function liveExtraRows(dash) {
 /** R, what Polymarket paid over what the formula gave, to two places; a dash without a formula figure. @param {number | null | undefined} r */
 export const fmtR = (r) => (r == null || !Number.isFinite(Number(r)) ? '—' : Number(r).toFixed(2));
 
+/** The first tile of LIVE's "Reward quotes" STATUS: its R, named by what it is (LP-OBS-DEEP, 2026-10-11; "R (ACTUAL)" before). */
+export const LP_R_TILE = 'R (PAID ÷ FORMULA)';
+
 /**
- * The STATUS block of LIVE's "Reward quotes" page, the TESTING page's (`RwBar`) from the live book: R (ACTUAL) in place of
+ * The STATUS block of LIVE's "Reward quotes" page, the TESTING page's (`RwBar`) from the live book: its R in place of
  * the worst case, "—" until a payout is read; the markets chosen today; the markets still holding tokens; and today's
  * rewards, estimated, in place of TOP SHARE (Davies, 2026-10-09: "TOP SHARE这个框删了…最右边的那个空余的框显示预估今日rewards收益，
  * 可以给个范围（最低-最优）"): the dashboard's `estimate` (`lpRewardEstimate`), what the formula has given today's quotes so far
@@ -1409,8 +1412,16 @@ export const fmtR = (r) => (r == null || !Number.isFinite(Number(r)) ? '—' : N
 export function lpLiveStatus(l) {
   const e = l?.estimate;
   const n = (/** @type {unknown} */ x) => (x == null || !Number.isFinite(Number(x)) ? null : Number(x));
+  // One R, labelled (LP-OBS-DEEP, `reviews/2026-10-11-lp-observations-deep.md`, item 4c): the tile is what Polymarket paid
+  // over the whole formula, every live quoted minute, 10-09 like for like (`rWhole`, the pre-registration's R and the end
+  // rule's); under it, the same over the minutes Polymarket confirmed scoring (`r`), and the prior-weighted point today's
+  // estimate prices its scored formula at (`estimate.r`), each said for what it is.
+  /** @type {string[]} */
+  const rNotes = [];
+  if (n(l?.r) !== null) rNotes.push(`${fmtR(l.r)} on scored minutes`);
+  if (n(e?.r?.point) !== null) rNotes.push(`estimates use ${fmtR(e.r.point)}, ${e.r.basis === 'prior' ? 'the prior' : 'prior-weighted'}`);
   return {
-    phase: 'run', rText: fmtR(l?.r),
+    phase: 'run', rText: fmtR(l?.rWhole), rNotes,
     quoting: Number(l?.status?.quoting) || 0, open: Number(l?.status?.held) || 0,
     est: e ? {
       lowUsd: n(e.soFar?.lowUsd), highUsd: n(e.soFar?.highUsd), dayLowUsd: n(e.fullDay?.lowUsd), dayHighUsd: n(e.fullDay?.highUsd),
@@ -1422,7 +1433,7 @@ export function lpLiveStatus(l) {
 /**
  * A row of DAYS on LIVE's "Reward quotes" page, as its cells read, every dollar through `m` (the hide-values mask): the
  * markets the readout read, the day's Orders (the fills' P&L marked to market, rewards not counted, `lpDayOrders`;
- * Davies, 2026-10-11: "days表格中在合适的位置加上orders列展示orders的盈亏"), then the formula, what Polymarket paid, R and
+ * Davies, 2026-10-11: "days表格中在合适的位置加上orders列展示orders的盈亏"), then the whole formula, what Polymarket paid, R and
  * the rebates. Orders sits beside the rewards' columns, so a row reads what its orders made and what it was paid; a day
  * not yet read (today, and yesterday until its payout is read) has its Orders alone, a dash in each of the readout's cells.
  * @param {any} d  a day of the dashboard's `lpLive.days` @param {(s: string) => string} m
@@ -1433,9 +1444,10 @@ export function lpLiveDayCells(d, m) {
   return {
     markets: read ? String(Number(d.markets) || 0) : '—',
     orders: m(fmtUsd(orders, true)), ordersUsd: orders,
-    formula: read ? m(fmtUsd(Number(d.formulaUsd) || 0)) : '—',
+    // The whole formula and R over it (LP-OBS-DEEP, 2026-10-11): the STATUS tile's basis, so a day's R and the tile are one R.
+    formula: read ? m(fmtUsd(Number(d.formulaWholeUsd) || 0)) : '—',
     paid: read ? m(fmtUsd(Number(d.paidUsd) || 0, true)) : '—', paidUsd: read ? Number(d.paidUsd) || 0 : null,
-    r: fmtR(d?.r),
+    r: fmtR(d?.rWhole),
     rebates: read ? m(fmtUsd(Number(d.rebateUsd) || 0)) : '—',
   };
 }
@@ -1691,7 +1703,8 @@ export function rwSplit(r) {
 export function rwBarTileKeys(_phase, live = false) {
   // LIVE's has no TOP SHARE: its two right-hand tiles move left one and its last is today's rewards, estimated (Davies,
   // 2026-10-09). TESTING's pages keep theirs.
-  return live ? ['R (ACTUAL)', 'QUOTING TODAY', 'POSITIONS STILL HELD', 'REWARDS TODAY (EST.)'] : ['WORST CASE', 'TOP SHARE', 'QUOTING TODAY', 'POSITIONS STILL HELD'];
+  // Its R is named by what it is since LP-OBS-DEEP (2026-10-11): paid over the whole formula (`lpLiveStatus`).
+  return live ? [LP_R_TILE, 'QUOTING TODAY', 'POSITIONS STILL HELD', 'REWARDS TODAY (EST.)'] : ['WORST CASE', 'TOP SHARE', 'QUOTING TODAY', 'POSITIONS STILL HELD'];
 }
 
 /**

@@ -231,7 +231,7 @@
     "cond": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
     "minutes": 840,
     "minutes_scored": 700,
-    "formula_usd": 2,
+    "formula_usd": 2.5,
     "actual_usd": 0.8,
     "actual_sponsored_usd": 0.2,
     "rebate_usd": 0.05,
@@ -410,8 +410,18 @@
   "totalUsd": 3.05,
   "feesUsd": 0,
   "formulaUsd": 5,
-  "formulaAllUsd": 5,
+  "formulaAllUsd": 5.5,
+  "formulaWholeUsd": 5.5,
   "r": 0.44,
+  "rWhole": 0.4,
+  "rWholeLive": {
+   "point": 0.430887,
+   "low": 0.192698,
+   "high": 0.963492,
+   "days": 1,
+   "basis": "live",
+   "formula": "whole"
+  },
   "status": {
    "bestMarketUsd": 1.65,
    "quoting": 3,
@@ -436,7 +446,8 @@
     "low": 0.198919,
     "high": 0.994594,
     "days": 1,
-    "basis": "live"
+    "basis": "live",
+    "formula": "scored"
    },
    "rates": {
     "recent": 0.008,
@@ -634,9 +645,11 @@
     "minutesScored": null,
     "formulaUsd": null,
     "formulaAllUsd": null,
+    "formulaWholeUsd": null,
     "paidUsd": null,
     "rebateUsd": null,
     "r": null,
+    "rWhole": null,
     "ordersUsd": 0.3,
     "read": false,
     "today": true
@@ -646,10 +659,12 @@
     "markets": 2,
     "minutesScored": 1300,
     "formulaUsd": 5,
-    "formulaAllUsd": 5,
+    "formulaAllUsd": 5.5,
+    "formulaWholeUsd": 5.5,
     "paidUsd": 2.2,
     "rebateUsd": 0.05,
     "r": 0.44,
+    "rWhole": 0.4,
     "ordersUsd": 0.5,
     "read": true,
     "today": false
@@ -682,7 +697,17 @@
   "feesUsd": 0,
   "formulaUsd": 0,
   "formulaAllUsd": 0,
+  "formulaWholeUsd": 0,
   "r": null,
+  "rWhole": null,
+  "rWholeLive": {
+   "point": 0.447214,
+   "low": 0.2,
+   "high": 1,
+   "days": 0,
+   "basis": "prior",
+   "formula": "whole"
+  },
   "status": {
    "bestMarketUsd": 0.6,
    "quoting": 3,
@@ -707,7 +732,8 @@
     "low": 0.2,
     "high": 1,
     "days": 0,
-    "basis": "prior"
+    "basis": "prior",
+    "formula": "scored"
    },
    "rates": {
     "recent": 0.008,
@@ -905,9 +931,11 @@
     "minutesScored": null,
     "formulaUsd": null,
     "formulaAllUsd": null,
+    "formulaWholeUsd": null,
     "paidUsd": null,
     "rebateUsd": null,
     "r": null,
+    "rWhole": null,
     "ordersUsd": 0.3,
     "read": false,
     "today": true
@@ -918,9 +946,11 @@
     "minutesScored": null,
     "formulaUsd": null,
     "formulaAllUsd": null,
+    "formulaWholeUsd": null,
     "paidUsd": null,
     "rebateUsd": null,
     "r": null,
+    "rWhole": null,
     "ordersUsd": 0.5,
     "read": false,
     "today": false

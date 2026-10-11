@@ -2144,12 +2144,14 @@ async function dashboard(now: number) {
   // minute, 2026-10-09 00:00 UTC, every one of them reads RW-C's run, round 2 of RW's rule (Davies, 2026-10-08: "合并进
   // Reward quotes"), and RW-C is no row of its own, before or after (`RW_PAGE_SWITCH`).
   // Live-prep's real-money book since it went live (2026-10-09), a row of LIVE with a page of its own: its live rows alone.
-  // Read first: its R (`estimate.r`, `lpLiveR` on its readout) prices every TESTING Reward quotes row below.
+  // Read first: its R (`rWholeLive`, `lpLiveR` on its readout's whole formula) prices every TESTING Reward quotes row below.
   const lpLive = await readLpLive(d, now);
   // The live R every paper Reward quotes row is shown at (Addendum 10, Davies: "确保r更新后所有testing的策略都用这个最新的来算他们
-  // 的r"): read once, here, and passed to each (`atLiveR`); before live-prep's first payout, the prior's. The pre-registered
-  // readings keep their own frozen R: none of them reads the dashboard.
-  const liveR: LpLiveRPrice = lpLive?.estimate?.r ?? lpLiveR([], now);
+  // 的r"): read once, here, and passed to each (`atLiveR`); before live-prep's first payout, the prior's. It is the R over
+  // the whole formula, 10-09 like for like, since a paper row's formula is whole (LP-OBS-DEEP's defect 2, 2026-10-11: the
+  // scored R priced them about 1.1 % high, up to 4.6 %). The pre-registered readings keep their own frozen R: none of them
+  // reads the dashboard.
+  const liveR: LpLiveRPrice = lpLive?.rWholeLive ?? lpLiveR([], now, "whole");
   // The programme factor (0115, pm_prog.ts; Davies: "之前testing的每一个不都赚了很多吗"): each row's formula rescaled to the
   // rate the listing showed each 15 minutes, before the live R prices it (that R was measured on the formula so read).
   // RW-C's factors serve variant-1 and the RW-X arms too: they replay RW-C's minutes. No factors read: each row as before.

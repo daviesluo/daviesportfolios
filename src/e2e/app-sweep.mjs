@@ -1180,10 +1180,10 @@ const LP_FIXTURE = JSON.parse(fs.readFileSync(new URL('./lp_fixture.json', impor
  * worked out by hand at this sweep's clock (`lp_live_fixture.json`; pm_lp_live_view.test.ts pins that its `output` is the
  * function's answer for its `input`): funded $320 (the path's cap), deployed $35.20 (its resting buys' $29.40 and $5.80
  * held at cost), today +$0.80, unrealised +$0.20, realised +$2.85 = paid +$2.20 and rebates +$0.05 (rewards +$2.25) and
- * orders +$0.60; the formula's $5 apart, R 0.44; its stop reads +$3, $78 to go. Served beside PR5's live executor (the
+ * orders +$0.60; the formula's $5.50 apart ($5 of it scored), R 0.40 (0.44 on the scored minutes); its stop reads +$3, $78 to go. Served beside PR5's live executor (the
  * `lp-live` mode), so LIVE adds two books, and its paper layer's TESTING row beside them; `lp-live-off` is the same
  * without it, to show TESTING does not move; `lp-live-nopay` the same book before any payout is read (its `noPayout`).
- * On LIVE it is "Reward quotes"; its page's STATUS reads R (ACTUAL) 0.44, 3 quoting today, 2 held, and REWARDS TODAY (EST.)
+ * On LIVE it is "Reward quotes"; its page's STATUS reads R (PAID ÷ FORMULA) 0.40, 3 quoting today, 2 held, and REWARDS TODAY (EST.)
  * $0.18 – $0.91 in green; its QUOTES rows G 44¢ / 46¢ +$1.33 est., H 70¢ / — +$1.33 est., J 30¢ / 32¢.
  */
 const LP_LIVE_FIXTURE = JSON.parse(fs.readFileSync(new URL('./lp_live_fixture.json', import.meta.url), 'utf8'));
@@ -4724,7 +4724,7 @@ async function run() {
       // Its real-money book (LP_LIVE_FIXTURE, worked by hand there) beside PR5's: a LIVE row of its own on Polymarket,
       // named "Reward quotes" (the same day: "改名为"Reward quotes""), in LIVE's scoreboard and a Polymarket card once each;
       // its paper layer is no row of TESTING since 2026-10-10, whose totals do not move, beside TESTING's own
-      // "Reward quotes"; its page opens over the list: the TESTING page's STATUS with R (ACTUAL), DAYS first, then STOP AND
+      // "Reward quotes"; its page opens over the list: the TESTING page's STATUS with R (PAID ÷ FORMULA), DAYS first, then STOP AND
       // GATES, HELD, and TESTING's QUOTES and FILLS; hide-values masks its amounts; nothing wider than the screen.
       {
         const LT = (n) => S(`lp-live/${n}`);
@@ -4837,13 +4837,15 @@ async function run() {
           sections: 'STATUS,DAYS,QUOTES,FILLS',
           // TOP SHARE went and the last tile is today's rewards estimated (Davies, 2026-10-09: "TOP SHARE这个框删了，右边的两个框往左移一格，
           // 最右边的那个空余的框显示预估今日rewards收益"): so far $0.18 – $0.91, the day $0 – $1.39, R 0.20–0.99 (pm_lp_live_view.test.ts).
-          tiles: 'R (ACTUAL)=0.44 | QUOTING TODAY=3 | POSITIONS STILL HELD=2 | REWARDS TODAY (EST.)=$0.18 – $0.91',
-          // In green, with nothing under it (Davies, 2026-10-09: "数字的字体改成绿色的，底下"day …"删掉不显示").
-          tileNotes: [],
+          // Its R named by what it is (LP-OBS-DEEP, 2026-10-11): paid $2.20 over the whole formula's $5.50, 0.40; under it the
+          // same over the $5 of scored minutes, 0.44, and the prior-weighted point the estimate uses, 0.444796 (pm_lp_live_view.test.ts).
+          tiles: 'R (PAID ÷ FORMULA)=0.40 | QUOTING TODAY=3 | POSITIONS STILL HELD=2 | REWARDS TODAY (EST.)=$0.18 – $0.91',
+          // The estimate in green, with nothing under it (Davies, 2026-10-09: "数字的字体改成绿色的，底下"day …"删掉不显示"); the notes are the R tile's.
+          tileNotes: ['0.44 on scored minutes', 'estimates use 0.44, prior-weighted'],
           quoteHeads: 'Market | Pool/day | Quote | Held | Rewards (est.) | Orders | Total (est.)',
           // DAYS' Orders (Davies, 2026-10-11): each day's fills marked to market, beside its rewards; 17 Sep, today and not
           // yet read, has its Orders alone; the two add up to the orders' +$0.60 realised and +$0.20 unrealised (pm_lp_live_view.test.ts).
-          days: ['17 Sep · today | — | +$0.30 | — | — | — | —', '16 Sep | 2 | +$0.50 | $5 | +$2.20 | 0.44 | $0.05'],
+          days: ['17 Sep · today | — | +$0.30 | — | — | — | —', '16 Sep | 2 | +$0.50 | $5.50 | +$2.20 | 0.40 | $0.05'],
           daysHeads: 'Day (UTC) | Markets | Orders | Formula | Paid | R | Rebates',
           // TESTING's QUOTES from the live book: each market's pool, the quote its live orders rest at in YES's book, our share
           // at the last live minute, what it holds, and what Polymarket paid for it and its orders made, adding up to its total.
@@ -4861,7 +4863,7 @@ async function run() {
           && lv.held.length === 0 && JSON.stringify(lv.days) === JSON.stringify(WANT.days) && lv.daysHeads === WANT.daysHeads
           && JSON.stringify(lv.quotes) === JSON.stringify(WANT.quotes) && JSON.stringify(lv.fills) === JSON.stringify(WANT.fills)
           && /^as of \d{1,2} \w{3} \d{2}:\d{2} [A-Z]+ · refreshes every minute$/.test(lv.foot)) {
-          ok(LT('page'), `its sections are ${WANT.sections}: STATUS ${lv.tiles}, the estimate in green with nothing under it; QUOTES ${lv.quoteHeads}; DAYS first, ${lv.daysHeads}: 17 Sep (today) Orders +$0.30 alone, 16 Sep Orders +$0.50 and paid $2.20 against a formula of $5 (R 0.44); no STOP AND GATES and no HELD; QUOTES without Share or Rewards (3 markets, H's 10 No at 28¢ and J's 10 Yes at 30¢) and FILLS (5, one not confirmed)`);
+          ok(LT('page'), `its sections are ${WANT.sections}: STATUS ${lv.tiles}, its R's notes ${lv.tileNotes.join('; ')}, the estimate in green with nothing under it; QUOTES ${lv.quoteHeads}; DAYS first, ${lv.daysHeads}: 17 Sep (today) Orders +$0.30 alone, 16 Sep Orders +$0.50 and paid $2.20 against a formula of $5.50 (R 0.40); no STOP AND GATES and no HELD; QUOTES without Share or Rewards (3 markets, H's 10 No at 28¢ and J's 10 Yes at 30¢) and FILLS (5, one not confirmed)`);
         } else fail(LT('page'), `fonts ${JSON.stringify(lv?.fonts)}, sections ${lv?.sections}, tiles "${lv?.tiles}", notes ${JSON.stringify(lv?.tileNotes)}, estimate style "${lv?.estColor}", quote heads "${lv?.quoteHeads}", stop-and-gates boxes ${lv?.stopAndGates}, held ${lv?.held.length}, days "${lv?.daysHeads}" ${JSON.stringify(lv?.days)}, quotes ${JSON.stringify(lv?.quotes)}, fills ${JSON.stringify(lv?.fills)}, foot "${lv?.foot}"`);
         if (lv && lv.overflow <= 1 && lv.pageOverflow <= 1 && lv.off === 0 && (phoneView || lv.tableOverflow <= 1) && lv.daysOverflow !== null && lv.daysOverflow <= 1) {
           ok(LT('width'), `nothing on its page is wider than the screen (page ${lv.overflow}px, document ${lv.pageOverflow}px, ${lv.off} boxes outside${phoneView ? `, tables scroll inside their boxes by ${lv.tableOverflow}px at most` : ', no table past its box'}; DAYS' seven columns fit their box, ${lv.daysOverflow}px)`);
@@ -4871,17 +4873,17 @@ async function run() {
         else fail(LT('page'), 'its page did not close back to LIVE');
         await closeBy(page, () => page.keyboard.press('Escape'));
 
-        // Before Polymarket's first payout is read: R (ACTUAL) is a dash and DAYS has the fills' days with their Orders alone; the
-        // estimate is on the prior's R, 0.20–1.00.
+        // Before Polymarket's first payout is read: R (PAID ÷ FORMULA) is a dash and DAYS has the fills' days with their Orders
+        // alone; the estimate is on the prior's R, 0.20–1.00, and its note says so.
         agentsMode = 'lp-live-nopay';
         await openAgentsPage(page);
         await waitFor(async () => (await page.locator('#ag-modetab-live .ag-modetab-count').textContent()) === '2');
         await page.locator('.ag-strategies-live .ag-row', { has: nameBtn(page, 'Reward quotes') }).first().click();
         await settled(page, '.ag-lp-live-detail');
         const np = await readLpLivePage();
-        if (np && np.tiles === 'R (ACTUAL)=— | QUOTING TODAY=3 | POSITIONS STILL HELD=2 | REWARDS TODAY (EST.)=$0.18 – $0.90'
-          && np.tileNotes.length === 0 && JSON.stringify(np.days) === JSON.stringify(['17 Sep · today | — | +$0.30 | — | — | — | —', '16 Sep | — | +$0.50 | — | — | — | —'])) {
-          ok(LT('r'), `with no payout read, R (ACTUAL) is a dash and the estimate stands on the prior: ${np.tiles}; DAYS: ${JSON.stringify(np.days)}`);
+        if (np && np.tiles === 'R (PAID ÷ FORMULA)=— | QUOTING TODAY=3 | POSITIONS STILL HELD=2 | REWARDS TODAY (EST.)=$0.18 – $0.90'
+          && JSON.stringify(np.tileNotes) === JSON.stringify(['estimates use 0.45, the prior']) && JSON.stringify(np.days) === JSON.stringify(['17 Sep · today | — | +$0.30 | — | — | — | —', '16 Sep | — | +$0.50 | — | — | — | —'])) {
+          ok(LT('r'), `with no payout read, R (PAID ÷ FORMULA) is a dash and the estimate stands on the prior (${np.tileNotes.join('; ')}): ${np.tiles}; DAYS: ${JSON.stringify(np.days)}`);
         } else fail(LT('r'), `no payout: tiles "${np?.tiles}", notes ${JSON.stringify(np?.tileNotes)}, days ${JSON.stringify(np?.days)}`);
         await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
         await closeBy(page, () => page.keyboard.press('Escape'));
@@ -4902,10 +4904,10 @@ async function run() {
         const hTiles = hv?.tiles.split(' | ') ?? [];
         const hiddenOk = !!hv && !!hRow && !/\$\d/.test(hv.scoreboard) && !/\$\d/.test(hv.split)
           && hTiles.slice(0, 3).join(' | ') === WANT.tiles.split(' | ').slice(0, 3).join(' | ') && /^REWARDS TODAY \(EST\.\)=\$\D* – \$\D*$/.test(hTiles[3] ?? '')
-          && hv.tileNotes.length === 0
+          && JSON.stringify(hv.tileNotes) === JSON.stringify(WANT.tileNotes)
           && !hRow.gl.some((t) => /\$\d/.test(t)) && !/\$\d/.test(hRow.sub)
           && !cellsAt(hv.quotes, [1, 2, 3, 4, 5, 6]).some(digits) && hv.quotes.every((r) => r.split(' | ').length === 7) && !cellsAt(hv.fills, [3, 4]).some(digits)
-          && !cellsAt(hv.days, [2, 3, 4, 6]).some(digits) && cellsAt(hv.days, [1, 5]).join(',') === '—,—,2,0.44' && hv.fills.length === 5;
+          && !cellsAt(hv.days, [2, 3, 4, 6]).some(digits) && cellsAt(hv.days, [1, 5]).join(',') === '—,—,2,0.40' && hv.fills.length === 5;
         if (hiddenOk) ok(LT('hidden'), "hide-values masks LIVE's Reward quotes row and page: its scoreboard, stop, quotes, holdings, pools, payouts, each day's orders, prices and sizes; its counts, shares, R and times stay");
         else fail(LT('hidden'), `under the mask: row ${JSON.stringify(hRow)}, scoreboard "${hv?.scoreboard}", tiles "${hv?.tiles}", notes ${JSON.stringify(hv?.tileNotes)}, stop "${hv?.stop}", quotes ${JSON.stringify(hv?.quotes)}, days ${JSON.stringify(hv?.days)}`);
         await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));

@@ -16,7 +16,7 @@ import { SurfaceBoundary } from '../app/surface_boundary.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, LP_LIVE_ROW_ID, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, rwFeeAsides, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, MID_ROW_ID, LP_ROW_ID, isPrepRowId, prepStopText, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwTestedSince, rweCheckWarn, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxSourceText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows, rwRoundText,
+  AGENT_TABS, LP_LIVE_ROW_ID, LP_R_TILE, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, rwFeeAsides, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, MID_ROW_ID, LP_ROW_ID, isPrepRowId, prepStopText, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwTestedSince, rweCheckWarn, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxSourceText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows, rwRoundText,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -612,7 +612,7 @@ function QuotesLiveDetail({ q, m, at, nowMs, twin = false, coinbase = false }) {
 /**
  * "Reward quotes live-prep"'s real-money book, LIVE's "Reward quotes", opened from its row over the list in the same window,
  * as PR5's live executor's page is (Davies, 2026-10-09: "网站的agents live页怎么看不到这个上线"). Its scoreboard is its LIVE
- * row's own (`lpLiveRow`), so the two read the same figures. Under it, the TESTING page's STATUS (`RwBar`), R (ACTUAL) in
+ * row's own (`lpLiveRow`), so the two read the same figures. Under it, the TESTING page's STATUS (`RwBar`), R (PAID ÷ FORMULA) in
  * place of the worst case; then the live page's own tables, DAYS first: the days Polymarket has paid against the formula
  * (R); then the TESTING page's QUOTES (each market's quote, share,
  * what it holds of each token, and its part of the total; its HELD table went, Davies 2026-10-09: "QUOTES表里已经有了", and its
@@ -652,7 +652,7 @@ function LpLiveDetail({ l, m, at, nowMs }) {
       {/* Below the scoreboard, the TESTING page's STATUS (Davies, 2026-10-09: "子页面中scoreboard以下的内容全部改为testing页面中
           Reward quotes live-prep的设计…WORST CASE部分改为实际R值"), then the live page's own tables, DAYS first ("表格部分还是用现在的
           live页里的设计吧，只是把RECENT ORDERS表删了，DAYS表放在所有表最上面"). */}
-      <RwBar v={status} r={status} usd={usd} rText={status.rText} est={lpEstimateTexts(status.est, m)} />
+      <RwBar v={status} r={status} usd={usd} rText={status.rText} rNotes={status.rNotes} est={lpEstimateTexts(status.est, m)} />
       <section className="ag-section ag-lpl-days ag-ql-tables">
         <div className="ag-section-title mono">DAYS</div>
         <div className="hl-scroll">
@@ -697,16 +697,17 @@ function LpLiveDetail({ l, m, at, nowMs }) {
  * and how many positions are still held. No line under the titles (Davies, 2026-09-25).
  * A real-money book's (LIVE's "Reward quotes") opens on its actual R (`rText`) where a paper test's opens on its worst case.
  * LIVE's has no TOP SHARE and ends on today's rewards, estimated (`est`, `lpEstimateTexts`: the range so far, in green).
- * @param {{ v: { phase: string, bestShareText?: string }, r: any, usd: (x: number | null | undefined) => string, rText?: string | null, est?: { text: string, color: string | null } | null }} props
+ * Under its R, `rNotes`: the scored figure and the prior-weighted point the estimate uses, each labelled (LP-OBS-DEEP).
+ * @param {{ v: { phase: string, bestShareText?: string }, r: any, usd: (x: number | null | undefined) => string, rText?: string | null, rNotes?: string[], est?: { text: string, color: string | null } | null }} props
  */
-function RwBar({ v, r, usd, rText = null, est = null }) {
+function RwBar({ v, r, usd, rText = null, rNotes = [], est = null }) {
   const quoting = Number(r.quoting) || 0;
   const open = Number(r.open) || 0;
   // A real-money book's first tile is its actual R (`rText`, LIVE's "Reward quotes"); a paper test's, its worst case.
   const live = rText != null;
-  /** @type {Record<string, { text: string, color?: string }>} */
+  /** @type {Record<string, { text: string, color?: string, notes?: string[] }>} */
   const tiles = {
-    'R (ACTUAL)': { text: rText ?? '—' },
+    [LP_R_TILE]: { text: rText ?? '—', notes: rNotes },
     'REWARDS TODAY (EST.)': { text: est?.text ?? '—', color: est?.color ?? undefined },
     'WORST CASE': { text: usd(r.stressUsd), color: pctColor(r.stressUsd) },
     'TOP SHARE': { text: v.bestShareText ?? '—' },
@@ -721,6 +722,7 @@ function RwBar({ v, r, usd, rText = null, est = null }) {
           <div key={k} className="ag-rw-tile">
             <div className="ag-rw-tile-k mono">{k}</div>
             <div className="ag-rw-tile-v mono" style={tiles[k].color ? { color: tiles[k].color } : undefined}>{tiles[k].text}</div>
+            {(tiles[k].notes ?? []).map((t) => <div key={t} className="ag-rw-tile-note dim mono">{t}</div>)}
           </div>
         ))}
       </div>

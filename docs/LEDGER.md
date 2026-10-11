@@ -456,6 +456,15 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10"; each oldest first.
 
+### [2026-10-11 01:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **One R on LIVE's Reward quotes, and TESTING's paper rows priced on it** (sub-agent, not pushed; LP-OBS-DEEP's defect 2
+  and item 4c, display only, no rule). `pm_lp_live_view.ts`: `wholeFormulaOf` (`formula_usd`, 10-09 at its like-for-like
+  $8.081876), `lpLiveR(…, "whole")`, the summary's `rWhole`, `formulaWholeUsd`, `rWholeLive`; the dashboard prices every
+  paper row at `rWholeLive` (was `estimate.r`, scored: +1.1 % now, → +4.6 %). The page's tile is "R (PAID ÷ FORMULA)" on
+  the whole formula, notes "0.76 on scored minutes" and "estimates use 0.59, prior-weighted"; DAYS' Formula and R are the
+  whole basis. Live record (10-11 01:19): whole 0.7366, scored 0.7633, points 0.5835 / 0.5901; RW-C's $78.99 of 10-10
+  formula prices $46.09, not $46.61. Fixture G formula 2 → 2.5 so the bases differ (0.40 / 0.44).
+
 ### [2026-10-11 01:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **LP-CAPDEEP filed** (sub-agent, landed by the main session; `reviews/2026-10-11-lp-capital-deep.md`, `backtests/lpcapdeep/`; Davies,
   2026-10-11: "这几项深度研究下并推荐我该怎么操作"). Item 1, release the total cap's $80 buffer: **keep it.** LP-CAPINV's

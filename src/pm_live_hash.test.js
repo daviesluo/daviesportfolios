@@ -265,10 +265,12 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     const body = read('supabase/migrations/0113_pm_lp_funding.sql').replace(/--[^\n]*/g, '');
     expect([...body.matchAll(/public\.([a-z_]+)/g)].map((m) => m[1]).filter((t, i, a) => a.indexOf(t) === i)).toEqual(['pm_lp_events']);
     expect(body).toContain("'readout', 'funding'");
-    // The dashboard prices the paper rows at one R, read once.
+    // The dashboard prices the paper rows at one R, read once: since LP-OBS-DEEP (2026-10-11, its defect 2, display only)
+    // the R over the whole formula, as a paper row's formula is, not the estimate's scored one.
     const idx = read('supabase/functions/agents/index.ts');
-    expect(idx.match(/lpLiveR\(\[\], now\)/g)?.length).toBe(1);
-    expect(idx).toContain('const liveR: LpLiveRPrice = lpLive?.estimate?.r ?? lpLiveR([], now);');
+    expect(idx.match(/lpLiveR\(\[\], now, "whole"\)/g)?.length).toBe(1);
+    expect(idx).toContain('const liveR: LpLiveRPrice = lpLive?.rWholeLive ?? lpLiveR([], now, "whole");');
+    expect(idx).not.toContain('lpLive?.estimate?.r');
   });
 
   it("live-prep's Addendum 11 records FUNDED at once and the paper row off TESTING, in Davies' words, the calls kept and why", () => {

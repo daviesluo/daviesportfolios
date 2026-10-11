@@ -22,7 +22,10 @@
 //              formula, a maker's nothing); every order is post-only, so every fill so far is a maker's and pays nothing.
 //              Taken off realised, as a fee is. The maker rebates Polymarket paid are the readout's own (`rebate_usd`).
 //   the stop   −$75 on the fills' total plus what was paid (rebates not), exactly as the path judges it each turn.
-//   DAYS       each UTC day the readout has read (markets, formula, paid, R, rebates) and, since 2026-10-11, its Orders: the
+//   R          paid ÷ the whole formula, every live quoted minute, 10-09 like for like (`rWhole`, LP-OBS-DEEP 2026-10-11: the
+//              pre-registration's R and the end rule's); the scored figure (`r`) and the prior-weighted point estimates use
+//              (`estimate.r`) are carried beside it and labelled on the page.
+//   DAYS       each UTC day the readout has read (markets, formula, paid, R, rebates; formula and R the whole basis's) and, since 2026-10-11, its Orders: the
 //              fills' P&L of the day marked to market (`lpDayOrders`), so the days' Orders add up to realised from the fills
 //              less fees plus unrealised; today, and yesterday until it is read, are rows with Orders alone.
 
@@ -133,6 +136,24 @@ export function scoredFormulaOf(r: Pick<LpLiveRewardDayRow, "day" | "cond" | "fo
   const c = LP_R_DAY_CORRECTIONS[dayOf(r.day)]?.formulaScoredUsd;
   return c && r.cond in c ? c[r.cond] : num(r.formula_scored_usd);
 }
+/**
+ * A live reward-day row's whole formula, every minute we quoted, scored or not (LP-OBS-DEEP,
+ * `reviews/2026-10-11-lp-observations-deep.md`, item 4: "R = paid ÷ formula over every live quoted minute, 10-09 like for
+ * like"): the readout's `formula_usd`, or, on a day `LP_R_DAY_CORRECTIONS` corrects, its like-for-like figure. 10-09's
+ * `formula_usd` ($153.90) priced every minute at the 00:00 selection's rates, which Polymarket had cut; its like-for-like
+ * figure ($8.081876) is the only one of that day measured at the rates paid, and both bases take it.
+ */
+export function wholeFormulaOf(r: Pick<LpLiveRewardDayRow, "day" | "cond" | "formula_usd">): number {
+  const c = LP_R_DAY_CORRECTIONS[dayOf(r.day)]?.formulaScoredUsd;
+  return c && r.cond in c ? c[r.cond] : num(r.formula_usd);
+}
+/**
+ * Which formula an R is over: `scored`, the minutes Polymarket read both our sides scoring (Addendum 9: today's estimate
+ * and QUOTES' Rewards (est.), which price scored formula), or `whole`, every minute we quoted (the pre-registration's
+ * "paid ÷ formula": the page's headline R, DAYS, and TESTING's paper rows, whose formula has no scoring flag).
+ */
+export type LpRBasis = "scored" | "whole";
+const formulaOn = (basis: LpRBasis) => (r: LpLiveRewardDayRow) => (basis === "whole" ? wholeFormulaOf(r) : scoredFormulaOf(r));
 
 /**
  * A live minute's mid as the page marks a market (`state.markets[].book`, the book the turn read with our own orders in
@@ -287,12 +308,14 @@ export function lpLiveSummary(input: {
   // the formula over the minutes Polymarket read both our sides scoring (`formula_scored_usd`), which R is over; the whole
   // formula, scored or not, is `formulaAllUsd`. On 2026-10-09 the whole formula counted programmes Polymarket had already
   // cut (backtests/lpcfg/): R over it read 0.04, over the scored minutes about 0.33.
-  type Day = { day: string; markets: number; minutesScored: number; formulaUsd: number; formulaAllUsd: number; paidUsd: number; rebateUsd: number };
+  // Since LP-OBS-DEEP (2026-10-11) each day also carries the whole formula with 10-09 like for like (`wholeFormulaOf`,
+  // `formulaWholeUsd`) and R over it (`rWhole`): the page's DAYS and headline R; `formulaAllUsd` stays the readout's as written.
+  type Day = { day: string; markets: number; minutesScored: number; formulaUsd: number; formulaAllUsd: number; formulaWholeUsd: number; paidUsd: number; rebateUsd: number };
   const byDay = new Map<string, Day>();
   for (const r of input.rewardDays) {
     const d = dayOf(r.day);
-    const x = byDay.get(d) ?? { day: d, markets: 0, minutesScored: 0, formulaUsd: 0, formulaAllUsd: 0, paidUsd: 0, rebateUsd: 0 };
-    x.markets++; x.minutesScored += num(r.minutes_scored); x.formulaUsd += scoredFormulaOf(r); x.formulaAllUsd += num(r.formula_usd);
+    const x = byDay.get(d) ?? { day: d, markets: 0, minutesScored: 0, formulaUsd: 0, formulaAllUsd: 0, formulaWholeUsd: 0, paidUsd: 0, rebateUsd: 0 };
+    x.markets++; x.minutesScored += num(r.minutes_scored); x.formulaUsd += scoredFormulaOf(r); x.formulaAllUsd += num(r.formula_usd); x.formulaWholeUsd += wholeFormulaOf(r);
     x.paidUsd += num(r.actual_usd) + num(r.actual_sponsored_usd); x.rebateUsd += num(r.rebate_usd);
     byDay.set(d, x);
   }
@@ -302,13 +325,18 @@ export function lpLiveSummary(input: {
     const d = byDay.get(day), ordersUsd = ordersByDay.get(day) ?? 0;
     return d
       ? {
-        day, markets: d.markets, minutesScored: d.minutesScored, formulaUsd: r6(d.formulaUsd), formulaAllUsd: r6(d.formulaAllUsd), paidUsd: r6(d.paidUsd), rebateUsd: r6(d.rebateUsd),
-        r: d.formulaUsd > 0 ? r6(d.paidUsd / d.formulaUsd) : null, ordersUsd, read: true, today: day === today,
+        day, markets: d.markets, minutesScored: d.minutesScored, formulaUsd: r6(d.formulaUsd), formulaAllUsd: r6(d.formulaAllUsd), formulaWholeUsd: r6(d.formulaWholeUsd),
+        paidUsd: r6(d.paidUsd), rebateUsd: r6(d.rebateUsd),
+        r: d.formulaUsd > 0 ? r6(d.paidUsd / d.formulaUsd) : null, rWhole: d.formulaWholeUsd > 0 ? r6(d.paidUsd / d.formulaWholeUsd) : null, ordersUsd, read: true, today: day === today,
       }
-      : { day, markets: null, minutesScored: null, formulaUsd: null, formulaAllUsd: null, paidUsd: null, rebateUsd: null, r: null, ordersUsd, read: false, today: day === today };
+      : {
+        day, markets: null, minutesScored: null, formulaUsd: null, formulaAllUsd: null, formulaWholeUsd: null, paidUsd: null, rebateUsd: null, r: null, rWhole: null, ordersUsd,
+        read: false, today: day === today,
+      };
   });
   const sum = (f: (d: Day) => number, only?: (d: Day) => boolean) => [...byDay.values()].filter((d) => !only || only(d)).reduce((s, d) => s + f(d), 0);
   const paid = sum((d) => d.paidUsd), rebates = sum((d) => d.rebateUsd), formula = sum((d) => d.formulaUsd), formulaAll = sum((d) => d.formulaAllUsd);
+  const formulaWhole = sum((d) => d.formulaWholeUsd);
   const paidToday = sum((d) => d.paidUsd + d.rebateUsd, (d) => d.day === today);
 
   // Resting buys tie up their collateral: price × what is left of each.
@@ -416,8 +444,13 @@ export function lpLiveSummary(input: {
     unrealisedUsd: r6(pnl.total - realisedFills),
     realisedUsd: r6(realisedFills + paid + rebates - fees), realisedFillsUsd: r6(realisedFills - fees), paidUsd: r6(paid), rebateUsd: r6(rebates),
     totalUsd: r6(pnl.total + paid + rebates - fees), feesUsd: r6(fees),
-    // R, the actual over the formula on the live days whose payout has been read; null before the first is.
-    formulaUsd: r6(formula), formulaAllUsd: r6(formulaAll), r: formula > 0 ? r6(paid / formula) : null,
+    // R, the actual over the formula on the live days whose payout has been read; null before the first is. `r` is over the
+    // scored formula (Addendum 9's), `rWhole` over the whole formula with 10-09 like for like: the page's headline, "R (paid
+    // ÷ formula)", with the scored figure beside it (LP-OBS-DEEP, item 4c). `rWholeLive` is `lpLiveR`'s prior-weighted
+    // point and band on the whole formula, which TESTING's paper rows are priced at (their formula is whole: item 4b);
+    // `estimate.r` is the same on the scored formula, which today's estimate prices scored formula at.
+    formulaUsd: r6(formula), formulaAllUsd: r6(formulaAll), formulaWholeUsd: r6(formulaWhole), r: formula > 0 ? r6(paid / formula) : null,
+    rWhole: formulaWhole > 0 ? r6(paid / formulaWhole) : null, rWholeLive: lpLivePrice(lpLiveR(input.rewardDays, input.nowMs, "whole")),
     // The TESTING page's STATUS tiles, but R (ACTUAL) for its worst case: the largest market's part (TOP SHARE is it over
     // the total), the markets chosen today, and the markets still holding tokens.
     status: { bestMarketUsd: Number.isFinite(best) ? r6(best) : null, quoting: quotingToday, held: quotes.filter((x) => Number(x.yes) + Number(x.no) > 0).length },
@@ -464,7 +497,8 @@ export const LP_EST_RECENT_MINUTES = 60;
  * `basis` "prior" until a day is read. `muOf` is a market's own mean, shrunk towards the overall one, and `band` the
  * band about a mean; `pastFormula` and `pastDays` the scored formula of the days before today and how many there are.
  */
-export function lpLiveR(rewardDays: LpLiveRewardDayRow[], nowMs: number) {
+export function lpLiveR(rewardDays: LpLiveRewardDayRow[], nowMs: number, basis: LpRBasis = "scored") {
+  const formulaOf = formulaOn(basis);
   const dayStart = Math.floor(nowMs / DAY) * DAY, today = iso(dayStart).slice(0, 10);
   const z = LP_EST_Z, mu0 = Math.log(Math.sqrt(LP_EST_PRIOR.low * LP_EST_PRIOR.high)), s0 = Math.log(LP_EST_PRIOR.high / LP_EST_PRIOR.low) / (2 * z), k = LP_EST_PRIOR.days;
   const lnR = (paid: number, f: number) => Math.log(Math.max(paid / f, LP_EST_R_FLOOR));
@@ -476,7 +510,7 @@ export function lpLiveR(rewardDays: LpLiveRewardDayRow[], nowMs: number) {
     const d = dayOf(r.day);
     if (d >= today) continue;
     const x = days.get(d) ?? { formula: 0, paid: 0, byCond: new Map() };
-    const f = scoredFormulaOf(r), p = num(r.actual_usd) + num(r.actual_sponsored_usd);
+    const f = formulaOf(r), p = num(r.actual_usd) + num(r.actual_sponsored_usd);
     x.formula += f; x.paid += p;
     const c = x.byCond.get(r.cond) ?? { formula: 0, paid: 0 };
     c.formula += f; c.paid += p; x.byCond.set(r.cond, c);
@@ -496,7 +530,7 @@ export function lpLiveR(rewardDays: LpLiveRewardDayRow[], nowMs: number) {
 
   const all = band(mu);
   return {
-    point: r6(Math.exp(mu)), low: r6(all.low), high: r6(all.high), days: n, basis: n ? "live" as const : "prior" as const,
+    point: r6(Math.exp(mu)), low: r6(all.low), high: r6(all.high), days: n, basis: n ? "live" as const : "prior" as const, formula: basis,
     mu, sigma, muOf, band, pastFormula: [...days.values()].reduce((a, d) => a + d.formula, 0), pastDays: days.size,
   };
 }
@@ -583,7 +617,7 @@ export function lpRewardEstimate(input: { rewardDays: LpLiveRewardDayRow[]; hour
     day: iso(dayStart).slice(0, 10), minutesLeft,
     soFar: { formulaUsd: r6(soFar), lowUsd: r6(soLow), highUsd: r6(soHigh) },
     fullDay: { formulaLowUsd: r6(soFar + restLow), formulaHighUsd: r6(soFar + restHigh), lowUsd: r6(dayLow), highUsd: r6(dayHigh) },
-    r: { point: R.point, low: R.low, high: R.high, days: R.days, basis: R.basis },
+    r: { point: R.point, low: R.low, high: R.high, days: R.days, basis: R.basis, formula: R.formula },
     rates: { recent: r6n(rates.recent), today: r6n(rates.today), days: r6n(rates.days) },
     markets,
   };
@@ -591,8 +625,13 @@ export function lpRewardEstimate(input: { rewardDays: LpLiveRewardDayRow[]; hour
 
 // ------------------------------------------------------------------ TESTING's Reward quotes rows at the live R (Addendum 10)
 
-/** The live R a page prices rewards at: `lpLiveR`'s point and band, as `lpRewardEstimate` returns them (`estimate.r`). */
-export type LpLiveRPrice = { point: number; low: number; high: number; days: number; basis: "live" | "prior" };
+/**
+ * The live R a page prices rewards at: `lpLiveR`'s point and band, as `lpRewardEstimate` returns them (`estimate.r`, on
+ * the scored formula) and `lpLiveSummary` (`rWholeLive`, on the whole formula). `formula` names which.
+ */
+export type LpLiveRPrice = { point: number; low: number; high: number; days: number; basis: "live" | "prior"; formula?: LpRBasis };
+/** `lpLiveR`'s answer as a price: its point, band, days, basis and formula. */
+export const lpLivePrice = (R: ReturnType<typeof lpLiveR>): LpLiveRPrice => ({ point: R.point, low: R.low, high: R.high, days: R.days, basis: R.basis, formula: R.formula });
 
 /**
  * A paper Reward quotes summary (RW-C's "Reward quotes" and its variants, `pmrw_view.ts`; the order paths' paper layers,
@@ -600,7 +639,9 @@ export type LpLiveRPrice = { point: number; low: number; high: number; days: num
  * summaries count the formula's rewards at R = 1 and their worst case at half; here each reward is the formula's times
  * the live R's point, and the worst case's half becomes the band's low, everywhere the page shows them: the total, today,
  * realised, each day, each market. Fills, holdings and capital do not move. The dashboard passes the one R it read
- * (`lpLive.estimate.r`, else the prior's) to every row, and `rPricing` says which. What the PAGES show moves only:
+ * (`lpLive.rWholeLive`, else the prior's) to every row, and `rPricing` says which. That R is over the whole formula
+ * (LP-OBS-DEEP's defect 2, 2026-10-11): a paper row's formula counts every quoted minute and has no scoring flag, so an R
+ * over the scored formula (`estimate.r`, 1.1 % higher on 10-11 and up to 4.6 % as the prior fades) priced it high. What the PAGES show moves only:
  * every pre-registered reading keeps the R it froze (RW's and RW-C's verdicts, TB1, the RW-X tests, mid-pool's readout,
  * LPRESEL6, RWC-OPT, and the paper layers' own stops at R = 0.40), none of which reads this.
  */
@@ -611,7 +652,7 @@ export function atLiveR<T extends Record<string, any> | null | undefined>(s: T, 
   const n = (x: unknown) => (typeof x === "number" && Number.isFinite(x) ? x : null);
   const F = n(s.rewardUsd) ?? 0;
   // deno-lint-ignore no-explicit-any
-  const out: Record<string, any> = { ...s, rPricing: { point: R.point, low: R.low, high: R.high, days: R.days, basis: R.basis, stressAt: "low" } };
+  const out: Record<string, any> = { ...s, rPricing: { point: R.point, low: R.low, high: R.high, days: R.days, basis: R.basis, ...(R.formula ? { formula: R.formula } : {}), stressAt: "low" } };
   const shift = (x: unknown, f: number) => (n(x) === null ? x : r6(Number(x) - (1 - k) * f));
   const stress = (x: unknown, f: number) => (n(x) === null ? x : r6(Number(x) - 0.5 * f + lo * f));
   out.rewardUsd = n(s.rewardUsd) === null ? s.rewardUsd : r6(k * F);

@@ -323,7 +323,9 @@ places stay when the number is not whole.
   quotes account: since 10 October every Reward quotes row on TESTING
   (this one, its variants, and the small-pool, mid-pool and live-prep
   rows) shows the formula's rewards times the latest live R, what was
-  paid over what the formula gave, and its worst case at the low end of
+  paid over what the formula gave in every quoted minute (the same kind of
+  formula these rows count; since 11 October, not the scored minutes alone,
+  which read about 1 % higher), and its worst case at the low end of
   R's range, so each payout read moves them all. Until the first payout it
   is the studies' middle guess. Before that, each row's formula is priced on the
   reward programme as Polymarket's listing showed it every 15 minutes, not on the
@@ -422,11 +424,15 @@ places stay when the number is not whole.
   the rewards and rebates Polymarket actually paid, less any fee its trade
   records show (none so far: its orders only ever rest, and Polymarket
   charges only the side that takes). Tap it for a page of its own: the same
-  scoreboard, then STATUS: R (ACTUAL), what Polymarket paid over what the
-  reward formula gave in the minutes Polymarket itself confirmed our orders
-  scoring, on the days a payout has been read (a dash until the first;
-  Polymarket's payout is read from five minutes past midnight UTC, so it
-  moves within minutes of arriving); the markets quoting today (today's markets less
+  scoreboard, then STATUS: R (PAID ÷ FORMULA), what Polymarket paid over what the
+  reward formula gave in every minute our orders were quoted live, on the days
+  a payout has been read (9 October, the first day, counted at the rates Polymarket
+  actually paid that day; a dash until the first; Polymarket's payout is read
+  from five minutes past midnight UTC, so it moves within minutes of arriving).
+  Under it, the same over only the minutes Polymarket itself confirmed our
+  orders scoring, and the R the estimates use, which leans towards the
+  studies' middle guess until enough days are paid ("prior-weighted"): three
+  figures, each named, of one R. Then the markets quoting today (today's markets less
   any taken out right now: a market taken out, its reward changed or ended, is
   replaced after fifteen minutes, at once if none is quoting, by the next best
   market of a reserve the strategy ranks once a day after midnight UTC and
@@ -444,8 +450,8 @@ places stay when the number is not whole.
   each of those days with the markets read, Orders (what its trades made that UTC
   day, rewards not counted: what its sales and any market that settled that day
   realised, plus how what it held moved, valued at the market's middle price at
-  midnight and, for today, now), the formula in its scored minutes, what was paid,
-  R and the rebates; today, and yesterday until its payout is read, show their
+  midnight and, for today, now), the formula over every quoted minute, what was paid,
+  R (the same R as the STATUS tile) and the rebates; today, and yesterday until its payout is read, show their
   Orders alone. The days' Orders add up to the orders' part of REALIZED G/L plus
   UNREALIZED G/L;
   and QUOTES, the TESTING pages' table less its share column (each
