@@ -202,7 +202,7 @@ import { makeDb, type Db } from "./db.ts";
 import { deribitProbe } from "./deribit.ts";
 import { youtubeProbe } from "./youtube.ts";
 import { runViews } from "./views.ts";
-import { QUOTE_BOOKS, QUOTE_RUNGS, QUOTE_TICK, runQuotes, type QuoteBook, type Side } from "./quotes.ts";
+import { QUOTE_BOOKS, QUOTE_RUNGS, QUOTE_TICK, runQuotes, type QuoteBook, type QuoteReport, type Side } from "./quotes.ts";
 import {
   coinOf, markedGbp, QUOTE_LIVE_LOSS_FRACTION, rungBook, runQuotesConvert, runQuotesLive,
   type LiveLeg, type QuoteLiveDeps, type QuoteLiveReport, type RungBook, type RungFill,
@@ -401,19 +401,58 @@ export function quotesDelayMs(nowMs: number): number {
   const into = nowMs % 60e3;
   return into < QUOTES_START_MS ? QUOTES_START_MS - into : 0;
 }
-async function runQuotesAction(wait: boolean) {
+/**
+ * The `agents.quotes` row for a paper minute that threw: the step it threw at (`QUOTE_LEASE_STEP` when the lease claim
+ * did, the only await `runQuotes` does not catch itself), the error's name and the top of its stack.
+ */
+export function quotesPaperErrorReport(e: unknown, at: string) {
+  const c = crashReport("quotes", e);
+  const tagged = e && typeof e === "object" ? (e as { step?: unknown }).step : undefined;
+  const step = typeof tagged === "string" ? tagged : "the paper engine (runQuotes)";
+  return {
+    message: `${step}: ${c.message}`.slice(0, 500),
+    context: { at, step, name: c.context.name, stack: c.context.stack, live: "the live executor runs: the paper's last minute is not the one just closed, so it quotes no entry" },
+  };
+}
+
+export type QuotesActionDeps = {
+  paper?: () => Promise<QuoteReport>;
+  live?: () => Promise<QuoteLiveReport>;
+  report?: (kind: string, o: { message?: string; context?: unknown }) => Promise<void>;
+  now?: () => number;
+};
+
+/**
+ * One minute of PR5: the paper engine, then the live executor. A paper minute that throws (its lease claim timing out,
+ * 2026-10-10 02:13 and 23:32 UTC; its connection reset, 22:32) used to throw out of here: an `agents.crash` row and a
+ * 500, and the live executor skipped for the minute — its fills unsettled, its resting entries left at the last
+ * minute's prices. It is now an `agents.quotes` row naming the step, and the live executor runs as on any minute the
+ * paper engine did not decide (its lease held by another run, its prints unread): `paperView` reads the newest saved
+ * minute, which is not the one just closed, so every book carries the "stale inputs" guard — no entry is placed and the
+ * resting ones are withdrawn, exits keep their price, and settlement, the 24-hour stops and the kill switches run.
+ */
+export async function runQuotesAction(wait: boolean, deps: QuotesActionDeps = {}) {
   if (wait) await new Promise((r) => setTimeout(r, quotesDelayMs(Date.now())));
-  const paper = await runQuotes({ db: db(), now: Date.now(), holder: crypto.randomUUID() });
+  const report = deps.report ?? reportServerError;
+  const now = deps.now ?? Date.now;
+  let paper: QuoteReport | { error: string; step: string };
+  try {
+    paper = await (deps.paper ?? (() => runQuotes({ db: db(), now: Date.now(), holder: crypto.randomUUID() })))();
+  } catch (e) {
+    const r = quotesPaperErrorReport(e, new Date(now()).toISOString());
+    paper = { error: r.message.slice(0, 300), step: r.context.step };
+    await report("agents.quotes", r);
+  }
   // Then the live executor (`quotes_live.ts`), on the minute the paper engine just saved: the same decisions, carried to
   // PR5's own sub-account — in dry-run until `agent_quote_live_config` says otherwise. It runs after the paper engine has
   // finished and on its own lease, so nothing it does can change what the paper test decides or records.
   let live: QuoteLiveReport | { error: string };
   try {
-    live = await runQuotesLive(await quotesLiveDeps());
-    if (live.errors.length) await reportServerError("agents.quotes_live", tickErrorReport(live));
+    live = await (deps.live ?? (async () => runQuotesLive(await quotesLiveDeps())))();
+    if (live.errors.length) await report("agents.quotes_live", tickErrorReport(live));
   } catch (e) {
     live = { error: e instanceof Error ? e.message : String(e) };
-    await reportServerError("agents.quotes_live", { message: live.error.slice(0, 500), context: { at: new Date().toISOString() } });
+    await report("agents.quotes_live", { message: live.error.slice(0, 500), context: { at: new Date(now()).toISOString() } });
   }
   return { ...paper, live };
 }

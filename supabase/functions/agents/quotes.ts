@@ -234,6 +234,14 @@ export type QuoteReport = {
 };
 export type QuoteDeps = { db: Db; fetch?: typeof fetch; now: number; holder: string; pause?: (ms: number) => Promise<void> };
 
+/** The step `runQuotes` names when its lease claim throws: everything after the claim is inside its own try. */
+export const QUOTE_LEASE_STEP = "the paper engine's lease claim (agent_locks, name=quotes)";
+/** The error itself, its name, message and stack kept, with the step it was thrown at (`step`). */
+export function withStep(e: unknown, step: string): unknown {
+  if (e && typeof e === "object") { try { (e as { step?: string }).step = step; return e; } catch { /* a frozen object: wrapped below */ } }
+  return Object.assign(new Error(e instanceof Error ? e.message : String(e), { cause: e }), { step });
+}
+
 const iso = (ms: number) => new Date(ms).toISOString();
 const msOf = (v: unknown) => typeof v === "number" ? v : Date.parse(String(v));
 const minuteOf = (ms: number) => Math.floor(ms / M) * M;
@@ -308,7 +316,12 @@ export async function runQuotes(d: QuoteDeps): Promise<QuoteReport> {
   const report: QuoteReport = { minutes: 0, from: null, to: null, prints: 0, fills: 0, exits: 0, stops: 0, orders: 0, refused: 0, snapshots: 0, recorded: 0, errors: [] };
   const f = d.fetch ?? fetch;
   const pause = d.pause ?? ((ms: number) => new Promise((res) => setTimeout(res, ms)));
-  const held = await d.db.claim("agent_locks", `name=eq.quotes&lease_until=lt.${encodeURIComponent(iso(d.now))}`, { lease_until: iso(d.now + QUOTE_LEASE_MS), holder: d.holder });
+  // The one await outside the try below: a claim that fails at the network level throws out of here. It carries its step
+  // (`QUOTE_LEASE_STEP`), so the call's `agents.quotes` row names it: production's "Signal timed out." rows of 2026-10-10
+  // had no stack frame that could.
+  let held: unknown[];
+  try { held = await d.db.claim("agent_locks", `name=eq.quotes&lease_until=lt.${encodeURIComponent(iso(d.now))}`, { lease_until: iso(d.now + QUOTE_LEASE_MS), holder: d.holder }); }
+  catch (e) { throw withStep(e, QUOTE_LEASE_STEP); }
   if (!held.length) return { ...report, skipped: "another run holds the quotes lease" };
   let lastCall = 0;
   const call = async <T,>(path: string) => {

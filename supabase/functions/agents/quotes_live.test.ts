@@ -11,7 +11,7 @@ import golden from "../../../docs/agents/backtests/pr5/golden_windows.json" with
 import { REVX_REGION, revxVenue } from "../_shared/revx.ts";
 import type { Venue } from "../_shared/venue.ts";
 import {
-  exitTicks, fairUAt, fxAt, newBookState, QUOTE_BOOKS, QUOTE_RUNGS, QUOTE_TICK, stepMinute, type BookState, type Print, type QuoteBook, type QuoteEvent, type Side, type Trip,
+  exitTicks, fairUAt, fxAt, newBookState, QUOTE_BOOKS, QUOTE_RUNGS, QUOTE_TICK, runQuotes, stepMinute, type BookState, type Print, type QuoteBook, type QuoteEvent, type Side, type Trip,
 } from "./quotes.ts";
 import {
   bookInputs, crossesBook, dustBase, entryBookOf, pennyExit, entryGuards, exitMayGo, governorLevel, lossStopHit, markedGbp, paperEntryTarget, paperRefused, parseBook, postsOf, QUOTE_LIVE_429_WAIT_MS, QUOTE_LIVE_CANCEL_REREAD_MS,
@@ -1064,6 +1064,29 @@ Deno.test("stale inputs: no entries while the paper engine is behind or the USD 
   await w.step(T0 + 3 * M);
   assertEquals(w.orders().filter((o) => o.leg === "exit").map((o) => [o.state, Number(o.price)]), [["new", 0.7555]]);   // kept its price
   assertEquals(w.open("live").filter((o) => o.leg === "entry").length, 0);                                                 // and no entries anywhere
+});
+
+// 2026-10-10 (02:13, 22:32, 23:32 UTC): the paper engine's lease claim timed out, and the action skipped the live turn.
+// It now runs (`runQuotesAction`), and this is what that turn does: the paper's newest minute is the one before, so no
+// entry is placed and the resting ones are withdrawn; a holding's exit stays armed at its price.
+Deno.test("a paper minute whose lease claim times out: the live turn after it quotes no entry, withdraws the resting ones and keeps its exit", async () => {
+  const w = makeWorld({ live: true, armed: true, balances: { GBP: 50, USDC: 5 } });
+  await w.seed({ mode: "live", book: "USDC-GBP", rung_side: "bid", k: 0.001, leg: "entry", side: "buy", price: 0.7546, base_size: 5, filled_base: 5, avg_fill_price: 0.7546, ts: iso(T0 - H), filled_at: iso(T0 - H) });
+  await w.step(T0);
+  const restingBefore = w.rx.resting().length;
+  assert(restingBefore > 1);
+  const exit = w.orders().find((o) => o.leg === "exit" && o.state === "new")!;
+  const timesOut = { ...w.mem.db, claim: () => Promise.reject(new DOMException("Signal timed out.", "TimeoutError")) };
+  let thrown: unknown = null;
+  try { await runQuotes({ db: timesOut, now: T0 + 2 * M + 25e3, holder: "p", fetch: w.rx.fetch, pause: () => Promise.resolve() }); } catch (e) { thrown = e; }
+  assertEquals((thrown as Error).name, "TimeoutError");
+  assertEquals((w.mem.tables.agent_quote_state as Row[])[0].last_minute, iso(T0));                  // nothing decided
+  const r = await w.live(T0, T0 + 2 * M + 35e3);
+  for (const b of QUOTE_BOOKS) assert(r.guards[b].includes(`the paper engine's last minute is ${iso(T0)}, not ${iso(T0 + M)}: stale inputs`), b);
+  assertEquals(r.placed.filter((p) => p.leg === "entry"), []);
+  assertEquals(w.open("live").filter((o) => o.leg === "entry").length, 0);
+  assertEquals(w.rx.resting().map((o) => [o.side, o.price]), [["sell", String(exit.price)]]);          // the exit, untouched
+  assertEquals(w.orders().find((o) => o.id === exit.id)!.state, "new");
 });
 
 // The PR5v study (2026-09-28) found the frozen shape sends twelve POSTs at once when every rung is placed or re-priced,

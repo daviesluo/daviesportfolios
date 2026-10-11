@@ -12,8 +12,10 @@ import {
   QUOTE_TICKER_FRESH_MS,
   QUOTE_LIVE_REASON_COLUMNS, QUOTE_LIVE_SUMMARY_COLUMNS, QUOTES_LIVE_KNOWN_REFUSALS, QUOTES_LIVE_ORDERS_FILTER, QUOTES_LIVE_PAGE_ROWS, type QuoteLiveRecentRow, withConversionFees,
   liveDays, readQuotesTwin, twinsDelayMs, TWINS_START_MS,
-  deadmanBeatAt, DEADMAN_BEAT_KEY, runSelectKeptAlive,
+  deadmanBeatAt, DEADMAN_BEAT_KEY, runSelectKeptAlive, runQuotesAction, quotesPaperErrorReport,
 } from "./index.ts";
+import { QUOTE_LEASE_STEP, runQuotes, type QuoteReport } from "./quotes.ts";
+import type { QuoteLiveReport } from "./quotes_live.ts";
 import { beatKeyOfRequest } from "../_shared/beats.ts";
 import { memDb, pickRow, selectItems, twinFixtureTables } from "./testing.ts";
 import { specFromRow, TWINS, type TwinSpecRow } from "./quotes_twin.ts";
@@ -792,6 +794,65 @@ Deno.test("crashReport — an agents.crash row names the action and the top of t
   assertEquals(lines.length, 12);                       // the top of the stack, where the throw happened
   assertEquals(lines[1], "    at frame0 (index.ts:0:1)");
   assertEquals(crashReport("", "boom"), { message: "boom", context: { action: null, name: "string", stack: null } });
+});
+
+// Production, 2026-10-10 02:13:47 and 23:32:35 UTC: the paper engine's lease claim timed out ("Signal timed out.", no
+// stack frame), and at 22:32:25 its connection was reset. Each threw out of the action: an agents.crash row, a 500, and
+// PR5's live executor skipped for the minute.
+const quotesClaimTimesOut = {
+  claim: () => Promise.reject(new DOMException("Signal timed out.", "TimeoutError")),
+  update: () => Promise.resolve(),
+} as unknown as Db;
+const liveTurn = (errors: string[] = []): QuoteLiveReport => ({
+  at: "2026-10-10T23:32:35.000Z", entryBook: "live", why: "live", minute: "2026-10-10T23:30:00.000Z", placed: [], cancelled: [], settled: [],
+  skippedEntries: [], guards: {}, posts: { dry_run: 0, live: 0 }, dayPnlGbp: 0, errors,
+});
+
+Deno.test("runQuotes — a lease claim that times out throws the TimeoutError itself, carrying its step", async () => {
+  let thrown: unknown = null;
+  try { await runQuotes({ db: quotesClaimTimesOut, now: Date.parse("2026-10-10T23:32:25Z"), holder: "h" }); } catch (e) { thrown = e; }
+  assert(thrown instanceof Error);
+  assertEquals([thrown.name, thrown.message, (thrown as { step?: string }).step], ["TimeoutError", "Signal timed out.", QUOTE_LEASE_STEP]);
+});
+
+Deno.test("runQuotesAction — a paper minute that throws is one agents.quotes row naming its step, never a crash; the live executor still runs", async () => {
+  const reports: Array<[string, { message?: string; context?: unknown }]> = [];
+  let liveRuns = 0;
+  const out = await runQuotesAction(false, {
+    paper: () => runQuotes({ db: quotesClaimTimesOut, now: Date.parse("2026-10-10T23:32:25Z"), holder: "h" }),
+    live: () => { liveRuns++; return Promise.resolve(liveTurn()); },
+    report: (kind, o) => { reports.push([kind, o]); return Promise.resolve(); },
+    now: () => Date.parse("2026-10-10T23:32:35Z"),
+  });
+  assertEquals(liveRuns, 1);                                            // PR5's live turn is not skipped
+  assertEquals(reports.map(([k]) => k), ["agents.quotes"]);             // one row, and not agents.crash
+  assertEquals(reports[0][1].message, `${QUOTE_LEASE_STEP}: Signal timed out.`);
+  const ctx = reports[0][1].context as { at: string; step: string; name: string };
+  assertEquals([ctx.at, ctx.step, ctx.name], ["2026-10-10T23:32:35.000Z", QUOTE_LEASE_STEP, "TimeoutError"]);
+  const r = out as { error?: string; step?: string; live: QuoteLiveReport };
+  assertEquals([r.error, r.step, r.live.minute], [`${QUOTE_LEASE_STEP}: Signal timed out.`, QUOTE_LEASE_STEP, "2026-10-10T23:30:00.000Z"]);
+  // An error with no step (a throw from anywhere else) names the paper engine; a string is reported as given.
+  assertEquals(quotesPaperErrorReport(new TypeError("connection reset"), "t").message, "the paper engine (runQuotes): connection reset");
+  assertEquals(quotesPaperErrorReport("boom", "t").context.name, "string");
+});
+
+Deno.test("runQuotesAction — a paper minute that decides writes no agents.quotes row; the live executor's faults stay agents.quotes_live", async () => {
+  const reports: string[] = [];
+  const paper: QuoteReport = { minutes: 1, from: 0, to: 0, prints: 0, fills: 0, exits: 0, stops: 0, orders: 0, refused: 0, snapshots: 0, recorded: 2, errors: [] };
+  const out = await runQuotesAction(false, {
+    paper: () => Promise.resolve(paper),
+    live: () => Promise.resolve(liveTurn(["agent_risk unreadable"])),
+    report: (kind) => { reports.push(kind); return Promise.resolve(); },
+  });
+  assertEquals(reports, ["agents.quotes_live"]);
+  assertEquals((out as QuoteReport).recorded, 2);
+  const thrown = await runQuotesAction(false, {
+    paper: () => Promise.resolve(paper),
+    live: () => Promise.reject(new Error("revx2 unreadable")),
+    report: (kind) => { reports.push(kind); return Promise.resolve(); },
+  });
+  assertEquals(reports, ["agents.quotes_live", "agents.quotes_live"]);
+  assertEquals((thrown as { live: { error: string } }).live, { error: "revx2 unreadable" });
 });
 
 Deno.test("newestDecisions: a daily row keeps its midnight decision when the hourly rows fill the newest 120", async () => {

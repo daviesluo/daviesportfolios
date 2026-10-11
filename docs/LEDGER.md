@@ -442,6 +442,16 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10"; each oldest first.
 
+### [2026-10-11 00:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **PR5's paper minute that throws is no longer an `agents.crash`, and no longer skips the live turn** (sub-agent,
+  not pushed). The three `agents.crash` rows of 10-10 (02:13:47 and 23:32:35 "Signal timed out.", 22:32:25 connection
+  reset on `agent_locks?name=eq.quotes`) were `runQuotes`' lease claim, its one await outside its own try; it threw
+  out of `runQuotesAction`, so `runQuotesLive` did not run that minute. Now the claim's error carries its step
+  (`QUOTE_LEASE_STEP`), the action writes one `agents.quotes` row naming it, returns 200, and the live executor runs:
+  with the paper's newest minute one behind, its existing "stale inputs" guard places no entry and withdraws the
+  resting ones, exits keep their price, settlement and stops run (as on a minute whose paper lease another run holds).
+  No once-per-outage throttle: each was a single minute. Four pins (`index.test.ts` ×3, `quotes_live.test.ts` ×1).
+
 ### [2026-10-11 00:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep's Addendum 15 shipped** (the 10-10 19:45 section's branch `lp-reserve-0000`, rebased onto `65650793`) on
   Davies' "同意" at 23:59 UTC 10-10, quoted verbatim in the prereg's Addendum 15. The reserve now re-ranks once, on its
