@@ -126,7 +126,9 @@ Judge every row of this table. The first rule that matches wins.
 | `open_blocked`, `reduce_blocked`, `signer_problem` | null | **ALERT**, quote it |
 | `posts.live` | < 9,000 before 18:00 UTC (the daily governor is 12,000) | **ALERT** |
 
-**IMPORTANT — `state.pnl.total` is NOT the stop's number.** It is the fills only, marked at the mid. It leaves out the rewards and rebates. On 10-11 03:11 it read −50.55 while the stop's basis was about −15. Never report `pnl.total` as "near the stop". Use Step 2.
+**IMPORTANT — `state.pnl.total` is NOT the stop's number, and it swings.** Held stock in a wide book (e.g. 111.5 Anthropic YES, `0x5b3350e2`) is marked at the mid, which can jump 0.10–0.15 between minutes: ±$15 with no trade. Compare levels across cycles, never one reading.
+
+It is the fills only, marked at the mid. It leaves out the rewards and rebates. On 10-11 03:11 it read −50.55 while the stop's basis was about −15. Never report `pnl.total` as "near the stop". Use Step 2.
 
 ### Step 2 — How much room does the −$75 stop have?
 
@@ -177,7 +179,8 @@ Classify EVERY row from 3a with the first rule that matches:
 | Rule | Class | Action |
 |---|---|---|
 | kind is in 3b's result | **ALERT** "repeating" | Investigate (§4) |
-| kind is in 3c's result | **ALERT** "new kind" | Investigate (§4) |
+| kind is in 3c's result AND its message is not a network blip (as defined in the "blip" row below) | **ALERT** "new kind" | Investigate (§4) |
+| kind is in 3c's result but every row of it is a single network blip | NOTE "new kind, blip" | Nothing; a recorder added this week has simply never failed before |
 | kind is `agents.pm_lp`, `agents.quotes_live`, `agents.tick` naming a `-live` strategy, `monitor.alert`, `monitor.deadman`, `agents.pm_live` | **ALERT** "live path" | Investigate (§4) |
 | message is a network blip ("Signal timed out", "connection reset", "error sending request", HTML 502/503/403 from Cloudflare) and it did not repeat | NOTE "blip" | Nothing |
 | `monitor.recovered` | NOTE | Nothing (it says an earlier alert cleared) |
