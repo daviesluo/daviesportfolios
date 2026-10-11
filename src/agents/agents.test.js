@@ -8,7 +8,7 @@ import {
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows, VENUE_LABELS,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
   newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwxSourceText, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, rwNotRunningText, paperTestRows, rwRoundText, PREP_ROW_ID, MID_ROW_ID, LP_ROW_ID, isPrepRowId, lpRow, midRow, prepRow, prepStopText, rwQuoteRows,
-  LP_LIVE_ROW_ID, fmtR, liveExtraRows, lpEstimateTexts, lpLiveDayCells, lpLiveQuoteRows, lpLiveRow, quoteDaysAnnualPct, lpLiveStatus, rwFeeAsides, rwFeeCells,
+  LP_LIVE_ROW_ID, fmtR, lpStopRoomText, liveExtraRows, lpEstimateTexts, lpLiveDayCells, lpLiveQuoteRows, lpLiveRow, quoteDaysAnnualPct, lpLiveStatus, rwFeeAsides, rwFeeCells,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies,
   fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney,
   QUOTES_COINBASE_ROW_ID, quotesCoinbaseRow } from './agents.js';
@@ -1914,6 +1914,15 @@ describe('lpLiveRow (live-prep\'s real money, "Reward quotes" on LIVE, 2026-10-0
     const h = lpLiveDayCells(l.days[1], mask);
     expect([h.markets, h.orders, h.formula, h.paid, h.r, h.rebates]).toEqual(['2', '+$••••', '$••••', '+$••••', '0.40', '$••••']);
     expect(lpLiveDayCells({ day: '2026-09-18', read: false, ordersUsd: -32.544741 }, id).orders).toBe('-$32.54');
+  });
+  it("the total stop's room under the scoreboard (Addendum 18): the stop judges the page's TOTAL, every dollar masked; none once tripped", () => {
+    // The fixture: TOTAL +3.05 (fills +0.80, paid +2.20, rebates +0.05, fees 0), 78.05 from −75.
+    const id = (/** @type {string} */ x) => x;
+    expect(lpStopRoomText(l, id)).toBe('total stop at -$75: $78.05 of room (total +$3.05)');
+    expect(l.stop.basisUsd).toBe(l.totalUsd);
+    expect(lpStopRoomText(l, (/** @type {string} */ x) => x.replace(/[\d.,]/g, '•'))).toBe('total stop at -$••: $••••• of room (total +$••••)');
+    expect(lpStopRoomText({ ...l, stop: { ...l.stop, trippedAt: '2026-09-17T20:00:00.000Z' } }, id)).toBe(null);
+    expect(lpStopRoomText({ ...l, stop: undefined }, id)).toBe(null);
   });
   it("prints R to two places, a dash without a formula figure", () => {
     expect([fmtR(0.44), fmtR(null), fmtR(1)]).toEqual(['0.44', '—', '1.00']);

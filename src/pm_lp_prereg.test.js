@@ -169,9 +169,14 @@ describe('the live-prep pre-registration', () => {
     expect(add16).toContain('`277baa7a…e8cb`');
     // Addendum 16's bytes were the instance until Addendum 17 (the caps in rank order), which names what it changed from and today's.
     expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add16)?.[1]).toBe('2e5ca3ee27afa6875b899dcf4a163bcd0ce935c9cd8482ee4efa5ba278ad9e3c');
-    const add17 = DOC.slice(DOC.indexOf('## Addendum 17'));
+    const add17 = DOC.slice(DOC.indexOf('## Addendum 17'), DOC.indexOf('## Addendum 18'));
     expect(add17).toContain('`2e5ca3ee…9e3c`');
-    expect(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex')).toBe(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add17)?.[1]);
+    // Addendum 17's bytes were the instance until Addendum 18 (the refill's cash check, the pause, the stop), which names
+    // what it changed from and today's.
+    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add17)?.[1]).toBe('82d1aa9403dbfd8bbfd4771571a88b53752d186063422d0b684f1934c3e5a850');
+    const add18 = DOC.slice(DOC.indexOf('## Addendum 18'));
+    expect(add18).toContain('`82d1aa94…a850`');
+    expect(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex')).toBe(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add18)?.[1]);
     const lp = src('supabase/functions/agents/pm_lp.ts');
     expect(lp).toContain('export const PM_LP_NEAR_CERTAIN = { minPrice: 0.95, share: 0.08 } as const;');
     expect(lp).toContain('else if (nearCertainBuyOk(bYes, N, held.yes, q.m, capital))');
@@ -185,5 +190,42 @@ describe('the live-prep pre-registration', () => {
     expect(add4).toContain('P3 is met');
     expect(fs.existsSync(path.join(ROOT, 'docs/agents/pending/2026-10-04-mid-pool-payouts-per-path.patch'))).toBe(false);
     expect(fs.existsSync(path.join(ROOT, 'supabase/functions/agents/pm_payouts.test.ts'))).toBe(true);
+  });
+
+  // Addendum 18 (2026-10-11, Davies: "同意，这些都按你推荐的来"): the end rule and the readouts read 10-09 like for like, from a
+  // corrected copy of the frozen readout (LP-OBS-DEEP's defect 1). The frozen script is unchanged (its sha256 above).
+  it("Addendum 18's corrected readout: its bytes, one read-only statement, 10-09 at Addendum 10's like-for-like figures, the rest as frozen", () => {
+    const f = 'lp_readout_a18.sql';
+    const named = /`docs\/agents\/backtests\/pmlp\/lp_readout_a18\.sql` sha256\s+`([0-9a-f]{64})`/.exec(DOC.slice(DOC.indexOf('## Addendum 18')))?.[1];
+    expect(crypto.createHash('sha256').update(read(f)).digest('hex')).toBe(named);
+    const sql = sqlOf(f);
+    expect(sql).not.toMatch(/\b(insert|update|delete|alter|drop|create|truncate|grant|revoke|copy|call|do)\b/i);
+    expect(sql.replace(/'(?:[^']|'')*'/g, "''").trim().replace(/;\s*$/, '')).not.toContain(';');
+    expect(sql.trim()).toMatch(/^with\b/);
+    expect(tablesOf(sql)).toEqual(tablesOf(sqlOf('lp_readout.sql')));
+    // Its 10-09 figures are the view's table (`LP_R_DAY_CORRECTIONS`), market by market: $8.081876 in all.
+    const view = src('supabase/functions/agents/pm_lp_live_view.ts');
+    const table = Object.fromEntries([...view.slice(view.indexOf('export const LP_R_DAY_CORRECTIONS')).matchAll(/"(0x[0-9a-f]{64})": ([0-9.]+),/g)].slice(0, 10).map((m) => [m[1], Number(m[2])]));
+    const corr = Object.fromEntries([...sql.matchAll(/\('(0x[0-9a-f]{64})', ([0-9.]+)\)/g)].map((m) => [m[1], Number(m[2])]));
+    expect(corr).toEqual(table);
+    expect(Object.values(corr).reduce((a, b) => a + b, 0)).toBeCloseTo(8.081876, 5);                   // rtrue.py's total, to rounding
+    expect(sql).toContain("sum(case when r.day = date '2026-10-09' then coalesce(k.formula, r.formula_usd) else r.formula_usd end) as formula");
+    expect(sql).toContain('round(sum(n.native + n.sponsored) / nullif(sum(n.formula), 0), 4)');
+    expect(sql).toContain('from numbered n where n.n <= 7');
+  });
+
+  it("Addendum 18: on the live record of 10-11 01:19 UTC the corrected readout's R is 0.7366, over the end rule's 0.20; the frozen one's 0.1541 was under it", () => {
+    const rows = JSON.parse(fs.readFileSync(path.join(ROOT, 'docs/agents/backtests/lpobsdeep/data/reward_days.json'), 'utf8'));
+    const corr = Object.fromEntries([...sqlOf('lp_readout_a18.sql').matchAll(/\('(0x[0-9a-f]{64})', ([0-9.]+)\)/g)].map((m) => [m[1], Number(m[2])]));
+    // The two statements' arithmetic on these rows: Σ (native + sponsored) ÷ Σ formula, 10-09 corrected or as written.
+    const paid = rows.reduce((a, r) => a + Number(r.actual_usd ?? 0) + Number(r.actual_sponsored_usd ?? 0), 0);
+    const fixed = rows.reduce((a, r) => a + (r.day === '2026-10-09' && r.cond in corr ? corr[r.cond] : Number(r.formula_usd)), 0);
+    const frozen = rows.reduce((a, r) => a + Number(r.formula_usd), 0);
+    expect(Math.round((paid / fixed) * 1e4) / 1e4).toBe(0.7366);
+    expect(Math.round((paid / frozen) * 1e4) / 1e4).toBe(0.1541);
+    expect(paid / fixed).toBeGreaterThanOrEqual(0.2);
+    expect(paid / frozen).toBeLessThan(0.2);
+    // The production run of the corrected copy (about 02:02 UTC) read the same.
+    expect(fs.readFileSync(path.join(ROOT, 'docs/agents/backtests/pmlp/results/lp_readout_a18_2026-10-11.txt'), 'utf8')).toMatch(/R after the first 7 live days .*38\s+21353\s+5306\s+38\.5752\s+28\.4145\s+6\.7922\s+0\.7366/);
   });
 });

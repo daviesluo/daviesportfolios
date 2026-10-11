@@ -498,7 +498,7 @@ that follow from that evidence, in short:
   markets included ("不考虑其他一切因素"), with its own rules as options only
   its instance sets (a sell of what is held before a buy, 5N, x2's pause,
   exits from carried markets, no end-date horizon, no weather market, ten
-  markets and $200, $100 a market, a −$75 stop on fills plus what was paid,
+  markets and $200, $100 a market, a −$75 stop on fills plus what was paid (live, since Addendum 18, plus rebates less fees),
   no day stop); in dry-run it decides on its paper layer's holdings. **Since 2026-10-10 it reads each quoted market's
   reward programme every minute before anything rests** (Addendum 9, `0111`; Davies: "策略每分钟读的时候都检查奖励配置"): a
   market whose programme ended, fell under $10 or now asks more than N = 20 takes no entry that minute (its sells rest
@@ -515,7 +515,12 @@ that follow from that evidence, in short:
   (carried, taken out, or any while opening is stopped) rests its exit even in a one-tick book (`lpExitQuotes`: `lpQuotes`
   without TB1's skip, so the sell joins the best ask); holdings under the 5-share minimum are left to settle. Since Addendum 17 (Davies: "按照你推荐的来") its caps fund
   whole markets in the day's rank order (`fundByRank`: 00:00 picks 1–10, refills 11–20; a market's buys together or not
-  at all). **Live, its total cap follows its equity since
+  at all). Since Addendum 18 (Davies: "同意，这些都按你推荐的来"; LP-OBS-DEEP, LP-CAPDEEP) the end rule and the 14-day
+  readout read `backtests/pmlp/lp_readout_a18.sql` (10-09 at its like-for-like $8.081876; the frozen `lp_readout.sql`
+  read R 0.154), no refill is taken while the turn's free buy budget (min(cap − committed, pUSD left)) is under $20
+  (`PM_LP_REFILL.minFreeUsd`), a market worked close-only rests its exit through a pause (`pauseQuotingOnly`; a market
+  still quoting keeps x2's pause whole), and the live −$75 stop counts the maker rebates less the fees, so it is the
+  page's TOTAL (`stopCountsRebates`); the cap's $80 buffer stays (re-read 10-16). **Live, its total cap follows its equity since
   `0106`** (Davies, 2026-10-09: payouts and deposits used at once; its pre-registration's Addendum 8): every turn
   floor(pUSD + held at cost + unredeemed − $75 − $5), at most $1,000, down at once, up only on two agreeing readings with
   no fill settling, never on an unread balance (`lpCapital`); `reinvest = false` on its config puts the fixed $320 back. Its

@@ -78,6 +78,7 @@ import {
 import type { PmLevel, PmPublicOpts } from "../_shared/polymarket_public.ts";
 import { choose, firstScore, othersOf, pyRound, quote, RW_INV_CAP, RW_LEVEL_WINDOW, scoreS, sizeN, summarize, type BookRow } from "./pmrw.ts";
 import { excludedByDay } from "./pmrw_e.ts";
+import { pmLiveFillFee } from "./pm_fees.ts";
 import type { Db } from "./db.ts";
 
 const M = 60e3, DAY = 86400e3;
@@ -334,6 +335,20 @@ export type PmLpOptions = {
    * not at all. Unset, each BUY is funded in the slot key's order if it fits, as before.
    */
   fundByRank?: boolean;
+  /**
+   * The pause withholds only in a market still quoting (Addendum 18, LP-OBS-DEEP item 3,
+   * `reviews/2026-10-11-lp-observations-deep.md`): a market worked close-only (carried, taken out, or any while opening
+   * is stopped) rests its exit through a pause, as Phase A's S2 worked carried stock off and as the carried rule's "until
+   * flat or selected again" reads; a selected market still quoting keeps x2's pause whole, buys and sells alike. Unset,
+   * the pause withholds everything in the market, as before.
+   */
+  pauseQuotingOnly?: boolean;
+  /**
+   * The live total stop counts the maker rebates the readout booked and less the fills' fees (Addendum 18, LP-OBS-DEEP
+   * item 5): its basis is the page's TOTAL (fills marked + rewards paid + rebates − fees), so the stop and the page are one
+   * number and it caps the deposit's loss at the limit. Unset (and in dry-run), fills plus rewards paid, as before.
+   */
+  stopCountsRebates?: boolean;
 };
 /** The refill's numbers (`PM_LP_REFILL`, pm_lp.ts): the research agent's values drop in there. */
 export type LpRefillOptions = {
@@ -357,6 +372,12 @@ export type LpRefillOptions = {
   rerankEveryMin: number;
   /** Minutes with no slot quoting, while the reserve holds a candidate in the universe, before it is an error. */
   idleAlarmMin: number;
+  /**
+   * No refill while the turn's free buy budget, min(cap − committed, pUSD left) after its own funded buys (the cap alone
+   * in dry-run), is under this many dollars (Addendum 18, LP-CAPDEEP item 2): checked before any candidate is read; the
+   * slot stays out and the day's count unused. Unset, no such check.
+   */
+  minFreeUsd?: number;
 };
 /**
  * Mini-pool's book-quality rule (Addendum 6 of `reviews/2026-10-01-polymarket-live-prep-prereg.md`, 2026-10-04): books
@@ -415,7 +436,11 @@ export type PmOrderRow = {
   gate: "open" | "reduce"; reason: string | null; book_seen: unknown; request: unknown; response: unknown;
   cancel_requested_at: string | null; cancel_gate: string | null; cancel_reason: string | null; filled_at: string | null; cancelled_at: string | null;
 };
-type FillRow = { trade_id: string; hash: string; cond: string; token: string; side: "BUY" | "SELL"; price: number | string; size: number | string; status: string; match_time: string | null };
+type FillRow = {
+  trade_id: string; hash: string; cond: string; token: string; side: "BUY" | "SELL"; price: number | string; size: number | string; status: string; match_time: string | null;
+  /** The venue's trade record (`detail.trade`): its side for us and its fee rate give the fill's fee (`pmLiveFillFee`). */
+  detail?: { trade?: { trader_side?: string | null; fee_rate_bps?: string | number | null } | null } | null;
+};
 /** A paper fill as live-prep's dry-run reads its layer's (`pm_lpprep_fills`): the path's booking of it. */
 type PaperFillRow = { cond: string; token: string; token_side: "BUY" | "SELL"; token_price: number | string; size: number | string; ts: string };
 /** One market's minute as `pm_live_minutes` keeps it: the inputs of RW's formula and its answer. */
@@ -1993,7 +2018,11 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   // Live-prep's refill (Addendum 13): a market a refill replaced today takes no entry for the rest of the day; it is never
   // taken again, and its sells of what it holds rest at the rule's prices, as a carried market's.
   const rf = inst.lp?.refill;
-  type RefillState = { day: string; outSince: Record<string, string>; replaced: Record<string, { by: string; at: string }>; count: number; tried: Record<string, string>; zeroSince: string | null; alarmAt: string | null };
+  type RefillState = {
+    day: string; outSince: Record<string, string>; replaced: Record<string, { by: string; at: string }>; count: number; tried: Record<string, string>; zeroSince: string | null; alarmAt: string | null;
+    /** A refill due but held back for its budget (Addendum 18): since when, and the free budget the last turn read. */
+    deferred?: { since: string; freeUsd: number } | null;
+  };
   const prevRf = (prev.lp as { refill?: RefillState } | undefined)?.refill;
   const refill: RefillState = prevRf && prevRf.day === day
     ? { ...prevRf, outSince: { ...prevRf.outSince }, replaced: { ...prevRf.replaced }, tried: { ...prevRf.tried } }
@@ -2227,13 +2256,25 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
     lossTotal = await hasEvent("loss_stop_total", null);
   } catch (e) { lossDay = lossTotal = true; report.errors.push(`loss stops unreadable (${msg(e)}): nothing that opens this turn`); }
   let paid: number | null = null;
+  // Since Addendum 18 (`stopCountsRebates`, live only): the maker rebates the readout booked and the CONFIRMED fills' fees,
+  // so the stop's basis is the page's TOTAL. Null where they are not counted.
+  let rebates: number | null = null, fees: number | null = null;
+  const countsRebates = !!inst.lp?.stopCountsRebates && !paper;
   if (inst.lp && !lossTotal) {
     try {
-      const rows = paper
-        ? (await db.selectAll<{ reward_r40: number | string | null }>(paper.days, "select=reward_r40&order=day.asc")).map((r) => num(r.reward_r40))
-        : (await db.selectAll<{ actual_usd: number | string | null; actual_sponsored_usd: number | string | null }>(T.rewardDays, "mode=eq.live&select=actual_usd,actual_sponsored_usd&order=mode.asc,day.asc,cond.asc"))
-          .map((r) => num(r.actual_usd) + num(r.actual_sponsored_usd));
-      paid = Math.round(rows.reduce((s, x) => s + x, 0) * 1e8) / 1e8;
+      if (paper) {
+        const rows = (await db.selectAll<{ reward_r40: number | string | null }>(paper.days, "select=reward_r40&order=day.asc")).map((r) => num(r.reward_r40));
+        paid = Math.round(rows.reduce((s, x) => s + x, 0) * 1e8) / 1e8;
+      } else {
+        const rows = await db.selectAll<{ actual_usd: number | string | null; actual_sponsored_usd: number | string | null; rebate_usd?: number | string | null }>(
+          T.rewardDays, `mode=eq.live&select=actual_usd,actual_sponsored_usd${countsRebates ? ",rebate_usd" : ""}&order=mode.asc,day.asc,cond.asc`);
+        paid = Math.round(rows.reduce((s, r) => s + num(r.actual_usd) + num(r.actual_sponsored_usd), 0) * 1e8) / 1e8;
+        if (countsRebates) {
+          rebates = Math.round(rows.reduce((s, r) => s + num(r.rebate_usd), 0) * 1e8) / 1e8;
+          fees = Math.round((fillRowsNow as FillRow[]).filter((f) => f.status === "CONFIRMED")
+            .reduce((s, f) => s + pmLiveFillFee(Number(f.size), Number(f.price), f.detail?.trade?.trader_side, f.detail?.trade?.fee_rate_bps), 0) * 1e8) / 1e8;
+        }
+      }
     } catch (e) { lossTotal = true; report.errors.push(`what was paid is unreadable (${msg(e)}): the stop cannot be judged; nothing that opens this turn`); }
   }
   if (!lossDay && pnl.day <= -lim.lossDay) {
@@ -2244,15 +2285,16 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
     }], "mode,minute,kind");
     report.errors.push(`LOSS STOP (day): ${pnl.day} USD is past −${lim.lossDay}; nothing opens until the next UTC day; sells of what is held stay armed`);
   }
-  if (!lossTotal && pnl.total + (paid ?? 0) <= -lim.lossTotal) {
+  const stopBasis = pnl.total + (paid ?? 0) + (rebates ?? 0) - (fees ?? 0);
+  if (!lossTotal && stopBasis <= -lim.lossTotal) {
     lossTotal = true;
-    const basis = Math.round((pnl.total + (paid ?? 0)) * 1e8) / 1e8;
+    const basis = Math.round(stopBasis * 1e8) / 1e8;
     await db.upsert(T.events, [{
       mode: stopMode, minute, kind: "loss_stop_total",
-      detail: inst.lp ? { totalPnl: pnl.total, paid, basis, limit: -lim.lossTotal } : { totalPnl: pnl.total, limit: -lim.lossTotal },
+      detail: inst.lp ? { totalPnl: pnl.total, paid, ...(countsRebates ? { rebates, fees } : {}), basis, limit: -lim.lossTotal } : { totalPnl: pnl.total, limit: -lim.lossTotal },
     }], "mode,minute,kind");
     report.errors.push(inst.lp
-      ? `LOSS STOP (all): fills ${pnl.total} and paid ${paid ?? 0} USD, ${basis} in all, is past −${lim.lossTotal}; nothing opens again until a person clears the stop; sells stay armed`
+      ? `LOSS STOP (all): fills ${pnl.total} and paid ${paid ?? 0}${countsRebates ? `, rebates ${rebates ?? 0}, less fees ${fees ?? 0}` : ""} USD, ${basis} in all, is past −${lim.lossTotal}; nothing opens again until a person clears the stop; sells stay armed`
       : `LOSS STOP (all): ${pnl.total} USD is past −${lim.lossTotal}; nothing opens again until a person clears the stop; sells stay armed`);
   }
 
@@ -2329,6 +2371,9 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
     const held = { yes: heldOf.get(m.yes_token) ?? 0, no: heldOf.get(m.no_token) ?? 0 };
     report.markets.push({ kind: m.kind, cond: m.cond, quoting: m.quoting, book: b ? (({ levels: _l, ...rest }) => rest)(b) : null, held: inventoryReadable ? held : null });
     let paused = false;
+    // Addendum 18 (`pauseQuotingOnly`): a market worked close-only (carried, taken out, any while opening is stopped)
+    // rests its exit through a pause; the pause is still judged and kept, and still withholds a market quoting.
+    const pauseSpares = !!inst.lp?.pauseQuotingOnly && (!m.quoting || lpOut.has(m.cond) || !g.open);
     if (inst.lp) {
       // Judged on every book a turn reads, whatever the gates say, as x2's arm judges every minute it has a book for: the
       // rest of the market's adjusted mid (RW's row of the book without our orders).
@@ -2348,7 +2393,7 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
       lpDetail.set(m.cond, {
         state: paused ? "paused" : !m.quoting || lpOut.has(m.cond) ? "carried" : g.open ? "quote" : "close", held,
         n: sizeN(lpOut.has(m.cond) ? num(m.min_size) : programme(m).minSize),
-        pausedUntil: paused ? iso(pauseState.pausedUntil[m.cond]) : null, stopTotal: lossTotal, paid,
+        pausedUntil: paused ? iso(pauseState.pausedUntil[m.cond]) : null, ...(paused && pauseSpares ? { exitThroughPause: true } : {}), stopTotal: lossTotal, paid,
         ...(lpOut.has(m.cond) ? { out: lpOut.get(m.cond) } : {}),
       });
     }
@@ -2372,8 +2417,9 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
       try { intents = closeOnly(exitRule({ market: m, book: b, held, own, capital: lim.capTotal }), held, b); } catch (e) { report.errors.push(`${m.cond.slice(0, 10)}…: the rule threw (${msg(e)}); nothing quoted`); continue; }
     }
     const tokenOf = (o: "yes" | "no") => (o === "yes" ? m.yes_token : m.no_token);
-    // Paused (live-prep): nothing rests in the market this minute; what is held is held.
-    if (paused && intents.length) {
+    // Paused (live-prep): nothing rests in the market this minute; what is held is held. Since Addendum 18 only in a market
+    // still quoting: one worked close-only keeps its exit (`pauseSpares`).
+    if (paused && intents.length && !pauseSpares) {
       for (const x of intents) withhold(slotKey({ cond: m.cond, token: tokenOf(x.outcome), side: x.side }), "pause", `the adjusted mid jumped ${inst.lp!.pause.cents} ¢ or more: not quoted until ${iso(pauseState.pausedUntil[m.cond])}`);
       intents = [];
     }
@@ -2757,7 +2803,14 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
     const vacant = () => active.filter((m) => refill.outSince[m.cond] && d.now - Date.parse(refill.outSince[m.cond]) >= wait && !refill.replaced[m.cond])
       .sort((a, b) => refill.outSince[a.cond].localeCompare(refill.outSince[b.cond]) || a.rank - b.rank);
     let tries = 0;
-    for (const v of vacant()) {
+    // Addendum 18 (LP-CAPDEEP item 2): no refill while the free buy budget after this turn's funded buys is under
+    // `minFreeUsd`; checked before any candidate is read. The slot stays out, the day's count is not used, and the next
+    // turn tries again. In dry-run the cap alone (its buys draw no pUSD).
+    const freeUsd = Math.min(lim.capTotal - committed, mode === "live" ? pusdLeft : Infinity);
+    const fundable = rf.minFreeUsd === undefined || freeUsd >= rf.minFreeUsd - 1e-9;
+    if (fundable) refill.deferred = null;
+    else if (vacant().length) refill.deferred = { since: refill.deferred?.since ?? nowIso, freeUsd: Math.round(freeUsd * 100) / 100 };
+    for (const v of fundable ? vacant() : []) {
       if (done >= rf.perTurn || refill.count >= rf.maxPerDay || tries >= rf.triesPerTurn) break;
       if (posts >= lim.maxPosts || elapsed() > PM_LIVE_SEND_UNTIL_MS || pastDeadline(deadline)) break;
       const usedCap = active.filter((m) => m.cond !== v.cond && !refill.replaced[m.cond]).reduce((a, m) => a + num(m.capital), 0);

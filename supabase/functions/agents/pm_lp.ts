@@ -21,7 +21,8 @@
 //   - Quoting (`lpQuotes`): RW's prices (`summarize`, `quote`) at N; each side a SELL of what is held before a BUY (the
 //     bid is a SELL of NO at 1 − b while NO is held ≥ N, else a BUY of YES at b; the ask a SELL of YES at a while YES
 //     is held ≥ N, else a BUY of NO at 1 − a); a side stops at 5N of inventory its way (RW's 3N held capital that a
-//     sell frees); x2's pause after a jump of 15 ¢ in the adjusted mid, for 60 minutes (`pauseAfterJump`).
+//     sell frees); x2's pause after a jump of 15 ¢ in the adjusted mid, for 60 minutes (`pauseAfterJump`), in a market
+//     still quoting; a market worked close-only rests its exit through it (Addendum 18, `pauseQuotingOnly`).
 //   - TB1's skip (Davies, 2026-10-08: "给 live-prep 加上 TB1 的 variant-3 规则：盘口只差 1 tick 时不挂单"; the pre-registration's
 //     Addendum 2): in a minute whose raw touch, the book without our orders, is at most one tick wide, nothing rests in
 //     that market, buys and sells alike (`PM_LP_TIGHT`, `pmrw_x.ts`'s own `isTight`).
@@ -35,7 +36,8 @@
 //     uses the programme as read. Polymarket's own word backs it: both sides read not scoring for three live minutes
 //     running while the formula scores both, and the market takes no entry for the rest of the UTC day.
 //   - Caps: $320 in all and $100 a market (holdings at cost and resting buys); a total stop of −$75 on the fills plus what
-//     was paid (live: the readout's payouts; in dry-run: its paper's closed days at R = 0.40); no day stop.
+//     was paid (live: the readout's payouts and, since Addendum 18, its maker rebates less the fills' fees, so the stop
+//     trips when the page's TOTAL reaches −$75; in dry-run: its paper's closed days at R = 0.40); no day stop.
 //
 // WHERE IT LIVES: the order path (`pm_live.ts`) and the paper layer (`pm_prep.ts`) as they are, given this file's
 // instances. `PM_LP_INSTANCE` names its tables (`pm_lp_*`, migration 0091), its lease (`pm-lp`), its band, mid-pool's
@@ -145,10 +147,14 @@ export const PM_LP_EXCLUDE_AI = { why: "an AI market (model releases, rankings, 
  * 30 minutes while a candidate is in the universe is a fault. The reserve is ranked once a day, once the 00:00 selection
  * has landed (Addendum 15, LP-REFILL: a reserve re-ranked through the day, every 5 minutes until then, filled the cap
  * with held shares and its formula fell to nothing; one ranked at 00:00 kept earning); a run that cannot rank tries again
- * the next minute.
+ * the next minute. No refill is taken in a turn whose free buy budget, min(cap − committed, pUSD left) after the turn's own
+ * funded buys, is under `minFreeUsd` (Addendum 18, LP-CAPDEEP, `reviews/2026-10-11-lp-capital-deep.md`): a refill is
+ * funded last, so one taken then rests nothing and spends one of the day's ten; $20 is the most a candidate's first pair
+ * of quotes can cost (N ≤ 20). The slot stays out, the day's count is not used, and the next turn tries again.
  */
 export const PM_LP_REFILL: LpRefillOptions = {
   afterMin: 15, afterMinAllOut: 0, maxPerDay: 10, perTurn: 1, triesPerTurn: 3, retryMin: 15, reserveSize: 30, refreshTop: 15, rerankEveryMin: 1440, idleAlarmMin: 30,
+  minFreeUsd: 20,
 };
 
 /**
@@ -236,6 +242,8 @@ export const PM_LP_INSTANCE: PmLiveInstance = {
     refill: { ...PM_LP_REFILL, table: "pm_lp_reserve" },
     marketLoss: PM_LP_MARKET_LOSS,
     fundByRank: true,
+    pauseQuotingOnly: true,
+    stopCountsRebates: true,
     paper: { fills: "pm_lpprep_fills", settlements: "pm_lpprep_settlements", days: "pm_lpprep_days" },
   },
 };

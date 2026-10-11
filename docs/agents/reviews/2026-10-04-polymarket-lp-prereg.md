@@ -1336,3 +1336,90 @@ caps' `blocked`, `fund` and `costOf`, the rank-order funding); `pm_lp.ts` sha256
 - Only live-prep's instance sets the flag.
 - Both turn tests fail on the `pm_live.ts` Addendum 16 named.
 - `src/pm_live_hash.test.js`, `src/pm_lp_prereg.test.js`: the bytes and the chain of addenda.
+
+## Addendum 18 (2026-10-11, about 02:05 UTC): R's 10-09 in the end rule, the refill waits for cash, exits through a pause, the stop on the page's TOTAL
+
+This addendum was written while live-prep is live and before the deploy it records. Not blind. **It ships only on
+Davies' word**, because it changes the end rule's reading, the refill, the pause and the stop. His answer, 2026-10-11 01:41 UTC, verbatim: "同意，这些都按你推荐的来" (agreed, all of these as you recommend), given after the main session laid out LP-CAPDEEP's and LP-OBS-DEEP's recommendations.
+
+The studies: LP-OBS-DEEP (`reviews/2026-10-11-lp-observations-deep.md`, `backtests/lpobsdeep/`) and LP-CAPDEEP
+(`reviews/2026-10-11-lp-capital-deep.md`, `backtests/lpcapdeep/`). What Davies agreed to also keeps one number as it is:
+**the total cap's $80 buffer stays** (LP-CAPDEEP item 1: keep it, and read it again on 10-16 UTC, after Citigroup and
+Prologis settle and Addendum 17's three days are in). The display fix of LP-OBS-DEEP's defect 2 (TESTING's paper rows
+priced at R over the whole formula, and the page's R labelled) needed no word and landed just before this addendum; it
+moves no rule. Four changes:
+
+**1. The end rule and the readouts read 10-09 like for like** (LP-OBS-DEEP defect 1; due before the 7-day read on or
+after 2026-10-16 01:00 UTC).
+
+- `lp_readout.sql` (above) divides by the readout's `formula_usd`, and 10-09's is the $153.90 the 00:00 selection's cut
+  programmes gave. On the live record at 01:19 UTC it reads R = 28.4143 / 184.3913 = **0.1541**, under the end rule's
+  0.20; at day 7 it would trip on a true R of 0.26–0.37 at $30–$10 of formula a day.
+- The frozen script stays as it is. The end rule (R < 0.20 after 7 live days with ≥ 40 market-days) and the 14-day
+  readout (R, its 90 % interval by the same day-block bootstrap, on these rows) read its corrected copy instead,
+  `docs/agents/backtests/pmlp/lp_readout_a18.sql` sha256 `5ec9a030e3c8eeeea24b40de046c625becbc0d53b427c342a71090cd39af87b8`: 10-09 at its like-for-like
+  formula, market by market, **$8.081876** in all (Addendum 10's `LP_R_DAY_CORRECTIONS`, `backtests/lpcfg/results/rtrue.txt`),
+  every other day as read, R = paid ÷ formula on the whole formula; each row reports the scored formula and R over it
+  beside.
+- Run read-only on production at about 02:02 UTC (`backtests/pmlp/results/lp_readout_a18_2026-10-11.txt`): 10-09 0.8072,
+  10-10 0.7179, **R 0.7366** over 38 market-days (scored 0.7633). Today's record no longer trips.
+
+**2. The refill waits for the cash** (LP-CAPDEEP item 2).
+
+- No refill is taken in a turn whose free buy budget, min(`cap_total` − committed, pUSD left) read after the turn's own
+  funded buys (the cap alone in dry-run), is under **$20** (`PM_LP_REFILL.minFreeUsd`; $20 is the most a candidate's
+  first pair of quotes can cost at N ≤ 20). It is checked before any candidate is read.
+- Such a turn writes no `refill` event, tries no candidate, leaves the slot's `outSince` running and the day's count
+  unused; `state.lp.refill.deferred` says since when and the free budget it read. The next turn tries again.
+- Why: 2 of 11 live refills were taken when the cash could not fund them; under Addendum 17's rank order a refill is
+  funded last, so it rests nothing, spends one of the day's ten and drops the replaced market for the day. About +$0.5
+  a day [+$0.0, +$1.3], and less exposure. Every other number of `PM_LP_REFILL` stays.
+
+**3. The pause withholds only in a market still quoting** (LP-OBS-DEEP item 3).
+
+- In a market worked close-only (carried from an earlier day; taken out by the reward check, the backstop, the AI rule,
+  the loss guard or a refill; or any while opening is stopped), the 15 ¢ / 60-minute pause withholds nothing: its exit
+  (`lpExitQuotes` through `closeOnly`, Addendum 16) rests as in an unpaused minute. The pause is still judged and kept,
+  and the minute says `exitThroughPause`.
+- A selected market still quoting keeps x2's pause exactly as frozen: 15 ¢, 60 minutes, buys and sells alike.
+- Why: the pre-registration's text puts the pause under the quotes of a selected market and lets a carried market rest
+  its sells "until flat or selected again"; Phase A's S2 worked carried stock off before the pause and never paused it;
+  and no holding should be left with no way out (Addendum 16's principle), above all after the total stop, when every
+  market is close-only. On the record: 400 exit-able paused minutes, none with a through-fill; −$0.07 to +$0.19 a day.
+
+**4. The total stop is the page's TOTAL** (LP-OBS-DEEP item 5).
+
+- Live, the stop's basis is the fills marked at the mids plus the rewards paid **plus the maker rebates the readout
+  booked, less the CONFIRMED fills' fees** (`pmLiveFillFee` on each trade record, as the page reads it): the page's
+  TOTAL. It trips when that reaches −$75, so the stop caps the deposit's loss at $75, not $75 less the rebates ($6.79 on
+  10-11). The `loss_stop_total` event names each part. In dry-run it is unchanged (the paper's closed days at R = 0.40).
+- The live page shows the stop's room under the scoreboard: "total stop at −$75: $X of room (total $Y)".
+- It trips later by the rebates booked, about $3.4 a live day so far; the room at 01:00 UTC was $71.37 without them.
+
+Nothing else changes: ten markets, $200, N ≤ 20, $100 a market, 5N, the near-certain limit, TB1's skip, the reward
+check, the AI rule, the loss guard, the refill's other numbers, the rank-order funding, the equity cap and its $80.
+
+**Forward test:** over the first three live days after the deploy, the refills taken and deferred (and for how long),
+each refill's two-sided minutes in its first hour, the exits filled in paused close-only markets with their markouts at
+60 minutes and 6 hours, and the stop's room against the page's TOTAL each hour.
+
+**The code it deploys:** `pm_live.ts` sha256 `ee96ba0e40e38ac9999f78028470cc8713584cf05c45539f265eca76c2d3667d`, where Addendum 17 named `a01c8560…778f` (`PmLpOptions.pauseQuotingOnly`,
+`PmLpOptions.stopCountsRebates`, `LpRefillOptions.minFreeUsd`, the turn's `pauseSpares`, the stop's `rebates` and
+`fees`, the refill's `freeUsd`); `pm_lp.ts` sha256 `53f7f788a47e93f52770f96410db9faf8f34cdd7dc2cf4ddbd877c9038d07278`, where Addendum 17 named `82d1aa94…a850`
+(`minFreeUsd: 20`, the instance's `pauseQuotingOnly: true` and `stopCountsRebates: true`); `agents/pm_lp_live_view.ts`
+(the stop's basis is the TOTAL, with `rebateUsd` and `feesUsd`) and the page (`src/agents/agents.js`'s `lpStopRoomText`).
+No migration. Mini-pool and mid-pool set none of the three and are unchanged.
+
+**Pinned:**
+
+- `agents/pm_lp.test.ts`, each failing on the `pm_live.ts` Addendum 17 named:
+  - a market taken out with 5 YES held, its book jumping 20 ¢, rests the SELL of its 5 at 0.67 through the pause, while
+    BIG, selected and quoting, paused alike, rests nothing; without `pauseQuotingOnly` nothing rests in either;
+  - LP-CAPINV's case on the fake venue: a slot out 16 minutes with $7.10 free takes no refill, tries no candidate, keeps
+    its slot out and the count at 0; with $40.10 the next turn refills; without `minFreeUsd` it refilled on $7.10;
+  - rewards $10 and rebates $5 trip the stop at fills −$90 (basis −$75) and not at −$85; a taker's fee takes −$89.50 past
+    it; without `stopCountsRebates` −$85 tripped.
+- `agents/pm_lp_live_view.test.ts`: the page's stop basis is its TOTAL (+3.05 on the hand-worked record, $78.05 of room).
+- `src/pm_lp_prereg.test.js`: the corrected readout's bytes, its 10-09 figures equal to `LP_R_DAY_CORRECTIONS` ($8.081876),
+  and on the live record of 10-11 01:19 UTC its arithmetic reads 0.7366, where the frozen script's reads 0.1541.
+- `src/pm_live_hash.test.js`, `src/pm_lp_prereg.test.js`: the bytes and the chain of addenda.

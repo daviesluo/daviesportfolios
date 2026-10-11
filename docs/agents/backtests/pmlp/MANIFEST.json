@@ -20,6 +20,7 @@
   "npx --yes deno@1.46.3 run --allow-net --allow-write scripts/universe.ts data/universe.json  # live, keyless: a new read of the universe (the committed one is universe_1)",
   "lp_check.sql  # the pre-registration's day-1 check: read-only, one statement, run once at or after d1 + 1 day 00:10 UTC; its sha256 is pinned by src/pm_lp_prereg.test.js and named in the pre-registration",
   "lp_readout.sql  # the live readout (R, the 7-day end rule's reading, the fills per share): read-only, one statement; pinned the same way",
+  "lp_readout_a18.sql  # Addendum 18's corrected copy, which the 7-day end rule and the 14-day readout read: 10-09 at its like-for-like formula ($8.081876), R and the scored R beside; read-only, one statement, pinned the same way; its run of 2026-10-11 02:02 UTC -> results/lp_readout_a18_2026-10-11.txt",
   "npm i --prefix /tmp/pglite @electric-sql/pglite@0.2.17 && PGLITE=/tmp/pglite/node_modules/@electric-sql/pglite/dist/index.js node docs/agents/backtests/pmlp/scripts/lp_live_check.mjs  # from the repository root: every migration on PGlite, the design doc's step 8lp word for word on each refusal and five balances, the one-armed trigger on three configs; -> results/lp_live_check_out.txt; `nokey` or `widen` as an argument: its counterfactuals, each failing two checks"
  ],
  "reproduced": "round 15 re-run from these gzipped inputs on 2026-10-04 gave results/round15.txt's rows, digit for digit",
@@ -121,6 +122,7 @@
   "scripts/universe.ts": "e4dd034f6bb63509860516ab87478c390083bb998f3d7ed4992f116c038a2f93",
   "scripts/universe_track.ts": "b5433dd42c00ea53015aa5b4cc01d5850f134787bed6f11e0fae3e393ebb0d34",
   "lp_check.sql": "7e94b0424dc687e7739853c35566df73b20f78da551b567473af138451ff0a57",
-  "lp_readout.sql": "15e2dad389825a7e452f9e4802ce29fbd6bae096ac95b1f713fb580bcf0ff3ef"
+  "lp_readout.sql": "15e2dad389825a7e452f9e4802ce29fbd6bae096ac95b1f713fb580bcf0ff3ef",
+  "lp_readout_a18.sql": "5ec9a030e3c8eeeea24b40de046c625becbc0d53b427c342a71090cd39af87b8"
  }
 }

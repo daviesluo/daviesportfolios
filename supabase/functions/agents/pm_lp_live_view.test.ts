@@ -13,7 +13,8 @@
 // matched (10 × 0.30 = 3.00) and a pending 10 NO at 0.68 (6.80), and H's sell of its 10 NO (no collateral): 29.40, so
 // deployed 29.40 + 5.80 = 35.20. Polymarket paid for 16 Sep G 0.80 + 0.20 sponsored and H 1.20, 2.20 against a formula of
 // 2.00 + 3.00 = 5.00 (R 0.44), and a maker rebate of 0.05. Realised 0.60 + 2.20 + 0.05 = 2.85; today 0.80 (nothing paid
-// for 17 Sep yet). The stop reads 0.80 + 2.20 = 3.00 (rebates not), 78.00 from −75. Three markets at work, five orders open.
+// for 17 Sep yet). The stop reads the page's TOTAL since Addendum 18: 0.80 + 2.20 + 0.05 − 0 = 3.05, 78.05 from −75 (3.00 and
+// 78.00 before it, rebates not counted). Three markets at work, five orders open.
 // STATUS: G made 1.05 paid + 0.60 = 1.65, the largest part (TOP SHARE 1.65 / 3.05, 54 %); three markets chosen today, two
 // still held. Before any payout: R none, realised 0.60, G's 0.60 the largest of a total of 0.80.
 // QUOTES: G rests a buy of YES at 0.44 and of NO at 0.54 (an ask of 0.46), H a sell of its NO at 0.30 (a bid of 0.70), J a
@@ -65,7 +66,8 @@ Deno.test("live-prep's live figures for the hand-worked record: the fixture the 
   near(out.paidUsd, 2.2, "0.80 + 0.20 + 1.20"); near(out.rebateUsd, 0.05, "G's rebate"); near(out.realisedUsd, 2.85, "0.60 + 2.20 + 0.05");
   near(out.todayUsd, 0.8, "today's sell and every holding against its cost"); near(out.totalUsd, 3.05, "realised + unrealised");
   near(out.formulaUsd, 5, "the formula, apart"); near(out.r!, 0.44, "R = 2.20 / 5.00"); assertEquals(out.feesUsd, 0);
-  assertEquals([out.stop.basisUsd, out.stop.roomUsd, out.stop.limitUsd, out.stop.trippedAt], [3, 78, 75, null]);
+  assertEquals([out.stop.basisUsd, out.stop.roomUsd, out.stop.limitUsd, out.stop.trippedAt], [3.05, 78.05, 75, null]);
+  assertEquals([out.stop.rebateUsd, out.stop.feesUsd, out.stop.basisUsd], [0.05, 0, out.totalUsd]);
   assertEquals([out.openOrders, out.markets, out.fills, out.armed, out.running, out.lagMinutes, out.liveSince], [5, 3, 4, true, true, 1, "2026-09-16T01:32:21.000Z"]);
   // What it holds is QUOTES' held column (its HELD table went, 2026-10-09): H 10 NO, J 10 YES.
   assertEquals(out.quotes.map((x) => [x.q, x.yes, x.no, x.mark]), [["Will G happen?", 0, 0, 0.45], ["Will H happen?", 0, 10, 0.71], ["Will J happen?", 10, 0, 0.31]]);
@@ -94,9 +96,11 @@ Deno.test("live-prep's live figures for the hand-worked record: the fixture the 
   const carried = lpLiveSummary({ ...F.input, markets: F.input.markets.filter((m: { day: string; question: string }) => !(m.day === "2026-09-17" && m.question === "Will H happen?")) })!;
   assertEquals(carried.quotes.map((x) => [x.q, x.quoting, x.ratePerDay, x.bid, x.share]), [["Will G happen?", true, 20, 0.44, 0.36], ["Will J happen?", true, 15, 0.3, null], ["Will H happen?", false, null, 0.7, null]]);
   assertEquals([carried.status.quoting, carried.status.held], [2, 2]);
-  // The parts add up: realised + unrealised is the total, and the stop's reading is the fills' P&L plus what was paid.
+  // The parts add up: realised + unrealised is the total, and the stop's reading (Addendum 18) is the fills' P&L plus what
+  // was paid plus the rebates less the fees: the total itself.
   near(out.realisedUsd + out.unrealisedUsd, out.totalUsd, "realised + unrealised");
-  near(out.stop.fillsPnlUsd + out.stop.paidUsd, out.stop.basisUsd, "the stop's basis");
+  near(out.stop.fillsPnlUsd + out.stop.paidUsd + out.stop.rebateUsd - out.stop.feesUsd, out.stop.basisUsd, "the stop's basis");
+  near(out.stop.basisUsd, out.totalUsd, "the stop and the page are one number");
 });
 
 Deno.test("live-prep's live book is no row until it is armed or has sent a live order, and stays one once it has", () => {
@@ -123,7 +127,7 @@ Deno.test("live-prep's live stop: tripped by its event, and a settlement realise
   const settled = lpLiveSummary({ ...F.input, settlements: [{ cond: J.cond, yes_token: J.yes_token, no_token: J.no_token, payout: 0, settled_at: "2026-09-17T22:00:00.000Z" }] })!;
   near(settled.realisedFillsUsd, 0.6 - 3, "G's +0.60 and J's −3.00"); near(settled.costUsd, 2.8, "H alone"); near(settled.unrealisedUsd, 0.1, "H's");
   assertEquals(settled.quotes.map((x) => [x.q, x.yes, x.no]), [["Will G happen?", 0, 0], ["Will H happen?", 0, 10], ["Will J happen?", 0, 0]]);
-  near(settled.stop.basisUsd, 0.6 - 3 + 0.1 + 2.2, "the stop moves with it");
+  near(settled.stop.basisUsd, 0.6 - 3 + 0.1 + 2.2 + 0.05, "the stop moves with it");
   // A held token whose market the last turn did not read is held at cost: no unrealised, never a guess.
   const unread = lpLiveSummary({ ...F.input, state: { ...F.input.state, state: { ...F.input.state.state, markets: [] } } })!;
   assertEquals([unread.unrealisedUsd, unread.costUsd, unread.quotes.map((x) => x.mark)], [0, 5.8, [null, null, null]]);

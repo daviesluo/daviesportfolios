@@ -1,0 +1,12 @@
+lp_readout_a18.sql (Addendum 18's corrected copy of lp_readout.sql), run read-only on production (flmvxigozjuizpckllvk)
+through the Supabase connector, 2026-10-11 about 02:02 UTC. Not the 7-day read: that is on or after 2026-10-16 01:00 UTC.
+
+row                                                  market_days minutes scored formula_usd paid_usd rebates_usd r      formula_scored_usd r_scored
+day 1 2026-10-09                                     10          9666    2643   8.0819      6.5235   1.9766      0.8072 8.0819             0.8072
+day 2 2026-10-10                                     28          11687   2663   30.4934     21.8909  4.8156      0.7179 29.1442            0.7511
+R after the first 7 live days (the end rule ...)     38          21353   5306   38.5752     28.4145  6.7922      0.7366 37.2260            0.7633
+total over 2 live days; fills 234 (3878.93 shares),  38          21353   5306   38.5752     28.4145  6.7922      0.7366 37.2260            0.7633
+  their P&L $-34.9204, per share $-0.0090 (paper record: -0.0110)
+
+The frozen lp_readout.sql on the same rows reads 10-09 at its $153.8980 formula: R 28.4143 / 184.3913 = 0.1541
+(LP-OBS-DEEP, backtests/lpobsdeep/results/r_bases.txt), under the end rule's 0.20; this copy reads 0.7366.

@@ -17,7 +17,9 @@
 //   ef036c76…  live-prep's Addendum 13, mid-pool's Addendum 14 (live-prep's refill from a live reserve, 2026-10-10)
 //   59a1201a…  live-prep's Addendum 14 (and 15, unchanged), mid-pool's Addendum 15 (live-prep's per-market loss guard, 2026-10-10)
 //   b002c558…  live-prep's Addendum 16, mid-pool's Addendum 16 (live-prep's exit in a one-tick book, 2026-10-11)
-//   (Addendum 17's)  live-prep's Addendum 17, mid-pool's Addendum 17 (live-prep's caps in rank order, 2026-10-11)
+//   a01c8560…  live-prep's Addendum 17, mid-pool's Addendum 17 (live-prep's caps in rank order, 2026-10-11)
+//   (Addendum 18's)  live-prep's Addendum 18, mid-pool's Addendum 18 (the refill's cash check, exits through a pause, the stop
+//              on the page's TOTAL, 2026-10-11)
 import { describe, expect, it } from 'vitest';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -55,17 +57,25 @@ const A59A = '59a1201a35b0ef2ccbdf16de933ea7b4469a1c4404146b252c481aa99068a510';
 /** The pm_lp.ts live-prep's Addendum 15 named (the reserve ranked at 00:00), its instance until Addendum 16. */
 const LP_A15 = '277baa7ad0fb7f79e10ef08c0426e873b4de105fbf9deb060f06a96fcd7de8cb';
 const AB00 = 'b002c55830e0104001eb13715cdabd8e9b83a52d82325bf98e4c10b546c6ba85';
+const AA01 = 'a01c8560ccba06356929baab7235ba74071831241426fa38531240cded03778f';
+/** The pm_lp.ts live-prep's Addendum 17 named (the caps in rank order), its instance until Addendum 18. */
+const LP_A17 = '82d1aa9403dbfd8bbfd4771571a88b53752d186063422d0b684f1934c3e5a850';
 /** The pm_lp.ts live-prep's Addendum 16 named (the exit in a one-tick book), its instance until Addendum 17. */
 const LP_A16 = '2e5ca3ee27afa6875b899dcf4a163bcd0ce935c9cd8482ee4efa5ba278ad9e3c';
 /** The pm_lp.ts live-prep's Addendum 9 named (the reward check), its instance until Addendum 10. */
 const LP_A9 = 'c7e3a7ec271b8e798dcc756c3f9d83da2421ddee03f3fede6e3e66a541d173c7';
 
 describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", () => {
-  it("live-prep's latest addendum (17) and mid-pool's (17) name today's pm_live.ts", () => {
-    expect(lastNumber(LP)).toBe(17);
-    expect(lastNumber(MID)).toBe(17);
-    expect(namedPath(addendum(LP, 17))).toBe(sha);
-    expect(namedPath(addendum(MID, 17))).toBe(sha);
+  it("live-prep's latest addendum (18) and mid-pool's (18) name today's pm_live.ts", () => {
+    expect(lastNumber(LP)).toBe(18);
+    expect(lastNumber(MID)).toBe(18);
+    expect(namedPath(addendum(LP, 18))).toBe(sha);
+    expect(namedPath(addendum(MID, 18))).toBe(sha);
+    expect(namedPath(addendum(LP, 17))).toBe(AA01);
+    expect(namedPath(addendum(MID, 17))).toBe(AA01);
+    expect(addendum(LP, 18)).toContain('`a01c8560…778f`');
+    expect(addendum(MID, 18)).toContain('`a01c8560…778f`');
+    expect(addendum(MID, 18)).toContain('deviation 18');
     expect(namedPath(addendum(LP, 16))).toBe(AB00);
     expect(namedPath(addendum(MID, 16))).toBe(AB00);
     expect(addendum(LP, 17)).toContain('`b002c558…ba85`');
@@ -297,8 +307,9 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     // The constant the addendum quotes is the instance's, word for word.
     const line = 'afterMin: 15, afterMinAllOut: 0, maxPerDay: 10, perTurn: 1, triesPerTurn: 3, retryMin: 15, reserveSize: 30, refreshTop: 15, rerankEveryMin: 5, idleAlarmMin: 30,';
     expect(lp13).toContain(line);
-    // Addendum 15 changed one of its numbers (`rerankEveryMin` 5 → 1440) and quotes the constant as it is now, word for word.
-    expect(lp).toContain(`export const PM_LP_REFILL: LpRefillOptions = {\n  ${line.replace('rerankEveryMin: 5,', 'rerankEveryMin: 1440,')}\n};`);
+    // Addendum 15 changed one of its numbers (`rerankEveryMin` 5 → 1440) and quotes the constant as it was then, word for
+    // word; Addendum 18 added one (`minFreeUsd: 20`), on a line of its own.
+    expect(lp).toContain(`export const PM_LP_REFILL: LpRefillOptions = {\n  ${line.replace('rerankEveryMin: 5,', 'rerankEveryMin: 1440,')}\n  minFreeUsd: 20,\n};`);
     expect(addendum(LP, 15)).toContain(line.replace('rerankEveryMin: 5,', 'rerankEveryMin: 1440,'));
     expect(lp).toContain('refill: { ...PM_LP_REFILL, table: "pm_lp_reserve" },');
     // The pm_lp.ts it named, the instance until Addendum 14 (the loss guard), which names it.
@@ -372,11 +383,34 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     expect(lp17).toContain('His answer, 2026-10-11 00:29 UTC, verbatim: "按照你推荐的来" (go with what you recommend)');
     expect(lp17).toContain('No migration.');
     expect(mid17).toContain('**Mid-pool is unchanged.**');
-    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(lp17)?.[1]).toBe(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex'));
+    // The pm_lp.ts it named, the instance until Addendum 18, which names it and today's.
+    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(lp17)?.[1]).toBe(LP_A17);
+    expect(addendum(LP, 18)).toContain('`82d1aa94…a850`');
+    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(addendum(LP, 18))?.[1]).toBe(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex'));
     expect(read('supabase/functions/agents/pm_lp.ts')).toContain('    fundByRank: true,');
     const src = read(PATH);
     expect(src).toContain('if (!inst.lp?.fundByRank) {');
     expect(src).toContain("pair.length > 1 ? `${no[1]}; its market's buys are funded together or not at all` : no[1]");
     for (const f of ['pm_mid.ts', 'pm_mini.ts']) if (fs.existsSync(path.join(ROOT, 'supabase/functions/agents', f))) expect(read(`supabase/functions/agents/${f}`)).not.toContain('fundByRank');
+  });
+
+  it("live-prep's Addendum 18 and mid-pool's 18 record the four changes on Davies' word, the $80 kept, live-prep's alone", () => {
+    const lp18 = addendum(LP, 18), mid18 = addendum(MID, 18);
+    expect(lp18).toContain("**It ships only on\nDavies' word**");
+    expect(lp18).toContain('His answer, 2026-10-11 01:41 UTC, verbatim: "同意，这些都按你推荐的来" (agreed, all of these as you recommend), given after the main session laid out LP-CAPDEEP\'s and LP-OBS-DEEP\'s recommendations.');
+    for (const r of ['`reviews/2026-10-11-lp-observations-deep.md`', '`reviews/2026-10-11-lp-capital-deep.md`', '**the total cap\'s $80 buffer stays**', '**$8.081876**', '**R 0.7366**', 'No migration.']) expect(lp18).toContain(r);
+    expect(mid18).toContain('**Mid-pool is unchanged.**');
+    const src = read(PATH), lp = read('supabase/functions/agents/pm_lp.ts');
+    expect(src).toContain('const pauseSpares = !!inst.lp?.pauseQuotingOnly && (!m.quoting || lpOut.has(m.cond) || !g.open);');
+    expect(src).toContain('if (paused && intents.length && !pauseSpares) {');
+    expect(src).toContain('const stopBasis = pnl.total + (paid ?? 0) + (rebates ?? 0) - (fees ?? 0);');
+    expect(src).toContain('const freeUsd = Math.min(lim.capTotal - committed, mode === "live" ? pusdLeft : Infinity);');
+    expect(src).toContain('for (const v of fundable ? vacant() : []) {');
+    // The cash check comes after the turn's buys are funded and before any candidate is read.
+    expect(src.indexOf('const freeUsd = ')).toBeGreaterThan(src.indexOf('const fund = (slot: string'));
+    expect(src.indexOf('const freeUsd = ')).toBeLessThan(src.indexOf('const g = await venue.gammaByConditions([cand.cond], false);'));
+    expect(lp).toContain('    pauseQuotingOnly: true,\n    stopCountsRebates: true,');
+    expect(lp).toContain('export const PM_LP_PAUSE = { cents: 15, minutes: 60 } as const;');
+    for (const f of ['pm_mid.ts', 'pm_mini.ts']) if (fs.existsSync(path.join(ROOT, 'supabase/functions/agents', f))) expect(read(`supabase/functions/agents/${f}`)).not.toMatch(/pauseQuotingOnly|stopCountsRebates|minFreeUsd/);
   });
 });

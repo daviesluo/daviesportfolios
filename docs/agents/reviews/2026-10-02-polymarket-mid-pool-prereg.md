@@ -636,3 +636,23 @@ the same gates and reasons as before. No decision of mid-pool changes: `agents/p
 
 **What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
 of the Edge deploy that carries it, as deviation 17.
+
+## Addendum 18 (2026-10-11, about 02:05 UTC): deviation 18, live-prep's refill cash check, exits through a pause and stop basis
+
+This addendum was written inside the window, before the deploy it records. Its readout runs at or after 2026-10-17
+00:10 UTC.
+
+**Deviation 18 is live-prep's Addendum 18.** It changes the shared `pm_live.ts`: after it, `pm_live.ts` sha256
+`ee96ba0e40e38ac9999f78028470cc8713584cf05c45539f265eca76c2d3667d`, where Addendum 17 above named `a01c8560…778f`. The change: three optional fields, two of
+live-prep's options (`pauseQuotingOnly`, `stopCountsRebates`) and one of its refill's (`minFreeUsd`); a turn whose
+instance sets them rests a close-only market's exit through a pause, counts the maker rebates and the fills' fees in its
+live total stop, and takes no refill while its free buy budget is under $20. Only live-prep's instance sets them. The
+stop's basis is now written as one sum, fills plus paid plus rebates less fees, whose last two are null and add nothing
+for an instance that does not set `stopCountsRebates`.
+
+**Mid-pool is unchanged.** It sets no `lp` options and no refill, so its pause (it has none), its stop (its fills alone)
+and its selection are as before. No decision of mid-pool changes: `agents/pm_mid_formula.test.ts` and
+`agents/pm_payouts.test.ts` run it beside the path this file froze and find every decision the same.
+
+**What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
+of the Edge deploy that carries it, as deviation 18.

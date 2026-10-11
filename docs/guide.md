@@ -434,7 +434,8 @@ places stay when the number is not whole.
   studies' middle guess until enough days are paid ("prior-weighted"): three
   figures, each named, of one R. Then the markets quoting today (today's markets less
   any taken out right now: a market taken out, its reward changed or ended, is
-  replaced after fifteen minutes, at once if none is quoting, by the next best
+  replaced after fifteen minutes (only once at least $20 of its buying budget is
+  free, so a replacement can actually be quoted), at once if none is quoting, by the next best
   market of a reserve the strategy ranks once a day after midnight UTC and
   whose reward it checks every minute, at most ten a
   day, and never takes one back the same day; a market whose trades are
@@ -465,8 +466,11 @@ places stay when the number is not whole.
   all moving every minute). The estimates are on this table and the
   STATUS tile only: the scoreboard counts only money actually paid. Then
   FILLS (a fill Polymarket has not confirmed
-  yet is marked and counted nowhere). Should its −$75 total stop ever trip,
-  a red line under the scoreboard says so. Hide values masks every amount on it.
+  yet is marked and counted nowhere). Under the scoreboard, a line gives its
+  −$75 total stop's room: the stop watches the same total the page adds up
+  (trades valued at the middle price, plus rewards and rebates paid, less any
+  fee), so "$78 of room" means the total can fall $78 before the strategy
+  stops buying. Should the stop ever trip, a red line there says so instead. Hide values masks every amount on it.
 - **Fees on the Reward quotes pages.** Every Reward quotes page shows,
   beside REALIZED, the fees its fills paid, as the LIVE page does, and on a
   paper test, under it, the maker rebates Polymarket would pay back for

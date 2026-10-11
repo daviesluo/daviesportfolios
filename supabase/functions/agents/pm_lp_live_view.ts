@@ -21,7 +21,8 @@
 //   fees       what each CONFIRMED trade's own record says we paid (`pmLiveFillFee`: a taker's `fee_rate_bps` by the docs'
 //              formula, a maker's nothing); every order is post-only, so every fill so far is a maker's and pays nothing.
 //              Taken off realised, as a fee is. The maker rebates Polymarket paid are the readout's own (`rebate_usd`).
-//   the stop   −$75 on the fills' total plus what was paid (rebates not), exactly as the path judges it each turn.
+//   the stop   −$75 on the page's TOTAL since Addendum 18: the fills' total plus the rewards paid and the maker rebates, less
+//              the fees, exactly as the path judges it each live turn; the page shows its room (`roomUsd`).
 //   R          paid ÷ the whole formula, every live quoted minute, 10-09 like for like (`rWhole`, LP-OBS-DEEP 2026-10-11: the
 //              pre-registration's R and the end rule's); the scored figure (`r`) and the prior-weighted point estimates use
 //              (`estimate.r`) are carried beside it and labelled on the page.
@@ -421,7 +422,9 @@ export function lpLiveSummary(input: {
     }));
 
   const limit = cfg.loss_total_usd == null ? null : num(cfg.loss_total_usd);
-  const basis = pnl.total + paid;
+  // The stop's basis since Addendum 18 (`stopCountsRebates`, LP-OBS-DEEP item 5): the page's TOTAL, the fills marked plus
+  // the rewards paid plus the maker rebates less the fees, as the path judges it each live turn.
+  const basis = pnl.total + paid + rebates - fees;
   const lastTurn = input.state?.updated_at ?? null;
   const lagMinutes = lastTurn ? Math.max(0, Math.round((input.nowMs - Date.parse(lastTurn)) / M)) : null;
   const marketsAtWork = new Set([...input.open.map((o) => o.cond), ...held.map((h) => String(h.cond))]);
@@ -457,7 +460,7 @@ export function lpLiveSummary(input: {
     // Today's rewards, estimated (STATUS' last tile on LIVE, Davies 2026-10-09: "预估今日rewards收益…给个范围（最低-最优）").
     estimate,
     stop: {
-      limitUsd: limit, fillsPnlUsd: r6(pnl.total), paidUsd: r6(paid), basisUsd: r6(basis), roomUsd: limit == null ? null : r6(limit + basis),
+      limitUsd: limit, fillsPnlUsd: r6(pnl.total), paidUsd: r6(paid), rebateUsd: r6(rebates), feesUsd: r6(fees), basisUsd: r6(basis), roomUsd: limit == null ? null : r6(limit + basis),
       trippedAt: input.stop?.minute ?? null,
     },
     // The last turn's gates, in the path's own words; a turn of the dry-run (the config disarmed) says so by its mode.

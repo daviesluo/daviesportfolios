@@ -1431,6 +1431,21 @@ export function lpLiveStatus(l) {
 }
 
 /**
+ * The total stop's room on LIVE's "Reward quotes" page, under its scoreboard (Addendum 18, LP-OBS-DEEP item 5): the stop
+ * judges the page's TOTAL (fills marked + rewards paid + rebates − fees, `stop.basisUsd`), so the line reads the limit,
+ * the room left before it (`stop.roomUsd`) and that total, every dollar through `m` (the hide-values mask). Null when the
+ * stop has tripped (its own red line says so) or its figures are not in the payload.
+ * @param {any} l  the dashboard's `lpLive` @param {(s: string) => string} m
+ */
+export function lpStopRoomText(l, m) {
+  const s = l?.stop;
+  const n = (/** @type {unknown} */ x) => (x == null || !Number.isFinite(Number(x)) ? null : Number(x));
+  const limit = n(s?.limitUsd), room = n(s?.roomUsd), basis = n(s?.basisUsd);
+  if (!s || s.trippedAt || limit === null || room === null || basis === null) return null;
+  return `total stop at ${m(fmtUsd(-limit, true))}: ${m(fmtUsd(room))} of room (total ${m(fmtUsd(basis, true))})`;
+}
+
+/**
  * A row of DAYS on LIVE's "Reward quotes" page, as its cells read, every dollar through `m` (the hide-values mask): the
  * markets the readout read, the day's Orders (the fills' P&L marked to market, rewards not counted, `lpDayOrders`;
  * Davies, 2026-10-11: "days表格中在合适的位置加上orders列展示orders的盈亏"), then the whole formula, what Polymarket paid, R and

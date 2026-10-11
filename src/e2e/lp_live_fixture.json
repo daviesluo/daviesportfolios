@@ -476,8 +476,10 @@
    "limitUsd": 75,
    "fillsPnlUsd": 0.8,
    "paidUsd": 2.2,
-   "basisUsd": 3,
-   "roomUsd": 78,
+   "rebateUsd": 0.05,
+   "feesUsd": 0,
+   "basisUsd": 3.05,
+   "roomUsd": 78.05,
    "trippedAt": null
   },
   "gates": {
@@ -762,6 +764,8 @@
    "limitUsd": 75,
    "fillsPnlUsd": 0.8,
    "paidUsd": 0,
+   "rebateUsd": 0,
+   "feesUsd": 0,
    "basisUsd": 0.8,
    "roomUsd": 75.8,
    "trippedAt": null

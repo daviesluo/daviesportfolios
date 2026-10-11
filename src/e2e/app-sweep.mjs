@@ -1180,7 +1180,8 @@ const LP_FIXTURE = JSON.parse(fs.readFileSync(new URL('./lp_fixture.json', impor
  * worked out by hand at this sweep's clock (`lp_live_fixture.json`; pm_lp_live_view.test.ts pins that its `output` is the
  * function's answer for its `input`): funded $320 (the path's cap), deployed $35.20 (its resting buys' $29.40 and $5.80
  * held at cost), today +$0.80, unrealised +$0.20, realised +$2.85 = paid +$2.20 and rebates +$0.05 (rewards +$2.25) and
- * orders +$0.60; the formula's $5.50 apart ($5 of it scored), R 0.40 (0.44 on the scored minutes); its stop reads +$3, $78 to go. Served beside PR5's live executor (the
+ * orders +$0.60; the formula's $5.50 apart ($5 of it scored), R 0.40 (0.44 on the scored minutes); its stop reads the
+ * TOTAL, +$3.05, $78.05 to go (Addendum 18; +$3 before, rebates not). Served beside PR5's live executor (the
  * `lp-live` mode), so LIVE adds two books, and its paper layer's TESTING row beside them; `lp-live-off` is the same
  * without it, to show TESTING does not move; `lp-live-nopay` the same book before any payout is read (its `noPayout`).
  * On LIVE it is "Reward quotes"; its page's STATUS reads R (PAID ÷ FORMULA) 0.40, 3 quoting today, 2 held, and REWARDS TODAY (EST.)
@@ -4796,6 +4797,8 @@ async function run() {
               return `${txt(c.querySelector('.ag-sb-name'))}${asides.length ? ` [${asides.join('; ')}]` : ''}=${txt(c.querySelector('.sb-value'))}`;
             }).join(' | '),
             split: [...root.querySelectorAll('.ag-sb-split-line')].map(txt).join(' / '),
+            // The total stop's room under the scoreboard (Addendum 18): the stop judges the page's TOTAL.
+            room: txt(root.querySelector('.ag-lpl-room')),
             tiles: [...root.querySelectorAll('.ag-rw-bar .ag-rw-tile')].map((t) => `${txt(t.querySelector('.ag-rw-tile-k'))}=${txt(t.querySelector('.ag-rw-tile-v'))}`).join(' | '),
             tileNotes: [...root.querySelectorAll('.ag-rw-bar .ag-rw-tile-note')].map(txt),
             // The estimate tile's value colour, as its inline style names it (the page's gain colour).
@@ -4828,9 +4831,10 @@ async function run() {
         const phoneView = vpWidth <= 760;
         const PAGE_SB = `FUNDED=$320 | DEPLOYED=$35.20(11%) | TODAY=${LP_GL[0].replace(' ', '')} | UNREALIZED G/L=${LP_GL[1].replace(' ', '')} | REALIZED G/L [(incl. fees $0)]=${LP_GL[2].replace(' ', '')}`;
         if (lv && lv.title === 'Reward quotes' && lv.modals === 2 && lv.refresh && lv.head === 'LIVE Polymarket' && lv.status === 'running' && /^live 1d 21h$/.test(lv.tested)
-          && lv.paperPage === 0 && lv.scoreboard === PAGE_SB && lv.split === 'rewards paid +$2.25 / orders +$0.60') {
-          ok(LT('page'), `its row opens its own page over the list, with a refresh button: LIVE Polymarket, running · ${lv.tested}; its scoreboard is the row's (${lv.scoreboard}), realised split into rewards paid and orders`);
-        } else fail(LT('page'), `page ${JSON.stringify(lv && { title: lv.title, modals: lv.modals, refresh: lv.refresh, head: lv.head, status: lv.status, tested: lv.tested, paper: lv.paperPage, sb: lv.scoreboard, split: lv.split })}, wanted ${PAGE_SB}`);
+          && lv.paperPage === 0 && lv.scoreboard === PAGE_SB && lv.split === 'rewards paid +$2.25 / orders +$0.60'
+          && lv.room === 'total stop at -$75: $78.05 of room (total +$3.05)') {
+          ok(LT('page'), `its row opens its own page over the list, with a refresh button: LIVE Polymarket, running · ${lv.tested}; its scoreboard is the row's (${lv.scoreboard}), realised split into rewards paid and orders; under it "${lv.room}"`);
+        } else fail(LT('page'), `page ${JSON.stringify(lv && { title: lv.title, modals: lv.modals, refresh: lv.refresh, head: lv.head, status: lv.status, tested: lv.tested, paper: lv.paperPage, sb: lv.scoreboard, split: lv.split, room: lv.room })}, wanted ${PAGE_SB}`);
         const WANT = {
           // HELD went too (Davies: "新live页里held表也可以删了，QUOTES表里已经有了"): QUOTES' Held column is what it holds of each token.
           // STOP AND GATES went the same day ("live页的子页面中stopandgates那部分也删掉").
@@ -4902,14 +4906,14 @@ async function run() {
         const hRow = hq.rows.find((r) => r.name === 'Reward quotes');
         // The estimate's dollars are masked; its R band and the other tiles' counts are not.
         const hTiles = hv?.tiles.split(' | ') ?? [];
-        const hiddenOk = !!hv && !!hRow && !/\$\d/.test(hv.scoreboard) && !/\$\d/.test(hv.split)
+        const hiddenOk = !!hv && !!hRow && !/\$\d/.test(hv.scoreboard) && !/\$\d/.test(hv.split) && /^total stop at -\$\D+: \$\D+ of room \(total \+\$\D+\)$/.test(hv.room)
           && hTiles.slice(0, 3).join(' | ') === WANT.tiles.split(' | ').slice(0, 3).join(' | ') && /^REWARDS TODAY \(EST\.\)=\$\D* – \$\D*$/.test(hTiles[3] ?? '')
           && JSON.stringify(hv.tileNotes) === JSON.stringify(WANT.tileNotes)
           && !hRow.gl.some((t) => /\$\d/.test(t)) && !/\$\d/.test(hRow.sub)
           && !cellsAt(hv.quotes, [1, 2, 3, 4, 5, 6]).some(digits) && hv.quotes.every((r) => r.split(' | ').length === 7) && !cellsAt(hv.fills, [3, 4]).some(digits)
           && !cellsAt(hv.days, [2, 3, 4, 6]).some(digits) && cellsAt(hv.days, [1, 5]).join(',') === '—,—,2,0.40' && hv.fills.length === 5;
         if (hiddenOk) ok(LT('hidden'), "hide-values masks LIVE's Reward quotes row and page: its scoreboard, stop, quotes, holdings, pools, payouts, each day's orders, prices and sizes; its counts, shares, R and times stay");
-        else fail(LT('hidden'), `under the mask: row ${JSON.stringify(hRow)}, scoreboard "${hv?.scoreboard}", tiles "${hv?.tiles}", notes ${JSON.stringify(hv?.tileNotes)}, stop "${hv?.stop}", quotes ${JSON.stringify(hv?.quotes)}, days ${JSON.stringify(hv?.days)}`);
+        else fail(LT('hidden'), `under the mask: row ${JSON.stringify(hRow)}, scoreboard "${hv?.scoreboard}", tiles "${hv?.tiles}", notes ${JSON.stringify(hv?.tileNotes)}, stop "${hv?.room}", quotes ${JSON.stringify(hv?.quotes)}, days ${JSON.stringify(hv?.days)}`);
         await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
         await closeBy(page, () => page.keyboard.press('Escape'));
         await toggleHidden(page);                       // values shown again for everything after this

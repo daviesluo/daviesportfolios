@@ -1988,6 +1988,7 @@ body {
 .ag-ladder th:nth-child(n+2), .ag-ladder td:nth-child(n+2) { text-align: right; }
 .ag-qheld { white-space: nowrap; }
 .ag-warn-line { margin-top: 6px; font-size: 11px; color: var(--loss); }
+.ag-lpl-room { margin-top: 6px; font-size: 11px; }
 /* RW's page (reference §4 item 36). A market is its question, and the question is long: two lines of it (four on a
    phone, where the market keeps only what it holds and its total beside it), the whole of it in the title. One line cut
    "…between 78-79°F on September 17?" down to "Will the highest temperature in Los Ang…", which names no market. */

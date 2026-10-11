@@ -38,15 +38,12 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    - **LP-RULES (10-11): no rule change today** (`reviews/2026-10-11-lp-rules-audit.md`). Reads it leaves: capital held
      by carried stock over 10-11 → 10-13 (its triggers and three options for Davies are in the review); TB1, LPRESEL6,
      near-end inventory and 3N/5N by 10-23.
-   - **LP-CAPDEEP (10-11): keep the cap's $80 buffer; re-read 10-16** (`reviews/2026-10-11-lp-capital-deep.md`): release
-     $40 only if the budget still binds most minutes of 10-13 → 10-15, ranks 5+ buys have not lost at 6 h, and the stop's
-     room is ≥ $100. **For Davies' word:** the refill waits while the turn's free buy budget (min(cap − committed, pUSD
-     left)) is under $20 (an addendum and a pin test; about +$0.5 a day, lowers risk).
-
-   - **LP-OBS-DEEP (10-11):** three fixes for the coordinator and Davies: the 7-day end rule's R must read 10-09 like for
-     like before **10-16 01:00 UTC** (addendum; it reads 0.154 now), TESTING rows priced on one basis, rebates in the
-     stop (addendum). The pause change for close-only markets waits for the next `pm_live.ts` addendum
-     (`reviews/2026-10-11-lp-observations-deep.md`).
+   - **Addendum 18 (Davies 01:41 UTC 10-11: "同意，这些都按你推荐的来"), with the display fix before it: pushed 10-11
+     by the main session** (LP-OBS-DEEP, LP-CAPDEEP). The end rule and 14-day readout read `backtests/pmlp/lp_readout_a18.sql`
+     (10-09 like for like: R 0.7366 now, the frozen script 0.154); the 7-day read is on or after **10-16 01:00 UTC**. The
+     refill waits while free buy budget < $20; a close-only market's exit rests through a pause; the live stop is the
+     page's TOTAL (rebates in, fees out). The cap's $80 stays: **re-read 10-16** (LP-CAPDEEP's three conditions for $40).
+     Forward tests (three live days): refills taken/deferred, exits filled in paused markets, the stop's room.
 
    - **RW's verdict: read 2026-10-09 00:42–00:50 UTC** (`reviews/2026-10-09-polymarket-rw-paper-result.md`, reference
      §3.46, `backtests/rwverdict/`). RW 6/6, RW-E 7/7, x1–x3 7/7 each; step b (all 4,116 fills by `stepRw`) and c (13,634
@@ -329,7 +326,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    00:00, read on 11-08 from 00:30 with `backtests/cbpaper/scripts/replay.py` on the export Deviation 1 names (a wake to
    set). The budget split is `reviews/2026-10-10-coinbase-vs-revolutx.md`.
 
-13. **Coinbase's order books recorded, ten levels a side: built on branch `cb-books`, not yet deployed** (Davies,
+13. **Coinbase's order books recorded, ten levels a side: live since `96a9da37` (10-10)** (Davies,
    2026-10-10; reference §4 item 59, migration `0114`, `agents?action=cbbooks`). After it lands and its 15 minutes
    pass: `select last_error, last_report from cb_book_state` (`recorded` 4 a minute, `reached` true) and `select product,
    count(*), max(ts) from cb_book_levels group by 1`; no `agents.cb_books` row in `ops_errors`. Nothing reads it until a
@@ -456,8 +453,17 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10"; each oldest first.
 
+### [2026-10-11 02:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep's Addendum 18 (mid-pool's 18)** (sub-agent, landed by the main session; Davies' "同意，这些都按你推荐的来", 01:41 UTC, quoted).
+  (1) `lp_readout_a18.sql`, the frozen readout's corrected copy (10-09 at $8.081876), run read-only on production 02:02:
+  R 0.7366, scored 0.7633 (`results/lp_readout_a18_2026-10-11.txt`). (2) `PM_LP_REFILL.minFreeUsd: 20`: no refill while
+  min(cap − committed, pUSD left) < $20, checked before candidates; `state.lp.refill.deferred`. (3) `pauseQuotingOnly`:
+  close-only markets rest their exit through a pause. (4) `stopCountsRebates`: live stop basis = fills + paid + rebates −
+  fees = the page's TOTAL; the page shows the room. `pm_live.ts` `ee96ba0e…667d` (was `a01c8560…778f`), `pm_lp.ts`
+  `53f7f788…7278` (was `82d1aa94…a850`). Three turn pins fail on Addendum 17's `pm_live.ts`. $80 buffer kept.
+
 ### [2026-10-11 01:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **One R on LIVE's Reward quotes, and TESTING's paper rows priced on it** (sub-agent, not pushed; LP-OBS-DEEP's defect 2
+- **One R on LIVE's Reward quotes, and TESTING's paper rows priced on it** (sub-agent, landed by the main session; LP-OBS-DEEP's defect 2
   and item 4c, display only, no rule). `pm_lp_live_view.ts`: `wholeFormulaOf` (`formula_usd`, 10-09 at its like-for-like
   $8.081876), `lpLiveR(…, "whole")`, the summary's `rWhole`, `formulaWholeUsd`, `rWholeLive`; the dashboard prices every
   paper row at `rWholeLive` (was `estimate.r`, scored: +1.1 % now, → +4.6 %). The page's tile is "R (PAID ÷ FORMULA)" on

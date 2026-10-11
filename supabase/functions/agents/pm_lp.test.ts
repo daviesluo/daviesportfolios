@@ -24,6 +24,7 @@ import { classifyLp, decideLp, PREP_INSTANCE, prepDbTables, prepReads, runPmPrep
 import { PM_MID_INSTANCE, PREP_MID_INSTANCE } from "./pm_mid.ts";
 import { newAcc, quote, sizeN, stepRw, summarize, type BookRow } from "./pmrw.ts";
 import { asTickSize, PmOrderKey, type PmTickSize } from "../_shared/polymarket_orders.ts";
+import { pmLiveFillFee } from "./pm_fees.ts";
 import type { PmPrint } from "../_shared/polymarket_public.ts";
 import { FakePolymarket, memDb, onlyTables, PM_TEST_FUNDER, PM_TEST_KEY, PM_TEST_SIGNER, type Row } from "./testing.ts";
 
@@ -374,7 +375,7 @@ type P = [number, "BUY" | "SELL", number, number, number];
  * would pass it over), and four that live-prep never takes: WX (weather), TODAY (ends this UTC day), GAME (starts within
  * two days) and LOW ($8). Mini-pool's and mid-pool's tables sit beside its own, each with a row, as in production.
  */
-function world(o: { config?: Record<string, unknown>; days?: Array<Record<string, unknown>>; onCost?: boolean; nearCertain?: boolean; refill?: Partial<LpRefillOptions>; extra?: number[]; noExitRule?: boolean; slotOrder?: boolean } = {}) {
+function world(o: { config?: Record<string, unknown>; days?: Array<Record<string, unknown>>; onCost?: boolean; nearCertain?: boolean; refill?: Partial<LpRefillOptions>; extra?: number[]; noExitRule?: boolean; slotOrder?: boolean; noPauseRule?: boolean; noRebatesInStop?: boolean } = {}) {
   const clock = { now: T0 };
   // `onCost`: the day stop as the pre-registrations froze it (`dayStopOnCost`), which no action runs (2026-10-07).
   // `noExitRule`: the instance as it was before Addendum 16, its exits the quoting rule's (the counterfactual).
@@ -382,7 +383,10 @@ function world(o: { config?: Record<string, unknown>; days?: Array<Record<string
   if (o.noExitRule) delete lpOpts.exitRule;
   // `slotOrder`: the caps funded slot by slot in the slot key's order, as before Addendum 17 (the counterfactual).
   if (o.slotOrder) delete lpOpts.fundByRank;
-  const base = o.refill || o.noExitRule || o.slotOrder ? { ...PM_LP_INSTANCE, lp: lpOpts } : PM_LP_INSTANCE;
+  // `noPauseRule`, `noRebatesInStop`: the pause and the stop as they were before Addendum 18 (the counterfactuals).
+  if (o.noPauseRule) delete lpOpts.pauseQuotingOnly;
+  if (o.noRebatesInStop) delete lpOpts.stopCountsRebates;
+  const base = o.refill || o.noExitRule || o.slotOrder || o.noPauseRule || o.noRebatesInStop ? { ...PM_LP_INSTANCE, lp: lpOpts } : PM_LP_INSTANCE;
   const inst = o.onCost ? { ...base, dayStopOnCost: true } : base, prepInst = o.onCost ? { ...PREP_LP_INSTANCE, dayStopOnCost: true } : PREP_LP_INSTANCE;
   const pm = new FakePolymarket(() => clock.now);
   const add = (n: number, rate: number, extra: Record<string, unknown> = {}) =>
@@ -1152,7 +1156,8 @@ const fakeOf = (w: ReturnType<typeof world>, c: string) => [w.L1, w.BIG, w.E30, 
 const buysIn = (w: ReturnType<typeof world>, c: string) => w.rows("pm_lp_orders").filter((x) => x.mode === "live" && x.cond === c && x.side === "BUY" && x.state === "live").length;
 
 Deno.test("the live reserve: after the day's selection, the next candidates in RW's order, none of the day's markets; their programmes read every minute", async () => {
-  assertEquals(PM_LP_REFILL, { afterMin: 15, afterMinAllOut: 0, maxPerDay: 10, perTurn: 1, triesPerTurn: 3, retryMin: 15, reserveSize: 30, refreshTop: 15, rerankEveryMin: 1440, idleAlarmMin: 30 });
+  // `minFreeUsd` since Addendum 18 (the refill waits for $20 of free buy budget).
+  assertEquals(PM_LP_REFILL, { afterMin: 15, afterMinAllOut: 0, maxPerDay: 10, perTurn: 1, triesPerTurn: 3, retryMin: 15, reserveSize: 30, refreshTop: 15, rerankEveryMin: 1440, idleAlarmMin: 30, minFreeUsd: 20 });
   assertEquals(PM_LP_INSTANCE.lp!.refill, { ...PM_LP_REFILL, table: "pm_lp_reserve" });
   const w = world({ config: { ...LIVE, max_markets: 2 }, extra: [100, 90] });
   assertEquals((await w.reserve(T0 - 20e3)).skipped, "the day's selection has not landed yet");
@@ -1452,4 +1457,96 @@ Deno.test("the caps in rank order: a market whose one side is a sell of what it 
   // Only live-prep's instance sets it.
   assertEquals(PM_LP_INSTANCE.lp!.fundByRank, true);
   for (const inst of [PM_LIVE_INSTANCE, PM_MINI_INSTANCE, PM_MID_INSTANCE]) assertEquals(inst.lp?.fundByRank, undefined);
+});
+
+
+// ------------------------------------------------------------------ Addendum 18 (2026-10-11): LP-OBS-DEEP and LP-CAPDEEP
+
+Deno.test("the pause and the exit (Addendum 18): a paused market worked close-only rests the sell of what it holds; a paused market still quoting rests nothing; before it the pause held both", async () => {
+  const run = async (noPauseRule: boolean) => {
+    const w = world({ config: LIVE, noPauseRule });
+    await w.turn(T0);
+    const yesBuy = w.rows("pm_lp_orders").find((x) => x.mode === "live" && x.cond === w.L1.cond && x.outcome === "yes" && x.side === "BUY" && x.state === "live");
+    assert(yesBuy, "a live BUY of YES rests");
+    w.pm.settle(w.pm.fill(String(yesBuy.hash), 5), "CONFIRMED");                     // the account holds 5 YES of L1
+    await w.turn(T0 + M);
+    w.L1.rate = 8;                                                                   // the reward check takes L1 out (under $10): close-only
+    await w.turn(T0 + 2 * M);
+    // Both books jump 20 ¢ (L1 0.45 / 0.47 → 0.65 / 0.67; BIG, selected and quoting, 0.30 / 0.32 → 0.50 / 0.52): both pause.
+    w.L1.bid = 0.65; w.L1.ask = 0.67; w.BIG.bid = 0.50; w.BIG.ask = 0.52;
+    await w.turn(T0 + 3 * M);
+    await w.turn(T0 + 4 * M);
+    const lp = (c: string) => minuteOf(w, c, T0 + 4 * M).detail.lp;
+    assertEquals([lp(w.L1.cond).state, lp(w.BIG.cond).state], ["paused", "paused"]);
+    const live = (c: string, side: "BUY" | "SELL") => w.rows("pm_lp_orders").filter((x) => x.mode === "live" && x.cond === c && x.side === side && x.state === "live");
+    // The market still quoting keeps x2's pause whole: nothing rests in BIG, buy or sell.
+    assertEquals([live(w.BIG.cond, "BUY").length, live(w.BIG.cond, "SELL").length], [0, 0]);
+    assertEquals(live(w.L1.cond, "BUY").length, 0);
+    assert(w.othersUntouched());
+    return { sells: live(w.L1.cond, "SELL").map((x) => [x.outcome, Number(x.price), Number(x.size)]), spared: lp(w.L1.cond).exitThroughPause ?? false };
+  };
+  // L1's exit rests through the pause: the SELL of its 5 YES at RW's ask in the new book, 0.67, post-only.
+  assertEquals(await run(false), { sells: [["yes", 0.67, 5]], spared: true });
+  // The counterfactual, the pause before Addendum 18: the exit is withheld for the hour, nothing rests.
+  assertEquals(await run(true), { sells: [], spared: false });
+});
+
+Deno.test("the refill waits for the cash (Addendum 18): with $7.10 of free buy budget no refill is taken, the slot stays out, the day's count unused; with $40.10 it refills; before it, it refilled on $7.10", async () => {
+  const run = async (minFreeUsd: number | undefined) => {
+    const w = world({ config: { ...LIVE, max_markets: 2 }, extra: [100, 90], refill: { minFreeUsd } });
+    await w.turn(T0);
+    await w.reserve(T0 + 20e3);
+    const [S] = day0(w).map((m) => String(m.cond));
+    fakeOf(w, S).rewardsMinSize = 50;                                                         // S out from T0 + 1 min
+    for (let k = 1; k <= 15; k++) { await w.turn(T0 + k * M); await w.reserve(T0 + k * M + 20e3); }
+    // The other market's pair of buys holds $4.90 (5 × 0.98 on a two-tick book) and nothing is held: a cap of $12 leaves
+    // $7.10 free after the turn's funded buys (LP-CAPINV's 00:15 case: carried stock filling the cap).
+    w.setConfig({ cap_total_usd: 12 });
+    await w.turn(T0 + 16 * M);
+    const at16 = { refills: w.rows("pm_lp_events").filter((e) => e.kind === "refill").length, st: JSON.parse(JSON.stringify(lpState(w).refill)) };
+    // The cash frees: $45 leaves $40.10, and the next turn refills.
+    w.setConfig({ cap_total_usd: 45 });
+    await w.turn(T0 + 17 * M);
+    return { S, at16, after: w.rows("pm_lp_events").filter((e) => e.kind === "refill").map((e) => [(e.detail as any).for, Date.parse(String(e.minute)) - (T0 - 30e3)]) };
+  };
+  const now = await run(PM_LP_REFILL.minFreeUsd);
+  assertEquals(PM_LP_REFILL.minFreeUsd, 20);
+  // Minute 16, $7.10 free: no refill, nothing tried, the count unused, the slot still out since minute 1, the deferral said.
+  assertEquals([now.at16.refills, now.at16.st.count, Object.keys(now.at16.st.tried).length, now.at16.st.replaced[now.S] ?? null], [0, 0, 0, null]);
+  assertEquals([now.at16.st.outSince[now.S], now.at16.st.deferred.freeUsd], [iso(T0 + M), 7.1]);
+  // Minute 17, $40.10 free: the refill takes the slot, as before.
+  assertEquals(now.after, [[now.S, 17 * M]]);
+  // The counterfactual, the refill before Addendum 18: it took the slot at minute 16 on $7.10, a market it could not fund.
+  assertEquals((await run(undefined)).after.map((x) => x[1]), [16 * M]);
+});
+
+Deno.test("the live stop is the page's TOTAL (Addendum 18): rewards $10 and rebates $5 trip it at fills −$90, not at −$85; a taker's fee counts against it; before it, −$85 tripped", async () => {
+  const run = async (fillsPnl: number, noRebatesInStop = false, taker = false) => {
+    const w = world({ config: LIVE, noRebatesInStop });
+    // A round trip on L1's YES before the day: 100 bought at 0.95, sold at 0.95 + pnl / 100 (a taker's sell when `taker`).
+    const base = { cond: w.L1.cond, token: tok(1, "yes"), status: "CONFIRMED", size: 100 };
+    w.rows("pm_lp_fills").push({ ...base, trade_id: "a-b", hash: "0xab", side: "BUY", price: 0.95, match_time: "2026-10-04T11:00:00.000Z" });
+    w.rows("pm_lp_fills").push({ ...base, trade_id: "a-s", hash: "0xas", side: "SELL", price: Math.round((0.95 + fillsPnl / 100) * 1e6) / 1e6, match_time: "2026-10-04T12:00:00.000Z",
+      ...(taker ? { detail: { trade: { trader_side: "TAKER", fee_rate_bps: 1000 } } } : {}) });
+    w.rows("pm_lp_reward_days").push({ mode: "live", day: "2026-10-04", cond: w.L1.cond, minutes: 10, minutes_two_sided: 10, minutes_scored: 10, formula_usd: 20, formula_scored_usd: 20, rate: 12, actual_usd: 10, actual_sponsored_usd: 0, rebate_usd: 5, read_at: "2026-10-05T01:00:00.000Z", detail: {} });
+    await w.turn(T0);
+    return w.rows("pm_lp_events").filter((e) => e.kind === "loss_stop_total").map((e) => e.detail as any);
+  };
+  // −90 + 10 + 5 = −75: at the limit, it trips; the event names each part.
+  const at90 = await run(-90);
+  assertEquals(at90.map((d) => [Math.round(d.totalPnl * 1e6) / 1e6, d.paid, d.rebates, d.fees, Math.round(d.basis * 1e6) / 1e6, d.limit]), [[-90, 10, 5, 0, -75, -75]]);
+  // −85 + 10 + 5 = −70: inside, nothing trips.
+  assertEquals(await run(-85), []);
+  // A fee counts against it, as the page's TOTAL takes it off: −89.50 + 15 = −74.50 is inside, but with the sell a taker's
+  // at 10 % (`pmLiveFillFee` on its trade record, as the page reads it) the fee takes it past −75.
+  const fee = pmLiveFillFee(100, 0.055, "TAKER", 1000);
+  assert(fee > 0.5, String(fee));
+  assertEquals(await run(-89.5), []);
+  const withFee = await run(-89.5, false, true);
+  assertEquals(withFee.map((d) => [Math.round(d.fees * 1e6) / 1e6, Math.round(d.basis * 1e6) / 1e6]), [[Math.round(fee * 1e6) / 1e6, Math.round((-89.5 + 15 - fee) * 1e6) / 1e6]]);
+  // The counterfactual, the stop before Addendum 18: rebates left out, −85 + 10 = −75 trips.
+  assertEquals((await run(-85, true)).map((d) => [d.paid, "rebates" in d, Math.round(d.basis * 1e6) / 1e6]), [[10, false, -75]]);
+  // Only live-prep's instance sets the three.
+  for (const inst of [PM_LIVE_INSTANCE, PM_MINI_INSTANCE, PM_MID_INSTANCE]) assertEquals([inst.lp?.pauseQuotingOnly, inst.lp?.stopCountsRebates, inst.lp?.refill?.minFreeUsd], [undefined, undefined, undefined]);
+  assertEquals([PM_LP_INSTANCE.lp!.pauseQuotingOnly, PM_LP_INSTANCE.lp!.stopCountsRebates, PM_LP_INSTANCE.lp!.refill!.minFreeUsd], [true, true, 20]);
 });
