@@ -429,10 +429,7 @@ places stay when the number is not whole.
   a payout has been read (9 October, the first day, counted at the rates Polymarket
   actually paid that day; a dash until the first; Polymarket's payout is read
   from five minutes past midnight UTC, so it moves within minutes of arriving).
-  Under it, the same over only the minutes Polymarket itself confirmed our
-  orders scoring, and the R the estimates use, which leans towards the
-  studies' middle guess until enough days are paid ("prior-weighted"): three
-  figures, each named, of one R. Then the markets quoting today (today's markets less
+  One figure, nothing under it. Then the markets quoting today (today's markets less
   any taken out right now: a market taken out, its reward changed or ended, is
   replaced after fifteen minutes (only once at least $20 of its buying budget is
   free, so a replacement can actually be quoted), at once if none is quoting, by the next best

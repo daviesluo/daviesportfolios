@@ -1936,14 +1936,14 @@ describe('lpLiveRow (live-prep\'s real money, "Reward quotes" on LIVE, 2026-10-0
     // One R, labelled (LP-OBS-DEEP, 2026-10-11): the tile is 2.20 over the whole formula's 5.50, 0.40; under it 2.20 over the
     // scored 5.00, 0.44, and the prior-weighted point the estimate uses, exp((2 × −0.804719 + ln 0.44) / 3) = 0.444796.
     expect([s.phase, s.rText, s.quoting, s.open, 'bestShareText' in s]).toEqual(['run', '0.40', 3, 2, false]);
-    expect(s.rNotes).toEqual(['0.44 on scored minutes', 'estimates use 0.44, prior-weighted']);
+    expect(s.rNotes).toEqual([]);  // nothing under the tile (Davies, 2026-10-11)
     expect(s.est).toEqual({ lowUsd: 0.181699, highUsd: 0.908493, dayLowUsd: 0, dayHighUsd: 1.393023, rBand: '0.20–0.99', rDays: 1 });
     const id = (/** @type {string} */ x) => x;
     expect(lpEstimateTexts(s.est, id)).toEqual({ text: '$0.18 – $0.91', color: 'var(--gain)' });
     const np = lpLiveStatus(lpLiveFixture.noPayout);
     expect([np.rText, lpEstimateTexts(np.est, id)]).toEqual(['—', { text: '$0.18 – $0.90', color: 'var(--gain)' }]);
-    // Before a payout: no scored figure, and the estimate's R is the prior's √(0.2 × 1) = 0.447, said so.
-    expect(np.rNotes).toEqual(['estimates use 0.45, the prior']);
+    // Before a payout: a dash, and nothing under it.
+    expect(np.rNotes).toEqual([]);
     // A payload from before the whole basis (no `rWhole`) shows a dash, never the scored R under the new label.
     expect(lpLiveStatus({ ...l, rWhole: undefined }).rText).toBe('—');
     // Hidden values: every dollar goes through the mask.

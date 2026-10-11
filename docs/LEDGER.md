@@ -466,6 +466,11 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11"; each oldest first.
 
+### [2026-10-11 04:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- LIVE's Reward quotes: the R tile shows the one figure, paid ÷ whole formula, with nothing under it (Davies:
+  "第一个数字底下的小字部分全删了，第一个数字用一个最能表示的就行"); `lpLiveStatus().rNotes` is empty, the vitest and the
+  browser sweep pin that, `docs/guide.md` says so. Estimates still price at their own prior-weighted R, unshown.
+
 ### [2026-10-11 03:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Handover to Cursor (Grok 4.7) before the weekly limit** (Davies: "把这套盯盘+自动维护修复问题的机制详细总结成一个skill…
   低级的模型也可以看懂并完美实施"). Wrote `.agents/skills/live-watch/SKILL.md` (+ two pointers, `docs/map.md`'s agents

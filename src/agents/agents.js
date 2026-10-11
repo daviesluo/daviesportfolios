@@ -1412,16 +1412,11 @@ export const LP_R_TILE = 'R (PAID ÷ FORMULA)';
 export function lpLiveStatus(l) {
   const e = l?.estimate;
   const n = (/** @type {unknown} */ x) => (x == null || !Number.isFinite(Number(x)) ? null : Number(x));
-  // One R, labelled (LP-OBS-DEEP, `reviews/2026-10-11-lp-observations-deep.md`, item 4c): the tile is what Polymarket paid
-  // over the whole formula, every live quoted minute, 10-09 like for like (`rWhole`, the pre-registration's R and the end
-  // rule's); under it, the same over the minutes Polymarket confirmed scoring (`r`), and the prior-weighted point today's
-  // estimate prices its scored formula at (`estimate.r`), each said for what it is.
-  /** @type {string[]} */
-  const rNotes = [];
-  if (n(l?.r) !== null) rNotes.push(`${fmtR(l.r)} on scored minutes`);
-  if (n(e?.r?.point) !== null) rNotes.push(`estimates use ${fmtR(e.r.point)}, ${e.r.basis === 'prior' ? 'the prior' : 'prior-weighted'}`);
+  // One R (LP-OBS-DEEP, `reviews/2026-10-11-lp-observations-deep.md`, item 4c): what Polymarket paid over the whole
+  // formula, every live quoted minute, 10-09 like for like (`rWhole`, the pre-registration's R and the end rule's). Nothing
+  // under it (Davies, 2026-10-11: "第一个数字底下的小字部分全删了，第一个数字用一个最能表示的就行").
   return {
-    phase: 'run', rText: fmtR(l?.rWhole), rNotes,
+    phase: 'run', rText: fmtR(l?.rWhole), rNotes: /** @type {string[]} */ ([]),
     quoting: Number(l?.status?.quoting) || 0, open: Number(l?.status?.held) || 0,
     est: e ? {
       lowUsd: n(e.soFar?.lowUsd), highUsd: n(e.soFar?.highUsd), dayLowUsd: n(e.fullDay?.lowUsd), dayHighUsd: n(e.fullDay?.highUsd),

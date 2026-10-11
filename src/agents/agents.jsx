@@ -699,7 +699,7 @@ function LpLiveDetail({ l, m, at, nowMs }) {
  * and how many positions are still held. No line under the titles (Davies, 2026-09-25).
  * A real-money book's (LIVE's "Reward quotes") opens on its actual R (`rText`) where a paper test's opens on its worst case.
  * LIVE's has no TOP SHARE and ends on today's rewards, estimated (`est`, `lpEstimateTexts`: the range so far, in green).
- * Under its R, `rNotes`: the scored figure and the prior-weighted point the estimate uses, each labelled (LP-OBS-DEEP).
+ * Under its R, `rNotes` (empty since Davies, 2026-10-11, asked for the R alone).
  * @param {{ v: { phase: string, bestShareText?: string }, r: any, usd: (x: number | null | undefined) => string, rText?: string | null, rNotes?: string[], est?: { text: string, color: string | null } | null }} props
  */
 function RwBar({ v, r, usd, rText = null, rNotes = [], est = null }) {

@@ -4845,7 +4845,7 @@ async function run() {
           // same over the $5 of scored minutes, 0.44, and the prior-weighted point the estimate uses, 0.444796 (pm_lp_live_view.test.ts).
           tiles: 'R (PAID ÷ FORMULA)=0.40 | QUOTING TODAY=3 | POSITIONS STILL HELD=2 | REWARDS TODAY (EST.)=$0.18 – $0.91',
           // The estimate in green, with nothing under it (Davies, 2026-10-09: "数字的字体改成绿色的，底下"day …"删掉不显示"); the notes are the R tile's.
-          tileNotes: ['0.44 on scored minutes', 'estimates use 0.44, prior-weighted'],
+          tileNotes: [],  // nothing under R (Davies, 2026-10-11: "第一个数字底下的小字部分全删了")
           quoteHeads: 'Market | Pool/day | Quote | Held | Rewards (est.) | Orders | Total (est.)',
           // DAYS' Orders (Davies, 2026-10-11): each day's fills marked to market, beside its rewards; 17 Sep, today and not
           // yet read, has its Orders alone; the two add up to the orders' +$0.60 realised and +$0.20 unrealised (pm_lp_live_view.test.ts).
@@ -4867,7 +4867,7 @@ async function run() {
           && lv.held.length === 0 && JSON.stringify(lv.days) === JSON.stringify(WANT.days) && lv.daysHeads === WANT.daysHeads
           && JSON.stringify(lv.quotes) === JSON.stringify(WANT.quotes) && JSON.stringify(lv.fills) === JSON.stringify(WANT.fills)
           && /^as of \d{1,2} \w{3} \d{2}:\d{2} [A-Z]+ · refreshes every minute$/.test(lv.foot)) {
-          ok(LT('page'), `its sections are ${WANT.sections}: STATUS ${lv.tiles}, its R's notes ${lv.tileNotes.join('; ')}, the estimate in green with nothing under it; QUOTES ${lv.quoteHeads}; DAYS first, ${lv.daysHeads}: 17 Sep (today) Orders +$0.30 alone, 16 Sep Orders +$0.50 and paid $2.20 against a formula of $5.50 (R 0.40); no STOP AND GATES and no HELD; QUOTES without Share or Rewards (3 markets, H's 10 No at 28¢ and J's 10 Yes at 30¢) and FILLS (5, one not confirmed)`);
+          ok(LT('page'), `its sections are ${WANT.sections}: STATUS ${lv.tiles}, nothing under its R, the estimate in green with nothing under it; QUOTES ${lv.quoteHeads}; DAYS first, ${lv.daysHeads}: 17 Sep (today) Orders +$0.30 alone, 16 Sep Orders +$0.50 and paid $2.20 against a formula of $5.50 (R 0.40); no STOP AND GATES and no HELD; QUOTES without Share or Rewards (3 markets, H's 10 No at 28¢ and J's 10 Yes at 30¢) and FILLS (5, one not confirmed)`);
         } else fail(LT('page'), `fonts ${JSON.stringify(lv?.fonts)}, sections ${lv?.sections}, tiles "${lv?.tiles}", notes ${JSON.stringify(lv?.tileNotes)}, estimate style "${lv?.estColor}", quote heads "${lv?.quoteHeads}", stop-and-gates boxes ${lv?.stopAndGates}, held ${lv?.held.length}, days "${lv?.daysHeads}" ${JSON.stringify(lv?.days)}, quotes ${JSON.stringify(lv?.quotes)}, fills ${JSON.stringify(lv?.fills)}, foot "${lv?.foot}"`);
         if (lv && lv.overflow <= 1 && lv.pageOverflow <= 1 && lv.off === 0 && (phoneView || lv.tableOverflow <= 1) && lv.daysOverflow !== null && lv.daysOverflow <= 1) {
           ok(LT('width'), `nothing on its page is wider than the screen (page ${lv.overflow}px, document ${lv.pageOverflow}px, ${lv.off} boxes outside${phoneView ? `, tables scroll inside their boxes by ${lv.tableOverflow}px at most` : ', no table past its box'}; DAYS' seven columns fit their box, ${lv.daysOverflow}px)`);
@@ -4886,8 +4886,8 @@ async function run() {
         await settled(page, '.ag-lp-live-detail');
         const np = await readLpLivePage();
         if (np && np.tiles === 'R (PAID ÷ FORMULA)=— | QUOTING TODAY=3 | POSITIONS STILL HELD=2 | REWARDS TODAY (EST.)=$0.18 – $0.90'
-          && JSON.stringify(np.tileNotes) === JSON.stringify(['estimates use 0.45, the prior']) && JSON.stringify(np.days) === JSON.stringify(['17 Sep · today | — | +$0.30 | — | — | — | —', '16 Sep | — | +$0.50 | — | — | — | —'])) {
-          ok(LT('r'), `with no payout read, R (PAID ÷ FORMULA) is a dash and the estimate stands on the prior (${np.tileNotes.join('; ')}): ${np.tiles}; DAYS: ${JSON.stringify(np.days)}`);
+          && JSON.stringify(np.tileNotes) === JSON.stringify([]) && JSON.stringify(np.days) === JSON.stringify(['17 Sep · today | — | +$0.30 | — | — | — | —', '16 Sep | — | +$0.50 | — | — | — | —'])) {
+          ok(LT('r'), `with no payout read, R (PAID ÷ FORMULA) is a dash, nothing under it: ${np.tiles}; DAYS: ${JSON.stringify(np.days)}`);
         } else fail(LT('r'), `no payout: tiles "${np?.tiles}", notes ${JSON.stringify(np?.tileNotes)}, days ${JSON.stringify(np?.days)}`);
         await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
         await closeBy(page, () => page.keyboard.press('Escape'));
