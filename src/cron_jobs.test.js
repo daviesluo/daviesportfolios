@@ -731,6 +731,27 @@ describe('pg_cron jobs', () => {
     expect(sql).not.toMatch(/\bgrant\b|create policy/i);
   });
 
+  // 0117 (Davies, 2026-10-11 20:35/20:37 UTC: "同意，做 LP-SKEW-FT 纸面前向测试", "同意迁移，全部做 LP-SKEW-FT（独立模块 + 迁移）"):
+  // LP-SKEW-FT's paper arms, one call every minute.
+  it("adds LP-SKEW-FT's paper arms as one call every minute (0117), its lease and its two tables, and nothing else", () => {
+    const T = FILES.find((f) => /^0117_lpskew\.sql$/.test(f)) ?? '';
+    expect(T).not.toBe('');
+    const before = replayList(sqlsOf(FILES.filter((f) => f < T))), after = replayList(sqlsOf(FILES.filter((f) => f <= T)));
+    expect(after.slice(0, before.length)).toEqual(before);
+    const shape = ({ path: p, timeout, every, lastHour, enabled, retry }) => ({ path: p, timeout, every, lastHour, enabled, retry });
+    expect(after.slice(before.length).map(shape)).toEqual([
+      { path: 'agents?action=pmlpskew', timeout: 58000, every: 1, lastHour: 23, enabled: true, retry: true },
+    ]);
+    const src = fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/index.ts'), 'utf8');
+    expect(src).toContain('if (action === "pmlpskew" && req.method === "POST" && operator) return json(200, await runLpSkewAction());');
+    const jobsBefore = cronJobs(FILES.filter((f) => f < T)), jobsAfter = cronJobs(FILES.filter((f) => f <= T));
+    expect([...jobsAfter.keys()].filter((n) => !jobsBefore.has(n))).toEqual([]);
+    const sql = fs.readFileSync(path.join(DIR, T), 'utf8').replace(/--[^\n]*/g, '');
+    expect(sql).toContain("insert into public.agent_locks (name) values ('pm-lpskew') on conflict (name) do nothing;");
+    for (const t of ['pm_lpskew_state', 'pm_lpskew_days']) expect(sql).toMatch(new RegExp(`alter table public\\.${t} +enable row level security;`));
+    expect(sql).not.toMatch(/\bgrant\b|create policy|pm_lp_config|pm_lp_orders|\bupdate\b|\bdelete\b/i);
+  });
+
   // 0103 (Davies, 2026-10-08: stop mini-pool's two calls, and what no reading still needs now RW's round 1 ends):
   // mini-pool's two calls leave the list when it applies; RW's four only once the last day their readings read is
   // closed, turned off by a function a job runs every five minutes (so a push before 10-09 00:05 cannot cut RW's last
