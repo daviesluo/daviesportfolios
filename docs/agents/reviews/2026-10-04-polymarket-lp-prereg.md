@@ -1221,3 +1221,61 @@ pre-registration takes no addendum. `pm_lp_reserve.ts` and the migrations are un
 **Pinned** (`agents/pm_lp.test.ts`): the constant; after the day's ranking, runs six minutes and six hours later rank
 nothing and read no listing, yet read the candidates' programmes each time and mark one that left the universe and one
 that came back, `ranked_at` unchanged and `refreshed_at` moving. The refill's tests run unchanged on it.
+
+## Addendum 16 (2026-10-11, about 00:45 UTC): a carried market in a one-tick book still rests its exit
+
+This addendum was written while live-prep is live and before the deploy it records. Not blind. It is a defect fix: no
+number of any rule changes.
+
+**The defect.** LP-CAPINV (`reviews/2026-10-11-lp-cap-inventory.md`, `backtests/lpcapinv/results/carried_unwind.txt`)
+found holdings with no exit at all. A market the path works close-only (carried from an earlier day, or taken out today
+by the reward check, the backstop, the AI rule or the loss guard) rests the sells `closeOnly` makes of its rule's quote.
+In a book whose raw touch is one tick wide, `lpQuotes` returns nothing (TB1's skip, Addendum 2), so `closeOnly` had
+nothing to turn into a sell. Two cases:
+
+- `0x5fec6675…` (40.27 YES, $18.73 at the mid) rested a sell in 25 of its 1,454 carried minutes on 10-10, its book one
+  tick wide in 1,430 of them.
+- `0xd5734dd2…` (20 YES) rested none in 14 of 14 minutes on 10-11.
+
+TB1's skip is a rule about where a reward quote rests. It was never meant to leave a holding with no way out.
+
+**The fix.** A new exit rule, `lpExitQuotes` in `pm_lp.ts` (`PmLpOptions.exitRule`). It is `lpQuotes` without TB1's
+skip, through the same function (`lpQuotesOn`), so every other line of the rule is shared.
+
+- **Where the turn uses it:**
+  - a market worked close-only (carried, or taken out);
+  - a quoting market while opening is stopped (`gates.open` false: the total stop, a gate).
+  Only `closeOnly`'s sells of what is held come out of it, so it never rests a BUY.
+- **Its price.** RW's `quote` already joins the touch on a one-tick book: its ask at the best ask, its bid at the best
+  bid. So the exit is the existing price rule unchanged:
+  - a YES held rests a SELL at the best ask;
+  - a NO held rests a SELL at 1 − the best bid, NO's best ask.
+  Each is post-only; neither crosses (the turn's `crosses` check stands).
+- **Its size** is every exit's: N at a time, at most what is held, nothing under the market's minimum.
+- **Everywhere else**, in a book two ticks or more wide, it is `lpQuotes` intent for intent, so those exits are as
+  before.
+- **A selected market still quoting is untouched.** While opening is allowed its rule is `lpQuotes`, TB1's skip
+  included, buys and sells alike.
+- **Mini-pool and mid-pool** set no `lp` options, and their exits are their rule's as before.
+
+**What is left to settle.** Holdings under the market's 5-share minimum cannot be sold by any order: `closeOnly` drops a
+sell under it, and so does the venue. They stay held until their market resolves and is redeemed. They count in the
+cap at cost and in the equity, as today. On 10-11 at 00:15 UTC that was six tokens, 14.7 shares, $8.60 at the mid
+(`backtests/lpcapinv/results/cross_cost.txt`).
+
+**The code it deploys:** `pm_live.ts` sha256 `b002c55830e0104001eb13715cdabd8e9b83a52d82325bf98e4c10b546c6ba85`, where Addendum 14 named `59a1201a…a510` (`PmLpOptions.exitRule`, the turn's
+`exitRule`); `pm_lp.ts` sha256 `2e5ca3ee27afa6875b899dcf4a163bcd0ce935c9cd8482ee4efa5ba278ad9e3c`, where Addendum 15 named `277baa7a…e8cb` (`lpExitQuotes`, `lpQuotesOn`, the instance's
+`exitRule`). No migration.
+
+**Pinned** (`agents/pm_lp.test.ts`):
+
+- `lpExitQuotes` on one-tick books at ticks 0.01 and 0.001:
+  - 12 YES held rests one SELL of 12 at the best ask, and 12 NO one SELL of NO at 1 − the best bid;
+  - 40 held sells N = 20; 4.9 held sells nothing;
+  - nothing held rests nothing, and no BUY ever leaves `closeOnly`;
+  - on books two, three and five ticks wide it equals `lpQuotes`.
+- Armed: a market taken out with 5 YES held, its book closing to 0.46 / 0.47, rests the SELL of 5 at 0.47 and no BUY.
+  The same turns on the instance without `exitRule` (the code before) rest nothing. Run on the `pm_live.ts` before
+  this addendum, the turn test fails.
+- A selected market quoting in a one-tick book rests nothing, with or without the exit rule.
+- `src/pm_live_hash.test.js`, `src/pm_lp_prereg.test.js`: the bytes and the chain of addenda.

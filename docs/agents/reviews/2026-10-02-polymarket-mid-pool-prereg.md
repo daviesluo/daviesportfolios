@@ -601,3 +601,20 @@ froze and find every decision the same.
 
 **What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
 of the Edge deploy that carries it, as deviation 15.
+
+## Addendum 16 (2026-10-11, about 00:45 UTC): deviation 16, live-prep's exit in a one-tick book
+
+This addendum was written inside the window, before the deploy it records. Its readout runs at or after 2026-10-17
+00:10 UTC.
+
+**Deviation 16 is live-prep's exit rule** (live-prep's pre-registration, Addendum 16). It changes the shared
+`pm_live.ts`: after it, `pm_live.ts` sha256 `b002c55830e0104001eb13715cdabd8e9b83a52d82325bf98e4c10b546c6ba85`, where Addendum 15 above named `59a1201a…a510`. The
+change: an optional field of live-prep's options (`exitRule`), and a turn that, when its instance sets one, uses it for
+the markets it works close-only and for every market while opening is stopped, which only live-prep's does.
+
+**Mid-pool is unchanged.** It sets no `lp` options, so its exits are its rule's as before. No decision of mid-pool
+changes: `agents/pm_mid_formula.test.ts` and `agents/pm_payouts.test.ts` run it beside the path this file froze and
+find every decision the same.
+
+**What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
+of the Edge deploy that carries it, as deviation 16.

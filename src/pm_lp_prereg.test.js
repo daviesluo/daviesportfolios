@@ -115,7 +115,9 @@ describe('the live-prep pre-registration', () => {
     expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add2)?.[1]).toBe(LP_A2);
     const lp = src('supabase/functions/agents/pm_lp.ts');
     expect(lp).toContain('export const PM_LP_TIGHT = { maxTicks: 1 } as const;');
-    expect(lp).toContain('if (isTight(row, Number(book.tick), PM_LP_TIGHT.maxTicks)) return [];');
+    // Since Addendum 16 the skip is the quoting rule's alone (`tb1Skip` true); the exit rule of close-only markets skips it.
+    expect(lp).toContain('if (tb1Skip && isTight(row, Number(book.tick), PM_LP_TIGHT.maxTicks)) return [];');
+    expect(lp).toContain('export const lpQuotes: PmQuoteRule = (input) => lpQuotesOn(input, true);');
   });
 
   // Addendum 3 (2026-10-08): live-prep against itself; nothing further adopted, the rule the bytes Addendum 2 named.
@@ -159,9 +161,13 @@ describe('the live-prep pre-registration', () => {
     expect(add14).toContain('`0a85f529…2b25`');
     // Addendum 14's bytes were the instance until Addendum 15 (the reserve ranked at 00:00), which names what it changed from and today's.
     expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add14)?.[1]).toBe('a745ca4f7f074a98a320514495f7747184310f300673be80ffb416041f41bc12');
-    const add15 = DOC.slice(DOC.indexOf('## Addendum 15'));
+    const add15 = DOC.slice(DOC.indexOf('## Addendum 15'), DOC.indexOf('## Addendum 16'));
     expect(add15).toContain('`a745ca4f…bc12`');
-    expect(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex')).toBe(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add15)?.[1]);
+    // Addendum 15's bytes were the instance until Addendum 16 (the exit in a one-tick book), which names what it changed from and today's.
+    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add15)?.[1]).toBe('277baa7ad0fb7f79e10ef08c0426e873b4de105fbf9deb060f06a96fcd7de8cb');
+    const add16 = DOC.slice(DOC.indexOf('## Addendum 16'));
+    expect(add16).toContain('`277baa7a…e8cb`');
+    expect(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex')).toBe(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add16)?.[1]);
     const lp = src('supabase/functions/agents/pm_lp.ts');
     expect(lp).toContain('export const PM_LP_NEAR_CERTAIN = { minPrice: 0.95, share: 0.08 } as const;');
     expect(lp).toContain('else if (nearCertainBuyOk(bYes, N, held.yes, q.m, capital))');

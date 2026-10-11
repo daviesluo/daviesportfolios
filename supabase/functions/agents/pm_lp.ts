@@ -45,7 +45,7 @@
 // of 0091 lets one of the three configs be armed at a time, and only Davies arms one, in the conversation where he
 // says go (the design doc's step 8lp).
 
-import { onTick, othersLevels, type LpRefillOptions, type PmCandidateRules, type PmIntent, type PmLiveInstance, type PmQuoteRule } from "./pm_live.ts";
+import { onTick, othersLevels, type LpRefillOptions, type PmCandidateRules, type PmIntent, type PmLiveInstance, type PmQuoteInput, type PmQuoteRule } from "./pm_live.ts";
 import { bookReplies } from "./pm_mid.ts";
 import { quote, RW_MIN_RATE, sizeN, summarize } from "./pmrw.ts";
 import { isTight } from "./pmrw_x.ts";
@@ -173,12 +173,25 @@ export const PM_LP_CANDIDATE: PmCandidateRules = { endHorizon: false, excludeFee
  * rests only inside `PM_LP_NEAR_CERTAIN`'s share of the path's capital (`nearCertainBuyOk`, Addendum 7), the token marked
  * at RW's adjusted mid (YES at m, NO at 1 − m); a sell is never limited by it.
  */
-export const lpQuotes: PmQuoteRule = ({ market, book, held, own, capital }) => {
+export const lpQuotes: PmQuoteRule = (input) => lpQuotesOn(input, true);
+
+/**
+ * Its exit rule (`PmLpOptions.exitRule`, Addendum 16): `lpQuotes` without TB1's skip, for the markets the path works
+ * close-only (a carried market, one the reward check, the AI rule or the loss guard took out, every market while opening
+ * is stopped), where `closeOnly` keeps only the sells of what is held. TB1's skip is a rule about where a reward quote
+ * rests; on a book one tick wide it left a holding with no exit at all (LP-CAPINV, `reviews/2026-10-11-lp-cap-inventory.md`:
+ * `0x5fec6675…` rested a sell in 25 of its 1,454 carried minutes). RW's `quote` already joins the touch on such a book (its
+ * ask at the best ask, its bid at the best bid), so the exit rests post-only at the best ask, and a NO sold rests at
+ * 1 − the best bid. Everywhere else it is `lpQuotes` exactly, so a wider book's exit is unchanged.
+ */
+export const lpExitQuotes: PmQuoteRule = (input) => lpQuotesOn(input, false);
+
+function lpQuotesOn({ market, book, held, own, capital }: PmQuoteInput, tb1Skip: boolean): PmIntent[] {
   const v = Number(market.max_spread), minSize = Number(market.min_size);
   if (!(v > 0) || !(minSize >= 0)) return [];
   const o = othersLevels(book.levels, own ?? []);
   const row = summarize(o.bids, o.asks, v, minSize);
-  if (isTight(row, Number(book.tick), PM_LP_TIGHT.maxTicks)) return [];
+  if (tb1Skip && isTight(row, Number(book.tick), PM_LP_TIGHT.maxTicks)) return [];
   const q = row ? quote(row, Number(book.tick)) : null;
   if (!q) return [];
   const N = sizeN(minSize), net = held.yes - held.no, out: PmIntent[] = [];
@@ -192,7 +205,7 @@ export const lpQuotes: PmQuoteRule = ({ market, book, held, own, capital }) => {
     else if (nearCertainBuyOk(aNo, N, held.no, 1 - q.m, capital)) out.push({ outcome: "no", side: "BUY", price: aNo, size: N });
   }
   return out;
-};
+}
 
 /** "Reward quotes live-prep"'s order path: its tables (0091), its lease, its band and its rules. */
 export const PM_LP_INSTANCE: PmLiveInstance = {
@@ -214,6 +227,7 @@ export const PM_LP_INSTANCE: PmLiveInstance = {
   errorKind: "agents.pm_lp",
   lp: {
     rule: lpQuotes,
+    exitRule: lpExitQuotes,
     candidate: PM_LP_CANDIDATE,
     capMarketCeiling: PM_LP_CAP_MARKET_USD,
     pause: PM_LP_PAUSE,

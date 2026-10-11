@@ -273,6 +273,12 @@ export type PmCandidateRules = {
 export type PmLpOptions = {
   /** Its quoting rule (`lpQuotes`): RW's prices, each side a sell of what is held before a buy, 5N of inventory its way. */
   rule: PmQuoteRule;
+  /**
+   * Its exit rule (`lpExitQuotes`, Addendum 16), for a market worked close-only (carried, taken out, or any while opening
+   * is stopped): `rule` without TB1's skip, so a book one tick wide still rests the sell of what is held, at the touch.
+   * Only its sells reach the venue (`closeOnly`). Unset, the exits are `rule`'s.
+   */
+  exitRule?: PmQuoteRule;
   /** Its selection's candidate rules: no 48-hour end horizon, weather markets left out. */
   candidate: PmCandidateRules;
   /** The code's ceiling on its config's per-market cap (the default's is `PM_LIVE_CAP_MARKET_USD`). */
@@ -2282,6 +2288,10 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
 
   // ── 4. what each slot should hold ─────────────────────────────────────────────────────────────────────────────────
   const rule = d.rule ?? inst.lp?.rule ?? rwQuotes;
+  // Live-prep's exit rule (Addendum 16) for every market it works close-only: a carried one, one taken out, and every
+  // one while opening is stopped. `closeOnly` keeps only its sells, so it never rests a buy; without one (every other
+  // instance, or a rule a test passes in) the exits are the quoting rule's, as before.
+  const exitRule = d.rule ?? inst.lp?.exitRule ?? rule;
   const wants = new Map<string, Want>();
   const withheld = new Map<string, string>();
   const withhold = (slot: string, gate: string, reason: string) => { withheld.set(slot, gate); report.withheld.push({ slot, gate, reason }); };
@@ -2350,10 +2360,10 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
     if (m.quoting && !out) {
       const pg = programme(m);
       const market = rc ? { ...m, reward_rate: pg.rate, max_spread: pg.v, min_size: pg.minSize } : m;
-      try { intents = rule({ market, book: b, held, own, capital: lim.capTotal }); } catch (e) { report.errors.push(`${m.cond.slice(0, 10)}…: the rule threw (${msg(e)}); nothing quoted`); continue; }
+      try { intents = (g.open ? rule : exitRule)({ market, book: b, held, own, capital: lim.capTotal }); } catch (e) { report.errors.push(`${m.cond.slice(0, 10)}…: the rule threw (${msg(e)}); nothing quoted`); continue; }
     } else if (inst.lp) {
       if (out) for (const token of [m.yes_token, m.no_token]) withhold(slotKey({ cond: m.cond, token, side: "BUY" }), guardOnly(m.cond) ? "loss" : "reward", `no entry: ${out}`);
-      try { intents = closeOnly(rule({ market: m, book: b, held, own, capital: lim.capTotal }), held, b); } catch (e) { report.errors.push(`${m.cond.slice(0, 10)}…: the rule threw (${msg(e)}); nothing quoted`); continue; }
+      try { intents = closeOnly(exitRule({ market: m, book: b, held, own, capital: lim.capTotal }), held, b); } catch (e) { report.errors.push(`${m.cond.slice(0, 10)}…: the rule threw (${msg(e)}); nothing quoted`); continue; }
     }
     const tokenOf = (o: "yes" | "no") => (o === "yes" ? m.yes_token : m.no_token);
     // Paused (live-prep): nothing rests in the market this minute; what is held is held.

@@ -442,6 +442,15 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10"; each oldest first.
 
+### [2026-10-11 00:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep's Addendum 16 (mid-pool's 16), a defect fix** (sub-agent, not pushed): a market worked close-only
+  (carried, taken out, or any while opening is stopped) rests its exit in a one-tick book. TB1's skip had emptied
+  `lpQuotes` before `closeOnly` (LP-CAPINV: `0x5fec6675…` a sell in 25 of 1,454 carried minutes, `0xd5734dd2…` 0 of
+  14). New `lpExitQuotes` (`lpQuotes` without the skip, one shared function) via `PmLpOptions.exitRule`; RW's `quote`
+  already joins the touch there, so the sell rests post-only at the best ask (NO at 1 − the best bid). Quoting markets
+  keep TB1's skip; holdings under the 5-share minimum are left to settle. `pm_live.ts` `b002c558…ba85` (was
+  `59a1201a…a510`), `pm_lp.ts` `2e5ca3ee…9e3c` (was `277baa7a…e8cb`); the armed turn test fails on the old `pm_live.ts`.
+
 ### [2026-10-11 00:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **LP-CAPINV filed** (`reviews/2026-10-11-lp-cap-inventory.md`, `backtests/lpcapinv/`): live-prep's `cap_total` reduces to
   resting buys ≤ pUSD − $80, so carried inventory (about 96 % of holdings at 00:15 UTC 10-11) leaves today's selection

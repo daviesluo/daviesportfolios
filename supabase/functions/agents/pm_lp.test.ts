@@ -13,10 +13,10 @@
 // mini-pool's or mid-pool's tables is touched.
 
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { lpMarketType, lpQuotes, nearCertainBuyOk, PM_LP_EXCLUDE_AI, PM_LP_MARKET_LOSS, PM_LP_READOUT, PM_LP_REFILL, PM_LP_REWARD_CHECK, PM_LP_BAND, PM_LP_CANDIDATE, PM_LP_CAP_MARKET_USD, PM_LP_INSTANCE, PM_LP_INV_CAP, PM_LP_NEAR_CERTAIN, PM_LP_PAUSE, PM_LP_TIGHT, PREP_LP_INSTANCE } from "./pm_lp.ts";
+import { lpExitQuotes, lpMarketType, lpQuotes, nearCertainBuyOk, PM_LP_EXCLUDE_AI, PM_LP_MARKET_LOSS, PM_LP_READOUT, PM_LP_REFILL, PM_LP_REWARD_CHECK, PM_LP_BAND, PM_LP_CANDIDATE, PM_LP_CAP_MARKET_USD, PM_LP_INSTANCE, PM_LP_INV_CAP, PM_LP_NEAR_CERTAIN, PM_LP_PAUSE, PM_LP_TIGHT, PREP_LP_INSTANCE } from "./pm_lp.ts";
 import { isTight } from "./pmrw_x.ts";
 import {
-  candidateOf, ctfApproval, effectiveLimits, gates, heldFromBalance, inUniverse, inYesBook, lpCandidateOf, lpLimits, onTick, PM_LIVE_MAX_POSTS_DAY, PM_LP_MAX_POSTS_DAY, pauseAfterJump, PM_LIVE_INSTANCE, PM_MINI_INSTANCE, pmLiveDbTables, pmLpDbTables,
+  candidateOf, closeOnly, ctfApproval, effectiveLimits, gates, heldFromBalance, inUniverse, inYesBook, lpCandidateOf, lpLimits, onTick, PM_LIVE_MAX_POSTS_DAY, PM_LP_MAX_POSTS_DAY, pauseAfterJump, PM_LIVE_INSTANCE, PM_MINI_INSTANCE, pmLiveDbTables, pmLpDbTables,
   lpFunding, lpMarketMark, lpRewardVerdict, PM_LP_FUNDING, tokenBooks, type LpRefillOptions, rewardConfigOf, runPmLive, rwQuotes, scoringStreak, type PmRewardNow, type PmBookNow, type PmIntent, type PmLiveConfig, type PmMarketRow, type PmPauseState, type PmRewardRow,
 } from "./pm_live.ts";
 import { runPmLpReserve } from "./pm_lp_reserve.ts";
@@ -374,10 +374,13 @@ type P = [number, "BUY" | "SELL", number, number, number];
  * would pass it over), and four that live-prep never takes: WX (weather), TODAY (ends this UTC day), GAME (starts within
  * two days) and LOW ($8). Mini-pool's and mid-pool's tables sit beside its own, each with a row, as in production.
  */
-function world(o: { config?: Record<string, unknown>; days?: Array<Record<string, unknown>>; onCost?: boolean; nearCertain?: boolean; refill?: Partial<LpRefillOptions>; extra?: number[] } = {}) {
+function world(o: { config?: Record<string, unknown>; days?: Array<Record<string, unknown>>; onCost?: boolean; nearCertain?: boolean; refill?: Partial<LpRefillOptions>; extra?: number[]; noExitRule?: boolean } = {}) {
   const clock = { now: T0 };
   // `onCost`: the day stop as the pre-registrations froze it (`dayStopOnCost`), which no action runs (2026-10-07).
-  const base = o.refill ? { ...PM_LP_INSTANCE, lp: { ...PM_LP_INSTANCE.lp!, refill: { ...PM_LP_INSTANCE.lp!.refill!, ...o.refill } } } : PM_LP_INSTANCE;
+  // `noExitRule`: the instance as it was before Addendum 16, its exits the quoting rule's (the counterfactual).
+  const lpOpts = { ...PM_LP_INSTANCE.lp!, ...(o.refill ? { refill: { ...PM_LP_INSTANCE.lp!.refill!, ...o.refill } } : {}) };
+  if (o.noExitRule) delete lpOpts.exitRule;
+  const base = o.refill || o.noExitRule ? { ...PM_LP_INSTANCE, lp: lpOpts } : PM_LP_INSTANCE;
   const inst = o.onCost ? { ...base, dayStopOnCost: true } : base, prepInst = o.onCost ? { ...PREP_LP_INSTANCE, dayStopOnCost: true } : PREP_LP_INSTANCE;
   const pm = new FakePolymarket(() => clock.now);
   const add = (n: number, rate: number, extra: Record<string, unknown> = {}) =>
@@ -1309,4 +1312,86 @@ Deno.test("the loss guard: its buys are cancelled for the guard and the sells of
   assertEquals([live("BUY").length, lpState(w).guard[w.L1.cond]?.since], [0, iso(T0 + 3 * M)]);
   assertEquals(live("SELL").length, 1);
   assert(w.othersUntouched());
+});
+
+// ------------------------------------------------------------------ Addendum 16: the exit in a one-tick book
+
+Deno.test("lpExitQuotes (Addendum 16): on a one-tick book what is held still gets its sell, at the touch, post-only; no buy survives closeOnly; a wider book's exit is lpQuotes'", () => {
+  for (const tick of ["0.01", "0.001"] as const) {
+    const t = Number(tick);
+    const mk = (spreadTicks: number) => {
+      const bb = onTick(0.46, tick), ba = onTick(bb + spreadTicks * t, tick);
+      const bids: Array<[number, number]> = [[bb, 50], [onTick(bb - t, tick), 50]];
+      const asks: Array<[number, number]> = [[ba, 50], [onTick(ba + t, tick), 50]];
+      const market = { day: "2026-10-10", kind: "standard", cond: cond(1), yes_token: "1", no_token: "2", neg_risk: false, tick: t, min_size: 20, reward_rate: 50, rank: 1, question: "q", max_spread: 4.5 } as PmMarketRow;
+      const book = { bestBid: bb, bestAsk: ba, tick, minSize: 5, negRisk: false, at: null, hash: null, levels: { bids, asks } } as PmBookNow;
+      return { market, book, bb, ba };
+    };
+    const one = mk(1);
+    assert(tightBook(one.market, one.book), tick);
+    const exit = (held: { yes: number; no: number }) => closeOnly(lpExitQuotes({ market: one.market, book: one.book, held }), held, one.book);
+    // The old exit: TB1's skip leaves nothing for closeOnly, whatever is held (the defect, 0x5fec6675… and 0xd5734dd2…).
+    assertEquals(closeOnly(lpQuotes({ market: one.market, book: one.book, held: { yes: 12, no: 0 } }), { yes: 12, no: 0 }, one.book), [], tick);
+    // Held YES (12, under N = 20): one SELL of the 12 at the best ask, joining it, which does not cross the bid.
+    assertEquals(exit({ yes: 12, no: 0 }), [{ outcome: "yes", side: "SELL", price: one.ba, size: 12 }], tick);
+    assert(one.ba > one.bb);
+    // Held NO: one SELL of NO at 1 − the best bid, NO's best ask (a bid at the best bid in the one book).
+    assertEquals(exit({ yes: 0, no: 12 }), [{ outcome: "no", side: "SELL", price: onTick(1 - one.bb, tick), size: 12 }], tick);
+    assertEquals(inYesBook({ outcome: "no", side: "SELL", price: onTick(1 - one.bb, tick) }), { side: "bid", price: one.bb }, tick);
+    // Held 40 YES (past N): N at a time, as every exit; under the venue's minimum (4.9): nothing, left to settle.
+    assertEquals(exit({ yes: 40, no: 0 }), [{ outcome: "yes", side: "SELL", price: one.ba, size: 20 }], tick);
+    assertEquals(exit({ yes: 4.9, no: 0 }), [], tick);
+    // Nothing held: nothing rests, and no BUY ever comes out of closeOnly.
+    assertEquals(exit({ yes: 0, no: 0 }), [], tick);
+    for (const held of [{ yes: 0, no: 0 }, { yes: 12, no: 0 }, { yes: 0, no: 12 }, { yes: 100, no: 3 }]) assert(exit(held).every((x) => x.side === "SELL"), tick);
+    // A book two or more ticks wide: the exit rule is lpQuotes, intent for intent, held or not.
+    for (const w of [2, 3, 5]) {
+      const b = mk(w);
+      for (const held of [{ yes: 0, no: 0 }, { yes: 12, no: 0 }, { yes: 0, no: 25 }, { yes: 100, no: 0 }]) {
+        assertEquals(lpExitQuotes({ market: b.market, book: b.book, held }), lpQuotes({ market: b.market, book: b.book, held }), `${tick} ${w} ${JSON.stringify(held)}`);
+      }
+    }
+  }
+  // Only live-prep carries an exit rule; its quoting rule is unchanged.
+  assertEquals([PM_LP_INSTANCE.lp!.rule, PM_LP_INSTANCE.lp!.exitRule], [lpQuotes, lpExitQuotes]);
+  for (const inst of [PM_LIVE_INSTANCE, PM_MINI_INSTANCE, PM_MID_INSTANCE]) assertEquals(inst.lp, undefined);
+});
+
+Deno.test("a market taken out, armed, in a one-tick book (Addendum 16): the sell of what it holds rests at the best ask and no BUY; before it nothing rested", async () => {
+  const run = async (noExitRule: boolean) => {
+    const w = world({ config: LIVE, noExitRule });
+    await w.turn(T0);
+    const yesBuy = w.rows("pm_lp_orders").find((x) => x.mode === "live" && x.cond === w.L1.cond && x.outcome === "yes" && x.side === "BUY" && x.state === "live");
+    assert(yesBuy, "a live BUY of YES rests");
+    w.pm.settle(w.pm.fill(String(yesBuy.hash), 5), "CONFIRMED");                     // the account holds 5 YES
+    await w.turn(T0 + M);
+    // The reward check takes it out (a minimum past N): it is worked close-only, its sell resting at 0.47.
+    w.L1.rewardsMinSize = 50;
+    await w.turn(T0 + 2 * M);
+    const live = (side: "BUY" | "SELL") => w.rows("pm_lp_orders").filter((x) => x.mode === "live" && x.cond === w.L1.cond && x.side === side && x.state === "live");
+    assertEquals(live("SELL").map((x) => [x.outcome, Number(x.price), Number(x.size)]), [["yes", 0.47, 5]]);
+    // Its book closes to one tick, 0.46 / 0.47.
+    w.L1.bid = 0.46; w.L1.ask = 0.47;
+    for (let k = 3; k <= 5; k++) await w.turn(T0 + k * M);
+    assertEquals(minuteOf(w, w.L1.cond, T0 + 5 * M).detail.lp.state, "carried");
+    assertEquals(live("BUY").length, 0);
+    assertEquals([3, 4, 5].flatMap((k) => sentIn(w, w.L1.cond, T0 + k * M, "BUY")), []);
+    assert(w.othersUntouched());
+    return live("SELL").map((x) => [x.outcome, Number(x.price), Number(x.size)]);
+  };
+  // The exit rests at the best ask, the 5 held, post-only (0.47 does not cross the bid of 0.46).
+  assertEquals(await run(false), [["yes", 0.47, 5]]);
+  // The counterfactual, the instance before Addendum 16: TB1's skip leaves the holding with no exit at all.
+  assertEquals(await run(true), []);
+});
+
+Deno.test("a selected market quoting in a one-tick book is untouched by Addendum 16: TB1's skip still rests nothing, buy or sell", async () => {
+  for (const noExitRule of [false, true]) {
+    const w = world({ config: LIVE, noExitRule });
+    w.L1.bid = 0.46; w.L1.ask = 0.47;
+    for (let k = 0; k <= 2; k++) await w.turn(T0 + k * M);
+    assertEquals(minuteOf(w, w.L1.cond, T0 + 2 * M).detail.lp.state, "quote");
+    assertEquals(w.rows("pm_lp_orders").filter((x) => x.cond === w.L1.cond).length, 0, `noExitRule ${noExitRule}`);
+    assert(w.rows("pm_lp_orders").some((x) => x.mode === "live" && x.cond === w.BIG.cond && x.side === "BUY" && x.state === "live"));
+  }
 });
