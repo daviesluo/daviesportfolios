@@ -77,6 +77,16 @@ rebuild the interview PDF (`interview/marex-2026-09/pdf`: `npm ci`, then
 `node build.mjs prep-v2.md`; it reads the page as it stands), and commit
 there under that repository's own ledger.
 
+**A watch reads the error box too.** "以后盯盘代理也要盯error框里的内容"
+(2026-10-11). Every check of a watcher (the sub-agent that watches a live
+strategy) reads `public.ops_errors` since its previous check, every kind,
+not only its own strategy's: a one-off network blip is noted, the same kind
+three or more times in two hours, a kind never seen before, or any row on a
+live path (`agents.pm_lp`, `agents.quotes_live`, live `agents.tick`,
+`monitor.*`) goes to the main session at once, and each summary carries one
+line on the box even when it is clean. A real fault found there is fixed
+with a pin test, like any bug.
+
 **Usage is a budget he watches.** Never spend the main model on
 polling: no scheduled PR re-checks, no "quiet hold" wake-ups on
 Fable/Opus-class sessions. If a check is genuinely needed, run it in a

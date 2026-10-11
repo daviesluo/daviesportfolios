@@ -442,6 +442,12 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10"; each oldest first.
 
+### [2026-10-11 00:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- Davies (00:0x UTC): "以后盯盘代理也要盯error框里的内容". The working-with-davies skill (and its two Cursor copies) now
+  says every watcher check reads `ops_errors` since its last check, all kinds, and escalates repeats (3+ in 2 h), new
+  kinds and live-path rows; the running live-prep watcher has the same duty. The box's 36 h were read: network blips
+  only, except the quotes paper engine's lease-claim timeout that skipped PR5's live turn (fixed, 10-11 00:10 section).
+
 ### [2026-10-11 00:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **PR5's paper minute that throws is no longer an `agents.crash`, and no longer skips the live turn** (sub-agent,
   not pushed). The three `agents.crash` rows of 10-10 (02:13:47 and 23:32:35 "Signal timed out.", 22:32:25 connection
