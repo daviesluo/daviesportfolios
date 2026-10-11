@@ -357,6 +357,32 @@
     "formula_usd": 0,
     "formula_scored_usd": 0
    }
+  ],
+  "closes": [
+   {
+    "minute": "2026-09-16T23:57:00.000Z",
+    "cond": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "bb": 0.3,
+    "ba": 0.32,
+    "bid_price": null,
+    "ask_price": null
+   },
+   {
+    "minute": "2026-09-16T23:59:00.000Z",
+    "cond": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "bb": 0.41,
+    "ba": 0.45,
+    "bid_price": null,
+    "ask_price": 0.43
+   },
+   {
+    "minute": "2026-09-16T23:59:00.000Z",
+    "cond": "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+    "bb": 0.68,
+    "ba": 0.72,
+    "bid_price": 0.7,
+    "ask_price": null
+   }
   ]
  },
  "output": {
@@ -603,6 +629,19 @@
   ],
   "days": [
    {
+    "day": "2026-09-17",
+    "markets": null,
+    "minutesScored": null,
+    "formulaUsd": null,
+    "formulaAllUsd": null,
+    "paidUsd": null,
+    "rebateUsd": null,
+    "r": null,
+    "ordersUsd": 0.3,
+    "read": false,
+    "today": true
+   },
+   {
     "day": "2026-09-16",
     "markets": 2,
     "minutesScored": 1300,
@@ -610,7 +649,10 @@
     "formulaAllUsd": 5,
     "paidUsd": 2.2,
     "rebateUsd": 0.05,
-    "r": 0.44
+    "r": 0.44,
+    "ordersUsd": 0.5,
+    "read": true,
+    "today": false
    }
   ]
  },
@@ -856,6 +898,33 @@
     "counted": true
    }
   ],
-  "days": []
+  "days": [
+   {
+    "day": "2026-09-17",
+    "markets": null,
+    "minutesScored": null,
+    "formulaUsd": null,
+    "formulaAllUsd": null,
+    "paidUsd": null,
+    "rebateUsd": null,
+    "r": null,
+    "ordersUsd": 0.3,
+    "read": false,
+    "today": true
+   },
+   {
+    "day": "2026-09-16",
+    "markets": null,
+    "minutesScored": null,
+    "formulaUsd": null,
+    "formulaAllUsd": null,
+    "paidUsd": null,
+    "rebateUsd": null,
+    "r": null,
+    "ordersUsd": 0.5,
+    "read": false,
+    "today": false
+   }
+  ]
  }
 }

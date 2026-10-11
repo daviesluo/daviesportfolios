@@ -8,7 +8,7 @@ import {
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows, VENUE_LABELS,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
   newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwxSourceText, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, rwNotRunningText, paperTestRows, rwRoundText, PREP_ROW_ID, MID_ROW_ID, LP_ROW_ID, isPrepRowId, lpRow, midRow, prepRow, prepStopText, rwQuoteRows,
-  LP_LIVE_ROW_ID, fmtR, liveExtraRows, lpEstimateTexts, lpLiveQuoteRows, lpLiveRow, quoteDaysAnnualPct, lpLiveStatus, rwFeeAsides, rwFeeCells,
+  LP_LIVE_ROW_ID, fmtR, liveExtraRows, lpEstimateTexts, lpLiveDayCells, lpLiveQuoteRows, lpLiveRow, quoteDaysAnnualPct, lpLiveStatus, rwFeeAsides, rwFeeCells,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies,
   fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney,
   QUOTES_COINBASE_ROW_ID, quotesCoinbaseRow } from './agents.js';
@@ -1893,6 +1893,26 @@ describe('lpLiveRow (live-prep\'s real money, "Reward quotes" on LIVE, 2026-10-0
     ];
     expect(lpLiveQuoteRows(rows).map((x) => x.q)).toEqual(['bid', 'held', 'ask']);
     expect(lpLiveQuoteRows(undefined)).toEqual([]);
+  });
+  it("DAYS reads each day's Orders beside its rewards: the fills marked to market, adding up to the scoreboard's orders; a day not yet read has its Orders alone", () => {
+    // The fixture (pm_lp_live_view.test.ts works it by hand): 17 Sep, today and not yet read, +0.30; 16 Sep, read, +0.50
+    // beside its $5 of formula, $2.20 paid (R 0.44) and $0.05 of rebates.
+    const id = (/** @type {string} */ x) => x;
+    const rows = l.days.map((/** @type {any} */ d) => [d.day, d.today, lpLiveDayCells(d, id)]);
+    expect(rows).toEqual([
+      ['2026-09-17', true, { markets: '—', orders: '+$0.30', ordersUsd: 0.3, formula: '—', paid: '—', paidUsd: null, r: '—', rebates: '—' }],
+      ['2026-09-16', false, { markets: '2', orders: '+$0.50', ordersUsd: 0.5, formula: '$5', paid: '+$2.20', paidUsd: 2.2, r: '0.44', rebates: '$0.05' }],
+    ]);
+    // The days' Orders are the orders' part of REALIZED G/L plus UNREALIZED G/L, to the cent.
+    const r = /** @type {any} */ (lpLiveRow(l));
+    expect(Math.round(l.days.reduce((/** @type {number} */ s, /** @type {any} */ d) => s + d.ordersUsd, 0) * 100)).toBe(Math.round((r.orders.realisedUsd + r.orders.unrealisedUsd) * 100));
+    // Before any payout, every day is unread: Orders alone.
+    expect(lpLiveFixture.noPayout.days.map((/** @type {any} */ d) => lpLiveDayCells(d, id).orders + ' ' + lpLiveDayCells(d, id).paid)).toEqual(['+$0.30 —', '+$0.50 —']);
+    // Hidden values: every dollar through the mask; the markets count and R are not dollars.
+    const mask = (/** @type {string} */ x) => x.replace(/[\d.,]/g, '•');
+    const h = lpLiveDayCells(l.days[1], mask);
+    expect([h.markets, h.orders, h.formula, h.paid, h.r, h.rebates]).toEqual(['2', '+$••••', '$•', '+$••••', '0.44', '$••••']);
+    expect(lpLiveDayCells({ day: '2026-09-18', read: false, ordersUsd: -32.544741 }, id).orders).toBe('-$32.54');
   });
   it("prints R to two places, a dash without a formula figure", () => {
     expect([fmtR(0.44), fmtR(null), fmtR(1)]).toEqual(['0.44', '—', '1.00']);

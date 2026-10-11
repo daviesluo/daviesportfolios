@@ -441,7 +441,13 @@ places stay when the number is not whole.
   from nothing at midnight UTC, and its band of R comes from the days
   Polymarket has paid (until the first, from the studies' 0.2 to 1), so
   each payout read narrows it by itself. Then DAYS,
-  each of those days with the formula in its scored minutes, what was paid, R and the rebates;
+  each of those days with the markets read, Orders (what its trades made that UTC
+  day, rewards not counted: what its sales and any market that settled that day
+  realised, plus how what it held moved, valued at the market's middle price at
+  midnight and, for today, now), the formula in its scored minutes, what was paid,
+  R and the rebates; today, and yesterday until its payout is read, show their
+  Orders alone. The days' Orders add up to the orders' part of REALIZED G/L plus
+  UNREALIZED G/L;
   and QUOTES, the TESTING pages' table less its share column (each
   market with an order resting now or a token held, the day's first, then
   any held from an earlier day: its pool, the prices its live orders rest

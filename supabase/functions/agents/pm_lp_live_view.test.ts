@@ -30,11 +30,18 @@
 // hour's 0.48 / 60 = 0.008 a minute, today's 0.90 / 120 = 0.0075 and the earlier day's 5.00 / 1440 = 0.003472: 0.208333 to
 // 0.48, so the day's formula is 1.108333 to 1.38. Low: G (0.60 × 1.108333 / 0.90) × 0.206818 = 0.152816 and H's 0.070934
 // are each under the $1 minimum, so 0; high: 0.60 × 1.38 / 0.90 × 1.034147 + 0.30 × 1.38 / 0.90 × 0.960016 = 1.393023.
+// DAYS' Orders (2026-10-11), each day's fills marked to market: the live minutes at 16 Sep 23:59 read G's book as the
+// others' 0.41 / 0.45 with our own ask at 0.43 (so 0.41 / 0.43, mid 0.42; G's 23:57 minute, 0.30 / 0.32, is older and not
+// read) and H's as 0.68 / 0.72 with our own bid at 0.70 (0.70 / 0.72, mid 0.71, its NO at 0.29). 16 Sep closes holding G's
+// 20 YES at 0.40 (+0.40 at 0.42) and H's 10 NO at 0.28 (+0.10 at 0.29): +0.50. 17 Sep: G's 20 sold at 0.43 from 0.42
+// (+0.20), H's NO 0.29 to 0.29 (0), J's 10 YES bought at 0.30 and at 0.31 now (+0.10): +0.30. The two add up to the
+// fills' +0.80 (realised 0.60 + unrealised 0.20), and 17 Sep, not yet read, is a row with its Orders alone.
 
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import fixture from "../../../src/e2e/lp_live_fixture.json" with { type: "json" };
 import readout109 from "../../../docs/agents/backtests/lpcfg/data/readout_2026-10-09.json" with { type: "json" };
-import { atLiveR, LP_LIVE_HOURS_VIEW, LP_R_DAY_CORRECTIONS, lpLiveR, lpLiveSince, lpLiveSummary, lpRewardEstimate, type LpLiveHourRow, type LpLiveRewardDayRow } from "./pm_lp_live_view.ts";
+import { atLiveR, LP_LIVE_HOURS_VIEW, LP_R_DAY_CORRECTIONS, lpCloseMinutes, lpDayOrders, lpLiveR, lpLiveSince, lpLiveSummary, lpMinuteMid, lpRewardEstimate, type LpLiveCloseRow, type LpLiveHourRow, type LpLiveRewardDayRow } from "./pm_lp_live_view.ts";
+import { settlementFills, type PmFill } from "./pm_live.ts";
 import { readLpLive } from "./index.ts";
 import { PM_LP_INSTANCE } from "./pm_lp.ts";
 import { memDb, onlyTables } from "./testing.ts";
@@ -48,7 +55,9 @@ Deno.test("live-prep's live figures for the hand-worked record: the fixture the 
   const out = lpLiveSummary(F.input)!;
   assertEquals(JSON.parse(JSON.stringify(out)), F.output);
   assertEquals(JSON.parse(JSON.stringify(lpLiveSummary({ ...F.input, rewardDays: [] }))), F.noPayout);
-  assertEquals([out.status, F.noPayout.status, F.noPayout.r, F.noPayout.realisedUsd, F.noPayout.days], [{ bestMarketUsd: 1.65, quoting: 3, held: 2 }, { bestMarketUsd: 0.6, quoting: 3, held: 2 }, null, 0.6, []]);
+  assertEquals([out.status, F.noPayout.status, F.noPayout.r, F.noPayout.realisedUsd], [{ bestMarketUsd: 1.65, quoting: 3, held: 2 }, { bestMarketUsd: 0.6, quoting: 3, held: 2 }, null, 0.6]);
+  // Before any payout is read, DAYS holds the fills' days alone: their Orders, the readout's cells empty.
+  assertEquals(F.noPayout.days.map((d: Record<string, unknown>) => [d.day, d.read, d.markets, d.paidUsd, d.r, d.ordersUsd]), [["2026-09-17", false, null, null, null, 0.3], ["2026-09-16", false, null, null, null, 0.5]]);
   near(out.capUsd, 320, "funded: the config's total cap");
   near(out.restingBuysUsd, 29.4, "8.80 + 10.80 + 3.00 + 6.80"); near(out.costUsd, 5.8, "2.80 + 3.00"); near(out.valueUsd, 35.2, "deployed");
   near(out.unrealisedUsd, 0.2, "0.10 + 0.10"); near(out.realisedFillsUsd, 0.6, "G's 20 YES sold at 0.43, bought at 0.40");
@@ -64,7 +73,12 @@ Deno.test("live-prep's live figures for the hand-worked record: the fixture the 
   // exp(−0.845524) = 1.20 + 0.128800; J nothing paid and no formula. Total (est.) adds the orders: 1.927491, 1.428800, 0.10.
   assertEquals(out.quotes.map((x) => [x.q, x.rewardEstUsd, x.totalEstUsd]), [["Will G happen?", 1.327491, 1.927491], ["Will H happen?", 1.3288, 1.4288], ["Will J happen?", 0, 0.1]]);
   assertEquals(out.quotes.map((x) => "yesCost" in x || "noCost" in x), [false, false, false]);
-  assertEquals(out.days.map((d) => [d.day, d.markets, d.formulaUsd, d.paidUsd, d.r, d.rebateUsd]), [["2026-09-16", 2, 5, 2.2, 0.44, 0.05]]);
+  // DAYS, newest first: 17 Sep not yet read (its Orders alone), 16 Sep read; Orders +0.30 and +0.50 (the header's arithmetic),
+  // adding up to the fills' P&L, realised less fees plus unrealised.
+  assertEquals(out.days.map((d) => [d.day, d.read, d.markets, d.ordersUsd, d.formulaUsd, d.paidUsd, d.r, d.rebateUsd]), [
+    ["2026-09-17", false, null, 0.3, null, null, null, null], ["2026-09-16", true, 2, 0.5, 5, 2.2, 0.44, 0.05],
+  ]);
+  near(out.days.reduce((s, d) => s + d.ordersUsd, 0), out.realisedFillsUsd + out.unrealisedUsd, "the days' Orders add up to the fills' P&L");
   // Newest first, everywhere; the MATCHED fill listed and not counted.
   assertEquals(out.quotes.map((x) => [x.q, x.quoting, x.ratePerDay, x.bid, x.ask, x.share, x.yes, x.no, x.rewardUsd, x.fillsPnlUsd, x.totalUsd]), [
     ["Will G happen?", true, 20, 0.44, 0.46, 0.36, 0, 0, 1.05, 0.6, 1.65],
@@ -130,7 +144,14 @@ Deno.test("the dashboard reads live-prep's live book from its live rows only: no
     [T.rewardDays]: [...I.rewardDays.map((r: Record<string, unknown>) => ({ mode: "live", ...r })), { mode: "dry_run", day: "2026-09-16", cond: I.rewardDays[0].cond, minutes: 1, minutes_scored: 1, formula_usd: 500, actual_usd: null, actual_sponsored_usd: null, rebate_usd: null }],
     [T.markets]: [...I.markets, { ...I.markets[0], day: "2026-09-15", question: "dry-run only" }],
     [T.events]: [{ mode: "dry_run", minute: "2026-09-17T12:00:00.000Z", kind: "loss_stop_total", detail: {} }],
-    [T.minutes]: [...I.minutes.map((x: Record<string, unknown>) => ({ mode: "live", minute: I.state.state.minute, ...x })), { mode: "dry_run", minute: I.state.state.minute, cond: I.minutes[2].cond, rate: 15, formula_usd: 9 }],
+    // The last turn's live minute, and the live minutes before 16 Sep's midnight that DAYS' Orders marks the day's close at;
+    // a dry-run minute at the same midnight and a live one 20 minutes before it would move 16 Sep's Orders were either read.
+    [T.minutes]: [
+      ...I.minutes.map((x: Record<string, unknown>) => ({ mode: "live", minute: I.state.state.minute, ...x })), { mode: "dry_run", minute: I.state.state.minute, cond: I.minutes[2].cond, rate: 15, formula_usd: 9 },
+      ...I.closes.map((x: Record<string, unknown>) => ({ mode: "live", ...x })),
+      { mode: "dry_run", minute: "2026-09-16T23:59:00.000Z", cond: I.closes[1].cond, bb: 0.9, ba: 0.92, bid_price: null, ask_price: null },
+      { mode: "live", minute: "2026-09-16T23:40:00.000Z", cond: I.closes[2].cond, bb: 0.1, ba: 0.12, bid_price: null, ask_price: null },
+    ],
     pm_lpprep_fills: [{ cond: I.markets[0].cond, token: "x", token_side: "BUY", token_price: 0.5, size: 1000 }],
     pm_lpprep_days: [{ day: "2026-09-16", reward: 999 }],
     // 0107's view: the live hours of the last two days, as the database sums them.
@@ -147,6 +168,61 @@ Deno.test("the dashboard reads live-prep's live book from its live rows only: no
   // A read that fails leaves the row off, never the page.
   const broken: typeof mem.db = { ...mem.db, select: (t, q) => (t === T.markets ? Promise.reject(new Error(`db GET ${t} → 500`)) : mem.db.select(t, q)) };
   assertEquals(await readLpLive(broken, I.nowMs), null);
+});
+
+// ------------------------------------------------------------------ DAYS' Orders
+
+Deno.test("DAYS' Orders: each day's fills marked to market, a settlement on its day, the days adding up to the fills' P&L", () => {
+  // Two markets, A (YES ay, NO an) and B (YES by, NO bn), live from 9 Oct; now 11 Oct 12:00 UTC.
+  //   9 Oct  buys 100 A YES at 0.30 and 50 B NO at 0.60. At 23:59 A's book is 0.31 / 0.33 (mid 0.32; its 23:56 minute,
+  //          0.89 / 0.91, is outside the three minutes read) and B's the others' 0.40 / 0.46 with our bid at 0.44, so
+  //          0.44 / 0.46, mid 0.45, its NO at 0.55: 100 × 0.02 + 50 × −0.05 = −0.50.
+  //   10 Oct sells 40 A YES at 0.35 (+2.00, and a taker's fee of 0.10); A resolves NO at 18:05, its 60 YES realised at
+  //          0 (−18.00); B's 23:59 minute has no book, so its 23:58 is read, 0.37 / 0.39, mid 0.38, its NO at 0.62
+  //          (+1.00 on cost). The close is −16.00 + 1.00 = −15.00, so −15.00 − (−0.50) − 0.10 = −14.60; as cash, the
+  //          day's 14.00 in, its 31.00 held at the close and 59.50 at the open: 14 + 31 − 59.5 − 0.10 = −14.60.
+  //   11 Oct buys 50 B NO at 0.50 (100 at 0.55) and B's mid is 0.40 now (NO 0.60): −16.00 + 5.00 = −11.00, so +4.00
+  //          (−25 + 60 − 31).
+  // The days add up to −11.10: realised −16.00 less the 0.10 fee, plus unrealised +5.00.
+  const t = (s: string) => Date.parse(s);
+  const A = { cond: "A", yes_token: "ay", no_token: "an" }, B = { cond: "B", yes_token: "by", no_token: "bn" };
+  const fills: PmFill[] = [
+    { token: "ay", side: "BUY", price: 0.3, size: 100, ts: t("2026-10-09T10:00:00Z") }, { token: "bn", side: "BUY", price: 0.6, size: 50, ts: t("2026-10-09T11:00:00Z") },
+    { token: "ay", side: "SELL", price: 0.35, size: 40, ts: t("2026-10-10T09:00:00Z") }, { token: "bn", side: "BUY", price: 0.5, size: 50, ts: t("2026-10-11T08:00:00Z") },
+  ];
+  const all = [...fills, ...settlementFills([{ ...A, payout: 0, settled_at: "2026-10-10T18:05:00Z" }])];
+  const close = (minute: string, cond: string, bb: number | null, ba: number | null, bid_price: number | null = null, ask_price: number | null = null): LpLiveCloseRow => ({ minute, cond, bb, ba, bid_price, ask_price });
+  const closes = [
+    close("2026-10-09T23:56:00Z", "A", 0.89, 0.91), close("2026-10-09T23:59:00Z", "A", 0.31, 0.33), close("2026-10-09T23:59:00Z", "B", 0.4, 0.46, 0.44),
+    close("2026-10-10T23:58:00Z", "B", 0.37, 0.39), close("2026-10-10T23:59:00Z", "B", null, null, 0.5),
+  ];
+  const nowMs = t("2026-10-11T12:00:00Z"), marksNow = { ay: null, an: null, by: 0.4, bn: 0.6 };
+  const fees = [{ ts: t("2026-10-10T09:00:00Z"), usd: 0.1 }];
+  const days = lpDayOrders({ fills: all, fees, markets: [A, B], closes, marksNow, nowMs });
+  assertEquals([...days], [["2026-10-09", -0.5], ["2026-10-10", -14.6], ["2026-10-11", 4]]);
+  // The page's own figures for the same record: the days add up to its fills' P&L, realised less fees plus unrealised.
+  near([...days.values()].reduce((a, b) => a + b, 0), -16 - 0.1 + 5, "the days' sum");
+  // A midnight with no book read holds what is held at cost there: 10 Oct's close is −16.00, so the split moves (−15.60,
+  // +5.00) and the sum does not.
+  const unmarked = lpDayOrders({ fills: all, fees, markets: [A, B], closes: closes.filter((c) => !c.minute.startsWith("2026-10-10")), marksNow, nowMs });
+  assertEquals([...unmarked], [["2026-10-09", -0.5], ["2026-10-10", -15.6], ["2026-10-11", 5]]);
+  // No fill, no day; a fill today alone, today alone.
+  assertEquals(lpDayOrders({ fills: [], fees: [], markets: [A, B], closes, marksNow, nowMs }).size, 0);
+  assertEquals([...lpDayOrders({ fills: [fills[3]], fees: [], markets: [A, B], closes, marksNow, nowMs })], [["2026-10-11", 5]]);
+});
+
+Deno.test("DAYS' Orders reads a midnight's mark as the page reads the book: the others' touch or our own quote where it is better", () => {
+  const r = (bb: number | string | null, ba: number | string | null, bid_price: number | string | null = null, ask_price: number | string | null = null) => lpMinuteMid({ bb, ba, bid_price, ask_price });
+  near(r(0.4, 0.46)!, 0.43, "the others' touch alone");
+  near(r(0.4, 0.46, 0.44, 0.45)!, 0.445, "our bid at 0.44 and ask at 0.45 are the touch");
+  near(r(0.4, 0.46, 0.3, 0.5)!, 0.43, "our quotes behind the others' are not");
+  near(r("0.48", "0.56", null, "0.54")!, 0.51, "as PostgREST returns numerics, text");
+  assertEquals([r(null, null, 0.5), r(0.5, 0.5), r(null, 0.4)], [null, null, null]);
+  // The minutes read: the three before each midnight that has passed since the first fill's day.
+  assertEquals(lpCloseMinutes(Date.parse("2026-10-09T10:00:00Z"), Date.parse("2026-10-11T00:00:00Z")), [
+    "2026-10-09T23:57:00.000Z", "2026-10-09T23:58:00.000Z", "2026-10-09T23:59:00.000Z", "2026-10-10T23:57:00.000Z", "2026-10-10T23:58:00.000Z", "2026-10-10T23:59:00.000Z",
+  ]);
+  assertEquals(lpCloseMinutes(Date.parse("2026-10-11T00:10:00Z"), Date.parse("2026-10-11T12:00:00Z")), []);
 });
 
 Deno.test("funded is the cap the last turn held its buys to (since Addendum 8 it follows the equity); without one, the config's", () => {
@@ -274,7 +350,8 @@ Deno.test("Addendum 9: R and today's estimate rest on the minutes Polymarket rea
   // The summary's R (ACTUAL) and DAYS: paid over the scored formula, the whole formula beside it.
   const s = lpLiveSummary({ ...F.input, rewardDays: [day], hours: [] })!;
   assertAlmostEquals(s.r!, 6.53 / 19.8, 1e-6, "R (ACTUAL), to six places");
-  assertEquals(s.days.map((d) => [d.formulaUsd, d.formulaAllUsd, d.r]), [[19.8, 153.9, Math.round((6.53 / 19.8) * 1e6) / 1e6]]);
+  // (the fixture's fills, in September, are days of their own: Orders alone)
+  assertEquals(s.days.filter((d) => d.read).map((d) => [d.formulaUsd, d.formulaAllUsd, d.r]), [[19.8, 153.9, Math.round((6.53 / 19.8) * 1e6) / 1e6]]);
 });
 
 Deno.test("lpLiveR is the one live R: the estimate's R is its, from the readout rows alone, the prior until a day is read", () => {
@@ -302,7 +379,7 @@ Deno.test("Addendum 10: 10-09 enters R at its like-for-like figure (0.807, rtrue
   // The summary's R (ACTUAL) and DAYS read the same figure; the whole formula is beside it.
   const s = lpLiveSummary({ ...F.input, rewardDays: rows, hours: [], nowMs: Date.parse("2026-10-10T06:00:00Z") })!;
   assertAlmostEquals(s.r!, paid / 8.081876, 1e-6);
-  assertEquals(s.days.map((d) => [d.day, d.formulaUsd, d.formulaAllUsd]), [["2026-10-09", 8.081875, 153.897992]]);
+  assertEquals(s.days.filter((d) => d.read).map((d) => [d.day, d.formulaUsd, d.formulaAllUsd]), [["2026-10-09", 8.081875, 153.897992]]);
   // A day with no correction stands as read.
   const later = rows.map((r) => ({ ...r, day: "2026-10-10" }));
   assertAlmostEquals(lpLiveR(later, Date.parse("2026-10-11T06:00:00Z")).point, Math.exp((2 * Math.log(Math.sqrt(0.2)) + Math.log(paid / 19.801095)) / 3), 1e-5);

@@ -16,7 +16,7 @@ import { SurfaceBoundary } from '../app/surface_boundary.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, LP_LIVE_ROW_ID, fmtR, lpEstimateTexts, lpLiveStatus, rwFeeAsides, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, MID_ROW_ID, LP_ROW_ID, isPrepRowId, prepStopText, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwTestedSince, rweCheckWarn, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxSourceText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows, rwRoundText,
+  AGENT_TABS, LP_LIVE_ROW_ID, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, rwFeeAsides, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, MID_ROW_ID, LP_ROW_ID, isPrepRowId, prepStopText, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwTestedSince, rweCheckWarn, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxSourceText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows, rwRoundText,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -657,22 +657,28 @@ function LpLiveDetail({ l, m, at, nowMs }) {
         <div className="ag-section-title mono">DAYS</div>
         <div className="hl-scroll">
           <table className="hl-table ag-table ag-log mono">
+            {/* Orders (Davies, 2026-10-11): the day's fills marked to market, rewards not counted (`lpLiveDayCells`); the days'
+                Orders add up to the orders' part of REALIZED G/L plus UNREALIZED G/L. */}
             <thead><tr>
-              <th className="hl-th">Day (UTC)</th><th className="hl-th">Markets</th><th className="hl-th">Formula</th><th className="hl-th">Paid</th>
+              <th className="hl-th">Day (UTC)</th><th className="hl-th">Markets</th><th className="hl-th">Orders</th><th className="hl-th">Formula</th><th className="hl-th">Paid</th>
               <th className="hl-th">R</th><th className="hl-th">Rebates</th>
             </tr></thead>
             <tbody>
-              {days.length === 0 && <tr><td className="hl-empty dim" colSpan={6}>No day read yet: Polymarket's payouts are read an hour after each UTC day.</td></tr>}
-              {days.map((d) => (
-                <tr key={d.day}>
-                  <td className="dim">{dayLabel(d.day)}</td>
-                  <td>{d.markets}</td>
-                  <td>{m(fmtUsd(d.formulaUsd))}</td>
-                  <td className="ag-gl" style={{ color: pctColor(d.paidUsd) }}>{usd(d.paidUsd)}</td>
-                  <td>{fmtR(d.r)}</td>
-                  <td>{m(fmtUsd(d.rebateUsd))}</td>
-                </tr>
-              ))}
+              {days.length === 0 && <tr><td className="hl-empty dim" colSpan={7}>No day read yet: Polymarket's payouts are read an hour after each UTC day.</td></tr>}
+              {days.map((d) => {
+                const c = lpLiveDayCells(d, m);
+                return (
+                  <tr key={d.day}>
+                    <td className="dim">{dayLabel(d.day)}{d.today ? ' · today' : ''}</td>
+                    <td>{c.markets}</td>
+                    <td className="ag-gl" style={{ color: pctColor(c.ordersUsd) }}>{c.orders}</td>
+                    <td>{c.formula}</td>
+                    <td className="ag-gl" style={c.paidUsd == null ? undefined : { color: pctColor(c.paidUsd) }}>{c.paid}</td>
+                    <td>{c.r}</td>
+                    <td>{c.rebates}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

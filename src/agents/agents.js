@@ -1420,6 +1420,27 @@ export function lpLiveStatus(l) {
 }
 
 /**
+ * A row of DAYS on LIVE's "Reward quotes" page, as its cells read, every dollar through `m` (the hide-values mask): the
+ * markets the readout read, the day's Orders (the fills' P&L marked to market, rewards not counted, `lpDayOrders`;
+ * Davies, 2026-10-11: "days表格中在合适的位置加上orders列展示orders的盈亏"), then the formula, what Polymarket paid, R and
+ * the rebates. Orders sits beside the rewards' columns, so a row reads what its orders made and what it was paid; a day
+ * not yet read (today, and yesterday until its payout is read) has its Orders alone, a dash in each of the readout's cells.
+ * @param {any} d  a day of the dashboard's `lpLive.days` @param {(s: string) => string} m
+ */
+export function lpLiveDayCells(d, m) {
+  const read = !!d?.read;
+  const orders = Number(d?.ordersUsd) || 0;
+  return {
+    markets: read ? String(Number(d.markets) || 0) : '—',
+    orders: m(fmtUsd(orders, true)), ordersUsd: orders,
+    formula: read ? m(fmtUsd(Number(d.formulaUsd) || 0)) : '—',
+    paid: read ? m(fmtUsd(Number(d.paidUsd) || 0, true)) : '—', paidUsd: read ? Number(d.paidUsd) || 0 : null,
+    r: fmtR(d?.r),
+    rebates: read ? m(fmtUsd(Number(d.rebateUsd) || 0)) : '—',
+  };
+}
+
+/**
  * The REWARDS TODAY (EST.) tile's value, every dollar through `m` (the hide-values mask): "$a – $b" so far today, in the
  * page's gain colour; a dash without an estimate. Nothing under it (Davies, 2026-10-09: "数字的字体改成绿色的，底下"day …"删掉不显示").
  * @param {ReturnType<typeof lpLiveStatus>['est']} est @param {(s: string) => string} m

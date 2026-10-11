@@ -191,7 +191,7 @@ import { PREP_INSTANCE, runPmPrep, type PrepInstance } from "./pm_prep.ts";
 import { PM_MID_INSTANCE, PREP_MID_INSTANCE } from "./pm_mid.ts";
 import { PM_LP_INSTANCE, PREP_LP_INSTANCE } from "./pm_lp.ts";
 import { runPmLpReserve } from "./pm_lp_reserve.ts";
-import { atLiveR, LP_LIVE_FILL_COLUMNS, LP_LIVE_HOUR_COLUMNS, LP_LIVE_HOURS_VIEW, LP_LIVE_MARKET_COLUMNS, LP_LIVE_MINUTE_COLUMNS, LP_LIVE_ORDER_COLUMNS, LP_LIVE_REWARD_COLUMNS, lpLiveR, lpLiveSince, lpLiveSummary, type LpLiveRPrice, type LpLiveConfigRow, type LpLiveFillRow, type LpLiveHourRow, type LpLiveMarketRow, type LpLiveMinuteRow, type LpLiveOrderRow, type LpLiveRewardDayRow, type LpLiveStateRow, type LpLiveStopRow } from "./pm_lp_live_view.ts";
+import { atLiveR, LP_LIVE_CLOSE_COLUMNS, LP_LIVE_CLOSE_MINUTES, LP_LIVE_FILL_COLUMNS, LP_LIVE_HOUR_COLUMNS, LP_LIVE_HOURS_VIEW, LP_LIVE_MARKET_COLUMNS, LP_LIVE_MINUTE_COLUMNS, LP_LIVE_ORDER_COLUMNS, LP_LIVE_REWARD_COLUMNS, lpCloseMinutes, lpLiveR, lpLiveSince, lpLiveSummary, type LpLiveRPrice, type LpLiveCloseRow, type LpLiveConfigRow, type LpLiveFillRow, type LpLiveHourRow, type LpLiveMarketRow, type LpLiveMinuteRow, type LpLiveOrderRow, type LpLiveRewardDayRow, type LpLiveStateRow, type LpLiveStopRow } from "./pm_lp_live_view.ts";
 import { PREP_STRESS_TABLE, recordPrepStress, stressLayer } from "./pm_prep_stress.ts";
 import { prepSummary, type PrepDayRow, type PrepStressDayRow, type PrepFillRow, type PrepMarketRow, type PrepMinuteRow, type PrepRateRow, type PrepStateRow } from "./pm_prep_view.ts";
 import { JEV_QUESTION_VERSION, positionFromFills, unrealisedUsd, type CategoricalState, type Position, type StrategyKind } from "../_shared/agents_strategy.ts";
@@ -1877,7 +1877,16 @@ export async function readLpLive(d: Db, now: number) {
       // A read that fails (the view not there yet) leaves the estimate on the earlier days alone, never the row off.
       d.select<LpLiveHourRow>(LP_LIVE_HOURS_VIEW, `select=${LP_LIVE_HOUR_COLUMNS}&order=hour.asc,cond.asc&limit=1000`).catch(() => [] as LpLiveHourRow[]),
     ]);
-    return lpLiveSummary({ config: cfg[0], state: st[0] ?? null, open, firstLive: first[0]?.ts ?? null, fills, settlements, rewardDays, markets, minutes, stop: stop[0] ?? null, hours, nowMs: now });
+    // Each UTC midnight's last live minutes since the first fill: DAYS' Orders marks each day's close at them. Thirty
+    // midnights to a read, so no list outgrows a URL; a read that fails leaves its closes unmarked (held at cost), never
+    // the row off.
+    const firstFill = Math.min(now, ...fills.map((f) => (f.match_time ? Date.parse(f.match_time) : now)), ...settlements.map((x) => Date.parse(x.settled_at)));
+    const closeMinutes = lpCloseMinutes(firstFill, now), perRead = 30 * LP_LIVE_CLOSE_MINUTES;
+    const closes = (await Promise.all(Array.from({ length: Math.ceil(closeMinutes.length / perRead) }, (_, i) => {
+      const list = closeMinutes.slice(i * perRead, (i + 1) * perRead).map(encodeURIComponent).join(",");
+      return d.selectAll<LpLiveCloseRow>(T.minutes, `mode=eq.live&minute=in.(${list})&select=${LP_LIVE_CLOSE_COLUMNS}&order=mode.asc,minute.asc,cond.asc`).catch(() => [] as LpLiveCloseRow[]);
+    }))).flat();
+    return lpLiveSummary({ config: cfg[0], state: st[0] ?? null, open, firstLive: first[0]?.ts ?? null, fills, settlements, rewardDays, markets, minutes, stop: stop[0] ?? null, hours, closes, nowMs: now });
   } catch { return null; }
 }
 

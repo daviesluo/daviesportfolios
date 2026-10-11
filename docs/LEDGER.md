@@ -443,6 +443,20 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10"; each oldest first.
 
+### [2026-10-11 01:03 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LIVE's Reward quotes page: DAYS has an Orders column** (sub-agent, not pushed; Davies, 2026-10-11:
+  "live的Reward quotes页面days表格中在合适的位置加上orders列展示orders的盈亏"). Day | Markets | Orders | Formula | Paid | R |
+  Rebates. A day's Orders is `lpDayOrders` (`pm_lp_live_view.ts`): the page's own fills P&L (`bookPnl` total over
+  `tokenBooks`, settlements as `settlementFills`) at the day's close less at its open, less the day's fees, so the days
+  add up to realised-from-fills less fees plus unrealised exactly, whatever a midnight's mark. A past midnight's mark is
+  the newest live `pm_lp_minutes` row of the 3 minutes before it, rebuilt as the page's touch mid (`lpMinuteMid`: the
+  others' `bb`/`ba` or our own `bid_price`/`ask_price`, whichever is better); a market with no row there is held at cost
+  (10-09's midnight: `0xecc209a6`, no live minute 23:11–00:05, moves ≤ ~$0.7 between 10-09 and 10-10, sum unchanged).
+  Today and an unread yesterday are rows with Orders alone (`read: false`). On the record at 00:53 UTC 10-11: 10-09
+  +3.395553, 10-10 −34.280797 (MrBeast `0x3090f7aa` −32.544741 on 86 fills = cash −33.162683 + 0.617942 YES at payout
+  1), 10-11 −3.218182 so far; sum −34.103426 = −34.947415 + 0.84399. An independent cash-flow check (day's cash +
+  held at close − held at open) gives the same to 1e-6. `pm_live.ts`/`pm_lp.ts` untouched.
+
 ### [2026-10-11 00:42 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep's Addendum 17 (mid-pool's 17): the caps fund whole markets in the day's rank order** (sub-agent, not
   pushed), LP-CAPINV's proposal. Davies' answer as the coordinator relayed it, quoted in the addendum: "按照你推荐的来"

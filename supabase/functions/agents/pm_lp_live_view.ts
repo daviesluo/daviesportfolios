@@ -22,6 +22,9 @@
 //              formula, a maker's nothing); every order is post-only, so every fill so far is a maker's and pays nothing.
 //              Taken off realised, as a fee is. The maker rebates Polymarket paid are the readout's own (`rebate_usd`).
 //   the stop   −$75 on the fills' total plus what was paid (rebates not), exactly as the path judges it each turn.
+//   DAYS       each UTC day the readout has read (markets, formula, paid, R, rebates) and, since 2026-10-11, its Orders: the
+//              fills' P&L of the day marked to market (`lpDayOrders`), so the days' Orders add up to realised from the fills
+//              less fees plus unrealised; today, and yesterday until it is read, are rows with Orders alone.
 
 import { bookPnl, settlementFills, tokenBooks, type PmFill, type PmSettlement } from "./pm_live.ts";
 import { pmLiveFillFee } from "./pm_fees.ts";
@@ -65,6 +68,14 @@ export type LpLiveMinuteRow = { cond: string; rate: number | string | null; form
 export type LpLiveHourRow = { hour: string; cond: string; minutes: number | string | null; formula_usd: number | string | null; formula_scored_usd?: number | string | null };
 /** The live total stop's event (`pm_lp_events`, kind `loss_stop_total`, mode `live`), if it has tripped. */
 export type LpLiveStopRow = { minute: string; detail: unknown };
+/**
+ * One market's live minute just before a UTC midnight (`pm_lp_minutes`, mode `live`): the book that turn read, as the
+ * others' touch (`bb`, `ba`) and our own best resting quote in YES's book (`bid_price`, `ask_price`). DAYS' Orders marks
+ * what is held at a day's close from it (`lpMinuteMid`), since the path stores no other book of a past minute.
+ */
+export type LpLiveCloseRow = {
+  minute: string; cond: string; bb: number | string | null; ba: number | string | null; bid_price: number | string | null; ask_price: number | string | null;
+};
 
 /** The columns each read takes. */
 export const LP_LIVE_ORDER_COLUMNS = "id,ts,cond,token,outcome,side,price,size,state,size_matched,gate,reason,cancel_reason,filled_at,cancelled_at";
@@ -73,6 +84,9 @@ export const LP_LIVE_REWARD_COLUMNS = "day,cond,minutes,minutes_scored,formula_u
 export const LP_LIVE_MARKET_COLUMNS = "day,cond,question,yes_token,no_token,reward_rate,rank";
 export const LP_LIVE_MINUTE_COLUMNS = "cond,rate,formula_usd";
 export const LP_LIVE_HOUR_COLUMNS = "hour,cond,minutes,formula_usd,formula_scored_usd";
+export const LP_LIVE_CLOSE_COLUMNS = "minute,cond,bb,ba,bid_price,ask_price";
+/** DAYS' Orders reads each day's close from the live minutes this many minutes before its midnight, the newest of each market's. */
+export const LP_LIVE_CLOSE_MINUTES = 3;
 /** The view the dashboard reads the day's formula from (0107). */
 export const LP_LIVE_HOURS_VIEW = "pm_lp_live_hours";
 
@@ -121,6 +135,78 @@ export function scoredFormulaOf(r: Pick<LpLiveRewardDayRow, "day" | "cond" | "fo
 }
 
 /**
+ * A live minute's mid as the page marks a market (`state.markets[].book`, the book the turn read with our own orders in
+ * it): its best bid is the others' best or our own resting bid in YES's book, whichever is higher, its best ask the lower
+ * of theirs and ours, and the mark their average. Null when a side is unknown or the two do not make a book, as the
+ * turn's own book is then unread.
+ */
+export function lpMinuteMid(r: Pick<LpLiveCloseRow, "bb" | "ba" | "bid_price" | "ask_price">): number | null {
+  const best = (xs: Array<number | string | null>, pick: (a: number, b: number) => number) => {
+    const v = xs.map(nz).filter((x): x is number => x !== null && Number.isFinite(x));
+    return v.length ? v.reduce((a, b) => pick(a, b)) : null;
+  };
+  const bid = best([r.bb, r.bid_price], Math.max), ask = best([r.ba, r.ask_price], Math.min);
+  return bid === null || ask === null || !(bid < ask) ? null : (bid + ask) / 2;
+}
+
+/** The minutes DAYS' Orders reads for each UTC midnight from `fromMs`'s day's end through `nowMs`: the last few before it. */
+export function lpCloseMinutes(fromMs: number, nowMs: number): string[] {
+  const out: string[] = [];
+  for (let b = Math.floor(fromMs / DAY) * DAY + DAY; b <= nowMs; b += DAY) for (let k = LP_LIVE_CLOSE_MINUTES; k >= 1; k--) out.push(iso(b - k * M));
+  return out;
+}
+
+/**
+ * DAYS' Orders (Davies, 2026-10-11: "days表格中…加上orders列展示orders的盈亏"): each UTC day's P&L of the fills and
+ * settlements, rewards not counted. It is the fills' P&L exactly as the page counts its total (`bookPnl`'s total over
+ * `tokenBooks`: what was realised, and every holding at its mark against its average cost) at the day's close, less the
+ * same at its open, less the fees the day's fills paid: what the day's trades realised plus how what was held moved, a
+ * settlement on the day it settled (`fills` carries the settlements as the sells `settlementFills` makes them). A past
+ * midnight is marked at each market's newest live minute in the few before it (`closes`, `lpMinuteMid`); the day still
+ * running ends at the page's own marks (`marksNow`). A midnight's figure is one day's close and the next day's open, so
+ * the days add up to the page's fills P&L (realised less fees, plus unrealised) whatever a midnight's mark was; a holding
+ * with no mark at a midnight is held at its cost there, as the page holds one. Day by day from the first fill's to
+ * today's, keyed by day.
+ */
+export function lpDayOrders(p: {
+  fills: PmFill[]; fees: Array<{ ts: number; usd: number }>; markets: Iterable<Pick<LpLiveMarketRow, "cond" | "yes_token" | "no_token">>;
+  closes: LpLiveCloseRow[]; marksNow: Record<string, number | null>; nowMs: number;
+}): Map<string, number> {
+  const out = new Map<string, number>();
+  if (!p.fills.length) return out;
+  const today = Math.floor(p.nowMs / DAY) * DAY;
+  const first = Math.min(today, Math.floor(Math.min(...p.fills.map((f) => f.ts)) / DAY) * DAY);
+  // Each midnight's mid of each market: its newest live minute with a book in the few before it.
+  const at = new Map<number, Map<string, { t: number; mid: number }>>();
+  for (const r of p.closes) {
+    const t = Date.parse(r.minute), b = Math.floor(t / DAY) * DAY + DAY, mid = lpMinuteMid(r);
+    if (!Number.isFinite(t) || mid === null || b - t > LP_LIVE_CLOSE_MINUTES * M) continue;
+    const m = at.get(b) ?? new Map<string, { t: number; mid: number }>();
+    const was = m.get(r.cond);
+    if (!was || was.t < t) m.set(r.cond, { t, mid });
+    at.set(b, m);
+  }
+  const markets = [...p.markets];
+  const marksAt = (b: number) => {
+    const marks: Record<string, number | null> = {};
+    for (const m of markets) { const x = at.get(b)?.get(m.cond)?.mid ?? null; marks[m.yes_token] = x; marks[m.no_token] = x === null ? null : 1 - x; }
+    return marks;
+  };
+  // The fills' P&L at the close of the day starting `d`: the page's own figure for today, else at the midnight's marks.
+  const closeOf = (d: number) => d >= today
+    ? bookPnl(tokenBooks(p.fills, today), p.marksNow).total
+    : bookPnl(tokenBooks(p.fills.filter((f) => f.ts < d + DAY), d + DAY), marksAt(d + DAY)).total;
+  let open = 0;
+  for (let d = first; d <= today; d += DAY) {
+    const close = closeOf(d);
+    const fees = p.fees.filter((f) => f.ts >= d && (d >= today || f.ts < d + DAY)).reduce((s, f) => s + f.usd, 0);
+    out.set(iso(d).slice(0, 10), r6(close - open - fees));
+    open = close;
+  }
+  return out;
+}
+
+/**
  * The dashboard's `lpLive`: live-prep's real-money book from its live rows, or null while it is no LIVE row — the
  * config unread, or never armed and never sent a live order. `open` are its live orders resting (pending or live),
  * `firstLive` its first live order's time, `fills` every fill of a live order (the table holds nothing else: a dry-run
@@ -132,6 +218,8 @@ export function lpLiveSummary(input: {
   settlements: PmSettlement[]; rewardDays: LpLiveRewardDayRow[]; markets: LpLiveMarketRow[]; minutes?: LpLiveMinuteRow[]; stop: LpLiveStopRow | null;
   /** The live hours of the last two days (`pm_lp_live_hours`): today's rewards are estimated from them (`lpRewardEstimate`). */
   hours?: LpLiveHourRow[];
+  /** The live minutes just before each UTC midnight since the first fill (`lpCloseMinutes`): DAYS' Orders marks each day's close at them. */
+  closes?: LpLiveCloseRow[];
   nowMs: number;
 }) {
   const cfg = input.config;
@@ -167,9 +255,16 @@ export function lpLiveSummary(input: {
   const confirmed = input.fills.filter((f) => f.status === "CONFIRMED");
   const fills = confirmed.map((f): PmFill => ({ token: f.token, side: f.side, price: num(f.price), size: num(f.size), ts: f.match_time ? Date.parse(f.match_time) : input.nowMs }))
     .sort((a, b) => a.ts - b.ts || (a.side === b.side ? 0 : a.side === "BUY" ? -1 : 1));
-  const books = tokenBooks([...fills, ...settlementFills(input.settlements)], todayStart);
+  const withSettled = [...fills, ...settlementFills(input.settlements)];
+  const books = tokenBooks(withSettled, todayStart);
   const pnl = bookPnl(books, marks);
-  const fees = confirmed.reduce((s, f) => s + pmLiveFillFee(num(f.size), num(f.price), f.trader_side, f.fee_rate_bps), 0);
+  const feeOf = (f: LpLiveFillRow) => pmLiveFillFee(num(f.size), num(f.price), f.trader_side, f.fee_rate_bps);
+  const fees = confirmed.reduce((s, f) => s + feeOf(f), 0);
+  // DAYS' Orders: the same fills' P&L, day by day (`lpDayOrders`); the days add up to realised less fees plus unrealised.
+  const ordersByDay = lpDayOrders({
+    fills: withSettled, fees: confirmed.map((f) => ({ ts: f.match_time ? Date.parse(f.match_time) : input.nowMs, usd: feeOf(f) })),
+    markets: market.values(), closes: input.closes ?? [], marksNow: marks, nowMs: input.nowMs,
+  });
   let realisedFills = 0, heldCost = 0, heldValue = 0;
   const condOfToken = new Map<string, string>();
   for (const m of market.values()) { condOfToken.set(m.yes_token, m.cond); condOfToken.set(m.no_token, m.cond); }
@@ -201,10 +296,17 @@ export function lpLiveSummary(input: {
     x.paidUsd += num(r.actual_usd) + num(r.actual_sponsored_usd); x.rebateUsd += num(r.rebate_usd);
     byDay.set(d, x);
   }
-  const days = [...byDay.values()].sort((a, b) => b.day.localeCompare(a.day)).map((d) => ({
-    day: d.day, markets: d.markets, minutesScored: d.minutesScored, formulaUsd: r6(d.formulaUsd), formulaAllUsd: r6(d.formulaAllUsd), paidUsd: r6(d.paidUsd), rebateUsd: r6(d.rebateUsd),
-    r: d.formulaUsd > 0 ? r6(d.paidUsd / d.formulaUsd) : null,
-  }));
+  // A day the readout has read, and each day the fills made something on (`ordersUsd`, DAYS' Orders: today, and yesterday
+  // until its payout is read, are rows with Orders alone, the readout's cells null).
+  const days = [...new Set([...byDay.keys(), ...ordersByDay.keys()])].sort((a, b) => b.localeCompare(a)).map((day) => {
+    const d = byDay.get(day), ordersUsd = ordersByDay.get(day) ?? 0;
+    return d
+      ? {
+        day, markets: d.markets, minutesScored: d.minutesScored, formulaUsd: r6(d.formulaUsd), formulaAllUsd: r6(d.formulaAllUsd), paidUsd: r6(d.paidUsd), rebateUsd: r6(d.rebateUsd),
+        r: d.formulaUsd > 0 ? r6(d.paidUsd / d.formulaUsd) : null, ordersUsd, read: true, today: day === today,
+      }
+      : { day, markets: null, minutesScored: null, formulaUsd: null, formulaAllUsd: null, paidUsd: null, rebateUsd: null, r: null, ordersUsd, read: false, today: day === today };
+  });
   const sum = (f: (d: Day) => number, only?: (d: Day) => boolean) => [...byDay.values()].filter((d) => !only || only(d)).reduce((s, d) => s + f(d), 0);
   const paid = sum((d) => d.paidUsd), rebates = sum((d) => d.rebateUsd), formula = sum((d) => d.formulaUsd), formulaAll = sum((d) => d.formulaAllUsd);
   const paidToday = sum((d) => d.paidUsd + d.rebateUsd, (d) => d.day === today);
