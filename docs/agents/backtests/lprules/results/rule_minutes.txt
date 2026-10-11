@@ -1,0 +1,28 @@
+sql/rule_minutes.sql, run 2026-10-11 ~01:00 UTC. Live market-minutes by what the rule did, formula $.
+day    class                                      market-min  markets  formula
+10-09  quote, two sides                           8551        10       153.87
+10-09  quote, one side                            1109        9        0.00
+10-09  quote, empty, tight (TB1)                  2713        6        0.00
+10-09  quote, empty, not tight                    213         10       0.00
+10-09  paused (15 c)                              776         4        0.03
+10-10  quote, two sides                           3154        20       30.34
+10-10  quote, one side                            363         16       0.00
+10-10  quote, empty, tight (TB1)                  2442        16       0.00
+10-10  quote, empty, not tight                    288         20       0.00
+10-10  paused                                     1098        8        0.03
+10-10  carried: from an earlier day               10489       8        0.12
+10-10  carried: replaced by a refill              4816        10       0.00
+10-10  carried: AI rule                           376         1        0.00
+10-10  carried: reward check, rate fell to 2-6    5464        22*     0.00
+10-10  carried: reward check, minimum 50 / 100    1329        3        0.00
+10-10  carried: reward check, programme ended     280         2        0.00
+10-11  quote, two sides                           94          7        1.03
+10-11  quote, one side                            95          9        0.00
+10-11  quote, empty, tight                        73          3        0.00
+10-11  quote, empty, not tight (the cap)          292         11       0.00
+10-11  carried: from an earlier day               855         15       0.00
+10-11  carried: replaced / reward check           51          2        0.00
+No minute of the loss guard (Addendum 14) and none of the backstop (3 live minutes not scoring) on the live record.
+10-11 00:50-01:00 UTC, after Addendum 17's deploy: of 100 quoting market-minutes 26 two-sided, 74 empty, 0 with a lone
+buy and nothing held (before it, 00:00-00:50: 82 lone-buy minutes); committed $318-322 against a cap of $321-322.
+* counted per reason; a market whose rate moved between readings is counted under each.

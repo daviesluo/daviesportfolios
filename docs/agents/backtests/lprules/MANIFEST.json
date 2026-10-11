@@ -1,0 +1,19 @@
+{
+  "study": "LP-RULES: every live rule of Reward quotes live-prep audited on the live and paper records (2026-10-11)",
+  "review": "docs/agents/reviews/2026-10-11-lp-rules-audit.md",
+  "code_read": {"commit": "7db0e575", "pm_lp.ts": "Addendum 17's bytes", "pm_live.ts": "Addendum 17's bytes"},
+  "database": "flmvxigozjuizpckllvk, read-only selects, 2026-10-11 00:49-01:10 UTC",
+  "files": {
+    "sql/market_pnl.sql": "results/market_pnl.txt",
+    "sql/day_pnl.sql": "results/day_pnl.txt",
+    "sql/reward_days.sql": "data/reward_days.csv -> scripts/r_bootstrap.py -> results/r_bootstrap.txt",
+    "sql/inv_zone.sql": "results/inv_zone.txt",
+    "sql/rule_minutes.sql": "results/rule_minutes.txt",
+    "sql/tb1_forgone.sql": "results/tb1_forgone.txt",
+    "sql/tight_held.sql": "results/tight_held.txt",
+    "sql/pause_cost.sql": "results/pause.txt",
+    "sql/end_horizon.sql": "results/end_horizon.txt",
+    "sql/capital.sql": "results/capital.txt",
+    "scripts/reprice.py": "results/reprice.txt (the earlier studies' published figures, no database)"
+  }
+}

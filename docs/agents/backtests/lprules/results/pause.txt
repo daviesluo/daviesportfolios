@@ -1,0 +1,32 @@
+sql/pause_cost.sql, run 2026-10-11 ~01:01 UTC. Live pause episodes (x2's 15 c / 60 min). jump: detail.m before the
+episode against its first minute (the rule judges the rest-of-book mid, so small values are re-triggers or inherited
+pauses); next60: the mid 60 minutes on against the start; formula_ub: minutes x the market's two-sided formula a minute.
+day    cond        start  min  jump   next60  formula_ub
+10-09  0xeee73848  01:33  98   -      0.0     0.34   (inherited from the dry-run's state at the go)
+10-09  0xf0503539  01:33  156  -      +0.2    11.11  (inherited; 00:00 programme, paid 0)
+10-09  0xeee73848  03:22  77   -0.5   +1.0    0.27
+10-09  0xeee73848  04:47  61   -0.5   0.0     0.21
+10-09  0xeee73848  05:49  61   -0.5   +4.5    0.21
+10-09  0xeee73848  06:52  102  0.0    -12.5   0.35
+10-09  0x5b3350e2  11:36  80   -0.5   +10.5   0.66
+10-09  0xfbd3437c  14:09  60   +15.7  -15.6   0.42
+10-09  0xeee73848  20:35  81   0.0    -3.5    0.28
+10-10  0xa0ab5c59  00:03  61   -0.5   +15.5   0.00   (AI, out)
+10-10  0xa0ab5c59  01:11  61   -1.5   +2.5    0.00
+10-10  0xa0ab5c59  02:13  60   0.0    +4.5    0.00
+10-10  0xa0ab5c59  04:58  119  +18.5  -0.5    0.00
+10-10  0x0477b4ad  05:43  60   +19.5  -4.0    0.80
+10-10  0x3090f7aa  06:02  60   +15.0  +19.0   2.85   (MrBeast wk1: the move kept going)
+10-10  0xa0ab5c59  07:21  60   +15.5  -10.0   0.00
+10-10  0x31e2f3df  13:47  98   +22.5  -13.0   0.30
+10-10  0xa0ab5c59  15:12  60   +16.5  -9.5    0.00
+10-10  0xa326c49f  15:26  60   -15.5  -2.0    0.00
+10-10  0x31e2f3df  15:37  95   +17.0  +9.0    0.29
+10-10  0x0477b4ad  16:21  60   -18.0  -5.0    0.80
+10-10  0x191e066d  17:58  60   +18.0  0.0     0.26
+10-10  0xbfb4f78b  20:30  60   +19.0  -8.0    0.19
+10-10  0x5e96323f  21:26  60   +2.5   -5.5    0.41
+10-10  0xa0ab5c59  22:56  64   +16.0  -11.5   0.00
+10-10's formula given up at most $5.90 (R 0.737: $4.35); MrBeast wk1's 06:02 jump went on 19 c in the hour, where 5N
+(100 shares) quoted against it would have been filled into the move. Paused minutes holding stock: 401 market-minutes,
+of which 41 in a market taken out that day (its exit sell paused too).

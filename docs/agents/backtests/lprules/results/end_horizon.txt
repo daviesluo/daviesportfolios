@@ -1,0 +1,16 @@
+sql/end_horizon.sql, run 2026-10-11 ~01:05 UTC. Fills and formula by hours from the fill (or minute) to the market's
+scheduled end. P&L held to the end: the payout once settled, else the latest mid. "all fills" is each bucket's share of
+the fills' P&L to the end (round trips net out inside a bucket, not across buckets); buys are what a horizon would stop.
+src    bucket   buys  buy sh  buys' P&L to end  all fills' P&L to end  formula (paper: 00:00 programme; live: from 10-10)
+live   0-12 h   -     -       -                 -                      0.00
+live   12-24 h  25    447     +25.19            -67.84                 7.00
+live   24-48 h  23    406     +197.95           +39.56                 12.75
+live   2-7 d    19    329     +10.25            +10.09                 4.63
+live   > 7 d    64    1115    +10.75            -13.20                 7.20
+paper  0-12 h   20    329     +38.81            +12.00                 29.46
+paper  12-24 h  13    235     +53.30            -0.52                  34.42
+paper  24-48 h  42    623     +62.33            +76.69                 59.01
+paper  2-7 d    66    1047    -79.56            -50.91                 75.53
+paper  > 7 d    145   2125    +53.39            -66.37                 354.23
+Live 12-24 h is MrBeast wk1 (0x3090f7aa, end 10-11 03:59 UTC, resolved YES 10-10 18:02): its fills -$32.54 to the
+payout, its rewards $10.50 and rebates $2.71. The paper's last 24 hours were positive (+11.48 on 33 buys).

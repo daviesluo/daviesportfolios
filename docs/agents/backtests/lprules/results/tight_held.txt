@@ -1,0 +1,17 @@
+sql/tight_held.sql, run 2026-10-11 ~01:03 UTC. Selected markets taking entries ('quote'), raw touch one tick wide, nothing
+resting (TB1's skip), by whether the market held >= 5 shares of a token. holding P&L = held x the mid's move to the next
+live minute, summed (what the stock an exit at the best ask would have offered did while held).
+day    holds  market-min  markets  mean $ held  peak $ held  holding P&L  exit ask over the mid
+10-09  no     1905        5        0.00         0.00         0.00         -
+10-09  yes    808         4        26.32        77.64        +14.70       0.38 c
+10-10  no     1555        11       0.28         2.80         +0.02        -
+10-10  yes    887         9        13.29        33.75        +4.58        0.53 c
+10-11  no     28          1        0.00         0.00         0.00         -
+10-11  yes    58          2        23.33        33.15        +1.95        0.79 c
+all           5241        25       6.65         77.64        +21.26       0.47 c
+By market (holding only), largest |P&L| first: 0xa326c49f (AI) 45 min, mean $34.54, +10.03; 0x045fdf4b (AI) 289, $39.48,
++4.96; 0xbfb4f78b 81, $6.72, +3.60; 0x58dc3bc0 (the coordinator's case) 38, $31.60, +3.45; 0xc50683fa 157, $26.97,
++1.81; 0x666c7561 20, $7.61, -1.50; 0x5e96323f 156, $18.04, -0.60; 0x5fec6675 203, $7.79, -0.50; 0x3090f7aa 34,
+$21.47, -0.32; 0x0477b4ad 68, $9.96, +0.30; 0xecc209a6 271, $24.80, +0.21; 0xd23c714e 15, -0.20; 0x191e066d 44, 0.00;
+0x31e2f3df 226, 0.00; 0xd5734dd2 106, 0.00. In all 1,753 market-minutes, 15 markets, +21.24 (+6.25 without the two AI
+markets, which Addendum 12 now leaves out).

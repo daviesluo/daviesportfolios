@@ -1,0 +1,11 @@
+sql/tb1_forgone.sql, run 2026-10-11 ~01:00 UTC. Selected, quoting, nothing resting, raw touch <= 1 tick: the formula RW's
+quote would have scored joining the touch (both touch levels holding the minimum).
+day    market-min  touch holds min  markets  formula forgone  mean share
+10-09  2713        2507             6        11.79            0.057   (00:00 programme: overstated)
+10-10  2442        2115             16       7.34             0.077
+10-11  75          40               3        0.18             0.082
+all    5230        4662             25       19.31            0.066
+At R 0.737, 10-10's $7.34 is $5.41 a day paid given up; what the skip saved in fills is not in the live record. The
+studies' ratio of fills saved to formula given up: 0.85 (RWC-OPT, RW 14 days, strict), 0.82 (LPSELF full universe),
+0.43 (RW-C's TB1 arms on 10-09/10-10, pm_rwc_x_days: tb1-skip vs rw, -207.82 reward, +89.43 fills). So removing the
+skip moves 10-10's day by 7.34 x (0.737 - ratio): -0.83 to +2.25 $ a day.

@@ -1,0 +1,42 @@
+sql/market_pnl.sql, run 2026-10-11 ~00:50 UTC. Per market since the go (2026-10-09 01:32 UTC): its first day and how it came
+in (00:00 pick and rank, or a refill, ranks 11-20), fills, what it holds, the mark (adjusted mid, or the payout once
+settled), the fills' P&L marked, Polymarket's rewards and maker rebates, net. $.
+first  how     rk  question (cut)                                       fills  sh      yes    no     mark   fillsPnL  paid   reb   formula  net
+10-07  carry   7   Musk net worth $1.00T-1.10T                          6      80.3    40.27  0      0.465  +2.84     1.47   0.19  2.92     +4.49
+10-09  pick    1   Gemini 4.0 released by Oct 16 (AI)                   26     411.7   4.91   0.01   0.555  +3.48     0.86   0.98  23.32    +5.32
+10-09  pick    2   Gemini Argon released by Oct 16 (AI)                 17     310.2   0      4.82   0.575  +0.10     1.03   0.75  10.89    +1.87
+10-09  pick    3   USS Theodore Roosevelt in CENTCOM by Nov             8      146.0   26     0      0.695  +2.91     1.70   0.00  8.04     +4.61
+10-09  pick    4   Ethereum $4k by end 2027                             2      40.0    0      0      0.71   -1.20     0.66   0.13  2.51     -0.41
+10-09  pick    5   MrBeast Gaming next video 15-17.5m                   0      0       0      0      -      0         0.57   0     0.66     +0.57
+10-09  pick    7   Iran Trump voicemail (near-certain NO)               20     381.3   100    1.34   0.005  +1.35     0.17   0     9.39     +1.52
+10-09  pick    8   Gemini Argon released on Oct 10 (AI)                 2      40.0    40     0      0.011  +0.26     0      0     84.23    +0.26
+10-09  pick    9   Anthropic #1 AI model by Dec 31 (AI)                 6      111.5   111.53 0      0.495  -12.80    0.32   0.27  3.44     -12.21
+10-09  pick    10  100 Thieves esports award                            0      0       0      0      -      0         0.09   0     8.62     +0.09
+10-10  pick    1   MrBeast next video 215-223m views (settled YES)      86     1394.8  0.62   49.94  1      -32.54    10.50  2.71  15.27    -19.33
+10-10  pick    2   "Digger" 2nd weekend box office 2m-3m                6      80.0    0      0.01   0.24   +0.20     1.09   0.25  1.61     +1.54
+10-10  pick    3   ISM PMI 51.0-51.9                                    0      0       0      0      -      0         0.24   0     0.28     +0.24
+10-10  pick    4   Mexico GDP Q3 2.5-3.0%                               5      80.0    0      0      0.265  -2.30     0.24   0.19  0.42     -1.87
+10-10  pick    5   "The Social Reckoning" opening box office            6      100.0   0      0      0.455  +3.80     1.33   0.29  2.79     +5.42
+10-10  pick    6   Claude Sonnet output price (AI)                      0      0       0      0      -      0         0      0     0.03     0.00
+10-10  pick    7   France downgrade by Nov 30                           0      0       0      0      -      0         0.52   0     0.76     +0.52
+10-10  pick    8   30-year Treasury 5.73% in Oct                        2      40.0    0      0      0.52   -1.20     0.64   0.12  0.72     -0.44
+10-10  pick    9   Canada GDP MoM Aug                                   0      0       0      0      -      0         0.08   0     0.16     +0.08
+10-10  pick    10  Trump praise Rutte by Oct 31                         4      80.0    0      0      0.30   -4.60     0.67   0.23  0.70     -3.69
+10-10  refill  11  US median home value                                 2      20.0    20     0      0.22   -0.20     0.13   0.04  0.15     -0.03
+10-10  refill  12  UMich sentiment 43.0-45.9                            2      40.0    0      40     0.37   +2.00     0.81   0.12  1.02     +2.93
+10-10  refill  13  Prologis FFO (a)                                     1      3.6     0      3.57   0.265  +0.05     0.30   0.01  0.44     +0.36
+10-10  refill  14  Morgan Stanley IB revenue                            2      40.0    0      0      0.195  -0.20     0.88   0.08  1.07     +0.76
+10-10  refill  15  Citigroup credit losses (a)                          6      108.1   60     8.14   0.83   +5.36     1.42   0.19  1.77     +6.96
+10-10  refill  16  Blackstone beats                                     3      45.0    0      45     0.51   -1.80     1.34   0.14  1.68     -0.33
+10-10  refill  17  Netflix "Animals" top movie                          0      0       0      0      -      0         0.03   0     0.03     +0.03
+10-10  refill  18  Anna Leigh Waters PPA No. 1                          0      0       0      0      -      0         0.13   0     0.16     +0.13
+10-10  refill  19  Citigroup credit losses (b)                          1      20.0    20     0      0.405  +2.10     0.64   0.04  0.78     +2.78
+10-10  refill  20  Prologis FFO (b)                                     2      36.2    0      36.16  0.245  +1.15     0.56   0.07  0.54     +1.79
+10-11  pick    1   US x Yemen ceasefire through Oct 31                  6      100.0   0      20     0.775  -3.70     -      -     -        -3.70
+10-11  pick    2   MrBeast Gaming next video 40-45m                     4      60.9    20.93  0      0.36   +1.01     -      -     -        +1.01
+10-11  pick    3   Trump insult Jeffries by Oct                         7      105.0   65     0      0.51   -0.05     -      -     -        -0.05
+Totals: fills P&L -33.98; paid 28.41; rebates 6.79; net +1.22 (10-11's paid not yet read). Rows use each market's
+latest mark, so they differ by cents from day_pnl.txt's day-end marks.
+By group: AI markets (4 on 10-09, 1 on 10-10) net -4.76 of which paid 2.21 + rebates 2.00; 10-10's ten picks net -17.53
+(MrBeast wk1 -19.33, the other nine +1.80); 10-10's ten refills net +15.38 (paid 6.24, rebates 0.69, fills +8.46, of
+which +8.66 unrealised on stock still held, -0.20 realised).

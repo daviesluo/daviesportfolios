@@ -35,6 +35,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      LPRESEL6 has read 10-09 → 10-22 (then a migration turns them off); LPRESEL6's "live-prep's own selection" is now the
      day's `pm_lp_markets` rows without `detail.refill`. Left for Davies: ranking on a rate that does not flip within the
      hour (not built).
+   - **LP-RULES (10-11): no rule change today** (`reviews/2026-10-11-lp-rules-audit.md`). Reads it leaves: capital held
+     by carried stock over 10-11 → 10-13 (its triggers and three options for Davies are in the review); TB1, LPRESEL6,
+     near-end inventory and 3N/5N by 10-23.
    - **RW's verdict: read 2026-10-09 00:42–00:50 UTC** (`reviews/2026-10-09-polymarket-rw-paper-result.md`, reference
      §3.46, `backtests/rwverdict/`). RW 6/6, RW-E 7/7, x1–x3 7/7 each; step b (all 4,116 fills by `stepRw`) and c (13,634
      prints re-pulled, none missed) clean; **RW-NEXT's candidate is RW-E**, to RW-C (Part 3's bar on or after 10-23
@@ -442,6 +445,15 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 "LEDGER.md, archived 2026-10-09", the 2026-10-08 22:49 → 23:58 UTC sections under "LEDGER.md, archived 2026-10-09
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10"; each oldest first.
+
+### [2026-10-11 01:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LP-RULES filed** (sub-agent, landed by the main session; `reviews/2026-10-11-lp-rules-audit.md`, `backtests/lprules/`): every live
+  rule of live-prep audited on the live record (10-09 01:32 → 10-11 00:52) and the paper and study records. Live net
+  +$0.92 in 47.3 h (fills −34.28, rewards 28.41, rebates 6.79; MrBeast wk1 −19.33). R 0.737 [0.696, 0.813]. Re-priced
+  at the live R (≈ 0.44 sim units, ≈ 0.27 RW units after the programme cut), no adopted rule flips. **No change proposed
+  today, no defect found** (four observations). The coordinator's case (a selected one-tick market holding stock rests
+  no exit) is a rule question: keep (holding +$21.24 over its 1,753 minutes). Open reads: capital held by carried stock
+  (10-11 → 10-13, Addendum 17's forward test), re-select 6 h and TB1 (10-23), near-end inventory and 3N/5N (by 10-23).
 
 ### [2026-10-11 01:03 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **LIVE's Reward quotes page: DAYS has an Orders column** (sub-agent, not pushed; Davies, 2026-10-11:

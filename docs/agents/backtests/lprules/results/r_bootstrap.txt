@@ -1,0 +1,8 @@
+pooled R (paid / formula): 0.7366  paid 28.414  formula 38.5754
+  2026-10-09 0.8072 over 10 market-days
+  2026-10-10 0.7179 over 28 market-days
+without the largest market-day ( 2026-10-10 0x3090f7aa formula 15.2652 R 0.688 ): 0.7683
+market-days with formula > $0.05: 28  median R 0.7957872188504105
+market-day bootstrap 5% / 50% / 95%: 0.696 0.739 0.813
+maker rebates 6.7923 = 0.176 of the formula
+paid where the formula was 0 (one-sided): 0.264 on 2 market-days

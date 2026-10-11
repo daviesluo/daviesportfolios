@@ -1,0 +1,10 @@
+sql/capital.sql, run 2026-10-11 ~01:08 UTC, with pm_lp_state at 00:49 UTC (capital, pUSD) and pm_lp_markets for 10-11.
+held, at average buy price            markets  $
+from 10-09 or before                  7        105.80   (Anthropic #1 AI 111.53 YES alone ~$68)
+10-10 picks                           0        0.00
+10-10 refills (taken 14:23-14:52)     7        133.60
+10-11 picks                           3        44.76
+total                                          284.16
+State 00:49: equity $402.30, cap $322 (equity - 75 - 5), pUSD $117.53, so resting buys may use pUSD - $80 = $37.53
+(LP-CAPINV's closed form). 10-11's eleven rows (ten picks and one refill) need $205.60 of first quotes. 00:50-01:00:
+26 of 100 quoting market-minutes two-sided, 74 empty.

@@ -1,0 +1,24 @@
+Each arm against the rule as run (a change; + = the change earns more). $ a day.
+Sim units: live R 0.737 = 0.439 [0.415, 0.485]. RW units: 0.27 (programme cut 64 %), 0.40 (the studies' choice), 0.74 (no cut).
+Phase A (RW, 9.6 d)                buy-only orders                                dFormula   -80.56/d  dFills    13.58/d  R*   0.17   at R (0.27, 0.4, 0.74): [-8.17, -18.65, -46.03] $/d
+Phase A (RW, 9.6 d)                the path's loss stops (-$25 day / -$75)        dFormula   -81.25/d  dFills     3.12/d  R*   0.04   at R (0.27, 0.4, 0.74): [-18.81, -29.38, -57.0] $/d
+Phase A (RW, 9.6 d)                hold carried (no close-only exits)             dFormula   -47.74/d  dFills     5.35/d  R*   0.11   at R (0.27, 0.4, 0.74): [-7.54, -13.75, -29.98] $/d
+Phase A (RW, 9.6 d)                3N side cap                                    dFormula    -8.33/d  dFills    -2.29/d  R*  -0.28   at R (0.27, 0.4, 0.74): [-4.54, -5.62, -8.46] $/d
+Phase A (RW, 9.6 d)                no 15c pause                                   dFormula     0.17/d  dFills    -5.38/d  R*  31.00   at R (0.27, 0.4, 0.74): [-5.34, -5.31, -5.25] $/d
+Phase A (RW, 9.6 d)                48-hour end horizon                            dFormula    -9.55/d  dFills     0.38/d  R*   0.04   at R (0.27, 0.4, 0.74): [-2.2, -3.44, -6.68] $/d
+Phase A (RW, 9.6 d)                8 markets / $160                               dFormula    -1.74/d  dFills    -1.18/d  R*  -0.68   at R (0.27, 0.4, 0.74): [-1.65, -1.88, -2.47] $/d
+Phase A (RW, 9.6 d)                $60 a market                                   dFormula    -1.56/d  dFills    -0.73/d  R*  -0.47   at R (0.27, 0.4, 0.74): [-1.15, -1.35, -1.89] $/d
+Phase A (RW, 9.6 d)                keep same-day markets                          dFormula    35.76/d  dFills   -22.95/d  R*   0.64   at R (0.27, 0.4, 0.74): [-13.3, -8.65, 3.51] $/d
+Phase A (RW, 9.6 d)                keep weather markets                           dFormula     5.38/d  dFills    -3.72/d  R*   0.69   at R (0.27, 0.4, 0.74): [-2.26, -1.56, 0.27] $/d
+Phase A (RW, 9.6 d)                7N side cap (on S1)                            dFormula     1.04/d  dFills    -0.10/d  R*   0.10   at R (0.27, 0.4, 0.74): [0.18, 0.31, 0.67] $/d
+Phase A (RW, 9.6 d)                no side cap (on S1)                            dFormula     1.39/d  dFills    -2.64/d  R*   1.90   at R (0.27, 0.4, 0.74): [-2.26, -2.08, -1.61] $/d
+Phase A (RW, 9.6 d)                band >= $50 (on S1)                            dFormula    -5.21/d  dFills     0.42/d  R*   0.08   at R (0.27, 0.4, 0.74): [-0.99, -1.67, -3.44] $/d
+Phase A (RW, 9.6 d)                $400 cap, 12 markets (on S1)                   dFormula     3.65/d  dFills    -0.94/d  R*   0.26   at R (0.27, 0.4, 0.74): [0.05, 0.52, 1.76] $/d
+Phase A (RW, 9.6 d)                taker exits at 00:05 (on S1)                   dFormula     0.35/d  dFills    -1.49/d  R*   4.30   at R (0.27, 0.4, 0.74): [-1.4, -1.35, -1.24] $/d
+RWC-OPT (RW, 14 d, strict)         remove TB1's skip                              dFormula    10.88/d  dFills    -9.27/d  R*   0.85   at R (0.27, 0.4, 0.74): [-6.33, -4.92, -1.22] $/d
+LPSELF (RW, 14 d)                  skip at two ticks (at-price 0.40 / R 1)        dFormula   -14.01/d  dFills     7.16/d  R*   0.51   at R (0.27, 0.4, 0.74): [3.38, 1.56, -3.2] $/d
+LPSELF (full univ., 4 d, strict)   remove TB1's skip                              dFormula    10.55/d  dFills    -8.69/d  R*   0.82   at R (0.27, 0.4, 0.74): [-5.84, -4.47, -0.88] $/d
+LPSELF (full univ., 4 d)           re-select every 6 h                            dFormula   -44.08/d  dFills    31.90/d  R*   0.72   at R (0.27, 0.4, 0.74): [20.0, 14.27, -0.72] $/d
+LP-ALLOC (sim, 5 d)                keep AI markets ($/day)                        dFormula     9.74/d  dFills    -8.53/d  R*   0.88   at R (0.415, 0.439, 0.485): [-4.49, -4.25, -3.81] $/d
+LP-REFILL (sim, 5 d)               no refill vs the 00:00 reserve ($/day)         dFormula    -5.58/d  dFills    -2.48/d  R*  -0.44   at R (0.415, 0.439, 0.485): [-4.79, -4.93, -5.18] $/d
+LP-REFILL (sim, 5 d)               A13's live re-rank vs the 00:00 reserve ($/day) dFormula    -4.71/d  dFills     3.48/d  R*   0.74   at R (0.415, 0.439, 0.485): [1.53, 1.42, 1.2] $/d

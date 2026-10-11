@@ -1,0 +1,14 @@
+sql/inv_zone.sql, run 2026-10-11 ~00:58 UTC. Live fills since the go, by the inventory the fill met. Markouts in cents a
+share, + = good for us (edge at the fill against the adjusted mid; then the mid 30-60 minutes on; then 5-6 hours on or the
+payout if settled by then). mo6h_usd: the 6-hour markout in dollars.
+part     zone            n    shares   edge   mo60    mo6h    mo6h $    n(6h)
+fills    buy beyond 3N   33   569.5    1.01   -3.15   +11.20  +54.25    27
+fills    buy under 3N    98   1726.9   1.23   -1.79   +5.96   +88.28    83
+fills    sell            101  1578.2   0.98   -1.40   -17.06  -228.02   84
+(the 6-hour column is MrBeast wk1's settlement at YES, 10-10 18:02: its YES buys gain and its YES sells lose; read the
+60-minute column.)
+Quoting minutes by inventory, formula $ (RW's: a side alone scores 0):
+day    beyond 3N        under 3N
+10-09  2,760 mm $25.54   9,826 mm $128.33   (10-09 at the 00:00 programme: like for like is 0.0525 of it)
+10-10  425 mm   $8.68    5,822 mm $21.67
+10-11  41 mm    $0.04    503 mm   $0.97
