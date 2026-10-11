@@ -328,6 +328,12 @@ export type PmLpOptions = {
    * count the market out for the refill. `PM_LP_MARKET_LOSS` in pm_lp.ts.
    */
   marketLoss?: number;
+  /**
+   * The caps fund whole markets in the day's rank order (Addendum 17, LP-CAPINV, `reviews/2026-10-11-lp-cap-inventory.md`):
+   * the 00:00 picks 1–10, refills by their reserve rank 11–20, ties by condition id; a market's wanted BUYs together or
+   * not at all. Unset, each BUY is funded in the slot key's order if it fits, as before.
+   */
+  fundByRank?: boolean;
 };
 /** The refill's numbers (`PM_LP_REFILL`, pm_lp.ts): the research agent's values drop in there. */
 export type LpRefillOptions = {
@@ -2446,14 +2452,46 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
       commit(o.cond, usd);
     }
   }
-  for (const [slot, w] of [...wants.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
-    if (w.side !== "BUY") continue;
-    const usd = w.price * w.size, more = Math.max(0, usd - (leaving.get(slot) ?? 0));   // what the caps count it beyond its slot's old buy
-    if (committed + more > lim.capTotal + 1e-9) { wants.delete(slot); withhold(slot, "cap_total", `${(committed + more).toFixed(2)} USD would pass the cap of ${lim.capTotal}`); continue; }
-    if ((byMarket.get(w.cond) ?? 0) + more > lim.capMarket + 1e-9) { wants.delete(slot); withhold(slot, "cap_market", `${((byMarket.get(w.cond) ?? 0) + more).toFixed(2)} USD in one market would pass ${lim.capMarket}`); continue; }
-    if (mode === "live" && !keptAsIs.has(slot) && usd > pusdLeft + 1e-9) { wants.delete(slot); withhold(slot, "collateral", pusd === null ? "the pUSD balance could not be read" : `${usd.toFixed(2)} USD more than the ${Math.max(0, pusdLeft).toFixed(2)} of pUSD the resting buys leave`); continue; }
-    commit(w.cond, more);
-    if (!keptAsIs.has(slot)) pusdLeft -= usd;
+  // Each wanted BUY against the total cap, the market's cap and the pUSD, beyond what its market's earlier buys of this
+  // turn already took (`extra`): the gate and reason it fails, or null.
+  const blocked = (slot: string, w: Want, more: number, usd: number, extra = { more: 0, sent: 0 }): [string, string] | null => {
+    if (committed + extra.more + more > lim.capTotal + 1e-9) return ["cap_total", `${(committed + extra.more + more).toFixed(2)} USD would pass the cap of ${lim.capTotal}`];
+    if ((byMarket.get(w.cond) ?? 0) + extra.more + more > lim.capMarket + 1e-9) return ["cap_market", `${((byMarket.get(w.cond) ?? 0) + extra.more + more).toFixed(2)} USD in one market would pass ${lim.capMarket}`];
+    if (mode === "live" && !keptAsIs.has(slot) && extra.sent + usd > pusdLeft + 1e-9) return ["collateral", pusd === null ? "the pUSD balance could not be read" : `${usd.toFixed(2)} USD more than the ${Math.max(0, pusdLeft - extra.sent).toFixed(2)} of pUSD the resting buys leave`];
+    return null;
+  };
+  const fund = (slot: string, w: Want, more: number, usd: number) => { commit(w.cond, more); if (!keptAsIs.has(slot)) pusdLeft -= usd; };
+  const costOf = (slot: string, w: Want) => { const usd = w.price * w.size; return { usd, more: Math.max(0, usd - (leaving.get(slot) ?? 0)) }; };   // `more`: what the caps count it beyond its slot's old buy
+  const buys = [...wants.entries()].filter(([, w]) => w.side === "BUY").sort((a, b) => a[0].localeCompare(b[0]));
+  if (!inst.lp?.fundByRank) {
+    // Slot by slot, in the slot key's order, each BUY funded if it still fits.
+    for (const [slot, w] of buys) {
+      const { usd, more } = costOf(slot, w), no = blocked(slot, w, more, usd);
+      if (no) { wants.delete(slot); withhold(slot, no[0], no[1]); continue; }
+      fund(slot, w, more, usd);
+    }
+  } else {
+    // Live-prep (Addendum 17, LP-CAPINV): whole markets in the day's rank order (the 00:00 picks 1–10, refills 11–20,
+    // ties by condition id), a market's buys funded together or not at all, so the budget goes to the best-ranked
+    // markets and never to one side alone, which RW's formula scores 0 and which still fills.
+    const rankOf = new Map(markets.map((m) => [m.cond, Number(m.rank)]));
+    const byCond = new Map<string, Array<[string, Want]>>();
+    for (const [slot, w] of buys) byCond.set(w.cond, [...(byCond.get(w.cond) ?? []), [slot, w]]);
+    const rk = (c: string) => { const r = rankOf.get(c); return r != null && Number.isFinite(r) ? r : Infinity; };
+    for (const c of [...byCond.keys()].sort((a, b) => (rk(a) === rk(b) ? 0 : rk(a) < rk(b) ? -1 : 1) || a.localeCompare(b))) {
+      const pair = byCond.get(c)!;
+      let extra = { more: 0, sent: 0 }, no: [string, string] | null = null;
+      for (const [slot, w] of pair) {
+        const { usd, more } = costOf(slot, w);
+        if ((no = blocked(slot, w, more, usd, extra))) break;
+        extra = { more: extra.more + more, sent: extra.sent + (keptAsIs.has(slot) ? 0 : usd) };
+      }
+      if (no) {
+        for (const [slot] of pair) { wants.delete(slot); withhold(slot, no[0], pair.length > 1 ? `${no[1]}; its market's buys are funded together or not at all` : no[1]); }
+        continue;
+      }
+      for (const [slot, w] of pair) { const { usd, more } = costOf(slot, w); fund(slot, w, more, usd); }
+    }
   }
 
   // ── 5. the orders ─────────────────────────────────────────────────────────────────────────────────────────────────

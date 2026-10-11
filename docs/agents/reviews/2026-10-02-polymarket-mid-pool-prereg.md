@@ -618,3 +618,21 @@ find every decision the same.
 
 **What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
 of the Edge deploy that carries it, as deviation 16.
+
+## Addendum 17 (2026-10-11, about 01:00 UTC): deviation 17, live-prep's caps in rank order
+
+This addendum was written inside the window, before the deploy it records. Its readout runs at or after 2026-10-17
+00:10 UTC.
+
+**Deviation 17 is live-prep's rank-order funding** (live-prep's pre-registration, Addendum 17). It changes the shared
+`pm_live.ts`: after it, `pm_live.ts` sha256 `a01c8560ccba06356929baab7235ba74071831241426fa38531240cded03778f`, where Addendum 16 above named `b002c558…ba85`. The
+change: the caps' three checks moved into one function (`blocked`) that both orders call, an optional field of
+live-prep's options (`fundByRank`), and whole markets funded in rank order in a turn whose instance sets it, which only
+live-prep's does.
+
+**Mid-pool is unchanged.** It sets no `lp` options, so its buys are funded slot by slot in the slot key's order, with
+the same gates and reasons as before. No decision of mid-pool changes: `agents/pm_mid_formula.test.ts` and
+`agents/pm_payouts.test.ts` run it beside the path this file froze and find every decision the same.
+
+**What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
+of the Edge deploy that carries it, as deviation 17.

@@ -235,6 +235,7 @@ export const PM_LP_INSTANCE: PmLiveInstance = {
     readout: { ...PM_LP_READOUT },
     refill: { ...PM_LP_REFILL, table: "pm_lp_reserve" },
     marketLoss: PM_LP_MARKET_LOSS,
+    fundByRank: true,
     paper: { fills: "pm_lpprep_fills", settlements: "pm_lpprep_settlements", days: "pm_lpprep_days" },
   },
 };

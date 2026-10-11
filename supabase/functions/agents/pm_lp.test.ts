@@ -374,13 +374,15 @@ type P = [number, "BUY" | "SELL", number, number, number];
  * would pass it over), and four that live-prep never takes: WX (weather), TODAY (ends this UTC day), GAME (starts within
  * two days) and LOW ($8). Mini-pool's and mid-pool's tables sit beside its own, each with a row, as in production.
  */
-function world(o: { config?: Record<string, unknown>; days?: Array<Record<string, unknown>>; onCost?: boolean; nearCertain?: boolean; refill?: Partial<LpRefillOptions>; extra?: number[]; noExitRule?: boolean } = {}) {
+function world(o: { config?: Record<string, unknown>; days?: Array<Record<string, unknown>>; onCost?: boolean; nearCertain?: boolean; refill?: Partial<LpRefillOptions>; extra?: number[]; noExitRule?: boolean; slotOrder?: boolean } = {}) {
   const clock = { now: T0 };
   // `onCost`: the day stop as the pre-registrations froze it (`dayStopOnCost`), which no action runs (2026-10-07).
   // `noExitRule`: the instance as it was before Addendum 16, its exits the quoting rule's (the counterfactual).
   const lpOpts = { ...PM_LP_INSTANCE.lp!, ...(o.refill ? { refill: { ...PM_LP_INSTANCE.lp!.refill!, ...o.refill } } : {}) };
   if (o.noExitRule) delete lpOpts.exitRule;
-  const base = o.refill || o.noExitRule ? { ...PM_LP_INSTANCE, lp: lpOpts } : PM_LP_INSTANCE;
+  // `slotOrder`: the caps funded slot by slot in the slot key's order, as before Addendum 17 (the counterfactual).
+  if (o.slotOrder) delete lpOpts.fundByRank;
+  const base = o.refill || o.noExitRule || o.slotOrder ? { ...PM_LP_INSTANCE, lp: lpOpts } : PM_LP_INSTANCE;
   const inst = o.onCost ? { ...base, dayStopOnCost: true } : base, prepInst = o.onCost ? { ...PREP_LP_INSTANCE, dayStopOnCost: true } : PREP_LP_INSTANCE;
   const pm = new FakePolymarket(() => clock.now);
   const add = (n: number, rate: number, extra: Record<string, unknown> = {}) =>
@@ -1394,4 +1396,60 @@ Deno.test("a selected market quoting in a one-tick book is untouched by Addendum
     assertEquals(w.rows("pm_lp_orders").filter((x) => x.cond === w.L1.cond).length, 0, `noExitRule ${noExitRule}`);
     assert(w.rows("pm_lp_orders").some((x) => x.mode === "live" && x.cond === w.BIG.cond && x.side === "BUY" && x.state === "live"));
   }
+});
+
+
+// ------------------------------------------------------------------ Addendum 17: the caps fund whole markets in rank order
+
+Deno.test("the caps in rank order (Addendum 17): a tight cap funds the rank-1 market's pair first and no market one side alone; the slot key's order funded rank 6 and one side of rank 1", async () => {
+  const run = async (slotOrder: boolean) => {
+    const w = world({ config: LIVE, extra: [40, 30, 25], slotOrder });
+    await w.turn(T0);
+    // Six markets selected, each pair of buys costing $4.90; ranks by condition id: 02 → 1, 14 → 2, 15 → 3, 16 → 4, 03 → 5, 01 → 6.
+    const rank = Object.fromEntries(w.rows("pm_lp_markets").map((m) => [String(m.cond), Number(m.rank)]));
+    assertEquals(Object.keys(rank).length, 6);
+    assertEquals([rank[cond(2)], rank[cond(1)]], [1, 6]);
+    assertEquals(w.rows("pm_lp_orders").filter((x) => x.side === "BUY" && x.state === "live").length, 12);
+    // The cap falls to $7 (here the config's; live, the equity's: LP-CAPINV's 00:15 case, carried stock filling it).
+    w.setConfig({ cap_total_usd: 7 });
+    const r = await w.turn(T0 + M);
+    await w.turn(T0 + 2 * M);
+    assertEquals(w.errors.filter((e) => !/cancel/.test(e)), []);
+    const buys = new Map<number, string[]>();
+    for (const x of w.rows("pm_lp_orders").filter((x) => x.mode === "live" && x.side === "BUY" && x.state === "live")) {
+      const k = rank[String(x.cond)]; buys.set(k, [...(buys.get(k) ?? []), String(x.outcome)].sort());
+    }
+    return { buys: [...buys.entries()].sort((a, b) => a[0] - b[0]), withheld: r.withheld.filter((x) => x.gate === "cap_total") };
+  };
+  const now = await run(false);
+  // Rank 1 is funded first, both sides ($4.90 of $7); rank 2's pair ($9.80) does not fit, so neither of its buys rests,
+  // nor any later market's: no market rests a single side.
+  assertEquals(now.buys, [[1, ["no", "yes"]]]);
+  assert(now.withheld.length === 10 && now.withheld.every((x) => /funded together or not at all/.test(x.reason)), JSON.stringify(now.withheld));
+  // The counterfactual, the slot key's order before it: rank 6 (condition 01) both sides, then rank 1's YES alone.
+  const before = await run(true);
+  assertEquals(before.buys, [[1, ["yes"]], [6, ["no", "yes"]]]);
+});
+
+Deno.test("the caps in rank order: a market whose one side is a sell of what it holds needs only its buy; mid-pool and mini-pool keep the slot order", async () => {
+  const w = world({ config: LIVE, extra: [40, 30, 25] });
+  await w.turn(T0);
+  const rank = Object.fromEntries(w.rows("pm_lp_markets").map((m) => [String(m.cond), Number(m.rank)]));
+  // Rank 2 (condition 14) buys 5 YES: its ask is now a SELL of YES, and its bid the only buy ($2.00 at 0.40).
+  const yes14 = w.rows("pm_lp_orders").find((x) => x.mode === "live" && x.cond === cond(20) && x.outcome === "yes" && x.side === "BUY" && x.state === "live");
+  assert(yes14 && rank[cond(20)] === 2);
+  w.pm.settle(w.pm.fill(String(yes14.hash), 5), "CONFIRMED");
+  await w.turn(T0 + M);
+  // The cap leaves $7 of buys beyond the 5 YES held at 0.40 ($2.00): rank 1's pair ($4.90) and rank 2's one buy ($2.00).
+  w.setConfig({ cap_total_usd: 9 });
+  await w.turn(T0 + 2 * M);
+  await w.turn(T0 + 3 * M);
+  const live = w.rows("pm_lp_orders").filter((x) => x.mode === "live" && x.state === "live");
+  const of = (c: string) => live.filter((x) => x.cond === c).map((x) => `${x.outcome} ${x.side}`).sort();
+  assertEquals(of(cond(2)), ["no BUY", "yes BUY"]);
+  assertEquals(of(cond(20)), ["yes BUY", "yes SELL"]);
+  for (const c of [cond(21), cond(22), cond(3), cond(1)]) assertEquals(of(c), [], c);
+  // Only live-prep's instance sets it.
+  assertEquals(PM_LP_INSTANCE.lp!.fundByRank, true);
+  for (const inst of [PM_LIVE_INSTANCE, PM_MINI_INSTANCE, PM_MID_INSTANCE]) assertEquals(inst.lp?.fundByRank, undefined);
 });

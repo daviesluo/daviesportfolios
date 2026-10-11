@@ -1279,3 +1279,60 @@ cap at cost and in the equity, as today. On 10-11 at 00:15 UTC that was six toke
   this addendum, the turn test fails.
 - A selected market quoting in a one-tick book rests nothing, with or without the exit rule.
 - `src/pm_live_hash.test.js`, `src/pm_lp_prereg.test.js`: the bytes and the chain of addenda.
+
+## Addendum 17 (2026-10-11, about 01:00 UTC): the caps fund whole markets in the day's rank order
+
+This addendum was written while live-prep is live and before the deploy it records. Not blind. **It ships only on
+Davies' word**, because it changes which markets the money goes to. His answer, 2026-10-11 00:29 UTC, verbatim: "按照你推荐的来" (go with what you recommend), given after the main session laid out LP-CAPINV's options and recommended rank order.
+
+**Why: LP-CAPINV** (`reviews/2026-10-11-lp-cap-inventory.md`, `backtests/lpcapinv/`).
+
+- **The cap is a cash rule.** `cap_total` counts held stock at cost in every market, and the cap is the equity at cost
+  less $80. The holdings cancel, so resting buys may use pUSD − $80, and today that is spent on carried stock: 96 % of
+  holdings at 00:15 UTC 10-11.
+- **The budget went out in the slot key's order.** Each wanted BUY was funded by condition id, then token id
+  (`localeCompare`), if it still fit. At 00:15 that funded:
+  - one market two-sided (rank 2);
+  - single YES buys in ranks 8, 9 and 10, which RW's formula scores 0 and which still fill;
+  - nothing in rank 1 (rate 300).
+- **The replay** (`sql/alloc_replay.sql`) covers 10-11's first 20 minutes. Whole markets in rank order fund 63.4 % of
+  the day's selection formula two-sided, against 49.2 %, and leave no single-sided buy (25 market-minutes of 177 under
+  the slot order).
+  - About +$3.9 a day paid at the central realisation (10-10's 0.170 of the selection's formula, 55 % of slot-time
+    quoting, R 0.807), and about twice that at the top three ranks' 0.378.
+  - No dollar of exposure is added: the cap, the $80, the collateral check and every other number are unchanged.
+
+**The rule** (`PmLpOptions.fundByRank`, set by live-prep's instance alone):
+
+- **The order.** A turn funds its wanted BUYs against `cap_total`, `cap_market` and the pUSD check market by market, in
+  the day's `pm_lp_markets.rank`: the 00:00 picks 1–10, refills by their reserve rank 11–20, ties by condition id.
+- **Whole markets.** A market's wanted BUYs (one or two) are funded together or not at all. If they do not all fit, none
+  rests, each is withheld with the gate that stopped it and the words "its market's buys are funded together or not at
+  all", and the next market is tried.
+- **A side that sells what is held** is not a buy and needs no budget. Such a market needs only its one buy.
+- **Unchanged:** sells, carried markets' exits (Addendum 16), every cap and stop, N, 5N, the near-certain limit, the
+  loss guard, the reward check and the refill.
+- **Mini-pool and mid-pool** set no `fundByRank`. Their buys are funded slot by slot in the slot key's order, exactly
+  as before; the checks are now one function both paths call.
+
+**Forward test**, over the first three live days, from `pm_lp_minutes`:
+
+- the share of the day's selection formula quoted two-sided;
+- minutes with a market resting one BUY and no sell;
+- the formula a day against 10-10's $30.34.
+
+**The code it deploys:** `pm_live.ts` sha256 `a01c8560ccba06356929baab7235ba74071831241426fa38531240cded03778f`, where Addendum 16 named `b002c558…ba85` (`PmLpOptions.fundByRank`, the
+caps' `blocked`, `fund` and `costOf`, the rank-order funding); `pm_lp.ts` sha256 `82d1aa9403dbfd8bbfd4771571a88b53752d186063422d0b684f1934c3e5a850`, where Addendum 16 named
+`2e5ca3ee…9e3c` (the instance's `fundByRank: true`). No migration.
+
+**Pinned** (`agents/pm_lp.test.ts`):
+
+- LP-CAPINV's 00:15 case on the fake venue: six markets selected, each pair of buys $4.90, the cap falling to $7.
+  - Rank 1's pair rests and nothing else: rank 2's pair does not fit, so no market rests a side alone, and ten buys are
+    withheld for `cap_total` with the words above.
+  - The slot order before it rests rank 6's pair and rank 1's YES alone.
+- A market holding 5 YES needs only its bid's $2.00: at a $9 cap, rank 1's pair and rank 2's one buy rest beside its
+  sell, and nothing in ranks 3–6.
+- Only live-prep's instance sets the flag.
+- Both turn tests fail on the `pm_live.ts` Addendum 16 named.
+- `src/pm_live_hash.test.js`, `src/pm_lp_prereg.test.js`: the bytes and the chain of addenda.

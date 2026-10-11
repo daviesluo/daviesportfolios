@@ -26,11 +26,12 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
 1. **Closed: fp5's ranked list.**
 
 2. **Polymarket reward quotes (paper; RW, RW-E, RW-X, TB1, RW-C) and the three order paths (dry-run, unarmed).**
-   - **Live-prep's Addenda 9–15 are live** (the reward check, FUNDED and the early readout, FUNDED at once: $402.028365
+   - **Live-prep's Addenda 9–17 are live** (the reward check, FUNDED and the early readout, FUNDED at once: $402.028365
      booked 02:32 UTC 10-10; AI markets out; the refill, `b84cec4f`, ten refills 14:23–14:52 UTC; the $10 loss guard,
      `65650793`, 15:02 UTC; Addendum 15, the reserve ranked once a day at 00:00, `rerankEveryMin` 5 → 1440, pushed
      10-11 on Davies' "同意" of 10-10 23:59, quoted in the addendum; its programmes still read every minute;
-     no migration, `pm_live.ts` unchanged). Its paper layer's calls stay on until
+     no migration, `pm_live.ts` unchanged; Addendum 16, a carried market in a one-tick book rests its exit, and 17, the
+     caps fund whole markets in rank order on Davies' "按照你推荐的来" of 00:29 UTC 10-11, both pushed 10-11). Its paper layer's calls stay on until
      LPRESEL6 has read 10-09 → 10-22 (then a migration turns them off); LPRESEL6's "live-prep's own selection" is now the
      day's `pm_lp_markets` rows without `detail.refill`. Left for Davies: ranking on a rate that does not flip within the
      hour (not built).
@@ -442,7 +443,16 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10"; each oldest first.
 
-### [2026-10-11 00:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-10-11 00:42 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep's Addendum 17 (mid-pool's 17): the caps fund whole markets in the day's rank order** (sub-agent, not
+  pushed), LP-CAPINV's proposal. Davies' answer as the coordinator relayed it, quoted in the addendum: "按照你推荐的来"
+  (00:29 UTC). `PmLpOptions.fundByRank`: wanted BUYs funded against `cap_total`, `cap_market` and pUSD by
+  `pm_lp_markets.rank` (00:00 picks 1–10, refills 11–20, ties by condition id), a market's buys together or not at all
+  (withheld with "its market's buys are funded together or not at all"); mini-pool and mid-pool keep the slot order
+  (the three checks now one function, `blocked`). `pm_live.ts` `a01c8560…778f` (was `b002c558…ba85`), `pm_lp.ts`
+  `82d1aa94…a850` (was `2e5ca3ee…9e3c`); both turn tests fail on Addendum 16's `pm_live.ts`.
+
+### [2026-10-11 00:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep's Addendum 16 (mid-pool's 16), a defect fix** (sub-agent, not pushed): a market worked close-only
   (carried, taken out, or any while opening is stopped) rests its exit in a one-tick book. TB1's skip had emptied
   `lpQuotes` before `closeOnly` (LP-CAPINV: `0x5fec6675…` a sell in 25 of 1,454 carried minutes, `0xd5734dd2…` 0 of

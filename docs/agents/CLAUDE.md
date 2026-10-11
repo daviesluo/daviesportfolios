@@ -513,7 +513,9 @@ that follow from that evidence, in short:
   rests in a market whose fills are marked $10 or more down (`PM_LP_MARKET_LOSS`, `lpMarketMark`: realised plus held at
   RW's adjusted mid, rewards not counted); its sells rest, it lifts when the mark recovers, and its slot is not refilled. Since Addendum 16 a market it works close-only
   (carried, taken out, or any while opening is stopped) rests its exit even in a one-tick book (`lpExitQuotes`: `lpQuotes`
-  without TB1's skip, so the sell joins the best ask); holdings under the 5-share minimum are left to settle. **Live, its total cap follows its equity since
+  without TB1's skip, so the sell joins the best ask); holdings under the 5-share minimum are left to settle. Since Addendum 17 (Davies: "按照你推荐的来") its caps fund
+  whole markets in the day's rank order (`fundByRank`: 00:00 picks 1–10, refills 11–20; a market's buys together or not
+  at all). **Live, its total cap follows its equity since
   `0106`** (Davies, 2026-10-09: payouts and deposits used at once; its pre-registration's Addendum 8): every turn
   floor(pUSD + held at cost + unredeemed − $75 − $5), at most $1,000, down at once, up only on two agreeing readings with
   no fill settling, never on an unread balance (`lpCapital`); `reinvest = false` on its config puts the fixed $320 back. Its

@@ -16,7 +16,8 @@
 //   062ee916…  live-prep's Addendum 12, mid-pool's Addendum 13 (AI markets out, 2026-10-10)
 //   ef036c76…  live-prep's Addendum 13, mid-pool's Addendum 14 (live-prep's refill from a live reserve, 2026-10-10)
 //   59a1201a…  live-prep's Addendum 14 (and 15, unchanged), mid-pool's Addendum 15 (live-prep's per-market loss guard, 2026-10-10)
-//   (Addendum 16's)  live-prep's Addendum 16, mid-pool's Addendum 16 (live-prep's exit in a one-tick book, 2026-10-11)
+//   b002c558…  live-prep's Addendum 16, mid-pool's Addendum 16 (live-prep's exit in a one-tick book, 2026-10-11)
+//   (Addendum 17's)  live-prep's Addendum 17, mid-pool's Addendum 17 (live-prep's caps in rank order, 2026-10-11)
 import { describe, expect, it } from 'vitest';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -53,15 +54,23 @@ const AEF0 = 'ef036c76a0cc75cf8a9f3bcec2de9e554f0bfb7f44a6b658b89c35aac477c480';
 const A59A = '59a1201a35b0ef2ccbdf16de933ea7b4469a1c4404146b252c481aa99068a510';
 /** The pm_lp.ts live-prep's Addendum 15 named (the reserve ranked at 00:00), its instance until Addendum 16. */
 const LP_A15 = '277baa7ad0fb7f79e10ef08c0426e873b4de105fbf9deb060f06a96fcd7de8cb';
+const AB00 = 'b002c55830e0104001eb13715cdabd8e9b83a52d82325bf98e4c10b546c6ba85';
+/** The pm_lp.ts live-prep's Addendum 16 named (the exit in a one-tick book), its instance until Addendum 17. */
+const LP_A16 = '2e5ca3ee27afa6875b899dcf4a163bcd0ce935c9cd8482ee4efa5ba278ad9e3c';
 /** The pm_lp.ts live-prep's Addendum 9 named (the reward check), its instance until Addendum 10. */
 const LP_A9 = 'c7e3a7ec271b8e798dcc756c3f9d83da2421ddee03f3fede6e3e66a541d173c7';
 
 describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", () => {
-  it("live-prep's latest addendum (16) and mid-pool's (16) name today's pm_live.ts", () => {
-    expect(lastNumber(LP)).toBe(16);
-    expect(lastNumber(MID)).toBe(16);
-    expect(namedPath(addendum(LP, 16))).toBe(sha);
-    expect(namedPath(addendum(MID, 16))).toBe(sha);
+  it("live-prep's latest addendum (17) and mid-pool's (17) name today's pm_live.ts", () => {
+    expect(lastNumber(LP)).toBe(17);
+    expect(lastNumber(MID)).toBe(17);
+    expect(namedPath(addendum(LP, 17))).toBe(sha);
+    expect(namedPath(addendum(MID, 17))).toBe(sha);
+    expect(namedPath(addendum(LP, 16))).toBe(AB00);
+    expect(namedPath(addendum(MID, 16))).toBe(AB00);
+    expect(addendum(LP, 17)).toContain('`b002c558…ba85`');
+    expect(addendum(MID, 17)).toContain('`b002c558…ba85`');
+    expect(addendum(MID, 17)).toContain('deviation 17');
     // Live-prep's Addendum 15 changed pm_lp.ts alone: it named pm_live.ts unchanged, as Addendum 14 did.
     expect(namedPath(addendum(LP, 15))).toBe(A59A);
     expect(namedPath(addendum(LP, 14))).toBe(A59A);
@@ -339,7 +348,9 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     expect(lp16).toContain('No migration.');
     expect(lp16).toContain('six tokens, 14.7 shares, $8.60 at the mid');
     expect(mid16).toContain('**Mid-pool is unchanged.**');
-    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(lp16)?.[1]).toBe(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex'));
+    // The pm_lp.ts it named, the instance until Addendum 17 (the caps in rank order), which names it.
+    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(lp16)?.[1]).toBe(LP_A16);
+    expect(addendum(LP, 17)).toContain('`2e5ca3ee…9e3c`');
     const lp = read('supabase/functions/agents/pm_lp.ts');
     expect(lp).toContain('export const lpQuotes: PmQuoteRule = (input) => lpQuotesOn(input, true);');
     expect(lp).toContain('export const lpExitQuotes: PmQuoteRule = (input) => lpQuotesOn(input, false);');
@@ -350,5 +361,20 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     expect(src).toContain('intents = (g.open ? rule : exitRule)({ market, book: b, held, own, capital: lim.capTotal });');
     expect(src).toContain('intents = closeOnly(exitRule({ market: m, book: b, held, own, capital: lim.capTotal }), held, b);');
     for (const f of ['pm_mid.ts', 'pm_mini.ts']) if (fs.existsSync(path.join(ROOT, 'supabase/functions/agents', f))) expect(read(`supabase/functions/agents/${f}`)).not.toContain('exitRule');
+  });
+
+  it("live-prep's Addendum 17 and mid-pool's 17 record the caps in rank order, on Davies' word, live-prep's alone", () => {
+    const lp17 = addendum(LP, 17), mid17 = addendum(MID, 17);
+    expect(lp17).toContain('`reviews/2026-10-11-lp-cap-inventory.md`');
+    expect(lp17).toContain("**It ships only on\nDavies' word**");
+    expect(lp17).toContain('His answer, 2026-10-11 00:29 UTC, verbatim: "按照你推荐的来" (go with what you recommend)');
+    expect(lp17).toContain('No migration.');
+    expect(mid17).toContain('**Mid-pool is unchanged.**');
+    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(lp17)?.[1]).toBe(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex'));
+    expect(read('supabase/functions/agents/pm_lp.ts')).toContain('    fundByRank: true,');
+    const src = read(PATH);
+    expect(src).toContain('if (!inst.lp?.fundByRank) {');
+    expect(src).toContain("pair.length > 1 ? `${no[1]}; its market's buys are funded together or not at all` : no[1]");
+    for (const f of ['pm_mid.ts', 'pm_mini.ts']) if (fs.existsSync(path.join(ROOT, 'supabase/functions/agents', f))) expect(read(`supabase/functions/agents/${f}`)).not.toContain('fundByRank');
   });
 });
