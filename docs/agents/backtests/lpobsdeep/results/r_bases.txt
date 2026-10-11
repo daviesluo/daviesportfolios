@@ -1,0 +1,41 @@
+Pooled R (sum paid / sum formula), paid = rewards native + sponsored, rebates apart
+  paid 28.4143  rebates 6.7922
+  scored formula, 10-09 like for like (the page: lpLiveSummary.r, DAYS)   37.2260  R 0.7633
+  whole formula, 10-09 like for like (LP-RULES' 0.737)                    38.5752  R 0.7366
+  whole formula as the readout wrote it (lp_readout.sql: the end rule)    184.3913  R 0.1541
+  2026-10-09: paid 6.5235  scored 8.0819 (R 0.8072)  whole 153.8980 (R 0.0424)
+  2026-10-10: paid 21.8908  scored 29.1441 (R 0.7511)  whole 30.4934 (R 0.7179)
+
+lpLiveR at 2026-10-11 01:30 UTC (prior 0.2-1 weighing two days; point = exp of the shrunk mean; band 10th-90th)
+  scored basis (deployed)  point 0.5901  band 0.3334-1.0444  days 2
+  whole basis              point 0.5835  band 0.3287-1.0358  days 2
+  ratio scored/whole point 1.0114
+
+TESTING rows priced at the scored R but on a whole-basis formula: overstatement (point_s - point_w) x formula
+  rwc 10-10          formula_true 78.99  at scored 46.61  at whole 46.09  over 0.52
+  rwc 10-09..10-11   formula_true 183.31  at scored 108.17  at whole 106.95  over 1.22
+  midprep 10-10      formula_true 12.64  at scored 7.46  at whole 7.37  over 0.08
+
+The 7-day end rule's R (days 1-2 as read; days 3-7 at formula F a day and true R), frozen script vs 10-09 like for like
+  F/day  R_true  frozen  like-for-like  frozen trips?  lfl trips?
+     10    0.25  0.175   0.462          YES            no
+     10    0.30  0.185   0.490          YES            no
+     10    0.40  0.207   0.547          no             no
+     10    0.74  0.279   0.739          no             no
+     15    0.25  0.182   0.415          YES            no
+     15    0.30  0.196   0.448          YES            no
+     15    0.40  0.225   0.514          no             no
+     15    0.74  0.324   0.739          no             no
+     20    0.25  0.188   0.385          YES            no
+     20    0.30  0.205   0.422          no             no
+     20    0.40  0.241   0.494          no             no
+     20    0.74  0.360   0.739          no             no
+     30    0.25  0.197   0.350          YES            no
+     30    0.30  0.220   0.389          no             no
+     30    0.40  0.264   0.469          no             no
+     30    0.74  0.417   0.739          no             no
+  trip threshold on the true R, frozen / like for like:
+    F 10: 0.369 / -0.214
+    F 15: 0.313 / -0.076
+    F 20: 0.285 / -0.007
+    F 30: 0.256 / 0.062

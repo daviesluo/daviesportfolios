@@ -1,0 +1,15 @@
+{
+  "study": "LP-OBS-DEEP: LP-RULES' observations 1, 3 and 4 studied deeply (the pause and held stock, the basis of R, rebates and the total stop), 2026-10-11",
+  "review": "docs/agents/reviews/2026-10-11-lp-observations-deep.md",
+  "code_read": {"commit": "a31ea31c", "pm_lp.ts": "Addendum 17's bytes", "pm_live.ts": "Addendum 17's bytes", "pm_lp_live_view.ts": "a31ea31c", "agents/index.ts": "a31ea31c (atLiveR, atProgramme)", "frozen": "8a36faef (the pre-registration's pm_live.ts, sha256 23112a4f...)"},
+  "database": "flmvxigozjuizpckllvk, read-only selects, 2026-10-11 01:19-01:30 UTC",
+  "files": {
+    "sql/pause_exits.sql": "results/pause_exits.txt (by class)",
+    "sql/pause_episodes.sql": "results/pause_exits.txt (by episode)",
+    "sql/fill_calibration.sql": "results/pause_exits.txt (live quotes: fills against the trade-through proxy)",
+    "sql/sell_fill_rate.sql": "results/pause_exits.txt (live sells: shares a resting minute; markouts)",
+    "sql/stop_path.sql": "results/stop_path.txt",
+    "data/reward_days.json": "pm_lp_reward_days, live rows, read 01:19 UTC (select day, cond, minutes, minutes_scored, formula_usd, formula_scored_usd, actual_usd, actual_sponsored_usd, rebate_usd)",
+    "scripts/r_bases.ts": "results/r_bases.txt (deno 1.46.3: npx --yes deno@1.46.3 run --allow-read --no-check; imports lpLiveR and scoredFormulaOf from pm_lp_live_view.ts)"
+  }
+}

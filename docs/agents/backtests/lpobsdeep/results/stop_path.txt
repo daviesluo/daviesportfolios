@@ -1,0 +1,28 @@
+LP-OBS-DEEP item 5: the total stop's basis hour by hour (sql/stop_path.sql, read 2026-10-11 01:25 UTC). fills: CONFIRMED
+live fills marked at each market's last live mid (settled markets at the payout); rewards and rebates as the readout
+booked them (a day's rewards from 00:10 the next day, its rebates from 01:20). The stop trips at a basis of -75.
+hour (UTC)   fills    rewards rebates  basis today (fills+rewards)  with rebates
+10-09 02:00   -0.30     0.00    0.00        -0.30                      -0.30
+10-09 05:00  -10.37     0.00    0.00       -10.37                     -10.37
+10-09 11:00  -10.39     0.00    0.00       -10.39                     -10.39
+10-09 12:00  +12.06     0.00    0.00       +12.06                     +12.06
+10-09 15:00  -10.55     0.00    0.00       -10.55                     -10.55
+10-09 23:00  +11.99     0.00    0.00       +11.99                     +11.99
+10-10 01:00  -10.46     6.52    0.00        -3.94                      -3.94
+10-10 02:00  -12.09     6.52    1.98        -5.57                      -3.59
+10-10 03:00  -20.08     6.52    1.98       -13.56                     -11.58
+10-10 10:00  -35.73     6.52    1.98       -29.21                     -27.23
+10-10 11:00  -44.50     6.52    1.98       -37.98  (the worst hour)   -36.00
+10-10 14:00  -39.17     6.52    1.98       -32.65                     -30.67
+10-10 20:00  -41.53     6.52    1.98       -35.01                     -33.03
+10-11 00:00  -28.50     6.52    1.98       -21.98                     -20.00
+10-11 01:00  -32.04    28.41    1.98        -3.63                      -1.65   (10-10's $4.82 of rebates booked 01:18:
+                                                                                with them +3.16)
+(every hour is in the query's output; the rows above are its turning points)
+
+The worst hour: room to the stop $37.02 as the stop counts, $39.00 with rebates. Now: $71.37 / $78.16.
+Rebates booked: 10-09 $1.98 (a 22.5-hour day), 10-10 $4.82; 0.176 of the whole formula, 0.239 of the rewards paid.
+Historical worst paths (the studies' own figures, no rebates in them): LP-ALLOC (analysis_lb0.txt) today's rule at $330,
+deepest fall -60.83 (R 0.23, simulator units), its noAI rule (live today) -37.70; LP-REFILL worst day -37.94 (no guard),
+-34.56 ($10 guard). None trips -75 either way. On a path that does, counting rebates moves the trip by the rebates booked
+before it: about $3.4 a live day so far, each day's booked about 01:00-01:20 UTC the next day.

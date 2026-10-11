@@ -1,0 +1,49 @@
+LP-OBS-DEEP item 3: the pause and held stock. Read 2026-10-11 01:20-01:30 UTC, live record from the go (10-09 01:32 UTC),
+47.9 hours. All figures are live-prep's live rows (pm_lp_minutes, pm_lp_orders, pm_lp_fills, pm_lp_settlements).
+
+sql/pause_exits.sql: live minutes recorded 'paused' while the market held tokens, by the minute's class
+class     minutes  episodes  avg held  exit-able  through-fills  exit price - token value (per share, unconditional)
+                             (shares)  minutes    (shares)       at pause end   60->360 min on   latest / payout
+carried        60         1      25.2        60            0         +7.05 c         +15.58 c          +20.55 c
+out           202         4       5.0        41            0         +1.06 c              -            +4.06 c
+selected      319         6      45.8       299            0         +6.33 c          +8.93 c          +12.94 c
+all           581         9      29.5       400            0         +5.90 c         +10.35 c          +13.17 c
+  exit-able: the rule would have rested an exit (close-only: min(N, held) >= the 5-share minimum; selected: held >= N
+  and not a one-tick book). The other 181 minutes held dust or a sub-minimum lot no order can sell (0x0477b4ad under
+  0.05 share for 120 minutes; MrBeast wk1 4.6 YES for 60) or had no adjusted mid (1). LP-RULES' 401 is the 400 plus it.
+  through-fills: the next minute's book at or through the exit's price. None in 400 minutes.
+  The value columns are px - (YES mid, or 1 - mid for NO): positive means the exit's price beat holding.
+
+sql/pause_episodes.sql (min(cls) per episode; an episode can change class at 00:00)
+day    cond        start mins class    tok  held   N  1-tick exit-min  px0   YESmid0 YESmid@end @+6h  latest
+10-09  0x5b3350e2  11:36  80  selected yes 111.5  20  no      80       0.490  0.480   0.585     0.570  0.500
+10-09  0xeee73848  20:35  81  selected no   20.0  20  no      81       0.450  0.670   0.480     0.525  0.650
+10-10  0x0477b4ad  05:43  60  out      no    0.0  20  no       0       -      0.670   0.650     0.650  0.090
+10-10  0x3090f7aa  06:02  60  out      yes   4.6  20  no       0       -      0.430   0.625     0.991  1.000
+10-10  0xa326c49f  15:26  60  carried  no   44.8  20  no      60       0.640  0.455   0.435     0.480  0.570
+10-10  0x0477b4ad  16:21  60  out      no    0.0  20  no       0       -      0.500   0.325     0.275  0.090
+10-10  0x191e066d  17:58  60  selected no   20.0  20  no      60       0.590  0.535   0.530     0.550  0.500
+10-10  0xbfb4f78b  20:30  60  out*     yes  20.0  20  yes     59       0.520  0.505   0.435     -      0.405
+10-10  0x5e96323f  21:26  60  selected no   40.0  20  no      60       0.620  0.495   0.355     -      0.370
+  * 0xbfb4f78b: 41 of its minutes out (taken out that day), the rest selected; px0 for a NO is the NO price.
+
+sql/fill_calibration.sql: live resting quotes, any side, any market
+side  quote-min  through-min  fill-min  fill&through  fill shares  of them in through-min  proxy shares  actual/proxy
+ask       19783           23        80            17      1401.13                  328.75        428.66         3.269
+bid       15114           26        95            11      1675.78                  206.15        498.41         3.362
+all       34897           49       175            28      3076.91                  534.90        927.07         3.319
+  57 % of through-minutes filled; 84 % of fill-minutes were not through-minutes (takers at our price, book unmoved).
+
+sql/sell_fill_rate.sql: live SELL orders and CONFIRMED SELL fills
+  5,903 sell orders, 1,578.22 shares matched over 18,822 resting order-minutes: 0.0838 shares a resting minute
+  markout of 101 sell fills (price - token value later): 60 min -1.59 c, 360 min -21.57 c, latest -17.57 c
+    without MrBeast wk1 (56 fills, 906.1 shares): 60 min -1.66 c, 360 min -3.64 c
+    MrBeast wk1 (45 fills, 672.1 shares):          60 min -1.51 c, 360 min -54.14 c
+
+Counterfactual, $ a day (47.9 h = 2.0 days; expected exit shares = exit-able minutes x 0.0838)
+option                                   exit-min  shares/day  $/day at -1.7 c   at the episodes' edge   6 h tail (-21.6 c)
+keep (today)                                    0        0          0                   0                    0
+exits rest in every paused market             400     16.8      -0.29            +0.99 (+5.9 c)          -3.62
+exits rest in close-only markets only         101      4.2      -0.07            +0.19 (+4.6 c)          -0.91
+exits rest at a wider price (+1 tick or more)   -    < 16.8     ~0 (no through-fill at the rule's price in 400 minutes)
+  Capital freed by option 3: 4.2 shares a day at about $0.50, about $2 of buy budget a day.

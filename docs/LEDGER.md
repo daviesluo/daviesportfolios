@@ -38,6 +38,10 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    - **LP-RULES (10-11): no rule change today** (`reviews/2026-10-11-lp-rules-audit.md`). Reads it leaves: capital held
      by carried stock over 10-11 → 10-13 (its triggers and three options for Davies are in the review); TB1, LPRESEL6,
      near-end inventory and 3N/5N by 10-23.
+   - **LP-OBS-DEEP (10-11):** three fixes for the coordinator and Davies: the 7-day end rule's R must read 10-09 like for
+     like before **10-16 01:00 UTC** (addendum; it reads 0.154 now), TESTING rows priced on one basis, rebates in the
+     stop (addendum). The pause change for close-only markets waits for the next `pm_live.ts` addendum
+     (`reviews/2026-10-11-lp-observations-deep.md`).
    - **RW's verdict: read 2026-10-09 00:42–00:50 UTC** (`reviews/2026-10-09-polymarket-rw-paper-result.md`, reference
      §3.46, `backtests/rwverdict/`). RW 6/6, RW-E 7/7, x1–x3 7/7 each; step b (all 4,116 fills by `stepRw`) and c (13,634
      prints re-pulled, none missed) clean; **RW-NEXT's candidate is RW-E**, to RW-C (Part 3's bar on or after 10-23
@@ -445,6 +449,20 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 "LEDGER.md, archived 2026-10-09", the 2026-10-08 22:49 → 23:58 UTC sections under "LEDGER.md, archived 2026-10-09
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10"; each oldest first.
+
+### [2026-10-11 01:33 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LP-OBS-DEEP filed** (sub-agent, landed by the main session; `reviews/2026-10-11-lp-observations-deep.md`, `backtests/lpobsdeep/`):
+  Davies' items 3–5 ("这几项深度研究下并推荐我该怎么操作"), LP-RULES' observations 1, 3, 4. **Defect 1 (fix before the
+  7-day read, 10-16 01:00 UTC, by addendum):** `lp_readout.sql` (the R < 0.20 end rule, the 14-day readout) reads 10-09
+  at its stale $153.90 formula, so R reads 0.154 today; at day 7 it trips on a true R of 0.26–0.37 (F $30–$10 a day).
+  Like for like (10-09 at $8.081876, as `lpLiveR`) it would not. **Defect 2 (display):** TESTING's paper rows are priced
+  at `lpLiveR` on the scored formula applied to a whole-basis paper formula: +1.1 % now (+$0.52 a day on "Reward
+  quotes"), tending to +4.6 %. **Book defect 3 (by addendum):** the total stop leaves out maker rebates ($6.79) and
+  fees, the page's TOTAL counts them, and the page never shows the stop's basis; recommend the stop trip at TOTAL ≤
+  −$75. R: one definition, paid ÷ whole formula, 10-09 like for like, 0.737 (scored 0.763 beside); `lpLiveR`'s shrunk
+  point is 0.590. Pause: no through-fill in 400 exit-able paused minutes; exits resting in close-only markets ≈ −$0.07
+  to +$0.19 a day; recommend it with the next `pm_live.ts` change; keep the pause for selected markets.
+  `pm_lp.ts`, `pm_live.ts` and the view are untouched.
 
 ### [2026-10-11 01:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **LP-RULES filed** (sub-agent, landed by the main session; `reviews/2026-10-11-lp-rules-audit.md`, `backtests/lprules/`): every live
