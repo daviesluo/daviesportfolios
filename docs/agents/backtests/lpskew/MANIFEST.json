@@ -1,0 +1,15 @@
+{
+ "study": "LP-SKEW-FT (frozen 2026-10-11): three paper quoting arms for live-prep (base S2, cap40, skew k=0.001 + cap40) replayed forward from 2026-10-12 00:00 UTC on live-prep's recorded minutes by agents/lpskew.ts (0117); read on or after 2026-10-19 00:05 UTC",
+ "write_up": "docs/agents/reviews/2026-10-11-lp-skew-ft-prereg.md",
+ "run": [
+  "run sql/readout.sql read-only; save its first statement as days.json and its second as marks.json",
+  "python3 -I docs/agents/backtests/lpskew/scripts/bar.py days.json marks.json > docs/agents/backtests/lpskew/results/bar_out.txt"
+ ],
+ "imports_at_freeze": {
+  "supabase/functions/agents/pmrw.ts": "f2bb5943dacb094d2c90cea91893cc5ec7e301874ebe6f420c9a7fb8278dd7f2"
+ },
+ "sha256": {
+  "scripts/bar.py": "c9ed3de1e5b3d229ab31f26a242a64f3e62c8bef8250cf52162c6fcb92818357",
+  "sql/readout.sql": "fc8b15ac4f3cf84898495302961826660e5f68196aa67b408290da000a1d4a09"
+ }
+}

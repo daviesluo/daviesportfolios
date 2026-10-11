@@ -34,6 +34,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    LP-RULES item 1; **10-16 ≥ 01:00 the 7-day end-rule read with `backtests/pmlp/lp_readout_a18.sql` only** and the $40
    buffer re-read; 10-22/23 LPRESEL6, TB1 C1, 14-day readout. Showcase (`daviesluo/personal`) not yet updated for this
    week's strategy changes (Addenda 9–18, LP studies): left for Claude Code.
+   **10-11 evening (Grok Bot):** 19:43 UTC watch ALERT, stop room $24.91 (at cost ≈ $20); LP-SKEW-FT paper forward
+   test started from 10-12 00:00 UTC (`agents/lpskew.ts`, 0117), read on or after 10-19 00:05 UTC (history below).
 
 1. **Closed: fp5's ranked list.**
 
@@ -465,6 +467,25 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11"; each oldest first.
+
+### [2026-10-11 20:45 UTC] Platform: Grok Bot | Model: not recorded (session policy)
+- **LP-SKEW-FT started: a paper forward test of inventory-skewed quoting** (Davies, 20:35 UTC: "同意，做 LP-SKEW-FT 纸面前向测试";
+  20:37 UTC: "同意迁移，全部做 LP-SKEW-FT（独立模块 + 迁移）"). `agents/lpskew.ts` + `0117_lpskew.sql` (`pm_lpskew_state`,
+  `pm_lpskew_days`, lease `pm-lpskew`, call `agents?action=pmlpskew` every minute) replay three arms (base S2 / cap40 /
+  skew k=0.001 + cap40) on live-prep's recorded `pm_lp_minutes` from **2026-10-12 00:00 UTC**; reads only, writes its two
+  tables; `pm_live.ts`, `pm_lp.ts`, `pm_prep.ts` unchanged and pinned (`src/lpskew_prereg.test.js`). Pre-registration
+  `reviews/2026-10-11-lp-skew-ft-prereg.md` (H1 markout ≥ 30 % better, H2 formula ≥ 75 %, paired-day bootstrap seed
+  20261019, 2,000 draws, kill at −$50). Not blind (designed after the 10-09 → 10-11 loss read). **Read on or after
+  2026-10-19 00:05 UTC** once ≥ 7 days and ≥ 3 settlements, else day by day to 2026-10-26 00:05. 10-13: the scheduled
+  three-day ledger read also checks the arms are writing rows.
+
+### [2026-10-11 19:43 UTC] Platform: Grok Bot | Model: not recorded (session policy)
+- ALERT: live-prep stop room $24.91 (basis −50.09 = fills −85.30 + paid 28.41 + rebates 6.79; day fills −54.64), down
+  from $61.29 at 03:15. Gates all true, no loss_stop event. Step 6 SQL misses 0x3090f7aa (MrBeast 215–223M, settled
+  10-10 18:02 YES; cash −33.16, 49.94 NO held, realised −32.54, already in `pnl.total` via `settlementFills`), so Step 6
+  should also read `pm_lp_fills` by cond with `pm_lp_settlements`. equity − FUNDED −55.02 vs basis −50.09: the gap is
+  held at mid vs at cost (3.65 at 19:48), not cash (pUSD reconciles to $0.01); room at cost ≈ $20. Reported to Davies;
+  no action taken.
 
 ### [2026-10-11 04:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - LIVE's Reward quotes: the R tile shows the one figure, paid ÷ whole formula, with nothing under it (Davies:
