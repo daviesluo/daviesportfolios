@@ -23,6 +23,12 @@ him); a frozen rule changes only as a recorded deviation (spec, reference, ledge
 a pre-registered reading runs as its pre-registration says (script, bar, date) and, since 2026-10-04, says it was not
 blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
 
+0a. **LIVE-PREP STOPPED: its −$75 total stop tripped 2026-10-12 07:30 UTC, and stays tripped (Davies, 10-12 ~23:00 UTC:
+   "保持止损").** Close-only since: no buy rests, its sells do; nobody clears the stop (`pm_lp_events` `loss_stop_total`).
+   Three studies run (history 2026-10-12 23:05): the live fills' adverse selection and a deep optimisation, Davies'
+   reward-timing hypothesis with a 1-second speed study, and Coinbase's first days. Their proposals go to Davies; a rule
+   change is an addendum on his word, and a restart is his call alone. The 10-16 end-rule read still runs as written.
+
 0. **HANDOVER, 2026-10-11 ~03:30 UTC: Claude Code's weekly limit is near; Cursor (Grok 4.7) continues.** The watch and
    safe-maintenance procedure is `.agents/skills/live-watch/SKILL.md` (pointers in `.claude/skills/` and
    `.cursor/skills/`): copy-paste read-only SQL, OK/NOTE/ALERT/URGENT rules, the error box, the safe-fix workflow, the
@@ -465,6 +471,20 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11"; each oldest first.
+
+### [2026-10-12 23:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Resumed from `787d878` (a Claude Code session had died; nothing in git after 10-11 04:30). Watch 22:54 UTC: URGENT.**
+  Live-prep's −$75 total stop tripped 07:30 UTC 10-12 (`loss_stop_total`: fills −129.35, paid 38.10, rebates 10.02, basis
+  −81.24); at 22:54 basis −81.12, pUSD 284.12, equity 316.34, ~$35.5 held at mid; 3 sells resting, 19 filled since the
+  stop. Rewards are not the problem (10-11 R 0.81, pooled 0.75); the fills are: −$80 since the 10-11 handover, the
+  MrBeast view-count markets about −$74 of the whole record. Two notes for the studies: a replacement sell for 10 shares
+  refused on a 7.5-share balance (15:02), and refills still taken after the stop (07:32, the day's 8th). Error box since
+  10-11 03:15: the stop, five single network blips. PR5, `trend-4h-live`, the monitor's dead-man and the tick all healthy;
+  the site serves `app-e9c6998b.js`, main's CI green; four dependabot PRs red (not urgent); #235 stale.
+- **Davies' decision (~23:00 UTC):** "保持止损，开始做逆向选择研究，并深度研究优化策略（目前的表现太差了），所有数据都能看，所有文件
+  都能改，策略的实际良好运行更重要"; his hypothesis to test, that the reward markets change fast and fill fast, rewards gone
+  soon after we post, which paper could not see, and whether a one-second reward check would answer it; and "coinbase上线后
+  情况如何". Three sub-agents (two `opus-high`, one `sonnet-high`), each a review under `docs/agents/reviews/2026-10-12-*`.
 
 ### [2026-10-11 04:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - LIVE's Reward quotes: the R tile shows the one figure, paid ÷ whole formula, with nothing under it (Davies:
