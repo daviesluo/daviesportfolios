@@ -1,0 +1,26 @@
+{
+  "study": "LP-SPEED: whether live-prep's live loss (2026-10-09 01:33 to the total stop at 2026-10-12 07:30 UTC) was a matter of speed: reward-programme changes and the check's lag, post-to-fill timing, stale quotes against the print tape, fill clustering after a post, the reward endpoints' caching, and the 1-60 s options priced, 2026-10-12",
+  "review": "docs/agents/reviews/2026-10-12-lp-reward-timing-speed.md",
+  "asked_by": "Davies, 2026-10-12 (quoted in the review); the study is timing and speed only, a sibling study takes adverse selection by market type and the rule's filters and sizing",
+  "code_read": {"commit": "787d878", "pm_live.ts": "sha256 ee96ba0e40e38ac9999f78028470cc8713584cf05c45539f265eca76c2d3667d (Addendum 18's bytes)", "pm_lp.ts": "sha256 53f7f788a47e93f52770f96410db9faf8f34cdd7dc2cf4ddbd877c9038d07278 (Addendum 18's bytes)"},
+  "database": "flmvxigozjuizpckllvk, read-only selects through the Supabase connector, 2026-10-12 23:05-23:35 UTC; Supabase logs (function_edge_logs) for the agents function, 2026-10-11 07:30 to 10-12 07:30 UTC",
+  "external_reads": "keyless public GETs only: pm-rec's prints archive (bucket pm-rec, 81 hourly objects 2026-10-09 00 to 10-12 08 UTC, through pm_rec_archive's signed URLs, kept in the session's scratchpad, never committed); Polymarket's CLOB /rewards/markets/{id} (cached and cache-busted), /rewards/markets/current?sponsored=true and Gamma /markets, polled each second for 20 minutes from 2026-10-12 23:20 UTC (scripts/poll_programmes.py)",
+  "files": {
+    "sql/fills_export.sql": "data/fills.csv (413 live fills to 2026-10-12 09:00 UTC; converted from the connector's saved answer by scripts/mcp_to_csv.py)",
+    "sql/fill_hazard.sql": "results/sql_results.txt (pooled and within market-hour)",
+    "sql/fills_reward.sql": "results/sql_results.txt",
+    "sql/reward_transitions.sql": "results/sql_results.txt (summary query; the per-flip query was read in the session)",
+    "sql/selection_to_out.sql": "results/sql_results.txt (summary)",
+    "sql/programme_churn.sql": "results/sql_results.txt",
+    "sql/paper_vs_live.sql": "results/sql_results.txt",
+    "sql/scoring_by_age.sql": "results/sql_results.txt",
+    "data/selection.csv": "pm_lp_markets 2026-10-09..12 (day, pm-rec market id, selected_at), for scripts/speed_costs.py",
+    "scripts/tape.py": "results/tape.txt: python3 -I docs/agents/backtests/lpspeed/scripts/tape.py docs/agents/backtests/lpspeed/data/fills.csv <prints dir>",
+    "scripts/poll_programmes.py": "the endpoint poll (its jsonl stays in the scratchpad): python3 -I poll_programmes.py 1200 poll.jsonl <10 condition ids>",
+    "scripts/speed_costs.py": "results/speed_costs.txt: python3 -I docs/agents/backtests/lpspeed/scripts/speed_costs.py docs/agents/backtests/lpspeed/data/selection.csv <prints dir> <poll.jsonl>",
+    "scripts/mcp_to_csv.py": "turns a saved connector answer (one string_agg column) into a CSV"
+  },
+  "reproduced": "tape.py run twice on the same inputs: byte-identical (cmp)",
+  "not_blind": true,
+  "applied": "nothing: no order, config, migration, deploy or edit of pm_live.ts / pm_lp.ts; the review's proposal is for Davies"
+}

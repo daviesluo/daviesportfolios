@@ -1,0 +1,139 @@
+LP-SPEED: the read-only SQL answers, as run on production (flmvxigozjuizpckllvk) on 2026-10-12 between 23:05 and
+23:30 UTC. Each block names its file in sql/. Live-prep went live 2026-10-09 01:33 UTC; its total stop tripped 2026-10-12
+07:30 UTC; the per-minute reward check began 2026-10-10 01:14 UTC.
+
+== sql/fills_export.sql -> data/fills.csv
+413 live fills to 2026-10-12 09:00 UTC (436 in all to 22:48 UTC; the 23 after 09:00 are close-only sells).
+(The connector saved the 72 KB answer to a file; scripts/mcp_to_csv.py turned it into the CSV.)
+
+== a first look (inline in the session): order ts (pending row) to match_time, all 436 live fills
+side BUY: 221 fills of 198 orders; p10 5.7 s, p25 19.8, p50 51.4, p75 255.1, p90 345.9; within 5 s 19, 15 s 45, 60 s 121
+side SELL: 215 fills of 198 orders; p10 3.4 s, p25 27.1, p50 55.1, p75 212.8, p90 387.8; within 5 s 24, 15 s 38, 60 s 113
+all: 436; p50 53.8 s; 12 matched in the same second as the row (whole-second match_time); none after 600 s
+
+== sql/fill_hazard.sql, query 1 (pooled): gate, age bin lo-hi s, exposure hours, first fills, orders alive at lo
+open,0,1,2.173,9,7822
+open,1,2,2.171,5,7814
+open,2,5,6.509,5,7811
+open,5,10,10.832,17,7807
+open,10,20,21.617,18,7788
+open,20,30,21.564,17,7772
+open,30,60,54.744,47,7756
+open,60,120,41.673,19,2573
+open,120,300,89.471,34,2011
+open,300,600,95.014,27,1553
+reduce,0,1,3.327,4,11977
+reduce,1,2,3.326,1,11975
+reduce,2,5,9.971,12,11967
+reduce,5,10,16.611,5,11962
+reduce,10,20,33.195,14,11956
+reduce,20,30,33.161,12,11943
+reduce,30,60,85.197,39,11929
+reduce,60,120,75.621,20,4659
+reduce,120,300,169.092,37,3700
+reduce,300,600,185.516,28,3028
+all,0,1,5.499,13,19799
+all,1,2,5.497,6,19789
+all,2,5,16.479,17,19778
+all,5,10,27.443,22,19769
+all,10,20,54.813,32,19744
+all,20,30,54.725,29,19715
+all,30,60,139.941,86,19685
+all,60,120,117.295,39,7232
+all,120,300,258.563,71,5711
+all,300,600,280.530,55,4581
+
+== sql/fill_hazard.sql, query 2 (within market-hour): gate, lo, hi, observed, expected, observed / expected
+open,0,1,9,1.89,4.76
+open,1,2,5,1.88,2.65
+open,2,5,5,5.64,0.89
+open,5,10,17,9.27,1.83
+open,10,20,18,17.86,1.01
+open,20,30,17,17.47,0.97
+open,30,60,47,42.38,1.11
+open,60,120,19,29.88,0.64
+open,120,300,34,43.74,0.78
+open,300,600,27,27.99,0.96
+reduce,0,1,4,1.97,2.04
+reduce,1,2,1,1.96,0.51
+reduce,2,5,12,4.34,2.76
+reduce,5,10,5,7.15,0.70
+reduce,10,20,14,13.97,1.00
+reduce,20,30,12,13.69,0.88
+reduce,30,60,39,33.49,1.16
+reduce,60,120,20,24.53,0.82
+reduce,120,300,37,41.14,0.90
+reduce,300,600,28,28.75,0.97
+all,0,1,13,3.85,3.37
+all,1,2,6,3.85,1.56
+all,2,5,17,9.99,1.70
+all,5,10,22,16.42,1.34
+all,10,20,32,31.83,1.01
+all,20,30,29,31.16,0.93
+all,30,60,86,75.87,1.13
+all,60,120,39,54.41,0.72
+all,120,300,71,84.88,0.84
+all,300,600,55,56.74,0.97
+
+== sql/fills_reward.sql: reward standing in the fill's minute, gate, Polymarket's scoring read, fills, shares,
+   markout $ at +1 min, markout $ at +60 min, fills with a +60 min mid
+in,open,no read,14,220.5,-0.31,-0.33,14
+in,open,not scoring,16,288.3,1.81,-4.16,16
+in,open,scoring,124,1879.4,-22.42,-36.06,124
+in,reduce,no read,17,221.5,0.45,-1.81,17
+in,reduce,not scoring,10,144.0,-1.85,-8.30,10
+in,reduce,scoring,67,1170.7,-12.47,-53.46,67
+no minute row,open,no read,1,20.0,-0.60,1.20,1
+nocheck,open,no read,4,65.0,-1.59,0.73,3
+nocheck,open,not scoring,23,409.9,0.97,0.66,18
+nocheck,open,scoring,39,710.2,-9.80,-23.72,39
+nocheck,reduce,no read,6,110.1,-1.45,-2.70,4
+nocheck,reduce,not scoring,39,643.2,-11.78,-6.14,34
+nocheck,reduce,scoring,20,332.1,-21.44,-14.85,16
+out: ended,reduce,not scoring,12,161.2,0.02,1.88,12
+out: minimum,reduce,not scoring,6,70.0,-0.85,1.38,6
+out: rate,reduce,no read,1,20.0,0.30,1.70,1
+out: rate,reduce,not scoring,2,39.7,-3.46,-5.96,2
+out: rate,reduce,scoring,5,100.0,-6.70,-10.20,5
+out: refilled,reduce,not scoring,7,75.0,-4.12,-5.65,7
+
+== sql/reward_transitions.sql (summary query): reason, in->out flips, flips with an order resting at the read
+   before, gap between the two reads p50 / max s, fills between the two reads, buys and sells in the next hour
+ended,13,6,59.741,1079.877,0,4,12
+min,12,5,59.629,61.534,0,0,2
+rate,93,23,59.961,119.488,1,0,6
+all,118,34,59.939,1079.877,1,4,20
+The one fill between the reads: 0x79a1501912 (2026-10-11), BUY YES 20 at 0.62 at 17:11:40, inside a 119 s gap (one
+turn missed); its markouts (data/fills.csv): -$0.60 at +1 min, -$0.80 at +5 min, +$1.20 at +60 min. The 4 buys in the
+next hour after an "ended" read came after the programme read back in (fills_reward.sql: no BUY fill in a minute the
+check read out).
+
+== sql/selection_to_out.sql: 60 market-days 2026-10-10 to 10-12 (00:00 picks and refills)
+taken out for a reward reason at least once that day: 55; never: 5
+minutes from selection to the first reward-out (55): median 190, p25 42, p75 351; within 10 min 6, 30 min 10, 60 min 14
+
+== sql/programme_churn.sql: every live minute's reward read from 2026-10-10 01:14 UTC
+reads 64,619; consecutive pairs 64,536; rate changed 1,748 (2.7 %); minimum changed 308; spread changed 94;
+in->out flips for a reward reason (consecutive minutes) 116; back in within 1 min 3, 5 min 3, 15 min 16, 60 min 54
+
+== sql/paper_vs_live.sql: the 8,527 market-minutes (18 markets) both live-prep live and RW-C's paper quoted,
+   2026-10-09 01:33 to 10-12 07:30 UTC: who, fills, shares, seconds into the minute p10 / p50 / p90, fills in the first
+   5 s, markout $ +1 min, cents a share +1 min, markout $ +60 min, cents a share +60 min, fills with a +60 min mid
+live LP,217,3395.4,6,29,52,16,-31.26,-0.92,-88.78,-2.71,211
+paper RW-C,129,2178.8,7,31,55,7,-36.68,-1.68,-64.98,-3.11,124
+
+== sql/scoring_by_age.sql: age band of our one order on a side at the turn, side-minutes, scoring, % scoring
+1: under 70 s,3266,2665,81.6
+2: 70-130 s,2748,2223,80.9
+3: 130-300 s,7236,5823,80.5
+4: 300 s and over,6553,5219,79.6
+
+== live-prep's own timing (inline queries; Supabase logs for the agents function, 2026-10-11 07:30 to 10-12 07:30 UTC)
+edge call agents?action=pmlp (eu-west-1): 1,419 calls; execution p50 9,063 ms, p90 12,163, p99 19,116, max 26,766
+agents?action=pmlpprep p50 1,325 ms p99 3,699; pmlpreserve p50 952 p99 3,284; pmrec p50 1,790 p99 4,809;
+pmrec-meta (every 5 min) p50 2,741 p90 24,047 p99 34,715 max 37,691
+edge_calls rows of the minute job: 26 enabled; pmlp, pmlpprep, pmrec, pmlpreserve every minute and pmrec-meta every
+5 minutes, each with timeout_ms 58,000
+live orders (pm_lp_orders, to 07:30 on 10-12): 19,825 rows in 4,605 minutes with a post; posts a minute p50 4, p90 7,
+p99 11; first post of a minute p10 4.8 s, p50 7.2 s, p90 10.2 s into it; last post p50 7.5 s, p90 10.8 s, p99 15.1 s;
+a day: 10-09 (from 01:33) 5,632, 10-10 5,163, 10-11 6,058, 10-12 (to 07:30) 2,972; governor 12,000

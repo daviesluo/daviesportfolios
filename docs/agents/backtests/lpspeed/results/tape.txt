@@ -1,0 +1,82 @@
+LP-SPEED tape: live-prep fills against pm-rec's prints
+fills read: 413 (to 2026-10-12 09:00 UTC); prints frames read: 4859, complete: 4859
+markets with prints: 42 of 42
+fills whose own taker print is on the tape (same market, -2..+8 s, at our price +-1.5c): 398; tape stamp minus match_time: median 3.0 s, p10 2, p90 3 (prints are taken back by 3 s)
+
+## a. post to fill, and decision to fill (seconds)
+post (venue created_at) to fill: n 413, p10 6, p25 24, median 54, p75 215, p90 379; <=1 s 19, <=5 s 39, <=15 s 76, <=60 s 224
+latest turn's decision to fill: n 413, p10 7, p25 14, median 30, p75 44, p90 53; <=1 s 0, <=5 s 26, <=15 s 109, <=60 s 399
+fills by second of the minute (the turn reads ~:02, posts ~:07): :00-09 59, :10-19 82, :20-29 65, :30-39 67, :40-49 77, :50-59 63
+
+## markouts by age since post (sum over fills, $; per fill in brackets); negative = the fill lost against the later mid
+post age [0, 2) s: fills 17; m1 -5.06 (-0.30, n 17); m5 -0.04 (-0.00, n 16); m60 -6.53 (-0.41, n 16)
+post age [2, 10) s: fills 39; m1 -4.61 (-0.12, n 39); m5 -5.83 (-0.16, n 37); m60 +0.35 (+0.01, n 37)
+post age [10, 60) s: fills 164; m1 -9.30 (-0.06, n 164); m5 -23.35 (-0.14, n 163); m60 -35.52 (-0.22, n 162)
+post age [60, inf) s: fills 191; m1 -76.19 (-0.40, n 191); m5 -87.55 (-0.47, n 186); m60 -123.62 (-0.69, n 179)
+gate open: fills 221; m1 -31.95 (n 221); m60 -61.68 (n 215)
+gate reduce: fills 192; m1 -63.35 (n 192); m60 -104.09 (n 181)
+all: m1 -95.30 (n 413); m5 -116.89 (n 404); m60 -165.77 (n 396)
+
+## c. stale quotes: did the tape move toward the order between the latest decision and the fill?
+fills in a taker trade that took more than one price level (a sweep): 125 of 413
+order at the turn's touch when filled: 129 of 413
+tight (a level beyond the turn's touch traded): 23 fills had a warning print first; lead before the fill: median 1 s, >=2 s 6, >=5 s 5, >=15 s 2; their markouts m1 -16.12 (n 23), m60 -17.98 (n 22)
+loose (our side traded at the touch or a level beyond): 56 fills had a warning print first; lead before the fill: median 3.5 s, >=2 s 32, >=5 s 27, >=15 s 22; their markouts m1 -15.96 (n 56), m60 -23.30 (n 55)
+no warning print at all (the fill's own taker came first): 357 fills; markouts m1 -79.35 (n 357), m60 -142.47 (n 341)
+
+## the k-second loop: expected fills avoided and their markout (cancel on the first warning print, random phase)
+k s | L s | signal | fills avoided (expected) | markout m1 avoided $ | markout m5 avoided $ | markout m60 avoided $
+1 | 1 | tight | 6.0 | +0.10 | +3.45 | +4.05
+2 | 1 | tight | 5.5 | +0.32 | +3.16 | +2.14
+5 | 1 | tight | 5.2 | +0.45 | +2.98 | +0.99
+10 | 1 | tight | 3.9 | +0.48 | +2.58 | +1.16
+15 | 1 | tight | 3.3 | +0.49 | +2.38 | +1.31
+30 | 1 | tight | 2.6 | +0.49 | +2.19 | +1.45
+60 | 1 | tight | 0.0 | -0.00 | -0.00 | -0.00
+1 | 2 | tight | 5.0 | +0.54 | +2.86 | +0.23
+2 | 2 | tight | 5.0 | +0.54 | +2.86 | +0.23
+5 | 2 | tight | 5.0 | +0.54 | +2.86 | +0.23
+10 | 2 | tight | 3.5 | +0.52 | +2.43 | +0.91
+15 | 2 | tight | 3.0 | +0.51 | +2.29 | +1.14
+30 | 2 | tight | 2.5 | +0.51 | +2.14 | +1.37
+60 | 2 | tight | 0.0 | -0.00 | -0.00 | -0.00
+1 | 1 | loose | 32.0 | -0.12 | +4.55 | +6.47
+2 | 1 | loose | 30.5 | +0.21 | +4.36 | +3.97
+5 | 1 | loose | 28.6 | +0.48 | +4.33 | +2.68
+10 | 1 | loose | 26.2 | +0.59 | +3.98 | +2.81
+15 | 1 | loose | 24.8 | +0.55 | +3.78 | +2.70
+30 | 1 | loose | 20.7 | +0.46 | +3.36 | +2.41
+60 | 1 | loose | 0.0 | -0.00 | -0.00 | -0.00
+1 | 2 | loose | 29.0 | +0.54 | +4.16 | +1.46
+2 | 2 | loose | 28.5 | +0.59 | +4.24 | +1.71
+5 | 2 | loose | 27.4 | +0.63 | +4.26 | +1.75
+10 | 2 | loose | 25.2 | +0.65 | +3.86 | +2.41
+15 | 2 | loose | 24.1 | +0.59 | +3.70 | +2.43
+30 | 2 | loose | 19.9 | +0.47 | +3.29 | +2.24
+60 | 2 | loose | 0.0 | -0.00 | -0.00 | -0.00
+(a positive $ is money the faster loop would have kept: the avoided fills' markouts were losses)
+buys only (gate open; a loop that cancels BUYs and leaves the exits resting), L = 1 s:
+  1 s, tight: fills avoided 2.0, markout m5 avoided +0.29, m60 avoided +3.12
+  5 s, tight: fills avoided 1.2, markout m5 avoided -0.18, m60 avoided +0.06
+  10 s, tight: fills avoided 1.1, markout m5 avoided -0.24, m60 avoided -0.32
+  15 s, tight: fills avoided 1.1, markout m5 avoided -0.26, m60 avoided -0.45
+  30 s, tight: fills avoided 1.0, markout m5 avoided -0.28, m60 avoided -0.57
+  1 s, loose: fills avoided 24.0, markout m5 avoided +0.54, m60 avoided +3.83
+  5 s, loose: fills avoided 22.0, markout m5 avoided +0.23, m60 avoided +0.85
+  10 s, loose: fills avoided 21.2, markout m5 avoided +0.25, m60 avoided +0.44
+  15 s, loose: fills avoided 20.5, markout m5 avoided +0.23, m60 avoided +0.06
+  30 s, loose: fills avoided 17.2, markout m5 avoided +0.17, m60 avoided -0.32
+
+## staleness test: if fills were stale quotes picked off, the older the turn's decision, the worse the markout
+decision age [0, 15) s: fills 108, shares 1876; markout m1 -28.77 (-1.53 c/share), m60 -45.45 (-2.54 c/share)
+decision age [15, 30) s: fills 92, shares 1395; markout m1 -14.18 (-1.02 c/share), m60 -21.18 (-1.61 c/share)
+decision age [30, 45) s: fills 112, shares 1674; markout m1 -33.23 (-1.99 c/share), m60 -57.42 (-3.70 c/share)
+decision age [45, 70) s: fills 101, shares 1736; markout m1 -19.11 (-1.10 c/share), m60 -41.72 (-2.46 c/share)
+
+## what each fill met, and what a faster loop could have seen (warnings with more than 1 s of lead first)
+A. a print moved the book toward the order first (seen by a prints- or book-reading loop): fills 32, shares 250; markout m1 +0.12, m5 -4.55 (n 32), m60 -6.47 (n 32)
+B. one taker swept several levels, ours among them (no loop sees it before it lands): fills 122, shares 2236; markout m1 -61.51, m5 -75.31 (n 120), m60 -96.48 (n 118)
+C. behind the touch at the decision, filled alone: the levels ahead went without a print (a book-reading loop's upper bound): fills 5, shares 95; markout m1 +1.81, m5 +1.91 (n 5), m60 +2.18 (n 5)
+D. at the touch at the decision, one taker took it (a faster loop changes nothing unless the far side moved quietly): fills 254, shares 4100; markout m1 -35.73, m5 -38.93 (n 247), m60 -65.00 (n 241)
+
+days covered by these fills: 3.29

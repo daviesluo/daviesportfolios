@@ -1,0 +1,55 @@
+## 1. re-decisions a print-driven loop would make, live-prep's selected markets, 2026-10-09 01:33 to 10-12 07:30 UTC
+markets 68, with prints 55; prints 2492 (767 a day)
+k s | (market, k-s bucket) with a print, a day | upper bound on extra POSTs a day (two sides)
+1 | 534 | 1068
+2 | 507 | 1015
+5 | 441 | 882
+10 | 407 | 814
+15 | 390 | 780
+30 | 363 | 726
+60 | 339 | 678
+
+## 2. how fast the reward reads show a programme change (live poll, keyless)
+poll: 23176 answers over 20.0 minutes, from 2026-10-12 23:20:10 UTC
+clob: 11360 answers; status {200: 11360}; cache-control {'public, max-age=5': 11360}; cf-cache-status {'HIT': 9424, 'EXPIRED': 1936}, latency p50 0.280 s p90 0.413 s
+clob_bust: 11360 answers; status {200: 11358, None: 2}; cache-control {'public, max-age=5': 11358, None: 2}; cf-cache-status {'MISS': 11358, None: 2}, latency p50 0.379 s p90 0.481 s
+sponsored: 228 answers; status {200: 228}; cache-control {'public, max-age=10': 228}; cf-cache-status {'EXPIRED': 92, 'HIT': 136}
+gamma: 228 answers; status {200: 228}; cache-control {'public, max-age=300': 228}; cf-cache-status {'MISS': 1, 'HIT': 224, 'EXPIRED': 3}, latency p50 0.329 s p90 0.412 s
+
+changes seen per market (read: first time each new value was seen, seconds after the poll began)
+0x0386c36c28: cached read 5 changes, origin read 23 changes; origin values seen: (True, 3.0, 6.5, 50) x690; (True, 38.0, 6.5, 20) x446
+   (True, 38.0, 6.5, 20): cached at +732.5 s, origin last turned to it at +728.5 s, cache behind by 4.0 s
+   (True, 3.0, 6.5, 50): cached at +743.5 s, origin last turned to it at +735.5 s, cache behind by 8.0 s
+   (True, 38.0, 6.5, 20): cached at +749.5 s, origin last turned to it at +749.5 s, cache behind by 0.0 s
+   (True, 3.0, 6.5, 50): cached at +760.3 s, origin last turned to it at +752.5 s, cache behind by 7.8 s
+   (True, 38.0, 6.5, 20): cached at +766.3 s, origin last turned to it at +763.3 s, cache behind by 3.0 s
+0x10b5db9b41: cached read 0 changes, origin read 0 changes; origin values seen: (True, 2.0, 8.5, 50) x1136
+0x36597ead16: cached read 3 changes, origin read 25 changes; origin values seen: (True, 1.0, 6.5, 50) x859; (True, 18.0, 6.5, 20) x277
+   (True, 18.0, 6.5, 20): cached at +897.5 s, origin last turned to it at +895.5 s, cache behind by 2.0 s
+   (True, 1.0, 6.5, 50): cached at +914.5 s, origin last turned to it at +909.5 s, cache behind by 5.0 s
+   (True, 18.0, 6.5, 20): cached at +919.5 s, origin last turned to it at +913.5 s, cache behind by 6.0 s
+0x3c5391bb22: cached read 0 changes, origin read 0 changes; origin values seen: (True, 189.0, 4.5, 20) x1136
+0x562e6601b4: cached read 9 changes, origin read 31 changes; origin values seen: (True, 26.0, 6.5, 20) x640; (True, 29.0, 6.5, 20) x496
+   (True, 29.0, 6.5, 20): cached at +649.1 s, origin last turned to it at +649.1 s, cache behind by 0.0 s
+   (True, 26.0, 6.5, 20): cached at +661.1 s, origin last turned to it at +655.1 s, cache behind by 6.0 s
+   (True, 29.0, 6.5, 20): cached at +672.1 s, origin last turned to it at +670.1 s, cache behind by 2.0 s
+   (True, 26.0, 6.5, 20): cached at +677.5 s, origin last turned to it at +672.1 s, cache behind by 5.4 s
+   (True, 29.0, 6.5, 20): cached at +683.0 s, origin last turned to it at +683.0 s, cache behind by 0.0 s
+   (True, 26.0, 6.5, 20): cached at +699.7 s, origin last turned to it at +693.4 s, cache behind by 6.3 s
+0x567b548b61: cached read 3 changes, origin read 25 changes; origin values seen: (True, 283.0, 4.5, 20) x1020; (True, 292.0, 4.5, 20) x116
+   (True, 283.0, 4.5, 20): cached at +117.5 s, origin last turned to it at +116.5 s, cache behind by 1.0 s
+   (True, 292.0, 4.5, 20): cached at +125.1 s, origin last turned to it at +122.5 s, cache behind by 2.6 s
+   (True, 283.0, 4.5, 20): cached at +134.6 s, origin last turned to it at +132.7 s, cache behind by 1.9 s
+0x70af246189: cached read 0 changes, origin read 0 changes; origin values seen: (True, 20.0, 6.5, 20) x1134
+0x9beb023f95: cached read 0 changes, origin read 0 changes; origin values seen: (True, 7.0, 4.5, 20) x1136
+0xaff9fc478b: cached read 0 changes, origin read 2 changes; origin values seen: (True, 4.0, 6.5, 55) x1135; (True, 3.0, 6.5, 55) x1
+0xe0c0d7e3c2: cached read 0 changes, origin read 0 changes; origin values seen: (False, None, None, None) x1136
+changes in all: cached 20, origin 106, over 10 markets and 20.0 minutes
+
+transitions at the origin: from the first answer of the new programme to the last answer of the old one
+0x0386c36c28: 23 flips at the origin between +701.7 s and +763.3 s (62 s); the cached read flipped 5 times, first at +732.5 s, last at +766.3 s; it settled on (True, 38.0, 6.5, 20)
+0x36597ead16: 25 flips at the origin between +887.8 s and +962.3 s (74 s); the cached read flipped 3 times, first at +897.5 s, last at +919.5 s; it settled on (True, 18.0, 6.5, 20)
+0x562e6601b4: 31 flips at the origin between +643.6 s and +724.5 s (81 s); the cached read flipped 9 times, first at +649.1 s, last at +733.5 s; it settled on (True, 29.0, 6.5, 20)
+0x567b548b61: 25 flips at the origin between +108.5 s and +153.7 s (45 s); the cached read flipped 3 times, first at +117.5 s, last at +134.6 s; it settled on (True, 283.0, 4.5, 20)
+0xaff9fc478b: 2 flips at the origin between +22.2 s and +23.2 s (1 s); the cached read flipped 0 times, first at +None s, last at +None s; it settled on (True, 4.0, 6.5, 55)
+gamma: 228 reads, 3 market-changes of clobRewards between consecutive reads
