@@ -1,0 +1,74 @@
+{
+ "record_as_stored": {
+  "all": {
+   "engine_gbp": 0.5794,
+   "engine_trips": 8,
+   "pnl_within_10pct": false,
+   "replay_gbp": -0.2924,
+   "replay_trips": 3,
+   "trips_within_5pct": false
+  },
+  "books": {
+   "USDC-EUR": {
+    "engine_gbp": 0.7487,
+    "engine_trips": 6,
+    "replay_gbp": -0.1343,
+    "replay_trips": 1
+   },
+   "USDC-GBP": {
+    "engine_gbp": 0,
+    "engine_trips": 0,
+    "replay_gbp": 0,
+    "replay_trips": 0
+   },
+   "USDT-EUR": {
+    "engine_gbp": -0.1693,
+    "engine_trips": 2,
+    "replay_gbp": -0.1581,
+    "replay_trips": 2
+   },
+   "USDT-GBP": {
+    "engine_gbp": 0,
+    "engine_trips": 0,
+    "replay_gbp": 0,
+    "replay_trips": 0
+   }
+  }
+ },
+ "record_with_extremes_restored": {
+  "all": {
+   "engine_gbp": 0.5794,
+   "engine_trips": 8,
+   "pnl_within_10pct": true,
+   "replay_gbp": 0.5794,
+   "replay_trips": 8,
+   "trips_within_5pct": true
+  },
+  "books": {
+   "USDC-EUR": {
+    "engine_gbp": 0.7487,
+    "engine_trips": 6,
+    "replay_gbp": 0.7487,
+    "replay_trips": 6
+   },
+   "USDC-GBP": {
+    "engine_gbp": 0,
+    "engine_trips": 0,
+    "replay_gbp": 0,
+    "replay_trips": 0
+   },
+   "USDT-EUR": {
+    "engine_gbp": -0.1693,
+    "engine_trips": 2,
+    "replay_gbp": -0.1693,
+    "replay_trips": 2
+   },
+   "USDT-GBP": {
+    "engine_gbp": 0,
+    "engine_trips": 0,
+    "replay_gbp": 0,
+    "replay_trips": 0
+   }
+  }
+ }
+}

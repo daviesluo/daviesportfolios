@@ -28,6 +28,12 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    Three studies run (history 2026-10-12 23:05): the live fills' adverse selection and a deep optimisation, Davies'
    reward-timing hypothesis with a 1-second speed study, and Coinbase's first days. Their proposals go to Davies; a rule
    change is an addendum on his word, and a restart is his call alone. The 10-16 end-rule read still runs as written.
+   **Results (landed, history 2026-10-13 23:47):** LP-ADVERSE (`reviews/2026-10-12-lp-adverse-selection.md`): the fills lost
+   to one-shot takers (adverse −$305 in the first hour against +$101 of half-spread); live realised a fraction of the formula
+   because carried stock held the cap; no priced package clears $0 with confidence; it recommends staying stopped, and P1
+   (no quote after a 10 c hour, touch ≥ 3 c) if Davies wants it back. LP-SPEED (`reviews/2026-10-12-lp-reward-timing-speed.md`):
+   programmes do change fast, but no fill came while a programme was out, paper's fills were as adverse, and a 1–30 s loop is
+   worth +$0.3 to +$2.0 a day (the CLOB reward read is cached 5 s); change no cadence. Davies chooses.
 
 0. **HANDOVER, 2026-10-11 ~03:30 UTC: Claude Code's weekly limit is near; Cursor (Grok 4.7) continues.** The watch and
    safe-maintenance procedure is `.agents/skills/live-watch/SKILL.md` (pointers in `.claude/skills/` and
@@ -333,7 +339,14 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    (`reviews/2026-10-09-cj5-paper-test.md`): an edge in every year, shrinking; a forward paper test is drafted, not frozen
    (`reviews/2026-10-09-cj5-forward-paper-prereg.md`), and waits on a design and his word.
 
-12. **Coinbase recorder and paper test "Stablecoin quotes with Euros" ("…Coinbase" until its Deviation 1): deployed
+12. **The minute record's defect (2026-10-12, `reviews/2026-10-12-coinbase-first-days.md`): `cbMinuteRow`'s
+   `reduce(Math.min)` stored null extremes for every side with two or more prints (7,216 of 12,802 printed minutes), so bar 1's
+   replay of the 11-08 reading fails as stored. Waiting on Davies' word for Deviation 2** (the fix and pin are on worktree
+   commit `e6df4e0b`, not landed: `cb_quotes.ts` is frozen by §5); then deploy the fix and repair the stored minutes from
+   `cb_trades` (`backtests/cbreview/sql/repair_minute_bars.sql`, as a migration) **before 2026-10-21 23:01 UTC**, when the
+   prune deletes the first lit minute's prints. The test reads PR5's paper engine's `agent_quote_inputs`: keep that engine
+   running to 11-08 whatever the 10-21 review decides. Candidate: a weekend variant (CBK, in sample +34–47 %).
+   The paper test itself: **Coinbase recorder and paper test "Stablecoin quotes with Euros" ("…Coinbase" until its Deviation 1): deployed
    2026-10-10 01:46 UTC; Deviation 1 (€100 a rung on the EUR books, the name, the window 2026-10-11 → 11-08) must deploy
    before 10-11 00:00 UTC** (Davies, 2026-10-10;
    reference §4 item 58, migration `0112`, `agents?action=cbrec`). After it lands and its 15 minutes pass: check
@@ -471,6 +484,15 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11"; each oldest first.
+
+### [2026-10-13 23:47 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The three studies landed** (sub-agents' commits rebased onto `main`, one full gate run). LP-ADVERSE: 436 fills, 6,966
+  shares, 42 markets, −129.43 = +100.56 half-spread −235.77 adverse 0–5 min −69.44 adverse 5–60 min +75.21 carried
+  (checked: counts by query, the sum by hand); break-even R 1.80 on what ran; P1/P2/P4 priced, keep stopped recommended.
+  LP-SPEED: Davies' hypothesis partly right (programmes change fast; fills come 3.4× chance in a post's first second) and the
+  cure not (one fill in 118 programme changes fell in the detection gap; B and D, one taker sweeping or taking our touch, are
+  97 % of the markout loss); the CLOB reward read's `max-age=5` checked by hand. Coinbase: recorders healthy, no gap in the
+  window; the minute-record defect checked by query (item 12); its fix held back for Deviation 2.
 
 ### [2026-10-12 23:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Resumed from `787d878` (a Claude Code session had died; nothing in git after 10-11 04:30). Watch 22:54 UTC: URGENT.**

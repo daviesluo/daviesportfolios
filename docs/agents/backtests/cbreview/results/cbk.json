@@ -1,0 +1,1853 @@
+{
+ "arms": {
+  "base": {
+   "last_12_months": {
+    "all": {
+     "best_day_share": 0.0229,
+     "gbp_per_year": 192.9453,
+     "max_drawdown_gbp": 5.6945,
+     "pct_per_year_on_capital": 8.0394,
+     "pnl_gbp": 192.9453,
+     "stop_pnl_gbp": -1.0981,
+     "stops": 52,
+     "trips": 2844,
+     "win_rate": 0.7444
+    },
+    "bootstrap_all": {
+     "days": 365,
+     "index100_gbp_per_year": 166.1041,
+     "share_draws_gt_0": 1.0,
+     "sum_gbp": 192.9453
+    },
+    "coinbase:USDC-EUR": {
+     "best_day_share": 0.049,
+     "gbp_per_year": 35.204,
+     "max_drawdown_gbp": 1.6998,
+     "pct_per_year_on_capital": 5.8673,
+     "pnl_gbp": 35.204,
+     "stop_pnl_gbp": -0.5526,
+     "stops": 15,
+     "trips": 507,
+     "win_rate": 0.6844
+    },
+    "coinbase:USDC-GBP": {
+     "best_day_share": 0.0658,
+     "gbp_per_year": 36.2484,
+     "max_drawdown_gbp": 3.4585,
+     "pct_per_year_on_capital": 6.0414,
+     "pnl_gbp": 36.2484,
+     "stop_pnl_gbp": -0.0279,
+     "stops": 5,
+     "trips": 571,
+     "win_rate": 0.725
+    },
+    "coinbase:USDT-EUR": {
+     "best_day_share": 0.1209,
+     "gbp_per_year": 22.027,
+     "max_drawdown_gbp": 2.6237,
+     "pct_per_year_on_capital": 3.6712,
+     "pnl_gbp": 22.027,
+     "stop_pnl_gbp": -3.9033,
+     "stops": 19,
+     "trips": 603,
+     "win_rate": 0.6716
+    },
+    "coinbase:USDT-GBP": {
+     "best_day_share": 0.0334,
+     "gbp_per_year": 99.466,
+     "max_drawdown_gbp": 2.9402,
+     "pct_per_year_on_capital": 16.5777,
+     "pnl_gbp": 99.466,
+     "stop_pnl_gbp": 3.3857,
+     "stops": 13,
+     "trips": 1163,
+     "win_rate": 0.8177
+    }
+   },
+   "last_28_days": {
+    "all": {
+     "best_day_share": 0.1091,
+     "gbp_per_year": 315.2426,
+     "max_drawdown_gbp": 0.898,
+     "pct_per_year_on_capital": 13.1351,
+     "pnl_gbp": 24.183,
+     "stop_pnl_gbp": 0.5629,
+     "stops": 5,
+     "trips": 242,
+     "win_rate": 0.8017
+    },
+    "bootstrap_all": {
+     "days": 28,
+     "index100_gbp_per_year": 215.8657,
+     "share_draws_gt_0": 1.0,
+     "sum_gbp": 24.183
+    },
+    "coinbase:USDC-EUR": {
+     "best_day_share": 0.2351,
+     "gbp_per_year": 95.6811,
+     "max_drawdown_gbp": 0.5379,
+     "pct_per_year_on_capital": 15.9468,
+     "pnl_gbp": 7.3399,
+     "stop_pnl_gbp": 0.4248,
+     "stops": 3,
+     "trips": 72,
+     "win_rate": 0.7778
+    },
+    "coinbase:USDC-GBP": {
+     "best_day_share": 0.1674,
+     "gbp_per_year": 185.6753,
+     "max_drawdown_gbp": 0.2411,
+     "pct_per_year_on_capital": 30.9459,
+     "pnl_gbp": 14.2436,
+     "stop_pnl_gbp": 0,
+     "stops": 0,
+     "trips": 96,
+     "win_rate": 0.9167
+    },
+    "coinbase:USDT-EUR": {
+     "best_day_share": 1.2655,
+     "gbp_per_year": 27.4339,
+     "max_drawdown_gbp": 1.4054,
+     "pct_per_year_on_capital": 4.5723,
+     "pnl_gbp": 2.1045,
+     "stop_pnl_gbp": -0.1293,
+     "stops": 1,
+     "trips": 58,
+     "win_rate": 0.7069
+    },
+    "coinbase:USDT-GBP": {
+     "best_day_share": 1.1392,
+     "gbp_per_year": 6.4523,
+     "max_drawdown_gbp": 0.3601,
+     "pct_per_year_on_capital": 1.0754,
+     "pnl_gbp": 0.495,
+     "stop_pnl_gbp": 0.2674,
+     "stops": 1,
+     "trips": 16,
+     "win_rate": 0.5625
+    }
+   },
+   "last_90_days": {
+    "all": {
+     "best_day_share": 0.0743,
+     "gbp_per_year": 143.9557,
+     "max_drawdown_gbp": 1.2226,
+     "pct_per_year_on_capital": 5.9982,
+     "pnl_gbp": 35.4959,
+     "stop_pnl_gbp": 0.4388,
+     "stops": 7,
+     "trips": 432,
+     "win_rate": 0.7616
+    },
+    "bootstrap_all": {
+     "days": 90,
+     "index100_gbp_per_year": 99.5432,
+     "share_draws_gt_0": 1.0,
+     "sum_gbp": 35.4959
+    },
+    "coinbase:USDC-EUR": {
+     "best_day_share": 0.1937,
+     "gbp_per_year": 36.1266,
+     "max_drawdown_gbp": 0.9733,
+     "pct_per_year_on_capital": 6.0211,
+     "pnl_gbp": 8.9079,
+     "stop_pnl_gbp": 0.3571,
+     "stops": 4,
+     "trips": 105,
+     "win_rate": 0.7143
+    },
+    "coinbase:USDC-GBP": {
+     "best_day_share": 0.1541,
+     "gbp_per_year": 62.7426,
+     "max_drawdown_gbp": 0.8321,
+     "pct_per_year_on_capital": 10.4571,
+     "pnl_gbp": 15.4708,
+     "stop_pnl_gbp": 0,
+     "stops": 0,
+     "trips": 130,
+     "win_rate": 0.8385
+    },
+    "coinbase:USDT-EUR": {
+     "best_day_share": 0.9628,
+     "gbp_per_year": 11.2179,
+     "max_drawdown_gbp": 1.4054,
+     "pct_per_year_on_capital": 1.8697,
+     "pnl_gbp": 2.7661,
+     "stop_pnl_gbp": -0.1857,
+     "stops": 2,
+     "trips": 89,
+     "win_rate": 0.6629
+    },
+    "coinbase:USDT-GBP": {
+     "best_day_share": 0.2303,
+     "gbp_per_year": 33.8685,
+     "max_drawdown_gbp": 0.4933,
+     "pct_per_year_on_capital": 5.6448,
+     "pnl_gbp": 8.3511,
+     "stop_pnl_gbp": 0.2674,
+     "stops": 1,
+     "trips": 108,
+     "win_rate": 0.7963
+    }
+   },
+   "since_2026-08-24": {
+    "all": {
+     "best_day_share": 0.0899,
+     "gbp_per_year": 232.7895,
+     "max_drawdown_gbp": 0.898,
+     "pct_per_year_on_capital": 9.6996,
+     "pnl_gbp": 29.3379,
+     "stop_pnl_gbp": 0.5629,
+     "stops": 5,
+     "trips": 297,
+     "win_rate": 0.7912
+    },
+    "bootstrap_all": {
+     "days": 46,
+     "index100_gbp_per_year": 161.186,
+     "share_draws_gt_0": 1.0,
+     "sum_gbp": 29.3379
+    },
+    "coinbase:USDC-EUR": {
+     "best_day_share": 0.1761,
+     "gbp_per_year": 77.7646,
+     "max_drawdown_gbp": 0.5379,
+     "pct_per_year_on_capital": 12.9608,
+     "pnl_gbp": 9.8005,
+     "stop_pnl_gbp": 0.4248,
+     "stops": 3,
+     "trips": 90,
+     "win_rate": 0.7889
+    },
+    "coinbase:USDC-GBP": {
+     "best_day_share": 0.1521,
+     "gbp_per_year": 124.3359,
+     "max_drawdown_gbp": 0.2411,
+     "pct_per_year_on_capital": 20.7227,
+     "pnl_gbp": 15.6697,
+     "stop_pnl_gbp": 0,
+     "stops": 0,
+     "trips": 112,
+     "win_rate": 0.8929
+    },
+    "coinbase:USDT-EUR": {
+     "best_day_share": 0.8447,
+     "gbp_per_year": 25.0155,
+     "max_drawdown_gbp": 1.4054,
+     "pct_per_year_on_capital": 4.1692,
+     "pnl_gbp": 3.1526,
+     "stop_pnl_gbp": -0.1293,
+     "stops": 1,
+     "trips": 69,
+     "win_rate": 0.7101
+    },
+    "coinbase:USDT-GBP": {
+     "best_day_share": 0.7886,
+     "gbp_per_year": 5.6735,
+     "max_drawdown_gbp": 0.4933,
+     "pct_per_year_on_capital": 0.9456,
+     "pnl_gbp": 0.715,
+     "stop_pnl_gbp": 0.2674,
+     "stops": 1,
+     "trips": 26,
+     "win_rate": 0.5769
+    }
+   }
+  },
+  "k_3": {
+   "last_12_months": {
+    "all": {
+     "best_day_share": null,
+     "gbp_per_year": -97.8807,
+     "max_drawdown_gbp": 135.6795,
+     "pct_per_year_on_capital": -4.0784,
+     "pnl_gbp": -97.8807,
+     "stop_pnl_gbp": -3.3319,
+     "stops": 203,
+     "trips": 40697,
+     "win_rate": 0.52
+    },
+    "bootstrap_all": {
+     "days": 365,
+     "index100_gbp_per_year": -150.122,
+     "share_draws_gt_0": 0.0,
+     "sum_gbp": -97.8807
+    },
+    "coinbase:USDC-EUR": {
+     "best_day_share": null,
+     "gbp_per_year": -35.3618,
+     "max_drawdown_gbp": 49.6428,
+     "pct_per_year_on_capital": -5.8936,
+     "pnl_gbp": -35.3618,
+     "stop_pnl_gbp": -2.2052,
+     "stops": 70,
+     "trips": 8267,
+     "win_rate": 0.5135
+    },
+    "coinbase:USDC-GBP": {
+     "best_day_share": null,
+     "gbp_per_year": -73.163,
+     "max_drawdown_gbp": 80.2002,
+     "pct_per_year_on_capital": -12.1938,
+     "pnl_gbp": -73.163,
+     "stop_pnl_gbp": -0.4799,
+     "stops": 28,
+     "trips": 10576,
+     "win_rate": 0.4673
+    },
+    "coinbase:USDT-EUR": {
+     "best_day_share": null,
+     "gbp_per_year": -61.3418,
+     "max_drawdown_gbp": 63.1367,
+     "pct_per_year_on_capital": -10.2236,
+     "pnl_gbp": -61.3418,
+     "stop_pnl_gbp": -3.7899,
+     "stops": 70,
+     "trips": 10500,
+     "win_rate": 0.5285
+    },
+    "coinbase:USDT-GBP": {
+     "best_day_share": 0.0484,
+     "gbp_per_year": 71.986,
+     "max_drawdown_gbp": 6.62,
+     "pct_per_year_on_capital": 11.9977,
+     "pnl_gbp": 71.986,
+     "stop_pnl_gbp": 3.1431,
+     "stops": 35,
+     "trips": 11354,
+     "win_rate": 0.5661
+    }
+   },
+   "last_28_days": {
+    "all": {
+     "best_day_share": null,
+     "gbp_per_year": -137.0354,
+     "max_drawdown_gbp": 15.7415,
+     "pct_per_year_on_capital": -5.7098,
+     "pnl_gbp": -10.5123,
+     "stop_pnl_gbp": 0.4615,
+     "stops": 31,
+     "trips": 2889,
+     "win_rate": 0.5237
+    },
+    "bootstrap_all": {
+     "days": 28,
+     "index100_gbp_per_year": -310.5852,
+     "share_draws_gt_0": 0.058,
+     "sum_gbp": -10.5123
+    },
+    "coinbase:USDC-EUR": {
+     "best_day_share": null,
+     "gbp_per_year": -34.1441,
+     "max_drawdown_gbp": 5.9989,
+     "pct_per_year_on_capital": -5.6907,
+     "pnl_gbp": -2.6193,
+     "stop_pnl_gbp": 0.5544,
+     "stops": 12,
+     "trips": 655,
+     "win_rate": 0.5267
+    },
+    "coinbase:USDC-GBP": {
+     "best_day_share": 0.3122,
+     "gbp_per_year": 55.673,
+     "max_drawdown_gbp": 1.4085,
+     "pct_per_year_on_capital": 9.2788,
+     "pnl_gbp": 4.2708,
+     "stop_pnl_gbp": -0.2011,
+     "stops": 5,
+     "trips": 786,
+     "win_rate": 0.5547
+    },
+    "coinbase:USDT-EUR": {
+     "best_day_share": null,
+     "gbp_per_year": -98.9,
+     "max_drawdown_gbp": 10.341,
+     "pct_per_year_on_capital": -16.4833,
+     "pnl_gbp": -7.5869,
+     "stop_pnl_gbp": -0.2887,
+     "stops": 6,
+     "trips": 813,
+     "win_rate": 0.5326
+    },
+    "coinbase:USDT-GBP": {
+     "best_day_share": null,
+     "gbp_per_year": -59.6642,
+     "max_drawdown_gbp": 4.827,
+     "pct_per_year_on_capital": -9.944,
+     "pnl_gbp": -4.577,
+     "stop_pnl_gbp": 0.3968,
+     "stops": 8,
+     "trips": 635,
+     "win_rate": 0.4709
+    }
+   },
+   "last_90_days": {
+    "all": {
+     "best_day_share": null,
+     "gbp_per_year": -122.8436,
+     "max_drawdown_gbp": 33.1126,
+     "pct_per_year_on_capital": -5.1185,
+     "pnl_gbp": -30.2902,
+     "stop_pnl_gbp": -1.8494,
+     "stops": 52,
+     "trips": 7737,
+     "win_rate": 0.5193
+    },
+    "bootstrap_all": {
+     "days": 90,
+     "index100_gbp_per_year": -203.87,
+     "share_draws_gt_0": 0.0025,
+     "sum_gbp": -30.2902
+    },
+    "coinbase:USDC-EUR": {
+     "best_day_share": null,
+     "gbp_per_year": -25.5616,
+     "max_drawdown_gbp": 7.2613,
+     "pct_per_year_on_capital": -4.2603,
+     "pnl_gbp": -6.3029,
+     "stop_pnl_gbp": -0.5701,
+     "stops": 21,
+     "trips": 1667,
+     "win_rate": 0.5429
+    },
+    "coinbase:USDC-GBP": {
+     "best_day_share": null,
+     "gbp_per_year": -21.9916,
+     "max_drawdown_gbp": 10.3817,
+     "pct_per_year_on_capital": -3.6653,
+     "pnl_gbp": -5.4226,
+     "stop_pnl_gbp": -0.4483,
+     "stops": 8,
+     "trips": 1968,
+     "win_rate": 0.4893
+    },
+    "coinbase:USDT-EUR": {
+     "best_day_share": null,
+     "gbp_per_year": -61.6133,
+     "max_drawdown_gbp": 16.0269,
+     "pct_per_year_on_capital": -10.2689,
+     "pnl_gbp": -15.1923,
+     "stop_pnl_gbp": -0.9111,
+     "stops": 13,
+     "trips": 2161,
+     "win_rate": 0.5391
+    },
+    "coinbase:USDT-GBP": {
+     "best_day_share": null,
+     "gbp_per_year": -13.6771,
+     "max_drawdown_gbp": 6.62,
+     "pct_per_year_on_capital": -2.2795,
+     "pnl_gbp": -3.3724,
+     "stop_pnl_gbp": 0.0801,
+     "stops": 10,
+     "trips": 1941,
+     "win_rate": 0.5075
+    }
+   },
+   "since_2026-08-24": {
+    "all": {
+     "best_day_share": null,
+     "gbp_per_year": -76.9121,
+     "max_drawdown_gbp": 15.7415,
+     "pct_per_year_on_capital": -3.2047,
+     "pnl_gbp": -9.693,
+     "stop_pnl_gbp": 0.0161,
+     "stops": 34,
+     "trips": 4143,
+     "win_rate": 0.5361
+    },
+    "bootstrap_all": {
+     "days": 46,
+     "index100_gbp_per_year": -179.3445,
+     "share_draws_gt_0": 0.1015,
+     "sum_gbp": -9.693
+    },
+    "coinbase:USDC-EUR": {
+     "best_day_share": null,
+     "gbp_per_year": -1.0435,
+     "max_drawdown_gbp": 5.9989,
+     "pct_per_year_on_capital": -0.1739,
+     "pnl_gbp": -0.1315,
+     "stop_pnl_gbp": 0.5544,
+     "stops": 12,
+     "trips": 939,
+     "win_rate": 0.5655
+    },
+    "coinbase:USDC-GBP": {
+     "best_day_share": 0.488,
+     "gbp_per_year": 21.6809,
+     "max_drawdown_gbp": 2.3819,
+     "pct_per_year_on_capital": 3.6135,
+     "pnl_gbp": 2.7324,
+     "stop_pnl_gbp": -0.2011,
+     "stops": 5,
+     "trips": 1105,
+     "win_rate": 0.5403
+    },
+    "coinbase:USDT-EUR": {
+     "best_day_share": null,
+     "gbp_per_year": -53.5831,
+     "max_drawdown_gbp": 10.341,
+     "pct_per_year_on_capital": -8.9305,
+     "pnl_gbp": -6.7529,
+     "stop_pnl_gbp": -0.4174,
+     "stops": 7,
+     "trips": 1178,
+     "win_rate": 0.5569
+    },
+    "coinbase:USDT-GBP": {
+     "best_day_share": null,
+     "gbp_per_year": -43.9664,
+     "max_drawdown_gbp": 6.3766,
+     "pct_per_year_on_capital": -7.3277,
+     "pnl_gbp": -5.541,
+     "stop_pnl_gbp": 0.0801,
+     "stops": 10,
+     "trips": 921,
+     "win_rate": 0.4745
+    }
+   }
+  },
+  "k_5": {
+   "last_12_months": {
+    "all": {
+     "best_day_share": 0.0476,
+     "gbp_per_year": 111.3637,
+     "max_drawdown_gbp": 21.5062,
+     "pct_per_year_on_capital": 4.6402,
+     "pnl_gbp": 111.3637,
+     "stop_pnl_gbp": -6.0743,
+     "stops": 138,
+     "trips": 18500,
+     "win_rate": 0.5929
+    },
+    "bootstrap_all": {
+     "days": 365,
+     "index100_gbp_per_year": 71.9114,
+     "share_draws_gt_0": 1.0,
+     "sum_gbp": 111.3637
+    },
+    "coinbase:USDC-EUR": {
+     "best_day_share": 0.2555,
+     "gbp_per_year": 8.1127,
+     "max_drawdown_gbp": 16.1637,
+     "pct_per_year_on_capital": 1.3521,
+     "pnl_gbp": 8.1127,
+     "stop_pnl_gbp": -2.7982,
+     "stops": 49,
+     "trips": 3798,
+     "win_rate": 0.5753
+    },
+    "coinbase:USDC-GBP": {
+     "best_day_share": null,
+     "gbp_per_year": -3.3551,
+     "max_drawdown_gbp": 28.4951,
+     "pct_per_year_on_capital": -0.5592,
+     "pnl_gbp": -3.3551,
+     "stop_pnl_gbp": -0.4565,
+     "stops": 16,
+     "trips": 4472,
+     "win_rate": 0.5389
+    },
+    "coinbase:USDT-EUR": {
+     "best_day_share": null,
+     "gbp_per_year": -11.5326,
+     "max_drawdown_gbp": 17.3282,
+     "pct_per_year_on_capital": -1.9221,
+     "pnl_gbp": -11.5326,
+     "stop_pnl_gbp": -6.4215,
+     "stops": 47,
+     "trips": 4842,
+     "win_rate": 0.5791
+    },
+    "coinbase:USDT-GBP": {
+     "best_day_share": 0.0397,
+     "gbp_per_year": 118.1387,
+     "max_drawdown_gbp": 2.9626,
+     "pct_per_year_on_capital": 19.6898,
+     "pnl_gbp": 118.1387,
+     "stop_pnl_gbp": 3.6019,
+     "stops": 26,
+     "trips": 5388,
+     "win_rate": 0.6624
+    }
+   },
+   "last_28_days": {
+    "all": {
+     "best_day_share": 0.2718,
+     "gbp_per_year": 124.3321,
+     "max_drawdown_gbp": 6.7872,
+     "pct_per_year_on_capital": 5.1805,
+     "pnl_gbp": 9.5378,
+     "stop_pnl_gbp": 1.1828,
+     "stops": 19,
+     "trips": 1337,
+     "win_rate": 0.5939
+    },
+    "bootstrap_all": {
+     "days": 28,
+     "index100_gbp_per_year": -16.4148,
+     "share_draws_gt_0": 0.929,
+     "sum_gbp": 9.5378
+    },
+    "coinbase:USDC-EUR": {
+     "best_day_share": 0.657,
+     "gbp_per_year": 34.2484,
+     "max_drawdown_gbp": 3.2243,
+     "pct_per_year_on_capital": 5.7081,
+     "pnl_gbp": 2.6273,
+     "stop_pnl_gbp": 0.7706,
+     "stops": 8,
+     "trips": 332,
+     "win_rate": 0.5723
+    },
+    "coinbase:USDC-GBP": {
+     "best_day_share": 0.1962,
+     "gbp_per_year": 131.2026,
+     "max_drawdown_gbp": 0.938,
+     "pct_per_year_on_capital": 21.8671,
+     "pnl_gbp": 10.0649,
+     "stop_pnl_gbp": -0.1658,
+     "stops": 3,
+     "trips": 378,
+     "win_rate": 0.6455
+    },
+    "coinbase:USDT-EUR": {
+     "best_day_share": null,
+     "gbp_per_year": -27.845,
+     "max_drawdown_gbp": 5.2446,
+     "pct_per_year_on_capital": -4.6408,
+     "pnl_gbp": -2.1361,
+     "stop_pnl_gbp": -0.2588,
+     "stops": 3,
+     "trips": 377,
+     "win_rate": 0.5889
+    },
+    "coinbase:USDT-GBP": {
+     "best_day_share": null,
+     "gbp_per_year": -13.274,
+     "max_drawdown_gbp": 1.6529,
+     "pct_per_year_on_capital": -2.2123,
+     "pnl_gbp": -1.0183,
+     "stop_pnl_gbp": 0.8368,
+     "stops": 5,
+     "trips": 250,
+     "win_rate": 0.552
+    }
+   },
+   "last_90_days": {
+    "all": {
+     "best_day_share": 0.1903,
+     "gbp_per_year": 55.2438,
+     "max_drawdown_gbp": 6.7872,
+     "pct_per_year_on_capital": 2.3018,
+     "pnl_gbp": 13.6217,
+     "stop_pnl_gbp": -0.177,
+     "stops": 32,
+     "trips": 3336,
+     "win_rate": 0.598
+    },
+    "bootstrap_all": {
+     "days": 90,
+     "index100_gbp_per_year": -3.4782,
+     "share_draws_gt_0": 0.94,
+     "sum_gbp": 13.6217
+    },
+    "coinbase:USDC-EUR": {
+     "best_day_share": 0.6032,
+     "gbp_per_year": 11.6055,
+     "max_drawdown_gbp": 3.2795,
+     "pct_per_year_on_capital": 1.9343,
+     "pnl_gbp": 2.8616,
+     "stop_pnl_gbp": -0.1049,
+     "stops": 15,
+     "trips": 769,
+     "win_rate": 0.606
+    },
+    "coinbase:USDC-GBP": {
+     "best_day_share": 0.2473,
+     "gbp_per_year": 32.3888,
+     "max_drawdown_gbp": 3.6849,
+     "pct_per_year_on_capital": 5.3981,
+     "pnl_gbp": 7.9863,
+     "stop_pnl_gbp": -0.2713,
+     "stops": 4,
+     "trips": 834,
+     "win_rate": 0.5935
+    },
+    "coinbase:USDT-EUR": {
+     "best_day_share": null,
+     "gbp_per_year": -17.0429,
+     "max_drawdown_gbp": 5.2446,
+     "pct_per_year_on_capital": -2.8405,
+     "pnl_gbp": -4.2024,
+     "stop_pnl_gbp": -0.5635,
+     "stops": 7,
+     "trips": 928,
+     "win_rate": 0.5916
+    },
+    "coinbase:USDT-GBP": {
+     "best_day_share": 0.2443,
+     "gbp_per_year": 28.2923,
+     "max_drawdown_gbp": 2.3706,
+     "pct_per_year_on_capital": 4.7154,
+     "pnl_gbp": 6.9762,
+     "stop_pnl_gbp": 0.7627,
+     "stops": 6,
+     "trips": 805,
+     "win_rate": 0.6025
+    }
+   },
+   "since_2026-08-24": {
+    "all": {
+     "best_day_share": 0.1765,
+     "gbp_per_year": 116.545,
+     "max_drawdown_gbp": 6.7872,
+     "pct_per_year_on_capital": 4.856,
+     "pnl_gbp": 14.6879,
+     "stop_pnl_gbp": 0.987,
+     "stops": 21,
+     "trips": 1861,
+     "win_rate": 0.6142
+    },
+    "bootstrap_all": {
+     "days": 46,
+     "index100_gbp_per_year": 29.1104,
+     "share_draws_gt_0": 0.9825,
+     "sum_gbp": 14.6879
+    },
+    "coinbase:USDC-EUR": {
+     "best_day_share": 0.3191,
+     "gbp_per_year": 42.9183,
+     "max_drawdown_gbp": 3.2243,
+     "pct_per_year_on_capital": 7.153,
+     "pnl_gbp": 5.4089,
+     "stop_pnl_gbp": 0.7706,
+     "stops": 8,
+     "trips": 459,
+     "win_rate": 0.6231
+    },
+    "coinbase:USDC-GBP": {
+     "best_day_share": 0.1787,
+     "gbp_per_year": 87.709,
+     "max_drawdown_gbp": 0.938,
+     "pct_per_year_on_capital": 14.6182,
+     "pnl_gbp": 11.0537,
+     "stop_pnl_gbp": -0.1658,
+     "stops": 3,
+     "trips": 522,
+     "win_rate": 0.6456
+    },
+    "coinbase:USDT-EUR": {
+     "best_day_share": null,
+     "gbp_per_year": -5.0225,
+     "max_drawdown_gbp": 5.2446,
+     "pct_per_year_on_capital": -0.8371,
+     "pnl_gbp": -0.633,
+     "stop_pnl_gbp": -0.3805,
+     "stops": 4,
+     "trips": 522,
+     "win_rate": 0.6245
+    },
+    "coinbase:USDT-GBP": {
+     "best_day_share": null,
+     "gbp_per_year": -9.0599,
+     "max_drawdown_gbp": 2.3706,
+     "pct_per_year_on_capital": -1.51,
+     "pnl_gbp": -1.1418,
+     "stop_pnl_gbp": 0.7627,
+     "stops": 6,
+     "trips": 358,
+     "win_rate": 0.5419
+    }
+   }
+  },
+  "k_7": {
+   "last_12_months": {
+    "all": {
+     "best_day_share": 0.0257,
+     "gbp_per_year": 174.1448,
+     "max_drawdown_gbp": 6.9082,
+     "pct_per_year_on_capital": 7.256,
+     "pnl_gbp": 174.1448,
+     "stop_pnl_gbp": -5.0243,
+     "stops": 91,
+     "trips": 8132,
+     "win_rate": 0.6462
+    },
+    "bootstrap_all": {
+     "days": 365,
+     "index100_gbp_per_year": 143.0236,
+     "share_draws_gt_0": 1.0,
+     "sum_gbp": 174.1448
+    },
+    "coinbase:USDC-EUR": {
+     "best_day_share": 0.0815,
+     "gbp_per_year": 23.2246,
+     "max_drawdown_gbp": 6.286,
+     "pct_per_year_on_capital": 3.8708,
+     "pnl_gbp": 23.2246,
+     "stop_pnl_gbp": -2.3624,
+     "stops": 29,
+     "trips": 1678,
+     "win_rate": 0.5959
+    },
+    "coinbase:USDC-GBP": {
+     "best_day_share": 0.0931,
+     "gbp_per_year": 26.2837,
+     "max_drawdown_gbp": 10.446,
+     "pct_per_year_on_capital": 4.3806,
+     "pnl_gbp": 26.2837,
+     "stop_pnl_gbp": -0.0691,
+     "stops": 10,
+     "trips": 1659,
+     "win_rate": 0.6082
+    },
+    "coinbase:USDT-EUR": {
+     "best_day_share": 0.3079,
+     "gbp_per_year": 7.1752,
+     "max_drawdown_gbp": 5.5144,
+     "pct_per_year_on_capital": 1.1959,
+     "pnl_gbp": 7.1752,
+     "stop_pnl_gbp": -5.592,
+     "stops": 33,
+     "trips": 2099,
+     "win_rate": 0.6051
+    },
+    "coinbase:USDT-GBP": {
+     "best_day_share": 0.0369,
+     "gbp_per_year": 117.4612,
+     "max_drawdown_gbp": 3.2047,
+     "pct_per_year_on_capital": 19.5769,
+     "pnl_gbp": 117.4612,
+     "stop_pnl_gbp": 2.9993,
+     "stops": 19,
+     "trips": 2696,
+     "win_rate": 0.7329
+    }
+   },
+   "last_28_days": {
+    "all": {
+     "best_day_share": 0.1524,
+     "gbp_per_year": 256.775,
+     "max_drawdown_gbp": 2.7273,
+     "pct_per_year_on_capital": 10.699,
+     "pnl_gbp": 19.6978,
+     "stop_pnl_gbp": 0.6221,
+     "stops": 13,
+     "trips": 639,
+     "win_rate": 0.6541
+    },
+    "bootstrap_all": {
+     "days": 28,
+     "index100_gbp_per_year": 127.6096,
+     "share_draws_gt_0": 0.998,
+     "sum_gbp": 19.6978
+    },
+    "coinbase:USDC-EUR": {
+     "best_day_share": 0.2674,
+     "gbp_per_year": 66.2352,
+     "max_drawdown_gbp": 1.919,
+     "pct_per_year_on_capital": 11.0392,
+     "pnl_gbp": 5.0811,
+     "stop_pnl_gbp": 0.4369,
+     "stops": 5,
+     "trips": 170,
+     "win_rate": 0.6294
+    },
+    "coinbase:USDC-GBP": {
+     "best_day_share": 0.1733,
+     "gbp_per_year": 184.1819,
+     "max_drawdown_gbp": 0.5755,
+     "pct_per_year_on_capital": 30.697,
+     "pnl_gbp": 14.129,
+     "stop_pnl_gbp": 0,
+     "stops": 0,
+     "trips": 200,
+     "win_rate": 0.775
+    },
+    "coinbase:USDT-EUR": {
+     "best_day_share": null,
+     "gbp_per_year": -1.8222,
+     "max_drawdown_gbp": 3.5283,
+     "pct_per_year_on_capital": -0.3037,
+     "pnl_gbp": -0.1398,
+     "stop_pnl_gbp": -0.327,
+     "stops": 4,
+     "trips": 172,
+     "win_rate": 0.5872
+    },
+    "coinbase:USDT-GBP": {
+     "best_day_share": 1.3118,
+     "gbp_per_year": 8.1801,
+     "max_drawdown_gbp": 0.4447,
+     "pct_per_year_on_capital": 1.3633,
+     "pnl_gbp": 0.6275,
+     "stop_pnl_gbp": 0.5122,
+     "stops": 4,
+     "trips": 97,
+     "win_rate": 0.567
+    }
+   },
+   "last_90_days": {
+    "all": {
+     "best_day_share": 0.0981,
+     "gbp_per_year": 124.0591,
+     "max_drawdown_gbp": 3.3077,
+     "pct_per_year_on_capital": 5.1691,
+     "pnl_gbp": 30.5899,
+     "stop_pnl_gbp": 0.0824,
+     "stops": 18,
+     "trips": 1291,
+     "win_rate": 0.6452
+    },
+    "bootstrap_all": {
+     "days": 90,
+     "index100_gbp_per_year": 68.9061,
+     "share_draws_gt_0": 0.9995,
+     "sum_gbp": 30.5899
+    },
+    "coinbase:USDC-EUR": {
+     "best_day_share": 0.1914,
+     "gbp_per_year": 28.8015,
+     "max_drawdown_gbp": 1.919,
+     "pct_per_year_on_capital": 4.8003,
+     "pnl_gbp": 7.1017,
+     "stop_pnl_gbp": 0.2784,
+     "stops": 7,
+     "trips": 315,
+     "win_rate": 0.6222
+    },
+    "coinbase:USDC-GBP": {
+     "best_day_share": 0.1656,
+     "gbp_per_year": 59.9526,
+     "max_drawdown_gbp": 2.1511,
+     "pct_per_year_on_capital": 9.9921,
+     "pnl_gbp": 14.7828,
+     "stop_pnl_gbp": -0.119,
+     "stops": 1,
+     "trips": 313,
+     "win_rate": 0.6965
+    },
+    "coinbase:USDT-EUR": {
+     "best_day_share": 8.9615,
+     "gbp_per_year": 0.9998,
+     "max_drawdown_gbp": 3.5283,
+     "pct_per_year_on_capital": 0.1666,
+     "pnl_gbp": 0.2465,
+     "stop_pnl_gbp": -0.4159,
+     "stops": 5,
+     "trips": 343,
+     "win_rate": 0.6093
+    },
+    "coinbase:USDT-GBP": {
+     "best_day_share": 0.2319,
+     "gbp_per_year": 34.3052,
+     "max_drawdown_gbp": 0.993,
+     "pct_per_year_on_capital": 5.7175,
+     "pnl_gbp": 8.4588,
+     "stop_pnl_gbp": 0.339,
+     "stops": 5,
+     "trips": 320,
+     "win_rate": 0.6562
+    }
+   },
+   "since_2026-08-24": {
+    "all": {
+     "best_day_share": 0.1179,
+     "gbp_per_year": 202.0466,
+     "max_drawdown_gbp": 2.7273,
+     "pct_per_year_on_capital": 8.4186,
+     "pnl_gbp": 25.4634,
+     "stop_pnl_gbp": 0.4489,
+     "stops": 14,
+     "trips": 805,
+     "win_rate": 0.6584
+    },
+    "bootstrap_all": {
+     "days": 46,
+     "index100_gbp_per_year": 119.4884,
+     "share_draws_gt_0": 1.0,
+     "sum_gbp": 25.4634
+    },
+    "coinbase:USDC-EUR": {
+     "best_day_share": 0.1772,
+     "gbp_per_year": 60.8617,
+     "max_drawdown_gbp": 1.919,
+     "pct_per_year_on_capital": 10.1436,
+     "pnl_gbp": 7.6702,
+     "stop_pnl_gbp": 0.4369,
+     "stops": 5,
+     "trips": 223,
+     "win_rate": 0.6547
+    },
+    "coinbase:USDC-GBP": {
+     "best_day_share": 0.1492,
+     "gbp_per_year": 130.1657,
+     "max_drawdown_gbp": 0.5755,
+     "pct_per_year_on_capital": 21.6943,
+     "pnl_gbp": 16.4044,
+     "stop_pnl_gbp": 0,
+     "stops": 0,
+     "trips": 239,
+     "win_rate": 0.7699
+    },
+    "coinbase:USDT-EUR": {
+     "best_day_share": 2.8917,
+     "gbp_per_year": 6.0621,
+     "max_drawdown_gbp": 3.5283,
+     "pct_per_year_on_capital": 1.0103,
+     "pnl_gbp": 0.764,
+     "stop_pnl_gbp": -0.327,
+     "stops": 4,
+     "trips": 218,
+     "win_rate": 0.6055
+    },
+    "coinbase:USDT-GBP": {
+     "best_day_share": 1.3176,
+     "gbp_per_year": 4.9572,
+     "max_drawdown_gbp": 0.993,
+     "pct_per_year_on_capital": 0.8262,
+     "pnl_gbp": 0.6247,
+     "stop_pnl_gbp": 0.339,
+     "stops": 5,
+     "trips": 125,
+     "win_rate": 0.544
+    }
+   }
+  },
+  "k_wide": {
+   "last_12_months": {
+    "all": {
+     "best_day_share": 0.0208,
+     "gbp_per_year": 171.2813,
+     "max_drawdown_gbp": 4.4434,
+     "pct_per_year_on_capital": 7.1367,
+     "pnl_gbp": 171.2813,
+     "stop_pnl_gbp": 0.8143,
+     "stops": 30,
+     "trips": 1192,
+     "win_rate": 0.8339
+    },
+    "bootstrap_all": {
+     "days": 365,
+     "index100_gbp_per_year": 146.3028,
+     "share_draws_gt_0": 1.0,
+     "sum_gbp": 171.2813
+    },
+    "coinbase:USDC-EUR": {
+     "best_day_share": 0.0634,
+     "gbp_per_year": 34.1122,
+     "max_drawdown_gbp": 1.4013,
+     "pct_per_year_on_capital": 5.6854,
+     "pnl_gbp": 34.1122,
+     "stop_pnl_gbp": -0.9516,
+     "stops": 7,
+     "trips": 200,
+     "win_rate": 0.825
+    },
+    "coinbase:USDC-GBP": {
+     "best_day_share": 0.0926,
+     "gbp_per_year": 33.1987,
+     "max_drawdown_gbp": 2.4083,
+     "pct_per_year_on_capital": 5.5331,
+     "pnl_gbp": 33.1987,
+     "stop_pnl_gbp": -0.3177,
+     "stops": 3,
+     "trips": 261,
+     "win_rate": 0.8084
+    },
+    "coinbase:USDT-EUR": {
+     "best_day_share": 0.1142,
+     "gbp_per_year": 28.7277,
+     "max_drawdown_gbp": 1.3155,
+     "pct_per_year_on_capital": 4.7879,
+     "pnl_gbp": 28.7277,
+     "stop_pnl_gbp": -1.806,
+     "stops": 8,
+     "trips": 214,
+     "win_rate": 0.7804
+    },
+    "coinbase:USDT-GBP": {
+     "best_day_share": 0.0335,
+     "gbp_per_year": 75.2427,
+     "max_drawdown_gbp": 2.3023,
+     "pct_per_year_on_capital": 12.5405,
+     "pnl_gbp": 75.2427,
+     "stop_pnl_gbp": 3.8895,
+     "stops": 12,
+     "trips": 517,
+     "win_rate": 0.8723
+    }
+   },
+   "last_28_days": {
+    "all": {
+     "best_day_share": 0.1554,
+     "gbp_per_year": 299.4758,
+     "max_drawdown_gbp": 0.3969,
+     "pct_per_year_on_capital": 12.4782,
+     "pnl_gbp": 22.9735,
+     "stop_pnl_gbp": 0.4785,
+     "stops": 2,
+     "trips": 119,
+     "win_rate": 0.8992
+    },
+    "bootstrap_all": {
+     "days": 28,
+     "index100_gbp_per_year": 196.8895,
+     "share_draws_gt_0": 1.0,
+     "sum_gbp": 22.9735
+    },
+    "coinbase:USDC-EUR": {
+     "best_day_share": 0.2665,
+     "gbp_per_year": 92.5685,
+     "max_drawdown_gbp": 0.2239,
+     "pct_per_year_on_capital": 15.4281,
+     "pnl_gbp": 7.1011,
+     "stop_pnl_gbp": 0.1578,
+     "stops": 1,
+     "trips": 34,
+     "win_rate": 0.8529
+    },
+    "coinbase:USDC-GBP": {
+     "best_day_share": 0.2554,
+     "gbp_per_year": 156.9723,
+     "max_drawdown_gbp": 0.1339,
+     "pct_per_year_on_capital": 26.1621,
+     "pnl_gbp": 12.0417,
+     "stop_pnl_gbp": 0,
+     "stops": 0,
+     "trips": 59,
+     "win_rate": 0.9492
+    },
+    "coinbase:USDT-EUR": {
+     "best_day_share": 0.9345,
+     "gbp_per_year": 45.7838,
+     "max_drawdown_gbp": 0.2765,
+     "pct_per_year_on_capital": 7.6306,
+     "pnl_gbp": 3.5122,
+     "stop_pnl_gbp": 0,
+     "stops": 0,
+     "trips": 21,
+     "win_rate": 0.9048
+    },
+    "coinbase:USDT-GBP": {
+     "best_day_share": 1.5054,
+     "gbp_per_year": 4.1511,
+     "max_drawdown_gbp": 0.161,
+     "pct_per_year_on_capital": 0.6919,
+     "pnl_gbp": 0.3184,
+     "stop_pnl_gbp": 0.3206,
+     "stops": 1,
+     "trips": 5,
+     "win_rate": 0.6
+    }
+   },
+   "last_90_days": {
+    "all": {
+     "best_day_share": 0.117,
+     "gbp_per_year": 123.7492,
+     "max_drawdown_gbp": 0.639,
+     "pct_per_year_on_capital": 5.1562,
+     "pnl_gbp": 30.5135,
+     "stop_pnl_gbp": 0.4785,
+     "stops": 2,
+     "trips": 189,
+     "win_rate": 0.8413
+    },
+    "bootstrap_all": {
+     "days": 90,
+     "index100_gbp_per_year": 82.7433,
+     "share_draws_gt_0": 1.0,
+     "sum_gbp": 30.5135
+    },
+    "coinbase:USDC-EUR": {
+     "best_day_share": 0.2128,
+     "gbp_per_year": 36.0722,
+     "max_drawdown_gbp": 0.3325,
+     "pct_per_year_on_capital": 6.012,
+     "pnl_gbp": 8.8945,
+     "stop_pnl_gbp": 0.1578,
+     "stops": 1,
+     "trips": 47,
+     "win_rate": 0.766
+    },
+    "coinbase:USDC-GBP": {
+     "best_day_share": 0.2427,
+     "gbp_per_year": 51.3871,
+     "max_drawdown_gbp": 0.4165,
+     "pct_per_year_on_capital": 8.5645,
+     "pnl_gbp": 12.6708,
+     "stop_pnl_gbp": 0,
+     "stops": 0,
+     "trips": 72,
+     "win_rate": 0.8889
+    },
+    "coinbase:USDT-EUR": {
+     "best_day_share": 0.8179,
+     "gbp_per_year": 16.2745,
+     "max_drawdown_gbp": 0.2765,
+     "pct_per_year_on_capital": 2.7124,
+     "pnl_gbp": 4.0129,
+     "stop_pnl_gbp": 0,
+     "stops": 0,
+     "trips": 29,
+     "win_rate": 0.7931
+    },
+    "coinbase:USDT-GBP": {
+     "best_day_share": 0.2193,
+     "gbp_per_year": 20.0154,
+     "max_drawdown_gbp": 0.2151,
+     "pct_per_year_on_capital": 3.3359,
+     "pnl_gbp": 4.9353,
+     "stop_pnl_gbp": 0.3206,
+     "stops": 1,
+     "trips": 41,
+     "win_rate": 0.878
+    }
+   },
+   "since_2026-08-24": {
+    "all": {
+     "best_day_share": 0.135,
+     "gbp_per_year": 209.833,
+     "max_drawdown_gbp": 0.3969,
+     "pct_per_year_on_capital": 8.743,
+     "pnl_gbp": 26.4447,
+     "stop_pnl_gbp": 0.4785,
+     "stops": 2,
+     "trips": 140,
+     "win_rate": 0.8786
+    },
+    "bootstrap_all": {
+     "days": 46,
+     "index100_gbp_per_year": 138.0811,
+     "share_draws_gt_0": 1.0,
+     "sum_gbp": 26.4447
+    },
+    "coinbase:USDC-EUR": {
+     "best_day_share": 0.2064,
+     "gbp_per_year": 72.7557,
+     "max_drawdown_gbp": 0.2239,
+     "pct_per_year_on_capital": 12.126,
+     "pnl_gbp": 9.1692,
+     "stop_pnl_gbp": 0.1578,
+     "stops": 1,
+     "trips": 42,
+     "win_rate": 0.8333
+    },
+    "coinbase:USDC-GBP": {
+     "best_day_share": 0.2387,
+     "gbp_per_year": 102.2483,
+     "max_drawdown_gbp": 0.1339,
+     "pct_per_year_on_capital": 17.0414,
+     "pnl_gbp": 12.8861,
+     "stop_pnl_gbp": 0,
+     "stops": 0,
+     "trips": 66,
+     "win_rate": 0.9394
+    },
+    "coinbase:USDT-EUR": {
+     "best_day_share": 0.7956,
+     "gbp_per_year": 32.7316,
+     "max_drawdown_gbp": 0.2765,
+     "pct_per_year_on_capital": 5.4553,
+     "pnl_gbp": 4.1251,
+     "stop_pnl_gbp": 0,
+     "stops": 0,
+     "trips": 25,
+     "win_rate": 0.88
+    },
+    "coinbase:USDT-GBP": {
+     "best_day_share": 1.8137,
+     "gbp_per_year": 2.0974,
+     "max_drawdown_gbp": 0.2151,
+     "pct_per_year_on_capital": 0.3496,
+     "pnl_gbp": 0.2643,
+     "stop_pnl_gbp": 0.3206,
+     "stops": 1,
+     "trips": 7,
+     "win_rate": 0.5714
+    }
+   }
+  },
+  "skew": {
+   "last_12_months": {
+    "all": {
+     "best_day_share": 0.0236,
+     "gbp_per_year": 182.2768,
+     "max_drawdown_gbp": 6.2546,
+     "pct_per_year_on_capital": 7.5949,
+     "pnl_gbp": 182.2768,
+     "stop_pnl_gbp": -2.2377,
+     "stops": 45,
+     "trips": 2691,
+     "win_rate": 0.7495
+    },
+    "bootstrap_all": {
+     "days": 365,
+     "index100_gbp_per_year": 155.102,
+     "share_draws_gt_0": 1.0,
+     "sum_gbp": 182.2768
+    },
+    "coinbase:USDC-EUR": {
+     "best_day_share": 0.0483,
+     "gbp_per_year": 33.2335,
+     "max_drawdown_gbp": 1.8546,
+     "pct_per_year_on_capital": 5.5389,
+     "pnl_gbp": 33.2335,
+     "stop_pnl_gbp": -0.9614,
+     "stops": 11,
+     "trips": 427,
+     "win_rate": 0.7002
+    },
+    "coinbase:USDC-GBP": {
+     "best_day_share": 0.0612,
+     "gbp_per_year": 34.6039,
+     "max_drawdown_gbp": 3.7965,
+     "pct_per_year_on_capital": 5.7673,
+     "pnl_gbp": 34.6039,
+     "stop_pnl_gbp": 0.0413,
+     "stops": 6,
+     "trips": 557,
+     "win_rate": 0.7289
+    },
+    "coinbase:USDT-EUR": {
+     "best_day_share": 0.1688,
+     "gbp_per_year": 17.1418,
+     "max_drawdown_gbp": 2.2467,
+     "pct_per_year_on_capital": 2.857,
+     "pnl_gbp": 17.1418,
+     "stop_pnl_gbp": -2.766,
+     "stops": 17,
+     "trips": 541,
+     "win_rate": 0.6728
+    },
+    "coinbase:USDT-GBP": {
+     "best_day_share": 0.0356,
+     "gbp_per_year": 97.2976,
+     "max_drawdown_gbp": 3.0202,
+     "pct_per_year_on_capital": 16.2163,
+     "pnl_gbp": 97.2976,
+     "stop_pnl_gbp": 1.4484,
+     "stops": 11,
+     "trips": 1166,
+     "win_rate": 0.813
+    }
+   },
+   "last_28_days": {
+    "all": {
+     "best_day_share": 0.0939,
+     "gbp_per_year": 272.275,
+     "max_drawdown_gbp": 0.7248,
+     "pct_per_year_on_capital": 11.3448,
+     "pnl_gbp": 20.8868,
+     "stop_pnl_gbp": 0.0878,
+     "stops": 3,
+     "trips": 213,
+     "win_rate": 0.7934
+    },
+    "bootstrap_all": {
+     "days": 28,
+     "index100_gbp_per_year": 194.7042,
+     "share_draws_gt_0": 1.0,
+     "sum_gbp": 20.8868
+    },
+    "coinbase:USDC-EUR": {
+     "best_day_share": 0.2396,
+     "gbp_per_year": 79.3137,
+     "max_drawdown_gbp": 0.5485,
+     "pct_per_year_on_capital": 13.219,
+     "pnl_gbp": 6.0843,
+     "stop_pnl_gbp": 0.1766,
+     "stops": 2,
+     "trips": 61,
+     "win_rate": 0.7869
+    },
+    "coinbase:USDC-GBP": {
+     "best_day_share": 0.1483,
+     "gbp_per_year": 186.3107,
+     "max_drawdown_gbp": 0.1875,
+     "pct_per_year_on_capital": 31.0518,
+     "pnl_gbp": 14.2923,
+     "stop_pnl_gbp": 0,
+     "stops": 0,
+     "trips": 98,
+     "win_rate": 0.9286
+    },
+    "coinbase:USDT-EUR": {
+     "best_day_share": 2.9737,
+     "gbp_per_year": 5.3344,
+     "max_drawdown_gbp": 1.4088,
+     "pct_per_year_on_capital": 0.8891,
+     "pnl_gbp": 0.4092,
+     "stop_pnl_gbp": -0.0889,
+     "stops": 1,
+     "trips": 40,
+     "win_rate": 0.575
+    },
+    "coinbase:USDT-GBP": {
+     "best_day_share": 3.0186,
+     "gbp_per_year": 1.3161,
+     "max_drawdown_gbp": 0.4158,
+     "pct_per_year_on_capital": 0.2194,
+     "pnl_gbp": 0.101,
+     "stop_pnl_gbp": 0,
+     "stops": 0,
+     "trips": 14,
+     "win_rate": 0.5
+    }
+   },
+   "last_90_days": {
+    "all": {
+     "best_day_share": 0.0626,
+     "gbp_per_year": 127.2938,
+     "max_drawdown_gbp": 1.4741,
+     "pct_per_year_on_capital": 5.3039,
+     "pnl_gbp": 31.3875,
+     "stop_pnl_gbp": -0.0133,
+     "stops": 5,
+     "trips": 391,
+     "win_rate": 0.7519
+    },
+    "bootstrap_all": {
+     "days": 90,
+     "index100_gbp_per_year": 87.0702,
+     "share_draws_gt_0": 1.0,
+     "sum_gbp": 31.3875
+    },
+    "coinbase:USDC-EUR": {
+     "best_day_share": 0.1881,
+     "gbp_per_year": 31.4414,
+     "max_drawdown_gbp": 0.8607,
+     "pct_per_year_on_capital": 5.2402,
+     "pnl_gbp": 7.7527,
+     "stop_pnl_gbp": 0.1204,
+     "stops": 3,
+     "trips": 92,
+     "win_rate": 0.7174
+    },
+    "coinbase:USDC-GBP": {
+     "best_day_share": 0.137,
+     "gbp_per_year": 62.7246,
+     "max_drawdown_gbp": 0.805,
+     "pct_per_year_on_capital": 10.4541,
+     "pnl_gbp": 15.4663,
+     "stop_pnl_gbp": 0,
+     "stops": 0,
+     "trips": 127,
+     "win_rate": 0.8504
+    },
+    "coinbase:USDT-EUR": {
+     "best_day_share": 4.5163,
+     "gbp_per_year": 1.0928,
+     "max_drawdown_gbp": 1.4088,
+     "pct_per_year_on_capital": 0.1821,
+     "pnl_gbp": 0.2694,
+     "stop_pnl_gbp": -0.1337,
+     "stops": 2,
+     "trips": 65,
+     "win_rate": 0.5385
+    },
+    "coinbase:USDT-GBP": {
+     "best_day_share": 0.2418,
+     "gbp_per_year": 32.0351,
+     "max_drawdown_gbp": 0.4872,
+     "pct_per_year_on_capital": 5.3392,
+     "pnl_gbp": 7.8991,
+     "stop_pnl_gbp": 0,
+     "stops": 0,
+     "trips": 107,
+     "win_rate": 0.7944
+    }
+   },
+   "since_2026-08-24": {
+    "all": {
+     "best_day_share": 0.076,
+     "gbp_per_year": 205.0853,
+     "max_drawdown_gbp": 0.8308,
+     "pct_per_year_on_capital": 8.5452,
+     "pnl_gbp": 25.8464,
+     "stop_pnl_gbp": 0.0878,
+     "stops": 3,
+     "trips": 264,
+     "win_rate": 0.7841
+    },
+    "bootstrap_all": {
+     "days": 46,
+     "index100_gbp_per_year": 144.1553,
+     "share_draws_gt_0": 1.0,
+     "sum_gbp": 25.8464
+    },
+    "coinbase:USDC-EUR": {
+     "best_day_share": 0.17,
+     "gbp_per_year": 68.0692,
+     "max_drawdown_gbp": 0.5485,
+     "pct_per_year_on_capital": 11.3449,
+     "pnl_gbp": 8.5786,
+     "stop_pnl_gbp": 0.1766,
+     "stops": 2,
+     "trips": 79,
+     "win_rate": 0.7975
+    },
+    "coinbase:USDC-GBP": {
+     "best_day_share": 0.133,
+     "gbp_per_year": 126.4244,
+     "max_drawdown_gbp": 0.2432,
+     "pct_per_year_on_capital": 21.0707,
+     "pnl_gbp": 15.9329,
+     "stop_pnl_gbp": 0,
+     "stops": 0,
+     "trips": 113,
+     "win_rate": 0.9115
+    },
+    "coinbase:USDT-EUR": {
+     "best_day_share": 1.2601,
+     "gbp_per_year": 7.663,
+     "max_drawdown_gbp": 1.4088,
+     "pct_per_year_on_capital": 1.2772,
+     "pnl_gbp": 0.9657,
+     "stop_pnl_gbp": -0.0889,
+     "stops": 1,
+     "trips": 48,
+     "win_rate": 0.6042
+    },
+    "coinbase:USDT-GBP": {
+     "best_day_share": 0.8257,
+     "gbp_per_year": 2.9287,
+     "max_drawdown_gbp": 0.4872,
+     "pct_per_year_on_capital": 0.4881,
+     "pnl_gbp": 0.3691,
+     "stop_pnl_gbp": 0,
+     "stops": 0,
+     "trips": 24,
+     "win_rate": 0.5
+    }
+   }
+  },
+  "wkend": {
+   "last_12_months": {
+    "all": {
+     "best_day_share": 0.0327,
+     "gbp_per_year": 259.3615,
+     "max_drawdown_gbp": 6.3757,
+     "pct_per_year_on_capital": 10.8067,
+     "pnl_gbp": 259.3615,
+     "stop_pnl_gbp": 8.6962,
+     "stops": 176,
+     "trips": 3539,
+     "win_rate": 0.7593
+    },
+    "bootstrap_all": {
+     "days": 365,
+     "index100_gbp_per_year": 227.8559,
+     "share_draws_gt_0": 1.0,
+     "sum_gbp": 259.3615
+    },
+    "coinbase:USDC-EUR": {
+     "best_day_share": 0.0454,
+     "gbp_per_year": 38.0248,
+     "max_drawdown_gbp": 2.1341,
+     "pct_per_year_on_capital": 6.3375,
+     "pnl_gbp": 38.0248,
+     "stop_pnl_gbp": -0.1732,
+     "stops": 46,
+     "trips": 609,
+     "win_rate": 0.6831
+    },
+    "coinbase:USDC-GBP": {
+     "best_day_share": 0.0505,
+     "gbp_per_year": 51.6643,
+     "max_drawdown_gbp": 4.1928,
+     "pct_per_year_on_capital": 8.6107,
+     "pnl_gbp": 51.6643,
+     "stop_pnl_gbp": 5.805,
+     "stops": 35,
+     "trips": 723,
+     "win_rate": 0.7372
+    },
+    "coinbase:USDT-EUR": {
+     "best_day_share": 0.092,
+     "gbp_per_year": 28.9465,
+     "max_drawdown_gbp": 3.6991,
+     "pct_per_year_on_capital": 4.8244,
+     "pnl_gbp": 28.9465,
+     "stop_pnl_gbp": -3.5873,
+     "stops": 51,
+     "trips": 732,
+     "win_rate": 0.6858
+    },
+    "coinbase:USDT-GBP": {
+     "best_day_share": 0.043,
+     "gbp_per_year": 140.726,
+     "max_drawdown_gbp": 2.9536,
+     "pct_per_year_on_capital": 23.4543,
+     "pnl_gbp": 140.726,
+     "stop_pnl_gbp": 6.6517,
+     "stops": 44,
+     "trips": 1475,
+     "win_rate": 0.838
+    }
+   },
+   "last_28_days": {
+    "all": {
+     "best_day_share": 0.168,
+     "gbp_per_year": 438.9066,
+     "max_drawdown_gbp": 0.898,
+     "pct_per_year_on_capital": 18.2878,
+     "pnl_gbp": 33.6695,
+     "stop_pnl_gbp": 1.47,
+     "stops": 15,
+     "trips": 312,
+     "win_rate": 0.8365
+    },
+    "bootstrap_all": {
+     "days": 28,
+     "index100_gbp_per_year": 316.1986,
+     "share_draws_gt_0": 1.0,
+     "sum_gbp": 33.6695
+    },
+    "coinbase:USDC-EUR": {
+     "best_day_share": 0.2273,
+     "gbp_per_year": 98.9599,
+     "max_drawdown_gbp": 0.515,
+     "pct_per_year_on_capital": 16.4933,
+     "pnl_gbp": 7.5914,
+     "stop_pnl_gbp": 0.4262,
+     "stops": 4,
+     "trips": 77,
+     "win_rate": 0.7922
+    },
+    "coinbase:USDC-GBP": {
+     "best_day_share": 0.1263,
+     "gbp_per_year": 246.0539,
+     "max_drawdown_gbp": 0.2411,
+     "pct_per_year_on_capital": 41.009,
+     "pnl_gbp": 18.8754,
+     "stop_pnl_gbp": 0.0139,
+     "stops": 3,
+     "trips": 129,
+     "win_rate": 0.9225
+    },
+    "coinbase:USDT-EUR": {
+     "best_day_share": 0.4672,
+     "gbp_per_year": 74.3029,
+     "max_drawdown_gbp": 1.2998,
+     "pct_per_year_on_capital": 12.3838,
+     "pnl_gbp": 5.6999,
+     "stop_pnl_gbp": 0.7603,
+     "stops": 6,
+     "trips": 80,
+     "win_rate": 0.7875
+    },
+    "coinbase:USDT-GBP": {
+     "best_day_share": 0.3832,
+     "gbp_per_year": 19.59,
+     "max_drawdown_gbp": 0.2003,
+     "pct_per_year_on_capital": 3.265,
+     "pnl_gbp": 1.5028,
+     "stop_pnl_gbp": 0.2695,
+     "stops": 2,
+     "trips": 26,
+     "win_rate": 0.6923
+    }
+   },
+   "last_90_days": {
+    "all": {
+     "best_day_share": 0.1086,
+     "gbp_per_year": 211.2236,
+     "max_drawdown_gbp": 1.1586,
+     "pct_per_year_on_capital": 8.801,
+     "pnl_gbp": 52.0825,
+     "stop_pnl_gbp": 1.7273,
+     "stops": 35,
+     "trips": 576,
+     "win_rate": 0.7934
+    },
+    "bootstrap_all": {
+     "days": 90,
+     "index100_gbp_per_year": 155.9856,
+     "share_draws_gt_0": 1.0,
+     "sum_gbp": 52.0825
+    },
+    "coinbase:USDC-EUR": {
+     "best_day_share": 0.1885,
+     "gbp_per_year": 37.1232,
+     "max_drawdown_gbp": 1.1575,
+     "pct_per_year_on_capital": 6.1872,
+     "pnl_gbp": 9.1537,
+     "stop_pnl_gbp": 0.3406,
+     "stops": 9,
+     "trips": 118,
+     "win_rate": 0.7119
+    },
+    "coinbase:USDC-GBP": {
+     "best_day_share": 0.1078,
+     "gbp_per_year": 89.6839,
+     "max_drawdown_gbp": 0.6797,
+     "pct_per_year_on_capital": 14.9473,
+     "pnl_gbp": 22.1138,
+     "stop_pnl_gbp": 0.5386,
+     "stops": 7,
+     "trips": 179,
+     "win_rate": 0.8547
+    },
+    "coinbase:USDT-EUR": {
+     "best_day_share": 0.3931,
+     "gbp_per_year": 27.479,
+     "max_drawdown_gbp": 1.2998,
+     "pct_per_year_on_capital": 4.5798,
+     "pnl_gbp": 6.7757,
+     "stop_pnl_gbp": 0.4345,
+     "stops": 12,
+     "trips": 125,
+     "win_rate": 0.72
+    },
+    "coinbase:USDT-GBP": {
+     "best_day_share": 0.137,
+     "gbp_per_year": 56.9375,
+     "max_drawdown_gbp": 0.3909,
+     "pct_per_year_on_capital": 9.4896,
+     "pnl_gbp": 14.0394,
+     "stop_pnl_gbp": 0.4137,
+     "stops": 7,
+     "trips": 154,
+     "win_rate": 0.8442
+    }
+   },
+   "since_2026-08-24": {
+    "all": {
+     "best_day_share": 0.1354,
+     "gbp_per_year": 331.4726,
+     "max_drawdown_gbp": 0.898,
+     "pct_per_year_on_capital": 13.8114,
+     "pnl_gbp": 41.7746,
+     "stop_pnl_gbp": 2.2917,
+     "stops": 22,
+     "trips": 386,
+     "win_rate": 0.8264
+    },
+    "bootstrap_all": {
+     "days": 46,
+     "index100_gbp_per_year": 242.3892,
+     "share_draws_gt_0": 1.0,
+     "sum_gbp": 41.7746
+    },
+    "coinbase:USDC-EUR": {
+     "best_day_share": 0.1685,
+     "gbp_per_year": 81.2489,
+     "max_drawdown_gbp": 0.515,
+     "pct_per_year_on_capital": 13.5415,
+     "pnl_gbp": 10.2396,
+     "stop_pnl_gbp": 0.5905,
+     "stops": 5,
+     "trips": 96,
+     "win_rate": 0.8021
+    },
+    "coinbase:USDC-GBP": {
+     "best_day_share": 0.1087,
+     "gbp_per_year": 174.0276,
+     "max_drawdown_gbp": 0.2411,
+     "pct_per_year_on_capital": 29.0046,
+     "pnl_gbp": 21.9322,
+     "stop_pnl_gbp": 0.5766,
+     "stops": 6,
+     "trips": 154,
+     "win_rate": 0.9026
+    },
+    "coinbase:USDT-EUR": {
+     "best_day_share": 0.3875,
+     "gbp_per_year": 54.5402,
+     "max_drawdown_gbp": 1.2998,
+     "pct_per_year_on_capital": 9.09,
+     "pnl_gbp": 6.8736,
+     "stop_pnl_gbp": 0.8127,
+     "stops": 7,
+     "trips": 93,
+     "win_rate": 0.7849
+    },
+    "coinbase:USDT-GBP": {
+     "best_day_share": 0.2337,
+     "gbp_per_year": 21.6559,
+     "max_drawdown_gbp": 0.2568,
+     "pct_per_year_on_capital": 3.6093,
+     "pnl_gbp": 2.7292,
+     "stop_pnl_gbp": 0.3118,
+     "stops": 4,
+     "trips": 43,
+     "win_rate": 0.6977
+    }
+   }
+  }
+ },
+ "basis_bps": {
+  "coinbase:USDC-EUR": 1.648,
+  "coinbase:USDC-GBP": 0.672,
+  "coinbase:USDT-EUR": 1.142,
+  "coinbase:USDT-GBP": 0.451
+ },
+ "check_base_against_compare_json": {
+  "last_12_months": {
+   "compare_json": 192.95,
+   "here": 192.9453
+  },
+  "last_28_days": {
+   "compare_json": 315.24,
+   "here": 315.2426
+  },
+  "last_90_days": {
+   "compare_json": 143.96,
+   "here": 143.9557
+  },
+  "since_2026-08-24": {
+   "compare_json": 232.79,
+   "here": 232.7895
+  }
+ },
+ "grids": {
+  "base": [
+   0.001,
+   0.002,
+   0.003
+  ],
+  "k_3": [
+   0.0003,
+   0.0006,
+   0.001
+  ],
+  "k_5": [
+   0.0005,
+   0.001,
+   0.0015
+  ],
+  "k_7": [
+   0.0007,
+   0.0014,
+   0.0021
+  ],
+  "k_wide": [
+   0.0015,
+   0.003,
+   0.0045
+  ]
+ },
+ "weekend_closure_trips_of_the_wkend_arm": {
+  "best_weekend_gbp": 7.1122,
+  "median_weekend_gbp": 1.2543,
+  "pnl_gbp": 74.1516,
+  "stop_pnl_gbp": 11.1827,
+  "stops": 120,
+  "trips_entered_in_closure": 755,
+  "weekends_negative": 5,
+  "weekends_positive": 47,
+  "weekends_with_trips": 52,
+  "window": "last_12_months",
+  "worst_trip_gbp": -0.6608,
+  "worst_weekend_gbp": -3.6688
+ },
+ "windows": {
+  "last_12_months": "2025-10-09",
+  "last_28_days": "2026-09-11",
+  "last_90_days": "2026-07-11",
+  "since_2026-08-24": "2026-08-24"
+ }
+}

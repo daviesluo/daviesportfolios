@@ -1,0 +1,65 @@
+{
+ "files": {
+  "inputs/lit_window_lines.json.gz": {
+   "bytes": 70736,
+   "sha256": "b8fc7c0d99d1bdb697c048e4793944d493c3aa2f4f3e3845e4261dcc0829abd9"
+  },
+  "inputs/trips_lit_window.json": {
+   "bytes": 1568,
+   "sha256": "e34763c91e5cae6cb42617fbf0bb6d62bcc9875d1db88aa3cd3ea63abdf092ae"
+  },
+  "results/cbk.json": {
+   "bytes": 45150,
+   "sha256": "55879560ad8646da45478a5ac75f629ef740a4e0a4fa4a4d4d890246ce9a1ce6"
+  },
+  "results/replay_check.json": {
+   "bytes": 1365,
+   "sha256": "247c867fa0809157ec931d6832aad18515f5e51ff4f6b42a1d0d232c883b8f6c"
+  },
+  "scripts/build_manifest.py": {
+   "bytes": 2509,
+   "sha256": "e3aa0890bbbf2b853d22eebb00feadbaf872a21ddc84a554296fe640ea284e33"
+  },
+  "scripts/cbk.py": {
+   "bytes": 9044,
+   "sha256": "2848756cee358c4e36b3d3c05ed72ca8cb9c0569c5045247e87ee90b09af1d9b"
+  },
+  "scripts/replay_check.py": {
+   "bytes": 3747,
+   "sha256": "9b9bd19295c95e30f35a737e6dc4cd6b0ba61065ef810acd32d86c7b9a861527"
+  },
+  "sql/export_lit_window.sql": {
+   "bytes": 1696,
+   "sha256": "54d697106b104f83e84543f7f84cc22eb01fb62f3518eb0fc3447fe748c6ab8e"
+  },
+  "sql/health.sql": {
+   "bytes": 5480,
+   "sha256": "2b0b67da9f2af117dc4b345c9619eda93e86a01b9abae8fd317a755577246af9"
+  },
+  "sql/interim.sql": {
+   "bytes": 9691,
+   "sha256": "0710e4374c43e628d6ed409672f2843009012b3c1b6d15479b07d87fce443c5c"
+  },
+  "sql/repair_minute_bars.sql": {
+   "bytes": 3068,
+   "sha256": "5bc62377bb09a31609b3b5df866876aeb8f8c98d0ada65cf1b6fcfd670c79758"
+  }
+ },
+ "imports_read_only": {
+  "docs/agents/backtests/cbpaper/scripts/replay.py": "6fa4029248ee933177ff45bde862e373c2373345bfb9971ddbe3f8fb0292bca7",
+  "docs/agents/backtests/scq_venues/": "sv_sim.py and its committed inputs (Coinbase's minute bars, GBP/USD and EUR/USD, the hourly dollar books); CBK's base arm reproduces cbpaper/results/compare.json",
+  "docs/agents/scripts/pr5/pr5_sim.py": "56fbad85ee4df6292f596188d091ad064d030180f33cefe3bd09089d7e772a1a"
+ },
+ "run": [
+  "sql/health.sql, sql/interim.sql: read-only, against production, as run 2026-10-12 ~23:00-23:20 UTC (their output is quoted in the write-up)",
+  "sql/export_lit_window.sql -> inputs/lit_window_lines.json.gz (rows as {book: lines}, gzipped with sorted keys); inputs/trips_lit_window.json is cb_quote_trips for the same window",
+  "cd scripts; python3 -I replay_check.py   # -> results/replay_check.json (the stored record 3 of 8 trips; the restored one 8 of 8)",
+  "cd scripts; python3 -I cbk.py            # -> results/cbk.json (about 80 s on four cores)",
+  "sql/repair_minute_bars.sql: PROPOSED and not run (an update); see the write-up, section 2",
+  "cd scripts; python3 -I build_manifest.py"
+ ],
+ "study": "The Coinbase recorders and paper test's first days (2026-10-12): the read-only health and interim queries, the minute-record defect (the replay of bar 1 on the first lit day, as stored and with the lost extremes put back), the proposed repair, and CBK, PR5's frozen rule on Coinbase's history with one change at a time (rungs, a basis skew, weekends held)",
+ "write_up": [
+  "docs/agents/reviews/2026-10-12-coinbase-first-days.md"
+ ]
+}
