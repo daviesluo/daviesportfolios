@@ -1,0 +1,57 @@
+LP-ADVERSE: candidate rules on the paper records. $/day at k (payout per formula dollar), with a market-day bootstrap (1,000 draws).
+A paper fill is a print strictly through the quote: it sees the swept fills and not the single hits at our price (paper_vs_live.txt),
+so its fills are the adverse half of what live would have had; the rules' effects on fills are read with that in mind.
+
+== RW-C paper (10-08 -> 10-12): 1498 fills, 74315 quoted market-minutes, 4.97 days
+base: fills marked 60 min -383.57, to the end -511.79; formula 754.21; net/day at k 0.23: -42.27 (60 min), -68.07 (end); net/day at k 0.75: +36.64 (60 min), +10.84 (end)
+change                                               d fills60 d fillsEnd d formula  $/day k0.23      5%     95%  $/day k0.75      5%     95%
+type out: AI release                                    +16.47     +12.38    -74.42        -0.13   -2.30   +2.32        -7.92  -14.26   -2.08
+type out: box office                                     -5.02     +32.87    -11.39        -1.54   -4.61   +0.00        -2.73   -8.18   +0.00
+type out: earnings/econ data                             +7.25      +3.15    -59.54        -1.30   -4.18   +1.30        -7.53  -15.29   -1.28
+type out: news/geo deadline                            +263.14    +355.53   -441.98       +32.49  +10.85  +58.78       -13.75  -38.04  +14.96
+type out: sports                                         +0.41      +7.02    -12.21        -0.48   -1.45   +0.00        -1.76   -5.28   +0.00
+type out: statements                                    +25.39      +6.45    -60.77        +2.30   +0.32   +4.95        -4.06   -8.31   -0.83
+type out: view-count                                    +75.94     +94.39    -93.90       +10.93   +2.05  +22.55        +1.11   -4.01   +7.53
+types out: view-count + statements                     +101.33    +100.84   -154.67       +13.23   +3.99  +25.47        -2.95   -9.44   +4.14
+no quote within 1 day(s) of the end                    +156.19    +281.23   -263.19       +19.25   +3.96  +38.02        -8.29  -24.58  +10.46
+no quote within 2 day(s) of the end                    +171.48    +298.39   -317.81       +19.80   +3.06  +39.28       -13.46  -31.66   +6.32
+no quote within 7 day(s) of the end                    +215.31    +362.07   -403.59       +24.64   +6.47  +46.31       -17.58  -36.78   +3.49
+quote only where the touch is 2 c wide or more          +86.95    +119.14   -138.15       +11.10   +0.42  +23.43        -3.35  -14.42   +8.99
+quote only where the touch is 3 c wide or more         +143.75    +147.50   -251.86       +17.27   +5.00  +31.93        -9.08  -22.87   +5.30
+quote only where the touch is 4 c wide or more         +188.25    +211.76   -356.63       +21.37   +8.05  +38.08       -15.94  -30.23   +0.68
+no quote while the mid ranged >= 3 c over the last hour   +319.27    +494.31   -387.75       +46.29  +24.59  +72.43        +5.72  -14.23  +30.38
+no quote while the mid ranged >= 6 c over the last hour   +267.47    +383.01   -309.96       +39.47  +22.51  +59.28        +7.04   -8.56  +23.74
+no quote while the mid ranged >= 10 c over the last hour   +238.51    +379.48   -196.73       +38.88  +22.92  +57.21       +18.30   +4.01  +34.83
+quotes 1 tick(s) further from the mid                  +169.11    +289.10   -252.82       +22.33   +8.06  +39.83        -4.13  -18.84  +13.04
+P4: P1 + quotes 1 tick further                         +337.85    +492.78   -537.59       +43.10  +22.10  +66.39       -13.15  -33.55  +10.17
+view-count + statements out, 1 tick(s) further         +214.62    +339.50   -358.01       +26.61  +10.31  +47.30       -10.84  -26.83   +7.81
+quotes 2 tick(s) further from the mid                  +239.85    +387.42   -451.02       +27.39   +8.23  +49.34       -19.80  -39.29   +2.00
+view-count + statements out, 2 tick(s) further         +286.26    +432.52   -515.36       +33.75  +13.19  +57.63       -20.17  -40.40   +3.06
+P1: no quote after a 10 c hour + touch >= 3 c          +320.00    +442.12   -418.17       +45.03  +26.71  +65.09        +1.28  -16.11  +20.95
+P2: P1 + view-count and statements out                 +345.87    +442.67   -474.43       +47.64  +28.32  +67.88        -2.00  -20.39  +17.77
+view-count + statements out, touch >= 3 c              +174.26    +204.78   -339.84       +19.34   +6.64  +34.75       -16.22  -28.89   -2.96
+
+== live-prep's paper layer (10-04 -> 10-09): 504 fills, 97150 quoted market-minutes, 4.32 days
+base: fills marked 60 min -178.78, to the end -38.54; formula 576.47; net/day at k 0.23: -10.70 (60 min), +21.78 (end); net/day at k 0.75: +58.73 (60 min), +91.22 (end)
+change                                               d fills60 d fillsEnd d formula  $/day k0.23      5%     95%  $/day k0.75      5%     95%
+type out: AI release                                    +15.19     +24.87    -43.65        +1.19   -2.39   +6.34        -4.06  -10.40   +0.61
+type out: box office                                     +1.79      +0.94    -15.99        -0.44   -1.31   +0.00        -2.36   -7.09   +0.00
+type out: earnings/econ data                             -0.60      -0.80    -11.14        -0.73   -1.31   -0.27        -2.07   -3.79   -0.69
+type out: elections                                      -0.19      +0.03     -3.11        -0.21   -0.50   +0.01        -0.58   -1.38   +0.01
+type out: news/geo deadline                            +129.44     +66.43   -373.12       +10.10   +0.71  +19.71       -34.84  -54.61  -15.65
+type out: sports                                         +0.90      +1.80    -26.63        -1.21   -3.41   +0.12        -4.42  -11.85   -0.02
+type out: statements                                    +25.48     -74.30    -31.44        +4.23   -0.82  +12.58        +0.44   -5.16   +6.45
+type out: view-count                                     +6.75     +19.58    -71.39        -2.24   -4.30   -0.52       -10.84  -20.49   -2.53
+types out: view-count + statements                      +32.24     -54.72   -102.83        +1.99   -3.79  +10.00       -10.40  -22.01   -0.81
+no quote within 1 day(s) of the end                     +19.63      +7.50    -63.88        +1.14   -4.61   +8.56        -6.55  -16.15   +2.10
+no quote within 2 day(s) of the end                     +30.81     -69.95   -122.89        +0.59   -5.92   +9.06       -14.21  -25.88   -3.64
+no quote within 7 day(s) of the end                     +46.19     -34.60   -198.42        +0.13   -7.33   +8.94       -23.77  -38.26  -10.40
+quote only where the touch is 2 c wide or more          +35.24     +35.00    -88.56        +3.44   -2.50  +10.20        -7.22  -15.28   +1.00
+quote only where the touch is 3 c wide or more          +84.32     +54.64   -153.13       +11.37   +0.68  +23.28        -7.07  -22.30   +7.93
+quote only where the touch is 4 c wide or more          +97.61    +164.01   -253.48        +9.11   -1.96  +21.08       -21.43  -39.25   -5.22
+no quote while the mid ranged >= 3 c over the last hour    +75.76     -76.65   -211.62        +6.27   -0.58  +12.74       -19.21  -28.94  -10.03
+no quote while the mid ranged >= 6 c over the last hour    +61.43    -103.32   -129.36        +7.34   +1.88  +12.84        -8.24  -14.62   -1.80
+no quote while the mid ranged >= 10 c over the last hour    +58.05     -17.86    -66.98        +9.88   +4.71  +15.34        +1.81   -3.03   +6.72
+P1: no quote after a 10 c hour + touch >= 3 c          +130.30     +19.17   -211.57       +18.91   +6.64  +32.65        -6.57  -22.80   +8.81
+P2: P1 + view-count and statements out                 +137.13     -14.10   -265.80       +17.60   +5.69  +30.95       -14.41  -30.53   +0.45
+view-count + statements out, touch >= 3 c               +92.58      -3.96   -215.83        +9.95   -0.42  +21.45       -16.05  -31.65   -1.61

@@ -1,0 +1,74 @@
+LP-ADVERSE: rule changes priced on the live record. Base (what happened):
+  fills P&L to now -129.43 (lots; pnl.py's -129.43), rewards 48.74 (10-09..10-11 paid 38.10, 10-12 at R 0.75 10.64), rebates 12.56 (10.02 booked + 10-12 at 0.180 c a filled share)
+  total -68.13 over 3.25 quoting days = -20.97 a day; unmatched sells: 0
+  per filled share: rewards 0.70 c, rebates 0.18 c, fills -1.86 c (6966 shares). Formula like for like 64.76: the R that would break even is 1.80
+
+change from what happened                                    $/day       5%     95%   P>0   own: the rule's own record a day [5%, 95%]; the change's parts over the record; days+: UTC days it was positive
+type out: AI release                                         -0.46    -4.43   +3.46  0.38   own  -21.43 [ -43.23,   +0.44]  fills    +2.44  rewards   -2.16  rebates  -1.78  days+ 0/4  
+type out: box office                                         -2.08    -5.35   +0.00  0.06   own  -23.05 [ -44.81,   -0.79]  fills    -4.00  rewards   -2.42  rebates  -0.32  days+ 1/4  
+type out: crypto                                             +0.14    -0.00   +0.43  0.83   own  -20.83 [ -42.83,   +1.67]  fills    +1.20  rewards   -0.66  rebates  -0.07  days+ 2/4  
+type out: earnings/econ data                                 +2.52    -0.96   +6.20  0.88   own  -18.46 [ -40.17,   +3.77]  fills   +18.93  rewards   -9.31  rebates  -1.45  days+ 3/4  
+type out: elections                                          +1.96    +0.38   +3.78  0.99   own  -19.01 [ -41.21,   +3.33]  fills    +9.17  rewards   -2.11  rebates  -0.68  days+ 4/4  
+type out: news/geo deadline                                  -4.04   -18.89   +7.93  0.34   own  -25.01 [ -42.84,   -9.72]  fills    -3.44  rewards   -6.85  rebates  -2.84  days+ 1/4  
+type out: sports                                             +2.87    -0.00   +8.00  0.93   own  -18.11 [ -39.44,   +3.65]  fills   +10.28  rewards   -0.58  rebates  -0.39  days+ 3/4  
+type out: statements                                         +6.05    -0.00  +15.83  0.94   own  -14.92 [ -34.84,   +5.78]  fills   +21.25  rewards   -0.84  rebates  -0.74  days+ 3/4  
+type out: view-count                                        +14.50    +3.68  +28.50  0.99   own   -6.48 [ -23.54,  +12.01]  fills   +73.59  rewards  -22.21  rebates  -4.29  days+ 3/4  
+types out: view-count + statements                          +20.55    +6.84  +37.20  1.00   own   -0.42 [ -14.88,  +16.97]  fills   +94.84  rewards  -23.05  rebates  -5.03  days+ 3/4  
+types out: view-count + statements + AI release             +20.09    +5.59  +37.31  0.99   own   -0.88 [ -14.74,  +15.97]  fills   +97.28  rewards  -25.21  rebates  -6.81  days+ 3/4  
+types out: view-count + statements + AI release + elections  +22.05    +7.70  +39.24  1.00   own   +1.08 [ -12.93,  +17.77]  fills  +106.46  rewards  -27.32  rebates  -7.49  days+ 3/4  
+no buy and no quote within 1 day(s) of the end               +1.66    -5.24  +10.22  0.65   own  -19.31 [ -37.46,   -2.00]  fills   +11.90  rewards   -4.92  rebates  -1.59  days+ 2/4  
+no buy and no quote within 2 day(s) of the end               -2.88   -18.13  +11.56  0.35   own  -23.85 [ -40.43,   -9.52]  fills    +7.44  rewards  -13.69  rebates  -3.09  days+ 2/4  
+no buy and no quote within 3 day(s) of the end               -3.01   -18.20  +11.37  0.35   own  -23.98 [ -40.60,   -9.68]  fills    +9.44  rewards  -15.77  rebates  -3.45  days+ 2/4  
+no buy and no quote within 7 day(s) of the end               +6.55   -12.57  +24.75  0.73   own  -14.42 [ -27.72,   -3.07]  fills   +56.86  rewards  -29.09  rebates  -6.49  days+ 2/4  
+no buy and no quote within 14 day(s) of the end              +9.61   -10.18  +28.32  0.79   own  -11.36 [ -23.03,   -2.23]  fills   +78.15  rewards  -37.54  rebates  -9.39  days+ 3/4  
+quote only where the touch is 2 c wide or more               +6.01    -1.13  +16.00  0.87   own  -14.96 [ -35.40,   +6.29]  fills   +25.01  rewards   -4.06  rebates  -1.42  days+ 1/4  
+quote only where the touch is 3 c wide or more               +9.77    -3.35  +23.10  0.90   own  -11.20 [ -24.07,   +0.81]  fills   +63.09  rewards  -25.25  rebates  -6.10  days+ 3/4  
+quote only where the touch is 4 c wide or more              +19.02    +3.96  +35.25  0.98   own   -1.95 [ -11.45,   +6.86]  fills   +99.88  rewards  -29.85  rebates  -8.24  days+ 3/4  
+quote only where the touch is 5 c wide or more              +22.69    +5.08  +42.11  0.98   own   +1.72 [  -5.66,   +9.41]  fills  +116.49  rewards  -33.23  rebates  -9.54  days+ 3/4  
+no quote while the mid ranged >= 3 c over the last 60 min   +23.02    +6.32  +41.13  0.99   own   +2.05 [  -5.74,  +11.76]  fills  +122.28  rewards  -37.56  rebates  -9.94  days+ 3/4  
+no quote while the mid ranged >= 6 c over the last 60 min   +22.06    +6.15  +38.83  0.99   own   +1.09 [  -7.28,  +11.14]  fills  +113.78  rewards  -33.26  rebates  -8.84  days+ 3/4  
+no quote while the mid ranged >= 10 c over the last 60 min  +16.57    +3.23  +31.76  0.98   own   -4.40 [ -15.67,   +7.84]  fills   +80.61  rewards  -20.42  rebates  -6.36  days+ 4/4  
+no quote while the mid ranged >= 2 c over the last 15 min   +14.94    +1.28  +29.23  0.97   own   -6.03 [ -17.25,   +5.95]  fills   +82.42  rewards  -26.16  rebates  -7.71  days+ 3/4  
+no quote while the mid ranged >= 4 c over the last 15 min    +7.05    -3.41  +18.02  0.86   own  -13.92 [ -29.36,   +0.98]  fills   +47.18  rewards  -18.51  rebates  -5.76  days+ 3/4  
+no quote while the mid ranged >= 20 c over the last 24 h    +18.67    -3.76  +40.54  0.93   own   -2.30 [  -5.14,   -0.03]  fills  +116.57  rewards  -43.99  rebates -11.91  days+ 3/4  
+no quote while the mid ranged >= 40 c over the last 24 h    +15.58    +0.68  +34.04  0.96   own   -5.39 [ -18.26,  +10.58]  fills   +87.00  rewards  -28.99  rebates  -7.39  days+ 3/4  
+entries 1 tick(s) further from the mid (reached)            +18.39    -1.52  +37.17  0.94   own   -2.58 [  -8.31,   +2.36]  fills   +85.04  rewards  -15.71  rebates  -9.60  days+ 3/4  
+entries 1 tick(s) further from the mid (past it)            +22.14    +1.75  +42.34  0.96   own   +1.16 [  -2.84,   +4.55]  fills   +98.39  rewards  -15.71  rebates -10.76  days+ 3/4  
+entries 2 tick(s) further from the mid (reached)            +20.08    -0.68  +40.29  0.95   own   -0.89 [  -4.42,   +2.16]  fills  +104.93  rewards  -28.85  rebates -10.84  days+ 3/4  
+entries 2 tick(s) further from the mid (past it)            +21.12    +0.35  +41.95  0.95   own   +0.15 [  -2.97,   +2.89]  fills  +108.94  rewards  -28.85  rebates -11.49  days+ 3/4  
+entries 3 tick(s) further from the mid (reached)            +19.08    -1.38  +39.37  0.94   own   -1.90 [  -5.55,   +1.29]  fills  +110.35  rewards  -36.82  rebates -11.56  days+ 3/4  
+entries 3 tick(s) further from the mid (past it)            +20.11    -1.09  +41.50  0.94   own   -0.86 [  -4.03,   +1.85]  fills  +113.78  rewards  -36.82  rebates -11.63  days+ 3/4  
+inventory cap 1N a market (now 5N)                           +7.80    -9.54  +25.17  0.77   own  -13.18 [ -22.13,   -5.26]  fills   +62.03  rewards  -29.18  rebates  -7.53  days+ 3/4  minutes held at the cap lose their reward
+inventory cap 2N a market (now 5N)                           +5.95    -5.90  +18.58  0.80   own  -15.02 [ -29.42,   -1.56]  fills   +41.06  rewards  -17.47  rebates  -4.25  days+ 3/4  minutes held at the cap lose their reward
+inventory cap 3N a market (now 5N)                           +4.96    -2.36  +13.73  0.85   own  -16.01 [ -33.78,   +2.93]  fills   +27.44  rewards   -9.26  rebates  -2.05  days+ 3/4  minutes held at the cap lose their reward
+sell what is left 1 min after the buy, at the bid           -15.58   -37.21   +4.10  0.10   own  -36.55 [ -49.67,  -24.69]  fills   -50.61  rewards   +0.00  rebates  +0.00  days+ 1/4  taker fee incl.; capital freed not credited
+sell what is left 5 min after the buy, at the bid           -16.92   -38.29   +2.15  0.07   own  -37.89 [ -52.93,  -24.25]  fills   -54.96  rewards   +0.00  rebates  +0.00  days+ 1/4  taker fee incl.; capital freed not credited
+sell what is left 15 min after the buy, at the bid          -20.90   -42.85   -2.16  0.03   own  -41.87 [ -60.26,  -25.94]  fills   -67.89  rewards   +0.00  rebates  +0.00  days+ 1/4  taker fee incl.; capital freed not credited
+sell what is left 60 min after the buy, at the bid          -15.10   -31.99   +0.35  0.05   own  -36.07 [ -56.22,  -16.80]  fills   -49.05  rewards   +0.00  rebates  +0.00  days+ 1/4  taker fee incl.; capital freed not credited
+sell what is left 360 min after the buy, at the bid          -8.75   -19.17   +0.98  0.07   own  -29.73 [ -54.48,   -5.79]  fills   -28.44  rewards   +0.00  rebates  +0.00  days+ 2/4  taker fee incl.; capital freed not credited
+hold every lot to the end (no exits at all)                +100.61   -11.92 +261.11  0.91   own  +79.64 [ -26.59, +230.67]  fills  +326.84  rewards   +0.00  rebates  +0.00  days+ 3/4  diagnostic: the exits' own effect
+per-market loss guard at $10 from the first fill (now $10, in code)   +0.67    -1.53   +4.02  0.59   own  -20.30 [ -41.20,   +1.45]  fills   +10.76  rewards   -6.85  rebates  -1.74  days+ 1/4  the $10 row re-prices the guard already running: ~0 expected
+per-market loss guard at $5 from the first fill (now $10, in code)   +7.64    +0.81  +16.45  0.96   own  -13.33 [ -29.90,   +4.82]  fills   +43.18  rewards  -14.60  rebates  -3.75  days+ 3/4  the $10 row re-prices the guard already running: ~0 expected
+per-market loss guard at $3 from the first fill (now $10, in code)   +8.14    +0.28  +17.67  0.96   own  -12.84 [ -29.02,   +5.18]  fills   +46.45  rewards  -15.73  rebates  -4.28  days+ 3/4  the $10 row re-prices the guard already running: ~0 expected
+entries d = +1 only, one-sided reward 0.00 of two-sided      +6.84    -4.63  +19.65  0.83   own  -14.14 [ -34.17,   +5.54]  fills   +74.76  rewards  -47.15  rebates  -5.40  days+ 2/4  
+entries d = +1 only, one-sided reward 0.33 of two-sided     +11.67    -0.45  +26.10  0.94   own   -9.30 [ -28.29,  +10.01]  fills   +74.76  rewards  -31.43  rebates  -5.40  days+ 3/4  
+entries d = -1 only, one-sided reward 0.00 of two-sided      +0.11   -18.42  +18.25  0.52   own  -20.86 [ -38.10,   -6.84]  fills   +54.67  rewards  -47.15  rebates  -7.16  days+ 1/4  
+entries d = -1 only, one-sided reward 0.33 of two-sided      +4.95   -13.76  +23.35  0.68   own  -16.02 [ -32.06,   -3.01]  fills   +54.67  rewards  -31.43  rebates  -7.16  days+ 1/4  
+leave out a market-day whose mid ranged >= 10 c in the 24 h before  +20.95    -1.61  +42.92  0.94   own   -0.03 [  -1.25,   +0.78]  fills  +127.13  rewards  -46.67  rebates -12.42  days+ 3/4  97 market-days out
+leave out a market-day whose mid ranged >= 20 c in the 24 h before  +19.12    -3.56  +40.93  0.93   own   -1.85 [  -4.45,   +0.16]  fills  +117.17  rewards  -43.35  rebates -11.70  days+ 3/4  82 market-days out
+leave out a market-day whose mid ranged >= 40 c in the 24 h before  +10.99    -3.76  +29.29  0.88   own   -9.98 [ -23.29,   +6.04]  fills   +68.90  rewards  -26.46  rebates  -6.74  days+ 3/4  27 market-days out
+view-count + statements out, touch >= 3 c                   +17.39    +0.67  +36.16  0.95   own   -3.58 [ -13.34,   +6.15]  fills  +100.90  rewards  -35.99  rebates  -8.40  days+ 3/4  
+view-count + statements out, 1 tick deeper                  +22.75    +1.09  +43.98  0.96   own   +1.77 [  -2.95,   +5.26]  fills  +117.12  rewards  -31.74  rebates -11.49  days+ 3/4  
+view-count + statements out, touch >= 3 c, 1 tick deeper    +20.18    -1.69  +41.52  0.94   own   -0.80 [  -5.31,   +2.28]  fills  +117.67  rewards  -40.14  rebates -11.99  days+ 3/4  
+view-count + statements out, no quote after a 6 c hour      +25.21    +7.60  +44.55  0.99   own   +4.24 [  -2.86,  +13.81]  fills  +126.57  rewards  -35.13  rebates  -9.54  days+ 3/4  
+view-count + statements out, touch >= 3 c, no quote after a 6 c hour  +21.22    -0.21  +42.65  0.95   own   +0.24 [  -2.49,   +3.15]  fills  +124.24  rewards  -43.63  rebates -11.68  days+ 3/4  
+
+packages:
+P1: no quote after a 10 c hour + touch >= 3 c               +18.02    -1.90  +37.90  0.94   own   -2.95 [  -8.48,   +2.10]  fills  +106.21  rewards  -37.32  rebates -10.34  days+ 3/4  
+P2: P1 + view-count and statements out                      +19.28    -1.25  +39.68  0.94   own   -1.70 [  -6.32,   +2.88]  fills  +113.71  rewards  -40.38  rebates -10.71  days+ 3/4  
+P3: P2 + per-market guard $5                                +19.28    -1.25  +39.68  0.94   own   -1.70 [  -6.32,   +2.88]  fills  +113.71  rewards  -40.38  rebates -10.71  days+ 3/4  
+P4: P1 + entries 1 tick further (past it)                   +22.99    +0.34  +44.88  0.95   own   +2.01 [  +1.29,   +2.72]  fills  +127.57  rewards  -40.55  rebates -12.35  days+ 3/4  
+P5: no quote after a 10 c hour alone (= the 10 c row)       +16.57    +3.23  +31.76  0.98   own   -4.40 [ -15.67,   +7.84]  fills   +80.61  rewards  -20.42  rebates  -6.36  days+ 4/4  
+P6: no quote after a 6 c hour + touch >= 3 c                +19.53    -0.91  +39.79  0.94   own   -1.44 [  -5.48,   +2.30]  fills  +118.43  rewards  -43.50  rebates -11.47  days+ 3/4  
+
+Base per day -20.97. A rule's $/day is the change; base + change is the rule's own record.

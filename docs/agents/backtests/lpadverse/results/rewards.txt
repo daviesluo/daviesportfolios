@@ -1,0 +1,30 @@
+LP-ADVERSE: the reward side, live against paper, by UTC day.
+sel$: the day's selection's formula a day (RW's first round at the 00:00 programme, every selected market incl. refills);
+min$: what the minutes scored (live: programme as read each minute, quotes as they rested; paper: its own formula);
+paid / rebates: Polymarket's payout as the readout booked it (live only). mins: market-minutes recorded / two-sided / scoring.
+day         path           sel$     min$ min/sel    paid rebates paid/min    mins 2-sided scoring
+2026-10-04  paper        494.08    55.29   0.112                             3650    3478    3053
+2026-10-05  paper        395.71    82.92   0.210                            14990   14736    7101
+2026-10-06  paper        656.22   157.37   0.240                            23545   22145    9166
+2026-10-07  paper        270.82    76.64   0.283                            26847   26223    7148
+2026-10-08  paper        483.87   197.14   0.407                            30894   28168    8264
+2026-10-08  RW-C                  155.68                                    16358           10604
+2026-10-09  paper        486.53     7.11   0.015                             2510    2400     330
+2026-10-09  LIVE         486.53     8.08   0.017    6.52    1.98    0.807   13362    8556    7246 (10-09: minutes $153.90 at the stale programme; $8.08 like for like)
+2026-10-09  RW-C                  127.17                                    10405            8597
+2026-10-10  LIVE         795.77    30.49   0.038   21.89    4.82    0.718   30099    3665    2696
+2026-10-10  RW-C                  171.45                                    19627           14921
+2026-10-11  LIVE         580.91    12.00   0.021    9.68    3.23    0.807   37796    2746    1534
+2026-10-11  RW-C                  192.11                                    15109           10756
+2026-10-12  LIVE         560.96    14.19   0.025                            44167    1860    1270
+2026-10-12  RW-C                  107.80                                    12816            8293
+
+== Live minutes of a market selected that day, state 'quote': what rested and whether it scored
+  both sides rest, scores           12727 ( 43.7 %)  formula $210.34
+  nothing rests, scores 0           11557 ( 39.6 %)  formula $0.00
+  both sides rest, scores 0          2919 ( 10.0 %)  formula $0.00
+  one side rests, scores 0           1946 (  6.7 %)  formula $0.00
+Every live minute by the market's state: carried 85563 ($0.18), quote 29149 ($210.34), paused 6322 ($0.06), close 4390 ($0.00)
+
+== The programme as read each minute against the selection's (live, 10-10 ->; 10-09 predates the minute's read)
+formula as read $56.55; the same minutes at the selection's rate $54.59 (0.97x); minutes whose rate read under the selection's: 39892

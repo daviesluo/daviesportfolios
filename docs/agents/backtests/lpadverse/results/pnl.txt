@@ -1,0 +1,37 @@
+== Reproduce the stop (2026-10-12 07:30 UTC): the event said fills P&L -129.35468923, paid 38.09591564, rebates 10.021761, basis -81.23701259
+stop 07:30: fills marked -129.35
+now 2026-10-12 22:49: fills marked -129.43
+
+per market at the stop (fills cash + held at the venue mid), worst first:
+  0x3090f7aa   -32.54  net YES    -49.3 at 1.0 (settled, 0s old)  Will MrBeast's next video get between 215 and 223 million views on wee
+  0x3c5391bb   -19.65  net YES     87.2 at 0.33 (rec, 0s old)  Will MrBeast Gaming's next video get between 50 and 55 million views i
+  0x58dc3bc0   -16.65  net YES      0.0 at 0.5 (rec, 0s old)  Will Donald Trump publicly insult Hakeem Jeffries by October 31, 2026?
+  0x567b548b   -13.06  net YES    -57.6 at 0.624 (rec, 0s old)  Will MrBeast Gaming's next video get 55 million or more views in week 
+  0x76051f8c   -11.50  net YES   -100.0 at 0.715 (rec, 0s old)  Will a Junior win the 2026 Heisman Trophy?
+  0x0608b79b   -11.37  net YES     -4.3 at 0.014 (rec, 0s old)  Will MrBeast Gaming's next video get between 40 and 45 million views i
+  0xe8a60ae6   -10.46  net YES      0.0 at 1.0 (settled, 0s old)  Will Riyadh airport be closed by October 15?
+  0x2fb096eb    -9.40  net YES      0.0 at 0.155 (rec, 0s old)  Will fewer than 170 ships transit the Bab el-Mandeb Strait between Oct
+  0x191e066d    -6.65  net YES      0.0 at 0.28 (rec, 0s old)  Will Blackstone (BX) beat quarterly earnings?
+  0x5b3350e2    -6.24  net YES     -0.0 at 0.69 (rec, 0s old)  Will Anthropic have a #1 AI model by December 31, 2026?
+  0x668b6976    -4.60  net YES      0.0 at 0.715 (rec, 0s old)  Will Donald Trump publicly praise Mark Rutte by October 31, 2026?
+  0x666c7561    -4.16  net YES     -0.0 at 0.805 (rec, 0s old)  US x Yemen ceasefire continues through October 31?
+  0x79b044cd    -3.00  net YES      0.0 at 0.32 (rec, 0s old)  Will Harj Dhaliwal win the next Surrey-Newton British Columbia Legisla
+  0x5e96323f    -2.60  net YES      0.0 at 0.5 (rec, 62100s old)  Will UMich Consumer Sentiment be between 43.0 and 45.9 in October?
+  0xdcaba6ed    -2.40  net YES      0.0 at 0.59 (rec, 26280s old)  Will RTX (RTX) Q3 Pratt & Whitney sales be above $9B?
+
+per market now, worst first:
+  0x3090f7aa   -32.54  net YES    -49.3 at 1.0 (settled)  Will MrBeast's next video get between 215 and 223 million views on wee
+  0x3c5391bb   -20.32  net YES     -2.1 at 0.247 (lp)  Will MrBeast Gaming's next video get between 50 and 55 million views i
+  0x58dc3bc0   -16.65  net YES      0.0 at 0.665 (rec)  Will Donald Trump publicly insult Hakeem Jeffries by October 31, 2026?
+  0x0608b79b   -11.35  net YES     -4.3 at 0.01 (lp)  Will MrBeast Gaming's next video get between 40 and 45 million views i
+  0xe8a60ae6   -10.46  net YES      0.0 at 1.0 (settled)  Will Riyadh airport be closed by October 15?
+  0x2fb096eb    -9.40  net YES      0.0 at 0.1205 (rec)  Will fewer than 170 ships transit the Bab el-Mandeb Strait between Oct
+  0x567b548b    -9.38  net YES      0.0 at 0.611 (lp)  Will MrBeast Gaming's next video get 55 million or more views in week 
+  0x76051f8c    -8.76  net YES     -6.0 at 0.64 (lp)  Will a Junior win the 2026 Heisman Trophy?
+  0x191e066d    -6.65  net YES      0.0 at 0.395 (lp)  Will Blackstone (BX) beat quarterly earnings?
+  0x5b3350e2    -6.24  net YES     -0.0 at 0.505 (rec)  Will Anthropic have a #1 AI model by December 31, 2026?
+  0x668b6976    -4.60  net YES      0.0 at 0.705 (rec)  Will Donald Trump publicly praise Mark Rutte by October 31, 2026?
+  0x666c7561    -4.16  net YES     -0.0 at 0.795 (lp)  US x Yemen ceasefire continues through October 31?
+  0x5fec6675    -3.19  net YES      0.3 at 0.365 (lp)  Will Elon Musk’s net worth be between $1.00T and $1.10T on October 31?
+  0x79b044cd    -3.00  net YES      0.0 at 0.33 (lp)  Will Harj Dhaliwal win the next Surrey-Newton British Columbia Legisla
+  0x5e96323f    -2.60  net YES      0.0 at 0.5 (rec)  Will UMich Consumer Sentiment be between 43.0 and 45.9 in October?

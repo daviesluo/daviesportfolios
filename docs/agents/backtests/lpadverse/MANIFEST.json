@@ -1,0 +1,58 @@
+{
+  "study": "LP-ADVERSE: adverse selection on live-prep's live fills, live against paper, and rule changes priced on the live and paper records, 2026-10-12",
+  "review": "docs/agents/reviews/2026-10-12-lp-adverse-selection.md",
+  "code_read": {
+    "commit": "787d878a",
+    "pm_lp.ts": "53f7f788a47e93f52770f96410db9faf8f34cdd7dc2cf4ddbd877c9038d07278 (Addendum 18)",
+    "pm_live.ts": "ee96ba0e40e38ac9999f78028470cc8713584cf05c45539f265eca76c2d3667d (Addendum 18)",
+    "pmrw.ts": "f2bb5943dacb094d2c90cea91893cc5ec7e301874ebe6f420c9a7fb8278dd7f2"
+  },
+  "database": "flmvxigozjuizpckllvk, read-only selects, 2026-10-12 23:03-23:15 UTC",
+  "inputs_not_committed": {
+    "pm-rec archive": "every books and prints object of pm_rec_archive (2026-10-04 19:00 -> 2026-10-12 21:00 hours, 195 each) and the markets dumps, downloaded by their signed URLs (read with SQL, never printed or committed) into a scratch folder; every object's sha256 matched pm_rec_archive.sha256",
+    "replies": "each sql/*.sql reply saved by the connector and turned into JSON by scripts/unwrap.py in the scratch folder (LPADV_WORK): live_fills.json, live_aux.json, lm_1009..1012.json.gz (live_minutes.sql per day), targets.json, paper.json, rwc_1008..1012.json.gz and lpp_a/b/c.json.gz (paper_minutes.sql per day; lpp_a = 10-04..10-06, lpp_b = 10-07, lpp_c = 10-08..10-09)"
+  },
+  "run_order": [
+    "python3 -I docs/agents/backtests/lpadverse/scripts/extract_books.py <pmrec dir> <WORK>/targets.json <WORK>/books.pkl",
+    "LPADV_WORK=<WORK> python3 -I docs/agents/backtests/lpadverse/scripts/build.py   (data/fills.csv)",
+    "LPADV_WORK=<WORK> python3 -I docs/agents/backtests/lpadverse/scripts/pnl.py > results/pnl.txt",
+    "LPADV_WORK=<WORK> python3 -I docs/agents/backtests/lpadverse/scripts/markouts.py > results/markouts.txt",
+    "LPADV_WORK=<WORK> python3 -I docs/agents/backtests/lpadverse/scripts/decompose.py > results/decompose.txt",
+    "LPADV_WORK=<WORK> python3 -I docs/agents/backtests/lpadverse/scripts/paper_vs_live.py > results/paper_vs_live.txt",
+    "LPADV_WORK=<WORK> python3 -I docs/agents/backtests/lpadverse/scripts/rewards.py > results/rewards.txt",
+    "LPADV_WORK=<WORK> python3 -I -u docs/agents/backtests/lpadverse/scripts/rules.py > results/rules.txt",
+    "LPADV_WORK=<WORK> python3 -I -u docs/agents/backtests/lpadverse/scripts/rules_paper.py > results/rules_paper.txt",
+    "python3 -I docs/agents/backtests/lpadverse/scripts/manifest.py"
+  ],
+  "seeds": {
+    "bootstrap": 20261012
+  },
+  "sha256": {
+    "sql/live_aux.sql": "9c36310d6d027bdf399f40bca9c669406fc9c4975a8bb7e2985c8137a74484a3",
+    "sql/live_fills.sql": "8d0364004a9ecbfb2bdb39713e6f7ef2c17004dfacd6255559454a9d7b3a8e96",
+    "sql/live_minutes.sql": "fcb0d9f1ee674f7d0dd0aaff21d74ebaf68ca743677f1259c6d6124ec67a43ea",
+    "sql/paper.sql": "d18b112db4ff1a29d3d1c4f63c231e02e9200313422bc991732d1dca5282f9b3",
+    "sql/paper_minutes.sql": "fcb9f508447742f6e89da70b438eb3614c5604590d8574ed95fd420e5471b974",
+    "sql/targets.sql": "288df37494f2c00f0170fc9e85df0451a95869a5a39570acf1a5f788cb522a32",
+    "scripts/build.py": "a9db9fe2394f3a96bd6c01e850eb8f7004d6d12745296cbc8a432f28f6118766",
+    "scripts/decompose.py": "f9d51a7a108d9b920496699b1a59d3163e21aa61af2ee47e2ce3629dc941cf11",
+    "scripts/extract_books.py": "8f5198fc8287a74ace3b4151b15aa7d27d5129edec53aff22e76cf77e3ed90a3",
+    "scripts/lib.py": "ff1173dc63e987619b664a3ffb0bd301c651d03d584a2b210d7feebbe49eeca9",
+    "scripts/manifest.py": "27ff771ac906a51c67439d056f057b9b1e050625395d2f81c2e65ed00b6fb3a8",
+    "scripts/markouts.py": "6038c0bf98c4748058a38043269b78bc544f562a78d13873a8eaab9cc5e98af8",
+    "scripts/paper_vs_live.py": "e5ffd2e04e0b569fa7221528f6844f073952e855c1f187d79ddd881bfe0145db",
+    "scripts/pnl.py": "442af3bd141e944f2835655240d5357c0c932edc8a6ae9536b21b211243ba9d1",
+    "scripts/rewards.py": "31dc3f450e82692dbbc80292b4b0cd70c537a8701c08f9961be72bc3ce6c2f55",
+    "scripts/rules.py": "61c5fd1e042f9e08d86c04c96c2c80bbe66bfcf9bef9b088c622db3e94f13b71",
+    "scripts/rules_paper.py": "38b93bc185509e6ce9017147faa086956322663165a9c37bf7732b0f1fd17699",
+    "scripts/unwrap.py": "830e507456933622f89ea0c97722291f13c66808a38c1be96958b7bec49e0f42",
+    "data/fills.csv": "20431410d24d74417f487218792346e2cdff5cefc9ebc3ce729c774e52413b3b",
+    "results/decompose.txt": "a0c9773fcd99d56221a0f87f351ee725c11c8e94c9c54f77bfc6ea873be4943b",
+    "results/markouts.txt": "12678fff05fbbccd5991c85a7352eb7f703c27531d3956e2e4dc080119c381b5",
+    "results/paper_vs_live.txt": "44f272d034eb82d782c230a9810669f732eb637226810de1612b5d74025feced",
+    "results/pnl.txt": "4dded14d9f19ac5ea8497eca73384b429ac202077286d9ecdb7be63d48a9e316",
+    "results/rewards.txt": "5ca8e7dfdbf527c66b2ba7898ffe04805e335013d047f57a0910a9dc0ce71073",
+    "results/rules.txt": "b31ad0cf344bc5559b7b8ebedbd38884a9c17fbd819e962694ccf82c67a0e213",
+    "results/rules_paper.txt": "93c6a0d92e5d9b790a03f683d829b59493dcac237dd0106d37dcb856b3e54176"
+  }
+}
