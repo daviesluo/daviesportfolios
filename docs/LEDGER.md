@@ -34,6 +34,12 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    (no quote after a 10 c hour, touch ≥ 3 c) if Davies wants it back. LP-SPEED (`reviews/2026-10-12-lp-reward-timing-speed.md`):
    programmes do change fast, but no fill came while a programme was out, paper's fills were as adverse, and a 1–30 s loop is
    worth +$0.3 to +$2.0 a day (the CLOB reward read is cached 5 s); change no cadence. Davies chooses.
+   LP-BEST (`reviews/2026-10-13-lp-best-strategy.md`, `backtests/lpbest/`; Davies, 10-13: "继续研究最好的策略…给我讲讲我再评估下"):
+   a simulator calibrated to live (−$18.40 to −$24.96 a day against live's −$21.77) finds quoting a tick inside the touch loses
+   across the whole reward universe; the one positive design is **Q2, quiet books** (≤ 50 shares traded in 24 h by the data
+   API, touch ≥ 4 c, RW's price, N a side, a 2N inventory cap): +$3.6/day at $316 [+1.4, +6.0], +$4.2 out of sample, not
+   larger with more money; R in quiet books never measured. Its design and an Addendum 19 draft are in the review (§7–8),
+   nothing built. **Waiting on Davies:** stop for good, or a dry-run day then 14 live days of Q2 under a −$25 stop.
 
 0. **HANDOVER, 2026-10-11 ~03:30 UTC: Claude Code's weekly limit is near; Cursor (Grok 4.7) continues.** The watch and
    safe-maintenance procedure is `.agents/skills/live-watch/SKILL.md` (pointers in `.claude/skills/` and
@@ -493,6 +499,10 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11"; each oldest first.
+
+### [2026-10-13 01:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- Landed LP-BEST (`opus-high`): checked its validation by hand against the record (live −70.41 over the four days with 10-12's
+  $7.96 paid; a quoting day −21.77; the engine −18.40 at the live calibration). Item 0a has the result and the open question.
 
 ### [2026-10-13 00:51 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - Coinbase Deviation 2 closed: fix deployed 00:10:57, `0117` applied, verify 8,786 minutes 0 wrong. Landed "Stablecoin quotes with
