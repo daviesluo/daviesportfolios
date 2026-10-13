@@ -516,6 +516,13 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 archived 2026-10-11"; each oldest first.
 
 ### [2026-10-13 13:18 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- Landed PMOPPS (the LP-ADVERSE agent, resumed after a usage limit; `reviews/2026-10-13-polymarket-opportunities.md`):
+  nothing on Polymarket clears the bar for a new paper row now. DEADLINE-NO (NO at T − 7 days, YES 0.20–0.50) is the one
+  lead (2025 +14.4 % a trade, held-out 2026 +7.1 % [−4.0, +17.0]); its draft A is a frozen test on unread 2024 first,
+  waiting on Davies. Quiet books under 3 days old lost in-sample (draft B, Q2-AGE, a filter to price in LP-BEST's engine).
+  Neg-risk sets, date ladders, disputes, new pools (POOLAGE closed), sponsored programmes and rebates alone: no-go.
+
+### [2026-10-13 13:18 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep's Addendum 19, "quiet books"** (the LP-BEST agent wrote it; its tests and gates were blocked by the
   permission checks, so the main session ran them on Davies' "同意"): only books with ≤ 50 shares traded in 24 h (the data
   API, a failed read never quiet) and a touch ≥ 4 c, 2N a side, 90 % of the cap, a −$25 stop counted from a restart
