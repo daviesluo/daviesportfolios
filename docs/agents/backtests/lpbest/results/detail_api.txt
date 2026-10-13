@@ -1,0 +1,67 @@
+LP-BEST: the chosen strategy opened up (choose.py, picked on TRAIN by the 5 % bound)
+policy: {'min_width_c': 4, 'place': 'inside', 'k': 0, 'inv_cap': 5, 'size_mult': 1, 'range_c': None}
+selection: {'rank': 'rw', 'lag_place': 'inside', 'k': 15, 'frac': 0.9, 'min_width_c': 4, 'neg_risk': None, 'max_api_vol': 50, 'size_mult': 1}
+equity $316, cap $236, R 0.420, k_vol 1.283
+
+chosen, whole span                                           +3.62 [  +1.38,   +6.02]  rew   3.97 fills   -0.58 reb  0.23  sh/d    136 mo60/d   -0.23  worst  -10.34  peak$   234  mkts 87
+
+== Day by day
+day          picked 2-sided min  formula2  rewards  fills  shares    mo60  fills P&L   total held at end
+2026-10-05       11        3166      9.07     3.81      9     115    2.14       0.99    5.00        3.95
+2026-10-06       11        1541      5.70     2.40      6     111   -0.24       0.57    3.08       20.86
+2026-10-07       11         873      5.23     2.20      6      91    2.91       3.73    6.08       24.86
+2026-10-08       11        2443     18.29     7.69     17     278   -4.63      -5.89    2.25       37.26
+2026-10-09       11        2401      8.24     3.46      4      48    3.32       3.39    6.95       35.97
+2026-10-10       11        2406     14.26     5.99     14     240    0.59       0.83    7.28       50.59
+2026-10-11       11        1218      3.43     1.44      9     130   -6.69     -12.04  -10.34       49.44
+2026-10-12       11        3312     11.40     4.79      6      72    0.74       3.75    8.64       67.27
+the picked market-days were recorded by pm-rec 56 % of each day on average (median 52 %): the engine quotes only recorded minutes
+daily totals: mean +3.62, sd 6.03, worst -10.34, best +8.64
+
+== By market (the 15 that made most and the 10 that lost most; P&L = fills marked at the end + rewards + rebates)
+  0x82475d6d news/geo deadline      +5.17  rew   0.39 fills   +4.66 sh     51 2-sided min    171  Iran-Oman Hormuz Agreement by December 31?
+  0x76a52e3e news/geo deadline      +4.90  rew   0.12 fills   +4.71 sh     36 2-sided min     85  Will Lukáš Hájek be the next Mayor of Liberec?
+  0x562e6601 elections              +2.22  rew   2.84 fills   -0.80 sh     80 2-sided min    895  Will Morena win the most seats in the 2027 Baja California Sur Congres
+  0xa33510e8 earnings/econ data     +1.76  rew   0.90 fills   +0.75 sh     48 2-sided min    205  Progressive (PGR) Q3 combined ratio 89% to 92%?
+  0x71840812 elections              +1.64  rew   0.59 fills   +0.99 sh     33 2-sided min    299  Will the Republican Party candidate win the 2026 IN-09 House election 
+  0x93885fa0 news/geo deadline      +1.49  rew   0.07 fills   +1.33 sh     78 2-sided min     17  Will Jynxzi, Ron, and Los have between 180 and 209 Minecraft deaths du
+  0xdc5da82c elections              +1.34  rew   1.34 fills   +0.00 sh      0 2-sided min    823  Will Joel Rowswell win the 2026 Sault Ste. Marie mayoral election?
+  0x25e08bbf news/geo deadline      +1.21  rew   1.21 fills   +0.00 sh      0 2-sided min    539  Will Allyson win the 2026 Rio Grande do Norte gubernatorial second rou
+  0x855152e2 news/geo deadline      +1.15  rew   1.14 fills   +0.01 sh      2 2-sided min    496  Will Iliana Iotova win the 2026 Bulgarian presidential first round by 
+  0x94758b94 elections              +1.11  rew   0.17 fills   +0.91 sh     13 2-sided min    145  Will Ana Lilia Rivera Rivera win the 2027 Tlaxcala Governor Election?
+  0xeef73613 elections              +0.88  rew   0.88 fills   +0.00 sh      0 2-sided min    358  Will Morena win the most seats in the 2027 Sonora Congress election?
+  0x7ebc764e box office             +0.88  rew   0.88 fills   +0.00 sh      0 2-sided min    682  Will "Whalefall" Opening Weekend Box Office be less than 8m?
+  0xbc2842f3 elections              +0.87  rew   0.42 fills   +0.28 sh     94 2-sided min    516  Will total votes cast in the 2026 midterm election for Senator from Ke
+  0xf9a2429d news/geo deadline      +0.85  rew   0.39 fills   +0.40 sh     40 2-sided min    225  Will d4v41 have the most kills for Paper Rex at VALORANT Champions 202
+  0xf1a8e5ca earnings/econ data     +0.73  rew   0.73 fills   +0.00 sh      0 2-sided min    573  Will the median home value in San Francisco Metro be between $1,146,00
+  ...
+  0x1cd8a31f earnings/econ data     +0.02  rew   0.02 fills   +0.00 sh      0 2-sided min      8  Will Canada's GDP growth rate MoM in August 2026 be at least 0.6%?
+  0xe8d9e36d elections              +0.00  rew   0.00 fills   +0.00 sh      0 2-sided min      1  Will the Republican Party candidate win the 2026 Kentucky Senate elect
+  0xbc542530 elections              -0.65  rew   0.17 fills   -0.86 sh     26 2-sided min    408  Will the Republican Party candidate win the 2026 NJ-02 House election 
+  0x00d7dc74 news/geo deadline      -0.70  rew   1.65 fills   -2.40 sh     40 2-sided min    115  Will Putin hold a bilateral meeting with Nikol Pashinyan in Turkmenist
+  0x9682195c news/geo deadline      -0.72  rew   0.24 fills   -1.00 sh     40 2-sided min    332  Will EU emergency diesel stocks be at least 30M tonnes at end of Novem
+  0xbafd7087 statements             -0.89  rew   0.60 fills   -1.52 sh     40 2-sided min    159  Will White House post 160-179 posts from October 9 to October 16, 2026
+  0x6a1f956f elections              -1.04  rew   0.49 fills   -1.60 sh     40 2-sided min    185  Will the Republican Party candidate win the 2026 AR-04 House election 
+  0xf3d7426f news/geo deadline      -1.22  rew   0.49 fills   -1.80 sh     40 2-sided min     90  Will the Ornn H100 Index hit $3.50 (HIGH) by December 31, 2026?
+  0x5f5344cb view-count             -2.04  rew   2.21 fills   -4.38 sh    102 2-sided min    452  Will MrBeast's next video get between 199 and 207 million views on wee
+  0xed06fc25 elections              -2.63  rew   0.04 fills   -2.72 sh     29 2-sided min     20  Will Morena win the most seats in the 2027 Jalisco Congress election?
+markets 87; the best market is 18 % of the total, the best five 54 %; without the best market +2.97 a day, without the best five +1.66 a day
+by type: news/geo deadline 36 markets +17.85; elections 28 markets +7.27; earnings/econ data 5 markets +2.82; sports 11 markets +1.98; box office 4 markets +1.85; statements 1 markets -0.89; view-count 2 markets -1.93
+
+== The neighbours of the two thresholds (the prior 24 hours' taker volume by max_api_vol; the touch), each on TRAIN and TEST
+  prior volume <= 0.5  touch >= 3c   TRAIN  +3.49 [ +0.74,  +7.42]   TEST  -0.98 [ -4.04,  +1.76]
+  prior volume <= 0.5  touch >= 4c   TRAIN  +2.64 [ +1.34,  +4.08]   TEST  +1.72 [ -0.23,  +3.59]
+  prior volume <= 0.5  touch >= 5c   TRAIN  +1.11 [ -0.49,  +2.60]   TEST  +1.63 [ -0.20,  +3.40]
+  prior volume <= 20   touch >= 3c   TRAIN  +1.04 [ -2.63,  +5.37]   TEST  -0.29 [ -3.36,  +2.55]
+  prior volume <= 20   touch >= 4c   TRAIN  +2.27 [ +0.82,  +3.74]   TEST  +2.19 [ +0.18,  +4.11]
+  prior volume <= 20   touch >= 5c   TRAIN  +1.89 [ +0.96,  +2.93]   TEST  +2.28 [ +0.33,  +4.19]
+  prior volume <= 50   touch >= 3c   TRAIN  -1.13 [ -6.69,  +5.01]   TEST  +4.38 [ +1.61,  +7.28]
+  prior volume <= 50   touch >= 4c   TRAIN  +4.10 [ +1.67,  +7.12]   TEST  +4.23 [ +1.57,  +7.12]
+  prior volume <= 50   touch >= 5c   TRAIN  +1.37 [ -2.34,  +4.98]   TEST  +3.81 [ +1.14,  +6.69]
+  prior volume <= 200  touch >= 3c   TRAIN  -0.81 [ -8.02,  +6.21]   TEST  +4.84 [ +2.25,  +7.51]
+  prior volume <= 200  touch >= 4c   TRAIN  +2.58 [ -2.34,  +7.10]   TEST  +4.72 [ +2.51,  +7.18]
+  prior volume <= 200  touch >= 5c   TRAIN  +0.92 [ -3.74,  +5.13]   TEST  +4.72 [ +2.45,  +7.23]
+
+== The same span, the same engine: live-prep unchanged and P1, at the same cap
+live-prep unchanged, whole span                              -6.05 [ -20.35,  +11.09]  rew   7.89 fills  -15.44 reb  1.50  sh/d    864 mo60/d  -20.82  worst  -58.77  peak$   236  mkts 57
+P1 (10 c hour, touch >= 3 c), whole span                     +3.92 [ -10.36,  +24.22]  rew   4.98 fills   -1.78 reb  0.72  sh/d    452 mo60/d   -6.33  worst  -37.60  peak$   190  mkts 57

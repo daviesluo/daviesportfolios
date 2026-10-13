@@ -1,0 +1,40 @@
+LP-BEST ranking: each candidate through the one engine (R 0.420 in the engine's units, k_vol 1.283); $ a day [5 %, 95 % over market-days]
+cap = equity less $80 (the stop and its margin); markets scaled with the cap; the not-restarted path is $0 a day, no risk
+
+Q  quiet books (chosen): <= 0.5 shares traded in 24 h, touch >= 4 c, RW price, N | ALL $316   +2.82 [  +1.38,   +4.21]  rew   3.30 fills   -0.62 reb  0.15  sh/d     87 mo60/d   -0.60  worst   -2.09  peak$   236  mkts 88
+Q  quiet books (chosen): <= 0.5 shares traded in 24 h, touch >= 4 c, RW price, N | TEST $316   +2.97 [  +1.03,   +4.91]  rew   3.36 fills   -0.52 reb  0.13  sh/d     67 mo60/d   -1.12  worst   -2.11  peak$   223  mkts 44
+Q  quiet books (chosen): <= 0.5 shares traded in 24 h, touch >= 4 c, RW price, N | ALL $400   +1.95 [  -0.67,   +4.29]  rew   4.27 fills   -2.52 reb  0.21  sh/d    124 mo60/d   -1.62  worst   -5.84  peak$   318  mkts 118
+Q  quiet books (chosen): <= 0.5 shares traded in 24 h, touch >= 4 c, RW price, N | ALL $1000   -1.80 [ -10.13,   +5.14]  rew   8.67 fills  -11.10 reb  0.63  sh/d    361 mo60/d   -6.28  worst  -38.09  peak$   920  mkts 323
+Q2 quiet books, 2N inventory cap | ALL $316                  +2.82 [  +1.37,   +4.20]  rew   3.29 fills   -0.62 reb  0.15  sh/d     87 mo60/d   -0.60  worst   -2.09  peak$   236  mkts 88
+Q2 quiet books, 2N inventory cap | TEST $316                 +2.97 [  +1.03,   +4.91]  rew   3.36 fills   -0.52 reb  0.13  sh/d     67 mo60/d   -1.12  worst   -2.11  peak$   223  mkts 44
+Q2 quiet books, 2N inventory cap | ALL $400                  +1.91 [  -0.69,   +4.28]  rew   4.23 fills   -2.52 reb  0.21  sh/d    124 mo60/d   -1.62  worst   -5.86  peak$   318  mkts 118
+Q2 quiet books, 2N inventory cap | ALL $1000                 +1.36 [  -2.84,   +5.42]  rew   8.54 fills   -7.76 reb  0.57  sh/d    332 mo60/d   -6.11  worst  -13.21  peak$   920  mkts 323
+Q3 the neighbour: <= 50 shares traded in 24 h | ALL $316     +4.42 [  +1.99,   +6.84]  rew   4.08 fills   +0.14 reb  0.20  sh/d    119 mo60/d   +0.55  worst   -7.84  peak$   235  mkts 88
+Q3 the neighbour: <= 50 shares traded in 24 h | TEST $316    +5.75 [  +3.06,   +8.60]  rew   4.55 fills   +0.97 reb  0.22  sh/d    112 mo60/d   +0.23  worst   -2.47  peak$   232  mkts 44
+Q3 the neighbour: <= 50 shares traded in 24 h | ALL $400     +5.39 [  +3.00,   +7.92]  rew   5.41 fills   -0.31 reb  0.29  sh/d    174 mo60/d   -0.08  worst   -7.22  peak$   319  mkts 118
+Q3 the neighbour: <= 50 shares traded in 24 h | ALL $1000    +1.12 [  -4.78,   +6.87]  rew  11.29 fills  -11.03 reb  0.86  sh/d    493 mo60/d  -10.79  worst  -23.33  peak$   920  mkts 333
+Q4 quiet books, quotes 1 tick behind the touch | ALL $316    +0.46 [  -0.07,   +0.84]  rew   0.76 fills   -0.33 reb  0.02  sh/d     10 mo60/d   -0.19  worst   -2.03  peak$   201  mkts 88
+Q4 quiet books, quotes 1 tick behind the touch | TEST $316   +0.64 [  +0.46,   +0.83]  rew   0.64 fills   +0.00 reb  0.00  sh/d      0 mo60/d   +0.00  worst   +0.55  peak$   197  mkts 44
+Q4 quiet books, quotes 1 tick behind the touch | ALL $400    +0.67 [  +0.16,   +1.06]  rew   0.97 fills   -0.33 reb  0.02  sh/d     10 mo60/d   -0.19  worst   -1.83  peak$   272  mkts 118
+Q4 quiet books, quotes 1 tick behind the touch | ALL $1000   +1.28 [  -0.76,   +3.05]  rew   2.24 fills   -1.01 reb  0.05  sh/d     32 mo60/d   +0.18  worst   -7.49  peak$   805  mkts 323
+P1 live-prep + 10 c hour + touch >= 3 c (LP-ADVERSE) | ALL $316   +4.04 [ -10.38,  +24.06]  rew   4.98 fills   -1.66 reb  0.72  sh/d    449 mo60/d   -6.39  worst  -37.56  peak$   208  mkts 57
+P1 live-prep + 10 c hour + touch >= 3 c (LP-ADVERSE) | TEST $316  -10.03 [ -24.58,   +0.51]  rew   4.57 fills  -15.43 reb  0.83  sh/d    431 mo60/d   -3.66  worst  -37.34  peak$   138  mkts 29
+P1 live-prep + 10 c hour + touch >= 3 c (LP-ADVERSE) | ALL $400   +4.40 [ -11.36,  +25.15]  rew   6.25 fills   -2.80 reb  0.95  sh/d    559 mo60/d  -10.03  worst  -47.29  peak$   239  mkts 77
+P1 live-prep + 10 c hour + touch >= 3 c (LP-ADVERSE) | ALL $1000   +8.83 [  -8.78,  +28.93]  rew  17.43 fills  -10.87 reb  2.27  sh/d   1306 mo60/d  -17.76  worst  -44.21  peak$   718  mkts 227
+P2 P1 + view-count and statements out | ALL $316             -2.33 [  -9.59,   +3.03]  rew   2.96 fills   -5.76 reb  0.47  sh/d    262 mo60/d   -5.70  worst  -40.05  peak$   154  mkts 56
+P2 P1 + view-count and statements out | TEST $316            -7.74 [ -21.24,   +2.45]  rew   3.29 fills  -11.68 reb  0.65  sh/d    328 mo60/d   -7.41  worst  -39.83  peak$   127  mkts 28
+P2 P1 + view-count and statements out | ALL $400             -1.29 [  -9.44,   +5.92]  rew   4.56 fills   -6.56 reb  0.71  sh/d    378 mo60/d   -8.14  worst  -45.23  peak$   238  mkts 78
+P2 P1 + view-count and statements out | ALL $1000            +4.92 [  -6.01,  +15.38]  rew  14.46 fills  -11.23 reb  1.70  sh/d    940 mo60/d   -8.61  worst  -42.90  peak$   661  mkts 227
+P4 P1 + entries 1 tick behind the touch | ALL $316           -2.43 [  -6.57,   +0.59]  rew   1.30 fills   -3.86 reb  0.13  sh/d     79 mo60/d   -1.90  worst  -17.90  peak$   127  mkts 57
+P4 P1 + entries 1 tick behind the touch | TEST $316          -3.72 [ -11.93,   +0.92]  rew   1.23 fills   -5.09 reb  0.13  sh/d     67 mo60/d   -1.63  worst  -17.90  peak$    94  mkts 29
+P4 P1 + entries 1 tick behind the touch | ALL $400           -2.42 [  -6.41,   +0.61]  rew   1.60 fills   -4.18 reb  0.15  sh/d     89 mo60/d   -2.01  worst  -17.90  peak$   162  mkts 77
+P4 P1 + entries 1 tick behind the touch | ALL $1000          +0.44 [  -3.87,   +4.07]  rew   4.33 fills   -4.20 reb  0.30  sh/d    189 mo60/d   -4.22  worst  -17.21  peak$   438  mkts 227
+A0 live-prep unchanged | ALL $316                            -3.58 [ -16.94,  +12.95]  rew   7.47 fills  -12.43 reb  1.39  sh/d    802 mo60/d  -19.06  worst  -38.84  peak$   236  mkts 57
+A0 live-prep unchanged | TEST $316                          -20.23 [ -38.85,   -4.98]  rew   9.03 fills  -31.25 reb  1.99  sh/d   1025 mo60/d  -28.27  worst  -62.33  peak$   230  mkts 29
+A0 live-prep unchanged | ALL $400                            -8.09 [ -24.65,  +10.28]  rew   9.53 fills  -19.33 reb  1.71  sh/d    977 mo60/d  -25.73  worst  -77.85  peak$   320  mkts 77
+A0 live-prep unchanged | ALL $1000                           -6.53 [ -26.85,  +15.57]  rew  25.95 fills  -36.52 reb  4.05  sh/d   2312 mo60/d  -46.03  worst  -83.70  peak$   920  mkts 227
+RW-C's picks, live-prep's rule | RW-C 10-08 -> 10-12 $316   -48.88 [ -78.17,  -22.75]  rew  16.16 fills  -68.60 reb  3.56  sh/d   2233 mo60/d  -57.25  worst -105.16  peak$   236  mkts 70
+RW-C's picks, P1 | RW-C 10-08 -> 10-12 $316                  +1.40 [ -11.53,  +13.15]  rew   9.51 fills   -9.66 reb  1.56  sh/d    961 mo60/d   -8.71  worst   -8.76  peak$   234  mkts 70
+RW-C's picks that are quiet books, Q's rule | RW-C 10-08 -> 10-12 $316   +0.57 [  +0.05,   +1.23]  rew   0.29 fills   +0.25 reb  0.03  sh/d     16 mo60/d   -0.19  worst   +0.00  peak$    42  mkts 3
+
+RW-C's picks 10-08 -> 10-12: 70 market-days; of them quiet books by Q's filters: 3

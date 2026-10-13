@@ -1,0 +1,51 @@
+LP-BEST rule search: 8260 (rule, placement) pairs of up to three conditions, each with >= 40 TRAIN and >= 20 TEST market-days
+R 0.420; net = rewards + fills marked at 240 minutes ($ a day over 4 days; the 60-minute marks beside them)
+positive on TRAIN: 2843; positive on both: 851; positive on TEST alone: 1517
+
+== The 25 best on TRAIN, and what they did on TEST
+                                                          rule  place  n_tr  tr_$day  tr_$mktday  n_te  te_$day  te_$mktday  tr60_$day  te60_$day  tr_rew_$day  te_rew_$day
+                           dte >= 14 & share >= 0.1 & news/geo inside   134    38.46        1.15    99   -26.69       -1.08      23.11     -32.27        34.05        11.58
+dte >= 14 & share >= 0.1 & no view-count/statements/box office inside   304    37.80        0.50   492   -40.98       -0.33      33.66     -30.75        50.96        47.45
+ share >= 0.1 & no view-count/statements/box office & neg-risk inside   287    35.84        0.50   506   -12.54       -0.10      29.55      -2.20        49.51        52.75
+                       mid 0.25-0.75 & share >= 0.1 & neg-risk inside   144    34.84        0.97   262  -124.37       -1.90      32.26     -73.27        26.77        54.93
+                            share >= 0.1 & news/geo & neg-risk inside   117    34.43        1.18    92    -5.33       -0.23      21.98      -6.66        31.00        10.79
+                                       share >= 0.1 & neg-risk inside   306    34.07        0.45   524  -126.58       -0.97      30.36     -72.78        57.74        73.97
+                           dte >= 14 & share >= 0.1 & neg-risk inside   263    31.36        0.48   468   -14.95       -0.13      30.07       0.43        42.93        43.21
+                         touch <= 2c & share >= 0.1 & neg-risk inside    45    30.75        2.73    60   -23.12       -1.54      19.52     -21.38        12.32         8.62
+                    mid 0.25-0.75 & prior vol > 200 & neg-risk inside    92    30.35        1.32   177  -142.85       -3.23      29.29     -89.22        22.93        48.38
+                     prior vol > 200 & share >= 0.1 & neg-risk inside    68    29.30        1.72   150  -127.28       -3.39      26.06     -75.83        27.15        42.15
+                           dte >= 30 & share >= 0.1 & news/geo inside    95    28.86        1.22    69   -18.11       -1.05      23.58      -8.49        26.35         6.23
+                       mid 0.25-0.75 & share >= 0.1 & news/geo inside    74    28.59        1.55    55   -23.26       -1.69      23.12     -50.71        17.30        14.06
+                           dte >= 30 & share >= 0.1 & neg-risk inside   155    27.76        0.72   158    -5.86       -0.15      30.31      -3.98        30.54        15.73
+                        touch <= 2c & dte >= 14 & share >= 0.1 inside    49    27.39        2.24    54    -8.26       -0.61      16.93      -2.29         9.37         4.47
+                                      dte >= 14 & share >= 0.1 inside   323    25.37        0.31   504   -56.55       -0.45      27.59     -48.84        58.26        50.82
+                mid 0.25-0.75 & prior vol > 200 & share >= 0.1 inside    62    24.80        1.60   134  -136.28       -4.07      24.79    -114.85        24.19        48.08
+dte >= 30 & share >= 0.1 & no view-count/statements/box office inside   182    24.77        0.54   169   -18.03       -0.43      29.95     -10.62        36.04        17.40
+                          share >= 0.1 & rate >= 50 & news/geo inside    48    24.54        2.05    32   -21.04       -2.63      26.27     -41.83        29.28        10.73
+                      range24 >= 10c & share >= 0.1 & neg-risk inside   207    24.31        0.47   358  -126.86       -1.42      23.03     -74.41        45.29        63.40
+                          dte >= 30 & dte >= 14 & share >= 0.1 inside   190    23.84        0.50   172   -17.79       -0.41      30.12      -9.88        37.04        18.35
+                                      dte >= 30 & share >= 0.1 inside   190    23.84        0.50   172   -17.79       -0.41      30.12      -9.88        37.04        18.35
+                       mid 0.25-0.75 & share >= 0.1 & neg-risk   join   144    22.85        0.63   262  -113.01       -1.73      24.69     -53.87        14.11        31.60
+                   range24 >= 10c & touch <= 2c & share >= 0.1 inside    45    22.21        1.97    55   -24.80       -1.80      18.25     -22.30        14.84         8.97
+                         range24 >= 10c & dte >= 14 & neg-risk inside   394    21.93        0.22   765   -27.04       -0.14      23.29      -3.96        51.72        57.71
+                   prior vol > 200 & range24 >= 10c & neg-risk inside   122    21.72        0.71   280  -149.71       -2.14      24.44     -87.48        35.70        55.08
+
+correlation of a rule's TRAIN $ a market-day with its TEST $ a market-day, over every pair: 0.38
+
+== Positive on both spans (best on TEST first; chosen after seeing TEST: descriptive only)
+                                                              rule   place  n_tr  tr_$day  tr_$mktday  n_te  te_$day  te_$mktday  tr60_$day  te60_$day  tr_rew_$day  te_rew_$day
+      touch >= 3c & no view-count/statements/box office & neg-risk behind1   615     9.78        0.06   843    10.94        0.05      21.84       9.77        19.16        18.52
+         dte < 14 & no view-count/statements/box office & neg-risk behind1    66     2.87        0.17    71     9.85        0.55       4.03       3.42         6.38         4.28
+                           prior vol <= 200 & rate < 25 & neg-risk behind1  1017     2.74        0.01  1448     9.83        0.03       6.62       9.41        11.88        19.63
+                           prior vol <= 200 & elections & neg-risk behind1   609     3.89        0.03  1081     9.75        0.04       4.74      10.11         5.72        14.91
+prior vol <= 200 & elections & no view-count/statements/box office behind1   609     3.89        0.03  1081     9.75        0.04       4.74      10.11         5.72        14.91
+                                      prior vol <= 200 & elections behind1   609     3.89        0.03  1081     9.75        0.04       4.74      10.11         5.72        14.91
+                      mid 0.10-0.90 & prior vol <= 200 & elections behind1   608     4.63        0.03  1078     9.68        0.04       5.36      10.04         5.65        14.85
+                          prior vol <= 200 & rate < 25 & elections behind1   580     4.27        0.03  1047     9.17        0.04       3.92       9.45         4.93        14.10
+                          prior vol <= 200 & dte >= 14 & elections behind1   598     3.45        0.02  1060     9.09        0.03       4.23       9.32         5.23        14.32
+                        prior vol <= 200 & touch >= 3c & rate < 25 behind1   481     3.95        0.03   641     8.67        0.05       5.72       7.52         7.51        11.21
+                         prior vol <= 200 & touch >= 3c & neg-risk behind1   561     7.55        0.05   705     8.07        0.05       9.54      11.28        13.66        13.23
+                                             range24 < 6c & sports behind1    95     0.01        0.00   105     7.72        0.29       0.34      -0.01         1.45         2.40
+       range24 < 6c & sports & no view-count/statements/box office behind1    95     0.01        0.00   105     7.72        0.29       0.34      -0.01         1.45         2.40
+                                 range24 < 6c & dte >= 14 & sports behind1    95     0.01        0.00    98     7.68        0.31       0.34      -0.05         1.45         2.35
+                                 range24 < 6c & dte >= 30 & sports behind1    93     0.17        0.01    98     7.68        0.31       0.22      -0.05         1.33         2.35

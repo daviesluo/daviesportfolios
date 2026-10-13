@@ -1,0 +1,28 @@
+LP-BEST: the quiet-book rule with Gamma's 24-hour volume in place of pm-rec's tape
+eligible market-days with a touch >= 4 c at 00:00: 972; quiet by the tape (the chosen threshold, the data API, 24 h): 465
+  Gamma volume24hr <= $0  :     0 market-days; both 0; tape-quiet that Gamma calls quiet 0 %; Gamma-quiet that the tape calls quiet 0 %
+  Gamma volume24hr <= $1  :     3 market-days; both 3; tape-quiet that Gamma calls quiet 1 %; Gamma-quiet that the tape calls quiet 100 %
+  Gamma volume24hr <= $10 :    19 market-days; both 19; tape-quiet that Gamma calls quiet 4 %; Gamma-quiet that the tape calls quiet 100 %
+  Gamma volume24hr <= $50 :   160 market-days; both 137; tape-quiet that Gamma calls quiet 29 %; Gamma-quiet that the tape calls quiet 86 %
+
+Q by Gamma volume24hr <= $0 [TRAIN]                          +0.00 [  +0.00,   +0.00]  rew   0.00 fills   +0.00 reb  0.00  sh/d      0 mo60/d   +0.00  worst   +0.00  peak$     0  mkts 0
+Q by Gamma volume24hr <= $0 [TEST]                           +0.00 [  +0.00,   +0.00]  rew   0.00 fills   +0.00 reb  0.00  sh/d      0 mo60/d   +0.00  worst   +0.00  peak$     0  mkts 0
+Q by Gamma volume24hr <= $0 [ALL]                            +0.00 [  +0.00,   +0.00]  rew   0.00 fills   +0.00 reb  0.00  sh/d      0 mo60/d   +0.00  worst   +0.00  peak$     0  mkts 0
+Q by Gamma volume24hr <= $1 [TRAIN]                          +0.14 [  +0.14,   +0.14]  rew   0.14 fills   +0.00 reb  0.00  sh/d      0 mo60/d   +0.00  worst   +0.00  peak$    20  mkts 1
+Q by Gamma volume24hr <= $1 [TEST]                           +0.12 [  +0.00,   +0.24]  rew   0.12 fills   +0.00 reb  0.00  sh/d      0 mo60/d   +0.00  worst   +0.00  peak$    20  mkts 2
+Q by Gamma volume24hr <= $1 [ALL]                            +0.13 [  +0.02,   +0.26]  rew   0.13 fills   +0.00 reb  0.00  sh/d      0 mo60/d   +0.00  worst   +0.00  peak$    20  mkts 3
+Q by Gamma volume24hr <= $10 [TRAIN]                         +0.98 [  +0.14,   +2.23]  rew   0.26 fills   +0.71 reb  0.01  sh/d      5 mo60/d   +0.91  worst   +0.02  peak$    58  mkts 8
+Q by Gamma volume24hr <= $10 [TEST]                          +0.86 [  +0.06,   +1.62]  rew   0.74 fills   +0.06 reb  0.06  sh/d     48 mo60/d   +0.85  worst   +0.11  peak$    96  mkts 11
+Q by Gamma volume24hr <= $10 [ALL]                           +0.92 [  +0.26,   +1.64]  rew   0.50 fills   +0.39 reb  0.04  sh/d     27 mo60/d   +0.88  worst   +0.02  peak$    96  mkts 19
+Q by Gamma volume24hr <= $50 [TRAIN]                         -1.38 [  -7.91,   +4.31]  rew   3.00 fills   -4.68 reb  0.30  sh/d    184 mo60/d   -1.33  worst  -17.10  peak$   233  mkts 43
+Q by Gamma volume24hr <= $50 [TEST]                          +1.93 [  -4.29,   +6.71]  rew   4.31 fills   -2.66 reb  0.28  sh/d    144 mo60/d   -6.79  worst   -7.34  peak$   235  mkts 44
+Q by Gamma volume24hr <= $50 [ALL]                           -0.41 [  -4.94,   +3.83]  rew   3.57 fills   -4.28 reb  0.30  sh/d    171 mo60/d   -4.03  worst  -17.10  peak$   236  mkts 86
+Q as chosen, quiet by the tape [TRAIN]                       +4.10 [  +1.67,   +7.12]  rew   4.02 fills   -0.15 reb  0.23  sh/d    149 mo60/d   +0.04  worst   +2.25  peak$   217  mkts 44
+Q at 2N (inventory cap 2 x 2N) [TRAIN]                       +4.07 [  -0.28,   +9.52]  rew   2.48 fills   +1.42 reb  0.16  sh/d    111 mo60/d   +2.06  worst   +1.75  peak$   206  mkts 20
+Q with the path's $2.50 formula floor at 00:00 [TRAIN]       +4.10 [  +1.67,   +7.12]  rew   4.02 fills   -0.15 reb  0.23  sh/d    149 mo60/d   +0.04  worst   +2.25  peak$   217  mkts 44
+Q as chosen, quiet by the tape [TEST]                        +4.23 [  +1.57,   +7.12]  rew   3.92 fills   +0.09 reb  0.21  sh/d    111 mo60/d   -0.46  worst   -4.61  peak$   229  mkts 44
+Q at 2N (inventory cap 2 x 2N) [TEST]                        +6.61 [  +2.73,  +11.34]  rew   2.84 fills   +3.63 reb  0.14  sh/d     74 mo60/d   +2.54  worst   -0.76  peak$   212  mkts 20
+Q with the path's $2.50 formula floor at 00:00 [TEST]        +4.23 [  +1.57,   +7.12]  rew   3.92 fills   +0.09 reb  0.21  sh/d    111 mo60/d   -0.46  worst   -4.61  peak$   229  mkts 44
+Q as chosen, quiet by the tape [ALL]                         +3.62 [  +1.38,   +6.02]  rew   3.97 fills   -0.58 reb  0.23  sh/d    136 mo60/d   -0.23  worst  -10.34  peak$   234  mkts 87
+Q at 2N (inventory cap 2 x 2N) [ALL]                         +5.00 [  +1.44,   +8.90]  rew   2.66 fills   +2.18 reb  0.15  sh/d     95 mo60/d   +2.42  worst   -6.41  peak$   233  mkts 40
+Q with the path's $2.50 formula floor at 00:00 [ALL]         +3.62 [  +1.38,   +6.02]  rew   3.97 fills   -0.58 reb  0.23  sh/d    136 mo60/d   -0.23  worst  -10.34  peak$   234  mkts 87

@@ -1,0 +1,29 @@
+LP-BEST validation: live-prep's own rule through the engine, on live's own selections
+calibration (calib.json): k_vol 1.283, R on the two-sided formula 0.614 [0.543, 0.746], one-sided third paid 0.05 (least squares), rebate scale 0.85
+
+== The record (live)
+   day          2-sided min     paid  rebates  fills  shares  fills P&L    total
+   2026-10-09          7249     6.52     1.98     77    1345       3.90    12.40
+   2026-10-10          2702    21.89     4.82    138    2264     -34.38    -7.68
+   2026-10-11          1546     9.68     3.23    130    1949     -56.87   -43.96
+   2026-10-12          1270     7.96     2.94     91    1408     -42.08   -31.17
+   (fills P&L by day: live's fills marked at each day's end on the engine's mids; they sum to -129.43)
+   all: fills P&L -129.43, paid +46.06, rebates +12.96, total -70.41; a quoting day: -21.77
+
+== the engine, live-prep as run, live calibration (k_vol, R from all four days)
+   day          2-sided min  formula2  rewards  rebates  fills  shares     mo60  fills P&L    total
+   2026-10-09          2847     11.74     7.21     1.47     43     849   -14.92      -6.28     2.39
+   2026-10-10          3376     48.40    29.70     4.01    139    2326   -21.10     -25.18     8.53
+   2026-10-11          2909     32.52    19.96     4.99    153    2543   -85.18     -66.02   -41.08
+   2026-10-12          1494     16.97    10.41     2.40     72    1235   -43.48     -41.77   -28.95
+   all: fills P&L -139.66, rewards +67.28, rebates +12.87, total -59.51; 407 fills, 6954 shares, 60-min markout -164.68; a quoting day (3.234 days to the stop): -18.40
+
+   VALIDATION: engine -18.40 a day against live -21.77 a day; difference +3.37
+   the engine's total over a market bootstrap: 5 % -37.09, 50 % -17.91, 95 % -1.56 a day
+
+== Out of sample in time: R and k_vol from 10-09/10-10 only, the engine on 10-11 00:00 -> 10-12 22:49
+   R from 10-10 alone: 0.452 (the engine's formula); what 10-11/10-12 then paid over the engine's formula: 0.357
+   the engine's 10-11 + 10-12 at 10-10's R: -78.02; live on those days (fills marked + paid + rebates): -75.13
+
+   R in the engine's units (what live was paid over the engine's two-sided formula of its own replay, every friction of the live path in it): 0.420
+   the replay again at that R: rewards +46.06, total -24.96 a day against live -21.77

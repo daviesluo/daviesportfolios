@@ -1,0 +1,60 @@
+LP-BEST: the quiet-book family, chosen on TRAIN by lo. Equity $316 (cap $236), R 0.420, k_vol 1.283
+
+== stage 1 on TRAIN, the twelve best of 48 by lo (books x ranking)
+S1 vol<=50 touch>=4c neg=None rank rw                        +4.10 [  +1.67,   +7.12]  rew   4.02 fills   -0.15 reb  0.23  sh/d    149 mo60/d   +0.04  worst   +2.25  peak$   217  mkts 44
+S1 vol<=0.5 touch>=4c neg=None rank rw                       +2.64 [  +1.34,   +4.08]  rew   2.61 fills   -0.14 reb  0.17  sh/d    109 mo60/d   +0.01  worst   +0.05  peak$   216  mkts 44
+S1 vol<=1000 touch>=4c neg=True rank lag                     +2.27 [  +0.90,   +3.68]  rew   1.68 fills   +0.49 reb  0.10  sh/d     67 mo60/d   -0.24  worst   +0.00  peak$   224  mkts 31
+S1 vol<=0.5 touch>=3c neg=None rank rw                       +3.49 [  +0.74,   +7.42]  rew   3.06 fills   +0.20 reb  0.22  sh/d    149 mo60/d   -1.21  worst   +0.25  peak$   226  mkts 44
+S1 vol<=200 touch>=4c neg=True rank lag                      +2.32 [  +0.62,   +4.11]  rew   1.72 fills   +0.50 reb  0.11  sh/d     70 mo60/d   +0.03  worst   +0.00  peak$   232  mkts 32
+S1 vol<=1000 touch>=3c neg=True rank lag                     +3.00 [  +0.17,   +6.11]  rew   3.77 fills   -1.05 reb  0.28  sh/d    150 mo60/d   -0.73  worst   -0.86  peak$   236  mkts 29
+S1 vol<=0.5 touch>=4c neg=True rank lag                      +0.66 [  -0.12,   +1.53]  rew   0.51 fills   +0.11 reb  0.04  sh/d     28 mo60/d   -0.28  worst   -0.69  peak$   157  mkts 16
+S1 vol<=0.5 touch>=4c neg=None rank lag                      +0.66 [  -0.12,   +1.53]  rew   0.51 fills   +0.11 reb  0.04  sh/d     28 mo60/d   -0.28  worst   -0.69  peak$   157  mkts 16
+S1 vol<=0.5 touch>=4c neg=True rank rw                       +1.54 [  -0.15,   +3.21]  rew   1.58 fills   -0.18 reb  0.15  sh/d     85 mo60/d   -0.83  worst   -0.51  peak$   212  mkts 44
+S1 vol<=0.5 touch>=3c neg=True rank rw                       +2.53 [  -0.31,   +6.54]  rew   1.87 fills   +0.51 reb  0.16  sh/d    115 mo60/d   -0.90  worst   -2.09  peak$   223  mkts 44
+S1 vol<=0.5 touch>=2c neg=True rank rw                       +2.46 [  -0.42,   +6.40]  rew   2.01 fills   +0.26 reb  0.18  sh/d    130 mo60/d   -1.37  worst   -1.24  peak$   226  mkts 44
+S1 vol<=1000 touch>=4c neg=None rank lag                     +1.43 [  -0.83,   +3.39]  rew   1.85 fills   -0.60 reb  0.18  sh/d    104 mo60/d   -1.16  worst   -1.59  peak$   236  mkts 32
+   chosen: S1 vol<=50 touch>=4c neg=None rank rw
+
+== stage 2 on TRAIN, the twelve best of 72 by lo (how it quotes)
+S2 inside inv 5N size 1N 10c-hour None k 15                  +4.10 [  +1.67,   +7.12]  rew   4.02 fills   -0.15 reb  0.23  sh/d    149 mo60/d   +0.04  worst   +2.25  peak$   217  mkts 44
+S2 inside inv 5N size 1N 10c-hour None k 25                  +4.10 [  +1.67,   +7.12]  rew   4.02 fills   -0.15 reb  0.23  sh/d    149 mo60/d   +0.04  worst   +2.25  peak$   217  mkts 44
+S2 inside inv 2N size 1N 10c-hour None k 15                  +4.10 [  +1.66,   +7.12]  rew   4.02 fills   -0.15 reb  0.23  sh/d    149 mo60/d   +0.04  worst   +2.23  peak$   217  mkts 44
+S2 inside inv 2N size 1N 10c-hour None k 25                  +4.10 [  +1.66,   +7.12]  rew   4.02 fills   -0.15 reb  0.23  sh/d    149 mo60/d   +0.04  worst   +2.23  peak$   217  mkts 44
+S2 inside inv 5N size 1N 10c-hour None k 10                  +3.98 [  +1.56,   +7.06]  rew   3.87 fills   -0.10 reb  0.21  sh/d    139 mo60/d   +0.27  worst   +2.17  peak$   217  mkts 40
+S2 inside inv 2N size 1N 10c-hour None k 10                  +3.98 [  +1.56,   +7.05]  rew   3.87 fills   -0.10 reb  0.21  sh/d    139 mo60/d   +0.27  worst   +2.15  peak$   217  mkts 40
+S2 inside inv 1N size 1N 10c-hour None k 15                  +3.83 [  +1.26,   +6.94]  rew   3.43 fills   +0.18 reb  0.21  sh/d    135 mo60/d   +0.72  worst   +1.09  peak$   215  mkts 44
+S2 inside inv 1N size 1N 10c-hour None k 25                  +3.83 [  +1.26,   +6.94]  rew   3.43 fills   +0.18 reb  0.21  sh/d    135 mo60/d   +0.72  worst   +1.09  peak$   215  mkts 44
+S2 inside inv 1N size 1N 10c-hour None k 10                  +3.72 [  +1.18,   +6.82]  rew   3.30 fills   +0.23 reb  0.19  sh/d    125 mo60/d   +0.95  worst   +1.01  peak$   215  mkts 40
+S2 inside inv 2N size 1N 10c-hour 10 k 15                    +3.79 [  +0.91,   +6.89]  rew   3.34 fills   +0.27 reb  0.18  sh/d    115 mo60/d   +0.06  worst   +1.28  peak$   170  mkts 44
+S2 inside inv 2N size 1N 10c-hour 10 k 25                    +3.79 [  +0.91,   +6.89]  rew   3.34 fills   +0.27 reb  0.18  sh/d    115 mo60/d   +0.06  worst   +1.28  peak$   170  mkts 44
+S2 inside inv 5N size 1N 10c-hour 10 k 15                    +3.79 [  +0.91,   +6.89]  rew   3.34 fills   +0.27 reb  0.18  sh/d    115 mo60/d   +0.06  worst   +1.28  peak$   170  mkts 44
+   chosen: S2 inside inv 5N size 1N 10c-hour None k 15
+
+== the choice read once on TEST and on the whole span; the next five of stage 2 on TEST
+CHOSEN [TRAIN]                                               +4.10 [  +1.67,   +7.12]  rew   4.02 fills   -0.15 reb  0.23  sh/d    149 mo60/d   +0.04  worst   +2.25  peak$   217  mkts 44
+CHOSEN [TEST]                                                +4.23 [  +1.57,   +7.12]  rew   3.92 fills   +0.09 reb  0.21  sh/d    111 mo60/d   -0.46  worst   -4.61  peak$   229  mkts 44
+CHOSEN [ALL]                                                 +3.62 [  +1.38,   +6.02]  rew   3.97 fills   -0.58 reb  0.23  sh/d    136 mo60/d   -0.23  worst  -10.34  peak$   234  mkts 87
+S2 inside inv 5N size 1N 10c-hour None k 25 [TEST]           +4.23 [  +1.57,   +7.12]  rew   3.92 fills   +0.09 reb  0.21  sh/d    111 mo60/d   -0.46  worst   -4.61  peak$   229  mkts 44
+S2 inside inv 2N size 1N 10c-hour None k 15 [TEST]           +4.23 [  +1.57,   +7.12]  rew   3.92 fills   +0.09 reb  0.21  sh/d    111 mo60/d   -0.46  worst   -4.61  peak$   229  mkts 44
+S2 inside inv 2N size 1N 10c-hour None k 25 [TEST]           +4.23 [  +1.57,   +7.12]  rew   3.92 fills   +0.09 reb  0.21  sh/d    111 mo60/d   -0.46  worst   -4.61  peak$   229  mkts 44
+S2 inside inv 5N size 1N 10c-hour None k 10 [TEST]           +4.13 [  +1.67,   +6.86]  rew   3.83 fills   +0.09 reb  0.21  sh/d    111 mo60/d   -0.46  worst   -4.65  peak$   211  mkts 40
+S2 inside inv 2N size 1N 10c-hour None k 10 [TEST]           +4.13 [  +1.67,   +6.86]  rew   3.83 fills   +0.09 reb  0.21  sh/d    111 mo60/d   -0.46  worst   -4.65  peak$   211  mkts 40
+
+== sensitivity, whole span: R (the live R 0.42 in the engine units; 0.61 with none of the live path's friction) x fill volume
+CHOSEN ALL  R 0.30 k_vol 1.00                                +2.80 [  +0.63,   +5.13]  rew   2.90 fills   -0.33 reb  0.23  sh/d    134 mo60/d   -0.15  worst  -10.08  peak$   235  mkts 87
+CHOSEN ALL  R 0.30 k_vol 1.28                                +2.48 [  +0.29,   +4.79]  rew   2.84 fills   -0.58 reb  0.23  sh/d    136 mo60/d   -0.23  worst  -10.76  peak$   234  mkts 87
+CHOSEN ALL  R 0.30 k_vol 1.60                                +2.89 [  +0.61,   +5.32]  rew   2.86 fills   -0.22 reb  0.24  sh/d    143 mo60/d   -0.06  worst  -10.86  peak$   234  mkts 87
+CHOSEN ALL  R 0.42 k_vol 1.00                                +3.96 [  +1.72,   +6.38]  rew   4.06 fills   -0.33 reb  0.23  sh/d    134 mo60/d   -0.15  worst   -9.67  peak$   235  mkts 87
+CHOSEN ALL  R 0.42 k_vol 1.28                                +3.62 [  +1.38,   +6.02]  rew   3.97 fills   -0.58 reb  0.23  sh/d    136 mo60/d   -0.23  worst  -10.34  peak$   234  mkts 87
+CHOSEN ALL  R 0.42 k_vol 1.60                                +4.03 [  +1.68,   +6.53]  rew   4.01 fills   -0.22 reb  0.24  sh/d    143 mo60/d   -0.06  worst  -10.45  peak$   234  mkts 87
+CHOSEN ALL  R 0.61 k_vol 1.00                                +5.79 [  +3.40,   +8.46]  rew   5.89 fills   -0.33 reb  0.23  sh/d    134 mo60/d   -0.15  worst   -9.02  peak$   235  mkts 87
+CHOSEN ALL  R 0.61 k_vol 1.28                                +5.41 [  +3.01,   +8.01]  rew   5.77 fills   -0.58 reb  0.23  sh/d    136 mo60/d   -0.23  worst   -9.69  peak$   234  mkts 87
+CHOSEN ALL  R 0.61 k_vol 1.60                                +5.84 [  +3.36,   +8.56]  rew   5.82 fills   -0.22 reb  0.24  sh/d    143 mo60/d   -0.06  worst   -9.80  peak$   234  mkts 87
+
+== capital: the same rule at $316, $400 and $1,000 of equity (markets scaled with the cap)
+CHOSEN at $316 equity (cap $236, k 15) [TEST]                +4.23 [  +1.57,   +7.12]  rew   3.92 fills   +0.09 reb  0.21  sh/d    111 mo60/d   -0.46  worst   -4.61  peak$   229  mkts 44
+CHOSEN at $316 equity (cap $236, k 15) [ALL]                 +3.62 [  +1.38,   +6.02]  rew   3.97 fills   -0.58 reb  0.23  sh/d    136 mo60/d   -0.23  worst  -10.34  peak$   234  mkts 87
+CHOSEN at $400 equity (cap $320, k 20) [TEST]                +4.84 [  +2.07,   +7.72]  rew   4.55 fills   +0.04 reb  0.25  sh/d    141 mo60/d   -0.76  worst   -3.87  peak$   319  mkts 60
+CHOSEN at $400 equity (cap $320, k 20) [ALL]                 +2.64 [  -0.41,   +5.50]  rew   4.67 fills   -2.29 reb  0.26  sh/d    161 mo60/d   -1.03  worst   -9.60  peak$   319  mkts 119
+CHOSEN at $1000 equity (cap $920, k 58) [TEST]               +5.20 [  -1.41,  +10.53]  rew   8.79 fills   -4.04 reb  0.45  sh/d    257 mo60/d   -8.16  worst   +0.45  peak$   905  mkts 154
+CHOSEN at $1000 equity (cap $920, k 58) [ALL]                -1.48 [  -9.98,   +5.60]  rew   9.15 fills  -11.26 reb  0.64  sh/d    386 mo60/d   -7.16  worst  -32.72  peak$   920  mkts 316

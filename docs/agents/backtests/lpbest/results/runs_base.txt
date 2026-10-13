@@ -1,0 +1,52 @@
+LP-BEST strategies (base) at equity $316: cap $236 (equity less the $80 the stop and its margin keep), R 0.420, k_vol 1.283
+$ a day [5 %, 95 % over market-days]; rew = rewards, fills = the fills marked to the span's end, reb = rebates; sh/d = filled shares a day
+A0 live-prep unchanged (RW price, 5N, TB1, x2 pause) [TRAIN]   +7.45 [ -17.17,  +39.14]  rew   7.57 fills   -1.27 reb  1.14  sh/d    763 mo60/d  -17.84  worst  -29.41  peak$   236  mkts 29
+A0 live-prep unchanged (RW price, 5N, TB1, x2 pause) [TEST]  -20.23 [ -38.85,   -4.98]  rew   9.03 fills  -31.25 reb  1.99  sh/d   1025 mo60/d  -28.27  worst  -62.33  peak$   230  mkts 29
+A1 P1: + no entry after a 10 c hour, touch >= 3 c [TRAIN]   +18.84 [  -5.61,  +57.66]  rew   5.38 fills  +12.86 reb  0.60  sh/d    462 mo60/d   -9.09  worst  -17.33  peak$   133  mkts 29
+A1 P1: + no entry after a 10 c hour, touch >= 3 c [TEST]    -10.03 [ -24.58,   +0.51]  rew   4.57 fills  -15.43 reb  0.83  sh/d    431 mo60/d   -3.66  worst  -37.34  peak$   138  mkts 29
+A2 P1 + view-count and statements out [TRAIN]                +3.78 [  +0.54,   +7.56]  rew   2.64 fills   +0.86 reb  0.28  sh/d    190 mo60/d   -3.97  worst   +1.30  peak$   154  mkts 29
+A2 P1 + view-count and statements out [TEST]                 -7.74 [ -21.24,   +2.45]  rew   3.29 fills  -11.68 reb  0.65  sh/d    328 mo60/d   -7.41  worst  -39.83  peak$   127  mkts 28
+A3 inventory cap 1Q (from 5N) [TRAIN]                        -3.38 [ -11.12,   +3.84]  rew   3.69 fills   -7.82 reb  0.75  sh/d    493 mo60/d  -11.96  worst  -10.18  peak$   158  mkts 29
+A3 inventory cap 1Q (from 5N) [TEST]                        -17.52 [ -30.72,   -6.61]  rew   5.03 fills  -23.83 reb  1.27  sh/d    642 mo60/d  -15.44  worst  -43.75  peak$   183  mkts 29
+A4 inventory cap 2Q [TRAIN]                                  +0.74 [ -11.95,  +15.44]  rew   6.23 fills   -6.45 reb  0.96  sh/d    625 mo60/d  -15.13  worst  -22.76  peak$   228  mkts 29
+A4 inventory cap 2Q [TEST]                                  -20.63 [ -37.86,   -6.84]  rew   7.94 fills  -30.27 reb  1.70  sh/d    866 mo60/d  -22.83  worst  -59.46  peak$   211  mkts 29
+A5 P1 + inventory cap 1Q [TRAIN]                             -0.25 [  -4.76,   +3.93]  rew   3.12 fills   -3.88 reb  0.51  sh/d    353 mo60/d   -8.63  worst  -10.03  peak$   122  mkts 29
+A5 P1 + inventory cap 1Q [TEST]                              -9.84 [ -18.06,   -2.61]  rew   3.27 fills  -13.70 reb  0.59  sh/d    304 mo60/d   -4.24  worst  -20.99  peak$    96  mkts 29
+B1 entries at the touch (join), exits a tick inside [TRAIN]  -13.23 [ -26.73,   -1.76]  rew   5.58 fills  -19.64 reb  0.83  sh/d    511 mo60/d  -12.35  worst  -33.19  peak$   203  mkts 29
+B1 entries at the touch (join), exits a tick inside [TEST]  -21.80 [ -39.73,   -7.49]  rew   6.44 fills  -29.63 reb  1.39  sh/d    711 mo60/d  -21.81  worst  -62.74  peak$   199  mkts 29
+B2 entries 1 tick behind the touch [TRAIN]                   -6.47 [ -14.31,   +0.04]  rew   2.76 fills   -9.56 reb  0.33  sh/d    191 mo60/d   -7.48  worst  -15.54  peak$   168  mkts 29
+B2 entries 1 tick behind the touch [TEST]                   -10.18 [ -22.35,   -0.77]  rew   4.95 fills  -15.85 reb  0.73  sh/d    385 mo60/d  -13.95  worst  -28.26  peak$   169  mkts 29
+B3 entries 2 ticks behind the touch [TRAIN]                  -6.64 [ -13.97,   -0.80]  rew   1.50 fills   -8.33 reb  0.19  sh/d    120 mo60/d   -6.09  worst  -14.60  peak$   161  mkts 29
+B3 entries 2 ticks behind the touch [TEST]                   -8.24 [ -16.49,   -1.66]  rew   3.06 fills  -11.79 reb  0.48  sh/d    263 mo60/d  -11.37  worst  -15.01  peak$   169  mkts 29
+B4 entries 1 tick behind, exits at the touch [TRAIN]        -10.45 [ -21.07,   -1.86]  rew   2.65 fills  -13.40 reb  0.30  sh/d    181 mo60/d   -9.99  worst  -22.29  peak$   175  mkts 29
+B4 entries 1 tick behind, exits at the touch [TEST]          -5.93 [ -14.00,   +1.90]  rew   4.70 fills  -11.30 reb  0.68  sh/d    350 mo60/d  -13.48  worst  -18.82  peak$   169  mkts 29
+B5 join + P1 filters [TRAIN]                                 -4.56 [ -12.09,   +1.78]  rew   3.01 fills   -7.90 reb  0.32  sh/d    221 mo60/d   -3.24  worst  -24.18  peak$   156  mkts 29
+B5 join + P1 filters [TEST]                                  -8.43 [ -21.06,   +0.32]  rew   2.56 fills  -11.44 reb  0.46  sh/d    237 mo60/d   -6.41  worst  -35.87  peak$   128  mkts 29
+C1 two-sided only (no one-sided entries) [TRAIN]             +7.45 [ -17.17,  +39.14]  rew   7.57 fills   -1.27 reb  1.14  sh/d    763 mo60/d  -17.84  worst  -29.41  peak$   236  mkts 29
+C1 two-sided only (no one-sided entries) [TEST]             -20.23 [ -38.85,   -4.98]  rew   9.03 fills  -31.25 reb  1.99  sh/d   1025 mo60/d  -28.27  worst  -62.33  peak$   230  mkts 29
+C2 no exits worked (hold to the end; diagnostic) [TRAIN]    +14.55 [ -18.61,  +66.69]  rew   5.16 fills   +8.84 reb  0.55  sh/d    350 mo60/d   -9.33  worst  -31.92  peak$   236  mkts 29
+C2 no exits worked (hold to the end; diagnostic) [TEST]      -5.87 [ -23.55,  +11.11]  rew   4.28 fills  -10.85 reb  0.71  sh/d    424 mo60/d   -7.22  worst  -29.95  peak$   236  mkts 29
+D1 quiet books: touch >= 3 c and prior-day taker volume <= 200 [TRAIN]   -1.17 [  -7.73,   +5.06]  rew   3.48 fills   -4.87 reb  0.23  sh/d    171 mo60/d   -3.57  worst  -12.81  peak$   181  mkts 31
+D1 quiet books: touch >= 3 c and prior-day taker volume <= 200 [TEST]   +4.04 [  +0.85,   +7.10]  rew   4.06 fills   -0.33 reb  0.31  sh/d    160 mo60/d   -1.73  worst   +1.61  peak$   175  mkts 30
+D2 quiet: no print in the prior 24 h [TRAIN]                 -2.37 [  -9.42,   +4.04]  rew   3.85 fills   -6.41 reb  0.19  sh/d    174 mo60/d   -2.88  worst  -14.40  peak$   189  mkts 29
+D2 quiet: no print in the prior 24 h [TEST]                  +1.44 [  -0.65,   +3.40]  rew   2.71 fills   -1.41 reb  0.14  sh/d     77 mo60/d   -1.46  worst   -4.54  peak$   172  mkts 31
+D3 far from the end: >= 14 days [TRAIN]                      -5.91 [ -19.71,   +6.70]  rew   6.94 fills  -14.14 reb  1.29  sh/d    653 mo60/d  -10.07  worst  -15.68  peak$   236  mkts 29
+D3 far from the end: >= 14 days [TEST]                      -14.97 [ -30.12,   -1.76]  rew   4.83 fills  -20.86 reb  1.07  sh/d    513 mo60/d  -14.26  worst  -53.83  peak$   229  mkts 30
+D4 far from the end >= 14 d + P1 [TRAIN]                     -0.77 [  -9.10,   +6.30]  rew   4.46 fills   -6.00 reb  0.77  sh/d    388 mo60/d   -3.49  worst  -14.45  peak$   163  mkts 29
+D4 far from the end >= 14 d + P1 [TEST]                      -8.21 [ -21.90,   +1.62]  rew   2.70 fills  -11.37 reb  0.46  sh/d    229 mo60/d   -3.06  worst  -39.29  peak$   149  mkts 30
+E1 value selection (reward less 0.002 $/share of prior volume) [TRAIN]  +12.46 [  -7.30,  +39.74]  rew   7.82 fills   +3.69 reb  0.95  sh/d    674 mo60/d  -15.90  worst  -18.95  peak$   229  mkts 31
+E1 value selection (reward less 0.002 $/share of prior volume) [TEST]  -18.60 [ -36.49,   -3.25]  rew   8.66 fills  -29.17 reb  1.91  sh/d    965 mo60/d  -25.61  worst  -62.96  peak$   228  mkts 29
+E2 value selection (beta 0.005) [TRAIN]                     +15.95 [  -2.73,  +45.01]  rew   7.20 fills   +8.20 reb  0.56  sh/d    532 mo60/d  -10.90  worst   -9.97  peak$   200  mkts 31
+E2 value selection (beta 0.005) [TEST]                      -20.76 [ -38.69,   -6.35]  rew   7.66 fills  -30.21 reb  1.78  sh/d    911 mo60/d  -25.70  worst  -63.67  peak$   202  mkts 29
+E3 value selection (taker markout weight 1) [TRAIN]         +12.07 [  -7.32,  +41.29]  rew   7.40 fills   +4.17 reb  0.50  sh/d    490 mo60/d  -12.40  worst  -19.50  peak$   195  mkts 30
+E3 value selection (taker markout weight 1) [TEST]          -16.69 [ -37.10,   +1.13]  rew   6.43 fills  -24.66 reb  1.55  sh/d    743 mo60/d  -27.77  worst  -61.11  peak$   201  mkts 30
+F1 size 2N [TRAIN]                                           -7.31 [ -19.89,   +4.01]  rew   7.63 fills  -16.24 reb  1.30  sh/d    839 mo60/d  -20.69  worst  -17.89  peak$   236  mkts 29
+F1 size 2N [TEST]                                           -34.16 [ -65.53,   -9.74]  rew   9.07 fills  -45.70 reb  2.47  sh/d   1253 mo60/d  -33.76  worst  -93.72  peak$   236  mkts 29
+F2 size 2N, 1 tick behind [TRAIN]                            -8.85 [ -22.19,   +1.47]  rew   4.23 fills  -13.56 reb  0.47  sh/d    288 mo60/d  -14.77  worst  -30.03  peak$   236  mkts 29
+F2 size 2N, 1 tick behind [TEST]                            -17.21 [ -37.10,   -1.86]  rew   5.95 fills  -24.17 reb  1.01  sh/d    509 mo60/d  -19.65  worst  -46.35  peak$   236  mkts 29
+F3 size 3N, 2 ticks behind [TRAIN]                          -12.94 [ -35.33,   +0.51]  rew   2.59 fills  -15.69 reb  0.16  sh/d    127 mo60/d  -15.37  worst  -46.32  peak$   236  mkts 29
+F3 size 3N, 2 ticks behind [TEST]                           -19.54 [ -36.12,   -5.71]  rew   3.84 fills  -24.17 reb  0.80  sh/d    431 mo60/d  -18.50  worst  -31.94  peak$   236  mkts 29
+G1 five markets only [TRAIN]                                 +6.82 [ -15.20,  +33.75]  rew   5.55 fills   +0.64 reb  0.63  sh/d    531 mo60/d  -12.02  worst  -30.05  peak$   194  mkts 19
+G1 five markets only [TEST]                                 -18.21 [ -35.38,   -4.02]  rew   7.03 fills  -26.89 reb  1.65  sh/d    853 mo60/d  -26.01  worst  -55.99  peak$   165  mkts 20
+G2 twenty markets [TRAIN]                                    +8.76 [ -15.49,  +39.06]  rew  10.26 fills   -2.87 reb  1.38  sh/d    924 mo60/d  -23.28  worst  -34.32  peak$   236  mkts 43
+G2 twenty markets [TEST]                                    -25.12 [ -47.17,   -5.84]  rew  11.15 fills  -38.91 reb  2.64  sh/d   1346 mo60/d  -41.31  worst  -83.19  peak$   236  mkts 43

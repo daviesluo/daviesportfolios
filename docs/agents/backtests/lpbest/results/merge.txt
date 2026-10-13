@@ -1,0 +1,5 @@
+LP-BEST: merge on the live record (live fills in time order; a pair is one YES and one NO of the same market)
+fills 436; markets 42
+pairs held at their peak: 24.4 (= $24.42 a merge returns at once), at 2026-10-12 05:27 UTC
+pairs held on average over the fills: 8.8; held at cost at its peak: $310.20
+so merging would have freed at most 8 % of the held cost at the pairs' peak; the rest is one-sided inventory

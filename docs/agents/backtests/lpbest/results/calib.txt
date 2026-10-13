@@ -1,0 +1,84 @@
+LP-BEST calibration: the simulator against live-prep's live record
+live window: go 2026-10-09 01:33 -> stop 2026-10-12 07:30 (3.234 quoting days), exits to 22:49 UTC
+live orders read: 21543 (16 rejected, left out); live fills: 436
+
+A. Live's own orders through the simulator (pm-rec's book less our orders; pm-rec's tape)
+   markets 68; skipped: {}
+   fills: live 436 (6966 shares), simulator 330 (5430 shares, 3467 of them better than the touch)
+   fills P&L to 22:49 (marked at the same end mids / payouts): live -129.43, simulator -86.33
+   60-minute markout: live $-194.71 on 432 fills (-2.80 c a share); simulator $-148.41 on 327 fills (-2.73 c a share)
+   matched   :  313 fills,   5200 shares, 60-minute markout $-141.77 (-2.73 c a share)
+   sim only  :   17 fills,    230 shares, 60-minute markout $-6.64 (-2.89 c a share)
+   live only :  123 fills,   1552 shares, 60-minute markout $-49.71 (-3.20 c a share)
+   formula over live's minutes: as live recorded $210.58; simulator at live's code (two-sided min) $174.39; at Polymarket's Q_min (one side scores a third) $237.86
+   by day:
+     2026-10-09  live   77 fills    1345 sh   sim   62 fills    1098 sh
+     2026-10-10  live  138 fills    2264 sh   sim  114 fills    1822 sh
+     2026-10-11  live  130 fills    1949 sh   sim   88 fills    1437 sh
+     2026-10-12  live   91 fills    1408 sh   sim   66 fills    1072 sh
+   by market (cond, type | live fills, shares | sim fills, shares | live P&L, sim P&L | formula live rec / sim code / sim Q_min):
+     0x3090f7aa view-count             86    1395 |   70    1099 |   -32.54   -29.14 |   15.27   18.26   23.79
+     0x3c5391bb view-count             21     311 |   19     285 |   -20.32   -21.85 |    7.02    7.86   11.09
+     0x58dc3bc0 statements             19     330 |   14     220 |   -16.65    -2.38 |    0.25    0.42    0.57
+     0x0608b79b view-count             23     355 |   13     225 |   -11.35    +4.42 |    5.61    7.80   11.08
+     0xe8a60ae6 news/geo deadline      26     460 |   21     362 |   -10.46   -24.41 |    2.66    3.19    4.38
+     0x2fb096eb news/geo deadline       7     120 |    5      80 |    -9.40    -8.78 |    0.24    0.30    0.50
+     0x567b548b view-count             17     280 |   11     198 |    -9.38    +0.11 |    2.87    3.35    4.57
+     0x76051f8c sports                 11     194 |    8     129 |    -8.76    -5.86 |    0.10    0.14    1.86
+     0x191e066d earnings/econ data      6      90 |    7      71 |    -6.65    -9.53 |    2.54    2.71    4.68
+     0x5b3350e2 AI release             12     223 |   12     203 |    -6.24    -4.14 |    3.44    3.58   11.92
+     0x668b6976 statements              4      80 |    3      60 |    -4.60    +2.90 |    0.70    0.79    1.11
+     0x666c7561 news/geo deadline      27     200 |    6     115 |    -4.16    -3.53 |    0.41    0.48    0.54
+     0x5fec6675 earnings/econ data      8     120 |    5      80 |    -3.19    -2.00 |    2.92    3.35    5.94
+     0x79b044cd elections               2      40 |    1      20 |    -3.00    -0.80 |    0.40    0.46    0.66
+     0x5e96323f earnings/econ data      4      80 |    3      60 |    -2.60    -3.10 |    1.03    1.12    1.51
+     0xdcaba6ed earnings/econ data      2      40 |    2      40 |    -2.40    -2.40 |    0.03    0.03    0.20
+     0xd23c714e earnings/econ data      5      80 |    5      80 |    -2.30    -2.30 |    0.42    0.46    0.80
+     0xa4fd36e8 elections               2      40 |    1      20 |    -2.00    +0.40 |    0.11    0.09    0.12
+     0x9beb023f sports                  2      21 |    1      11 |    -1.52    -2.17 |    0.67    0.79    0.79
+     0x225b0d56 earnings/econ data      9     156 |    8     148 |    -1.21    -0.64 |    1.77    1.84    5.61
+     0x31e2f3df earnings/econ data      2      40 |    2      40 |    -1.20    -1.20 |    0.72    0.77    0.83
+     0xd5734dd2 earnings/econ data      3      40 |    3      40 |    -1.20    -1.20 |    0.15    0.23    0.69
+     0x562e6601 elections               2      40 |    2      40 |    -1.20    -1.20 |    0.23    0.05    1.22
+     0xeee73848 crypto                  2      40 |    2      40 |    -1.20    -1.20 |    2.51    2.44    3.86
+     0x0386c36c elections               4      60 |    5      60 |    -1.00    -1.00 |    0.39    0.44    0.46
+     0x70af2461 elections               2      40 |    2      40 |    -1.00    -1.00 |    0.10    0.12    0.22
+     0x79a15019 elections               8     160 |    7     120 |    -0.97    +0.58 |    1.14    0.96    1.56
+     0xa326c49f AI release             17     310 |   14     250 |    -0.82    +7.68 |   10.89   10.14   16.10
+     0xbfb4f78b earnings/econ data      2      40 |    1      20 |    -0.80    +0.10 |    0.78    0.93    2.73
+     0x9572cbd3 earnings/econ data      2      40 |    2      40 |    -0.20    -0.20 |    1.07    1.12    1.14
+     0x3ede4aa1 news/geo deadline       7      40 |    1      20 |    -0.20    -0.10 |    0.20    0.29    0.44
+     0xf0503539 AI release              2      40 |    1      20 |    -0.18    -0.04 |   84.23   53.39   53.39
+     0x5d7a9bad news/geo deadline       0       0 |    0       0 |    +0.00    +0.00 |    0.76    0.74    0.78
+     0x95554965 view-count              2      40 |    2      40 |    +0.00    +0.00 |    0.04    0.05    0.05
+     0xf6f3f159 view-count              0       0 |    0       0 |    +0.00    +0.00 |    0.66    0.67    0.67
+     0xfbd3437c news/geo deadline       0       0 |    0       0 |    +0.00    +0.00 |    8.62    4.12    4.12
+     0x0477b4ad box office              6      80 |    5      68 |    +0.20    +6.49 |    1.61    1.68    1.94
+     0x89067ac9 earnings/econ data      1       4 |    0       0 |    +0.32    +0.00 |    0.44    0.50    0.56
+     0xff489738 news/geo deadline       6      80 |    5      60 |    +0.55    -4.35 |    0.92    0.98    1.57
+     0xecc209a6 news/geo deadline      21     401 |   19     361 |    +2.44    +2.36 |    9.39   10.94   10.94
+     0xc50683fa earnings/econ data      5      72 |    4      56 |    +2.49    +0.80 |    0.54    0.70    1.76
+     0x9235351e news/geo deadline      10     172 |    8     132 |    +3.38    -4.02 |    8.04    4.63   12.19
+     0xac42f143 box office              6     100 |    5      80 |    +3.80   +14.81 |    2.79    2.04    3.03
+     0x045fdf4b AI release             26     412 |   20     329 |    +4.80    +1.26 |   23.32   16.70   22.11
+     0x3c82c098 news/geo deadline       7     101 |    5      66 |   +21.28   +10.31 |    0.95    0.92    1.21
+
+B. The touch multiplier k
+   markets with both: 62; live filled 3467 shares better than the touch, in 31535 side-minutes it rested there
+   the same rule on those markets' no-us side-minutes (RW's inside price, 20 shares, touch >= 2 ticks): 19062 shares in 341210 side-minutes
+   live's side-minutes at each market's no-us rate would have filled 4298 shares  ->  k = 0.81
+   k over a market bootstrap: 5 % 0.41, median 0.86, 95 % 2.25
+
+C. R: what Polymarket paid over the simulator's formula of live's own resting quotes, by day
+   day             paid  rebates  formula live rec  sim code sim Q_min R (Q_min)
+   2026-10-09      6.52     1.98            153.90    109.97    120.57     0.054
+   2026-10-10     21.89     4.82             30.49     33.80     53.52     0.409
+   2026-10-11      9.68     3.23             12.00     14.80     35.93     0.269
+   2026-10-12      7.96     2.94             14.19     15.82     27.84     0.286
+   R on 10-10 -> 10-12 (programme read every minute): 0.337; with 10-09 (its morning on the selection's programme): 0.194
+   market-days 10-10 -> 10-12: 99; paid $39.54; two-sided formula $64.42, one-sided third $52.87
+   least squares over market-days: paid = 0.51 x two-sided + 0.05 x one-sided (R on the two-sided part alone, paid / two-sided: 0.614)
+   paid / two-sided over a market-day bootstrap: 5 % 0.543, 95 % 0.746
+   rebates: paid $12.96 on the published schedule's $15.17 -> scale 0.85
+
+D. The simulator's fill volume against live's: live 6966 shares / simulator 5430 = k_vol 1.283 (fill rule 'price')

@@ -1,0 +1,121 @@
+LP-BEST tape check: taker trades on Polymarket's data API against pm-rec's tape, 2026-10-05 00:00 -> 10-12 22:00 UTC
+  quiet pick : 88 markets; trades API 2208, pm-rec 907 (41 %); shares API 115705, pm-rec 38469 (33 %); markets pm-rec shows no print in: 18, of them with none on the API either: 7
+  busy       : 25 markets; trades API 5457, pm-rec 4659 (85 %); shares API 352027, pm-rec 301686 (86 %); markets pm-rec shows no print in: 0, of them with none on the API either: 0
+  apitape.py's every candidate market: 1195 markets; prints API 43605, pm-rec 26286 (60 %); shares API 2331735, pm-rec 1538614 (66 %)
+  apitape.py's candidates pm-rec showed silent on some day: 894 markets; prints API 25096, pm-rec 13370 (53 %); shares API 1140375, pm-rec 635537 (56 %)
+  of the API's 43605 prints in those markets, 27117 (62 %) fall in minutes pm-rec recorded the market's book; pm-rec holds 26286 prints for them: the tape is about complete where the book was recorded, and missing where it was not
+
+  by market (kind, cond, API trades / pm-rec prints, question):
+    busy       0x37254094   622 / 574   Will the highest temperature in London be 18°C on October 12
+    busy       0x15cf39bf   574 / 355   Will the highest temperature in Shanghai be 25°C on October 
+    busy       0xaa38a6b2   499 / 434   Will the highest temperature in Dallas be between 88-89°F on
+    busy       0xba737dd3   436 / 388   Perim Island no longer under Houthi control by December 31?
+    busy       0xbecaf466   385 / 355   Will the highest temperature in Miami be between 88-89°F on 
+    busy       0xbec83092   318 / 308   Will the highest temperature in Austin be between 90-91°F on
+    busy       0x203d265d   296 / 139   Will Save the Children win the Nobel Peace Prize in 2026?
+    busy       0xd8edd5e6   264 / 227   Will the highest temperature in Seattle be between 68-69°F o
+    busy       0x2c648de9   259 / 231   Will the highest temperature in Tel Aviv be 30°C on October 
+    busy       0x1f050807   249 / 234   Will the highest temperature in Lucknow be 31°C on October 1
+    busy       0x6bc3a9c1   207 / 193   Will the lowest temperature in Hong Kong be 26°C on October 
+    busy       0x3b97b0f5   173 / 155   Will the highest temperature in Qingdao be 25°C on October 7
+    busy       0x4d507819   168 / 125   Will the name of the first hurricane in the Atlantic for the
+    busy       0x50f74016   168 / 167   Will no one leave the Trump Cabinet before 2027?
+    busy       0xe96eeb79   141 / 139   Will Noah Wyle be named People's Sexiest Man Alive in 2026?
+    busy       0x0cb89595   129 / 128   Will S&P 500 (SPY) hit (HIGH) $790 in October?
+    busy       0xb12fb514   106 / 103   U.S. enacts Protect College Sports Act before 2027?
+    busy       0x92a51cd0   101 / 98    Will the lowest Baton Rouge river level be 5.00 to 5.99 ft b
+    busy       0x3599741c    91 / 88    Will Gold (XAUUSD) hit (LOW) $4,100 Week of October 5 2026?
+    busy       0x34f8eb76    78 / 72    
+    busy       0x7aa6916e    72 / 46    Will Khamenei post 0-4 posts from October 9 to October 16, 2
+    busy       0xae1ccabe    44 / 27    Will the Democratic Party candidate win the 2026 MN-03 House
+    busy       0xc34f88c1    28 / 26    Will JP Morgan (JPM) Q3 investment banking fees be above $3.
+    busy       0x23d42681    27 / 25    Will Talarico and Paxton debate live by October 31?
+    busy       0x7771de24    22 / 22    Will Putin hold a bilateral meeting with Ilham Aliyev in Tur
+    quiet pick 0x93885fa0   175 / 96    Will Jynxzi, Ron, and Los have between 180 and 209 Minecraft
+    quiet pick 0x49a3b16f   149 / 55    Will 20-24 ships transit the Strait of Hormuz between Octobe
+    quiet pick 0x1b45380a   109 / 12    Will Jynxzi, Ron, and Los have 300 or more Minecraft deaths 
+    quiet pick 0xfd0c1f3d    92 / 52    Will 25-29 ships transit the Strait of Hormuz between Octobe
+    quiet pick 0xf1a8e5ca    55 / 42    Will the median home value in San Francisco Metro be between
+    quiet pick 0x97f8b62d    53 / 12    Will the highest score achieved by a Meta model on Humanity’
+    quiet pick 0xa6d4c268    53 / 23    Will United Serbia win the 2026 Serbian parliamentary electi
+    quiet pick 0x2f0e79ee    49 / 31    Will the Democrats win Grand Traverse County in the Michigan
+    quiet pick 0x71840812    49 / 30    Will the Republican Party candidate win the 2026 IN-09 House
+    quiet pick 0x43ebc24f    48 / 30    Will ISM Manufacturing PMI be between 52.0 and 52.9 in Octob
+    quiet pick 0x4e5592d1    47 / 0     Will the Ornn B200 Index be between $6.00 and $6.50 on Octob
+    quiet pick 0xbafd7087    45 / 11    Will White House post 160-179 posts from October 9 to Octobe
+    quiet pick 0x0f1cb3d4    43 / 19    Will the Republican Party candidate win the 2026 IN-09 House
+    quiet pick 0x0bca089f    40 / 8     Will SZA headline Coachella 2027?
+    quiet pick 0x09b44ebf    36 / 6     Will Patrick Johnstone win the 2026 New Westminster mayoral 
+    quiet pick 0xf3d7426f    36 / 18    Will the Ornn H100 Index hit $3.50 (HIGH) by December 31, 20
+    quiet pick 0xae7c448b    35 / 32    Will BLAST Win the 2026 Esports Tournament Organiser of the 
+    quiet pick 0xf54c6d42    35 / 15    Will the Democratic Party candidate win the 2026 NY-12 House
+    quiet pick 0xbc2842f3    34 / 33    Will total votes cast in the 2026 midterm election for Senat
+    quiet pick 0x89b4a46b    33 / 18    Will the Democratic Party candidate win the 2026 Iowa Attorn
+    quiet pick 0xf9a2429d    33 / 13    Will d4v41 have the most kills for Paper Rex at VALORANT Cha
+    quiet pick 0x6da0f76f    30 / 3     Will Brenda Locke win the 2026 Surrey mayoral election?
+    quiet pick 0xf75161f4    30 / 19    Will the Republican Party candidate win the 2026 NE-03 House
+    quiet pick 0xa33510e8    30 / 30    Progressive (PGR) Q3 combined ratio 89% to 92%?
+    quiet pick 0x491642f0    29 / 15    Will Casey Farrell win the next Derwent Valley mayoral elect
+    quiet pick 0x77145f31    29 / 3     Will Brazil's Q3 2026 GDP growth rate (QoQ) be between 0.3% 
+    quiet pick 0xbb671c94    29 / 1     Will Daniel Fontaine win the 2026 New Westminster mayoral el
+    quiet pick 0x1fcd3ae1    28 / 0     Will Chuck Schumer be the next US Senate Minority Leader?
+    quiet pick 0x4b764c48    27 / 9     Will the Republican Party candidate win the 2026 WI-01 House
+    quiet pick 0x90928023    27 / 27    Will Equifax (EFX) beat quarterly earnings?
+    quiet pick 0x00d7dc74    27 / 11    Will Putin hold a bilateral meeting with Nikol Pashinyan in 
+    quiet pick 0x45c336a3    26 / 15    Will the Democratic Party candidate win the 2026 TX-29 House
+    quiet pick 0xfd7f7b68    26 / 12    Will the Democratic Party candidate win the 2026 OH-11 House
+    quiet pick 0x390c49cc    26 / 25    Will fewer than 20 ships transit the Strait of Hormuz betwee
+    quiet pick 0x62308d12    25 / 13    Will John Kelly win the next Hobart mayoral election?
+    quiet pick 0x94758b94    25 / 13    Will Ana Lilia Rivera Rivera win the 2027 Tlaxcala Governor 
+    quiet pick 0xdc5da82c    25 / 17    Will Joel Rowswell win the 2026 Sault Ste. Marie mayoral ele
+    quiet pick 0xaa491558    24 / 3     Will the Democratic Party candidate win the 2026 OR-03 House
+    quiet pick 0x98fa29fa    23 / 9     Will the Republican Party candidate win the 2026 NC-13 House
+    quiet pick 0x96aaa5bc    21 / 3     Will the Democratic Party candidate win the 2026 Michigan gu
+    quiet pick 0xdfe0f231    21 / 1     Will the Republican Party candidate win the 2026 KS-01 House
+    quiet pick 0x659d6f47    20 / 2     Will Jo Westwood win the next Kingborough mayoral election?
+    quiet pick 0x860fbea0    20 / 2     Will the Democratic Party candidate win the 2026 Illinois Se
+    quiet pick 0xcfa24fbe    20 / 9     Will Jasmine Bugarín Rodríguez win the 2027 Nayarit Governor
+    quiet pick 0x2ae42042    19 / 0     Will the Democratic Party candidate win the 2026 CO-05 House
+    quiet pick 0x44a37f04    19 / 3     Will Erika Jurinová win the 2026 Žilina Region gubernatorial
+    quiet pick 0x78cce798    19 / 10    Will the Republican Party candidate win the 2026 TX-17 House
+    quiet pick 0x9ba8565c    18 / 1     Will Assimi Goïta be out as President of Mali by June 30, 20
+    quiet pick 0x58bdbcc3    17 / 2     Will the Republican Party candidate win the 2026 MT-01 House
+    quiet pick 0xedcd63f5    17 / 4     Will the Republican Party candidate win the 2026 AL-05 House
+    quiet pick 0x28d56bc6    16 / 9     Will Dominik Greif (Lyon) record the most clean sheets in th
+    quiet pick 0xdefa1637    16 / 16    Will Bank First (BFC) beat quarterly earnings?
+    quiet pick 0x88013b2c    14 / 0     Will Ladislav Lörinc win the 2026 Košice mayoral election?
+    quiet pick 0x9c6ad4fc    14 / 6     Will an NL Central team win the 2026 World Series?
+    quiet pick 0x5d7c6d0d    13 / 1     Will Dan S. Sullivan win the 2026 Alaska Senate first round 
+    quiet pick 0x8b2e52a0    13 / 3     Will the Republican Party candidate win the 2026 SC-03 House
+    quiet pick 0xd5947c07    13 / 3     Will Fred Francis win the 2026 Windsor mayoral election?
+    quiet pick 0x42da6808    11 / 0     Will the Democratic Party candidate win the 2026 Iowa Senate
+    quiet pick 0x5b8c4999    10 / 8     Will the Republican Party candidate win the 2026 NC-13 House
+    quiet pick 0xe36f4354    10 / 2     Will total votes cast in the 2026 midterm election for Senat
+    quiet pick 0x35392f14    10 / 2     Will Tencent have the best Text-to-Video AI at the end of De
+    quiet pick 0xac7411bc    10 / 1     Will Qwen have the third highest OpenRouter market share the
+    quiet pick 0x9ca14ac3    10 / 0     Will Professora Dorinha win the 2026 Tocantins gubernatorial
+    quiet pick 0x855152e2     9 / 6     Will Iliana Iotova win the 2026 Bulgarian presidential first
+    quiet pick 0x4756a0ba     9 / 0     Will 9Class have the most kills at BLAST Slam VIII Playoffs?
+    quiet pick 0x8f7edec1     9 / 9     Will Thiolicor have the most kills at BLAST Slam VIII Playof
+    quiet pick 0xceed8dcd     9 / 4     Will bzm have the most kills at BLAST Slam VIII Playoffs?
+    quiet pick 0x1eee4e64     8 / 2     Will Baidu be the third-best AI Agent Lab at the end of Dece
+    quiet pick 0x23604e1e     8 / 2     Will the Democratic Party candidate win the 2026 NY-05 House
+    quiet pick 0x647d3c94     8 / 1     Will Natalia Silva fight Alexa Grasso next?
+    quiet pick 0xed06fc25     8 / 7     Will Morena win the most seats in the 2027 Jalisco Congress 
+    quiet pick 0x5b88eb9f     7 / 2     Next Qwen Flash (3.9+) released by October 31, 2026?
+    quiet pick 0x074c9555     5 / 1     Will total votes cast in the 2026 midterm election for Senat
+    quiet pick 0x0f6f5584     5 / 0     Will "Street Fighter" score at least 70 on the Rotten Tomato
+    quiet pick 0xe8d9e36d     4 / 0     Will the Republican Party candidate win the 2026 Kentucky Se
+    quiet pick 0xf93d361e     4 / 1     Will New York Jets finish the 2026-27 NFL regular season wit
+    quiet pick 0x1ea9220e     3 / 0     Will Texas Tech win the 2027 NCAA Men's Basketball National 
+    quiet pick 0x2ca2b5a5     2 / 0     Will Cody Bellinger win the 2026 World Series MVP?
+    quiet pick 0xdfefe274     2 / 1     Will Ranger Suarez win the 2026 World Series MVP?
+    quiet pick 0xb9c12d42     1 / 1     Will Darian Mensah be the 2026 D1 Passing Yards Leader?
+    quiet pick 0xc1b94b18     1 / 1     Will the next governing coalition of Romania include PSD + P
+    quiet pick 0x055c2462     0 / 0     Will Folarin Balogun win the 2026-27 Ligue 1 Player of the S
+    quiet pick 0x3f641b1b     0 / 0     Will Max Fried win the 2026 World Series MVP?
+    quiet pick 0x3d9da578     0 / 0     Will Kairat finish as runner-up in the 2026-27 UEFA Conferen
+    quiet pick 0xfbd3437c     0 / 0     Will 100 Thieves Win the 2026 Esports Content Group of the Y
+    quiet pick 0xb95c8808     0 / 0     Will DeSean Bishop be the 2026 D1 Rushing Yards Leader?
+    quiet pick 0xe81b4141     0 / 0     Will Yann Sommer record the most clean sheets in the 2026-27
+    quiet pick 0x602f28dc     0 / 0     Will Belgium host the 2027 UEFA Nations League Finals?
