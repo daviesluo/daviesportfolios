@@ -147,7 +147,9 @@ export function cbMinuteRow(book: CbProduct, t: number, bar: [number, number] | 
   const px = (p: Print) => Number((p.ticks * tick).toFixed(8));
   const ext = (side: "buy" | "sell", f: (a: number, b: number) => number) => {
     const xs = ps.filter((p) => p.side === side).map(px);
-    return xs.length ? xs.reduce(f) : null;
+    // Not `xs.reduce(f)`: reduce hands `Math.min` the index and the array as well, and with two prints or more that is NaN,
+    // stored as null (2026-10-12: 56 % of the first days' print minutes had no extremes, and the replay saw only `last`).
+    return xs.length ? xs.reduce((a, b) => f(a, b)) : null;
   };
   const last = ps.at(-1) ?? null;
   return {

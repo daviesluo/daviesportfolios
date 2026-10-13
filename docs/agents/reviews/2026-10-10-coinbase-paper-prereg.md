@@ -159,3 +159,23 @@ companion note's rates on the new capital are 8.3 % over 12 months (8.0 % before
 since 2026-08-24 (9.7 %) and 13.4 % over the last 28 days (13.1 %). §6's comparisons with Revolut X come out the same
 way: the half-of-Revolut-X floor holds since 08-24 (9.8 % against 17.1 %) and over 28 days (13.4 % against 16.8 %), and
 fails over 90 days (6.2 % against 37.1 %). The companion note's figures are left as they were, with a line saying so.
+
+### Deviation 2 (2026-10-13, before the reading): the minute record's lost extremes, fixed and repaired
+
+**On whose word.** Davies, 2026-10-13: "Coinbase修复同意", on the review `2026-10-12-coinbase-first-days.md` §2.
+
+**What was wrong.** `cbMinuteRow` stored null for an aggressor side's lowest and highest print whenever that side printed
+more than once in a minute (`xs.reduce(Math.min)` hands `Math.min` the index and the array too). Of the 12,802 minutes with
+prints to 2026-10-12 23:50 UTC, 7,216 had all four extremes null, every one of them a minute with two prints or more. The
+engine never read these columns: its rungs, fills and trips came from the prints. Bar 1's replay (`replay.py`) builds its
+prints from them, and on the first lit day it reproduced 3 of the engine's 8 trips as stored and all 8, with the engine's
+P&L, once the extremes were rebuilt from `cb_trades` (`docs/agents/backtests/cbreview/results/replay_check.json`).
+
+**What changes.**
+
+- `cb_quotes.ts`: `xs.reduce((a, b) => f(a, b))`; `cb_quotes.test.ts` pins several prints a side on a GBP and a EUR book,
+  one print, and none (it fails on the old code).
+- The stored minutes from 2026-10-11 00:00 UTC are rebuilt from `cb_trades` by a migration that runs after the fixed
+  function is deployed (the update of `docs/agents/backtests/cbreview/sql/repair_minute_bars.sql`), before the prune takes
+  the window's first prints on 2026-10-21 23:01 UTC.
+- The engine, `stepMinute`, `replay.py`, the window and every bar are unchanged. The reading says the record was repaired.

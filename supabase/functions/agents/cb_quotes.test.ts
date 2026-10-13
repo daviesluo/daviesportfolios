@@ -6,7 +6,7 @@
 
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
-  CB_BOOK, CB_CAPITAL, CB_TAKER, cbCapitalGbp, cbMinuteInputs, cbPrint, cbStopExit, cbTripInPounds, cbTripRow, runCbQuotes,
+  CB_BOOK, CB_CAPITAL, CB_TAKER, cbCapitalGbp, cbMinuteInputs, cbMinuteRow, cbPrint, cbStopExit, cbTripInPounds, cbTripRow, runCbQuotes,
 } from "./cb_quotes.ts";
 import { CB_PRODUCTS, type CbCursor, type CbProduct } from "./cb_rec.ts";
 import { QUOTE_FEE, QUOTE_HALF_SPREAD, quoteTicks, type Trip } from "./quotes.ts";
@@ -57,6 +57,26 @@ Deno.test("cbPrint puts USDT-EUR's five-place prices on the rule's grid ×10 and
   assertAlmostEquals(p.ticks * 1e-4 * p.qty, 0.90811 * 100, 1e-9);
   const q = cbPrint("USDC-GBP", { trade_id: 8, ts: 0, price: 0.7556, size: 3, side: "sell" });
   assertEquals([q.ticks, q.qty], [7556, 3]);
+});
+
+Deno.test("cbMinuteRow keeps each aggressor side's lowest and highest print when a side printed more than once (the replay's bar)", () => {
+  // `Array.reduce(Math.min)` hands Math.min the index and the array too, so a side with two prints or more came out NaN, stored
+  // as null: 56 % of the first days' print minutes had no extremes, and the replay (bar 1) would have seen only their last print.
+  const t = Date.UTC(2026, 9, 12, 10, 0);
+  const row = (book: "USDC-GBP" | "USDT-EUR", prints: Array<[number, number, "buy" | "sell"]>) => {
+    const ps = prints.map(([price, size, side], i) => cbPrint(book, { trade_id: i + 1, ts: t + i * 1000, price, size, side }));
+    return cbMinuteRow(book, t, [t - M, 1.25], null, 24, { x: 1, fairU: 0.8, prints: ps }, 1);
+  };
+  const g = row("USDC-GBP", [[0.7990, 10, "sell"], [0.7985, 20, "sell"], [0.7995, 5, "sell"], [0.8001, 7, "buy"], [0.8010, 3, "buy"], [0.8004, 2, "buy"]]);
+  assertEquals([g.sell_lo, g.sell_hi, g.buy_lo, g.buy_hi, g.last, g.last_side, g.prints_n], [0.7985, 0.7995, 0.8001, 0.801, 0.8004, "buy", 6]);
+  // One print on a side, and none, as before.
+  const one = row("USDC-GBP", [[0.7990, 10, "sell"], [0.8001, 7, "buy"], [0.8003, 7, "buy"]]);
+  assertEquals([one.sell_lo, one.sell_hi, one.buy_lo, one.buy_hi], [0.799, 0.799, 0.8001, 0.8003]);
+  const none = row("USDC-GBP", [[0.7990, 10, "sell"]]);
+  assertEquals([none.sell_lo, none.sell_hi, none.buy_lo, none.buy_hi], [0.799, 0.799, null, null]);
+  // USDT-EUR's finer step comes back in euros.
+  const e = row("USDT-EUR", [[0.90811, 100, "sell"], [0.90805, 100, "sell"], [0.90822, 100, "buy"], [0.90830, 100, "buy"]]);
+  assertEquals([e.sell_lo, e.sell_hi, e.buy_lo, e.buy_hi], [0.90805, 0.90811, 0.90822, 0.9083]);
 });
 
 Deno.test("cbStopExit moves a stopped trip from PR5's stop cost to Coinbase's, from the same last print", () => {

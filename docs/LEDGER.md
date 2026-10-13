@@ -341,10 +341,10 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
 
 12. **The minute record's defect (2026-10-12, `reviews/2026-10-12-coinbase-first-days.md`): `cbMinuteRow`'s
    `reduce(Math.min)` stored null extremes for every side with two or more prints (7,216 of 12,802 printed minutes), so bar 1's
-   replay of the 11-08 reading fails as stored. Waiting on Davies' word for Deviation 2** (the fix and pin are on worktree
-   commit `e6df4e0b`, not landed: `cb_quotes.ts` is frozen by §5); then deploy the fix and repair the stored minutes from
-   `cb_trades` (`backtests/cbreview/sql/repair_minute_bars.sql`, as a migration) **before 2026-10-21 23:01 UTC**, when the
-   prune deletes the first lit minute's prints. The test reads PR5's paper engine's `agent_quote_inputs`: keep that engine
+   replay of the 11-08 reading fails as stored. Deviation 2 agreed (Davies, 2026-10-13: "Coinbase修复同意"; prereg §7);
+   the fix landed with it (history 2026-10-13 00:08).** Next: once `agents` has deployed it, the repair migration
+   (`backtests/cbreview/sql/repair_minute_bars.sql`'s update) **before 2026-10-21 23:01 UTC**, when the prune deletes the
+   first lit minute's prints, then its verify query reads zero wrong. The test reads PR5's paper engine's `agent_quote_inputs`: keep that engine
    running to 11-08 whatever the 10-21 review decides. Candidate: a weekend variant (CBK, in sample +34–47 %).
    The paper test itself: **Coinbase recorder and paper test "Stablecoin quotes with Euros" ("…Coinbase" until its Deviation 1): deployed
    2026-10-10 01:46 UTC; Deviation 1 (€100 a rung on the EUR books, the name, the window 2026-10-11 → 11-08) must deploy
@@ -484,6 +484,14 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11"; each oldest first.
+
+### [2026-10-13 00:08 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Davies, 2026-10-13: "Coinbase修复同意，周末变体写预注册然后上线paper trading 策略with Euros - 2 … live rewards继续停止，并继续研究
+  最好的策略，所有地方都可以改，所有数据都可以用，然后给我讲讲我再评估下".** Landed: the Coinbase prereg's Deviation 2 and the
+  `cbMinuteRow` fix with its pin (9 passed; with the old `reduce(f)` restored, 1 failed). Running: LP-BEST (`opus-high`,
+  `reviews/2026-10-13-lp-best-strategy.md`, research only). Next: the repair migration after the deploy; the weekend
+  variant "Stablecoin quotes with Euros - 2" (pre-registration, then its paper arm), after the fix, since it touches
+  `cb_quotes.ts` too.
 
 ### [2026-10-13 23:47 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The three studies landed** (sub-agents' commits rebased onto `main`, one full gate run). LP-ADVERSE: 436 fills, 6,966
