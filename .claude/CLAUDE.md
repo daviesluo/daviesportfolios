@@ -28,7 +28,10 @@ difficult work, `sonnet-high` (Sonnet, high effort; it was `sonnet-max` until Da
 newest Haiku there is, max effort) for the simplest; all three are defined in `.claude/agents/`.
 A session reads those files from its primary checkout, so keep that checkout on `origin/main`
 (on 10-07 a stale one ran every agent at max). Never a built-in agent type or another model;
-at most three at a time (the working-with-davies skill).
+at most three at a time (the working-with-davies skill). **Reuse an agent before starting a new one** (Davies,
+2026-10-13: "sub-agents优先用之前用过的，熟悉contexts还可以省tokens"): work that follows from an agent's earlier task goes back to
+that agent (SendMessage, its context intact) while it can still be reached; a fresh agent only for unrelated work or when
+the old one is gone.
 
 ## A fresh container
 

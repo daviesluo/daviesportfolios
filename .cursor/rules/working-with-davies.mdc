@@ -126,6 +126,12 @@ background agent still running, a resumed one included. With three
 running, a fourth piece of work waits for one to finish, goes to an
 agent that is already running, or is done in the main session.
 
+**Reuse a sub-agent before starting a new one.** "写在Claude.md里sub-agents优先用之前用过的，熟悉contexts还可以省tokens"
+(2026-10-13). Work that follows from an agent's earlier task (a fix its study found, a second round of its research, a
+question about its numbers) goes back to that agent with SendMessage, its context intact, instead of a new agent that has
+to read everything again. Start a fresh one only for unrelated work, or when the earlier agent can no longer be reached.
+A resumed agent still counts toward the three.
+
 **Sub-agents hand back commits; the main session lands them in one
 gate run.** "如果不同agent都要跑所有gates的话可以一起就跑一个吗"
 (2026-10-08, when four agents' full gate runs at once had four cores at
