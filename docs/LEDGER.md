@@ -515,6 +515,13 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11"; each oldest first.
 
+### [2026-10-13 13:48 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- Addendum 20 deployed (`a59d3205`); at 13:42 one mark was still missing (the Citigroup dust, a turn on the old code), at 13:45
+  none: `openBlockedBy` null, 12 BUYs resting ($114.60) in the quiet picks, one carried SELL, stop room $24.91. A `sonnet-high`
+  watcher runs a live-watch cycle every 90 minutes for 16 cycles (Q2's stop, picks, fills, rewards per filled share, the
+  error box), messaging the main session each cycle and at once on any ALERT; it fixes nothing itself. Running too:
+  DEADLINE-NO's frozen 2024 test (the PMOPPS agent) and Q2-AGE in LP-BEST's engine (the LP-BEST agent).
+
 ### [2026-10-13 13:39 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Q2 went live: restart at 2026-10-13 13:25:32 UTC** (the go statement of Addendum 19, its checks all passed; `restart_loss_usd`
   25, `max_markets` 12, `select_budget_usd` 320). The first selection read 60 books' trades (0 failed), passed over 46 busy
