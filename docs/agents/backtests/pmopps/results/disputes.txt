@@ -1,0 +1,33 @@
+disputed markets (vol >= $20k, end 2025-01 -> 2026-10, no up/down): 1187; with a 0/1 first proposal and payout: 1062
+first proposal kept: 841 of 1062 (79.2 %)
+hours from the scheduled end to the close: p10 -572.3, p50 11.9, p90 161.6
+entry at close -  6 h, buy the proposed outcome  :  534 markets, mean price 0.740, won  77.0 %, return per $1 +0.0979 [-0.0588, +0.2851] (5-95 %), total on $1 each +52.26
+entry at close -  6 h, buy the disputer's side   :  534 markets, mean price 0.260, won  23.0 %, return per $1 -0.6035 [-0.7593, -0.3454] (5-95 %), total on $1 each -322.27
+entry at close - 24 h, buy the proposed outcome  :  413 markets, mean price 0.743, won  76.5 %, return per $1 -0.0209 [-0.1578, +0.1721] (5-95 %), total on $1 each -8.62
+entry at close - 24 h, buy the disputer's side   :  413 markets, mean price 0.257, won  23.5 %, return per $1 -0.6306 [-0.7526, -0.4575] (5-95 %), total on $1 each -260.45
+entry at close - 48 h, buy the proposed outcome  :  319 markets, mean price 0.772, won  78.4 %, return per $1 -0.1371 [-0.1944, -0.0775] (5-95 %), total on $1 each -43.75
+entry at close - 48 h, buy the disputer's side   :  319 markets, mean price 0.228, won  21.6 %, return per $1 -0.7007 [-0.7870, -0.5885] (5-95 %), total on $1 each -223.51
+
+by the number of disputes (entry at close - 24 h, the proposed outcome):
+  d-p-p-d             1 markets, kept 1, return per $1 +0.0010
+  p-d-d-p-d-r         1 markets, kept 1, return per $1 +0.0010
+  p-d-p              87 markets, kept 60, return per $1 +0.3540
+  p-d-p-d           135 markets, kept 110, return per $1 -0.1836
+  p-d-p-d-p          37 markets, kept 16, return per $1 -0.5591
+  p-d-p-d-p-d         9 markets, kept 2, return per $1 -0.7776
+  p-d-p-d-p-d-p-d-p-d    1 markets, kept 0, return per $1 -1.0000
+  p-d-p-d-p-d-p-r     1 markets, kept 1, return per $1 +0.0147
+  p-d-p-d-p-d-r       2 markets, kept 2, return per $1 +0.0010
+  p-d-p-d-p-r        18 markets, kept 17, return per $1 -0.0546
+  p-d-p-d-r          17 markets, kept 15, return per $1 -0.1757
+  p-d-p-p-r           1 markets, kept 1, return per $1 +0.0010
+  p-d-p-r            84 markets, kept 76, return per $1 +0.2506
+  p-p-d-d-p           1 markets, kept 0, return per $1 -1.0000
+  p-p-d-d-p-d-p-p-d-p-d-p-d-p-d-p-d-d    1 markets, kept 1, return per $1 +0.0010
+  p-p-d-d-p-p         2 markets, kept 1, return per $1 -0.4908
+  p-p-d-d-p-p-d-d     3 markets, kept 2, return per $1 -0.3327
+  p-p-d-d-p-p-d-p-d-d    1 markets, kept 1, return per $1 +0.0010
+  p-p-d-d-p-p-r       7 markets, kept 7, return per $1 +0.1326
+  p-p-d-p-d-d-p-p-d-d    2 markets, kept 1, return per $1 -0.4995
+  p-p-d-p-d-d-p-p-d-p-d-p-d-p-d-p-d-d    1 markets, kept 1, return per $1 +0.0010
+  p-p-d-p-d-p-d-p-d-d    1 markets, kept 1, return per $1 +0.0010

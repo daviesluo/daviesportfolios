@@ -1,0 +1,22 @@
+neg-risk sets complete in the books (every market recorded): 347 events, 97,384 event-minutes; date ladders: 149 events, 336,788 event-minutes; over 11,584 recorded minutes
+
+== set: 91 episodes with a gross edge (any size), 7 with an edge after taker fees
+minutes an after-fee edge lasted: median 4, p90 81, max 81; episodes lasting 2+ minutes: 4
+taken in its first minute: $71.90 over the record ($8.94 a day); at its second (a loop a minute): $73.41 ($9.13 a day)
+the same, with at most $1,000 of sets an episode: $10.15 over the record ($1.26 a day)
+  who-wins-the-senate-pending-hormuz-agreement                 yes    legs  3 first-set edge   0.27 c,  20617.6 sets, $  55.11 (2nd min $ 62.85),   6 min, locked 23.4 days
+  who-wins-the-senate-pending-hormuz-agreement                 yes    legs  3 first-set edge   0.34 c,   8736.4 sets, $  10.52 (2nd min $  8.13),  81 min, locked 23.3 days
+  who-wins-the-senate-pending-hormuz-agreement                 yes    legs  3 first-set edge   2.73 c,    128.7 sets, $   3.51 (2nd min $  0.00),   1 min, locked 23.5 days
+  peak-severe-drought-in-minas-gerais-during-the-coffee-growin yes    legs  5 first-set edge   3.31 c,     97.8 sets, $   2.43 (2nd min $  2.43),  19 min, locked 203.7 days
+  epl-hul-eve-2026-10-11                                       yes    legs  3 first-set edge   1.10 c,     25.0 sets, $   0.27 (2nd min $  0.00),   1 min, locked -0.0 days
+  brazil-presidential-election-second-round-turnout            no     legs  5 first-set edge   5.48 c,      1.0 sets, $   0.05 (2nd min $  0.00),   1 min, locked 19.9 days
+  intuitive-surgical-isrg-q3-da-vinci-procedure-growth-2026100 no     legs  5 first-set edge   6.78 c,      0.1 sets, $   0.01 (2nd min $  0.01),   4 min, locked 11.2 days
+
+== ladder: 15 episodes with a gross edge (any size), 4 with an edge after taker fees
+minutes an after-fee edge lasted: median 1, p90 42, max 42; episodes lasting 2+ minutes: 1
+taken in its first minute: $0.46 over the record ($0.06 a day); at its second (a loop a minute): $0.40 ($0.05 a day)
+the same, with at most $1,000 of sets an episode: $0.46 over the record ($0.06 a day)
+  jynxzi-ron-and-los-beat-minecraft-byptptpt                   7<8    legs  2 first-set edge   0.40 c,    100.0 sets, $   0.40 (2nd min $  0.40),  42 min, locked 10.4 days
+  iran-releases-trump-hormuz-voicemail-byptptpt                0<1    legs  2 first-set edge   1.00 c,      6.0 sets, $   0.06 (2nd min $  0.00),   1 min, locked 23.0 days
+  ilhan-omar-arrested-byptptpt                                 0<1    legs  2 first-set edge   0.12 c,      1.1 sets, $   0.00 (2nd min $  0.00),   1 min, locked 80.4 days
+  spacex-becomes-a-us-mobile-carrier-by                        0<1    legs  2 first-set edge   0.00 c,     25.0 sets, $   0.00 (2nd min $  0.00),   1 min, locked 448.4 days

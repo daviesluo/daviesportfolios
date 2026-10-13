@@ -1,0 +1,7 @@
+read 2026-10-13 02:48 UTC: 17670 rewarded markets, $255,395 a day (native $255,166, sponsored $229 = 0.1 %)
+markets with a sponsored rate: 22; sponsored only (no native rate): 2, $7 a day
+  sponsored $0-10 a day: 19 markets, $57
+  sponsored $10-50 a day: 1 markets, $12
+  sponsored $50-200 a day: 2 markets, $160
+  sponsored $200-1e+09 a day: 0 markets, $0
+largest sponsored rates: [100.0, 60.0, 12.5, 10.0, 5.0] their min sizes: [100, 60, 100, 100, 100]
