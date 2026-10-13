@@ -342,9 +342,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
 12. **The minute record's defect (2026-10-12, `reviews/2026-10-12-coinbase-first-days.md`): `cbMinuteRow`'s
    `reduce(Math.min)` stored null extremes for every side with two or more prints (7,216 of 12,802 printed minutes), so bar 1's
    replay of the 11-08 reading fails as stored. Deviation 2 agreed (Davies, 2026-10-13: "Coinbase修复同意"; prereg §7);
-   the fix landed with it (history 2026-10-13 00:08).** Next: once `agents` has deployed it, the repair migration
-   (`backtests/cbreview/sql/repair_minute_bars.sql`'s update) **before 2026-10-21 23:01 UTC**, when the prune deletes the
-   first lit minute's prints, then its verify query reads zero wrong. The test reads PR5's paper engine's `agent_quote_inputs`: keep that engine
+   the fix landed with it (history 2026-10-13 00:08).** The fix deployed 00:10:57 UTC 10-13; the repair is
+   `0117_cb_minute_extremes_repair.sql`, pushed after it. Next: read `migrations.yml`'s run, then the review's verify query
+   (`backtests/cbreview/sql/repair_minute_bars.sql`, the select) must read zero wrong. The test reads PR5's paper engine's `agent_quote_inputs`: keep that engine
    running to 11-08 whatever the 10-21 review decides. Candidate: a weekend variant (CBK, in sample +34–47 %).
    The paper test itself: **Coinbase recorder and paper test "Stablecoin quotes with Euros" ("…Coinbase" until its Deviation 1): deployed
    2026-10-10 01:46 UTC; Deviation 1 (€100 a rung on the EUR books, the name, the window 2026-10-11 → 11-08) must deploy
