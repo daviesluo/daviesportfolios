@@ -1,6 +1,10 @@
 {
-  "study": "PMOPPS: what else on Polymarket is worth a new paper test (2026-10-13)",
-  "review": "docs/agents/reviews/2026-10-13-polymarket-opportunities.md",
+  "study": "PMOPPS: what else on Polymarket is worth a new paper test (2026-10-13); DEADLINE-NO, its one lead, tested on 2024 and closed",
+  "review": [
+    "docs/agents/reviews/2026-10-13-polymarket-opportunities.md",
+    "docs/agents/reviews/2026-10-13-deadline-no-2024-prereg.md",
+    "docs/agents/reviews/2026-10-13-deadline-no-2024-result.md"
+  ],
   "reads": "keyless public GETs only (Gamma /markets/keyset, /events, /markets; data API /v2/resolutions; CLOB /prices-history, /rewards/markets/current), 2026-10-13 02:30-04:30 UTC; pm-rec's archive (books and markets dumps, 2026-10-04 19:00 -> 10-12 23:59 UTC, every object's sha256 checked against pm_rec_archive) downloaded by an earlier study into the scratch folder; one read-only SQL select (pm_lp_reward_days' paid, sponsored and rebates)",
   "run_order": [
     "PM_DATA=<scratch> python3 -I docs/agents/backtests/pmopps/scripts/pull_closed.py 2025-01 2026-10",
@@ -10,14 +14,19 @@
     "PM_DATA=<scratch> python3 -I -u docs/agents/backtests/pmopps/scripts/disputes.py > results/disputes.txt",
     "PM_DATA=<scratch> python3 -I -u docs/agents/backtests/pmopps/scripts/theta.py > results/theta.txt",
     "PM_DATA=<scratch> python3 -I docs/agents/backtests/pmopps/scripts/pool_age.py <lpbest daytable_api.csv.gz> > results/pool_age.txt",
-    "PM_DATA=<scratch> python3 -I docs/agents/backtests/pmopps/scripts/sponsored.py > results/sponsored.txt (a live snapshot: it differs on every run)"
+    "PM_DATA=<scratch> python3 -I docs/agents/backtests/pmopps/scripts/sponsored.py > results/sponsored.txt (a live snapshot: it differs on every run)",
+    "DEADLINE-NO (frozen at 74a6833b, 2026-10-13 13:45:25 UTC): pull_closed.py 2024-01 2024-12, then deadline_no.py 2024 > results/deadline_no_2024.txt",
+    "deadline_no.py 2025 / 2026 (every market, prices cache seeded from theta_raw.json) > results/deadline_no_2025_full.txt / _2026_full.txt",
+    "deadline_robust.py > results/deadline_robust.txt (after the verdict; description only)"
   ],
   "seeds": {
     "bootstrap": 20261013
   },
   "sha256": {
+    "scripts/deadline_no.py": "a8d664e4c39e2d5514261f0caa0433bfdf54cc0aeeaae77b1338a982a9312cde",
+    "scripts/deadline_robust.py": "1b33348726bd97d11b80fe9b886536278db29721bd1760eddadb8a09b4a46f19",
     "scripts/disputes.py": "094f1204e8dcc92df6457bead6730360629feffdf2c9573bac4168a857e35326",
-    "scripts/manifest.py": "b584a96a877fcf5ec02a3b39b8997f1cbf75a215cc8761ad804d99bc6ec0a354",
+    "scripts/manifest.py": "defc4b226e74c00d82fe2765ee221ef4a564a99a62472b2a65d8f6e724b8f5f6",
     "scripts/pmnet.py": "49b832b4f960c2742ffae621bacb453edef9ec4394de25244e3aff964876e02c",
     "scripts/pool_age.py": "7f9117b2572a83b2ac5bd3a1ee9931ee946aec9dc53e1468ca9bf522afd7422c",
     "scripts/pull_closed.py": "c5c153014c5a39a49991b2980ea5a895e4164c29968588930a10967be4a2fadc",
@@ -26,6 +35,10 @@
     "scripts/sets_summary.py": "5c6ae947949faa7b136afb533e853099cac70e97dbd23d039bb3c5db9b6c10f3",
     "scripts/sponsored.py": "0f2888bf820de58fd1532c10948a3332f09930b02424bf44a983ef5ab7fff621",
     "scripts/theta.py": "2c7faf9413964ec080302b4abd52d87eab5066b5ca74d67a92eb2e3018e5badc",
+    "results/deadline_no_2024.txt": "9f0b3cb5f0b6275a7f44ca936e93ecd3541cc5ba770a2136ef0815e3393e0f5d",
+    "results/deadline_no_2025_full.txt": "bde1f0cbe3249a270f4e2787ec0f64b4cca53d8f959a588f8515720c03a5ee79",
+    "results/deadline_no_2026_full.txt": "9ef32e6c4f3f8aaff5e518b4e77be4525aa3f3643475622d939549f279f4b379",
+    "results/deadline_robust.txt": "e0e56c14c9153b9c7679960dcb482e6969bd7fd470fbdf43eb7f926862442053",
     "results/disputes.txt": "6d3ecf80e49c033a93be223129ca1eb8f56206803459eefb2f428b772b537333",
     "results/pool_age.txt": "814751562a417df4d3819fd2905af2407accdf53c6c0a30bd138290ae3bdb3a5",
     "results/sets.txt": "155400fd020e9577a66c6430becd056b244568aee39ef083f6656230deb0738b",
@@ -33,6 +46,18 @@
     "results/theta.txt": "20b8b36331c81d085c59a667501a29b75ed4fa83c4f80399b8bdf1d76571d605"
   },
   "scratch_inputs_sha256": {
+    "closed/2024-01.json": "3d6f62635bca93586befe63e52a74b18f0e6dc42c5e62205451783e4d0ccbc5e",
+    "closed/2024-02.json": "b45e500e5abdaaae9478a82bc74f4d750412395674d1cb5f9b58396bcfdc6026",
+    "closed/2024-03.json": "1f699be6183ed82ab4509469312e46caa2208b8177e6a2de488a327d0d9fe180",
+    "closed/2024-04.json": "bdc5fd270749d50a1ef87f7b58747bc98345ccc0e00096c557221a75840c8a39",
+    "closed/2024-05.json": "e3e201a35b67f48a5eb08b8b2cb94f0f57d8da02e5193f11b90ebc43174e371e",
+    "closed/2024-06.json": "7d36120db11110eab58f43fa8b5536e944c578c0e9756bd2d6360da8b53d535d",
+    "closed/2024-07.json": "e5d1c504c4bf50deccb4f6387ae4e6e9178ee968ad53b35d9e92f2f8e5c87f06",
+    "closed/2024-08.json": "090962dbf95218f76a611d7071b2518e4925ec0d191c519aa0b57f0da7dd79a4",
+    "closed/2024-09.json": "7d2752bb1294a417eb235e8782bfa2abecdfdd16b18f1c654ca3bb6a39979dfd",
+    "closed/2024-10.json": "b15b8342330b3fcf1429ee6951966b6f111fe638b0375df4560a06aaefb7382e",
+    "closed/2024-11.json": "cc12f1b16c07f133f2cd883b1f74289220aa7645397216a3e2c95fd6fb2eed6b",
+    "closed/2024-12.json": "8a6811e474ad5b995cbd0eb066ae113277ff4d946fb4699bf9fb8a6691712988",
     "closed/2025-01.json": "ef8ab45ceaaac61d3faa2e8ec37186d7cf221d7bae33271adc26e720a693052d",
     "closed/2025-02.json": "3ed12eaa6ecf7ceada48a121a1e853146472fccdb393a100b9dd24037e2e2f35",
     "closed/2025-03.json": "5358ad22ba63a0533a151dfc56b84baaeec3c293dffd36fa31e8e1bf7430b455",
@@ -63,6 +88,17 @@
     "theta.json": "e0bc23587aac450d188541736b6fdd29429909bd90879f857961a3383efdd826",
     "created.json": "f30fba69d381f69314cb874ca3d60d461e77250914dc4c7e5d30b4c929e61ed2",
     "sponsored.json": "790c9c043cb04f276bba109dddbdc250fd4e75fb69d8be6a7460b2054a743880",
+    "dno_raw_2024.json": "12b3893e4a79f71fb607ae22d8e52eafbff2107cd039cda7c83e4bf59eb40591",
+    "dno_raw_2025.json": "2e8e88b15f880203124bdc2eb15703586b0efa6c0f25aec6dc95874b2f132db8",
+    "dno_raw_2026.json": "6e0dbc1cebd83ce7adf3435d17feb860eea6eef8de6e115ba0c545a64a4cc322",
+    "dno_tape_2024.json": "b77268f629b10bbe2971ee2a37ce48f7a5b0e1aed9611cdf2cfc30e98872dcf5",
+    "dno_tape_2025.json": "3a3234a4263cb7395f45e5a11ff0a5b519d689fbc3add84eca67cb9c26352de3",
+    "dno_tape_2026.json": "5ca6422408a7a64e6f03fc950a421b4bae452ee62cde329f38c6c3f11d015058",
+    "dno_trades_2024.json": "7fa630b3188fe8aade184e05dd5d410e63d39f1ef465550b602210faa8e003a2",
+    "dno_trades_2025.json": "41cdf3fc22ee4cbe591f6d981cc59516a582f6abf52d7e03c28d285d9236b34e",
+    "dno_trades_2025_half.json": "624700734b4307b6b9a903ccdc5c7123b30627e840d88548cedc3311c2041929",
+    "dno_trades_2026.json": "441a4b2f478ab2c0db552a55f74e3facc694e0b3d867a84259fb569201cb23c1",
+    "dno_trades_2026_half.json": "b1a95d42ad1758f970df7ba15f7d1e5ce439e9843b16cd41e519b2c85b677fa9",
     "lpbest daytable_api.csv.gz (LP-BEST's scripts/daytable.py output)": "4404763ad18559405854bf3dd7f528ceeb8c2b9aab712aa8e5c97c7d4cf043f0"
   }
 }

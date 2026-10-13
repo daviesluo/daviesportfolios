@@ -1,0 +1,15 @@
+prices 1000 3965
+prices 1500 3965
+prices 2500 3965
+prices 3000 3965
+prices 3500 3965
+DEADLINE-NO 2026: universe 3965 markets; a price at T - 7 d: 2642
+T - 7 d, YES in [0.20, 0.50): 234 trades in 185 events, return per $1 +0.0182 [-0.0608, +0.0927] (event bootstrap, 2000 draws, seed 20261013); won 70.9 %
+  H1: 182 trades, mean +0.0551
+  H2: 52 trades, mean -0.1108
+  largest event: who-will-meet-with-iran-by-april-30 +2.715 of a total +4.264 (63.7 %)
+BAR: 1 trades/events PASS; 2 mean and bound FAIL; 3 halves FAIL; 4 concentration FAIL => FAIL
+sign check, T - 14 d: 300 trades in 230 events, mean -0.0182 [-0.0846, +0.0488] -> holds (mean >= -0.05)
+with today's taker rates by category: mean +0.0134; categories: crypto 2, geo/war 77, other 73, politics 45, sports 10, tech/AI 27
+the tape, 6 h either side of the entry: 204 of 234 trades had takers buying NO (or selling YES)
+  their median NO price less 1 - YES: median +1.40 c (p10 -3.25, p90 +8.21); assumed +1.00 c. Shares they took within 2 c of our price: median 351, p10 5

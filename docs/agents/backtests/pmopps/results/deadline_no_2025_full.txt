@@ -1,0 +1,11 @@
+prices 2500 2732
+DEADLINE-NO 2025: universe 2732 markets; a price at T - 7 d: 1731
+T - 7 d, YES in [0.20, 0.50): 189 trades in 144 events, return per $1 +0.0848 [+0.0089, +0.1561] (event bootstrap, 2000 draws, seed 20261013); won 74.6 %
+  H1: 64 trades, mean -0.0269
+  H2: 125 trades, mean +0.1420
+  largest event: december-inflation-us-monthly +2.602 of a total +16.024 (16.2 %)
+BAR: 1 trades/events PASS; 2 mean and bound PASS; 3 halves FAIL; 4 concentration PASS => FAIL
+sign check, T - 14 d: 192 trades in 152 events, mean +0.0511 [-0.0220, +0.1224] -> holds (mean >= -0.05)
+with today's taker rates by category: mean +0.0717; categories: crypto 13, geo/war 48, other 66, politics 19, sports 36, tech/AI 7
+the tape, 6 h either side of the entry: 168 of 189 trades had takers buying NO (or selling YES)
+  their median NO price less 1 - YES: median +1.00 c (p10 -1.00, p90 +12.00); assumed +1.00 c. Shares they took within 2 c of our price: median 619, p10 0

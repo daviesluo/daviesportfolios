@@ -1,0 +1,64 @@
+DEADLINE-NO robustness (after the frozen 2024 verdict; description only). Return per $1 [event bootstrap 5-95 %].
+
+== 1. the entry day, YES in [0.20, 0.50)
+  T -  5 d, 2024                        83 trades    62 events  +0.1050 [-0.0033, +0.2130]  won  75.9 %
+  T -  5 d, 2025                       176 trades   139 events  +0.0374 [-0.0345, +0.1081]  won  72.2 %
+  T -  5 d, 2026                       233 trades   177 events  -0.0484 [-0.1267, +0.0303]  won  66.1 %
+  T -  5 d, pooled                     492 trades   378 events  +0.0082 [-0.0382, +0.0554]  won  69.9 %
+  T -  6 d, 2024                        78 trades    58 events  +0.0435 [-0.0704, +0.1532]  won  71.8 %
+  T -  6 d, 2025                       184 trades   147 events  +0.0316 [-0.0398, +0.1033]  won  72.3 %
+  T -  6 d, 2026                       244 trades   185 events  -0.0483 [-0.1218, +0.0266]  won  66.8 %
+  T -  6 d, pooled                     506 trades   390 events  -0.0051 [-0.0547, +0.0431]  won  69.6 %
+  T -  7 d, 2024                        71 trades    59 events  +0.0558 [-0.0618, +0.1737]  won  73.2 %
+  T -  7 d, 2025                       189 trades   144 events  +0.0848 [+0.0089, +0.1561]  won  74.6 %
+  T -  7 d, 2026                       234 trades   185 events  +0.0182 [-0.0608, +0.0927]  won  70.9 %
+  T -  7 d, pooled                     494 trades   388 events  +0.0491 [-0.0006, +0.0949]  won  72.7 %
+  T -  8 d, 2024                        64 trades    48 events  -0.0747 [-0.2071, +0.0560]  won  65.6 %
+  T -  8 d, 2025                       176 trades   138 events  +0.0455 [-0.0315, +0.1186]  won  72.7 %
+  T -  8 d, 2026                       265 trades   200 events  -0.0095 [-0.0803, +0.0648]  won  67.9 %
+  T -  8 d, pooled                     505 trades   386 events  +0.0014 [-0.0460, +0.0502]  won  69.3 %
+  T -  9 d, 2024                        61 trades    50 events  -0.0971 [-0.2338, +0.0270]  won  65.6 %
+  T -  9 d, 2025                       173 trades   134 events  +0.0381 [-0.0387, +0.1118]  won  72.3 %
+  T -  9 d, 2026                       253 trades   195 events  -0.0088 [-0.0797, +0.0610]  won  69.6 %
+  T -  9 d, pooled                     487 trades   379 events  -0.0032 [-0.0534, +0.0462]  won  70.0 %
+  T - 10 d, 2024                        56 trades    42 events  -0.0528 [-0.1859, +0.0769]  won  67.9 %
+  T - 10 d, 2025                       176 trades   135 events  +0.0042 [-0.0841, +0.0871]  won  69.3 %
+  T - 10 d, 2026                       264 trades   198 events  -0.0618 [-0.1345, +0.0021]  won  66.3 %
+  T - 10 d, pooled                     496 trades   375 events  -0.0374 [-0.0874, +0.0086]  won  67.5 %
+  T - 14 d, 2024                        52 trades    45 events  +0.1716 [+0.0223, +0.3024]  won  80.8 %
+  T - 14 d, 2025                       192 trades   152 events  +0.0511 [-0.0220, +0.1224]  won  71.9 %
+  T - 14 d, 2026                       300 trades   230 events  -0.0182 [-0.0846, +0.0488]  won  68.3 %
+  T - 14 d, pooled                     544 trades   427 events  +0.0244 [-0.0232, +0.0706]  won  70.8 %
+
+== 2. the band at T - 7 d
+  [0.15, 0.20) 2024                     29 trades    28 events  +0.0677 [-0.0538, +0.1544]  won  89.7 %
+  [0.15, 0.20) 2025                     67 trades    61 events  -0.0182 [-0.1198, +0.0674]  won  82.1 %
+  [0.15, 0.20) 2026                    107 trades    97 events  -0.0543 [-0.1331, +0.0229]  won  79.4 %
+  [0.15, 0.20) pooled                  203 trades   186 events  -0.0249 [-0.0799, +0.0276]  won  81.8 %
+  [0.20, 0.50) 2024                     71 trades    59 events  +0.0558 [-0.0618, +0.1737]  won  73.2 %
+  [0.20, 0.50) 2025                    189 trades   144 events  +0.0848 [+0.0089, +0.1561]  won  74.6 %
+  [0.20, 0.50) 2026                    234 trades   185 events  +0.0182 [-0.0608, +0.0927]  won  70.9 %
+  [0.20, 0.50) pooled                  494 trades   388 events  +0.0491 [-0.0006, +0.0949]  won  72.7 %
+  [0.50, 0.60) 2024                     11 trades    11 events  -0.2255 [-0.7886, +0.3396]  won  36.4 %
+  [0.50, 0.60) 2025                     20 trades    20 events  -0.0584 [-0.4595, +0.3350]  won  45.0 %
+  [0.50, 0.60) 2026                     59 trades    57 events  -0.0955 [-0.3209, +0.1502]  won  42.4 %
+  [0.50, 0.60) pooled                   90 trades    88 events  -0.1032 [-0.2887, +0.0794]  won  42.2 %
+
+== 3. by category, the frozen rule, pooled 2024-2026
+  crypto                                22 trades    21 events  +0.1699 [-0.0410, +0.3591]  won  81.8 %
+  geo/war                              134 trades   112 events  +0.0548 [-0.0441, +0.1564]  won  73.9 %
+  other                                170 trades   134 events  +0.0443 [-0.0293, +0.1226]  won  72.9 %
+  politics                              84 trades    66 events  +0.0263 [-0.0979, +0.1503]  won  71.4 %
+  sports                                48 trades    24 events  -0.0246 [-0.1478, +0.1013]  won  62.5 %
+  tech/AI                               36 trades    31 events  +0.1283 [-0.0629, +0.3097]  won  77.8 %
+
+== 4. realistic fills, the frozen rule: the tape's price for NO 6 h either side of the entry, today's taker rate
+  as frozen (1 - YES + 1 c, own fee)   494 trades   388 events  +0.0491 [-0.0006, +0.0949]  won  72.7 %
+  tape median + today's fee            438 trades   351 events  +0.0225 [-0.0279, +0.0748]  won  73.1 %
+  tape 75th pct + today's fee          438 trades   351 events  -0.0015 [-0.0499, +0.0496]  won  73.1 %
+  trades with no NO taker within 6 h: 56 of 494 (left out of the two tape rows)
+
+== 5. clustering, the frozen rule pooled
+  494 trades in 388 events; 78 events hold 2+ trades (184 trades); in 37 of them every trade won or every trade lost
+  loss rate 27.3 %; within-event correlation of losses -0.139; size-weighted trades an event 1.57; effective independent bets 536 of 494
+  the five events that lost most: 2025:iran-military-response-by -2.00 (2 trades); 2025:will-russia-capture-novopavlivka-by-october-31-454 -2.00 (2 trades); 2026:claude-mythos-released-by -2.00 (2 trades); 2026:who-will-trump-publicly-insult-by-june-30 -1.59 (3 trades); 2024:hamas-lose-power-in-gaza-before-february -1.00 (1 trades)

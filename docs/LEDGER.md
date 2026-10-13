@@ -526,6 +526,16 @@ archived 2026-10-11"; each oldest first.
   addendum now, not dropped: draft B′, an offline replay on the live window plus the live record split by age, decided at
   day 14; an early flag to Davies if a −$10 day comes from markets under 3 days old. Nothing changed in code or config.
 
+### [2026-10-13 14:26 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **DEADLINE-NO is closed: noise** (the PMOPPS agent, on Davies' "好的 继续深度检验和验证这两个"). Frozen first, alone:
+  `reviews/2026-10-13-deadline-no-2024-prereg.md` + `backtests/pmopps/scripts/deadline_no.py` (sha256 `a8d664e4…`, theta.py's
+  rule exactly, reproduced to the fourth decimal on 2025/2026), commit `74a6833b` at 13:45:25 UTC; the first 2024 file was
+  written at 13:45:32. **2024 FAILS** (`reviews/2026-10-13-deadline-no-2024-result.md`): 71 trades in 59 events (bar 150/100),
+  +5.6 % [−6.2, +17.4], one event 29.9 %. Deep check (description only): every 2026 market reads +1.8 % [−6.1, +9.3] (the
+  held-out +7.1 % was the one-in-two sample); pooled 2024–26 T − 7 d +4.9 % [−0.1, +9.5] while T − 5/6/8/9/10 d read −3.7 to
+  +0.8 %; the tape's real NO price plus today's fees leave +2.2 % (median) / −0.2 % (p75). No forward paper test drafted.
+  The other lead (Q2 + age ≥ 3 days) was not this agent's part.
+
 ### [2026-10-13 13:48 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - Addendum 20 deployed (`a59d3205`); at 13:42 one mark was still missing (the Citigroup dust, a turn on the old code), at 13:45
   none: `openBlockedBy` null, 12 BUYs resting ($114.60) in the quiet picks, one carried SELL, stop room $24.91. A `sonnet-high`

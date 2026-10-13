@@ -1,0 +1,12 @@
+prices 0 971
+prices 500 971
+DEADLINE-NO 2024: universe 971 markets; a price at T - 7 d: 632
+T - 7 d, YES in [0.20, 0.50): 71 trades in 59 events, return per $1 +0.0558 [-0.0618, +0.1737] (event bootstrap, 2000 draws, seed 20261013); won 73.2 %
+  H1: 19 trades, mean +0.1313
+  H2: 52 trades, mean +0.0283
+  largest event: trump-vs-harris-polling-margin-next-friday-oct-25 +1.184 of a total +3.964 (29.9 %)
+BAR: 1 trades/events FAIL; 2 mean and bound FAIL; 3 halves PASS; 4 concentration FAIL => FAIL
+sign check, T - 14 d: 52 trades in 45 events, mean +0.1716 [+0.0223, +0.3024] -> holds (mean >= -0.05)
+with today's taker rates by category: mean +0.0423; categories: crypto 7, geo/war 9, other 31, politics 20, sports 2, tech/AI 2
+the tape, 6 h either side of the entry: 66 of 71 trades had takers buying NO (or selling YES)
+  their median NO price less 1 - YES: median +1.50 c (p10 -1.00, p90 +10.00); assumed +1.00 c. Shares they took within 2 c of our price: median 804, p10 12
