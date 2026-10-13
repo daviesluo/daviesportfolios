@@ -822,6 +822,39 @@ describe('pg_cron jobs', () => {
     expect(sql).not.toMatch(/grant [^;]* to (anon|authenticated)/i);
   });
 
+  // 0120 (Davies, 2026-10-13: "目前paper testing里的reward quotes全关了吧？…"; none moved to the background): every paper
+  // Reward quotes call off, the live path and the recorder kept, the programme factor's refresh unscheduled, nothing
+  // dropped or deleted.
+  it("turns every paper Reward quotes call off and keeps live-prep's live path and pm-rec on (0120)", () => {
+    const T = FILES.find((f) => /^0120_reward_quotes_paper_off\.sql$/.test(f)) ?? '';
+    expect(T).not.toBe('');
+    const listBefore = replayList(sqlsOf(FILES.filter((f) => f < T))), listAfter = replayList(sqlsOf(FILES.filter((f) => f <= T)));
+    const OFF = [
+      'agents?action=pmrwc', 'agents?action=pmrwc-select', 'agents?action=pmrwc-e', 'agents?action=pmrwc-x',
+      'agents?action=pmmid&forceFunctionRegion=eu-west-1', 'agents?action=pmmidprep', 'agents?action=pmlpprep', 'agents?action=pmprog',
+    ];
+    const KEPT = ['agents?action=pmlp&forceFunctionRegion=eu-west-1', 'agents?action=pmlpreserve', 'agents?action=pmrec', 'agents?action=pmrec-meta'];
+    // Each was on, and is off after; nothing else of the list moves (no row added, deleted or otherwise changed).
+    expect(OFF.map((p) => listBefore.find((r) => r.path === p)?.enabled)).toEqual(OFF.map(() => true));
+    expect(listAfter).toEqual(listBefore.map((r) => (OFF.includes(r.path) ? { ...r, enabled: false } : r)));
+    expect(KEPT.map((p) => listAfter.find((r) => r.path === p)?.enabled)).toEqual([true, true, true, true]);
+    // Every Polymarket call still on is the live path's or the recorder's (RW's four went off by 0103's function, which
+    // the replay does not run: its rows read on here).
+    const RW_BY_FUNCTION = ['agents?action=pmrw', 'agents?action=pmrw-select', 'agents?action=pmrw-e', 'agents?action=pmrw-x'];
+    expect(listAfter.filter((r) => r.enabled && /action=pm/.test(r.path) && !RW_BY_FUNCTION.includes(r.path)).map((r) => r.path).sort()).toEqual([...KEPT].sort());
+    // One job leaves: the programme factor's refresh, which priced only the paper rows. Every other job stays as it was.
+    const jobsBefore = cronJobs(FILES.filter((f) => f < T)), jobsAfter = cronJobs(FILES.filter((f) => f <= T));
+    expect([...jobsBefore.keys()].filter((n) => !jobsAfter.has(n))).toEqual(['pm-prog-refresh']);
+    expect([...jobsAfter.keys()].filter((n) => !jobsBefore.has(n))).toEqual([]);
+    for (const [n, j] of jobsAfter) expect([n, j]).toEqual([n, jobsBefore.get(n)]);
+    expect(jobsAfter.has('pm-prog-prune') && jobsAfter.has('pm-paths-prune')).toBe(true);
+    // It writes `enabled = false` on the list and nothing else: no insert, delete, drop, truncate or other update.
+    const sql = fs.readFileSync(path.join(DIR, T), 'utf8').replace(/--[^\n]*/g, '');
+    expect(sql).not.toMatch(/\b(insert|delete|truncate|drop|alter|create)\b/i);
+    expect(count(sql, 'update ')).toBe(1);
+    expect(norm(sql)).toMatch(/^set lock_timeout = '3s'; update public\.edge_calls set enabled = false where path in \([^)]*\); select cron\.unschedule\('pm-prog-refresh'\); reset lock_timeout;$/);
+  });
+
   it("keeps the three order paths' dry-run record 14 days and watches the database's size, by jobs that call nothing (0101)", () => {
     // review F4 (2026-10-08): what each delete removes and why it is safe is in the migration's header; checked on PGlite.
     const T = FILES.find((f) => /^\d{4}_pm_paths_retention\.sql$/.test(f)) ?? '';

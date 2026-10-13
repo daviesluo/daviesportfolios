@@ -196,7 +196,7 @@ import { PREP_INSTANCE, runPmPrep, type PrepInstance } from "./pm_prep.ts";
 import { PM_MID_INSTANCE, PREP_MID_INSTANCE } from "./pm_mid.ts";
 import { PM_LP_INSTANCE, PREP_LP_INSTANCE } from "./pm_lp.ts";
 import { runPmLpReserve } from "./pm_lp_reserve.ts";
-import { atLiveR, LP_LIVE_CLOSE_COLUMNS, LP_LIVE_CLOSE_MINUTES, LP_LIVE_FILL_COLUMNS, LP_LIVE_HOUR_COLUMNS, LP_LIVE_HOURS_VIEW, LP_LIVE_MARKET_COLUMNS, LP_LIVE_MINUTE_COLUMNS, LP_LIVE_ORDER_COLUMNS, LP_LIVE_REWARD_COLUMNS, lpCloseMinutes, lpLiveR, lpLiveSince, lpLiveSummary, type LpLiveRPrice, type LpLiveCloseRow, type LpLiveConfigRow, type LpLiveFillRow, type LpLiveHourRow, type LpLiveMarketRow, type LpLiveMinuteRow, type LpLiveOrderRow, type LpLiveRewardDayRow, type LpLiveStateRow, type LpLiveStopRow } from "./pm_lp_live_view.ts";
+import { LP_LIVE_CLOSE_COLUMNS, LP_LIVE_CLOSE_MINUTES, LP_LIVE_FILL_COLUMNS, LP_LIVE_HOUR_COLUMNS, LP_LIVE_HOURS_VIEW, LP_LIVE_MARKET_COLUMNS, LP_LIVE_MINUTE_COLUMNS, LP_LIVE_ORDER_COLUMNS, LP_LIVE_REWARD_COLUMNS, lpCloseMinutes, lpLiveSince, lpLiveSummary, type LpLiveCloseRow, type LpLiveConfigRow, type LpLiveFillRow, type LpLiveHourRow, type LpLiveMarketRow, type LpLiveMinuteRow, type LpLiveOrderRow, type LpLiveRewardDayRow, type LpLiveStateRow, type LpLiveStopRow } from "./pm_lp_live_view.ts";
 import { PREP_STRESS_TABLE, recordPrepStress, stressLayer } from "./pm_prep_stress.ts";
 import { prepSummary, type PrepDayRow, type PrepStressDayRow, type PrepFillRow, type PrepMarketRow, type PrepMinuteRow, type PrepRateRow, type PrepStateRow } from "./pm_prep_view.ts";
 import { JEV_QUESTION_VERSION, positionFromFills, unrealisedUsd, type CategoricalState, type Position, type StrategyKind } from "../_shared/agents_strategy.ts";
@@ -222,7 +222,7 @@ import { runPmrwE, RWCE_REPLAY } from "./pmrw_e.ts";
 import { parseRwxSpecs, researchRwx, runPmrwX, RWCX_REPLAY, type RwxReplay } from "./pmrw_x.ts";
 import { booksDelayMs, runBooks } from "./books.ts";
 import { PM_REC_VENUE_TIMEOUT_MS, pmRecStorage, runPmRec, runPmRecMeta } from "./pm_book_rec.ts";
-import { atProgramme, progFx, runPmProg, type PmProgFactorRow } from "./pm_prog.ts";
+import { runPmProg } from "./pm_prog.ts";
 import { runCjRec } from "./cj_rec.ts";
 import { runCbRec, type CbRecState } from "./cb_rec.ts";
 import { cbBooksDelayMs, runCbBooks } from "./cb_books.ts";
@@ -2156,38 +2156,12 @@ async function dashboard(now: number) {
     } catch { return null; }
   })();
 
-  // RW's paper test on Polymarket (`0053`, reference §4 item 36), "Reward quotes": a row of TESTING STRATEGIES with a page
-  // of its own, with RW-E ("variant-1", `0056`) and its variants after it, all read by `readRwPage`. From RW-C's first
-  // minute, 2026-10-09 00:00 UTC, every one of them reads RW-C's run, round 2 of RW's rule (Davies, 2026-10-08: "合并进
-  // Reward quotes"), and RW-C is no row of its own, before or after (`RW_PAGE_SWITCH`).
   // Live-prep's real-money book since it went live (2026-10-09), a row of LIVE with a page of its own: its live rows alone.
-  // Read first: its R (`rWholeLive`, `lpLiveR` on its readout's whole formula) prices every TESTING Reward quotes row below.
+  // The paper Reward quotes rows (RW-C's "Reward quotes", its variant-1 and variants 2–4, mid-pool, live-prep's paper layer)
+  // are not read since 0120 (Davies, 2026-10-13: "目前paper testing里的reward quotes全关了吧？…不用在网站上显示了"): their calls
+  // stopped and no page row shows them, so neither their tables, the programme factors (0115) that priced them nor the
+  // live R they were shown at is read here. LIVE's row reads only its own (`readLpLive`).
   const lpLive = await readLpLive(d, now);
-  // The live R every paper Reward quotes row is shown at (Addendum 10, Davies: "确保r更新后所有testing的策略都用这个最新的来算他们
-  // 的r"): read once, here, and passed to each (`atLiveR`); before live-prep's first payout, the prior's. It is the R over
-  // the whole formula, 10-09 like for like, since a paper row's formula is whole (LP-OBS-DEEP's defect 2, 2026-10-11: the
-  // scored R priced them about 1.1 % high, up to 4.6 %). The pre-registered readings keep their own frozen R: none of them
-  // reads the dashboard.
-  const liveR: LpLiveRPrice = lpLive?.rWholeLive ?? lpLiveR([], now, "whole");
-  // The programme factor (0115, pm_prog.ts; Davies: "之前testing的每一个不都赚了很多吗"): each row's formula rescaled to the
-  // rate the listing showed each 15 minutes, before the live R prices it (that R was measured on the formula so read).
-  // RW-C's factors serve variant-1 and the RW-X arms too: they replay RW-C's minutes. No factors read: each row as before.
-  const progRows = await d.selectAll<PmProgFactorRow>("pm_prog_factors", "select=source,day,cond,formula,formula_true,uncovered,read_through&order=source.asc,day.asc,cond.asc").catch(() => [] as PmProgFactorRow[]);
-  const todayDay = new Date(dayStartMs).toISOString().slice(0, 10);
-  // deno-lint-ignore no-explicit-any
-  const priced = <T extends Record<string, any> | null | undefined>(s: T, source: "rwc" | "prep" | "midprep" | "lpprep"): T => {
-    if (!s || !progRows.length) return atLiveR(s, liveR);
-    const from = typeof s.startedAt === "string" ? s.startedAt.slice(0, 10) : null;
-    return atLiveR(atProgramme(s, progFx(progRows, source, from), todayDay), liveR);
-  };
-  const page = await readRwPage(d, now, dayStartMs);
-  const rw = priced(page.rw, "rwc"), rwe = priced(page.rwe, "rwc"), rwx = page.rwx.map((x) => priced(x, "rwc"));
-  // "Reward quotes small-pool" (`0077`) and "Reward quotes mid-pool" (`0081`): an order path's dry-run filled on paper,
-  // each a row of TESTING with RW's page, each read by `readPrepSummary` from its own instance's tables.
-  const prep = priced(await readPrepSummary(d, PREP_INSTANCE, now, dayStartMs), "prep");
-  const prepMid = priced(await readPrepSummary(d, PREP_MID_INSTANCE, now, dayStartMs), "midprep");
-  // "Reward quotes live-prep" (`0091`): the path on RW's universe with live-prep's rules, its paper layer read the same way.
-  const prepLp = priced(await readPrepSummary(d, PREP_LP_INSTANCE, now, dayStartMs), "lpprep");
   const quotesVariant = await quotesVariantRead;
   const quotesRuled = await quotesRuledRead;
 
@@ -2228,22 +2202,7 @@ async function dashboard(now: number) {
      * closure, in the same shape as `quotesCoinbase` (`twin.id` "coinbasehold"); null until it has decided a minute.
      */
     quotesCoinbaseHold: await quotesCoinbaseHoldRead,
-    /**
-     * "Reward quotes": RW's quotes for Polymarket's liquidity rewards, on paper (`0053`, reference §4 item 36), and from
-     * RW-C's first minute RW-C's run of the same rule, its round 2 (`rwPageRun`); null until it has a state. RW-C sends no
-     * row of its own (Davies, 2026-10-08).
-     */
-    rw,
-    /** "Reward quotes variant-1": RW-E's replay on RW's run, from RW-C's first minute on RW-C's (`rwePageReplay`). */
-    rwe,
-    /** RW-E's variants on the page (x1, tb1-skip, tb1-back): RW's replay's arms, from RW-C's first minute RW-C's (`rwxPageReplay`). */
-    rwx,
-    /** "Reward quotes small-pool", the order path's dry-run filled on paper (`0077`); null until it has a state. */
-    prep,
-    /** "Reward quotes mid-pool", the path again on $10–$50 pools, filled on paper the same way (`0081`); likewise. */
-    prepMid,
-    /** "Reward quotes live-prep", the path on $10 and over with live-prep's rules, filled on paper (`0091`); likewise. */
-    prepLp,
+    // `rw`, `rwe`, `rwx`, `prep`, `prepMid`, `prepLp`: the paper Reward quotes rows, not sent since 0120 (above).
     /**
      * "Reward quotes live-prep"'s real money (`pm_lp_live_view.ts`): a row of LIVE, its figures from the path's live rows
      * only, never added to TESTING's; null until it is armed or has sent a live order.

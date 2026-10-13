@@ -275,11 +275,12 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     const body = read('supabase/migrations/0113_pm_lp_funding.sql').replace(/--[^\n]*/g, '');
     expect([...body.matchAll(/public\.([a-z_]+)/g)].map((m) => m[1]).filter((t, i, a) => a.indexOf(t) === i)).toEqual(['pm_lp_events']);
     expect(body).toContain("'readout', 'funding'");
-    // The dashboard prices the paper rows at one R, read once: since LP-OBS-DEEP (2026-10-11, its defect 2, display only)
-    // the R over the whole formula, as a paper row's formula is, not the estimate's scored one.
+    // The dashboard priced the paper rows at one R, read once (since LP-OBS-DEEP, 2026-10-11, the R over the whole
+    // formula). Since 0120 (Davies, 2026-10-13: "目前paper testing里的reward quotes全关了吧？") it sends no paper Reward quotes
+    // row, so it reads no R for them: LIVE's row reads its own (`readLpLive`), and the estimate's scored R prices nothing else.
     const idx = read('supabase/functions/agents/index.ts');
-    expect(idx.match(/lpLiveR\(\[\], now, "whole"\)/g)?.length).toBe(1);
-    expect(idx).toContain('const liveR: LpLiveRPrice = lpLive?.rWholeLive ?? lpLiveR([], now, "whole");');
+    expect(idx).not.toMatch(/lpLiveR\(|atLiveR\(|atProgramme\(/);
+    expect(idx).toContain('const lpLive = await readLpLive(d, now);');
     expect(idx).not.toContain('lpLive?.estimate?.r');
   });
 
@@ -294,7 +295,8 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     expect(src.indexOf('if (!i.prev) return { next: { depositUsd: round(r)')).toBeLessThan(src.indexOf('if (i.nowMs - i.dayStartMs < PM_LP_FUNDING.quietMs)'));
     expect(src).toContain('if (residual !== null) fundingResidual = { usd: residual, at: nowIso };');
     const page = read('src/agents/agents.js');
-    expect(page).toContain('...one(midRow(dash?.prepMid)),\n  ];');
+    // Since 0120 no paper Reward quotes row is on TESTING at all (mid-pool's included); live-prep's paper row left first.
+    expect(page).not.toContain('...one(midRow(dash?.prepMid))');
     expect(page).not.toContain('...one(lpRow(dash?.prepLp))');
   });
 

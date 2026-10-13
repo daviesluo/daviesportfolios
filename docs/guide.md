@@ -178,10 +178,10 @@ places stay when the number is not whole.
   with its share of funded beside the figure, then today, unrealised and
   realised gain. The realised title is the same size as the others; the fees
   sit beside it on the same line, smaller, in parentheses. TESTING's scoreboard adds
-  every Stablecoin quotes row and every Reward quotes row with the other strategies. Then a card per exchange —
+  every Stablecoin quotes row with the other strategies. Then a card per exchange —
   Revolut X in blue, which on TESTING includes the Stablecoin quotes rows, and on
-  TESTING Polymarket in its blue, whose card is its Reward quotes rows
-  added together — showing the same figures for
+  LIVE Polymarket in its blue, whose card is the real-money Reward quotes
+  — showing the same figures for
   that exchange in two groups: what it holds (funded, deployed, today)
   and what it has made (unrealised, realised, and set in under realised
   the parts inside it: its fees, or Polymarket's rewards and orders),
@@ -303,120 +303,16 @@ places stay when the number is not whole.
   lines, its page is the first's, and Coinbase's card adds the two. A paper
   test, starting at the next midnight after it went up; the rule for judging
   it is written down first.
-- **Reward quotes.** After them, on Polymarket (its badge in Polymarket's
-  blue): a fourteen-day paper test of small quotes on both sides of the
-  markets that pay liquidity rewards, $300 of them chosen afresh each UTC
-  day, decided every minute from the public order books and trades. Its row
-  reads like a strategy's, on a cap of $1,000, as each Reward quotes row
-  has, and its "N open" is how many rows its page's quotes table has (the
-  markets quoted today and those still held from an earlier day), on every
-  Reward quotes row (what its markets have at work each day is the days table's Costs
-  column, which the test's rule sets without looking at the cap); deployed is
-  every dollar at work, what its quotes resting now tie up (a bid's Yes at
-  its price, an ask's No at one minus its price, each at its size) and what
-  it holds at the mid; realised is
-  the rewards and what closed trades made, unrealised what it still holds
-  (in Yes or No shares) at the mid. Tap it for its page: the same
-  scoreboard, with realised split into the rewards and what its orders
-  made, each on its own line; a status row (the pessimistic total, how much of the
-  total sits in one market, how many markets it is quoting today, how many
-  positions are still held); the days, including the UTC day still open,
-  with the same worst case as the tile above; then today's quotes, and the latest fills, shares to two decimal places when they are not whole, then price. The foot
-  is when the page was read, and that it refreshes every minute. A fill is one print, so the fills table has no profit
-  of its own — that sits on the quote row and on realised. Every part that is printed beside a total adds up, to the cent, to
-  that total. The rewards are worked out from
-  Polymarket's published formula against the book as it stood, then
-  priced at what Polymarket has actually been paying the live Reward
-  quotes account: since 10 October every Reward quotes row on TESTING
-  (this one, its variants, and the small-pool, mid-pool and live-prep
-  rows) shows the formula's rewards times the latest live R, what was
-  paid over what the formula gave in every quoted minute (the same kind of
-  formula these rows count; since 11 October, not the scored minutes alone,
-  which read about 1 % higher), and its worst case at the low end of
-  R's range, so each payout read moves them all. Until the first payout it
-  is the studies' middle guess. Before that, each row's formula is priced on the
-  reward programme as Polymarket's listing showed it every 15 minutes, not on the
-  one its 00:00 selection read for the whole day: a market whose rate was cut or
-  whose programme ended earns its row that much less from then on. A day the
-  listing was not yet recorded keeps its formula. Only what the pages show moves: every test's
-  pre-registered verdict keeps the R it was frozen with. The first day was
-  a warm-up that counts nowhere.
-  Reward quotes runs in two rounds. Round 1 is its first fourteen days,
-  25 September to 9 October. From 9 October 01:00 UK time the row and
-  its page read round 2: the same rule run again on fresh days, 9 to 23
-  October, to see whether what it did in round 1 holds on days nobody had
-  seen. At that minute the row starts again from nothing: its figures,
-  days, quotes and fills are round 2's alone, never added to round 1's,
-  and until round 2 has worked out its first minute the row says when it
-  starts. The page says which round it is reading and since when. Round 2
-  is not a separate row, and TESTING's totals and the Polymarket card count
-  Reward quotes once, whichever round it is reading. After 23 October it is
-  finished.
-- **Reward quotes variant-1 to variant-4.** The four rows after it: the
-  same quotes, each with a rule changed, so they can be compared side by
-  side with Reward quotes; which rule each changes is not on the site (it
-  is in the reference, §4 item 36). Variant-3 and variant-4 are built on
-  variant-2 and each change one thing more: what it does in a minute when
-  the gap between the best buyer and the best seller is a single price
-  step. Variant-3 then quotes nothing; variant-4 quotes one step further
-  back. Each holds its own positions and makes its own profit and loss,
-  worked out from the same order books and trades Reward quotes reads,
-  and each is brought up to date every minute. Their pages are Reward
-  quotes' page, for their quotes, which are each row's own prices. Each
-  shows only what it did under its own rule: it counts from the minute
-  that rule starts (variant-1 from 27 September, variant-2 from 28
-  September, variant-3 and variant-4 from 8 October, each at 01:00 UK
-  time, or from the minute they went live if that was later). Variant-3
-  and variant-4 start with nothing held, so their pages begin empty;
-  the others count anything they held then from that minute's price.
-  Nothing from before is shown, and until then a row says when it starts.
-  A warning appears on a page only if its copy of the rows it came from
-  stops matching them. Four earlier variants are still worked out but
-  are not rows: one that paused after a jump in the price, one with both
-  of the first rules, and the two that were variant-3 and variant-4 until
-  7 October (resting the quotes further out, and leaning against what is
-  held), which keep running for their own tests.
-  All four variants are worked out on Reward quotes' round 1 order books
-  and trades until 9 October 01:00 UK time, and from then on round 2's,
-  the fresh days, at the same minute as Reward quotes itself. At that
-  minute each starts again from nothing: its figures, days, quotes and
-  fills are round 2's alone, never added to what it made before, and
-  until its first minute there is worked out the row says when it starts.
-  Each page says which days it is reading and since when.
-- **Reward quotes mid-pool.** On Polymarket, the row before the last: a
-  paper test, before real money, of exactly what the account that will
-  quote on Polymarket would do, on markets paying $10 to under $50 a day
-  in rewards. That account is built and runs every minute without
-  sending anything: it picks the day's markets, works out its bid and ask
-  in each, and writes down every order it would send. It quotes up to
-  eight markets a day with a $320 cap, the size it would go live at, and
-  it goes live only when Davies says so. This row fills those very orders
-  on paper from the trades the public sees, two minutes behind the clock,
-  and keeps what they would hold, at the mid, and what they would have
-  made. Deployed is what its resting quotes tie up and what it holds, as
-  on Reward quotes. Its page is Reward quotes' page: the same scoreboard
-  and status; the days, each with what its markets' quotes need, its
-  fills, its rewards and what it made, adding up to the total; today's
-  markets, each with the bid and ask the account had resting (or why
-  there were none of the rule's), its share of the pool, what it holds,
-  and what its rewards and orders made; and the latest fills, as the
-  account trades them: it buys No where Reward quotes sells Yes, so it can
-  hold both. Each day has its worst case too, as on Reward quotes: today's
-  is live, the worst case in its status less where it stood at midnight
-  UTC, and the days add up to it. A day whose start was never recorded
-  shows a dash rather than a guess. If the account's own loss limit would
-  have been hit, its dot turns amber and says so: from then on, as the
-  real account would, it only sells what it holds. The limit for one day
-  counts only that day's change: what it holds starts each day at its
-  price at midnight UTC (a change of 7 October), so a loss carried from an
-  earlier day counts only toward the overall limit. Its rewards are worked
-  out with its own quotes in the market's order book, as Polymarket works
-  them out. It never picks a market that the other Reward quotes tests
-  quote, and leaves out the ones close to them too.
+- **No paper Reward quotes since 13 October.** The paper tests of quoting
+  for Polymarket's liquidity rewards (Reward quotes, its variant-1 to
+  variant-4, and Reward quotes mid-pool) left TESTING and stopped on
+  13 October: none was making money, and a study that day found quoting
+  near the best prices loses across every rewarded market. Their records
+  are kept; TESTING has no Polymarket row or card now. The real-money
+  Reward quotes is on LIVE.
 - **Reward quotes on LIVE.** Live-prep's real-money book, a row of its own
   on Polymarket since it went live on 9 October, called Reward quotes
-  there; its paper row stays on TESTING as Reward quotes live-prep, beside
-  TESTING's own Reward quotes, and never adds the real money in. Funded is
+  there; nothing of it is on TESTING. Funded is
   the money Davies has put into its account: worked out every minute from
   what the account holds and what it has done, so rewards and trading never
   move it, and a deposit or a withdrawal shows a few minutes after it lands
@@ -459,7 +355,7 @@ places stay when the number is not whole.
   R (the same R as the STATUS tile) and the rebates; today, and yesterday until its payout is read, show their
   Orders alone. The days' Orders add up to the orders' part of REALIZED G/L plus
   UNREALIZED G/L;
-  and QUOTES, the TESTING pages' table less its share column (each
+  and QUOTES (each
   market with an order resting now or a token held, the day's first, then
   any held from an earlier day: its pool, the prices its live orders rest
   at, a dash on a side with nothing resting, what it holds of each token;
@@ -475,25 +371,16 @@ places stay when the number is not whole.
   (trades valued at the middle price, plus rewards and rebates paid, less any
   fee), so "$78 of room" means the total can fall $78 before the strategy
   stops buying. Should the stop ever trip, a red line there says so instead. Hide values masks every amount on it.
-- **Fees on the Reward quotes pages.** Every Reward quotes page shows,
-  beside REALIZED, the fees its fills paid, as the LIVE page does, and on a
-  paper test, under it, the maker rebates Polymarket would pay back for
-  them, estimated and not counted in any figure. A paper fill is always a
-  resting quote that a trade went through, and Polymarket never charges that
-  side, so a paper test's fees read $0; the rebate is the share of each
-  market's taker fees Polymarket gives its makers, by the market's fee type.
-  TESTING's Polymarket card has the same fees line, the rows' fees added up.
 - **Reward quotes mini-pool** (markets paying $6 to under $10 a day, the
   first test of that account) left the list and stopped on 8 October: its
   checks had closed and it is not a candidate to go live.
 - **Reward quotes live-prep.** No longer a row of TESTING since 10 October
   (it trades real money and is on LIVE as Reward quotes); its paper copy
-  keeps running in the background because a pending study reads it. What
-  follows describes the strategy, the same on LIVE. On Polymarket: the strategy
+  stopped on 13 October. What follows describes the strategy. On Polymarket: the strategy
   the study of 4 October found best on everything recorded, and since
   that day the lead candidate to go live. It is the same account and
   the same real order path, on every market paying $10 a day or more in
-  rewards (the markets the other Reward quotes tests quote included), up
+  rewards (whatever else quotes them), up
   to ten markets a day and $200 of quotes, $100 a market and $320 in all.
   It sells what it holds before it buys more, stops adding to a side at
   five times its order size, buys a side priced 0.95 or more only while
@@ -507,12 +394,10 @@ places stay when the number is not whole.
   bigger orders than it places stops buying that minute (it keeps selling
   what it holds), and one where Polymarket says three minutes running that
   its orders are not earning stops buying for the rest of the day. It stops for good if its
-  orders' result plus what Polymarket paid falls to −$75. Until Davies
-  says go it only writes down what it would send, deciding as if it held
-  what this row's paper holds, and this row fills those orders on paper
-  the same way as the row above. The account's three order paths (this
-  one, mid-pool's and mini-pool's) share it, so only one can ever be live.
-  Its row and page read like mid-pool's.
+  orders' result plus what Polymarket paid falls to −$75. Were Davies to
+  take it off real money, it would only write down what it would send.
+  The account's three order paths (this one, and mid-pool's and
+  mini-pool's, both stopped) share it, so only one can ever be live.
 - **A strategy.** Tap a row to open it over the list. The same refresh
   button sits beside ✕, and ✕ brings the list back as it was. The minute
   refresh keeps going on this page, and on the quote pages, the same as

@@ -308,3 +308,17 @@ which a pool of $10–$50 may bring more of.
   `pm_mid_markets` rows for 10-03 and 10-04), both configs' `dry_run`, `live_confirmed_at`, `ireland_attested_at` and
   `ireland_until`, `pm_live_state`'s `last_error` and `updated_at`, a count of `pm_live_markets` rows for 10-04, and the
   applied migrations' versions. Nothing of RW's, RW-C's or the RW-X arms'.
+
+## Withdrawn (2026-10-13), never frozen
+
+Davies, 2026-10-13, verbatim: "目前paper testing里的reward quotes全关了吧？感觉都不赚钱没什么意义？如果你实在觉得还有用的话就转到后台记录，
+不用在网站上显示了" (switch off every Reward quotes in paper testing? they don't seem to make money and there's little
+point; if you really think one is still useful, move it to background recording, no need to show it on the site). The
+main session's call the same day: close them all, none moves to the background. LP-BEST
+(`reviews/2026-10-13-lp-best-strategy.md`) found that quoting near the touch loses across the reward universe, and every
+paper Reward quotes row quotes near the touch. Migration `0120` turns their calls off; their tables and every record
+stay, and nothing is dropped.
+
+This draft froze only on Davies' go date, after mid-pool's readout and its overlap audit. Both are withdrawn (mid-pool's
+pre-registration, its withdrawal of 2026-10-13), mid-pool's calls stop with `0120`, and it is no go-live candidate: this draft will not
+freeze, and its go-time statement (the design doc's step 8m) is not to be run.

@@ -244,3 +244,23 @@ In English: start testing Reward quotes variant-3 and variant-4 now; don't wait.
   with x4's and x5's `rest.from` at 2026-10-03 00:00), so a day still closes on the way.
 - **What was read since the freeze:** of these arms, only the replay's health readings and that both are in its state
   (copies of x1, `checkMaxUsd` and `checkEMaxUsd` 0, 2026-10-02 18:51 UTC). Nothing of their accounts or rows.
+
+## Withdrawn (2026-10-13): Test 2, and RW-NEXT Part 2's verdict on RW-C
+
+Davies, 2026-10-13, verbatim: "目前paper testing里的reward quotes全关了吧？感觉都不赚钱没什么意义？如果你实在觉得还有用的话就转到后台记录，
+不用在网站上显示了" (switch off every Reward quotes in paper testing? they don't seem to make money and there's little
+point; if you really think one is still useful, move it to background recording, no need to show it on the site). The
+main session's call the same day: close them all, none moves to the background. LP-BEST
+(`reviews/2026-10-13-lp-best-strategy.md`) found that quoting near the touch loses across the reward universe, and every
+paper Reward quotes row quotes near the touch. Migration `0120` turns their calls off; their tables and every record
+stay, and nothing is dropped.
+
+- **Test 2** (x4 and x5 on RW-C's replay, 10-09 → 10-22, seed 20261023, against x1) will not be run. `pmrwc-x` stops when
+  `0120` applies, so the window's days after 2026-10-13 are never decided; a partial window is not the test this file
+  froze, and no reading of it will be made. Test 1 (read 2026-10-09 on RW's record) stands as reported.
+- **RW-NEXT Part 2, RW-C's confirmation** (`reviews/2026-09-28-rw-next-prereg.md`, frozen, so recorded here as its earlier
+  addendum was): its verdict on or after 2026-10-23 00:05 UTC will not be run. RW-C's engine, its selection and both its
+  replays (`pmrwc`, `pmrwc-select`, `pmrwc-e`, `pmrwc-x`) stop with `0120`; its fourteen days are cut at 2026-10-13. Its
+  record from 2026-10-08's warm-up to the stop stays in `pm_rwc_*`, `pm_rwc_e_*` and `pm_rwc_x_*`, read by nothing that
+  decides.
+- The 10-23 wake that was to read both (`trig_018MBeyZsWkLBmbMq9ta3GNf`) has nothing of them to read.

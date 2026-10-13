@@ -191,3 +191,18 @@ of CPU), on RW's record: the replay's work in a run as it runs every minute (thr
 720-minute catch-up of those twelve hours, the most one run replays, 306 ms before and 234 ms after (the order of the two
 is within the run-to-run noise of this measurement). The busiest 720-minute chunk of RW's whole record took at most
 about 1.1–1.2 s with either code.
+
+## Withdrawn (2026-10-13), before its reading
+
+Davies, 2026-10-13, verbatim: "目前paper testing里的reward quotes全关了吧？感觉都不赚钱没什么意义？如果你实在觉得还有用的话就转到后台记录，
+不用在网站上显示了" (switch off every Reward quotes in paper testing? they don't seem to make money and there's little
+point; if you really think one is still useful, move it to background recording, no need to show it on the site). The
+main session's call the same day: close them all, none moves to the background. LP-BEST
+(`reviews/2026-10-13-lp-best-strategy.md`) found that quoting near the touch loses across the reward universe, and every
+paper Reward quotes row quotes near the touch. Migration `0120` turns their calls off; their tables and every record
+stay, and nothing is dropped.
+
+TB1's reading (both arms, `tb1-skip` and `tb1-back`, from `pm_rwc_x_days` over 10-09 → 10-22, seed 20261023) will not be
+run: `pmrwc-x` stops when `0120` applies, so the window's days after 2026-10-13 are never decided, and a partial window is
+not the test this file froze. The arms' days to the stop stay in `pm_rwc_x_days`. Live-prep's own use of TB1's skip (its
+pre-registration's Addendum 2) is that file's, and is not changed here.

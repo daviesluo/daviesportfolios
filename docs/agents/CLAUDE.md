@@ -479,7 +479,7 @@ that follow from that evidence, in short:
   `live_confirmed_at` null). **The two trade one account and are never
   both armed**: a trigger on both configs refuses arming one while the
   other is, and each go-time statement refuses it too (the design doc's
-  steps 8 and 8m). **A funded mid-pool is being readied** (Davies,
+  steps 8 and 8m). **A funded mid-pool was being readied** (withdrawn 2026-10-13 with `0120`, its readout and audit with it) (Davies,
   2026-10-04: "准备mid-pool的上线，确保和现在的策略一致"): its
   pre-registration is a draft (`reviews/2026-10-04-polymarket-mid-pool-live-prereg.md`)
   that freezes on his go date, no earlier than the overlap audit
@@ -502,12 +502,13 @@ that follow from that evidence, in short:
   its instance sets (a sell of what is held before a buy, 5N, x2's pause,
   exits from carried markets, no end-date horizon, no weather market, ten
   markets and $200, $100 a market, a −$75 stop on fills plus what was paid (live, since Addendum 18, plus rebates less fees),
-  no day stop); in dry-run it decides on its paper layer's holdings. **Since 2026-10-10 it reads each quoted market's
+  no day stop); in dry-run it decides on its paper layer's holdings (that layer is off since `0120`: a disarmed dry-run
+  decides on its last ones). **Since 2026-10-10 it reads each quoted market's
   reward programme every minute before anything rests** (Addendum 9, `0111`; Davies: "策略每分钟读的时候都检查奖励配置"): a
   market whose programme ended, fell under $10 or now asks more than N = 20 takes no entry that minute (its sells rest
   on), three live minutes of Polymarket reading neither side scoring take it out for the day, and R and today's estimate
   rest on the formula Polymarket scored. Since Addendum 10 (`0113`) its FUNDED is the money put in, its payout is read
-  from 00:05 UTC, and every paper Reward quotes row on the page is shown at its live R (pre-registered readings keep their
+  from 00:05 UTC, and every paper Reward quotes row on the page was shown at its live R (until `0120` took them off) (pre-registered readings keep their
   own). Since Addendum 12 (2026-10-10) it leaves AI markets out (LP-ALLOC's `typeOf`, `lpMarketType` in `pm_lp.ts`):
   none is selected, and one already selected takes no entry. Since Addendum 13 (`0116`) a slot taken out is refilled
   after 15 minutes (at once when none quotes, at most ten a day, never the same market twice a day) from a live reserve
@@ -545,6 +546,17 @@ that follow from that evidence, in short:
   migration's header lists each). A new instance's tables join it in the
   migration that adds them, or that migration says why not; a check or
   study that needs older dry-run rows says so before they age out.
+- **Every paper Reward quotes test is off since `0120`** (Davies, 2026-10-13: "目前paper testing里的reward quotes全关了吧？
+  感觉都不赚钱没什么意义？如果你实在觉得还有用的话就转到后台记录，不用在网站上显示了"; the main session's call: close them all, none to the
+  background, on LP-BEST, `reviews/2026-10-13-lp-best-strategy.md`): RW-C ("Reward quotes", round 2) and its replays
+  (variant-1 to -4, x4, x5), mid-pool's dry-run and paper layer, live-prep's paper layer and the programme factor. Their
+  calls are off (`pmrwc`, `pmrwc-select`, `pmrwc-e`, `pmrwc-x`, `pmmid`, `pmmidprep`, `pmlpprep`, `pmprog`) and
+  `pm-prog-refresh` is unscheduled; their tables, records and config rows stay (nothing arms). TESTING has no paper
+  Reward quotes row and no Polymarket card, and the dashboard reads none of them (`agents/index.ts`). Withdrawn, each in
+  its pre-registration: RW-C's 10-23 verdict and RW-X4/X5's Test 2 (`reviews/2026-10-02-polymarket-rw-rest-prereg.md`),
+  TB1, RWC-OPT, mid-pool's 10-17 readout and 10-23 audit (and its funded draft); LPRESEL6 stands on pm-rec, its paper
+  reproduction line short. What runs on Polymarket: live-prep live (`pmlp`, `pmlpreserve`) and pm-rec (`pmrec`,
+  `pmrec-meta`). Where this file describes the paper paths running, it is their history.
 - **RW — quotes for Polymarket's liquidity rewards — runs on PAPER for
   fourteen days** (§3.33, §4 item 36, migration `0053`, 2026-09-24 on
   Davies' word): 2026-09-25 → 10-09 UTC, the spec frozen at

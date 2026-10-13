@@ -808,6 +808,7 @@ before touching migration state.
 | `0115_pm_prog_factor.sql` | The programme factor: the listing's readings, the factors by source, day and market, the job's state, the refresh function on pg_cron and its row of the job list. |
 | `0116_pm_lp_refill.sql` | Live-prep's refill: the live reserve's table and lease, the event kind `refill`, and the reserve's row of the one-minute job list. |
 | `0117_cb_minute_extremes_repair.sql` | The Coinbase paper test's Deviation 2: rebuilds the window's lost minute extremes in `cb_quote_minutes` from `cb_trades`. |
+| `0120_reward_quotes_paper_off.sql` | Every paper Reward quotes call off (RW-C, its replays, mid-pool, live-prep's paper layer, the programme factor) and the factor's refresh unscheduled; live-prep's live path and pm-rec stay on, nothing dropped. |
 | `0096_pm_rw_x_tb1_arms.sql` | Lets the variants' day tables, RW's and RW-C's, take TB1's two arms on x1 (tb1-skip, tb1-back). |
 | `0086_quote_live_deadman.sql` | Adds the kind `deadman` to `agent_quote_live_events`, for the row the monitor's dead-man switch writes when it cancels PR5's resting orders. |
 | `0087_quote_twins.sql` | The realistic twins' tables (each the live executor's four, a replica's and a simulated account's), their config rows and leases, and the one call that runs them. |

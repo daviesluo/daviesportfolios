@@ -265,3 +265,18 @@ live-prep's rule now carrying the skip:
   word and a pre-registration's addendum.
 
 Nothing of this file's scripts changes.
+
+## Addendum 2 (2026-10-13): withdrawn, before its reading
+
+Davies, 2026-10-13, verbatim: "目前paper testing里的reward quotes全关了吧？感觉都不赚钱没什么意义？如果你实在觉得还有用的话就转到后台记录，
+不用在网站上显示了" (switch off every Reward quotes in paper testing? they don't seem to make money and there's little
+point; if you really think one is still useful, move it to background recording, no need to show it on the site). The
+main session's call the same day: close them all, none moves to the background. LP-BEST
+(`reviews/2026-10-13-lp-best-strategy.md`) found that quoting near the touch loses across the reward universe, and every
+paper Reward quotes row quotes near the touch. Migration `0120` turns their calls off; their tables and every record
+stay, and nothing is dropped.
+
+RWC-OPT replays RW-C's record of 2026-10-09 → 10-22. RW-C's engine stops when `0120` applies, so that record ends on
+2026-10-13 and the fourteen days this file froze never exist. No reading will be made: `check.ts`, `run.ts` and `bar.py`
+are not run for it, and C1's out-of-sample measure of TB1's skip has nothing to read. Nothing of this file's scripts
+changes; they stay pinned by `src/rwc_opt_prereg.test.js` as frozen.

@@ -197,3 +197,20 @@ the hash named here.
 | `scripts/fetch.py` | `705c3860f9581fa51b5fbfcccff82ba4ba02cfa1c1fb2e0d4f74a80e21bc71d9` |
 | `sql/archive_urls.sql` | `67843c0beeb33941daea2e5573cafe5143f4e24aeec78b3f92a32f4b870005ce` |
 | `sql/aux.sql` | `c63688432fb8a3b6276920c35f34b0312f21f2d1c9eb90fade5ad0a2feb19351` |
+
+## Deviation 1 (2026-10-13): live-prep's paper days end with 0120; the test is not withdrawn
+
+Davies, 2026-10-13, verbatim: "目前paper testing里的reward quotes全关了吧？感觉都不赚钱没什么意义？如果你实在觉得还有用的话就转到后台记录，
+不用在网站上显示了" (switch off every Reward quotes in paper testing? they don't seem to make money and there's little
+point; if you really think one is still useful, move it to background recording, no need to show it on the site). The
+main session's call the same day: close them all, none moves to the background. LP-BEST
+(`reviews/2026-10-13-lp-best-strategy.md`) found that quoting near the touch loses across the reward universe, and every
+paper Reward quotes row quotes near the touch. Migration `0120` turns their calls off; their tables and every record
+stay, and nothing is dropped.
+
+LPRESEL6 reads pm-rec's archive, and `pmrec` and `pmrec-meta` keep running to 10-23 and after: its record, its arms, its
+bar and its coverage checks are untouched. One reported line changes: "Reproduction" compares L1's formula rewards
+against live-prep's paper days (`sql/aux.sql`), and live-prep's paper layer (`pmlpprep`) stops with `0120`. Its last paper
+minute was 2026-10-09 01:32 UTC, when live-prep went live, and the days it closed since hold no minute; from 2026-10-13
+none is closed. Those days are missing, never zero, and the report says so.
+The reproduction line was never a void condition. No frozen file changes.

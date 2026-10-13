@@ -1170,42 +1170,25 @@ describe('rwRow / rwView — RW\'s paper test as a row of TESTING STRATEGIES', (
     // A payload from before the switch was built says nothing.
     expect([rwRoundText(r), rwRoundText(null)]).toEqual([null, null]);
   });
-  it("TESTING adds each Reward quotes row once: from RW-C's first minute RW-C's figures are \"Reward quotes\", never also a row of their own", () => {
-    // RW's round 1 and RW-C's round 2 as two different summaries: a total that held both, or RW-C twice, would differ.
-    const rwc = { ...r, source: 'RW-C', sourceNext: null, totalUsd: 0.7, rewardUsd: 0.7, fillsPnlUsd: 0, realisedUsd: 0.7, unrealisedUsd: 0, todayUsd: 0.3, heldUsd: 0, markets: [] };
-    const e = { ...rwc, todayUsd: 0.2, realisedUsd: 0.3 };
-    // After the switch the dashboard sends `rw` (RW-C's run) and no `rwc`; one from before this change, still sending
-    // RW-C as `rwc` (a cached payload, or the function deployed after the page), adds nothing for it either.
-    for (const dash of [{ strategies: [], venues: [], rw: rwc, rwe: e }, { strategies: [], venues: [], rw: rwc, rwe: e, rwc }]) {
-      const tests = paperTestRows(dash);
-      expect(tests.map((t) => [t.id, t.name])).toEqual([[RW_ROW_ID, 'Reward quotes'], [RWE_ROW_ID, 'Reward quotes variant-1']]);
-      const sb = scoreboardView(dash, 'testing', tests);
-      expect([sb.tests, sb.capitalUsd]).toEqual([2, 2000]);
-      expect(sb.todayUsd).toBeCloseTo(0.5, 12);
-      expect(sb.realisedUsd).toBeCloseTo(1, 12);
-      const pm = venueRows(dash, 'testing', tests).find((x) => x.id === 'polymarket');
-      expect([pm?.tests, pm?.capitalUsd]).toEqual([2, 2000]);
-      expect(pm?.realisedUsd).toBeCloseTo(1, 12);
-    }
-    // In the page's order: the twins, Reward quotes, variant-1, the other variants, then mid-pool and live-prep.
-    const order = paperTestRows({ rw: r, rwe: r, rwx: [{ ...r, id: 'x1', name: 'Reward quotes variant-2' }], rwc: r });
-    expect(order.map((t) => t.id)).toEqual([RW_ROW_ID, RWE_ROW_ID, `${RWX_ROW_PREFIX}x1`]);
-    expect(paperTestRows(null)).toEqual([]);
-  });
-  it("adds no row for mini-pool since 0103 (Davies, 2026-10-08), though the dashboard still carries its `prep`", () => {
-    // Its two calls stopped with 0103, and the payload still carries `prep` (its last record); TESTING's rows, scoreboard
-    // and Polymarket card are what they are without it.
+  it("adds no paper Reward quotes row since 0120 (Davies, 2026-10-13), though an older payload still carries them, and LIVE's stays", () => {
+    // Davies, 2026-10-13: "目前paper testing里的reward quotes全关了吧？…不用在网站上显示了". RW-C's "Reward quotes", its variant-1
+    // and variants 2–4, mid-pool and live-prep's paper layer left TESTING with their calls; a payload from a function
+    // deployed before 0120 still carries them, and TESTING's rows, scoreboard and venue cards are what they are without.
     const p = { capUsd: 320, heldUsd: 10, quotedUsd: 20, costUsd: 9, todayUsd: 1.5, unrealisedUsd: 1, realisedUsd: 2, rewardUsd: 1.5, realisedFillsUsd: 0.5, running: true, lagMinutes: 1, quoting: 2, markets: [] };
-    const without = { strategies: [], venues: [], rw: r, prepMid: p, prepLp: p };
-    const dash = { ...without, prep: p };
+    const rwc = { ...r, source: 'RW-C', sourceNext: null };
+    const without = { strategies: [], venues: [] };
+    const dash = { ...without, rw: rwc, rwe: rwc, rwx: [{ ...rwc, id: 'x1', name: 'Reward quotes variant-2' }], rwc, prep: p, prepMid: p, prepLp: p };
+    // Each still makes its row on its own (the page's makers stay for the record), so the list leaving them out is the rule.
+    expect([rwRow(rwc)?.id, midRow(p)?.id]).toEqual([RW_ROW_ID, MID_ROW_ID]);
     const tests = paperTestRows(dash);
-    // Nor for live-prep's paper layer since 2026-10-10 (Davies: "testing里Reward quotes live-prep这个可以删了"), though `prepLp` is carried.
-    expect(tests.map((t) => [t.id, t.name])).toEqual([[RW_ROW_ID, 'Reward quotes'], [MID_ROW_ID, 'Reward quotes mid-pool']]);
-    expect(tests.some((t) => t.id === PREP_ROW_ID || t.id === LP_ROW_ID || /mini-pool|live-prep/.test(t.name))).toBe(false);
+    expect(tests).toEqual([]);
     expect(scoreboardView(dash, 'testing', tests)).toEqual(scoreboardView(without, 'testing', paperTestRows(without)));
     expect(venueRows(dash, 'testing', tests)).toEqual(venueRows(without, 'testing', paperTestRows(without)));
-    // Alone, it adds nothing at all.
-    expect(paperTestRows({ prep: p })).toEqual([]);
+    expect(venueRows(dash, 'testing', tests).some((/** @type {any} */ v) => v.id === 'polymarket')).toBe(false);
+    // LIVE's "Reward quotes", live-prep's real money, is LIVE's and stays.
+    const live = liveExtraRows({ ...dash, lpLive: lpLiveFixture.output });
+    expect(live.map((/** @type {any} */ x) => [x?.id, x?.name, x?.venueId])).toEqual([[LP_LIVE_ROW_ID, 'Reward quotes', 'polymarket']]);
+    expect(paperTestRows(null)).toEqual([]);
   });
   it('is amber when it has stopped, grey when the fourteen days are over, flat when it holds nothing, and absent before it exists', () => {
     expect(rwRow({ ...r, running: false, lagMinutes: 9 })?.status).toMatchObject({ tone: 'stale', detail: 'not running: its last decided minute is 9 min old' });

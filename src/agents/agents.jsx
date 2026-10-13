@@ -1595,12 +1595,10 @@ function AgentsModal({ hideValues, onClose }) {
   const rows = React.useMemo(() => strategyRows(dash, now), [dash, now]);
   const split = React.useMemo(() => splitStrategyRows(rows), [rows]);
   // TESTING's paper tests after its strategies, in the page's order (`paperTestRows`; Davies, 2026-09-24: its scoreboard
-  // and venue cards add them in; LIVE never does): the realistic twins of the live executor (2026-10-02; the paper tests
-  // they replaced keep running off the page until their readings), "Reward quotes" (2026-09-24), its variant-1 (RW-E,
-  // 2026-09-26) and the other variants (2026-09-27), mid-pool (0081) and live-prep (0091); mini-pool (0077) left it with
-  // 0103 (Davies, 2026-10-08), its calls stopped and its payload off the page (`paperTestRows`). Each is one
-  // run's row, added once: from RW-C's first minute "Reward quotes" is RW-C's run, and RW-C has no row of its own
-  // (Davies, 2026-10-08). A page opens its row as the list has it.
+  // and venue cards add them in; LIVE never does): the realistic twins of the live executor (2026-10-02) and Coinbase's
+  // two paper tests. Every paper Reward quotes row left it with 0120 (Davies, 2026-10-13), their calls stopped and their
+  // payload no longer sent; mini-pool's had left with 0103. A page opens its row only as the list has it, so a payload
+  // from an older function deploy opens none of them.
   const tests = React.useMemo(() => paperTestRows(dash), [dash]);
   const testRow = (/** @type {string} */ id) => tests.find((t) => t.id === id) ?? null;
   const rwe = testRow(RWE_ROW_ID), mid = testRow(MID_ROW_ID), lp = testRow(LP_ROW_ID);
@@ -1609,7 +1607,7 @@ function AgentsModal({ hideValues, onClose }) {
   // PR5's live executor is a row of LIVE once it trades real money (Davies, 2026-09-26), in LIVE's scoreboard and its
   // Revolut X card; its twin is on TESTING.
   // Live-prep's real-money book is one too since it went live (Davies, 2026-10-09), in LIVE's scoreboard and its Polymarket
-  // card; its paper layer's row stays on TESTING (`liveExtraRows`).
+  // card (`liveExtraRows`); TESTING has no Polymarket row since 0120.
   const liveExtras = React.useMemo(() => liveExtraRows(dash), [dash]);
   const liveRows = React.useMemo(() => [...split.live, ...liveExtras], [split, liveExtras]);
   const tabsView = React.useMemo(() => agentsTabsView(dash, tests.length), [dash, tests]);
@@ -1625,7 +1623,7 @@ function AgentsModal({ hideValues, onClose }) {
   const quotesLiveOpen = quotesPage === 'live';
   const twinOpen = quotesPage === 'twin' ? quotesTwinOf(selected, dash) : null;
   const coinbaseOpen = quotesPage === 'coinbase' ? (selected === QUOTES_COINBASE_HOLD_ROW_ID ? dash.quotesCoinbaseHold : dash.quotesCoinbase) : null;
-  const rwOpen = selected === RW_ROW_ID && !!dash?.rw;
+  const rwOpen = selected === RW_ROW_ID && !!dash?.rw && !!testRow(RW_ROW_ID);
   const rweOpen = selected === RWE_ROW_ID && !!dash?.rwe && !!rwe;
   const rwxRow = rwx.find((x) => x.id === selected) ?? null;
   const rwxOpen = rwxRow ? (dash?.rwx ?? []).find((/** @type {any} */ x) => `${RWX_ROW_PREFIX}${x.id}` === rwxRow.id) ?? null : null;

@@ -4039,6 +4039,34 @@ Davies, 2026-10-13: "周末变体写预注册然后上线paper trading 策略wit
   60 hours; with no closure the two arms write the same rows; the record starts at the next midnight; the browser test's fixture.
   `src/cb_hold_prereg.test.js`: the frozen files' hashes, 0112's table shapes under the new prefix, the pre-registration's numbers.
 
+61. **Every paper Reward quotes test stops; live-prep live and pm-rec keep running (2026-10-13, migration `0120`).**
+Davies, 2026-10-13: "目前paper testing里的reward quotes全关了吧？感觉都不赚钱没什么意义？如果你实在觉得还有用的话就转到后台记录，不用在网站上显示了"
+(switch off every Reward quotes in paper testing; if one is still useful, record it in the background, off the site). The
+main session's call the same day: close them all, none to the background, because LP-BEST
+(`reviews/2026-10-13-lp-best-strategy.md`) found quoting near the touch loses across the reward universe, which is every
+paper row's design.
+- **Off** (`enabled = false`; rows, tables, records and config rows kept): RW-C's engine and selection (`pmrwc`,
+  `pmrwc-select`; items 36's RW-C), RW-E's and RW-X's replays of it (`pmrwc-e`, `pmrwc-x`: variant-1 to -4, x4, x5),
+  mid-pool's dry-run and paper layer (`pmmid`, `pmmidprep`; items 49, 50, 53), live-prep's paper layer (`pmlpprep`;
+  item 54) and the programme factor's reader (`pmprog`, 0115); its refresh job `pm-prog-refresh` unscheduled.
+  `pm-prog-prune` and `pm-paths-prune` keep their retention.
+- **Kept**: `pmlp` and `pmlpreserve` (live-prep's real money and its refill reserve), `pmrec` and `pmrec-meta` (item 55).
+  Neither reads what stops: `pm_live.ts` reads its paper tables only in dry-run (`paper` is set for `mode === "dry_run"`),
+  the reserve reads the listing, Gamma and the books, pm-rec reads each path's minutes only to know which markets are
+  ours, and the monitor reads `pm_lp_state` alone of these. A disarmed live-prep's dry-run would decide on the paper
+  layer's last holdings: no order.
+- **Page**: TESTING has no paper Reward quotes row and no Polymarket card (`paperTestRows`); the dashboard reads none of
+  their tables, the programme factors or the live R that priced them, and sends no `rw`, `rwe`, `rwx`, `prep`, `prepMid`
+  or `prepLp`; a payload from an older deploy still draws nothing (the sweep's `rq-off`). LIVE's "Reward quotes" is
+  unchanged.
+- **Readings withdrawn**, each recorded in its pre-registration: RW-C's 10-23 verdict (RW-NEXT Part 2) and RW-X4/X5's
+  Test 2 (`reviews/2026-10-02-polymarket-rw-rest-prereg.md`), TB1, RWC-OPT (its Addendum 2), mid-pool's 10-17 readout and
+  10-23 audit (and its funded draft). LPRESEL6 stands on pm-rec (its Deviation 1: the paper reproduction line is short).
+  POOLAGE (§3.44) read RW's round 1 only and is not touched.
+- **Saved** (production, 2026-10-12, one UTC day): 10,647 calls and as many beats and pg_net responses; about 114,500 rows
+  (`pm_rwc_minutes` 41,917, `pm_midprep_minutes` 51,796, `pm_mid_minutes` 11,504, `pm_mid_orders` 4,038, `pm_prog_reads`
+  3,752); about four hours of Edge wall time.
+
 ### Twin variants
 
 The realistic twins, a row each of `agent_quote_twin_specs`, in the page's order. A new one is a row here in the commit

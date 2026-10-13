@@ -656,3 +656,24 @@ and its selection are as before. No decision of mid-pool changes: `agents/pm_mid
 
 **What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
 of the Edge deploy that carries it, as deviation 18.
+
+## Withdrawn (2026-10-13), before its readout and its audit
+
+Davies, 2026-10-13, verbatim: "目前paper testing里的reward quotes全关了吧？感觉都不赚钱没什么意义？如果你实在觉得还有用的话就转到后台记录，
+不用在网站上显示了" (switch off every Reward quotes in paper testing? they don't seem to make money and there's little
+point; if you really think one is still useful, move it to background recording, no need to show it on the site). The
+main session's call the same day: close them all, none moves to the background. LP-BEST
+(`reviews/2026-10-13-lp-best-strategy.md`) found that quoting near the touch loses across the reward universe, and every
+paper Reward quotes row quotes near the touch. Migration `0120` turns their calls off; their tables and every record
+stay, and nothing is dropped.
+
+- **The fourteen-day readout** (`backtests/pmlive/mid_readout.sql`, at or after 2026-10-17 00:10 UTC, d1–d14 =
+  2026-10-03 → 10-16) will not be run. Mid-pool's order path and its paper layer (`pmmid`, `pmmidprep`) stop when `0120`
+  applies, so its days from 2026-10-13 are never closed and the window is not the one this file froze.
+- **The overlap audit** (`backtests/pmlive/mid_audit.sql`, no earlier than 2026-10-23 00:05 UTC) will not be run either: it
+  reads RW-C's record, which stops with the same migration.
+- **Its config row is not touched**: `dry_run` true and `live_confirmed_at` null, so nothing arms, and `0091`'s trigger
+  that lets one config be armed at a time reads it as it is. Its tables and record stay. The funded draft
+  (`reviews/2026-10-04-polymarket-mid-pool-live-prereg.md`) will not freeze.
+- The wakes that were to read them (`trig_01XwUUNT5yXL3pzHoyH4JLaG`, 10-17; the 10-23 wake's `mid_audit.sql`) have nothing
+  of them to read.

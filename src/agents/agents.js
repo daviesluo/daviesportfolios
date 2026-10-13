@@ -2134,27 +2134,21 @@ export const RWX_ROW_PREFIX = '__rwx-';
 
 /**
  * TESTING's paper tests, the rows its scoreboard and venue cards add after its strategies, in the page's order: the
- * realistic twins, "Reward quotes", its variant-1 and the other variants, then mid-pool. Each is one run's
- * row, added once. From RW-C's first minute "Reward quotes" IS RW-C's run (the dashboard's `rw`), and RW-C is no row of
- * its own (Davies, 2026-10-08), so a dashboard that still carries an `rwc` adds nothing for it: the totals never hold
- * RW-C's figures beside RW's, or twice.
+ * realistic twins and Coinbase's two paper tests. Each is one run's row, added once.
  *
- * "Reward quotes mini-pool" (the dashboard's `prep`) is no row since 0103 (Davies, 2026-10-08: "按你说的停掉mini-pool的两个
- * 调用 … 把你觉得前台和后台不需要和没必要再继续测的策略都可以关掉"): its check windows closed with its pre-registration's
- * Addendum 7 and it is no go-live candidate. Its two calls stop with the same migration; the dashboard still carries
- * `prep` (its last record) and adds nothing for it, as one carrying PR5V's or rule D's run adds nothing for them.
- *
- * "Reward quotes live-prep" (the dashboard's `prepLp`, its paper layer) is no row since 2026-10-10 (Davies: "testing里Reward
- * quotes live-prep这个可以删了"): its strategy is live, a row of LIVE. Its paper layer keeps running, because LPRESEL6's
- * frozen reading reports L1 against its paper days of 10-09 → 10-22 and its path's dry-run decides on it whenever it is
- * disarmed; the dashboard still carries `prepLp` and adds nothing for it (`lpRow` makes its row should it come back).
+ * No paper Reward quotes row is on TESTING since 0120 (Davies, 2026-10-13: "目前paper testing里的reward quotes全关了吧？感觉都不赚钱
+ * 没什么意义？如果你实在觉得还有用的话就转到后台记录，不用在网站上显示了"; none moved to the background): "Reward quotes" (RW-C's run),
+ * its variant-1 and variants 2–4 (RW-E's and RW-X's replays of it) and mid-pool left the page with their calls, as
+ * mini-pool did with 0103 and live-prep's paper layer on 2026-10-10. Their makers (`rwRow`, `rweRow`, `rwxRows`,
+ * `midRow`, `lpRow`) stay for the record and its tests, and a dashboard from a function deployed before 0120 that still
+ * carries `rw`, `rwe`, `rwx`, `prep`, `prepMid` or `prepLp` adds nothing for them. LIVE's "Reward quotes" (live-prep's
+ * real money, `lpLiveRow`) is LIVE's, never TESTING's, and stays.
  * @param {any} dash
  */
 export function paperTestRows(dash) {
   const one = (/** @type {any} */ row) => (row ? [row] : []);
   return [
-    ...quotesTwinRows(dash), ...one(quotesCoinbaseRow(dash?.quotesCoinbase)), ...one(quotesCoinbaseRow(dash?.quotesCoinbaseHold)), ...one(rwRow(dash?.rw)), ...one(rweRow(dash?.rwe)), ...rwxRows(dash?.rwx),
-    ...one(midRow(dash?.prepMid)),
+    ...quotesTwinRows(dash), ...one(quotesCoinbaseRow(dash?.quotesCoinbase)), ...one(quotesCoinbaseRow(dash?.quotesCoinbaseHold)),
   ];
 }
 
