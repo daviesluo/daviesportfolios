@@ -481,6 +481,14 @@ code's total ceiling back at $300 fails 2 (“effectiveLimits…”, “caps…�
    loop that stops leaves nothing resting past ten minutes; no freshness reading of `pm_lp_state` is in the monitor yet
    (none of mini-pool's or mid-pool's is either): one is to be added before or with the go.
 
+   **The restart after its total stop (8lp-r, live-prep's Addendum 19, 2026-10-13).** Its −$75 stop tripped on 10-12 and
+   latches. Davies chose LP-BEST's quiet-book design with no dry-run day ("做B，不用空跑吧 做好后验证没问题了直接上线吧？"). Once
+   that code and `0119` are deployed, the restart is the one statement printed word for word in the pre-registration's
+   Addendum 19, in the conversation where he says go: it sets `restarted_at = now()` only on a fresh state of that code,
+   keyed in eu-west-1, the config still armed, his attestation current and neither other path armed (else null, and the
+   path stays stopped), with `restart_loss_usd = 25`, `max_markets = 12`, `select_budget_usd = 320`. Undo:
+   `update public.pm_lp_config set restarted_at = null where id = 1;`.
+
    **What it does to the other tests** (the pre-registration says it in full). Once live, live-prep's orders rest in the
    books RW (to 10-09) and RW-C (10-09 → 10-23) read on paper, and its fills are prints they count: "不考虑其他一切因素" is
    the basis for leaving their markets in its universe. Its dry-run touches nothing. Settled markets' tokens hold capital

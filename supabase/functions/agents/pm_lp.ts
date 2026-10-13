@@ -39,6 +39,16 @@
 //     was paid (live: the readout's payouts and, since Addendum 18, its maker rebates less the fills' fees, so the stop
 //     trips when the page's TOTAL reaches −$75; in dry-run: its paper's closed days at R = 0.40); no day stop.
 //
+//   - SINCE ADDENDUM 19 (2026-10-13; LP-BEST, `reviews/2026-10-13-lp-best-strategy.md`; Davies, ~01:40 UTC: "做B，不用空跑吧
+//     做好后验证没问题了直接上线吧？"): quiet books only. A candidate needs a touch of at least 4 ¢ without our orders and at
+//     most 50 taker shares traded in its market in the 24 hours before the read (`PM_LP_QUIET`, one data-API read each,
+//     `lpQuietRead`; a read that fails takes nothing); the day's markets are RW's choice over those, inside 90 % of the
+//     total cap (`PM_LP_SELECT_SHARE`); a quote rests only while the touch is 4 ¢ or wider (`PM_LP_TIGHT`, in place of
+//     TB1's one tick), exits always; a side stops at 2N (`PM_LP_INV_CAP`). The refill takes only a candidate that reads
+//     quiet at that minute. The total stop counts from the restart Davies' go sets (`restartable`, 0119's
+//     `restarted_at`), at `restart_loss_usd` ($25). What the list above says of TB1's skip, 5N, ten markets and $200 is
+//     Addendums 2 to 18's.
+//
 // WHERE IT LIVES: the order path (`pm_live.ts`) and the paper layer (`pm_prep.ts`) as they are, given this file's
 // instances. `PM_LP_INSTANCE` names its tables (`pm_lp_*`, migration 0091), its lease (`pm-lp`), its band, mid-pool's
 // batch read of the books (`bookReplies`) and its rules (`PmLpOptions`); `PREP_LP_INSTANCE` the layer's (`pm_lpprep_*`,
@@ -47,30 +57,60 @@
 // of 0091 lets one of the three configs be armed at a time, and only Davies arms one, in the conversation where he
 // says go (the design doc's step 8lp).
 
-import { onTick, othersLevels, type LpRefillOptions, type PmCandidateRules, type PmIntent, type PmLiveInstance, type PmQuoteInput, type PmQuoteRule } from "./pm_live.ts";
+import {
+  onTick, othersLevels, type LpRefillOptions, type PmCandidateRules, type PmIntent, type PmLiveInstance, type PmQuietRead, type PmQuietRule, type PmQuoteInput, type PmQuoteRule,
+} from "./pm_live.ts";
 import { bookReplies } from "./pm_mid.ts";
-import { quote, RW_MIN_RATE, sizeN, summarize } from "./pmrw.ts";
+import { type BookRow, quote, RW_MIN_RATE, sizeN, summarize } from "./pmrw.ts";
 import { isTight } from "./pmrw_x.ts";
 import type { PrepInstance } from "./pm_prep.ts";
+import { pmTakerShares, type PmPublicOpts } from "../_shared/polymarket_public.ts";
 
 /** Its band of total daily reward rates: RW's floor ($10, `RW_MIN_RATE`) and no ceiling. */
 export const PM_LP_BAND = { floor: RW_MIN_RATE, ceiling: Infinity } as const;
 /**
- * A side stops at this many N of inventory its way (RW's is 3). With sells first, inventory is capital a fill frees;
- * on RW's record 5N earned more than 3N and 4N with the same fills per share (the study's round 4), and N ≤ 20
- * (`PM_LIVE_MAX_N`) keeps 5N inside the $100 a market.
+ * A side stops at this many N of inventory its way (RW's is 3). Addendum 2's to 18's was 5 (on RW's record 5N earned
+ * more than 3N and 4N, the study's round 4); since Addendum 19 it is 2: LP-BEST's quiet books read the same within a cent
+ * at $316 with 2N or 5N, better at $1,000, and 2N holds less (`reviews/2026-10-13-lp-best-strategy.md` §4).
  */
-export const PM_LP_INV_CAP = 5;
+export const PM_LP_INV_CAP = 2;
 /** The code's ceiling on its per-market cap: 5N at N = 20 is 100 shares, $100 at most. */
 export const PM_LP_CAP_MARKET_USD = 100;
 /** x2's pause, frozen 2026-09-27: 15 ¢ between two minutes, 60 minutes. */
 export const PM_LP_PAUSE = { cents: 15, minutes: 60 } as const;
 /**
- * TB1's skip (`reviews/2026-10-07-polymarket-rw-tb1-prereg.md`, arm tb1-skip; adopted for live-prep by Davies on
- * 2026-10-08, the pre-registration's Addendum 2): a market whose raw touch (best ask less best bid of the book without
- * our orders, RW's `summarize`) is at most this many ticks wide rests nothing that minute.
+ * Where live-prep's quote may rest (Addendum 19, LP-BEST): only while the raw touch (best ask less best bid of the book
+ * without our orders, RW's `summarize`) is at least this many cents wide. It replaces TB1's one-tick skip (Addendum 2,
+ * `{ maxTicks: 1 }`): a 4 ¢ touch puts our quote a tick inside it at least a cent from the midpoint, so a taker who does
+ * come pays real spread. The exit rule of a close-only market keeps no such skip (Addendum 16).
  */
-export const PM_LP_TIGHT = { maxTicks: 1 } as const;
+export const PM_LP_TIGHT = { minTouchCents: 4 } as const;
+/**
+ * The quiet-book rule (Addendum 19; LP-BEST, Davies 2026-10-13 ~01:40 UTC: "做B，不用空跑吧 做好后验证没问题了直接上线吧？"): a
+ * candidate is taken only with a touch of at least 4 ¢ and at most 50 taker shares traded in its market in the 24 hours
+ * before the selection reads it (the data API, one read of 100 trades; a quiet book held at most 9 a day on the study's
+ * 6,063 quiet market-days). The study's walk read 25 to 51 candidates a day for its eleven picks; 150 reads cover the
+ * day's picks and the reserve's 30, ten at once.
+ */
+export const PM_LP_QUIET: PmQuietRule = { maxShares24h: 50, minTouchCents: PM_LP_TIGHT.minTouchCents, maxReads: 150, concurrency: 10 };
+/** The selection's budget of first quotes: 90 % of the total cap (LP-BEST's "whole markets inside 90 % of the cap"). */
+export const PM_LP_SELECT_SHARE = 0.9;
+
+/** One read of a market's quietness through the public client (`pmTakerShares`): the 24 hours before `nowMs`. */
+export async function lpQuietRead(cond: string, nowMs: number, pm?: PmPublicOpts): Promise<PmQuietRead> {
+  try {
+    const nowS = Math.floor(nowMs / 1000);
+    const r = await pmTakerShares(cond, nowS - 86400, nowS, pm);
+    return { ok: true, ...r };
+  } catch (e) {
+    return { ok: false, error: (e instanceof Error ? e.message : String(e)).slice(0, 200) };
+  }
+}
+
+/** Whether a book's raw touch is at least `cents` wide: RW's `summarize` row's best bid and best ask. */
+export function wideTouch(row: BookRow | null, cents: number): boolean {
+  return !!row && Math.round((row[1] - row[0]) * 1e6) / 1e4 >= cents - 1e-9;
+}
 /**
  * The near-certain side (Davies, 2026-10-09: "加上，但你研究下这个最多买的数值最优的设定后再加，并且以持仓比例来算不是硬数值";
  * the pre-registration's Addendum 7; the study `backtests/rwc_opt/results/expensive_limit.txt`): a BUY of a token at
@@ -166,47 +206,62 @@ export const PM_LP_REFILL: LpRefillOptions = {
  */
 export const PM_LP_MARKET_LOSS = 10;
 
-/** Its candidate rules: no 48-hour end-date horizon (RW-E's same-day rule only), weather markets out (RW-X's x1), AI markets out (Addendum 12). */
-export const PM_LP_CANDIDATE: PmCandidateRules = { endHorizon: false, excludeFeeTypes: ["weather_fees"], excludeQuestion: PM_LP_EXCLUDE_AI };
+/**
+ * Its candidate rules: no 48-hour end-date horizon (RW-E's same-day rule only), weather markets out (RW-X's x1), AI markets
+ * out (Addendum 12), and since Addendum 19 quiet books only (`PM_LP_QUIET`).
+ */
+export const PM_LP_CANDIDATE: PmCandidateRules = { endHorizon: false, excludeFeeTypes: ["weather_fees"], excludeQuestion: PM_LP_EXCLUDE_AI, quiet: PM_LP_QUIET };
 
 /**
  * Live-prep's quoting rule. RW's `summarize` and `quote` on the book WITHOUT our orders, as `rwQuotes`, at N = RW's
  * `sizeN`; then each side rests a sell of what is held before a buy: the bid (b in the one book) is a SELL of NO at
  * 1 − b while NO is held ≥ N, else a BUY of YES at b; the ask (a) a SELL of YES at a while YES is held ≥ N, else a BUY of
- * NO at 1 − a. A side stops at `PM_LP_INV_CAP` × N of inventory its way, the inventory being YES held less NO held as
- * RW's `net` counts it. With nothing held it is `rwQuotes` exactly (pinned in pm_lp.test.ts), but where the raw touch is
- * at most `PM_LP_TIGHT.maxTicks` ticks wide: there it rests nothing (TB1's skip, Addendum 2). A BUY of a near-certain token
- * rests only inside `PM_LP_NEAR_CERTAIN`'s share of the path's capital (`nearCertainBuyOk`, Addendum 7), the token marked
- * at RW's adjusted mid (YES at m, NO at 1 − m); a sell is never limited by it.
+ * NO at 1 − a. A side stops at `PM_LP_INV_CAP` × N of inventory its way (2N since Addendum 19), the inventory being YES
+ * held less NO held as RW's `net` counts it. With nothing held it is `rwQuotes` exactly (pinned in pm_lp.test.ts), but
+ * where the raw touch is narrower than `PM_LP_TIGHT.minTouchCents` (4 ¢ since Addendum 19; TB1's one tick before): there it
+ * rests nothing. A BUY of a near-certain token rests only inside `PM_LP_NEAR_CERTAIN`'s share of the path's capital
+ * (`nearCertainBuyOk`, Addendum 7), the token marked at RW's adjusted mid (YES at m, NO at 1 − m); a sell is never limited by it.
  */
-export const lpQuotes: PmQuoteRule = (input) => lpQuotesOn(input, true);
+export const lpQuotes: PmQuoteRule = (input) => lpQuotesOn(input, true, PM_LP_SHAPE);
 
 /**
- * Its exit rule (`PmLpOptions.exitRule`, Addendum 16): `lpQuotes` without TB1's skip, for the markets the path works
+ * Its exit rule (`PmLpOptions.exitRule`, Addendum 16): `lpQuotes` without the touch's skip, for the markets the path works
  * close-only (a carried market, one the reward check, the AI rule or the loss guard took out, every market while opening
- * is stopped), where `closeOnly` keeps only the sells of what is held. TB1's skip is a rule about where a reward quote
- * rests; on a book one tick wide it left a holding with no exit at all (LP-CAPINV, `reviews/2026-10-11-lp-cap-inventory.md`:
+ * is stopped), where `closeOnly` keeps only the sells of what is held. The skip is a rule about where a reward quote
+ * rests; on a book one tick wide TB1's left a holding with no exit at all (LP-CAPINV, `reviews/2026-10-11-lp-cap-inventory.md`:
  * `0x5fec6675…` rested a sell in 25 of its 1,454 carried minutes). RW's `quote` already joins the touch on such a book (its
  * ask at the best ask, its bid at the best bid), so the exit rests post-only at the best ask, and a NO sold rests at
  * 1 − the best bid. Everywhere else it is `lpQuotes` exactly, so a wider book's exit is unchanged.
  */
-export const lpExitQuotes: PmQuoteRule = (input) => lpQuotesOn(input, false);
+export const lpExitQuotes: PmQuoteRule = (input) => lpQuotesOn(input, false, PM_LP_SHAPE);
 
-function lpQuotesOn({ market, book, held, own, capital }: PmQuoteInput, tb1Skip: boolean): PmIntent[] {
+/**
+ * The two numbers that shape the rule: the inventory cap in N, and where a quote may not rest (a touch narrower than
+ * `minTouchCents`, Addendum 19's; or at most `maxTicks` wide, TB1's of Addendums 2 to 18). The instance runs
+ * `PM_LP_SHAPE`; `lpRulesOf` builds the same rule on another shape, so the tests that pin the earlier addenda's turn
+ * mechanics on their two-cent books can run them on the shape those addenda had.
+ */
+export type LpShape = { invCap: number; tight: { minTouchCents: number } | { maxTicks: number } };
+export const PM_LP_SHAPE: LpShape = { invCap: PM_LP_INV_CAP, tight: PM_LP_TIGHT };
+export function lpRulesOf(shape: LpShape): { rule: PmQuoteRule; exitRule: PmQuoteRule } {
+  return { rule: (input) => lpQuotesOn(input, true, shape), exitRule: (input) => lpQuotesOn(input, false, shape) };
+}
+
+function lpQuotesOn({ market, book, held, own, capital }: PmQuoteInput, skip: boolean, shape: LpShape): PmIntent[] {
   const v = Number(market.max_spread), minSize = Number(market.min_size);
   if (!(v > 0) || !(minSize >= 0)) return [];
   const o = othersLevels(book.levels, own ?? []);
   const row = summarize(o.bids, o.asks, v, minSize);
-  if (tb1Skip && isTight(row, Number(book.tick), PM_LP_TIGHT.maxTicks)) return [];
+  if (skip && ("minTouchCents" in shape.tight ? !wideTouch(row, shape.tight.minTouchCents) : isTight(row, Number(book.tick), shape.tight.maxTicks))) return [];
   const q = row ? quote(row, Number(book.tick)) : null;
   if (!q) return [];
   const N = sizeN(minSize), net = held.yes - held.no, out: PmIntent[] = [];
   const bYes = onTick(q.b, book.tick), aNo = onTick(1 - q.a, book.tick);
-  if (net < PM_LP_INV_CAP * N) {
+  if (net < shape.invCap * N) {
     if (held.no >= N - 1e-9) out.push({ outcome: "no", side: "SELL", price: onTick(1 - bYes, book.tick), size: N });
     else if (nearCertainBuyOk(bYes, N, held.yes, q.m, capital)) out.push({ outcome: "yes", side: "BUY", price: bYes, size: N });
   }
-  if (net > -PM_LP_INV_CAP * N) {
+  if (net > -shape.invCap * N) {
     if (held.yes >= N - 1e-9) out.push({ outcome: "yes", side: "SELL", price: onTick(1 - aNo, book.tick), size: N });
     else if (nearCertainBuyOk(aNo, N, held.no, 1 - q.m, capital)) out.push({ outcome: "no", side: "BUY", price: aNo, size: N });
   }
@@ -244,6 +299,10 @@ export const PM_LP_INSTANCE: PmLiveInstance = {
     fundByRank: true,
     pauseQuotingOnly: true,
     stopCountsRebates: true,
+    // Addendum 19 (LP-BEST): quiet books read by the data API, 90 % of the cap selected, the stop from the restart.
+    quietRead: lpQuietRead,
+    selectShare: PM_LP_SELECT_SHARE,
+    restartable: true,
     paper: { fills: "pm_lpprep_fills", settlements: "pm_lpprep_settlements", days: "pm_lpprep_days" },
   },
 };

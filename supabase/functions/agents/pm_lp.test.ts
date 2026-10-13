@@ -13,20 +13,29 @@
 // mini-pool's or mid-pool's tables is touched.
 
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { lpExitQuotes, lpMarketType, lpQuotes, nearCertainBuyOk, PM_LP_EXCLUDE_AI, PM_LP_MARKET_LOSS, PM_LP_READOUT, PM_LP_REFILL, PM_LP_REWARD_CHECK, PM_LP_BAND, PM_LP_CANDIDATE, PM_LP_CAP_MARKET_USD, PM_LP_INSTANCE, PM_LP_INV_CAP, PM_LP_NEAR_CERTAIN, PM_LP_PAUSE, PM_LP_TIGHT, PREP_LP_INSTANCE } from "./pm_lp.ts";
+import {
+  lpExitQuotes, lpMarketType, lpQuietRead, lpQuotes, lpRulesOf, nearCertainBuyOk, PM_LP_EXCLUDE_AI, PM_LP_MARKET_LOSS, PM_LP_QUIET, PM_LP_READOUT, PM_LP_REFILL, PM_LP_REWARD_CHECK, PM_LP_BAND,
+  PM_LP_CANDIDATE, PM_LP_CAP_MARKET_USD, PM_LP_INSTANCE, PM_LP_INV_CAP, PM_LP_NEAR_CERTAIN, PM_LP_PAUSE, PM_LP_SELECT_SHARE, PM_LP_SHAPE, PM_LP_TIGHT, PREP_LP_INSTANCE, wideTouch,
+} from "./pm_lp.ts";
 import { isTight } from "./pmrw_x.ts";
 import {
   candidateOf, closeOnly, ctfApproval, effectiveLimits, gates, heldFromBalance, inUniverse, inYesBook, lpCandidateOf, lpLimits, onTick, PM_LIVE_MAX_POSTS_DAY, PM_LP_MAX_POSTS_DAY, pauseAfterJump, PM_LIVE_INSTANCE, PM_MINI_INSTANCE, pmLiveDbTables, pmLpDbTables,
   lpFunding, lpMarketMark, lpRewardVerdict, PM_LP_FUNDING, tokenBooks, type LpRefillOptions, rewardConfigOf, runPmLive, rwQuotes, scoringStreak, type PmRewardNow, type PmBookNow, type PmIntent, type PmLiveConfig, type PmMarketRow, type PmPauseState, type PmRewardRow,
+  bookPnl, lpRestartOf, lpSelectBudget, quietChoose, quietVerdict, rawTouchCents, restartOpenMarks, sinceOpenPnl, type PmQuietRead,
 } from "./pm_live.ts";
 import { runPmLpReserve } from "./pm_lp_reserve.ts";
 import { classifyLp, decideLp, PREP_INSTANCE, prepDbTables, prepReads, runPmPrep, stepSides, type PrepOrder } from "./pm_prep.ts";
 import { PM_MID_INSTANCE, PREP_MID_INSTANCE } from "./pm_mid.ts";
-import { newAcc, quote, sizeN, stepRw, summarize, type BookRow } from "./pmrw.ts";
+import { choose, newAcc, quote, sizeN, stepRw, summarize, type BookRow } from "./pmrw.ts";
 import { asTickSize, PmOrderKey, type PmTickSize } from "../_shared/polymarket_orders.ts";
 import { pmLiveFillFee } from "./pm_fees.ts";
-import type { PmPrint } from "../_shared/polymarket_public.ts";
-import { FakePolymarket, memDb, onlyTables, PM_TEST_FUNDER, PM_TEST_KEY, PM_TEST_SIGNER, type Row } from "./testing.ts";
+import { PM_QUIET_PAGE, pmTakerShares, type PmPrint } from "../_shared/polymarket_public.ts";
+import { FakePolymarket, LP_A18_INSTANCE, memDb, onlyTables, PM_TEST_FUNDER, PM_TEST_KEY, PM_TEST_SIGNER, type Row } from "./testing.ts";
+
+// Addendum 2's to 18's rule (TB1's one-tick skip, 5N): the unit tests of those addenda pin it, as their turn tests pin
+// the path on `LP_A18_INSTANCE` (testing.ts); Addendum 19's rule (4 ¢, 2N) is `lpQuotes` itself, pinned at the end.
+const A18_RULES = lpRulesOf({ invCap: 5, tight: { maxTicks: 1 } });
+const a18Quotes = A18_RULES.rule, a18Exit = A18_RULES.exitRule;
 
 const M = 60e3, H = 3600e3;
 const iso = (ms: number) => new Date(ms).toISOString();
@@ -50,10 +59,13 @@ Deno.test("the instance: live-prep's own tables, leases, band and rules; mini-po
   assertEquals([PM_LP_INSTANCE.action, PM_LP_INSTANCE.path, PM_LP_INSTANCE.errorKind], ["pmlp", "agents?action=pmlp&forceFunctionRegion=eu-west-1", "agents.pm_lp"]);
   assertEquals(PM_LP_INSTANCE.migrations, { tables: "0091", selection: "0091" });
   const lp = PM_LP_INSTANCE.lp!;
-  assertEquals([lp.rule, lp.candidate, lp.capMarketCeiling, lp.pause], [lpQuotes, { endHorizon: false, excludeFeeTypes: ["weather_fees"], excludeQuestion: PM_LP_EXCLUDE_AI }, 100, { cents: 15, minutes: 60 }]);
+  assertEquals([lp.rule, lp.candidate, lp.capMarketCeiling, lp.pause], [lpQuotes, { endHorizon: false, excludeFeeTypes: ["weather_fees"], excludeQuestion: PM_LP_EXCLUDE_AI, quiet: PM_LP_QUIET }, 100, { cents: 15, minutes: 60 }]);
   assertEquals(lp.paper, { fills: "pm_lpprep_fills", settlements: "pm_lpprep_settlements", days: "pm_lpprep_days" });
   assertEquals(lp.rewardCheck, { ...PM_LP_REWARD_CHECK });                                 // Addendum 9's check, live-prep's alone
-  assertEquals([PM_LP_INV_CAP, PM_LP_CAP_MARKET_USD, PM_LP_PAUSE, PM_LP_CANDIDATE], [5, 100, { cents: 15, minutes: 60 }, lp.candidate]);
+  // Addendum 19: 2N, the quiet books (4 ¢, 50 shares a day, 150 reads ten at once), 90 % of the cap, the restart.
+  assertEquals([PM_LP_INV_CAP, PM_LP_CAP_MARKET_USD, PM_LP_PAUSE, PM_LP_CANDIDATE], [2, 100, { cents: 15, minutes: 60 }, lp.candidate]);
+  assertEquals([PM_LP_TIGHT, PM_LP_QUIET, PM_LP_SELECT_SHARE, PM_LP_SHAPE], [{ minTouchCents: 4 }, { maxShares24h: 50, minTouchCents: 4, maxReads: 150, concurrency: 10 }, 0.9, { invCap: 2, tight: { minTouchCents: 4 } }]);
+  assertEquals([lp.quietRead, lp.selectShare, lp.restartable], [lpQuietRead, 0.9, true]);
   assertEquals([PREP_LP_INSTANCE.lp, prepReads(PREP_LP_INSTANCE)], [true, ["pm_lp_config", "pm_lp_markets", "pm_lp_minutes", "pm_lp_orders"]]);
   // Every table either may touch is live-prep's own: nothing of mini-pool's, mid-pool's, RW's or RW-C's.
   for (const t of [...pmLpDbTables(PM_LP_INSTANCE), ...prepDbTables(PREP_LP_INSTANCE)]) assert(/^pm_(lp|lpprep)_|^agent_(risk|locks)$/.test(t), t);
@@ -87,9 +99,10 @@ function randomBook(r: () => number): { market: PmMarketRow; book: PmBookNow } {
 
 /** Whether a book's raw touch, as RW's `summarize` reads it, is at most TB1's one tick (Addendum 2). */
 const tightBook = (market: PmMarketRow, book: PmBookNow) =>
-  isTight(summarize(book.levels.bids, book.levels.asks, Number(market.max_spread), Number(market.min_size)), Number(book.tick), PM_LP_TIGHT.maxTicks);
+  isTight(summarize(book.levels.bids, book.levels.asks, Number(market.max_spread), Number(market.min_size)), Number(book.tick), 1);
 
-Deno.test("lpQuotes: with nothing held it is rwQuotes; held, a side sells first at the same price in the one book; a side stops at 5N, not RW's 3N", () => {
+Deno.test("Addendum 18's rule: with nothing held it is rwQuotes; held, a side sells first at the same price in the one book; a side stops at 5N, not RW's 3N", () => {
+  const lpQuotes = a18Quotes;
   const r = rng(20261004);
   let quoted = 0, sells = 0, tight = 0;
   for (let i = 0; i < 400; i++) {
@@ -129,8 +142,8 @@ Deno.test("lpQuotes: with nothing held it is rwQuotes; held, a side sells first 
   assert(quoted > 150 && sells > 300 && tight > 50, `${quoted} worlds quoted, ${tight} tight`);
 });
 
-Deno.test("TB1's skip (Addendum 2): where the raw touch is one tick, live-prep rests nothing, buys and sells alike; two ticks, RW's quote", () => {
-  assertEquals(PM_LP_TIGHT, { maxTicks: 1 });
+Deno.test("TB1's skip (Addendum 2, to Addendum 18): where the raw touch is one tick, live-prep rests nothing, buys and sells alike; two ticks, RW's quote", () => {
+  const lpQuotes = a18Quotes;
   for (const tick of ["0.01", "0.001"] as const) {
     const t = Number(tick);
     const mk = (spreadTicks: number) => {
@@ -172,6 +185,9 @@ function nearCertain(expensive: "yes" | "no"): { market: PmMarketRow; book: PmBo
 const legs = (xs: PmIntent[]) => xs.map((x) => `${x.outcome} ${x.side} ${x.price}`);
 
 Deno.test("the near-certain limit (Addendum 7): a buy of a token at 0.95 or more rests only within 8 % of the path's capital, at the mark", () => {
+  // On Addendum 18's shape: these books are two cents wide, which Addendum 19's 4 ¢ touch passes over (its own test below
+  // rests the limit on a four-cent book).
+  const lpQuotes = a18Quotes;
   assertEquals(PM_LP_NEAR_CERTAIN, { minPrice: 0.95, share: 0.08 });
   // Under 0.95 a buy is never limited, whatever is held and whatever the capital, even none.
   assertEquals([nearCertainBuyOk(0.949, 20, 1000, 0.95, 320), nearCertainBuyOk(0.5, 20, 0, 0.5, undefined)], [true, true]);
@@ -375,25 +391,39 @@ type P = [number, "BUY" | "SELL", number, number, number];
  * would pass it over), and four that live-prep never takes: WX (weather), TODAY (ends this UTC day), GAME (starts within
  * two days) and LOW ($8). Mini-pool's and mid-pool's tables sit beside its own, each with a row, as in production.
  */
-function world(o: { config?: Record<string, unknown>; days?: Array<Record<string, unknown>>; onCost?: boolean; nearCertain?: boolean; refill?: Partial<LpRefillOptions>; extra?: number[]; noExitRule?: boolean; slotOrder?: boolean; noPauseRule?: boolean; noRebatesInStop?: boolean } = {}) {
+function world(o: {
+  config?: Record<string, unknown>; days?: Array<Record<string, unknown>>; onCost?: boolean; nearCertain?: boolean; refill?: Partial<LpRefillOptions>; extra?: number[]; noExitRule?: boolean;
+  slotOrder?: boolean; noPauseRule?: boolean; noRebatesInStop?: boolean;
+  /** Addendum 19's instance itself (`PM_LP_INSTANCE`); without it, live-prep as Addendum 18 left it (`LP_A18_INSTANCE`). */
+  a19?: boolean;
+  /** With `a19`: the instance without the restart (`restartable` unset), the counterfactual of the restart's tests. */
+  noRestart?: boolean;
+  /** The books' touch, in ticks over the default two cents (`a19`'s worlds widen L1, BIG and E30 to 4 ¢). */
+  wide?: boolean;
+} = {}) {
   const clock = { now: T0 };
   // `onCost`: the day stop as the pre-registrations froze it (`dayStopOnCost`), which no action runs (2026-10-07).
   // `noExitRule`: the instance as it was before Addendum 16, its exits the quoting rule's (the counterfactual).
-  const lpOpts = { ...PM_LP_INSTANCE.lp!, ...(o.refill ? { refill: { ...PM_LP_INSTANCE.lp!.refill!, ...o.refill } } : {}) };
+  const LP = o.a19 ? PM_LP_INSTANCE : LP_A18_INSTANCE;
+  const lpOpts = { ...LP.lp!, ...(o.refill ? { refill: { ...LP.lp!.refill!, ...o.refill } } : {}) };
+  if (o.noRestart) delete lpOpts.restartable;
   if (o.noExitRule) delete lpOpts.exitRule;
   // `slotOrder`: the caps funded slot by slot in the slot key's order, as before Addendum 17 (the counterfactual).
   if (o.slotOrder) delete lpOpts.fundByRank;
   // `noPauseRule`, `noRebatesInStop`: the pause and the stop as they were before Addendum 18 (the counterfactuals).
   if (o.noPauseRule) delete lpOpts.pauseQuotingOnly;
   if (o.noRebatesInStop) delete lpOpts.stopCountsRebates;
-  const base = o.refill || o.noExitRule || o.slotOrder || o.noPauseRule || o.noRebatesInStop ? { ...PM_LP_INSTANCE, lp: lpOpts } : PM_LP_INSTANCE;
+  const base = o.refill || o.noExitRule || o.slotOrder || o.noPauseRule || o.noRebatesInStop || o.noRestart ? { ...LP, lp: lpOpts } : LP;
   const inst = o.onCost ? { ...base, dayStopOnCost: true } : base, prepInst = o.onCost ? { ...PREP_LP_INSTANCE, dayStopOnCost: true } : PREP_LP_INSTANCE;
   const pm = new FakePolymarket(() => clock.now);
   const add = (n: number, rate: number, extra: Record<string, unknown> = {}) =>
     pm.addMarket({ cond: cond(n), yes: tok(n, "yes"), no: tok(n, "no"), rate, sponsoredRate: null, minSize: 5, depth: [[0, 50]], ...extra });
   // Thin books (5 shares at each touch): RW's quote joins the touch and takes about half of each pool, so every one of
   // the three clears the $2.50 formula floor.
-  const L1 = add(1, 12, { depth: [[0, 5]] }), BIG = add(2, 500, { bid: 0.30, ask: 0.32 }), E30 = add(3, 20, { bid: 0.60, ask: 0.62, endDate: iso(T0 + 30 * H), depth: [[0, 5]] });
+  // `wide`: L1, BIG and E30 four cents wide (Addendum 19's touch), their bids where they were.
+  const wd = o.wide ? 0.02 : 0;
+  const L1 = add(1, 12, { depth: [[0, 5]], ...(o.wide ? { ask: 0.49 } : {}) }), BIG = add(2, 500, { bid: 0.30, ask: 0.32 + wd });
+  const E30 = add(3, 20, { bid: 0.60, ask: 0.62 + wd, endDate: iso(T0 + 30 * H), depth: [[0, 5]] });
   const WX = add(4, 15, { feeType: "weather_fees" }), TODAY = add(5, 20, { endDate: "2026-10-05T23:00:00Z" });
   const GAME = add(6, 20, { gameStartTime: "2026-10-06 20:00:00+00" }), LOW = add(7, 8);
   // `nearCertain`: NC, YES at 0.96 / 0.98 (N 5), whose bid is a BUY of a token at 0.95 or more (Addendum 7's limit).
@@ -1336,9 +1366,10 @@ Deno.test("lpExitQuotes (Addendum 16): on a one-tick book what is held still get
     };
     const one = mk(1);
     assert(tightBook(one.market, one.book), tick);
-    const exit = (held: { yes: number; no: number }) => closeOnly(lpExitQuotes({ market: one.market, book: one.book, held }), held, one.book);
+    // On Addendum 18's shape (TB1's skip, 5N); Addendum 19's exit is pinned on its own below, and keeps this.
+    const exit = (held: { yes: number; no: number }) => closeOnly(a18Exit({ market: one.market, book: one.book, held }), held, one.book);
     // The old exit: TB1's skip leaves nothing for closeOnly, whatever is held (the defect, 0x5fec6675… and 0xd5734dd2…).
-    assertEquals(closeOnly(lpQuotes({ market: one.market, book: one.book, held: { yes: 12, no: 0 } }), { yes: 12, no: 0 }, one.book), [], tick);
+    assertEquals(closeOnly(a18Quotes({ market: one.market, book: one.book, held: { yes: 12, no: 0 } }), { yes: 12, no: 0 }, one.book), [], tick);
     // Held YES (12, under N = 20): one SELL of the 12 at the best ask, joining it, which does not cross the bid.
     assertEquals(exit({ yes: 12, no: 0 }), [{ outcome: "yes", side: "SELL", price: one.ba, size: 12 }], tick);
     assert(one.ba > one.bb);
@@ -1355,7 +1386,7 @@ Deno.test("lpExitQuotes (Addendum 16): on a one-tick book what is held still get
     for (const w of [2, 3, 5]) {
       const b = mk(w);
       for (const held of [{ yes: 0, no: 0 }, { yes: 12, no: 0 }, { yes: 0, no: 25 }, { yes: 100, no: 0 }]) {
-        assertEquals(lpExitQuotes({ market: b.market, book: b.book, held }), lpQuotes({ market: b.market, book: b.book, held }), `${tick} ${w} ${JSON.stringify(held)}`);
+        assertEquals(a18Exit({ market: b.market, book: b.book, held }), a18Quotes({ market: b.market, book: b.book, held }), `${tick} ${w} ${JSON.stringify(held)}`);
       }
     }
   }
@@ -1549,4 +1580,233 @@ Deno.test("the live stop is the page's TOTAL (Addendum 18): rewards $10 and reba
   // Only live-prep's instance sets the three.
   for (const inst of [PM_LIVE_INSTANCE, PM_MINI_INSTANCE, PM_MID_INSTANCE]) assertEquals([inst.lp?.pauseQuotingOnly, inst.lp?.stopCountsRebates, inst.lp?.refill?.minFreeUsd], [undefined, undefined, undefined]);
   assertEquals([PM_LP_INSTANCE.lp!.pauseQuotingOnly, PM_LP_INSTANCE.lp!.stopCountsRebates, PM_LP_INSTANCE.lp!.refill!.minFreeUsd], [true, true, 20]);
+});
+
+// ------------------------------------------------------------------ Addendum 19: quiet books, 2N, 90 % of the cap, the restart
+
+/** A book of `cents` touch around 0.48, two levels a side of 50, N = 20 (min 20), on a cent tick. */
+function bookOf(cents: number): { market: PmMarketRow; book: PmBookNow } {
+  const bb = 0.46, ba = Number((bb + cents / 100).toFixed(2));
+  const bids: Array<[number, number]> = [[bb, 50], [0.45, 50]], asks: Array<[number, number]> = [[ba, 50], [Number((ba + 0.01).toFixed(2)), 50]];
+  const market = { day: "2026-10-13", kind: "standard", cond: cond(1), yes_token: "1", no_token: "2", neg_risk: false, tick: 0.01, min_size: 20, reward_rate: 50, rank: 1, question: "q", max_spread: 4.5 } as PmMarketRow;
+  const book = { bestBid: bb, bestAsk: ba, tick: "0.01", minSize: 5, negRisk: false, at: null, hash: null, levels: { bids, asks } } as PmBookNow;
+  return { market, book };
+}
+
+Deno.test("Addendum 19's rule: nothing rests under a 4 ¢ touch (Addendum 18's quoted 2 and 3 ¢ books); from 4 ¢ it is rwQuotes; a side stops at 2N, not 5N; the exit keeps no skip", () => {
+  const none = { yes: 0, no: 0 };
+  for (const c of [1, 2, 3]) {
+    const { market, book } = bookOf(c);
+    assertEquals(lpQuotes({ market, book, held: none }), [], `${c} ¢`);
+    // The counterfactual: Addendum 18's rule (TB1's skip) quotes a two- or three-cent book.
+    if (c >= 2) assertEquals(a18Quotes({ market, book, held: none }).length, 2, `${c} ¢`);
+    // Held stock still gets its exit, close-only, on any book.
+    assertEquals(closeOnly(lpExitQuotes({ market, book, held: { yes: 20, no: 0 } }), { yes: 20, no: 0 }, book).map((x) => `${x.outcome} ${x.side}`), ["yes SELL"], `${c} ¢`);
+  }
+  for (const c of [4, 5, 8]) {
+    const { market, book } = bookOf(c);
+    assertEquals(lpQuotes({ market, book, held: none }), rwQuotes({ market, book, held: none }), `${c} ¢`);
+    assertEquals(lpQuotes({ market, book, held: none }).length, 2, `${c} ¢`);
+  }
+  assertEquals([wideTouch([0.46, 0.50, 0.46, 0.50, 1, 1], 4), wideTouch([0.46, 0.499, null, null, 0, 0], 4), wideTouch(null, 4)], [true, false, false]);
+  assertEquals([rawTouchCents({ bids: [[0.46, 1]], asks: [[0.5, 1]] }), rawTouchCents({ bids: [], asks: [[0.5, 1]] })], [4, null]);
+  // 2N (N = 20): 40 YES held, the bid rests nothing and the ask sells; 39, a buy and a sell; Addendum 18's 5N still bought at 40.
+  const { market, book } = bookOf(4), N = 20;
+  assertEquals(lpQuotes({ market, book, held: { yes: 2 * N, no: 0 } }).map((x) => `${x.outcome} ${x.side}`), ["yes SELL"]);
+  assertEquals(lpQuotes({ market, book, held: { yes: 2 * N - 1, no: 0 } }).map((x) => `${x.outcome} ${x.side}`), ["yes BUY", "yes SELL"]);
+  assertEquals(lpQuotes({ market, book, held: { yes: 0, no: 2 * N } }).map((x) => `${x.outcome} ${x.side}`), ["no SELL"]);
+  assertEquals(a18Quotes({ market, book, held: { yes: 2 * N, no: 0 } }).map((x) => `${x.outcome} ${x.side}`), ["yes BUY", "yes SELL"]);
+  // The near-certain limit still holds on a four-cent book: 0.95 / 0.99, 7 YES held at the mark, $320: only the NO buy.
+  const nc = (() => {
+    const b = bookOf(4);
+    const bids: Array<[number, number]> = [[0.95, 50], [0.94, 50]], asks: Array<[number, number]> = [[0.99, 50]];
+    return { market: b.market, book: { ...b.book, bestBid: 0.95, bestAsk: 0.99, levels: { bids, asks } } as PmBookNow };
+  })();
+  const q = lpQuotes({ ...nc, held: { yes: 0, no: 0 }, capital: 320 });
+  assert(q.some((x) => x.outcome === "yes" && x.side === "BUY"), JSON.stringify(q));
+  assertEquals(lpQuotes({ ...nc, held: { yes: 7, no: 0 }, capital: 320 }).some((x) => x.outcome === "yes" && x.side === "BUY"), false);
+});
+
+Deno.test("quietVerdict: read, complete and at most 50 shares is quiet; anything else is not, a failed read included", () => {
+  const r = (shares: number, complete = true, trades = 3): PmQuietRead => ({ ok: true, shares, trades, complete });
+  assertEquals([quietVerdict(r(0), PM_LP_QUIET).quiet, quietVerdict(r(50), PM_LP_QUIET).quiet, quietVerdict(r(50.01), PM_LP_QUIET).quiet], [true, true, false]);
+  assertEquals(quietVerdict(r(10, false, 100), PM_LP_QUIET).quiet, false);
+  assertEquals(quietVerdict({ ok: false, error: "503 down" }, PM_LP_QUIET), { quiet: false, why: "its trades could not be read (503 down): not taken as quiet" });
+  assertEquals(quietVerdict(null, PM_LP_QUIET).quiet, false);
+  assertEquals(quietVerdict(r(NaN), PM_LP_QUIET).quiet, false);
+});
+
+Deno.test("quietChoose is RW's choose over the quiet candidates, reading only what could still be taken, at most maxReads; a failed read is never taken", async () => {
+  const r = rng(20261013);
+  for (let world = 0; world < 300; world++) {
+    const n = 5 + Math.floor(r() * 60);
+    const xs = Array.from({ length: n }, (_, i) => ({ cond: cond(1000 + i), perDollar: Math.round(r() * 1e4) / 1e6, cap: 2 + Math.round(r() * 2000) / 100 }));
+    const state = new Map(xs.map((x) => [x.cond, r() < 0.3 ? "quiet" : r() < 0.85 ? "busy" : "down"]));
+    const budget = 20 + r() * 120, max = 1 + Math.floor(r() * 12), reserve = r() < 0.5 ? 0 : Math.floor(r() * 10);
+    const rule = { ...PM_LP_QUIET, concurrency: 1 + Math.floor(r() * 10) };
+    const read: string[] = [];
+    const q = await quietChoose(xs, budget, max, reserve, rule, (c) => {
+      read.push(c);
+      const s = state.get(c);
+      return Promise.resolve(s === "down" ? { ok: false, error: "down" } : { ok: true, shares: s === "quiet" ? 10 : 80, trades: 2, complete: true });
+    });
+    const quiet = xs.filter((x) => state.get(x.cond) === "quiet");
+    // Unbounded by reads, the picks are choose over the quiet ones, `max` at most.
+    if (!q.note.stopped) assertEquals(q.chosen, choose(quiet, budget).slice(0, max), `world ${world}`);
+    assert(q.chosen.every((x) => state.get(x.cond) === "quiet") && q.reserve.every((x) => state.get(x.cond) === "quiet"), `world ${world}`);
+    assert(new Set(read).size === read.length && read.length <= rule.maxReads, `world ${world}`);
+    assertEquals(q.note.reads, read.length);
+    // With no reserve, a candidate whose first quotes alone pass the budget is never read.
+    if (!reserve) assert(read.every((c) => xs.find((x) => x.cond === c)!.cap <= budget + 1e-9), `world ${world}`);
+    assert(q.reserve.length <= reserve && q.chosen.length <= max, `world ${world}`);
+  }
+  // At most maxReads: 40 busy candidates and a bound of 25 read 25, take nothing and say why.
+  const busy = Array.from({ length: 40 }, (_, i) => ({ cond: cond(2000 + i), perDollar: 1 - i / 100, cap: 1 }));
+  const capped = await quietChoose(busy, 100, 10, 0, { ...PM_LP_QUIET, maxReads: 25 }, () => Promise.resolve({ ok: true, shares: 99, trades: 5, complete: true }));
+  assertEquals([capped.note.reads, capped.chosen.length, capped.note.stopped], [25, 0, "the 25 reads a selection may make"]);
+  // A data API that answers nothing stops after two batches, every read failed.
+  const down = await quietChoose(busy, 100, 10, 0, PM_LP_QUIET, () => Promise.reject(new Error("503")));
+  assertEquals([down.note.reads, down.note.failed, down.chosen.length, down.note.stopped], [20, 20, 0, "every read failed"]);
+});
+
+Deno.test("pmTakerShares: one page of the data API's trades, the 24 hours before now summed; a full page inside the window is not complete; a failed read throws", async () => {
+  const now = Date.parse("2026-10-13T00:00:30Z"), nowS = Math.floor(now / 1000);
+  const pm = new FakePolymarket(() => now);
+  const m = pm.addMarket({ cond: cond(9), yes: tok(9, "yes"), no: tok(9, "no"), rate: 20 });
+  const o = { fetchImpl: pm.publicFetch };
+  // 12 and 30 shares inside the 24 hours, 500 a day before, and 7 a minute ahead (never counted).
+  pm.prints.set(m.cond, [[nowS - 3600, "BUY", 0, 0.5, 12], [nowS - 80000, "SELL", 1, 0.4, 30], [nowS - 90000, "BUY", 0, 0.5, 500], [nowS + 60, "BUY", 0, 0.5, 7]]);
+  assertEquals(await pmTakerShares(m.cond, nowS - 86400, nowS, o), { shares: 42, trades: 2, complete: true });
+  assertEquals((await lpQuietRead(m.cond, now, o)), { ok: true, shares: 42, trades: 2, complete: true });
+  assert(pm.urls.some((u) => u.includes("data-api.polymarket.com/v2/trades") && u.includes(`limit=${PM_QUIET_PAGE}`)), JSON.stringify(pm.urls));
+  // A full page all inside the window: the sum is a floor, not complete, and so never quiet.
+  pm.prints.set(m.cond, Array.from({ length: PM_QUIET_PAGE + 5 }, (_, i): [number, "BUY", number, number, number] => [nowS - 60 * (i + 1), "BUY", 0, 0.5, 0.1]));
+  const full = await pmTakerShares(m.cond, nowS - 86400, nowS, o);
+  assertEquals([full.trades, full.complete], [PM_QUIET_PAGE, false]);
+  assertEquals(quietVerdict({ ok: true, ...full }, PM_LP_QUIET).quiet, false);
+  // A market with no trade at all: 0 shares, complete.
+  pm.prints.set(m.cond, []);
+  assertEquals(await pmTakerShares(m.cond, nowS - 86400, nowS, o), { shares: 0, trades: 0, complete: true });
+  // The data API down: the client throws, the reader says not ok.
+  pm.publicDown.trades = true;
+  let threw = false;
+  try { await pmTakerShares(m.cond, nowS - 86400, nowS, o); } catch { threw = true; }
+  assert(threw);
+  assertEquals((await lpQuietRead(m.cond, now, o)).ok, false);
+});
+
+Deno.test("lpRestartOf, lpSelectBudget, restartOpenMarks: the restart's instant and limit; 90 % of the cap; the opening marks kept, filled in, and missing", () => {
+  const now = Date.parse("2026-10-13T03:00:00Z");
+  assertEquals(lpRestartOf({ restarted_at: null, restart_loss_usd: 25 }, 75, now), null);
+  assertEquals(lpRestartOf({ restarted_at: "2026-10-13T04:00:00Z", restart_loss_usd: 25 }, 75, now), null);                  // ahead of now
+  assertEquals(lpRestartOf({ restarted_at: "nonsense", restart_loss_usd: 25 }, 75, now), null);
+  assertEquals(lpRestartOf({ restarted_at: "2026-10-13T02:30:15Z", restart_loss_usd: "25" }, 75, now), { atMs: Date.parse("2026-10-13T02:30:15Z"), at: "2026-10-13T02:30:15.000Z", limit: 25 });
+  assertEquals(lpRestartOf({ restarted_at: "2026-10-13T02:30:15Z", restart_loss_usd: null }, 75, now)?.limit, 75);
+  assertEquals(lpRestartOf({ restarted_at: "2026-10-13T02:30:15Z", restart_loss_usd: 90 }, 75, now)?.limit, 75);
+  // 90 % of $247 is $222.30; never over the config's budget; no cap, no budget.
+  assertEquals([lpSelectBudget(320, 247, 0.9), lpSelectBudget(200, 247, 0.9), lpSelectBudget(320, null, 0.9), lpSelectBudget(320, 236, 0.9)], [222.3, 200, 0, 212.4]);
+  // The opening marks: this turn's for what is held; kept once read for the same restart; a new restart starts again.
+  const a = restartOpenMarks(null, "R1", ["y1", "n2"], { y1: 0.4, n2: null });
+  assertEquals(a, { at: "R1", marks: { y1: 0.4 }, missing: ["n2"] });
+  const b = restartOpenMarks({ at: "R1", marks: a.marks }, "R1", ["y1", "n2"], { y1: 0.1, n2: 0.7 });
+  assertEquals(b, { at: "R1", marks: { y1: 0.4, n2: 0.7 }, missing: [] });
+  assertEquals(restartOpenMarks({ at: "R1", marks: b.marks }, "R2", ["y1"], { y1: 0.2 }).marks, { y1: 0.2 });
+});
+
+Deno.test("the restart's basis: a holding bought at 0.95 and marked 0.47 at the restart counts nothing then, −25 at 0.22; from cost it was −48 already", () => {
+  const restart = Date.parse("2026-10-13T02:30:00Z");
+  const fills = [{ token: "Y", side: "BUY" as const, price: 0.95, size: 100, ts: Date.parse("2026-10-12T05:00:00Z") }];
+  const open = restartOpenMarks(null, "R", Object.keys(tokenBooks(fills.filter((f) => f.ts < restart), restart)), { Y: 0.47 }).marks;
+  assertAlmostEquals(sinceOpenPnl(fills, restart, open, { Y: 0.47 }), 0, 1e-9);
+  assertAlmostEquals(sinceOpenPnl(fills, restart, open, { Y: 0.22 }), -25, 1e-9);
+  assertAlmostEquals(bookPnl(tokenBooks(fills, restart), { Y: 0.47 }).total, -48, 1e-9);
+  // A sell after the restart realises against the restart's mark: 50 at 0.50 is +1.50, the other 50 marked at 0.47 nothing.
+  const sold = [...fills, { token: "Y", side: "SELL" as const, price: 0.5, size: 50, ts: restart + 60e3 }];
+  assertAlmostEquals(sinceOpenPnl(sold, restart, open, { Y: 0.47 }), 1.5, 1e-9);
+});
+
+Deno.test("Addendum 19's selection: quiet books only (a book that traded 60 shares in 24 hours is passed over), 4 ¢ wide, 90 % of the cap; Addendum 18's took them all", async () => {
+  const busyBig = (w: ReturnType<typeof world>) => w.pm.prints.set(w.BIG.cond, [[s0 - 3600, "BUY", 0, 0.31, 60]]);
+  const day = async (o: Parameters<typeof world>[0], prep?: (w: ReturnType<typeof world>) => void) => {
+    const w = world(o);
+    prep?.(w);
+    await w.turn(T0);
+    const ev = w.rows("pm_lp_events").find((e) => e.kind === "selection")?.detail as any;
+    return { w, picked: w.rows("pm_lp_markets").map((m) => m.cond).sort(), ev };
+  };
+  const a19 = await day({ a19: true, wide: true }, busyBig);
+  assertEquals(a19.picked, [a19.w.L1.cond, a19.w.E30.cond].sort());
+  assertEquals([a19.ev.quiet.reads, a19.ev.quiet.quiet, a19.ev.quiet.loud, a19.ev.quiet.failed, a19.ev.narrow, a19.ev.budget], [3, 2, 1, 0, 0, 200]);
+  // The quotes rest a tick inside a four-cent touch: L1 (0.45 / 0.49) a BUY of YES at 0.46 and of NO at 0.52.
+  assertEquals(a19.w.restingAfter(a19.w.L1.cond, T0 - 30e3).map((x) => `${x.outcome} ${x.side} ${x.price} × ${x.size}`).sort(), ["no BUY 0.52 × 5", "yes BUY 0.46 × 5"]);
+  // The counterfactual, Addendum 18's instance on the same world: BIG is taken too.
+  const a18 = await day({ wide: true }, busyBig);
+  assertEquals(a18.picked, [a18.w.L1.cond, a18.w.BIG.cond, a18.w.E30.cond].sort());
+  // Two-cent books: nothing is taken, every one passed over for its touch, and no trade is read.
+  const narrow = await day({ a19: true });
+  assertEquals([narrow.picked, narrow.ev.narrow, narrow.ev.quiet.reads], [[], 3, 0]);
+  // 90 % of the cap: with the config's budget at $320, the selection's is 90 % of $320.
+  const big = await day({ a19: true, wide: true, config: { select_budget_usd: 320 } });
+  assertEquals(big.ev.budget, 288);
+  // The data API down: nothing is taken, and the selection says so.
+  const down = await day({ a19: true, wide: true }, (w) => { w.pm.publicDown.trades = true; });
+  assertEquals(down.picked, []);
+  assert(down.w.errors.some((e) => /quiet-book reads/.test(e)), JSON.stringify(down.w.errors));
+});
+
+Deno.test("the restart (Addendum 19, 0119): the stop that tripped before it no longer holds; the stop counts from it at its $25; a loss carried into it is not counted, a loss after it is; without it the old stop holds", async () => {
+  const run = async (restart: boolean) => {
+    const w = world({ a19: true, noRestart: !restart, config: { ...LIVE, ...(restart ? { restarted_at: iso(T0 - 20e3), restart_loss_usd: 25 } : {}) } });
+    // LOW ($8 a day, not in the universe) carried from 10-04: 100 YES bought at 0.95, its book now 0.45 / 0.47.
+    w.rows("pm_lp_markets").push({
+      day: "2026-10-04", kind: "standard", cond: w.LOW.cond, yes_token: tok(7, "yes"), no_token: tok(7, "no"), neg_risk: false, tick: 0.01, min_size: 5, reward_rate: 12, rank: 1, question: "q",
+      detail: {}, selected_at: "2026-10-04T00:00:01.000Z", max_spread: 4.5, n_size: 5, per_dollar_day: 0.1, capital: 5, formula_day: 3, end_date: null, game_start: null,
+    });
+    w.rows("pm_lp_fills").push({ cond: w.LOW.cond, token: tok(7, "yes"), status: "CONFIRMED", size: 100, trade_id: "l-b", hash: "0xlb", side: "BUY", price: 0.95, match_time: "2026-10-04T12:00:00.000Z" });
+    // The stop that tripped on 10-04, as live-prep's did on 10-12.
+    w.rows("pm_lp_events").push({ mode: "live", minute: "2026-10-04T13:00:00.000Z", kind: "loss_stop_total", detail: {} });
+    await w.turn(T0);
+    const st0 = w.rows("pm_lp_state")[0].state as any;
+    w.LOW.bid = 0.10; w.LOW.ask = 0.12;
+    await w.turn(T0 + M);
+    const st1 = w.rows("pm_lp_state")[0].state as any;
+    assertEquals(w.errors.filter((e) => /turn:|threw/.test(e)), []);
+    return { w, st0, st1, stops: w.rows("pm_lp_events").filter((e) => e.kind === "loss_stop_total").map((e) => [e.minute, e.detail as any]) };
+  };
+  const r = await run(true);
+  // At 10:00:30, 10 s after the restart: the old stop does not hold, nothing trips, the basis counts nothing of the
+  // carried loss (−$49 from cost: 100 × (0.46 − 0.95)), its opening mark is LOW's mid then, 0.46.
+  assertEquals([r.st0.openBlockedBy, r.st0.lp.addendum, r.st0.lp.stop.since, r.st0.lp.stop.limit, r.st0.lp.stop.trippedAt], [null, 19, iso(T0 - 20e3), 25, null]);
+  assertAlmostEquals(r.st0.lp.stop.basis, 0, 1e-6);
+  assertAlmostEquals(r.st0.pnl.total, -49, 1e-6);
+  assertAlmostEquals(r.st0.lp.stop.open.marks[tok(7, "yes")], 0.46, 1e-9);
+  // LOW falls to 0.11: 100 × (0.11 − 0.46) = −35 since the restart, past its $25: the stop trips, from then.
+  assertEquals(r.stops.length, 2);
+  const [minute, d] = r.stops[1];
+  assertEquals([minute, d.since, d.limit], [iso(Math.floor((T0 + M) / M) * M), iso(T0 - 20e3), -25]);
+  assertAlmostEquals(d.basis, -35, 1e-6);
+  assertAlmostEquals(d.fillsFromCost, -84, 1e-6);
+  assertEquals([r.st1.openBlockedBy, r.st1.lp.stop.trippedAt], ["loss_total", iso(Math.floor((T0 + M) / M) * M)]);
+  // The counterfactual, no restart: the stop of 10-04 holds at 10:00:30, and nothing new is written.
+  const o = await run(false);
+  assertEquals([o.st0.openBlockedBy, o.st0.lp.stop, o.st0.lp.addendum, o.stops.length], ["loss_total", undefined, undefined, 1]);
+});
+
+Deno.test("the restart takes the day's earlier selection as carried and selects the day again at once, by Addendum 19's rule", async () => {
+  const w = world({ a19: true, wide: true, config: { ...LIVE } });
+  await w.turn(T0);
+  const first = w.rows("pm_lp_markets").map((m) => [m.cond, m.selected_at]);
+  assert(first.length > 0 && first.every(([, s]) => s === iso(T0)), JSON.stringify(first));
+  w.setConfig({ restarted_at: iso(T0 + 30e3), restart_loss_usd: 25 });
+  await w.turn(T0 + M);
+  // The day's rows written at the restart's turn, and the selection event says it was the restart's.
+  const again = w.rows("pm_lp_markets").filter((m) => m.selected_at === iso(T0 + M));
+  assertEquals(again.map((m) => m.cond).sort(), first.map(([c]) => c).sort());
+  const ev = w.rows("pm_lp_events").filter((e) => e.kind === "selection").map((e) => e.detail as any);
+  assertEquals(ev.at(-1)?.restart, iso(T0 + 30e3));
+  // Without the restart, a second turn selects nothing again.
+  const n = world({ a19: true, wide: true, config: { ...LIVE } });
+  await n.turn(T0);
+  await n.turn(T0 + M);
+  assertEquals(n.rows("pm_lp_events").filter((e) => e.kind === "selection").length, 1);
 });

@@ -1,5 +1,6 @@
 // Keyless reads of Polymarket's public endpoints, for the paper test of RW (agents/pmrw.ts, reference §3.33 and the
-// spec `reviews/2026-09-24-polymarket-rw-paper-spec.md`), and for the view-count recorder (agents/views.ts).
+// spec `reviews/2026-09-24-polymarket-rw-paper-spec.md`), for the view-count recorder (agents/views.ts), and for
+// live-prep's quiet-book rule (`pmTakerShares`, its pre-registration's Addendum 19).
 //
 // Nothing here reads a credential, signs anything or calls an order endpoint: the account's credentialed read-only
 // client is `polymarket.ts`, and this file does not import it. Every call goes to one of three documented hosts,
@@ -176,6 +177,32 @@ export async function pmPrints(cond: string, sinceSec: number, o: PmPublicOpts &
     if (!cursor || !rows.length || oldest < sinceSec) { complete = true; break; }
   }
   return { prints: [...out.values()].sort(printOrder), complete };
+}
+
+/** How many trades one read of a market's quietness asks for (`pmTakerShares`). */
+export const PM_QUIET_PAGE = 100;
+/**
+ * The taker shares traded in `cond` between `sinceSec` and `nowSec` (Unix seconds), from ONE page of the data API's
+ * `/v2/trades` (the feed `pmPrints` reads, newest first; on 2026-10-13 it gave the same 24-hour sums as
+ * `/trades?takerOnly=true`, which LP-BEST read). `complete` is false when the page is full and its oldest trade is still
+ * inside the window: more trades may be behind it, so the sum is a floor and never proves a market quiet. A quiet book
+ * held at most 9 trades in a day on LP-BEST's record (6,063 market-days), so one page of 100 always answers for one.
+ * No cache-busting parameter: a copy up to five minutes old (CloudFront's, header above) moves a 24-hour sum by at most
+ * those minutes' trades. Throws on any reply not in the documented shape: a read that fails is no answer.
+ */
+export async function pmTakerShares(cond: string, sinceSec: number, nowSec: number, o: PmPublicOpts = {}): Promise<{ shares: number; trades: number; complete: boolean }> {
+  const q = new URLSearchParams({ condition: cond, limit: String(PM_QUIET_PAGE) });
+  const d = await call("GET", `${PM_DATA}/v2/trades?${q}`, undefined, o) as { data?: unknown };
+  if (!Array.isArray(d?.data)) throw new Error("data-api /v2/trades: no data list in the reply");
+  const rows = d.data as Array<Record<string, unknown>>;
+  let shares = 0, trades = 0, oldest = Infinity;
+  for (const r of rows) {
+    const ts = num(r?.timestamp, NaN), size = num(r?.size, NaN);
+    if (!Number.isFinite(ts) || !Number.isFinite(size) || size < 0) throw new Error("data-api /v2/trades: a trade without a timestamp or a size");
+    oldest = Math.min(oldest, ts);
+    if (ts >= sinceSec && ts <= nowSec) { shares += size; trades++; }
+  }
+  return { shares: Math.round(shares * 1e6) / 1e6, trades, complete: rows.length < PM_QUIET_PAGE || oldest < sinceSec };
 }
 
 /**

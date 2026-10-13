@@ -22,7 +22,9 @@
 //              formula, a maker's nothing); every order is post-only, so every fill so far is a maker's and pays nothing.
 //              Taken off realised, as a fee is. The maker rebates Polymarket paid are the readout's own (`rebate_usd`).
 //   the stop   −$75 on the page's TOTAL since Addendum 18: the fills' total plus the rewards paid and the maker rebates, less
-//              the fees, exactly as the path judges it each live turn; the page shows its room (`roomUsd`).
+//              the fees, exactly as the path judges it each live turn; the page shows its room (`roomUsd`). Since Addendum
+//              19, once Davies' go restarts it, the path's own reading from the restart (`restartStopOf`, `state.lp.stop`):
+//              the fills' change since then plus what was paid for the days from then, at its own limit ($25).
 //   R          paid ÷ the whole formula, every live quoted minute, 10-09 like for like (`rWhole`, LP-OBS-DEEP 2026-10-11: the
 //              pre-registration's R and the end rule's); the scored figure (`r`) and the prior-weighted point estimates use
 //              (`estimate.r`) are carried beside it and labelled on the page.
@@ -61,6 +63,8 @@ export type LpLiveRewardDayRow = {
 /** The path's selection (`pm_lp_markets`), every day since it went live. */
 export type LpLiveMarketRow = {
   day: string; cond: string; question: string | null; yes_token: string; no_token: string; reward_rate?: number | string | null; rank?: number | string | null;
+  /** When the row was written: on a restart's day (Addendum 19) the rows written before it are not that day's selection. */
+  selected_at?: string | null;
 };
 /** The path's live minute (`pm_lp_minutes`, mode `live`) at its last turn: the formula's reward for our quotes and the pool's rate. */
 export type LpLiveMinuteRow = { cond: string; rate: number | string | null; formula_usd: number | string | null };
@@ -85,7 +89,7 @@ export type LpLiveCloseRow = {
 export const LP_LIVE_ORDER_COLUMNS = "id,ts,cond,token,outcome,side,price,size,state,size_matched,gate,reason,cancel_reason,filled_at,cancelled_at";
 export const LP_LIVE_FILL_COLUMNS = "trade_id,hash,cond,token,side,price,size,status,match_time,trader_side:detail->trade->>trader_side,fee_rate_bps:detail->trade->>fee_rate_bps";
 export const LP_LIVE_REWARD_COLUMNS = "day,cond,minutes,minutes_scored,formula_usd,formula_scored_usd,actual_usd,actual_sponsored_usd,rebate_usd";
-export const LP_LIVE_MARKET_COLUMNS = "day,cond,question,yes_token,no_token,reward_rate,rank";
+export const LP_LIVE_MARKET_COLUMNS = "day,cond,question,yes_token,no_token,reward_rate,rank,selected_at";
 export const LP_LIVE_MINUTE_COLUMNS = "cond,rate,formula_usd";
 export const LP_LIVE_HOUR_COLUMNS = "hour,cond,minutes,formula_usd,formula_scored_usd";
 export const LP_LIVE_CLOSE_COLUMNS = "minute,cond,bb,ba,bid_price,ask_price";
@@ -99,6 +103,22 @@ const nz = (x: unknown) => (x === null || x === undefined || x === "" ? null : N
 const r6 = (x: number) => Math.round(x * 1e6) / 1e6;
 const iso = (ms: number) => new Date(ms).toISOString();
 const dayOf = (d: string) => String(d).slice(0, 10);
+
+/**
+ * The path's own reading of its stop since a restart (Addendum 19, `state.lp.stop` with `since` set), or null: before
+ * any restart the page computes the stop from the whole record, as before. Every figure is the turn's, never recomputed.
+ */
+export function restartStopOf(state: unknown): { since: string; limit: number; fills: number; paid: number; rebates: number; fees: number; basis: number; room: number; trippedAt: string | null } | null {
+  const s = (state as { lp?: { stop?: Record<string, unknown> } } | null)?.lp?.stop;
+  if (!s || typeof s.since !== "string" || !Number.isFinite(Date.parse(s.since))) return null;
+  const n = (x: unknown) => (x === null || x === undefined ? 0 : Number(x));
+  const limit = Number(s.limit), basis = Number(s.basis);
+  if (!Number.isFinite(limit) || !Number.isFinite(basis)) return null;
+  return {
+    since: s.since, limit, fills: r6(n(s.fills)), paid: r6(n(s.paid)), rebates: r6(n(s.rebates)), fees: r6(n(s.fees)), basis: r6(basis), room: r6(limit + basis),
+    trippedAt: typeof s.trippedAt === "string" ? s.trippedAt : null,
+  };
+}
 
 /** When the book went live: the arming's time, else (disarmed since) its first live order's; null for neither. */
 export function lpLiveSince(cfg: Pick<LpLiveConfigRow, "live_confirmed_at"> | null, firstLiveOrderTs: string | null): string | null {
@@ -262,6 +282,9 @@ export function lpLiveSummary(input: {
 
   // The last turn's books, as the path marks them: YES at the mid, NO at 1 − mid.
   const st = (input.state?.state ?? null) as { markets?: Array<{ cond?: string; book?: { bestBid?: number; bestAsk?: number } | null }>; gates?: Record<string, boolean | null>; openBlockedBy?: string | null; reduceBlockedBy?: string | null; mode?: string; armed?: boolean } | null;
+  // Since Addendum 19 the path restarts its stop (0119's `restarted_at`): from then the stop is the path's own reading of
+  // it (`state.lp.stop`), counted from the restart at its own limit, and a stop that tripped before it is history.
+  const restarted = restartStopOf(st);
   const mid = new Map<string, number>();
   for (const x of Array.isArray(st?.markets) ? st!.markets! : []) {
     const b = x?.book;
@@ -386,7 +409,11 @@ export function lpLiveSummary(input: {
   };
   const quotes: Array<Record<string, unknown>> = [];
   const seen = new Set<string>();
-  for (const m of input.markets.filter((x) => dayOf(x.day) === today).sort((x, y) => num(x.rank) - num(y.rank))) {
+  // On a restart's UTC day (Addendum 19) today's selection is the rows written since the restart; those before it are
+  // carried markets now, listed below with what they hold.
+  const restartMs = restarted && dayOf(restarted.since) === today ? Date.parse(restarted.since) : null;
+  const ofToday = (x: LpLiveMarketRow) => dayOf(x.day) === today && (restartMs === null || (!!x.selected_at && Date.parse(x.selected_at) >= restartMs));
+  for (const m of input.markets.filter(ofToday).sort((x, y) => num(x.rank) - num(y.rank))) {
     if (seen.has(m.cond)) continue;
     seen.add(m.cond);
     const q = restingOn(m.cond), x = minute.get(m.cond), f = nz(x?.formula_usd), rate = nz(x?.rate);
@@ -459,10 +486,15 @@ export function lpLiveSummary(input: {
     status: { bestMarketUsd: Number.isFinite(best) ? r6(best) : null, quoting: quotingToday, held: quotes.filter((x) => Number(x.yes) + Number(x.no) > 0).length },
     // Today's rewards, estimated (STATUS' last tile on LIVE, Davies 2026-10-09: "预估今日rewards收益…给个范围（最低-最优）").
     estimate,
-    stop: {
-      limitUsd: limit, fillsPnlUsd: r6(pnl.total), paidUsd: r6(paid), rebateUsd: r6(rebates), feesUsd: r6(fees), basisUsd: r6(basis), roomUsd: limit == null ? null : r6(limit + basis),
-      trippedAt: input.stop?.minute ?? null,
-    },
+    stop: restarted
+      ? {
+        limitUsd: restarted.limit, fillsPnlUsd: restarted.fills, paidUsd: restarted.paid, rebateUsd: restarted.rebates, feesUsd: restarted.fees, basisUsd: restarted.basis,
+        roomUsd: restarted.room, trippedAt: restarted.trippedAt, since: restarted.since,
+      }
+      : {
+        limitUsd: limit, fillsPnlUsd: r6(pnl.total), paidUsd: r6(paid), rebateUsd: r6(rebates), feesUsd: r6(fees), basisUsd: r6(basis), roomUsd: limit == null ? null : r6(limit + basis),
+        trippedAt: input.stop?.minute ?? null,
+      },
     // The last turn's gates, in the path's own words; a turn of the dry-run (the config disarmed) says so by its mode.
     gates: st && st.gates && typeof st.gates === "object"
       ? { mode: st.mode ?? null, armed: !!st.armed, verdicts: st.gates, openBlockedBy: st.openBlockedBy ?? null, reduceBlockedBy: st.reduceBlockedBy ?? null }

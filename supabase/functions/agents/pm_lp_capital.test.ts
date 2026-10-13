@@ -12,7 +12,9 @@ import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.t
 import { PM_LP_INSTANCE, PREP_LP_INSTANCE } from "./pm_lp.ts";
 import { lpCapital, PM_LP_CAP_CEILING_USD, PM_LP_CAP_MARGIN_USD, PM_LP_EQUITY_FRESH_MS, pmLpDbTables, runPmLive, type LpCapitalInputs } from "./pm_live.ts";
 import { PmOrderKey } from "../_shared/polymarket_orders.ts";
-import { FakePolymarket, memDb, onlyTables, PM_TEST_FUNDER, PM_TEST_KEY, PM_TEST_SIGNER, type Row } from "./testing.ts";
+// The armed turns run on live-prep as Addendum 18 left it (`LP_A18_INSTANCE`): their books are two cents wide, which
+// Addendum 19's quiet-book rule passes over; the capital rule is the same in both.
+import { FakePolymarket, LP_A18_INSTANCE, memDb, onlyTables, PM_TEST_FUNDER, PM_TEST_KEY, PM_TEST_SIGNER, type Row } from "./testing.ts";
 
 const M = 60e3;
 const iso = (ms: number) => new Date(ms).toISOString();
@@ -106,7 +108,7 @@ function world(o: { pusd: number; config?: Record<string, unknown> }) {
       clock.now = t;
       return await runPmLive({
         db, now: t, holder: `h${t}`, venue: pm.venue(), sbRegion: "eu-west-1", sendsEnabled: true, account: { maker: PM_TEST_FUNDER, signer: PM_TEST_SIGNER },
-        signer: key, salt: () => String(salt++), pause: () => Promise.resolve(), clock: () => clock.now, inst: PM_LP_INSTANCE, pm: { fetchImpl: pm.publicFetch },
+        signer: key, salt: () => String(salt++), pause: () => Promise.resolve(), clock: () => clock.now, inst: LP_A18_INSTANCE, pm: { fetchImpl: pm.publicFetch },
       });
     },
     rows: (t: string) => mem.tables[t] as Row[],

@@ -1423,3 +1423,156 @@ No migration. Mini-pool and mid-pool set none of the three and are unchanged.
 - `src/pm_lp_prereg.test.js`: the corrected readout's bytes, its 10-09 figures equal to `LP_R_DAY_CORRECTIONS` ($8.081876),
   and on the live record of 10-11 01:19 UTC its arithmetic reads 0.7366, where the frozen script's reads 0.1541.
 - `src/pm_live_hash.test.js`, `src/pm_lp_prereg.test.js`: the bytes and the chain of addenda.
+
+## Addendum 19 (2026-10-13, about 03:30 UTC): quiet books, 2N, 90 % of the cap, and a −$25 stop from a restart; no dry-run day
+
+This addendum was written while live-prep is stopped (its −$75 total stop tripped on 2026-10-12 07:30 UTC and latches) and
+before the deploy it records. Not blind: every figure of LP-BEST was seen before it. **It ships only on Davies' word**,
+which it has. His answer, 2026-10-13 about 01:40 UTC, verbatim: "做B，不用空跑吧 做好后验证没问题了直接上线吧？" (do B; no dry
+run needed, is it? once it is built and verified, go straight live?), given after the main session laid out LP-BEST
+(`reviews/2026-10-13-lp-best-strategy.md`, `backtests/lpbest/`): A was to end Polymarket rewards, B its §7 design under the
+§8 test. **The dry-run day LP-BEST proposed is waived on his word.** "直接上线" is his go for once the build is verified: the
+restart is still one statement, run in a conversation where he says go, after the checks below; nothing here runs it.
+
+**The evidence.** LP-BEST's simulator, calibrated to live-prep's own orders and validated on its own rule and picks
+(−$24.96 a day against live's −$21.77), found quoting a tick inside the touch losing across the reward universe, and one
+positive design: quiet books. Chosen on 10-05 → 10-08 by the highest 5 % bound and read once on 10-09 → 10-12: **+$4.23 a
+day [+$1.57, +$7.12] out of sample**, +$3.62 [+$1.38, +$6.02] over the eight days at $316 of equity, worst day −$10.34,
+2.92 ¢ of rewards a filled share against live's 0.66 ¢. Not larger with more money. What it could not measure: R in quiet
+books, the half of each day pm-rec did not record the picked markets, and other makers' answer (the review's "Not checked").
+
+**What changes.**
+
+1. **Quiet books only** (`PmCandidateRules.quiet`, `PM_LP_QUIET`). A candidate is taken only where its book without our
+   orders has a touch of **at least 4 ¢** (`scoreBook`'s `narrow`), and only once **one read** of the data API's
+   `/v2/trades` for its market (keyless, `_shared/polymarket_public.ts` `pmTakerShares`, 100 trades; on 2026-10-13 it gave
+   the same 24-hour sums as the `/trades?takerOnly=true` LP-BEST read) shows **at most 50 taker shares in the 24 hours
+   before the read** (`quietVerdict`). A read that fails, or a page of 100 trades all inside the 24 hours (a sum that may not
+   be all of them; a quiet book held at most 9 a day on LP-BEST's 6,063 quiet market-days), is not quiet: **a market is
+   never assumed quiet**. The day's markets are RW's `choose` over the quiet candidates (`quietChoose`): in RW's order, a
+   candidate is read only while it could still be taken, ten at once, **150 reads at most** a selection (LP-BEST's walk read
+   25 to 51 a day for its eleven picks), and a data API that answers nothing stops the walk after twenty failures; a
+   selection that took nothing because its reads failed is tried again five minutes later, as any failed read of the
+   selection is. The reserve (`pm_lp_reserve.ts`) is ranked the same way, quiet books only, and the refill takes a reserve
+   candidate only if one more read shows it quiet at that minute and its touch is 4 ¢.
+2. **The quote rests only on a 4 ¢ touch** (`PM_LP_TIGHT = { minTouchCents: 4 }`, in place of TB1's one-tick skip of
+   Addendum 2): RW's price and N a side, as before, while the raw touch is at least 4 ¢; nothing that minute where it is
+   narrower. The exit of a market worked close-only keeps no skip (Addendum 16).
+3. **2N** (`PM_LP_INV_CAP` 5 → 2): a side stops at 2N of inventory its way.
+4. **The day's markets inside 90 % of the total cap** (`PmLpOptions.selectShare`, `PM_LP_SELECT_SHARE`): the selection's
+   budget of first quotes is 90 % of the cap the last turn held (the equity's, Addendum 8, less $80) and never over
+   `select_budget_usd`; the refill's is 90 % of the turn's cap. `max_markets` goes to the code's 12 (the budget binds
+   first: LP-BEST's eleven a day).
+5. **A total stop of −$25 counted from a restart** (`PmLpOptions.restartable`; migration `0119_pm_lp_restart.sql`,
+   `pm_lp_config.restarted_at` and `restart_loss_usd`):
+   - The stop latches only on an event written from the restart's minute: the event of 10-12 07:30 UTC no longer holds the
+     path once a restart is set; it stays in `pm_lp_events` as written.
+   - Its basis from the restart: the fills' **change since then** (each holding at the restart from its mid then, read by
+     the first turn after it and kept in `pm_lp_state.state.lp.stop.open`; `sinceOpenPnl`), plus the rewards paid and the
+     maker rebates for the UTC days **from the restart's day**, less the fees of fills matched since it. A holding of the
+     restart with no mark read yet (this turn's, the last turn's or a settlement's payout) leaves the stop unjudged: nothing
+     opens that turn.
+   - Its limit is `restart_loss_usd`, **$25**. `loss_total_usd` stays $75, because the cap is the equity less it and $5
+     (Addendum 8), which is the cap LP-BEST priced.
+   - On the restart's UTC day, the markets selected before it are no longer the day's (carried where they hold anything)
+     and the day is **selected again at once** by these rules; its refill count starts again; the reserve is ranked again.
+   - The live page's stop line reads "total stop at −$25 since <the restart> UTC: $X of room (since then $Y)" from the
+     path's own reading (`state.lp.stop`).
+6. **The stock carried into the restart** (about $32 at cost on 10-13 02:07 UTC, fifteen markets, most of it dust): it
+   keeps its exits resting, close-only (`lpExitQuotes` through `closeOnly`, Addendum 16), and takes no buy unless a market
+   of it is selected again by these rules; it counts in the new stop only by its moves from its mark at the restart. Its
+   loss to the restart is the record's, not the test's.
+
+**Nothing else changes**: the reward check and its backstop (Addendum 9), no AI market (12), the per-market loss guard
+(14), the pause (x2's, and Addendum 18's exits through it), the near-certain limit (7), the caps in rank order (17), the
+refill's cash check and its other numbers (13, 15, 18), $100 a market, N ≤ 20, the equity cap and its $80 (8, 18), the
+governor of 12,000 POSTs, the region, the Ireland attestation, the CTF approvals, the payouts per path. The order path's
+mini-pool and mid-pool are unchanged (mid-pool's deviation 19).
+
+**The test: 14 live days from the restart.**
+
+- The window: the first 14 full UTC days after `restarted_at`; the day of the restart is read beside them, not in the bar.
+  A day-7 reading is descriptive only.
+- **The bar, on day 14**, every condition, read from `pm_lp_*` (live rows) and the readout's payouts:
+  1. the total from the restart (the stop's basis as the path keeps it: fills since the restart marked at the mids, plus
+     the rewards paid and the rebates for the days from the restart's day, less fees) is **at least $0**;
+  2. rewards paid are **at least 1.5 ¢ a filled share** over the window (live-prep was paid 0.66 ¢; LP-BEST's 2.92 ¢);
+  3. **no UTC day below −$15**, and the −$25 stop not reached.
+- **Meaning.** Pass, and Davies decides whether to keep it running at the same size (more money did not help in LP-BEST).
+  Fail any condition, or the stop trips, and Polymarket rewards end: the path stays stopped, the result is recorded, and
+  nothing is re-tuned on the test's own days.
+- Read beside it, descriptive: R in quiet books (paid ÷ the whole formula, `lp_readout_a18.sql`'s way, over the window's
+  market-days); quoting minutes; the fills' 60-minute markout; how many quiet books each 00:00 finds and how many reads it
+  spent (the selection event's `quiet`).
+
+**What the earlier readings now are.** None is dropped.
+
+- **The 7-day end rule** (R < 0.20 after 7 live days with ≥ 40 market-days, read with `lp_readout_a18.sql` on or after
+  2026-10-16 01:00 UTC) stays in force as written, over every live day: it can only stop the path. On the record of 10-09 to
+  10-12 (R 0.74 on 10-11's reading) it does not trip. It is also read over the restart's own days, from their seventh with
+  at least 40 market-days: R < 0.20 in quiet books stops the test. That second reading is this addendum's, the same script
+  over `day >=` the restart's day.
+- **The 10-16 re-read of the $80 buffer** (Addendum 18, LP-CAPDEEP item 1) is still made and reported, and changes nothing
+  during the window: LP-BEST priced the cap at the equity less $80.
+- **The 14-day readout** of the pre-registration (R with its 90 % interval, the P&L at the measured R, per market, capital,
+  the fills per share) is read once, at the window's end, split by rule: 10-09 → 10-12 (Addendum 18's rule) and the
+  restart's 14 days (this one's). The bar above decides; the readout reports.
+
+**The go: one statement**, in the conversation where Davies says go, after the deploy and the migration (`0119`). It
+restarts only if the path's state is fresh (a turn within five minutes), runs this addendum's code (`state.lp.addendum` 19),
+holds the key for the stored signer in `eu-west-1`, the config is still armed, his attestation is current and neither other
+path is armed; otherwise `restarted_at` stays null and the path stays stopped:
+
+    update public.pm_lp_config c
+       set restarted_at = case when s.at is null or s.at < now() - interval '5 minutes'
+                                    or s.addendum is distinct from 19
+                                    or s.keyed is not true or s.region is distinct from 'eu-west-1'
+                                    or c.dry_run or c.live_confirmed_at is null
+                                    or c.ireland_attested_at is null or c.ireland_attested_at > now()
+                                    or (c.ireland_until is not null and c.ireland_until <= now())
+                                    or exists (select 1 from public.pm_live_config o where o.live_confirmed_at is not null)
+                                    or exists (select 1 from public.pm_mid_config o where o.live_confirmed_at is not null)
+                               then null else now() end,
+           restart_loss_usd = 25, max_markets = 12, select_budget_usd = 320, updated_at = now()
+      from (select (state->>'at')::timestamptz as at, (state->'lp'->>'addendum')::int as addendum,
+                   (state->>'keyed')::boolean as keyed, state->>'sbRegion' as region
+              from public.pm_lp_state where id = 1) s
+     where c.id = 1;
+
+Read back: `select restarted_at, restart_loss_usd, max_markets, select_budget_usd, loss_total_usd, reinvest, dry_run,
+live_confirmed_at from public.pm_lp_config;` A null `restarted_at` is a refusal (a check failed). **To undo it**, one
+statement: `update public.pm_lp_config set restarted_at = null where id = 1;` the next turn latches the 10-12 stop again
+(close-only, sells armed). A later restart is the same go statement again, on Davies' word.
+
+**Before the go** (read-only): the deploy carries this addendum's bytes (`select state->'lp'->>'addendum',
+state->>'openBlockedBy', updated_at from public.pm_lp_state;` reads 19, `loss_total`, within a minute); 0119 is applied
+(`select restarted_at, restart_loss_usd from public.pm_lp_config;` answers, null and null); the error box holds nothing new
+of `agents.pm_lp`. **In the first minutes after it**: the selection event (`select minute, detail->'picked',
+detail->'quiet', detail->'narrow', detail->'budget', detail->'restart' from public.pm_lp_events where kind = 'selection'
+order by minute desc limit 1;`) names the picks, its reads and failures; each pick's 24-hour taker shares, read keylessly
+(`https://data-api.polymarket.com/v2/trades?condition=<cond>&limit=100`), are 50 or fewer; each pick's public book
+(`https://clob.polymarket.com/book?token_id=<yes token>`) has a touch of 4 ¢ or more beside our own orders; `state.lp.stop`
+shows the restart, $25, a basis near 0; and no BUY rests in a market that is not one of the picks. Anything else: undo
+it, as above.
+
+**The code it deploys:** `pm_live.ts` sha256 `28930ad918b0358c98e6bd6268715c6fd845b6092bcefcd1b44ffd45daf7f43d`, where Addendum 18 named `ee96ba0e…667d`
+(`PmCandidateRules.quiet`, `quietVerdict`, `quietChoose`, `scoreBook`'s touch, `PmLpOptions.quietRead`, `selectShare` and
+`restartable`, `lpSelectBudget`, `lpRestartOf`, `restartOpenMarks`, the turn's restart, its stop's basis and
+`state.lp.stop`); `pm_lp.ts` sha256 `08be78270a160003b36ddc3b269072c0c0a37a6fe4b823f2b91d8fc73ad89ac9`, where Addendum 18 named `53f7f788…7278` (`PM_LP_QUIET`,
+`PM_LP_TIGHT`'s 4 ¢, `PM_LP_INV_CAP` 2, `PM_LP_SELECT_SHARE`, `lpQuietRead`, `lpRulesOf`); `pm_lp_reserve.ts` (the restart,
+the quiet reserve); `_shared/polymarket_public.ts` (`pmTakerShares`); `pm_lp_live_view.ts` (`restartStopOf`, today's rows
+since the restart) and the page (`lpStopRoomText`); `0119_pm_lp_restart.sql` sha256 `88437a1920a974a7c33396eaa5e0bbe70b6d36e882d1b29318bdfbb7741a7836`.
+
+**Pinned** (each against Addendum 18's instance, `LP_A18_INSTANCE` in `agents/testing.ts`, or code):
+
+- `agents/pm_lp.test.ts`: the rule (nothing under a 4 ¢ touch where Addendum 18's quoted two and three cents; rwQuotes from
+  4 ¢; 2N where 5N bought; the exit on any touch); `quietVerdict`; `quietChoose` equal to `choose` over the quiet
+  candidates on 300 random worlds, reading only what could be taken and never more than its bound, a failed read never
+  taken; `pmTakerShares` on the fake data API (the window, a full page not complete, a failure); the restart's pure
+  functions; a day's selection taking two quiet books and passing over one that traded 60 shares (Addendum 18 took all
+  three), nothing from two-cent books, $288 of budget at $320, nothing when the data API is down; and the restart, armed:
+  the 10-04 stop no longer holding, $49 of carried loss not counted, a fall of $35 after it tripping the $25 stop from its
+  minute, while without the restart the old stop holds; the day selected again at the restart.
+- `agents/pm_lp_live_view.test.ts`: the page's stop from the path's reading, the old stop history, today's rows since the
+  restart. `src/agents/agents.test.js`: the stop line from the restart.
+- `src/pm_live_hash.test.js`, `src/pm_lp_prereg.test.js`: the bytes and the chain of addenda.

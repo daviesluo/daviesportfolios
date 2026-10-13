@@ -19,7 +19,7 @@
 
 import type { Db } from "./db.ts";
 import {
-  inUniverse, type PmDeadline, type PmLiveInstance, type PmMarketRow, type PmOrderRow, type PmOwnOrder, rewardConfigOf, rewardRate, selectMarkets,
+  inUniverse, lpRestartOf, type PmDeadline, type PmLiveInstance, type PmMarketRow, type PmOrderRow, type PmOwnOrder, rewardConfigOf, rewardRate, selectMarkets,
 } from "./pm_live.ts";
 import type { PmVenue } from "../_shared/polymarket_orders.ts";
 import type { PmPublicOpts } from "../_shared/polymarket_public.ts";
@@ -57,14 +57,22 @@ export async function runPmLpReserve(d: {
   const dl: PmDeadline = { clock, until: t0 + PM_LP_RESERVE_UNTIL_MS };
   try {
     const day = iso(d.now).slice(0, 10);
-    const cfg = (await d.db.select<{ max_markets: number | string; select_budget_usd: number | string }>(T.config, "id=eq.1&select=max_markets,select_budget_usd"))[0];
-    const todays = await d.db.select<PmMarketRow>(T.markets, `day=eq.${day}&select=cond&limit=1000`);
+    const cfg = (await d.db.select<{ max_markets: number | string; select_budget_usd: number | string; restarted_at?: string | null; restart_loss_usd?: number | string | null }>(
+      T.config, `id=eq.1&select=max_markets,select_budget_usd${d.inst.lp?.restartable ? ",restarted_at,restart_loss_usd" : ""}`))[0];
+    // Addendum 19's restart: on its UTC day the day's selection is the one made after it (the turn selects again at once),
+    // and a reserve ranked before it is ranked again by today's rules.
+    const restart = cfg && d.inst.lp?.restartable ? lpRestartOf(cfg, Infinity, d.now) : null;
+    const restartToday = !!restart && iso(restart.atMs).slice(0, 10) === day;
+    const todaysAll = await d.db.select<PmMarketRow>(T.markets, `day=eq.${day}&select=cond${restartToday ? ",selected_at" : ""}&limit=1000`);
+    const todays = restartToday ? todaysAll.filter((m) => !!m.selected_at && Date.parse(m.selected_at) >= restart!.atMs) : todaysAll;
     if (!cfg || !todays.length) return { ...report, skipped: "the day's selection has not landed yet" };
     const prev = (await d.db.select<{ day: string; ranked_at: string | null; rows: unknown }>(rf.table, "id=eq.1&select=day,ranked_at,rows"))[0];
     let rows: LpReserveRow[] = prev && String(prev.day).slice(0, 10) === day && Array.isArray(prev.rows) ? prev.rows as LpReserveRow[] : [];
     let rankedAt = prev && String(prev.day).slice(0, 10) === day ? prev.ranked_at : null;
+    if (restartToday && rankedAt && Date.parse(rankedAt) < restart!.atMs) { rankedAt = null; rows = []; }
     let note: Record<string, unknown> | null = null;
-    const exclude = new Set(todays.map((m) => m.cond));
+    // Every market of the day's rows, before a restart too, is never taken again that day.
+    const exclude = new Set(todaysAll.map((m) => m.cond));
     // The full re-rank, on the selection's own functions, every `rerankEveryMin` minutes.
     if (!rankedAt || d.now - Date.parse(rankedAt) >= rf.rerankEveryMin * M) {
       const open = await d.db.select<PmOrderRow>(T.orders, "mode=eq.live&state=eq.live&select=cond,outcome,side,price,size,size_matched&limit=1000");
@@ -75,6 +83,8 @@ export async function runPmLpReserve(d: {
         maxMarkets: 0, budget: Number(cfg.select_budget_usd) || 0, own, band: d.inst.band, pm: d.pm, reserve: rf.reserveSize,
         bookBatch: d.inst.bookBatch ? (tokens: string[]) => d.inst.bookBatch!(tokens, d.pm) : undefined, bookQuality: d.inst.bookQuality,
         ...(d.inst.lp ? { candidate: d.inst.lp.candidate } : {}),
+        // Addendum 19: a reserve of quiet books only, each read once at the ranking (the refill reads it again when it takes it).
+        ...(d.inst.lp?.quietRead ? { quietRead: (c: string) => d.inst.lp!.quietRead!(c, d.now, d.pm) } : {}),
       }, exclude, dl, d.now);
       report.rankMs = Math.round(clock() - began);
       const n = sel.note as { listing?: { pages?: number }; gammaReads?: number; booksRead?: number; error?: string };

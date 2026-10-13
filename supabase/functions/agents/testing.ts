@@ -17,6 +17,8 @@ import { readCoinbaseArm } from "./cb_page.ts";
 import { cbQuotesView } from "./cb_view.ts";
 import { CB_PRODUCTS } from "./cb_rec.ts";
 import { crossesTouch, revxAveragePrice, revxHoldFor, revxHundredths, revxTakerFee, venueNumber } from "./revx_sim.ts";
+import { lpRulesOf, PM_LP_INSTANCE } from "./pm_lp.ts";
+import type { PmLiveInstance } from "./pm_live.ts";
 
 export type Row = Record<string, unknown>;
 
@@ -601,9 +603,10 @@ export function schemaRefusal(table: string, r: Row): string | null {
   }
   if (isPmLiveTable(table)) {
     const shape = pmLiveShape(table), mid = isMidTable(table), lp = isLpTable(table);
-    // Live-prep's config also has 0106's `reinvest` and `cap_ceiling_usd` (2026-10-09).
+    // Live-prep's config also has 0106's `reinvest` and `cap_ceiling_usd` (2026-10-09), and 0119's `restarted_at` and
+    // `restart_loss_usd` (2026-10-13).
     const unknown = Object.keys(r).find((c) => !PM_LIVE_SCHEMA[shape].columns.includes(c) && !((mid || lp) && shape === "pm_live_config" && c === "created_at")
-      && !(lp && shape === "pm_live_config" && (c === "reinvest" || c === "cap_ceiling_usd")));
+      && !(lp && shape === "pm_live_config" && ["reinvest", "cap_ceiling_usd", "restarted_at", "restart_loss_usd"].includes(c)));
     if (unknown) return `Could not find the '${unknown}' column of '${table}' in the schema cache`;
     // A CHECK passes on NULL, as Postgres's does; NOT NULL is what refuses a missing value.
     const ok = (c: string, f: (v: unknown) => boolean) => r[c] == null || f(r[c]);
@@ -622,6 +625,8 @@ export function schemaRefusal(table: string, r: Row): string | null {
         ?? check("max_markets", within("max_markets", 0, 12, false)) ?? check("select_budget_usd", within("select_budget_usd", 0, 320))
         // 0106: live-prep's ceiling on the cap its equity sets, (0, 1000]; its switch a boolean.
         ?? (lp ? check("cap_ceiling_usd", within("cap_ceiling_usd", 0, 1000)) ?? check("reinvest", r.reinvest == null || typeof r.reinvest === "boolean") : null)
+        // 0119: the restarted stop's limit, (0, 75].
+        ?? (lp ? check("restart_loss_usd", within("restart_loss_usd", 0, 75)) : null)
         ?? (r.ireland_until == null || r.ireland_attested_at != null ? null : `new row for relation "${table}" violates check constraint "${table}_check"`);
     }
     if (shape === "pm_live_minutes") {
@@ -1479,7 +1484,9 @@ export class FakePolymarket {
       const rows = (this.prints.get(c) ?? []).slice().sort((a, b) => b[0] - a[0]).map(([ts, side, oi, price, size], i) => ({
         timestamp: ts, side, outcome_index: oi, price, size, token_id: m ? (oi === 0 ? m.yes : m.no) : "", transaction_hash: `0x${c.slice(-8)}${ts}${i}`, proxy_wallet: "0xabc",
       }));
-      return { status: 200, body: { data: rows, pagination: { next_cursor: "" } } };
+      // The page holds at most `limit` trades, as the real one's (2026-10-13: `limit=100` answered 100 at most, `has_more`).
+      const limit = Number(q.get("limit")), page = Number.isInteger(limit) && limit > 0 ? rows.slice(0, limit) : rows;
+      return { status: 200, body: { data: page, pagination: { next_cursor: "", limit: page.length, has_more: page.length < rows.length } } };
     }
     return err(404, `fake polymarket: no route ${method} ${path}`);
   }
@@ -1638,6 +1645,21 @@ export class FakePolymarket {
     return Promise.resolve(new Response(JSON.stringify(a.body), { status: a.status }));
   };
 }
+
+/**
+ * "Reward quotes live-prep" as its pre-registration's Addendum 18 left it (2026-10-11): TB1's one-tick skip and 5N
+ * (`lpRulesOf`), no quiet-book rule, the config's own budget, no restart. Addendum 19 (2026-10-13) changes only those, so
+ * the tests that pin Addendums 2 to 18's turn mechanics (the selection, sells first, the caps, the pause, carried markets,
+ * the refill, the stops) run them on this, on their two-cent books, which Addendum 19's 4 ¢ touch would pass over; the
+ * tests of Addendum 19 run `PM_LP_INSTANCE` itself. No action runs it.
+ */
+export const LP_A18_INSTANCE: PmLiveInstance = (() => {
+  const lp = PM_LP_INSTANCE.lp!;
+  const { quiet: _q, ...candidate } = lp.candidate;
+  const { quietRead: _r, selectShare: _s, restartable: _x, ...rest } = lp;
+  const a18 = lpRulesOf({ invCap: 5, tight: { maxTicks: 1 } });
+  return { ...PM_LP_INSTANCE, lp: { ...rest, rule: a18.rule, exitRule: a18.exitRule, candidate } };
+})();
 
 // ── fake venues over HTTP, for driving the REAL venue clients ─────────────────────────────────────────
 

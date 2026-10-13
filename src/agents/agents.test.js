@@ -1935,6 +1935,14 @@ describe('lpLiveRow (live-prep\'s real money, "Reward quotes" on LIVE, 2026-10-0
     expect(lpStopRoomText({ ...l, stop: { ...l.stop, trippedAt: '2026-09-17T20:00:00.000Z' } }, id)).toBe(null);
     expect(lpStopRoomText({ ...l, stop: undefined }, id)).toBe(null);
   });
+  it("the restarted stop's room (Addendum 19): from the restart's minute, at its $25, its figure what the book made since then", () => {
+    const id = (/** @type {string} */ x) => x;
+    const stop = { limitUsd: 25, basisUsd: -3.5, roomUsd: 21.5, trippedAt: null, since: '2026-10-13T02:31:00.000Z' };
+    expect(lpStopRoomText({ ...l, stop }, id)).toBe('total stop at -$25 since 10-13 02:31 UTC: $21.50 of room (since then -$3.50)');
+    // The time is not a dollar: the mask leaves it.
+    expect(lpStopRoomText({ ...l, stop }, (/** @type {string} */ x) => x.replace(/[\d.,]/g, '•'))).toBe('total stop at -$•• since 10-13 02:31 UTC: $••••• of room (since then -$••••)');
+    expect(lpStopRoomText({ ...l, stop: { ...stop, trippedAt: '2026-10-13T05:00:00.000Z' } }, id)).toBe(null);
+  });
   it("prints R to two places, a dash without a formula figure", () => {
     expect([fmtR(0.44), fmtR(null), fmtR(1)]).toEqual(['0.44', '—', '1.00']);
   });

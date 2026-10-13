@@ -22,7 +22,9 @@ import { onTick, pmLpDbTables, runPmLive, type PmLiveConfig } from "./pm_live.ts
 import { prepDbTables, prepReads } from "./pm_prep.ts";
 import { prepSummary } from "./pm_prep_view.ts";
 import { PmOrderKey } from "../_shared/polymarket_orders.ts";
-import { FakePolymarket, memDb, onlyTables, PM_TEST_FUNDER, PM_TEST_KEY, PM_TEST_SIGNER, type Row } from "./testing.ts";
+// The path's turns run on live-prep as Addendum 18 left it (`LP_A18_INSTANCE`): the fixture's books are two cents wide,
+// which Addendum 19's quiet-book rule passes over, and the paper layer it stresses is the same under both.
+import { FakePolymarket, LP_A18_INSTANCE, memDb, onlyTables, PM_TEST_FUNDER, PM_TEST_KEY, PM_TEST_SIGNER, type Row } from "./testing.ts";
 import fixture from "../../../src/e2e/prep_fixture.json" with { type: "json" };
 
 const M = 60e3, DAY = 86400e3;
@@ -379,7 +381,7 @@ Deno.test("live-prep's path and layer across midnight, its sells of what it hold
     clock.now = t;
     const r = await runPmLive({
       db, now: t, holder: `h${t}`, venue: pm.venue(), sbRegion: "eu-west-1", sendsEnabled: true, account: { maker: PM_TEST_FUNDER, signer: PM_TEST_SIGNER },
-      signer: key, salt: () => String(salt++), pause: () => Promise.resolve(), clock: () => clock.now, inst: PM_LP_INSTANCE, pm: { fetchImpl: pm.publicFetch },
+      signer: key, salt: () => String(salt++), pause: () => Promise.resolve(), clock: () => clock.now, inst: LP_A18_INSTANCE, pm: { fetchImpl: pm.publicFetch },
     });
     errors.push(...r.errors.filter((e) => !/pUSD|LOSS STOP/.test(e)));
     clock.now = t + 5e3;

@@ -39,7 +39,13 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    across the whole reward universe; the one positive design is **Q2, quiet books** (≤ 50 shares traded in 24 h by the data
    API, touch ≥ 4 c, RW's price, N a side, a 2N inventory cap): +$3.6/day at $316 [+1.4, +6.0], +$4.2 out of sample, not
    larger with more money; R in quiet books never measured. Its design and an Addendum 19 draft are in the review (§7–8),
-   nothing built. **Waiting on Davies:** stop for good, or a dry-run day then 14 live days of Q2 under a −$25 stop.
+   nothing built. **Davies chose Q2 with no dry-run day** (10-13: "做B，不用空跑吧 做好后验证没问题了直接上线吧？", then
+   "B 方案同意 继续推进"; and "B上线后盯着，每隔1-2小时查看一次有问题立马修复"). **Addendum 19 built** (the LP-BEST agent;
+   verified by the main session: 903 Deno tests, six mutations each failing their pins), migration `0119`
+   (`pm_lp_config.restarted_at`, `restart_loss_usd`). **Next: after the deploy and 0119, the go statement in Addendum 19
+   (a self-checking `update … set restarted_at = now()`), then verify the picks are quiet by the data API, then a
+   `sonnet-high` watcher every ~90 min that wakes the main session on any ALERT.** 14-day bar: total since the restart ≥ $0,
+   rewards ≥ 1.5 c a filled share, no UTC day below −$15, the −$25 stop not reached.
 
 0. **HANDOVER, 2026-10-11 ~03:30 UTC: Claude Code's weekly limit is near; Cursor (Grok 4.7) continues.** The watch and
    safe-maintenance procedure is `.agents/skills/live-watch/SKILL.md` (pointers in `.claude/skills/` and
@@ -508,6 +514,14 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11"; each oldest first.
+
+### [2026-10-13 13:18 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep's Addendum 19, "quiet books"** (the LP-BEST agent wrote it; its tests and gates were blocked by the
+  permission checks, so the main session ran them on Davies' "同意"): only books with ≤ 50 shares traded in 24 h (the data
+  API, a failed read never quiet) and a touch ≥ 4 c, 2N a side, 90 % of the cap, a −$25 stop counted from a restart
+  (`0119`). Rebased over `0120`, two doc conflicts kept both sides. Counterfactuals run here: INV_CAP 5, touch 1 c, a failed
+  read taken as quiet, the 50-share bar ignored, the restart's limit ignored, the restart ignored: each fails its pins.
+  Hashes in the addendum match the files (`pm_live.ts` 28930ad9…, `pm_lp.ts` 08be7827…, 0119 88437a19…).
 
 ### [2026-10-13 03:02 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - Landed `0120` (the LP-SPEED agent, resumed): the paper Reward quotes calls off, their page rows gone, the dashboard no

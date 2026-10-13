@@ -371,6 +371,12 @@ places stay when the number is not whole.
   (trades valued at the middle price, plus rewards and rebates paid, less any
   fee), so "$78 of room" means the total can fall $78 before the strategy
   stops buying. Should the stop ever trip, a red line there says so instead. Hide values masks every amount on it.
+  Once Davies restarts the strategy after a stop, the line counts from the
+  restart instead: "total stop at −$25 since 10-13 02:31 UTC: $21.50 of room
+  (since then −$3.50)" is what its trades, rewards and rebates have made since
+  that minute, and the earlier stop is history. That day's markets are chosen
+  again at the restart, and the markets chosen before it are listed with what
+  they still hold.
 - **Reward quotes mini-pool** (markets paying $6 to under $10 a day, the
   first test of that account) left the list and stopped on 8 October: its
   checks had closed and it is not a candidate to go live.
@@ -394,7 +400,13 @@ places stay when the number is not whole.
   bigger orders than it places stops buying that minute (it keeps selling
   what it holds), and one where Polymarket says three minutes running that
   its orders are not earning stops buying for the rest of the day. It stops for good if its
-  orders' result plus what Polymarket paid falls to −$75. Were Davies to
+  orders' result plus what Polymarket paid falls to −$75. Since 13 October (Davies' choice
+  after its stop) it quotes only quiet markets: a market where at most 50
+  shares changed hands in the last 24 hours and whose best prices are at
+  least 4 cents apart, checked on Polymarket's public trade record before it
+  is picked; it rests nothing while a market's prices are closer than that,
+  stops adding to a side at twice its order size, picks markets for up to 90 %
+  of what it may commit, and its stop is −$25 counted from the restart. Were Davies to
   take it off real money, it would only write down what it would send.
   The account's three order paths (this one, and mid-pool's and
   mini-pool's, both stopped) share it, so only one can ever be live.

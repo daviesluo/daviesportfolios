@@ -266,7 +266,38 @@ export type PmCandidateRules = {
    * the reason a market selected before the rule, or carried, is told it takes no entry.
    */
   excludeQuestion?: { why: string; test: (question: string) => boolean };
+  /**
+   * Live-prep's quiet-book rule (Addendum 19, LP-BEST): a candidate is taken only where the book without our orders has a
+   * touch of at least `minTouchCents`, and only once ONE read of the data API's trades in its market shows at most
+   * `maxShares24h` taker shares in the 24 hours before the read (`quietVerdict`); a read that fails, or cannot prove it,
+   * takes nothing. Absent (every other instance), nothing is read and the selection is as it was.
+   */
+  quiet?: PmQuietRule;
 };
+/** The quiet-book rule's numbers (`PmCandidateRules.quiet`): the thresholds, and the reads a selection may spend. */
+export type PmQuietRule = {
+  maxShares24h: number; minTouchCents: number;
+  /** The most data-API reads one selection makes (the day's picks and, in the reserve's run, its reserve), and how many at once. */
+  maxReads: number; concurrency: number;
+};
+/** One read of a market's last 24 hours of taker trades (`PmLpOptions.quietRead`). */
+export type PmQuietRead = { ok: true; shares: number; trades: number; complete: boolean } | { ok: false; error: string };
+/**
+ * Whether one read shows a market quiet: read, complete (the page not full inside the window), and at most the rule's
+ * shares. Anything else is not quiet, with why: a failed read is never taken as a quiet market.
+ */
+export function quietVerdict(r: PmQuietRead | null | undefined, rule: Pick<PmQuietRule, "maxShares24h">): { quiet: boolean; why: string | null } {
+  if (!r) return { quiet: false, why: "its trades were not read: not taken as quiet" };
+  if (!r.ok) return { quiet: false, why: `its trades could not be read (${r.error.slice(0, 120)}): not taken as quiet` };
+  if (!r.complete) return { quiet: false, why: `one read holds ${r.trades} trades inside 24 hours and may not be all of them: not quiet` };
+  if (!(Number.isFinite(r.shares) && r.shares <= rule.maxShares24h + 1e-9)) return { quiet: false, why: `${r.shares} shares traded in 24 hours, over ${rule.maxShares24h}` };
+  return { quiet: true, why: null };
+}
+/** The touch of a book without our orders, in cents (best ask less best bid); null for a one-sided book. */
+export function rawTouchCents(l: PmLevels): number | null {
+  const bb = l.bids[0]?.[0], ba = l.asks[0]?.[0];
+  return bb === undefined || ba === undefined ? null : Math.round((ba - bb) * 1e6) / 1e4;
+}
 /**
  * "Reward quotes live-prep"'s rules (2026-10-04; `pm_lp.ts`, its pre-registration
  * `reviews/2026-10-04-polymarket-lp-prereg.md`). Only `PM_LP_INSTANCE` sets them.
@@ -349,6 +380,26 @@ export type PmLpOptions = {
    * number and it caps the deposit's loss at the limit. Unset (and in dry-run), fills plus rewards paid, as before.
    */
   stopCountsRebates?: boolean;
+  /**
+   * The quiet-book rule's read (Addendum 19): one market's taker trades of the 24 hours before `nowMs`, through the public
+   * client (`pmTakerShares`). The selection, the reserve and the refill call it for a candidate whose `candidate.quiet` is
+   * set; with the rule set and no reader, nothing is taken.
+   */
+  quietRead?: (cond: string, nowMs: number, pm?: PmPublicOpts) => Promise<PmQuietRead>;
+  /**
+   * The selection's budget of first quotes is at most this share of the total cap (Addendum 19, LP-BEST: 90 %), on the cap
+   * the last turn held (`state.lp.capital`, the equity's) or the config's; and never over `select_budget_usd`. Unset, the
+   * config's budget alone, as before.
+   */
+  selectShare?: number;
+  /**
+   * The restart (Addendum 19): with the config's `restarted_at` set (0119), the total stop counts from that instant
+   * (`lpRestartOf`): its event latches only from then, its basis is the fills' change since then (each holding from its
+   * mark then, `sinceOpenPnl`) plus what was paid for the UTC days from that day, and its limit is `restart_loss_usd`; and
+   * a day's markets selected before it are left as carried markets while the day is selected again. Unset, the stop counts
+   * from the first fill and stays tripped until a person clears it, as before.
+   */
+  restartable?: boolean;
 };
 /** The refill's numbers (`PM_LP_REFILL`, pm_lp.ts): the research agent's values drop in there. */
 export type LpRefillOptions = {
@@ -421,6 +472,8 @@ export type PmLiveConfig = {
   max_markets?: number | string; select_budget_usd?: number | string;
   /** Live-prep's only (0106): its cap follows its equity (`lpCapital`), at most `cap_ceiling_usd`. */
   reinvest?: boolean | null; cap_ceiling_usd?: number | string | null;
+  /** Live-prep's only (0119, Addendum 19): the restart its stop counts from, and that stop's limit (`lpRestartOf`). */
+  restarted_at?: string | null; restart_loss_usd?: number | string | null;
 };
 export type PmMarketRow = {
   day: string; kind: "standard" | "neg_risk"; cond: string; yes_token: string; no_token: string; neg_risk: boolean;
@@ -428,6 +481,8 @@ export type PmMarketRow = {
   /** The reward programme's maximum spread (cents), its N, and RW's first-round reading at the selection (0076). */
   max_spread?: number | string | null; n_size?: number | string | null; per_dollar_day?: number | string | null; capital?: number | string | null;
   formula_day?: number | string | null; end_date?: string | null; game_start?: string | null;
+  /** When the row was written (a selection's or a refill's minute). */
+  selected_at?: string | null;
 };
 export type PmOrderRow = {
   id: number; ts: string; mode: PmLiveMode; cond: string; token: string; outcome: "yes" | "no"; side: "BUY" | "SELL";
@@ -583,6 +638,50 @@ export function lpCapital(i: LpCapitalInputs): LpCapital {
     return { capTotal: last, equityUsd: equity, targetUsd: target, basis: "held", why: "a raise waits for a second reading of the equity next turn" };
   }
   return { capTotal: Math.max(last, capOf(Math.min(equity, prevEq))), equityUsd: equity, targetUsd: target, basis: "equity", why: "the equity rose and two readings agree: the cap rises" };
+}
+
+/**
+ * Live-prep's selection budget under Addendum 19 (`PmLpOptions.selectShare`): `share` of the total cap `capTotal`, to the
+ * cent below, and never over the config's budget `configBudget`. A cap that cannot be read selects nothing.
+ */
+export function lpSelectBudget(configBudget: number, capTotal: number | null | undefined, share: number): number {
+  const c = Number(capTotal);
+  if (!(Number.isFinite(c) && c >= 0) || !(share > 0)) return 0;
+  return Math.max(0, Math.min(configBudget, Math.floor(share * c * 100 + 1e-6) / 100));
+}
+
+/**
+ * The restart Addendum 19 adds (`PmLpOptions.restartable`, 0119): the instant the total stop counts from and its limit,
+ * or null with no restart set. The limit is `restart_loss_usd`, at most the config's total stop (`lossTotal`); a restart
+ * that names none takes the total stop's. A `restarted_at` that does not parse, or lies ahead of `nowMs`, is no restart:
+ * the stop then stays as it was, tripped if it tripped.
+ */
+export function lpRestartOf(c: Pick<PmLiveConfig, "restarted_at" | "restart_loss_usd">, lossTotal: number, nowMs: number): { atMs: number; at: string; limit: number } | null {
+  const t = c.restarted_at ? Date.parse(c.restarted_at) : NaN;
+  if (!Number.isFinite(t) || t > nowMs) return null;
+  const l = Number(c.restart_loss_usd);
+  const limit = c.restart_loss_usd != null && Number.isFinite(l) && l > 0 ? Math.min(l, lossTotal) : lossTotal;
+  return { atMs: t, at: iso(t), limit };
+}
+
+/**
+ * The marks the stop's restart basis opens at (`sinceOpenPnl`'s `open`, kept in the state as `lp.stop.open`): kept as
+ * they were for the same restart, and each token still without one takes this turn's mark when it has one. `held` are the
+ * tokens held as the restart began (`tokenBooks` of the fills before it); `missing` the ones of them still without a mark,
+ * while which the stop cannot be judged and nothing opens (never counted from cost, which would trip it on the carried
+ * loss the restart leaves behind).
+ */
+export function restartOpenMarks(
+  prev: { at?: unknown; marks?: unknown } | null | undefined, at: string, held: string[], marks: Record<string, number | null>,
+): { at: string; marks: Record<string, number>; missing: string[] } {
+  const kept = prev && prev.at === at && prev.marks && typeof prev.marks === "object" ? prev.marks as Record<string, unknown> : {};
+  const out: Record<string, number> = {};
+  for (const [k, v] of Object.entries(kept)) if (typeof v === "number" && Number.isFinite(v)) out[k] = v;
+  for (const t of held) {
+    const m = marks[t];
+    if (out[t] === undefined && typeof m === "number" && Number.isFinite(m)) out[t] = m;
+  }
+  return { at, marks: out, missing: held.filter((t) => out[t] === undefined) };
 }
 
 // ------------------------------------------------------------------ live-prep's reward check (2026-10-10, Addendum 9)
@@ -1407,15 +1506,20 @@ export type Scored = { cond: string; perDollar: number; cap: number; c: PmCandid
  * live-prep's refill (Addendum 13) both use: two-sided and agreeing with Gamma about `neg_risk`; RW's `firstScore` on the
  * book as the rest of the market made it (`own`, our orders resting there, taken out: with them in, a market we quoted
  * would rank against itself); a formula reward of at least `PM_LIVE_MIN_FORMULA_DAY_USD` a day; then the instance's
- * book-quality rule, which a candidate failing is passed over by (`behind`), not dropped.
+ * book-quality rule, which a candidate failing is passed over by (`behind`), not dropped. With `minTouchCents` (live-prep's
+ * quiet-book rule, Addendum 19) a book whose touch without our orders is narrower is passed over first (`narrow`).
  */
-export function scoreBook(c: PmCandidate, data: unknown, own: PmOwnOrder[], bookQuality?: PmBookQualityRule):
-  { kind: "scored"; x: Scored } | { kind: "behind"; x: Scored; why: string } | { kind: "oneSided" } | { kind: "mismatched" } | { kind: "none" } {
+export function scoreBook(c: PmCandidate, data: unknown, own: PmOwnOrder[], bookQuality?: PmBookQualityRule, minTouchCents?: number):
+  { kind: "scored"; x: Scored } | { kind: "behind"; x: Scored; why: string } | { kind: "oneSided" } | { kind: "mismatched" } | { kind: "none" } | { kind: "narrow" } {
   const b = bookNow(data);
   if (!b) return { kind: "oneSided" };
   if (b.negRisk !== c.negRisk) return { kind: "mismatched" };
   const tick = Number(b.tick);
   const lv = othersLevels(b.levels, own);
+  if (minTouchCents !== undefined) {
+    const w = rawTouchCents(lv);
+    if (w === null || w < minTouchCents - 1e-9) return { kind: "narrow" };
+  }
   const fs = firstScore(summarize(lv.bids, lv.asks, c.v, c.minSize), tick, c.v, c.minSize, c.rate);
   if (!fs) return { kind: "none" };
   const formulaDay = fs.perDollar * 1440 * fs.cap;
@@ -1451,7 +1555,57 @@ export type PmSelectOpts = {
   candidate?: PmCandidateRules;
   /** How many candidates past the day's markets to keep as its reserve, in RW's order (live-prep's refill); none when absent. */
   reserve?: number;
+  /** The quiet-book rule's read of one market (`PmLpOptions.quietRead`, bound to the turn's clock); needed when `candidate.quiet` is set. */
+  quietRead?: (cond: string) => Promise<PmQuietRead>;
 };
+
+/**
+ * The quiet-book rule's choice (Addendum 19): RW's `choose` over the candidates that are quiet, without reading every
+ * candidate. In RW's order (reward per dollar, ties by condition id), a candidate is read (`quietRead`) only when it could
+ * still be taken: as one of the day's markets while fewer than `maxMarkets` are taken and its first quotes fit what the
+ * budget leaves, or, once those are done, for the reserve while it holds fewer than `reserve`. A quiet one is taken where
+ * it fits, else kept for the reserve; one not quiet, or whose read fails (`quietVerdict`), is passed over. Reads go
+ * `rule.concurrency` at a time, each batch the next candidates that could still be taken, judged in order once read, so
+ * the picks are exactly `choose` over the quiet candidates; at most `rule.maxReads` reads, and none past the deadline:
+ * then the walk stops where it is, every pick and reserve entry still read quiet, and `stopped` says why.
+ */
+export async function quietChoose<T extends { cond: string; perDollar: number; cap: number }>(
+  scored: T[], budget: number, maxMarkets: number, reserveSize: number, rule: PmQuietRule, read: (cond: string) => Promise<PmQuietRead>, dl: PmDeadline = NO_DEADLINE,
+): Promise<{ chosen: T[]; reserve: T[]; note: { reads: number; quiet: number; loud: number; failed: number; stopped: string | null; why: Record<string, number> } }> {
+  const sorted = scored.slice().sort((x, y) => (y.perDollar - x.perDollar) || (x.cond < y.cond ? -1 : x.cond > y.cond ? 1 : 0));
+  const chosen: T[] = [], reserve: T[] = [];
+  const note = { reads: 0, quiet: 0, loud: 0, failed: 0, stopped: null as string | null, why: {} as Record<string, number> };
+  let used = 0, i = 0;
+  const picking = () => chosen.length < maxMarkets;
+  const wanted = () => picking() || reserve.length < reserveSize;
+  while (i < sorted.length && wanted()) {
+    // The next candidates that could still be taken, as the walk stands: a pick that fits, or any for the reserve.
+    const batch: number[] = [];
+    for (let j = i; j < sorted.length && batch.length < Math.max(1, rule.concurrency); j++) {
+      const fits = picking() && used + sorted[j].cap <= budget + 1e-9;
+      if (fits || reserve.length < reserveSize) batch.push(j);
+    }
+    if (!batch.length) break;
+    if (note.reads + batch.length > rule.maxReads) batch.length = Math.max(0, rule.maxReads - note.reads);
+    if (!batch.length) { note.stopped = `the ${rule.maxReads} reads a selection may make`; break; }
+    if (pastDeadline(dl)) { note.stopped = "the deadline"; break; }
+    const reads = await Promise.all(batch.map((j) => read(sorted[j].cond).catch((e): PmQuietRead => ({ ok: false, error: msg(e) }))));
+    note.reads += batch.length;
+    batch.forEach((j, k) => {
+      const v = quietVerdict(reads[k], rule);
+      if (!reads[k].ok) note.failed++;
+      if (!v.quiet) { if (reads[k].ok) note.loud++; const key = reads[k].ok ? (reads[k] as { complete: boolean }).complete ? "busy" : "too many trades for one read" : "unread"; note.why[key] = (note.why[key] ?? 0) + 1; return; }
+      note.quiet++;
+      const x = sorted[j];
+      if (picking() && used + x.cap <= budget + 1e-9) { chosen.push(x); used += x.cap; }
+      else if (reserve.length < reserveSize) reserve.push(x);
+    });
+    i = batch[batch.length - 1] + 1;
+    // A data API that answers nothing is not read on to the end: two batches of failures and not one answer stop the walk.
+    if (note.failed >= 2 * Math.max(1, rule.concurrency) && note.failed === note.reads) { note.stopped = "every read failed"; break; }
+  }
+  return { chosen, reserve, note };
+}
 
 /**
  * The day's markets, by RW's rule on this path's universe: every market in the reward listing with a total daily rate
@@ -1504,7 +1658,8 @@ export async function selectMarkets(venue: PmVenue, day: string, opts: PmSelectO
   const passedOver: Record<string, number> = {};
   /** The candidates the instance's book-quality rule passed over: taken only for the slots and budget the rest leave. */
   const behind: Scored[] = [];
-  let bookError = "", booksRead = 0, gone = 0, mismatched = 0, oneSided = 0;
+  let bookError = "", booksRead = 0, gone = 0, mismatched = 0, oneSided = 0, narrow = 0;
+  const quiet = opts.candidate?.quiet;
   // An instance that reads its candidates' books at once has them all before the first is scored; a token the batch has
   // no book for is one the CLOB has none for, as a GET's 404 says. A batch that fails takes nothing, as any read here.
   let batch: Map<string, PmBookReply> | null = null;
@@ -1525,8 +1680,9 @@ export async function selectMarkets(venue: PmVenue, day: string, opts: PmSelectO
       if (!r.ok && r.status !== 404) { r = await venue.book(c.yes); booksRead++; }                    // once more, then it decides
     }
     if (!r.ok) { if (r.status === 404) gone++; else bookError ||= `book of ${c.cond.slice(0, 10)}…: ${r.status} ${r.error}`; return; }
-    const sc = scoreBook(c, r.data, opts.own?.get(c.cond) ?? [], opts.bookQuality);
+    const sc = scoreBook(c, r.data, opts.own?.get(c.cond) ?? [], opts.bookQuality, quiet?.minTouchCents);
     if (sc.kind === "oneSided") { oneSided++; return; }
+    if (sc.kind === "narrow") { narrow++; return; }
     if (sc.kind === "mismatched") { mismatched++; return; }
     if (sc.kind === "none") return;
     if (sc.kind === "behind") { passedOver[sc.why] = (passedOver[sc.why] ?? 0) + 1; behind.push(sc.x); return; }
@@ -1537,6 +1693,22 @@ export async function selectMarkets(venue: PmVenue, day: string, opts: PmSelectO
   if (quality) note.bookQuality = quality;
   if (bookError) return fail(bookError);
   if (late) return fail("time budget: the deadline came before every candidate's book was read");
+  // Live-prep's quiet-book rule (Addendum 19): RW's choice over the quiet candidates, each read once (`quietChoose`).
+  // Without a reader nothing is taken: a market is never assumed quiet.
+  if (quiet) {
+    note.narrow = narrow;
+    if (!opts.quietRead) return fail("the quiet-book rule is set and no reader was given: nothing is taken");
+    const q = await quietChoose([...scored, ...behind], opts.budget, Math.max(0, opts.maxMarkets), Math.max(0, opts.reserve ?? 0), quiet, opts.quietRead, dl);
+    note.quiet = { rule: { maxShares24h: quiet.maxShares24h, minTouchCents: quiet.minTouchCents }, ...q.note };
+    if (!q.chosen.length && !q.reserve.length && q.note.failed > 0) return fail(`the quiet-book reads: ${q.note.failed} of ${q.note.reads} failed and none was taken`);
+    note.chosen = q.chosen.length;
+    note.capital = Math.round(q.chosen.reduce((s, x) => s + x.cap, 0) * 100) / 100;
+    note.formulaDay = Math.round(q.chosen.reduce((s, x) => s + x.formulaDay, 0) * 100) / 100;
+    const picks = q.chosen.map((x, i) => scoredRow(x, day, i + 1));
+    if (!(opts.reserve && opts.reserve > 0)) return { picks, note };
+    note.reserve = q.reserve.length;
+    return { picks, note, reserve: q.reserve.map((x, i) => scoredRow(x, day, q.chosen.length + i + 1)) };
+  }
   const first = choose(scored, opts.budget).slice(0, Math.max(0, opts.maxMarkets));
   // The books the rule passed over fill what those leave, in RW's order within the budget left: the rule ranks a day's
   // markets, books with depth first, and a day with too few of them still quotes the rest.
@@ -1818,9 +1990,23 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   // Our orders at the venue as the selection reads the books: the live rows recorded resting (a dry-run's are in no book).
   const ownAtVenue = new Map<string, PmOwnOrder[]>();
   for (const o of openAll) if (o.mode === "live" && o.state === "live") ownAtVenue.set(o.cond, [...(ownAtVenue.get(o.cond) ?? []), ownOf(o)]);
-  const todayRows = await db.select<PmMarketRow>(T.markets, `day=eq.${day}&select=*&order=rank.asc`);
+  // Live-prep's restart (Addendum 19, `PmLpOptions.restartable`): on the restart's UTC day the markets selected before it
+  // are no longer the day's (they are carried where they hold anything), and the day is selected again at once, by today's
+  // rules. The rows stay as written; only what this turn takes as the day's selection changes.
+  const restart = inst.lp?.restartable ? lpRestartOf(cfg, lim.lossTotal, d.now) : null;
+  const restartToday = !!restart && dayOf(restart.atMs) === day;
+  const todayAll = await db.select<PmMarketRow>(T.markets, `day=eq.${day}&select=*&order=rank.asc`);
+  const todayRows = restartToday ? todayAll.filter((m) => !!m.selected_at && Date.parse(m.selected_at) >= restart!.atMs) : todayAll;
   let selected = todayRows.filter((m) => !goneToday.has(m.cond));
   let selectionTriedAt = prev.selectionDay === day ? (prev.selectionTriedAt as string | undefined) ?? null : null;
+  if (restartToday && selectionTriedAt && Date.parse(selectionTriedAt) < restart!.atMs) selectionTriedAt = null;
+  // Addendum 19 (`selectShare`): the budget of first quotes is 90 % of the total cap, the one the last turn held (the
+  // equity's, live with reinvest) or the config's; never over the config's own budget.
+  const prevCap = (prev.lp as { capital?: { capTotal?: unknown } } | undefined)?.capital?.capTotal;
+  const selectBudget = inst.lp?.selectShare
+    ? lpSelectBudget(lim.budget, mode === "live" && cfg.reinvest === true && typeof prevCap === "number" ? prevCap : lim.capTotal, inst.lp.selectShare)
+    : lim.budget;
+  const quietRead = inst.lp?.quietRead ? (c: string) => inst.lp!.quietRead!(c, d.now, d.pm) : undefined;
   // Written once the books are read, so a market found gone this turn is recorded in the same minute's row.
   let selectionEvent: Record<string, unknown> | null = null;
   if (!todayRows.length && lim.maxMarkets > 0 && (!selectionTriedAt || d.now - Date.parse(selectionTriedAt) >= SELECT_RETRY_MS)) {
@@ -1828,10 +2014,12 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
     try {
       const began = clock();
       const sel = await selectMarkets(venue, day, {
-        maxMarkets: lim.maxMarkets, budget: lim.budget, own: ownAtVenue, band: inst.band, exclusion: inst.exclusion, pm: d.pm,
+        maxMarkets: lim.maxMarkets, budget: selectBudget, own: ownAtVenue, band: inst.band, exclusion: inst.exclusion, pm: d.pm,
         bookBatch: inst.bookBatch ? (tokens: string[]) => inst.bookBatch!(tokens, d.pm) : undefined, bookQuality: inst.bookQuality,
-        ...(inst.lp ? { candidate: inst.lp.candidate } : {}),
+        ...(inst.lp ? { candidate: inst.lp.candidate, ...(quietRead ? { quietRead } : {}) } : {}),
       }, goneToday, deadline, d.now);
+      if (inst.lp?.selectShare) sel.note.budget = selectBudget;
+      if (restartToday) sel.note.restart = restart!.at;
       sel.note.ms = Math.round(clock() - began);
       if (sel.picks.length) {
         await db.upsert(T.markets, sel.picks.map((p) => ({ ...p, detail: { note: sel.note }, selected_at: nowIso })), "day,cond");
@@ -2022,11 +2210,13 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
     day: string; outSince: Record<string, string>; replaced: Record<string, { by: string; at: string }>; count: number; tried: Record<string, string>; zeroSince: string | null; alarmAt: string | null;
     /** A refill due but held back for its budget (Addendum 18): since when, and the free budget the last turn read. */
     deferred?: { since: string; freeUsd: number } | null;
+    /** The restart this day's refill state began at (Addendum 19): a restart that day starts the refill's day again. */
+    from?: string;
   };
   const prevRf = (prev.lp as { refill?: RefillState } | undefined)?.refill;
-  const refill: RefillState = prevRf && prevRf.day === day
+  const refill: RefillState = prevRf && prevRf.day === day && (!restartToday || prevRf.from === restart!.at)
     ? { ...prevRf, outSince: { ...prevRf.outSince }, replaced: { ...prevRf.replaced }, tried: { ...prevRf.tried } }
-    : { day, outSince: {}, replaced: {}, count: 0, tried: {}, zeroSince: null, alarmAt: null };
+    : { day, outSince: {}, replaced: {}, count: 0, tried: {}, zeroSince: null, alarmAt: null, ...(restartToday ? { from: restart!.at } : {}) };
   if (rf) {
     for (const [c, r] of Object.entries(refill.replaced)) {
       if (!markets.some((m) => m.quoting && m.cond === c)) continue;
@@ -2249,33 +2439,64 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   // Polymarket paid as its readout booked it (`pm_lp_reward_days`, live rows); in dry-run, its paper's closed days at
   // R = 0.40. Until the first payout is read, the fills alone. The other instances' stops read and write `live` alone.
   const stopMode: PmLiveMode = inst.lp ? mode : "live";
-  const hasEvent = async (kind: string, since: string | null) => (await db.select(T.events, `mode=eq.${stopMode}&kind=eq.${kind}${since ? `&minute=gte.${enc(since)}` : ""}&select=minute&limit=1`)).length > 0;
-  let lossDay = false, lossTotal = false;
+  const eventAt = async (kind: string, since: string | null) =>
+    ((await db.select<{ minute: string }>(T.events, `mode=eq.${stopMode}&kind=eq.${kind}${since ? `&minute=gte.${enc(since)}` : ""}&select=minute&limit=1`))[0]?.minute ?? null);
+  // Addendum 19's restart: the total stop latches only from the restart's minute, so the stop that tripped before it no
+  // longer holds the path; one that trips after it does, until a later restart.
+  const restartMinute = restart ? iso(Math.floor(restart.atMs / M) * M) : null;
+  let lossDay = false, lossTotal = false, stopTrippedAt: string | null = null;
   try {
-    lossDay = await hasEvent("loss_stop_day", iso(dayStart));
-    lossTotal = await hasEvent("loss_stop_total", null);
+    lossDay = (await eventAt("loss_stop_day", iso(dayStart))) !== null;
+    stopTrippedAt = await eventAt("loss_stop_total", restartMinute);
+    lossTotal = stopTrippedAt !== null;
   } catch (e) { lossDay = lossTotal = true; report.errors.push(`loss stops unreadable (${msg(e)}): nothing that opens this turn`); }
   let paid: number | null = null;
   // Since Addendum 18 (`stopCountsRebates`, live only): the maker rebates the readout booked and the CONFIRMED fills' fees,
   // so the stop's basis is the page's TOTAL. Null where they are not counted.
   let rebates: number | null = null, fees: number | null = null;
   const countsRebates = !!inst.lp?.stopCountsRebates && !paper;
+  // Since a restart, only what was paid for the UTC days from the restart's day, and the fees of fills matched since it.
+  const fromDay = restart ? `&day=gte.${dayOf(restart.atMs)}` : "";
   if (inst.lp && !lossTotal) {
     try {
       if (paper) {
-        const rows = (await db.selectAll<{ reward_r40: number | string | null }>(paper.days, "select=reward_r40&order=day.asc")).map((r) => num(r.reward_r40));
+        const rows = (await db.selectAll<{ reward_r40: number | string | null }>(paper.days, `select=reward_r40${fromDay}&order=day.asc`)).map((r) => num(r.reward_r40));
         paid = Math.round(rows.reduce((s, x) => s + x, 0) * 1e8) / 1e8;
       } else {
         const rows = await db.selectAll<{ actual_usd: number | string | null; actual_sponsored_usd: number | string | null; rebate_usd?: number | string | null }>(
-          T.rewardDays, `mode=eq.live&select=actual_usd,actual_sponsored_usd${countsRebates ? ",rebate_usd" : ""}&order=mode.asc,day.asc,cond.asc`);
+          T.rewardDays, `mode=eq.live${fromDay}&select=actual_usd,actual_sponsored_usd${countsRebates ? ",rebate_usd" : ""}&order=mode.asc,day.asc,cond.asc`);
         paid = Math.round(rows.reduce((s, r) => s + num(r.actual_usd) + num(r.actual_sponsored_usd), 0) * 1e8) / 1e8;
         if (countsRebates) {
           rebates = Math.round(rows.reduce((s, r) => s + num(r.rebate_usd), 0) * 1e8) / 1e8;
-          fees = Math.round((fillRowsNow as FillRow[]).filter((f) => f.status === "CONFIRMED")
+          fees = Math.round((fillRowsNow as FillRow[]).filter((f) => f.status === "CONFIRMED" && (!restart || (f.match_time != null && Date.parse(f.match_time) >= restart.atMs)))
             .reduce((s, f) => s + pmLiveFillFee(Number(f.size), Number(f.price), f.detail?.trade?.trader_side, f.detail?.trade?.fee_rate_bps), 0) * 1e8) / 1e8;
         }
       }
     } catch (e) { lossTotal = true; report.errors.push(`what was paid is unreadable (${msg(e)}): the stop cannot be judged; nothing that opens this turn`); }
+  }
+  // The fills' part of the stop: from cost, every holding (`bookPnl`'s total); since a restart, their change since it
+  // (`sinceOpenPnl` from the restart, each holding then from its mark then: `restartOpenMarks`, kept in the state). A
+  // holding of the restart with no mark yet read (this turn's, the last turn's, or a settlement's payout) leaves the stop
+  // unjudged: nothing opens that turn, and nothing is written.
+  let stopFills = pnl.total;
+  let stopOpen: ReturnType<typeof restartOpenMarks> | null = null;
+  if (restart) {
+    const then = tokenBooks(allFills.filter((f) => f.ts < restart.atMs), restart.atMs);
+    const heldThen = Object.entries(then).filter(([, t]) => t.held > 1e-9).map(([k]) => k).sort();
+    const known: Record<string, number | null> = {};
+    for (const s of settlements) { known[s.yes_token] = Number(s.payout); known[s.no_token] = 1 - Number(s.payout); }
+    for (const x of Array.isArray(prev.markets) ? prev.markets as Array<{ cond?: string; book?: { bestBid?: number; bestAsk?: number } | null }> : []) {
+      const m = markets.find((y) => y.cond === x?.cond), b = x?.book;
+      if (m && b && Number.isFinite(b.bestBid) && Number.isFinite(b.bestAsk)) { const mid = (Number(b.bestBid) + Number(b.bestAsk)) / 2; known[m.yes_token] = mid; known[m.no_token] = 1 - mid; }
+    }
+    for (const [k, v] of Object.entries(marks)) if (v != null) known[k] = v;
+    const prevOpen = ((prev.lp ?? {}) as { stop?: { open?: { at?: unknown; marks?: unknown } } }).stop?.open;
+    stopOpen = restartOpenMarks(prevOpen, restart.at, heldThen, known);
+    stopFills = sinceOpenPnl(allFills, restart.atMs, stopOpen.marks, marks);
+    if (stopOpen.missing.length && !lossTotal) {
+      lossTotal = true;
+      report.errors.push(`the restart's opening marks are not all read (${stopOpen.missing.length} token(s) held at ${restart.at} have none yet): the stop cannot be judged; nothing that opens this turn`);
+    }
   }
   if (!lossDay && pnl.day <= -lim.lossDay) {
     lossDay = true;
@@ -2285,16 +2506,20 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
     }], "mode,minute,kind");
     report.errors.push(`LOSS STOP (day): ${pnl.day} USD is past −${lim.lossDay}; nothing opens until the next UTC day; sells of what is held stay armed`);
   }
-  const stopBasis = pnl.total + (paid ?? 0) + (rebates ?? 0) - (fees ?? 0);
-  if (!lossTotal && stopBasis <= -lim.lossTotal) {
+  const stopBasis = stopFills + (paid ?? 0) + (rebates ?? 0) - (fees ?? 0);
+  const stopLimit = restart ? restart.limit : lim.lossTotal;
+  if (!lossTotal && stopBasis <= -stopLimit) {
     lossTotal = true;
+    stopTrippedAt = minute;
     const basis = Math.round(stopBasis * 1e8) / 1e8;
     await db.upsert(T.events, [{
       mode: stopMode, minute, kind: "loss_stop_total",
-      detail: inst.lp ? { totalPnl: pnl.total, paid, ...(countsRebates ? { rebates, fees } : {}), basis, limit: -lim.lossTotal } : { totalPnl: pnl.total, limit: -lim.lossTotal },
+      detail: inst.lp
+        ? { totalPnl: stopFills, paid, ...(countsRebates ? { rebates, fees } : {}), basis, limit: -stopLimit, ...(restart ? { since: restart.at, fillsFromCost: pnl.total } : {}) }
+        : { totalPnl: pnl.total, limit: -lim.lossTotal },
     }], "mode,minute,kind");
     report.errors.push(inst.lp
-      ? `LOSS STOP (all): fills ${pnl.total} and paid ${paid ?? 0}${countsRebates ? `, rebates ${rebates ?? 0}, less fees ${fees ?? 0}` : ""} USD, ${basis} in all, is past −${lim.lossTotal}; nothing opens again until a person clears the stop; sells stay armed`
+      ? `LOSS STOP (all${restart ? ` since the restart at ${restart.at}` : ""}): fills ${stopFills} and paid ${paid ?? 0}${countsRebates ? `, rebates ${rebates ?? 0}, less fees ${fees ?? 0}` : ""} USD, ${basis} in all, is past −${stopLimit}; nothing opens again until a person clears the stop${inst.lp.restartable ? " (a later restart, 0119's restarted_at)" : ""}; sells stay armed`
       : `LOSS STOP (all): ${pnl.total} USD is past −${lim.lossTotal}; nothing opens again until a person clears the stop; sells stay armed`);
   }
 
@@ -2832,9 +3057,16 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
           if (!c) return `the candidate rules pass it over now (rate ${rate}, minimum ${cfg.minSize})`;
           const br = await venue.book(c.yes);
           if (!br.ok) return `its book unread (${br.status})`;
-          const sc = scoreBook(c, br.data, [], inst.bookQuality);
+          const qr = inst.lp!.candidate.quiet;
+          const sc = scoreBook(c, br.data, [], inst.bookQuality, qr?.minTouchCents);
           if (sc.kind !== "scored") return `its book does not score (${sc.kind})`;
-          if (usedCap + sc.x.cap > lim.budget + 1e-9) return `${(usedCap + sc.x.cap).toFixed(2)} USD of first quotes would pass the budget of ${lim.budget}`;
+          // Addendum 19: the refill's budget is the selection's (90 % of this turn's cap), and a candidate must read quiet now.
+          const refillBudget = inst.lp?.selectShare ? lpSelectBudget(lim.budget, lim.capTotal, inst.lp.selectShare) : lim.budget;
+          if (usedCap + sc.x.cap > refillBudget + 1e-9) return `${(usedCap + sc.x.cap).toFixed(2)} USD of first quotes would pass the budget of ${refillBudget}`;
+          if (qr) {
+            const v = quietVerdict(quietRead ? await quietRead(cand.cond).catch((e): PmQuietRead => ({ ok: false, error: msg(e) })) : null, qr);
+            if (!v.quiet) return `not a quiet book now: ${v.why}`;
+          }
           const rank = Math.max(0, ...todayRows.map((m) => Number(m.rank) || 0)) + 1;
           return { row: scoredRow(sc.x, day, rank), x: sc.x };
         })().catch((e) => `a read failed (${msg(e)})`);
@@ -2955,6 +3187,16 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
             // which the page shows until the first booking (never the cap).
             ...(funding ? { funding } : {}),
             ...(fundingResidual ? { fundingResidual } : {}),
+            // Addendum 19: the code's addendum (the restart statement checks it), and the total stop as this turn judged
+            // it, from the restart when one is set: the page shows its room from this, and the next turn keeps its marks.
+            ...(inst.lp.restartable ? {
+              addendum: 19,
+              stop: {
+                since: restart?.at ?? null, limit: stopLimit, fills: Math.round(stopFills * 1e8) / 1e8, paid, rebates, fees,
+                basis: Math.round(stopBasis * 1e8) / 1e8, room: Math.round((stopLimit + stopBasis) * 1e8) / 1e8, trippedAt: stopTrippedAt,
+                ...(stopOpen ? { open: { at: stopOpen.at, marks: stopOpen.marks }, missing: stopOpen.missing.length } : {}),
+              },
+            } : {}),
           },
         } : {}),
       },

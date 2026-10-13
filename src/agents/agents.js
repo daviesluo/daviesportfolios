@@ -1438,7 +1438,9 @@ export function lpLiveStatus(l) {
  * The total stop's room on LIVE's "Reward quotes" page, under its scoreboard (Addendum 18, LP-OBS-DEEP item 5): the stop
  * judges the page's TOTAL (fills marked + rewards paid + rebates − fees, `stop.basisUsd`), so the line reads the limit,
  * the room left before it (`stop.roomUsd`) and that total, every dollar through `m` (the hide-values mask). Null when the
- * stop has tripped (its own red line says so) or its figures are not in the payload.
+ * stop has tripped (its own red line says so) or its figures are not in the payload. Since Addendum 19, once Davies' go
+ * restarts the stop (`stop.since`), it counts from that minute, so the line says from when and calls its figure what it
+ * is: what the book made since then, not the page's TOTAL.
  * @param {any} l  the dashboard's `lpLive` @param {(s: string) => string} m
  */
 export function lpStopRoomText(l, m) {
@@ -1446,6 +1448,8 @@ export function lpStopRoomText(l, m) {
   const n = (/** @type {unknown} */ x) => (x == null || !Number.isFinite(Number(x)) ? null : Number(x));
   const limit = n(s?.limitUsd), room = n(s?.roomUsd), basis = n(s?.basisUsd);
   if (!s || s.trippedAt || limit === null || room === null || basis === null) return null;
+  const since = typeof s.since === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(s.since) ? `${s.since.slice(5, 10)} ${s.since.slice(11, 16)} UTC` : null;
+  if (since) return `total stop at ${m(fmtUsd(-limit, true))} since ${since}: ${m(fmtUsd(room))} of room (since then ${m(fmtUsd(basis, true))})`;
   return `total stop at ${m(fmtUsd(-limit, true))}: ${m(fmtUsd(room))} of room (total ${m(fmtUsd(basis, true))})`;
 }
 

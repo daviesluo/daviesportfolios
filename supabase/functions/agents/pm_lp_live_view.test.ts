@@ -42,7 +42,7 @@ import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@
 import fixture from "../../../src/e2e/lp_live_fixture.json" with { type: "json" };
 import readout109 from "../../../docs/agents/backtests/lpcfg/data/readout_2026-10-09.json" with { type: "json" };
 import rewardDays1011 from "../../../docs/agents/backtests/lpobsdeep/data/reward_days.json" with { type: "json" };
-import { atLiveR, LP_LIVE_HOURS_VIEW, LP_R_DAY_CORRECTIONS, lpLivePrice, wholeFormulaOf, lpCloseMinutes, lpDayOrders, lpLiveR, lpLiveSince, lpLiveSummary, lpMinuteMid, lpRewardEstimate, type LpLiveCloseRow, type LpLiveHourRow, type LpLiveRewardDayRow } from "./pm_lp_live_view.ts";
+import { atLiveR, LP_LIVE_HOURS_VIEW, LP_R_DAY_CORRECTIONS, lpLivePrice, wholeFormulaOf, lpCloseMinutes, lpDayOrders, lpLiveR, lpLiveSince, lpLiveSummary, lpMinuteMid, lpRewardEstimate, restartStopOf, type LpLiveCloseRow, type LpLiveHourRow, type LpLiveRewardDayRow } from "./pm_lp_live_view.ts";
 import { settlementFills, type PmFill } from "./pm_live.ts";
 import { readLpLive } from "./index.ts";
 import { PM_LP_INSTANCE } from "./pm_lp.ts";
@@ -422,6 +422,28 @@ Deno.test("atLiveR: a paper Reward quotes summary priced at the live R, its wors
   const same = atLiveR(s, { point: 1, low: 0.5, high: 1, days: 0, basis: "prior" }) as any;
   assertEquals([same.totalUsd, same.stressUsd, same.todayUsd, same.days[0].runningUsd], [10, 4, 3, 4]);
   assertEquals(atLiveR(null, R), null);
+});
+
+Deno.test("Addendum 19: restarted, the page's stop is the path's own reading from the restart, the stop of before is history, and today's markets are those selected since", () => {
+  assertEquals([restartStopOf(null), restartStopOf({ lp: { stop: { since: null, limit: 75, basis: 1 } } }), restartStopOf({ lp: {} })], [null, null, null]);
+  const today = new Date(Math.floor(F.input.nowMs / 86400e3) * 86400e3).toISOString().slice(0, 10);
+  const since = `${today}T02:31:00.000Z`;
+  const stop = { since, limit: 25, fills: -2, paid: 0.5, rebates: null, fees: 0, basis: -1.5, room: 23.5, trippedAt: null };
+  assertEquals(restartStopOf({ lp: { stop } }), { since, limit: 25, fills: -2, paid: 0.5, rebates: 0, fees: 0, basis: -1.5, room: 23.5, trippedAt: null });
+  const withStop = (s: unknown, markets = F.input.markets) =>
+    ({ ...F.input, markets, state: { ...F.input.state, state: { ...F.input.state.state, lp: { ...(F.input.state.state.lp ?? {}), stop: s } } }, stop: { minute: "2026-09-16T05:00:00.000Z", detail: {} } });
+  const s = lpLiveSummary(withStop(stop))!;
+  // The stop of 16 Sep is before the restart: the room shows, from the restart, at $25.
+  assertEquals(s.stop, { limitUsd: 25, fillsPnlUsd: -2, paidUsd: 0.5, rebateUsd: 0, feesUsd: 0, basisUsd: -1.5, roomUsd: 23.5, trippedAt: null, since });
+  // Without a restart the page's own figure, the old stop tripped, as before.
+  assertEquals(lpLiveSummary(withStop({ ...stop, since: null }))!.stop.trippedAt, "2026-09-16T05:00:00.000Z");
+  // Today's rows written before the restart are not today's selection: QUOTES lists only those written since (the
+  // fixture's carry no time, so none of them), and one written after it is.
+  const todays = F.input.markets.filter((m: { day: string }) => String(m.day).slice(0, 10) === today);
+  assert(todays.length > 0);
+  assertEquals(s.quotes.filter((q: Record<string, unknown>) => q.quoting).length, 0);
+  const marked = F.input.markets.map((m: { day: string; cond: string }) => (m.cond === todays[0].cond && String(m.day).slice(0, 10) === today ? { ...m, selected_at: `${today}T02:32:00.000Z` } : m));
+  assertEquals(lpLiveSummary(withStop(stop, marked))!.quotes.filter((q: Record<string, unknown>) => q.quoting).map((q: Record<string, unknown>) => q.cond), [todays[0].cond]);
 });
 
 Deno.test("Addendum 13: QUOTING TODAY is the current set, today's markets less those the last turn had out", () => {

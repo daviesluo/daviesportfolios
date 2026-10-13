@@ -657,6 +657,26 @@ and its selection are as before. No decision of mid-pool changes: `agents/pm_mid
 **What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
 of the Edge deploy that carries it, as deviation 18.
 
+## Addendum 19 (2026-10-13, about 03:30 UTC): deviation 19, live-prep's quiet books and its restart
+
+This addendum was written inside the window, before the deploy it records. The readout it speaks of was withdrawn the
+same day (below).
+
+**Deviation 19 is live-prep's Addendum 19.** It changes the shared `pm_live.ts`: after it, `pm_live.ts` sha256
+`28930ad918b0358c98e6bd6268715c6fd845b6092bcefcd1b44ffd45daf7f43d`, where Addendum 18 above named `ee96ba0e…667d`. The change: an optional quiet-book rule on the
+candidate rules (`PmCandidateRules.quiet`, with `quietVerdict` and `quietChoose`), an optional touch in `scoreBook`, and
+three optional live-prep options (`quietRead`, `selectShare`, `restartable`); a turn whose instance sets them selects only
+quiet books by one data-API read each, inside 90 % of its cap, and counts its total stop from a restart its config names
+(0119). Only live-prep's instance sets them. The stop's event is read by a query that returns its minute, the same query
+as before, and its fills' part is `bookPnl`'s total, as before, for every instance without a restart.
+
+**Mid-pool is unchanged.** It sets no `lp` options and its candidate rules carry no quiet rule, so its selection, its
+stops and its quotes are as before. No decision of mid-pool changes: `agents/pm_mid_formula.test.ts` and
+`agents/pm_payouts.test.ts` run it beside the path this file froze and find every decision the same.
+
+**What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
+of the Edge deploy that carries it, as deviation 19.
+
 ## Withdrawn (2026-10-13), before its readout and its audit
 
 Davies, 2026-10-13, verbatim: "目前paper testing里的reward quotes全关了吧？感觉都不赚钱没什么意义？如果你实在觉得还有用的话就转到后台记录，

@@ -61,11 +61,14 @@ describe('the live-prep pre-registration', () => {
 
   it('shares its rules between the code, the migration, the check and the document', () => {
     const lp = src('supabase/functions/agents/pm_lp.ts'), mig = src('supabase/migrations/0091_pm_lp.sql');
-    expect(lp).toContain('export const PM_LP_INV_CAP = 5;');
+    // 5N as frozen, 2N since Addendum 19 (2026-10-13, Davies: "做B…"), which says so.
+    expect(lp).toContain('export const PM_LP_INV_CAP = 2;');
+    expect(DOC.slice(DOC.indexOf('## Addendum 19'))).toContain('**2N** (`PM_LP_INV_CAP` 5 → 2)');
     expect(lp).toContain('export const PM_LP_CAP_MARKET_USD = 100;');
     expect(lp).toContain('export const PM_LP_PAUSE = { cents: 15, minutes: 60 } as const;');
-    // Addendum 12 (2026-10-10) adds the AI markets to what its candidate rules leave out; the rest is as frozen.
-    expect(lp).toContain('export const PM_LP_CANDIDATE: PmCandidateRules = { endHorizon: false, excludeFeeTypes: ["weather_fees"], excludeQuestion: PM_LP_EXCLUDE_AI };');
+    // Addendum 12 (2026-10-10) adds the AI markets to what its candidate rules leave out, Addendum 19 the quiet books; the
+    // rest is as frozen.
+    expect(lp).toContain('export const PM_LP_CANDIDATE: PmCandidateRules = { endHorizon: false, excludeFeeTypes: ["weather_fees"], excludeQuestion: PM_LP_EXCLUDE_AI, quiet: PM_LP_QUIET };');
     expect(DOC.slice(DOC.indexOf('## Addendum 12'))).toContain('由你来决定吧，并且考虑rewards');
     expect(lp).toContain('export const PM_LP_BAND = { floor: RW_MIN_RATE, ceiling: Infinity } as const;');
     expect(mig).toContain('cap_market_usd      numeric not null default 100 check (cap_market_usd > 0 and cap_market_usd <= 100)');
@@ -114,10 +117,13 @@ describe('the live-prep pre-registration', () => {
     // The bytes it named are the rule until Addendum 7 (below), which names what it changed from.
     expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add2)?.[1]).toBe(LP_A2);
     const lp = src('supabase/functions/agents/pm_lp.ts');
-    expect(lp).toContain('export const PM_LP_TIGHT = { maxTicks: 1 } as const;');
-    // Since Addendum 16 the skip is the quoting rule's alone (`tb1Skip` true); the exit rule of close-only markets skips it.
-    expect(lp).toContain('if (tb1Skip && isTight(row, Number(book.tick), PM_LP_TIGHT.maxTicks)) return [];');
-    expect(lp).toContain('export const lpQuotes: PmQuoteRule = (input) => lpQuotesOn(input, true);');
+    // Addendum 19 replaced the one-tick skip by a 4 ¢ touch; the one tick stays expressible (`lpRulesOf`) for the tests
+    // that pin Addendums 2 to 18.
+    expect(lp).toContain('export const PM_LP_TIGHT = { minTouchCents: 4 } as const;');
+    expect(lp).toContain('export function lpRulesOf(shape: LpShape)');
+    // Since Addendum 16 the skip is the quoting rule's alone (`skip` true); the exit rule of close-only markets skips it.
+    expect(lp).toContain('if (skip && ("minTouchCents" in shape.tight ? !wideTouch(row, shape.tight.minTouchCents) : isTight(row, Number(book.tick), shape.tight.maxTicks))) return [];');
+    expect(lp).toContain('export const lpQuotes: PmQuoteRule = (input) => lpQuotesOn(input, true, PM_LP_SHAPE);');
   });
 
   // Addendum 3 (2026-10-08): live-prep against itself; nothing further adopted, the rule the bytes Addendum 2 named.
@@ -174,9 +180,14 @@ describe('the live-prep pre-registration', () => {
     // Addendum 17's bytes were the instance until Addendum 18 (the refill's cash check, the pause, the stop), which names
     // what it changed from and today's.
     expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add17)?.[1]).toBe('82d1aa9403dbfd8bbfd4771571a88b53752d186063422d0b684f1934c3e5a850');
-    const add18 = DOC.slice(DOC.indexOf('## Addendum 18'));
+    const add18 = DOC.slice(DOC.indexOf('## Addendum 18'), DOC.indexOf('## Addendum 19'));
     expect(add18).toContain('`82d1aa94…a850`');
-    expect(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex')).toBe(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add18)?.[1]);
+    // Addendum 18's bytes were the instance until Addendum 19 (quiet books, the restart), which names what it changed from
+    // and today's.
+    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add18)?.[1]).toBe('53f7f788a47e93f52770f96410db9faf8f34cdd7dc2cf4ddbd877c9038d07278');
+    const add19 = DOC.slice(DOC.indexOf('## Addendum 19'));
+    expect(add19).toContain('`53f7f788…7278`');
+    expect(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex')).toBe(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add19)?.[1]);
     const lp = src('supabase/functions/agents/pm_lp.ts');
     expect(lp).toContain('export const PM_LP_NEAR_CERTAIN = { minPrice: 0.95, share: 0.08 } as const;');
     expect(lp).toContain('else if (nearCertainBuyOk(bYes, N, held.yes, q.m, capital))');
