@@ -1,0 +1,82 @@
+{
+ "bar1_faithful": {
+  "all": {
+   "engine_ccy": 0.3003,
+   "engine_trips": 3,
+   "replay_ccy": 0.3003,
+   "replay_trips": 3
+  },
+  "books": {
+   "USDC-EUR": {
+    "engine_ccy": 0,
+    "engine_trips": 0,
+    "replay_ccy": 0,
+    "replay_trips": 0
+   },
+   "USDC-GBP": {
+    "engine_ccy": 0.3003,
+    "engine_trips": 3,
+    "replay_ccy": 0.3003,
+    "replay_trips": 3
+   },
+   "USDT-EUR": {
+    "engine_ccy": 0,
+    "engine_trips": 0,
+    "replay_ccy": 0,
+    "replay_trips": 0
+   },
+   "USDT-GBP": {
+    "engine_ccy": 0,
+    "engine_trips": 0,
+    "replay_ccy": 0,
+    "replay_trips": 0
+   }
+  },
+  "pnl_within_10pct": true,
+  "trips_within_5pct": true
+ },
+ "bar2_positive": {
+  "bootstrap_index100_gbp": 0.1001,
+  "passes": true,
+  "realised_gbp": 0.3003
+ },
+ "bar3_enough": {
+  "capital_gbp": 2256.0,
+  "passes": false,
+  "pct_per_year": 0.1735
+ },
+ "bar4_not_one_day": {
+  "best_day_share": 0.3333,
+  "passes": true
+ },
+ "bar5_against_revolut_x": null,
+ "bar6_against_the_base_arm": {
+  "arm_realised_gbp": 0.3003,
+  "base_realised_gbp": 0.2002,
+  "passes": true,
+  "sum_difference_gbp": 0.1001,
+  "weekends": [
+   {
+    "arm_gbp": 0.1001,
+    "base_gbp": 0,
+    "difference_gbp": 0.1001,
+    "from": "2026-10-16T22:10Z",
+    "whole": true
+   }
+  ],
+  "weekends_positive": 1,
+  "whole_weekends": 1
+ },
+ "base_arm_check": {
+  "engine_gbp": 0.2002,
+  "engine_trips": 2,
+  "replay_gbp": 0.2002,
+  "replay_trips": 2,
+  "through": "2026-10-19T02:00Z"
+ },
+ "window": {
+  "days": 28,
+  "from": "2026-10-16",
+  "to": "2026-11-13"
+ }
+}

@@ -296,6 +296,13 @@ places stay when the number is not whole.
   page without INVENTORY, since a paper test holds no coins of its own (what
   a rung holds is in BOOKS), so its DAYS and 7-day annualised figure read
   straight beside the live row's on Revolut X.
+- **Stablecoin quotes with Euros - 2.** Right after it, the same test with
+  one change, the weekend: the first goes quiet from Friday evening to Sunday
+  evening, when the exchange rates it prices from are not published, and this
+  one keeps quoting on Friday's rates until they come back. Its name is on two
+  lines, its page is the first's, and Coinbase's card adds the two. A paper
+  test, starting at the next midnight after it went up; the rule for judging
+  it is written down first.
 - **Reward quotes.** After them, on Polymarket (its badge in Polymarket's
   blue): a fourteen-day paper test of small quotes on both sides of the
   markets that pay liquidity rewards, $300 of them chosen afresh each UTC

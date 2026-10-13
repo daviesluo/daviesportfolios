@@ -11,7 +11,7 @@ import {
   LP_LIVE_ROW_ID, fmtR, lpStopRoomText, liveExtraRows, lpEstimateTexts, lpLiveDayCells, lpLiveQuoteRows, lpLiveRow, quoteDaysAnnualPct, lpLiveStatus, rwFeeAsides, rwFeeCells,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies,
   fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney,
-  QUOTES_COINBASE_ROW_ID, quotesCoinbaseRow } from './agents.js';
+  QUOTES_COINBASE_ROW_ID, QUOTES_COINBASE_HOLD_ROW_ID, quotesCoinbaseRow } from './agents.js';
 // The live quotes page's fixture: what the dashboard serves for a book worked out by hand (the agents function's test
 // proves it is the server's own answer for its rows; the browser test serves it).
 import liveFixture from '../e2e/quotes_live_fixture.json';
@@ -19,6 +19,7 @@ import liveFixture from '../e2e/quotes_live_fixture.json';
 import twinFixture from '../e2e/quotes_twin_fixture.json';
 // "Stablecoin quotes with Euros"'s: its driver and the dashboard's view run on a small recorded world (cb_quotes.test.ts).
 import cbFixture from '../e2e/quotes_coinbase_fixture.json';
+import cbHoldFixture from '../e2e/quotes_coinbase_hold_fixture.json';
 import prepFixture from '../e2e/prep_fixture.json';
 // Mid-pool's: a record of its band worked out by hand, and the same summary's answer for it (pm_prep_view.test.ts).
 import midFixture from '../e2e/mid_fixture.json';
@@ -1361,6 +1362,33 @@ describe('quoteLadderRows — a book as the page draws it', () => {
     }
     expect(quotesPageFor(QUOTES_COINBASE_ROW_ID, { quotesTwins: [] })).toBe(null);
     expect(quotesCoinbaseRow(null)).toBe(null);
+  });
+  it('"Stablecoin quotes with Euros - 2" (the weekend variant, 0118) is the TESTING row right after "Stablecoin quotes with Euros", on Coinbase, and opens its own page', () => {
+    const q = cbFixture.quotesCoinbase, h = cbHoldFixture.quotesCoinbaseHold;
+    const row = quotesCoinbaseRow(h);
+    // Davies, 2026-10-13: "周末变体写预注册然后上线paper trading 策略with Euros - 2".
+    expect(row).toMatchObject({ id: QUOTES_COINBASE_HOLD_ROW_ID, name: 'Stablecoin quotes with Euros - 2', venue: 'Coinbase', venueId: 'coinbase', mode: 'paper', ccy: 'GBP' });
+    expect(QUOTES_COINBASE_HOLD_ROW_ID).not.toBe(QUOTES_COINBASE_ROW_ID);
+    expect(row?.status.detail).toMatch(/held through a closure/);
+    expect(quotesCoinbaseRow(q)?.status.detail).not.toMatch(/closure/);
+    // Its world is the base fixture's with a closure in it, held rates constant: the same figures under its own name.
+    expect(row?.gbp).toMatchObject({ capital: 2250, value: h.valueGbp, realised: q.realisedGbp });
+    const dash = { quotesTwins: twinFixture.twins, quotesCoinbase: q, quotesCoinbaseHold: h };
+    const names = paperTestRows(dash).map((r) => r.name);
+    const at = names.indexOf('Stablecoin quotes with Euros');
+    expect(at).toBe(twinFixture.twins.length);
+    expect(names.slice(at, at + 2)).toEqual(['Stablecoin quotes with Euros', 'Stablecoin quotes with Euros - 2']);
+    expect(paperTestRows({ ...dash, quotesCoinbaseHold: null }).map((r) => r.name)).not.toContain('Stablecoin quotes with Euros - 2');
+    // On two lines, as the variants are.
+    expect(strategyNameParts(String(row?.name))).toEqual({ head: 'Stablecoin quotes', qual: 'with Euros - 2', twoLines: true });
+    expect(strategyNameParts('Stablecoin quotes with Euros')).toEqual({ head: 'Stablecoin quotes', qual: 'with Euros', twoLines: true });
+    expect(quotesPageFor(QUOTES_COINBASE_HOLD_ROW_ID, dash)).toBe('coinbase');
+    expect(quotesPageFor(QUOTES_COINBASE_HOLD_ROW_ID, { quotesTwins: [], quotesCoinbase: q })).toBe(null);
+    // Coinbase's card adds both rows' capital and deployed value: it is one venue.
+    const venues = venueRows(dash, 'testing', paperTestRows(dash));
+    const cb = venues.find((r) => r.id === 'coinbase');
+    expect(cb?.capitalUsd).toBeCloseTo(q.capitalUsd + h.capitalUsd, 6);
+    expect(cb?.valueUsd).toBeCloseTo(q.valueUsd + h.valueUsd, 6);
   });
 });
 

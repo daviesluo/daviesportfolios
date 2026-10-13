@@ -325,7 +325,10 @@ that follow from that evidence, in short:
   them: PR5's `stepMinute`, unchanged, on Coinbase's four GBP and EUR books
   from a keyless recorder, on paper, £100 a rung on a GBP book and €100 on a
   EUR book (its Deviation 1), counted in pounds, its own Coinbase card;
-  pre-registered in `reviews/2026-10-10-coinbase-paper-prereg.md`. **Since `0088` each twin is a row of
+  pre-registered in `reviews/2026-10-10-coinbase-paper-prereg.md`. Its weekend variant **"Stablecoin quotes with Euros - 2"**
+  (`0118`, `agents/cb_hold.ts`, reference §4 item 60; Davies 2026-10-13) holds the interbank rates through a closure, up to 60
+  hours, and changes nothing else; its own call, tables and window, pre-registered in
+  `reviews/2026-10-13-coinbase-weekend-prereg.md`. **Since `0088` each twin is a row of
   `agent_quote_twin_specs`** (reference §4 item 51's "Twin variants" table):
   the call and the page read the enabled rows. A variant that differs only in
   its parameters is a migration of two statements, its row then

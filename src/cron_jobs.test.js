@@ -679,6 +679,39 @@ describe('pg_cron jobs', () => {
     expect(sql).not.toMatch(/\bgrant\b|create policy/i);
   });
 
+  // The weekend variant of the Coinbase paper test (Davies, 2026-10-13: "周末变体写预注册然后上线paper trading 策略with Euros - 2").
+  it("adds the weekend variant of Coinbase's paper test as one call a minute (0118), its beat first, every other row as it was, and a prune of SQL alone", () => {
+    const T = FILES.find((f) => /^0118_cb_hold\.sql$/.test(f)) ?? '';
+    expect(T).not.toBe('');
+    const before = replayList(sqlsOf(FILES.filter((f) => f < T))), after = replayList(sqlsOf(FILES.filter((f) => f <= T)));
+    expect(after.slice(0, before.length)).toEqual(before);
+    const shape = ({ path: p, timeout, every, lastHour, enabled, retry }) => ({ path: p, timeout, every, lastHour, enabled, retry });
+    // `retry` true: a second run in its minute changes nothing the first did (a lease, the recorder's coverage as the state row
+    // gives it, every row upserted on its natural key); under a minute; its row waits 15 minutes for the function (0104).
+    expect(after.slice(before.length).map(shape)).toEqual([
+      { path: 'agents?action=cbhold', timeout: 30000, every: 1, lastHour: 23, enabled: true, retry: true },
+    ]);
+    expect(beatKeyOfPath(after.at(-1).path)).toBe('agents?action=cbhold');
+    const src = fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/index.ts'), 'utf8');
+    expect(src).toContain('if (action === "cbhold" && req.method === "POST" && operator) return json(200, await runCbHoldAction());');
+    const jobsBefore = cronJobs(FILES.filter((f) => f < T)), jobsAfter = cronJobs(FILES.filter((f) => f <= T));
+    expect([...jobsAfter.keys()].filter((n) => !jobsBefore.has(n))).toEqual(['cb-hold-prune']);
+    const prune = jobsAfter.get('cb-hold-prune');
+    expect(prune.command.trim()).toBe("delete from public.cb_hold_minutes where minute < now() - interval '120 days';");
+    expect(Number(prune.schedule.split(' ')[0]) % 5).not.toBe(0);
+    expect([...jobsBefore.values()].some((j) => j.schedule === prune.schedule)).toBe(false);
+    expect(httpJobs(jobsAfter).map(([n]) => n)).toEqual(['edge-calls-every-minute']);
+    for (const [n, j] of jobsBefore) expect([n, jobsAfter.get(n)]).toEqual([n, j]);
+    // Its tables' checks hold the books the recorder writes, as 0112's; no grant, no policy; row level security on every table.
+    const sql = fs.readFileSync(path.join(DIR, T), 'utf8').replace(/--[^\n]*/g, '');
+    const rec = fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/cb_rec.ts'), 'utf8');
+    const books = JSON.parse(/^export const CB_PRODUCTS = (\[[^\]]*\]) as const;$/m.exec(rec)?.[1] ?? 'null');
+    expect(count(sql, `check (book in (${books.map((b) => `'${b}'`).join(', ')}))`)).toBe(3);
+    for (const t of ['cb_hold_state', 'cb_hold_events', 'cb_hold_trips', 'cb_hold_minutes']) expect(sql).toMatch(new RegExp(`alter table public\\.${t} +enable row level security;`));
+    expect(sql).not.toMatch(/\bgrant\b|create policy/i);
+    expect(sql).toContain("insert into public.agent_locks (name) values ('cb-hold') on conflict (name) do nothing;");
+  });
+
   // The programme factor (Davies, 2026-10-10: "之前testing的每一个不都赚了很多吗"): TESTING's Reward quotes rows priced on the
   // programme the listing showed each 15 minutes.
   it("adds the programme factor's reader as one call every five minutes (0115), its beat first, a refresh and a prune of SQL alone", () => {

@@ -109,6 +109,11 @@
 //                             id and their touch, then PR5's rule on them on
 //                             paper. Keyless reads of Coinbase Exchange's public
 //                             market data only. Cron or admin.
+//   POST ?action=cbhold     — "Stablecoin quotes with Euros - 2" (cb_hold.ts,
+//                             0118): the Coinbase paper test again with the
+//                             interbank rates held through a closure, on the
+//                             recorder's prints; its own tables and lease.
+//                             Reads only the database. Cron or admin.
 //   POST ?action=cbbooks    — Coinbase's order books (cb_books.ts, 0114): 30 s
 //                             into every minute, after the recorder, the top
 //                             ten levels a side of the same four books, kept
@@ -219,10 +224,11 @@ import { booksDelayMs, runBooks } from "./books.ts";
 import { PM_REC_VENUE_TIMEOUT_MS, pmRecStorage, runPmRec, runPmRecMeta } from "./pm_book_rec.ts";
 import { atProgramme, progFx, runPmProg, type PmProgFactorRow } from "./pm_prog.ts";
 import { runCjRec } from "./cj_rec.ts";
-import { runCbRec } from "./cb_rec.ts";
+import { runCbRec, type CbRecState } from "./cb_rec.ts";
 import { cbBooksDelayMs, runCbBooks } from "./cb_books.ts";
 import { runCbQuotes } from "./cb_quotes.ts";
-import { cbQuotesView, CB_PAGE_ROWS, type CbDayRow, type CbEventRow, type CbMinuteRow, type CbStateRow, type CbTripRow } from "./cb_view.ts";
+import { CB_HOLD_ID, CB_HOLD_ROW_NAME, CB_HOLD_TABLES, runCbHold } from "./cb_hold.ts";
+import { readCoinbaseArm } from "./cb_page.ts";
 import { dayOpenOf, dayPnl, decisionBarMs, isOffBook, jevViewOf, resolveBook, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
 
 export { constantTimeEqual, verifyToken } from "../_shared/token.ts";
@@ -583,6 +589,28 @@ export async function runCbRecAction(deps: { db?: Db; fetchImpl?: typeof fetch; 
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     await reportServerError("agents.cb_rec", { message: message.slice(0, 500), context: { at: new Date().toISOString() } });
+    return { error: message.slice(0, 300) };
+  }
+}
+
+/**
+ * "Stablecoin quotes with Euros - 2" (0118): the weekend variant of the Coinbase paper test, its own call a minute. It reads
+ * the recorder's state row (where its coverage stands) and decides the minutes the recorder has covered, with the interbank
+ * rates held through a closure (cb_hold.ts). It reads no venue. A fault goes to `ops_errors` as `agents.cb_hold` when it
+ * first appears and at most hourly while it lasts; it never throws past here, and nothing of the base test's call is in it.
+ */
+export async function runCbHoldAction(deps: { db?: Db; now?: number } = {}) {
+  try {
+    const dbi = deps.db ?? db();
+    const now = deps.now ?? Date.now();
+    const recRow = await dbi.select<{ state: CbRecState | Record<string, never> }>("cb_rec_state", "id=eq.1&select=state");
+    const rec = recRow[0]?.state && "cursors" in recRow[0].state ? recRow[0].state as CbRecState : null;
+    const r = await runCbHold({ db: dbi, now, holder: crypto.randomUUID(), rec });
+    if (r.report) await reportServerError("agents.cb_hold", tickErrorReport({ errors: r.errors, at: new Date(now).toISOString() }));
+    return r;
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    await reportServerError("agents.cb_hold", { message: message.slice(0, 500), context: { at: new Date().toISOString() } });
     return { error: message.slice(0, 300) };
   }
 }
@@ -2051,21 +2079,10 @@ async function dashboard(now: number) {
 
   // "Stablecoin quotes with Euros" (0112, cb_quotes.ts): the paper test of PR5's rule on Coinbase's four books, in a twin's
   // shape (`cbQuotesView`). Missing tables (before the migration), or no decided minute yet, leave it off the page.
-  const quotesCoinbaseRead = (async () => {
-    try {
-      const [st, trips, days, events, fx, eurFx] = await Promise.all([
-        d.select<CbStateRow>("cb_quote_state", "id=eq.1&select=state,last_minute,updated_at,last_error"),
-        d.selectAll<CbTripRow>("cb_quote_trips", "select=book,side,k,t_entry,t_exit,entry,exit,qty,how,pnl_gbp&order=book.asc,side.asc,k.asc,t_entry.asc"),
-        d.select<CbDayRow>("cb_quote_days", "select=day,orders,fills,trips,won,realised_gbp&order=day.desc&limit=60"),
-        d.select<CbEventRow>("cb_quote_events", `kind=in.(order,refused)&select=book,minute,side,k,kind,ticks,detail&order=minute.desc&limit=${CB_PAGE_ROWS}`),
-        d.select<{ value: number }>("agent_quote_inputs", "kind=eq.fx&select=value&order=t.desc&limit=1"),
-        d.select<{ value: number }>("cb_quote_inputs", "kind=eq.fx%3AEURUSD&select=value&order=t.desc&limit=1"),
-      ]);
-      if (!st[0]?.last_minute) return null;
-      const minutes = await d.select<CbMinuteRow>("cb_quote_minutes", `minute=eq.${encodeURIComponent(new Date(Date.parse(st[0].last_minute)).toISOString())}&select=book,minute,fair,x,last`);
-      return cbQuotesView({ st: st[0], trips, days, events, minutes, nowMs: now, dayStartMs, gbpusd: fx[0] ? Number(fx[0].value) : null, eurusd: eurFx[0] ? Number(eurFx[0].value) : null });
-    } catch { return null; }
-  })();
+  const quotesCoinbaseRead = readCoinbaseArm(d, now, dayStartMs, { state: "cb_quote_state", trips: "cb_quote_trips", days: "cb_quote_days", events: "cb_quote_events", minutes: "cb_quote_minutes" }, null);
+  // "Stablecoin quotes with Euros - 2" (0118, cb_hold.ts): the same test with the interbank rates held through a closure, from
+  // its own tables, on the same page; the figures it shows are the page's own (`cbQuotesView`) under its own name and id.
+  const quotesCoinbaseHoldRead = readCoinbaseArm(d, now, dayStartMs, CB_HOLD_TABLES, { id: CB_HOLD_ID, name: CB_HOLD_ROW_NAME });
 
   // "Stablecoin quotes - variant" (`0071`), read beside PR5's: its own tables; missing ones (before the migration), or no
   // state yet, leave it off the page, and a failed read leaves the rest of the page as it is.
@@ -2206,6 +2223,11 @@ async function dashboard(now: number) {
      * books, in a twin's shape with `venue: "coinbase"`; null until it has decided a minute.
      */
     quotesCoinbase: await quotesCoinbaseRead,
+    /**
+     * "Stablecoin quotes with Euros - 2" (`0118`, cb_hold.ts): the same paper test with the interbank rates held through a
+     * closure, in the same shape as `quotesCoinbase` (`twin.id` "coinbasehold"); null until it has decided a minute.
+     */
+    quotesCoinbaseHold: await quotesCoinbaseHoldRead,
     /**
      * "Reward quotes": RW's quotes for Polymarket's liquidity rewards, on paper (`0053`, reference §4 item 36), and from
      * RW-C's first minute RW-C's run of the same rule, its round 2 (`rwPageRun`); null until it has a state. RW-C sends no
@@ -2807,6 +2829,8 @@ async function route(req: Request, who: Exclude<Who, null>, url: URL, action: st
   if (action === "cjrec" && req.method === "POST" && operator) return json(200, await runCjRecAction());
   // Coinbase's recorder and the paper test of PR5's rule on its four books (cb_rec.ts, cb_quotes.ts, 0112). Keyless reads.
   if (action === "cbrec" && req.method === "POST" && operator) return json(200, await runCbRecAction());
+  // "Stablecoin quotes with Euros - 2" (cb_hold.ts, 0118): the weekend variant, decided from the database alone.
+  if (action === "cbhold" && req.method === "POST" && operator) return json(200, await runCbHoldAction());
   // Coinbase's order books (cb_books.ts, 0114): the top ten levels a side, 30 s into the minute. Keyless reads.
   if (action === "cbbooks" && req.method === "POST" && operator) return json(200, await runCbBooksAction(url.searchParams.get("wait") !== "0"));
   // The programme factor's reader (pm_prog.ts, 0115): pm-rec's archived listing into `pm_prog_reads`. Reads only.

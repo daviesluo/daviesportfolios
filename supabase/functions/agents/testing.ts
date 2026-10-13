@@ -12,6 +12,8 @@ import { JEV_OPENROUTER_URL } from "../_shared/jev.ts";
 import { cancelOrderBody, exchangeFor, orderHash, postOrderBody, recoverSigner, type PmReply, type PmVenue } from "../_shared/polymarket_orders.ts";
 import { jevBandCheck } from "./jev_bands.ts";
 import { runCbQuotes } from "./cb_quotes.ts";
+import { CB_HOLD_ID, CB_HOLD_ROW_NAME, CB_HOLD_TABLES, cbHoldNewState, runCbHold } from "./cb_hold.ts";
+import { readCoinbaseArm } from "./cb_page.ts";
 import { cbQuotesView } from "./cb_view.ts";
 import { CB_PRODUCTS } from "./cb_rec.ts";
 import { crossesTouch, revxAveragePrice, revxHoldFor, revxHundredths, revxTakerFee, venueNumber } from "./revx_sim.ts";
@@ -2073,3 +2075,37 @@ export async function coinbasePageFixture() {
   return { about: "docs/agents/backtests/cbrec/page_fixture.ts: runCbQuotes on a recorded world, then cbQuotesView, at the browser test's clock", nowMs: CB_FIX_NOW, dayStartMs: CB_FIX_DAY0, quotesCoinbase: view };
 }
 
+// ---------------------------------------------------- the browser test's "Stablecoin quotes with Euros - 2" fixture
+// (src/e2e/quotes_coinbase_hold_fixture.json; docs/agents/backtests/cbrec/page_fixture.ts writes it beside the base test's,
+// cb_hold.test.ts checks it): the weekend variant's own driver (`runCbHold`) on the base fixture's world with a closure in it,
+// the interbank bars ending half an hour after the world begins, so that every fill and exit of the world falls in the closure
+// and is decided on the held rates (the rates are constant, so the page's figures are the base fixture's); then the page's own
+// read of the arm's tables (`readCoinbaseArm`), at the browser test's clock.
+export async function coinbaseHoldPageFixture() {
+  const fx: Row[] = [], eur: Row[] = [], fair: Row[] = [];
+  for (let t = CB_FIX_T0 - 20 * 60e3; t <= CB_FIX_T0 + 30 * 60e3; t += 60e3) { fx.push({ kind: "fx", t: isoOf(t), value: 1.32 }); eur.push({ kind: "fx:EURUSD", t: isoOf(t), value: 1.155 }); }
+  for (let h = CB_FIX_T0 - 30 * 3600e3; h < CB_FIX_NOW; h += 3600e3) for (const k of ["fair:USDC-USD", "fair:USDT-USD"]) fair.push({ kind: k, t: isoOf(h), value: 1.0 });
+  const zero = Object.fromEntries(CB_PRODUCTS.map((b) => [b, 0])) as Record<(typeof CB_PRODUCTS)[number], number>;
+  const { db, tables } = memDb({
+    agent_locks: [{ name: "cb-hold", lease_until: isoOf(0), holder: null }],
+    agent_quote_inputs: [...fx, ...fair], cb_quote_inputs: eur,
+    cb_hold_state: [{ id: 1, state: cbHoldNewState(CB_FIX_T0, zero), last_minute: isoOf(CB_FIX_T0 - 60e3), updated_at: isoOf(0), last_error: null }],
+    cb_hold_events: [], cb_hold_trips: [], cb_hold_minutes: [], cb_hold_days: [],
+    cb_trades: CB_FIX_PRINTS.map(([book, id, min, price, size, side]) => ({ product: book, trade_id: id, ts: isoOf(CB_FIX_T0 + min * 60e3), price, size, side })),
+  }, { now: () => CB_FIX_NOW });
+  const cur = { from: 1, fromTs: isoOf(CB_FIX_T0 - 60e3 + 1000), hi: 1, top: 1, topAt: 0, hole: null, coveredTo: CB_FIX_NOW - 30e3 };
+  const rec = { cursors: Object.fromEntries(CB_PRODUCTS.map((b) => [b, cur])) };
+  for (let i = 0; i < 40; i++) {
+    const r = await runCbHold({ db, now: CB_FIX_NOW + i * 1000, holder: `h${i}`, rec });
+    if (r.skipped) break;
+    if (r.errors.length) throw new Error(r.errors.join(" | "));
+  }
+  // The days view (0118), as the database computes it.
+  const days = new Map<string, { day: string; orders: number; fills: number; trips: number; won: number; realised_gbp: number }>();
+  const of = (d: string) => days.get(d) ?? (days.set(d, { day: d, orders: 0, fills: 0, trips: 0, won: 0, realised_gbp: 0 }), days.get(d)!);
+  for (const e of tables.cb_hold_events) { if (e.kind === "order") of(String(e.minute).slice(0, 10)).orders++; if (e.kind === "fill") of(String(e.minute).slice(0, 10)).fills++; }
+  for (const t of tables.cb_hold_trips) { const d = of(String(t.t_exit).slice(0, 10)); d.trips++; if (Number(t.pnl_gbp) > 0) d.won++; d.realised_gbp += Number(t.pnl_gbp); }
+  tables.cb_hold_days = [...days.values()];
+  const view = await readCoinbaseArm(db, CB_FIX_NOW, CB_FIX_DAY0, CB_HOLD_TABLES, { id: CB_HOLD_ID, name: CB_HOLD_ROW_NAME });
+  return { about: "docs/agents/backtests/cbrec/page_fixture.ts: runCbHold on a recorded world with a closure, then readCoinbaseArm, at the browser test's clock", nowMs: CB_FIX_NOW, dayStartMs: CB_FIX_DAY0, quotesCoinbaseHold: view };
+}

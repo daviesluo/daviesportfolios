@@ -1176,7 +1176,7 @@ export function positionLines(s) {
  */
 export function strategyNameParts(name) {
   // The stablecoin quotes' variants, and Coinbase's "with Euros" (Davies, 2026-10-10), on two lines in the same run.
-  const variant = /^(Stablecoin quotes) (variant-\d+|with Euros)$/.exec(name);
+  const variant = /^(Stablecoin quotes) (variant-\d+|with Euros(?: - 2)?)$/.exec(name);
   if (variant) return { head: variant[1], qual: variant[2], twoLines: true };
   const q = /^(.*\S)\s+(\([^()]*\))$/.exec(name);
   if (q) return { head: q[1], qual: q[2], twoLines: false };
@@ -1246,6 +1246,10 @@ export const quotesTwinRows = (dash) => (dash?.quotesTwins ?? []).map(quotesTwin
 /** "Stablecoin quotes with Euros"'s id among TESTING's rows ("Stablecoin quotes Coinbase", then for a few hours
  * "Stablecoin quotes - with Euro", until 2026-10-10). */
 export const QUOTES_COINBASE_ROW_ID = '__quotes_coinbase';
+/** "Stablecoin quotes with Euros - 2"'s id among TESTING's rows (the weekend variant, `cb_hold.ts`, 0118). */
+export const QUOTES_COINBASE_HOLD_ROW_ID = '__quotes_coinbase_hold';
+/** The twin id the weekend variant's payload carries (`CB_HOLD_ID` in `cb_hold.ts`). */
+const COINBASE_HOLD_TWIN_ID = 'coinbasehold';
 
 /**
  * "Stablecoin quotes with Euros" as a row of TESTING (`cb_quotes.ts`, 0112; Davies, 2026-10-10: "先建起来吧，并且和Revolute X
@@ -1253,19 +1257,23 @@ export const QUOTES_COINBASE_ROW_ID = '__quotes_coinbase';
  * variant-3 后面，每一档100磅/100欧元", then "策略名字也改为Stablecoin quotes with Euros"): PR5's rule on paper on Coinbase's four GBP and EUR stablecoin books, from its
  * recorder's prints, in a twin's shape and in pounds (£1,200 + €1,200), so it reads beside the twins and LIVE on Revolut X;
  * `paperTestRows` puts it right after the last twin, "Stablecoin quotes variant-3". null before it has decided a minute.
- * @param {any} q  the dashboard's `quotesCoinbase`
+ * "Stablecoin quotes with Euros - 2" (`cb_hold.ts`, 0118; Davies, 2026-10-13: "周末变体写预注册然后上线paper trading 策略with Euros
+ * - 2") is the same row for the weekend variant: the same test with the interbank rates held through a closure, right after
+ * the first (`paperTestRows`), the dashboard's `quotesCoinbaseHold`, `twin.id` `coinbasehold`.
+ * @param {any} q  the dashboard's `quotesCoinbase` or `quotesCoinbaseHold`
  */
 export function quotesCoinbaseRow(q) {
   if (!q?.twin) return null;
+  const hold = q.twin.id === COINBASE_HOLD_TWIN_ID;
   return {
-    id: QUOTES_COINBASE_ROW_ID,
+    id: hold ? QUOTES_COINBASE_HOLD_ROW_ID : QUOTES_COINBASE_ROW_ID,
     name: String(q.twin.name),
     venue: venueLabel('coinbase'),
     venueId: 'coinbase',
     mode: 'paper',
     ...quoteBookCells(q),
     status: q.running
-      ? { label: 'paper', running: true, tone: 'running', detail: `PR5's rule on Coinbase's recorded prints · last minute ${Number(q.lagMinutes) || 0} min ago` }
+      ? { label: 'paper', running: true, tone: 'running', detail: `PR5's rule on Coinbase's recorded prints${hold ? ', the interbank rates held through a closure' : ''} · last minute ${Number(q.lagMinutes) || 0} min ago` }
       : { label: 'paper', running: false, tone: 'stale', detail: `its last decided minute was ${q.lagMinutes ?? '?'} min ago` },
   };
 }
@@ -1329,6 +1337,7 @@ export function quotesLiveRow(q) {
 export function quotesPageFor(selected, dash) {
   if (selected === QUOTES_LIVE_ROW_ID) return quotesLiveRow(dash?.quotes?.live) ? 'live' : null;
   if (selected === QUOTES_COINBASE_ROW_ID) return quotesCoinbaseRow(dash?.quotesCoinbase) ? 'coinbase' : null;
+  if (selected === QUOTES_COINBASE_HOLD_ROW_ID) return quotesCoinbaseRow(dash?.quotesCoinbaseHold) ? 'coinbase' : null;
   return quotesTwinRow(quotesTwinOf(selected, dash)) ? 'twin' : null;
 }
 
@@ -2144,7 +2153,7 @@ export const RWX_ROW_PREFIX = '__rwx-';
 export function paperTestRows(dash) {
   const one = (/** @type {any} */ row) => (row ? [row] : []);
   return [
-    ...quotesTwinRows(dash), ...one(quotesCoinbaseRow(dash?.quotesCoinbase)), ...one(rwRow(dash?.rw)), ...one(rweRow(dash?.rwe)), ...rwxRows(dash?.rwx),
+    ...quotesTwinRows(dash), ...one(quotesCoinbaseRow(dash?.quotesCoinbase)), ...one(quotesCoinbaseRow(dash?.quotesCoinbaseHold)), ...one(rwRow(dash?.rw)), ...one(rweRow(dash?.rwe)), ...rwxRows(dash?.rwx),
     ...one(midRow(dash?.prepMid)),
   ];
 }

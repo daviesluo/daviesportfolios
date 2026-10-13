@@ -4009,6 +4009,36 @@ inform策略". As Revolut X's are (`books.ts`, read by the QUEUE study): on a pe
 - **Faults** go to `ops_errors` as `agents.cb_books`, at most hourly while one lasts; a 429 is named by its place in the
   minute, so a lasting limit keeps one key. Not among the monitor's health readings.
 
+60. **"Stablecoin quotes with Euros - 2": the Coinbase paper test with the interbank rates held through a closure (2026-10-13,
+migration `0118`, `agents/cb_hold.ts`, `agents/cb_page.ts`, `backtests/cbwk/`, `reviews/2026-10-13-coinbase-weekend-prereg.md`).**
+Davies, 2026-10-13: "周末变体写预注册然后上线paper trading 策略with Euros - 2", after the first-days review
+(`reviews/2026-10-12-coinbase-first-days.md`, §6 item 3).
+- **The one change.** The base test (item 58) goes dark when its newest GBP/USD or EUR/USD bar started more than ten minutes
+  before the minute, so it is dark from Friday ~22:00 to Sunday ~23:00 UTC, 29 % of its minutes. This arm uses a bar for up to
+  60 hours (`cbHoldBarAt`, `CB_HOLD_MS`); `stepMinute` is called unchanged on the same recorded prints, with the same books,
+  rungs, £100 / €100 sizing, stop cost and pounds conversion. It is the "wkend" arm of `backtests/cbreview/scripts/cbk.py`
+  (in sample: £259 a year against the base's £193 over 12 months, £439 against £315 over 28 days).
+- **Its own call**, `agents?action=cbhold` (`edge_calls` row 30 s, `retry` on, a row of the one-minute job): it reads the
+  recorder's state row, so a fault of this arm never touches the base test's call (`cbrec`). Tables `cb_hold_state`,
+  `cb_hold_events`, `cb_hold_trips`, `cb_hold_minutes` (kept 120 days, daily prune `cb-hold-prune`) and the view `cb_hold_days`;
+  the lease `cb-hold`. Faults go to `ops_errors` as `agents.cb_hold`.
+- **It stands on three things it does not run:** the recorder (`cb_trades`, `cb_rec_state`), the base test's call (it reads, and
+  does not fetch, the EUR/USD minutes `cb_quote_inputs` that call stores) and PR5's paper engine (`agent_quote_inputs`).
+  The rate series cost two reads a minute, not sixty hours of bars: the ten-minute window and one anchor row (the newest bar
+  before it, within the hold).
+- **Window.** 28 UTC days from `cb_hold_state.state.startedAt`, the first 00:00 UTC after the call's first run; the record begins
+  flat and reads no print from before it. Four whole weekends need a start no later than Friday 2026-10-16 00:00. Read on the day
+  after the window, from 00:30 UTC, by `backtests/cbwk/scripts/replay_wk.py`: the base test's five bars, and a sixth against the base
+  arm, which is the same minute record with every minute whose rate bar is over ten minutes old darkened, replayed by the same
+  simulator, paired by weekend.
+- **The page.** TESTING's row "Stablecoin quotes with Euros - 2" (name on two lines) right after "Stablecoin quotes with Euros",
+  on Coinbase, its page the first's; the dashboard carries it as `quotesCoinbaseHold` (`twin.id` `coinbasehold`), and Coinbase's
+  card adds both rows.
+- **Pins.** `cb_hold.test.ts`: the hold is `fxBarAt` with a longer lookback and nothing else; a closure worked out by hand across
+  two calls (the base test goes dark and fills nothing; this arm makes the base test's own £0.1001 round trip); the hold ends at
+  60 hours; with no closure the two arms write the same rows; the record starts at the next midnight; the browser test's fixture.
+  `src/cb_hold_prereg.test.js`: the frozen files' hashes, 0112's table shapes under the new prefix, the pre-registration's numbers.
+
 ### Twin variants
 
 The realistic twins, a row each of `agent_quote_twin_specs`, in the page's order. A new one is a row here in the commit
