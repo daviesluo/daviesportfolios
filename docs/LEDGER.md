@@ -53,6 +53,15 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    buffer re-read; 10-22/23 LPRESEL6, TB1 C1, 14-day readout. Showcase (`daviesluo/personal`) not yet updated for this
    week's strategy changes (Addenda 9–18, LP studies): left for Claude Code.
 
+0b. **Every PAPER Reward quotes test is off (Davies, 2026-10-13: "目前paper testing里的reward quotes全关了吧？感觉都不赚钱没什么
+   意义？"; `0120`).** Off: `pmrwc`, `pmrwc-select`, `pmrwc-e`, `pmrwc-x`, mid-pool (`pmmid`, `pmmidprep`), live-prep's paper layer
+   (`pmlpprep`) and `pmprog` (with the `pm-prog-refresh` cron). On: live-prep's live call and `pmlpreserve`, the recorder
+   (`pmrec`, `pmrec-meta`). TESTING shows no Reward quotes row. Withdrawn, each noted in its pre-registration: RW-C's verdict,
+   RW-X4/X5's Test 2, TB1, RWC-OPT, mid-pool's readout and audit and its funded draft. LPRESEL6 still reads (pm-rec), with a
+   deviation note. **Davies' wakes:** `trig_01XwUUNT5yXL3pzHoyH4JLaG` (10-17) is moot; `trig_018MBeyZsWkLBmbMq9ta3GNf`
+   (10-23) still has LPRESEL6 and live-prep's own reads, its other tasks withdrawn. Item 2's paragraphs on those tests are
+   history from here.
+
 1. **Closed: fp5's ranked list.**
 
 2. **Polymarket reward quotes (paper; RW, RW-E, RW-X, TB1, RW-C) and the three order paths (dry-run, unarmed).**
@@ -499,6 +508,11 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11"; each oldest first.
+
+### [2026-10-13 03:02 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- Landed `0120` (the LP-SPEED agent, resumed): the paper Reward quotes calls off, their page rows gone, the dashboard no
+  longer reads them; checked by hand that live mode reads no paper layer (`pm_live.ts` `paper` is null unless dry-run).
+  About 10,600 calls and 114,500 rows a day saved (2026-10-12's). Item 0b.
 
 ### [2026-10-13 01:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - Landed LP-BEST (`opus-high`): checked its validation by hand against the record (live −70.41 over the four days with 10-12's
