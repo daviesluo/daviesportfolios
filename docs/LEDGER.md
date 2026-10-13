@@ -381,9 +381,12 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    Euros - 2"): pre-registered and built** (`reviews/2026-10-13-coinbase-weekend-prereg.md`, migration `0118`, `agents/cb_hold.ts`,
    `agents?action=cbhold`, reference §4 item 60). The one change: the interbank bar is held 60 h through a closure. Its window is
    28 UTC days from the first 00:00 after its first run (`cb_hold_state.state->>'startedAt'`), read the day after from 00:30
-   with `backtests/cbwk/scripts/replay_wk.py`. **Started: first run 01:07 UTC 10-13, `startedAt` 2026-10-14 00:00 UTC, so
-   the window is 10-14 00:00 → 11-11 00:00 and the reading is on 2026-11-11 from 00:30 UTC** (four whole weekends; no wake set
-   yet: the fifteen Routines fire into the 'portfolios - 5' session). After the deploy and 15 minutes: `select state->>'startedAt', last_error from cb_hold_state`, `cbhold` beats, no
+   with `backtests/cbwk/scripts/replay_wk.py`. **Started: first run 01:07 UTC 10-13 set `startedAt` 2026-10-14 00:00 UTC;
+   Deviation 1 (Davies, 2026-10-13 evening: start at once, not at 10-14 00:00; migration `0121`, prereg §7) moved it to
+   2026-10-13 00:00 UTC, so the window is 10-13 00:00 → 11-10 00:00 and the reading is on 2026-11-10 from 00:30 UTC** (four
+   whole weekends; no wake set yet: the fifteen Routines fire into the 'portfolios - 5' session). The first runs after
+   `0121` decide 10-13's recorded minutes 60 at a time until current; verify `startedAt` reads 2026-10-13 and
+   `last_minute` is ~2 min behind. After the deploy and 15 minutes: `select state->>'startedAt', last_error from cb_hold_state`, `cbhold` beats, no
    `agents.cb_hold` errors, `last_minute` ~2 min behind. It reads `cbrec`'s stored EUR/USD and PR5's paper engine's
    `agent_quote_inputs`: both run to this window's end, past 11-08 and past PR5's 10-21 review.
 
@@ -514,6 +517,17 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11"; each oldest first.
+
+### [2026-10-13 20:54 UTC] Platform: Muse | Model: muse-wonder-full-1.0
+- **"Stablecoin quotes with Euros - 2" starts today** (Davies, 2026-10-13 evening: start it immediately, do not wait for
+  2026-10-14 00:00 UTC). Deviation 1 of its pre-registration (§7) and migration `0121`: the still-empty record's
+  `startedAt` moves to 2026-10-13 00:00 UTC (window to 2026-11-10 00:00, reading that day from 00:30; four whole
+  weekends unchanged), guarded to a no-op once any minute is decided; `cb_hold.ts` and every frozen file untouched —
+  a start at the minute of his word was not taken because the frozen reading buckets days from a midnight start.
+  The first runs after `0121` decide 10-13's recorded minutes 60 at a time, each on its own minute's inputs, then run
+  current. Item 12b updated. Post-deploy check: `startedAt` 2026-10-13, `last_minute` ~2 min behind, no
+  `agents.cb_hold` errors (this session reads production through the site's agents payload, having no SQL connector;
+  the SQL form is in item 12b).
 
 ### [2026-10-13 15:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Addendum 21** (live-prep only; Davies: "有问题立马修复"), from the watch of 15:16: Q2's first fill (20 NO at 0.85 in

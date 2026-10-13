@@ -810,6 +810,7 @@ before touching migration state.
 | `0119_pm_lp_restart.sql` | Live-prep's restart: `pm_lp_config.restarted_at` and `restart_loss_usd`, from which its total stop counts and the day is selected again; no row written. |
 | `0117_cb_minute_extremes_repair.sql` | The Coinbase paper test's Deviation 2: rebuilds the window's lost minute extremes in `cb_quote_minutes` from `cb_trades`. |
 | `0120_reward_quotes_paper_off.sql` | Every paper Reward quotes call off (RW-C, its replays, mid-pool, live-prep's paper layer, the programme factor) and the factor's refresh unscheduled; live-prep's live path and pm-rec stay on, nothing dropped. |
+| `0121_cb_hold_start_today.sql` | Deviation 1 of "Stablecoin quotes with Euros - 2": its still-empty record's window start and fed floors move from 2026-10-14 to 2026-10-13 00:00 UTC, guarded to a no-op once any minute is decided. |
 | `0096_pm_rw_x_tb1_arms.sql` | Lets the variants' day tables, RW's and RW-C's, take TB1's two arms on x1 (tb1-skip, tb1-back). |
 | `0086_quote_live_deadman.sql` | Adds the kind `deadman` to `agent_quote_live_events`, for the row the monitor's dead-man switch writes when it cancels PR5's resting orders. |
 | `0087_quote_twins.sql` | The realistic twins' tables (each the live executor's four, a replica's and a simulated account's), their config rows and leases, and the one call that runs them. |

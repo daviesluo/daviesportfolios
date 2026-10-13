@@ -170,4 +170,15 @@ Their sha256 are in `docs/agents/backtests/cbwk/MANIFEST.json` (`frozen`), which
 
 ## 7. Deviations
 
-None.
+**Deviation 1 (2026-10-13, the window starts a day earlier).** On Davies' word the same evening — start "Stablecoin
+quotes with Euros - 2" immediately, do not wait for 2026-10-14 00:00 UTC — §3's start moves one day earlier: the window
+is **2026-10-13 00:00 → 2026-11-10 00:00 UTC**, read on **2026-11-10 from 00:30 UTC** (the reading script is frozen;
+its bootstrap seed keeps its name, 20261113). Migration `0121` makes the move: one guarded update of the still-empty
+state row (its first run was 01:07 UTC 2026-10-13; it had decided no minute), setting `startedAt`/`lastMinute` to
+2026-10-13 00:00 and each book's fed floor to the newest trade id before it. No frozen file changes and no bar moves;
+the four whole weekends of §3 (10-16/18, 10-23/25, 10-30/11-01, 11-06/08) all still lie inside. What the deviation
+costs: the minutes of 2026-10-13 before `0121` landed are decided after the fact, each on the inputs its own minute
+had (the recorder's prints, the rate bars that started before it, the hourly closes before it — the engine always
+decides a minute from a completed record), at most 60 a run until the arm is current. The reading was already not
+blind (§6); its report repeats this. A start at the minute of Davies' word instead was not taken: the frozen reading
+buckets its days from a midnight start, and bar 5 compares whole UTC days against the twin.

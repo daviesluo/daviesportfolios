@@ -4030,7 +4030,9 @@ Davies, 2026-10-13: "周末变体写预注册然后上线paper trading 策略wit
   flat and reads no print from before it. Four whole weekends need a start no later than Friday 2026-10-16 00:00. Read on the day
   after the window, from 00:30 UTC, by `backtests/cbwk/scripts/replay_wk.py`: the base test's five bars, and a sixth against the base
   arm, which is the same minute record with every minute whose rate bar is over ten minutes old darkened, replayed by the same
-  simulator, paired by weekend.
+  simulator, paired by weekend. **Deviation 1** (`0121`, Davies 2026-10-13: start at once, not at 2026-10-14 00:00):
+  `startedAt` is 2026-10-13 00:00 UTC, the window ends 2026-11-10 00:00 and is read that day from 00:30; the first runs
+  after `0121` decide the day's already-recorded minutes (60 a run) before the arm runs current.
 - **The page.** TESTING's row "Stablecoin quotes with Euros - 2" (name on two lines) right after "Stablecoin quotes with Euros",
   on Coinbase, its page the first's; the dashboard carries it as `quotesCoinbaseHold` (`twin.id` `coinbasehold`), and Coinbase's
   card adds both rows.
