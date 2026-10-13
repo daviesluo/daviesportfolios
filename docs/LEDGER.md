@@ -515,6 +515,17 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11"; each oldest first.
 
+### [2026-10-13 15:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Q2-AGE** (the LP-BEST agent, resumed; `reviews/2026-10-13-q2-age.md`, `backtests/lpbest/scripts/q2age*.py`,
+  `MANIFEST_q2age.json`; Davies: "好的 继续深度检验和验证这两个"). PMOPPS' "quiet books under 3 days old lose", through LP-BEST's
+  engine with Q2 as live: chosen on TRAIN it is no filter (Q2 +4.10 / +4.23 TEST / +3.61 all at $316; 3-day minimum +1.43 /
+  +3.61 / +2.48, paired −1.13 [−3.43, +1.56] a day), but the filter cuts the worst day −10.34 → −2.40 and the SD 40 %. On
+  10-13 00:00 → 12:59 (re-extracted archive, a second span) Q2 −9.87, the filter +4.28: eight of eleven picks under 6 hours
+  old, two (UNP earnings, a Rotten Tomatoes score) −$17. Young quiet books are not more toxic per share; they are busier,
+  pay ~10× the formula and are 23 % of picks. PMOPPS' loss sat almost all outside Q2's candidate set. Verdict: not an
+  addendum now, not dropped: draft B′, an offline replay on the live window plus the live record split by age, decided at
+  day 14; an early flag to Davies if a −$10 day comes from markets under 3 days old. Nothing changed in code or config.
+
 ### [2026-10-13 13:48 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - Addendum 20 deployed (`a59d3205`); at 13:42 one mark was still missing (the Citigroup dust, a turn on the old code), at 13:45
   none: `openBlockedBy` null, 12 BUYs resting ($114.60) in the quiet picks, one carried SELL, stop room $24.91. A `sonnet-high`

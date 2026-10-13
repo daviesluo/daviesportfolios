@@ -1,0 +1,67 @@
+Q2-AGE: Q2 (quiet <= 50 sh/24 h by the data API, touch >= 4 c, RW's price, N, 2N, 12 markets inside 90 % of the cap) with and without a minimum age by Gamma's createdAt. R 0.420 (engine units), k_vol 1.283
+market-days without a createdAt: 0 of 17952
+
+== equity $316 (cap $236, budget $212); $ a day [5 %, 95 % over market-days]
+Q2 (no age filter) [TRAIN] $316                              +4.10 [  +1.66,   +7.12]  rew   4.02 fills   -0.15 reb  0.23  sh/d    149 mo60/d   +0.04  worst   +2.23  peak$   217  mkts 44
+Q2 + age >= 1 d [TRAIN] $316                                 +1.40 [  -0.23,   +2.99]  rew   1.96 fills   -0.69 reb  0.12  sh/d     74 mo60/d   -1.07  worst   -2.32  peak$   233  mkts 44
+Q2 + age >= 2 d [TRAIN] $316                                 +1.41 [  -0.23,   +3.03]  rew   1.97 fills   -0.69 reb  0.12  sh/d     74 mo60/d   -1.07  worst   -2.32  peak$   233  mkts 44
+Q2 + age >= 3 d [TRAIN] $316                                 +1.43 [  -0.26,   +3.04]  rew   1.97 fills   -0.66 reb  0.12  sh/d     69 mo60/d   -1.04  worst   -2.32  peak$   230  mkts 44
+Q2 + age >= 5 d [TRAIN] $316                                 +1.38 [  -0.28,   +2.98]  rew   1.93 fills   -0.66 reb  0.12  sh/d     69 mo60/d   -1.04  worst   -1.67  peak$   230  mkts 44
+Q2 + age >= 7 d [TRAIN] $316                                 +1.13 [  -0.52,   +2.72]  rew   1.99 fills   -0.99 reb  0.13  sh/d     74 mo60/d   -1.34  worst   -1.64  peak$   233  mkts 44
+Q2 (no age filter) [TEST] $316                               +4.23 [  +1.57,   +7.12]  rew   3.92 fills   +0.09 reb  0.21  sh/d    111 mo60/d   -0.46  worst   -4.61  peak$   229  mkts 44
+Q2 + age >= 1 d [TEST] $316                                  +3.15 [  +0.70,   +5.83]  rew   3.05 fills   -0.04 reb  0.15  sh/d     83 mo60/d   -0.57  worst   -5.06  peak$   235  mkts 44
+Q2 + age >= 2 d [TEST] $316                                  +3.89 [  +1.80,   +6.34]  rew   3.11 fills   +0.64 reb  0.13  sh/d     76 mo60/d   -0.07  worst   -2.06  peak$   231  mkts 44
+Q2 + age >= 3 d [TEST] $316                                  +3.61 [  +1.56,   +6.04]  rew   2.85 fills   +0.62 reb  0.13  sh/d     81 mo60/d   -0.09  worst   -2.06  peak$   232  mkts 44
+Q2 + age >= 5 d [TEST] $316                                  +3.30 [  +1.31,   +5.74]  rew   2.55 fills   +0.62 reb  0.13  sh/d     81 mo60/d   -0.09  worst   -1.49  peak$   232  mkts 44
+Q2 + age >= 7 d [TEST] $316                                  +3.30 [  +1.31,   +5.74]  rew   2.55 fills   +0.62 reb  0.13  sh/d     81 mo60/d   -0.09  worst   -1.49  peak$   232  mkts 44
+Q2 (no age filter) [ALL] $316                                +3.61 [  +1.38,   +6.02]  rew   3.97 fills   -0.58 reb  0.23  sh/d    136 mo60/d   -0.23  worst  -10.34  peak$   234  mkts 87
+Q2 + age >= 1 d [ALL] $316                                   +2.13 [  +0.61,   +3.71]  rew   2.50 fills   -0.51 reb  0.14  sh/d     82 mo60/d   -0.83  worst   -6.39  peak$   233  mkts 87
+Q2 + age >= 2 d [ALL] $316                                   +2.50 [  +1.09,   +3.97]  rew   2.54 fills   -0.17 reb  0.13  sh/d     78 mo60/d   -0.58  worst   -3.39  peak$   233  mkts 87
+Q2 + age >= 3 d [ALL] $316                                   +2.48 [  +1.04,   +3.96]  rew   2.41 fills   -0.06 reb  0.13  sh/d     75 mo60/d   -0.58  worst   -2.40  peak$   230  mkts 87
+Q2 + age >= 5 d [ALL] $316                                   +2.31 [  +0.92,   +3.74]  rew   2.24 fills   -0.06 reb  0.13  sh/d     75 mo60/d   -0.58  worst   -1.83  peak$   230  mkts 87
+Q2 + age >= 7 d [ALL] $316                                   +2.23 [  +0.81,   +3.68]  rew   2.27 fills   -0.17 reb  0.13  sh/d     78 mo60/d   -0.73  worst   -2.03  peak$   234  mkts 87
+   chosen on TRAIN by the 5 % bound: min age 0 d (then [2, 1, 3, 5, 7]); by the mean: 0 d
+   TEST for the choice: +4.23 [+1.57, +7.12] against Q2's +4.23 [+1.57, +7.12]
+   days, ALL (per day: total; quiet books / picks / first-quote capital of the picks):
+   >= 0 d: 10-05  +5.00  65/11/$  204  10-06  +3.08  49/11/$  205  10-07  +6.08  44/11/$  206  10-08  +2.23  67/11/$  209  10-09  +6.95  37/11/$  204  10-10  +7.28  85/11/$  202  10-11 -10.34  64/11/$  205  10-12  +8.64  54/11/$  203
+   >= 1 d: 10-05  +5.00  65/11/$  204  10-06  -2.32  40/11/$  203  10-07  -0.67  39/11/$  206  10-08  +3.58  53/11/$  204  10-09  +6.81  37/11/$  204  10-10  +4.92  80/11/$  204  10-11  -6.39  64/11/$  205  10-12  +6.10  54/11/$  203
+   >= 2 d: 10-05  +5.00  65/11/$  204  10-06  -2.32  40/11/$  203  10-07  -0.67  39/11/$  206  10-08  +3.62  52/11/$  205  10-09  +6.81  37/11/$  204  10-10  +4.92  79/11/$  204  10-11  -3.39  62/11/$  206  10-12  +6.04  54/11/$  203
+   >= 3 d: 10-05  +5.08  62/11/$  204  10-06  -2.32  40/11/$  203  10-07  -0.67  39/11/$  206  10-08  +3.62  50/11/$  205  10-09  +6.64  36/11/$  204  10-10  +4.92  79/11/$  204  10-11  -2.40  62/11/$  206  10-12  +4.98  52/11/$  204
+   >= 5 d: 10-05  +4.25  55/11/$  202  10-06  -1.67  34/11/$  205  10-07  -0.67  39/11/$  206  10-08  +3.62  50/11/$  205  10-09  +6.03  35/11/$  204  10-10  +4.92  77/11/$  204  10-11  -1.83  59/11/$  206  10-12  +3.79  51/11/$  205
+   >= 7 d: 10-05  +4.12  52/11/$  203  10-06  -1.64  31/11/$  205  10-07  -0.67  33/11/$  206  10-08  +2.72  44/11/$  204  10-09  +7.33  35/11/$  204  10-10  +3.82  77/11/$  204  10-11  -2.03  59/11/$  206  10-12  +4.19  51/11/$  205
+
+== equity $400 (cap $320, budget $288); $ a day [5 %, 95 % over market-days]
+Q2 (no age filter) [TRAIN] $400                              +4.41 [  +1.90,   +7.56]  rew   4.13 fills   +0.05 reb  0.23  sh/d    159 mo60/d   +0.24  worst   +3.10  peak$   236  mkts 48
+Q2 + age >= 1 d [TRAIN] $400                                 +1.26 [  -0.80,   +3.08]  rew   2.14 fills   -1.03 reb  0.15  sh/d     89 mo60/d   -0.41  worst   -2.02  peak$   269  mkts 48
+Q2 + age >= 2 d [TRAIN] $400                                 +1.24 [  -0.80,   +3.09]  rew   2.12 fills   -1.03 reb  0.15  sh/d     89 mo60/d   -0.41  worst   -2.02  peak$   269  mkts 48
+Q2 + age >= 3 d [TRAIN] $400                                 +1.23 [  -0.83,   +3.17]  rew   2.09 fills   -1.01 reb  0.14  sh/d     84 mo60/d   -0.39  worst   -2.02  peak$   266  mkts 48
+Q2 + age >= 5 d [TRAIN] $400                                 +1.13 [  -1.00,   +3.03]  rew   1.99 fills   -1.01 reb  0.14  sh/d     84 mo60/d   -0.39  worst   -1.46  peak$   266  mkts 48
+Q2 + age >= 7 d [TRAIN] $400                                 +1.15 [  -0.60,   +2.83]  rew   2.11 fills   -1.10 reb  0.13  sh/d     77 mo60/d   -1.27  worst   -1.61  peak$   267  mkts 48
+Q2 (no age filter) [TEST] $400                               +4.58 [  +2.01,   +7.33]  rew   4.04 fills   +0.32 reb  0.23  sh/d    126 mo60/d   -0.56  worst   -4.31  peak$   248  mkts 48
+Q2 + age >= 1 d [TEST] $400                                  +3.23 [  +0.79,   +5.75]  rew   3.15 fills   -0.06 reb  0.15  sh/d     88 mo60/d   -0.59  worst   -4.75  peak$   254  mkts 48
+Q2 + age >= 2 d [TEST] $400                                  +4.05 [  +1.98,   +6.33]  rew   3.29 fills   +0.62 reb  0.13  sh/d     81 mo60/d   -0.09  worst   -1.45  peak$   250  mkts 48
+Q2 + age >= 3 d [TEST] $400                                  +3.79 [  +1.70,   +6.10]  rew   3.04 fills   +0.62 reb  0.13  sh/d     81 mo60/d   -0.09  worst   -1.45  peak$   250  mkts 48
+Q2 + age >= 5 d [TEST] $400                                  +3.50 [  +1.47,   +5.85]  rew   2.71 fills   +0.64 reb  0.14  sh/d     86 mo60/d   -0.04  worst   -1.44  peak$   256  mkts 48
+Q2 + age >= 7 d [TEST] $400                                  +3.50 [  +1.47,   +5.85]  rew   2.71 fills   +0.64 reb  0.14  sh/d     86 mo60/d   -0.04  worst   -1.44  peak$   256  mkts 48
+Q2 (no age filter) [ALL] $400                                +3.95 [  +1.72,   +6.25]  rew   4.09 fills   -0.37 reb  0.24  sh/d    148 mo60/d   -0.18  worst  -10.04  peak$   275  mkts 95
+Q2 + age >= 1 d [ALL] $400                                   +1.99 [  +0.36,   +3.56]  rew   2.64 fills   -0.81 reb  0.15  sh/d     94 mo60/d   -0.61  worst   -6.08  peak$   269  mkts 95
+Q2 + age >= 2 d [ALL] $400                                   +2.38 [  +0.84,   +3.90]  rew   2.71 fills   -0.47 reb  0.15  sh/d     90 mo60/d   -0.36  worst   -2.78  peak$   269  mkts 95
+Q2 + age >= 3 d [ALL] $400                                   +2.36 [  +0.87,   +3.88]  rew   2.57 fills   -0.34 reb  0.14  sh/d     85 mo60/d   -0.35  worst   -2.02  peak$   266  mkts 95
+Q2 + age >= 5 d [ALL] $400                                   +2.17 [  +0.64,   +3.67]  rew   2.35 fills   -0.33 reb  0.15  sh/d     88 mo60/d   -0.33  worst   -1.78  peak$   269  mkts 95
+Q2 + age >= 7 d [ALL] $400                                   +2.34 [  +0.88,   +3.80]  rew   2.41 fills   -0.21 reb  0.14  sh/d     82 mo60/d   -0.67  worst   -1.98  peak$   275  mkts 95
+   chosen on TRAIN by the 5 % bound: min age 0 d (then [7, 2, 1, 3, 5]); by the mean: 0 d
+   TEST for the choice: +4.58 [+2.01, +7.33] against Q2's +4.58 [+2.01, +7.33]
+   days, ALL (per day: total; quiet books / picks / first-quote capital of the picks):
+   >= 0 d: 10-05  +5.24  65/12/$  223  10-06  +3.12  49/12/$  224  10-07  +6.19  44/12/$  225  10-08  +3.10  67/12/$  228  10-09  +6.97  37/12/$  223  10-10  +8.46  85/12/$  221  10-11 -10.04  64/12/$  224  10-12  +8.56  54/12/$  222
+   >= 1 d: 10-05  +5.24  65/12/$  223  10-06  -2.02  40/12/$  222  10-07  +0.42  39/12/$  225  10-08  +1.39  53/12/$  224  10-09  +5.51  37/12/$  223  10-10  +5.43  80/12/$  223  10-11  -6.08  64/12/$  224  10-12  +6.02  54/12/$  222
+   >= 2 d: 10-05  +5.24  65/12/$  223  10-06  -2.02  40/12/$  222  10-07  +0.42  39/12/$  225  10-08  +1.32  52/12/$  224  10-09  +5.51  37/12/$  223  10-10  +5.43  79/12/$  223  10-11  -2.78  62/12/$  224  10-12  +5.97  54/12/$  222
+   >= 3 d: 10-05  +5.22  62/12/$  223  10-06  -2.02  40/12/$  222  10-07  +0.42  39/12/$  225  10-08  +1.32  50/12/$  224  10-09  +5.35  36/12/$  224  10-10  +5.43  79/12/$  223  10-11  -1.79  62/12/$  224  10-12  +5.01  52/12/$  223
+   >= 5 d: 10-05  +4.26  55/12/$  222  10-06  -1.46  34/12/$  224  10-07  +0.42  39/12/$  225  10-08  +1.32  50/12/$  224  10-09  +5.38  35/12/$  224  10-10  +5.43  77/12/$  223  10-11  -1.78  59/12/$  224  10-12  +3.80  51/12/$  223
+   >= 7 d: 10-05  +4.30  52/12/$  222  10-06  -1.61  31/12/$  224  10-07  -1.49  33/12/$  226  10-08  +3.39  44/12/$  222  10-09  +8.01  35/12/$  224  10-10  +3.89  77/12/$  223  10-11  -1.98  59/12/$  224  10-12  +4.20  51/12/$  223
+
+== Q2's own market-days (whole span, $316) by age at 00:00: $ in all (rewards; the fills' change) and a market-day
+   under 1 day    22 market-days    +14.64 ( +14.50;    -0.90)   +0.665
+   1-3 days       22 market-days     -1.14 (  +1.43;    -2.68)   -0.052
+   3-7 days       27 market-days     -3.25 (  +3.03;    -6.28)   -0.120
+   7-30 days      23 market-days     +2.73 (  +3.17;    -0.52)   +0.119
+   30 days +      81 market-days    +12.71 (  +9.62;    +2.52)   +0.157

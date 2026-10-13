@@ -1,0 +1,39 @@
+Q2-AGE on 2026-10-13 00:00 -> 12:59 UTC (pm-rec's archive past LP-BEST's span; a partial day). Market-days without a createdAt: 0 of 2189
+
+== equity $316: $ over the 13 hours [5 %, 95 % over market-days], and the day's quiet books / picks / first-quote capital
+  Q2 (no age filter)     -9.87 [ -33.41,   +9.06]  rewards   5.56  fills  -15.75  rebates  0.31  shares    145  quiet  64 / picks 11 / $ 206
+      0x9b619b5e89  age   0.25 d   -11.93 (rewards  0.11, fills  -12.15)  Union Pacific (UNP) Q3 adjusted operating ratio 59% to 60%?
+      0x1a8bbc8a2e  age   0.09 d    -5.46 (rewards  0.05, fills   -5.60)  Will "Wildwood" score at least 98 on the Rotten Tomatoes Tom
+      0x9af6ec1217  age   0.09 d    +0.03 (rewards  0.03, fills   +0.00)  Will MrBeast's next video get between 35 and 40 million view
+      0x349caf2eb9  age   0.14 d    +0.04 (rewards  0.04, fills   +0.00)  Will Democrats win exactly 4 House seats in Tennessee in the
+      0x459cb429af  age   4.08 d    +0.10 (rewards  0.75, fills   -0.70)  Will Garry Thind win the next Surrey-Guildford British Colum
+      0x716245d624  age   0.09 d    +0.48 (rewards  0.48, fills   +0.00)  Will MrBeast's next video get between 110 and 120 million vi
+      0xfe8e479f4d  age   0.09 d    +0.49 (rewards  0.49, fills   +0.00)  Will MrBeast's next video get between 90 and 100 million vie
+      0xad9aae8e10  age   3.10 d    +0.56 (rewards  0.56, fills   +0.00)  Will 30-34 ships transit the Strait of Hormuz between Octobe
+      0x5db6721441  age   0.25 d    +1.44 (rewards  1.44, fills   +0.00)  Will AT&T (T) Q3 total revenue be above $32B?
+      0x839672a308  age   0.09 d    +2.01 (rewards  1.48, fills   +0.50)  Will MrBeast's next video get between 80 and 90 million view
+      0xe36f435438  age  55.40 d    +2.37 (rewards  0.13, fills   +2.20)  Will total votes cast in the 2026 midterm election for Senat
+  Q2 + age >= 1 d        +4.28 [  +1.56,   +8.42]  rewards   2.95  fills   +1.20  rebates  0.13  shares     60  quiet  47 / picks 11 / $ 201
+  Q2 + age >= 2 d        +4.28 [  +1.56,   +8.42]  rewards   2.95  fills   +1.20  rebates  0.13  shares     60  quiet  47 / picks 11 / $ 201
+  Q2 + age >= 3 d        +4.28 [  +1.56,   +8.42]  rewards   2.95  fills   +1.20  rebates  0.13  shares     60  quiet  47 / picks 11 / $ 201
+      0xf8a8796447  age 248.07 d    +0.00 (rewards  0.00, fills   +0.00)  Will Jack Maher win 2026 MLS Defender of the Year?
+      0xc8ef8837ad  age  27.33 d    +0.03 (rewards  0.03, fills   +0.00)  Will Rb win the VALORANT Champions 2026 MVP?
+      0x02104eeb76  age  46.24 d    +0.04 (rewards  0.04, fills   +0.00)  Will Julian Sayin be the 2026 D1 Passing Yards Leader?
+      0x36597ead16  age   3.31 d    +0.06 (rewards  0.06, fills   +0.00)  Will PAN win the most seats in the 2027 Yucatán Congress ele
+      0x459cb429af  age   4.08 d    +0.10 (rewards  0.75, fills   -0.70)  Will Garry Thind win the next Surrey-Guildford British Colum
+      0xe9b0757174  age   4.08 d    +0.25 (rewards  0.52, fills   -0.30)  Will Garry Begg win the next Surrey-Guildford British Columb
+      0x84183fca78  age  12.61 d    +0.26 (rewards  0.26, fills   +0.00)  Will no next Israeli Minister of Interior be appointed by Fe
+      0x33fa8e764d  age  49.22 d    +0.28 (rewards  0.28, fills   +0.00)  Will Matthew Shoemaker win the 2026 Sault Ste. Marie mayoral
+      0xad972dd262  age  39.17 d    +0.33 (rewards  0.33, fills   +0.00)  Will Sue Hickey win the next Glenorchy mayoral election?
+      0xad9aae8e10  age   3.10 d    +0.56 (rewards  0.56, fills   +0.00)  Will 30-34 ships transit the Strait of Hormuz between Octobe
+      0xe36f435438  age  55.40 d    +2.37 (rewards  0.13, fills   +2.20)  Will total votes cast in the 2026 midterm election for Senat
+  Q2 + age >= 5 d        +4.02 [  +1.42,   +8.34]  rewards   1.78  fills   +2.20  rebates  0.04  shares     20  quiet  42 / picks 11 / $ 203
+  Q2 + age >= 7 d        +6.51 [  +1.77,  +11.49]  rewards   1.87  fills   +4.50  rebates  0.13  shares     80  quiet  40 / picks 11 / $ 204
+
+== equity $400: $ over the 13 hours [5 %, 95 % over market-days], and the day's quiet books / picks / first-quote capital
+  Q2 (no age filter)     -9.44 [ -32.90,   +9.45]  rewards   6.00  fills  -15.75  rebates  0.31  shares    145  quiet  64 / picks 12 / $ 225
+  Q2 + age >= 1 d        +4.36 [  +1.63,   +8.60]  rewards   3.03  fills   +1.20  rebates  0.13  shares     60  quiet  47 / picks 12 / $ 220
+  Q2 + age >= 2 d        +4.36 [  +1.63,   +8.60]  rewards   3.03  fills   +1.20  rebates  0.13  shares     60  quiet  47 / picks 12 / $ 220
+  Q2 + age >= 3 d        +4.36 [  +1.63,   +8.60]  rewards   3.03  fills   +1.20  rebates  0.13  shares     60  quiet  47 / picks 12 / $ 220
+  Q2 + age >= 5 d        +6.64 [  +1.94,  +11.59]  rewards   2.01  fills   +4.50  rebates  0.13  shares     80  quiet  42 / picks 12 / $ 222
+  Q2 + age >= 7 d        +6.73 [  +2.02,  +11.73]  rewards   2.10  fills   +4.50  rebates  0.13  shares     80  quiet  40 / picks 12 / $ 222
