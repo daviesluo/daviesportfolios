@@ -342,9 +342,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
 12. **The minute record's defect (2026-10-12, `reviews/2026-10-12-coinbase-first-days.md`): `cbMinuteRow`'s
    `reduce(Math.min)` stored null extremes for every side with two or more prints (7,216 of 12,802 printed minutes), so bar 1's
    replay of the 11-08 reading fails as stored. Deviation 2 agreed (Davies, 2026-10-13: "Coinbase修复同意"; prereg §7);
-   the fix landed with it (history 2026-10-13 00:08).** The fix deployed 00:10:57 UTC 10-13; the repair is
-   `0117_cb_minute_extremes_repair.sql`, pushed after it. Next: read `migrations.yml`'s run, then the review's verify query
-   (`backtests/cbreview/sql/repair_minute_bars.sql`, the select) must read zero wrong. The test reads PR5's paper engine's `agent_quote_inputs`: keep that engine
+   the fix landed with it (history 2026-10-13 00:08).** The fix deployed 00:10:57 UTC 10-13; `0117` repaired the
+   stored minutes (migrations run green); the verify query read 8,786 minutes, 0 wrong. Closed. The test reads PR5's paper engine's `agent_quote_inputs`: keep that engine
    running to 11-08 whatever the 10-21 review decides. Candidate: a weekend variant (CBK, in sample +34–47 %).
    The paper test itself: **Coinbase recorder and paper test "Stablecoin quotes with Euros" ("…Coinbase" until its Deviation 1): deployed
    2026-10-10 01:46 UTC; Deviation 1 (€100 a rung on the EUR books, the name, the window 2026-10-11 → 11-08) must deploy
@@ -356,6 +355,15 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    `reviews/2026-10-10-coinbase-paper-prereg.md` (frozen; Deviation 1 in §7): 28 UTC days 2026-10-11 00:00 → 11-08
    00:00, read on 11-08 from 00:30 with `backtests/cbpaper/scripts/replay.py` on the export Deviation 1 names (a wake to
    set). The budget split is `reviews/2026-10-10-coinbase-vs-revolutx.md`.
+
+12b. **"Stablecoin quotes with Euros - 2" (the weekend variant; Davies, 2026-10-13: "周末变体写预注册然后上线paper trading 策略with
+   Euros - 2"): pre-registered and built** (`reviews/2026-10-13-coinbase-weekend-prereg.md`, migration `0118`, `agents/cb_hold.ts`,
+   `agents?action=cbhold`, reference §4 item 60). The one change: the interbank bar is held 60 h through a closure. Its window is
+   28 UTC days from the first 00:00 after its first run (`cb_hold_state.state->>'startedAt'`), read the day after from 00:30
+   with `backtests/cbwk/scripts/replay_wk.py` (a wake to set once the start is known); four whole weekends if it starts by
+   10-16 00:00. After the deploy and 15 minutes: `select state->>'startedAt', last_error from cb_hold_state`, `cbhold` beats, no
+   `agents.cb_hold` errors, `last_minute` ~2 min behind. It reads `cbrec`'s stored EUR/USD and PR5's paper engine's
+   `agent_quote_inputs`: both run to this window's end, past 11-08 and past PR5's 10-21 review.
 
 13. **Coinbase's order books recorded, ten levels a side: live since `96a9da37` (10-10)** (Davies,
    2026-10-10; reference §4 item 59, migration `0114`, `agents?action=cbbooks`). After it lands and its 15 minutes
@@ -484,6 +492,12 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11"; each oldest first.
+
+### [2026-10-13 00:51 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- Coinbase Deviation 2 closed: fix deployed 00:10:57, `0117` applied, verify 8,786 minutes 0 wrong. Landed "Stablecoin quotes with
+  Euros - 2" (the Coinbase review's agent, resumed: CLAUDE.md's reuse rule): the base test's files untouched, its own driver,
+  call, tables (0118) and page row; eight Deno pins with five mutations each failing them; the sweep green by its hand run
+  (682 checks) and again in this landing's full gates. Window start and reading date go into item 12b once it runs.
 
 ### [2026-10-13 00:08 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Davies, 2026-10-13: "Coinbase修复同意，周末变体写预注册然后上线paper trading 策略with Euros - 2 … live rewards继续停止，并继续研究
