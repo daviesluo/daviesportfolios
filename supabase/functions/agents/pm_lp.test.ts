@@ -1824,3 +1824,17 @@ Deno.test("restartOpenMarks: a holding under the 5-share minimum with no mark op
   // Without the dust list, as before.
   assertEquals(restartOpenMarks(null, "R", ["dust"], { dust: null }).missing, ["dust"]);
 });
+
+Deno.test("Addendum 21: under the 4 ¢ touch a market still quoting rests the exit of what it holds, and nothing new", () => {
+  // 2026-10-13 13:45: Q2's first fill, 20 NO in 0xe612eb64…, rested no sell once its book narrowed under 4 c.
+  for (const c of [1, 2, 3]) {
+    const { market, book } = bookOf(c);
+    assertEquals(lpQuotes({ market, book, held: { yes: 0, no: 20 } }).map((x) => `${x.outcome} ${x.side}`), ["no SELL"], `${c} ¢`);
+    assertEquals(lpQuotes({ market, book, held: { yes: 20, no: 0 } }).map((x) => `${x.outcome} ${x.side}`), ["yes SELL"], `${c} ¢`);
+    assertEquals(lpQuotes({ market, book, held: { yes: 0, no: 0 } }), [], `${c} ¢`);
+    assert(!lpQuotes({ market, book, held: { yes: 0, no: 20 } }).some((x) => x.side === "BUY"), `${c} ¢`);
+  }
+  // From 4 c, as Addendum 19: the sell and the buys its 2N allows.
+  const { market, book } = bookOf(4);
+  assertEquals(lpQuotes({ market, book, held: { yes: 0, no: 20 } }).map((x) => `${x.outcome} ${x.side}`), ["no SELL", "no BUY"]);
+});

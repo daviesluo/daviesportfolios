@@ -515,6 +515,15 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11"; each oldest first.
 
+### [2026-10-13 15:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Addendum 21** (live-prep only; Davies: "有问题立马修复"), from the watch of 15:16: Q2's first fill (20 NO at 0.85 in
+  0xe612eb64…, 13:45) rested no exit once its book narrowed under 4 c, because the touch rule dropped a quoting market's
+  sells with its buys. Now a narrow book rests only the sells of what is held. Pinned; counterfactual fails. The watch's
+  other question, the OpenRouter "market share" market being selected, is Addendum 12's rule as written (typed "counts"
+  first, pinned), so it stays. Also seen at 15:16: no BUY resting, every pick and refill either out of its programme or
+  under the 4 c touch at that minute; that is Q2's rule (the engine priced it per minute), not a fault, and the watch
+  carries on.
+
 ### [2026-10-13 15:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Q2-AGE** (the LP-BEST agent, resumed; `reviews/2026-10-13-q2-age.md`, `backtests/lpbest/scripts/q2age*.py`,
   `MANIFEST_q2age.json`; Davies: "好的 继续深度检验和验证这两个"). PMOPPS' "quiet books under 3 days old lose", through LP-BEST's

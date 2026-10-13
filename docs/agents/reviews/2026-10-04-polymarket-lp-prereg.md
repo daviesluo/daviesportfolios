@@ -1594,3 +1594,24 @@ back, as before. Nothing else changes: the selection, the quotes, the stop's lim
 19's. Pinned in `pm_lp.test.ts` (it fails on Addendum 19's `restartOpenMarks`).
 
 **The code it deploys:** `pm_live.ts` sha256 `9c4174f30523225520f92a0ecd50082d9490e88e43a686a737fdd6629f34a231`, where Addendum 19 named `28930ad9…f43d`.
+
+## Addendum 21 (2026-10-13, about 15:40 UTC): the exit rests under the 4 ¢ touch
+
+**On whose word.** Davies, 2026-10-13: "B上线后盯着，每隔1-2小时查看一次有问题立马修复".
+
+**What went wrong.** The watch of 15:16 UTC found Q2's first fill (BUY 20 NO at 0.85 in 0xe612eb64…, 13:45:09) holding with
+no sell: once that market's book narrowed under 4 ¢, Addendum 19's touch rule returned nothing for it, the exit of what it
+held included, because it was still a quoting market (only close-only markets took `lpExitQuotes`, which has no skip).
+The rule was meant to keep new buys out of narrow books, never to keep the path in a holding.
+
+**What changes.** Under the touch rule a quoting market rests the sells of what it holds, at the price the rule without
+the skip gives them, and nothing else (`lpQuotesOn`'s first `skip` line); from 4 ¢ it is Addendum 19's rule. Nothing else
+changes. Pinned in `pm_lp.test.ts` (it fails with the line taken out).
+
+Checked and left as it is: the same watch asked whether "Will Anthropic have the highest OpenRouter market share…" (selected
+at 13:26) should have been out as an AI market. Addendum 12 keeps such questions in on purpose: `lpMarketType` types it
+"counts" first, as LP-ALLOC's rule has it, and `pm_lp.test.ts` pins that choice.
+
+**The code it deploys:** `pm_live.ts` sha256 `9c4174f30523225520f92a0ecd50082d9490e88e43a686a737fdd6629f34a231` (Addendum 20's, unchanged) and `pm_lp.ts` sha256 `9cc5a4430730f845333b948a6060746af280faeed84e0eb501f1702c1185bd48`, where Addendum 19
+named `08be7827…9ac9`.
+

@@ -74,8 +74,9 @@ const A289 = '28930ad918b0358c98e6bd6268715c6fd845b6092bcefcd1b44ffd45daf7f43d';
 
 describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", () => {
   it("live-prep's latest addendum (20) and mid-pool's (20) name today's pm_live.ts", () => {
-    expect(lastNumber(LP)).toBe(20);
+    expect(lastNumber(LP)).toBe(21);
     expect(lastNumber(MID)).toBe(20);
+    expect(namedPath(addendum(LP, 21))).toBe(sha);
     expect(namedPath(addendum(LP, 20))).toBe(sha);
     expect(namedPath(addendum(MID, 20))).toBe(sha);
     expect(namedPath(addendum(LP, 19))).toBe(A289);
@@ -409,7 +410,10 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     // The pm_lp.ts Addendum 18 named, the instance until Addendum 19, which names it and today's.
     expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(addendum(LP, 18))?.[1]).toBe(LP_A18);
     expect(addendum(LP, 19)).toContain('`53f7f788…7278`');
-    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(addendum(LP, 19))?.[1]).toBe(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex'));
+    // The pm_lp.ts Addendum 19 named, the instance until Addendum 21, which names it and today's.
+    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(addendum(LP, 19))?.[1]).toBe('08be78270a160003b36ddc3b269072c0c0a37a6fe4b823f2b91d8fc73ad89ac9');
+    expect(addendum(LP, 21)).toContain('`08be7827…9ac9`');
+    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(addendum(LP, 21))?.[1]).toBe(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex'));
     expect(read('supabase/functions/agents/pm_lp.ts')).toContain('    fundByRank: true,');
     const src = read(PATH);
     expect(src).toContain('if (!inst.lp?.fundByRank) {');

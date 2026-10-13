@@ -252,6 +252,9 @@ function lpQuotesOn({ market, book, held, own, capital }: PmQuoteInput, skip: bo
   if (!(v > 0) || !(minSize >= 0)) return [];
   const o = othersLevels(book.levels, own ?? []);
   const row = summarize(o.bids, o.asks, v, minSize);
+  // Under the touch rule nothing new rests, but the exit of what is held still does (Addendum 21, 2026-10-13: Q2's first
+  // fill, 20 NO in 0xe612eb64…, sat with no sell for an hour once its book narrowed under 4 c, though it kept quoting).
+  if (skip && "minTouchCents" in shape.tight && !wideTouch(row, shape.tight.minTouchCents)) return lpQuotesOn({ market, book, held, own, capital }, false, shape).filter((i) => i.side === "SELL");
   if (skip && ("minTouchCents" in shape.tight ? !wideTouch(row, shape.tight.minTouchCents) : isTight(row, Number(book.tick), shape.tight.maxTicks))) return [];
   const q = row ? quote(row, Number(book.tick)) : null;
   if (!q) return [];
