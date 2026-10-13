@@ -360,8 +360,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    Euros - 2"): pre-registered and built** (`reviews/2026-10-13-coinbase-weekend-prereg.md`, migration `0118`, `agents/cb_hold.ts`,
    `agents?action=cbhold`, reference §4 item 60). The one change: the interbank bar is held 60 h through a closure. Its window is
    28 UTC days from the first 00:00 after its first run (`cb_hold_state.state->>'startedAt'`), read the day after from 00:30
-   with `backtests/cbwk/scripts/replay_wk.py` (a wake to set once the start is known); four whole weekends if it starts by
-   10-16 00:00. After the deploy and 15 minutes: `select state->>'startedAt', last_error from cb_hold_state`, `cbhold` beats, no
+   with `backtests/cbwk/scripts/replay_wk.py`. **Started: first run 01:07 UTC 10-13, `startedAt` 2026-10-14 00:00 UTC, so
+   the window is 10-14 00:00 → 11-11 00:00 and the reading is on 2026-11-11 from 00:30 UTC** (four whole weekends; no wake set
+   yet: the fifteen Routines fire into the 'portfolios - 5' session). After the deploy and 15 minutes: `select state->>'startedAt', last_error from cb_hold_state`, `cbhold` beats, no
    `agents.cb_hold` errors, `last_minute` ~2 min behind. It reads `cbrec`'s stored EUR/USD and PR5's paper engine's
    `agent_quote_inputs`: both run to this window's end, past 11-08 and past PR5's 10-21 review.
 
