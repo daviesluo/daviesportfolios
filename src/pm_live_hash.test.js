@@ -69,13 +69,20 @@ const LP_A9 = 'c7e3a7ec271b8e798dcc756c3f9d83da2421ddee03f3fede6e3e66a541d173c7'
 /** The pm_live.ts and pm_lp.ts live-prep's Addendum 18 named, the path and its instance until Addendum 19. */
 const AEE9 = 'ee96ba0e40e38ac9999f78028470cc8713584cf05c45539f265eca76c2d3667d';
 const LP_A18 = '53f7f788a47e93f52770f96410db9faf8f34cdd7dc2cf4ddbd877c9038d07278';
+/** The pm_live.ts Addendum 19 named (quiet books and the restart), the path until Addendum 20. */
+const A289 = '28930ad918b0358c98e6bd6268715c6fd845b6092bcefcd1b44ffd45daf7f43d';
 
 describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", () => {
-  it("live-prep's latest addendum (19) and mid-pool's (19) name today's pm_live.ts", () => {
-    expect(lastNumber(LP)).toBe(19);
-    expect(lastNumber(MID)).toBe(19);
-    expect(namedPath(addendum(LP, 19))).toBe(sha);
-    expect(namedPath(addendum(MID, 19))).toBe(sha);
+  it("live-prep's latest addendum (20) and mid-pool's (20) name today's pm_live.ts", () => {
+    expect(lastNumber(LP)).toBe(20);
+    expect(lastNumber(MID)).toBe(20);
+    expect(namedPath(addendum(LP, 20))).toBe(sha);
+    expect(namedPath(addendum(MID, 20))).toBe(sha);
+    expect(namedPath(addendum(LP, 19))).toBe(A289);
+    expect(namedPath(addendum(MID, 19))).toBe(A289);
+    expect(addendum(LP, 20)).toContain('`28930ad9…f43d`');
+    expect(addendum(MID, 20)).toContain('`28930ad9…f43d`');
+    expect(addendum(MID, 20)).toContain('deviation 20');
     expect(namedPath(addendum(LP, 18))).toBe(AEE9);
     expect(namedPath(addendum(MID, 18))).toBe(AEE9);
     expect(addendum(LP, 19)).toContain('`ee96ba0e…667d`');

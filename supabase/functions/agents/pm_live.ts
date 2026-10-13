@@ -673,6 +673,7 @@ export function lpRestartOf(c: Pick<PmLiveConfig, "restarted_at" | "restart_loss
  */
 export function restartOpenMarks(
   prev: { at?: unknown; marks?: unknown } | null | undefined, at: string, held: string[], marks: Record<string, number | null>,
+  dust: string[] = [],
 ): { at: string; marks: Record<string, number>; missing: string[] } {
   const kept = prev && prev.at === at && prev.marks && typeof prev.marks === "object" ? prev.marks as Record<string, unknown> : {};
   const out: Record<string, number> = {};
@@ -681,8 +682,15 @@ export function restartOpenMarks(
     const m = marks[t];
     if (out[t] === undefined && typeof m === "number" && Number.isFinite(m)) out[t] = m;
   }
+  // A holding under the venue's 5-share minimum (Addendum 16: left to settle) whose market has no book to mark it opens at
+  // 1, the most a share can pay: it can then only count as a loss, never a gain, and it no longer holds every opening back.
+  // On 2026-10-13 three such holdings (4.28, 0.003 and 0.0075 shares in two closed markets) kept the restart from opening.
+  for (const t of dust) if (held.includes(t) && out[t] === undefined) out[t] = 1;
   return { at, marks: out, missing: held.filter((t) => out[t] === undefined) };
 }
+
+/** Under this many shares a holding cannot be sold on the venue (its minimum order) and is left to settle (Addendum 16). */
+export const PM_RESTART_DUST_SHARES = 5;
 
 // ------------------------------------------------------------------ live-prep's reward check (2026-10-10, Addendum 9)
 
@@ -2491,7 +2499,8 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
     }
     for (const [k, v] of Object.entries(marks)) if (v != null) known[k] = v;
     const prevOpen = ((prev.lp ?? {}) as { stop?: { open?: { at?: unknown; marks?: unknown } } }).stop?.open;
-    stopOpen = restartOpenMarks(prevOpen, restart.at, heldThen, known);
+    const dustThen = heldThen.filter((k) => then[k].held < PM_RESTART_DUST_SHARES);
+    stopOpen = restartOpenMarks(prevOpen, restart.at, heldThen, known, dustThen);
     stopFills = sinceOpenPnl(allFills, restart.atMs, stopOpen.marks, marks);
     if (stopOpen.missing.length && !lossTotal) {
       lossTotal = true;

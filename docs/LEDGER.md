@@ -515,6 +515,15 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11"; each oldest first.
 
+### [2026-10-13 13:39 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Q2 went live: restart at 2026-10-13 13:25:32 UTC** (the go statement of Addendum 19, its checks all passed; `restart_loss_usd`
+  25, `max_markets` 12, `select_budget_usd` 320). The first selection read 60 books' trades (0 failed), passed over 46 busy
+  and 510 narrow books, and picked 12 quiet ones; the stop opened at basis ~$0, room $25. **But nothing opened**: three dust
+  holdings in two closed markets (4.2791 + 0.0031 shares in 0x0608b79b…, 0.0075 in 0x225b0d56…) had no mark, so every turn
+  left the stop unjudged (four `agents.pm_lp` rows 13:26–13:29). **Addendum 20** (both pre-registrations; Davies: "有问题立马
+  修复"): a holding under the 5-share minimum with no mark opens at 1, so it can only count as a loss (≤ $4.29); 5 shares or
+  more still holds openings back. Pinned (fails on Addendum 19's `restartOpenMarks`); the hash chain moves to 20.
+
 ### [2026-10-13 13:18 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - Landed PMOPPS (the LP-ADVERSE agent, resumed after a usage limit; `reviews/2026-10-13-polymarket-opportunities.md`):
   nothing on Polymarket clears the bar for a new paper row now. DEADLINE-NO (NO at T − 7 days, YES 0.20–0.50) is the one

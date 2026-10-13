@@ -1576,3 +1576,21 @@ since the restart) and the page (`lpStopRoomText`); `0119_pm_lp_restart.sql` sha
 - `agents/pm_lp_live_view.test.ts`: the page's stop from the path's reading, the old stop history, today's rows since the
   restart. `src/agents/agents.test.js`: the stop line from the restart.
 - `src/pm_live_hash.test.js`, `src/pm_lp_prereg.test.js`: the bytes and the chain of addenda.
+
+## Addendum 20 (2026-10-13, about 13:40 UTC): the restart's dust holdings
+
+**On whose word.** Davies, 2026-10-13, on Addendum 19 going live: "B上线后盯着，每隔1-2小时查看一次有问题立马修复" (watch B after it
+goes live and fix any problem at once).
+
+**What went wrong.** Addendum 19's restart opened at 2026-10-13 13:25:32 UTC, and every turn after it wrote "the restart's
+opening marks are not all read (3 token(s) …)": three holdings of the restart had no mark (4.2791 and 0.0031 shares in
+0x0608b79b…, 0.0075 in 0x225b0d56…, both markets closed and not yet settled, so no book), and a holding with no opening
+mark keeps the stop unjudged, so nothing opened.
+
+**What changes.** A holding of the restart under the venue's 5-share minimum (`PM_RESTART_DUST_SHARES`; Addendum 16 leaves
+such holdings to settle) with no mark opens at 1, the most a share can pay (`restartOpenMarks`' `dust`): it can then only
+count as a loss, never a gain, here at most $4.29. A holding of 5 shares or more with no mark still holds every opening
+back, as before. Nothing else changes: the selection, the quotes, the stop's limit and the restart's instant are Addendum
+19's. Pinned in `pm_lp.test.ts` (it fails on Addendum 19's `restartOpenMarks`).
+
+**The code it deploys:** `pm_live.ts` sha256 `9c4174f30523225520f92a0ecd50082d9490e88e43a686a737fdd6629f34a231`, where Addendum 19 named `28930ad9…f43d`.

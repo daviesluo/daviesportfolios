@@ -21,7 +21,7 @@ import { isTight } from "./pmrw_x.ts";
 import {
   candidateOf, closeOnly, ctfApproval, effectiveLimits, gates, heldFromBalance, inUniverse, inYesBook, lpCandidateOf, lpLimits, onTick, PM_LIVE_MAX_POSTS_DAY, PM_LP_MAX_POSTS_DAY, pauseAfterJump, PM_LIVE_INSTANCE, PM_MINI_INSTANCE, pmLiveDbTables, pmLpDbTables,
   lpFunding, lpMarketMark, lpRewardVerdict, PM_LP_FUNDING, tokenBooks, type LpRefillOptions, rewardConfigOf, runPmLive, rwQuotes, scoringStreak, type PmRewardNow, type PmBookNow, type PmIntent, type PmLiveConfig, type PmMarketRow, type PmPauseState, type PmRewardRow,
-  bookPnl, lpRestartOf, lpSelectBudget, quietChoose, quietVerdict, rawTouchCents, restartOpenMarks, sinceOpenPnl, type PmQuietRead,
+  bookPnl, lpRestartOf, lpSelectBudget, PM_RESTART_DUST_SHARES, quietChoose, quietVerdict, rawTouchCents, restartOpenMarks, sinceOpenPnl, type PmQuietRead,
 } from "./pm_live.ts";
 import { runPmLpReserve } from "./pm_lp_reserve.ts";
 import { classifyLp, decideLp, PREP_INSTANCE, prepDbTables, prepReads, runPmPrep, stepSides, type PrepOrder } from "./pm_prep.ts";
@@ -1809,4 +1809,18 @@ Deno.test("the restart takes the day's earlier selection as carried and selects 
   await n.turn(T0);
   await n.turn(T0 + M);
   assertEquals(n.rows("pm_lp_events").filter((e) => e.kind === "selection").length, 1);
+});
+
+Deno.test("restartOpenMarks: a holding under the 5-share minimum with no mark opens at 1 (only a loss can follow) and holds nothing back; a larger one still does", () => {
+  // 2026-10-13 13:26: three dust holdings in two closed markets (no book) left the restart's stop unjudged, so nothing opened.
+  assertEquals(PM_RESTART_DUST_SHARES, 5);
+  const r = restartOpenMarks(null, "R", ["big", "dust", "y"], { y: 0.4, big: null, dust: null }, ["dust"]);
+  assertEquals(r.marks, { y: 0.4, dust: 1 });
+  assertEquals(r.missing, ["big"]);
+  // A mark read for a dust holding is used as it is.
+  assertEquals(restartOpenMarks(null, "R", ["dust"], { dust: 0.3 }, ["dust"]).marks, { dust: 0.3 });
+  // Dust not held is not added.
+  assertEquals(restartOpenMarks(null, "R", ["y"], { y: 0.4 }, ["gone"]).marks, { y: 0.4 });
+  // Without the dust list, as before.
+  assertEquals(restartOpenMarks(null, "R", ["dust"], { dust: null }).missing, ["dust"]);
 });
