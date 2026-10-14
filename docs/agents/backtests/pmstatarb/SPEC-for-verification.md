@@ -12,8 +12,10 @@ parameter after seeing its result and re-running is not verification, it is a ne
 2. `docs/agents/CLAUDE.md` — the agents' rules (venue access, secrets, proof standards).
 3. `docs/agents/reviews/2026-10-14-pm-statarb-deepdive.md` — why these four, and what is already closed. Its §2
    lessons are requirements below, not background.
-4. `docs/agents/reviews/2026-10-13-polymarket-opportunities.md` §3 and the frozen DEADLINE-NO test under
-   `docs/agents/backtests/deadlineno_2024/` — the house shape for a historical test: frozen bar, prints-based fills,
+4. `docs/agents/reviews/2026-10-13-polymarket-opportunities.md` §3 and the frozen DEADLINE-NO test
+   (`docs/agents/reviews/2026-10-13-deadline-no-2024-prereg.md`, its script
+   `docs/agents/backtests/pmopps/scripts/deadline_no.py` and its result
+   `docs/agents/reviews/2026-10-13-deadline-no-2024-result.md`) — the house shape for a historical test: frozen bar, prints-based fills,
    event bootstrap, an honest FAIL.
 5. `docs/agents/backtests/pmopps/scripts/pull_closed.py` — the keyset pattern for resolved markets, to adapt in G1.
 
