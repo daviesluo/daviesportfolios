@@ -171,8 +171,30 @@ Deno.test("the dashboard reads live-prep's live book from its live rows only: no
   const quiet = memDb({ [T.config]: [{ id: 1, ...I.config, dry_run: true, live_confirmed_at: null }], [T.state]: [], [T.orders]: [{ ...dryOrder, mode: "dry_run" }] }, { now: () => I.nowMs });
   assertEquals(await readLpLive(quiet.db, I.nowMs), null);
   // A read that fails leaves the row off, never the page.
-  const broken: typeof mem.db = { ...mem.db, select: (t, q) => (t === T.markets ? Promise.reject(new Error(`db GET ${t} → 500`)) : mem.db.select(t, q)) };
+  const broken: typeof mem.db = { ...mem.db, select: (t, q) => (t === T.markets ? Promise.reject(new Error(`db GET ${t} → 500`)) : mem.db.select(t, q)), selectAll: (t, q) => (t === T.markets ? Promise.reject(new Error(`db GET ${t} → 500`)) : mem.db.selectAll(t, q)) };
   assertEquals(await readLpLive(broken, I.nowMs), null);
+});
+
+Deno.test("the dashboard's live-hours read pages to the end: today's formula past the first thousand rows still counts", async () => {
+  // 2026-10-13 on production: the view's 48 hours held 1,555 rows (an hour for every market worked, carried ones too),
+  // so one page of a thousand, ordered hour ascending, stopped at 05:00 today — every scored minute of the day came
+  // after it, and REWARDS TODAY (EST.) read $0 – $0. Here 1,005 of yesterday's rows stand before the fixture's hours.
+  const I = F.input;
+  const filler = Array.from({ length: 1005 }, (_, i) => ({ hour: "2026-09-16T01:00:00.000Z", cond: `filler-${String(i).padStart(4, "0")}`, minutes: 60, formula_usd: 0, formula_scored_usd: 0 }));
+  const mem = memDb({
+    [T.config]: [{ id: 1, ...I.config }],
+    [T.state]: [{ id: 1, ...I.state }],
+    [T.orders]: I.open.map((o: Record<string, unknown>) => ({ mode: "live", ...o })),
+    [T.fills]: I.fills.map(({ trader_side, fee_rate_bps, ...f }: Record<string, unknown>) => ({ ...f, detail: { trade: { trader_side, fee_rate_bps } } })),
+    [T.settlements]: I.settlements,
+    [T.rewardDays]: I.rewardDays.map((r: Record<string, unknown>) => ({ mode: "live", ...r })),
+    [T.markets]: I.markets,
+    [T.events]: [],
+    [T.minutes]: [...I.minutes.map((x: Record<string, unknown>) => ({ mode: "live", minute: I.state.state.minute, ...x })), ...I.closes.map((x: Record<string, unknown>) => ({ mode: "live", ...x }))],
+    [LP_LIVE_HOURS_VIEW]: [...filler, ...I.hours],
+  }, { now: () => I.nowMs });
+  const out = await readLpLive(mem.db, I.nowMs);
+  assertEquals(out!.estimate.soFar, F.output.estimate.soFar);
 });
 
 // ------------------------------------------------------------------ DAYS' Orders

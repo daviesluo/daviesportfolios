@@ -518,6 +518,25 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11"; each oldest first.
 
+### [2026-10-14 01:09 UTC] Platform: Muse | Model: muse-wonder-full-1.0
+- **Euros - 2 verified running; the live/testing review landed; one display defect fixed** (Davies' three instructions
+  of the evening, in order). At 21:22 UTC `0121` is applied and Euros - 2 has decided every minute from 00:00
+  (5,120 rows, lag 3 min, no `agents.cb_hold` error): the "1022 min ago" Davies saw was its 60-minutes-a-run catch-up,
+  current by about 21:20. **The review** (`reviews/2026-10-13-live-testing-review.md`, read-only production reads
+  21:22–21:45, no config touched): the page's "REWARDS TODAY (EST.) $0 – $0" is a bug — `readLpLive`'s one-page read
+  of `pm_lp_live_hours` (1,555 rows in 48 h) stopped at today 05:00, before every scored minute; with all rows the
+  tile reads about $0.28–$1.01 ($0.98 of scored formula). Fixed here with a pin that fails on the old read (paged
+  reads for the hours and the selection, their keys in `PAGED_KEYS`); display only. Q2's first eight hours: stop room
+  $20.83 of $25, 14 fills (closed trips −5.3 ¢ a share, 60-minute markout about zero at n=14), 284 both-scoring
+  minutes, 9 of 10 refills spent by 17:35, programme rates decaying under the $10 floor for most minutes — the review
+  prices the candidates (programme stability, refill allowance, exit) as studies for after Addendum 19's bar, and
+  gives every live/testing row a keep/cut/change verdict with six decisions for Davies (§3 there; D1 keep Q2 to its
+  day-14 bar). Postscript read at 2026-10-14 01:08 before this landed: the 10-13 payout booked $0.8921 on $1.2409 of
+  formula (R 0.72 whole — quiet books pay at the old books' rate; scoring minutes are the shortfall), rebates $0.6175;
+  fills since the restart −$10.91 and the stop's room $15.60, so a first full day closing below −$10 is reported the
+  same night, not at day 7. Euros - 2's first day closed at 510 orders, 2 trips, +£0.0851, still current at 01:08.
+  Nothing live was armed, disarmed, resized or written.
+
 ### [2026-10-13 20:54 UTC] Platform: Muse | Model: muse-wonder-full-1.0
 - **"Stablecoin quotes with Euros - 2" starts today** (Davies, 2026-10-13 evening: start it immediately, do not wait for
   2026-10-14 00:00 UTC). Deviation 1 of its pre-registration (§7) and migration `0121`: the still-empty record's

@@ -1895,15 +1895,18 @@ export async function readLpLive(d: Db, now: number) {
       d.selectAll<PmSettlement>(T.settlements, "select=cond,yes_token,no_token,payout,settled_at&order=cond.asc"),
       d.selectAll<LpLiveRewardDayRow>(T.rewardDays, `mode=eq.live&select=${LP_LIVE_REWARD_COLUMNS}&order=mode.asc,day.asc,cond.asc`),
       d.select<LpLiveStopRow>(T.events, "mode=eq.live&kind=eq.loss_stop_total&select=minute,detail&order=minute.asc&limit=1"),
-      // The path's selection since it went live (ten markets a day at most): every market it can have quoted or held live.
-      d.select<LpLiveMarketRow>(T.markets, `day=gte.${firstDay}&select=${LP_LIVE_MARKET_COLUMNS}&order=day.asc,cond.asc&limit=1000`),
+      // The path's selection since it went live: every market it can have quoted or held live. Paged, as the fills: a
+      // refill day names forty markets, and a read stopped at 1,000 drops the newest days (its order is day ascending).
+      d.selectAll<LpLiveMarketRow>(T.markets, `day=gte.${firstDay}&select=${LP_LIVE_MARKET_COLUMNS}&order=day.asc,cond.asc`),
       // Its live minute at the last turn: each market's formula reward for our quotes, which QUOTES' share reads.
       typeof minute === "string"
         ? d.select<LpLiveMinuteRow>(T.minutes, `mode=eq.live&minute=eq.${encodeURIComponent(minute)}&select=${LP_LIVE_MINUTE_COLUMNS}&order=cond.asc`)
         : Promise.resolve([] as LpLiveMinuteRow[]),
-      // Its live hours of the last two days (0107's view, at most 48 × 10 rows): today's rewards are estimated from today's.
+      // Its live hours of the last two days (0107's view): today's rewards are estimated from today's. Paged, as the
+      // fills: the view holds a row an hour for every market worked, carried ones too — 1,555 rows by 2026-10-13,
+      // where one page stopped at 05:00 today and the estimate read $0 for a day that had accrued $0.98 of formula.
       // A read that fails (the view not there yet) leaves the estimate on the earlier days alone, never the row off.
-      d.select<LpLiveHourRow>(LP_LIVE_HOURS_VIEW, `select=${LP_LIVE_HOUR_COLUMNS}&order=hour.asc,cond.asc&limit=1000`).catch(() => [] as LpLiveHourRow[]),
+      d.selectAll<LpLiveHourRow>(LP_LIVE_HOURS_VIEW, `select=${LP_LIVE_HOUR_COLUMNS}&order=hour.asc,cond.asc`).catch(() => [] as LpLiveHourRow[]),
     ]);
     // Each UTC midnight's last live minutes since the first fill: DAYS' Orders marks each day's close at them. Thirty
     // midnights to a read, so no list outgrows a URL; a read that fails leaves its closes unmarked (held at cost), never
