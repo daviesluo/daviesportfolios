@@ -1,0 +1,22 @@
+{
+ "generated": "2026-10-14",
+ "note": "Snapshot scripts read live public books; a re-run reads a later book. Results are the 2026-10-14 ~02:00 UTC reads.",
+ "files": [
+  {
+   "path": "results/clauses_buckets.txt",
+   "sha256": "b2b8b959e4913a98877d79f7131ac22d8f5dc62cf0f65dd8a798ed932c557e2c"
+  },
+  {
+   "path": "results/touch_pairs.txt",
+   "sha256": "6c7365cd598c825c86ff1b0ce6462ef8e5f3213e280c265f0ffd8c02276806e3"
+  },
+  {
+   "path": "scripts/clauses_buckets.py",
+   "sha256": "7fcc07355b4b17c02774d11d3a5906d88237e50b906a9941602c85a3c05d38d0"
+  },
+  {
+   "path": "scripts/touch_pairs.py",
+   "sha256": "ad4c515430ba76f9e4bbe2ac99c27c12e6bb062f3e8ef222293a04650c02df13"
+  }
+ ]
+}

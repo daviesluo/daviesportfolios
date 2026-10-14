@@ -1,0 +1,14 @@
+Q: Will Bitcoin reach $86,000 on October 13?
+  endDate: 2026-10-14T04:00:00Z | resolutionSource: https://www.binance.com/en/trade/BTC_USDT
+  desc: This market will immediately resolve to "Yes" if any Binance 1-minute candle for Bitcoin (BTC/USDT) on the date specified in the title, between 12:00 AM ET and 11:59 PM ET has a final "High" price equal to or greater than the price specified in the title. Otherwise, this market will resolve to "No". The resolution source for this market is Binance, specifically the BTC/USDT "High" prices available at https://www.bina
+Q: Will the price of Bitcoin be above $86,000 on October 14?
+  endDate: 2026-10-14T16:00:00Z | resolutionSource: https://www.binance.com/en/trade/BTC_USDT
+  desc: This market will resolve to "Yes" if the Binance 1 minute candle for BTC/USDT closing at 12:00 in the ET timezone (noon) on the date specified in the title has a final "Close" price higher than the price specified in the title. Otherwise, this market will resolve to "No". The resolution source for this market is Binance, specifically the BTC/USDT "Close" prices currently available at https://www.binance.com/en/trade/
+
+bucket events found: 30
+BTC Bitcoin price on October 14? end 2026-10-14 buckets 7 sum_mids 1.001 tail(|x|>7%) mkt 0.0 vs model 0.0 max_dev(mid,model,range) (0.03154760301512416, 0.28, 0.248, (84000.0, 86000.0))
+ETH Ethereum price on October 14? end 2026-10-14 buckets 8 sum_mids 1.011 tail(|x|>7%) mkt 0.013 vs model 0.0 max_dev(mid,model,range) (0.0625420260547428, 0.4, 0.463, (2400.0, 2500.0))
+BTC Bitcoin price on October 15? end 2026-10-15 buckets 11 sum_mids 1.032 tail(|x|>7%) mkt 0.024 vs model 0.0 max_dev(mid,model,range) (0.05191106755707953, 0.395, 0.447, (82000.0, 84000.0))
+ETH Ethereum price on October 15? end 2026-10-15 buckets 9 sum_mids 1.016 tail(|x|>7%) mkt 0.034 vs model 0.001 max_dev(mid,model,range) (0.05339042624439555, 0.39, 0.443, (2400.0, 2500.0))
+BTC Bitcoin price on October 16? end 2026-10-16 buckets 11 sum_mids 1.022 tail(|x|>7%) mkt 0.027 vs model 0.004 max_dev(mid,model,range) (0.02525358741675693, 0.195, 0.22, (80000.0, 82000.0))
+ETH Ethereum price on October 16? end 2026-10-16 buckets 11 sum_mids 1.069 tail(|x|>7%) mkt 0.105 vs model 0.016 max_dev(mid,model,range) (0.03034290629073566, 0.355, 0.385, (2400.0, 2500.0))

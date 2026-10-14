@@ -518,6 +518,20 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11"; each oldest first.
 
+### [2026-10-14 02:02 UTC] Platform: Muse | Model: muse-wonder-full-1.0
+- **PMSTATARB: the Polymarket statistical-arbitrage line taken stock of, two historical tests proposed** (Davies: absorb
+  the earlier Claude/Cursor stat-arb research and look for new candidates worth testing; `reviews/2026-10-14-pm-statarb-deepdive.md`,
+  snapshots in `backtests/pmstatarb/`). What stands closed, with its evidence: every locked identity (sets, ladders,
+  YES+NO), favourites (out of sample), weather, sub-second crypto (PMSC), disputes, DEADLINE-NO (its frozen 2024
+  test). Tonight's new measurement closes one more locked form — touch against terminal at the same strike: 45
+  properly nested pairs under their settlement windows (Binance High over the title day vs the noon Close), none
+  locks its $1 under $1 after fees (best 1.0079); the cheaper pairs are window mismatches. Bucket partitions sum to
+  0.99–1.07 at mids. What is proposed, historical-first and unfrozen: TOUCH-CAL (touch calibration against the
+  reflection relation at prints) then BUCKET-DIST (bucket distribution shape against a lognormal), a KALSHI-LEAD
+  lead-lag measurement (both minute series verified keyless), and a SPORTS-XCHECK snapshot; the mechanical pulls are
+  packaged as G1–G4 for another engineer in §5 of the review (no peer session was reachable from here). Decisions
+  for Davies are §6 there. Research only: nothing built, armed or written to production.
+
 ### [2026-10-14 01:36 UTC] Platform: Muse | Model: muse-wonder-full-1.0
 - **The `?pwd=` bookmark's "This site can't be reached" is fixed at the service worker** (Davies, same morning: the
   bookmark failed while typing daviesluo.com worked). The asymmetry: `/` is answered by the precache route itself,
