@@ -7,6 +7,9 @@
 // after they click RELOAD" bug from PR #108 — these cases catch it.
 
 import { describe, it, expect } from 'vitest';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   SW_RELOAD_SUPPRESS_KEY,
   SW_RELOAD_SUPPRESS_MS,
@@ -140,5 +143,26 @@ describe('purgeForReload', () => {
     } finally {
       localStorage.clear();
     }
+  });
+});
+
+describe('the generated service worker answers a ?pwd= navigation like the root', () => {
+  // Davies (2026-10-14): his bookmark `https://daviesluo.com/?pwd=…` opened Chrome's "This site can't be reached"
+  // while typing daviesluo.com worked. The asymmetry is the navigation fallback: `/` is matched by the precache
+  // route itself, but `/?pwd=…` fell through to the NavigationRoute bound to "index.html". On a precache miss (the
+  // banner's purge, storage eviction, cleared site data) that handler fetches `/index.html`, which the host answers
+  // with a 308 to `/` — and a redirected response cannot satisfy a navigation request, so Chrome shows its error
+  // page. The fallback is bound to "/" instead (its miss-fetch is a plain 200), and `pwd` is one of the parameters
+  // precache matching ignores, so the bookmark takes the same path as the root. The sweep's banner-reload section
+  // drives the behaviour in a real browser; this pins what the committed bundle's worker actually says.
+  const sw = fs.readFileSync(path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../dist/sw.js'), 'utf8');
+
+  it('binds the navigation fallback to "/", never to the redirecting "index.html"', () => {
+    expect(sw).toContain('createHandlerBoundToURL("/")');
+    expect(sw).not.toContain('createHandlerBoundToURL("index.html")');
+  });
+
+  it('ignores the pwd parameter when matching the precache', () => {
+    expect(sw).toMatch(/ignoreURLParametersMatching:\[[^\]]*\/\^pwd\$\//);
   });
 });

@@ -96,6 +96,14 @@ export default defineConfig({
           // runtime-cached on first use instead (see runtimeCaching below).
           'assets/html2canvas-pro*.js',
         ],
+        // The navigation fallback is bound to "/", not the default "index.html": the host answers /index.html with a
+        // 308 to /, and a redirected response cannot satisfy a navigation request — so on a precache miss (the
+        // banner's purge, cleared site data, storage eviction) a `/?pwd=…` bookmark, which only the fallback route
+        // answers, opened Chrome's "This site can't be reached" while "/" itself, answered by the precache route's
+        // own miss-fetch of "/", worked (Davies, 2026-10-14). `pwd` is also a parameter precache matching ignores,
+        // so the deep link takes the precache route like the root instead of falling through to the fallback.
+        navigateFallback: '/',
+        ignoreURLParametersMatching: [/^utm_/, /^fbclid$/, /^pwd$/],
         runtimeCaching: [
           {
             // The site's own font files (app/fonts.css; Google Fonts until

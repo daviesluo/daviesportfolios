@@ -117,6 +117,14 @@ const MIME = {
 let SW_DEPLOY = '';
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
+  // The host answers /index.html with a 308 to / (measured on production, 2026-10-14), and a redirected response
+  // cannot satisfy a navigation request: serve the same redirect here, or the worker's navigation fallback is
+  // never exercised against the response shape that broke the ?pwd= bookmark (Davies, 2026-10-14).
+  if (url.pathname === '/index.html') {
+    res.writeHead(308, { Location: '/' });
+    res.end();
+    return;
+  }
   let file = path.join(ROOT, url.pathname === '/' ? 'index.html' : url.pathname);
   if (!file.startsWith(ROOT) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
     file = path.join(ROOT, 'index.html');
@@ -2349,6 +2357,20 @@ async function run() {
     const kept = await page.evaluate(() => localStorage.getItem('dp.prefs')).catch(() => null);
     if (kept === prefs) ok(S('prefs'), `the prefs survive the banner's reload: ${kept}`);
     else fail(S('prefs'), `dp.prefs after the banner's reload is ${kept}, was ${prefs}`);
+    // The ?pwd= bookmark with no precache to answer it (Davies, 2026-10-14: Chrome's "This site can't be reached",
+    // while the root worked). Every cache goes — the banner's own purge, cleared site data and storage eviction all
+    // leave the worker registered with an empty precache — and the deep link is opened: the root's own miss-fetch
+    // is a plain 200, but the old navigation fallback fetched /index.html, which this server now answers with
+    // production's 308, and a redirected response cannot satisfy a navigation.
+    await page.evaluate(async () => { for (const n of await caches.keys()) await caches.delete(n); });
+    let navOk = false, navSearch, navErr = '';
+    try {
+      await page.goto(`http://localhost:${PORT}/?pwd=sweep`, { waitUntil: 'domcontentloaded', timeout: 15_000 });
+      navOk = await page.waitForFunction(() => !!document.querySelector('.scoreboard-cell-portfolio .sb-value-lg'), null, { timeout: 15_000 }).then(() => true, () => false);
+      navSearch = await page.evaluate(() => location.search).catch(() => '?unreadable');
+    } catch (e) { navErr = String(e).slice(0, 140); }
+    if (navOk && navSearch === '') ok(S('pwd-nav'), 'with every cache deleted, the ?pwd= deep link loads the board and the password is stripped from the URL');
+    else fail(S('pwd-nav'), `the ?pwd= deep link with no precache: board painted ${navOk}, search ${navSearch}, error ${navErr}`);
     await ctx.close();
   }
 

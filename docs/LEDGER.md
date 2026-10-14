@@ -518,6 +518,19 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11"; each oldest first.
 
+### [2026-10-14 01:36 UTC] Platform: Muse | Model: muse-wonder-full-1.0
+- **The `?pwd=` bookmark's "This site can't be reached" is fixed at the service worker** (Davies, same morning: the
+  bookmark failed while typing daviesluo.com worked). The asymmetry: `/` is answered by the precache route itself,
+  but `/?pwd=…` fell through to Workbox's NavigationRoute bound to `index.html`; on a precache miss (the banner
+  purge, cleared site data, storage eviction — all leave the worker registered with an empty precache) that handler
+  fetches `/index.html`, which production answers with a 308 to `/` (measured), and a redirected response cannot
+  satisfy a navigation request. The root's own miss-fetch is a plain 200, so the root kept working. Now the fallback
+  is bound to `/` and precache matching ignores `pwd` (`vite.config.js`), pinned twice: a unit pin on the generated
+  `dist/sw.js` (fails on the old worker, checked) and a sweep check that deletes every cache under a controlling
+  worker and opens the deep link, with the sweep's server serving production's 308 for `/index.html`. If the
+  bookmark still fails on Davies' browser after this deploy, the `ERR_…` code at the foot of Chrome's error page
+  distinguishes what is left (DNS would be a different fix, outside the repo).
+
 ### [2026-10-14 01:09 UTC] Platform: Muse | Model: muse-wonder-full-1.0
 - **Euros - 2 verified running; the live/testing review landed; one display defect fixed** (Davies' three instructions
   of the evening, in order). At 21:22 UTC `0121` is applied and Euros - 2 has decided every minute from 00:00
