@@ -59,6 +59,13 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    buffer re-read; 10-22/23 LPRESEL6, TB1 C1, 14-day readout. Showcase (`daviesluo/personal`) not yet updated for this
    week's strategy changes (Addenda 9–18, LP studies): left for Claude Code.
 
+0a′. **Q2 live, the second post-mortem (`reviews/2026-10-14-q2-trips.md`, landed 2026-10-14 ~16:45 UTC): no rule fixes it.**
+   Every lot lost to informed takers and the drift while held (16 lots −16.38: entry edge +5.87, first minute −9.12, held
+   −16.08, exits +3.00); of 27 rules none clears $0 at its 5 % bound on both spans or the 1.5 c bar on the live window. The
+   main session did NOT push its draft Addendum 23 (entries 4 c from the adjusted mid: 0.77 c a share live, under the bar),
+   though Davies' standing word allowed a fix to go live. **Recommended to Davies: stop for good** (`update public.pm_lp_config
+   set restarted_at = null where id = 1;`, close-only, held lots exit); his call, live still running, stop room ~$9.
+
 0b. **Every PAPER Reward quotes test is off (Davies, 2026-10-13: "目前paper testing里的reward quotes全关了吧？感觉都不赚钱没什么
    意义？"; `0120`).** Off: `pmrwc`, `pmrwc-select`, `pmrwc-e`, `pmrwc-x`, mid-pool (`pmmid`, `pmmidprep`), live-prep's paper layer
    (`pmlpprep`) and `pmprog` (with the `pm-prog-refresh` cron). On: live-prep's live call and `pmlpreserve`, the recorder
@@ -533,6 +540,21 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14"; each oldest first.
+
+### [2026-10-14 16:36 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Q2-TRIPS, why every Q2 trip loses** (the LP-BEST agent; `reviews/2026-10-14-q2-trips.md`, `backtests/lpbest/scripts/q2trips*.py`,
+  `MANIFEST_q2trips.json`; Davies ~15:00: "怎么还在亏 可以再优化吗"). 16 lots since the restart, −$16.38 at the cleaned mid:
+  - entry edge +5.87, first minute −9.12 (informed takers), drift while held −16.08 (median hold 260 min, 10 of 16 over 4 h);
+  - exits +3.00 against the mid, so the exit price is not the fault;
+  - adds (2N) −4.19 and pause-held lots −2.10, both inside the total.
+
+  Calibrated to live over 26.6 h (rewards ×0.57, fills −0.92 ¢ a share more than the engine):
+  - Q2 now: +$0.38/day on 10-05→10-12, −$12.45 on the live window;
+  - best of 27 rules (entries 4 ¢ from the mid): +1.78/day [−0.14, +3.87] and +0.33 [−3.77, +5.30] live, 0.77 ¢/share
+    live, under the 1.5 ¢ bar.
+
+  Raw-engine paired: nothing beats Q2 now. Verdict (about 80 % sure): **stop live-prep for good** (close-only, no restart).
+  Addendum 23 (entries 4 ¢ from the mid) is drafted in the review as the only bounded alternative. Nothing live changed.
 
 ### [2026-10-14 16:26 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Handover to Davies' other session tonight** (Davies, ~16:25 UTC: "今天20:00之后我另外一个session就恢复额度了，你这边所有盯盘和自动

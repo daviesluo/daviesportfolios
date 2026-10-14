@@ -1,0 +1,84 @@
+Q2-TRIPS, every lot since the restart (10-13 13:26 -> 10-14 15:59 UTC; fills to 10-14 12:18), YES terms: +1 a long YES (a BUY of YES or a SELL of NO), -1 a short
+
+0xe612eb64 short   20 @ 0.150  10-13 13:45  book 0.120/0.160 mid 0.140  inside   class D  taker  20.0
+      mid +1 0.145 +5 0.140 +15 0.140 +60 0.140 +240 0.205
+      exit 0.200 x20 at 10-13 17:14  (quote; ours 0.2 vs others' bid 0.2)  held 209 min; states {'quote': 210}; minutes with no exit resting 79
+      P&L -1.00  = entry edge +0.20 first minute -0.10 drift while held -1.30 exit edge +0.20 residual +0.00
+0xd95404d1 short   20 @ 0.240  10-13 15:49  book 0.210/0.250 mid 0.230  inside   class D  taker  40.0
+      mid +1 0.300 +5 0.290 +15 0.285 +60 0.220 +240 0.230
+      exit 0.280 x20 at 10-13 16:16  (quote; ours 0.28 vs others' bid 0.28)  held 27 min; states {'quote': 28}; minutes with no exit resting 0
+      P&L -0.80  = entry edge +0.20 first minute -1.40 drift while held +0.30 exit edge +0.10 residual +0.00
+0x40b8e1cc long    20 @ 0.220  10-13 16:12  book 0.210/0.280 mid 0.245  behind   class C  taker  20.0
+      mid +1 0.145 +5 0.220 +15 0.230 +60 0.235 +240 0.225
+      exit 0.170 x20 at 10-13 16:13  (quote; ours 0.27 vs others' ask 0.18)  held 1 min; states {'quote': 2}; minutes with no exit resting 0
+      P&L -1.00  = entry edge +0.50 first minute -2.00 drift while held +0.00 exit edge +0.50 residual -0.00
+0xed1eabc9 short   20 @ 0.510  10-13 18:02  book 0.480/0.520 mid 0.500  inside   class D  taker  40.0
+      mid +1 0.520 +5 0.525 +15 0.530 +60 0.590 +240 0.350
+      exit 0.580 x20 at 10-13 19:25  (carried; ours 0.58 vs others' bid 0.58)  held 83 min; states {'quote': 5, 'carried': 79}; minutes with no exit resting 1
+      P&L -1.40  = entry edge +0.20 first minute -0.40 drift while held -1.40 exit edge +0.20 residual +0.00
+0xe612eb64 short   20 @ 0.270  10-13 18:09  book 0.230/0.280 mid 0.255  inside   class D  taker  20.0
+      mid +1 0.465 +5 0.365 +15 0.385 +60 0.260 +240 0.215
+      exit 0.290 x20 at 10-13 23:18  (quote; ours 0.29 vs others' bid 0.29)  held 309 min; states {'quote': 188, 'paused': 122}; minutes with no exit resting 142
+      P&L -0.40  = entry edge +0.30 first minute -4.20 drift while held +3.30 exit edge +0.20 residual -0.00
+0x397bea1f long    20 @ 0.250  10-13 18:48  book 0.240/0.310 mid 0.275  inside   class D  taker  20.0
+      mid +1 0.275 +5 0.275 +15 0.265 +60 0.235 +240 0.185
+      exit 0.180 x20 at 10-14 11:12  (carried; ours 0.18 vs others' ask 0.18)  held 984 min; states {'quote': 82, 'carried': 903}; minutes with no exit resting 14
+      P&L -1.40  = entry edge +0.50 first minute +0.00 drift while held -2.10 exit edge +0.20 residual -0.00
+0x397bea1f long    20 @ 0.250  10-13 18:49  book 0.240/0.310 mid 0.275  inside   class D  taker  20.0  ADD
+      mid +1 0.265 +5 0.265 +15 0.260 +60 0.260 +240 0.185
+      exit 0.180 x20 at 10-14 12:18  (carried; ours 0.18 vs others' ask 0.18)  held 1049 min; states {'quote': 81, 'carried': 969}; minutes with no exit resting 15
+      P&L -1.40  = entry edge +0.50 first minute -0.20 drift while held -1.90 exit edge +0.20 residual +0.00
+0xd95404d1 short   20 @ 0.230  10-13 19:06  book 0.190/0.240 mid 0.215  inside   class D  taker  20.0
+      mid +1 0.220 +5 0.230 +15 0.230 +60 0.230 +240 0.230
+      exit 0.280 x20 at 10-14 04:14  (carried; ours 0.26 vs others' bid 0.27)  held 548 min; states {'quote': 294, 'carried': 255}; minutes with no exit resting 1
+      P&L -1.00  = entry edge +0.30 first minute -0.10 drift while held -1.90 exit edge +0.70 residual -0.00
+0x750ce9d6 short   20 @ 0.270  10-13 20:05  book 0.240/0.280 mid 0.260  inside   class D  taker  40.0
+      mid +1 0.255 +5 0.255 +15 0.260 +60 0.270 +240 0.305
+      exit 0.350 x20 at 10-14 08:09  (carried; ours 0.35 vs others' bid 0.35)  held 724 min; states {'quote': 131, 'carried': 594}; minutes with no exit resting 7
+      P&L -1.60  = entry edge +0.20 first minute +0.10 drift while held -2.10 exit edge +0.20 residual +0.00
+0xe612eb64 short   20 @ 0.290  10-13 20:25  book 0.240/0.420 mid 0.330  behind   class B  taker  40.0  ADD
+      mid +1 0.330 +5 0.230 +15 0.215 +60 0.235 +240 0.370
+      exit 0.360 x20 at 10-14 00:28  (carried)  held 243 min; states {'quote': 215, 'carried': 29}; minutes with no exit resting 17
+      P&L -1.40  = entry edge -0.80 first minute -0.00 drift while held -0.80 exit edge +0.20 residual +0.00
+0xed1eabc9 short   20 @ 0.520  10-13 23:21  book 0.390/0.530 mid 0.460  inside   class D  taker  20.0
+      mid +1 0.535 +5 0.495 +15 0.550 +60 0.575 +240 0.600
+      exit 0.600 x20 at 10-14 06:15  (carried; ours 0.59 vs others' bid 0.59)  held 414 min; states {'quote': 39, 'carried': 316, 'paused': 60}; minutes with no exit resting 79
+      P&L -1.60  = entry edge +1.20 first minute -1.50 drift while held -1.40 exit edge +0.10 residual +0.00
+0x3b162968 long     9 @ 0.220  10-14 00:09  book 0.210/0.290 mid 0.250  inside   class D  taker   9.0
+      mid +1 0.225 +5 0.240 +15 0.240 +60 0.275 +240 0.200
+      exit 0.210 x9 at 10-14 04:16  (carried; ours 0.21 vs others' ask 0.22)  held 247 min; states {'quote': 137, 'carried': 111}; minutes with no exit resting 32
+      P&L -0.09  = entry edge +0.27 first minute -0.22 drift while held -0.18 exit edge +0.04 residual -0.00
+0x3b162968 long    20 @ 0.200  10-14 03:48  book 0.190/0.230 mid 0.210  inside   class D  taker  20.0  ADD
+      mid +1 0.205 +5 0.200 +15 0.200 +60 0.205 +240 0.270
+      exit 0.210 x11 at 10-14 04:16  (carried; ours 0.21 vs others' ask 0.22)  held 28 min; states {'quote': 22, 'carried': 7}; minutes with no exit resting 0; 9 still held, marked 0.200
+      P&L +0.11  = entry edge +0.20 first minute -0.10 drift while held +0.00 exit edge +0.05 residual -0.05
+0x7465aead long    20 @ 0.270  10-14 04:28  book 0.260/0.410 mid 0.335  at touch class D  taker  20.0
+      mid +1 0.430 +5 0.335 +15 0.430 +60 0.325 +240 0.345
+      exit   n/a x0 at   (held)  (None)  held 691 min; states {'quote': 632, 'paused': 60}; minutes with no exit resting 96; 20 still held, marked 0.265
+      P&L -0.10  = entry edge +1.30 first minute +1.90 drift while held -3.30 exit edge +0.00 residual +0.00
+0x6eed2a46 long    20 @ 0.320  10-14 05:46  book 0.310/0.390 mid 0.350  inside   class D  taker  80.0
+      mid +1 0.305 +5 0.290 +15 0.290 +60 0.295 +240 0.225
+      exit 0.230 x20 at 10-14 10:18  (carried; ours 0.23 vs others' ask 0.23)  held 272 min; states {'quote': 260, 'carried': 13}; minutes with no exit resting 0
+      P&L -1.80  = entry edge +0.60 first minute -0.90 drift while held -1.60 exit edge +0.10 residual +0.00
+0x7465aead long    20 @ 0.340  10-14 09:44  book 0.330/0.370 mid 0.350  inside   class D  taker  40.0  ADD
+      mid +1 0.350 +5 0.285 +15 0.285 +60 0.285 +240 0.265
+      exit   n/a x0 at   (held)  (None)  held 375 min; states {'quote': 376}; minutes with no exit resting 7; 20 still held, marked 0.265
+      P&L -1.50  = entry edge +0.20 first minute +0.00 drift while held -1.70 exit edge +0.00 residual +0.00
+
+== 16 lots, 309 shares; fills P&L -16.38 (closed at their exits, held at the mid of 10-14 15:59)
+  the split (each share once):
+    entry edge             +5.87
+    first minute           -9.12
+    drift while held      -16.08
+    exit edge              +3.00
+    residual               -0.05
+  by cause (a lot can be in several rows):
+    never paused while held                               13 lots   -14.28
+    entry class D                                         14 lots   -13.98
+    a first lot                                           12 lots   -12.19
+    an add (bought while already holding that way)         4 lots    -4.19
+    held through x2's pause (any minute)                   3 lots    -2.10
+    entry class B                                          1 lots    -1.40
+    entry class C                                          1 lots    -1.00
+  exits: 14 lots exited; exit edge against the mid at the exit minute +3.00; median hold 260 min; held through a pause 3 lots
+  the mid 60 minutes after entry moved against the lot in 12 of 16 lots, with it in 3

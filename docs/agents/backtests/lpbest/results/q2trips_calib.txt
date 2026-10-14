@@ -1,0 +1,199 @@
+Q2-PM, the live record 10-13 13:26 -> 10-14 15:59 UTC (26.6 hours; restart 2026-10-13T13:25:32Z)
+
+== the picks (rank > 12: a refill), from selection to replacement
+  10-13 # 1 0x31be5656 10-13 13:26 -> 10-13 16:17  rate  29 v 5.5  Will 0 Independents be elected to Congress in 2026?
+  10-13 # 2 0xf4abf1cb 10-13 13:26 -> 10-13 14:25  rate  17 v 6.5  Will Celina Leão win the 2026 Federal District gubernatorial second ro
+  10-13 # 3 0x0f9e01e5 10-13 13:26 -> 10-14 00:00  rate  20 v 5.5  Will the Democratic Party candidate win the 2026 MD-07 House election 
+  10-13 # 4 0xa850e96d 10-13 13:26 -> 10-14 00:00  rate  19 v 5.5  Will the Democratic Party candidate win the 2026 AZ-04 House election 
+  10-13 # 5 0x9938610f 10-13 13:26 -> 10-13 13:50  rate  35 v 6.5  Will Anthropic have the highest OpenRouter market share the week of Oc
+  10-13 # 6 0xa2b0468e 10-13 13:26 -> 10-13 17:01  rate  19 v 5.5  Will the Democratic Party candidate win the 2026 NY-07 House election 
+  10-13 # 7 0xf89f3837 10-13 13:26 -> 10-13 13:56  rate  13 v 5.5  Will the Republican Party candidate win the 2026 SD-AL House election 
+  10-13 # 8 0x7959bc72 10-13 13:26 -> 10-14 00:00  rate  12 v 5.5  Will the Democratic Party candidate win the 2026 MD-07 House election 
+  10-13 # 9 0x2d5746e1 10-13 13:26 -> 10-13 13:51  rate  10 v 8.5  Will Victor Cumming win the 2026 Vernon mayoral election?
+  10-13 #10 0x164fd763 10-13 13:26 -> 10-14 00:00  rate  50 v 4.5  Will Honeywell Technologies (HON) Q3 Building Automation sales be abov
+  10-13 #11 0xe612eb64 10-13 13:26 -> 10-14 00:00  rate  12 v 4.5  Procter & Gamble (PG) Q1 organic sales growth 2.5% to 3.5%?
+  10-13 #12 0x50bf57dd 10-13 13:26 -> 10-13 15:45  rate  14 v 5.5  Will the Democratic Party candidate win the 2026 MD-04 House election 
+  10-13 #13 0xe3c26bc1 10-13 13:50 -> 10-13 17:35  rate  16 v 5.5  Will the Democratic Party candidate win the 2026 IL-14 House election 
+  10-13 #14 0xe65c5275 10-13 13:51 -> 10-14 00:00  rate  17 v 5.5  Will the Republican Party candidate win the 2026 FL-18 House election 
+  10-13 #15 0x7bef711f 10-13 13:56 -> 10-13 16:02  rate  13 v 5.5  Will the Democratic Party candidate win the 2026 NY-04 House election 
+  10-13 #16 0x40b8e1cc 10-13 14:25 -> 10-14 00:00  rate  10 v 5.5  Will the Republican Party candidate win the 2026 IL-16 House election 
+  10-13 #17 0xd95404d1 10-13 15:45 -> 10-14 00:00  rate  22 v 5.5  Will the Republican Party candidate win the 2026 AZ-09 House election 
+  10-13 #18 0x750ce9d6 10-13 16:02 -> 10-14 00:00  rate  20 v 5.5  Will the Democratic Party candidate win the 2026 IL-07 House election 
+  10-13 #19 0x397bea1f 10-13 16:17 -> 10-14 00:00  rate  12 v 5.5  Will the Republican Party candidate win the 2026 IN-03 House election 
+  10-13 #20 0xf43b49b8 10-13 17:01 -> 10-14 00:00  rate  14 v 8.5  Will Scott Hamilton win the 2026 Cambridge mayoral election?
+  10-13 #21 0xed1eabc9 10-13 17:35 -> 10-14 00:00  rate  10 v 8.5  Will Drew Dilkens win the 2026 Windsor mayoral election?
+  10-14 # 1 0x24ef3ccf 10-14 00:00 -> 10-14 01:49  rate  59 v 4.5  Will Brothers Osborne win Vocal Duo of the Year at the 2026 CMA Awards
+  10-14 # 2 0x34e43923 10-14 00:00 -> 10-15 00:00  rate  50 v 4.5  Will T-Mobile (TMUS) Q3 total service revenues be above $19.5B?
+  10-14 # 3 0x7edaab96 10-14 00:00 -> 10-15 00:00  rate  50 v 4.5  Will Honeywell Technologies (HON) Q3 Building Automation sales be abov
+  10-14 # 4 0x7465aead 10-14 00:00 -> 10-15 00:00  rate  50 v 4.5  Democratic Senate odds 60-62% on October 16?
+  10-14 # 5 0x720ff998 10-14 00:00 -> 10-14 00:27  rate  30 v 6.5  Will Labor hold the most seats in the New South Wales Legislative Coun
+  10-14 # 6 0x3b162968 10-14 00:00 -> 10-15 00:00  rate  17 v 6.5  Will Rory Nisan win the 2026 Burlington mayoral election?
+  10-14 # 7 0x04c3a77d 10-14 00:00 -> 10-15 00:00  rate  16 v 6.5  Will Kellie Sloane be the next Premier of New South Wales?
+  10-14 # 8 0x99a0647b 10-14 00:00 -> 10-15 00:00  rate  16 v 5.5  Will the Democratic Party candidate win the 2026 ME-01 House election 
+  10-14 # 9 0x80d0bb74 10-14 00:00 -> 10-15 00:00  rate  20 v 5.5  Will the Democratic Party candidate win the 2026 CO-06 House election 
+  10-14 #10 0xc31427ed 10-14 00:00 -> 10-14 00:23  rate  14 v 6.5  Will Vicentinho Júnior win the 2026 Tocantins gubernatorial second rou
+  10-14 #11 0xeee67c2a 10-14 00:00 -> 10-15 00:00  rate  14 v 4.5  Will Manchester City finish in last place in the 2026-27 English Premi
+  10-14 #12 0x151502fd 10-14 00:00 -> 10-14 00:24  rate  21 v 6.5  Will PAN win the most seats in the 2027 Guanajuato Congress election?
+  10-14 #13 0x6eed2a46 10-14 00:23 -> 10-15 00:00  rate  50 v 4.5  Will Google (GOOGL) Q3 YouTube ads revenue be above $11.8B?
+  10-14 #14 0xc49d7771 10-14 00:24 -> 10-15 00:00  rate  67 v 4.5  Will ISM Services PMI be between 54.0 and 54.9 in October?
+  10-14 #15 0x5f97cf78 10-14 00:27 -> 10-15 00:00  rate  10 v 5.5  Will the Republican Party candidate win the 2026 NY-11 House election 
+  10-14 #16 0x8f0d07d4 10-14 01:49 -> 10-15 00:00  rate  14 v 6.5  Will Lorenzo Pazolini win the 2026 Espírito Santo gubernatorial second
+
+== the picks' selected minutes (19128 pick-minutes, 12.0 picks on average), by what rested
+    6930   36.2 %  out: rate under the floor
+    6592   34.5 %  nothing: touch under 4 c
+    1543    8.1 %  resting both sides
+    1420    7.4 %  resting one side
+    1189    6.2 %  paused
+     861    4.5 %  out: rate under the floor (exit resting)
+     334    1.7 %  nothing: other
+     181    0.9 %  close
+      33    0.2 %  paused (exit resting)
+      31    0.2 %  out: programme ended
+      13    0.1 %  no row
+       1    0.0 %  out: programme ended (exit resting)
+
+== rewards: formula (the live code's) 2026-10-13 1.241 (reward days 1.241), 2026-10-14 to 10-14 15:59 1.901; paid 2026-10-13 0.892 (R 0.719); rebates 2026-10-13 0.618; minutes with both sides scoring {'2026-10-13': 329, '2026-10-14': 324}
+
+== the fills: 30, 569 shares (YES terms: bid = a BUY of YES or a SELL of NO)
+  10-13 13:45 0xe612eb64 ask 0.150 x 20 (BUY no ) others' touch 0.120/0.160 inside   D  taker  20.0 sh  m1 +0.10 m5 +0.20 m15 +0.20 m60 +0.20
+  10-13 15:49 0xd95404d1 ask 0.240 x 20 (BUY no ) others' touch 0.210/0.250 inside   D  taker  40.0 sh  m1 -1.20 m5 -1.00 m15 -0.90 m60 +0.40
+  10-13 16:12 0x40b8e1cc bid 0.220 x 20 (BUY yes) others' touch 0.230/0.280 behind   C  taker  20.0 sh  m1 -1.50 m5 -1.00 m15 +0.20 m60 +0.30
+  10-13 16:13 0x40b8e1cc ask 0.170 x 20 (SELL yes) others' touch 0.110/0.180 inside   D  taker  20.0 sh  m1 -0.50 m5 -0.40 m15 -0.60 m60 -1.30
+  10-13 16:16 0xd95404d1 bid 0.280 x 20 (SELL no ) others' touch 0.280/0.290 at touch B  taker 100.0 sh  m1 -0.90 m5 -0.70 m15 -0.90 m60 -1.30
+  10-13 17:14 0xe612eb64 bid 0.200 x 20 (SELL no ) others' touch 0.200/0.220 at touch D  taker  52.8 sh  m1 +0.10 m5 +0.10 m15 +0.10 m60 +3.80
+  10-13 18:02 0xed1eabc9 ask 0.510 x 20 (BUY no ) others' touch 0.480/0.520 inside   D  taker  40.0 sh  m1 -0.20 m5 -0.30 m15 -0.40 m60 -1.50
+  10-13 18:09 0xe612eb64 ask 0.270 x 20 (BUY no ) others' touch 0.230/0.280 inside   D  taker  20.0 sh  m1 -4.00 m5 -2.40 m15 -2.30 m60 +0.20
+  10-13 18:48 0x397bea1f bid 0.250 x 20 (BUY yes) others' touch 0.240/0.310 inside   D  taker  20.0 sh  m1 +0.40 m5 +0.50 m15 +0.00 m60 -0.30
+  10-13 18:49 0x397bea1f bid 0.250 x 20 (BUY yes) others' touch 0.240/0.300 inside   D  taker  20.0 sh  m1 +0.30 m5 +0.30 m15 +0.20 m60 -0.40
+  10-13 19:06 0xd95404d1 ask 0.230 x 20 (BUY no ) others' touch 0.190/0.240 inside   D  taker  20.0 sh  m1 +0.20 m5 +0.00 m15 +0.00 m60 +0.00
+  10-13 19:25 0xed1eabc9 bid 0.580 x 20 (SELL no ) others' touch 0.580/0.600 at touch D  taker  46.8 sh  m1 -0.10 m5 -0.10 m15 -0.10 m60 -1.10
+  10-13 20:05 0x750ce9d6 ask 0.270 x 20 (BUY no ) others' touch 0.240/0.280 inside   D  taker  40.0 sh  m1 +0.10 m5 +0.30 m15 +0.20 m60 -0.00
+  10-13 20:25 0xe612eb64 ask 0.290 x 20 (BUY no ) others' touch 0.260/0.280 behind   B  taker  40.0 sh  m1 -0.80 m5 +1.20 m15 +1.50 m60 +1.10
+  10-13 23:18 0xe612eb64 bid 0.290 x 20 (SELL no ) others' touch 0.290/0.310 at touch D  taker  40.0 sh  m1 -0.40 m5 -0.20 m15 -0.20 m60 +1.10
+  10-13 23:21 0xed1eabc9 ask 0.520 x 20 (BUY no ) others' touch 0.390/0.530 inside   D  taker  20.0 sh  m1 -0.50 m5 +0.50 m15 +0.50 m60 -1.10
+  10-14 00:09 0x3b162968 bid 0.220 x  9 (BUY yes) others' touch 0.210/0.290 inside   D  taker   9.0 sh  m1 +0.18 m5 +0.18 m15 +0.13 m60 +0.50
+  10-14 00:28 0xe612eb64 bid 0.360 x 10 (SELL no ) others' touch 0.360/0.380 at touch B  taker  70.0 sh  m1 -0.10 m5 +0.05 m15 -0.15 m60 -1.60
+  10-14 00:28 0xe612eb64 bid 0.360 x 10 (SELL no ) others' touch 0.360/0.380 at touch B  taker  70.0 sh  m1 -0.10 m5 +0.05 m15 -0.15 m60 -1.60
+  10-14 03:48 0x3b162968 bid 0.200 x 20 (BUY yes) others' touch 0.190/0.230 inside   D  taker  20.0 sh  m1 +0.10 m5 +0.00 m15 +0.00 m60 +0.20
+  10-14 04:14 0xd95404d1 bid 0.280 x 20 (SELL no ) others' touch 0.270/0.360 inside   D  taker  20.0 sh  m1 -1.20 m5 -0.80 m15 -0.30 m60 -0.70
+  10-14 04:16 0x3b162968 ask 0.210 x 20 (SELL yes) others' touch 0.190/0.210 at touch D  taker  20.0 sh  m1 -0.80 m5 -0.00 m15 -0.10 m60 -1.20
+  10-14 04:28 0x7465aead bid 0.270 x 20 (BUY yes) others' touch 0.270/0.410 at touch D  taker  20.0 sh  m1 +1.20 m5 +1.30 m15 +1.20 m60 +1.10
+  10-14 05:46 0x6eed2a46 bid 0.320 x 20 (BUY yes) others' touch 0.310/0.390 inside   D  taker  80.0 sh  m1 -0.30 m5 -0.60 m15 -0.60 m60 -0.50
+  10-14 06:15 0xed1eabc9 bid 0.600 x 20 (SELL no ) others' touch 0.590/0.620 inside   D  taker  20.0 sh  m1 -0.50 m5 -0.80 m15 -1.00 m60 -0.90
+  10-14 08:09 0x750ce9d6 bid 0.350 x 20 (SELL no ) others' touch 0.350/0.370 at touch D  taker  40.0 sh  m1 -1.20 m5 -1.20 m15 -1.20 m60   n/a
+  10-14 09:44 0x7465aead bid 0.340 x 20 (BUY yes) others' touch 0.330/0.370 inside   D  taker  40.0 sh  m1 -0.60 m5 -1.10 m15 -1.10 m60 -1.10
+  10-14 10:18 0x6eed2a46 ask 0.230 x 20 (SELL yes) others' touch 0.220/0.230 at touch B  taker  60.0 sh  m1 -0.70 m5 -0.70 m15 -0.70 m60 -0.70
+  10-14 11:12 0x397bea1f ask 0.180 x 20 (SELL yes) others' touch 0.160/0.180 at touch B  taker  84.0 sh  m1 -0.30 m5 +0.10 m15 +0.20 m60 +0.20
+  10-14 12:18 0x397bea1f ask 0.180 x 20 (SELL yes) others' touch 0.160/0.180 at touch D  taker 100.0 sh  m1 -0.40 m5 -0.50 m15 -0.40 m60 -0.40
+
+  by class (LP-SPEED's): fills, shares; markout at 1 / 5 / 60 minutes ($, the cleaned mid)
+    B:  6 fills,  100 shares; -2.90 / -0.00 / -3.90
+    C:  1 fills,   20 shares; -1.50 / -1.00 / +0.30
+    D: 23 fills,  449 shares; -9.22 / -6.02 / -3.00
+    inside: 16 fills, 309 shares, m60 -6.30
+    at touch: 12 fills, 220 shares, m60 -1.70
+    behind: 2 fills, 40 shares, m60 +1.40
+
+  each market: the fills' P&L at the end mark (the cleaned mid at the window's last minute), realised, held
+    0xed1eabc9 fills  4 shares   80  P&L  -3.00  realised  -3.00  held    +0 YES, mid 0.55
+    0x397bea1f fills  4 shares   80  P&L  -2.80  realised  -2.80  held    +0 YES, mid 0.2
+    0xe612eb64 fills  7 shares  120  P&L  -2.80  realised  -2.80  held    +0 YES, mid 0.22999999999999998
+    0xd95404d1 fills  4 shares   80  P&L  -1.80  realised  -1.80  held    +0 YES, mid 0.235
+    0x6eed2a46 fills  2 shares   40  P&L  -1.80  realised  -1.80  held    +0 YES, mid 0.22999999999999998
+    0x750ce9d6 fills  2 shares   40  P&L  -1.60  realised  -1.60  held    +0 YES, mid 0.29
+    0x7465aead fills  2 shares   40  P&L  -1.60  realised  +0.00  held   +40 YES, mid 0.265
+    0x40b8e1cc fills  2 shares   40  P&L  -1.00  realised  -1.00  held    +0 YES, mid 0.195
+    0x3b162968 fills  3 shares   49  P&L  +0.02  realised  +0.08  held    +9 YES, mid 0.2
+  total -16.38 (realised -14.72); 2026-10-13's rewards 0.892 + rebates 0.618 = 0.27 c a filled share (0.16 c rewards alone; the bar is 1.5 c of rewards)
+
+========================================================================================================================
+
+Q2-PM, the engine on the live window 10-13 13:26 -> 10-14 15:59 UTC with the live picks (Q2 at $316: cap $236; R_engine 0.420, k_vol 1.283)
+
+== 1. each selected pick-minute: live's state (rows) against the engine's gate on pm-rec's book and listing (columns)
+  live \ engine                  entries allowed   touch under 4 c            paused  out: rate under            no book    total
+  out: rate under the floor                  477               566                 0              6445               335     7823
+  touch under 4 c                              0              6407                 7               172                 6     6592
+  resting                                   1176              1361                 1               310               115     2963
+  paused                                     753                 0               191               163               115     1222
+  nothing: other                             227                 1                 1                48                57      334
+  close                                      133                 8                 0                25                15      181
+  no row                                      11                 0                 0                 1                 1       13
+  total                                     2777              8343               200              7164               644    19128
+
+== 2. the engine over the window, the live picks (rewards at R_engine; fills at the cleaned mid of the last minute)
+                                                 total  rewards  formula   fills  rebates  shares fills# 2-sided min
+  as designed (each day's 12, all day)           +2.97    3.769    8.971   -1.31    0.508     287     19        1284
+  as run (refills; each pick to its replacement)   -5.74    3.956    9.416  -10.69    0.988     545     30        1135
+  live                                          -13.50    2.258    3.142  -16.38    0.618     569     30         653
+  (live rewards: 10-13's payout 0.892 + 10-14's formula to 10-14 15:59 1.901 x live R 0.719; 10-14's rebates not yet read. The engine's formula is two-sided only; live's formula column is the live code's.)
+
+== 3. market by market, the engine as run against live: two-sided scoring minutes, formula, fills (shares, $ at the end mark)
+  cond        eng 2s live 2s   eng F  live F  eng sh live sh   eng $  live $
+  0x8f0d07d4     221      52   1.493   0.329    20.0       0   +2.00   +0.00
+  0x6eed2a46      57       9   1.399   0.143    40.0      40   -1.80   -1.80
+  0x7465aead      43       9   1.119   0.267    53.7      40   -1.46   -1.60
+  0xe612eb64      88      21   0.904   0.128   120.0     120   -1.20   -2.80
+  0x7edaab96      24       5   0.705   0.179     0.0       0   +0.00   +0.00
+  0x80d0bb74      55      60   0.398   0.329     0.0       0   +0.00   +0.00
+  0x750ce9d6      39      47   0.314   0.216     0.0      40   +0.00   -1.60
+  0x40b8e1cc      86      54   0.331   0.180    40.0      40   -1.40   -1.00
+  0x397bea1f      72      58   0.269   0.219   120.0      80   -3.60   -2.80
+  0x3b162968       9     104   0.071   0.320    51.5      49   -0.03   +0.02
+  0x34e43923      12       6   0.236   0.123     0.0       0   +0.00   +0.00
+  0xd95404d1      34      34   0.193   0.132    40.0      80   -0.80   -1.80
+  0xf43b49b8      56      28   0.222   0.093     0.0       0   +0.00   +0.00
+  0x0f9e01e5      18      11   0.208   0.099     0.0       0   +0.00   +0.00
+  0xf4abf1cb      33      14   0.206   0.031     0.0       0   +0.00   +0.00
+  0x720ff998      12       4   0.212   0.020     0.0       0   +0.00   +0.00
+  0xed1eabc9      40      34   0.139   0.093    60.0      80   -2.40   -3.00
+  0xeee67c2a      20      19   0.117   0.062     0.0       0   +0.00   +0.00
+  0x99a0647b      13      12   0.114   0.047     0.0       0   +0.00   +0.00
+  0x151502fd      18       0   0.110   0.000     0.0       0   +0.00   +0.00
+  0x2d5746e1      22       0   0.096   0.000     0.0       0   +0.00   +0.00
+  0x9938610f      12       0   0.084   0.000     0.0       0   +0.00   +0.00
+  0xc31427ed      11       2   0.075   0.007     0.0       0   +0.00   +0.00
+  0x164fd763      18       1   0.069   0.003     0.0       0   +0.00   +0.00
+  0x31be5656      20       2   0.065   0.003     0.0       0   +0.00   +0.00
+  0xc49d7771      10       9   0.045   0.021     0.0       0   +0.00   +0.00
+  0x04c3a77d      12      25   0.028   0.030     0.0       0   +0.00   +0.00
+  0xa850e96d      15      10   0.035   0.022     0.0       0   +0.00   +0.00
+  0x24ef3ccf       2       2   0.031   0.013     0.0       0   +0.00   +0.00
+  0x50bf57dd      20       3   0.039   0.004     0.0       0   +0.00   +0.00
+  0x7959bc72      18       1   0.028   0.001     0.0       0   +0.00   +0.00
+  0x5f97cf78       7       6   0.018   0.010     0.0       0   +0.00   +0.00
+  0xe65c5275       3       6   0.010   0.011     0.0       0   +0.00   +0.00
+  0xf89f3837       8       0   0.019   0.000     0.0       0   +0.00   +0.00
+  0xe3c26bc1       4       3   0.010   0.007     0.0       0   +0.00   +0.00
+  0x7bef711f       3       2   0.005   0.002     0.0       0   +0.00   +0.00
+  0xa2b0468e       0       0   0.000   0.000     0.0       0   +0.00   +0.00
+
+== 4. one switch at a time on the as-run schedule (engine $ over the window)
+  as run (Q2 as live)                            -5.74    3.956    9.416  -10.69    0.988     545     30        1135
+  no x2 pause                                    -5.11    4.596   10.939  -10.69    0.988     545     30        1227
+  pause stops entries only (exits rest)          -5.74    3.956    9.416  -10.69    0.988     545     30        1135
+  pause on the raw mid                           -5.89    3.815    9.082  -10.69    0.988     545     30        1117
+  touch >= 3 c                                   -3.62    5.024   11.959   -9.79    1.141     625     36        3140
+  touch >= 5 c                                   -1.49    3.731    8.880   -5.87    0.656     357     20         989
+  touch >= 6 c                                   -1.12    3.233    7.695   -4.97    0.621     337     19         817
+  no touch rule (TB1 2 ticks)                    -6.82    6.586   15.676  -14.63    1.225     672     36        6105
+
+== 5. the formula by live's state (selected pick-minutes): the engine's stateless formula where its gate allows entries, live's own
+  live state                                   eng min    eng F   live F
+  paused                                           753    3.170    0.087
+  resting both sides, both scoring                 332    1.921    2.696
+  resting both sides, not both scoring             653    1.637    0.352
+  out: rate under the floor                        477    1.604    0.007
+  nothing: other                                   227    0.981    0.000
+  close                                            133    0.472    0.000
+  resting one side                                 191    0.344    0.000
+  no row                                            11    0.079    0.000
+  touch under 4 c                                    0    0.000    0.000
+  total                                           2777   10.208    3.142
+
+== 6. x2's pause replayed on live's minute rows (the others' size-adjusted touch live judged): selected pick-minutes paused, and the formula in them
+  as live (adjusted, at once)                       1222 minutes paused, engine formula in them 4.736
+  raw touch mid                                      980 minutes paused, engine formula in them 4.038
+  a jump that still stands a minute later            362 minutes paused, engine formula in them 2.630
+  (live's rows say 'paused' in 1222 selected minutes)

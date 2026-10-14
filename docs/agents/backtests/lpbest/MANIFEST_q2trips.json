@@ -1,0 +1,47 @@
+{
+ "study": "Q2-TRIPS: every Q2 lot since its restart (2026-10-13 13:26 -> 10-14 15:59 UTC) and its P&L split, the engine calibrated to live over that window, and entry/exit rules (a)-(g) priced on 10-05 -> 10-12 and on the live window; 2026-10-14",
+ "review": "docs/agents/reviews/2026-10-14-q2-trips.md",
+ "database": "flmvxigozjuizpckllvk, read-only selects (sql/q2trips_live.sql, sql/q2pm_live.sql #1-#3): pm_lp_fills, pm_lp_markets, pm_lp_events, pm_lp_reward_days, pm_lp_settlements, pm_lp_minutes, pm_lp_orders, pm_lp_state, pm_lp_config, pm_rec_archive (signed URLs read from a saved reply, never printed or committed)",
+ "public_reads": "the data API's /trades for 488 markets (2026-10-12 00:00 -> 10-14 16:00, apitape.py's fetch)",
+ "scripts": {
+  "scripts/q2trips.py": "b2f116c6f9afd6d4c69bc9e37af75c350e1f409ff3e6f0f14858c34f9e03d15b",
+  "scripts/q2trips_manifest.py": "c99253a8b07e389f4c728f979b11d2d7d2b7e9023b61fc54de8cb4262f33a181",
+  "scripts/q2pm.py": "d13a44af6c13206e11548a378dcf74d470e76eea48c093777a149c1dd2e61bf7",
+  "scripts/engine.py": "3ffb4d876d656978f676c2f15f3e3ad05e1eebc6e0e2c05db93c8c6ebd60bbd0"
+ },
+ "sql": {
+  "sql/q2trips_live.sql": "7c4a939045b9061f5c8002b907936304f9a648b4a4221880cd711183a435aca4",
+  "sql/q2pm_live.sql": "e4e5a0af8daa69109d7dd88ccb4f9977f02aee3aa1021028e4215f41cef805ed"
+ },
+ "results": {
+  "results/q2trips_tape.txt": "3f3876cc02f2da3e77388c01736d0dd7a5956fb8465345e1fb5183d28788657d",
+  "results/q2trips_trips.txt": "14443119030aee060eb239148eb5915124df87ad4f1ff2356fdb81e852d6971a",
+  "results/q2trips_calib.txt": "5e600eb85b729f4d275eee0e676d3892b01c30ee57685352947154f10320234c",
+  "results/q2trips_opt.txt": "a370d73a713dfb89d986ad09d64476632deb46af01861a107887739985416105"
+ },
+ "inputs_not_committed": {
+  "work (extract.py over every archive hour 10-04 19:00 -> 10-14 15:00; Q2-PM's day tables 10-05 -> 10-14; the API tape merged)": {
+   "meta.json": "5f17b59ac194cde620705051e122f67e222f545c499add2d1aac293791dd8167",
+   "prints.pkl": "311dce950c57937012b3be10282aaf87c4c560912d09b3722d3ba454626f1d7b",
+   "prog.pkl": "868df8df26092c6c8d6b237f01b7cd37d0dffb8d70c8a68ef18ee7c3dafb6aa8",
+   "daytable_api.csv.gz": "f061c90bb38a28685fc3bcb9445660f1233c9e362e957bff6a7127bff889e119",
+   "prints_api.pkl": "b256e05b614b75a5a1aa5a501297e81b6e5ba3991306f77fb379df87c00e58ad",
+   "live_orders.json.gz": "f6706286ba05b6821494c35bb52f71ccea89e78b88d7574edcee8f2d3b875916",
+   "calib.json": "c67d6ef000d3bd45fbee5a7b23ccc024e13ef418e570d9bbf9f1b72a031b7bcf",
+   "validate.json": "322ec19092ac0eca61cdea9844b08c2c913275e0fd5f05a26f8e8554e0b1413b",
+   "rec_markets.json.gz": "fb9ce3154e1bc5f8dce4f817d69605a5f6140b4c4254938b2e4a6b570f953611"
+  },
+  "live record (the replies, unwrapped)": {
+   "live_aux.json": "5408b443e67eeee54a036301a5a35f65095283522786df4e6b38083efc65e559",
+   "live_minutes.json.gz": "1ccb93fd752af85fd613f062e8aabfba1d634984b71902afe10005dbbad2512e",
+   "live_orders.json.gz": "34e496e33f23a2fa87250ab3753b2f15e699fde8fff1f004f3e8057c64fb6468"
+  }
+ },
+ "run_order": [
+  "python3 -I docs/agents/backtests/lpbest/scripts/fetch.py <saved reply of sql/q2trips_live.sql #4> <pmrec15 dir>",
+  "python3 -I docs/agents/backtests/lpbest/scripts/extract.py <every books/prints/markets hour since 10-04> <every universe hour> <work>",
+  "python3 -I docs/agents/backtests/lpadverse/scripts/unwrap.py <each saved reply #1-#3> <live dir>/...; the live orders' first 14 columns to <work>/live_orders.json.gz; calib.json, validate.json, created.json, prints_api.pkl, daytable_api.csv.gz, rec_markets.json.gz copied from Q2-PM's work",
+  "LPBEST_WORK=<work> Q2PM_LIVE=<live dir> python3 -I -W ignore docs/agents/backtests/lpbest/scripts/q2trips.py tape > results/q2trips_tape.txt",
+  "LPBEST_WORK=<work> LPBEST_API_TAPE=1 Q2PM_LIVE=<live dir> python3 -I -W ignore docs/agents/backtests/lpbest/scripts/q2trips.py trips|calib|opt > results/q2trips_<step>.txt (in that order: opt reads calib's json)"
+ ]
+}
