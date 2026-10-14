@@ -534,6 +534,17 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14"; each oldest first.
 
+### [2026-10-14 16:26 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Handover to Davies' other session tonight** (Davies, ~16:25 UTC: "今天20:00之后我另外一个session就恢复额度了，你这边所有盯盘和自动
+  唤醒等全关了"). This session's Q2 watcher stops after its cycle at or before 20:00 UTC; **the two reading wakes it had set are
+  DISABLED and must be set again by whoever owns the readings**: Coinbase "with Euros" on 2026-11-08 from 00:30
+  (`trig_0155ojPaC5BmUSTGsoYKQuTL`) and "with Euros - 2" on 2026-11-10 from 00:30 (`trig_01BFEc2udBJhBFvKbdSBZgv9`). Q2 state at
+  16:17: stop room $9.01 of $25 (basis −15.99; ALERT band, flat for hours), 30 fills since the restart, every closed market at
+  a loss, rewards+rebates 0.27 c a filled share; no BUY resting at 16:17. Davies' standing word for the pending second
+  post-mortem (`reviews/2026-10-14-q2-trips.md`, the LP-BEST agent): "代理修好后如果你觉得可以就直接推送更改实盘策略". This
+  session recommended stopping Q2 (the undo: `update public.pm_lp_config set restarted_at = null where id = 1;`, which latches
+  the 10-12 stop again, close-only); Davies chose to keep it running for now.
+
 ### [2026-10-14 06:46 UTC] Platform: Muse | Model: muse-wonder-full-1.0
 - **IG deep dive: no live-ready strategy; one venue-transfer test and one quote-discovery test survive**
   (Davies: apply the PMSTATARB research and handoff architecture to IG CFD/spread betting, with real risk only
