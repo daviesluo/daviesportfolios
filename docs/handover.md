@@ -45420,3 +45420,138 @@ reversed to this Part's convention of newest last. Nothing was deleted.
   18 positions and about $270 at cost (the main session's reading); `0x3090f7aa` settled YES at 18:05 (settlement row),
   −$32.54 on its 86 fills at the payout, rewards not counted.
 - `pm_lp.ts` `277baa7a…e8cb` (was `a745ca4f…bc12`); `pm_live.ts` unchanged (`59a1201a…a510`), so no mid-pool addendum.
+
+## LEDGER.md, archived 2026-10-14 — every history section from 2026-10-11 00:05 to 04:30 UTC
+
+### [2026-10-11 00:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep's Addendum 15 shipped** (the 10-10 19:45 section's branch `lp-reserve-0000`, rebased onto `65650793`) on
+  Davies' "同意" at 23:59 UTC 10-10, quoted verbatim in the prereg's Addendum 15. The reserve now re-ranks once, on its
+  first run after the 00:00 selection; `ranked_at` should stay put through the day while `refreshed_at` moves each
+  minute (the top-15 programme read). Check that on 10-11 after the deploy.
+
+### [2026-10-11 00:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **PR5's paper minute that throws is no longer an `agents.crash`, and no longer skips the live turn** (sub-agent,
+  not pushed). The three `agents.crash` rows of 10-10 (02:13:47 and 23:32:35 "Signal timed out.", 22:32:25 connection
+  reset on `agent_locks?name=eq.quotes`) were `runQuotes`' lease claim, its one await outside its own try; it threw
+  out of `runQuotesAction`, so `runQuotesLive` did not run that minute. Now the claim's error carries its step
+  (`QUOTE_LEASE_STEP`), the action writes one `agents.quotes` row naming it, returns 200, and the live executor runs:
+  with the paper's newest minute one behind, its existing "stale inputs" guard places no entry and withdraws the
+  resting ones, exits keep their price, settlement and stops run (as on a minute whose paper lease another run holds).
+  No once-per-outage throttle: each was a single minute. Four pins (`index.test.ts` ×3, `quotes_live.test.ts` ×1).
+
+### [2026-10-11 00:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- Davies (00:0x UTC): "以后盯盘代理也要盯error框里的内容". The working-with-davies skill (and its two Cursor copies) now
+  says every watcher check reads `ops_errors` since its last check, all kinds, and escalates repeats (3+ in 2 h), new
+  kinds and live-path rows; the running live-prep watcher has the same duty. The box's 36 h were read: network blips
+  only, except the quotes paper engine's lease-claim timeout that skipped PR5's live turn (fixed, 10-11 00:10 section).
+
+### [2026-10-11 00:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LP-CAPINV filed** (`reviews/2026-10-11-lp-cap-inventory.md`, `backtests/lpcapinv/`): live-prep's `cap_total` reduces to
+  resting buys ≤ pUSD − $80, so carried inventory (about 96 % of holdings at 00:15 UTC 10-11) leaves today's selection
+  about half its formula weight; it bound 212 minutes on 10-10 and from 00:00 on 10-11. Proposal to Davies (not built):
+  fund the cap in the day's rank order, a market's buys together or not at all (+$3.9 a day central, no added dollar
+  risk). Not proposed: a bigger budget, crossing carried stock. **Defect found:** a carried market in a one-tick book
+  rests no exit (TB1's skip empties `lpQuotes` before `closeOnly`), fix in hand.
+
+### [2026-10-11 00:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep's Addendum 16 (mid-pool's 16), a defect fix** (sub-agent, landed by the main session): a market worked close-only
+  (carried, taken out, or any while opening is stopped) rests its exit in a one-tick book. TB1's skip had emptied
+  `lpQuotes` before `closeOnly` (LP-CAPINV: `0x5fec6675…` a sell in 25 of 1,454 carried minutes, `0xd5734dd2…` 0 of
+  14). New `lpExitQuotes` (`lpQuotes` without the skip, one shared function) via `PmLpOptions.exitRule`; RW's `quote`
+  already joins the touch there, so the sell rests post-only at the best ask (NO at 1 − the best bid). Quoting markets
+  keep TB1's skip; holdings under the 5-share minimum are left to settle. `pm_live.ts` `b002c558…ba85` (was
+  `59a1201a…a510`), `pm_lp.ts` `2e5ca3ee…9e3c` (was `277baa7a…e8cb`); the armed turn test fails on the old `pm_live.ts`.
+
+### [2026-10-11 00:42 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep's Addendum 17 (mid-pool's 17): the caps fund whole markets in the day's rank order** (sub-agent, not
+  pushed), LP-CAPINV's proposal. Davies' answer as the coordinator relayed it, quoted in the addendum: "按照你推荐的来"
+  (00:29 UTC). `PmLpOptions.fundByRank`: wanted BUYs funded against `cap_total`, `cap_market` and pUSD by
+  `pm_lp_markets.rank` (00:00 picks 1–10, refills 11–20, ties by condition id), a market's buys together or not at all
+  (withheld with "its market's buys are funded together or not at all"); mini-pool and mid-pool keep the slot order
+  (the three checks now one function, `blocked`). `pm_live.ts` `a01c8560…778f` (was `b002c558…ba85`), `pm_lp.ts`
+  `82d1aa94…a850` (was `2e5ca3ee…9e3c`); both turn tests fail on Addendum 16's `pm_live.ts`.
+
+### [2026-10-11 01:03 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LIVE's Reward quotes page: DAYS has an Orders column** (sub-agent, landed by the main session; Davies, 2026-10-11:
+  "live的Reward quotes页面days表格中在合适的位置加上orders列展示orders的盈亏"). Day | Markets | Orders | Formula | Paid | R |
+  Rebates. A day's Orders is `lpDayOrders` (`pm_lp_live_view.ts`): the page's own fills P&L (`bookPnl` total over
+  `tokenBooks`, settlements as `settlementFills`) at the day's close less at its open, less the day's fees, so the days
+  add up to realised-from-fills less fees plus unrealised exactly, whatever a midnight's mark. A past midnight's mark is
+  the newest live `pm_lp_minutes` row of the 3 minutes before it, rebuilt as the page's touch mid (`lpMinuteMid`: the
+  others' `bb`/`ba` or our own `bid_price`/`ask_price`, whichever is better); a market with no row there is held at cost
+  (10-09's midnight: `0xecc209a6`, no live minute 23:11–00:05, moves ≤ ~$0.7 between 10-09 and 10-10, sum unchanged).
+  Today and an unread yesterday are rows with Orders alone (`read: false`). On the record at 00:53 UTC 10-11: 10-09
+  +3.395553, 10-10 −34.280797 (MrBeast `0x3090f7aa` −32.544741 on 86 fills = cash −33.162683 + 0.617942 YES at payout
+  1), 10-11 −3.218182 so far; sum −34.103426 = −34.947415 + 0.84399. An independent cash-flow check (day's cash +
+  held at close − held at open) gives the same to 1e-6. `pm_live.ts`/`pm_lp.ts` untouched.
+
+### [2026-10-11 01:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LP-RULES filed** (sub-agent, landed by the main session; `reviews/2026-10-11-lp-rules-audit.md`, `backtests/lprules/`): every live
+  rule of live-prep audited on the live record (10-09 01:32 → 10-11 00:52) and the paper and study records. Live net
+  +$0.92 in 47.3 h (fills −34.28, rewards 28.41, rebates 6.79; MrBeast wk1 −19.33). R 0.737 [0.696, 0.813]. Re-priced
+  at the live R (≈ 0.44 sim units, ≈ 0.27 RW units after the programme cut), no adopted rule flips. **No change proposed
+  today, no defect found** (four observations). The coordinator's case (a selected one-tick market holding stock rests
+  no exit) is a rule question: keep (holding +$21.24 over its 1,753 minutes). Open reads: capital held by carried stock
+  (10-11 → 10-13, Addendum 17's forward test), re-select 6 h and TB1 (10-23), near-end inventory and 3N/5N (by 10-23).
+
+### [2026-10-11 01:33 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LP-OBS-DEEP filed** (sub-agent, landed by the main session; `reviews/2026-10-11-lp-observations-deep.md`, `backtests/lpobsdeep/`):
+  Davies' items 3–5 ("这几项深度研究下并推荐我该怎么操作"), LP-RULES' observations 1, 3, 4. **Defect 1 (fix before the
+  7-day read, 10-16 01:00 UTC, by addendum):** `lp_readout.sql` (the R < 0.20 end rule, the 14-day readout) reads 10-09
+  at its stale $153.90 formula, so R reads 0.154 today; at day 7 it trips on a true R of 0.26–0.37 (F $30–$10 a day).
+  Like for like (10-09 at $8.081876, as `lpLiveR`) it would not. **Defect 2 (display):** TESTING's paper rows are priced
+  at `lpLiveR` on the scored formula applied to a whole-basis paper formula: +1.1 % now (+$0.52 a day on "Reward
+  quotes"), tending to +4.6 %. **Book defect 3 (by addendum):** the total stop leaves out maker rebates ($6.79) and
+  fees, the page's TOTAL counts them, and the page never shows the stop's basis; recommend the stop trip at TOTAL ≤
+  −$75. R: one definition, paid ÷ whole formula, 10-09 like for like, 0.737 (scored 0.763 beside); `lpLiveR`'s shrunk
+  point is 0.590. Pause: no through-fill in 400 exit-able paused minutes; exits resting in close-only markets ≈ −$0.07
+  to +$0.19 a day; recommend it with the next `pm_live.ts` change; keep the pause for selected markets.
+  `pm_lp.ts`, `pm_live.ts` and the view are untouched.
+
+
+### [2026-10-11 01:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LP-CAPDEEP filed** (sub-agent, landed by the main session; `reviews/2026-10-11-lp-capital-deep.md`, `backtests/lpcapdeep/`; Davies,
+  2026-10-11: "这几项深度研究下并推荐我该怎么操作"). Item 1, release the total cap's $80 buffer: **keep it.** LP-CAPINV's
+  +$11.1 was rewards only with fills frozen (+$10.14 at R 0.737; +$7.67 on top of rank order); LP-REFILL's $400/$300 pair
+  re-priced at the live R is −$2.29 [−5.45, +0.60] a day for +$80 (fills −5.95, formula +7.05 per +$100; break-even sim R
+  0.84). The $80 (the stop's $75 + $5) no longer guards collateral since Addendum 8; it brakes stock building while
+  carried stock fills the cap. Since A17 (00:51–01:27) rank order funds 65.3 % of the quoting weight; +$80 would fund
+  ranks 5–11, three ending 10-13..10-16 beside Citigroup (10-13) and Prologis (10-15), whose worst path is −$81.5 against
+  $70.42 of stop room. $40, ranks-1–5-only and held-stock conditions priced, none better. Re-read 10-16 (release $40 only
+  if the budget still binds, ranks 5+ buys have not lost at 6 h, and the stop's room ≥ $100). Item 2, the refill's $200
+  budget test: 2 of 11 live refills were unfundable at once (10-10 14:35; 10-11 00:21 `0x85b5135d`, 0 of 70 minutes
+  two-sided; it dropped the flickering `0x0386c36c`). **Proposed for an addendum on Davies' word:** no refill while
+  min(cap − committed, pUSD left) after the turn's funded buys is under $20; about +$0.5 a day, lowers risk. Re-check
+  window (afterMin 60) and count-only-funded priced: keep. `pm_lp.ts`/`pm_live.ts` untouched.
+
+### [2026-10-11 01:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **One R on LIVE's Reward quotes, and TESTING's paper rows priced on it** (sub-agent, landed by the main session; LP-OBS-DEEP's defect 2
+  and item 4c, display only, no rule). `pm_lp_live_view.ts`: `wholeFormulaOf` (`formula_usd`, 10-09 at its like-for-like
+  $8.081876), `lpLiveR(…, "whole")`, the summary's `rWhole`, `formulaWholeUsd`, `rWholeLive`; the dashboard prices every
+  paper row at `rWholeLive` (was `estimate.r`, scored: +1.1 % now, → +4.6 %). The page's tile is "R (PAID ÷ FORMULA)" on
+  the whole formula, notes "0.76 on scored minutes" and "estimates use 0.59, prior-weighted"; DAYS' Formula and R are the
+  whole basis. Live record (10-11 01:19): whole 0.7366, scored 0.7633, points 0.5835 / 0.5901; RW-C's $78.99 of 10-10
+  formula prices $46.09, not $46.61. Fixture G formula 2 → 2.5 so the bases differ (0.40 / 0.44).
+
+### [2026-10-11 02:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep's Addendum 18 (mid-pool's 18)** (sub-agent, landed by the main session; Davies' "同意，这些都按你推荐的来", 01:41 UTC, quoted).
+  (1) `lp_readout_a18.sql`, the frozen readout's corrected copy (10-09 at $8.081876), run read-only on production 02:02:
+  R 0.7366, scored 0.7633 (`results/lp_readout_a18_2026-10-11.txt`). (2) `PM_LP_REFILL.minFreeUsd: 20`: no refill while
+  min(cap − committed, pUSD left) < $20, checked before candidates; `state.lp.refill.deferred`. (3) `pauseQuotingOnly`:
+  close-only markets rest their exit through a pause. (4) `stopCountsRebates`: live stop basis = fills + paid + rebates −
+  fees = the page's TOTAL; the page shows the room. `pm_live.ts` `ee96ba0e…667d` (was `a01c8560…778f`), `pm_lp.ts`
+  `53f7f788…7278` (was `82d1aa94…a850`). Three turn pins fail on Addendum 17's `pm_live.ts`. $80 buffer kept.
+
+### [2026-10-11 03:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Handover to Cursor (Grok 4.7) before the weekly limit** (Davies: "把这套盯盘+自动维护修复问题的机制详细总结成一个skill…
+  低级的模型也可以看懂并完美实施"). Wrote `.agents/skills/live-watch/SKILL.md` (+ two pointers, `docs/map.md`'s agents
+  row): fourteen NEVER rules, setup with a read-only Supabase MCP URL, an eight-step cycle whose SQL was each run
+  read-only on production at 03:15–03:20 UTC, an error-box classifier, a decision tree, the safe-fix workflow (repro,
+  counterfactual, dist, gates, deploy check), ledger rules, the proposal path and the dated reads. Found while writing:
+  `state.pnl.total` (−50.55 at 03:11) is the fills alone; the stop's basis was −15 (room ≈ $60), so the skill reads the
+  room from rewards and rebates too. Archived the 2026-10-10 history sections to `docs/handover.md` (ledger 78 → 55 KB).
+
+### [2026-10-11 04:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- LIVE's Reward quotes: the R tile shows the one figure, paid ÷ whole formula, with nothing under it (Davies:
+  "第一个数字底下的小字部分全删了，第一个数字用一个最能表示的就行"); `lpLiveStatus().rNotes` is empty, the vitest and the
+  browser sweep pin that, `docs/guide.md` says so. Estimates still price at their own prior-weighted R, unshown.
