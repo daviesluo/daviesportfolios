@@ -549,6 +549,12 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   10-05 → 10-12: no refills beats live's +$2.27/day [+1.59, +2.88], 8/8 days; calibrated −0.74 → +1.47/day, 1.53 ¢/share.
   Proposal (Davies' call): Addendum 22, `PM_LP_REFILL.maxPerDay` 10 → 0, or stop. Nothing live changed.
 
+### [2026-10-14 02:09 UTC] Platform: Muse | Model: muse-wonder-full-1.0
+- **PMSTATARB handoff written** (Davies: each item's requirements and standards clear for Grok to verify).
+  `backtests/pmstatarb/SPEC-for-verification.md` freezes the order, endpoints, entry hours, model, fill rule,
+  neighbour parameters, five-part bars, acceptance checks and Chinese report shape for G1–G4 and TOUCH-CAL,
+  BUCKET-DIST, KALSHI-LEAD and SPORTS-XCHECK. No peer session was reachable from this seat; the file is the handoff.
+
 ### [2026-10-14 02:02 UTC] Platform: Muse | Model: muse-wonder-full-1.0
 - **PMSTATARB: the Polymarket statistical-arbitrage line taken stock of, two historical tests proposed** (Davies: absorb
   the earlier Claude/Cursor stat-arb research and look for new candidates worth testing; `reviews/2026-10-14-pm-statarb-deepdive.md`,

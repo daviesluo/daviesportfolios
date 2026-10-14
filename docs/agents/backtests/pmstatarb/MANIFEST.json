@@ -3,6 +3,10 @@
  "note": "Snapshot scripts read live public books; a re-run reads a later book. Results are the 2026-10-14 ~02:00 UTC reads.",
  "files": [
   {
+   "path": "SPEC-for-verification.md",
+   "sha256": "b328b67890c895d6008c56fa7bc3c5154e4bb2c7767e6eac1f50cbcc355df70c"
+  },
+  {
    "path": "results/clauses_buckets.txt",
    "sha256": "b2b8b959e4913a98877d79f7131ac22d8f5dc62cf0f65dd8a798ed932c557e2c"
   },
