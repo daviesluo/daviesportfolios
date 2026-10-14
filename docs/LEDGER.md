@@ -536,7 +536,7 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
 
 ### [2026-10-14 16:26 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Handover to Davies' other session tonight** (Davies, ~16:25 UTC: "今天20:00之后我另外一个session就恢复额度了，你这边所有盯盘和自动
-  唤醒等全关了"). This session's Q2 watcher stops after its cycle at or before 20:00 UTC; **the two reading wakes it had set are
+  唤醒等全关了"). This session's Q2 watcher stops after its cycle at or before 19:00 UTC (Davies: "UTC 19:00"); **the two reading wakes it had set are
   DISABLED and must be set again by whoever owns the readings**: Coinbase "with Euros" on 2026-11-08 from 00:30
   (`trig_0155ojPaC5BmUSTGsoYKQuTL`) and "with Euros - 2" on 2026-11-10 from 00:30 (`trig_01BFEc2udBJhBFvKbdSBZgv9`). Q2 state at
   16:17: stop room $9.01 of $25 (basis −15.99; ALERT band, flat for hours), 30 fills since the restart, every closed market at
