@@ -59,6 +59,12 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    buffer re-read; 10-22/23 LPRESEL6, TB1 C1, 14-day readout. Showcase (`daviesluo/personal`) not yet updated for this
    week's strategy changes (Addenda 9–18, LP studies): left for Claude Code.
 
+0a″. **URGENT for the next session: Q2's stop room was $3.98 of $25 at 17:47 UTC 10-14** (basis −21.02; 0x7465aead "Democratic
+   Senate odds 60-62% on October 16?" 40 YES at cost $12.20, mid 0.15, −6.20; 0x6eed2a46 20 YES bought again 17:40). The −$25
+   stop trips by itself at room 0 (close-only, nothing to do); this session recommended Davies stop now with the undo below;
+   no answer before the 19:00 UTC handover. First read `state->'lp'->'stop'` and `trippedAt`. Then after 00:05/01:20 UTC 10-15
+   read 10-14's payout and rebates (rewards per filled share since the restart: 0.27 c at 16:17, bar 1.5 c).
+
 0a′. **Q2 live, the second post-mortem (`reviews/2026-10-14-q2-trips.md`, landed 2026-10-14 ~16:45 UTC): no rule fixes it.**
    Every lot lost to informed takers and the drift while held (16 lots −16.38: entry edge +5.87, first minute −9.12, held
    −16.08, exits +3.00); of 27 rules none clears $0 at its 5 % bound on both spans or the 1.5 c bar on the live window. The
