@@ -1,0 +1,88 @@
+Q2-PM, the engine on the live window 10-13 13:26 -> 10-14 01:59 UTC with the live picks (Q2 at $316: cap $236; R_engine 0.420, k_vol 1.283)
+
+== 1. each selected pick-minute: live's state (rows) against the engine's gate on pm-rec's book and listing (columns)
+  live \ engine                  entries allowed   touch under 4 c            paused  out: rate under            no book    total
+  touch under 4 c                              0              3600                 0                47                 1     3648
+  out: rate under the floor                  261               271                 0              2445                92     3069
+  resting                                    655               675                 0               207                28     1565
+  paused                                     274                 0                29                74                 3      380
+  nothing: other                             152                 1                 0                27                12      192
+  close                                      133                 8                 0                25                15      181
+  no row                                      11                 0                 0                 1                 1       13
+  total                                     1486              4555                29              2826               152     9048
+
+== 2. the engine over the window, the live picks (rewards at R_engine; fills at the cleaned mid of the last minute)
+                                                 total  rewards  formula   fills  rebates  shares fills# 2-sided min
+  as designed (each day's 12, all day)           -1.57    2.706    6.442   -4.57    0.300     174     12         896
+  as run (refills; each pick to its replacement)   -6.37    2.939    6.995   -9.91    0.604     332     18         851
+  live                                           -8.51    1.545    2.150  -10.67    0.618     349     19         445
+  (live rewards: 10-13's payout 0.892 + 10-14's formula to 10-14 01:59 0.909 x live R 0.719; 10-14's rebates not yet read. The engine's formula is two-sided only; live's formula column is the live code's.)
+
+== 3. market by market, the engine as run against live: two-sided scoring minutes, formula, fills (shares, $ at the end mark)
+  cond        eng 2s live 2s   eng F  live F  eng sh live sh   eng $  live $
+  0x6eed2a46      44       1   1.132   0.062     0.0       0   +0.00   +0.00
+  0xe612eb64      88      21   0.904   0.128   120.0     120   -1.20   -2.80
+  0x7edaab96      24       5   0.705   0.179     0.0       0   +0.00   +0.00
+  0x7465aead      26       3   0.701   0.065     0.0       0   +0.00   +0.00
+  0x80d0bb74      48      46   0.375   0.286     0.0       0   +0.00   +0.00
+  0x750ce9d6      39      47   0.314   0.216     0.0      20   +0.00   -0.90
+  0x40b8e1cc      86      54   0.331   0.180    40.0      40   -1.40   -1.00
+  0x397bea1f      72      58   0.269   0.219    80.0      40   -3.80   -3.00
+  0xd95404d1      34      34   0.193   0.132    40.0      60   -0.80   -0.40
+  0xf43b49b8      56      28   0.222   0.093     0.0       0   +0.00   +0.00
+  0x0f9e01e5      18      11   0.208   0.099     0.0       0   +0.00   +0.00
+  0x34e43923       7       6   0.150   0.123     0.0       0   +0.00   +0.00
+  0xf4abf1cb      33      14   0.206   0.031     0.0       0   +0.00   +0.00
+  0x720ff998      12       4   0.212   0.020     0.0       0   +0.00   +0.00
+  0xed1eabc9      40      34   0.139   0.093    40.0      60   -3.00   -2.80
+  0x3b162968       9      11   0.071   0.051    11.5       9   +0.29   +0.23
+  0x151502fd      18       0   0.110   0.000     0.0       0   +0.00   +0.00
+  0x2d5746e1      22       0   0.096   0.000     0.0       0   +0.00   +0.00
+  0x9938610f      12       0   0.084   0.000     0.0       0   +0.00   +0.00
+  0xc31427ed      11       2   0.075   0.007     0.0       0   +0.00   +0.00
+  0x164fd763      18       1   0.069   0.003     0.0       0   +0.00   +0.00
+  0x31be5656      20       2   0.065   0.003     0.0       0   +0.00   +0.00
+  0x8f0d07d4       7       6   0.036   0.030     0.0       0   +0.00   +0.00
+  0xc49d7771      10       9   0.045   0.021     0.0       0   +0.00   +0.00
+  0xeee67c2a       7       5   0.044   0.019     0.0       0   +0.00   +0.00
+  0xa850e96d      15      10   0.035   0.022     0.0       0   +0.00   +0.00
+  0x24ef3ccf       2       2   0.031   0.013     0.0       0   +0.00   +0.00
+  0x50bf57dd      20       3   0.039   0.004     0.0       0   +0.00   +0.00
+  0x99a0647b       4       4   0.026   0.011     0.0       0   +0.00   +0.00
+  0x04c3a77d       6       6   0.019   0.012     0.0       0   +0.00   +0.00
+  0x7959bc72      18       1   0.028   0.001     0.0       0   +0.00   +0.00
+  0x5f97cf78       7       6   0.018   0.010     0.0       0   +0.00   +0.00
+  0xe65c5275       3       6   0.010   0.011     0.0       0   +0.00   +0.00
+  0xf89f3837       8       0   0.019   0.000     0.0       0   +0.00   +0.00
+  0xe3c26bc1       4       3   0.010   0.007     0.0       0   +0.00   +0.00
+  0x7bef711f       3       2   0.005   0.002     0.0       0   +0.00   +0.00
+  0xa2b0468e       0       0   0.000   0.000     0.0       0   +0.00   +0.00
+
+== 4. one switch at a time on the as-run schedule (engine $ over the window)
+  as run (Q2 as live)                            -6.37    2.939    6.995   -9.91    0.604     332     18         851
+  no x2 pause                                    -6.15    3.154    7.507   -9.91    0.604     332     18         872
+  pause stops entries only (exits rest)          -6.37    2.939    6.995   -9.91    0.604     332     18         851
+  pause on the raw mid                           -6.51    2.798    6.660   -9.91    0.604     332     18         833
+  touch >= 3 c                                   -6.09    3.676    8.750  -10.51    0.750     412     24        2276
+  touch >= 5 c                                   -2.72    2.628    6.256   -5.71    0.359     192     10         672
+  touch >= 6 c                                   -2.36    2.232    5.313   -4.91    0.324     172      9         535
+  no touch rule (TB1 2 ticks)                    -8.66    4.525   10.771  -14.01    0.822     452     25        4159
+
+== 5. the formula by live's state (selected pick-minutes): the engine's stateless formula where its gate allows entries, live's own
+  live state                                   eng min    eng F   live F
+  paused                                           274    2.177    0.031
+  resting both sides, both scoring                 240    1.313    1.859
+  resting both sides, not both scoring             234    1.083    0.253
+  out: rate under the floor                        261    0.973    0.007
+  nothing: other                                   152    0.760    0.000
+  close                                            133    0.472    0.000
+  resting one side                                 181    0.313    0.000
+  no row                                            11    0.079    0.000
+  touch under 4 c                                    0    0.000    0.000
+  total                                           1486    7.170    2.150
+
+== 6. x2's pause replayed on live's minute rows (the others' size-adjusted touch live judged): selected pick-minutes paused, and the formula in them
+  as live (adjusted, at once)                        380 minutes paused, engine formula in them 2.738
+  raw touch mid                                      438 minutes paused, engine formula in them 2.719
+  a jump that still stands a minute later            212 minutes paused, engine formula in them 2.006
+  (live's rows say 'paused' in 380 selected minutes)

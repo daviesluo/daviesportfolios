@@ -1,0 +1,2 @@
+Q2 $316 (LP-BEST, TB1 2 ticks)                               +3.61 [  +1.38,   +6.02]  rew   3.97 fills   -0.58 reb  0.23  sh/d    136 mo60/d   -0.23  worst  -10.34  peak$   234  mkts 87
+Q2 $316, exits in a one-tick book (A21)                      +3.37 [  +1.05,   +5.66]  rew   4.01 fills   -0.87 reb  0.23  sh/d    138 mo60/d   -0.39  worst   -9.85  peak$   236  mkts 87

@@ -1,0 +1,51 @@
+{
+ "study": "Q2-PM: Q2's first live day (live-prep's Addendum 19, 2026-10-13 13:26 -> 10-14 01:59 UTC) against LP-BEST's engine line by line, the programmes' instability, and the candidates priced on the record (10-05 -> 10-12) and on live day 1; 2026-10-14",
+ "review": "docs/agents/reviews/2026-10-14-q2-day1-postmortem.md",
+ "database": "flmvxigozjuizpckllvk, read-only selects (sql/q2pm_live.sql): pm_lp_fills, pm_lp_markets, pm_lp_events, pm_lp_reward_days, pm_lp_settlements, pm_lp_minutes, pm_lp_orders, pm_rec_archive (signed URLs read from a saved reply, never printed or committed), pm_rec_markets, pm_prog_reads (its span only)",
+ "public_reads": "the data API's /trades for 488 markets (2026-10-12 00:00 -> 10-14 02:00, apitape.py's fetch); the CLOB's /rewards/markets/{condition_id} for 96 markets (10-14 ~03:13 UTC)",
+ "scripts": {
+  "scripts/q2pm_data.py": "dd261163aceba4b1e8811d8d07d338033809472023b89feef96bbfaa4a365817",
+  "scripts/q2pm.py": "d13a44af6c13206e11548a378dcf74d470e76eea48c093777a149c1dd2e61bf7",
+  "scripts/q2pm_manifest.py": "e2ba228ddcd7464a382ef79b8d2100eb663468131da298d5179abd8eb10d1af8"
+ },
+ "sql": {
+  "sql/q2pm_live.sql": "e4e5a0af8daa69109d7dd88ccb4f9977f02aee3aa1021028e4215f41cef805ed"
+ },
+ "results": {
+  "results/q2pm_check.txt": "229b4f4990db785995b92e512f20466cef8004d9a298ff09f60b12e48018773e",
+  "results/q2pm_live.txt": "36d19c598457cf9d1854f16fc3b59dfd79cb946d4accbe2634118f7b0894d4a2",
+  "results/q2pm_run.txt": "b91de6d9999c7def1c589a7ddd9721f64edc0cfe06fe2ef745df7a98d75396e8",
+  "results/q2pm_prog.txt": "200e5df1e57355aaa50d1c28021025de1ea8ba549677c29d67b0a07ae018282e",
+  "results/q2pm_opt.txt": "0b591555d7b3620a0c62123cc2f4bd736c5bd98c71c5acf7daa02c1b8a2bc919"
+ },
+ "inputs_not_committed": {
+  "Q2PM work (extract.py over every archive hour 10-04 19:00 -> 10-14 01:00; the day tables; the API tape merged)": {
+   "meta.json": "5f17b59ac194cde620705051e122f67e222f545c499add2d1aac293791dd8167",
+   "prints.pkl": "e14a9cdf8103ffdfbff64a47aca8fdbdd9860e12254003ba6db998ff1348e59b",
+   "prog.pkl": "0e8f1ef68b6948da1dd6ffe5d5abf4727413b2043e33c3fcd52d3b78c6cc6b22",
+   "daytable_api.csv.gz": "f061c90bb38a28685fc3bcb9445660f1233c9e362e957bff6a7127bff889e119",
+   "daytable14.csv.gz": "8077b2c4f8ac2f071490b98da82deef7148a1c583c3941c4f69b27acfb806a9a",
+   "daytable14_api.csv.gz": "8947eb06bb88de7d899151b07b6962f21db9f4d39b4c97976d49008ecb6c2b1f",
+   "prints_api.pkl": "17f5b9a47a9ce1ba1d5ad10d8f17cd63e5fefbbd6c464c0b4e19acea6cb018bc",
+   "live_orders.json.gz": "32f5be69f2356d027f2df24aea40d540790409a90f275215050b3a39fdf45485",
+   "calib.json": "c67d6ef000d3bd45fbee5a7b23ccc024e13ef418e570d9bbf9f1b72a031b7bcf",
+   "validate.json": "322ec19092ac0eca61cdea9844b08c2c913275e0fd5f05a26f8e8554e0b1413b",
+   "rec_markets.json.gz": "fb9ce3154e1bc5f8dce4f817d69605a5f6140b4c4254938b2e4a6b570f953611"
+  },
+  "live record (sql/q2pm_live.sql's replies, unwrapped)": {
+   "live_aux.json": "c28c8e17cccd7c374786277523f14128aecaa6003e95a2f8b2dafa20f5b09cf5",
+   "live_minutes.json.gz": "1bfee07ea0d77a8af1380aeecb58558212c65a8ad207cede909ab98b6d9489b5",
+   "live_orders.json.gz": "e7625119c8bb983652f03521c5adc22ff88b110529c9ddd4f2cd3995f029ea03"
+  }
+ },
+ "run_order": [
+  "python3 -I docs/agents/backtests/lpbest/scripts/fetch.py <saved reply of sql/q2pm_live.sql #4> <pmrec14 dir>",
+  "python3 -I docs/agents/backtests/lpbest/scripts/extract.py <every books/prints/markets hour since 10-04> <every universe hour> <Q2PM work>",
+  "python3 -I docs/agents/backtests/lpadverse/scripts/unwrap.py <each saved reply of sql/q2pm_live.sql #1-#3> <live dir>/...; the live orders' first 14 columns to <Q2PM work>/live_orders.json.gz; calib.json, validate.json, prints_api.pkl copied from Q2-AGE's 10-13 work; rec_markets.json.gz from sql/rec_markets.sql",
+  "LPBEST_WORK=<Q2PM work> python3 -I docs/agents/backtests/lpbest/scripts/q2pm_data.py table",
+  "LPBEST_WORK=<Q2PM work> Q2PM_AGE13=<Q2-AGE 10-13 work> Q2PM_LIVE=<live dir>/live_aux.json python3 -I docs/agents/backtests/lpbest/scripts/q2pm_data.py tape",
+  "LPBEST_WORK=<Q2PM work> LPBEST_API_TAPE=1 python3 -I docs/agents/backtests/lpbest/scripts/q2pm_data.py table",
+  "LPBEST_WORK=<Q2PM work> LPBEST_API_TAPE=1 Q2PM_LPBEST=<LP-BEST work> Q2PM_AGE13=<Q2-AGE 10-13 work> python3 -I docs/agents/backtests/lpbest/scripts/q2pm_data.py merge",
+  "LPBEST_WORK=<Q2PM work> LPBEST_API_TAPE=1 Q2PM_LIVE=<live dir> python3 -I -W ignore docs/agents/backtests/lpbest/scripts/q2pm.py check|live|run|prog|opt > results/q2pm_<step>.txt (in that order: run reads live's json, opt reads run's)"
+ ]
+}

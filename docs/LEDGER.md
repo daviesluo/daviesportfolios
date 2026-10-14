@@ -518,6 +518,14 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14"; each oldest first.
 
+### [2026-10-14 03:23 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Q2-PM, why Q2 lost on day 1** (`reviews/2026-10-14-q2-day1-postmortem.md`, `backtests/lpbest/`; "为什么还在亏"):
+  13:26 → 01:59 live −$8.51. Against LP-BEST's +1.76 for the span: window −3.33; live's refill on a programme dip −4.80
+  (refills lost $8.10 of $10.67), unpriced by LP-BEST; rewards −1.39 (x2's pause trips 13× the engine's: −0.87); fills
+  −0.76. Rates re-price ~every 14 min, 89–98 % of quiet books dip under $10 daily, TRAIN/TEST alike; not caused by us.
+  10-05 → 10-12: no refills beats live's +$2.27/day [+1.59, +2.88], 8/8 days; calibrated −0.74 → +1.47/day, 1.53 ¢/share.
+  Proposal (Davies' call): Addendum 22, `PM_LP_REFILL.maxPerDay` 10 → 0, or stop. Nothing live changed.
+
 ### [2026-10-14 02:02 UTC] Platform: Muse | Model: muse-wonder-full-1.0
 - **PMSTATARB: the Polymarket statistical-arbitrage line taken stock of, two historical tests proposed** (Davies: absorb
   the earlier Claude/Cursor stat-arb research and look for new candidates worth testing; `reviews/2026-10-14-pm-statarb-deepdive.md`,

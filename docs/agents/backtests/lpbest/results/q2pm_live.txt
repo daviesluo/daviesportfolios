@@ -1,0 +1,95 @@
+Q2-PM, the live record 10-13 13:26 -> 10-14 01:59 UTC (12.6 hours; restart 2026-10-13T13:25:32Z)
+
+== the picks (rank > 12: a refill), from selection to replacement
+  10-13 # 1 0x31be5656 10-13 13:26 -> 10-13 16:17  rate  29 v 5.5  Will 0 Independents be elected to Congress in 2026?
+  10-13 # 2 0xf4abf1cb 10-13 13:26 -> 10-13 14:25  rate  17 v 6.5  Will Celina Leão win the 2026 Federal District gubernatorial second ro
+  10-13 # 3 0x0f9e01e5 10-13 13:26 -> 10-14 00:00  rate  20 v 5.5  Will the Democratic Party candidate win the 2026 MD-07 House election 
+  10-13 # 4 0xa850e96d 10-13 13:26 -> 10-14 00:00  rate  19 v 5.5  Will the Democratic Party candidate win the 2026 AZ-04 House election 
+  10-13 # 5 0x9938610f 10-13 13:26 -> 10-13 13:50  rate  35 v 6.5  Will Anthropic have the highest OpenRouter market share the week of Oc
+  10-13 # 6 0xa2b0468e 10-13 13:26 -> 10-13 17:01  rate  19 v 5.5  Will the Democratic Party candidate win the 2026 NY-07 House election 
+  10-13 # 7 0xf89f3837 10-13 13:26 -> 10-13 13:56  rate  13 v 5.5  Will the Republican Party candidate win the 2026 SD-AL House election 
+  10-13 # 8 0x7959bc72 10-13 13:26 -> 10-14 00:00  rate  12 v 5.5  Will the Democratic Party candidate win the 2026 MD-07 House election 
+  10-13 # 9 0x2d5746e1 10-13 13:26 -> 10-13 13:51  rate  10 v 8.5  Will Victor Cumming win the 2026 Vernon mayoral election?
+  10-13 #10 0x164fd763 10-13 13:26 -> 10-14 00:00  rate  50 v 4.5  Will Honeywell Technologies (HON) Q3 Building Automation sales be abov
+  10-13 #11 0xe612eb64 10-13 13:26 -> 10-14 00:00  rate  12 v 4.5  Procter & Gamble (PG) Q1 organic sales growth 2.5% to 3.5%?
+  10-13 #12 0x50bf57dd 10-13 13:26 -> 10-13 15:45  rate  14 v 5.5  Will the Democratic Party candidate win the 2026 MD-04 House election 
+  10-13 #13 0xe3c26bc1 10-13 13:50 -> 10-13 17:35  rate  16 v 5.5  Will the Democratic Party candidate win the 2026 IL-14 House election 
+  10-13 #14 0xe65c5275 10-13 13:51 -> 10-14 00:00  rate  17 v 5.5  Will the Republican Party candidate win the 2026 FL-18 House election 
+  10-13 #15 0x7bef711f 10-13 13:56 -> 10-13 16:02  rate  13 v 5.5  Will the Democratic Party candidate win the 2026 NY-04 House election 
+  10-13 #16 0x40b8e1cc 10-13 14:25 -> 10-14 00:00  rate  10 v 5.5  Will the Republican Party candidate win the 2026 IL-16 House election 
+  10-13 #17 0xd95404d1 10-13 15:45 -> 10-14 00:00  rate  22 v 5.5  Will the Republican Party candidate win the 2026 AZ-09 House election 
+  10-13 #18 0x750ce9d6 10-13 16:02 -> 10-14 00:00  rate  20 v 5.5  Will the Democratic Party candidate win the 2026 IL-07 House election 
+  10-13 #19 0x397bea1f 10-13 16:17 -> 10-14 00:00  rate  12 v 5.5  Will the Republican Party candidate win the 2026 IN-03 House election 
+  10-13 #20 0xf43b49b8 10-13 17:01 -> 10-14 00:00  rate  14 v 8.5  Will Scott Hamilton win the 2026 Cambridge mayoral election?
+  10-13 #21 0xed1eabc9 10-13 17:35 -> 10-14 00:00  rate  10 v 8.5  Will Drew Dilkens win the 2026 Windsor mayoral election?
+  10-14 # 1 0x24ef3ccf 10-14 00:00 -> 10-14 01:49  rate  59 v 4.5  Will Brothers Osborne win Vocal Duo of the Year at the 2026 CMA Awards
+  10-14 # 2 0x34e43923 10-14 00:00 -> 10-15 00:00  rate  50 v 4.5  Will T-Mobile (TMUS) Q3 total service revenues be above $19.5B?
+  10-14 # 3 0x7edaab96 10-14 00:00 -> 10-15 00:00  rate  50 v 4.5  Will Honeywell Technologies (HON) Q3 Building Automation sales be abov
+  10-14 # 4 0x7465aead 10-14 00:00 -> 10-15 00:00  rate  50 v 4.5  Democratic Senate odds 60-62% on October 16?
+  10-14 # 5 0x720ff998 10-14 00:00 -> 10-14 00:27  rate  30 v 6.5  Will Labor hold the most seats in the New South Wales Legislative Coun
+  10-14 # 6 0x3b162968 10-14 00:00 -> 10-15 00:00  rate  17 v 6.5  Will Rory Nisan win the 2026 Burlington mayoral election?
+  10-14 # 7 0x04c3a77d 10-14 00:00 -> 10-15 00:00  rate  16 v 6.5  Will Kellie Sloane be the next Premier of New South Wales?
+  10-14 # 8 0x99a0647b 10-14 00:00 -> 10-15 00:00  rate  16 v 5.5  Will the Democratic Party candidate win the 2026 ME-01 House election 
+  10-14 # 9 0x80d0bb74 10-14 00:00 -> 10-15 00:00  rate  20 v 5.5  Will the Democratic Party candidate win the 2026 CO-06 House election 
+  10-14 #10 0xc31427ed 10-14 00:00 -> 10-14 00:23  rate  14 v 6.5  Will Vicentinho Júnior win the 2026 Tocantins gubernatorial second rou
+  10-14 #11 0xeee67c2a 10-14 00:00 -> 10-15 00:00  rate  14 v 4.5  Will Manchester City finish in last place in the 2026-27 English Premi
+  10-14 #12 0x151502fd 10-14 00:00 -> 10-14 00:24  rate  21 v 6.5  Will PAN win the most seats in the 2027 Guanajuato Congress election?
+  10-14 #13 0x6eed2a46 10-14 00:23 -> 10-15 00:00  rate  50 v 4.5  Will Google (GOOGL) Q3 YouTube ads revenue be above $11.8B?
+  10-14 #14 0xc49d7771 10-14 00:24 -> 10-15 00:00  rate  67 v 4.5  Will ISM Services PMI be between 54.0 and 54.9 in October?
+  10-14 #15 0x5f97cf78 10-14 00:27 -> 10-15 00:00  rate  10 v 5.5  Will the Republican Party candidate win the 2026 NY-11 House election 
+  10-14 #16 0x8f0d07d4 10-14 01:49 -> 10-15 00:00  rate  14 v 6.5  Will Lorenzo Pazolini win the 2026 Espírito Santo gubernatorial second
+
+== the picks' selected minutes (9048 pick-minutes, 12.0 picks on average), by what rested
+    3648   40.3 %  nothing: touch under 4 c
+    2557   28.3 %  out: rate under the floor
+     798    8.8 %  resting both sides
+     767    8.5 %  resting one side
+     480    5.3 %  out: rate under the floor (exit resting)
+     377    4.2 %  paused
+     192    2.1 %  nothing: other
+     181    2.0 %  close
+      31    0.3 %  out: programme ended
+      13    0.1 %  no row
+       3    0.0 %  paused (exit resting)
+       1    0.0 %  out: programme ended (exit resting)
+
+== rewards: formula (the live code's) 2026-10-13 1.241 (reward days 1.241), 2026-10-14 to 10-14 01:59 0.909; paid 2026-10-13 0.892 (R 0.719); rebates 2026-10-13 0.618; minutes with both sides scoring {'2026-10-13': 329, '2026-10-14': 116}
+
+== the fills: 19, 349 shares (YES terms: bid = a BUY of YES or a SELL of NO)
+  10-13 13:45 0xe612eb64 ask 0.150 x 20 (BUY no ) others' touch 0.120/0.160 inside   D  taker  20.0 sh  m1 +0.10 m5 +0.20 m15 +0.20 m60 +0.20
+  10-13 15:49 0xd95404d1 ask 0.240 x 20 (BUY no ) others' touch 0.210/0.250 inside   D  taker  40.0 sh  m1 -1.20 m5 -1.00 m15 -0.90 m60 +0.40
+  10-13 16:12 0x40b8e1cc bid 0.220 x 20 (BUY yes) others' touch 0.230/0.280 behind   C  taker  20.0 sh  m1 -1.50 m5 -1.00 m15 +0.20 m60 +0.30
+  10-13 16:13 0x40b8e1cc ask 0.170 x 20 (SELL yes) others' touch 0.110/0.180 inside   D  taker  20.0 sh  m1 -0.50 m5 -0.40 m15 -0.60 m60 -1.30
+  10-13 16:16 0xd95404d1 bid 0.280 x 20 (SELL no ) others' touch 0.280/0.290 at touch B  taker 100.0 sh  m1 -0.90 m5 -0.70 m15 -0.90 m60 -1.30
+  10-13 17:14 0xe612eb64 bid 0.200 x 20 (SELL no ) others' touch 0.200/0.220 at touch D  taker  52.8 sh  m1 +0.10 m5 +0.10 m15 +0.10 m60 +3.80
+  10-13 18:02 0xed1eabc9 ask 0.510 x 20 (BUY no ) others' touch 0.480/0.520 inside   D  taker  40.0 sh  m1 -0.20 m5 -0.30 m15 -0.40 m60 -1.50
+  10-13 18:09 0xe612eb64 ask 0.270 x 20 (BUY no ) others' touch 0.230/0.280 inside   D  taker  20.0 sh  m1 -4.00 m5 -2.40 m15 -2.30 m60 +0.20
+  10-13 18:48 0x397bea1f bid 0.250 x 20 (BUY yes) others' touch 0.240/0.310 inside   D  taker  20.0 sh  m1 +0.40 m5 +0.50 m15 +0.00 m60 -0.30
+  10-13 18:49 0x397bea1f bid 0.250 x 20 (BUY yes) others' touch 0.240/0.300 inside   D  taker  20.0 sh  m1 +0.30 m5 +0.30 m15 +0.20 m60 -0.40
+  10-13 19:06 0xd95404d1 ask 0.230 x 20 (BUY no ) others' touch 0.190/0.240 inside   D  taker  20.0 sh  m1 +0.20 m5 +0.00 m15 +0.00 m60 +0.00
+  10-13 19:25 0xed1eabc9 bid 0.580 x 20 (SELL no ) others' touch 0.580/0.600 at touch D  taker  46.8 sh  m1 -0.10 m5 -0.10 m15 -0.10 m60 -1.10
+  10-13 20:05 0x750ce9d6 ask 0.270 x 20 (BUY no ) others' touch 0.240/0.280 inside   D  taker  40.0 sh  m1 +0.10 m5 +0.30 m15 +0.20 m60 -0.00
+  10-13 20:25 0xe612eb64 ask 0.290 x 20 (BUY no ) others' touch 0.260/0.280 behind   B  taker  40.0 sh  m1 -0.80 m5 +1.20 m15 +1.50 m60 +1.10
+  10-13 23:18 0xe612eb64 bid 0.290 x 20 (SELL no ) others' touch 0.290/0.310 at touch D  taker  40.0 sh  m1 -0.40 m5 -0.20 m15 -0.20 m60 +1.10
+  10-13 23:21 0xed1eabc9 ask 0.520 x 20 (BUY no ) others' touch 0.390/0.530 inside   D  taker  20.0 sh  m1 -0.50 m5 +0.50 m15 +0.50 m60 -1.10
+  10-14 00:09 0x3b162968 bid 0.220 x  9 (BUY yes) others' touch 0.210/0.290 inside   D  taker   9.0 sh  m1 +0.18 m5 +0.18 m15 +0.13 m60 +0.50
+  10-14 00:28 0xe612eb64 bid 0.360 x 10 (SELL no ) others' touch 0.360/0.380 at touch B  taker  70.0 sh  m1 -0.10 m5 +0.05 m15 -0.15 m60 -1.60
+  10-14 00:28 0xe612eb64 bid 0.360 x 10 (SELL no ) others' touch 0.360/0.380 at touch B  taker  70.0 sh  m1 -0.10 m5 +0.05 m15 -0.15 m60 -1.60
+
+  by class (LP-SPEED's): fills, shares; markout at 1 / 5 / 60 minutes ($, the cleaned mid)
+    B:  4 fills,   60 shares; -1.90 / +0.60 / -3.40
+    C:  1 fills,   20 shares; -1.50 / -1.00 / +0.30
+    D: 14 fills,  269 shares; -5.52 / -2.32 / +0.50
+    inside: 11 fills, 209 shares, m60 -3.30
+    at touch: 6 fills, 100 shares, m60 -0.70
+    behind: 2 fills, 40 shares, m60 +1.40
+
+  each market: the fills' P&L at the end mark (the cleaned mid at the window's last minute), realised, held
+    0x397bea1f fills  2 shares   40  P&L  -3.00  realised  +0.00  held   +40 YES, mid 0.175
+    0xe612eb64 fills  7 shares  120  P&L  -2.80  realised  -2.80  held    +0 YES, mid 0.325
+    0xed1eabc9 fills  3 shares   60  P&L  -2.80  realised  -1.40  held   -20 YES, mid 0.59
+    0x40b8e1cc fills  2 shares   40  P&L  -1.00  realised  -1.00  held    +0 YES, mid 0.2
+    0x750ce9d6 fills  1 shares   20  P&L  -0.90  realised  +0.00  held   -20 YES, mid 0.315
+    0xd95404d1 fills  3 shares   60  P&L  -0.40  realised  -0.80  held   -20 YES, mid 0.21000000000000002
+    0x3b162968 fills  1 shares    9  P&L  +0.23  realised  +0.00  held    +9 YES, mid 0.245
+  total -10.67 (realised -6.00); 2026-10-13's rewards 0.892 + rebates 0.618 = 0.43 c a filled share (0.26 c rewards alone; the bar is 1.5 c of rewards)
