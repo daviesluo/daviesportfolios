@@ -192,6 +192,11 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    (`monitor?action=deadman`) cancels every resting order when the state is over 3 minutes old. Kill switch:
    `update public.agent_quote_live_config set live_confirmed_at = null where id = 1;` (entries cancelled, exits and
    stops stay armed); `global_pause` cancels everything.
+   - **At the 10-21 verdict, check condition 5 first:** PR5's paper engine logged 714 orders on 2026-10-01
+     (`agent_quote_days`), over the spec's 700 a day, which the spec calls "a finding to fix, not a pass"; confirm how the
+     verdict script counts orders (SCQ-1014, `reviews/2026-10-14-stablecoin-quotes-review.md`). The same review proposes
+     for 10-21: LIVE at £50 a rung (£600) as Davies' call; stop the `pr5` twin after its readout, `d` after 10-28 unless rule D
+     passes; keep `p50`, `take50` and both Coinbase tests to their dates; add nothing.
    - **At the 10-21 verdict, put to Davies:** keep PR5's paper engine and its minute record running (PR5V needs it to
      10-28 00:30, QUEUE to 11-02, PR5-W to 11-25, 12-23 at the latest); if PR5's record stops early, PR5V's window
      ends with it (under 21 days: reported, not judged). PR5-R (`reviews/2026-09-28-pr5-readings-prereg.md`) is read
