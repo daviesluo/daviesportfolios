@@ -518,6 +518,15 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14"; each oldest first.
 
+### [2026-10-14 04:17 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **SCQ-1014, every stablecoin quotes row reviewed, not blind, no reading** (Davies: "我看variant-2比stablecoin quotes表现好不少？";
+  `reviews/2026-10-14-stablecoin-quotes-review.md`, `backtests/scq_review/2026-10-14/`). Variant-2 leads per pound, not in
+  pounds; at £50 a rung +£1.46 over "Stablecoin quotes": size £1.05, TAKE's 5 takes net +£0.21 (not beyond noise, none
+  since 10-08), the twins' turn timing £0.19 (one refused exit, 10-13). LIVE tracks its twin (+£0.001 a day at £50, ±0.12);
+  realised +£0.28, coins marked −£0.37. **For 10-21: PR5's paper engine logged 714 orders on 10-01 (`agent_quote_days`),
+  over its spec's condition 5 (700).** The twins pay ~£0.02 a £0.10-print trip that LIVE does not (state it in readouts).
+  Proposals only: LIVE's size at 10-21; stop `pr5` after 10-21 and `d` after 10-28 unless rule D passes; add nothing.
+
 ### [2026-10-14 03:47 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Addendum 22, no refills** (Davies: "同意 Addendum 22（取消补选）", on `reviews/2026-10-14-q2-day1-postmortem.md`, landed
   `3b7343e6`): `PM_LP_REFILL.maxPerDay` 10 → 0 and the idle alarm 30 → 360 minutes (with refills off it would fire every

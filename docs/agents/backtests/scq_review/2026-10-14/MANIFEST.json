@@ -1,0 +1,90 @@
+{
+ "study": "Stablecoin quotes review, 2026-10-14 (docs/agents/reviews/2026-10-14-stablecoin-quotes-review.md)",
+ "read": "production, SELECT only, through the Supabase connector, 2026-10-14 04:01-04:12 UTC (sql/); ../scripts/grab.py cut the saved reply into data/",
+ "run": [
+  "npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env --no-check scripts/page_pnl.ts",
+  "python3 -I scripts/compare.py",
+  "python3 -I scripts/dust.py"
+ ],
+ "seed": 20261014,
+ "findings": [
+  "variant-2 vs Stablecoin quotes at GBP50 a rung, whole record: +1.457; size (variant-1 minus pr5/2) +1.054, takes net of the displaced trip +0.206, the twins' turn timing +0.191 (one refused exit, 10-13), other +0.005",
+  "size alone, every weekday: +0.075 a day at GBP50 a rung, 90% +0.028..+0.131; TAKE rule alone, 7 weekdays: +0.030 a day, -0.014..+0.083, 0.149 at or below 0; 5 takes, none since 10-08",
+  "LIVE minus pr5 at GBP50 a rung, LIVE's 8 weekdays: +0.001 a day, -0.117..+0.114; since 10-09 the twin's 9 real fills were all LIVE fills too",
+  "LIVE realised +0.2768, unrealised -0.3662 (coins GBP70.59 at cost)",
+  "PR5 paper engine: 714 orders on 2026-10-01 by agent_quote_days, over the spec's condition 5 (700)",
+  "GBP0.10 prints since 10-08: the twins lose about GBP0.02 a trip (pr5 -0.218, p50 -0.220, take50 -0.232, d -0.957), LIVE none since F1"
+ ],
+ "files": [
+  {
+   "path": "data/agent_quote_live_orders.json",
+   "bytes": 41540,
+   "sha256": "db063d88a4c1f5948ee7032d47985d3248856adfd7ee4d629ecf2a2a0bb62882"
+  },
+  {
+   "path": "data/agent_quote_twin_d_orders.json",
+   "bytes": 248037,
+   "sha256": "d9c88329bfcd33775d69bd34bb42524e686f8f811950cfb984bd9892fcfcb338"
+  },
+  {
+   "path": "data/agent_quote_twin_p50_orders.json",
+   "bytes": 56843,
+   "sha256": "fba286fa50b83da1f59f34bff214c2fe6deee037c85d5f6607d5fb6be4b40c0f"
+  },
+  {
+   "path": "data/agent_quote_twin_pr5_orders.json",
+   "bytes": 50668,
+   "sha256": "78997c8ef845a57ad7d39e81b77faf2a39a0ce51c0fc51ffe503e2f290c61dc9"
+  },
+  {
+   "path": "data/agent_quote_twin_take50_orders.json",
+   "bytes": 59209,
+   "sha256": "ff37651d3d552756b1c7979099d5e537cc704b76c026c3d6c6d53308acbe1679"
+  },
+  {
+   "path": "data/meta.json",
+   "bytes": 5224,
+   "sha256": "af48630ffcd0b7c050ae130b63751d8b7fa02e22260be7b55ddd87cf7a05a12b"
+  },
+  {
+   "path": "results/compare.json",
+   "bytes": 35359,
+   "sha256": "41f934b672e46814465170c746948a5f3df902762c4562916e325d34e6bb638b"
+  },
+  {
+   "path": "results/dust.json",
+   "bytes": 2591,
+   "sha256": "a813986d87221fa53b7ca94a0634f7315169e68a464b4032f6787e01229ded03"
+  },
+  {
+   "path": "results/page_pnl.json",
+   "bytes": 359492,
+   "sha256": "199e1e039bba179cd09b5e7d0279a25276fd3ae01c28c8cd5d416c696a0fe65f"
+  },
+  {
+   "path": "scripts/compare.py",
+   "bytes": 11054,
+   "sha256": "0753aa7ddbbadfe3c5d8f67f73221028dc7c3a582ede8ec7ed4fb40b53770abc"
+  },
+  {
+   "path": "scripts/dust.py",
+   "bytes": 2534,
+   "sha256": "6a8bf28f7ef150d64e592ebe174a002117b81689588b6f7029268a45a8cafdf9"
+  },
+  {
+   "path": "scripts/page_pnl.ts",
+   "bytes": 5596,
+   "sha256": "0e7370bda612f2dc063980e748400ed3e3c410b1758cf2b49a0815a7170ac6b2"
+  },
+  {
+   "path": "sql/aggregates.sql",
+   "bytes": 16260,
+   "sha256": "0c840d721a242452226ba988dfadf61117ab7597f0c1c4239c377492400e70f1"
+  },
+  {
+   "path": "sql/pull_orders.sql",
+   "bytes": 4593,
+   "sha256": "63ed2ca0cad9148500316ab9749afba418db67dffabe2cedc522931b75a52053"
+  }
+ ]
+}

@@ -1,0 +1,1753 @@
+{
+ "at": "2026-10-14T04:02:28.363855+00:00",
+ "seed": 20261014,
+ "rungGbp": {
+  "live": 10.0,
+  "pr5": 100.0,
+  "p50": 50.0,
+  "take50": 50.0,
+  "d": 50.0
+ },
+ "capitalGbp": {
+  "live": 120.0,
+  "pr5": 1200.0,
+  "p50": 600.0,
+  "take50": 600.0,
+  "d": 1800.0
+ },
+ "windows": {
+  "all": null,
+  "since_live": "2026-10-01T16:29:53+00:00",
+  "since_take": "2026-10-04T16:00:00+00:00",
+  "since_1009": "2026-10-09T16:00:00+00:00"
+ },
+ "rows": {
+  "live": {
+   "all": {
+    "trips": 70,
+    "won": 53,
+    "lost": 17,
+    "stops": 3,
+    "pnlGbp": 0.2765,
+    "feesGbp": 0.084,
+    "notionalGbp": 482.29,
+    "bps": 5.73,
+    "pnlPerPoundOfRung": 0.02765,
+    "pctOfCapital": 0.23,
+    "calendarDays": 12.48,
+    "litWeekdays": 10,
+    "aYearOnCapitalPct": 6.7,
+    "perLitDayPerPoundOfRung": 0.00276,
+    "worstDay": [
+     "2026-10-01",
+     -0.01876678597619595
+    ],
+    "bestDay": [
+     "2026-10-06",
+     0.14143395338484016
+    ],
+    "dustTrips": 22,
+    "dustPnlGbp": -0.0186,
+    "withoutDustPnlGbp": 0.2951
+   },
+   "since_live": {
+    "trips": 70,
+    "won": 53,
+    "lost": 17,
+    "stops": 3,
+    "pnlGbp": 0.2765,
+    "feesGbp": 0.084,
+    "notionalGbp": 482.29,
+    "bps": 5.73,
+    "pnlPerPoundOfRung": 0.02765,
+    "pctOfCapital": 0.23,
+    "calendarDays": 12.48,
+    "litWeekdays": 10,
+    "aYearOnCapitalPct": 6.7,
+    "perLitDayPerPoundOfRung": 0.00276,
+    "worstDay": [
+     "2026-10-01",
+     -0.01876678597619595
+    ],
+    "bestDay": [
+     "2026-10-06",
+     0.14143395338484016
+    ],
+    "dustTrips": 22,
+    "dustPnlGbp": -0.0186,
+    "withoutDustPnlGbp": 0.2951
+   },
+   "since_take": {
+    "trips": 60,
+    "won": 48,
+    "lost": 12,
+    "stops": 3,
+    "pnlGbp": 0.3042,
+    "feesGbp": 0.057,
+    "notionalGbp": 382.3,
+    "bps": 7.96,
+    "pnlPerPoundOfRung": 0.03042,
+    "pctOfCapital": 0.254,
+    "calendarDays": 9.5,
+    "litWeekdays": 8,
+    "aYearOnCapitalPct": 9.7,
+    "perLitDayPerPoundOfRung": 0.0038,
+    "worstDay": [
+     "2026-10-14",
+     -0.001936210919184762
+    ],
+    "bestDay": [
+     "2026-10-06",
+     0.14143395338484016
+    ],
+    "dustTrips": 22,
+    "dustPnlGbp": -0.0186,
+    "withoutDustPnlGbp": 0.3229
+   },
+   "since_1009": {
+    "trips": 28,
+    "won": 23,
+    "lost": 5,
+    "stops": 0,
+    "pnlGbp": 0.0638,
+    "feesGbp": 0,
+    "notionalGbp": 151.3,
+    "bps": 4.22,
+    "pnlPerPoundOfRung": 0.00638,
+    "pctOfCapital": 0.053,
+    "calendarDays": 4.5,
+    "litWeekdays": 4,
+    "aYearOnCapitalPct": 4.3,
+    "perLitDayPerPoundOfRung": 0.0016,
+    "worstDay": [
+     "2026-10-14",
+     -0.001936210919184762
+    ],
+    "bestDay": [
+     "2026-10-13",
+     0.04592016788428942
+    ],
+    "dustTrips": 13,
+    "dustPnlGbp": 0.001,
+    "withoutDustPnlGbp": 0.0628
+   }
+  },
+  "pr5": {
+   "all": {
+    "trips": 92,
+    "won": 72,
+    "lost": 20,
+    "stops": 3,
+    "pnlGbp": 8.5539,
+    "feesGbp": 0.21,
+    "notionalGbp": 7154.43,
+    "bps": 11.96,
+    "pnlPerPoundOfRung": 0.08554,
+    "pctOfCapital": 0.713,
+    "calendarDays": 19.64,
+    "litWeekdays": 15,
+    "aYearOnCapitalPct": 13.2,
+    "perLitDayPerPoundOfRung": 0.0057,
+    "worstDay": [
+     "2026-10-13",
+     -0.3103399675063673
+    ],
+    "bestDay": [
+     "2026-09-28",
+     3.3968961011428878
+    ],
+    "dustTrips": 13,
+    "dustPnlGbp": -0.218,
+    "withoutDustPnlGbp": 8.7719
+   },
+   "since_live": {
+    "trips": 50,
+    "won": 33,
+    "lost": 17,
+    "stops": 3,
+    "pnlGbp": 3.1293,
+    "feesGbp": 0.21,
+    "notionalGbp": 3371.75,
+    "bps": 9.28,
+    "pnlPerPoundOfRung": 0.03129,
+    "pctOfCapital": 0.261,
+    "calendarDays": 12.48,
+    "litWeekdays": 10,
+    "aYearOnCapitalPct": 7.6,
+    "perLitDayPerPoundOfRung": 0.00313,
+    "worstDay": [
+     "2026-10-13",
+     -0.3103399675063673
+    ],
+    "bestDay": [
+     "2026-10-08",
+     1.0732683533446923
+    ],
+    "dustTrips": 13,
+    "dustPnlGbp": -0.218,
+    "withoutDustPnlGbp": 3.3474
+   },
+   "since_take": {
+    "trips": 44,
+    "won": 27,
+    "lost": 17,
+    "stops": 3,
+    "pnlGbp": 2.4401,
+    "feesGbp": 0.21,
+    "notionalGbp": 2771.75,
+    "bps": 8.8,
+    "pnlPerPoundOfRung": 0.0244,
+    "pctOfCapital": 0.203,
+    "calendarDays": 9.5,
+    "litWeekdays": 8,
+    "aYearOnCapitalPct": 7.8,
+    "perLitDayPerPoundOfRung": 0.00305,
+    "worstDay": [
+     "2026-10-13",
+     -0.3103399675063673
+    ],
+    "bestDay": [
+     "2026-10-08",
+     1.0732683533446923
+    ],
+    "dustTrips": 13,
+    "dustPnlGbp": -0.218,
+    "withoutDustPnlGbp": 2.6581
+   },
+   "since_1009": {
+    "trips": 17,
+    "won": 6,
+    "lost": 11,
+    "stops": 0,
+    "pnlGbp": -0.0637,
+    "feesGbp": 0,
+    "notionalGbp": 891.07,
+    "bps": -0.71,
+    "pnlPerPoundOfRung": -0.00064,
+    "pctOfCapital": -0.005,
+    "calendarDays": 4.5,
+    "litWeekdays": 4,
+    "aYearOnCapitalPct": -0.4,
+    "perLitDayPerPoundOfRung": -0.00016,
+    "worstDay": [
+     "2026-10-13",
+     -0.3103399675063673
+    ],
+    "bestDay": [
+     "2026-10-12",
+     0.10118525164435371
+    ],
+    "dustTrips": 8,
+    "dustPnlGbp": -0.1272,
+    "withoutDustPnlGbp": 0.0635
+   }
+  },
+  "p50": {
+   "all": {
+    "trips": 106,
+    "won": 84,
+    "lost": 22,
+    "stops": 3,
+    "pnlGbp": 5.3312,
+    "feesGbp": 0.11,
+    "notionalGbp": 4341.68,
+    "bps": 12.28,
+    "pnlPerPoundOfRung": 0.10662,
+    "pctOfCapital": 0.889,
+    "calendarDays": 19.64,
+    "litWeekdays": 15,
+    "aYearOnCapitalPct": 16.5,
+    "perLitDayPerPoundOfRung": 0.00711,
+    "worstDay": [
+     "2026-10-13",
+     -0.0740353555561265
+    ],
+    "bestDay": [
+     "2026-09-28",
+     2.100990864905982
+    ],
+    "dustTrips": 14,
+    "dustPnlGbp": -0.2198,
+    "withoutDustPnlGbp": 5.551
+   },
+   "since_live": {
+    "trips": 55,
+    "won": 37,
+    "lost": 18,
+    "stops": 3,
+    "pnlGbp": 1.7632,
+    "feesGbp": 0.11,
+    "notionalGbp": 1969.14,
+    "bps": 8.95,
+    "pnlPerPoundOfRung": 0.03526,
+    "pctOfCapital": 0.294,
+    "calendarDays": 12.48,
+    "litWeekdays": 10,
+    "aYearOnCapitalPct": 8.6,
+    "perLitDayPerPoundOfRung": 0.00353,
+    "worstDay": [
+     "2026-10-13",
+     -0.0740353555561265
+    ],
+    "bestDay": [
+     "2026-10-06",
+     0.5940420087635475
+    ],
+    "dustTrips": 13,
+    "dustPnlGbp": -0.2106,
+    "withoutDustPnlGbp": 1.9738
+   },
+   "since_take": {
+    "trips": 48,
+    "won": 30,
+    "lost": 18,
+    "stops": 3,
+    "pnlGbp": 1.3942,
+    "feesGbp": 0.11,
+    "notionalGbp": 1619.14,
+    "bps": 8.61,
+    "pnlPerPoundOfRung": 0.02788,
+    "pctOfCapital": 0.232,
+    "calendarDays": 9.5,
+    "litWeekdays": 8,
+    "aYearOnCapitalPct": 8.9,
+    "perLitDayPerPoundOfRung": 0.00349,
+    "worstDay": [
+     "2026-10-13",
+     -0.0740353555561265
+    ],
+    "bestDay": [
+     "2026-10-06",
+     0.5940420087635475
+    ],
+    "dustTrips": 13,
+    "dustPnlGbp": -0.2106,
+    "withoutDustPnlGbp": 1.6048
+   },
+   "since_1009": {
+    "trips": 20,
+    "won": 9,
+    "lost": 11,
+    "stops": 0,
+    "pnlGbp": 0.0383,
+    "feesGbp": 0,
+    "notionalGbp": 578.04,
+    "bps": 0.66,
+    "pnlPerPoundOfRung": 0.00077,
+    "pctOfCapital": 0.006,
+    "calendarDays": 4.5,
+    "litWeekdays": 4,
+    "aYearOnCapitalPct": 0.5,
+    "perLitDayPerPoundOfRung": 0.00019,
+    "worstDay": [
+     "2026-10-13",
+     -0.0740353555561265
+    ],
+    "bestDay": [
+     "2026-10-12",
+     0.03966046807963701
+    ],
+    "dustTrips": 8,
+    "dustPnlGbp": -0.1276,
+    "withoutDustPnlGbp": 0.1659
+   }
+  },
+  "take50": {
+   "all": {
+    "trips": 112,
+    "won": 88,
+    "lost": 24,
+    "stops": 3,
+    "pnlGbp": 5.7338,
+    "feesGbp": 0.34,
+    "notionalGbp": 4591.61,
+    "bps": 12.49,
+    "pnlPerPoundOfRung": 0.11468,
+    "pctOfCapital": 0.956,
+    "calendarDays": 19.64,
+    "litWeekdays": 15,
+    "aYearOnCapitalPct": 17.8,
+    "perLitDayPerPoundOfRung": 0.00765,
+    "worstDay": [
+     "2026-10-05",
+     -0.06354688830454186
+    ],
+    "bestDay": [
+     "2026-09-28",
+     2.100990864905982
+    ],
+    "dustTrips": 15,
+    "dustPnlGbp": -0.232,
+    "withoutDustPnlGbp": 5.9658
+   },
+   "since_live": {
+    "trips": 61,
+    "won": 41,
+    "lost": 20,
+    "stops": 3,
+    "pnlGbp": 2.1657,
+    "feesGbp": 0.34,
+    "notionalGbp": 2219.07,
+    "bps": 9.76,
+    "pnlPerPoundOfRung": 0.04331,
+    "pctOfCapital": 0.361,
+    "calendarDays": 12.48,
+    "litWeekdays": 10,
+    "aYearOnCapitalPct": 10.6,
+    "perLitDayPerPoundOfRung": 0.00433,
+    "worstDay": [
+     "2026-10-05",
+     -0.06354688830454186
+    ],
+    "bestDay": [
+     "2026-10-08",
+     0.7683635255833581
+    ],
+    "dustTrips": 14,
+    "dustPnlGbp": -0.2229,
+    "withoutDustPnlGbp": 2.3886
+   },
+   "since_take": {
+    "trips": 54,
+    "won": 34,
+    "lost": 20,
+    "stops": 3,
+    "pnlGbp": 1.7967,
+    "feesGbp": 0.34,
+    "notionalGbp": 1869.07,
+    "bps": 9.61,
+    "pnlPerPoundOfRung": 0.03593,
+    "pctOfCapital": 0.299,
+    "calendarDays": 9.5,
+    "litWeekdays": 8,
+    "aYearOnCapitalPct": 11.5,
+    "perLitDayPerPoundOfRung": 0.00449,
+    "worstDay": [
+     "2026-10-05",
+     -0.06354688830454186
+    ],
+    "bestDay": [
+     "2026-10-08",
+     0.7683635255833581
+    ],
+    "dustTrips": 14,
+    "dustPnlGbp": -0.2229,
+    "withoutDustPnlGbp": 2.0196
+   },
+   "since_1009": {
+    "trips": 21,
+    "won": 11,
+    "lost": 10,
+    "stops": 0,
+    "pnlGbp": 0.2431,
+    "feesGbp": 0,
+    "notionalGbp": 628.04,
+    "bps": 3.87,
+    "pnlPerPoundOfRung": 0.00486,
+    "pctOfCapital": 0.041,
+    "calendarDays": 4.5,
+    "litWeekdays": 4,
+    "aYearOnCapitalPct": 3.3,
+    "perLitDayPerPoundOfRung": 0.00122,
+    "worstDay": [
+     "2026-10-09",
+     0.03315875270527835
+    ],
+    "bestDay": [
+     "2026-10-13",
+     0.13080903834119395
+    ],
+    "dustTrips": 8,
+    "dustPnlGbp": -0.1277,
+    "withoutDustPnlGbp": 0.3709
+   }
+  },
+  "d": {
+   "all": {
+    "trips": 468,
+    "won": 311,
+    "lost": 157,
+    "stops": 11,
+    "pnlGbp": 13.2103,
+    "feesGbp": 0.4717,
+    "notionalGbp": 19137.64,
+    "bps": 6.9,
+    "pnlPerPoundOfRung": 0.26421,
+    "pctOfCapital": 0.734,
+    "calendarDays": 16.11,
+    "litWeekdays": 13,
+    "aYearOnCapitalPct": 16.6,
+    "perLitDayPerPoundOfRung": 0.02032,
+    "worstDay": [
+     "2026-10-14",
+     -0.035493184502520425
+    ],
+    "bestDay": [
+     "2026-09-28",
+     4.352609723024315
+    ],
+    "dustTrips": 62,
+    "dustPnlGbp": -0.9565,
+    "withoutDustPnlGbp": 14.1668
+   },
+   "since_live": {
+    "trips": 294,
+    "won": 174,
+    "lost": 120,
+    "stops": 11,
+    "pnlGbp": 5.8456,
+    "feesGbp": 0.4717,
+    "notionalGbp": 10808.27,
+    "bps": 5.41,
+    "pnlPerPoundOfRung": 0.11691,
+    "pctOfCapital": 0.325,
+    "calendarDays": 12.48,
+    "litWeekdays": 10,
+    "aYearOnCapitalPct": 9.5,
+    "perLitDayPerPoundOfRung": 0.01169,
+    "worstDay": [
+     "2026-10-14",
+     -0.035493184502520425
+    ],
+    "bestDay": [
+     "2026-10-08",
+     1.9922030226890624
+    ],
+    "dustTrips": 62,
+    "dustPnlGbp": -0.9565,
+    "withoutDustPnlGbp": 6.8021
+   },
+   "since_take": {
+    "trips": 260,
+    "won": 146,
+    "lost": 114,
+    "stops": 11,
+    "pnlGbp": 4.6043,
+    "feesGbp": 0.4717,
+    "notionalGbp": 9261.35,
+    "bps": 4.97,
+    "pnlPerPoundOfRung": 0.09209,
+    "pctOfCapital": 0.256,
+    "calendarDays": 9.5,
+    "litWeekdays": 8,
+    "aYearOnCapitalPct": 9.8,
+    "perLitDayPerPoundOfRung": 0.01151,
+    "worstDay": [
+     "2026-10-14",
+     -0.035493184502520425
+    ],
+    "bestDay": [
+     "2026-10-08",
+     1.9922030226890624
+    ],
+    "dustTrips": 62,
+    "dustPnlGbp": -0.9565,
+    "withoutDustPnlGbp": 5.5608
+   },
+   "since_1009": {
+    "trips": 92,
+    "won": 43,
+    "lost": 49,
+    "stops": 2,
+    "pnlGbp": 0.4935,
+    "feesGbp": 0.0668,
+    "notionalGbp": 2942.96,
+    "bps": 1.68,
+    "pnlPerPoundOfRung": 0.00987,
+    "pctOfCapital": 0.027,
+    "calendarDays": 4.5,
+    "litWeekdays": 4,
+    "aYearOnCapitalPct": 2.2,
+    "perLitDayPerPoundOfRung": 0.00247,
+    "worstDay": [
+     "2026-10-14",
+     -0.035493184502520425
+    ],
+    "bestDay": [
+     "2026-10-13",
+     0.2566957132399906
+    ],
+    "dustTrips": 31,
+    "dustPnlGbp": -0.4444,
+    "withoutDustPnlGbp": 0.9379
+   }
+  }
+ },
+ "page": {
+  "live": {
+   "realisedGbp": 0.276835077124069,
+   "unrealisedGbp": -0.3661707871240658,
+   "feesGbp": 0.08400573568340992,
+   "todayGbp": -0.004604825726654635,
+   "costGbp": 70.58683507712406,
+   "coinsValueGbp": 70.22066429,
+   "heldRungs": 1
+  },
+  "pr5": {
+   "realisedGbp": 8.53413374690732,
+   "unrealisedGbp": -1.9641324547319527,
+   "feesGbp": 0.21000000000000002,
+   "todayGbp": 0.051841041779149374,
+   "costGbp": 708.524126208732,
+   "coinsValueGbp": 706.5599937540001,
+   "heldRungs": 1
+  },
+  "p50": {
+   "realisedGbp": 5.311493141353299,
+   "unrealisedGbp": -0.9007592273534897,
+   "feesGbp": 0.11000000000000001,
+   "todayGbp": 0.02582285837877583,
+   "costGbp": 353.15149314135317,
+   "coinsValueGbp": 352.25073391399974,
+   "heldRungs": 1
+  },
+  "take50": {
+   "realisedGbp": 5.723961353420435,
+   "unrealisedGbp": -0.9004980294207314,
+   "feesGbp": 0.34001426297798676,
+   "todayGbp": 0.026027206744464546,
+   "costGbp": 353.15396135342036,
+   "coinsValueGbp": 352.25346332399965,
+   "heldRungs": 1
+  },
+  "d": {
+   "realisedGbp": 13.170670698470136,
+   "unrealisedGbp": -3.23260383846997,
+   "feesGbp": 0.47165448732259013,
+   "todayGbp": -0.11551082233469812,
+   "costGbp": 1059.7706555864697,
+   "coinsValueGbp": 1056.5380517479998,
+   "heldRungs": 5
+  }
+ },
+ "fills": {
+  "live": {
+   "fills": 162,
+   "entryFills": 76,
+   "exitFills": 78,
+   "stopFills": 3,
+   "takeFills": 0,
+   "conversionFeesGbp": 0.05400573568340992
+  },
+  "pr5": {
+   "fills": 206,
+   "entryFills": 95,
+   "exitFills": 103,
+   "stopFills": 3,
+   "takeFills": 0,
+   "conversionFeesGbp": 0
+  },
+  "p50": {
+   "fills": 233,
+   "entryFills": 109,
+   "exitFills": 115,
+   "stopFills": 3,
+   "takeFills": 0,
+   "conversionFeesGbp": 0
+  },
+  "take50": {
+   "fills": 243,
+   "entryFills": 114,
+   "exitFills": 120,
+   "stopFills": 3,
+   "takeFills": 5,
+   "conversionFeesGbp": 0
+  },
+  "d": {
+   "fills": 1022,
+   "entryFills": 480,
+   "exitFills": 527,
+   "stopFills": 11,
+   "takeFills": 0,
+   "conversionFeesGbp": 0
+  }
+ },
+ "take_vs_p50": {
+  "pageRealisedGap": 0.4125,
+  "tripsGap": 0.4026,
+  "takeTrips": [
+   {
+    "book": "USDT-GBP",
+    "side": "bid",
+    "k": 0.001,
+    "tEntry": "2026-10-05T02:51:25.005Z",
+    "tExit": "2026-10-05T08:20:25.006Z",
+    "entry": 0.7551999489900713,
+    "exit": 0.7553999303707808,
+    "qty": 66.14803,
+    "how": "exit",
+    "feesGbp": 0.04500237283865512,
+    "pnlGbp": -0.0317735265119809
+   },
+   {
+    "book": "USDT-GBP",
+    "side": "bid",
+    "k": 0.002,
+    "tEntry": "2026-10-05T02:59:25.004Z",
+    "tExit": "2026-10-05T08:20:25.006Z",
+    "entry": 0.7551999464999964,
+    "exit": 0.7553999303707808,
+    "qty": 66.14803,
+    "how": "exit",
+    "feesGbp": 0.04500237283865512,
+    "pnlGbp": -0.03177336179256096
+   },
+   {
+    "book": "USDT-GBP",
+    "side": "ask",
+    "k": 0.001,
+    "tEntry": "2026-10-06T11:16:25.006Z",
+    "tExit": "2026-10-06T15:41:25.006Z",
+    "entry": 0.7555999672997948,
+    "exit": 0.7526000973241893,
+    "qty": 66.17258,
+    "how": "exit",
+    "feesGbp": 0.05,
+    "pnlGbp": 0.14850319620780322
+   },
+   {
+    "book": "USDT-GBP",
+    "side": "bid",
+    "k": 0.001,
+    "tEntry": "2026-10-08T02:59:25.006Z",
+    "tExit": "2026-10-08T08:39:25.005Z",
+    "entry": 0.7551000590639265,
+    "exit": 0.7572998948396134,
+    "qty": 66.15679,
+    "how": "exit",
+    "feesGbp": 0.04500396352021002,
+    "pnlGbp": 0.10052857004134785
+   },
+   {
+    "book": "USDT-GBP",
+    "side": "bid",
+    "k": 0.002,
+    "tEntry": "2026-10-08T05:53:25.005Z",
+    "tExit": "2026-10-08T08:39:25.005Z",
+    "entry": 0.7550000634200053,
+    "exit": 0.7572998948396134,
+    "qty": 66.16555,
+    "how": "exit",
+    "feesGbp": 0.045005553780466515,
+    "pnlGbp": 0.10714230059995478
+   }
+  ],
+  "takeTripsPnlGbp": 0.2926,
+  "commonTrips": 105,
+  "commonTripsPnlGap": 0.1911,
+  "commonTripsDiffering": 33,
+  "onlyTakeNonTakeTrips": 2,
+  "onlyTakeNonTakePnl": 0.005,
+  "onlyP50Trips": 1,
+  "onlyP50Pnl": 0.0862,
+  "onlyTakeList": [
+   {
+    "book": "USDT-GBP",
+    "side": "bid",
+    "k": 0.001,
+    "tEntry": "2026-10-08T16:57:25.004Z",
+    "tExit": "2026-10-08T17:53:25.005Z",
+    "qty": 0.13248,
+    "pnlGbp": -0.009856335909091851
+   },
+   {
+    "book": "USDC-GBP",
+    "side": "bid",
+    "k": 0.001,
+    "tEntry": "2026-10-13T11:46:25.005Z",
+    "tExit": "2026-10-13T18:25:25.005Z",
+    "qty": 66.31299,
+    "pnlGbp": 0.014887773807311544
+   }
+  ],
+  "onlyP50List": [
+   {
+    "book": "USDT-GBP",
+    "side": "ask",
+    "k": 0.001,
+    "tEntry": "2026-10-06T13:37:25.004Z",
+    "tExit": "2026-10-06T15:41:25.006Z",
+    "qty": 66.3218,
+    "pnlGbp": 0.0862026713618495
+   }
+  ],
+  "commonDifferingList": [
+   {
+    "key": [
+     "USDT-GBP",
+     "bid",
+     0.001,
+     "2026-10-05T15:22:25.003Z"
+    ],
+    "take50": 0.0794,
+    "p50": 0.0794,
+    "take50Exit": "2026-10-06T03:01:25.004Z",
+    "p50Exit": "2026-10-06T03:01:25.004Z"
+   },
+   {
+    "key": [
+     "USDT-GBP",
+     "bid",
+     0.001,
+     "2026-10-06T15:41:25.006Z"
+    ],
+    "take50": 0.0731,
+    "p50": 0.0731,
+    "take50Exit": "2026-10-06T16:00:25.006Z",
+    "p50Exit": "2026-10-06T16:00:25.006Z"
+   },
+   {
+    "key": [
+     "USDT-GBP",
+     "bid",
+     0.002,
+     "2026-10-06T15:41:25.006Z"
+    ],
+    "take50": 0.1231,
+    "p50": 0.1231,
+    "take50Exit": "2026-10-06T17:14:25.005Z",
+    "p50Exit": "2026-10-06T17:14:25.005Z"
+   },
+   {
+    "key": [
+     "USDT-GBP",
+     "ask",
+     0.001,
+     "2026-10-06T18:00:25.005Z"
+    ],
+    "take50": 0.0464,
+    "p50": 0.0464,
+    "take50Exit": "2026-10-06T22:22:25.005Z",
+    "p50Exit": "2026-10-06T22:22:25.005Z"
+   },
+   {
+    "key": [
+     "USDT-GBP",
+     "bid",
+     0.001,
+     "2026-10-07T02:57:25.006Z"
+    ],
+    "take50": -0.0081,
+    "p50": -0.0099,
+    "take50Exit": "2026-10-08T02:58:25.005Z",
+    "p50Exit": "2026-10-08T02:58:25.005Z"
+   },
+   {
+    "key": [
+     "USDT-GBP",
+     "bid",
+     0.002,
+     "2026-10-07T03:01:25.005Z"
+    ],
+    "take50": 0.0926,
+    "p50": 0.0908,
+    "take50Exit": "2026-10-08T03:01:25.005Z",
+    "p50Exit": "2026-10-08T03:01:25.005Z"
+   },
+   {
+    "key": [
+     "USDT-GBP",
+     "ask",
+     0.001,
+     "2026-10-08T12:20:25.004Z"
+    ],
+    "take50": -0.0136,
+    "p50": -0.0113,
+    "take50Exit": "2026-10-08T12:26:25.004Z",
+    "p50Exit": "2026-10-08T12:26:25.004Z"
+   },
+   {
+    "key": [
+     "USDT-GBP",
+     "ask",
+     0.001,
+     "2026-10-08T13:17:25.004Z"
+    ],
+    "take50": 0.0462,
+    "p50": 0.0462,
+    "take50Exit": "2026-10-08T13:19:25.005Z",
+    "p50Exit": "2026-10-08T13:19:25.005Z"
+   },
+   {
+    "key": [
+     "USDT-GBP",
+     "ask",
+     0.001,
+     "2026-10-08T13:59:25.005Z"
+    ],
+    "take50": -0.0195,
+    "p50": -0.0195,
+    "take50Exit": "2026-10-08T14:08:25.006Z",
+    "p50Exit": "2026-10-08T14:08:25.006Z"
+   },
+   {
+    "key": [
+     "USDT-GBP",
+     "ask",
+     0.001,
+     "2026-10-08T14:22:25.005Z"
+    ],
+    "take50": -0.0197,
+    "p50": -0.0197,
+    "take50Exit": "2026-10-08T14:27:25.005Z",
+    "p50Exit": "2026-10-08T14:27:25.005Z"
+   },
+   {
+    "key": [
+     "USDT-GBP",
+     "bid",
+     0.001,
+     "2026-10-08T17:59:25.005Z"
+    ],
+    "take50": 0.0463,
+    "p50": 0.0463,
+    "take50Exit": "2026-10-08T18:58:25.006Z",
+    "p50Exit": "2026-10-08T18:58:25.006Z"
+   },
+   {
+    "key": [
+     "USDT-GBP",
+     "bid",
+     0.002,
+     "2026-10-08T16:06:25.005Z"
+    ],
+    "take50": -0.0048,
+    "p50": -0.0048,
+    "take50Exit": "2026-10-08T19:00:25.005Z",
+    "p50Exit": "2026-10-08T19:00:25.005Z"
+   },
+   {
+    "key": [
+     "USDT-GBP",
+     "bid",
+     0.001,
+     "2026-10-08T19:03:25.005Z"
+    ],
+    "take50": 0.0066,
+    "p50": 0.0066,
+    "take50Exit": "2026-10-08T20:07:25.001Z",
+    "p50Exit": "2026-10-08T20:07:25.001Z"
+   },
+   {
+    "key": [
+     "USDT-GBP",
+     "ask",
+     0.001,
+     "2026-10-09T04:20:25.004Z"
+    ],
+    "take50": 0.0592,
+    "p50": 0.0592,
+    "take50Exit": "2026-10-09T04:30:25.005Z",
+    "p50Exit": "2026-10-09T04:30:25.005Z"
+   },
+   {
+    "key": [
+     "USDT-GBP",
+     "ask",
+     0.001,
+     "2026-10-09T05:38:25.005Z"
+    ],
+    "take50": 0.0298,
+    "p50": 0.0298,
+    "take50Exit": "2026-10-09T06:28:25.006Z",
+    "p50Exit": "2026-10-09T06:28:25.006Z"
+   },
+   {
+    "key": [
+     "USDT-GBP",
+     "bid",
+     0.001,
+     "2026-10-09T20:02:25.006Z"
+    ],
+    "take50": 0.0398,
+    "p50": 0.0398,
+    "take50Exit": "2026-10-09T20:17:25.004Z",
+    "p50Exit": "2026-10-09T20:17:25.004Z"
+   },
+   {
+    "key": [
+     "USDC-GBP",
+     "bid",
+     0.001,
+     "2026-10-12T21:35:25.004Z"
+    ],
+    "take50": -0.0463,
+    "p50": -0.1438,
+    "take50Exit": "2026-10-13T07:28:25.005Z",
+    "p50Exit": "2026-10-13T18:25:25.005Z"
+   },
+   {
+    "key": [
+     "USDC-GBP",
+     "bid",
+     0.002,
+     "2026-10-12T21:35:25.004Z"
+    ],
+    "take50": 0.0067,
+    "p50": -0.086,
+    "take50Exit": "2026-10-13T07:28:25.005Z",
+    "p50Exit": "2026-10-13T18:25:25.005Z"
+   },
+   {
+    "key": [
+     "USDT-GBP",
+     "bid",
+     0.001,
+     "2026-10-13T07:31:25.004Z"
+    ],
+    "take50": -0.0095,
+    "p50": -0.0096,
+    "take50Exit": "2026-10-13T07:36:25.005Z",
+    "p50Exit": "2026-10-13T07:36:25.005Z"
+   },
+   {
+    "key": [
+     "USDT-GBP",
+     "bid",
+     0.002,
+     "2026-10-12T17:39:25.005Z"
+    ],
+    "take50": -0.0097,
+    "p50": -0.0094,
+    "take50Exit": "2026-10-13T07:36:25.005Z",
+    "p50Exit": "2026-10-13T07:36:25.005Z"
+   },
+   {
+    "key": [
+     "USDT-GBP",
+     "bid",
+     0.001,
+     "2026-10-13T08:19:25.006Z"
+    ],
+    "take50": 0.0394,
+    "p50": 0.0395,
+    "take50Exit": "2026-10-13T08:20:25.005Z",
+    "p50Exit": "2026-10-13T08:20:25.005Z"
+   },
+   {
+    "key": [
+     "USDT-GBP",
+     "bid",
+     0.001,
+     "2026-10-13T09:44:25.004Z"
+    ],
+    "take50": -0.0195,
+    "p50": -0.0196,
+    "take50Exit": "2026-10-13T09:48:25.002Z",
+    "p50Exit": "2026-10-13T09:48:25.002Z"
+   },
+   {
+    "key": [
+     "USDT-GBP",
+     "bid",
+     0.001,
+     "2026-10-13T10:02:25.005Z"
+    ],
+    "take50": -0.0198,
+    "p50": -0.0198,
+    "take50Exit": "2026-10-13T11:24:25.005Z",
+    "p50Exit": "2026-10-13T11:24:25.005Z"
+   },
+   {
+    "key": [
+     "USDT-GBP",
+     "bid",
+     0.001,
+     "2026-10-13T13:17:25.006Z"
+    ],
+    "take50": -0.0199,
+    "p50": -0.0199,
+    "take50Exit": "2026-10-13T13:45:25.005Z",
+    "p50Exit": "2026-10-13T13:45:25.005Z"
+   },
+   {
+    "key": [
+     "USDT-GBP",
+     "bid",
+     0.001,
+     "2026-10-13T14:34:25.006Z"
+    ],
+    "take50": -0.02,
+    "p50": -0.02,
+    "take50Exit": "2026-10-13T18:26:25.006Z",
+    "p50Exit": "2026-10-13T18:26:25.006Z"
+   },
+   {
+    "key": [
+     "USDC-GBP",
+     "bid",
+     0.001,
+     "2026-10-13T19:17:25.005Z"
+    ],
+    "take50": 0.0531,
+    "p50": 0.0531,
+    "take50Exit": "2026-10-13T20:01:25.005Z",
+    "p50Exit": "2026-10-13T20:01:25.005Z"
+   },
+   {
+    "key": [
+     "USDT-GBP",
+     "bid",
+     0.001,
+     "2026-10-13T18:44:25.005Z"
+    ],
+    "take50": -0.0098,
+    "p50": -0.0098,
+    "take50Exit": "2026-10-13T20:14:25.000Z",
+    "p50Exit": "2026-10-13T20:14:25.000Z"
+   },
+   {
+    "key": [
+     "USDT-GBP",
+     "bid",
+     0.001,
+     "2026-10-13T20:28:25.009Z"
+    ],
+    "take50": 0.0594,
+    "p50": 0.0594,
+    "take50Exit": "2026-10-13T20:34:25.005Z",
+    "p50Exit": "2026-10-13T20:34:25.005Z"
+   },
+   {
+    "key": [
+     "USDC-GBP",
+     "bid",
+     0.001,
+     "2026-10-13T20:26:25.005Z"
+    ],
+    "take50": 0.0464,
+    "p50": 0.0464,
+    "take50Exit": "2026-10-13T20:49:25.005Z",
+    "p50Exit": "2026-10-13T20:49:25.005Z"
+   },
+   {
+    "key": [
+     "USDT-GBP",
+     "bid",
+     0.001,
+     "2026-10-13T21:20:25.005Z"
+    ],
+    "take50": -0.0195,
+    "p50": -0.0195,
+    "take50Exit": "2026-10-13T21:25:25.004Z",
+    "p50Exit": "2026-10-13T21:25:25.004Z"
+   },
+   {
+    "key": [
+     "USDC-GBP",
+     "bid",
+     0.001,
+     "2026-10-13T21:17:25.004Z"
+    ],
+    "take50": 0.0597,
+    "p50": 0.0597,
+    "take50Exit": "2026-10-13T21:31:25.006Z",
+    "p50Exit": "2026-10-13T21:31:25.006Z"
+   },
+   {
+    "key": [
+     "USDC-GBP",
+     "bid",
+     0.001,
+     "2026-10-13T22:17:25.004Z"
+    ],
+    "take50": 0.0252,
+    "p50": 0.0252,
+    "take50Exit": "2026-10-13T22:37:25.005Z",
+    "p50Exit": "2026-10-13T22:37:25.005Z"
+   },
+   {
+    "key": [
+     "USDT-GBP",
+     "bid",
+     0.001,
+     "2026-10-14T00:01:25.005Z"
+    ],
+    "take50": 0.0395,
+    "p50": 0.0395,
+    "take50Exit": "2026-10-14T01:20:25.005Z",
+    "p50Exit": "2026-10-14T01:20:25.005Z"
+   }
+  ]
+ },
+ "bootstraps": [
+  {
+   "label": "variant-2 minus variant-1, TAKE's weekdays (\u00a3)",
+   "a": "take50",
+   "b": "p50",
+   "from": "2026-10-05T00:00:00+00:00",
+   "to": "2026-10-14T00:00:00+00:00",
+   "days": 7,
+   "dailyDiffs": {
+    "2026-10-05": -0.0636,
+    "2026-10-06": 0.0623,
+    "2026-10-07": 0.0035,
+    "2026-10-08": 0.1955,
+    "2026-10-09": -0.0,
+    "2026-10-12": 0.1899,
+    "2026-10-13": 0.015
+   },
+   "sumA_at50": 1.7572,
+   "sumB_at50": 1.3546,
+   "meanDiffPerDay_at50": 0.0575,
+   "p05": 0.002,
+   "p95": 0.1157,
+   "shareAtOrBelow0": 0.0412,
+   "daysAhead": 5,
+   "daysBehind": 2
+  },
+  {
+   "label": "variant-2 minus Stablecoin quotes at \u00a350 a rung, TAKE's weekdays",
+   "a": "take50",
+   "b": "pr5",
+   "from": "2026-10-05T00:00:00+00:00",
+   "to": "2026-10-14T00:00:00+00:00",
+   "days": 7,
+   "dailyDiffs": {
+    "2026-10-05": 0.0159,
+    "2026-10-06": 0.107,
+    "2026-10-07": -0.0083,
+    "2026-10-08": 0.24,
+    "2026-10-09": -0.0529,
+    "2026-10-12": 0.175,
+    "2026-10-13": 0.1001
+   },
+   "sumA_at50": 1.7572,
+   "sumB_at50": 1.1805,
+   "meanDiffPerDay_at50": 0.0824,
+   "p05": 0.0232,
+   "p95": 0.1432,
+   "shareAtOrBelow0": 0.0105,
+   "daysAhead": 5,
+   "daysBehind": 2
+  },
+  {
+   "label": "variant-2 minus Stablecoin quotes at \u00a350 a rung, every weekday",
+   "a": "take50",
+   "b": "pr5",
+   "from": "2026-09-24T00:00:00+00:00",
+   "to": "2026-10-14T00:00:00+00:00",
+   "days": 14,
+   "dailyDiffs": {
+    "2026-09-24": 0.0012,
+    "2026-09-25": 0.146,
+    "2026-09-28": 0.4025,
+    "2026-09-29": 0.0834,
+    "2026-09-30": 0.0038,
+    "2026-10-01": 0.2432,
+    "2026-10-02": 0.0,
+    "2026-10-05": 0.0159,
+    "2026-10-06": 0.107,
+    "2026-10-07": -0.0083,
+    "2026-10-08": 0.24,
+    "2026-10-09": -0.0529,
+    "2026-10-12": 0.175,
+    "2026-10-13": 0.1001
+   },
+   "sumA_at50": 5.6943,
+   "sumB_at50": 4.2374,
+   "meanDiffPerDay_at50": 0.1041,
+   "p05": 0.0518,
+   "p95": 0.1604,
+   "shareAtOrBelow0": 0.0001,
+   "daysAhead": 12,
+   "daysBehind": 2
+  },
+  {
+   "label": "variant-1 minus Stablecoin quotes at \u00a350 a rung, every weekday (size alone)",
+   "a": "p50",
+   "b": "pr5",
+   "from": "2026-09-24T00:00:00+00:00",
+   "to": "2026-10-14T00:00:00+00:00",
+   "days": 14,
+   "dailyDiffs": {
+    "2026-09-24": 0.0012,
+    "2026-09-25": 0.146,
+    "2026-09-28": 0.4025,
+    "2026-09-29": 0.0834,
+    "2026-09-30": 0.0038,
+    "2026-10-01": 0.2432,
+    "2026-10-02": 0.0,
+    "2026-10-05": 0.0794,
+    "2026-10-06": 0.0447,
+    "2026-10-07": -0.0118,
+    "2026-10-08": 0.0445,
+    "2026-10-09": -0.0529,
+    "2026-10-12": -0.0149,
+    "2026-10-13": 0.0851
+   },
+   "sumA_at50": 5.2917,
+   "sumB_at50": 4.2374,
+   "meanDiffPerDay_at50": 0.0753,
+   "p05": 0.0275,
+   "p95": 0.1306,
+   "shareAtOrBelow0": 0.0008,
+   "daysAhead": 11,
+   "daysBehind": 3
+  },
+  {
+   "label": "variant-1 minus Stablecoin quotes at \u00a350 a rung, TAKE's weekdays (size alone)",
+   "a": "p50",
+   "b": "pr5",
+   "from": "2026-10-05T00:00:00+00:00",
+   "to": "2026-10-14T00:00:00+00:00",
+   "days": 7,
+   "dailyDiffs": {
+    "2026-10-05": 0.0794,
+    "2026-10-06": 0.0447,
+    "2026-10-07": -0.0118,
+    "2026-10-08": 0.0445,
+    "2026-10-09": -0.0529,
+    "2026-10-12": -0.0149,
+    "2026-10-13": 0.0851
+   },
+   "sumA_at50": 1.3546,
+   "sumB_at50": 1.1805,
+   "meanDiffPerDay_at50": 0.0249,
+   "p05": -0.0061,
+   "p95": 0.0537,
+   "shareAtOrBelow0": 0.0955,
+   "daysAhead": 4,
+   "daysBehind": 3
+  },
+  {
+   "label": "LIVE minus Stablecoin quotes, both at \u00a350 a rung, LIVE's weekdays",
+   "a": "live",
+   "b": "pr5",
+   "from": "2026-10-02T00:00:00+00:00",
+   "to": "2026-10-14T00:00:00+00:00",
+   "days": 8,
+   "dailyDiffs": {
+    "2026-10-02": -0.3432,
+    "2026-10-05": 0.1388,
+    "2026-10-06": 0.1579,
+    "2026-10-07": -0.1859,
+    "2026-10-08": -0.1289,
+    "2026-10-09": -0.0318,
+    "2026-10-12": 0.1053,
+    "2026-10-13": 0.295
+   },
+   "sumA_at50": 1.4858,
+   "sumB_at50": 1.4786,
+   "meanDiffPerDay_at50": 0.0009,
+   "p05": -0.1173,
+   "p95": 0.1139,
+   "shareAtOrBelow0": 0.4812,
+   "daysAhead": 4,
+   "daysBehind": 4
+  },
+  {
+   "label": "LIVE minus variant-1, both at \u00a350 a rung, LIVE's weekdays",
+   "a": "live",
+   "b": "p50",
+   "from": "2026-10-02T00:00:00+00:00",
+   "to": "2026-10-14T00:00:00+00:00",
+   "days": 8,
+   "dailyDiffs": {
+    "2026-10-02": -0.3432,
+    "2026-10-05": 0.0594,
+    "2026-10-06": 0.1132,
+    "2026-10-07": -0.1741,
+    "2026-10-08": -0.1734,
+    "2026-10-09": 0.0211,
+    "2026-10-12": 0.1202,
+    "2026-10-13": 0.2099
+   },
+   "sumA_at50": 1.4858,
+   "sumB_at50": 1.6527,
+   "meanDiffPerDay_at50": -0.0209,
+   "p05": -0.1266,
+   "p95": 0.0782,
+   "shareAtOrBelow0": 0.6184,
+   "daysAhead": 5,
+   "daysBehind": 3
+  }
+ ],
+ "takeRuleOnly": {
+  "days": 7,
+  "dailyDiffs": {
+   "2026-10-05": -0.0635,
+   "2026-10-06": 0.0623,
+   "2026-10-07": 0.0,
+   "2026-10-08": 0.1978,
+   "2026-10-09": 0.0,
+   "2026-10-12": 0.0,
+   "2026-10-13": 0.0149
+  },
+  "sum": 0.2115,
+  "meanPerDay": 0.0302,
+  "p05": -0.0139,
+  "p95": 0.083,
+  "shareAtOrBelow0": 0.1491,
+  "takesSoFar": 5,
+  "lastTake": "2026-10-08T05:53:25.005Z"
+ },
+ "byRungSinceLive": {
+  "USDC-GBP|ask|0.0003": {
+   "d": {
+    "trips": 13,
+    "pnlPerPoundOfRung": 0.00343,
+    "dust": 0
+   }
+  },
+  "USDC-GBP|ask|0.0005": {
+   "d": {
+    "trips": 7,
+    "pnlPerPoundOfRung": 0.00143,
+    "dust": 0
+   }
+  },
+  "USDC-GBP|ask|0.00075": {
+   "d": {
+    "trips": 4,
+    "pnlPerPoundOfRung": -0.00017,
+    "dust": 0
+   }
+  },
+  "USDC-GBP|ask|0.001": {
+   "live": {
+    "trips": 4,
+    "pnlPerPoundOfRung": 0.00351,
+    "dust": 0
+   },
+   "pr5": {
+    "trips": 4,
+    "pnlPerPoundOfRung": 0.00267,
+    "dust": 0
+   },
+   "p50": {
+    "trips": 4,
+    "pnlPerPoundOfRung": 0.00257,
+    "dust": 0
+   },
+   "d": {
+    "trips": 3,
+    "pnlPerPoundOfRung": 0.00197,
+    "dust": 1
+   }
+  },
+  "USDC-GBP|ask|0.00125": {
+   "d": {
+    "trips": 2,
+    "pnlPerPoundOfRung": 0.00247,
+    "dust": 0
+   }
+  },
+  "USDC-GBP|ask|0.0015": {
+   "d": {
+    "trips": 2,
+    "pnlPerPoundOfRung": 0.00313,
+    "dust": 0
+   }
+  },
+  "USDC-GBP|ask|0.002": {
+   "pr5": {
+    "trips": 1,
+    "pnlPerPoundOfRung": 0.00237,
+    "dust": 0
+   },
+   "p50": {
+    "trips": 1,
+    "pnlPerPoundOfRung": 0.00253,
+    "dust": 0
+   },
+   "d": {
+    "trips": 1,
+    "pnlPerPoundOfRung": 0.00343,
+    "dust": 0
+   }
+  },
+  "USDC-GBP|ask|0.0025": {
+   "d": {
+    "trips": 1,
+    "pnlPerPoundOfRung": 0.00382,
+    "dust": 0
+   }
+  },
+  "USDC-GBP|ask|0.003": {
+   "pr5": {
+    "trips": 1,
+    "pnlPerPoundOfRung": 0.00188,
+    "dust": 0
+   },
+   "p50": {
+    "trips": 1,
+    "pnlPerPoundOfRung": 0.00329,
+    "dust": 0
+   },
+   "d": {
+    "trips": 1,
+    "pnlPerPoundOfRung": 0.00474,
+    "dust": 0
+   }
+  },
+  "USDC-GBP|bid|0.0003": {
+   "d": {
+    "trips": 9,
+    "pnlPerPoundOfRung": 0.00043,
+    "dust": 0
+   }
+  },
+  "USDC-GBP|bid|0.0005": {
+   "d": {
+    "trips": 13,
+    "pnlPerPoundOfRung": 0.00111,
+    "dust": 0
+   }
+  },
+  "USDC-GBP|bid|0.00075": {
+   "d": {
+    "trips": 9,
+    "pnlPerPoundOfRung": 0.00057,
+    "dust": 0
+   }
+  },
+  "USDC-GBP|bid|0.001": {
+   "live": {
+    "trips": 12,
+    "pnlPerPoundOfRung": 0.00643,
+    "dust": 0
+   },
+   "pr5": {
+    "trips": 4,
+    "pnlPerPoundOfRung": -0.00103,
+    "dust": 0
+   },
+   "p50": {
+    "trips": 7,
+    "pnlPerPoundOfRung": 0.00214,
+    "dust": 0
+   },
+   "d": {
+    "trips": 8,
+    "pnlPerPoundOfRung": 0.0037,
+    "dust": 0
+   }
+  },
+  "USDC-GBP|bid|0.00125": {
+   "d": {
+    "trips": 5,
+    "pnlPerPoundOfRung": 0.00579,
+    "dust": 0
+   }
+  },
+  "USDC-GBP|bid|0.0015": {
+   "d": {
+    "trips": 3,
+    "pnlPerPoundOfRung": 0.00468,
+    "dust": 0
+   }
+  },
+  "USDC-GBP|bid|0.002": {
+   "live": {
+    "trips": 3,
+    "pnlPerPoundOfRung": 0.00081,
+    "dust": 0
+   },
+   "pr5": {
+    "trips": 1,
+    "pnlPerPoundOfRung": -0.00172,
+    "dust": 0
+   },
+   "p50": {
+    "trips": 1,
+    "pnlPerPoundOfRung": -0.00172,
+    "dust": 0
+   },
+   "d": {
+    "trips": 1,
+    "pnlPerPoundOfRung": 0.00146,
+    "dust": 0
+   }
+  },
+  "USDC-GBP|bid|0.003": {
+   "live": {
+    "trips": 1,
+    "pnlPerPoundOfRung": 0.0004,
+    "dust": 0
+   }
+  },
+  "USDT-GBP|ask|0.0003": {
+   "d": {
+    "trips": 33,
+    "pnlPerPoundOfRung": -0.00257,
+    "dust": 13
+   }
+  },
+  "USDT-GBP|ask|0.0005": {
+   "d": {
+    "trips": 25,
+    "pnlPerPoundOfRung": 0.00478,
+    "dust": 6
+   }
+  },
+  "USDT-GBP|ask|0.00075": {
+   "d": {
+    "trips": 16,
+    "pnlPerPoundOfRung": 0.00897,
+    "dust": 3
+   }
+  },
+  "USDT-GBP|ask|0.001": {
+   "live": {
+    "trips": 17,
+    "pnlPerPoundOfRung": 0.00141,
+    "dust": 9
+   },
+   "pr5": {
+    "trips": 13,
+    "pnlPerPoundOfRung": 0.00933,
+    "dust": 3
+   },
+   "p50": {
+    "trips": 13,
+    "pnlPerPoundOfRung": 0.00855,
+    "dust": 3
+   },
+   "d": {
+    "trips": 9,
+    "pnlPerPoundOfRung": 0.00727,
+    "dust": 1
+   }
+  },
+  "USDT-GBP|ask|0.00125": {
+   "d": {
+    "trips": 8,
+    "pnlPerPoundOfRung": 0.00894,
+    "dust": 1
+   }
+  },
+  "USDT-GBP|ask|0.0015": {
+   "d": {
+    "trips": 7,
+    "pnlPerPoundOfRung": 0.00749,
+    "dust": 2
+   }
+  },
+  "USDT-GBP|ask|0.002": {
+   "live": {
+    "trips": 3,
+    "pnlPerPoundOfRung": 0.003,
+    "dust": 1
+   },
+   "pr5": {
+    "trips": 4,
+    "pnlPerPoundOfRung": 0.00203,
+    "dust": 2
+   },
+   "p50": {
+    "trips": 4,
+    "pnlPerPoundOfRung": 0.00183,
+    "dust": 2
+   }
+  },
+  "USDT-GBP|bid|0.0003": {
+   "d": {
+    "trips": 25,
+    "pnlPerPoundOfRung": 0.00079,
+    "dust": 9
+   }
+  },
+  "USDT-GBP|bid|0.0005": {
+   "d": {
+    "trips": 28,
+    "pnlPerPoundOfRung": 0.00193,
+    "dust": 11
+   }
+  },
+  "USDT-GBP|bid|0.00075": {
+   "d": {
+    "trips": 21,
+    "pnlPerPoundOfRung": 0.00487,
+    "dust": 6
+   }
+  },
+  "USDT-GBP|bid|0.001": {
+   "live": {
+    "trips": 26,
+    "pnlPerPoundOfRung": 0.0071,
+    "dust": 12
+   },
+   "pr5": {
+    "trips": 16,
+    "pnlPerPoundOfRung": 0.00593,
+    "dust": 7
+   },
+   "p50": {
+    "trips": 18,
+    "pnlPerPoundOfRung": 0.0075,
+    "dust": 7
+   },
+   "d": {
+    "trips": 13,
+    "pnlPerPoundOfRung": 0.00516,
+    "dust": 3
+   }
+  },
+  "USDT-GBP|bid|0.00125": {
+   "d": {
+    "trips": 12,
+    "pnlPerPoundOfRung": 0.00544,
+    "dust": 3
+   }
+  },
+  "USDT-GBP|bid|0.0015": {
+   "d": {
+    "trips": 8,
+    "pnlPerPoundOfRung": 0.0068,
+    "dust": 2
+   }
+  },
+  "USDT-GBP|bid|0.002": {
+   "live": {
+    "trips": 3,
+    "pnlPerPoundOfRung": 0.004,
+    "dust": 0
+   },
+   "pr5": {
+    "trips": 5,
+    "pnlPerPoundOfRung": 0.00699,
+    "dust": 1
+   },
+   "p50": {
+    "trips": 5,
+    "pnlPerPoundOfRung": 0.00585,
+    "dust": 1
+   },
+   "d": {
+    "trips": 4,
+    "pnlPerPoundOfRung": 0.00688,
+    "dust": 1
+   }
+  },
+  "USDT-GBP|bid|0.0025": {
+   "d": {
+    "trips": 2,
+    "pnlPerPoundOfRung": 0.00496,
+    "dust": 0
+   }
+  },
+  "USDT-GBP|bid|0.003": {
+   "live": {
+    "trips": 1,
+    "pnlPerPoundOfRung": 0.001,
+    "dust": 0
+   },
+   "pr5": {
+    "trips": 1,
+    "pnlPerPoundOfRung": 0.00284,
+    "dust": 0
+   },
+   "p50": {
+    "trips": 1,
+    "pnlPerPoundOfRung": 0.00273,
+    "dust": 0
+   },
+   "d": {
+    "trips": 1,
+    "pnlPerPoundOfRung": 0.00322,
+    "dust": 0
+   }
+  }
+ }
+}

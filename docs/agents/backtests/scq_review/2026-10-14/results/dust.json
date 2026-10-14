@@ -1,0 +1,147 @@
+{
+ "live": {
+  "dustTrips": 22,
+  "pnlGbp": -0.0186,
+  "atOrderPricesGbp": 0.0022,
+  "pennyCostGbp": 0.0208,
+  "heldRungMinutes": 444.0,
+  "byExitDay": {
+   "2026-10-08": {
+    "trips": 5,
+    "pnlGbp": -0.0068,
+    "heldMinutes": 47.9765
+   },
+   "2026-10-09": {
+    "trips": 4,
+    "pnlGbp": -0.0129,
+    "heldMinutes": 35.9727
+   },
+   "2026-10-13": {
+    "trips": 12,
+    "pnlGbp": 0.0009,
+    "heldMinutes": 354.9945
+   },
+   "2026-10-14": {
+    "trips": 1,
+    "pnlGbp": 0.0001,
+    "heldMinutes": 4.9996
+   }
+  }
+ },
+ "pr5": {
+  "dustTrips": 13,
+  "pnlGbp": -0.218,
+  "atOrderPricesGbp": 0.0014,
+  "pennyCostGbp": 0.2194,
+  "heldRungMinutes": 1311.0,
+  "byExitDay": {
+   "2026-10-08": {
+    "trips": 4,
+    "pnlGbp": -0.076,
+    "heldMinutes": 24.0
+   },
+   "2026-10-09": {
+    "trips": 1,
+    "pnlGbp": -0.0149,
+    "heldMinutes": 4.0
+   },
+   "2026-10-13": {
+    "trips": 8,
+    "pnlGbp": -0.1272,
+    "heldMinutes": 1282.9999
+   }
+  }
+ },
+ "p50": {
+  "dustTrips": 14,
+  "pnlGbp": -0.2198,
+  "atOrderPricesGbp": 0.0017,
+  "pennyCostGbp": 0.2214,
+  "heldRungMinutes": 1319.0,
+  "byExitDay": {
+   "2026-09-25": {
+    "trips": 1,
+    "pnlGbp": -0.0092,
+    "heldMinutes": 8.0
+   },
+   "2026-10-08": {
+    "trips": 4,
+    "pnlGbp": -0.0695,
+    "heldMinutes": 24.0
+   },
+   "2026-10-09": {
+    "trips": 1,
+    "pnlGbp": -0.0135,
+    "heldMinutes": 4.0
+   },
+   "2026-10-13": {
+    "trips": 8,
+    "pnlGbp": -0.1276,
+    "heldMinutes": 1282.9999
+   }
+  }
+ },
+ "take50": {
+  "dustTrips": 15,
+  "pnlGbp": -0.232,
+  "atOrderPricesGbp": 0.0016,
+  "pennyCostGbp": 0.2337,
+  "heldRungMinutes": 1375.0,
+  "byExitDay": {
+   "2026-09-25": {
+    "trips": 1,
+    "pnlGbp": -0.0092,
+    "heldMinutes": 8.0
+   },
+   "2026-10-08": {
+    "trips": 5,
+    "pnlGbp": -0.0816,
+    "heldMinutes": 80.0
+   },
+   "2026-10-09": {
+    "trips": 1,
+    "pnlGbp": -0.0135,
+    "heldMinutes": 4.0
+   },
+   "2026-10-13": {
+    "trips": 8,
+    "pnlGbp": -0.1277,
+    "heldMinutes": 1282.9999
+   }
+  }
+ },
+ "d": {
+  "dustTrips": 62,
+  "pnlGbp": -0.9565,
+  "atOrderPricesGbp": 0.004,
+  "pennyCostGbp": 0.9605,
+  "heldRungMinutes": 3846.0,
+  "byExitDay": {
+   "2026-10-08": {
+    "trips": 15,
+    "pnlGbp": -0.2272,
+    "heldMinutes": 663.0
+   },
+   "2026-10-09": {
+    "trips": 21,
+    "pnlGbp": -0.364,
+    "heldMinutes": 674.9999
+   },
+   "2026-10-12": {
+    "trips": 1,
+    "pnlGbp": -0.0059,
+    "heldMinutes": 18.0
+   },
+   "2026-10-13": {
+    "trips": 19,
+    "pnlGbp": -0.2506,
+    "heldMinutes": 2343.9997
+   },
+   "2026-10-14": {
+    "trips": 6,
+    "pnlGbp": -0.1088,
+    "heldMinutes": 145.9999
+   }
+  }
+ }
+}
