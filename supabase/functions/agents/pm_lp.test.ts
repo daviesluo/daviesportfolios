@@ -35,6 +35,8 @@ import { FakePolymarket, LP_A18_INSTANCE, memDb, onlyTables, PM_TEST_FUNDER, PM_
 // Addendum 2's to 18's rule (TB1's one-tick skip, 5N): the unit tests of those addenda pin it, as their turn tests pin
 // the path on `LP_A18_INSTANCE` (testing.ts); Addendum 19's rule (4 ¢, 2N) is `lpQuotes` itself, pinned at the end.
 const A18_RULES = lpRulesOf({ invCap: 5, tight: { maxTicks: 1 } });
+/** The refill as Addendums 13–21 ran it (ten a day, the idle alarm at 30 minutes): its mechanism's tests run on it; Addendum 22 turned it off. */
+const A21_REFILL = { maxPerDay: 10, idleAlarmMin: 30 } as const;
 const a18Quotes = A18_RULES.rule, a18Exit = A18_RULES.exitRule;
 
 const M = 60e3, H = 3600e3;
@@ -1187,7 +1189,7 @@ const buysIn = (w: ReturnType<typeof world>, c: string) => w.rows("pm_lp_orders"
 
 Deno.test("the live reserve: after the day's selection, the next candidates in RW's order, none of the day's markets; their programmes read every minute", async () => {
   // `minFreeUsd` since Addendum 18 (the refill waits for $20 of free buy budget).
-  assertEquals(PM_LP_REFILL, { afterMin: 15, afterMinAllOut: 0, maxPerDay: 10, perTurn: 1, triesPerTurn: 3, retryMin: 15, reserveSize: 30, refreshTop: 15, rerankEveryMin: 1440, idleAlarmMin: 30, minFreeUsd: 20 });
+  assertEquals(PM_LP_REFILL, { afterMin: 15, afterMinAllOut: 0, maxPerDay: 0, perTurn: 1, triesPerTurn: 3, retryMin: 15, reserveSize: 30, refreshTop: 15, rerankEveryMin: 1440, idleAlarmMin: 360, minFreeUsd: 20 });
   assertEquals(PM_LP_INSTANCE.lp!.refill, { ...PM_LP_REFILL, table: "pm_lp_reserve" });
   const w = world({ config: { ...LIVE, max_markets: 2 }, extra: [100, 90] });
   assertEquals((await w.reserve(T0 - 20e3)).skipped, "the day's selection has not landed yet");
@@ -1215,7 +1217,7 @@ Deno.test("the live reserve: after the day's selection, the next candidates in R
 });
 
 Deno.test("refill: a market out 15 minutes takes the next reserve candidate that passes; a failing one is skipped, kept, and the dropped market is never taken again", async () => {
-  const w = world({ config: { ...LIVE, max_markets: 2 }, extra: [100, 90] });
+  const w = world({ config: { ...LIVE, max_markets: 2 }, extra: [100, 90], refill: A21_REFILL });
   await w.turn(T0);
   await w.reserve(T0 + 20e3);
   const [S, K] = day0(w).map((m) => String(m.cond)), [A, B, C] = resRows(w).map((x) => x.cond);
@@ -1251,7 +1253,7 @@ Deno.test("refill: a market out 15 minutes takes the next reserve candidate that
 
 Deno.test("refill: the daily cap holds; with every slot out, refills start on the next turn when passing candidates exist", async () => {
   // One slot (max_markets 1): out, it is every slot, so the wait is 0.
-  const w = world({ config: { ...LIVE, max_markets: 1 }, extra: [100, 90] });
+  const w = world({ config: { ...LIVE, max_markets: 1 }, extra: [100, 90], refill: A21_REFILL });
   await w.turn(T0);
   await w.reserve(T0 + 20e3);
   const [S] = day0(w).map((m) => String(m.cond));
@@ -1262,7 +1264,7 @@ Deno.test("refill: the daily cap holds; with every slot out, refills start on th
   assertEquals(day0(w).length, 2);
   // The cap: none a day, none refilled, though every slot is out and the reserve holds passing candidates; after 30
   // minutes of no slot quoting the health reading is a fault.
-  const c = world({ config: { ...LIVE, max_markets: 1 }, extra: [100, 90], refill: { maxPerDay: 0 } });
+  const c = world({ config: { ...LIVE, max_markets: 1 }, extra: [100, 90], refill: { ...A21_REFILL, maxPerDay: 0 } });
   await c.turn(T0);
   await c.reserve(T0 + 20e3);
   fakeOf(c, String(day0(c)[0].cond)).rewardsMinSize = 50;
@@ -1524,7 +1526,7 @@ Deno.test("the pause and the exit (Addendum 18): a paused market worked close-on
 
 Deno.test("the refill waits for the cash (Addendum 18): with $7.10 of free buy budget no refill is taken, the slot stays out, the day's count unused; with $40.10 it refills; before it, it refilled on $7.10", async () => {
   const run = async (minFreeUsd: number | undefined) => {
-    const w = world({ config: { ...LIVE, max_markets: 2 }, extra: [100, 90], refill: { minFreeUsd } });
+    const w = world({ config: { ...LIVE, max_markets: 2 }, extra: [100, 90], refill: { ...A21_REFILL, minFreeUsd } });
     await w.turn(T0);
     await w.reserve(T0 + 20e3);
     const [S] = day0(w).map((m) => String(m.cond));
@@ -1837,4 +1839,24 @@ Deno.test("Addendum 21: under the 4 ¢ touch a market still quoting rests the ex
   // From 4 c, as Addendum 19: the sell and the buys its 2N allows.
   const { market, book } = bookOf(4);
   assertEquals(lpQuotes({ market, book, held: { yes: 0, no: 20 } }).map((x) => `${x.outcome} ${x.side}`), ["no SELL", "no BUY"]);
+});
+
+Deno.test("Addendum 22: live-prep takes no refill; a slot out keeps its place, and the idle alarm waits six hours", async () => {
+  // 2026-10-14 (Davies: "同意 Addendum 22（取消补选）"): Q2's first day lost most in refills.
+  assertEquals([PM_LP_REFILL.maxPerDay, PM_LP_REFILL.idleAlarmMin], [0, 360]);
+  const c = world({ config: { ...LIVE, max_markets: 1 }, extra: [100, 90] });
+  await c.turn(T0);
+  await c.reserve(T0 + 20e3);
+  fakeOf(c, String(day0(c)[0].cond)).rewardsMinSize = 50;                                    // its slot out from T0 + 1 min
+  const errs: string[] = [];
+  for (let k = 1; k <= 40; k++) { const r = await c.turn(T0 + k * M); errs.push(...r.errors.filter((e) => /no slot has quoted/.test(e))); if (k % 5 === 0) await c.reserve(T0 + k * M + 20e3); }
+  assertEquals([c.rows("pm_lp_events").filter((e) => e.kind === "refill").length, day0(c).length], [0, 1]);
+  assertEquals(errs, []);
+  // The counterfactual: on Addendum 21's refill the same world refills within the first turns.
+  const r = world({ config: { ...LIVE, max_markets: 1 }, extra: [100, 90], refill: A21_REFILL });
+  await r.turn(T0);
+  await r.reserve(T0 + 20e3);
+  fakeOf(r, String(day0(r)[0].cond)).rewardsMinSize = 50;
+  for (let k = 1; k <= 20; k++) { await r.turn(T0 + k * M); if (k % 5 === 0) await r.reserve(T0 + k * M + 20e3); }
+  assertEquals(r.rows("pm_lp_events").filter((e) => e.kind === "refill").length, 1);
 });

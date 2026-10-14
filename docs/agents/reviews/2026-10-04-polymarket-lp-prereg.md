@@ -1615,3 +1615,25 @@ at 13:26) should have been out as an AI market. Addendum 12 keeps such questions
 **The code it deploys:** `pm_live.ts` sha256 `9c4174f30523225520f92a0ecd50082d9490e88e43a686a737fdd6629f34a231` (Addendum 20's, unchanged) and `pm_lp.ts` sha256 `9cc5a4430730f845333b948a6060746af280faeed84e0eb501f1702c1185bd48`, where Addendum 19
 named `08be7827…9ac9`.
 
+## Addendum 22 (2026-10-14, about 03:40 UTC): no refills
+
+**On whose word.** Davies, 2026-10-14, verbatim: "同意 Addendum 22（取消补选）", on the day-1 post-mortem
+(`reviews/2026-10-14-q2-day1-postmortem.md`).
+
+**Why.** Over Q2's first 12.6 live hours (10-13 13:26 → 10-14 01:59 UTC) the path lost $8.51 against the engine's +$1.76
+for the span. The largest single cause, −$4.80, was the refill, which LP-BEST never priced: a quiet book's programme dips
+under the $10 floor on almost every day (89–98 % of market-days) for a median of 72–75 minutes and comes back, so the path
+kept swapping dipped picks for fresh ones, never retaken, and 5 of the 7 markets that filled were refills (−$8.10 of the
+fills' −$10.67). On 10-05 → 10-12, keeping the picks beats Q2-as-live on 8 of 8 days, +$2.27 a day [+1.59, +2.88]; calibrated
+to live's day-1 rewards it reads +$1.47 a day [−0.65, +3.72], rewards 1.53 ¢ a filled share. Nothing else priced beat it.
+
+**What changes.** `PM_LP_REFILL.maxPerDay` 10 → 0: a pick whose programme dips keeps its slot, takes no entry while it is
+out, rests its exits, and quotes again when its rate is back, as Addendum 9's check already does minute by minute. The idle
+alarm, which watched the refill, now needs six hours of no slot quoting (`idleAlarmMin` 30 → 360). The refill's mechanism
+stays in `pm_live.ts` unchanged, and its tests run on Addendum 21's numbers. Not fixed by this: the adverse fills, x2's
+pause in wide books (about $1.7 a day), R measured on one day. The 14-day bar of Addendum 19 is unchanged and is read over
+the restart's whole window, the days before this addendum included and named.
+
+**The code it deploys:** `pm_live.ts` sha256 `9c4174f30523225520f92a0ecd50082d9490e88e43a686a737fdd6629f34a231` (Addendum 20's, unchanged) and `pm_lp.ts` sha256 `82ae7a72724515ad49b059d9e00f98888c7f6cb44ea6d483f22b2602b4ae78bb`, where Addendum 21
+named `9cc5a443…bd48`.
+

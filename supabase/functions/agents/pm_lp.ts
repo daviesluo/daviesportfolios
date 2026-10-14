@@ -193,7 +193,12 @@ export const PM_LP_EXCLUDE_AI = { why: "an AI market (model releases, rankings, 
  * of quotes can cost (N ≤ 20). The slot stays out, the day's count is not used, and the next turn tries again.
  */
 export const PM_LP_REFILL: LpRefillOptions = {
-  afterMin: 15, afterMinAllOut: 0, maxPerDay: 10, perTurn: 1, triesPerTurn: 3, retryMin: 15, reserveSize: 30, refreshTop: 15, rerankEveryMin: 1440, idleAlarmMin: 30,
+  // Addendum 22 (Davies, 2026-10-14: "同意 Addendum 22（取消补选）"): no refills. Q2's first live day lost most of its
+  // money in refills (5 of the 7 markets that filled, −$8.10 of −$10.67): a quiet book's programme dips under the floor
+  // for an hour or so most days and comes back, so a dipped pick now keeps its slot, rests its exits, and quotes again
+  // when its rate does (`reviews/2026-10-14-q2-day1-postmortem.md`). The idle alarm, which watched refills, now reads a
+  // whole six hours of nothing quoting. The other numbers stay for the mechanism's tests and a later addendum.
+  afterMin: 15, afterMinAllOut: 0, maxPerDay: 0, perTurn: 1, triesPerTurn: 3, retryMin: 15, reserveSize: 30, refreshTop: 15, rerankEveryMin: 1440, idleAlarmMin: 360,
   minFreeUsd: 20,
 };
 

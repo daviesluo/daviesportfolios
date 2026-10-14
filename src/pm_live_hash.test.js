@@ -74,8 +74,9 @@ const A289 = '28930ad918b0358c98e6bd6268715c6fd845b6092bcefcd1b44ffd45daf7f43d';
 
 describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", () => {
   it("live-prep's latest addendum (20) and mid-pool's (20) name today's pm_live.ts", () => {
-    expect(lastNumber(LP)).toBe(21);
+    expect(lastNumber(LP)).toBe(22);
     expect(lastNumber(MID)).toBe(20);
+    expect(namedPath(addendum(LP, 22))).toBe(sha);
     expect(namedPath(addendum(LP, 21))).toBe(sha);
     expect(namedPath(addendum(LP, 20))).toBe(sha);
     expect(namedPath(addendum(MID, 20))).toBe(sha);
@@ -329,7 +330,10 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     expect(lp13).toContain(line);
     // Addendum 15 changed one of its numbers (`rerankEveryMin` 5 → 1440) and quotes the constant as it was then, word for
     // word; Addendum 18 added one (`minFreeUsd: 20`), on a line of its own.
-    expect(lp).toContain(`export const PM_LP_REFILL: LpRefillOptions = {\n  ${line.replace('rerankEveryMin: 5,', 'rerankEveryMin: 1440,')}\n  minFreeUsd: 20,\n};`);
+    // Addendum 22 changed two more (`maxPerDay` 10 → 0, `idleAlarmMin` 30 → 360) and says so.
+    expect(lp).toContain(`  ${line.replace('rerankEveryMin: 5,', 'rerankEveryMin: 1440,').replace('maxPerDay: 10,', 'maxPerDay: 0,').replace('idleAlarmMin: 30,', 'idleAlarmMin: 360,')}\n  minFreeUsd: 20,\n};`);
+    expect(addendum(LP, 22)).toContain('`PM_LP_REFILL.maxPerDay` 10 → 0');
+    expect(addendum(LP, 22)).toContain('`idleAlarmMin` 30 → 360');
     expect(addendum(LP, 15)).toContain(line.replace('rerankEveryMin: 5,', 'rerankEveryMin: 1440,'));
     expect(lp).toContain('refill: { ...PM_LP_REFILL, table: "pm_lp_reserve" },');
     // The pm_lp.ts it named, the instance until Addendum 14 (the loss guard), which names it.
@@ -413,7 +417,10 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     // The pm_lp.ts Addendum 19 named, the instance until Addendum 21, which names it and today's.
     expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(addendum(LP, 19))?.[1]).toBe('08be78270a160003b36ddc3b269072c0c0a37a6fe4b823f2b91d8fc73ad89ac9');
     expect(addendum(LP, 21)).toContain('`08be7827…9ac9`');
-    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(addendum(LP, 21))?.[1]).toBe(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex'));
+    // The pm_lp.ts Addendum 21 named, the instance until Addendum 22, which names it and today's.
+    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(addendum(LP, 21))?.[1]).toBe('9cc5a4430730f845333b948a6060746af280faeed84e0eb501f1702c1185bd48');
+    expect(addendum(LP, 22)).toContain('`9cc5a443…bd48`');
+    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(addendum(LP, 22))?.[1]).toBe(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex'));
     expect(read('supabase/functions/agents/pm_lp.ts')).toContain('    fundByRank: true,');
     const src = read(PATH);
     expect(src).toContain('if (!inst.lp?.fundByRank) {');

@@ -518,6 +518,15 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14"; each oldest first.
 
+### [2026-10-14 03:47 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Addendum 22, no refills** (Davies: "同意 Addendum 22（取消补选）", on `reviews/2026-10-14-q2-day1-postmortem.md`, landed
+  `3b7343e6`): `PM_LP_REFILL.maxPerDay` 10 → 0 and the idle alarm 30 → 360 minutes (with refills off it would fire every
+  half hour a quiet book sits out). A dipped pick keeps its slot and quotes again when its programme is back. The refill
+  mechanism stays in `pm_live.ts` (unchanged, its tests on Addendum 21's numbers, `A21_REFILL`); a new pin fails on the old
+  constants. Also this sitting: Muse's four commits of 10-13/14 reviewed (0121, the paged live-hours read, the `?pwd=`
+  service-worker fix, PMSTATARB): no fault found, CI and deploys green, Euros - 2 deciding since 10-13 00:00; its reading
+  reminder moved to 11-10 00:40 (`trig_01BFEc2udBJhBFvKbdSBZgv9`); the 10-11 history archived.
+
 ### [2026-10-14 03:23 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Q2-PM, why Q2 lost on day 1** (`reviews/2026-10-14-q2-day1-postmortem.md`, `backtests/lpbest/`; "为什么还在亏"):
   13:26 → 01:59 live −$8.51. Against LP-BEST's +1.76 for the span: window −3.33; live's refill on a programme dip −4.80
