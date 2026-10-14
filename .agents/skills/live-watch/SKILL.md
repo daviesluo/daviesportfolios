@@ -248,16 +248,33 @@ mk as (select x->>'cond' as cond, (x->'held'->>'yes')::numeric as hy, (x->'held'
        from st, jsonb_array_elements(st.state->'markets') x),
 mid as (select key as cond, value::text::numeric as m from st, jsonb_each(st.state->'lp'->'lastMid')),
 f as (select cond, sum(case when side = 'BUY' then -price*size else price*size end) as cash
-      from public.pm_lp_fills group by cond)
+      from public.pm_lp_fills where status = 'CONFIRMED' group by cond)
 select left(mk.cond, 10) as cond,
        (select left(question, 45) from public.pm_lp_markets p where p.cond = mk.cond order by day desc limit 1) as question,
        mk.quoting, mk.hy as held_yes, mk.hn as held_no, mid.m as mid,
        round(coalesce(f.cash, 0) + mk.hy*mid.m + mk.hn*(1 - mid.m), 2) as marked_pnl
 from mk left join mid using (cond) left join f using (cond)
 where mk.hy + mk.hn > 1 order by marked_pnl asc limit 12;
+
+-- 6b: settled markets. A market leaves state.markets when it settles, so 6a cannot see a loss realised at settlement
+-- (on 2026-10-11 the MrBeast 215-223M market's −$32.54 was in pnl.total and in no line of 6a). The path books a
+-- settlement as each token sold at its payout (`settlementFills`), over CONFIRMED fills only, as below.
+with f as (select cond, token,
+                  sum(case when side = 'BUY' then -price*size else price*size end) as cash,
+                  sum(case when side = 'BUY' then size else -size end) as net
+           from public.pm_lp_fills where status = 'CONFIRMED' group by cond, token)
+select left(s.cond, 10) as cond,
+       (select left(question, 45) from public.pm_lp_markets p where p.cond = s.cond order by day desc limit 1) as question,
+       s.payout, s.settled_at,
+       round(sum(f.cash + f.net * case when f.token = s.yes_token then s.payout else 1 - s.payout end), 2) as realised_pnl
+from public.pm_lp_settlements s join f using (cond)
+group by s.cond, s.payout, s.settled_at
+order by realised_pnl asc limit 12;
 ```
 
-Report the three worst lines by name, held shares and mid. Do not recommend selling. Holding is the rule; the exits are already resting.
+Only CONFIRMED fills count, as in the path's own books (`pm_live.ts` reads `status=eq.CONFIRMED`): a MATCHED or MINED
+fill can still fail. Report the three worst lines of 6a by name, held shares and mid, and any 6b line settled since the
+last check. Do not recommend selling. Holding is the rule; the exits are already resting.
 
 ### Step 7 — PR5 and the rest
 

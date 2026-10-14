@@ -4,7 +4,7 @@
  "files": [
   {
    "path": "SPEC-for-verification.md",
-   "sha256": "b328b67890c895d6008c56fa7bc3c5154e4bb2c7767e6eac1f50cbcc355df70c"
+   "sha256": "d0a4a3a628dc1c7c95cddbcb8b3994ae5d3760f2299b20e2f4468d75fa4b4d6e"
   },
   {
    "path": "results/clauses_buckets.txt",

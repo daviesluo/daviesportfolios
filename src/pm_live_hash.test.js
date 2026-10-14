@@ -73,7 +73,7 @@ const LP_A18 = '53f7f788a47e93f52770f96410db9faf8f34cdd7dc2cf4ddbd877c9038d07278
 const A289 = '28930ad918b0358c98e6bd6268715c6fd845b6092bcefcd1b44ffd45daf7f43d';
 
 describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", () => {
-  it("live-prep's latest addendum (20) and mid-pool's (20) name today's pm_live.ts", () => {
+  it("live-prep's latest addendum (22; 20 and 21 name the same bytes) and mid-pool's (20) name today's pm_live.ts", () => {
     expect(lastNumber(LP)).toBe(22);
     expect(lastNumber(MID)).toBe(20);
     expect(namedPath(addendum(LP, 22))).toBe(sha);

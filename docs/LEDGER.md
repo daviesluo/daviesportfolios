@@ -23,7 +23,7 @@ him); a frozen rule changes only as a recorded deviation (spec, reference, ledge
 a pre-registered reading runs as its pre-registration says (script, bar, date) and, since 2026-10-04, says it was not
 blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
 
-0a. **LIVE-PREP STOPPED: its −$75 total stop tripped 2026-10-12 07:30 UTC, and stays tripped (Davies, 10-12 ~23:00 UTC:
+0a. **(History since 2026-10-13 13:25:32 UTC, when Q2 went live under Addendum 19: the live state is 0a″ and 0a′.) LIVE-PREP STOPPED: its −$75 total stop tripped 2026-10-12 07:30 UTC, and stays tripped (Davies, 10-12 ~23:00 UTC:
    "保持止损").** Close-only since: no buy rests, its sells do; nobody clears the stop (`pm_lp_events` `loss_stop_total`).
    Three studies run (history 2026-10-12 23:05): the live fills' adverse selection and a deep optimisation, Davies'
    reward-timing hypothesis with a 1-second speed study, and Coinbase's first days. Their proposals go to Davies; a rule
@@ -63,14 +63,27 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    Senate odds 60-62% on October 16?" 40 YES at cost $12.20, mid 0.15, −6.20; 0x6eed2a46 20 YES bought again 17:40). The −$25
    stop trips by itself at room 0 (close-only, nothing to do); this session recommended Davies stop now with the undo below;
    no answer before the 19:00 UTC handover. First read `state->'lp'->'stop'` and `trippedAt`. Then after 00:05/01:20 UTC 10-15
-   read 10-14's payout and rebates (rewards per filled share since the restart: 0.27 c at 16:17, bar 1.5 c).
+   read 10-14's payout and rebates (rewards and rebates per filled share since the restart: 0.27 c at 16:17; the bar, 1.5 c, counts rewards alone).
 
 0a′. **Q2 live, the second post-mortem (`reviews/2026-10-14-q2-trips.md`, landed 2026-10-14 ~16:45 UTC): no rule fixes it.**
-   Every lot lost to informed takers and the drift while held (16 lots −16.38: entry edge +5.87, first minute −9.12, held
-   −16.08, exits +3.00); of 27 rules none clears $0 at its 5 % bound on both spans or the 1.5 c bar on the live window. The
+   15 of 16 lots lost to informed takers and the drift while held (16 lots −16.38: entry edge +5.87, first minute −9.12, held
+   −16.08, exits +3.00, residual −0.05; the review's erratum); of 27 rules none clears $0 at its 5 % bound on both spans or the 1.5 c bar on the live window. The
    main session did NOT push its draft Addendum 23 (entries 4 c from the adjusted mid: 0.77 c a share live, under the bar),
    though Davies' standing word allowed a fix to go live. **Recommended to Davies: stop for good** (`update public.pm_lp_config
    set restarted_at = null where id = 1;`, close-only, held lots exit); his call, live still running, stop room ~$9.
+
+0c. **The audit of 2026-10-14 evening (history 2026-10-14 20:11; PR on `claude/audit-2026-10-14`): four calls for Davies.**
+   (1) **A21's exit gap (live code, his word only):** in a QUOTING market under the 4 c touch, `lpQuotesOn` (`pm_lp.ts:262`)
+   rests a sell only of a holding ≥ N, so 5 ≤ held < N rests no exit (0x3b162968's 9 shares: 32 minutes with none); the
+   proposed fix routes that line through `closeOnly`, as the close-only path does, with a pin on a partial holding; not built.
+   (2) **Addendum 20's dust at 1** can charge up to $4.29 of pre-restart loss to Q2's $25 stop if 0x0608b79b settles at 0
+   (Addendum 19 §6 says the restart's carried loss is the record's); read its payout, then his call. (3) **`origin/lp-skew-ft`
+   (Grok, 10-11) must not be merged:** its `0117_lpskew.sql` collides with the applied `0117_cb_minute_extremes_repair.sql`,
+   its pins hold Addendum 18's `pm_live.ts`/`pm_lp.ts` bytes, its base arm is the S2 that Q2 replaced and its window
+   (10-12 → 10-19) has passed unrun; close it (deleting the branch is his). (4) **SPCX:** the board's 80 is 21 shares at another
+   platform plus Trading 212's 59 (Invest and ISA summed, `mergeShaped`); the conservative rule, not a bug; he confirms 59 in
+   the T212 app and the 21 elsewhere. No production read was possible from this session (no database connector): Q2's stop
+   (0a″) is unread since 17:47 UTC.
 
 0b. **Every PAPER Reward quotes test is off (Davies, 2026-10-13: "目前paper testing里的reward quotes全关了吧？感觉都不赚钱没什么
    意义？"; `0120`).** Off: `pmrwc`, `pmrwc-select`, `pmrwc-e`, `pmrwc-x`, mid-pool (`pmmid`, `pmmidprep`), live-prep's paper layer
@@ -546,6 +559,20 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14"; each oldest first.
+
+### [2026-10-14 20:11 UTC] Platform: Claude Code | Model: claude-opus-5-5
+- **Audit of every other model's work since the last Claude Code record** (`81235f3`, 17:51 UTC, ledger item 0a″; its branch
+  `claude/hopeful-planck-acdq5g`). Nothing landed on `main` after it; reviewed what no Claude session had: Muse's `985a89a`
+  (PMSTATARB handoff) and `8ee0081` (IG; both scripts re-run byte for byte, pass), Muse's four earlier commits again (pass),
+  Grok's unmerged `origin/lp-skew-ft` (item 0c (3)), and live-prep's Addenda 19–22 (hash chain intact, each addendum only
+  appended; 85 Deno tests and the src pins green; counterfactuals on A21/A22 fail as they should). Fixed here, docs and test
+  titles only: the live-watch skill's Step 6 counted unconfirmed fills and could not see a market's loss realised at
+  settlement (Grok's finding of 10-11, which never reached `main`): CONFIRMED only, and 6b reads settled markets; the
+  PMSTATARB handoff pointed at a folder that does not exist (MANIFEST rehashed); the PMSTATARB review's mid-ratio, bucket and
+  partition figures now match its results files; Q2-TRIPS has an erratum (residual −0.05, one lot +0.11, 11 of 16 over four
+  hours, three lots held); items 0a, 0a′, 0a″ corrected. Not fixed, for Davies: item 0c. Also seen, left: the history headers
+  "2026-10-13 23:47" (written 10-12 23:47) and 15:25 above 15:40; seven dependabot PRs (four red); five stale `cursor/*`
+  branches from September with unmerged commits.
 
 ### [2026-10-14 16:36 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Q2-TRIPS, why every Q2 trip loses** (the LP-BEST agent; `reviews/2026-10-14-q2-trips.md`, `backtests/lpbest/scripts/q2trips*.py`,

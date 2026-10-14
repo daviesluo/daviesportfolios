@@ -81,17 +81,17 @@ near side. Priced at Gamma's touch (crypto taker fee `0.07·p·(1−p)` a leg):
   cheapest is 1.0079 (weekly BTC $94k). The sub-$1 pairs a naive date match produces (best 0.88) pair a one-day touch
   window with a terminal two days later — a 12-to-60-hour gap in which the "locked" pair pays $0. Window mismatch,
   not arbitrage: lesson 2 again, now in this family.
-- The touch/terminal **mid ratio** over the 45 pairs: median 2.46, range 1.03–27.8. A driftless reflection benchmark
+- The touch/terminal **mid ratio** over the 45 pairs: median 2.417, range 1.088–36.25 (`results/touch_pairs.txt`; the figures first written here, 2.46 and 1.03–27.8, were not the committed file's, corrected 2026-10-14 in the audit). A driftless reflection benchmark
   for a same-expiry barrier is about 2, rising when the touch window outlives the terminal date, so the median is
   not self-evidently wrong. Whether the ratio is systematically rich or cheap once spot distance and time left are
   in the model is the historical question (§4, TOUCH-CAL) — a snapshot cannot answer it.
 
 ### 3.2 Daily price-bucket partitions: whole, at a spread
 
-For the BTC/ETH "price on <date>" bucket events of the next week, YES mids sum to 0.99–1.07 — the partition is priced
+For the BTC/ETH "price on <date>" bucket events of the next week, YES mids sum to 1.001–1.069 on the six events `results/clauses_buckets.txt` prints in full (of 30 found) — the partition is priced
 whole at the mid (it is one negative-risk adapter book under the surface). Against a driftless lognormal at trailing
 30-day realised volatility (BTC 38 %, ETH 45 %; Coinbase spot), the largest bucket deviations sit in the central
-bucket (up to ~5 points, model-sensitive to drift and the hour of the snapshot), and the ±7 % tails read richer than
+bucket (up to 6.25 points, ETH on October 14, model-sensitive to drift and the hour of the snapshot), and the ±7 % tails read richer than
 the model on ETH (0.105 of mid mass against 0.016 model on the October 16 event) while ~zero on same-day BTC. That is
 a hint about distribution **shape**, not a measurement: mids on wide books at 02:00 UTC, one snapshot, no prints.
 §4's BUCKET-DIST is the historical form.
