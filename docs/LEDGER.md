@@ -401,6 +401,17 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    count(*), max(ts) from cb_book_levels group by 1`; no `agents.cb_books` row in `ops_errors`. Nothing reads it until a
    queue-model study of the Coinbase books is pre-registered.
 
+14. **IG CFD/spread-betting deep dive and verification handoff written, not run** (Davies, 2026-10-14: the same
+   requirements and architecture as PMSTATARB; he would bear some risk for a good enough strategy after thorough
+   research). `reviews/2026-10-14-ig-deepdive.md` keeps only FXW-AUD as a historically supported rule: on FXCM it
+   survives 12-30 bp assumed spreads, but a 60-minute delay removes the statistical case and the worst 24-hour
+   adverse excursion is 440 bps, so leverage cannot be sized from final drawdown. WKND remains quote discovery,
+   ESG remains n 18, and the new gated-volatility measurements close the tested model-priced gates. The run-ready
+   demo-only handoff is `backtests/ig_deepdive/SPEC-for-verification.md` (G0-G4, S1-S5). It starts only when
+   Davies confirms the approved contracting entity, stores demo credentials himself and says to begin; no live
+   host, order, funding or production deployment is authorised by the spec. Decisions left to Davies: hand it to
+   Grok, identify entity/product and tax route, and later choose any risk amount only from S5's stress packet.
+
 ## Machine and platform setup
 
 A rebuilt container loses every line below. Run them before working.
@@ -522,6 +533,19 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14"; each oldest first.
+
+### [2026-10-14 06:46 UTC] Platform: Muse | Model: muse-wonder-full-1.0
+- **IG deep dive: no live-ready strategy; one venue-transfer test and one quote-discovery test survive**
+  (Davies: apply the PMSTATARB research and handoff architecture to IG CFD/spread betting, with real risk only
+  after deep research). `reviews/2026-10-14-ig-deepdive.md` and `backtests/ig_deepdive/` add two reproducible
+  measurements. FXW-AUD is pair-specific (EUR flat, GBP/JPY negative), positive in all four era splits and at
+  12/20/30 bp assumed spreads, but a 60-minute entry delay leaves only +3.06 bps at 20 bp (t 0.66) and its
+  maximum adverse excursion is 440.1 bps against a worst finished trade of -129.3 bps; the earlier leverage-12
+  illustration is therefore explicitly not carried forward. Public IV-minus-RV gates worsen daily/weekly model
+  straddle sales at 0.8 times Cboe indices, and contango gates remove rather than isolate the front-VX roll.
+  `SPEC-for-verification.md` freezes G0-G4 and S1-S5 for Grok: actual entity/product facts, demo-only IG hourly
+  history, a 12-weekend quote recorder, FXW transfer, WKND bias, ESG coverage, an IG option-bid audit and a
+  stress-based wrapper packet. No IG account, credential, quote or order was touched.
 
 ### [2026-10-14 04:17 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **SCQ-1014, every stablecoin quotes row reviewed, not blind, no reading** (Davies: "我看variant-2比stablecoin quotes表现好不少？";

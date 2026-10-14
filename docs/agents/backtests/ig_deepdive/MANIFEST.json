@@ -1,0 +1,26 @@
+{
+ "generated": "2026-10-14",
+ "note": "Historical measurements read committed sibling inputs under statarb_search2 and ig_research; no IG account or quote was read.",
+ "files": [
+  {
+   "path": "SPEC-for-verification.md",
+   "sha256": "5adacf70708e6a643dff7dfb40b12f9fd85888758e1aab9599ce341eeb7f62d1"
+  },
+  {
+   "path": "results/fxw_risk.json",
+   "sha256": "66e279db3b5facaee6ef6ffaa5901d387437606f956a921f151d1abcefe53e78"
+  },
+  {
+   "path": "results/vol_gated.json",
+   "sha256": "171b8186ff46ad7d052efe1ac2cfbeca423b0763430816e2b0808f121762bc70"
+  },
+  {
+   "path": "scripts/fxw_risk.py",
+   "sha256": "1fcb52407e7e73474f0bc1f201127cd05fa12af41819c3f0d18391b47fd4a532"
+  },
+  {
+   "path": "scripts/vol_gated.py",
+   "sha256": "9190b2862764cb400c283718affd33430b3bb717cbee5a0dfacea67f1f6c6d35"
+  }
+ ]
+}

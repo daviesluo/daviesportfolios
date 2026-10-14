@@ -1,0 +1,546 @@
+{
+ "AUDUSD": {
+  "weekends": 524,
+  "trades": 85,
+  "years": 10.71,
+  "spread_12": {
+   "n": 85,
+   "mean_bps": 18.88,
+   "sd_bps": 36.1,
+   "t": 4.82,
+   "hit": 0.847,
+   "total_bps": 1605.0,
+   "max_dd_bps": -167.0,
+   "per_year": 7.93,
+   "annual_bps": 149.8,
+   "annual_sharpe": 1.47,
+   "boot95_bps": [
+    10.93,
+    26.24
+   ]
+  },
+  "spread_20": {
+   "n": 85,
+   "mean_bps": 14.88,
+   "sd_bps": 36.1,
+   "t": 3.8,
+   "hit": 0.835,
+   "total_bps": 1265.0,
+   "max_dd_bps": -175.0,
+   "per_year": 7.93,
+   "annual_bps": 118.1,
+   "annual_sharpe": 1.16,
+   "boot95_bps": [
+    6.93,
+    22.24
+   ]
+  },
+  "spread_30": {
+   "n": 85,
+   "mean_bps": 9.88,
+   "sd_bps": 36.1,
+   "t": 2.52,
+   "hit": 0.812,
+   "total_bps": 840.0,
+   "max_dd_bps": -185.0,
+   "per_year": 7.93,
+   "annual_bps": 78.4,
+   "annual_sharpe": 0.77,
+   "boot95_bps": [
+    1.94,
+    17.25
+   ]
+  },
+  "spread_40": {
+   "n": 85,
+   "mean_bps": 4.89,
+   "sd_bps": 36.1,
+   "t": 1.25,
+   "hit": 0.682,
+   "total_bps": 415.0,
+   "max_dd_bps": -230.0,
+   "per_year": 7.93,
+   "annual_bps": 38.8,
+   "annual_sharpe": 0.38,
+   "boot95_bps": [
+    -3.06,
+    12.25
+   ]
+  },
+  "delay_60_spread_12": {
+   "n": 76,
+   "mean_bps": 7.06,
+   "sd_bps": 40.2,
+   "t": 1.53,
+   "hit": 0.658,
+   "total_bps": 536.0,
+   "max_dd_bps": -210.0,
+   "per_year": 7.09,
+   "annual_bps": 50.1,
+   "annual_sharpe": 0.47,
+   "boot95_bps": [
+    -2.17,
+    15.88
+   ]
+  },
+  "delay_60_spread_20": {
+   "n": 76,
+   "mean_bps": 3.06,
+   "sd_bps": 40.2,
+   "t": 0.66,
+   "hit": 0.605,
+   "total_bps": 232.0,
+   "max_dd_bps": -361.0,
+   "per_year": 7.09,
+   "annual_bps": 21.7,
+   "annual_sharpe": 0.2,
+   "boot95_bps": [
+    -6.17,
+    11.88
+   ]
+  },
+  "delay_60_spread_30": {
+   "n": 76,
+   "mean_bps": -1.94,
+   "sd_bps": 40.2,
+   "t": -0.42,
+   "hit": 0.474,
+   "total_bps": -147.0,
+   "max_dd_bps": -603.0,
+   "per_year": 7.09,
+   "annual_bps": -13.8,
+   "annual_sharpe": -0.13,
+   "boot95_bps": [
+    -11.17,
+    6.88
+   ]
+  },
+  "delay_240_spread_12": {
+   "n": 51,
+   "mean_bps": 9.91,
+   "sd_bps": 45.1,
+   "t": 1.57,
+   "hit": 0.608,
+   "total_bps": 506.0,
+   "max_dd_bps": -207.0,
+   "per_year": 4.76,
+   "annual_bps": 47.2,
+   "annual_sharpe": 0.48,
+   "boot95_bps": [
+    -2.4,
+    22.42
+   ]
+  },
+  "delay_240_spread_20": {
+   "n": 51,
+   "mean_bps": 5.92,
+   "sd_bps": 45.1,
+   "t": 0.94,
+   "hit": 0.529,
+   "total_bps": 302.0,
+   "max_dd_bps": -275.0,
+   "per_year": 4.76,
+   "annual_bps": 28.2,
+   "annual_sharpe": 0.29,
+   "boot95_bps": [
+    -6.4,
+    18.42
+   ]
+  },
+  "delay_240_spread_30": {
+   "n": 51,
+   "mean_bps": 0.92,
+   "sd_bps": 45.1,
+   "t": 0.15,
+   "hit": 0.49,
+   "total_bps": 47.0,
+   "max_dd_bps": -361.0,
+   "per_year": 4.76,
+   "annual_bps": 4.4,
+   "annual_sharpe": 0.04,
+   "boot95_bps": [
+    -11.4,
+    13.42
+   ]
+  },
+  "era_2016_2018": {
+   "n": 24,
+   "mean_bps": 10.9,
+   "sd_bps": 39.2,
+   "t": 1.36,
+   "hit": 0.792,
+   "total_bps": 262.0,
+   "max_dd_bps": -167.0,
+   "per_year": 8.0,
+   "annual_bps": 87.2,
+   "annual_sharpe": 0.79,
+   "boot95_bps": [
+    -6.01,
+    25.21
+   ]
+  },
+  "era_2019_2021": {
+   "n": 25,
+   "mean_bps": 18.35,
+   "sd_bps": 23.2,
+   "t": 3.95,
+   "hit": 0.84,
+   "total_bps": 459.0,
+   "max_dd_bps": -42.0,
+   "per_year": 8.33,
+   "annual_bps": 152.9,
+   "annual_sharpe": 2.28,
+   "boot95_bps": [
+    8.94,
+    27.27
+   ]
+  },
+  "era_2022_2024": {
+   "n": 17,
+   "mean_bps": 16.9,
+   "sd_bps": 47.2,
+   "t": 1.48,
+   "hit": 0.882,
+   "total_bps": 287.0,
+   "max_dd_bps": -108.0,
+   "per_year": 5.67,
+   "annual_bps": 95.8,
+   "annual_sharpe": 0.85,
+   "boot95_bps": [
+    -6.75,
+    37.57
+   ]
+  },
+  "era_2025_2026": {
+   "n": 19,
+   "mean_bps": 31.42,
+   "sd_bps": 30.6,
+   "t": 4.48,
+   "hit": 0.895,
+   "total_bps": 597.0,
+   "max_dd_bps": -28.0,
+   "per_year": 9.5,
+   "annual_bps": 298.5,
+   "annual_sharpe": 3.17,
+   "boot95_bps": [
+    18.01,
+    45.46
+   ]
+  },
+  "gap_20_30": {
+   "n": 39,
+   "mean_bps": 13.08,
+   "sd_bps": 11.9,
+   "t": 6.86,
+   "hit": 0.923,
+   "total_bps": 510.0,
+   "max_dd_bps": -42.0,
+   "per_year": 3.64,
+   "annual_bps": 47.6,
+   "annual_sharpe": 2.1,
+   "boot95_bps": [
+    8.93,
+    16.26
+   ]
+  },
+  "gap_30_50": {
+   "n": 22,
+   "mean_bps": 8.22,
+   "sd_bps": 31.3,
+   "t": 1.23,
+   "hit": 0.682,
+   "total_bps": 181.0,
+   "max_dd_bps": -86.0,
+   "per_year": 2.05,
+   "annual_bps": 16.9,
+   "annual_sharpe": 0.38,
+   "boot95_bps": [
+    -5.59,
+    20.44
+   ]
+  },
+  "gap_50_100": {
+   "n": 22,
+   "mean_bps": 32.63,
+   "sd_bps": 53.6,
+   "t": 2.86,
+   "hit": 0.864,
+   "total_bps": 718.0,
+   "max_dd_bps": -129.0,
+   "per_year": 2.05,
+   "annual_bps": 67.0,
+   "annual_sharpe": 0.87,
+   "boot95_bps": [
+    8.24,
+    52.48
+   ]
+  },
+  "gap_100_plus": {
+   "n": 2,
+   "mean_bps": 97.81,
+   "sd_bps": 4.2,
+   "t": 32.7,
+   "hit": 1.0,
+   "total_bps": 196.0,
+   "max_dd_bps": 0.0,
+   "per_year": 0.19,
+   "annual_bps": 18.3,
+   "annual_sharpe": 9.99,
+   "boot95_bps": [
+    93.58,
+    102.04
+   ]
+  },
+  "short_up_gap": {
+   "n": 24,
+   "mean_bps": 10.44,
+   "sd_bps": 28.5,
+   "t": 1.8,
+   "hit": 0.792,
+   "total_bps": 251.0,
+   "max_dd_bps": -86.0,
+   "per_year": 2.24,
+   "annual_bps": 23.4,
+   "annual_sharpe": 0.55,
+   "boot95_bps": [
+    -1.49,
+    20.93
+   ]
+  },
+  "long_down_gap": {
+   "n": 61,
+   "mean_bps": 22.2,
+   "sd_bps": 38.2,
+   "t": 4.54,
+   "hit": 0.869,
+   "total_bps": 1354.0,
+   "max_dd_bps": -129.0,
+   "per_year": 5.69,
+   "annual_bps": 126.4,
+   "annual_sharpe": 1.39,
+   "boot95_bps": [
+    12.25,
+    31.4
+   ]
+  },
+  "risk_geometry_12bp": {
+   "worst_trade_bps": -129.3,
+   "mae_bps_p50_p75_p90_p95_max": [
+    21.6,
+    56.4,
+    117.5,
+    130.3,
+    440.1
+   ],
+   "target_share": 0.753,
+   "median_minutes_to_target": 197.0
+  }
+ },
+ "EURUSD": {
+  "weekends": 525,
+  "trades": 53,
+  "years": 10.71,
+  "spread_12": {
+   "n": 53,
+   "mean_bps": 2.98,
+   "sd_bps": 39.8,
+   "t": 0.54,
+   "hit": 0.642,
+   "total_bps": 158.0,
+   "max_dd_bps": -190.0,
+   "per_year": 4.95,
+   "annual_bps": 14.7,
+   "annual_sharpe": 0.17,
+   "boot95_bps": [
+    -8.11,
+    13.3
+   ]
+  },
+  "spread_20": {
+   "n": 53,
+   "mean_bps": -1.02,
+   "sd_bps": 39.8,
+   "t": -0.19,
+   "hit": 0.604,
+   "total_bps": -54.0,
+   "max_dd_bps": -218.0,
+   "per_year": 4.95,
+   "annual_bps": -5.1,
+   "annual_sharpe": -0.06,
+   "boot95_bps": [
+    -12.1,
+    9.3
+   ]
+  },
+  "spread_30": {
+   "n": 53,
+   "mean_bps": -6.02,
+   "sd_bps": 39.8,
+   "t": -1.1,
+   "hit": 0.585,
+   "total_bps": -319.0,
+   "max_dd_bps": -411.0,
+   "per_year": 4.95,
+   "annual_bps": -29.8,
+   "annual_sharpe": -0.34,
+   "boot95_bps": [
+    -17.1,
+    4.31
+   ]
+  },
+  "spread_40": {
+   "n": 53,
+   "mean_bps": -11.02,
+   "sd_bps": 39.8,
+   "t": -2.02,
+   "hit": 0.434,
+   "total_bps": -584.0,
+   "max_dd_bps": -651.0,
+   "per_year": 4.95,
+   "annual_bps": -54.5,
+   "annual_sharpe": -0.62,
+   "boot95_bps": [
+    -22.1,
+    -0.69
+   ]
+  }
+ },
+ "GBPUSD": {
+  "weekends": 524,
+  "trades": 72,
+  "years": 10.71,
+  "spread_12": {
+   "n": 72,
+   "mean_bps": -9.34,
+   "sd_bps": 53.5,
+   "t": -1.48,
+   "hit": 0.625,
+   "total_bps": -673.0,
+   "max_dd_bps": -868.0,
+   "per_year": 6.72,
+   "annual_bps": -62.8,
+   "annual_sharpe": -0.45,
+   "boot95_bps": [
+    -21.85,
+    2.71
+   ]
+  },
+  "spread_20": {
+   "n": 72,
+   "mean_bps": -13.34,
+   "sd_bps": 53.5,
+   "t": -2.12,
+   "hit": 0.611,
+   "total_bps": -961.0,
+   "max_dd_bps": -1108.0,
+   "per_year": 6.72,
+   "annual_bps": -89.7,
+   "annual_sharpe": -0.65,
+   "boot95_bps": [
+    -25.84,
+    -1.29
+   ]
+  },
+  "spread_30": {
+   "n": 72,
+   "mean_bps": -18.34,
+   "sd_bps": 53.5,
+   "t": -2.91,
+   "hit": 0.611,
+   "total_bps": -1320.0,
+   "max_dd_bps": -1408.0,
+   "per_year": 6.72,
+   "annual_bps": -123.3,
+   "annual_sharpe": -0.89,
+   "boot95_bps": [
+    -30.84,
+    -6.29
+   ]
+  },
+  "spread_40": {
+   "n": 72,
+   "mean_bps": -23.34,
+   "sd_bps": 53.5,
+   "t": -3.7,
+   "hit": 0.542,
+   "total_bps": -1680.0,
+   "max_dd_bps": -1743.0,
+   "per_year": 6.72,
+   "annual_bps": -156.8,
+   "annual_sharpe": -1.13,
+   "boot95_bps": [
+    -35.84,
+    -11.29
+   ]
+  }
+ },
+ "USDJPY": {
+  "weekends": 525,
+  "trades": 79,
+  "years": 10.71,
+  "spread_12": {
+   "n": 79,
+   "mean_bps": -7.7,
+   "sd_bps": 55.3,
+   "t": -1.24,
+   "hit": 0.633,
+   "total_bps": -608.0,
+   "max_dd_bps": -841.0,
+   "per_year": 7.37,
+   "annual_bps": -56.7,
+   "annual_sharpe": -0.38,
+   "boot95_bps": [
+    -20.39,
+    4.09
+   ]
+  },
+  "spread_20": {
+   "n": 79,
+   "mean_bps": -11.7,
+   "sd_bps": 55.3,
+   "t": -1.88,
+   "hit": 0.62,
+   "total_bps": -924.0,
+   "max_dd_bps": -1109.0,
+   "per_year": 7.37,
+   "annual_bps": -86.2,
+   "annual_sharpe": -0.57,
+   "boot95_bps": [
+    -24.39,
+    0.09
+   ]
+  },
+  "spread_30": {
+   "n": 79,
+   "mean_bps": -16.69,
+   "sd_bps": 55.3,
+   "t": -2.68,
+   "hit": 0.608,
+   "total_bps": -1319.0,
+   "max_dd_bps": -1474.0,
+   "per_year": 7.37,
+   "annual_bps": -123.1,
+   "annual_sharpe": -0.82,
+   "boot95_bps": [
+    -29.39,
+    -4.91
+   ]
+  },
+  "spread_40": {
+   "n": 79,
+   "mean_bps": -21.69,
+   "sd_bps": 55.3,
+   "t": -3.49,
+   "hit": 0.481,
+   "total_bps": -1714.0,
+   "max_dd_bps": -1839.0,
+   "per_year": 7.37,
+   "annual_bps": -160.0,
+   "annual_sharpe": -1.07,
+   "boot95_bps": [
+    -34.39,
+    -9.91
+   ]
+  }
+ }
+}
