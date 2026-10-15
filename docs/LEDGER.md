@@ -59,6 +59,12 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    buffer re-read; 10-22/23 LPRESEL6, TB1 C1, 14-day readout. Showcase (`daviesluo/personal`) not yet updated for this
    week's strategy changes (Addenda 9–18, LP studies): left for Claude Code.
 
+0a‴. **Q2 CLOSED, close-only, 2026-10-15 00:08 UTC** (Davies: "看一下最新的rewards payout，还不行的话就关了然后只卖出"). 10-14 paid
+   $2.873 on formula $4.019 (R 0.71); since the restart rewards+rebates $4.38 over 718 filled shares = 0.61 c a share, under
+   the 1.5 c bar; stop room $7.50. Ran `update public.pm_lp_config set restarted_at = null where id = 1;` (returned null;
+   `dry_run` false, still armed so the exits work): at 00:10 `openBlockedBy` = `loss_total`, 3 SELLs resting, no BUY. The held
+   lots exit on their own; no restart without Davies' word. Item 0a″ below is superseded.
+
 0a″. **URGENT for the next session: Q2's stop room was $3.98 of $25 at 17:47 UTC 10-14** (basis −21.02; 0x7465aead "Democratic
    Senate odds 60-62% on October 16?" 40 YES at cost $12.20, mid 0.15, −6.20; 0x6eed2a46 20 YES bought again 17:40). The −$25
    stop trips by itself at room 0 (close-only, nothing to do); this session recommended Davies stop now with the undo below;
