@@ -151,7 +151,21 @@ def load_universe():
     return rows
 
 
+def load_capped():
+    """Markets whose print walk hit the page cap. Their tape is not complete."""
+    path = os.path.join(net.DATA, "g2", "trades.capped.txt")
+    if not os.path.exists(path):
+        return set()
+    with open(path) as f:
+        return {line.strip() for line in f if line.strip()}
+
+
 def load_prints():
+    """Prints keyed by condition id: (timestamp, price, outcome, taker side).
+
+    data-api `side` is the taker's side. The fill keeps it. A row with no
+    side is stored and then skipped by first_print, so it cannot be a fill.
+    """
     path = os.path.join(net.DATA, "g2", "trades.jsonl")
     by = defaultdict(list)
     if not os.path.exists(path):
@@ -165,15 +179,22 @@ def load_prints():
             price = _f(row.get("price"))
             if ts is None or price is None:
                 continue
-            by[row["conditionId"]].append((int(ts), price, str(row.get("outcome") or "")))
+            by[row["conditionId"]].append((
+                int(ts), price, str(row.get("outcome") or ""), str(row.get("side") or ""),
+            ))
     return by
 
 
-def first_print(prints, entry_s, outcome):
-    """Earliest print of this outcome at or after entry. Ties keep the later row."""
+def first_print(prints, entry_s, outcome, taker_side="BUY"):
+    """Earliest print of this outcome at or after entry, on the side we take.
+
+    Buying an outcome lifts a BUY of that outcome. A SELL print is the other
+    side of the book and is not a fill. Ties keep the later row.
+    """
     found = None
-    for ts, price, name in prints:
-        if name.lower() != outcome or ts < entry_s:
+    want = taker_side.upper()
+    for ts, price, name, side in prints:
+        if name.lower() != outcome or ts < entry_s or str(side).upper() != want:
             continue
         if found is None or ts < found[0] or ts == found[0]:
             found = (ts, price)
@@ -325,14 +346,18 @@ def calibration(rows):
     return lines
 
 
-def build(universe, prints, spots):
+def build(universe, prints, spots, capped=None):
     """Return trades[(hours, threshold, sample)] and calibration rows and counts."""
+    capped = capped or set()
     trades = defaultdict(list)
     cal = defaultdict(list)
     counts = defaultdict(int)
     for row in universe:
         sample = row["sample"]
         counts["rows"] += 1
+        if row["conditionId"] in capped:
+            counts["tape_capped"] += 1
+            continue
         if row.get("clause_ok") != "1" or not row.get("settlement_utc"):
             counts["no_clause"] += 1
             continue
@@ -475,6 +500,9 @@ def write_report(trades, cal, counts, spot_last):
         f"top_month_share {month_line}",
         "years",
         *year_lines,
+        "coverage complete Gamma months 2024-01 through 2026-08. Title ends on or after 2026-09-01 are held out.",
+        "september numbers are in results/g1_gap_mix.txt",
+        f"label the bar word is {name}. If that word is FAIL, the other name is FAIL on available sample. Davies chooses.",
         "neighbours",
         *neighbour_lines,
         f"y2024 n {beside['n']} markets {beside['markets']} mean_roi {_fmt(beside['mean'])} p05 {_fmt(beside['bound'])}",
@@ -504,14 +532,16 @@ def write_report(trades, cal, counts, spot_last):
     return name
 
 
-def ready(universe, spot_last):
+def ready(universe, spot_last, capped=None):
+    capped = capped if capped is not None else load_capped()
     done_path = os.path.join(net.DATA, "g2", "trades.done.txt")
     done = set()
     if os.path.exists(done_path):
         with open(done_path) as f:
             done = {line.strip() for line in f if line.strip()}
     need = [r["conditionId"] for r in universe if r.get("settlement_utc") and r.get("clause_ok") == "1"]
-    missing = [cid for cid in need if cid not in done]
+    # A capped walk is a known hole, not a finished tape. It does not count as done.
+    missing = [cid for cid in need if cid not in done and cid not in capped]
     if missing:
         print(f"prints incomplete {len(missing)} of {len(need)}", flush=True)
         return False
@@ -565,6 +595,13 @@ def self_test():
     chosen = decide(0.50, 0.31, None, 0.0, 1.0, 0.01, 0.04)
     assert chosen["side"] == "yes" and abs(chosen["fill"] - 0.31) < 1e-12
     assert decide(0.50, 0.49, 0.49, 0.0, 1.0, 0.01, 0.04) is None
+    # A SELL before the first BUY is the other side. The fill is the BUY.
+    book = [(100, 0.20, "Yes", "SELL"), (110, 0.40, "Yes", "BUY"), (105, 0.30, "Yes", "BUY")]
+    got = first_print(book, 100, "yes")
+    assert got == (105, 0.30), got
+    assert first_print([(100, 0.20, "Yes", "SELL")], 100, "yes") is None
+    assert first_print([(100, 0.20, "Yes", "")], 100, "yes") is None
+    assert first_print([(100, 0.20, "No", "BUY")], 100, "yes") is None
     print("s1_touch self-test ok")
 
 
@@ -579,10 +616,11 @@ def main():
         opens, closes, daily, last = load_spot(sym)
         spots[sym] = (opens, closes, daily, last)
         spot_last[sym] = last
-    if not ready(universe, spot_last):
+    capped = load_capped()
+    if not ready(universe, spot_last, capped):
         sys.exit(3)
     prints = load_prints()
-    trades, cal, counts = build(universe, prints, spots)
+    trades, cal, counts = build(universe, prints, spots, capped)
     write_report(trades, cal, counts, spot_last)
 
 

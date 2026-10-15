@@ -465,16 +465,14 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    a snapshot every 5 min and `started_at` at the first ≥ $90. Reading: 28 days from the start day or 40 resolved
    positions or the −$30 stop; continue only if P&L > 0 AND Brier_agent < Brier_market. Never trade by hand in its wallet.
 
-16. **PMSTATARB S1 TOUCH-CAL is closed FAIL** (`reviews/2026-10-15-pm-statarb-verification.md`,
-    `backtests/pmstatarb/results/s1_verdict.txt`). 2025 has 19 trades; the FAIL evidence is the 2026 sample.
-    Do not retune the threshold, horizons, seed, vol window, fee formula or High/Low field rule. Title ends on
-    or after 2026-09-01 stay out of sample. The September cursor (key 4946930) was refused again at
-    2026-10-15T11:34:08Z; do not send it. A fill, only if Davies asks, comes from the official Polymarket
-    subgraph or on-chain settlement. Family CSVs are off git: sha256, line count and pull time are in
-    `backtests/pmstatarb/MANIFEST.json`, and the bytes are `/tmp/pmstatarb-data/data/` on the machine that
-    pulled them, with the Gamma pages, prints and spot files. S2 starts after #242 is green, on its own
-    branch. S3 is a measurement. S4 is one snapshot on 2026-10-18, named in `FROZEN.md`, and not before.
-    `scripts/g4_sources.py` was not run.
+16. **PMSTATARB S1 TOUCH-CAL re-run, bar word FAIL** (`reviews/2026-10-15-pm-statarb-verification.md`,
+    `backtests/pmstatarb/results/s1_verdict.txt`). May titles parse. 2026-05 is in the touch file (914 daily
+    with a clause, 140 weekly without). Fills are taker BUY of the bought outcome. One market is tape-capped
+    at the data-api offset cap and is not done. Headline 1178 trades, mean ROI −0.1137, p05 −0.2266. 2025
+    still has 19 trades; 2026 has 1159. Davies chooses the name FAIL or FAIL on available sample. Do not
+    retune. September cursor key 4946930 stays quarantined. Print and spot sha256 are in `MANIFEST.json`;
+    the bytes stay on `/tmp/pmstatarb-data/`. `FROZEN.md` records the late freeze. #242 squash-merges only.
+    S2 is not started. S4 is one snapshot on 2026-10-18, not before.
 
 ## Machine and platform setup
 
@@ -598,6 +596,9 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)"; each oldest first.
+
+### [2026-10-15 20:35 UTC] Platform: Grok | Model: grok-4.7
+- **#242 re-run after the five review notes.** May and the other three-letter month names parse; 2026-05 is in the touch sample. Fills are taker BUY. A truncated print walk is not marked done (one market capped). `FROZEN.md` records the SPEC rule 5 deviation; history was not rewritten. Print and spot sha256 are in `MANIFEST.json`. September stop counts are in `results/g1_gap_mix.txt`. Bar word FAIL: 1178 trades, mean ROI −0.1137, p05 −0.2266. 2025 has 19 trades; 2026 has 1159. Davies chooses FAIL or FAIL on available sample. Squash-merge only. Not merged.
 
 ### [2026-10-15 16:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **GROKPM built** (sub-agent; Davies: "让grok bot里开一个trading bot…网站中live页也加上策略和子策略页面…先让他就用100美元测试";

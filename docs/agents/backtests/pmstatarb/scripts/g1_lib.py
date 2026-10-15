@@ -10,13 +10,26 @@ import json
 import re
 
 MONTHS = {
-    "january": 1, "february": 2, "march": 3, "april": 4, "may": 5, "june": 6,
-    "july": 7, "august": 8, "september": 9, "sept": 9, "sep": 9, "october": 10,
-    "november": 11, "december": 12,
+    "january": 1, "jan": 1,
+    "february": 2, "feb": 2,
+    "march": 3, "mar": 3,
+    "april": 4, "apr": 4,
+    "may": 5,
+    "june": 6, "jun": 6,
+    "july": 7, "jul": 7,
+    "august": 8, "aug": 8,
+    "september": 9, "sept": 9, "sep": 9,
+    "october": 10, "oct": 10,
+    "november": 11, "nov": 11,
+    "december": 12, "dec": 12,
 }
-MON_PAT = "|".join(sorted((m for m in MONTHS if len(m) > 3), key=len, reverse=True) + ["Sept", "Sep"])
+# Longest first, so "march" beats "mar" and "september" beats "sept" and "sep".
+# A filter of len(name) > 3 dropped "may" and every other 3-letter name. The
+# only short names added back were Sept and Sep, so a May title had no date.
+# S1 and S2 both read title dates through this pattern.
+MON_PAT = "|".join(sorted(MONTHS, key=len, reverse=True))
 DATE_PAT = (
-    rf"(?P<mon>{MON_PAT})\s+(?P<day>\d{{1,2}})(?:st|nd|rd|th)?"
+    rf"\b(?P<mon>{MON_PAT})\s+(?P<day>\d{{1,2}})(?:st|nd|rd|th)?"
     rf"(?:\s*,\s*(?P<year>20\d{{2}}))?"
 )
 DATE_RE = re.compile(DATE_PAT, re.I)
@@ -559,6 +572,50 @@ def self_test():
         "clobTokenIds": ["y", "n"], "events": [{"slug": "x-2025", "title": "t"}],
     })
     assert both[0] == "weekly_reach" and both[1]["title_start"] == "2025-10-06", both
+    # The length filter kept names longer than 3 and then only Sept/Sep.
+    # "may" was in MONTHS and still absent from that pattern.
+    old_pat = "|".join(sorted((m for m in MONTHS if len(m) > 3), key=len, reverse=True) + ["Sept", "Sep"])
+    assert "may" not in old_pat.split("|")
+    assert "may" in MON_PAT.split("|")
+    names = [
+        ("January", "Jan", "2026-01-15"),
+        ("February", "Feb", "2026-02-15"),
+        ("March", "Mar", "2026-03-15"),
+        ("April", "Apr", "2026-04-15"),
+        ("May", "May", "2026-05-15"),
+        ("June", "Jun", "2026-06-15"),
+        ("July", "Jul", "2026-07-15"),
+        ("August", "Aug", "2026-08-15"),
+        ("September", "Sep", "2026-09-15"),
+        ("October", "Oct", "2026-10-15"),
+        ("November", "Nov", "2026-11-15"),
+        ("December", "Dec", "2026-12-15"),
+        ("September", "Sept", "2026-09-15"),
+    ]
+    for name, abbr, iso in names:
+        for label in {name, abbr}:
+            q = f"Will Bitcoin reach $100,000 on {label} 15?"
+            end_iso = iso[:8] + "16T04:00:00Z"
+            _start, end, kind = title_dates(q, end_iso, "x-2026")
+            assert end == iso and kind == "on", (label, end, kind, iso)
+    may = parse_market({
+        "question": "Will Bitcoin reach $100,000 on May 15?",
+        "endDate": "2026-05-16T04:00:00Z", "conditionId": "c",
+        "outcomes": ["Yes", "No"], "outcomePrices": ["1", "0"],
+        "clobTokenIds": ["y", "n"],
+        "events": [{"slug": "what-price-will-bitcoin-hit-on-may-15-2026", "title": "t"}],
+    })
+    assert may[0] == "daily_reach" and may[1]["title_end"] == "2026-05-15", may
+    weekly_may = parse_market({
+        "question": "Will Bitcoin reach $100,000 before May 15?",
+        "endDate": "2026-05-15T04:00:00Z", "conditionId": "c",
+        "outcomes": ["Yes", "No"], "outcomePrices": ["1", "0"],
+        "clobTokenIds": ["y", "n"],
+        "events": [{"slug": "x-2026", "title": "t"}],
+    })
+    assert weekly_may[0] == "weekly_reach" and weekly_may[1]["title_end"] == "2026-05-15", weekly_may
+    not_may = title_dates("Will Bitcoin reach $100,000 on dismay 15?", "2026-05-16T04:00:00Z", "x")
+    assert not_may[2] is None, not_may
     print("g1_lib self-test ok", len(cases), "questions")
 
 

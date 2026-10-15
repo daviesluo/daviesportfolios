@@ -154,6 +154,12 @@ def write_gap_mix():
         lines.append("  title_end month")
         for key, count in sorted(months.items()):
             lines.append(f"  {key or '(none)'} {count}")
+    stop = os.path.join(g1_pull.SCRATCH, "2026-09.gap.txt")
+    lines.append("september stop")
+    if os.path.exists(stop):
+        lines.extend(open(stop).read().rstrip("\n").splitlines())
+    else:
+        lines.append("2026-09.gap.txt is not on this machine")
     text = "\n".join(lines) + "\n"
     with open(os.path.join(g1_pull.RESULTS, "g1_gap_mix.txt"), "w") as f:
         f.write(text)
@@ -193,6 +199,15 @@ def main():
     lines.append(f"headline_with_settlement {ready}")
     lines.append(f"y2024_with_settlement {beside}")
     lines.append("held out: title_end on or after 2026-09-01, and every September/October scratch file")
+    by_month = Counter((r["title_end"] or "")[:7] for r in touch if r["sample"] == "headline")
+    lines.append("headline title_end month")
+    for key, n in sorted(by_month.items()):
+        lines.append(f"  {key or '(none)'} {n}")
+    may_rows = [r for r in touch if (r["title_end"] or "").startswith("2026-05")]
+    lines.append(f"title_end_2026-05 {len(may_rows)}")
+    may_fam = Counter(r["family"] for r in may_rows)
+    for key, n in sorted(may_fam.items()):
+        lines.append(f"  2026-05 {key} {n}")
     text = "\n".join(lines) + "\n"
     with open(os.path.join(g1_pull.RESULTS, "s1_universe_counts.txt"), "w") as f:
         f.write(text)

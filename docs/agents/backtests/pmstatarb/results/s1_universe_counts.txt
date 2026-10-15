@@ -1,30 +1,50 @@
 candidates_read 140926
-touch_rows 5737
-unparsed 26978
-unparsed.no_title_date 18976
+touch_rows 6791
+unparsed 8841
 unparsed.intraday_clock 7791
+unparsed.no_title_date 839
 unparsed.no_type 177
 unparsed.long_window 28
 unparsed.both_assets 4
 unparsed.bucket_bounds 2
-family daily_reach 2140
-family daily_dip 2143
-family weekly_reach 722
-family weekly_dip 732
-family above 100953
+family daily_reach 2597
+family daily_dip 2600
+family weekly_reach 792
+family weekly_dip 802
+family above 117281
 family below 0
-family buckets 7258
+family buckets 8013
 touch sample family clause_ok fees_enabled count
 headline daily_dip 1 0 44
-headline daily_dip 1 1 2099
+headline daily_dip 1 1 2556
 headline daily_reach 1 0 41
-headline daily_reach 1 1 2099
+headline daily_reach 1 1 2556
 headline weekly_dip 0 0 436
-headline weekly_dip 0 1 290
+headline weekly_dip 0 1 360
 headline weekly_dip 1 0 6
 headline weekly_reach 0 0 432
-headline weekly_reach 0 1 284
+headline weekly_reach 0 1 354
 headline weekly_reach 1 0 6
-headline_with_settlement 4295
+headline_with_settlement 5209
 y2024_with_settlement 0
 held out: title_end on or after 2026-09-01, and every September/October scratch file
+headline title_end month
+  2025-07 44
+  2025-08 136
+  2025-09 111
+  2025-10 112
+  2025-11 139
+  2025-12 111
+  2026-01 112
+  2026-02 84
+  2026-03 890
+  2026-04 1012
+  2026-05 1054
+  2026-06 1014
+  2026-07 982
+  2026-08 990
+title_end_2026-05 1054
+  2026-05 daily_dip 457
+  2026-05 daily_reach 457
+  2026-05 weekly_dip 70
+  2026-05 weekly_reach 70

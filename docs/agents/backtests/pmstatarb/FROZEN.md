@@ -1,8 +1,17 @@
-# PMSTATARB verification — parameters frozen before the pulls that can answer them
+# PMSTATARB verification — parameters
 
 The study parameters are the ones in `SPEC-for-verification.md` (commit `985a89a4`).
-This file adds only what that spec left to the first commit of the run. Nothing
-here was chosen after seeing a result.
+This file records what that spec left to the run. The values below were not
+chosen after seeing a result.
+
+## Deviation from SPEC rule 5
+
+SPEC rule 5 says these parameters are frozen in the first commit, before the
+pull that can answer them. This file was first added in the same commit as
+the first TOUCH-CAL verdict. The commit history is not rewritten to move the
+file earlier. The re-run after the May title-date fix and the taker-side
+fill fix used these same hours, thresholds, stakes, seed and bar. That
+re-run does not cure the late freeze. The late freeze is the deviation.
 
 - **TOUCH-CAL and BUCKET-DIST.** Entry hours, deviation thresholds, stakes, the
   bootstrap seed `20261014`, the universe window 2025-01-01 → 2026-09-30, and

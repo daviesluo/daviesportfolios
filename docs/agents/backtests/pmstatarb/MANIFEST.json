@@ -1,6 +1,6 @@
 {
  "generated": "2026-10-15",
- "note": "clauses_buckets.txt, touch_pairs.txt and the two snapshot scripts keep their 2026-10-14 hashes. SPEC-for-verification.md is main's copy after the 2026-10-14 audit, and its sha256 is the file in this tree. data/*.csv is not in git. Each of those entries records sha256, physical lines, data rows after the header, the UTC mtime when s1_prepare wrote the file, and pull_finished_utc, the mtime of g1/2026-08.done, the last complete Gamma month inside every one of these CSVs. The bytes are local_copy on the machine that pulled them.",
+ "note": "clauses_buckets.txt, touch_pairs.txt and the two snapshot scripts keep their 2026-10-14 hashes. SPEC-for-verification.md is main's copy after the 2026-10-14 audit, and its sha256 is the file in this tree. data/*.csv is not in git. Each of those entries records sha256, physical lines, data rows after the header, the UTC mtime when s1_prepare wrote the file, and pull_finished_utc, the mtime of g1/2026-08.done, the last complete Gamma month inside every one of these CSVs. g2/trades.jsonl, g2/trades.done.txt, g2/trades.capped.txt, g2/BTCUSDT.csv and g2/ETHUSDT.csv are not in git: the print tape and the spot files are over GitHub's file limit or beside it. Their sha256, line count and byte size are recorded so a neighbour result can be checked against the same bytes. The bytes are local_copy on the machine that pulled them. One market is listed in trades.capped.txt because the data-api offset cap stopped its tape before T-96h; it is not in trades.done.txt.",
  "files": [
   {
    "path": "SPEC-for-verification.md",
@@ -29,32 +29,32 @@
   },
   {
    "path": "FROZEN.md",
-   "sha256": "91302730d4b778392381e750debcdb0654a2031bf8932ffcb3781d954ef2c045",
+   "sha256": "2a3ec99e04dee135fbba1387d1bad03a2d563080ff491aaa7b6061f0f1dc72b6",
    "in_git": true
   },
   {
    "path": "results/g1_gap_mix.txt",
-   "sha256": "01a15eccc0b4dcc49c0fe76b7fb00852ff277ca72434c4284b130270119b1a9a",
+   "sha256": "d136435aaae6eeb90ef042564cc3932909bf29196b7302c8a3a75820a6ce1ec7",
    "in_git": true
   },
   {
    "path": "results/s1_headline_trades.csv",
-   "sha256": "85971d40190a83c56e8633aa634821f1894f57460a835c5bcd79b8addf36e79b",
+   "sha256": "a1882dc63d328f408449e37df4467f9b35b5c74211a2149dd4265a1537069c1b",
    "in_git": true
   },
   {
    "path": "results/s1_universe_counts.txt",
-   "sha256": "fb8fed093925f5c3a261a010ebaff7f9cd989d053889e25d4e8b2ea4e530a745",
+   "sha256": "007adeb6fc316fe35ac71da090066068745b8eabaf2e99de18cc235e6d23a74e",
    "in_git": true
   },
   {
    "path": "results/s1_verdict.txt",
-   "sha256": "cbcad232210f9e83ba0d7120aa6186459232ad6646f32e963b42363ed6f2a53e",
+   "sha256": "5c236a0bc488467e5cc225153b07bf4b53b0fdef353938b5fec949bd8449c0b8",
    "in_git": true
   },
   {
    "path": "scripts/g1_lib.py",
-   "sha256": "9de95526d5d4a9deede2e3bbaef86126dfa373bfbcaf5150b190e7b01d179d9e",
+   "sha256": "e5765b23ef5d9ac90602c12517c556bcd8aaca4ad11e310df4f9b6ee1a1f2dea",
    "in_git": true
   },
   {
@@ -79,7 +79,7 @@
   },
   {
    "path": "scripts/g2_trades.py",
-   "sha256": "d07093362ed37d31c8b646d16d80a150389737a73104d303967666fcbe21196d",
+   "sha256": "be7111c6ca45a9b11c1361ef0a96f7e169aaf607f59469b260e4e93e1a72c5ce",
    "in_git": true
   },
   {
@@ -89,12 +89,12 @@
   },
   {
    "path": "scripts/s1_prepare.py",
-   "sha256": "7c38d2cba29eccbe1df6667292ba68d3d5235d7be0210e3e1e45ea30921e170f",
+   "sha256": "714250c06636caf55f718eb1b99260780df8f0c0a80a173529a65b3bd4e35612",
    "in_git": true
   },
   {
    "path": "scripts/s1_touch.py",
-   "sha256": "3d767d64db2aa968050d837008c56e7f986f0c7bc5d1c8d35e3dd7a8a3e7333f",
+   "sha256": "0cb55214def6d3a2770804ebd1fd9aaccf60b67c2ff9b6e1c7f1ff69f604a77c",
    "in_git": true
   },
   {
@@ -104,12 +104,12 @@
   },
   {
    "path": "data/above.csv",
-   "sha256": "9b5979634aa4a708955cfb44d591499579107574ff80e0fd23ab4ff57e0ae957",
+   "sha256": "1ccdf58ea178f1261211d4ce3f7e0b6470aba81115f11b4cd56e2ab56cd9b5db",
    "in_git": false,
-   "lines": 100954,
-   "data_rows": 100953,
-   "bytes": 32418596,
-   "written_utc": "2026-10-15T08:06:43Z",
+   "lines": 117282,
+   "data_rows": 117281,
+   "bytes": 37606441,
+   "written_utc": "2026-10-15T20:13:17Z",
    "pull_finished_utc": "2026-10-15T01:20:45Z",
    "local_copy": "/tmp/pmstatarb-data/data/above.csv"
   },
@@ -120,86 +120,131 @@
    "lines": 1,
    "data_rows": 0,
    "bytes": 145,
-   "written_utc": "2026-10-15T08:06:43Z",
+   "written_utc": "2026-10-15T20:13:17Z",
    "pull_finished_utc": "2026-10-15T01:20:45Z",
    "local_copy": "/tmp/pmstatarb-data/data/below.csv"
   },
   {
    "path": "data/buckets.csv",
-   "sha256": "e2d84ce79b286336269257c81e79f829c11de00ac1ced0029465932780ae53c6",
+   "sha256": "227db9d9235d0ee104d68d08b8b01ce1247777c4c94d190cf115f63603943623",
    "in_git": false,
-   "lines": 7259,
-   "data_rows": 7258,
-   "bytes": 2503164,
-   "written_utc": "2026-10-15T08:06:43Z",
+   "lines": 8014,
+   "data_rows": 8013,
+   "bytes": 2758488,
+   "written_utc": "2026-10-15T20:13:17Z",
    "pull_finished_utc": "2026-10-15T01:20:45Z",
    "local_copy": "/tmp/pmstatarb-data/data/buckets.csv"
   },
   {
    "path": "data/daily_dip.csv",
-   "sha256": "c20d4a6b7b6f3a9476f71c8b9761642929a516b62e72a40d9d113db16b193a24",
+   "sha256": "8b32a299801a9336f24fffbdfd8d6e40880cd6c04211093976a2672b3ee0d1ed",
    "in_git": false,
-   "lines": 2144,
-   "data_rows": 2143,
-   "bytes": 697431,
-   "written_utc": "2026-10-15T08:06:43Z",
+   "lines": 2601,
+   "data_rows": 2600,
+   "bytes": 845058,
+   "written_utc": "2026-10-15T20:13:17Z",
    "pull_finished_utc": "2026-10-15T01:20:45Z",
    "local_copy": "/tmp/pmstatarb-data/data/daily_dip.csv"
   },
   {
    "path": "data/daily_reach.csv",
-   "sha256": "73715675e3de459a14f8d20d5ce73f7ff803110fcc442f68f6529712c7a9cb35",
+   "sha256": "574738a388635e29468b24bd92794e89f9903207b351875c1c2594a81e69bc78",
    "in_git": false,
-   "lines": 2141,
-   "data_rows": 2140,
-   "bytes": 694494,
-   "written_utc": "2026-10-15T08:06:43Z",
+   "lines": 2598,
+   "data_rows": 2597,
+   "bytes": 841702,
+   "written_utc": "2026-10-15T20:13:17Z",
    "pull_finished_utc": "2026-10-15T01:20:45Z",
    "local_copy": "/tmp/pmstatarb-data/data/daily_reach.csv"
   },
   {
    "path": "data/touch_s1_universe.csv",
-   "sha256": "3883ffa55a5a09d8ea83572210a6cd643df1ae755d1e64ddad48757a186cec19",
+   "sha256": "c08be76431b6474ff82ecedc50c6bc45482a5f01acbb6c6dba2459bbc3871a2b",
    "in_git": false,
-   "lines": 5738,
-   "data_rows": 5737,
-   "bytes": 2167706,
-   "written_utc": "2026-10-15T08:06:44Z",
+   "lines": 6792,
+   "data_rows": 6791,
+   "bytes": 2567459,
+   "written_utc": "2026-10-15T20:13:18Z",
    "pull_finished_utc": "2026-10-15T01:20:45Z",
    "local_copy": "/tmp/pmstatarb-data/data/touch_s1_universe.csv"
   },
   {
    "path": "data/unparsed.csv",
-   "sha256": "9aeefae6a1e9af3fc8bd27cfc0a12fb1033bdec847d3fe357b130013df61cb51",
+   "sha256": "5778714e1334ab3928366de1a52213e9c0038614e4672968669f3d91f16db14d",
    "in_git": false,
-   "lines": 26979,
-   "data_rows": 26978,
-   "bytes": 8462352,
-   "written_utc": "2026-10-15T08:06:44Z",
+   "lines": 8842,
+   "data_rows": 8841,
+   "bytes": 2966743,
+   "written_utc": "2026-10-15T20:13:18Z",
    "pull_finished_utc": "2026-10-15T01:20:45Z",
    "local_copy": "/tmp/pmstatarb-data/data/unparsed.csv"
   },
   {
    "path": "data/weekly_dip.csv",
-   "sha256": "65b940f169c43285a7c9dbe4e2ca82b3aefb5f67b16660305e2b29f5569632eb",
+   "sha256": "740a53f09bac0cff16d346e049188ae85a468af1570caa25195ff05acd835965",
    "in_git": false,
-   "lines": 733,
-   "data_rows": 732,
-   "bytes": 243117,
-   "written_utc": "2026-10-15T08:06:43Z",
+   "lines": 803,
+   "data_rows": 802,
+   "bytes": 265975,
+   "written_utc": "2026-10-15T20:13:17Z",
    "pull_finished_utc": "2026-10-15T01:20:45Z",
    "local_copy": "/tmp/pmstatarb-data/data/weekly_dip.csv"
   },
   {
    "path": "data/weekly_reach.csv",
-   "sha256": "9530b600b156e3472f5b637aebff47a8baae485899a64d2efa76c1ccc1951b27",
+   "sha256": "0f952a4d4615252a15ac132d270a831bb47f00c939af347147cf97751b439edb",
    "in_git": false,
-   "lines": 723,
-   "data_rows": 722,
-   "bytes": 239285,
-   "written_utc": "2026-10-15T08:06:43Z",
+   "lines": 793,
+   "data_rows": 792,
+   "bytes": 262055,
+   "written_utc": "2026-10-15T20:13:17Z",
    "pull_finished_utc": "2026-10-15T01:20:45Z",
    "local_copy": "/tmp/pmstatarb-data/data/weekly_reach.csv"
+  },
+  {
+   "path": "g2/trades.jsonl",
+   "sha256": "b3890b858ff5a8d7c3356f9521a8f92625195117d47fe76fc8c78c210a71a123",
+   "in_git": false,
+   "lines": 538408,
+   "bytes": 143931494,
+   "written_utc": "2026-10-15T20:31:30Z",
+   "local_copy": "/tmp/pmstatarb-data/g2/trades.jsonl"
+  },
+  {
+   "path": "g2/trades.done.txt",
+   "sha256": "e4b491ce2f798d0d4fa24b2a37019b3745c184252bfdeacd118c4a7eeb95ffe2",
+   "in_git": false,
+   "lines": 5208,
+   "bytes": 348936,
+   "written_utc": "2026-10-15T20:31:30Z",
+   "local_copy": "/tmp/pmstatarb-data/g2/trades.done.txt"
+  },
+  {
+   "path": "g2/trades.capped.txt",
+   "sha256": "057cecb21ec9e2ea209b5e5e34fcc420158c6bb0c1a2bcd5b14f9ff303013538",
+   "in_git": false,
+   "lines": 1,
+   "bytes": 67,
+   "written_utc": "2026-10-15T20:17:44Z",
+   "local_copy": "/tmp/pmstatarb-data/g2/trades.capped.txt"
+  },
+  {
+   "path": "g2/BTCUSDT.csv",
+   "sha256": "597e62858150516942752e7bcc7b6e3b3c884e037f54d543a48d0942bfc038e7",
+   "in_git": false,
+   "lines": 1494721,
+   "bytes": 111849194,
+   "written_utc": "2026-10-15T09:30:10Z",
+   "local_copy": "/tmp/pmstatarb-data/g2/BTCUSDT.csv"
+  },
+  {
+   "path": "g2/ETHUSDT.csv",
+   "sha256": "f4317a7dfd7896643d09f1cc0e797aced5390587cedb2ad5ecf795c97a8f1e73",
+   "in_git": false,
+   "lines": 1494721,
+   "bytes": 104630428,
+   "written_utc": "2026-10-15T11:30:16Z",
+   "local_copy": "/tmp/pmstatarb-data/g2/ETHUSDT.csv"
   }
  ]
 }

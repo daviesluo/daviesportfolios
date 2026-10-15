@@ -20,6 +20,9 @@ TRADES = "https://data-api.polymarket.com/trades"
 LIMIT = 500
 # 100 pages is 50,000 prints. Past this the walk stops and says so.
 PAGE_CAP = 100
+# data-api rejects offset above 10000 with HTTP 400. A market still inside
+# the T−96 h window at that offset is truncated. It is not marked done.
+OFFSET_CAP = 10000
 
 
 def _cutoff(settlement_utc):
@@ -66,6 +69,9 @@ def pull_one(cid, cutoff):
     pages = 0
     capped = False
     while pages < PAGE_CAP:
+        if offset > OFFSET_CAP:
+            capped = True
+            break
         payload = net.get(TRADES, {"market": cid, "limit": LIMIT, "offset": offset})
         rows = _rows(payload)
         pages += 1
@@ -87,8 +93,28 @@ def pull_one(cid, cutoff):
     return kept, pages, capped
 
 
+def accept_pull(cid, kept, capped):
+    """A walk that hits the page cap is not a complete tape and is not done.
+
+    The partial rows are dropped. Writing them and then listing the market
+    in the done file is what marked a truncated pull complete.
+    """
+    if capped:
+        return "capped", []
+    rows = []
+    for item in kept:
+        row = dict(item)
+        row["capped"] = "0"
+        rows.append(row)
+    return "done", rows
+
+
 def _done_path(scratch):
     return os.path.join(scratch, "trades.done.txt")
+
+
+def _capped_path(scratch):
+    return os.path.join(scratch, "trades.capped.txt")
 
 
 def _load_done(path):
@@ -104,30 +130,55 @@ def main():
     os.makedirs(scratch, exist_ok=True)
     out_path = os.path.join(scratch, "trades.jsonl")
     done_path = _done_path(scratch)
+    capped_path = _capped_path(scratch)
     done = _load_done(done_path)
+    already_capped = _load_done(capped_path)
     markets = []
     with open(universe, newline="") as f:
         for row in csv.DictReader(f):
             if row.get("settlement_utc") and row.get("clause_ok") == "1":
                 markets.append(row)
-    print(f"markets {len(markets)} already_done {len(done)}", flush=True)
-    with open(out_path, "a") as out, open(done_path, "a") as flag:
+    print(f"markets {len(markets)} already_done {len(done)} already_capped {len(already_capped)}", flush=True)
+    pulled = 0
+    with open(out_path, "a") as out, open(done_path, "a") as flag, open(capped_path, "a") as capflag:
         for i, row in enumerate(markets):
             cid = row["conditionId"]
-            if cid in done:
+            if cid in done or cid in already_capped:
                 continue
             kept, pages, capped = pull_one(cid, _cutoff(row["settlement_utc"]))
-            for item in kept:
-                item["capped"] = "1" if capped else "0"
+            status, rows = accept_pull(cid, kept, capped)
+            pulled += 1
+            if status == "capped":
+                capflag.write(cid + "\n")
+                capflag.flush()
+                already_capped.add(cid)
+                print(f"  capped {pulled} {cid[:10]} pages {pages} kept {len(kept)}", flush=True)
+                continue
+            for item in rows:
                 out.write(json.dumps(item, separators=(",", ":")) + "\n")
             out.flush()
             flag.write(cid + "\n")
             flag.flush()
             done.add(cid)
-            if i % 25 == 0 or capped:
-                print(f"  {i} {cid[:10]} pages {pages} kept {len(kept)} capped {int(capped)}", flush=True)
-    print("trades done", len(done), flush=True)
+            if pulled % 10 == 0:
+                print(f"  {pulled} {cid[:10]} pages {pages} kept {len(kept)} capped 0", flush=True)
+    print("trades done", len(done), "capped", len(already_capped), flush=True)
+
+
+def self_test():
+    assert OFFSET_CAP == 10000
+    assert not (0 > OFFSET_CAP)
+    assert not (10000 > OFFSET_CAP)
+    assert 10500 > OFFSET_CAP
+    status, rows = accept_pull("0xabc", [{"conditionId": "0xabc", "price": 0.4}], True)
+    assert status == "capped" and rows == [], (status, rows)
+    status, rows = accept_pull("0xabc", [{"conditionId": "0xabc", "price": 0.4}], False)
+    assert status == "done" and rows[0]["capped"] == "0" and rows[0]["price"] == 0.4, rows
+    print("g2_trades self-test ok")
 
 
 if __name__ == "__main__":
-    main()
+    if "--self-test" in sys.argv:
+        self_test()
+    else:
+        main()

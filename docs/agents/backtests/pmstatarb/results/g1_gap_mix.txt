@@ -27,3 +27,9 @@ Their family mix is unknown. A match between August and the retrieved September 
   (none) 112
   2026-08 174
   2026-09 23276
+september stop
+STOP Cloudflare 403 on limit 60. pages 14857 scanned 891420 kept 23562. cursor key 4946930.
+Same User-Agent, same address, no further page size.
+The one allowed retry at 2026-10-15T11:34:08Z sent that same cursor once and was 403 again. The cursor is quarantined. It will not be sent again.
+September closed markets with id after 4946930 were not retrieved. The 2026-10-01..2026-10-04 tail was not requested.
+Rows after this cursor are missing until an official public source (Polymarket subgraph or on-chain settlement) supplies them.
