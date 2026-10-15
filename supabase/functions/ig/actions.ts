@@ -137,7 +137,7 @@ export async function runFacts(o: { client: IgClient; rest: Rest; kind: AccountK
     const audId = (details[selected.fx_audusd] as { instrument?: { marketId?: string } } | undefined)?.instrument?.marketId;
     if (audId) {
       try {
-        payload.sentiment = await client.get(`/client-sentiment/${audId}`, 1);
+        payload.sentiment = await client.get(`/clientsentiment/${audId}`, 1);
       } catch (e) {
         errors.push(`sentiment: ${errText(e)}`);
       }

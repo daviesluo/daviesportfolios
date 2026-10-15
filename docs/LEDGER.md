@@ -572,6 +572,12 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)"; each oldest first.
 
+### [2026-10-15 16:32 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **IG fix: the account token after a switch** (sub-agent; item 14). The spread-bet `facts` at 16:25 UTC died with `401
+  account-token-invalid`: `PUT /session` returns a new X-SECURITY-TOKEN without a CST, and the client only took tokens
+  when both came. Now each is taken alone (`adoptTokens`); `quotes` and `history` shared the bug (6 Deno tests fail on
+  the old rule). Sentiment path `/clientsentiment`. CFD `facts` at 16:27 worked (11 roles). Re-run `facts&account=sb`.
+
 ### [2026-10-15 16:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep's Addendum 24 (mid-pool's 22): liquidation** (sub-agent, not pushed; Davies: "那目前的单都尽快卖出掉吧，还剩多少").
   `0123_pm_lp_liquidate.sql`: `pm_lp_config.liquidate_at`, CHECK it never beside `restarted_at`, `pm_lp_orders`' CHECK

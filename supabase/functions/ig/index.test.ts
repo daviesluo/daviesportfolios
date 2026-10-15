@@ -3,7 +3,7 @@
 import { assert, assertEquals, assertRejects, assertThrows } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import frozen from "../../../docs/agents/backtests/ig_deepdive/params/g2_s1a_frozen.json" with { type: "json" };
 import {
-  assertAllowed, demoCreds, IG_DEMO_BASE, IG_DEMO_SECRET_NAMES, IG_ENVIRONMENT, IgClient, IgRefused, scrubDeep, stripBalances,
+  adoptTokens, assertAllowed, demoCreds, IG_DEMO_BASE, IG_DEMO_SECRET_NAMES, IG_ENVIRONMENT, IgClient, IgRefused, scrubDeep, stripBalances,
 } from "./client.ts";
 import { candidates, expiryOrder, parsePins, pickEpics, type SearchMarket } from "./epics.ts";
 import {
@@ -44,6 +44,9 @@ function fakeIg(o: {
 } = {}) {
   const calls: Call[] = [];
   let account = "Z6F18J";
+  // IG's X-SECURITY-TOKEN names the current account: a login hands out the default account's, a switch a new one in the
+  // answer's headers alone (no CST), and from then on only the new one is accepted (production, 2026-10-15).
+  let accountToken = XST;
   let invalid = o.tokenInvalidOnce ?? false;
   const res = (status: number, body: unknown, headers: Record<string, string> = {}) =>
     new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json", date: "Sun, 18 Oct 2026 20:00:00 GMT", ...headers } });
@@ -55,6 +58,7 @@ function fakeIg(o: {
     const method = init?.method ?? "GET";
     if (method === "POST" && path === "/session") {
       account = "Z6F18J";
+      accountToken = XST;
       return res(200, {
         accountType: "CFD", currencyIsoCode: "GBP", currentAccountId: "Z6F18J", clientId: "CLIENT-1", timezoneOffset: 1,
         lightstreamerEndpoint: "https://demo-apd.marketdatasystems.com", hasActiveDemoAccounts: true, hasActiveLiveAccounts: true,
@@ -66,7 +70,8 @@ function fakeIg(o: {
         echo: `welcome ${CREDS.username}`,
       }, { CST, "X-SECURITY-TOKEN": XST });
     }
-    if (headers["cst"] !== CST || headers["x-security-token"] !== XST) return res(401, { errorCode: "error.security.client-token-missing" });
+    if (headers["cst"] !== CST) return res(401, { errorCode: "error.security.client-token-invalid" });
+    if (headers["x-security-token"] !== accountToken) return res(401, { errorCode: "error.security.account-token-invalid" });
     if (invalid && method === "GET") {
       invalid = false;
       return res(401, { errorCode: "error.security.client-token-invalid", token: CST });
@@ -75,7 +80,8 @@ function fakeIg(o: {
       const b = JSON.parse(init?.body as string);
       if (b.accountId === account) return res(412, { errorCode: "error.switch.accountId-must-be-different" });
       account = b.accountId;
-      return res(200, { dealingEnabled: true });
+      accountToken = `${XST}-${account}`;
+      return res(200, { dealingEnabled: true }, { "X-SECURITY-TOKEN": accountToken });
     }
     if (path === "/accounts") {
       return res(200, { accounts: [{ accountId: account, accountName: "x", accountType: account === "Z6F18K" ? "SPREADBET" : "CFD", balance: { balance: 10000, available: 10000 }, currency: "GBP", status: "ENABLED" }] });
@@ -93,7 +99,7 @@ function fakeIg(o: {
       const epic = path.split("/")[2];
       return res(200, { instrument: { epic, marketId: "AUDUSD", openingHours: null, marginDepositBands: [{ min: 0, max: 1000, margin: 3.33 }] }, dealingRules: { minDealSize: { unit: "POINTS", value: 0.5 } }, snapshot: { marketStatus: "CLOSED" } });
     }
-    if (path.startsWith("/client-sentiment/")) return res(200, { longPositionPercentage: 60, shortPositionPercentage: 40, marketId: "AUDUSD" });
+    if (path.startsWith("/clientsentiment/")) return res(200, { longPositionPercentage: 60, shortPositionPercentage: 40, marketId: "AUDUSD" });
     if (path.startsWith("/prices/")) {
       const a = o.prices?.(path.split("/")[2], url.searchParams) ?? { status: 200, body: { prices: [], metadata: { allowance: { remainingAllowance: 9990, totalAllowance: 10000, allowanceExpiry: 500000 } } } };
       return res(a.status, a.body);
@@ -139,7 +145,7 @@ Deno.test("assertAllowed takes the demo host's listed calls and nothing else", (
     ["POST", "/session"], ["PUT", "/session"], ["GET", "/accounts"], ["GET", "/markets?epics=CS.D.AUDUSD.TODAY.IP&filter=SNAPSHOT_ONLY"],
     ["GET", "/markets?searchTerm=AUD%2FUSD"], ["GET", "/markets/IX.D.SPTRD.DAILY.IP"], ["GET", "/marketnavigation"], ["GET", "/marketnavigation/123"],
     ["GET", "/prices/CS.D.AUDUSD.TODAY.IP?resolution=HOUR&from=2026-10-09T17:00:00&to=2026-10-12T23:00:00&pageSize=0"],
-    ["GET", "/client-sentiment/AUDUSD"],
+    ["GET", "/clientsentiment/AUDUSD"],
   ];
   for (const [m, p] of ok) assertAllowed(m, IG_DEMO_BASE + p);
   const refused: [string, string][] = [
@@ -155,7 +161,7 @@ Deno.test("assertAllowed takes the demo host's listed calls and nothing else", (
     ["POST", IG_DEMO_BASE + "/operations/application"], ["PUT", IG_DEMO_BASE + "/operations/application/disable"],
     ["DELETE", IG_DEMO_BASE + "/session"], ["GET", IG_DEMO_BASE + "/session"], ["POST", IG_DEMO_BASE + "/session/refresh-token"],
     ["POST", IG_DEMO_BASE + "/markets"], ["POST", IG_DEMO_BASE + "/prices/CS.D.AUDUSD.TODAY.IP"],
-    ["POST", IG_DEMO_BASE + "/indicativecostsandcharges/open"],
+    ["POST", IG_DEMO_BASE + "/indicativecostsandcharges/open"], ["GET", IG_DEMO_BASE + "/client-sentiment/AUDUSD"],
     // Tricks: traversal, a query on a write, an unlisted query parameter.
     ["GET", IG_DEMO_BASE + "/markets/../positions"], ["POST", IG_DEMO_BASE + "/session?x=1"], ["GET", IG_DEMO_BASE + "/accounts?x=1"],
     ["GET", IG_DEMO_BASE + "/markets?epics=A.B.C.D&dealId=1"],
@@ -206,6 +212,26 @@ Deno.test("scrubDeep removes every secret, encoded too, from keys and values", (
 Deno.test("stripBalances takes balances and the client id out of session and account answers", () => {
   const out = stripBalances({ accountInfo: { balance: 1 }, clientId: "C", accounts: [{ accountId: "Z6F18J", balance: { balance: 5, available: 5 }, currency: "GBP" }] });
   assertEquals(out as unknown, { accounts: [{ accountId: "Z6F18J", currency: "GBP" }] });
+});
+
+Deno.test("a switch's new account token (X-SECURITY-TOKEN alone, no CST) is used from then on (2026-10-15 16:25 UTC)", async () => {
+  const ig = fakeIg();
+  const client = new IgClient({ creds: CREDS, fetchImpl: ig.impl, maxRequests: 10, minGapMs: 0, sleep: noSleep });
+  await client.login();
+  await client.switchTo("Z6F18K");
+  await client.get("/accounts", 1);
+  // One login, one switch, one GET: no 401 and no second login.
+  assertEquals([client.logins, client.switches, ig.calls.length], [1, 1, 3]);
+  assertEquals(ig.calls[2].headers["x-security-token"], `${XST}-Z6F18K`);
+  assertEquals(ig.calls[2].headers["cst"], CST);
+  // Each header is taken on its own; an answer with neither leaves the session as it was.
+  const s0 = { cst: "c0", xst: "x0", accountId: "A", at: 0 };
+  assertEquals(adoptTokens(s0, new Headers({ "X-SECURITY-TOKEN": "x1" })), { ...s0, xst: "x1" });
+  assertEquals(adoptTokens(s0, new Headers({ CST: "c1" })), { ...s0, cst: "c1" });
+  assertEquals(adoptTokens(s0, new Headers()), s0);
+  assertEquals(adoptTokens(null, new Headers({ CST: "c1" })), null);
+  // And the old account token is still scrubbed after it is replaced.
+  assertEquals(client.scrub(`old ${XST} new ${XST}-Z6F18K`), "old [redacted] new [redacted]");
 });
 
 Deno.test("a token IG calls invalid (weekend maintenance) is replaced by one login, and the account is switched back", async () => {

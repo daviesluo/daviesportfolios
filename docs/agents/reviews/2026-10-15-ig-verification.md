@@ -20,7 +20,7 @@ start without his explicit go.
 
 | part | what it does | spec |
 |---|---|---|
-| `ig/client.ts` | The only door to IG. Every request is built on `https://demo-api.ig.com/gateway/deal` and checked before `fetch`: any other host (the live `api.ig.com` above all), scheme, port, path or query parameter throws. Allowed: `POST /session` (log in), `PUT /session` (switch between the two demo accounts), GET `/accounts`, `/markets` (by epics or a search term), `/markets/{epic}`, `/marketnavigation[/{node}]`, `/prices/{epic}`, `/client-sentiment[/{marketId}]`. Reads only `IG_API_KEY_DEMO`, `IG_DEMO_USERNAME`, `IG_DEMO_PASSWORD`. Scrubs the key, username, password, CST and X-SECURITY-TOKEN (raw and URL-encoded) from every answer, row and error. A request budget per run and a gap between requests keep a run inside IG's 30 non-trading requests a minute per account. | hard rules 1, 2, 8 |
+| `ig/client.ts` | The only door to IG. Every request is built on `https://demo-api.ig.com/gateway/deal` and checked before `fetch`: any other host (the live `api.ig.com` above all), scheme, port, path or query parameter throws. Allowed: `POST /session` (log in), `PUT /session` (switch between the two demo accounts), GET `/accounts`, `/markets` (by epics or a search term), `/markets/{epic}`, `/marketnavigation[/{node}]`, `/prices/{epic}`, `/clientsentiment[/{marketId}]`. Reads only `IG_API_KEY_DEMO`, `IG_DEMO_USERNAME`, `IG_DEMO_PASSWORD`. Scrubs the key, username, password, CST and X-SECURITY-TOKEN (raw and URL-encoded) from every answer, row and error. A request budget per run and a gap between requests keep a run inside IG's 30 non-trading requests a minute per account. | hard rules 1, 2, 8 |
 | `ig/epics.ts` | Picks the epic for each role (AUD/USD, US 500 cash and dated, Wall Street, US Tech 100, UK 100, Germany 40, and the seven weekend markets) from IG's own search answers on each account, keeps every candidate seen, and accepts a pin (`?pin=role:EPIC`) if a person disagrees. | G1 |
 | `ig/windows.ts` | UK wall-clock time written out from the law (BST from 01:00 UTC on the last Sunday of March to the last Sunday of October), the recorder's windows, and the frozen G2 pull windows. | G2, G4 |
 | `?action=facts&account=sb\|cfd` | One account a call: session and account list with every balance and the client id removed, the market navigation's root, the search answers, the chosen epics and each one's `/markets/{epic}` details (dealing rules, minimum size, margin bands, opening hours, rollover), AUD/USD's client sentiment, IG's `Date` header against the function's clock. One `ig_facts` row. About 34 requests 2.5 s apart. | G1 |
@@ -66,10 +66,25 @@ window with ten minutes to spare at each end, checked at every minute from 2025-
 2. **SUNIDX.** The spec records weekend indices from Saturday 07:55 to Monday 01:00. The weekday counterparts of those indices
    are added from Sunday 20:50 to Monday 01:00, because S2 needs the first weekday bid/offer after rollover and the request
    that reads the weekend markets reads them at no extra request.
-3. **The client-sentiment path is `/client-sentiment`** (IG's REST reference, saved in `ig_research/inputs/ig_pages`); the
-   brief's `/clientsentiment` does not exist.
+3. **The client-sentiment path is `/clientsentiment`**, as the brief said. IG's reference page is titled
+   `/client-sentiment`, which the first build followed; that path answered 404 in production on 2026-10-15, and the fix
+   commit moved to `/clientsentiment`. `/marketnavigation` also answered 404 on the demo; `facts` records it and goes on.
 4. **Options and VIX are not in `facts`.** S4's option sampler is not built; the volatility screen's breakevens are printed by
    G3 (section 3) so that S4 can start from them when its sampler is asked for.
+
+### Fix after the first production run (2026-10-15 16:25 UTC)
+
+The spread-bet account's first `facts` stopped after its account switch with `401 error.security.account-token-invalid`
+(7 requests, no epic). IG's X-SECURITY-TOKEN names the current account (IG Labs REST guide: "a token identifying the
+current account"), so `PUT /session` answers with a new one, and with no CST; the client took new tokens only when an
+answer carried both, kept the old account token, and every call after a switch was refused, a fresh login included. The
+fix takes each header on its own (`adoptTokens`) and keeps a replaced token on the scrub list. `quotes` and `history`
+switch through the same `switchTo`, so they had the bug too: on the old rule six Deno tests fail (the new pin, `facts`,
+both `history` tests, `quotes`, and the token-renewal test), since the fake IG now hands out an account token per account
+the way the documentation describes. The CFD account's `facts` (16:27 UTC, no switch) worked: 11 roles chosen with
+11 detail answers in 25 requests; `/marketnavigation` and `/client-sentiment` answered 404 (the second moved to
+`/clientsentiment`); the CFD account lists no weekend FX market. Until a spread-bet `facts` row exists, the recorder
+reads the CFD account alone, which needs no switch.
 
 ## 2. What the main session does to deploy, and what to check after
 

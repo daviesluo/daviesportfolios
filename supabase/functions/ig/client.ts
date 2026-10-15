@@ -8,7 +8,7 @@
 //     reads the live credentials; the only secrets read are the three demo names in `IG_DEMO_SECRET_NAMES`.
 //   * One list of calls. `POST /session` (log in) and `PUT /session` (switch between the two demo accounts), and GET on
 //     `/accounts`, `/markets` (by epics or a search term), `/markets/{epic}`, `/marketnavigation[/{node}]`,
-//     `/prices/{epic}` and `/client-sentiment[/{marketId}]`. Every other method or path throws before fetch: positions,
+//     `/prices/{epic}` and `/clientsentiment[/{marketId}]`. Every other method or path throws before fetch: positions,
 //     working orders, confirms, watchlists, history, costs, applications, logout. There is no order code, and none can
 //     be sent through this client: a DELETE, a POST anywhere but `/session`, a PUT anywhere but `/session` are refused.
 //   * No secret leaves. The API key, username, password and both session tokens are scrubbed (`scrubDeep`) from every
@@ -33,13 +33,15 @@ export const IG_ALLOWED: ReadonlyArray<readonly [string, RegExp]> = [
   ["GET", new RegExp(`^/markets/${EPIC}$`)],
   ["GET", /^\/marketnavigation(\/[0-9]{1,12})?$/],
   ["GET", new RegExp(`^/prices/${EPIC}$`)],
-  ["GET", /^\/client-sentiment(\/[A-Za-z0-9._-]{1,40})?$/],
+  // IG serves it at `/clientsentiment` (the reference page is titled `/client-sentiment`; that path answered 404 on
+  // 2026-10-15).
+  ["GET", /^\/clientsentiment(\/[A-Za-z0-9._-]{1,40})?$/],
 ];
 /** The query parameters each GET may carry; anything else is refused too. */
 const ALLOWED_QUERY: Record<string, ReadonlySet<string>> = {
   "/markets": new Set(["epics", "filter", "searchTerm"]),
   "/prices": new Set(["resolution", "from", "to", "max", "pageSize", "pageNumber"]),
-  "/client-sentiment": new Set(["marketIds"]),
+  "/clientsentiment": new Set(["marketIds"]),
 };
 
 export class IgRefused extends Error {
@@ -158,6 +160,13 @@ export function isTokenError(status: number, code: string): boolean {
   return status === 401 && /token|missing\.credentials/i.test(code);
 }
 
+/** A session with whichever of CST and X-SECURITY-TOKEN an answer's headers carry, each on its own. */
+export function adoptTokens(session: IgSession | null, headers: Headers): IgSession | null {
+  if (!session) return session;
+  const cst = headers.get("CST"), xst = headers.get("X-SECURITY-TOKEN");
+  return { ...session, ...(cst ? { cst } : {}), ...(xst ? { xst } : {}) };
+}
+
 export type IgClientOpts = {
   creds: IgCreds;
   fetchImpl?: typeof fetch;
@@ -187,6 +196,8 @@ export class IgClient {
   /** IG's `Date` header against this clock, from the latest answer: the run's clock check. */
   clockOffsetMs: number | null = null;
   private lastAt = 0;
+  /** Every session token this client has held: a replaced account token is still a secret. */
+  private tokensSeen: string[] = [];
 
   constructor(opts: IgClientOpts) {
     this.opts = opts;
@@ -196,7 +207,8 @@ export class IgClient {
   /** Every secret this client could leak: the credentials and the session's tokens. */
   secrets(): string[] {
     const c = this.opts.creds;
-    return [c.key, c.username, c.password, this.session?.cst ?? "", this.session?.xst ?? ""];
+    if (this.session) for (const t of [this.session.cst, this.session.xst]) if (!this.tokensSeen.includes(t)) this.tokensSeen.push(t);
+    return [c.key, c.username, c.password, ...this.tokensSeen];
   }
 
   scrub<T>(v: T): T {
@@ -273,9 +285,12 @@ export class IgClient {
       if (account && this.session && (this.session as IgSession).accountId !== account) await this.switchTo(account);
       ({ answer, headers } = await this.raw(method, path, { ...o, auth: true }));
     }
-    // A switch may hand back new tokens.
-    const cst = headers.get("CST"), xst = headers.get("X-SECURITY-TOKEN");
-    if (this.session && cst && xst) this.session = { ...this.session, cst, xst };
+    // The X-SECURITY-TOKEN names the current ACCOUNT (IG Labs REST guide: "a token identifying the current account"), so
+    // `PUT /session` answers with a new one, and with no CST. Each is taken on its own whenever an answer carries it:
+    // keeping the old account token after a switch made every later call answer 401 account-token-invalid
+    // (production, 2026-10-15 16:25 UTC, the spread-bet account's first `facts`).
+    this.secrets();
+    this.session = adoptTokens(this.session, headers);
     return this.scrub(answer);
   }
 
