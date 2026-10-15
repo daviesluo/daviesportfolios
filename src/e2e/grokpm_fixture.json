@@ -1,0 +1,584 @@
+{
+ "input": {
+  "nowMs": 1789686000000,
+  "config": {
+   "wallet": "0xabcdef0123456789abcdef0123456789abcdef01",
+   "funded_usd": 100,
+   "daily_loss_usd": 10,
+   "total_stop_usd": 30,
+   "started_at": "2026-09-16T10:05:00.000Z"
+  },
+  "latest": {
+   "slot": "2026-09-17T22:55:00.000Z",
+   "at": "2026-09-17T22:55:12.000Z",
+   "cash_usd": 69.1,
+   "positions_value_usd": 33.2,
+   "value_api_usd": 33,
+   "equity_usd": 102.3,
+   "positions": [
+    {
+     "asset": "111",
+     "cond": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+     "outcome": "Yes",
+     "outcomeIndex": 0,
+     "title": "Will the Fed cut rates in October?",
+     "size": 20,
+     "avgPrice": 0.4,
+     "curPrice": 0.455,
+     "redeemable": false,
+     "endDate": "2026-10-28",
+     "mid": 0.46,
+     "mark": 0.46,
+     "value": 9.2
+    },
+    {
+     "asset": "222",
+     "cond": "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+     "outcome": "No",
+     "outcomeIndex": 1,
+     "title": "Will the bill be signed by September 30?",
+     "size": 25,
+     "avgPrice": 0.6,
+     "curPrice": 0.565,
+     "redeemable": false,
+     "endDate": "2026-09-30",
+     "mid": 0.56,
+     "mark": 0.56,
+     "value": 14
+    },
+    {
+     "asset": "333",
+     "cond": "0xc3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+     "outcome": "Yes",
+     "outcomeIndex": 0,
+     "title": "Will the nominee be confirmed?",
+     "size": 10,
+     "avgPrice": 0.7,
+     "curPrice": 1,
+     "redeemable": true,
+     "endDate": "2026-09-17",
+     "mid": null,
+     "mark": 1,
+     "value": 10
+    }
+   ]
+  },
+  "dayOpens": [
+   {
+    "day": "2026-09-17",
+    "slot": "2026-09-17T00:00:00.000Z",
+    "equity_usd": 101.6
+   },
+   {
+    "day": "2026-09-16",
+    "slot": "2026-09-16T00:00:00.000Z",
+    "equity_usd": 0
+   }
+  ],
+  "decisions": [
+   {
+    "id": "d-6",
+    "ts": "2026-09-17T22:30:00.000Z",
+    "action": "no_action",
+    "market_id": null,
+    "token_id": null,
+    "outcome": null,
+    "side": null,
+    "price": null,
+    "size": null,
+    "p": null,
+    "m": null,
+    "category": null,
+    "sources": [],
+    "reason": "Nothing cleared the bars this cycle.",
+    "invalidation": null
+   },
+   {
+    "id": "d-5",
+    "ts": "2026-09-17T14:00:00.000Z",
+    "action": "open",
+    "market_id": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "token_id": "111",
+    "outcome": "Yes",
+    "side": "BUY",
+    "price": 0.4,
+    "size": 20,
+    "p": 0.55,
+    "m": 0.42,
+    "category": "B",
+    "sources": [
+     "https://www.federalreserve.gov/newsevents/calendar.htm"
+    ],
+    "reason": "Two members said a cut is on the table; the market lags.",
+    "invalidation": "A hawkish speech before the meeting."
+   },
+   {
+    "id": "d-4",
+    "ts": "2026-09-17T09:00:00.000Z",
+    "action": "open",
+    "market_id": "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+    "token_id": "222",
+    "outcome": "No",
+    "side": "BUY",
+    "price": 0.6,
+    "size": 25,
+    "p": 0.75,
+    "m": 0.58,
+    "category": "B",
+    "sources": [
+     "https://www.congress.gov/"
+    ],
+    "reason": "The bill is stuck in committee with no floor time scheduled.",
+    "invalidation": "A floor vote is scheduled."
+   },
+   {
+    "id": "d-3",
+    "ts": "2026-09-16T16:00:00.000Z",
+    "action": "close",
+    "market_id": "0xd4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+    "token_id": "444",
+    "outcome": "Yes",
+    "side": "SELL",
+    "price": 0.25,
+    "size": 15,
+    "p": 0.2,
+    "m": 0.26,
+    "category": "C",
+    "sources": [],
+    "reason": "Thesis broken: the event was postponed.",
+    "invalidation": null
+   },
+   {
+    "id": "d-2",
+    "ts": "2026-09-16T13:55:00.000Z",
+    "action": "open",
+    "market_id": "0xd4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+    "token_id": "444",
+    "outcome": "Yes",
+    "side": "BUY",
+    "price": 0.31,
+    "size": 15,
+    "p": 0.45,
+    "m": 0.31,
+    "category": "B",
+    "sources": [
+     "https://example.org/schedule"
+    ],
+    "reason": "The schedule shows the event on time.",
+    "invalidation": "A postponement notice."
+   },
+   {
+    "id": "d-1",
+    "ts": "2026-09-16T10:58:00.000Z",
+    "action": "open",
+    "market_id": "0xc3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+    "token_id": "333",
+    "outcome": "Yes",
+    "side": "BUY",
+    "price": 0.7,
+    "size": 10,
+    "p": 0.9,
+    "m": 0.71,
+    "category": "A",
+    "sources": [
+     "https://www.senate.gov/legislative/votes.htm",
+     "javascript:alert(1)"
+    ],
+    "reason": "The roll call is published: confirmed 52-48.",
+    "invalidation": "The vote record is corrected."
+   }
+  ],
+  "cycle": {
+   "id": "c-40",
+   "ts": "2026-09-17T22:31:00.000Z",
+   "kind": "light",
+   "cash_usd": 69.1,
+   "positions_value_usd": 31,
+   "pnl_usd": 0.1,
+   "open_positions": 3,
+   "actions": 0
+  },
+  "cycleSnap": {
+   "slot": "2026-09-17T22:30:00.000Z",
+   "at": "2026-09-17T22:30:09.000Z",
+   "cash_usd": 69.1,
+   "positions_value_usd": 33.2,
+   "value_api_usd": 33,
+   "equity_usd": 102.3,
+   "positions": []
+  },
+  "daily": [
+   {
+    "id": "y-0916",
+    "received_at": "2026-09-17T00:10:00.000Z",
+    "day": "2026-09-16",
+    "pnl_day_usd": 1.5,
+    "pnl_total_usd": 1.5,
+    "trades": 3,
+    "summary": "Bought a confirmed outcome (A) and cut a broken thesis (C)."
+   }
+  ],
+  "entries": [
+   {
+    "asset": "111",
+    "cond": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "title": "Will the Fed cut rates in October?",
+    "first_seen_at": "2026-09-17T14:05:00.000Z",
+    "first_fill_at": "2026-09-17T14:02:00.000Z",
+    "mid": 0.43
+   },
+   {
+    "asset": "222",
+    "cond": "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+    "title": "Will the bill be signed by September 30?",
+    "first_seen_at": "2026-09-17T09:05:00.000Z",
+    "first_fill_at": "2026-09-17T09:01:00.000Z",
+    "mid": 0.59
+   },
+   {
+    "asset": "333",
+    "cond": "0xc3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+    "title": "Will the nominee be confirmed?",
+    "first_seen_at": "2026-09-16T11:00:00.000Z",
+    "first_fill_at": "2026-09-16T10:59:00.000Z",
+    "mid": 0.72
+   },
+   {
+    "asset": "444",
+    "cond": "0xd4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+    "title": "Will the summit take place by September 17?",
+    "first_seen_at": "2026-09-16T14:00:00.000Z",
+    "first_fill_at": "2026-09-16T13:56:00.000Z",
+    "mid": 0.3
+   }
+  ],
+  "resolutions": [
+   {
+    "cond": "0xc3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+    "tokens": [
+     "333",
+     "334"
+    ],
+    "payouts": [
+     1,
+     0
+    ]
+   },
+   {
+    "cond": "0xd4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+    "tokens": [
+     "444",
+     "445"
+    ],
+    "payouts": [
+     0,
+     1
+    ]
+   }
+  ],
+  "opens": [
+   {
+    "id": "d-1",
+    "ts": "2026-09-16T10:58:00.000Z",
+    "token_id": "333",
+    "p": 0.9,
+    "m": 0.71,
+    "category": "A"
+   },
+   {
+    "id": "d-2",
+    "ts": "2026-09-16T13:55:00.000Z",
+    "token_id": "444",
+    "p": 0.45,
+    "m": 0.31,
+    "category": "B"
+   },
+   {
+    "id": "d-4",
+    "ts": "2026-09-17T09:00:00.000Z",
+    "token_id": "222",
+    "p": 0.75,
+    "m": 0.58,
+    "category": "B"
+   },
+   {
+    "id": "d-5",
+    "ts": "2026-09-17T14:00:00.000Z",
+    "token_id": "111",
+    "p": 0.55,
+    "m": 0.42,
+    "category": "B"
+   }
+  ],
+  "recState": {
+   "updated_at": "2026-09-17T22:55:12.000Z",
+   "last_error": null
+  }
+ },
+ "output": {
+  "wallet": "0xabcd…ef01",
+  "started": true,
+  "startedAt": "2026-09-16T10:05:00.000Z",
+  "fundedUsd": 100,
+  "configuredFundedUsd": 100,
+  "equityUsd": 102.3,
+  "cashUsd": 69.1,
+  "positionsValueUsd": 33.2,
+  "valueApiUsd": 33,
+  "totalUsd": 2.3,
+  "todayUsd": 0.7,
+  "unrealisedUsd": 0.2,
+  "realisedUsd": 2.1,
+  "costUsd": 30,
+  "stop": {
+   "dayLimitUsd": 10,
+   "dayRoomUsd": 10.7,
+   "dayTripped": false,
+   "totalLimitUsd": 30,
+   "totalRoomUsd": 32.3,
+   "totalTripped": false
+  },
+  "lastSnapshotAt": "2026-09-17T22:55:12.000Z",
+  "lagMinutes": 5,
+  "running": true,
+  "lastError": null,
+  "status": {
+   "open": 2,
+   "brierAgent": 0.10625,
+   "brierMarket": 0.0842,
+   "scored": 2,
+   "resolved": 2
+  },
+  "positions": [
+   {
+    "asset": "222",
+    "cond": "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+    "title": "Will the bill be signed by September 30?",
+    "outcome": "No",
+    "size": 25,
+    "avgPrice": 0.6,
+    "mark": 0.56,
+    "mid": 0.56,
+    "costUsd": 15,
+    "valueUsd": 14,
+    "unrealisedUsd": -1,
+    "redeemable": false,
+    "endDate": "2026-09-30"
+   },
+   {
+    "asset": "111",
+    "cond": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "title": "Will the Fed cut rates in October?",
+    "outcome": "Yes",
+    "size": 20,
+    "avgPrice": 0.4,
+    "mark": 0.46,
+    "mid": 0.46,
+    "costUsd": 8,
+    "valueUsd": 9.2,
+    "unrealisedUsd": 1.2,
+    "redeemable": false,
+    "endDate": "2026-10-28"
+   },
+   {
+    "asset": "333",
+    "cond": "0xc3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+    "title": "Will the nominee be confirmed?",
+    "outcome": "Yes",
+    "size": 10,
+    "avgPrice": 0.7,
+    "mark": 1,
+    "mid": null,
+    "costUsd": 7,
+    "valueUsd": 10,
+    "unrealisedUsd": 0,
+    "redeemable": true,
+    "endDate": "2026-09-17"
+   }
+  ],
+  "journal": [
+   {
+    "id": "d-6",
+    "ts": "2026-09-17T22:30:00.000Z",
+    "action": "no_action",
+    "category": null,
+    "title": null,
+    "marketId": null,
+    "outcome": null,
+    "side": null,
+    "price": null,
+    "size": null,
+    "p": null,
+    "m": null,
+    "reason": "Nothing cleared the bars this cycle.",
+    "invalidation": null,
+    "sources": []
+   },
+   {
+    "id": "d-5",
+    "ts": "2026-09-17T14:00:00.000Z",
+    "action": "open",
+    "category": "B",
+    "title": "Will the Fed cut rates in October?",
+    "marketId": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "outcome": "Yes",
+    "side": "BUY",
+    "price": 0.4,
+    "size": 20,
+    "p": 0.55,
+    "m": 0.42,
+    "reason": "Two members said a cut is on the table; the market lags.",
+    "invalidation": "A hawkish speech before the meeting.",
+    "sources": [
+     "https://www.federalreserve.gov/newsevents/calendar.htm"
+    ]
+   },
+   {
+    "id": "d-4",
+    "ts": "2026-09-17T09:00:00.000Z",
+    "action": "open",
+    "category": "B",
+    "title": "Will the bill be signed by September 30?",
+    "marketId": "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+    "outcome": "No",
+    "side": "BUY",
+    "price": 0.6,
+    "size": 25,
+    "p": 0.75,
+    "m": 0.58,
+    "reason": "The bill is stuck in committee with no floor time scheduled.",
+    "invalidation": "A floor vote is scheduled.",
+    "sources": [
+     "https://www.congress.gov/"
+    ]
+   },
+   {
+    "id": "d-3",
+    "ts": "2026-09-16T16:00:00.000Z",
+    "action": "close",
+    "category": "C",
+    "title": "Will the summit take place by September 17?",
+    "marketId": "0xd4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+    "outcome": "Yes",
+    "side": "SELL",
+    "price": 0.25,
+    "size": 15,
+    "p": 0.2,
+    "m": 0.26,
+    "reason": "Thesis broken: the event was postponed.",
+    "invalidation": null,
+    "sources": []
+   },
+   {
+    "id": "d-2",
+    "ts": "2026-09-16T13:55:00.000Z",
+    "action": "open",
+    "category": "B",
+    "title": "Will the summit take place by September 17?",
+    "marketId": "0xd4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+    "outcome": "Yes",
+    "side": "BUY",
+    "price": 0.31,
+    "size": 15,
+    "p": 0.45,
+    "m": 0.31,
+    "reason": "The schedule shows the event on time.",
+    "invalidation": "A postponement notice.",
+    "sources": [
+     "https://example.org/schedule"
+    ]
+   },
+   {
+    "id": "d-1",
+    "ts": "2026-09-16T10:58:00.000Z",
+    "action": "open",
+    "category": "A",
+    "title": "Will the nominee be confirmed?",
+    "marketId": "0xc3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+    "outcome": "Yes",
+    "side": "BUY",
+    "price": 0.7,
+    "size": 10,
+    "p": 0.9,
+    "m": 0.71,
+    "reason": "The roll call is published: confirmed 52-48.",
+    "invalidation": "The vote record is corrected.",
+    "sources": [
+     "https://www.senate.gov/legislative/votes.htm"
+    ]
+   }
+  ],
+  "days": [
+   {
+    "day": "2026-09-17",
+    "today": true,
+    "recordUsd": 0.7,
+    "agentUsd": null,
+    "trades": null,
+    "summary": null,
+    "mismatch": false
+   },
+   {
+    "day": "2026-09-16",
+    "today": false,
+    "recordUsd": 1.6,
+    "agentUsd": 1.5,
+    "trades": 3,
+    "summary": "Bought a confirmed outcome (A) and cut a broken thesis (C).",
+    "mismatch": false
+   }
+  ],
+  "cycle": {
+   "ts": "2026-09-17T22:31:00.000Z",
+   "kind": "light",
+   "actions": 0,
+   "openPositions": 3,
+   "agentEquityUsd": 100.1,
+   "agentPnlUsd": 0.1,
+   "recordEquityUsd": 102.3,
+   "recordPnlUsd": 2.3,
+   "mismatch": true
+  },
+  "mismatch": true
+ },
+ "waiting": {
+  "wallet": "0xabcd…ef01",
+  "started": false,
+  "startedAt": null,
+  "fundedUsd": null,
+  "configuredFundedUsd": 100,
+  "equityUsd": null,
+  "cashUsd": null,
+  "positionsValueUsd": null,
+  "valueApiUsd": null,
+  "totalUsd": 0,
+  "todayUsd": 0,
+  "unrealisedUsd": 0,
+  "realisedUsd": 0,
+  "costUsd": 0,
+  "stop": {
+   "dayLimitUsd": 10,
+   "dayRoomUsd": null,
+   "dayTripped": false,
+   "totalLimitUsd": 30,
+   "totalRoomUsd": null,
+   "totalTripped": false
+  },
+  "lastSnapshotAt": null,
+  "lagMinutes": null,
+  "running": false,
+  "lastError": null,
+  "status": {
+   "open": 0,
+   "brierAgent": null,
+   "brierMarket": null,
+   "scored": 0,
+   "resolved": 0
+  },
+  "positions": [],
+  "journal": [],
+  "days": [],
+  "cycle": null,
+  "mismatch": false
+ }
+}

@@ -1401,7 +1401,125 @@ export function lpLiveRow(l) {
  * @param {any} dash
  */
 export function liveExtraRows(dash) {
-  return [quotesLiveRow(dash?.quotes?.live), lpLiveRow(dash?.lpLive)].filter((r) => !!r);
+  return [quotesLiveRow(dash?.quotes?.live), lpLiveRow(dash?.lpLive), grokPmRow(dash?.grokPm)].filter((r) => !!r);
+}
+
+/** "Polymarket analyst (Grok)"'s id among LIVE's rows (GROKPM, 0124). */
+export const GROKPM_ROW_ID = '__grokpm';
+/** Its name on LIVE (Davies, 2026-10-15: "网站中live页也加上策略和子策略页面"). */
+export const GROKPM_ROW_NAME = 'Polymarket analyst (Grok)';
+
+/**
+ * "Polymarket analyst (Grok)" as a row of LIVE: the dashboard's `grokPm` (`grokpm_view.ts`), every dollar from the
+ * independent record of the outside agent's wallet, never its own report. Funded is the $100 from the experiment's start
+ * (nothing before: a wallet set but not yet funded adds nothing to LIVE's totals); deployed what it holds at cost; today
+ * and realised on what is funded, unrealised on its cost. Its fees are inside realised (the wallet's cash is net of them),
+ * so it states none of its own. null until a wallet is configured.
+ * @param {any} g  the dashboard's `grokPm`
+ */
+export function grokPmRow(g) {
+  if (!g) return null;
+  const funded = g.started ? Number(g.fundedUsd) || 0 : 0, cost = Number(g.costUsd) || 0;
+  /** @param {number} usd @param {number} base */
+  const pct = (usd, base) => (base > 0 ? (usd / base) * 100 : null);
+  const today = Number(g.todayUsd) || 0, unrealised = Number(g.unrealisedUsd) || 0, realised = Number(g.realisedUsd) || 0;
+  const open = Number(g.status?.open) || 0;
+  return {
+    id: GROKPM_ROW_ID, name: GROKPM_ROW_NAME, venue: venueLabel('polymarket'), venueId: 'polymarket', mode: 'live',
+    capitalUsd: funded, fundedKnown: !!g.started, valueUsd: cost, costUsd: cost, feesUsd: null,
+    todayUsd: today, todayPct: pct(today, funded), unrealisedUsd: unrealised, unrealisedPct: pct(unrealised, cost), realisedUsd: realised, realisedPct: pct(realised, funded),
+    nextText: 'record every 5 min', openPositions: open, openOrders: 0, holdsLive: cost > 0, armed: !!g.started && !g.stop?.totalTripped,
+    status: !g.started
+      ? { label: 'live', running: false, tone: 'stale', detail: `waiting for its funding to arrive in ${g.wallet}` }
+      : !g.running
+        ? { label: 'live', running: false, tone: 'stale', detail: g.lagMinutes == null ? 'its record has not read the wallet yet' : `its record last read the wallet ${g.lagMinutes} min ago` }
+        : g.stop?.totalTripped
+          ? { label: 'live', running: true, tone: 'stale', detail: 'its total stop is reached: by its rules it may only close' }
+          : { label: 'live', running: true, tone: 'running', detail: `an outside agent trading real money · ${open} position${open === 1 ? '' : 's'} open` },
+  };
+}
+
+/** A probability or a price as cents, "82¢"; a dash without one. @param {number | null | undefined} x */
+export const fmtProb = (x) => (x == null || !Number.isFinite(Number(x)) ? '—' : `${+(Number(x) * 100).toFixed(1)}¢`);
+/** A Brier score to three places; a dash without one. @param {number | null | undefined} x */
+export const fmtBrier = (x) => (x == null || !Number.isFinite(Number(x)) ? '—' : Number(x).toFixed(3));
+
+/**
+ * The STATUS tiles of its page: open positions, the cash the record read (through `m`, the hide-values mask), the Brier
+ * scores of the agent and of the market on the same resolved entries, and how many of its entries have resolved.
+ * @param {any} g  the dashboard's `grokPm` @param {(s: string) => string} m
+ */
+export function grokPmTiles(g, m) {
+  const s = g?.status ?? {};
+  return [
+    { k: 'OPEN POSITIONS', v: String(Number(s.open) || 0) },
+    { k: 'CASH', v: g?.cashUsd == null ? '—' : m(fmtUsd(Number(g.cashUsd))) },
+    { k: 'BRIER YOU / MARKET', v: Number(s.scored) > 0 ? `${fmtBrier(s.brierAgent)} / ${fmtBrier(s.brierMarket)}` : '—', note: Number(s.scored) > 0 ? `on ${s.scored} resolved` : null },
+    { k: 'RESOLVED', v: String(Number(s.resolved) || 0) },
+  ];
+}
+
+/**
+ * The stops' room under its scoreboard, every dollar through `m`: the total stop and the day's, as the agent's rules state
+ * them. The page shows them; nothing here can stop the agent. Null before the money arrives.
+ * @param {any} g @param {(s: string) => string} m
+ */
+export function grokPmStopText(g, m) {
+  const st = g?.stop;
+  if (!g?.started || !st || st.totalRoomUsd == null || st.dayRoomUsd == null) return null;
+  const total = st.totalTripped ? 'total stop reached: close only' : `total stop at ${m(fmtUsd(-Number(st.totalLimitUsd), true))}: ${m(fmtUsd(Number(st.totalRoomUsd)))} of room`;
+  const day = st.dayTripped ? 'day stop reached' : `day stop at ${m(fmtUsd(-Number(st.dayLimitUsd), true))}: ${m(fmtUsd(Number(st.dayRoomUsd)))} of room`;
+  return `${total} · ${day}`;
+}
+
+/**
+ * The mismatch line (a reported figure more than $1 from the record's), every dollar through `m`; null when they agree.
+ * @param {any} g @param {(s: string) => string} m
+ */
+export function grokPmMismatchText(g, m) {
+  if (!g?.mismatch) return null;
+  const parts = [];
+  const c = g.cycle;
+  if (c?.mismatch) {
+    parts.push(`its ${String(c.ts).slice(11, 16)} UTC report says ${m(fmtUsd(Number(c.agentEquityUsd)))} (${m(fmtUsd(Number(c.agentPnlUsd), true))}), the record ${m(fmtUsd(Number(c.recordEquityUsd)))} (${m(fmtUsd(Number(c.recordPnlUsd), true))})`);
+  }
+  const days = (g.days ?? []).filter((/** @type {any} */ d) => d.mismatch).map((/** @type {any} */ d) => d.day.slice(5));
+  if (days.length) parts.push(`its daily summary differs on ${days.join(', ')}`);
+  return `the agent's numbers differ from the record by more than $1: ${parts.join('; ')}`;
+}
+
+/**
+ * A row of its DAYS, every dollar through `m`: the record's P&L and the agent's own summary's beside it.
+ * @param {any} d @param {(s: string) => string} m
+ */
+export function grokPmDayCells(d, m) {
+  const rec = d?.recordUsd == null ? null : Number(d.recordUsd), agent = d?.agentUsd == null ? null : Number(d.agentUsd);
+  return {
+    record: rec === null ? '—' : m(fmtUsd(rec, true)), recordUsd: rec,
+    agent: agent === null ? '—' : m(fmtUsd(agent, true)), agentUsd: agent,
+    trades: d?.trades == null ? '—' : String(d.trades),
+    flag: d?.mismatch ? 'differs' : '',
+  };
+}
+
+/**
+ * One journal entry as its page lists it: what it did, where, at what price and size (through `m`), the agent's p and
+ * the market's m it saw, and its words. A link is kept only when it is http(s): the server already dropped any other.
+ * @param {any} j @param {(s: string) => string} m
+ */
+export function grokPmJournalView(j, m) {
+  const trade = j?.side && j?.price != null && j?.size != null;
+  const verb = { open: 'open', close: 'close', cancel: 'cancel', no_action: 'no action' }[String(j?.action)] ?? String(j?.action ?? '');
+  /** @param {unknown} u */
+  const isLink = (u) => typeof u === 'string' && /^https?:\/\//i.test(u);
+  return {
+    head: [verb, j?.category ? `cat ${j.category}` : null, trade ? `${j.side === 'BUY' ? 'buy' : 'sell'} ${j.outcome ?? ''}`.trim() : null].filter(Boolean).join(' · '),
+    market: j?.title || (j?.marketId ? `${String(j.marketId).slice(0, 10)}…` : ''),
+    trade: trade ? `${m(String(+Number(j.size).toFixed(2)))} at ${m(fmtProb(j.price))}` : '',
+    probs: j?.p != null || j?.m != null ? `p ${fmtProb(j.p)} · m ${fmtProb(j.m)}` : '',
+    reason: String(j?.reason ?? ''), invalidation: j?.invalidation ? String(j.invalidation) : '',
+    sources: (Array.isArray(j?.sources) ? j.sources : []).filter(isLink),
+  };
 }
 
 /** R, what Polymarket paid over what the formula gave, to two places; a dash without a formula figure. @param {number | null | undefined} r */

@@ -1989,6 +1989,26 @@ body {
 .ag-qheld { white-space: nowrap; }
 .ag-warn-line { margin-top: 6px; font-size: 11px; color: var(--loss); }
 .ag-lpl-room { margin-top: 6px; font-size: 11px; }
+/* "Polymarket analyst (Grok)" (GROKPM, 0124): six scoreboard cells wrap on a phone; its journal is a list, each entry's
+   words wrapping inside the page's width, its sources plain links that break anywhere rather than widen the page. */
+.ag-gpm-sb { grid-template-columns: auto 1px auto 1px minmax(0, 1fr) 1px minmax(0, 1fr) 1px minmax(0, 1fr) 1px minmax(0, 1fr); }
+@media (max-width: 760px) {
+  .ag-gpm-sb { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}
+.ag-gpm-line { margin-top: 6px; font-size: 11px; line-height: 1.45; overflow-wrap: anywhere; }
+.ag-gpm-mismatch { overflow-wrap: anywhere; }
+.ag-gpm-stop { overflow-wrap: anywhere; }
+.ag-gpm-entries { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.ag-gpm-entry { min-width: 0; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; background: rgba(0,0,0,0.18); font-size: 12px; line-height: 1.45; }
+.ag-gpm-entry-head { font-size: 11px; }
+.ag-gpm-act { color: #7d8bff; }
+.ag-gpm-entry-market { font-weight: 600; overflow-wrap: anywhere; }
+.ag-gpm-entry-nums { font-size: 11px; }
+.ag-gpm-entry-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.ag-gpm-entry-links { display: flex; flex-direction: column; gap: 2px; font-size: 11px; }
+.ag-gpm-entry-links a { color: var(--chalk-dim); text-decoration: underline; overflow-wrap: anywhere; word-break: break-all; }
+.ag-gpm-flag { color: var(--loss); }
+.ag-gpm-empty { padding: 6px 0; font-size: 12px; }
 /* RW's page (reference §4 item 36). A market is its question, and the question is long: two lines of it (four on a
    phone, where the market keeps only what it holds and its total beside it), the whole of it in the title. One line cut
    "…between 78-79°F on September 17?" down to "Will the highest temperature in Los Ang…", which names no market. */

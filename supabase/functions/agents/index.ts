@@ -121,6 +121,13 @@
 //                             placement; the paper test reads none of it.
 //                             Keyless public reads only. Cron or admin
 //                             (`wait=0`: read at once).
+//   POST ?action=grokpmrec  — GROKPM's independent record (grokpm_rec.ts,
+//                             0124): every five minutes, the outside Grok
+//                             agent's wallet as Polymarket's public data API
+//                             and a public Polygon RPC show it (cash,
+//                             positions, each held book's mid, activity,
+//                             resolutions). Nothing while no wallet is
+//                             configured. Keyless reads only. Cron or admin.
 //   GET  ?action=dashboard  — everything the Agents page shows: strategies
 //                             with positions and P&L derived from fills,
 //                             the latest observation per symbol, the caps,
@@ -224,6 +231,8 @@ import { booksDelayMs, runBooks } from "./books.ts";
 import { PM_REC_VENUE_TIMEOUT_MS, pmRecStorage, runPmRec, runPmRecMeta } from "./pm_book_rec.ts";
 import { runPmProg } from "./pm_prog.ts";
 import { runCjRec } from "./cj_rec.ts";
+import { runGrokPmRec } from "./grokpm_rec.ts";
+import { GROKPM_CONFIG_COLUMNS, GROKPM_CYCLE_COLUMNS, GROKPM_DAILY_COLUMNS, GROKPM_DECISION_COLUMNS, GROKPM_ENTRY_COLUMNS, GROKPM_JOURNAL_ROWS, GROKPM_OPEN_COLUMNS, GROKPM_SNAPSHOT_COLUMNS, grokPmSummary, type GrokPmConfigRow, type GrokPmCycleRow, type GrokPmDailyRow, type GrokPmDayOpenRow, type GrokPmDecisionRow, type GrokPmEntryRow, type GrokPmOpenRow, type GrokPmResolutionRow, type GrokPmSnapshotRow } from "./grokpm_view.ts";
 import { runCbRec, type CbRecState } from "./cb_rec.ts";
 import { cbBooksDelayMs, runCbBooks } from "./cb_books.ts";
 import { runCbQuotes } from "./cb_quotes.ts";
@@ -528,6 +537,23 @@ export async function runCjRecAction(deps: { db?: Db; fetchImpl?: typeof fetch; 
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     await reportServerError("agents.cj_rec", { message: message.slice(0, 500), context: { at: new Date().toISOString() } });
+    return { error: message.slice(0, 300) };
+  }
+}
+
+/**
+ * GROKPM's independent record (grokpm_rec.ts, 0124): the outside agent's wallet, read keylessly every five minutes. A
+ * fault goes to `ops_errors` as `agents.grokpm_rec` when it first appears and at most hourly while it lasts; it never
+ * throws past here.
+ */
+export async function runGrokPmRecAction(deps: { db?: Db; fetchImpl?: typeof fetch; now?: number } = {}) {
+  try {
+    const report = await runGrokPmRec({ db: deps.db ?? db(), now: deps.now ?? Date.now(), fetchImpl: deps.fetchImpl });
+    if (report.report) await reportServerError("agents.grokpm_rec", { message: report.errors.join("; ").slice(0, 500), context: { slot: report.slot ?? null } });
+    return report;
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    await reportServerError("agents.grokpm_rec", { message: message.slice(0, 500), context: { at: new Date().toISOString() } });
     return { error: message.slice(0, 300) };
   }
 }
@@ -1921,6 +1947,41 @@ export async function readLpLive(d: Db, now: number) {
   } catch { return null; }
 }
 
+/**
+ * "Polymarket analyst (Grok)" (`grokpm_view.ts`), the dashboard's `grokPm`: the independent record's latest snapshot and
+ * day opens, the agent's journal beside it. Null until a wallet is configured, or when a read fails: the rest of the page
+ * stands without it. The record and the journal are written independently, so each read is simply its own newest.
+ */
+export async function readGrokPm(d: Db, now: number) {
+  try {
+    const cfg = await d.select<GrokPmConfigRow>("grokpm_config", `id=eq.1&select=${GROKPM_CONFIG_COLUMNS}`);
+    if (!cfg[0]?.wallet) return null;
+    const [latest, dayOpens, decisions, cycles, daily, entries, resolutions, opens, rec] = await Promise.all([
+      d.select<GrokPmSnapshotRow>("grokpm_snapshots", `select=${GROKPM_SNAPSHOT_COLUMNS}&order=slot.desc&limit=1`),
+      d.select<GrokPmDayOpenRow>("grokpm_day_opens", "select=day,slot,equity_usd&order=day.desc&limit=120"),
+      d.select<GrokPmDecisionRow>("grokpm_decisions", `select=${GROKPM_DECISION_COLUMNS}&order=ts.desc,id.desc&limit=${GROKPM_JOURNAL_ROWS}`),
+      d.select<GrokPmCycleRow>("grokpm_cycles", `select=${GROKPM_CYCLE_COLUMNS}&order=ts.desc,id.desc&limit=1`),
+      d.select<GrokPmDailyRow>("grokpm_daily", `select=${GROKPM_DAILY_COLUMNS}&order=day.desc,received_at.desc&limit=200`),
+      d.select<GrokPmEntryRow>("grokpm_entries", `select=${GROKPM_ENTRY_COLUMNS}&order=asset.asc&limit=1000`),
+      d.select<GrokPmResolutionRow>("grokpm_resolutions", "select=cond,tokens,payouts&order=cond.asc&limit=1000"),
+      d.select<GrokPmOpenRow>("grokpm_decisions", `action=eq.open&select=${GROKPM_OPEN_COLUMNS}&order=ts.asc,id.asc&limit=1000`),
+      d.select<{ updated_at: string | null; last_error: string | null }>("grokpm_rec_state", "id=eq.1&select=updated_at,last_error"),
+    ]);
+    // The snapshot of the latest cycle's slot, or the one before it: the record at the moment the agent reported.
+    const c = cycles[0];
+    let cycleSnap: GrokPmSnapshotRow | null = null;
+    if (c) {
+      const slot = Math.floor(Date.parse(c.ts) / 300e3) * 300e3;
+      const near = await d.select<GrokPmSnapshotRow>("grokpm_snapshots",
+        `slot=in.(${[slot, slot - 300e3].map((t) => encodeURIComponent(new Date(t).toISOString())).join(",")})&select=${GROKPM_SNAPSHOT_COLUMNS}&order=slot.desc&limit=1`).catch(() => []);
+      cycleSnap = near[0] ?? null;
+    }
+    return grokPmSummary({
+      config: cfg[0], latest: latest[0] ?? null, dayOpens, decisions, cycle: c ?? null, cycleSnap, daily, entries, resolutions, opens, recState: rec[0] ?? null, nowMs: now,
+    });
+  } catch { return null; }
+}
+
 export async function runDashboard(now = Date.now()) {
   try {
     return await dashboard(now);
@@ -2165,6 +2226,8 @@ async function dashboard(now: number) {
   // stopped and no page row shows them, so neither their tables, the programme factors (0115) that priced them nor the
   // live R they were shown at is read here. LIVE's row reads only its own (`readLpLive`).
   const lpLive = await readLpLive(d, now);
+  // GROKPM's row of LIVE (Davies, 2026-10-15): the independent record of the outside agent's wallet, its journal beside it.
+  const grokPm = await readGrokPm(d, now);
   const quotesVariant = await quotesVariantRead;
   const quotesRuled = await quotesRuledRead;
 
@@ -2211,6 +2274,11 @@ async function dashboard(now: number) {
      * only, never added to TESTING's; null until it is armed or has sent a live order.
      */
     lpLive,
+    /**
+     * "Polymarket analyst (Grok)" (`grokpm_view.ts`, 0124): the outside agent's wallet from the independent record, its
+     * journal beside it; a row of LIVE. Null until a wallet is configured.
+     */
+    grokPm,
   };
 }
 
@@ -2795,6 +2863,8 @@ async function route(req: Request, who: Exclude<Who, null>, url: URL, action: st
   if (action === "cbhold" && req.method === "POST" && operator) return json(200, await runCbHoldAction());
   // Coinbase's order books (cb_books.ts, 0114): the top ten levels a side, 30 s into the minute. Keyless reads.
   if (action === "cbbooks" && req.method === "POST" && operator) return json(200, await runCbBooksAction(url.searchParams.get("wait") !== "0"));
+  // GROKPM's independent record (grokpm_rec.ts, 0124): the outside agent's wallet, every five minutes. Keyless reads.
+  if (action === "grokpmrec" && req.method === "POST" && operator) return json(200, await runGrokPmRecAction());
   // The programme factor's reader (pm_prog.ts, 0115): pm-rec's archived listing into `pm_prog_reads`. Reads only.
   if (action === "pmprog" && req.method === "POST" && operator) return json(200, await runPmProgAction());
   // Polymarket's order path (pm_live.ts, 0074): its dry-run, called from eu-west-1 by the one-minute job. Cron bearer only.

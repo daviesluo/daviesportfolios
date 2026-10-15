@@ -8,6 +8,7 @@ import {
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows, VENUE_LABELS,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
   newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwxSourceText, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, rwNotRunningText, paperTestRows, rwRoundText, PREP_ROW_ID, MID_ROW_ID, LP_ROW_ID, isPrepRowId, lpRow, midRow, prepRow, prepStopText, rwQuoteRows,
+  GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmJournalView, fmtProb, fmtBrier,
   LP_LIVE_ROW_ID, fmtR, lpStopRoomText, liveExtraRows, lpEstimateTexts, lpLiveDayCells, lpLiveQuoteRows, lpLiveRow, quoteDaysAnnualPct, lpLiveStatus, rwFeeAsides, rwFeeCells,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies,
   fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney,
@@ -26,6 +27,7 @@ import midFixture from '../e2e/mid_fixture.json';
 import lpFixture from '../e2e/lp_fixture.json';
 // Live-prep's real-money book: a live record worked out by hand, and the dashboard's answer for it (pm_lp_live_view.test.ts).
 import lpLiveFixture from '../e2e/lp_live_fixture.json';
+import grokPmFixture from '../e2e/grokpm_fixture.json';
 import {
   chartGeometry, fmtChartPrice, fmtChartStamp, fmtChartTime, hoverPoint, isResting, markPath, niceStep, priceTicks, tooltipBox, windowText, plotLabelY,
 } from './agents_chart.js';
@@ -2013,5 +2015,72 @@ describe("the Stablecoin quotes pages' DAYS heading: the seven calendar days bef
     // First row 10-07: two closed days (10-07, 10-08). 0.03 over £600, 365 / 2.
     expect(quoteDaysAnnualPct(young, 600, NOW)).toBeCloseTo((0.03 / 600) * (365 / 2) * 100, 10);
     expect([quoteDaysAnnualPct([{ day: '2026-10-09', realisedGbp: 1 }], 120, NOW), quoteDaysAnnualPct(young, 0, NOW), quoteDaysAnnualPct([], 120, NOW)]).toEqual([null, null, null]);
+  });
+});
+
+describe('grokPmRow and its page (GROKPM, "Polymarket analyst (Grok)" on LIVE, 2026-10-15)', () => {
+  const g = /** @type {any} */ (grokPmFixture.output);
+  const w = /** @type {any} */ (grokPmFixture.waiting);
+  const mask = (/** @type {string} */ t) => t.replace(/\d/g, '•');
+  it('is a LIVE row on Polymarket, its money the record\'s: funded $100, deployed its cost, the percents on their bases', () => {
+    const r = /** @type {any} */ (grokPmRow(g));
+    expect([r.id, r.name, r.mode, r.venueId, r.capitalUsd, r.valueUsd, r.costUsd, r.feesUsd, r.openPositions, r.holdsLive, r.armed])
+      .toEqual([GROKPM_ROW_ID, GROKPM_ROW_NAME, 'live', 'polymarket', 100, 30, 30, null, 2, true, true]);
+    // By hand (grokpm_view.test.ts): today +0.70, unrealised +0.20 on a cost of 30, realised +2.10.
+    expect([r.todayUsd, r.unrealisedUsd, r.realisedUsd]).toEqual([0.7, 0.2, 2.1]);
+    expect(r.todayPct).toBeCloseTo(0.7, 12);
+    expect(r.unrealisedPct).toBeCloseTo(0.2 / 30 * 100, 12);
+    expect(r.realisedPct).toBeCloseTo(2.1, 12);
+    expect(r.status).toEqual({ label: 'live', running: true, tone: 'running', detail: 'an outside agent trading real money · 2 positions open' });
+    expect(rowMoney(r).ccy).toBe('USD');
+  });
+  it('before its funding arrives it funds nothing on LIVE and says what it waits for; no wallet, no row', () => {
+    const r = /** @type {any} */ (grokPmRow(w));
+    expect([r.capitalUsd, r.costUsd, r.armed, r.status.tone, r.status.detail]).toEqual([0, 0, false, 'stale', 'waiting for its funding to arrive in 0xabcd…ef01']);
+    expect(grokPmRow(null)).toBe(null);
+    expect(grokPmStopText(w, (x) => x)).toBe(null);
+    expect(grokPmRow({ ...g, stop: { ...g.stop, totalTripped: true } })?.status.detail).toBe('its total stop is reached: by its rules it may only close');
+    expect(grokPmRow({ ...g, running: false, lagMinutes: 22 })?.status.detail).toBe('its record last read the wallet 22 min ago');
+  });
+  it('adds once to LIVE beside live-prep, on one Polymarket card, and never to TESTING', () => {
+    const dash = { risk: { global_pause: false, live_confirmed_at: null }, strategies: [], lpLive: lpLiveFixture.output, grokPm: g };
+    expect(liveExtraRows(dash).map((x) => x.id)).toEqual([LP_LIVE_ROW_ID, GROKPM_ROW_ID]);
+    expect(defaultAgentsTab({ ...dash, lpLive: null })).toBe('live');
+    const rows = liveExtraRows(dash);
+    const live = scoreboardView(dash, 'live', rows);
+    expect(live.capitalUsd).toBeCloseTo(320 + 100, 12);
+    expect(live.realisedUsd).toBeCloseTo(2.85 + 2.1, 12);
+    const cards = venueRows(dash, 'live', rows);
+    expect(cards.map((c) => c.id)).toEqual(['polymarket']);
+    expect([cards[0].live, cards[0].tests]).toEqual([2, 2]);
+    expect(cards[0].todayUsd).toBeCloseTo(0.8 + 0.7, 12);
+    expect(paperTestRows(dash).some((t) => t.id === GROKPM_ROW_ID)).toBe(false);
+  });
+  it('its STATUS tiles, stop room and mismatch line, every dollar through the mask and no probability masked', () => {
+    expect(grokPmTiles(g, (x) => x)).toEqual([
+      { k: 'OPEN POSITIONS', v: '2' }, { k: 'CASH', v: '$69.10' }, { k: 'BRIER YOU / MARKET', v: '0.106 / 0.084', note: 'on 2 resolved' }, { k: 'RESOLVED', v: '2' },
+    ]);
+    expect(grokPmTiles(g, mask)[1].v).toBe('$••.••');
+    expect(grokPmTiles(w, (x) => x)[2]).toEqual({ k: 'BRIER YOU / MARKET', v: '—', note: null });
+    expect(grokPmStopText(g, (x) => x)).toBe('total stop at -$30: $32.30 of room · day stop at -$10: $10.70 of room');
+    expect(grokPmMismatchText(g, (x) => x)).toBe("the agent's numbers differ from the record by more than $1: its 22:31 UTC report says $100.10 (+$0.10), the record $102.30 (+$2.30)");
+    expect(grokPmMismatchText({ ...g, mismatch: false }, (x) => x)).toBe(null);
+    expect(/\d/.test(grokPmMismatchText(g, mask)?.replace('22:31', '').replace('$1:', '') ?? '')).toBe(false);
+  });
+  it('DAYS and the journal as the page reads them', () => {
+    expect(g.days.map((/** @type {any} */ d) => grokPmDayCells(d, (x) => x))).toEqual([
+      { record: '+$0.70', recordUsd: 0.7, agent: '—', agentUsd: null, trades: '—', flag: '' },
+      { record: '+$1.60', recordUsd: 1.6, agent: '+$1.50', agentUsd: 1.5, trades: '3', flag: '' },
+    ]);
+    expect(grokPmDayCells({ ...g.days[1], mismatch: true }, (x) => x).flag).toBe('differs');
+    const v = grokPmJournalView(g.journal[5], (x) => x);
+    expect(v).toEqual({
+      head: 'open · cat A · buy Yes', market: 'Will the nominee be confirmed?', trade: '10 at 70¢', probs: 'p 90¢ · m 71¢',
+      reason: 'The roll call is published: confirmed 52-48.', invalidation: 'The vote record is corrected.', sources: ['https://www.senate.gov/legislative/votes.htm'],
+    });
+    expect(grokPmJournalView({ ...g.journal[5], sources: ['javascript:alert(1)', 'https://ok.example/'] }, (x) => x).sources).toEqual(['https://ok.example/']);
+    expect(grokPmJournalView(g.journal[0], (x) => x)).toMatchObject({ head: 'no action', market: '', trade: '', probs: '' });
+    expect(grokPmJournalView(g.journal[5], mask).trade).toBe('•• at ••¢');
+    expect([fmtProb(0.835), fmtProb(null), fmtBrier(0.10625)]).toEqual(['83.5¢', '—', '0.106']);
   });
 });

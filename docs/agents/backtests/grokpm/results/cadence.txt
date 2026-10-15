@@ -1,0 +1,73 @@
+GROKPM cadence study
+pulled 2026-10-15T16:13:39+00:00; candidates 11693 (thin 9073, low 1627, high 993); params {"tags": ["politics", "economy", "world", "tech", "geopolitics"], "window": ["2026-08-15T00:00:00Z", "2026-10-15T00:00:00Z"], "thin_usd": 10000, "low_attention_usd": 50000, "per_stratum": 200, "lookback_days": 7, "fidelity_min": 5, "seed": 20261015}
+
+== thin attention: 200 drawn, 200 with at least 20 prices in their last 7 days; median volume $928
+-- A, final approach from a gap of 0.30 to under 0.08: 89 markets (111 never had a gap of 0.30 in their last 7 days)
+   minutes: p10 5  p25 5  median 30  p75 385  p90 1311
+   one 5-minute bar or less (no checker can catch it): 17 of 89 (19 %)
+   checker every  15 min: catches  77.4 % of approaches  [90 % bootstrap 72.1, 82.7]
+   checker every  30 min: catches  66.2 % of approaches  [90 % bootstrap 59.4, 72.8]
+   checker every  60 min: catches  57.4 % of approaches  [90 % bootstrap 49.5, 64.7]
+   checker every 120 min: catches  49.4 % of approaches  [90 % bootstrap 41.8, 56.5]
+   checker every 240 min: catches  40.4 % of approaches  [90 % bootstrap 33.1, 48.0]
+   approach starts in the hour after a US release slot (12:30, 13:30, 14:00, 15:00, 18:00, 19:00 UTC): 26 of 89 (29 %), against 23 % by chance
+   by UTC hour: 00:7 01:4 02:1 03:3 04:3 05:1 06:1 07:4 08:1 09:1 10:1 11:3 12:0 13:7 14:2 15:8 16:9 17:5 18:7 19:2 20:6 21:2 22:5 23:6
+-- A, final approach from a gap of 0.50 to under 0.08: 54 markets (146 never had a gap of 0.50 in their last 7 days)
+   minutes: p10 5  p25 21  median 440  p75 1980  p90 3421
+   one 5-minute bar or less (no checker can catch it): 3 of 54 (6 %)
+   checker every  15 min: catches  89.4 % of approaches  [90 % bootstrap 83.8, 94.4]
+   checker every  30 min: catches  81.4 % of approaches  [90 % bootstrap 74.4, 88.0]
+   checker every  60 min: catches  73.6 % of approaches  [90 % bootstrap 64.9, 81.9]
+   checker every 120 min: catches  69.0 % of approaches  [90 % bootstrap 59.5, 78.2]
+   checker every 240 min: catches  63.5 % of approaches  [90 % bootstrap 53.3, 73.1]
+-- B, from 7316 hourly points priced 0.05-0.95 (last 7 days less the final 24 h):
+   a 12-point move has happened within: 30 min 5.8 %, 60 min 8.4 %, 120 min 12.1 %, 240 min 17.9 %, 480 min 26.3 %, 1440 min 44.8 %
+   price stays within +-3 points for: 30 min 86 % (n 7286), 60 min 80 % (n 7258), 120 min 72 % (n 7202), 240 min 61 % (n 7089), 480 min 47 % (n 6874)
+
+== low attention: 200 drawn, 200 with at least 20 prices in their last 7 days; median volume $18,314
+-- A, final approach from a gap of 0.30 to under 0.08: 94 markets (106 never had a gap of 0.30 in their last 7 days)
+   minutes: p10 5  p25 11  median 62  p75 886  p90 1766
+   one 5-minute bar or less (no checker can catch it): 9 of 94 (10 %)
+   checker every  15 min: catches  85.5 % of approaches  [90 % bootstrap 80.9, 89.8]
+   checker every  30 min: catches  76.6 % of approaches  [90 % bootstrap 70.8, 82.1]
+   checker every  60 min: catches  67.0 % of approaches  [90 % bootstrap 60.4, 73.7]
+   checker every 120 min: catches  54.7 % of approaches  [90 % bootstrap 47.9, 61.6]
+   checker every 240 min: catches  45.0 % of approaches  [90 % bootstrap 37.7, 52.2]
+   approach starts in the hour after a US release slot (12:30, 13:30, 14:00, 15:00, 18:00, 19:00 UTC): 30 of 94 (32 %), against 23 % by chance
+   by UTC hour: 00:3 01:3 02:6 03:2 04:2 05:2 06:0 07:0 08:1 09:3 10:5 11:1 12:7 13:4 14:3 15:3 16:12 17:3 18:7 19:8 20:2 21:4 22:3 23:10
+-- A, final approach from a gap of 0.50 to under 0.08: 56 markets (144 never had a gap of 0.50 in their last 7 days)
+   minutes: p10 15  p25 40  median 267  p75 1524  p90 4495
+   one 5-minute bar or less (no checker can catch it): 3 of 56 (5 %)
+   checker every  15 min: catches  93.4 % of approaches  [90 % bootstrap 89.1, 97.6]
+   checker every  30 min: catches  89.6 % of approaches  [90 % bootstrap 83.6, 94.6]
+   checker every  60 min: catches  82.0 % of approaches  [90 % bootstrap 75.3, 88.5]
+   checker every 120 min: catches  73.8 % of approaches  [90 % bootstrap 65.7, 82.0]
+   checker every 240 min: catches  63.8 % of approaches  [90 % bootstrap 54.8, 72.8]
+-- B, from 12469 hourly points priced 0.05-0.95 (last 7 days less the final 24 h):
+   a 12-point move has happened within: 30 min 1.5 %, 60 min 2.7 %, 120 min 4.6 %, 240 min 8.0 %, 480 min 14.0 %, 1440 min 29.0 %
+   price stays within +-3 points for: 30 min 90 % (n 12428), 60 min 84 % (n 12392), 120 min 76 % (n 12314), 240 min 65 % (n 12159), 480 min 51 % (n 11855)
+
+== high attention: 200 drawn, 200 with at least 20 prices in their last 7 days; median volume $147,456
+-- A, final approach from a gap of 0.30 to under 0.08: 96 markets (104 never had a gap of 0.30 in their last 7 days)
+   minutes: p10 5  p25 10  median 60  p75 574  p90 2193
+   one 5-minute bar or less (no checker can catch it): 9 of 96 (9 %)
+   checker every  15 min: catches  85.4 % of approaches  [90 % bootstrap 81.0, 89.3]
+   checker every  30 min: catches  75.7 % of approaches  [90 % bootstrap 69.8, 81.4]
+   checker every  60 min: catches  64.2 % of approaches  [90 % bootstrap 57.6, 70.9]
+   checker every 120 min: catches  54.7 % of approaches  [90 % bootstrap 47.8, 61.6]
+   checker every 240 min: catches  45.0 % of approaches  [90 % bootstrap 37.9, 51.9]
+   approach starts in the hour after a US release slot (12:30, 13:30, 14:00, 15:00, 18:00, 19:00 UTC): 19 of 96 (20 %), against 23 % by chance
+   by UTC hour: 00:2 01:10 02:3 03:3 04:4 05:0 06:4 07:3 08:2 09:5 10:1 11:3 12:4 13:1 14:5 15:6 16:13 17:5 18:3 19:4 20:6 21:4 22:1 23:4
+-- A, final approach from a gap of 0.50 to under 0.08: 61 markets (139 never had a gap of 0.50 in their last 7 days)
+   minutes: p10 5  p25 20  median 85  p75 585  p90 1430
+   one 5-minute bar or less (no checker can catch it): 5 of 61 (8 %)
+   checker every  15 min: catches  89.6 % of approaches  [90 % bootstrap 84.7, 93.9]
+   checker every  30 min: catches  80.6 % of approaches  [90 % bootstrap 74.0, 87.1]
+   checker every  60 min: catches  71.2 % of approaches  [90 % bootstrap 63.8, 79.2]
+   checker every 120 min: catches  59.7 % of approaches  [90 % bootstrap 51.3, 68.4]
+   checker every 240 min: catches  49.3 % of approaches  [90 % bootstrap 40.2, 57.7]
+-- B, from 11741 hourly points priced 0.05-0.95 (last 7 days less the final 24 h):
+   a 12-point move has happened within: 30 min 0.9 %, 60 min 1.7 %, 120 min 3.3 %, 240 min 6.2 %, 480 min 11.5 %, 1440 min 27.4 %
+   price stays within +-3 points for: 30 min 94 % (n 11703), 60 min 88 % (n 11660), 120 min 80 % (n 11583), 240 min 68 % (n 11422), 480 min 52 % (n 11097)
+
+Reading: see docs/agents/reviews/2026-10-15-grokpm-prereg.md, section 7.

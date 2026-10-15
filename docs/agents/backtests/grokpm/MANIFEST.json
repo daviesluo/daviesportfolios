@@ -1,0 +1,21 @@
+{
+ "study": "GROKPM's cadence study (which trading rhythm an LLM information trader should keep on Polymarket) and the journal contract's examples, 2026-10-15",
+ "review": "docs/agents/reviews/2026-10-15-grokpm-prereg.md (section 7, Appendix A)",
+ "public_reads": "Gamma /events?closed=true&tag_slug=<politics|economy|world|tech|geopolitics> (data/markets.json, trimmed to the fields used); the CLOB's /prices-history?market=<YES token>&fidelity=5 over each market's last 7 days (data/prices.json.gz). Keyless GETs only, 2026-10-15 16:08-16:14 UTC.",
+ "run_order": [
+  "python3 -I docs/agents/backtests/grokpm/scripts/fetch.py  (writes data/; re-running it pulls the public record again and can differ)",
+  "python3 -I docs/agents/backtests/grokpm/scripts/cadence.py > docs/agents/backtests/grokpm/results/cadence.txt"
+ ],
+ "seeds": {
+  "sample": 20261015,
+  "bootstrap": 20261015
+ },
+ "sha256": {
+  "scripts/fetch.py": "d670ea04be00efbaee9c98ee570f2555333f76634824de0dcb0a967531625289",
+  "scripts/cadence.py": "67077e646dd90d921143e897185b0ec08ead119bbd06243ed50db7d9d74c8e98",
+  "data/markets.json": "d9a93635c786794dce6d0883bb6240b3432ed1e8c12001cb4fa09992d6e23af7",
+  "data/prices.json.gz": "6242547a8d36decc60e0bfb84cc1a4dff8b85156ed2810876aedfa4e4beb32c4",
+  "results/cadence.txt": "b0b32b6a7bdaf87e4436253fa5d89796774bc5b803d80bce63178b4f27dbc20b",
+  "contract_examples.json": "a229a42cc3d80a3b221c1b5437d63f8b472f41df70d4ba3e39fa1a86b7ff4aee"
+ }
+}

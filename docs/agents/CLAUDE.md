@@ -574,6 +574,16 @@ that follow from that evidence, in short:
   TB1, RWC-OPT, mid-pool's 10-17 readout and 10-23 audit (and its funded draft); LPRESEL6 stands on pm-rec, its paper
   reproduction line short. What runs on Polymarket: live-prep live (`pmlp`, `pmlpreserve`) and pm-rec (`pmrec`,
   `pmrec-meta`). Where this file describes the paper paths running, it is their history.
+- **GROKPM, "Polymarket analyst (Grok)"** (`0124`, `reviews/2026-10-15-grokpm-prereg.md`; Davies, 2026-10-15): an OUTSIDE
+  Grok agent trades a separate $100 Polymarket wallet on information (category A: a confirmed outcome the price lags by
+  8+ points; B: a researched 12-point mispricing in a quiet market; C: adjustments), under the frozen rules in §2 of its
+  pre-registration. This repository runs none of its code and holds none of its keys: it keeps the agent's journal (the
+  `grokpm` function, bearer `GROKPM_LOG_TOKEN`, Appendix A is the contract) and an independent keyless record of the
+  wallet (`agents?action=grokpmrec`, every five minutes, nothing while `grokpm_config.wallet` is null), and shows both on
+  LIVE. Every dollar on the page is the record's; a gap over $1 from the agent's report is flagged. It trades from
+  Ireland only (the geoblock's `country` "IE"; from Ireland the endpoint answers `blocked: true`, which is expected).
+  Never trade by hand in its wallet: the record would count it as the agent's. Reading: 28 days or 40 resolved
+  positions; continue only if P&L > 0 and its Brier beats the market's.
 - **RW — quotes for Polymarket's liquidity rewards — runs on PAPER for
   fourteen days** (§3.33, §4 item 36, migration `0053`, 2026-09-24 on
   Davies' word): 2026-09-25 → 10-09 UTC, the spec frozen at

@@ -169,7 +169,9 @@ jobs:
           # monitor (2026-10-02) is NOT here: the gateway checks the anon key the monitor Worker sends as its
           # bearer, and the function then checks MONITOR_SECRET itself. A new folder deploys like any changed one.
           # ig (2026-10-15) is cron- or admin-token-only like agents: its own bearer and token checks, so the flag too.
-          PUBLIC_FNS="auth data trading212 ops-error overnight-record snapshot-record agents weather edge-watchdog ig"
+          # grokpm (0124) takes the outside Grok agent's journal: its bearer is GROKPM_LOG_TOKEN, not a Supabase JWT, so
+          # the flag too; the function refuses everything without that secret.
+          PUBLIC_FNS="auth data trading212 ops-error overnight-record snapshot-record agents weather edge-watchdog ig grokpm"
           for fn in ${{ steps.changed.outputs.functions }}; do
             FLAGS="--project-ref $SUPABASE_PROJECT_REF"
             case " $PUBLIC_FNS " in

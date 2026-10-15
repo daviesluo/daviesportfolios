@@ -16,7 +16,7 @@ import { SurfaceBoundary } from '../app/surface_boundary.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, rwFeeAsides, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, quotesPageFor, MID_ROW_ID, LP_ROW_ID, isPrepRowId, prepStopText, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwTestedSince, rweCheckWarn, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxSourceText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows, rwRoundText,
+  AGENT_TABS, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, rwFeeAsides, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, quotesPageFor, MID_ROW_ID, LP_ROW_ID, isPrepRowId, prepStopText, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwTestedSince, rweCheckWarn, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxSourceText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows, rwRoundText,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -690,6 +690,144 @@ function LpLiveDetail({ l, m, at, nowMs }) {
       <RwQuotesTable markets={lpLiveQuoteRows(l.quotes)} m={m} usd={usd} live waiting="Nothing resting and nothing held right now." />
       <RwFillsTable recent={fills} m={m} />
       <div className="ag-updated dim mono ag-lpl-foot">as of {when(at)} {UK_TZ} · refreshes every minute</div>
+    </div>
+  );
+}
+
+/**
+ * "Polymarket analyst (Grok)", GROKPM's page over LIVE (Davies, 2026-10-15: "网站中live页也加上策略和子策略页面（仿照之前rewards
+ * 策略来做）"), laid out as the Reward quotes live page: its scoreboard (FUNDED, VALUE, TOTAL, TODAY, UNREALIZED, REALIZED) from the
+ * independent record of the agent's wallet, the stops' room under it, a red line when the agent's own numbers differ from
+ * the record by more than $1, STATUS (open positions, cash, Brier against the market, resolved), then POSITIONS from the
+ * record, the agent's JOURNAL (its words, shown as text; its sources as plain links), and DAYS, the record's P&L beside its
+ * summary. Everything is the dashboard's `grokPm` (`grokpm_view.ts`).
+ * @param {{ g: any, m: (s: string) => string, at: any, nowMs: number }} props
+ */
+function GrokPmDetail({ g, m, at, nowMs }) {
+  const row = grokPmRow(g);
+  if (!row) return null;
+  /** @param {number | null | undefined} x */
+  const usd = (x) => m(fmtUsd(Number(x) || 0, true));
+  const funded = Number(g.fundedUsd) || 0, equity = Number(g.equityUsd) || 0;
+  const pct = (/** @type {number} */ x) => (funded > 0 ? (x / funded) * 100 : null);
+  const stop = grokPmStopText(g, m), mismatch = grokPmMismatchText(g, m);
+  const positions = g.positions ?? [], journal = g.journal ?? [], days = g.days ?? [];
+  return (
+    <div className="ag-detail ag-gpm-detail">
+      <div className="ag-detail-head">
+        <ModeBadge mode="live" />
+        <VenueBadge id="polymarket" />
+        <StatusDot status={row.status} since={g.startedAt ?? null} nowMs={nowMs} live />
+      </div>
+      <h3 className="ag-detail-title mono sr-only">{row.name}</h3>
+      <div className="ag-scoreboard ag-scoreboard-sm ag-gpm-sb">
+        <div className="ag-sb-cell ag-sb-cell-main">
+          <SbLabel label="FUNDED" />
+          <div className="sb-value sb-value-lg mono">{g.started ? m(fmtUsd(funded)) : '—'}</div>
+          <div className="ag-sb-extra" />
+        </div>
+        <div className="ag-sb-divider" />
+        <div className="ag-sb-cell ag-sb-cell-main">
+          <SbLabel label="VALUE" />
+          <div className="sb-value sb-value-lg mono">{g.equityUsd == null ? '—' : m(fmtUsd(equity))}</div>
+          <div className="ag-sb-extra" />
+        </div>
+        <div className="ag-sb-divider" />
+        <GlCell label="TOTAL" usd={Number(g.totalUsd) || 0} pct={pct(Number(g.totalUsd) || 0)} m={m} />
+        <div className="ag-sb-divider" />
+        <GlCell label="TODAY" usd={row.todayUsd} pct={row.todayPct} m={m} />
+        <div className="ag-sb-divider" />
+        <GlCell label="UNREALIZED G/L" usd={row.unrealisedUsd} pct={row.unrealisedPct} m={m} />
+        <div className="ag-sb-divider" />
+        <GlCell label="REALIZED G/L" usd={row.realisedUsd} pct={row.realisedPct} m={m} cls="ag-sb-realised" aside="(after fees)" />
+      </div>
+      {!g.started && <div className="ag-gpm-line dim mono">Waiting for its funding to arrive in {g.wallet}: the record starts at its first reading holding 90 % of it.</div>}
+      {g.started && !g.running && <div className="ag-warn-line">{row.status.detail}</div>}
+      {g.lastError && <div className="ag-warn-line">record: {m(String(g.lastError))}</div>}
+      {mismatch && <div className="ag-warn-line ag-gpm-mismatch">{mismatch}</div>}
+      {stop && <div className="ag-lpl-room ag-gpm-stop dim mono">{stop}</div>}
+      <section className="ag-section ag-rw-bar ag-gpm-bar">
+        <div className="ag-section-title mono">STATUS</div>
+        <div className="ag-rw-tiles">
+          {grokPmTiles(g, m).map((t) => (
+            <div key={t.k} className="ag-rw-tile">
+              <div className="ag-rw-tile-k mono">{t.k}</div>
+              <div className="ag-rw-tile-v mono">{t.v}</div>
+              {t.note ? <div className="ag-rw-tile-note dim mono">{t.note}</div> : null}
+            </div>
+          ))}
+        </div>
+      </section>
+      <section className="ag-section ag-gpm-positions">
+        <div className="ag-section-title mono">POSITIONS</div>
+        <div className="hl-scroll">
+          <table className="hl-table ag-table ag-log mono">
+            <thead><tr>
+              <th className="hl-th">Market</th><th className="hl-th">Held</th><th className="hl-th">Avg</th><th className="hl-th">Mark</th><th className="hl-th">Value</th><th className="hl-th">Unrealised</th>
+            </tr></thead>
+            <tbody>
+              {positions.length === 0 && <tr><td className="hl-empty dim" colSpan={6}>Nothing held.</td></tr>}
+              {positions.map((/** @type {any} */ x) => (
+                <tr key={x.asset}>
+                  <td className="hl-strong ag-rw-market"><span className="ag-rw-q" title={x.title}>{marketName(x.title)}</span>{x.redeemable ? <span className="hl-sub dim">resolved · to redeem</span> : null}</td>
+                  <td>{m(String(+Number(x.size).toFixed(2)))} {x.outcome ?? ''}</td>
+                  <td>{m(fmtProb(x.avgPrice))}</td>
+                  <td>{m(fmtProb(x.mark))}</td>
+                  <td>{m(fmtUsd(Number(x.valueUsd) || 0))}</td>
+                  <td className="ag-gl" style={{ color: pctColor(Number(x.unrealisedUsd) || 0) }}>{usd(x.unrealisedUsd)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section className="ag-section ag-gpm-journal">
+        <div className="ag-section-title mono">JOURNAL</div>
+        {journal.length === 0 && <div className="hl-empty dim ag-gpm-empty">Nothing reported yet.</div>}
+        <ol className="ag-gpm-entries">
+          {journal.map((/** @type {any} */ j) => {
+            const v = grokPmJournalView(j, m);
+            return (
+              <li key={j.id} className="ag-gpm-entry">
+                <div className="ag-gpm-entry-head mono"><span className="dim">{when(j.ts)}</span> <span className="ag-gpm-act">{v.head}</span></div>
+                {v.market && <div className="ag-gpm-entry-market">{v.market}</div>}
+                {(v.trade || v.probs) && <div className="ag-gpm-entry-nums mono dim">{[v.trade, v.probs].filter(Boolean).join(' · ')}</div>}
+                <div className="ag-gpm-entry-text">{v.reason}</div>
+                {v.invalidation && <div className="ag-gpm-entry-text dim">wrong if: {v.invalidation}</div>}
+                {v.sources.length > 0 && (
+                  <div className="ag-gpm-entry-links mono">
+                    {v.sources.map((u) => <a key={u} href={u} target="_blank" rel="noopener noreferrer nofollow">{u}</a>)}
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+      </section>
+      <section className="ag-section ag-gpm-days">
+        <div className="ag-section-title mono">DAYS</div>
+        <div className="hl-scroll">
+          <table className="hl-table ag-table ag-log mono">
+            <thead><tr><th className="hl-th">Day (UTC)</th><th className="hl-th">Record</th><th className="hl-th">Agent says</th><th className="hl-th">Trades</th><th className="hl-th" aria-label="mismatch" /></tr></thead>
+            <tbody>
+              {days.length === 0 && <tr><td className="hl-empty dim" colSpan={5}>No day yet: the first starts when the funding arrives.</td></tr>}
+              {days.map((/** @type {any} */ d) => {
+                const c = grokPmDayCells(d, m);
+                return (
+                  <tr key={d.day}>
+                    <td className="dim">{dayLabel(d.day)}{d.today ? ' · today' : ''}</td>
+                    <td className="ag-gl" style={c.recordUsd == null ? undefined : { color: pctColor(c.recordUsd) }}>{c.record}</td>
+                    <td>{c.agent}</td>
+                    <td>{c.trades}</td>
+                    <td className="ag-gpm-flag">{c.flag}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <div className="ag-updated dim mono ag-gpm-foot">as of {when(at)} {UK_TZ} · wallet {g.wallet} · read every 5 min · refreshes every minute</div>
     </div>
   );
 }
@@ -1630,6 +1768,7 @@ function AgentsModal({ hideValues, onClose }) {
   const midOpen = selected === MID_ROW_ID && !!dash?.prepMid && !!mid;
   const lpOpen = selected === LP_ROW_ID && !!dash?.prepLp && !!lp;
   const lpLiveOpen = selected === LP_LIVE_ROW_ID && !!lpLiveRow(dash?.lpLive);
+  const grokPmOpen = selected === GROKPM_ROW_ID && !!grokPmRow(dash?.grokPm);
   const notReady = !!dash?.notReady;
   const tabRows = tab === 'live' ? liveRows : testing;
 
@@ -1709,6 +1848,19 @@ function AgentsModal({ hideValues, onClose }) {
         </header>
         <div className="modal-body ag-body">
           <PageGuard gen={gen}><LpLiveDetail l={dash.lpLive} m={m} at={dash.at} nowMs={now} /></PageGuard>
+        </div>
+      </Modal>
+    )}
+    {grokPmOpen && (
+      <Modal onClose={() => setSelected(null)} size="lg">
+        <header className="modal-head">
+          <div>
+            <h2 className="modal-title mono ag-title-wraps">{GROKPM_ROW_NAME}</h2>
+          </div>
+          <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
+        </header>
+        <div className="modal-body ag-body">
+          <PageGuard gen={gen}><GrokPmDetail g={dash.grokPm} m={m} at={dash.at} nowMs={now} /></PageGuard>
         </div>
       </Modal>
     )}

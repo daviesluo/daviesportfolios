@@ -887,7 +887,7 @@ const AGENTS_NOT_READY = {
  * `rw-cents` (RW's figures where each part rounds on its own), `rwc-warmup` (a dashboard that still sends RW-C in its
  * warm-up, which adds no row), `rwc-running` (from RW-C's first minute: every Reward quotes row reads RW-C's run) and `quotesv` (the quote test's variant beside it).
  */
-let agentsMode = /** @type {'ok' | 'notReady' | 'error' | 'paused' | 'live' | 'live-unarmed' | 'rw-cents' | 'pr5-live' | 'pr5-live-noexit' | 'rwx-waiting' | 'rwc-warmup' | 'rwc-running' | 'quotesv' | 'prep' | 'mid' | 'lp' | 'lp-live' | 'lp-live-off' | 'lp-live-nopay' | 'rq-fees'} */ ('ok');
+let agentsMode = /** @type {'ok' | 'notReady' | 'error' | 'paused' | 'live' | 'live-unarmed' | 'rw-cents' | 'pr5-live' | 'pr5-live-noexit' | 'rwx-waiting' | 'rwc-warmup' | 'rwc-running' | 'quotesv' | 'prep' | 'mid' | 'lp' | 'lp-live' | 'lp-live-off' | 'lp-live-nopay' | 'grokpm' | 'grokpm-waiting' | 'rq-fees'} */ ('ok');
 /**
  * The reload section's levers: the book the `data` function hands back (a
  * server row's prices are those of its last SAVE, not what the page showed),
@@ -1208,6 +1208,16 @@ const LP_FIXTURE = JSON.parse(fs.readFileSync(new URL('./lp_fixture.json', impor
  * $0.18 – $0.91 in green; its QUOTES rows G 44¢ / 46¢ +$1.33 est., H 70¢ / — +$1.33 est., J 30¢ / 32¢.
  */
 const LP_LIVE_FIXTURE = JSON.parse(fs.readFileSync(new URL('./lp_live_fixture.json', import.meta.url), 'utf8'));
+/**
+ * "Polymarket analyst (Grok)", GROKPM (0124; Davies, 2026-10-15): the dashboard's own answer (`grokPmSummary`) for a record
+ * worked out by hand at this sweep's clock (`grokpm_fixture.json`; grokpm_view.test.ts pins that its `output` is the
+ * function's answer for its `input` and every figure below against the arithmetic): funded $100, value $102.30 (cash $69.10
+ * + $33.20 held), total +$2.30, today +$0.70, unrealised +$0.20 on a cost of $30, realised +$2.10; stop room $32.30 and
+ * $10.70; Brier 0.106 against the market's 0.084 on 2 resolved; the agent's 22:31 report ($100.10, +$0.10) off the record
+ * ($102.30, +$2.30) by more than $1. `waiting` is the same wallet before its money arrived. Served alone (`grokpm`,
+ * `grokpm-waiting`), so LIVE lists it beside the base payload's rows.
+ */
+const GROKPM_FIXTURE = JSON.parse(fs.readFileSync(new URL('./grokpm_fixture.json', import.meta.url), 'utf8'));
 const AGENTS_LP_LIVE = (/** @type {false | 'output' | 'noPayout'} */ which) => ({ ...AGENTS_PR5_LIVE(), prepLp: LP_FIXTURE.output, ...(which ? { lpLive: LP_LIVE_FIXTURE[which] } : {}) });
 const AGENTS_PR5_LIVE = () => {
   const d = AGENTS_DASHBOARD;
@@ -1570,6 +1580,7 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
       if (agentsMode === 'mid') return json({ ...AGENTS_DASHBOARD, prep: PREP_FIXTURE.output, prepMid: MID_FIXTURE.output });
       if (agentsMode === 'lp') return json({ ...AGENTS_DASHBOARD, prep: PREP_FIXTURE.output, prepMid: MID_FIXTURE.output, prepLp: LP_FIXTURE.output });
       if (agentsMode === 'lp-live' || agentsMode === 'lp-live-off' || agentsMode === 'lp-live-nopay') return json(AGENTS_LP_LIVE(agentsMode === 'lp-live' ? 'output' : agentsMode === 'lp-live-nopay' ? 'noPayout' : false));
+      if (agentsMode === 'grokpm' || agentsMode === 'grokpm-waiting') return json({ ...AGENTS_DASHBOARD, grokPm: GROKPM_FIXTURE[agentsMode === 'grokpm' ? 'output' : 'waiting'] });
       if (agentsMode === 'error') {
         return route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ error: 'agents crashed', message: 'db GET agent_strategies → 500: {"code":"57014","message":"canceling statement due to statement timeout"}' }) });
       }
@@ -4764,6 +4775,138 @@ async function run() {
         await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
         await closeBy(page, () => page.keyboard.press('Escape'));
         await toggleHidden(page);                       // values shown again for everything after this
+      }
+
+      // ---- "Polymarket analyst (Grok)" on LIVE (GROKPM, 0124; Davies, 2026-10-15) ----------------------------------------
+      // The outside agent's wallet from the independent record (GROKPM_FIXTURE, worked by hand there): a LIVE row of its own
+      // on Polymarket, adding its $100 to LIVE once the money has arrived and nothing before; its page over the list with the
+      // record's scoreboard, the stops' room, the red mismatch line, STATUS, POSITIONS, the JOURNAL (its words as text, its
+      // sources as plain http(s) links, a javascript: one dropped) and DAYS; hide-values masks every amount, price and size;
+      // nothing wider than the screen.
+      {
+        const GT = (n) => S(`grokpm/${n}`);
+        const G = GROKPM_FIXTURE.output;
+        const NAME = 'Polymarket analyst (Grok)';
+        const GL = [TW.gl(G.todayUsd, 100), TW.gl(G.unrealisedUsd, G.costUsd), TW.gl(G.realisedUsd, 100)];
+        const baseLive = async (mode) => {
+          agentsMode = mode;
+          await openAgentsPage(page);
+          await clickTab('live');
+          const p = await readAgentsPanel(page);
+          await closeBy(page, () => page.keyboard.press('Escape'));
+          return p;
+        };
+        const p0 = await baseLive('ok');
+        const p1 = await baseLive('grokpm');
+        const row = p1.rows.find((r) => r.name === NAME);
+        const fundedOf = (p) => cents(p.scoreboard.find((c) => c.name === 'FUNDED')?.value);
+        if (row && row.venue === 'Polymarket' && row.sub === '2 open · $100 cap' && JSON.stringify(row.gl.map((t) => t.replace(/\s+/g, ' '))) === JSON.stringify(GL)
+          && p1.rows.length === p0.rows.length + 1 && fundedOf(p1) - fundedOf(p0) === 10000) {
+          ok(GT('row'), `LIVE lists "${NAME}" on Polymarket, 2 open · $100 cap, ${GL.join(' / ')}, and its $100 adds once to LIVE's FUNDED`);
+        } else fail(GT('row'), `rows ${JSON.stringify(p1.rows.map((r) => [r.name, r.venue, r.sub, r.gl]))}, funded ${fundedOf(p0)} → ${fundedOf(p1)}`);
+        const pw = await baseLive('grokpm-waiting');
+        const wrow = pw.rows.find((r) => r.name === NAME);
+        if (wrow && wrow.sub === '0 open · $0 cap' && fundedOf(pw) === fundedOf(p0)) ok(GT('waiting'), 'before its money arrives its row is there and adds nothing to LIVE\'s FUNDED');
+        else fail(GT('waiting'), `waiting row ${JSON.stringify(wrow)}, funded ${fundedOf(p0)} → ${fundedOf(pw)}`);
+
+        const readGrokPage = () => page.evaluate(() => {
+          const txt = (/** @type {Element | null | undefined} */ el) => (el?.textContent || '').replace(/\s+/g, ' ').trim();
+          const root = document.querySelector('.ag-gpm-detail');
+          if (!root) return null;
+          const rows = (/** @type {string} */ sel) => [...root.querySelectorAll(`${sel} tbody tr`)].map((tr) => [...tr.querySelectorAll('td')].map(txt).join(' | '));
+          const titles = document.querySelectorAll('.modal .modal-title');
+          const vw = document.documentElement.clientWidth;
+          const off = [...root.querySelectorAll('.ag-scoreboard, .ag-rw-tile, .ag-section-title, .hl-scroll, .ag-gpm-entry, .ag-updated, .ag-warn-line')]
+            .map((el) => el.getBoundingClientRect()).filter((r) => r.width > 0 && (r.left < -1 || r.right > vw + 1)).length;
+          return {
+            title: txt(titles[titles.length - 1]), modals: document.querySelectorAll('.modal').length,
+            head: [...root.querySelectorAll('.ag-detail-head .ag-badge, .ag-detail-head .ag-venue')].map(txt).join(' '),
+            scoreboard: [...root.querySelectorAll(':scope > .ag-scoreboard .ag-sb-cell')].map((c) => {
+              const asides = [...c.querySelectorAll('.ag-sb-aside')].map(txt);
+              return `${txt(c.querySelector('.ag-sb-name'))}${asides.length ? ` [${asides.join('; ')}]` : ''}=${txt(c.querySelector('.sb-value'))}`;
+            }).join(' | '),
+            stop: txt(root.querySelector('.ag-gpm-stop')), mismatch: txt(root.querySelector('.ag-gpm-mismatch')), waiting: txt(root.querySelector('.ag-gpm-line')),
+            tiles: [...root.querySelectorAll('.ag-gpm-bar .ag-rw-tile')].map((t) => `${txt(t.querySelector('.ag-rw-tile-k'))}=${txt(t.querySelector('.ag-rw-tile-v'))}`).join(' | '),
+            sections: [...root.querySelectorAll('.ag-section > .ag-section-title')].map(txt).join(','),
+            positions: rows('.ag-gpm-positions'), days: rows('.ag-gpm-days'),
+            entries: [...root.querySelectorAll('.ag-gpm-entry')].map((e) => txt(e)),
+            links: [...root.querySelectorAll('.ag-gpm-entry a')].map((a) => [a.getAttribute('href'), a.getAttribute('rel'), a.getAttribute('target')].join(' ')),
+            foot: txt(root.querySelector('.ag-gpm-foot')),
+            overflow: root.scrollWidth - root.clientWidth, pageOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth, off,
+          };
+        });
+        agentsMode = 'grokpm';
+        await openAgentsPage(page);
+        await clickTab('live');
+        await page.locator('.ag-strategies-live .ag-row', { has: nameBtn(page, NAME) }).first().click();
+        await settled(page, '.ag-gpm-detail');
+        const gv = await readGrokPage();
+        await shot(page, 'agents-grokpm-page');
+        for (const [sel, name] of [['.ag-gpm-journal', 'agents-grokpm-journal'], ['.ag-gpm-days', 'agents-grokpm-days']]) {
+          await page.locator(`.ag-gpm-detail ${sel}`).first().scrollIntoViewIfNeeded().catch(() => {});
+          await shot(page, name);
+        }
+        const SB = `FUNDED=$100 | VALUE=$102.30 | TOTAL=${TW.gl(G.totalUsd, 100).replace(' ', '')} | TODAY=${GL[0].replace(' ', '')} | UNREALIZED G/L=${GL[1].replace(' ', '')} | REALIZED G/L [(after fees)]=${GL[2].replace(' ', '')}`;
+        const WANT = {
+          sections: 'STATUS,POSITIONS,JOURNAL,DAYS',
+          tiles: 'OPEN POSITIONS=2 | CASH=$69.10 | BRIER YOU / MARKET=0.106 / 0.084 | RESOLVED=2',
+          stop: 'total stop at -$30: $32.30 of room · day stop at -$10: $10.70 of room',
+          mismatch: "the agent's numbers differ from the record by more than $1: its 22:31 UTC report says $100.10 (+$0.10), the record $102.30 (+$2.30)",
+          positions: ['Will the bill be signed by September 30? | 25 No | 60¢ | 56¢ | $14 | -$1', 'Will the Fed cut rates in October? | 20 Yes | 40¢ | 46¢ | $9.20 | +$1.20',
+            'Will the nominee be confirmed?resolved · to redeem | 10 Yes | 70¢ | 100¢ | $10 | $0'],
+          days: ['17 Sep · today | +$0.70 | — | — | ', '16 Sep | +$1.60 | +$1.50 | 3 | '],
+          links: ['https://www.federalreserve.gov/newsevents/calendar.htm noopener noreferrer nofollow _blank', 'https://www.congress.gov/ noopener noreferrer nofollow _blank',
+            'https://example.org/schedule noopener noreferrer nofollow _blank', 'https://www.senate.gov/legislative/votes.htm noopener noreferrer nofollow _blank'],
+        };
+        if (gv && gv.title === NAME && gv.modals === 2 && gv.head === 'LIVE Polymarket' && gv.scoreboard === SB && gv.stop === WANT.stop && gv.mismatch === WANT.mismatch && gv.waiting === '') {
+          ok(GT('page'), `its row opens its page over the list: ${gv.scoreboard}; "${gv.stop}"; the mismatch line in red`);
+        } else fail(GT('page'), `page ${JSON.stringify(gv && { title: gv.title, modals: gv.modals, head: gv.head, sb: gv.scoreboard, stop: gv.stop, mismatch: gv.mismatch, waiting: gv.waiting })}, wanted ${SB}`);
+        if (gv && gv.sections === WANT.sections && gv.tiles === WANT.tiles && JSON.stringify(gv.positions) === JSON.stringify(WANT.positions) && JSON.stringify(gv.days) === JSON.stringify(WANT.days)
+          && gv.entries.length === 6 && gv.entries[5].includes('open · cat A · buy Yes') && gv.entries[5].includes('p 90¢ · m 71¢') && gv.entries[5].includes('wrong if: The vote record is corrected.')
+          && gv.entries[0].includes('no action') && JSON.stringify(gv.links) === JSON.stringify(WANT.links) && !gv.links.some((l) => /javascript/i.test(l))
+          && /^as of \d{1,2} \w{3} \d{2}:\d{2} [A-Z]+ · wallet 0xabcd…ef01 · read every 5 min · refreshes every minute$/.test(gv.foot)) {
+          ok(GT('page'), `its sections are ${WANT.sections}: STATUS ${gv.tiles}; POSITIONS from the record (3, one resolved); JOURNAL newest first (6 entries, 4 http(s) links, the javascript: one dropped); DAYS ${JSON.stringify(gv.days)}`);
+        } else fail(GT('page'), `sections ${gv?.sections}, tiles "${gv?.tiles}", positions ${JSON.stringify(gv?.positions)}, days ${JSON.stringify(gv?.days)}, entries ${JSON.stringify(gv?.entries)}, links ${JSON.stringify(gv?.links)}, foot "${gv?.foot}"`);
+        if (gv && gv.overflow <= 1 && gv.pageOverflow <= 1 && gv.off === 0) ok(GT('width'), `nothing on its page is wider than the screen (page ${gv.overflow}px, document ${gv.pageOverflow}px)`);
+        else fail(GT('width'), `page overflow ${gv?.overflow}, document ${gv?.pageOverflow}, boxes outside ${gv?.off}`);
+        await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
+        await closeBy(page, () => page.keyboard.press('Escape'));
+
+        // Before its money arrives: its page says what it waits for, and shows no figure it does not have.
+        agentsMode = 'grokpm-waiting';
+        await openAgentsPage(page);
+        await clickTab('live');
+        await page.locator('.ag-strategies-live .ag-row', { has: nameBtn(page, NAME) }).first().click();
+        await settled(page, '.ag-gpm-detail');
+        const gw = await readGrokPage();
+        if (gw && gw.waiting === 'Waiting for its funding to arrive in 0xabcd…ef01: the record starts at its first reading holding 90 % of it.' && gw.stop === '' && gw.mismatch === ''
+          && /^FUNDED=— \| VALUE=— \| TOTAL=/.test(gw.scoreboard) && gw.positions.length === 1 && gw.days.length === 1) {
+          ok(GT('waiting'), `before its money arrives the page says so ("${gw.waiting}"), FUNDED and VALUE are dashes, no stop line`);
+        } else fail(GT('waiting'), `waiting page ${JSON.stringify(gw)}`);
+        await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
+        await closeBy(page, () => page.keyboard.press('Escape'));
+
+        // Under hide-values every amount, price and size on its row and page is masked; counts, probabilities, Brier and times are not.
+        agentsMode = 'grokpm';
+        await toggleHidden(page);
+        await openAgentsPage(page);
+        await clickTab('live');
+        const hp = await readAgentsPanel(page);
+        await page.locator('.ag-strategies-live .ag-row', { has: nameBtn(page, NAME) }).first().click();
+        await settled(page, '.ag-gpm-detail');
+        const hv = await readGrokPage();
+        const hRow = hp.rows.find((r) => r.name === NAME);
+        const digits = (/** @type {string} */ t) => /\d/.test(t);
+        const cellsAt = (/** @type {string[]} */ rows, /** @type {number[]} */ at) => rows.flatMap((r) => at.map((i) => r.split(' | ')[i] ?? ''));
+        const hiddenOk = !!hv && !!hRow && !/\$\d/.test(hv.scoreboard) && !/\$\d/.test(hv.stop) && !/\$\d/.test(hv.mismatch.replace('by more than $1:', '')) && !hRow.gl.some((t) => /\$\d/.test(t)) && !/\$\d/.test(hRow.sub)
+          && hv.tiles.startsWith('OPEN POSITIONS=2 | CASH=$') && !/CASH=\$\d/.test(hv.tiles) && hv.tiles.includes('BRIER YOU / MARKET=0.106 / 0.084') && hv.tiles.endsWith('RESOLVED=2')
+          && !cellsAt(hv.positions, [2, 3, 4, 5]).some(digits) && !cellsAt(hv.days, [1, 2]).some(digits) && hv.entries[5].includes('p 90¢ · m 71¢') && !/\d+ at \d/.test(hv.entries[5]);
+        if (hiddenOk) ok(GT('hidden'), 'hide-values masks its row and page: scoreboard, stops, mismatch, cash, positions, days, prices and sizes; its counts, probabilities and Brier stay');
+        else fail(GT('hidden'), `under the mask: row ${JSON.stringify(hRow)}, page ${JSON.stringify(hv)}`);
+        await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
+        await closeBy(page, () => page.keyboard.press('Escape'));
+        await toggleHidden(page);
+        agentsMode = 'ok';
       }
 
       // ---- the paper Reward quotes, off TESTING since 0120 (Davies, 2026-10-13) -----------------------------------------

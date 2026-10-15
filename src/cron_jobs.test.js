@@ -1010,6 +1010,27 @@ describe('pg_cron jobs', () => {
     expect(() => replayList([['x', "alter table public.edge_calls alter column active_from set default now() + interval '15 minutes';"]])).toThrow(/before the column exists/);
   });
 
+  // GROKPM (Davies, 2026-10-15: "每天的日志和汇总也都自动化…实时更新"): the outside agent's wallet, recorded keylessly.
+  it("adds GROKPM's independent record as one call every five minutes (0124), its beat first, every other row as it was, no job of its own", () => {
+    const T = FILES.find((f) => /^0124_grokpm\.sql$/.test(f)) ?? '';
+    expect(T).not.toBe('');
+    const before = replayList(sqlsOf(FILES.filter((f) => f < T))), after = replayList(sqlsOf(FILES.filter((f) => f <= T)));
+    expect(after.slice(0, before.length)).toEqual(before);
+    const shape = ({ path: p, timeout, every, lastHour, enabled, retry }) => ({ path: p, timeout, every, lastHour, enabled, retry });
+    // `retry` true: a second run in its slot changes nothing the first did (the snapshot keyed by its slot, activity by its
+    // content, entries and resolutions written once); under a minute; its row waits 15 minutes for the function (0104).
+    expect(after.slice(before.length).map(shape)).toEqual([
+      { path: 'agents?action=grokpmrec', timeout: 30000, every: 5, lastHour: 23, enabled: true, retry: true },
+    ]);
+    expect(after.at(-1).activeFrom).toBe('written + 15 minutes');
+    expect(beatKeyOfPath(after.at(-1).path)).toBe('agents?action=grokpmrec');
+    const src = fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/index.ts'), 'utf8');
+    expect(src).toContain('if (action === "grokpmrec" && req.method === "POST" && operator) return json(200, await runGrokPmRecAction());');
+    const jobsBefore = cronJobs(FILES.filter((f) => f < T)), jobsAfter = cronJobs(FILES.filter((f) => f <= T));
+    expect([...jobsAfter.keys()].filter((n) => !jobsBefore.has(n))).toEqual([]);
+    expect(httpJobs(jobsAfter).map(([n]) => n)).toEqual(['edge-calls-every-minute']);
+  });
+
   it("never cancels a migrations run in flight: a newer push's run waits for it (review D1)", () => {
     const yml = fs.readFileSync(path.join(ROOT, '.github/workflows/migrations.yml'), 'utf8');
     expect(yml).toMatch(/^concurrency:\n {2}group: \$\{\{ github\.workflow \}\}-\$\{\{ github\.ref \}\}\n {2}cancel-in-progress: false$/m);

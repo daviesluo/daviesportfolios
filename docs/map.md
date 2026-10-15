@@ -617,6 +617,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `edge-watchdog` | A row of the one-minute job: 13 s into its minute it runs again, once, each due call that wrote no beat because the platform never started its worker, and records what each retry answered. Run by the scheduler's bearer only. |
 | `ig` | IG's demo API for the FXW / WKND verification, read-only and demo-only: `facts` reads an account's products and the epic for each role (`epics.ts`), `history` pulls the frozen hourly windows inside the weekly allowance, `quotes` records the weekend windows' quotes (`windows.ts`); `client.ts` refuses every call but login, the account switch and a fixed list of GETs on the demo host, before it is sent; `actions.ts` runs the three. Run by the scheduler's bearer or an admin token. |
 | `monitor` | The monitor Worker's half inside Supabase, called every minute by the Worker with `MONITOR_SECRET`: PR5's dead-man switch (`deadman.ts`), the minute loop's read-only health readings and the database's size beside them (`health.ts`), and the Worker's alerts into the errors box. Imports nothing of `agents`. |
+| `grokpm` | GROKPM's journal: the outside Grok agent posts its decisions, wakes and daily summaries here with its own bearer secret (`GROKPM_LOG_TOKEN`); every field checked, rate-limited, stored as sent (`ingest.ts`). Deployed without the gateway's JWT check; imports nothing of `agents`. |
 
 #### `agents/` and `_shared/`
 
@@ -663,6 +664,8 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `agents/pm_book_rec.ts` | Records Polymarket's rewarded markets for research: every minute the books (each side within 10 ¢ of its best) of every market paying $10 a day or more and of every market a Reward quotes path holds or quotes, a fifteenth of every rewarded market as one summary line each, and the prints of the first set, as one gzip'd frame per kind and minute; its housekeeping call keeps the markets from the reward listing and Gamma and moves each closed hour of frames to Supabase Storage with a signed URL. Keyless reads only. |
 | `agents/books.ts` | Revolut X's four stablecoin order books, their top levels read once a minute from the public book and stored when they change, for a queue model; and the two GBP books' index prices, for the quote pages. |
 | `agents/cj_rec.ts` | Records CoinJar UK's USDC/GBP and USDT/GBP books for CJ5's paper test: every minute each new print once by its trade id, paged forward from the newest stored print, and each book's levels within 40 bps of its mid when they change. Keyless reads of CoinJar's public Data API only. |
+| `agents/grokpm_rec.ts` | GROKPM's independent record: every five minutes the outside agent's wallet as Polymarket's public data API and a public Polygon RPC show it (cash, positions at their books' mids, activity, first-seen mids, resolutions). Nothing while no wallet is set; keyless. |
+| `agents/grokpm_view.ts` | "Polymarket analyst (Grok)" on LIVE: its row and page from the independent record (FUNDED, equity, total, day, realised, unrealised, stop room, Brier against the market), the agent's journal beside it, and a flag when its numbers differ from the record by over $1. |
 | `agents/cb_rec.ts` | Records Coinbase's USDC-GBP, USDT-GBP, USDC-EUR and USDT-EUR books keyless every minute, for the Coinbase paper test: each new print once by its trade id, paged back from the newest page to the newest stored id with no gap (a burst it cannot finish is a hole paged back first), and each book's touch. |
 | `agents/cb_quotes.ts` | "Stablecoin quotes with Euros": PR5's frozen `stepMinute` (quotes.ts), called unchanged, on the recorded Coinbase prints one minute behind the recorder, £100 a rung on a GBP book and €100 on a EUR book, each trip turned into pounds, with Coinbase's stop cost; its trips, events and minute bars. |
 | `agents/cb_view.ts` | The Coinbase paper test for the Agents page, in a realistic twin's shape (`quotesCoinbase` in the dashboard). |
@@ -688,6 +691,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `_shared/token.ts`, `_shared/ip.ts` | App-token checks, and which header names the caller's IP. |
 | `_shared/ops.ts` | Server-side error reports into `ops_errors`. |
 | `_shared/beats.ts` | A cron call's beat, the first thing it writes: its function and action and the minute, which `edge-watchdog` reads to find a call whose worker never started. |
+| `_shared/grokpm_schema.ts` | GROKPM's tables as 0124 creates them (columns and keys), which the two functions' test doubles hold every write to. |
 | `_shared/us_market_calendar.ts` | US market holidays and early closes, worked out by rule for any year. |
 | `_shared/us_overnight_session.ts` | The US overnight session the overnight recorder records: 20:00-04:00 ET, less the weekend and holiday sessions. |
 | `_shared/recorder_watch.ts` | The price recorders' daily audit of each other: buckets owed by the calendar against buckets written, reported to `ops_errors` when short. |
@@ -814,6 +818,7 @@ before touching migration state.
 | `0123_pm_lp_liquidate.sql` | Live-prep's liquidation: `pm_lp_config.liquidate_at`, never beside a restart, its orders not post-only only as a SELL, and the switch set where no restart is. |
 | `0122_ig_demo_recorder.sql` | IG's demo verification tables (facts, hourly pulls, weekend quotes and runs), the quote-recording function, and the recorder's row of the minute job, switched on only around the weekend windows by a five-minute job. |
 | `0121_cb_hold_start_today.sql` | Deviation 1 of "Stablecoin quotes with Euros - 2": its still-empty record's window start and fed floors move from 2026-10-14 to 2026-10-13 00:00 UTC, guarded to a no-op once any minute is decided. |
+| `0124_grokpm.sql` | GROKPM's tables (the agent's journal, the wallet's independent record, its config with the wallet null and FUNDED $100), a day-opens view, and its recorder's call every five minutes. |
 | `0096_pm_rw_x_tb1_arms.sql` | Lets the variants' day tables, RW's and RW-C's, take TB1's two arms on x1 (tb1-skip, tb1-back). |
 | `0086_quote_live_deadman.sql` | Adds the kind `deadman` to `agent_quote_live_events`, for the row the monitor's dead-man switch writes when it cancels PR5's resting orders. |
 | `0087_quote_twins.sql` | The realistic twins' tables (each the live executor's four, a replica's and a simulated account's), their config rows and leases, and the one call that runs them. |
