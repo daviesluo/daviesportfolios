@@ -1,0 +1,29 @@
+Gap diagnostic. Not part of the TOUCH-CAL sample.
+September partial is id order up to the quarantined cursor. Markets after that id were not retrieved.
+Their family mix is unknown. A match between August and the retrieved September slice does not describe the hole.
+2026-08 complete rows 27259
+  above 25519
+  buckets 638
+  daily_dip 434
+  daily_reach 434
+  unparsed:no_title_date 73
+  unparsed:no_type 9
+  weekly_dip 78
+  weekly_reach 74
+  title_end month
+  (none) 82
+  2026-07 174
+  2026-08 27003
+2026-09 retrieved partial rows 23562
+  above 21846
+  buckets 660
+  daily_dip 390
+  daily_reach 390
+  unparsed:no_title_date 100
+  unparsed:no_type 12
+  weekly_dip 81
+  weekly_reach 83
+  title_end month
+  (none) 112
+  2026-08 174
+  2026-09 23276

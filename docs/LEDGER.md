@@ -465,6 +465,14 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    a snapshot every 5 min and `started_at` at the first ≥ $90. Reading: 28 days from the start day or 40 resolved
    positions or the −$30 stop; continue only if P&L > 0 AND Brier_agent < Brier_market. Never trade by hand in its wallet.
 
+16. **PMSTATARB S1 TOUCH-CAL is closed FAIL** (`reviews/2026-10-15-pm-statarb-verification.md`,
+    `backtests/pmstatarb/results/s1_verdict.txt`). Do not retune the threshold, horizons, seed, vol window, fee
+    formula or High/Low field rule. Title ends on or after 2026-09-01 stay out of sample. The September cursor
+    (key 4946930) was refused again at 2026-10-15T11:34:08Z; do not send it. A fill, only if Davies asks, comes
+    from the official Polymarket subgraph or on-chain settlement. S2, S3, S4, G3 and G4 are not started.
+    `scripts/g4_sources.py` was not run. Raw Gamma pages, prints and spot files are in `/tmp/pmstatarb-data` on
+    the machine that ran this, not in git.
+
 ## Machine and platform setup
 
 A rebuilt container loses every line below. Run them before working.
@@ -664,6 +672,14 @@ window), its `script_sha256` and `source_sha256` equal to the script's and the w
 windows are pulled because the script takes every rulebook; they are described, never judged (prereg §2). B is empty
 (`basis/2026-10-15.json`, `[]`): every probe's `o15` and `o60` is recorded. C: 6 exits and 6 entries (10-05: 3 and 3),
 against the 150 the reading needs, so no reading. Nothing failed, so nothing is carried to next week's retry.
+
+### [2026-10-15 13:22 UTC] Platform: Grok | Model: grok-4.7
+- **PMSTATARB S1 TOUCH-CAL fails its frozen bar and is closed.** Headline title ends 2025-01-01 through
+  2026-08-31 (1,018 trades, mean ROI −0.1088, bootstrap p05 −0.2310). September and the 2026-10-01..04 tail stay
+  out: the one allowed retry of cursor key 4946930 at 2026-10-15T11:34:08Z was 403 again. Parameters are
+  `FROZEN.md` and the spec; they were not changed after the result. Write-up
+  `reviews/2026-10-15-pm-statarb-verification.md`. Prices-history fills and the touch/terminal ratio were not
+  checked. Branch `grok/pm-statarb-verification`, not merged.
 
 ### [2026-10-15 01:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - Landed CBFAST (the Coinbase agent, resumed; `reviews/2026-10-15-coinbase-fast-move.md`): 10-14's −£2.70 / −£2.55 on both
