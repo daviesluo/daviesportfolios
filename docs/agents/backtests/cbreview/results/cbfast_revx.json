@@ -1,0 +1,1103 @@
+{
+ "about": "cbfast_revx.py: the Coinbase blackout priced on PR5's rule over Revolut X; PROPOSAL, no Revolut X file touched",
+ "capital_usd": 1200.0,
+ "check_primary_vs_pr5_run1": {
+  "here_usd": 707.9028,
+  "pr5_run1_usd": 707.9028
+ },
+ "configs": {
+  "base": {
+   "span_1_2025-12-16_to_2026-05-05": {
+    "base_boot": {
+     "p5": 927.7987346052769,
+     "p50": 1065.2789366028037,
+     "p95": 1198.984487425665,
+     "share_gt_0": 1.0
+    },
+    "days": 140,
+    "delta_boot": null,
+    "delta_usd_per_year": 0.0,
+    "gbp_per_year": 1062.0755331840917,
+    "pct_per_year_on_1200": 88.50629443200764,
+    "pct_per_year_on_2400": 44.253147216003825,
+    "pnl_gbp": 407.37143738567903,
+    "stops": 18,
+    "trips": 4830,
+    "trips_kept": 1.0,
+    "usd_per_year": 1062.0755331840917,
+    "win_rate": 0.9360248447204969,
+    "worst_day_gbp": -0.14049045521527248
+   },
+   "span_2_2026-05-05_to_2026-09-23": {
+    "base_boot": {
+     "p5": 642.2279258676714,
+     "p50": 746.4671451361845,
+     "p95": 855.1130946614248,
+     "share_gt_0": 1.0
+    },
+    "days": 141,
+    "delta_boot": null,
+    "delta_usd_per_year": 0.0,
+    "gbp_per_year": 747.1148093528066,
+    "pct_per_year_on_1200": 62.259567446067216,
+    "pct_per_year_on_2400": 31.129783723033608,
+    "pnl_gbp": 288.6114742979335,
+    "stops": 27,
+    "trips": 3226,
+    "trips_kept": 1.0,
+    "usd_per_year": 747.1148093528066,
+    "win_rate": 0.9556726596404216,
+    "worst_day_gbp": -0.10698812205206318
+   },
+   "tight_2026-08-24_to_2026-09-23": {
+    "base_boot": {
+     "p5": 119.52012238016057,
+     "p50": 187.59076367291772,
+     "p95": 272.5990063350405,
+     "share_gt_0": 1.0
+    },
+    "days": 30,
+    "delta_boot": null,
+    "delta_usd_per_year": 0.0,
+    "gbp_per_year": 191.19815972002422,
+    "pct_per_year_on_1200": 15.933179976668686,
+    "pct_per_year_on_2400": 7.966589988334342,
+    "pnl_gbp": 15.714917237262265,
+    "stops": 1,
+    "trips": 147,
+    "trips_kept": 1.0,
+    "usd_per_year": 191.19815972002422,
+    "win_rate": 0.9591836734693877,
+    "worst_day_gbp": -0.015559424249985581
+   }
+  },
+  "blackout a0 b2, all": {
+   "span_1_2025-12-16_to_2026-05-05": {
+    "base_boot": null,
+    "days": 140,
+    "delta_boot": {
+     "p5": -1.5162612197817058,
+     "p50": -0.4195245121595598,
+     "p95": 0.383253317851327,
+     "share_gt_0": 0.255
+    },
+    "delta_usd_per_year": -0.44549219661871575,
+    "gbp_per_year": 1061.630040987473,
+    "pct_per_year_on_1200": 88.46917008228942,
+    "pct_per_year_on_2400": 44.23458504114472,
+    "pnl_gbp": 407.200563666428,
+    "stops": 18,
+    "trips": 4826,
+    "trips_kept": 0.9991718426501035,
+    "usd_per_year": 1061.630040987473,
+    "win_rate": 0.9361790302527974,
+    "worst_day_gbp": -0.14049045521527248
+   },
+   "span_2_2026-05-05_to_2026-09-23": {
+    "base_boot": null,
+    "days": 141,
+    "delta_boot": {
+     "p5": -2.1857881063101403,
+     "p50": 1.2393523598022895,
+     "p95": 4.961641845044756,
+     "share_gt_0": 0.7285
+    },
+    "delta_usd_per_year": 1.2932562032349324,
+    "gbp_per_year": 748.4080655560415,
+    "pct_per_year_on_1200": 62.367338796336796,
+    "pct_per_year_on_2400": 31.183669398168394,
+    "pnl_gbp": 289.111060940827,
+    "stops": 27,
+    "trips": 3224,
+    "trips_kept": 0.9993800371977681,
+    "usd_per_year": 748.4080655560415,
+    "win_rate": 0.955955334987593,
+    "worst_day_gbp": -0.10698812205206318
+   },
+   "tight_2026-08-24_to_2026-09-23": {
+    "base_boot": null,
+    "days": 30,
+    "delta_boot": {
+     "p5": -5.106460387887624,
+     "p50": -1.1553207938186496,
+     "p95": 1.6370030647717861,
+     "share_gt_0": 0.257
+    },
+    "delta_usd_per_year": -1.1588157354785267,
+    "gbp_per_year": 190.0393439845457,
+    "pct_per_year_on_1200": 15.836611998712142,
+    "pct_per_year_on_2400": 7.91830599935607,
+    "pnl_gbp": 15.619672108318824,
+    "stops": 1,
+    "trips": 146,
+    "trips_kept": 0.9931972789115646,
+    "usd_per_year": 190.0393439845457,
+    "win_rate": 0.958904109589041,
+    "worst_day_gbp": -0.015559424249985581
+   }
+  },
+  "blackout a1 b15, all": {
+   "span_1_2025-12-16_to_2026-05-05": {
+    "base_boot": null,
+    "days": 140,
+    "delta_boot": {
+     "p5": -6.933465262998828,
+     "p50": -1.23749632150192,
+     "p95": 3.9494791201327266,
+     "share_gt_0": 0.348
+    },
+    "delta_usd_per_year": -1.2940160092593942,
+    "gbp_per_year": 1060.7815171748323,
+    "pct_per_year_on_1200": 88.39845976456935,
+    "pct_per_year_on_2400": 44.19922988228468,
+    "pnl_gbp": 406.8751024780179,
+    "stops": 17,
+    "trips": 4823,
+    "trips_kept": 0.9985507246376811,
+    "usd_per_year": 1060.7815171748323,
+    "win_rate": 0.9373833713456355,
+    "worst_day_gbp": -0.1351480494806882
+   },
+   "span_2_2026-05-05_to_2026-09-23": {
+    "base_boot": null,
+    "days": 141,
+    "delta_boot": {
+     "p5": -0.7937638932722981,
+     "p50": 2.415806430180215,
+     "p95": 6.24602875351558,
+     "share_gt_0": 0.899
+    },
+    "delta_usd_per_year": 2.5977146243145626,
+    "gbp_per_year": 749.7125239771211,
+    "pct_per_year_on_1200": 62.4760436647601,
+    "pct_per_year_on_2400": 31.23802183238005,
+    "pnl_gbp": 289.6149750158194,
+    "stops": 27,
+    "trips": 3222,
+    "trips_kept": 0.9987600743955363,
+    "usd_per_year": 749.7125239771211,
+    "win_rate": 0.9568590937306021,
+    "worst_day_gbp": -0.10698812205206318
+   },
+   "tight_2026-08-24_to_2026-09-23": {
+    "base_boot": null,
+    "days": 30,
+    "delta_boot": {
+     "p5": -5.884152718245378,
+     "p50": -1.8044918204337983,
+     "p95": 1.3126218901284459,
+     "share_gt_0": 0.1925
+    },
+    "delta_usd_per_year": -1.8044918204337819,
+    "gbp_per_year": 189.39366789959044,
+    "pct_per_year_on_1200": 15.782805658299203,
+    "pct_per_year_on_2400": 7.891402829149602,
+    "pnl_gbp": 15.566602841062227,
+    "stops": 1,
+    "trips": 145,
+    "trips_kept": 0.9863945578231292,
+    "usd_per_year": 189.39366789959044,
+    "win_rate": 0.9586206896551724,
+    "worst_day_gbp": -0.015559424249985581
+   }
+  },
+  "blackout a1 b5, US kinds and BoE": {
+   "span_1_2025-12-16_to_2026-05-05": {
+    "base_boot": null,
+    "days": 140,
+    "delta_boot": {
+     "p5": -4.037244903009496,
+     "p50": -0.12152764030403396,
+     "p95": 3.0646472913168865,
+     "share_gt_0": 0.476
+    },
+    "delta_usd_per_year": -0.17353577948983911,
+    "gbp_per_year": 1061.9019974046018,
+    "pct_per_year_on_1200": 88.49183311705015,
+    "pct_per_year_on_2400": 44.245916558525074,
+    "pnl_gbp": 407.3048757168336,
+    "stops": 18,
+    "trips": 4829,
+    "trips_kept": 0.9997929606625259,
+    "usd_per_year": 1061.9019974046018,
+    "win_rate": 0.9366328432387658,
+    "worst_day_gbp": -0.14049045521527248
+   },
+   "span_2_2026-05-05_to_2026-09-23": {
+    "base_boot": null,
+    "days": 141,
+    "delta_boot": {
+     "p5": 0.3035531430265212,
+     "p50": 3.0741479611943134,
+     "p95": 6.643061198508599,
+     "share_gt_0": 0.964
+    },
+    "delta_usd_per_year": 3.210059838968732,
+    "gbp_per_year": 750.3248691917753,
+    "pct_per_year_on_1200": 62.52707243264795,
+    "pct_per_year_on_2400": 31.263536216323967,
+    "pnl_gbp": 289.85152481106934,
+    "stops": 27,
+    "trips": 3224,
+    "trips_kept": 0.9993800371977681,
+    "usd_per_year": 750.3248691917753,
+    "win_rate": 0.956575682382134,
+    "worst_day_gbp": -0.10698812205206318
+   },
+   "tight_2026-08-24_to_2026-09-23": {
+    "base_boot": null,
+    "days": 30,
+    "delta_boot": {
+     "p5": -5.884152718245378,
+     "p50": -1.9613842394151264,
+     "p95": 0.0,
+     "share_gt_0": 0.0
+    },
+    "delta_usd_per_year": -1.9613842394151106,
+    "gbp_per_year": 189.2367754806091,
+    "pct_per_year_on_1200": 15.769731290050759,
+    "pct_per_year_on_2400": 7.884865645025379,
+    "pnl_gbp": 15.553707573748694,
+    "stops": 1,
+    "trips": 146,
+    "trips_kept": 0.9931972789115646,
+    "usd_per_year": 189.2367754806091,
+    "win_rate": 0.958904109589041,
+    "worst_day_gbp": -0.015559424249985581
+   }
+  },
+  "blackout a1 b5, US kinds only": {
+   "span_1_2025-12-16_to_2026-05-05": {
+    "base_boot": null,
+    "days": 140,
+    "delta_boot": {
+     "p5": -3.832268464148217,
+     "p50": 0.0378346073235686,
+     "p95": 3.142861184200183,
+     "share_gt_0": 0.5095
+    },
+    "delta_usd_per_year": -0.03575007083532,
+    "gbp_per_year": 1062.0397831132564,
+    "pct_per_year_on_1200": 88.50331525943804,
+    "pct_per_year_on_2400": 44.25165762971901,
+    "pnl_gbp": 407.35772502974214,
+    "stops": 18,
+    "trips": 4829,
+    "trips_kept": 0.9997929606625259,
+    "usd_per_year": 1062.0397831132564,
+    "win_rate": 0.9366328432387658,
+    "worst_day_gbp": -0.14049045521527248
+   },
+   "span_2_2026-05-05_to_2026-09-23": {
+    "base_boot": null,
+    "days": 141,
+    "delta_boot": {
+     "p5": -0.0016547671334255574,
+     "p50": 2.544891976087204,
+     "p95": 6.01847291965081,
+     "share_gt_0": 0.9485
+    },
+    "delta_usd_per_year": 2.6568321655740874,
+    "gbp_per_year": 749.7716415183806,
+    "pct_per_year_on_1200": 62.48097012653172,
+    "pct_per_year_on_2400": 31.240485063265858,
+    "pnl_gbp": 289.63781220299086,
+    "stops": 27,
+    "trips": 3224,
+    "trips_kept": 0.9993800371977681,
+    "usd_per_year": 749.7716415183806,
+    "win_rate": 0.956575682382134,
+    "worst_day_gbp": -0.10698812205206318
+   },
+   "tight_2026-08-24_to_2026-09-23": {
+    "base_boot": null,
+    "days": 30,
+    "delta_boot": {
+     "p5": -5.884152718245378,
+     "p50": -1.9613842394151264,
+     "p95": 0.0,
+     "share_gt_0": 0.0
+    },
+    "delta_usd_per_year": -1.9613842394151106,
+    "gbp_per_year": 189.2367754806091,
+    "pct_per_year_on_1200": 15.769731290050759,
+    "pct_per_year_on_2400": 7.884865645025379,
+    "pnl_gbp": 15.553707573748694,
+    "stops": 1,
+    "trips": 146,
+    "trips_kept": 0.9931972789115646,
+    "usd_per_year": 189.2367754806091,
+    "win_rate": 0.958904109589041,
+    "worst_day_gbp": -0.015559424249985581
+   }
+  },
+  "blackout a1 b5, all five kinds": {
+   "span_1_2025-12-16_to_2026-05-05": {
+    "base_boot": null,
+    "days": 140,
+    "delta_boot": {
+     "p5": -5.498851910299774,
+     "p50": -1.3119359986540995,
+     "p95": 2.042087881517349,
+     "share_gt_0": 0.27
+    },
+    "delta_usd_per_year": -1.3993603689011707,
+    "gbp_per_year": 1060.6761728151905,
+    "pct_per_year_on_1200": 88.38968106793254,
+    "pct_per_year_on_2400": 44.19484053396628,
+    "pnl_gbp": 406.83469642226487,
+    "stops": 18,
+    "trips": 4830,
+    "trips_kept": 1.0,
+    "usd_per_year": 1060.6761728151905,
+    "win_rate": 0.9364389233954451,
+    "worst_day_gbp": -0.14049045521527248
+   },
+   "span_2_2026-05-05_to_2026-09-23": {
+    "base_boot": null,
+    "days": 141,
+    "delta_boot": {
+     "p5": 0.3462941235144117,
+     "p50": 3.1052021491224115,
+     "p95": 6.757945939631567,
+     "share_gt_0": 0.9645
+    },
+    "delta_usd_per_year": 3.2916374526263326,
+    "gbp_per_year": 750.4064468054329,
+    "pct_per_year_on_1200": 62.53387056711941,
+    "pct_per_year_on_2400": 31.2669352835597,
+    "pnl_gbp": 289.88303835497544,
+    "stops": 27,
+    "trips": 3223,
+    "trips_kept": 0.9990700557966522,
+    "usd_per_year": 750.4064468054329,
+    "win_rate": 0.9565622091219361,
+    "worst_day_gbp": -0.10698812205206318
+   },
+   "tight_2026-08-24_to_2026-09-23": {
+    "base_boot": null,
+    "days": 30,
+    "delta_boot": {
+     "p5": -5.069146127519375,
+     "p50": -1.1428827070292331,
+     "p95": 1.6370030647717861,
+     "share_gt_0": 0.257
+    },
+    "delta_usd_per_year": -1.1463776486891106,
+    "gbp_per_year": 190.0517820713351,
+    "pct_per_year_on_1200": 15.837648505944593,
+    "pct_per_year_on_2400": 7.918824252972296,
+    "pnl_gbp": 15.620694416822063,
+    "stops": 1,
+    "trips": 146,
+    "trips_kept": 0.9931972789115646,
+    "usd_per_year": 190.0517820713351,
+    "win_rate": 0.958904109589041,
+    "worst_day_gbp": -0.015559424249985581
+   }
+  },
+  "blackout a1 b5, entries only (pause)": {
+   "span_1_2025-12-16_to_2026-05-05": {
+    "base_boot": null,
+    "days": 140,
+    "delta_boot": {
+     "p5": -0.08492427017379725,
+     "p50": 0.9313595074220291,
+     "p95": 2.1640212837432355,
+     "share_gt_0": 0.929
+    },
+    "delta_usd_per_year": 0.9809152973919026,
+    "gbp_per_year": 1063.0564484814836,
+    "pct_per_year_on_1200": 88.58803737345696,
+    "pct_per_year_on_2400": 44.29401868672848,
+    "pnl_gbp": 407.7476788696101,
+    "stops": 18,
+    "trips": 4828,
+    "trips_kept": 0.9995859213250518,
+    "usd_per_year": 1063.0564484814836,
+    "win_rate": 0.9364125932062966,
+    "worst_day_gbp": -0.14049045521527248
+   },
+   "span_2_2026-05-05_to_2026-09-23": {
+    "base_boot": null,
+    "days": 141,
+    "delta_boot": {
+     "p5": -0.3665679151921391,
+     "p50": 1.6461406630337456,
+     "p95": 4.336166999553833,
+     "share_gt_0": 0.895
+    },
+    "delta_usd_per_year": 1.7346934937201013,
+    "gbp_per_year": 748.8495028465267,
+    "pct_per_year_on_1200": 62.40412523721055,
+    "pct_per_year_on_2400": 31.20206261860528,
+    "pnl_gbp": 289.28158877085,
+    "stops": 27,
+    "trips": 3222,
+    "trips_kept": 0.9987600743955363,
+    "usd_per_year": 748.8495028465267,
+    "win_rate": 0.9559279950341403,
+    "worst_day_gbp": -0.10698812205206318
+   },
+   "tight_2026-08-24_to_2026-09-23": {
+    "base_boot": null,
+    "days": 30,
+    "delta_boot": {
+     "p5": -5.884152718245378,
+     "p50": -1.9613842394151264,
+     "p95": 0.0,
+     "share_gt_0": 0.0
+    },
+    "delta_usd_per_year": -1.9613842394151106,
+    "gbp_per_year": 189.2367754806091,
+    "pct_per_year_on_1200": 15.769731290050759,
+    "pct_per_year_on_2400": 7.884865645025379,
+    "pnl_gbp": 15.553707573748694,
+    "stops": 1,
+    "trips": 146,
+    "trips_kept": 0.9931972789115646,
+    "usd_per_year": 189.2367754806091,
+    "win_rate": 0.958904109589041,
+    "worst_day_gbp": -0.015559424249985581
+   }
+  },
+  "blackout a3 b60, all": {
+   "span_1_2025-12-16_to_2026-05-05": {
+    "base_boot": null,
+    "days": 140,
+    "delta_boot": {
+     "p5": -24.435784349777354,
+     "p50": -12.340491652887813,
+     "p95": -1.837065884212972,
+     "share_gt_0": 0.0245
+    },
+    "delta_usd_per_year": -12.839027457612701,
+    "gbp_per_year": 1049.236505726479,
+    "pct_per_year_on_1200": 87.43637547720658,
+    "pct_per_year_on_2400": 43.71818773860329,
+    "pnl_gbp": 402.44687890878646,
+    "stops": 20,
+    "trips": 4798,
+    "trips_kept": 0.9933747412008281,
+    "usd_per_year": 1049.236505726479,
+    "win_rate": 0.9389328887036265,
+    "worst_day_gbp": -0.0943842540975644
+   },
+   "span_2_2026-05-05_to_2026-09-23": {
+    "base_boot": null,
+    "days": 141,
+    "delta_boot": {
+     "p5": -16.668529303983018,
+     "p50": -9.71099156820353,
+     "p95": -4.246208782904162,
+     "share_gt_0": 0.001
+    },
+    "delta_usd_per_year": -9.9980657859428,
+    "gbp_per_year": 737.1167435668638,
+    "pct_per_year_on_1200": 61.42639529723864,
+    "pct_per_year_on_2400": 30.713197648619328,
+    "pnl_gbp": 284.7492077888433,
+    "stops": 27,
+    "trips": 3198,
+    "trips_kept": 0.9913205207687539,
+    "usd_per_year": 737.1167435668638,
+    "win_rate": 0.9565353345841151,
+    "worst_day_gbp": -0.10698812205206318
+   },
+   "tight_2026-08-24_to_2026-09-23": {
+    "base_boot": null,
+    "days": 30,
+    "delta_boot": {
+     "p5": -21.629588989954712,
+     "p50": -11.131217100295032,
+     "p95": -3.2792816642536144,
+     "share_gt_0": 0.0
+    },
+    "delta_usd_per_year": -11.74707133594248,
+    "gbp_per_year": 179.45108838408174,
+    "pct_per_year_on_1200": 14.954257365340146,
+    "pct_per_year_on_2400": 7.477128682670073,
+    "pnl_gbp": 14.749404524719049,
+    "stops": 1,
+    "trips": 142,
+    "trips_kept": 0.9659863945578231,
+    "usd_per_year": 179.45108838408174,
+    "win_rate": 0.9647887323943662,
+    "worst_day_gbp": -0.015559424249985581
+   }
+  }
+ },
+ "events": {
+  "by_kind": {
+   "all": {
+    "events": 40,
+    "lost": 2,
+    "mean_per_event_usd": -0.0049,
+    "no_trip": 36,
+    "placebo_mean_usd": 0.0262,
+    "removed_usd": -0.196,
+    "won": 2
+   },
+   "boe": {
+    "events": 7,
+    "lost": 0,
+    "mean_per_event_usd": 0.0129,
+    "no_trip": 6,
+    "placebo_mean_usd": 0.0253,
+    "removed_usd": 0.09,
+    "won": 1
+   },
+   "cpi": {
+    "events": 10,
+    "lost": 0,
+    "mean_per_event_usd": 0.0052,
+    "no_trip": 9,
+    "placebo_mean_usd": 0.022,
+    "removed_usd": 0.052,
+    "won": 1
+   },
+   "ecb": {
+    "events": 7,
+    "lost": 0,
+    "mean_per_event_usd": 0.0,
+    "no_trip": 7,
+    "placebo_mean_usd": 0.0174,
+    "removed_usd": 0,
+    "won": 0
+   },
+   "fomc": {
+    "events": 6,
+    "lost": 0,
+    "mean_per_event_usd": 0.0,
+    "no_trip": 6,
+    "placebo_mean_usd": 0.0381,
+    "removed_usd": 0,
+    "won": 0
+   },
+   "nfp": {
+    "events": 10,
+    "lost": 2,
+    "mean_per_event_usd": -0.0338,
+    "no_trip": 8,
+    "placebo_mean_usd": 0.0301,
+    "removed_usd": -0.338,
+    "won": 0
+   }
+  },
+  "rows": [
+   {
+    "day": "2025-12-16",
+    "kind": "nfp",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2025-12-18",
+    "kind": "boe",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2025-12-18",
+    "kind": "ecb",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2025-12-18",
+    "kind": "cpi",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2026-01-09",
+    "kind": "nfp",
+    "removed_pnl_usd": -0.0274,
+    "removed_trips": 1
+   },
+   {
+    "day": "2026-01-13",
+    "kind": "cpi",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2026-01-28",
+    "kind": "fomc",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2026-02-05",
+    "kind": "boe",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2026-02-05",
+    "kind": "ecb",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2026-02-11",
+    "kind": "nfp",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2026-02-13",
+    "kind": "cpi",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2026-03-06",
+    "kind": "nfp",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2026-03-11",
+    "kind": "cpi",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2026-03-18",
+    "kind": "fomc",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2026-03-19",
+    "kind": "boe",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2026-03-19",
+    "kind": "ecb",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2026-04-03",
+    "kind": "nfp",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2026-04-10",
+    "kind": "cpi",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2026-04-29",
+    "kind": "fomc",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2026-04-30",
+    "kind": "boe",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2026-04-30",
+    "kind": "ecb",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2026-05-08",
+    "kind": "nfp",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2026-05-12",
+    "kind": "cpi",
+    "removed_pnl_usd": 0.0521,
+    "removed_trips": 3
+   },
+   {
+    "day": "2026-06-05",
+    "kind": "nfp",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2026-06-10",
+    "kind": "cpi",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2026-06-11",
+    "kind": "ecb",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2026-06-17",
+    "kind": "fomc",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2026-06-18",
+    "kind": "boe",
+    "removed_pnl_usd": 0.09,
+    "removed_trips": 1
+   },
+   {
+    "day": "2026-07-02",
+    "kind": "nfp",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2026-07-14",
+    "kind": "cpi",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2026-07-23",
+    "kind": "ecb",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2026-07-29",
+    "kind": "fomc",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2026-07-30",
+    "kind": "boe",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2026-08-07",
+    "kind": "nfp",
+    "removed_pnl_usd": -0.311,
+    "removed_trips": 1
+   },
+   {
+    "day": "2026-08-12",
+    "kind": "cpi",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2026-09-04",
+    "kind": "nfp",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2026-09-10",
+    "kind": "ecb",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2026-09-11",
+    "kind": "cpi",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2026-09-16",
+    "kind": "fomc",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   },
+   {
+    "day": "2026-09-17",
+    "kind": "boe",
+    "removed_pnl_usd": 0,
+    "removed_trips": 0
+   }
+  ]
+ },
+ "paper_engine_record": {
+  "arms": {
+   "blackout a1 b5, US kinds and BoE": {
+    "by_exit_day": {
+     "2026-09-25": {
+      "pnl_usd": 0.5107,
+      "trips": 6,
+      "won": 5
+     },
+     "2026-09-26": {
+      "pnl_usd": 0.0023,
+      "trips": 1,
+      "won": 1
+     },
+     "2026-09-28": {
+      "pnl_usd": 4.9262,
+      "trips": 31,
+      "won": 30
+     },
+     "2026-09-29": {
+      "pnl_usd": 0.8027,
+      "trips": 10,
+      "won": 10
+     },
+     "2026-09-30": {
+      "pnl_usd": 0.4111,
+      "trips": 4,
+      "won": 3
+     },
+     "2026-10-01": {
+      "pnl_usd": 0.4365,
+      "trips": 1,
+      "won": 1
+     },
+     "2026-10-02": {
+      "pnl_usd": 0.3754,
+      "trips": 6,
+      "won": 6
+     },
+     "2026-10-06": {
+      "pnl_usd": 1.0025,
+      "trips": 7,
+      "won": 7
+     },
+     "2026-10-07": {
+      "pnl_usd": 0.1056,
+      "trips": 1,
+      "won": 1
+     },
+     "2026-10-08": {
+      "pnl_usd": 1.5492,
+      "trips": 17,
+      "won": 16
+     },
+     "2026-10-09": {
+      "pnl_usd": 0.3259,
+      "trips": 15,
+      "won": 13
+     },
+     "2026-10-12": {
+      "pnl_usd": 0.0259,
+      "trips": 1,
+      "won": 1
+     },
+     "2026-10-13": {
+      "pnl_usd": 0.6968,
+      "trips": 23,
+      "won": 21
+     },
+     "2026-10-14": {
+      "pnl_usd": 0.5543,
+      "trips": 14,
+      "won": 13
+     },
+     "2026-10-15": {
+      "pnl_usd": -0.1857,
+      "trips": 2,
+      "won": 1
+     }
+    },
+    "entered_in_the_2026-10-14_release_minute": {
+     "pnl_usd": 0,
+     "trips": 0
+    },
+    "total_usd": 11.5394,
+    "trips": 139
+   },
+   "blackout a1 b5, all five kinds": {
+    "by_exit_day": {
+     "2026-09-25": {
+      "pnl_usd": 0.5107,
+      "trips": 6,
+      "won": 5
+     },
+     "2026-09-26": {
+      "pnl_usd": 0.0023,
+      "trips": 1,
+      "won": 1
+     },
+     "2026-09-28": {
+      "pnl_usd": 4.9262,
+      "trips": 31,
+      "won": 30
+     },
+     "2026-09-29": {
+      "pnl_usd": 0.8027,
+      "trips": 10,
+      "won": 10
+     },
+     "2026-09-30": {
+      "pnl_usd": 0.4111,
+      "trips": 4,
+      "won": 3
+     },
+     "2026-10-01": {
+      "pnl_usd": 0.4365,
+      "trips": 1,
+      "won": 1
+     },
+     "2026-10-02": {
+      "pnl_usd": 0.3754,
+      "trips": 6,
+      "won": 6
+     },
+     "2026-10-06": {
+      "pnl_usd": 1.0025,
+      "trips": 7,
+      "won": 7
+     },
+     "2026-10-07": {
+      "pnl_usd": 0.1056,
+      "trips": 1,
+      "won": 1
+     },
+     "2026-10-08": {
+      "pnl_usd": 1.5492,
+      "trips": 17,
+      "won": 16
+     },
+     "2026-10-09": {
+      "pnl_usd": 0.3259,
+      "trips": 15,
+      "won": 13
+     },
+     "2026-10-12": {
+      "pnl_usd": 0.0259,
+      "trips": 1,
+      "won": 1
+     },
+     "2026-10-13": {
+      "pnl_usd": 0.6968,
+      "trips": 23,
+      "won": 21
+     },
+     "2026-10-14": {
+      "pnl_usd": 0.5543,
+      "trips": 14,
+      "won": 13
+     },
+     "2026-10-15": {
+      "pnl_usd": -0.1857,
+      "trips": 2,
+      "won": 1
+     }
+    },
+    "entered_in_the_2026-10-14_release_minute": {
+     "pnl_usd": 0,
+     "trips": 0
+    },
+    "total_usd": 11.5394,
+    "trips": 139
+   },
+   "engine rule as replayed": {
+    "by_exit_day": {
+     "2026-09-25": {
+      "pnl_usd": 0.5107,
+      "trips": 6,
+      "won": 5
+     },
+     "2026-09-26": {
+      "pnl_usd": 0.0023,
+      "trips": 1,
+      "won": 1
+     },
+     "2026-09-28": {
+      "pnl_usd": 4.9262,
+      "trips": 31,
+      "won": 30
+     },
+     "2026-09-29": {
+      "pnl_usd": 0.8027,
+      "trips": 10,
+      "won": 10
+     },
+     "2026-09-30": {
+      "pnl_usd": 0.4111,
+      "trips": 4,
+      "won": 3
+     },
+     "2026-10-01": {
+      "pnl_usd": 0.4365,
+      "trips": 1,
+      "won": 1
+     },
+     "2026-10-02": {
+      "pnl_usd": 0.3754,
+      "trips": 6,
+      "won": 6
+     },
+     "2026-10-06": {
+      "pnl_usd": 1.0025,
+      "trips": 7,
+      "won": 7
+     },
+     "2026-10-07": {
+      "pnl_usd": 0.1056,
+      "trips": 1,
+      "won": 1
+     },
+     "2026-10-08": {
+      "pnl_usd": 1.5492,
+      "trips": 17,
+      "won": 16
+     },
+     "2026-10-09": {
+      "pnl_usd": 0.3259,
+      "trips": 15,
+      "won": 13
+     },
+     "2026-10-12": {
+      "pnl_usd": 0.0259,
+      "trips": 1,
+      "won": 1
+     },
+     "2026-10-13": {
+      "pnl_usd": 0.6968,
+      "trips": 23,
+      "won": 21
+     },
+     "2026-10-14": {
+      "pnl_usd": 0.3605,
+      "trips": 15,
+      "won": 13
+     },
+     "2026-10-15": {
+      "pnl_usd": -0.1857,
+      "trips": 2,
+      "won": 1
+     }
+    },
+    "entered_in_the_2026-10-14_release_minute": {
+     "pnl_usd": -0.1979,
+     "trips": 2
+    },
+    "total_usd": 11.3456,
+    "trips": 140
+   }
+  }
+ },
+ "spans": {
+  "span_1_2025-12-16_to_2026-05-05": [
+   "2025-12-16",
+   "2026-05-05"
+  ],
+  "span_2_2026-05-05_to_2026-09-23": [
+   "2026-05-05",
+   "2026-09-23"
+  ],
+  "tight_2026-08-24_to_2026-09-23": [
+   "2026-08-24",
+   "2026-09-23"
+  ]
+ }
+}

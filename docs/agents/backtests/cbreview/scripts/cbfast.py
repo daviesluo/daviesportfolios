@@ -207,6 +207,8 @@ def pauses(sig, spec, B, events):
             for e in events:
                 if spec["kind"] == "us" and e["kind"] not in ("cpi", "nfp", "fomc"):
                     continue
+                if spec["kind"] == "usboe" and e["kind"] not in ("cpi", "nfp", "fomc", "boe"):
+                    continue
                 if spec["kind"] == "checked" and not e["stands_out"]:
                     continue
                 i0 = -((-(e["t"] - spec["a"] * M - B.t0)) // M)       # ceil

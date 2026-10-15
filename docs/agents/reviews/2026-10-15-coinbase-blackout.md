@@ -16,6 +16,8 @@ both running tests (§2), Revolut X (§3, added by the third commit of this bran
 3. **The blackout is built into both tests** (§2): `cb_releases.ts` holds the list; `cb_quotes.ts` and `cb_hold.ts` withhold the minute's fair
    from one minute before to five after each release; the stored `fair` is null in those minutes so the replays reproduce the engine. Deviation 3 of the
    base pre-registration and Deviation 2 of the "- 2" one say so. Not pushed; it needs the main session's landing and `agents` redeploy.
+4. **Revolut X does not need it** (§3): over PR5's own books the blackout is worth −$1.40 to +$3.29 a year on a base of $750 to $1,060, ranges across zero, because the thin UK tape gives a release minute
+   few and small fills (4 of 40 releases had any); the one release minute on record cost $0.20 on 10-14 and the live account took none of it. Verdict for LIVE: no change.
 
 ## 1. The calendar
 
@@ -117,10 +119,46 @@ group, "the release blackout's, changed or added 2026-10-15" (`cb_quotes.ts` mov
 Docs: `docs/map.md` (new rows `cb_releases.ts`, `cb_blackout_world.ts`, the `cbreview` row), `docs/agents/reference.md` items 58 and 60, `docs/agents/CLAUDE.md`, `docs/guide.md`. `src/` does not change, so there is no `dist/`.
 The Agents page and its browser fixtures are byte-identical (their worlds hold no release). No migration: no table, call or cron changes; the `agents` function redeploys on push.
 
+## 3. Revolut X: PR5's rule does not need it
+
+Davies asked whether Revolut X's rule should have the pause too. `cbfast_revx.py` prices the same blackout on PR5's rule over Revolut X (a proposal; no Revolut X file, no
+config, no order touched). **Verdict for LIVE: not needed, and no change after the 10-21 verdict.** The history cannot see a loss around releases, the one release minute in the record cost
+$0.20, and the live account did not take it.
+
+**History** (PR5's own books, `pr5_sim.Book`, the pre-registered inputs: Revolut X UK prints, GBP/USD, the dollar books' hourly closes; USDC-GBP from 2025-11-26, USDT-GBP from 2025-12-16, to 2026-09-23; $100 a rung,
+$1,200). `gsim` with no hook equals `pr5_sim.simulate` trip for trip, and the base arm's PRIMARY window is **$707.9028, `pr5_run1.json`'s figure, to four places**. Two spans of 140 and 141 days and the
+week of 2026-08-24 on, in which the market tightened; $ a year (% on $1,200), Δ against the base in the same span with the paired day-bootstrap 5th and 95th percentile:
+
+| | 2025-12-16 → 2026-05-05 | 2026-05-05 → 2026-09-23 | 2026-08-24 → 09-23 (tight) |
+|---|---:|---:|---:|
+| base | 1,062.08 (88.5 %) | 747.11 (62.3 %) | 191.20 (15.9 %) |
+| blackout a1 b5, all five kinds (dark fair) | −1.40 [−5.5, +2.0] | +3.29 [+0.3, +6.8] | −1.15 [−5.1, +1.6] |
+| US kinds and BoE | −0.17 [−4.0, +3.1] | +3.21 [+0.3, +6.6] | −1.96 [−5.9, 0.0] |
+| US kinds only | −0.04 [−3.8, +3.1] | +2.66 [0.0, +6.0] | −1.96 [−5.9, 0.0] |
+| entries only (a pause) | +0.98 [−0.1, +2.2] | +1.73 [−0.4, +4.3] | −1.96 [−5.9, 0.0] |
+| a0 b2 / a1 b15 | −0.45 / −1.29 | +1.29 / +2.60 | −1.16 / −1.80 |
+| a3 b60 | −12.84 [−24.4, −1.8] | −10.00 [−16.7, −4.2] | −11.75 [−21.6, −3.3] |
+| trips kept (a1 b5, all) | 100.0 % | 99.9 % | 99.3 % |
+
+Within ±$3 a year on a base of $750 to $1,060 (0.3 %), of both signs, with ranges across zero; only a long window (3 minutes before, 60 after) costs, $10 to $13 a year. Coinbase's was +$25.96 on £554.
+**Why the difference:** Revolut X's UK tape is thin (the paper engine's record holds 7,555 prints in three weeks) and a rung fills at most 10 % of the minute's volume, so a release minute offers few fills and small ones.
+Of the **40 releases** in the history (CPI 10, NFP 10, FOMC 6, ECB 7, BoE 7) the base arm entered a trip in the blackout window in only **4** (36 had none, against 26 of 94 on Coinbase); those four removed −$0.196 in all, a mean of −$0.005 a release against **+$0.026 for the same
+clock minutes on the ten weekdays either side**: there is no release effect to take out. NFP −0.338 (2 lost, 8 none), BoE +0.090, CPI +0.052, FOMC and ECB nothing.
+
+**10-14 and the paper engine's own record** (`inputs/revx_paper_record.json.gz`, 2026-09-25 → 2026-10-15, its prints and minutes as it decided on them, `sql/export_revx_paper_record.sql`). The rule replayed on that record gives the engine's 2026-10-14 exactly:
+**15 trips, 13 won, +$0.3605** (the engine's figure). In the 12:30 UTC minute it entered **two trips, USDC-GBP asks at .1 % and .2 %, on $18.21 each (the volume cap), losing $0.1979** between them: the same mechanism as Coinbase's, at a hundredth of the size. With the
+blackout (a1 b5, all kinds or US and BoE) 10-14 is 14 trips and **+$0.5543**; the record's two releases (NFP 10-02, CPI 10-14) are the only ones in it, and the whole record goes from $11.35 to $11.54.
+**The live executor** (`agent_quote_live_orders`, rows 12:30 to 12:39 on 10-14): its orders in the minute were exits cancelled unfilled at 12:30:29 and 12:30:30 and everything re-placed from 12:32; none of those rows has a fill, so the live sub-account (£10 a rung) took no part of the $0.20.
+
+**Why "not needed".** (1) The history shows no cost to take out: −$0.20 over 40 releases, with the blackout's yearly effect inside ±$3. (2) The only release minute on record cost $0.20, about a tenth of one day's profit ($2 to $3 a day on the base). (3) The change would sit in `quotes.ts`'s driver, under PR5-W's freeze
+line, and the live executor carries out the paper engine's decisions order for order; a pause is therefore a new paper variant with its own pre-registration (a spec row's `rules` would carry it), for an expected +$0 to +$3 a year on $1,200. **If Davies wants it anyway,** the form is the Coinbase one (the minute's fair
+null from one minute before to five after, from the same `CB_RELEASES`, GBP kinds first: US and the BoE), as a twin variant read beside PR5 after the 10-21 verdict. I would not fund it.
+
 ## 4. Not checked
 
 * **The BLS dates** (see §1.2): recalled, market- and rule-checked; the CPI of 11-10 and 12-10 and NFP of 12-04 are UNCONFIRMED. A wrong one costs only the blackout.
 * **Yahoo** could not be pulled from this container (429). The cross-check is written and waits for a saved pull in `inputs/yahoo_calendar.json`.
-* **Finnhub** and **Alpha Vantage** were not used here (see the econcal commit, if the main session has it).
+* **Finnhub** and **Alpha Vantage** were not used in the calendar (see the econcal commit, if the main session has it).
+* **Revolut X**: the tape is PR5's pre-registered one to 2026-09-23 and the paper engine's own record after; the live executor's 12:30 orders were read for 12:30 to 12:39 only (40 rows), not the whole day.
 * That the engine **behaves** this way in production is proved on worlds (Deno) and not yet on live minutes: the first blackout is the FOMC at 2026-10-28 17:59 UTC, and the first thing to read after it is that
   `cb_quote_minutes` and `cb_hold_minutes` have `fair` null from 17:59 to 18:05 and that no entry fill is in them.
