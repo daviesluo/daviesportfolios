@@ -179,3 +179,53 @@ P&L, once the extremes were rebuilt from `cb_trades` (`docs/agents/backtests/cbr
   function is deployed (the update of `docs/agents/backtests/cbreview/sql/repair_minute_bars.sql`), before the prune takes
   the window's first prints on 2026-10-21 23:01 UTC.
 - The engine, `stepMinute`, `replay.py`, the window and every bar are unchanged. The reading says the record was repaired.
+
+### Deviation 3 (2026-10-15, before the reading): a blackout around the scheduled releases
+
+**On whose word.** Davies, 2026-10-15 (the message reached this session before 03:03 UTC, when it began the work; it carries no
+clock), after the first days' loss of 2026-10-14 (`reviews/2026-10-15-coinbase-fast-move.md`): "目前的两个Coinbase 测试采用发布前后暂停的规则吧，你想办法找到准确的CPI 和非农等的历史发布日期，可以用网站本身的api和数据接口；另外revolut x的规则不需要加这个吗？" — both Coinbase tests take the
+rule of pausing around each release, and the dates are to be found exactly.
+
+**What changes.** In the seven minutes from one minute before to five minutes after each scheduled US CPI, Employment Situation (NFP),
+FOMC statement, ECB decision and BoE announcement (`cb_releases.ts`: `CB_RELEASES`, UTC instants to 2026-12-31, `cbInBlackout`), the
+minute's `fairU` is null. `stepMinute` (quotes.ts, unchanged) then does what it does in any dark minute: the entry rungs are withdrawn and
+none is placed; an exit order already resting stays and can fill; an exit that falls due in the window is placed at the first lit minute,
+so inventory is held for at most those minutes longer and never stranded; the 24-hour stop runs; and the stored minute's `fair` is null
+(`x` is kept), so `replay.py` reproduces the engine without knowing about releases. Nothing else changes: the books, the prints, the
+ten-minute rate lookback, £100 / €100 a rung, the stop cost and the pounds conversion are as before.
+
+- **From which minute.** From the first minute decided after the deploy of the commit that adds these bytes. A minute is judged by its own
+  start, never by when the engine got to it, and the first listed release is 2026-10-28 18:00 UTC, so no minute decided before 17:59 that day
+  differs from the rule as it ran. The CPI of 2026-10-14 (12:30 UTC, the minute that lifted seven asks) is not in the list: both tests'
+  records of it stand as they ran.
+- **The list.** FOMC, ECB and BoE dates are from their own calendars (fetched 2026-10-15, `backtests/cbreview/scripts/release_calendar.py`,
+  `inputs/release_calendar.json`, which also logs every URL tried). **The BLS dates are not from the BLS**: bls.gov refused this machine
+  (HTTP 403) and FRED did not connect, so the NFP of 2026-11-06 (also on tradingeconomics.com's calendar and what BLS's third-Friday rule gives) and
+  the CPI of 2026-11-10 and 2026-12-10 and NFP of 2026-12-04 are the published schedule as recalled, marked UNCONFIRMED in the module. A wrong
+  BLS date costs the blackout, not the rule: a minute not in the list is decided as before. Within the base test's window (to 2026-11-08) the list
+  holds four releases: FOMC 10-28, ECB 10-29, BoE 11-05, NFP 11-06.
+- **The reading's bars, read on the record as it ran.** The five bars are read on `cb_quote_minutes` and `cb_quote_trips` as the engine wrote them,
+  blackout minutes included, and `replay.py` is run unchanged on that record (bar 1 is the check that it still reproduces the engine:
+  `cb_quotes.test.ts` has a world with a release in it, worked by hand, and the fair is null in exactly seven minutes). Bar 3's 6 % a year
+  and bar 4's 40 % are read on the trips as they were made; the window and every threshold are unchanged. Bar 5 (against the Revolut X twin,
+  which has no blackout) now compares a blackout test with one that has none; the report says so.
+- **The paired comparison of the two arms is unaffected**: "Stablecoin quotes with Euros - 2" gets the same blackout from the same list
+  (its Deviation 2), so bar 6 of its pre-registration, which pairs it with this test's rule by weekend, compares two arms that both sit out the
+  releases; they differ only in the closure, as before (`cb_hold.test.ts` pins that the two write the same rows on a world with a release).
+
+**Why.** In sample, on two 12-month spans of Coinbase's history, with the parameters chosen on one and read on the other: +£25.96 a year on
+2024-25 and +£7.89 on 2025-26, on the screen's £2,400 (day-bootstrap 5th percentile +5.1 and +0.2), keeping 97 % and 94 % of the trips, and positive in
+all 75 variants of the blackout tried; on 2026-10-14 itself −£2.70 becomes −£1.17. No reactive guard (print against fair, tape range, fair move, wider
+rungs, a shorter stop) was positive in both spans. `reviews/2026-10-15-coinbase-fast-move.md`, `2026-10-15-coinbase-blackout.md`.
+
+**Frozen bytes this deviation names** (`docs/agents/backtests/cbwk/MANIFEST.json`, group "the release blackout's, changed or added 2026-10-15", held
+by `src/cb_hold_prereg.test.js`; `cb_quotes.ts` and its test moved there from "the base test's, unchanged by 0118"):
+
+| file | sha256 |
+|---|---|
+| `supabase/functions/agents/cb_quotes.ts` | `3929d8a9a47d0ac240d865fec3fd56c4b08e6912b10c72e6fe8d7ee31eebd808` |
+| `supabase/functions/agents/cb_quotes.test.ts` | `76a02c0dbaac0254089731db120da86c8069e4dc013483b16764b71f231dbe2f` |
+| `supabase/functions/agents/cb_releases.ts` | `fa882d0559d90828d9e4530bf4a640db3454a6be1be70b94ada42bd0ca0b5a63` |
+| `supabase/functions/agents/cb_releases.test.ts` | `6290bd94df15293e4b9e653d176fc68ead8625d68819bcb0369141e8e699d0e2` |
+| `supabase/functions/agents/cb_blackout_world.ts` | `779d556a8c0040dbc1faaf45b06f8ec3a6afcc9e6d39d8ee9ac271e5252147cd` |
+| `docs/agents/backtests/cbreview/inputs/release_calendar.json` | `ac5c36e6ae1d9edbb03dcfd5f77fbe66ce0d55b40ae0c684920c24b4b36bfd47` |

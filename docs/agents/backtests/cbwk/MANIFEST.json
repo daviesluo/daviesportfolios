@@ -9,8 +9,8 @@
    "sha256": "3511be812b62579b88309187b5936f04cfce2baa1a8a50485210b9aefebcef9f"
   },
   "scripts/build_manifest.py": {
-   "bytes": 2841,
-   "sha256": "21d3dc58181dc2bb909417f42ff693fe4fab7274311c88026bde1b145178d654"
+   "bytes": 3426,
+   "sha256": "70fcc88a718e3dd02fd9d47e67e07b9b9809d55b7d053b1728c8d787e25a7478"
   },
   "scripts/closure_world.ts": {
    "bytes": 4846,
@@ -22,21 +22,28 @@
   }
  },
  "frozen": {
-  "the base test's, unchanged by 0118": {
+  "the base test's, unchanged by 0118 and by the release blackout": {
    "docs/agents/backtests/cbpaper/scripts/replay.py": "6fa4029248ee933177ff45bde862e373c2373345bfb9971ddbe3f8fb0292bca7",
-   "supabase/functions/agents/cb_quotes.ts": "afdaa372c918dd4277e5ecb5392b615d45979ba70b1b860aae24d6c2499d8244",
    "supabase/functions/agents/cb_rec.ts": "d9011fc44213c70edb9379126c1e339b06537ecaee404db5f5e404baed98227c",
    "supabase/functions/agents/cb_view.ts": "567ea98c5c70f6b6b82a2b8c4c83db319cf9d7bab6b931e8bb35c8e2166fa07e",
    "supabase/functions/agents/quotes.ts": "0782ed8140a2e490f19b9e92fe7093c2cb9a6f205866180314f609537277f517",
    "supabase/migrations/0112_cb_recorder_paper.sql": "ca20a591741cdbadca4e5c717b120010b4cb6e8a3da5c0e13dab640dfc263d48"
+  },
+  "the release blackout's, changed or added 2026-10-15": {
+   "docs/agents/backtests/cbreview/inputs/release_calendar.json": "ac5c36e6ae1d9edbb03dcfd5f77fbe66ce0d55b40ae0c684920c24b4b36bfd47",
+   "supabase/functions/agents/cb_blackout_world.ts": "779d556a8c0040dbc1faaf45b06f8ec3a6afcc9e6d39d8ee9ac271e5252147cd",
+   "supabase/functions/agents/cb_quotes.test.ts": "76a02c0dbaac0254089731db120da86c8069e4dc013483b16764b71f231dbe2f",
+   "supabase/functions/agents/cb_quotes.ts": "3929d8a9a47d0ac240d865fec3fd56c4b08e6912b10c72e6fe8d7ee31eebd808",
+   "supabase/functions/agents/cb_releases.test.ts": "6290bd94df15293e4b9e653d176fc68ead8625d68819bcb0369141e8e699d0e2",
+   "supabase/functions/agents/cb_releases.ts": "fa882d0559d90828d9e4530bf4a640db3454a6be1be70b94ada42bd0ca0b5a63"
   },
   "this arm's": {
    "docs/agents/backtests/cbwk/inputs/closure_world_export.json.gz": "b663423d7fe34d5c8b641d47a50b236a7569eecaeaddd859a25fc288d0e81a54",
    "docs/agents/backtests/cbwk/results/closure_world_reading.json": "3511be812b62579b88309187b5936f04cfce2baa1a8a50485210b9aefebcef9f",
    "docs/agents/backtests/cbwk/scripts/closure_world.ts": "1244fcf0d41b4e571a5f81a5f0f321a818c33db1e3919307b0f683e70b66d927",
    "docs/agents/backtests/cbwk/scripts/replay_wk.py": "f3124599d1b74600729de1caa03829764fbc0b52cddbf92dc8cc8fa9a99c18ee",
-   "supabase/functions/agents/cb_hold.test.ts": "3d4f267c22766634a64e78bee04765ccecb2d142036b2fce82845a82618f2127",
-   "supabase/functions/agents/cb_hold.ts": "3dee558bde9243c4e2657fc626276b0b3195033bfbac6919f719509a556587c2",
+   "supabase/functions/agents/cb_hold.test.ts": "e88b82a4f20ba92256d54278013bee83348d79ef3dc58cd1a95c62d31f3245b5",
+   "supabase/functions/agents/cb_hold.ts": "3795b05c5c3b38b30065c13c6c907e6c684fafe195055d3792d3290b25d365f8",
    "supabase/migrations/0118_cb_hold.sql": "5d1b77254c1307a36feb3b1373fa3780f92512f710d749e0001f18a48980bd53"
   }
  },
@@ -51,6 +58,7 @@
  ],
  "study": "The reading of 'Stablecoin quotes with Euros - 2' (the Coinbase paper test with the interbank rates held through a closure, 0118): the reading script, bars 1 to 6, and the worked world that proves it",
  "write_up": [
-  "docs/agents/reviews/2026-10-13-coinbase-weekend-prereg.md"
+  "docs/agents/reviews/2026-10-13-coinbase-weekend-prereg.md",
+  "docs/agents/reviews/2026-10-15-coinbase-blackout.md"
  ]
 }

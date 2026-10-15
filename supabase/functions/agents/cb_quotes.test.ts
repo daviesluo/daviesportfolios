@@ -11,6 +11,7 @@ import {
 import { CB_PRODUCTS, type CbCursor, type CbProduct } from "./cb_rec.ts";
 import { QUOTE_FEE, QUOTE_HALF_SPREAD, quoteTicks, type Trip } from "./quotes.ts";
 import { memDb, type Row } from "./testing.ts";
+import { BLACKOUT_T0, blackoutPrints } from "./cb_blackout_world.ts";
 
 const M = 60e3, H = 3600e3;
 const iso = (ms: number) => new Date(ms).toISOString();
@@ -91,11 +92,11 @@ Deno.test("cbStopExit moves a stopped trip from PR5's stop cost to Coinbase's, f
 });
 
 /** The driver's world at minute `t0`: rates and fair constant, every book's record covering five minutes, the prints given. */
-function world(t0: number, prints: Array<{ book: CbProduct; id: number; at: number; price: string; size: string; side: "buy" | "sell" }>) {
+function world(t0: number, prints: Array<{ book: CbProduct; id: number; at: number; price: string; size: string; side: "buy" | "sell" }>, span = 5) {
   const fx: Row[] = [], fair: Row[] = [], eur: Row[] = [];
-  for (let t = t0 - 20 * M; t <= t0 + 10 * M; t += M) { fx.push({ kind: "fx", t: iso(t), value: 1.25 }); eur.push({ kind: "fx:EURUSD", t: iso(t), value: 1.1 }); }
+  for (let t = t0 - 20 * M; t <= t0 + (span + 5) * M; t += M) { fx.push({ kind: "fx", t: iso(t), value: 1.25 }); eur.push({ kind: "fx:EURUSD", t: iso(t), value: 1.1 }); }
   for (let h = t0 - 30 * H; h < t0; h += H) for (const k of ["fair:USDC-USD", "fair:USDT-USD"]) fair.push({ kind: k, t: iso(h), value: 1.0 });
-  const cur = (b: CbProduct): CbCursor => ({ from: 1, fromTs: iso(t0 - M + 1000), hi: 1, top: 1, topAt: 0, hole: null, coveredTo: t0 + 5 * M + 1000 });
+  const cur = (b: CbProduct): CbCursor => ({ from: 1, fromTs: iso(t0 - M + 1000), hi: 1, top: 1, topAt: 0, hole: null, coveredTo: t0 + span * M + 1000 });
   const { db, tables } = memDb({
     agent_locks: [{ name: "cb-quotes", lease_until: iso(0), holder: null }],
     agent_quote_inputs: [...fx, ...fair], cb_quote_inputs: eur, cb_quote_state: [], cb_quote_events: [], cb_quote_trips: [], cb_quote_minutes: [],
@@ -236,4 +237,59 @@ Deno.test("the browser test's Coinbase fixture is the driver and the dashboard's
   const { coinbasePageFixture } = await import("./testing.ts");
   const committed = (await import("../../../src/e2e/quotes_coinbase_fixture.json", { with: { type: "json" } })).default;
   assertEquals(JSON.parse(JSON.stringify(await coinbasePageFixture())), committed);
+});
+
+// Deviation 3 (2026-10-15): the blackout around the scheduled releases (cb_releases.ts), worked out by hand on USDC-GBP around the
+// FOMC statement of 2026-10-28 18:00 UTC. The blackout minutes are 17:59 to 18:05 (T - 1 to T + 5). Fair 0.8000: the bids sit at
+// 0.7992 / 0.7984 / 0.7976 (k = .1 / .2 / .3 %), the exits at 0.8000 (the prints are in cb_blackout_world.ts, shared with cb_hold.test.ts).
+Deno.test("cbInBlackout is seven minutes a release: one before to five after, by the minute's start", async () => {
+  const { cbInBlackout } = await import("./cb_releases.ts");
+  const T = Date.UTC(2026, 9, 28, 18, 0), rel = [T, T + 24 * H];
+  const at = (m: number) => cbInBlackout(T + m * M, rel);
+  assertEquals([-2, -1, 0, 1, 5, 6].map(at), [false, true, true, true, true, false]);
+  assertEquals([-2 * M - 1, -M, -M + 1, 0, 5 * M, 5 * M + 1].map((d) => cbInBlackout(T + d, rel)), [false, true, true, true, true, false]);
+  assertEquals([T + 24 * H - M, T + 24 * H + 5 * M, T + 24 * H + 6 * M].map((t) => cbInBlackout(t, rel)), [true, true, false]);
+  assertEquals(cbInBlackout(T, []), false);
+  assertEquals(cbInBlackout(T - M, rel, 0, 5 * M), false);
+});
+
+Deno.test("the blackout: nothing new rests from a minute before a release to five minutes after, a held rung is not stranded, the record shows a null fair", async () => {
+  const t0 = BLACKOUT_T0;
+  const { db, tables, rec, fetchImpl } = world(t0, blackoutPrints(t0), 20);
+  const r = await runCbQuotes({ db, now: t0 + 25 * M, holder: "h", fetchImpl, rec });
+  assertEquals(r.errors, []);
+  assertEquals([r.from, r.to, r.minutes], [t0, t0 + 19 * M, 20]);
+  const hm = (v: unknown) => String(v).slice(11, 16);
+  const gbp = (k: string) => tables.cb_quote_events.filter((e) => e.book === "USDC-GBP" && e.kind === k).map((e) => [hm(e.minute), e.k]);
+  // Entry fills: the two before the window, and one after it. The .3 % rung (17:59:30) and the .1 % rung (18:03:30) found nothing resting.
+  assertEquals(gbp("fill"), [["17:55", 0.001], ["17:58", 0.002], ["18:07", 0.001]]);
+  // Exits: A's resting order fills inside the window (an exit already resting is left as it is); B was filled at 17:58, its exit
+  // is due at the 17:59 turn, which is dark, so it is placed when the fair is back (18:06) and fills at 18:07: held, not stranded.
+  assertEquals(gbp("exit"), [["18:00", 0.001], ["18:07", 0.002]]);
+  assertEquals(tables.cb_quote_trips.filter((t) => t.book === "USDC-GBP").map((t) => [t.k, t.how, hm(t.t_exit)]).sort(), [[0.001, "maker", "18:00"], [0.002, "maker", "18:07"]]);
+  // The record: the fair is null in the seven blackout minutes and nowhere else, X is kept.
+  const rows = tables.cb_quote_minutes.filter((x) => x.book === "USDC-GBP").sort((a, b) => String(a.minute).localeCompare(String(b.minute)));
+  assertEquals(rows.filter((x) => x.fair == null).map((x) => hm(x.minute)), ["17:59", "18:00", "18:01", "18:02", "18:03", "18:04", "18:05"]);
+  assert(rows.every((x) => x.x === 1));
+  assertAlmostEquals(Number(rows.find((x) => hm(x.minute) === "17:58")!.fair), 0.8, 1e-12);
+  assertAlmostEquals(Number(rows.find((x) => hm(x.minute) === "18:06")!.fair), 0.8, 1e-12);
+  // The same minutes are dark on every book.
+  assert(tables.cb_quote_minutes.filter((x) => hm(x.minute) === "18:02").every((x) => x.fair == null));
+  // The rungs were withdrawn at the first dark turn and placed again at the first lit one.
+  assertEquals([...new Set(tables.cb_quote_events.filter((e) => e.book === "USDC-GBP" && e.kind === "withdraw").map((e) => hm(e.minute)))], ["17:59"]);
+  const placed = tables.cb_quote_events.filter((e) => e.book === "USDC-GBP" && e.kind === "order" && hm(e.minute) === "18:06").map((e) => (e.detail as { leg: string }).leg);
+  assert(placed.includes("exit"), "B's exit is placed at the first lit turn");
+  assert(placed.includes("entry"), "entries are placed again at the first lit turn");
+});
+
+Deno.test("with no release near, the same prints fill what the unchanged rule fills", async () => {
+  // The prints of the blackout test, moved to a Monday with no release: the .3 % rung fills at 17:59 and the .1 % one at 18:03.
+  const t0 = Date.UTC(2026, 9, 26, 17, 54);
+  const { db, tables, rec, fetchImpl } = world(t0, blackoutPrints(t0), 20);
+  const r = await runCbQuotes({ db, now: t0 + 25 * M, holder: "h", fetchImpl, rec });
+  assertEquals(r.errors, []);
+  const fills = tables.cb_quote_events.filter((e) => e.book === "USDC-GBP" && e.kind === "fill").map((e) => [String(e.minute).slice(11, 16), e.k]);
+  assertEquals(fills.slice(0, 3), [["17:55", 0.001], ["17:58", 0.002], ["17:59", 0.003]]);
+  assert(fills.some((f) => f[0] === "18:03"));
+  assertEquals(tables.cb_quote_minutes.filter((x) => x.fair == null).length, 0);
 });

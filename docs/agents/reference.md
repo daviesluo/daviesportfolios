@@ -3957,6 +3957,12 @@ the venue screen (`reviews/2026-10-09-stablecoin-venues.md`) put Coinbase first.
     back to the newest stored id. A burst past six pages becomes a hole paged back first, and coverage does not move
     until it closes;
   - each book's touch (`cb_touch`).
+- **Release blackout (Deviation 3, 2026-10-15; Davies: "目前的两个Coinbase 测试采用发布前后暂停的规则吧").** In the seven minutes from one before to five
+  after each scheduled CPI, NFP, FOMC, ECB or BoE release (`agents/cb_releases.ts`, `CB_RELEASES`, UTC instants to 2026-12-31) the minute's
+  `fairU` is null: `stepMinute` quotes nothing new, an exit already resting stays, one due is placed at the first lit minute, the 24-hour
+  stop runs, and the stored minute's `fair` is null so `replay.py` reproduces it. Priced on two 12-month spans (`reviews/2026-10-15-coinbase-fast-move.md`,
+  `2026-10-15-coinbase-blackout.md`): +£25.96 and +£7.89 a year on the screen's £2,400. The Fed's, ECB's and BoE's dates are from their own
+  pages; the BLS's (CPI, NFP) are recalled (bls.gov refused this machine) and checked against the market's move.
 - **Then the paper engine** runs PR5's `stepMinute`, called unchanged (PR5-W's freeze line). Inputs:
   - the stored prints;
   - PR5's stored GBP/USD and USD-book hourly closes (`agent_quote_inputs`);
@@ -4026,6 +4032,9 @@ Davies, 2026-10-13: "周末变体写预注册然后上线paper trading 策略wit
   does not fetch, the EUR/USD minutes `cb_quote_inputs` that call stores) and PR5's paper engine (`agent_quote_inputs`).
   The rate series cost two reads a minute, not sixty hours of bars: the ten-minute window and one anchor row (the newest bar
   before it, within the hold).
+- **Release blackout (Deviation 2, 2026-10-15).** The same seven-minute blackout around each scheduled release as item 58's, from the same
+  `CB_RELEASES`: both arms get it, so bar 6's paired comparison is unaffected; the base arm of the reading is the same minute record with
+  the blackout minutes as they ran (fair null) and the old-rate minutes darkened.
 - **Window.** 28 UTC days from `cb_hold_state.state.startedAt`, the first 00:00 UTC after the call's first run; the record begins
   flat and reads no print from before it. Four whole weekends need a start no later than Friday 2026-10-16 00:00. Read on the day
   after the window, from 00:30 UTC, by `backtests/cbwk/scripts/replay_wk.py`: the base test's five bars, and a sixth against the base
