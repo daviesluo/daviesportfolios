@@ -674,7 +674,7 @@ export function lpRestartOf(c: Pick<PmLiveConfig, "restarted_at" | "restart_loss
 export function restartOpenMarks(
   prev: { at?: unknown; marks?: unknown } | null | undefined, at: string, held: string[], marks: Record<string, number | null>,
   dust: string[] = [],
-): { at: string; marks: Record<string, number>; missing: string[] } {
+): { at: string; marks: Record<string, number>; missing: string[]; pending: string[] } {
   const kept = prev && prev.at === at && prev.marks && typeof prev.marks === "object" ? prev.marks as Record<string, unknown> : {};
   const out: Record<string, number> = {};
   for (const [k, v] of Object.entries(kept)) if (typeof v === "number" && Number.isFinite(v)) out[k] = v;
@@ -682,11 +682,14 @@ export function restartOpenMarks(
     const m = marks[t];
     if (out[t] === undefined && typeof m === "number" && Number.isFinite(m)) out[t] = m;
   }
-  // A holding under the venue's 5-share minimum (Addendum 16: left to settle) whose market has no book to mark it opens at
-  // 1, the most a share can pay: it can then only count as a loss, never a gain, and it no longer holds every opening back.
-  // On 2026-10-13 three such holdings (4.28, 0.003 and 0.0075 shares in two closed markets) kept the restart from opening.
-  for (const t of dust) if (held.includes(t) && out[t] === undefined) out[t] = 1;
-  return { at, marks: out, missing: held.filter((t) => out[t] === undefined) };
+  // A holding under the venue's 5-share minimum (Addendum 16: left to settle) whose market has no book to mark it holds
+  // nothing back (Addendum 20: on 2026-10-13 three such holdings, 4.28, 0.003 and 0.0075 shares in two closed markets,
+  // kept the restart from opening). Since Addendum 23 it opens at no mark at all (`pending`), not at 1: it counts nothing
+  // while it has none, and opens at the first value a turn reads for it, its book's mid or its settlement's payout, so a
+  // closed market's settlement, decided before the restart, is the record's loss and never the restart stop's (Addendum
+  // 19 §6). Opened at 1, a settlement at 0 would have charged the stop its whole carried share count, up to $4.29.
+  const pending = dust.filter((t) => held.includes(t) && out[t] === undefined);
+  return { at, marks: out, missing: held.filter((t) => out[t] === undefined && !pending.includes(t)), pending };
 }
 
 /** Under this many shares a holding cannot be sold on the venue (its minimum order) and is left to settle (Addendum 16). */
@@ -2492,7 +2495,9 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
     const then = tokenBooks(allFills.filter((f) => f.ts < restart.atMs), restart.atMs);
     const heldThen = Object.entries(then).filter(([, t]) => t.held > 1e-9).map(([k]) => k).sort();
     const known: Record<string, number | null> = {};
-    for (const s of settlements) { known[s.yes_token] = Number(s.payout); known[s.no_token] = 1 - Number(s.payout); }
+    // This turn's new settlements too (Addendum 23): their payout realises in `allFills` this turn, so a holding that had no
+    // opening mark opens at it, and the settlement of a market decided before the restart counts nothing in the stop.
+    for (const s of [...settlements, ...newSettlements]) { known[s.yes_token] = Number(s.payout); known[s.no_token] = 1 - Number(s.payout); }
     for (const x of Array.isArray(prev.markets) ? prev.markets as Array<{ cond?: string; book?: { bestBid?: number; bestAsk?: number } | null }> : []) {
       const m = markets.find((y) => y.cond === x?.cond), b = x?.book;
       if (m && b && Number.isFinite(b.bestBid) && Number.isFinite(b.bestAsk)) { const mid = (Number(b.bestBid) + Number(b.bestAsk)) / 2; known[m.yes_token] = mid; known[m.no_token] = 1 - mid; }
@@ -3203,7 +3208,7 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
               stop: {
                 since: restart?.at ?? null, limit: stopLimit, fills: Math.round(stopFills * 1e8) / 1e8, paid, rebates, fees,
                 basis: Math.round(stopBasis * 1e8) / 1e8, room: Math.round((stopLimit + stopBasis) * 1e8) / 1e8, trippedAt: stopTrippedAt,
-                ...(stopOpen ? { open: { at: stopOpen.at, marks: stopOpen.marks }, missing: stopOpen.missing.length } : {}),
+                ...(stopOpen ? { open: { at: stopOpen.at, marks: stopOpen.marks }, missing: stopOpen.missing.length, ...(stopOpen.pending.length ? { pending: stopOpen.pending.length } : {}) } : {}),
               },
             } : {}),
           },

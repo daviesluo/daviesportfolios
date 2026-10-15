@@ -717,3 +717,19 @@ back, as before. Nothing else changes: the selection, the quotes, the stop's lim
 **The code it deploys:** `pm_live.ts` sha256 `9c4174f30523225520f92a0ecd50082d9490e88e43a686a737fdd6629f34a231`, where Addendum 19 named `28930ad9…f43d`.
 
 For mid-pool this is deviation 20: it sets no `lp` options, so none of its decisions changes.
+
+## Addendum 21 (2026-10-15, about 15:20 UTC): deviation 21, live-prep's Addendum 23 (the restart's dust)
+
+**Deviation 21 is live-prep's Addendum 23** (Davies, 2026-10-15: "Addendum 21和Addendum 20都修复了"). It changes the shared
+`pm_live.ts`: after it, `pm_live.ts` sha256 `175844206ce33a714db763139815525a61bb353388dd897eb9dc48c875d8324b`, where Addendum 20 above named `9c4174f3…a231`.
+The change is inside live-prep's restart alone (`restartOpenMarks`, its opening marks): a restart holding under 5 shares
+with no mark opens at the first value read for it instead of at 1, and this turn's new settlements give their payout to
+the restart's marks. Live-prep's other fix of the day (a part holding's exit under its 4 ¢ touch) is in `pm_lp.ts` and
+does not touch the path.
+
+**Mid-pool is unchanged.** It sets no `lp` options and has no restart, so none of its decisions changes:
+`agents/pm_mid_formula.test.ts` and `agents/pm_payouts.test.ts` run it beside the path this file froze and find every
+decision the same.
+
+**What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
+of the Edge deploy that carries it, as deviation 21.

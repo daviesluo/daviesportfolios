@@ -45603,3 +45603,78 @@ reversed to this Part's convention of newest last. Nothing was deleted.
 - Landed `0120` (the LP-SPEED agent, resumed): the paper Reward quotes calls off, their page rows gone, the dashboard no
   longer reads them; checked by hand that live mode reads no paper layer (`pm_live.ts` `paper` is null unless dry-run).
   About 10,600 calls and 114,500 rows a day saved (2026-10-12's). Item 0b.
+
+
+## LEDGER.md, archived 2026-10-15 (second) — the remaining 2026-10-13 history sections, oldest first
+
+### [2026-10-13 13:18 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep's Addendum 19, "quiet books"** (the LP-BEST agent wrote it; its tests and gates were blocked by the
+  permission checks, so the main session ran them on Davies' "同意"): only books with ≤ 50 shares traded in 24 h (the data
+  API, a failed read never quiet) and a touch ≥ 4 c, 2N a side, 90 % of the cap, a −$25 stop counted from a restart
+  (`0119`). Rebased over `0120`, two doc conflicts kept both sides. Counterfactuals run here: INV_CAP 5, touch 1 c, a failed
+  read taken as quiet, the 50-share bar ignored, the restart's limit ignored, the restart ignored: each fails its pins.
+  Hashes in the addendum match the files (`pm_live.ts` 28930ad9…, `pm_lp.ts` 08be7827…, 0119 88437a19…).
+
+### [2026-10-13 13:18 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- Landed PMOPPS (the LP-ADVERSE agent, resumed after a usage limit; `reviews/2026-10-13-polymarket-opportunities.md`):
+  nothing on Polymarket clears the bar for a new paper row now. DEADLINE-NO (NO at T − 7 days, YES 0.20–0.50) is the one
+  lead (2025 +14.4 % a trade, held-out 2026 +7.1 % [−4.0, +17.0]); its draft A is a frozen test on unread 2024 first,
+  waiting on Davies. Quiet books under 3 days old lost in-sample (draft B, Q2-AGE, a filter to price in LP-BEST's engine).
+  Neg-risk sets, date ladders, disputes, new pools (POOLAGE closed), sponsored programmes and rebates alone: no-go.
+
+### [2026-10-13 13:39 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Q2 went live: restart at 2026-10-13 13:25:32 UTC** (the go statement of Addendum 19, its checks all passed; `restart_loss_usd`
+  25, `max_markets` 12, `select_budget_usd` 320). The first selection read 60 books' trades (0 failed), passed over 46 busy
+  and 510 narrow books, and picked 12 quiet ones; the stop opened at basis ~$0, room $25. **But nothing opened**: three dust
+  holdings in two closed markets (4.2791 + 0.0031 shares in 0x0608b79b…, 0.0075 in 0x225b0d56…) had no mark, so every turn
+  left the stop unjudged (four `agents.pm_lp` rows 13:26–13:29). **Addendum 20** (both pre-registrations; Davies: "有问题立马
+  修复"): a holding under the 5-share minimum with no mark opens at 1, so it can only count as a loss (≤ $4.29); 5 shares or
+  more still holds openings back. Pinned (fails on Addendum 19's `restartOpenMarks`); the hash chain moves to 20.
+
+### [2026-10-13 13:48 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- Addendum 20 deployed (`a59d3205`); at 13:42 one mark was still missing (the Citigroup dust, a turn on the old code), at 13:45
+  none: `openBlockedBy` null, 12 BUYs resting ($114.60) in the quiet picks, one carried SELL, stop room $24.91. A `sonnet-high`
+  watcher runs a live-watch cycle every 90 minutes for 16 cycles (Q2's stop, picks, fills, rewards per filled share, the
+  error box), messaging the main session each cycle and at once on any ALERT; it fixes nothing itself. Running too:
+  DEADLINE-NO's frozen 2024 test (the PMOPPS agent) and Q2-AGE in LP-BEST's engine (the LP-BEST agent).
+
+### [2026-10-13 14:26 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **DEADLINE-NO is closed: noise** (the PMOPPS agent, on Davies' "好的 继续深度检验和验证这两个"). Frozen first, alone:
+  `reviews/2026-10-13-deadline-no-2024-prereg.md` + `backtests/pmopps/scripts/deadline_no.py` (sha256 `a8d664e4…`, theta.py's
+  rule exactly, reproduced to the fourth decimal on 2025/2026), commit `74a6833b` at 13:45:25 UTC; the first 2024 file was
+  written at 13:45:32. **2024 FAILS** (`reviews/2026-10-13-deadline-no-2024-result.md`): 71 trades in 59 events (bar 150/100),
+  +5.6 % [−6.2, +17.4], one event 29.9 %. Deep check (description only): every 2026 market reads +1.8 % [−6.1, +9.3] (the
+  held-out +7.1 % was the one-in-two sample); pooled 2024–26 T − 7 d +4.9 % [−0.1, +9.5] while T − 5/6/8/9/10 d read −3.7 to
+  +0.8 %; the tape's real NO price plus today's fees leave +2.2 % (median) / −0.2 % (p75). No forward paper test drafted.
+  The other lead (Q2 + age ≥ 3 days) was not this agent's part.
+
+### [2026-10-13 15:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Q2-AGE** (the LP-BEST agent, resumed; `reviews/2026-10-13-q2-age.md`, `backtests/lpbest/scripts/q2age*.py`,
+  `MANIFEST_q2age.json`; Davies: "好的 继续深度检验和验证这两个"). PMOPPS' "quiet books under 3 days old lose", through LP-BEST's
+  engine with Q2 as live: chosen on TRAIN it is no filter (Q2 +4.10 / +4.23 TEST / +3.61 all at $316; 3-day minimum +1.43 /
+  +3.61 / +2.48, paired −1.13 [−3.43, +1.56] a day), but the filter cuts the worst day −10.34 → −2.40 and the SD 40 %. On
+  10-13 00:00 → 12:59 (re-extracted archive, a second span) Q2 −9.87, the filter +4.28: eight of eleven picks under 6 hours
+  old, two (UNP earnings, a Rotten Tomatoes score) −$17. Young quiet books are not more toxic per share; they are busier,
+  pay ~10× the formula and are 23 % of picks. PMOPPS' loss sat almost all outside Q2's candidate set. Verdict: not an
+  addendum now, not dropped: draft B′, an offline replay on the live window plus the live record split by age, decided at
+  day 14; an early flag to Davies if a −$10 day comes from markets under 3 days old. Nothing changed in code or config.
+
+### [2026-10-13 15:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Addendum 21** (live-prep only; Davies: "有问题立马修复"), from the watch of 15:16: Q2's first fill (20 NO at 0.85 in
+  0xe612eb64…, 13:45) rested no exit once its book narrowed under 4 c, because the touch rule dropped a quoting market's
+  sells with its buys. Now a narrow book rests only the sells of what is held. Pinned; counterfactual fails. The watch's
+  other question, the OpenRouter "market share" market being selected, is Addendum 12's rule as written (typed "counts"
+  first, pinned), so it stays. Also seen at 15:16: no BUY resting, every pick and refill either out of its programme or
+  under the 4 c touch at that minute; that is Q2's rule (the engine priced it per minute), not a fault, and the watch
+  carries on.
+
+### [2026-10-13 20:54 UTC] Platform: Muse | Model: muse-wonder-full-1.0
+- **"Stablecoin quotes with Euros - 2" starts today** (Davies, 2026-10-13 evening: start it immediately, do not wait for
+  2026-10-14 00:00 UTC). Deviation 1 of its pre-registration (§7) and migration `0121`: the still-empty record's
+  `startedAt` moves to 2026-10-13 00:00 UTC (window to 2026-11-10 00:00, reading that day from 00:30; four whole
+  weekends unchanged), guarded to a no-op once any minute is decided; `cb_hold.ts` and every frozen file untouched —
+  a start at the minute of his word was not taken because the frozen reading buckets days from a midnight start.
+  The first runs after `0121` decide 10-13's recorded minutes 60 at a time, each on its own minute's inputs, then run
+  current. Item 12b updated. Post-deploy check: `startedAt` 2026-10-13, `last_minute` ~2 min behind, no
+  `agents.cb_hold` errors (this session reads production through the site's agents payload, having no SQL connector;
+  the SQL form is in item 12b).

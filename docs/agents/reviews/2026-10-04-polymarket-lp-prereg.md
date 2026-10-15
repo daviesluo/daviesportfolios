@@ -1637,3 +1637,61 @@ the restart's whole window, the days before this addendum included and named.
 **The code it deploys:** `pm_live.ts` sha256 `9c4174f30523225520f92a0ecd50082d9490e88e43a686a737fdd6629f34a231` (Addendum 20's, unchanged) and `pm_lp.ts` sha256 `82ae7a72724515ad49b059d9e00f98888c7f6cb44ea6d483f22b2602b4ae78bb`, where Addendum 21
 named `9cc5a443…bd48`.
 
+
+## Addendum 23 (2026-10-15, about 15:20 UTC): a part holding's exit under the 4 ¢ touch, and the restart's dust left to the record
+
+**On whose word.** Davies, 2026-10-15, verbatim, as the main session relayed it: "Addendum 21和Addendum 20都修复了" (fix both Addendum 21 and
+Addendum 20), on the two calls the evening audit of 2026-10-14 put to him (`docs/LEDGER.md` item 0c, points 1 and 2).
+This is not the draft "Addendum 23" of `reviews/2026-10-14-q2-trips.md` (entries 4 ¢ from the adjusted mid), which was
+never adopted.
+
+**When.** Live-prep's Q2 has been closed to close-only since 2026-10-15 00:08 UTC (`restarted_at` null, `openBlockedBy`
+`loss_total`, its held lots exiting). Neither fix changes a decision while it stays so: the first acts only in a market
+still quoting while opening is allowed, the second only while a restart is set. They are for its exits if it quotes
+again and for any later restart, which stays Davies' word.
+
+**1. Addendum 21's exit gap.** Under the 4 ¢ touch a quoting market rested the sells of what it holds through the rule
+without the skip, keeping its SELLs. That rule sells a holding only of N or more; for one between the venue's 5-share
+minimum and N its side is a BUY, which the filter dropped, so the holding rested no exit: 0x3b162968…'s 9 shares (N = 20)
+sat 32 minutes with none on 2026-10-14. The line now goes through `closeOnly`, as the close-only path's exit does: the BUY
+on that side becomes the SELL of what is held at the same price, N at most; a SELL the rule already makes is unchanged,
+and nothing under the 5-share minimum rests (Addendum 16). From 4 ¢ the quoting rule is Addendum 19's, unchanged.
+
+**Checked, the close-only path that runs now** (`lpExitQuotes` through `closeOnly`): a holding between 5 and N has its exit
+there, since `closeOnly` already turns the side's BUY into the sell. Three narrower cases rest no exit, on that path and
+under the touch alike, because each depends on the rule making a BUY or a quote on that side; read from the code and
+checked on hand-made books, not on the live record, and not changed here (no word asks for it):
+- a part holding of the cheap token while the other is at 0.95 or more and its buy is refused by the near-certain limit
+  (Addendum 7): 9 NO at 0.04 against YES 0.96 / 0.98 rests none at a $100 cap, and does at $1,000 (at most 19 shares at
+  ≤ 5 ¢, under $1);
+- a part holding of one token while the other is held 2N or more net (50 YES and 9 NO: the 9 NO rest none);
+- a book with no level of the minimum on one side within the spread, where RW's quote is null: no exit at all, a full
+  holding included (as Addendum 16 found for one-tick books before its fix).
+
+**2. Addendum 20's dust.** Addendum 20 opened a restart holding under 5 shares with no mark at 1. If its closed market
+then settles at 0 the restart's stop takes the whole share count as a loss: 0x0608b79b…'s 4.28 shares, up to $4.29 of
+Q2's $25. That loss was decided before the restart, and §6 of Addendum 19 says the stock carried into a restart counts
+only by its moves from its mark at the restart, its loss to the restart being the record's. Now such a holding opens at
+no mark (`restartOpenMarks`' `pending`): it holds nothing back, as under Addendum 20, counts nothing while it has no
+mark, and opens at the first value a turn reads for it, its book's mid or its settlement's payout, from which its moves
+count as every carried holding's do. A settlement read this very turn (`newSettlements`) now gives that payout as well,
+so a holding with no opening mark settled in the turn the path first sees it is not counted from cost. A holding of 5
+shares or more with no mark still holds every opening back, as before. The state's `lp.stop.pending` counts them.
+
+Nothing else changes: the selection, the quotes from 4 ¢, 2N, the 90 % budget, the $25 restart stop and its basis for
+every marked holding, no refills, the restart's go statement (`state.lp.addendum` still reads 19), the pause, the caps.
+Mini-pool and mid-pool set no `lp` options and are unchanged (mid-pool's deviation 21).
+
+**The code it deploys:** `pm_live.ts` sha256 `175844206ce33a714db763139815525a61bb353388dd897eb9dc48c875d8324b`, where Addendum 20 named `9c4174f3…a231` (`restartOpenMarks`' `pending`,
+the restart's `known` with this turn's settlements, `lp.stop.pending`); `pm_lp.ts` sha256 `8303fd97ec106535af9b5a5b1116941996c766e3f0acd5f564feafeb40da9f0c`, where Addendum 22 named
+`82ae7a72…78bb` (`lpQuotesOn`'s exit under the touch through `closeOnly`). No migration.
+
+**Pinned** (`agents/pm_lp.test.ts`):
+- under 1, 2 and 3 ¢ a quoting market holding 9 NO, or 9 YES, of N = 20 rests the SELL of 9 at the price the full holding's
+  sell takes; 9 YES and 25 NO rest a sell of each, 20 and 9; 4.9 rests nothing; at 4 ¢ the rule is Addendum 19's. It
+  fails on Addendum 22's `pm_lp.ts`;
+- `restartOpenMarks`: dust with no mark is pending, not missing and not at 1, and opens at a later turn's value;
+- armed, a restart carrying 4.2791 YES (bought at 0.60) in a closed market with no book: nothing held back, none counted;
+  once Gamma shows it resolved NO it settles at 0, opens at 0 and the stop's fills stay 0, its room the whole $25. With
+  Addendum 20's opening at 1 the same fills gave −4.2791. Both fail on Addendum 20's `pm_live.ts`;
+- `src/pm_live_hash.test.js`, `src/pm_lp_prereg.test.js`: the bytes and the chain of addenda.

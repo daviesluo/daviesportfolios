@@ -532,7 +532,11 @@ that follow from that evidence, in short:
   of the addendum, run only in the conversation where Davies says go, and `restarted_at = null` undoes it (the 10-12 stop
   latches again). The dry-run day was waived on his word; a 14-day live test from the restart decides. Addendum 20 opens
   dust holdings at 1, Addendum 21 rests a held exit under the 4 ¢ touch, and **Addendum 22** (Davies, 2026-10-14: "同意
-  Addendum 22（取消补选）") takes no refill: a pick whose programme dips keeps its slot and quotes again when it is back. **Live, its total cap follows its equity since
+  Addendum 22（取消补选）") takes no refill: a pick whose programme dips keeps its slot and quotes again when it is back.
+  **Addendum 23** (Davies, 2026-10-15: "Addendum 21和Addendum 20都修复了") rests the exit of a holding between 5 shares and N
+  under the touch too (through `closeOnly`), and opens a restart's unmarked dust at its first read value, not at 1, so a
+  settlement decided before the restart never charges the restart's stop; Q2 has been close-only since 2026-10-15 00:08 UTC
+  (`restarted_at` null), which neither fix changes. **Live, its total cap follows its equity since
   `0106`** (Davies, 2026-10-09: payouts and deposits used at once; its pre-registration's Addendum 8): every turn
   floor(pUSD + held at cost + unredeemed − $75 − $5), at most $1,000, down at once, up only on two agreeing readings with
   no fill settling, never on an unread balance (`lpCapital`); `reinvest = false` on its config puts the fixed $320 back. Its

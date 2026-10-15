@@ -58,7 +58,7 @@
 // says go (the design doc's step 8lp).
 
 import {
-  onTick, othersLevels, type LpRefillOptions, type PmCandidateRules, type PmIntent, type PmLiveInstance, type PmQuietRead, type PmQuietRule, type PmQuoteInput, type PmQuoteRule,
+  closeOnly, onTick, othersLevels, type LpRefillOptions, type PmCandidateRules, type PmIntent, type PmLiveInstance, type PmQuietRead, type PmQuietRule, type PmQuoteInput, type PmQuoteRule,
 } from "./pm_live.ts";
 import { bookReplies } from "./pm_mid.ts";
 import { type BookRow, quote, RW_MIN_RATE, sizeN, summarize } from "./pmrw.ts";
@@ -259,7 +259,10 @@ function lpQuotesOn({ market, book, held, own, capital }: PmQuoteInput, skip: bo
   const row = summarize(o.bids, o.asks, v, minSize);
   // Under the touch rule nothing new rests, but the exit of what is held still does (Addendum 21, 2026-10-13: Q2's first
   // fill, 20 NO in 0xe612eb64…, sat with no sell for an hour once its book narrowed under 4 c, though it kept quoting).
-  if (skip && "minTouchCents" in shape.tight && !wideTouch(row, shape.tight.minTouchCents)) return lpQuotesOn({ market, book, held, own, capital }, false, shape).filter((i) => i.side === "SELL");
+  // Through `closeOnly`, as the close-only path's exit is (Addendum 23, 2026-10-15): the rule sells only a holding of N or
+  // more, so a holding between the venue's minimum and N (0x3b162968…'s 9 shares, 32 minutes with no exit) rested
+  // nothing; `closeOnly` turns the buy on its side into the sell of what is held, at the same price, N at most.
+  if (skip && "minTouchCents" in shape.tight && !wideTouch(row, shape.tight.minTouchCents)) return closeOnly(lpQuotesOn({ market, book, held, own, capital }, false, shape), held, book);
   if (skip && ("minTouchCents" in shape.tight ? !wideTouch(row, shape.tight.minTouchCents) : isTight(row, Number(book.tick), shape.tight.maxTicks))) return [];
   const q = row ? quote(row, Number(book.tick)) : null;
   if (!q) return [];

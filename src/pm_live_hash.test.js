@@ -20,8 +20,10 @@
 //   a01c8560…  live-prep's Addendum 17, mid-pool's Addendum 17 (live-prep's caps in rank order, 2026-10-11)
 //   ee96ba0e…  live-prep's Addendum 18, mid-pool's Addendum 18 (the refill's cash check, exits through a pause, the stop
 //              on the page's TOTAL, 2026-10-11)
-//   (Addendum 19's)  live-prep's Addendum 19, mid-pool's Addendum 19 (quiet books, 2N, 90 % of the cap, the stop from a
+//   28930ad9…  live-prep's Addendum 19, mid-pool's Addendum 19 (quiet books, 2N, 90 % of the cap, the stop from a
 //              restart; Davies 2026-10-13, no dry-run day)
+//   9c4174f3…  live-prep's Addendum 20 (and 21, 22, unchanged), mid-pool's Addendum 20 (the restart's dust at 1)
+//   (Addendum 23's)  live-prep's Addendum 23, mid-pool's Addendum 21 (the restart's dust left to the record, 2026-10-15)
 import { describe, expect, it } from 'vitest';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -71,15 +73,23 @@ const AEE9 = 'ee96ba0e40e38ac9999f78028470cc8713584cf05c45539f265eca76c2d3667d';
 const LP_A18 = '53f7f788a47e93f52770f96410db9faf8f34cdd7dc2cf4ddbd877c9038d07278';
 /** The pm_live.ts Addendum 19 named (quiet books and the restart), the path until Addendum 20. */
 const A289 = '28930ad918b0358c98e6bd6268715c6fd845b6092bcefcd1b44ffd45daf7f43d';
+/** The pm_live.ts Addendum 20 named (the restart's dust at 1), the path through Addenda 21 and 22 until Addendum 23. */
+const A9C4 = '9c4174f30523225520f92a0ecd50082d9490e88e43a686a737fdd6629f34a231';
 
 describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", () => {
-  it("live-prep's latest addendum (22; 20 and 21 name the same bytes) and mid-pool's (20) name today's pm_live.ts", () => {
-    expect(lastNumber(LP)).toBe(22);
-    expect(lastNumber(MID)).toBe(20);
-    expect(namedPath(addendum(LP, 22))).toBe(sha);
-    expect(namedPath(addendum(LP, 21))).toBe(sha);
-    expect(namedPath(addendum(LP, 20))).toBe(sha);
-    expect(namedPath(addendum(MID, 20))).toBe(sha);
+  it("live-prep's latest addendum (23) and mid-pool's (21) name today's pm_live.ts", () => {
+    expect(lastNumber(LP)).toBe(23);
+    expect(lastNumber(MID)).toBe(21);
+    expect(namedPath(addendum(LP, 23))).toBe(sha);
+    expect(namedPath(addendum(MID, 21))).toBe(sha);
+    expect(addendum(LP, 23)).toContain('`9c4174f3…a231`');
+    expect(addendum(MID, 21)).toContain('`9c4174f3…a231`');
+    expect(addendum(MID, 21)).toContain('deviation 21');
+    // Addenda 20, 21 and 22 named the same bytes: 21 and 22 changed pm_lp.ts alone.
+    expect(namedPath(addendum(LP, 22))).toBe(A9C4);
+    expect(namedPath(addendum(LP, 21))).toBe(A9C4);
+    expect(namedPath(addendum(LP, 20))).toBe(A9C4);
+    expect(namedPath(addendum(MID, 20))).toBe(A9C4);
     expect(namedPath(addendum(LP, 19))).toBe(A289);
     expect(namedPath(addendum(MID, 19))).toBe(A289);
     expect(addendum(LP, 20)).toContain('`28930ad9…f43d`');
@@ -420,7 +430,10 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     // The pm_lp.ts Addendum 21 named, the instance until Addendum 22, which names it and today's.
     expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(addendum(LP, 21))?.[1]).toBe('9cc5a4430730f845333b948a6060746af280faeed84e0eb501f1702c1185bd48');
     expect(addendum(LP, 22)).toContain('`9cc5a443…bd48`');
-    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(addendum(LP, 22))?.[1]).toBe(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex'));
+    // The pm_lp.ts Addendum 22 named, the instance until Addendum 23, which names it and today's.
+    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(addendum(LP, 22))?.[1]).toBe('82ae7a72724515ad49b059d9e00f98888c7f6cb44ea6d483f22b2602b4ae78bb');
+    expect(addendum(LP, 23)).toContain('`82ae7a72…78bb`');
+    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(addendum(LP, 23))?.[1]).toBe(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex'));
     expect(read('supabase/functions/agents/pm_lp.ts')).toContain('    fundByRank: true,');
     const src = read(PATH);
     expect(src).toContain('if (!inst.lp?.fundByRank) {');
@@ -480,5 +493,22 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     expect(lp).toContain('export const PM_LP_SELECT_SHARE = 0.9;');
     expect(lp).toContain('    quietRead: lpQuietRead,\n    selectShare: PM_LP_SELECT_SHARE,\n    restartable: true,');
     for (const f of ['pm_mid.ts', 'pm_mini.ts']) if (fs.existsSync(path.join(ROOT, 'supabase/functions/agents', f))) expect(read(`supabase/functions/agents/${f}`)).not.toMatch(/quietRead|selectShare|restartable|quiet:/);
+  });
+
+  it("live-prep's Addendum 23 and mid-pool's 21 record the two fixes in Davies' words: a part holding's exit under the touch, the restart's dust left to the record", () => {
+    const lp23 = addendum(LP, 23), mid21 = addendum(MID, 21);
+    expect(lp23).toContain('"Addendum 21和Addendum 20都修复了"');
+    expect(mid21).toContain('"Addendum 21和Addendum 20都修复了"');
+    for (const r of ['`docs/LEDGER.md` item 0c', 'Q2 has been closed to close-only since 2026-10-15 00:08 UTC', 'Neither fix changes a decision while it stays so',
+      '**Checked, the close-only path that runs now**', 'No migration.']) expect(lp23, r).toContain(r);
+    expect(mid21).toContain('**Mid-pool is unchanged.**');
+    const src = read(PATH), lp = read('supabase/functions/agents/pm_lp.ts');
+    expect(lp).toContain('return closeOnly(lpQuotesOn({ market, book, held, own, capital }, false, shape), held, book);');
+    expect(lp).not.toContain('.filter((i) => i.side === "SELL")');
+    expect(src).toContain('const pending = dust.filter((t) => held.includes(t) && out[t] === undefined);');
+    expect(src).not.toContain('out[t] = 1;');
+    expect(src).toContain('for (const s of [...settlements, ...newSettlements]) { known[s.yes_token] = Number(s.payout); known[s.no_token] = 1 - Number(s.payout); }');
+    // The restart's go statement still reads 19: these fixes keep its check.
+    expect(src).toContain('              addendum: 19,');
   });
 });

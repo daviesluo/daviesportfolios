@@ -1709,9 +1709,9 @@ Deno.test("lpRestartOf, lpSelectBudget, restartOpenMarks: the restart's instant 
   assertEquals([lpSelectBudget(320, 247, 0.9), lpSelectBudget(200, 247, 0.9), lpSelectBudget(320, null, 0.9), lpSelectBudget(320, 236, 0.9)], [222.3, 200, 0, 212.4]);
   // The opening marks: this turn's for what is held; kept once read for the same restart; a new restart starts again.
   const a = restartOpenMarks(null, "R1", ["y1", "n2"], { y1: 0.4, n2: null });
-  assertEquals(a, { at: "R1", marks: { y1: 0.4 }, missing: ["n2"] });
+  assertEquals(a, { at: "R1", marks: { y1: 0.4 }, missing: ["n2"], pending: [] });
   const b = restartOpenMarks({ at: "R1", marks: a.marks }, "R1", ["y1", "n2"], { y1: 0.1, n2: 0.7 });
-  assertEquals(b, { at: "R1", marks: { y1: 0.4, n2: 0.7 }, missing: [] });
+  assertEquals(b, { at: "R1", marks: { y1: 0.4, n2: 0.7 }, missing: [], pending: [] });
   assertEquals(restartOpenMarks({ at: "R1", marks: b.marks }, "R2", ["y1"], { y1: 0.2 }).marks, { y1: 0.2 });
 });
 
@@ -1813,18 +1813,62 @@ Deno.test("the restart takes the day's earlier selection as carried and selects 
   assertEquals(n.rows("pm_lp_events").filter((e) => e.kind === "selection").length, 1);
 });
 
-Deno.test("restartOpenMarks: a holding under the 5-share minimum with no mark opens at 1 (only a loss can follow) and holds nothing back; a larger one still does", () => {
+Deno.test("restartOpenMarks: a holding under the 5-share minimum with no mark holds nothing back and opens at no mark (Addendum 23; Addendum 20 opened it at 1); a larger one still holds", () => {
   // 2026-10-13 13:26: three dust holdings in two closed markets (no book) left the restart's stop unjudged, so nothing opened.
   assertEquals(PM_RESTART_DUST_SHARES, 5);
   const r = restartOpenMarks(null, "R", ["big", "dust", "y"], { y: 0.4, big: null, dust: null }, ["dust"]);
-  assertEquals(r.marks, { y: 0.4, dust: 1 });
-  assertEquals(r.missing, ["big"]);
+  // Addendum 20 gave { y: 0.4, dust: 1 }: a settlement at 0 then counted the dust's whole share count against the stop.
+  assertEquals([r.marks, r.missing, r.pending], [{ y: 0.4 }, ["big"], ["dust"]]);
+  // It opens at the first value a later turn reads, here its settlement's payout, 0: from then its moves count.
+  const later = restartOpenMarks({ at: "R", marks: r.marks }, "R", ["big", "dust", "y"], { y: 0.3, big: 0.5, dust: 0 }, ["dust"]);
+  assertEquals([later.marks, later.missing, later.pending], [{ y: 0.4, big: 0.5, dust: 0 }, [], []]);
   // A mark read for a dust holding is used as it is.
   assertEquals(restartOpenMarks(null, "R", ["dust"], { dust: 0.3 }, ["dust"]).marks, { dust: 0.3 });
   // Dust not held is not added.
   assertEquals(restartOpenMarks(null, "R", ["y"], { y: 0.4 }, ["gone"]).marks, { y: 0.4 });
   // Without the dust list, as before.
   assertEquals(restartOpenMarks(null, "R", ["dust"], { dust: null }).missing, ["dust"]);
+});
+
+Deno.test("Addendum 23: a dust holding carried into the restart in a closed market that settles at 0 charges the restart's stop nothing (Addendum 20's open at 1 charged −$4.28)", async () => {
+  const run = async () => {
+    const w = world({ a19: true, config: { ...LIVE, restarted_at: iso(T0 - 20e3), restart_loss_usd: 25 } });
+    // LOW carried from 10-04: 4.2791 YES bought at 0.60 (0x0608b79b…'s dust on 2026-10-13), its market closed, no book, no
+    // payout yet.
+    w.rows("pm_lp_markets").push({
+      day: "2026-10-04", kind: "standard", cond: w.LOW.cond, yes_token: tok(7, "yes"), no_token: tok(7, "no"), neg_risk: false, tick: 0.01, min_size: 5, reward_rate: 12, rank: 1, question: "q",
+      detail: {}, selected_at: "2026-10-04T00:00:01.000Z", max_spread: 4.5, n_size: 5, per_dollar_day: 0.1, capital: 5, formula_day: 3, end_date: null, game_start: null,
+    });
+    w.rows("pm_lp_fills").push({ cond: w.LOW.cond, token: tok(7, "yes"), status: "CONFIRMED", size: 4.2791, trade_id: "d-b", hash: "0xdb", side: "BUY", price: 0.6, match_time: "2026-10-04T12:00:00.000Z" });
+    w.LOW.resolved = true;
+    await w.turn(T0);
+    const st0 = (w.rows("pm_lp_state")[0].state as any).lp.stop;
+    // Gamma then shows it resolved NO: YES pays 0.
+    w.LOW.payout = 0; w.LOW.closedTime = "2026-10-05 10:00:00+00";
+    await w.turn(T0 + M);
+    const st1 = (w.rows("pm_lp_state")[0].state as any).lp.stop;
+    await w.turn(T0 + 2 * M);
+    const st2 = (w.rows("pm_lp_state")[0].state as any).lp.stop;
+    return { w, st0, st1, st2, settled: w.rows("pm_lp_settlements").map((x) => [x.cond, Number(x.payout)]) };
+  };
+  const r = await run();
+  assertEquals(r.settled, [[r.w.LOW.cond, 0]]);
+  // Before the payout: nothing holds the stop back (one pending, none missing), and the basis counts nothing of it.
+  assertEquals([r.st0.missing, r.st0.pending, r.st0.open.marks[tok(7, "yes")]], [0, 1, undefined]);
+  assertAlmostEquals(r.st0.fills, 0, 1e-9);
+  // The turn that reads the settlement opens it at that payout too (this turn's settlements are among the restart's
+  // marks): without them it counted from cost that turn, 4.2791 × (0 − 0.60) = −2.57.
+  assertEquals(r.st1.open.marks[tok(7, "yes")], 0);
+  assertAlmostEquals(r.st1.fills, 0, 1e-9);
+  // After it: the dust opened at its payout, 0, and its settlement counts nothing; the stop's room is its whole $25.
+  assertEquals([r.st2.missing, r.st2.pending, r.st2.open.marks[tok(7, "yes")], r.st2.trippedAt], [0, undefined, 0, null]);
+  assertAlmostEquals(r.st2.fills, 0, 1e-9);
+  assertAlmostEquals(r.st2.room, 25, 1e-9);
+  // The counterfactual, Addendum 20's opening at 1, on the same fills: the settlement at 0 charged the stop −$4.2791,
+  // a loss decided before the restart (Addendum 19 §6: the record's).
+  const fills = [{ token: "Y", side: "BUY" as const, price: 0.6, size: 4.2791, ts: Date.parse("2026-10-04T12:00:00Z") }, { token: "Y", side: "SELL" as const, price: 0, size: 4.2791, ts: T0 + M }];
+  assertAlmostEquals(sinceOpenPnl(fills, T0 - 20e3, { Y: 1 }, { Y: null }), -4.2791, 1e-9);
+  assertAlmostEquals(sinceOpenPnl(fills, T0 - 20e3, { Y: 0 }, { Y: null }), 0, 1e-9);
 });
 
 Deno.test("Addendum 21: under the 4 ¢ touch a market still quoting rests the exit of what it holds, and nothing new", () => {
@@ -1839,6 +1883,24 @@ Deno.test("Addendum 21: under the 4 ¢ touch a market still quoting rests the ex
   // From 4 c, as Addendum 19: the sell and the buys its 2N allows.
   const { market, book } = bookOf(4);
   assertEquals(lpQuotes({ market, book, held: { yes: 0, no: 20 } }).map((x) => `${x.outcome} ${x.side}`), ["no SELL", "no BUY"]);
+});
+
+Deno.test("Addendum 23: under the 4 ¢ touch a quoting market rests the exit of a holding between the minimum and N, at the full holding's price; Addendum 21 rested none", () => {
+  // 2026-10-14: 0x3b162968…'s 9 shares (N = 20) sat 32 minutes with no exit in a quoting market under the 4 ¢ touch.
+  for (const c of [1, 2, 3]) {
+    const { market, book } = bookOf(c);
+    const full = (h: { yes: number; no: number }) => lpQuotes({ market, book, held: h }).map((x) => [x.outcome, x.side, x.price, x.size]);
+    const noAt = full({ yes: 0, no: 20 })[0][2], yesAt = full({ yes: 20, no: 0 })[0][2];
+    assertEquals(full({ yes: 0, no: 9 }), [["no", "SELL", noAt, 9]], `${c} ¢`);
+    assertEquals(full({ yes: 9, no: 0 }), [["yes", "SELL", yesAt, 9]], `${c} ¢`);
+    // Both held, one in full and one in part: a sell of each, N at most.
+    assertEquals(full({ yes: 9, no: 25 }), [["no", "SELL", noAt, 20], ["yes", "SELL", yesAt, 9]], `${c} ¢`);
+    // Under the venue's minimum (5): nothing, as every exit (Addendum 16 leaves it to settle); never a BUY.
+    assertEquals(full({ yes: 0, no: 4.9 }), [], `${c} ¢`);
+  }
+  // From 4 ¢ the quoting rule is Addendum 19's, untouched: a part holding is quoted on, its side a BUY.
+  const { market, book } = bookOf(4);
+  assertEquals(lpQuotes({ market, book, held: { yes: 0, no: 9 } }).map((x) => `${x.outcome} ${x.side}`), ["yes BUY", "no BUY"]);
 });
 
 Deno.test("Addendum 22: live-prep takes no refill; a slot out keeps its place, and the idle alarm waits six hours", async () => {
