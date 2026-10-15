@@ -400,6 +400,15 @@ export type PmLpOptions = {
    * from the first fill and stays tripped until a person clears it, as before.
    */
   restartable?: boolean;
+  /**
+   * Liquidation (Addendum 24; Davies, 2026-10-15: "那目前的单都尽快卖出掉吧，还剩多少"): with the config's `liquidate_at` set
+   * (0123, refused while a restart is set), nothing opens (gate `liquidate`), and each token held at the venue's minimum or
+   * more is sold whole at the best bid against it, a taker order (`lpLiquidation`), once a turn and re-priced to the bid
+   * the next. A bid under `floor`, or whose worst-case taker fee (`maxFeeRate` × p × (1 − p) a share) leaves under `floor`,
+   * is not hit: that token keeps the close-only exit at the ask. Taker sells go only where the region, the geoblock's
+   * country and the Ireland attestation all pass. Unset, nothing of this runs.
+   */
+  liquidate?: { floor: number; maxFeeRate: number };
 };
 /** The refill's numbers (`PM_LP_REFILL`, pm_lp.ts): the research agent's values drop in there. */
 export type LpRefillOptions = {
@@ -474,6 +483,8 @@ export type PmLiveConfig = {
   reinvest?: boolean | null; cap_ceiling_usd?: number | string | null;
   /** Live-prep's only (0119, Addendum 19): the restart its stop counts from, and that stop's limit (`lpRestartOf`). */
   restarted_at?: string | null; restart_loss_usd?: number | string | null;
+  /** Live-prep's only (0123, Addendum 24): from this instant every holding is sold at the bid (`lpLiquidateOf`). */
+  liquidate_at?: string | null;
 };
 export type PmMarketRow = {
   day: string; kind: "standard" | "neg_risk"; cond: string; yes_token: string; no_token: string; neg_risk: boolean;
@@ -665,6 +676,43 @@ export function lpRestartOf(c: Pick<PmLiveConfig, "restarted_at" | "restart_loss
 }
 
 /**
+ * Live-prep's liquidation (Addendum 24, 0123): the config's `liquidate_at` once it is a time not ahead of `nowMs`, or null.
+ * A value that does not parse is no liquidation.
+ */
+export function lpLiquidateOf(c: Pick<PmLiveConfig, "liquidate_at">, nowMs: number): { atMs: number; at: string } | null {
+  const t = c.liquidate_at ? Date.parse(c.liquidate_at) : NaN;
+  return Number.isFinite(t) && t <= nowMs ? { atMs: t, at: iso(t) } : null;
+}
+
+/**
+ * The taker sells that liquidate a market's holdings (Addendum 24): for each token held at the venue's minimum or more,
+ * a SELL of the whole holding (to the hundredth of a share) at the best bid of the rest of the book, so it fills now:
+ * YES at YES's best bid, NO at 1 − YES's best ask (NO's best bid). `touch` is the book without our orders, a missing side
+ * read as 0 (bid) or 1 (ask). A token whose bid is none, under `floor`, off the venue's price range, or whose worst-case
+ * taker fee (`maxFeeRate` × p × (1 − p) a share, `pmFeeEquivalent`'s formula at the highest rate a fee type has) leaves
+ * under `floor` a share is not sold here, and says why (`kept`): it keeps the close-only exit at the ask. Never a BUY.
+ * Dust under the minimum is left to settle (Addendum 16).
+ */
+export function lpLiquidation(
+  held: { yes: number; no: number }, touch: { bestBid: number; bestAsk: number }, book: Pick<PmBookNow, "tick" | "minSize">,
+  rule: { floor: number; maxFeeRate: number },
+): { sells: PmIntent[]; kept: Partial<Record<"yes" | "no", string>> } {
+  const tick = Number(book.tick), sells: PmIntent[] = [], kept: Partial<Record<"yes" | "no", string>> = {};
+  for (const outcome of ["yes", "no"] as const) {
+    const size = floorSize(Math.max(0, held[outcome]));
+    if (!(size > 0) || size < book.minSize) continue;
+    const raw = outcome === "yes" ? touch.bestBid : 1 - touch.bestAsk;
+    const price = raw > 0 ? onTick(raw, book.tick) : 0;
+    const net = price * (1 - rule.maxFeeRate * (1 - price));
+    if (!(price > 0)) { kept[outcome] = "no bid to sell into"; continue; }
+    if (price < rule.floor - 1e-12 || price < tick - 1e-12 || price > 1 - tick + 1e-12) { kept[outcome] = `its bid ${price} is under the floor of ${rule.floor} or off the venue's prices`; continue; }
+    if (net < rule.floor - 1e-12) { kept[outcome] = `its bid ${price} nets ${net.toFixed(6)} a share after the worst taker fee, under the floor of ${rule.floor}`; continue; }
+    sells.push({ outcome, side: "SELL", price, size });
+  }
+  return { sells, kept };
+}
+
+/**
  * The marks the stop's restart basis opens at (`sinceOpenPnl`'s `open`, kept in the state as `lp.stop.open`): kept as
  * they were for the same restart, and each token still without one takes this turn's mark when it has one. `held` are the
  * tokens held as the restart began (`tokenBooks` of the fills before it); `missing` the ones of them still without a mark,
@@ -828,6 +876,11 @@ export type GateInputs = {
    * nothing. Absent, the gate is not listed at all, so every other turn's verdicts are what they were.
    */
   ctfApproved?: boolean | null;
+  /**
+   * Live-prep's liquidation (Addendum 24): true stops opening, never a sell (gate `liquidate`). Absent, the gate is not
+   * listed at all, so every other turn's verdicts are what they were.
+   */
+  liquidating?: boolean;
 };
 export type Gates = {
   /** May an order that opens or enlarges a position be placed? */
@@ -866,7 +919,8 @@ export function gates(i: GateInputs): Gates {
     loss_total: !i.lossTotal,
   };
   if (i.ctfApproved !== undefined) v.ctf_approval = i.ctfApproved;
-  const openBlockedBy = [...PM_OPEN_GATES, "ctf_approval"].find((k) => v[k] === false) ?? null;
+  if (i.liquidating !== undefined) v.liquidate = !i.liquidating;
+  const openBlockedBy = [...PM_OPEN_GATES, "ctf_approval", "liquidate"].find((k) => v[k] === false) ?? null;
   const country = i.geo.country ?? "", region = i.geo.region ?? "";
   const ofac = i.geo.ok && (OFAC_COUNTRIES.has(country) || OFAC_REGIONS.has(`${country}-${region}`) || OFAC_REGIONS.has(region));
   const reduceBlockedBy = i.globalPause ? "global_pause" : !v.region ? "region" : ofac ? "geoblock" : !i.inventoryReadable ? "inventory" : null;
@@ -1906,7 +1960,11 @@ type Slot = { cond: string; token: string; outcome: "yes" | "no"; side: "BUY" | 
  * `facing`: the best level of the REST of the market on the side the order would meet, in the one book (an ask level for
  * a bid, a bid level for an ask; null when that side is empty): what a post-only refusal for crossing is about.
  */
-type Want = Slot & { price: number; size: number; gate: "open" | "reduce"; facing: PmLevel | null };
+type Want = Slot & {
+  price: number; size: number; gate: "open" | "reduce"; facing: PmLevel | null;
+  /** A liquidation's sell (Addendum 24): sent not post-only, so it takes the bid now. Only ever a SELL. */
+  taker?: boolean;
+};
 /** A market the turn reads: today's (quoted) or one held from an earlier day (marked, never quoted: RW holds it). */
 type TurnMarket = PmMarketRow & { quoting: boolean };
 const slotKey = (x: { cond: string; token: string; side: string }) => `${x.cond}|${x.token}|${x.side}`;
@@ -2006,6 +2064,8 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   // rules. The rows stay as written; only what this turn takes as the day's selection changes.
   const restart = inst.lp?.restartable ? lpRestartOf(cfg, lim.lossTotal, d.now) : null;
   const restartToday = !!restart && dayOf(restart.atMs) === day;
+  // Addendum 24's liquidation (0123's `liquidate_at`): nothing opens, and what is held is sold at the bid.
+  const liquidate = inst.lp?.liquidate ? lpLiquidateOf(cfg, d.now) : null;
   const todayAll = await db.select<PmMarketRow>(T.markets, `day=eq.${day}&select=*&order=rank.asc`);
   const todayRows = restartToday ? todayAll.filter((m) => !!m.selected_at && Date.parse(m.selected_at) >= restart!.atMs) : todayAll;
   let selected = todayRows.filter((m) => !goneToday.has(m.cond));
@@ -2545,10 +2605,16 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   const g = gates({
     mode, globalPause, riskReadable, armed: !!cfg.live_confirmed_at, sbRegion: d.sbRegion, geo, closedOnly, attested, inventoryReadable, lossDay, lossTotal,
     ...(ctfApproved !== undefined ? { ctfApproved } : {}),
+    ...(liquidate ? { liquidating: true } : {}),
   });
   // Reported once, on the turn it closes (the gate's own event records each change).
   if (ctfApproved === false && prev.gates?.ctf_approval !== false) report.errors.push("the conditional-token reads show the CTF Exchange or the Neg Risk CTF Exchange not approved to move our tokens: nothing opens; sells stay armed");
   report.gates = g;
+  // Addendum 24: a liquidation's taker sells go only where a sell may go (`g.reduce`) and, as every order that opens, from
+  // eu-west-1, in a country the geoblock reads as Ireland, under a current attestation; otherwise its tokens keep the
+  // close-only exit at the ask. Nothing opens either way (gate `liquidate`).
+  const liquidateTakers = !!liquidate && g.reduce && !g.cancelAll && g.verdicts.region === true && g.verdicts.geoblock === true && g.verdicts.attestation === true;
+  if (liquidate && !liquidateTakers) report.errors.push(`liquidation since ${liquidate.at}: no taker sell this turn (${!g.reduce ? `sells blocked by ${g.reduceBlockedBy}` : g.cancelAll ? "the global pause" : !g.verdicts.region ? "not eu-west-1" : !g.verdicts.geoblock ? "the geoblock does not read Ireland" : "the Ireland attestation is not current"}); the exits rest at the ask`);
 
   // Live-prep's capital (`lpCapital`, Addendum 8): with `reinvest` on and live, the total cap this turn's buys are held to
   // follows the equity at cost, so a payout or a deposit is used the turn after it is read; the rule's other sizes do not
@@ -2664,7 +2730,17 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
     }
     // Sells a rule wants are capped at what is held, whatever the mode; while opening is stopped, buys become close-only sells.
     const sellsCapped = closeOnly(intents.filter((x) => x.side === "SELL"), held, b);
-    const list = g.open ? [...intents.filter((x) => x.side === "BUY"), ...sellsCapped] : g.reduce ? closeOnly(intents, held, b) : [];
+    let list = g.open ? [...intents.filter((x) => x.side === "BUY"), ...sellsCapped] : g.reduce ? closeOnly(intents, held, b) : [];
+    // Addendum 24: liquidating, each token held at the minimum or more is sold whole at the bid instead of resting its
+    // exit; a token whose bid it may not hit keeps the exit, at the ask. Never a buy (the gate has opening off already).
+    const takers = new Set<string>();
+    if (liquidateTakers && inst.lp?.liquidate) {
+      const liq = lpLiquidation(held, touch, b, inst.lp.liquidate);
+      const sold = new Set(liq.sells.map((x) => x.outcome));
+      list = [...list.filter((x) => x.side === "SELL" && !sold.has(x.outcome)), ...liq.sells];
+      for (const x of liq.sells) takers.add(slotKey({ cond: m.cond, token: tokenOf(x.outcome), side: "SELL" }));
+      if (Object.keys(liq.kept).length) lpDetail.set(m.cond, { ...(lpDetail.get(m.cond) ?? {}), liquidateKept: liq.kept });
+    }
     for (const x of intents) {
       const slot = slotKey({ cond: m.cond, token: tokenOf(x.outcome), side: x.side });
       if (!list.some((y) => y.outcome === x.outcome && y.side === x.side)) {
@@ -2676,12 +2752,13 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
       const expiration = nowS + PM_GTD_EARLY_S + lifetime;
       const problems = orderProblems({ price: x.price, size: x.size, expiration }, { tick: b.tick, minSize: b.minSize, nowS });
       if (problems.length) { withhold(slot, "venue_rules", problems.join("; ")); continue; }
-      if (crosses(x, touch)) { withhold(slot, "post_only", `${x.side} ${x.outcome} at ${x.price} would take the book (${touch.bestBid}/${touch.bestAsk})`); continue; }
+      const taker = takers.has(slot) && x.side === "SELL";
+      if (!taker && crosses(x, touch)) { withhold(slot, "post_only", `${x.side} ${x.outcome} at ${x.price} would take the book (${touch.bestBid}/${touch.bestAsk})`); continue; }
       if (wants.has(slot)) continue;
       const facing = (inYesBook(x).side === "bid" ? others.asks[0] : others.bids[0]) ?? null;
       wants.set(slot, {
         cond: m.cond, token: tokenOf(x.outcome), outcome: x.outcome, side: x.side, negRisk: m.neg_risk, tick: b.tick, minSize: b.minSize, book: b, price: x.price, size: x.size,
-        gate: x.side === "BUY" ? "open" : "reduce", facing: facing ? [facing[0], facing[1]] : null,
+        gate: x.side === "BUY" ? "open" : "reduce", facing: facing ? [facing[0], facing[1]] : null, ...(taker ? { taker: true } : {}),
       });
     }
   }
@@ -2721,7 +2798,7 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   for (const o of open) {
     const w = wants.get(slotKey(o));
     if (o.mode !== mode || o.state !== "live" || untouchable(o) || !w) continue;
-    if (Math.abs(Number(o.price) - w.price) < 1e-9 && Math.abs(Number(o.size) - w.size) < 1e-9 && Number(o.expiration) - PM_GTD_EARLY_S - nowS > PM_LIVE_REFRESH_S) keptAsIs.set(slotKey(o), o);
+    if (Math.abs(Number(o.price) - w.price) < 1e-9 && Math.abs(Number(o.size) - w.size) < 1e-9 && o.post_only === !w.taker && Number(o.expiration) - PM_GTD_EARLY_S - nowS > PM_LIVE_REFRESH_S) keptAsIs.set(slotKey(o), o);
   }
   for (const o of keptAsIs.values()) if (o.side === "BUY") pusdLeft -= Number(o.price) * Math.max(0, Number(o.size) - Number(o.size_matched));
   // A live buy this turn cancels (its slot withdrawn or re-priced) rests until the cancel is read back, after these caps
@@ -2846,12 +2923,14 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
       tokenId: w.token, side: w.side, price: w.price, size: w.size, tick: w.tick, negRisk: w.negRisk, maker, signer,
       salt: (d.salt ?? newSalt)(), timestampMs: d.now, expiration,
     });
-    const request: PmOrder & { exchange: string; orderType: "GTD"; postOnly: true } = { ...built.order, exchange: built.exchange, orderType: "GTD", postOnly: true };
+    // Post-only, but a liquidation's sell (Addendum 24), which takes the bid: never a buy.
+    const postOnly = !(w.taker && w.side === "SELL");
+    const request: PmOrder & { exchange: string; orderType: "GTD"; postOnly: boolean } = { ...built.order, exchange: built.exchange, orderType: "GTD", postOnly };
     const bookSeen = { bestBid: w.book.bestBid, bestAsk: w.book.bestAsk, tick: w.tick, minSize: w.minSize, negRisk: w.negRisk, at: w.book.at, hash: w.book.hash, facing: w.facing };
     let row: PmOrderRow;
     try {
       [row] = await db.insert<PmOrderRow>(T.orders, {
-        mode, cond: w.cond, token: w.token, outcome: w.outcome, side: w.side, price: w.price, size: w.size, order_type: "GTD", post_only: true,
+        mode, cond: w.cond, token: w.token, outcome: w.outcome, side: w.side, price: w.price, size: w.size, order_type: "GTD", post_only: postOnly,
         expiration, neg_risk: w.negRisk, hash: built.hash, state: "pending", gate: w.gate, reason, book_seen: bookSeen, request,
       }, true);
     } catch (e) {
@@ -2869,7 +2948,7 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
     let reply: PmReply<PmSendReply>;
     try {
       const signature = d.signer!.signDigest(built.hash);
-      reply = await venue.postOrder({ ...built.order, signature }, "GTD", true);
+      reply = await venue.postOrder({ ...built.order, signature }, "GTD", postOnly);
     } catch (e) {
       report.errors.push(`${label}: ${built.hash.slice(0, 12)}… has no reply (${msg(e)}); left pending, to be settled by its hash`);
       report.placed.push({ mode, slot: label, side: w.side, price: w.price, size: w.size, hash: built.hash, state: "pending" });
@@ -3201,6 +3280,8 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
             // which the page shows until the first booking (never the cap).
             ...(funding ? { funding } : {}),
             ...(fundingResidual ? { fundingResidual } : {}),
+            // Addendum 24: the liquidation, since when, and whether this turn could send its taker sells.
+            ...(liquidate ? { liquidate: { since: liquidate.at, takers: liquidateTakers } } : {}),
             // Addendum 19: the code's addendum (the restart statement checks it), and the total stop as this turn judged
             // it, from the restart when one is set: the page shows its room from this, and the next turn keeps its marks.
             ...(inst.lp.restartable ? {

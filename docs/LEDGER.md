@@ -59,6 +59,15 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    buffer re-read; 10-22/23 LPRESEL6, TB1 C1, 14-day readout. Showcase (`daviesluo/personal`) not yet updated for this
    week's strategy changes (Addenda 9–18, LP studies): left for Claude Code.
 
+0a⁗. **LIQUIDATE live-prep (Addendum 24, built 2026-10-15 16:15 UTC, not pushed; Davies: "那目前的单都尽快卖出掉吧，还剩多少").**
+   Pushing it applies `0123_pm_lp_liquidate.sql`, whose last statement sets `liquidate_at` (only with `restarted_at` null):
+   from the deploy's first turn every holding of ≥ 5 shares is sold whole at the bid, not post-only (16:04: 40 YES
+   0x7465aead at 0.12, 6 NO 0x76051f8c at 0.27, 80 YES 0xecc209a6 at 0.002), no buy. After the push: read back
+   `select liquidate_at, restarted_at from public.pm_lp_config;` and `state->'lp'->'liquidate'`, then the fills; dust (< 5)
+   waits to settle and be redeemed. Keep live-prep armed until it is flat (its sells need it); stop with `update
+   public.pm_lp_config set liquidate_at = null where id = 1;`. Not verified: whether the CLOB refuses a marketable order
+   under $1 (0xecc209a6's is $0.16); a refusal is not re-sent at the same price and size.
+
 0a‴. **Q2 CLOSED, close-only, 2026-10-15 00:08 UTC** (Davies: "看一下最新的rewards payout，还不行的话就关了然后只卖出"). 10-14 paid
    $2.873 on formula $4.019 (R 0.71); since the restart rewards+rebates $4.38 over 718 filled shares = 0.61 c a share, under
    the 1.5 c bar; stop room $7.50. Ran `update public.pm_lp_config set restarted_at = null where id = 1;` (returned null;
@@ -562,6 +571,16 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)"; each oldest first.
+
+### [2026-10-15 16:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep's Addendum 24 (mid-pool's 22): liquidation** (sub-agent, not pushed; Davies: "那目前的单都尽快卖出掉吧，还剩多少").
+  `0123_pm_lp_liquidate.sql`: `pm_lp_config.liquidate_at`, CHECK it never beside `restarted_at`, `pm_lp_orders`' CHECK
+  `post_only or side = 'SELL'`, and the switch (`… where id = 1 and restarted_at is null and liquidate_at is null`).
+  `lpLiquidation`: each token ≥ 5 shares sold whole at the bid (NO at 1 − YES ask), GTD not post-only, re-priced each turn,
+  never under 0.001 net of a 7 % taker fee; else the exit at the ask. Gate `liquidate` stops every buy; taker sells only with
+  `g.reduce`, eu-west-1, geoblock IE and the attestation; `pmVenue` refuses a BUY not post-only. `pm_live.ts`
+  `04556ab5…344c`, `pm_lp.ts` `06b96257…cc6f`, 0123 `5171628d…4fea`. On PGlite over every migration: 0123 applies and
+  sets the switch; a restart beside it, a taker BUY, and the switch with a restart set are refused; mid-pool keeps its CHECK.
 
 ### [2026-10-15 15:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **PMPOST filed** (sub-agent, landed by the main session; `reviews/2026-10-15-pm-postmortem.md`, `backtests/pmpost/`): no viable

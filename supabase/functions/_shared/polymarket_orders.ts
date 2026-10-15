@@ -536,7 +536,7 @@ export type PmReply<T = any> = {
   /** Seconds the venue asked us to wait (Retry-After, or a body's `retry_after_seconds`). */
   retryAfterS?: number | null;
   /** Refused here, before any request left: which rule refused it. */
-  refused?: "route" | "region" | "sends-disabled" | "no-credentials";
+  refused?: "route" | "region" | "sends-disabled" | "no-credentials" | "taker-buy";
 };
 
 export type PmWireOpts = {
@@ -663,7 +663,8 @@ export interface PmVenue {
   userEarningsTotal(date: string, sponsored: boolean): Promise<PmReply<PmUserEarning[]>>;
   /** The maker rebates paid to `maker` for a UTC day, by market (GET /rebates/current, keyless; null when there are none). */
   rebates(date: string, maker: string): Promise<PmReply<PmRebate[] | null>>;
-  postOrder(o: PmSignedOrder, orderType: "GTD", postOnly: true): Promise<PmReply<PmSendReply>>;
+  /** Post-only, except a SELL (live-prep's liquidation, Addendum 24): a BUY not post-only is refused before sending. */
+  postOrder(o: PmSignedOrder, orderType: "GTD", postOnly: boolean): Promise<PmReply<PmSendReply>>;
   cancelOrder(id: string): Promise<PmReply<PmCancelReply>>;
   cancelAll(): Promise<PmReply<PmCancelReply>>;
 }
@@ -693,6 +694,7 @@ export function pmVenue(o: PmWireOpts & { sigType: number }): PmVenue {
     order: (id) => get(`${C}/data/order/${id}`),
     trade: (id) => get(`${C}/data/trades`, { id }),
     postOrder: (order, orderType, postOnly) => {
+      if (!postOnly && order.side !== "SELL") return Promise.resolve({ ok: false, status: 0, ms: 0, error: "only a SELL is ever sent not post-only", refused: "taker-buy" as const });
       if (!o.creds) return Promise.resolve({ ok: false, status: 0, ms: 0, error: "no L2 credentials", refused: "no-credentials" as const });
       return pmOrderCall("POST", `${C}/order`, o.creds.orderBody(order, orderType, postOnly), o);
     },

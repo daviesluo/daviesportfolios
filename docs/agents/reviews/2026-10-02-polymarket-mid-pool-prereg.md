@@ -733,3 +733,18 @@ decision the same.
 
 **What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
 of the Edge deploy that carries it, as deviation 21.
+
+## Addendum 22 (2026-10-15, about 16:15 UTC): deviation 22, live-prep's Addendum 24 (liquidation)
+
+**Deviation 22 is live-prep's Addendum 24** (Davies, 2026-10-15: "那目前的单都尽快卖出掉吧，还剩多少"). It changes the shared
+`pm_live.ts`: after it, `pm_live.ts` sha256 `04556ab577502566f043bde3d3d5b062c2cd779bc5714d5e9495179a143b344c`, where Addendum 21 above named `17584420…324b`.
+The change: an optional field of live-prep's options (`liquidate`), a gate listed only when it is set, a want's `taker`
+flag, and the venue client's `postOnly` per order, false only for live-prep's liquidation sells. `0123_pm_lp_liquidate.sql`
+touches live-prep's config and orders alone.
+
+**Mid-pool is unchanged.** It sets no `lp` options, so it never liquidates, every order it sends is post-only as before
+(its orders' `check (post_only)` stays), and none of its decisions changes: `agents/pm_mid_formula.test.ts` and
+`agents/pm_payouts.test.ts` run it beside the path this file froze and find every decision the same.
+
+**What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
+of the Edge deploy that carries it, as deviation 22.

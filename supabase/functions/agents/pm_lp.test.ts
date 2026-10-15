@@ -15,19 +15,19 @@
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   lpExitQuotes, lpMarketType, lpQuietRead, lpQuotes, lpRulesOf, nearCertainBuyOk, PM_LP_EXCLUDE_AI, PM_LP_MARKET_LOSS, PM_LP_QUIET, PM_LP_READOUT, PM_LP_REFILL, PM_LP_REWARD_CHECK, PM_LP_BAND,
-  PM_LP_CANDIDATE, PM_LP_CAP_MARKET_USD, PM_LP_INSTANCE, PM_LP_INV_CAP, PM_LP_NEAR_CERTAIN, PM_LP_PAUSE, PM_LP_SELECT_SHARE, PM_LP_SHAPE, PM_LP_TIGHT, PREP_LP_INSTANCE, wideTouch,
+  PM_LP_CANDIDATE, PM_LP_CAP_MARKET_USD, PM_LP_INSTANCE, PM_LP_INV_CAP, PM_LP_LIQUIDATE, PM_LP_NEAR_CERTAIN, PM_LP_PAUSE, PM_LP_SELECT_SHARE, PM_LP_SHAPE, PM_LP_TIGHT, PREP_LP_INSTANCE, wideTouch,
 } from "./pm_lp.ts";
 import { isTight } from "./pmrw_x.ts";
 import {
   candidateOf, closeOnly, ctfApproval, effectiveLimits, gates, heldFromBalance, inUniverse, inYesBook, lpCandidateOf, lpLimits, onTick, PM_LIVE_MAX_POSTS_DAY, PM_LP_MAX_POSTS_DAY, pauseAfterJump, PM_LIVE_INSTANCE, PM_MINI_INSTANCE, pmLiveDbTables, pmLpDbTables,
   lpFunding, lpMarketMark, lpRewardVerdict, PM_LP_FUNDING, tokenBooks, type LpRefillOptions, rewardConfigOf, runPmLive, rwQuotes, scoringStreak, type PmRewardNow, type PmBookNow, type PmIntent, type PmLiveConfig, type PmMarketRow, type PmPauseState, type PmRewardRow,
-  bookPnl, lpRestartOf, lpSelectBudget, PM_RESTART_DUST_SHARES, quietChoose, quietVerdict, rawTouchCents, restartOpenMarks, sinceOpenPnl, type PmQuietRead,
+  bookPnl, lpLiquidateOf, lpLiquidation, lpRestartOf, lpSelectBudget, PM_RESTART_DUST_SHARES, quietChoose, quietVerdict, rawTouchCents, restartOpenMarks, sinceOpenPnl, type PmQuietRead,
 } from "./pm_live.ts";
 import { runPmLpReserve } from "./pm_lp_reserve.ts";
 import { classifyLp, decideLp, PREP_INSTANCE, prepDbTables, prepReads, runPmPrep, stepSides, type PrepOrder } from "./pm_prep.ts";
 import { PM_MID_INSTANCE, PREP_MID_INSTANCE } from "./pm_mid.ts";
 import { choose, newAcc, quote, sizeN, stepRw, summarize, type BookRow } from "./pmrw.ts";
-import { asTickSize, PmOrderKey, type PmTickSize } from "../_shared/polymarket_orders.ts";
+import { asTickSize, PmOrderKey, pmVenue, type PmTickSize } from "../_shared/polymarket_orders.ts";
 import { pmLiveFillFee } from "./pm_fees.ts";
 import { PM_QUIET_PAGE, pmTakerShares, type PmPrint } from "../_shared/polymarket_public.ts";
 import { FakePolymarket, LP_A18_INSTANCE, memDb, onlyTables, PM_TEST_FUNDER, PM_TEST_KEY, PM_TEST_SIGNER, type Row } from "./testing.ts";
@@ -402,6 +402,8 @@ function world(o: {
   noRestart?: boolean;
   /** The books' touch, in ticks over the default two cents (`a19`'s worlds widen L1, BIG and E30 to 4 ¢). */
   wide?: boolean;
+  /** Without Addendum 24's liquidation (`liquidate` unset): the counterfactual of its tests. */
+  noLiquidate?: boolean;
 } = {}) {
   const clock = { now: T0 };
   // `onCost`: the day stop as the pre-registrations froze it (`dayStopOnCost`), which no action runs (2026-10-07).
@@ -415,7 +417,8 @@ function world(o: {
   // `noPauseRule`, `noRebatesInStop`: the pause and the stop as they were before Addendum 18 (the counterfactuals).
   if (o.noPauseRule) delete lpOpts.pauseQuotingOnly;
   if (o.noRebatesInStop) delete lpOpts.stopCountsRebates;
-  const base = o.refill || o.noExitRule || o.slotOrder || o.noPauseRule || o.noRebatesInStop || o.noRestart ? { ...LP, lp: lpOpts } : LP;
+  if (o.noLiquidate) delete lpOpts.liquidate;
+  const base = o.refill || o.noExitRule || o.slotOrder || o.noPauseRule || o.noRebatesInStop || o.noRestart || o.noLiquidate ? { ...LP, lp: lpOpts } : LP;
   const inst = o.onCost ? { ...base, dayStopOnCost: true } : base, prepInst = o.onCost ? { ...PREP_LP_INSTANCE, dayStopOnCost: true } : PREP_LP_INSTANCE;
   const pm = new FakePolymarket(() => clock.now);
   const add = (n: number, rate: number, extra: Record<string, unknown> = {}) =>
@@ -1921,4 +1924,118 @@ Deno.test("Addendum 22: live-prep takes no refill; a slot out keeps its place, a
   fakeOf(r, String(day0(r)[0].cond)).rewardsMinSize = 50;
   for (let k = 1; k <= 20; k++) { await r.turn(T0 + k * M); if (k % 5 === 0) await r.reserve(T0 + k * M + 20e3); }
   assertEquals(r.rows("pm_lp_events").filter((e) => e.kind === "refill").length, 1);
+});
+
+
+// ------------------------------------------------------------------ Addendum 24 (2026-10-15): liquidation
+
+Deno.test("lpLiquidation (Addendum 24): each holding of the minimum or more sold whole at the bid; NO at 1 − YES's ask; never under 0.001 net of the worst fee; dust and no bid untouched; never a BUY", () => {
+  // Davies, 2026-10-15 ~16:05 UTC: "那目前的单都尽快卖出掉吧，还剩多少". The book of 16:04 UTC, market by market.
+  assertEquals([PM_LP_LIQUIDATE.floor, PM_LP_LIQUIDATE.maxFeeRate], [0.001, 0.07]);
+  const R = PM_LP_LIQUIDATE, at = (tick: string) => ({ tick: tick as PmTickSize, minSize: 5 });
+  const legs = (r: ReturnType<typeof lpLiquidation>) => r.sells.map((x) => [x.outcome, x.side, x.price, x.size]);
+  // 0x7465aead: 40 YES, the book 0.12 / 0.13: all 40 at 0.12 (the resting exit was 20 at 0.13).
+  assertEquals(legs(lpLiquidation({ yes: 40, no: 0 }, { bestBid: 0.12, bestAsk: 0.13 }, at("0.01"), R)), [["yes", "SELL", 0.12, 40]]);
+  // 0x76051f8c: 6 NO, YES's book 0.71 / 0.73: NO's bid is 1 − 0.73 = 0.27 (the resting exit was at 0.29).
+  assertEquals(legs(lpLiquidation({ yes: 0, no: 6 }, { bestBid: 0.71, bestAsk: 0.73 }, at("0.01"), R)), [["no", "SELL", 0.27, 6]]);
+  // 0xecc209a6: 80 YES at 0.002 / 0.01 (no exit rested): 80 at 0.002, which nets 0.002 × (1 − 0.07 × 0.998) = 0.00186 a share.
+  assertEquals(legs(lpLiquidation({ yes: 80, no: 0 }, { bestBid: 0.002, bestAsk: 0.01 }, at("0.001"), R)), [["yes", "SELL", 0.002, 80]]);
+  // A bid of 0.001 nets 0.00093 after the worst fee, under the floor: kept at the ask, and why.
+  const thin = lpLiquidation({ yes: 80, no: 0 }, { bestBid: 0.001, bestAsk: 0.01 }, at("0.001"), R);
+  assertEquals([legs(thin), /under the floor/.test(thin.kept.yes ?? "")], [[], true]);
+  // No bid (the side empty, read as 0): kept, to rest at the ask as now.
+  const none = lpLiquidation({ yes: 40, no: 6 }, { bestBid: 0, bestAsk: 1 }, at("0.01"), R);
+  assertEquals([legs(none), none.kept], [[], { yes: "no bid to sell into", no: "no bid to sell into" }]);
+  // Dust under the 5-share minimum, and nothing held, sell nothing and are not even named.
+  const dust = lpLiquidation({ yes: 4.2791, no: 0 }, { bestBid: 0.5, bestAsk: 0.52 }, at("0.01"), R);
+  assertEquals([legs(dust), dust.kept], [[], {}]);
+  // The whole holding, to the hundredth of a share; never a BUY on any book.
+  assertEquals(legs(lpLiquidation({ yes: 12.3456, no: 0 }, { bestBid: 0.4, bestAsk: 0.42 }, at("0.01"), R)), [["yes", "SELL", 0.4, 12.34]]);
+  for (let k = 0; k < 200; k++) {
+    const b = Math.round(Math.random() * 99) / 100, a = Math.min(1, b + 0.01 + Math.round(Math.random() * 5) / 100);
+    for (const x of lpLiquidation({ yes: Math.random() * 100, no: Math.random() * 100 }, { bestBid: b, bestAsk: a }, at("0.01"), R).sells) {
+      assert(x.side === "SELL" && x.price >= 0.001 && x.price * (1 - 0.07 * (1 - x.price)) >= 0.001 - 1e-12, JSON.stringify(x));
+    }
+  }
+});
+
+Deno.test("lpLiquidateOf and the gate: set and not ahead of now it liquidates, and opening stops on `liquidate`, never a sell; absent, the verdicts are as before", () => {
+  const now = Date.parse("2026-10-15T16:10:00Z");
+  assertEquals(lpLiquidateOf({ liquidate_at: null }, now), null);
+  assertEquals(lpLiquidateOf({ liquidate_at: "nonsense" }, now), null);
+  assertEquals(lpLiquidateOf({ liquidate_at: "2026-10-15T16:20:00Z" }, now), null);
+  assertEquals(lpLiquidateOf({ liquidate_at: "2026-10-15T16:05:00Z" }, now), { atMs: Date.parse("2026-10-15T16:05:00Z"), at: "2026-10-15T16:05:00.000Z" });
+  const base = {
+    mode: "live" as const, globalPause: false, riskReadable: true, armed: true, sbRegion: "eu-west-1", geo: { ok: true, country: "IE", region: "L", blocked: true }, closedOnly: false,
+    attested: true, inventoryReadable: true, lossDay: false, lossTotal: false,
+  };
+  const g = gates({ ...base, liquidating: true });
+  assertEquals([g.open, g.openBlockedBy, g.reduce, g.verdicts.liquidate], [false, "liquidate", true, false]);
+  const o = gates(base);
+  assertEquals([o.open, "liquidate" in o.verdicts], [true, false]);
+});
+
+Deno.test("Addendum 24, armed: with liquidate_at set the YES held is sold at the bid, not post-only, and fills; what the bid's depth leaves is re-priced to the next bid; every buy is cancelled and none sent; without the option the exit rests at the ask and the buys stay", async () => {
+  const run = async (noLiquidate: boolean) => {
+    const w = world({ a19: true, wide: true, config: LIVE, noLiquidate });
+    await w.turn(T0);
+    const live = (side: "BUY" | "SELL", c?: string) => w.rows("pm_lp_orders").filter((x) => x.mode === "live" && x.side === side && x.state === "live" && (!c || x.cond === c));
+    const yesBuy = live("BUY", w.L1.cond).find((x) => x.outcome === "yes");
+    assert(yesBuy, "a live BUY of YES rests in L1");
+    w.pm.settle(w.pm.fill(String(yesBuy.hash), 5), "CONFIRMED");                     // the account holds 5 YES of L1
+    await w.turn(T0 + M);
+    // Its bid buys 5 more (2N allows 10): 10 YES held.
+    const again = live("BUY", w.L1.cond).find((x) => x.outcome === "yes");
+    assert(again, "a second BUY of YES rests");
+    w.pm.settle(w.pm.fill(String(again.hash), 5), "CONFIRMED");
+    // The switch; L1's bid (0.45) holds 2 shares.
+    w.setConfig({ liquidate_at: iso(T0 + M + 30e3) });
+    w.L1.depth = [[0, 2]];
+    const r2 = await w.turn(T0 + 2 * M);
+    const ord = () => w.rows("pm_lp_orders").filter((x) => x.mode === "live" && x.cond === w.L1.cond && x.side === "SELL" && Date.parse(String(x.ts)) >= T0 - 30e3 + 2 * M)
+      .map((x) => [x.outcome, Number(x.price), Number(x.size), x.post_only, (x.request as any)?.postOnly]);
+    const sent2 = ord();
+    const held2 = w.pm.tokens.get(tok(1, "yes")) ?? 0;
+    const buysSent2 = w.rows("pm_lp_orders").filter((x) => x.side === "BUY" && Date.parse(String(x.ts)) >= T0 - 30e3 + 2 * M).length;
+    // The 2 taken, the bid is now 0.44 (the level consumed); the next turn sells the 8 left there.
+    w.L1.bid = 0.44; w.L1.ask = 0.48;
+    await w.turn(T0 + 3 * M);
+    return { w, r2, sent2, held2, sent3: ord(), buysSent2, buys: live("BUY").length, st: (w.rows("pm_lp_state")[0].state as any) };
+  };
+  const r = await run(false);
+  // The sell of the whole 10 at L1's bid, 0.45, a taker order (post_only false in the row and the request); the venue
+  // matched the 2 its bid held.
+  assertEquals(r.sent2, [["yes", 0.45, 10, false, false]]);
+  assertEquals(r.held2, 8);
+  assertEquals([r.buysSent2, r.buys, r.r2.gates?.openBlockedBy, r.st.lp.liquidate], [0, 0, "liquidate", { since: iso(T0 + M + 30e3), takers: true }]);
+  // Re-priced: the 8 left, at the new bid, 0.44 (whose 2 the venue matched again).
+  assertEquals(r.sent3.at(-1), ["yes", 0.44, 8, false, false]);
+  assert(r.w.othersUntouched());
+  // The counterfactual, the instance without Addendum 24: the switch is not read, the exit rests a tick inside the ask
+  // (0.48), post-only, and the buys keep resting.
+  const o = await run(true);
+  assertEquals(o.sent2.filter((x) => x[1] !== 0.48), []);
+  assert(o.buys > 0 && o.r2.gates?.openBlockedBy === null, JSON.stringify(o.r2.gates));
+  assertEquals(o.held2, 10);
+});
+
+Deno.test("Addendum 24: no taker sell outside Ireland or without a current attestation (the exit rests at the ask, post-only); still no buy; a taker BUY is refused before it leaves", async () => {
+  for (const spoil of ["country", "attestation"] as const) {
+    const w = world({ a19: true, wide: true, config: LIVE });
+    await w.turn(T0);
+    const yesBuy = w.rows("pm_lp_orders").find((x) => x.mode === "live" && x.cond === w.L1.cond && x.outcome === "yes" && x.side === "BUY" && x.state === "live")!;
+    w.pm.settle(w.pm.fill(String(yesBuy.hash), 5), "CONFIRMED");
+    await w.turn(T0 + M);
+    w.setConfig({ liquidate_at: iso(T0 + M + 30e3), ...(spoil === "attestation" ? { ireland_until: iso(T0 + M + 40e3) } : {}) });
+    if (spoil === "country") w.pm.geo.country = "GB";
+    const r = await w.turn(T0 + 2 * M);
+    const live = (side: "BUY" | "SELL") => w.rows("pm_lp_orders").filter((x) => x.mode === "live" && x.side === side && x.state === "live");
+    assertEquals(live("SELL").filter((x) => x.cond === w.L1.cond).map((x) => [Number(x.price), x.post_only]), [[0.48, true]], spoil);
+    assertEquals(live("BUY").length, 0, spoil);
+    assert(r.errors.some((e) => /no taker sell this turn/.test(e)), JSON.stringify(r.errors));
+  }
+  // The venue's client refuses any BUY that is not post-only, before a request is built or a credential is read.
+  const reply = await pmVenue({ sigType: 1 }).postOrder({ side: "BUY" } as any, "GTD", false);
+  assertEquals([reply.ok, reply.refused], [false, "taker-buy"]);
+  assertEquals((await pmVenue({ sigType: 1 }).postOrder({ side: "SELL" } as any, "GTD", false)).refused, "no-credentials");
 });

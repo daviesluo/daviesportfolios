@@ -1695,3 +1695,61 @@ the restart's `known` with this turn's settlements, `lp.stop.pending`); `pm_lp.t
   once Gamma shows it resolved NO it settles at 0, opens at 0 and the stop's fills stay 0, its room the whole $25. With
   Addendum 20's opening at 1 the same fills gave −4.2791. Both fail on Addendum 20's `pm_live.ts`;
 - `src/pm_live_hash.test.js`, `src/pm_lp_prereg.test.js`: the bytes and the chain of addenda.
+
+## Addendum 24 (2026-10-15, about 16:15 UTC): liquidate what is held, at the bid
+
+**On whose word.** Davies, 2026-10-15 about 16:05 UTC, verbatim, as the main session relayed it: "那目前的单都尽快卖出掉吧，还剩多少"
+(sell the remaining positions as fast as possible; how much is left?). The account is to be clean for a separate
+experiment, with live-prep's TOTAL and stop no longer moving.
+
+**Where it starts.** Live-prep has been close-only since 2026-10-15 00:08 UTC (`restarted_at` null, `openBlockedBy`
+`loss_total`, still armed so its exits work); pUSD $300.48 at 16:04 UTC. Holdings of 5 shares or more then, as relayed:
+0x7465aead… 40 YES (book 0.12 / 0.13, its exit SELL 20 at 0.13), 0x76051f8c… 6 NO (YES's book 0.71 / 0.73, its exit SELL
+6 NO at 0.29), 0xecc209a6… 80 YES (book 0.002 / 0.01, no exit resting). Everything else is dust under the 5-share
+minimum, which no order can sell: it waits for settlement and redemption.
+
+**What changes.**
+
+1. **The switch:** `pm_lp_config.liquidate_at` (`0123_pm_lp_liquidate.sql`), set by that migration's one statement,
+   which the same push applies: `update public.pm_lp_config set liquidate_at = now(), updated_at = now() where id = 1 and
+   restarted_at is null and liquidate_at is null;`. A CHECK keeps a liquidation and a restart from ever both being set,
+   so it does not apply while a restart is set, and no restart can be set while it liquidates. Undone by `update
+   public.pm_lp_config set liquidate_at = null where id = 1;` (the exits rest at the ask again).
+2. **Nothing opens** while it is set: a gate of its own, `liquidate` (`gates`' `liquidating`), stops every BUY whatever the
+   other gates say, a restart included; sells are untouched by it.
+3. **Each token held at the venue's minimum or more is sold whole at the best bid** (`lpLiquidation`): the whole holding
+   (to the hundredth of a share), not N at a time; YES at YES's best bid of the book without our orders, NO at 1 − YES's
+   best ask. The order is sent **not post-only** (a GTD limit at the bid, so it matches now; what the bid's depth leaves
+   rests at that price), once a turn, and re-priced to the new bid on the next turn by the slot's usual replace.
+4. **Never under 0.001 a share, fee-aware.** A taker pays rate × p × (1 − p) a share, rate × (1 − p) of the proceeds;
+   the order carries no fee field, so the bound is the highest rate a fee type has (`PM_FEE_TYPES`, 7 %): a bid is hit
+   only where p × (1 − 0.07 × (1 − p)) is at least 0.001. A token with no bid (none, or 0), or one under that floor,
+   keeps its close-only exit at the ask, as now (`state` names why, `liquidateKept`). On 16:04's books: 40 YES at 0.12,
+   6 NO at 0.27, 80 YES at 0.002 (0.00186 a share net at the worst rate).
+5. **The same checks as every order that leaves.** A taker sell is sent only where a sell may be (`g.reduce`: no global
+   pause, eu-west-1, the inventory read) and, as an order that opens would need, the geoblock reads Ireland and the Ireland
+   attestation is current; otherwise the exits rest at the ask, post-only, and the turn says why. `PM_ORDER_SENDS_ENABLED`,
+   the region rule of `pmOrderCall` and the dry-run are unchanged. **No buy can be a taker anywhere:** the venue client
+   refuses a BUY not post-only before any request is built (`pmVenue`, `refused: "taker-buy"`), and 0123 changes
+   `pm_lp_orders`' `check (post_only)` to `check (post_only or side = 'SELL')`; mini-pool's and mid-pool's tables keep
+   theirs.
+6. **Dust** under the 5-share minimum is untouched; it settles and is redeemed by hand.
+
+The stop, the TOTAL and FUNDED count these fills as every fill (Addendum 18: their taker fees are taken off the TOTAL).
+`state.lp.liquidate` records since when and whether the turn could send its taker sells. Nothing else changes.
+
+**The code it deploys:** `pm_live.ts` sha256 `04556ab577502566f043bde3d3d5b062c2cd779bc5714d5e9495179a143b344c`, where Addendum 23 named `17584420…324b` (`PmLpOptions.liquidate`,
+`lpLiquidateOf`, `lpLiquidation`, the gate `liquidate`, a want's `taker`, `postOnly` per order); `pm_lp.ts` sha256 `06b96257e5008dcb12b458f55266d2cc5ce60a99853b377c0cf15358dfe6cc6f`, where Addendum 23 named
+`8303fd97…9f0c` (`PM_LP_LIQUIDATE`, the instance's `liquidate`); `_shared/polymarket_orders.ts` (`postOrder`'s `postOnly`
+and the taker-buy refusal); `0123_pm_lp_liquidate.sql` sha256 `5171628d88bec6068b0dce7d3627b5233d39a66b492b19f6e4b66de7be244fea`.
+
+**Pinned** (`agents/pm_lp.test.ts`):
+- `lpLiquidation` on 16:04's three books (40 YES at 0.12, 6 NO at 0.27, 80 YES at 0.002); a bid of 0.001 kept for the fee;
+  no bid kept; dust not named; the whole holding to the hundredth; 200 random books, never a BUY, never under the floor;
+- `lpLiquidateOf`, and the gate: opening off on `liquidate`, sells on; absent, no verdict;
+- armed, 10 YES held and the switch set: the SELL of 10 at the bid, post-only false in the row and the request, the 2
+  the bid held matched, the 8 left re-priced to the next bid the turn after, no BUY sent and none resting. Without the
+  instance's `liquidate` (the counterfactual) the exit rests at 0.48, post-only, and the buys rest on;
+- outside Ireland, or with the attestation lapsed: no taker sell, the exit at the ask, no buy; a BUY not post-only refused
+  by the client;
+- `src/pm_live_hash.test.js`, `src/pm_lp_prereg.test.js`: the bytes, the migration and the chain of addenda.

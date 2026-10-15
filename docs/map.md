@@ -811,6 +811,7 @@ before touching migration state.
 | `0119_pm_lp_restart.sql` | Live-prep's restart: `pm_lp_config.restarted_at` and `restart_loss_usd`, from which its total stop counts and the day is selected again; no row written. |
 | `0117_cb_minute_extremes_repair.sql` | The Coinbase paper test's Deviation 2: rebuilds the window's lost minute extremes in `cb_quote_minutes` from `cb_trades`. |
 | `0120_reward_quotes_paper_off.sql` | Every paper Reward quotes call off (RW-C, its replays, mid-pool, live-prep's paper layer, the programme factor) and the factor's refresh unscheduled; live-prep's live path and pm-rec stay on, nothing dropped. |
+| `0123_pm_lp_liquidate.sql` | Live-prep's liquidation: `pm_lp_config.liquidate_at`, never beside a restart, its orders not post-only only as a SELL, and the switch set where no restart is. |
 | `0122_ig_demo_recorder.sql` | IG's demo verification tables (facts, hourly pulls, weekend quotes and runs), the quote-recording function, and the recorder's row of the minute job, switched on only around the weekend windows by a five-minute job. |
 | `0121_cb_hold_start_today.sql` | Deviation 1 of "Stablecoin quotes with Euros - 2": its still-empty record's window start and fed floors move from 2026-10-14 to 2026-10-13 00:00 UTC, guarded to a no-op once any minute is decided. |
 | `0096_pm_rw_x_tb1_arms.sql` | Lets the variants' day tables, RW's and RW-C's, take TB1's two arms on x1 (tb1-skip, tb1-back). |

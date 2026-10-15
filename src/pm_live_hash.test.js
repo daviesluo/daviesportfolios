@@ -23,7 +23,8 @@
 //   28930ad9…  live-prep's Addendum 19, mid-pool's Addendum 19 (quiet books, 2N, 90 % of the cap, the stop from a
 //              restart; Davies 2026-10-13, no dry-run day)
 //   9c4174f3…  live-prep's Addendum 20 (and 21, 22, unchanged), mid-pool's Addendum 20 (the restart's dust at 1)
-//   (Addendum 23's)  live-prep's Addendum 23, mid-pool's Addendum 21 (the restart's dust left to the record, 2026-10-15)
+//   17584420…  live-prep's Addendum 23, mid-pool's Addendum 21 (the restart's dust left to the record, 2026-10-15)
+//   (Addendum 24's)  live-prep's Addendum 24, mid-pool's Addendum 22 (liquidation at the bid, 2026-10-15)
 import { describe, expect, it } from 'vitest';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -75,13 +76,20 @@ const LP_A18 = '53f7f788a47e93f52770f96410db9faf8f34cdd7dc2cf4ddbd877c9038d07278
 const A289 = '28930ad918b0358c98e6bd6268715c6fd845b6092bcefcd1b44ffd45daf7f43d';
 /** The pm_live.ts Addendum 20 named (the restart's dust at 1), the path through Addenda 21 and 22 until Addendum 23. */
 const A9C4 = '9c4174f30523225520f92a0ecd50082d9490e88e43a686a737fdd6629f34a231';
+/** The pm_live.ts Addendum 23 named (the restart's dust left to the record), the path until Addendum 24. */
+const A175 = '175844206ce33a714db763139815525a61bb353388dd897eb9dc48c875d8324b';
 
 describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", () => {
-  it("live-prep's latest addendum (23) and mid-pool's (21) name today's pm_live.ts", () => {
-    expect(lastNumber(LP)).toBe(23);
-    expect(lastNumber(MID)).toBe(21);
-    expect(namedPath(addendum(LP, 23))).toBe(sha);
-    expect(namedPath(addendum(MID, 21))).toBe(sha);
+  it("live-prep's latest addendum (24) and mid-pool's (22) name today's pm_live.ts", () => {
+    expect(lastNumber(LP)).toBe(24);
+    expect(lastNumber(MID)).toBe(22);
+    expect(namedPath(addendum(LP, 24))).toBe(sha);
+    expect(namedPath(addendum(MID, 22))).toBe(sha);
+    expect(addendum(LP, 24)).toContain('`17584420…324b`');
+    expect(addendum(MID, 22)).toContain('`17584420…324b`');
+    expect(addendum(MID, 22)).toContain('deviation 22');
+    expect(namedPath(addendum(LP, 23))).toBe(A175);
+    expect(namedPath(addendum(MID, 21))).toBe(A175);
     expect(addendum(LP, 23)).toContain('`9c4174f3…a231`');
     expect(addendum(MID, 21)).toContain('`9c4174f3…a231`');
     expect(addendum(MID, 21)).toContain('deviation 21');
@@ -433,7 +441,10 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     // The pm_lp.ts Addendum 22 named, the instance until Addendum 23, which names it and today's.
     expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(addendum(LP, 22))?.[1]).toBe('82ae7a72724515ad49b059d9e00f98888c7f6cb44ea6d483f22b2602b4ae78bb');
     expect(addendum(LP, 23)).toContain('`82ae7a72…78bb`');
-    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(addendum(LP, 23))?.[1]).toBe(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex'));
+    // The pm_lp.ts Addendum 23 named, the instance until Addendum 24, which names it and today's.
+    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(addendum(LP, 23))?.[1]).toBe('8303fd97ec106535af9b5a5b1116941996c766e3f0acd5f564feafeb40da9f0c');
+    expect(addendum(LP, 24)).toContain('`8303fd97…9f0c`');
+    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(addendum(LP, 24))?.[1]).toBe(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex'));
     expect(read('supabase/functions/agents/pm_lp.ts')).toContain('    fundByRank: true,');
     const src = read(PATH);
     expect(src).toContain('if (!inst.lp?.fundByRank) {');
@@ -510,5 +521,32 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     expect(src).toContain('for (const s of [...settlements, ...newSettlements]) { known[s.yes_token] = Number(s.payout); known[s.no_token] = 1 - Number(s.payout); }');
     // The restart's go statement still reads 19: these fixes keep its check.
     expect(src).toContain('              addendum: 19,');
+  });
+
+  it("live-prep's Addendum 24 and mid-pool's 22 record the liquidation in Davies' words: 0123's switch, the bid, the floor, no buy; mid-pool unchanged", () => {
+    const lp24 = addendum(LP, 24), mid22 = addendum(MID, 22);
+    for (const doc of [lp24, mid22]) expect(doc).toContain('"那目前的单都尽快卖出掉吧，还剩多少"');
+    const stmt = 'update public.pm_lp_config set liquidate_at = now(), updated_at = now() where id = 1 and restarted_at is null and liquidate_at is null;';
+    expect(lp24.replace(/\s+/g, ' ')).toContain(stmt);
+    expect(mid22).toContain('**Mid-pool is unchanged.**');
+    const migFile = 'supabase/migrations/0123_pm_lp_liquidate.sql', mig = read(migFile);
+    expect(lp24).toContain(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, migFile))).digest('hex'));
+    // 0123 touches live-prep's config and orders alone: one column, two CHECKs, and the switch, guarded by no restart.
+    const body = mig.replace(/--[^\n]*/g, '');
+    expect([...body.matchAll(/public\.([a-z_]+)/g)].map((m) => m[1]).filter((t, i, a) => a.indexOf(t) === i).sort()).toEqual(['pm_lp_config', 'pm_lp_orders']);
+    expect(body).toContain("add constraint pm_lp_config_liquidate_check check (liquidate_at is null or restarted_at is null);");
+    expect(body).toContain("add constraint pm_lp_orders_post_only_check check (post_only or side = 'SELL');");
+    expect(body).toContain(stmt);
+    expect(body).not.toMatch(/\bdelete\b|insert|pm_live_|pm_mid_|live_confirmed_at|dry_run/);
+    const src = read(PATH), lp = read('supabase/functions/agents/pm_lp.ts'), orders = read('supabase/functions/_shared/polymarket_orders.ts');
+    expect(src).toContain('export function lpLiquidation(');
+    expect(src).toContain('if (i.liquidating !== undefined) v.liquidate = !i.liquidating;');
+    expect(src).toContain('const postOnly = !(w.taker && w.side === "SELL");');
+    expect(src).toContain('reply = await venue.postOrder({ ...built.order, signature }, "GTD", postOnly);');
+    expect(src).toContain('g.verdicts.region === true && g.verdicts.geoblock === true && g.verdicts.attestation === true');
+    expect(orders).toContain('if (!postOnly && order.side !== "SELL") return Promise.resolve(');
+    expect(lp).toContain('export const PM_LP_LIQUIDATE = { floor: 0.001, maxFeeRate: Math.max(...Object.values(PM_FEE_TYPES).map((x) => x.rate)) } as const;');
+    expect(lp).toContain('    liquidate: { ...PM_LP_LIQUIDATE },');
+    for (const f of ['pm_mid.ts', 'pm_mini.ts']) if (fs.existsSync(path.join(ROOT, 'supabase/functions/agents', f))) expect(read(`supabase/functions/agents/${f}`)).not.toMatch(/liquidate/);
   });
 });

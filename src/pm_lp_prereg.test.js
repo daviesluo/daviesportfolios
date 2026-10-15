@@ -199,9 +199,13 @@ describe('the live-prep pre-registration', () => {
     // Addendum 22's bytes were the instance until Addendum 23 (a part holding's exit under the touch), which names what it
     // changed from and today's.
     expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add22)?.[1]).toBe('82ae7a72724515ad49b059d9e00f98888c7f6cb44ea6d483f22b2602b4ae78bb');
-    const add23 = DOC.slice(DOC.indexOf('## Addendum 23'));
+    const add23 = DOC.slice(DOC.indexOf('## Addendum 23'), DOC.indexOf('## Addendum 24'));
     expect(add23).toContain('`82ae7a72…78bb`');
-    expect(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex')).toBe(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add23)?.[1]);
+    // Addendum 23's bytes were the instance until Addendum 24 (liquidation), which names what it changed from and today's.
+    expect(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add23)?.[1]).toBe('8303fd97ec106535af9b5a5b1116941996c766e3f0acd5f564feafeb40da9f0c');
+    const add24 = DOC.slice(DOC.indexOf('## Addendum 24'));
+    expect(add24).toContain('`8303fd97…9f0c`');
+    expect(crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/pm_lp.ts'))).digest('hex')).toBe(/`pm_lp\.ts` sha256\s+`([0-9a-f]{64})`/.exec(add24)?.[1]);
     const lp = src('supabase/functions/agents/pm_lp.ts');
     expect(lp).toContain('export const PM_LP_NEAR_CERTAIN = { minPrice: 0.95, share: 0.08 } as const;');
     expect(lp).toContain('else if (nearCertainBuyOk(bYes, N, held.yes, q.m, capital))');

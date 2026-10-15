@@ -606,7 +606,7 @@ export function schemaRefusal(table: string, r: Row): string | null {
     // Live-prep's config also has 0106's `reinvest` and `cap_ceiling_usd` (2026-10-09), and 0119's `restarted_at` and
     // `restart_loss_usd` (2026-10-13).
     const unknown = Object.keys(r).find((c) => !PM_LIVE_SCHEMA[shape].columns.includes(c) && !((mid || lp) && shape === "pm_live_config" && c === "created_at")
-      && !(lp && shape === "pm_live_config" && ["reinvest", "cap_ceiling_usd", "restarted_at", "restart_loss_usd"].includes(c)));
+      && !(lp && shape === "pm_live_config" && ["reinvest", "cap_ceiling_usd", "restarted_at", "restart_loss_usd", "liquidate_at"].includes(c)));
     if (unknown) return `Could not find the '${unknown}' column of '${table}' in the schema cache`;
     // A CHECK passes on NULL, as Postgres's does; NOT NULL is what refuses a missing value.
     const ok = (c: string, f: (v: unknown) => boolean) => r[c] == null || f(r[c]);
@@ -627,6 +627,8 @@ export function schemaRefusal(table: string, r: Row): string | null {
         ?? (lp ? check("cap_ceiling_usd", within("cap_ceiling_usd", 0, 1000)) ?? check("reinvest", r.reinvest == null || typeof r.reinvest === "boolean") : null)
         // 0119: the restarted stop's limit, (0, 75].
         ?? (lp ? check("restart_loss_usd", within("restart_loss_usd", 0, 75)) : null)
+        // 0123: a liquidation only while no restart is set (Addendum 24).
+        ?? (lp ? check("liquidate", r.liquidate_at == null || r.restarted_at == null) : null)
         ?? (r.ireland_until == null || r.ireland_attested_at != null ? null : `new row for relation "${table}" violates check constraint "${table}_check"`);
     }
     if (shape === "pm_live_minutes") {
@@ -657,7 +659,9 @@ export function schemaRefusal(table: string, r: Row): string | null {
       return notNull(["mode", "cond", "token", "outcome", "side", "price", "size", "order_type", "post_only", "expiration", "neg_risk", "hash", "state", "size_matched", "gate"])
         ?? check("mode", MODES.includes(String(r.mode))) ?? check("outcome", ["yes", "no"].includes(String(r.outcome)))
         ?? check("side", ["BUY", "SELL"].includes(String(r.side))) ?? check("price", Number(r.price) > 0 && Number(r.price) < 1)
-        ?? check("size", Number(r.size) > 0) ?? check("order_type", r.order_type === "GTD") ?? check("post_only", r.post_only === true)
+        ?? check("size", Number(r.size) > 0) ?? check("order_type", r.order_type === "GTD")
+        // 0123: live-prep's liquidation sends a SELL not post-only; every other order, and every BUY, is post-only.
+        ?? check("post_only", r.post_only === true || (lp && r.post_only === false && r.side === "SELL"))
         ?? check("expiration", Number(r.expiration) > 0) ?? check("hash", /^0x[0-9a-f]{64}$/.test(String(r.hash)))
         ?? check("state", ["pending", "live", "filled", "cancelled", "expired", "rejected"].includes(String(r.state)))
         ?? check("size_matched", Number(r.size_matched) >= 0) ?? check("gate", ["open", "reduce"].includes(String(r.gate)));
@@ -1541,9 +1545,16 @@ export class FakePolymarket {
       return bad("not enough balance / allowance");
     }
     this.orders.set(hash, { hash, token, side, price, size, matched: 0, status: "LIVE", expiration: exp, orderType: String(b.orderType), trades: [], cond: x.m.cond, at: this.now() });
+    // A SELL sent not post-only (live-prep's liquidation, Addendum 24) that reaches the bid takes it at once, as the CLOB
+    // matches a marketable order: as much as the touch holds (`depth` at 0 ticks), the rest resting at its price.
+    if (!b.postOnly && side === "SELL" && price <= t.bid + 1e-9) {
+      const atTouch = x.m.depth.find(([k]) => k === 0)?.[1] ?? 0;
+      if (atTouch > 0) this.fill(hash, Math.min(size, atTouch));
+    }
     if (this.postMode === "lose-reply") return { status: -1, body: null };
     if (this.postMode === "500-after-accept") return { status: 500, body: { error: "Internal server error" } };
-    return { status: 200, body: { success: true, errorMsg: "", orderID: hash, status: "live", makingAmount: String(o.makerAmount), takingAmount: String(o.takerAmount) } };
+    const matched = this.orders.get(hash)!.status === "MATCHED";
+    return { status: 200, body: { success: true, errorMsg: "", orderID: hash, status: matched ? "matched" : "live", makingAmount: String(o.makerAmount), takingAmount: String(o.takerAmount) } };
   }
 
   /** A taker trades `size` against our resting order: a MATCHED trade, the account moved as the exchange will move it. */
@@ -1598,7 +1609,10 @@ export class FakePolymarket {
       userEarnings: (date, sponsored, cursor) => call("GET", `${C}/rewards/user?${qs({ date, signature_type: "1", ...(sponsored ? { sponsored: "true" } : {}), ...(cursor ? { next_cursor: cursor } : {}) })}`),
       userEarningsTotal: (date, sponsored) => call("GET", `${C}/rewards/user/total?${qs({ date, signature_type: "1", ...(sponsored ? { sponsored: "true" } : {}) })}`),
       rebates: (date, maker) => call("GET", `${C}/rebates/current?${qs({ date, maker_address: maker })}`),
-      postOrder: (o, orderType, postOnly) => call("POST", `${C}/order`, postOrderBody(o, PM_TEST_OWNER, orderType, postOnly)),
+      // As `pmVenue`'s client: a BUY not post-only is refused before it is sent (Addendum 24).
+      postOrder: (o, orderType, postOnly) => (!postOnly && o.side !== "SELL"
+        ? Promise.resolve({ ok: false, status: 0, ms: 0, error: "only a SELL is ever sent not post-only", refused: "taker-buy" as const })
+        : call("POST", `${C}/order`, postOrderBody(o, PM_TEST_OWNER, orderType, postOnly))),
       cancelOrder: (id) => {
         const p = call("DELETE", `${C}/order`, cancelOrderBody(id));
         return this.cancelMode === "throw" ? p.then(() => Promise.reject(new DOMException("The signal has been aborted", "TimeoutError"))) : p;
@@ -1656,7 +1670,7 @@ export class FakePolymarket {
 export const LP_A18_INSTANCE: PmLiveInstance = (() => {
   const lp = PM_LP_INSTANCE.lp!;
   const { quiet: _q, ...candidate } = lp.candidate;
-  const { quietRead: _r, selectShare: _s, restartable: _x, ...rest } = lp;
+  const { quietRead: _r, selectShare: _s, restartable: _x, liquidate: _l, ...rest } = lp;
   const a18 = lpRulesOf({ invCap: 5, tight: { maxTicks: 1 } });
   return { ...PM_LP_INSTANCE, lp: { ...rest, rule: a18.rule, exitRule: a18.exitRule, candidate } };
 })();

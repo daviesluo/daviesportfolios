@@ -65,6 +65,7 @@ import { type BookRow, quote, RW_MIN_RATE, sizeN, summarize } from "./pmrw.ts";
 import { isTight } from "./pmrw_x.ts";
 import type { PrepInstance } from "./pm_prep.ts";
 import { pmTakerShares, type PmPublicOpts } from "../_shared/polymarket_public.ts";
+import { PM_FEE_TYPES } from "./pm_fees.ts";
 
 /** Its band of total daily reward rates: RW's floor ($10, `RW_MIN_RATE`) and no ceiling. */
 export const PM_LP_BAND = { floor: RW_MIN_RATE, ceiling: Infinity } as const;
@@ -212,6 +213,13 @@ export const PM_LP_REFILL: LpRefillOptions = {
 export const PM_LP_MARKET_LOSS = 10;
 
 /**
+ * The liquidation (`PmLpOptions.liquidate`, Addendum 24; Davies, 2026-10-15: "那目前的单都尽快卖出掉吧，还剩多少"): with
+ * 0123's `liquidate_at` set, each holding is sold whole at the bid, never under 0.001 a share, nor where the worst taker fee
+ * a fee type has (the highest rate of `PM_FEE_TYPES`, 7 % × p × (1 − p) a share) would leave under 0.001 a share.
+ */
+export const PM_LP_LIQUIDATE = { floor: 0.001, maxFeeRate: Math.max(...Object.values(PM_FEE_TYPES).map((x) => x.rate)) } as const;
+
+/**
  * Its candidate rules: no 48-hour end-date horizon (RW-E's same-day rule only), weather markets out (RW-X's x1), AI markets
  * out (Addendum 12), and since Addendum 19 quiet books only (`PM_LP_QUIET`).
  */
@@ -314,6 +322,7 @@ export const PM_LP_INSTANCE: PmLiveInstance = {
     quietRead: lpQuietRead,
     selectShare: PM_LP_SELECT_SHARE,
     restartable: true,
+    liquidate: { ...PM_LP_LIQUIDATE },
     paper: { fills: "pm_lpprep_fills", settlements: "pm_lpprep_settlements", days: "pm_lpprep_days" },
   },
 };
