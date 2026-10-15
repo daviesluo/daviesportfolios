@@ -22,6 +22,9 @@
 //   * The stop's cost. `stepMinute` charges PR5's 0.09 % + 0.0067 %; Coinbase's stable pairs charge a taker 0.0045 %, plus
 //     half the book's touch (read 2026-10-09). A stopped trip's exit is moved from PR5's cost to Coinbase's afterwards,
 //     from the same last print (`cbStopExit`), and nothing else depends on it.
+//   * The releases (Deviation 3, 2026-10-15; Davies: "目前的两个Coinbase 测试采用发布前后暂停的规则吧"). In the seven minutes from one
+//     before to five after each scheduled CPI, NFP, FOMC, ECB or BoE release (`cb_releases.ts`) the minute's fairU is null:
+//     `stepMinute` quotes nothing new and the stored minute's fair is null. Nothing else differs.
 // Fills therefore need a print strictly THROUGH a resting quote, as PR5's do. The driver runs one minute behind the
 // recorder's coverage, so a minute's prints are complete before it is decided.
 
@@ -31,6 +34,7 @@ import {
   type BookState, type MinuteInputs, type Print, type QuoteBook, type QuoteEvent, type Trip,
 } from "./quotes.ts";
 import { CB_PRODUCTS, type CbProduct, type CbRecState } from "./cb_rec.ts";
+import { cbInBlackout } from "./cb_releases.ts";
 import { faultKey, reportDue } from "./pm_book_rec.ts";
 
 const M = 60e3, DAY = 86400e3;
@@ -234,7 +238,8 @@ export async function runCbQuotes(d: CbQuoteDeps): Promise<CbQuoteReport> {
         while (j < prints.length && prints[j].ts < t + M) { mine.push(prints[j]); j++; }
         const bar = fxBarAt(t, gbpBars), eb = fxBarAt(t, eurBars), window = fairHours(t, hours[CB_BOOK[b].coin]);
         const io = cbMinuteInputs(b, bar ? bar[1] : null, eb ? eb[1] : null, median(window));
-        const inp: MinuteInputs = { ...io, prints: mine };
+        // Deviation 3 (2026-10-15): in the minutes around a scheduled release (cb_releases.ts) the fair is withheld, as in any dark minute.
+        const inp: MinuteInputs = { ...io, fairU: cbInBlackout(t) ? null : io.fairU, prints: mine };
         const out = stepMinute(st.books[b], t, inp);
         minutes.push(cbMinuteRow(b, t, bar, CB_BOOK[b].quote === "EUR" ? eb : null, window.length, inp, io.xGbp));
         // Pounds (Deviation 1): a trip closing at the book's last known pounds per unit, from the one its rung filled at.

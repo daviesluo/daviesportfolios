@@ -18,9 +18,9 @@ const table = (text, name) => new RegExp(`create table if not exists public\\.${
 describe('the weekend variant of the Coinbase paper test', () => {
   it('has the files it froze: this arm\'s, and the base test\'s as they were', () => {
     const groups = Object.entries(MANIFEST.frozen);
-    expect(groups.map(([g]) => g)).toEqual(["the base test's, unchanged by 0118", "this arm's"].sort());
+    expect(groups.map(([g]) => g)).toEqual(["the base test's, unchanged by 0118 and by the release blackout", "the release blackout's, changed or added 2026-10-15", "this arm's"].sort());
     for (const [, files] of groups) {
-      expect(Object.keys(files).length).toBeGreaterThan(5);
+      expect(Object.keys(files).length).toBeGreaterThan(4);
       for (const [p, h] of Object.entries(files)) expect([p, sha(p)]).toEqual([p, h]);
     }
     // The pre-registration names every one of this arm's files.

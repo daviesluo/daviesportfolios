@@ -182,3 +182,26 @@ had (the recorder's prints, the rate bars that started before it, the hourly clo
 decides a minute from a completed record), at most 60 a run until the arm is current. The reading was already not
 blind (§6); its report repeats this. A start at the minute of Davies' word instead was not taken: the frozen reading
 buckets its days from a midnight start, and bar 5 compares whole UTC days against the twin.
+
+**Deviation 2 (2026-10-15, before the reading): the same blackout around the scheduled releases as the base test's.** On Davies' word, 2026-10-15
+(before 03:03 UTC; the message carries no clock): "目前的两个Coinbase 测试采用发布前后暂停的规则吧，你想办法找到准确的CPI 和非农等的历史发布日期，可以用网站本身的api和数据接口；另外revolut x的规则不需要加这个吗？" — both Coinbase tests take the pause. `cb_hold.ts` withholds the minute's
+`fairU` in the seven minutes from one before to five after each release of `cb_releases.ts`, exactly as `cb_quotes.ts` does (Deviation 3 of the base
+test's pre-registration, which has the rule, the list, its sources and its limits: the BLS dates are recalled, not fetched, and marked UNCONFIRMED).
+
+- **From which minute.** From the first minute decided after the deploy of the commit that adds these bytes; the first listed release is
+  2026-10-28 18:00 UTC, so no earlier minute differs from the rule as it ran. The window (2026-10-13 00:00 → 2026-11-10 00:00 UTC) and its four whole
+  weekends are unchanged; it holds four releases (FOMC 10-28, ECB 10-29, BoE 11-05, NFP 11-06); the CPI of 11-10 falls after its end.
+- **The reading is read on the record as it ran.** `replay_wk.py` is run unchanged on `cb_hold_minutes` and `cb_hold_trips` as the engine wrote them; the
+  blackout minutes carry a null fair, as any dark minute, so bar 1 replays them. The base arm of bar 6 is the same minute record with every
+  minute whose rate bar started more than ten minutes before it darkened, and the blackout minutes are dark in both, so nothing in the
+  script changes.
+- **The paired comparison of the two arms is unaffected.** Bar 6 pairs this arm with the base rule by weekend; the base test gets the same blackout
+  from the same list, so the two differ only in the closure. `cb_hold.test.ts` pins that on a world with a release in it the two write the same
+  trips, events and minutes.
+- **Frozen bytes** (group "this arm's", and "the release blackout's" for the shared module; `src/cb_hold_prereg.test.js`):
+
+| file | sha256 |
+|---|---|
+| `supabase/functions/agents/cb_hold.ts` | `3795b05c5c3b38b30065c13c6c907e6c684fafe195055d3792d3290b25d365f8` |
+| `supabase/functions/agents/cb_hold.test.ts` | `e88b82a4f20ba92256d54278013bee83348d79ef3dc58cd1a95c62d31f3245b5` |
+| `supabase/functions/agents/cb_releases.ts` | `fa882d0559d90828d9e4530bf4a640db3454a6be1be70b94ada42bd0ca0b5a63` |

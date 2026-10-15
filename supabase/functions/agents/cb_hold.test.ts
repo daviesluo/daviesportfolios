@@ -3,7 +3,9 @@
 // dark and fills nothing, this arm keeps its rung and makes the same round trip as the base test's own hand-worked one, across
 // two calls (the second reads the held bar from the anchor row, not from 60 hours of bars); (3) the hold ends: a bar older than
 // 60 hours is no bar; (4) with no closure the two arms write the same rows; (5) an empty record starts at the next 00:00 UTC and
-// reads no print before it; (6) the browser test's fixture is this driver and the page's read run again, byte for byte.
+// reads no print before it; (6) the browser test's fixture is this driver and the page's read run again, byte for byte; (7) the release
+// blackout (Deviation 2, 2026-10-15): this arm sits out the scheduled releases as the base test does, and on a world with a release the two arms
+// write the same rows, so their comparison is unaffected.
 
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { CB_HOLD_ID, CB_HOLD_MS, CB_HOLD_ROW_NAME, CB_HOLD_TABLES, cbHoldBarAt, cbHoldNewState, cbHoldStart, runCbHold } from "./cb_hold.ts";
@@ -12,6 +14,7 @@ import { runCbQuotes } from "./cb_quotes.ts";
 import { CB_PRODUCTS, type CbCursor, type CbProduct } from "./cb_rec.ts";
 import { fxBarAt, QUOTE_FX_LOOKBACK_MS } from "./quotes.ts";
 import { coinbaseHoldPageFixture, memDb, type Row } from "./testing.ts";
+import { BLACKOUT_T0, blackoutPrints } from "./cb_blackout_world.ts";
 
 const M = 60e3, H = 3600e3, DAY = 86400e3;
 const iso = (ms: number) => new Date(ms).toISOString();
@@ -211,4 +214,24 @@ Deno.test("the browser test's weekend-variant fixture is the driver and the page
   assertEquals(hold.detail.tripCount, base.detail.tripCount);
   assertEquals(Object.values(CB_HOLD_TABLES).every((t) => t.startsWith("cb_hold_")), true);
   assertEquals(DAY, 86400e3);
+});
+
+Deno.test("the release blackout: this arm withholds the fair around a release exactly as the base test does, and the two arms write the same rows", async () => {
+  const t0 = BLACKOUT_T0;
+  const hm = (v: unknown) => String(v).slice(11, 16);
+  const w = world(t0, { ratesUntil: t0 + 25 * M, coveredTo: t0 + 20 * M + 1000, prints: blackoutPrints(t0) });
+  const hold = await runCbHold({ db: w.db, now: t0 + 25 * M, holder: "h", rec: w.rec });
+  const base = await runCbQuotes({ db: w.db, now: t0 + 25 * M, holder: "b", fetchImpl: w.fetchImpl, rec: w.rec });
+  assertEquals([hold.errors, base.errors], [[], []]);
+  // The hand-worked result of cb_quotes.test.ts, in this arm's tables: three fills and two exits, none in the window.
+  const ev = (kind: string) => w.tables.cb_hold_events.filter((e) => e.book === "USDC-GBP" && e.kind === kind).map((e) => [hm(e.minute), e.k]);
+  assertEquals(ev("fill"), [["17:55", 0.001], ["17:58", 0.002], ["18:07", 0.001]]);
+  assertEquals(ev("exit"), [["18:00", 0.001], ["18:07", 0.002]]);
+  const rows = w.tables.cb_hold_minutes.filter((x) => x.book === "USDC-GBP");
+  assertEquals(rows.filter((x) => x.fair == null).map((x) => hm(x.minute)).sort(), ["17:59", "18:00", "18:01", "18:02", "18:03", "18:04", "18:05"]);
+  assert(rows.every((x) => x.x === 1));
+  // Both arms: the same trips, events and minutes (no closure in the world, so the hold changes nothing; the blackout is in both).
+  const same = (a: string, b: string) => assertEquals(JSON.parse(JSON.stringify(w.tables[a])), JSON.parse(JSON.stringify(w.tables[b])), `${a} is ${b}`);
+  same("cb_hold_trips", "cb_quote_trips"); same("cb_hold_events", "cb_quote_events"); same("cb_hold_minutes", "cb_quote_minutes");
+  assertEquals(w.tables.cb_hold_trips.length, 2);
 });

@@ -20,6 +20,9 @@
 //     the recorder's first whole minute; and the prints are read from that start on (`ts>=first`), from the newest trade id
 //     it saw when the record began.
 //
+// Since 2026-10-15 (Deviation 2 of the pre-registration; Davies: "目前的两个Coinbase 测试采用发布前后暂停的规则吧") it sits out the scheduled
+// releases exactly as the base test does (`cb_releases.ts`): a second change, made to both arms alike, so their comparison is unaffected.
+//
 // Its call is its own (`agents?action=cbhold`, a row of `edge_calls`): a fault of this arm never touches the base test's call.
 
 import type { Db } from "./db.ts";
@@ -28,6 +31,7 @@ import {
   type CbQuoteReport, type CbQuoteState,
 } from "./cb_quotes.ts";
 import { CB_PRODUCTS, type CbProduct, type CbRecState } from "./cb_rec.ts";
+import { cbInBlackout } from "./cb_releases.ts";
 import { faultKey, reportDue } from "./pm_book_rec.ts";
 import { fairHours, median, newBookState, QUOTE_FX_LOOKBACK_MS, stepMinute, type BookState, type MinuteInputs, type Print, type QuoteBook } from "./quotes.ts";
 
@@ -125,7 +129,8 @@ export async function runCbHold(d: { db: Db; now: number; holder: string; rec: C
         while (j < prints.length && prints[j].ts < t + M) { mine.push(prints[j]); j++; }
         const bar = cbHoldBarAt(t, gbpBars), eb = cbHoldBarAt(t, eurBars), window = fairHours(t, hours[CB_BOOK[b].coin]);
         const io = cbMinuteInputs(b, bar ? bar[1] : null, eb ? eb[1] : null, median(window));
-        const inp: MinuteInputs = { ...io, prints: mine };
+        // Deviation 2 (2026-10-15): the same release blackout as the base test's (cb_releases.ts): in the minutes around a scheduled release the fair is withheld.
+        const inp: MinuteInputs = { ...io, fairU: cbInBlackout(t) ? null : io.fairU, prints: mine };
         const out = stepMinute(st.books[b], t, inp);
         minutes.push(cbMinuteRow(b, t, bar, CB_BOOK[b].quote === "EUR" ? eb : null, window.length, inp, io.xGbp));
         // Pounds, as the base test: a trip closing at the book's last known pounds per unit, from the one its rung filled at.

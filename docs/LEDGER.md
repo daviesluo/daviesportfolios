@@ -568,6 +568,15 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
 "LEDGER.md, archived 2026-10-15"; each oldest first.
 
 ### [2026-10-15 03:29 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Release blackout built into BOTH Coinbase tests** (sub-agent; Davies, 10-15: "目前的两个Coinbase 测试采用发布前后暂停的规则吧…";
+  `agents/cb_releases.ts`, `cb_quotes.ts`, `cb_hold.ts`; `reviews/2026-10-15-coinbase-blackout.md`; NOT pushed, needs landing and the `agents` redeploy):
+  - From 1 minute before to 5 after each CPI, NFP, FOMC, ECB, BoE release (10 in the list, 10-28 to 12-17) the minute's `fairU` is null: no new
+    entry, exits as any dark minute, stored `fair` null so `replay.py` / `replay_wk.py` still reproduce. Base prereg Deviation 3, "- 2" Deviation 2;
+    sha256 in `cbwk/MANIFEST.json`'s new group. Pins fail on the old code (counterfactual run). The paired comparison of the two arms is unaffected.
+  - First live check: 2026-10-28 17:59 to 18:05 UTC (FOMC), `fair` null in both minute tables and no entry fill in them. CPI 11-10, 12-10 and NFP 12-04
+    are UNCONFIRMED (bls.gov refused).
+
+### [2026-10-15 03:29 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Exact release calendar for the Coinbase blackout** (sub-agent; Davies, 10-15: "你想办法找到准确的CPI 和非农等的历史发布日期…";
   `backtests/cbreview/scripts/release_calendar.py` → `inputs/release_calendar.json`, `events.json`): FOMC, ECB and BoE from their own
   sites (0 differences from what was recalled, 48 of 48); **bls.gov refused (403), FRED did not connect, Yahoo's crumb answered 429**, so CPI

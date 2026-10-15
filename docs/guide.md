@@ -303,6 +303,9 @@ places stay when the number is not whole.
   lines, its page is the first's, and Coinbase's card adds the two. A paper
   test, starting at the next midnight after it went up; the rule for judging
   it is written down first.
+  Since 15 October both Coinbase tests also step aside for seven minutes
+  around each scheduled data release (US inflation and jobs, the Fed, the ECB,
+  the Bank of England), when the market jumps faster than a quote can follow.
 - **No paper Reward quotes since 13 October.** The paper tests of quoting
   for Polymarket's liquidity rewards (Reward quotes, its variant-1 to
   variant-4, and Reward quotes mid-pool) left TESTING and stopped on
