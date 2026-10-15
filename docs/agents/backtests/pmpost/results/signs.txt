@@ -1,0 +1,10 @@
+S2  first minute                           negative in 40 of 42 markets, P(>= that many | coin) = 2.1e-10
+S2  spread + first minute                  negative in 31 of 42 markets, P(>= that many | coin) = 0.0014
+S2  net (fills now + rewards + rebates)    negative in 28 of 42 markets, P(>= that many | coin) = 0.022
+Q2  first minute                           negative in 6 of 10 markets, P(>= that many | coin) = 0.38
+Q2  spread + first minute                  negative in 6 of 10 markets, P(>= that many | coin) = 0.38
+Q2  net (fills now + rewards + rebates)    negative in 9 of 10 markets, P(>= that many | coin) = 0.011
+all first minute                           negative in 46 of 52 markets, P(>= that many | coin) = 5.2e-09
+all spread + first minute                  negative in 37 of 52 markets, P(>= that many | coin) = 0.0016
+all net (fills now + rewards + rebates)    negative in 37 of 52 markets, P(>= that many | coin) = 0.0016
+Q2's 16 lots (Q2-TRIPS' trips table, its erratum): 15 lost; P(>= 15 of 16 | coin) = 0.00026

@@ -1,0 +1,11 @@
+PMPOST: entries closed at once by a taker order (sql/hedge_at_once.sql, run 2026-10-15 ~15:25 UTC). Gross of taker fees.
+phase  entries  shares  hedge in the fill's minute  per share  hedge one minute later  per share  mean touch
+S2     221      3,593   -16.20                      -0.45 c    -154.76                 -4.31 c    3.48 c
+Q2     20       389     -6.29                       -1.62 c    -27.09                  -6.96 c    7.35 c
+all    241      3,982   -22.49                      -0.56 c    -181.85                 -4.57 c    3.80 c
+"In the fill's minute" uses the touch the turn read before the taker came, so it is a bound no real hedge reaches:
+the realistic one is a minute later, after the information is in the book. As a strategy (quote, then hedge each fill),
+a quoting day: S2 -47.6 $ of hedges against the -39.6 $ its fills actually lost; Q2 -18.7 against -14.4.
+A hedge through a negative-risk set's other outcomes costs at least the same, since buying every other YES at its ask
+locks $1 only as cheaply as selling at the bid, unless the set is mispriced (PMOPPS: 7 such episodes after fees in 8
+days, $1.26 a day at $1,000).

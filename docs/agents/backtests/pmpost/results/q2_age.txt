@@ -1,0 +1,16 @@
+PMPOST: Q2's ten filled markets by age at their first live fill (Gamma's createdAt, keyless GET
+https://gamma-api.polymarket.com/markets?condition_ids=..., read 2026-10-15 ~15:30 UTC, data/q2_markets_gamma.json),
+with each market's net from data/markets.csv (fills marked now + rewards + rebates).
+market      question (cut)                                   created     first fill   age (d)  net $
+0xd95404d1  AZ-09 House, Republican                          2026-08-07  10-13 15:49  67       -1.47
+0x750ce9d6  IL-07 House, Democrat                            2026-08-10  10-13 20:05  64       -1.32
+0x40b8e1cc  IL-16 House, Republican                          2026-08-10  10-13 16:12  64       -0.88
+0x397bea1f  IN-03 House, Republican                          2026-08-10  10-13 18:48  64       -2.43
+0xed1eabc9  Windsor mayor, Dilkens                           2026-08-24  10-13 18:02  50       -2.71
+0x3b162968  Burlington mayor, Nisan                          2026-08-24  10-14 00:09  51       -0.35
+0x7465aead  Democratic Senate odds 60-62% on Oct 16          2026-10-09  10-14 04:28  4.7      -6.44
+0xe612eb64  P&G Q1 organic sales growth 2.5-3.5%             2026-10-12  10-13 13:45  0.8      -2.27
+0x6eed2a46  Google Q3 YouTube ads > $11.8B                   2026-10-13  10-14 05:46  0.7      -1.15
+0x7d542d01  US imports Russian diesel by Nov 30              2026-10-14  10-15 00:01  0.01     +2.50
+markets 3 days old or more: 7, net -15.60; under 3 days: 3, net -0.92.
+Q2-AGE's 3-day filter (draft B') would have taken Q2 from -15.75 to -14.83: the loss was in old, quiet election books.

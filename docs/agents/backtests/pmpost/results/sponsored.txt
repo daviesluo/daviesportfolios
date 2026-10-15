@@ -1,0 +1,5 @@
+PMPOST: the sponsored reward listing now (keyless GET https://clob.polymarket.com/rewards/markets/current?sponsored=true,
+one page, next_cursor "LTE=" = the end; read 2026-10-15 ~15:28 UTC; data/sponsored_listing.json).
+31 markets carry a sponsored rate, $210.33 a day in all; the largest two $50, then $25, $10, $8.25; 3 list no native
+config, $15.00 a day between them; reward minimums 20, 50, 150 and 200 shares.
+PMOPPS (10-13 02:48): 22 markets, $229 a day, 0.1 % of the $255,395 a day of all rewards. Unchanged in kind.

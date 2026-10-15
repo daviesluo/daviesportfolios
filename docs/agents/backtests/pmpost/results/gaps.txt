@@ -1,0 +1,56 @@
+PMPOST: why paper and the simulators overstated live, quantified. Live figures from results/decompose.txt and
+results/phase_boot.txt; the rest quoted from the studies named (their committed outputs).
+
+1. S2 (live-prep's busy books, 10-09 01:32 -> 10-12 07:30), against its own paper layer (LP-ADVERSE §4)
+   paper layer on its own record: +$91.2 a quoting day (rewards $100.1 at R 0.75, fills to the end -$8.9)
+   live: -$21.45 a quoting day (this study: rewards 46.06, rebates 12.96, fills -128.68 over 3.249 days)
+   the gap, about $112 a day: rewards $85 (76 %), fills $31, rebates -$4.
+   a. R (paid over the path's own formula): S2 46.06 / 64.76 = 0.711, Q2 3.76 / 5.26 = 0.715, against the 0.75 paper
+      assumed: about 5 % of the rewards gap. R was never the problem.
+   b. Formula realised per filled share: paper 7.7 c, live 0.93 c (S2: 64.76 / 6,986), 8.3x lower. Why:
+      - carried stock held the cap: 39.6 % of selected quoting minutes rested nothing (LP-ADVERSE), 68 % of live's
+        market-minutes were carried markets working exits;
+      - two-sided scoring minutes 1,833 a day against paper's 7,920, each worth $0.0103 against $0.0162;
+      - one side or neither read scoring in 16.7 % more; programme cuts after 10-09 only 3 % (0.97x).
+   c. Fill model: paper filled only on a print strictly through the quote and saw 0.077 shares a quoted minute against
+      live's 0.140 (1.8x). The fills it saw were the adverse half: live fills with a print within 60 s lost 4.86 c a share
+      at 60 minutes, the other 234 lost 0.78 c. So per share paper and live lost the same (-2.92 c against -2.85 c);
+      paper missed volume, not toxicity.
+   d. Queue position: improving the touch by a tick brought no extra takers, k = 0.81 [0.41, 2.25] (LP-BEST §1).
+      Not a source of the gap.
+   e. Informed takers: 97 % of the 60-minute markout came from one-shot takers (a sweep, or a single taker at our price
+      with no print before), 122 + 254 fills (LP-SPEED). Paper's per-share markout already contained them.
+   Against LP-BEST's calibrated engine (R 0.420 in its units, fills x k_vol 1.283), S2 is reproduced: engine -$24.96 a
+   quoting day, live -$21.77 (out of sample in time -78.02 against -75.13). Calibrated to busy books, the engine is right
+   about busy books.
+
+2. Q2 (quiet books, 10-13 13:25 -> 10-15 00:08), against LP-BEST's calibrated engine (its §4, the whole span):
+   engine: +$3.62 a day [+1.38, +6.02]: rewards 3.97, fills -0.58, rebates 0.23; 136 filled shares a day
+   live:   -$10.89 a day [-19.96, -2.61]: rewards 2.60, fills -14.43, rebates 0.92; 510 filled shares a day
+   gap -$14.51 a day = rewards -1.37 + fills -13.85 + rebates +0.69. The fills' -13.85 splits into
+     volume (510 against 136 shares a day at the engine's -0.43 c a share): -1.6
+       - x1.8 because pm-rec recorded the picked books about 56 % of each day and the engine quotes only those minutes
+         (LP-BEST disclosed it as an upside: it doubles fills as well as rewards);
+       - x1.9 from Addendum 13's refills while they ran (Q2-PM: 174 -> 332 shares on the same window);
+     per share (live -2.83 c against the engine's -0.43 c): -12.2 — the takers of quiet books were informed over hours:
+       Q2's 16 lots: entry edge +5.87, first minute -9.12, drift while held -16.08, exits +3.00 (Q2-TRIPS), 15 of 16 lots
+       lost (P = 0.00026 under a coin), and the engine's tape rule charged -1.96 c a share where live lost -2.88 c to the
+       exits (Q2-TRIPS §2: the calibration's extra -0.918 c a share).
+   rewards per filled share: engine 2.92 c, live 0.51 c (5.7x lower): volume up, and the rewards themselves x0.53-0.57
+   (x2's pause tripping 13x as often on flickering quiet books, 380 against 29 minutes; rate dips; refills).
+   The busy-book calibration did not carry over to quiet books.
+
+3. Lessons for any future Polymarket test (each one cost money here):
+   L1. The measure is rewards per filled share against the adverse cost per filled share, from live-like fills. Formula
+       income is never the measurement. S2 needed 1.66 c a share and was paid 0.66 c; Q2 needed 2.65 c and was paid 0.51 c.
+   L2. Fills come from the trade tape of maker orders (a taker who takes exactly our price leaves no print through it),
+       and fill volume and markout are calibrated on live orders before any arm is believed.
+   L3. Mark at 1 minute, 60 minutes, 4 hours and to the exit or the payout; quiet books' information arrives over hours.
+   L4. Simulate the path's own mechanics: refills, the pause on the real (flickering) mids, the cap held by carried
+       stock, programme churn read every minute, and the hours the recorder missed.
+   L5. A calibration fitted in one regime does not transfer to another: re-fit per regime before money.
+   L6. Read results by market and lot with a cluster bootstrap and a sign count; one market was 25 % of S2's loss.
+   L7. Thresholds chosen on the days that judge them are flattered; freeze and read unseen days (DEADLINE-NO's path).
+   L8. Anything whose edge needs sub-second reaction is out of reach (LP-SPEED, PMSC).
+   L9. No paper layer measures R or live fill quality; only a minimum-size live pilot does, and it needs a stop that
+       allows for the day's worst informed fills (a −$25 stop had $3.98 of room after 28 hours).

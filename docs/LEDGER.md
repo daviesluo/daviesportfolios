@@ -64,6 +64,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    the 1.5 c bar; stop room $7.50. Ran `update public.pm_lp_config set restarted_at = null where id = 1;` (returned null;
    `dry_run` false, still armed so the exits work): at 00:10 `openBlockedBy` = `loss_total`, 3 SELLs resting, no BUY. The held
    lots exit on their own; no restart without Davies' word. Item 0a″ below is superseded.
+   PMPOST (10-15, `reviews/2026-10-15-pm-postmortem.md`): not viable; its calls-off proposals wait for Davies.
 
 0a″. **URGENT for the next session: Q2's stop room was $3.98 of $25 at 17:47 UTC 10-14** (basis −21.02; 0x7465aead "Democratic
    Senate odds 60-62% on October 16?" 40 YES at cost $12.20, mid 0.15, −6.20; 0x6eed2a46 20 YES bought again 17:40). The −$25
@@ -565,12 +566,19 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)"; each oldest first.
 
 ### [2026-10-15 15:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Live-prep's Addendum 23 (mid-pool's 21)** (sub-agent, not pushed; Davies: "Addendum 21和Addendum 20都修复了"). (1) Under
+- **Live-prep's Addendum 23 (mid-pool's 21)** (sub-agent, landed by the main session; Davies: "Addendum 21和Addendum 20都修复了"). (1) Under
   the 4 ¢ touch a quoting market's exit goes through `closeOnly`: a holding of 5 to N shares rests its sell (0x3b162968's 9
   had none). (2) A restart's unmarked dust opens at its first read value, not 1 (`restartOpenMarks` `pending`), and this
   turn's settlements mark the restart: a pre-restart settlement no longer charges the $25 stop (up to $4.29). Close-only now:
   no decision changes. Residual close-only gaps (near-certain other side, net ≥ 2N, no RW quote) named, not fixed.
   `pm_live.ts` `17584420…324b`, `pm_lp.ts` `8303fd97…9f0c`; the pins fail on the old files.
+
+### [2026-10-15 15:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **PMPOST filed** (sub-agent, landed by the main session; `reviews/2026-10-15-pm-postmortem.md`, `backtests/pmpost/`): no viable
+  Polymarket strategy at this size. Account $402.03 → $316.55 at the marks (−$85.48; reconciles to 5 c): fills −149.55
+  (spread +109.80, first minute −218.11, drift −40.34), rewards 49.83, rebates 14.29, fees 0. S2 −$21.45/quoting day,
+  Q2 −$10.89; rewards a filled share 0.66 / 0.51 c against 1.66 / 2.65 c needed. Proposals for Davies: lots exit by
+  themselves; `pmlpreserve` off now, `pmrec` after LPRESEL6 (10-23), then disarm; no further reward test.
 
 ### [2026-10-15 14:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

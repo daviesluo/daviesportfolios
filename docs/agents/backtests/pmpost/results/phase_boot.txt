@@ -1,0 +1,18 @@
+S2: markets 64 (filled 42), filled shares 6986, quoting days 3.249
+  fills -128.68  rewards +46.04  rebates +12.96  net -69.68  = -21.45 a quoting day
+  per filled share (c): fills -1.84  rewards 0.66  rebates 0.19  net -1.00
+  rewards needed to break even 115.72 = 2.51x what was paid; 1.66 c a filled share
+  net a quoting day, market bootstrap 5/50/95 %: -44.47 / -21.62 / +0.68;  P(net > 0) 0.056
+  without its worst market (0x3090f7aa, net -19.33): net -50.35 = -15.50 a day
+Q2: markets 19 (filled 10), filled shares 738, quoting days 1.446
+  fills -20.86  rewards +3.78  rebates +1.33  net -15.75  = -10.89 a quoting day
+  per filled share (c): fills -2.83  rewards 0.51  rebates 0.18  net -2.13
+  rewards needed to break even 19.53 = 5.17x what was paid; 2.65 c a filled share
+  net a quoting day, market bootstrap 5/50/95 %: -19.96 / -10.64 / -2.61;  P(net > 0) 0.014
+  without its worst market (0x7465aead, net -6.44): net -9.31 = -6.44 a day
+both: markets 83 (filled 52), filled shares 7724, quoting days 4.695
+  fills -149.54  rewards +49.82  rebates +14.29  net -85.43  = -18.20 a quoting day
+  per filled share (c): fills -1.94  rewards 0.65  rebates 0.19  net -1.11
+  rewards needed to break even 135.25 = 2.71x what was paid; 1.75 c a filled share
+  net a quoting day, market bootstrap 5/50/95 %: -33.87 / -18.12 / -2.71;  P(net > 0) 0.028
+  without its worst market (0x3090f7aa, net -19.33): net -66.09 = -14.08 a day

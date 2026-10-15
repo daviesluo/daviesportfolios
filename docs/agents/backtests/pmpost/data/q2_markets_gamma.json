@@ -1,0 +1,82 @@
+[
+ {
+  "conditionId": "0xd95404d1e8fa4dc9c0c55f638e017321e6f64a690d6d11db6b069b5abc60853c",
+  "question": "Will the Republican Party candidate win the 2026 AZ-09 House election by 20%-25%?",
+  "createdAt": "2026-08-07T14:02:58.680824Z",
+  "endDate": "2026-11-04T04:59:00Z",
+  "negRisk": true,
+  "volume24hr": 80
+ },
+ {
+  "conditionId": "0x750ce9d649a1a1ba42f78b85f3cdb99099f16a98d217f168080638cd09376806",
+  "question": "Will the Democratic Party candidate win the 2026 IL-07 House election by 65%-70%?",
+  "createdAt": "2026-08-10T14:51:40.725038Z",
+  "endDate": "2026-11-04T04:59:00Z",
+  "negRisk": true,
+  "volume24hr": 220.431514
+ },
+ {
+  "conditionId": "0x40b8e1cce298fe4afb7b755e6ab1134332154c54c0c50160ac8d9ba642f4d6f3",
+  "question": "Will the Republican Party candidate win the 2026 IL-16 House election by 20%-25%?",
+  "createdAt": "2026-08-10T14:52:50.648357Z",
+  "endDate": "2026-11-04T04:59:00Z",
+  "negRisk": true,
+  "volume24hr": null
+ },
+ {
+  "conditionId": "0x397bea1fb724adc154a167e63d6a9f2956ecd1c6baeea7cc04aa431dae04b30b",
+  "question": "Will the Republican Party candidate win the 2026 IN-03 House election by 15%-20%?",
+  "createdAt": "2026-08-10T14:53:13.363542Z",
+  "endDate": "2026-11-04T04:59:00Z",
+  "negRisk": true,
+  "volume24hr": 60.24
+ },
+ {
+  "conditionId": "0xed1eabc9f9b0fddbe334e9fc1fe4e06353dc62c45132c07a4b0bf548b44d6ec1",
+  "question": "Will Drew Dilkens win the 2026 Windsor mayoral election?",
+  "createdAt": "2026-08-24T18:26:50.60616Z",
+  "endDate": "2026-10-27T03:59:00Z",
+  "negRisk": true,
+  "volume24hr": 20
+ },
+ {
+  "conditionId": "0x3b1629687eee46f34761169c3aa94316fd15d2f81c35cd77ccf5d565d0d988c6",
+  "question": "Will Rory Nisan win the 2026 Burlington mayoral election?",
+  "createdAt": "2026-08-24T18:39:34.298171Z",
+  "endDate": "2026-10-27T03:59:00Z",
+  "negRisk": true,
+  "volume24hr": 99.1
+ },
+ {
+  "conditionId": "0x7465aeadf63a0fd82f3bd8acab06e556e7a1c56490b61055936496a430b92e89",
+  "question": "Democratic Senate odds 60-62% on October 16?",
+  "createdAt": "2026-10-09T12:05:07.764566Z",
+  "endDate": "2026-10-16T16:00:00Z",
+  "negRisk": true,
+  "volume24hr": 442.03478700000005
+ },
+ {
+  "conditionId": "0xe612eb649aa919c0293a8a4458906324cef9483c0451fc989f6d28a193cb3be0",
+  "question": "Procter & Gamble (PG) Q1 organic sales growth 2.5% to 3.5%?",
+  "createdAt": "2026-10-12T18:06:17.022468Z",
+  "endDate": "2026-10-22T13:30:00Z",
+  "negRisk": true,
+  "volume24hr": 25
+ },
+ {
+  "conditionId": "0x6eed2a4646679549ccd60496dffc902a25e616c26a7e75cec28f0e4ca0cbfb0e",
+  "question": "Will Google (GOOGL) Q3 YouTube ads revenue be above $11.8B?",
+  "createdAt": "2026-10-13T13:10:35.536323Z",
+  "endDate": "2026-10-28T22:00:00Z",
+  "negRisk": false,
+  "volume24hr": 527.01
+ },
+ {
+  "conditionId": "0x7d542d01581ab32518a4131ef852dbc5167697c8dd9600f3fb0c24df2a417ce1",
+  "question": "US imports Russian diesel by November 30?",
+  "createdAt": "2026-10-14T23:47:37.08223Z",
+  "endDate": "2026-12-01T04:59:00Z",
+  "negRisk": false,
+  "volume24hr": 3807.6224369999995
+ }
+]

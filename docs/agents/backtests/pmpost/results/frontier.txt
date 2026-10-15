@@ -1,0 +1,21 @@
+placement                          formula c/sh  mo60 c/sh  R*60  R*240 | net60 $/d universe: R .42 | Q2-calib | at 10 markets: R .42 | Q2-calib
+a tick inside the touch (RW, S2)       2.22      -1.50    0.68  0.96 |   -108.5    -360.3 |   -1.80    -5.99
+at the touch                           2.76      -2.43    0.88  1.39 |   -123.6    -260.7 |   -2.05    -4.33
+1 tick behind the touch                4.85      -2.60    0.54  0.76 |    -17.0     -71.6 |   -0.28    -1.19
+2 ticks behind                         4.39      -2.91    0.66  0.85 |    -20.1     -52.5 |   -0.33    -0.87
+3 ticks behind                         3.89      -2.48    0.64  0.71 |    -12.0     -34.9 |   -0.20    -0.58
+
+R* is in the engine's units, where live S2 was paid 0.42 (0.61 with no friction of the live path) and Q2 about
+0.42 x 0.571 = 0.24. Every placement needs at least 0.54 at 60 minutes and 0.71 at 240, before the live fill charge.
+  a tick inside the touch (RW, S2)   R* with Q2's fill charge: 60 min 1.09, 240 min 1.37
+  at the touch                       R* with Q2's fill charge: 60 min 1.21, 240 min 1.72
+  1 tick behind the touch            R* with Q2's fill charge: 60 min 0.72, 240 min 0.95
+  2 ticks behind                     R* with Q2's fill charge: 60 min 0.87, 240 min 1.06
+  3 ticks behind                     R* with Q2's fill charge: 60 min 0.87, 240 min 0.94
+
+The upside with no friction at all (R 0.61, LP-BEST's paid over the two-sided formula), 60-minute markout:
+  a tick inside the touch (RW, S2)   universe   -27.8 $/d, at 10 markets -0.46 $/d
+  at the touch                       universe   -72.8 $/d, at 10 markets -1.21 $/d
+  1 tick behind the touch            universe   +11.1 $/d, at 10 markets +0.18 $/d
+  2 ticks behind                     universe    -4.3 $/d, at 10 markets -0.07 $/d
+  3 ticks behind                     universe    -1.6 $/d, at 10 markets -0.03 $/d

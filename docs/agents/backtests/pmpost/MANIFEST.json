@@ -1,0 +1,45 @@
+{
+ "study": "PMPOST: the Polymarket reward strategies' post-mortem (S2 and Q2 live), why paper and the simulators overstated live, every untried reward design priced, the closed lists re-checked, 2026-10-15",
+ "review": "docs/agents/reviews/2026-10-15-pm-postmortem.md",
+ "database": "flmvxigozjuizpckllvk, read-only selects, 2026-10-15 15:10-15:40 UTC (pm_lp_fills, pm_lp_minutes, pm_lp_markets, pm_lp_reward_days, pm_lp_settlements, pm_lp_events, pm_lp_state, pm_lp_config, pm_lp_orders, edge_calls)",
+ "public_reads": "Gamma /markets?condition_ids (data/q2_markets_gamma.json, trimmed to the fields used); CLOB /rewards/markets/current?sponsored=true (data/sponsored_listing.json); polygon-bor-rpc.publicnode.com eth_blockNumber and eth_getLogs (reachability only, not committed)",
+ "inputs_quoted": "LP-BEST (backtests/lpbest/results/universe.txt, ranking_api.txt, calib.txt, validate.txt), Q2-PM and Q2-TRIPS (lpbest/results/q2pm_*.txt, q2trips_*.txt), LP-ADVERSE (backtests/lpadverse/), LP-SPEED (backtests/lpspeed/), PMOPPS (backtests/pmopps/), PMSTATARB (backtests/pmstatarb/): figures quoted with their file",
+ "run_order": [
+  "sql/decompose_phase.sql -> results/decompose.txt (by phase)",
+  "sql/decompose_day.sql -> results/decompose.txt (by day)",
+  "sql/market_rows.sql -> data/markets.csv (its string_agg, one row a line, with a header)",
+  "python3 -I scripts/phase_boot.py > results/phase_boot.txt",
+  "python3 -I scripts/signs.py > results/signs.txt",
+  "sql/hedge_at_once.sql -> results/hedge.txt",
+  "sql/equity.sql -> results/equity.txt",
+  "sql/fills_marked.sql (per-fill marks; the aggregate queries above inline it)",
+  "python3 -I scripts/frontier.py > results/frontier.txt",
+  "results/gaps.txt, results/q2_age.txt, results/sponsored.txt: written from the outputs and reads above"
+ ],
+ "seeds": {
+  "phase_boot": 20261015
+ },
+ "sha256": {
+  "data/markets.csv": "302768abb06925f3a22a00303b504250f89a7695b5798812f7fbc3daedb909ee",
+  "data/q2_markets_gamma.json": "45cdce057ec47925336585ae7099bd8329dcaf59b4117ec1c0470bca87378b1f",
+  "data/sponsored_listing.json": "3d9a76a22e0fc4fd70b2fcce8dfc9ad4dacc28459f0d71ea07e0b4c47b5147e7",
+  "results/decompose.txt": "12675004a9aec8e0231133cb5260fcb5327280c0ffc7b25328eda91d59beb7e5",
+  "results/equity.txt": "e2ac8cddf00a41421779f143fc63c741538633e68556fa0671d57f4614913707",
+  "results/frontier.txt": "c0ce264dd486999cf6c38a481a0408630915998828f6f9945c7ee030763253a8",
+  "results/gaps.txt": "0cbbdbd957a8d49c9bb64c37fd0502db824707990126291438858b8edb8577c8",
+  "results/hedge.txt": "8fa2707126c64e758ec1ca4af53da1b2d90d89d40dd4c6165de924f633693d3a",
+  "results/phase_boot.txt": "2abf7b9169d8857a2a9dc91d5c2f8ae984287f07ef232f8e6dff3ca6c822c1bb",
+  "results/q2_age.txt": "e14eda60eb9f1d9b6e39387eac2d58690b28700910eca98559fb452fc3581ae6",
+  "results/signs.txt": "30562830f499f99097ad6eab16d31bafb4d1705b4499fa2757d4ddf356b798bb",
+  "results/sponsored.txt": "1bf17da57fbffcb932532e27a69ed448286ceb13e163595a7a43a1ace4fb32b3",
+  "scripts/frontier.py": "d92f1526d106715e1588d0928d48c4cc4d2b6c007a481cbb51317dd8795ba808",
+  "scripts/phase_boot.py": "659bbd6c76d61d2757334c0d096fd1f3286c5fd61297338f13efbadc34c19e9c",
+  "scripts/signs.py": "c292c7b468718e50b863bc481fa1f546ba9879aa7948872d230d94868a5c6694",
+  "sql/decompose_day.sql": "bf82a201002d1f673a7ba45c881d9f785c0e4fce1d34f171f6fef291e721cec2",
+  "sql/decompose_phase.sql": "03ee31fafa654680e90d3692baf5a1db4bb0a863666528c7a45a8f1f1d7e8b17",
+  "sql/equity.sql": "de987e89b58877e501514655ff2083160991b7af292c37563a36e663c175982c",
+  "sql/fills_marked.sql": "269536577687683c097a24a82dbbe6112dde9dd8448e17d0eb513d40a9b4cb67",
+  "sql/hedge_at_once.sql": "a764da01a84a6f8d9d949ca7534228a445cde11af443114008716fac415365fb",
+  "sql/market_rows.sql": "e03a0b5ecbc35e99b554ec8ccb048f78f241791bc8095969222c1c656aba7c51"
+ }
+}

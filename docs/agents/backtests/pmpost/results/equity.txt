@@ -1,0 +1,36 @@
+PMPOST: the reconciliation with the deposit (sql/equity.sql, 2026-10-15 15:12-15:20 UTC).
+pm_lp_state at 15:12:01: pUSD $300.482551; equity at cost $324.969348 (cap $244); booked deposit $403.390207 (funding
+residual); fills' P&L (the path's marks) -$151.14; stop tripped 2026-10-12 07:30, gates.loss_total false; config
+dry_run false, live_confirmed_at 2026-10-09 01:32:21, restarted_at null (Q2 closed 10-15 00:08).
+Funding events: 10-10 02:32 first reading $402.028365; 10-13 18:18 "deposit" +4.93 and 18:20 "withdrawal" -4.91 (the
+Gemini 4.0 redemption, booked first as a deposit, then as proceeds); 10-14 03:11 "withdrawal" -1.51; 10-15 14:05
+"deposit" +2.86. No money was moved by Davies on record; the last three are the residual wandering around payout and
+redemption timing, so the deposit is taken as $402.03.
+Redeemed or redeemable winning tokens: 0x045fdf4b 4.912 YES (redeemed, proceeds $4.912 booked); 0x3090f7aa 0.618 YES and
+0x3c82c098 0.789 YES ($1.41, not booked as proceeds).
+
+The reconciliation:
+  deposit                                                     402.03
+  + fills' P&L to now (marked at the others' mid, or payout)  -149.55   (spread +109.80, first min -218.11,
+                                                                         drift -40.34, settlement -0.89)
+  + rewards paid (10-09 -> 10-14)                             +49.83
+  + maker rebates                                             +14.29
+  + fees                                                        0.00
+  = expected equity at the marks                              316.60
+  actual: pUSD 300.48 + open lots at the mid 16.07            316.55   (open lots: the held tokens of unsettled markets,
+                                                                        $22.39 at the mark, less the $4.91 redeemed and
+                                                                        $1.41 of winning dust assumed redeemed)
+  difference                                                   -0.05
+The pUSD side alone: deposit + net cash from fills + proceeds + rewards + rebates = pUSD − $1.36, the $1.41 of winning
+tokens of MrBeast wk1 and 0x3c82c098 redeemed without a booked proceeds row (to 5 cents).
+Equity change, deposit to now at the marks: -$85.48 (-21.3 %).
+
+Open lots at 15:17 UTC (unsettled markets; NO marked at 1 - mid):
+  0x7465aead Democratic Senate odds 60-62% on Oct 16    40 YES   mid 0.125   $5.00  (cost $12.20; ends 10-16 16:00; sell resting)
+  0x0608b79b MrBeast Gaming 40-45m                       4.28 NO  mid 0.0015  $4.27  (under 5 shares: waits for the payout; ends 10-18)
+  0x89067ac9 Prologis Q3 FFO                             3.57 NO  mid 0.345   $2.34  (under 5; ended 10-15 13:30, resolving)
+  0x76051f8c a Junior wins the Heisman                   6 NO     mid 0.72    $1.68  (sell resting)
+  0xecc209a6 Iran Trump voicemail                        80 YES / 1.34 NO, mid 0.006  $0.48 + $1.33 (ends 10-16)
+  0x9beb023f South African inflation > 5.0 %             1.19 NO  mid 0.7695  $0.27
+  0x3c5391bb MrBeast Gaming 50-55m                       2.15 NO  mid 0.9525  $0.10
+  total about $15.5 at the mid; a sell rests in two of them.

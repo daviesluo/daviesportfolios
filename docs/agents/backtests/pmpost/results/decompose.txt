@@ -1,0 +1,26 @@
+PMPOST: the live record taken apart (sql/decompose_phase.sql, sql/decompose_day.sql, run 2026-10-15 ~15:15 UTC).
+Mids: the others' raw touch midpoint from live-prep's own minute rows. All 477 fills were maker fills at fee rate 0.
+
+By phase (a market's fills, rewards and rebates go to the phase of its first live fill; rewards of markets that never
+filled go by their day: S2 +2.27, Q2 +0.74 — the "no fill" row of the query):
+phase  fills  shares  spread   first min  drift    settlement  fills P&L  rewards  rebates  fees  net
+S2     437    6,986   +96.41   -202.88    -21.32   -0.89       -128.68    46.06    12.96    0     -69.66
+Q2     40     738     +13.39   -15.23     -19.02   0.00        -20.86     3.76     1.33     0     -15.77
+all    477    7,724   +109.80  -218.11    -40.34   -0.89       -149.54    49.82    14.29    0     -85.43
+per filled share (c): S2 spread +1.38, first min -2.90, held -0.32, rewards 0.66, rebates 0.19
+                      Q2 spread +1.81, first min -2.06, held -2.58, rewards 0.51, rebates 0.18
+
+By UTC day (the day's fills marked to market at the day's ends; spread and first minute of the day's fills; settlement
+= held at the settlement x (payout - the last mid before); drift = the rest):
+day     phase                   fills  shares  spread  first min  drift   settle  fills P&L  rewards  rebates  net     held@mark end
+10-09   S2 (from 01:32)         77     1,345   +13.29  -22.44     +25.31  0.00    +16.17     6.52     1.98     +24.67  198.97
+10-10   S2                      138    2,264   +27.45  -54.82     -17.71  -0.39   -45.48     21.89    4.82     -18.77  242.47
+10-11   S2                      130    1,949   +36.34  -81.99     -10.79  -0.42   -56.86     9.68     3.23     -43.95  134.92
+10-12   S2 to 07:30, exits      91     1,408   +18.71  -43.79     -18.50  +0.01   -43.57     7.96     2.94     -32.67  36.30
+10-13   exits; Q2 from 13:25    17     340     +5.12   -10.24     +3.18   -0.09   -2.03      0.89     0.62     -0.52   82.71
+10-14   Q2                      21     378     +6.29   -7.98      -16.71  0.00    -18.40     2.87     0.72     -14.81  24.27
+10-15   Q2 to 00:08, exits      3      40      +2.60   +3.15      -5.13   0.00    +0.62      -        -        +0.62   22.39
+total                           477    7,724   +109.80 -218.11    -40.34  -0.89   -149.55    49.83    14.29    -85.43
+The first minute's loss exceeds the half-spread earned on 6 of 7 days (10-15: 3 fills). Settlement jumps are small
+because the mid had already moved to the payout before Gamma closed the markets: resolution losses sit in "drift".
+(10-15's rewards for Q2's last 8 minutes are read after 00:05 on 10-16.)
