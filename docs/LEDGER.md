@@ -565,6 +565,13 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)"; each oldest first.
 
+### [2026-10-15 15:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **PMPOST filed** (sub-agent, landed by the main session; `reviews/2026-10-15-pm-postmortem.md`, `backtests/pmpost/`): no viable
+  Polymarket strategy at this size. Account $402.03 → $316.55 at the marks (−$85.48; reconciles to 5 c): fills −149.55
+  (spread +109.80, first minute −218.11, drift −40.34), rewards 49.83, rebates 14.29, fees 0. S2 −$21.45/quoting day,
+  Q2 −$10.89; rewards a filled share 0.66 / 0.51 c against 1.66 / 2.65 c needed. Proposals for Davies: lots exit by
+  themselves; `pmlpreserve` off now, `pmrec` after LPRESEL6 (10-23), then disarm; no further reward test.
+
 ### [2026-10-15 15:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep's Addendum 23 (mid-pool's 21)** (sub-agent, landed by the main session; Davies: "Addendum 21和Addendum 20都修复了"). (1) Under
   the 4 ¢ touch a quoting market's exit goes through `closeOnly`: a holding of 5 to N shares rests its sell (0x3b162968's 9
@@ -572,13 +579,6 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   turn's settlements mark the restart: a pre-restart settlement no longer charges the $25 stop (up to $4.29). Close-only now:
   no decision changes. Residual close-only gaps (near-certain other side, net ≥ 2N, no RW quote) named, not fixed.
   `pm_live.ts` `17584420…324b`, `pm_lp.ts` `8303fd97…9f0c`; the pins fail on the old files.
-
-### [2026-10-15 15:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **PMPOST filed** (sub-agent, landed by the main session; `reviews/2026-10-15-pm-postmortem.md`, `backtests/pmpost/`): no viable
-  Polymarket strategy at this size. Account $402.03 → $316.55 at the marks (−$85.48; reconciles to 5 c): fills −149.55
-  (spread +109.80, first minute −218.11, drift −40.34), rewards 49.83, rebates 14.29, fees 0. S2 −$21.45/quoting day,
-  Q2 −$10.89; rewards a filled share 0.66 / 0.51 c against 1.66 / 2.65 c needed. Proposals for Davies: lots exit by
-  themselves; `pmlpreserve` off now, `pmrec` after LPRESEL6 (10-23), then disarm; no further reward test.
 
 ### [2026-10-15 14:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
