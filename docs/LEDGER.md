@@ -567,6 +567,13 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15"; each oldest first.
 
+### [2026-10-15 03:29 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Exact release calendar for the Coinbase blackout** (sub-agent; Davies, 10-15: "你想办法找到准确的CPI 和非农等的历史发布日期…";
+  `backtests/cbreview/scripts/release_calendar.py` → `inputs/release_calendar.json`, `events.json`): FOMC, ECB and BoE from their own
+  sites (0 differences from what was recalled, 48 of 48); **bls.gov refused (403), FRED did not connect, Yahoo's crumb answered 429**, so CPI
+  and NFP stay as recalled, checked against the market (CPI 23/24, NFP 22/24 stand out) and BLS's rule (7 NFP delays, all known). The
+  study's 96 past events are unchanged, so +£25.96 / +£7.89 a year stands. Yahoo cross-check written, waits for `inputs/yahoo_calendar.json`.
+
 ### [2026-10-15 01:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - Landed CBFAST (the Coinbase agent, resumed; `reviews/2026-10-15-coinbase-fast-move.md`): 10-14's −£2.70 / −£2.55 on both
   Coinbase arms is no bug (the 12:30 UTC US CPI minute −£1.52, trips carried through it −£1.33); no FX lag to fix; no reactive
