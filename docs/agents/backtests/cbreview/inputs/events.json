@@ -1,0 +1,906 @@
+{
+ "about": "calendar_events.py: scheduled releases, UTC; `checked` is the market's own move at the minute against ten weekdays either side (not a selection of the calendar)",
+ "events": [
+  {
+   "control_p90_bps": 13.17,
+   "day": "2024-10-04",
+   "kind": "nfp",
+   "move_bps": 48.04,
+   "stands_out": true,
+   "t": 1728045000000,
+   "utc": "2024-10-04T12:30Z"
+  },
+  {
+   "control_p90_bps": 13.17,
+   "day": "2024-10-10",
+   "kind": "cpi",
+   "move_bps": 15.01,
+   "stands_out": true,
+   "t": 1728563400000,
+   "utc": "2024-10-10T12:30Z"
+  },
+  {
+   "control_p90_bps": 2.03,
+   "day": "2024-10-17",
+   "kind": "ecb",
+   "move_bps": 6.12,
+   "stands_out": true,
+   "t": 1729167300000,
+   "utc": "2024-10-17T12:15Z"
+  },
+  {
+   "control_p90_bps": 3.06,
+   "day": "2024-11-01",
+   "kind": "nfp",
+   "move_bps": 16.85,
+   "stands_out": true,
+   "t": 1730464200000,
+   "utc": "2024-11-01T12:30Z"
+  },
+  {
+   "control_p90_bps": 2.71,
+   "day": "2024-11-07",
+   "kind": "boe",
+   "move_bps": 12.67,
+   "stands_out": true,
+   "t": 1730980800000,
+   "utc": "2024-11-07T12:00Z"
+  },
+  {
+   "control_p90_bps": 2.1,
+   "day": "2024-11-07",
+   "kind": "fomc",
+   "move_bps": 11.95,
+   "stands_out": true,
+   "t": 1731006000000,
+   "utc": "2024-11-07T19:00Z"
+  },
+  {
+   "control_p90_bps": 4.13,
+   "day": "2024-11-13",
+   "kind": "cpi",
+   "move_bps": 16.56,
+   "stands_out": true,
+   "t": 1731504600000,
+   "utc": "2024-11-13T13:30Z"
+  },
+  {
+   "control_p90_bps": 7.32,
+   "day": "2024-12-06",
+   "kind": "nfp",
+   "move_bps": 19.58,
+   "stands_out": true,
+   "t": 1733491800000,
+   "utc": "2024-12-06T13:30Z"
+  },
+  {
+   "control_p90_bps": 9.95,
+   "day": "2024-12-11",
+   "kind": "cpi",
+   "move_bps": 7.32,
+   "stands_out": false,
+   "t": 1733923800000,
+   "utc": "2024-12-11T13:30Z"
+  },
+  {
+   "control_p90_bps": 2.53,
+   "day": "2024-12-12",
+   "kind": "ecb",
+   "move_bps": 8.63,
+   "stands_out": true,
+   "t": 1734009300000,
+   "utc": "2024-12-12T13:15Z"
+  },
+  {
+   "control_p90_bps": 2.09,
+   "day": "2024-12-18",
+   "kind": "fomc",
+   "move_bps": 31.08,
+   "stands_out": true,
+   "t": 1734548400000,
+   "utc": "2024-12-18T19:00Z"
+  },
+  {
+   "control_p90_bps": 2.16,
+   "day": "2024-12-19",
+   "kind": "boe",
+   "move_bps": 27.51,
+   "stands_out": true,
+   "t": 1734609600000,
+   "utc": "2024-12-19T12:00Z"
+  },
+  {
+   "control_p90_bps": 20.6,
+   "day": "2025-01-10",
+   "kind": "nfp",
+   "move_bps": 56.57,
+   "stands_out": true,
+   "t": 1736515800000,
+   "utc": "2025-01-10T13:30Z"
+  },
+  {
+   "control_p90_bps": 8.29,
+   "day": "2025-01-15",
+   "kind": "cpi",
+   "move_bps": 37.03,
+   "stands_out": true,
+   "t": 1736947800000,
+   "utc": "2025-01-15T13:30Z"
+  },
+  {
+   "control_p90_bps": 2.3,
+   "day": "2025-01-29",
+   "kind": "fomc",
+   "move_bps": 18.33,
+   "stands_out": true,
+   "t": 1738177200000,
+   "utc": "2025-01-29T19:00Z"
+  },
+  {
+   "control_p90_bps": 4.1,
+   "day": "2025-01-30",
+   "kind": "ecb",
+   "move_bps": 1.63,
+   "stands_out": false,
+   "t": 1738242900000,
+   "utc": "2025-01-30T13:15Z"
+  },
+  {
+   "control_p90_bps": 3.18,
+   "day": "2025-02-06",
+   "kind": "boe",
+   "move_bps": 39.36,
+   "stands_out": true,
+   "t": 1738843200000,
+   "utc": "2025-02-06T12:00Z"
+  },
+  {
+   "control_p90_bps": 8.86,
+   "day": "2025-02-07",
+   "kind": "nfp",
+   "move_bps": 12.05,
+   "stands_out": true,
+   "t": 1738935000000,
+   "utc": "2025-02-07T13:30Z"
+  },
+  {
+   "control_p90_bps": 5.98,
+   "day": "2025-02-12",
+   "kind": "cpi",
+   "move_bps": 36.7,
+   "stands_out": true,
+   "t": 1739367000000,
+   "utc": "2025-02-12T13:30Z"
+  },
+  {
+   "control_p90_bps": 3.51,
+   "day": "2025-03-06",
+   "kind": "ecb",
+   "move_bps": 24.59,
+   "stands_out": true,
+   "t": 1741266900000,
+   "utc": "2025-03-06T13:15Z"
+  },
+  {
+   "control_p90_bps": 3.2,
+   "day": "2025-03-07",
+   "kind": "nfp",
+   "move_bps": 20.38,
+   "stands_out": true,
+   "t": 1741354200000,
+   "utc": "2025-03-07T13:30Z"
+  },
+  {
+   "control_p90_bps": 3.65,
+   "day": "2025-03-12",
+   "kind": "cpi",
+   "move_bps": 18.17,
+   "stands_out": true,
+   "t": 1741782600000,
+   "utc": "2025-03-12T12:30Z"
+  },
+  {
+   "control_p90_bps": 2.44,
+   "day": "2025-03-19",
+   "kind": "fomc",
+   "move_bps": 12.97,
+   "stands_out": true,
+   "t": 1742407200000,
+   "utc": "2025-03-19T18:00Z"
+  },
+  {
+   "control_p90_bps": 3.72,
+   "day": "2025-03-20",
+   "kind": "boe",
+   "move_bps": 11.39,
+   "stands_out": true,
+   "t": 1742472000000,
+   "utc": "2025-03-20T12:00Z"
+  },
+  {
+   "control_p90_bps": 6.64,
+   "day": "2025-04-04",
+   "kind": "nfp",
+   "move_bps": 6.1,
+   "stands_out": false,
+   "t": 1743769800000,
+   "utc": "2025-04-04T12:30Z"
+  },
+  {
+   "control_p90_bps": 4.31,
+   "day": "2025-04-10",
+   "kind": "cpi",
+   "move_bps": 24.1,
+   "stands_out": true,
+   "t": 1744288200000,
+   "utc": "2025-04-10T12:30Z"
+  },
+  {
+   "control_p90_bps": 6.62,
+   "day": "2025-04-17",
+   "kind": "ecb",
+   "move_bps": 3.96,
+   "stands_out": false,
+   "t": 1744892100000,
+   "utc": "2025-04-17T12:15Z"
+  },
+  {
+   "control_p90_bps": 5.04,
+   "day": "2025-05-02",
+   "kind": "nfp",
+   "move_bps": 25.27,
+   "stands_out": true,
+   "t": 1746189000000,
+   "utc": "2025-05-02T12:30Z"
+  },
+  {
+   "control_p90_bps": 3.09,
+   "day": "2025-05-07",
+   "kind": "fomc",
+   "move_bps": 8.38,
+   "stands_out": true,
+   "t": 1746640800000,
+   "utc": "2025-05-07T18:00Z"
+  },
+  {
+   "control_p90_bps": 4.13,
+   "day": "2025-05-08",
+   "kind": "boe",
+   "move_bps": 41.43,
+   "stands_out": true,
+   "t": 1746702000000,
+   "utc": "2025-05-08T11:00Z"
+  },
+  {
+   "control_p90_bps": 6.33,
+   "day": "2025-05-13",
+   "kind": "cpi",
+   "move_bps": 6.79,
+   "stands_out": true,
+   "t": 1747139400000,
+   "utc": "2025-05-13T12:30Z"
+  },
+  {
+   "control_p90_bps": 4.1,
+   "day": "2025-06-05",
+   "kind": "ecb",
+   "move_bps": 8.8,
+   "stands_out": true,
+   "t": 1749125700000,
+   "utc": "2025-06-05T12:15Z"
+  },
+  {
+   "control_p90_bps": 13.68,
+   "day": "2025-06-06",
+   "kind": "nfp",
+   "move_bps": 13.29,
+   "stands_out": false,
+   "t": 1749213000000,
+   "utc": "2025-06-06T12:30Z"
+  },
+  {
+   "control_p90_bps": 11.64,
+   "day": "2025-06-11",
+   "kind": "cpi",
+   "move_bps": 27.9,
+   "stands_out": true,
+   "t": 1749645000000,
+   "utc": "2025-06-11T12:30Z"
+  },
+  {
+   "control_p90_bps": 1.78,
+   "day": "2025-06-18",
+   "kind": "fomc",
+   "move_bps": 11.96,
+   "stands_out": true,
+   "t": 1750269600000,
+   "utc": "2025-06-18T18:00Z"
+  },
+  {
+   "control_p90_bps": 2.48,
+   "day": "2025-06-19",
+   "kind": "boe",
+   "move_bps": 10.87,
+   "stands_out": true,
+   "t": 1750330800000,
+   "utc": "2025-06-19T11:00Z"
+  },
+  {
+   "control_p90_bps": 7.8,
+   "day": "2025-07-03",
+   "kind": "nfp",
+   "move_bps": 42.67,
+   "stands_out": true,
+   "t": 1751545800000,
+   "utc": "2025-07-03T12:30Z"
+  },
+  {
+   "control_p90_bps": 3.03,
+   "day": "2025-07-15",
+   "kind": "cpi",
+   "move_bps": 12.64,
+   "stands_out": true,
+   "t": 1752582600000,
+   "utc": "2025-07-15T12:30Z"
+  },
+  {
+   "control_p90_bps": 3.61,
+   "day": "2025-07-24",
+   "kind": "ecb",
+   "move_bps": 1.87,
+   "stands_out": false,
+   "t": 1753359300000,
+   "utc": "2025-07-24T12:15Z"
+  },
+  {
+   "control_p90_bps": 2.04,
+   "day": "2025-07-30",
+   "kind": "fomc",
+   "move_bps": 3.18,
+   "stands_out": true,
+   "t": 1753898400000,
+   "utc": "2025-07-30T18:00Z"
+  },
+  {
+   "control_p90_bps": 5.62,
+   "day": "2025-08-01",
+   "kind": "nfp",
+   "move_bps": 49.4,
+   "stands_out": true,
+   "t": 1754051400000,
+   "utc": "2025-08-01T12:30Z"
+  },
+  {
+   "control_p90_bps": 1.97,
+   "day": "2025-08-07",
+   "kind": "boe",
+   "move_bps": 26.72,
+   "stands_out": true,
+   "t": 1754564400000,
+   "utc": "2025-08-07T11:00Z"
+  },
+  {
+   "control_p90_bps": 5.73,
+   "day": "2025-08-12",
+   "kind": "cpi",
+   "move_bps": 19.99,
+   "stands_out": true,
+   "t": 1755001800000,
+   "utc": "2025-08-12T12:30Z"
+  },
+  {
+   "control_p90_bps": 9.73,
+   "day": "2025-09-05",
+   "kind": "nfp",
+   "move_bps": 38.64,
+   "stands_out": true,
+   "t": 1757075400000,
+   "utc": "2025-09-05T12:30Z"
+  },
+  {
+   "control_p90_bps": 2.66,
+   "day": "2025-09-11",
+   "kind": "ecb",
+   "move_bps": 11.39,
+   "stands_out": true,
+   "t": 1757592900000,
+   "utc": "2025-09-11T12:15Z"
+  },
+  {
+   "control_p90_bps": 9.73,
+   "day": "2025-09-11",
+   "kind": "cpi",
+   "move_bps": 15.32,
+   "stands_out": true,
+   "t": 1757593800000,
+   "utc": "2025-09-11T12:30Z"
+  },
+  {
+   "control_p90_bps": 1.88,
+   "day": "2025-09-17",
+   "kind": "fomc",
+   "move_bps": 16.03,
+   "stands_out": true,
+   "t": 1758132000000,
+   "utc": "2025-09-17T18:00Z"
+  },
+  {
+   "control_p90_bps": 2.38,
+   "day": "2025-09-18",
+   "kind": "boe",
+   "move_bps": 6.74,
+   "stands_out": true,
+   "t": 1758193200000,
+   "utc": "2025-09-18T11:00Z"
+  },
+  {
+   "control_p90_bps": 2.68,
+   "day": "2025-10-24",
+   "kind": "cpi",
+   "move_bps": 22.82,
+   "stands_out": true,
+   "t": 1761309000000,
+   "utc": "2025-10-24T12:30Z"
+  },
+  {
+   "control_p90_bps": 1.47,
+   "day": "2025-10-29",
+   "kind": "fomc",
+   "move_bps": 6.87,
+   "stands_out": true,
+   "t": 1761760800000,
+   "utc": "2025-10-29T18:00Z"
+  },
+  {
+   "control_p90_bps": 2.15,
+   "day": "2025-10-30",
+   "kind": "ecb",
+   "move_bps": 2.94,
+   "stands_out": true,
+   "t": 1761830100000,
+   "utc": "2025-10-30T13:15Z"
+  },
+  {
+   "control_p90_bps": 2.33,
+   "day": "2025-11-06",
+   "kind": "boe",
+   "move_bps": 16.5,
+   "stands_out": true,
+   "t": 1762430400000,
+   "utc": "2025-11-06T12:00Z"
+  },
+  {
+   "control_p90_bps": 4.32,
+   "day": "2025-11-20",
+   "kind": "nfp",
+   "move_bps": 11.81,
+   "stands_out": true,
+   "t": 1763645400000,
+   "utc": "2025-11-20T13:30Z"
+  },
+  {
+   "control_p90_bps": 1.45,
+   "day": "2025-12-10",
+   "kind": "fomc",
+   "move_bps": 12.87,
+   "stands_out": true,
+   "t": 1765393200000,
+   "utc": "2025-12-10T19:00Z"
+  },
+  {
+   "control_p90_bps": 3.49,
+   "day": "2025-12-16",
+   "kind": "nfp",
+   "move_bps": 13.34,
+   "stands_out": true,
+   "t": 1765891800000,
+   "utc": "2025-12-16T13:30Z"
+  },
+  {
+   "control_p90_bps": 2.38,
+   "day": "2025-12-18",
+   "kind": "boe",
+   "move_bps": 19.1,
+   "stands_out": true,
+   "t": 1766059200000,
+   "utc": "2025-12-18T12:00Z"
+  },
+  {
+   "control_p90_bps": 1.7,
+   "day": "2025-12-18",
+   "kind": "ecb",
+   "move_bps": 6.4,
+   "stands_out": true,
+   "t": 1766063700000,
+   "utc": "2025-12-18T13:15Z"
+  },
+  {
+   "control_p90_bps": 5.7,
+   "day": "2025-12-18",
+   "kind": "cpi",
+   "move_bps": 15.43,
+   "stands_out": true,
+   "t": 1766064600000,
+   "utc": "2025-12-18T13:30Z"
+  },
+  {
+   "control_p90_bps": 5.7,
+   "day": "2026-01-09",
+   "kind": "nfp",
+   "move_bps": 6.7,
+   "stands_out": true,
+   "t": 1767965400000,
+   "utc": "2026-01-09T13:30Z"
+  },
+  {
+   "control_p90_bps": 4.1,
+   "day": "2026-01-13",
+   "kind": "cpi",
+   "move_bps": 13.22,
+   "stands_out": true,
+   "t": 1768311000000,
+   "utc": "2026-01-13T13:30Z"
+  },
+  {
+   "control_p90_bps": 2.03,
+   "day": "2026-01-28",
+   "kind": "fomc",
+   "move_bps": 25.89,
+   "stands_out": true,
+   "t": 1769626800000,
+   "utc": "2026-01-28T19:00Z"
+  },
+  {
+   "control_p90_bps": 3.44,
+   "day": "2026-02-05",
+   "kind": "boe",
+   "move_bps": 34.31,
+   "stands_out": true,
+   "t": 1770292800000,
+   "utc": "2026-02-05T12:00Z"
+  },
+  {
+   "control_p90_bps": 3.25,
+   "day": "2026-02-05",
+   "kind": "ecb",
+   "move_bps": 3.05,
+   "stands_out": false,
+   "t": 1770297300000,
+   "utc": "2026-02-05T13:15Z"
+  },
+  {
+   "control_p90_bps": 4.07,
+   "day": "2026-02-11",
+   "kind": "nfp",
+   "move_bps": 46.72,
+   "stands_out": true,
+   "t": 1770816600000,
+   "utc": "2026-02-11T13:30Z"
+  },
+  {
+   "control_p90_bps": 4.42,
+   "day": "2026-02-13",
+   "kind": "cpi",
+   "move_bps": 17.45,
+   "stands_out": true,
+   "t": 1770989400000,
+   "utc": "2026-02-13T13:30Z"
+  },
+  {
+   "control_p90_bps": 4.42,
+   "day": "2026-03-06",
+   "kind": "nfp",
+   "move_bps": 12.88,
+   "stands_out": true,
+   "t": 1772803800000,
+   "utc": "2026-03-06T13:30Z"
+  },
+  {
+   "control_p90_bps": 3.36,
+   "day": "2026-03-11",
+   "kind": "cpi",
+   "move_bps": 5.0,
+   "stands_out": true,
+   "t": 1773232200000,
+   "utc": "2026-03-11T12:30Z"
+  },
+  {
+   "control_p90_bps": 2.58,
+   "day": "2026-03-18",
+   "kind": "fomc",
+   "move_bps": 4.52,
+   "stands_out": true,
+   "t": 1773856800000,
+   "utc": "2026-03-18T18:00Z"
+  },
+  {
+   "control_p90_bps": 3.4,
+   "day": "2026-03-19",
+   "kind": "boe",
+   "move_bps": 7.9,
+   "stands_out": true,
+   "t": 1773921600000,
+   "utc": "2026-03-19T12:00Z"
+  },
+  {
+   "control_p90_bps": 3.4,
+   "day": "2026-03-19",
+   "kind": "ecb",
+   "move_bps": 4.09,
+   "stands_out": true,
+   "t": 1773926100000,
+   "utc": "2026-03-19T13:15Z"
+  },
+  {
+   "control_p90_bps": 3.65,
+   "day": "2026-04-03",
+   "kind": "nfp",
+   "move_bps": 10.48,
+   "stands_out": true,
+   "t": 1775219400000,
+   "utc": "2026-04-03T12:30Z"
+  },
+  {
+   "control_p90_bps": 3.65,
+   "day": "2026-04-10",
+   "kind": "cpi",
+   "move_bps": 5.63,
+   "stands_out": true,
+   "t": 1775824200000,
+   "utc": "2026-04-10T12:30Z"
+  },
+  {
+   "control_p90_bps": 1.96,
+   "day": "2026-04-29",
+   "kind": "fomc",
+   "move_bps": 3.25,
+   "stands_out": true,
+   "t": 1777485600000,
+   "utc": "2026-04-29T18:00Z"
+  },
+  {
+   "control_p90_bps": 2.22,
+   "day": "2026-04-30",
+   "kind": "boe",
+   "move_bps": 4.66,
+   "stands_out": true,
+   "t": 1777546800000,
+   "utc": "2026-04-30T11:00Z"
+  },
+  {
+   "control_p90_bps": 2.48,
+   "day": "2026-04-30",
+   "kind": "ecb",
+   "move_bps": 4.61,
+   "stands_out": true,
+   "t": 1777551300000,
+   "utc": "2026-04-30T12:15Z"
+  },
+  {
+   "control_p90_bps": 2.16,
+   "day": "2026-05-08",
+   "kind": "nfp",
+   "move_bps": 3.57,
+   "stands_out": true,
+   "t": 1778243400000,
+   "utc": "2026-05-08T12:30Z"
+  },
+  {
+   "control_p90_bps": 2.16,
+   "day": "2026-05-12",
+   "kind": "cpi",
+   "move_bps": 2.81,
+   "stands_out": true,
+   "t": 1778589000000,
+   "utc": "2026-05-12T12:30Z"
+  },
+  {
+   "control_p90_bps": 4.39,
+   "day": "2026-06-05",
+   "kind": "nfp",
+   "move_bps": 15.99,
+   "stands_out": true,
+   "t": 1780662600000,
+   "utc": "2026-06-05T12:30Z"
+  },
+  {
+   "control_p90_bps": 3.53,
+   "day": "2026-06-10",
+   "kind": "cpi",
+   "move_bps": 5.02,
+   "stands_out": true,
+   "t": 1781094600000,
+   "utc": "2026-06-10T12:30Z"
+  },
+  {
+   "control_p90_bps": 2.66,
+   "day": "2026-06-11",
+   "kind": "ecb",
+   "move_bps": 4.6,
+   "stands_out": true,
+   "t": 1781180100000,
+   "utc": "2026-06-11T12:15Z"
+  },
+  {
+   "control_p90_bps": 2.29,
+   "day": "2026-06-17",
+   "kind": "fomc",
+   "move_bps": 40.1,
+   "stands_out": true,
+   "t": 1781719200000,
+   "utc": "2026-06-17T18:00Z"
+  },
+  {
+   "control_p90_bps": 2.12,
+   "day": "2026-06-18",
+   "kind": "boe",
+   "move_bps": 2.8,
+   "stands_out": true,
+   "t": 1781780400000,
+   "utc": "2026-06-18T11:00Z"
+  },
+  {
+   "control_p90_bps": 3.53,
+   "day": "2026-07-02",
+   "kind": "nfp",
+   "move_bps": 34.04,
+   "stands_out": true,
+   "t": 1782995400000,
+   "utc": "2026-07-02T12:30Z"
+  },
+  {
+   "control_p90_bps": 2.27,
+   "day": "2026-07-14",
+   "kind": "cpi",
+   "move_bps": 39.6,
+   "stands_out": true,
+   "t": 1784032200000,
+   "utc": "2026-07-14T12:30Z"
+  },
+  {
+   "control_p90_bps": 2.6,
+   "day": "2026-07-23",
+   "kind": "ecb",
+   "move_bps": 4.12,
+   "stands_out": true,
+   "t": 1784808900000,
+   "utc": "2026-07-23T12:15Z"
+  },
+  {
+   "control_p90_bps": 1.22,
+   "day": "2026-07-29",
+   "kind": "fomc",
+   "move_bps": 25.89,
+   "stands_out": true,
+   "t": 1785348000000,
+   "utc": "2026-07-29T18:00Z"
+  },
+  {
+   "control_p90_bps": 2.23,
+   "day": "2026-07-30",
+   "kind": "boe",
+   "move_bps": 4.18,
+   "stands_out": true,
+   "t": 1785409200000,
+   "utc": "2026-07-30T11:00Z"
+  },
+  {
+   "control_p90_bps": 4.08,
+   "day": "2026-08-07",
+   "kind": "nfp",
+   "move_bps": 31.66,
+   "stands_out": true,
+   "t": 1786105800000,
+   "utc": "2026-08-07T12:30Z"
+  },
+  {
+   "control_p90_bps": 4.71,
+   "day": "2026-08-12",
+   "kind": "cpi",
+   "move_bps": 9.7,
+   "stands_out": true,
+   "t": 1786537800000,
+   "utc": "2026-08-12T12:30Z"
+  },
+  {
+   "control_p90_bps": 4.71,
+   "day": "2026-09-04",
+   "kind": "nfp",
+   "move_bps": 32.34,
+   "stands_out": true,
+   "t": 1788525000000,
+   "utc": "2026-09-04T12:30Z"
+  },
+  {
+   "control_p90_bps": 1.29,
+   "day": "2026-09-10",
+   "kind": "ecb",
+   "move_bps": 1.55,
+   "stands_out": true,
+   "t": 1789042500000,
+   "utc": "2026-09-10T12:15Z"
+  },
+  {
+   "control_p90_bps": 3.21,
+   "day": "2026-09-11",
+   "kind": "cpi",
+   "move_bps": 18.97,
+   "stands_out": true,
+   "t": 1789129800000,
+   "utc": "2026-09-11T12:30Z"
+  },
+  {
+   "control_p90_bps": 1.32,
+   "day": "2026-09-16",
+   "kind": "fomc",
+   "move_bps": 10.49,
+   "stands_out": true,
+   "t": 1789581600000,
+   "utc": "2026-09-16T18:00Z"
+  },
+  {
+   "control_p90_bps": 2.11,
+   "day": "2026-09-17",
+   "kind": "boe",
+   "move_bps": 14.55,
+   "stands_out": true,
+   "t": 1789642800000,
+   "utc": "2026-09-17T11:00Z"
+  },
+  {
+   "control_p90_bps": 2.24,
+   "day": "2026-10-02",
+   "kind": "nfp",
+   "move_bps": 22.52,
+   "stands_out": true,
+   "t": 1790944200000,
+   "utc": "2026-10-02T12:30Z"
+  },
+  {
+   "control_p90_bps": 9.86,
+   "day": "2026-10-14",
+   "kind": "cpi",
+   "move_bps": 25.89,
+   "stands_out": true,
+   "t": 1791981000000,
+   "utc": "2026-10-14T12:30Z"
+  }
+ ],
+ "summary": {
+  "boe": {
+   "events": 16,
+   "listed_not_standing_out": [],
+   "stand_out": 16
+  },
+  "cpi": {
+   "events": 24,
+   "listed_not_standing_out": [
+    "2024-12-11"
+   ],
+   "stand_out": 23
+  },
+  "ecb": {
+   "events": 16,
+   "listed_not_standing_out": [
+    "2025-01-30",
+    "2025-04-17",
+    "2025-07-24",
+    "2026-02-05"
+   ],
+   "stand_out": 12
+  },
+  "fomc": {
+   "events": 16,
+   "listed_not_standing_out": [],
+   "stand_out": 16
+  },
+  "nfp": {
+   "events": 24,
+   "listed_not_standing_out": [
+    "2025-04-04",
+    "2025-06-06"
+   ],
+   "stand_out": 22
+  }
+ }
+}

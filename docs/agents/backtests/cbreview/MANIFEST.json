@@ -1,5 +1,17 @@
 {
  "files": {
+  "inputs/cb_implied_eurusd.json.gz": {
+   "bytes": 88201,
+   "sha256": "8794108431fccf796163aad9f355fda4b73722ba1452a1370fac9dee5ebb9553"
+  },
+  "inputs/events.json": {
+   "bytes": 17730,
+   "sha256": "8224adda68c605de93b99a6e809220ab4e3db7a3fcf4f02bf84aecdf64aae6a3"
+  },
+  "inputs/lit_lines_1012_1014.json.gz": {
+   "bytes": 151356,
+   "sha256": "6494049e43c8e885d4107bf4c9e99738d801e336741bf7a3f52f81ed1eeb2210"
+  },
   "inputs/lit_window_lines.json.gz": {
    "bytes": 70736,
    "sha256": "b8fc7c0d99d1bdb697c048e4793944d493c3aa2f4f3e3845e4261dcc0829abd9"
@@ -8,29 +20,85 @@
    "bytes": 1568,
    "sha256": "e34763c91e5cae6cb42617fbf0bb6d62bcc9875d1db88aa3cd3ea63abdf092ae"
   },
+  "inputs/trips_to_1014.json": {
+   "bytes": 3713,
+   "sha256": "2c1fc8b0d194e121b7b3f18483182ca15059f046a2f743d8a69cbd6a08755afa"
+  },
+  "results/cbfast_events.json": {
+   "bytes": 32597,
+   "sha256": "96c467e39719a75190d912fa16262201a7443144babc62c77d099d9762700d2b"
+  },
+  "results/cbfast_grid.json": {
+   "bytes": 284246,
+   "sha256": "13372320488ff57a2d97ac558ab1be5a21a45bc6cebb58d58d95831140b776ab"
+  },
+  "results/cbfast_lit.json": {
+   "bytes": 7738,
+   "sha256": "297c7821f7f5f99e9e5e4a55a3d02bd35d9dabb2ce2144848442f385adf50111"
+  },
   "results/cbk.json": {
    "bytes": 45150,
    "sha256": "55879560ad8646da45478a5ac75f629ef740a4e0a4fa4a4d4d890246ce9a1ce6"
+  },
+  "results/fxlag.json": {
+   "bytes": 7462,
+   "sha256": "25d7a5d8513918c5dd61403c1de4dc7217061a26ad9d5750f4bb84b4e8f9d298"
   },
   "results/replay_check.json": {
    "bytes": 1365,
    "sha256": "247c867fa0809157ec931d6832aad18515f5e51ff4f6b42a1d0d232c883b8f6c"
   },
   "scripts/build_manifest.py": {
-   "bytes": 2509,
-   "sha256": "e3aa0890bbbf2b853d22eebb00feadbaf872a21ddc84a554296fe640ea284e33"
+   "bytes": 3760,
+   "sha256": "fd4e5153c627f11033285d13904bd0852a9cd2f20434a8555a1c401811117bc3"
+  },
+  "scripts/calendar_events.py": {
+   "bytes": 7762,
+   "sha256": "bae488f4287f8277db38abf50308f295814c2b1c7c321088d78c6359fe906c6b"
+  },
+  "scripts/cbfast.py": {
+   "bytes": 21457,
+   "sha256": "b4c8afe74d0773c01936bee49474249929acbd3d8d7d2e4a9f85e2095e5b7b59"
+  },
+  "scripts/cbfast_events.py": {
+   "bytes": 6865,
+   "sha256": "ae9949027e610e5e12a97c8d8e6f8d47cbdc350e2be84642ecd921a35a59209d"
+  },
+  "scripts/cbfast_lit.py": {
+   "bytes": 5233,
+   "sha256": "612d5abbd5ee4f9afbaf6e6add0d88393f67f828f4f34c7d3d2f7727ef2c79ff"
   },
   "scripts/cbk.py": {
    "bytes": 9044,
    "sha256": "2848756cee358c4e36b3d3c05ed72ca8cb9c0569c5045247e87ee90b09af1d9b"
   },
+  "scripts/fxlag.py": {
+   "bytes": 7170,
+   "sha256": "f879e56d0b7d3cf305c0c02f9174b311e35daf93179b2842068f3da566274dd3"
+  },
+  "scripts/pack_lines_1014.py": {
+   "bytes": 999,
+   "sha256": "f398138911290c924cf0755e0f235e26ecdb9f068b9d2d6a445aa51115431b81"
+  },
+  "scripts/pull_cb_candles.py": {
+   "bytes": 2091,
+   "sha256": "b909efd4939f88987b05c42a230b69081604b02bcd7d43242783099e7d315cf7"
+  },
   "scripts/replay_check.py": {
    "bytes": 3747,
    "sha256": "9b9bd19295c95e30f35a737e6dc4cd6b0ba61065ef810acd32d86c7b9a861527"
   },
+  "sql/export_lit_lines_1012_1014.sql": {
+   "bytes": 1357,
+   "sha256": "336c92708bce3351ed461cd43e695f5188cf3c5e7af3cbedb6e3d75cebe28035"
+  },
   "sql/export_lit_window.sql": {
    "bytes": 1696,
    "sha256": "54d697106b104f83e84543f7f84cc22eb01fb62f3518eb0fc3447fe748c6ab8e"
+  },
+  "sql/export_trips_to_1014.sql": {
+   "bytes": 241,
+   "sha256": "5e3e34a649abc036130965035a45105c5347248ec01feea6215e09e6a60c664c"
   },
   "sql/health.sql": {
    "bytes": 5480,
@@ -56,10 +124,18 @@
   "cd scripts; python3 -I replay_check.py   # -> results/replay_check.json (the stored record 3 of 8 trips; the restored one 8 of 8)",
   "cd scripts; python3 -I cbk.py            # -> results/cbk.json (about 80 s on four cores)",
   "sql/repair_minute_bars.sql: PROPOSED and not run (an update); see the write-up, section 2",
+  "sql/export_lit_lines_1012_1014.sql (two chunks) -> scripts/pack_lines_1014.py -> inputs/lit_lines_1012_1014.json.gz; sql/export_trips_to_1014.sql -> inputs/trips_to_1014.json (2026-10-15 00:20 UTC)",
+  "cd scripts; python3 -I pull_cb_candles.py  # keyless public Coinbase candles -> inputs/cb_implied_eurusd.json.gz (about 2 min)",
+  "cd scripts; python3 -I calendar_events.py  # -> inputs/events.json (the release calendar and its check against the market's move; BLS dates recalled, not fetched)",
+  "cd scripts; python3 -I fxlag.py            # -> results/fxlag.json",
+  "cd scripts; python3 -I cbfast.py stage1    # -> results/cbfast_grid.json (about 25 min on four cores)",
+  "cd scripts; python3 -I cbfast_events.py    # -> results/cbfast_events.json (about 3 min)",
+  "cd scripts; python3 -I cbfast_lit.py base 'g3d_cal all a1 b5' ...   # -> results/cbfast_lit.json (the 2026-10-14 day on the engine's record)",
   "cd scripts; python3 -I build_manifest.py"
  ],
- "study": "The Coinbase recorders and paper test's first days (2026-10-12): the read-only health and interim queries, the minute-record defect (the replay of bar 1 on the first lit day, as stored and with the lost extremes put back), the proposed repair, and CBK, PR5's frozen rule on Coinbase's history with one change at a time (rungs, a basis skew, weekends held)",
+ "study": "The Coinbase recorders and paper test's first days (2026-10-12): the read-only health and interim queries, the minute-record defect (the replay of bar 1 on the first lit day, as stored and with the lost extremes put back), the proposed repair, and CBK, PR5's frozen rule on Coinbase's history with one change at a time (rungs, a basis skew, weekends held); and, from 2026-10-15, CBFAST: what a fast-move / scheduled-release guard would have done (the release calendar, the FX-lag measurement, 164 guard variants on two 12-month spans, the 2026-10-14 day replayed on the engine's record)",
  "write_up": [
-  "docs/agents/reviews/2026-10-12-coinbase-first-days.md"
+  "docs/agents/reviews/2026-10-12-coinbase-first-days.md",
+  "docs/agents/reviews/2026-10-15-coinbase-fast-move.md"
  ]
 }

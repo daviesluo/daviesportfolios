@@ -1,0 +1,1503 @@
+{
+ "arms": {
+  "base": {
+   "events": {
+    "by_kind": {
+     "all": {
+      "events": 94,
+      "events_where_removed_trips_lost": 37,
+      "events_where_removed_trips_won": 31,
+      "events_with_no_trip": 26,
+      "mean_per_event_gbp": -0.344,
+      "placebo_mean_per_window_gbp": -0.0115,
+      "placebo_windows": 1504,
+      "removed_pnl_gbp": -32.339
+     },
+     "boe": {
+      "events": 16,
+      "events_where_removed_trips_lost": 7,
+      "events_where_removed_trips_won": 3,
+      "events_with_no_trip": 6,
+      "mean_per_event_gbp": -0.3301,
+      "placebo_mean_per_window_gbp": 0.0047,
+      "placebo_windows": 256,
+      "removed_pnl_gbp": -5.282
+     },
+     "cpi": {
+      "events": 23,
+      "events_where_removed_trips_lost": 10,
+      "events_where_removed_trips_won": 9,
+      "events_with_no_trip": 4,
+      "mean_per_event_gbp": -0.1669,
+      "placebo_mean_per_window_gbp": -0.0484,
+      "placebo_windows": 368,
+      "removed_pnl_gbp": -3.839
+     },
+     "ecb": {
+      "events": 16,
+      "events_where_removed_trips_lost": 1,
+      "events_where_removed_trips_won": 4,
+      "events_with_no_trip": 11,
+      "mean_per_event_gbp": 0.0243,
+      "placebo_mean_per_window_gbp": 0.0069,
+      "placebo_windows": 256,
+      "removed_pnl_gbp": 0.389
+     },
+     "fomc": {
+      "events": 16,
+      "events_where_removed_trips_lost": 6,
+      "events_where_removed_trips_won": 5,
+      "events_with_no_trip": 5,
+      "mean_per_event_gbp": -0.6624,
+      "placebo_mean_per_window_gbp": 0.0102,
+      "placebo_windows": 256,
+      "removed_pnl_gbp": -10.598
+     },
+     "nfp": {
+      "events": 23,
+      "events_where_removed_trips_lost": 13,
+      "events_where_removed_trips_won": 10,
+      "events_with_no_trip": 0,
+      "mean_per_event_gbp": -0.5656,
+      "placebo_mean_per_window_gbp": -0.0139,
+      "placebo_windows": 368,
+      "removed_pnl_gbp": -13.008
+     }
+    },
+    "rows": [
+     {
+      "day": "2024-10-10",
+      "kind": "cpi",
+      "removed_pnl_gbp": 1.1966,
+      "removed_trips": 11
+     },
+     {
+      "day": "2024-10-17",
+      "kind": "ecb",
+      "removed_pnl_gbp": 0.099,
+      "removed_trips": 1
+     },
+     {
+      "day": "2024-11-01",
+      "kind": "nfp",
+      "removed_pnl_gbp": 0.0797,
+      "removed_trips": 6
+     },
+     {
+      "day": "2024-11-07",
+      "kind": "boe",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2024-11-07",
+      "kind": "fomc",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2024-11-13",
+      "kind": "cpi",
+      "removed_pnl_gbp": 0.3174,
+      "removed_trips": 4
+     },
+     {
+      "day": "2024-12-06",
+      "kind": "nfp",
+      "removed_pnl_gbp": 1.0625,
+      "removed_trips": 8
+     },
+     {
+      "day": "2024-12-11",
+      "kind": "cpi",
+      "removed_pnl_gbp": 0.0891,
+      "removed_trips": 1
+     },
+     {
+      "day": "2024-12-12",
+      "kind": "ecb",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2024-12-18",
+      "kind": "fomc",
+      "removed_pnl_gbp": -8.0418,
+      "removed_trips": 8
+     },
+     {
+      "day": "2024-12-19",
+      "kind": "boe",
+      "removed_pnl_gbp": -1.9164,
+      "removed_trips": 4
+     },
+     {
+      "day": "2025-01-10",
+      "kind": "nfp",
+      "removed_pnl_gbp": -3.6995,
+      "removed_trips": 7
+     },
+     {
+      "day": "2025-01-15",
+      "kind": "cpi",
+      "removed_pnl_gbp": -2.1813,
+      "removed_trips": 14
+     },
+     {
+      "day": "2025-01-29",
+      "kind": "fomc",
+      "removed_pnl_gbp": -0.2643,
+      "removed_trips": 3
+     },
+     {
+      "day": "2025-01-30",
+      "kind": "ecb",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2025-02-06",
+      "kind": "boe",
+      "removed_pnl_gbp": -0.5954,
+      "removed_trips": 3
+     },
+     {
+      "day": "2025-02-07",
+      "kind": "nfp",
+      "removed_pnl_gbp": 2.9623,
+      "removed_trips": 10
+     },
+     {
+      "day": "2025-02-12",
+      "kind": "cpi",
+      "removed_pnl_gbp": -2.6291,
+      "removed_trips": 12
+     },
+     {
+      "day": "2025-03-06",
+      "kind": "ecb",
+      "removed_pnl_gbp": 0.4028,
+      "removed_trips": 2
+     },
+     {
+      "day": "2025-03-07",
+      "kind": "nfp",
+      "removed_pnl_gbp": 0.4669,
+      "removed_trips": 3
+     },
+     {
+      "day": "2025-03-12",
+      "kind": "cpi",
+      "removed_pnl_gbp": 0.7145,
+      "removed_trips": 11
+     },
+     {
+      "day": "2025-03-19",
+      "kind": "fomc",
+      "removed_pnl_gbp": -0.2131,
+      "removed_trips": 4
+     },
+     {
+      "day": "2025-03-20",
+      "kind": "boe",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2025-04-04",
+      "kind": "nfp",
+      "removed_pnl_gbp": -0.8365,
+      "removed_trips": 4
+     },
+     {
+      "day": "2025-04-10",
+      "kind": "cpi",
+      "removed_pnl_gbp": -0.3622,
+      "removed_trips": 4
+     },
+     {
+      "day": "2025-04-17",
+      "kind": "ecb",
+      "removed_pnl_gbp": 0.1497,
+      "removed_trips": 1
+     },
+     {
+      "day": "2025-05-02",
+      "kind": "nfp",
+      "removed_pnl_gbp": -0.0871,
+      "removed_trips": 4
+     },
+     {
+      "day": "2025-05-07",
+      "kind": "fomc",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2025-05-08",
+      "kind": "boe",
+      "removed_pnl_gbp": 0.0133,
+      "removed_trips": 2
+     },
+     {
+      "day": "2025-05-13",
+      "kind": "cpi",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2025-06-05",
+      "kind": "ecb",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2025-06-06",
+      "kind": "nfp",
+      "removed_pnl_gbp": 0.7014,
+      "removed_trips": 7
+     },
+     {
+      "day": "2025-06-11",
+      "kind": "cpi",
+      "removed_pnl_gbp": -1.3686,
+      "removed_trips": 8
+     },
+     {
+      "day": "2025-06-18",
+      "kind": "fomc",
+      "removed_pnl_gbp": 0.1624,
+      "removed_trips": 7
+     },
+     {
+      "day": "2025-06-19",
+      "kind": "boe",
+      "removed_pnl_gbp": -0.0403,
+      "removed_trips": 1
+     },
+     {
+      "day": "2025-07-03",
+      "kind": "nfp",
+      "removed_pnl_gbp": 0.4779,
+      "removed_trips": 11
+     },
+     {
+      "day": "2025-07-15",
+      "kind": "cpi",
+      "removed_pnl_gbp": -0.0239,
+      "removed_trips": 4
+     },
+     {
+      "day": "2025-07-24",
+      "kind": "ecb",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2025-07-30",
+      "kind": "fomc",
+      "removed_pnl_gbp": 0.0529,
+      "removed_trips": 1
+     },
+     {
+      "day": "2025-08-01",
+      "kind": "nfp",
+      "removed_pnl_gbp": -8.8962,
+      "removed_trips": 12
+     },
+     {
+      "day": "2025-08-07",
+      "kind": "boe",
+      "removed_pnl_gbp": -0.5491,
+      "removed_trips": 4
+     },
+     {
+      "day": "2025-08-12",
+      "kind": "cpi",
+      "removed_pnl_gbp": -0.263,
+      "removed_trips": 9
+     },
+     {
+      "day": "2025-09-05",
+      "kind": "nfp",
+      "removed_pnl_gbp": -0.8232,
+      "removed_trips": 13
+     },
+     {
+      "day": "2025-09-11",
+      "kind": "ecb",
+      "removed_pnl_gbp": -0.3882,
+      "removed_trips": 2
+     },
+     {
+      "day": "2025-09-11",
+      "kind": "cpi",
+      "removed_pnl_gbp": 0.3155,
+      "removed_trips": 1
+     },
+     {
+      "day": "2025-09-17",
+      "kind": "fomc",
+      "removed_pnl_gbp": 0.1087,
+      "removed_trips": 5
+     },
+     {
+      "day": "2025-09-18",
+      "kind": "boe",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2025-10-24",
+      "kind": "cpi",
+      "removed_pnl_gbp": -0.8508,
+      "removed_trips": 10
+     },
+     {
+      "day": "2025-10-29",
+      "kind": "fomc",
+      "removed_pnl_gbp": 0.0407,
+      "removed_trips": 2
+     },
+     {
+      "day": "2025-10-30",
+      "kind": "ecb",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2025-11-06",
+      "kind": "boe",
+      "removed_pnl_gbp": 0.0131,
+      "removed_trips": 2
+     },
+     {
+      "day": "2025-11-20",
+      "kind": "nfp",
+      "removed_pnl_gbp": -0.1857,
+      "removed_trips": 3
+     },
+     {
+      "day": "2025-12-10",
+      "kind": "fomc",
+      "removed_pnl_gbp": -0.004,
+      "removed_trips": 1
+     },
+     {
+      "day": "2025-12-16",
+      "kind": "nfp",
+      "removed_pnl_gbp": 0.0807,
+      "removed_trips": 2
+     },
+     {
+      "day": "2025-12-18",
+      "kind": "boe",
+      "removed_pnl_gbp": -0.4952,
+      "removed_trips": 3
+     },
+     {
+      "day": "2025-12-18",
+      "kind": "ecb",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2025-12-18",
+      "kind": "cpi",
+      "removed_pnl_gbp": 0.1122,
+      "removed_trips": 4
+     },
+     {
+      "day": "2026-01-09",
+      "kind": "nfp",
+      "removed_pnl_gbp": 1.4132,
+      "removed_trips": 7
+     },
+     {
+      "day": "2026-01-13",
+      "kind": "cpi",
+      "removed_pnl_gbp": 0.301,
+      "removed_trips": 5
+     },
+     {
+      "day": "2026-01-28",
+      "kind": "fomc",
+      "removed_pnl_gbp": 0.1553,
+      "removed_trips": 1
+     },
+     {
+      "day": "2026-02-05",
+      "kind": "boe",
+      "removed_pnl_gbp": -1.5363,
+      "removed_trips": 6
+     },
+     {
+      "day": "2026-02-05",
+      "kind": "ecb",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2026-02-11",
+      "kind": "nfp",
+      "removed_pnl_gbp": -1.1699,
+      "removed_trips": 10
+     },
+     {
+      "day": "2026-02-13",
+      "kind": "cpi",
+      "removed_pnl_gbp": 0.8584,
+      "removed_trips": 6
+     },
+     {
+      "day": "2026-03-06",
+      "kind": "nfp",
+      "removed_pnl_gbp": 0.6942,
+      "removed_trips": 7
+     },
+     {
+      "day": "2026-03-11",
+      "kind": "cpi",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2026-03-18",
+      "kind": "fomc",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2026-03-19",
+      "kind": "boe",
+      "removed_pnl_gbp": 0.1863,
+      "removed_trips": 2
+     },
+     {
+      "day": "2026-03-19",
+      "kind": "ecb",
+      "removed_pnl_gbp": 0.1252,
+      "removed_trips": 1
+     },
+     {
+      "day": "2026-04-03",
+      "kind": "nfp",
+      "removed_pnl_gbp": -0.0379,
+      "removed_trips": 6
+     },
+     {
+      "day": "2026-04-10",
+      "kind": "cpi",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2026-04-29",
+      "kind": "fomc",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2026-04-30",
+      "kind": "boe",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2026-04-30",
+      "kind": "ecb",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2026-05-08",
+      "kind": "nfp",
+      "removed_pnl_gbp": 0.3031,
+      "removed_trips": 2
+     },
+     {
+      "day": "2026-05-12",
+      "kind": "cpi",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2026-06-05",
+      "kind": "nfp",
+      "removed_pnl_gbp": -1.2377,
+      "removed_trips": 6
+     },
+     {
+      "day": "2026-06-10",
+      "kind": "cpi",
+      "removed_pnl_gbp": -0.1017,
+      "removed_trips": 1
+     },
+     {
+      "day": "2026-06-11",
+      "kind": "ecb",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2026-06-17",
+      "kind": "fomc",
+      "removed_pnl_gbp": -1.8419,
+      "removed_trips": 11
+     },
+     {
+      "day": "2026-06-18",
+      "kind": "boe",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2026-07-02",
+      "kind": "nfp",
+      "removed_pnl_gbp": -2.3278,
+      "removed_trips": 12
+     },
+     {
+      "day": "2026-07-14",
+      "kind": "cpi",
+      "removed_pnl_gbp": -0.1347,
+      "removed_trips": 14
+     },
+     {
+      "day": "2026-07-23",
+      "kind": "ecb",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2026-07-29",
+      "kind": "fomc",
+      "removed_pnl_gbp": -0.7533,
+      "removed_trips": 9
+     },
+     {
+      "day": "2026-07-30",
+      "kind": "boe",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2026-08-07",
+      "kind": "nfp",
+      "removed_pnl_gbp": -1.1008,
+      "removed_trips": 10
+     },
+     {
+      "day": "2026-08-12",
+      "kind": "cpi",
+      "removed_pnl_gbp": 0.3947,
+      "removed_trips": 5
+     },
+     {
+      "day": "2026-09-04",
+      "kind": "nfp",
+      "removed_pnl_gbp": -0.8193,
+      "removed_trips": 10
+     },
+     {
+      "day": "2026-09-10",
+      "kind": "ecb",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2026-09-11",
+      "kind": "cpi",
+      "removed_pnl_gbp": -0.2235,
+      "removed_trips": 6
+     },
+     {
+      "day": "2026-09-16",
+      "kind": "fomc",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2026-09-17",
+      "kind": "boe",
+      "removed_pnl_gbp": -0.3617,
+      "removed_trips": 2
+     },
+     {
+      "day": "2026-10-02",
+      "kind": "nfp",
+      "removed_pnl_gbp": -0.0287,
+      "removed_trips": 8
+     }
+    ],
+    "span_1_2024-10-09_to_2025-10-09": {
+     "events": 47,
+     "removed_lost": 19,
+     "removed_pnl_gbp": -23.807,
+     "removed_won": 18
+    },
+    "span_2_2025-10-09_to_2026-10-09": {
+     "events": 47,
+     "removed_lost": 18,
+     "removed_pnl_gbp": -8.533,
+     "removed_won": 13
+    }
+   },
+   "spans": {
+    "span_1_2024-10-09_to_2025-10-09": {
+     "base": {
+      "days": 365,
+      "gbp_per_year": 554.6376159540596,
+      "pct_per_year_on_2400": 23.109900664752484,
+      "pnl_gbp": 554.6376159540596,
+      "stops": 166,
+      "trips": 7222,
+      "win_rate": 0.7442536693436721,
+      "worst_day_gbp": -7.767784889985749
+     },
+     "base_boot": {
+      "p5": 487.8406196673644,
+      "p50": 555.5559097579661,
+      "p95": 629.2511189810004,
+      "share_gt_0": 1.0
+     },
+     "blackout": {
+      "days": 365,
+      "gbp_per_year": 580.5984665993185,
+      "pct_per_year_on_2400": 24.191602774971603,
+      "pnl_gbp": 580.5984665993185,
+      "stops": 163,
+      "trips": 7033,
+      "win_rate": 0.7550120858808474,
+      "worst_day_gbp": -5.148472171910257
+     },
+     "delta_boot": {
+      "p5": 5.051942363290149,
+      "p50": 25.42729594201694,
+      "p95": 50.694373699104865,
+      "share_gt_0": 0.988
+     },
+     "delta_gbp_per_year": 25.960850645258915,
+     "trips_kept": 0.9738299639988923,
+     "worst_days_base": [
+      -7.767784889985749,
+      -5.148472171910257,
+      -3.7119644060042827,
+      -2.6896708477849756,
+      -2.1379514596332947
+     ],
+     "worst_days_blackout": [
+      -5.148472171910257,
+      -3.7119644060042827,
+      -2.6896708477849756,
+      -2.1379514596332947,
+      -2.0803998852489314
+     ]
+    },
+    "span_2_2025-10-09_to_2026-10-09": {
+     "base": {
+      "days": 365,
+      "gbp_per_year": 192.94530288939274,
+      "pct_per_year_on_2400": 8.039387620391365,
+      "pnl_gbp": 192.94530288939276,
+      "stops": 52,
+      "trips": 2844,
+      "win_rate": 0.7443741209563994,
+      "worst_day_gbp": -3.606626855648775
+     },
+     "base_boot": {
+      "p5": 165.3571927119817,
+      "p50": 193.09744085042936,
+      "p95": 221.81324988783814,
+      "share_gt_0": 1.0
+     },
+     "blackout": {
+      "days": 365,
+      "gbp_per_year": 200.83473876343427,
+      "pct_per_year_on_2400": 8.368114115143095,
+      "pnl_gbp": 200.8347387634343,
+      "stops": 50,
+      "trips": 2675,
+      "win_rate": 0.7682242990654206,
+      "worst_day_gbp": -3.606626855648775
+     },
+     "delta_boot": {
+      "p5": 0.23951443164434227,
+      "p50": 7.691112370053694,
+      "p95": 16.002331538126104,
+      "share_gt_0": 0.954
+     },
+     "delta_gbp_per_year": 7.8894358740415385,
+     "trips_kept": 0.9405766526019691,
+     "worst_days_base": [
+      -3.606626855648775,
+      -2.461046493776702,
+      -1.6964504132916522,
+      -1.3932329318164534,
+      -1.1851992937114486
+     ],
+     "worst_days_blackout": [
+      -3.606626855648775,
+      -2.461046493776702,
+      -1.4313434052861833,
+      -1.0942253583462553,
+      -0.9515988142924791
+     ]
+    }
+   }
+  },
+  "hold": {
+   "events": {
+    "by_kind": {
+     "all": {
+      "events": 94,
+      "events_where_removed_trips_lost": 37,
+      "events_where_removed_trips_won": 31,
+      "events_with_no_trip": 26,
+      "mean_per_event_gbp": -0.344,
+      "placebo_mean_per_window_gbp": -0.0115,
+      "placebo_windows": 1504,
+      "removed_pnl_gbp": -32.339
+     },
+     "boe": {
+      "events": 16,
+      "events_where_removed_trips_lost": 7,
+      "events_where_removed_trips_won": 3,
+      "events_with_no_trip": 6,
+      "mean_per_event_gbp": -0.3301,
+      "placebo_mean_per_window_gbp": 0.005,
+      "placebo_windows": 256,
+      "removed_pnl_gbp": -5.282
+     },
+     "cpi": {
+      "events": 23,
+      "events_where_removed_trips_lost": 10,
+      "events_where_removed_trips_won": 9,
+      "events_with_no_trip": 4,
+      "mean_per_event_gbp": -0.1669,
+      "placebo_mean_per_window_gbp": -0.0484,
+      "placebo_windows": 368,
+      "removed_pnl_gbp": -3.839
+     },
+     "ecb": {
+      "events": 16,
+      "events_where_removed_trips_lost": 1,
+      "events_where_removed_trips_won": 4,
+      "events_with_no_trip": 11,
+      "mean_per_event_gbp": 0.0243,
+      "placebo_mean_per_window_gbp": 0.0069,
+      "placebo_windows": 256,
+      "removed_pnl_gbp": 0.389
+     },
+     "fomc": {
+      "events": 16,
+      "events_where_removed_trips_lost": 6,
+      "events_where_removed_trips_won": 5,
+      "events_with_no_trip": 5,
+      "mean_per_event_gbp": -0.6624,
+      "placebo_mean_per_window_gbp": 0.0102,
+      "placebo_windows": 256,
+      "removed_pnl_gbp": -10.598
+     },
+     "nfp": {
+      "events": 23,
+      "events_where_removed_trips_lost": 13,
+      "events_where_removed_trips_won": 10,
+      "events_with_no_trip": 0,
+      "mean_per_event_gbp": -0.5656,
+      "placebo_mean_per_window_gbp": -0.0139,
+      "placebo_windows": 368,
+      "removed_pnl_gbp": -13.008
+     }
+    },
+    "rows": [
+     {
+      "day": "2024-10-10",
+      "kind": "cpi",
+      "removed_pnl_gbp": 1.1966,
+      "removed_trips": 11
+     },
+     {
+      "day": "2024-10-17",
+      "kind": "ecb",
+      "removed_pnl_gbp": 0.099,
+      "removed_trips": 1
+     },
+     {
+      "day": "2024-11-01",
+      "kind": "nfp",
+      "removed_pnl_gbp": 0.0797,
+      "removed_trips": 6
+     },
+     {
+      "day": "2024-11-07",
+      "kind": "boe",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2024-11-07",
+      "kind": "fomc",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2024-11-13",
+      "kind": "cpi",
+      "removed_pnl_gbp": 0.3174,
+      "removed_trips": 4
+     },
+     {
+      "day": "2024-12-06",
+      "kind": "nfp",
+      "removed_pnl_gbp": 1.0625,
+      "removed_trips": 8
+     },
+     {
+      "day": "2024-12-11",
+      "kind": "cpi",
+      "removed_pnl_gbp": 0.0891,
+      "removed_trips": 1
+     },
+     {
+      "day": "2024-12-12",
+      "kind": "ecb",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2024-12-18",
+      "kind": "fomc",
+      "removed_pnl_gbp": -8.0418,
+      "removed_trips": 8
+     },
+     {
+      "day": "2024-12-19",
+      "kind": "boe",
+      "removed_pnl_gbp": -1.9164,
+      "removed_trips": 4
+     },
+     {
+      "day": "2025-01-10",
+      "kind": "nfp",
+      "removed_pnl_gbp": -3.6995,
+      "removed_trips": 7
+     },
+     {
+      "day": "2025-01-15",
+      "kind": "cpi",
+      "removed_pnl_gbp": -2.1813,
+      "removed_trips": 14
+     },
+     {
+      "day": "2025-01-29",
+      "kind": "fomc",
+      "removed_pnl_gbp": -0.2643,
+      "removed_trips": 3
+     },
+     {
+      "day": "2025-01-30",
+      "kind": "ecb",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2025-02-06",
+      "kind": "boe",
+      "removed_pnl_gbp": -0.5954,
+      "removed_trips": 3
+     },
+     {
+      "day": "2025-02-07",
+      "kind": "nfp",
+      "removed_pnl_gbp": 2.9623,
+      "removed_trips": 10
+     },
+     {
+      "day": "2025-02-12",
+      "kind": "cpi",
+      "removed_pnl_gbp": -2.6291,
+      "removed_trips": 12
+     },
+     {
+      "day": "2025-03-06",
+      "kind": "ecb",
+      "removed_pnl_gbp": 0.4028,
+      "removed_trips": 2
+     },
+     {
+      "day": "2025-03-07",
+      "kind": "nfp",
+      "removed_pnl_gbp": 0.4669,
+      "removed_trips": 3
+     },
+     {
+      "day": "2025-03-12",
+      "kind": "cpi",
+      "removed_pnl_gbp": 0.7145,
+      "removed_trips": 11
+     },
+     {
+      "day": "2025-03-19",
+      "kind": "fomc",
+      "removed_pnl_gbp": -0.2131,
+      "removed_trips": 4
+     },
+     {
+      "day": "2025-03-20",
+      "kind": "boe",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2025-04-04",
+      "kind": "nfp",
+      "removed_pnl_gbp": -0.8365,
+      "removed_trips": 4
+     },
+     {
+      "day": "2025-04-10",
+      "kind": "cpi",
+      "removed_pnl_gbp": -0.3622,
+      "removed_trips": 4
+     },
+     {
+      "day": "2025-04-17",
+      "kind": "ecb",
+      "removed_pnl_gbp": 0.1497,
+      "removed_trips": 1
+     },
+     {
+      "day": "2025-05-02",
+      "kind": "nfp",
+      "removed_pnl_gbp": -0.0871,
+      "removed_trips": 4
+     },
+     {
+      "day": "2025-05-07",
+      "kind": "fomc",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2025-05-08",
+      "kind": "boe",
+      "removed_pnl_gbp": 0.0133,
+      "removed_trips": 2
+     },
+     {
+      "day": "2025-05-13",
+      "kind": "cpi",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2025-06-05",
+      "kind": "ecb",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2025-06-06",
+      "kind": "nfp",
+      "removed_pnl_gbp": 0.7014,
+      "removed_trips": 7
+     },
+     {
+      "day": "2025-06-11",
+      "kind": "cpi",
+      "removed_pnl_gbp": -1.3686,
+      "removed_trips": 8
+     },
+     {
+      "day": "2025-06-18",
+      "kind": "fomc",
+      "removed_pnl_gbp": 0.1624,
+      "removed_trips": 7
+     },
+     {
+      "day": "2025-06-19",
+      "kind": "boe",
+      "removed_pnl_gbp": -0.0403,
+      "removed_trips": 1
+     },
+     {
+      "day": "2025-07-03",
+      "kind": "nfp",
+      "removed_pnl_gbp": 0.4779,
+      "removed_trips": 11
+     },
+     {
+      "day": "2025-07-15",
+      "kind": "cpi",
+      "removed_pnl_gbp": -0.0239,
+      "removed_trips": 4
+     },
+     {
+      "day": "2025-07-24",
+      "kind": "ecb",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2025-07-30",
+      "kind": "fomc",
+      "removed_pnl_gbp": 0.0529,
+      "removed_trips": 1
+     },
+     {
+      "day": "2025-08-01",
+      "kind": "nfp",
+      "removed_pnl_gbp": -8.8962,
+      "removed_trips": 12
+     },
+     {
+      "day": "2025-08-07",
+      "kind": "boe",
+      "removed_pnl_gbp": -0.5491,
+      "removed_trips": 4
+     },
+     {
+      "day": "2025-08-12",
+      "kind": "cpi",
+      "removed_pnl_gbp": -0.263,
+      "removed_trips": 9
+     },
+     {
+      "day": "2025-09-05",
+      "kind": "nfp",
+      "removed_pnl_gbp": -0.8232,
+      "removed_trips": 13
+     },
+     {
+      "day": "2025-09-11",
+      "kind": "ecb",
+      "removed_pnl_gbp": -0.3882,
+      "removed_trips": 2
+     },
+     {
+      "day": "2025-09-11",
+      "kind": "cpi",
+      "removed_pnl_gbp": 0.3155,
+      "removed_trips": 1
+     },
+     {
+      "day": "2025-09-17",
+      "kind": "fomc",
+      "removed_pnl_gbp": 0.1087,
+      "removed_trips": 5
+     },
+     {
+      "day": "2025-09-18",
+      "kind": "boe",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2025-10-24",
+      "kind": "cpi",
+      "removed_pnl_gbp": -0.8508,
+      "removed_trips": 10
+     },
+     {
+      "day": "2025-10-29",
+      "kind": "fomc",
+      "removed_pnl_gbp": 0.0407,
+      "removed_trips": 2
+     },
+     {
+      "day": "2025-10-30",
+      "kind": "ecb",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2025-11-06",
+      "kind": "boe",
+      "removed_pnl_gbp": 0.0131,
+      "removed_trips": 2
+     },
+     {
+      "day": "2025-11-20",
+      "kind": "nfp",
+      "removed_pnl_gbp": -0.1857,
+      "removed_trips": 3
+     },
+     {
+      "day": "2025-12-10",
+      "kind": "fomc",
+      "removed_pnl_gbp": -0.004,
+      "removed_trips": 1
+     },
+     {
+      "day": "2025-12-16",
+      "kind": "nfp",
+      "removed_pnl_gbp": 0.0807,
+      "removed_trips": 2
+     },
+     {
+      "day": "2025-12-18",
+      "kind": "boe",
+      "removed_pnl_gbp": -0.4952,
+      "removed_trips": 3
+     },
+     {
+      "day": "2025-12-18",
+      "kind": "ecb",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2025-12-18",
+      "kind": "cpi",
+      "removed_pnl_gbp": 0.1122,
+      "removed_trips": 4
+     },
+     {
+      "day": "2026-01-09",
+      "kind": "nfp",
+      "removed_pnl_gbp": 1.4132,
+      "removed_trips": 7
+     },
+     {
+      "day": "2026-01-13",
+      "kind": "cpi",
+      "removed_pnl_gbp": 0.301,
+      "removed_trips": 5
+     },
+     {
+      "day": "2026-01-28",
+      "kind": "fomc",
+      "removed_pnl_gbp": 0.1553,
+      "removed_trips": 1
+     },
+     {
+      "day": "2026-02-05",
+      "kind": "boe",
+      "removed_pnl_gbp": -1.5363,
+      "removed_trips": 6
+     },
+     {
+      "day": "2026-02-05",
+      "kind": "ecb",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2026-02-11",
+      "kind": "nfp",
+      "removed_pnl_gbp": -1.1699,
+      "removed_trips": 10
+     },
+     {
+      "day": "2026-02-13",
+      "kind": "cpi",
+      "removed_pnl_gbp": 0.8584,
+      "removed_trips": 6
+     },
+     {
+      "day": "2026-03-06",
+      "kind": "nfp",
+      "removed_pnl_gbp": 0.6942,
+      "removed_trips": 7
+     },
+     {
+      "day": "2026-03-11",
+      "kind": "cpi",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2026-03-18",
+      "kind": "fomc",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2026-03-19",
+      "kind": "boe",
+      "removed_pnl_gbp": 0.1863,
+      "removed_trips": 2
+     },
+     {
+      "day": "2026-03-19",
+      "kind": "ecb",
+      "removed_pnl_gbp": 0.1252,
+      "removed_trips": 1
+     },
+     {
+      "day": "2026-04-03",
+      "kind": "nfp",
+      "removed_pnl_gbp": -0.0379,
+      "removed_trips": 6
+     },
+     {
+      "day": "2026-04-10",
+      "kind": "cpi",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2026-04-29",
+      "kind": "fomc",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2026-04-30",
+      "kind": "boe",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2026-04-30",
+      "kind": "ecb",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2026-05-08",
+      "kind": "nfp",
+      "removed_pnl_gbp": 0.3031,
+      "removed_trips": 2
+     },
+     {
+      "day": "2026-05-12",
+      "kind": "cpi",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2026-06-05",
+      "kind": "nfp",
+      "removed_pnl_gbp": -1.2377,
+      "removed_trips": 6
+     },
+     {
+      "day": "2026-06-10",
+      "kind": "cpi",
+      "removed_pnl_gbp": -0.1017,
+      "removed_trips": 1
+     },
+     {
+      "day": "2026-06-11",
+      "kind": "ecb",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2026-06-17",
+      "kind": "fomc",
+      "removed_pnl_gbp": -1.8419,
+      "removed_trips": 11
+     },
+     {
+      "day": "2026-06-18",
+      "kind": "boe",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2026-07-02",
+      "kind": "nfp",
+      "removed_pnl_gbp": -2.3278,
+      "removed_trips": 12
+     },
+     {
+      "day": "2026-07-14",
+      "kind": "cpi",
+      "removed_pnl_gbp": -0.1347,
+      "removed_trips": 14
+     },
+     {
+      "day": "2026-07-23",
+      "kind": "ecb",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2026-07-29",
+      "kind": "fomc",
+      "removed_pnl_gbp": -0.7533,
+      "removed_trips": 9
+     },
+     {
+      "day": "2026-07-30",
+      "kind": "boe",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2026-08-07",
+      "kind": "nfp",
+      "removed_pnl_gbp": -1.1008,
+      "removed_trips": 10
+     },
+     {
+      "day": "2026-08-12",
+      "kind": "cpi",
+      "removed_pnl_gbp": 0.3947,
+      "removed_trips": 5
+     },
+     {
+      "day": "2026-09-04",
+      "kind": "nfp",
+      "removed_pnl_gbp": -0.8193,
+      "removed_trips": 10
+     },
+     {
+      "day": "2026-09-10",
+      "kind": "ecb",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2026-09-11",
+      "kind": "cpi",
+      "removed_pnl_gbp": -0.2235,
+      "removed_trips": 6
+     },
+     {
+      "day": "2026-09-16",
+      "kind": "fomc",
+      "removed_pnl_gbp": 0,
+      "removed_trips": 0
+     },
+     {
+      "day": "2026-09-17",
+      "kind": "boe",
+      "removed_pnl_gbp": -0.3617,
+      "removed_trips": 2
+     },
+     {
+      "day": "2026-10-02",
+      "kind": "nfp",
+      "removed_pnl_gbp": -0.0287,
+      "removed_trips": 8
+     }
+    ],
+    "span_1_2024-10-09_to_2025-10-09": {
+     "events": 47,
+     "removed_lost": 19,
+     "removed_pnl_gbp": -23.807,
+     "removed_won": 18
+    },
+    "span_2_2025-10-09_to_2026-10-09": {
+     "events": 47,
+     "removed_lost": 18,
+     "removed_pnl_gbp": -8.533,
+     "removed_won": 13
+    }
+   },
+   "spans": {
+    "span_1_2024-10-09_to_2025-10-09": {
+     "base": {
+      "days": 365,
+      "gbp_per_year": 664.143930363326,
+      "pct_per_year_on_2400": 27.672663765138587,
+      "pnl_gbp": 664.143930363326,
+      "stops": 356,
+      "trips": 8145,
+      "win_rate": 0.7535911602209945,
+      "worst_day_gbp": -7.767784889985749
+     },
+     "base_boot": {
+      "p5": 593.8193335008093,
+      "p50": 664.9914002914713,
+      "p95": 737.6811622531143,
+      "share_gt_0": 1.0
+     },
+     "blackout": {
+      "days": 365,
+      "gbp_per_year": 690.0727738869505,
+      "pct_per_year_on_2400": 28.753032245289603,
+      "pnl_gbp": 690.0727738869505,
+      "stops": 353,
+      "trips": 7956,
+      "win_rate": 0.7633232780291603,
+      "worst_day_gbp": -5.148472171910257
+     },
+     "delta_boot": {
+      "p5": 5.029249828571396,
+      "p50": 25.382783785051252,
+      "p95": 50.672089606649315,
+      "share_gt_0": 0.988
+     },
+     "delta_gbp_per_year": 25.928843523624437,
+     "trips_kept": 0.9767955801104973,
+     "worst_days_base": [
+      -7.767784889985749,
+      -5.148472171910257,
+      -3.7119644060042827,
+      -2.78622066748658,
+      -2.699447894076093
+     ],
+     "worst_days_blackout": [
+      -5.148472171910257,
+      -3.7119644060042827,
+      -2.78622066748658,
+      -2.699447894076093,
+      -2.4466412711184833
+     ]
+    },
+    "span_2_2025-10-09_to_2026-10-09": {
+     "base": {
+      "days": 365,
+      "gbp_per_year": 259.36148945409894,
+      "pct_per_year_on_2400": 10.806728727254123,
+      "pnl_gbp": 259.36148945409894,
+      "stops": 176,
+      "trips": 3539,
+      "win_rate": 0.7592540265611755,
+      "worst_day_gbp": -3.606626855648775
+     },
+     "base_boot": {
+      "p5": 226.08023308424276,
+      "p50": 258.90880261473575,
+      "p95": 293.0824208607367,
+      "share_gt_0": 1.0
+     },
+     "blackout": {
+      "days": 365,
+      "gbp_per_year": 267.17885372669343,
+      "pct_per_year_on_2400": 11.132452238612226,
+      "pnl_gbp": 267.17885372669343,
+      "stops": 173,
+      "trips": 3369,
+      "win_rate": 0.7788661323834966,
+      "worst_day_gbp": -3.606626855648775
+     },
+     "delta_boot": {
+      "p5": 0.28285202882588,
+      "p50": 7.573516240786954,
+      "p95": 15.93267054504549,
+      "share_gt_0": 0.9525
+     },
+     "delta_gbp_per_year": 7.817364272594489,
+     "trips_kept": 0.9519638315908449,
+     "worst_days_base": [
+      -3.606626855648775,
+      -3.194656031805999,
+      -2.2789784629161653,
+      -2.1683153535469826,
+      -1.6964504132916522
+     ],
+     "worst_days_blackout": [
+      -3.606626855648775,
+      -3.194656031805999,
+      -2.2789784629161653,
+      -2.1683153535469826,
+      -1.4313434052861833
+     ]
+    }
+   }
+  }
+ },
+ "blackout": {
+  "a": 1,
+  "b": 5,
+  "dark": true,
+  "fam": "g3_cal",
+  "kind": "all"
+ }
+}

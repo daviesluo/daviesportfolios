@@ -15,8 +15,8 @@ for root, _, names in os.walk(HERE):
         b = open(p, "rb").read()
         files[rel] = {"bytes": len(b), "sha256": hashlib.sha256(b).hexdigest()}
 man = {
-    "study": "The Coinbase recorders and paper test's first days (2026-10-12): the read-only health and interim queries, the minute-record defect (the replay of bar 1 on the first lit day, as stored and with the lost extremes put back), the proposed repair, and CBK, PR5's frozen rule on Coinbase's history with one change at a time (rungs, a basis skew, weekends held)",
-    "write_up": ["docs/agents/reviews/2026-10-12-coinbase-first-days.md"],
+    "study": "The Coinbase recorders and paper test's first days (2026-10-12): the read-only health and interim queries, the minute-record defect (the replay of bar 1 on the first lit day, as stored and with the lost extremes put back), the proposed repair, and CBK, PR5's frozen rule on Coinbase's history with one change at a time (rungs, a basis skew, weekends held); and, from 2026-10-15, CBFAST: what a fast-move / scheduled-release guard would have done (the release calendar, the FX-lag measurement, 164 guard variants on two 12-month spans, the 2026-10-14 day replayed on the engine's record)",
+    "write_up": ["docs/agents/reviews/2026-10-12-coinbase-first-days.md", "docs/agents/reviews/2026-10-15-coinbase-fast-move.md"],
     "imports_read_only": {
         "docs/agents/backtests/cbpaper/scripts/replay.py": sha(os.path.join(BT, "cbpaper", "scripts", "replay.py")),
         "docs/agents/scripts/pr5/pr5_sim.py": sha(os.path.join(BT, "..", "scripts", "pr5", "pr5_sim.py")),
@@ -28,6 +28,13 @@ man = {
         "cd scripts; python3 -I replay_check.py   # -> results/replay_check.json (the stored record 3 of 8 trips; the restored one 8 of 8)",
         "cd scripts; python3 -I cbk.py            # -> results/cbk.json (about 80 s on four cores)",
         "sql/repair_minute_bars.sql: PROPOSED and not run (an update); see the write-up, section 2",
+        "sql/export_lit_lines_1012_1014.sql (two chunks) -> scripts/pack_lines_1014.py -> inputs/lit_lines_1012_1014.json.gz; sql/export_trips_to_1014.sql -> inputs/trips_to_1014.json (2026-10-15 00:20 UTC)",
+        "cd scripts; python3 -I pull_cb_candles.py  # keyless public Coinbase candles -> inputs/cb_implied_eurusd.json.gz (about 2 min)",
+        "cd scripts; python3 -I calendar_events.py  # -> inputs/events.json (the release calendar and its check against the market's move; BLS dates recalled, not fetched)",
+        "cd scripts; python3 -I fxlag.py            # -> results/fxlag.json",
+        "cd scripts; python3 -I cbfast.py stage1    # -> results/cbfast_grid.json (about 25 min on four cores)",
+        "cd scripts; python3 -I cbfast_events.py    # -> results/cbfast_events.json (about 3 min)",
+        "cd scripts; python3 -I cbfast_lit.py base 'g3d_cal all a1 b5' ...   # -> results/cbfast_lit.json (the 2026-10-14 day on the engine's record)",
         "cd scripts; python3 -I build_manifest.py",
     ],
     "files": files,

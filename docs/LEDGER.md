@@ -566,6 +566,15 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14"; each oldest first.
 
+### [2026-10-15 01:24 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Why both Coinbase "with Euros" tests lost on 10-14, and what a fast-move guard is worth** (sub-agent; Davies, 10-15: "stablecoinwitheuros的两个策略怎么今天亏了，有问题就修复改好";
+  `reviews/2026-10-15-coinbase-fast-move.md`, `backtests/cbreview/scripts/cbfast*.py`; nothing built, no frozen file or config touched):
+  - No bug: the frozen rule replayed on the engine's record gives 10-14 as 18 trips, 4 won, −£2.696 (engine −£2.695): −£1.52 seven asks filled
+    in the 12:30 UTC CPI minute, −£1.33 five trips carried through it. The fair is not slow (0.8 bp RMS from Coinbase's own EUR/USD).
+  - 164 guard variants, chosen on one 12-month span and read on the other: no reactive guard is positive in both; a blackout of the scheduled
+    releases (−1 to +5 min) is in all 75 variants: +£25.96 and +£7.89 a year; 10-14 −£2.70 → −£1.17. Verdict: no "- 3" row (five
+    releases in 28 days cannot read it); draft prereg, spec, code in §8, unbuilt. Open: the BLS dates are recalled, not fetched.
+
 ### [2026-10-14 20:11 UTC] Platform: Claude Code | Model: claude-opus-5-5
 - **Audit of every other model's work since the last Claude Code record** (`81235f3`, 17:51 UTC, ledger item 0a″; its branch
   `claude/hopeful-planck-acdq5g`). Nothing landed on `main` after it; reviewed what no Claude session had: Muse's `985a89a`

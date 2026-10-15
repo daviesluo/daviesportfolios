@@ -1,0 +1,471 @@
+{
+ "configs": {
+  "base": {
+   "by_exit_day": {
+    "2026-10-12": {
+     "pnl_gbp": 0.49,
+     "trips": 8,
+     "won": 6
+    },
+    "2026-10-13": {
+     "pnl_gbp": 0.085,
+     "trips": 2,
+     "won": 2
+    },
+    "2026-10-14": {
+     "pnl_gbp": -2.696,
+     "trips": 18,
+     "won": 4
+    }
+   },
+   "day_2026-10-14": {
+    "pnl_gbp": -2.696,
+    "trips": 18,
+    "won": 4
+   },
+   "entered_in_the_release_minute": {
+    "pnl_gbp": -1.524,
+    "trips": 7
+   },
+   "total_gbp": -2.121,
+   "trips": 28
+  },
+  "g1_dev X20 H2 side": {
+   "by_exit_day": {
+    "2026-10-12": {
+     "pnl_gbp": 0.49,
+     "trips": 8,
+     "won": 6
+    },
+    "2026-10-13": {
+     "pnl_gbp": 0.085,
+     "trips": 2,
+     "won": 2
+    },
+    "2026-10-14": {
+     "pnl_gbp": -2.696,
+     "trips": 18,
+     "won": 4
+    }
+   },
+   "day_2026-10-14": {
+    "pnl_gbp": -2.696,
+    "trips": 18,
+    "won": 4
+   },
+   "entered_in_the_release_minute": {
+    "pnl_gbp": -1.524,
+    "trips": 7
+   },
+   "total_gbp": -2.121,
+   "trips": 28
+  },
+  "g1_dev X5 H5 both": {
+   "by_exit_day": {
+    "2026-10-12": {
+     "pnl_gbp": 0.633,
+     "trips": 5,
+     "won": 5
+    },
+    "2026-10-13": {
+     "pnl_gbp": 0.019,
+     "trips": 1,
+     "won": 1
+    },
+    "2026-10-14": {
+     "pnl_gbp": -0.226,
+     "trips": 4,
+     "won": 2
+    }
+   },
+   "day_2026-10-14": {
+    "pnl_gbp": -0.226,
+    "trips": 4,
+    "won": 2
+   },
+   "entered_in_the_release_minute": {
+    "pnl_gbp": -0.503,
+    "trips": 2
+   },
+   "total_gbp": 0.426,
+   "trips": 10
+  },
+  "g1_dev X8 H5 side": {
+   "by_exit_day": {
+    "2026-10-12": {
+     "pnl_gbp": 0.49,
+     "trips": 8,
+     "won": 6
+    },
+    "2026-10-13": {
+     "pnl_gbp": 0.206,
+     "trips": 3,
+     "won": 3
+    },
+    "2026-10-14": {
+     "pnl_gbp": -2.314,
+     "trips": 19,
+     "won": 8
+    }
+   },
+   "day_2026-10-14": {
+    "pnl_gbp": -2.314,
+    "trips": 19,
+    "won": 8
+   },
+   "entered_in_the_release_minute": {
+    "pnl_gbp": -2.805,
+    "trips": 10
+   },
+   "total_gbp": -1.618,
+   "trips": 30
+  },
+  "g2_tape Z1 Y40 H3 both": {
+   "by_exit_day": {
+    "2026-10-12": {
+     "pnl_gbp": 0.49,
+     "trips": 8,
+     "won": 6
+    },
+    "2026-10-13": {
+     "pnl_gbp": 0.085,
+     "trips": 2,
+     "won": 2
+    },
+    "2026-10-14": {
+     "pnl_gbp": -2.696,
+     "trips": 18,
+     "won": 4
+    }
+   },
+   "day_2026-10-14": {
+    "pnl_gbp": -2.696,
+    "trips": 18,
+    "won": 4
+   },
+   "entered_in_the_release_minute": {
+    "pnl_gbp": -1.524,
+    "trips": 7
+   },
+   "total_gbp": -2.121,
+   "trips": 28
+  },
+  "g3_cal all a1 b5": {
+   "by_exit_day": {
+    "2026-10-12": {
+     "pnl_gbp": 0.49,
+     "trips": 8,
+     "won": 6
+    },
+    "2026-10-13": {
+     "pnl_gbp": 0.085,
+     "trips": 2,
+     "won": 2
+    },
+    "2026-10-14": {
+     "pnl_gbp": -1.172,
+     "trips": 11,
+     "won": 4
+    }
+   },
+   "day_2026-10-14": {
+    "pnl_gbp": -1.172,
+    "trips": 11,
+    "won": 4
+   },
+   "entered_in_the_release_minute": {
+    "pnl_gbp": 0,
+    "trips": 0
+   },
+   "total_gbp": -0.597,
+   "trips": 21
+  },
+  "g3d_cal all a0 b2": {
+   "by_exit_day": {
+    "2026-10-12": {
+     "pnl_gbp": 0.49,
+     "trips": 8,
+     "won": 6
+    },
+    "2026-10-13": {
+     "pnl_gbp": 0.085,
+     "trips": 2,
+     "won": 2
+    },
+    "2026-10-14": {
+     "pnl_gbp": -1.172,
+     "trips": 11,
+     "won": 4
+    }
+   },
+   "day_2026-10-14": {
+    "pnl_gbp": -1.172,
+    "trips": 11,
+    "won": 4
+   },
+   "entered_in_the_release_minute": {
+    "pnl_gbp": 0,
+    "trips": 0
+   },
+   "total_gbp": -0.597,
+   "trips": 21
+  },
+  "g3d_cal all a1 b5": {
+   "by_exit_day": {
+    "2026-10-12": {
+     "pnl_gbp": 0.49,
+     "trips": 8,
+     "won": 6
+    },
+    "2026-10-13": {
+     "pnl_gbp": 0.085,
+     "trips": 2,
+     "won": 2
+    },
+    "2026-10-14": {
+     "pnl_gbp": -1.172,
+     "trips": 11,
+     "won": 4
+    }
+   },
+   "day_2026-10-14": {
+    "pnl_gbp": -1.172,
+    "trips": 11,
+    "won": 4
+   },
+   "entered_in_the_release_minute": {
+    "pnl_gbp": 0,
+    "trips": 0
+   },
+   "total_gbp": -0.597,
+   "trips": 21
+  },
+  "g4_fair m1 X10 H3 side": {
+   "by_exit_day": {
+    "2026-10-12": {
+     "pnl_gbp": 0.49,
+     "trips": 8,
+     "won": 6
+    },
+    "2026-10-13": {
+     "pnl_gbp": 0.085,
+     "trips": 2,
+     "won": 2
+    },
+    "2026-10-14": {
+     "pnl_gbp": -2.696,
+     "trips": 18,
+     "won": 4
+    }
+   },
+   "day_2026-10-14": {
+    "pnl_gbp": -2.696,
+    "trips": 18,
+    "won": 4
+   },
+   "entered_in_the_release_minute": {
+    "pnl_gbp": -1.524,
+    "trips": 7
+   },
+   "total_gbp": -2.121,
+   "trips": 28
+  },
+  "g4_fair m1 X5 H3 side": {
+   "by_exit_day": {
+    "2026-10-12": {
+     "pnl_gbp": 0.49,
+     "trips": 8,
+     "won": 6
+    },
+    "2026-10-13": {
+     "pnl_gbp": 0.17,
+     "trips": 4,
+     "won": 3
+    },
+    "2026-10-14": {
+     "pnl_gbp": -2.601,
+     "trips": 18,
+     "won": 4
+    }
+   },
+   "day_2026-10-14": {
+    "pnl_gbp": -2.601,
+    "trips": 18,
+    "won": 4
+   },
+   "entered_in_the_release_minute": {
+    "pnl_gbp": -1.826,
+    "trips": 8
+   },
+   "total_gbp": -1.941,
+   "trips": 30
+  },
+  "g6_stop 240": {
+   "by_exit_day": {
+    "2026-10-12": {
+     "pnl_gbp": 0.339,
+     "trips": 5,
+     "won": 4
+    },
+    "2026-10-13": {
+     "pnl_gbp": 0.019,
+     "trips": 1,
+     "won": 1
+    },
+    "2026-10-14": {
+     "pnl_gbp": -2.839,
+     "trips": 18,
+     "won": 4
+    }
+   },
+   "day_2026-10-14": {
+    "pnl_gbp": -2.839,
+    "trips": 18,
+    "won": 4
+   },
+   "entered_in_the_release_minute": {
+    "pnl_gbp": -2.199,
+    "trips": 9
+   },
+   "total_gbp": -2.481,
+   "trips": 24
+  },
+  "g6_stop 480": {
+   "by_exit_day": {
+    "2026-10-12": {
+     "pnl_gbp": 0.49,
+     "trips": 8,
+     "won": 6
+    },
+    "2026-10-13": {
+     "pnl_gbp": 0.019,
+     "trips": 1,
+     "won": 1
+    },
+    "2026-10-14": {
+     "pnl_gbp": -2.639,
+     "trips": 18,
+     "won": 4
+    }
+   },
+   "day_2026-10-14": {
+    "pnl_gbp": -2.639,
+    "trips": 18,
+    "won": 4
+   },
+   "entered_in_the_release_minute": {
+    "pnl_gbp": -1.854,
+    "trips": 8
+   },
+   "total_gbp": -2.13,
+   "trips": 27
+  },
+  "oracle Y20": {
+   "by_exit_day": {
+    "2026-10-12": {
+     "pnl_gbp": 0.197,
+     "trips": 5,
+     "won": 3
+    },
+    "2026-10-13": {
+     "pnl_gbp": 0.085,
+     "trips": 2,
+     "won": 2
+    },
+    "2026-10-14": {
+     "pnl_gbp": -1.449,
+     "trips": 9,
+     "won": 2
+    }
+   },
+   "day_2026-10-14": {
+    "pnl_gbp": -1.449,
+    "trips": 9,
+    "won": 2
+   },
+   "entered_in_the_release_minute": {
+    "pnl_gbp": 0,
+    "trips": 0
+   },
+   "total_gbp": -1.167,
+   "trips": 16
+  },
+  "oracle Y40": {
+   "by_exit_day": {
+    "2026-10-12": {
+     "pnl_gbp": 0.197,
+     "trips": 5,
+     "won": 3
+    },
+    "2026-10-13": {
+     "pnl_gbp": 0.085,
+     "trips": 2,
+     "won": 2
+    },
+    "2026-10-14": {
+     "pnl_gbp": -2.696,
+     "trips": 18,
+     "won": 4
+    }
+   },
+   "day_2026-10-14": {
+    "pnl_gbp": -2.696,
+    "trips": 18,
+    "won": 4
+   },
+   "entered_in_the_release_minute": {
+    "pnl_gbp": -1.524,
+    "trips": 7
+   },
+   "total_gbp": -2.414,
+   "trips": 25
+  },
+  "wide X10 w3": {
+   "by_exit_day": {
+    "2026-10-12": {
+     "pnl_gbp": 0.49,
+     "trips": 8,
+     "won": 6
+    },
+    "2026-10-13": {
+     "pnl_gbp": 0.085,
+     "trips": 2,
+     "won": 2
+    },
+    "2026-10-14": {
+     "pnl_gbp": -3.202,
+     "trips": 18,
+     "won": 5
+    }
+   },
+   "day_2026-10-14": {
+    "pnl_gbp": -3.202,
+    "trips": 18,
+    "won": 5
+   },
+   "entered_in_the_release_minute": {
+    "pnl_gbp": -2.074,
+    "trips": 8
+   },
+   "total_gbp": -2.627,
+   "trips": 28
+  }
+ },
+ "engine_by_exit_day": {
+  "2026-10-12": {
+   "pnl_gbp": 0.49,
+   "trips": 8,
+   "won": 6
+  },
+  "2026-10-13": {
+   "pnl_gbp": 0.085,
+   "trips": 2,
+   "won": 2
+  },
+  "2026-10-14": {
+   "pnl_gbp": -2.695,
+   "trips": 18,
+   "won": 4
+  }
+ }
+}
