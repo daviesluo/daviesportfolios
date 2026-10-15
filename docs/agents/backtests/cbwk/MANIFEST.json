@@ -30,7 +30,7 @@
    "supabase/migrations/0112_cb_recorder_paper.sql": "ca20a591741cdbadca4e5c717b120010b4cb6e8a3da5c0e13dab640dfc263d48"
   },
   "the release blackout's, changed or added 2026-10-15": {
-   "docs/agents/backtests/cbreview/inputs/release_calendar.json": "ac5c36e6ae1d9edbb03dcfd5f77fbe66ce0d55b40ae0c684920c24b4b36bfd47",
+   "docs/agents/backtests/cbreview/inputs/release_calendar.json": "c16d1bbf3408fe66d201ec97c7f4563dcf1e87a03f33d0632eb9729c5fbf98a9",
    "supabase/functions/agents/cb_blackout_world.ts": "779d556a8c0040dbc1faaf45b06f8ec3a6afcc9e6d39d8ee9ac271e5252147cd",
    "supabase/functions/agents/cb_quotes.test.ts": "76a02c0dbaac0254089731db120da86c8069e4dc013483b16764b71f231dbe2f",
    "supabase/functions/agents/cb_quotes.ts": "3929d8a9a47d0ac240d865fec3fd56c4b08e6912b10c72e6fe8d7ee31eebd808",

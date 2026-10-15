@@ -10,7 +10,7 @@ both running tests (§2), Revolut X (§3, added by the third commit of this bran
    (16, 2) are read from their own sites and agree with what had been recalled, date for date (0 disagreements). **bls.gov refused this machine
    (403) and FRED did not connect**, so the US CPI and NFP dates are still the published schedule as recalled, each checked against the market's move
    and NFP also against BLS's own rule; 7 NFP dates differ from the rule and all 7 are known holiday or shutdown delays. Yahoo's calendar
-   (Davies' site's own source) answered 429 to the crumb from this container on every try, so it could not be pulled here (§1.3).
+   (Davies' site's own source), pulled by the main session, matches 5 of the 12 events it covers to the minute and contradicts none (§1.3).
 2. **The study does not change.** The exact calendar's 96 past events are the 96 the study used (same kind, day, instant and market check), and
    re-running the event-by-event stage reproduces +£25.96 and +£7.89 a year, to the penny.
 3. **The blackout is built into both tests** (§2): `cb_releases.ts` holds the list; `cb_quotes.ts` and `cb_hold.ts` withhold the minute's fair
@@ -75,10 +75,13 @@ to 2026-12-31: FOMC 10-28 and 12-09, ECB 10-29 and 12-17, BoE 11-05 and 12-17, N
 
 The pull is in `release_calendar.py` (`fc.yahoo.com` cookie, `getcrumb`, then
 `ws/screeners/v1/finance/calendar-events?modules=economicEvents&countPerDay=99`, US-filtered and unfiltered, a week at a time from 2026-09-01), and it cross-checks
-every release inside Yahoo's coverage to the minute (a record whose `eventTime` equals ours, by event name and country). From this container the crumb answered **429** on
-every try, so nothing was fetched; the script then reads `inputs/yahoo_calendar.json` (the raw records of a pull made elsewhere) when it exists. Reported by the main
-session, from its own pull and not reproduced here: Yahoo has the CPI of 10-14 at 12:30, the NFP of 10-02 at 12:30 and the "Fed Funds Tgt Rate" of 10-28 at 18:00 UTC, which are our
-three instants. Yahoo's coverage is dense only from late September to early November 2026, so it can check about 6 of the 106 events; the rest rest on the official sources. **Proposal (not
+every release inside Yahoo's coverage to the minute (a record whose `eventTime` equals ours, by event name and country). From the agent's container the crumb answered **429** on
+every try; the main session's pull (2026-10-15, cookie of an earlier session, 2026-09-01 to 12-31 a week at a time, 1,519 records) is saved as `inputs/yahoo_calendar.json`
+and the script read it. **Yahoo covers 2026-08-31 to 11-12; 12 of our events fall in it: 5 match to the minute, 0 disagree, 7 are not in Yahoo's list.** The matches:
+BoE 09-17 11:00, NFP 10-02 12:30, CPI 10-14 12:30, FOMC 10-28 18:00 and ECB 10-29 13:15 UTC (so two of the blackout's four instants inside the windows are confirmed by
+Yahoo). The seven not found are where Yahoo's list is thin, not where it says otherwise: early September holds 6 to 56 records a week against 300 in mid-October, and from
+11-05 it lists only the Nationwide house price index, though 11-04 still has ADP at 13:15 and the trade balance at 13:30 UTC (US winter time, as `CB_RELEASES` assumes).
+So BoE 11-05, NFP 11-06 and CPI 11-10 wait on a later pull. **Proposal (not
 built): a weekly pull of Yahoo's calendar from the deployed network into a table, compared with `CB_RELEASES`**, so that a release BLS or a central bank reschedules is seen a
 week or more before it, and the list can be extended by a deviation. It reads that one endpoint through the fundamentals function's cookie and crumb flow, writes
 a table of `eventTime, event, country`, and raises an `ops_errors` row when a listed instant has no matching record within 5 minutes once Yahoo covers its day.
@@ -161,7 +164,7 @@ null from one minute before to five after, from the same `CB_RELEASES`, GBP kind
 ## 4. Not checked
 
 * **The BLS dates** (see §1.2): recalled, market- and rule-checked; the CPI of 11-10 and 12-10 and NFP of 12-04 are UNCONFIRMED. A wrong one costs only the blackout.
-* **Yahoo** could not be pulled from this container (429). The cross-check is written and waits for a saved pull in `inputs/yahoo_calendar.json`.
+* **Yahoo** confirms 5 of the 12 events it covers and contradicts none (§1.3); BoE 11-05, NFP 11-06 and CPI 11-10 are not yet in its list.
 * **Finnhub** and **Alpha Vantage** were not used in the calendar (see the econcal commit, if the main session has it).
 * **Revolut X**: the tape is PR5's pre-registered one to 2026-09-23 and the paper engine's own record after; the live executor's 12:30 orders were read for 12:30 to 12:39 only (40 rows), not the whole day.
 * That the engine **behaves** this way in production is proved on worlds (Deno) and not yet on live minutes: the first blackout is the FOMC at 2026-10-28 17:59 UTC, and the first thing to read after it is that

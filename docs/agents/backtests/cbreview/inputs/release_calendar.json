@@ -1333,7 +1333,7 @@
    "t": 1788525000000,
    "utc": "2026-09-04T12:30Z",
    "yahoo": {
-    "status": "uncovered"
+    "status": "not_found"
    }
   },
   {
@@ -1347,7 +1347,7 @@
    "t": 1789042500000,
    "utc": "2026-09-10T12:15Z",
    "yahoo": {
-    "status": "uncovered"
+    "status": "not_found"
    }
   },
   {
@@ -1361,7 +1361,7 @@
    "t": 1789129800000,
    "utc": "2026-09-11T12:30Z",
    "yahoo": {
-    "status": "uncovered"
+    "status": "not_found"
    }
   },
   {
@@ -1375,7 +1375,7 @@
    "t": 1789581600000,
    "utc": "2026-09-16T18:00Z",
    "yahoo": {
-    "status": "uncovered"
+    "status": "not_found"
    }
   },
   {
@@ -1389,7 +1389,8 @@
    "t": 1789642800000,
    "utc": "2026-09-17T11:00Z",
    "yahoo": {
-    "status": "uncovered"
+    "event": "BOE Bank Rate",
+    "status": "match"
    }
   },
   {
@@ -1404,7 +1405,8 @@
    "t": 1790944200000,
    "utc": "2026-10-02T12:30Z",
    "yahoo": {
-    "status": "uncovered"
+    "event": "Non-Farm Payrolls",
+    "status": "match"
    }
   },
   {
@@ -1418,7 +1420,8 @@
    "t": 1791981000000,
    "utc": "2026-10-14T12:30Z",
    "yahoo": {
-    "status": "uncovered"
+    "event": "Core CPI Index, SA*",
+    "status": "match"
    }
   },
   {
@@ -1432,7 +1435,8 @@
    "t": 1793210400000,
    "utc": "2026-10-28T18:00Z",
    "yahoo": {
-    "status": "uncovered"
+    "event": "Fed Funds Tgt Rate",
+    "status": "match"
    }
   },
   {
@@ -1446,7 +1450,8 @@
    "t": 1793279700000,
    "utc": "2026-10-29T13:15Z",
    "yahoo": {
-    "status": "uncovered"
+    "event": "ECB Refinancing Rate *",
+    "status": "match"
    }
   },
   {
@@ -1460,7 +1465,7 @@
    "t": 1793880000000,
    "utc": "2026-11-05T12:00Z",
    "yahoo": {
-    "status": "uncovered"
+    "status": "not_found"
    }
   },
   {
@@ -1475,7 +1480,7 @@
    "t": 1793971800000,
    "utc": "2026-11-06T13:30Z",
    "yahoo": {
-    "status": "uncovered"
+    "status": "not_found"
    }
   },
   {
@@ -1489,7 +1494,7 @@
    "t": 1794317400000,
    "utc": "2026-11-10T13:30Z",
    "yahoo": {
-    "status": "uncovered"
+    "status": "not_found"
    }
   },
   {
@@ -1566,37 +1571,37 @@
  ],
  "source_log": [
   {
-   "bytes": 1325,
+   "bytes": 1323,
    "for": "CPI release schedule",
    "http": "403",
    "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
   },
   {
-   "bytes": 1323,
+   "bytes": 1325,
    "for": "Employment Situation schedule",
    "http": "403",
    "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
   },
   {
-   "bytes": 1325,
+   "bytes": 1323,
    "for": "BLS iCal feed",
    "http": "403",
    "url": "https://www.bls.gov/schedule/news_release/bls.ics"
   },
   {
-   "bytes": 1325,
+   "bytes": 1323,
    "for": "CPI iCal feed",
    "http": "403",
    "url": "https://www.bls.gov/schedule/news_release/cpi.ics"
   },
   {
-   "bytes": 1325,
+   "bytes": 1323,
    "for": "BLS flat files",
    "http": "403",
    "url": "https://download.bls.gov/pub/time.series/cu/"
   },
   {
-   "bytes": 1323,
+   "bytes": 1325,
    "for": "BLS schedule, stats host",
    "http": "403",
    "url": "https://stats.bls.gov/schedule/news_release/cpi.htm"
@@ -1608,7 +1613,7 @@
    "url": "https://data.bls.gov/schedule/news_release/cpi.htm"
   },
   {
-   "bytes": 224,
+   "bytes": 6883,
    "for": "BLS API (no release dates in it)",
    "http": "200",
    "url": "https://api.bls.gov/publicAPI/v2/surveys"
@@ -1674,7 +1679,7 @@
    "url": "https://www.ecb.europa.eu/press/calendars/mgcgc/html/index.en.html"
   },
   {
-   "bytes": 93981,
+   "bytes": 93980,
    "for": "BoE MPC summary and minutes, november 2024",
    "http": "200",
    "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2024/november-2024"
@@ -1686,7 +1691,7 @@
    "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2024/december-2024"
   },
   {
-   "bytes": 96320,
+   "bytes": 96319,
    "for": "BoE MPC summary and minutes, february 2025",
    "http": "200",
    "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2025/february-2025"
@@ -1698,19 +1703,19 @@
    "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2025/march-2025"
   },
   {
-   "bytes": 97889,
+   "bytes": 97888,
    "for": "BoE MPC summary and minutes, may 2025",
    "http": "200",
    "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2025/may-2025"
   },
   {
-   "bytes": 108492,
+   "bytes": 108493,
    "for": "BoE MPC summary and minutes, june 2025",
    "http": "200",
    "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2025/june-2025"
   },
   {
-   "bytes": 95586,
+   "bytes": 95585,
    "for": "BoE MPC summary and minutes, august 2025",
    "http": "200",
    "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2025/august-2025"
@@ -1734,7 +1739,7 @@
    "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2025/december-2025"
   },
   {
-   "bytes": 103556,
+   "bytes": 103555,
    "for": "BoE MPC summary and minutes, february 2026",
    "http": "200",
    "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2026/february-2026"
@@ -1746,7 +1751,7 @@
    "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2026/march-2026"
   },
   {
-   "bytes": 102542,
+   "bytes": 102543,
    "for": "BoE MPC summary and minutes, april 2026",
    "http": "200",
    "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2026/april-2026"
@@ -1764,7 +1769,7 @@
    "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2026/july-2026"
   },
   {
-   "bytes": 127417,
+   "bytes": 127432,
    "for": "BoE MPC summary and minutes, september 2026",
    "http": "200",
    "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2026/september-2026"
@@ -1933,13 +1938,45 @@
   ]
  ],
  "yahoo": {
-  "coverage_utc": null,
-  "events_checked": 0,
-  "how": "none: the live pull was refused and no saved pull exists",
-  "match": 0,
+  "coverage_utc": [
+   "2026-08-31T05:00:00+00:00",
+   "2026-11-12T00:00:00+00:00"
+  ],
+  "events_checked": 12,
+  "how": "inputs/yahoo_calendar.json (a pull made elsewhere)",
+  "match": 5,
   "mismatch": [],
-  "not_found": [],
-  "records": 0,
-  "uncovered": 106
+  "not_found": [
+   {
+    "kind": "nfp",
+    "ours": "2026-09-04T12:30Z"
+   },
+   {
+    "kind": "ecb",
+    "ours": "2026-09-10T12:15Z"
+   },
+   {
+    "kind": "cpi",
+    "ours": "2026-09-11T12:30Z"
+   },
+   {
+    "kind": "fomc",
+    "ours": "2026-09-16T18:00Z"
+   },
+   {
+    "kind": "boe",
+    "ours": "2026-11-05T12:00Z"
+   },
+   {
+    "kind": "nfp",
+    "ours": "2026-11-06T13:30Z"
+   },
+   {
+    "kind": "cpi",
+    "ours": "2026-11-10T13:30Z"
+   }
+  ],
+  "records": 1519,
+  "uncovered": 94
  }
 }

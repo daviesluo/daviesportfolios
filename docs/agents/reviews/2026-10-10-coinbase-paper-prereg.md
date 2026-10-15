@@ -228,4 +228,4 @@ by `src/cb_hold_prereg.test.js`; `cb_quotes.ts` and its test moved there from "t
 | `supabase/functions/agents/cb_releases.ts` | `fa882d0559d90828d9e4530bf4a640db3454a6be1be70b94ada42bd0ca0b5a63` |
 | `supabase/functions/agents/cb_releases.test.ts` | `6290bd94df15293e4b9e653d176fc68ead8625d68819bcb0369141e8e699d0e2` |
 | `supabase/functions/agents/cb_blackout_world.ts` | `779d556a8c0040dbc1faaf45b06f8ec3a6afcc9e6d39d8ee9ac271e5252147cd` |
-| `docs/agents/backtests/cbreview/inputs/release_calendar.json` | `ac5c36e6ae1d9edbb03dcfd5f77fbe66ce0d55b40ae0c684920c24b4b36bfd47` |
+| `docs/agents/backtests/cbreview/inputs/release_calendar.json` | `c16d1bbf3408fe66d201ec97c7f4563dcf1e87a03f33d0632eb9729c5fbf98a9` |

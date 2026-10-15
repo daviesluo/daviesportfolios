@@ -818,7 +818,7 @@ against the 150 the reading needs, so no reading. Nothing failed, so nothing is 
   `backtests/cbreview/scripts/release_calendar.py` → `inputs/release_calendar.json`, `events.json`): FOMC, ECB and BoE from their own
   sites (0 differences from what was recalled, 48 of 48); **bls.gov refused (403), FRED did not connect, Yahoo's crumb answered 429**, so CPI
   and NFP stay as recalled, checked against the market (CPI 23/24, NFP 22/24 stand out) and BLS's rule (7 NFP delays, all known). The
-  study's 96 past events are unchanged, so +£25.96 / +£7.89 a year stands. Yahoo cross-check written, waits for `inputs/yahoo_calendar.json`.
+  study's 96 past events are unchanged, so +£25.96 / +£7.89 a year stands. Yahoo cross-check: the main session's pull (`inputs/yahoo_calendar.json`, 1,519 records, 08-31→11-12) matches 5 of 12 covered events to the minute (incl. FOMC 10-28, ECB 10-29), contradicts none; BoE 11-05, NFP 11-06, CPI 11-10 not yet listed.
 
 ### [2026-10-15 01:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - Landed CBFAST (the Coinbase agent, resumed; `reviews/2026-10-15-coinbase-fast-move.md`): 10-14's −£2.70 / −£2.55 on both

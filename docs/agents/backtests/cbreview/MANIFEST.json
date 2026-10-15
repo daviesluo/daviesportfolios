@@ -17,8 +17,8 @@
    "sha256": "b8fc7c0d99d1bdb697c048e4793944d493c3aa2f4f3e3845e4261dcc0829abd9"
   },
   "inputs/release_calendar.json": {
-   "bytes": 40920,
-   "sha256": "ac5c36e6ae1d9edbb03dcfd5f77fbe66ce0d55b40ae0c684920c24b4b36bfd47"
+   "bytes": 41573,
+   "sha256": "c16d1bbf3408fe66d201ec97c7f4563dcf1e87a03f33d0632eb9729c5fbf98a9"
   },
   "inputs/revx_paper_record.json.gz": {
    "bytes": 513072,
@@ -31,6 +31,10 @@
   "inputs/trips_to_1014.json": {
    "bytes": 3713,
    "sha256": "2c1fc8b0d194e121b7b3f18483182ca15059f046a2f743d8a69cbd6a08755afa"
+  },
+  "inputs/yahoo_calendar.json": {
+   "bytes": 771836,
+   "sha256": "3c051398f3cbc737787b1494291f59d14e8e1186add43f9685f2d6086aae38cb"
   },
   "results/cbfast_events.json": {
    "bytes": 32597,
