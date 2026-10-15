@@ -655,6 +655,9 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   navigation, prices and client sentiment, before fetch (Deno and vitest pins, counterfactual-checked). `0122` applied
   twice on a scratch PostgreSQL 16; its UK window matched `windows.ts` at every 5 minutes for 13 months. G2/S1a/G3 frozen.
 
+### [2026-10-15 15:28 UTC] Platform: Grok | Model: grok-4.7
+- **#242 rebased onto `main` so `check.yml` can run.** `pull_request` had no run while `MANIFEST.json` conflicted. The spec hash in the manifest is `main`'s audited file. Not merged.
+
 ### [2026-10-15 15:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep's Addendum 23 (mid-pool's 21)** (sub-agent, landed by the main session; Davies: "Addendum 21和Addendum 20都修复了"). (1) Under
   the 4 ¢ touch a quoting market's exit goes through `closeOnly`: a holding of 5 to N shares rests its sell (0x3b162968's 9
