@@ -277,7 +277,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
       at the reading) and the `agent_basis` rows (pruned at 30 days) of any event missing `o15` or `o60` into
       `backtests/mx1/basis/`. Read at the first pull with 150 eligible exit events (the first 150 by `t0`); if fewer have
       `t0` before 2027-06-30 00:00 UTC, after the first pull after it, on all (under 60: undecided); disable the wake
-      then. A pass moves only `trend-1h`'s exits, after its §6's five checks. Pulls so far: 10-05 (6 windows, 3 exits).
+      then. A pass moves only `trend-1h`'s exits, after its §6's five checks. Pulls so far: 10-05 (6 windows, 3 exits); 10-15 (10 windows, 6 exits; the 10-12 Monday pull was missed).
    3. **RW-NEXT:** slip check done 2026-10-08 00:33 (WARM, no slip); what is left is RW-C's (item 2).
    4. **QUEUE** (`reviews/2026-09-28-queue-prereg.md`; window 10-04 → 11-01). Freeze line until the export: none of
       `agents/books.ts`, `agent_book_levels`, its prune job, `stepMinute` in `agents/quotes.ts` or
@@ -566,6 +566,19 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15"; each oldest first.
+
+### [2026-10-15 14:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**MX-1's second weekly pull, run late** (item 5a.2; the Monday 10-12 Routine fired while usage was exhausted, so no tape
+exists for 10-05 → 10-15; Davies approved the pull). `weekly.sql` ran read-only and `pull_tape.py` unchanged; no price
+was printed. A, serialised to one JSON text in SQL (md5 `2fd18d76...`, equal to the written file's), is
+`backtests/mx1/tape/2026-10-15.windows.json`: 16 probes since the freeze (ids 22-37), the six of 10-05 and ten new
+(28-37: six `trend-1h`, four `momentum-1d`; BTC 2, ETH 5, SOL 3). The pull, `tape/2026-10-15.json.gz`, skipped the six
+windows already held and pulled ten, none failed and none merged, 445 UK prints (BTC 112, ETH 210, SOL 123; 18 to 95 a
+window), its `script_sha256` and `source_sha256` equal to the script's and the windows file's. The four `momentum-1d`
+windows are pulled because the script takes every rulebook; they are described, never judged (prereg §2). B is empty
+(`basis/2026-10-15.json`, `[]`): every probe's `o15` and `o60` is recorded. C: 6 exits and 6 entries (10-05: 3 and 3),
+against the 150 the reading needs, so no reading. Nothing failed, so nothing is carried to next week's retry.
 
 ### [2026-10-15 01:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - Landed CBFAST (the Coinbase agent, resumed; `reviews/2026-10-15-coinbase-fast-move.md`): 10-14's −£2.70 / −£2.55 on both
