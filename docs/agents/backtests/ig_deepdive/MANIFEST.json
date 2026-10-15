@@ -1,10 +1,14 @@
 {
- "generated": "2026-10-14",
- "note": "Historical measurements read committed sibling inputs under statarb_search2 and ig_research; no IG account or quote was read.",
+ "generated": "by scripts/build_manifest.py",
+ "note": "2026-10-14: historical measurements read committed sibling inputs under statarb_search2 and ig_research; no IG account or quote was read. 2026-10-15: the demo verification's frozen parameters (params/), the G0 source refresh (inputs/sources/), the G3 replication and the S1a scripts; IG demo data, once pulled, under inputs/ig/ and data/.",
  "files": [
   {
    "path": "SPEC-for-verification.md",
    "sha256": "5adacf70708e6a643dff7dfb40b12f9fd85888758e1aab9599ce341eeb7f62d1"
+  },
+  {
+   "path": "params/g2_s1a_frozen.json",
+   "sha256": "5ad020bfe8356a0f841d2c2d5ea8e8f48b2f9be92d57abdc57107e3d05878a38"
   },
   {
    "path": "results/fxw_risk.json",
@@ -13,6 +17,10 @@
   {
    "path": "results/vol_gated.json",
    "sha256": "171b8186ff46ad7d052efe1ac2cfbeca423b0763430816e2b0808f121762bc70"
+  },
+  {
+   "path": "scripts/build_manifest.py",
+   "sha256": "806b4c632600167320ab99d03c3c16fe9244b986bbb11361826609972ade39d6"
   },
   {
    "path": "scripts/fxw_risk.py",

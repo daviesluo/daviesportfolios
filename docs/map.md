@@ -392,9 +392,9 @@ How the less obvious parts work, and why they are built the way they are.
   `html2canvas-pro`); the heavy one, `html2canvas-pro` (chart-modal
   screenshots), is `import()`-ed lazily so it never lands in the main
   bundle.
-- **Backend** — Supabase (Postgres + Edge Functions on Deno). Fourteen
+- **Backend** — Supabase (Postgres + Edge Functions on Deno). Fifteen
   functions: `auth`, `data`, `prices`, `chart`, `fundamentals`,
-  `ops-error`, `trading212`, `overnight-fetch`, `agents` and `weather`;
+  `ops-error`, `trading212`, `overnight-fetch`, `agents`, `weather` and `ig`;
   two recorders that `pg_cron` calls, `snapshot-record` (every board price,
   every five minutes) and `overnight-record` (Trading 212's overnight
   quotes); `edge-watchdog`, which runs a call of the minute job again when
@@ -615,6 +615,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `agents` | The crypto loop and its page (below). |
 | `weather` | The keyed weather feeds behind Polymarket's temperature markets, read-only: its probe checks the Météo-France key (`meteofrance.ts`) and the FAA's SWIM subscription (`faa_swim.ts`, through Solace's client in `solace.ts` and the Deno TLS shim in `solace_tls.ts`); `probe.ts` handles the request. Run by the scheduler's bearer only. |
 | `edge-watchdog` | A row of the one-minute job: 13 s into its minute it runs again, once, each due call that wrote no beat because the platform never started its worker, and records what each retry answered. Run by the scheduler's bearer only. |
+| `ig` | IG's demo API for the FXW / WKND verification, read-only and demo-only: `facts` reads an account's products and the epic for each role (`epics.ts`), `history` pulls the frozen hourly windows inside the weekly allowance, `quotes` records the weekend windows' quotes (`windows.ts`); `client.ts` refuses every call but login, the account switch and a fixed list of GETs on the demo host, before it is sent; `actions.ts` runs the three. Run by the scheduler's bearer or an admin token. |
 | `monitor` | The monitor Worker's half inside Supabase, called every minute by the Worker with `MONITOR_SECRET`: PR5's dead-man switch (`deadman.ts`), the minute loop's read-only health readings and the database's size beside them (`health.ts`), and the Worker's alerts into the errors box. Imports nothing of `agents`. |
 
 #### `agents/` and `_shared/`
@@ -810,6 +811,7 @@ before touching migration state.
 | `0119_pm_lp_restart.sql` | Live-prep's restart: `pm_lp_config.restarted_at` and `restart_loss_usd`, from which its total stop counts and the day is selected again; no row written. |
 | `0117_cb_minute_extremes_repair.sql` | The Coinbase paper test's Deviation 2: rebuilds the window's lost minute extremes in `cb_quote_minutes` from `cb_trades`. |
 | `0120_reward_quotes_paper_off.sql` | Every paper Reward quotes call off (RW-C, its replays, mid-pool, live-prep's paper layer, the programme factor) and the factor's refresh unscheduled; live-prep's live path and pm-rec stay on, nothing dropped. |
+| `0122_ig_demo_recorder.sql` | IG's demo verification tables (facts, hourly pulls, weekend quotes and runs), the quote-recording function, and the recorder's row of the minute job, switched on only around the weekend windows by a five-minute job. |
 | `0121_cb_hold_start_today.sql` | Deviation 1 of "Stablecoin quotes with Euros - 2": its still-empty record's window start and fed floors move from 2026-10-14 to 2026-10-13 00:00 UTC, guarded to a no-op once any minute is decided. |
 | `0096_pm_rw_x_tb1_arms.sql` | Lets the variants' day tables, RW's and RW-C's, take TB1's two arms on x1 (tb1-skip, tb1-back). |
 | `0086_quote_live_deadman.sql` | Adds the kind `deadman` to `agent_quote_live_events`, for the row the monitor's dead-man switch writes when it cancels PR5's resting orders. |
@@ -921,7 +923,7 @@ before touching migration state.
 | `docs/agents/backtests/pm_short_crypto/` | PMSC, Polymarket's BTC 5- and 15-minute Up-or-Down markets against Coinbase, Kraken, Binance, Hyperliquid and Chainlink: the keyless pulls and recorders, seven days of outcomes, two days of prints, a live recording of the books and feeds, the analyses (`scripts/run_all.sh`), listed in `MANIFEST.json`. |
 
 | `docs/agents/backtests/ig_research/` | IG, 2026-10-09: what IG's API, products and costs allow a UK spread-bettor (the quoted IG, HMRC and FCA pages' text), and the IG-tradable edges net of its spreads and funding: FXW-AUD re-priced, the futures' weekend gap, index calendar effects, the variance premium and short VIX futures, listed in `MANIFEST.json`. |
-| `docs/agents/backtests/ig_deepdive/` | IG deep dive, 2026-10-14: FXW-AUD's execution-delay and adverse-excursion geometry, gated short-volatility measurements, and the frozen demo-only verification spec for IG's own quotes, listed in `MANIFEST.json`, written up in `reviews/2026-10-14-ig-deepdive.md`. |
+| `docs/agents/backtests/ig_deepdive/` | IG deep dive, 2026-10-14: FXW-AUD's execution-delay and adverse-excursion geometry, gated short-volatility measurements, and the frozen demo-only verification spec for IG's own quotes; from 2026-10-15 the verification's frozen parameters (`params/`) and its scripts, listed in `MANIFEST.json` (`scripts/build_manifest.py`), written up in `reviews/2026-10-14-ig-deepdive.md` and `reviews/2026-10-15-ig-verification.md`. |
 | `docs/agents/backtests/vbk/` | VB-K's design study of 2026-10-09: value bets at UK bookmakers against the exchange's price, chosen in sample and tested out of sample on football-data's odds, staking and limits, Polymarket against Smarkets, minute drift before kick-off and free-bet arithmetic, listed in `MANIFEST.json`. |
 
 | `docs/agents/backtests/fp7/` | fp7, the seventh search: Revolut X's UK book census, the coin/USDC books as maker quotes, and Polymarket's reward-pool aggregates; its scripts run from the folder, listed in `MANIFEST.json`. |
@@ -999,6 +1001,7 @@ pg_cron → pg_net → Edge Functions (no browser needed; one job queues every c
  ├─ agents ?action=pmlp  every minute, from eu-west-1   live-prep, the path on $10 and over with its own rules, a dry-run its config row holds → pm_lp_*
  ├─ agents ?action=pmlpprep  every minute   live-prep's paper layer → pm_lpprep_*
  ├─ agents ?action=views  every minute, every second near a deadline   YouTube's view counters and their markets' books, when they change → yt_* / pm_view_*
+ ├─ ig ?action=quotes  every minute, Fri 21:50 → Mon 22:05 UK only   IG demo quotes in the weekend windows, two snapshots a minute → ig_quotes, ig_quote_runs
  └─ daily prunes / retention   snapshots, overnight points, agents, ops_errors, fundamentals cache, call beats
 
 Cloudflare Worker daviesportfolios-monitor (its own cron, every minute: outside GitHub and pg_cron)
@@ -1133,7 +1136,8 @@ A copy-pasteable shape of the app-level vars lives at
 | `T212_ISA_API_KEY` | `trading212` | Optional. API key for a SECOND T212 account (the ISA). T212 scopes its public API per account, so ISA holdings + their live overnight prices are only reachable with this key. When set, the function fetches the ISA portfolio in parallel and merges it with the invest account (prices union'd; allow-list shares/cost summed if held in both). Without it, only the invest account (`T212_API_KEY`) is synced. |
 | `T212_ISA_API_SECRET` | `trading212` | Optional two-key Basic-Auth fallback for the ISA account, same role as `T212_API_SECRET` but for `T212_ISA_API_KEY`. |
 | `MONITOR_SECRET` | `monitor` | The shared secret the monitor Worker sends in `x-monitor-secret`; without it every call is refused. Generated and set on both sides (this and the Worker's secret of the same name) by `monitor-deploy.yml`, never by hand: run it with `rotate_secret` to change it. |
-| `CRON_SECRET` | `overnight-record`, `snapshot-record`, `agents`, `weather`, `edge-watchdog`, `trading212` (its read-only `probe` and `orders-sync` only) | Bearer secret the pg_cron jobs present (these functions deploy `--no-verify-jwt`, so it is their auth gate; `edge-watchdog` also sends it when it runs a call again). pg_cron reads the same value from Supabase Vault as `cron_secret` (migration `0021`). `openssl rand -hex 32`. |
+| `CRON_SECRET` | `overnight-record`, `snapshot-record`, `agents`, `weather`, `edge-watchdog`, `ig`, `trading212` (its read-only `probe` and `orders-sync` only) | Bearer secret the pg_cron jobs present (these functions deploy `--no-verify-jwt`, so it is their auth gate; `edge-watchdog` also sends it when it runs a call again). pg_cron reads the same value from Supabase Vault as `cron_secret` (migration `0021`). `openssl rand -hex 32`. |
+| `IG_API_KEY_DEMO`, `IG_DEMO_USERNAME`, `IG_DEMO_PASSWORD` | `ig` | IG's demo API key and login, for the read-only verification. The live key and login (`IG_API_KEY_LIVE`, `IG_LIVE_USERNAME`, `IG_LIVE_PASSWORD`) are stored too and read by no code. |
 | `REVOLUT_X_API_KEY`, `REVOLUT_X_PRIVATE_KEY` | `agents` | Optional. Revolut X key id and its Ed25519 private key; without them Revolut X shows as not configured and nothing trades live there. |
 | `REVOLUT_X_API_KEY_2`, `REVOLUT_X_PRIVATE_KEY_2` | `agents`, `monitor` | Optional. A second Revolut X sub-account's key, for the stablecoin quotes alone: the probe reads it, and so does their live executor. Without it that executor's dry-run assumes its capital in GBP, and nothing can go live. `monitor`'s dead-man switch reads it by the same names, only to cancel that account's resting orders. |
 | `KRAKEN_PRO_API_KEY`, `KRAKEN_PRO_PRIVATE_KEY` | `agents` | Optional. Kraken key and its base64 secret (fee tier, balances, the probe; candles need no key). |

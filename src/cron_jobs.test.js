@@ -855,6 +855,65 @@ describe('pg_cron jobs', () => {
     expect(norm(sql)).toMatch(/^set lock_timeout = '3s'; update public\.edge_calls set enabled = false where path in \([^)]*\); select cron\.unschedule\('pm-prog-refresh'\); reset lock_timeout;$/);
   });
 
+  // 0122 (Davies, 2026-10-15: "ig我的账户开好了，api也加了"): IG's demo recorder, a row of the list switched on only around
+  // the weekend windows by a job that calls nothing; the function it calls is demo-only and read-only.
+  it("adds IG's demo quote recorder as one row, off until a job that calls nothing switches it on around the weekend windows (0122)", () => {
+    const T = FILES.find((f) => /^\d{4}_ig_demo_recorder\.sql$/.test(f)) ?? '';
+    expect(T).not.toBe('');
+    const before = replayList(sqlsOf(FILES.filter((f) => f < T))), after = replayList(sqlsOf(FILES.filter((f) => f <= T)));
+    expect(after.slice(0, before.length)).toEqual(before);
+    const shape = ({ path: p, timeout, every, lastHour, enabled, retry, activeFrom }) => ({ path: p, timeout, every, lastHour, enabled, retry, activeFrom });
+    // Inserted, then switched off by the file's own statement: only the toggle turns it on.
+    expect(after.slice(before.length).map(shape)).toEqual([
+      { path: 'ig?action=quotes', timeout: 55000, every: 1, lastHour: 23, enabled: false, retry: true, activeFrom: 'written + 15 minutes' },
+    ]);
+    expect(beatKeyOfPath('ig?action=quotes')).toBe('ig?action=quotes');
+    const jobsBefore = cronJobs(FILES.filter((f) => f < T)), jobsAfter = cronJobs(FILES.filter((f) => f <= T));
+    expect([...jobsAfter.keys()].filter((n) => !jobsBefore.has(n))).toEqual(['ig-quotes-window']);
+    const job = jobsAfter.get('ig-quotes-window');
+    expect([job.schedule, job.command.trim()]).toEqual(['3-58/5 * * * *', 'select public.ig_quotes_toggle();']);
+    const [from, to] = job.schedule.split(' ')[0].split('/')[0].split('-').map(Number);
+    for (let m = from; m <= to; m += 5) expect(m % 5).not.toBe(0);
+    expect(httpJobs(jobsAfter).map(([n]) => n)).toEqual(['edge-calls-every-minute']);
+    for (const [n, j] of jobsBefore) expect([n, jobsAfter.get(n)]).toEqual([n, j]);
+    // The toggle writes `enabled` on this one row and nothing else; the window is UK time.
+    const sql = fs.readFileSync(path.join(DIR, T), 'utf8').replace(/--[^\n]*/g, '');
+    const toggle = norm(/function public\.ig_quotes_toggle\(\)[\s\S]*?\$fn\$([\s\S]*?)\$fn\$/.exec(sql)?.[1] ?? '');
+    expect(toggle).toContain("update public.edge_calls set enabled = want where path = 'ig?action=quotes' and enabled is distinct from want;");
+    expect(count(toggle, 'update ')).toBe(1);
+    expect(toggle).not.toMatch(/\b(insert|delete|truncate|drop|alter)\b/);
+    const win = norm(/function public\.ig_quotes_window\(t timestamptz\)[\s\S]*?\$fn\$([\s\S]*?)\$fn\$/.exec(sql)?.[1] ?? '');
+    expect(win).toBe("select case extract(isodow from l)::int when 5 then l::time >= time '21:35' and l::time < time '22:20' when 6 then l::time >= time '07:40' when 7 then true when 1 then l::time < time '22:20' else false end from (select t at time zone 'Europe/London' as l) as x;");
+    // The function's own windows say the same (its Deno test checks every minute of a year against them).
+    const w = fs.readFileSync(path.join(ROOT, 'supabase/functions/ig/windows.ts'), 'utf8');
+    expect(w).toContain('export const DB_WINDOW = { fri: [hm(21, 35), hm(22, 20)], satFrom: hm(7, 40), monTo: hm(22, 20) } as const;');
+    // Its beat first, the tables locked to the service role, and no grant to anon or authenticated.
+    const src = fs.readFileSync(path.join(ROOT, 'supabase/functions/ig/index.ts'), 'utf8');
+    expect(src).toContain('await d.beat(beatKeyOfRequest("ig", req.url)).catch(() => false);');
+    for (const t of ['ig_action_log', 'ig_facts', 'ig_price_pulls', 'ig_quotes', 'ig_quote_runs']) expect(sql).toMatch(new RegExp(`alter table public\\.${t} +enable row level security;`));
+    expect(sql).not.toMatch(/grant [^;]* to (anon|authenticated)|create policy/i);
+    expect(sql).toMatch(/revoke all on function public\.ig_quotes_record\(jsonb\) from public, anon, authenticated;/);
+  });
+
+  // The `ig` function reads the demo secrets and calls the demo host only, and holds no order code (spec hard rules 1-2).
+  it('keeps the ig function demo-only and read-only in its source: no live host, no live secret, no dealing path', () => {
+    const dir = path.join(ROOT, 'supabase/functions/ig');
+    const files = fs.readdirSync(dir).filter((f) => f.endsWith('.ts') && !f.endsWith('.test.ts'));
+    expect(files.sort()).toEqual(['actions.ts', 'client.ts', 'epics.ts', 'index.ts', 'windows.ts']);
+    for (const f of files) {
+      const code = fs.readFileSync(path.join(dir, f), 'utf8').replace(/\/\/[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
+      expect(code, f).not.toMatch(/IG_API_KEY_LIVE|IG_LIVE_|_LIVE\b/);
+      // Every IG URL is the demo one.
+      const hosts = [...code.matchAll(/https?:\/\/[a-z0-9.-]*ig\.com[^"'`\s]*/g)].map((m) => m[0]);
+      expect(hosts.every((h) => h === 'https://demo-api.ig.com/gateway/deal'), f).toBe(true);
+      expect(code, f).not.toMatch(/\/positions|\/workingorders|\/confirms|\/watchlists|\/operations|\/history\/|dealReference|"DELETE"/);
+    }
+    expect(fs.readFileSync(path.join(dir, 'client.ts'), 'utf8')).toContain('export const IG_DEMO_BASE = "https://demo-api.ig.com/gateway/deal";');
+    // Deployed like the other bearer-checked functions.
+    const yml = fs.readFileSync(path.join(ROOT, '.github/workflows/edge-functions.yml'), 'utf8');
+    expect(/PUBLIC_FNS="([^"]*)"/.exec(yml)?.[1].split(' ')).toContain('ig');
+  });
+
   it("keeps the three order paths' dry-run record 14 days and watches the database's size, by jobs that call nothing (0101)", () => {
     // review F4 (2026-10-08): what each delete removes and why it is safe is in the migration's header; checked on PGlite.
     const T = FILES.find((f) => /^\d{4}_pm_paths_retention\.sql$/.test(f)) ?? '';

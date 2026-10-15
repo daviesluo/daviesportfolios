@@ -431,16 +431,14 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    count(*), max(ts) from cb_book_levels group by 1`; no `agents.cb_books` row in `ops_errors`. Nothing reads it until a
    queue-model study of the Coinbase books is pre-registered.
 
-14. **IG CFD/spread-betting deep dive and verification handoff written, not run** (Davies, 2026-10-14: the same
-   requirements and architecture as PMSTATARB; he would bear some risk for a good enough strategy after thorough
-   research). `reviews/2026-10-14-ig-deepdive.md` keeps only FXW-AUD as a historically supported rule: on FXCM it
-   survives 12-30 bp assumed spreads, but a 60-minute delay removes the statistical case and the worst 24-hour
-   adverse excursion is 440 bps, so leverage cannot be sized from final drawdown. WKND remains quote discovery,
-   ESG remains n 18, and the new gated-volatility measurements close the tested model-priced gates. The run-ready
-   demo-only handoff is `backtests/ig_deepdive/SPEC-for-verification.md` (G0-G4, S1-S5). It starts only when
-   Davies confirms the approved contracting entity, stores demo credentials himself and says to begin; no live
-   host, order, funding or production deployment is authorised by the spec. Decisions left to Davies: hand it to
-   Grok, identify entity/product and tax route, and later choose any risk amount only from S5's stress packet.
+14. **IG verification started on the demo, read-only** (Davies, 2026-10-15: "ig我的账户开好了，api也加了" and "FXW-AUD你继续验证
+   研究并记录…ig的spread betting和cfd的策略"; spec `backtests/ig_deepdive/SPEC-for-verification.md`, review
+   `reviews/2026-10-15-ig-verification.md`). Built, not yet deployed: the `ig` Edge Function (demo host and a fixed list of
+   GETs only, pinned; `facts`, `history`, `quotes`) and `0122` (its tables, and the weekend recorder's row, on only Fri
+   21:35–22:20 and Sat 07:40 → Mon 22:20 UK). It must land before Sat 10-17 so Sunday 10-18's open is recorded; then run
+   `facts` for `sb` and `cfd`, check the epics, `history` plan `probe`, then `fxw`; S1a runs on that export. Frozen before
+   any pull: `backtests/ig_deepdive/params/g2_s1a_frozen.json`. Decisions left to Davies: the contracting entity and tax
+   route, and any risk amount only from S5's packet; no order code exists.
 
 ## Machine and platform setup
 
@@ -579,6 +577,13 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   turn's settlements mark the restart: a pre-restart settlement no longer charges the $25 stop (up to $4.29). Close-only now:
   no decision changes. Residual close-only gaps (near-certain other side, net ≥ 2N, no RW quote) named, not fixed.
   `pm_live.ts` `17584420…324b`, `pm_lp.ts` `8303fd97…9f0c`; the pins fail on the old files.
+
+### [2026-10-15 15:36 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **IG demo verification, the function** (sub-agent; item 14): `supabase/functions/ig/` and `0122_ig_demo_recorder.sql`,
+  built and gated, not deployed. Only the three demo secrets are read; the client refuses any host but
+  `demo-api.ig.com`, and any call but login, the switch between `Z6F18J`/`Z6F18K` and GETs on accounts, markets, market
+  navigation, prices and client sentiment, before fetch (Deno and vitest pins, counterfactual-checked). `0122` applied
+  twice on a scratch PostgreSQL 16; its UK window matched `windows.ts` at every 5 minutes for 13 months. G2/S1a/G3 frozen.
 
 ### [2026-10-15 14:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 

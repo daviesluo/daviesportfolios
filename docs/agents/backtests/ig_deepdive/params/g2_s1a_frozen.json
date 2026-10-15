@@ -1,0 +1,76 @@
+{
+  "frozen": "2026-10-15, before any IG history pull and before the ig function existed in production",
+  "by": "the 2026-10-15 verification (docs/agents/reviews/2026-10-15-ig-verification.md); spec SPEC-for-verification.md hard rule 6",
+  "rule": "Nothing below changes after an IG answer is read. A change is a new proposal to Davies, recorded as such, and every result under the old value is still reported.",
+  "time_zone": "UK wall clock (Europe/London: BST from 01:00 UTC on the last Sunday of March to 01:00 UTC on the last Sunday of October)",
+  "g2": {
+    "resolution": "HOUR",
+    "anchor_friday": "2026-10-09",
+    "weekends": 51,
+    "weekend_fridays": "anchor_friday and the 50 Fridays before it, one week apart: 2026-10-09 back to 2025-10-24",
+    "pad_hours_each_side_utc": 2,
+    "pad_reason": "IG's /prices v3 documents from/to as yyyy-MM-dd'T'HH:mm:ss without a zone; the request is padded and every bar is placed by snapshotTimeUTC",
+    "page_size": 0,
+    "allowance_reserve_points": 500,
+    "probe_first": true,
+    "plans": {
+      "probe": {"roles": ["fx_audusd", "wknd_wallst"], "weekends": 1, "windows": {"fx_audusd": ["Sun 21:00", "Mon 00:00"], "wknd_wallst": ["Sat 12:00", "Sat 15:00"]}},
+      "fxw": {"roles": ["fx_audusd"], "window": ["Fri 20:00", "Mon 22:00"]},
+      "wknd": {"roles": ["wknd_wallst", "wknd_ustech", "wknd_uk100", "wknd_de40", "wallst", "ustech", "uk100", "de40"], "window": ["Sat 08:00", "Sun 23:10"]},
+      "esg": {"roles": ["us500"], "window": ["Fri 20:00", "Mon 22:00"]}
+    },
+    "budget_upper_bound_points": {
+      "note": "one point an hour over each padded span; IG returns no bar for a closed hour, so the expected cost is far lower",
+      "probe": {"fx_audusd": 8, "wknd_wallst": 8},
+      "fxw_per_weekend": "79 (78 or 80 when the clocks change inside the window)", "fxw_total": 4029,
+      "fxw_expected_per_weekend": 30, "fxw_expected_total": 1530,
+      "wknd_per_weekend_per_role": "45 (44 or 46 when the clocks change)", "wknd_total_8_roles": 18360,
+      "wknd_expected_per_weekend": 160, "wknd_expected_total": 8160,
+      "esg_total": 4029,
+      "order": "week 1 on the spread-bet account: probe, fxw, esg. wknd on the CFD account's own allowance (IG states the allowance per API key and account), over two weeks if the reserve binds."
+    }
+  },
+  "s1a": {
+    "pair": "AUD/USD, the spread-bet account's rolling (DFB) epic chosen by facts; the CFD epic as a second reading, never pooled",
+    "friday_close_uk": "the close in the epic's G1 openingHours when stated; otherwise 22:00 UK, and the row says which",
+    "sunday_open_uk": "the open in the epic's G1 openingHours when stated; otherwise the first bar after the Friday close, and the row says which",
+    "friday_reference_mid": "(bid_close + ask_close) / 2 of the last HOUR bar starting before the Friday close with both sides present",
+    "first_tradable_bar": "the first HOUR bar starting at or after the Sunday open with both bid_open and ask_open present and ask_open > bid_open",
+    "gap": "ln(first tradable bar's open mid / Friday reference mid)",
+    "opening_spread_bps": "1e4 * (ask_open - bid_open) / open mid, on the first tradable bar",
+    "signal_threshold_bps": 20,
+    "entry": "against the gap at the first tradable bar's executable open: a fall buys at ask_open, a rise sells at bid_open",
+    "target": "the Friday reference mid",
+    "horizon_hours": 24,
+    "exit_close_only": "the first bar whose exit-side close (bid_close for a long, ask_close for a short) reaches the target, at that close; otherwise the exit-side close of the last bar starting within 24 h of the entry bar",
+    "exit_range_crossing": "the first bar whose exit-side range (bid_high for a long, ask_low for a short) reaches the target, at the target; otherwise as close-only",
+    "funding_line_bps": "G1's documented overnight funding for the product when stated; otherwise 2 bps, labelled an assumption; reported apart from the price P&L",
+    "headline": "neither scoring is a fill claim; both are printed",
+    "fxcm_pairing": "the committed FXCM weekend table (statarb_search2/inputs/fx/fxcm_AUDUSD_weekends.csv.gz) by the weekend's Friday UTC date; each feed's Friday-last and Sunday-first timestamps printed, and the difference in minutes",
+    "yahoo_pairing": "none: the repository holds no Yahoo hourly AUD/USD (ig_research/inputs/yahoo_1h has ES=F only); reported as not available",
+    "transfer_bar": {
+      "min_complete_weekends": 45,
+      "median_opening_spread_bps_max": 20,
+      "p75_opening_spread_bps_max": 30,
+      "gap_correlation_min": 0.5,
+      "fxcm_gap_ratio": {"fxcm_abs_gap_bps_min": 20, "median_ratio_min": 0.7, "min_weekends_else_not_run_coverage": 5},
+      "first_bar_by_uk": "22:00", "first_bar_by_share_min": 0.8,
+      "unexplained_gap_share_max": 0.1,
+      "unexplained_gap": "a weekend with no Friday reference bar, no first tradable bar, or a missing HOUR bar between the first tradable bar and Monday 22:00 UK"
+    },
+    "complete_weekend": "a Friday reference bar and a first tradable bar both present",
+    "quantiles": "linear interpolation between order statistics (numpy's default), p25/p50/p75"
+  },
+  "g3": {
+    "fxw_rule": "STATARB-2 E0: fade a Sunday-open FXCM gap with |g| >= 20 bps, target Friday's mid, force close at +24 h (mid_24h)",
+    "pairs": ["AUDUSD", "EURUSD", "GBPUSD", "USDJPY"],
+    "assumed_opening_spreads_bps": [12, 20, 30, 40],
+    "entry_cost": "half the assumed opening spread at entry, against the trade",
+    "exit_and_funding_bps": 2,
+    "eras": [[2016, 2018], [2019, 2021], [2022, 2024], [2025, 2026]],
+    "gap_buckets_bps": [[20, 30], [30, 50], [50, 100], [100, null]],
+    "delays_min": [60, 240],
+    "bootstrap": {"unit": "whole trades", "draws": 10000, "seed": 20261014, "interval": "2.5th and 97.5th percentile of the resampled means"},
+    "aud_historical_bar": {"min_trades": 80, "at_20bp": {"mean_bps_min": 10, "t_min": 3.4, "boot95_lower_gt": 0}, "same_sign_at": [12, 30], "era_2022_2026_mean_gt": 0, "two_sided_headline": true}
+  }
+}
