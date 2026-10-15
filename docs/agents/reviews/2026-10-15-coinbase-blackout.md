@@ -42,6 +42,10 @@ both running tests (§2), Revolut X (§3, added by the third commit of this bran
 | api.nasdaq.com economic-events | 200, but wrong: the FOMC statement of 2025-01-29 stands on 01-30 at 15:00, and 2025-01-15 has no US CPI | not used |
 | tradingeconomics.com (not a first party) | 200 | only to see NFP 2026-11-06 and CPI 2026-10-14 scheduled |
 
+**Finnhub and Alpha Vantage** (Davies: "能用就用"; the keys live only in Supabase secrets): a read-only `?action=econcal&from=&to=` (`agents/econcal.ts`, cron bearer only, the key used server side and never in an answer) is built and pinned in
+`index.test.ts`, to be called from SQL once deployed; Finnhub marked its economic calendar Premium, so it may refuse, and the action returns the refusal verbatim. **Alpha Vantage has nothing usable**: its documentation offers an earnings calendar and an IPO
+calendar, and its CPI, NONFARM_PAYROLL and FEDERAL_FUNDS_RATE series give a month and a value, with no release instant; it is not wired.
+
 GitHub's code search is closed to this session by policy and was not tried further. A 403 is a finding, so none of the refused sites was worked
 around.
 

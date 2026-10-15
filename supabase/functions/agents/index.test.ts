@@ -1471,3 +1471,59 @@ Deno.test("runSelectKeptAlive hands the selection to the runtime's keep-alive be
   assertEquals(threw, "venue down");
   assertEquals(await kept[1], undefined);
 });
+
+// econcal.ts (2026-10-15): the read-only look at Finnhub's economic calendar. The key never leaves the function: not in an answer, not in an error.
+import { ECONCAL_MAX_DAYS, FINNHUB_ECON_URL, parseEconcalRange, parseFinnhubEconomic, runEconcal, scrubEconError } from "./econcal.ts";
+
+Deno.test("econcal: the window is two real UTC days, in order, at most 120 days apart", () => {
+  assertEquals(parseEconcalRange("2026-10-14", "2026-10-15"), { from: "2026-10-14", to: "2026-10-15" });
+  assertEquals(parseEconcalRange("2026-10-14", "2026-10-14"), { from: "2026-10-14", to: "2026-10-14" });
+  for (const [a, b] of [[null, "2026-10-15"], ["2026-10-14", null], ["14-10-2026", "2026-10-15"], ["2026-02-30", "2026-03-02"], ["2026-10-16", "2026-10-15"]] as Array<[string | null, string | null]>) {
+    assert("error" in parseEconcalRange(a, b), `${a} ${b}`);
+  }
+  assertEquals(parseEconcalRange("2026-01-01", `2026-04-30`), { from: "2026-01-01", to: "2026-04-30" });       // exactly 119 days
+  assertEquals("error" in parseEconcalRange("2026-01-01", "2026-05-02"), (Date.parse("2026-05-02") - Date.parse("2026-01-01")) / 86400e3 > ECONCAL_MAX_DAYS);
+});
+
+Deno.test("econcal: Finnhub's rows are reduced to country, event, ISO UTC time and impact, in time order; anything else gives none", () => {
+  const body = { economicCalendar: [
+    { actual: 0.3, country: "US", estimate: 0.3, event: "CPI MM", impact: "high", prev: 0.4, time: "2026-10-14 12:30:00", unit: "%" },
+    { country: "GB", event: "BoE Interest Rate Decision", impact: "high", time: "2026-11-05 12:00:00" },
+    { country: "US", event: "Fed Interest Rate Decision", impact: "high", time: "2026-10-28 18:00" },
+    { country: "US", event: "no time" }, { event: 7, time: "2026-10-14 12:30:00" }, null,
+  ] };
+  assertEquals(parseFinnhubEconomic(body), [
+    { country: "US", event: "CPI MM", time: "2026-10-14T12:30:00Z", impact: "high" },
+    { country: "US", event: "Fed Interest Rate Decision", time: "2026-10-28T18:00:00Z", impact: "high" },
+    { country: "GB", event: "BoE Interest Rate Decision", time: "2026-11-05T12:00:00Z", impact: "high" },
+  ]);
+  for (const bad of [null, {}, { economicCalendar: "x" }, [], "You don't have access to this resource."]) assertEquals(parseFinnhubEconomic(bad), []);
+});
+
+Deno.test("econcal: the key is used for the request and appears in no answer; Finnhub's refusal comes back verbatim", async () => {
+  const key = "sekret-key-123";
+  const seen: string[] = [];
+  const ok = (async (u: string | URL | Request) => { seen.push(String(u)); return new Response(JSON.stringify({ economicCalendar: [{ country: "US", event: "CPI MM", impact: "high", time: "2026-10-14 12:30:00" }] }), { status: 200 }); }) as typeof fetch;
+  const a = await runEconcal({ from: "2026-10-14", to: "2026-10-15", key, fetchImpl: ok });
+  assertEquals([a.ok, a.count, a.events?.[0].time], [true, 1, "2026-10-14T12:30:00Z"]);
+  assert(seen[0].startsWith(`${FINNHUB_ECON_URL}?from=2026-10-14&to=2026-10-15&token=`) && seen[0].includes(key));
+  assert(!JSON.stringify(a).includes(key) && !JSON.stringify(a).includes("finnhub.io"));
+  // Premium: refused with Finnhub's own words.
+  const premium = (() => Promise.resolve(new Response("You don't have access to this resource.", { status: 403 }))) as typeof fetch;
+  const b = await runEconcal({ from: "2026-10-14", to: "2026-10-15", key, fetchImpl: premium });
+  assertEquals([b.ok, b.status, b.error], [false, 403, "You don't have access to this resource."]);
+  // A refusal that echoes the key or the URL is scrubbed; a thrown error too.
+  const echo = (() => Promise.resolve(new Response(`bad request: ${FINNHUB_ECON_URL}?from=a&token=${key}&x=1 (${key})`, { status: 400 }))) as typeof fetch;
+  const c = await runEconcal({ from: "2026-10-14", to: "2026-10-15", key, fetchImpl: echo });
+  assert(!JSON.stringify(c).includes(key) && c.error!.includes("token=***"), c.error);
+  const boom = (() => Promise.reject(new Error(`connect failed for ${FINNHUB_ECON_URL}?token=${key}`))) as typeof fetch;
+  const d = await runEconcal({ from: "2026-10-14", to: "2026-10-15", key, fetchImpl: boom });
+  assert(!JSON.stringify(d).includes(key), d.error);
+  assertEquals(scrubEconError("token=abc&from=1", ""), "token=***&from=1");
+  // No key, a bad window: nothing is asked.
+  let asked = 0;
+  const never = (() => { asked++; return Promise.resolve(new Response("{}")); }) as typeof fetch;
+  assertEquals((await runEconcal({ from: "2026-10-14", to: "2026-10-15", key: undefined, fetchImpl: never })).error, "FINNHUB_API_KEY is not set");
+  assertEquals((await runEconcal({ from: "x", to: "y", key, fetchImpl: never })).ok, false);
+  assertEquals(asked, 0);
+});

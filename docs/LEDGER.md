@@ -794,6 +794,10 @@ windows are pulled because the script takes every rulebook; they are described, 
 (`basis/2026-10-15.json`, `[]`): every probe's `o15` and `o60` is recorded. C: 6 exits and 6 entries (10-05: 3 and 3),
 against the 150 the reading needs, so no reading. Nothing failed, so nothing is carried to next week's retry.
 
+### [2026-10-15 03:44 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **`?action=econcal`** (Davies: "能用就用"; `agents/econcal.ts`, pinned in `index.test.ts`; NOT deployed): Finnhub's economic calendar server side
+  (`FINNHUB_API_KEY`, cron bearer only, key never echoed), Finnhub's refusal verbatim (Premium?). Alpha Vantage has no release instants, not wired.
+
 ### [2026-10-15 03:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Does Revolut X's PR5 need the release blackout? No** (sub-agent; Davies: "revolut x的规则不需要加这个吗？"; `reviews/2026-10-15-coinbase-blackout.md` §3,
   `backtests/cbreview/scripts/cbfast_revx.py`; proposal only, no Revolut X file touched). On PR5's pre-registered books (base PRIMARY $707.9028 = `pr5_run1.json`) the blackout is
