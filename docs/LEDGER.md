@@ -465,6 +465,15 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    a snapshot every 5 min and `started_at` at the first ≥ $90. Reading: 28 days from the start day or 40 resolved
    positions or the −$30 stop; continue only if P&L > 0 AND Brier_agent < Brier_market. Never trade by hand in its wallet.
 
+16. **PMSTATARB S1 TOUCH-CAL re-run, bar word FAIL** (`reviews/2026-10-15-pm-statarb-verification.md`,
+    `backtests/pmstatarb/results/s1_verdict.txt`). May titles parse. 2026-05 is in the touch file (914 daily
+    with a clause, 140 weekly without). Fills are taker BUY of the bought outcome. One market is tape-capped
+    at the data-api offset cap and is not done. Headline 1178 trades, mean ROI −0.1137, p05 −0.2266. 2025
+    still has 19 trades; 2026 has 1159. Davies chooses the name FAIL or FAIL on available sample. Do not
+    retune. September cursor key 4946930 stays quarantined. Print and spot sha256 are in `MANIFEST.json`;
+    the bytes stay on `/tmp/pmstatarb-data/`. `FROZEN.md` records the late freeze. #242 squash-merges only.
+    S2 is not started. S4 is one snapshot on 2026-10-18, not before.
+
 ## Machine and platform setup
 
 A rebuilt container loses every line below. Run them before working.
@@ -588,6 +597,9 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)"; each oldest first.
 
+### [2026-10-15 20:35 UTC] Platform: Grok | Model: grok-4.7
+- **#242 re-run after the five review notes.** May and the other three-letter month names parse; 2026-05 is in the touch sample. Fills are taker BUY. A truncated print walk is not marked done (one market capped). `FROZEN.md` records the SPEC rule 5 deviation; history was not rewritten. Print and spot sha256 are in `MANIFEST.json`. September stop counts are in `results/g1_gap_mix.txt`. Bar word FAIL: 1178 trades, mean ROI −0.1137, p05 −0.2266. 2025 has 19 trades; 2026 has 1159. Davies chooses FAIL or FAIL on available sample. Squash-merge only. Not merged.
+
 ### [2026-10-15 16:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **GROKPM built** (sub-agent; Davies: "让grok bot里开一个trading bot…网站中live页也加上策略和子策略页面…先让他就用100美元测试";
   what-remains item 15). Pre-registration `reviews/2026-10-15-grokpm-prereg.md` (frozen, sha pinned in
@@ -644,6 +656,9 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   navigation, prices and client sentiment, before fetch (Deno and vitest pins, counterfactual-checked). `0122` applied
   twice on a scratch PostgreSQL 16; its UK window matched `windows.ts` at every 5 minutes for 13 months. G2/S1a/G3 frozen.
 
+### [2026-10-15 15:28 UTC] Platform: Grok | Model: grok-4.7
+- **#242 rebased onto `main` so `check.yml` can run.** `pull_request` had no run while `MANIFEST.json` conflicted. The spec hash in the manifest is `main`'s audited file. Not merged.
+
 ### [2026-10-15 15:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep's Addendum 23 (mid-pool's 21)** (sub-agent, landed by the main session; Davies: "Addendum 21和Addendum 20都修复了"). (1) Under
   the 4 ¢ touch a quoting market's exit goes through `closeOnly`: a holding of 5 to N shares rests its sell (0x3b162968's 9
@@ -651,6 +666,9 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   turn's settlements mark the restart: a pre-restart settlement no longer charges the $25 stop (up to $4.29). Close-only now:
   no decision changes. Residual close-only gaps (near-certain other side, net ≥ 2N, no RW quote) named, not fixed.
   `pm_live.ts` `17584420…324b`, `pm_lp.ts` `8303fd97…9f0c`; the pins fail on the old files.
+
+### [2026-10-15 14:59 UTC] Platform: Grok | Model: grok-4.7
+- **#242: a push while the branch conflicted with main started no `check.yml` run.** This commit is the retrigger. The object `0054d5be` is not on this branch. Not merged.
 
 ### [2026-10-15 14:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
@@ -664,6 +682,20 @@ window), its `script_sha256` and `source_sha256` equal to the script's and the w
 windows are pulled because the script takes every rulebook; they are described, never judged (prereg §2). B is empty
 (`basis/2026-10-15.json`, `[]`): every probe's `o15` and `o60` is recorded. C: 6 exits and 6 entries (10-05: 3 and 3),
 against the 150 the reading needs, so no reading. Nothing failed, so nothing is carried to next week's retry.
+
+### [2026-10-15 14:53 UTC] Platform: Grok | Model: grok-4.7
+- **PMSTATARB #242: family CSVs leave git, and the verdict names the thin 2025 sample.** Davies accepted
+  Claude's review. `data/*.csv` is deleted from the branch; the bytes are `/tmp/pmstatarb-data/data/`, with
+  sha256, line count and pull time in `MANIFEST.json`. `results/` and `s1_headline_trades.csv` stay. The
+  verdict adds that 2025 has 19 trades and the FAIL evidence is the 2026 sample. Same branch, not merged.
+
+### [2026-10-15 13:22 UTC] Platform: Grok | Model: grok-4.7
+- **PMSTATARB S1 TOUCH-CAL fails its frozen bar and is closed.** Headline title ends 2025-01-01 through
+  2026-08-31 (1,018 trades, mean ROI −0.1088, bootstrap p05 −0.2310). September and the 2026-10-01..04 tail stay
+  out: the one allowed retry of cursor key 4946930 at 2026-10-15T11:34:08Z was 403 again. Parameters are
+  `FROZEN.md` and the spec; they were not changed after the result. Write-up
+  `reviews/2026-10-15-pm-statarb-verification.md`. Prices-history fills and the touch/terminal ratio were not
+  checked. Branch `grok/pm-statarb-verification`, not merged.
 
 ### [2026-10-15 01:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - Landed CBFAST (the Coinbase agent, resumed; `reviews/2026-10-15-coinbase-fast-move.md`): 10-14's −£2.70 / −£2.55 on both
