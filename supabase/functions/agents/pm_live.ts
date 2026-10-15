@@ -1349,6 +1349,33 @@ export function tradeStatus(s: unknown): "MATCHED" | "MINED" | "CONFIRMED" | "RE
   return x === "MATCHED" || x === "MINED" || x === "CONFIRMED" || x === "RETRYING" || x === "FAILED" ? x : null;
 }
 
+/**
+ * Our order's fill in a trade, as the CLOB's `/data/trades` lists it (Addendum 25). Our order resting, it is one of the
+ * trade's `maker_orders`: that entry's `matched_amount` at its `price`. Our order taking (live-prep's liquidation,
+ * Addendum 24), it is the trade's `taker_order_id`: the trade's `size`, at what the makers it matched paid, each maker's
+ * `price` in our token's terms (its own where its `asset_id` is our token; 1 − it where it is the other, a match through
+ * the complement) weighted by its `matched_amount`; the trade's own `price` (the taker's limit) only where the makers name
+ * none. Its fee is the trade's own (`trader_side`, `fee_rate_bps`), read from the fill's `detail.trade` where it is counted
+ * (`pmLiveFillFee`). Null where the trade names neither.
+ */
+export function tradeFillOf(t: PmTrade, o: Pick<PmOrderRow, "hash" | "token" | "price">): { size: number; price: number; taker: boolean } | null {
+  const hash = o.hash.toLowerCase();
+  const mine = (t.maker_orders ?? []).find((x) => String(x.order_id ?? "").toLowerCase() === hash);
+  if (mine) return { size: Number(mine.matched_amount), price: Number(mine.price ?? o.price), taker: false };
+  if (String(t.taker_order_id ?? "").toLowerCase() !== hash) return null;
+  let q = 0, v = 0;
+  for (const x of t.maker_orders ?? []) {
+    const a = Number(x.matched_amount), p = Number(x.price);
+    if (!(a > 0) || !(p > 0 && p < 1)) continue;
+    q += a; v += a * (String(x.asset_id ?? "") === o.token ? p : 1 - p);
+  }
+  const size = Number(t.size);
+  return { size: size > 0 ? size : q, price: q > 0 ? Math.round((v / q) * 1e6) / 1e6 : Number(t.price), taker: true };
+}
+/** How far back a matched order's unbooked fills are looked for, and how many such orders a turn reads (Addendum 25). */
+export const PM_LIVE_UNBOOKED_LOOKBACK_MS = 2 * 24 * 3600e3;
+export const PM_LIVE_UNBOOKED_PER_TURN = 10;
+
 /** A market's daily reward rate as `/rewards/markets/current` lists it: the total, else native plus sponsored. */
 export function rewardRate(r: Record<string, unknown>): number {
   const n = (x: unknown) => { const v = Number(x); return Number.isFinite(v) ? v : 0; };
@@ -2321,9 +2348,9 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
       const r = await venue.trade(id);
       const t: PmTrade | undefined = r.ok ? (r.data?.data ?? []).find((x) => x.id === id) : undefined;
       if (!t) { report.errors.push(`trade ${id} of ${o.hash.slice(0, 12)}… unreadable: ${r.status} ${r.error ?? "not in the reply"}`); continue; }
-      const mine = (t.maker_orders ?? []).find((x) => String(x.order_id ?? "").toLowerCase() === o.hash);
-      const size = Number(mine?.matched_amount), price = Number(mine?.price ?? o.price), status = tradeStatus(t.status);
-      if (!mine || !(size > 0) || !status) { report.errors.push(`trade ${id}: no fill of ${o.hash.slice(0, 12)}… in it, or an unknown status ${t.status}; left for a person`); continue; }
+      const fill = tradeFillOf(t, o);
+      const size = fill?.size ?? NaN, price = fill?.price ?? NaN, status = tradeStatus(t.status);
+      if (!fill || !(size > 0) || !(price > 0 && price < 1) || !status) { report.errors.push(`trade ${id}: no fill of ${o.hash.slice(0, 12)}… in it, or an unknown status ${t.status}; left for a person`); continue; }
       await db.upsert(T.fills, [{
         trade_id: id, hash: o.hash, cond: o.cond, token: o.token, side: o.side, price, size, status,
         match_time: Number(t.match_time) > 0 ? iso(Number(t.match_time) * 1000) : null, tx_hash: t.transaction_hash ?? null, detail: { trade: t }, updated_at: nowIso,
@@ -2400,6 +2427,22 @@ async function turn(d: PmLiveDeps, inst: PmLiveInstance, report: PmLiveReport, c
   for (const f of fillRows.filter((x) => x.status !== "CONFIRMED" && x.status !== "FAILED")) {
     const o = openAll.find((x) => x.hash === f.hash) ?? (await db.select<PmOrderRow>(T.orders, `hash=eq.${f.hash}&select=*`))[0];
     if (o) { try { await recordTrades(o, [f.trade_id]); } catch (e) { report.errors.push(`trade ${f.trade_id}: ${msg(e)}`); } }
+  }
+  // Addendum 25: a live order the venue matched whose fills are not all booked has the trades its read-back named read
+  // again, until they are: on 2026-10-15 16:26 UTC the liquidation's three taker trades (Addendum 24) were read before
+  // `tradeFillOf` knew a taker's fill, their orders closed (filled, cancelled), and nothing read them again. The last two
+  // days, ten orders a turn; an order whose fills add up is never read again, so each trade is booked once (its key).
+  if (inst.lp && !paper) {
+    const booked = new Map<string, number>();
+    for (const f of fillRows) booked.set(f.hash, (booked.get(f.hash) ?? 0) + Number(f.size));
+    try {
+      const done = await db.select<PmOrderRow>(T.orders, `mode=eq.live&state=in.(filled,cancelled,expired)&size_matched=gt.0&ts=gte.${enc(iso(d.now - PM_LIVE_UNBOOKED_LOOKBACK_MS))}&select=*&order=id.asc&limit=1000`);
+      for (const o of done.filter((x) => (booked.get(x.hash) ?? 0) < Number(x.size_matched) - 1e-6).slice(0, PM_LIVE_UNBOOKED_PER_TURN)) {
+        const ids = ((o.response ?? {}) as { readBack?: { associate_trades?: unknown } }).readBack?.associate_trades;
+        if (!Array.isArray(ids) || !ids.length) continue;
+        try { await recordTrades(o, ids.map(String)); } catch (e) { report.errors.push(`${o.hash.slice(0, 12)}…'s trades: ${msg(e)}`); }
+      }
+    } catch (e) { report.errors.push(`matched orders without their fills unreadable (${msg(e)})`); }
   }
   // A dry-run row left pending (its second write failed) was never sent anywhere: closed, so it cannot hold its slot.
   for (const o of openAll.filter((x) => x.mode === "dry_run" && x.state === "pending" && d.now - Date.parse(x.ts) >= PENDING_GRACE_MS)) {

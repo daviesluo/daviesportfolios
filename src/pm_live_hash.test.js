@@ -24,7 +24,8 @@
 //              restart; Davies 2026-10-13, no dry-run day)
 //   9c4174f3…  live-prep's Addendum 20 (and 21, 22, unchanged), mid-pool's Addendum 20 (the restart's dust at 1)
 //   17584420…  live-prep's Addendum 23, mid-pool's Addendum 21 (the restart's dust left to the record, 2026-10-15)
-//   (Addendum 24's)  live-prep's Addendum 24, mid-pool's Addendum 22 (liquidation at the bid, 2026-10-15)
+//   04556ab5…  live-prep's Addendum 24, mid-pool's Addendum 22 (liquidation at the bid, 2026-10-15)
+//   (Addendum 25's)  live-prep's Addendum 25, mid-pool's Addendum 23 (a taker's fill booked, 2026-10-15)
 import { describe, expect, it } from 'vitest';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -78,16 +79,22 @@ const A289 = '28930ad918b0358c98e6bd6268715c6fd845b6092bcefcd1b44ffd45daf7f43d';
 const A9C4 = '9c4174f30523225520f92a0ecd50082d9490e88e43a686a737fdd6629f34a231';
 /** The pm_live.ts Addendum 23 named (the restart's dust left to the record), the path until Addendum 24. */
 const A175 = '175844206ce33a714db763139815525a61bb353388dd897eb9dc48c875d8324b';
+/** The pm_live.ts Addendum 24 named (liquidation), the path until Addendum 25. */
+const A045 = '04556ab577502566f043bde3d3d5b062c2cd779bc5714d5e9495179a143b344c';
 
 describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", () => {
-  it("live-prep's latest addendum (24) and mid-pool's (22) name today's pm_live.ts", () => {
-    expect(lastNumber(LP)).toBe(24);
-    expect(lastNumber(MID)).toBe(22);
-    expect(namedPath(addendum(LP, 24))).toBe(sha);
-    expect(namedPath(addendum(MID, 22))).toBe(sha);
+  it("live-prep's latest addendum (25) and mid-pool's (23) name today's pm_live.ts", () => {
+    expect(lastNumber(LP)).toBe(25);
+    expect(lastNumber(MID)).toBe(23);
+    expect(namedPath(addendum(LP, 25))).toBe(sha);
+    expect(namedPath(addendum(MID, 23))).toBe(sha);
+    expect(addendum(LP, 25)).toContain('`04556ab5…344c`');
+    expect(addendum(MID, 23)).toContain('`04556ab5…344c`');
+    expect(addendum(MID, 23)).toContain('deviation 23');
+    expect(namedPath(addendum(LP, 24))).toBe(A045);
+    expect(namedPath(addendum(MID, 22))).toBe(A045);
     expect(addendum(LP, 24)).toContain('`17584420…324b`');
     expect(addendum(MID, 22)).toContain('`17584420…324b`');
-    expect(addendum(MID, 22)).toContain('deviation 22');
     expect(namedPath(addendum(LP, 23))).toBe(A175);
     expect(namedPath(addendum(MID, 21))).toBe(A175);
     expect(addendum(LP, 23)).toContain('`9c4174f3…a231`');
@@ -548,5 +555,19 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     expect(lp).toContain('export const PM_LP_LIQUIDATE = { floor: 0.001, maxFeeRate: Math.max(...Object.values(PM_FEE_TYPES).map((x) => x.rate)) } as const;');
     expect(lp).toContain('    liquidate: { ...PM_LP_LIQUIDATE },');
     for (const f of ['pm_mid.ts', 'pm_mini.ts']) if (fs.existsSync(path.join(ROOT, 'supabase/functions/agents', f))) expect(read(`supabase/functions/agents/${f}`)).not.toMatch(/liquidate/);
+  });
+
+  it("live-prep's Addendum 25 and mid-pool's 23 record the taker fills booked, under Davies' word of Addendum 24; pm_lp.ts unchanged", () => {
+    const lp25 = addendum(LP, 25), mid23 = addendum(MID, 23);
+    expect(lp25).toContain('"那目前的单都尽快卖出掉吧，还剩多少"');
+    for (const r of ['308e1767…', 'cd415cc7…', '7d6f857f…', '`taker_order_id`', 'No row is written by hand', 'No migration.', '**0xecc209a6…\'s 69.8 YES left.**']) expect(lp25, r).toContain(r);
+    expect(lp25).not.toMatch(/`pm_lp\.ts` sha256/);
+    expect(mid23).toContain('**Mid-pool is unchanged.**');
+    const src = read(PATH);
+    expect(src).toContain('export function tradeFillOf(');
+    expect(src).toContain('const fill = tradeFillOf(t, o);');
+    expect(src).toContain('export const PM_LIVE_UNBOOKED_LOOKBACK_MS = 2 * 24 * 3600e3;');
+    expect(src).toContain('export const PM_LIVE_UNBOOKED_PER_TURN = 10;');
+    expect(src).toContain('if (inst.lp && !paper) {\n    const booked = new Map<string, number>();');
   });
 });

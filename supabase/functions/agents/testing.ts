@@ -1110,7 +1110,11 @@ type FakePmOrder = {
   /** A cancel taken and not yet carried out (`cancelLagReads`): when it was asked, and how many reads still show it resting. */
   cancelAsked?: number; cancelReadsLeft?: number;
 };
-type FakePmTrade = { id: string; hash: string; token: string; side: "BUY" | "SELL"; price: number; size: number; status: string; at: number };
+type FakePmTrade = {
+  id: string; hash: string; token: string; side: "BUY" | "SELL"; price: number; size: number; status: string; at: number;
+  /** Our order took (a liquidation's sell, Addendum 24): the trade is listed as the CLOB lists a taker's (Addendum 25). */
+  taker?: boolean;
+};
 type Answer = { status: number; body: unknown; retryAfter?: number };
 
 /**
@@ -1156,6 +1160,8 @@ export class FakePolymarket {
   markets: FakePmMarket[] = [];
   orders = new Map<string, FakePmOrder>();
   trades = new Map<string, FakePmTrade>();
+  /** A taker trade's `fee_rate_bps`, as the CLOB lists it (Addendum 25). */
+  takerFeeBps = "1000";
   restart = false;
   postMode: "ok" | "lose-reply" | "500-after-accept" | "500" | "429" | "503" | "version-mismatch" = "ok";
   cancelMode: "ok" | "lost" | "throw" = "ok";
@@ -1401,7 +1407,14 @@ export class FakePolymarket {
     }
     if (method === "GET" && path === "clob.polymarket.com/data/trades") {
       const t = this.trades.get(q.get("id") ?? "");
-      const data = t ? [{
+      // Our order taking: the CLOB's taker shape (Addendum 25, as 2026-10-15's liquidation trades read): our order is the
+      // `taker_order_id`, its side, token, size and fee rate the trade's own, and the maker a BUY of our token at the price.
+      const data = t?.taker ? [{
+        id: t.id, taker_order_id: t.hash, market: this.orders.get(t.hash)?.cond, asset_id: t.token, side: t.side, size: String(t.size), fee_rate_bps: this.takerFeeBps,
+        price: String(t.price), status: `${this.tradeStatusPrefix}${t.status}`, match_time: String(Math.floor(t.at / 1000)), outcome: "Yes", bucket_index: 0, owner: PM_TEST_OWNER,
+        transaction_hash: t.status === "CONFIRMED" ? `0x${"ab".repeat(32)}` : undefined, trader_side: "TAKER", maker_address: PM_TEST_FUNDER,
+        maker_orders: [{ order_id: `0x${"dd".repeat(32)}`, owner: "maker", matched_amount: String(t.size), price: String(t.price), asset_id: t.token, side: t.side === "BUY" ? "SELL" : "BUY", fee_rate_bps: "", outcome: "Yes", maker_address: "0x0000000000000000000000000000000000000001" }],
+      }] : t ? [{
         id: t.id, taker_order_id: `0x${"ee".repeat(32)}`, market: this.orders.get(t.hash)?.cond, asset_id: t.token, side: t.side === "BUY" ? "SELL" : "BUY",
         size: String(t.size), price: String(t.price), status: `${this.tradeStatusPrefix}${t.status}`, match_time: String(Math.floor(t.at / 1000)),
         transaction_hash: t.status === "CONFIRMED" ? `0x${"ab".repeat(32)}` : undefined, trader_side: "TAKER",
@@ -1549,7 +1562,7 @@ export class FakePolymarket {
     // matches a marketable order: as much as the touch holds (`depth` at 0 ticks), the rest resting at its price.
     if (!b.postOnly && side === "SELL" && price <= t.bid + 1e-9) {
       const atTouch = x.m.depth.find(([k]) => k === 0)?.[1] ?? 0;
-      if (atTouch > 0) this.fill(hash, Math.min(size, atTouch));
+      if (atTouch > 0) this.fill(hash, Math.min(size, atTouch), true);
     }
     if (this.postMode === "lose-reply") return { status: -1, body: null };
     if (this.postMode === "500-after-accept") return { status: 500, body: { error: "Internal server error" } };
@@ -1558,7 +1571,7 @@ export class FakePolymarket {
   }
 
   /** A taker trades `size` against our resting order: a MATCHED trade, the account moved as the exchange will move it. */
-  fill(hash: string, size: number): string {
+  fill(hash: string, size: number, taker = false): string {
     const o = this.orders.get(hash);
     if (o) this.landCancel(o);
     if (!o || o.status !== "LIVE") throw new Error(`fake polymarket: ${hash} is not resting`);
@@ -1567,7 +1580,7 @@ export class FakePolymarket {
     o.matched = Number((o.matched + q).toFixed(6));
     if (o.matched >= o.size - 1e-9) o.status = "MATCHED";
     o.trades.push(id);
-    this.trades.set(id, { id, hash, token: o.token, side: o.side, price: o.price, size: q, status: "MATCHED", at: this.now() });
+    this.trades.set(id, { id, hash, token: o.token, side: o.side, price: o.price, size: q, status: "MATCHED", at: this.now(), ...(taker ? { taker: true } : {}) });
     if (o.side === "BUY") { this.pusd -= q * o.price; this.tokens.set(o.token, (this.tokens.get(o.token) ?? 0) + q); }
     else { this.tokens.set(o.token, (this.tokens.get(o.token) ?? 0) - q); this.pusd += q * o.price; }
     return id;

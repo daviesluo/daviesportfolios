@@ -539,7 +539,9 @@ that follow from that evidence, in short:
   (`restarted_at` null), which neither fix changes. **Addendum 24** (Davies, 2026-10-15: "那目前的单都尽快卖出掉吧，还剩多少") liquidates:
   with `0123`'s `liquidate_at` set nothing opens (gate `liquidate`) and each holding of 5 shares or more is sold whole at the
   bid, not post-only, never under 0.001 a share net of the worst taker fee, only from eu-west-1, Ireland and a current
-  attestation; dust waits to settle; `update public.pm_lp_config set liquidate_at = null where id = 1;` stops it. **Live, its total cap follows its equity since
+  attestation; dust waits to settle; `update public.pm_lp_config set liquidate_at = null where id = 1;` stops it. **Addendum 25** books a taker's fill: the trade reader takes our order from the trade's `taker_order_id`
+  (size, makers' prices, the trade's fee rate) as well as from `maker_orders` (`tradeFillOf`), and each live turn reads again
+  the trades of a closed order whose fills are short of its matched size (two days, ten a turn). **Live, its total cap follows its equity since
   `0106`** (Davies, 2026-10-09: payouts and deposits used at once; its pre-registration's Addendum 8): every turn
   floor(pUSD + held at cost + unredeemed − $75 − $5), at most $1,000, down at once, up only on two agreeing readings with
   no fill settling, never on an unread balance (`lpCapital`); `reinvest = false` on its config puts the fixed $320 back. Its

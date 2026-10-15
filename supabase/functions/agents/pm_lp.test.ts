@@ -21,7 +21,7 @@ import { isTight } from "./pmrw_x.ts";
 import {
   candidateOf, closeOnly, ctfApproval, effectiveLimits, gates, heldFromBalance, inUniverse, inYesBook, lpCandidateOf, lpLimits, onTick, PM_LIVE_MAX_POSTS_DAY, PM_LP_MAX_POSTS_DAY, pauseAfterJump, PM_LIVE_INSTANCE, PM_MINI_INSTANCE, pmLiveDbTables, pmLpDbTables,
   lpFunding, lpMarketMark, lpRewardVerdict, PM_LP_FUNDING, tokenBooks, type LpRefillOptions, rewardConfigOf, runPmLive, rwQuotes, scoringStreak, type PmRewardNow, type PmBookNow, type PmIntent, type PmLiveConfig, type PmMarketRow, type PmPauseState, type PmRewardRow,
-  bookPnl, lpLiquidateOf, lpLiquidation, lpRestartOf, lpSelectBudget, PM_RESTART_DUST_SHARES, quietChoose, quietVerdict, rawTouchCents, restartOpenMarks, sinceOpenPnl, type PmQuietRead,
+  bookPnl, lpLiquidateOf, lpLiquidation, PM_LIVE_UNBOOKED_PER_TURN, tradeFillOf, lpRestartOf, lpSelectBudget, PM_RESTART_DUST_SHARES, quietChoose, quietVerdict, rawTouchCents, restartOpenMarks, sinceOpenPnl, type PmQuietRead,
 } from "./pm_live.ts";
 import { runPmLpReserve } from "./pm_lp_reserve.ts";
 import { classifyLp, decideLp, PREP_INSTANCE, prepDbTables, prepReads, runPmPrep, stepSides, type PrepOrder } from "./pm_prep.ts";
@@ -2038,4 +2038,82 @@ Deno.test("Addendum 24: no taker sell outside Ireland or without a current attes
   const reply = await pmVenue({ sigType: 1 }).postOrder({ side: "BUY" } as any, "GTD", false);
   assertEquals([reply.ok, reply.refused], [false, "taker-buy"]);
   assertEquals((await pmVenue({ sigType: 1 }).postOrder({ side: "SELL" } as any, "GTD", false)).refused, "no-credentials");
+});
+
+
+// ------------------------------------------------------------------ Addendum 25 (2026-10-15): a taker's fill booked
+
+/** The CLOB's trade as `/data/trades` lists it, field for field as pm_lp_fills' `detail.trade` keeps the real ones. */
+const clobTrade = (o: { id: string; takerOrder: string; side: "BUY" | "SELL"; asset: string; size: string; price: string; traderSide: "TAKER" | "MAKER"; feeBps: string; makers: Array<{ order: string; side: "BUY" | "SELL"; asset: string; price: string; amount: string }> }) => ({
+  id: o.id, side: o.side, size: o.size, owner: "4bfea1a0-181b-41c6-a908-be49179acc50", price: o.price, market: `0x${"7d".repeat(32)}`, status: "CONFIRMED", outcome: "Yes",
+  asset_id: o.asset, match_time: "1792081566", last_update: "1792081572", trader_side: o.traderSide, bucket_index: 0, fee_rate_bps: o.feeBps,
+  maker_orders: o.makers.map((m) => ({ side: m.side, owner: "6102d84a-b7cb-059d-0bc3-4cf61dab9925", price: m.price, outcome: "Yes", asset_id: m.asset, order_id: m.order, fee_rate_bps: "", maker_address: "0xa5BE92725BA7aa1F6bBC3E26DA5bf17c191F116c", matched_amount: m.amount })),
+  maker_address: "0xAd5353AFe30C2Da57709E2704EF3cCdcF67eef24", taker_order_id: o.takerOrder, transaction_hash: `0x${"b8".repeat(32)}`,
+});
+
+Deno.test("tradeFillOf (Addendum 25): our maker fill as before; our taker fill the trade's size at what its makers paid, the complement's at 1 − its price; neither, null", () => {
+  const ours = `0x${"cd".repeat(32)}`, YES = "111", NO = "222";
+  // A maker's (pm_lp_fills' newest real row, 2026-10-15): our order among the makers, 10 of the taker's 50 at 0.48.
+  const asMaker = clobTrade({ id: "2ff0cd8f", takerOrder: `0x${"d0".repeat(32)}`, side: "BUY", asset: YES, size: "50", price: "0.48", traderSide: "MAKER", feeBps: "0", makers: [
+    { order: ours, side: "SELL", asset: YES, price: "0.48", amount: "10" }, { order: `0x${"bb".repeat(32)}`, side: "BUY", asset: NO, price: "0.52", amount: "20" },
+  ] });
+  assertEquals(tradeFillOf(asMaker, { hash: ours, token: YES, price: 0.48 }), { size: 10, price: 0.48, taker: false });
+  // A taker's (cd415cc7's shape, 2026-10-15 16:26: SELL 40 YES at 0.12): a BUY of YES at 0.12 and a SELL of NO at 0.88,
+  // which is 0.12 in YES's terms; the trade's 40.
+  const asTaker = clobTrade({ id: "cd415cc7", takerOrder: ours, side: "SELL", asset: YES, size: "40", price: "0.12", traderSide: "TAKER", feeBps: "1000", makers: [
+    { order: `0x${"aa".repeat(32)}`, side: "BUY", asset: YES, price: "0.12", amount: "25" }, { order: `0x${"ab".repeat(32)}`, side: "SELL", asset: NO, price: "0.88", amount: "15" },
+  ] });
+  assertEquals(tradeFillOf(asTaker, { hash: ours.toUpperCase().replace("0X", "0x"), token: YES, price: 0.12 }), { size: 40, price: 0.12, taker: true });
+  // Makers above the limit: what they paid, weighted (20 at 0.13 and 20 at 0.12 is 0.125), not the limit.
+  const better = clobTrade({ id: "x", takerOrder: ours, side: "SELL", asset: YES, size: "40", price: "0.12", traderSide: "TAKER", feeBps: "1000", makers: [
+    { order: `0x${"aa".repeat(32)}`, side: "BUY", asset: YES, price: "0.13", amount: "20" }, { order: `0x${"ab".repeat(32)}`, side: "BUY", asset: YES, price: "0.12", amount: "20" },
+  ] });
+  assertEquals(tradeFillOf(better, { hash: ours, token: YES, price: 0.12 }), { size: 40, price: 0.125, taker: true });
+  // A NO sold as taker (308e1767's shape: SELL 6 NO at 0.27) against a SELL of YES at 0.73: 0.27.
+  const no = clobTrade({ id: "308e1767", takerOrder: ours, side: "SELL", asset: NO, size: "6", price: "0.27", traderSide: "TAKER", feeBps: "1000", makers: [
+    { order: `0x${"ac".repeat(32)}`, side: "SELL", asset: YES, price: "0.73", amount: "6" },
+  ] });
+  assertEquals(tradeFillOf(no, { hash: ours, token: NO, price: 0.27 }), { size: 6, price: 0.27, taker: true });
+  // Neither the taker nor a maker: nothing of ours in it.
+  assertEquals(tradeFillOf(asTaker, { hash: `0x${"ef".repeat(32)}`, token: YES, price: 0.12 }), null);
+});
+
+Deno.test("Addendum 25: a taker trade of a closed order is booked from its read-back on the next turn, once, with its fee; a turn later nothing is added and nothing is said", async () => {
+  const w = world({ a19: true, wide: true, config: LIVE });
+  await w.turn(T0);
+  // 2026-10-15 16:26 UTC as it stood: the liquidation's SELL of 6 NO at 0.27 matched as a taker, read back MATCHED and
+  // closed `filled`, its trade named and no fill booked.
+  const hash = `0x${"67".repeat(32)}`, tradeId = "308e1767-31f5-4522-9ce9-1fac9bbd2ec2";
+  w.rows("pm_lp_orders").push({
+    id: 9001, ts: iso(T0 + 10e3), mode: "live", cond: w.L1.cond, token: tok(1, "no"), outcome: "no", side: "SELL", price: 0.27, size: 6, order_type: "GTD", post_only: false,
+    expiration: Math.floor(T0 / 1000) + 600, neg_risk: false, hash, state: "filled", size_matched: 6, gate: "reduce", reason: "new", filled_at: iso(T0 + 60e3),
+    response: { status: 200, data: { status: "matched" }, readBack: { status: "MATCHED", size_matched: "6", associate_trades: [tradeId] } },
+  });
+  w.pm.trades.set(tradeId, { id: tradeId, hash, token: tok(1, "no"), side: "SELL", price: 0.27, size: 6, status: "CONFIRMED", at: T0 + 10e3, taker: true });
+  const r1 = await w.turn(T0 + M);
+  const rows = () => w.rows("pm_lp_fills").filter((f) => f.hash === hash);
+  assertEquals(rows().map((f) => [f.trade_id, f.side, Number(f.price), Number(f.size), f.status, (f.detail as any).trade.trader_side, (f.detail as any).trade.fee_rate_bps]),
+    [[tradeId, "SELL", 0.27, 6, "CONFIRMED", "TAKER", "1000"]]);
+  assertEquals(r1.errors.filter((e) => /left for a person/.test(e)), []);
+  // Booked once: the next turn reads it no more and adds nothing.
+  const reads = () => w.pm.calls.filter((c) => c === "GET clob.polymarket.com/data/trades").length, before = reads();
+  const r2 = await w.turn(T0 + 2 * M);
+  assertEquals([rows().length, reads() - before, r2.errors.filter((e) => /trade/.test(e))], [1, 0, []]);
+  assertEquals(PM_LIVE_UNBOOKED_PER_TURN, 10);
+});
+
+Deno.test("Addendum 25 with Addendum 24: the liquidation's taker sell is booked as the turn reads it back, with the trade's fee rate", async () => {
+  const w = world({ a19: true, wide: true, config: LIVE });
+  await w.turn(T0);
+  const yesBuy = w.rows("pm_lp_orders").find((x) => x.mode === "live" && x.cond === w.L1.cond && x.outcome === "yes" && x.side === "BUY" && x.state === "live")!;
+  w.pm.settle(w.pm.fill(String(yesBuy.hash), 5), "CONFIRMED");
+  await w.turn(T0 + M);
+  w.setConfig({ liquidate_at: iso(T0 + M + 30e3) });
+  await w.turn(T0 + 2 * M);
+  const sell = w.rows("pm_lp_orders").find((x) => x.mode === "live" && x.cond === w.L1.cond && x.side === "SELL" && x.post_only === false)!;
+  await w.turn(T0 + 3 * M);
+  const r = await w.turn(T0 + 4 * M);
+  const f = w.rows("pm_lp_fills").filter((x) => x.hash === sell.hash);
+  assertEquals(f.map((x) => [x.side, Number(x.price), Number(x.size), (x.detail as any).trade.trader_side, (x.detail as any).trade.taker_order_id === sell.hash]), [["SELL", 0.45, 5, "TAKER", true]]);
+  assertEquals(r.errors.filter((e) => /left for a person/.test(e)), []);
 });

@@ -748,3 +748,17 @@ touches live-prep's config and orders alone.
 
 **What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
 of the Edge deploy that carries it, as deviation 22.
+
+## Addendum 23 (2026-10-15, about 16:35 UTC): deviation 23, live-prep's Addendum 25 (a taker's fill booked)
+
+**Deviation 23 is live-prep's Addendum 25.** It changes the shared `pm_live.ts`: after it, `pm_live.ts` sha256
+`9615ed0a48149699c16ac3622128b3e0c86813541ca10097269a9eb3c1c390f3`, where Addendum 22 above named `04556ab5…344c`. The change: the trade reader takes our
+order's fill from the trade's `taker_order_id` where our order took (`tradeFillOf`); where it rested, from `maker_orders`,
+exactly as before. Live-prep's turn also reads again the trades of a closed live order whose fills are not all booked.
+
+**Mid-pool is unchanged.** Every order it sends is post-only, so it never takes and its trades read as before; the
+re-read of unbooked orders runs only for live-prep's instance. None of its decisions changes: `agents/pm_mid_formula.test.ts`
+and `agents/pm_payouts.test.ts` run it beside the path this file froze and find every decision the same.
+
+**What the readout names.** `mid_readout.sql` is unchanged. Beside its rows, the readout names this deploy, at the time
+of the Edge deploy that carries it, as deviation 23.

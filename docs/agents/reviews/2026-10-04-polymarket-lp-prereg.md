@@ -1753,3 +1753,56 @@ and the taker-buy refusal); `0123_pm_lp_liquidate.sql` sha256 `5171628d88bec6068
 - outside Ireland, or with the attestation lapsed: no taker sell, the exit at the ask, no buy; a BUY not post-only refused
   by the client;
 - `src/pm_live_hash.test.js`, `src/pm_lp_prereg.test.js`: the bytes, the migration and the chain of addenda.
+
+## Addendum 25 (2026-10-15, about 16:35 UTC): the liquidation's taker fills booked
+
+**On whose word.** Davies' "那目前的单都尽快卖出掉吧，还剩多少" (Addendum 24): selling what is held as fast as possible includes
+booking what was sold. The main session relayed the defect at about 16:30 UTC.
+
+**What went wrong.** Addendum 24 went live at 16:23:55 UTC. At 16:26 its three taker sells matched: 6 NO of 0x76051f8c… at
+0.27, 40 YES of 0x7465aead… at 0.12, and 10.2 of 80 YES of 0xecc209a6… at 0.002 (pUSD 300.48 → 306.69). The read-back of
+each found the trade, but the trade's reader looked for our order only among the trade's `maker_orders`. A taker's order
+is the trade's `taker_order_id`, and its size, side and fee rate are the trade's own. So each trade was "no fill of … in
+it; left for a person" (308e1767…, cd415cc7…, 7d6f857f…). The orders were closed (two `filled`, one `cancelled`), so no
+turn read their trades again: `pm_lp_fills` had no row of them, and the page's TOTAL, the fills' P&L and the stop's basis
+all missed them. They were the only orders, over the whole record, whose matched size had no fills booked (read-only,
+16:30 UTC). Addendum 24's test passed because the test venue listed every trade as a maker's.
+
+**What changes.**
+1. **A trade's fill of our order** (`tradeFillOf`): as a maker, its `maker_orders` entry, as before. As the taker, the trade's
+   `size`, at what the makers it matched paid. Each maker's `price` counts in our token's terms: its own where its `asset_id`
+   is our token, 1 − it where it is the other token (a match through the complement). They are weighted by their
+   `matched_amount`; the trade's own `price` (the taker's limit) is used only where the makers name none. The fill keeps the whole trade in
+   `detail.trade`. Its `trader_side` `TAKER` and `fee_rate_bps` give its fee where fees are counted (`pmLiveFillFee`: the
+   rate × p × (1 − p) a share), on the page's TOTAL and in the stop's basis (Addendum 18).
+2. **Matched orders with fills missing are read again.** Each live turn, a closed live order whose matched size is more
+   than its booked fills has the trades its read-back named (`associate_trades`) read again through the same reader. This
+   covers the last two days, ten orders a turn (`PM_LIVE_UNBOOKED_LOOKBACK_MS`, `PM_LIVE_UNBOOKED_PER_TURN`). The fills'
+   key (`trade_id, hash`) books each trade once, and an order whose fills add up is never read again. The three trades of
+   16:26 are booked this way on the first turn after the deploy. No row is written by hand.
+
+Nothing else changes: no rule of quoting, selling, the stop's limit or the liquidation's.
+
+**0xecc209a6…'s 69.8 YES left.** At 16:30 UTC its book had no bid at all (the 10.2 took the bid of 0.002; asks from 0.01).
+The path takes a one-sided book as unreadable (`book` null in its state), so nothing rests in that market: no taker sell,
+and no exit at the ask either. Addendum 24's "no bid: rest at the ask" therefore does not happen for a book with no bids. When a
+bid of at least 0.002 appears (0.001 nets under the floor after the worst fee), the next turn sells into it. The market
+("Will Iran release a Trump voicemail about the Strait of Hormuz by October 15?") ends today; if it resolves NO the 69.8
+YES pay nothing and wait for redemption with the dust. Not changed here.
+
+**The code it deploys:** `pm_live.ts` sha256 `9615ed0a48149699c16ac3622128b3e0c86813541ca10097269a9eb3c1c390f3`, where Addendum 24 named `04556ab5…344c` (`tradeFillOf`,
+`recordTrades` through it, the turn's read of matched orders without their fills); `_shared/polymarket_orders.ts` (`PmTrade`'s
+taker fields). `pm_lp.ts` is unchanged (Addendum 24's bytes). No migration.
+
+**Pinned** (`agents/pm_lp.test.ts`):
+- `tradeFillOf` on trades of the CLOB's shape, field for field as `pm_lp_fills` keeps them:
+  - the newest real maker fill (10 of 50 at 0.48);
+  - a taker's SELL of 40 YES matched by a BUY of YES at 0.12 and a SELL of NO at 0.88 (0.12);
+  - makers above the limit weighted (0.125);
+  - a NO sold against a SELL of YES at 0.73 (0.27);
+  - neither: null.
+- A closed `filled` order of 16:26's kind, its trade named and no fill booked, is booked on the next turn: SELL 6 at 0.27,
+  `TAKER`, its fee rate, and no "left for a person". The turn after reads no trade and adds nothing.
+- The liquidation's own taker sell is booked as the turn reads it back.
+- Both turn tests fail on the `pm_live.ts` Addendum 24 named. The test venue now lists a taker's trade in the CLOB's taker shape.
+- `src/pm_live_hash.test.js`, `src/pm_lp_prereg.test.js`: the bytes and the chain of addenda.

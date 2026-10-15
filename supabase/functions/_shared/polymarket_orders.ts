@@ -617,6 +617,8 @@ export type PmOpenOrder = {
 /** One trade of GET /data/trades, with the maker orders it filled. */
 export type PmTrade = {
   id?: string; status?: string; match_time?: string; transaction_hash?: string; asset_id?: string; side?: string; price?: string;
+  /** The taker's order, side, size and fee rate, and which side of the trade the account was (`MAKER` or `TAKER`). */
+  taker_order_id?: string; size?: string; fee_rate_bps?: string; trader_side?: string;
   maker_orders?: Array<{ order_id?: string; matched_amount?: string; price?: string; asset_id?: string; side?: string }>;
 };
 export type PmCancelReply = { canceled?: string[]; not_canceled?: Record<string, string> };
