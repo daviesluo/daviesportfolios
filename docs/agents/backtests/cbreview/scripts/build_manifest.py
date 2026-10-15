@@ -36,6 +36,8 @@ man = {
         "cd scripts; python3 -I cbfast.py stage1    # -> results/cbfast_grid.json (about 25 min on four cores)",
         "cd scripts; python3 -I cbfast_events.py    # -> results/cbfast_events.json (about 3 min)",
         "cd scripts; python3 -I cbfast_lit.py base 'g3d_cal all a1 b5' ...   # -> results/cbfast_lit.json (the 2026-10-14 day on the engine's record)",
+        "sql/export_revx_paper_record.sql (3 selects) -> scripts/pack_revx_record.py -> inputs/revx_paper_record.json.gz (PR5's paper engine's own prints and minutes, 2026-09-25 .. 10-15)",
+        "cd scripts; python3 -I cbfast_revx.py     # -> results/cbfast_revx.json (about 6 min): the blackout on PR5's rule over Revolut X, a proposal",
         "cd scripts; python3 -I build_manifest.py",
     ],
     "files": files,

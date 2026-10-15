@@ -20,6 +20,10 @@
    "bytes": 40920,
    "sha256": "ac5c36e6ae1d9edbb03dcfd5f77fbe66ce0d55b40ae0c684920c24b4b36bfd47"
   },
+  "inputs/revx_paper_record.json.gz": {
+   "bytes": 513072,
+   "sha256": "123408419ab8b0702c8f1bebf693da722e56d12d4f5808124dea5d2538efa96d"
+  },
   "inputs/trips_lit_window.json": {
    "bytes": 1568,
    "sha256": "e34763c91e5cae6cb42617fbf0bb6d62bcc9875d1db88aa3cd3ea63abdf092ae"
@@ -40,6 +44,10 @@
    "bytes": 7738,
    "sha256": "297c7821f7f5f99e9e5e4a55a3d02bd35d9dabb2ce2144848442f385adf50111"
   },
+  "results/cbfast_revx.json": {
+   "bytes": 25825,
+   "sha256": "06132783500b64de2fec2e14ad3e36963577cdaf3ea9e284b3452ef8aa159d43"
+  },
   "results/cbk.json": {
    "bytes": 45150,
    "sha256": "55879560ad8646da45478a5ac75f629ef740a4e0a4fa4a4d4d890246ce9a1ce6"
@@ -53,16 +61,16 @@
    "sha256": "247c867fa0809157ec931d6832aad18515f5e51ff4f6b42a1d0d232c883b8f6c"
   },
   "scripts/build_manifest.py": {
-   "bytes": 4069,
-   "sha256": "70e04e846d6f36b85586f1b262918c411061e61a1d0ed8ccc536da65d26e0845"
+   "bytes": 4411,
+   "sha256": "230bb9d33cd6b885e55348f0b9a257aa931fad114ac6ce97f89b3ef68a102558"
   },
   "scripts/calendar_events.py": {
    "bytes": 7762,
    "sha256": "bae488f4287f8277db38abf50308f295814c2b1c7c321088d78c6359fe906c6b"
   },
   "scripts/cbfast.py": {
-   "bytes": 21457,
-   "sha256": "b4c8afe74d0773c01936bee49474249929acbd3d8d7d2e4a9f85e2095e5b7b59"
+   "bytes": 21581,
+   "sha256": "012708098bb80ede95263b1a793b576427b3f804add2e1bb42d32b1aad2bd789"
   },
   "scripts/cbfast_events.py": {
    "bytes": 6865,
@@ -71,6 +79,10 @@
   "scripts/cbfast_lit.py": {
    "bytes": 5233,
    "sha256": "612d5abbd5ee4f9afbaf6e6add0d88393f67f828f4f34c7d3d2f7727ef2c79ff"
+  },
+  "scripts/cbfast_revx.py": {
+   "bytes": 11650,
+   "sha256": "487c1994ecd72bcfe0fc4b75ce5a9b6b76e31f9942de876f97437446ed263ca7"
   },
   "scripts/cbk.py": {
    "bytes": 9044,
@@ -83,6 +95,10 @@
   "scripts/pack_lines_1014.py": {
    "bytes": 999,
    "sha256": "f398138911290c924cf0755e0f235e26ecdb9f068b9d2d6a445aa51115431b81"
+  },
+  "scripts/pack_revx_record.py": {
+   "bytes": 1206,
+   "sha256": "202cc6da742ec7363a192cfc3370a3366bcb5ca4f3e5044e999de3a11d2e629f"
   },
   "scripts/pull_cb_candles.py": {
    "bytes": 2091,
@@ -103,6 +119,10 @@
   "sql/export_lit_window.sql": {
    "bytes": 1696,
    "sha256": "54d697106b104f83e84543f7f84cc22eb01fb62f3518eb0fc3447fe748c6ab8e"
+  },
+  "sql/export_revx_paper_record.sql": {
+   "bytes": 1318,
+   "sha256": "68ff1165ccdafff3ff9c166b5d172246b3160a8d9cd128ffba40d8af323e1df4"
   },
   "sql/export_trips_to_1014.sql": {
    "bytes": 241,
@@ -140,6 +160,8 @@
   "cd scripts; python3 -I cbfast.py stage1    # -> results/cbfast_grid.json (about 25 min on four cores)",
   "cd scripts; python3 -I cbfast_events.py    # -> results/cbfast_events.json (about 3 min)",
   "cd scripts; python3 -I cbfast_lit.py base 'g3d_cal all a1 b5' ...   # -> results/cbfast_lit.json (the 2026-10-14 day on the engine's record)",
+  "sql/export_revx_paper_record.sql (3 selects) -> scripts/pack_revx_record.py -> inputs/revx_paper_record.json.gz (PR5's paper engine's own prints and minutes, 2026-09-25 .. 10-15)",
+  "cd scripts; python3 -I cbfast_revx.py     # -> results/cbfast_revx.json (about 6 min): the blackout on PR5's rule over Revolut X, a proposal",
   "cd scripts; python3 -I build_manifest.py"
  ],
  "study": "The Coinbase recorders and paper test's first days (2026-10-12): the read-only health and interim queries, the minute-record defect (the replay of bar 1 on the first lit day, as stored and with the lost extremes put back), the proposed repair, and CBK, PR5's frozen rule on Coinbase's history with one change at a time (rungs, a basis skew, weekends held); and, from 2026-10-15, CBFAST: what a fast-move / scheduled-release guard would have done (the release calendar, the FX-lag measurement, 164 guard variants on two 12-month spans, the 2026-10-14 day replayed on the engine's record)",

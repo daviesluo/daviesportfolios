@@ -794,6 +794,12 @@ windows are pulled because the script takes every rulebook; they are described, 
 (`basis/2026-10-15.json`, `[]`): every probe's `o15` and `o60` is recorded. C: 6 exits and 6 entries (10-05: 3 and 3),
 against the 150 the reading needs, so no reading. Nothing failed, so nothing is carried to next week's retry.
 
+### [2026-10-15 03:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Does Revolut X's PR5 need the release blackout? No** (sub-agent; Davies: "revolut x的规则不需要加这个吗？"; `reviews/2026-10-15-coinbase-blackout.md` §3,
+  `backtests/cbreview/scripts/cbfast_revx.py`; proposal only, no Revolut X file touched). On PR5's pre-registered books (base PRIMARY $707.9028 = `pr5_run1.json`) the blackout is
+  −$1.40 / +$3.29 a year on $750 to $1,060 (ranges across zero); 4 of 40 releases had any trip in the window. 10-14: the replay gives the engine's 15 trips, 13 won, +$0.3605 exactly;
+  the release minute cost $0.1979 (two asks of $18) and the live account had no fill. Verdict for LIVE: no change after the 10-21 verdict.
+
 ### [2026-10-15 03:29 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Release blackout built into BOTH Coinbase tests** (sub-agent; Davies, 10-15: "目前的两个Coinbase 测试采用发布前后暂停的规则吧…";
   `agents/cb_releases.ts`, `cb_quotes.ts`, `cb_hold.ts`; `reviews/2026-10-15-coinbase-blackout.md`; NOT pushed, needs landing and the `agents` redeploy):
