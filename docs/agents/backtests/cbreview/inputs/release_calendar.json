@@ -1,0 +1,1945 @@
+{
+ "about": "release_calendar.py: scheduled releases 2024-10-01 .. 2026-12-31 in UTC; `source` says who answered, `status` published (first-party) or recalled; the market check is the largest 1-minute move at the minute against the same minutes on ten weekdays either side",
+ "disagreements": [
+  {
+   "day": "2025-01-10",
+   "kind": "nfp",
+   "what": "BLS's third-Friday rule gives 2025-01-03 (a delay, a holiday or a wrong recall)"
+  },
+  {
+   "day": "2025-07-03",
+   "kind": "nfp",
+   "what": "BLS's third-Friday rule gives 2025-07-04 (a delay, a holiday or a wrong recall)"
+  },
+  {
+   "day": "2025-11-20",
+   "kind": "nfp",
+   "what": "BLS's third-Friday rule gives 2025-11-07 (a delay, a holiday or a wrong recall)"
+  },
+  {
+   "day": "2025-12-16",
+   "kind": "nfp",
+   "what": "BLS's third-Friday rule gives 2025-12-05 (a delay, a holiday or a wrong recall)"
+  },
+  {
+   "day": "2026-01-09",
+   "kind": "nfp",
+   "what": "BLS's third-Friday rule gives 2026-01-02 (a delay, a holiday or a wrong recall)"
+  },
+  {
+   "day": "2026-02-11",
+   "kind": "nfp",
+   "what": "BLS's third-Friday rule gives 2026-02-06 (a delay, a holiday or a wrong recall)"
+  },
+  {
+   "day": "2026-07-02",
+   "kind": "nfp",
+   "what": "BLS's third-Friday rule gives 2026-07-03 (a delay, a holiday or a wrong recall)"
+  },
+  {
+   "day": "2024-12-11",
+   "kind": "cpi",
+   "what": "the market did not move at the minute (7.32 bp against a control 90th percentile of 9.95)"
+  },
+  {
+   "day": "2025-04-04",
+   "kind": "nfp",
+   "what": "the market did not move at the minute (6.1 bp against a control 90th percentile of 6.64)"
+  },
+  {
+   "day": "2025-06-06",
+   "kind": "nfp",
+   "what": "the market did not move at the minute (13.29 bp against a control 90th percentile of 13.68)"
+  }
+ ],
+ "events": [
+  {
+   "bls_rule_day": "2024-10-04",
+   "control_p90_bps": 13.17,
+   "day": "2024-10-04",
+   "kind": "nfp",
+   "move_bps": 48.04,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1728045000000,
+   "utc": "2024-10-04T12:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 13.17,
+   "day": "2024-10-10",
+   "kind": "cpi",
+   "move_bps": 15.01,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1728563400000,
+   "utc": "2024-10-10T12:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 2.03,
+   "day": "2024-10-17",
+   "kind": "ecb",
+   "move_bps": 6.12,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1729167300000,
+   "utc": "2024-10-17T12:15Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "bls_rule_day": "2024-11-01",
+   "control_p90_bps": 3.06,
+   "day": "2024-11-01",
+   "kind": "nfp",
+   "move_bps": 16.85,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1730464200000,
+   "utc": "2024-11-01T12:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 2.71,
+   "day": "2024-11-07",
+   "kind": "boe",
+   "move_bps": 12.67,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1730980800000,
+   "utc": "2024-11-07T12:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 2.1,
+   "day": "2024-11-07",
+   "kind": "fomc",
+   "move_bps": 11.95,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1731006000000,
+   "utc": "2024-11-07T19:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 4.13,
+   "day": "2024-11-13",
+   "kind": "cpi",
+   "move_bps": 16.56,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1731504600000,
+   "utc": "2024-11-13T13:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "bls_rule_day": "2024-12-06",
+   "control_p90_bps": 7.32,
+   "day": "2024-12-06",
+   "kind": "nfp",
+   "move_bps": 19.58,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1733491800000,
+   "utc": "2024-12-06T13:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 9.95,
+   "day": "2024-12-11",
+   "kind": "cpi",
+   "move_bps": 7.32,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": false,
+   "status": "recalled",
+   "t": 1733923800000,
+   "utc": "2024-12-11T13:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 2.53,
+   "day": "2024-12-12",
+   "kind": "ecb",
+   "move_bps": 8.63,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1734009300000,
+   "utc": "2024-12-12T13:15Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 2.09,
+   "day": "2024-12-18",
+   "kind": "fomc",
+   "move_bps": 31.08,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1734548400000,
+   "utc": "2024-12-18T19:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 2.16,
+   "day": "2024-12-19",
+   "kind": "boe",
+   "move_bps": 27.51,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1734609600000,
+   "utc": "2024-12-19T12:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "bls_rule_day": "2025-01-03",
+   "control_p90_bps": 20.6,
+   "day": "2025-01-10",
+   "kind": "nfp",
+   "move_bps": 56.57,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1736515800000,
+   "utc": "2025-01-10T13:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 8.29,
+   "day": "2025-01-15",
+   "kind": "cpi",
+   "move_bps": 37.03,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1736947800000,
+   "utc": "2025-01-15T13:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 2.3,
+   "day": "2025-01-29",
+   "kind": "fomc",
+   "move_bps": 18.33,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1738177200000,
+   "utc": "2025-01-29T19:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 4.1,
+   "day": "2025-01-30",
+   "kind": "ecb",
+   "move_bps": 1.63,
+   "source": "first-party",
+   "stands_out": false,
+   "status": "published",
+   "t": 1738242900000,
+   "utc": "2025-01-30T13:15Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 3.18,
+   "day": "2025-02-06",
+   "kind": "boe",
+   "move_bps": 39.36,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1738843200000,
+   "utc": "2025-02-06T12:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "bls_rule_day": "2025-02-07",
+   "control_p90_bps": 8.86,
+   "day": "2025-02-07",
+   "kind": "nfp",
+   "move_bps": 12.05,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1738935000000,
+   "utc": "2025-02-07T13:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 5.98,
+   "day": "2025-02-12",
+   "kind": "cpi",
+   "move_bps": 36.7,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1739367000000,
+   "utc": "2025-02-12T13:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 3.51,
+   "day": "2025-03-06",
+   "kind": "ecb",
+   "move_bps": 24.59,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1741266900000,
+   "utc": "2025-03-06T13:15Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "bls_rule_day": "2025-03-07",
+   "control_p90_bps": 3.2,
+   "day": "2025-03-07",
+   "kind": "nfp",
+   "move_bps": 20.38,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1741354200000,
+   "utc": "2025-03-07T13:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 3.65,
+   "day": "2025-03-12",
+   "kind": "cpi",
+   "move_bps": 18.17,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1741782600000,
+   "utc": "2025-03-12T12:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 2.44,
+   "day": "2025-03-19",
+   "kind": "fomc",
+   "move_bps": 12.97,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1742407200000,
+   "utc": "2025-03-19T18:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 3.72,
+   "day": "2025-03-20",
+   "kind": "boe",
+   "move_bps": 11.39,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1742472000000,
+   "utc": "2025-03-20T12:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "bls_rule_day": "2025-04-04",
+   "control_p90_bps": 6.64,
+   "day": "2025-04-04",
+   "kind": "nfp",
+   "move_bps": 6.1,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": false,
+   "status": "recalled",
+   "t": 1743769800000,
+   "utc": "2025-04-04T12:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 4.31,
+   "day": "2025-04-10",
+   "kind": "cpi",
+   "move_bps": 24.1,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1744288200000,
+   "utc": "2025-04-10T12:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 6.62,
+   "day": "2025-04-17",
+   "kind": "ecb",
+   "move_bps": 3.96,
+   "source": "first-party",
+   "stands_out": false,
+   "status": "published",
+   "t": 1744892100000,
+   "utc": "2025-04-17T12:15Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "bls_rule_day": "2025-05-02",
+   "control_p90_bps": 5.04,
+   "day": "2025-05-02",
+   "kind": "nfp",
+   "move_bps": 25.27,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1746189000000,
+   "utc": "2025-05-02T12:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 3.09,
+   "day": "2025-05-07",
+   "kind": "fomc",
+   "move_bps": 8.38,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1746640800000,
+   "utc": "2025-05-07T18:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 4.13,
+   "day": "2025-05-08",
+   "kind": "boe",
+   "move_bps": 41.43,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1746702000000,
+   "utc": "2025-05-08T11:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 6.33,
+   "day": "2025-05-13",
+   "kind": "cpi",
+   "move_bps": 6.79,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1747139400000,
+   "utc": "2025-05-13T12:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 4.1,
+   "day": "2025-06-05",
+   "kind": "ecb",
+   "move_bps": 8.8,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1749125700000,
+   "utc": "2025-06-05T12:15Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "bls_rule_day": "2025-06-06",
+   "control_p90_bps": 13.68,
+   "day": "2025-06-06",
+   "kind": "nfp",
+   "move_bps": 13.29,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": false,
+   "status": "recalled",
+   "t": 1749213000000,
+   "utc": "2025-06-06T12:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 11.64,
+   "day": "2025-06-11",
+   "kind": "cpi",
+   "move_bps": 27.9,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1749645000000,
+   "utc": "2025-06-11T12:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 1.78,
+   "day": "2025-06-18",
+   "kind": "fomc",
+   "move_bps": 11.96,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1750269600000,
+   "utc": "2025-06-18T18:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 2.48,
+   "day": "2025-06-19",
+   "kind": "boe",
+   "move_bps": 10.87,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1750330800000,
+   "utc": "2025-06-19T11:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "bls_rule_day": "2025-07-04",
+   "control_p90_bps": 7.8,
+   "day": "2025-07-03",
+   "kind": "nfp",
+   "move_bps": 42.67,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1751545800000,
+   "utc": "2025-07-03T12:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 3.03,
+   "day": "2025-07-15",
+   "kind": "cpi",
+   "move_bps": 12.64,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1752582600000,
+   "utc": "2025-07-15T12:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 3.61,
+   "day": "2025-07-24",
+   "kind": "ecb",
+   "move_bps": 1.87,
+   "source": "first-party",
+   "stands_out": false,
+   "status": "published",
+   "t": 1753359300000,
+   "utc": "2025-07-24T12:15Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 2.04,
+   "day": "2025-07-30",
+   "kind": "fomc",
+   "move_bps": 3.18,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1753898400000,
+   "utc": "2025-07-30T18:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "bls_rule_day": "2025-08-01",
+   "control_p90_bps": 5.62,
+   "day": "2025-08-01",
+   "kind": "nfp",
+   "move_bps": 49.4,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1754051400000,
+   "utc": "2025-08-01T12:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 1.97,
+   "day": "2025-08-07",
+   "kind": "boe",
+   "move_bps": 26.72,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1754564400000,
+   "utc": "2025-08-07T11:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 5.73,
+   "day": "2025-08-12",
+   "kind": "cpi",
+   "move_bps": 19.99,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1755001800000,
+   "utc": "2025-08-12T12:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "bls_rule_day": "2025-09-05",
+   "control_p90_bps": 9.73,
+   "day": "2025-09-05",
+   "kind": "nfp",
+   "move_bps": 38.64,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1757075400000,
+   "utc": "2025-09-05T12:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 2.66,
+   "day": "2025-09-11",
+   "kind": "ecb",
+   "move_bps": 11.39,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1757592900000,
+   "utc": "2025-09-11T12:15Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 9.73,
+   "day": "2025-09-11",
+   "kind": "cpi",
+   "move_bps": 15.32,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1757593800000,
+   "utc": "2025-09-11T12:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 1.88,
+   "day": "2025-09-17",
+   "kind": "fomc",
+   "move_bps": 16.03,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1758132000000,
+   "utc": "2025-09-17T18:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 2.38,
+   "day": "2025-09-18",
+   "kind": "boe",
+   "move_bps": 6.74,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1758193200000,
+   "utc": "2025-09-18T11:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 2.68,
+   "day": "2025-10-24",
+   "kind": "cpi",
+   "move_bps": 22.82,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1761309000000,
+   "utc": "2025-10-24T12:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 1.47,
+   "day": "2025-10-29",
+   "kind": "fomc",
+   "move_bps": 6.87,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1761760800000,
+   "utc": "2025-10-29T18:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 2.15,
+   "day": "2025-10-30",
+   "kind": "ecb",
+   "move_bps": 2.94,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1761830100000,
+   "utc": "2025-10-30T13:15Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 2.33,
+   "day": "2025-11-06",
+   "kind": "boe",
+   "move_bps": 16.5,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1762430400000,
+   "utc": "2025-11-06T12:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "bls_rule_day": "2025-11-07",
+   "control_p90_bps": 4.32,
+   "day": "2025-11-20",
+   "kind": "nfp",
+   "move_bps": 11.81,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1763645400000,
+   "utc": "2025-11-20T13:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 1.45,
+   "day": "2025-12-10",
+   "kind": "fomc",
+   "move_bps": 12.87,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1765393200000,
+   "utc": "2025-12-10T19:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "bls_rule_day": "2025-12-05",
+   "control_p90_bps": 3.49,
+   "day": "2025-12-16",
+   "kind": "nfp",
+   "move_bps": 13.34,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1765891800000,
+   "utc": "2025-12-16T13:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 2.38,
+   "day": "2025-12-18",
+   "kind": "boe",
+   "move_bps": 19.1,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1766059200000,
+   "utc": "2025-12-18T12:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 1.7,
+   "day": "2025-12-18",
+   "kind": "ecb",
+   "move_bps": 6.4,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1766063700000,
+   "utc": "2025-12-18T13:15Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 5.7,
+   "day": "2025-12-18",
+   "kind": "cpi",
+   "move_bps": 15.43,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1766064600000,
+   "utc": "2025-12-18T13:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "bls_rule_day": "2026-01-02",
+   "control_p90_bps": 5.7,
+   "day": "2026-01-09",
+   "kind": "nfp",
+   "move_bps": 6.7,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1767965400000,
+   "utc": "2026-01-09T13:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 4.1,
+   "day": "2026-01-13",
+   "kind": "cpi",
+   "move_bps": 13.22,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1768311000000,
+   "utc": "2026-01-13T13:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 2.03,
+   "day": "2026-01-28",
+   "kind": "fomc",
+   "move_bps": 25.89,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1769626800000,
+   "utc": "2026-01-28T19:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 3.44,
+   "day": "2026-02-05",
+   "kind": "boe",
+   "move_bps": 34.31,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1770292800000,
+   "utc": "2026-02-05T12:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 3.25,
+   "day": "2026-02-05",
+   "kind": "ecb",
+   "move_bps": 3.05,
+   "source": "first-party",
+   "stands_out": false,
+   "status": "published",
+   "t": 1770297300000,
+   "utc": "2026-02-05T13:15Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "bls_rule_day": "2026-02-06",
+   "control_p90_bps": 4.07,
+   "day": "2026-02-11",
+   "kind": "nfp",
+   "move_bps": 46.72,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1770816600000,
+   "utc": "2026-02-11T13:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 4.42,
+   "day": "2026-02-13",
+   "kind": "cpi",
+   "move_bps": 17.45,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1770989400000,
+   "utc": "2026-02-13T13:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "bls_rule_day": "2026-03-06",
+   "control_p90_bps": 4.42,
+   "day": "2026-03-06",
+   "kind": "nfp",
+   "move_bps": 12.88,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1772803800000,
+   "utc": "2026-03-06T13:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 3.36,
+   "day": "2026-03-11",
+   "kind": "cpi",
+   "move_bps": 5.0,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1773232200000,
+   "utc": "2026-03-11T12:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 2.58,
+   "day": "2026-03-18",
+   "kind": "fomc",
+   "move_bps": 4.52,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1773856800000,
+   "utc": "2026-03-18T18:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 3.4,
+   "day": "2026-03-19",
+   "kind": "boe",
+   "move_bps": 7.9,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1773921600000,
+   "utc": "2026-03-19T12:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 3.4,
+   "day": "2026-03-19",
+   "kind": "ecb",
+   "move_bps": 4.09,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1773926100000,
+   "utc": "2026-03-19T13:15Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "bls_rule_day": "2026-04-03",
+   "control_p90_bps": 3.65,
+   "day": "2026-04-03",
+   "kind": "nfp",
+   "move_bps": 10.48,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1775219400000,
+   "utc": "2026-04-03T12:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 3.65,
+   "day": "2026-04-10",
+   "kind": "cpi",
+   "move_bps": 5.63,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1775824200000,
+   "utc": "2026-04-10T12:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 1.96,
+   "day": "2026-04-29",
+   "kind": "fomc",
+   "move_bps": 3.25,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1777485600000,
+   "utc": "2026-04-29T18:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 2.22,
+   "day": "2026-04-30",
+   "kind": "boe",
+   "move_bps": 4.66,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1777546800000,
+   "utc": "2026-04-30T11:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 2.48,
+   "day": "2026-04-30",
+   "kind": "ecb",
+   "move_bps": 4.61,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1777551300000,
+   "utc": "2026-04-30T12:15Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "bls_rule_day": "2026-05-08",
+   "control_p90_bps": 2.16,
+   "day": "2026-05-08",
+   "kind": "nfp",
+   "move_bps": 3.57,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1778243400000,
+   "utc": "2026-05-08T12:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 2.16,
+   "day": "2026-05-12",
+   "kind": "cpi",
+   "move_bps": 2.81,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1778589000000,
+   "utc": "2026-05-12T12:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "bls_rule_day": "2026-06-05",
+   "control_p90_bps": 4.39,
+   "day": "2026-06-05",
+   "kind": "nfp",
+   "move_bps": 15.99,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1780662600000,
+   "utc": "2026-06-05T12:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 3.53,
+   "day": "2026-06-10",
+   "kind": "cpi",
+   "move_bps": 5.02,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1781094600000,
+   "utc": "2026-06-10T12:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 2.66,
+   "day": "2026-06-11",
+   "kind": "ecb",
+   "move_bps": 4.6,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1781180100000,
+   "utc": "2026-06-11T12:15Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 2.29,
+   "day": "2026-06-17",
+   "kind": "fomc",
+   "move_bps": 40.1,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1781719200000,
+   "utc": "2026-06-17T18:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 2.12,
+   "day": "2026-06-18",
+   "kind": "boe",
+   "move_bps": 2.8,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1781780400000,
+   "utc": "2026-06-18T11:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "bls_rule_day": "2026-07-03",
+   "control_p90_bps": 3.53,
+   "day": "2026-07-02",
+   "kind": "nfp",
+   "move_bps": 34.04,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1782995400000,
+   "utc": "2026-07-02T12:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 2.27,
+   "day": "2026-07-14",
+   "kind": "cpi",
+   "move_bps": 39.6,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1784032200000,
+   "utc": "2026-07-14T12:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 2.6,
+   "day": "2026-07-23",
+   "kind": "ecb",
+   "move_bps": 4.12,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1784808900000,
+   "utc": "2026-07-23T12:15Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 1.22,
+   "day": "2026-07-29",
+   "kind": "fomc",
+   "move_bps": 25.89,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1785348000000,
+   "utc": "2026-07-29T18:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 2.23,
+   "day": "2026-07-30",
+   "kind": "boe",
+   "move_bps": 4.18,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1785409200000,
+   "utc": "2026-07-30T11:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "bls_rule_day": "2026-08-07",
+   "control_p90_bps": 4.08,
+   "day": "2026-08-07",
+   "kind": "nfp",
+   "move_bps": 31.66,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1786105800000,
+   "utc": "2026-08-07T12:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 4.71,
+   "day": "2026-08-12",
+   "kind": "cpi",
+   "move_bps": 9.7,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1786537800000,
+   "utc": "2026-08-12T12:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "bls_rule_day": "2026-09-04",
+   "control_p90_bps": 4.71,
+   "day": "2026-09-04",
+   "kind": "nfp",
+   "move_bps": 32.34,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1788525000000,
+   "utc": "2026-09-04T12:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 1.29,
+   "day": "2026-09-10",
+   "kind": "ecb",
+   "move_bps": 1.55,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1789042500000,
+   "utc": "2026-09-10T12:15Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 3.21,
+   "day": "2026-09-11",
+   "kind": "cpi",
+   "move_bps": 18.97,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1789129800000,
+   "utc": "2026-09-11T12:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 1.32,
+   "day": "2026-09-16",
+   "kind": "fomc",
+   "move_bps": 10.49,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1789581600000,
+   "utc": "2026-09-16T18:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 2.11,
+   "day": "2026-09-17",
+   "kind": "boe",
+   "move_bps": 14.55,
+   "source": "first-party",
+   "stands_out": true,
+   "status": "published",
+   "t": 1789642800000,
+   "utc": "2026-09-17T11:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "bls_rule_day": "2026-10-02",
+   "control_p90_bps": 2.24,
+   "day": "2026-10-02",
+   "kind": "nfp",
+   "move_bps": 22.52,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1790944200000,
+   "utc": "2026-10-02T12:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": 9.86,
+   "day": "2026-10-14",
+   "kind": "cpi",
+   "move_bps": 25.89,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": true,
+   "status": "recalled",
+   "t": 1791981000000,
+   "utc": "2026-10-14T12:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": null,
+   "day": "2026-10-28",
+   "kind": "fomc",
+   "move_bps": null,
+   "source": "first-party",
+   "stands_out": null,
+   "status": "published",
+   "t": 1793210400000,
+   "utc": "2026-10-28T18:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": null,
+   "day": "2026-10-29",
+   "kind": "ecb",
+   "move_bps": null,
+   "source": "first-party",
+   "stands_out": null,
+   "status": "published",
+   "t": 1793279700000,
+   "utc": "2026-10-29T13:15Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": null,
+   "day": "2026-11-05",
+   "kind": "boe",
+   "move_bps": null,
+   "source": "first-party",
+   "stands_out": null,
+   "status": "published",
+   "t": 1793880000000,
+   "utc": "2026-11-05T12:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "bls_rule_day": "2026-11-06",
+   "control_p90_bps": null,
+   "day": "2026-11-06",
+   "kind": "nfp",
+   "move_bps": null,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": null,
+   "status": "recalled",
+   "t": 1793971800000,
+   "utc": "2026-11-06T13:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": null,
+   "day": "2026-11-10",
+   "kind": "cpi",
+   "move_bps": null,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": null,
+   "status": "recalled",
+   "t": 1794317400000,
+   "utc": "2026-11-10T13:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "bls_rule_day": "2026-12-04",
+   "control_p90_bps": null,
+   "day": "2026-12-04",
+   "kind": "nfp",
+   "move_bps": null,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": null,
+   "status": "recalled",
+   "t": 1796391000000,
+   "utc": "2026-12-04T13:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": null,
+   "day": "2026-12-09",
+   "kind": "fomc",
+   "move_bps": null,
+   "source": "first-party",
+   "stands_out": null,
+   "status": "published",
+   "t": 1796842800000,
+   "utc": "2026-12-09T19:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": null,
+   "day": "2026-12-10",
+   "kind": "cpi",
+   "move_bps": null,
+   "source": "recalled (bls.gov refused)",
+   "stands_out": null,
+   "status": "recalled",
+   "t": 1796909400000,
+   "utc": "2026-12-10T13:30Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": null,
+   "day": "2026-12-17",
+   "kind": "boe",
+   "move_bps": null,
+   "source": "first-party",
+   "stands_out": null,
+   "status": "published",
+   "t": 1797508800000,
+   "utc": "2026-12-17T12:00Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  },
+  {
+   "control_p90_bps": null,
+   "day": "2026-12-17",
+   "kind": "ecb",
+   "move_bps": null,
+   "source": "first-party",
+   "stands_out": null,
+   "status": "published",
+   "t": 1797513300000,
+   "utc": "2026-12-17T13:15Z",
+   "yahoo": {
+    "status": "uncovered"
+   }
+  }
+ ],
+ "source_log": [
+  {
+   "bytes": 1325,
+   "for": "CPI release schedule",
+   "http": "403",
+   "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "bytes": 1323,
+   "for": "Employment Situation schedule",
+   "http": "403",
+   "url": "https://www.bls.gov/schedule/news_release/empsit.htm"
+  },
+  {
+   "bytes": 1325,
+   "for": "BLS iCal feed",
+   "http": "403",
+   "url": "https://www.bls.gov/schedule/news_release/bls.ics"
+  },
+  {
+   "bytes": 1325,
+   "for": "CPI iCal feed",
+   "http": "403",
+   "url": "https://www.bls.gov/schedule/news_release/cpi.ics"
+  },
+  {
+   "bytes": 1325,
+   "for": "BLS flat files",
+   "http": "403",
+   "url": "https://download.bls.gov/pub/time.series/cu/"
+  },
+  {
+   "bytes": 1323,
+   "for": "BLS schedule, stats host",
+   "http": "403",
+   "url": "https://stats.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "bytes": 0,
+   "for": "BLS schedule, data host (redirects)",
+   "http": "301",
+   "url": "https://data.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "bytes": 224,
+   "for": "BLS API (no release dates in it)",
+   "http": "200",
+   "url": "https://api.bls.gov/publicAPI/v2/surveys"
+  },
+  {
+   "bytes": 0,
+   "for": "FRED release dates, CPI (rid 10)",
+   "http": "000",
+   "url": "https://fred.stlouisfed.org/release/dates?rid=10"
+  },
+  {
+   "bytes": 0,
+   "for": "FRED release dates, Employment Situation (rid 50)",
+   "http": "000",
+   "url": "https://fred.stlouisfed.org/release/dates?rid=50"
+  },
+  {
+   "bytes": 0,
+   "for": "ALFRED release dates",
+   "http": "000",
+   "url": "https://alfred.stlouisfed.org/release/downloaddates?rid=10"
+  },
+  {
+   "bytes": 162,
+   "for": "FRED API (needs a registration key)",
+   "http": "400",
+   "url": "https://api.stlouisfed.org/fred/release/dates?release_id=10&file_type=json"
+  },
+  {
+   "bytes": 0,
+   "for": "Wayback copy of the BLS schedule",
+   "http": "000",
+   "url": "https://web.archive.org/web/2025/https://www.bls.gov/schedule/news_release/cpi.htm"
+  },
+  {
+   "bytes": 162067,
+   "for": "FOMC meetings 2024 to 2027",
+   "http": "200",
+   "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+  },
+  {
+   "bytes": 86688,
+   "for": "ECB monetary policy decisions 2024",
+   "http": "200",
+   "url": "https://www.ecb.europa.eu/press/govcdec/mopo/2024/html/index_include.en.html"
+  },
+  {
+   "bytes": 53186,
+   "for": "ECB monetary policy decisions 2025",
+   "http": "200",
+   "url": "https://www.ecb.europa.eu/press/govcdec/mopo/2025/html/index_include.en.html"
+  },
+  {
+   "bytes": 31118,
+   "for": "ECB monetary policy decisions 2026",
+   "http": "200",
+   "url": "https://www.ecb.europa.eu/press/govcdec/mopo/2026/html/index_include.en.html"
+  },
+  {
+   "bytes": 106194,
+   "for": "ECB Governing Council calendar (meetings to come)",
+   "http": "200",
+   "url": "https://www.ecb.europa.eu/press/calendars/mgcgc/html/index.en.html"
+  },
+  {
+   "bytes": 93981,
+   "for": "BoE MPC summary and minutes, november 2024",
+   "http": "200",
+   "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2024/november-2024"
+  },
+  {
+   "bytes": 105790,
+   "for": "BoE MPC summary and minutes, december 2024",
+   "http": "200",
+   "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2024/december-2024"
+  },
+  {
+   "bytes": 96320,
+   "for": "BoE MPC summary and minutes, february 2025",
+   "http": "200",
+   "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2025/february-2025"
+  },
+  {
+   "bytes": 111841,
+   "for": "BoE MPC summary and minutes, march 2025",
+   "http": "200",
+   "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2025/march-2025"
+  },
+  {
+   "bytes": 97889,
+   "for": "BoE MPC summary and minutes, may 2025",
+   "http": "200",
+   "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2025/may-2025"
+  },
+  {
+   "bytes": 108492,
+   "for": "BoE MPC summary and minutes, june 2025",
+   "http": "200",
+   "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2025/june-2025"
+  },
+  {
+   "bytes": 95586,
+   "for": "BoE MPC summary and minutes, august 2025",
+   "http": "200",
+   "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2025/august-2025"
+  },
+  {
+   "bytes": 109100,
+   "for": "BoE MPC summary and minutes, september 2025",
+   "http": "200",
+   "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2025/september-2025"
+  },
+  {
+   "bytes": 101779,
+   "for": "BoE MPC summary and minutes, november 2025",
+   "http": "200",
+   "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2025/november-2025"
+  },
+  {
+   "bytes": 109960,
+   "for": "BoE MPC summary and minutes, december 2025",
+   "http": "200",
+   "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2025/december-2025"
+  },
+  {
+   "bytes": 103556,
+   "for": "BoE MPC summary and minutes, february 2026",
+   "http": "200",
+   "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2026/february-2026"
+  },
+  {
+   "bytes": 109536,
+   "for": "BoE MPC summary and minutes, march 2026",
+   "http": "200",
+   "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2026/march-2026"
+  },
+  {
+   "bytes": 102542,
+   "for": "BoE MPC summary and minutes, april 2026",
+   "http": "200",
+   "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2026/april-2026"
+  },
+  {
+   "bytes": 115120,
+   "for": "BoE MPC summary and minutes, june 2026",
+   "http": "200",
+   "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2026/june-2026"
+  },
+  {
+   "bytes": 104546,
+   "for": "BoE MPC summary and minutes, july 2026",
+   "http": "200",
+   "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2026/july-2026"
+  },
+  {
+   "bytes": 127417,
+   "for": "BoE MPC summary and minutes, september 2026",
+   "http": "200",
+   "url": "https://www.bankofengland.co.uk/monetary-policy-summary-and-minutes/2026/september-2026"
+  },
+  {
+   "bytes": 81919,
+   "for": "BoE MPC dates for 2026 and 2027",
+   "http": "200",
+   "url": "https://www.bankofengland.co.uk/monetary-policy/upcoming-mpc-dates"
+  },
+  {
+   "bytes": 18,
+   "for": "Yahoo crumb (after the fc.yahoo.com cookie)",
+   "http": "429",
+   "url": "https://query1.finance.yahoo.com/v1/test/getcrumb"
+  },
+  {
+   "bytes": 0,
+   "for": "Yahoo calendar-events: crumb 429",
+   "http": "failed",
+   "url": "yahoo flow"
+  }
+ ],
+ "summary": {
+  "boe": {
+   "events": 16,
+   "future": 2,
+   "not_standing_out": [],
+   "stand_out": 16
+  },
+  "cpi": {
+   "events": 24,
+   "future": 2,
+   "not_standing_out": [
+    "2024-12-11"
+   ],
+   "stand_out": 23
+  },
+  "ecb": {
+   "events": 16,
+   "future": 2,
+   "not_standing_out": [
+    "2025-01-30",
+    "2025-04-17",
+    "2025-07-24",
+    "2026-02-05"
+   ],
+   "stand_out": 12
+  },
+  "fomc": {
+   "events": 16,
+   "future": 2,
+   "not_standing_out": [],
+   "stand_out": 16
+  },
+  "nfp": {
+   "events": 24,
+   "future": 2,
+   "not_standing_out": [
+    "2025-04-04",
+    "2025-06-06"
+   ],
+   "stand_out": 22
+  }
+ },
+ "unexplained_0830_spikes_bp_day": [
+  [
+   33.9,
+   "2025-01-20"
+  ],
+  [
+   25.7,
+   "2025-06-12"
+  ],
+  [
+   23.7,
+   "2025-08-14"
+  ],
+  [
+   23.3,
+   "2024-10-17"
+  ],
+  [
+   22.6,
+   "2025-09-10"
+  ],
+  [
+   20.6,
+   "2025-01-14"
+  ],
+  [
+   15.8,
+   "2025-05-01"
+  ],
+  [
+   15.4,
+   "2024-11-15"
+  ],
+  [
+   13.8,
+   "2026-06-25"
+  ],
+  [
+   13.7,
+   "2025-05-29"
+  ],
+  [
+   13.5,
+   "2025-09-25"
+  ],
+  [
+   12.6,
+   "2024-12-05"
+  ],
+  [
+   12.3,
+   "2024-11-14"
+  ],
+  [
+   11.6,
+   "2025-06-05"
+  ],
+  [
+   10.6,
+   "2025-07-17"
+  ],
+  [
+   10.3,
+   "2025-02-14"
+  ],
+  [
+   10.0,
+   "2024-12-20"
+  ],
+  [
+   9.9,
+   "2026-09-30"
+  ],
+  [
+   9.7,
+   "2025-09-18"
+  ],
+  [
+   9.7,
+   "2025-03-05"
+  ],
+  [
+   9.6,
+   "2025-04-11"
+  ],
+  [
+   9.6,
+   "2025-01-16"
+  ],
+  [
+   8.9,
+   "2025-02-13"
+  ],
+  [
+   8.3,
+   "2025-01-06"
+  ],
+  [
+   8.1,
+   "2025-03-06"
+  ]
+ ],
+ "yahoo": {
+  "coverage_utc": null,
+  "events_checked": 0,
+  "how": "none: the live pull was refused and no saved pull exists",
+  "match": 0,
+  "mismatch": [],
+  "not_found": [],
+  "records": 0,
+  "uncovered": 106
+ }
+}

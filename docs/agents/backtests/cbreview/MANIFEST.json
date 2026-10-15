@@ -5,8 +5,8 @@
    "sha256": "8794108431fccf796163aad9f355fda4b73722ba1452a1370fac9dee5ebb9553"
   },
   "inputs/events.json": {
-   "bytes": 17730,
-   "sha256": "8224adda68c605de93b99a6e809220ab4e3db7a3fcf4f02bf84aecdf64aae6a3"
+   "bytes": 21126,
+   "sha256": "eaf570dd3875d065f1b4808cc4b2ee7d5c0c5e517f1b15e3099a686587cbdab8"
   },
   "inputs/lit_lines_1012_1014.json.gz": {
    "bytes": 151356,
@@ -15,6 +15,10 @@
   "inputs/lit_window_lines.json.gz": {
    "bytes": 70736,
    "sha256": "b8fc7c0d99d1bdb697c048e4793944d493c3aa2f4f3e3845e4261dcc0829abd9"
+  },
+  "inputs/release_calendar.json": {
+   "bytes": 40920,
+   "sha256": "ac5c36e6ae1d9edbb03dcfd5f77fbe66ce0d55b40ae0c684920c24b4b36bfd47"
   },
   "inputs/trips_lit_window.json": {
    "bytes": 1568,
@@ -49,8 +53,8 @@
    "sha256": "247c867fa0809157ec931d6832aad18515f5e51ff4f6b42a1d0d232c883b8f6c"
   },
   "scripts/build_manifest.py": {
-   "bytes": 3760,
-   "sha256": "fd4e5153c627f11033285d13904bd0852a9cd2f20434a8555a1c401811117bc3"
+   "bytes": 4069,
+   "sha256": "70e04e846d6f36b85586f1b262918c411061e61a1d0ed8ccc536da65d26e0845"
   },
   "scripts/calendar_events.py": {
    "bytes": 7762,
@@ -83,6 +87,10 @@
   "scripts/pull_cb_candles.py": {
    "bytes": 2091,
    "sha256": "b909efd4939f88987b05c42a230b69081604b02bcd7d43242783099e7d315cf7"
+  },
+  "scripts/release_calendar.py": {
+   "bytes": 23151,
+   "sha256": "fab8214b2af5d7cb1d377395832a2b03e8fa1daf3c5c6122d3e4387331f60dc2"
   },
   "scripts/replay_check.py": {
    "bytes": 3747,
@@ -126,7 +134,8 @@
   "sql/repair_minute_bars.sql: PROPOSED and not run (an update); see the write-up, section 2",
   "sql/export_lit_lines_1012_1014.sql (two chunks) -> scripts/pack_lines_1014.py -> inputs/lit_lines_1012_1014.json.gz; sql/export_trips_to_1014.sql -> inputs/trips_to_1014.json (2026-10-15 00:20 UTC)",
   "cd scripts; python3 -I pull_cb_candles.py  # keyless public Coinbase candles -> inputs/cb_implied_eurusd.json.gz (about 2 min)",
-  "cd scripts; python3 -I calendar_events.py  # -> inputs/events.json (the release calendar and its check against the market's move; BLS dates recalled, not fetched)",
+  "cd scripts; python3 -I calendar_events.py  # the first draft of the calendar (superseded by release_calendar.py)",
+  "cd scripts; python3 -I release_calendar.py # -> inputs/release_calendar.json and inputs/events.json: the Fed's, ECB's and BoE's own dates, the BLS dates as recalled (bls.gov refused) and checked, every URL tried; reads inputs/yahoo_calendar.json when a pull of Yahoo's calendar is saved there",
   "cd scripts; python3 -I fxlag.py            # -> results/fxlag.json",
   "cd scripts; python3 -I cbfast.py stage1    # -> results/cbfast_grid.json (about 25 min on four cores)",
   "cd scripts; python3 -I cbfast_events.py    # -> results/cbfast_events.json (about 3 min)",
@@ -136,6 +145,7 @@
  "study": "The Coinbase recorders and paper test's first days (2026-10-12): the read-only health and interim queries, the minute-record defect (the replay of bar 1 on the first lit day, as stored and with the lost extremes put back), the proposed repair, and CBK, PR5's frozen rule on Coinbase's history with one change at a time (rungs, a basis skew, weekends held); and, from 2026-10-15, CBFAST: what a fast-move / scheduled-release guard would have done (the release calendar, the FX-lag measurement, 164 guard variants on two 12-month spans, the 2026-10-14 day replayed on the engine's record)",
  "write_up": [
   "docs/agents/reviews/2026-10-12-coinbase-first-days.md",
-  "docs/agents/reviews/2026-10-15-coinbase-fast-move.md"
+  "docs/agents/reviews/2026-10-15-coinbase-fast-move.md",
+  "docs/agents/reviews/2026-10-15-coinbase-blackout.md"
  ]
 }
