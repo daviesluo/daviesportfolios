@@ -11,6 +11,7 @@ top_month_share 2026-03 0.5146
 years
 2025 n 19 mean -0.2680
 2026 n 999 mean -0.1058
+2025 has 19 trades. The FAIL evidence is the 2026 sample.
 neighbours
 h 72 thr 0.04 n 2079 markets 2079 mean -0.4306 p05 -0.5345 same_sign 1
 h 72 thr 0.03 n 2186 markets 2186 mean -0.4442 p05 -0.5412 same_sign 1

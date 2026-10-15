@@ -466,12 +466,15 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    positions or the −$30 stop; continue only if P&L > 0 AND Brier_agent < Brier_market. Never trade by hand in its wallet.
 
 16. **PMSTATARB S1 TOUCH-CAL is closed FAIL** (`reviews/2026-10-15-pm-statarb-verification.md`,
-    `backtests/pmstatarb/results/s1_verdict.txt`). Do not retune the threshold, horizons, seed, vol window, fee
-    formula or High/Low field rule. Title ends on or after 2026-09-01 stay out of sample. The September cursor
-    (key 4946930) was refused again at 2026-10-15T11:34:08Z; do not send it. A fill, only if Davies asks, comes
-    from the official Polymarket subgraph or on-chain settlement. S2, S3, S4, G3 and G4 are not started.
-    `scripts/g4_sources.py` was not run. Raw Gamma pages, prints and spot files are in `/tmp/pmstatarb-data` on
-    the machine that ran this, not in git.
+    `backtests/pmstatarb/results/s1_verdict.txt`). 2025 has 19 trades; the FAIL evidence is the 2026 sample.
+    Do not retune the threshold, horizons, seed, vol window, fee formula or High/Low field rule. Title ends on
+    or after 2026-09-01 stay out of sample. The September cursor (key 4946930) was refused again at
+    2026-10-15T11:34:08Z; do not send it. A fill, only if Davies asks, comes from the official Polymarket
+    subgraph or on-chain settlement. Family CSVs are off git: sha256, line count and pull time are in
+    `backtests/pmstatarb/MANIFEST.json`, and the bytes are `/tmp/pmstatarb-data/data/` on the machine that
+    pulled them, with the Gamma pages, prints and spot files. S2 starts after #242 is green, on its own
+    branch. S3 is a measurement. S4 is one snapshot on 2026-10-18, named in `FROZEN.md`, and not before.
+    `scripts/g4_sources.py` was not run.
 
 ## Machine and platform setup
 
@@ -672,6 +675,12 @@ window), its `script_sha256` and `source_sha256` equal to the script's and the w
 windows are pulled because the script takes every rulebook; they are described, never judged (prereg §2). B is empty
 (`basis/2026-10-15.json`, `[]`): every probe's `o15` and `o60` is recorded. C: 6 exits and 6 entries (10-05: 3 and 3),
 against the 150 the reading needs, so no reading. Nothing failed, so nothing is carried to next week's retry.
+
+### [2026-10-15 14:53 UTC] Platform: Grok | Model: grok-4.7
+- **PMSTATARB #242: family CSVs leave git, and the verdict names the thin 2025 sample.** Davies accepted
+  Claude's review. `data/*.csv` is deleted from the branch; the bytes are `/tmp/pmstatarb-data/data/`, with
+  sha256, line count and pull time in `MANIFEST.json`. `results/` and `s1_headline_trades.csv` stay. The
+  verdict adds that 2025 has 19 trades and the FAIL evidence is the 2026 sample. Same branch, not merged.
 
 ### [2026-10-15 13:22 UTC] Platform: Grok | Model: grok-4.7
 - **PMSTATARB S1 TOUCH-CAL fails its frozen bar and is closed.** Headline title ends 2025-01-01 through

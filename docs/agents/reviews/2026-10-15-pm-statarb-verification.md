@@ -36,6 +36,8 @@ and has the same mean ROI, because the fee scales with shares.
 | No market > 25% of dollar P&L; no title-end month > 50% | top market 0.97% (`0x0e72c85140387a895a145c8051b8defbae04bb49ea1ec30853a38959f957e268`); 2026-03 is 51.46% | fail on the month |
 | Each calendar year with trades, mean ROI ≥ −5% | 2025: n 19, mean −0.2680; 2026: n 999, mean −0.1058 | fail |
 
+2025 has 19 trades. The FAIL evidence is the 2026 sample.
+
 Neighbours, same sign as the headline:
 
 | Horizon | Threshold | Trades | Mean ROI | p05 |
@@ -126,14 +128,16 @@ August, not a measurement of the tail.
 
 ## What is committed
 
-`data/` holds the family CSVs and `touch_s1_universe.csv` built from the
-complete months through 2026-08 (47,426,290 bytes). The raw Gamma pages,
-the print tape and the spot files stay in `/tmp/pmstatarb-data` on the
-machine that ran the study. The print tape is larger than GitHub's file
-limit, so a re-run of `scripts/s1_touch.py` on another machine cannot
-rebuild `s1_verdict.txt` until those inputs are carried separately.
-`FROZEN.md` lands in this same commit as the verdict: it was written
-before the run and had not been committed yet.
+The verdict, the headline trades, the gap note and the scripts are in
+git. The family CSVs and `touch_s1_universe.csv` are not. Their bytes
+are `/tmp/pmstatarb-data/data/` on the machine that built them.
+`MANIFEST.json` records each file's sha256, its line count, the time
+`s1_prepare` wrote it, and the time the last complete Gamma month
+finished (`g1/2026-08.done`, 2026-10-15T01:20:45Z). The raw Gamma pages,
+the print tape and the spot files stay beside those CSVs. The print tape
+is larger than GitHub's file limit, so a re-run of `scripts/s1_touch.py`
+on another machine cannot rebuild `s1_verdict.txt` until those inputs
+are carried separately.
 
 ## Do not
 
