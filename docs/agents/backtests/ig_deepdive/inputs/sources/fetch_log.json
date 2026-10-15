@@ -1,0 +1,158 @@
+{
+ "fca_cfd_restrictions": {
+  "raw_bytes": 175539,
+  "raw_sha256": "f753e467692aafabfb9aa74ed2fbb7d2bf1e97637789bdab921f90c481e8c11b",
+  "read_date": "2026-10-15 15:42 UTC",
+  "status": 200
+ },
+ "hmrc_bim22020": {
+  "raw_bytes": 61862,
+  "raw_sha256": "071cd829e5818b485f403e54394ad43fafb9aa176b3151c9f6f4231f98defbc7",
+  "read_date": "2026-10-15 15:42 UTC",
+  "status": 200
+ },
+ "hmrc_cg56100": {
+  "raw_bytes": 65911,
+  "raw_sha256": "dc7470e0aa2615c53f99b1a812f13551a34537d4adb4b6052b252785218cf183",
+  "read_date": "2026-10-15 15:42 UTC",
+  "status": 200
+ },
+ "hmrc_cg56105": {
+  "raw_bytes": 62260,
+  "raw_sha256": "ca960e7d8d1674b39a837e028b76afd6aa22c894eed288186c68d39067d9a57a",
+  "read_date": "2026-10-15 15:42 UTC",
+  "status": 200
+ },
+ "ie_tca1997_s613": {
+  "raw_bytes": 32682,
+  "raw_sha256": "c94685fd176d106351818d7c7b7c05a0f23e45c498641a6ec519aee26dae2324",
+  "read_date": "2026-10-15 15:42 UTC",
+  "status": 200
+ },
+ "ig_uk_cfd_agreement": {
+  "raw_bytes": 665209,
+  "raw_sha256": "b212afec4d1227fe4d8e902a05664123eb9fdd9e22fe839c094d1d82b94f4e07",
+  "read_date": "2026-10-15 15:42 UTC",
+  "status": 200
+ },
+ "ig_uk_charges": {
+  "raw_bytes": 762982,
+  "raw_sha256": "75f7fa67c6c810ac4dd72186440647472b3f23a5a60eb523ed4b131d0ff598d5",
+  "read_date": "2026-10-15 15:41 UTC",
+  "status": 200
+ },
+ "ig_uk_gsl_cost": {
+  "raw_bytes": 89021,
+  "raw_sha256": "3528b6ee2952379e1ca34ddd3c760efa5ba37de7b60c4fd8549be640e30090b5",
+  "read_date": "2026-10-15 15:41 UTC",
+  "status": 200
+ },
+ "ig_uk_gsl_what": {
+  "raw_bytes": 101687,
+  "raw_sha256": "049847fcac842a96c07ec1ff633437732dc798dda0c18d7ee985118a93e95eb6",
+  "read_date": "2026-10-15 15:41 UTC",
+  "status": 200
+ },
+ "ig_uk_negative_balance": {
+  "raw_bytes": 89216,
+  "raw_sha256": "2d0bd87fac4d179a8afcee07ccd9132d5ac6f48fdb3ddd8f462867713aacc486",
+  "read_date": "2026-10-15 15:42 UTC",
+  "status": 200
+ },
+ "ig_uk_overnight_funding": {
+  "raw_bytes": 170034,
+  "raw_sha256": "d5bdf9a304151b5e103fd79144651933004c0173164eab3126a7e9d0f3b82b69",
+  "read_date": "2026-10-15 15:41 UTC",
+  "status": 200
+ },
+ "ig_uk_sb_agreement": {
+  "raw_bytes": 659235,
+  "raw_sha256": "fa648df015cc86769c8fa47c644ed75c6af58607789f206efbd3a092602dbf88",
+  "read_date": "2026-10-15 15:42 UTC",
+  "status": 200
+ },
+ "ig_uk_sb_forex": {
+  "raw_bytes": 537164,
+  "raw_sha256": "5aa0ede869ba4eaee91e9b8c1792c6ada92ed3e23167d6b650f3833d407982db",
+  "read_date": "2026-10-15 15:41 UTC",
+  "status": 200
+ },
+ "ig_uk_sb_indices": {
+  "raw_bytes": 533551,
+  "raw_sha256": "8f340b7dde0614ca61e99d2d834acebe6752950db8ed1fe989cfeb8b6d1ce351",
+  "read_date": "2026-10-15 15:41 UTC",
+  "status": 200
+ },
+ "ig_uk_sb_options": {
+  "raw_bytes": 301584,
+  "raw_sha256": "fe56649bd5b1e37680598d3a21e4fc3d39803d34b528ca699cdd7a25fbc0627d",
+  "read_date": "2026-10-15 15:41 UTC",
+  "status": 200
+ },
+ "ig_uk_weekend_trading": {
+  "raw_bytes": 762141,
+  "raw_sha256": "469655e0ab2700066e62557f18191906870087de266477c3d89227fd3be5ae00",
+  "read_date": "2026-10-15 15:41 UTC",
+  "status": 200
+ },
+ "labs_faq": {
+  "raw_bytes": 46910,
+  "raw_sha256": "df37c1b377e172a518c793a93fbdc23bb790e1eef48d0c4a73b8946a4b16de45",
+  "read_date": "2026-10-15 15:41 UTC",
+  "status": 200
+ },
+ "labs_getting_started": {
+  "raw_bytes": 46121,
+  "raw_sha256": "f657d25346c44b6d7bc3f1dec92b9299c0955201f68b51778cb40d425110e929",
+  "read_date": "2026-10-15 15:41 UTC",
+  "status": 200
+ },
+ "labs_ref_markets": {
+  "raw_bytes": 204388,
+  "raw_sha256": "dbb76150a0febe1a99b8066b2c689446b4ec56516ce97c567adf51225801096b",
+  "read_date": "2026-10-15 15:41 UTC",
+  "status": 200
+ },
+ "labs_ref_markets_epic": {
+  "raw_bytes": 530378,
+  "raw_sha256": "3f8161d05e41ed59ad911ed869f050e09929c7423291b02320af3470ef7b7b19",
+  "read_date": "2026-10-15 15:41 UTC",
+  "status": 200
+ },
+ "labs_ref_prices": {
+  "raw_bytes": 94735,
+  "raw_sha256": "de171d8aefce79da8428b718de35c03d69487b8400d6091ac88e51073df966a0",
+  "read_date": "2026-10-15 15:41 UTC",
+  "status": 200
+ },
+ "labs_ref_session": {
+  "raw_bytes": 216021,
+  "raw_sha256": "ffe1687cb134334f331f2c8149e7a0cfdb1fe3fa14b04d119f2bf55c476116ff",
+  "read_date": "2026-10-15 15:41 UTC",
+  "status": 200
+ },
+ "labs_rest_guide": {
+  "raw_bytes": 48500,
+  "raw_sha256": "47fa7e3acb8870a56219387763c4b35ec20982da15e619166508ae75db22ef29",
+  "read_date": "2026-10-15 15:41 UTC",
+  "status": 200
+ },
+ "labs_rest_reference": {
+  "raw_bytes": 108238,
+  "raw_sha256": "700f3389eeedf12723d5b85ddba1a7841934d46218322243b6f464a1dce97a34",
+  "read_date": "2026-10-15 15:41 UTC",
+  "status": 200
+ },
+ "labs_streaming_guide": {
+  "raw_bytes": 49291,
+  "raw_sha256": "f09f614b57547f38936591b554640d33ebe28d0e09255655dff310d14bf3fbc7",
+  "read_date": "2026-10-15 15:41 UTC",
+  "status": 200
+ },
+ "uk_tcga1992_s51": {
+  "raw_bytes": 37883,
+  "raw_sha256": "c76fbbe5bc9709ce6207ad930041d33a5f17c818a31ed078318aea19417bd5ac",
+  "read_date": "2026-10-15 15:42 UTC",
+  "status": 200
+ }
+}

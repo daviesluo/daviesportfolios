@@ -7,12 +7,200 @@
    "sha256": "5adacf70708e6a643dff7dfb40b12f9fd85888758e1aab9599ce341eeb7f62d1"
   },
   {
+   "path": "inputs/fxcm_paths/AUDUSD_trades_m1.csv.gz",
+   "sha256": "bdbd0f68b33d717d4aa702279b293eec18040e17db8d940e6219a1b591833fd9"
+  },
+  {
+   "path": "inputs/fxcm_paths/pull_log.json",
+   "sha256": "18792af0c1d0d757cbbd12cbbde41ce80f03261028ce69baba3a2ebe488afac6"
+  },
+  {
+   "path": "inputs/search/fred_IR3TIB01HUM156N.csv.gz",
+   "sha256": "560d760d4e8a5593523a7b424969368f3c23b70a175d9802fb2dfe50c0194c69"
+  },
+  {
+   "path": "inputs/search/fred_IR3TIB01MXM156N.csv.gz",
+   "sha256": "7c63248d8d0b4c13c22c43eb13b8a92316758b634eead0552233ca731f56679e"
+  },
+  {
+   "path": "inputs/search/fred_IR3TIB01PLM156N.csv.gz",
+   "sha256": "4a19efdc2a6410c864d4b218e272a837b394a93e0012b4ac88dc4db13fbd318a"
+  },
+  {
+   "path": "inputs/search/fred_IR3TIB01USM156N.csv.gz",
+   "sha256": "3ad01d14cba7cf946660ba8665aa6371530a9dece1bfc790a51d8d34a0fd6902"
+  },
+  {
+   "path": "inputs/search/fred_IR3TIB01ZAM156N.csv.gz",
+   "sha256": "d03c70da40bdbbfb28df6ea8f53d8d3933b953c9d289e2bebafd2e1d5df03eac"
+  },
+  {
+   "path": "inputs/search/fred_SOFR.csv.gz",
+   "sha256": "fa7b43a546e68a156a658ac06fe9627eb369581ab24a340e47d8a0bf28acb635"
+  },
+  {
+   "path": "inputs/search/pull_log.json",
+   "sha256": "1d76313eacd7884fadcd48240061b08d77ca9c46a01eea0aad7856b00c16992f"
+  },
+  {
+   "path": "inputs/search/yahoo_1d_USDHUF=X.json.gz",
+   "sha256": "5c7c1cac9db5a713a63bf06b88b54289dc27a03e90571ff290266594d60f5dcb"
+  },
+  {
+   "path": "inputs/search/yahoo_1d_USDMXN=X.json.gz",
+   "sha256": "493459eb152b2048f83bc631da85e0809c5fa4be9accbaca4491152711deda40"
+  },
+  {
+   "path": "inputs/search/yahoo_1d_USDPLN=X.json.gz",
+   "sha256": "8c1a0e2103a44c18461b7e4951a12e1401767bb2a5c9530dd780bb1974d8b94f"
+  },
+  {
+   "path": "inputs/search/yahoo_1d_USDZAR=X.json.gz",
+   "sha256": "4e6eb411359a015c15e9fb60e519c15a46f7d31f2b068dcfa5c0ef65dc9ddb8e"
+  },
+  {
+   "path": "inputs/search/yahoo_1h_QQQ.json.gz",
+   "sha256": "72f9b02d0b1b6fae7a244feed8225b704bdca5370bbd2ae1775aae43025b3898"
+  },
+  {
+   "path": "inputs/search/yahoo_1h_SPY.json.gz",
+   "sha256": "99a095fa7e6b2618374aecd7fcf18d43b3e322751a84a3b60639ea91563160e4"
+  },
+  {
+   "path": "inputs/sources/facts.csv",
+   "sha256": "5f1ad05c86d716ea6c9c04849e32cdd3716a01374e462e71e0833bc18f0a16b2"
+  },
+  {
+   "path": "inputs/sources/fca_cfd_restrictions.txt.gz",
+   "sha256": "a3024874dd48b3b705521aae4c9078ec62e9eb9b2a0f5036f06a8d7a305c26f5"
+  },
+  {
+   "path": "inputs/sources/fetch_log.json",
+   "sha256": "71ba1c86890046fa1703f8aa5e5a75fe7aeb5de731c037e6b437eb771f349ee7"
+  },
+  {
+   "path": "inputs/sources/hmrc_bim22020.txt.gz",
+   "sha256": "559bb9aaa72511eb6ce2175011afdd389cbb4136cdeaaeb823a02120c3da8946"
+  },
+  {
+   "path": "inputs/sources/hmrc_cg56100.txt.gz",
+   "sha256": "e4058f85a4da68771b5ae9e5f9f32f2740d26a836d10098a9dcbf1c5bf9e40d6"
+  },
+  {
+   "path": "inputs/sources/hmrc_cg56105.txt.gz",
+   "sha256": "1020f4b4701313644a8d37961cfb171be80a05ed7cdab1436598b97279e6de2c"
+  },
+  {
+   "path": "inputs/sources/ie_tca1997_s613.txt.gz",
+   "sha256": "4ae81ed97ae1e655970465cd2c44a2e2f8deadddc0ff99611b8a44d618494ce3"
+  },
+  {
+   "path": "inputs/sources/ig_uk_cfd_agreement.txt.gz",
+   "sha256": "f43997d81e42fe6215237cf9b4a668a56d9bf0311936d041d0f9d6dbd09b25bb"
+  },
+  {
+   "path": "inputs/sources/ig_uk_charges.txt.gz",
+   "sha256": "e491bcc3814a24b69fef2cc0be3733dadef057934caed91c83782bf69983b049"
+  },
+  {
+   "path": "inputs/sources/ig_uk_gsl_cost.txt.gz",
+   "sha256": "df0311f6c56dd4c6a0666f8419c8672a429596f77d41a4f6aa18618bf8d111b4"
+  },
+  {
+   "path": "inputs/sources/ig_uk_gsl_what.txt.gz",
+   "sha256": "7bedef08e7f6fb14f995f0114cbabfaf236208ec71dd18229d216a30b9c939ce"
+  },
+  {
+   "path": "inputs/sources/ig_uk_negative_balance.txt.gz",
+   "sha256": "c84dc106910117cb00fa7ddf1243bdcb82cdda0005ec956dbd65ac4cbd4ab1bb"
+  },
+  {
+   "path": "inputs/sources/ig_uk_overnight_funding.txt.gz",
+   "sha256": "9c6fc6c955bf75ec75697a2d824ac490acaba9081b9f13a20ba7af927209dd86"
+  },
+  {
+   "path": "inputs/sources/ig_uk_sb_agreement.txt.gz",
+   "sha256": "58e8729d044ccb65eb1fc004f29ecad3f7674847d6a315f3cac55a1f09a3f135"
+  },
+  {
+   "path": "inputs/sources/ig_uk_sb_forex.txt.gz",
+   "sha256": "44dd013871a5cd0f4ff8a53b46bf7632ac066ff3a94f954fa871fc214d10d146"
+  },
+  {
+   "path": "inputs/sources/ig_uk_sb_indices.txt.gz",
+   "sha256": "23ce45723a20adee051bb99114ac6dea47c0ba34690f9e40a4b594f75850f573"
+  },
+  {
+   "path": "inputs/sources/ig_uk_sb_options.txt.gz",
+   "sha256": "aa50450771ae3127db2875f6644bedd78d8eb2a758598a31626f3eb2c6bb8c2d"
+  },
+  {
+   "path": "inputs/sources/ig_uk_weekend_trading.txt.gz",
+   "sha256": "fb089ff5783a46463b4de8b101aa87d74183a62de63960190466b95ce7d65b9b"
+  },
+  {
+   "path": "inputs/sources/labs_faq.txt.gz",
+   "sha256": "bcdc34c3780e985497a0dfebf6b5b016f3854ad8b84bf0c0830ec8eac1ab191a"
+  },
+  {
+   "path": "inputs/sources/labs_getting_started.txt.gz",
+   "sha256": "d9e8bb6c5e4d9b6a1f2c0d05a31eb97b9ba94e294f1427ec4b61f2ea409584c1"
+  },
+  {
+   "path": "inputs/sources/labs_ref_markets.txt.gz",
+   "sha256": "29db30766d4321d0b6e68291cf5be48ef380556685ab06bb1cd0772272548358"
+  },
+  {
+   "path": "inputs/sources/labs_ref_markets_epic.txt.gz",
+   "sha256": "803bc8c455afaea5ceacbc946483c80e6aeb88b48348988d9cc332fa6d08f45e"
+  },
+  {
+   "path": "inputs/sources/labs_ref_prices.txt.gz",
+   "sha256": "788a0c83b216a1e1e92722b055d51d949cabf782f7321bf1ecaaabaa8c4d0b37"
+  },
+  {
+   "path": "inputs/sources/labs_ref_session.txt.gz",
+   "sha256": "e8b90e06878af6b6591406072d4890171e538efb22c0f1aa0207b4ae5cb974ef"
+  },
+  {
+   "path": "inputs/sources/labs_rest_guide.txt.gz",
+   "sha256": "a2f8126e34455f0c7865ae7b5a064ef9179dffad0ee5ce7bbba42eaa556c7538"
+  },
+  {
+   "path": "inputs/sources/labs_rest_reference.txt.gz",
+   "sha256": "a3dd8af35b88f3e0dadb6c84f3aeafab6dad204d70a3a4bf71639eca0fdc8a73"
+  },
+  {
+   "path": "inputs/sources/labs_streaming_guide.txt.gz",
+   "sha256": "b178ca8e0f6a24aaa5f7aa38489d1bd98d782e9281b32429d06bc8c858ec1a17"
+  },
+  {
+   "path": "inputs/sources/source_index.csv",
+   "sha256": "63d6fe43b559cd36d64714db1d73977eb6c0c83cee6c17ff4d25333b8a9417ad"
+  },
+  {
+   "path": "inputs/sources/uk_tcga1992_s51.txt.gz",
+   "sha256": "af9cdc27c0a5282f0d4a8e54e35fca39fceb556197bce9f4bc2c33a2f3d53452"
+  },
+  {
    "path": "params/g2_s1a_frozen.json",
    "sha256": "5ad020bfe8356a0f841d2c2d5ea8e8f48b2f9be92d57abdc57107e3d05878a38"
   },
   {
+   "path": "results/fxw_paths.json",
+   "sha256": "d6ce7ed5bd0f0ad1dc929f84089a27088d2a7ca04d9ef4ee83e030b7d09960a1"
+  },
+  {
    "path": "results/fxw_risk.json",
    "sha256": "66e279db3b5facaee6ef6ffaa5901d387437606f956a921f151d1abcefe53e78"
+  },
+  {
+   "path": "results/g3_replication.json",
+   "sha256": "3caf93e3ad1e4159022b88b60889adafc7c6b5d0c2804c7bc9f794d4891e1546"
+  },
+  {
+   "path": "results/ig_search.json",
+   "sha256": "8fae95c3a8730d560f1ff464cbe282cf834bd40eb2591a470334686f910ceaaf"
   },
   {
    "path": "results/vol_gated.json",
@@ -23,8 +211,32 @@
    "sha256": "806b4c632600167320ab99d03c3c16fe9244b986bbb11361826609972ade39d6"
   },
   {
+   "path": "scripts/fxw_paths.py",
+   "sha256": "71d0a0837d9a4295ba3779018f905d7bcfe4e580e307f6721318f1931c1fdd9c"
+  },
+  {
    "path": "scripts/fxw_risk.py",
    "sha256": "1fcb52407e7e73474f0bc1f201127cd05fa12af41819c3f0d18391b47fd4a532"
+  },
+  {
+   "path": "scripts/g0_sources.py",
+   "sha256": "a5fbfde4cb8c8bc61acc406d8a267c901bd10debcbba3cafdb2a8aec686b9b20"
+  },
+  {
+   "path": "scripts/g3_replicate.py",
+   "sha256": "45d9f010904f8cd4c5f9b63ddcf860f86685d53d11e19c2104b576691f3c8f3f"
+  },
+  {
+   "path": "scripts/ig_parse.py",
+   "sha256": "ac48214a357841ceb123083345418f34b62c2a210357dafb3b1f7bef05fd818d"
+  },
+  {
+   "path": "scripts/ig_search.py",
+   "sha256": "6f905190714c135919568de35e1c037b5632c83740c98b40a08a966a44d198a7"
+  },
+  {
+   "path": "scripts/s1a_transfer.py",
+   "sha256": "d4a2f81ae3a312e93089811ab85ea73b7f4660cf94d2a75eb880bcee922b5295"
   },
   {
    "path": "scripts/vol_gated.py",

@@ -1,0 +1,318 @@
+{
+ "CARRY": {
+  "fee_0.8pct": {
+   "CARRY_BASKET": {
+    "annual_pct": 0.17,
+    "annual_vol_pct": 10.33,
+    "first_half_mean_bps": -16.395,
+    "hit": 0.538,
+    "max_drawdown_pct": -41.0,
+    "mean_bps": 1.389,
+    "n": 262,
+    "second_half_mean_bps": 19.174,
+    "sharpe": 0.02,
+    "t": 0.08
+   },
+   "per_pair_described": {
+    "HUF": {
+     "annual_pct": 0.67,
+     "annual_vol_pct": 12.54,
+     "first_half_mean_bps": 19.929,
+     "hit": 0.526,
+     "max_drawdown_pct": -60.0,
+     "mean_bps": 7.53,
+     "n": 194,
+     "second_half_mean_bps": -4.869,
+     "sharpe": 0.05,
+     "t": 0.25
+    },
+    "MXN": {
+     "annual_pct": 1.66,
+     "annual_vol_pct": 11.68,
+     "first_half_mean_bps": -4.564,
+     "hit": 0.576,
+     "max_drawdown_pct": -43.4,
+     "mean_bps": 13.815,
+     "n": 262,
+     "second_half_mean_bps": 32.194,
+     "sharpe": 0.14,
+     "t": 0.66
+    },
+    "PLN": {
+     "annual_pct": -0.87,
+     "annual_vol_pct": 11.46,
+     "first_half_mean_bps": -22.186,
+     "hit": 0.51,
+     "max_drawdown_pct": -58.9,
+     "mean_bps": -12.326,
+     "n": 153,
+     "second_half_mean_bps": -2.595,
+     "sharpe": -0.08,
+     "t": -0.35
+    },
+    "ZAR": {
+     "annual_pct": -0.8,
+     "annual_vol_pct": 15.55,
+     "first_half_mean_bps": -36.33,
+     "hit": 0.527,
+     "max_drawdown_pct": -67.6,
+     "mean_bps": -6.635,
+     "n": 262,
+     "second_half_mean_bps": 23.06,
+     "sharpe": -0.05,
+     "t": -0.24
+    }
+   },
+   "since_2015": {
+    "annual_pct": 0.91,
+    "annual_vol_pct": 7.58,
+    "first_half_mean_bps": -8.538,
+    "hit": 0.538,
+    "max_drawdown_pct": -18.1,
+    "mean_bps": 7.566,
+    "n": 143,
+    "second_half_mean_bps": 23.447,
+    "sharpe": 0.12,
+    "t": 0.41
+   },
+   "worst_months_pct": [
+    [
+     "2008-09",
+     -15.46
+    ],
+    [
+     "2011-08",
+     -12.13
+    ],
+    [
+     "2009-01",
+     -11.7
+    ],
+    [
+     "2012-04",
+     -10.53
+    ],
+    [
+     "2020-03",
+     -8.1
+    ],
+    [
+     "2010-04",
+     -7.12
+    ]
+   ]
+  },
+  "fee_1.5pct": {
+   "CARRY_BASKET": {
+    "annual_pct": -0.28,
+    "annual_vol_pct": 10.17,
+    "first_half_mean_bps": -19.877,
+    "hit": 0.531,
+    "max_drawdown_pct": -45.7,
+    "mean_bps": -2.294,
+    "n": 262,
+    "second_half_mean_bps": 15.29,
+    "sharpe": -0.03,
+    "t": -0.13
+   },
+   "per_pair_described": {
+    "HUF": {
+     "annual_pct": 0.43,
+     "annual_vol_pct": 12.3,
+     "first_half_mean_bps": 23.2,
+     "hit": 0.525,
+     "max_drawdown_pct": -63.1,
+     "mean_bps": 5.294,
+     "n": 177,
+     "second_half_mean_bps": -12.411,
+     "sharpe": 0.03,
+     "t": 0.16
+    },
+    "MXN": {
+     "annual_pct": 0.96,
+     "annual_vol_pct": 11.68,
+     "first_half_mean_bps": -10.399,
+     "hit": 0.565,
+     "max_drawdown_pct": -48.9,
+     "mean_bps": 7.991,
+     "n": 262,
+     "second_half_mean_bps": 26.381,
+     "sharpe": 0.08,
+     "t": 0.38
+    },
+    "PLN": {
+     "annual_pct": -1.0,
+     "annual_vol_pct": 10.89,
+     "first_half_mean_bps": -41.241,
+     "hit": 0.524,
+     "max_drawdown_pct": -62.1,
+     "mean_bps": -17.501,
+     "n": 124,
+     "second_half_mean_bps": 6.24,
+     "sharpe": -0.09,
+     "t": -0.43
+    },
+    "ZAR": {
+     "annual_pct": -1.5,
+     "annual_vol_pct": 15.55,
+     "first_half_mean_bps": -42.165,
+     "hit": 0.519,
+     "max_drawdown_pct": -71.0,
+     "mean_bps": -12.459,
+     "n": 262,
+     "second_half_mean_bps": 17.246,
+     "sharpe": -0.1,
+     "t": -0.45
+    }
+   },
+   "since_2015": {
+    "annual_pct": 0.54,
+    "annual_vol_pct": 7.23,
+    "first_half_mean_bps": -10.261,
+    "hit": 0.538,
+    "max_drawdown_pct": -20.2,
+    "mean_bps": 4.461,
+    "n": 143,
+    "second_half_mean_bps": 18.979,
+    "sharpe": 0.07,
+    "t": 0.26
+   },
+   "worst_months_pct": [
+    [
+     "2008-09",
+     -15.52
+    ],
+    [
+     "2011-08",
+     -12.19
+    ],
+    [
+     "2009-01",
+     -11.76
+    ],
+    [
+     "2012-04",
+     -10.59
+    ],
+    [
+     "2020-03",
+     -8.16
+    ],
+    [
+     "2010-04",
+     -7.18
+    ]
+   ]
+  },
+  "first": "2005-01-01",
+  "last": "2026-10-15",
+  "latest_differentials_pct": {
+   "HUF": 1.57,
+   "MXN": 2.97,
+   "PLN": 0.0,
+   "ZAR": 3.01
+  },
+  "months": 263,
+  "unit": "a calendar month: mean_bps is a month's return; annual figures scale by months a year"
+ },
+ "FUND": {
+  "long_dfb_funding_pct_a_year": 7.28,
+  "missed_2100_2300_uk_weekday_bps": {
+   "first_half_mean_bps": -0.041,
+   "hit": 0.493,
+   "mean_bps": 0.285,
+   "n": 434,
+   "second_half_mean_bps": 0.612,
+   "t": 0.28
+  },
+  "missed_weekend_gap_bps": {
+   "first_half_mean_bps": -4.992,
+   "hit": 0.474,
+   "mean_bps": -5.113,
+   "n": 116,
+   "second_half_mean_bps": -5.235,
+   "t": -1.26
+  },
+  "note": "a cost comparison for holding index beta on a DFB, not an edge; needing two dealt trades a day, it falls under Term 9(12)'s consent (F39) if automated",
+  "sofr_latest": [
+   "2026-10-14",
+   3.88
+  ],
+  "step_out_cost_pct_a_year": 1.95
+ },
+ "IM": {
+  "QQQ": {
+   "IM_QQQ": {
+    "annual_pct": -2.12,
+    "annual_vol_pct": 4.28,
+    "first_half_mean_bps": -2.023,
+    "hit": 0.478,
+    "max_drawdown_pct": -8.8,
+    "mean_bps": -0.84,
+    "n": 719,
+    "second_half_mean_bps": 0.338,
+    "sharpe": -0.49,
+    "t": -0.84
+   },
+   "IM_QQQ_BIG": {
+    "annual_pct": -0.7,
+    "annual_vol_pct": 3.38,
+    "first_half_mean_bps": -1.948,
+    "hit": 0.465,
+    "max_drawdown_pct": -5.1,
+    "mean_bps": -0.556,
+    "n": 327,
+    "second_half_mean_bps": 0.827,
+    "sharpe": -0.21,
+    "t": -0.33
+   },
+   "cost_bps": 0.325,
+   "days": 719,
+   "first": "2023-11-17",
+   "last": "2026-10-14",
+   "slope_last_on_first": -0.0011
+  },
+  "SPY": {
+   "IM_SPY": {
+    "annual_pct": -2.71,
+    "annual_vol_pct": 3.43,
+    "first_half_mean_bps": -2.052,
+    "hit": 0.478,
+    "max_drawdown_pct": -9.3,
+    "mean_bps": -1.074,
+    "n": 719,
+    "second_half_mean_bps": -0.1,
+    "sharpe": -0.79,
+    "t": -1.33
+   },
+   "IM_SPY_BIG": {
+    "annual_pct": -2.7,
+    "annual_vol_pct": 2.59,
+    "first_half_mean_bps": -2.774,
+    "hit": 0.461,
+    "max_drawdown_pct": -7.6,
+    "mean_bps": -2.145,
+    "n": 334,
+    "second_half_mean_bps": -1.515,
+    "sharpe": -1.04,
+    "t": -1.7
+   },
+   "cost_bps": 0.515,
+   "days": 719,
+   "first": "2023-11-17",
+   "last": "2026-10-14",
+   "slope_last_on_first": -0.0095
+  }
+ },
+ "TAX": {
+  "FXW at 20 bps, a year of notional, CGT 18 %": {
+   "cfd_net_pct_if_gains_taxed": 0.97,
+   "spread_bet_net_pct": 1.18
+  },
+  "FXW at 20 bps, a year of notional, CGT 24 %": {
+   "cfd_net_pct_if_gains_taxed": 0.9,
+   "spread_bet_net_pct": 1.18
+  },
+  "note": "a spread bet's gain is untaxed and its loss unrelievable (F31, F33); a CFD's gain is taxed and its loss allowable; Irish s.613(2) reads the same for betting winnings (F35); whether systematic betting is a trade (F34) and which country taxes Davies are for an adviser"
+ }
+}

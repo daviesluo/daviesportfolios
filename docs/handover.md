@@ -45678,3 +45678,97 @@ reversed to this Part's convention of newest last. Nothing was deleted.
   current. Item 12b updated. Post-deploy check: `startedAt` 2026-10-13, `last_minute` ~2 min behind, no
   `agents.cb_hold` errors (this session reads production through the site's agents payload, having no SQL connector;
   the SQL form is in item 12b).
+
+
+## LEDGER.md, archived 2026-10-15 (third) — the 2026-10-14 01:09 → 06:46 UTC history sections, oldest first
+
+### [2026-10-14 01:09 UTC] Platform: Muse | Model: muse-wonder-full-1.0
+- **Euros - 2 verified running; the live/testing review landed; one display defect fixed** (Davies' three instructions
+  of the evening, in order). At 21:22 UTC `0121` is applied and Euros - 2 has decided every minute from 00:00
+  (5,120 rows, lag 3 min, no `agents.cb_hold` error): the "1022 min ago" Davies saw was its 60-minutes-a-run catch-up,
+  current by about 21:20. **The review** (`reviews/2026-10-13-live-testing-review.md`, read-only production reads
+  21:22–21:45, no config touched): the page's "REWARDS TODAY (EST.) $0 – $0" is a bug — `readLpLive`'s one-page read
+  of `pm_lp_live_hours` (1,555 rows in 48 h) stopped at today 05:00, before every scored minute; with all rows the
+  tile reads about $0.28–$1.01 ($0.98 of scored formula). Fixed here with a pin that fails on the old read (paged
+  reads for the hours and the selection, their keys in `PAGED_KEYS`); display only. Q2's first eight hours: stop room
+  $20.83 of $25, 14 fills (closed trips −5.3 ¢ a share, 60-minute markout about zero at n=14), 284 both-scoring
+  minutes, 9 of 10 refills spent by 17:35, programme rates decaying under the $10 floor for most minutes — the review
+  prices the candidates (programme stability, refill allowance, exit) as studies for after Addendum 19's bar, and
+  gives every live/testing row a keep/cut/change verdict with six decisions for Davies (§3 there; D1 keep Q2 to its
+  day-14 bar). Postscript read at 2026-10-14 01:08 before this landed: the 10-13 payout booked $0.8921 on $1.2409 of
+  formula (R 0.72 whole — quiet books pay at the old books' rate; scoring minutes are the shortfall), rebates $0.6175;
+  fills since the restart −$10.91 and the stop's room $15.60, so a first full day closing below −$10 is reported the
+  same night, not at day 7. Euros - 2's first day closed at 510 orders, 2 trips, +£0.0851, still current at 01:08.
+  Nothing live was armed, disarmed, resized or written.
+
+### [2026-10-14 01:36 UTC] Platform: Muse | Model: muse-wonder-full-1.0
+- **The `?pwd=` bookmark's "This site can't be reached" is fixed at the service worker** (Davies, same morning: the
+  bookmark failed while typing daviesluo.com worked). The asymmetry: `/` is answered by the precache route itself,
+  but `/?pwd=…` fell through to Workbox's NavigationRoute bound to `index.html`; on a precache miss (the banner
+  purge, cleared site data, storage eviction — all leave the worker registered with an empty precache) that handler
+  fetches `/index.html`, which production answers with a 308 to `/` (measured), and a redirected response cannot
+  satisfy a navigation request. The root's own miss-fetch is a plain 200, so the root kept working. Now the fallback
+  is bound to `/` and precache matching ignores `pwd` (`vite.config.js`), pinned twice: a unit pin on the generated
+  `dist/sw.js` (fails on the old worker, checked) and a sweep check that deletes every cache under a controlling
+  worker and opens the deep link, with the sweep's server serving production's 308 for `/index.html`. If the
+  bookmark still fails on Davies' browser after this deploy, the `ERR_…` code at the foot of Chrome's error page
+  distinguishes what is left (DNS would be a different fix, outside the repo).
+
+### [2026-10-14 02:02 UTC] Platform: Muse | Model: muse-wonder-full-1.0
+- **PMSTATARB: the Polymarket statistical-arbitrage line taken stock of, two historical tests proposed** (Davies: absorb
+  the earlier Claude/Cursor stat-arb research and look for new candidates worth testing; `reviews/2026-10-14-pm-statarb-deepdive.md`,
+  snapshots in `backtests/pmstatarb/`). What stands closed, with its evidence: every locked identity (sets, ladders,
+  YES+NO), favourites (out of sample), weather, sub-second crypto (PMSC), disputes, DEADLINE-NO (its frozen 2024
+  test). Tonight's new measurement closes one more locked form — touch against terminal at the same strike: 45
+  properly nested pairs under their settlement windows (Binance High over the title day vs the noon Close), none
+  locks its $1 under $1 after fees (best 1.0079); the cheaper pairs are window mismatches. Bucket partitions sum to
+  0.99–1.07 at mids. What is proposed, historical-first and unfrozen: TOUCH-CAL (touch calibration against the
+  reflection relation at prints) then BUCKET-DIST (bucket distribution shape against a lognormal), a KALSHI-LEAD
+  lead-lag measurement (both minute series verified keyless), and a SPORTS-XCHECK snapshot; the mechanical pulls are
+  packaged as G1–G4 for another engineer in §5 of the review (no peer session was reachable from here). Decisions
+  for Davies are §6 there. Research only: nothing built, armed or written to production.
+
+### [2026-10-14 02:09 UTC] Platform: Muse | Model: muse-wonder-full-1.0
+- **PMSTATARB handoff written** (Davies: each item's requirements and standards clear for Grok to verify).
+  `backtests/pmstatarb/SPEC-for-verification.md` freezes the order, endpoints, entry hours, model, fill rule,
+  neighbour parameters, five-part bars, acceptance checks and Chinese report shape for G1–G4 and TOUCH-CAL,
+  BUCKET-DIST, KALSHI-LEAD and SPORTS-XCHECK. No peer session was reachable from this seat; the file is the handoff.
+
+### [2026-10-14 03:23 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Q2-PM, why Q2 lost on day 1** (`reviews/2026-10-14-q2-day1-postmortem.md`, `backtests/lpbest/`; "为什么还在亏"):
+  13:26 → 01:59 live −$8.51. Against LP-BEST's +1.76 for the span: window −3.33; live's refill on a programme dip −4.80
+  (refills lost $8.10 of $10.67), unpriced by LP-BEST; rewards −1.39 (x2's pause trips 13× the engine's: −0.87); fills
+  −0.76. Rates re-price ~every 14 min, 89–98 % of quiet books dip under $10 daily, TRAIN/TEST alike; not caused by us.
+  10-05 → 10-12: no refills beats live's +$2.27/day [+1.59, +2.88], 8/8 days; calibrated −0.74 → +1.47/day, 1.53 ¢/share.
+  Proposal (Davies' call): Addendum 22, `PM_LP_REFILL.maxPerDay` 10 → 0, or stop. Nothing live changed.
+
+### [2026-10-14 03:47 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Addendum 22, no refills** (Davies: "同意 Addendum 22（取消补选）", on `reviews/2026-10-14-q2-day1-postmortem.md`, landed
+  `3b7343e6`): `PM_LP_REFILL.maxPerDay` 10 → 0 and the idle alarm 30 → 360 minutes (with refills off it would fire every
+  half hour a quiet book sits out). A dipped pick keeps its slot and quotes again when its programme is back. The refill
+  mechanism stays in `pm_live.ts` (unchanged, its tests on Addendum 21's numbers, `A21_REFILL`); a new pin fails on the old
+  constants. Also this sitting: Muse's four commits of 10-13/14 reviewed (0121, the paged live-hours read, the `?pwd=`
+  service-worker fix, PMSTATARB): no fault found, CI and deploys green, Euros - 2 deciding since 10-13 00:00; its reading
+  reminder moved to 11-10 00:40 (`trig_01BFEc2udBJhBFvKbdSBZgv9`); the 10-11 history archived.
+
+### [2026-10-14 04:17 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **SCQ-1014, every stablecoin quotes row reviewed, not blind, no reading** (Davies: "我看variant-2比stablecoin quotes表现好不少？";
+  `reviews/2026-10-14-stablecoin-quotes-review.md`, `backtests/scq_review/2026-10-14/`). Variant-2 leads per pound, not in
+  pounds; at £50 a rung +£1.46 over "Stablecoin quotes": size £1.05, TAKE's 5 takes net +£0.21 (not beyond noise, none
+  since 10-08), the twins' turn timing £0.19 (one refused exit, 10-13). LIVE tracks its twin (+£0.001 a day at £50, ±0.12);
+  realised +£0.28, coins marked −£0.37. **For 10-21: PR5's paper engine logged 714 orders on 10-01 (`agent_quote_days`),
+  over its spec's condition 5 (700).** The twins pay ~£0.02 a £0.10-print trip that LIVE does not (state it in readouts).
+  Proposals only: LIVE's size at 10-21; stop `pr5` after 10-21 and `d` after 10-28 unless rule D passes; add nothing.
+
+### [2026-10-14 06:46 UTC] Platform: Muse | Model: muse-wonder-full-1.0
+- **IG deep dive: no live-ready strategy; one venue-transfer test and one quote-discovery test survive**
+  (Davies: apply the PMSTATARB research and handoff architecture to IG CFD/spread betting, with real risk only
+  after deep research). `reviews/2026-10-14-ig-deepdive.md` and `backtests/ig_deepdive/` add two reproducible
+  measurements. FXW-AUD is pair-specific (EUR flat, GBP/JPY negative), positive in all four era splits and at
+  12/20/30 bp assumed spreads, but a 60-minute entry delay leaves only +3.06 bps at 20 bp (t 0.66) and its
+  maximum adverse excursion is 440.1 bps against a worst finished trade of -129.3 bps; the earlier leverage-12
+  illustration is therefore explicitly not carried forward. Public IV-minus-RV gates worsen daily/weekly model
+  straddle sales at 0.8 times Cboe indices, and contango gates remove rather than isolate the front-VX roll.
+  `SPEC-for-verification.md` freezes G0-G4 and S1-S5 for Grok: actual entity/product facts, demo-only IG hourly
+  history, a 12-weekend quote recorder, FXW transfer, WKND bias, ESG coverage, an IG option-bid audit and a
+  stress-based wrapper packet. No IG account, credential, quote or order was touched.

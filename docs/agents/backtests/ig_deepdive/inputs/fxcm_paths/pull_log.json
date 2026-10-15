@@ -1,0 +1,1027 @@
+[
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2016/1.csv.gz",
+  "status": 200,
+  "sha256": "ff3b69d1497680e9b05a543a2fe92ed030ae7275c4ca7a3e921b1a8b1d2ded36"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2016/10.csv.gz",
+  "status": 200,
+  "sha256": "7968ad1c169f4648477fd5d86a19e144ae34b8bb29d47a4825d274e87c7b15e6"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2016/11.csv.gz",
+  "status": 200,
+  "sha256": "7c4c0eeec9c9bef35749184c2e3d22dcc79c1cabaae1535c0fd6ac63c3f5303e"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2016/12.csv.gz",
+  "status": 200,
+  "sha256": "35a3695bf092351bab2b467db8179ecb458278cb9dc8f5e2a920ada8bfc0f837"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2016/15.csv.gz",
+  "status": 200,
+  "sha256": "0ea0a602d3300e5687175c1842ca0c89f9d223aa8120162b05edfbc4b2827fc0"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2016/16.csv.gz",
+  "status": 200,
+  "sha256": "abbda1a613240f9baae22e0381d14ce5788b393ac64e8c60d7d78cdf6e4ce559"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2016/17.csv.gz",
+  "status": 200,
+  "sha256": "3d2f2ee6c63732b24b86c92af95fe6d27783778abd45da036291497afceb93c3"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2016/19.csv.gz",
+  "status": 200,
+  "sha256": "b50af098eb18a8b3f7ad7052c250fbeb829cd41a3293ebb095fa72165a33ff95"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2016/2.csv.gz",
+  "status": 200,
+  "sha256": "0001d616614a5e492aa1c07d9e86b430e89ebd4f24a97b68c022bd37e67966b7"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2016/20.csv.gz",
+  "status": 200,
+  "sha256": "e0875e559897c96d08b774a4df4ec8ee317b63a112e5921e2d4e3c6bbc1a9bb6"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2016/21.csv.gz",
+  "status": 200,
+  "sha256": "da2ac21ca641c263da75777776b463e7539e78abc6091f96478137de992f17bd"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2016/24.csv.gz",
+  "status": 200,
+  "sha256": "0c001cf267ef9f87cf873a8309a2e29e1a6192cd9170a3c53749703169d8363d"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2016/25.csv.gz",
+  "status": 200,
+  "sha256": "8462c10500b5751f626df7eae88133518ebd76c29e87fa1d6c242dc608d003ae"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2016/26.csv.gz",
+  "status": 200,
+  "sha256": "94f9389ea1b3d32ce7e475ca08eb0d9d0516592209fbbd58e7af1ed2b4c89206"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2016/27.csv.gz",
+  "status": 200,
+  "sha256": "d1ca24cd72f2739fc0278c727578e73ccc08bdbe9e59f171483ed987024e6097"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2016/28.csv.gz",
+  "status": 200,
+  "sha256": "8cb2556c63e83eb4c492878e90a1853b09cf7da722d5f7fd394072234bba2f11"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2016/29.csv.gz",
+  "status": 200,
+  "sha256": "24068f8967023362a698076ab5f0b2b65d9ddf3cbf3adc58979e1f95bc473aab"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2016/3.csv.gz",
+  "status": 200,
+  "sha256": "6706bf96e6a1183aa5f16b2f2e6d669cdc6403dc6f694dc7bcdf31e84e1f7cf5"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2016/30.csv.gz",
+  "status": 200,
+  "sha256": "fdb44fde1e22587a92746d7e40686b9ff115ab5320d0d733ee99f830acd6b096"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2016/33.csv.gz",
+  "status": 200,
+  "sha256": "a4d378494b2eb0bd767cc3a5c8a093f1ca0434785d54e47243a1235885ce6024"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2016/34.csv.gz",
+  "status": 200,
+  "sha256": "08e0a61d06f93f1b65008f0d03ae6a24b3fb8ff73772398a98420c01ac2b7893"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2016/35.csv.gz",
+  "status": 200,
+  "sha256": "52f0d6e12c6431a8c09abcda87ff38cee930496d45cf989cdefa4bfa3baff4b8"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2016/4.csv.gz",
+  "status": 200,
+  "sha256": "8aa0266d4e43b36321d9eaba7e93dae385a1972a659cb34989fbac3a1100ced2"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2016/40.csv.gz",
+  "status": 200,
+  "sha256": "5b29464c1b03af09fdc561c206f8c5576befff4abfaf3ba1f8d6de572942bc89"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2016/41.csv.gz",
+  "status": 200,
+  "sha256": "9ecd77e6a02702cf1a367bdd77920d423df46ae4de58c44d98d850a4794198ef"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2016/42.csv.gz",
+  "status": 200,
+  "sha256": "ed983bae23cc77ab28fd96a8354d900c6688425f8bd286988227ea87ee628642"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2016/50.csv.gz",
+  "status": 200,
+  "sha256": "4a359b8c7d73adec40e1313cd04431abc47e1c6eb74447938314b825eff78c68"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2016/51.csv.gz",
+  "status": 200,
+  "sha256": "880bfd153ebc654b76332261104209302230a41b751d37dafc798fbd7c1169d4"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2016/52.csv.gz",
+  "status": 200,
+  "sha256": "903eef2abe9c760d6f69129aba0af6d6f98110387fef918badc7f95bc2251e24"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2016/9.csv.gz",
+  "status": 200,
+  "sha256": "6bce258b353e7a1d9dfa18e292b95435014c28636163a9251b31e3b3cc7b3912"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2017/16.csv.gz",
+  "status": 200,
+  "sha256": "7a14b07e6d8f925107155b1c0745b70b4a16dbdfbc711e1672c3993eb2ed1299"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2017/17.csv.gz",
+  "status": 200,
+  "sha256": "5b52494de025defa0fdf09988c366967bc16c2b5cfd7897a2c5048d3e9b1de32"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2017/18.csv.gz",
+  "status": 200,
+  "sha256": "d6cdfeb90805fb33a7f628d3e2685c8ee27e7524d5c3860c3b8794b0758d5d02"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2017/19.csv.gz",
+  "status": 200,
+  "sha256": "4c7e989f4455d36ba3eed1e6fec4326c23866097bd1aab9f07e1b9a79287d0f8"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2017/2.csv.gz",
+  "status": 200,
+  "sha256": "547d3f993ebe2f817174e1392593fb6518ac5da8f52388a69ef24279c798408a"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2017/22.csv.gz",
+  "status": 200,
+  "sha256": "fef7580322b7e1de47d11b6d49fd9222b5064c10187021eb2969dc09459abfda"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2017/23.csv.gz",
+  "status": 200,
+  "sha256": "435489e0436bcb8ed6e7f63329fa9b9cbab5c5bfc0a291729c067ac74066bd92"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2017/24.csv.gz",
+  "status": 200,
+  "sha256": "b568264ae71fa7378741ee7c88f1b952128618bf5797d89fddcc93aaf2a13932"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2017/3.csv.gz",
+  "status": 200,
+  "sha256": "78eff07116901373347618b9cf5af2e17b39adc2007a78ea9573480c2921b898"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2017/35.csv.gz",
+  "status": 200,
+  "sha256": "46b943ead34564f18bd27c666f1c28e176bc04440a8e1dad5c45cc505b4a803a"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2017/36.csv.gz",
+  "status": 200,
+  "sha256": "8f0a851491dc20dc3d30c784700706afec9eb758ad45569c0f75850610eac363"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2017/37.csv.gz",
+  "status": 200,
+  "sha256": "419ba409d9b0d8e9881994b504f03a4da354665505283a6abd49832486836381"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2017/4.csv.gz",
+  "status": 200,
+  "sha256": "fa40dfa89a1bb45d03db021e5d471b85c1e665ec6dcd76e2ca682c373a0ea6e0"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2017/48.csv.gz",
+  "status": 200,
+  "sha256": "689729f4d1a7bc187bfb2b9100835140227b0acb93451f95c6f4dbf5d6f9d175"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2017/49.csv.gz",
+  "status": 200,
+  "sha256": "008a301b386eb98fb7cd879223803a4a172702676204450b460a583f28cc69c5"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2017/50.csv.gz",
+  "status": 200,
+  "sha256": "ff6708747cc4d39148e00966b46a1caaaab39285fa3f12c07f0544e20ad34bb6"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2018/32.csv.gz",
+  "status": 200,
+  "sha256": "48c81ba71f6de11e0d77c5446b7366e09195004f342a2656456d4695b64b509c"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2018/33.csv.gz",
+  "status": 200,
+  "sha256": "869a79f31dcd89980e6a418cb46583fe38ab82aa81aeafadf356dd509be24380"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2018/34.csv.gz",
+  "status": 200,
+  "sha256": "593b15bb4023ded0998ac4e413e697137bcd404d38bf4886c9725077d2c3106e"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2018/38.csv.gz",
+  "status": 200,
+  "sha256": "3f83ffc3083df02361fac755c59932ed4693c16fc14958c02293f3caee9936a2"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2018/39.csv.gz",
+  "status": 200,
+  "sha256": "9e2a022def17e4b95c54edf4a4c3661f2f9f1129008a4258f9eac7015584e251"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2018/40.csv.gz",
+  "status": 200,
+  "sha256": "76f6cf1b05e290e44c563d2f5104e329a2ed4ecb25f39379fd50923e229874ca"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2018/46.csv.gz",
+  "status": 200,
+  "sha256": "6c55cd97ca31f92f7da1611f27802b919d4fe389067237655922a6f8c2a07264"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2018/47.csv.gz",
+  "status": 200,
+  "sha256": "ed19b1119daf717ea3f564c0f71983a858790bc61880a548b3c3b3f0ff90b8d9"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2018/48.csv.gz",
+  "status": 200,
+  "sha256": "6c5f7e5a4da363cb79a67a3cb363be93dd80b9692df25cff8782fe88dc1e0a1d"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2018/49.csv.gz",
+  "status": 200,
+  "sha256": "9d6e3596b150962724867930a093547e0b4d386ef7c12742896c2b0d17dfce90"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2018/50.csv.gz",
+  "status": 200,
+  "sha256": "1bb325a66ae9a024f4afb03fb8f2effd461394c3efe7e6cf516f17aea5692631"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2018/51.csv.gz",
+  "status": 200,
+  "sha256": "5d3ecf5984e0c56f069a2029357e91e72decc0b0b85f73dde7261276649ee258"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2019/10.csv.gz",
+  "status": 200,
+  "sha256": "81965a787e8595489c97d62cf29115835f59a2effd99dd1134d85a2409109232"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2019/11.csv.gz",
+  "status": 200,
+  "sha256": "757dd9b32c7314cf207e952c4a14d0a688c6fa54c91332d5674a295f64a50511"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2019/13.csv.gz",
+  "status": 200,
+  "sha256": "a80ac5762323d8ae8770941e50873e4c282eb172cb42663d3e20bc92c7bcd0fd"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2019/14.csv.gz",
+  "status": 200,
+  "sha256": "5308c8a2b53e638c2b34ca4e27ee6a94af51635cf3a9cbe5fbf49c305fd9832d"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2019/15.csv.gz",
+  "status": 200,
+  "sha256": "119896708ba0974a4f4ea4e43c6e2b1ff914851be44733bf5cfcdd2befa01c03"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2019/18.csv.gz",
+  "status": 200,
+  "sha256": "0241359de7ee5ec2c58ae08bdf892f5cabb977a423db374473f6cd4194ffd55b"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2019/19.csv.gz",
+  "status": 200,
+  "sha256": "830bbf53fc78c3e952ed9b77ff77248ada7cb15496add5d2721ef09df3e7f609"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2019/20.csv.gz",
+  "status": 200,
+  "sha256": "bc0a9569189d1a3207b4d1d7d3f665ff8808f7cdf97a97bdd25d1ea89be7e12e"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2019/21.csv.gz",
+  "status": 200,
+  "sha256": "8bd520d60899aceaf24b67b4358722e343e5950f35c283fbfb0f616119720f5f"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2019/22.csv.gz",
+  "status": 200,
+  "sha256": "f907f4e80f5a866c06773b2c396c3e7f727b7815d9d0da432b23c4dbccef5935"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2019/34.csv.gz",
+  "status": 200,
+  "sha256": "28957e4b85a16905db0f31e04a412ff02d4490932dff74d4cd70294f5a0e2f07"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2019/35.csv.gz",
+  "status": 200,
+  "sha256": "a5d83f761de9068f8642dda6746e87a802d835bb72f45af82884b8eb204c09c5"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2019/36.csv.gz",
+  "status": 200,
+  "sha256": "c2bd8b173942e203b7ba788255cf66323c881836bfb2924ff817a9775e921a6e"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2019/37.csv.gz",
+  "status": 200,
+  "sha256": "414486f17022767ffb53d9586541f2fdbd47f12c837b5834af9a4612b5302b9e"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2019/38.csv.gz",
+  "status": 200,
+  "sha256": "774ebd0a05e76fac1b2b2c41a235af0128cf793339a8c17557d90db270eb314f"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2019/39.csv.gz",
+  "status": 200,
+  "sha256": "dc0e9ace243bef9a1fee25d3d26e466a1567019d6fddb2a48fe2533bbaf8ab4b"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2019/40.csv.gz",
+  "status": 200,
+  "sha256": "b3e8e02db1836de9d313883ed330840ca31f7a3842e4ebba63dff3ee02c68f4e"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2019/41.csv.gz",
+  "status": 200,
+  "sha256": "87c92cf94d4ac846af65af21d77e57cf59c2517eaaa37d6275079e6a91581176"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2019/42.csv.gz",
+  "status": 200,
+  "sha256": "2ed9ec9bf63f110e75aad13f481fd796f8ffd194f81c4f66b97b95a190eed163"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2019/9.csv.gz",
+  "status": 200,
+  "sha256": "80906845d7f11a09f367e573e7e05d9a0258553a80496f0c69090a67048c1f58"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2020/1.csv.gz",
+  "status": 200,
+  "sha256": "92b9287e360775bfe8ab91ef907ebfe417f87382e522a306b9a32754baccc134"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2020/10.csv.gz",
+  "status": 200,
+  "sha256": "d4d15f7fa6a94110e14f8b71e4a7550dc71edcb49ffb1d12e50a864e6f7281a5"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2020/11.csv.gz",
+  "status": 200,
+  "sha256": "cb35026e531c19f133550697426746db62e85a2769d110f0cb323f339f9dc994"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2020/12.csv.gz",
+  "status": 200,
+  "sha256": "c487dacb4464246118a0bb262c7a41996811216e6ffd59edbf7eb0b3f0c37b77"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2020/13.csv.gz",
+  "status": 200,
+  "sha256": "931ff7cfa966a9286b286d63df17e57cedbc3a26d255efc4c4f10d0046e92b3c"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2020/14.csv.gz",
+  "status": 200,
+  "sha256": "e8c07dad102fb76d796c376088d0a61ae0860303870bb9a3ce94bc58980caaa3"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2020/15.csv.gz",
+  "status": 200,
+  "sha256": "7e4a5b45bd83a3f1be6f67e4260ae8627a1315def5199308b5abc8869b8a4484"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2020/16.csv.gz",
+  "status": 200,
+  "sha256": "7a2b261fc849dfee737bf45c8f4b4cb06f795d3b5b6b68ed713922f3d44897bd"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2020/17.csv.gz",
+  "status": 200,
+  "sha256": "116e4e5ce3b96464c139559396f2951e1b1842f1553458f2463c6268b141ea73"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2020/18.csv.gz",
+  "status": 200,
+  "sha256": "7590d0dd06c3ccb01fb21784615fda4fe6901f12f3b3122f356a262aaccc0b90"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2020/19.csv.gz",
+  "status": 200,
+  "sha256": "85ec82672527d4b1fe1f70f8d6e877b8cfa5fb8dd8eacbe99fb19d883acb9700"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2020/24.csv.gz",
+  "status": 200,
+  "sha256": "e1e611bf44a3049297d8900df802f9d0736819508b376756e35d5abcc255a0d8"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2020/25.csv.gz",
+  "status": 200,
+  "sha256": "4933e76af81dd32db7eec1819d7a01992cbb3dbb51ad6e6aa000f75263038f3b"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2020/26.csv.gz",
+  "status": 200,
+  "sha256": "a77cee779627b1a19ac0a794ef152f0ba7f8d5d437f75b0e56b696587258027f"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2020/27.csv.gz",
+  "status": 200,
+  "sha256": "f8e7cd2682170f613988124e09ffaf4899610e5b05862b1f31dda3eb9140ce99"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2020/28.csv.gz",
+  "status": 200,
+  "sha256": "dc15cb7bd899e777cfe77b2ede659ec5c1ea98ef8ebf0d173b8270906d849843"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2020/29.csv.gz",
+  "status": 200,
+  "sha256": "9e6ca943455cc0186715d7ad0004180a9ced7ef0fe8864dec737479713aa53b5"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2020/30.csv.gz",
+  "status": 200,
+  "sha256": "73cdaec0dad75ccf2553924546bfb3c38871040416add3b5f5b241db9f0b1333"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2020/31.csv.gz",
+  "status": 200,
+  "sha256": "5bf70146e604241e7bbf9e6684efe3cf8be94bd4e43cbec850a6fd607ac86bd9"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2020/32.csv.gz",
+  "status": 200,
+  "sha256": "2c650a973524ac21cb34b1f2f11610843a9ea8bfa572c617efe61983a78f25fb"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2020/41.csv.gz",
+  "status": 200,
+  "sha256": "29c347dc8fade950e43d1c4b03353815e5c8478c8212a1652757e8532842bd2b"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2020/42.csv.gz",
+  "status": 200,
+  "sha256": "107fa902bc10f3dd485896920e0226020bb5120a5ee91e5b0f567035bc0f741a"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2020/43.csv.gz",
+  "status": 200,
+  "sha256": "c927262ae85e9bf698b94b9150980067371ec1e87031d5df25388b7547fba999"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2020/45.csv.gz",
+  "status": 200,
+  "sha256": "4988ca3c0ca03b6c1995420c6ad3f30eec1deeb02ece3aa58eaa3772d4b3d336"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2020/46.csv.gz",
+  "status": 200,
+  "sha256": "0c368e146d7bf6a16b5b47e5db152baa7977bcd20da93b5bf43301f524b60259"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2020/47.csv.gz",
+  "status": 200,
+  "sha256": "331c0593541e90c2601e80112cc798cbe943f96b12d2257491a12456d510564e"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2020/51.csv.gz",
+  "status": 200,
+  "sha256": "bd92d269ffbe616844420f394f984a7b6f171ae1652ecce2640b5a8fa4c7eb1d"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2020/52.csv.gz",
+  "status": 200,
+  "sha256": "a509861fb010a8739cdded5decf8a0e45d5b814239761d84b2f3a8ae3332f46c"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2020/53.csv.gz",
+  "status": 200,
+  "sha256": "4aec451d3e49dac1658b934ad073dd020e2b0b7fbb8266128b5fe436614ca69b"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2020/8.csv.gz",
+  "status": 200,
+  "sha256": "84010619f6b88f61136d8d2fcc58daca6bc8742f2f777300ecf749805b5f3d58"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2020/9.csv.gz",
+  "status": 200,
+  "sha256": "afd17f9a6ef184936bcaadff19fca7eaf49248854f0a1ab3013de8faca90704a"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2021/1.csv.gz",
+  "status": 200,
+  "sha256": "cefc016110ad24c00502440cafa2b15b462793ed37ab4be270c8123cfe9b3b91"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2021/11.csv.gz",
+  "status": 200,
+  "sha256": "1465f3c2ec4dd38e0a5b9171f4bc1f6939cb4f93b444d6c1230e5e60e117f791"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2021/12.csv.gz",
+  "status": 200,
+  "sha256": "69f0dc84ed9d4e9941e08aefc98270002e9c14103d1a34b2ac5d3cf9f07d2ead"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2021/13.csv.gz",
+  "status": 200,
+  "sha256": "44f5b2c4b457bcf626d3a6b722a067c5f787eff82070cfd5c899788da671eaaa"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2021/18.csv.gz",
+  "status": 200,
+  "sha256": "98bdaebc7094eb23de8c550529fe85281b1b23038a619ad1958cc1064a26b89b"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2021/19.csv.gz",
+  "status": 200,
+  "sha256": "b4379053974372c05f6541bdd2835b9cb0564c19f361f2e3dda1b82c01eea907"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2021/20.csv.gz",
+  "status": 200,
+  "sha256": "4b6242bef74b9695064ec6db633747e5a1b51bc1d49a3d091dc6495c421134c8"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2021/33.csv.gz",
+  "status": 200,
+  "sha256": "b3de3ea5371608143cc73ebf0ea99b5964bcfd1a5b7f7cfe02ffe1ef265924e6"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2021/34.csv.gz",
+  "status": 200,
+  "sha256": "c8221a4c3ed083096142378d728b922e127e83812f885c635c2504b781bd1f6c"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2021/35.csv.gz",
+  "status": 200,
+  "sha256": "6ea2fba65475494db3885d370c3f2305d7439fada9ca8b0a6eb97b1ab1b47938"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2021/4.csv.gz",
+  "status": 200,
+  "sha256": "64cffbbbbd94463c5b737e37053ce05055b2ce9b94611a29a220af808b4922d2"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2021/47.csv.gz",
+  "status": 200,
+  "sha256": "4535ec0dc16846bfad0c84d69cdaeccd3295567d75b138ad57d6e93649bdb452"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2021/48.csv.gz",
+  "status": 200,
+  "sha256": "03e8388ce88f0866c77a4a908723e3349dab4da0bb47e0853a3cde8ebff42499"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2021/49.csv.gz",
+  "status": 200,
+  "sha256": "30188faf02e4d0bcaea3181df658d6fe2c30ef3d276aee481d304842054f7284"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2021/5.csv.gz",
+  "status": 200,
+  "sha256": "dceb100036aa10122f8a38e09585b08d98a3c63458ca33aa3a3eb872cd8fc0b6"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2021/6.csv.gz",
+  "status": 200,
+  "sha256": "2e57f23634918518d2dd9ac01029460cf4f838d50cdff289eccb9105883c3d46"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2022/10.csv.gz",
+  "status": 200,
+  "sha256": "a767a1fa635d26ef32cd07b70b9cf13ea441dbf086b464da9fc67af59f66cc44"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2022/24.csv.gz",
+  "status": 200,
+  "sha256": "595b5b2f9624d4f6957691351233071367c12f7cc17db6618d9cab0dca87967c"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2022/25.csv.gz",
+  "status": 200,
+  "sha256": "e9c6e3ef726407a24e1320b2344c691555d645a7cfa2788e4214f8d4c97c399e"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2022/26.csv.gz",
+  "status": 200,
+  "sha256": "d43bf36d2cd36cc229f41879f595a3c894eb2ca08311d196351772ecbe8b3115"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2022/35.csv.gz",
+  "status": 200,
+  "sha256": "5c58c23b3f44e86b7e8ce07586e90560eb8cfbc6c84cae869906bb8545368210"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2022/36.csv.gz",
+  "status": 200,
+  "sha256": "369eca1e0cc9803d8e213a711a08da3c4dc54c56feb3e57336c0eceb2e679db7"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2022/37.csv.gz",
+  "status": 200,
+  "sha256": "14f43c7b334f609944f8d1c80c01672845ca0c974b47d5fb948caaea3e991de6"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2022/38.csv.gz",
+  "status": 200,
+  "sha256": "45051a38492a6552f2554afe1da1a73a0091389f4f7aacd2c9bce2db7aed1b22"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2022/39.csv.gz",
+  "status": 200,
+  "sha256": "7a581e36397fd7a134313b88ccf0e479f0d7e0e036be7311e610d591e161baa7"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2022/40.csv.gz",
+  "status": 200,
+  "sha256": "f1fdab601febde9278c6fab30dc199bf0b6c2555349cdf425d0e4bb76708543f"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2022/44.csv.gz",
+  "status": 200,
+  "sha256": "db6ade56af2a21f2fa4f1566d4b40ab12fb23db9b7ed4b189feadbbff645ef89"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2022/45.csv.gz",
+  "status": 200,
+  "sha256": "a95038aa6673e1e61e63215921f9e8a3821cca0b928c7879802b60e3af2a1670"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2022/46.csv.gz",
+  "status": 200,
+  "sha256": "3c96111fa42c1784591b61a80e09657c20ed5d1509153b9bb57145e47e3c5604"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2022/47.csv.gz",
+  "status": 200,
+  "sha256": "9a23bb929b2bf7b0d09db622a91f868ed275078c9673f9b3a2844dd1c5aa84c7"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2022/48.csv.gz",
+  "status": 200,
+  "sha256": "e1810cc51e1a1a69c8b167e146f3f5b66df2a6d8f77aacb0eb5345417885a0f8"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2022/49.csv.gz",
+  "status": 200,
+  "sha256": "41a57b398eced01793666639a2a6684b3bbada6e9802f5ac7117d2dbd9286c3f"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2022/50.csv.gz",
+  "status": 200,
+  "sha256": "cac3fca7b8ebbaab0f5ea6cc18d3f0cb74eb61d9e768ee429fb390ff18fcd4c2"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2022/51.csv.gz",
+  "status": 200,
+  "sha256": "59f6332c74d70f7a41a7267cb52b63d1f0758a07056fd9ff65e077c57b337c9f"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2022/52.csv.gz",
+  "status": 200,
+  "sha256": "80b3260e195b4c1ef6753be89ca7bb740f67731c5db00cdc2bc7737e02f6052b"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2022/8.csv.gz",
+  "status": 200,
+  "sha256": "974c27e84048e6ac761fdec894635cd57e3415b26d69872fb0fd03e2508e114c"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2022/9.csv.gz",
+  "status": 200,
+  "sha256": "8b827acbba3ac3578b963b7b4d190039a473dfb6d9e0bb4bdc64cb79c337915d"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2023/10.csv.gz",
+  "status": 200,
+  "sha256": "04605916a23f83f4a563d392a0cccbfbec01f1178ef6d3215bd6f59353efce45"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2023/11.csv.gz",
+  "status": 200,
+  "sha256": "11a94dd6cf8878d59fc5e78410fc5f182c46893a7841060a7720495a3c0bf90e"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2023/12.csv.gz",
+  "status": 200,
+  "sha256": "993574f282598e4ccfe9fc6d0d4f136b5d40b2809f52c4e83b0e9aa27110e59a"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2023/13.csv.gz",
+  "status": 200,
+  "sha256": "f57206890e3ef468c9c046c01dee97e581e59dad83e8898f5692f6faf39317ff"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2023/40.csv.gz",
+  "status": 200,
+  "sha256": "38f651ab075eeae6ed4fd0cf40f9829675930d29387e976ec3a7a78d4612a203"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2023/41.csv.gz",
+  "status": 200,
+  "sha256": "7c1286aa994297cd8bfd840d2c01c123fc1d908ebe8e4c9174e52653abe1c0cf"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2023/42.csv.gz",
+  "status": 200,
+  "sha256": "7f8ca9509054ffb51bfa33085720e7ff5326b8c4be7860401757afdd106b87b0"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2023/5.csv.gz",
+  "status": 200,
+  "sha256": "79c5ff7b4ccae72c8c6afaa7aa33be610fb7c93305fa96e463b7cadbe0963338"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2023/6.csv.gz",
+  "status": 200,
+  "sha256": "fb9e2882a002d44f5d02037f35cca4b3a38882a540356ba5160d49c89afd80e8"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2023/7.csv.gz",
+  "status": 200,
+  "sha256": "7a451acc24a2625af4fd66fd2f7422992f47818f6c7b6d70f0008116138fcb18"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2023/9.csv.gz",
+  "status": 200,
+  "sha256": "465fb5aec83adc424eaa830235fd6f32aecf88de2e0f11a3227c7344b770af4e"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2024/43.csv.gz",
+  "status": 200,
+  "sha256": "cd252eb33fc739ffd304738328a2863174206927a4bff89d9d32617c12425d62"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2024/44.csv.gz",
+  "status": 200,
+  "sha256": "6cf2556fc89b98793a3081d986fd5e1e4bd62be6cc64d4ef69446b6210f6860f"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2024/45.csv.gz",
+  "status": 200,
+  "sha256": "e3a150671e81662146c1b1a108031e407354607bf2bb32bc3c4b08b56509a007"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2024/46.csv.gz",
+  "status": 200,
+  "sha256": "1f40f8a1b2218a7e574160529b14be3afd62631e2e19856cb1ad86891949f527"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2024/47.csv.gz",
+  "status": 200,
+  "sha256": "7ddaeaa85667b5984c6e13ec9eb20b34eab18694f5b19c16d6c213d6b8edf7f2"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2024/48.csv.gz",
+  "status": 200,
+  "sha256": "2c1db0068736bfc0ae6f37c2ad29e5309c9241356e913710276beb24486f7942"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2024/49.csv.gz",
+  "status": 200,
+  "sha256": "40683a8d818fc284963b41774ea44e5d2c775a0d2865be37b971ba398b5216aa"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2025/1.csv.gz",
+  "status": 404,
+  "sha256": ""
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2025/14.csv.gz",
+  "status": 200,
+  "sha256": "61379287f681144e1e0d22821977a2658eb7a0ed278d5b69a9d2d4434a03a3c4"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2025/15.csv.gz",
+  "status": 200,
+  "sha256": "30af2b42d03ddaf66c6cbbcb3dd535e57ec8dd6f6059cfe8fb46e540ecf9bfa6"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2025/16.csv.gz",
+  "status": 200,
+  "sha256": "f77a9ea9656d1f09ab438196ef391d496172a9e5149fbceae6d1144a056ea5b1"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2025/17.csv.gz",
+  "status": 200,
+  "sha256": "c4dc3034ed434a86de9323eec72099066ba72bc127ce10f004d648096c74b270"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2025/19.csv.gz",
+  "status": 200,
+  "sha256": "9b6f075dcfd384488da0e25f2c46eede9c2fbae0374ff7bf655ad2d4e9747c46"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2025/20.csv.gz",
+  "status": 200,
+  "sha256": "facc374d1bad9f6a1439e0efcd0d4cf9e046d21fcab345115f58695f1c805685"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2025/21.csv.gz",
+  "status": 200,
+  "sha256": "6d169879b94e46e539f061d60b7c88ea82a3cc39293ccc08cc52cc3c2fb82bee"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2025/40.csv.gz",
+  "status": 200,
+  "sha256": "3c3c1fad7c914ba9c0c7182f0e497e6400eadbde3b7833dc05f8eb9de6311653"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2025/41.csv.gz",
+  "status": 200,
+  "sha256": "d0967e86db4d85c9521f65caafb3b04a49edf8677071d55cce643b3f0b2be677"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2025/42.csv.gz",
+  "status": 200,
+  "sha256": "eb65c9f8f0d0f864ad5f3d9e690647435ef817d166bda83a2818d2a5cc7adc98"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2025/43.csv.gz",
+  "status": 200,
+  "sha256": "5aeec8256836cf0d781d0db08f0c325409743a5a6c3bd9ba57f137cf94ccd7f1"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2025/44.csv.gz",
+  "status": 200,
+  "sha256": "c86c67e128ea106722c96437d14cec1ed2cf95cfbe4a97d9527e865a351179cf"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2025/45.csv.gz",
+  "status": 200,
+  "sha256": "6fb2c8f79fcdffb4a692ad8b09389f3858f822810ad4d8f8ff2cd50b63a82bdb"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2025/5.csv.gz",
+  "status": 200,
+  "sha256": "9dcbcdbb99b18b5fcc3a63cacc88b0ee1221a8a3e5fd3f527ae2f31fabae6f14"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2025/52.csv.gz",
+  "status": 200,
+  "sha256": "d635c9a3d7620b342c9592a8f30922c1ad75b1358bba491d16b379f83c117123"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2025/53.csv.gz",
+  "status": 200,
+  "sha256": "1fa8403e7a4e0b95212ec8c15707e53b4f67fe1e7f131ced4bfa5ff66ab6cee4"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2025/6.csv.gz",
+  "status": 200,
+  "sha256": "b840fff415cd8c22e9d1169845c4ab7e4f858ae617d2d0af17f84273d5fbc574"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2025/7.csv.gz",
+  "status": 200,
+  "sha256": "26be46ac27eef2a473e2fc197e119ba489902a8cb4128569ec821ada1bc3b56f"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2025/8.csv.gz",
+  "status": 200,
+  "sha256": "58033534e2dc483e4a6f0bcbc7dae4be169b60aceeb886edfcdda1995f0bee67"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2026/1.csv.gz",
+  "status": 200,
+  "sha256": "8c10a46d8727973c0dfaa3c9e385c63b3d078e6ed6c3b913204c556c6894cf91"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2026/10.csv.gz",
+  "status": 200,
+  "sha256": "899ae05f11ffe62dc64dc322dd1dbf19c0f7e9089f543c7e6eed73c37091cd4a"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2026/11.csv.gz",
+  "status": 200,
+  "sha256": "e103367ffde5197f28d0acb35d23d86175b675321226a8ba20fa98cd20050750"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2026/12.csv.gz",
+  "status": 200,
+  "sha256": "f40c90de5d244a37c92aab8bde180d2bf8bb91897bc0c3649880529994e2646d"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2026/13.csv.gz",
+  "status": 200,
+  "sha256": "07c5bc38409f61476287ffa2237c0898d4e60dcd560bb7790528148ccfe8a52e"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2026/14.csv.gz",
+  "status": 200,
+  "sha256": "65dc1610cee265e9f8a4747b24aab31b241be02f6cb9309d2f7a572136570ff8"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2026/15.csv.gz",
+  "status": 200,
+  "sha256": "9598f1f69e55578b10f22adaa1f2813b5e6be99c6f576e34f0fc2132bce5aacb"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2026/16.csv.gz",
+  "status": 200,
+  "sha256": "23fc6db27f7c8d92c1974fde7a8ee464ca210e05e97dc96e96a79e9ba42778f5"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2026/17.csv.gz",
+  "status": 200,
+  "sha256": "a4cf59d57ee9b847f2ee0a1200625d7ea1e99b92d40c49f36f6f3b0bd91f5142"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2026/18.csv.gz",
+  "status": 404,
+  "sha256": ""
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2026/19.csv.gz",
+  "status": 404,
+  "sha256": ""
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2026/2.csv.gz",
+  "status": 200,
+  "sha256": "c7190df362e99cebb5c66c4691eceaf48026da4b06f0fcd0e8be6ab006f03556"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2026/3.csv.gz",
+  "status": 200,
+  "sha256": "32f8f90eb9e27a5228465c2f127f97a6c2eb008c200e40178e28c1338e1ce07e"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2026/39.csv.gz",
+  "status": 200,
+  "sha256": "ded803f8644a81ec032270e94385ca41fc9cd722eec7730b92436a86e2025692"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2026/4.csv.gz",
+  "status": 200,
+  "sha256": "f9207b308ccf23489d6eeb5194dfedbbe561f00ac7880c05d6c508c89957b617"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2026/40.csv.gz",
+  "status": 200,
+  "sha256": "37ddc51db3bb696ba8bf640600459dc751173f338fdb2376368e9f5f24eee2b0"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2026/41.csv.gz",
+  "status": 404,
+  "sha256": ""
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2026/5.csv.gz",
+  "status": 200,
+  "sha256": "89397ca8620a28e95ee42ab05ee860e80333426a05cba4a6cbf61cf01bcf4f74"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2026/6.csv.gz",
+  "status": 200,
+  "sha256": "32183da508f36fe247d1071c051aadc51fb22ae2fbb3f78fc7fb689ae23dd9f9"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2026/7.csv.gz",
+  "status": 200,
+  "sha256": "8c26ada8e8284073d342ad0731ae4b71ad5048f141f4936cf7b690cb3d9d841c"
+ },
+ {
+  "url": "https://candledata.fxcorporate.com/m1/AUDUSD/2026/9.csv.gz",
+  "status": 200,
+  "sha256": "77c1324cc9c6f2e9981b1d197ec2eb938c3170b4352b96dca872f249285079fd"
+ }
+]

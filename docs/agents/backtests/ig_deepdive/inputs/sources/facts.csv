@@ -1,0 +1,41 @@
+fact_id,source_id,claim,quoted_words,status
+F01,labs_faq,IG's REST API allows 30 non-trading requests a minute per account,Per-account non-trading requests per minute: 30,found at source
+F02,labs_faq,and 60 non-trading requests a minute per app,Per-app non-trading requests per minute: 60,found at source
+F03,labs_faq,"Historical price data is limited to 10,000 points a week","Historical price data points per week: 10,000",found at source
+F04,labs_faq,HOUR history is offered for about 360 days,1 Hour 360,found at source
+F05,labs_faq,Weekend maintenance invalidates every session token,As part of this maintenance all tokens are invalidated,found at source
+F06,labs_faq,Several concurrent streaming connections may get the key suspended,Please do not create multiple concurrent connections as this may lead to your API key being suspended,found at source
+F07,labs_ref_prices,The price history reports the allowance left after each request,The number of data points still available to fetch within the current allowance period,found at source
+F08,labs_ref_prices,The from/to parameters are written without a time zone,Start date time (yyyy-MM-dd'T'HH:mm:ss),found at source
+F09,labs_ref_markets,Up to 50 epics in one market-details request,Max number of epics is limited to 50,found at source
+F10,ig_uk_sb_forex,"AUD/USD spot spread bet: £0.50 minimum bet, 0.6 minimum spread, 0.82/1.03 average, 1.5 guaranteed-stop premium, 5 % retail margin",AUD/USD 24 hours 0.0001$ £0.50 0.6 0.82 1.03 1.5 5%,found at source
+F11,ig_uk_sb_forex,"IG's forex dealing hours: Sunday 21:00 to Friday 21:59, London time",Normal dealing hours for all pairs are from 21.00 (London time) on Sunday until 21.59 (London time) on Friday,found at source
+F12,ig_uk_sb_forex,Forex DFB funding: the tom-next spread plus IG's charge of 0.0022 % a day (about 0.80 % a year),including IG's charge for holding positions overnight of 0.0022% per day,found at source
+F13,ig_uk_overnight_funding,Forex funding: the tom-next rate plus an admin fee of 1.5 % (conflicts with F12; both kept),we charge the tom-next rate plus an admin fee of 1.5%,found at source
+F14,ig_uk_overnight_funding,"Index spread bet funding: 3.4 % admin fee plus or minus the benchmark, 365-day formula",Bet size x price × (3.4% admin fee +/- relevant interest rate benchmark%) ÷ 365,found at source
+F15,ig_uk_overnight_funding,Index CFD funding: 3 % admin fee plus or minus the benchmark,(3% admin fee +/- relevant interest rate benchmark%) ÷ 365,found at source
+F16,ig_uk_overnight_funding,Positions held through 10pm on Fridays pay three days' funding,open positions held through 10pm (UK time) on Fridays will be adjusted for three days’ worth of funding,found at source
+F17,ig_uk_sb_indices,"US 500 DFB: £1 minimum; 0.4 points 14:30-21:00, 0.6 21:00-14:30, 1.5 22:00-23:00; 5 % margin",US 500 DFB £1 14.30-21.00 0.4 0.25 5% 24 hours (except 21.00-14.30) 21.00-14.30 0.6 22.00-23.00 1.5,found at source
+F18,ig_uk_sb_indices,"Weekend Wall Street DFB: £1 minimum, Saturday 08:00 to Sunday 22:40, 20-point spread",Weekend Wall Street DFB £1 Saturday 08.00- Sunday 22.40 20 n/a 5%,found at source
+F19,ig_uk_sb_indices,"Weekend UK 100 DFB: £2 minimum, 8-point spread",Weekend UK 100 DFB £2 Saturday 08.00- Sunday 22.40 8 n/a 5%,found at source
+F20,ig_uk_sb_indices,"Weekend Germany 40 DFB: £2 minimum, 14-point spread",Weekend Germany 40 DFB £2 Saturday 08.00- Sunday 22.40 14 n/a 5%,found at source
+F21,ig_uk_sb_indices,"Weekend US Tech 100: £2 minimum, 16-point spread",Weekend US Tech 100 £2 Saturday 08.00 - Sunday 22.40 16 n/a 5%,found at source
+F22,ig_uk_sb_indices,"Weekend index quotes are IG's own view, and other clients' business may move them",our quotations reflect our own view of the prospects for each market,found at source
+F23,ig_uk_sb_forex,"Weekend FX: GBP/USD 6, EUR/USD 6, USD/JPY 4 points, Saturday 08:00 to Sunday 20:40",Weekend GBP/USD Saturday 08:00 - Sunday 20:40 0.0001 £0.5 6,found at source
+F24,ig_uk_sb_indices,"UK 100 DFB: £0.50 minimum; 1 point 08:00-16:30, 2 16:30-21:00, 4 21:00-01:00, 3 01:00-07:00",FTSE 100 DFB £0.50 07.00-08.00 2 0.8 5% 24 hours 08.00-16.30 1 16.30-21.00 2 21.00-01.00 4 01.00-07.00 3,found at source
+F25,ig_uk_sb_indices,"Germany 40 DFB: £0.50 minimum; 1.2 points 08:00-16:30, 2 16:30-21:00, 5 21:00-00:15, 4 00:15-07:00",Germany 40 DFB £0.50 00.15-07.00 4 1.5 5% 24 hours 07.00-08.00 2 08.00-16.30 1.2 16.30-21.00 2 21.00-00.15 5,found at source
+F26,ig_uk_gsl_cost,A guaranteed stop is charged only if it is triggered,you’ll only be charged if the stop is actually triggered,found at source
+F27,ig_uk_negative_balance,UK negative balance protection returns a negative balance to zero,we are obligated to return your balance back up to zero as soon as possible,found at source
+F28,fca_cfd_restrictions,FCA: retail CFD leverage between 30:1 and 2:1,Limit leverage to between 30:1 and 2:1,found at source
+F29,fca_cfd_restrictions,FCA: close-out at 50 % of the margin needed,Close out a customer’s position when their funds fall to 50% of the margin needed,found at source
+F30,fca_cfd_restrictions,FCA: the CFD rules include financial spread bets and rolling spot forex,References to CFDs include financial spread bets and rolling spot forex products,found at source
+F31,hmrc_cg56105,HMRC: no chargeable gains or allowable losses arise from spread betting,no chargeable gains or allowable losses arise from spread betting,found at source
+F32,hmrc_cg56100,HMRC: retail contracts for differences are a derivative the gains manual treats,a particular type of contract (a “retail contract for differences”),found at source
+F33,uk_tcga1992_s51,TCGA 1992 s.51(1): winnings from betting are not chargeable gains,"winnings from betting, including pool betting, or lotteries or games with prizes are not chargeable gains",found at source
+F34,hmrc_bim22020,HMRC: spread-bet wins are taxable only when they arise from carrying on a trade,they must arise from the carrying on of that trade,found at source
+F35,ie_tca1997_s613,"Ireland, TCA 1997 s.613(2): winnings from betting are not chargeable gains","Winnings from betting (including pool betting), lotteries, sweepstakes or games with prizes shall not be chargeable gains",found at source
+F36,ig_uk_sb_forex,"IG UK's entities: CFD accounts IG Markets Ltd, spread betting IG Index Ltd, both FCA-authorised","CFD accounts are provided by IG Markets Ltd, spread betting provided by IG Index Ltd",found at source
+F37,ig_uk_sb_forex,IG UK's warning on the product pages: 69 % of retail accounts lose money,69% of retail investor accounts lose money when trading spread bets and CFDs with this provider,found at source
+F38,ig_uk_weekend_trading,IG UK's warning on the weekend page: 70 % (the pages differ on the day read),70% of retail investor accounts lose money when trading spread bets and CFDs with this provider,found at source
+F39,ig_uk_sb_agreement,"IG Index's spread-betting agreement (July 2023): no automated software, algorithm or betting strategy other than IG's own without its prior written consent","You will not use any automated software, algorithm or betting strategy other than those that we make available to you on our Electronic Betting Services without our prior written consent",found at source
+F40,ig_uk_sb_agreement,The same agreement: no strategy that takes unfair advantage of how IG constructs or conveys its prices (latency abuse named),"take unfair advantage of the way in which we construct, provide or convey our Bid or Offer Prices",found at source

@@ -1,0 +1,1462 @@
+{
+ "A_fxw": {
+  "AUDUSD": {
+   "adverse_excursion_24h_bps": {
+    "max": 440.1,
+    "p50": 21.6,
+    "p75": 56.4,
+    "p90": 116.3,
+    "p95": 129.8
+   },
+   "adverse_excursion_note": "from the Sunday open mid to the 24 h low (long) or high (short), FXCM mid bars",
+   "delay_240_at_12": {
+    "boot95_bps": [
+     -2.4,
+     22.41
+    ],
+    "hit": 0.608,
+    "max_dd_bps": -206.9,
+    "mean_bps": 9.91,
+    "n": 51,
+    "t": 1.55,
+    "t_pop": 1.57,
+    "total_bps": 505.6
+   },
+   "delay_240_at_20": {
+    "boot95_bps": [
+     -6.4,
+     18.41
+    ],
+    "hit": 0.529,
+    "max_dd_bps": -274.9,
+    "mean_bps": 5.92,
+    "n": 51,
+    "t": 0.93,
+    "t_pop": 0.94,
+    "total_bps": 301.7
+   },
+   "delay_240_at_30": {
+    "boot95_bps": [
+     -11.4,
+     13.42
+    ],
+    "hit": 0.49,
+    "max_dd_bps": -360.9,
+    "mean_bps": 0.92,
+    "n": 51,
+    "t": 0.14,
+    "t_pop": 0.15,
+    "total_bps": 46.8
+   },
+   "delay_60_at_12": {
+    "boot95_bps": [
+     -2.17,
+     15.87
+    ],
+    "hit": 0.658,
+    "max_dd_bps": -209.8,
+    "mean_bps": 7.06,
+    "n": 76,
+    "t": 1.52,
+    "t_pop": 1.53,
+    "total_bps": 536.3
+   },
+   "delay_60_at_20": {
+    "boot95_bps": [
+     -6.17,
+     11.87
+    ],
+    "hit": 0.605,
+    "max_dd_bps": -360.8,
+    "mean_bps": 3.06,
+    "n": 76,
+    "t": 0.66,
+    "t_pop": 0.66,
+    "total_bps": 232.4
+   },
+   "delay_60_at_30": {
+    "boot95_bps": [
+     -11.17,
+     6.87
+    ],
+    "hit": 0.474,
+    "max_dd_bps": -603.2,
+    "mean_bps": -1.94,
+    "n": 76,
+    "t": -0.42,
+    "t_pop": -0.42,
+    "total_bps": -147.4
+   },
+   "era_2016_2018_at_12": {
+    "boot95_bps": [
+     -6.01,
+     25.21
+    ],
+    "hit": 0.792,
+    "max_dd_bps": -166.7,
+    "mean_bps": 10.9,
+    "n": 24,
+    "t": 1.33,
+    "t_pop": 1.36,
+    "total_bps": 261.5
+   },
+   "era_2016_2018_at_20": {
+    "boot95_bps": [
+     -10.01,
+     21.22
+    ],
+    "hit": 0.792,
+    "max_dd_bps": -174.7,
+    "mean_bps": 6.9,
+    "n": 24,
+    "t": 0.84,
+    "t_pop": 0.86,
+    "total_bps": 165.6
+   },
+   "era_2019_2021_at_12": {
+    "boot95_bps": [
+     8.94,
+     27.25
+    ],
+    "hit": 0.84,
+    "max_dd_bps": -42.3,
+    "mean_bps": 18.35,
+    "n": 25,
+    "t": 3.87,
+    "t_pop": 3.95,
+    "total_bps": 458.7
+   },
+   "era_2019_2021_at_20": {
+    "boot95_bps": [
+     4.94,
+     23.25
+    ],
+    "hit": 0.8,
+    "max_dd_bps": -52.5,
+    "mean_bps": 14.35,
+    "n": 25,
+    "t": 3.02,
+    "t_pop": 3.09,
+    "total_bps": 358.7
+   },
+   "era_2022_2024_at_12": {
+    "boot95_bps": [
+     -6.75,
+     37.56
+    ],
+    "hit": 0.882,
+    "max_dd_bps": -108.4,
+    "mean_bps": 16.9,
+    "n": 17,
+    "t": 1.43,
+    "t_pop": 1.48,
+    "total_bps": 287.3
+   },
+   "era_2022_2024_at_20": {
+    "boot95_bps": [
+     -10.75,
+     33.56
+    ],
+    "hit": 0.882,
+    "max_dd_bps": -122.7,
+    "mean_bps": 12.9,
+    "n": 17,
+    "t": 1.09,
+    "t_pop": 1.13,
+    "total_bps": 219.3
+   },
+   "era_2022_2026_at_20": {
+    "boot95_bps": [
+     6.69,
+     33.02
+    ],
+    "hit": 0.889,
+    "max_dd_bps": -122.7,
+    "mean_bps": 20.57,
+    "n": 36,
+    "t": 3.04,
+    "t_pop": 3.09,
+    "total_bps": 740.4
+   },
+   "era_2025_2026_at_12": {
+    "boot95_bps": [
+     18.01,
+     45.46
+    ],
+    "hit": 0.895,
+    "max_dd_bps": -27.9,
+    "mean_bps": 31.42,
+    "n": 19,
+    "t": 4.36,
+    "t_pop": 4.48,
+    "total_bps": 597.1
+   },
+   "era_2025_2026_at_20": {
+    "boot95_bps": [
+     14.01,
+     41.46
+    ],
+    "hit": 0.895,
+    "max_dd_bps": -35.9,
+    "mean_bps": 27.43,
+    "n": 19,
+    "t": 3.81,
+    "t_pop": 3.91,
+    "total_bps": 521.1
+   },
+   "first_friday": "2016-01-08",
+   "fxcm_own_open_spread_bps_median_on_trades": 8.42,
+   "gap_100_plus_at_12": {
+    "boot95_bps": [
+     93.58,
+     102.04
+    ],
+    "hit": 1.0,
+    "max_dd_bps": 0.0,
+    "mean_bps": 97.81,
+    "n": 2,
+    "t": 23.12,
+    "t_pop": 32.7,
+    "total_bps": 195.6
+   },
+   "gap_20_30_at_12": {
+    "boot95_bps": [
+     8.93,
+     16.26
+    ],
+    "hit": 0.923,
+    "max_dd_bps": -42.3,
+    "mean_bps": 13.08,
+    "n": 39,
+    "t": 6.78,
+    "t_pop": 6.86,
+    "total_bps": 510.2
+   },
+   "gap_30_50_at_12": {
+    "boot95_bps": [
+     -5.59,
+     20.44
+    ],
+    "hit": 0.682,
+    "max_dd_bps": -86.5,
+    "mean_bps": 8.22,
+    "n": 22,
+    "t": 1.2,
+    "t_pop": 1.23,
+    "total_bps": 180.9
+   },
+   "gap_50_100_at_12": {
+    "boot95_bps": [
+     8.24,
+     52.44
+    ],
+    "hit": 0.864,
+    "max_dd_bps": -129.3,
+    "mean_bps": 32.63,
+    "n": 22,
+    "t": 2.79,
+    "t_pop": 2.86,
+    "total_bps": 717.8
+   },
+   "historical_bar": {
+    "checks": {
+     "1_trades_ge_80": true,
+     "2_at_20_boot_lower_gt_0": true,
+     "2_at_20_mean_ge_10": true,
+     "2_at_20_t_ge_3_4": true,
+     "3_same_positive_sign_at_12_and_30": true,
+     "4_2022_2026_mean_gt_0": true,
+     "5_headline_two_sided": true
+    },
+    "note": "t is the sample-sd t; the population-sd t (t_pop) is printed beside it",
+    "pass": true
+   },
+   "last_friday": "2026-09-25",
+   "long_after_fall_at_12": {
+    "boot95_bps": [
+     12.25,
+     31.39
+    ],
+    "hit": 0.869,
+    "max_dd_bps": -129.3,
+    "mean_bps": 22.2,
+    "n": 61,
+    "t": 4.5,
+    "t_pop": 4.54,
+    "total_bps": 1354.0
+   },
+   "long_after_fall_at_20": {
+    "boot95_bps": [
+     8.26,
+     27.4
+    ],
+    "hit": 0.869,
+    "max_dd_bps": -133.3,
+    "mean_bps": 18.2,
+    "n": 61,
+    "t": 3.69,
+    "t_pop": 3.72,
+    "total_bps": 1110.2
+   },
+   "median_minutes_to_target": 197.0,
+   "short_after_rise_at_12": {
+    "boot95_bps": [
+     -1.49,
+     20.93
+    ],
+    "hit": 0.792,
+    "max_dd_bps": -86.5,
+    "mean_bps": 10.44,
+    "n": 24,
+    "t": 1.76,
+    "t_pop": 1.8,
+    "total_bps": 250.6
+   },
+   "short_after_rise_at_20": {
+    "boot95_bps": [
+     -5.49,
+     16.93
+    ],
+    "hit": 0.75,
+    "max_dd_bps": -90.5,
+    "mean_bps": 6.44,
+    "n": 24,
+    "t": 1.08,
+    "t_pop": 1.11,
+    "total_bps": 154.5
+   },
+   "spread_12": {
+    "annual_bps": 149.8,
+    "boot95_bps": [
+     10.93,
+     26.23
+    ],
+    "hit": 0.847,
+    "max_dd_bps": -166.7,
+    "mean_bps": 18.88,
+    "n": 85,
+    "t": 4.79,
+    "t_pop": 4.82,
+    "total_bps": 1604.6
+   },
+   "spread_20": {
+    "annual_bps": 118.1,
+    "boot95_bps": [
+     6.93,
+     22.23
+    ],
+    "hit": 0.835,
+    "max_dd_bps": -174.7,
+    "mean_bps": 14.88,
+    "n": 85,
+    "t": 3.78,
+    "t_pop": 3.8,
+    "total_bps": 1264.7
+   },
+   "spread_30": {
+    "annual_bps": 78.4,
+    "boot95_bps": [
+     1.94,
+     17.23
+    ],
+    "hit": 0.812,
+    "max_dd_bps": -184.7,
+    "mean_bps": 9.88,
+    "n": 85,
+    "t": 2.51,
+    "t_pop": 2.52,
+    "total_bps": 840.0
+   },
+   "spread_40": {
+    "annual_bps": 38.8,
+    "boot95_bps": [
+     -3.06,
+     12.24
+    ],
+    "hit": 0.682,
+    "max_dd_bps": -229.9,
+    "mean_bps": 4.89,
+    "n": 85,
+    "t": 1.24,
+    "t_pop": 1.25,
+    "total_bps": 415.3
+   },
+   "target_reached_share": 0.753,
+   "trades": 85,
+   "weekends": 524,
+   "worst_trade_at_12_bps": -129.3,
+   "years": 10.71
+  },
+  "EURUSD": {
+   "first_friday": "2016-01-08",
+   "last_friday": "2026-09-25",
+   "spread_12": {
+    "annual_bps": 14.7,
+    "boot95_bps": [
+     -8.11,
+     13.29
+    ],
+    "hit": 0.642,
+    "max_dd_bps": -189.6,
+    "mean_bps": 2.98,
+    "n": 53,
+    "t": 0.54,
+    "t_pop": 0.54,
+    "total_bps": 157.8
+   },
+   "spread_20": {
+    "annual_bps": -5.1,
+    "boot95_bps": [
+     -12.1,
+     9.29
+    ],
+    "hit": 0.604,
+    "max_dd_bps": -217.6,
+    "mean_bps": -1.02,
+    "n": 53,
+    "t": -0.19,
+    "t_pop": -0.19,
+    "total_bps": -54.2
+   },
+   "spread_30": {
+    "annual_bps": -29.8,
+    "boot95_bps": [
+     -17.1,
+     4.3
+    ],
+    "hit": 0.585,
+    "max_dd_bps": -410.7,
+    "mean_bps": -6.02,
+    "n": 53,
+    "t": -1.09,
+    "t_pop": -1.1,
+    "total_bps": -319.1
+   },
+   "spread_40": {
+    "annual_bps": -54.5,
+    "boot95_bps": [
+     -22.1,
+     -0.7
+    ],
+    "hit": 0.434,
+    "max_dd_bps": -650.6,
+    "mean_bps": -11.02,
+    "n": 53,
+    "t": -2.0,
+    "t_pop": -2.02,
+    "total_bps": -583.9
+   },
+   "trades": 53,
+   "weekends": 525,
+   "years": 10.71
+  },
+  "GBPUSD": {
+   "first_friday": "2016-01-08",
+   "last_friday": "2026-09-25",
+   "spread_12": {
+    "annual_bps": -62.8,
+    "boot95_bps": [
+     -21.85,
+     2.69
+    ],
+    "hit": 0.625,
+    "max_dd_bps": -868.2,
+    "mean_bps": -9.34,
+    "n": 72,
+    "t": -1.47,
+    "t_pop": -1.48,
+    "total_bps": -672.7
+   },
+   "spread_20": {
+    "annual_bps": -89.7,
+    "boot95_bps": [
+     -25.84,
+     -1.3
+    ],
+    "hit": 0.611,
+    "max_dd_bps": -1108.1,
+    "mean_bps": -13.34,
+    "n": 72,
+    "t": -2.1,
+    "t_pop": -2.12,
+    "total_bps": -960.6
+   },
+   "spread_30": {
+    "annual_bps": -123.3,
+    "boot95_bps": [
+     -30.84,
+     -6.3
+    ],
+    "hit": 0.611,
+    "max_dd_bps": -1408.0,
+    "mean_bps": -18.34,
+    "n": 72,
+    "t": -2.89,
+    "t_pop": -2.91,
+    "total_bps": -1320.4
+   },
+   "spread_40": {
+    "annual_bps": -156.8,
+    "boot95_bps": [
+     -35.84,
+     -11.3
+    ],
+    "hit": 0.542,
+    "max_dd_bps": -1743.3,
+    "mean_bps": -23.34,
+    "n": 72,
+    "t": -3.68,
+    "t_pop": -3.7,
+    "total_bps": -1680.2
+   },
+   "trades": 72,
+   "weekends": 524,
+   "years": 10.71
+  },
+  "USDJPY": {
+   "first_friday": "2016-01-08",
+   "last_friday": "2026-09-25",
+   "spread_12": {
+    "annual_bps": -56.7,
+    "boot95_bps": [
+     -20.39,
+     4.09
+    ],
+    "hit": 0.633,
+    "max_dd_bps": -841.0,
+    "mean_bps": -7.7,
+    "n": 79,
+    "t": -1.23,
+    "t_pop": -1.24,
+    "total_bps": -608.0
+   },
+   "spread_20": {
+    "annual_bps": -86.2,
+    "boot95_bps": [
+     -24.39,
+     0.09
+    ],
+    "hit": 0.62,
+    "max_dd_bps": -1108.9,
+    "mean_bps": -11.7,
+    "n": 79,
+    "t": -1.87,
+    "t_pop": -1.88,
+    "total_bps": -923.9
+   },
+   "spread_30": {
+    "annual_bps": -123.1,
+    "boot95_bps": [
+     -29.39,
+     -4.91
+    ],
+    "hit": 0.608,
+    "max_dd_bps": -1473.6,
+    "mean_bps": -16.69,
+    "n": 79,
+    "t": -2.67,
+    "t_pop": -2.68,
+    "total_bps": -1318.9
+   },
+   "spread_40": {
+    "annual_bps": -160.0,
+    "boot95_bps": [
+     -34.39,
+     -9.91
+    ],
+    "hit": 0.481,
+    "max_dd_bps": -1838.5,
+    "mean_bps": -21.69,
+    "n": 79,
+    "t": -3.47,
+    "t_pop": -3.49,
+    "total_bps": -1713.8
+   },
+   "trades": 79,
+   "weekends": 525,
+   "years": 10.71
+  }
+ },
+ "B_straddles": {
+  "daily": {
+   "breakeven_note": "the ratio of IG's straddle-implied volatility to the matching Cboe index at which the ungated model's mean is zero, after the 2026-10-09 leg cost; S4's screen compares IG's k_bid with this number",
+   "breakeven_ratio_iron_butterfly_interpolated": 0.9421,
+   "breakeven_ratio_naked_exact": 0.951,
+   "breakeven_ratio_naked_interpolated": 0.951,
+   "first": "2022-05-13",
+   "iv_minus_rv_ge_3_and_iv_le_30_iron_butterfly_ratio_0.8": {
+    "annual_bps": -852.7,
+    "hit": 0.417,
+    "max_dd_bps": -3882.2,
+    "mean_bps": -13.04,
+    "n": 288,
+    "t": -4.22,
+    "t_pop": -4.23,
+    "total_bps": -3756.3
+   },
+   "iv_minus_rv_ge_3_and_iv_le_30_naked_ratio_0.8": {
+    "annual_bps": -1183.8,
+    "hit": 0.438,
+    "max_dd_bps": -5350.2,
+    "mean_bps": -18.11,
+    "n": 288,
+    "t": -4.21,
+    "t_pop": -4.21,
+    "total_bps": -5214.9
+   },
+   "iv_minus_rv_ge_3_iron_butterfly_ratio_0.8": {
+    "annual_bps": -920.5,
+    "hit": 0.426,
+    "max_dd_bps": -4263.8,
+    "mean_bps": -12.32,
+    "n": 329,
+    "t": -3.38,
+    "t_pop": -3.39,
+    "total_bps": -4054.8
+   },
+   "iv_minus_rv_ge_3_naked_ratio_0.8": {
+    "annual_bps": -1487.5,
+    "hit": 0.45,
+    "max_dd_bps": -6676.4,
+    "mean_bps": -19.92,
+    "n": 329,
+    "t": -3.75,
+    "t_pop": -3.76,
+    "total_bps": -6552.8
+   },
+   "iv_minus_rv_ge_5_iron_butterfly_ratio_0.8": {
+    "annual_bps": -584.8,
+    "hit": 0.425,
+    "max_dd_bps": -3037.4,
+    "mean_bps": -12.15,
+    "n": 212,
+    "t": -2.37,
+    "t_pop": -2.38,
+    "total_bps": -2576.3
+   },
+   "iv_minus_rv_ge_5_naked_ratio_0.8": {
+    "annual_bps": -1147.2,
+    "hit": 0.443,
+    "max_dd_bps": -5380.7,
+    "mean_bps": -23.84,
+    "n": 212,
+    "t": -3.08,
+    "t_pop": -3.09,
+    "total_bps": -5053.6
+   },
+   "last": "2026-10-08",
+   "pairs": 1104,
+   "ungated_iron_butterfly_ratio_0.8": {
+    "annual_bps": -1722.5,
+    "hit": 0.463,
+    "max_dd_bps": -7729.0,
+    "mean_bps": -6.87,
+    "n": 1104,
+    "t": -4.64,
+    "t_pop": -4.64,
+    "total_bps": -7588.0,
+    "worst_bps": -262.9
+   },
+   "ungated_iron_butterfly_ratio_0.9": {
+    "annual_bps": -542.7,
+    "hit": 0.507,
+    "max_dd_bps": -3328.2,
+    "mean_bps": -2.17,
+    "n": 1104,
+    "t": -1.33,
+    "t_pop": -1.33,
+    "total_bps": -2390.6,
+    "worst_bps": -295.4
+   },
+   "ungated_iron_butterfly_ratio_1.0": {
+    "annual_bps": 801.7,
+    "hit": 0.555,
+    "max_dd_bps": -875.8,
+    "mean_bps": 3.2,
+    "n": 1104,
+    "t": 1.82,
+    "t_pop": 1.82,
+    "total_bps": 3531.6,
+    "worst_bps": -328.0
+   },
+   "ungated_naked_ratio_0.8": {
+    "annual_bps": -2957.5,
+    "hit": 0.488,
+    "max_dd_bps": -13182.2,
+    "mean_bps": -11.8,
+    "n": 1104,
+    "t": -5.59,
+    "t_pop": -5.59,
+    "total_bps": -13028.4,
+    "worst_bps": -664.4
+   },
+   "ungated_naked_ratio_0.9": {
+    "annual_bps": -998.6,
+    "hit": 0.546,
+    "max_dd_bps": -5623.1,
+    "mean_bps": -3.98,
+    "n": 1104,
+    "t": -1.87,
+    "t_pop": -1.87,
+    "total_bps": -4398.9,
+    "worst_bps": -633.7
+   },
+   "ungated_naked_ratio_1.0": {
+    "annual_bps": 960.4,
+    "hit": 0.584,
+    "max_dd_bps": -1165.7,
+    "mean_bps": 3.83,
+    "n": 1104,
+    "t": 1.77,
+    "t_pop": 1.77,
+    "total_bps": 4230.7,
+    "worst_bps": -603.0
+   },
+   "years": 4.41
+  },
+  "weekly": {
+   "breakeven_note": "the ratio of IG's straddle-implied volatility to the matching Cboe index at which the ungated model's mean is zero, after the 2026-10-09 leg cost; S4's screen compares IG's k_bid with this number",
+   "breakeven_ratio_iron_butterfly_interpolated": 0.896,
+   "breakeven_ratio_naked_exact": 0.8723,
+   "breakeven_ratio_naked_interpolated": 0.8723,
+   "first": "2011-01-07",
+   "iv_minus_rv_ge_3_and_iv_le_30_iron_butterfly_ratio_0.8": {
+    "annual_bps": -176.1,
+    "hit": 0.528,
+    "max_dd_bps": -4160.3,
+    "mean_bps": -8.55,
+    "n": 324,
+    "t": -1.66,
+    "t_pop": -1.66,
+    "total_bps": -2770.6
+   },
+   "iv_minus_rv_ge_3_and_iv_le_30_naked_ratio_0.8": {
+    "annual_bps": -90.0,
+    "hit": 0.556,
+    "max_dd_bps": -3686.2,
+    "mean_bps": -4.37,
+    "n": 324,
+    "t": -0.73,
+    "t_pop": -0.73,
+    "total_bps": -1415.5
+   },
+   "iv_minus_rv_ge_3_and_term_ratio_le_1_iron_butterfly_ratio_0.8": {
+    "annual_bps": -185.1,
+    "hit": 0.506,
+    "max_dd_bps": -3803.9,
+    "mean_bps": -11.99,
+    "n": 243,
+    "t": -2.11,
+    "t_pop": -2.11,
+    "total_bps": -2912.6
+   },
+   "iv_minus_rv_ge_3_and_term_ratio_le_1_naked_ratio_0.8": {
+    "annual_bps": -106.3,
+    "hit": 0.539,
+    "max_dd_bps": -2813.7,
+    "mean_bps": -6.88,
+    "n": 243,
+    "t": -1.08,
+    "t_pop": -1.08,
+    "total_bps": -1672.1
+   },
+   "iv_minus_rv_ge_3_iron_butterfly_ratio_0.8": {
+    "annual_bps": -284.6,
+    "hit": 0.514,
+    "max_dd_bps": -5879.4,
+    "mean_bps": -12.65,
+    "n": 354,
+    "t": -2.11,
+    "t_pop": -2.11,
+    "total_bps": -4478.3
+   },
+   "iv_minus_rv_ge_3_naked_ratio_0.8": {
+    "annual_bps": -208.4,
+    "hit": 0.545,
+    "max_dd_bps": -5122.5,
+    "mean_bps": -9.26,
+    "n": 354,
+    "t": -1.3,
+    "t_pop": -1.3,
+    "total_bps": -3279.8
+   },
+   "iv_minus_rv_ge_5_iron_butterfly_ratio_0.8": {
+    "annual_bps": -43.4,
+    "hit": 0.549,
+    "max_dd_bps": -2127.0,
+    "mean_bps": -3.5,
+    "n": 195,
+    "t": -0.39,
+    "t_pop": -0.39,
+    "total_bps": -682.8
+   },
+   "iv_minus_rv_ge_5_naked_ratio_0.8": {
+    "annual_bps": 12.1,
+    "hit": 0.585,
+    "max_dd_bps": -1758.9,
+    "mean_bps": 0.98,
+    "n": 195,
+    "t": 0.1,
+    "t_pop": 0.1,
+    "total_bps": 191.0
+   },
+   "last": "2026-10-02",
+   "pairs": 769,
+   "ungated_iron_butterfly_ratio_0.8": {
+    "annual_bps": -635.2,
+    "hit": 0.495,
+    "max_dd_bps": -11276.7,
+    "mean_bps": -13.0,
+    "n": 769,
+    "t": -3.49,
+    "t_pop": -3.49,
+    "total_bps": -9994.2,
+    "worst_bps": -659.7
+   },
+   "ungated_iron_butterfly_ratio_0.9": {
+    "annual_bps": 27.7,
+    "hit": 0.555,
+    "max_dd_bps": -4617.6,
+    "mean_bps": 0.57,
+    "n": 769,
+    "t": 0.14,
+    "t_pop": 0.14,
+    "total_bps": 436.5,
+    "worst_bps": -741.7
+   },
+   "ungated_iron_butterfly_ratio_1.0": {
+    "annual_bps": 753.1,
+    "hit": 0.602,
+    "max_dd_bps": -2212.7,
+    "mean_bps": 15.41,
+    "n": 769,
+    "t": 3.68,
+    "t_pop": 3.69,
+    "total_bps": 11849.6,
+    "worst_bps": -823.7
+   },
+   "ungated_naked_ratio_0.8": {
+    "annual_bps": -651.1,
+    "hit": 0.536,
+    "max_dd_bps": -11984.6,
+    "mean_bps": -13.32,
+    "n": 769,
+    "t": -2.76,
+    "t_pop": -2.76,
+    "total_bps": -10244.8,
+    "worst_bps": -1083.8
+   },
+   "ungated_naked_ratio_0.9": {
+    "annual_bps": 249.2,
+    "hit": 0.59,
+    "max_dd_bps": -4078.0,
+    "mean_bps": 5.1,
+    "n": 769,
+    "t": 1.06,
+    "t_pop": 1.06,
+    "total_bps": 3920.8,
+    "worst_bps": -1066.4
+   },
+   "ungated_naked_ratio_1.0": {
+    "annual_bps": 1149.5,
+    "hit": 0.65,
+    "max_dd_bps": -2056.9,
+    "mean_bps": 23.52,
+    "n": 769,
+    "t": 4.9,
+    "t_pop": 4.91,
+    "total_bps": 18086.3,
+    "worst_bps": -1048.9
+   },
+   "years": 15.73
+  }
+ },
+ "C_front_vx": {
+  "always_stop_30": {
+   "annual_pct_of_notional": 22.75,
+   "annual_sharpe": 0.33,
+   "cycles": 161,
+   "cycles_stopped": 28,
+   "worst_drawdown_pct": -150.5
+  },
+  "always_stop_50": {
+   "annual_pct_of_notional": 29.65,
+   "annual_sharpe": 0.4,
+   "cycles": 161,
+   "cycles_stopped": 13,
+   "worst_drawdown_pct": -166.5
+  },
+  "front_over_spot_ge_1_05_stop_30": {
+   "annual_pct_of_notional": -2.97,
+   "annual_sharpe": -0.05,
+   "cycles": 117,
+   "cycles_stopped": 21,
+   "worst_drawdown_pct": -170.7
+  },
+  "front_over_spot_ge_1_05_stop_50": {
+   "annual_pct_of_notional": 1.85,
+   "annual_sharpe": 0.03,
+   "cycles": 117,
+   "cycles_stopped": 10,
+   "worst_drawdown_pct": -173.8
+  },
+  "front_over_spot_ge_1_stop_30": {
+   "annual_pct_of_notional": 3.34,
+   "annual_sharpe": 0.06,
+   "cycles": 131,
+   "cycles_stopped": 24,
+   "worst_drawdown_pct": -149.2
+  },
+  "front_over_spot_ge_1_stop_50": {
+   "annual_pct_of_notional": 9.68,
+   "annual_sharpe": 0.15,
+   "cycles": 131,
+   "cycles_stopped": 11,
+   "worst_drawdown_pct": -152.0
+  },
+  "second_over_front_ge_1_03_stop_30": {
+   "annual_pct_of_notional": 1.44,
+   "annual_sharpe": 0.03,
+   "cycles": 98,
+   "cycles_stopped": 17,
+   "worst_drawdown_pct": -108.3
+  },
+  "second_over_front_ge_1_03_stop_50": {
+   "annual_pct_of_notional": -0.87,
+   "annual_sharpe": -0.02,
+   "cycles": 98,
+   "cycles_stopped": 10,
+   "worst_drawdown_pct": -148.5
+  },
+  "warning": "daily settles and highs cannot prove an IG guaranteed stop's fill, its premium or its minimum distance; no VX variant advances under the spec"
+ },
+ "D_esg": {
+  "cost_bps": 1.22,
+  "coverage_verdict": "S3 not run, coverage: no lawfully reusable hourly ES history of at least eight years with 60 trades at 0.5 % was found (review section 3.4); ESG stays descriptive on the Yahoo trades",
+  "fade_0.25pct_exit_x10": {
+   "annual_bps": 37.5,
+   "hit": 0.55,
+   "max_dd_bps": -669.0,
+   "mean_bps": 1.96,
+   "n": 40,
+   "t": 0.14,
+   "t_pop": 0.14,
+   "total_bps": 78.4
+  },
+  "fade_0.25pct_exit_x16": {
+   "annual_bps": 240.1,
+   "hit": 0.575,
+   "max_dd_bps": -486.4,
+   "mean_bps": 12.54,
+   "n": 40,
+   "t": 0.67,
+   "t_pop": 0.68,
+   "total_bps": 501.6
+  },
+  "fade_0.5pct_exit_x10": {
+   "annual_bps": 86.4,
+   "hit": 0.611,
+   "max_dd_bps": -317.0,
+   "mean_bps": 10.03,
+   "n": 18,
+   "t": 0.38,
+   "t_pop": 0.39,
+   "total_bps": 180.6
+  },
+  "fade_0.5pct_exit_x16": {
+   "annual_bps": 432.7,
+   "hit": 0.722,
+   "max_dd_bps": -212.2,
+   "mean_bps": 50.21,
+   "n": 18,
+   "t": 1.53,
+   "t_pop": 1.57,
+   "total_bps": 903.9
+  },
+  "fade_0.75pct_exit_x10": {
+   "annual_bps": 88.4,
+   "hit": 0.5,
+   "max_dd_bps": -159.7,
+   "mean_bps": 18.47,
+   "n": 10,
+   "t": 0.52,
+   "t_pop": 0.55,
+   "total_bps": 184.7
+  },
+  "fade_0.75pct_exit_x16": {
+   "annual_bps": 320.7,
+   "hit": 0.7,
+   "max_dd_bps": -178.9,
+   "mean_bps": 66.98,
+   "n": 10,
+   "t": 1.34,
+   "t_pop": 1.42,
+   "total_bps": 669.8
+  },
+  "first": "2024-05-19T18:00:00-04:00",
+  "last": "2026-10-04T18:00:00-04:00",
+  "weekends": 109
+ },
+ "comparison_with_2026_10_14": [
+  {
+   "2026_10_14": 85,
+   "equal": true,
+   "this": 85,
+   "what": "AUDUSD trades"
+  },
+  {
+   "2026_10_14": 18.88,
+   "equal": true,
+   "this": 18.88,
+   "what": "AUDUSD mean at 12"
+  },
+  {
+   "2026_10_14": 4.82,
+   "equal": true,
+   "this": 4.82,
+   "what": "AUDUSD t_pop at 12"
+  },
+  {
+   "2026_10_14": 14.88,
+   "equal": true,
+   "this": 14.88,
+   "what": "AUDUSD mean at 20"
+  },
+  {
+   "2026_10_14": 3.8,
+   "equal": true,
+   "this": 3.8,
+   "what": "AUDUSD t_pop at 20"
+  },
+  {
+   "2026_10_14": 9.88,
+   "equal": true,
+   "this": 9.88,
+   "what": "AUDUSD mean at 30"
+  },
+  {
+   "2026_10_14": 2.52,
+   "equal": true,
+   "this": 2.52,
+   "what": "AUDUSD t_pop at 30"
+  },
+  {
+   "2026_10_14": 4.89,
+   "equal": true,
+   "this": 4.89,
+   "what": "AUDUSD mean at 40"
+  },
+  {
+   "2026_10_14": 1.25,
+   "equal": true,
+   "this": 1.25,
+   "what": "AUDUSD t_pop at 40"
+  },
+  {
+   "2026_10_14": 53,
+   "equal": true,
+   "this": 53,
+   "what": "EURUSD trades"
+  },
+  {
+   "2026_10_14": 2.98,
+   "equal": true,
+   "this": 2.98,
+   "what": "EURUSD mean at 12"
+  },
+  {
+   "2026_10_14": 0.54,
+   "equal": true,
+   "this": 0.54,
+   "what": "EURUSD t_pop at 12"
+  },
+  {
+   "2026_10_14": -1.02,
+   "equal": true,
+   "this": -1.02,
+   "what": "EURUSD mean at 20"
+  },
+  {
+   "2026_10_14": -0.19,
+   "equal": true,
+   "this": -0.19,
+   "what": "EURUSD t_pop at 20"
+  },
+  {
+   "2026_10_14": -6.02,
+   "equal": true,
+   "this": -6.02,
+   "what": "EURUSD mean at 30"
+  },
+  {
+   "2026_10_14": -1.1,
+   "equal": true,
+   "this": -1.1,
+   "what": "EURUSD t_pop at 30"
+  },
+  {
+   "2026_10_14": -11.02,
+   "equal": true,
+   "this": -11.02,
+   "what": "EURUSD mean at 40"
+  },
+  {
+   "2026_10_14": -2.02,
+   "equal": true,
+   "this": -2.02,
+   "what": "EURUSD t_pop at 40"
+  },
+  {
+   "2026_10_14": 72,
+   "equal": true,
+   "this": 72,
+   "what": "GBPUSD trades"
+  },
+  {
+   "2026_10_14": -9.34,
+   "equal": true,
+   "this": -9.34,
+   "what": "GBPUSD mean at 12"
+  },
+  {
+   "2026_10_14": -1.48,
+   "equal": true,
+   "this": -1.48,
+   "what": "GBPUSD t_pop at 12"
+  },
+  {
+   "2026_10_14": -13.34,
+   "equal": true,
+   "this": -13.34,
+   "what": "GBPUSD mean at 20"
+  },
+  {
+   "2026_10_14": -2.12,
+   "equal": true,
+   "this": -2.12,
+   "what": "GBPUSD t_pop at 20"
+  },
+  {
+   "2026_10_14": -18.34,
+   "equal": true,
+   "this": -18.34,
+   "what": "GBPUSD mean at 30"
+  },
+  {
+   "2026_10_14": -2.91,
+   "equal": true,
+   "this": -2.91,
+   "what": "GBPUSD t_pop at 30"
+  },
+  {
+   "2026_10_14": -23.34,
+   "equal": true,
+   "this": -23.34,
+   "what": "GBPUSD mean at 40"
+  },
+  {
+   "2026_10_14": -3.7,
+   "equal": true,
+   "this": -3.7,
+   "what": "GBPUSD t_pop at 40"
+  },
+  {
+   "2026_10_14": 79,
+   "equal": true,
+   "this": 79,
+   "what": "USDJPY trades"
+  },
+  {
+   "2026_10_14": -7.7,
+   "equal": true,
+   "this": -7.7,
+   "what": "USDJPY mean at 12"
+  },
+  {
+   "2026_10_14": -1.24,
+   "equal": true,
+   "this": -1.24,
+   "what": "USDJPY t_pop at 12"
+  },
+  {
+   "2026_10_14": -11.7,
+   "equal": true,
+   "this": -11.7,
+   "what": "USDJPY mean at 20"
+  },
+  {
+   "2026_10_14": -1.88,
+   "equal": true,
+   "this": -1.88,
+   "what": "USDJPY t_pop at 20"
+  },
+  {
+   "2026_10_14": -16.69,
+   "equal": true,
+   "this": -16.69,
+   "what": "USDJPY mean at 30"
+  },
+  {
+   "2026_10_14": -2.68,
+   "equal": true,
+   "this": -2.68,
+   "what": "USDJPY t_pop at 30"
+  },
+  {
+   "2026_10_14": -21.69,
+   "equal": true,
+   "this": -21.69,
+   "what": "USDJPY mean at 40"
+  },
+  {
+   "2026_10_14": -3.49,
+   "equal": true,
+   "this": -3.49,
+   "what": "USDJPY t_pop at 40"
+  },
+  {
+   "2026_10_14": [
+    10.93,
+    26.24
+   ],
+   "equal": false,
+   "this": [
+    10.93,
+    26.23
+   ],
+   "what": "AUD boot95 at 12"
+  },
+  {
+   "2026_10_14": 10.9,
+   "equal": true,
+   "this": 10.9,
+   "what": "AUD era 2016-2018 mean at 12"
+  },
+  {
+   "2026_10_14": 18.35,
+   "equal": true,
+   "this": 18.35,
+   "what": "AUD era 2019-2021 mean at 12"
+  },
+  {
+   "2026_10_14": 16.9,
+   "equal": true,
+   "this": 16.9,
+   "what": "AUD era 2022-2024 mean at 12"
+  },
+  {
+   "2026_10_14": 31.42,
+   "equal": true,
+   "this": 31.42,
+   "what": "AUD era 2025-2026 mean at 12"
+  },
+  {
+   "2026_10_14": 22.2,
+   "equal": true,
+   "this": 22.2,
+   "what": "AUD long after fall at 12"
+  },
+  {
+   "2026_10_14": 10.44,
+   "equal": true,
+   "this": 10.44,
+   "what": "AUD short after rise at 12"
+  },
+  {
+   "2026_10_14": 7.06,
+   "equal": true,
+   "this": 7.06,
+   "what": "AUD delay 60 mean at 12"
+  },
+  {
+   "2026_10_14": 9.91,
+   "equal": true,
+   "this": 9.91,
+   "what": "AUD delay 240 mean at 12"
+  },
+  {
+   "2026_10_14": -129.3,
+   "equal": true,
+   "this": -129.3,
+   "what": "AUD worst trade at 12"
+  },
+  {
+   "2026_10_14": 440.1,
+   "equal": true,
+   "this": 440.1,
+   "what": "AUD MAE max"
+  },
+  {
+   "2026_10_14": [
+    21.6,
+    56.4,
+    117.5,
+    130.3
+   ],
+   "equal": false,
+   "this": [
+    21.6,
+    56.4,
+    116.3,
+    129.8
+   ],
+   "what": "AUD MAE p50/p75/p90/p95 (interpolated here, nearest rank there)"
+  },
+  {
+   "2026_10_14": -19.92,
+   "equal": true,
+   "this": -19.92,
+   "what": "daily iv_minus_rv_ge_3 naked mean"
+  },
+  {
+   "2026_10_14": -12.32,
+   "equal": true,
+   "this": -12.32,
+   "what": "daily iv_minus_rv_ge_3 iron_butterfly mean"
+  },
+  {
+   "2026_10_14": -23.84,
+   "equal": true,
+   "this": -23.84,
+   "what": "daily iv_minus_rv_ge_5 naked mean"
+  },
+  {
+   "2026_10_14": -12.15,
+   "equal": true,
+   "this": -12.15,
+   "what": "daily iv_minus_rv_ge_5 iron_butterfly mean"
+  },
+  {
+   "2026_10_14": -18.11,
+   "equal": true,
+   "this": -18.11,
+   "what": "daily iv_minus_rv_ge_3_and_iv_le_30 naked mean"
+  },
+  {
+   "2026_10_14": -13.04,
+   "equal": true,
+   "this": -13.04,
+   "what": "daily iv_minus_rv_ge_3_and_iv_le_30 iron_butterfly mean"
+  },
+  {
+   "2026_10_14": -11.8,
+   "equal": true,
+   "this": -11.8,
+   "what": "daily ungated naked 0.8 mean"
+  },
+  {
+   "2026_10_14": -9.26,
+   "equal": true,
+   "this": -9.26,
+   "what": "weekly iv_minus_rv_ge_3 naked mean"
+  },
+  {
+   "2026_10_14": -12.65,
+   "equal": true,
+   "this": -12.65,
+   "what": "weekly iv_minus_rv_ge_3 iron_butterfly mean"
+  },
+  {
+   "2026_10_14": 0.98,
+   "equal": true,
+   "this": 0.98,
+   "what": "weekly iv_minus_rv_ge_5 naked mean"
+  },
+  {
+   "2026_10_14": -3.5,
+   "equal": true,
+   "this": -3.5,
+   "what": "weekly iv_minus_rv_ge_5 iron_butterfly mean"
+  },
+  {
+   "2026_10_14": -4.37,
+   "equal": true,
+   "this": -4.37,
+   "what": "weekly iv_minus_rv_ge_3_and_iv_le_30 naked mean"
+  },
+  {
+   "2026_10_14": -8.55,
+   "equal": true,
+   "this": -8.55,
+   "what": "weekly iv_minus_rv_ge_3_and_iv_le_30 iron_butterfly mean"
+  },
+  {
+   "2026_10_14": -13.32,
+   "equal": true,
+   "this": -13.32,
+   "what": "weekly ungated naked 0.8 mean"
+  },
+  {
+   "2026_10_14": 22.75,
+   "equal": true,
+   "this": 22.75,
+   "what": "VX always_stop_30 annual %"
+  },
+  {
+   "2026_10_14": 28,
+   "equal": true,
+   "this": 28,
+   "what": "VX always_stop_30 stops"
+  },
+  {
+   "2026_10_14": 3.34,
+   "equal": true,
+   "this": 3.34,
+   "what": "VX front_over_spot_ge_1_stop_30 annual %"
+  },
+  {
+   "2026_10_14": 24,
+   "equal": true,
+   "this": 24,
+   "what": "VX front_over_spot_ge_1_stop_30 stops"
+  },
+  {
+   "2026_10_14": -2.97,
+   "equal": true,
+   "this": -2.97,
+   "what": "VX front_over_spot_ge_1_05_stop_30 annual %"
+  },
+  {
+   "2026_10_14": 21,
+   "equal": true,
+   "this": 21,
+   "what": "VX front_over_spot_ge_1_05_stop_30 stops"
+  },
+  {
+   "2026_10_14": 1.44,
+   "equal": true,
+   "this": 1.44,
+   "what": "VX second_over_front_ge_1_03_stop_30 annual %"
+  },
+  {
+   "2026_10_14": 17,
+   "equal": true,
+   "this": 17,
+   "what": "VX second_over_front_ge_1_03_stop_30 stops"
+  },
+  {
+   "2026_10_14": 29.65,
+   "equal": true,
+   "this": 29.65,
+   "what": "VX always_stop_50 annual %"
+  },
+  {
+   "2026_10_14": 13,
+   "equal": true,
+   "this": 13,
+   "what": "VX always_stop_50 stops"
+  },
+  {
+   "2026_10_14": 18,
+   "equal": true,
+   "this": 18,
+   "what": "ESG 0.5 % Monday 16:00 n"
+  },
+  {
+   "2026_10_14": 50.21,
+   "equal": true,
+   "this": 50.21,
+   "what": "ESG 0.5 % Monday 16:00 mean"
+  }
+ ]
+}
