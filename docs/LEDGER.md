@@ -564,7 +564,17 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 "LEDGER.md, archived 2026-10-09", the 2026-10-08 22:49 → 23:58 UTC sections under "LEDGER.md, archived 2026-10-09
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
-archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14"; each oldest first.
+archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
+"LEDGER.md, archived 2026-10-15"; each oldest first.
+
+### [2026-10-15 01:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- Landed CBFAST (the Coinbase agent, resumed; `reviews/2026-10-15-coinbase-fast-move.md`): 10-14's −£2.70 / −£2.55 on both
+  Coinbase arms is no bug (the 12:30 UTC US CPI minute −£1.52, trips carried through it −£1.33); no FX lag to fix; no reactive
+  guard is positive on both 12-month spans; a release blackout (entries off T−1 → T+5 min around CPI/NFP/FOMC/BoE/ECB) is
+  positive in every variant, +£8 to +£26 a year on £2,400, but a 28-day paper row could not tell it from noise. **No "with
+  Euros - 3" row**; the blackout is a day-one rule for whichever Coinbase arm is funded after the 11-08 / 11-10 readings, or
+  Davies adopts it on the history. CPI/NFP dates were recalled (bls.gov refused this machine): confirm before any use.
+  Archived the 2026-10-12 23:05 → 10-13 03:02 history sections.
 
 ### [2026-10-15 01:24 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Why both Coinbase "with Euros" tests lost on 10-14, and what a fast-move guard is worth** (sub-agent; Davies, 10-15: "stablecoinwitheuros的两个策略怎么今天亏了，有问题就修复改好";
@@ -777,49 +787,3 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   (`0119`). Rebased over `0120`, two doc conflicts kept both sides. Counterfactuals run here: INV_CAP 5, touch 1 c, a failed
   read taken as quiet, the 50-share bar ignored, the restart's limit ignored, the restart ignored: each fails its pins.
   Hashes in the addendum match the files (`pm_live.ts` 28930ad9…, `pm_lp.ts` 08be7827…, 0119 88437a19…).
-
-### [2026-10-13 03:02 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- Landed `0120` (the LP-SPEED agent, resumed): the paper Reward quotes calls off, their page rows gone, the dashboard no
-  longer reads them; checked by hand that live mode reads no paper layer (`pm_live.ts` `paper` is null unless dry-run).
-  About 10,600 calls and 114,500 rows a day saved (2026-10-12's). Item 0b.
-
-### [2026-10-13 01:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- Landed LP-BEST (`opus-high`): checked its validation by hand against the record (live −70.41 over the four days with 10-12's
-  $7.96 paid; a quoting day −21.77; the engine −18.40 at the live calibration). Item 0a has the result and the open question.
-
-### [2026-10-13 00:51 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- Coinbase Deviation 2 closed: fix deployed 00:10:57, `0117` applied, verify 8,786 minutes 0 wrong. Landed "Stablecoin quotes with
-  Euros - 2" (the Coinbase review's agent, resumed: CLAUDE.md's reuse rule): the base test's files untouched, its own driver,
-  call, tables (0118) and page row; eight Deno pins with five mutations each failing them; the sweep green by its hand run
-  (682 checks) and again in this landing's full gates. Window start and reading date go into item 12b once it runs.
-
-### [2026-10-13 00:08 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Davies, 2026-10-13: "Coinbase修复同意，周末变体写预注册然后上线paper trading 策略with Euros - 2 … live rewards继续停止，并继续研究
-  最好的策略，所有地方都可以改，所有数据都可以用，然后给我讲讲我再评估下".** Landed: the Coinbase prereg's Deviation 2 and the
-  `cbMinuteRow` fix with its pin (9 passed; with the old `reduce(f)` restored, 1 failed). Running: LP-BEST (`opus-high`,
-  `reviews/2026-10-13-lp-best-strategy.md`, research only). Next: the repair migration after the deploy; the weekend
-  variant "Stablecoin quotes with Euros - 2" (pre-registration, then its paper arm), after the fix, since it touches
-  `cb_quotes.ts` too.
-
-### [2026-10-13 23:47 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **The three studies landed** (sub-agents' commits rebased onto `main`, one full gate run). LP-ADVERSE: 436 fills, 6,966
-  shares, 42 markets, −129.43 = +100.56 half-spread −235.77 adverse 0–5 min −69.44 adverse 5–60 min +75.21 carried
-  (checked: counts by query, the sum by hand); break-even R 1.80 on what ran; P1/P2/P4 priced, keep stopped recommended.
-  LP-SPEED: Davies' hypothesis partly right (programmes change fast; fills come 3.4× chance in a post's first second) and the
-  cure not (one fill in 118 programme changes fell in the detection gap; B and D, one taker sweeping or taking our touch, are
-  97 % of the markout loss); the CLOB reward read's `max-age=5` checked by hand. Coinbase: recorders healthy, no gap in the
-  window; the minute-record defect checked by query (item 12); its fix held back for Deviation 2.
-
-### [2026-10-12 23:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Resumed from `787d878` (a Claude Code session had died; nothing in git after 10-11 04:30). Watch 22:54 UTC: URGENT.**
-  Live-prep's −$75 total stop tripped 07:30 UTC 10-12 (`loss_stop_total`: fills −129.35, paid 38.10, rebates 10.02, basis
-  −81.24); at 22:54 basis −81.12, pUSD 284.12, equity 316.34, ~$35.5 held at mid; 3 sells resting, 19 filled since the
-  stop. Rewards are not the problem (10-11 R 0.81, pooled 0.75); the fills are: −$80 since the 10-11 handover, the
-  MrBeast view-count markets about −$74 of the whole record. Two notes for the studies: a replacement sell for 10 shares
-  refused on a 7.5-share balance (15:02), and refills still taken after the stop (07:32, the day's 8th). Error box since
-  10-11 03:15: the stop, five single network blips. PR5, `trend-4h-live`, the monitor's dead-man and the tick all healthy;
-  the site serves `app-e9c6998b.js`, main's CI green; four dependabot PRs red (not urgent); #235 stale.
-- **Davies' decision (~23:00 UTC):** "保持止损，开始做逆向选择研究，并深度研究优化策略（目前的表现太差了），所有数据都能看，所有文件
-  都能改，策略的实际良好运行更重要"; his hypothesis to test, that the reward markets change fast and fill fast, rewards gone
-  soon after we post, which paper could not see, and whether a one-second reward check would answer it; and "coinbase上线后
-  情况如何". Three sub-agents (two `opus-high`, one `sonnet-high`), each a review under `docs/agents/reviews/2026-10-12-*`.
