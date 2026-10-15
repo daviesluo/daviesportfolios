@@ -114,6 +114,11 @@
 //                             interbank rates held through a closure, on the
 //                             recorder's prints; its own tables and lease.
 //                             Reads only the database. Cron or admin.
+//   POST ?action=econcal&from=YYYY-MM-DD&to=YYYY-MM-DD
+//                           — Finnhub's economic calendar for the window
+//                             (econcal.ts): country, event, time (UTC) and
+//                             impact, or Finnhub's refusal verbatim. The key
+//                             stays in the function's secrets. Cron only.
 //   POST ?action=cbbooks    — Coinbase's order books (cb_books.ts, 0114): 30 s
 //                             into every minute, after the recorder, the top
 //                             ten levels a side of the same four books, kept
@@ -229,6 +234,7 @@ import { cbBooksDelayMs, runCbBooks } from "./cb_books.ts";
 import { runCbQuotes } from "./cb_quotes.ts";
 import { CB_HOLD_ID, CB_HOLD_ROW_NAME, CB_HOLD_TABLES, runCbHold } from "./cb_hold.ts";
 import { readCoinbaseArm } from "./cb_page.ts";
+import { runEconcal } from "./econcal.ts";
 import { dayOpenOf, dayPnl, decisionBarMs, isOffBook, jevViewOf, resolveBook, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
 
 export { constantTimeEqual, verifyToken } from "../_shared/token.ts";
@@ -2793,6 +2799,8 @@ async function route(req: Request, who: Exclude<Who, null>, url: URL, action: st
   if (action === "cbrec" && req.method === "POST" && operator) return json(200, await runCbRecAction());
   // "Stablecoin quotes with Euros - 2" (cb_hold.ts, 0118): the weekend variant, decided from the database alone.
   if (action === "cbhold" && req.method === "POST" && operator) return json(200, await runCbHoldAction());
+  // Finnhub's economic calendar, read only (econcal.ts, 2026-10-15): the events of a window for the Coinbase blackout's release list. Cron bearer only; the key stays here.
+  if (action === "econcal" && req.method === "POST" && who === "cron") return json(200, await runEconcal({ from: url.searchParams.get("from"), to: url.searchParams.get("to"), key: Deno.env.get("FINNHUB_API_KEY") }));
   // Coinbase's order books (cb_books.ts, 0114): the top ten levels a side, 30 s into the minute. Keyless reads.
   if (action === "cbbooks" && req.method === "POST" && operator) return json(200, await runCbBooksAction(url.searchParams.get("wait") !== "0"));
   // The programme factor's reader (pm_prog.ts, 0115): pm-rec's archived listing into `pm_prog_reads`. Reads only.
