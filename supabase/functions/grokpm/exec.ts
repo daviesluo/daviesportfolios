@@ -44,6 +44,10 @@ export const GROKPM_RULES = {
   marketCapUsd: 10, maxPositions: 6, themeCapUsd: 25, cashFloorUsd: 30,
   favouriteMin: 0.9, longshotUnder: 0.05, maxDaysToEnd: 30, shortDays: 7,
   thinSpread: 0.05, thinDepthUsd: 500, depthBand: 0.05,
+  /** An open's edge, p less the dearer of its price and the book's mid (Deviation D3): A's 8 points, B's 12. */
+  edgeA: 0.08, edgeB: 0.12,
+  /** An open's cost is at most a quarter of the Kelly stake of the book's equity at its p and price (or the venue's smallest order). */
+  kellyFraction: 0.25,
   /** An order's own lifetime (the venue ends a GTD order a minute before its stated expiry, which this adds). */
   minLifetimeS: 180, maxLifetimeS: 65 * 60, defaultLifetimeS: 35 * 60,
   /** A held token at least this big is a position; under it, rounding dust of the agent's own fills. */
@@ -270,6 +274,22 @@ export function orderRefusals(p: {
     const L = p.ledger;
     if (price < R.longshotUnder) out.push({ rule: "longshot", why: `a buy under ${R.longshotUnder} is forbidden` });
     if (price >= R.favouriteMin && d.category !== "A") out.push({ rule: "favourite", why: `a buy at ${R.favouriteMin} or above is category A only` });
+    // Deviation D3: §2's own bars, checked here rather than left to the agent. The edge is taken against the dearer of the
+    // order's price and the book's mid as the server reads it, so neither a low resting price nor a stale m clears it.
+    const pr = Number(d.p);
+    if (Number.isFinite(pr)) {
+      const against = Math.max(price, b?.mid ?? price), edge = r6(pr - against);
+      const bar = d.category === "A" ? R.edgeA : d.category === "B" ? R.edgeB : 0;
+      if (d.category === "A" || d.category === "B") {
+        if (edge < bar - 1e-9) out.push({ rule: "edge", why: `category ${d.category} needs p at least ${Math.round(bar * 100)} points over the price: p ${pr} against ${r6(against)} is ${(edge * 100).toFixed(1)}` });
+      } else if (!(pr > price)) out.push({ rule: "edge", why: `p ${pr} is not over the price ${price}: an open buys only what it thinks is cheap` });
+      if (pr > price) {
+        const kellyUsd = r6(R.kellyFraction * ((pr - price) / (1 - price)) * Math.max(0, p.ledger.equityUsd));
+        const smallest = b?.minSize ? b.minSize * price : 0;
+        if (price * size > Math.max(kellyUsd, smallest) + 1e-9) out.push({ rule: "kelly", why: `$${(price * size).toFixed(2)} is over a quarter Kelly at p ${pr} and ${price}: at most $${Math.max(kellyUsd, smallest).toFixed(2)}` });
+      }
+    }
+    if (d.category === "C" && !Object.values(p.ledger.held).some((h) => h.cond === cond)) out.push({ rule: "adjustment", why: "category C changes a position the agent already holds: it holds nothing in this market" });
     if (L.totalUsd <= -p.totalStopUsd) out.push({ rule: "total_stop", why: `the book is ${L.totalUsd.toFixed(2)} from the budget, at or past −${p.totalStopUsd}: close only` });
     if (p.dayPnlUsd <= -p.dailyLossUsd) out.push({ rule: "day_stop", why: `the UTC day is ${p.dayPnlUsd.toFixed(2)}, at or past −${p.dailyLossUsd}: no new open until 00:00 UTC` });
     const cost = price * size;

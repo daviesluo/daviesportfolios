@@ -193,13 +193,40 @@ Deno.test("each open rule refuses with its reason, and nothing is journalled or 
   // A favourite is category A's: at 0.90 with category A it passes.
   const w = world();
   w.fake.markets[0].bid = 0.9; w.fake.markets[0].ask = 0.92;
-  assertEquals((await placeOrder(w.deps(), open({ price: 0.9, category: "A" }))).status, 200);
+  assertEquals((await placeOrder(w.deps(), open({ price: 0.9, p: 0.99, category: "A" }))).status, 200);
   // The decision itself: an open without p, m, invalidation, or sources for A/B, is invalid.
   const v = await placeOrder(world().deps(), { decision: { ...open().decision, p: undefined, sources: [] }, theme: "t" });
   assertEquals(v.status, 422);
   assertEquals((v.body.errors as string[]).sort(), ["decision.p: required", "decision.sources: at least one source is required for category A or B"]);
   // No theme, no open.
   assertEquals(rules(await placeOrder(world().deps(), { decision: open().decision })), ["theme"]);
+});
+
+Deno.test("Deviation D3: A's 8 and B's 12 points against the dearer of price and mid, a quarter Kelly, and C only on a holding", async () => {
+  // The book: bid 0.45, ask 0.47, mid 0.46. B at 0.44 is measured from the mid: p 0.58 is 12 points, 0.57 is 11.
+  assertEquals((await placeOrder(world().deps(), open({ p: 0.58 }))).status, 200);
+  const b11 = await placeOrder(world().deps(), open({ p: 0.57 }));
+  assertEquals([b11.status, rules(b11)], [422, ["edge"]]);
+  // A needs 8 points: p 0.54 passes, 0.53 does not.
+  assertEquals((await placeOrder(world().deps(), open({ p: 0.54, category: "A" }))).status, 200);
+  assertEquals(rules(await placeOrder(world().deps(), open({ p: 0.53, size: 5, category: "A" }))), ["edge"]);
+  // Grok's rehearsal: B at p 0.85 with the mid at 0.865 is no edge at all.
+  const g = world();
+  g.fake.markets[0].bid = 0.85; g.fake.markets[0].ask = 0.88;
+  assertEquals(rules(await placeOrder(g.deps(), open({ price: 0.85, size: 5, p: 0.85 }))), ["edge"]);
+  // A quarter Kelly of $100 at p 0.6 and 0.44: 0.25 × 0.16 / 0.56 × 100 = $7.14, so 16 shares ($7.04) pass and 17 ($7.48) do not.
+  assertEquals((await placeOrder(world().deps(), open({ size: 16 }))).status, 200);
+  assertEquals(rules(await placeOrder(world().deps(), open({ size: 17 }))), ["kelly"]);
+  // The venue's smallest order always fits when the edge does: A at p 0.54 and 0.44 is $4.46, and 5 shares cost $2.20.
+  assertEquals((await placeOrder(world().deps(), open({ p: 0.54, size: 5, category: "A" }))).status, 200);
+  // C adds to a holding: with nothing held it is refused; it needs p over the price, not a bar.
+  assertEquals(rules(await placeOrder(world().deps(), open({ category: "C", p: 0.5, size: 5 }))), ["adjustment"]);
+  const w = world({ armed: true });
+  const hash = "0x" + "ef".repeat(32);
+  w.db.tables.grokpm_orders.push({ id: 1, created_at: iso(T0 - DAY), mode: "live", decision_id: "z", cond: C1, token: "101", outcome: "Yes", side: "BUY", price: 0.44, size: 10, post_only: true, expiration: 0, neg_risk: false, hash, theme: "theme-1", category: "B", state: "filled", size_matched: 10 });
+  w.db.tables.grokpm_fills.push({ trade_id: "t1", hash, cond: C1, token: "101", side: "BUY", price: 0.44, size: 10, fee_usd: 0, taker: false, status: "CONFIRMED", match_time: iso(T0 - DAY), tx_hash: "0x01" });
+  assertEquals((await placeOrder(w.deps(), open({ category: "C", p: 0.5, size: 5 }))).status, 200);
+  assertEquals(rules(await placeOrder(w.deps(), open({ category: "C", p: 0.44, size: 5 }))), ["edge"]);
 });
 
 Deno.test("positions, themes, the cash floor and the day's orders, from the agent's own resting orders", async () => {

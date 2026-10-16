@@ -287,6 +287,18 @@ CLOB's history (a mid-like price per five minutes), not executable books.
 
   Nothing else changes: the categories, the reading (§6), its bar and its end are as frozen. The account's address is
   never returned to the agent or shown on the page.
+- **D3 (2026-10-16, before the start; no migration).** The agent's dry-run rehearsal sent a category-B open at p 0.85
+  with the mid at 0.865, said itself that this was no 12-point edge, and noted that the server did not check it. Three
+  more of §2's rules are machine-checkable and are now refused by the server like the others (`exec.ts`, its Edge tests):
+  1. **`edge`**: an open of category A needs p at least 8 points over the price, of category B at least 12, where the
+     price is the dearer of the order's price and the book's mid as the server reads it (so neither a low resting price
+     nor a stale m clears the bar); an open of category C needs p over the order's price.
+  2. **`kelly`**: an open costs at most a quarter of the Kelly stake of the agent's equity at its p and its price,
+     `0.25 × (p − price) / (1 − price) × equity`, or the venue's smallest order when that is more (the $10 market cap
+     still applies on top).
+  3. **`adjustment`**: an open of category C needs a position the agent already holds in that market.
+
+  These enforce rules §2 already states; nothing about the categories, the reading (§6), its bar or its end changes.
 
 ## Appendix A: the journal API (paste into the prompt)
 
@@ -526,6 +538,9 @@ A close of category C (a broken thesis) may sell at or below the best bid; any o
 | `thin` | one-sided, spread over 5 points, or under $500 bid within 5 points of the mid |
 | `post_only` | a buy at or above the ask, or a sell at or below the bid that is not a category-C close |
 | `not_owned` | selling more than you hold from your own buys, less your resting sells; you can never sell a token you did not buy |
+| `edge` | p under the category's bar over the dearer of price and mid (A 8 points, B 12; C: p not over the price) |
+| `kelly` | the open costs more than a quarter Kelly of the equity at p and the price (or the venue's smallest order) |
+| `adjustment` | a category-C open in a market the agent holds nothing in |
 | `venue` | off the tick, under the minimum size, or a bad expiry |
 
 **Example (a light check, then an open):**
