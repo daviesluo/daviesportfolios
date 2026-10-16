@@ -9,7 +9,7 @@ n 1123 markets 1123 mean_roi -0.0667 p05 -0.2289 pnl -1497.26
 stake50 n 1123 mean_roi -0.0667 p05 -0.2289
 bar trades 1 markets 1 mean_positive 0 bound 0 neighbours 0 share 0 years 0 one_sided 1
 top_market_share 0x285acf93e363c5e60dec4b44ff0a2f60ae50569f185ad7ea254a48a52d51f947 0.0143
-top_month_share 2026-08 1.0091
+top_month_share N/A 2026-08 1.0091 total pnl negative
 years
 2025 n 427 mean 0.0342
 2026 n 696 mean -0.1285

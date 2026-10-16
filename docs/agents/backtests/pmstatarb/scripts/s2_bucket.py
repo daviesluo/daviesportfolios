@@ -24,7 +24,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import g1_pull  # noqa: E402
 import net  # noqa: E402
 
-# Frozen with FROZEN.md. Not retuned after a result.
+# Frozen with FROZEN-S2-bucket-dist.md. Not retuned after a result.
 SEED = 20261014
 HORIZONS = (24, 12, 48)
 HEADLINE_H = 24
@@ -357,9 +357,14 @@ def shares_ok(trades):
     top_share = top / total
     month, mp = max(by_month.items(), key=lambda kv: kv[1] / total)
     month_share = mp / total
-    return top_share <= BAR_MARKET_SHARE and month_share <= BAR_MONTH_SHARE, (
-        f"{top_id} {top_share:.4f}"
-    ), f"{month} {month_share:.4f}"
+    # A negative total makes pnl/total select the worst month and can exceed 1.
+    # That ratio is not a concentration, so the printed month line is N/A.
+    # The boolean stays the frozen test.
+    ok = top_share <= BAR_MARKET_SHARE and month_share <= BAR_MONTH_SHARE
+    month_line = f"{month} {month_share:.4f}"
+    if total < 0:
+        month_line = f"N/A {month_line} total pnl negative"
+    return ok, f"{top_id} {top_share:.4f}", month_line
 
 
 def year_ok(trades):
@@ -722,6 +727,21 @@ def self_test():
     closes = [1.0, 2.0, 3.0]
     assert spot_at(opens, closes, 180_000) == 3.0
     assert spot_at(opens, closes, 180_000 + STALE_MS + 1) is None
+    neg = [
+        {"conditionId": "a", "title_end": "2026-08-01", "pnl": -10.0},
+        {"conditionId": "b", "title_end": "2026-07-01", "pnl": -1.0},
+    ]
+    neg_ok, neg_market, neg_month = shares_ok(neg)
+    assert neg_ok is False and neg_market.startswith("a ")
+    assert neg_month == "N/A 2026-08 0.9091 total pnl negative", neg_month
+    pos = [
+        {"conditionId": "a", "title_end": "2026-08-01", "pnl": 1.0},
+        {"conditionId": "b", "title_end": "2026-08-02", "pnl": 1.0},
+        {"conditionId": "c", "title_end": "2026-07-01", "pnl": 1.0},
+        {"conditionId": "d", "title_end": "2026-07-02", "pnl": 1.0},
+    ]
+    pos_ok, _, pos_month = shares_ok(pos)
+    assert pos_ok is True and pos_month == "2026-08 0.5000", pos_month
     one_day = bootstrap([{"title_end": "2026-07-03", "roi": 0.1}])
     assert abs(one_day - 0.1) < 1e-12
     assert earns([{"roi": 0.1}])[0] is True

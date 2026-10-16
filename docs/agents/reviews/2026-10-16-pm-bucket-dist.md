@@ -2,7 +2,8 @@
 
 Research only. No order was sent, no production table was written, and nothing
 was armed. The parameters were committed in `ea8f349f` before the print.
-They were not changed after this result. Not blind.
+They were not changed after this result. Not blind. The SPEC this run reads
+is commit `a34b3558` (the 2026-10-14 audit). It is not `985a89a4`.
 
 ## Verdict
 
@@ -17,15 +18,18 @@ Headline is T−24 h, threshold 4 probability points, stake $20, seed
 | ≥ 150 trades and ≥ 100 markets | 1123 trades, 1123 markets, 323 days | yes |
 | mean ROI > 0 and 5% bound > −2% | mean −0.0667, p05 −0.2289, P&L −$1,497.26 | no |
 | neighbours the same sign | two of eight match the headline's minus | no |
-| no market > 25%, no month > 50% of P&L | top market 1.43%; 2026-08 is 100.9% of net P&L | no |
+| no market > 25%, no month > 50% of P&L | top market 1.43%. Month concentration is N/A because total P&L is negative; the share bit is still the frozen ratio | no |
 | each year mean ROI ≥ −5% | 2025 +0.0342 (n 427); 2026 −0.1285 (n 696) | no |
 
 The $50 stake has the same mean, −0.0667, on the same 1123 trades.
 
-Total P&L is negative, so a month's share is that month's P&L divided by the
-net. 2026-08 lost $1,510.86 on 86 trades, which is more than the net, so its
-share is 1.009. 2025-12 lost $1,150.58 on 100 trades, share 0.77. Both are
-over half. The frozen test reports the larger one.
+Total P&L is negative, so a month's P&L divided by the net is not a
+concentration: it selects the worst month and can exceed 1. The printed
+month line is therefore `N/A`. The share bit in the bar line is the frozen
+ratio and was not retuned, so that bit still fails. 2026-08 lost $1,510.86
+on 86 trades. 2025-12 lost $1,150.58 on 100 trades. FAIL does not rest on
+this label. Mean, the 5% bound, the neighbours and 2026's year each fail
+on their own.
 
 ## Neighbours
 
@@ -101,6 +105,39 @@ bottom decile is 5,596 buckets, mean model 0.010 against realised 0.010.
 Decile 7 is 33 buckets, model 0.740 against realised 0.485. The table is
 `results/s2_verdict.txt`.
 
+## Robustness
+
+This is a reading of the headline sample. September and later stayed held
+out and were not used to tune.
+
+The loss sits in 2026-08: 86 trades, −$1,510.86. Dropping that month leaves
+1,037 trades with mean ROI +0.0007, about +0.07%. Six of the eight neighbour
+cells have a positive mean (24 h at 0.03, and every 12 h cell, and 48 h at
+0.04 and at 0.05). The other two are negative (24 h at 0.05, 48 h at 0.03).
+Every cell's 5% bound is between −9.78% and −27.87%, about −10% to −28%,
+and none is above −2%. There is no tradable edge. The result is mostly
+noise. The verdict stays FAIL.
+
+## Where this branch meets #242
+
+Not rebased. Merge order is Davies' decision. If #242 lands first, the
+rebase of this branch onto that `main` keeps `scripts/touch_model.py`.
+This branch was cut from `main` and never had that file, so the absence is
+not a deletion of S1's model.
+
+Eight `pmstatarb` paths meet #242: `FROZEN.md`, `MANIFEST.json`,
+`g1_lib.py`, `g1_pull.py`, `g2_time.py`, `g2_trades.py`, `net.py`, and
+`touch_model.py`. `FROZEN.md` on this branch is now
+`FROZEN-S2-bucket-dist.md`, so the two locks do not share a path. Compared
+with pushed #242 `81be30c6`, `g1_lib.py`, `g1_pull.py`, `g2_time.py` and
+`net.py` are the same bytes, including the May-name fix. There is no
+`g1_lib.py` diff against that head. `g2_trades.py` differs only by
+`selected` and `universe_path`. A touch row is still kept when it has a
+settlement time and `clause_ok` is 1. `pull=0` is an S2 skip the touch
+file does not carry. That guard does not change S1's bar, fills, threshold
+or horizon. The side filter and the offset cap are the same bytes on both
+heads.
+
 ## Not checked
 
 Prices-history fills. Touch against terminal. Kalshi. The sports snapshot.
@@ -108,5 +145,5 @@ S1 TOUCH-CAL is a separate branch and is not re-litigated here.
 
 ## Decision
 
-A FAIL closes this parameter set. A follow-on is a new proposal, not a
-re-run. Nothing is armed.
+There is no tradable edge. The result is mostly noise. A FAIL closes this
+parameter set. A follow-on is a new proposal, not a re-run. Nothing is armed.

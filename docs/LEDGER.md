@@ -592,6 +592,9 @@ Facts a fresh session would otherwise rediscover:
 
 ## History, newest first
 
+### [2026-10-16 22:42 UTC] Platform: Grok | Model: grok-4.7
+- **BUCKET-DIST review notes, bar unchanged.** `FROZEN.md` is now `FROZEN-S2-bucket-dist.md` so it does not share #242's path. A negative total prints month concentration as N/A; the share bit is the frozen test. Verdict stays FAIL. No rebase, no merge, `main` not pushed. #242 not touched.
+
 Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's archive: the 2026-09-05 → 09-21
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,

@@ -23,7 +23,7 @@
    "sha256": "ad4c515430ba76f9e4bbe2ac99c27c12e6bb062f3e8ef222293a04650c02df13"
   },
   {
-   "path": "FROZEN.md",
+   "path": "FROZEN-S2-bucket-dist.md",
    "sha256": "91fd147f3e07f2cbea9bae21fef3c921de8407e0bdcd07bfc8967e59a55acca8",
    "in_git": true,
    "bytes": 5673
@@ -66,9 +66,9 @@
   },
   {
    "path": "scripts/s2_bucket.py",
-   "sha256": "2fb2df6da6042b1c12f7b6bf394a06ad2871cd08feb2710dc7e30dde20a9c417",
+   "sha256": "e792b51a2ab9d84ca62d582d2297ed7547ec99e799d756bff1308c80f699f2fa",
    "in_git": true,
-   "bytes": 27901
+   "bytes": 28965
   },
   {
    "path": "results/s2_universe_counts.txt",
@@ -84,9 +84,9 @@
   },
   {
    "path": "results/s2_verdict.txt",
-   "sha256": "2120e665dbef98d3dc76adc863e18612b82c4044c6544852e7ec5bd4c1d00ff9",
+   "sha256": "8d80390784207468c8904247e8cce671c86d45752910fcc3c151ad8e5f34ddfc",
    "in_git": true,
-   "bytes": 2616
+   "bytes": 2639
   },
   {
    "path": "results/s2_headline_trades.csv",
@@ -101,10 +101,10 @@
    "bytes": 47340
   },
   {
-   "path": "reviews/2026-10-16-pm-bucket-dist.md",
-   "sha256": "ec62494727fd0c989f28101e46f10adb6469e134ee099b3b2616dc45b599db2e",
+   "path": "docs/agents/reviews/2026-10-16-pm-bucket-dist.md",
+   "sha256": "f38f28c39c212dad86f7dd40e0dadfe058cb198de3f650ea36bb5b84faff4ee5",
    "in_git": true,
-   "bytes": 4857
+   "bytes": 6909
   },
   {
    "path": "g2/trades.jsonl",
