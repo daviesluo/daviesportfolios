@@ -13,7 +13,7 @@ describe('maBarsFor / maLabelDaysFor', () => {
   it('intraday ranges scale by bars/day; daily ranges stay 1:1', () => {
     expect(maBarsFor('1W', false)).toBe(130);  // 5 days × 26 bars at 15m
     expect(maBarsFor('1M', false)).toBe(70);   // 10 days × 7 bars at 60m
-    expect(maBarsFor('YTD', false)).toBe(50);
+    expect(maBarsFor('6M', false)).toBe(50);   // 6M view draws a 50-day MA
     expect(maBarsFor('1Y', false)).toBe(200);  // 1Y view draws a 200-day MA
   });
 
@@ -31,7 +31,7 @@ describe('maBarsFor / maLabelDaysFor', () => {
   // days. Reading the interval back out of RANGES makes the window a
   // function of the chart's own cadence.
   it('every MA range spans the days its label claims, at its own interval', () => {
-    for (const k of ['1W', '1M', '3M', 'YTD', '1Y']) {
+    for (const k of ['1W', '1M', '3M', '6M', '1Y']) {
       const perDay = barsPerSession(RANGES[k].interval);
       expect(maBarsFor(k, false)).toBe(maLabelDaysFor(k) * perDay);
       expect(maBarsFor(k, true)).toBe(maLabelDaysFor(k));
@@ -42,7 +42,7 @@ describe('maBarsFor / maLabelDaysFor', () => {
     expect(maBarsFor('1W', true)).toBe(5);
     expect(maBarsFor('1M', true)).toBe(10);
     expect(maBarsFor('3M', true)).toBe(20);
-    expect(maBarsFor('YTD', true)).toBe(50);
+    expect(maBarsFor('6M', true)).toBe(50);
     expect(maBarsFor('1Y', true)).toBe(200);   // 1d bars already → 200 either way
   });
 
@@ -64,7 +64,8 @@ describe('maBarsFor / maLabelDaysFor', () => {
 
   it('label always shows day count', () => {
     expect(maLabelDaysFor('1W')).toBe(5);
-    expect(maLabelDaysFor('YTD')).toBe(50);
+    expect(maLabelDaysFor('6M')).toBe(50);
+    expect(maLabelDaysFor('YTD')).toBe(0);   // the modal's YTD is 6M now
     expect(maLabelDaysFor('1Y')).toBe(200);   // renders "MA 200" on the 1Y chart
     expect(maLabelDaysFor('1D')).toBe(0);
   });
@@ -433,8 +434,9 @@ describe('isPriceAxis (live-tail substitution gate)', () => {
 // The 1Y view draws a 50-day line beside its 200-day (Davies, 2026-10-16).
 // Both come out of the same `computeMaSeries`; only the window differs.
 describe('1Y second moving average (MA 50)', () => {
-  it('1Y alone carries a second line, and it is 50 days', () => {
+  it('1Y carries a second line of 50 days, 6M one of 20, nothing else a second line', () => {
     expect(maSecondDaysFor('1Y')).toBe(50);
+    expect(maSecondDaysFor('6M')).toBe(20);
     for (const k of ['1D', '1W', '1M', '3M', 'YTD', 'PE', 'PS']) expect(maSecondDaysFor(k)).toBe(0);
   });
 
@@ -469,5 +471,42 @@ describe('1Y second moving average (MA 50)', () => {
     // 2y of daily bars against a 1y display: the 50 is populated at the first bar.
     const bars2y = bars.slice(0, 504);
     expect(bars2y.length - 252).toBeGreaterThanOrEqual(maBarsForDays(50, '1Y', false) - 1);
+  });
+});
+
+// The 6M view (trailing six months of daily bars, where YTD used to be in
+// the ticker modal) draws a 50-day line with a 20-day beside it (Davies,
+// 2026-10-16). Same functions as the 1Y view, other windows.
+describe('6M moving averages (MA 50 and MA 20)', () => {
+  // 200 daily bars, close = 1-based index; the last 126 are displayed
+  // (closes 75..200). A window's mean is the midpoint of an arithmetic run:
+  //   MA 50 at close c = c - 24.5      MA 20 at close c = c - 9.5
+  //   first displayed bar (close 75):  MA 50 = mean(26..75)  = 50.5
+  //                                    MA 20 = mean(56..75)  = 65.5
+  //   last bar (close 200):            MA 50 = mean(151..200) = 175.5
+  //                                    MA 20 = mean(181..200) = 190.5
+  const bars = Array.from({ length: 200 }, (_, i) => ({ date: `d${String(i).padStart(3, '0')}`, close: i + 1 }));
+  const shown = bars.slice(74);
+
+  it('the windows are the day counts at the daily cadence', () => {
+    expect(maBarsFor('6M', false)).toBe(50);
+    expect(maBarsForDays(maSecondDaysFor('6M'), '6M', false)).toBe(20);
+    expect(maBarsForDays(20, '6M', true)).toBe(20);
+  });
+
+  it('MA 50 and MA 20 at the first and last displayed bar, worked by hand', () => {
+    const ma50 = computeMaSeries(shown, bars, maBarsFor('6M', false));
+    const ma20 = computeMaSeries(shown, bars, maBarsForDays(20, '6M', false));
+    expect(shown).toHaveLength(126);
+    expect(ma50[0]).toBe(50.5);
+    expect(ma50[125]).toBe(175.5);
+    expect(ma20[0]).toBe(65.5);
+    expect(ma20[125]).toBe(190.5);
+    expect(ma50.every((v) => v != null) && ma20.every((v) => v != null)).toBe(true);
+  });
+
+  it('6M pre-fetch: 1y of daily bars leaves more lead-in than the 50-day window needs', () => {
+    // ~252 daily bars against ~126 displayed: 126 bars ahead of the left edge.
+    expect(252 - 126).toBeGreaterThanOrEqual(maBarsFor('6M', false) - 1);
   });
 });

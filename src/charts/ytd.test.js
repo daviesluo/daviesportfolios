@@ -5,7 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   buildTickerSeries, closeOn, ledgerFor, computeAt, ytdPct,
-  fetchParamsFor, maFetchParamsFor, RANGES, RANGE_KEYS,
+  fetchParamsFor, maFetchParamsFor, RANGES, RANGE_KEYS, MODAL_RANGE_KEYS, modalRangeKey,
   applyVariantFilter, windowSinceLastUsClose, windowBetweenLastTwoUsCloses,
   filterToLastHours, filterToLast24h, fillVenueSessionGrid, resampleToSlots,
 } from './ytd.js';
@@ -584,6 +584,24 @@ describe('1Y range (ticker-modal-only)', () => {
     expect(fetchParamsFor('1Y', true, 'overnight')).toEqual({
       yahooRange: '1y', interval: '1d', includePrePost: false, variant: 'std',
     });
+  });
+  it('RANGES carries a 6M entry: 6mo daily bars, modal-only like 1Y', () => {
+    expect(RANGES['6M']).toEqual({ yahooRange: '6mo', interval: '1d', label: '6M' });
+    expect(RANGE_KEYS).not.toContain('6M');
+    expect(fetchParamsFor('6M', true, 'overnight')).toEqual({
+      yahooRange: '6mo', interval: '1d', includePrePost: false, variant: 'std',
+    });
+  });
+  it('the modal\'s ranges put 6M where YTD was; the portfolio panel keeps YTD', () => {
+    expect(MODAL_RANGE_KEYS).toEqual(['1D', '1W', '1M', '3M', '6M', '1Y']);
+    expect(RANGE_KEYS).toContain('YTD');
+  });
+  it('an old YTD key maps to 6M, every other key is left alone', () => {
+    expect(modalRangeKey('YTD')).toBe('6M');
+    for (const k of ['1D', '1W', '1M', '3M', '6M', '1Y', 'PE', 'PS']) expect(modalRangeKey(k)).toBe(k);
+  });
+  it('maFetchParamsFor("6M") pulls 1y of daily bars: ~126 bars ahead of the window, past the 50-day MA', () => {
+    expect(maFetchParamsFor('6M')).toEqual({ range: '1y', interval: '1d' });
   });
   it('maFetchParamsFor("1Y") pulls 2y of daily bars so the 50-day MA is seeded at the left edge', () => {
     expect(maFetchParamsFor('1Y')).toEqual({ range: '2y', interval: '1d' });

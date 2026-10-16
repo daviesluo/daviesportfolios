@@ -78,13 +78,15 @@ export function maBarsForDays(days, rangeKey, dailyOnly = false, barsPerDay = 0)
 /**
  * Day count of the SECOND moving average a range draws beside its main
  * one: the 1Y view carries a 50-day line next to the 200-day (Davies,
- * 2026-10-16: "再在1Y图中都加上50MA，方便对比"). 0 = none, every other range.
- * The 200's own pre-fetch (`maFetchParamsFor('1Y')`, 2y of daily bars)
- * already leaves more than 50 bars of lead-in, so no second fetch.
+ * 2026-10-16: "再在1Y图中都加上50MA，方便对比"), and 6M a 20-day next to
+ * its 50-day, styled the same. 0 = none, every other range. The main
+ * line's own pre-fetch (`maFetchParamsFor`, 2y / 1y of daily bars)
+ * already leaves more lead-in than the shorter window needs, so no
+ * second fetch.
  * @param {string} rangeKey
  */
 export function maSecondDaysFor(rangeKey) {
-  return rangeKey === '1Y' ? 50 : 0;
+  return rangeKey === '1Y' ? 50 : rangeKey === '6M' ? 20 : 0;
 }
 
 /**
@@ -93,7 +95,7 @@ export function maSecondDaysFor(rangeKey) {
  * @param {string} rangeKey
  */
 export function maLabelDaysFor(rangeKey) {
-  return { '1W': 5, '1M': 10, '3M': 20, 'YTD': 50, '1Y': 200 }[rangeKey] ?? 0;
+  return { '1W': 5, '1M': 10, '3M': 20, '6M': 50, '1Y': 200 }[rangeKey] ?? 0;
 }
 
 /**

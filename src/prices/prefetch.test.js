@@ -169,8 +169,8 @@ describe('prefetchAllChartData stamps', () => {
     });
     const { prefetchAllChartData } = await import('./prefetch.js');
     const done = prefetchAllChartData({ tickers: ['NVDA'], spSymbol: '^GSPC', extendedHours: false, phase: 'regular' });
-    // Every range's batch is asked for at 23:00 (1D, 1W, 1M, 3M, YTD, 1Y)…
-    await vi.waitFor(() => expect(held.length).toBe(6));
+    // Every range's batch is asked for at 23:00 (1D, 1W, 1M, 3M, YTD, 6M, 1Y)…
+    await vi.waitFor(() => expect(held.length).toBe(7));
     // …and every answer lands once the clock reads 23:06.
     clock.mockReturnValue(t0 + 6 * 60e3);
     holding = false;
@@ -211,7 +211,7 @@ describe('prefetchAllChartData settles each window for Top Movers', () => {
     const onUpdate = () => { announced += 1; };
     window.addEventListener(CHARTS_UPDATED_EVENT, onUpdate);
     void prefetchAllChartData({ tickers: ['NOVA'], spSymbol: '^GSPC', extendedHours: false, phase: 'regular' });
-    await vi.waitFor(() => expect(held.length).toBe(6));
+    await vi.waitFor(() => expect(held.length).toBe(7));
     expect(['1W:std', '1M:std', '3M:std'].map(rangeSettled)).toEqual([false, false, false]);
     expect(announced).toBe(0);
     holding = false;

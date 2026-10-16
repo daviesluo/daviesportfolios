@@ -27,6 +27,7 @@ describe('tickerChartCacheKey — algorithm-version suffixes', () => {
     expect(tickerChartCacheKey('NVDA', 'YTD', true,  'pre')).toBe('NVDA|YTD');
     // 1Y is a plain price range (modal-only) — same shape as YTD.
     expect(tickerChartCacheKey('NVDA', '1Y', false, 'pre')).toBe('NVDA|1Y');
+    expect(tickerChartCacheKey('NVDA', '6M', true, 'pre')).toBe('NVDA|6M');
   });
 });
 
@@ -56,6 +57,7 @@ describe('isFresh', () => {
   it('exports a coherent RANGE_TTL_MS map', () => {
     expect(RANGE_TTL_MS['1D']).toBe(5 * 60 * 1000);
     expect(RANGE_TTL_MS['YTD']).toBe(12 * 60 * 60 * 1000);
+    expect(RANGE_TTL_MS['6M']).toBe(12 * 60 * 60 * 1000);
     expect(RANGE_TTL_MS['1Y']).toBe(12 * 60 * 60 * 1000);
   });
 });

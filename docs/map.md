@@ -153,8 +153,10 @@ How the less obvious parts work, and why they are built the way they are.
   to the single dot until ≥2 points exist.
   One-time setup: enable `pg_cron`/`pg_net` and store the function's
   `CRON_SECRET` in Supabase Vault as `cron_secret` (migration `0021`).
-- **1Y range** — trailing-12-month price button, sits right after YTD
-  on every ticker / market-conditions modal (a modal-only range; the
+- **6M and 1Y ranges** — trailing-six-month and trailing-12-month price
+  buttons, 6M replacing YTD, on every ticker / market-conditions modal
+  (modal-only ranges, `MODAL_RANGE_KEYS`; a stray YTD key maps to 6M by
+  `modalRangeKey`; the
   portfolio PerfChart keeps its Jan-1-anchored YTD and isn't given a
   1Y button it has no cost-basis model for). 1y of daily Yahoo bars
   under a 200-day moving average drawn from a two-year daily fetch.
@@ -251,11 +253,12 @@ How the less obvious parts work, and why they are built the way they are.
   an error, since that's a legitimate financial state not a bug
   to log.
 - **Moving-average overlays** — every multi-day chart (1W / 1M /
-  3M / YTD / 1Y) gets a gray N-day SMA drawn under the price line,
+  3M / 6M / 1Y) gets a gray N-day SMA drawn under the price line,
   labelled `MA 5` / `MA 10` / `MA 20` / `MA 50` / `MA 200` in the right
-  margin (same position style as the P/E view's 3Y AVG marker).
+  margin; 6M and 1Y also draw a shorter grey-blue line beside it (`MA 20`
+  beside the 50, `MA 50` beside the 200, `maSecondDaysFor`) (same position style as the P/E view's 3Y AVG marker).
   Computed bar-based on a same-interval wider history fetch
-  (1mo/15m for 1W, 3mo/60m for 1M, 6mo/60m for 3M, 1y/1d for YTD,
+  (1mo/15m for 1W, 3mo/60m for 1M, 6mo/60m for 3M, 1y/1d for 6M,
   2y/1d for 1Y)
   so the line updates every bar — no day-boundary stair-stepping
   on intraday views — and is strictly causal (no future data).

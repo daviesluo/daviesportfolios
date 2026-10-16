@@ -1,14 +1,14 @@
 // Single-ticker price-history modal. X axis = time, Y axis = price.
 // Hover crosshair shows the price/time/% at the cursor's nearest data
 // point with dashed lines down to both axes. Same range buttons as the
-// portfolio chart (1D / 1W / 1M / 3M / YTD). Used when the user taps a
+// portfolio chart (1D / 1W / 1M / 3M / 6M / 1Y). Used when the user taps a
 // player in non-edit mode — edit mode keeps opening the EditTickerModal.
 import React from 'react';
 import { Modal } from '../board/modals.jsx';
 import { usMarketHoursUtc, isWeekendDeadZone, isUsMarketHoliday, isUsTradingDateStr, foreignSessionIsOpen } from '../prices/market_hours.js';
 import { fxToUSD, fxRateToUSD } from '../portfolio/fx.js';
 import { fmtPrice as fmtPr, fmtPct as fmP, fmtMoney as fmtMo, fmtSharesFor as fmtShFor, pctColor as pcC, maskDigits, fmtDayMonth } from '../app/formatters.js';
-import { RANGES, RANGE_KEYS, windowSinceLastUsClose, windowBetweenLastTwoUsCloses, filterToLast24h, fillVenueSessionGrid, resampleToSlots } from './ytd.js';
+import { RANGES, MODAL_RANGE_KEYS, modalRangeKey, windowSinceLastUsClose, windowBetweenLastTwoUsCloses, filterToLast24h, fillVenueSessionGrid, resampleToSlots } from './ytd.js';
 import { isCnFund as isCnFundT, isPvt as isPvtT, isDailyOnly as isDailyOnlyT, hasOvernightSession, isRegularSessionOnly, isCrypto, venueSessionFor, tradingWeekOf } from '../prices/ticker_class.js';
 import {
   maBarsFor, maBarsForDays, maLabelDaysFor, maSecondDaysFor, computeMaSeries,
@@ -37,13 +37,14 @@ import { COMPANY_NAMES } from '../tables/holdings_list.jsx';
 // meaningful data; .PVT placeholders aren't on Yahoo at all. Both
 // restrict the modal to daily buttons.
 
-// The 50-day line is sky blue wherever it is drawn (YTD's one line, 1Y's
-// second line): neither the 200's grey nor the price line's gain green /
-// loss red, and one indicator never wears two colours (Davies, 2026-10-16).
-// The site has one dark theme (no light variant), so one literal serves.
-const MA2_COLOR = '#5aa9e6';
+// The second average a range draws beside its main one (1Y: the 50 beside
+// the 200; 6M: the 20 beside the 50): a muted light grey-blue, close to
+// the main line's grey but clearly apart from it and from the gain green /
+// loss red price line (Davies, 2026-10-16: "浅灰蓝色，不要太亮"). Contrast
+// on the page's #0c1310: 6.7:1 against the main grey's 3.9:1, and 1.7:1
+// between the two lines. The site has one dark theme, so one literal serves.
+const MA2_COLOR = '#8b9bb4';
 const MA_COLOR = '#6b7280';
-const maColorFor = (/** @type {number} */ days) => (days === 50 ? MA2_COLOR : MA_COLOR);
 // Least pixel distance between the two right-margin MA labels.
 const MA_LABEL_GAP = 11;
 
@@ -78,15 +79,18 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
     useTickerFundamentals(ticker, supportsPePattern);
   // P/E and P/S are mutually exclusive — append whichever applies.
   const valuationRange = peSupported ? ['PE'] : (psSupported ? ['PS'] : []);
-  // '1Y' (trailing 12 months) sits right after YTD — a modal-only price
-  // range (see RANGES in ytd.js; it's intentionally not in RANGE_KEYS).
+  // 6M (trailing six months, where YTD used to be) and 1Y are modal-only
+  // price ranges (see RANGES / MODAL_RANGE_KEYS in ytd.js; the portfolio
+  // panel keeps its own RANGE_KEYS with YTD).
   const visibleRangeKeys = dailyOnly
-    ? ['1M', '3M', 'YTD', '1Y']
-    : [...RANGE_KEYS, '1Y', ...valuationRange];
+    ? ['1M', '3M', '6M', '1Y']
+    : [...MODAL_RANGE_KEYS, ...valuationRange];
   // CN funds publish 1 NAV / day; .PVT placeholders don't trade on
   // public exchanges. Both default to 1M so the user sees something
   // immediately rather than landing on an intraday view that's empty.
-  const [rangeKey, setRangeKey] = React.useState(dailyOnly ? '1M' : '1D');
+  const [rangeKey, setRangeKeyRaw] = React.useState(dailyOnly ? '1M' : '1D');
+  // A YTD key from anywhere lands on 6M, the range that replaced it.
+  const setRangeKey = React.useCallback((/** @type {string} */ k) => setRangeKeyRaw(modalRangeKey(k)), []);
   // Convenience flag for renderers that share behaviour across the
   // two ratio views (axis label, 3Y AVG reference line, header copy).
   const isRatioRange = rangeKey === 'PE' || rangeKey === 'PS';
@@ -309,7 +313,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // Display series: substitute live price into the last point so the
   // chart tail tracks the rest of the app in real time. `isPriceAxis`
   // gates this on the y-axis units — true for the price ranges
-  // (1D/1W/1M/3M/YTD), false for the ratio ranges (PE/PS). Mixing a
+  // (1D/1W/1M/3M/6M/1Y), false for the ratio ranges (PE/PS). Mixing a
   // raw price into a ratio series would draw a vertical cliff
   // between the second-to-last bar and today, which the user hit on
   // NET / SATS / NVTS / SOUN before this gate was extended to PS.
@@ -398,9 +402,9 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   // can sit OUTSIDE the chart's plot area (between the right edge of
   // the dashed line and the SVG's right side) instead of floating
   // inside the chart and getting crossed by the price line. Same
-  // treatment for the MA overlay (1W/1M/3M/YTD) — the "MA 50" label
+  // treatment for the MA overlay (1W/1M/3M/6M/1Y) — the "MA 50" label
   // sits in the right margin at the level of the latest MA value.
-  const showMa = ['1W', '1M', '3M', 'YTD', '1Y'].includes(rangeKey);
+  const showMa = ['1W', '1M', '3M', '6M', '1Y'].includes(rangeKey);
   // 1D has no MA line but may have a VWAP overlay — same right-margin
   // label treatment, so it needs the same widened padR.
   const showVwap = rangeKey === '1D';
@@ -438,8 +442,8 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   const MA_BARS = maBarsFor(rangeKey, dailyOnly, slotGrid3M ? SLOTS_PER_DAY : 0);
   const MA_DAYS = maLabelDaysFor(rangeKey);
   const maSeries = MA_BARS > 0 ? computeMaSeries(points, maForChart, MA_BARS) : null;
-  // The 1Y view's second line: the same `computeMaSeries` over the same
-  // wider history, a 50-day window (`maSecondDaysFor`; 0 on every other range).
+  // The second line of 6M (20-day) and 1Y (50-day): the same `computeMaSeries`
+  // over the same wider history (`maSecondDaysFor`; 0 on every other range).
   const MA2_DAYS = maSecondDaysFor(rangeKey);
   const MA2_BARS = maBarsForDays(MA2_DAYS, rangeKey, dailyOnly, slotGrid3M ? SLOTS_PER_DAY : 0);
   const maSeries2 = MA2_BARS > 0 ? computeMaSeries(points, maForChart, MA2_BARS) : null;
@@ -817,7 +821,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
             // G/L lie. The chart's right edge already falls back to
             // lastPrice when `hasExtendedBars` is false, but that
             // signal only works on the 1D range (it inspects the
-            // intraday series). For 1W/1M/3M/YTD the series is daily
+            // intraday series). For 6M/1Y the series is daily
             // bars with no intraday timestamps to inspect, so applying
             // the gate there would silently fall back to lastPrice
             // for legit AH movers (NVDA up 10 % on earnings, etc.)
@@ -980,28 +984,29 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
                 </text>
               )}
               {/* Moving-average overlay (1W → 5d, 1M → 10d, 3M → 20d,
-                  YTD → 50d). Drawn before the price path so the active
-                  price line stays on top. Grey, except the 50-day line
-                  (YTD), which is MA2_COLOR like 1Y's second line. Label sits in the right margin
-                  at the y of the latest MA value, mirroring the PE
-                  chart's 3Y AVG label position. */}
+                  6M → 50d, 1Y → 200d). Drawn before the price path so
+                  the active price line stays on top. Grey (MA_COLOR).
+                  Label sits in the right margin at the y of the latest
+                  MA value, mirroring the PE chart's 3Y AVG label
+                  position. */}
               {maPath && (
-                <path data-ma={MA_DAYS} d={maPath} fill="none" stroke={maColorFor(MA_DAYS)} strokeWidth="1.0"
+                <path data-ma={MA_DAYS} d={maPath} fill="none" stroke={MA_COLOR} strokeWidth="1.0"
                       strokeLinejoin="round" strokeLinecap="round" opacity="0.85" />
               )}
               {maLastValue != null && maLabelY != null && (
                 <text x={rightLabelX} y={maLabelY.toFixed(1)}
                       textAnchor="start" dominantBaseline="middle"
-                      fontSize="9" fill={MA_DAYS === 50 ? MA2_COLOR : 'rgba(244,239,227,0.7)'} fontFamily="var(--font-mono)">
+                      fontSize="9" fill="rgba(244,239,227,0.7)" fontFamily="var(--font-mono)">
                   MA {MA_DAYS}
                 </text>
               )}
-              {/* 1Y only: the 50-day line beside the 200, in its own
-                  colour (MA2_COLOR) so the two read apart from each other
-                  and from the gain / loss price line. Same label
-                  treatment, same right margin. */}
+              {/* 6M and 1Y: the second, shorter line beside the main one
+                  (6M: 20 beside 50; 1Y: 50 beside 200), in its own colour
+                  (MA2_COLOR) so the two read apart from each other and
+                  from the gain / loss price line. Same label treatment,
+                  same right margin. */}
               {maPath2 && (
-                <path data-ma={MA2_DAYS} d={maPath2} fill="none" stroke={maColorFor(MA2_DAYS)} strokeWidth="1.0"
+                <path data-ma={MA2_DAYS} d={maPath2} fill="none" stroke={MA2_COLOR} strokeWidth="1.0"
                       strokeLinejoin="round" strokeLinecap="round" opacity="0.9" />
               )}
               {maLastValue2 != null && maLabelY2 != null && (

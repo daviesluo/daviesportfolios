@@ -601,6 +601,22 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)"; each oldest first.
 
+### [2026-10-16 15:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Ticker modal: YTD becomes 6M, with MA 50 and MA 20; the second line is a muted grey-blue** (sub-agent; Davies, 2026-10-16: "你新加的1y
+  ma50线用浅灰蓝色，不要太亮…ytd的图全改成6M，然后ma50和ma20的显示和1y里的ma200和ma50一样"; reverses the same-day "one indicator, one
+  colour" rule and its blue literal). The second line of 1Y (50 beside 200) and of 6M (20 beside 50) is `#8b9bb4` (6.7:1 on the page's
+  `#0c1310`, the main grey `#6b7280` 3.9:1, 1.7:1 between the lines); the main line stays grey. The modal's range row is
+  `MODAL_RANGE_KEYS` = 1D 1W 1M 3M 6M 1Y (CN funds / `.PVT`: 1M 3M 6M 1Y); `RANGES['6M']` is `6mo` daily, MA history `1y` daily
+  (~126 bars before the window, past the 50); `modalRangeKey` maps a stray YTD to 6M in the modal's range setter; old `${t}|YTD`
+  rows in the modal's chart cache are simply never read again and age out. `maBarsFor` / `maLabelDaysFor` say 6M = 50, 1Y = 200;
+  `maSecondDaysFor` 6M = 20, 1Y = 50. Prefetch warms the union (YTD still feeds the portfolio panel, so one more daily call, 7 not 6)
+  and the MA history for the modal's keys only. Scope: the ticker modal; the vs-S&P / Investment panels keep YTD (`RANGE_KEYS`
+  untouched, Davies is asked separately). Pins: `indicators.test.js` (6M on 200 bars: MA 50 50.5 / 175.5, MA 20 65.5 / 190.5 at the first
+  / last displayed bar), `ticker_chart_modal.test.jsx` (button row, both paths 126 points from x = 56, y worked by hand, colours,
+  labels, 11 px push, CN fund row, other ranges), `ytd.test.js`, `cache.test.js`, `prefetch.test.js`; the sweep opens 6M and 1Y in the
+  ACME modal on long daily fixtures (6mo / 1y / 2y), checks the colours, both labels inside the frame and apart at both widths, and
+  that no YTD button is left. `docs/guide.md` and the `docs/map.md` notes follow.
+
 ### [2026-10-16 15:06 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **GROKPM D2: Grok trades through our Ireland server on the shared account** (sub-agent; Davies: "可以用目前这个polymarket跑吗",
   "让grok用我们搭好的爱尔兰服务器下单，不是网页端"; item 15).
@@ -661,7 +677,6 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   account-token-invalid`: `PUT /session` returns a new X-SECURITY-TOKEN without a CST, and the client only took tokens
   when both came. Now each is taken alone (`adoptTokens`); `quotes` and `history` shared the bug (6 Deno tests fail on
   the old rule). Sentiment path `/clientsentiment`. CFD `facts` at 16:27 worked (11 roles). Re-run `facts&account=sb`.
-
 
 ### [2026-10-15 16:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep's Addendum 24 (mid-pool's 22): liquidation** (sub-agent, not pushed; Davies: "那目前的单都尽快卖出掉吧，还剩多少").

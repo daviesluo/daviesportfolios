@@ -278,14 +278,15 @@ describe('TickerChartModal — 1Y shows MA 50 beside MA 200', () => {
   const flat = (n) => Array.from({ length: n }, (_, i) => ({ date: day(i, n), close: 100 }));
   const holding = { shares: 1, cost: 100, lastPrice: 500, prevClose: 499, dayPct: 0.2, currency: 'USD' };
 
-  const open1Y = async (history, display) => {
-    seedChartCache('AAPL', '1Y', false, 'regular', display);
-    /** @type {any} */ (MaStore).set('AAPL|MA|1Y', { ts: Date.now(), data: history });
+  const openRange = async (key, history, display) => {
+    seedChartCache('AAPL', key, false, 'regular', display);
+    /** @type {any} */ (MaStore).set(`AAPL|MA|${key}`, { ts: Date.now(), data: history });
     const user = userEvent.setup();
     const out = renderModal({ holding });
-    await user.click(screen.getByRole('button', { name: '1Y' }));
+    await user.click(screen.getByRole('button', { name: key }));
     return out;
   };
+  const open1Y = (history, display) => openRange('1Y', history, display);
   const pts = (el) => (el.getAttribute('d') || '').slice(1).split('L').map((q) => q.split(',').map(Number));
   const yOfValue = (v) => {
     const pad = (500 - 149.5) * 0.08;
@@ -319,8 +320,9 @@ describe('TickerChartModal — 1Y shows MA 50 beside MA 200', () => {
     expect(texts).toContain('MA 50');
     const c50 = container.querySelector('path[data-ma="50"]')?.getAttribute('stroke');
     const c200 = container.querySelector('path[data-ma="200"]')?.getAttribute('stroke');
-    expect(c50).toBe('#5aa9e6');
+    expect(c50).toBe('#8b9bb4');
     expect(c200).toBe('#6b7280');
+    expect(c50).not.toBe(c200);
     const priceStroke = [...container.querySelectorAll('svg path[stroke^="var(--"]')].map((p) => p.getAttribute('stroke'));
     expect(priceStroke.length).toBeGreaterThan(0);
     expect(priceStroke).not.toContain(c50);
@@ -335,19 +337,106 @@ describe('TickerChartModal — 1Y shows MA 50 beside MA 200', () => {
     expect(Math.abs(y200 - y50)).toBeCloseTo(11, 1);
   });
 
-  it('every other range keeps its single line and no MA 50 beside it', async () => {
+  it('every other range keeps its single line and no second line beside it', async () => {
     const all = ramp(500);
-    seedChartCache('AAPL', 'YTD', false, 'regular', all.slice(248));
-    /** @type {any} */ (MaStore).set('AAPL|MA|YTD', { ts: Date.now(), data: all });
+    seedChartCache('AAPL', '1M', false, 'regular', all.slice(248));
+    /** @type {any} */ (MaStore).set('AAPL|MA|1M', { ts: Date.now(), data: all });
     const user = userEvent.setup();
     const { container } = renderModal({ holding });
-    await user.click(screen.getByRole('button', { name: 'YTD' }));
+    await user.click(screen.getByRole('button', { name: '1M' }));
     expect(container.querySelectorAll('path[data-ma]')).toHaveLength(1);
-    expect(container.querySelector('path[data-ma="50"]')).toBeTruthy();   // YTD's own one line IS the 50
-    expect(container.querySelector('path[data-ma="200"]')).toBeNull();
-    const fifty = [...container.querySelectorAll('svg text')].filter((t) => t.textContent === 'MA 50');
-    expect(fifty).toHaveLength(1);
-    // One indicator, one colour: YTD's own 50 is the same blue as 1Y's.
-    expect(container.querySelector('path[data-ma="50"]')?.getAttribute('stroke')).toBe('#5aa9e6');
+    expect(container.querySelector('path[data-ma="10"]')?.getAttribute('stroke')).toBe('#6b7280');
+    const maLabels = [...container.querySelectorAll('svg text')].filter((t) => /^MA \d+$/.test(t.textContent || ''));
+    expect(maLabels).toHaveLength(1);
+  });
+});
+
+// The ticker modal's YTD range is 6M now (trailing six months of daily bars,
+// Davies, 2026-10-16), drawn like 1Y: the 50-day in grey (the main line's
+// role) and a 20-day beside it in the grey-blue (the second line's).
+// Worked by hand on 200 bars, close = 1-based index, the last 126 displayed
+// (closes 75..200):
+//   MA 50  first displayed bar = mean(26..75)    = 50.5
+//          last bar            = mean(151..200)  = 175.5
+//   MA 20  first displayed bar = mean(56..75)    = 65.5
+//          last bar            = mean(181..200)  = 190.5
+// y range = [50.5 - pad, 200 + pad], pad = 8 % of (200 - 50.5) = 11.96.
+describe('TickerChartModal — 6M replaces YTD and shows MA 50 with MA 20', () => {
+  const day = (i, total) => {
+    const d = new Date();
+    d.setUTCHours(0, 0, 0, 0);
+    d.setUTCDate(d.getUTCDate() - (total - 1 - i));
+    return d.toISOString().slice(0, 10);
+  };
+  const ramp = (n) => Array.from({ length: n }, (_, i) => ({ date: day(i, n), close: i + 1 }));
+  const flat = (n) => Array.from({ length: n }, (_, i) => ({ date: day(i, n), close: 100 }));
+  const holding = { shares: 1, cost: 100, lastPrice: 200, prevClose: 199, dayPct: 0.5, currency: 'USD' };
+  const open6M = async (history, display) => {
+    seedChartCache('AAPL', '6M', false, 'regular', display);
+    /** @type {any} */ (MaStore).set('AAPL|MA|6M', { ts: Date.now(), data: history });
+    const user = userEvent.setup();
+    const out = renderModal({ holding });
+    await user.click(screen.getByRole('button', { name: '6M' }));
+    return out;
+  };
+  const pts = (el) => (el.getAttribute('d') || '').slice(1).split('L').map((q) => q.split(',').map(Number));
+  const yOfValue = (v) => {
+    const pad = (200 - 50.5) * 0.08;
+    const yMin = 50.5 - pad, yMax = 200 + pad;
+    return 18 + ((yMax - v) / (yMax - yMin)) * 224;
+  };
+
+  it('the button row has 6M where YTD was, and no YTD', () => {
+    renderModal({ holding });
+    const names = screen.getAllByRole('button').map((b) => b.textContent);
+    expect(names).toEqual(expect.arrayContaining(['1D', '1W', '1M', '3M', '6M', '1Y']));
+    expect(names).not.toContain('YTD');
+    const at = (k) => names.indexOf(k);
+    expect(at('3M')).toBeLessThan(at('6M'));
+    expect(at('6M')).toBeLessThan(at('1Y'));
+  });
+
+  it('draws MA 50 and MA 20 from the left edge at their hand-worked values', async () => {
+    const all = ramp(200);
+    const { container } = await open6M(all, all.slice(74));
+    const p50 = container.querySelector('path[data-ma="50"]');
+    const p20 = container.querySelector('path[data-ma="20"]');
+    expect(p50).toBeTruthy();
+    expect(p20).toBeTruthy();
+    expect(pts(p50)).toHaveLength(126);
+    expect(pts(p20)).toHaveLength(126);
+    expect(pts(p50)[0][0]).toBe(56);
+    expect(pts(p20)[0][0]).toBe(56);
+    expect(pts(p50)[0][1]).toBeCloseTo(yOfValue(50.5), 0);
+    expect(pts(p50)[125][1]).toBeCloseTo(yOfValue(175.5), 0);
+    expect(pts(p20)[0][1]).toBeCloseTo(yOfValue(65.5), 0);
+    expect(pts(p20)[125][1]).toBeCloseTo(yOfValue(190.5), 0);
+  });
+
+  it('styles them as 1Y does: the 50 grey, the 20 in the grey-blue, both labelled', async () => {
+    const all = ramp(200);
+    const { container } = await open6M(all, all.slice(74));
+    expect(container.querySelector('path[data-ma="50"]')?.getAttribute('stroke')).toBe('#6b7280');
+    expect(container.querySelector('path[data-ma="20"]')?.getAttribute('stroke')).toBe('#8b9bb4');
+    const texts = [...container.querySelectorAll('svg text')].map((t) => t.textContent);
+    expect(texts).toContain('MA 50');
+    expect(texts).toContain('MA 20');
+    expect(texts).not.toContain('MA 200');
+  });
+
+  it('two labels that would land on one spot are pushed 11 px apart', async () => {
+    const all = flat(200);
+    const { container } = await open6M(all, all.slice(74));
+    const label = (t) => [...container.querySelectorAll('svg text')].find((e) => e.textContent === t);
+    const y50 = Number(label('MA 50')?.getAttribute('y'));
+    const y20 = Number(label('MA 20')?.getAttribute('y'));
+    expect(Math.abs(y50 - y20)).toBeCloseTo(11, 1);
+  });
+
+  it('a daily-only holding (CN fund) gets 6M too, not YTD', () => {
+    renderModal({ ticker: '017731', holding: { shares: 1, cost: 1, lastPrice: 1, prevClose: 1, dayPct: 0, currency: 'CNY' } });
+    const names = screen.getAllByRole('button').map((b) => b.textContent);
+    expect(names).toEqual(expect.arrayContaining(['1M', '3M', '6M', '1Y']));
+    expect(names).not.toContain('YTD');
   });
 });

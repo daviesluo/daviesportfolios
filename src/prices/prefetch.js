@@ -26,7 +26,7 @@
 
 import { fetchHistoricalBatch } from './historical.js';
 import { fetchFundamentals } from './yahoo_fetch.js';
-import { fetchParamsFor, maFetchParamsFor, applyVariantFilter, perfRowFilter, filterToLastHours, RANGE_KEYS } from '../charts/ytd.js';
+import { fetchParamsFor, maFetchParamsFor, applyVariantFilter, perfRowFilter, filterToLastHours, RANGE_KEYS, MODAL_RANGE_KEYS } from '../charts/ytd.js';
 import { refreshPriceSnapshots, rangeStartMs } from './price_snapshots.js';
 import {
   RANGE_TTL_MS, MA_TTL_MS, PE_TTL_MS, tickerChartCacheKey, isFresh,
@@ -61,7 +61,8 @@ const PE_PROXIED_INDICES = new Set(['^GSPC', '^NDX', '^RUT', '^SOX']);
 // app-prefetched ratio series can't disagree with the modal's own
 // fetch. The 1Y rows the perf-side YtdStore picks up are harmless —
 // PerfChart only ever reads RANGE_KEYS.
-const CHART_RANGE_KEYS = [...RANGE_KEYS, '1Y'];
+// The union of both lists: YTD still feeds the portfolio panel, 6M and 1Y the modal.
+const CHART_RANGE_KEYS = [...new Set([...RANGE_KEYS, ...MODAL_RANGE_KEYS])];
 
 /**
  * @param {{
@@ -235,7 +236,7 @@ export async function prefetchAllChartData({ tickers, spSymbol, extendedHours, p
   const isFreshMa = (entry) =>
     !!entry && Array.isArray(entry.data) && entry.data.length > 0 &&
     (Date.now() - (entry.ts || 0)) < MA_TTL_MS;
-  const maRangeMeta = CHART_RANGE_KEYS
+  const maRangeMeta = MODAL_RANGE_KEYS
     .filter(rk => rk !== '1D')
     .map(rk => {
       const maKey = (t) => `${t}|MA|${rk}`;

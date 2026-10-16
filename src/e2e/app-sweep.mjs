@@ -1638,17 +1638,19 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
       const sessions = range === '3mo' ? 61 : 1;
       const out = {};
       for (const t of (u.searchParams.get('tickers') || '').split(',').filter(Boolean)) {
-        // Two years of daily bars (a bar a calendar day, a straight run from the first close to the last) only for the
-        // ticker modal's 1Y moving-average history (`maFetchParamsFor('1Y')`, range 2y): 730 bars are enough for the
-        // 200-day and the 50-day average to start at the chart's left edge. The three fixed daily bars keep their dates
-        // and closes, so the 1Y price line itself is unchanged.
-        if (daily && range === '2y') {
+        // Long daily series (a bar a calendar day, a straight run from the first close to the last) only for the ticker
+        // modal's own ranges: 6M (range 6mo, ~183 bars), 1Y (1y, ~365) and the moving-average history behind them
+        // (maFetchParamsFor: 6M asks for 1y, 1Y for 2y, ~730 bars), enough for the 50-day and 200-day averages to start
+        // at the chart's left edge. The three fixed daily bars keep their dates and closes. No other call asks for these
+        // ranges (the panels' YTD is range ytd, 1M / 3M are intraday).
+        const longDays = daily ? { '6mo': 183, '1y': 365, '2y': 730 }[range] : 0;
+        if (longDays) {
           const fixed = new Map(barsFor(t, true).map((b) => [b.date, b.close]));
           const first = fixed.get(dayAgo(60)), end = fixed.get(dayAgo(1));
-          out[t] = Array.from({ length: 730 }, (_, i) => {
-            const k = 730 - i;               // days back, oldest first, ending yesterday
+          out[t] = Array.from({ length: longDays }, (_, i) => {
+            const k = longDays - i;          // days back, oldest first, ending yesterday
             const date = dayAgo(k);
-            return { date, close: fixed.get(date) ?? (first + (end - first) * (1 - k / 730)) };
+            return { date, close: fixed.get(date) ?? (first + (end - first) * (1 - k / longDays)) };
           });
         } else out[t] = barsFor(t, daily, pp, sessions);
       }
@@ -3480,29 +3482,37 @@ async function run() {
         const meta = ((await page.locator('.modal-meta', { hasText: 'shares' }).first().textContent({ timeout: 3000 }).catch(() => '')) || '').replace(/\s+/g, ' ');
         if (/AC \$198\.00/.test(meta) && /Cost \$1,188/.test(meta)) ok(S('dividends'), `ACME's AC is net of its dividend: ${meta.slice(0, 60)}`);
         else fail(S('dividends'), `ACME's ticker modal reads "${meta}" (want AC $198.00, Cost $1,188)`);
-        // The 1Y view draws a 50-day average beside the 200-day (Davies, 2026-10-16): two lines, two labels, the 50 in a colour
-        // of its own, and both labels inside the chart's frame at this width and not on top of each other.
-        await page.locator('.modal .perf-range-btn:visible:text-is("1Y")').first().click().catch(() => {});
-        const ma = await readUntil(page, () => page.evaluate(() => {
-          const svg = [...document.querySelectorAll('.modal svg')].find((el) => el.querySelector('path[data-ma]'));
-          if (!svg) return null;
-          const box = svg.getBoundingClientRect();
-          const label = (t) => [...svg.querySelectorAll('text')].find((el) => el.textContent === t);
-          const rect = (el) => { const r = el?.getBoundingClientRect(); return r ? { l: r.left, r: r.right, t: r.top, b: r.bottom } : null; };
-          const p = (d) => svg.querySelector(`path[data-ma="${d}"]`);
-          return { box: { l: box.left, r: box.right }, l200: rect(label('MA 200')), l50: rect(label('MA 50')),
-            c50: p(50)?.getAttribute('stroke') || '', c200: p(200)?.getAttribute('stroke') || '' };
-        }), (r) => !!r && !!r.l200 && !!r.l50);
-        if (!ma || !ma.l200 || !ma.l50) fail(S('ma50'), `the 1Y chart did not draw both averages: ${JSON.stringify(ma)}`);
-        else {
+        // The modal's 1Y view draws a 50-day average beside the 200-day (Davies, 2026-10-16), and its 6M view (YTD's
+        // successor, same day) a 20-day beside the 50-day, in the same way: the longer line grey, the shorter a muted
+        // grey-blue. Two lines, two labels, the colours pinned, both labels inside the chart's frame at this width and
+        // not on top of each other; no YTD button any more.
+        const hasYtd = await page.locator('.modal .perf-range-btn:visible:text-is("YTD")').count();
+        if (hasYtd === 0) ok(S('ma6m'), 'the ticker modal has no YTD button (6M replaced it)');
+        else fail(S('ma6m'), `the ticker modal still has ${hasYtd} YTD button(s)`);
+        for (const [range, longD, shortD, bars] of [['6M', 50, 20, 183], ['1Y', 200, 50, 365]]) {   // bars: the fixture's 6mo / 1y daily series
+          await page.locator(`.modal .perf-range-btn:visible:text-is("${range}")`).first().click().catch(() => {});
+          const ma = await readUntil(page, () => page.evaluate(([lD, sD]) => {
+            const svg = [...document.querySelectorAll('.modal svg')].find((el) => el.querySelector(`path[data-ma="${sD}"]`));
+            if (!svg) return null;
+            const box = svg.getBoundingClientRect();
+            const label = (t) => [...svg.querySelectorAll('text')].find((el) => el.textContent === t);
+            const rect = (el) => { const r = el?.getBoundingClientRect(); return r ? { l: r.left, r: r.right, t: r.top, b: r.bottom } : null; };
+            const p = (d) => svg.querySelector(`path[data-ma="${d}"]`);
+            return { box: { l: box.left, r: box.right }, lLong: rect(label(`MA ${lD}`)), lShort: rect(label(`MA ${sD}`)),
+              cShort: p(sD)?.getAttribute('stroke') || '', cLong: p(lD)?.getAttribute('stroke') || '', points: (p(sD)?.getAttribute('d') || '').split('L').length };
+          }, [longD, shortD]), (r) => !!r && !!r.lLong && !!r.lShort, { steady: 400 });
+          const S2 = (n) => S(`${n}-${range}`);
+          if (!ma || !ma.lLong || !ma.lShort) { fail(S2('ma'), `the ${range} chart did not draw both averages: ${JSON.stringify(ma)}`); continue; }
           const inside = (l) => l.l >= ma.box.l - 0.5 && l.r <= ma.box.r + 0.5;
-          const apart = ma.l200.b <= ma.l50.t + 0.5 || ma.l50.b <= ma.l200.t + 0.5 || ma.l200.r <= ma.l50.l || ma.l50.r <= ma.l200.l;
-          if (ma.c50 && ma.c50 !== ma.c200) ok(S('ma50'), `1Y draws MA 50 (${ma.c50}) beside MA 200 (${ma.c200})`);
-          else fail(S('ma50'), `MA 50 colour "${ma.c50}" vs MA 200 "${ma.c200}"`);
-          if (inside(ma.l200) && inside(ma.l50)) ok(S('ma50'), 'both MA labels sit inside the chart frame');
-          else fail(S('ma50'), `an MA label overflows the chart: ${JSON.stringify(ma)}`);
-          if (apart) ok(S('ma50'), 'the two MA labels do not overlap');
-          else fail(S('ma50'), `the MA labels overlap: ${JSON.stringify(ma)}`);
+          const apart = ma.lLong.b <= ma.lShort.t + 0.5 || ma.lShort.b <= ma.lLong.t + 0.5 || ma.lLong.r <= ma.lShort.l || ma.lShort.r <= ma.lLong.l;
+          if (ma.cLong === '#6b7280' && ma.cShort === '#8b9bb4') ok(S2('ma'), `${range} draws MA ${longD} (${ma.cLong}) beside MA ${shortD} (${ma.cShort})`);
+          else fail(S2('ma'), `${range} colours: MA ${longD} "${ma.cLong}", MA ${shortD} "${ma.cShort}" (want #6b7280 and #8b9bb4)`);
+          if (ma.points === bars) ok(S2('ma'), `${range}'s MA ${shortD} is drawn over all ${ma.points} of its bars`);
+          else fail(S2('ma'), `${range}'s MA ${shortD} has ${ma.points} points, want one per bar (${bars})`);
+          if (inside(ma.lLong) && inside(ma.lShort)) ok(S2('ma'), `both ${range} MA labels sit inside the chart frame`);
+          else fail(S2('ma'), `an ${range} MA label overflows the chart: ${JSON.stringify(ma)}`);
+          if (apart) ok(S2('ma'), `the two ${range} MA labels do not overlap`);
+          else fail(S2('ma'), `the ${range} MA labels overlap: ${JSON.stringify(ma)}`);
         }
         await closeBy(page, () => page.keyboard.press('Escape'));
       } else fail(S('history'), 'ACME symbol is not clickable');

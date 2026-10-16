@@ -51,10 +51,27 @@ export const RANGES = {
   // composes its own button row as [...RANGE_KEYS, '1Y', …]; the chart
   // Edge Function already accepts range='1y'.
   '1Y':  { yahooRange: '1y',  interval: '1d',  label: '1Y'  },
+  // 6M (trailing six months of daily bars) is the ticker modal's third
+  // daily range and replaced YTD there (Davies, 2026-10-16: "ytd的图全改成6M").
+  // Modal-only like 1Y: the portfolio PerfChart keeps its Jan-1 YTD.
+  '6M':  { yahooRange: '6mo', interval: '1d',  label: '6M'  },
 };
 // PerfChart + the perf-side prefetch iterate this; the modal adds '1Y'
 // (and PE/PS) on top of it for its own range row.
 export const RANGE_KEYS = ['1D', '1W', '1M', '3M', 'YTD'];
+
+/** The ticker modal's own price ranges, in button order: YTD is 6M here and 1Y follows. */
+export const MODAL_RANGE_KEYS = ['1D', '1W', '1M', '3M', '6M', '1Y'];
+
+/**
+ * A modal range key as the modal now knows it: the old YTD button is 6M, so a YTD that
+ * arrives from anywhere (an old caller, a stored value) lands on 6M and not on a range
+ * the modal no longer has. Every other key is returned as it came.
+ * @param {string} rangeKey
+ */
+export function modalRangeKey(rangeKey) {
+  return rangeKey === 'YTD' ? '6M' : rangeKey;
+}
 
 /**
  * Button label on the vs-S&P / Investment panel range row. The shortest
@@ -137,7 +154,10 @@ export function maFetchParamsFor(rangeKey, dailyOnly = false) {
     // the MA has ~455 bars of lead-in for a window `maBarsFor` puts at
     // 20 days x 7 bars = 140.
     '3M':  { range: '6mo', interval: '60m' },
-    'YTD': { range: '1y',  interval: '1d'  },
+    // 6M's own bars are ~126 trading days; 1y of daily bars leaves ~126
+    // before the leftmost one, comfortably past the 50-day window, so both
+    // the MA 50 and the MA 20 start at the chart's left edge.
+    '6M':  { range: '1y',  interval: '1d'  },
     // 1Y view draws a 200-day MA, so the overlay needs ~200 trading
     // days of lead-in BEFORE the leftmost (12-months-ago) display bar.
     // 2y of daily bars (~504 td) minus the 1y display window (~252 td)
