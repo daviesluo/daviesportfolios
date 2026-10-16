@@ -102,5 +102,44 @@
     "PORTFOLIO": {"rule": "equal-risk combination of every arm that meets the candidate bar, monthly returns, risk-scaled on the train era only"}
   },
   "capital": "for each survivor: the minimum stake's notional, the margin it needs, and the capital at which the worst historical month or trade costs no more than 20 % of it; expected GBP a year at that capital and at GBP 10,000, with the test era's bootstrap interval",
-  "term_9_12": "each strategy is classed: can be run by hand from a published signal (daily or less often, or at a fixed clock time), or needs software (more than a few dealt trades a day, or reaction faster than a person)"
+  "term_9_12": "each strategy is classed: can be run by hand from a published signal (daily or less often, or at a fixed clock time), or needs software (more than a few dealt trades a day, or reaction faster than a person)",
+  "deviations": [
+    {
+      "id": 1,
+      "written": "2026-10-16, before any result of the families it touches was computed",
+      "what": "Dukascopy throttled this machine (HTTP 429 and dropped connections after a few dozen reads), so its hourly files cannot be read. FX hourly comes from FXCM's public weekly H1 bid/ask files, which start in 2012. MONTHEND_FIX and SESSION therefore split train 2012-01-01..2018-12-31 / test 2019-01-01..2026-10-15 on FXCM H1 (source A); MONTHEND_FIX's source B is the committed FXCM minute fix table (the same vendor, minute data, 2016 on); SESSION has one source.",
+      "eras": {
+        "MONTHEND_FIX": {
+          "train": [
+            "2012-01-01",
+            "2018-12-31"
+          ],
+          "test": [
+            "2019-01-01",
+            "2026-10-15"
+          ]
+        },
+        "SESSION": {
+          "train": [
+            "2012-01-01",
+            "2018-12-31"
+          ],
+          "test": [
+            "2019-01-01",
+            "2026-10-15"
+          ]
+        }
+      }
+    },
+    {
+      "id": 2,
+      "written": "2026-10-16, same time",
+      "what": "With no Dukascopy hourly US 500 history, MONDAY_GAP has only Yahoo's 730 days of hourly ES=F (2024-05 on): one era. It is reported descriptively and its verdict is 'not run, coverage', as S3 of the IG verification was. OVERNIGHT's source B is QQQ (a second market on the same vendor) only."
+    },
+    {
+      "id": 3,
+      "written": "2026-10-16, same time",
+      "what": "Stooq refuses this machine's connections; it is not used. Dukascopy daily candles are read where the throttle allows; a market whose Dukascopy series is missing has no source B for equities before FRED's SP500 (2016 on)."
+    }
+  ]
 }
