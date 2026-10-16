@@ -603,6 +603,9 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16"; each oldest first.
 
+### [2026-10-16 22:15 UTC] Platform: Grok | Model: grok-4.7
+- **BUCKET-DIST verdict FAIL.** Headline T−24 h, threshold 0.04, stake $20, 1123 trades, mean ROI −0.0667, p05 −0.2289. Neighbours do not share the sign. 2026 mean −0.1285. Tail earns and centre does not; the five conditions fail, so the word stays FAIL. Review `docs/agents/reviews/2026-10-16-pm-bucket-dist.md`. No orders. Not pushed yet.
+
 ### [2026-10-16 20:15 UTC] Platform: Grok | Model: grok-4.7
 - **BUCKET-DIST universe counted, print pull running.** 8,013 bucket rows, 706 partitions of at least 7, 7,663 to pull. No 2024 rows. September tail after cursor 4946930 is unknown by family; August and the retrieved slice are both mostly above (`results/s2_gap_mix.txt`). One serial pull is appending to the g2 tape. No second pull. No verdict.
 

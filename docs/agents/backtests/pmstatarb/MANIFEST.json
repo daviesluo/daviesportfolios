@@ -1,6 +1,6 @@
 {
- "generated": "2026-10-14",
- "note": "Snapshot scripts read live public books; a re-run reads a later book. Results are the 2026-10-14 ~02:00 UTC reads.",
+ "generated": "2026-10-16",
+ "note": "Snapshot scripts read live public books; a re-run reads a later book. Results are the 2026-10-14 ~02:00 UTC reads. BUCKET-DIST files are additional. The g2 tape hash is after the bucket append of 2026-10-16T22:11:22Z. Spot hashes are unchanged. The capped file is still the one touch market. Raw bytes stay off git.",
  "files": [
   {
    "path": "SPEC-for-verification.md",
@@ -21,6 +21,138 @@
   {
    "path": "scripts/touch_pairs.py",
    "sha256": "ad4c515430ba76f9e4bbe2ac99c27c12e6bb062f3e8ef222293a04650c02df13"
+  },
+  {
+   "path": "FROZEN.md",
+   "sha256": "91fd147f3e07f2cbea9bae21fef3c921de8407e0bdcd07bfc8967e59a55acca8",
+   "in_git": true,
+   "bytes": 5673
+  },
+  {
+   "path": "scripts/g1_lib.py",
+   "sha256": "e5765b23ef5d9ac90602c12517c556bcd8aaca4ad11e310df4f9b6ee1a1f2dea",
+   "in_git": true,
+   "bytes": 25811
+  },
+  {
+   "path": "scripts/g1_pull.py",
+   "sha256": "65cffc1ec21dde467439873a6d7fd30ba19d4ad7f546d7a08dd9d0160038d684",
+   "in_git": true,
+   "bytes": 15743
+  },
+  {
+   "path": "scripts/g2_time.py",
+   "sha256": "0b74670ec5e5a18a37a88caac7b217ce2de2ab3813c617a939aca25166d54dbe",
+   "in_git": true,
+   "bytes": 2709
+  },
+  {
+   "path": "scripts/g2_trades.py",
+   "sha256": "def36a14f1635ecedad472d8e5def86a2f30235bd0f03a5bbbc22a8f7e41876b",
+   "in_git": true,
+   "bytes": 6805
+  },
+  {
+   "path": "scripts/net.py",
+   "sha256": "c42c325ed42a35f9b0ad410654d48d732e9cacff68f1911c893f623d0c5aed59",
+   "in_git": true,
+   "bytes": 4620
+  },
+  {
+   "path": "scripts/s2_prepare.py",
+   "sha256": "a5497dab5762a2583c3c6325ca074c28e02f624212ac958caf0894d9ac0ab457",
+   "in_git": true,
+   "bytes": 12402
+  },
+  {
+   "path": "scripts/s2_bucket.py",
+   "sha256": "2fb2df6da6042b1c12f7b6bf394a06ad2871cd08feb2710dc7e30dde20a9c417",
+   "in_git": true,
+   "bytes": 27901
+  },
+  {
+   "path": "results/s2_universe_counts.txt",
+   "sha256": "e96f2b3d6ba8ccb5842cb783a4f7efba1e7350240deba3273c8075e1edabec36",
+   "in_git": true,
+   "bytes": 324
+  },
+  {
+   "path": "results/s2_gap_mix.txt",
+   "sha256": "eec0ca881c09b7c722186566d9f51323e8e01fd563f82296cc24203ed4a266ce",
+   "in_git": true,
+   "bytes": 1360
+  },
+  {
+   "path": "results/s2_verdict.txt",
+   "sha256": "2120e665dbef98d3dc76adc863e18612b82c4044c6544852e7ec5bd4c1d00ff9",
+   "in_git": true,
+   "bytes": 2616
+  },
+  {
+   "path": "results/s2_headline_trades.csv",
+   "sha256": "8b0ec8bda1c4a41b2e1f7d24e4c3461653568939225c278d7fad761b02bf3b24",
+   "in_git": true,
+   "bytes": 200271
+  },
+  {
+   "path": "results/s2_partition_sums.txt",
+   "sha256": "a1613e8e3476580f320d33c7ad226430df67fcdde7e4a7ef9b9481a455af4b9f",
+   "in_git": true,
+   "bytes": 47340
+  },
+  {
+   "path": "reviews/2026-10-16-pm-bucket-dist.md",
+   "sha256": "ec62494727fd0c989f28101e46f10adb6469e134ee099b3b2616dc45b599db2e",
+   "in_git": true,
+   "bytes": 4857
+  },
+  {
+   "path": "g2/trades.jsonl",
+   "sha256": "224289f9a5f52e5dce1d3ef9f2d37da757b534d42b7e102197289ef39269e8e2",
+   "in_git": false,
+   "lines": 3313149,
+   "bytes": 879320151,
+   "local_copy": "/tmp/pmstatarb-data/g2/trades.jsonl"
+  },
+  {
+   "path": "g2/trades.done.txt",
+   "sha256": "1dc1719d520b52825eef6241d41da41943e4ca7c3fdf1fbeea3ee86c281af0e6",
+   "in_git": false,
+   "lines": 12871,
+   "bytes": 862357,
+   "local_copy": "/tmp/pmstatarb-data/g2/trades.done.txt"
+  },
+  {
+   "path": "g2/trades.capped.txt",
+   "sha256": "057cecb21ec9e2ea209b5e5e34fcc420158c6bb0c1a2bcd5b14f9ff303013538",
+   "in_git": false,
+   "lines": 1,
+   "bytes": 67,
+   "local_copy": "/tmp/pmstatarb-data/g2/trades.capped.txt"
+  },
+  {
+   "path": "g2/BTCUSDT.csv",
+   "sha256": "597e62858150516942752e7bcc7b6e3b3c884e037f54d543a48d0942bfc038e7",
+   "in_git": false,
+   "lines": 1494721,
+   "bytes": 111849194,
+   "local_copy": "/tmp/pmstatarb-data/g2/BTCUSDT.csv"
+  },
+  {
+   "path": "g2/ETHUSDT.csv",
+   "sha256": "f4317a7dfd7896643d09f1cc0e797aced5390587cedb2ad5ecf795c97a8f1e73",
+   "in_git": false,
+   "lines": 1494721,
+   "bytes": 104630428,
+   "local_copy": "/tmp/pmstatarb-data/g2/ETHUSDT.csv"
+  },
+  {
+   "path": "data/bucket_s2_universe.csv",
+   "sha256": "dd751d642010a2ff933e36511ed936b8ad2f00d472ea4988c30a69d48158da36",
+   "in_git": false,
+   "lines": 8014,
+   "bytes": 3304432,
+   "local_copy": "/tmp/pmstatarb-data/data/bucket_s2_universe.csv"
   }
  ]
 }

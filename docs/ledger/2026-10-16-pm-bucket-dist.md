@@ -7,9 +7,9 @@ is not this branch and is not edited here.
 
 ## Status
 
-Parameters frozen in `ea8f349f`. Universe built from local Gamma only.
-No verdict. The print pull is in progress and must not be started a second
-time. Nothing has been pushed.
+Verdict FAIL. Parameters were not changed after the result. The print pull
+has finished; do not start another. Nothing has been pushed. The review is
+`docs/agents/reviews/2026-10-16-pm-bucket-dist.md`.
 
 ## Branch
 
@@ -62,21 +62,28 @@ that match. Detail: `results/s2_gap_mix.txt`.
 
 ## Print pull
 
-Started 2026-10-16 20:14 UTC, one process, appending to the existing g2
-tape. `PM_UNIVERSE` is the bucket csv. Limit 500, the same user agent and
-gap. At the first minute it had passed about 100 markets, one to three
-pages, and had not capped a new market. `trades.done.txt` grows as markets
-finish. A resume skips ids already in that file or in `trades.capped.txt`.
-Do not launch another pull beside it.
+Finished 2026-10-16 22:11 UTC. One process appended to the existing g2 tape.
+`trades.done.txt` is 12,871 lines: the previous 5,208 plus these 7,663.
+One HTTP 429 was retried. No new market was capped. The capped file is still
+the one touch market. Do not pull again.
+
+## Result
+
+FAIL. Headline T−24 h, threshold 0.04, stake $20, seed 20261014.
+1,123 trades, 1,123 markets, 323 days. Mean ROI −0.0667, p05 −0.2289,
+P&L −1497.26. The $50 stake has the same mean. 2025 mean +0.0342 (n 427);
+2026 mean −0.1285 (n 696). Two of eight neighbour cells share the headline's
+negative sign. 2026-08 is 1.009 of net P&L and 2025-12 is 0.77; both are
+over half because the net is a loss. Centre mean −0.0880 (n 365) does not
+earn. Tail mean +0.0802 (n 77) does. The five conditions fail, so the word
+is FAIL and not one-sided. A follow-on would be a new proposal. Nothing
+is armed.
 
 ## Next
 
-1. When the pull prints `trades done`, run `s2_bucket.py`. Do not retune.
-2. Commit the verdict, the headline trades, the partition sums and the
-   manifest hashes of the off-git tape. Raw bytes stay off git.
-3. `sh bin/gates.sh`, then `git push -u origin grok/pm-bucket-dist` only.
-   Open a PR against `main`. Wait until `check.yml` is green. Do not merge.
-   Do not push `main`.
+1. `sh bin/gates.sh` on this tree.
+2. `git push -u origin grok/pm-bucket-dist` only. Open a PR against `main`.
+3. Wait until `check.yml` is green. Do not merge. Do not push `main`.
 
 ## Out of scope
 

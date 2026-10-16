@@ -1,0 +1,57 @@
+verdict FAIL
+sample title_end 2025-01-01 through 2026-08-31
+held out title_end on or after 2026-09-01. The September cursor was not sent again.
+2024 was not pulled
+headline horizon 24h threshold 0.04 stake 20 seed 20261014 draws 10000
+threshold is 4 points flat. The fee is charged and does not raise the threshold.
+bootstrap resamples whole title_end days
+n 1123 markets 1123 mean_roi -0.0667 p05 -0.2289 pnl -1497.26
+stake50 n 1123 mean_roi -0.0667 p05 -0.2289
+bar trades 1 markets 1 mean_positive 0 bound 0 neighbours 0 share 0 years 0 one_sided 1
+top_market_share 0x285acf93e363c5e60dec4b44ff0a2f60ae50569f185ad7ea254a48a52d51f947 0.0143
+top_month_share 2026-08 1.0091
+years
+2025 n 427 mean 0.0342
+2026 n 696 mean -0.1285
+centre n 365 mean_roi -0.0880 earns 0
+tail n 77 mean_roi 0.0802 earns 1
+cells are headline stake 20. other is in the bar and not in the one-sided test.
+centre-bought n 94 mean_roi -0.1342 earns 0
+centre-sold n 271 mean_roi -0.0720 earns 0
+tail-bought n 46 mean_roi 0.1722 earns 1
+tail-sold n 31 mean_roi -0.0563 earns 0
+other-bought n 409 mean_roi -0.3548 earns 0
+other-sold n 272 mean_roi 0.3536 earns 1
+market sum is the sum of first taker-BUY YES prints at or after T-24h, not a mid, and not a filter
+model sum is over eligible buckets with a model at that same entry
+spot files are the ones already on disk from data-api.binance.vision. api.binance.com overlap was not re-measured.
+september family mix is results/s2_gap_mix.txt. The unretrieved id tail has an unknown family mix.
+A FAIL closes this parameter set. A follow-on is a new proposal, not a re-run.
+neighbours
+h 24 thr 0.03 n 1393 markets 1393 mean 0.1092 p05 -0.1434 same_sign 0
+h 24 thr 0.05 n 921 markets 921 mean -0.1207 p05 -0.2787 same_sign 1
+h 12 thr 0.04 n 1104 markets 1104 mean 0.0381 p05 -0.1312 same_sign 0
+h 12 thr 0.03 n 1322 markets 1322 mean 0.0030 p05 -0.1474 same_sign 0
+h 12 thr 0.05 n 922 markets 922 mean 0.0798 p05 -0.0978 same_sign 0
+h 48 thr 0.04 n 1501 markets 1501 mean 0.0156 p05 -0.1561 same_sign 0
+h 48 thr 0.03 n 1875 markets 1875 mean -0.0187 p05 -0.1642 same_sign 1
+h 48 thr 0.05 n 1234 markets 1234 mean 0.0195 p05 -0.1533 same_sign 0
+counts
+no_print_12 970
+no_print_24 454
+no_print_48 141
+not_pulled 350
+rows 8013
+spot_last_close_ms BTCUSDT 1791072000000 ETHUSDT 1791072000000
+calibration headline T-24h model decile, all modelled eligible buckets, not only trades
+decile n mean_model realised
+0 5596 0.0101 0.0096
+1 596 0.1493 0.1158
+2 572 0.2490 0.2797
+3 397 0.3472 0.3703
+4 237 0.4452 0.4557
+5 109 0.5457 0.5780
+6 81 0.6483 0.6296
+7 33 0.7402 0.4848
+8 21 0.8396 0.8571
+9 21 0.9748 0.9524
