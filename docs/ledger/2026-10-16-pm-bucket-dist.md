@@ -7,8 +7,8 @@ is not this branch and is not edited here.
 
 ## Status
 
-Verdict FAIL. Parameters were not changed after the result. The print pull
-has finished; do not start another. Nothing has been pushed. The review is
+Verdict FAIL, on `dc707708`. PR #243 is open against `main` and is not
+merged. `main` was not pushed. Do not start another print. The review is
 `docs/agents/reviews/2026-10-16-pm-bucket-dist.md`.
 
 ## Branch
@@ -81,9 +81,9 @@ is armed.
 
 ## Next
 
-1. `sh bin/gates.sh` on this tree.
-2. `git push -u origin grok/pm-bucket-dist` only. Open a PR against `main`.
-3. Wait until `check.yml` is green. Do not merge. Do not push `main`.
+Wait until `check.yml` on PR #243 is green. Do not merge. Do not push
+`main`. Davies decides whether a follow-on with different parameters is
+worth a new proposal. This parameter set is closed.
 
 ## Out of scope
 
