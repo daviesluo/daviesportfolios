@@ -1,0 +1,14 @@
+{
+ "generated": "by scripts/build_manifest.py",
+ "note": "2026-10-16: the IG strategy search. Small derived inputs are committed; raw pulls too large to commit are pinned by their sha256 in inputs/pull_log.json and re-fetched by scripts/pull.py.",
+ "files": [
+  {
+   "path": "params/frozen.json",
+   "sha256": "90c78dae72e08946b6d03bccc7044fb3b7832510b7b0fe593bbd0d62e75b07f0"
+  },
+  {
+   "path": "scripts/build_manifest.py",
+   "sha256": "8a2fe4b577d191e18406720f3342610f2ff69da4cbd7db2eb6a8b9274a467afc"
+  }
+ ]
+}

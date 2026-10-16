@@ -1,0 +1,106 @@
+{
+  "frozen": "2026-10-16, in the first commit of this search, before any data below was pulled or read",
+  "asked": "Davies, 2026-10-16: \"ig除了澳元这个还有什么别的策略吗？再深度研究下，结合多个数据源，策略够好的话有一定风险会亏钱也没问题\"",
+  "rule": "Every rule, threshold, era boundary and cost below is fixed here. Nothing is tuned on the test era; a changed rule is a new proposal, and the old one is still reported. Every arm is reported, none dropped.",
+  "eras": {
+    "default": {"train": ["1990-01-01", "2009-12-31"], "test": ["2010-01-01", "2026-10-15"]},
+    "note": "a family whose data starts later uses its own split, stated in it; train and test are both reported, the verdict reads the test era"
+  },
+  "bar": {
+    "candidate": "test-era mean net of IG costs > 0 with t >= 2.5 AND train-era mean > 0 with t >= 2.0, AND the test-era bootstrap 95% lower bound > 0",
+    "family_count_note": "about 30 arms; t >= 2.5 on an out-of-sample era whose rule was fixed on the other era is the bar, not a Bonferroni over the whole search, because the test era is untouched by selection",
+    "bootstrap": {"unit": "whole trades (or months for continuous strategies)", "draws": 10000, "seed": 20261016},
+    "verdicts": ["worth a demo forward test", "worth small real money after demo", "dead"],
+    "small_money_needs": "candidate bar met in both eras by two independent data sources, and a worst single loss Davies can fund at the minimum stake"
+  },
+  "ig_costs": {
+    "source": "IG UK product pages read 2026-10-15/16 (docs/agents/backtests/ig_deepdive/inputs/sources/ and this folder's inputs/sources/); spreads converted to bps at the levels stated per market",
+    "index_dfb": {"admin_fee_sb": 0.034, "admin_fee_cfd": 0.03, "long_pays": "benchmark + admin", "short_receives": "benchmark - admin", "divisor_usd": 360, "divisor_gbp": 365},
+    "fx_dfb": {"admin_fee": 0.008, "admin_fee_alt": 0.015, "note": "F12 vs F13 disagree; both run"},
+    "commodity_undated": {"admin_fee": 0.03, "note": "market cost of carry plus 3 % (commodities page)"},
+    "spot_gold_silver": {"admin_fee": 0.01, "note": "tom-next plus 1 % (commodities page)"},
+    "bonds": {"admin_fee": 0.03},
+    "spreads_points": {
+      "US500": {"in_hours": 0.4, "out_of_hours": 0.6, "level": 6700, "min_stake_gbp_per_point": 1, "margin": 0.05},
+      "USTECH": {"in_hours": 1.0, "out_of_hours": 2.0, "level": 24000, "min_stake_gbp_per_point": 1, "margin": 0.05},
+      "UK100": {"in_hours": 1.0, "out_of_hours": 4.0, "level": 9500, "min_stake_gbp_per_point": 0.5, "margin": 0.05},
+      "DE40": {"in_hours": 1.2, "out_of_hours": 5.0, "level": 24000, "min_stake_gbp_per_point": 0.5, "margin": 0.05},
+      "JP225": {"in_hours": 7.0, "out_of_hours": 7.0, "level": 47000, "min_stake_gbp_per_point": 1, "margin": 0.05, "note": "not read at source; the 2026-10-09 review's figure class, flagged"},
+      "EURUSD": {"spread_pips": 0.85, "level": 1.16, "min_stake_gbp_per_pip": 0.5, "margin": 0.0333},
+      "GBPUSD": {"spread_pips": 1.4, "level": 1.34, "min_stake_gbp_per_pip": 1, "margin": 0.0333},
+      "USDJPY": {"spread_pips": 0.94, "level": 150, "pip": 0.01, "min_stake_gbp_per_pip": 0.5, "margin": 0.0333},
+      "AUDUSD": {"spread_pips": 0.82, "level": 0.70, "min_stake_gbp_per_pip": 0.5, "margin": 0.05},
+      "GOLD": {"spread_points": 0.3, "level": 4000, "min_stake_gbp_per_point": 5, "margin": 0.05},
+      "WTI": {"spread_points": 2.8, "point": 0.01, "level": 60, "min_stake_gbp_per_point": 0.25, "margin": 0.10},
+      "UST10": {"spread_points": 2, "point": 0.01, "level": 112, "min_stake_gbp_per_point": 2, "margin": 0.20, "note": "Treasury note futures bet row; spread from the bonds page class"},
+      "BUND": {"spread_points": 2, "point": 0.01, "level": 128, "min_stake_gbp_per_point": 2, "margin": 0.20}
+    },
+    "levels_note": "levels are round present-day values used only to turn point spreads into bps and minimum stakes into notional; each result says which level it used"
+  },
+  "families": {
+    "TSMOM": {
+      "rule": "monthly, at each month's last trading day: position in each market = sign(trailing 252-day excess return) x min(2, 0.10 / sigma60), sigma60 the annualised 60-day stdev of daily excess returns; portfolio = average of the market positions (equal risk); held to the next month end",
+      "variant_ENS": "the same with the sign replaced by the mean of the signs of the 21-, 63- and 252-day excess returns",
+      "markets": ["US500", "UK100", "DE40", "JP225", "EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "GOLD", "WTI", "UST10"],
+      "sources": {"A": "Yahoo daily (indices ^GSPC ^FTSE ^GDAXI ^N225; GC=F, CL=F; FX =X; ^TNX for yields) with FRED rates", "B": "FRED daily (SP500 where it exists, DEX* FX, DCOILWTICO, DGS10) and Dukascopy daily candles (indices, XAUUSD)"},
+      "excess_return": "index price + assumed dividend yield (US 2 %, UK 3.5 %, DE 0 (performance index), JP 2 %) - local short rate; FX spot + (r_foreign - r_USD) from FRED 3-month interbank; gold spot - US rate; WTI front futures excluding roll days (|return| > 5 sigma on an expiry week is dropped, counted); UST10 from DGS10 by duration 8 (-D x dy + (y - rf)/252)",
+      "costs": "each month: half-spread x |change in position| x 2 sides, plus the market's admin fee on |position| daily",
+      "eras": "default"
+    },
+    "PREFOMC": {
+      "rule": "long US500 from the close before a scheduled FOMC statement day to that day's close (one night funded)",
+      "dates": "fetched from federalreserve.gov (fomccalendars.htm and fomchistoricalYYYY.htm), scheduled meetings only",
+      "eras": {"train": ["1994-01-01", "2011-12-31"], "test": ["2012-01-01", "2026-10-15"]},
+      "sources": {"A": "Yahoo ^GSPC", "B": "FRED SP500 (2016 on) and Dukascopy USA500IDXUSD daily (2012 on)"}
+    },
+    "TOM": {
+      "rule": "long US500, UK100 and DE40 from the close of the second-to-last trading day of each month to the close of the third trading day of the next (four trading days, nights funded as held)",
+      "eras": "default",
+      "sources": {"A": "Yahoo indices", "B": "Dukascopy daily index CFDs (2012 on) and FRED SP500 (2016 on)"}
+    },
+    "OVERNIGHT": {
+      "rule": "long US500 from the cash close to the next cash open (SPY close -> open), one night funded; and its control, open -> close",
+      "eras": "default (SPY from 1993)",
+      "sources": {"A": "Yahoo SPY", "B": "Yahoo QQQ (a second market, same vendor) and Dukascopy USA500IDXUSD hourly 21:00 -> 14:30 UK"}
+    },
+    "MONTHEND_FIX": {
+      "rule": "Melvin and Prins (2015): on the last London business day of each month, from 14:00 to 16:00 London, buy the foreign currency against USD if the US equity index outperformed the foreign one month-to-date (to the previous close), sell it otherwise. Pairs and indices: EURUSD/^GDAXI, GBPUSD/^FTSE, USDJPY/^N225 (USDJPY sold when the foreign currency is bought), AUDUSD/^AXJO",
+      "eras": {"train": ["2005-01-01", "2015-12-31"], "test": ["2016-01-01", "2026-10-15"]},
+      "sources": {"A": "Dukascopy hourly bid/ask", "B": "the committed FXCM fix table (statarb_search2/inputs/fx/fxcm_*_fix.csv.gz: mids at London 14:00 and 16:00, 2016 on)"},
+      "costs": "one IG average spread a round trip"
+    },
+    "SEASONAL": {
+      "GOLD_SEP_NOV": "long gold over September and over November (Baur 2013), funded as spot gold (tom-next + 1 %); one round trip each",
+      "WTI_MAR_APR": "long WTI from the first to the last trading day of March-April, funded as an undated commodity (3 %)",
+      "eras": "default (gold from 2000 on Yahoo, oil from 1986 on FRED)",
+      "sources": {"A": "Yahoo GC=F / CL=F", "B": "Dukascopy XAUUSD daily and FRED DCOILWTICO"}
+    },
+    "SESSION": {
+      "rule": "Breedon and Ranaldo (2013): currencies weaken in their own trading hours. Daily: short EUR/USD and GBP/USD 07:00 -> 12:00 UK; long USD/JPY 00:00 -> 06:00 UK; short AUD/USD 23:00 -> 05:00 UK. No funding (no 22:00 crossing except AUD's leg, flat by 05:00, which does not cross 22:00)",
+      "eras": {"train": ["2005-01-01", "2015-12-31"], "test": ["2016-01-01", "2026-10-15"]},
+      "sources": {"A": "Dukascopy hourly bid/ask", "B": "the committed FXCM fix table where its London times allow (none of these legs): single intraday source, said so"}
+    },
+    "MONDAY_GAP": {
+      "ESG": "if |ln(Sunday first price / Friday last price)| >= 0.5 % on the S&P 500, fade it at the Sunday open and exit Monday 16:00 ET; neighbours 0.25 % and 0.75 %",
+      "FILL": "the same entry, exit when the Friday close is touched, else Monday 16:00 ET",
+      "eras": {"train": ["2012-01-01", "2018-12-31"], "test": ["2019-01-01", "2026-10-15"]},
+      "sources": {"A": "Dukascopy USA500IDXUSD hourly", "B": "Yahoo ES=F hourly (committed, 2024-05 on)"},
+      "costs": "US500 0.6 pt in, 0.4 pt out, no funding (opened after Sunday 22:00, closed before Monday 22:00)"
+    },
+    "VIX_CARRY": {
+      "rule": "short the front VIX future (Cboe settlements, committed) at each cycle start when front/spot VIX >= 1.05 and spot VIX < 20, a guaranteed stop at +50 %, notional 10 % of capital; IG's VIX market costs 0.1 point a side and a guaranteed-stop premium of 0.2 point when triggered",
+      "eras": {"train": ["2013-01-01", "2019-12-31"], "test": ["2020-01-01", "2026-10-15"]},
+      "sources": {"A": "Cboe VX settlements (ig_research/inputs/cboe)", "B": "FRED VIXCLS for spot"}
+    },
+    "PEAD": {"rule": "not run if no keyless earnings-surprise history is found; IG share CFD commission arithmetic reported instead"},
+    "CROSS": {
+      "COT_CONTRA": "weekly: for gold, WTI, S&P 500 (E-mini), 10-year note, EUR, JPY: non-commercial net position as a share of open interest, its percentile over the prior 156 weeks; above 90 -> short the market for 4 weeks, below 10 -> long for 4 weeks (CFTC legacy futures-only reports, position known Tuesday, traded at Friday's close)",
+      "REAL_YIELD_GOLD": "monthly: long gold if the 3-month change in the 10-year real yield (FRED DFII10) is negative, short if positive",
+      "CREDIT_EQUITY": "daily signal, traded at the close: long US500 when the Baa - 10y Treasury spread (FRED DBAA - DGS10) is below its 126-day average, flat otherwise; compared with always long, both funded",
+      "eras": {"COT_CONTRA": {"train": ["2006-01-01", "2015-12-31"], "test": ["2016-01-01", "2026-10-15"]}, "REAL_YIELD_GOLD": {"train": ["2003-01-01", "2014-12-31"], "test": ["2015-01-01", "2026-10-15"]}, "CREDIT_EQUITY": "default"}
+    },
+    "PORTFOLIO": {"rule": "equal-risk combination of every arm that meets the candidate bar, monthly returns, risk-scaled on the train era only"}
+  },
+  "capital": "for each survivor: the minimum stake's notional, the margin it needs, and the capital at which the worst historical month or trade costs no more than 20 % of it; expected GBP a year at that capital and at GBP 10,000, with the test era's bootstrap interval",
+  "term_9_12": "each strategy is classed: can be run by hand from a published signal (daily or less often, or at a fixed clock time), or needs software (more than a few dealt trades a day, or reaction faster than a person)"
+}

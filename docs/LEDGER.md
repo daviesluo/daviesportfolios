@@ -629,6 +629,10 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   ACME modal on long daily fixtures (6mo / 1y / 2y), checks the colours, both labels inside the frame and apart at both widths, and
   that no YTD button is left. `docs/guide.md` and the `docs/map.md` notes follow.
 
+### [2026-10-16 15:13 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **IG strategy search, rules frozen** (sub-agent; item 14; Davies, 10-16: "ig除了澳元这个还有什么别的策略吗？再深度研究下…"):
+  `backtests/ig_search/params/frozen.json` fixes every rule, era split, IG cost and the bar before any data is pulled.
+
 ### [2026-10-16 15:06 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **GROKPM D2: Grok trades through our Ireland server on the shared account** (sub-agent; Davies: "可以用目前这个polymarket跑吗",
   "让grok用我们搭好的爱尔兰服务器下单，不是网页端"; item 15).
@@ -649,6 +653,7 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   - **The PGlite check.** `backtests/grokpm/scripts/exec_check.mjs`, every migration: all pass. Both counterfactuals fail
     (trigger and disarm).
   - **Pre-registration.** D2 is added with a new sha. Appendix A.2 holds the trading contract.
+
 
 ### [2026-10-16 14:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **1Y ticker chart draws a 50-day average beside the 200-day** (sub-agent; Davies, 2026-10-16: "网页中所有1Y的图目前不是有200MA么，
