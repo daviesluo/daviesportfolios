@@ -603,6 +603,9 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16"; each oldest first.
 
+### [2026-10-16 20:12 UTC] Platform: Grok | Model: grok-4.7
+- **BUCKET-DIST parameters frozen before any print.** Branch `grok/pm-bucket-dist` off origin/main `12917669`. #242 was not touched. No bucket print requested and no verdict. The lock is `docs/agents/backtests/pmstatarb/FROZEN.md`; the study state is `docs/ledger/2026-10-16-pm-bucket-dist.md`. Partitions of at least 7, threshold 0.04 flat (0.03 and 0.05), horizons 24/12/48 h, whole-day bootstrap seed 20261014. September stays held out.
+
 ### [2026-10-16 16:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **S1a pulls fired from the database** (main session, the Vault bearer through `net.http_post`, as `facts` was): `history`
   `probe` sb 16:03 (5 points), then `fxw` sb `max=15` four times 16:05–16:09: 50 of 51 windows ok, 1,588 points, 8,407 of
