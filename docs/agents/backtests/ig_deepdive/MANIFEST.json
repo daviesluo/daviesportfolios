@@ -7,12 +7,20 @@
    "sha256": "5adacf70708e6a643dff7dfb40b12f9fd85888758e1aab9599ce341eeb7f62d1"
   },
   {
+   "path": "data/fxw_sb_CS.D.AUDUSD.TODAY.IP.csv",
+   "sha256": "991092da1ab56f1871709715a7f70da223b87249488317fa5c8068858deb14fe"
+  },
+  {
    "path": "inputs/fxcm_paths/AUDUSD_trades_m1.csv.gz",
    "sha256": "bdbd0f68b33d717d4aa702279b293eec18040e17db8d940e6219a1b591833fd9"
   },
   {
    "path": "inputs/fxcm_paths/pull_log.json",
    "sha256": "18792af0c1d0d757cbbd12cbbde41ce80f03261028ce69baba3a2ebe488afac6"
+  },
+  {
+   "path": "inputs/ig/fxw_sb_bars.csv",
+   "sha256": "e6bddfabbfe5695381b8080f1768efd9ead69a8797156efbdbff22f83ecdc59e"
   },
   {
    "path": "inputs/search/fred_IR3TIB01HUM156N.csv.gz",
@@ -203,6 +211,10 @@
    "sha256": "8fae95c3a8730d560f1ff464cbe282cf834bd40eb2591a470334686f910ceaaf"
   },
   {
+   "path": "results/s1a_sb.json",
+   "sha256": "349c4275f169c39ba5d3f51a93014cd856d10e4a00de2597f1f1e75c6a4166d2"
+  },
+  {
    "path": "results/vol_gated.json",
    "sha256": "171b8186ff46ad7d052efe1ac2cfbeca423b0763430816e2b0808f121762bc70"
   },
@@ -233,6 +245,10 @@
   {
    "path": "scripts/ig_search.py",
    "sha256": "6f905190714c135919568de35e1c037b5632c83740c98b40a08a966a44d198a7"
+  },
+  {
+   "path": "scripts/s1a_export.py",
+   "sha256": "0ad403196cbb00f3bd0d00d39fbfe411bb0734a60c5bc529ed75fd3c329ed7e4"
   },
   {
    "path": "scripts/s1a_transfer.py",

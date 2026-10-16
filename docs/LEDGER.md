@@ -438,14 +438,13 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    count(*), max(ts) from cb_book_levels group by 1`; no `agents.cb_books` row in `ops_errors`. Nothing reads it until a
    queue-model study of the Coinbase books is pre-registered.
 
-14. **IG verification started on the demo, read-only** (Davies, 2026-10-15: "ig我的账户开好了，api也加了" and "FXW-AUD你继续验证
-   研究并记录…ig的spread betting和cfd的策略"; spec `backtests/ig_deepdive/SPEC-for-verification.md`, review
-   `reviews/2026-10-15-ig-verification.md`). Built, not yet deployed: the `ig` Edge Function (demo host and a fixed list of
-   GETs only, pinned; `facts`, `history`, `quotes`) and `0122` (its tables, and the weekend recorder's row, on only Fri
-   21:35–22:20 and Sat 07:40 → Mon 22:20 UK). It must land before Sat 10-17 so Sunday 10-18's open is recorded; then run
-   `facts` for `sb` and `cfd`, check the epics, `history` plan `probe`, then `fxw`; S1a runs on that export. Frozen before
-   any pull: `backtests/ig_deepdive/params/g2_s1a_frozen.json`. Decisions left to Davies: the contracting entity and tax
-   route, and any risk amount only from S5's packet; no order code exists.
+14. **IG verification: S1a passes** (Davies, 2026-10-15; spec `backtests/ig_deepdive/SPEC-for-verification.md`, review
+   `reviews/2026-10-15-ig-verification.md` §9). The `ig` function and `0122` are live (demo, read-only). S1a on 50 of 51
+   frozen weekends of IG's spread-bet demo history: all five transfer conditions pass (median opening spread 10.1 bps,
+   gap correlation with FXCM 0.957); 10 trades at IG's quotes +30 to +38 bps, t 3.2-3.5, not blind. Next: S1b, the
+   weekend recorder's twelve Sundays from 10-18. Window 2025-11-28 needs one re-pull (~32 points). Decisions left to
+   Davies: funding `LT8Q2` (£350-400 covers one £0.50 position through the worst historical excursion; the spec puts
+   S1b first), entity and tax route; no order code exists.
 
 15. **GROKPM, "Polymarket analyst (Grok)": built, trades through our Ireland server on the shared account, DRY-RUN until
    Davies says go** (Davies, 2026-10-15: "让grok bot里开一个trading bot，给他100美元…先让他就用100美元测试"; 2026-10-16:
@@ -603,6 +602,10 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)"; each oldest first.
+
+### [2026-10-16 16:14 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **S1a run** (sub-agent; item 14): export pinned by sha256 (`ig_deepdive/inputs/ig/fxw_sb_bars.csv`), `s1a_transfer.py`
+  unchanged: PASS on all five conditions; results `ig_deepdive/results/s1a_sb.json`, review §9. Not blind.
 
 ### [2026-10-16 16:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **IG strategy search, results** (sub-agent; item 14; `reviews/2026-10-16-ig-strategy-search.md`): 23 arms in 12 families

@@ -282,3 +282,74 @@ stop wide enough (≈ 200 bps) to leave the recoveries alone.
   `s1a_transfer.py`, `fxw_paths.py`, `ig_search.py`, `build_manifest.py`; `inputs/sources/`, `inputs/fxcm_paths/`,
   `inputs/search/`; `results/g3_replication.json`, `fxw_paths.json`, `ig_search.json`; `MANIFEST.json` with the sha256 of
   each.
+
+## 9. S1a, run on IG's own history (2026-10-16)
+
+**Verdict: the S1a transfer bar passes, all five conditions.** S1a is the first half of S1; FXW-AUD reaches
+PASS-TO-PAPER only when S1b's twelve recorded Sundays pass too. This run is **not blind**: it used the frozen script
+(`s1a_transfer.py`), definitions and bar (`params/g2_s1a_frozen.json`), all committed before the pulls, but sample bars
+of the export had been read before the script ran.
+
+- **The data.** The main session pulled the `fxw` plan on the spread-bet demo account on 2026-10-16, 16:03-16:09 UTC:
+  - epic `CS.D.AUDUSD.TODAY.IP`, HOUR bars;
+  - 50 of the 51 frozen weekends, 1,588 points, 8,407 of the week's 10,000 left.
+  - Weekend 2025-11-28 failed with `401 account-token-invalid` on the first request of the fourth call (`ig_price_pulls` id 47, status null). It stays missing and is counted in condition 5b; a re-pull would cost about 32 points.
+- **The export.** The rows were exported with the read-only connector to `inputs/ig/fxw_sb_bars.csv`. Its sha256 is `e6bddfab…c59e`, equal to the sha256 the database computed for the same text. `s1a_export.py` checks that hash and writes the normalized CSV through `ig_parse.py`.
+- **Timestamps.** IG reads `from`/`to` in UK time: a 17:00 request returns a first bar stamped 16:00 UTC in summer.
+  - Bars are placed by `snapshotTimeUTC`, and the first Sunday bar starts at the documented 21:00 UK open on 48 of 50 weekends.
+  - The other two first quotes came later: 2026-04-05, Easter, at 01:00 Monday; and 2026-07-19 at 00:00 Monday.
+  - So the stamp is the bar's start.
+
+| condition | bar | IG demo | |
+|---|---|---|---|
+| 1 complete weekends | ≥ 45 | 50 | pass |
+| 2 median opening spread | ≤ 20 bps | 10.13 bps | pass |
+| 2 p75 opening spread | ≤ 30 bps | 16.66 bps (p25 9.48, p90 17.98) | pass |
+| 3 IG vs FXCM gap correlation | ≥ 0.50 | 0.957 on 33 paired weekends | pass |
+| 4 median abs(IG gap) / abs(FXCM gap), FXCM gap ≥ 20 bps | ≥ 0.70 | 0.973 on 12 weekends | pass |
+| 5a first tradable bar by 22:00 UK | ≥ 80 % | 96 % | pass |
+| 5b unexplained timestamp gaps | < 10 % | 2 % (the missing 2025-11-28 weekend) | pass |
+
+FXCM's committed weekend table stops at 2026-09-25 and has no rows from 2026-05 to 2026-08, so conditions 3 and 4 rest on 33 paired weekends. The pairing also shows IG's quote leading FXCM's by about an hour (F11). On two of the 12 weekends where FXCM's gap was 20 bps or more, IG's 21:00 gap was already near zero: 2026-09-25 (−1.6 against −22.9) and 2025-12-26 (+1.6 against −21.0).
+
+**IG's actual Sunday-open spreads against the 20 bps assumed:**
+- median 10.1 bps over all 50 weekends;
+- median 9.6 bps on the ten trade weekends, ranging from 1.4 to 18.0.
+- The 2026-10-14 deep dive priced FXW at 12-30 bps. IG's demo quote sits at the cheap end of that range.
+
+**The rule at IG's own executable quotes:**
+- ten trades with an abs(gap) of 20 bps or more in the 50 weekends;
+- entered at the first bar's ask (long) or bid (short), target Friday's IG mid, out within 24 h, minus the frozen 2 bps funding line;
+- neither scoring is a fill claim.
+
+| hourly scoring | mean bps a trade | median | t | bootstrap 95 % | worst | at target |
+|---|---:|---:|---:|---|---:|---:|
+| close-only | +37.6 | +35.9 | 3.50 | +17.8 to +57.6 | −21.8 | 7 of 10 |
+| range-crossing | +30.2 | +26.4 | 3.19 | +12.8 to +48.1 | −21.8 | 7 of 10 |
+
+Ten trades is a small sample. The interval is wide, and the mean sits above FXCM's ten-year +14.88 bps at 20 bps because both IG's spread and this year's gaps were larger. The year's ten gaps were mostly falls of 25-90 bps (eight longs, two shorts).
+
+**G1 facts the funding question needs** (read-only, `ig_facts` id 3, spread-bet demo):
+- minimum deal 0.04 (the demo; the public page says £0.50 a pip live);
+- margin 5 % in the first bands, 6 % above $4,720;
+- minimum guaranteed-stop distance 6 points (0.0006, about 9 bps), so a 200 bps guaranteed stop is allowed;
+- guaranteed-stop premium 1.5 points;
+- no opening hours stated, so the documented hours were used.
+
+**What it means for funding `LT8Q2`.** These are figures; the decision is Davies'.
+- At £0.50 a pip (about £3,500 of notional at 0.70) the exposure is:
+
+  | item | amount |
+  |---|---|
+  | margin, at 5 % | about £175 |
+  | worst finished FXCM trade | about −£47 |
+  | worst 24 h open excursion (453 bps) | about −£159 |
+  | with a 200 bps guaranteed stop | about −£72, plus its £0.75 premium if triggered |
+
+- **£350-400 in the account covers one minimum position through the worst historical excursion without margin close-out**: equity stays well above 50 % of £175. Adding a 200 bps guaranteed stop makes the worst case about £73.
+- Expected value at this year's IG numbers: about £105-130 a year before tax (10 trades × 30-38 bps × £3,500). On FXCM's ten years at a 20 bps spread it is about £41 a year. Ten trades cannot say which is nearer the truth.
+- **The spec's order still holds**: S1b's twelve recorded Sundays come before PASS-TO-PAPER, and this spec can never yield PASS-TO-LIVE. Funding now would put money in before the forward check. That is Davies' call to make; it is not this result's recommendation.
+- The demo minimum (0.04) is not the live minimum, and the live account's own minimum and spread are read only when he logs in.
+
+**Fault found.** The fourth `history` call's first request was refused `account-token-invalid` straight after its account switch, and the client's one re-login also failed at once; the next window, 2.5 s later, worked. The likely cause is a token that becomes valid a moment after the switch. A short wait before that retry is the fix, not built here (no IG call or code change was in this task's scope).
+
