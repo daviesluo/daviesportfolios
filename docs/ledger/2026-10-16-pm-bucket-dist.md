@@ -7,8 +7,9 @@ is not this branch and is not edited here.
 
 ## Status
 
-Parameters frozen. No bucket print has been requested. No verdict exists.
-Nothing has been pushed.
+Parameters frozen in `ea8f349f`. Universe built from local Gamma only.
+No verdict. The print pull is in progress and must not be started a second
+time. Nothing has been pushed.
 
 ## Branch
 
@@ -40,17 +41,42 @@ unretrieved id tail is unknown. August against the retrieved September
 slice is written, when prepare runs, to `results/s2_gap_mix.txt`. The
 conclusion states that mix and says the tail is unknown.
 
+## Universe
+
+`s2_prepare.py` read the complete months through 2026-08. 140,926 markets,
+8,013 bucket rows, all with headline `title_end` (no 2024). 774 partitions,
+706 with at least 7. 7,663 rows are `pull` 1. The other 350 sit in smaller
+partitions. Every row in a qualified partition had a Close clause, a matching
+pair, a fee schedule and a tick. The csv is
+`/tmp/pmstatarb-data/data/bucket_s2_universe.csv` and is not in git.
+Counts: `results/s2_universe_counts.txt`.
+
+## September gap
+
+August complete file: 27,259 rows, of which above 25,519, buckets 638,
+daily reach 434, daily dip 434. Retrieved September slice: 23,562 rows, of
+which above 21,846, buckets 660, daily reach 390, daily dip 390. Both
+retrieved slices are mostly above. The unretrieved id tail, markets after
+cursor 4946930, has an unknown family mix, so the hole is not described by
+that match. Detail: `results/s2_gap_mix.txt`.
+
+## Print pull
+
+Started 2026-10-16 20:14 UTC, one process, appending to the existing g2
+tape. `PM_UNIVERSE` is the bucket csv. Limit 500, the same user agent and
+gap. At the first minute it had passed about 100 markets, one to three
+pages, and had not capped a new market. `trades.done.txt` grows as markets
+finish. A resume skips ids already in that file or in `trades.capped.txt`.
+Do not launch another pull beside it.
+
 ## Next
 
-1. Run `s2_prepare.py` (local Gamma only). Universe csv stays on
-   `/tmp/pmstatarb-data/data/bucket_s2_universe.csv`.
-2. One serial print pull, `PM_UNIVERSE` set to that csv, appending to the
-   existing g2 tape. Same limit, user agent and gap. Do not start it before
-   the freeze commit is in `HEAD`.
-3. Run `s2_bucket.py`. Commit the verdict, the trades, the partition sums,
-   the gap mix and the manifest hashes. Raw bytes stay off git.
-4. `sh bin/gates.sh`, then push only this branch, open a PR against `main`,
-   and wait until `check.yml` is green. Do not merge. Do not push `main`.
+1. When the pull prints `trades done`, run `s2_bucket.py`. Do not retune.
+2. Commit the verdict, the headline trades, the partition sums and the
+   manifest hashes of the off-git tape. Raw bytes stay off git.
+3. `sh bin/gates.sh`, then `git push -u origin grok/pm-bucket-dist` only.
+   Open a PR against `main`. Wait until `check.yml` is green. Do not merge.
+   Do not push `main`.
 
 ## Out of scope
 

@@ -603,6 +603,9 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16"; each oldest first.
 
+### [2026-10-16 20:15 UTC] Platform: Grok | Model: grok-4.7
+- **BUCKET-DIST universe counted, print pull running.** 8,013 bucket rows, 706 partitions of at least 7, 7,663 to pull. No 2024 rows. September tail after cursor 4946930 is unknown by family; August and the retrieved slice are both mostly above (`results/s2_gap_mix.txt`). One serial pull is appending to the g2 tape. No second pull. No verdict.
+
 ### [2026-10-16 20:12 UTC] Platform: Grok | Model: grok-4.7
 - **BUCKET-DIST parameters frozen before any print.** Branch `grok/pm-bucket-dist` off origin/main `12917669`. #242 was not touched. No bucket print requested and no verdict. The lock is `docs/agents/backtests/pmstatarb/FROZEN.md`; the study state is `docs/ledger/2026-10-16-pm-bucket-dist.md`. Partitions of at least 7, threshold 0.04 flat (0.03 and 0.05), horizons 24/12/48 h, whole-day bootstrap seed 20261014. September stays held out.
 
