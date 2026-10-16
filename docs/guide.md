@@ -476,6 +476,11 @@ Opens from any holding, tile or Market Conditions card.
 - **P/E 1Y** divides each day's price by the trailing twelve months'
   earnings as of that day, so the line steps on earnings days. A dashed
   line marks the three-year average.
+- **Moving averages.** 1W to YTD draw one average line labelled at its
+  right end (5, 10, 20 and 50 days), grey except the 50-day, which is
+  blue wherever it appears. **1Y** draws the 200-day in grey and, beside
+  it, the 50-day in blue, each with its own label, so the two can be
+  compared. Both start at the chart's left edge.
 - **Hover** for a crosshair with the price and the change from the
   start.
 - **Copy or save** the chart as an image with the two buttons by the ✕.

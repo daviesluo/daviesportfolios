@@ -36,7 +36,7 @@
 //                     reach without forcing the function to know
 //                     about market data / fundamentals shapes:
 //                       { lastPriceAny, prevCloseAny, pe3yAvg,
-//                         ps3yAvg, maSeries, vwapSeries }.
+//                         ps3yAvg, maSeries, maSeries2, vwapSeries }.
 //
 // Outputs match what the inline block produced. Crucially `hasData`
 // stays `points.length >= 2 && anchorClose`, which the existing
@@ -73,6 +73,7 @@ function niceStep(r) {
  *   pe3yAvg?:     number | null,
  *   ps3yAvg?:     number | null,
  *   maSeries?:    Array<number | null> | null,
+ *   maSeries2?:   Array<number | null> | null,
  *   vwapSeries?:  Array<number | null> | null,
  *   anchorAtPrevClose?: boolean,
  * }} AnchorRefs
@@ -118,7 +119,7 @@ export function computeChartGeometry({
   anchorRefs,
 }) {
   const { padL, padR: _padR, padT, padB: _padB, cW, cH } = dimensions;
-  const { lastPriceAny, prevCloseAny, pe3yAvg, ps3yAvg, maSeries, vwapSeries,
+  const { lastPriceAny, prevCloseAny, pe3yAvg, ps3yAvg, maSeries, maSeries2, vwapSeries,
           anchorAtPrevClose } = anchorRefs;
 
   // ----- 1. anchorClose
@@ -203,6 +204,11 @@ export function computeChartGeometry({
     if (rangeKey === 'PS' && typeof ps3yAvg === 'number' && ps3yAvg > 0) allP.push(ps3yAvg);
     if (Array.isArray(maSeries)) {
       for (const v of maSeries) {
+        if (typeof v === 'number' && isFinite(v)) allP.push(v);
+      }
+    }
+    if (Array.isArray(maSeries2)) {   // the 1Y view's second line (MA 50)
+      for (const v of maSeries2) {
         if (typeof v === 'number' && isFinite(v)) allP.push(v);
       }
     }

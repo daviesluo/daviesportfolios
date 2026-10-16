@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { RANGES } from './ytd.js';
 import {
-  maBarsFor, maLabelDaysFor, barsPerSession,
+  maBarsFor, maBarsForDays, maLabelDaysFor, maSecondDaysFor, barsPerSession,
   rollingSma, computeMaSeries,
   vwapSessionResetFor, vwapSessionKeyOf, computeVwap,
   priceDividedByTtmEps,
@@ -427,5 +427,47 @@ describe('isPriceAxis (live-tail substitution gate)', () => {
     // line, not a cross-unit cliff.
     expect(isPriceAxis('UNKNOWN')).toBe(true);
     expect(isPriceAxis('')).toBe(true);
+  });
+});
+
+// The 1Y view draws a 50-day line beside its 200-day (Davies, 2026-10-16).
+// Both come out of the same `computeMaSeries`; only the window differs.
+describe('1Y second moving average (MA 50)', () => {
+  it('1Y alone carries a second line, and it is 50 days', () => {
+    expect(maSecondDaysFor('1Y')).toBe(50);
+    for (const k of ['1D', '1W', '1M', '3M', 'YTD', 'PE', 'PS']) expect(maSecondDaysFor(k)).toBe(0);
+  });
+
+  it('its bar window is the day count at the chart\'s cadence, by the 200\'s own rule', () => {
+    expect(maBarsForDays(50, '1Y', false)).toBe(50);   // 1d bars
+    expect(maBarsForDays(50, '1Y', true)).toBe(50);
+    expect(maBarsForDays(200, '1Y', false)).toBe(maBarsFor('1Y', false));
+    expect(maBarsForDays(0, '1Y', false)).toBe(0);
+  });
+
+  // 500 daily bars, close = 1-based index, so a window's mean is the
+  // midpoint of an arithmetic run: MA50 at close c = c - 24.5,
+  // MA200 at close c = c - 99.5.
+  const bars = Array.from({ length: 500 }, (_, i) => ({ date: `d${String(i).padStart(3, '0')}`, close: i + 1 }));
+  const shown = bars.slice(248);   // the 252 bars of a 1Y window
+
+  it('MA 50 at the first and last displayed bar, worked by hand', () => {
+    const ma50 = computeMaSeries(shown, bars, maBarsForDays(50, '1Y', false));
+    expect(ma50).toHaveLength(252);
+    expect(ma50[0]).toBe(224.5);      // mean(200..249)
+    expect(ma50[251]).toBe(475.5);    // mean(451..500)
+    expect(ma50.every((v) => v != null)).toBe(true);   // fully populated to the left edge
+  });
+
+  it('MA 200 is untouched beside it', () => {
+    const ma200 = computeMaSeries(shown, bars, maBarsFor('1Y', false));
+    expect(ma200[0]).toBe(149.5);     // mean(50..249)
+    expect(ma200[251]).toBe(400.5);   // mean(301..500)
+  });
+
+  it('the 200\'s pre-fetch already leaves more lead-in than the 50 needs', () => {
+    // 2y of daily bars against a 1y display: the 50 is populated at the first bar.
+    const bars2y = bars.slice(0, 504);
+    expect(bars2y.length - 252).toBeGreaterThanOrEqual(maBarsForDays(50, '1Y', false) - 1);
   });
 });

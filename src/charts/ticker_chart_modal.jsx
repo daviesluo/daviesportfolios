@@ -11,7 +11,7 @@ import { fmtPrice as fmtPr, fmtPct as fmP, fmtMoney as fmtMo, fmtSharesFor as fm
 import { RANGES, RANGE_KEYS, windowSinceLastUsClose, windowBetweenLastTwoUsCloses, filterToLast24h, fillVenueSessionGrid, resampleToSlots } from './ytd.js';
 import { isCnFund as isCnFundT, isPvt as isPvtT, isDailyOnly as isDailyOnlyT, hasOvernightSession, isRegularSessionOnly, isCrypto, venueSessionFor, tradingWeekOf } from '../prices/ticker_class.js';
 import {
-  maBarsFor, maLabelDaysFor, computeMaSeries,
+  maBarsFor, maBarsForDays, maLabelDaysFor, maSecondDaysFor, computeMaSeries,
   vwapSessionResetFor, vwapSessionKeyOf, computeVwap,
   extPriceIsRealAh, isPriceAxis,
 } from './indicators.js';
@@ -36,6 +36,16 @@ import { COMPANY_NAMES } from '../tables/holdings_list.jsx';
 // trading day so 1D / 1W (5 m / 30 m intraday) ranges have no
 // meaningful data; .PVT placeholders aren't on Yahoo at all. Both
 // restrict the modal to daily buttons.
+
+// The 50-day line is sky blue wherever it is drawn (YTD's one line, 1Y's
+// second line): neither the 200's grey nor the price line's gain green /
+// loss red, and one indicator never wears two colours (Davies, 2026-10-16).
+// The site has one dark theme (no light variant), so one literal serves.
+const MA2_COLOR = '#5aa9e6';
+const MA_COLOR = '#6b7280';
+const maColorFor = (/** @type {number} */ days) => (days === 50 ? MA2_COLOR : MA_COLOR);
+// Least pixel distance between the two right-margin MA labels.
+const MA_LABEL_GAP = 11;
 
 /**
  * `fxPending` (metrics.js's `fxPendingOf`): the exchange rates have not loaded, so the book's total, and this holding
@@ -428,6 +438,11 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
   const MA_BARS = maBarsFor(rangeKey, dailyOnly, slotGrid3M ? SLOTS_PER_DAY : 0);
   const MA_DAYS = maLabelDaysFor(rangeKey);
   const maSeries = MA_BARS > 0 ? computeMaSeries(points, maForChart, MA_BARS) : null;
+  // The 1Y view's second line: the same `computeMaSeries` over the same
+  // wider history, a 50-day window (`maSecondDaysFor`; 0 on every other range).
+  const MA2_DAYS = maSecondDaysFor(rangeKey);
+  const MA2_BARS = maBarsForDays(MA2_DAYS, rangeKey, dailyOnly, slotGrid3M ? SLOTS_PER_DAY : 0);
+  const maSeries2 = MA2_BARS > 0 ? computeMaSeries(points, maForChart, MA2_BARS) : null;
 
   // Volume-weighted average price (1D only). Per-asset reset anchor —
   //   - US equity: 09:30 ET when ext off; 04:00 ET pre-market open
@@ -483,6 +498,7 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
       pe3yAvg,
       ps3yAvg,
       maSeries,
+      maSeries2,
       vwapSeries,
     },
   });
@@ -639,27 +655,40 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
 
   // (MA series itself is computed earlier — before the y-range
   // calculation — so MA values can participate in yMin/yMax.)
-  const maPath = maSeries
-    ? (() => {
-        const start = maSeries.findIndex(v => v != null);
-        if (start < 0) return '';
-        const segs = [];
-        for (let i = start; i < maSeries.length; i++) {
-          const v = maSeries[i];
-          if (v == null) continue;
-          segs.push(`${xOfIdx(i).toFixed(1)},${yOf(v).toFixed(1)}`);
-        }
-        return segs.length >= 2 ? 'M' + segs.join('L') : '';
-      })()
-    : '';
-  const maLastValue = maSeries
-    ? (() => {
-        for (let i = maSeries.length - 1; i >= 0; i--) {
-          if (maSeries[i] != null) return maSeries[i];
-        }
-        return null;
-      })()
-    : null;
+  const linePath = (/** @type {Array<number|null>} */ series) => {
+    const start = series.findIndex(v => v != null);
+    if (start < 0) return '';
+    const segs = [];
+    for (let i = start; i < series.length; i++) {
+      const v = series[i];
+      if (v == null) continue;
+      segs.push(`${xOfIdx(i).toFixed(1)},${yOf(v).toFixed(1)}`);
+    }
+    return segs.length >= 2 ? 'M' + segs.join('L') : '';
+  };
+  const maPath = maSeries ? linePath(maSeries) : '';
+  const lastOf = (/** @type {Array<number|null>|null} */ series) => {
+    if (!series) return null;
+    for (let i = series.length - 1; i >= 0; i--) {
+      if (series[i] != null) return series[i];
+    }
+    return null;
+  };
+  const maLastValue = lastOf(maSeries);
+  const maPath2 = maSeries2 ? linePath(maSeries2) : '';
+  const maLastValue2 = lastOf(maSeries2);
+  // Right-margin label heights. The 50 and the 200 can end within a few
+  // pixels of each other, and two 9 px labels on one spot read as one
+  // smudge: when closer than MA_LABEL_GAP they are pushed apart about
+  // their midpoint, the higher line's label staying the higher.
+  let maLabelY = maLastValue != null ? yOf(maLastValue) : null;
+  let maLabelY2 = maLastValue2 != null ? yOf(maLastValue2) : null;
+  if (maLabelY != null && maLabelY2 != null && Math.abs(maLabelY - maLabelY2) < MA_LABEL_GAP) {
+    const mid = (maLabelY + maLabelY2) / 2;
+    const up = maLabelY <= maLabelY2;
+    maLabelY = mid + (up ? -MA_LABEL_GAP : MA_LABEL_GAP) / 2;
+    maLabelY2 = mid + (up ? MA_LABEL_GAP : -MA_LABEL_GAP) / 2;
+  }
 
   // VWAP path + last-value label. Unlike MA, VWAP resets at every
   // session boundary inside the displayed window (9:30 ET for US
@@ -952,19 +981,34 @@ export function TickerChartModal({ ticker, holding, marketData, extendedHours, p
               )}
               {/* Moving-average overlay (1W → 5d, 1M → 10d, 3M → 20d,
                   YTD → 50d). Drawn before the price path so the active
-                  price line stays on top. Same gray as the PerfChart
-                  S&P comparison line. Label sits in the right margin
+                  price line stays on top. Grey, except the 50-day line
+                  (YTD), which is MA2_COLOR like 1Y's second line. Label sits in the right margin
                   at the y of the latest MA value, mirroring the PE
                   chart's 3Y AVG label position. */}
               {maPath && (
-                <path d={maPath} fill="none" stroke="#6b7280" strokeWidth="1.0"
+                <path data-ma={MA_DAYS} d={maPath} fill="none" stroke={maColorFor(MA_DAYS)} strokeWidth="1.0"
                       strokeLinejoin="round" strokeLinecap="round" opacity="0.85" />
               )}
-              {maLastValue != null && (
-                <text x={rightLabelX} y={yOf(maLastValue).toFixed(1)}
+              {maLastValue != null && maLabelY != null && (
+                <text x={rightLabelX} y={maLabelY.toFixed(1)}
                       textAnchor="start" dominantBaseline="middle"
-                      fontSize="9" fill="rgba(244,239,227,0.7)" fontFamily="var(--font-mono)">
+                      fontSize="9" fill={MA_DAYS === 50 ? MA2_COLOR : 'rgba(244,239,227,0.7)'} fontFamily="var(--font-mono)">
                   MA {MA_DAYS}
+                </text>
+              )}
+              {/* 1Y only: the 50-day line beside the 200, in its own
+                  colour (MA2_COLOR) so the two read apart from each other
+                  and from the gain / loss price line. Same label
+                  treatment, same right margin. */}
+              {maPath2 && (
+                <path data-ma={MA2_DAYS} d={maPath2} fill="none" stroke={maColorFor(MA2_DAYS)} strokeWidth="1.0"
+                      strokeLinejoin="round" strokeLinecap="round" opacity="0.9" />
+              )}
+              {maLastValue2 != null && maLabelY2 != null && (
+                <text x={rightLabelX} y={maLabelY2.toFixed(1)}
+                      textAnchor="start" dominantBaseline="middle"
+                      fontSize="9" fill={MA2_COLOR} fontFamily="var(--font-mono)">
+                  MA {MA2_DAYS}
                 </text>
               )}
               {/* Price path */}

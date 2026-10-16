@@ -79,7 +79,7 @@ vi.mock('../app/ops_error.js', () => ({
 // SUT imports happen AFTER the mocks above. The chart_store mock
 // exports _testSeed as a back door so tests can seed the cache.
 import { TickerChartModal } from './ticker_chart_modal.jsx';
-import { ChartStore } from '../prices/chart_store.js';
+import { ChartStore, MaStore } from '../prices/chart_store.js';
 import { tickerChartCacheKey } from '../prices/cache.js';
 import { fourHourSlots } from '../prices/market_hours.js';
 import { rangeStartMs } from '../prices/price_snapshots.js';
@@ -254,5 +254,100 @@ describe('TickerChartModal — 3M sampling grid', () => {
     // Saturday and Sunday are real trading for one of them and not for
     // the other, so the same window holds more points for crypto.
     expect(crypto).toBeGreaterThan(futures);
+  });
+});
+
+// The 1Y view draws the 50-day average beside the 200-day (Davies,
+// 2026-10-16). Worked by hand on bars whose close is their 1-based index,
+// so every window average is the midpoint of an arithmetic run:
+//   500 daily bars, close = 1..500, the last 252 displayed (closes 249..500)
+//   MA 50  first displayed bar (close 249) = mean(200..249) = 224.5
+//          last bar (close 500)            = mean(451..500) = 475.5
+//   MA 200 first displayed bar             = mean(50..249)  = 149.5
+//          last bar                        = mean(301..500) = 400.5
+// y range = [149.5 - pad, 500 + pad] with pad = 8 % of (500 - 149.5) = 28.04,
+// drawn over cH = 280 - 18 - 38 = 224 px from padT = 18.
+describe('TickerChartModal — 1Y shows MA 50 beside MA 200', () => {
+  const day = (i, total) => {
+    const d = new Date();
+    d.setUTCHours(0, 0, 0, 0);
+    d.setUTCDate(d.getUTCDate() - (total - 1 - i));
+    return d.toISOString().slice(0, 10);
+  };
+  const ramp = (n) => Array.from({ length: n }, (_, i) => ({ date: day(i, n), close: i + 1 }));
+  const flat = (n) => Array.from({ length: n }, (_, i) => ({ date: day(i, n), close: 100 }));
+  const holding = { shares: 1, cost: 100, lastPrice: 500, prevClose: 499, dayPct: 0.2, currency: 'USD' };
+
+  const open1Y = async (history, display) => {
+    seedChartCache('AAPL', '1Y', false, 'regular', display);
+    /** @type {any} */ (MaStore).set('AAPL|MA|1Y', { ts: Date.now(), data: history });
+    const user = userEvent.setup();
+    const out = renderModal({ holding });
+    await user.click(screen.getByRole('button', { name: '1Y' }));
+    return out;
+  };
+  const pts = (el) => (el.getAttribute('d') || '').slice(1).split('L').map((q) => q.split(',').map(Number));
+  const yOfValue = (v) => {
+    const pad = (500 - 149.5) * 0.08;
+    const yMin = 149.5 - pad, yMax = 500 + pad;
+    return 18 + ((yMax - v) / (yMax - yMin)) * 224;
+  };
+
+  it('draws both lines from the left edge, the 50 at its hand-worked values', async () => {
+    const all = ramp(500);
+    const { container } = await open1Y(all, all.slice(248));
+    const p50 = container.querySelector('path[data-ma="50"]');
+    const p200 = container.querySelector('path[data-ma="200"]');
+    expect(p50).toBeTruthy();
+    expect(p200).toBeTruthy();
+    // Fully populated: one point per displayed bar, starting at the plot's left edge.
+    expect(pts(p50)).toHaveLength(252);
+    expect(pts(p200)).toHaveLength(252);
+    expect(pts(p50)[0][0]).toBe(56);
+    expect(pts(p200)[0][0]).toBe(56);
+    expect(pts(p50)[0][1]).toBeCloseTo(yOfValue(224.5), 0);
+    expect(pts(p50)[251][1]).toBeCloseTo(yOfValue(475.5), 0);
+    expect(pts(p200)[0][1]).toBeCloseTo(yOfValue(149.5), 0);
+    expect(pts(p200)[251][1]).toBeCloseTo(yOfValue(400.5), 0);
+  });
+
+  it('labels both, and the 50 has its own colour apart from the 200 and the price line', async () => {
+    const all = ramp(500);
+    const { container } = await open1Y(all, all.slice(248));
+    const texts = [...container.querySelectorAll('svg text')].map((t) => t.textContent);
+    expect(texts).toContain('MA 200');
+    expect(texts).toContain('MA 50');
+    const c50 = container.querySelector('path[data-ma="50"]')?.getAttribute('stroke');
+    const c200 = container.querySelector('path[data-ma="200"]')?.getAttribute('stroke');
+    expect(c50).toBe('#5aa9e6');
+    expect(c200).toBe('#6b7280');
+    const priceStroke = [...container.querySelectorAll('svg path[stroke^="var(--"]')].map((p) => p.getAttribute('stroke'));
+    expect(priceStroke.length).toBeGreaterThan(0);
+    expect(priceStroke).not.toContain(c50);
+  });
+
+  it('two labels that would land on one spot are pushed 11 px apart', async () => {
+    const all = flat(500);          // both averages are 100, so the lines coincide
+    const { container } = await open1Y(all, all.slice(248));
+    const label = (t) => [...container.querySelectorAll('svg text')].find((e) => e.textContent === t);
+    const y200 = Number(label('MA 200')?.getAttribute('y'));
+    const y50 = Number(label('MA 50')?.getAttribute('y'));
+    expect(Math.abs(y200 - y50)).toBeCloseTo(11, 1);
+  });
+
+  it('every other range keeps its single line and no MA 50 beside it', async () => {
+    const all = ramp(500);
+    seedChartCache('AAPL', 'YTD', false, 'regular', all.slice(248));
+    /** @type {any} */ (MaStore).set('AAPL|MA|YTD', { ts: Date.now(), data: all });
+    const user = userEvent.setup();
+    const { container } = renderModal({ holding });
+    await user.click(screen.getByRole('button', { name: 'YTD' }));
+    expect(container.querySelectorAll('path[data-ma]')).toHaveLength(1);
+    expect(container.querySelector('path[data-ma="50"]')).toBeTruthy();   // YTD's own one line IS the 50
+    expect(container.querySelector('path[data-ma="200"]')).toBeNull();
+    const fifty = [...container.querySelectorAll('svg text')].filter((t) => t.textContent === 'MA 50');
+    expect(fifty).toHaveLength(1);
+    // One indicator, one colour: YTD's own 50 is the same blue as 1Y's.
+    expect(container.querySelector('path[data-ma="50"]')?.getAttribute('stroke')).toBe('#5aa9e6');
   });
 });

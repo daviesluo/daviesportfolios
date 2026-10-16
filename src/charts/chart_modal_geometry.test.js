@@ -340,4 +340,20 @@ describe('computeChartGeometry — empty / single-point fallbacks', () => {
     expect(out.yMin).toBeLessThanOrEqual(50);
     expect(out.yMax).toBeGreaterThanOrEqual(200);
   });
+
+  it('the 1Y view\'s second line (maSeries2) takes part in the y range too', () => {
+    const points = [
+      { date: '2026-01-02', close: 100 },
+      { date: '2026-01-03', close: 102 },
+      { date: '2026-01-04', close: 101 },
+    ];
+    const base = {
+      series: points, points, rangeKey: '1Y', useExt: false, isRatioRange: false,
+      overnightDot: null, regularCloseIdx: -1, dimensions: DIMS,
+    };
+    const without = computeChartGeometry({ ...base, anchorRefs: NO_REFS });
+    const withLine = computeChartGeometry({ ...base, anchorRefs: { ...NO_REFS, maSeries2: [null, 40, 90] } });
+    expect(without.yMin).toBeGreaterThan(90);
+    expect(withLine.yMin).toBeLessThanOrEqual(40);
+  });
 });

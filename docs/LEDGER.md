@@ -588,6 +588,21 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)"; each oldest first.
 
+### [2026-10-16 14:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **1Y ticker chart draws a 50-day average beside the 200-day** (sub-agent; Davies, 2026-10-16: "网页中所有1Y的图目前不是有200MA么，
+  再在1Y图中都加上50MA，方便对比"). The only surface with a 200-day line is the ticker chart modal's 1Y view (`ticker_chart_modal.jsx`;
+  the vs-S&P and Investment panels and the agents charts draw no average). The 50 is the same `computeMaSeries` over the same
+  wider history with a 50-bar window (`maBarsForDays`, which `maBarsFor` now calls; `maSecondDaysFor('1Y') = 50`), so no second
+  moving-average code and no second fetch: the 200's 2y daily pre-fetch leaves 252 bars of lead-in, the line starts at the left
+  edge. Colour `#5aa9e6` (the 200 stays `#6b7280`, the price line is gain green / loss red; the site has one dark theme), label
+  "MA 50" in the same right margin as "MA 200", pushed 11 px apart when the two end within 11 px; `chart_modal_geometry` counts
+  `maSeries2` in the y range. The crosshair shows price, time and % only (never an MA), so no tooltip change. Other ranges
+  unchanged except that YTD's own single 50-day line is the same blue (Davies, same day: one indicator, one colour). Pins: `indicators.test.js` (50 at the first and last displayed bar on a
+  500-bar ramp: 224.5 and 475.5; the 200 beside it 149.5 and 400.5), `ticker_chart_modal.test.jsx` (both paths one point per
+  displayed bar from x = 56, y worked by hand, colours, labels, collision push, other ranges), `chart_modal_geometry.test.js`;
+  the sweep's ACME modal opens 1Y on a 730-bar `2y` fixture and checks both labels inside the frame and apart at both widths.
+  `docs/guide.md` gains a "Moving averages" bullet; no `docs/map.md` row (no file added).
+
 ### [2026-10-15 16:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **GROKPM built** (sub-agent; Davies: "让grok bot里开一个trading bot…网站中live页也加上策略和子策略页面…先让他就用100美元测试";
   what-remains item 15). Pre-registration `reviews/2026-10-15-grokpm-prereg.md` (frozen, sha pinned in
