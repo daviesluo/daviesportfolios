@@ -601,7 +601,14 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
-"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)"; each oldest first.
+"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16"; each oldest first.
+
+### [2026-10-16 16:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **S1a pulls fired from the database** (main session, the Vault bearer through `net.http_post`, as `facts` was): `history`
+  `probe` sb 16:03 (5 points), then `fxw` sb `max=15` four times 16:05–16:09: 50 of 51 windows ok, 1,588 points, 8,407 of
+  the week's allowance left. Weekend 2025-11-28 failed `401 account-token-invalid` on the first request after the account
+  switch (status null, so a non-200 check misses it); re-pulled at 16:15 (32 points, ok): 51 of 51 now, allowance 8,375. S1a below ran on the 50; the 51st only clears 5b's one gap. The 2026-10-14
+  16:26 → 20:11 sections moved to the archive ("LEDGER.md, archived 2026-10-16").
 
 ### [2026-10-16 16:14 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **S1a run** (sub-agent; item 14): export pinned by sha256 (`ig_deepdive/inputs/ig/fxw_sb_bars.csv`), `s1a_transfer.py`
@@ -773,43 +780,3 @@ against the 150 the reading needs, so no reading. Nothing failed, so nothing is 
   - 164 guard variants, chosen on one 12-month span and read on the other: no reactive guard is positive in both; a blackout of the scheduled
     releases (−1 to +5 min) is in all 75 variants: +£25.96 and +£7.89 a year; 10-14 −£2.70 → −£1.17. Verdict: no "- 3" row (five
     releases in 28 days cannot read it); draft prereg, spec, code in §8, unbuilt. Open: the BLS dates are recalled, not fetched.
-
-### [2026-10-14 20:11 UTC] Platform: Claude Code | Model: claude-opus-5-5
-- **Audit of every other model's work since the last Claude Code record** (`81235f3`, 17:51 UTC, ledger item 0a″; its branch
-  `claude/hopeful-planck-acdq5g`). Nothing landed on `main` after it; reviewed what no Claude session had: Muse's `985a89a`
-  (PMSTATARB handoff) and `8ee0081` (IG; both scripts re-run byte for byte, pass), Muse's four earlier commits again (pass),
-  Grok's unmerged `origin/lp-skew-ft` (item 0c (3)), and live-prep's Addenda 19–22 (hash chain intact, each addendum only
-  appended; 85 Deno tests and the src pins green; counterfactuals on A21/A22 fail as they should). Fixed here, docs and test
-  titles only: the live-watch skill's Step 6 counted unconfirmed fills and could not see a market's loss realised at
-  settlement (Grok's finding of 10-11, which never reached `main`): CONFIRMED only, and 6b reads settled markets; the
-  PMSTATARB handoff pointed at a folder that does not exist (MANIFEST rehashed); the PMSTATARB review's mid-ratio, bucket and
-  partition figures now match its results files; Q2-TRIPS has an erratum (residual −0.05, one lot +0.11, 11 of 16 over four
-  hours, three lots held); items 0a, 0a′, 0a″ corrected. Not fixed, for Davies: item 0c. Also seen, left: the history headers
-  "2026-10-13 23:47" (written 10-12 23:47) and 15:25 above 15:40; seven dependabot PRs (four red); five stale `cursor/*`
-  branches from September with unmerged commits.
-
-### [2026-10-14 16:36 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Q2-TRIPS, why every Q2 trip loses** (the LP-BEST agent; `reviews/2026-10-14-q2-trips.md`, `backtests/lpbest/scripts/q2trips*.py`,
-  `MANIFEST_q2trips.json`; Davies ~15:00: "怎么还在亏 可以再优化吗"). 16 lots since the restart, −$16.38 at the cleaned mid:
-  - entry edge +5.87, first minute −9.12 (informed takers), drift while held −16.08 (median hold 260 min, 10 of 16 over 4 h);
-  - exits +3.00 against the mid, so the exit price is not the fault;
-  - adds (2N) −4.19 and pause-held lots −2.10, both inside the total.
-
-  Calibrated to live over 26.6 h (rewards ×0.57, fills −0.92 ¢ a share more than the engine):
-  - Q2 now: +$0.38/day on 10-05→10-12, −$12.45 on the live window;
-  - best of 27 rules (entries 4 ¢ from the mid): +1.78/day [−0.14, +3.87] and +0.33 [−3.77, +5.30] live, 0.77 ¢/share
-    live, under the 1.5 ¢ bar.
-
-  Raw-engine paired: nothing beats Q2 now. Verdict (about 80 % sure): **stop live-prep for good** (close-only, no restart).
-  Addendum 23 (entries 4 ¢ from the mid) is drafted in the review as the only bounded alternative. Nothing live changed.
-
-### [2026-10-14 16:26 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Handover to Davies' other session tonight** (Davies, ~16:25 UTC: "今天20:00之后我另外一个session就恢复额度了，你这边所有盯盘和自动
-  唤醒等全关了"). This session's Q2 watcher stops after its cycle at or before 19:00 UTC (Davies: "UTC 19:00"); **the two reading wakes it had set are
-  DISABLED and must be set again by whoever owns the readings**: Coinbase "with Euros" on 2026-11-08 from 00:30
-  (`trig_0155ojPaC5BmUSTGsoYKQuTL`) and "with Euros - 2" on 2026-11-10 from 00:30 (`trig_01BFEc2udBJhBFvKbdSBZgv9`). Q2 state at
-  16:17: stop room $9.01 of $25 (basis −15.99; ALERT band, flat for hours), 30 fills since the restart, every closed market at
-  a loss, rewards+rebates 0.27 c a filled share; no BUY resting at 16:17. Davies' standing word for the pending second
-  post-mortem (`reviews/2026-10-14-q2-trips.md`, the LP-BEST agent): "代理修好后如果你觉得可以就直接推送更改实盘策略". This
-  session recommended stopping Q2 (the undo: `update public.pm_lp_config set restarted_at = null where id = 1;`, which latches
-  the 10-12 stop again, close-only); Davies chose to keep it running for now.
