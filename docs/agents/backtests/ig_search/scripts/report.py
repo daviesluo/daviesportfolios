@@ -25,10 +25,10 @@ ARMS = [
     ("TOM_UK100", ["TOM", "UK100_A"], ["TOM", "UK100_B"], "UK100", "by hand (monthly)", "the same on UK 100"),
     ("TOM_DE40", ["TOM", "DE40_A"], ["TOM", "DE40_B"], "DE40", "by hand (monthly)", "the same on Germany 40"),
     ("OVERNIGHT_US500", ["OVERNIGHT", "SPY_overnight"], ["OVERNIGHT", "QQQ_overnight"], "US500", "software (two trades a day)", "long US 500 close to open"),
-    ("MONTHEND_EURUSD", ["MONTHEND_FIX", "EURUSD_A_dukascopy"], ["MONTHEND_FIX", "EURUSD_B_fxcm"], "EURUSD", "by hand (monthly, 14:00-16:00)", "month-end fix hedge flow, EUR/USD"),
-    ("MONTHEND_GBPUSD", ["MONTHEND_FIX", "GBPUSD_A_dukascopy"], ["MONTHEND_FIX", "GBPUSD_B_fxcm"], "GBPUSD", "by hand (monthly)", "the same, GBP/USD"),
-    ("MONTHEND_USDJPY", ["MONTHEND_FIX", "USDJPY_A_dukascopy"], ["MONTHEND_FIX", "USDJPY_B_fxcm"], "USDJPY", "by hand (monthly)", "the same, USD/JPY"),
-    ("MONTHEND_AUDUSD", ["MONTHEND_FIX", "AUDUSD_A_dukascopy"], ["MONTHEND_FIX", "AUDUSD_B_fxcm"], "AUDUSD", "by hand (monthly)", "the same, AUD/USD"),
+    ("MONTHEND_EURUSD", ["MONTHEND_FIX", "EURUSD_A_fxcm_h1"], ["MONTHEND_FIX", "EURUSD_B_fxcm"], "EURUSD", "by hand (monthly, 14:00-16:00)", "month-end fix hedge flow, EUR/USD"),
+    ("MONTHEND_GBPUSD", ["MONTHEND_FIX", "GBPUSD_A_fxcm_h1"], ["MONTHEND_FIX", "GBPUSD_B_fxcm"], "GBPUSD", "by hand (monthly)", "the same, GBP/USD"),
+    ("MONTHEND_USDJPY", ["MONTHEND_FIX", "USDJPY_A_fxcm_h1"], ["MONTHEND_FIX", "USDJPY_B_fxcm"], "USDJPY", "by hand (monthly)", "the same, USD/JPY"),
+    ("MONTHEND_AUDUSD", ["MONTHEND_FIX", "AUDUSD_A_fxcm_h1"], ["MONTHEND_FIX", "AUDUSD_B_fxcm"], "AUDUSD", "by hand (monthly)", "the same, AUD/USD"),
     ("GOLD_SEP_NOV", ["SEASONAL", "GOLD_SEP_NOV_A"], ["SEASONAL", "GOLD_SEP_NOV_B"], "GOLD", "by hand (twice a year)", "long gold in September and November"),
     ("WTI_MAR_APR", ["SEASONAL", "WTI_MAR_APR_A"], ["SEASONAL", "WTI_MAR_APR_B"], "WTI", "by hand (once a year)", "long WTI March-April"),
     ("SESSION_EURUSD", ["SESSION", "EURUSD"], None, "EURUSD", "by hand at fixed times, or software", "short EUR/USD 07:00-12:00 UK daily"),
@@ -141,7 +141,17 @@ def main():
         port = {"arms": survivors, "weights": {s: round(x, 3) for s, x in w.items()},
                 "train": pstats(*P["eras"]["default"]["train"]), "test": pstats(*P["eras"]["default"]["test"]),
                 "note": "monthly sums of each arm at one unit of notional, weighted 1/sigma on the train era"}
-    out = {"rows": rows, "portfolio": port}
+    # TSMOM's capital at IG's minimum stakes: at capital K a market holds K x position / N of notional; every market must
+    # reach its minimum stake. Reported for all eleven markets and for the eight whose minimums are smallest.
+    tp = R["TSMOM"].get("typical_abs_position_test", {})
+    def k_needed(markets):
+        n = len(markets)
+        return round(max(min_notional(m) * n / tp[m] for m in markets if tp.get(m)))
+    allm = [m for m in tp if m in SP]
+    small = sorted(allm, key=lambda m: min_notional(m) / tp[m])[:8]
+    tsmom_capital = {"typical_abs_position": tp, "min_notional_gbp": {m: round(min_notional(m)) for m in allm},
+                     "capital_all_markets_gbp": k_needed(allm), "markets_8_smallest": small, "capital_8_markets_gbp": k_needed(small)}
+    out = {"rows": rows, "portfolio": port, "tsmom_capital": tsmom_capital}
     with open(os.path.join(HERE, "results", "ranking.json"), "w") as fh:
         json.dump(out, fh, indent=1, sort_keys=True)
         fh.write("\n")

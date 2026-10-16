@@ -139,7 +139,7 @@
     {
       "id": 3,
       "written": "2026-10-16, same time",
-      "what": "Stooq refuses this machine's connections; it is not used. Dukascopy daily candles are read where the throttle allows; a market whose Dukascopy series is missing has no source B for equities before FRED's SP500 (2016 on)."
+      "what": "Stooq refuses this machine's connections; it is not used. Dukascopy daily candles are read for USA500IDXUSD (2012 on) and XAUUSD (2003 on) only, the throttle allowing a few files a minute; UK 100, Germany 40 and Japan 225 have no source B, and WTI's source B is FRED."
     }
   ]
 }

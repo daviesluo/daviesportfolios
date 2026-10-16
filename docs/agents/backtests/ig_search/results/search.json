@@ -1,0 +1,3508 @@
+{
+ "COT_CONTRA": {
+  "A": {
+   "note": "every extreme week opens a 4-week trade (overlapping trades counted each); funding as excess over the rate is not modelled",
+   "test": {
+    "annual_pct": -13.18,
+    "annual_vol_pct": 43.62,
+    "boot95_bps": [
+     -43.47,
+     14.61
+    ],
+    "from": "2016-01-05",
+    "hit": 0.454,
+    "max_drawdown_pct": -304.25,
+    "mean_bps": -14.57,
+    "n": 973,
+    "per_year": 90.43,
+    "sharpe": -0.3,
+    "t": -0.99,
+    "to": "2026-10-09",
+    "worst_bps": -2717.5
+   },
+   "train": {
+    "annual_pct": -6.24,
+    "annual_vol_pct": 42.91,
+    "boot95_bps": [
+     -38.26,
+     23.17
+    ],
+    "from": "2006-02-06",
+    "hit": 0.504,
+    "max_drawdown_pct": -240.09,
+    "mean_bps": -7.29,
+    "n": 847,
+    "per_year": 85.65,
+    "sharpe": -0.15,
+    "t": -0.46,
+    "to": "2015-12-28",
+    "worst_bps": -2510.5
+   },
+   "verdict": "fails the bar"
+  },
+  "B": {
+   "note": "every extreme week opens a 4-week trade (overlapping trades counted each); funding as excess over the rate is not modelled",
+   "test": {
+    "annual_pct": -26.23,
+    "annual_vol_pct": 40.99,
+    "boot95_bps": [
+     -55.59,
+     -1.68
+    ],
+    "from": "2016-01-05",
+    "hit": 0.427,
+    "max_drawdown_pct": -339.2,
+    "mean_bps": -28.79,
+    "n": 974,
+    "per_year": 91.1,
+    "sharpe": -0.64,
+    "t": -2.09,
+    "to": "2026-09-14",
+    "worst_bps": -2665.8
+   },
+   "train": {
+    "annual_pct": -4.76,
+    "annual_vol_pct": 37.43,
+    "boot95_bps": [
+     -33.42,
+     22.09
+    ],
+    "from": "2006-02-06",
+    "hit": 0.53,
+    "max_drawdown_pct": -324.88,
+    "mean_bps": -5.69,
+    "n": 827,
+    "per_year": 83.63,
+    "sharpe": -0.13,
+    "t": -0.4,
+    "to": "2015-12-28",
+    "worst_bps": -2512.6
+   },
+   "verdict": "fails the bar"
+  }
+ },
+ "CREDIT_EQUITY": {
+  "always_long_monthly": {
+   "test": {
+    "annual_pct": 8.66,
+    "annual_vol_pct": 14.37,
+    "boot95_bps": [
+     15.1,
+     128.44
+    ],
+    "from": "2010-01-28",
+    "hit": 0.622,
+    "max_drawdown_pct": -30.53,
+    "mean_bps": 71.78,
+    "n": 201,
+    "per_year": 12.06,
+    "sharpe": 0.6,
+    "t": 2.46,
+    "to": "2026-09-28",
+    "worst_bps": -1351.5
+   },
+   "train": {
+    "annual_pct": 0.57,
+    "annual_vol_pct": 15.17,
+    "boot95_bps": [
+     -51.17,
+     59.61
+    ],
+    "from": "1990-01-28",
+    "hit": 0.579,
+    "max_drawdown_pct": -109.11,
+    "mean_bps": 4.72,
+    "n": 240,
+    "per_year": 12.05,
+    "sharpe": 0.04,
+    "t": 0.17,
+    "to": "2009-12-28",
+    "worst_bps": -1876.1
+   }
+  },
+  "timed_minus_always_monthly": {
+   "test": {
+    "annual_pct": -3.55,
+    "annual_vol_pct": 11.18,
+    "boot95_bps": [
+     -73.68,
+     14.89
+    ],
+    "from": "2010-01-28",
+    "hit": 0.219,
+    "max_drawdown_pct": -72.97,
+    "mean_bps": -29.4,
+    "n": 201,
+    "per_year": 12.06,
+    "sharpe": -0.32,
+    "t": -1.29,
+    "to": "2026-09-28",
+    "worst_bps": -1181.1
+   },
+   "train": {
+    "annual_pct": -0.04,
+    "annual_vol_pct": 12.81,
+    "boot95_bps": [
+     -46.06,
+     47.37
+    ],
+    "from": "1990-01-28",
+    "hit": 0.263,
+    "max_drawdown_pct": -90.53,
+    "mean_bps": -0.36,
+    "n": 240,
+    "per_year": 12.05,
+    "sharpe": -0.0,
+    "t": -0.02,
+    "to": "2009-12-28",
+    "worst_bps": -1011.5
+   }
+  },
+  "timed_monthly": {
+   "test": {
+    "annual_pct": 5.11,
+    "annual_vol_pct": 9.49,
+    "boot95_bps": [
+     4.52,
+     78.71
+    ],
+    "from": "2010-01-28",
+    "hit": 0.403,
+    "max_drawdown_pct": -37.43,
+    "mean_bps": 42.39,
+    "n": 201,
+    "per_year": 12.06,
+    "sharpe": 0.54,
+    "t": 2.2,
+    "to": "2026-09-28",
+    "worst_bps": -876.6
+   },
+   "train": {
+    "annual_pct": 0.53,
+    "annual_vol_pct": 8.62,
+    "boot95_bps": [
+     -27.06,
+     35.43
+    ],
+    "from": "1990-01-28",
+    "hit": 0.35,
+    "max_drawdown_pct": -37.2,
+    "mean_bps": 4.36,
+    "n": 240,
+    "per_year": 12.05,
+    "sharpe": 0.06,
+    "t": 0.27,
+    "to": "2009-12-28",
+    "worst_bps": -1054.8
+   }
+  },
+  "verdict": "fails the bar"
+ },
+ "MONDAY_GAP": {
+  "ESG_0.25pct": {
+   "boot95_bps": [
+    -22.45,
+    48.54
+   ],
+   "hit": 0.575,
+   "max_drawdown_pct": -4.82,
+   "mean_bps": 13.02,
+   "n": 40,
+   "t": 0.7,
+   "worst_bps": -228.4
+  },
+  "ESG_0.5pct": {
+   "boot95_bps": [
+    -13.53,
+    112.42
+   ],
+   "hit": 0.722,
+   "max_drawdown_pct": -2.12,
+   "mean_bps": 50.69,
+   "n": 18,
+   "t": 1.54,
+   "worst_bps": -211.7
+  },
+  "ESG_0.75pct": {
+   "boot95_bps": [
+    -28.15,
+    156.02
+   ],
+   "hit": 0.7,
+   "max_drawdown_pct": -1.78,
+   "mean_bps": 67.46,
+   "n": 10,
+   "t": 1.35,
+   "worst_bps": -178.4
+  },
+  "FILL_0.25pct": {
+   "boot95_bps": [
+    -15.28,
+    41.76
+   ],
+   "hit": 0.75,
+   "max_drawdown_pct": -4.92,
+   "mean_bps": 14.24,
+   "n": 40,
+   "t": 0.94,
+   "worst_bps": -228.4
+  },
+  "FILL_0.5pct": {
+   "boot95_bps": [
+    -12.49,
+    89.02
+   ],
+   "hit": 0.833,
+   "max_drawdown_pct": -2.12,
+   "mean_bps": 42.19,
+   "n": 18,
+   "t": 1.59,
+   "worst_bps": -211.7
+  },
+  "FILL_0.75pct": {
+   "boot95_bps": [
+    -26.01,
+    121.5
+   ],
+   "hit": 0.8,
+   "max_drawdown_pct": -1.78,
+   "mean_bps": 54.13,
+   "n": 10,
+   "t": 1.34,
+   "worst_bps": -178.4
+  },
+  "source": "Yahoo ES=F hourly, ig_research/inputs/yahoo_1h",
+  "verdict": "not run, coverage (one era, deviation 2)"
+ },
+ "MONTHEND_FIX": {
+  "AUDUSD_A_fxcm_h1": {
+   "test": {
+    "annual_pct": 0.61,
+    "annual_vol_pct": 1.05,
+    "boot95_bps": [
+     -1.01,
+     11.09
+    ],
+    "from": "2019-01-31",
+    "hit": 0.576,
+    "max_drawdown_pct": -1.89,
+    "mean_bps": 5.08,
+    "n": 92,
+    "per_year": 11.97,
+    "sharpe": 0.58,
+    "t": 1.61,
+    "to": "2026-10-09",
+    "worst_bps": -85.1
+   },
+   "train": {
+    "annual_pct": 0.15,
+    "annual_vol_pct": 0.95,
+    "boot95_bps": [
+     -4.67,
+     7.06
+    ],
+    "from": "2012-01-31",
+    "hit": 0.512,
+    "max_drawdown_pct": -2.36,
+    "mean_bps": 1.22,
+    "n": 84,
+    "per_year": 12.15,
+    "sharpe": 0.16,
+    "t": 0.41,
+    "to": "2018-12-31",
+    "worst_bps": -78.1
+   },
+   "verdict": "fails the bar"
+  },
+  "AUDUSD_B_fxcm": {
+   "test": {
+    "annual_pct": 0.63,
+    "annual_vol_pct": 1.05,
+    "boot95_bps": [
+     -0.84,
+     11.65
+    ],
+    "from": "2019-01-31",
+    "hit": 0.578,
+    "max_drawdown_pct": -1.89,
+    "mean_bps": 5.35,
+    "n": 90,
+    "per_year": 11.74,
+    "sharpe": 0.6,
+    "t": 1.66,
+    "to": "2026-09-30",
+    "worst_bps": -85.1
+   },
+   "train": {
+    "annual_pct": 0.04,
+    "annual_vol_pct": 0.85,
+    "boot95_bps": [
+     -7.94,
+     8.09
+    ],
+    "from": "2016-01-29",
+    "hit": 0.457,
+    "max_drawdown_pct": -1.48,
+    "mean_bps": 0.33,
+    "n": 35,
+    "per_year": 12.34,
+    "sharpe": 0.05,
+    "t": 0.08,
+    "to": "2018-11-30",
+    "worst_bps": -78.1
+   }
+  },
+  "EURUSD_A_fxcm_h1": {
+   "test": {
+    "annual_pct": -0.07,
+    "annual_vol_pct": 0.87,
+    "boot95_bps": [
+     -5.65,
+     4.42
+    ],
+    "from": "2019-01-31",
+    "hit": 0.478,
+    "max_drawdown_pct": -3.65,
+    "mean_bps": -0.61,
+    "n": 92,
+    "per_year": 11.97,
+    "sharpe": -0.08,
+    "t": -0.23,
+    "to": "2026-10-09",
+    "worst_bps": -95.0
+   },
+   "train": {
+    "annual_pct": 0.29,
+    "annual_vol_pct": 0.96,
+    "boot95_bps": [
+     -3.39,
+     8.2
+    ],
+    "from": "2012-01-31",
+    "hit": 0.524,
+    "max_drawdown_pct": -2.04,
+    "mean_bps": 2.4,
+    "n": 84,
+    "per_year": 12.16,
+    "sharpe": 0.31,
+    "t": 0.8,
+    "to": "2018-12-28",
+    "worst_bps": -67.6
+   },
+   "verdict": "fails the bar"
+  },
+  "EURUSD_B_fxcm": {
+   "test": {
+    "annual_pct": -0.12,
+    "annual_vol_pct": 0.86,
+    "boot95_bps": [
+     -6.02,
+     4.09
+    ],
+    "from": "2019-01-31",
+    "hit": 0.478,
+    "max_drawdown_pct": -3.65,
+    "mean_bps": -1.0,
+    "n": 90,
+    "per_year": 11.74,
+    "sharpe": -0.14,
+    "t": -0.38,
+    "to": "2026-09-30",
+    "worst_bps": -95.0
+   },
+   "train": {
+    "annual_pct": 0.18,
+    "annual_vol_pct": 0.91,
+    "boot95_bps": [
+     -6.51,
+     10.04
+    ],
+    "from": "2016-01-29",
+    "hit": 0.417,
+    "max_drawdown_pct": -0.97,
+    "mean_bps": 1.45,
+    "n": 36,
+    "per_year": 12.36,
+    "sharpe": 0.2,
+    "t": 0.34,
+    "to": "2018-12-28",
+    "worst_bps": -42.7
+   }
+  },
+  "GBPUSD_A_fxcm_h1": {
+   "test": {
+    "annual_pct": -0.03,
+    "annual_vol_pct": 1.05,
+    "boot95_bps": [
+     -6.51,
+     5.81
+    ],
+    "from": "2019-01-31",
+    "hit": 0.5,
+    "max_drawdown_pct": -5.41,
+    "mean_bps": -0.27,
+    "n": 92,
+    "per_year": 11.97,
+    "sharpe": -0.03,
+    "t": -0.09,
+    "to": "2026-10-09",
+    "worst_bps": -90.3
+   },
+   "train": {
+    "annual_pct": -0.03,
+    "annual_vol_pct": 1.0,
+    "boot95_bps": [
+     -6.25,
+     5.84
+    ],
+    "from": "2012-01-31",
+    "hit": 0.5,
+    "max_drawdown_pct": -2.55,
+    "mean_bps": -0.22,
+    "n": 84,
+    "per_year": 12.16,
+    "sharpe": -0.03,
+    "t": -0.07,
+    "to": "2018-12-28",
+    "worst_bps": -67.2
+   },
+   "verdict": "fails the bar"
+  },
+  "GBPUSD_B_fxcm": {
+   "test": {
+    "annual_pct": -0.04,
+    "annual_vol_pct": 1.05,
+    "boot95_bps": [
+     -6.68,
+     5.73
+    ],
+    "from": "2019-01-31",
+    "hit": 0.489,
+    "max_drawdown_pct": -5.41,
+    "mean_bps": -0.36,
+    "n": 90,
+    "per_year": 11.74,
+    "sharpe": -0.04,
+    "t": -0.11,
+    "to": "2026-09-30",
+    "worst_bps": -90.3
+   },
+   "train": {
+    "annual_pct": 0.53,
+    "annual_vol_pct": 1.12,
+    "boot95_bps": [
+     -5.97,
+     14.76
+    ],
+    "from": "2016-01-29",
+    "hit": 0.528,
+    "max_drawdown_pct": -1.03,
+    "mean_bps": 4.26,
+    "n": 36,
+    "per_year": 12.36,
+    "sharpe": 0.47,
+    "t": 0.8,
+    "to": "2018-12-28",
+    "worst_bps": -67.2
+   }
+  },
+  "USDJPY_A_fxcm_h1": {
+   "test": {
+    "annual_pct": -0.59,
+    "annual_vol_pct": 0.81,
+    "boot95_bps": [
+     -9.57,
+     -0.34
+    ],
+    "from": "2019-01-31",
+    "hit": 0.424,
+    "max_drawdown_pct": -5.29,
+    "mean_bps": -4.89,
+    "n": 92,
+    "per_year": 11.97,
+    "sharpe": -0.72,
+    "t": -2.0,
+    "to": "2026-10-09",
+    "worst_bps": -90.4
+   },
+   "train": {
+    "annual_pct": 0.67,
+    "annual_vol_pct": 0.81,
+    "boot95_bps": [
+     0.75,
+     10.39
+    ],
+    "from": "2012-01-31",
+    "hit": 0.631,
+    "max_drawdown_pct": -1.36,
+    "mean_bps": 5.51,
+    "n": 84,
+    "per_year": 12.16,
+    "sharpe": 0.83,
+    "t": 2.18,
+    "to": "2018-12-28",
+    "worst_bps": -49.3
+   },
+   "verdict": "fails the bar"
+  },
+  "USDJPY_B_fxcm": {
+   "test": {
+    "annual_pct": -0.61,
+    "annual_vol_pct": 0.81,
+    "boot95_bps": [
+     -10.04,
+     -0.53
+    ],
+    "from": "2019-01-31",
+    "hit": 0.411,
+    "max_drawdown_pct": -5.38,
+    "mean_bps": -5.19,
+    "n": 90,
+    "per_year": 11.74,
+    "sharpe": -0.75,
+    "t": -2.08,
+    "to": "2026-09-30",
+    "worst_bps": -90.4
+   },
+   "train": {
+    "annual_pct": 0.6,
+    "annual_vol_pct": 0.87,
+    "boot95_bps": [
+     -3.0,
+     12.98
+    ],
+    "from": "2016-01-29",
+    "hit": 0.583,
+    "max_drawdown_pct": -0.71,
+    "mean_bps": 4.85,
+    "n": 36,
+    "per_year": 12.36,
+    "sharpe": 0.68,
+    "t": 1.17,
+    "to": "2018-12-28",
+    "worst_bps": -38.7
+   }
+  }
+ },
+ "OVERNIGHT": {
+  "QQQ_intraday": {
+   "test": {
+    "annual_pct": 3.83,
+    "annual_vol_pct": 16.23,
+    "boot95_bps": [
+     -1.57,
+     4.6
+    ],
+    "from": "2010-01-04",
+    "hit": 0.536,
+    "max_drawdown_pct": -28.79,
+    "mean_bps": 1.52,
+    "n": 4222,
+    "per_year": 251.65,
+    "sharpe": 0.24,
+    "t": 0.97,
+    "to": "2026-10-15",
+    "worst_bps": -627.3
+   },
+   "train": {
+    "annual_pct": -16.62,
+    "annual_vol_pct": 30.58,
+    "boot95_bps": [
+     -13.86,
+     0.67
+    ],
+    "from": "1999-03-11",
+    "hit": 0.503,
+    "max_drawdown_pct": -227.63,
+    "mean_bps": -6.6,
+    "n": 2721,
+    "per_year": 251.73,
+    "sharpe": -0.54,
+    "t": -1.79,
+    "to": "2009-12-31",
+    "worst_bps": -1002.6
+   }
+  },
+  "QQQ_overnight": {
+   "test": {
+    "annual_pct": 5.99,
+    "annual_vol_pct": 12.69,
+    "boot95_bps": [
+     -0.12,
+     4.8
+    ],
+    "from": "2010-01-04",
+    "hit": 0.545,
+    "max_drawdown_pct": -39.37,
+    "mean_bps": 2.38,
+    "n": 4222,
+    "per_year": 251.65,
+    "sharpe": 0.47,
+    "t": 1.93,
+    "to": "2026-10-15",
+    "worst_bps": -996.1
+   },
+   "train": {
+    "annual_pct": 7.56,
+    "annual_vol_pct": 16.47,
+    "boot95_bps": [
+     -0.9,
+     6.97
+    ],
+    "from": "1999-03-11",
+    "hit": 0.531,
+    "max_drawdown_pct": -50.64,
+    "mean_bps": 3.0,
+    "n": 2721,
+    "per_year": 251.73,
+    "sharpe": 0.46,
+    "t": 1.51,
+    "to": "2009-12-31",
+    "worst_bps": -883.7
+   },
+   "verdict": "fails the bar"
+  },
+  "SPY_intraday": {
+   "test": {
+    "annual_pct": 3.32,
+    "annual_vol_pct": 12.84,
+    "boot95_bps": [
+     -1.14,
+     3.79
+    ],
+    "from": "2010-01-04",
+    "hit": 0.539,
+    "max_drawdown_pct": -29.59,
+    "mean_bps": 1.32,
+    "n": 4222,
+    "per_year": 251.65,
+    "sharpe": 0.26,
+    "t": 1.06,
+    "to": "2026-10-15",
+    "worst_bps": -583.4
+   },
+   "train": {
+    "annual_pct": -4.85,
+    "annual_vol_pct": 17.15,
+    "boot95_bps": [
+     -5.2,
+     1.32
+    ],
+    "from": "1993-02-01",
+    "hit": 0.503,
+    "max_drawdown_pct": -132.88,
+    "mean_bps": -1.93,
+    "n": 4263,
+    "per_year": 252.07,
+    "sharpe": -0.28,
+    "t": -1.16,
+    "to": "2009-12-31",
+    "worst_bps": -942.7
+   }
+  },
+  "SPY_overnight": {
+   "test": {
+    "annual_pct": 1.54,
+    "annual_vol_pct": 10.94,
+    "boot95_bps": [
+     -1.53,
+     2.68
+    ],
+    "from": "2010-01-04",
+    "hit": 0.528,
+    "max_drawdown_pct": -35.34,
+    "mean_bps": 0.61,
+    "n": 4222,
+    "per_year": 251.65,
+    "sharpe": 0.14,
+    "t": 0.58,
+    "to": "2026-10-15",
+    "worst_bps": -1106.2
+   },
+   "train": {
+    "annual_pct": 1.66,
+    "annual_vol_pct": 10.33,
+    "boot95_bps": [
+     -1.32,
+     2.62
+    ],
+    "from": "1993-02-01",
+    "hit": 0.534,
+    "max_drawdown_pct": -67.03,
+    "mean_bps": 0.66,
+    "n": 4263,
+    "per_year": 252.07,
+    "sharpe": 0.16,
+    "t": 0.66,
+    "to": "2009-12-31",
+    "worst_bps": -870.3
+   },
+   "verdict": "fails the bar"
+  }
+ },
+ "PREFOMC": {
+  "A": {
+   "test": {
+    "annual_pct": 0.65,
+    "annual_vol_pct": 2.99,
+    "boot95_bps": [
+     -10.66,
+     26.98
+    ],
+    "from": "2012-01-25",
+    "hit": 0.462,
+    "max_drawdown_pct": -9.77,
+    "mean_bps": 8.1,
+    "n": 117,
+    "per_year": 7.99,
+    "sharpe": 0.22,
+    "t": 0.83,
+    "to": "2026-09-16",
+    "worst_bps": -301.5
+   },
+   "train": {
+    "annual_pct": 2.54,
+    "annual_vol_pct": 3.47,
+    "boot95_bps": [
+     11.46,
+     51.61
+    ],
+    "from": "1994-02-04",
+    "hit": 0.604,
+    "max_drawdown_pct": -7.11,
+    "mean_bps": 31.44,
+    "n": 144,
+    "per_year": 8.07,
+    "sharpe": 0.73,
+    "t": 3.09,
+    "to": "2011-12-13",
+    "worst_bps": -299.3
+   },
+   "verdict": "fails the bar"
+  },
+  "B_dukascopy": {
+   "test": {
+    "annual_pct": 1.03,
+    "annual_vol_pct": 3.22,
+    "boot95_bps": [
+     -8.4,
+     33.92
+    ],
+    "from": "2012-01-25",
+    "hit": 0.55,
+    "max_drawdown_pct": -7.78,
+    "mean_bps": 12.93,
+    "n": 111,
+    "per_year": 8.0,
+    "sharpe": 0.32,
+    "t": 1.2,
+    "to": "2025-12-10",
+    "worst_bps": -367.1
+   },
+   "train": {
+    "n": 0
+   },
+   "verdict": "fails the bar"
+  },
+  "B_fred": {
+   "test": {
+    "annual_pct": 0.0,
+    "annual_vol_pct": 3.17,
+    "boot95_bps": [
+     -24.26,
+     24.66
+    ],
+    "from": "2016-11-02",
+    "hit": 0.43,
+    "max_drawdown_pct": -9.77,
+    "mean_bps": 0.04,
+    "n": 79,
+    "per_year": 8.0,
+    "sharpe": 0.0,
+    "t": 0.0,
+    "to": "2026-09-16",
+    "worst_bps": -301.5
+   },
+   "train": {
+    "n": 0
+   },
+   "verdict": "fails the bar"
+  },
+  "fomc_days": 261
+ },
+ "REAL_YIELD_GOLD": {
+  "A": {
+   "test": {
+    "annual_pct": -0.19,
+    "annual_vol_pct": 15.24,
+    "boot95_bps": [
+     -73.29,
+     70.22
+    ],
+    "from": "2015-01-30",
+    "hit": 0.493,
+    "max_drawdown_pct": -53.09,
+    "mean_bps": -1.56,
+    "n": 142,
+    "per_year": 12.13,
+    "sharpe": -0.01,
+    "t": -0.04,
+    "to": "2026-10-15",
+    "worst_bps": -1255.8
+   },
+   "train": {
+    "annual_pct": 1.68,
+    "annual_vol_pct": 19.03,
+    "boot95_bps": [
+     -74.64,
+     104.89
+    ],
+    "from": "2003-05-30",
+    "hit": 0.5,
+    "max_drawdown_pct": -50.16,
+    "mean_bps": 13.92,
+    "n": 140,
+    "per_year": 12.08,
+    "sharpe": 0.09,
+    "t": 0.3,
+    "to": "2014-12-31",
+    "worst_bps": -1303.7
+   },
+   "verdict": "fails the bar"
+  },
+  "B": {
+   "test": {
+    "annual_pct": 4.52,
+    "annual_vol_pct": 12.95,
+    "boot95_bps": [
+     -42.34,
+     128.21
+    ],
+    "from": "2018-02-28",
+    "hit": 0.524,
+    "max_drawdown_pct": -29.66,
+    "mean_bps": 43.23,
+    "n": 82,
+    "per_year": 10.46,
+    "sharpe": 0.35,
+    "t": 0.98,
+    "to": "2025-12-31",
+    "worst_bps": -804.1
+   },
+   "train": {
+    "annual_pct": 0.64,
+    "annual_vol_pct": 9.94,
+    "boot95_bps": [
+     -181.95,
+     251.17
+    ],
+    "from": "2003-05-31",
+    "hit": 0.533,
+    "max_drawdown_pct": -23.53,
+    "mean_bps": 24.88,
+    "n": 30,
+    "per_year": 2.59,
+    "sharpe": 0.06,
+    "t": 0.22,
+    "to": "2014-12-31",
+    "worst_bps": -1215.6
+   },
+   "verdict": "fails the bar"
+  }
+ },
+ "SEASONAL": {
+  "GOLD_SEP_NOV_A": {
+   "test": {
+    "annual_pct": -3.2,
+    "annual_vol_pct": 6.85,
+    "boot95_bps": [
+     -316.09,
+     0.16
+    ],
+    "from": "2010-09-30",
+    "hit": 0.394,
+    "max_drawdown_pct": -68.09,
+    "mean_bps": -155.32,
+    "n": 33,
+    "per_year": 2.06,
+    "sharpe": -0.47,
+    "t": -1.87,
+    "to": "2026-09-30",
+    "worst_bps": -1217.4
+   },
+   "train": {
+    "annual_pct": 8.32,
+    "annual_vol_pct": 7.1,
+    "boot95_bps": [
+     185.1,
+     593.33
+    ],
+    "from": "2000-09-29",
+    "hit": 0.75,
+    "max_drawdown_pct": -4.94,
+    "mean_bps": 381.58,
+    "n": 20,
+    "per_year": 2.18,
+    "sharpe": 1.17,
+    "t": 3.55,
+    "to": "2009-11-30",
+    "worst_bps": -493.8
+   },
+   "verdict": "fails the bar"
+  },
+  "GOLD_SEP_NOV_B": {
+   "test": {
+    "annual_pct": -0.7,
+    "annual_vol_pct": 6.21,
+    "boot95_bps": [
+     -281.81,
+     203.77
+    ],
+    "from": "2014-09-30",
+    "hit": 0.375,
+    "max_drawdown_pct": -29.12,
+    "mean_bps": -48.86,
+    "n": 16,
+    "per_year": 1.43,
+    "sharpe": -0.11,
+    "t": -0.38,
+    "to": "2025-11-30",
+    "worst_bps": -640.9
+   },
+   "train": {
+    "annual_pct": 4.24,
+    "annual_vol_pct": 3.87,
+    "boot95_bps": [
+     285.82,
+     980.55
+    ],
+    "from": "2003-09-30",
+    "hit": 1.0,
+    "max_drawdown_pct": 0.0,
+    "mean_bps": 547.71,
+    "n": 4,
+    "per_year": 0.77,
+    "sharpe": 1.1,
+    "t": 2.49,
+    "to": "2008-11-30",
+    "worst_bps": 242.5
+   },
+   "verdict": "fails the bar"
+  },
+  "WTI_MAR_APR_A": {
+   "test": {
+    "annual_pct": 1.59,
+    "annual_vol_pct": 27.98,
+    "boot95_bps": [
+     -1230.96,
+     1256.24
+    ],
+    "from": "2010-04-30",
+    "hit": 0.647,
+    "max_drawdown_pct": -94.03,
+    "mean_bps": 150.03,
+    "n": 17,
+    "per_year": 1.06,
+    "sharpe": 0.06,
+    "t": 0.23,
+    "to": "2026-04-30",
+    "worst_bps": -8730.2
+   },
+   "train": {
+    "annual_pct": 3.44,
+    "annual_vol_pct": 17.5,
+    "boot95_bps": [
+     -831.97,
+     1182.12
+    ],
+    "from": "2001-04-30",
+    "hit": 0.778,
+    "max_drawdown_pct": -38.11,
+    "mean_bps": 306.13,
+    "n": 9,
+    "per_year": 1.12,
+    "sharpe": 0.2,
+    "t": 0.56,
+    "to": "2009-04-30",
+    "worst_bps": -3571.3
+   },
+   "verdict": "fails the bar"
+  },
+  "WTI_MAR_APR_B": {
+   "test": {
+    "annual_pct": 2.14,
+    "annual_vol_pct": 28.02,
+    "boot95_bps": [
+     -1171.19,
+     1326.81
+    ],
+    "from": "2010-04-30",
+    "hit": 0.647,
+    "max_drawdown_pct": -90.0,
+    "mean_bps": 201.81,
+    "n": 17,
+    "per_year": 1.06,
+    "sharpe": 0.08,
+    "t": 0.31,
+    "to": "2026-04-30",
+    "worst_bps": -8540.9
+   },
+   "train": {
+    "annual_pct": 3.71,
+    "annual_vol_pct": 16.58,
+    "boot95_bps": [
+     -356.33,
+     1024.93
+    ],
+    "from": "1990-04-30",
+    "hit": 0.65,
+    "max_drawdown_pct": -41.82,
+    "mean_bps": 352.01,
+    "n": 20,
+    "per_year": 1.05,
+    "sharpe": 0.22,
+    "t": 0.97,
+    "to": "2009-04-30",
+    "worst_bps": -3801.5
+   },
+   "verdict": "fails the bar"
+  }
+ },
+ "SESSION": {
+  "AUDUSD": {
+   "test": {
+    "annual_pct": -7.63,
+    "annual_vol_pct": 4.84,
+    "boot95_bps": [
+     -4.51,
+     -1.74
+    ],
+    "from": "2019-01-03",
+    "hit": 0.429,
+    "max_drawdown_pct": -59.94,
+    "mean_bps": -3.11,
+    "n": 1905,
+    "per_year": 245.35,
+    "sharpe": -1.57,
+    "t": -4.39,
+    "to": "2026-10-09",
+    "worst_bps": -320.3
+   },
+   "train": {
+    "annual_pct": -4.72,
+    "annual_vol_pct": 5.21,
+    "boot95_bps": [
+     -3.32,
+     -0.33
+    ],
+    "from": "2012-01-03",
+    "hit": 0.459,
+    "max_drawdown_pct": -36.78,
+    "mean_bps": -1.83,
+    "n": 1802,
+    "per_year": 257.71,
+    "sharpe": -0.91,
+    "t": -2.4,
+    "to": "2018-12-31",
+    "worst_bps": -148.3
+   },
+   "verdict": "fails the bar"
+  },
+  "EURUSD": {
+   "test": {
+    "annual_pct": -0.34,
+    "annual_vol_pct": 3.72,
+    "boot95_bps": [
+     -1.18,
+     0.9
+    ],
+    "from": "2019-01-02",
+    "hit": 0.483,
+    "max_drawdown_pct": -11.82,
+    "mean_bps": -0.14,
+    "n": 1912,
+    "per_year": 246.16,
+    "sharpe": -0.09,
+    "t": -0.25,
+    "to": "2026-10-09",
+    "worst_bps": -115.6
+   },
+   "train": {
+    "annual_pct": 4.08,
+    "annual_vol_pct": 4.26,
+    "boot95_bps": [
+     0.34,
+     2.8
+    ],
+    "from": "2012-01-02",
+    "hit": 0.516,
+    "max_drawdown_pct": -5.76,
+    "mean_bps": 1.57,
+    "n": 1811,
+    "per_year": 259.2,
+    "sharpe": 0.96,
+    "t": 2.53,
+    "to": "2018-12-28",
+    "worst_bps": -122.4
+   },
+   "verdict": "fails the bar"
+  },
+  "GBPUSD": {
+   "test": {
+    "annual_pct": -0.24,
+    "annual_vol_pct": 4.6,
+    "boot95_bps": [
+     -1.38,
+     1.22
+    ],
+    "from": "2019-01-02",
+    "hit": 0.486,
+    "max_drawdown_pct": -9.42,
+    "mean_bps": -0.1,
+    "n": 1912,
+    "per_year": 246.16,
+    "sharpe": -0.05,
+    "t": -0.15,
+    "to": "2026-10-09",
+    "worst_bps": -151.5
+   },
+   "train": {
+    "annual_pct": 1.87,
+    "annual_vol_pct": 4.63,
+    "boot95_bps": [
+     -0.6,
+     2.01
+    ],
+    "from": "2012-01-02",
+    "hit": 0.506,
+    "max_drawdown_pct": -8.41,
+    "mean_bps": 0.72,
+    "n": 1811,
+    "per_year": 259.2,
+    "sharpe": 0.4,
+    "t": 1.06,
+    "to": "2018-12-28",
+    "worst_bps": -127.1
+   },
+   "verdict": "fails the bar"
+  },
+  "USDJPY": {
+   "test": {
+    "annual_pct": -2.36,
+    "annual_vol_pct": 4.19,
+    "boot95_bps": [
+     -2.16,
+     0.24
+    ],
+    "from": "2019-01-03",
+    "hit": 0.482,
+    "max_drawdown_pct": -21.04,
+    "mean_bps": -0.96,
+    "n": 1903,
+    "per_year": 245.09,
+    "sharpe": -0.56,
+    "t": -1.57,
+    "to": "2026-10-09",
+    "worst_bps": -300.2
+   },
+   "train": {
+    "annual_pct": -6.96,
+    "annual_vol_pct": 4.66,
+    "boot95_bps": [
+     -4.05,
+     -1.38
+    ],
+    "from": "2012-01-03",
+    "hit": 0.464,
+    "max_drawdown_pct": -51.09,
+    "mean_bps": -2.69,
+    "n": 1803,
+    "per_year": 258.15,
+    "sharpe": -1.49,
+    "t": -3.94,
+    "to": "2018-12-28",
+    "worst_bps": -461.9
+   },
+   "verdict": "fails the bar"
+  }
+ },
+ "TOM": {
+  "DE40_A": {
+   "test": {
+    "annual_pct": 0.04,
+    "annual_vol_pct": 8.8,
+    "boot95_bps": [
+     -35.6,
+     34.72
+    ],
+    "from": "2010-01-06",
+    "hit": 0.515,
+    "max_drawdown_pct": -39.71,
+    "mean_bps": 0.29,
+    "n": 202,
+    "per_year": 12.06,
+    "sharpe": 0.0,
+    "t": 0.02,
+    "to": "2026-10-05",
+    "worst_bps": -803.8
+   },
+   "train": {
+    "annual_pct": 6.35,
+    "annual_vol_pct": 10.71,
+    "boot95_bps": [
+     12.87,
+     91.44
+    ],
+    "from": "1990-01-04",
+    "hit": 0.633,
+    "max_drawdown_pct": -36.54,
+    "mean_bps": 52.7,
+    "n": 240,
+    "per_year": 12.05,
+    "sharpe": 0.59,
+    "t": 2.65,
+    "to": "2009-12-03",
+    "worst_bps": -1529.8
+   },
+   "verdict": "fails the bar"
+  },
+  "DE40_B": {
+   "not_available": "D:DEUIDXEUR"
+  },
+  "UK100_A": {
+   "test": {
+    "annual_pct": 1.21,
+    "annual_vol_pct": 6.77,
+    "boot95_bps": [
+     -16.77,
+     36.35
+    ],
+    "from": "2010-01-06",
+    "hit": 0.54,
+    "max_drawdown_pct": -22.14,
+    "mean_bps": 10.04,
+    "n": 202,
+    "per_year": 12.06,
+    "sharpe": 0.18,
+    "t": 0.73,
+    "to": "2026-10-05",
+    "worst_bps": -658.0
+   },
+   "train": {
+    "annual_pct": 4.81,
+    "annual_vol_pct": 7.44,
+    "boot95_bps": [
+     11.83,
+     66.74
+    ],
+    "from": "1990-01-04",
+    "hit": 0.588,
+    "max_drawdown_pct": -19.74,
+    "mean_bps": 39.87,
+    "n": 240,
+    "per_year": 12.05,
+    "sharpe": 0.65,
+    "t": 2.88,
+    "to": "2009-12-03",
+    "worst_bps": -956.6
+   },
+   "verdict": "fails the bar"
+  },
+  "UK100_B": {
+   "not_available": "D:GBRIDXGBP"
+  },
+  "US500_A": {
+   "test": {
+    "annual_pct": 2.42,
+    "annual_vol_pct": 6.73,
+    "boot95_bps": [
+     -7.27,
+     46.54
+    ],
+    "from": "2010-01-06",
+    "hit": 0.574,
+    "max_drawdown_pct": -11.61,
+    "mean_bps": 20.1,
+    "n": 202,
+    "per_year": 12.06,
+    "sharpe": 0.36,
+    "t": 1.47,
+    "to": "2026-10-05",
+    "worst_bps": -639.7
+   },
+   "train": {
+    "annual_pct": 2.25,
+    "annual_vol_pct": 7.51,
+    "boot95_bps": [
+     -8.86,
+     45.9
+    ],
+    "from": "1990-01-04",
+    "hit": 0.537,
+    "max_drawdown_pct": -19.69,
+    "mean_bps": 18.63,
+    "n": 240,
+    "per_year": 12.05,
+    "sharpe": 0.3,
+    "t": 1.33,
+    "to": "2009-12-03",
+    "worst_bps": -791.1
+   },
+   "verdict": "fails the bar"
+  },
+  "US500_B": {
+   "test": {
+    "annual_pct": 0.38,
+    "annual_vol_pct": 5.56,
+    "boot95_bps": [
+     -21.76,
+     26.92
+    ],
+    "from": "2012-02-03",
+    "hit": 0.575,
+    "max_drawdown_pct": -19.27,
+    "mean_bps": 3.18,
+    "n": 167,
+    "per_year": 12.07,
+    "sharpe": 0.07,
+    "t": 0.26,
+    "to": "2025-12-03",
+    "worst_bps": -585.1
+   },
+   "train": {
+    "n": 0
+   },
+   "verdict": "fails the bar"
+  }
+ },
+ "TSMOM": {
+  "A_ENS": {
+   "markets": {
+    "AUDUSD": {
+     "sign_flips": 77,
+     "test": {
+      "annual_pct": -3.9,
+      "annual_vol_pct": 8.51,
+      "boot95_bps": [
+       -65.87,
+       1.73
+      ],
+      "from": "2010-01-29",
+      "hit": 0.473,
+      "max_drawdown_pct": -71.34,
+      "mean_bps": -32.33,
+      "n": 201,
+      "per_year": 12.06,
+      "sharpe": -0.46,
+      "t": -1.87,
+      "to": "2026-09-30",
+      "worst_bps": -1250.8
+     },
+     "train": {
+      "annual_pct": 4.94,
+      "annual_vol_pct": 8.14,
+      "boot95_bps": [
+       -36.1,
+       124.68
+      ],
+      "from": "2007-06-29",
+      "hit": 0.548,
+      "max_drawdown_pct": -6.42,
+      "mean_bps": 39.98,
+      "n": 31,
+      "per_year": 12.36,
+      "sharpe": 0.61,
+      "t": 0.96,
+      "to": "2009-12-31",
+      "worst_bps": -339.4
+     }
+    },
+    "DE40": {
+     "sign_flips": 136,
+     "test": {
+      "annual_pct": -1.12,
+      "annual_vol_pct": 7.0,
+      "boot95_bps": [
+       -37.32,
+       18.46
+      ],
+      "from": "2010-01-29",
+      "hit": 0.485,
+      "max_drawdown_pct": -35.77,
+      "mean_bps": -9.25,
+      "n": 202,
+      "per_year": 12.09,
+      "sharpe": -0.16,
+      "t": -0.65,
+      "to": "2026-10-15",
+      "worst_bps": -1025.5
+     },
+     "train": {
+      "annual_pct": 1.67,
+      "annual_vol_pct": 9.12,
+      "boot95_bps": [
+       -19.28,
+       47.33
+      ],
+      "from": "1990-01-31",
+      "hit": 0.5,
+      "max_drawdown_pct": -35.37,
+      "mean_bps": 13.82,
+      "n": 240,
+      "per_year": 12.05,
+      "sharpe": 0.18,
+      "t": 0.81,
+      "to": "2009-12-30",
+      "worst_bps": -1240.1
+     }
+    },
+    "EURUSD": {
+     "sign_flips": 72,
+     "test": {
+      "annual_pct": -0.22,
+      "annual_vol_pct": 7.42,
+      "boot95_bps": [
+       -31.55,
+       28.14
+      ],
+      "from": "2010-01-29",
+      "hit": 0.507,
+      "max_drawdown_pct": -24.34,
+      "mean_bps": -1.85,
+      "n": 201,
+      "per_year": 12.06,
+      "sharpe": -0.03,
+      "t": -0.12,
+      "to": "2026-09-30",
+      "worst_bps": -669.7
+     },
+     "train": {
+      "annual_pct": 1.27,
+      "annual_vol_pct": 5.86,
+      "boot95_bps": [
+       -32.35,
+       51.41
+      ],
+      "from": "2004-12-31",
+      "hit": 0.525,
+      "max_drawdown_pct": -6.71,
+      "mean_bps": 10.45,
+      "n": 61,
+      "per_year": 12.2,
+      "sharpe": 0.22,
+      "t": 0.49,
+      "to": "2009-12-31",
+      "worst_bps": -581.7
+     }
+    },
+    "GBPUSD": {
+     "sign_flips": 82,
+     "test": {
+      "annual_pct": -1.71,
+      "annual_vol_pct": 7.06,
+      "boot95_bps": [
+       -41.88,
+       13.82
+      ],
+      "from": "2010-01-29",
+      "hit": 0.463,
+      "max_drawdown_pct": -30.15,
+      "mean_bps": -14.21,
+      "n": 201,
+      "per_year": 12.06,
+      "sharpe": -0.24,
+      "t": -0.99,
+      "to": "2026-09-30",
+      "worst_bps": -649.4
+     },
+     "train": {
+      "annual_pct": -0.66,
+      "annual_vol_pct": 7.96,
+      "boot95_bps": [
+       -61.78,
+       51.51
+      ],
+      "from": "2004-12-31",
+      "hit": 0.508,
+      "max_drawdown_pct": -21.2,
+      "mean_bps": -5.41,
+      "n": 61,
+      "per_year": 12.2,
+      "sharpe": -0.08,
+      "t": -0.19,
+      "to": "2009-12-31",
+      "worst_bps": -717.2
+     }
+    },
+    "GOLD": {
+     "sign_flips": 99,
+     "test": {
+      "annual_pct": 2.29,
+      "annual_vol_pct": 7.39,
+      "boot95_bps": [
+       -10.37,
+       48.29
+      ],
+      "from": "2010-01-29",
+      "hit": 0.525,
+      "max_drawdown_pct": -31.19,
+      "mean_bps": 18.96,
+      "n": 202,
+      "per_year": 12.09,
+      "sharpe": 0.31,
+      "t": 1.27,
+      "to": "2026-10-15",
+      "worst_bps": -584.4
+     },
+     "train": {
+      "annual_pct": 2.72,
+      "annual_vol_pct": 8.44,
+      "boot95_bps": [
+       -24.0,
+       71.16
+      ],
+      "from": "2001-10-31",
+      "hit": 0.444,
+      "max_drawdown_pct": -16.02,
+      "mean_bps": 22.47,
+      "n": 99,
+      "per_year": 12.12,
+      "sharpe": 0.32,
+      "t": 0.92,
+      "to": "2009-12-31",
+      "worst_bps": -540.2
+     }
+    },
+    "JP225": {
+     "sign_flips": 161,
+     "test": {
+      "annual_pct": 0.63,
+      "annual_vol_pct": 7.97,
+      "boot95_bps": [
+       -26.96,
+       36.32
+      ],
+      "from": "2010-01-29",
+      "hit": 0.495,
+      "max_drawdown_pct": -30.01,
+      "mean_bps": 5.24,
+      "n": 202,
+      "per_year": 12.09,
+      "sharpe": 0.08,
+      "t": 0.32,
+      "to": "2026-10-15",
+      "worst_bps": -741.7
+     },
+     "train": {
+      "annual_pct": 0.57,
+      "annual_vol_pct": 8.26,
+      "boot95_bps": [
+       -25.49,
+       35.06
+      ],
+      "from": "1990-01-31",
+      "hit": 0.537,
+      "max_drawdown_pct": -46.79,
+      "mean_bps": 4.74,
+      "n": 240,
+      "per_year": 12.05,
+      "sharpe": 0.07,
+      "t": 0.31,
+      "to": "2009-12-30",
+      "worst_bps": -695.6
+     }
+    },
+    "UK100": {
+     "sign_flips": 158,
+     "test": {
+      "annual_pct": -3.81,
+      "annual_vol_pct": 7.08,
+      "boot95_bps": [
+       -59.67,
+       -3.63
+      ],
+      "from": "2010-01-29",
+      "hit": 0.436,
+      "max_drawdown_pct": -81.77,
+      "mean_bps": -31.48,
+      "n": 202,
+      "per_year": 12.09,
+      "sharpe": -0.54,
+      "t": -2.2,
+      "to": "2026-10-15",
+      "worst_bps": -843.5
+     },
+     "train": {
+      "annual_pct": -0.09,
+      "annual_vol_pct": 7.6,
+      "boot95_bps": [
+       -28.08,
+       26.14
+      ],
+      "from": "1990-01-31",
+      "hit": 0.517,
+      "max_drawdown_pct": -34.63,
+      "mean_bps": -0.75,
+      "n": 240,
+      "per_year": 12.05,
+      "sharpe": -0.01,
+      "t": -0.05,
+      "to": "2009-12-31",
+      "worst_bps": -829.7
+     }
+    },
+    "US500": {
+     "sign_flips": 177,
+     "test": {
+      "annual_pct": 1.83,
+      "annual_vol_pct": 7.37,
+      "boot95_bps": [
+       -14.4,
+       43.63
+      ],
+      "from": "2010-01-29",
+      "hit": 0.569,
+      "max_drawdown_pct": -17.71,
+      "mean_bps": 15.14,
+      "n": 202,
+      "per_year": 12.09,
+      "sharpe": 0.25,
+      "t": 1.02,
+      "to": "2026-10-15",
+      "worst_bps": -793.1
+     },
+     "train": {
+      "annual_pct": 0.83,
+      "annual_vol_pct": 6.81,
+      "boot95_bps": [
+       -17.21,
+       31.91
+      ],
+      "from": "1990-01-31",
+      "hit": 0.525,
+      "max_drawdown_pct": -39.48,
+      "mean_bps": 6.92,
+      "n": 240,
+      "per_year": 12.05,
+      "sharpe": 0.12,
+      "t": 0.55,
+      "to": "2009-12-31",
+      "worst_bps": -538.9
+     }
+    },
+    "USDJPY": {
+     "sign_flips": 92,
+     "test": {
+      "annual_pct": 3.61,
+      "annual_vol_pct": 8.94,
+      "boot95_bps": [
+       -5.25,
+       65.21
+      ],
+      "from": "2010-01-29",
+      "hit": 0.552,
+      "max_drawdown_pct": -18.8,
+      "mean_bps": 29.96,
+      "n": 201,
+      "per_year": 12.06,
+      "sharpe": 0.4,
+      "t": 1.65,
+      "to": "2026-09-30",
+      "worst_bps": -1011.5
+     },
+     "train": {
+      "annual_pct": 2.18,
+      "annual_vol_pct": 8.17,
+      "boot95_bps": [
+       -19.39,
+       55.48
+      ],
+      "from": "1997-12-31",
+      "hit": 0.538,
+      "max_drawdown_pct": -23.05,
+      "mean_bps": 18.04,
+      "n": 145,
+      "per_year": 12.08,
+      "sharpe": 0.27,
+      "t": 0.92,
+      "to": "2009-12-31",
+      "worst_bps": -728.0
+     }
+    },
+    "UST10": {
+     "sign_flips": 182,
+     "test": {
+      "annual_pct": -0.46,
+      "annual_vol_pct": 7.99,
+      "boot95_bps": [
+       -34.65,
+       27.39
+      ],
+      "from": "2010-01-29",
+      "hit": 0.436,
+      "max_drawdown_pct": -36.02,
+      "mean_bps": -3.77,
+      "n": 202,
+      "per_year": 12.09,
+      "sharpe": -0.06,
+      "t": -0.23,
+      "to": "2026-10-15",
+      "worst_bps": -803.0
+     },
+     "train": {
+      "annual_pct": 0.88,
+      "annual_vol_pct": 8.28,
+      "boot95_bps": [
+       -22.63,
+       37.22
+      ],
+      "from": "1990-01-31",
+      "hit": 0.521,
+      "max_drawdown_pct": -27.39,
+      "mean_bps": 7.32,
+      "n": 240,
+      "per_year": 12.05,
+      "sharpe": 0.11,
+      "t": 0.48,
+      "to": "2009-12-31",
+      "worst_bps": -740.6
+     }
+    },
+    "WTI": {
+     "sign_flips": 90,
+     "test": {
+      "annual_pct": 0.78,
+      "annual_vol_pct": 10.09,
+      "boot95_bps": [
+       -30.91,
+       49.27
+      ],
+      "from": "2010-01-29",
+      "hit": 0.505,
+      "max_drawdown_pct": -25.46,
+      "mean_bps": 6.49,
+      "n": 202,
+      "per_year": 12.09,
+      "sharpe": 0.08,
+      "t": 0.32,
+      "to": "2026-10-15",
+      "worst_bps": -912.2
+     },
+     "train": {
+      "annual_pct": 1.76,
+      "annual_vol_pct": 6.19,
+      "boot95_bps": [
+       -19.69,
+       48.7
+      ],
+      "from": "2001-10-31",
+      "hit": 0.596,
+      "max_drawdown_pct": -10.83,
+      "mean_bps": 14.49,
+      "n": 99,
+      "per_year": 12.12,
+      "sharpe": 0.28,
+      "t": 0.81,
+      "to": "2009-12-31",
+      "worst_bps": -464.0
+     }
+    }
+   },
+   "markets_used": [
+    "AUDUSD",
+    "DE40",
+    "EURUSD",
+    "GBPUSD",
+    "GOLD",
+    "JP225",
+    "UK100",
+    "US500",
+    "USDJPY",
+    "UST10",
+    "WTI"
+   ],
+   "note": "monthly portfolio returns, equal risk (10 % a market before averaging), net of IG spread and admin fee",
+   "portfolio_monthly": {
+    "test": {
+     "annual_pct": -0.17,
+     "annual_vol_pct": 3.61,
+     "boot95_bps": [
+      -15.85,
+      12.78
+     ],
+     "from": "2010-01-28",
+     "hit": 0.507,
+     "max_drawdown_pct": -10.04,
+     "mean_bps": -1.41,
+     "n": 201,
+     "per_year": 12.06,
+     "sharpe": -0.05,
+     "t": -0.19,
+     "to": "2026-09-28",
+     "worst_bps": -312.4
+    },
+    "train": {
+     "annual_pct": 0.79,
+     "annual_vol_pct": 4.42,
+     "boot95_bps": [
+      -9.27,
+      22.8
+     ],
+     "from": "1990-01-28",
+     "hit": 0.504,
+     "max_drawdown_pct": -16.42,
+     "mean_bps": 6.6,
+     "n": 240,
+     "per_year": 12.05,
+     "sharpe": 0.18,
+     "t": 0.8,
+     "to": "2009-12-28",
+     "worst_bps": -498.6
+    }
+   },
+   "portfolio_monthly_before_ig_costs": {
+    "test": {
+     "annual_pct": 1.11,
+     "annual_vol_pct": 3.62,
+     "boot95_bps": [
+      -5.21,
+      23.47
+     ],
+     "from": "2010-01-28",
+     "hit": 0.557,
+     "max_drawdown_pct": -7.24,
+     "mean_bps": 9.17,
+     "n": 201,
+     "per_year": 12.06,
+     "sharpe": 0.31,
+     "t": 1.25,
+     "to": "2026-09-28",
+     "worst_bps": -297.1
+    },
+    "train": {
+     "annual_pct": 2.35,
+     "annual_vol_pct": 4.42,
+     "boot95_bps": [
+      3.63,
+      35.61
+     ],
+     "from": "1990-01-28",
+     "hit": 0.579,
+     "max_drawdown_pct": -8.15,
+     "mean_bps": 19.46,
+     "n": 240,
+     "per_year": 12.05,
+     "sharpe": 0.53,
+     "t": 2.37,
+     "to": "2009-12-28",
+     "worst_bps": -475.5
+    }
+   },
+   "verdict": "fails the bar"
+  },
+  "A_TS12": {
+   "markets": {
+    "AUDUSD": {
+     "sign_flips": 21,
+     "test": {
+      "annual_pct": -1.02,
+      "annual_vol_pct": 11.39,
+      "boot95_bps": [
+       -54.23,
+       36.75
+      ],
+      "from": "2010-01-29",
+      "hit": 0.468,
+      "max_drawdown_pct": -48.27,
+      "mean_bps": -8.49,
+      "n": 201,
+      "per_year": 12.06,
+      "sharpe": -0.09,
+      "t": -0.37,
+      "to": "2026-09-30",
+      "worst_bps": -1250.2
+     },
+     "train": {
+      "annual_pct": -1.9,
+      "annual_vol_pct": 13.01,
+      "boot95_bps": [
+       -145.63,
+       112.55
+      ],
+      "from": "2007-06-29",
+      "hit": 0.484,
+      "max_drawdown_pct": -23.03,
+      "mean_bps": -15.33,
+      "n": 31,
+      "per_year": 12.36,
+      "sharpe": -0.15,
+      "t": -0.23,
+      "to": "2009-12-31",
+      "worst_bps": -1017.0
+     }
+    },
+    "DE40": {
+     "sign_flips": 39,
+     "test": {
+      "annual_pct": -2.61,
+      "annual_vol_pct": 10.06,
+      "boot95_bps": [
+       -62.82,
+       17.42
+      ],
+      "from": "2010-01-29",
+      "hit": 0.49,
+      "max_drawdown_pct": -75.61,
+      "mean_bps": -21.61,
+      "n": 202,
+      "per_year": 12.09,
+      "sharpe": -0.26,
+      "t": -1.06,
+      "to": "2026-10-15",
+      "worst_bps": -1335.7
+     },
+     "train": {
+      "annual_pct": 3.76,
+      "annual_vol_pct": 11.39,
+      "boot95_bps": [
+       -10.45,
+       73.18
+      ],
+      "from": "1990-01-31",
+      "hit": 0.55,
+      "max_drawdown_pct": -36.42,
+      "mean_bps": 31.23,
+      "n": 240,
+      "per_year": 12.05,
+      "sharpe": 0.33,
+      "t": 1.47,
+      "to": "2009-12-30",
+      "worst_bps": -1239.9
+     }
+    },
+    "EURUSD": {
+     "sign_flips": 36,
+     "test": {
+      "annual_pct": -1.7,
+      "annual_vol_pct": 10.3,
+      "boot95_bps": [
+       -55.24,
+       26.55
+      ],
+      "from": "2010-01-29",
+      "hit": 0.488,
+      "max_drawdown_pct": -43.22,
+      "mean_bps": -14.08,
+      "n": 201,
+      "per_year": 12.06,
+      "sharpe": -0.16,
+      "t": -0.67,
+      "to": "2026-09-30",
+      "worst_bps": -791.1
+     },
+     "train": {
+      "annual_pct": -4.21,
+      "annual_vol_pct": 8.89,
+      "boot95_bps": [
+       -96.07,
+       28.18
+      ],
+      "from": "2004-12-31",
+      "hit": 0.41,
+      "max_drawdown_pct": -29.54,
+      "mean_bps": -34.54,
+      "n": 61,
+      "per_year": 12.2,
+      "sharpe": -0.47,
+      "t": -1.06,
+      "to": "2009-12-31",
+      "worst_bps": -581.7
+     }
+    },
+    "GBPUSD": {
+     "sign_flips": 32,
+     "test": {
+      "annual_pct": -2.38,
+      "annual_vol_pct": 10.3,
+      "boot95_bps": [
+       -61.23,
+       22.05
+      ],
+      "from": "2010-01-29",
+      "hit": 0.448,
+      "max_drawdown_pct": -55.38,
+      "mean_bps": -19.7,
+      "n": 201,
+      "per_year": 12.06,
+      "sharpe": -0.23,
+      "t": -0.94,
+      "to": "2026-09-30",
+      "worst_bps": -794.1
+     },
+     "train": {
+      "annual_pct": -3.16,
+      "annual_vol_pct": 10.73,
+      "boot95_bps": [
+       -103.61,
+       48.56
+      ],
+      "from": "2004-12-31",
+      "hit": 0.525,
+      "max_drawdown_pct": -22.91,
+      "mean_bps": -25.87,
+      "n": 61,
+      "per_year": 12.2,
+      "sharpe": -0.29,
+      "t": -0.66,
+      "to": "2009-12-31",
+      "worst_bps": -1234.7
+     }
+    },
+    "GOLD": {
+     "sign_flips": 33,
+     "test": {
+      "annual_pct": 2.41,
+      "annual_vol_pct": 10.03,
+      "boot95_bps": [
+       -19.77,
+       59.38
+      ],
+      "from": "2010-01-29",
+      "hit": 0.525,
+      "max_drawdown_pct": -47.4,
+      "mean_bps": 19.95,
+      "n": 202,
+      "per_year": 12.09,
+      "sharpe": 0.24,
+      "t": 0.98,
+      "to": "2026-10-15",
+      "worst_bps": -774.9
+     },
+     "train": {
+      "annual_pct": 7.34,
+      "annual_vol_pct": 10.33,
+      "boot95_bps": [
+       3.03,
+       120.25
+      ],
+      "from": "2001-10-31",
+      "hit": 0.556,
+      "max_drawdown_pct": -15.55,
+      "mean_bps": 60.53,
+      "n": 99,
+      "per_year": 12.12,
+      "sharpe": 0.71,
+      "t": 2.03,
+      "to": "2009-12-31",
+      "worst_bps": -571.2
+     }
+    },
+    "JP225": {
+     "sign_flips": 60,
+     "test": {
+      "annual_pct": -0.98,
+      "annual_vol_pct": 10.23,
+      "boot95_bps": [
+       -49.69,
+       32.53
+      ],
+      "from": "2010-01-29",
+      "hit": 0.48,
+      "max_drawdown_pct": -57.37,
+      "mean_bps": -8.09,
+      "n": 202,
+      "per_year": 12.09,
+      "sharpe": -0.1,
+      "t": -0.39,
+      "to": "2026-10-15",
+      "worst_bps": -741.7
+     },
+     "train": {
+      "annual_pct": -0.32,
+      "annual_vol_pct": 11.23,
+      "boot95_bps": [
+       -43.63,
+       37.54
+      ],
+      "from": "1990-01-31",
+      "hit": 0.525,
+      "max_drawdown_pct": -61.56,
+      "mean_bps": -2.68,
+      "n": 240,
+      "per_year": 12.05,
+      "sharpe": -0.03,
+      "t": -0.13,
+      "to": "2009-12-30",
+      "worst_bps": -1523.8
+     }
+    },
+    "UK100": {
+     "sign_flips": 57,
+     "test": {
+      "annual_pct": -2.1,
+      "annual_vol_pct": 9.48,
+      "boot95_bps": [
+       -55.44,
+       20.24
+      ],
+      "from": "2010-01-29",
+      "hit": 0.49,
+      "max_drawdown_pct": -60.86,
+      "mean_bps": -17.35,
+      "n": 202,
+      "per_year": 12.09,
+      "sharpe": -0.22,
+      "t": -0.9,
+      "to": "2026-10-15",
+      "worst_bps": -843.5
+     },
+     "train": {
+      "annual_pct": 0.82,
+      "annual_vol_pct": 9.8,
+      "boot95_bps": [
+       -29.24,
+       42.15
+      ],
+      "from": "1990-01-31",
+      "hit": 0.529,
+      "max_drawdown_pct": -46.23,
+      "mean_bps": 6.81,
+      "n": 240,
+      "per_year": 12.05,
+      "sharpe": 0.08,
+      "t": 0.37,
+      "to": "2009-12-31",
+      "worst_bps": -829.7
+     }
+    },
+    "US500": {
+     "sign_flips": 45,
+     "test": {
+      "annual_pct": 2.85,
+      "annual_vol_pct": 10.33,
+      "boot95_bps": [
+       -17.95,
+       62.31
+      ],
+      "from": "2010-01-29",
+      "hit": 0.579,
+      "max_drawdown_pct": -39.59,
+      "mean_bps": 23.58,
+      "n": 202,
+      "per_year": 12.09,
+      "sharpe": 0.28,
+      "t": 1.13,
+      "to": "2026-10-15",
+      "worst_bps": -1060.3
+     },
+     "train": {
+      "annual_pct": 2.8,
+      "annual_vol_pct": 9.38,
+      "boot95_bps": [
+       -10.74,
+       57.38
+      ],
+      "from": "1990-01-31",
+      "hit": 0.554,
+      "max_drawdown_pct": -23.25,
+      "mean_bps": 23.21,
+      "n": 240,
+      "per_year": 12.05,
+      "sharpe": 0.3,
+      "t": 1.33,
+      "to": "2009-12-31",
+      "worst_bps": -1103.2
+     }
+    },
+    "USDJPY": {
+     "sign_flips": 33,
+     "test": {
+      "annual_pct": 5.98,
+      "annual_vol_pct": 10.8,
+      "boot95_bps": [
+       7.77,
+       92.09
+      ],
+      "from": "2010-01-29",
+      "hit": 0.562,
+      "max_drawdown_pct": -24.61,
+      "mean_bps": 49.58,
+      "n": 201,
+      "per_year": 12.06,
+      "sharpe": 0.55,
+      "t": 2.26,
+      "to": "2026-09-30",
+      "worst_bps": -1011.0
+     },
+     "train": {
+      "annual_pct": 3.44,
+      "annual_vol_pct": 10.35,
+      "boot95_bps": [
+       -19.19,
+       76.42
+      ],
+      "from": "1997-12-31",
+      "hit": 0.538,
+      "max_drawdown_pct": -21.37,
+      "mean_bps": 28.48,
+      "n": 145,
+      "per_year": 12.08,
+      "sharpe": 0.33,
+      "t": 1.15,
+      "to": "2009-12-31",
+      "worst_bps": -917.9
+     }
+    },
+    "UST10": {
+     "sign_flips": 66,
+     "test": {
+      "annual_pct": -1.87,
+      "annual_vol_pct": 10.21,
+      "boot95_bps": [
+       -55.09,
+       24.13
+      ],
+      "from": "2010-01-29",
+      "hit": 0.441,
+      "max_drawdown_pct": -49.07,
+      "mean_bps": -15.49,
+      "n": 202,
+      "per_year": 12.09,
+      "sharpe": -0.18,
+      "t": -0.75,
+      "to": "2026-10-15",
+      "worst_bps": -876.2
+     },
+     "train": {
+      "annual_pct": -2.12,
+      "annual_vol_pct": 11.01,
+      "boot95_bps": [
+       -57.62,
+       22.14
+      ],
+      "from": "1990-01-31",
+      "hit": 0.487,
+      "max_drawdown_pct": -74.74,
+      "mean_bps": -17.62,
+      "n": 240,
+      "per_year": 12.05,
+      "sharpe": -0.19,
+      "t": -0.86,
+      "to": "2009-12-31",
+      "worst_bps": -994.1
+     }
+    },
+    "WTI": {
+     "sign_flips": 40,
+     "test": {
+      "annual_pct": 1.06,
+      "annual_vol_pct": 12.54,
+      "boot95_bps": [
+       -39.68,
+       60.99
+      ],
+      "from": "2010-01-29",
+      "hit": 0.49,
+      "max_drawdown_pct": -32.45,
+      "mean_bps": 8.74,
+      "n": 202,
+      "per_year": 12.09,
+      "sharpe": 0.08,
+      "t": 0.34,
+      "to": "2026-10-15",
+      "worst_bps": -1337.2
+     },
+     "train": {
+      "annual_pct": -0.13,
+      "annual_vol_pct": 8.86,
+      "boot95_bps": [
+       -51.16,
+       48.99
+      ],
+      "from": "2001-10-31",
+      "hit": 0.515,
+      "max_drawdown_pct": -18.73,
+      "mean_bps": -1.05,
+      "n": 99,
+      "per_year": 12.12,
+      "sharpe": -0.01,
+      "t": -0.04,
+      "to": "2009-12-31",
+      "worst_bps": -640.3
+     }
+    }
+   },
+   "markets_used": [
+    "AUDUSD",
+    "DE40",
+    "EURUSD",
+    "GBPUSD",
+    "GOLD",
+    "JP225",
+    "UK100",
+    "US500",
+    "USDJPY",
+    "UST10",
+    "WTI"
+   ],
+   "note": "monthly portfolio returns, equal risk (10 % a market before averaging), net of IG spread and admin fee",
+   "portfolio_monthly": {
+    "test": {
+     "annual_pct": -0.03,
+     "annual_vol_pct": 4.48,
+     "boot95_bps": [
+      -18.46,
+      16.98
+     ],
+     "from": "2010-01-28",
+     "hit": 0.507,
+     "max_drawdown_pct": -14.19,
+     "mean_bps": -0.28,
+     "n": 201,
+     "per_year": 12.06,
+     "sharpe": -0.01,
+     "t": -0.03,
+     "to": "2026-09-28",
+     "worst_bps": -580.4
+    },
+    "train": {
+     "annual_pct": 0.89,
+     "annual_vol_pct": 5.88,
+     "boot95_bps": [
+      -13.95,
+      28.33
+     ],
+     "from": "1990-01-28",
+     "hit": 0.517,
+     "max_drawdown_pct": -23.24,
+     "mean_bps": 7.39,
+     "n": 240,
+     "per_year": 12.05,
+     "sharpe": 0.15,
+     "t": 0.68,
+     "to": "2009-12-28",
+     "worst_bps": -498.6
+    }
+   },
+   "portfolio_monthly_before_ig_costs": {
+    "test": {
+     "annual_pct": 1.81,
+     "annual_vol_pct": 4.49,
+     "boot95_bps": [
+      -3.24,
+      32.24
+     ],
+     "from": "2010-01-28",
+     "hit": 0.552,
+     "max_drawdown_pct": -9.5,
+     "mean_bps": 14.97,
+     "n": 201,
+     "per_year": 12.06,
+     "sharpe": 0.4,
+     "t": 1.64,
+     "to": "2026-09-28",
+     "worst_bps": -561.7
+    },
+    "train": {
+     "annual_pct": 3.13,
+     "annual_vol_pct": 5.88,
+     "boot95_bps": [
+      4.63,
+      46.96
+     ],
+     "from": "1990-01-28",
+     "hit": 0.588,
+     "max_drawdown_pct": -12.44,
+     "mean_bps": 25.98,
+     "n": 240,
+     "per_year": 12.05,
+     "sharpe": 0.53,
+     "t": 2.37,
+     "to": "2009-12-28",
+     "worst_bps": -475.5
+    }
+   },
+   "verdict": "fails the bar"
+  },
+  "B_ENS": {
+   "markets": {
+    "AUDUSD": {
+     "sign_flips": 195,
+     "test": {
+      "annual_pct": -3.64,
+      "annual_vol_pct": 8.63,
+      "boot95_bps": [
+       -64.59,
+       3.84
+      ],
+      "from": "2010-01-29",
+      "hit": 0.46,
+      "max_drawdown_pct": -70.98,
+      "mean_bps": -30.11,
+      "n": 202,
+      "per_year": 12.1,
+      "sharpe": -0.42,
+      "t": -1.72,
+      "to": "2026-10-09",
+      "worst_bps": -1311.9
+     },
+     "train": {
+      "annual_pct": 3.19,
+      "annual_vol_pct": 8.24,
+      "boot95_bps": [
+       -3.41,
+       56.25
+      ],
+      "from": "1990-01-31",
+      "hit": 0.55,
+      "max_drawdown_pct": -22.48,
+      "mean_bps": 26.44,
+      "n": 240,
+      "per_year": 12.05,
+      "sharpe": 0.39,
+      "t": 1.73,
+      "to": "2009-12-31",
+      "worst_bps": -747.2
+     }
+    },
+    "EURUSD": {
+     "sign_flips": 87,
+     "test": {
+      "annual_pct": -0.8,
+      "annual_vol_pct": 7.82,
+      "boot95_bps": [
+       -38.34,
+       25.15
+      ],
+      "from": "2010-01-29",
+      "hit": 0.5,
+      "max_drawdown_pct": -29.04,
+      "mean_bps": -6.59,
+      "n": 202,
+      "per_year": 12.1,
+      "sharpe": -0.1,
+      "t": -0.42,
+      "to": "2026-10-09",
+      "worst_bps": -601.6
+     },
+     "train": {
+      "annual_pct": 5.58,
+      "annual_vol_pct": 7.25,
+      "boot95_bps": [
+       9.88,
+       84.09
+      ],
+      "from": "2000-02-29",
+      "hit": 0.563,
+      "max_drawdown_pct": -10.21,
+      "mean_bps": 46.14,
+      "n": 119,
+      "per_year": 12.1,
+      "sharpe": 0.77,
+      "t": 2.41,
+      "to": "2009-12-31",
+      "worst_bps": -497.5
+     }
+    },
+    "GBPUSD": {
+     "sign_flips": 194,
+     "test": {
+      "annual_pct": -2.44,
+      "annual_vol_pct": 7.25,
+      "boot95_bps": [
+       -49.27,
+       8.82
+      ],
+      "from": "2010-01-29",
+      "hit": 0.455,
+      "max_drawdown_pct": -41.28,
+      "mean_bps": -20.18,
+      "n": 202,
+      "per_year": 12.1,
+      "sharpe": -0.34,
+      "t": -1.38,
+      "to": "2026-10-09",
+      "worst_bps": -798.4
+     },
+     "train": {
+      "annual_pct": 2.65,
+      "annual_vol_pct": 8.56,
+      "boot95_bps": [
+       -8.29,
+       53.73
+      ],
+      "from": "1990-01-31",
+      "hit": 0.529,
+      "max_drawdown_pct": -31.02,
+      "mean_bps": 22.0,
+      "n": 240,
+      "per_year": 12.05,
+      "sharpe": 0.31,
+      "t": 1.38,
+      "to": "2009-12-31",
+      "worst_bps": -1058.5
+     }
+    },
+    "GOLD": {
+     "sign_flips": 29,
+     "test": {
+      "annual_pct": 3.12,
+      "annual_vol_pct": 8.8,
+      "boot95_bps": [
+       -21.25,
+       100.18
+      ],
+      "from": "2014-01-31",
+      "hit": 0.604,
+      "max_drawdown_pct": -37.27,
+      "mean_bps": 38.68,
+      "n": 96,
+      "per_year": 8.06,
+      "sharpe": 0.35,
+      "t": 1.22,
+      "to": "2025-12-31",
+      "worst_bps": -1072.5
+     },
+     "train": {
+      "annual_pct": 1.44,
+      "annual_vol_pct": 4.22,
+      "boot95_bps": [
+       -66.63,
+       172.11
+      ],
+      "from": "2003-10-31",
+      "hit": 0.467,
+      "max_drawdown_pct": -7.01,
+      "mean_bps": 49.63,
+      "n": 15,
+      "per_year": 2.9,
+      "sharpe": 0.34,
+      "t": 0.78,
+      "to": "2008-12-31",
+      "worst_bps": -333.6
+     }
+    },
+    "US500": {
+     "sign_flips": 39,
+     "test": {
+      "annual_pct": -0.02,
+      "annual_vol_pct": 10.48,
+      "boot95_bps": [
+       -47.76,
+       45.81
+      ],
+      "from": "2012-10-31",
+      "hit": 0.572,
+      "max_drawdown_pct": -50.56,
+      "mean_bps": -0.2,
+      "n": 159,
+      "per_year": 12.08,
+      "sharpe": -0.0,
+      "t": -0.01,
+      "to": "2025-12-31",
+      "worst_bps": -1354.3
+     },
+     "train": {
+      "n": 0
+     }
+    },
+    "USDJPY": {
+     "sign_flips": 165,
+     "test": {
+      "annual_pct": 2.14,
+      "annual_vol_pct": 8.39,
+      "boot95_bps": [
+       -15.14,
+       51.0
+      ],
+      "from": "2010-01-29",
+      "hit": 0.525,
+      "max_drawdown_pct": -33.27,
+      "mean_bps": 17.69,
+      "n": 202,
+      "per_year": 12.1,
+      "sharpe": 0.26,
+      "t": 1.04,
+      "to": "2026-10-09",
+      "worst_bps": -799.8
+     },
+     "train": {
+      "annual_pct": 2.9,
+      "annual_vol_pct": 8.9,
+      "boot95_bps": [
+       -7.35,
+       57.38
+      ],
+      "from": "1990-01-31",
+      "hit": 0.55,
+      "max_drawdown_pct": -15.65,
+      "mean_bps": 24.08,
+      "n": 240,
+      "per_year": 12.05,
+      "sharpe": 0.33,
+      "t": 1.45,
+      "to": "2009-12-31",
+      "worst_bps": -975.5
+     }
+    },
+    "UST10": {
+     "sign_flips": 210,
+     "test": {
+      "annual_pct": -0.66,
+      "annual_vol_pct": 7.63,
+      "boot95_bps": [
+       -35.78,
+       24.26
+      ],
+      "from": "2010-01-29",
+      "hit": 0.436,
+      "max_drawdown_pct": -33.18,
+      "mean_bps": -5.45,
+      "n": 202,
+      "per_year": 12.09,
+      "sharpe": -0.09,
+      "t": -0.35,
+      "to": "2026-10-14",
+      "worst_bps": -756.5
+     },
+     "train": {
+      "annual_pct": 1.28,
+      "annual_vol_pct": 8.16,
+      "boot95_bps": [
+       -19.1,
+       40.27
+      ],
+      "from": "1990-01-31",
+      "hit": 0.517,
+      "max_drawdown_pct": -28.19,
+      "mean_bps": 10.65,
+      "n": 240,
+      "per_year": 12.05,
+      "sharpe": 0.16,
+      "t": 0.7,
+      "to": "2009-12-31",
+      "worst_bps": -724.0
+     }
+    },
+    "WTI": {
+     "sign_flips": 138,
+     "test": {
+      "annual_pct": 0.18,
+      "annual_vol_pct": 10.39,
+      "boot95_bps": [
+       -37.34,
+       45.56
+      ],
+      "from": "2010-01-29",
+      "hit": 0.505,
+      "max_drawdown_pct": -38.14,
+      "mean_bps": 1.52,
+      "n": 202,
+      "per_year": 12.09,
+      "sharpe": 0.02,
+      "t": 0.07,
+      "to": "2026-10-14",
+      "worst_bps": -961.4
+     },
+     "train": {
+      "annual_pct": 0.91,
+      "annual_vol_pct": 5.97,
+      "boot95_bps": [
+       -14.07,
+       29.24
+      ],
+      "from": "1990-01-31",
+      "hit": 0.529,
+      "max_drawdown_pct": -31.5,
+      "mean_bps": 7.53,
+      "n": 240,
+      "per_year": 12.05,
+      "sharpe": 0.15,
+      "t": 0.68,
+      "to": "2009-12-31",
+      "worst_bps": -511.5
+     }
+    }
+   },
+   "markets_used": [
+    "AUDUSD",
+    "EURUSD",
+    "GBPUSD",
+    "GOLD",
+    "US500",
+    "USDJPY",
+    "UST10",
+    "WTI"
+   ],
+   "note": "monthly portfolio returns, equal risk (10 % a market before averaging), net of IG spread and admin fee",
+   "portfolio_monthly": {
+    "test": {
+     "annual_pct": -0.57,
+     "annual_vol_pct": 4.18,
+     "boot95_bps": [
+      -21.06,
+      12.05
+     ],
+     "from": "2010-01-28",
+     "hit": 0.483,
+     "max_drawdown_pct": -12.73,
+     "mean_bps": -4.69,
+     "n": 201,
+     "per_year": 12.06,
+     "sharpe": -0.14,
+     "t": -0.55,
+     "to": "2026-09-28",
+     "worst_bps": -350.2
+    },
+    "train": {
+     "annual_pct": 2.47,
+     "annual_vol_pct": 3.74,
+     "boot95_bps": [
+      6.85,
+      33.86
+     ],
+     "from": "1990-01-28",
+     "hit": 0.583,
+     "max_drawdown_pct": -8.58,
+     "mean_bps": 20.5,
+     "n": 240,
+     "per_year": 12.05,
+     "sharpe": 0.66,
+     "t": 2.95,
+     "to": "2009-12-28",
+     "worst_bps": -363.1
+    }
+   },
+   "portfolio_monthly_before_ig_costs": {
+    "test": {
+     "annual_pct": 0.69,
+     "annual_vol_pct": 4.19,
+     "boot95_bps": [
+      -10.64,
+      22.59
+     ],
+     "from": "2010-01-28",
+     "hit": 0.512,
+     "max_drawdown_pct": -9.11,
+     "mean_bps": 5.71,
+     "n": 201,
+     "per_year": 12.06,
+     "sharpe": 0.16,
+     "t": 0.67,
+     "to": "2026-09-28",
+     "worst_bps": -335.6
+    },
+    "train": {
+     "annual_pct": 3.56,
+     "annual_vol_pct": 3.75,
+     "boot95_bps": [
+      15.83,
+      42.92
+     ],
+     "from": "1990-01-28",
+     "hit": 0.633,
+     "max_drawdown_pct": -5.73,
+     "mean_bps": 29.5,
+     "n": 240,
+     "per_year": 12.05,
+     "sharpe": 0.95,
+     "t": 4.23,
+     "to": "2009-12-28",
+     "worst_bps": -352.7
+    }
+   },
+   "verdict": "fails the bar"
+  },
+  "B_TS12": {
+   "markets": {
+    "AUDUSD": {
+     "sign_flips": 67,
+     "test": {
+      "annual_pct": -1.22,
+      "annual_vol_pct": 11.63,
+      "boot95_bps": [
+       -56.8,
+       35.36
+      ],
+      "from": "2010-01-29",
+      "hit": 0.48,
+      "max_drawdown_pct": -54.73,
+      "mean_bps": -10.08,
+      "n": 202,
+      "per_year": 12.1,
+      "sharpe": -0.1,
+      "t": -0.43,
+      "to": "2026-10-09",
+      "worst_bps": -1311.2
+     },
+     "train": {
+      "annual_pct": 3.5,
+      "annual_vol_pct": 10.32,
+      "boot95_bps": [
+       -8.31,
+       66.77
+      ],
+      "from": "1990-01-31",
+      "hit": 0.554,
+      "max_drawdown_pct": -26.58,
+      "mean_bps": 29.03,
+      "n": 240,
+      "per_year": 12.05,
+      "sharpe": 0.34,
+      "t": 1.51,
+      "to": "2009-12-31",
+      "worst_bps": -1010.1
+     }
+    },
+    "EURUSD": {
+     "sign_flips": 41,
+     "test": {
+      "annual_pct": -3.57,
+      "annual_vol_pct": 10.53,
+      "boot95_bps": [
+       -71.23,
+       12.48
+      ],
+      "from": "2010-01-29",
+      "hit": 0.47,
+      "max_drawdown_pct": -66.95,
+      "mean_bps": -29.51,
+      "n": 202,
+      "per_year": 12.1,
+      "sharpe": -0.34,
+      "t": -1.39,
+      "to": "2026-10-09",
+      "worst_bps": -719.5
+     },
+     "train": {
+      "annual_pct": 2.52,
+      "annual_vol_pct": 10.54,
+      "boot95_bps": [
+       -35.29,
+       74.29
+      ],
+      "from": "2000-02-29",
+      "hit": 0.504,
+      "max_drawdown_pct": -33.27,
+      "mean_bps": 20.82,
+      "n": 119,
+      "per_year": 12.1,
+      "sharpe": 0.24,
+      "t": 0.75,
+      "to": "2009-12-31",
+      "worst_bps": -875.2
+     }
+    },
+    "GBPUSD": {
+     "sign_flips": 76,
+     "test": {
+      "annual_pct": -3.7,
+      "annual_vol_pct": 10.5,
+      "boot95_bps": [
+       -72.7,
+       10.88
+      ],
+      "from": "2010-01-29",
+      "hit": 0.446,
+      "max_drawdown_pct": -64.33,
+      "mean_bps": -30.6,
+      "n": 202,
+      "per_year": 12.1,
+      "sharpe": -0.35,
+      "t": -1.44,
+      "to": "2026-10-09",
+      "worst_bps": -816.8
+     },
+     "train": {
+      "annual_pct": 2.69,
+      "annual_vol_pct": 10.82,
+      "boot95_bps": [
+       -17.95,
+       61.88
+      ],
+      "from": "1990-01-31",
+      "hit": 0.537,
+      "max_drawdown_pct": -40.22,
+      "mean_bps": 22.3,
+      "n": 240,
+      "per_year": 12.05,
+      "sharpe": 0.25,
+      "t": 1.11,
+      "to": "2009-12-31",
+      "worst_bps": -1058.5
+     }
+    },
+    "GOLD": {
+     "sign_flips": 15,
+     "test": {
+      "annual_pct": 3.58,
+      "annual_vol_pct": 11.19,
+      "boot95_bps": [
+       -31.72,
+       124.6
+      ],
+      "from": "2014-01-31",
+      "hit": 0.542,
+      "max_drawdown_pct": -46.15,
+      "mean_bps": 44.42,
+      "n": 96,
+      "per_year": 8.06,
+      "sharpe": 0.32,
+      "t": 1.1,
+      "to": "2025-12-31",
+      "worst_bps": -1072.5
+     },
+     "train": {
+      "annual_pct": 1.52,
+      "annual_vol_pct": 5.64,
+      "boot95_bps": [
+       -106.81,
+       214.5
+      ],
+      "from": "2003-10-31",
+      "hit": 0.533,
+      "max_drawdown_pct": -9.27,
+      "mean_bps": 52.24,
+      "n": 15,
+      "per_year": 2.9,
+      "sharpe": 0.27,
+      "t": 0.61,
+      "to": "2008-12-31",
+      "worst_bps": -523.8
+     }
+    },
+    "US500": {
+     "sign_flips": 19,
+     "test": {
+      "annual_pct": 3.52,
+      "annual_vol_pct": 12.68,
+      "boot95_bps": [
+       -29.13,
+       85.59
+      ],
+      "from": "2012-10-31",
+      "hit": 0.604,
+      "max_drawdown_pct": -57.89,
+      "mean_bps": 29.18,
+      "n": 159,
+      "per_year": 12.08,
+      "sharpe": 0.28,
+      "t": 1.01,
+      "to": "2025-12-31",
+      "worst_bps": -1354.3
+     },
+     "train": {
+      "n": 0
+     }
+    },
+    "USDJPY": {
+     "sign_flips": 64,
+     "test": {
+      "annual_pct": 5.36,
+      "annual_vol_pct": 10.95,
+      "boot95_bps": [
+       1.83,
+       86.45
+      ],
+      "from": "2010-01-29",
+      "hit": 0.545,
+      "max_drawdown_pct": -24.67,
+      "mean_bps": 44.33,
+      "n": 202,
+      "per_year": 12.1,
+      "sharpe": 0.49,
+      "t": 2.0,
+      "to": "2026-10-09",
+      "worst_bps": -1022.6
+     },
+     "train": {
+      "annual_pct": 2.23,
+      "annual_vol_pct": 11.13,
+      "boot95_bps": [
+       -21.85,
+       59.49
+      ],
+      "from": "1990-01-31",
+      "hit": 0.5,
+      "max_drawdown_pct": -47.03,
+      "mean_bps": 18.49,
+      "n": 240,
+      "per_year": 12.05,
+      "sharpe": 0.2,
+      "t": 0.89,
+      "to": "2009-12-31",
+      "worst_bps": -975.5
+     }
+    },
+    "UST10": {
+     "sign_flips": 74,
+     "test": {
+      "annual_pct": -2.35,
+      "annual_vol_pct": 10.23,
+      "boot95_bps": [
+       -59.36,
+       19.68
+      ],
+      "from": "2010-01-29",
+      "hit": 0.436,
+      "max_drawdown_pct": -56.57,
+      "mean_bps": -19.44,
+      "n": 202,
+      "per_year": 12.09,
+      "sharpe": -0.23,
+      "t": -0.94,
+      "to": "2026-10-14",
+      "worst_bps": -869.7
+     },
+     "train": {
+      "annual_pct": -1.2,
+      "annual_vol_pct": 10.97,
+      "boot95_bps": [
+       -50.68,
+       30.0
+      ],
+      "from": "1990-01-31",
+      "hit": 0.483,
+      "max_drawdown_pct": -56.53,
+      "mean_bps": -9.95,
+      "n": 240,
+      "per_year": 12.05,
+      "sharpe": -0.11,
+      "t": -0.49,
+      "to": "2009-12-31",
+      "worst_bps": -1010.6
+     }
+    },
+    "WTI": {
+     "sign_flips": 68,
+     "test": {
+      "annual_pct": 0.35,
+      "annual_vol_pct": 12.55,
+      "boot95_bps": [
+       -44.76,
+       54.92
+      ],
+      "from": "2010-01-29",
+      "hit": 0.5,
+      "max_drawdown_pct": -38.11,
+      "mean_bps": 2.91,
+      "n": 202,
+      "per_year": 12.09,
+      "sharpe": 0.03,
+      "t": 0.11,
+      "to": "2026-10-14",
+      "worst_bps": -1419.8
+     },
+     "train": {
+      "annual_pct": -0.59,
+      "annual_vol_pct": 7.99,
+      "boot95_bps": [
+       -33.27,
+       24.35
+      ],
+      "from": "1990-01-31",
+      "hit": 0.5,
+      "max_drawdown_pct": -44.72,
+      "mean_bps": -4.88,
+      "n": 240,
+      "per_year": 12.05,
+      "sharpe": -0.07,
+      "t": -0.33,
+      "to": "2009-12-31",
+      "worst_bps": -604.3
+     }
+    }
+   },
+   "markets_used": [
+    "AUDUSD",
+    "EURUSD",
+    "GBPUSD",
+    "GOLD",
+    "US500",
+    "USDJPY",
+    "UST10",
+    "WTI"
+   ],
+   "note": "monthly portfolio returns, equal risk (10 % a market before averaging), net of IG spread and admin fee",
+   "portfolio_monthly": {
+    "test": {
+     "annual_pct": -0.17,
+     "annual_vol_pct": 5.37,
+     "boot95_bps": [
+      -22.99,
+      19.64
+     ],
+     "from": "2010-01-28",
+     "hit": 0.502,
+     "max_drawdown_pct": -15.04,
+     "mean_bps": -1.45,
+     "n": 201,
+     "per_year": 12.06,
+     "sharpe": -0.03,
+     "t": -0.13,
+     "to": "2026-09-28",
+     "worst_bps": -526.4
+    },
+    "train": {
+     "annual_pct": 1.37,
+     "annual_vol_pct": 5.04,
+     "boot95_bps": [
+      -6.71,
+      29.87
+     ],
+     "from": "1990-01-28",
+     "hit": 0.521,
+     "max_drawdown_pct": -14.96,
+     "mean_bps": 11.37,
+     "n": 240,
+     "per_year": 12.05,
+     "sharpe": 0.27,
+     "t": 1.21,
+     "to": "2009-12-28",
+     "worst_bps": -354.8
+    }
+   },
+   "portfolio_monthly_before_ig_costs": {
+    "test": {
+     "annual_pct": 1.66,
+     "annual_vol_pct": 5.38,
+     "boot95_bps": [
+      -7.72,
+      34.86
+     ],
+     "from": "2010-01-28",
+     "hit": 0.522,
+     "max_drawdown_pct": -9.55,
+     "mean_bps": 13.77,
+     "n": 201,
+     "per_year": 12.06,
+     "sharpe": 0.31,
+     "t": 1.26,
+     "to": "2026-09-28",
+     "worst_bps": -509.2
+    },
+    "train": {
+     "annual_pct": 2.93,
+     "annual_vol_pct": 5.05,
+     "boot95_bps": [
+      6.22,
+      42.87
+     ],
+     "from": "1990-01-28",
+     "hit": 0.575,
+     "max_drawdown_pct": -11.88,
+     "mean_bps": 24.33,
+     "n": 240,
+     "per_year": 12.05,
+     "sharpe": 0.58,
+     "t": 2.59,
+     "to": "2009-12-28",
+     "worst_bps": -344.4
+    }
+   },
+   "verdict": "fails the bar"
+  },
+  "source_correlation_daily": {
+   "AUDUSD": 0.428,
+   "EURUSD": 0.381,
+   "GBPUSD": 0.456,
+   "GOLD": 0.853,
+   "US500": 0.907,
+   "USDJPY": 0.494,
+   "UST10": 0.988,
+   "WTI": 0.912
+  },
+  "typical_abs_position_test": {
+   "AUDUSD": 1.052,
+   "DE40": 0.629,
+   "EURUSD": 1.336,
+   "GBPUSD": 1.266,
+   "GOLD": 0.672,
+   "JP225": 0.525,
+   "UK100": 0.788,
+   "US500": 0.771,
+   "USDJPY": 1.173,
+   "UST10": 1.669,
+   "WTI": 0.307
+  }
+ },
+ "VIX_CARRY": {
+  "A_cboe": {
+   "note": "per cycle, on capital at 10 % notional; guaranteed stop at +50 % with a 0.2-point premium",
+   "test": {
+    "annual_pct": -1.09,
+    "annual_vol_pct": 5.5,
+    "boot95_bps": [
+     -79.64,
+     42.36
+    ],
+    "from": "2020-01-14",
+    "hit": 0.622,
+    "max_drawdown_pct": -13.85,
+    "mean_bps": -16.17,
+    "n": 45,
+    "per_year": 6.76,
+    "sharpe": -0.2,
+    "t": -0.51,
+    "to": "2026-09-09",
+    "worst_bps": -528.3
+   },
+   "train": {
+    "annual_pct": 0.03,
+    "annual_vol_pct": 6.04,
+    "boot95_bps": [
+     -55.78,
+     49.37
+    ],
+    "from": "2013-05-20",
+    "hit": 0.649,
+    "max_drawdown_pct": -9.97,
+    "mean_bps": 0.33,
+    "n": 57,
+    "per_year": 8.69,
+    "sharpe": 0.0,
+    "t": 0.01,
+    "to": "2019-12-11",
+    "worst_bps": -534.0
+   },
+   "verdict": "fails the bar"
+  },
+  "B_fred": {
+   "note": "per cycle, on capital at 10 % notional; guaranteed stop at +50 % with a 0.2-point premium",
+   "test": {
+    "annual_pct": -1.09,
+    "annual_vol_pct": 5.5,
+    "boot95_bps": [
+     -79.64,
+     42.36
+    ],
+    "from": "2020-01-14",
+    "hit": 0.622,
+    "max_drawdown_pct": -13.85,
+    "mean_bps": -16.17,
+    "n": 45,
+    "per_year": 6.76,
+    "sharpe": -0.2,
+    "t": -0.51,
+    "to": "2026-09-09",
+    "worst_bps": -528.3
+   },
+   "train": {
+    "annual_pct": 0.03,
+    "annual_vol_pct": 6.04,
+    "boot95_bps": [
+     -55.78,
+     49.37
+    ],
+    "from": "2013-05-20",
+    "hit": 0.649,
+    "max_drawdown_pct": -9.97,
+    "mean_bps": 0.33,
+    "n": 57,
+    "per_year": 8.69,
+    "sharpe": 0.0,
+    "t": 0.01,
+    "to": "2019-12-11",
+    "worst_bps": -534.0
+   },
+   "verdict": "fails the bar"
+  }
+ },
+ "sources_coverage": {
+  "D:USA500IDXUSD": [
+   "2012-01-01",
+   "2025-12-31",
+   5114
+  ],
+  "D:XAUUSD": [
+   "2003-01-01",
+   "2025-12-31",
+   3653
+  ],
+  "F:DBAA": [
+   "1986-01-02",
+   "2026-10-14",
+   10232
+  ],
+  "F:DCOILWTICO": [
+   "1986-01-02",
+   "2026-10-14",
+   9523
+  ],
+  "F:DEXJPUS": [
+   "1971-01-04",
+   "2026-10-09",
+   13980
+  ],
+  "F:DEXUSAL": [
+   "1971-01-04",
+   "2026-10-09",
+   13979
+  ],
+  "F:DEXUSEU": [
+   "1999-01-04",
+   "2026-10-09",
+   6965
+  ],
+  "F:DEXUSUK": [
+   "1971-01-04",
+   "2026-10-09",
+   13986
+  ],
+  "F:DFII10": [
+   "2003-01-02",
+   "2026-10-14",
+   5950
+  ],
+  "F:DGS10": [
+   "1962-01-02",
+   "2026-10-14",
+   16181
+  ],
+  "F:DTB3": [
+   "1954-01-04",
+   "2026-10-14",
+   18187
+  ],
+  "F:ECBDFR": [
+   "1999-01-01",
+   "2026-10-16",
+   10151
+  ],
+  "F:IR3TIB01AUM156N": [
+   "1968-01-01",
+   "2026-08-01",
+   704
+  ],
+  "F:IR3TIB01EZM156N": [
+   "1994-01-01",
+   "2026-01-01",
+   385
+  ],
+  "F:IR3TIB01GBM156N": [
+   "1957-01-01",
+   "2026-01-01",
+   829
+  ],
+  "F:IR3TIB01JPM156N": [
+   "2002-04-01",
+   "2026-08-01",
+   293
+  ],
+  "F:IR3TIB01USM156N": [
+   "1964-06-01",
+   "2026-09-01",
+   747
+  ],
+  "F:IUDSOIA": [
+   "1997-01-02",
+   "2026-10-14",
+   7526
+  ],
+  "F:SOFR": [
+   "2018-04-03",
+   "2026-10-15",
+   2132
+  ],
+  "F:SP500": [
+   "2016-10-17",
+   "2026-10-15",
+   2513
+  ],
+  "F:VIXCLS": [
+   "1990-01-02",
+   "2026-10-15",
+   9296
+  ],
+  "Y:AUDUSD=X": [
+   "2006-05-16",
+   "2026-10-16",
+   5312
+  ],
+  "Y:CL=F": [
+   "2000-08-23",
+   "2026-10-15",
+   6564
+  ],
+  "Y:EURUSD=X": [
+   "2003-12-01",
+   "2026-10-16",
+   5936
+  ],
+  "Y:GBPUSD=X": [
+   "2003-12-01",
+   "2026-10-16",
+   5948
+  ],
+  "Y:GC=F": [
+   "2000-08-30",
+   "2026-10-15",
+   6557
+  ],
+  "Y:JPY=X": [
+   "1996-10-30",
+   "2026-10-16",
+   7770
+  ],
+  "Y:QQQ": [
+   "1999-03-10",
+   "2026-10-15",
+   6944
+  ],
+  "Y:QQQ:open": [
+   "1999-03-10",
+   "2026-10-15",
+   6944
+  ],
+  "Y:SPY": [
+   "1993-01-29",
+   "2026-10-15",
+   8486
+  ],
+  "Y:SPY:open": [
+   "1993-01-29",
+   "2026-10-15",
+   8486
+  ],
+  "Y:^AXJO": [
+   "1992-11-23",
+   "2026-10-16",
+   8571
+  ],
+  "Y:^FTSE": [
+   "1984-01-03",
+   "2026-10-15",
+   10809
+  ],
+  "Y:^GDAXI": [
+   "1987-12-30",
+   "2026-10-15",
+   9811
+  ],
+  "Y:^GSPC": [
+   "1970-01-02",
+   "2026-10-15",
+   14319
+  ],
+  "Y:^N225": [
+   "1970-01-05",
+   "2026-10-15",
+   13961
+  ],
+  "Y:^STOXX50E": [
+   "2007-03-30",
+   "2026-10-15",
+   4900
+  ],
+  "Y:^TNX": [
+   "1970-01-02",
+   "2026-10-15",
+   14217
+  ],
+  "Y:^VIX": [
+   "1990-01-02",
+   "2026-10-15",
+   9267
+  ]
+ }
+}

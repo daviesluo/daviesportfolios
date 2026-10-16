@@ -1,0 +1,1386 @@
+{
+ "portfolio": null,
+ "rows": [
+  {
+   "arm": "TSMOM_TS12",
+   "passes_A": false,
+   "passes_B": false,
+   "rule": "12-month trend, 11 IG markets, risk-weighted, monthly",
+   "term_9_12": "by hand (monthly)",
+   "test_A": {
+    "annual_pct": -0.03,
+    "boot95_bps": [
+     -18.46,
+     16.98
+    ],
+    "max_drawdown_pct": -14.19,
+    "mean_bps": -0.28,
+    "n": 201,
+    "per_year": 12.06,
+    "sharpe": -0.01,
+    "t": -0.03,
+    "worst_bps": -580.4
+   },
+   "test_B": {
+    "boot95_bps": [
+     -22.99,
+     19.64
+    ],
+    "mean_bps": -1.45,
+    "n": 201,
+    "t": -0.13
+   },
+   "train_A": {
+    "boot95_bps": [
+     -13.95,
+     28.33
+    ],
+    "mean_bps": 7.39,
+    "n": 240,
+    "t": 0.68
+   },
+   "verdict": "dead"
+  },
+  {
+   "arm": "TSMOM_ENS",
+   "passes_A": false,
+   "passes_B": false,
+   "rule": "1/3/12-month trend ensemble, same markets",
+   "term_9_12": "by hand (monthly)",
+   "test_A": {
+    "annual_pct": -0.17,
+    "boot95_bps": [
+     -15.85,
+     12.78
+    ],
+    "max_drawdown_pct": -10.04,
+    "mean_bps": -1.41,
+    "n": 201,
+    "per_year": 12.06,
+    "sharpe": -0.05,
+    "t": -0.19,
+    "worst_bps": -312.4
+   },
+   "test_B": {
+    "boot95_bps": [
+     -21.06,
+     12.05
+    ],
+    "mean_bps": -4.69,
+    "n": 201,
+    "t": -0.55
+   },
+   "train_A": {
+    "boot95_bps": [
+     -9.27,
+     22.8
+    ],
+    "mean_bps": 6.6,
+    "n": 240,
+    "t": 0.8
+   },
+   "verdict": "dead"
+  },
+  {
+   "arm": "PREFOMC",
+   "at_10k": {
+    "margin_gbp": 500,
+    "notional_gbp": 10000,
+    "per_trade_gbp": 8.1,
+    "per_year_gbp": 65,
+    "per_year_gbp_range": [
+     -85,
+     216
+    ],
+    "worst_drawdown_gbp": -977,
+    "worst_single_gbp": -302
+   },
+   "capital_for_min_stake_gbp": 3273,
+   "min_stake": {
+    "margin_gbp": 335,
+    "market": "US500",
+    "notional_gbp": 6700,
+    "per_trade_gbp": 5.43,
+    "per_year_gbp": 43,
+    "per_year_gbp_range": [
+     -57,
+     144
+    ],
+    "worst_drawdown_gbp": -655,
+    "worst_single_gbp": -202
+   },
+   "passes_A": false,
+   "passes_B": false,
+   "rule": "long US 500 into the FOMC statement day",
+   "term_9_12": "by hand (8 a year)",
+   "test_A": {
+    "annual_pct": 0.65,
+    "boot95_bps": [
+     -10.66,
+     26.98
+    ],
+    "max_drawdown_pct": -9.77,
+    "mean_bps": 8.1,
+    "n": 117,
+    "per_year": 7.99,
+    "sharpe": 0.22,
+    "t": 0.83,
+    "worst_bps": -301.5
+   },
+   "test_B": {
+    "boot95_bps": [
+     -8.4,
+     33.92
+    ],
+    "mean_bps": 12.93,
+    "n": 111,
+    "t": 1.2
+   },
+   "train_A": {
+    "boot95_bps": [
+     11.46,
+     51.61
+    ],
+    "mean_bps": 31.44,
+    "n": 144,
+    "t": 3.09
+   },
+   "verdict": "dead"
+  },
+  {
+   "arm": "TOM_US500",
+   "at_10k": {
+    "margin_gbp": 500,
+    "notional_gbp": 10000,
+    "per_trade_gbp": 20.1,
+    "per_year_gbp": 242,
+    "per_year_gbp_range": [
+     -88,
+     561
+    ],
+    "worst_drawdown_gbp": -1161,
+    "worst_single_gbp": -640
+   },
+   "capital_for_min_stake_gbp": 3889,
+   "min_stake": {
+    "margin_gbp": 335,
+    "market": "US500",
+    "notional_gbp": 6700,
+    "per_trade_gbp": 13.47,
+    "per_year_gbp": 162,
+    "per_year_gbp_range": [
+     -59,
+     376
+    ],
+    "worst_drawdown_gbp": -778,
+    "worst_single_gbp": -429
+   },
+   "passes_A": false,
+   "passes_B": false,
+   "rule": "long US 500, last 2 to 3rd trading day",
+   "term_9_12": "by hand (monthly)",
+   "test_A": {
+    "annual_pct": 2.42,
+    "boot95_bps": [
+     -7.27,
+     46.54
+    ],
+    "max_drawdown_pct": -11.61,
+    "mean_bps": 20.1,
+    "n": 202,
+    "per_year": 12.06,
+    "sharpe": 0.36,
+    "t": 1.47,
+    "worst_bps": -639.7
+   },
+   "test_B": {
+    "boot95_bps": [
+     -21.76,
+     26.92
+    ],
+    "mean_bps": 3.18,
+    "n": 167,
+    "t": 0.26
+   },
+   "train_A": {
+    "boot95_bps": [
+     -8.86,
+     45.9
+    ],
+    "mean_bps": 18.63,
+    "n": 240,
+    "t": 1.33
+   },
+   "verdict": "dead"
+  },
+  {
+   "arm": "TOM_UK100",
+   "at_10k": {
+    "margin_gbp": 500,
+    "notional_gbp": 10000,
+    "per_trade_gbp": 10.04,
+    "per_year_gbp": 121,
+    "per_year_gbp_range": [
+     -202,
+     438
+    ],
+    "worst_drawdown_gbp": -2214,
+    "worst_single_gbp": -658
+   },
+   "capital_for_min_stake_gbp": 5258,
+   "min_stake": {
+    "margin_gbp": 238,
+    "market": "UK100",
+    "notional_gbp": 4750,
+    "per_trade_gbp": 4.77,
+    "per_year_gbp": 58,
+    "per_year_gbp_range": [
+     -96,
+     208
+    ],
+    "worst_drawdown_gbp": -1052,
+    "worst_single_gbp": -313
+   },
+   "passes_A": false,
+   "passes_B": false,
+   "rule": "the same on UK 100",
+   "term_9_12": "by hand (monthly)",
+   "test_A": {
+    "annual_pct": 1.21,
+    "boot95_bps": [
+     -16.77,
+     36.35
+    ],
+    "max_drawdown_pct": -22.14,
+    "mean_bps": 10.04,
+    "n": 202,
+    "per_year": 12.06,
+    "sharpe": 0.18,
+    "t": 0.73,
+    "worst_bps": -658.0
+   },
+   "test_B": {
+    "boot95_bps": null,
+    "mean_bps": null,
+    "n": null,
+    "t": null
+   },
+   "train_A": {
+    "boot95_bps": [
+     11.83,
+     66.74
+    ],
+    "mean_bps": 39.87,
+    "n": 240,
+    "t": 2.88
+   },
+   "verdict": "dead"
+  },
+  {
+   "arm": "TOM_DE40",
+   "at_10k": {
+    "margin_gbp": 500,
+    "notional_gbp": 10000,
+    "per_trade_gbp": 0.29,
+    "per_year_gbp": 3,
+    "per_year_gbp_range": [
+     -429,
+     419
+    ],
+    "worst_drawdown_gbp": -3971,
+    "worst_single_gbp": -804
+   },
+   "capital_for_min_stake_gbp": 23826,
+   "min_stake": {
+    "margin_gbp": 600,
+    "market": "DE40",
+    "notional_gbp": 12000,
+    "per_trade_gbp": 0.35,
+    "per_year_gbp": 4,
+    "per_year_gbp_range": [
+     -515,
+     502
+    ],
+    "worst_drawdown_gbp": -4765,
+    "worst_single_gbp": -965
+   },
+   "passes_A": false,
+   "passes_B": false,
+   "rule": "the same on Germany 40",
+   "term_9_12": "by hand (monthly)",
+   "test_A": {
+    "annual_pct": 0.04,
+    "boot95_bps": [
+     -35.6,
+     34.72
+    ],
+    "max_drawdown_pct": -39.71,
+    "mean_bps": 0.29,
+    "n": 202,
+    "per_year": 12.06,
+    "sharpe": 0.0,
+    "t": 0.02,
+    "worst_bps": -803.8
+   },
+   "test_B": {
+    "boot95_bps": null,
+    "mean_bps": null,
+    "n": null,
+    "t": null
+   },
+   "train_A": {
+    "boot95_bps": [
+     12.87,
+     91.44
+    ],
+    "mean_bps": 52.7,
+    "n": 240,
+    "t": 2.65
+   },
+   "verdict": "dead"
+  },
+  {
+   "arm": "OVERNIGHT_US500",
+   "at_10k": {
+    "margin_gbp": 500,
+    "notional_gbp": 10000,
+    "per_trade_gbp": 0.61,
+    "per_year_gbp": 154,
+    "per_year_gbp_range": [
+     -385,
+     674
+    ],
+    "worst_drawdown_gbp": -3534,
+    "worst_single_gbp": -1106
+   },
+   "capital_for_min_stake_gbp": 11839,
+   "min_stake": {
+    "margin_gbp": 335,
+    "market": "US500",
+    "notional_gbp": 6700,
+    "per_trade_gbp": 0.41,
+    "per_year_gbp": 103,
+    "per_year_gbp_range": [
+     -258,
+     452
+    ],
+    "worst_drawdown_gbp": -2368,
+    "worst_single_gbp": -741
+   },
+   "passes_A": false,
+   "passes_B": false,
+   "rule": "long US 500 close to open",
+   "term_9_12": "software (two trades a day)",
+   "test_A": {
+    "annual_pct": 1.54,
+    "boot95_bps": [
+     -1.53,
+     2.68
+    ],
+    "max_drawdown_pct": -35.34,
+    "mean_bps": 0.61,
+    "n": 4222,
+    "per_year": 251.65,
+    "sharpe": 0.14,
+    "t": 0.58,
+    "worst_bps": -1106.2
+   },
+   "test_B": {
+    "boot95_bps": [
+     -0.12,
+     4.8
+    ],
+    "mean_bps": 2.38,
+    "n": 4222,
+    "t": 1.93
+   },
+   "train_A": {
+    "boot95_bps": [
+     -1.32,
+     2.62
+    ],
+    "mean_bps": 0.66,
+    "n": 4263,
+    "t": 0.66
+   },
+   "verdict": "dead"
+  },
+  {
+   "arm": "MONTHEND_EURUSD",
+   "at_10k": {
+    "margin_gbp": 333,
+    "notional_gbp": 10000,
+    "per_trade_gbp": -0.61,
+    "per_year_gbp": -7,
+    "per_year_gbp_range": [
+     -68,
+     53
+    ],
+    "worst_drawdown_gbp": -365,
+    "worst_single_gbp": -95
+   },
+   "capital_for_min_stake_gbp": 1058,
+   "min_stake": {
+    "margin_gbp": 193,
+    "market": "EURUSD",
+    "notional_gbp": 5800,
+    "per_trade_gbp": -0.35,
+    "per_year_gbp": -4,
+    "per_year_gbp_range": [
+     -39,
+     31
+    ],
+    "worst_drawdown_gbp": -212,
+    "worst_single_gbp": -55
+   },
+   "passes_A": false,
+   "passes_B": false,
+   "rule": "month-end fix hedge flow, EUR/USD",
+   "term_9_12": "by hand (monthly, 14:00-16:00)",
+   "test_A": {
+    "annual_pct": -0.07,
+    "boot95_bps": [
+     -5.65,
+     4.42
+    ],
+    "max_drawdown_pct": -3.65,
+    "mean_bps": -0.61,
+    "n": 92,
+    "per_year": 11.97,
+    "sharpe": -0.08,
+    "t": -0.23,
+    "worst_bps": -95.0
+   },
+   "test_B": {
+    "boot95_bps": [
+     -6.02,
+     4.09
+    ],
+    "mean_bps": -1.0,
+    "n": 90,
+    "t": -0.38
+   },
+   "train_A": {
+    "boot95_bps": [
+     -3.39,
+     8.2
+    ],
+    "mean_bps": 2.4,
+    "n": 84,
+    "t": 0.8
+   },
+   "verdict": "dead"
+  },
+  {
+   "arm": "MONTHEND_GBPUSD",
+   "at_10k": {
+    "margin_gbp": 333,
+    "notional_gbp": 10000,
+    "per_trade_gbp": -0.27,
+    "per_year_gbp": -3,
+    "per_year_gbp_range": [
+     -78,
+     70
+    ],
+    "worst_drawdown_gbp": -541,
+    "worst_single_gbp": -90
+   },
+   "capital_for_min_stake_gbp": 3625,
+   "min_stake": {
+    "margin_gbp": 446,
+    "market": "GBPUSD",
+    "notional_gbp": 13400,
+    "per_trade_gbp": -0.36,
+    "per_year_gbp": -4,
+    "per_year_gbp_range": [
+     -104,
+     93
+    ],
+    "worst_drawdown_gbp": -725,
+    "worst_single_gbp": -121
+   },
+   "passes_A": false,
+   "passes_B": false,
+   "rule": "the same, GBP/USD",
+   "term_9_12": "by hand (monthly)",
+   "test_A": {
+    "annual_pct": -0.03,
+    "boot95_bps": [
+     -6.51,
+     5.81
+    ],
+    "max_drawdown_pct": -5.41,
+    "mean_bps": -0.27,
+    "n": 92,
+    "per_year": 11.97,
+    "sharpe": -0.03,
+    "t": -0.09,
+    "worst_bps": -90.3
+   },
+   "test_B": {
+    "boot95_bps": [
+     -6.68,
+     5.73
+    ],
+    "mean_bps": -0.36,
+    "n": 90,
+    "t": -0.11
+   },
+   "train_A": {
+    "boot95_bps": [
+     -6.25,
+     5.84
+    ],
+    "mean_bps": -0.22,
+    "n": 84,
+    "t": -0.07
+   },
+   "verdict": "dead"
+  },
+  {
+   "arm": "MONTHEND_USDJPY",
+   "at_10k": {
+    "margin_gbp": 333,
+    "notional_gbp": 10000,
+    "per_trade_gbp": -4.89,
+    "per_year_gbp": -59,
+    "per_year_gbp_range": [
+     -115,
+     -4
+    ],
+    "worst_drawdown_gbp": -529,
+    "worst_single_gbp": -90
+   },
+   "capital_for_min_stake_gbp": 1984,
+   "min_stake": {
+    "margin_gbp": 250,
+    "market": "USDJPY",
+    "notional_gbp": 7500,
+    "per_trade_gbp": -3.67,
+    "per_year_gbp": -44,
+    "per_year_gbp_range": [
+     -86,
+     -3
+    ],
+    "worst_drawdown_gbp": -397,
+    "worst_single_gbp": -68
+   },
+   "passes_A": false,
+   "passes_B": false,
+   "rule": "the same, USD/JPY",
+   "term_9_12": "by hand (monthly)",
+   "test_A": {
+    "annual_pct": -0.59,
+    "boot95_bps": [
+     -9.57,
+     -0.34
+    ],
+    "max_drawdown_pct": -5.29,
+    "mean_bps": -4.89,
+    "n": 92,
+    "per_year": 11.97,
+    "sharpe": -0.72,
+    "t": -2.0,
+    "worst_bps": -90.4
+   },
+   "test_B": {
+    "boot95_bps": [
+     -10.04,
+     -0.53
+    ],
+    "mean_bps": -5.19,
+    "n": 90,
+    "t": -2.08
+   },
+   "train_A": {
+    "boot95_bps": [
+     0.75,
+     10.39
+    ],
+    "mean_bps": 5.51,
+    "n": 84,
+    "t": 2.18
+   },
+   "verdict": "dead"
+  },
+  {
+   "arm": "MONTHEND_AUDUSD",
+   "at_10k": {
+    "margin_gbp": 500,
+    "notional_gbp": 10000,
+    "per_trade_gbp": 5.08,
+    "per_year_gbp": 61,
+    "per_year_gbp_range": [
+     -12,
+     133
+    ],
+    "worst_drawdown_gbp": -189,
+    "worst_single_gbp": -85
+   },
+   "capital_for_min_stake_gbp": 331,
+   "min_stake": {
+    "margin_gbp": 175,
+    "market": "AUDUSD",
+    "notional_gbp": 3500,
+    "per_trade_gbp": 1.78,
+    "per_year_gbp": 21,
+    "per_year_gbp_range": [
+     -4,
+     46
+    ],
+    "worst_drawdown_gbp": -66,
+    "worst_single_gbp": -30
+   },
+   "passes_A": false,
+   "passes_B": false,
+   "rule": "the same, AUD/USD",
+   "term_9_12": "by hand (monthly)",
+   "test_A": {
+    "annual_pct": 0.61,
+    "boot95_bps": [
+     -1.01,
+     11.09
+    ],
+    "max_drawdown_pct": -1.89,
+    "mean_bps": 5.08,
+    "n": 92,
+    "per_year": 11.97,
+    "sharpe": 0.58,
+    "t": 1.61,
+    "worst_bps": -85.1
+   },
+   "test_B": {
+    "boot95_bps": [
+     -0.84,
+     11.65
+    ],
+    "mean_bps": 5.35,
+    "n": 90,
+    "t": 1.66
+   },
+   "train_A": {
+    "boot95_bps": [
+     -4.67,
+     7.06
+    ],
+    "mean_bps": 1.22,
+    "n": 84,
+    "t": 0.41
+   },
+   "verdict": "dead"
+  },
+  {
+   "arm": "GOLD_SEP_NOV",
+   "at_10k": {
+    "margin_gbp": 500,
+    "notional_gbp": 10000,
+    "per_trade_gbp": -155.32,
+    "per_year_gbp": -320,
+    "per_year_gbp_range": [
+     -651,
+     0
+    ],
+    "worst_drawdown_gbp": -6809,
+    "worst_single_gbp": -1217
+   },
+   "capital_for_min_stake_gbp": 68090,
+   "min_stake": {
+    "margin_gbp": 1000,
+    "market": "GOLD",
+    "notional_gbp": 20000,
+    "per_trade_gbp": -310.64,
+    "per_year_gbp": -640,
+    "per_year_gbp_range": [
+     -1302,
+     1
+    ],
+    "worst_drawdown_gbp": -13618,
+    "worst_single_gbp": -2435
+   },
+   "passes_A": false,
+   "passes_B": false,
+   "rule": "long gold in September and November",
+   "term_9_12": "by hand (twice a year)",
+   "test_A": {
+    "annual_pct": -3.2,
+    "boot95_bps": [
+     -316.09,
+     0.16
+    ],
+    "max_drawdown_pct": -68.09,
+    "mean_bps": -155.32,
+    "n": 33,
+    "per_year": 2.06,
+    "sharpe": -0.47,
+    "t": -1.87,
+    "worst_bps": -1217.4
+   },
+   "test_B": {
+    "boot95_bps": [
+     -281.81,
+     203.77
+    ],
+    "mean_bps": -48.86,
+    "n": 16,
+    "t": -0.38
+   },
+   "train_A": {
+    "boot95_bps": [
+     185.1,
+     593.33
+    ],
+    "mean_bps": 381.58,
+    "n": 20,
+    "t": 3.55
+   },
+   "verdict": "dead"
+  },
+  {
+   "arm": "WTI_MAR_APR",
+   "at_10k": {
+    "margin_gbp": 1000,
+    "notional_gbp": 10000,
+    "per_trade_gbp": 150.03,
+    "per_year_gbp": 159,
+    "per_year_gbp_range": [
+     -1305,
+     1332
+    ],
+    "worst_drawdown_gbp": -9403,
+    "worst_single_gbp": -8730
+   },
+   "capital_for_min_stake_gbp": 7052,
+   "min_stake": {
+    "margin_gbp": 150,
+    "market": "WTI",
+    "notional_gbp": 1500,
+    "per_trade_gbp": 22.5,
+    "per_year_gbp": 24,
+    "per_year_gbp_range": [
+     -196,
+     200
+    ],
+    "worst_drawdown_gbp": -1410,
+    "worst_single_gbp": -1310
+   },
+   "passes_A": false,
+   "passes_B": false,
+   "rule": "long WTI March-April",
+   "term_9_12": "by hand (once a year)",
+   "test_A": {
+    "annual_pct": 1.59,
+    "boot95_bps": [
+     -1230.96,
+     1256.24
+    ],
+    "max_drawdown_pct": -94.03,
+    "mean_bps": 150.03,
+    "n": 17,
+    "per_year": 1.06,
+    "sharpe": 0.06,
+    "t": 0.23,
+    "worst_bps": -8730.2
+   },
+   "test_B": {
+    "boot95_bps": [
+     -1171.19,
+     1326.81
+    ],
+    "mean_bps": 201.81,
+    "n": 17,
+    "t": 0.31
+   },
+   "train_A": {
+    "boot95_bps": [
+     -831.97,
+     1182.12
+    ],
+    "mean_bps": 306.13,
+    "n": 9,
+    "t": 0.56
+   },
+   "verdict": "dead"
+  },
+  {
+   "arm": "SESSION_EURUSD",
+   "at_10k": {
+    "margin_gbp": 333,
+    "notional_gbp": 10000,
+    "per_trade_gbp": -0.14,
+    "per_year_gbp": -34,
+    "per_year_gbp_range": [
+     -290,
+     222
+    ],
+    "worst_drawdown_gbp": -1182,
+    "worst_single_gbp": -116
+   },
+   "capital_for_min_stake_gbp": 3428,
+   "min_stake": {
+    "margin_gbp": 193,
+    "market": "EURUSD",
+    "notional_gbp": 5800,
+    "per_trade_gbp": -0.08,
+    "per_year_gbp": -20,
+    "per_year_gbp_range": [
+     -168,
+     128
+    ],
+    "worst_drawdown_gbp": -686,
+    "worst_single_gbp": -67
+   },
+   "passes_A": false,
+   "passes_B": false,
+   "rule": "short EUR/USD 07:00-12:00 UK daily",
+   "term_9_12": "by hand at fixed times, or software",
+   "test_A": {
+    "annual_pct": -0.34,
+    "boot95_bps": [
+     -1.18,
+     0.9
+    ],
+    "max_drawdown_pct": -11.82,
+    "mean_bps": -0.14,
+    "n": 1912,
+    "per_year": 246.16,
+    "sharpe": -0.09,
+    "t": -0.25,
+    "worst_bps": -115.6
+   },
+   "test_B": {
+    "boot95_bps": null,
+    "mean_bps": null,
+    "n": null,
+    "t": null
+   },
+   "train_A": {
+    "boot95_bps": [
+     0.34,
+     2.8
+    ],
+    "mean_bps": 1.57,
+    "n": 1811,
+    "t": 2.53
+   },
+   "verdict": "dead"
+  },
+  {
+   "arm": "SESSION_GBPUSD",
+   "at_10k": {
+    "margin_gbp": 333,
+    "notional_gbp": 10000,
+    "per_trade_gbp": -0.1,
+    "per_year_gbp": -25,
+    "per_year_gbp_range": [
+     -340,
+     300
+    ],
+    "worst_drawdown_gbp": -942,
+    "worst_single_gbp": -152
+   },
+   "capital_for_min_stake_gbp": 6311,
+   "min_stake": {
+    "margin_gbp": 446,
+    "market": "GBPUSD",
+    "notional_gbp": 13400,
+    "per_trade_gbp": -0.13,
+    "per_year_gbp": -33,
+    "per_year_gbp_range": [
+     -455,
+     402
+    ],
+    "worst_drawdown_gbp": -1262,
+    "worst_single_gbp": -203
+   },
+   "passes_A": false,
+   "passes_B": false,
+   "rule": "short GBP/USD 07:00-12:00 UK daily",
+   "term_9_12": "by hand at fixed times, or software",
+   "test_A": {
+    "annual_pct": -0.24,
+    "boot95_bps": [
+     -1.38,
+     1.22
+    ],
+    "max_drawdown_pct": -9.42,
+    "mean_bps": -0.1,
+    "n": 1912,
+    "per_year": 246.16,
+    "sharpe": -0.05,
+    "t": -0.15,
+    "worst_bps": -151.5
+   },
+   "test_B": {
+    "boot95_bps": null,
+    "mean_bps": null,
+    "n": null,
+    "t": null
+   },
+   "train_A": {
+    "boot95_bps": [
+     -0.6,
+     2.01
+    ],
+    "mean_bps": 0.72,
+    "n": 1811,
+    "t": 1.06
+   },
+   "verdict": "dead"
+  },
+  {
+   "arm": "SESSION_USDJPY",
+   "at_10k": {
+    "margin_gbp": 333,
+    "notional_gbp": 10000,
+    "per_trade_gbp": -0.96,
+    "per_year_gbp": -235,
+    "per_year_gbp_range": [
+     -529,
+     59
+    ],
+    "worst_drawdown_gbp": -2104,
+    "worst_single_gbp": -300
+   },
+   "capital_for_min_stake_gbp": 7890,
+   "min_stake": {
+    "margin_gbp": 250,
+    "market": "USDJPY",
+    "notional_gbp": 7500,
+    "per_trade_gbp": -0.72,
+    "per_year_gbp": -176,
+    "per_year_gbp_range": [
+     -397,
+     44
+    ],
+    "worst_drawdown_gbp": -1578,
+    "worst_single_gbp": -225
+   },
+   "passes_A": false,
+   "passes_B": false,
+   "rule": "long USD/JPY 00:00-06:00 UK daily",
+   "term_9_12": "software (00:00-06:00 UK daily)",
+   "test_A": {
+    "annual_pct": -2.36,
+    "boot95_bps": [
+     -2.16,
+     0.24
+    ],
+    "max_drawdown_pct": -21.04,
+    "mean_bps": -0.96,
+    "n": 1903,
+    "per_year": 245.09,
+    "sharpe": -0.56,
+    "t": -1.57,
+    "worst_bps": -300.2
+   },
+   "test_B": {
+    "boot95_bps": null,
+    "mean_bps": null,
+    "n": null,
+    "t": null
+   },
+   "train_A": {
+    "boot95_bps": [
+     -4.05,
+     -1.38
+    ],
+    "mean_bps": -2.69,
+    "n": 1803,
+    "t": -3.94
+   },
+   "verdict": "dead"
+  },
+  {
+   "arm": "SESSION_AUDUSD",
+   "at_10k": {
+    "margin_gbp": 500,
+    "notional_gbp": 10000,
+    "per_trade_gbp": -3.11,
+    "per_year_gbp": -763,
+    "per_year_gbp_range": [
+     -1107,
+     -427
+    ],
+    "worst_drawdown_gbp": -5994,
+    "worst_single_gbp": -320
+   },
+   "capital_for_min_stake_gbp": 10489,
+   "min_stake": {
+    "margin_gbp": 175,
+    "market": "AUDUSD",
+    "notional_gbp": 3500,
+    "per_trade_gbp": -1.09,
+    "per_year_gbp": -267,
+    "per_year_gbp_range": [
+     -387,
+     -149
+    ],
+    "worst_drawdown_gbp": -2098,
+    "worst_single_gbp": -112
+   },
+   "passes_A": false,
+   "passes_B": false,
+   "rule": "short AUD/USD 23:00-05:00 UK daily",
+   "term_9_12": "software (23:00-05:00 UK daily)",
+   "test_A": {
+    "annual_pct": -7.63,
+    "boot95_bps": [
+     -4.51,
+     -1.74
+    ],
+    "max_drawdown_pct": -59.94,
+    "mean_bps": -3.11,
+    "n": 1905,
+    "per_year": 245.35,
+    "sharpe": -1.57,
+    "t": -4.39,
+    "worst_bps": -320.3
+   },
+   "test_B": {
+    "boot95_bps": null,
+    "mean_bps": null,
+    "n": null,
+    "t": null
+   },
+   "train_A": {
+    "boot95_bps": [
+     -3.32,
+     -0.33
+    ],
+    "mean_bps": -1.83,
+    "n": 1802,
+    "t": -2.4
+   },
+   "verdict": "dead"
+  },
+  {
+   "arm": "MONDAY_ESG",
+   "at_10k": {
+    "margin_gbp": 500
+   },
+   "capital_for_min_stake_gbp": 335,
+   "min_stake": {
+    "margin_gbp": 335,
+    "market": "US500"
+   },
+   "passes_A": false,
+   "passes_B": false,
+   "rule": "fade a 0.5 % S&P weekend gap, exit Monday 16:00 ET",
+   "term_9_12": "by hand (Sunday 23:00 UK)",
+   "test_A": {
+    "boot95_bps": [
+     -13.53,
+     112.42
+    ],
+    "max_drawdown_pct": -2.12,
+    "mean_bps": 50.69,
+    "n": 18,
+    "per_year": null,
+    "t": 1.54,
+    "worst_bps": -211.7
+   },
+   "test_B": {
+    "boot95_bps": null,
+    "mean_bps": null,
+    "n": null,
+    "t": null
+   },
+   "train_A": {
+    "boot95_bps": null,
+    "mean_bps": null,
+    "n": null,
+    "t": null
+   },
+   "verdict": "not run, coverage (one era, deviation 2)"
+  },
+  {
+   "arm": "MONDAY_FILL",
+   "at_10k": {
+    "margin_gbp": 500
+   },
+   "capital_for_min_stake_gbp": 335,
+   "min_stake": {
+    "margin_gbp": 335,
+    "market": "US500"
+   },
+   "passes_A": false,
+   "passes_B": false,
+   "rule": "the same, exit at Friday's close if touched",
+   "term_9_12": "by hand with a limit order",
+   "test_A": {
+    "boot95_bps": [
+     -12.49,
+     89.02
+    ],
+    "max_drawdown_pct": -2.12,
+    "mean_bps": 42.19,
+    "n": 18,
+    "per_year": null,
+    "t": 1.59,
+    "worst_bps": -211.7
+   },
+   "test_B": {
+    "boot95_bps": null,
+    "mean_bps": null,
+    "n": null,
+    "t": null
+   },
+   "train_A": {
+    "boot95_bps": null,
+    "mean_bps": null,
+    "n": null,
+    "t": null
+   },
+   "verdict": "not run, coverage (one era, deviation 2)"
+  },
+  {
+   "arm": "VIX_CARRY",
+   "passes_A": false,
+   "passes_B": false,
+   "rule": "short front VIX in contango and VIX < 20, +50 % guaranteed stop, 10 % notional",
+   "term_9_12": "by hand (monthly)",
+   "test_A": {
+    "annual_pct": -1.09,
+    "boot95_bps": [
+     -79.64,
+     42.36
+    ],
+    "max_drawdown_pct": -13.85,
+    "mean_bps": -16.17,
+    "n": 45,
+    "per_year": 6.76,
+    "sharpe": -0.2,
+    "t": -0.51,
+    "worst_bps": -528.3
+   },
+   "test_B": {
+    "boot95_bps": [
+     -79.64,
+     42.36
+    ],
+    "mean_bps": -16.17,
+    "n": 45,
+    "t": -0.51
+   },
+   "train_A": {
+    "boot95_bps": [
+     -55.78,
+     49.37
+    ],
+    "mean_bps": 0.33,
+    "n": 57,
+    "t": 0.01
+   },
+   "verdict": "dead"
+  },
+  {
+   "arm": "COT_CONTRA",
+   "passes_A": false,
+   "passes_B": false,
+   "rule": "fade speculators' 3-year positioning extremes, 4 weeks",
+   "term_9_12": "by hand (weekly)",
+   "test_A": {
+    "annual_pct": -13.18,
+    "boot95_bps": [
+     -43.47,
+     14.61
+    ],
+    "max_drawdown_pct": -304.25,
+    "mean_bps": -14.57,
+    "n": 973,
+    "per_year": 90.43,
+    "sharpe": -0.3,
+    "t": -0.99,
+    "worst_bps": -2717.5
+   },
+   "test_B": {
+    "boot95_bps": [
+     -55.59,
+     -1.68
+    ],
+    "mean_bps": -28.79,
+    "n": 974,
+    "t": -2.09
+   },
+   "train_A": {
+    "boot95_bps": [
+     -38.26,
+     23.17
+    ],
+    "mean_bps": -7.29,
+    "n": 847,
+    "t": -0.46
+   },
+   "verdict": "dead"
+  },
+  {
+   "arm": "REAL_YIELD_GOLD",
+   "at_10k": {
+    "margin_gbp": 500,
+    "notional_gbp": 10000,
+    "per_trade_gbp": -1.56,
+    "per_year_gbp": -19,
+    "per_year_gbp_range": [
+     -889,
+     852
+    ],
+    "worst_drawdown_gbp": -5309,
+    "worst_single_gbp": -1256
+   },
+   "capital_for_min_stake_gbp": 53090,
+   "min_stake": {
+    "margin_gbp": 1000,
+    "market": "GOLD",
+    "notional_gbp": 20000,
+    "per_trade_gbp": -3.12,
+    "per_year_gbp": -38,
+    "per_year_gbp_range": [
+     -1778,
+     1704
+    ],
+    "worst_drawdown_gbp": -10618,
+    "worst_single_gbp": -2512
+   },
+   "passes_A": false,
+   "passes_B": false,
+   "rule": "gold with the sign of falling 10-year real yields",
+   "term_9_12": "by hand (monthly)",
+   "test_A": {
+    "annual_pct": -0.19,
+    "boot95_bps": [
+     -73.29,
+     70.22
+    ],
+    "max_drawdown_pct": -53.09,
+    "mean_bps": -1.56,
+    "n": 142,
+    "per_year": 12.13,
+    "sharpe": -0.01,
+    "t": -0.04,
+    "worst_bps": -1255.8
+   },
+   "test_B": {
+    "boot95_bps": [
+     -42.34,
+     128.21
+    ],
+    "mean_bps": 43.23,
+    "n": 82,
+    "t": 0.98
+   },
+   "train_A": {
+    "boot95_bps": [
+     -74.64,
+     104.89
+    ],
+    "mean_bps": 13.92,
+    "n": 140,
+    "t": 0.3
+   },
+   "verdict": "dead"
+  },
+  {
+   "arm": "CREDIT_EQUITY",
+   "at_10k": {
+    "margin_gbp": 500,
+    "notional_gbp": 10000,
+    "per_trade_gbp": -29.4,
+    "per_year_gbp": -355,
+    "per_year_gbp_range": [
+     -889,
+     180
+    ],
+    "worst_drawdown_gbp": -7297,
+    "worst_single_gbp": -1181
+   },
+   "capital_for_min_stake_gbp": 24445,
+   "min_stake": {
+    "margin_gbp": 335,
+    "market": "US500",
+    "notional_gbp": 6700,
+    "per_trade_gbp": -19.7,
+    "per_year_gbp": -238,
+    "per_year_gbp_range": [
+     -595,
+     120
+    ],
+    "worst_drawdown_gbp": -4889,
+    "worst_single_gbp": -791
+   },
+   "passes_A": false,
+   "passes_B": false,
+   "rule": "US 500 only while the Baa spread is below its 6-month mean, against always long",
+   "term_9_12": "by hand (daily close)",
+   "test_A": {
+    "annual_pct": -3.55,
+    "boot95_bps": [
+     -73.68,
+     14.89
+    ],
+    "max_drawdown_pct": -72.97,
+    "mean_bps": -29.4,
+    "n": 201,
+    "per_year": 12.06,
+    "sharpe": -0.32,
+    "t": -1.29,
+    "worst_bps": -1181.1
+   },
+   "test_B": {
+    "boot95_bps": null,
+    "mean_bps": null,
+    "n": null,
+    "t": null
+   },
+   "train_A": {
+    "boot95_bps": [
+     -46.06,
+     47.37
+    ],
+    "mean_bps": -0.36,
+    "n": 240,
+    "t": -0.02
+   },
+   "verdict": "dead"
+  }
+ ],
+ "tsmom_capital": {
+  "capital_8_markets_gbp": 107370,
+  "capital_all_markets_gbp": 984762,
+  "markets_8_smallest": [
+   "AUDUSD",
+   "EURUSD",
+   "WTI",
+   "UK100",
+   "USDJPY",
+   "US500",
+   "GBPUSD",
+   "UST10"
+  ],
+  "min_notional_gbp": {
+   "AUDUSD": 3500,
+   "DE40": 12000,
+   "EURUSD": 5800,
+   "GBPUSD": 13400,
+   "GOLD": 20000,
+   "JP225": 47000,
+   "UK100": 4750,
+   "US500": 6700,
+   "USDJPY": 7500,
+   "UST10": 22400,
+   "WTI": 1500
+  },
+  "typical_abs_position": {
+   "AUDUSD": 1.052,
+   "DE40": 0.629,
+   "EURUSD": 1.336,
+   "GBPUSD": 1.266,
+   "GOLD": 0.672,
+   "JP225": 0.525,
+   "UK100": 0.788,
+   "US500": 0.771,
+   "USDJPY": 1.173,
+   "UST10": 1.669,
+   "WTI": 0.307
+  }
+ }
+}

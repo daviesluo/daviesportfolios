@@ -191,6 +191,9 @@ def excess_returns(df, source):
                 r = r + (us.reindex(p.index) - jp.reindex(p.index)) * days / 365
             else:
                 r = r - us.reindex(p.index) * days / 365
+        # A gap of more than a week (a source's missing year: Dukascopy's throttle left holes) is not one day's return.
+        gap = p.index.to_series().diff().dt.days
+        r = r[gap <= 7]
         out[m] = r.dropna()
     return out
 
@@ -204,6 +207,7 @@ def tsmom(df):
         ex = excess_returns(df, source)
         for variant in ("TS12", "ENS"):
             monthly = {}           # month -> list of (market, net return)
+            gross_monthly = {}     # the same before IG's spread and admin fee: what the costs take
             per_market = {m: [] for m in ex}
             flips = {m: 0 for m in ex}
             for m, r in ex.items():
@@ -221,6 +225,7 @@ def tsmom(df):
                     gross = pos * nxt.sum()
                     days = (t1 - t0).days
                     cost = bps_spread(m) / 2 / BPS * abs(pos - pos_prev) + ADMIN[m] * abs(pos) * days / 365
+                    gross_monthly.setdefault(str(t1.to_period("M")), []).append(gross)
                     if np.sign(pos) != np.sign(pos_prev) and pos != 0:
                         flips[m] += 1
                     pos_prev = pos
@@ -234,13 +239,22 @@ def tsmom(df):
                 "portfolio_monthly": port, "verdict": verdict(port),
                 "markets": {m: {**split(v, era), "sign_flips": flips[m]} for m, v in per_market.items() if v},
                 "markets_used": sorted(m for m, v in per_market.items() if v),
+                "portfolio_monthly_before_ig_costs": split([(k + "-28", float(np.mean(v))) for k, v in sorted(gross_monthly.items())], era),
             }
             # The same without IG's admin fee and spreads: what the costs take.
             res[f"{source}_{variant}"]["note"] = "monthly portfolio returns, equal risk (10 % a market before averaging), net of IG spread and admin fee"
+    # Typical position (median |10 % / sigma60| over the test era) per market: what a unit of capital holds.
+    ex = excess_returns(df, "A")
+    res["typical_abs_position_test"] = {}
+    for m, r in ex.items():
+        v = (r.rolling(60).std() * math.sqrt(252)).dropna()
+        v = v[v.index >= pd.Timestamp(eras_of("TSMOM")["test"][0])]
+        if len(v):
+            res["typical_abs_position_test"][m] = round(float(np.median(np.minimum(2.0, 0.10 / v))), 3)
     # Cross-source check: daily excess-return correlation where both sources overlap.
     a, b = excess_returns(df, "A"), excess_returns(df, "B")
-    res["source_correlation_daily"] = {m: round(float(pd.concat([a[m], b[m]], axis=1).dropna().corr().iloc[0, 1]), 3)
-                                       for m in a if m in b and len(pd.concat([a[m], b[m]], axis=1).dropna()) > 250}
+    res["source_correlation_daily"] = {m: round(float(pd.concat([a[m], b[m]], axis=1, sort=True).dropna().corr().iloc[0, 1]), 3)
+                                       for m in a if m in b and len(pd.concat([a[m], b[m]], axis=1, sort=True).dropna()) > 250}
     return res
 
 
@@ -270,6 +284,9 @@ def prefomc(df):
     us = us_rate(df)
     res = {"fomc_days": len(days)}
     for src, col in (("A", "Y:^GSPC"), ("B_dukascopy", "D:USA500IDXUSD"), ("B_fred", "F:SP500")):
+        if col not in df:
+            res[src] = {"not_available": col}
+            continue
         px = df[col].dropna()
         rows = []
         for d, r, nights in event_window(px, days, -1, 0):
@@ -296,6 +313,9 @@ def tom(df):
     for m, (ca, cb, rcol, dy, div_) in mk.items():
         r_loc = rate(df, rcol, 0.03)
         for src, col in (("A", ca), ("B", cb)):
+            if col not in df:
+                res[f"{m}_{src}"] = {"not_available": col}
+                continue
             px = df[col].dropna()
             px = px[px > 0]
             g = month_days(px)
@@ -340,7 +360,8 @@ def fx_events():
     with gzip.open(os.path.join(INP, "fx_events.csv.gz"), "rt") as fh:
         for r in csv.DictReader(fh):
             d, hm = r["london"][:10], r["london"][11:16]
-            ev.setdefault(r["pair"], {}).setdefault(d, {})[hm] = float(r["bid_open"])
+            # The mid: a bid alone carries the spread's widening at the 22:00 UK rollover into the 23:00 and 00:00 legs.
+            ev.setdefault(r["pair"], {}).setdefault(d, {})[hm] = (float(r["bid_open"]) + float(r["ask_open"])) / 2
     return ev
 
 
@@ -389,8 +410,8 @@ def monthend_fix(df):
             fx = fxcm.get(pair, {}).get(d)
             if fx and fx.get("l1400") and fx.get("l1600"):
                 rows_b.append((d, s * math.log(float(fx["l1600"]) / float(fx["l1400"])) - cost))
-        res[f"{pair}_A_dukascopy"] = split(rows_a, era, f"MONTHEND_{pair}_A")
-        res[f"{pair}_A_dukascopy"]["verdict"] = verdict(res[f"{pair}_A_dukascopy"])
+        res[f"{pair}_A_fxcm_h1"] = split(rows_a, era, f"MONTHEND_{pair}_A")
+        res[f"{pair}_A_fxcm_h1"]["verdict"] = verdict(res[f"{pair}_A_fxcm_h1"])
         res[f"{pair}_B_fxcm"] = split(rows_b, era, f"MONTHEND_{pair}_B")
     pooled = []
     for pair in PAIR_IDX:
@@ -405,6 +426,9 @@ def seasonal(df):
     for name, months, srcs, admin in (("GOLD_SEP_NOV", (9, 11), (("A", "Y:GC=F"), ("B", "D:XAUUSD")), ADMIN["GOLD"]),
                                       ("WTI_MAR_APR", ((3, 4),), (("A", "Y:CL=F"), ("B", "F:DCOILWTICO")), ADMIN["WTI"])):
         for src, col in srcs:
+            if col not in df:
+                res[f"{name}_{src}"] = {"not_available": col}
+                continue
             px = df[col].dropna()
             px = px[px > 0]
             g = month_days(px)
@@ -568,7 +592,7 @@ def cot_contra(df):
         allrows = []
         for name, srcs in mk.items():
             col = dict(srcs)[src]
-            if col not in df:
+            if col not in df:  # noqa: SIM102
                 continue
             px = df[col].dropna()
             px = px[px > 0]
@@ -596,8 +620,8 @@ def cot_contra(df):
                 fri = pd.Timestamp(d) + pd.Timedelta(days=3)
                 j = px.index.searchsorted(fri)
                 k = j + 20
-                if k >= len(px):
-                    continue
+                if k >= len(px) or (px.index[k] - px.index[j]).days > 40:
+                    continue        # 20 trading days that span a hole in the source are not four weeks
                 if name == "UST10":
                     y0, y1 = px.iloc[j] / 100, px.iloc[k] / 100
                     ret = -8 * (y1 - y0)
@@ -619,6 +643,9 @@ def real_yield_gold(df):
     us = us_rate(df)
     res = {}
     for src, col in (("A", "Y:GC=F"), ("B", "D:XAUUSD")):
+        if col not in df:
+            res[src] = {"not_available": col}
+            continue
         px = df[col].dropna()
         px = px[px > 0]
         ends = px.groupby(px.index.to_period("M")).apply(lambda s: s.index[-1])
@@ -627,8 +654,8 @@ def real_yield_gold(df):
             t0, t1 = ends.iloc[i], ends.iloc[i + 1]
             a = ry[:t0]
             b = ry[:ends.iloc[i - 3]]
-            if a.empty or b.empty:
-                continue
+            if a.empty or b.empty or (t1 - t0).days > 35:
+                continue            # a month that spans a hole in the source is not a month
             side = 1 if a.iloc[-1] - b.iloc[-1] < 0 else -1
             nights = (t1 - t0).days
             r = math.log(px[t1] / px[t0]) - us.get(t0, 0.02) * nights / 365

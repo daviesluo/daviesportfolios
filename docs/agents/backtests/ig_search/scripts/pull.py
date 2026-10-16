@@ -40,7 +40,7 @@ YAHOO = ["^GSPC", "^FTSE", "^GDAXI", "^N225", "^AXJO", "^STOXX50E", "GC=F", "CL=
 FRED = ["SP500", "DEXUSEU", "DEXUSUK", "DEXJPUS", "DEXUSAL", "DCOILWTICO", "DGS10", "DTB3", "DFII10", "DBAA", "VIXCLS",
         "SOFR", "IUDSOIA", "IR3TIB01USM156N", "IR3TIB01GBM156N", "IR3TIB01EZM156N", "IR3TIB01JPM156N", "IR3TIB01AUM156N",
         "ECBDFR"]
-DUKA_DAILY = {"USA500IDXUSD": 2012, "GBRIDXGBP": 2012, "DEUIDXEUR": 2012, "JPNIDXJPY": 2012, "XAUUSD": 2003, "LIGHTCMDUSD": 2012}
+DUKA_DAILY = {"USA500IDXUSD": 2012, "XAUUSD": 2003}   # deviation 3: the throttle allows only a few files a minute
 FX_PAIRS = ["EURUSD", "GBPUSD", "USDJPY", "AUDUSD"]
 COT_MARKETS = {"GOLD": "088691", "WTI": "067651", "SP500_EMINI": "13874A", "UST10": "043602", "EUR": "099741", "JPY": "097741"}
 LOG = []
@@ -222,7 +222,7 @@ def main():
             cols[f"Y:{s}:open"] = {d: v[0] for d, v in y.items() if v[0]}
     for s in FRED:
         cols[f"F:{s}"] = fred(s)
-    refs = {"USA500IDXUSD": "Y:^GSPC", "GBRIDXGBP": "Y:^FTSE", "DEUIDXEUR": "Y:^GDAXI", "JPNIDXJPY": "Y:^N225", "XAUUSD": "Y:GC=F", "LIGHTCMDUSD": "Y:CL=F"}
+    refs = {"USA500IDXUSD": "Y:^GSPC", "XAUUSD": "Y:GC=F"}
     for sym, y0 in DUKA_DAILY.items():
         raw = duka_daily(sym, y0)
         ref = [v for d, v in cols[refs[sym]].items() if d >= f"{y0}-01-01"]

@@ -3,12 +3,56 @@
  "note": "2026-10-16: the IG strategy search. Small derived inputs are committed; raw pulls too large to commit are pinned by their sha256 in inputs/pull_log.json and re-fetched by scripts/pull.py.",
  "files": [
   {
+   "path": "inputs/cot.csv.gz",
+   "sha256": "d200a0e958b8b3c1dbfef2ad040dd8e4a352492e94382bcc2e9eaa1ce614bc31"
+  },
+  {
+   "path": "inputs/daily.csv.gz",
+   "sha256": "c452804a8f2828b099896d9eebf0c4b0611c7cd4aaab42edc624a1b59ea8ebbc"
+  },
+  {
+   "path": "inputs/fomc_dates.json",
+   "sha256": "fad1f7b7b9681b636c7c5a6b0f64732fa3239e522a13981f37bed66e21cf8095"
+  },
+  {
+   "path": "inputs/fx_events.csv.gz",
+   "sha256": "8b9c46fd2b77b1b703db3aa4efd5162d4185362d6c72fb50977fff469b787b91"
+  },
+  {
+   "path": "inputs/pull_log.json",
+   "sha256": "2ebe8055430ac75ee5e5404b2ddb56aa5bedf40ef98ea865d58d02bb0e8212e5"
+  },
+  {
    "path": "params/frozen.json",
-   "sha256": "90c78dae72e08946b6d03bccc7044fb3b7832510b7b0fe593bbd0d62e75b07f0"
+   "sha256": "74165c771808c3a64b02e9eb7e5d34bd8b8597dc0660f8a6a87058e0394c394f"
+  },
+  {
+   "path": "results/arm_months.json",
+   "sha256": "330429525312c87350657eee2dd57d1d2be33da2327723dca547e0a8cf868546"
+  },
+  {
+   "path": "results/ranking.json",
+   "sha256": "1e4b4e2175f802794b0de8680500e38adf44233b3801d6b31cbd41df75ce2f86"
+  },
+  {
+   "path": "results/search.json",
+   "sha256": "38d8f56099021edf942dca3db9259cac503884cbcb858ebc511ada82eaf275c5"
   },
   {
    "path": "scripts/build_manifest.py",
    "sha256": "8a2fe4b577d191e18406720f3342610f2ff69da4cbd7db2eb6a8b9274a467afc"
+  },
+  {
+   "path": "scripts/pull.py",
+   "sha256": "52aef4895b86cc4ae7205af221206a88534d139d094094b7978e147db91976c6"
+  },
+  {
+   "path": "scripts/report.py",
+   "sha256": "c39e24de2184feb9aac6903e6b5007b7a8900b61a93bdadf132745fa20d79357"
+  },
+  {
+   "path": "scripts/search.py",
+   "sha256": "173933536b857dedc4771342d41c13ece41d6f9ad2d28b04decd83d9e8f3f5d4"
   }
  ]
 }

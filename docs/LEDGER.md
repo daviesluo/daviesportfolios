@@ -604,6 +604,12 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)"; each oldest first.
 
+### [2026-10-16 16:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **IG strategy search, results** (sub-agent; item 14; `reviews/2026-10-16-ig-strategy-search.md`): 23 arms in 12 families
+  at IG's costs, two eras, two sources where the throttles allowed (Dukascopy and Stooq refused; FXCM H1 for FX). None
+  passes; pre-FOMC, turn-of-month and gold Sep-Nov decayed; trend Sharpe 0.40 gross → −0.01 after IG's admin fee. FXW-AUD
+  stays first. S1a: no IG history pulled yet (read-only here); the main session fires `history` probe then fxw.
+
 ### [2026-10-16 15:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **GROKPM Deviation D3: the server checks A's and B's edge, a quarter Kelly and C's holding** (Grok's dry-run rehearsal at
   15:38 sent a B open at p 0.85 against a 0.865 mid and said the server did not check the 12 points). `grokpm/exec.ts`
@@ -628,6 +634,7 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   labels, 11 px push, CN fund row, other ranges), `ytd.test.js`, `cache.test.js`, `prefetch.test.js`; the sweep opens 6M and 1Y in the
   ACME modal on long daily fixtures (6mo / 1y / 2y), checks the colours, both labels inside the frame and apart at both widths, and
   that no YTD button is left. `docs/guide.md` and the `docs/map.md` notes follow.
+
 
 ### [2026-10-16 15:13 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **IG strategy search, rules frozen** (sub-agent; item 14; Davies, 10-16: "ig除了澳元这个还有什么别的策略吗？再深度研究下…"):
