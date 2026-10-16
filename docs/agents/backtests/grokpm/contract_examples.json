@@ -12,7 +12,9 @@
   "p": 0.97,
   "m": 0.835,
   "category": "A",
-  "sources": ["https://www.bls.gov/news.release/cpi.nr0.htm"],
+  "sources": [
+   "https://www.bls.gov/news.release/cpi.nr0.htm"
+  ],
   "reason": "BLS published September CPI at 08:30 ET: 0.2 % m/m, inside this market's YES range. The book still offers YES at 0.82.",
   "invalidation": "BLS revises or retracts the release, or the market's rules name a different series.",
   "order_id": "0x9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b"
@@ -38,5 +40,46 @@
   "trades": 2,
   "summary": "One category B entry on a committee schedule; one no-action full scan. Nothing cleared category A.",
   "lessons": "Thin books in two candidate markets: skipped as the rules require."
+ },
+ "order": {
+  "decision": {
+   "id": "2026-10-16T09:25Z-open-1",
+   "ts": "2026-10-16T09:25:00Z",
+   "action": "open",
+   "market_id": "0x3f1c0e5b0a7d2c9e8f6b4a3d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4c3b",
+   "token_id": "71321045679252212594626385532706912750332728571942532289631379312455583992563",
+   "outcome": "Yes",
+   "side": "BUY",
+   "price": 0.82,
+   "size": 12,
+   "p": 0.97,
+   "m": 0.835,
+   "category": "A",
+   "sources": [
+    "https://www.bls.gov/news.release/cpi.nr0.htm"
+   ],
+   "reason": "BLS published September CPI at 08:30 ET: 0.2 % m/m, inside this market's YES range. The book still offers YES at 0.82.",
+   "invalidation": "BLS revises or retracts the release, or the market's rules name a different series."
+  },
+  "theme": "us-cpi-september",
+  "expires_at": "2026-10-16T10:05:00Z"
+ },
+ "close": {
+  "decision": {
+   "id": "2026-10-16T13:05Z-close-1",
+   "ts": "2026-10-16T13:05:00Z",
+   "action": "close",
+   "market_id": "0x3f1c0e5b0a7d2c9e8f6b4a3d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4c3b",
+   "token_id": "71321045679252212594626385532706912750332728571942532289631379312455583992563",
+   "outcome": "Yes",
+   "side": "SELL",
+   "price": 0.6,
+   "size": 12,
+   "category": "C",
+   "sources": [
+    "https://www.bls.gov/news.release/cpi.nr0.htm"
+   ],
+   "reason": "BLS corrected the release: the series is outside the range. Thesis broken; exit at the bid."
+  }
  }
 }

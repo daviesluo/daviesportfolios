@@ -574,16 +574,25 @@ that follow from that evidence, in short:
   TB1, RWC-OPT, mid-pool's 10-17 readout and 10-23 audit (and its funded draft); LPRESEL6 stands on pm-rec, its paper
   reproduction line short. What runs on Polymarket: live-prep live (`pmlp`, `pmlpreserve`) and pm-rec (`pmrec`,
   `pmrec-meta`). Where this file describes the paper paths running, it is their history.
-- **GROKPM, "Polymarket analyst (Grok)"** (`0124`, `reviews/2026-10-15-grokpm-prereg.md`; Davies, 2026-10-15): an OUTSIDE
-  Grok agent trades a separate $100 Polymarket wallet on information (category A: a confirmed outcome the price lags by
-  8+ points; B: a researched 12-point mispricing in a quiet market; C: adjustments), under the frozen rules in §2 of its
-  pre-registration. This repository runs none of its code and holds none of its keys: it keeps the agent's journal (the
-  `grokpm` function, bearer `GROKPM_LOG_TOKEN`, Appendix A is the contract) and an independent keyless record of the
-  wallet (`agents?action=grokpmrec`, every five minutes, nothing while `grokpm_config.wallet` is null), and shows both on
-  LIVE. Every dollar on the page is the record's; a gap over $1 from the agent's report is flagged. It trades from
-  Ireland only (the geoblock's `country` "IE"; from Ireland the endpoint answers `blocked: true`, which is expected).
-  Never trade by hand in its wallet: the record would count it as the agent's. Reading: 28 days or 40 resolved
-  positions; continue only if P&L > 0 and its Brier beats the market's.
+- **GROKPM, "Polymarket analyst (Grok)"** (`0124`, `0125`, `reviews/2026-10-15-grokpm-prereg.md`; Davies, 2026-10-15 and
+  2026-10-16): an OUTSIDE Grok agent trades a $100 budget on information (category A: a confirmed outcome the price lags by
+  8+ points; B: a researched 12-point mispricing in a quiet market; C: adjustments). Since Deviation D2 ("让grok用我们搭好的
+  爱尔兰服务器下单，不是网页端") it holds no key and no wallet: it trades only through the `grokpm` function (`exec.ts`), forced
+  to eu-west-1, on the account live-prep used. The server checks every order against §2's rules and the agent's OWN
+  book (its orders and fills only: `grokpm_orders`, `grokpm_fills`; live-prep's dust and the account's pUSD never count,
+  and it can never sell a token it did not buy), journals it with its decision, and only then signs and sends it with
+  the order paths' client. A BUY is post-only; only a category-C close may take. It cancels its own orders one by one,
+  never the venue's cancel-all.
+  - **The arm.** `grokpm_config` (`dry_run` true, `armed_at` null) is the arm. Disarmed, everything is checked and journalled
+    and nothing is sent. The go statement is in 0125's header, and only Davies' word in the conversation runs it.
+  - **One armed path.** 0125 adds it to the one-armed trigger: it is never armed beside live-prep, mini-pool or mid-pool.
+    0125 disarms live-prep only where it holds nothing sellable.
+  - **Its record.** The keyless record (`agents?action=grokpmrec`) counts only the agent's own trades from the go
+    (`started_at`), and the page shows that record. The account's address is never returned or shown.
+  - **The rule for us.** Never trade by hand in that account while it is armed: the agent's book is its own fills, but a
+    hand order on its tokens would move what it can sell.
+  - **The reading.** 28 days, 40 resolved positions, or the −$30 stop. Continue only if P&L > 0 and its Brier beats the
+    market's.
 - **RW — quotes for Polymarket's liquidity rewards — runs on PAPER for
   fourteen days** (§3.33, §4 item 36, migration `0053`, 2026-09-24 on
   Davies' word): 2026-09-25 → 10-09 UTC, the spec frozen at

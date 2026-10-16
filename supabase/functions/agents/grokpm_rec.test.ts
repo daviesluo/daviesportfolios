@@ -1,14 +1,15 @@
-// Pins GROKPM's independent record (grokpm_rec.ts): nothing read while no wallet is set; a run's reads (public GETs and a
-// public JSON-RPC batch only, each carrying its slot), its snapshot marked at the books' mids and at the payout once
-// redeemable, activity stored once by its content, entries written once with the mid when first seen, the start stamped
-// at 90 % of FUNDED, resolutions every half hour, and a second run in a slot changing nothing. The database double is
+// Pins GROKPM's independent record (grokpm_rec.ts) since Deviation D2: nothing read while no wallet is set; before the go
+// the account's activity is stored and nothing else; from the go, the agent's OWN trades only (told apart by the order
+// path's fills; live-prep's dust and redemptions never count), its holdings marked at the books' mids (the data API's
+// price where no book is read, the payout once resolved), its cash the budget plus its trades' dollars, public reads only
+// (each carrying its slot), entries written once with the mid when first seen, and a second run in a slot changing nothing. The database double is
 // `memDb`, held to 0124's columns and primary keys (`_shared/grokpm_schema.ts`) (a write naming a column the table does not have, or an upsert on any
 // key but the table's, is refused, as PostgREST refuses it).
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import type { Db } from "./db.ts";
 import { memDb, type Row } from "./testing.ts";
 import { GROKPM_TABLES } from "../_shared/grokpm_schema.ts";
-import { activityRow, balanceOf, GROKPM_CASH_TOKENS, midOf, newEntries, positionsOf, runGrokPmRec, snapshotRow, startsNow } from "./grokpm_rec.ts";
+import { activityRow, agentBook, agentPositions, balanceOf, GROKPM_CASH_TOKENS, midOf, runGrokPmRec, snapshotRow } from "./grokpm_rec.ts";
 
 const T0 = Date.parse("2026-10-16T09:31:12Z");
 const W = "0xabcdef0123456789abcdef0123456789abcdef01";
@@ -38,13 +39,28 @@ function strictDb(seed: Record<string, Row[]>, now: () => number): Db & { tables
 }
 
 const POSITIONS = [
-  { proxyWallet: W, asset: "111", conditionId: COND, size: 20, avgPrice: 0.4, curPrice: 0.455, redeemable: false, outcome: "Yes", outcomeIndex: 0, title: "Will A?", endDate: "2026-10-28" },
+  { proxyWallet: W, asset: "111", conditionId: COND, size: 15, avgPrice: 0.4, curPrice: 0.455, redeemable: false, outcome: "Yes", outcomeIndex: 0, title: "Will A?", endDate: "2026-10-28" },
   { proxyWallet: W, asset: "333", conditionId: COND2, size: 10, avgPrice: 0.7, curPrice: 1, redeemable: true, outcome: "Yes", outcomeIndex: 0, title: "Will B?", endDate: "2026-10-15" },
-  { proxyWallet: W, asset: "555", conditionId: COND2, size: 0, avgPrice: 0.3, curPrice: 0, redeemable: true, outcome: "No", outcomeIndex: 1, title: "Will B?", endDate: "2026-10-15" },
+  // Live-prep's dust in the same account: never the agent's.
+  { proxyWallet: W, asset: "999", conditionId: COND, size: 4.28, avgPrice: 0.3, curPrice: 0.2, redeemable: false, outcome: "No", outcomeIndex: 1, title: "Will A?", endDate: "2026-10-28" },
 ];
+const START = "2026-10-15T09:00:00.000Z";
+const s = (iso: string) => Date.parse(iso) / 1000;
 const ACTIVITY = [
-  { proxyWallet: W, timestamp: 1792056000, conditionId: COND, type: "TRADE", size: 20, usdcSize: 8, transactionHash: "0x01", price: 0.4, asset: "111", side: "BUY", outcomeIndex: 0, title: "Will A?" },
-  { proxyWallet: W, timestamp: 1791990000, conditionId: COND2, type: "TRADE", size: 10, usdcSize: 7, transactionHash: "0x02", price: 0.7, asset: "333", side: "BUY", outcomeIndex: 0, title: "Will B?" },
+  { proxyWallet: W, timestamp: s("2026-10-15T09:20:00Z"), conditionId: COND, type: "TRADE", size: 20, usdcSize: 8, transactionHash: "0x01", price: 0.4, asset: "111", side: "BUY", outcomeIndex: 0, title: "Will A?" },
+  { proxyWallet: W, timestamp: s("2026-10-15T12:00:00Z"), conditionId: COND2, type: "TRADE", size: 10, usdcSize: 7, transactionHash: "0x02", price: 0.7, asset: "333", side: "BUY", outcomeIndex: 0, title: "Will B?" },
+  { proxyWallet: W, timestamp: s("2026-10-16T08:00:00Z"), conditionId: COND, type: "TRADE", size: 5, usdcSize: 2.5, transactionHash: "0x03", price: 0.5, asset: "111", side: "SELL", outcomeIndex: 0, title: "Will A?" },
+  // Live-prep's: a dust trade of another transaction, before and after the go, and a redemption.
+  { proxyWallet: W, timestamp: s("2026-10-14T08:00:00Z"), conditionId: COND, type: "TRADE", size: 4.28, usdcSize: 1.28, transactionHash: "0x09", price: 0.3, asset: "999", side: "BUY", outcomeIndex: 1, title: "Will A?" },
+  { proxyWallet: W, timestamp: s("2026-10-15T10:00:00Z"), conditionId: COND, type: "TRADE", size: 1, usdcSize: 0.3, transactionHash: "0x0a", price: 0.3, asset: "999", side: "SELL", outcomeIndex: 1, title: "Will A?" },
+  { proxyWallet: W, timestamp: s("2026-10-15T11:00:00Z"), conditionId: COND2, type: "REDEEM", size: 3, usdcSize: 3, transactionHash: "0x0b", price: 0, asset: "", side: "", outcomeIndex: 0, title: "Will B?" },
+];
+/** The order path's fills, as `grokpm_fills` holds them: the agent's three, and one that failed on chain. */
+const FILLS = [
+  { trade_id: "t1", hash: "0x" + "1".repeat(64), cond: COND, token: "111", side: "BUY", price: 0.4, size: 20, fee_usd: 0, taker: false, status: "CONFIRMED", match_time: "2026-10-15T09:20:00Z", tx_hash: "0x01" },
+  { trade_id: "t2", hash: "0x" + "2".repeat(64), cond: COND2, token: "333", side: "BUY", price: 0.7, size: 10, fee_usd: 0, taker: false, status: "CONFIRMED", match_time: "2026-10-15T12:00:00Z", tx_hash: "0x02" },
+  { trade_id: "t3", hash: "0x" + "3".repeat(64), cond: COND, token: "111", side: "SELL", price: 0.5, size: 5, fee_usd: 0, taker: false, status: "MATCHED", match_time: "2026-10-16T08:00:00Z", tx_hash: "0x03" },
+  { trade_id: "t4", hash: "0x" + "4".repeat(64), cond: COND, token: "999", side: "BUY", price: 0.3, size: 1, fee_usd: 0, taker: false, status: "FAILED", match_time: "2026-10-15T10:00:00Z", tx_hash: "0x0a" },
 ];
 const hex = (usd: number) => "0x" + BigInt(Math.round(usd * 1e6)).toString(16).padStart(64, "0");
 
@@ -67,7 +83,7 @@ function fakeFetch(log: string[], o: { cash?: Record<string, number>; closed?: b
     if (u.host === "polygon-bor-rpc.publicnode.com") {
       if (o.failRpc) return new Response("busy", { status: 503 });
       const calls = JSON.parse(String(init?.body)) as Array<{ id: number; params: [{ to: string; data: string }] }>;
-      const cash = o.cash ?? { pusd: 60.5, usdce: 0, usdc: 1.25 };
+      const cash = o.cash ?? { pusd: 308.03, usdce: 0, usdc: 0 };
       const by: Record<string, number> = { [GROKPM_CASH_TOKENS.pusd]: cash.pusd, [GROKPM_CASH_TOKENS.usdce]: cash.usdce, [GROKPM_CASH_TOKENS.usdc]: cash.usdc };
       for (const c of calls) assertEquals(c.params[0].data, "0x70a08231" + W.slice(2).padStart(64, "0"));
       return ok(calls.map((c) => ({ jsonrpc: "2.0", id: c.id, result: hex(by[c.params[0].to]) })));
@@ -76,10 +92,10 @@ function fakeFetch(log: string[], o: { cash?: Record<string, number>; closed?: b
   }) as typeof fetch;
 }
 
-const seed = (wallet: string | null, started: string | null = null): Record<string, Row[]> => ({
+const seed = (wallet: string | null, started: string | null = START): Record<string, Row[]> => ({
   grokpm_config: [{ id: 1, wallet, funded_usd: 100, daily_loss_usd: 10, total_stop_usd: 30, started_at: started }],
   grokpm_rec_state: [{ id: 1, state: {}, updated_at: null, last_error: null, last_report: null }],
-  grokpm_entries: [], grokpm_resolutions: [], grokpm_snapshots: [], grokpm_activity: [],
+  grokpm_entries: [], grokpm_resolutions: [], grokpm_snapshots: [], grokpm_activity: [], grokpm_fills: FILLS,
 });
 
 Deno.test("no wallet: nothing is read and nothing written", async () => {
@@ -90,72 +106,75 @@ Deno.test("no wallet: nothing is read and nothing written", async () => {
   assertEquals(log, []);
 });
 
-Deno.test("a run: public reads only, its slot on each data-API read; the snapshot, activity, entries and the start", async () => {
+Deno.test("before the go: the account's activity is stored, nothing else", async () => {
+  const log: string[] = [];
+  const d = strictDb(seed(W, null), () => T0);
+  const r = await runGrokPmRec({ db: d, now: T0, fetchImpl: fakeFetch(log) });
+  assertEquals(r.errors, []);
+  assertEquals(d.tables().grokpm_activity.length, ACTIVITY.length);
+  assertEquals([d.tables().grokpm_snapshots.length, d.tables().grokpm_entries.length], [0, 0]);
+  assertEquals(log.map((l) => l.split("?")[0]), ["GET data-api.polymarket.com/activity"]);
+});
+
+Deno.test("from the go: the agent's own trades only, its cash the budget plus their dollars, live-prep's dust never counted", async () => {
   const log: string[] = [];
   const d = strictDb(seed(W), () => T0);
-  const r = await runGrokPmRec({ db: d, now: T0, fetchImpl: fakeFetch(log, { cash: { pusd: 90.5, usdce: 0, usdc: 1.25 } }) });
+  const r = await runGrokPmRec({ db: d, now: T0, fetchImpl: fakeFetch(log) });
   assertEquals(r.errors, []);
   const slot = Date.parse("2026-10-16T09:30:00Z");
   for (const l of log.filter((x) => x.includes("data-api"))) assert(l.startsWith("GET ") && l.includes(`_=${slot}`), l);
   assert(log.every((l) => /^(GET|POST) (data-api\.polymarket\.com|clob\.polymarket\.com\/books|gamma-api\.polymarket\.com|polygon-bor-rpc\.publicnode\.com)/.test(l)), log.join("\n"));
-  const t = d.tables();
-  const snap = t.grokpm_snapshots[0];
-  // Cash 90.5 + 1.25; 111 at its mid 0.46 (9.20); 333 redeemable at its payout 1 (10.00); 555's zero size dropped.
-  assertEquals([snap.slot, snap.cash_usd, snap.positions_value_usd, snap.value_api_usd, snap.equity_usd], ["2026-10-16T09:30:00.000Z", 91.75, 19.2, 19.1, 110.95]);
-  assertEquals((snap.positions as Row[]).map((p) => [p.asset, p.mark, p.value]), [["111", 0.46, 9.2], ["333", 1, 10]]);
-  assertEquals(t.grokpm_activity.length, 2);
-  // Entries: 111 at its mid when first seen; 333 redeemable, so no mid (it is scored with the agent's m).
-  assertEquals(t.grokpm_entries.map((e) => [e.asset, e.mid, e.first_fill_at]), [["111", 0.46, "2026-10-15T09:20:00.000Z"], ["333", null, "2026-10-14T15:00:00.000Z"]]);
-  assertEquals(r.started, true);
-  // A redeemable position makes the resolution read due at once: Gamma answered nothing closed yet.
-  assertEquals(r.resolved, 0);
+  const snap = d.tables().grokpm_snapshots[0];
+  // By hand: cash 100 − 8 − 7 + 2.5 = 87.50; 111: 15 left at its mid 0.46 = 6.90; 333: 10 with no book, at the data API's
+  // price 1 = 10. Equity 104.40. The shared wallet's pUSD (308.03) is kept beside it and counts nowhere.
+  assertEquals([snap.slot, snap.cash_usd, snap.positions_value_usd, snap.equity_usd, snap.cash_pusd], ["2026-10-16T09:30:00.000Z", 87.5, 16.9, 104.4, 308.03]);
+  assertEquals((snap.positions as Row[]).map((p) => [p.asset, p.size, p.mark, p.value]), [["111", 15, 0.46, 6.9], ["333", 10, 1, 10]]);
+  assertEquals(d.tables().grokpm_entries.map((e) => [e.asset, e.mid, e.first_fill_at]), [["111", 0.46, "2026-10-15T09:20:00.000Z"], ["333", null, "2026-10-15T12:00:00.000Z"]]);
 });
 
-Deno.test("a second run in the slot changes nothing the first did; equity under 90 % starts nothing", async () => {
-  const log: string[] = [];
+Deno.test("a second run in the slot changes nothing the first did", async () => {
   const d = strictDb(seed(W), () => T0);
-  await runGrokPmRec({ db: d, now: T0, fetchImpl: fakeFetch(log) });
-  const once = JSON.stringify(d.tables());
-  await runGrokPmRec({ db: d, now: T0 + 20e3, fetchImpl: fakeFetch(log) });
-  const t = d.tables();
-  assertEquals(t.grokpm_snapshots.length, 1);
-  assertEquals(t.grokpm_activity.length, 2);
-  assertEquals(t.grokpm_entries.length, JSON.parse(once).grokpm_entries.length);
-  // 61.75 + 19.20 = 80.95 is under 90 % of $100: not started.
-  assertEquals(t.grokpm_snapshots[0].equity_usd, 80.95);
-  assertEquals(startsNow({ wallet: W, funded_usd: 100, started_at: null }, 80.95), false);
-  assertEquals(startsNow({ wallet: W, funded_usd: 100, started_at: null }, 90), true);
-  assertEquals(startsNow({ wallet: W, funded_usd: 100, started_at: "2026-10-16T00:00:00Z" }, 200), false);
+  await runGrokPmRec({ db: d, now: T0, fetchImpl: fakeFetch([]) });
+  const once = JSON.stringify([d.tables().grokpm_snapshots, d.tables().grokpm_entries, d.tables().grokpm_activity.length]);
+  await runGrokPmRec({ db: d, now: T0 + 20e3, fetchImpl: fakeFetch([]) });
+  const twice = JSON.parse(JSON.stringify([d.tables().grokpm_snapshots, d.tables().grokpm_entries, d.tables().grokpm_activity.length]));
+  const a = JSON.parse(once);
+  assertEquals([twice[0].length, twice[1], twice[2]], [1, a[1], a[2]]);
+  assertEquals(twice[0][0].equity_usd, a[0][0].equity_usd);
 });
 
-Deno.test("a resolution is stored once Gamma shows the market closed, with each token's payout", async () => {
+Deno.test("a resolution is stored, and a resolved holding is marked at its payout", async () => {
   const d = strictDb(seed(W), () => T0);
   await runGrokPmRec({ db: d, now: T0, fetchImpl: fakeFetch([], { closed: true }) });
-  assertEquals(d.tables().grokpm_resolutions.map((r) => [r.cond, r.tokens, r.payouts, r.closed_at]), [[COND2, ["333", "555"], [1, 0], "2026-10-15T20:00:00.000Z"]]);
+  assertEquals(d.tables().grokpm_resolutions.map((r) => [r.cond, r.tokens, r.payouts]), [[COND2, ["333", "555"], [1, 0]]]);
+  // The next run marks 333 at its payout (here equal to the data API's price) and flags it redeemable.
+  await runGrokPmRec({ db: d, now: T0 + 5 * 60e3, fetchImpl: fakeFetch([], { closed: true }) });
+  const p = (d.tables().grokpm_snapshots.at(-1)!.positions as Row[]).find((x) => x.asset === "333")!;
+  assertEquals([p.mark, p.redeemable], [1, true]);
 });
 
-Deno.test("an unread balance leaves the slot without a snapshot, keeps the activity, and says why", async () => {
+Deno.test("an unread wallet balance stops nothing: the agent's snapshot does not depend on it", async () => {
   const d = strictDb(seed(W), () => T0);
   const r = await runGrokPmRec({ db: d, now: T0, fetchImpl: fakeFetch([], { failRpc: true }) });
-  assertEquals(d.tables().grokpm_snapshots.length, 0);
-  assertEquals(d.tables().grokpm_activity.length, 2);
-  assert(r.errors[0].startsWith("snapshot: "), r.errors.join());
-  assertEquals(r.report, true);
+  assertEquals(d.tables().grokpm_snapshots[0].equity_usd, 104.4);
+  assert(r.errors[0].startsWith("balances: "), r.errors.join());
 });
 
-Deno.test("the pure parts: marks, mids, balances, rows", async () => {
-  const mids = new Map<string, number | null>([["111", 0.5]]);
-  const p = positionsOf(POSITIONS, mids);
-  assertEquals(p.map((x) => [x.asset, x.mark]), [["111", 0.5], ["333", 1]]);
-  assertEquals(positionsOf([{ ...POSITIONS[0], asset: "x" }], mids), []);
+Deno.test("the pure parts: the agent's book, its positions, mids, balances, rows", async () => {
+  const trades = (await Promise.all(ACTIVITY.map(activityRow))).map((a) => ({ ...a }));
+  const b = agentBook(trades, FILLS.filter((f) => f.status !== "FAILED"), START);
+  assertEquals(b.flowUsd, -12.5);
+  assertEquals(b.assets.map((a) => [a.asset, a.size, a.avgPrice]), [["111", 15, 0.4], ["333", 10, 0.7]]);
+  // A trade before the go, or of another token in one of its transactions, is not the agent's.
+  assertEquals(agentBook(trades, FILLS, "2026-10-16T00:00:00.000Z").assets.map((a) => [a.asset, a.size]), [["111", -5]]);
+  assertEquals(agentBook(trades, [{ tx_hash: "0x01", token: "999" }], START).assets, []);
+  const pos = agentPositions(b, { "333": 1 }, new Map([["111", 0.5]]), new Map());
+  assertEquals(pos.map((x) => [x.asset, x.mark, x.redeemable]), [["111", 0.5, false], ["333", 1, true]]);
   assertEquals(midOf({ bids: [[0.25, 1]], asks: [[0.75, 1]] }), 0.5);
   assertEquals(midOf({ bids: [], asks: [[0.42, 1]] }), null);
   assertEquals(balanceOf("0x" + (12_345_678n).toString(16)), 12.345678);
-  const s = snapshotRow({ slot: 0, at: 1, cash: { pusd: 1, usdce: 2, usdc: 3 }, positions: p, valueApi: null });
-  assertEquals([s.cash_usd, s.positions_value_usd, s.equity_usd], [6, 20, 26]);
-  const a = await activityRow(ACTIVITY[0]), b = await activityRow({ ...ACTIVITY[0] });
-  assertEquals(a.key, b.key);
-  assertEquals([a.type, a.side, a.ts], ["TRADE", "BUY", "2026-10-15T09:20:00.000Z"]);
-  const e = newEntries({ positions: p, buys: [], known: new Set(["111"]), mids, nowMs: T0 });
-  assertEquals(e.map((x) => x.asset), ["333"]);
+  const snap = snapshotRow({ slot: 0, at: 1, cash: { pusd: 1, usdce: 2, usdc: 3 }, positions: pos, valueApi: null, agentCashUsd: 87.5 });
+  assertEquals([snap.cash_usd, snap.positions_value_usd, snap.equity_usd, snap.cash_pusd], [87.5, 17.5, 105, 1]);
+  const a = await activityRow(ACTIVITY[0]), c = await activityRow({ ...ACTIVITY[0] });
+  assertEquals(a.key, c.key);
 });

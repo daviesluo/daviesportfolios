@@ -447,24 +447,37 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    any pull: `backtests/ig_deepdive/params/g2_s1a_frozen.json`. Decisions left to Davies: the contracting entity and tax
    route, and any risk amount only from S5's packet; no order code exists.
 
-15. **GROKPM, "Polymarket analyst (Grok)": built, waiting on Davies** (Davies, 2026-10-15: "让grok bot里开一个trading bot，
-   给他100美元…先让他就用100美元测试"; `reviews/2026-10-15-grokpm-prereg.md`, frozen; migration `0124`; history 2026-10-15
-   GROKPM). An outside Grok agent trades its own $100 wallet on information (A confirmed outcomes ≥ 8 pt lag, B researched
-   ≥ 12 pt mispricings, C adjustments) under §2's rules; this repo keeps its journal (`grokpm` function) and an
-   independent keyless record of the wallet (`agents?action=grokpmrec`, every 5 min), shown on LIVE. **Davies does, in
-   order:** (1) create a NEW Polymarket wallet (never live-prep's account) and move $100 USDC into it; (2) create the
-   Supabase Edge Function secret `GROKPM_LOG_TOKEN` (≥ 32 random characters; never pasted into a chat or a commit) and
-   give it only to Grok; (3) send the wallet's address (its Polymarket profile/proxy address): a one-line migration then
-   sets `update public.grokpm_config set wallet = lower('0x…') where id = 1;`; (4) configure Grok with the prompt (the
-   pre-registration's §2 rules, §7.5 rhythm and Appendix A contract) and the wallet's trading key; (5) run the agent's
-   ORDERS from a machine in Ireland (the geoblock's `country` must be "IE"; `blocked: true` is expected there), never
-   through a VPN or proxy: Grok's own cloud is not in Ireland. **After deploy, the main session checks:** the Edge deploy
-   of `grokpm` with `--no-verify-jwt` and of `agents`; `0124` applied; `select path, enabled, retry, active_from from
-   edge_calls where path = 'agents?action=grokpmrec'`; a GET ping with the token answers 200 (or 503 until the secret
-   exists); with the wallet null, `grokpm_rec_state.updated_at` moves every 5 min and no snapshot is written; once set,
-   a snapshot every 5 min and `started_at` at the first ≥ $90. Reading: 28 days from the start day or 40 resolved
-   positions or the −$30 stop; continue only if P&L > 0 AND Brier_agent < Brier_market. Never trade by hand in its wallet.
-
+15. **GROKPM, "Polymarket analyst (Grok)": built, trades through our Ireland server on the shared account, DRY-RUN until
+   Davies says go** (Davies, 2026-10-15: "让grok bot里开一个trading bot，给他100美元…先让他就用100美元测试"; 2026-10-16:
+   "可以用目前这个polymarket跑吗", "让grok用我们搭好的爱尔兰服务器下单，不是网页端"; `reviews/2026-10-15-grokpm-prereg.md`, frozen,
+   with its Deviation D2; migrations `0124`, `0125`; history 2026-10-15 GROKPM and 2026-10-16 GROKPM D2).
+   - **The design.** Grok holds no key or wallet. It calls the `grokpm` function (`?action=account|market|order|cancel|cancel_all`,
+     `&forceFunctionRegion=eu-west-1`, bearer `GROKPM_LOG_TOKEN`). The server checks every order against §2's rules and the
+     agent's own book, journals it, and only armed signs and sends it on the account live-prep used.
+   - **0125.** It disarms live-prep (only with nothing sellable left; its dust waits to settle) and adds GROKPM to the
+     one-armed trigger.
+   - **Davies does:** (1) create the Supabase Edge Function secret `GROKPM_LOG_TOKEN` (32 or more random characters; never
+     in a chat or a commit) and give it only to Grok; (2) configure Grok with the prompt: §2's rules, §7.5's rhythm,
+     Appendix A and A.2 (no key, no wallet: the server trades); (3) say go.
+   - **The main session after deploy, in dry-run:**
+     - `grokpm` deployed with `--no-verify-jwt`; `0125` applied;
+     - `select dry_run, live_confirmed_at from pm_lp_config` shows `live_confirmed_at` null;
+     - `select wallet is not null, dry_run, armed_at from grokpm_config` shows true / true / null after the first sync
+       (the function writes the wallet);
+     - the edge call `grokpm?action=sync&forceFunctionRegion=eu-west-1` beating every minute;
+     - with the token: `GET ?action=account&forceFunctionRegion=eu-west-1` answers `mode` dry_run, geoblock IE,
+       `key_loaded` true, budget 100;
+     - a `POST ?action=order` on a real market answers `sent: false` with `would_send`, and a refused one names its rule;
+     - nothing in `grokpm_fills`; no `grokpm.sync` errors.
+   - **The go** (0125's header, only in the conversation where Davies says it):
+     `update public.grokpm_config set dry_run = false, armed_at = now(), started_at = now() where id = 1 and dry_run = true
+     and armed_at is null and started_at is null and wallet is not null and ireland_attested_at is not null and
+     (ireland_until is null or ireland_until > now()) and (select p.live_confirmed_at from public.pm_lp_config p where
+     p.id = 1) is null returning dry_run, armed_at, started_at;`. The undo is
+     `update public.grokpm_config set dry_run = true, armed_at = null where id = 1;`.
+   - **The reading.** 28 days from the start day, or 40 resolved positions, or the −$30 stop; continue only if P&L > 0 AND
+     Brier_agent < Brier_market.
+   - **Never trade by hand in that account while GROKPM is armed.**
 ## Machine and platform setup
 
 A rebuilt container loses every line below. Run them before working.
@@ -587,6 +600,27 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)"; each oldest first.
+
+### [2026-10-16 15:06 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM D2: Grok trades through our Ireland server on the shared account** (sub-agent; Davies: "可以用目前这个polymarket跑吗",
+  "让grok用我们搭好的爱尔兰服务器下单，不是网页端"; item 15).
+  - **The order path.** `grokpm/exec.ts` on the `grokpm` function: account, market, order, cancel and cancel_all.
+    - Every order carries its journal decision.
+    - §2's rules are checked server-side from the agent's OWN orders and fills. Live-prep's dust and the shared pUSD never
+      count, and it can never sell a token it did not buy.
+    - A BUY is post-only; only a category-C close may take.
+    - Live sends need eu-west-1, the key, geoblock IE, the attestation (opens), no other armed path and no pause.
+    - Its own orders are cancelled one by one, never the venue's cancel-all. Dry-run journals and sends nothing.
+  - **Reused unchanged.** It reuses `_shared/polymarket_orders.ts` and imports `agents/pm_live.ts` helpers without
+    changing them.
+  - **The record.** `grokpm_rec` now counts only the agent's own trades from `started_at`, matched by its fills'
+    transactions.
+  - **0125.** The config's arm, attestation copy and the orders/fills/state tables; GROKPM in the one-armed trigger; the
+    minute's read-back call; live-prep disarmed where nothing is sellable. Read 2026-10-16 15:0x: the largest unsettled
+    holding was 4.2791 and nothing rested.
+  - **The PGlite check.** `backtests/grokpm/scripts/exec_check.mjs`, every migration: all pass. Both counterfactuals fail
+    (trigger and disarm).
+  - **Pre-registration.** D2 is added with a new sha. Appendix A.2 holds the trading contract.
 
 ### [2026-10-16 14:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **1Y ticker chart draws a 50-day average beside the 200-day** (sub-agent; Davies, 2026-10-16: "网页中所有1Y的图目前不是有200MA么，

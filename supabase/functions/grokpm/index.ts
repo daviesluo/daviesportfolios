@@ -1,27 +1,38 @@
 // Supabase Edge Function: grokpm
 //
-// GROKPM's journal: the endpoint the outside Grok agent posts its decisions, its wakes and its daily summaries to (Davies,
-// 2026-10-15: "每天的日志和汇总也都自动化…实时更新"; pre-registered in docs/agents/reviews/2026-10-15-grokpm-prereg.md, whose
-// appendix is the contract). It stores what the agent SAYS. What the wallet actually holds is recorded apart, keylessly, by
-// `agents?action=grokpmrec` (agents/grokpm_rec.ts), and the page's money is that record, never this journal.
+// GROKPM's server (pre-registered in docs/agents/reviews/2026-10-15-grokpm-prereg.md, whose Appendix A is the contract):
+// the outside Grok agent's journal, and since Deviation D2 (2026-10-16, Davies: "让grok用我们搭好的爱尔兰服务器下单，不是网页端")
+// its only way to trade. The agent never holds a key: it asks this function, which checks each request against the
+// frozen rules and the agent's own book, journals it, and (armed) signs and sends the order on the project's Polymarket
+// account from eu-west-1 (`exec.ts`). What the account actually did is recorded apart, keylessly, by
+// `agents?action=grokpmrec` (agents/grokpm_rec.ts), and the page's money is that record.
 //
-//   POST  a JSON body of up to three lists, `decisions`, `cycles` and `daily` (`ingest.ts` checks every field): stored, a
-//         row whose id is already stored counted as a duplicate. 200 with what was stored.
-//   GET   a ping: 200 with the server's time and what is left of the hour's rows, so the agent can check its secret.
+//   GET                  a ping: the server's time, its region, what is left of the hour's requests.
+//   POST                 the journal: up to three lists, `decisions`, `cycles`, `daily` (`ingest.ts`).
+//   GET  ?action=account the agent's own budget, positions, open orders, stops and gates (`accountView`).
+//   GET  ?action=market  a market by `cond` (or `token`): Gamma's record, each outcome's book and depth, and what blocks
+//                        an open there.
+//   POST ?action=order   one order from its journal decision (an open BUYs, a close SELLs), with `theme` and `expires_at`.
+//   POST ?action=cancel  one of the agent's own open orders; ?action=cancel_all every one of them, each by its own id.
+//   POST ?action=sync    the scheduler's (bearer CRON_SECRET), every minute: reads back the agent's live orders and
+//                        their trades. It writes its beat first.
+// Every action but the ping and the journal refuses outside eu-west-1 (call with ?forceFunctionRegion=eu-west-1).
 //
-// Auth: `Authorization: Bearer <GROKPM_LOG_TOKEN>`, a Supabase Edge Function secret Davies creates and gives only to the
-// agent, compared in constant time (`isAuthorised`). Without the secret (or with one shorter than 32 characters) every
-// request is refused with 503. The function is deployed without the gateway's JWT check (the deploy workflow's
-// PUBLIC_FNS), because its bearer is that secret and not a Supabase JWT; an `apikey` header is not needed and is ignored.
-// The secret is never printed, logged or returned.
-//
-// Kept apart from `agents`: it imports nothing of that function or of any venue client, holds no key of any venue, and
-// writes only its four tables (`grokpm_decisions`, `grokpm_cycles`, `grokpm_daily`, `grokpm_requests`, migration 0124).
+// Auth: `Authorization: Bearer <GROKPM_LOG_TOKEN>`, a Supabase secret Davies creates and gives only to the agent, compared
+// in constant time; `sync` takes the scheduler's CRON_SECRET instead. Without the token (or with one shorter than 32
+// characters) every agent request is refused with 503. Deployed without the gateway's JWT check (the deploy workflow's
+// PUBLIC_FNS): neither bearer is a Supabase JWT. No secret, key or account address is ever printed, logged or returned.
 // Every free-text field is untrusted: stored as text, never executed, never read as an instruction.
 
 import { reportServerError } from "../_shared/ops.ts";
+import { beatKeyOfRequest, writeBeat } from "../_shared/beats.ts";
+import { constantTimeEqual } from "../_shared/token.ts";
+import { POLYMARKET_GAMMA_HOST } from "../_shared/polymarket.ts";
+import { loadPmLiveEnv, pmOrderCall, pmVenue, PM_ORDER_REGION } from "../_shared/polymarket_orders.ts";
+import { makeDb } from "../agents/db.ts";
+import { accountView, cancelOrders, context, type ExecDeps, type GrokVenue, marketView, placeOrder, syncOrders } from "./exec.ts";
 import {
-  GROKPM_MAX_BODY_BYTES, GROKPM_MAX_ERRORS, GROKPM_MAX_ROWS_PER_HOUR, isAuthorised, rateVerdict, type RequestRow, tableRows, validateBatch,
+  GROKPM_MAX_BODY_BYTES, GROKPM_MAX_ERRORS, GROKPM_MAX_REQUESTS_PER_HOUR, GROKPM_MAX_ROWS_PER_HOUR, isAuthorised, rateVerdict, type RequestRow, tableRows, validateBatch,
 } from "./ingest.ts";
 
 export type IngestDb = {
@@ -63,19 +74,73 @@ export function makeIngestDb(url: string, key: string, fetchImpl: typeof fetch =
  * One request, start to end. Exported with its parts injectable so the order is pinned: the secret first (nothing else
  * is read before it), then the hour's budget, then the body; nothing is stored unless every row passes.
  */
-export async function handle(req: Request, deps: { secret: string; db: IngestDb; now?: () => number; report?: typeof reportServerError }): Promise<Response> {
+export type HandleDeps = {
+  secret: string; db: IngestDb; now?: () => number; report?: typeof reportServerError;
+  /** The runtime's region (`SB_REGION`): every action but the ping and the journal runs only in eu-west-1. */
+  region?: string | null;
+  /** The scheduler's bearer, for `sync` only. */
+  cronSecret?: string;
+  /** The order path's dependencies, built only when an action needs them (the key is loaded then, never for the journal). */
+  exec?: (now: number) => Promise<ExecDeps>;
+  beat?: (key: string) => Promise<unknown>;
+};
+/** The actions besides the journal, and the method each takes. */
+export const ACTIONS: Record<string, "GET" | "POST"> = { account: "GET", market: "GET", order: "POST", cancel: "POST", cancel_all: "POST", sync: "POST" };
+
+export async function handle(req: Request, deps: HandleDeps): Promise<Response> {
   const now = deps.now ?? Date.now;
+  const url = new URL(req.url);
+  const action = url.searchParams.get("action") ?? "";
+  if (action === "sync") return await handleSync(req, deps, now());
   if (!deps.secret || deps.secret.length < 32) return json(503, { error: "not configured", detail: "GROKPM_LOG_TOKEN is not set" });
   if (!(await isAuthorised(req.headers.get("authorization"), deps.secret))) return json(401, { error: "unauthorised" });
   if (req.method !== "GET" && req.method !== "POST") return json(405, { error: "method not allowed" }, { Allow: "GET, POST" });
+  if (action && !(action in ACTIONS)) return json(404, { error: `unknown action '${action.slice(0, 40)}'`, actions: Object.keys(ACTIONS).filter((a) => a !== "sync") });
+  if (action && req.method !== ACTIONS[action]) return json(405, { error: `${action} takes ${ACTIONS[action]}` }, { Allow: ACTIONS[action] });
   const t = now();
   const since = new Date(t - 3600e3).toISOString();
   const log = (status: number, rows: number, error: string | null) => deps.db.logRequest({ status, rows, error: error ? error.slice(0, 300) : null }).catch(() => {});
   try {
     const last = await deps.db.recentRequests(since);
+    if (action) {
+      if (deps.region !== PM_ORDER_REGION) {
+        await log(403, 0, `region ${deps.region ?? "unknown"}`);
+        return json(403, { error: "wrong region", detail: `this ran in ${deps.region ?? "an unknown region"}; call with ?forceFunctionRegion=${PM_ORDER_REGION}` });
+      }
+      const rate = rateVerdict(last, 0, t);
+      if (rate.requests >= GROKPM_MAX_REQUESTS_PER_HOUR) {
+        await log(429, 0, "rate");
+        return json(429, { error: "rate limited", retry_after_s: rate.retryAfterS }, { "Retry-After": String(rate.retryAfterS) });
+      }
+      if (!deps.exec) return json(503, { error: "the order path is not available" });
+      const x = await deps.exec(t);
+      let out: { status: number; body: unknown };
+      if (action === "account") {
+        const c = await context(x, { readGeo: true, sync: true });
+        out = { status: 200, body: accountView(c, t) };
+      } else if (action === "market") {
+        const cond = url.searchParams.get("cond"), token = url.searchParams.get("token");
+        out = cond && /^0x[0-9a-f]{64}$/.test(cond) ? await marketView(x, { cond }) : token && /^[0-9]{1,80}$/.test(token) ? await marketView(x, { token })
+          : { status: 422, body: { error: "invalid", errors: ["cond (0x and 64 lower-case hex digits) or token (decimal) is required"] } };
+      } else {
+        const type = req.headers.get("content-type") ?? "";
+        const text = await req.text();
+        if (text.length > GROKPM_MAX_BODY_BYTES) { await log(413, 0, "too large"); return json(413, { error: `body over ${GROKPM_MAX_BODY_BYTES} bytes` }); }
+        let body: unknown = {};
+        if (text.trim()) {
+          if (!/^application\/json\b/i.test(type)) { await log(415, 0, "content-type"); return json(415, { error: "content-type must be application/json" }); }
+          try { body = JSON.parse(text); } catch { await log(400, 0, "not JSON"); return json(400, { error: "body is not valid JSON" }); }
+        }
+        out = action === "order" ? await placeOrder(x, body) : await cancelOrders(x, body, action === "cancel_all");
+      }
+      const o = out.body as { errors?: string[]; refusals?: Array<{ rule: string }> };
+      await log(out.status, action === "order" && out.status === 200 ? 1 : 0,
+        out.status === 200 ? null : `${action}: ${(o.refusals ?? []).map((r) => r.rule).join(",") || (o.errors ?? []).join("; ")}`);
+      return json(out.status, out.body);
+    }
     if (req.method === "GET") {
       const v = rateVerdict(last, 0, t);
-      return json(200, { ok: true, now: new Date(t).toISOString(), rows_left_this_hour: v.rowsLeft, requests_this_hour: v.requests });
+      return json(200, { ok: true, now: new Date(t).toISOString(), region: deps.region ?? null, rows_left_this_hour: v.rowsLeft, requests_this_hour: v.requests });
     }
     const type = req.headers.get("content-type") ?? "";
     if (!/^application\/json\b/i.test(type)) { await log(415, 0, "content-type"); return json(415, { error: "content-type must be application/json" }); }
@@ -110,9 +175,67 @@ export async function handle(req: Request, deps: { secret: string; db: IngestDb;
   }
 }
 
+/** The scheduler's minute (bearer CRON_SECRET): its beat first, then the agent's live orders read back. */
+async function handleSync(req: Request, deps: HandleDeps, t: number): Promise<Response> {
+  const auth = req.headers.get("authorization") ?? "";
+  const presented = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
+  if (!deps.cronSecret || !presented || !constantTimeEqual(presented, deps.cronSecret)) return json(401, { error: "unauthorised" });
+  if (req.method !== "POST") return json(405, { error: "method not allowed" }, { Allow: "POST" });
+  await (deps.beat ?? ((k: string) => writeBeat(k)))(beatKeyOfRequest("grokpm", req.url)).catch(() => false);
+  if (deps.region !== PM_ORDER_REGION) return json(403, { error: "wrong region" });
+  if (!deps.exec) return json(503, { error: "the order path is not available" });
+  try {
+    const x = await deps.exec(t);
+    const errors: string[] = [];
+    const r = await syncOrders(x, errors);
+    // The day's opening equity and the last good geoblock are kept by the same reading every request makes.
+    await context(x, { readGeo: true, sync: false });
+    // A fault goes to the errors box when it first appears and at most hourly while it lasts (digits do not make it new).
+    const key = errors.map((e) => e.replace(/\d+(\.\d+)?/g, "#").replace(/0x[0-9a-f…]+/gi, "0x…")).sort().join(" | ").slice(0, 400);
+    const st = (await x.db.select<{ state: Record<string, unknown> | null }>("grokpm_exec_state", "id=eq.1&select=state"))[0]?.state ?? {};
+    const last = st.syncReport as { key: string; at: number } | undefined;
+    if (key && (!last || last.key !== key || t - last.at >= 3600e3)) {
+      await (deps.report ?? reportServerError)("grokpm.sync", { message: errors.join("; ").slice(0, 500) });
+      await x.db.update("grokpm_exec_state", "id=eq.1", { state: { ...st, syncReport: { key, at: t } } });
+    }
+    return json(200, { ok: true, ...r, errors: errors.length });
+  } catch (e) {
+    const message = (e instanceof Error ? e.message : String(e)).slice(0, 300);
+    await (deps.report ?? reportServerError)("grokpm.sync", { message });
+    return json(500, { error: "sync failed" });
+  }
+}
+
+/**
+ * The production order path's dependencies: the account's credentials and signing key as the order paths load them
+ * (`loadPmLiveEnv`: the key is kept only when it is the stored signer's, and every message is scrubbed of them), the
+ * venue over the order path's wire, Gamma by condition or token id with its tags, and the database. The account's
+ * proxy wallet becomes `grokpm_config.wallet` for the keyless recorder the first time it is read; it is never returned.
+ */
+export async function productionExec(t: number): Promise<ExecDeps> {
+  const env = loadPmLiveEnv();
+  const db = makeDb(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "");
+  const wire = { creds: env.creds, address: env.signer, scrub: (s: string) => env.scrub(s), timeoutMs: 6_000 };
+  const base = pmVenue({ ...wire, sigType: env.sigType ?? 1 });
+  const venue: GrokVenue = {
+    ...base,
+    gamma: (q) => {
+      const qs = new URLSearchParams([["limit", "2"], ["closed", "false"], ["include_tag", "true"], q.cond ? ["condition_ids", q.cond] : ["clob_token_ids", q.token ?? ""]]);
+      return pmOrderCall("GET", `${POLYMARKET_GAMMA_HOST}/markets/keyset?${qs}`, undefined, wire);
+    },
+  };
+  if (env.funder) await db.update("grokpm_config", "id=eq.1&wallet=is.null", { wallet: env.funder.toLowerCase() }).catch(() => {});
+  return {
+    db, venue, now: t, region: Deno.env.get("SB_REGION") ?? null,
+    signer: env.key, keyProblem: env.keyProblem ?? (env.creds ? null : "no L2 credentials"),
+    account: env.funder && env.signer && env.creds ? { maker: env.funder, signer: env.signer } : null,
+  };
+}
+
 if (import.meta.main) {
   Deno.serve((req: Request) => handle(req, {
     secret: Deno.env.get("GROKPM_LOG_TOKEN") ?? "",
     db: makeIngestDb(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""),
+    region: Deno.env.get("SB_REGION") ?? null, cronSecret: Deno.env.get("CRON_SECRET") ?? "", exec: productionExec,
   }));
 }

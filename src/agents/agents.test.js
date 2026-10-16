@@ -2034,13 +2034,14 @@ describe('grokPmRow and its page (GROKPM, "Polymarket analyst (Grok)" on LIVE, 2
     expect(r.status).toEqual({ label: 'live', running: true, tone: 'running', detail: 'an outside agent trading real money · 2 positions open' });
     expect(rowMoney(r).ccy).toBe('USD');
   });
-  it('before its funding arrives it funds nothing on LIVE and says what it waits for; no wallet, no row', () => {
+  it('before the go it funds nothing on LIVE and says it is a dry-run; no account, no row', () => {
     const r = /** @type {any} */ (grokPmRow(w));
-    expect([r.capitalUsd, r.costUsd, r.armed, r.status.tone, r.status.detail]).toEqual([0, 0, false, 'stale', 'waiting for its funding to arrive in 0xabcd…ef01']);
+    expect([r.capitalUsd, r.costUsd, r.armed, r.status.tone, r.status.detail]).toEqual([0, 0, false, 'stale', 'dry-run: its orders are checked and journalled, none is sent']);
+    expect(grokPmRow({ ...w, mode: 'live' })?.status.detail).toBe('armed: its record has not read its first trade yet');
     expect(grokPmRow(null)).toBe(null);
     expect(grokPmStopText(w, (x) => x)).toBe(null);
     expect(grokPmRow({ ...g, stop: { ...g.stop, totalTripped: true } })?.status.detail).toBe('its total stop is reached: by its rules it may only close');
-    expect(grokPmRow({ ...g, running: false, lagMinutes: 22 })?.status.detail).toBe('its record last read the wallet 22 min ago');
+    expect(grokPmRow({ ...g, running: false, lagMinutes: 22 })?.status.detail).toBe('its record last read the account 22 min ago');
   });
   it('adds once to LIVE beside live-prep, on one Polymarket card, and never to TESTING', () => {
     const dash = { risk: { global_pause: false, live_confirmed_at: null }, strategies: [], lpLive: lpLiveFixture.output, grokPm: g };

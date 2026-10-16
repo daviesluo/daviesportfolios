@@ -697,7 +697,7 @@ function LpLiveDetail({ l, m, at, nowMs }) {
 /**
  * "Polymarket analyst (Grok)", GROKPM's page over LIVE (Davies, 2026-10-15: "网站中live页也加上策略和子策略页面（仿照之前rewards
  * 策略来做）"), laid out as the Reward quotes live page: its scoreboard (FUNDED, VALUE, TOTAL, TODAY, UNREALIZED, REALIZED) from the
- * independent record of the agent's wallet, the stops' room under it, a red line when the agent's own numbers differ from
+ * independent record of the agent's own trades, the stops' room under it, a red line when the agent's own numbers differ from
  * the record by more than $1, STATUS (open positions, cash, Brier against the market, resolved), then POSITIONS from the
  * record, the agent's JOURNAL (its words, shown as text; its sources as plain links), and DAYS, the record's P&L beside its
  * summary. Everything is the dashboard's `grokPm` (`grokpm_view.ts`).
@@ -741,7 +741,9 @@ function GrokPmDetail({ g, m, at, nowMs }) {
         <div className="ag-sb-divider" />
         <GlCell label="REALIZED G/L" usd={row.realisedUsd} pct={row.realisedPct} m={m} cls="ag-sb-realised" aside="(after fees)" />
       </div>
-      {!g.started && <div className="ag-gpm-line dim mono">Waiting for its funding to arrive in {g.wallet}: the record starts at its first reading holding 90 % of it.</div>}
+      {!g.started && <div className="ag-gpm-line dim mono">{g.mode === 'live'
+        ? 'Armed: its own book counts from the go, on the project\u2019s Polymarket account.'
+        : 'Dry-run: the server checks and journals its orders and sends none. Its $100 book starts when Davies says go.'}</div>}
       {g.started && !g.running && <div className="ag-warn-line">{row.status.detail}</div>}
       {g.lastError && <div className="ag-warn-line">record: {m(String(g.lastError))}</div>}
       {mismatch && <div className="ag-warn-line ag-gpm-mismatch">{mismatch}</div>}
@@ -827,7 +829,7 @@ function GrokPmDetail({ g, m, at, nowMs }) {
           </table>
         </div>
       </section>
-      <div className="ag-updated dim mono ag-gpm-foot">as of {when(at)} {UK_TZ} · wallet {g.wallet} · read every 5 min · refreshes every minute</div>
+      <div className="ag-updated dim mono ag-gpm-foot">as of {when(at)} {UK_TZ} · {g.mode === 'live' ? 'armed' : 'dry-run'} · read every 5 min · refreshes every minute</div>
     </div>
   );
 }

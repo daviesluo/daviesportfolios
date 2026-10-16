@@ -1214,7 +1214,7 @@ const LP_LIVE_FIXTURE = JSON.parse(fs.readFileSync(new URL('./lp_live_fixture.js
  * function's answer for its `input` and every figure below against the arithmetic): funded $100, value $102.30 (cash $69.10
  * + $33.20 held), total +$2.30, today +$0.70, unrealised +$0.20 on a cost of $30, realised +$2.10; stop room $32.30 and
  * $10.70; Brier 0.106 against the market's 0.084 on 2 resolved; the agent's 22:31 report ($100.10, +$0.10) off the record
- * ($102.30, +$2.30) by more than $1. `waiting` is the same wallet before its money arrived. Served alone (`grokpm`,
+ * ($102.30, +$2.30) by more than $1. `waiting` is the same account before the go, in dry-run. Served alone (`grokpm`,
  * `grokpm-waiting`), so LIVE lists it beside the base payload's rows.
  */
 const GROKPM_FIXTURE = JSON.parse(fs.readFileSync(new URL('./grokpm_fixture.json', import.meta.url), 'utf8'));
@@ -4842,7 +4842,7 @@ async function run() {
         } else fail(GT('row'), `rows ${JSON.stringify(p1.rows.map((r) => [r.name, r.venue, r.sub, r.gl]))}, funded ${fundedOf(p0)} → ${fundedOf(p1)}`);
         const pw = await baseLive('grokpm-waiting');
         const wrow = pw.rows.find((r) => r.name === NAME);
-        if (wrow && wrow.sub === '0 open · $0 cap' && fundedOf(pw) === fundedOf(p0)) ok(GT('waiting'), 'before its money arrives its row is there and adds nothing to LIVE\'s FUNDED');
+        if (wrow && wrow.sub === '0 open · $0 cap' && fundedOf(pw) === fundedOf(p0)) ok(GT('waiting'), 'before the go its row is there, a dry-run, and adds nothing to LIVE\'s FUNDED');
         else fail(GT('waiting'), `waiting row ${JSON.stringify(wrow)}, funded ${fundedOf(p0)} → ${fundedOf(pw)}`);
 
         const readGrokPage = () => page.evaluate(() => {
@@ -4900,7 +4900,7 @@ async function run() {
         if (gv && gv.sections === WANT.sections && gv.tiles === WANT.tiles && JSON.stringify(gv.positions) === JSON.stringify(WANT.positions) && JSON.stringify(gv.days) === JSON.stringify(WANT.days)
           && gv.entries.length === 6 && gv.entries[5].includes('open · cat A · buy Yes') && gv.entries[5].includes('p 90¢ · m 71¢') && gv.entries[5].includes('wrong if: The vote record is corrected.')
           && gv.entries[0].includes('no action') && JSON.stringify(gv.links) === JSON.stringify(WANT.links) && !gv.links.some((l) => /javascript/i.test(l))
-          && /^as of \d{1,2} \w{3} \d{2}:\d{2} [A-Z]+ · wallet 0xabcd…ef01 · read every 5 min · refreshes every minute$/.test(gv.foot)) {
+          && /^as of \d{1,2} \w{3} \d{2}:\d{2} [A-Z]+ · armed · read every 5 min · refreshes every minute$/.test(gv.foot)) {
           ok(GT('page'), `its sections are ${WANT.sections}: STATUS ${gv.tiles}; POSITIONS from the record (3, one resolved); JOURNAL newest first (6 entries, 4 http(s) links, the javascript: one dropped); DAYS ${JSON.stringify(gv.days)}`);
         } else fail(GT('page'), `sections ${gv?.sections}, tiles "${gv?.tiles}", positions ${JSON.stringify(gv?.positions)}, days ${JSON.stringify(gv?.days)}, entries ${JSON.stringify(gv?.entries)}, links ${JSON.stringify(gv?.links)}, foot "${gv?.foot}"`);
         if (gv && gv.overflow <= 1 && gv.pageOverflow <= 1 && gv.off === 0) ok(GT('width'), `nothing on its page is wider than the screen (page ${gv.overflow}px, document ${gv.pageOverflow}px)`);
@@ -4915,9 +4915,9 @@ async function run() {
         await page.locator('.ag-strategies-live .ag-row', { has: nameBtn(page, NAME) }).first().click();
         await settled(page, '.ag-gpm-detail');
         const gw = await readGrokPage();
-        if (gw && gw.waiting === 'Waiting for its funding to arrive in 0xabcd…ef01: the record starts at its first reading holding 90 % of it.' && gw.stop === '' && gw.mismatch === ''
+        if (gw && gw.waiting === 'Dry-run: the server checks and journals its orders and sends none. Its $100 book starts when Davies says go.' && gw.stop === '' && gw.mismatch === ''
           && /^FUNDED=— \| VALUE=— \| TOTAL=/.test(gw.scoreboard) && gw.positions.length === 1 && gw.days.length === 1) {
-          ok(GT('waiting'), `before its money arrives the page says so ("${gw.waiting}"), FUNDED and VALUE are dashes, no stop line`);
+          ok(GT('waiting'), `before the go the page says it is a dry-run ("${gw.waiting}"), FUNDED and VALUE are dashes, no stop line`);
         } else fail(GT('waiting'), `waiting page ${JSON.stringify(gw)}`);
         await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
         await closeBy(page, () => page.keyboard.press('Escape'));

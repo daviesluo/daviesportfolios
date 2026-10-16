@@ -14,7 +14,7 @@
 //   total       equity − funded.
 //   today       equity − the day's opening equity (the UTC day's first snapshot; on the start day, funded).
 //   unrealised  Σ over positions still trading of size × (mark − average price).
-//   realised    total − unrealised: what closed, settled and was redeemed, after every fee, since the wallet's cash says so.
+//   realised    total − unrealised: what its own trades closed and settled, after every fee, as their cash says.
 //   deployed    Σ size × average price of what it holds: its cost.
 //   stop room   $30 + total (the total stop) and $10 + today (the day's), as the agent's rules state them; the page only
 //               shows them, nothing here can stop the agent.
@@ -41,7 +41,11 @@ const r6 = (x: number) => Math.round(x * 1e6) / 1e6;
 const iso = (ms: number) => new Date(ms).toISOString();
 const dayOf = (s: string) => String(s).slice(0, 10);
 
-export type GrokPmConfigRow = { wallet: string | null; funded_usd: number | string; daily_loss_usd: number | string; total_stop_usd: number | string; started_at: string | null };
+export type GrokPmConfigRow = {
+  wallet: string | null; funded_usd: number | string; daily_loss_usd: number | string; total_stop_usd: number | string; started_at: string | null;
+  /** The order path's lock (0125): armed while `dry_run` is false and `armed_at` set. Absent on a row read before 0125. */
+  dry_run?: boolean | null; armed_at?: string | null;
+};
 export type GrokPmSnapshotRow = {
   slot: string; at: string; cash_usd: number | string; positions_value_usd: number | string; value_api_usd: number | string | null; equity_usd: number | string;
   positions: Array<Record<string, unknown>> | null;
@@ -58,7 +62,7 @@ export type GrokPmEntryRow = { asset: string; cond: string; title: string | null
 export type GrokPmResolutionRow = { cond: string; tokens: unknown; payouts: unknown };
 export type GrokPmOpenRow = { id: string; ts: string; token_id: string | null; p: number | string | null; m: number | string | null; category: string | null };
 
-export const GROKPM_CONFIG_COLUMNS = "wallet,funded_usd,daily_loss_usd,total_stop_usd,started_at";
+export const GROKPM_CONFIG_COLUMNS = "wallet,funded_usd,daily_loss_usd,total_stop_usd,started_at,dry_run,armed_at";
 export const GROKPM_SNAPSHOT_COLUMNS = "slot,at,cash_usd,positions_value_usd,value_api_usd,equity_usd,positions";
 export const GROKPM_DECISION_COLUMNS = "id,ts,action,market_id,token_id,outcome,side,price,size,p,m,category,sources,reason,invalidation";
 export const GROKPM_CYCLE_COLUMNS = "id,ts,kind,cash_usd,positions_value_usd,pnl_usd,open_positions,actions";
@@ -66,8 +70,6 @@ export const GROKPM_DAILY_COLUMNS = "id,received_at,day,pnl_day_usd,pnl_total_us
 export const GROKPM_ENTRY_COLUMNS = "asset,cond,title,first_seen_at,first_fill_at,mid";
 export const GROKPM_OPEN_COLUMNS = "id,ts,token_id,p,m,category";
 
-/** A wallet as the page names it: its first six and last four characters. */
-export const shortWallet = (w: string | null) => (w && w.length > 12 ? `${w.slice(0, 6)}…${w.slice(-4)}` : w);
 
 /** Only an http(s) URL is a link; anything else the agent sent is dropped from the links (it stays in the record as sent). */
 export function safeLinks(x: unknown): string[] {
@@ -110,7 +112,7 @@ export function brierOf(entries: GrokPmEntryRow[], resolutions: GrokPmResolution
 }
 
 /**
- * The dashboard's `grokPm`: null until the wallet is configured; then the row's and the page's every figure (see the
+ * The dashboard's `grokPm`: null until the wallet is configured (the `grokpm` function writes it from the account's own settings); then the row's and the page's every figure (see the
  * header). `latest` is the newest snapshot, `opens` each UTC day's first (`grokpm_day_opens`), `cycleSnap` the snapshot of
  * the latest cycle's slot (or the one before).
  */
@@ -192,7 +194,9 @@ export function grokPmSummary(input: {
   const totalTripped = started && total <= -totalLimit;
   const dayTripped = started && todayUsd <= -dayLimit;
   return {
-    wallet: shortWallet(cfg.wallet), started, startedAt: cfg.started_at,
+    // The account's address is never sent to the page (since D2 it is the project's own account): only whether the order
+    // path is armed, and from when the agent's own book counts.
+    mode: cfg.dry_run === false && cfg.armed_at ? "live" as const : "dry_run" as const, started, startedAt: cfg.started_at,
     fundedUsd: started ? funded : null, configuredFundedUsd: funded,
     equityUsd: equity === null ? null : r6(equity), cashUsd: input.latest ? r6(num(input.latest.cash_usd)) : null,
     positionsValueUsd: input.latest ? r6(num(input.latest.positions_value_usd)) : null, valueApiUsd: input.latest ? nz(input.latest.value_api_usd) : null,

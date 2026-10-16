@@ -681,18 +681,22 @@ export function schemaRefusal(table: string, r: Row): string | null {
   return null;
 }
 
-/** The configs of the one Polymarket account the order path's instances trade (0091's trigger reads all three), in name order. */
-const PM_ONE_ACCOUNT_CONFIGS = ["pm_live_config", "pm_lp_config", "pm_mid_config"];
 /**
- * 0091's trigger `pm_one_account_one_armed` (0084's, for two configs, until then), on every config: a row written armed
- * (`live_confirmed_at` not null) is refused while another config's row is armed, naming the first armed other by name,
- * in Postgres's words (the exception it raises, as a check violation). Applied to the row as stored, on INSERT, UPDATE
- * and an upsert's merge, after the row's own checks, as an AFTER trigger fires.
+ * The configs of the one Polymarket account (0125's trigger reads all four), in name order: the three order paths'
+ * instances, and GROKPM's server path, which is armed while its `armed_at` is set where theirs is `live_confirmed_at`.
+ */
+const PM_ONE_ACCOUNT_CONFIGS = ["grokpm_config", "pm_live_config", "pm_lp_config", "pm_mid_config"];
+const armedOf = (t: string, x: Row) => (t === "grokpm_config" ? x.armed_at != null : x.live_confirmed_at != null);
+/**
+ * 0125's trigger `pm_one_account_one_armed` (0091's for three configs, 0084's for two, until then), on every config: a
+ * row written armed is refused while another config's row is armed, naming the first armed other by name, in Postgres's
+ * words (the exception it raises, as a check violation). Applied to the row as stored, on INSERT, UPDATE and an
+ * upsert's merge, after the row's own checks, as an AFTER trigger fires.
  */
 function oneArmedRefusal(tables: Record<string, Row[]>, table: string, r: Row): string | null {
-  if (!PM_ONE_ACCOUNT_CONFIGS.includes(table) || r.live_confirmed_at == null) return null;
-  const other = PM_ONE_ACCOUNT_CONFIGS.find((t) => t !== table && (tables[t] ?? []).some((x) => x.live_confirmed_at != null));
-  return other ? `${table} cannot be armed while ${other} is armed: mini-pool, mid-pool and live-prep trade one Polymarket account` : null;
+  if (!PM_ONE_ACCOUNT_CONFIGS.includes(table) || !armedOf(table, r)) return null;
+  const other = PM_ONE_ACCOUNT_CONFIGS.find((t) => t !== table && (tables[t] ?? []).some((x) => armedOf(t, x)));
+  return other ? `${table} cannot be armed while ${other} is armed: mini-pool, mid-pool, live-prep and GROKPM trade one Polymarket account` : null;
 }
 
 /**

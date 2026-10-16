@@ -1031,6 +1031,26 @@ describe('pg_cron jobs', () => {
     expect(httpJobs(jobsAfter).map(([n]) => n)).toEqual(['edge-calls-every-minute']);
   });
 
+  // GROKPM's order path (Davies, 2026-10-16: "让grok用我们搭好的爱尔兰服务器下单"): the agent's live orders read back every minute.
+  it("adds GROKPM's order read-back as one call a minute from eu-west-1 (0125), its beat first, every other row as it was, no job of its own", () => {
+    const T = FILES.find((f) => /^0125_grokpm_exec\.sql$/.test(f)) ?? '';
+    expect(T).not.toBe('');
+    const before = replayList(sqlsOf(FILES.filter((f) => f < T))), after = replayList(sqlsOf(FILES.filter((f) => f <= T)));
+    expect(after.slice(0, before.length)).toEqual(before);
+    const shape = ({ path: p, timeout, every, lastHour, enabled, retry }) => ({ path: p, timeout, every, lastHour, enabled, retry });
+    // `retry` true: a second run in its minute reads the same orders back and upserts the same fills on their key.
+    expect(after.slice(before.length).map(shape)).toEqual([
+      { path: 'grokpm?action=sync&forceFunctionRegion=eu-west-1', timeout: 30000, every: 1, lastHour: 23, enabled: true, retry: true },
+    ]);
+    expect(after.at(-1).activeFrom).toBe('written + 15 minutes');
+    expect(beatKeyOfPath(after.at(-1).path)).toBe('grokpm?action=sync');
+    const src = fs.readFileSync(path.join(ROOT, 'supabase/functions/grokpm/index.ts'), 'utf8');
+    expect(src).toContain('if (action === "sync") return await handleSync(req, deps, now());');
+    const jobsBefore = cronJobs(FILES.filter((f) => f < T)), jobsAfter = cronJobs(FILES.filter((f) => f <= T));
+    expect([...jobsAfter.keys()].filter((n) => !jobsBefore.has(n))).toEqual([]);
+    expect(httpJobs(jobsAfter).map(([n]) => n)).toEqual(['edge-calls-every-minute']);
+  });
+
   it("never cancels a migrations run in flight: a newer push's run waits for it (review D1)", () => {
     const yml = fs.readFileSync(path.join(ROOT, '.github/workflows/migrations.yml'), 'utf8');
     expect(yml).toMatch(/^concurrency:\n {2}group: \$\{\{ github\.workflow \}\}-\$\{\{ github\.ref \}\}\n {2}cancel-in-progress: false$/m);

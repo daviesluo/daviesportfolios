@@ -15,8 +15,11 @@ export const GROKPM_MAX_BODY_BYTES = 65_536;
 export const GROKPM_MAX_ROWS_PER_REQUEST = 50;
 /** Rows stored in any rolling hour, at most (the spec's "at most 200 rows an hour"). */
 export const GROKPM_MAX_ROWS_PER_HOUR = 200;
-/** Authenticated requests in any rolling hour, at most, refused ones included. */
-export const GROKPM_MAX_REQUESTS_PER_HOUR = 120;
+/**
+ * Authenticated requests in any rolling hour, at most, refused ones included: 120 for the journal alone, 600 since the
+ * agent also reads its account and markets and sends its orders here (Deviation D2, 2026-10-16).
+ */
+export const GROKPM_MAX_REQUESTS_PER_HOUR = 600;
 /** The bearer secret is refused as unset when shorter than this: a short secret could be guessed. */
 export const GROKPM_MIN_SECRET_CHARS = 32;
 /** A row's time may be this far ahead of the server's clock (the agent's clock drifts), and at most this old. */

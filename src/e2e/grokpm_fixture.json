@@ -6,7 +6,9 @@
    "funded_usd": 100,
    "daily_loss_usd": 10,
    "total_stop_usd": 30,
-   "started_at": "2026-09-16T10:05:00.000Z"
+   "started_at": "2026-09-16T10:05:00.000Z",
+   "dry_run": false,
+   "armed_at": "2026-09-16T10:05:00.000Z"
   },
   "latest": {
    "slot": "2026-09-17T22:55:00.000Z",
@@ -316,7 +318,7 @@
   }
  },
  "output": {
-  "wallet": "0xabcd…ef01",
+  "mode": "live",
   "started": true,
   "startedAt": "2026-09-16T10:05:00.000Z",
   "fundedUsd": 100,
@@ -542,7 +544,7 @@
   "mismatch": true
  },
  "waiting": {
-  "wallet": "0xabcd…ef01",
+  "mode": "dry_run",
   "started": false,
   "startedAt": null,
   "fundedUsd": null,

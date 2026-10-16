@@ -378,26 +378,29 @@ places stay when the number is not whole.
   again at the restart, and the markets chosen before it are listed with what
   they still hold.
 - **Polymarket analyst (Grok) on LIVE.** An outside Grok agent trading a
-  small Polymarket wallet of its own on information: outcomes already
-  confirmed while the price lags, and researched mispricings in quiet
-  markets, with limit orders and fixed limits (a few dollars a market, six
-  positions, a daily and a total stop). Its code runs elsewhere; this site
-  only watches. Every dollar on its row and page is read from Polymarket's
-  public record of the wallet every five minutes, never from what the agent
-  says: funded (nothing until the money has arrived), its value now (cash
-  plus each holding at the market's middle price, or its payout once the
-  market has resolved), total, today, unrealised, realised (after fees), and
-  under them the room left on both stops. A red line appears when the
-  agent's own report differs from that record by more than $1. STATUS shows
-  the open positions, the cash, how well its probabilities scored against the
-  market's prices on the markets that have resolved (the Brier score: lower
-  is better, its own first), and how many have resolved. Then POSITIONS from
-  the record; the JOURNAL, its latest decisions in its own words, with the
-  probability it gave, the market's price it saw, its category and its
-  sources as plain links; and DAYS, each day's result from the record beside
-  the one it reported. The row appears once its wallet is set, and adds to
-  LIVE's totals only once the money has arrived. Hide values masks every
-  amount, price and size; probabilities and scores stay.
+  $100 budget on Polymarket on information: outcomes already confirmed while
+  the price lags, and researched mispricings in quiet markets. It holds no
+  key: it asks this site's server in Ireland, which checks every order
+  against its fixed limits (a few dollars a market, six positions, a cash
+  floor, a daily and a total stop, no long shots, no near-certain favourites
+  unless the outcome is already confirmed, no thin books) and against its own
+  trades only, and refuses what breaks them before anything is sent. Until
+  Davies says go it runs as a dry-run: its orders are checked and journalled
+  and none is sent, and the row says so. Every dollar on its row and page is
+  read from Polymarket's public record of its own trades every five
+  minutes, never from what the agent says: funded (nothing until the go), its
+  value now (cash plus each holding at the market's middle price, or its
+  payout once the market has resolved), total, today, unrealised, realised
+  (after fees), and under them the room left on both stops. A red line
+  appears when the agent's own report differs from that record by more than
+  $1. STATUS shows the open positions, the cash, how well its probabilities
+  scored against the market's prices on the markets that have resolved (the
+  Brier score: lower is better, its own first), and how many have resolved.
+  Then POSITIONS from the record; the JOURNAL, its latest decisions in its own
+  words, with the probability it gave, the market's price it saw, its
+  category and its sources as plain links; and DAYS, each day's result from
+  the record beside the one it reported. Hide values masks every amount,
+  price and size; probabilities and scores stay.
 - **Reward quotes mini-pool** (markets paying $6 to under $10 a day, the
   first test of that account) left the list and stopped on 8 October: its
   checks had closed and it is not a candidate to go live.

@@ -239,6 +239,54 @@ CLOB's history (a mid-like price per five minutes), not executable books.
 - **D1 (2026-10-15, before freezing).** The brief's geoblock rule "country IE and not blocked" is written as "country IE":
   from Ireland the endpoint answers `blocked: true` (reference §2d, the eu-west-1 measurement), so the brief's rule as
   written would refuse every order.
+- **D2 (2026-10-16, before the start; migration `0125`).** Davies, 2026-10-16: "之前的live reward卖完了吗，可以用目前这个
+  polymarket跑吗" and "让grok用我们搭好的爱尔兰服务器下单，不是网页端". The agent does not get a wallet or a key. It trades
+  through this project's server (`supabase/functions/grokpm/exec.ts`), forced to eu-west-1, on the Polymarket account
+  live-prep used, whose remaining holdings are dust under the 5-share minimum. What changes:
+  1. **Execution.** Every order is a request to the server carrying its journal decision (Appendix A.2). The server
+     checks it, journals it, and only then signs and sends it with the order paths' own client. The agent cannot send an
+     order any other way. Disarmed (`grokpm_config.dry_run` true, `armed_at` null), everything is checked and journalled
+     and nothing is sent. The go statement (0125's header) arms it only in the conversation where Davies says go, and
+     0091's one-armed rule now covers GROKPM: it cannot be armed while live-prep is, nor live-prep while it is. 0125
+     disarms live-prep where it holds nothing an order can sell.
+  2. **Server-side rules.** Every rule of §2 a machine can check is refused with its reason before anything is sent:
+     - a BUY is post-only;
+     - a SELL may take the book only as a close of category C;
+     - a BUY must be at 0.05 or more, and under 0.90 unless category A;
+     - at most $10 at cost a market (held plus resting buys plus the order);
+     - at most 6 markets open;
+     - at most $25 a theme: the agent names a `theme` with each open, and a market keeps the theme of its first buy;
+     - cash after the order at least $30;
+     - the −$10 day stop and the −$30 total stop, both from the agent's own book;
+     - a market ending within 30 days, not a sport playing or ending within 7 days, and not a crypto price market ending
+       within 7 days;
+     - not thin: spread at most 5 points, and at least $500 bid within 5 points of the mid;
+     - the decision's p, m, category, sources and invalidation present;
+     - the venue's tick and minimum size;
+     - at most 50 orders a UTC day;
+     - a GTD expiry clamped to between 3 and 65 minutes (35 by default).
+
+     Live, the server also requires all of these, read by the server itself:
+     - eu-west-1;
+     - the key loaded for the stored signer;
+     - the geoblock answering `country` "IE" (this replaces §2's agent-side check);
+     - Davies' Ireland attestation current, for opens;
+     - no global pause and no other armed path;
+     - the account not closed-only, for opens.
+  3. **Budget isolation.** The agent's book is its own orders and their fills only (`grokpm_orders`, `grokpm_fills`).
+     - Its equity is the $100 budget plus what its trades realised, less fees, plus what it holds at the mid (at the
+       payout once resolved).
+     - The shared account's pUSD and live-prep's dust never count, and the agent can never sell a token it did not buy.
+     - It cancels only its own orders, each by its id; the venue's cancel-all is never sent.
+     - The independent record (§4) counts only the account's public trades whose transaction and token are one of the
+       agent's fills.
+  4. **Start.** The start (§3) is the go statement's `started_at`, the baseline from which the agent's own book counts,
+     not a snapshot holding $90. FUNDED is the $100 budget from then.
+  5. **Requests.** Since the agent also reads its account and markets here, the hourly cap on requests is 600 (journal
+     rows stay at 200 an hour).
+
+  Nothing else changes: the categories, the reading (§6), its bar and its end are as frozen. The account's address is
+  never returned to the agent or shown on the page.
 
 ## Appendix A: the journal API (paste into the prompt)
 
@@ -356,7 +404,7 @@ and 10 minutes ahead of the server's clock. Unknown fields are refused. Free tex
 | 500 | `{"error":"could not store; send again later"}` | resend later (ids make it safe) |
 | 503 | `{"error":"not configured","detail":"GROKPM_LOG_TOKEN is not set"}` | Davies sets the secret |
 
-**Limits:** 200 rows stored and 120 requests (refused ones included) in any rolling hour.
+**Limits:** 200 rows stored and 600 requests (refused ones included) in any rolling hour (120 before D2).
 
 **Example:**
 
@@ -364,4 +412,129 @@ and 10 minutes ahead of the server's clock. Unknown fields are refused. Free tex
 curl -sS -X POST https://flmvxigozjuizpckllvk.supabase.co/functions/v1/grokpm \
   -H "Authorization: Bearer $GROKPM_LOG_TOKEN" -H "Content-Type: application/json" \
   -d '{"cycles":[{"id":"2026-10-16T10:00Z-cycle","ts":"2026-10-16T10:00:05Z","kind":"light","cash_usd":80.16,"positions_value_usd":19.9,"pnl_usd":0.06,"open_positions":2,"actions":0}]}'
+```
+
+### A.2 Trading through the server (Deviation D2)
+
+Every call below goes to `https://flmvxigozjuizpckllvk.supabase.co/functions/v1/grokpm?action=<action>&forceFunctionRegion=eu-west-1` with the same `Authorization: Bearer
+<GROKPM_LOG_TOKEN>`. Called from any other region it answers `403 {"error":"wrong region"}`. The ping (GET with no
+action) says which region answered. The server holds the account; you never see its address or key.
+
+| action | method | what it answers |
+|---|---|---|
+| `account` | GET | `mode` (`dry_run` or `live`), `armed`, `started_at`, `gates` (`geoblock`, `attestation`, `global_pause`, `closed_only`, `other_path_armed`, `key_loaded`), `budget` (`funded_usd`, `cash_usd`, `resting_buys_usd`, `free_cash_usd`, `cash_floor_usd`, `spendable_usd`, `held_value_usd`, `equity_usd`, `fees_usd`, `total_pnl_usd`, `day_pnl_usd`, `day_stop_usd`, `total_stop_usd`, `day_room_usd`, `total_room_usd`, `can_open`, `orders_today`, `max_orders_day`, `markets_open`, `max_markets`, `market_cap_usd`, `theme_cap_usd`, `cost_by_theme`, `cost_by_market`), `positions` (your own: `market_id`, `token_id`, `size`, `avg_price`, `mark`, `mark_from`, `value_usd`, `unrealised_usd`, `resting_sell`, `theme`), `open_orders` (`order_id`, `decision_id`, `market_id`, `token_id`, `side`, `price`, `size`, `size_matched`, `post_only`, `state`, `expires_at`, `expires_in_s`, `theme`) |
+| `market&cond=0x…` or `market&token=…` | GET | `market_id`, `question`, `end_date`, `neg_risk`, `accepting_orders`, `closed`, `fee_type`, `tags`, `sports`, `crypto`, `game_start_time`, `tick`, `min_size`, `outcomes` (each: `token_id`, `outcome`, `best_bid`, `best_ask`, `mid`, `spread`, `bid_depth_usd_5pt`, `ask_depth_usd_5pt`, `tick`, `min_size`, `thin`), `open_blocked_by` (the market rules an open there would break now) |
+| `order` | POST | one order from its decision: an `open` decision BUYs, a `close` decision SELLs (body below) |
+| `cancel` | POST | `{"order_id":"0x…"}` (one of yours), optional `"decision"` (action `cancel`) to journal it |
+| `cancel_all` | POST | every open order of yours, each cancelled by its id; optional `"decision"` |
+
+**An order** is `{"decision": <a decision row as in Appendix A, action open or close>, "theme": "<1–64 characters>",
+"expires_at": "<ISO time>"}`.
+- The decision's `market_id`, `token_id`, `side`, `price`, `size` and `category` ARE the order. `theme` is required for
+  an open. `expires_at` is optional: it is clamped to between 3 and 65 minutes ahead, and is 35 minutes when absent.
+- The decision is journalled with the order. Do not post it to the journal again.
+- A request whose decision `id` was already used answers the order it made (`"duplicate": true`), so a lost answer can be
+  resent safely.
+
+<!-- example:order -->
+```json
+{
+ "decision": {
+  "id": "2026-10-16T09:25Z-open-1",
+  "ts": "2026-10-16T09:25:00Z",
+  "action": "open",
+  "market_id": "0x3f1c0e5b0a7d2c9e8f6b4a3d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4c3b",
+  "token_id": "71321045679252212594626385532706912750332728571942532289631379312455583992563",
+  "outcome": "Yes",
+  "side": "BUY",
+  "price": 0.82,
+  "size": 12,
+  "p": 0.97,
+  "m": 0.835,
+  "category": "A",
+  "sources": [
+   "https://www.bls.gov/news.release/cpi.nr0.htm"
+  ],
+  "reason": "BLS published September CPI at 08:30 ET: 0.2 % m/m, inside this market's YES range. The book still offers YES at 0.82.",
+  "invalidation": "BLS revises or retracts the release, or the market's rules name a different series."
+ },
+ "theme": "us-cpi-september",
+ "expires_at": "2026-10-16T10:05:00Z"
+}
+```
+
+A close of category C (a broken thesis) may sell at or below the best bid; any other order rests (post-only).
+
+<!-- example:close -->
+```json
+{
+ "decision": {
+  "id": "2026-10-16T13:05Z-close-1",
+  "ts": "2026-10-16T13:05:00Z",
+  "action": "close",
+  "market_id": "0x3f1c0e5b0a7d2c9e8f6b4a3d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4c3b",
+  "token_id": "71321045679252212594626385532706912750332728571942532289631379312455583992563",
+  "outcome": "Yes",
+  "side": "SELL",
+  "price": 0.6,
+  "size": 12,
+  "category": "C",
+  "sources": [
+   "https://www.bls.gov/news.release/cpi.nr0.htm"
+  ],
+  "reason": "BLS corrected the release: the series is outside the range. Thesis broken; exit at the bid."
+ }
+}
+```
+
+**Answers to `order`:**
+
+| status | body |
+|---|---|
+| 200, dry-run | `{"ok":true,"mode":"dry_run","sent":false,"would_send":{"token_id","side","price","size","post_only","order_type":"GTD","expires_at"},"order":{…}}` |
+| 200, live | `{"ok":true,"mode":"live","sent":true,"venue":"<the venue's status>","order":{"order_id","decision_id","state","post_only","expires_at",…}}` |
+| 409 | `{"ok":false,"sent":true,"venue":"<why the venue refused it>","order":{…,"state":"rejected"}}` |
+| 422 | `{"error":"invalid","errors":[…]}` (the decision's fields) or `{"error":"refused","mode":…,"refusals":[{"rule":"…","why":"…"}]}` |
+| 403 | `{"error":"wrong region"}` |
+
+**The refusals' rules:**
+
+| rule | meaning |
+|---|---|
+| `region` | not eu-west-1 |
+| `global_pause` | the project's global pause is on |
+| `key` | the signing key is not loaded |
+| `one_armed` | another path of the account is armed |
+| `geoblock` | the server's geoblock is not IE |
+| `attestation` | Davies' Ireland attestation is not current: closes only |
+| `closed_only` | the account is closed-only: closes only |
+| `orders_day` | 50 orders today already |
+| `market` | Gamma has no such open market, or the token is not one of its outcomes |
+| `book` | the book is unreadable |
+| `longshot` | a buy under 0.05 |
+| `favourite` | a buy at 0.90 or more outside category A |
+| `total_stop` | −$30 reached: closes only |
+| `day_stop` | −$10 today: no new open until 00:00 UTC |
+| `market_cap` | over $10 in the market |
+| `positions` | 6 markets open |
+| `theme` | no theme, or the market's theme differs |
+| `theme_cap` | over $25 in the theme |
+| `cash_floor` | cash would fall under $30 |
+| `end_date` | the market resolves more than 30 days out, or names no end |
+| `sports` | a sport playing or ending within 7 days |
+| `crypto` | a crypto price market ending within 7 days |
+| `thin` | one-sided, spread over 5 points, or under $500 bid within 5 points of the mid |
+| `post_only` | a buy at or above the ask, or a sell at or below the bid that is not a category-C close |
+| `not_owned` | selling more than you hold from your own buys, less your resting sells; you can never sell a token you did not buy |
+| `venue` | off the tick, under the minimum size, or a bad expiry |
+
+**Example (a light check, then an open):**
+
+```sh
+B="https://flmvxigozjuizpckllvk.supabase.co/functions/v1/grokpm"
+H="Authorization: Bearer $GROKPM_LOG_TOKEN"
+curl -sS "$B?action=account&forceFunctionRegion=eu-west-1" -H "$H"
+curl -sS "$B?action=market&cond=0x3f1c…4c3b&forceFunctionRegion=eu-west-1" -H "$H"
+curl -sS -X POST "$B?action=order&forceFunctionRegion=eu-west-1" -H "$H" -H "Content-Type: application/json" -d @order.json
+curl -sS -X POST "$B?action=cancel_all&forceFunctionRegion=eu-west-1" -H "$H" -H "Content-Type: application/json" -d '{}'
 ```

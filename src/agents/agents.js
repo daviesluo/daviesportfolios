@@ -1411,10 +1411,11 @@ export const GROKPM_ROW_NAME = 'Polymarket analyst (Grok)';
 
 /**
  * "Polymarket analyst (Grok)" as a row of LIVE: the dashboard's `grokPm` (`grokpm_view.ts`), every dollar from the
- * independent record of the outside agent's wallet, never its own report. Funded is the $100 from the experiment's start
- * (nothing before: a wallet set but not yet funded adds nothing to LIVE's totals); deployed what it holds at cost; today
- * and realised on what is funded, unrealised on its cost. Its fees are inside realised (the wallet's cash is net of them),
- * so it states none of its own. null until a wallet is configured.
+ * independent record of the agent's own trades on the project's Polymarket account (Deviation D2: it trades through this
+ * project's server, never holding a key), never its own report. Funded is the $100 budget from the go (nothing before:
+ * in dry-run it adds nothing to LIVE's totals); deployed what it holds at cost; today and realised on what is funded,
+ * unrealised on its cost. Its fees are inside realised (its trades' cash is net of them), so it states none of its own.
+ * null until the account is configured.
  * @param {any} g  the dashboard's `grokPm`
  */
 export function grokPmRow(g) {
@@ -1430,9 +1431,9 @@ export function grokPmRow(g) {
     todayUsd: today, todayPct: pct(today, funded), unrealisedUsd: unrealised, unrealisedPct: pct(unrealised, cost), realisedUsd: realised, realisedPct: pct(realised, funded),
     nextText: 'record every 5 min', openPositions: open, openOrders: 0, holdsLive: cost > 0, armed: !!g.started && !g.stop?.totalTripped,
     status: !g.started
-      ? { label: 'live', running: false, tone: 'stale', detail: `waiting for its funding to arrive in ${g.wallet}` }
+      ? { label: 'live', running: false, tone: 'stale', detail: g.mode === 'live' ? 'armed: its record has not read its first trade yet' : 'dry-run: its orders are checked and journalled, none is sent' }
       : !g.running
-        ? { label: 'live', running: false, tone: 'stale', detail: g.lagMinutes == null ? 'its record has not read the wallet yet' : `its record last read the wallet ${g.lagMinutes} min ago` }
+        ? { label: 'live', running: false, tone: 'stale', detail: g.lagMinutes == null ? 'its record has not read the account yet' : `its record last read the account ${g.lagMinutes} min ago` }
         : g.stop?.totalTripped
           ? { label: 'live', running: true, tone: 'stale', detail: 'its total stop is reached: by its rules it may only close' }
           : { label: 'live', running: true, tone: 'running', detail: `an outside agent trading real money · ${open} position${open === 1 ? '' : 's'} open` },

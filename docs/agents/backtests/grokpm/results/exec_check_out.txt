@@ -1,0 +1,25 @@
+PASS  0125 disarms live-prep holding 4.2787 unsettled (the settled 69.8 aside): {"dry_run":false,"disarmed":true,"liquidating":true}
+PASS  0125 leaves live-prep armed while it holds 6 shares of an unsettled token (sellable)
+PASS  0125 leaves live-prep armed while an order of it rests
+PASS  grokpm_config after 0125: disarmed, attestation copied: {"dry_run":true,"armed_at":null,"started_at":null,"wallet":null,"attested":true,"ireland_until":null,"max_orders_day":50}
+PASS  the one-armed trigger on four configs: grokpm_config, pm_live_config, pm_lp_config, pm_mid_config
+the go statement, word for word from 0125's header:
+update public.grokpm_config set dry_run = false, armed_at = now(), started_at = now()
+where id = 1 and dry_run = true and armed_at is null and started_at is null and wallet is not null
+and ireland_attested_at is not null and (ireland_until is null or ireland_until > now())
+and (select p.live_confirmed_at from public.pm_lp_config p where p.id = 1) is null
+returning dry_run, armed_at, started_at;
+PASS  the go statement takes no effect while the wallet is null
+PASS  the go statement takes no effect while live-prep is armed
+PASS  arming GROKPM by hand while live-prep is armed is refused: grokpm_config cannot be armed while pm_lp_config is armed: mini-pool, mid-pool, live-prep and GROKPM trade one Polymarket account
+PASS  the go statement arms GROKPM: [{"dry_run":false,"armed_at":"2026-10-16T15:13:11.111Z","started_at":"2026-10-16T15:13:11.111Z"}]
+PASS  run twice, the go statement changes nothing more
+PASS  arming live-prep while GROKPM is armed is refused: pm_lp_config cannot be armed while grokpm_config is armed: mini-pool, mid-pool, live-prep and GROKPM trade one Polymarket account
+PASS  armed with dry_run true is refused (grokpm_config_armed_check)
+PASS  the undo disarms it
+PASS  a BUY not post-only is refused, even of category A
+PASS  a SELL not post-only of category B is refused
+PASS  a SELL not post-only of category C is taken
+PASS  its call: {"path":"grokpm?action=sync&forceFunctionRegion=eu-west-1","enabled":true,"retry":true,"every_minutes":1}
+PASS  row level security on its 13 tables
+ALL PASS

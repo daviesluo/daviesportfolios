@@ -14,15 +14,15 @@
 // slot says $102.30 and +$2.30: a mismatch. Its 09-16 summary says +$1.50 against the record's +$1.60: within $1.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import fixture from "../../../src/e2e/grokpm_fixture.json" with { type: "json" };
-import { brierOf, GROKPM_MISMATCH_USD, grokPmSummary, safeLinks, shortWallet } from "./grokpm_view.ts";
+import { brierOf, GROKPM_MISMATCH_USD, grokPmSummary, safeLinks } from "./grokpm_view.ts";
 
 // deno-lint-ignore no-explicit-any
 const input = fixture.input as any;
 const close = (a: number | null | undefined, b: number) => assert(a !== null && a !== undefined && Math.abs(a - b) < 1e-9, `${a} ≠ ${b}`);
 
 Deno.test("the fixture's output is the function's answer for its input, and its waiting state likewise", () => {
-  assertEquals(grokPmSummary(input), fixture.output);
-  assertEquals(grokPmSummary({ ...input, config: { ...input.config, started_at: null }, latest: null, dayOpens: [], decisions: [], cycle: null, cycleSnap: null, daily: [], entries: [], resolutions: [], opens: [], recState: { updated_at: null, last_error: null } }), fixture.waiting);
+  assertEquals(grokPmSummary(input) as unknown, fixture.output);
+  assertEquals(grokPmSummary({ ...input, config: { ...input.config, started_at: null, dry_run: true, armed_at: null }, latest: null, dayOpens: [], decisions: [], cycle: null, cycleSnap: null, daily: [], entries: [], resolutions: [], opens: [], recState: { updated_at: null, last_error: null } }) as unknown, fixture.waiting);
 });
 
 Deno.test("every figure matches the arithmetic worked by hand", () => {
@@ -38,7 +38,8 @@ Deno.test("every figure matches the arithmetic worked by hand", () => {
   assertEquals(o.cycle, { ts: "2026-09-17T22:31:00.000Z", kind: "light", actions: 0, openPositions: 3, agentEquityUsd: 100.1, agentPnlUsd: 0.1, recordEquityUsd: 102.3, recordPnlUsd: 2.3, mismatch: true });
   assertEquals(o.mismatch, true);
   assertEquals(o.running, true);
-  assertEquals(o.wallet, "0xabcd…ef01");
+  // The account's address never reaches the page (D2): only the order path's mode.
+  assertEquals(["wallet" in o, o.mode, fixture.waiting.mode], [false, "live", "dry_run"]);
   // The journal: newest first, titles from the record, and only http(s) links.
   assertEquals(o.journal.map((j) => j.id), ["d-6", "d-5", "d-4", "d-3", "d-2", "d-1"]);
   assertEquals(o.journal[5].sources, ["https://www.senate.gov/legislative/votes.htm"]);
@@ -80,8 +81,7 @@ Deno.test("Brier takes the agent's last open before the first fill, and the reco
   assertEquals(brierOf(entries, [], opens).n, 0);
 });
 
-Deno.test("links and the wallet's short form", () => {
+Deno.test("links", () => {
   assertEquals(safeLinks(["https://a.b/c", "ftp://x", "javascript:alert(1)", 3, "http://ok.example/"]), ["https://a.b/c", "http://ok.example/"]);
   assertEquals(safeLinks("https://a.b"), []);
-  assertEquals(shortWallet("0xabcdef0123456789abcdef0123456789abcdef01"), "0xabcd…ef01");
 });

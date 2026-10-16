@@ -1,10 +1,11 @@
 {
  "study": "GROKPM's cadence study (which trading rhythm an LLM information trader should keep on Polymarket) and the journal contract's examples, 2026-10-15",
- "review": "docs/agents/reviews/2026-10-15-grokpm-prereg.md (section 7, Appendix A)",
+ "review": "docs/agents/reviews/2026-10-15-grokpm-prereg.md (section 7, Appendix A and A.2)",
  "public_reads": "Gamma /events?closed=true&tag_slug=<politics|economy|world|tech|geopolitics> (data/markets.json, trimmed to the fields used); the CLOB's /prices-history?market=<YES token>&fidelity=5 over each market's last 7 days (data/prices.json.gz). Keyless GETs only, 2026-10-15 16:08-16:14 UTC.",
  "run_order": [
   "python3 -I docs/agents/backtests/grokpm/scripts/fetch.py  (writes data/; re-running it pulls the public record again and can differ)",
-  "python3 -I docs/agents/backtests/grokpm/scripts/cadence.py > docs/agents/backtests/grokpm/results/cadence.txt"
+  "python3 -I docs/agents/backtests/grokpm/scripts/cadence.py > docs/agents/backtests/grokpm/results/cadence.txt",
+  "PGLITE=<pglite 0.2.17 dist/index.js> node docs/agents/backtests/grokpm/scripts/exec_check.mjs [trigger|disarm]  (0125 on PGlite over every migration; the two counterfactuals must fail)"
  ],
  "seeds": {
   "sample": 20261015,
@@ -16,6 +17,10 @@
   "data/markets.json": "d9a93635c786794dce6d0883bb6240b3432ed1e8c12001cb4fa09992d6e23af7",
   "data/prices.json.gz": "6242547a8d36decc60e0bfb84cc1a4dff8b85156ed2810876aedfa4e4beb32c4",
   "results/cadence.txt": "b0b32b6a7bdaf87e4436253fa5d89796774bc5b803d80bce63178b4f27dbc20b",
-  "contract_examples.json": "a229a42cc3d80a3b221c1b5437d63f8b472f41df70d4ba3e39fa1a86b7ff4aee"
+  "contract_examples.json": "1e46b3cace45d1e8b3927985b6f7a218fcd54f4a3ba7df42d87bcfcf3eb7f881",
+  "scripts/exec_check.mjs": "081c5fdd2c23787512602d194542b8a825e81ce6113eec174f93b44a28bbc3ca",
+  "results/exec_check_out.txt": "4939177b569989b2a4111c431abf5fadb4da376424ace39d17e9bdf8329f1798",
+  "results/exec_check_trigger_out.txt": "bacff62f86358f1b92cba6479e0d62c14749a93a581e3d9bb5e21b30ddbb4c34",
+  "results/exec_check_disarm_out.txt": "0ab7c588fc27a4ed1f93787de0392fba172b201e4465f25e13499190c5e4e8a7"
  }
 }

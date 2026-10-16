@@ -177,7 +177,7 @@ Deno.test("GET is a ping: the time and the hour's budget, nothing stored", async
   const db = new FakeDb(() => T0);
   const r = await run(new Request("https://x.test/", { headers: { Authorization: `Bearer ${SECRET}` } }), db);
   assertEquals(r.status, 200);
-  assertEquals(r.body, { ok: true, now: new Date(T0).toISOString(), rows_left_this_hour: GROKPM_MAX_ROWS_PER_HOUR, requests_this_hour: 0 });
+  assertEquals(r.body, { ok: true, now: new Date(T0).toISOString(), region: null, rows_left_this_hour: GROKPM_MAX_ROWS_PER_HOUR, requests_this_hour: 0 });
   assertEquals(db.requests.length, 0);
 });
 
