@@ -17,17 +17,19 @@ const PREREG = read(PREREG_PATH);
 const SQL = read('supabase/migrations/0124_grokpm.sql');
 const SQL2 = read('supabase/migrations/0125_grokpm_exec.sql');
 const SQL3 = read('supabase/migrations/0126_grokpm_markets.sql');
+const SQL4 = read('supabase/migrations/0128_grokpm_redeem.sql');
 const INGEST = read('supabase/functions/grokpm/ingest.ts');
 const SCHEMA = read('supabase/functions/_shared/grokpm_schema.ts');
 
 describe('GROKPM pre-registration', () => {
-  // Frozen 2026-10-15; its sha256 since Deviation D5 (2026-10-17: 150 orders a day, the end closed by the main session),
-  // which added §9's D5 and named 150 beside §9 D2's 50 and in the refusal table's `orders_day`. D4 (the pre-go audit)
+  // Frozen 2026-10-15; its sha256 since Deviation D6 (2026-10-17: the shared account's automatic redemption, operational),
+  // which added §9's D6 only. D5 (150 orders a day, the end closed by the main session) added §9's D5 and named 150 beside
+  // §9 D2's 50 and in the refusal table's `orders_day`. D4 (the pre-go audit)
   // added §9's D4 only. D3
   // (2026-10-16) added §9's D3 and three rows to A.2's refusal table; D2 before it added §9's D2 and Appendix A.2 and
   // moved the hourly request cap from 120 to 600.
   it('is frozen: its sha256', () => {
-    expect(sha(PREREG_PATH)).toBe('31f8c7a4e4571bae37c2ca028c5da4e1f24eb132b9e84468c738bcda895e905f');
+    expect(sha(PREREG_PATH)).toBe('902fdb0a8db4154605d101f48e1381b7002c32e0f655e4fe8d3c9d634de990da');
   });
 
   it("has its cadence study's files as its manifest names them, and quotes the study's own numbers", () => {
@@ -74,15 +76,15 @@ describe('GROKPM pre-registration', () => {
         return own ?? /^primary key \(([^)]*)\)/m.exec(lines.join('\n'))?.[1].replace(/\s+/g, '');
       })(),
     }));
-    const tables = [...creates(SQL), ...creates(SQL2), ...creates(SQL3)];
-    // 0125's added columns, in its order, after 0124's.
-    for (const m of SQL2.matchAll(/alter table public\.(\w+) add column if not exists (\w+) /g)) {
+    const tables = [...creates(SQL), ...creates(SQL2), ...creates(SQL3), ...creates(SQL4)];
+    // 0125's added columns, in its order, after 0124's; then 0128's (D6: the redemption switch and its state).
+    for (const m of (SQL2 + SQL4).matchAll(/alter table public\.(\w+) add column if not exists (\w+) /g)) {
       const t = tables.find((x) => x.name === m[1]);
-      if (!t) throw new Error(`0125 adds a column to ${m[1]}, which 0124 does not create`);
+      if (!t) throw new Error(`a migration adds a column to ${m[1]}, which none creates`);
       t.columns.push(m[2]);
     }
     expect(tables.map((t) => t.name)).toEqual(['grokpm_config', 'grokpm_decisions', 'grokpm_cycles', 'grokpm_daily', 'grokpm_requests', 'grokpm_snapshots', 'grokpm_activity',
-      'grokpm_entries', 'grokpm_resolutions', 'grokpm_rec_state', 'grokpm_orders', 'grokpm_fills', 'grokpm_exec_state', 'grokpm_markets']);
+      'grokpm_entries', 'grokpm_resolutions', 'grokpm_rec_state', 'grokpm_orders', 'grokpm_fills', 'grokpm_exec_state', 'grokpm_markets', 'grokpm_redeems']);
     // The code's list has no table the migrations do not create.
     expect([...SCHEMA.matchAll(/^ {2}(grokpm_\w+): \{/gm)].map((m) => m[1]).sort()).toEqual(tables.map((t) => t.name).sort());
     for (const t of tables) {
@@ -90,9 +92,13 @@ describe('GROKPM pre-registration', () => {
       const cols = JSON.parse((/columns: (\[[^\]]*\])/.exec(block)?.[1] ?? 'null').replace(/,\s*\]/, ']'));
       const key = /key: "([\w,]+)"/.exec(block)?.[1];
       expect([t.name, cols, key]).toEqual([t.name, t.columns, t.key]);
-      expect(SQL + SQL2 + SQL3).toMatch(new RegExp(`alter table public\\.${t.name} +enable row level security;`));
+      expect(SQL + SQL2 + SQL3 + SQL4).toMatch(new RegExp(`alter table public\\.${t.name} +enable row level security;`));
     }
-    expect((SQL + SQL2 + SQL3).replace(/--[^\n]*/g, '')).not.toMatch(/\bgrant\b|create policy/i);
+    expect((SQL + SQL2 + SQL3 + SQL4).replace(/--[^\n]*/g, '')).not.toMatch(/\bgrant\b|create policy/i);
+    // 0128 (D6): redemption off by default; its go step is a comment, never a statement.
+    expect(SQL4).toContain('add column if not exists redeem_enabled boolean not null default false;');
+    expect(SQL4).toContain('--   update public.grokpm_config set redeem_enabled = true where id = 1 and redeem_enabled = false returning redeem_enabled;');
+    expect(SQL4.replace(/--[^\n]*/g, '')).not.toMatch(/redeem_enabled = true/);
     // The wallet starts null and FUNDED at $100; the stops are the brief's.
     expect(SQL).toContain('wallet           text check (wallet ~ \'^0x[0-9a-f]{40}$\')');
     expect(SQL).toContain('funded_usd       numeric not null default 100');
@@ -119,7 +125,8 @@ describe('GROKPM pre-registration', () => {
     // From agents/, only the database client and live-prep's pure helpers, which it imports and never copies.
     expect([...new Set([...fn.matchAll(/from "\.\.\/agents\/([\w.]+)"/g)].map((m) => m[1]))].sort()).toEqual(['db.ts', 'pm_fees.ts', 'pm_live.ts']);
     expect([...read('supabase/functions/grokpm/index.ts').matchAll(/Deno\.env\.get\("([A-Z_]+)"\)/g)].map((m) => m[1]).sort())
-      .toEqual(['CRON_SECRET', 'GROKPM_LOG_TOKEN', 'SB_REGION', 'SB_REGION', 'SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_URL', 'SUPABASE_URL']);
+      .toEqual(['CRON_SECRET', 'GROKPM_LOG_TOKEN', 'POLYMARKET_RELAYER_API_KEY', 'POLYMARKET_RELAYER_API_KEY_ADDRESS', 'SB_REGION', 'SB_REGION', 'SB_REGION', 'SUPABASE_SERVICE_ROLE_KEY',
+        'SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_URL', 'SUPABASE_URL', 'SUPABASE_URL']);
     // Never the venue's cancel-all: the account is shared.
     expect(fn).not.toMatch(/cancelAll\(/);
   });

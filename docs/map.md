@@ -620,7 +620,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `edge-watchdog` | A row of the one-minute job: 13 s into its minute it runs again, once, each due call that wrote no beat because the platform never started its worker, and records what each retry answered. Run by the scheduler's bearer only. |
 | `ig` | IG's demo API for the FXW / WKND verification, read-only and demo-only: `facts` reads an account's products and the epic for each role (`epics.ts`), `history` pulls the frozen hourly windows inside the weekly allowance, `quotes` records the weekend windows' quotes (`windows.ts`); `client.ts` refuses every call but login, the account switch and a fixed list of GETs on the demo host, before it is sent; `actions.ts` runs the three. Run by the scheduler's bearer or an admin token. |
 | `monitor` | The monitor Worker's half inside Supabase, called every minute by the Worker with `MONITOR_SECRET`: PR5's dead-man switch (`deadman.ts`), the minute loop's read-only health readings and the database's size beside them (`health.ts`), and the Worker's alerts into the errors box. Imports nothing of `agents`. |
-| `grokpm` | GROKPM's server: the outside Grok agent's journal (`ingest.ts`) and, since its Deviation D2, its only way to trade (`exec.ts`): reads of its own account and of a market, and orders and cancels checked against its frozen rules and its own book, then signed and sent from eu-west-1 on the project's Polymarket account (a dry-run until armed); bearer `GROKPM_LOG_TOKEN`, the minute's read-back of its orders by the scheduler's. Deployed without the gateway's JWT check. |
+| `grokpm` | GROKPM's server: the outside Grok agent's journal (`ingest.ts`) and, since its Deviation D2, its only way to trade (`exec.ts`): reads of its own account and of a market, and orders and cancels checked against its frozen rules and its own book, then signed and sent from eu-west-1 on the project's Polymarket account (a dry-run until armed); bearer `GROKPM_LOG_TOKEN`, the minute's read-back of its orders by the scheduler's; and the hourly redemption of the shared account's resolved positions through Polymarket's gasless relayer (`redeem.ts`, its D6; a dry run until `redeem_enabled`). Deployed without the gateway's JWT check. |
 
 #### `agents/` and `_shared/`
 
@@ -697,7 +697,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `_shared/token.ts`, `_shared/ip.ts` | App-token checks, and which header names the caller's IP. |
 | `_shared/ops.ts` | Server-side error reports into `ops_errors`. |
 | `_shared/beats.ts` | A cron call's beat, the first thing it writes: its function and action and the minute, which `edge-watchdog` reads to find a call whose worker never started. |
-| `_shared/grokpm_schema.ts` | GROKPM's tables as 0124, 0125 and 0126 leave them (columns and keys), which its test doubles hold every write to. |
+| `_shared/grokpm_schema.ts` | GROKPM's tables as 0124, 0125, 0126 and 0128 leave them (columns and keys), which its test doubles hold every write to. |
 | `_shared/us_market_calendar.ts` | US market holidays and early closes, worked out by rule for any year. |
 | `_shared/us_overnight_session.ts` | The US overnight session the overnight recorder records: 20:00-04:00 ET, less the weekend and holiday sessions. |
 | `_shared/recorder_watch.ts` | The price recorders' daily audit of each other: buckets owed by the calendar against buckets written, reported to `ops_errors` when short. |
@@ -828,6 +828,7 @@ before touching migration state.
 | `0125_grokpm_exec.sql` | GROKPM's order path: its config's arm (dry-run by default) and attestation, its orders, fills and state, GROKPM in the one-armed trigger, its minute read-back call, and live-prep disarmed where it holds nothing sellable. |
 | `0126_grokpm_markets.sql` | GROKPM's market titles: each market its journal or record names, with its question, slug and end date from Gamma, so its page titles and links every journal entry. |
 | `0127_grokpm_orders_day.sql` | GROKPM's orders a UTC day raised from 50 to 150 (its Deviation D5), so a resting order can be re-placed each wake. |
+| `0128_grokpm_redeem.sql` | The shared Polymarket account's automatic redemption (GROKPM's D6): its switch `redeem_enabled` (off), its attempts, its last run's state, and its hourly call from eu-west-1. |
 | `0096_pm_rw_x_tb1_arms.sql` | Lets the variants' day tables, RW's and RW-C's, take TB1's two arms on x1 (tb1-skip, tb1-back). |
 | `0086_quote_live_deadman.sql` | Adds the kind `deadman` to `agent_quote_live_events`, for the row the monitor's dead-man switch writes when it cancels PR5's resting orders. |
 | `0087_quote_twins.sql` | The realistic twins' tables (each the live executor's four, a replica's and a simulated account's), their config rows and leases, and the one call that runs them. |

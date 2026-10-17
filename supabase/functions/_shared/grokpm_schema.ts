@@ -5,7 +5,7 @@
 
 export const GROKPM_TABLES: Readonly<Record<string, { columns: readonly string[]; key: string }>> = {
   grokpm_config: {
-    columns: ["id", "wallet", "funded_usd", "daily_loss_usd", "total_stop_usd", "started_at", "created_at", "dry_run", "armed_at", "ireland_attested_at", "ireland_until", "max_orders_day"],
+    columns: ["id", "wallet", "funded_usd", "daily_loss_usd", "total_stop_usd", "started_at", "created_at", "dry_run", "armed_at", "ireland_attested_at", "ireland_until", "max_orders_day", "redeem_enabled"],
     key: "id",
   },
   grokpm_decisions: {
@@ -32,6 +32,9 @@ export const GROKPM_TABLES: Readonly<Record<string, { columns: readonly string[]
     key: "id",
   },
   grokpm_fills: { columns: ["trade_id", "hash", "cond", "token", "side", "price", "size", "fee_usd", "taker", "status", "match_time", "tx_hash", "detail", "updated_at"], key: "trade_id,hash" },
-  grokpm_exec_state: { columns: ["id", "state", "updated_at", "last_error"], key: "id" },
+  grokpm_exec_state: { columns: ["id", "state", "updated_at", "last_error", "redeem_state"], key: "id" },
+  grokpm_redeems: {
+    columns: ["id", "created_at", "updated_at", "cond", "neg_risk", "adapter", "tokens", "size", "payout_usd", "relay_id", "tx_hash", "status", "error"], key: "id",
+  },
   grokpm_markets: { columns: ["cond", "question", "slug", "end_date", "updated_at"], key: "cond" },
 };

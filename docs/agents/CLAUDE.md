@@ -598,6 +598,9 @@ that follow from that evidence, in short:
     never shown.
   - **The rule for us.** Never trade by hand in that account while it is armed: the agent's book is its own fills, but a
     hand order on its tokens would move what it can sell.
+  - **Redemption (D6, `0128`).** `grokpm?action=redeem`, hourly, redeems the shared account's resolved positions (every
+    owner's: value-neutral) in one gasless relayed transaction a run, at most five markets; a dry run until
+    `grokpm_config.redeem_enabled`, and nothing without the Relayer API key's two secrets. It writes no fill.
   - **The reading.** 28 days, 40 resolved positions, or the −$30 stop. Continue only if P&L > 0 and its Brier beats the
     market's.
 - **RW — quotes for Polymarket's liquidity rewards — runs on PAPER for

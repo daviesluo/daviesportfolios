@@ -1051,6 +1051,26 @@ describe('pg_cron jobs', () => {
     expect(httpJobs(jobsAfter).map(([n]) => n)).toEqual(['edge-calls-every-minute']);
   });
 
+  // The shared Polymarket account's resolved positions redeemed (Davies, 2026-10-17: "加上吧 全部都自动化掉"; D6).
+  it("adds the account's redemption as one call an hour from eu-west-1 (0128), its beat first, every other row as it was, no job of its own", () => {
+    const T = FILES.find((f) => /^0128_grokpm_redeem\.sql$/.test(f)) ?? '';
+    expect(T).not.toBe('');
+    const before = replayList(sqlsOf(FILES.filter((f) => f < T))), after = replayList(sqlsOf(FILES.filter((f) => f <= T)));
+    expect(after.slice(0, before.length)).toEqual(before);
+    const shape = ({ path: p, timeout, every, lastHour, enabled, retry }) => ({ path: p, timeout, every, lastHour, enabled, retry });
+    // `retry` true: a second run in its hour finds the first one's attempt in flight and sends nothing (redeem.test.ts).
+    expect(after.slice(before.length).map(shape)).toEqual([
+      { path: 'grokpm?action=redeem&forceFunctionRegion=eu-west-1', timeout: 30000, every: 60, lastHour: 23, enabled: true, retry: true },
+    ]);
+    expect(after.at(-1).activeFrom).toBe('written + 15 minutes');
+    expect(beatKeyOfPath(after.at(-1).path)).toBe('grokpm?action=redeem');
+    const src = fs.readFileSync(path.join(ROOT, 'supabase/functions/grokpm/index.ts'), 'utf8');
+    expect(src).toContain('if (action === "redeem") return await handleRedeem(req, deps, now());');
+    const jobsBefore = cronJobs(FILES.filter((f) => f < T)), jobsAfter = cronJobs(FILES.filter((f) => f <= T));
+    expect([...jobsAfter.keys()].filter((n) => !jobsBefore.has(n))).toEqual([]);
+    expect(httpJobs(jobsAfter).map(([n]) => n)).toEqual(['edge-calls-every-minute']);
+  });
+
   it("never cancels a migrations run in flight: a newer push's run waits for it (review D1)", () => {
     const yml = fs.readFileSync(path.join(ROOT, '.github/workflows/migrations.yml'), 'utf8');
     expect(yml).toMatch(/^concurrency:\n {2}group: \$\{\{ github\.workflow \}\}-\$\{\{ github\.ref \}\}\n {2}cancel-in-progress: false$/m);

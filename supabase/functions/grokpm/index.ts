@@ -30,6 +30,7 @@ import { constantTimeEqual } from "../_shared/token.ts";
 import { POLYMARKET_GAMMA_HOST } from "../_shared/polymarket.ts";
 import { loadPmLiveEnv, pmOrderCall, pmVenue, PM_ORDER_REGION } from "../_shared/polymarket_orders.ts";
 import { makeDb } from "../agents/db.ts";
+import { type RedeemDeps, runRedeem } from "./redeem.ts";
 import { accountView, cancelOrders, context, type ExecDeps, type GrokVenue, marketView, placeOrder, syncOrders } from "./exec.ts";
 import {
   GROKPM_MAX_BODY_BYTES, GROKPM_MAX_ERRORS, GROKPM_MAX_REQUESTS_PER_HOUR, GROKPM_MAX_ROWS_PER_HOUR, isAuthorised, rateVerdict, type RequestRow, tableRows, validateBatch,
@@ -83,6 +84,8 @@ export type HandleDeps = {
   /** The order path's dependencies, built only when an action needs them (the key is loaded then, never for the journal). */
   exec?: (now: number) => Promise<ExecDeps>;
   beat?: (key: string) => Promise<unknown>;
+  /** The redemption path's dependencies (Deviation D6), built only for `redeem`. */
+  redeem?: (now: number) => Promise<RedeemDeps>;
 };
 /** The actions besides the journal, and the method each takes. */
 export const ACTIONS: Record<string, "GET" | "POST"> = { account: "GET", market: "GET", order: "POST", cancel: "POST", cancel_all: "POST", sync: "POST" };
@@ -92,6 +95,7 @@ export async function handle(req: Request, deps: HandleDeps): Promise<Response> 
   const url = new URL(req.url);
   const action = url.searchParams.get("action") ?? "";
   if (action === "sync") return await handleSync(req, deps, now());
+  if (action === "redeem") return await handleRedeem(req, deps, now());
   if (!deps.secret || deps.secret.length < 32) return json(503, { error: "not configured", detail: "GROKPM_LOG_TOKEN is not set" });
   if (!(await isAuthorised(req.headers.get("authorization"), deps.secret))) return json(401, { error: "unauthorised" });
   if (req.method !== "GET" && req.method !== "POST") return json(405, { error: "method not allowed" }, { Allow: "GET, POST" });
@@ -175,14 +179,58 @@ export async function handle(req: Request, deps: HandleDeps): Promise<Response> 
   }
 }
 
-/** The scheduler's minute (bearer CRON_SECRET): its beat first, then the agent's live orders read back. */
-async function handleSync(req: Request, deps: HandleDeps, t: number): Promise<Response> {
+/**
+ * The scheduler's calls (`sync`, `redeem`): the bearer CRON_SECRET, POST, then the beat (under the call's own action), then
+ * eu-west-1. A Response when the call stops there, null when it may run.
+ */
+async function cronGate(req: Request, deps: HandleDeps): Promise<Response | null> {
   const auth = req.headers.get("authorization") ?? "";
   const presented = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
   if (!deps.cronSecret || !presented || !constantTimeEqual(presented, deps.cronSecret)) return json(401, { error: "unauthorised" });
   if (req.method !== "POST") return json(405, { error: "method not allowed" }, { Allow: "POST" });
   await (deps.beat ?? ((k: string) => writeBeat(k)))(beatKeyOfRequest("grokpm", req.url)).catch(() => false);
   if (deps.region !== PM_ORDER_REGION) return json(403, { error: "wrong region" });
+  return null;
+}
+
+/**
+ * The scheduler's hour (Deviation D6, migration 0128): the shared account's resolved positions redeemed (`redeem.ts`), or,
+ * while `grokpm_config.redeem_enabled` is false, what would be. A fault goes to the errors box as `grokpm.redeem` when it
+ * first appears and at most hourly while it lasts.
+ */
+async function handleRedeem(req: Request, deps: HandleDeps, t: number): Promise<Response> {
+  const stop = await cronGate(req, deps);
+  if (stop) return stop;
+  if (!deps.redeem) return json(503, { error: "the redemption path is not available" });
+  try {
+    const d = await deps.redeem(t);
+    const before = (await d.db.select<{ redeem_state: Record<string, unknown> | null }>("grokpm_exec_state", "id=eq.1&select=redeem_state"))[0]?.redeem_state ?? {};
+    const r = await runRedeem(d);
+    const key = r.errors.map((e) => e.replace(/\d+(\.\d+)?/g, "#").replace(/0x[0-9a-f…]+/gi, "0x…")).sort().join(" | ").slice(0, 400);
+    const last = before.report as { key: string; at: number } | undefined;
+    if (key && (!last || last.key !== key || t - last.at >= 3600e3)) {
+      await (deps.report ?? reportServerError)("grokpm.redeem", { message: r.errors.join("; ").slice(0, 500) });
+      const now = (await d.db.select<{ redeem_state: Record<string, unknown> | null }>("grokpm_exec_state", "id=eq.1&select=redeem_state"))[0]?.redeem_state ?? {};
+      await d.db.update("grokpm_exec_state", "id=eq.1", { redeem_state: { ...now, report: { key, at: t } } });
+    } else if (last) {
+      const now = (await d.db.select<{ redeem_state: Record<string, unknown> | null }>("grokpm_exec_state", "id=eq.1&select=redeem_state"))[0]?.redeem_state ?? {};
+      await d.db.update("grokpm_exec_state", "id=eq.1", { redeem_state: { ...now, report: last } });
+    }
+    return json(200, {
+      ok: true, mode: r.mode, sent: r.sent, settled: r.settled, in_flight: r.inFlight, errors: r.errors.length, blocked_by: r.blockedBy,
+      plan: r.plan.map((x) => ({ cond: x.cond, neg_risk: x.negRisk, size: x.size, payout_usd: x.payoutUsd })), skipped: r.skipped.length,
+    });
+  } catch (e) {
+    const message = (e instanceof Error ? e.message : String(e)).slice(0, 300);
+    await (deps.report ?? reportServerError)("grokpm.redeem", { message });
+    return json(500, { error: "redeem failed" });
+  }
+}
+
+/** The scheduler's minute (bearer CRON_SECRET): its beat first, then the agent's live orders read back. */
+async function handleSync(req: Request, deps: HandleDeps, t: number): Promise<Response> {
+  const stop = await cronGate(req, deps);
+  if (stop) return stop;
   if (!deps.exec) return json(503, { error: "the order path is not available" });
   try {
     const x = await deps.exec(t);
@@ -249,10 +297,25 @@ export async function productionExec(t: number): Promise<ExecDeps> {
   };
 }
 
+/**
+ * The redemption path's dependencies: the account's addresses and signing key as the order paths load them, and the
+ * Relayer API key (Davies creates it at polymarket.com → Settings → API Keys → Relayer API Keys), which travels only in
+ * the relayer's headers. Without both secrets the run plans and sends nothing.
+ */
+export async function productionRedeem(t: number): Promise<RedeemDeps> {
+  const env = loadPmLiveEnv();
+  const key = Deno.env.get("POLYMARKET_RELAYER_API_KEY") ?? "", address = Deno.env.get("POLYMARKET_RELAYER_API_KEY_ADDRESS") ?? "";
+  return {
+    db: makeDb(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""), now: t, region: Deno.env.get("SB_REGION") ?? null,
+    wallet: env.funder, eoa: env.signer, signer: env.key, keyProblem: env.keyProblem ?? null,
+    relayer: key.length >= 8 && /^0x[0-9a-fA-F]{40}$/.test(address) ? { key, address } : null,
+  };
+}
+
 if (import.meta.main) {
   Deno.serve((req: Request) => handle(req, {
     secret: Deno.env.get("GROKPM_LOG_TOKEN") ?? "",
     db: makeIngestDb(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""),
-    region: Deno.env.get("SB_REGION") ?? null, cronSecret: Deno.env.get("CRON_SECRET") ?? "", exec: productionExec,
+    region: Deno.env.get("SB_REGION") ?? null, cronSecret: Deno.env.get("CRON_SECRET") ?? "", exec: productionExec, redeem: productionRedeem,
   }));
 }

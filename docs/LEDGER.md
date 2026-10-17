@@ -483,6 +483,15 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    - **The reading.** 28 days from the start day, or 40 resolved positions, or the −$30 stop; continue only if P&L > 0 AND
      Brier_agent < Brier_market.
    - **Never trade by hand in that account while GROKPM is armed.**
+   - **Automatic redemption (D6, `0128`, `grokpm/redeem.ts`; Davies: "加上吧 全部都自动化掉")**: hourly, one gasless relayed
+     transaction for up to five of the shared account's redeemable markets (pUSD back; losing tokens cleared), a dry run
+     while `redeem_enabled` is false (its plan in `grokpm_exec_state.redeem_state`). **Davies does:** polymarket.com →
+     Settings → API Keys → Relayer API Keys → create; store the API key as the Edge Function secret
+     `POLYMARKET_RELAYER_API_KEY` and the Signer Address shown beside it as `POLYMARKET_RELAYER_API_KEY_ADDRESS` (never in a
+     chat). **Then the main session** reads one dry run's `grokpm_exec_state.redeem_state` (its plan, `blockedBy` empty) and,
+     on his confirmation, runs
+     `update public.grokpm_config set redeem_enabled = true where id = 1 and redeem_enabled = false returning redeem_enabled;`
+     (undo: `… set redeem_enabled = false …`), and watches the first `grokpm_redeems` rows reach `confirmed`.
    - **The desk ledger** (Davies, 2026-10-17: "开一个这个grok bot trading的专属ledger…他每次唤醒后可以看到你的留言，你每次醒时也可以
      检查最新动态"): `GROKPM_LEDGER.md`, alone on the branch `grokpm-ledger` (no CI, no deploy; never merged into `main`).
      Grok reads it every wake, answers Claude's requests there and pushes only to that branch. **Every session that touches
@@ -610,6 +619,18 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)"; each oldest first.
+
+### [2026-10-17 04:02 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM D6: the shared account's resolved positions redeemed automatically** (sub-agent; Davies: "加上吧 全部都自动化掉";
+  item 15). `grokpm?action=redeem` hourly (`0128`: `redeem_enabled` off, `grokpm_redeems`, `grokpm_exec_state.redeem_state`,
+  the call). Path: CTF adapters' `redeemPositions` (standard / neg-risk, ctf-exchange-v2 ccc0596) inside the proxy factory's
+  `proxy(calls)`, relayed gaslessly by `relayer-v2` (PROXY type, builder-relayer-client 9fe0514's relay hash, signed by the
+  order path's key): no POL; needs a Relayer API key (item 15). At most five markets a run, one transaction a run, nothing
+  while one is in flight, rows before the send, settled by relayer state then receipt. No fill is written: `ledgerOf` and
+  the recorder's `agentBook` unchanged (pinned; a REDEEM read as a trade would add the payout twice). Encodings pinned to
+  viem 2.21.54 vectors (`backtests/grokpm/redeem_vectors.json`, its script beside); the in-flight guard's removal fails 2
+  pins. Read keylessly 10-17: 10 redeemable markets (2 paying $0.79 and $0.62, 8 at $0), both adapters approved, all
+  `version` v1. Prereg §9 D6, sha re-pinned.
 
 ### [2026-10-17 03:54 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **GROKPM page: PR5's scoreboard, DAYS above JOURNAL** (sub-agent; Davies: "这个策略的页面score board请做的和stablecoin quote的

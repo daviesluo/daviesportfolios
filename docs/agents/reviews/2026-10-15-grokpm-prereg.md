@@ -334,6 +334,17 @@ CLOB's history (a mid-like price per five minutes), not executable books.
      settles at resolution and is counted by the record.
 
   Nothing about the categories, the reading (§6), its bar or its end changes.
+- **D6 (2026-10-17, after the start; migration `0128`; operational, no rule changes).** Davies, 2026-10-17: "加上吧 全部都自动化掉"
+  (add it, automate all of it), on redeeming resolved positions automatically. D4 counts a resolved holding as the agent's
+  cash at its payout, but on chain the winning tokens become pUSD only when redeemed, and the shared account's own pUSD
+  was then about $103, so unredeemed wins could have left the agent's buys short at the venue. The `grokpm` function now
+  redeems every redeemable position of the shared account once an hour (`grokpm/redeem.ts`): the agent's, live-prep's
+  resolved dust and Davies' own, since a redemption only turns resolved tokens into pUSD (a losing token pays 0 and is
+  cleared). It sends one gasless transaction a run through Polymarket's relayer, signed by the account's own key, at most
+  five markets, each recorded in `grokpm_redeems`, and nothing while `grokpm_config.redeem_enabled` is false (it then records
+  what it would redeem). A redemption writes no fill: the agent's book (§5, D2.3, D4) and the independent record (§4) count
+  what they counted before, so nothing is counted twice. Nothing about the rules, the categories, the reading (§6), its bar
+  or its end changes.
 
 ## Appendix A: the journal API (paste into the prompt)
 
