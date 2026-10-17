@@ -45850,3 +45850,36 @@ reversed to this Part's convention of newest last. Nothing was deleted.
     sha256 in `cbwk/MANIFEST.json`'s new group. Pins fail on the old code (counterfactual run). The paired comparison of the two arms is unaffected.
   - First live check: 2026-10-28 17:59 to 18:05 UTC (FOMC), `fair` null in both minute tables and no entry fill in them. CPI 11-10, 12-10 and NFP 12-04
     are UNCONFIRMED (bls.gov refused).
+
+## LEDGER.md, archived 2026-10-17 (second) — the 2026-10-15 03:41 → 15:20 UTC history sections, oldest first
+
+### [2026-10-15 03:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Does Revolut X's PR5 need the release blackout? No** (sub-agent; Davies: "revolut x的规则不需要加这个吗？"; `reviews/2026-10-15-coinbase-blackout.md` §3,
+  `backtests/cbreview/scripts/cbfast_revx.py`; proposal only, no Revolut X file touched). On PR5's pre-registered books (base PRIMARY $707.9028 = `pr5_run1.json`) the blackout is
+  −$1.40 / +$3.29 a year on $750 to $1,060 (ranges across zero); 4 of 40 releases had any trip in the window. 10-14: the replay gives the engine's 15 trips, 13 won, +$0.3605 exactly;
+  the release minute cost $0.1979 (two asks of $18) and the live account had no fill. Verdict for LIVE: no change after the 10-21 verdict.
+
+### [2026-10-15 03:44 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **`?action=econcal`** (Davies: "能用就用"; `agents/econcal.ts`, pinned in `index.test.ts`; NOT deployed): Finnhub's economic calendar server side
+  (`FINNHUB_API_KEY`, cron bearer only, key never echoed), Finnhub's refusal verbatim (Premium?). Alpha Vantage has no release instants, not wired.
+
+### [2026-10-15 14:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**MX-1's second weekly pull, run late** (item 5a.2; the Monday 10-12 Routine fired while usage was exhausted, so no tape
+exists for 10-05 → 10-15; Davies approved the pull). `weekly.sql` ran read-only and `pull_tape.py` unchanged; no price
+was printed. A, serialised to one JSON text in SQL (md5 `2fd18d76...`, equal to the written file's), is
+`backtests/mx1/tape/2026-10-15.windows.json`: 16 probes since the freeze (ids 22-37), the six of 10-05 and ten new
+(28-37: six `trend-1h`, four `momentum-1d`; BTC 2, ETH 5, SOL 3). The pull, `tape/2026-10-15.json.gz`, skipped the six
+windows already held and pulled ten, none failed and none merged, 445 UK prints (BTC 112, ETH 210, SOL 123; 18 to 95 a
+window), its `script_sha256` and `source_sha256` equal to the script's and the windows file's. The four `momentum-1d`
+windows are pulled because the script takes every rulebook; they are described, never judged (prereg §2). B is empty
+(`basis/2026-10-15.json`, `[]`): every probe's `o15` and `o60` is recorded. C: 6 exits and 6 entries (10-05: 3 and 3),
+against the 150 the reading needs, so no reading. Nothing failed, so nothing is carried to next week's retry.
+
+### [2026-10-15 15:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep's Addendum 23 (mid-pool's 21)** (sub-agent, landed by the main session; Davies: "Addendum 21和Addendum 20都修复了"). (1) Under
+  the 4 ¢ touch a quoting market's exit goes through `closeOnly`: a holding of 5 to N shares rests its sell (0x3b162968's 9
+  had none). (2) A restart's unmarked dust opens at its first read value, not 1 (`restartOpenMarks` `pending`), and this
+  turn's settlements mark the restart: a pre-restart settlement no longer charges the $25 stop (up to $4.29). Close-only now:
+  no decision changes. Residual close-only gaps (near-certain other side, net ≥ 2N, no RW quote) named, not fixed.
+  `pm_live.ts` `17584420…324b`, `pm_lp.ts` `8303fd97…9f0c`; the pins fail on the old files.

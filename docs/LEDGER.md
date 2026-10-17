@@ -604,13 +604,20 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
-"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16"; each oldest first.
+"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)"; each oldest first.
 
 ### [2026-10-17 02:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **GROKPM D5: 150 orders a day; the main session closes the end** (Davies: "你的其他问题都按你推荐的来"). `0127` sets
   `grokpm_config.max_orders_day` 50 → 150 (a resting order re-placed each wake cost 48 of 50 a day); at the end (28 days,
   40 resolved, or −$30) the main session runs 0125's undo and the reading. Prereg §9 D5, sha re-pinned. Grok confirmed
   prompt v2 and its order plan (≤ 2 resting, cancel then re-place, take-profit only near target, ~10 a day kept for exits).
+
+### [2026-10-17 02:03 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep off LIVE while disarmed** (sub-agent; Davies: "你的其他问题都按你推荐的来"). Liquidated and disarmed since 0125, its
+  funded figure is the pUSD the Polymarket analyst's $100 comes from, so LIVE counted it twice. `liveExtraRows` now lists
+  "Reward quotes" only while `lpLive.armed`: LIVE's list, scoreboard and Polymarket card count the shared money once, as the
+  analyst's $100. Its data, tables, Edge code and page code are unchanged; armed again, it is LIVE's row again. Moved the
+  2026-10-15 01:24 → 15:20 UTC sections to the archive ("LEDGER.md, archived 2026-10-17"). Not pushed.
 
 ### [2026-10-17 02:00 UTC] Platform: Claude Engineer (Grok Bot) | Model: not recorded (session policy)
 - **Landed `claude/hopeful-planck-acdq5g`** (the Coinbase release blackout, 5 commits, rebased on main; Davies, 10-17 in the
@@ -785,34 +792,3 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   `demo-api.ig.com`, and any call but login, the switch between `Z6F18J`/`Z6F18K` and GETs on accounts, markets, market
   navigation, prices and client sentiment, before fetch (Deno and vitest pins, counterfactual-checked). `0122` applied
   twice on a scratch PostgreSQL 16; its UK window matched `windows.ts` at every 5 minutes for 13 months. G2/S1a/G3 frozen.
-
-### [2026-10-15 15:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Live-prep's Addendum 23 (mid-pool's 21)** (sub-agent, landed by the main session; Davies: "Addendum 21和Addendum 20都修复了"). (1) Under
-  the 4 ¢ touch a quoting market's exit goes through `closeOnly`: a holding of 5 to N shares rests its sell (0x3b162968's 9
-  had none). (2) A restart's unmarked dust opens at its first read value, not 1 (`restartOpenMarks` `pending`), and this
-  turn's settlements mark the restart: a pre-restart settlement no longer charges the $25 stop (up to $4.29). Close-only now:
-  no decision changes. Residual close-only gaps (near-certain other side, net ≥ 2N, no RW quote) named, not fixed.
-  `pm_live.ts` `17584420…324b`, `pm_lp.ts` `8303fd97…9f0c`; the pins fail on the old files.
-
-### [2026-10-15 14:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
-
-**MX-1's second weekly pull, run late** (item 5a.2; the Monday 10-12 Routine fired while usage was exhausted, so no tape
-exists for 10-05 → 10-15; Davies approved the pull). `weekly.sql` ran read-only and `pull_tape.py` unchanged; no price
-was printed. A, serialised to one JSON text in SQL (md5 `2fd18d76...`, equal to the written file's), is
-`backtests/mx1/tape/2026-10-15.windows.json`: 16 probes since the freeze (ids 22-37), the six of 10-05 and ten new
-(28-37: six `trend-1h`, four `momentum-1d`; BTC 2, ETH 5, SOL 3). The pull, `tape/2026-10-15.json.gz`, skipped the six
-windows already held and pulled ten, none failed and none merged, 445 UK prints (BTC 112, ETH 210, SOL 123; 18 to 95 a
-window), its `script_sha256` and `source_sha256` equal to the script's and the windows file's. The four `momentum-1d`
-windows are pulled because the script takes every rulebook; they are described, never judged (prereg §2). B is empty
-(`basis/2026-10-15.json`, `[]`): every probe's `o15` and `o60` is recorded. C: 6 exits and 6 entries (10-05: 3 and 3),
-against the 150 the reading needs, so no reading. Nothing failed, so nothing is carried to next week's retry.
-
-### [2026-10-15 03:44 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **`?action=econcal`** (Davies: "能用就用"; `agents/econcal.ts`, pinned in `index.test.ts`; NOT deployed): Finnhub's economic calendar server side
-  (`FINNHUB_API_KEY`, cron bearer only, key never echoed), Finnhub's refusal verbatim (Premium?). Alpha Vantage has no release instants, not wired.
-
-### [2026-10-15 03:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Does Revolut X's PR5 need the release blackout? No** (sub-agent; Davies: "revolut x的规则不需要加这个吗？"; `reviews/2026-10-15-coinbase-blackout.md` §3,
-  `backtests/cbreview/scripts/cbfast_revx.py`; proposal only, no Revolut X file touched). On PR5's pre-registered books (base PRIMARY $707.9028 = `pr5_run1.json`) the blackout is
-  −$1.40 / +$3.29 a year on $750 to $1,060 (ranges across zero); 4 of 40 releases had any trip in the window. 10-14: the replay gives the engine's 15 trips, 13 won, +$0.3605 exactly;
-  the release minute cost $0.1979 (two asks of $18) and the live account had no fill. Verdict for LIVE: no change after the 10-21 verdict.

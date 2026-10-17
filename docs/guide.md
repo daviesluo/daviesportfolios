@@ -180,8 +180,8 @@ places stay when the number is not whole.
   sit beside it on the same line, smaller, in parentheses. TESTING's scoreboard adds
   every Stablecoin quotes row with the other strategies. Then a card per exchange —
   Revolut X in blue, which on TESTING includes the Stablecoin quotes rows, and on
-  LIVE Polymarket in its blue, whose card is the real-money Reward quotes
-  — showing the same figures for
+  LIVE Polymarket in its blue, whose card is the Polymarket analyst's (and
+  the real-money Reward quotes' while that is armed) — showing the same figures for
   that exchange in two groups: what it holds (funded, deployed, today)
   and what it has made (unrealised, realised, and set in under realised
   the parts inside it: its fees, or Polymarket's rewards and orders),
@@ -311,11 +311,14 @@ places stay when the number is not whole.
   variant-4, and Reward quotes mid-pool) left TESTING and stopped on
   13 October: none was making money, and a study that day found quoting
   near the best prices loses across every rewarded market. Their records
-  are kept; TESTING has no Polymarket row or card now. The real-money
-  Reward quotes is on LIVE.
+  are kept; TESTING has no Polymarket row or card now.
 - **Reward quotes on LIVE.** Live-prep's real-money book, a row of its own
-  on Polymarket since it went live on 9 October, called Reward quotes
-  there; nothing of it is on TESTING. Funded is
+  on Polymarket from 9 October, when it went live, called Reward quotes
+  there; nothing of it is on TESTING. Since 17 October it is off LIVE while
+  it is disarmed: it sold what it held and was switched off, and its
+  account is the one the Polymarket analyst's $100 comes from, so LIVE
+  counts that money once, as the analyst's. Its record is kept, and armed
+  again it is LIVE's row again. What follows describes the row. Funded is
   the money Davies has put into its account: worked out every minute from
   what the account holds and what it has done, so rewards and trading never
   move it, and a deposit or a withdrawal shows a few minutes after it lands
@@ -414,7 +417,8 @@ places stay when the number is not whole.
   first test of that account) left the list and stopped on 8 October: its
   checks had closed and it is not a candidate to go live.
 - **Reward quotes live-prep.** No longer a row of TESTING since 10 October
-  (it trades real money and is on LIVE as Reward quotes); its paper copy
+  (it traded real money as LIVE's Reward quotes, off LIVE since 17 October
+  while disarmed); its paper copy
   stopped on 13 October. What follows describes the strategy. On Polymarket: the strategy
   the study of 4 October found best on everything recorded, and since
   that day the lead candidate to go live. It is the same account and

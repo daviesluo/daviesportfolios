@@ -1395,13 +1395,18 @@ export function lpLiveRow(l) {
 }
 
 /**
- * LIVE's rows beyond its strategies, in the order the table lists them: PR5's live executor (`quotesLiveRow`) and
- * live-prep's live book (`lpLiveRow`), each once it trades real money. LIVE's scoreboard and venue cards add each once;
- * TESTING never does.
+ * LIVE's rows beyond its strategies, in the order the table lists them: PR5's live executor (`quotesLiveRow`) once it
+ * trades real money, live-prep's live book (`lpLiveRow`) only while it is armed, and the Polymarket analyst
+ * (`grokPmRow`). LIVE's scoreboard and venue cards add each once; TESTING never does.
+ *
+ * Live-prep disarmed is off LIVE (Davies, 2026-10-17: "你的其他问题都按你推荐的来", on taking it off): it was liquidated and
+ * 0125 disarmed it, and the account it funded is the one the analyst's $100 comes from, so its funded figure and the
+ * analyst's would count the same pUSD twice. Its record, its tables and its page stay; armed again, it is LIVE's row again,
+ * since a book trading real money is always on LIVE.
  * @param {any} dash
  */
 export function liveExtraRows(dash) {
-  return [quotesLiveRow(dash?.quotes?.live), lpLiveRow(dash?.lpLive), grokPmRow(dash?.grokPm)].filter((r) => !!r);
+  return [quotesLiveRow(dash?.quotes?.live), dash?.lpLive?.armed ? lpLiveRow(dash.lpLive) : null, grokPmRow(dash?.grokPm)].filter((r) => !!r);
 }
 
 /** "Polymarket analyst"'s id among LIVE's rows (GROKPM, 0124). */

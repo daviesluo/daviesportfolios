@@ -887,7 +887,7 @@ const AGENTS_NOT_READY = {
  * `rw-cents` (RW's figures where each part rounds on its own), `rwc-warmup` (a dashboard that still sends RW-C in its
  * warm-up, which adds no row), `rwc-running` (from RW-C's first minute: every Reward quotes row reads RW-C's run) and `quotesv` (the quote test's variant beside it).
  */
-let agentsMode = /** @type {'ok' | 'notReady' | 'error' | 'paused' | 'live' | 'live-unarmed' | 'rw-cents' | 'pr5-live' | 'pr5-live-noexit' | 'rwx-waiting' | 'rwc-warmup' | 'rwc-running' | 'quotesv' | 'prep' | 'mid' | 'lp' | 'lp-live' | 'lp-live-off' | 'lp-live-nopay' | 'grokpm' | 'grokpm-waiting' | 'rq-fees'} */ ('ok');
+let agentsMode = /** @type {'ok' | 'notReady' | 'error' | 'paused' | 'live' | 'live-unarmed' | 'rw-cents' | 'pr5-live' | 'pr5-live-noexit' | 'rwx-waiting' | 'rwc-warmup' | 'rwc-running' | 'quotesv' | 'prep' | 'mid' | 'lp' | 'lp-live' | 'lp-live-off' | 'lp-live-nopay' | 'grokpm' | 'grokpm-waiting' | 'grokpm-lp-off' | 'rq-fees'} */ ('ok');
 /**
  * The reload section's levers: the book the `data` function hands back (a
  * server row's prices are those of its last SAVE, not what the page showed),
@@ -1582,6 +1582,8 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
       if (agentsMode === 'lp') return json({ ...AGENTS_DASHBOARD, prep: PREP_FIXTURE.output, prepMid: MID_FIXTURE.output, prepLp: LP_FIXTURE.output });
       if (agentsMode === 'lp-live' || agentsMode === 'lp-live-off' || agentsMode === 'lp-live-nopay') return json(AGENTS_LP_LIVE(agentsMode === 'lp-live' ? 'output' : agentsMode === 'lp-live-nopay' ? 'noPayout' : false));
       if (agentsMode === 'grokpm' || agentsMode === 'grokpm-waiting') return json({ ...AGENTS_DASHBOARD, grokPm: GROKPM_FIXTURE[agentsMode === 'grokpm' ? 'output' : 'waiting'] });
+      // Production since 2026-10-17: live-prep liquidated and disarmed (it traded live), beside the analyst before its go.
+      if (agentsMode === 'grokpm-lp-off') return json({ ...AGENTS_DASHBOARD, lpLive: { ...LP_LIVE_FIXTURE.output, armed: false }, grokPm: GROKPM_FIXTURE.waiting });
       if (agentsMode === 'error') {
         return route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ error: 'agents crashed', message: 'db GET agent_strategies → 500: {"code":"57014","message":"canceling statement due to statement timeout"}' }) });
       }
@@ -4867,6 +4869,14 @@ async function run() {
           && !pw.rows.some((r) => r.name === 'Polymarket analyst (Grok)')) {
           ok(GT('waiting'), `before the go its row is "${NAME}", 0 open · $100 cap, its $100 in LIVE's FUNDED, and its light amber (${listDot})`);
         } else fail(GT('waiting'), `waiting row ${JSON.stringify(wrow)}, funded ${fundedOf(p0)} → ${fundedOf(pw)}, dot "${listDot}"`);
+        // Live-prep disarmed is off LIVE (Davies, 2026-10-17): its account is where the analyst's $100 comes from, so LIVE
+        // counts that money once, as the analyst's; the list, the scoreboard and the Polymarket card read as without it.
+        const px = await baseLive('grokpm-lp-off');
+        const pmCard = (p) => p.venues.find((v) => v.id === 'polymarket');
+        if (!px.rows.some((r) => r.name === 'Reward quotes') && JSON.stringify(px.rows.map((r) => r.name)) === JSON.stringify(pw.rows.map((r) => r.name))
+          && fundedOf(px) === fundedOf(pw) && sbText(px) === sbText(pw) && pmCard(px)?.pairs.funded === '$100' && JSON.stringify(pmCard(px)?.pairs) === JSON.stringify(pmCard(pw)?.pairs)) {
+          ok(GT('lp-off'), `with live-prep disarmed LIVE lists ${px.rows.map((r) => `"${r.name}"`).join(', ')}, no Reward quotes, and the Polymarket card's funded is the analyst's $100 alone (${sbText(px)})`);
+        } else fail(GT('lp-off'), `rows ${JSON.stringify(px.rows.map((r) => r.name))}, scoreboard ${sbText(px)} against ${sbText(pw)}, polymarket card ${JSON.stringify(pmCard(px)?.pairs)}`);
 
         const readGrokPage = () => page.evaluate(() => {
           const txt = (/** @type {Element | null | undefined} */ el) => (el?.textContent || '').replace(/\s+/g, ' ').trim();

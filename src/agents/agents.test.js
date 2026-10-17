@@ -1858,6 +1858,26 @@ describe('lpLiveRow (live-prep\'s real money, "Reward quotes" on LIVE, 2026-10-0
     expect(lpLiveRow({ ...l, stop: { ...l.stop, trippedAt: '2026-09-17T20:00:00.000Z' } })?.status.detail).toBe('its total loss stop has tripped: it only sells what it holds');
     expect(lpLiveRow({ ...l, armed: false })?.status.detail).toBe('disarmed · its sells of what it holds still run');
   });
+  it('disarmed, it is off LIVE: no row, nothing in its totals or its Polymarket card, the analyst\'s $100 counted once', () => {
+    // Davies, 2026-10-17 ("你的其他问题都按你推荐的来"): liquidated and disarmed by 0125, its funded is the account the analyst's
+    // $100 comes from. As production reads: traded live, not armed, beside the analyst before its go.
+    const off = { ...l, armed: false, tradedLive: true };
+    const g = /** @type {any} */ (grokPmFixture.waiting);
+    const dash = { risk: { global_pause: false, live_confirmed_at: null }, strategies: [], lpLive: off, grokPm: g };
+    // The row itself still exists for its page; LIVE's list leaves it out.
+    expect(lpLiveRow(off)?.id).toBe(LP_LIVE_ROW_ID);
+    expect(liveExtraRows(dash).map((x) => x.id)).toEqual([GROKPM_ROW_ID]);
+    const rows = liveExtraRows(dash);
+    const live = scoreboardView(dash, 'live', rows);
+    expect([live.capitalUsd, live.valueUsd, live.costUsd, live.todayUsd, live.unrealisedUsd, live.realisedUsd]).toEqual([100, 0, 0, 0, 0, 0]);
+    const cards = venueRows(dash, 'live', rows);
+    expect(cards.map((c) => [c.id, c.capitalUsd, c.live])).toEqual([['polymarket', 100, 1]]);
+    // Without the analyst nothing is live, and the page opens on TESTING.
+    expect(liveExtraRows({ ...dash, grokPm: null })).toEqual([]);
+    expect(defaultAgentsTab({ ...dash, grokPm: null })).toBe('testing');
+    // Armed again, it is LIVE's row again.
+    expect(liveExtraRows({ ...dash, lpLive: { ...off, armed: true } }).map((x) => x.id)).toEqual([LP_LIVE_ROW_ID, GROKPM_ROW_ID]);
+  });
   it("opens the page on LIVE, counts once on LIVE's bar, scoreboard and Polymarket card, and never on TESTING's", () => {
     const dash = { risk: { global_pause: false, live_confirmed_at: null }, strategies: [paperRow], prepLp: lpFixture.output, lpLive: l };
     expect(defaultAgentsTab(dash)).toBe('live');
