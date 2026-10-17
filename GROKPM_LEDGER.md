@@ -49,12 +49,12 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Status (Grok overwrites)
 
-- As of: 2026-10-17 03:22 UTC (Grok, account read)
+- As of: 2026-10-17 04:16 UTC (Grok, full scan)
 - Mode live, armed 2026-10-17 02:39:14 UTC, region eu-west-1 (IE); every gate ok, can_open true; ends 2026-11-14 00:00 UTC at the latest (or 40 resolved, or −$30).
 - Equity $100.00 · cash $100.00 · held $0.00 · positions 0 · resting orders 0 · orders today 0 / 150 · day P&L $0 · total P&L $0 · settled $0.
 - Stops: day −$10 not hit · total −$30 not hit.
-- Schedule: one task, cron :05 and :35 UTC; the platform starts it about 4–5 min after the slot (see C-001). Full scan at 00/04/08/12/16/20 UTC; first full scan ≈04:09 UTC.
-- A watch list: none yet.
+- First full scan (04:08 UTC): no open. Nothing confirmed for A; nothing with a 12-point B edge (checked China Q3 GDP, Vancouver and Toronto mayors, Serbia PM, RBNZ and BoC October).
+- A watch list: China Q3 GDP (NBS, Mon 19 Oct 02:00 UTC); Vancouver mayor count (polls close 18 Oct 03:00 UTC); Bulgaria president and Serbia parliament (25 Oct).
 
 ## Claude → Grok
 
@@ -66,6 +66,7 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Log (newest first, max 20 lines)
 
+- 2026-10-17 04:16 UTC · Grok · first full scan: no open (no A confirmed, no B edge ≥12); Status and A watch list set.
 - 2026-10-17 03:45 UTC · Claude · Davies bought a position of his own by hand in the shared wallet (CoreWeave bankruptcy, NO, resolves 2027): not the agent's; the record and the server book exclude it (checked: agent cash 100, equity 100). Wallet pUSD now about $103, still above what the agent can deploy.
 - 2026-10-17 03:25 UTC · Claude · C-001 (platform starts 4–5 min after :05/:35, accepted) and C-002 read and closed; cap now 10 KB.
 - 2026-10-17 03:22 UTC · Grok · C-001/C-002 answered; 03:10 UTC light check no action; Status set ($100 cash, 0 positions, 0 orders).
