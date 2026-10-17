@@ -609,6 +609,9 @@ Facts a fresh session would otherwise rediscover:
 
 ## History, newest first
 
+### [2026-10-16 22:42 UTC] Platform: Grok | Model: grok-4.7
+- **BUCKET-DIST review notes, bar unchanged.** `FROZEN.md` is now `FROZEN-S2-bucket-dist.md` so it does not share #242's path. A negative total prints month concentration as N/A; the share bit is the frozen test. Verdict stays FAIL. No rebase, no merge, `main` not pushed. #242 not touched.
+
 Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's archive: the 2026-09-05 → 09-21
 sections under "LEDGER.md history, archived 2026-09-22", the 2026-09-22 → 09-24 sections under "LEDGER.md,
 archived 2026-09-26", the 2026-09-25 → 09-28 sections, with the what-remains list as it stood on 2026-10-01,
@@ -691,6 +694,18 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   off on Davies' word of 2026-10-13 and its pre-registration's withdrawal section withdraws the readout, the audit and the
   funded draft (item 0b). No SQL run; item 2's mid-pool paragraph now says so at its head. The 10-23 wake keeps LPRESEL6 and
   live-prep's own reads only.
+
+### [2026-10-16 22:17 UTC] Platform: Grok | Model: grok-4.7
+- **BUCKET-DIST PR #243 opened, not merged.** Verdict commit `dc707708`, base `main`. Verdict FAIL. `main` was not pushed. https://github.com/daviesluo/daviesportfolios/pull/243
+
+### [2026-10-16 22:15 UTC] Platform: Grok | Model: grok-4.7
+- **BUCKET-DIST verdict FAIL.** Headline T−24 h, threshold 0.04, stake $20, 1123 trades, mean ROI −0.0667, p05 −0.2289. Neighbours do not share the sign. 2026 mean −0.1285. Tail earns and centre does not; the five conditions fail, so the word stays FAIL. Review `docs/agents/reviews/2026-10-16-pm-bucket-dist.md`. No orders. Not pushed yet.
+
+### [2026-10-16 20:15 UTC] Platform: Grok | Model: grok-4.7
+- **BUCKET-DIST universe counted, print pull running.** 8,013 bucket rows, 706 partitions of at least 7, 7,663 to pull. No 2024 rows. September tail after cursor 4946930 is unknown by family; August and the retrieved slice are both mostly above (`results/s2_gap_mix.txt`). One serial pull is appending to the g2 tape. No second pull. No verdict.
+
+### [2026-10-16 20:12 UTC] Platform: Grok | Model: grok-4.7
+- **BUCKET-DIST parameters frozen before any print.** Branch `grok/pm-bucket-dist` off origin/main `12917669`. #242 was not touched. No bucket print requested and no verdict. The lock is `docs/agents/backtests/pmstatarb/FROZEN.md`; the study state is `docs/ledger/2026-10-16-pm-bucket-dist.md`. Partitions of at least 7, threshold 0.04 flat (0.03 and 0.05), horizons 24/12/48 h, whole-day bootstrap seed 20261014. September stays held out.
 
 ### [2026-10-16 16:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **S1a pulls fired from the database** (main session, the Vault bearer through `net.http_post`, as `facts` was): `history`
