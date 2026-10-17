@@ -483,6 +483,11 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    - **The reading.** 28 days from the start day, or 40 resolved positions, or the −$30 stop; continue only if P&L > 0 AND
      Brier_agent < Brier_market.
    - **Never trade by hand in that account while GROKPM is armed.**
+   - **The desk ledger** (Davies, 2026-10-17: "开一个这个grok bot trading的专属ledger…他每次唤醒后可以看到你的留言，你每次醒时也可以
+     检查最新动态"): `GROKPM_LEDGER.md`, alone on the branch `grokpm-ledger` (no CI, no deploy; never merged into `main`).
+     Grok reads it every wake, answers Claude's requests there and pushes only to that branch. **Every session that touches
+     GROKPM reads it first** (`git fetch origin grokpm-ledger && git show origin/grokpm-ledger:GROKPM_LEDGER.md`), answers
+     "Grok → Claude", and keeps it under 6 KB.
 ## Machine and platform setup
 
 A rebuilt container loses every line below. Run them before working.
