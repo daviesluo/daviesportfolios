@@ -574,8 +574,8 @@ that follow from that evidence, in short:
   TB1, RWC-OPT, mid-pool's 10-17 readout and 10-23 audit (and its funded draft); LPRESEL6 stands on pm-rec, its paper
   reproduction line short. What runs on Polymarket: live-prep live (`pmlp`, `pmlpreserve`) and pm-rec (`pmrec`,
   `pmrec-meta`). Where this file describes the paper paths running, it is their history.
-- **GROKPM, "Polymarket analyst (Grok)"** (`0124`, `0125`, `reviews/2026-10-15-grokpm-prereg.md`; Davies, 2026-10-15 and
-  2026-10-16): an OUTSIDE Grok agent trades a $100 budget on information (category A: a confirmed outcome the price lags by
+- **GROKPM, "Polymarket analyst"** ("(Grok)" left the name on 2026-10-17; `0124`, `0125`, `0126`,
+  `reviews/2026-10-15-grokpm-prereg.md`; Davies, 2026-10-15 and 2026-10-16): an OUTSIDE Grok agent trades a $100 budget on information (category A: a confirmed outcome the price lags by
   8+ points; B: a researched 12-point mispricing in a quiet market; C: adjustments). Since Deviation D2 ("让grok用我们搭好的
   爱尔兰服务器下单，不是网页端") it holds no key and no wallet: it trades only through the `grokpm` function (`exec.ts`), forced
   to eu-west-1, on the account live-prep used. The server checks every order against §2's rules and the agent's OWN
@@ -589,7 +589,11 @@ that follow from that evidence, in short:
   - **One armed path.** 0125 adds it to the one-armed trigger: it is never armed beside live-prep, mini-pool or mid-pool.
     0125 disarms live-prep only where it holds nothing sellable.
   - **Its record.** The keyless record (`agents?action=grokpmrec`) counts only the agent's own trades from the go
-    (`started_at`), and the page shows that record. The account's address is never returned or shown.
+    (`started_at`), and the page shows that record. The account's address is never returned or shown. FUNDED is the
+    configured $100 on its row, its page and LIVE's total from now (Davies, 2026-10-17); every other figure is 0 until
+    the go. While it is a dry-run its page's head says DRY-RUN with the list's amber light, never LIVE. The journal's
+    market titles and links come from `grokpm_markets` (0126), which the record fills from Gamma; a condition id is
+    never shown.
   - **The rule for us.** Never trade by hand in that account while it is armed: the agent's book is its own fills, but a
     hand order on its tokens would move what it can sell.
   - **The reading.** 28 days, 40 resolved positions, or the −$30 stop. Continue only if P&L > 0 and its Brier beats the

@@ -1404,34 +1404,42 @@ export function liveExtraRows(dash) {
   return [quotesLiveRow(dash?.quotes?.live), lpLiveRow(dash?.lpLive), grokPmRow(dash?.grokPm)].filter((r) => !!r);
 }
 
-/** "Polymarket analyst (Grok)"'s id among LIVE's rows (GROKPM, 0124). */
+/** "Polymarket analyst"'s id among LIVE's rows (GROKPM, 0124). */
 export const GROKPM_ROW_ID = '__grokpm';
-/** Its name on LIVE (Davies, 2026-10-15: "网站中live页也加上策略和子策略页面"). */
-export const GROKPM_ROW_NAME = 'Polymarket analyst (Grok)';
+/**
+ * Its name on LIVE and on its page (Davies, 2026-10-15: "网站中live页也加上策略和子策略页面"; 2026-10-17: "“Polymarket analyst
+ * (Grok)”策略改为“Polymarket analyst“").
+ */
+export const GROKPM_ROW_NAME = 'Polymarket analyst';
 
 /**
- * "Polymarket analyst (Grok)" as a row of LIVE: the dashboard's `grokPm` (`grokpm_view.ts`), every dollar from the
- * independent record of the agent's own trades on the project's Polymarket account (Deviation D2: it trades through this
- * project's server, never holding a key), never its own report. Funded is the $100 budget from the go (nothing before:
- * in dry-run it adds nothing to LIVE's totals); deployed what it holds at cost; today and realised on what is funded,
- * unrealised on its cost. Its fees are inside realised (its trades' cash is net of them), so it states none of its own.
- * null until the account is configured.
+ * "Polymarket analyst" as a row of LIVE: the dashboard's `grokPm` (`grokpm_view.ts`), every dollar from the independent
+ * record of the agent's own trades on the project's Polymarket account (Deviation D2: it trades through this project's
+ * server, never holding a key), never its own report. Funded is its $100 budget (`configuredFundedUsd`), shown and added to
+ * LIVE's FUNDED from now, before the go as after it (Davies, 2026-10-17: "明确目前funded就是100美元"); until the go its
+ * today, unrealised and realised are 0 and nothing is deployed. Deployed is what it holds at cost; today and realised on
+ * what is funded, unrealised on its cost. Its fees are inside realised (its trades' cash is net of them), so it states none
+ * of its own. While it is a dry-run its status is the amber "dry-run" one, on the row and its page alike. null until the
+ * account is configured.
  * @param {any} g  the dashboard's `grokPm`
  */
 export function grokPmRow(g) {
   if (!g) return null;
-  const funded = g.started ? Number(g.fundedUsd) || 0 : 0, cost = Number(g.costUsd) || 0;
+  const configured = Number(g.configuredFundedUsd ?? g.fundedUsd);
+  const funded = Number.isFinite(configured) && configured > 0 ? configured : 0, cost = Number(g.costUsd) || 0;
   /** @param {number} usd @param {number} base */
   const pct = (usd, base) => (base > 0 ? (usd / base) * 100 : null);
   const today = Number(g.todayUsd) || 0, unrealised = Number(g.unrealisedUsd) || 0, realised = Number(g.realisedUsd) || 0;
   const open = Number(g.status?.open) || 0;
   return {
     id: GROKPM_ROW_ID, name: GROKPM_ROW_NAME, venue: venueLabel('polymarket'), venueId: 'polymarket', mode: 'live',
-    capitalUsd: funded, fundedKnown: !!g.started, valueUsd: cost, costUsd: cost, feesUsd: null,
+    capitalUsd: funded, fundedKnown: funded > 0, valueUsd: cost, costUsd: cost, feesUsd: null,
     todayUsd: today, todayPct: pct(today, funded), unrealisedUsd: unrealised, unrealisedPct: pct(unrealised, cost), realisedUsd: realised, realisedPct: pct(realised, funded),
     nextText: 'record every 5 min', openPositions: open, openOrders: 0, holdsLive: cost > 0, armed: !!g.started && !g.stop?.totalTripped,
     status: !g.started
-      ? { label: 'live', running: false, tone: 'stale', detail: g.mode === 'live' ? 'armed: its record has not read its first trade yet' : 'dry-run: its orders are checked and journalled, none is sent' }
+      ? (g.mode === 'live'
+        ? { label: 'live', running: false, tone: 'stale', detail: 'armed: its record has not read its first trade yet' }
+        : { label: 'dry-run', running: false, tone: 'stale', detail: 'dry-run: its orders are checked and journalled, none is sent' })
       : !g.running
         ? { label: 'live', running: false, tone: 'stale', detail: g.lagMinutes == null ? 'its record has not read the account yet' : `its record last read the account ${g.lagMinutes} min ago` }
         : g.stop?.totalTripped
@@ -1439,6 +1447,14 @@ export function grokPmRow(g) {
           : { label: 'live', running: true, tone: 'running', detail: `an outside agent trading real money · ${open} position${open === 1 ? '' : 's'} open` },
   };
 }
+
+/**
+ * The mode tag of its page's head: LIVE once the order path is armed (`mode` live), else DRY-RUN, so the head never says
+ * LIVE while the list's dot is amber for a dry-run (Davies, 2026-10-17: "agent页策略列表里显示的黄灯怎么子页面点开现实的是live的tag").
+ * @param {any} g  the dashboard's `grokPm`
+ * @returns {'live' | 'dry-run'}
+ */
+export const grokPmModeTag = (g) => (g?.mode === 'live' ? 'live' : 'dry-run');
 
 /** A probability or a price as cents, "82¢"; a dash without one. @param {number | null | undefined} x */
 export const fmtProb = (x) => (x == null || !Number.isFinite(Number(x)) ? '—' : `${+(Number(x) * 100).toFixed(1)}¢`);
@@ -1503,23 +1519,57 @@ export function grokPmDayCells(d, m) {
   };
 }
 
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+/** An instant as "16 Oct 15:38 UTC"; empty when it is not one. @param {unknown} ts */
+export function utcStamp(ts) {
+  const t = Date.parse(String(ts ?? ''));
+  if (!Number.isFinite(t)) return '';
+  const d = new Date(t), two = (/** @type {number} */ n) => String(n).padStart(2, '0');
+  return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${two(d.getUTCHours())}:${two(d.getUTCMinutes())} UTC`;
+}
+
+/** A source's text on the page: its domain, "actionforex.com" for https://www.actionforex.com/…; null when it is no http(s) link. @param {unknown} u */
+export function linkDomain(u) {
+  if (typeof u !== 'string' || !/^https?:\/\//i.test(u)) return null;
+  try { return new URL(u).hostname.replace(/^www\./i, '') || null; } catch { return null; }
+}
+
+/** The market's link on polymarket.com, only in the shape the server builds (`grokpm_view.ts`' `marketUrl`). */
+const MARKET_HREF = /^https:\/\/polymarket\.com\/market\/[a-z0-9][a-z0-9-]*$/i;
+
 /**
- * One journal entry as its page lists it: what it did, where, at what price and size (through `m`), the agent's p and
- * the market's m it saw, and its words. A link is kept only when it is http(s): the server already dropped any other.
+ * One journal entry as its page lists it (Davies, 2026-10-17: "JOURNAL部分做的更美观和清晰一些，内容也展示的更简约些，比如链接可以
+ * 直接用link（下划线）作为超链接可以点…“0xdf9bf27e…”这种乱码"): a head line (its time in UTC, what it did as a chip, its
+ * category, the side and outcome, size @ price through `m`), the market as a link to its page on Polymarket (the server's
+ * title; unlinked without a slug; "market title pending" when no title is known yet — never the condition id), the agent's
+ * p against the market's price it saw and the edge in points, its words, what would prove it wrong, and its sources as
+ * links named by their domain. A link is kept only when it is http(s): the server already dropped any other.
  * @param {any} j @param {(s: string) => string} m
  */
 export function grokPmJournalView(j, m) {
-  const trade = j?.side && j?.price != null && j?.size != null;
-  const verb = { open: 'open', close: 'close', cancel: 'cancel', no_action: 'no action' }[String(j?.action)] ?? String(j?.action ?? '');
-  /** @param {unknown} u */
-  const isLink = (u) => typeof u === 'string' && /^https?:\/\//i.test(u);
+  const trade = !!j?.side && j?.price != null && j?.size != null;
+  const action = String(j?.action ?? '');
+  const verb = { open: 'open', close: 'close', cancel: 'cancel', no_action: 'no action' }[action] ?? action.replace(/_/g, ' ');
+  const side = j?.side === 'BUY' ? 'buy' : j?.side === 'SELL' ? 'sell' : '';
+  const num = (/** @type {unknown} */ x) => (x == null || x === '' || !Number.isFinite(Number(x)) ? null : Number(x));
+  const p = num(j?.p), mk = num(j?.m);
+  const edge = p !== null && mk !== null ? Math.round((p - mk) * 1000) / 10 : null;
+  const edgeText = edge === null ? '' : edge > 0 ? `+${edge.toFixed(1)}` : edge < 0 ? `\u2212${Math.abs(edge).toFixed(1)}` : '0';
+  const title = typeof j?.title === 'string' && j.title.trim() ? j.title.trim() : null;
+  const href = title && typeof j?.url === 'string' && MARKET_HREF.test(j.url) ? j.url : null;
   return {
-    head: [verb, j?.category ? `cat ${j.category}` : null, trade ? `${j.side === 'BUY' ? 'buy' : 'sell'} ${j.outcome ?? ''}`.trim() : null].filter(Boolean).join(' · '),
-    market: j?.title || (j?.marketId ? `${String(j.marketId).slice(0, 10)}…` : ''),
-    trade: trade ? `${m(String(+Number(j.size).toFixed(2)))} at ${m(fmtProb(j.price))}` : '',
-    probs: j?.p != null || j?.m != null ? `p ${fmtProb(j.p)} · m ${fmtProb(j.m)}` : '',
+    time: utcStamp(j?.ts),
+    action: verb, tone: action === 'open' || action === 'close' ? action : 'quiet',
+    category: j?.category ? `cat ${j.category}` : '',
+    side: side || j?.outcome ? `${side} ${j?.outcome ?? ''}`.trim() : '',
+    trade: trade ? `${m(String(+Number(j.size).toFixed(2)))} @ ${m(fmtProb(j.price))}` : '',
+    market: title || j?.marketId ? { text: title ?? 'market title pending', href, pending: !title } : null,
+    probs: p !== null && mk !== null ? `p ${fmtProb(p)} vs market ${fmtProb(mk)} (edge ${edgeText})` : p !== null ? `p ${fmtProb(p)}` : mk !== null ? `market ${fmtProb(mk)}` : '',
     reason: String(j?.reason ?? ''), invalidation: j?.invalidation ? String(j.invalidation) : '',
-    sources: (Array.isArray(j?.sources) ? j.sources : []).filter(isLink),
+    sources: (Array.isArray(j?.sources) ? j.sources : []).flatMap((/** @type {unknown} */ u) => {
+      const text = linkDomain(u);
+      return text ? [{ href: /** @type {string} */ (u), text }] : [];
+    }),
   };
 }
 

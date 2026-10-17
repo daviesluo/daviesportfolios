@@ -1,6 +1,6 @@
-// "Polymarket analyst (Grok)", GROKPM, as the Agents page shows it: a row of LIVE and a page of its own, modelled on the
-// Reward quotes live page (Davies, 2026-10-15: "网站中live页也加上策略和子策略页面（仿照之前rewards策略来做）"). Pre-registered in
-// docs/agents/reviews/2026-10-15-grokpm-prereg.md; migration 0124.
+// "Polymarket analyst" (GROKPM; "Polymarket analyst (Grok)" until Davies renamed it on 2026-10-17), as the Agents page shows
+// it: a row of LIVE and a page of its own, modelled on the Reward quotes live page (Davies, 2026-10-15: "网站中live页也加上策略和
+// 子策略页面（仿照之前rewards策略来做）"). Pre-registered in docs/agents/reviews/2026-10-15-grokpm-prereg.md; migrations 0124, 0126.
 //
 // Every dollar here is the INDEPENDENT record's (`grokpm_snapshots`, written keylessly by `grokpm_rec.ts`), never the agent's
 // word. The agent's journal (`grokpm_decisions`, `grokpm_cycles`, `grokpm_daily`, posted by the agent to the `grokpm`
@@ -22,6 +22,9 @@
 //               from its last `open` decision for that token before the first fill, the market's m the book's mid when the
 //               record first saw it (the agent's own m when the record has none), y its payout; the mean of (p − y)² against
 //               the mean of (m − y)².
+//   journal     the agent's newest decisions, each with its market's title and link: the question and slug the recorder
+//               read from Gamma (`grokpm_markets`, 0126), else the record's own title for a market it holds, else none (the
+//               page then says the title is pending; it never shows the condition id).
 //   DAYS        each UTC day from the start: the record's P&L (its close, the next day's opening equity, or the latest for
 //               today, less its open) beside the agent's own daily summary; a gap over $1 is a mismatch.
 
@@ -61,6 +64,8 @@ export type GrokPmDailyRow = { id: string; received_at: string; day: string; pnl
 export type GrokPmEntryRow = { asset: string; cond: string; title: string | null; first_seen_at: string; first_fill_at: string | null; mid: number | string | null };
 export type GrokPmResolutionRow = { cond: string; tokens: unknown; payouts: unknown };
 export type GrokPmOpenRow = { id: string; ts: string; token_id: string | null; p: number | string | null; m: number | string | null; category: string | null };
+/** A market's title and slug as the recorder read them from Gamma (`grokpm_markets`, 0126). */
+export type GrokPmMarketRow = { cond: string; question: string | null; slug: string | null };
 
 export const GROKPM_CONFIG_COLUMNS = "wallet,funded_usd,daily_loss_usd,total_stop_usd,started_at,dry_run,armed_at";
 export const GROKPM_SNAPSHOT_COLUMNS = "slot,at,cash_usd,positions_value_usd,value_api_usd,equity_usd,positions";
@@ -69,6 +74,14 @@ export const GROKPM_CYCLE_COLUMNS = "id,ts,kind,cash_usd,positions_value_usd,pnl
 export const GROKPM_DAILY_COLUMNS = "id,received_at,day,pnl_day_usd,pnl_total_usd,trades,summary";
 export const GROKPM_ENTRY_COLUMNS = "asset,cond,title,first_seen_at,first_fill_at,mid";
 export const GROKPM_OPEN_COLUMNS = "id,ts,token_id,p,m,category";
+export const GROKPM_MARKET_COLUMNS = "cond,question,slug";
+/** A market's page on Polymarket: `/market/<slug>` opens it inside its event. */
+export const GROKPM_MARKET_URL = "https://polymarket.com/market/";
+
+/** A market's link from its slug, only when the slug is Polymarket's shape; null otherwise. */
+export function marketUrl(slug: unknown): string | null {
+  return typeof slug === "string" && /^[a-z0-9][a-z0-9-]{0,199}$/i.test(slug) ? `${GROKPM_MARKET_URL}${slug}` : null;
+}
 
 
 /** Only an http(s) URL is a link; anything else the agent sent is dropped from the links (it stays in the record as sent). */
@@ -119,7 +132,7 @@ export function brierOf(entries: GrokPmEntryRow[], resolutions: GrokPmResolution
 export function grokPmSummary(input: {
   config: GrokPmConfigRow | null; latest: GrokPmSnapshotRow | null; dayOpens: GrokPmDayOpenRow[]; decisions: GrokPmDecisionRow[]; cycle: GrokPmCycleRow | null;
   cycleSnap: GrokPmSnapshotRow | null; daily: GrokPmDailyRow[]; entries: GrokPmEntryRow[]; resolutions: GrokPmResolutionRow[]; opens: GrokPmOpenRow[];
-  recState: { updated_at: string | null; last_error: string | null } | null; nowMs: number;
+  recState: { updated_at: string | null; last_error: string | null } | null; nowMs: number; markets?: GrokPmMarketRow[];
 }) {
   const cfg = input.config;
   if (!cfg?.wallet) return null;
@@ -129,14 +142,18 @@ export function grokPmSummary(input: {
   const startDay = cfg.started_at ? dayOf(cfg.started_at) : null;
   const equity = input.latest ? num(input.latest.equity_usd) : null;
 
-  // Positions, from the latest snapshot as the record marked them.
+  // Market titles, by lower-case condition id: Gamma's (0126) first, else the record's own for what it holds.
+  const key = (c: unknown) => String(c ?? "").trim().toLowerCase();
+  const marketOf = new Map((input.markets ?? []).filter((x) => x.question).map((x) => [key(x.cond), x]));
   const titleOf = new Map<string, string>();
-  for (const e of input.entries) if (e.title) titleOf.set(e.cond, e.title);
+  for (const e of input.entries) if (e.title) titleOf.set(key(e.cond), e.title);
+  // Positions, from the latest snapshot as the record marked them.
   const positions = (input.latest?.positions ?? []).map((x) => {
     const size = num(x.size), avg = num(x.avgPrice), mark = num(x.mark), redeemable = x.redeemable === true;
-    if (typeof x.title === "string") titleOf.set(String(x.cond), x.title);
+    if (typeof x.title === "string" && x.title) titleOf.set(key(x.cond), x.title);
+    const title = typeof x.title === "string" && x.title ? x.title : marketOf.get(key(x.cond))?.question ?? "";
     return {
-      asset: String(x.asset), cond: String(x.cond ?? ""), title: typeof x.title === "string" ? x.title : "", outcome: typeof x.outcome === "string" ? x.outcome : null,
+      asset: String(x.asset), cond: String(x.cond ?? ""), title, outcome: typeof x.outcome === "string" ? x.outcome : null,
       size: r6(size), avgPrice: r6(avg), mark: r6(mark), mid: nz(x.mid), costUsd: r6(size * avg), valueUsd: r6(size * mark),
       unrealisedUsd: redeemable ? 0 : r6(size * (mark - avg)), redeemable, endDate: typeof x.endDate === "string" ? x.endDate : null,
     };
@@ -183,11 +200,15 @@ export function grokPmSummary(input: {
   }
 
   const brier = brierOf(input.entries, input.resolutions, input.opens);
-  const journal = input.decisions.slice(0, GROKPM_JOURNAL_ROWS).map((x) => ({
-    id: x.id, ts: x.ts, action: x.action, category: x.category, title: (x.market_id && titleOf.get(x.market_id)) || null, marketId: x.market_id,
-    outcome: x.outcome, side: x.side, price: nz(x.price), size: nz(x.size), p: nz(x.p), m: nz(x.m), reason: String(x.reason ?? ""),
-    invalidation: x.invalidation ?? null, sources: safeLinks(x.sources),
-  }));
+  const journal = input.decisions.slice(0, GROKPM_JOURNAL_ROWS).map((x) => {
+    const mk = x.market_id ? marketOf.get(key(x.market_id)) : undefined;
+    return {
+      id: x.id, ts: x.ts, action: x.action, category: x.category, title: mk?.question || (x.market_id && titleOf.get(key(x.market_id))) || null,
+      url: marketUrl(mk?.slug), marketId: x.market_id,
+      outcome: x.outcome, side: x.side, price: nz(x.price), size: nz(x.size), p: nz(x.p), m: nz(x.m), reason: String(x.reason ?? ""),
+      invalidation: x.invalidation ?? null, sources: safeLinks(x.sources),
+    };
+  });
 
   const lastAt = input.latest?.at ?? input.recState?.updated_at ?? null;
   const lagMinutes = lastAt ? Math.max(0, Math.round((input.nowMs - Date.parse(lastAt)) / M)) : null;

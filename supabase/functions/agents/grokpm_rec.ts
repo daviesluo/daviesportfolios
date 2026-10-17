@@ -15,6 +15,8 @@
 //   clob.polymarket.com      POST /books       each held token's book: its mid is the mark, and the probability the
 //                                               Brier comparison gives the market (`grokpm_entries`)
 //   gamma-api.polymarket.com /markets/keyset   whether a market the agent traded has resolved, and how
+//                            /markets?condition_ids=  the question, slug and end date of each market its journal or its
+//                                               record names, once (`grokpm_markets`, 0126: the page's titles and links)
 //   polygon-bor-rpc.publicnode.com  eth_call balanceOf  the shared wallet's pUSD, USDC.e and USDC, for information
 // The data API is cached by CloudFront (positions 5 s, activity 15 s, value 6 s, measured 2026-10-15), so each read carries
 // the slot as `_`, a parameter no earlier slot's read carried.
@@ -23,10 +25,16 @@
 // written once: a second run in a slot (the watchdog's) changes nothing the first did. Its equity is the agent's budget
 // plus its trades' cash flows, plus each holding at its mark (its payout once resolved, else the book's mid). FUNDED, the
 // stops' room and the day's P&L are computed from these snapshots by the page (`grokpm_view.ts`), in one place.
+//
+// Market titles (0126; Davies, 2026-10-17: the journal showed "0xdf9bf27e…" for a market the agent did not hold): every
+// run, before the go as after it, each condition id the agent's decisions or entries name that `grokpm_markets` does not
+// hold yet, newest first and at most `GROKPM_MARKETS_PER_RUN`, is looked up on Gamma in two requests (its open markets and
+// its closed ones: Gamma answers one or the other) and written once. A failure is the run's error like any other read's;
+// the snapshot never waits on it.
 
 import type { Db } from "./db.ts";
 import { faultKey, reportDue } from "./pm_book_rec.ts";
-import { PM_DATA, pmBooks, pmMarkets } from "../_shared/polymarket_public.ts";
+import { PM_DATA, PM_GAMMA, pmBooks, pmMarkets } from "../_shared/polymarket_public.ts";
 
 export const GROKPM_RPC = "https://polygon-bor-rpc.publicnode.com";
 /** The stablecoins whose balance is the wallet's cash, all six decimals (read keylessly, `decimals()`, 2026-10-15). */
@@ -41,7 +49,10 @@ export const GROKPM_ACTIVITY_PAGE = 500;
 export const GROKPM_RESOLVE_EVERY_MS = 30 * 60e3;
 /** Each read waits at most this long: four rounds of reads stay inside the call's 30 s. */
 export const GROKPM_TIMEOUT_MS = 6_000;
-const HOSTS = new Set([new URL(PM_DATA).host, new URL(GROKPM_RPC).host]);
+/** Market titles looked up a run at most: two Gamma requests (open and closed markets), fifty ids each at most. */
+export const GROKPM_MARKETS_PER_RUN = 20;
+const HOSTS = new Set([new URL(PM_DATA).host, new URL(GROKPM_RPC).host, new URL(PM_GAMMA).host]);
+const COND = /^0x[0-9a-f]{64}$/;
 const UA = "daviesportfolios-grokpm-rec/1.0 (public data only)";
 
 const num = (x: unknown) => { const v = Number(x); return Number.isFinite(v) ? v : 0; };
@@ -137,6 +148,31 @@ export function agentPositions(
   }).sort((x, y) => x.asset.localeCompare(y.asset));
 }
 
+/**
+ * The condition ids to look up: each one the journal (newest decision first) or the record's entries name, lower-cased,
+ * that `known` (what `grokpm_markets` holds) does not, once, at most `limit`. Anything that is not a condition id is skipped.
+ */
+export function missingMarkets(named: Array<string | null | undefined>, known: Set<string>, limit = GROKPM_MARKETS_PER_RUN): string[] {
+  const out: string[] = [];
+  for (const x of named) {
+    const c = typeof x === "string" ? x.trim().toLowerCase() : "";
+    if (!COND.test(c) || known.has(c) || out.includes(c)) continue;
+    out.push(c);
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
+/** A Gamma market as `grokpm_markets` keeps it, or null when it carries no condition id. A slug is kept only as Polymarket writes one. */
+export function marketRow(m: Record<string, unknown>, now: number) {
+  const cond = typeof m.conditionId === "string" ? m.conditionId.toLowerCase() : "";
+  if (!COND.test(cond)) return null;
+  const q = typeof m.question === "string" ? m.question.trim().slice(0, 300) : "";
+  const slug = typeof m.slug === "string" && /^[a-z0-9][a-z0-9-]{0,199}$/i.test(m.slug) ? m.slug : null;
+  const end = typeof m.endDate === "string" && Number.isFinite(Date.parse(m.endDate)) ? new Date(Date.parse(m.endDate)).toISOString() : null;
+  return { cond, question: q || null, slug, end_date: end, updated_at: new Date(now).toISOString() };
+}
+
 async function getJson(url: string, f: typeof fetch, body?: unknown): Promise<unknown> {
   const u = new URL(url);
   if (u.protocol !== "https:" || !HOSTS.has(u.host)) throw new Error(`grokpm: host not allowed: ${u.host}`);
@@ -166,7 +202,7 @@ export async function readCash(wallet: string, f: typeof fetch): Promise<{ pusd:
   return out;
 }
 
-export type GrokPmRecReport = { skipped?: string; slot?: string; equity?: number; positions?: number; activity?: number; entries?: number; resolved?: number; started?: boolean; errors: string[]; report?: boolean };
+export type GrokPmRecReport = { skipped?: string; slot?: string; equity?: number; positions?: number; activity?: number; entries?: number; resolved?: number; markets?: number; started?: boolean; errors: string[]; report?: boolean };
 
 /**
  * One run: nothing while the wallet is unset. Then the shared account's public activity, stored whole; and once the
@@ -191,6 +227,31 @@ export async function runGrokPmRec(o: { db: Db; now: number; fetchImpl?: typeof 
     if (rows.length) await d.upsert("grokpm_activity", rows, "key");
     report.activity = rows.length;
   } catch (e) { errors.push(`activity: ${(e as Error).message}`); }
+
+  // The titles of the markets its journal and its record name (0126), a few a run.
+  try {
+    const [decisions, entryConds, have] = await Promise.all([
+      d.select<{ market_id: string | null }>("grokpm_decisions", "select=market_id&order=ts.desc,id.desc&limit=200"),
+      d.select<{ cond: string }>("grokpm_entries", "select=cond&order=first_seen_at.desc&limit=1000"),
+      d.select<{ cond: string }>("grokpm_markets", "select=cond&order=cond.asc&limit=5000"),
+    ]);
+    const want = missingMarkets([...decisions.map((x) => x.market_id), ...entryConds.map((x) => x.cond)], new Set(have.map((x) => x.cond)));
+    if (want.length) {
+      const ids = want.map((c) => `condition_ids=${c}`).join("&");
+      const found = new Map<string, NonNullable<ReturnType<typeof marketRow>>>();
+      for (const closed of [false, true]) {
+        const got = await getJson(`${PM_GAMMA}/markets?limit=50&closed=${closed}&${ids}`, f);
+        if (!Array.isArray(got)) throw new Error("gamma markets: not a list");
+        for (const m of got as Array<Record<string, unknown>>) {
+          const row = m && typeof m === "object" ? marketRow(m, o.now) : null;
+          if (row && want.includes(row.cond)) found.set(row.cond, row);
+        }
+        if (found.size === want.length) break;
+      }
+      if (found.size) await d.upsert("grokpm_markets", [...found.values()], "cond");
+      report.markets = found.size;
+    } else report.markets = 0;
+  } catch (e) { errors.push(`markets: ${(e as Error).message}`); }
 
   if (cfg.started_at) {
     try {

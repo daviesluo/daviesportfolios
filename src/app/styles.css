@@ -1918,6 +1918,9 @@ body {
    (teal, cyan, violet, orange, slate) sat within ΔE 15 of the venues' blue and yellow or of gain/loss, so it has none. */
 .ag-badge-paper { color: #e8e4da; border-color: rgba(232,228,218,0.55); border-style: dashed; background: rgba(232,228,218,0.06); }
 .ag-badge-paused { color: var(--chalk-dim); }
+/* DRY-RUN (GROKPM before its go, Davies 2026-10-17): the amber of the list's dot for that row (`.ag-dot-stale`), dashed as
+   PAPER is because no money moves, so the page's head and the row in the list show the same light. */
+.ag-badge-dry-run { color: #d9a441; border-color: rgba(217, 164, 65, 0.55); border-style: dashed; background: rgba(217, 164, 65, 0.08); }
 /* Every mode tag and every venue tag is one height, wherever it sits: a page's head, a table row, a venue card (Davies,
    2026-09-28). Their type differs (9 px against the venue's 10 px mono); the box, border included, does not. */
 .ag-badge, .ag-venue {
@@ -1989,24 +1992,51 @@ body {
 .ag-qheld { white-space: nowrap; }
 .ag-warn-line { margin-top: 6px; font-size: 11px; color: var(--loss); }
 .ag-lpl-room { margin-top: 6px; font-size: 11px; }
-/* "Polymarket analyst (Grok)" (GROKPM, 0124): six scoreboard cells wrap on a phone; its journal is a list, each entry's
-   words wrapping inside the page's width, its sources plain links that break anywhere rather than widen the page. */
-.ag-gpm-sb { grid-template-columns: auto 1px auto 1px minmax(0, 1fr) 1px minmax(0, 1fr) 1px minmax(0, 1fr) 1px minmax(0, 1fr); }
+/* "Polymarket analyst" (GROKPM, 0124): six scoreboard cells wrap on a phone. Its journal (Davies, 2026-10-17: "更美观和清晰
+   一些，内容也展示的更简约些"): each entry a card with a coloured edge (green open, red close, quiet otherwise), a head line
+   that wraps (time, action chip, category, side, size @ price), the market as an underlined link, p against the market in
+   small mono, its words, "wrong if" muted, and its sources as underlined domains on one wrapping line. Nothing widens the
+   page: every line wraps inside it. */
+/* Two classes, so the six columns outrank the five-cell `.ag-scoreboard` template further down this file: with one, REALIZED
+   fell into a column of no width and was cut off at the right (seen 2026-10-17). */
+.ag-scoreboard.ag-gpm-sb { grid-template-columns: auto 1px auto 1px minmax(0, 1fr) 1px minmax(0, 1fr) 1px minmax(0, 1fr) 1px minmax(0, 1fr); }
 @media (max-width: 760px) {
-  .ag-gpm-sb { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .ag-scoreboard.ag-gpm-sb { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 }
-.ag-gpm-line { margin-top: 6px; font-size: 11px; line-height: 1.45; overflow-wrap: anywhere; }
 .ag-gpm-mismatch { overflow-wrap: anywhere; }
 .ag-gpm-stop { overflow-wrap: anywhere; }
-.ag-gpm-entries { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.ag-gpm-entry { min-width: 0; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; background: rgba(0,0,0,0.18); font-size: 12px; line-height: 1.45; }
-.ag-gpm-entry-head { font-size: 11px; }
-.ag-gpm-act { color: #7d8bff; }
-.ag-gpm-entry-market { font-weight: 600; overflow-wrap: anywhere; }
-.ag-gpm-entry-nums { font-size: 11px; }
-.ag-gpm-entry-text { white-space: pre-wrap; overflow-wrap: anywhere; }
-.ag-gpm-entry-links { display: flex; flex-direction: column; gap: 2px; font-size: 11px; }
-.ag-gpm-entry-links a { color: var(--chalk-dim); text-decoration: underline; overflow-wrap: anywhere; word-break: break-all; }
+.ag-gpm-entries { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.ag-gpm-entry {
+  min-width: 0; display: flex; flex-direction: column; gap: 5px; padding: 10px 12px;
+  border: 1px solid var(--line); border-left: 2px solid var(--chalk-mute); border-radius: 6px; background: var(--panel);
+  font-size: 12.5px; line-height: 1.5;
+}
+.ag-gpm-entry.is-open { border-left-color: var(--gain); }
+.ag-gpm-entry.is-close { border-left-color: var(--loss); }
+.ag-gpm-entry-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 11px; color: var(--chalk-dim); }
+.ag-gpm-time { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ag-gpm-chip {
+  display: inline-flex; align-items: center; height: 17px; padding: 0 6px; border-radius: 3px; border: 1px solid var(--line);
+  font-size: 9.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--chalk-dim); white-space: nowrap;
+}
+.ag-gpm-chip-open { color: var(--gain); border-color: var(--gain-dim); background: var(--gain-dim); }
+.ag-gpm-chip-close { color: var(--loss); border-color: var(--loss-dim); background: var(--loss-dim); }
+/* What it traded, as one group: on a narrow screen it moves under the time and the chip whole, never a lone "· 20 @ 40¢". */
+.ag-gpm-what { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0 8px; min-width: 0; }
+.ag-gpm-meta { white-space: nowrap; }
+.ag-gpm-meta + .ag-gpm-meta::before { content: '·'; margin-right: 8px; color: var(--chalk-mute); }
+.ag-gpm-trade { color: var(--chalk); font-variant-numeric: tabular-nums; }
+.ag-gpm-market { display: block; font-size: 13px; font-weight: 600; color: var(--chalk); overflow-wrap: anywhere; }
+a.ag-gpm-market { text-decoration: underline; text-decoration-color: var(--chalk-mute); text-underline-offset: 3px; }
+a.ag-gpm-market:hover, a.ag-gpm-market:focus-visible { text-decoration-color: var(--chalk); }
+.ag-gpm-market.is-pending { font-weight: 400; font-style: italic; color: var(--chalk-dim); }
+.ag-gpm-probs { font-size: 11px; color: var(--chalk-dim); font-variant-numeric: tabular-nums; }
+.ag-gpm-reason, .ag-gpm-wrong { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.ag-gpm-reason { color: var(--chalk); }
+.ag-gpm-wrong { font-size: 12px; color: var(--chalk-dim); }
+.ag-gpm-sources { display: flex; flex-wrap: wrap; gap: 2px 12px; font-size: 11px; }
+.ag-gpm-sources a { color: var(--chalk-dim); text-decoration: underline; text-underline-offset: 2px; overflow-wrap: anywhere; }
+.ag-gpm-sources a:hover, .ag-gpm-sources a:focus-visible { color: var(--chalk); }
 .ag-gpm-flag { color: var(--loss); }
 .ag-gpm-empty { padding: 6px 0; font-size: 12px; }
 /* RW's page (reference §4 item 36). A market is its question, and the question is long: two lines of it (four on a

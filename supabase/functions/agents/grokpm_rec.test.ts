@@ -9,7 +9,7 @@ import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.t
 import type { Db } from "./db.ts";
 import { memDb, type Row } from "./testing.ts";
 import { GROKPM_TABLES } from "../_shared/grokpm_schema.ts";
-import { activityRow, agentBook, agentPositions, balanceOf, GROKPM_CASH_TOKENS, midOf, runGrokPmRec, snapshotRow } from "./grokpm_rec.ts";
+import { activityRow, agentBook, agentPositions, balanceOf, GROKPM_CASH_TOKENS, GROKPM_MARKETS_PER_RUN, marketRow, midOf, missingMarkets, runGrokPmRec, snapshotRow } from "./grokpm_rec.ts";
 
 const T0 = Date.parse("2026-10-16T09:31:12Z");
 const W = "0xabcdef0123456789abcdef0123456789abcdef01";
@@ -62,10 +62,16 @@ const FILLS = [
   { trade_id: "t3", hash: "0x" + "3".repeat(64), cond: COND, token: "111", side: "SELL", price: 0.5, size: 5, fee_usd: 0, taker: false, status: "MATCHED", match_time: "2026-10-16T08:00:00Z", tx_hash: "0x03" },
   { trade_id: "t4", hash: "0x" + "4".repeat(64), cond: COND, token: "999", side: "BUY", price: 0.3, size: 1, fee_usd: 0, taker: false, status: "FAILED", match_time: "2026-10-15T10:00:00Z", tx_hash: "0x0a" },
 ];
+/** Gamma's markets by condition id (0126's titles): one open, one closed; COND3's is not on Gamma at all. */
+const COND3 = "0x" + "c3".repeat(32), COND4 = "0x" + "d4".repeat(32);
+const GAMMA_MARKETS = [
+  { conditionId: COND, question: "Will A?", slug: "will-a", endDate: "2026-10-28T12:00:00Z", closed: false },
+  { conditionId: COND4, question: "Will the Fed hold in October?", slug: "fed-hold-october", endDate: "2026-10-29T03:59:00Z", closed: true },
+];
 const hex = (usd: number) => "0x" + BigInt(Math.round(usd * 1e6)).toString(16).padStart(64, "0");
 
 /** The public hosts as measured on 2026-10-15, answering what each read asks; every request is logged. */
-function fakeFetch(log: string[], o: { cash?: Record<string, number>; closed?: boolean; failRpc?: boolean } = {}): typeof fetch {
+function fakeFetch(log: string[], o: { cash?: Record<string, number>; closed?: boolean; failRpc?: boolean; failGamma?: boolean } = {}): typeof fetch {
   return (async (url: string | URL | Request, init?: RequestInit) => {
     const u = new URL(String(url));
     log.push(`${init?.method ?? "GET"} ${u.host}${u.pathname}${u.search}`);
@@ -76,6 +82,11 @@ function fakeFetch(log: string[], o: { cash?: Record<string, number>; closed?: b
     if (u.host === "clob.polymarket.com" && u.pathname === "/books") {
       const ids = (JSON.parse(String(init?.body)) as Array<{ token_id: string }>).map((x) => x.token_id);
       return ok(ids.filter((t) => t === "111").map((t) => ({ asset_id: t, bids: [{ price: "0.45", size: "100" }], asks: [{ price: "0.47", size: "50" }], tick_size: "0.01" })));
+    }
+    if (u.host === "gamma-api.polymarket.com" && u.pathname === "/markets") {
+      if (o.failGamma) return new Response("busy", { status: 503 });
+      const ids = new Set(u.searchParams.getAll("condition_ids")), closed = u.searchParams.get("closed") === "true";
+      return ok(GAMMA_MARKETS.filter((m) => ids.has(m.conditionId) && m.closed === closed));
     }
     if (u.host === "gamma-api.polymarket.com") {
       return ok({ markets: o.closed ? [{ conditionId: COND2, clobTokenIds: JSON.stringify(["333", "555"]), outcomePrices: JSON.stringify(["1", "0"]), closed: true, closedTime: "2026-10-15 20:00:00+00", question: "Will B?" }] : [] });
@@ -177,4 +188,50 @@ Deno.test("the pure parts: the agent's book, its positions, mids, balances, rows
   assertEquals([snap.cash_usd, snap.positions_value_usd, snap.equity_usd, snap.cash_pusd], [87.5, 17.5, 105, 1]);
   const a = await activityRow(ACTIVITY[0]), c = await activityRow({ ...ACTIVITY[0] });
   assertEquals(a.key, c.key);
+});
+
+// Market titles (0126; Davies, 2026-10-17: the journal showed "0xdf9bf27e…" for a market the agent did not hold).
+const decision = (id: string, ts: string, market_id: string | null) => ({ id, ts, market_id });
+
+Deno.test("market titles: each market the journal names is looked up once on Gamma, open and closed, before the go too", async () => {
+  const log: string[] = [];
+  const d = strictDb({ ...seed(W, null), grokpm_markets: [], grokpm_decisions: [
+    decision("d3", "2026-10-16T09:00:00Z", COND4.toUpperCase().replace("0X", "0x")), decision("d2", "2026-10-16T08:00:00Z", null),
+    decision("d1", "2026-10-16T07:00:00Z", COND), decision("d0", "2026-10-16T06:00:00Z", COND3),
+  ] }, () => T0);
+  const r = await runGrokPmRec({ db: d, now: T0, fetchImpl: fakeFetch(log) });
+  assertEquals(r.errors, []);
+  assertEquals(r.markets, 2);
+  const gamma = log.filter((l) => l.includes("gamma-api"));
+  assertEquals(gamma.map((l) => new URL(`https://${l.split(" ")[1]}`).searchParams.get("closed")), ["false", "true"]);
+  assertEquals(new URL(`https://${gamma[0].split(" ")[1]}`).searchParams.getAll("condition_ids"), [COND4, COND, COND3]);
+  assertEquals(d.tables().grokpm_markets.map((m) => [m.cond, m.question, m.slug, m.end_date]).sort(), [
+    [COND, "Will A?", "will-a", "2026-10-28T12:00:00.000Z"], [COND4, "Will the Fed hold in October?", "fed-hold-october", "2026-10-29T03:59:00.000Z"],
+  ].sort());
+  // The next run asks Gamma only for the one it has not found.
+  const log2: string[] = [];
+  await runGrokPmRec({ db: d, now: T0 + 5 * 60e3, fetchImpl: fakeFetch(log2) });
+  assertEquals(log2.filter((l) => l.includes("gamma-api")).map((l) => new URL(`https://${l.split(" ")[1]}`).searchParams.getAll("condition_ids")), [[COND3], [COND3]]);
+  assertEquals(d.tables().grokpm_markets.length, 2);
+});
+
+Deno.test("market titles: a Gamma failure is the run's error and stops neither the activity nor the snapshot", async () => {
+  const d = strictDb({ ...seed(W), grokpm_markets: [], grokpm_decisions: [decision("d1", "2026-10-16T07:00:00Z", COND3)] }, () => T0);
+  const r = await runGrokPmRec({ db: d, now: T0, fetchImpl: fakeFetch([], { failGamma: true }) });
+  assert(r.errors.length === 1 && r.errors[0].startsWith("markets: gamma-api.polymarket.com/markets → 503"), r.errors.join());
+  assertEquals([d.tables().grokpm_activity.length, d.tables().grokpm_snapshots[0].equity_usd, d.tables().grokpm_markets.length], [ACTIVITY.length, 104.4, 0]);
+  assert(String(d.tables().grokpm_rec_state[0].last_error).startsWith("markets: "));
+});
+
+Deno.test("market titles: the pure parts", () => {
+  const known = new Set([COND]);
+  assertEquals(missingMarkets([null, COND, "  " + COND4.toUpperCase().replace("0X", "0x") + " ", "0xshort", "slug-not-id", COND4, COND3], known), [COND4, COND3]);
+  const many = Array.from({ length: 30 }, (_, i) => "0x" + i.toString(16).padStart(64, "0"));
+  assertEquals(missingMarkets(many, new Set()).length, GROKPM_MARKETS_PER_RUN);
+  assertEquals(marketRow({ conditionId: COND, question: " Will A? ", slug: "will-a", endDate: "2026-10-28T12:00:00Z" }, T0),
+    { cond: COND, question: "Will A?", slug: "will-a", end_date: "2026-10-28T12:00:00.000Z", updated_at: new Date(T0).toISOString() });
+  // A slug that is not Polymarket's shape is not kept (the page then shows the title unlinked); no id, no row.
+  assertEquals(marketRow({ conditionId: COND, question: "Q", slug: "../evil?x=1", endDate: "never" }, T0)?.slug, null);
+  assertEquals(marketRow({ conditionId: COND, question: "Q", slug: "../evil?x=1", endDate: "never" }, T0)?.end_date, null);
+  assertEquals(marketRow({ question: "Q" }, T0), null);
 });

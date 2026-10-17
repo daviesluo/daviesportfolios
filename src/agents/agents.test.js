@@ -8,7 +8,7 @@ import {
   strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows, VENUE_LABELS,
   agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
   newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwxSourceText, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, rwNotRunningText, paperTestRows, rwRoundText, PREP_ROW_ID, MID_ROW_ID, LP_ROW_ID, isPrepRowId, lpRow, midRow, prepRow, prepStopText, rwQuoteRows,
-  GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmJournalView, fmtProb, fmtBrier,
+  GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokPmModeTag, grokPmTiles, linkDomain, utcStamp, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmJournalView, fmtProb, fmtBrier,
   LP_LIVE_ROW_ID, fmtR, lpStopRoomText, liveExtraRows, lpEstimateTexts, lpLiveDayCells, lpLiveQuoteRows, lpLiveRow, quoteDaysAnnualPct, lpLiveStatus, rwFeeAsides, rwFeeCells,
   AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies,
   fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney,
@@ -2018,7 +2018,7 @@ describe("the Stablecoin quotes pages' DAYS heading: the seven calendar days bef
   });
 });
 
-describe('grokPmRow and its page (GROKPM, "Polymarket analyst (Grok)" on LIVE, 2026-10-15)', () => {
+describe('grokPmRow and its page (GROKPM, "Polymarket analyst" on LIVE, 2026-10-15; renamed and its journal redone 2026-10-17)', () => {
   const g = /** @type {any} */ (grokPmFixture.output);
   const w = /** @type {any} */ (grokPmFixture.waiting);
   const mask = (/** @type {string} */ t) => t.replace(/\d/g, '•');
@@ -2026,6 +2026,8 @@ describe('grokPmRow and its page (GROKPM, "Polymarket analyst (Grok)" on LIVE, 2
     const r = /** @type {any} */ (grokPmRow(g));
     expect([r.id, r.name, r.mode, r.venueId, r.capitalUsd, r.valueUsd, r.costUsd, r.feesUsd, r.openPositions, r.holdsLive, r.armed])
       .toEqual([GROKPM_ROW_ID, GROKPM_ROW_NAME, 'live', 'polymarket', 100, 30, 30, null, 2, true, true]);
+    // Davies, 2026-10-17: "“Polymarket analyst (Grok)”策略改为“Polymarket analyst“".
+    expect(GROKPM_ROW_NAME).toBe('Polymarket analyst');
     // By hand (grokpm_view.test.ts): today +0.70, unrealised +0.20 on a cost of 30, realised +2.10.
     expect([r.todayUsd, r.unrealisedUsd, r.realisedUsd]).toEqual([0.7, 0.2, 2.1]);
     expect(r.todayPct).toBeCloseTo(0.7, 12);
@@ -2034,9 +2036,15 @@ describe('grokPmRow and its page (GROKPM, "Polymarket analyst (Grok)" on LIVE, 2
     expect(r.status).toEqual({ label: 'live', running: true, tone: 'running', detail: 'an outside agent trading real money · 2 positions open' });
     expect(rowMoney(r).ccy).toBe('USD');
   });
-  it('before the go it funds nothing on LIVE and says it is a dry-run; no account, no row', () => {
+  it('before the go it is funded $100 on LIVE, counts nothing yet, and says it is a dry-run; no account, no row', () => {
     const r = /** @type {any} */ (grokPmRow(w));
-    expect([r.capitalUsd, r.costUsd, r.armed, r.status.tone, r.status.detail]).toEqual([0, 0, false, 'stale', 'dry-run: its orders are checked and journalled, none is sent']);
+    // Davies, 2026-10-17: "明确目前funded就是100美元": its budget from now (it was $0 until the go).
+    expect([r.capitalUsd, r.fundedKnown, r.costUsd, r.valueUsd, r.armed]).toEqual([100, true, 0, 0, false]);
+    expect([r.todayUsd, r.unrealisedUsd, r.realisedUsd, r.todayPct, r.unrealisedPct, r.realisedPct]).toEqual([0, 0, 0, 0, null, 0]);
+    expect(r.status).toEqual({ label: 'dry-run', running: false, tone: 'stale', detail: 'dry-run: its orders are checked and journalled, none is sent' });
+    // The budget is the configured one, whatever the record says it has seen.
+    expect(grokPmRow({ ...w, configuredFundedUsd: 150 })?.capitalUsd).toBe(150);
+    expect(grokPmRow({ ...w, configuredFundedUsd: null, fundedUsd: null })?.capitalUsd).toBe(0);
     expect(grokPmRow({ ...w, mode: 'live' })?.status.detail).toBe('armed: its record has not read its first trade yet');
     expect(grokPmRow(null)).toBe(null);
     expect(grokPmStopText(w, (x) => x)).toBe(null);
@@ -2057,6 +2065,27 @@ describe('grokPmRow and its page (GROKPM, "Polymarket analyst (Grok)" on LIVE, 2
     expect(cards[0].todayUsd).toBeCloseTo(0.8 + 0.7, 12);
     expect(paperTestRows(dash).some((t) => t.id === GROKPM_ROW_ID)).toBe(false);
   });
+  it("before the go its $100 is in LIVE's FUNDED and on the Polymarket card, and every percent stays on that base", () => {
+    const dash = { risk: { global_pause: false, live_confirmed_at: null }, strategies: [], lpLive: lpLiveFixture.output, grokPm: w };
+    const rows = liveExtraRows(dash);
+    const live = scoreboardView(dash, 'live', rows), alone = scoreboardView({ ...dash, grokPm: null }, 'live', liveExtraRows({ ...dash, grokPm: null }));
+    expect(live.capitalUsd - alone.capitalUsd).toBeCloseTo(100, 12);
+    // It adds no money made, held or deployed: only the base the percents are on.
+    expect([live.todayUsd, live.realisedUsd, live.unrealisedUsd, live.valueUsd, live.costUsd]).toEqual([alone.todayUsd, alone.realisedUsd, alone.unrealisedUsd, alone.valueUsd, alone.costUsd]);
+    expect(live.todayPct).toBeCloseTo(alone.todayUsd / (alone.capitalUsd + 100) * 100, 12);
+    expect(live.realisedPct).toBeCloseTo(alone.realisedUsd / (alone.capitalUsd + 100) * 100, 12);
+    expect(live.unrealisedPct).toBeCloseTo(/** @type {number} */ (alone.unrealisedPct), 12);
+    const card = venueRows(dash, 'live', rows)[0];
+    expect([card.id, card.capitalUsd]).toEqual(['polymarket', alone.capitalUsd + 100]);
+    expect(Number.isFinite(card.todayPct)).toBe(true);
+  });
+  it("its page's head says DRY-RUN while the list's light is amber, LIVE once armed", () => {
+    // Davies, 2026-10-17: "agent页策略列表里显示的黄灯怎么子页面点开现实的是live的tag".
+    expect([grokPmModeTag(w), grokPmRow(w)?.status.tone]).toEqual(['dry-run', 'stale']);
+    expect([grokPmModeTag(g), grokPmRow(g)?.status.tone]).toEqual(['live', 'running']);
+    expect(grokPmModeTag({ ...w, mode: 'live' })).toBe('live');
+    expect(grokPmModeTag(null)).toBe('dry-run');
+  });
   it('its STATUS tiles, stop room and mismatch line, every dollar through the mask and no probability masked', () => {
     expect(grokPmTiles(g, (x) => x)).toEqual([
       { k: 'OPEN POSITIONS', v: '2' }, { k: 'CASH', v: '$69.10' }, { k: 'BRIER YOU / MARKET', v: '0.106 / 0.084', note: 'on 2 resolved' }, { k: 'RESOLVED', v: '2' },
@@ -2076,12 +2105,47 @@ describe('grokPmRow and its page (GROKPM, "Polymarket analyst (Grok)" on LIVE, 2
     expect(grokPmDayCells({ ...g.days[1], mismatch: true }, (x) => x).flag).toBe('differs');
     const v = grokPmJournalView(g.journal[5], (x) => x);
     expect(v).toEqual({
-      head: 'open · cat A · buy Yes', market: 'Will the nominee be confirmed?', trade: '10 at 70¢', probs: 'p 90¢ · m 71¢',
-      reason: 'The roll call is published: confirmed 52-48.', invalidation: 'The vote record is corrected.', sources: ['https://www.senate.gov/legislative/votes.htm'],
+      time: '16 Sep 10:58 UTC', action: 'open', tone: 'open', category: 'cat A', side: 'buy Yes', trade: '10 @ 70¢',
+      market: { text: 'Will the nominee be confirmed?', href: 'https://polymarket.com/market/will-the-nominee-be-confirmed', pending: false },
+      probs: 'p 90¢ vs market 71¢ (edge +19.0)',
+      reason: 'The roll call is published: confirmed 52-48.', invalidation: 'The vote record is corrected.',
+      sources: [{ href: 'https://www.senate.gov/legislative/votes.htm', text: 'senate.gov' }],
     });
-    expect(grokPmJournalView({ ...g.journal[5], sources: ['javascript:alert(1)', 'https://ok.example/'] }, (x) => x).sources).toEqual(['https://ok.example/']);
-    expect(grokPmJournalView(g.journal[0], (x) => x)).toMatchObject({ head: 'no action', market: '', trade: '', probs: '' });
-    expect(grokPmJournalView(g.journal[5], mask).trade).toBe('•• at ••¢');
+    expect(grokPmJournalView({ ...g.journal[5], sources: ['javascript:alert(1)', 'https://ok.example/'] }, (x) => x).sources).toEqual([{ href: 'https://ok.example/', text: 'ok.example' }]);
+    expect(grokPmJournalView(g.journal[0], (x) => x)).toMatchObject({ action: 'no action', tone: 'quiet', category: '', side: '', market: null, trade: '', probs: '' });
+    expect(grokPmJournalView(g.journal[5], mask).trade).toBe('•• @ ••¢');
+  });
+  it('the journal never shows a condition id: Gamma\'s title linked, the record\'s unlinked, else "market title pending"', () => {
+    // Davies, 2026-10-17: "目前还有“0xdf9bf27e…”这种乱码"; the old view showed the id's first ten characters.
+    const views = g.journal.map((/** @type {any} */ j) => grokPmJournalView(j, (x) => x));
+    expect(views.map((/** @type {any} */ v) => v.market && [v.market.text, v.market.href])).toEqual([
+      null,
+      ['Will the Fed cut rates in October?', 'https://polymarket.com/market/will-the-fed-cut-rates-in-october'],
+      ['Will the bill be signed by September 30?', null],
+      ['Will the summit take place by September 17?', null],
+      ['Will the summit take place by September 17?', null],
+      ['Will the nominee be confirmed?', 'https://polymarket.com/market/will-the-nominee-be-confirmed'],
+      ['Will there be no change in Fed interest rates after the October 2026 meeting?', 'https://polymarket.com/market/will-there-be-no-change-in-fed-interest-rates-after-the-october-2026-meeting'],
+      ['market title pending', null],
+    ]);
+    expect(JSON.stringify(views)).not.toMatch(/0x[0-9a-f]{4}/i);
+    // A link only in the server's shape: anything else leaves the title unlinked.
+    expect(grokPmJournalView({ ...g.journal[5], url: 'javascript:alert(1)' }, (x) => x).market).toEqual({ text: 'Will the nominee be confirmed?', href: null, pending: false });
+    expect(grokPmJournalView({ ...g.journal[5], url: 'https://evil.example/market/x' }, (x) => x).market?.href).toBe(null);
+    // p against the market and the edge in points, signed; one of them alone; neither.
+    const x2 = views[6];
+    expect([x2.time, x2.action, x2.category, x2.side, x2.trade, x2.probs]).toEqual(['16 Sep 10:40 UTC', 'open', 'cat B', 'buy Yes', '5 @ 85¢', 'p 85¢ vs market 86.5¢ (edge \u22121.5)']);
+    expect(x2.sources).toEqual([
+      { href: 'https://www.actionforex.com/action-insight/market-overview/657759-dollar-extends-slide/', text: 'actionforex.com' },
+      { href: 'https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html', text: 'cmegroup.com' },
+    ]);
+    expect(grokPmJournalView({ ...g.journal[6], m: null }, (x) => x).probs).toBe('p 85¢');
+    expect(grokPmJournalView({ ...g.journal[6], p: null }, (x) => x).probs).toBe('market 86.5¢');
+    expect(grokPmJournalView({ ...g.journal[6], p: 0.5, m: 0.5 }, (x) => x).probs).toBe('p 50¢ vs market 50¢ (edge 0)');
+    expect(views[7]).toMatchObject({ action: 'cancel', tone: 'quiet', category: 'cat C', side: '', trade: '', probs: '', market: { text: 'market title pending', href: null, pending: true } });
+    expect([linkDomain('https://www.example.co.uk/a?b'), linkDomain('http://sub.example.org'), linkDomain('ftp://x.y'), linkDomain('https://'), linkDomain(3)])
+      .toEqual(['example.co.uk', 'sub.example.org', null, null, null]);
+    expect([utcStamp('2026-10-16T15:38:04+00:00'), utcStamp('2026-01-05T00:07:00Z'), utcStamp('nope'), utcStamp(null)]).toEqual(['16 Oct 15:38 UTC', '5 Jan 00:07 UTC', '', '']);
     expect([fmtProb(0.835), fmtProb(null), fmtBrier(0.10625)]).toEqual(['83.5¢', '—', '0.106']);
   });
 });

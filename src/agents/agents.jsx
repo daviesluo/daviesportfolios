@@ -16,7 +16,7 @@ import { SurfaceBoundary } from '../app/surface_boundary.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, rwFeeAsides, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, quotesPageFor, MID_ROW_ID, LP_ROW_ID, isPrepRowId, prepStopText, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwTestedSince, rweCheckWarn, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxSourceText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows, rwRoundText,
+  AGENT_TABS, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, rwFeeAsides, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, quotesPageFor, MID_ROW_ID, LP_ROW_ID, isPrepRowId, prepStopText, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwTestedSince, rweCheckWarn, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxSourceText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows, rwRoundText,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -88,14 +88,16 @@ function VenueBadge({ id, signal = null }) {
 
 /**
  * The status as a dot and its words, and after them how long the strategy has been under test, to the hour (Davies,
- * 2026-09-28): "running · tested 3d 14h", "live 3d 2h" on the live row. `since` is when its test began.
- * @param {{ status: any, since?: string | null, until?: string | null, nowMs?: number, live?: boolean }} props
+ * 2026-09-28): "running · tested 3d 14h", "live 3d 2h" on the live row. `since` is when its test began. `toned` colours
+ * the dot as the strategy list colours it (`ag-dot-<tone>`: amber for a stale or dry-run row), so a page's head and its
+ * row in the list show one light (GROKPM's, Davies 2026-10-17).
+ * @param {{ status: any, since?: string | null, until?: string | null, nowMs?: number, live?: boolean, toned?: boolean }} props
  */
-function StatusDot({ status, since = null, until = null, nowMs = Date.now(), live = false }) {
+function StatusDot({ status, since = null, until = null, nowMs = Date.now(), live = false, toned = false }) {
   const tested = testedForText(since, nowMs, until);
   return (
     <span className={`ag-status${status.running ? ' is-running' : ''}`}>
-      <span className="ag-dot" />
+      <span className={toned && status.tone ? `ag-dot ag-dot-${status.tone}` : 'ag-dot'} />
       <span className="ag-status-text" title={status.detail}>{status.running ? 'running' : status.detail}</span>
       {tested && <span className="ag-tested" title={`since ${when(String(since))} ${UK_TZ}`}>{live ? 'live' : 'tested'} {tested}</span>}
     </span>
@@ -695,12 +697,14 @@ function LpLiveDetail({ l, m, at, nowMs }) {
 }
 
 /**
- * "Polymarket analyst (Grok)", GROKPM's page over LIVE (Davies, 2026-10-15: "网站中live页也加上策略和子策略页面（仿照之前rewards
- * 策略来做）"), laid out as the Reward quotes live page: its scoreboard (FUNDED, VALUE, TOTAL, TODAY, UNREALIZED, REALIZED) from the
- * independent record of the agent's own trades, the stops' room under it, a red line when the agent's own numbers differ from
- * the record by more than $1, STATUS (open positions, cash, Brier against the market, resolved), then POSITIONS from the
- * record, the agent's JOURNAL (its words, shown as text; its sources as plain links), and DAYS, the record's P&L beside its
- * summary. Everything is the dashboard's `grokPm` (`grokpm_view.ts`).
+ * "Polymarket analyst", GROKPM's page over LIVE (Davies, 2026-10-15: "网站中live页也加上策略和子策略页面（仿照之前rewards
+ * 策略来做）"), laid out as the Reward quotes live page: its head (DRY-RUN until the order path is armed, then LIVE, and the
+ * list's own status light), its scoreboard (FUNDED, its $100 budget from now; VALUE, TOTAL, TODAY, UNREALIZED, REALIZED) from
+ * the independent record of the agent's own trades, the stops' room under it, a red line when the agent's own numbers differ
+ * from the record by more than $1, STATUS (open positions, cash, Brier against the market, resolved), then POSITIONS from the
+ * record, the agent's JOURNAL (each entry a head line, its market linked to Polymarket, p against the market, its words and
+ * its sources as links named by their domain; Davies, 2026-10-17), and DAYS, the record's P&L beside its summary. Everything
+ * is the dashboard's `grokPm` (`grokpm_view.ts`).
  * @param {{ g: any, m: (s: string) => string, at: any, nowMs: number }} props
  */
 function GrokPmDetail({ g, m, at, nowMs }) {
@@ -708,22 +712,22 @@ function GrokPmDetail({ g, m, at, nowMs }) {
   if (!row) return null;
   /** @param {number | null | undefined} x */
   const usd = (x) => m(fmtUsd(Number(x) || 0, true));
-  const funded = Number(g.fundedUsd) || 0, equity = Number(g.equityUsd) || 0;
+  const funded = Number(row.capitalUsd) || 0, equity = Number(g.equityUsd) || 0;
   const pct = (/** @type {number} */ x) => (funded > 0 ? (x / funded) * 100 : null);
   const stop = grokPmStopText(g, m), mismatch = grokPmMismatchText(g, m);
   const positions = g.positions ?? [], journal = g.journal ?? [], days = g.days ?? [];
   return (
     <div className="ag-detail ag-gpm-detail">
       <div className="ag-detail-head">
-        <ModeBadge mode="live" />
+        <ModeBadge mode={grokPmModeTag(g)} />
         <VenueBadge id="polymarket" />
-        <StatusDot status={row.status} since={g.startedAt ?? null} nowMs={nowMs} live />
+        <StatusDot status={row.status} since={g.startedAt ?? null} nowMs={nowMs} live toned />
       </div>
       <h3 className="ag-detail-title mono sr-only">{row.name}</h3>
       <div className="ag-scoreboard ag-scoreboard-sm ag-gpm-sb">
         <div className="ag-sb-cell ag-sb-cell-main">
           <SbLabel label="FUNDED" />
-          <div className="sb-value sb-value-lg mono">{g.started ? m(fmtUsd(funded)) : '—'}</div>
+          <div className="sb-value sb-value-lg mono">{funded > 0 ? m(fmtUsd(funded)) : '—'}</div>
           <div className="ag-sb-extra" />
         </div>
         <div className="ag-sb-divider" />
@@ -741,9 +745,6 @@ function GrokPmDetail({ g, m, at, nowMs }) {
         <div className="ag-sb-divider" />
         <GlCell label="REALIZED G/L" usd={row.realisedUsd} pct={row.realisedPct} m={m} cls="ag-sb-realised" aside="(after fees)" />
       </div>
-      {!g.started && <div className="ag-gpm-line dim mono">{g.mode === 'live'
-        ? 'Armed: its own book counts from the go, on the project\u2019s Polymarket account.'
-        : 'Dry-run: the server checks and journals its orders and sends none. Its $100 book starts when Davies says go.'}</div>}
       {g.started && !g.running && <div className="ag-warn-line">{row.status.detail}</div>}
       {g.lastError && <div className="ag-warn-line">record: {m(String(g.lastError))}</div>}
       {mismatch && <div className="ag-warn-line ag-gpm-mismatch">{mismatch}</div>}
@@ -790,15 +791,27 @@ function GrokPmDetail({ g, m, at, nowMs }) {
           {journal.map((/** @type {any} */ j) => {
             const v = grokPmJournalView(j, m);
             return (
-              <li key={j.id} className="ag-gpm-entry">
-                <div className="ag-gpm-entry-head mono"><span className="dim">{when(j.ts)}</span> <span className="ag-gpm-act">{v.head}</span></div>
-                {v.market && <div className="ag-gpm-entry-market">{v.market}</div>}
-                {(v.trade || v.probs) && <div className="ag-gpm-entry-nums mono dim">{[v.trade, v.probs].filter(Boolean).join(' · ')}</div>}
-                <div className="ag-gpm-entry-text">{v.reason}</div>
-                {v.invalidation && <div className="ag-gpm-entry-text dim">wrong if: {v.invalidation}</div>}
+              <li key={j.id} className={`ag-gpm-entry is-${v.tone}`}>
+                <div className="ag-gpm-entry-head mono">
+                  <span className="ag-gpm-time">{v.time}</span>
+                  <span className={`ag-gpm-chip ag-gpm-chip-${v.tone}`}>{v.action}</span>
+                  {(v.category || v.side || v.trade) && (
+                    <span className="ag-gpm-what">
+                      {v.category && <span className="ag-gpm-meta">{v.category}</span>}
+                      {v.side && <span className="ag-gpm-meta">{v.side}</span>}
+                      {v.trade && <span className="ag-gpm-meta ag-gpm-trade">{v.trade}</span>}
+                    </span>
+                  )}
+                </div>
+                {v.market && (v.market.href
+                  ? <a className="ag-gpm-market" href={v.market.href} target="_blank" rel="noopener noreferrer nofollow">{v.market.text}</a>
+                  : <div className={`ag-gpm-market${v.market.pending ? ' is-pending' : ''}`}>{v.market.text}</div>)}
+                {v.probs && <div className="ag-gpm-probs mono">{v.probs}</div>}
+                {v.reason && <p className="ag-gpm-reason">{v.reason}</p>}
+                {v.invalidation && <p className="ag-gpm-wrong">wrong if {v.invalidation}</p>}
                 {v.sources.length > 0 && (
-                  <div className="ag-gpm-entry-links mono">
-                    {v.sources.map((u) => <a key={u} href={u} target="_blank" rel="noopener noreferrer nofollow">{u}</a>)}
+                  <div className="ag-gpm-sources mono">
+                    {v.sources.map((x) => <a key={x.href} href={x.href} target="_blank" rel="noopener noreferrer nofollow" title={x.href}>{x.text}</a>)}
                   </div>
                 )}
               </li>

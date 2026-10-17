@@ -447,7 +447,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    Davies: funding `LT8Q2` (£350-400 covers one £0.50 position through the worst historical excursion; the spec puts
    S1b first), entity and tax route; no order code exists.
 
-15. **GROKPM, "Polymarket analyst (Grok)": built, trades through our Ireland server on the shared account, DRY-RUN until
+15. **GROKPM, "Polymarket analyst" ("(Grok)" dropped 10-17): built, trades through our Ireland server on the shared account, DRY-RUN until
    Davies says go** (Davies, 2026-10-15: "让grok bot里开一个trading bot，给他100美元…先让他就用100美元测试"; 2026-10-16:
    "可以用目前这个polymarket跑吗", "让grok用我们搭好的爱尔兰服务器下单，不是网页端"; `reviews/2026-10-15-grokpm-prereg.md`, frozen,
    with its Deviation D2; migrations `0124`, `0125`; history 2026-10-15 GROKPM and 2026-10-16 GROKPM D2).
@@ -606,6 +606,15 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16"; each oldest first.
 
+### [2026-10-17 01:26 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM's page tidied** (sub-agent; item 15; Davies: "“Polymarket analyst (Grok)”策略改为“Polymarket analyst“，子页面JOURNAL部分
+  做的更美观和清晰一些…链接可以直接用link（下划线）…“0xdf9bf27e…”这种乱码…明确目前funded就是100美元，“Dry-run…”这行也删了…列表里显示的
+  黄灯怎么子页面点开现实的是live的tag"). Named "Polymarket analyst"; FUNDED the configured $100 on its row, page and LIVE's
+  total from now, all else 0 until the go; the dry-run lines gone; its head says DRY-RUN with the list's amber dot until
+  armed; JOURNAL cards with market links and domain-named sources. `0126_grokpm_markets.sql` (applies on push): the
+  recorder fills titles from Gamma, the dashboard reads them (a missing table leaves the page up, untitled). Also fixed:
+  REALIZED was cut off its scoreboard (a later `.ag-scoreboard` rule won). Not pushed.
+
 ### [2026-10-17 01:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **GROKPM D4: the pre-go audit's server fixes** (sub-agent, independent audit; Davies: "叫一个独立的sub-agent再审核一下…如果有
   问题就修复"; item 15). `grokpm/exec.ts`, `index.ts`: a resolved holding settles into the agent's cash at its payout (it
@@ -617,6 +626,7 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   reused as an order's refused 422. Eight pins in `exec.test.ts`, each failing on the old code; prereg §9 D4, sha
   re-pinned. Read-only DB at 01:05: config dry-run, unarmed, unstarted, wallet set; the go's WHERE matches 1 row; other
   paths unarmed; no pause; sync 60 beats in 60 min; no grokpm errors in 24 h; account pUSD $308.03 (live-prep's state).
+
 
 ### [2026-10-17 00:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Mid-pool's 10-17 readout: not run, withdrawn** (wake `trig_01XwUUNT5yXL3pzHoyH4JLaG` fired 00:20). `0120` switched mid-pool

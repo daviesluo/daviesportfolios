@@ -1,4 +1,4 @@
-// Pins "Polymarket analyst (Grok)"'s page figures (grokpm_view.ts) against a record worked out by hand at the browser
+// Pins "Polymarket analyst"'s page figures (grokpm_view.ts) against a record worked out by hand at the browser
 // sweep's clock (`src/e2e/grokpm_fixture.json`, which the sweep serves as the dashboard's `grokPm`): the fixture's `output`
 // is the function's answer for its `input`, and every figure the page shows is checked against the arithmetic below, not
 // against another part of the code.
@@ -14,15 +14,18 @@
 // slot says $102.30 and +$2.30: a mismatch. Its 09-16 summary says +$1.50 against the record's +$1.60: within $1.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import fixture from "../../../src/e2e/grokpm_fixture.json" with { type: "json" };
-import { brierOf, GROKPM_MISMATCH_USD, grokPmSummary, safeLinks } from "./grokpm_view.ts";
+import { brierOf, GROKPM_MISMATCH_USD, grokPmSummary, marketUrl, safeLinks } from "./grokpm_view.ts";
 
 // deno-lint-ignore no-explicit-any
 const input = fixture.input as any;
 const close = (a: number | null | undefined, b: number) => assert(a !== null && a !== undefined && Math.abs(a - b) < 1e-9, `${a} ≠ ${b}`);
 
+// The waiting state: the same account before the go, in dry-run, its journal already filling (as the agent rehearses).
+const waitingInput = { ...input, config: { ...input.config, started_at: null, dry_run: true, armed_at: null }, latest: null, dayOpens: [], cycle: null, cycleSnap: null, daily: [], entries: [], resolutions: [], opens: [], recState: { updated_at: null, last_error: null } };
+
 Deno.test("the fixture's output is the function's answer for its input, and its waiting state likewise", () => {
   assertEquals(grokPmSummary(input) as unknown, fixture.output);
-  assertEquals(grokPmSummary({ ...input, config: { ...input.config, started_at: null, dry_run: true, armed_at: null }, latest: null, dayOpens: [], decisions: [], cycle: null, cycleSnap: null, daily: [], entries: [], resolutions: [], opens: [], recState: { updated_at: null, last_error: null } }) as unknown, fixture.waiting);
+  assertEquals(grokPmSummary(waitingInput) as unknown, fixture.waiting);
 });
 
 Deno.test("every figure matches the arithmetic worked by hand", () => {
@@ -40,10 +43,41 @@ Deno.test("every figure matches the arithmetic worked by hand", () => {
   assertEquals(o.running, true);
   // The account's address never reaches the page (D2): only the order path's mode.
   assertEquals(["wallet" in o, o.mode, fixture.waiting.mode], [false, "live", "dry_run"]);
-  // The journal: newest first, titles from the record, and only http(s) links.
-  assertEquals(o.journal.map((j) => j.id), ["d-6", "d-5", "d-4", "d-3", "d-2", "d-1"]);
+  // The journal: newest first, and only http(s) links.
+  assertEquals(o.journal.map((j) => j.id), ["d-6", "d-5", "d-4", "d-3", "d-2", "d-1", "x-2", "x-1"]);
   assertEquals(o.journal[5].sources, ["https://www.senate.gov/legislative/votes.htm"]);
   assertEquals(o.journal[0].title, null);
+});
+
+Deno.test("journal titles: Gamma's (0126) with its link, else the record's own unlinked, else none; never the condition id", () => {
+  const o = grokPmSummary(input)!;
+  assertEquals(o.journal.map((j) => [j.id, j.title, j.url]), [
+    ["d-6", null, null],
+    ["d-5", "Will the Fed cut rates in October?", "https://polymarket.com/market/will-the-fed-cut-rates-in-october"],
+    // Not in grokpm_markets: the title of the market it holds, from the record, and no link.
+    ["d-4", "Will the bill be signed by September 30?", null],
+    // In grokpm_markets without a slug: its title, no link.
+    ["d-3", "Will the summit take place by September 17?", null],
+    ["d-2", "Will the summit take place by September 17?", null],
+    ["d-1", "Will the nominee be confirmed?", "https://polymarket.com/market/will-the-nominee-be-confirmed"],
+    // A market it never held (the "0xdf9bf27e…" of 2026-10-17): titled only by Gamma's row.
+    ["x-2", "Will there be no change in Fed interest rates after the October 2026 meeting?", "https://polymarket.com/market/will-there-be-no-change-in-fed-interest-rates-after-the-october-2026-meeting"],
+    // Named nowhere yet: no title, and the page says it is pending.
+    ["x-1", null, null],
+  ]);
+  for (const j of [...o.journal, ...fixture.waiting.journal]) assert(!/0x[0-9a-f]{6}/i.test(String(j.title ?? "") + String(j.url ?? "")), j.id);
+  // The old page found titles only among what the agent held: without grokpm_markets x-2 has none.
+  assertEquals(grokPmSummary({ ...input, markets: undefined })!.journal[6].title, null);
+  // A condition id written in capitals is the same market.
+  const upper = grokPmSummary({ ...input, decisions: [{ ...input.decisions[6], market_id: input.decisions[6].market_id.toUpperCase().replace("0X", "0x") }] })!;
+  assertEquals(upper.journal[0].url, o.journal[6].url);
+  // In dry-run, before any entry, Gamma's titles still name the journal's markets; d-4's market has none yet.
+  assertEquals(fixture.waiting.journal.map((j) => j.title === null), [true, false, true, false, false, false, false, true]);
+  // A position the record holds without a title takes Gamma's.
+  const untitled = grokPmSummary({ ...input, latest: { ...input.latest, positions: input.latest.positions.map((p: Record<string, unknown>) => ({ ...p, title: null })) } })!;
+  assertEquals(untitled.positions.map((p) => p.title).sort(), ["", "Will the Fed cut rates in October?", "Will the nominee be confirmed?"]);
+  // A slug is linked only in Polymarket's shape.
+  assertEquals([marketUrl("will-a-b"), marketUrl("../x"), marketUrl("a b"), marketUrl(null), marketUrl("")], ["https://polymarket.com/market/will-a-b", null, null, null, null]);
 });
 
 Deno.test("a day the agent misreports by more than $1 is flagged; within $1 it is not", () => {
@@ -60,10 +94,12 @@ Deno.test("the stops' room: a total of −$30 trips the total stop, a day of −
   close(down.todayUsd, 70 - 101.6); assertEquals(down.stop.dayTripped, true);
 });
 
-Deno.test("nothing before the wallet; before the money arrives the row funds nothing and counts nothing", () => {
+Deno.test("nothing before the wallet; before the go the record counts nothing, and the budget it is given is $100", () => {
   assertEquals(grokPmSummary({ ...input, config: { ...input.config, wallet: null } }), null);
   const w = fixture.waiting;
-  assertEquals([w.started, w.fundedUsd, w.totalUsd, w.days.length, w.running], [false, null, 0, 0, false]);
+  assertEquals([w.started, w.fundedUsd, w.totalUsd, w.todayUsd, w.realisedUsd, w.unrealisedUsd, w.days.length, w.running], [false, null, 0, 0, 0, 0, 0, false]);
+  // FUNDED on the page and the LIVE row (Davies, 2026-10-17: "明确目前funded就是100美元") is this configured budget.
+  assertEquals([w.configuredFundedUsd, w.mode], [100, "dry_run"]);
 });
 
 Deno.test("Brier takes the agent's last open before the first fill, and the record's mid, else the agent's m", () => {

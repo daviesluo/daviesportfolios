@@ -1,4 +1,4 @@
-// GROKPM ("Polymarket analyst (Grok)", docs/agents/reviews/2026-10-15-grokpm-prereg.md, migration 0124): the frozen
+// GROKPM ("Polymarket analyst", docs/agents/reviews/2026-10-15-grokpm-prereg.md, migration 0124): the frozen
 // pre-registration is the file it was, its cadence study is the files its manifest names, the journal contract it prints is
 // the one the endpoint enforces (its examples are the Edge tests' own, its limits the code's), and the tables the code
 // writes are the migration's, column for column. The Edge tests run without file access, so this is where the code's
@@ -16,6 +16,7 @@ const PREREG_PATH = 'docs/agents/reviews/2026-10-15-grokpm-prereg.md';
 const PREREG = read(PREREG_PATH);
 const SQL = read('supabase/migrations/0124_grokpm.sql');
 const SQL2 = read('supabase/migrations/0125_grokpm_exec.sql');
+const SQL3 = read('supabase/migrations/0126_grokpm_markets.sql');
 const INGEST = read('supabase/functions/grokpm/ingest.ts');
 const SCHEMA = read('supabase/functions/_shared/grokpm_schema.ts');
 
@@ -61,7 +62,7 @@ describe('GROKPM pre-registration', () => {
     expect(PREREG).toContain('**Continue only if BOTH: total P&L > 0 AND Brier_agent < Brier_market**');
   });
 
-  it("holds the code's table list to the two migrations, column for column, and their tables to no grant or policy", () => {
+  it("holds the code's table list to the three migrations, column for column, and their tables to no grant or policy", () => {
     const creates = (sql) => [...sql.matchAll(/create table if not exists public\.(\w+) \(([\s\S]*?)\n\);/g)].map((m) => ({
       name: m[1],
       columns: m[2].split('\n').map((l) => l.trim()).filter((l) => /^[a-z_]+ /.test(l) && !/^(check|primary|unique|constraint)\b/.test(l)).map((l) => l.split(/\s+/)[0]),
@@ -71,7 +72,7 @@ describe('GROKPM pre-registration', () => {
         return own ?? /^primary key \(([^)]*)\)/m.exec(lines.join('\n'))?.[1].replace(/\s+/g, '');
       })(),
     }));
-    const tables = [...creates(SQL), ...creates(SQL2)];
+    const tables = [...creates(SQL), ...creates(SQL2), ...creates(SQL3)];
     // 0125's added columns, in its order, after 0124's.
     for (const m of SQL2.matchAll(/alter table public\.(\w+) add column if not exists (\w+) /g)) {
       const t = tables.find((x) => x.name === m[1]);
@@ -79,15 +80,17 @@ describe('GROKPM pre-registration', () => {
       t.columns.push(m[2]);
     }
     expect(tables.map((t) => t.name)).toEqual(['grokpm_config', 'grokpm_decisions', 'grokpm_cycles', 'grokpm_daily', 'grokpm_requests', 'grokpm_snapshots', 'grokpm_activity',
-      'grokpm_entries', 'grokpm_resolutions', 'grokpm_rec_state', 'grokpm_orders', 'grokpm_fills', 'grokpm_exec_state']);
+      'grokpm_entries', 'grokpm_resolutions', 'grokpm_rec_state', 'grokpm_orders', 'grokpm_fills', 'grokpm_exec_state', 'grokpm_markets']);
+    // The code's list has no table the migrations do not create.
+    expect([...SCHEMA.matchAll(/^ {2}(grokpm_\w+): \{/gm)].map((m) => m[1]).sort()).toEqual(tables.map((t) => t.name).sort());
     for (const t of tables) {
       const block = new RegExp(`  ${t.name}: \\{([\\s\\S]*?)\\},\\n`).exec(SCHEMA)?.[1] ?? '';
       const cols = JSON.parse((/columns: (\[[^\]]*\])/.exec(block)?.[1] ?? 'null').replace(/,\s*\]/, ']'));
       const key = /key: "([\w,]+)"/.exec(block)?.[1];
       expect([t.name, cols, key]).toEqual([t.name, t.columns, t.key]);
-      expect(SQL + SQL2).toMatch(new RegExp(`alter table public\\.${t.name} +enable row level security;`));
+      expect(SQL + SQL2 + SQL3).toMatch(new RegExp(`alter table public\\.${t.name} +enable row level security;`));
     }
-    expect((SQL + SQL2).replace(/--[^\n]*/g, '')).not.toMatch(/\bgrant\b|create policy/i);
+    expect((SQL + SQL2 + SQL3).replace(/--[^\n]*/g, '')).not.toMatch(/\bgrant\b|create policy/i);
     // The wallet starts null and FUNDED at $100; the stops are the brief's.
     expect(SQL).toContain('wallet           text check (wallet ~ \'^0x[0-9a-f]{40}$\')');
     expect(SQL).toContain('funded_usd       numeric not null default 100');

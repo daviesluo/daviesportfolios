@@ -188,6 +188,43 @@
     ],
     "reason": "The roll call is published: confirmed 52-48.",
     "invalidation": "The vote record is corrected."
+   },
+   {
+    "id": "x-2",
+    "ts": "2026-09-16T10:40:00.000Z",
+    "action": "open",
+    "market_id": "0xe5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+    "token_id": "777",
+    "outcome": "Yes",
+    "side": "BUY",
+    "price": 0.85,
+    "size": 5,
+    "p": 0.85,
+    "m": 0.865,
+    "category": "B",
+    "sources": [
+     "https://www.actionforex.com/action-insight/market-overview/657759-dollar-extends-slide/",
+     "https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html"
+    ],
+    "reason": "FedWatch shows about 84% for a hold after the chair gave no hike signal.",
+    "invalidation": "FedWatch hike odds rise above 30%."
+   },
+   {
+    "id": "x-1",
+    "ts": "2026-09-16T10:20:00.000Z",
+    "action": "cancel",
+    "market_id": "0xf6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+    "token_id": "888",
+    "outcome": null,
+    "side": null,
+    "price": null,
+    "size": null,
+    "p": null,
+    "m": null,
+    "category": "C",
+    "sources": [],
+    "reason": "Withdrew a resting order: the book moved away.",
+    "invalidation": null
    }
   ],
   "cycle": {
@@ -315,7 +352,29 @@
   "recState": {
    "updated_at": "2026-09-17T22:55:12.000Z",
    "last_error": null
-  }
+  },
+  "markets": [
+   {
+    "cond": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "question": "Will the Fed cut rates in October?",
+    "slug": "will-the-fed-cut-rates-in-october"
+   },
+   {
+    "cond": "0xc3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+    "question": "Will the nominee be confirmed?",
+    "slug": "will-the-nominee-be-confirmed"
+   },
+   {
+    "cond": "0xd4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+    "question": "Will the summit take place by September 17?",
+    "slug": null
+   },
+   {
+    "cond": "0xe5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+    "question": "Will there be no change in Fed interest rates after the October 2026 meeting?",
+    "slug": "will-there-be-no-change-in-fed-interest-rates-after-the-october-2026-meeting"
+   }
+  ]
  },
  "output": {
   "mode": "live",
@@ -405,6 +464,7 @@
     "action": "no_action",
     "category": null,
     "title": null,
+    "url": null,
     "marketId": null,
     "outcome": null,
     "side": null,
@@ -422,6 +482,7 @@
     "action": "open",
     "category": "B",
     "title": "Will the Fed cut rates in October?",
+    "url": "https://polymarket.com/market/will-the-fed-cut-rates-in-october",
     "marketId": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
     "outcome": "Yes",
     "side": "BUY",
@@ -441,6 +502,7 @@
     "action": "open",
     "category": "B",
     "title": "Will the bill be signed by September 30?",
+    "url": null,
     "marketId": "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
     "outcome": "No",
     "side": "BUY",
@@ -460,6 +522,7 @@
     "action": "close",
     "category": "C",
     "title": "Will the summit take place by September 17?",
+    "url": null,
     "marketId": "0xd4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
     "outcome": "Yes",
     "side": "SELL",
@@ -477,6 +540,7 @@
     "action": "open",
     "category": "B",
     "title": "Will the summit take place by September 17?",
+    "url": null,
     "marketId": "0xd4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
     "outcome": "Yes",
     "side": "BUY",
@@ -496,6 +560,7 @@
     "action": "open",
     "category": "A",
     "title": "Will the nominee be confirmed?",
+    "url": "https://polymarket.com/market/will-the-nominee-be-confirmed",
     "marketId": "0xc3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
     "outcome": "Yes",
     "side": "BUY",
@@ -508,6 +573,45 @@
     "sources": [
      "https://www.senate.gov/legislative/votes.htm"
     ]
+   },
+   {
+    "id": "x-2",
+    "ts": "2026-09-16T10:40:00.000Z",
+    "action": "open",
+    "category": "B",
+    "title": "Will there be no change in Fed interest rates after the October 2026 meeting?",
+    "url": "https://polymarket.com/market/will-there-be-no-change-in-fed-interest-rates-after-the-october-2026-meeting",
+    "marketId": "0xe5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+    "outcome": "Yes",
+    "side": "BUY",
+    "price": 0.85,
+    "size": 5,
+    "p": 0.85,
+    "m": 0.865,
+    "reason": "FedWatch shows about 84% for a hold after the chair gave no hike signal.",
+    "invalidation": "FedWatch hike odds rise above 30%.",
+    "sources": [
+     "https://www.actionforex.com/action-insight/market-overview/657759-dollar-extends-slide/",
+     "https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html"
+    ]
+   },
+   {
+    "id": "x-1",
+    "ts": "2026-09-16T10:20:00.000Z",
+    "action": "cancel",
+    "category": "C",
+    "title": null,
+    "url": null,
+    "marketId": "0xf6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+    "outcome": null,
+    "side": null,
+    "price": null,
+    "size": null,
+    "p": null,
+    "m": null,
+    "reason": "Withdrew a resting order: the book moved away.",
+    "invalidation": null,
+    "sources": []
    }
   ],
   "days": [
@@ -578,7 +682,163 @@
    "resolved": 0
   },
   "positions": [],
-  "journal": [],
+  "journal": [
+   {
+    "id": "d-6",
+    "ts": "2026-09-17T22:30:00.000Z",
+    "action": "no_action",
+    "category": null,
+    "title": null,
+    "url": null,
+    "marketId": null,
+    "outcome": null,
+    "side": null,
+    "price": null,
+    "size": null,
+    "p": null,
+    "m": null,
+    "reason": "Nothing cleared the bars this cycle.",
+    "invalidation": null,
+    "sources": []
+   },
+   {
+    "id": "d-5",
+    "ts": "2026-09-17T14:00:00.000Z",
+    "action": "open",
+    "category": "B",
+    "title": "Will the Fed cut rates in October?",
+    "url": "https://polymarket.com/market/will-the-fed-cut-rates-in-october",
+    "marketId": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "outcome": "Yes",
+    "side": "BUY",
+    "price": 0.4,
+    "size": 20,
+    "p": 0.55,
+    "m": 0.42,
+    "reason": "Two members said a cut is on the table; the market lags.",
+    "invalidation": "A hawkish speech before the meeting.",
+    "sources": [
+     "https://www.federalreserve.gov/newsevents/calendar.htm"
+    ]
+   },
+   {
+    "id": "d-4",
+    "ts": "2026-09-17T09:00:00.000Z",
+    "action": "open",
+    "category": "B",
+    "title": null,
+    "url": null,
+    "marketId": "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+    "outcome": "No",
+    "side": "BUY",
+    "price": 0.6,
+    "size": 25,
+    "p": 0.75,
+    "m": 0.58,
+    "reason": "The bill is stuck in committee with no floor time scheduled.",
+    "invalidation": "A floor vote is scheduled.",
+    "sources": [
+     "https://www.congress.gov/"
+    ]
+   },
+   {
+    "id": "d-3",
+    "ts": "2026-09-16T16:00:00.000Z",
+    "action": "close",
+    "category": "C",
+    "title": "Will the summit take place by September 17?",
+    "url": null,
+    "marketId": "0xd4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+    "outcome": "Yes",
+    "side": "SELL",
+    "price": 0.25,
+    "size": 15,
+    "p": 0.2,
+    "m": 0.26,
+    "reason": "Thesis broken: the event was postponed.",
+    "invalidation": null,
+    "sources": []
+   },
+   {
+    "id": "d-2",
+    "ts": "2026-09-16T13:55:00.000Z",
+    "action": "open",
+    "category": "B",
+    "title": "Will the summit take place by September 17?",
+    "url": null,
+    "marketId": "0xd4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+    "outcome": "Yes",
+    "side": "BUY",
+    "price": 0.31,
+    "size": 15,
+    "p": 0.45,
+    "m": 0.31,
+    "reason": "The schedule shows the event on time.",
+    "invalidation": "A postponement notice.",
+    "sources": [
+     "https://example.org/schedule"
+    ]
+   },
+   {
+    "id": "d-1",
+    "ts": "2026-09-16T10:58:00.000Z",
+    "action": "open",
+    "category": "A",
+    "title": "Will the nominee be confirmed?",
+    "url": "https://polymarket.com/market/will-the-nominee-be-confirmed",
+    "marketId": "0xc3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+    "outcome": "Yes",
+    "side": "BUY",
+    "price": 0.7,
+    "size": 10,
+    "p": 0.9,
+    "m": 0.71,
+    "reason": "The roll call is published: confirmed 52-48.",
+    "invalidation": "The vote record is corrected.",
+    "sources": [
+     "https://www.senate.gov/legislative/votes.htm"
+    ]
+   },
+   {
+    "id": "x-2",
+    "ts": "2026-09-16T10:40:00.000Z",
+    "action": "open",
+    "category": "B",
+    "title": "Will there be no change in Fed interest rates after the October 2026 meeting?",
+    "url": "https://polymarket.com/market/will-there-be-no-change-in-fed-interest-rates-after-the-october-2026-meeting",
+    "marketId": "0xe5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+    "outcome": "Yes",
+    "side": "BUY",
+    "price": 0.85,
+    "size": 5,
+    "p": 0.85,
+    "m": 0.865,
+    "reason": "FedWatch shows about 84% for a hold after the chair gave no hike signal.",
+    "invalidation": "FedWatch hike odds rise above 30%.",
+    "sources": [
+     "https://www.actionforex.com/action-insight/market-overview/657759-dollar-extends-slide/",
+     "https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html"
+    ]
+   },
+   {
+    "id": "x-1",
+    "ts": "2026-09-16T10:20:00.000Z",
+    "action": "cancel",
+    "category": "C",
+    "title": null,
+    "url": null,
+    "marketId": "0xf6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+    "outcome": null,
+    "side": null,
+    "price": null,
+    "size": null,
+    "p": null,
+    "m": null,
+    "reason": "Withdrew a resting order: the book moved away.",
+    "invalidation": null,
+    "sources": []
+   }
+  ],
   "days": [],
   "cycle": null,
   "mismatch": false
