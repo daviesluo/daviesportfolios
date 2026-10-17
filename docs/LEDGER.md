@@ -487,7 +487,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      检查最新动态"): `GROKPM_LEDGER.md`, alone on the branch `grokpm-ledger` (no CI, no deploy; never merged into `main`).
      Grok reads it every wake, answers Claude's requests there and pushes only to that branch. **Every session that touches
      GROKPM reads it first** (`git fetch origin grokpm-ledger && git show origin/grokpm-ledger:GROKPM_LEDGER.md`), answers
-     "Grok → Claude", and keeps it under 8 KB.
+     "Grok → Claude", and keeps it under 10 KB. A daily check (trigger `trig_0165DPcrxXo6NhdDZdjDsmZ8`, 23:45 London) reads it and the record.
 ## Machine and platform setup
 
 A rebuilt container loses every line below. Run them before working.
