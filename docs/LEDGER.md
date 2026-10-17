@@ -606,6 +606,12 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16"; each oldest first.
 
+### [2026-10-17 02:00 UTC] Platform: Claude Engineer (Grok Bot) | Model: not recorded (session policy)
+- **Landed `claude/hopeful-planck-acdq5g`** (the Coinbase release blackout, 5 commits, rebased on main; Davies, 10-17 in the
+  Portfolio Project group: "你觉得会让策略更好的话就推"): paper tests only, no order path. `FINNHUB_API_KEY` is needed only by the
+  optional `?action=econcal`; the blackout reads the committed calendar. First live check: 2026-10-28 17:59 to 18:05 UTC (FOMC);
+  CPI 11-10, 12-10 and NFP 12-04 still unconfirmed. Archived the 2026-10-15 01:24 → 03:29 UTC history sections.
+
 ### [2026-10-17 01:26 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **GROKPM's page tidied** (sub-agent; item 15; Davies: "“Polymarket analyst (Grok)”策略改为“Polymarket analyst“，子页面JOURNAL部分
   做的更美观和清晰一些…链接可以直接用link（下划线）…“0xdf9bf27e…”这种乱码…明确目前funded就是100美元，“Dry-run…”这行也删了…列表里显示的
@@ -803,37 +809,3 @@ against the 150 the reading needs, so no reading. Nothing failed, so nothing is 
   `backtests/cbreview/scripts/cbfast_revx.py`; proposal only, no Revolut X file touched). On PR5's pre-registered books (base PRIMARY $707.9028 = `pr5_run1.json`) the blackout is
   −$1.40 / +$3.29 a year on $750 to $1,060 (ranges across zero); 4 of 40 releases had any trip in the window. 10-14: the replay gives the engine's 15 trips, 13 won, +$0.3605 exactly;
   the release minute cost $0.1979 (two asks of $18) and the live account had no fill. Verdict for LIVE: no change after the 10-21 verdict.
-
-### [2026-10-15 03:29 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Release blackout built into BOTH Coinbase tests** (sub-agent; Davies, 10-15: "目前的两个Coinbase 测试采用发布前后暂停的规则吧…";
-  `agents/cb_releases.ts`, `cb_quotes.ts`, `cb_hold.ts`; `reviews/2026-10-15-coinbase-blackout.md`; NOT pushed, needs landing and the `agents` redeploy):
-  - From 1 minute before to 5 after each CPI, NFP, FOMC, ECB, BoE release (10 in the list, 10-28 to 12-17) the minute's `fairU` is null: no new
-    entry, exits as any dark minute, stored `fair` null so `replay.py` / `replay_wk.py` still reproduce. Base prereg Deviation 3, "- 2" Deviation 2;
-    sha256 in `cbwk/MANIFEST.json`'s new group. Pins fail on the old code (counterfactual run). The paired comparison of the two arms is unaffected.
-  - First live check: 2026-10-28 17:59 to 18:05 UTC (FOMC), `fair` null in both minute tables and no entry fill in them. CPI 11-10, 12-10 and NFP 12-04
-    are UNCONFIRMED (bls.gov refused).
-
-### [2026-10-15 03:29 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Exact release calendar for the Coinbase blackout** (sub-agent; Davies, 10-15: "你想办法找到准确的CPI 和非农等的历史发布日期…";
-  `backtests/cbreview/scripts/release_calendar.py` → `inputs/release_calendar.json`, `events.json`): FOMC, ECB and BoE from their own
-  sites (0 differences from what was recalled, 48 of 48); **bls.gov refused (403), FRED did not connect, Yahoo's crumb answered 429**, so CPI
-  and NFP stay as recalled, checked against the market (CPI 23/24, NFP 22/24 stand out) and BLS's rule (7 NFP delays, all known). The
-  study's 96 past events are unchanged, so +£25.96 / +£7.89 a year stands. Yahoo cross-check: the main session's pull (`inputs/yahoo_calendar.json`, 1,519 records, 08-31→11-12) matches 5 of 12 covered events to the minute (incl. FOMC 10-28, ECB 10-29), contradicts none; BoE 11-05, NFP 11-06, CPI 11-10 not yet listed.
-
-### [2026-10-15 01:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- Landed CBFAST (the Coinbase agent, resumed; `reviews/2026-10-15-coinbase-fast-move.md`): 10-14's −£2.70 / −£2.55 on both
-  Coinbase arms is no bug (the 12:30 UTC US CPI minute −£1.52, trips carried through it −£1.33); no FX lag to fix; no reactive
-  guard is positive on both 12-month spans; a release blackout (entries off T−1 → T+5 min around CPI/NFP/FOMC/BoE/ECB) is
-  positive in every variant, +£8 to +£26 a year on £2,400, but a 28-day paper row could not tell it from noise. **No "with
-  Euros - 3" row**; the blackout is a day-one rule for whichever Coinbase arm is funded after the 11-08 / 11-10 readings, or
-  Davies adopts it on the history. CPI/NFP dates were recalled (bls.gov refused this machine): confirm before any use.
-  Archived the 2026-10-12 23:05 → 10-13 03:02 history sections.
-
-### [2026-10-15 01:24 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Why both Coinbase "with Euros" tests lost on 10-14, and what a fast-move guard is worth** (sub-agent; Davies, 10-15: "stablecoinwitheuros的两个策略怎么今天亏了，有问题就修复改好";
-  `reviews/2026-10-15-coinbase-fast-move.md`, `backtests/cbreview/scripts/cbfast*.py`; nothing built, no frozen file or config touched):
-  - No bug: the frozen rule replayed on the engine's record gives 10-14 as 18 trips, 4 won, −£2.696 (engine −£2.695): −£1.52 seven asks filled
-    in the 12:30 UTC CPI minute, −£1.33 five trips carried through it. The fair is not slow (0.8 bp RMS from Coinbase's own EUR/USD).
-  - 164 guard variants, chosen on one 12-month span and read on the other: no reactive guard is positive in both; a blackout of the scheduled
-    releases (−1 to +5 min) is in all 75 variants: +£25.96 and +£7.89 a year; 10-14 −£2.70 → −£1.17. Verdict: no "- 3" row (five
-    releases in 28 days cannot read it); draft prereg, spec, code in §8, unbuilt. Open: the BLS dates are recalled, not fetched.
