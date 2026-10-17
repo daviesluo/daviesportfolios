@@ -447,8 +447,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    Davies: funding `LT8Q2` (£350-400 covers one £0.50 position through the worst historical excursion; the spec puts
    S1b first), entity and tax route; no order code exists.
 
-15. **GROKPM, "Polymarket analyst" ("(Grok)" dropped 10-17): built, trades through our Ireland server on the shared account, DRY-RUN until
-   Davies says go** (Davies, 2026-10-15: "让grok bot里开一个trading bot，给他100美元…先让他就用100美元测试"; 2026-10-16:
+15. **GROKPM, "Polymarket analyst" ("(Grok)" dropped 10-17): LIVE since 2026-10-17 02:39:14 UTC (Davies: "上线"); ends
+   2026-11-14 00:00 UTC at the latest (wake `trig_01C3a3b3F38FYavx6jFeqJEq`); trades through our Ireland server on the shared account** (Davies, 2026-10-15: "让grok bot里开一个trading bot，给他100美元…先让他就用100美元测试"; 2026-10-16:
    "可以用目前这个polymarket跑吗", "让grok用我们搭好的爱尔兰服务器下单，不是网页端"; `reviews/2026-10-15-grokpm-prereg.md`, frozen,
    with its Deviation D2; migrations `0124`, `0125`; history 2026-10-15 GROKPM and 2026-10-16 GROKPM D2).
    - **The design.** Grok holds no key or wallet. It calls the `grokpm` function (`?action=account|market|order|cancel|cancel_all`,
@@ -605,6 +605,12 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)"; each oldest first.
+
+### [2026-10-17 02:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM is LIVE** (Davies: "上线"). 0125's go statement ran at **2026-10-17 02:39:14 UTC**: `dry_run` false, `armed_at` =
+  `started_at` = 02:39:14. First live sync 02:40:01: geoblock IE, day-open equity $100, no error, 0 live orders. The end
+  (D5): wake `trig_01C3a3b3F38FYavx6jFeqJEq` at 2026-11-14 00:20 UTC disarms with 0125's undo and runs §6's reading, unless
+  the 40th resolved position or the total stop ends it first. **Never trade by hand in that Polymarket account now.**
 
 ### [2026-10-17 02:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **GROKPM D5: 150 orders a day; the main session closes the end** (Davies: "你的其他问题都按你推荐的来"). `0127` sets
