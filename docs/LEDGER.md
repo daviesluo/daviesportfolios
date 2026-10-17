@@ -609,7 +609,7 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
-"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)"; each oldest first.
+"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)"; each oldest first.
 
 ### [2026-10-17 03:54 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **GROKPM page: PR5's scoreboard, DAYS above JOURNAL** (sub-agent; Davies: "这个策略的页面score board请做的和stablecoin quote的
@@ -754,58 +754,3 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   displayed bar from x = 56, y worked by hand, colours, labels, collision push, other ranges), `chart_modal_geometry.test.js`;
   the sweep's ACME modal opens 1Y on a 730-bar `2y` fixture and checks both labels inside the frame and apart at both widths.
   `docs/guide.md` gains a "Moving averages" bullet; no `docs/map.md` row (no file added).
-
-### [2026-10-15 16:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **GROKPM built** (sub-agent; Davies: "让grok bot里开一个trading bot…网站中live页也加上策略和子策略页面…先让他就用100美元测试";
-  what-remains item 15). Pre-registration `reviews/2026-10-15-grokpm-prereg.md` (frozen, sha pinned in
-  `src/grokpm_prereg.test.js`); migration `0124_grokpm.sql` (journal tables, the wallet's record, config with the wallet
-  null and FUNDED $100, `agents?action=grokpmrec` every 5 min, retry true); the `grokpm` function (journal ingest, bearer
-  `GROKPM_LOG_TOKEN`, deployed without JWT verification, all-or-nothing, 200 rows/h); `agents/grokpm_rec.ts` and
-  `agents/grokpm_view.ts`; the LIVE row and page; Deno, vitest and sweep pins on a hand-worked fixture. **Cadence study**
-  (`backtests/grokpm/`, 600 resolved markets): in $10k–$50k markets a checker every 30 min catches 76.6 % of final
-  approaches to the 8-pt bar, hourly 67.0 %, 4-hourly 45.0 %; a 12-pt move within 4 h from only 8.0 % of moments.
-  Recommended: light check every 30 min, full scan every 4 h, wakes at US releases and held deadlines, GTD entries to the
-  next wake + 5 min. Deviation D1: the geoblock rule is `country` "IE" alone (from Ireland it answers `blocked: true`).
-
-- **Live-prep's Addendum 25 (mid-pool's 23): a taker's fill booked** (sub-agent, not pushed; under Davies' word of A24). The
-  16:26 liquidation trades were "no fill … left for a person": the reader looked only in `maker_orders`. `tradeFillOf` takes
-  a taker's fill from `taker_order_id` (the trade's size, the makers' prices in our token's terms, VWAP; its fee rate stays
-  in `detail.trade`), and each turn re-reads the trades of closed live orders whose fills are short (2 days, 10 a turn): the
-  three are the only such orders on record (read-only 16:30). The test venue now lists taker trades in the CLOB's shape (A24's
-  test had passed on maker-shaped ones). `pm_live.ts` `9615ed0a…90f3`; `pm_lp.ts` unchanged; no migration.
-
-### [2026-10-15 16:32 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **IG fix: the account token after a switch** (sub-agent; item 14). The spread-bet `facts` at 16:25 UTC died with `401
-  account-token-invalid`: `PUT /session` returns a new X-SECURITY-TOKEN without a CST, and the client only took tokens
-  when both came. Now each is taken alone (`adoptTokens`); `quotes` and `history` shared the bug (6 Deno tests fail on
-  the old rule). Sentiment path `/clientsentiment`. CFD `facts` at 16:27 worked (11 roles). Re-run `facts&account=sb`.
-
-### [2026-10-15 16:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Live-prep's Addendum 24 (mid-pool's 22): liquidation** (sub-agent, not pushed; Davies: "那目前的单都尽快卖出掉吧，还剩多少").
-  `0123_pm_lp_liquidate.sql`: `pm_lp_config.liquidate_at`, CHECK it never beside `restarted_at`, `pm_lp_orders`' CHECK
-  `post_only or side = 'SELL'`, and the switch (`… where id = 1 and restarted_at is null and liquidate_at is null`).
-  `lpLiquidation`: each token ≥ 5 shares sold whole at the bid (NO at 1 − YES ask), GTD not post-only, re-priced each turn,
-  never under 0.001 net of a 7 % taker fee; else the exit at the ask. Gate `liquidate` stops every buy; taker sells only with
-  `g.reduce`, eu-west-1, geoblock IE and the attestation; `pmVenue` refuses a BUY not post-only. `pm_live.ts`
-  `04556ab5…344c`, `pm_lp.ts` `06b96257…cc6f`, 0123 `5171628d…4fea`. On PGlite over every migration: 0123 applies and
-  sets the switch; a restart beside it, a taker BUY, and the switch with a restart set are refused; mid-pool keeps its CHECK.
-
-### [2026-10-15 15:58 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **IG verification, G0/G3/S1a/search** (sub-agent; item 14; `reviews/2026-10-15-ig-verification.md` §3-6): G0 40 of 40
-  facts found at source (FX opens Sun 21:00 UK; FX funding 0.80 % vs 1.5 % on two IG pages). G3 recomputed independently,
-  72 of 74 equal, AUD bar passes (20 bps: +14.88, t 3.78). S1a NOT RUN, operator: scripts ready. FXCM minute paths: a
-  50-100 bps stop guts FXW; a 200 bps guaranteed stop costs ~3 bps. Intraday momentum and EM carry: dead.
-
-### [2026-10-15 15:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **PMPOST filed** (sub-agent, landed by the main session; `reviews/2026-10-15-pm-postmortem.md`, `backtests/pmpost/`): no viable
-  Polymarket strategy at this size. Account $402.03 → $316.55 at the marks (−$85.48; reconciles to 5 c): fills −149.55
-  (spread +109.80, first minute −218.11, drift −40.34), rewards 49.83, rebates 14.29, fees 0. S2 −$21.45/quoting day,
-  Q2 −$10.89; rewards a filled share 0.66 / 0.51 c against 1.66 / 2.65 c needed. Proposals for Davies: lots exit by
-  themselves; `pmlpreserve` off now, `pmrec` after LPRESEL6 (10-23), then disarm; no further reward test.
-
-### [2026-10-15 15:36 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **IG demo verification, the function** (sub-agent; item 14): `supabase/functions/ig/` and `0122_ig_demo_recorder.sql`,
-  built and gated, not deployed. Only the three demo secrets are read; the client refuses any host but
-  `demo-api.ig.com`, and any call but login, the switch between `Z6F18J`/`Z6F18K` and GETs on accounts, markets, market
-  navigation, prices and client sentiment, before fetch (Deno and vitest pins, counterfactual-checked). `0122` applied
-  twice on a scratch PostgreSQL 16; its UK window matched `windows.ts` at every 5 minutes for 13 months. G2/S1a/G3 frozen.
