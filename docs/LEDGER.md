@@ -611,6 +611,12 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)"; each oldest first.
 
+### [2026-10-17 03:54 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM page: PR5's scoreboard, DAYS above JOURNAL** (sub-agent; Davies: "这个策略的页面score board请做的和stablecoin quote的
+  live策略子页面的一样，然后底下live放在journal上面"). FUNDED, DEPLOYED (cost), TODAY, UNREALIZED, REALIZED "(incl. fees …)" from
+  `rowMoney(grokPmRow(g))`; fees are its own fills' (`grokpm_fills.fee_usd`, from the go), new in the dashboard. No section
+  is labelled "live" near the bottom; read as DAYS above JOURNAL. Not pushed.
+
 ### [2026-10-17 02:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **GROKPM is LIVE** (Davies: "上线"). 0125's go statement ran at **2026-10-17 02:39:14 UTC**: `dry_run` false, `armed_at` =
   `started_at` = 02:39:14. First live sync 02:40:01: geoblock IE, day-open equity $100, no error, 0 live orders. The end

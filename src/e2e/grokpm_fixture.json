@@ -374,6 +374,43 @@
     "question": "Will there be no change in Fed interest rates after the October 2026 meeting?",
     "slug": "will-there-be-no-change-in-fed-interest-rates-after-the-october-2026-meeting"
    }
+  ],
+  "fills": [
+   {
+    "fee_usd": 0.3,
+    "status": "CONFIRMED",
+    "match_time": "2026-09-16T09:00:00.000Z"
+   },
+   {
+    "fee_usd": 0,
+    "status": "CONFIRMED",
+    "match_time": "2026-09-16T10:59:00.000Z"
+   },
+   {
+    "fee_usd": 0,
+    "status": "CONFIRMED",
+    "match_time": "2026-09-16T13:56:00.000Z"
+   },
+   {
+    "fee_usd": 0,
+    "status": "CONFIRMED",
+    "match_time": "2026-09-16T16:01:00.000Z"
+   },
+   {
+    "fee_usd": 0,
+    "status": "CONFIRMED",
+    "match_time": "2026-09-17T09:01:00.000Z"
+   },
+   {
+    "fee_usd": 0.5,
+    "status": "FAILED",
+    "match_time": "2026-09-17T12:00:00.000Z"
+   },
+   {
+    "fee_usd": 0,
+    "status": "MINED",
+    "match_time": "2026-09-17T14:02:00.000Z"
+   }
   ]
  },
  "output": {
@@ -391,6 +428,7 @@
   "unrealisedUsd": 0.2,
   "realisedUsd": 2.1,
   "costUsd": 30,
+  "feesUsd": 0,
   "stop": {
    "dayLimitUsd": 10,
    "dayRoomUsd": 10.7,
@@ -662,6 +700,7 @@
   "unrealisedUsd": 0,
   "realisedUsd": 0,
   "costUsd": 0,
+  "feesUsd": 0,
   "stop": {
    "dayLimitUsd": 10,
    "dayRoomUsd": null,

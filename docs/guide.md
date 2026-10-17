@@ -397,21 +397,23 @@ places stay when the number is not whole.
   $100 budget, shown on its row and page and counted in LIVE's funded total
   from now. Every other dollar on its row and page is read from Polymarket's
   public record of its own trades every five minutes, never from what the
-  agent says, and stays at zero until the go: its value now (cash plus each
-  holding at the market's middle price, or its payout once the market has
-  resolved), total, today, unrealised, realised (after fees), and under them
-  the room left on both stops. A red line appears when the agent's own
-  report differs from that record by more than $1. STATUS shows the open
-  positions, the cash, how well its probabilities scored against the
-  market's prices on the markets that have resolved (the Brier score: lower
-  is better, its own first), and how many have resolved. Then POSITIONS
-  from the record; the JOURNAL, its latest decisions, each with its time in
-  UTC, what it did, the market's title as an underlined link to that market
-  on Polymarket ("market title pending" until the site has read it), the
-  probability it gave against the market's price it saw and the difference
-  in points, its reason, what would prove it wrong, and its sources as
-  underlined links named by their website; and DAYS, each day's result from
-  the record beside the one it reported. Hide values masks every amount,
+  agent says, and stays at zero until the go. Its page's scoreboard is laid
+  out as the live Stablecoin quotes page's and reads the same figures as its
+  row: funded, deployed (what it holds, at cost, with its share of funded),
+  today, unrealised, and realised, which already counts its fees (shown
+  beside it, as "incl. fees"); under them, the room left on both stops. A
+  red line appears when the agent's own report differs from that record by
+  more than $1. STATUS shows the open positions, the cash, how well its
+  probabilities scored against the market's prices on the markets that have
+  resolved (the Brier score: lower is better, its own first), and how many
+  have resolved. Then POSITIONS from the record; DAYS, each day's result
+  from the record beside the one it reported; and last the JOURNAL, its
+  latest decisions, each with its time in UTC, what it did, the market's
+  title as an underlined link to that market on Polymarket ("market title
+  pending" until the site has read it), the probability it gave against the
+  market's price it saw and the difference in points, its reason, what would
+  prove it wrong, and its sources as underlined links named by their
+  website. Hide values masks every amount,
   price and size; probabilities and scores stay.
 - **Reward quotes mini-pool** (markets paying $6 to under $10 a day, the
   first test of that account) left the list and stopped on 8 October: its

@@ -4830,7 +4830,9 @@ async function run() {
       // The outside agent's wallet from the independent record (GROKPM_FIXTURE, worked by hand there): a LIVE row of its own
       // on Polymarket, its $100 in LIVE's FUNDED from now, before the go as after it ("明确目前funded就是100美元"); its page
       // over the list with the record's scoreboard, the stops' room, the red mismatch line, STATUS, POSITIONS, the JOURNAL and
-      // DAYS. The JOURNAL (2026-10-17): each market an underlined link to Polymarket under its title, or its title unlinked,
+      // DAYS. Its scoreboard is the stablecoin quotes' live page's, cell for cell (2026-10-17: "这个策略的页面score board请做的和
+      // stablecoin quote的live策略子页面的一样"): FUNDED, DEPLOYED, TODAY, UNREALIZED G/L, REALIZED G/L (incl. fees), checked against
+      // that page's own DOM; DAYS comes before the JOURNAL ("底下live放在journal上面"). The JOURNAL (2026-10-17): each market an underlined link to Polymarket under its title, or its title unlinked,
       // or "market title pending", never a condition id; its sources underlined links named by their domain, on one line,
       // a javascript: one dropped. Before the go the head says DRY-RUN with the list's amber light, never LIVE, and the
       // dry-run line under the scoreboard is gone. Hide-values masks every amount, price and size; nothing wider than the
@@ -4891,6 +4893,8 @@ async function run() {
             title: txt(titles[titles.length - 1]), modals: document.querySelectorAll('.modal').length,
             head: [...root.querySelectorAll('.ag-detail-head .ag-badge, .ag-detail-head .ag-venue')].map(txt).join(' '),
             headDot: root.querySelector('.ag-detail-head .ag-status .ag-dot')?.className ?? '', headStatus: txt(root.querySelector('.ag-detail-head .ag-status')),
+            sbShape: [...(root.querySelector(':scope > .ag-scoreboard')?.children ?? [])].map((c) => `${c.className}:${txt(c.querySelector('.ag-sb-name'))}`).join(' | '),
+            sbCols: getComputedStyle(root.querySelector(':scope > .ag-scoreboard') ?? root).gridTemplateColumns.split(' ').length,
             scoreboard: [...root.querySelectorAll(':scope > .ag-scoreboard .ag-sb-cell')].map((c) => {
               const asides = [...c.querySelectorAll('.ag-sb-aside')].map(txt);
               return `${txt(c.querySelector('.ag-sb-name'))}${asides.length ? ` [${asides.join('; ')}]` : ''}=${txt(c.querySelector('.sb-value'))}`;
@@ -4929,9 +4933,10 @@ async function run() {
           await page.locator(`.ag-gpm-detail ${sel}`).first().scrollIntoViewIfNeeded().catch(() => {});
           await shot(page, name);
         }
-        const SB = `FUNDED=$100 | VALUE=$102.30 | TOTAL=${TW.gl(G.totalUsd, 100).replace(' ', '')} | TODAY=${GL[0].replace(' ', '')} | UNREALIZED G/L=${GL[1].replace(' ', '')} | REALIZED G/L [(after fees)]=${GL[2].replace(' ', '')}`;
+        // As the stablecoin quotes' live page: FUNDED, DEPLOYED (what it holds at cost, $30 of $100), TODAY, UNREALIZED, REALIZED incl. fees.
+        const SB = `FUNDED=$100 | DEPLOYED=${TW.money(G.costUsd)}(${TW.pct((G.costUsd / 100) * 100, false)}) | TODAY=${GL[0].replace(' ', '')} | UNREALIZED G/L=${GL[1].replace(' ', '')} | REALIZED G/L [(incl. fees $0)]=${GL[2].replace(' ', '')}`;
         const WANT = {
-          sections: 'STATUS,POSITIONS,JOURNAL,DAYS',
+          sections: 'STATUS,POSITIONS,DAYS,JOURNAL',
           tiles: 'OPEN POSITIONS=2 | CASH=$69.10 | BRIER YOU / MARKET=0.106 / 0.084 | RESOLVED=2',
           stop: 'total stop at -$30: $32.30 of room · day stop at -$10: $10.70 of room',
           mismatch: "the agent's numbers differ from the record by more than $1: its 22:31 UTC report says $100.10 (+$0.10), the record $102.30 (+$2.30)",
@@ -4954,6 +4959,30 @@ async function run() {
         if (gv && gv.title === NAME && gv.modals === 2 && gv.head === 'LIVE Polymarket' && /is-running/.test(await page.locator('.ag-gpm-detail .ag-detail-head .ag-status').getAttribute('class') ?? '')
           && gv.scoreboard === SB && gv.stop === WANT.stop && gv.mismatch === WANT.mismatch && gv.waiting === '') {
           ok(GT('page'), `its row opens its page over the list: ${gv.scoreboard}; "${gv.stop}"; the mismatch line in red`);
+          // Its scoreboard's structure against the stablecoin quotes' live page, read from that page's own DOM.
+          await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
+          await closeBy(page, () => page.keyboard.press('Escape'));
+          agentsMode = 'pr5-live';
+          await openAgentsPage(page);
+          await clickTab('live');
+          await page.locator('.ag-strategies-live .ag-row', { has: nameBtn(page, 'Stablecoin quotes') }).first().click();
+          await settled(page, '.ag-quotes-live-detail');
+          const pr5 = await page.evaluate(() => {
+            const txt = (/** @type {Element | null | undefined} */ el) => (el?.textContent || '').replace(/\s+/g, ' ').trim();
+            const sb = document.querySelector('.ag-quotes-live-detail > .ag-scoreboard');
+            return sb ? { shape: [...sb.children].map((c) => `${c.className}:${txt(c.querySelector('.ag-sb-name'))}`).join(' | '), cols: getComputedStyle(sb).gridTemplateColumns.split(' ').length, cls: sb.className } : null;
+          });
+          await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
+          await closeBy(page, () => page.keyboard.press('Escape'));
+          agentsMode = 'grokpm';
+          await openAgentsPage(page);
+          await clickTab('live');
+          await page.locator('.ag-strategies-live .ag-row', { has: nameBtn(page, NAME) }).first().click();
+          await settled(page, '.ag-gpm-detail');
+          const gsb = await page.evaluate(() => document.querySelector('.ag-gpm-detail > .ag-scoreboard')?.className ?? '');
+          if (pr5 && pr5.shape === gv.sbShape && pr5.cols === gv.sbCols && pr5.cls === gsb && /DEPLOYED/.test(gv.sbShape) && !/VALUE|TOTAL/.test(gv.sbShape)) {
+            ok(GT('scoreboard'), `its scoreboard is the stablecoin quotes' live page's, cell for cell (${gv.sbShape.split(' | ').filter((c) => !c.startsWith('ag-sb-divider')).map((c) => c.split(':')[1]).join(', ')}; ${gv.sbCols} columns, "${gsb}")`);
+          } else fail(GT('scoreboard'), `GROKPM ${gv.sbShape} (${gv.sbCols} columns, "${gsb}") against PR5's ${pr5?.shape} (${pr5?.cols} columns, "${pr5?.cls}")`);
         } else fail(GT('page'), `page ${JSON.stringify(gv && { title: gv.title, modals: gv.modals, head: gv.head, headDot: gv.headDot, sb: gv.scoreboard, stop: gv.stop, mismatch: gv.mismatch, waiting: gv.waiting })}, wanted ${SB}`);
         if (gv && gv.sections === WANT.sections && gv.tiles === WANT.tiles && JSON.stringify(gv.positions) === JSON.stringify(WANT.positions) && JSON.stringify(gv.days) === JSON.stringify(WANT.days)
           && gv.entries.length === 8 && JSON.stringify(gv.heads) === JSON.stringify(WANT.heads) && /^as of \d{1,2} \w{3} \d{2}:\d{2} [A-Z]+ · armed · read every 5 min · refreshes every minute$/.test(gv.foot)) {
@@ -4984,7 +5013,7 @@ async function run() {
         await page.locator('.ag-gpm-detail .ag-gpm-journal').first().scrollIntoViewIfNeeded().catch(() => {});
         await shot(page, 'agents-grokpm-waiting-journal');
         if (gw && gw.title === NAME && gw.head === 'DRY-RUN Polymarket' && /\bag-dot-stale\b/.test(gw.headDot) && !/LIVE/.test(gw.head) && gw.headStatus.startsWith('dry-run')
-          && gw.waiting === '' && gw.stop === '' && gw.mismatch === '' && gw.scoreboard.startsWith(`FUNDED=$100 | VALUE=— | TOTAL=${TW.gl(0, 100).replace(' ', '')} | TODAY=${TW.gl(0, 100).replace(' ', '')} | `)
+          && gw.waiting === '' && gw.stop === '' && gw.mismatch === '' && gw.scoreboard.startsWith(`FUNDED=$100 | DEPLOYED=$0(0%) | TODAY=${TW.gl(0, 100).replace(' ', '')} | `)
           && gw.positions.length === 1 && gw.days.length === 1 && gw.entries.length === 8 && !gw.hex && gw.markets.filter((x) => x.startsWith('market title pending')).length === 2
           && gw.overflow <= 1 && gw.pageOverflow <= 1 && gw.off === 0 && gw.sbClipped === 0) {
           ok(GT('waiting'), `before the go the head reads "${gw.head}" with the amber light ("${gw.headStatus}"), FUNDED $100 (${gw.scoreboard}), no dry-run line, no stop line, its journal titled`);

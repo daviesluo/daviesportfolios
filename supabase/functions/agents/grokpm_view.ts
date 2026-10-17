@@ -16,6 +16,8 @@
 //   unrealised  Σ over positions still trading of size × (mark − average price).
 //   realised    total − unrealised: what its own trades closed and settled, after every fee, as their cash says.
 //   deployed    Σ size × average price of what it holds: its cost.
+//   fees        Σ the fees of its own fills from the go, as the order path read them back (`grokpm_fills.fee_usd`, the
+//               counted statuses only): already inside realised, whose cash is net of them; shown as "(incl. fees …)".
 //   stop room   $30 + total (the total stop) and $10 + today (the day's), as the agent's rules state them; the page only
 //               shows them, nothing here can stop the agent.
 //   Brier       on each token it bought whose market has resolved (`grokpm_entries` × `grokpm_resolutions`): the agent's p
@@ -64,6 +66,10 @@ export type GrokPmDailyRow = { id: string; received_at: string; day: string; pnl
 export type GrokPmEntryRow = { asset: string; cond: string; title: string | null; first_seen_at: string; first_fill_at: string | null; mid: number | string | null };
 export type GrokPmResolutionRow = { cond: string; tokens: unknown; payouts: unknown };
 export type GrokPmOpenRow = { id: string; ts: string; token_id: string | null; p: number | string | null; m: number | string | null; category: string | null };
+/** One of the agent's own fills as the order path read it back (`grokpm_fills`, 0125): only its fee is read here. */
+export type GrokPmFillRow = { fee_usd: number | string | null; status: string; match_time: string | null };
+/** A fill in these states is a trade of the agent's (as the recorder counts them, `grokpm_rec.ts`); FAILED is not. */
+export const GROKPM_FILL_STATUSES = ["MATCHED", "MINED", "CONFIRMED", "RETRYING"] as const;
 /** A market's title and slug as the recorder read them from Gamma (`grokpm_markets`, 0126). */
 export type GrokPmMarketRow = { cond: string; question: string | null; slug: string | null };
 
@@ -75,6 +81,7 @@ export const GROKPM_DAILY_COLUMNS = "id,received_at,day,pnl_day_usd,pnl_total_us
 export const GROKPM_ENTRY_COLUMNS = "asset,cond,title,first_seen_at,first_fill_at,mid";
 export const GROKPM_OPEN_COLUMNS = "id,ts,token_id,p,m,category";
 export const GROKPM_MARKET_COLUMNS = "cond,question,slug";
+export const GROKPM_FILL_COLUMNS = "fee_usd,status,match_time";
 /** A market's page on Polymarket: `/market/<slug>` opens it inside its event. */
 export const GROKPM_MARKET_URL = "https://polymarket.com/market/";
 
@@ -132,7 +139,7 @@ export function brierOf(entries: GrokPmEntryRow[], resolutions: GrokPmResolution
 export function grokPmSummary(input: {
   config: GrokPmConfigRow | null; latest: GrokPmSnapshotRow | null; dayOpens: GrokPmDayOpenRow[]; decisions: GrokPmDecisionRow[]; cycle: GrokPmCycleRow | null;
   cycleSnap: GrokPmSnapshotRow | null; daily: GrokPmDailyRow[]; entries: GrokPmEntryRow[]; resolutions: GrokPmResolutionRow[]; opens: GrokPmOpenRow[];
-  recState: { updated_at: string | null; last_error: string | null } | null; nowMs: number; markets?: GrokPmMarketRow[];
+  recState: { updated_at: string | null; last_error: string | null } | null; nowMs: number; markets?: GrokPmMarketRow[]; fills?: GrokPmFillRow[];
 }) {
   const cfg = input.config;
   if (!cfg?.wallet) return null;
@@ -159,6 +166,10 @@ export function grokPmSummary(input: {
     };
   }).sort((a, b) => a.title.localeCompare(b.title) || String(a.outcome).localeCompare(String(b.outcome)));
   const cost = positions.reduce((s, p) => s + p.costUsd, 0);
+  // Its fees: each counted fill from the go. Inside realised already (its trades' cash is net of them).
+  const startMs = cfg.started_at ? Date.parse(cfg.started_at) : NaN;
+  const fees = started ? (input.fills ?? []).filter((f) => (GROKPM_FILL_STATUSES as readonly string[]).includes(f.status) && f.match_time && Date.parse(f.match_time) >= startMs)
+    .reduce((a, f) => a + num(f.fee_usd), 0) : 0;
   const unrealised = positions.reduce((s, p) => s + p.unrealisedUsd, 0);
 
   // The day's open and the days.
@@ -221,7 +232,7 @@ export function grokPmSummary(input: {
     fundedUsd: started ? funded : null, configuredFundedUsd: funded,
     equityUsd: equity === null ? null : r6(equity), cashUsd: input.latest ? r6(num(input.latest.cash_usd)) : null,
     positionsValueUsd: input.latest ? r6(num(input.latest.positions_value_usd)) : null, valueApiUsd: input.latest ? nz(input.latest.value_api_usd) : null,
-    totalUsd: r6(total), todayUsd: r6(todayUsd), unrealisedUsd: r6(started ? unrealised : 0), realisedUsd: r6(started ? total - unrealised : 0), costUsd: r6(cost),
+    totalUsd: r6(total), todayUsd: r6(todayUsd), unrealisedUsd: r6(started ? unrealised : 0), realisedUsd: r6(started ? total - unrealised : 0), costUsd: r6(cost), feesUsd: r6(fees),
     stop: {
       dayLimitUsd: dayLimit, dayRoomUsd: started ? r6(dayLimit + todayUsd) : null, dayTripped,
       totalLimitUsd: totalLimit, totalRoomUsd: started ? r6(totalLimit + total) : null, totalTripped,

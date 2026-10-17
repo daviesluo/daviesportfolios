@@ -80,6 +80,15 @@ Deno.test("journal titles: Gamma's (0126) with its link, else the record's own u
   assertEquals([marketUrl("will-a-b"), marketUrl("../x"), marketUrl("a b"), marketUrl(null), marketUrl("")], ["https://polymarket.com/market/will-a-b", null, null, null, null]);
 });
 
+Deno.test("its fees: each counted fill from the go, none before it and none failed, and 0 before the go", () => {
+  // The fixture's fills: $0.30 before the go and $0.50 on a FAILED fill, neither counted; its own fills paid nothing.
+  assertEquals([grokPmSummary(input)!.feesUsd, fixture.output.feesUsd, fixture.waiting.feesUsd], [0, 0, 0]);
+  const fills = [...input.fills, { fee_usd: "0.12", status: "CONFIRMED", match_time: "2026-09-17T15:00:00.000Z" }, { fee_usd: 0.03, status: "RETRYING", match_time: "2026-09-17T16:00:00.000Z" }];
+  close(grokPmSummary({ ...input, fills })!.feesUsd, 0.15);
+  assertEquals(grokPmSummary({ ...waitingInput, fills })!.feesUsd, 0);
+  assertEquals(grokPmSummary({ ...input, fills: undefined })!.feesUsd, 0);
+});
+
 Deno.test("a day the agent misreports by more than $1 is flagged; within $1 it is not", () => {
   const off = grokPmSummary({ ...input, daily: [{ ...input.daily[0], pnl_day_usd: 1.6 - GROKPM_MISMATCH_USD - 0.01 }], cycle: null })!;
   assertEquals(off.days[1].mismatch, true);

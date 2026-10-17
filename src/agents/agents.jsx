@@ -699,12 +699,14 @@ function LpLiveDetail({ l, m, at, nowMs }) {
 /**
  * "Polymarket analyst", GROKPM's page over LIVE (Davies, 2026-10-15: "网站中live页也加上策略和子策略页面（仿照之前rewards
  * 策略来做）"), laid out as the Reward quotes live page: its head (DRY-RUN until the order path is armed, then LIVE, and the
- * list's own status light), its scoreboard (FUNDED, its $100 budget from now; VALUE, TOTAL, TODAY, UNREALIZED, REALIZED) from
- * the independent record of the agent's own trades, the stops' room under it, a red line when the agent's own numbers differ
- * from the record by more than $1, STATUS (open positions, cash, Brier against the market, resolved), then POSITIONS from the
- * record, the agent's JOURNAL (each entry a head line, its market linked to Polymarket, p against the market, its words and
- * its sources as links named by their domain; Davies, 2026-10-17), and DAYS, the record's P&L beside its summary. Everything
- * is the dashboard's `grokPm` (`grokpm_view.ts`).
+ * list's own status light), its scoreboard the stablecoin quotes' live page's, cell for cell (Davies, 2026-10-17: "这个策略的
+ * 页面score board请做的和stablecoin quote的live策略子页面的一样"): FUNDED (its $100 budget) and DEPLOYED (what it holds at cost),
+ * TODAY, UNREALIZED G/L, REALIZED G/L "(incl. fees …)", from its LIST row (`rowMoney(grokPmRow(g))`), so the row and the page
+ * read the same figures; the stops' room under it, a red line when the agent's own numbers differ from the record by more
+ * than $1, STATUS (open positions, cash, Brier against the market, resolved), then POSITIONS from the record, DAYS (the
+ * record's P&L beside its summary), and the agent's JOURNAL last (each entry a head line, its market linked to Polymarket,
+ * p against the market, its words and its sources as links named by their domain). DAYS above JOURNAL: "底下live放在journal
+ * 上面" (the same day). Everything is the dashboard's `grokPm` (`grokpm_view.ts`).
  * @param {{ g: any, m: (s: string) => string, at: any, nowMs: number }} props
  */
 function GrokPmDetail({ g, m, at, nowMs }) {
@@ -712,8 +714,7 @@ function GrokPmDetail({ g, m, at, nowMs }) {
   if (!row) return null;
   /** @param {number | null | undefined} x */
   const usd = (x) => m(fmtUsd(Number(x) || 0, true));
-  const funded = Number(row.capitalUsd) || 0, equity = Number(g.equityUsd) || 0;
-  const pct = (/** @type {number} */ x) => (funded > 0 ? (x / funded) * 100 : null);
+  const money = rowMoney(row);
   const stop = grokPmStopText(g, m), mismatch = grokPmMismatchText(g, m);
   const positions = g.positions ?? [], journal = g.journal ?? [], days = g.days ?? [];
   return (
@@ -724,26 +725,14 @@ function GrokPmDetail({ g, m, at, nowMs }) {
         <StatusDot status={row.status} since={g.startedAt ?? null} nowMs={nowMs} live toned />
       </div>
       <h3 className="ag-detail-title mono sr-only">{row.name}</h3>
-      <div className="ag-scoreboard ag-scoreboard-sm ag-gpm-sb">
-        <div className="ag-sb-cell ag-sb-cell-main">
-          <SbLabel label="FUNDED" />
-          <div className="sb-value sb-value-lg mono">{funded > 0 ? m(fmtUsd(funded)) : '—'}</div>
-          <div className="ag-sb-extra" />
-        </div>
+      <div className="ag-scoreboard ag-scoreboard-sm">
+        <FundedCells fundedUsd={money.capital} deployedUsd={money.value} m={m} ccy={money.ccy} known={row.fundedKnown} />
         <div className="ag-sb-divider" />
-        <div className="ag-sb-cell ag-sb-cell-main">
-          <SbLabel label="VALUE" />
-          <div className="sb-value sb-value-lg mono">{g.equityUsd == null ? '—' : m(fmtUsd(equity))}</div>
-          <div className="ag-sb-extra" />
-        </div>
+        <GlCell label="TODAY" usd={money.today} pct={money.todayPct} m={m} ccy={money.ccy} />
         <div className="ag-sb-divider" />
-        <GlCell label="TOTAL" usd={Number(g.totalUsd) || 0} pct={pct(Number(g.totalUsd) || 0)} m={m} />
+        <GlCell label="UNREALIZED G/L" usd={money.unrealised} pct={money.unrealisedPct} m={m} ccy={money.ccy} />
         <div className="ag-sb-divider" />
-        <GlCell label="TODAY" usd={row.todayUsd} pct={row.todayPct} m={m} />
-        <div className="ag-sb-divider" />
-        <GlCell label="UNREALIZED G/L" usd={row.unrealisedUsd} pct={row.unrealisedPct} m={m} />
-        <div className="ag-sb-divider" />
-        <GlCell label="REALIZED G/L" usd={row.realisedUsd} pct={row.realisedPct} m={m} cls="ag-sb-realised" aside="(after fees)" />
+        <GlCell label="REALIZED G/L" usd={money.realised} pct={money.realisedPct} m={m} ccy={money.ccy} cls="ag-sb-realised" aside={`(incl. fees ${m(fmtIn(money.fees ?? 0, money.ccy))})`} />
       </div>
       {g.started && !g.running && <div className="ag-warn-line">{row.status.detail}</div>}
       {g.lastError && <div className="ag-warn-line">record: {m(String(g.lastError))}</div>}
@@ -784,6 +773,29 @@ function GrokPmDetail({ g, m, at, nowMs }) {
           </table>
         </div>
       </section>
+      <section className="ag-section ag-gpm-days">
+        <div className="ag-section-title mono">DAYS</div>
+        <div className="hl-scroll">
+          <table className="hl-table ag-table ag-log mono">
+            <thead><tr><th className="hl-th">Day (UTC)</th><th className="hl-th">Record</th><th className="hl-th">Agent says</th><th className="hl-th">Trades</th><th className="hl-th" aria-label="mismatch" /></tr></thead>
+            <tbody>
+              {days.length === 0 && <tr><td className="hl-empty dim" colSpan={5}>No day yet: the first starts when the funding arrives.</td></tr>}
+              {days.map((/** @type {any} */ d) => {
+                const c = grokPmDayCells(d, m);
+                return (
+                  <tr key={d.day}>
+                    <td className="dim">{dayLabel(d.day)}{d.today ? ' · today' : ''}</td>
+                    <td className="ag-gl" style={c.recordUsd == null ? undefined : { color: pctColor(c.recordUsd) }}>{c.record}</td>
+                    <td>{c.agent}</td>
+                    <td>{c.trades}</td>
+                    <td className="ag-gpm-flag">{c.flag}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </section>
       <section className="ag-section ag-gpm-journal">
         <div className="ag-section-title mono">JOURNAL</div>
         {journal.length === 0 && <div className="hl-empty dim ag-gpm-empty">Nothing reported yet.</div>}
@@ -818,29 +830,6 @@ function GrokPmDetail({ g, m, at, nowMs }) {
             );
           })}
         </ol>
-      </section>
-      <section className="ag-section ag-gpm-days">
-        <div className="ag-section-title mono">DAYS</div>
-        <div className="hl-scroll">
-          <table className="hl-table ag-table ag-log mono">
-            <thead><tr><th className="hl-th">Day (UTC)</th><th className="hl-th">Record</th><th className="hl-th">Agent says</th><th className="hl-th">Trades</th><th className="hl-th" aria-label="mismatch" /></tr></thead>
-            <tbody>
-              {days.length === 0 && <tr><td className="hl-empty dim" colSpan={5}>No day yet: the first starts when the funding arrives.</td></tr>}
-              {days.map((/** @type {any} */ d) => {
-                const c = grokPmDayCells(d, m);
-                return (
-                  <tr key={d.day}>
-                    <td className="dim">{dayLabel(d.day)}{d.today ? ' · today' : ''}</td>
-                    <td className="ag-gl" style={c.recordUsd == null ? undefined : { color: pctColor(c.recordUsd) }}>{c.record}</td>
-                    <td>{c.agent}</td>
-                    <td>{c.trades}</td>
-                    <td className="ag-gpm-flag">{c.flag}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
       </section>
       <div className="ag-updated dim mono ag-gpm-foot">as of {when(at)} {UK_TZ} · {g.mode === 'live' ? 'armed' : 'dry-run'} · read every 5 min · refreshes every minute</div>
     </div>

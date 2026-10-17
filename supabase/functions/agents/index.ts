@@ -238,7 +238,7 @@ import { PM_REC_VENUE_TIMEOUT_MS, pmRecStorage, runPmRec, runPmRecMeta } from ".
 import { runPmProg } from "./pm_prog.ts";
 import { runCjRec } from "./cj_rec.ts";
 import { runGrokPmRec } from "./grokpm_rec.ts";
-import { GROKPM_CONFIG_COLUMNS, GROKPM_CYCLE_COLUMNS, GROKPM_DAILY_COLUMNS, GROKPM_DECISION_COLUMNS, GROKPM_ENTRY_COLUMNS, GROKPM_JOURNAL_ROWS, GROKPM_MARKET_COLUMNS, GROKPM_OPEN_COLUMNS, GROKPM_SNAPSHOT_COLUMNS, grokPmSummary, type GrokPmConfigRow, type GrokPmCycleRow, type GrokPmDailyRow, type GrokPmDayOpenRow, type GrokPmDecisionRow, type GrokPmEntryRow, type GrokPmMarketRow, type GrokPmOpenRow, type GrokPmResolutionRow, type GrokPmSnapshotRow } from "./grokpm_view.ts";
+import { GROKPM_CONFIG_COLUMNS, GROKPM_CYCLE_COLUMNS, GROKPM_DAILY_COLUMNS, GROKPM_DECISION_COLUMNS, GROKPM_ENTRY_COLUMNS, GROKPM_FILL_COLUMNS, GROKPM_FILL_STATUSES, GROKPM_JOURNAL_ROWS, GROKPM_MARKET_COLUMNS, GROKPM_OPEN_COLUMNS, GROKPM_SNAPSHOT_COLUMNS, grokPmSummary, type GrokPmConfigRow, type GrokPmCycleRow, type GrokPmDailyRow, type GrokPmDayOpenRow, type GrokPmDecisionRow, type GrokPmEntryRow, type GrokPmFillRow, type GrokPmMarketRow, type GrokPmOpenRow, type GrokPmResolutionRow, type GrokPmSnapshotRow } from "./grokpm_view.ts";
 import { runCbRec, type CbRecState } from "./cb_rec.ts";
 import { cbBooksDelayMs, runCbBooks } from "./cb_books.ts";
 import { runCbQuotes } from "./cb_quotes.ts";
@@ -1963,7 +1963,7 @@ export async function readGrokPm(d: Db, now: number) {
   try {
     const cfg = await d.select<GrokPmConfigRow>("grokpm_config", `id=eq.1&select=${GROKPM_CONFIG_COLUMNS}`);
     if (!cfg[0]?.wallet) return null;
-    const [latest, dayOpens, decisions, cycles, daily, entries, resolutions, opens, rec, markets] = await Promise.all([
+    const [latest, dayOpens, decisions, cycles, daily, entries, resolutions, opens, rec, markets, fills] = await Promise.all([
       d.select<GrokPmSnapshotRow>("grokpm_snapshots", `select=${GROKPM_SNAPSHOT_COLUMNS}&order=slot.desc&limit=1`),
       d.select<GrokPmDayOpenRow>("grokpm_day_opens", "select=day,slot,equity_usd&order=day.desc&limit=120"),
       d.select<GrokPmDecisionRow>("grokpm_decisions", `select=${GROKPM_DECISION_COLUMNS}&order=ts.desc,id.desc&limit=${GROKPM_JOURNAL_ROWS}`),
@@ -1975,6 +1975,8 @@ export async function readGrokPm(d: Db, now: number) {
       d.select<{ updated_at: string | null; last_error: string | null }>("grokpm_rec_state", "id=eq.1&select=updated_at,last_error"),
       // The journal's market titles (0126), newest first. Without them (the table not there yet) the page still stands.
       d.select<GrokPmMarketRow>("grokpm_markets", `select=${GROKPM_MARKET_COLUMNS}&order=updated_at.desc&limit=2000`).catch(() => [] as GrokPmMarketRow[]),
+      // Its own fills' fees, for REALIZED's "(incl. fees …)" (the view keeps those from the go).
+      d.select<GrokPmFillRow>("grokpm_fills", `status=in.(${GROKPM_FILL_STATUSES.join(",")})&select=${GROKPM_FILL_COLUMNS}&order=match_time.asc&limit=5000`),
     ]);
     // The snapshot of the latest cycle's slot, or the one before it: the record at the moment the agent reported.
     const c = cycles[0];
@@ -1986,7 +1988,7 @@ export async function readGrokPm(d: Db, now: number) {
       cycleSnap = near[0] ?? null;
     }
     return grokPmSummary({
-      config: cfg[0], latest: latest[0] ?? null, dayOpens, decisions, cycle: c ?? null, cycleSnap, daily, entries, resolutions, opens, recState: rec[0] ?? null, nowMs: now, markets,
+      config: cfg[0], latest: latest[0] ?? null, dayOpens, decisions, cycle: c ?? null, cycleSnap, daily, entries, resolutions, opens, recState: rec[0] ?? null, nowMs: now, markets, fills,
     });
   } catch { return null; }
 }

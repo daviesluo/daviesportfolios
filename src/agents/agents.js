@@ -1423,8 +1423,8 @@ export const GROKPM_ROW_NAME = 'Polymarket analyst';
  * server, never holding a key), never its own report. Funded is its $100 budget (`configuredFundedUsd`), shown and added to
  * LIVE's FUNDED from now, before the go as after it (Davies, 2026-10-17: "明确目前funded就是100美元"); until the go its
  * today, unrealised and realised are 0 and nothing is deployed. Deployed is what it holds at cost; today and realised on
- * what is funded, unrealised on its cost. Its fees are inside realised (its trades' cash is net of them), so it states none
- * of its own. While it is a dry-run its status is the amber "dry-run" one, on the row and its page alike. null until the
+ * what is funded, unrealised on its cost. Its fees (`feesUsd`, its own fills' from the go) are inside realised, whose cash
+ * is net of them: the page says "(incl. fees …)" as the stablecoin quotes' live page does. While it is a dry-run its status is the amber "dry-run" one, on the row and its page alike. null until the
  * account is configured.
  * @param {any} g  the dashboard's `grokPm`
  */
@@ -1438,7 +1438,7 @@ export function grokPmRow(g) {
   const open = Number(g.status?.open) || 0;
   return {
     id: GROKPM_ROW_ID, name: GROKPM_ROW_NAME, venue: venueLabel('polymarket'), venueId: 'polymarket', mode: 'live',
-    capitalUsd: funded, fundedKnown: funded > 0, valueUsd: cost, costUsd: cost, feesUsd: null,
+    capitalUsd: funded, fundedKnown: funded > 0, valueUsd: cost, costUsd: cost, feesUsd: Number(g.feesUsd) || 0,
     todayUsd: today, todayPct: pct(today, funded), unrealisedUsd: unrealised, unrealisedPct: pct(unrealised, cost), realisedUsd: realised, realisedPct: pct(realised, funded),
     nextText: 'record every 5 min', openPositions: open, openOrders: 0, holdsLive: cost > 0, armed: !!g.started && !g.stop?.totalTripped,
     status: !g.started

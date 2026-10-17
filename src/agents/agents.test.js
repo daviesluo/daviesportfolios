@@ -2045,7 +2045,7 @@ describe('grokPmRow and its page (GROKPM, "Polymarket analyst" on LIVE, 2026-10-
   it('is a LIVE row on Polymarket, its money the record\'s: funded $100, deployed its cost, the percents on their bases', () => {
     const r = /** @type {any} */ (grokPmRow(g));
     expect([r.id, r.name, r.mode, r.venueId, r.capitalUsd, r.valueUsd, r.costUsd, r.feesUsd, r.openPositions, r.holdsLive, r.armed])
-      .toEqual([GROKPM_ROW_ID, GROKPM_ROW_NAME, 'live', 'polymarket', 100, 30, 30, null, 2, true, true]);
+      .toEqual([GROKPM_ROW_ID, GROKPM_ROW_NAME, 'live', 'polymarket', 100, 30, 30, 0, 2, true, true]);
     // Davies, 2026-10-17: "“Polymarket analyst (Grok)”策略改为“Polymarket analyst“".
     expect(GROKPM_ROW_NAME).toBe('Polymarket analyst');
     // By hand (grokpm_view.test.ts): today +0.70, unrealised +0.20 on a cost of 30, realised +2.10.
@@ -2098,6 +2098,26 @@ describe('grokPmRow and its page (GROKPM, "Polymarket analyst" on LIVE, 2026-10-
     const card = venueRows(dash, 'live', rows)[0];
     expect([card.id, card.capitalUsd]).toEqual(['polymarket', alone.capitalUsd + 100]);
     expect(Number.isFinite(card.todayPct)).toBe(true);
+  });
+  it("its page's scoreboard is the stablecoin quotes' live page's: FUNDED, DEPLOYED, TODAY, UNREALIZED, REALIZED (incl. fees), from its row", () => {
+    // Davies, 2026-10-17: "这个策略的页面score board请做的和stablecoin quote的live策略子页面的一样". Both pages read `rowMoney` of their
+    // own LIST row, so the list and the page show one set of figures; no VALUE or TOTAL cell (the PR5 page has none).
+    expect(rowMoney(grokPmRow(g))).toEqual({
+      ccy: 'USD', capital: 100, value: 30, today: 0.7, todayPct: grokPmRow(g)?.todayPct, unrealised: 0.2, unrealisedPct: grokPmRow(g)?.unrealisedPct,
+      realised: 2.1, realisedPct: grokPmRow(g)?.realisedPct, fees: 0,
+    });
+    // Its fees are its own fills' (inside realised): what the page's "(incl. fees …)" shows. Before the go, none.
+    expect([grokPmRow({ ...g, feesUsd: 0.15 })?.feesUsd, grokPmRow(w)?.feesUsd, grokPmRow({ ...g, feesUsd: undefined })?.feesUsd]).toEqual([0.15, 0, 0]);
+    // The page's scoreboard JSX is the PR5 page's: FundedCells, then TODAY, UNREALIZED G/L, REALIZED G/L with its fees aside.
+    const jsx = fs.readFileSync(path.join(path.dirname(new URL(import.meta.url).pathname), 'agents.jsx'), 'utf8');
+    const board = (/** @type {string} */ fn) => {
+      const body = jsx.slice(jsx.indexOf(`function ${fn}(`));
+      const sb = body.slice(body.indexOf('<div className="ag-scoreboard ag-scoreboard-sm">'));
+      return sb.slice(0, sb.indexOf('\n      </div>\n')).split('\n').map((l) => (/<(\w+)(?:[^>]*?(?:label="([^"]+)"|className="([^"]+)"))?/.exec(l) ?? []).slice(1).filter(Boolean).join(' ')).filter(Boolean);
+    };
+    expect(board('GrokPmDetail')).toEqual(['div ag-scoreboard ag-scoreboard-sm', 'FundedCells', 'div ag-sb-divider', 'GlCell TODAY', 'div ag-sb-divider', 'GlCell UNREALIZED G/L', 'div ag-sb-divider', 'GlCell REALIZED G/L']);
+    expect(board('GrokPmDetail')).toEqual(board('QuotesLiveDetail'));
+    expect(/function GrokPmDetail[\s\S]*?label="REALIZED G\/L"[^\n]*aside=\{`\(incl\. fees /.test(jsx)).toBe(true);
   });
   it("its page's head says DRY-RUN while the list's light is amber, LIVE once armed", () => {
     // Davies, 2026-10-17: "agent页策略列表里显示的黄灯怎么子页面点开现实的是live的tag".
