@@ -584,7 +584,8 @@ that follow from that evidence, in short:
   the order paths' client. A BUY is post-only; only a category-C close may take. It cancels its own orders one by one,
   never the venue's cancel-all.
   - **The arm.** `grokpm_config` (`dry_run` true, `armed_at` null) is the arm. Disarmed, everything is checked and journalled
-    and nothing is sent. The go statement is in 0125's header, and only Davies' word in the conversation runs it.
+    and nothing is sent; disarmed or under the global pause, the minute's sync cancels its live resting orders (D4). The
+    go statement is in 0125's header, and only Davies' word in the conversation runs it.
   - **One armed path.** 0125 adds it to the one-armed trigger: it is never armed beside live-prep, mini-pool or mid-pool.
     0125 disarms live-prep only where it holds nothing sellable.
   - **Its record.** The keyless record (`agents?action=grokpmrec`) counts only the agent's own trades from the go

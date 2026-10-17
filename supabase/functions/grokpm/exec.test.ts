@@ -10,7 +10,7 @@ import { GROKPM_TABLES } from "../_shared/grokpm_schema.ts";
 import type { Db } from "../agents/db.ts";
 import { FakePolymarket, memDb, PM_TEST_FUNDER, PM_TEST_KEY, PM_TEST_SIGNER, type Row } from "../agents/testing.ts";
 import {
-  bookOf, cancelOrders, context, type ExecDeps, expiryOf, type GrokVenue, ledgerOf, liveGateRefusals, marketOf, marketView, orderRefusals, placeOrder, syncOrders,
+  accountView, bookOf, cancelOrders, context, type ExecDeps, expiryOf, type GrokVenue, ledgerOf, liveGateRefusals, marketOf, marketView, orderRefusals, placeOrder, syncOrders,
 } from "./exec.ts";
 import { handle, type IngestDb } from "./index.ts";
 import examples from "../../../docs/agents/backtests/grokpm/contract_examples.json" with { type: "json" };
@@ -355,7 +355,7 @@ Deno.test("the market view: Gamma's record, both books and what blocks an open",
   assertEquals((await marketView(w.deps(), { cond: "0x" + "99".repeat(32) })).status, 404);
 });
 
-Deno.test("the ledger: dust under a cent is no position, a resolved holding is at its payout and off the caps", () => {
+Deno.test("the ledger: dust under a cent is no position, a resolved holding settles into cash at its payout and is off the caps (D4)", () => {
   const L = ledgerOf({
     fundedUsd: 100, orders: [], nowMs: T0, mids: { "101": 0.5 }, payouts: { "201": 1 },
     fills: [
@@ -365,8 +365,9 @@ Deno.test("the ledger: dust under a cent is no position, a resolved holding is a
       { trade_id: "d", hash: "h4", cond: C1, token: "101", side: "BUY", price: 0.4, size: 5, fee_usd: 0, taker: false, status: "FAILED", match_time: iso(T0 - 6e5), tx_hash: null },
     ],
   });
-  // Cash 100 − 4 − 7 + 4.9975 − 0.1 = 93.8975; 201 at its payout: 10; 101's 0.005 left is dust (worth 0.0025).
-  assertEquals([L.cashUsd, L.equityUsd, Object.keys(L.held), L.openConds], [93.8975, 103.9, ["201"], []]);
+  // Cash 100 − 4 − 7 + 4.9975 − 0.1 = 93.8975, plus 201 settled at its payout: 10 → 103.8975; 101's 0.005 left is dust
+  // (worth 0.0025). Before D4 the 10 sat in the held value and never in the cash (93.8975, held ["201"]).
+  assertEquals([L.cashUsd, L.settledUsd, L.equityUsd, Object.keys(L.held), L.openConds], [103.8975, 10, 103.9, [], []]);
   assertEquals(L.totalUsd, 3.9);
 });
 
@@ -412,4 +413,137 @@ Deno.test("one account, one armed path (0125's trigger, as the double holds it):
   await w.db.update("pm_lp_config", "id=eq.1", { live_confirmed_at: null });
   assertEquals(await refused(w.db.update("grokpm_config", "id=eq.1", arm)), "");
   assert((await refused(w.db.update("pm_lp_config", "id=eq.1", { live_confirmed_at: iso(T0) }))).includes("pm_lp_config cannot be armed while grokpm_config is armed"));
+});
+
+// ── the 2026-10-17 audit: each case failed on the code before it (the counterfactual is in the commit message) ──────────
+
+/** A live BUY the agent filled before `T0` (seeded as the order path would have written it), with its confirmed fill. */
+function seedFill(w: ReturnType<typeof world>, o: { hash: string; cond: string; token: string; price: number; size: number; theme?: string }) {
+  const at = iso(T0 - 30 * 60e3);
+  w.db.tables.grokpm_orders.push({
+    id: 900 + w.db.tables.grokpm_orders.length, created_at: at, updated_at: at, mode: "live", decision_id: `seed-${o.hash.slice(2, 8)}`, cond: o.cond, token: o.token,
+    outcome: "Yes", side: "BUY", price: o.price, size: o.size, post_only: true, expiration: Math.floor(T0 / 1000) - 600, neg_risk: false, hash: o.hash, theme: o.theme ?? "seeded",
+    category: "B", state: "filled", size_matched: o.size, request: {}, response: {}, cancel_requested_at: null, cancelled_at: null, filled_at: at,
+  });
+  w.db.tables.grokpm_fills.push({
+    trade_id: `seed-${o.hash.slice(2, 8)}`, hash: o.hash, cond: o.cond, token: o.token, side: "BUY", price: o.price, size: o.size, fee_usd: 0, taker: false,
+    status: "CONFIRMED", match_time: at, tx_hash: "0x" + "fe".repeat(32), detail: {}, updated_at: at,
+  });
+  w.fake.tokens.set(o.token, (w.fake.tokens.get(o.token) ?? 0) + o.size);
+}
+
+Deno.test("audit: a resolved win is cash again (D4), so the cash floor does not shrink with every win", async () => {
+  const w = world({ armed: true });
+  // 75 YES of C2 bought at 0.88 ($66), and C2 resolved YES: the agent's cash is 100 − 66 + 75 = 109.
+  seedFill(w, { hash: "0x" + "a1".repeat(32), cond: C2, token: "201", price: 0.88, size: 75 });
+  w.db.tables.grokpm_resolutions.push({ cond: C2, tokens: ["201", "202"], payouts: [1, 0], closed_at: iso(T0 - 600e3), read_at: iso(T0 - 300e3) });
+  const c = await context(w.deps(), { readGeo: true, sync: false });
+  assertEquals([c.ledger.cashUsd, c.ledger.settledUsd, c.ledger.equityUsd, c.ledger.openConds], [109, 75, 109, []]);
+  // Before D4 the cash was 34 and this $4.40 open was refused by the cash floor (29.60 < 30).
+  const r = await placeOrder(w.deps(), open({ price: 0.44, size: 10 }));
+  assertEquals(r.status, 200, JSON.stringify(r.body));
+});
+
+Deno.test("audit: the day and total stops latch (D4): a mark that recovers does not open them again; closes still go", async () => {
+  const w = world({ armed: true });
+  seedFill(w, { hash: "0x" + "a2".repeat(32), cond: C1, token: "101", price: 0.45, size: 100 });
+  // The mid falls to 0.15: equity 100 − 45 + 15 = 70, −30 in all and today.
+  w.fake.markets[0].bid = 0.14; w.fake.markets[0].ask = 0.16;
+  const down = await context(w.deps(), { readGeo: true, sync: true });
+  assertEquals([down.ledger.totalUsd, down.dayStopAt, down.totalStopAt], [-30, iso(T0), iso(T0)]);
+  // It recovers to 0.46 a minute later: computed afresh, both stops would be open again.
+  w.fake.markets[0].bid = 0.45; w.fake.markets[0].ask = 0.47;
+  w.at(T0 + 60e3);
+  const r = await placeOrder(w.deps(), open({ market_id: C2, token_id: "201" }));
+  assertEquals([r.status, rules(r).filter((x) => x.endsWith("_stop"))], [422, ["total_stop", "day_stop"]]);
+  const c = await context(w.deps(), { readGeo: true, sync: false });
+  assertEquals([c.ledger.totalUsd > -30, accountViewOf(c).budget.can_open, accountViewOf(c).budget.total_stop_hit_at], [true, false, iso(T0)]);
+  assertEquals((await placeOrder(w.deps(), close({ price: 0.48, size: 10, category: "B" }))).status, 200);
+  // The next UTC day the day stop is gone; the total stop holds to the end.
+  w.at(T0 + DAY);
+  const next = await placeOrder(w.deps(), open({ market_id: C2, token_id: "201", ts: iso(T0 + DAY - 60e3) }));
+  assertEquals(rules(next).filter((x) => x.endsWith("_stop")), ["total_stop"]);
+  // The sync says so once, to the errors box.
+  const reports: string[] = [];
+  const syncReq = () => new Request("https://x.test/functions/v1/grokpm?action=sync&forceFunctionRegion=eu-west-1", { method: "POST", headers: { Authorization: `Bearer ${"c".repeat(40)}` } });
+  const ingest: IngestDb = { recentRequests: () => Promise.resolve([]), insertIgnore: () => Promise.resolve(0), logRequest: () => Promise.resolve() };
+  const deps = { secret: "s".repeat(40), db: ingest, now: () => w.now, exec: () => Promise.resolve(w.deps()), cronSecret: "c".repeat(40), region: "eu-west-1", beat: () => Promise.resolve(),
+    report: (kind: string) => { reports.push(kind); return Promise.resolve(); } };
+  await handle(syncReq(), deps as never);
+  await handle(syncReq(), deps as never);
+  assertEquals(reports.filter((k) => k === "grokpm.total_stop").length, 1);
+});
+const accountViewOf = (c: Awaited<ReturnType<typeof context>>) => accountView(c, T0) as unknown as { budget: Record<string, unknown> };
+
+Deno.test("audit: a fill between the last sync and a cancel is booked by the cancel's read-back", async () => {
+  const w = world({ armed: true });
+  assertEquals((await placeOrder(w.deps(), open({ price: 0.44, size: 10 }))).status, 200);
+  const hash = w.db.tables.grokpm_orders[0].hash as string;
+  w.fake.fill(hash, 4);
+  w.fake.cancelLagReads = 0;
+  const r = await cancelOrders(w.deps(), { order_id: hash }, false);
+  assertEquals(r.status, 200);
+  assertEquals([w.db.tables.grokpm_orders[0].state, Number(w.db.tables.grokpm_orders[0].size_matched)], ["cancelled", 4]);
+  assertEquals(w.db.tables.grokpm_fills.map((f) => [f.hash, Number(f.size)]), [[hash, 4]]);
+  const c = await context(w.deps(), { readGeo: true, sync: false });
+  assertEquals([c.ledger.cashUsd, c.ledger.held["101"]?.held], [98.24, 4]);
+});
+
+Deno.test("audit: a trade booked at MATCHED (no transaction hash) is read again until CONFIRMED, so the keyless record can find it", async () => {
+  const w = world({ armed: true });
+  assertEquals((await placeOrder(w.deps(), open({ price: 0.44, size: 10 }))).status, 200);
+  const hash = w.db.tables.grokpm_orders[0].hash as string;
+  const trade = w.fake.fill(hash, 10);
+  w.at(T0 + 60e3);
+  await syncOrders(w.deps(), []);
+  assertEquals([w.db.tables.grokpm_orders[0].state, w.db.tables.grokpm_fills[0].status, w.db.tables.grokpm_fills[0].tx_hash], ["filled", "MATCHED", null]);
+  w.fake.settle(trade, "CONFIRMED");
+  w.at(T0 + 120e3);
+  await syncOrders(w.deps(), []);
+  assertEquals([w.db.tables.grokpm_fills[0].status, w.db.tables.grokpm_fills[0].tx_hash], ["CONFIRMED", "0x" + "ab".repeat(32)]);
+});
+
+Deno.test("audit: the kill switches reach what rests: disarmed or under the global pause, the sync cancels the agent's live orders", async () => {
+  for (const how of ["disarm", "pause"] as const) {
+    const w = world({ armed: true });
+    assertEquals((await placeOrder(w.deps(), open())).status, 200);
+    const hash = w.db.tables.grokpm_orders[0].hash as string;
+    if (how === "disarm") Object.assign(w.db.tables.grokpm_config[0], { dry_run: true, armed_at: null });
+    else w.db.tables.agent_risk[0].global_pause = true;
+    w.fake.cancelLagReads = 0;
+    w.at(T0 + 60e3);
+    const ingest: IngestDb = { recentRequests: () => Promise.resolve([]), insertIgnore: () => Promise.resolve(0), logRequest: () => Promise.resolve() };
+    const res = await handle(new Request("https://x.test/functions/v1/grokpm?action=sync&forceFunctionRegion=eu-west-1", { method: "POST", headers: { Authorization: `Bearer ${"c".repeat(40)}` } }),
+      { secret: "s".repeat(40), db: ingest, now: () => w.now, exec: () => Promise.resolve(w.deps()), cronSecret: "c".repeat(40), region: "eu-west-1", beat: () => Promise.resolve(), report: () => Promise.resolve() });
+    assertEquals([res.status, (await res.json()).cancelled], [200, 1], how);
+    assertEquals([w.fake.orders.get(hash)?.status, w.db.tables.grokpm_orders[0].state], ["CANCELED", "cancelled"], how);
+  }
+  // A dry-run's own orders are not touched by it.
+  const d = world();
+  assertEquals((await placeOrder(d.deps(), open())).status, 200);
+  const ingest: IngestDb = { recentRequests: () => Promise.resolve([]), insertIgnore: () => Promise.resolve(0), logRequest: () => Promise.resolve() };
+  await handle(new Request("https://x.test/functions/v1/grokpm?action=sync&forceFunctionRegion=eu-west-1", { method: "POST", headers: { Authorization: `Bearer ${"c".repeat(40)}` } }),
+    { secret: "s".repeat(40), db: ingest, now: () => d.now, exec: () => Promise.resolve(d.deps()), cronSecret: "c".repeat(40), region: "eu-west-1", beat: () => Promise.resolve(), report: () => Promise.resolve() });
+  assertEquals(d.db.tables.grokpm_orders[0].state, "live");
+});
+
+Deno.test("audit: an order whose decision id is already a journal row is refused with its reason, not a 500", async () => {
+  const w = world();
+  w.db.tables.grokpm_decisions.push({ id: "j-1", received_at: iso(T0 - 120e3), ts: iso(T0 - 120e3), action: "no_action", reason: "nothing today", sources: [], raw: {} });
+  const r = await placeOrder(w.deps(), open({ id: "j-1" }));
+  assertEquals([r.status, r.body.error], [422, "invalid"]);
+  assertEquals(w.db.tables.grokpm_orders.length, 0);
+});
+
+Deno.test("audit: more than 1,000 orders are read whole, not refused (50 a day reaches 1,000 inside the 28 days)", async () => {
+  const w = world();
+  for (let i = 0; i < 1001; i++) {
+    w.db.tables.grokpm_orders.push({
+      id: 10_000 + i, created_at: iso(T0 - 5 * DAY), updated_at: iso(T0 - 5 * DAY), mode: "dry_run", decision_id: `old-${i}`, cond: C1, token: "101", outcome: "Yes", side: "BUY",
+      price: 0.44, size: 5, post_only: true, expiration: Math.floor((T0 - 5 * DAY) / 1000), neg_risk: false, hash: "0x" + i.toString(16).padStart(64, "0"), theme: "t", category: "B",
+      state: "expired", size_matched: 0, request: {}, response: {}, cancel_requested_at: null, cancelled_at: null, filled_at: null,
+    });
+  }
+  const c = await context(w.deps(), { readGeo: true, sync: false });
+  assertEquals([c.orders.length, c.ledger.cashUsd], [1001, 100]);
 });

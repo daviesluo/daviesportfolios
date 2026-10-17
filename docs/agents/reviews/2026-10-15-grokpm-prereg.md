@@ -299,6 +299,30 @@ CLOB's history (a mid-like price per five minutes), not executable books.
   3. **`adjustment`**: an open of category C needs a position the agent already holds in that market.
 
   These enforce rules §2 already states; nothing about the categories, the reading (§6), its bar or its end changes.
+- **D4 (2026-10-17, before the start; no migration).** An independent audit of the server before the go (Davies: "叫一个独立的
+  sub-agent再审核一下…如果有问题就修复") found four places where the server's book or rules did not do what §2, §3 and D2
+  already say. Fixed in `exec.ts` and `index.ts`, each pinned by an Edge test that failed before:
+  1. **A resolved holding is cash.** The agent's book now settles a resolved market's tokens at their payout into its cash
+     (as live-prep's book does), instead of keeping them as a held value outside the cash. Before, every win shrank the cash
+     the $30 floor reads, and after about $70 of resolved entries the agent could open nothing more, far short of §3's 40.
+     Equity and P&L are unchanged; the account's `budget` adds `settled_usd`. The tokens stay on chain until Davies redeems
+     them; the shared account's pUSD covers them meanwhile.
+  2. **The stops hold once reached.** §2's day stop ("no new opens for the rest of the day") and §3's total stop
+     ("close-only to the end") are latched when first reached in live (`grokpm_exec_state`): the day's until 00:00 UTC, the
+     total's to the end, so a mark recovering a minute later no longer opens them again. The total stop is reported once to
+     the errors box (§3: the test ends as a FAIL, and the main session tells Davies). `budget` adds `day_stop_hit_at` and
+     `total_stop_hit_at`, and `can_open` reads them.
+  3. **Every fill is booked.** A cancel's read-back books the trades it names (a fill between the minute's sync and the
+     cancel was lost); trades not yet final are read again until CONFIRMED or FAILED (the keyless record of §4 finds the
+     agent's trades by the transaction hash, which a trade read at MATCHED lacks); and an order of the last two days
+     matched beyond its booked fills is read again (live-prep's Addendum 25).
+  4. **The kill switches reach resting orders.** Under the global pause, or once the path is disarmed (0125's undo), the
+     minute's sync cancels the agent's live orders, each by its own id; before, they rested up to 65 minutes.
+
+  Also: the agent's orders and fills are read whole (a 1,000-row guard would have refused every request, closes included,
+  from about day 20 at 50 orders a day), only held tokens' books are read, and an order whose decision id is already a
+  journal row is refused with that reason instead of a 500. Nothing about the categories, the reading (§6), its bar or its
+  end changes.
 
 ## Appendix A: the journal API (paste into the prompt)
 

@@ -153,6 +153,8 @@ export function bookOf(raw: unknown): GrokBook | null {
 export type GrokLedger = {
   fundedUsd: number; cashUsd: number; feesUsd: number; heldValueUsd: number; equityUsd: number; totalUsd: number; restingBuyUsd: number;
   freeCashUsd: number;
+  /** What resolved holdings paid (size × payout): counted in the cash, since they are no longer at risk (Deviation D4). */
+  settledUsd: number;
   held: Record<string, { cond: string; held: number; avgCost: number; mark: number | null; markFrom: "payout" | "mid" | "cost" }>;
   restingSell: Record<string, number>;
   costByCond: Record<string, number>;
@@ -179,20 +181,23 @@ export function ledgerOf(p: {
   cash -= fees;
   const held: GrokLedger["held"] = {};
   const marks: Record<string, number | null> = {};
-  let heldValue = 0;
+  let heldValue = 0, settled = 0;
   const costByCond: Record<string, number> = {};
   for (const [token, b] of Object.entries(books)) {
     if (!(b.held > 0)) continue;
     const payout = p.payouts[token], mid = p.mids[token] ?? null;
-    const mark = payout !== undefined ? payout : mid;
     const cond = condOf.get(token) ?? "";
-    marks[token] = mark;
-    heldValue += b.held * (mark ?? b.avgCost);
+    // Deviation D4: a resolved holding is settled at its payout, as live-prep's `settlementFills` settles one: its value is
+    // cash (the shared account's pUSD covers it until Davies redeems the tokens), not a position. Counted as a held value it
+    // stayed out of the cash floor forever, and every win shrank what the agent could spend until it could open nothing.
+    if (payout !== undefined) { settled += b.held * payout; continue; }
+    marks[token] = mid;
+    heldValue += b.held * (mid ?? b.avgCost);
     if (!(b.held >= GROKPM_RULES.heldMin)) continue;
-    held[token] = { cond, held: r6(b.held), avgCost: r6(b.avgCost), mark: mark === null ? null : r6(mark), markFrom: payout !== undefined ? "payout" : mid !== null ? "mid" : "cost" };
-    // A resolved holding is not at risk any more: it no longer counts against its market's cap or the six positions.
-    if (payout === undefined) costByCond[cond] = (costByCond[cond] ?? 0) + b.held * b.avgCost;
+    held[token] = { cond, held: r6(b.held), avgCost: r6(b.avgCost), mark: mid === null ? null : r6(mid), markFrom: mid !== null ? "mid" : "cost" };
+    costByCond[cond] = (costByCond[cond] ?? 0) + b.held * b.avgCost;
   }
+  cash += settled;
   const restingSell: Record<string, number> = {};
   let restingBuy = 0;
   for (const o of p.orders.filter(isOpen)) {
@@ -209,7 +214,7 @@ export function ledgerOf(p: {
   // The total is the equity less the budget: the trades' cash and what is held at its mark (`bookPnl`'s total less fees).
   const total = cash + heldValue - p.fundedUsd;
   return {
-    fundedUsd: p.fundedUsd, cashUsd: r6(cash), feesUsd: r6(fees), heldValueUsd: r6(heldValue), equityUsd: r6(cash + heldValue), totalUsd: r6(total),
+    fundedUsd: p.fundedUsd, cashUsd: r6(cash), feesUsd: r6(fees), heldValueUsd: r6(heldValue), equityUsd: r6(cash + heldValue), totalUsd: r6(total), settledUsd: r6(settled),
     restingBuyUsd: r6(restingBuy), freeCashUsd: r6(cash - restingBuy), held, restingSell, costByCond, themeOf, costByTheme,
     openConds: Object.keys(costByCond).filter((c) => costByCond[c] > 1e-9).sort(),
   };
@@ -255,6 +260,8 @@ export type OrderPlan = { token: string; cond: string; side: "BUY" | "SELL"; pri
 export function orderRefusals(p: {
   decision: Decision; theme: string | null; ledger: GrokLedger; market: GrokMarket | null; book: GrokBook | null; nowMs: number;
   dayPnlUsd: number; dailyLossUsd: number; totalStopUsd: number; ordersToday: number; maxOrdersDay: number; expiresAt?: string | null;
+  /** Deviation D4: a stop once reached holds (the day's until 00:00 UTC, the total's to the end), whatever the marks do after. */
+  dayStopped?: boolean; totalStopped?: boolean;
 }): { refusals: Refusal[]; plan: OrderPlan | null } {
   const d = p.decision, out: Refusal[] = [];
   const R = GROKPM_RULES;
@@ -291,7 +298,9 @@ export function orderRefusals(p: {
     }
     if (d.category === "C" && !Object.values(p.ledger.held).some((h) => h.cond === cond)) out.push({ rule: "adjustment", why: "category C changes a position the agent already holds: it holds nothing in this market" });
     if (L.totalUsd <= -p.totalStopUsd) out.push({ rule: "total_stop", why: `the book is ${L.totalUsd.toFixed(2)} from the budget, at or past −${p.totalStopUsd}: close only` });
+    else if (p.totalStopped) out.push({ rule: "total_stop", why: `the total stop (−${p.totalStopUsd}) was reached earlier: close only to the end of the test` });
     if (p.dayPnlUsd <= -p.dailyLossUsd) out.push({ rule: "day_stop", why: `the UTC day is ${p.dayPnlUsd.toFixed(2)}, at or past −${p.dailyLossUsd}: no new open until 00:00 UTC` });
+    else if (p.dayStopped) out.push({ rule: "day_stop", why: `the day stop (−${p.dailyLossUsd}) was reached earlier today: no new open until 00:00 UTC` });
     const cost = price * size;
     const inMarket = (L.costByCond[cond] ?? 0) + cost;
     if (inMarket > R.marketCapUsd + 1e-9) out.push({ rule: "market_cap", why: `this market would hold ${inMarket.toFixed(2)} at cost, over ${R.marketCapUsd}` });
@@ -346,16 +355,70 @@ export type ExecDeps = {
 export type ExecContext = {
   cfg: GrokConfig; mode: "dry_run" | "live"; gates: Gates; ledger: GrokLedger; dayPnlUsd: number; dayOpenEquityUsd: number; orders: GrokOrderRow[];
   ordersToday: number; state: Record<string, unknown>; errors: string[];
+  /** When the day stop (today) and the total stop (ever, live) were first reached, or null (Deviation D4's latches). */
+  dayStopAt: string | null; totalStopAt: string | null;
 };
 
 const openOrdersQuery = `state=in.(pending,live)&select=*&order=id.asc&limit=500`;
 
-/** Read back each open live order by its hash, and book the trades it names; expire what can no longer rest. */
+/** Book the trades a live order's read-back names (each upserted on its key, so a second read changes only its status). */
+async function recordTrades(deps: ExecDeps, o: GrokOrderRow, ids: string[], errors: string[], seen?: Set<string>): Promise<number> {
+  const nowIso = iso(deps.now);
+  let n = 0;
+  for (const id of ids) {
+    const t = await deps.venue.trade(id);
+    const tr: PmTrade | undefined = t.ok ? (t.data?.data ?? []).find((x) => x.id === id) : undefined;
+    if (!tr) { errors.push(`trade ${id} unread: ${t.status} ${t.error ?? "not in the reply"}`); continue; }
+    const f = tradeFillOf(tr, { hash: o.hash, token: o.token, price: num(o.price) }), status = tradeStatus(tr.status);
+    if (!f || !(f.size > 0) || !(f.price > 0 && f.price < 1) || !status) { errors.push(`trade ${id}: no fill of ${o.hash.slice(0, 12)}… in it`); continue; }
+    await deps.db.upsert("grokpm_fills", [{
+      trade_id: id, hash: o.hash, cond: o.cond, token: o.token, side: o.side, price: f.price, size: f.size, taker: f.taker,
+      fee_usd: r6(pmLiveFillFee(f.size, f.price, tr.trader_side, tr.fee_rate_bps)), status,
+      match_time: Number(tr.match_time) > 0 ? iso(Number(tr.match_time) * 1000) : null, tx_hash: tr.transaction_hash ? String(tr.transaction_hash).toLowerCase() : null,
+      detail: { trade: tr }, updated_at: nowIso,
+    }], "trade_id,hash");
+    seen?.add(`${id}|${o.hash}`);
+    n++;
+  }
+  return n;
+}
+
+/**
+ * Apply what GET /data/order/{hash} says to the order's row, and book every trade it names. Used by the minute's sync AND
+ * right after a cancel: a fill between the last sync and the cancel was otherwise never booked, since a cancelled order is
+ * not read again (2026-10-17 audit).
+ */
+async function applyReadBack(deps: ExecDeps, o: GrokOrderRow, v: PmOpenOrder, errors: string[], seen?: Set<string>): Promise<{ settled: boolean; fills: number }> {
+  const nowIso = iso(deps.now);
+  const state = stateOfStatus(v.status), matched = num(v.size_matched);
+  if (!state) { errors.push(`order ${o.hash.slice(0, 12)}…: the venue says ${v.status}; left as it is`); return { settled: false, fills: 0 }; }
+  const patch: Record<string, unknown> = {};
+  if (state !== o.state) patch.state = state;
+  if (matched !== num(o.size_matched)) patch.size_matched = matched;
+  if (state === "filled" && !o.filled_at) patch.filled_at = nowIso;
+  if ((state === "cancelled" || state === "rejected") && !o.cancelled_at) patch.cancelled_at = nowIso;
+  if (Object.keys(patch).length) await deps.db.update("grokpm_orders", `id=eq.${o.id}`, { ...patch, updated_at: nowIso });
+  const fills = matched > 0 && Array.isArray(v.associate_trades) ? await recordTrades(deps, o, v.associate_trades.map(String), errors, seen) : 0;
+  return { settled: Object.keys(patch).length > 0, fills };
+}
+
+/** How many settled orders or unsettled trades one sync reads again, at most, and how far back (live-prep's Addendum 25). */
+export const GROKPM_REREAD_PER_SYNC = 10;
+export const GROKPM_REREAD_LOOKBACK_MS = 2 * DAY;
+
+/**
+ * Read back each open live order by its hash, and book the trades it names; expire what can no longer rest. Then, as
+ * live-prep does, read again (a) every trade not yet final (MATCHED, MINED, RETRYING, or CONFIRMED without its
+ * transaction hash) until it is CONFIRMED or FAILED: the keyless record finds the agent's trades by that hash, and a
+ * trade booked at MATCHED had none; and (b) every order of the last two days that the venue matched more of than its
+ * booked fills, whatever its state now (2026-10-17 audit).
+ */
 export async function syncOrders(deps: ExecDeps, errors: string[]): Promise<{ read: number; fills: number; settled: number }> {
   const { db, venue, now } = deps;
   const nowIso = iso(now), nowS = Math.floor(now / 1000);
   const open = await db.select<GrokOrderRow>("grokpm_orders", openOrdersQuery);
   let read = 0, fills = 0, settled = 0;
+  const seen = new Set<string>();
   for (const o of open) {
     if (o.mode === "dry_run") {
       // A dry-run order never fills; it ends when the venue would have ended it.
@@ -370,31 +433,27 @@ export async function syncOrders(deps: ExecDeps, errors: string[]): Promise<{ re
       } else if (r.status !== 404) errors.push(`order ${o.hash.slice(0, 12)}… unread: ${r.status} ${r.error ?? ""}`);
       continue;
     }
-    const v = r.data as PmOpenOrder;
-    const state = stateOfStatus(v.status), matched = num(v.size_matched);
-    if (!state) { errors.push(`order ${o.hash.slice(0, 12)}…: the venue says ${v.status}; left as it is`); continue; }
-    const patch: Record<string, unknown> = {};
-    if (state !== o.state) patch.state = state;
-    if (matched !== num(o.size_matched)) patch.size_matched = matched;
-    if (state === "filled" && !o.filled_at) patch.filled_at = nowIso;
-    if ((state === "cancelled" || state === "rejected") && !o.cancelled_at) patch.cancelled_at = nowIso;
-    if (Object.keys(patch).length) { await db.update("grokpm_orders", `id=eq.${o.id}`, { ...patch, updated_at: nowIso }); settled++; }
-    if (matched > 0 && Array.isArray(v.associate_trades)) {
-      for (const id of v.associate_trades.map(String)) {
-        const t = await venue.trade(id);
-        const tr: PmTrade | undefined = t.ok ? (t.data?.data ?? []).find((x) => x.id === id) : undefined;
-        if (!tr) { errors.push(`trade ${id} unread: ${t.status} ${t.error ?? "not in the reply"}`); continue; }
-        const f = tradeFillOf(tr, { hash: o.hash, token: o.token, price: num(o.price) }), status = tradeStatus(tr.status);
-        if (!f || !(f.size > 0) || !(f.price > 0 && f.price < 1) || !status) { errors.push(`trade ${id}: no fill of ${o.hash.slice(0, 12)}… in it`); continue; }
-        await db.upsert("grokpm_fills", [{
-          trade_id: id, hash: o.hash, cond: o.cond, token: o.token, side: o.side, price: f.price, size: f.size, taker: f.taker,
-          fee_usd: r6(pmLiveFillFee(f.size, f.price, tr.trader_side, tr.fee_rate_bps)), status,
-          match_time: Number(tr.match_time) > 0 ? iso(Number(tr.match_time) * 1000) : null, tx_hash: tr.transaction_hash ? String(tr.transaction_hash).toLowerCase() : null,
-          detail: { trade: tr }, updated_at: nowIso,
-        }], "trade_id,hash");
-        fills++;
-      }
-    }
+    const a = await applyReadBack(deps, o, r.data as PmOpenOrder, errors, seen);
+    if (a.settled) settled++;
+    fills += a.fills;
+  }
+  const allFills = await db.selectAll<GrokFillRow>("grokpm_fills", "select=*&order=trade_id.asc,hash.asc");
+  const orderOf = async (hash: string) => (await db.select<GrokOrderRow>("grokpm_orders", `hash=eq.${hash}&select=*&limit=1`))[0];
+  // (a) trades not yet final (each read once a sync: one just booked above is not read again).
+  for (const f of allFills.filter((x) => x.status !== "FAILED" && (x.status !== "CONFIRMED" || !x.tx_hash) && !seen.has(`${x.trade_id}|${x.hash}`)).slice(0, GROKPM_REREAD_PER_SYNC)) {
+    const o = open.find((x) => x.hash === f.hash) ?? await orderOf(f.hash);
+    if (o) fills += await recordTrades(deps, o, [f.trade_id], errors);
+  }
+  // (b) settled orders whose matched size is more than their booked fills.
+  const booked = new Map<string, number>();
+  for (const f of allFills) booked.set(f.hash, (booked.get(f.hash) ?? 0) + num(f.size));
+  const done = await db.select<GrokOrderRow>("grokpm_orders",
+    `mode=eq.live&state=in.(filled,cancelled,expired)&size_matched=gt.0&updated_at=gte.${encodeURIComponent(iso(now - GROKPM_REREAD_LOOKBACK_MS))}&select=*&order=id.asc&limit=1000`);
+  for (const o of done.filter((x) => (booked.get(x.hash) ?? 0) < num(x.size_matched) - 1e-6).slice(0, GROKPM_REREAD_PER_SYNC)) {
+    const r = await venue.order(o.hash);
+    read++;
+    if (r.ok && r.data && Array.isArray((r.data as PmOpenOrder).associate_trades)) fills += await recordTrades(deps, o, (r.data as PmOpenOrder).associate_trades!.map(String), errors);
+    else errors.push(`order ${o.hash.slice(0, 12)}… matched ${num(o.size_matched)} with ${booked.get(o.hash) ?? 0} booked, and its trades are unread: ${r.status} ${r.error ?? ""}`);
   }
   return { read, fills, settled };
 }
@@ -413,28 +472,31 @@ export async function context(deps: ExecDeps, opts: { readGeo: boolean; sync: bo
   if (opts.sync) await syncOrders(deps, errors).catch((e) => { errors.push(`sync: ${(e as Error).message}`); });
   const st = (await db.select<{ state: Record<string, unknown> | null }>("grokpm_exec_state", "id=eq.1&select=state"))[0]?.state ?? {};
   const [orders, fills, risk, others, resolutions] = await Promise.all([
-    db.select<GrokOrderRow>("grokpm_orders", `mode=eq.${mode}&select=*&order=id.asc&limit=1000`),
-    db.select<GrokFillRow>("grokpm_fills", "select=*&order=trade_id.asc,hash.asc&limit=1000"),
+    // Paged, whole (2026-10-17 audit): at 50 orders a day the 1,000-row guard that stood here would have refused every
+    // request, closes included, from about day 20 of 28.
+    db.selectAll<GrokOrderRow>("grokpm_orders", `mode=eq.${mode}&select=*&order=id.asc`),
+    db.selectAll<GrokFillRow>("grokpm_fills", "select=*&order=trade_id.asc,hash.asc"),
     // Unreadable, the pause is taken as on: nothing is sent on a guess.
     db.select<{ global_pause: boolean }>("agent_risk", "id=eq.1&select=global_pause").catch(() => [{ global_pause: true }]),
     Promise.all(["pm_live_config", "pm_mid_config", "pm_lp_config"].map((t) => db.select<{ live_confirmed_at: string | null }>(t, "id=eq.1&select=live_confirmed_at")
       .then((r) => (r[0]?.live_confirmed_at ? t : null)).catch(() => t))),
     db.select<{ cond: string; tokens: unknown; payouts: unknown }>("grokpm_resolutions", "select=cond,tokens,payouts&order=cond.asc&limit=1000").catch(() => []),
   ]);
-  if (orders.length >= 1000 || fills.length >= 1000) throw new Error("the agent's record is over 1,000 rows: refusing rather than reading part of it");
   const liveFills = mode === "live" ? fills : [];
   const payouts: Record<string, number> = {};
   for (const r of resolutions) {
     const t = Array.isArray(r.tokens) ? r.tokens.map(String) : [], p = Array.isArray(r.payouts) ? r.payouts.map(Number) : [];
     t.forEach((tok, i) => { if (Number.isFinite(p[i])) payouts[tok] = p[i]; });
   }
-  // The mids of what the agent holds.
-  const heldTokens = [...new Set(liveFills.map((f) => f.token))].filter((t) => payouts[t] === undefined);
+  // The mids of what the agent still holds (not of every token it ever traded), read together.
+  const net = new Map<string, number>();
+  for (const f of liveFills) if (f.status !== "FAILED") net.set(f.token, (net.get(f.token) ?? 0) + (f.side === "BUY" ? 1 : -1) * num(f.size));
+  const heldTokens = [...net].filter(([t, q]) => q > 1e-9 && payouts[t] === undefined).map(([t]) => t);
   const mids: Record<string, number | null> = {};
-  for (const t of heldTokens) {
-    const b = await venue.book(t);
-    mids[t] = b.ok ? bookOf(b.data)?.mid ?? null : null;
-  }
+  await Promise.all(heldTokens.map(async (t) => {
+    const b = await venue.book(t).catch(() => null);
+    mids[t] = b?.ok ? bookOf(b.data)?.mid ?? null : null;
+  }));
   const funded = num(cfg.funded_usd);
   const ledger = ledgerOf({ fundedUsd: funded, orders, fills: liveFills, mids, payouts, nowMs: now });
   // The day's opening equity: the first reading of the UTC day (the start's own day opens at the budget).
@@ -456,10 +518,20 @@ export async function context(deps: ExecDeps, opts: { readGeo: boolean; sync: bo
   }
   let closedOnly: boolean | null = null;
   if (opts.readGeo && mode === "live") { const c = await venue.closedOnly(); closedOnly = c.ok ? c.data?.closed_only === true : null; }
+  // Deviation D4: the stops hold once reached. §2/§3: the day's "no new opens for the rest of the day", the total's
+  // "close-only to the end"; computed afresh, a mark recovering a minute later would have opened them again. Live only,
+  // from the agent's own book; the latch is kept in this state row (`totalStop` is cleared only by hand, on Davies' word).
+  const dayPnl = r6(ledger.equityUsd - dayOpen.equityUsd);
+  if (mode === "live") {
+    if (dayPnl <= -num(cfg.daily_loss_usd) && (st.dayStop as { day?: string } | undefined)?.day !== today) st.dayStop = { day: today, at: iso(now), dayPnlUsd: dayPnl };
+    if (ledger.totalUsd <= -num(cfg.total_stop_usd) && !st.totalStop) st.totalStop = { at: iso(now), totalUsd: ledger.totalUsd };
+  }
+  const dayStopAt = (st.dayStop as { day?: string; at?: string } | undefined)?.day === today ? (st.dayStop as { at: string }).at : null;
+  const totalStopAt = (st.totalStop as { at?: string } | undefined)?.at ?? null;
   await db.update("grokpm_exec_state", "id=eq.1", { state: st, updated_at: iso(now), last_error: errors.length ? errors.join("; ").slice(0, 500) : null });
   const dayStart = Math.floor(now / DAY) * DAY;
   return {
-    cfg, mode, ledger, dayOpenEquityUsd: dayOpen.equityUsd, dayPnlUsd: r6(ledger.equityUsd - dayOpen.equityUsd), orders, state: st, errors,
+    cfg, mode, ledger, dayOpenEquityUsd: dayOpen.equityUsd, dayPnlUsd: dayPnl, orders, state: st, errors, dayStopAt, totalStopAt,
     ordersToday: orders.filter((o) => Date.parse(o.created_at) >= dayStart).length,
     gates: {
       region: deps.region, mode, armed, keyProblem: deps.signer && deps.account ? null : deps.keyProblem ?? "no signing key or account loaded",
@@ -485,7 +557,8 @@ export function accountView(c: ExecContext, nowMs: number) {
       spendable_usd: r6(Math.max(0, L.freeCashUsd - GROKPM_RULES.cashFloorUsd)), held_value_usd: L.heldValueUsd, equity_usd: L.equityUsd, fees_usd: L.feesUsd,
       total_pnl_usd: L.totalUsd, day_pnl_usd: c.dayPnlUsd, day_stop_usd: -dayLimit, total_stop_usd: -totalLimit,
       day_room_usd: r6(dayLimit + c.dayPnlUsd), total_room_usd: r6(totalLimit + L.totalUsd),
-      can_open: L.totalUsd > -totalLimit && c.dayPnlUsd > -dayLimit, orders_today: c.ordersToday, max_orders_day: cfg.max_orders_day,
+      can_open: L.totalUsd > -totalLimit && c.dayPnlUsd > -dayLimit && !c.dayStopAt && !c.totalStopAt, day_stop_hit_at: c.dayStopAt, total_stop_hit_at: c.totalStopAt,
+      settled_usd: L.settledUsd, orders_today: c.ordersToday, max_orders_day: cfg.max_orders_day,
       markets_open: L.openConds.length, max_markets: GROKPM_RULES.maxPositions, market_cap_usd: GROKPM_RULES.marketCapUsd,
       theme_cap_usd: GROKPM_RULES.themeCapUsd, cost_by_theme: L.costByTheme, cost_by_market: L.costByCond,
     },
@@ -552,6 +625,11 @@ export async function placeOrder(deps: ExecDeps, body: unknown): Promise<{ statu
   const { db, now } = deps;
   const done = (await db.select<GrokOrderRow>("grokpm_orders", `decision_id=eq.${encodeURIComponent(decision.id)}&select=*&limit=1`))[0];
   if (done) return { status: 200, body: { ok: true, duplicate: true, order: orderOut(done) } };
+  // An id the journal already holds (a row posted to the journal, or a cancel's decision) is not this order's: refused with
+  // its reason rather than failing on the journal's key with a 500 the agent would resend forever (2026-10-17 audit).
+  if ((await db.select<{ id: string }>("grokpm_decisions", `id=eq.${encodeURIComponent(decision.id)}&select=id&limit=1`)).length) {
+    return { status: 422, body: { error: "invalid", errors: [`decision.id: ${decision.id} is already a journal row; an order's decision needs a new id`] } };
+  }
   const c = await context(deps, { readGeo: true, sync: true });
   const [g, bk] = await Promise.all([deps.venue.gamma({ cond: decision.market_id! }), deps.venue.book(decision.token_id!)]);
   const market = g.ok ? marketOf((g.data?.markets ?? []).find((x) => String(x.conditionId ?? "").toLowerCase() === decision.market_id)) : null;
@@ -559,6 +637,7 @@ export async function placeOrder(deps: ExecDeps, body: unknown): Promise<{ statu
   const { refusals, plan } = orderRefusals({
     decision, theme, ledger: c.ledger, market, book, nowMs: now, dayPnlUsd: c.dayPnlUsd, dailyLossUsd: num(c.cfg.daily_loss_usd),
     totalStopUsd: num(c.cfg.total_stop_usd), ordersToday: c.ordersToday, maxOrdersDay: c.cfg.max_orders_day, expiresAt,
+    dayStopped: !!c.dayStopAt, totalStopped: !!c.totalStopAt,
   });
   const gateRefusals = liveGateRefusals(c.gates, decision.side!);
   const all = [...gateRefusals, ...refusals];
@@ -610,7 +689,7 @@ function orderOut(o: GrokOrderRow) {
  * Cancel the agent's own open orders: one (`order_id`) or all of them, each by its own id, never the venue's cancel-all
  * (which would cancel every order of the shared account). An optional `decision` (action `cancel`) is journalled.
  */
-export async function cancelOrders(deps: ExecDeps, body: unknown, all: boolean): Promise<{ status: number; body: Record<string, unknown> }> {
+export async function cancelOrders(deps: ExecDeps, body: unknown, all: boolean, onlyLive = false): Promise<{ status: number; body: Record<string, unknown> }> {
   const b = (body && typeof body === "object" && !Array.isArray(body) ? body : {}) as Record<string, unknown>;
   const errors = Object.keys(b).filter((k) => !["order_id", "decision"].includes(k)).map((k) => `${k}: unknown field`);
   if (!all && !(typeof b.order_id === "string" && HASH.test(b.order_id))) errors.push("order_id: one of your order ids (0x and 64 hex digits)");
@@ -618,7 +697,7 @@ export async function cancelOrders(deps: ExecDeps, body: unknown, all: boolean):
   if (decision && decision.action !== "cancel") errors.push("decision.action: cancel");
   if (errors.length) return { status: 422, body: { error: "invalid", errors: errors.slice(0, 20) } };
   const { db, venue, now } = deps;
-  const open = (await db.select<GrokOrderRow>("grokpm_orders", openOrdersQuery)).filter((o) => all || o.hash === b.order_id);
+  const open = (await db.select<GrokOrderRow>("grokpm_orders", openOrdersQuery)).filter((o) => (all || o.hash === b.order_id) && (!onlyLive || o.mode === "live"));
   if (!all && !open.length) return { status: 404, body: { error: "no open order of yours with that id" } };
   if (decision) await db.insert("grokpm_decisions", [{ ...decision, raw: b.decision }], false).catch(() => {});
   const out: Array<Record<string, unknown>> = [];
@@ -633,8 +712,10 @@ export async function cancelOrders(deps: ExecDeps, body: unknown, all: boolean):
     const c = await venue.cancelOrder(o.hash).catch((e) => ({ ok: false, status: 0, ms: 0, error: (e as Error).message } as PmReply));
     const r = await venue.order(o.hash);
     const state = r.ok && r.data ? stateOfStatus(r.data.status) : null;
-    if (state && state !== o.state) await db.update("grokpm_orders", `id=eq.${o.id}`, { state, ...(state === "cancelled" ? { cancelled_at: iso(now) } : {}), updated_at: iso(now) });
-    out.push({ order_id: o.hash, state: state ?? o.state, cancel_answer: c.ok ? "taken" : `${c.status} ${c.error ?? ""}`.trim(), sent: true });
+    // The read-back's state, its matched size and every trade it names: a fill since the last sync is booked here.
+    const errors: string[] = [];
+    if (r.ok && r.data) await applyReadBack(deps, o, r.data as PmOpenOrder, errors);
+    out.push({ order_id: o.hash, state: state ?? o.state, size_matched: r.ok && r.data ? num(r.data.size_matched) : num(o.size_matched), cancel_answer: c.ok ? "taken" : `${c.status} ${c.error ?? ""}`.trim(), sent: true, ...(errors.length ? { errors } : {}) });
   }
   return { status: 200, body: { ok: true, cancelled: out } };
 }

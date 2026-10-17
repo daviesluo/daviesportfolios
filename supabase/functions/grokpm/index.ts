@@ -188,17 +188,34 @@ async function handleSync(req: Request, deps: HandleDeps, t: number): Promise<Re
     const x = await deps.exec(t);
     const errors: string[] = [];
     const r = await syncOrders(x, errors);
-    // The day's opening equity and the last good geoblock are kept by the same reading every request makes.
-    await context(x, { readGeo: true, sync: false });
+    // The day's opening equity, the last good geoblock and the stops' latches are kept by the same reading every request makes.
+    const c = await context(x, { readGeo: true, sync: false });
+    // The kill switches reach what already rests (2026-10-17 audit): under the global pause, or once the path is disarmed
+    // (0125's undo), the agent's LIVE orders are cancelled, each by its own id, rather than left resting up to 65 minutes.
+    let cancelled = 0;
+    if (c.gates.globalPause || c.mode === "dry_run") {
+      if (c.mode === "dry_run" ? (await x.db.select<{ id: number }>("grokpm_orders", "mode=eq.live&state=in.(pending,live)&select=id&limit=1")).length : true) {
+        const k = await cancelOrders(x, {}, true, true);
+        cancelled = ((k.body.cancelled ?? []) as unknown[]).length;
+        if (cancelled) errors.push(`${cancelled} live order(s) cancelled: ${c.gates.globalPause ? "the global pause is on" : "the path is disarmed"}`);
+      }
+    }
     // A fault goes to the errors box when it first appears and at most hourly while it lasts (digits do not make it new).
     const key = errors.map((e) => e.replace(/\d+(\.\d+)?/g, "#").replace(/0x[0-9a-f…]+/gi, "0x…")).sort().join(" | ").slice(0, 400);
     const st = (await x.db.select<{ state: Record<string, unknown> | null }>("grokpm_exec_state", "id=eq.1&select=state"))[0]?.state ?? {};
     const last = st.syncReport as { key: string; at: number } | undefined;
+    let next: Record<string, unknown> | null = null;
     if (key && (!last || last.key !== key || t - last.at >= 3600e3)) {
       await (deps.report ?? reportServerError)("grokpm.sync", { message: errors.join("; ").slice(0, 500) });
-      await x.db.update("grokpm_exec_state", "id=eq.1", { state: { ...st, syncReport: { key, at: t } } });
+      next = { ...st, syncReport: { key, at: t } };
     }
-    return json(200, { ok: true, ...r, errors: errors.length });
+    // The total stop ends the test as a FAIL (the pre-registration's §3): said once, to the errors box, the moment it latches.
+    if (c.totalStopAt && !st.totalStopReported) {
+      await (deps.report ?? reportServerError)("grokpm.total_stop", { message: `GROKPM's total stop was reached at ${c.totalStopAt} (book ${c.ledger.totalUsd.toFixed(2)}): close-only to the end, and the test ends as a FAIL` });
+      next = { ...(next ?? st), totalStopReported: t };
+    }
+    if (next) await x.db.update("grokpm_exec_state", "id=eq.1", { state: next });
+    return json(200, { ok: true, ...r, cancelled, errors: errors.length });
   } catch (e) {
     const message = (e instanceof Error ? e.message : String(e)).slice(0, 300);
     await (deps.report ?? reportServerError)("grokpm.sync", { message });

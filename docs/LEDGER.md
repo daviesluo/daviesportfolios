@@ -471,7 +471,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      - nothing in `grokpm_fills`; no `grokpm.sync` errors.
    - **Dry-run checks all done 10-16 15:38** (Grok's rehearsal: one dry-run B open, one longshot refusal, one cycle row; no
      fills, no errors). The journal is the base URL with no `action` (an `action=journal` in the first prompt was wrong).
-     **D3** (same day) makes the server refuse `edge`, `kelly` and `adjustment` too.
+     **D3** (same day) makes the server refuse `edge`, `kelly` and `adjustment` too. **D4** (10-17 pre-go audit): resolved
+     wins settle into cash, the stops latch, every fill is booked, the kill switches cancel resting orders. Before go:
+     land D4 (the deploy must show it), then Davies sends Grok the audit's message (prompt v2).
    - **The go** (0125's header, only in the conversation where Davies says it):
      `update public.grokpm_config set dry_run = false, armed_at = now(), started_at = now() where id = 1 and dry_run = true
      and armed_at is null and started_at is null and wallet is not null and ireland_attested_at is not null and
@@ -603,6 +605,18 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16"; each oldest first.
+
+### [2026-10-17 01:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM D4: the pre-go audit's server fixes** (sub-agent, independent audit; Davies: "叫一个独立的sub-agent再审核一下…如果有
+  问题就修复"; item 15). `grokpm/exec.ts`, `index.ts`: a resolved holding settles into the agent's cash at its payout (it
+  had stayed out of the $30 floor, so ~$70 of resolved entries would have stopped every open); the day and total stops
+  latch in `grokpm_exec_state` (a recovering mark had reopened them) and the total stop reports `grokpm.total_stop` once;
+  a cancel's read-back books its fills, non-final trades are re-read until CONFIRMED/FAILED (the recorder matches by tx
+  hash, absent at MATCHED), settled orders short of their matched size are re-read; the sync cancels live orders when
+  disarmed or paused; orders and fills read whole (`grokpm_fills` in `PAGED_KEYS`), only held books read, a journal id
+  reused as an order's refused 422. Eight pins in `exec.test.ts`, each failing on the old code; prereg §9 D4, sha
+  re-pinned. Read-only DB at 01:05: config dry-run, unarmed, unstarted, wallet set; the go's WHERE matches 1 row; other
+  paths unarmed; no pause; sync 60 beats in 60 min; no grokpm errors in 24 h; account pUSD $308.03 (live-prep's state).
 
 ### [2026-10-17 00:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Mid-pool's 10-17 readout: not run, withdrawn** (wake `trig_01XwUUNT5yXL3pzHoyH4JLaG` fired 00:20). `0120` switched mid-pool
