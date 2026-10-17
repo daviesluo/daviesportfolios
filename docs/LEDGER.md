@@ -188,7 +188,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      both true; the go-live audit's fixes and live-prep's Addendum 5 (`pm_live.ts` `a208878b…`) land with it; the monitor's freshness reading for `pm_lp_state` is built (`monitor/health.ts`
      `pmLp`, three minutes); then step 8lp, only where he says go. Not measured: the selection's CPU over about
      1,379 markets. **mid-pool** (`0081`/`0084`, `agents/pm_mid.ts`, `reviews/2026-10-02-polymarket-mid-pool-prereg.md`;
-     day-1 check PASS 10-04): run `backtests/pmlive/mid_readout.sql` once at or after **2026-10-17 00:10 UTC** (wake
+     day-1 check PASS 10-04) — **WITHDRAWN 2026-10-13 (`0120`, item 0b): nothing below runs; the 10-17 wake fired and
+     stood down.** As it stood: run `backtests/pmlive/mid_readout.sql` once at or after **2026-10-17 00:10 UTC** (wake
      `trig_01XwUUNT5yXL3pzHoyH4JLaG`), naming deviations 1 and 2 and, as a deviation on Davies' word (2026-10-09), that
      mini-pool's (small-pool's) column is empty from the day `0103` landed (its calls stopped; the days missing, never
      zero), and the overlap audit `mid_audit.sql` no earlier than
@@ -602,6 +603,12 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16"; each oldest first.
+
+### [2026-10-17 00:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Mid-pool's 10-17 readout: not run, withdrawn** (wake `trig_01XwUUNT5yXL3pzHoyH4JLaG` fired 00:20). `0120` switched mid-pool
+  off on Davies' word of 2026-10-13 and its pre-registration's withdrawal section withdraws the readout, the audit and the
+  funded draft (item 0b). No SQL run; item 2's mid-pool paragraph now says so at its head. The 10-23 wake keeps LPRESEL6 and
+  live-prep's own reads only.
 
 ### [2026-10-16 16:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **S1a pulls fired from the database** (main session, the Vault bearer through `net.http_post`, as `facts` was): `history`
