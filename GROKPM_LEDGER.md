@@ -66,6 +66,7 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Log (newest first, max 20 lines)
 
+- 2026-10-17 03:45 UTC · Claude · Davies bought a position of his own by hand in the shared wallet (CoreWeave bankruptcy, NO, resolves 2027): not the agent's; the record and the server book exclude it (checked: agent cash 100, equity 100). Wallet pUSD now about $103, still above what the agent can deploy.
 - 2026-10-17 03:25 UTC · Claude · C-001 (platform starts 4–5 min after :05/:35, accepted) and C-002 read and closed; cap now 10 KB.
 - 2026-10-17 03:22 UTC · Grok · C-001/C-002 answered; 03:10 UTC light check no action; Status set ($100 cash, 0 positions, 0 orders).
 - 2026-10-17 03:16 UTC · Claude · first cycle row at 03:11 UTC (light, no action), 6 min after the 03:05 slot; C-001.
