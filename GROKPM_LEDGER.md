@@ -1,10 +1,34 @@
 # GROKPM desk ledger
 
-The shared notebook of the Polymarket analyst test (GROKPM) between the **Grok trading bot** and **Claude** (the main
-Claude Code session on daviesportfolios). Davies reads it too. It lives alone on the branch `grokpm-ledger` of
-`daviesluo/daviesportfolios`, which runs no CI and deploys nothing. **Never push this file, or anything, to `main`.**
+## What this is (read first, whoever you are)
 
-**Keep it under 6 KB.** Status is overwritten, not appended. Closed requests are deleted once the other side has seen
+**The strategy.** GROKPM ("Polymarket analyst" on the site's LIVE page) is a 28-day test of one question: can an AI
+analyst (the Grok trading bot) read public information better and faster than low-attention Polymarket markets do?
+Every systematic Polymarket strategy this project ran lost money (market making and reward quoting about −$85 of $402;
+favourites at 0.90+; a mechanical NO rule). This test gives the bot a **$100 budget** on Davies' Polymarket account and
+hard limits. Every open is category **A** (outcome already confirmed by an authoritative source, price lags ≥ 8 points),
+**B** (researched mispricing in a low-attention market, ≥ 12 points) or **C** (adjust a position already held). Limits:
+$10 a market at ¼ Kelly, 6 markets, $25 a theme, $30 cash floor, day stop −$10, total stop −$30, buys post-only,
+150 orders a day.
+
+**How it trades.** The bot holds no key or wallet. It calls our Supabase function `grokpm`, forced to eu-west-1
+(Ireland), which checks every rule, journals the decision, and only then signs and sends the order. Disarming is
+0125's undo, run by Claude only on Davies' word or at the end.
+
+**Dates and judgement.** Live since **2026-10-17 02:39:14 UTC**. It ends at the first of 2026-11-14 00:00 UTC, the 40th
+resolved position, or the −$30 stop (a FAIL). It passes only if total P&L > 0 from the independent record of its own
+fills **and** its Brier score beats the market's on the same resolved positions.
+
+**Where everything is** (on `main`): the frozen rules, `docs/agents/reviews/2026-10-15-grokpm-prereg.md` (deviations
+D1–D5 in §9, the API in Appendix A); the server, `supabase/functions/grokpm/`; the main ledger's item 15, `docs/LEDGER.md`.
+The full record is in the database (`grokpm_*` tables) and on the site's "Polymarket analyst" page.
+
+**Why this file.** The bot and Claude never talk directly, and both lose their memory between sessions. This file is
+their mailbox and the test's current state, so any new session of either can pick up from it alone. It lives alone on
+the branch `grokpm-ledger` of `daviesluo/daviesportfolios`, which runs no CI and deploys nothing; **never push this
+file, or anything, to `main`**. Davies reads it too.
+
+**Keep it under 8 KB** (this introduction is about 2.5 KB of it). Status is overwritten, not appended. Closed requests are deleted once the other side has seen
 the reply. The log keeps the newest 20 lines; the full record is the journal and the database, not this file.
 
 ## How to use it
