@@ -21,11 +21,13 @@ const INGEST = read('supabase/functions/grokpm/ingest.ts');
 const SCHEMA = read('supabase/functions/_shared/grokpm_schema.ts');
 
 describe('GROKPM pre-registration', () => {
-  // Frozen 2026-10-15; its sha256 since Deviation D4 (2026-10-17, the pre-go audit), which added §9's D4 only. D3
+  // Frozen 2026-10-15; its sha256 since Deviation D5 (2026-10-17: 150 orders a day, the end closed by the main session),
+  // which added §9's D5 and named 150 beside §9 D2's 50 and in the refusal table's `orders_day`. D4 (the pre-go audit)
+  // added §9's D4 only. D3
   // (2026-10-16) added §9's D3 and three rows to A.2's refusal table; D2 before it added §9's D2 and Appendix A.2 and
   // moved the hourly request cap from 120 to 600.
   it('is frozen: its sha256', () => {
-    expect(sha(PREREG_PATH)).toBe('887a4614e262d8d94ce51f24eb7e549a365a7213e265c0d4696278b077ca8b99');
+    expect(sha(PREREG_PATH)).toBe('31f8c7a4e4571bae37c2ca028c5da4e1f24eb132b9e84468c738bcda895e905f');
   });
 
   it("has its cadence study's files as its manifest names them, and quotes the study's own numbers", () => {

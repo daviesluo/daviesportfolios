@@ -1,0 +1,11 @@
+-- 0127: GROKPM's orders a UTC day, 50 → 150 (Deviation D5, docs/agents/reviews/2026-10-15-grokpm-prereg.md §9).
+--
+-- On whose word. The pre-go audit (2026-10-17) found that an order kept resting must be re-placed each wake (its GTD expiry
+-- is the next wake plus five minutes, at most 65 minutes), so one order kept alive through a day on the 30-minute rhythm
+-- costs 48 of the 50. Davies, 2026-10-17, on the recommendation to raise the cap to 150: "你的其他问题都按你推荐的来".
+-- Every order stays post-only (a buy) under the same $10 market, $25 theme, six-market, $30 cash-floor and stop rules, so
+-- the cap adds no money at risk; it only leaves room to keep a resting order alive. 0125's check allows up to 200.
+--
+-- Nothing else changes: the row stays disarmed (dry_run true, armed_at null) until the go statement in 0125's header runs
+-- in the conversation where Davies says go.
+update public.grokpm_config set max_orders_day = 150 where id = 1 and max_orders_day = 50;

@@ -827,6 +827,7 @@ before touching migration state.
 | `0124_grokpm.sql` | GROKPM's tables (the agent's journal, the wallet's independent record, its config with the wallet null and FUNDED $100), a day-opens view, and its recorder's call every five minutes. |
 | `0125_grokpm_exec.sql` | GROKPM's order path: its config's arm (dry-run by default) and attestation, its orders, fills and state, GROKPM in the one-armed trigger, its minute read-back call, and live-prep disarmed where it holds nothing sellable. |
 | `0126_grokpm_markets.sql` | GROKPM's market titles: each market its journal or record names, with its question, slug and end date from Gamma, so its page titles and links every journal entry. |
+| `0127_grokpm_orders_day.sql` | GROKPM's orders a UTC day raised from 50 to 150 (its Deviation D5), so a resting order can be re-placed each wake. |
 | `0096_pm_rw_x_tb1_arms.sql` | Lets the variants' day tables, RW's and RW-C's, take TB1's two arms on x1 (tb1-skip, tb1-back). |
 | `0086_quote_live_deadman.sql` | Adds the kind `deadman` to `agent_quote_live_events`, for the row the monitor's dead-man switch writes when it cancels PR5's resting orders. |
 | `0087_quote_twins.sql` | The realistic twins' tables (each the live executor's four, a replica's and a simulated account's), their config rows and leases, and the one call that runs them. |

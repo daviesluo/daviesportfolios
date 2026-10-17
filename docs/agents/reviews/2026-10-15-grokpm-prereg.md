@@ -263,7 +263,7 @@ CLOB's history (a mid-like price per five minutes), not executable books.
      - not thin: spread at most 5 points, and at least $500 bid within 5 points of the mid;
      - the decision's p, m, category, sources and invalidation present;
      - the venue's tick and minimum size;
-     - at most 50 orders a UTC day;
+     - at most 50 orders a UTC day (150 since D5);
      - a GTD expiry clamped to between 3 and 65 minutes (35 by default).
 
      Live, the server also requires all of these, read by the server itself:
@@ -323,6 +323,17 @@ CLOB's history (a mid-like price per five minutes), not executable books.
   from about day 20 at 50 orders a day), only held tokens' books are read, and an order whose decision id is already a
   journal row is refused with that reason instead of a 500. Nothing about the categories, the reading (§6), its bar or its
   end changes.
+- **D5 (2026-10-17, before the start; migration `0127`).** Davies, 2026-10-17, on the audit's two open questions: "你的其他问题
+  都按你推荐的来".
+  1. **150 orders a UTC day, not 50.** An order kept resting is re-placed each wake (its GTD expiry is the next wake plus five
+     minutes, §2), so one order kept alive through a day on the 30-minute rhythm cost 48 of the 50. Buys stay post-only under
+     every cap and stop above, so this adds no money at risk.
+  2. **The end is closed by the main session.** At the end (§3: 28 days, the 40th resolved position, or the total stop) the
+     agent stops opening and tells Davies; the main session then disarms the path with 0125's undo once the agent's resting
+     orders are cancelled (the minute's sync cancels any left, D4), and runs the reading (§6). What the agent still holds then
+     settles at resolution and is counted by the record.
+
+  Nothing about the categories, the reading (§6), its bar or its end changes.
 
 ## Appendix A: the journal API (paste into the prompt)
 
@@ -544,7 +555,7 @@ A close of category C (a broken thesis) may sell at or below the best bid; any o
 | `geoblock` | the server's geoblock is not IE |
 | `attestation` | Davies' Ireland attestation is not current: closes only |
 | `closed_only` | the account is closed-only: closes only |
-| `orders_day` | 50 orders today already |
+| `orders_day` | the day's orders already reached (150 since D5) |
 | `market` | Gamma has no such open market, or the token is not one of its outcomes |
 | `book` | the book is unreadable |
 | `longshot` | a buy under 0.05 |

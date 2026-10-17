@@ -606,11 +606,18 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16"; each oldest first.
 
+### [2026-10-17 02:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM D5: 150 orders a day; the main session closes the end** (Davies: "你的其他问题都按你推荐的来"). `0127` sets
+  `grokpm_config.max_orders_day` 50 → 150 (a resting order re-placed each wake cost 48 of 50 a day); at the end (28 days,
+  40 resolved, or −$30) the main session runs 0125's undo and the reading. Prereg §9 D5, sha re-pinned. Grok confirmed
+  prompt v2 and its order plan (≤ 2 resting, cancel then re-place, take-profit only near target, ~10 a day kept for exits).
+
 ### [2026-10-17 02:00 UTC] Platform: Claude Engineer (Grok Bot) | Model: not recorded (session policy)
 - **Landed `claude/hopeful-planck-acdq5g`** (the Coinbase release blackout, 5 commits, rebased on main; Davies, 10-17 in the
   Portfolio Project group: "你觉得会让策略更好的话就推"): paper tests only, no order path. `FINNHUB_API_KEY` is needed only by the
   optional `?action=econcal`; the blackout reads the committed calendar. First live check: 2026-10-28 17:59 to 18:05 UTC (FOMC);
   CPI 11-10, 12-10 and NFP 12-04 still unconfirmed. Archived the 2026-10-15 01:24 → 03:29 UTC history sections.
+
 
 ### [2026-10-17 01:26 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **GROKPM's page tidied** (sub-agent; item 15; Davies: "“Polymarket analyst (Grok)”策略改为“Polymarket analyst“，子页面JOURNAL部分
