@@ -488,8 +488,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      while `redeem_enabled` is false (its plan in `grokpm_exec_state.redeem_state`). **Davies does:** polymarket.com →
      Settings → API Keys → Relayer API Keys → create; store the API key as the Edge Function secret
      `POLYMARKET_RELAYER_API_KEY` and the Signer Address shown beside it as `POLYMARKET_RELAYER_API_KEY_ADDRESS` (never in a
-     chat). **Then the main session** reads one dry run's `grokpm_exec_state.redeem_state` (its plan, `blockedBy` empty) and,
-     on his confirmation, runs
+     chat). **Done 2026-10-18 03:05 UTC: enabled, first redemption mined (history 2026-10-18 03:08).** Before that the main
+     session read one dry run's `grokpm_exec_state.redeem_state` (its plan, `blockedBy` empty) and ran
      `update public.grokpm_config set redeem_enabled = true where id = 1 and redeem_enabled = false returning redeem_enabled;`
      (undo: `… set redeem_enabled = false …`), and watches the first `grokpm_redeems` rows reach `confirmed`.
    - **The desk ledger** (Davies, 2026-10-17: "开一个这个grok bot trading的专属ledger…他每次唤醒后可以看到你的留言，你每次醒时也可以
@@ -619,6 +619,14 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)"; each oldest first.
+
+### [2026-10-18 03:08 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM auto-redeem ON** (D6; Davies: "加上吧 全部都自动化掉", then "grokbot给我存好了" once the Relayer API key's two
+  Edge Function secrets were set at 02:19 UTC). The 03:00 UTC dry run had `blockedBy` empty, no error, the expected five
+  markets; `redeem_enabled` set true at 03:05; a run fired by hand at 03:05:45 sent one relayed transaction for all five
+  (relay `01a14cf8…`, tx `0x47ddae80…`), mined in block 95,724,934 with status 1 (51 logs, 1.36 M gas, paid by the
+  relayer). The hourly call settles those `grokpm_redeems` rows and redeems the next five (all $0) at 04:00. Undo:
+  `update public.grokpm_config set redeem_enabled = false where id = 1;`.
 
 ### [2026-10-17 04:02 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **GROKPM D6: the shared account's resolved positions redeemed automatically** (sub-agent; Davies: "加上吧 全部都自动化掉";
