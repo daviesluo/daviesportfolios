@@ -19,7 +19,8 @@ import { RULED_ARMS } from "./quotes_ruled.ts";
 import { QUOTE_LIVE_INSTANCE, retiredAt } from "./quotes_live.ts";
 
 const M = 60e3, H = 3600e3;
-const T0 = Date.parse("2026-09-24T10:00:00Z");     // a Thursday, before PR5's beats and minute records: its call ran every minute
+const T0_ = Date.parse("2026-09-24T10:00:00Z");
+const T0 = T0_;     // a Thursday, before PR5's beats and minute records: its call ran every minute
 const X = 1.3238;                                   // GBP/USD; with the USD books at 1.0000, fair is 1 / X = 0.75540
 const iso = (ms: number) => new Date(ms).toISOString();
 const KEY = (await crypto.subtle.generateKey({ name: "Ed25519" }, false, ["sign", "verify"]) as CryptoKeyPair).privateKey;
@@ -30,10 +31,15 @@ const ORDERS = SPEC.instance.orders;
  * A world: PR5's record as its call leaves it, minute by minute, and the twins' call a minute behind it. `specs` are the
  * twins it may hold (their tables and leases); a call runs `specs` unless it names others.
  */
-function world(seed?: Record<string, Row[]>, specs: TwinSpec[] = [SPEC]) {
+function world(seed?: Record<string, Row[]>, specs: TwinSpec[] = [SPEC], opts: { t0?: number; fxGaps?: Array<[number, number]> } = {}) {
+  const T0 = opts.t0 ?? T0_;
   const clock = { now: T0 };
   const inputs: Row[] = [];
-  for (let t = T0 - 2 * H; t <= T0 + 30 * H; t += M) inputs.push({ kind: "fx", t: iso(t), value: X });
+  // GBP/USD every minute, but for `fxGaps` (a closure's dark stretches: no bar starts in them).
+  for (let t = T0 - 2 * H; t <= T0 + 30 * H; t += M) if (!(opts.fxGaps ?? []).some(([a, b]) => t >= a && t < b)) inputs.push({ kind: "fx", t: iso(t), value: X });
+  const fxBars = inputs.filter((r) => r.kind === "fx").map((r) => Date.parse(String(r.t)));
+  /** PR5's X at minute t: a bar that started in [t − 10 min, t − 1 min] (`fxBarAt`), else dark. */
+  const xAt = (t: number) => (fxBars.some((b) => b >= t - 10 * M && b <= t - M) ? X : null);
   for (let t = T0 - 30 * H; t <= T0 + 30 * H; t += H) for (const kind of ["fair:USDC-USD", "fair:USDT-USD"]) inputs.push({ kind, t: iso(t), value: 1.0 });
   // The last print before the start: a seller at 0.7553 on each book (the touch it implies: bid 0.7553, ask 0.7554).
   const seedPrint = (book: QuoteBook): Row => ({ id: `s-${book}`, book, ts: iso(T0 - 30e3), price: 0.7553, qty: 10, side: "sell" });
@@ -75,11 +81,14 @@ function world(seed?: Record<string, Row[]>, specs: TwinSpec[] = [SPEC]) {
       for (const b of QUOTE_BOOKS) {
         const prints = (mem.tables.agent_quote_prints as Row[]).filter((p) => p.book === b && Date.parse(String(p.ts)) >= t && Date.parse(String(p.ts)) < t + M)
           .map((p): Print => ({ id: String(p.id), ts: Date.parse(String(p.ts)), ticks: Math.round(Number(p.price) / 1e-4), qty: Number(p.qty), side: p.side as Print["side"] })).sort(printOrder);
-        const out = stepMinute(books[b], t, { x: X, fairU: 1.0, prints });
-        (mem.tables.agent_quote_minutes as Row[]).push({ book: b, minute: iso(t), x: X, x_t: null, fair_u: 1.0, hours_n: 24, prints_n: prints.length, recorded_at: iso(t + M + 27e3) });
+        const x = xAt(t);
+        const out = stepMinute(books[b], t, { x, fairU: 1.0, prints });
+        (mem.tables.agent_quote_minutes as Row[]).push({ book: b, minute: iso(t), x, x_t: null, fair_u: 1.0, hours_n: 24, prints_n: prints.length, recorded_at: iso(t + M + 27e3) });
         const evs = out.events.map((e) => ({ book: e.book, minute: iso(e.minute), side: e.side, k: e.k, kind: e.kind, ticks: e.ticks, detail: e.detail }));
         if (evs.length) await mem.db.upsert("agent_quote_events", evs, "book,minute,side,k,kind");
       }
+      // Its beat (a world after 2026-10-01 16:25 catches up by them; before it they are not read).
+      (mem.tables.edge_call_beats as Row[]).push({ path: "agents?action=quotes", minute: iso(t + M), ts: iso(t + M + 1e3) });
       const fetchedTo = Object.fromEntries(QUOTE_BOOKS.map((b) => [b, t + M + 25e3]));
       await mem.db.upsert("agent_quote_state", [{ id: 1, state: { fetchedTo }, last_minute: iso(t), updated_at: iso(t + M + 27e3), last_error: null }], "id");
     },
@@ -350,6 +359,62 @@ Deno.test("exitOffset (p50x1's rule, 0108): sets the instance's exit offset from
   ]);
   // The twins as they ran before: no offset, so their executor prices every exit at the rule's own ticks.
   for (const x of [TWINS.pr5, TWINS.p50, TWINS.d]) assertEquals(x.instance.exitOffset, undefined, x.id);
+});
+
+Deno.test("weekend (variant-3's rule, 0130): sets the instance's weekend from its instant beside TAKE's; a row whose settings it cannot read is refused; no other twin and not the live account has one", async () => {
+  const mem = memDb({
+    agent_quote_twin_specs: [
+      ...TWIN_SPEC_ROWS,
+      rowAs("wk", { display_order: 35, rules: { take: { from: "2026-10-04T16:00:00Z" }, weekend: { from: "2026-10-23T21:00:00Z" } } }),
+      rowAs("wkbad", { display_order: 36, rules: { weekend: { from: "Friday" } } }),
+    ],
+  }, { now: () => T0 });
+  const r = await twinSpecs(mem.db);
+  assertEquals(r.specs.map((x) => x.id), ["pr5", "p50", "wk", "d"]);
+  assertEquals([r.specs[2].instance.weekend, r.specs[2].instance.take], [{ from: Date.parse("2026-10-23T21:00:00Z") }, { from: Date.parse("2026-10-04T16:00:00Z") }]);
+  assertEquals(r.refused, [{ id: "wkbad", why: `twin wkbad: its rule weekend needs "from", a UTC instant` }]);
+  for (const x of [TWINS.pr5, TWINS.p50, TWINS.d]) assertEquals(x.instance.weekend, undefined, x.id);
+  assertEquals(QUOTE_LIVE_INSTANCE.weekend, undefined);
+});
+
+Deno.test("weekend: a twin with the rule is its control's order for order outside a closure and before its instant; inside a closure with GBP/USD dark it quotes at the last X while its control withdraws, and from Sunday 21:00 it is dark again", async () => {
+  // A Friday: GBP/USD's last bar starts 21:29 (dark from 21:40, ten minutes on); the closure began at 21:00.
+  const FRI = Date.parse("2026-10-23T21:20:00Z");
+  const P50: TwinSpec = { ...TWINS.p50, start: FRI };
+  const WK: TwinSpec = { ...specFromRow(rowAs("p50wk", { display_order: 25, rules: { weekend: { from: "2026-10-23T21:00:00Z" } } })), start: FRI };
+  const w = world(undefined, [P50, WK], { t0: FRI, fxGaps: [[Date.parse("2026-10-23T21:30:00Z"), Date.parse("2026-10-26T00:00:00Z")]] });
+  const entries = (s: TwinSpec) => w.orders(s).filter((o) => o.leg === "entry");
+  const resting = (s: TwinSpec) => entries(s).filter((o) => ["new", "pending", "partially_filled"].includes(String(o.state))).length;
+  // 21:20 → 21:39: X live in the closure (PR5-W's case 1): the two are the same, order for order.
+  for (let t = FRI; t < FRI + 20 * M; t += M) {
+    await w.pr5(t);
+    const r = await w.call(t);
+    assertEquals(r.twins.map((x) => [x.twin, x.errors]), [["p50", []], ["p50wk", []]], iso(t));
+    assertEquals(w.orders(WK).map(shape), w.orders(P50).map(shape), iso(t));
+  }
+  assert(resting(P50) > 0, "the control quotes while X is live, or the comparison proves less");
+  // From 21:40 X is dark: the control withdraws every entry; the rule holds 1.3238 and keeps them resting.
+  for (let t = FRI + 20 * M; t < FRI + 26 * M; t += M) { await w.pr5(t); await w.call(t); }
+  assertEquals(resting(P50), 0);
+  // The six bids rest on the held X (its asks wait for their coin, as at any twin's start).
+  assertEquals(entries(WK).filter((o) => o.rung_side === "bid" && ["new", "pending", "partially_filled"].includes(String(o.state))).length, 6);
+  const wkPaper = (w.mem.tables[WK.instance.paper] as Row[])[0].state as { books: Record<string, { lastX: number; rungs: Array<{ mode: string }> }> };
+  assertEquals(QUOTE_BOOKS.map((b) => [wkPaper.books[b].lastX, wkPaper.books[b].rungs.filter((r) => r.mode === "quote").length]), [[1.3238, 6], [1.3238, 6]]);
+  // Its replica is checked against PR5's record up to the rule's instant only: no mismatch is counted after it.
+  assertEquals(w.driver(WK)?.paperCheck?.mismatches ?? 0, 0);
+
+  // Sunday: a world from 20:30, X dark since Friday but for one stray bar at 20:35 (live to 20:45, PR5-W's case 1, which
+  // the rule then holds, case 2); from 21:00 the closure has ended and X is still dark (case 3): the rule withdraws, as PR5.
+  const SUN = Date.parse("2026-10-25T20:30:00Z");
+  const P50s: TwinSpec = { ...TWINS.p50, start: SUN };
+  const WKs: TwinSpec = { ...WK, start: SUN };
+  const v = world(undefined, [P50s, WKs], { t0: SUN, fxGaps: [[Date.parse("2026-10-23T21:30:00Z"), SUN + 5 * M], [SUN + 6 * M, Date.parse("2026-10-26T00:00:00Z")]] });
+  const restingS = (s: TwinSpec) => v.orders(s).filter((o) => o.leg === "entry" && ["new", "pending", "partially_filled"].includes(String(o.state))).length;
+  for (let t = SUN; t < SUN + 30 * M; t += M) { await v.pr5(t); await v.call(t); }
+  assertEquals(restingS(P50s), 0, "PR5's rule is dark from 20:46");
+  assertEquals(restingS(WKs), 6, "the rule quotes its bids on the stray bar's X until 21:00");
+  for (let t = SUN + 30 * M; t < SUN + 34 * M; t += M) { await v.pr5(t); await v.call(t); }
+  assertEquals([restingS(P50s), restingS(WKs)], [0, 0]);
 });
 
 Deno.test("the call runs the spec table's rows: a row it cannot carry out is reported, and the others turn", async () => {

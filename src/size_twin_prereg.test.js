@@ -35,7 +35,7 @@ describe("p50's pre-registration", () => {
     // exitOffset; §10 names it as it is.
     const before = {
       'supabase/functions/agents/quotes_twin.ts': ['f14ecee87da252b9135dbeebcdcfd1dfa3f33c4a945c7b5b830cc2c37a61d7a8', 'd13b3eebce3dd3e89d8707e7373597b73d7127c5d5692fc36b6fcebe1d1dac0a',
-        '92c7d0db86dffc2b86650f99055e676902dc12ee905a89926771ee43d2329712'],
+        '92c7d0db86dffc2b86650f99055e676902dc12ee905a89926771ee43d2329712', 'aac594d3266bf17444c1c17ed7201f8f5ff06d33206cd9c7c5d57cfe0fce7457'],
       'supabase/functions/agents/revx_sim.ts': ['885def181e01899095745c7c1128a3dee06e11f960965ec439cc7a50642fcd48'],
     };
     for (const f of FROZEN) expect(named(f), f).toEqual(before[f] ? [...before[f], sha(f)] : [sha(f)]);

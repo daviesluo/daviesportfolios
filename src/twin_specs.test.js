@@ -102,18 +102,20 @@ describe("the twins' spec rows", () => {
       // An insert names the table twice; 0088 also creates it, enables its row level security, and its function reads it
       // (its type, its select and its refusal). A pre-registration's addendum may move one rule's date of one row, guarded
       // on the date it replaces (0090: TAKE's take.from, its Addendum 1): that names it once. A page name may change,
-      // guarded on the name it replaces (0108, 0109): once. A row may be taken off by its id (0109): once.
+      // guarded on the name it replaces (0108, 0109, 0130): once. A row may be taken off by its id (0109): once.
       expect(named, f).toBe(2 * inserts + moves + names + offs + (f === SPECS_0088 ? 5 : 0));
     }
     expect(FILES.filter((f) => [...sqlOf(f).matchAll(RULE_MOVE)].length).map((f) => f.slice(0, 4))).toEqual(['0090']);
     expect(renames.map((n) => [n.file.slice(0, 4), n.id, n.from, n.to])).toEqual([
       ['0108', 'd', 'Stablecoin quotes variant-3', 'Stablecoin quotes variant-4'], ['0109', 'd', 'Stablecoin quotes variant-4', 'Stablecoin quotes variant-3'],
+      ['0130', 'd', 'Stablecoin quotes variant-3', 'Stablecoin quotes variant-4'],
     ]);
     expect(deletes.map((n) => [n.file.slice(0, 4), n.id])).toEqual([['0109', 'p50x1']]);
     // Names are unique, so a rename comes before an insert in the same migration that takes the old name (0108), and a
     // delete before a rename that takes the deleted row's name (0109); every name as the rows stand is distinct.
-    const sql0108 = sqlOf('0108_quote_twin_p50x1.sql'), sql0109 = sqlOf('0109_quote_twin_p50x1_off.sql');
+    const sql0108 = sqlOf('0108_quote_twin_p50x1.sql'), sql0109 = sqlOf('0109_quote_twin_p50x1_off.sql'), sql0130 = sqlOf('0130_quote_twin_take50wk.sql');
     expect(sql0108.search(RENAME)).toBeLessThan(sql0108.search(INSERT));
+    expect(sql0130.search(RENAME)).toBeLessThan(sql0130.search(INSERT));
     expect(sql0109.search(DELETE)).toBeGreaterThanOrEqual(0);
     expect(sql0109.search(DELETE)).toBeLessThan(sql0109.search(RENAME));
     expect(new Set(ROWS.map((r) => r.display_name)).size).toBe(ROWS.length);
@@ -128,10 +130,10 @@ describe("the twins' spec rows", () => {
     }
   });
 
-  it("are, as they stand, the page's four stablecoin rows in Davies' order (2026-10-09: p50x1 withdrawn, rule D's twin variant-3 again)", () => {
+  it("are, as they stand, the page's five stablecoin rows in Davies' order (2026-10-18: take50wk variant-3, rule D's twin variant-4)", () => {
     expect(ROWS.map((r) => [r.id, r.display_name, r.display_order])).toEqual([
       ['pr5', 'Stablecoin quotes', 10], ['p50', 'Stablecoin quotes variant-1', 20], ['take50', 'Stablecoin quotes variant-2', 30],
-      ['d', 'Stablecoin quotes variant-3', 40],
+      ['take50wk', 'Stablecoin quotes variant-3', 35], ['d', 'Stablecoin quotes variant-4', 40],
     ]);
   });
 

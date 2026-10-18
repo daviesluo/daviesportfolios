@@ -275,8 +275,14 @@ places stay when the number is not whole.
 - **Stablecoin quotes variant-2.** After it: variant-1 again, and from 5 Oct
   it also buys or sells at once, as a taker, when the order book has moved
   past a rung by at least the taker's fee, then exits like any other fill.
-- **Stablecoin quotes variant-3.** After it (called variant-1 until 3 Oct):
-  the same, for the rule with nine rungs a side, from 0.03 % to 0.3 %, whose
+- **Stablecoin quotes variant-3.** After it, since 18 Oct: variant-2 again,
+  and from Friday 23 Oct at 21:00 UTC it also quotes at weekends. When the
+  pound-dollar rate stops updating at the Friday close, it keeps quoting on
+  the last rate it had instead of going quiet, until Sunday 21:00 UTC. It
+  started on 19 Oct with a fresh record, so its figures before the first
+  weekend are its own, not variant-2's.
+- **Stablecoin quotes variant-4.** After it (called variant-1 until 3 Oct,
+  variant-3 until 18 Oct): the same, for the rule with nine rungs a side, from 0.03 % to 0.3 %, whose
   quotes move at every 0.03 % move of fair, an entry only once fair has moved
   at least a third of its rung's distance: on £1,800, £50 a rung, from
   28 Sep. Its page is the same, with nine rungs a side in each book; from
@@ -286,7 +292,7 @@ places stay when the number is not whole.
   "Stablecoin quotes". The paper test of that rule keeps running behind the
   page until its reading.
 - **Stablecoin quotes with Euros.** Right after "Stablecoin quotes
-  variant-3", its name on two lines as the variants', on Coinbase (its own
+  variant-4", its name on two lines as the variants', on Coinbase (its own
   badge and venue card): the same rule on paper on Coinbase's four stablecoin
   books, USDC and USDT against pounds and against euros, from Coinbase's own
   public trades recorded every minute since 10 Oct. £100 a rung on the two

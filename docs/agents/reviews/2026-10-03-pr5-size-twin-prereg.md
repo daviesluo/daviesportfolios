@@ -210,3 +210,17 @@ readouts are unchanged. Not blind (written after the 2026-10-09 review).
 variant-3。"; the F3 replay, `docs/agents/backtests/scq_f3/`; `2026-10-09-p50x1-prereg.md` §7). This twin is no longer
 anyone's comparator: §10's "it must keep running through that window" lapses, and what 10-21 decides for it stands on
 its own readouts. Its row, record and code are unchanged; §10's hash stays the file's.
+
+## 12. Deviation 5 (2026-10-18): the driver gains the weekend rule
+
+"Stablecoin quotes variant-3" (`take50wk`, `0130`, `2026-10-18-revx-weekend-prereg.md`; Davies, 2026-10-18: "在目前最好的variant-2
+基础上加，上线测试一下作为variant-3，目前的3改为4") is variant-2 with PR5-W's weekend rule, and its rule changed `quotes_twin.ts`
+(the twins' pre-registration's deviation 6, its §18). This twin is not changed: its row names no rule, and `p50.json.gz` built
+again on the new code is the same bytes. Its readouts are unchanged. Not blind (written after the 2026-10-18 review).
+
+| file | sha256 |
+|---|---|
+| `supabase/functions/agents/quotes_twin.ts` | fd4b6f992ea7c094c97759933fb714b49d81dcf60756dee18fee4860525a1524 |
+
+§5, §7, §9 and §10 keep the hashes the file had before; this table names it from this deviation on (`src/size_twin_prereg.test.js`).
+

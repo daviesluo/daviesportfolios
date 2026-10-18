@@ -65,6 +65,7 @@ import {
   quoteTicks, type Print, type QuoteBook, type QuoteState, type Rung, type Side,
 } from "./quotes.ts";
 import { bookLiveBuy, fillStamp, isUniqueViolation, withFeeNote, type FromAccount } from "./tick.ts";
+import { weekendInputs, type WeekendRule } from "./quotes_weekend.ts";
 
 const M = 60e3, H = 3600e3, DAY = 86400e3;
 
@@ -116,6 +117,13 @@ export type QuoteLiveInstance = {
    * docs/agents/reviews/2026-10-09-p50x1-prereg.md) the first. The live account's instance has none: offset 0, the rule's.
    */
   exitOffset?: { ticks: number; from: number };
+  /**
+   * PR5-W's weekend rule from `from` (ms; quotes_weekend.ts): inside an FX closure, a paper minute whose GBP/USD is dark is
+   * read at the paper engine's last X (its book's `lastX`), so fair, the entry guards and the exits' re-pricing stand on the
+   * rate the replica decided on, not dark. "Stablecoin quotes variant-3" (`take50wk`, 0130,
+   * docs/agents/reviews/2026-10-18-revx-weekend-prereg.md) the first. The live account's instance has none: dark, PR5's.
+   */
+  weekend?: WeekendRule;
 };
 /** The live account: PR5's own sub-account, the paper engine's own state, three rungs, one key. */
 export const QUOTE_LIVE_INSTANCE: QuoteLiveInstance = {
@@ -817,7 +825,11 @@ async function paperView(d: QuoteLiveDeps, inst: QuoteLiveInstance): Promise<{ p
   const series = async (kind: string, from: number) => (await d.db.selectAll<{ t: string; value: number | string }>("agent_quote_inputs",
     `kind=eq.${enc(kind)}&t=gte.${enc(iso(from))}&t=lte.${enc(iso(T))}&select=t,value&order=kind.asc,t.asc`)).map((r) => [Date.parse(r.t), Number(r.value)] as [number, number]);
   const fx = await series("fx", T - QUOTE_FX_LOOKBACK_MS);
-  for (const b of QUOTE_BOOKS) inputs[b] = bookInputs(T, fx, await series(`fair:${QUOTE_USD_BOOK[b]}`, T - 26 * H));
+  for (const b of QUOTE_BOOKS) {
+    const i = bookInputs(T, fx, await series(`fair:${QUOTE_USD_BOOK[b]}`, T - 26 * H));
+    // The weekend rule, an instance's alone (none for the live account): a dark closure minute at the replica's last X.
+    inputs[b] = inst.weekend ? weekendInputs(i, T, paper?.books?.[b]?.lastX ?? null, inst.weekend) : i;
+  }
   return { paper, T, inputs };
 }
 

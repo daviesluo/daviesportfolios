@@ -1,0 +1,30 @@
+{
+ "study": "\"Stablecoin quotes variant-3\" (take50wk, 0130): variant-2 with PR5-W's weekend rule, against variant-2 by weekend; the reading's export and script, frozen with docs/agents/reviews/2026-10-18-revx-weekend-prereg.md.",
+ "run": [
+  "on or after 2026-11-25 00:30 UTC, after PR5-W's reading: sql/export.sql, SELECT only; statement 1 cut by ../scq_review/scripts/grab.py into data/, statements 2 and 3 saved as data/meta.json and data/closures.json",
+  "npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env --no-check scripts/read.ts data results/reading.json"
+ ],
+ "dryRun": "scripts/read.ts --dry ../scq_review/2026-10-18/data results/dry_run.json: p50 against take50 over the weekend of 2026-10-09, only to show the script runs (both dark at weekends: every figure 0)",
+ "files": [
+  {
+   "path": "results/dry_run.json",
+   "bytes": 911,
+   "sha256": "5f967fc8271bac7cffe830ca7ef16b9692be49d28a1c73da3631ea5c97ad34ac"
+  },
+  {
+   "path": "scripts/manifest.py",
+   "bytes": 1607,
+   "sha256": "102131158f1a6b4cd281cda4173554e1f695f61ae0a6845eadd095c108b063b8"
+  },
+  {
+   "path": "scripts/read.ts",
+   "bytes": 5654,
+   "sha256": "b8e2fb24cb5db2783da09772e8c7ee20d21b7b4373469e03889440edfc86095a"
+  },
+  {
+   "path": "sql/export.sql",
+   "bytes": 3843,
+   "sha256": "59f49220b8a424e6661dfd5f7075c8774ddbde590128e8a07ea36b88f13dda3f"
+  }
+ ]
+}

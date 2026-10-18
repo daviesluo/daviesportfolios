@@ -1,0 +1,42 @@
+{
+ "dry": true,
+ "arms": {
+  "treat": "p50",
+  "ctrl": "take50"
+ },
+ "window": [
+  "2026-10-09T21:00:00.000Z",
+  "2026-10-12T00:00:00.000Z"
+ ],
+ "wholeWeekends": 1,
+ "readAt": "2026-10-18T03:30:39.371111+00:00",
+ "closures": null,
+ "quotedIn": 0,
+ "perWeekend": [
+  {
+   "weekend": "2026-10-09",
+   "treatTrips": 0,
+   "ctrlTrips": 0,
+   "treatGbp": 0,
+   "ctrlGbp": 0,
+   "diffGbp": 0,
+   "treatStops": 0,
+   "treatClosedAfterReopen": 0,
+   "treatClosedAfterReopenGbp": 0
+  }
+ ],
+ "sumDiffGbp": 0,
+ "wholeWindow": {
+  "treatTrips": 0,
+  "ctrlTrips": 0,
+  "treatGbp": 0,
+  "ctrlGbp": 0
+ },
+ "bars": {
+  "1 it ran the rule (entries sent on the Saturday or Sunday before 21:00 of at least three whole weekends)": null,
+  "2 better than variant-2 weekend by weekend (all but at most one positive, the sum positive)": false,
+  "3 no weekend below the floor": true,
+  "4 not one weekend": false
+ },
+ "pass": false
+}

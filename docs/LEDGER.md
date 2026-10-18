@@ -240,7 +240,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      ends with it (under 21 days: reported, not judged). PR5-R (`reviews/2026-09-28-pr5-readings-prereg.md`) is read
      after PR5's four weeks, before that review.
    - **The twins** (TESTING's stablecoin rows; `0087`–`0090`, `0108`–`0109`, `agents/quotes_twin.ts`, reference §4 item 51,
-     one row each of `agent_quote_twin_specs`: `pr5`, `p50` = variant-1, `take50` = variant-2, `d` = variant-3 (variant-4
+     one row each of `agent_quote_twin_specs`: `pr5`, `p50` = variant-1, `take50` = variant-2, `take50wk` = variant-3 (`0130`, 10-18), `d` = variant-4 since `0130` (variant-4
      from `0108` to `0109`); `d` quotes no 0.03 % entry from 10-10 00:00, its readout reads the spans apart,
      twins' prereg §15). Daily health: each `_sim.last_error` empty, `paperCheck.mismatches` 46 for `pr5` and `p50`
      (all before 2026-09-24 18:13) and 0 for `d`, `_state.updated_at` within ~3 min, `edge_call_beats` has `agents?action=quotestwins` each minute, no
@@ -636,6 +636,18 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18"; each oldest first.
 
+### [2026-10-18 04:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **"Stablecoin quotes variant-3" (`take50wk`) built, rule D's twin renamed "variant-4"** (sub-agent, not pushed; Davies, 10-18:
+  "加一个 Revolut 周末 paper 测试，在目前最好的variant-2基础上加，上线测试一下作为variant-3，目前的3改为4"). `0130`: d's page name, then the
+  row (variant-2's + `rules.weekend` from 2026-10-23 21:00 UTC; start 2026-10-19 00:00, flat, no backfill: beats are kept ~3
+  days, so a catch-up from the 10-02 backfill would skip two weeks). PR5-W's rule in `agents/quotes_weekend.ts`, the replica
+  (`quotes_twin.ts`) and the executor instance (`quotes_live.ts` `paperView`; LIVE's instance has none). Frozen
+  `reviews/2026-10-18-revx-weekend-prereg.md` (sha pins `src/weekend_twin.test.js`; reading `backtests/wk3/`, on or after 11-25
+  00:30 after PR5-W, four bars); twins' prereg deviation 6, size twin's deviation 5. Pins fail on the old code (both halves).
+  Backfills rebuilt to the same bytes. **After the deploy:** five spec rows, `take50wk` tables closed to anon; its `_sim` row
+  started, catching up from 10-19 00:00, no `agents.quotes_twins` error; mode `forward` before **10-23 21:00** (else its first
+  weekend is reported, not judged); first Saturday: entries resting in `agent_quote_twin_take50wk_orders` while take50's rest none.
+
 ### [2026-10-18 04:37 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **CBBOOKS-1, the Coinbase book recorder's first study** (sub-agent, not pushed; Davies, 10-18: "cbbooks留着并利用起来，和revolut x的
   订单簿一样可以做策略研究"). Rules, split (train 10-10 03:00 → 10-14 03:00, test → 10-18 03:00), costs (Coinbase 0 % / 0.0045 %,
@@ -656,6 +668,7 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   now waits 2 s after a login or a switch and, on a refusal, sends the same request again on the same tokens twice,
   3 s apart, before its one re-login. A run takes about 35 s (the edge call allows 55). A pin, a token refused for its
   first 1 or 4 s, fails on the old code.
+
 
 ### [2026-10-18 04:19 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **`momentum-1d` retired** (sub-agent, not pushed; Davies, 10-18, answering the stablecoin quotes review: "momentum-1d可以删了").

@@ -88,6 +88,14 @@ Deno.test("an exitOffset before its instant is the frozen executor: the same six
 Deno.test("a retired rung before its instant is the frozen executor: the same six hours, turn by turn", () =>
   sixHours({ ...Now.QUOTE_LIVE_INSTANCE, retired: { ks: [0.001], from: T0 + (HOURS + 1) * H } }));
 
+// Variant-3's weekend rule (take50wk, 0130; docs/agents/reviews/2026-10-18-revx-weekend-prereg.md): before its instant, and
+// in force on a weekday — the six hours are a Thursday, with GBP/USD dark for its third hour — it changes nothing: a dark
+// minute outside a closure stays dark, the stale-input guard as the frozen executor has it.
+Deno.test("a weekend rule before its instant is the frozen executor: the same six hours, turn by turn", () =>
+  sixHours({ ...Now.QUOTE_LIVE_INSTANCE, weekend: { from: T0 + (HOURS + 1) * H } }));
+Deno.test("a weekend rule in force on a weekday is the frozen executor: the Thursday's dark hour stays dark, turn by turn", () =>
+  sixHours({ ...Now.QUOTE_LIVE_INSTANCE, weekend: { from: T0 - 24 * H } }));
+
 async function sixHours(instance?: Now.QuoteLiveInstance) {
   const a = world(Now, instance), b = world(Frozen);
   const both = async <T>(f: (w: ReturnType<typeof world>) => Promise<T>): Promise<[T, T]> => [await f(a), await f(b)];

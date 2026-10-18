@@ -1,9 +1,9 @@
 // The realistic twins of PR5's live executor: the TESTING rows "Stablecoin quotes" (PR5's rule), "Stablecoin quotes
 // variant-1" (PR5's rule at £50 a rung, since 2026-10-03), "Stablecoin quotes variant-2" (variant-1 with TAKE's taker
-// entry from 2026-10-05, `take50`, 0089), "Stablecoin quotes variant-3" (variant-1 with its exit a tick beyond fair,
-// `p50x1`, 0108, since 2026-10-09) and "Stablecoin quotes variant-4" (rule D's arm d, "variant-2" in its own
-// pre-registration; "variant-1" on the page from 2026-10-02, Davies: "这个variant-2上线testing后改名为variant-1", until
-// 2026-10-03, then "variant-3" until 2026-10-09). Davies, 2026-10-02: "…把所有已知的live遇到的不同点和问题全部在这几个testing策略上改动，确保一致，确保真实"; on the
+// entry from 2026-10-05, `take50`, 0089), "Stablecoin quotes variant-3" (variant-2 with PR5-W's weekend rule, `take50wk`,
+// 0130, since 2026-10-18; `p50x1` held the name for a few hours of 2026-10-09, 0108 to 0109) and "Stablecoin quotes
+// variant-4" (rule D's arm d, "variant-2" in its own pre-registration; "variant-1" on the page from 2026-10-02, Davies:
+// "这个variant-2上线testing后改名为variant-1", until 2026-10-03, then "variant-3" until 2026-10-18 but for 0108 to 0109). Davies, 2026-10-02: "…把所有已知的live遇到的不同点和问题全部在这几个testing策略上改动，确保一致，确保真实"; on the
 // sizes the same evening, "改成原版每档100磅，variant-2 每档50磅，一定要确保新架构真实"; on the conversions, "都按我们昨天新设立的maker
 // 费来换币". The design is frozen in docs/agents/reviews/2026-10-02-pr5-realistic-twins-prereg.md.
 //
@@ -32,9 +32,12 @@
 //   take50  0089's row: p50 with the rule extension `take` (`TWIN_RULES`), "Stablecoin quotes variant-2", TAKE's forward
 //        test (docs/agents/reviews/2026-10-03-take-prereg.md). From its `take.from` a turn reads the book recorder's reads
 //        around it (`takeReadsAt`) and waits for the first after it, so it turns a call behind; before then it is p50's.
-//   p50x1  0108's row: p50 with the rule extension `exitOffset` (one tick beyond fair from 2026-10-12 00:00 UTC),
-//        "Stablecoin quotes variant-3" since 2026-10-09, in rule D's twin's place, which became "variant-4" after it
-//        (docs/agents/reviews/2026-10-09-p50x1-prereg.md). Before `exitOffset.from` it is p50's.
+//   p50x1  0108's row, taken off by 0109 the same day before its rule started: p50 with the rule extension `exitOffset`
+//        (docs/agents/reviews/2026-10-09-p50x1-prereg.md). The rule stays here, named by no row.
+//   take50wk  0130's row: take50 with the rule extension `weekend` (PR5-W's rule from 2026-10-23 21:00 UTC: a dark minute
+//        inside an FX closure decided on the book's last X; quotes_weekend.ts), "Stablecoin quotes variant-3" since
+//        2026-10-18, in rule D's twin's place, which became "variant-4" after it (Davies: "在目前最好的variant-2基础上加…作为
+//        variant-3，目前的3改为4"; docs/agents/reviews/2026-10-18-revx-weekend-prereg.md). It starts flat on 2026-10-19.
 // An id names a twin's tables and lease and never a variant number, so a page name changes in its row alone. pr5's and
 // d's specs are what they were (quotes_twin.test.ts pins them; their backfills rebuild to the same bytes).
 // It steps a REPLICA of its engine itself, from the inputs that engine decides on (PR5's stored minutes and prints), at
@@ -63,6 +66,7 @@ import {
   pennyUp, QUOTE_LIVE_CONVERT_MAX_FRACTION, runQuotesConvert, runQuotesLive, seenUntil, takeBookRow, type QuoteLiveInstance, type QuoteLiveReport, type RecordedRead,
 } from "./quotes_live.ts";
 import { newSimState, SimRevx, type SimBook, type SimLevel, type SimState } from "./revx_sim.ts";
+import { weekendX, type WeekendRule } from "./quotes_weekend.ts";
 import { REVX_REGION, revxVenue } from "../_shared/revx.ts";
 
 const M = 60e3, H = 3600e3, DAY = 86400e3;
@@ -189,6 +193,13 @@ export const TWIN_RULES: Record<string, (v: unknown) => Partial<QuoteLiveInstanc
     if (!Number.isInteger(ticks) || ticks < 1 || ticks > 10) throw new Error(`its rule exitOffset needs "ticks", a whole number from 1 to 10`);
     if (!Number.isFinite(from)) throw new Error(`its rule exitOffset needs "from", a UTC instant`);
     return { exitOffset: { ticks, from } };
+  },
+  // PR5-W's weekend rule from `from` (`QuoteLiveInstance.weekend`, quotes_weekend.ts; take50wk, 0130,
+  // docs/agents/reviews/2026-10-18-revx-weekend-prereg.md): inside an FX closure a dark minute takes the book's last X.
+  weekend: (v) => {
+    const from = Date.parse(String((v as { from?: unknown } | null)?.from));
+    if (!Number.isFinite(from)) throw new Error(`its rule weekend needs "from", a UTC instant`);
+    return { weekend: { from } };
   },
 };
 
@@ -339,19 +350,19 @@ export async function printsBetween(db: Db, from: number, to: number): Promise<R
  * minute's stored prints; a book-minute with no record is rebuilt from the stored series with PR5's own functions, as the
  * variant engines rebuild it. Rule D's books are stepped minute by minute across both (their governor's day is shared).
  */
-export async function stepTwinPaper(db: Db, p: TwinPaper, upTo: number, maxMinutes = TWIN_PAPER_MAX_MINUTES): Promise<{ minutes: number; rebuilt: number }> {
+export async function stepTwinPaper(db: Db, p: TwinPaper, upTo: number, maxMinutes = TWIN_PAPER_MAX_MINUTES, weekend: WeekendRule | null = null): Promise<{ minutes: number; rebuilt: number }> {
   const out = { minutes: 0, rebuilt: 0 };
   const stop = Math.min(upTo, p.lastMinute + maxMinutes * M);
   // Eight hours at most per read: two books' records of 480 minutes are 960 rows, inside PostgREST's 1,000 a request
   // (a longer chunk lost its later records to that cap and rebuilt those minutes from the series instead).
   while (p.lastMinute < stop) {
-    const r = await stepChunk(db, p, Math.min(stop, p.lastMinute + TWIN_PAPER_CHUNK_MINUTES * M));
+    const r = await stepChunk(db, p, Math.min(stop, p.lastMinute + TWIN_PAPER_CHUNK_MINUTES * M), weekend);
     out.minutes += r.minutes; out.rebuilt += r.rebuilt;
   }
   return out;
 }
 
-async function stepChunk(db: Db, p: TwinPaper, last: number): Promise<{ minutes: number; rebuilt: number }> {
+async function stepChunk(db: Db, p: TwinPaper, last: number, weekend: WeekendRule | null): Promise<{ minutes: number; rebuilt: number }> {
   const first = p.lastMinute + M;
   if (last < first) return { minutes: 0, rebuilt: 0 };
   const n = (last - first) / M + 1;
@@ -384,7 +395,13 @@ async function stepChunk(db: Db, p: TwinPaper, last: number): Promise<{ minutes:
         inp = { x: bar ? bar[1] : null, fairU: median(fairHours(t, hours[b] ?? [])), prints: mine };
         rebuilt++;
       }
+      // PR5-W's weekend rule, a twin's alone (`rules.weekend`): a dark closure minute is decided on the book's last X. With
+      // none, or before its instant, or outside a closure, or with X live, the minute is PR5's exactly.
+      if (weekend) inp = { ...inp, x: weekendX(t, inp.x, p.books[b].lastX, weekend) };
       const events = p.engine === "pr5" ? stepMinute(p.books[b], t, inp).events : stepVariantMinute(p.books[b], t, inp, RULED_ARMS.d, p.gov!).events;
+      // From its weekend rule's instant the replica decides closures PR5's engine leaves dark, so from then on its state is
+      // its own and PR5's record is no check of it: its events are checked against that record up to the instant only.
+      if (weekend && t >= weekend.from) continue;
       for (const e of events) if (CHECKED[p.engine].includes(e.kind)) p.unchecked.push([t, b, e.side, e.k, e.kind, e.ticks]);
     }
   }
@@ -661,7 +678,7 @@ async function twinTurn(
   // Catching up, the replica stands where its engine stood at each of those turns: caught up, as PR5's engine was
   // whenever its call ran (it decides up to 120 missed minutes a run, and no gap in its beats is longer). Forward, it
   // steps as PR5's engine does, at most TWIN_PAPER_MAX_MINUTES a call: behind, the executor's stale-input guard holds.
-  const stepped = await stepTwinPaper(d.db, paper, upTo, ds.mode === "catch-up" ? Number.POSITIVE_INFINITY : TWIN_PAPER_MAX_MINUTES);
+  const stepped = await stepTwinPaper(d.db, paper, upTo, ds.mode === "catch-up" ? Number.POSITIVE_INFINITY : TWIN_PAPER_MAX_MINUTES, spec.instance.weekend ?? null);
   report.paper = { minutes: (report.paper?.minutes ?? 0) + stepped.minutes, rebuilt: (report.paper?.rebuilt ?? 0) + stepped.rebuilt };
   await d.db.upsert(spec.instance.paper, [{ id: 1, state: paper, last_minute: iso(paper.lastMinute), updated_at: iso(at) }], "id");
   // The venue's clock: a print's instant while the prints are applied, then the turn's for the whole turn. A turn that

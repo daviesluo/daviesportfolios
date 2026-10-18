@@ -443,3 +443,28 @@ page shows four twins again, `pr5`, `p50`, `take50`, `d`, as before §16.
 
 **What does not change.** `quotes_twin.ts` and `quotes_live.ts` keep `exitOffset` as §16 left them: no row names it, so
 no twin runs it, and §16's hash stays the file's. `p50x1`'s withdrawal is its own pre-registration's §7.
+
+## 18. Deviation 6 (2026-10-18): "Stablecoin quotes variant-3" (`take50wk`), variant-2 with PR5-W's weekend rule, and rule D's twin "variant-4"
+
+**On whose word.** Davies, 2026-10-18, verbatim: "加一个 Revolut 周末 paper 测试，在目前最好的variant-2基础上加，上线测试一下作为variant-3，
+目前的3改为4". `take50wk` (`0130`, `2026-10-18-revx-weekend-prereg.md`) is `take50` with PR5-W's weekend rule from 2026-10-23 21:00
+UTC: inside an FX closure a dark GBP/USD minute is decided on the book's last X. It is "Stablecoin quotes variant-3", at
+`display_order` 35, and rule D's twin `d` is renamed "Stablecoin quotes variant-4" by the same migration (page name only; it stays
+at 40; its id, tables, record and rule are unchanged; the rename goes first). It starts flat on 2026-10-19 with no backfill (the
+beats a catch-up needs are kept about three days).
+
+**What changed in `quotes_twin.ts`.** `TWIN_RULES` gains its third rule, `weekend` (`{ "from": "<UTC>" }`), which sets the instance's
+`weekend`; the replica's minute takes `weekendX` (`agents/quotes_weekend.ts`, new) of its recorded X, and its events are checked
+against PR5's record only before the rule's instant; `stepTwinPaper` takes the rule. The live executor (`quotes_live.ts`) reads fair
+at the replica's last X in such a minute when its instance has the rule. Comments (the header names the five rows as they now
+stand). A twin without the rule runs the code path it ran: the backfills built again on this code are the same bytes
+(`pr5.json.gz`, `p50.json.gz`, `take50.json.gz`, `d.json.gz`); `quotes_live_instance.test.ts` runs the six simulated hours with
+the rule before its instant and in force on a weekday and finds every table equal to the frozen executor's; `quotes_twin.test.ts`
+pins the rule against a twin without it on a Friday and a Sunday. Not blind: written after the 2026-10-18 review.
+
+| file | sha256 |
+|---|---|
+| `supabase/functions/agents/quotes_twin.ts` | fd4b6f992ea7c094c97759933fb714b49d81dcf60756dee18fee4860525a1524 |
+
+§11–§16 keep the hashes the file had before; this table names it from this deviation on. `src/twins_prereg.test.js` pins all of them.
+

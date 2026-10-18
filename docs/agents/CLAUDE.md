@@ -314,10 +314,13 @@ that follow from that evidence, in short:
   size; pennies as the venue moves them; maker conversions), "Stablecoin
   quotes" carrying out PR5's decisions at £100 a rung, "Stablecoin quotes
   variant-1" (`p50`) the same decisions at £50 a rung, and "Stablecoin quotes
-  variant-3" (`d`; variant-1 until 2026-10-03) rule D's arm `d` at £50 (rule
+  variant-4" (`d`; variant-1 until 2026-10-03, variant-3 until `0130`) rule D's arm `d` at £50 (rule
   D's file calls it variant-2; PR5V is off the page; from 2026-10-10 the twin
   alone quotes no entry on its 0.03 % rungs, `RULED_D_RETIRED`); "variant-2" is
-  TAKE's (`take50`, `0089`, `reviews/2026-10-03-take-prereg.md`). `p50x1`
+  TAKE's (`take50`, `0089`, `reviews/2026-10-03-take-prereg.md`); "variant-3" is `take50wk` (`0130`, 2026-10-18,
+  Davies: "在目前最好的variant-2基础上加…作为variant-3，目前的3改为4"): variant-2 with PR5-W's weekend rule from 2026-10-23
+  21:00 UTC (`rules.weekend`, `agents/quotes_weekend.ts`), read on or after 11-25 beside PR5-W
+  (`reviews/2026-10-18-revx-weekend-prereg.md`, frozen). `p50x1`
   (`0108`, `p50` with its exit a tick beyond fair) was withdrawn before its
   window by `0109` (Davies 2026-10-09, after the F3 replay, `backtests/scq_f3/`),
   `d` "variant-3" again; the rule `exitOffset` stays in the code, named by no
