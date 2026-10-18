@@ -643,7 +643,7 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
-"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)"; each oldest first.
+"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)"; each oldest first.
 
 ### [2026-10-18 05:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **LIVE PR5's take and weekend quoting in SHADOW** (Davies: "会的话就加上，然后加上周末的挂单，一定验证好没问题再推上实盘部署";
@@ -652,6 +652,18 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   on mid-closure, as designed), no error, 0 new orders. Pass criteria and the 'live' statements are in the 2026-09-24 live
   design's 2026-10-18 addendum; each goes live only after its criteria pass and the result is shown to Davies. Undo:
   `update public.agent_quote_live_config set take_mode = 'off', weekend_mode = 'off', updated_at = now() where id = 1;`.
+
+### [2026-10-18 05:19 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **IG weekend recorder, fourth fix: log out** (sub-agent; item 14). With `8cd5fb8e` live (05:06 UTC), runs 05:07-05:16
+  repeated a three-minute cycle: ok on one login (8 requests, 3 switches), ok on two (first token refused, re-login
+  worked; 13 requests), then a run with both accounts refused after its re-login (11 requests, 23.2 s): five logins in
+  three minutes, none logged out. IG documents no session cap (IG Labs FAQ "Limits", committed copy of 10-15: 60
+  non-trading requests a minute per app, 30 per account, 10,000 history points a week; tokens last 12 h from the last
+  call per the FAQ, 6 h extended to 72 h per the REST guide; labs.ig.com/faq answered HTTP 500 on 10-18). `DELETE /session`
+  joins the client's list (it ends the client's own session), and the recorder logs out at the end of every run, in a
+  finally, failures too, and logs the refused session out before its one re-login; facts and history unchanged. Pin: a
+  fake that starves a login made while two sessions are alive; the deployed code fails from the third minute (ok, ok,
+  then 0 snapshots every minute), the new code reads all five minutes with no session left alive.
 
 ### [2026-10-18 05:16 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Coinbase's prints kept 40 days: `0132`, `cb_print_minutes`** (sub-agent, not pushed; CBBOOKS-1's R1, decided by the main
@@ -666,18 +678,6 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   mutated size failed it). No Deno pin: no Edge code changed. Note: XV-1 reads Coinbase's books and Revolut X's prints, not Coinbase's
   prints. XV-1's draft §4 now has the transfer-fee table to fill (Davies may open a Coinbase account). **Must apply before 10-20**,
   when 10-10's prints start to leave `cb_trades` (each day's go ten days after it).
-
-### [2026-10-18 05:19 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **IG weekend recorder, fourth fix: log out** (sub-agent; item 14). With `8cd5fb8e` live (05:06 UTC), runs 05:07-05:16
-  repeated a three-minute cycle: ok on one login (8 requests, 3 switches), ok on two (first token refused, re-login
-  worked; 13 requests), then a run with both accounts refused after its re-login (11 requests, 23.2 s): five logins in
-  three minutes, none logged out. IG documents no session cap (IG Labs FAQ "Limits", committed copy of 10-15: 60
-  non-trading requests a minute per app, 30 per account, 10,000 history points a week; tokens last 12 h from the last
-  call per the FAQ, 6 h extended to 72 h per the REST guide; labs.ig.com/faq answered HTTP 500 on 10-18). `DELETE /session`
-  joins the client's list (it ends the client's own session), and the recorder logs out at the end of every run, in a
-  finally, failures too, and logs the refused session out before its one re-login; facts and history unchanged. Pin: a
-  fake that starves a login made while two sessions are alive; the deployed code fails from the third minute (ok, ok,
-  then 0 snapshots every minute), the new code reads all five minutes with no session left alive.
 
 ### [2026-10-18 05:08 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **LIVE's take and weekend quoting built behind two switches, both 'off'** (sub-agent, not pushed; Davies, 10-18: "live的策略
@@ -779,23 +779,3 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
 - **IG strategy search round 3, rules frozen** (sub-agent; item 14; Davies, 10-18: "再继续深度研究下ig的策略，可以更激进一些也可以，只要策略够好"):
   `backtests/ig_search3/params/frozen.json` fixes the intraday, event-day, EIA, Sunday-open FX and sizing rules, eras,
   IG costs and the bar before any data is pulled; results to `reviews/2026-10-18-ig-strategy-search-3.md`.
-
-### [2026-10-18 03:08 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **GROKPM auto-redeem ON** (D6; Davies: "加上吧 全部都自动化掉", then "grokbot给我存好了" once the Relayer API key's two
-  Edge Function secrets were set at 02:19 UTC). The 03:00 UTC dry run had `blockedBy` empty, no error, the expected five
-  markets; `redeem_enabled` set true at 03:05; a run fired by hand at 03:05:45 sent one relayed transaction for all five
-  (relay `01a14cf8…`, tx `0x47ddae80…`), mined in block 95,724,934 with status 1 (51 logs, 1.36 M gas, paid by the
-  relayer). The hourly call settles those `grokpm_redeems` rows and redeems the next five (all $0) at 04:00. Undo:
-  `update public.grokpm_config set redeem_enabled = false where id = 1;`.
-
-### [2026-10-17 04:02 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **GROKPM D6: the shared account's resolved positions redeemed automatically** (sub-agent; Davies: "加上吧 全部都自动化掉";
-  item 15). `grokpm?action=redeem` hourly (`0128`: `redeem_enabled` off, `grokpm_redeems`, `grokpm_exec_state.redeem_state`,
-  the call). Path: CTF adapters' `redeemPositions` (standard / neg-risk, ctf-exchange-v2 ccc0596) inside the proxy factory's
-  `proxy(calls)`, relayed gaslessly by `relayer-v2` (PROXY type, builder-relayer-client 9fe0514's relay hash, signed by the
-  order path's key): no POL; needs a Relayer API key (item 15). At most five markets a run, one transaction a run, nothing
-  while one is in flight, rows before the send, settled by relayer state then receipt. No fill is written: `ledgerOf` and
-  the recorder's `agentBook` unchanged (pinned; a REDEEM read as a trade would add the payout twice). Encodings pinned to
-  viem 2.21.54 vectors (`backtests/grokpm/redeem_vectors.json`, its script beside); the in-flight guard's removal fails 2
-  pins. Read keylessly 10-17: 10 redeemable markets (2 paying $0.79 and $0.62, 8 at $0), both adapters approved, all
-  `version` v1. Prereg §9 D6, sha re-pinned.

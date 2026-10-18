@@ -46088,3 +46088,25 @@ against the 150 the reading needs, so no reading. Nothing failed, so nothing is 
   live策略子页面的一样，然后底下live放在journal上面"). FUNDED, DEPLOYED (cost), TODAY, UNREALIZED, REALIZED "(incl. fees …)" from
   `rowMoney(grokPmRow(g))`; fees are its own fills' (`grokpm_fills.fee_usd`, from the go), new in the dashboard. No section
   is labelled "live" near the bottom; read as DAYS above JOURNAL. Not pushed.
+
+## LEDGER.md, archived 2026-10-18 (fourth) — the history sections from 2026-10-17 04:02 to 2026-10-18 03:29 UTC, oldest first
+
+### [2026-10-17 04:02 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM D6: the shared account's resolved positions redeemed automatically** (sub-agent; Davies: "加上吧 全部都自动化掉";
+  item 15). `grokpm?action=redeem` hourly (`0128`: `redeem_enabled` off, `grokpm_redeems`, `grokpm_exec_state.redeem_state`,
+  the call). Path: CTF adapters' `redeemPositions` (standard / neg-risk, ctf-exchange-v2 ccc0596) inside the proxy factory's
+  `proxy(calls)`, relayed gaslessly by `relayer-v2` (PROXY type, builder-relayer-client 9fe0514's relay hash, signed by the
+  order path's key): no POL; needs a Relayer API key (item 15). At most five markets a run, one transaction a run, nothing
+  while one is in flight, rows before the send, settled by relayer state then receipt. No fill is written: `ledgerOf` and
+  the recorder's `agentBook` unchanged (pinned; a REDEEM read as a trade would add the payout twice). Encodings pinned to
+  viem 2.21.54 vectors (`backtests/grokpm/redeem_vectors.json`, its script beside); the in-flight guard's removal fails 2
+  pins. Read keylessly 10-17: 10 redeemable markets (2 paying $0.79 and $0.62, 8 at $0), both adapters approved, all
+  `version` v1. Prereg §9 D6, sha re-pinned.
+
+### [2026-10-18 03:08 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM auto-redeem ON** (D6; Davies: "加上吧 全部都自动化掉", then "grokbot给我存好了" once the Relayer API key's two
+  Edge Function secrets were set at 02:19 UTC). The 03:00 UTC dry run had `blockedBy` empty, no error, the expected five
+  markets; `redeem_enabled` set true at 03:05; a run fired by hand at 03:05:45 sent one relayed transaction for all five
+  (relay `01a14cf8…`, tx `0x47ddae80…`), mined in block 95,724,934 with status 1 (51 logs, 1.36 M gas, paid by the
+  relayer). The hourly call settles those `grokpm_redeems` rows and redeems the next five (all $0) at 04:00. Undo:
+  `update public.grokpm_config set redeem_enabled = false where id = 1;`.
