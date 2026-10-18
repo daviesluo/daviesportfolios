@@ -46110,3 +46110,40 @@ against the 150 the reading needs, so no reading. Nothing failed, so nothing is 
   (relay `01a14cf8…`, tx `0x47ddae80…`), mined in block 95,724,934 with status 1 (51 logs, 1.36 M gas, paid by the
   relayer). The hourly call settles those `grokpm_redeems` rows and redeems the next five (all $0) at 04:00. Undo:
   `update public.grokpm_config set redeem_enabled = false where id = 1;`.
+
+## LEDGER.md, archived 2026-10-18 (fifth) — the 2026-10-18 03:30 → 04:19 UTC history sections, oldest first
+
+### [2026-10-18 03:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **IG strategy search round 3, rules frozen** (sub-agent; item 14; Davies, 10-18: "再继续深度研究下ig的策略，可以更激进一些也可以，只要策略够好"):
+  `backtests/ig_search3/params/frozen.json` fixes the intraday, event-day, EIA, Sunday-open FX and sizing rules, eras,
+  IG costs and the bar before any data is pulled; results to `reviews/2026-10-18-ig-strategy-search-3.md`.
+
+### [2026-10-18 04:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Stablecoin quotes review, and every testing row** (sub-agent, not pushed; Davies, 10-18: "检查和评估下所有live和testing的
+  stablecoin quotes策略…revolut的testings策略哪个表现最好？live的策略可以进一步优化吗？…要不要给revolut也加一个周末的策略测试", then
+  "…目前的所有测试策略有没有值得优化/修改/删除/新增的"). `reviews/2026-10-18-stablecoin-quotes-review.md`,
+  `backtests/scq_review/2026-10-18/` (read 03:27–03:50 UTC, SELECT only; not blind; no reading run or pre-empted). A replay of
+  `stepMinute` reproduces PR5's 180 paper trips (09-26 → 10-17) to the cent. Best Revolut X testing row: variant-2, 6.59 bps of
+  capital a weekday (variant-1 5.56, variant-3 4.84, "Stablecoin quotes" 4.61). LIVE: only size (10-21) and the weekend hold
+  (PR5-W's rule; +£0.056 a day at £10 a rung on PR5's own record, 37 of 38 weekends positive on the tape) beat the rule as it
+  runs; rungs, books, stop, re-price, exit offsets, time gates and inventory caps did not. Coinbase's Saturday +£0.80 is Friday
+  entries closed by the 24-hour stop (the weekday-only row made the same). Drafted, NOT frozen:
+  `reviews/2026-10-18-revx-weekend-prereg.md` ("Stablecoin quotes weekend", a forward paper row, read with PR5-W on 11-25).
+  Alarm: IG's weekend recorder fails two runs in three since 10-16 20:52 (item 14). The 2026-10-16 history moved to the archive.
+
+### [2026-10-18 04:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **IG weekend recorder: one login a run** (sub-agent; item 14). From 10-16 20:52 to 10-18 04:07 UTC `ig_quote_runs`
+  succeeded by logins a run: 0 → 12/12, 1 → 237/237, 2 → 182/183, 3 → 0/208, 4 → 0/240, 5 → 0/366. Every run that
+  began with its own login worked; the failing ones began on the previous minute's session kept in the isolate, and each
+  401 account-token-invalid led to another login that failed the same way (switches stayed 2, so a re-login landed on
+  the failing account). IG's cause is not known from here. `ig?action=quotes` now logs in at the start of every run
+  (60 an hour), re-logs in at most once (`QUOTES_MAX_RELOGINS`), stops the run at the next token refusal, and waits 1 s
+  after `PUT /session`; `facts` and `history` are unchanged. Two pins fail on the old code.
+
+
+### [2026-10-18 04:19 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **`momentum-1d` retired** (sub-agent, not pushed; Davies, 10-18, answering the stablecoin quotes review: "momentum-1d可以删了").
+  `0129`: paused with `retired_at` set, as `0043` did; decisions, orders and observations kept. It held paper SOL (bought 10-18
+  00:00), which the tick winds down by its rule; TESTING drops it once flat. Not an `edge_calls` row, so no call or watchdog
+  change. After the deploy: `select mode, retired_at from agent_strategies where id = 'momentum-1d'` reads paused and set, and
+  no entry order of it follows.
