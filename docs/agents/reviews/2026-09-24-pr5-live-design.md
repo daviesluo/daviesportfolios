@@ -309,3 +309,5 @@ reading LIVE's record.
   paper USDC bid fill that LIVE never had. The executor sent 11 £10 entries (ids 6772–6782) at 20:28:27 and cancelled
   all 11 by 20:29:26 after the revert, 0 filled. Rule from this: `weekend_mode` turns 'live' only outside a closure, so the
   first closure it trades starts with a replica copied in the hour before. It was re-set after 21:00 (the next log line).
+* 2026-10-18 21:06:04 UTC: `weekend_mode` 'live' again, outside the closure (PR5's minute 21:04 Sunday). The first closure
+  it trades opens Fri 2026-10-23 21:00 UTC, with the replica copied from PR5's engine from 20:00. `take_mode` stays 'shadow'.

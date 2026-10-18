@@ -263,8 +263,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      一定验证好没问题再推上实盘部署"). Plan and go statements: the live design's addendum of 10-18. Weekend shadow read 10-18 20:20:
      all eight criteria pass (the addendum's log). 'live' (Davies 10-18: "没问题的话就直接live也行") set 20:28:05, back
      to 'shadow' 20:28:43: inside a closure 'live' acts at once on the replica, which was `late`, and 11 £10 entries went out at
-     20:28:27, all cancelled by 20:29:26 with 0 filled. Re-set after 21:00 (wake `trig_01Bxs8XdREDpLLAvYeZowfLL`, 21:05);
-     first trading Fri 10-23 21:00. Take shadow: read after five weekdays (from 10-19).
+     20:28:27, all cancelled by 20:29:26 with 0 filled. Re-set to 'live' at 21:06:04, outside the closure (PR5's
+     minute 21:04); first trading Fri 10-23 21:00. Take shadow: read after five weekdays (from 10-19).
    - **The review of 2026-10-09** (`reviews/2026-10-09-stablecoin-quotes-review.md`, not blind). **F1 built on Davies'
      word** (10-09: a buy-back at the venue's £0.10 minimum buys what its whole penny buys, LIVE and every twin; the twins'
      deviation 3, p50's deviation 2, TAKE's addendum 2, the live design's addendum). After its deploy: the next LIVE or
@@ -655,7 +655,8 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   10-23, but `paperView` follows the replica whenever PR5's minute is inside a closure, so 'live' set before Sunday 21:00
   acts on the remaining minutes. The replica was `late` (copied 05:17 Sun, holding a paper USDC bid fill LIVE never had),
   so the executor sent 11 £10 entries (ids 6772-6782) at 20:28:27. After the revert it cancelled all 11 by 20:29:26 with
-  0 filled. Lesson: set weekend_mode 'live' only outside a closure. It is re-set after 21:00 by `trig_01Bxs8XdREDpLLAvYeZowfLL`.
+  0 filled. Lesson: set weekend_mode 'live' only outside a closure. Re-set to 'live' at 21:06:04 UTC (PR5's minute 21:04,
+  outside the closure); take_mode stays 'shadow'.
 - **IG fifth fix landed** (dc74dca2, pushed 20:2x); the deploy goes through edge-functions.yml. The Sunday open was
   recorded (19:59-20:01 all ok) before it.
 
