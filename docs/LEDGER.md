@@ -642,6 +642,14 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)"; each oldest first.
 
+### [2026-10-18 05:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LIVE PR5's take and weekend quoting in SHADOW** (Davies: "会的话就加上，然后加上周末的挂单，一定验证好没问题再推上实盘部署";
+  bcd3bcaf deployed, 0131 applied). `take_mode` and `weekend_mode` set to 'shadow' at 05:17 UTC: decisions recorded as
+  `take_shadow` / `weekend_shadow` events, nothing sent. First turns: 2 `weekend_shadow` events, the replica `late` (switched
+  on mid-closure, as designed), no error, 0 new orders. Pass criteria and the 'live' statements are in the 2026-09-24 live
+  design's 2026-10-18 addendum; each goes live only after its criteria pass and the result is shown to Davies. Undo:
+  `update public.agent_quote_live_config set take_mode = 'off', weekend_mode = 'off', updated_at = now() where id = 1;`.
+
 ### [2026-10-18 05:08 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **LIVE's take and weekend quoting built behind two switches, both 'off'** (sub-agent, not pushed; Davies, 10-18: "live的策略
   有主动吃单吗？…会的话就加上，然后加上周末的挂单，一定验证好没问题再推上实盘部署"). Priced first on LIVE's record at £10 a rung
