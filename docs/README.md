@@ -146,8 +146,8 @@ manages open orders and checks a stop against the live bid. On each new
 closed bar it asks its rulebook what to do.
 
 - **The rules decide, and the model can only say no.** Entries and exits
-  come from written rules: trend following on 4-hour and 1-hour bars,
-  and 30-day momentum. The TypeSafe Jev decision model is asked about
+  come from written rules: trend following on 4-hour and 1-hour bars.
+  The TypeSafe Jev decision model is asked about
   entries only and can refuse one. A risk gate with its limits in the
   database has the last word.
 - **Backtests use the loop's own fills, fees and stops**, on four

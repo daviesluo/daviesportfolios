@@ -657,6 +657,13 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   3 s apart, before its one re-login. A run takes about 35 s (the edge call allows 55). A pin, a token refused for its
   first 1 or 4 s, fails on the old code.
 
+### [2026-10-18 04:19 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **`momentum-1d` retired** (sub-agent, not pushed; Davies, 10-18, answering the stablecoin quotes review: "momentum-1d可以删了").
+  `0129`: paused with `retired_at` set, as `0043` did; decisions, orders and observations kept. It held paper SOL (bought 10-18
+  00:00), which the tick winds down by its rule; TESTING drops it once flat. Not an `edge_calls` row, so no call or watchdog
+  change. After the deploy: `select mode, retired_at from agent_strategies where id = 'momentum-1d'` reads paused and set, and
+  no entry order of it follows.
+
 ### [2026-10-18 04:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **IG weekend recorder: one login a run** (sub-agent; item 14). From 10-16 20:52 to 10-18 04:07 UTC `ig_quote_runs`
   succeeded by logins a run: 0 → 12/12, 1 → 237/237, 2 → 182/183, 3 → 0/208, 4 → 0/240, 5 → 0/366. Every run that

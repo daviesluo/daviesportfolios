@@ -21,7 +21,8 @@ How the less obvious parts work, and why they are built the way they are.
   strategies; no real balance is shown, and Binance's paper venue reads
   only its public market data, which it serves to any address): 4-hour trend following
   on BTC, ETH, SOL, AVAX and SUI (the candidate for real money), its
-  1-hour variant, and 30-day momentum, both on BTC, ETH and SOL. The loop
+  1-hour variant on BTC, ETH and SOL (a 30-day momentum row ran on paper
+  until it retired by `0129`, 2026-10-18). The loop
   runs every minute: quotes, order management, a protective floor under
   cost checked against the bid, and the state on the forming bar (shown
   live on the page); entries wait for closed bars. TypeSafe's **Jev
@@ -829,6 +830,7 @@ before touching migration state.
 | `0126_grokpm_markets.sql` | GROKPM's market titles: each market its journal or record names, with its question, slug and end date from Gamma, so its page titles and links every journal entry. |
 | `0127_grokpm_orders_day.sql` | GROKPM's orders a UTC day raised from 50 to 150 (its Deviation D5), so a resting order can be re-placed each wake. |
 | `0128_grokpm_redeem.sql` | The shared Polymarket account's automatic redemption (GROKPM's D6): its switch `redeem_enabled` (off), its attempts, its last run's state, and its hourly call from eu-west-1. |
+| `0129_retire_momentum_1d.sql` | Retires the `momentum-1d` paper row in place (paused, `retired_at`): it winds down what it holds and leaves TESTING; its record stays. |
 | `0096_pm_rw_x_tb1_arms.sql` | Lets the variants' day tables, RW's and RW-C's, take TB1's two arms on x1 (tb1-skip, tb1-back). |
 | `0086_quote_live_deadman.sql` | Adds the kind `deadman` to `agent_quote_live_events`, for the row the monitor's dead-man switch writes when it cancels PR5's resting orders. |
 | `0087_quote_twins.sql` | The realistic twins' tables (each the live executor's four, a replica's and a simulated account's), their config rows and leases, and the one call that runs them. |
