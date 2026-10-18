@@ -196,6 +196,8 @@ export type IgClientOpts = {
   forceSwitchAfterLogin?: boolean;
   /** Before a re-login, log the refused session out (`DELETE /session`), so a run leaves no session behind it. */
   logoutBeforeRelogin?: boolean;
+  /** Re-log in no sooner than this long after the refused session's own login (unset: at once). */
+  reloginWaitMs?: number;
 };
 
 /**
@@ -214,6 +216,8 @@ export class IgClient {
   tokenRetriesUsed = 0;
   /** `DELETE /session` calls sent. */
   logouts = 0;
+  /** Asked before a re-login: false keeps the refusal (the caller's time budget would not hold the wait). */
+  reloginAllowed: () => boolean = () => true;
   /** The last session answer, balances stripped (accounts, current account, time zone offset, …). */
   sessionInfo: Record<string, unknown> | null = null;
   /** IG's `Date` header against this clock, from the latest answer: the run's clock check. */
@@ -310,9 +314,12 @@ export class IgClient {
       await this.pause(this.opts.tokenRetryWaitMs ?? 0);
       ({ answer, headers } = await this.raw(method, path, { ...o, auth: true }));
     }
-    if (isTokenError(answer.status, igErrorCode(answer.body)) && this.relogins < (this.opts.maxRelogins ?? Infinity)) {
+    if (isTokenError(answer.status, igErrorCode(answer.body)) && this.relogins < (this.opts.maxRelogins ?? Infinity) && this.reloginAllowed()) {
       this.relogins += 1;
       const account = this.session?.accountId ?? "";
+      // A session refused right after its own login: the re-login waits until `reloginWaitMs` after that login.
+      const since = (this.opts.now ?? Date.now)() - (this.session?.at ?? 0);
+      if (this.opts.reloginWaitMs && since < this.opts.reloginWaitMs) await this.pause(this.opts.reloginWaitMs - since);
       if (this.opts.logoutBeforeRelogin) await this.logout();
       this.session = null;
       await this.login();

@@ -46147,3 +46147,59 @@ against the 150 the reading needs, so no reading. Nothing failed, so nothing is 
   00:00), which the tick winds down by its rule; TESTING drops it once flat. Not an `edge_calls` row, so no call or watchdog
   change. After the deploy: `select mode, retired_at from agent_strategies where id = 'momentum-1d'` reads paused and set, and
   no entry order of it follows.
+
+
+## LEDGER.md, archived 2026-10-18 (sixth) — the 2026-10-18 04:31 → 04:58 UTC history sections, oldest first
+
+### [2026-10-18 04:31 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **IG weekend recorder, follow-up** (sub-agent; item 14). After `ea3e74da` deployed (04:19 UTC), 13 runs to 04:31:
+  10 ok, 3 failed in about a second (login, a call 0.3 s later refused account-token-invalid with no switch, the
+  re-login's call refused the same way), and 3 more needed the re-login: a fresh token is refused about half the
+  time 0.3 s after it is issued (`history`, 2.5 s between requests, saw it once in about fifty pulls). The recorder
+  now waits 2 s after a login or a switch and, on a refusal, sends the same request again on the same tokens twice,
+  3 s apart, before its one re-login. A run takes about 35 s (the edge call allows 55). A pin, a token refused for its
+  first 1 or 4 s, fails on the old code.
+
+### [2026-10-18 04:37 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **CBBOOKS-1, the Coinbase book recorder's first study** (sub-agent, not pushed; Davies, 10-18: "cbbooks留着并利用起来，和revolut x的
+  订单簿一样可以做策略研究"). Rules, split (train 10-10 03:00 → 10-14 03:00, test → 10-18 03:00), costs (Coinbase 0 % / 0.0045 %,
+  Revolut X 0 % / 0.09 %) and bars frozen in `backtests/cbbooks/params.json` (commit `836c6922`) before any result; production read
+  04:21–04:26 UTC, SELECT only; raw pulls hashed in `MANIFEST.json`, not committed. Deviation 1: `cb_trades.side` is the aggressor's,
+  not the maker's as the params said (the recorder flips it). Ranked: (1) the Coinbase paper rows' 61 and 53 entry fills all had a
+  print through and would have rested post-only; a queue rule adds about 8 % entries, 12 % exits; (2) a Revolut X maker hedged on
+  Coinbase at 10 bps passes its bar, test +£0.52 a day USDC-GBP and +£1.00 USDT-GBP, but 88–100 % of fills buy on Revolut X, so coins
+  must be moved; drafted NOT frozen (`reviews/2026-10-18-cross-venue-maker-prereg.md`); (3) Coinbase leads Revolut X (Revolut X 4.7–5.3
+  bps cheaper), not a better fair; dead: the touch maker (60-min markouts −0.16 to −0.77 bp), imbalance as a strategy, a weekend
+  effect, taker-taker crossings (persist for hours), one release. Item 13 rewritten: cbbooks KEPT; reference §4 item 59 notes it.
+
+### [2026-10-18 04:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **"Stablecoin quotes variant-3" (`take50wk`) built, rule D's twin renamed "variant-4"** (sub-agent, not pushed; Davies, 10-18:
+  "加一个 Revolut 周末 paper 测试，在目前最好的variant-2基础上加，上线测试一下作为variant-3，目前的3改为4"). `0130`: d's page name, then the
+  row (variant-2's + `rules.weekend` from 2026-10-23 21:00 UTC; start 2026-10-19 00:00, flat, no backfill: beats are kept ~3
+  days, so a catch-up from the 10-02 backfill would skip two weeks). PR5-W's rule in `agents/quotes_weekend.ts`, the replica
+  (`quotes_twin.ts`) and the executor instance (`quotes_live.ts` `paperView`; LIVE's instance has none). Frozen
+  `reviews/2026-10-18-revx-weekend-prereg.md` (sha pins `src/weekend_twin.test.js`; reading `backtests/wk3/`, on or after 11-25
+  00:30 after PR5-W, four bars); twins' prereg deviation 6, size twin's deviation 5. Pins fail on the old code (both halves).
+  Backfills rebuilt to the same bytes. **After the deploy:** five spec rows, `take50wk` tables closed to anon; its `_sim` row
+  started, catching up from 10-19 00:00, no `agents.quotes_twins` error; mode `forward` before **10-23 21:00** (else its first
+  weekend is reported, not judged); first Saturday: entries resting in `agent_quote_twin_take50wk_orders` while take50's rest none.
+
+### [2026-10-18 04:46 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **IG strategy search round 3, results** (sub-agent; item 14; `reviews/2026-10-18-ig-strategy-search-3.md`): 50 arms
+  (intraday index rules flat by the close, FOMC/CPI/payroll/EIA days, FXW's rule on 14 FX pairs), HistData 1-minute
+  2010-2026 and FXCM 2012-2026 with Yahoo hourly and HistData FX as second sources; none meets the frozen bar. Intraday
+  rules gross -2.7 to +2.8 bps against 1.6-3.6 bps of IG cost. FXW is a post-2016 effect: AUD/USD +23.6 bps (t 5.34)
+  2019-2026 but +0.6 (t 0.07) on 2013-2015, the years its discovery never saw; AUD/NZD and NZD/USD alike; EUR/JPY
+  positive in both eras and feeds but test t 1.58. FXW-AUD sizing: GBP 1,000 at GBP 1.50 a pip (10x) about GBP 150 a
+  year median before the 2013-2015 deduction; IG's 20:1 is ruinous on the 449-bps weekend. Recommendation: fund nothing
+  new; FXW-AUD stays on S1b. HistData's stamps are New York time (deviation 2), not the EST its FAQ states.
+
+### [2026-10-18 04:58 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **IG weekend recorder, third fix** (sub-agent; item 14). With `8edc426c` live (04:39 UTC), runs 04:41-04:56: 11 of
+  15 ok; the 4 failures (04:43, 04:47, 04:50, 04:54) each took ~10.7 s, 2 logins, 0 switches, 6 requests, "cfd: 401
+  account-token-invalid": the waits and retries ran and the token stayed refused, so timing is not the cause. The
+  client trusted the login's `currentAccountId` (CFD) and called it without a switch, while IG keeps one current account
+  per user. Now: the run's first call is a `PUT /session` to the account wanted even when the login names it ("must be
+  different" counts as done), and so is the re-login's; the spread-bet account (S1b's FX) is read first; an account
+  refused after the one re-login is left for the minute and the other is still read. The answer carries per-account
+  snapshots and errors (`accounts`); the run row is unchanged. Two pins fail on the deployed code.

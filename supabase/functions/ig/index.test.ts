@@ -11,6 +11,8 @@ import {
   inDbWindow, QUOTE_WINDOWS, ukClock, ukOffsetMs, ukToUtcMs,
 } from "./windows.ts";
 import {
+  QUOTES_FORCE_SWITCH_AFTER_LOGIN, QUOTES_GAP_MS, QUOTES_LOGIN_WAIT_MS, QUOTES_MAX_RELOGINS, QUOTES_MAX_REQUESTS, QUOTES_SWITCH_WAIT_MS,
+  QUOTES_TOKEN_RETRIES, QUOTES_TOKEN_RETRY_WAIT_MS,
   accountOf, ALLOWANCE_RESERVE, knownAllowance, quoteEpics, runFacts, runHistory, runQuotes, samplesOf, shouldReport, type Rest,
 } from "./actions.ts";
 import { authorise, handle, type Deps } from "./index.ts";
@@ -65,6 +67,10 @@ function fakeIg(o: {
   loginLimit?: { max: number; windowMs: number };
   /** Every session issued before this time is refused (client-token-invalid) from it on, as weekend maintenance does. */
   killBefore?: number;
+  /** One good session per user: a login while an older session of the user is good gets refused tokens
+   *  (client-token-invalid), and the older one dies `dieAfterMs` after that login; a login after it has died is good.
+   *  The model the recorder's 10-18 runs fit (fix 6), not a documented IG rule. */
+  oneGoodSession?: { dieAfterMs: number };
 } = {}) {
   const calls: Call[] = [];
   let account = o.startAccount ?? "Z6F18J";
@@ -77,7 +83,10 @@ function fakeIg(o: {
   let logins = 0;
   const live = new Map<string, { starved: boolean; dead?: boolean; at: number }>();
   const loginTimes: number[] = [];
-  const perSession = !!(o.sessionCap || o.loginLimit || o.killBefore);
+  const perSession = !!(o.sessionCap || o.loginLimit || o.killBefore || o.oneGoodSession);
+  let good: string | null = null;
+  let goodDiesAt: number | null = null;
+  const goodAlive = () => good !== null && (goodDiesAt === null || clock() < goodDiesAt);
   const clock = o.now ?? (() => 0);
   const res = (status: number, body: unknown, headers: Record<string, string> = {}) =>
     new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json", date: "Sun, 18 Oct 2026 20:00:00 GMT", ...headers } });
@@ -95,8 +104,21 @@ function fakeIg(o: {
       const cst = perSession ? `${CST}-${logins}` : CST;
       const recent = loginTimes.filter((x) => o.loginLimit && clock() - x < o.loginLimit.windowMs).length;
       loginTimes.push(clock());
+      let refusedLogin = false;
+      if (o.oneGoodSession) {
+        if (goodAlive()) {
+          refusedLogin = true;
+          goodDiesAt ??= clock() + o.oneGoodSession.dieAfterMs;
+        } else {
+          good = cst;
+          goodDiesAt = null;
+        }
+      }
       if (perSession) {
-        live.set(cst, { starved: !!o.sessionCap && live.size >= o.sessionCap, dead: !!o.loginLimit && recent >= o.loginLimit.max, at: clock() });
+        live.set(cst, {
+          starved: !!o.sessionCap && live.size >= o.sessionCap,
+          dead: (!!o.loginLimit && recent >= o.loginLimit.max) || refusedLogin, at: clock(),
+        });
       }
       return res(200, {
         accountType: "CFD", currencyIsoCode: "GBP", currentAccountId: "Z6F18J", clientId: "CLIENT-1", timezoneOffset: 1,
@@ -112,7 +134,8 @@ function fakeIg(o: {
     if (perSession) {
       const s = live.get(headers["cst"]);
       if (!s) return res(401, { errorCode: "error.security.client-token-invalid" });
-      if (s.dead || (o.killBefore !== undefined && clock() >= o.killBefore && s.at < o.killBefore)) {
+      const diedAsOld = !!o.oneGoodSession && headers["cst"] === good && !goodAlive();
+      if (s.dead || diedAsOld || (o.killBefore !== undefined && clock() >= o.killBefore && s.at < o.killBefore)) {
         if (method === "DELETE" && path === "/session") live.delete(headers["cst"]);
         return res(401, { errorCode: "error.security.client-token-invalid" });
       }
@@ -794,4 +817,41 @@ Deno.test("a kept session IG refuses (client-token-invalid) is logged out, repla
   const del = methods.lastIndexOf("DELETE"), post = methods.lastIndexOf("POST");
   assert(del >= 0 && del < post, "the refused session is logged out before the re-login");
   assert(d.sessionStore?.session, "the new session is kept");
+});
+
+// Fix 6 (2026-10-18 21:10 UTC): every cron call is a fresh worker, so a kept session is never reused; the runs fit one
+// good session per user, the older one dying some seconds after a refused login. The re-login now waits 18 s.
+
+Deno.test("with one good session per user, a re-login 18 s after the refused login reads; at 9 s the run fails", async () => {
+  const run = async (reloginWaitMs: number) => {
+    const { rest } = fakeRest();
+    await factsFor(rest, "sb");
+    await factsFor(rest, "cfd");
+    let t = Date.UTC(2026, 9, 18, 20, 0, 0, 400);
+    const ig = fakeIg({ oneGoodSession: { dieAfterMs: 12_000 }, now: () => t });
+    const sleep = (ms: number) => { t += ms; return Promise.resolve(); };
+    // Each run a fresh worker: no session is carried from one run to the next, as in production.
+    const mk = (s: unknown) => new IgClient({
+      creds: CREDS, fetchImpl: ig.impl, maxRequests: QUOTES_MAX_REQUESTS, minGapMs: QUOTES_GAP_MS, sleep, now: () => t,
+      session: s as null, maxRelogins: QUOTES_MAX_RELOGINS, switchWaitMs: QUOTES_SWITCH_WAIT_MS, loginWaitMs: QUOTES_LOGIN_WAIT_MS,
+      tokenRetries: QUOTES_TOKEN_RETRIES, tokenRetryWaitMs: QUOTES_TOKEN_RETRY_WAIT_MS, forceSwitchAfterLogin: QUOTES_FORCE_SWITCH_AFTER_LOGIN,
+      logoutBeforeRelogin: true, reloginWaitMs,
+    });
+    const out = [];
+    for (let minute = 0; minute < 4; minute++) {
+      const start = Date.UTC(2026, 9, 18, 20, minute, 0, 400);
+      t = start;
+      const r = await runQuotes({ makeClient: mk, session: null, rest, now: () => t, sleep, report: () => Promise.resolve() });
+      out.push({ ok: r.result.ok, snapshots: r.result.snapshots, logins: r.result.logins, ms: t - start });
+    }
+    return out;
+  };
+  // The re-login ~9 s after the refused login, as deployed: the older session still lives, so the run fails, and the
+  // next one (after the older session died) works on one login: the production rhythm.
+  const nine = await run(9_000);
+  assertEquals(nine.map((r) => [r.ok, r.logins]), [[true, 1], [false, 2], [true, 1], [false, 2]]);
+  // At 18 s the older session has died: every run reads all four snapshots, inside the edge call's 55 s.
+  const eighteen = await run(18_000);
+  assertEquals(eighteen.map((r) => [r.ok, r.snapshots, r.logins]), [[true, 4, 1], [true, 4, 2], [true, 4, 2], [true, 4, 2]]);
+  for (const r of eighteen) assert(r.ms < 55_000, `a run took ${r.ms} ms`);
 });

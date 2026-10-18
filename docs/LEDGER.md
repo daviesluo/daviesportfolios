@@ -472,10 +472,11 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    05:06): an explicit switch after every login, spread-bet account first, accounts isolated; runs then cycled every
    three minutes (ok, ok after a re-login, both accounts refused) with no session ever logged out. Fourth fix (live
    05:42): log out every run; still one run in four failed, both logins refused (client-token-invalid). It ran so
-   all of 10-18 (~75 % ok; the 20:00 UTC Sunday open caught, 19:59-20:01 ok). Fifth fix (history 2026-10-18 20:19 UTC,
-   committed, not deployed): keep a clean session across runs, log in only when refused (once a run, the refused
-   session logged out first), no routine log-out. After it deploys, check `ig_quote_runs`: `ok` on (nearly) every run,
-   `logins` 0 on most.
+   all of 10-18 (~75 % ok; the 20:00 UTC Sunday open caught, 19:59-20:01 ok). Fifth fix (`dc74dca2`, live ~20:30
+   UTC): keep the session; changed nothing, every cron call is a fresh worker. Sixth fix (history 2026-10-18 21:12
+   UTC, committed, not deployed): the re-login waits until 18 s after the refused login. After it deploys, check
+   `ig_quote_runs`: `ok` on (nearly) every run, `logins` 2 on most. Storing the tokens across workers (option A) is
+   Davies' call; an S1b deviation for G4's 95 % uptime rule is drafted, not committed.
 
 15. **GROKPM, "Polymarket analyst" ("(Grok)" dropped 10-17): LIVE since 2026-10-17 02:39:14 UTC (Davies: "上线"); ends
    2026-11-14 00:00 UTC at the latest (wake `trig_01C3a3b3F38FYavx6jFeqJEq`); trades through our Ireland server on the shared account** (Davies, 2026-10-15: "让grok bot里开一个trading bot，给他100美元…先让他就用100美元测试"; 2026-10-16:
@@ -648,7 +649,20 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
-"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)"; each oldest first.
+"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)"; each oldest first.
+
+### [2026-10-18 21:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **IG weekend recorder, sixth fix: an 18 s re-login wait** (sub-agent; item 14). Under fix 5 (20:31-21:08 UTC, 39
+  runs, 28 ok) no run had 0 logins and every 1-login run made exactly 8 requests: each cron call is a fresh worker and
+  the kept session was never reused. Since 05:43 (927 runs) every run after a failed run worked on its first login
+  (224 of 224) and no two failures came in a row: not a login-rate limit (IG documents none; the refusals are 401
+  token errors, not the 403 allowance error). It fits one good session per user, where a login made while an older
+  session of ours lives gets refused tokens and the older one dies some seconds later; the re-login ~9 s after it
+  worked 367 times in 576. The re-login now waits until 18 s after the refused login; it starts only in a run's first
+  25 s, and the second snapshot may start until 40 s (was 25), so a run ends inside 55 s. The end-of-run log-out is
+  not restored (27 s after a log-out IG still refused the next login 87 % of the time). Pin: a one-good-session fake
+  whose old session dies 12 s after a refused login; at 9 s the runs alternate ok/failed as in production, at 18 s
+  every run reads four snapshots in under 55 s; it fails on the deployed code.
 
 ### [2026-10-18 20:31 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **weekend_mode 'live' at 20:28:05, reverted to 'shadow' at 20:28:43** (item 4). The switch was meant to first trade on
@@ -743,58 +757,3 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   shadow writes events and sends nothing; weekend source inside closures; switches read 'off' before `0131` runs),
   `quotes_live_weekend.ts` (replica copied from PR5's engine in the hour before a closure, stepped inside it). Pins:
   `quotes_live_switches.test.ts`, ten counterfactuals fail. Verification and go statements: live design addendum of 10-18.
-
-
-### [2026-10-18 04:58 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **IG weekend recorder, third fix** (sub-agent; item 14). With `8edc426c` live (04:39 UTC), runs 04:41-04:56: 11 of
-  15 ok; the 4 failures (04:43, 04:47, 04:50, 04:54) each took ~10.7 s, 2 logins, 0 switches, 6 requests, "cfd: 401
-  account-token-invalid": the waits and retries ran and the token stayed refused, so timing is not the cause. The
-  client trusted the login's `currentAccountId` (CFD) and called it without a switch, while IG keeps one current account
-  per user. Now: the run's first call is a `PUT /session` to the account wanted even when the login names it ("must be
-  different" counts as done), and so is the re-login's; the spread-bet account (S1b's FX) is read first; an account
-  refused after the one re-login is left for the minute and the other is still read. The answer carries per-account
-  snapshots and errors (`accounts`); the run row is unchanged. Two pins fail on the deployed code.
-
-
-### [2026-10-18 04:46 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **IG strategy search round 3, results** (sub-agent; item 14; `reviews/2026-10-18-ig-strategy-search-3.md`): 50 arms
-  (intraday index rules flat by the close, FOMC/CPI/payroll/EIA days, FXW's rule on 14 FX pairs), HistData 1-minute
-  2010-2026 and FXCM 2012-2026 with Yahoo hourly and HistData FX as second sources; none meets the frozen bar. Intraday
-  rules gross -2.7 to +2.8 bps against 1.6-3.6 bps of IG cost. FXW is a post-2016 effect: AUD/USD +23.6 bps (t 5.34)
-  2019-2026 but +0.6 (t 0.07) on 2013-2015, the years its discovery never saw; AUD/NZD and NZD/USD alike; EUR/JPY
-  positive in both eras and feeds but test t 1.58. FXW-AUD sizing: GBP 1,000 at GBP 1.50 a pip (10x) about GBP 150 a
-  year median before the 2013-2015 deduction; IG's 20:1 is ruinous on the 449-bps weekend. Recommendation: fund nothing
-  new; FXW-AUD stays on S1b. HistData's stamps are New York time (deviation 2), not the EST its FAQ states.
-
-### [2026-10-18 04:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **"Stablecoin quotes variant-3" (`take50wk`) built, rule D's twin renamed "variant-4"** (sub-agent, not pushed; Davies, 10-18:
-  "加一个 Revolut 周末 paper 测试，在目前最好的variant-2基础上加，上线测试一下作为variant-3，目前的3改为4"). `0130`: d's page name, then the
-  row (variant-2's + `rules.weekend` from 2026-10-23 21:00 UTC; start 2026-10-19 00:00, flat, no backfill: beats are kept ~3
-  days, so a catch-up from the 10-02 backfill would skip two weeks). PR5-W's rule in `agents/quotes_weekend.ts`, the replica
-  (`quotes_twin.ts`) and the executor instance (`quotes_live.ts` `paperView`; LIVE's instance has none). Frozen
-  `reviews/2026-10-18-revx-weekend-prereg.md` (sha pins `src/weekend_twin.test.js`; reading `backtests/wk3/`, on or after 11-25
-  00:30 after PR5-W, four bars); twins' prereg deviation 6, size twin's deviation 5. Pins fail on the old code (both halves).
-  Backfills rebuilt to the same bytes. **After the deploy:** five spec rows, `take50wk` tables closed to anon; its `_sim` row
-  started, catching up from 10-19 00:00, no `agents.quotes_twins` error; mode `forward` before **10-23 21:00** (else its first
-  weekend is reported, not judged); first Saturday: entries resting in `agent_quote_twin_take50wk_orders` while take50's rest none.
-
-### [2026-10-18 04:37 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **CBBOOKS-1, the Coinbase book recorder's first study** (sub-agent, not pushed; Davies, 10-18: "cbbooks留着并利用起来，和revolut x的
-  订单簿一样可以做策略研究"). Rules, split (train 10-10 03:00 → 10-14 03:00, test → 10-18 03:00), costs (Coinbase 0 % / 0.0045 %,
-  Revolut X 0 % / 0.09 %) and bars frozen in `backtests/cbbooks/params.json` (commit `836c6922`) before any result; production read
-  04:21–04:26 UTC, SELECT only; raw pulls hashed in `MANIFEST.json`, not committed. Deviation 1: `cb_trades.side` is the aggressor's,
-  not the maker's as the params said (the recorder flips it). Ranked: (1) the Coinbase paper rows' 61 and 53 entry fills all had a
-  print through and would have rested post-only; a queue rule adds about 8 % entries, 12 % exits; (2) a Revolut X maker hedged on
-  Coinbase at 10 bps passes its bar, test +£0.52 a day USDC-GBP and +£1.00 USDT-GBP, but 88–100 % of fills buy on Revolut X, so coins
-  must be moved; drafted NOT frozen (`reviews/2026-10-18-cross-venue-maker-prereg.md`); (3) Coinbase leads Revolut X (Revolut X 4.7–5.3
-  bps cheaper), not a better fair; dead: the touch maker (60-min markouts −0.16 to −0.77 bp), imbalance as a strategy, a weekend
-  effect, taker-taker crossings (persist for hours), one release. Item 13 rewritten: cbbooks KEPT; reference §4 item 59 notes it.
-
-### [2026-10-18 04:31 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **IG weekend recorder, follow-up** (sub-agent; item 14). After `ea3e74da` deployed (04:19 UTC), 13 runs to 04:31:
-  10 ok, 3 failed in about a second (login, a call 0.3 s later refused account-token-invalid with no switch, the
-  re-login's call refused the same way), and 3 more needed the re-login: a fresh token is refused about half the
-  time 0.3 s after it is issued (`history`, 2.5 s between requests, saw it once in about fifty pulls). The recorder
-  now waits 2 s after a login or a switch and, on a refusal, sends the same request again on the same tokens twice,
-  3 s apart, before its one re-login. A run takes about 35 s (the edge call allows 55). A pin, a token refused for its
-  first 1 or 4 s, fails on the old code.

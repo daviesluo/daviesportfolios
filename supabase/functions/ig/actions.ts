@@ -310,9 +310,22 @@ export const QUOTES_LOGOUT = true;
 export const QUOTES_KEEP_SESSION = true;
 export const QUOTES_TOKEN_RETRIES = 2;
 export const QUOTES_TOKEN_RETRY_WAIT_MS = 3_000;
-/** The second snapshot is taken this long after the call started, if the call started early enough. */
+/**
+ * Fix 5 (live 20:30 UTC 10-18) kept the session, but every cron call lands in a fresh worker: no run since has had 0
+ * logins, and each 1-login run made exactly 8 requests (11 of 11), so nothing was ever reused. The rhythm is the same
+ * as before and does not fit a login-rate limit (927 runs since 05:43: every run after a failed run worked on its first
+ * login, 224 of 224; no two failures in a row): it fits one good session per user, where a login made while an older
+ * session of ours is alive gets refused tokens and the older one dies a little later. The re-login came ~9 s after the
+ * refused login and worked 367 times in 576 (fix 4); so it now waits until 18 s after that login. Logging out at the end
+ * of a run is not restored: 27 s after a log-out IG still refused the next login 87 % of the time (fix 4).
+ */
+export const QUOTES_RELOGIN_WAIT_MS = 18_000;
+/** A re-login is started only this early in a run, so the run ends inside the edge call's 55 s. */
+export const QUOTES_RELOGIN_LATEST_MS = 25_000;
+/** The second snapshot is taken this long after the call started, if the run reaches it by SECOND_SAMPLE_LATEST_START_MS
+ *  (raised from 25 s so a run that re-logged in still takes it; a late run drops it, never the re-login). */
 export const SECOND_SAMPLE_MS = 30_000;
-export const SECOND_SAMPLE_LATEST_START_MS = 25_000;
+export const SECOND_SAMPLE_LATEST_START_MS = 40_000;
 
 export type QuoteSample = {
   account_kind: AccountKind; account_id: string; epic: string; received_at: string;
@@ -383,6 +396,7 @@ export async function runQuotes(o: {
     if (!plan.length) throw new Error("no facts row names an epic for these windows: run ?action=facts for each account");
     // The spread-bet account first (S1b's FX); `quoteEpics` lists it first.
     plan = [...plan].sort((a, b) => ACCOUNT_KINDS.indexOf(a.kind) - ACCOUNT_KINDS.indexOf(b.kind));
+    client.reloginAllowed = () => o.now() - start <= QUOTES_RELOGIN_LATEST_MS;
     if (!client.session) await client.login();
     // Accounts whose tokens IG refused again after the run's one re-login: not called again this run.
     const refused = new Set<AccountKind>();
