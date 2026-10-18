@@ -46024,3 +46024,59 @@ against the 150 the reading needs, so no reading. Nothing failed, so nothing is 
   the week's allowance left. Weekend 2025-11-28 failed `401 account-token-invalid` on the first request after the account
   switch (status null, so a non-200 check misses it); re-pulled at 16:15 (32 points, ok): 51 of 51 now, allowance 8,375. S1a below ran on the 50; the 51st only clears 5b's one gap. The 2026-10-14
   16:26 → 20:11 sections moved to the archive ("LEDGER.md, archived 2026-10-16").
+
+## LEDGER.md, archived 2026-10-18 (second) — the history sections up to 2026-10-17 02:41 UTC still in the ledger, oldest first
+
+### [2026-10-17 00:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Mid-pool's 10-17 readout: not run, withdrawn** (wake `trig_01XwUUNT5yXL3pzHoyH4JLaG` fired 00:20). `0120` switched mid-pool
+  off on Davies' word of 2026-10-13 and its pre-registration's withdrawal section withdraws the readout, the audit and the
+  funded draft (item 0b). No SQL run; item 2's mid-pool paragraph now says so at its head. The 10-23 wake keeps LPRESEL6 and
+  live-prep's own reads only.
+
+### [2026-10-17 01:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM D4: the pre-go audit's server fixes** (sub-agent, independent audit; Davies: "叫一个独立的sub-agent再审核一下…如果有
+  问题就修复"; item 15). `grokpm/exec.ts`, `index.ts`: a resolved holding settles into the agent's cash at its payout (it
+  had stayed out of the $30 floor, so ~$70 of resolved entries would have stopped every open); the day and total stops
+  latch in `grokpm_exec_state` (a recovering mark had reopened them) and the total stop reports `grokpm.total_stop` once;
+  a cancel's read-back books its fills, non-final trades are re-read until CONFIRMED/FAILED (the recorder matches by tx
+  hash, absent at MATCHED), settled orders short of their matched size are re-read; the sync cancels live orders when
+  disarmed or paused; orders and fills read whole (`grokpm_fills` in `PAGED_KEYS`), only held books read, a journal id
+  reused as an order's refused 422. Eight pins in `exec.test.ts`, each failing on the old code; prereg §9 D4, sha
+  re-pinned. Read-only DB at 01:05: config dry-run, unarmed, unstarted, wallet set; the go's WHERE matches 1 row; other
+  paths unarmed; no pause; sync 60 beats in 60 min; no grokpm errors in 24 h; account pUSD $308.03 (live-prep's state).
+
+
+### [2026-10-17 01:26 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM's page tidied** (sub-agent; item 15; Davies: "“Polymarket analyst (Grok)”策略改为“Polymarket analyst“，子页面JOURNAL部分
+  做的更美观和清晰一些…链接可以直接用link（下划线）…“0xdf9bf27e…”这种乱码…明确目前funded就是100美元，“Dry-run…”这行也删了…列表里显示的
+  黄灯怎么子页面点开现实的是live的tag"). Named "Polymarket analyst"; FUNDED the configured $100 on its row, page and LIVE's
+  total from now, all else 0 until the go; the dry-run lines gone; its head says DRY-RUN with the list's amber dot until
+  armed; JOURNAL cards with market links and domain-named sources. `0126_grokpm_markets.sql` (applies on push): the
+  recorder fills titles from Gamma, the dashboard reads them (a missing table leaves the page up, untitled). Also fixed:
+  REALIZED was cut off its scoreboard (a later `.ag-scoreboard` rule won). Not pushed.
+
+### [2026-10-17 02:00 UTC] Platform: Claude Engineer (Grok Bot) | Model: not recorded (session policy)
+- **Landed `claude/hopeful-planck-acdq5g`** (the Coinbase release blackout, 5 commits, rebased on main; Davies, 10-17 in the
+  Portfolio Project group: "你觉得会让策略更好的话就推"): paper tests only, no order path. `FINNHUB_API_KEY` is needed only by the
+  optional `?action=econcal`; the blackout reads the committed calendar. First live check: 2026-10-28 17:59 to 18:05 UTC (FOMC);
+  CPI 11-10, 12-10 and NFP 12-04 still unconfirmed. Archived the 2026-10-15 01:24 → 03:29 UTC history sections.
+
+
+### [2026-10-17 02:03 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep off LIVE while disarmed** (sub-agent; Davies: "你的其他问题都按你推荐的来"). Liquidated and disarmed since 0125, its
+  funded figure is the pUSD the Polymarket analyst's $100 comes from, so LIVE counted it twice. `liveExtraRows` now lists
+  "Reward quotes" only while `lpLive.armed`: LIVE's list, scoreboard and Polymarket card count the shared money once, as the
+  analyst's $100. Its data, tables, Edge code and page code are unchanged; armed again, it is LIVE's row again. Moved the
+  2026-10-15 01:24 → 15:20 UTC sections to the archive ("LEDGER.md, archived 2026-10-17"). Not pushed.
+
+### [2026-10-17 02:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM D5: 150 orders a day; the main session closes the end** (Davies: "你的其他问题都按你推荐的来"). `0127` sets
+  `grokpm_config.max_orders_day` 50 → 150 (a resting order re-placed each wake cost 48 of 50 a day); at the end (28 days,
+  40 resolved, or −$30) the main session runs 0125's undo and the reading. Prereg §9 D5, sha re-pinned. Grok confirmed
+  prompt v2 and its order plan (≤ 2 resting, cancel then re-place, take-profit only near target, ~10 a day kept for exits).
+
+### [2026-10-17 02:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM is LIVE** (Davies: "上线"). 0125's go statement ran at **2026-10-17 02:39:14 UTC**: `dry_run` false, `armed_at` =
+  `started_at` = 02:39:14. First live sync 02:40:01: geoblock IE, day-open equity $100, no error, 0 live orders. The end
+  (D5): wake `trig_01C3a3b3F38FYavx6jFeqJEq` at 2026-11-14 00:20 UTC disarms with 0125's undo and runs §6's reading, unless
+  the 40th resolved position or the total stop ends it first. **Never trade by hand in that Polymarket account now.**

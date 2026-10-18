@@ -634,7 +634,17 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
-"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18"; each oldest first.
+"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)"; each oldest first.
+
+### [2026-10-18 04:46 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **IG strategy search round 3, results** (sub-agent; item 14; `reviews/2026-10-18-ig-strategy-search-3.md`): 50 arms
+  (intraday index rules flat by the close, FOMC/CPI/payroll/EIA days, FXW's rule on 14 FX pairs), HistData 1-minute
+  2010-2026 and FXCM 2012-2026 with Yahoo hourly and HistData FX as second sources; none meets the frozen bar. Intraday
+  rules gross -2.7 to +2.8 bps against 1.6-3.6 bps of IG cost. FXW is a post-2016 effect: AUD/USD +23.6 bps (t 5.34)
+  2019-2026 but +0.6 (t 0.07) on 2013-2015, the years its discovery never saw; AUD/NZD and NZD/USD alike; EUR/JPY
+  positive in both eras and feeds but test t 1.58. FXW-AUD sizing: GBP 1,000 at GBP 1.50 a pip (10x) about GBP 150 a
+  year median before the 2013-2015 deduction; IG's 20:1 is ruinous on the 449-bps weekend. Recommendation: fund nothing
+  new; FXW-AUD stays on S1b. HistData's stamps are New York time (deviation 2), not the EST its FAQ states.
 
 ### [2026-10-18 04:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **"Stablecoin quotes variant-3" (`take50wk`) built, rule D's twin renamed "variant-4"** (sub-agent, not pushed; Davies, 10-18:
@@ -700,16 +710,6 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   `reviews/2026-10-18-revx-weekend-prereg.md` ("Stablecoin quotes weekend", a forward paper row, read with PR5-W on 11-25).
   Alarm: IG's weekend recorder fails two runs in three since 10-16 20:52 (item 14). The 2026-10-16 history moved to the archive.
 
-### [2026-10-18 04:46 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **IG strategy search round 3, results** (sub-agent; item 14; `reviews/2026-10-18-ig-strategy-search-3.md`): 50 arms
-  (intraday index rules flat by the close, FOMC/CPI/payroll/EIA days, FXW's rule on 14 FX pairs), HistData 1-minute
-  2010-2026 and FXCM 2012-2026 with Yahoo hourly and HistData FX as second sources; none meets the frozen bar. Intraday
-  rules gross -2.7 to +2.8 bps against 1.6-3.6 bps of IG cost. FXW is a post-2016 effect: AUD/USD +23.6 bps (t 5.34)
-  2019-2026 but +0.6 (t 0.07) on 2013-2015, the years its discovery never saw; AUD/NZD and NZD/USD alike; EUR/JPY
-  positive in both eras and feeds but test t 1.58. FXW-AUD sizing: GBP 1,000 at GBP 1.50 a pip (10x) about GBP 150 a
-  year median before the 2013-2015 deduction; IG's 20:1 is ruinous on the 449-bps weekend. Recommendation: fund nothing
-  new; FXW-AUD stays on S1b. HistData's stamps are New York time (deviation 2), not the EST its FAQ states.
-
 ### [2026-10-18 03:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **IG strategy search round 3, rules frozen** (sub-agent; item 14; Davies, 10-18: "再继续深度研究下ig的策略，可以更激进一些也可以，只要策略够好"):
   `backtests/ig_search3/params/frozen.json` fixes the intraday, event-day, EIA, Sunday-open FX and sizing rules, eras,
@@ -740,57 +740,3 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   live策略子页面的一样，然后底下live放在journal上面"). FUNDED, DEPLOYED (cost), TODAY, UNREALIZED, REALIZED "(incl. fees …)" from
   `rowMoney(grokPmRow(g))`; fees are its own fills' (`grokpm_fills.fee_usd`, from the go), new in the dashboard. No section
   is labelled "live" near the bottom; read as DAYS above JOURNAL. Not pushed.
-
-### [2026-10-17 02:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **GROKPM is LIVE** (Davies: "上线"). 0125's go statement ran at **2026-10-17 02:39:14 UTC**: `dry_run` false, `armed_at` =
-  `started_at` = 02:39:14. First live sync 02:40:01: geoblock IE, day-open equity $100, no error, 0 live orders. The end
-  (D5): wake `trig_01C3a3b3F38FYavx6jFeqJEq` at 2026-11-14 00:20 UTC disarms with 0125's undo and runs §6's reading, unless
-  the 40th resolved position or the total stop ends it first. **Never trade by hand in that Polymarket account now.**
-
-### [2026-10-17 02:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **GROKPM D5: 150 orders a day; the main session closes the end** (Davies: "你的其他问题都按你推荐的来"). `0127` sets
-  `grokpm_config.max_orders_day` 50 → 150 (a resting order re-placed each wake cost 48 of 50 a day); at the end (28 days,
-  40 resolved, or −$30) the main session runs 0125's undo and the reading. Prereg §9 D5, sha re-pinned. Grok confirmed
-  prompt v2 and its order plan (≤ 2 resting, cancel then re-place, take-profit only near target, ~10 a day kept for exits).
-
-### [2026-10-17 02:03 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Live-prep off LIVE while disarmed** (sub-agent; Davies: "你的其他问题都按你推荐的来"). Liquidated and disarmed since 0125, its
-  funded figure is the pUSD the Polymarket analyst's $100 comes from, so LIVE counted it twice. `liveExtraRows` now lists
-  "Reward quotes" only while `lpLive.armed`: LIVE's list, scoreboard and Polymarket card count the shared money once, as the
-  analyst's $100. Its data, tables, Edge code and page code are unchanged; armed again, it is LIVE's row again. Moved the
-  2026-10-15 01:24 → 15:20 UTC sections to the archive ("LEDGER.md, archived 2026-10-17"). Not pushed.
-
-### [2026-10-17 02:00 UTC] Platform: Claude Engineer (Grok Bot) | Model: not recorded (session policy)
-- **Landed `claude/hopeful-planck-acdq5g`** (the Coinbase release blackout, 5 commits, rebased on main; Davies, 10-17 in the
-  Portfolio Project group: "你觉得会让策略更好的话就推"): paper tests only, no order path. `FINNHUB_API_KEY` is needed only by the
-  optional `?action=econcal`; the blackout reads the committed calendar. First live check: 2026-10-28 17:59 to 18:05 UTC (FOMC);
-  CPI 11-10, 12-10 and NFP 12-04 still unconfirmed. Archived the 2026-10-15 01:24 → 03:29 UTC history sections.
-
-
-### [2026-10-17 01:26 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **GROKPM's page tidied** (sub-agent; item 15; Davies: "“Polymarket analyst (Grok)”策略改为“Polymarket analyst“，子页面JOURNAL部分
-  做的更美观和清晰一些…链接可以直接用link（下划线）…“0xdf9bf27e…”这种乱码…明确目前funded就是100美元，“Dry-run…”这行也删了…列表里显示的
-  黄灯怎么子页面点开现实的是live的tag"). Named "Polymarket analyst"; FUNDED the configured $100 on its row, page and LIVE's
-  total from now, all else 0 until the go; the dry-run lines gone; its head says DRY-RUN with the list's amber dot until
-  armed; JOURNAL cards with market links and domain-named sources. `0126_grokpm_markets.sql` (applies on push): the
-  recorder fills titles from Gamma, the dashboard reads them (a missing table leaves the page up, untitled). Also fixed:
-  REALIZED was cut off its scoreboard (a later `.ag-scoreboard` rule won). Not pushed.
-
-### [2026-10-17 01:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **GROKPM D4: the pre-go audit's server fixes** (sub-agent, independent audit; Davies: "叫一个独立的sub-agent再审核一下…如果有
-  问题就修复"; item 15). `grokpm/exec.ts`, `index.ts`: a resolved holding settles into the agent's cash at its payout (it
-  had stayed out of the $30 floor, so ~$70 of resolved entries would have stopped every open); the day and total stops
-  latch in `grokpm_exec_state` (a recovering mark had reopened them) and the total stop reports `grokpm.total_stop` once;
-  a cancel's read-back books its fills, non-final trades are re-read until CONFIRMED/FAILED (the recorder matches by tx
-  hash, absent at MATCHED), settled orders short of their matched size are re-read; the sync cancels live orders when
-  disarmed or paused; orders and fills read whole (`grokpm_fills` in `PAGED_KEYS`), only held books read, a journal id
-  reused as an order's refused 422. Eight pins in `exec.test.ts`, each failing on the old code; prereg §9 D4, sha
-  re-pinned. Read-only DB at 01:05: config dry-run, unarmed, unstarted, wallet set; the go's WHERE matches 1 row; other
-  paths unarmed; no pause; sync 60 beats in 60 min; no grokpm errors in 24 h; account pUSD $308.03 (live-prep's state).
-
-
-### [2026-10-17 00:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Mid-pool's 10-17 readout: not run, withdrawn** (wake `trig_01XwUUNT5yXL3pzHoyH4JLaG` fired 00:20). `0120` switched mid-pool
-  off on Davies' word of 2026-10-13 and its pre-registration's withdrawal section withdraws the readout, the audit and the
-  funded draft (item 0b). No SQL run; item 2's mid-pool paragraph now says so at its head. The 10-23 wake keeps LPRESEL6 and
-  live-prep's own reads only.
