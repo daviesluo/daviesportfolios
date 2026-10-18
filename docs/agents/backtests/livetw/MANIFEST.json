@@ -1,0 +1,30 @@
+{
+ "study": "LIVE's two levers, 2026-10-18: TAKE's taker entry (variant-2's rule) and PR5-W's weekend quoting, priced on the live account's own record at its £10 a rung before either was built (the live design's addendum of 2026-10-18, docs/agents/reviews/2026-09-24-pr5-live-design.md; migration 0131). Not blind; no pre-registered reading run.",
+ "read": "production, SELECT only, through the Supabase connector, 2026-10-18 (sql/pull.sql), and the 2026-10-18 review's data and results (../scq_review/2026-10-18: its minutes, prints, LIVE's orders and results/page_pnl.json).",
+ "run": [
+  "python3 -I scripts/replay_live.py ../scq_review/2026-10-18   # results/results.json, about 3 s, seeded (20261018)"
+ ],
+ "findings": [
+  "TAKE at £10 a rung from 2026-10-04 16:00 (variant-2's `take.from`) to 10-17 00:00 (10 weekdays): 8 takes, 6 won, 2 lost (USDT bids 10-05 02:51 and 02:59, −£0.0074 each), no 24-hour stop; through-fill exits +£0.1588 gross after fees (£0.08 of them), −£0.0291 of LIVE's own trips displaced, net +£0.1296 = +£0.0130 a weekday (90 % 0.0017 to 0.0267, P(≤0) 0.023); at-fill exits net +£0.1217 = +£0.0122 a weekday (0.0013 to 0.0261, P(≤0) 0.031). Variant-2 made the same takes on the same minutes but one: its 10-14 15:09 USDT bid, on a rung LIVE held.",
+  "The weekend rule at £10 a rung on PR5's record 2026-09-26 to 10-18 (22 days): +£0.0556 a day through-fill (90 % 0.0178 to 0.1049; £1.455 to £2.678), +£0.0776 a day at-fill (0.0311 to 0.1324); by weekend +£0.77 (09-26/27, before PR5-W's freeze), +£0.26, +£0.18, +£0.01.",
+  "Calibration: LIVE's own weekdays 10-05 to 10-16 made £0.6067; the replay of the same days £0.6763 through-fill, £1.081 at-fill: LIVE fills as the through-fill model says, within about 10 %."
+ ],
+ "files": [
+  {
+   "path": "scripts/replay_live.py",
+   "md5": "2f8e76832129fd3a7dfeaa20c122244f"
+  },
+  {
+   "path": "sql/pull.sql",
+   "md5": "1584e2bc8d2fddbc4042c281c0a4d746"
+  },
+  {
+   "path": "data/book_touch.txt.gz",
+   "md5": "aa8caf8713e3256e67736b5357a1b8ac"
+  },
+  {
+   "path": "results/results.json",
+   "md5": "0b3309e9c24af7f21b430f7bf29cf192"
+  }
+ ]
+}

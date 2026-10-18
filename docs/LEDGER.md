@@ -259,6 +259,10 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      weekend paper row is drafted, NOT frozen (`reviews/2026-10-18-revx-weekend-prereg.md`): Davies' word to build it, deploy by
      10-23 for four weekends, read beside PR5-W on 11-25. PR5-W's result should name this review (it replayed PR5-W's rule on
      its first forward weekends).
+   - **LIVE's take and weekend switches, both 'off'** (`0131`; Davies 10-18 "…会的话就加上，然后加上周末的挂单，一定验证好没问题再推上实盘部署"):
+     `take_mode`, `weekend_mode` each 'off' / 'shadow' / 'live'. Plan and go statements: the live design's addendum of 10-18 —
+     take 'shadow' five weekdays, weekend 'shadow' from a Friday 20:00 through one closure, then 'live' each on Davies' word.
+     After the deploy: both columns 'off', `agent_quote_live_wkpaper` empty, no `agents.quotes_weekend` error.
    - **The review of 2026-10-09** (`reviews/2026-10-09-stablecoin-quotes-review.md`, not blind). **F1 built on Davies'
      word** (10-09: a buy-back at the venue's £0.10 minimum buys what its whole penny buys, LIVE and every twin; the twins'
      deviation 3, p50's deviation 2, TAKE's addendum 2, the live design's addendum). After its deploy: the next LIVE or
@@ -638,6 +642,16 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)"; each oldest first.
 
+### [2026-10-18 05:08 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LIVE's take and weekend quoting built behind two switches, both 'off'** (sub-agent, not pushed; Davies, 10-18: "live的策略
+  有主动吃单吗？…会的话就加上，然后加上周末的挂单，一定验证好没问题再推上实盘部署"). Priced first on LIVE's record at £10 a rung
+  (`backtests/livetw/`, not blind): take +£0.0130 a weekday (8 takes from 10-04 16:00, 6 won; 90 % 0.0017–0.0267), weekend
+  rule +£0.0556 a day (0.0178–0.1049); LIVE's real weekdays £0.6067 vs the replay's £0.6763 (through rule). `0131`: the two
+  columns, event kinds `take_shadow` / `weekend_shadow`, `agent_quote_live_wkpaper`. `quotes_live.ts` (take via `takeTurn`,
+  shadow writes events and sends nothing; weekend source inside closures; switches read 'off' before `0131` runs),
+  `quotes_live_weekend.ts` (replica copied from PR5's engine in the hour before a closure, stepped inside it). Pins:
+  `quotes_live_switches.test.ts`, ten counterfactuals fail. Verification and go statements: live design addendum of 10-18.
+
 ### [2026-10-18 04:58 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **IG weekend recorder, third fix** (sub-agent; item 14). With `8edc426c` live (04:39 UTC), runs 04:41-04:56: 11 of
   15 ok; the 4 failures (04:43, 04:47, 04:50, 04:54) each took ~10.7 s, 2 logins, 0 switches, 6 requests, "cfd: 401
@@ -647,6 +661,7 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   different" counts as done), and so is the re-login's; the spread-bet account (S1b's FX) is read first; an account
   refused after the one re-login is left for the minute and the other is still read. The answer carries per-account
   snapshots and errors (`accounts`); the run row is unchanged. Two pins fail on the deployed code.
+
 
 ### [2026-10-18 04:46 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **IG strategy search round 3, results** (sub-agent; item 14; `reviews/2026-10-18-ig-strategy-search-3.md`): 50 arms

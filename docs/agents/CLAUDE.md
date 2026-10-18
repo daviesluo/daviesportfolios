@@ -375,7 +375,14 @@ that follow from that evidence, in short:
   stay armed); `global_pause` cancels everything. From its first real
   order it is also a row of LIVE (`quotesLiveRow`, 2026-09-26): its
   real-money book from its own fills, in LIVE's totals. PR5's paper test
-  still decides PR5 on 2026-10-21.
+  still decides PR5 on 2026-10-21. **Two switches, both 'off' until Davies
+  says go** (`0131`, 2026-10-18, Davies: "…会的话就加上，然后加上周末的挂单，一定验证好没问题再推上实盘部署"):
+  `take_mode` (variant-2's taker entry) and `weekend_mode` (PR5-W's quoting
+  inside FX closures, from a replica copied off PR5's engine before each,
+  `agents/quotes_live_weekend.ts`), each 'off', 'shadow' (a `take_shadow` /
+  `weekend_shadow` event of what it would send, nothing sent) or 'live'. The
+  verification and its go statements are the live design's addendum of
+  2026-10-18; never turn one without his word.
 - The tick claims a bar by inserting its decision (unique index on
   strategy, symbol, bar_start; a protective decision claims one second
   INTO its minute, never a bar start; a dislocation decision the minute).

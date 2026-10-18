@@ -65,7 +65,9 @@ import {
   quoteTicks, type Print, type QuoteBook, type QuoteState, type Rung, type Side,
 } from "./quotes.ts";
 import { bookLiveBuy, fillStamp, isUniqueViolation, withFeeNote, type FromAccount } from "./tick.ts";
-import { weekendInputs, type WeekendRule } from "./quotes_weekend.ts";
+import { inQuoteClosure, weekendInputs, type WeekendRule } from "./quotes_weekend.ts";
+/** The weekend rule as the live account's weekend source reads fair: in force at every closure minute it is used in. */
+const LIVE_WEEKEND_RULE: WeekendRule = { from: 0 };
 
 const M = 60e3, H = 3600e3, DAY = 86400e3;
 
@@ -124,11 +126,17 @@ export type QuoteLiveInstance = {
    * docs/agents/reviews/2026-10-18-revx-weekend-prereg.md) the first. The live account's instance has none: dark, PR5's.
    */
   weekend?: WeekendRule;
+  /**
+   * The live account's switches (0131, `agent_quote_live_config.take_mode` and `weekend_mode`) and the table of its weekend
+   * replica (`agents/quotes_live_weekend.ts`). The live account's instance alone has them: a twin's config has no such columns.
+   */
+  liveSwitches?: { wkPaper: string };
 };
 /** The live account: PR5's own sub-account, the paper engine's own state, three rungs, one key. */
 export const QUOTE_LIVE_INSTANCE: QuoteLiveInstance = {
   config: "agent_quote_live_config", orders: "agent_quote_live_orders", events: "agent_quote_live_events", state: "agent_quote_live_state",
   migration: "0052", paper: "agent_quote_state", lease: "quotes-live", rungs: QUOTE_RUNGS, exitReprice: QUOTE_REPRICE, govKey: () => "account",
+  liveSwitches: { wkPaper: "agent_quote_live_wkpaper" },
 };
 /** The rungs an instance has retired at `now` (`QuoteLiveInstance.retired`): none for the live account. */
 export const retiredAt = (inst: QuoteLiveInstance, now: number): readonly number[] => (inst.retired && now >= inst.retired.from ? inst.retired.ks : []);
@@ -212,7 +220,17 @@ export type LiveOrderRow = {
   request: Record<string, unknown> | null; response: unknown; book_seen: unknown;
   cancel_requested_at: string | null; cancel_reason: string | null; filled_at: string | null; cancelled_at: string | null;
 };
-export type LiveConfig = { dry_run: boolean; live_confirmed_at: string | null; capital_gbp: number | string };
+export type LiveConfig = {
+  dry_run: boolean; live_confirmed_at: string | null; capital_gbp: number | string;
+  /** The live account's switches (0131), each 'off' (the default), 'shadow' or 'live': TAKE's taker entry, PR5-W's weekend quoting. */
+  take_mode?: SwitchMode; weekend_mode?: SwitchMode;
+};
+/** A live switch's mode (0131): off, shadow (record what it would send, send nothing), live. */
+export type SwitchMode = "off" | "shadow" | "live";
+/** A column the database does not have yet (PostgREST's 42703, or its schema cache's PGRST204). */
+export const MISSING_COLUMN = /42703|PGRST204|column .* does not exist/i;
+/** A config's switch as the executor reads it: anything but 'shadow' or 'live', a missing column included, is off. */
+export const switchMode = (v: unknown): SwitchMode => (v === "shadow" || v === "live" ? v : "off");
 const OPEN_STATES: LiveOrderState[] = ["pending", "new", "partially_filled"];
 const isOpen = (o: Pick<LiveOrderRow, "state">) => OPEN_STATES.includes(o.state);
 
@@ -633,6 +651,10 @@ export type QuoteLiveReport = {
   posts: Record<LiveMode, number>;
   dayPnlGbp: number | null;
   errors: string[];
+  /** The live account's weekend quoting (0131) in force this turn: the decisions were its weekend replica's. */
+  weekend?: { source: "weekend" };
+  /** What the switches in shadow (0131) recorded this turn and did not send. */
+  shadow?: { takes: number; weekend: number };
 };
 
 /** One place where an order row is written, sent (live) or not (dry-run), and brought up to date: the turn's and the conversion's. */
@@ -816,21 +838,31 @@ function makeCtxHelpers(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLi
 }
 
 /** The paper engine's decided minute and the inputs it priced each book from, read the way it reads them. */
-async function paperView(d: QuoteLiveDeps, inst: QuoteLiveInstance): Promise<{ paper: QuoteState | null; T: number | null; inputs: Partial<Record<QuoteBook, BookInputs>> }> {
-  const row = (await d.db.select<{ state: QuoteState | Record<string, never>; last_minute: string | null }>(inst.paper, "id=eq.1&select=state,last_minute"))[0];
+async function paperView(d: QuoteLiveDeps, inst: QuoteLiveInstance, weekendLive = false): Promise<{ paper: QuoteState | null; T: number | null; inputs: Partial<Record<QuoteBook, BookInputs>>; source: "paper" | "weekend" }> {
+  let row = (await d.db.select<{ state: QuoteState | Record<string, never>; last_minute: string | null }>(inst.paper, "id=eq.1&select=state,last_minute"))[0];
+  // The live account's weekend quoting (0131, `weekend_mode` 'live'): inside an FX closure it carries out its weekend
+  // replica's decisions (PR5's rule with PR5-W's weekend rule, `quotes_live_weekend.ts`), read as the paper engine is, at
+  // fair on the replica's held X. A replica that has not decided the paper engine's minute is stale, as any paper engine.
+  let source: "paper" | "weekend" = "paper";
+  const t0 = row?.last_minute ? Date.parse(row.last_minute) : null;
+  if (weekendLive && inst.liveSwitches && t0 != null && inQuoteClosure(t0)) {
+    row = (await d.db.select<{ state: QuoteState | Record<string, never>; last_minute: string | null }>(inst.liveSwitches.wkPaper, "id=eq.1&select=state,last_minute"))[0];
+    source = "weekend";
+  }
   const paper = row && row.state && "books" in row.state ? row.state as QuoteState : null;
   const T = row?.last_minute ? Date.parse(row.last_minute) : null;
   const inputs: Partial<Record<QuoteBook, BookInputs>> = {};
-  if (T == null) return { paper, T, inputs };
+  if (T == null) return { paper, T, inputs, source };
   const series = async (kind: string, from: number) => (await d.db.selectAll<{ t: string; value: number | string }>("agent_quote_inputs",
     `kind=eq.${enc(kind)}&t=gte.${enc(iso(from))}&t=lte.${enc(iso(T))}&select=t,value&order=kind.asc,t.asc`)).map((r) => [Date.parse(r.t), Number(r.value)] as [number, number]);
   const fx = await series("fx", T - QUOTE_FX_LOOKBACK_MS);
   for (const b of QUOTE_BOOKS) {
     const i = bookInputs(T, fx, await series(`fair:${QUOTE_USD_BOOK[b]}`, T - 26 * H));
     // The weekend rule, an instance's alone (none for the live account): a dark closure minute at the replica's last X.
-    inputs[b] = inst.weekend ? weekendInputs(i, T, paper?.books?.[b]?.lastX ?? null, inst.weekend) : i;
+    const rule = source === "weekend" ? LIVE_WEEKEND_RULE : inst.weekend;
+    inputs[b] = rule ? weekendInputs(i, T, paper?.books?.[b]?.lastX ?? null, rule) : i;
   }
-  return { paper, T, inputs };
+  return { paper, T, inputs, source };
 }
 
 /**
@@ -878,8 +910,15 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
   const multiKey = isMultiKey(inst);
 
   let cfg: LiveConfig | undefined;
-  try { cfg = (await d.db.select<LiveConfig>(inst.config, "id=eq.1&select=dry_run,live_confirmed_at,capital_gbp"))[0]; }
-  catch (e) {
+  try {
+    const cols = "id=eq.1&select=dry_run,live_confirmed_at,capital_gbp";
+    try { cfg = (await d.db.select<LiveConfig>(inst.config, inst.liveSwitches ? `${cols},take_mode,weekend_mode` : cols))[0]; }
+    catch (e) {
+      // 0131's switches before its migration has run (the function and the migration deploy separately): both off.
+      if (!inst.liveSwitches || !MISSING_COLUMN.test(msg(e))) throw e;
+      cfg = (await d.db.select<LiveConfig>(inst.config, cols))[0];
+    }
+  } catch (e) {
     // The function can deploy a minute before its migration is applied: that is "not yet", not an error every minute.
     if (/PGRST205|42P01|Could not find the table|relation .* does not exist/i.test(msg(e))) { report.skipped = `the live tables are not in this database yet: migration ${inst.migration} has not run`; return; }
     throw e;
@@ -893,8 +932,11 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
   const entry = entryBookOf(cfg, { globalPause, riskReadable, canTrade: !!acct });
   report.entryBook = entry.book; report.why = entry.why;
 
-  const { paper, T, inputs } = await paperView(d, inst);
+  // The live account's switches (0131): off unless its config says shadow or live; a twin has none.
+  const takeMode = inst.liveSwitches ? switchMode(cfg.take_mode) : "off", weekendMode = inst.liveSwitches ? switchMode(cfg.weekend_mode) : "off";
+  const { paper, T, inputs, source } = await paperView(d, inst, weekendMode === "live");
   report.minute = T != null ? iso(T) : null;
+  if (source === "weekend") report.weekend = { source };
   const caughtUp = T != null && T === nowMinute - M;
 
   // Essential: what is open (the rungs' claims) — without it nothing may be placed or cancelled.
@@ -1282,7 +1324,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
   // entry is cancelled and read back (a frozen cancel waits), and one taker IOC goes out at the limit for the rung's
   // pounds, after the entry's own funds check, recorded as an entry with no paper order and `request.take`. The venue
   // fills it, or not; a fill is any entry's (step 5's exit, re-price and 24-hour stop).
-  const takeOn = !!inst.take && d.now >= inst.take.from;
+  const takeOn = (!!inst.take && d.now >= inst.take.from) || takeMode === "live";
   const readsOf = new Map<QuoteBook, Promise<RecordedRead | null>>();
   const recordedOf = (b: QuoteBook) => {
     if (!readsOf.has(b)) {
@@ -1290,6 +1332,31 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
         .catch((e) => { report.errors.push(`${b}: the recorded book is unreadable (${msg(e)}): no take this turn`); return null; }));
     }
     return readsOf.get(b)!;
+  };
+  /**
+   * The live account's take in shadow (0131, `take_mode` 'shadow'): the same test on the same read as `takeTurn`, and when the
+   * book is through the limit, a `take_shadow` event with what the IOC would be (limit, size, whether the funds cover it, the
+   * read) instead of the IOC. Nothing is sent, nothing is cancelled, no funds are promised: the rung's paper entry goes on.
+   */
+  const shadowTake = async (r: RungNow, o: LiveOrderRow | null): Promise<void> => {
+    const f = inputs[r.book]?.f ?? null;
+    const read = f == null ? null : await recordedOf(r.book);
+    if (f == null || !read) return;
+    const limit = takeLimitTicks(f, r.k, r.side), touch = readTouch(read);
+    if (!takeTriggered(r.side, limit, touch)) return;
+    const pair = pairs[LIVE_SYMBOL[r.book]];
+    const price = limit * QUOTE_TICK, side = venueSideOf(r.side, "entry");
+    const base = pair ? rungBase(gbpPerRung, price, pair, side) : null;
+    const need = base == null ? null : side === "buy" ? pennyUp(Number(base) * price) : Number(base);
+    // The live take cancels the rung's entry first, and that cancel gives back what the entry held: so does the shadow's count.
+    const asset = side === "buy" ? "GBP" : coinOf(r.book), back = o ? promised.get(o.id) : undefined;
+    const have = (free[asset] ?? 0) + (back && back.asset === asset ? back.amount : 0);
+    const px = (t: number | null) => (t == null ? null : Number((t * QUOTE_TICK).toFixed(4)));
+    await d.db.upsert(inst.events, [{ mode: "live", minute: iso(nowMinute), book: r.book, rung_side: r.side, k: r.k, kind: "take_shadow", detail: {
+      at: nowIso, paperMinute: T != null ? iso(T) : null, fair: f, limit: px(limit), side, base, gbp: gbpPerRung, fundsOk: need != null && have + 1e-9 >= need,
+      replaces: o?.id ?? null, read: { ts: read.ts, seenUntil: read.seen_until, bestBid: px(touch.bid), bestAsk: px(touch.ask) },
+    } }], "mode,minute,book,rung_side,k,kind");
+    (report.shadow ??= { takes: 0, weekend: 0 }).takes++;
   };
   /** Whether the rung's turn is the take's: false when the book is not through its limit, and then its paper entry goes on. */
   const takeTurn = async (r: RungNow, o: LiveOrderRow | null): Promise<boolean> => {
@@ -1330,6 +1397,9 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
         const retired = retiredAt(inst, d.now).includes(r.k);
         const allowed = !retired && entry.book === mode && !report.guards[r.book].length && levelOf(mode, r.book, r.side) === "all" && !(mode === "live" && lossStopped) && !!bal;
         if (takeOn && mode === "live" && allowed && r.paperMode !== "position" && (await takeTurn(r, o))) continue;
+        if (takeMode === "shadow" && mode === "live" && allowed && r.paperMode !== "position") {
+          try { await shadowTake(r, o); } catch (e) { report.errors.push(`${r.label} take shadow: ${msg(e)}`); }
+        }
         const target = allowed ? r.paper : null;
         if (!target) {
           if (o) {
@@ -1374,6 +1444,38 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
         report.errors.push(`${r.label} ${mode}: ${msg(e)}`);
       }
     }
+  }
+
+  // ── 6a. the live account's weekend quoting in shadow (0131, `weekend_mode` 'shadow'): inside an FX closure, the entries its
+  // weekend replica (`quotes_live_weekend.ts`) would have it rest, each book's six rungs at the replica's prices, sized as
+  // step 6 sizes them, with the guards that would stand on fair at the held X — written as a `weekend_shadow` event when
+  // they differ from the book's last one. Nothing is sent: PR5's engine is dark, so step 6 has quoted nothing.
+  if (weekendMode === "shadow" && inst.liveSwitches && T != null && inQuoteClosure(T)) {
+    try {
+      const wk = (await d.db.select<{ state: QuoteState | Record<string, never>; last_minute: string | null }>(inst.liveSwitches.wkPaper, "id=eq.1&select=state,last_minute"))[0];
+      const wkState = wk?.state && "books" in wk.state ? wk.state as QuoteState : null;
+      const wkT = wk?.last_minute ? Date.parse(wk.last_minute) : null;
+      for (const b of QUOTE_BOOKS) {
+        const lastX = wkState?.books?.[b]?.lastX ?? null, i = inputs[b];
+        const wi = i ? weekendInputs(i, T, lastX, LIVE_WEEKEND_RULE) : null;
+        const lp = wkState?.books?.[b]?.lastPrint?.ticks != null ? wkState.books[b].lastPrint!.ticks * QUOTE_TICK : null;
+        const pair = pairs[LIVE_SYMBOL[b]];
+        const targets = wkT === T && wkState ? rungs.filter((r) => r.book === b).map((r) => {
+          const tgt = paperEntryTarget(wkState.books[b].rungs.find((x) => x.side === r.side && x.k === r.k));
+          const side = venueSideOf(r.side, "entry"), price = tgt ? Number((tgt.ticks * QUOTE_TICK).toFixed(4)) : null;
+          return { side: r.side, k: r.k, price, base: price != null && pair ? rungBase(gbpPerRung, price, pair, side) : null, holding: r.holding };
+        }) : null;
+        const guards = wi ? entryGuards(T, wi, lp) : ["no inputs"];
+        if (wkT !== T) guards.push(`the weekend replica's last minute is ${wkT != null ? iso(wkT) : "none"}, not ${iso(T)}: stale`);
+        const prev = (await d.db.select<{ detail: { targets?: unknown; guards?: unknown } }>(inst.events,
+          `mode=eq.live&kind=eq.weekend_shadow&book=eq.${b}&select=detail&order=minute.desc&limit=1`))[0]?.detail ?? null;
+        if (prev && JSON.stringify(prev.targets ?? null) === JSON.stringify(targets) && JSON.stringify(prev.guards ?? null) === JSON.stringify(guards)) continue;
+        await d.db.upsert(inst.events, [{ mode: "live", minute: iso(nowMinute), book: b, rung_side: "-", k: 0, kind: "weekend_shadow", detail: {
+          at: nowIso, paperMinute: iso(T), replicaMinute: wkT != null ? iso(wkT) : null, x: lastX, fair: wi?.f ?? null, lastPrint: lp, targets, guards,
+        } }], "mode,minute,book,rung_side,k,kind");
+        (report.shadow ??= { takes: 0, weekend: 0 }).weekend++;
+      }
+    } catch (e) { report.errors.push(`weekend shadow: ${msg(e)}`); }
   }
 
   // ── 6b. the asks' coin, topped up when an ask ran short (Davies, 2026-10-02: "以后这种问题自动处理，用昨天新加的规则maker换币")

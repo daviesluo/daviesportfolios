@@ -160,7 +160,15 @@ const TWIN_SIDE_SHAPES: Record<string, { columns: string[]; key: string }> = {
   paper: { columns: ["id", "state", "last_minute", "updated_at"], key: "id" },
   sim: { columns: ["id", "state", "updated_at", "last_error"], key: "id" },
 };
-const twinSide = (table: string) => { const m = /^agent_quote_twin_[a-z][a-z0-9]{0,15}_(paper|sim)$/.exec(table); return m ? TWIN_SIDE_SHAPES[m[1]] : undefined; };
+const twinSide = (table: string) => {
+  // The live executor's weekend replica (0131): a twin's replica row in shape, and its last error.
+  if (table === "agent_quote_live_wkpaper") return { columns: ["id", "state", "last_minute", "updated_at", "last_error"], key: "id" };
+  const m = /^agent_quote_twin_[a-z][a-z0-9]{0,15}_(paper|sim)$/.exec(table); return m ? TWIN_SIDE_SHAPES[m[1]] : undefined;
+};
+/** The live account's own config and event columns and kinds since 0131 (its switches): the twins' tables (0087's template) have none of them. */
+const LIVE_ONLY_CONFIG_COLUMNS = ["take_mode", "weekend_mode"];
+const LIVE_ONLY_EVENT_KINDS = ["take_shadow", "weekend_shadow"];
+const liveColumns = (table: string) => [...(LIVE_QUOTE_TABLES[liveQuoteShape(table)]?.columns ?? []), ...(table === "agent_quote_live_config" ? LIVE_ONLY_CONFIG_COLUMNS : [])];
 /** The twins' spec table as 0088 creates it: one row a twin, read by the call and the page, written by migrations only. */
 const TWIN_SPECS_COLUMNS = ["id", "display_name", "display_order", "engine", "capital_gbp", "gov", "start", "table_prefix", "lease", "rules", "backfill", "prereg", "migration", "enabled"];
 const LIVE_OPEN_STATES = ["pending", "new", "partially_filled"];
@@ -555,10 +563,12 @@ export function schemaRefusal(table: string, r: Row): string | null {
   }
   if (isLiveQuoteTable(table)) {
     const shape = liveQuoteShape(table);
-    const unknown = Object.keys(r).find((c) => !LIVE_QUOTE_TABLES[shape].columns.includes(c));
+    const unknown = Object.keys(r).find((c) => !liveColumns(table).includes(c));
     if (unknown) return `Could not find the '${unknown}' column of '${table}' in the schema cache`;
     if (shape === "agent_quote_live_config") {
-      return check("id", r.id === 1) ?? notNull(["dry_run", "capital_gbp"]) ?? check("capital_gbp", Number(r.capital_gbp) > 0);
+      return check("id", r.id === 1) ?? notNull(["dry_run", "capital_gbp"]) ?? check("capital_gbp", Number(r.capital_gbp) > 0)
+        ?? check("take_mode", r.take_mode == null || ["off", "shadow", "live"].includes(String(r.take_mode)))
+        ?? check("weekend_mode", r.weekend_mode == null || ["off", "shadow", "live"].includes(String(r.weekend_mode)));
     }
     if (shape === "agent_quote_live_state") return check("id", r.id === 1) ?? notNull(["state"]);
     if (shape === "agent_quote_live_events") {
@@ -567,7 +577,7 @@ export function schemaRefusal(table: string, r: Row): string | null {
         ?? check("mode", ["dry_run", "live"].includes(String(r.mode)))
         ?? check("book", [...QUOTE_BOOKS_OK, "-"].includes(String(r.book)))
         ?? check("rung_side", ["bid", "ask", "-"].includes(String(r.rung_side)))
-        ?? check("kind", ["skip", "guard", "stop_unfilled", "loss_stop", "deadman"].includes(String(r.kind)));
+        ?? check("kind", ["skip", "guard", "stop_unfilled", "loss_stop", "deadman", ...(table === "agent_quote_live_events" ? LIVE_ONLY_EVENT_KINDS : [])].includes(String(r.kind)));
     }
     // agent_quote_live_orders. Its two table-level checks are unnamed in 0052, so Postgres calls them `…_check` and `…_check1`.
     return notNull(["mode", "book", "leg", "side", "price", "base_size", "client_order_id", "state", "filled_base", "fee_gbp"])
@@ -850,7 +860,7 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
       if (!select) return Promise.resolve(rows.map((r) => ({ ...r })) as any);
       const items = selectItems(select);
       // A path's base column must exist, as PostgREST refuses one that does not.
-      const known = LIVE_QUOTE_TABLES[liveQuoteShape(table)]?.columns ?? twinSide(table)?.columns ?? (table === "agent_quote_twin_specs" ? TWIN_SPECS_COLUMNS : undefined);
+      const known = (isLiveQuoteTable(table) ? liveColumns(table) : undefined) ?? twinSide(table)?.columns ?? (table === "agent_quote_twin_specs" ? TWIN_SPECS_COLUMNS : undefined);
       const missing = known && items.find((i) => i.keys.length && !known.includes(i.base));
       // The recorder's tables (0092): every column a select names must exist, aliased or not.
       const recMissing = isPmRecTable(table) && items.find((i) => !PM_REC_SCHEMA[table].columns.includes(i.base));

@@ -201,3 +201,78 @@ under it: LIVE's fills 3956, 4245 and 4304 paid £0.0207 that way, a tenth of it
 buys what that penny buys (`floorToStep(pennyUp(n) / price)`), and the hair over the holding stays in the account as coin
 the asks use. Nothing else about the order path changes; the realistic twins run the same code (their pre-registration's
 deviation 3). Not blind: a change made after reading the live record.
+
+## Addendum (2026-10-18): a take and weekend quoting, each behind its own switch, off
+
+Davies, 2026-10-18, answering the stablecoin quotes review (`2026-10-18-stablecoin-quotes-review.md`), verbatim: "live的策略
+有主动吃单吗？没有的话你觉得加上会更好吗？会的话就加上，然后加上周末的挂单，一定验证好没问题再推上实盘部署" (does LIVE take? if adding it
+would be better, add it, then add weekend quoting; verify it is right before it goes to the live deployment). LIVE did not
+take: every order it sent was the paper engine's post-only maker order, and from Friday 21:00 to Sunday 21:00 UTC its rule
+was dark. Both are now built into the executor (migration `0131`, `agents/quotes_live.ts`, `agents/quotes_live_weekend.ts`),
+each behind a switch of `agent_quote_live_config` that is `'off'` by default and that only Davies turns.
+
+**Priced on LIVE's own record first** (`backtests/livetw/`, `scripts/replay_live.py` on the 2026-10-18 review's data and the
+book recorder's reads, at LIVE's £10 a rung; not blind):
+
+| | trades | net | a day | 90 % | P(≤ 0) |
+|---|---|---|---|---|---|
+| Take, 10-04 16:00 → 10-17, exits filled by a print through | 8 (6 won) | +£0.1296 | +£0.0130 a weekday | 0.0017 – 0.0267 | 0.023 |
+| Take, exits filled at a print | 8 (6 won) | +£0.1217 | +£0.0122 a weekday | 0.0013 – 0.0261 | 0.031 |
+| Weekend rule, 09-26 → 10-18, through | | £1.455 → £2.678 | +£0.0556 a day | 0.0178 – 0.1049 | 0.000 |
+| Weekend rule, at | | £2.126 → £3.834 | +£0.0776 a day | 0.0311 – 0.1324 | 0.000 |
+
+The take's net is after the venue's 0.09 % (a penny up each, £0.08) and after LIVE's own maker trips it would have
+displaced (£0.0291); its two losers are variant-2's two of 10-05 (−£0.0074 each), and variant-2's ninth take (10-14 15:09)
+fell on a rung LIVE held. By weekend at £10: +£0.77 (09-26/27, before PR5-W's freeze), +£0.26, +£0.18, +£0.01. The replay of
+LIVE's own weekdays 10-05 → 10-16 made £0.6763 by the through rule against LIVE's real £0.6067, so LIVE fills about as the
+through rule says and the table's first and third rows are the ones to expect. Small sums at £10: the case for both is the
+direction and the bands, not the pounds.
+
+**What each switch does** (`take_mode`, `weekend_mode`: `'off'` | `'shadow'` | `'live'`):
+
+* **`take_mode`** carries TAKE's rule as the twins carry it (`reviews/2026-10-03-take-prereg.md`): on a rung that may enter,
+  the book recorder's read at most 90 s old is checked against k + 0.09 % from fair; through it, the rung's entry is
+  cancelled and read back, and one taker IOC goes at that limit for the rung's pounds, after the funds check. In
+  `'shadow'` the same test on the same read writes a `take_shadow` event (the limit, size, side, whether the funds would
+  cover it counting what the cancelled entry gives back, the entry it would replace, the read) and sends nothing: the
+  paper entry rests as with `'off'`.
+* **`weekend_mode`** carries PR5-W's rule (`reviews/2026-10-18-revx-weekend-prereg.md`, variant-3's) inside an FX closure. A
+  replica of PR5's engine (`agent_quote_live_wkpaper`) is copied from PR5's engine in the hour before each closure opens and
+  stepped inside it on PR5's own stored minutes and prints with a dark minute decided on the book's last X. In `'live'` the
+  executor carries out the replica's decisions inside a closure, at fair on the held X, and PR5's engine's outside, as
+  before; a replica behind PR5's minute is stale and quotes nothing. In `'shadow'` it writes a `weekend_shadow` event a book
+  whenever the six rungs' would-be entries (price, size, holding) or their guards change, and sends nothing.
+* Unchanged in every mode: the governor (900/950), the −1 % daily loss stop, the de-peg and stale-input guards, the post-only
+  check against the book, the 24-hour stop, the dead-man switch and its watch, `live_confirmed_at` and `global_pause`. The
+  function reads the switches as `'off'` until `0131` has run (they deploy separately).
+
+**One deviation from the paper rows, recorded here.** Variant-3's replica runs on from its own state all week; LIVE's is PR5's
+engine at each closure's first minute, so its weekend starts from the paper positions LIVE has been mirroring, and the paper
+positions it holds at Sunday 21:00 are dropped at the next copy (LIVE's own holdings exit by step 5 whatever the paper holds).
+
+**Verification before either goes live** (the main session runs the statements, each only on Davies' word in the
+conversation where he gives it):
+
+1. `update public.agent_quote_live_config set take_mode = 'shadow', updated_at = now() where id = 1;` — **pass after five
+   weekdays** if: every `take_shadow` event has a variant-2 take (`agent_quote_twin_take50_orders`, `request.take`) on the
+   same book, rung and minute, or the difference is named (LIVE holding the rung, a guard, its funds); every one has
+   `fundsOk` true and a limit equal to variant-2's; LIVE's orders and fills in those days are what `'off'` would have sent
+   (no take row, no `take shadow` error in the turn reports); and each would-be take, filled at the read's touch, sits inside
+   the limit. Fewer than two events in the five days is not a fail: run on until two.
+2. `update public.agent_quote_live_config set weekend_mode = 'shadow', updated_at = now() where id = 1;` by Friday 20:00
+   UTC — **pass after one closure** if: `agent_quote_live_wkpaper.state.syncedAt` is a minute in the hour before 21:00 and
+   `late` is false; through the closure the row's `last_minute` equals PR5's every minute (no stale guard in the events);
+   each `weekend_shadow` target sits at `quoteTicks(fair, k)` on the held X, fair within 50 bps of the book's last print,
+   size the rung's £10; variant-3's resting entries on the same minutes match them to a tick or the difference is named
+   (a position); and the prints over the closure that went through a target add up to fills the account could have
+   covered (coin for the asks, GBP for the bids).
+3. Only then, each on its own word: `update public.agent_quote_live_config set take_mode = 'live', updated_at = now() where
+   id = 1;` and `update public.agent_quote_live_config set weekend_mode = 'live', updated_at = now() where id = 1;`. Watch
+   the first take's fill and exit, and the first live closure's entries, fills and Sunday-21:00 hand-back.
+4. Undo either at any time: `update public.agent_quote_live_config set take_mode = 'off', weekend_mode = 'off', updated_at =
+   now() where id = 1;` (the next turn; open takes and holdings exit as any holding does).
+
+**Risks left open.** A weekend holding carries its coins across Sunday's GBP/USD reopen: a 0.5 % gap on six £10 rungs a book
+is about £0.30, inside the £1.20 daily loss stop. The governor counts weekend POSTs the same way. The take sends a taker
+IOC, the first non-maker entry LIVE has sent, and pays 0.09 % where its maker entries pay nothing. Not blind: built after
+reading LIVE's record.

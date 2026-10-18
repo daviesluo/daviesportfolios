@@ -225,6 +225,7 @@ import {
   coinOf, markedGbp, QUOTE_LIVE_LOSS_FRACTION, rungBook, runQuotesConvert, runQuotesLive,
   type LiveLeg, type QuoteLiveDeps, type QuoteLiveReport, type RungBook, type RungFill,
 } from "./quotes_live.ts";
+import { stepLiveWeekendPaper, type LiveWeekendReport } from "./quotes_live_weekend.ts";
 import { runQuotesVariant, VARIANT_ARMS, VARIANT_KEYS, VARIANT_START, variantCapitalUsd, type VariantArmName } from "./quotes_variant.ts";
 import { runQuotesRuled, RULED_ARMS } from "./quotes_ruled.ts";
 import { runQuotesTwins, twinSpecs, type TwinDriverState, type TwinSpec } from "./quotes_twin.ts";
@@ -440,6 +441,8 @@ export function quotesPaperErrorReport(e: unknown, at: string) {
 export type QuotesActionDeps = {
   paper?: () => Promise<QuoteReport>;
   live?: () => Promise<QuoteLiveReport>;
+  /** The live account's weekend replica (0131, quotes_live_weekend.ts); a test that stubs the paper or the live turn runs none. */
+  weekend?: () => Promise<LiveWeekendReport>;
   report?: (kind: string, o: { message?: string; context?: unknown }) => Promise<void>;
   now?: () => number;
 };
@@ -464,6 +467,14 @@ export async function runQuotesAction(wait: boolean, deps: QuotesActionDeps = {}
     const r = quotesPaperErrorReport(e, new Date(now()).toISOString());
     paper = { error: r.message.slice(0, 300), step: r.context.step };
     await report("agents.quotes", r);
+  }
+  // Then the live account's weekend replica (0131), while `weekend_mode` is not 'off': stepped to the minute the paper engine
+  // just saved, so the executor can read it inside an FX closure. It never throws; a fault is one `agents.quotes_weekend` row
+  // a minute while it lasts, and the executor, finding the replica behind, quotes no weekend entry (its stale guard).
+  const weekendStep = deps.weekend ?? (deps.paper || deps.live ? undefined : () => stepLiveWeekendPaper(db(), Date.now()));
+  if (weekendStep) {
+    const wk = await weekendStep();
+    if (wk.error) await report("agents.quotes_weekend", { message: wk.error, context: { at: new Date(now()).toISOString() } });
   }
   // Then the live executor (`quotes_live.ts`), on the minute the paper engine just saved: the same decisions, carried to
   // PR5's own sub-account — in dry-run until `agent_quote_live_config` says otherwise. It runs after the paper engine has
