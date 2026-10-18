@@ -438,11 +438,16 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    `agents.cb_hold` errors, `last_minute` ~2 min behind. It reads `cbrec`'s stored EUR/USD and PR5's paper engine's
    `agent_quote_inputs`: both run to this window's end, past 11-08 and past PR5's 10-21 review.
 
-13. **Coinbase's order books recorded, ten levels a side: live since `96a9da37` (10-10)** (Davies,
-   2026-10-10; reference §4 item 59, migration `0114`, `agents?action=cbbooks`). After it lands and its 15 minutes
-   pass: `select last_error, last_report from cb_book_state` (`recorded` 4 a minute, `reached` true) and `select product,
-   count(*), max(ts) from cb_book_levels group by 1`; no `agents.cb_books` row in `ops_errors`. Nothing reads it until a
-   queue-model study of the Coinbase books is pre-registered.
+13. **Coinbase's order books recorded, ten levels a side: live since `96a9da37` (10-10); KEPT and used** (Davies, 2026-10-18:
+   "cbbooks留着并利用起来，和revolut x的订单簿一样可以做策略研究"; this replaces the 10-18 review's "retire by 11-08 unless a study is
+   pre-registered"). Reference §4 item 59, migration `0114`, `agents?action=cbbooks`; health: `select last_error, last_report from
+   cb_book_state`, no `agents.cb_books` row in `ops_errors`. **First study CBBOOKS-1** (`reviews/2026-10-18-coinbase-books-study.md`,
+   `backtests/cbbooks/`, rules frozen in `params.json` before results, not blind): the Coinbase paper rows' fills all real (through
+   prints, post-only accepted; slightly conservative); Coinbase leads Revolut X, no better fair for PR5; a touch maker on Coinbase
+   dead; **XV-1, a Revolut X maker hedged on Coinbase, drafted NOT frozen** (`reviews/2026-10-18-cross-venue-maker-prereg.md`: an
+   offline reading 10-18 → 11-15, read by 11-19; needs both venues' transfer fees read first, and Davies' word). Recorder proposals
+   for Davies: keep `cb_trades` (10 days) as long as the books (35), or a prints-by-second table (R1); levels and products as they
+   are. Note: `cb_trades.side` is the aggressor's (the recorder flips Coinbase's maker side).
 
 14. **IG verification: S1a passes** (Davies, 2026-10-15; spec `backtests/ig_deepdive/SPEC-for-verification.md`, review
    `reviews/2026-10-15-ig-verification.md` §9). The `ig` function and `0122` are live (demo, read-only). S1a on 50 of 51
@@ -631,6 +636,18 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18"; each oldest first.
 
+### [2026-10-18 04:37 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **CBBOOKS-1, the Coinbase book recorder's first study** (sub-agent, not pushed; Davies, 10-18: "cbbooks留着并利用起来，和revolut x的
+  订单簿一样可以做策略研究"). Rules, split (train 10-10 03:00 → 10-14 03:00, test → 10-18 03:00), costs (Coinbase 0 % / 0.0045 %,
+  Revolut X 0 % / 0.09 %) and bars frozen in `backtests/cbbooks/params.json` (commit `836c6922`) before any result; production read
+  04:21–04:26 UTC, SELECT only; raw pulls hashed in `MANIFEST.json`, not committed. Deviation 1: `cb_trades.side` is the aggressor's,
+  not the maker's as the params said (the recorder flips it). Ranked: (1) the Coinbase paper rows' 61 and 53 entry fills all had a
+  print through and would have rested post-only; a queue rule adds about 8 % entries, 12 % exits; (2) a Revolut X maker hedged on
+  Coinbase at 10 bps passes its bar, test +£0.52 a day USDC-GBP and +£1.00 USDT-GBP, but 88–100 % of fills buy on Revolut X, so coins
+  must be moved; drafted NOT frozen (`reviews/2026-10-18-cross-venue-maker-prereg.md`); (3) Coinbase leads Revolut X (Revolut X 4.7–5.3
+  bps cheaper), not a better fair; dead: the touch maker (60-min markouts −0.16 to −0.77 bp), imbalance as a strategy, a weekend
+  effect, taker-taker crossings (persist for hours), one release. Item 13 rewritten: cbbooks KEPT; reference §4 item 59 notes it.
+
 ### [2026-10-18 04:31 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **IG weekend recorder, follow-up** (sub-agent; item 14). After `ea3e74da` deployed (04:19 UTC), 13 runs to 04:31:
   10 ok, 3 failed in about a second (login, a call 0.3 s later refused account-token-invalid with no switch, the
@@ -648,6 +665,7 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   the failing account). IG's cause is not known from here. `ig?action=quotes` now logs in at the start of every run
   (60 an hour), re-logs in at most once (`QUOTES_MAX_RELOGINS`), stops the run at the next token refusal, and waits 1 s
   after `PUT /session`; `facts` and `history` are unchanged. Two pins fail on the old code.
+
 
 ### [2026-10-18 04:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Stablecoin quotes review, and every testing row** (sub-agent, not pushed; Davies, 10-18: "检查和评估下所有live和testing的

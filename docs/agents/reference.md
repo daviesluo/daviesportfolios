@@ -4014,6 +4014,11 @@ inform策略". As Revolut X's are (`books.ts`, read by the QUEUE study): on a pe
   (`cb-books-prune`, 10:57 UTC), about 113 MB.
 - **Faults** go to `ops_errors` as `agents.cb_books`, at most hourly while one lasts; a 429 is named by its place in the
   minute, so a lasting limit keeps one key. Not among the monitor's health readings.
+- **Kept and used** (Davies, 2026-10-18: "cbbooks留着并利用起来，和revolut x的订单簿一样可以做策略研究"). First study: CBBOOKS-1
+  (`reviews/2026-10-18-coinbase-books-study.md`, `backtests/cbbooks/`, not blind): the paper rows' through fills all confirmed against
+  the books, Coinbase leads Revolut X, a Revolut X maker hedged on Coinbase drafted as an offline reading
+  (`reviews/2026-10-18-cross-venue-maker-prereg.md`, not frozen). `cb_trades.side` is the aggressor's (the recorder flips Coinbase's
+  maker side). Its prints are kept 10 days against the books' 35: a longer print record is the study's recorder proposal R1.
 
 60. **"Stablecoin quotes with Euros - 2": the Coinbase paper test with the interbank rates held through a closure (2026-10-13,
 migration `0118`, `agents/cb_hold.ts`, `agents/cb_page.ts`, `backtests/cbwk/`, `reviews/2026-10-13-coinbase-weekend-prereg.md`).**

@@ -1,0 +1,2366 @@
+{
+ "summary": {
+  "base": {
+   "entry_fills": 61,
+   "a_through_print_found": 61,
+   "b_post_only_accepted": 61,
+   "b_checked": 61,
+   "c_inside_ten_levels": 55,
+   "c_ticks_behind_touch_median": 2.0,
+   "c_ticks_behind_touch_min_max": [
+    -90,
+    101
+   ],
+   "d_size_full_100_share": 0.836,
+   "d_size_median": 100.0,
+   "by_book": {
+    "USDC-EUR": 18,
+    "USDC-GBP": 16,
+    "USDT-EUR": 16,
+    "USDT-GBP": 11
+   },
+   "orders_e": {
+    "entry": {
+     "orders": 3881,
+     "paper_filled": 61,
+     "with_at_price_print": 52,
+     "queue_would_fill_unfilled": 5,
+     "queue_would_fill_earlier": 9,
+     "queue_unknown_beyond_ten_levels": 3,
+     "at_price_coins": 250539.26
+    },
+    "exit": {
+     "orders": 506,
+     "paper_filled": 51,
+     "with_at_price_print": 56,
+     "queue_would_fill_unfilled": 6,
+     "queue_would_fill_earlier": 4,
+     "queue_unknown_beyond_ten_levels": 1,
+     "at_price_coins": 530390.61
+    }
+   }
+  },
+  "hold": {
+   "entry_fills": 53,
+   "a_through_print_found": 53,
+   "b_post_only_accepted": 53,
+   "b_checked": 53,
+   "c_inside_ten_levels": 49,
+   "c_ticks_behind_touch_median": 1.0,
+   "c_ticks_behind_touch_min_max": [
+    -90,
+    101
+   ],
+   "d_size_full_100_share": 0.83,
+   "d_size_median": 100.0,
+   "by_book": {
+    "USDC-EUR": 12,
+    "USDC-GBP": 16,
+    "USDT-EUR": 14,
+    "USDT-GBP": 11
+   },
+   "orders_e": {
+    "entry": {
+     "orders": 3389,
+     "paper_filled": 58,
+     "with_at_price_print": 49,
+     "queue_would_fill_unfilled": 5,
+     "queue_would_fill_earlier": 6,
+     "queue_unknown_beyond_ten_levels": 3,
+     "at_price_coins": 396497.56999999995
+    },
+    "exit": {
+     "orders": 484,
+     "paper_filled": 44,
+     "with_at_price_print": 43,
+     "queue_would_fill_unfilled": 6,
+     "queue_would_fill_earlier": 4,
+     "queue_unknown_beyond_ten_levels": 1,
+     "at_price_coins": 421962.43
+    }
+   }
+  }
+ },
+ "fills": [
+  {
+   "arm": "base",
+   "book": "USDC-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 191283.33400011063,
+   "ticks": 8932,
+   "live_s": 187620,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 1,
+    "size_at_price_coins": 15028.19,
+    "ticks_behind_touch": 0,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": -0.04730907010318841
+  },
+  {
+   "arm": "base",
+   "book": "USDC-EUR",
+   "side": "bid",
+   "k": 0.001,
+   "fill_s": 200476.50500011444,
+   "ticks": 8930,
+   "live_s": 197760,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": 11,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.2934201888228006
+  },
+  {
+   "arm": "base",
+   "book": "USDC-EUR",
+   "side": "ask",
+   "k": 0.002,
+   "fill_s": 201325.0150001049,
+   "ticks": 8957,
+   "live_s": 197760,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": null,
+    "ticks_behind_touch": 14,
+    "beyond_ten_levels": true
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.11321517692863116
+  },
+  {
+   "arm": "base",
+   "book": "USDC-EUR",
+   "side": "ask",
+   "k": 0.003,
+   "fill_s": 201325.0150001049,
+   "ticks": 8966,
+   "live_s": 197760,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": null,
+    "ticks_behind_touch": 23,
+    "beyond_ten_levels": true
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.1979276817490614
+  },
+  {
+   "arm": "base",
+   "book": "USDC-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 201325.0150001049,
+   "ticks": 8950,
+   "live_s": 200580,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 8,
+    "size_at_price_coins": 2134.92,
+    "ticks_behind_touch": 7,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.047209885463205564
+  },
+  {
+   "arm": "base",
+   "book": "USDC-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 218801.8970000744,
+   "ticks": 8963,
+   "live_s": 218160,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": -1,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.028291870567475768
+  },
+  {
+   "arm": "base",
+   "book": "USDC-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 276177.4700000286,
+   "ticks": 8937,
+   "live_s": 276120,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 2,
+    "size_at_price_coins": 24995.33,
+    "ticks_behind_touch": 1,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.0661934573013829
+  },
+  {
+   "arm": "base",
+   "book": "USDC-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 348409.13100004196,
+   "ticks": 8925,
+   "live_s": 346320,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 3,
+    "size_at_price_coins": 15999.61,
+    "ticks_behind_touch": 2,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": -0.45346475116831947
+  },
+  {
+   "arm": "base",
+   "book": "USDC-EUR",
+   "side": "ask",
+   "k": 0.002,
+   "fill_s": 379850.9930000305,
+   "ticks": 8950,
+   "live_s": 377940,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 4,
+    "size_at_price_coins": 40.17,
+    "ticks_behind_touch": 3,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": -0.21667825138752211
+  },
+  {
+   "arm": "base",
+   "book": "USDC-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 402562.69099998474,
+   "ticks": 8969,
+   "live_s": 401940,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 2,
+    "size_at_price_coins": 16155.1,
+    "ticks_behind_touch": 1,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.5290387533734708
+  },
+  {
+   "arm": "base",
+   "book": "USDC-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 429451.20600008965,
+   "ticks": 8914,
+   "live_s": 429180,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": -1,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": -0.047418281954029834
+  },
+  {
+   "arm": "base",
+   "book": "USDC-EUR",
+   "side": "ask",
+   "k": 0.002,
+   "fill_s": 446826.29399991035,
+   "ticks": 8930,
+   "live_s": 446520,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 8,
+    "size_at_price_coins": 1.82,
+    "ticks_behind_touch": 8,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.10413330837000921
+  },
+  {
+   "arm": "base",
+   "book": "USDC-EUR",
+   "side": "bid",
+   "k": 0.001,
+   "fill_s": 476385.9049999714,
+   "ticks": 8910,
+   "live_s": 475800,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": null,
+    "ticks_behind_touch": 18,
+    "beyond_ten_levels": true
+   },
+   "d_size_ccy": 100.0,
+   "how": "taker",
+   "pnl_gbp": -0.22617254969902198
+  },
+  {
+   "arm": "base",
+   "book": "USDC-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 479266.49499988556,
+   "ticks": 8928,
+   "live_s": 479160,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 1,
+    "size_at_price_coins": 15308.28,
+    "ticks_behind_touch": 0,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.5010366276711992
+  },
+  {
+   "arm": "base",
+   "book": "USDC-EUR",
+   "side": "bid",
+   "k": 0.002,
+   "fill_s": 550018.3440001011,
+   "ticks": 8858,
+   "live_s": 547980,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": null,
+    "ticks_behind_touch": 26,
+    "beyond_ten_levels": true
+   },
+   "d_size_ccy": 100.0,
+   "how": "taker",
+   "pnl_gbp": 0.41043289205283656
+  },
+  {
+   "arm": "base",
+   "book": "USDC-EUR",
+   "side": "bid",
+   "k": 0.003,
+   "fill_s": 550018.3440001011,
+   "ticks": 8849,
+   "live_s": 547980,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": null,
+    "ticks_behind_touch": 35,
+    "beyond_ten_levels": true
+   },
+   "d_size_ccy": 100.0,
+   "how": "taker",
+   "pnl_gbp": 0.4966409531371812
+  },
+  {
+   "arm": "base",
+   "book": "USDC-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 550085.5020000935,
+   "ticks": 8885,
+   "live_s": 550080,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 1,
+    "size_at_price_coins": 51330.93,
+    "ticks_behind_touch": 0,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "taker",
+   "pnl_gbp": -0.16992814864855443
+  },
+  {
+   "arm": "base",
+   "book": "USDC-EUR",
+   "side": "ask",
+   "k": 0.002,
+   "fill_s": 558527.0020000935,
+   "ticks": 8894,
+   "live_s": 557880,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 8,
+    "size_at_price_coins": 5975.23,
+    "ticks_behind_touch": 7,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "taker",
+   "pnl_gbp": -0.06542959616390878
+  },
+  {
+   "arm": "base",
+   "book": "USDC-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 375087.4549999237,
+   "ticks": 7547,
+   "live_s": 374640,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": -1,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.10600238505366673
+  },
+  {
+   "arm": "base",
+   "book": "USDC-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 379804.2200000286,
+   "ticks": 7545,
+   "live_s": 377580,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": 10,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": -0.3048376408217321
+  },
+  {
+   "arm": "base",
+   "book": "USDC-GBP",
+   "side": "ask",
+   "k": 0.002,
+   "fill_s": 379829.0599999428,
+   "ticks": 7551,
+   "live_s": 378180,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": 16,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": -0.2251357436101225
+  },
+  {
+   "arm": "base",
+   "book": "USDC-GBP",
+   "side": "ask",
+   "k": 0.003,
+   "fill_s": 379859.92199993134,
+   "ticks": 7558,
+   "live_s": 378180,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": 6,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": -0.13231013495633778
+  },
+  {
+   "arm": "base",
+   "book": "USDC-GBP",
+   "side": "bid",
+   "k": 0.001,
+   "fill_s": 399090.5650000572,
+   "ticks": 7584,
+   "live_s": 397320,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 6,
+    "size_at_price_coins": 5314.14,
+    "ticks_behind_touch": 10,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.09229957805906155
+  },
+  {
+   "arm": "base",
+   "book": "USDC-GBP",
+   "side": "bid",
+   "k": 0.002,
+   "fill_s": 399090.5650000572,
+   "ticks": 7577,
+   "live_s": 397320,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": 17,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.18476969776956007
+  },
+  {
+   "arm": "base",
+   "book": "USDC-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 437913.6240000725,
+   "ticks": 7550,
+   "live_s": 431880,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": -1,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.06622516556290661
+  },
+  {
+   "arm": "base",
+   "book": "USDC-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 452784.37700009346,
+   "ticks": 7542,
+   "live_s": 451200,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 1,
+    "size_at_price_coins": 14982.56,
+    "ticks_behind_touch": 0,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.10607265977193212
+  },
+  {
+   "arm": "base",
+   "book": "USDC-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 456559.74499988556,
+   "ticks": 7539,
+   "live_s": 455760,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 1,
+    "size_at_price_coins": 25575.14,
+    "ticks_behind_touch": 0,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 15.09,
+   "how": "maker",
+   "pnl_gbp": -0.008004419684309604
+  },
+  {
+   "arm": "base",
+   "book": "USDC-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 466201.89299988747,
+   "ticks": 7549,
+   "live_s": 464100,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 4,
+    "size_at_price_coins": 15051.66,
+    "ticks_behind_touch": 3,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.026493575307984893
+  },
+  {
+   "arm": "base",
+   "book": "USDC-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 467236.6129999161,
+   "ticks": 7547,
+   "live_s": 466920,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 3,
+    "size_at_price_coins": 25084.83,
+    "ticks_behind_touch": 2,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 1.1,
+   "how": "maker",
+   "pnl_gbp": 0
+  },
+  {
+   "arm": "base",
+   "book": "USDC-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 474256.38800001144,
+   "ticks": 7538,
+   "live_s": 473700,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 3,
+    "size_at_price_coins": 15001.83,
+    "ticks_behind_touch": 2,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 41.62,
+   "how": "maker",
+   "pnl_gbp": -0.022084476147516807
+  },
+  {
+   "arm": "base",
+   "book": "USDC-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 490431.1470000744,
+   "ticks": 7534,
+   "live_s": 486240,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 1,
+    "size_at_price_coins": 8447.46,
+    "ticks_behind_touch": 0,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.053092646668445306
+  },
+  {
+   "arm": "base",
+   "book": "USDC-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 522525.09599995613,
+   "ticks": 7520,
+   "live_s": 521760,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 2,
+    "size_at_price_coins": 25243.04,
+    "ticks_behind_touch": 1,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 93.0,
+   "how": "maker",
+   "pnl_gbp": 0.2844377864228685
+  },
+  {
+   "arm": "base",
+   "book": "USDC-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 562953.2179999352,
+   "ticks": 7492,
+   "live_s": 561720,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 1,
+    "size_at_price_coins": 15004.04,
+    "ticks_behind_touch": 0,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 44.35,
+   "how": "maker",
+   "pnl_gbp": -0.05327879042978592
+  },
+  {
+   "arm": "base",
+   "book": "USDC-GBP",
+   "side": "bid",
+   "k": 0.001,
+   "fill_s": 572171.5950000286,
+   "ticks": 7493,
+   "live_s": 571440,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": 15,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "taker",
+   "pnl_gbp": 0.12232305351662356
+  },
+  {
+   "arm": "base",
+   "book": "USDT-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 191193.28699994087,
+   "ticks": 89221,
+   "live_s": 187620,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": 6,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": -0.152531952870155
+  },
+  {
+   "arm": "base",
+   "book": "USDT-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 218754.23399996758,
+   "ticks": 89522,
+   "live_s": 218160,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 8,
+    "size_at_price_coins": 24027.63,
+    "ticks_behind_touch": 16,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.009440572942284876
+  },
+  {
+   "arm": "base",
+   "book": "USDT-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 299993.3550000191,
+   "ticks": 89281,
+   "live_s": 299640,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": -6,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.018932685147175513
+  },
+  {
+   "arm": "base",
+   "book": "USDT-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 325355.7049999237,
+   "ticks": 89214,
+   "live_s": 325140,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": -3,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": -0.5585608954370065
+  },
+  {
+   "arm": "base",
+   "book": "USDT-EUR",
+   "side": "ask",
+   "k": 0.002,
+   "fill_s": 375133.66100001335,
+   "ticks": 89368,
+   "live_s": 367620,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": 61,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": -0.41230201455369886
+  },
+  {
+   "arm": "base",
+   "book": "USDT-EUR",
+   "side": "ask",
+   "k": 0.003,
+   "fill_s": 379848.5120000839,
+   "ticks": 89458,
+   "live_s": 367620,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": -90,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": -0.3270591840705861
+  },
+  {
+   "arm": "base",
+   "book": "USDT-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 382228.253000021,
+   "ticks": 89815,
+   "live_s": 382200,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": 15,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0
+  },
+  {
+   "arm": "base",
+   "book": "USDT-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 384157.19899988174,
+   "ticks": 89755,
+   "live_s": 383640,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": 6,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": -0.028221017276887632
+  },
+  {
+   "arm": "base",
+   "book": "USDT-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 387406.0880000591,
+   "ticks": 89809,
+   "live_s": 386760,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": 12,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "taker",
+   "pnl_gbp": 0.7373764334339831
+  },
+  {
+   "arm": "base",
+   "book": "USDT-EUR",
+   "side": "ask",
+   "k": 0.002,
+   "fill_s": 466207.0299999714,
+   "ticks": 89248,
+   "live_s": 466140,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": null,
+    "ticks_behind_touch": 101,
+    "beyond_ten_levels": true
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.13175992348966198
+  },
+  {
+   "arm": "base",
+   "book": "USDT-EUR",
+   "side": "ask",
+   "k": 0.002,
+   "fill_s": 467262.14299988747,
+   "ticks": 89168,
+   "live_s": 467040,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": 2,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.11655027633312706
+  },
+  {
+   "arm": "base",
+   "book": "USDT-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 474176.7230000496,
+   "ticks": 89029,
+   "live_s": 473880,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": 11,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": -0.015184682276373575
+  },
+  {
+   "arm": "base",
+   "book": "USDT-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 520933.9849998951,
+   "ticks": 89085,
+   "live_s": 516840,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": 21,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.037925859466092615
+  },
+  {
+   "arm": "base",
+   "book": "USDT-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 522091.96499991417,
+   "ticks": 88905,
+   "live_s": 521820,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": -2,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": -0.028499593534863085
+  },
+  {
+   "arm": "base",
+   "book": "USDT-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 534697.5230000019,
+   "ticks": 88846,
+   "live_s": 534420,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": -3,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "taker",
+   "pnl_gbp": -0.034173892936470156
+  },
+  {
+   "arm": "base",
+   "book": "USDT-EUR",
+   "side": "ask",
+   "k": 0.002,
+   "fill_s": 567094.6830000877,
+   "ticks": 89031,
+   "live_s": 565560,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": -1,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "taker",
+   "pnl_gbp": 0.12222313014554312
+  },
+  {
+   "arm": "base",
+   "book": "USDT-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 360130.4590001106,
+   "ticks": 7531,
+   "live_s": 346260,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 1,
+    "size_at_price_coins": 2378.6,
+    "ticks_behind_touch": 0,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 2.43,
+   "how": "maker",
+   "pnl_gbp": -0.009022797928562023
+  },
+  {
+   "arm": "base",
+   "book": "USDT-GBP",
+   "side": "ask",
+   "k": 0.002,
+   "fill_s": 379805.56200003624,
+   "ticks": 7543,
+   "live_s": 364800,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 6,
+    "size_at_price_coins": 40539.01,
+    "ticks_behind_touch": 14,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": -0.21211719475009078
+  },
+  {
+   "arm": "base",
+   "book": "USDT-GBP",
+   "side": "ask",
+   "k": 0.003,
+   "fill_s": 379856.0450000763,
+   "ticks": 7551,
+   "live_s": 364800,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": 2,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": -0.10594623228711733
+  },
+  {
+   "arm": "base",
+   "book": "USDT-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 382823.4630000591,
+   "ticks": 7575,
+   "live_s": 382620,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 2,
+    "size_at_price_coins": 57383.09,
+    "ticks_behind_touch": 1,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": -0.11881188118812037
+  },
+  {
+   "arm": "base",
+   "book": "USDT-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 389283.27500009537,
+   "ticks": 7599,
+   "live_s": 388980,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 1,
+    "size_at_price_coins": 73589.23,
+    "ticks_behind_touch": 0,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.02631925253322516
+  },
+  {
+   "arm": "base",
+   "book": "USDT-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 423695.5539999008,
+   "ticks": 7549,
+   "live_s": 423240,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": -1,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.18545502715590895
+  },
+  {
+   "arm": "base",
+   "book": "USDT-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 444987.2190001011,
+   "ticks": 7545,
+   "live_s": 444780,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 1,
+    "size_at_price_coins": 46714.47,
+    "ticks_behind_touch": 0,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 96.41,
+   "how": "maker",
+   "pnl_gbp": 0.11500247522862975
+  },
+  {
+   "arm": "base",
+   "book": "USDT-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 458395.6960000992,
+   "ticks": 7537,
+   "live_s": 457680,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": -1,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 63.43,
+   "how": "maker",
+   "pnl_gbp": -0.016830729494491974
+  },
+  {
+   "arm": "base",
+   "book": "USDT-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 467271.24799990654,
+   "ticks": 7539,
+   "live_s": 466920,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": -3,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 39.02,
+   "how": "maker",
+   "pnl_gbp": 0
+  },
+  {
+   "arm": "base",
+   "book": "USDT-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 474237.1700000763,
+   "ticks": 7529,
+   "live_s": 473940,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 2,
+    "size_at_price_coins": 55032.07,
+    "ticks_behind_touch": 1,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 37.65,
+   "how": "maker",
+   "pnl_gbp": 0.02000265639526941
+  },
+  {
+   "arm": "base",
+   "book": "USDT-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 547876.5840001106,
+   "ticks": 7488,
+   "live_s": 545280,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 1,
+    "size_at_price_coins": 31376.49,
+    "ticks_behind_touch": 0,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "taker",
+   "pnl_gbp": -0.07790092948719571
+  },
+  {
+   "arm": "hold",
+   "book": "USDC-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 276177.4700000286,
+   "ticks": 8937,
+   "live_s": 276120,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 2,
+    "size_at_price_coins": 24995.33,
+    "ticks_behind_touch": 1,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.0661934573013829
+  },
+  {
+   "arm": "hold",
+   "book": "USDC-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 348409.13100004196,
+   "ticks": 8925,
+   "live_s": 346320,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 3,
+    "size_at_price_coins": 15999.61,
+    "ticks_behind_touch": 2,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": -0.45346475116831947
+  },
+  {
+   "arm": "hold",
+   "book": "USDC-EUR",
+   "side": "ask",
+   "k": 0.002,
+   "fill_s": 379850.9930000305,
+   "ticks": 8950,
+   "live_s": 377940,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 4,
+    "size_at_price_coins": 40.17,
+    "ticks_behind_touch": 3,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": -0.21667825138752211
+  },
+  {
+   "arm": "hold",
+   "book": "USDC-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 402562.69099998474,
+   "ticks": 8969,
+   "live_s": 401940,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 2,
+    "size_at_price_coins": 16155.1,
+    "ticks_behind_touch": 1,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.5290387533734708
+  },
+  {
+   "arm": "hold",
+   "book": "USDC-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 429451.20600008965,
+   "ticks": 8914,
+   "live_s": 429180,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": -1,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": -0.047418281954029834
+  },
+  {
+   "arm": "hold",
+   "book": "USDC-EUR",
+   "side": "ask",
+   "k": 0.002,
+   "fill_s": 446826.29399991035,
+   "ticks": 8930,
+   "live_s": 446520,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 8,
+    "size_at_price_coins": 1.82,
+    "ticks_behind_touch": 8,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.10413330837000921
+  },
+  {
+   "arm": "hold",
+   "book": "USDC-EUR",
+   "side": "bid",
+   "k": 0.001,
+   "fill_s": 476385.9049999714,
+   "ticks": 8910,
+   "live_s": 475800,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": null,
+    "ticks_behind_touch": 18,
+    "beyond_ten_levels": true
+   },
+   "d_size_ccy": 100.0,
+   "how": "taker",
+   "pnl_gbp": -0.22617254969902198
+  },
+  {
+   "arm": "hold",
+   "book": "USDC-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 479266.49499988556,
+   "ticks": 8928,
+   "live_s": 479160,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 1,
+    "size_at_price_coins": 15308.28,
+    "ticks_behind_touch": 0,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.5010366276711992
+  },
+  {
+   "arm": "hold",
+   "book": "USDC-EUR",
+   "side": "bid",
+   "k": 0.003,
+   "fill_s": 550018.3440001011,
+   "ticks": 8849,
+   "live_s": 547980,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": null,
+    "ticks_behind_touch": 35,
+    "beyond_ten_levels": true
+   },
+   "d_size_ccy": 100.0,
+   "how": "taker",
+   "pnl_gbp": 0.4966210998960057
+  },
+  {
+   "arm": "hold",
+   "book": "USDC-EUR",
+   "side": "bid",
+   "k": 0.002,
+   "fill_s": 550018.3440001011,
+   "ticks": 8858,
+   "live_s": 547980,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": null,
+    "ticks_behind_touch": 26,
+    "beyond_ten_levels": true
+   },
+   "d_size_ccy": 100.0,
+   "how": "taker",
+   "pnl_gbp": 0.41041648498221384
+  },
+  {
+   "arm": "hold",
+   "book": "USDC-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 550085.5020000935,
+   "ticks": 8885,
+   "live_s": 550080,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 1,
+    "size_at_price_coins": 51330.93,
+    "ticks_behind_touch": 0,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "taker",
+   "pnl_gbp": -0.16992135576428602
+  },
+  {
+   "arm": "hold",
+   "book": "USDC-EUR",
+   "side": "ask",
+   "k": 0.002,
+   "fill_s": 558527.0020000935,
+   "ticks": 8894,
+   "live_s": 557880,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 8,
+    "size_at_price_coins": 5975.23,
+    "ticks_behind_touch": 7,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "taker",
+   "pnl_gbp": -0.06542698061328928
+  },
+  {
+   "arm": "hold",
+   "book": "USDC-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 375087.4549999237,
+   "ticks": 7547,
+   "live_s": 374640,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": -1,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.10600238505366673
+  },
+  {
+   "arm": "hold",
+   "book": "USDC-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 379804.2200000286,
+   "ticks": 7545,
+   "live_s": 377580,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": 10,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": -0.3048376408217321
+  },
+  {
+   "arm": "hold",
+   "book": "USDC-GBP",
+   "side": "ask",
+   "k": 0.002,
+   "fill_s": 379829.0599999428,
+   "ticks": 7551,
+   "live_s": 378180,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": 16,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": -0.2251357436101225
+  },
+  {
+   "arm": "hold",
+   "book": "USDC-GBP",
+   "side": "ask",
+   "k": 0.003,
+   "fill_s": 379859.92199993134,
+   "ticks": 7558,
+   "live_s": 378180,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": 6,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": -0.13231013495633778
+  },
+  {
+   "arm": "hold",
+   "book": "USDC-GBP",
+   "side": "bid",
+   "k": 0.002,
+   "fill_s": 399090.5650000572,
+   "ticks": 7577,
+   "live_s": 397320,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": 17,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.18476969776956007
+  },
+  {
+   "arm": "hold",
+   "book": "USDC-GBP",
+   "side": "bid",
+   "k": 0.001,
+   "fill_s": 399090.5650000572,
+   "ticks": 7584,
+   "live_s": 397320,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 6,
+    "size_at_price_coins": 5314.14,
+    "ticks_behind_touch": 10,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.09229957805906155
+  },
+  {
+   "arm": "hold",
+   "book": "USDC-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 437913.6240000725,
+   "ticks": 7550,
+   "live_s": 431880,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": -1,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.06622516556290661
+  },
+  {
+   "arm": "hold",
+   "book": "USDC-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 452784.37700009346,
+   "ticks": 7542,
+   "live_s": 451200,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 1,
+    "size_at_price_coins": 14982.56,
+    "ticks_behind_touch": 0,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.10607265977193212
+  },
+  {
+   "arm": "hold",
+   "book": "USDC-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 456559.74499988556,
+   "ticks": 7539,
+   "live_s": 455760,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 1,
+    "size_at_price_coins": 25575.14,
+    "ticks_behind_touch": 0,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 15.09,
+   "how": "maker",
+   "pnl_gbp": -0.008004419684309604
+  },
+  {
+   "arm": "hold",
+   "book": "USDC-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 466201.89299988747,
+   "ticks": 7549,
+   "live_s": 464100,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 4,
+    "size_at_price_coins": 15051.66,
+    "ticks_behind_touch": 3,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.026493575307984893
+  },
+  {
+   "arm": "hold",
+   "book": "USDC-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 467236.6129999161,
+   "ticks": 7547,
+   "live_s": 466920,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 3,
+    "size_at_price_coins": 25084.83,
+    "ticks_behind_touch": 2,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 1.1,
+   "how": "maker",
+   "pnl_gbp": 0
+  },
+  {
+   "arm": "hold",
+   "book": "USDC-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 474256.38800001144,
+   "ticks": 7538,
+   "live_s": 473700,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 3,
+    "size_at_price_coins": 15001.83,
+    "ticks_behind_touch": 2,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 41.62,
+   "how": "maker",
+   "pnl_gbp": -0.022084476147516807
+  },
+  {
+   "arm": "hold",
+   "book": "USDC-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 490431.1470000744,
+   "ticks": 7534,
+   "live_s": 486240,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 1,
+    "size_at_price_coins": 8447.46,
+    "ticks_behind_touch": 0,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.053092646668445306
+  },
+  {
+   "arm": "hold",
+   "book": "USDC-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 536117.1349999905,
+   "ticks": 7510,
+   "live_s": 534300,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 1,
+    "size_at_price_coins": 31358.98,
+    "ticks_behind_touch": 0,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 7.74,
+   "how": "maker",
+   "pnl_gbp": 0.017514031784286836
+  },
+  {
+   "arm": "hold",
+   "book": "USDC-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 562953.2179999352,
+   "ticks": 7492,
+   "live_s": 561720,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 1,
+    "size_at_price_coins": 15004.04,
+    "ticks_behind_touch": 0,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 44.35,
+   "how": "maker",
+   "pnl_gbp": -0.05327879042978592
+  },
+  {
+   "arm": "hold",
+   "book": "USDC-GBP",
+   "side": "bid",
+   "k": 0.001,
+   "fill_s": 572171.5950000286,
+   "ticks": 7493,
+   "live_s": 571440,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": 15,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.1201121046309905
+  },
+  {
+   "arm": "hold",
+   "book": "USDT-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 299993.3550000191,
+   "ticks": 89281,
+   "live_s": 299640,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": -6,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.018932685147175513
+  },
+  {
+   "arm": "hold",
+   "book": "USDT-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 325355.7049999237,
+   "ticks": 89214,
+   "live_s": 325140,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": -3,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": -0.5585608954370065
+  },
+  {
+   "arm": "hold",
+   "book": "USDT-EUR",
+   "side": "ask",
+   "k": 0.002,
+   "fill_s": 375133.66100001335,
+   "ticks": 89368,
+   "live_s": 367620,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": 61,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": -0.41230201455369886
+  },
+  {
+   "arm": "hold",
+   "book": "USDT-EUR",
+   "side": "ask",
+   "k": 0.003,
+   "fill_s": 379848.5120000839,
+   "ticks": 89458,
+   "live_s": 367620,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": -90,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": -0.3270591840705861
+  },
+  {
+   "arm": "hold",
+   "book": "USDT-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 382228.253000021,
+   "ticks": 89815,
+   "live_s": 382200,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": 15,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0
+  },
+  {
+   "arm": "hold",
+   "book": "USDT-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 384157.19899988174,
+   "ticks": 89755,
+   "live_s": 383640,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": 6,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": -0.028221017276887632
+  },
+  {
+   "arm": "hold",
+   "book": "USDT-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 387406.0880000591,
+   "ticks": 89809,
+   "live_s": 386760,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": 12,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "taker",
+   "pnl_gbp": 0.7373764334339831
+  },
+  {
+   "arm": "hold",
+   "book": "USDT-EUR",
+   "side": "ask",
+   "k": 0.002,
+   "fill_s": 466207.0299999714,
+   "ticks": 89248,
+   "live_s": 466140,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": null,
+    "ticks_behind_touch": 101,
+    "beyond_ten_levels": true
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.13175992348966198
+  },
+  {
+   "arm": "hold",
+   "book": "USDT-EUR",
+   "side": "ask",
+   "k": 0.002,
+   "fill_s": 467262.14299988747,
+   "ticks": 89168,
+   "live_s": 467040,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": 2,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.11655027633312706
+  },
+  {
+   "arm": "hold",
+   "book": "USDT-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 474176.7230000496,
+   "ticks": 89029,
+   "live_s": 473880,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": 11,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": -0.015184682276373575
+  },
+  {
+   "arm": "hold",
+   "book": "USDT-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 520933.9849998951,
+   "ticks": 89085,
+   "live_s": 516840,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": 21,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.037925859466092615
+  },
+  {
+   "arm": "hold",
+   "book": "USDT-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 522091.96499991417,
+   "ticks": 88905,
+   "live_s": 521820,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": -2,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": -0.028499593534863085
+  },
+  {
+   "arm": "hold",
+   "book": "USDT-EUR",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 534697.5230000019,
+   "ticks": 88846,
+   "live_s": 534420,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": -3,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "taker",
+   "pnl_gbp": -0.034172526833787555
+  },
+  {
+   "arm": "hold",
+   "book": "USDT-EUR",
+   "side": "ask",
+   "k": 0.002,
+   "fill_s": 567094.6830000877,
+   "ticks": 89031,
+   "live_s": 565560,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": -1,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "taker",
+   "pnl_gbp": 0.1222182442712215
+  },
+  {
+   "arm": "hold",
+   "book": "USDT-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 326819.8550000191,
+   "ticks": 7540,
+   "live_s": 325560,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 2,
+    "size_at_price_coins": 11207.95,
+    "ticks_behind_touch": 1,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.15915119363394944
+  },
+  {
+   "arm": "hold",
+   "book": "USDT-GBP",
+   "side": "ask",
+   "k": 0.002,
+   "fill_s": 379810.739000082,
+   "ticks": 7544,
+   "live_s": 360900,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": 15,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": -0.19883351007422398
+  },
+  {
+   "arm": "hold",
+   "book": "USDT-GBP",
+   "side": "ask",
+   "k": 0.003,
+   "fill_s": 379856.0450000763,
+   "ticks": 7551,
+   "live_s": 360900,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": 2,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": -0.10594623228711733
+  },
+  {
+   "arm": "hold",
+   "book": "USDT-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 380165.5460000038,
+   "ticks": 7558,
+   "live_s": 379980,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 2,
+    "size_at_price_coins": 63458.85,
+    "ticks_behind_touch": 1,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": -0.01323101349563231
+  },
+  {
+   "arm": "hold",
+   "book": "USDT-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 382823.4630000591,
+   "ticks": 7575,
+   "live_s": 382620,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 2,
+    "size_at_price_coins": 57383.09,
+    "ticks_behind_touch": 1,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": -0.11881188118812037
+  },
+  {
+   "arm": "hold",
+   "book": "USDT-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 423695.5539999008,
+   "ticks": 7549,
+   "live_s": 423240,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": -1,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "maker",
+   "pnl_gbp": 0.18545502715590895
+  },
+  {
+   "arm": "hold",
+   "book": "USDT-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 445120.6670000553,
+   "ticks": 7546,
+   "live_s": 440760,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": -1,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 2.33,
+   "how": "maker",
+   "pnl_gbp": 0.003084817386694941
+  },
+  {
+   "arm": "hold",
+   "book": "USDT-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 458395.6960000992,
+   "ticks": 7537,
+   "live_s": 457680,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": -1,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 63.43,
+   "how": "maker",
+   "pnl_gbp": -0.016830729494491974
+  },
+  {
+   "arm": "hold",
+   "book": "USDT-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 467271.24799990654,
+   "ticks": 7539,
+   "live_s": 466920,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": null,
+    "size_at_price_coins": 0.0,
+    "ticks_behind_touch": -3,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 39.02,
+   "how": "maker",
+   "pnl_gbp": 0
+  },
+  {
+   "arm": "hold",
+   "book": "USDT-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 474237.1700000763,
+   "ticks": 7529,
+   "live_s": 473940,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 2,
+    "size_at_price_coins": 55032.07,
+    "ticks_behind_touch": 1,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 37.65,
+   "how": "maker",
+   "pnl_gbp": 0.02000265639526941
+  },
+  {
+   "arm": "hold",
+   "book": "USDT-GBP",
+   "side": "ask",
+   "k": 0.001,
+   "fill_s": 547876.5840001106,
+   "ticks": 7488,
+   "live_s": 545400,
+   "a_through_print_in_second": true,
+   "b_post_only_accepted": true,
+   "c": {
+    "level": 1,
+    "size_at_price_coins": 31376.49,
+    "ticks_behind_touch": 0,
+    "beyond_ten_levels": false
+   },
+   "d_size_ccy": 100.0,
+   "how": "taker",
+   "pnl_gbp": -0.07790092948719571
+  }
+ ]
+}

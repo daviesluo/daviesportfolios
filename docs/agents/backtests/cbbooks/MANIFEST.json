@@ -1,0 +1,151 @@
+{
+ "study": "CBBOOKS-1 (docs/agents/reviews/2026-10-18-coinbase-books-study.md): Coinbase's recorded books, prints and minute record with Revolut X's books and prints, for strategy research. Davies, 2026-10-18: \"cbbooks\u7559\u7740\u5e76\u5229\u7528\u8d77\u6765\uff0c\u548crevolut x\u7684\u8ba2\u5355\u7c3f\u4e00\u6837\u53ef\u4ee5\u505a\u7b56\u7565\u7814\u7a76\". Not blind.",
+ "params": {
+  "file": "params.json",
+  "sha256": "8866a1f7232fe742979cdc0009aa5b6a0c237b8490054efaa9f350358e40eff1",
+  "frozen_in_commit": "836c6922 (before any pull was analysed)",
+  "deviations": [
+   "1. params.json's conventions line says cb_trades.side is the maker's. It is the AGGRESSOR's: the recorder flips Coinbase's maker side on write (agents/cb_rec.ts lines 17-18, 72). Found by describe.py before Q1-Q6 were run (stored 'buy' prints sat at the fresh ask 83-91 % of coins); scripts/load.py reads the stored side as the aggressor's. No rule changed: every rule names the MAKER side, which is now read correctly.",
+   "2. Revolut X: six book reads in the window stored both sides empty; they are skipped (scripts/load.py).",
+   "3. Q4 (ii): a resting Revolut X order fills at most once a minute a side (as one PR5 rung re-placed each minute); params.json did not say."
+  ]
+ },
+ "read": "production, SELECT only, through the Supabase connector, 2026-10-18 04:21-04:26 UTC (sql/pull_books.sql per product and half, sql/pull_trades.sql per product (USDC-EUR in halves), sql/pull_revx.sql, sql/pull_paper.sql). Window 2026-10-10T03:00Z to 2026-10-18T03:00Z; books and prints pulled to 04:10Z for markouts. cb_trades is kept ten days: the prints of 10-10 are pruned from about 10-20, so these pulls cannot be re-run in full after that.",
+ "run": [
+  "for each sql/pull_*.sql (placeholders as each file says): save the connector's reply, then python3 -I scripts/grab.py <reply> <raw dir>",
+  "python3 -I scripts/describe.py <raw dir>   # results/describe.json (D, Q7)",
+  "python3 -I scripts/queue.py <raw dir>      # results/queue.json (Q1, Q5, Q6), about 20 s",
+  "python3 -I scripts/paper.py <raw dir>      # results/paper.json (Q2)",
+  "python3 -I scripts/cross.py <raw dir>      # results/cross.json (Q3, Q4)",
+  "python3 -I scripts/manifest.py <raw dir>"
+ ],
+ "pulls": {
+  "books_USDC-EUR_1.txt": {
+   "lines": 5758,
+   "md5_db": "c2eb27c66d5bac1709dd8a2b3518426f",
+   "sha256": "dc755856012efb69a4c33f3b9510d67b6765c410b794d19ec3db5c7521641813",
+   "bytes": 1282854
+  },
+  "books_USDC-EUR_2.txt": {
+   "lines": 5820,
+   "md5_db": "8347ca3db42b692e2e5d22754bdb67ac",
+   "sha256": "a4ccb1e87a82b33327a41dc1fb6f9d44be7e780a5c1722ea93b688b9ea1a3c91",
+   "bytes": 1292312
+  },
+  "books_USDC-GBP_1.txt": {
+   "lines": 5625,
+   "md5_db": "dadb3576be1245341b3af32d8e843e81",
+   "sha256": "81060186d841cda1ab8ad85efdca17ebc5d8a66e8e85218a4893e1411dab7364",
+   "bytes": 1288475
+  },
+  "books_USDC-GBP_2.txt": {
+   "lines": 5727,
+   "md5_db": "2cb720fc1ada09b383a672a923d9049c",
+   "sha256": "1b8199e7ef3760cc521181f286d1ddc07c944c1c7b78e19d6ab8be63aeb1884f",
+   "bytes": 1318828
+  },
+  "books_USDT-EUR_1.txt": {
+   "lines": 5725,
+   "md5_db": "6e23417b695471127ebf915f4bcdb227",
+   "sha256": "281f75871eca350395e5d9a28bd2fce81f9b4573bc7941ab44d9ec9215c2282c",
+   "bytes": 1371575
+  },
+  "books_USDT-EUR_2.txt": {
+   "lines": 5815,
+   "md5_db": "b53916e9576d7f89b654ae22d77d9a5d",
+   "sha256": "69e7b63161d8fd11ed63a60f31861da03132e84ef87666af1b620932004dcc40",
+   "bytes": 1405949
+  },
+  "books_USDT-GBP_1.txt": {
+   "lines": 5481,
+   "md5_db": "131c7a1f5fa509e7f9c8970853d6df49",
+   "sha256": "da1011cbe8369b52df5823b9945bf4a233096b966caa2b7a84c14cd95f9b98ce",
+   "bytes": 1290149
+  },
+  "books_USDT-GBP_2.txt": {
+   "lines": 5620,
+   "md5_db": "4872b3806b6f6e7d4887486415f1c6eb",
+   "sha256": "87557e5060330f6e2aa7467632f2f084ea06c0b5b7e48654985edca53479a429",
+   "bytes": 1315153
+  },
+  "paper_events.txt": {
+   "lines": 8725,
+   "md5_db": "7ffd3398601ed2c3f37987c5448b4cb8",
+   "sha256": "c9576828a4291497950729d1a5143dace20e7af31a46acb3a0d4b0856447d9a7",
+   "bytes": 1132779
+  },
+  "paper_trips.txt": {
+   "lines": 114,
+   "md5_db": "6cf8be5a694795049feb91d57b0ff018",
+   "sha256": "eda2cbbcfbde390d22bf54b882f00e53b29734601c6bb96ee5ffe21833cee198",
+   "bytes": 48967
+  },
+  "revx_books.txt": {
+   "lines": 19050,
+   "md5_db": "fcedcc81efd621cf99a3a7fad3e947f1",
+   "sha256": "b9123c261f8a67641d4065b5e8910bcd45904c0dde2fdec2698c0c768be2b09e",
+   "bytes": 1738360
+  },
+  "revx_minutes.txt": {
+   "lines": 23206,
+   "md5_db": "2c5e4fb753188d5ccca79dc0207b1248",
+   "sha256": "c057db0a5a9cf5bcd0da8ea7104311c4711e6541e1a3cbd09dee8aeda4bf1a36",
+   "bytes": 809216
+  },
+  "revx_prints.txt": {
+   "lines": 5181,
+   "md5_db": "f5f26a2b7b7640fcb0ff19fd5534f7a6",
+   "sha256": "2574b3fdd734a618f06a6d54085d74e6f77060be8f9b46b1a36536a19ecc6abc",
+   "bytes": 198859
+  },
+  "trades_USDC-EUR_1.txt": {
+   "lines": 50551,
+   "md5_db": "e6a5b0c6d6eed9e119579182dca10c87",
+   "sha256": "5a3eb0c15db85670a0ab09d6f9ec7af04a80c8c3b4e65742671f6599dcc64260",
+   "bytes": 1078865
+  },
+  "trades_USDC-EUR_2.txt": {
+   "lines": 59902,
+   "md5_db": "efd5f2fe72fac54ff298cd5f6eaa5fd5",
+   "sha256": "eae84ad3f67893afdcf1ec2287199a4469d2b90ecfca6fe642cd4336ea20f9e6",
+   "bytes": 1303976
+  },
+  "trades_USDC-GBP.txt": {
+   "lines": 30224,
+   "md5_db": "e68fb12ee4bb42b5d35cd8865c6c9c40",
+   "sha256": "38dee9ffdcc7f2ce64e108d282b904dddf8cde9b7b45265f843bba357af69af8",
+   "bytes": 643519
+  },
+  "trades_USDT-EUR.txt": {
+   "lines": 43802,
+   "md5_db": "4996b4c8e724a3e29c707ff94ff114fe",
+   "sha256": "fe5f3c0e1bcaac1382aca66382eeab3fce5c058d1f266b286410b5fa50d5ef09",
+   "bytes": 1043759
+  },
+  "trades_USDT-GBP.txt": {
+   "lines": 17794,
+   "md5_db": "3b81525338ec46298a870372f99bf5c0",
+   "sha256": "b36e42be55b52e33295c66c04f2ed69ce64c332bb90935e2865294566f2e89f5",
+   "bytes": 387700
+  }
+ },
+ "scripts": {
+  "scripts/cross.py": "d209d3e8e0a7e376bccd62a45081169a451e4c9c71dc6bbaa7651d6d30a6e4bc",
+  "scripts/describe.py": "92ab5504866f6369d2fe2ee2aa38c34a84ed6826f77cbdd702e1dda7c8b796f1",
+  "scripts/grab.py": "6a7b32b4648750bfccdba02a82a8eac9a14fca1fcddee9837d89d0b8e62f01ce",
+  "scripts/load.py": "cf5985f128dcdbeadf5a1518a379a71d024105b7b49c60351e9ced1e5c4115b0",
+  "scripts/manifest.py": "d03ab824c3d5332a261f086a54abb7e3ca156014be9d9e03e29fccd795086093",
+  "scripts/paper.py": "bf460d62fe0bea05b053dc7ad55d75816a513a34f3f49ea598aa3c2228c2630b",
+  "scripts/queue.py": "83fe5295bf9f877e877c136b0953d4a49b49709bd566af320b3cea49dede7ab7",
+  "sql/pull_books.sql": "02af80c4ac37e7b131ae7019ebf900f3626a5230ac2ce414e491d091479fdab0",
+  "sql/pull_paper.sql": "ce83921390305173669d7455fa48a34cd2997dd3f6e5735189c65d4fd0a1e6e1",
+  "sql/pull_revx.sql": "f7f82513e3f616e119198cca317ffb107a248ac7866098c133efdcbfa518447e",
+  "sql/pull_trades.sql": "d4293b7048f2bebedd7d88b81cc09a2e8b30b1b42cffd0b3c27065702fe948cd"
+ },
+ "results": {
+  "results/cross.json": "89641375d2974f8fe9bccc142a080f12743eefe659ae18df86449a51878deb31",
+  "results/describe.json": "5471894ffadd4439507b0f78b2203587df50f4c8d32b82d9d66c372188363a5e",
+  "results/paper.json": "002bae621ea103b9229d2483389b3215a7eb76a592866d8b658e7330df3f6ac3",
+  "results/queue.json": "3440da4f43cd3c85d927b47ffce85050865623c23e23aeeb420fab3e7bf78ad0"
+ }
+}

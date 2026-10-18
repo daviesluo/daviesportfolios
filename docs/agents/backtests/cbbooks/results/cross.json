@@ -1,0 +1,616 @@
+{
+ "q3": {
+  "USDC-GBP": {
+   "points": 11520,
+   "gap_bp": {
+    "median": -4.665,
+    "p10_p90": [
+     -12.557,
+     -0.667
+    ]
+   },
+   "rx_spread_bp_median": 11.88,
+   "slopes": {
+    "1m": {
+     "train": {
+      "rx_slope": -0.0687,
+      "rx_ci90": [
+       -0.0928,
+       -0.0525
+      ],
+      "cb_slope": 0.0053,
+      "cb_ci90": [
+       0.0035,
+       0.0074
+      ],
+      "n": 5760
+     },
+     "test": {
+      "rx_slope": -0.1215,
+      "rx_ci90": [
+       -0.1591,
+       -0.0941
+      ],
+      "cb_slope": -0.0015,
+      "cb_ci90": [
+       -0.0122,
+       0.0094
+      ],
+      "n": 5760
+     }
+    },
+    "5m": {
+     "train": {
+      "rx_slope": -0.0868,
+      "rx_ci90": [
+       -0.1132,
+       -0.0667
+      ],
+      "cb_slope": 0.0198,
+      "cb_ci90": [
+       0.0128,
+       0.0284
+      ],
+      "n": 5760
+     },
+     "test": {
+      "rx_slope": -0.2612,
+      "rx_ci90": [
+       -0.3268,
+       -0.207
+      ],
+      "cb_slope": -0.0236,
+      "cb_ci90": [
+       -0.0593,
+       0.0143
+      ],
+      "n": 5760
+     }
+    },
+    "15m": {
+     "train": {
+      "rx_slope": -0.1157,
+      "rx_ci90": [
+       -0.1613,
+       -0.0759
+      ],
+      "cb_slope": 0.0463,
+      "cb_ci90": [
+       0.0258,
+       0.0688
+      ],
+      "n": 5760
+     },
+     "test": {
+      "rx_slope": -0.4082,
+      "rx_ci90": [
+       -0.5186,
+       -0.2967
+      ],
+      "cb_slope": -0.0481,
+      "cb_ci90": [
+       -0.1422,
+       0.0487
+      ],
+      "n": 5760
+     }
+    },
+    "60m": {
+     "train": {
+      "rx_slope": -0.2006,
+      "rx_ci90": [
+       -0.3031,
+       -0.101
+      ],
+      "cb_slope": 0.1119,
+      "cb_ci90": [
+       0.0468,
+       0.1836
+      ],
+      "n": 5760
+     },
+     "test": {
+      "rx_slope": -0.8773,
+      "rx_ci90": [
+       -1.1926,
+       -0.5072
+      ],
+      "cb_slope": -0.2586,
+      "cb_ci90": [
+       -0.5071,
+       0.0539
+      ],
+      "n": 5760
+     }
+    }
+   },
+   "forecast_rmse_bp_60m": {
+    "train": {
+     "n": 3119,
+     "i_rx_mid_now": 4.451,
+     "ii_pr5_fair": 7.543,
+     "iii_cb_mid": 9.408,
+     "iv_cb_mid_plus_gap": 6.822,
+     "iii_vs_ii": -0.247,
+     "iv_vs_ii": 0.096
+    },
+    "test": {
+     "n": 4016,
+     "i_rx_mid_now": 9.863,
+     "ii_pr5_fair": 9.732,
+     "iii_cb_mid": 10.379,
+     "iv_cb_mid_plus_gap": 9.418,
+     "iii_vs_ii": -0.066,
+     "iv_vs_ii": 0.032
+    }
+   }
+  },
+  "USDT-GBP": {
+   "points": 11520,
+   "gap_bp": {
+    "median": -5.336,
+    "p10_p90": [
+     -17.188,
+     -1.326
+    ]
+   },
+   "rx_spread_bp_median": 6.64,
+   "slopes": {
+    "1m": {
+     "train": {
+      "rx_slope": -0.0169,
+      "rx_ci90": [
+       -0.0244,
+       -0.011
+      ],
+      "cb_slope": 0.003,
+      "cb_ci90": [
+       0.0018,
+       0.0044
+      ],
+      "n": 5760
+     },
+     "test": {
+      "rx_slope": -0.0405,
+      "rx_ci90": [
+       -0.0579,
+       -0.0281
+      ],
+      "cb_slope": -0.0031,
+      "cb_ci90": [
+       -0.0092,
+       0.0059
+      ],
+      "n": 5760
+     }
+    },
+    "5m": {
+     "train": {
+      "rx_slope": -0.0297,
+      "rx_ci90": [
+       -0.042,
+       -0.0199
+      ],
+      "cb_slope": 0.0112,
+      "cb_ci90": [
+       0.0063,
+       0.0173
+      ],
+      "n": 5760
+     },
+     "test": {
+      "rx_slope": -0.1258,
+      "rx_ci90": [
+       -0.1761,
+       -0.0786
+      ],
+      "cb_slope": -0.0205,
+      "cb_ci90": [
+       -0.0463,
+       0.0185
+      ],
+      "n": 5760
+     }
+    },
+    "15m": {
+     "train": {
+      "rx_slope": -0.0575,
+      "rx_ci90": [
+       -0.0893,
+       -0.0308
+      ],
+      "cb_slope": 0.027,
+      "cb_ci90": [
+       0.0135,
+       0.0415
+      ],
+      "n": 5760
+     },
+     "test": {
+      "rx_slope": -0.2708,
+      "rx_ci90": [
+       -0.3794,
+       -0.1459
+      ],
+      "cb_slope": -0.0532,
+      "cb_ci90": [
+       -0.122,
+       0.0403
+      ],
+      "n": 5760
+     }
+    },
+    "60m": {
+     "train": {
+      "rx_slope": -0.1388,
+      "rx_ci90": [
+       -0.2209,
+       -0.0594
+      ],
+      "cb_slope": 0.0747,
+      "cb_ci90": [
+       0.0279,
+       0.1275
+      ],
+      "n": 5760
+     },
+     "test": {
+      "rx_slope": -0.6645,
+      "rx_ci90": [
+       -0.9749,
+       -0.3014
+      ],
+      "cb_slope": -0.0801,
+      "cb_ci90": [
+       -0.3114,
+       0.2292
+      ],
+      "n": 5760
+     }
+    }
+   },
+   "forecast_rmse_bp_60m": {
+    "train": {
+     "n": 3119,
+     "i_rx_mid_now": 3.424,
+     "ii_pr5_fair": 9.31,
+     "iii_cb_mid": 11.027,
+     "iv_cb_mid_plus_gap": 8.765,
+     "iii_vs_ii": -0.184,
+     "iv_vs_ii": 0.059
+    },
+    "test": {
+     "n": 4016,
+     "i_rx_mid_now": 9.414,
+     "ii_pr5_fair": 9.862,
+     "iii_cb_mid": 11.21,
+     "iv_cb_mid_plus_gap": 8.723,
+     "iii_vs_ii": -0.137,
+     "iv_vs_ii": 0.115
+    }
+   }
+  }
+ },
+ "q4": {
+  "USDC-GBP": {
+   "taker_taker": {
+    "points": 11520,
+    "rx_bid_over_cb_ask_after_fees": 1,
+    "cb_bid_over_rx_ask_after_fees": 274,
+    "rx_bid_over_cb_ask": {
+     "points": 1,
+     "episodes": 1,
+     "episode_minutes_median": 1.0,
+     "episode_minutes_max": 1,
+     "weekend_share": 0.0,
+     "train_points": 0,
+     "test_points": 1,
+     "edge_bp_median": 1.21,
+     "smaller_touch_coins_median": 816.0,
+     "gbp_per_episode_first_minute_median": 0.074
+    },
+    "cb_bid_over_rx_ask": {
+     "points": 274,
+     "episodes": 30,
+     "episode_minutes_median": 3.0,
+     "episode_minutes_max": 68,
+     "weekend_share": 0.051,
+     "train_points": 233,
+     "test_points": 41,
+     "edge_bp_median": 2.45,
+     "smaller_touch_coins_median": 1286.0,
+     "gbp_per_episode_first_minute_median": 0.085
+    }
+   },
+   "rx_maker_cb_hedge": {
+    "1bp": {
+     "train": {
+      "fills": 80,
+      "fills_a_day": 20.0,
+      "gbp_a_day": 0.2047,
+      "gbp_a_day_ci90": [
+       0.1513,
+       0.2596
+      ],
+      "won_share": 0.975,
+      "bought_on_rx_share": 0.963,
+      "net_coins_moved_rx_to_cb_a_day": 1204.0,
+      "gbp_traded_a_day": 985.5,
+      "fills_under_1_gbp": 3
+     },
+     "test": {
+      "fills": 118,
+      "fills_a_day": 29.5,
+      "gbp_a_day": 0.2456,
+      "gbp_a_day_ci90": [
+       0.1785,
+       0.3117
+      ],
+      "won_share": 0.966,
+      "bought_on_rx_share": 0.737,
+      "net_coins_moved_rx_to_cb_a_day": 885.9,
+      "gbp_traded_a_day": 1083.2,
+      "fills_under_1_gbp": 10
+     }
+    },
+    "2bp": {
+     "train": {
+      "fills": 80,
+      "fills_a_day": 20.0,
+      "gbp_a_day": 0.2047,
+      "gbp_a_day_ci90": [
+       0.1518,
+       0.2604
+      ],
+      "won_share": 0.975,
+      "bought_on_rx_share": 0.963,
+      "net_coins_moved_rx_to_cb_a_day": 1204.0,
+      "gbp_traded_a_day": 985.5,
+      "fills_under_1_gbp": 3
+     },
+     "test": {
+      "fills": 118,
+      "fills_a_day": 29.5,
+      "gbp_a_day": 0.2456,
+      "gbp_a_day_ci90": [
+       0.1785,
+       0.3137
+      ],
+      "won_share": 0.966,
+      "bought_on_rx_share": 0.737,
+      "net_coins_moved_rx_to_cb_a_day": 885.9,
+      "gbp_traded_a_day": 1083.2,
+      "fills_under_1_gbp": 10
+     }
+    },
+    "5bp": {
+     "train": {
+      "fills": 43,
+      "fills_a_day": 10.75,
+      "gbp_a_day": 0.3401,
+      "gbp_a_day_ci90": [
+       0.233,
+       0.4574
+      ],
+      "won_share": 1.0,
+      "bought_on_rx_share": 0.977,
+      "net_coins_moved_rx_to_cb_a_day": 739.1,
+      "gbp_traded_a_day": 562.5,
+      "fills_under_1_gbp": 0
+     },
+     "test": {
+      "fills": 93,
+      "fills_a_day": 23.25,
+      "gbp_a_day": 0.5852,
+      "gbp_a_day_ci90": [
+       0.4428,
+       0.7319
+      ],
+      "won_share": 0.989,
+      "bought_on_rx_share": 0.914,
+      "net_coins_moved_rx_to_cb_a_day": 1106.7,
+      "gbp_traded_a_day": 915.8,
+      "fills_under_1_gbp": 5
+     }
+    },
+    "10bp": {
+     "train": {
+      "fills": 38,
+      "fills_a_day": 9.5,
+      "gbp_a_day": 0.4924,
+      "gbp_a_day_ci90": [
+       0.325,
+       0.6746
+      ],
+      "won_share": 1.0,
+      "bought_on_rx_share": 1.0,
+      "net_coins_moved_rx_to_cb_a_day": 650.7,
+      "gbp_traded_a_day": 488.0,
+      "fills_under_1_gbp": 0
+     },
+     "test": {
+      "fills": 56,
+      "fills_a_day": 14.0,
+      "gbp_a_day": 0.5168,
+      "gbp_a_day_ci90": [
+       0.3434,
+       0.687
+      ],
+      "won_share": 0.982,
+      "bought_on_rx_share": 0.875,
+      "net_coins_moved_rx_to_cb_a_day": 627.7,
+      "gbp_traded_a_day": 506.8,
+      "fills_under_1_gbp": 3
+     }
+    },
+    "chosen_on_train": "10bp"
+   }
+  },
+  "USDT-GBP": {
+   "taker_taker": {
+    "points": 11520,
+    "rx_bid_over_cb_ask_after_fees": 28,
+    "cb_bid_over_rx_ask_after_fees": 1491,
+    "rx_bid_over_cb_ask": {
+     "points": 28,
+     "episodes": 2,
+     "episode_minutes_median": 14.0,
+     "episode_minutes_max": 23,
+     "weekend_share": 0.0,
+     "train_points": 0,
+     "test_points": 28,
+     "edge_bp_median": 5.93,
+     "smaller_touch_coins_median": 5773.0,
+     "gbp_per_episode_first_minute_median": 0.093
+    },
+    "cb_bid_over_rx_ask": {
+     "points": 1491,
+     "episodes": 44,
+     "episode_minutes_median": 6.0,
+     "episode_minutes_max": 592,
+     "weekend_share": 0.294,
+     "train_points": 1024,
+     "test_points": 467,
+     "edge_bp_median": 6.44,
+     "smaller_touch_coins_median": 5236.0,
+     "gbp_per_episode_first_minute_median": 0.087
+    }
+   },
+   "rx_maker_cb_hedge": {
+    "1bp": {
+     "train": {
+      "fills": 853,
+      "fills_a_day": 213.25,
+      "gbp_a_day": 0.2937,
+      "gbp_a_day_ci90": [
+       0.219,
+       0.3729
+      ],
+      "won_share": 0.994,
+      "bought_on_rx_share": 0.972,
+      "net_coins_moved_rx_to_cb_a_day": 1631.4,
+      "gbp_traded_a_day": 1347.4,
+      "fills_under_1_gbp": 727
+     },
+     "test": {
+      "fills": 1103,
+      "fills_a_day": 275.75,
+      "gbp_a_day": 0.3671,
+      "gbp_a_day_ci90": [
+       0.237,
+       0.4853
+      ],
+      "won_share": 0.974,
+      "bought_on_rx_share": 0.913,
+      "net_coins_moved_rx_to_cb_a_day": 1468.3,
+      "gbp_traded_a_day": 1946.8,
+      "fills_under_1_gbp": 917
+     }
+    },
+    "2bp": {
+     "train": {
+      "fills": 853,
+      "fills_a_day": 213.25,
+      "gbp_a_day": 0.2937,
+      "gbp_a_day_ci90": [
+       0.2205,
+       0.3707
+      ],
+      "won_share": 0.994,
+      "bought_on_rx_share": 0.972,
+      "net_coins_moved_rx_to_cb_a_day": 1631.4,
+      "gbp_traded_a_day": 1347.4,
+      "fills_under_1_gbp": 727
+     },
+     "test": {
+      "fills": 1103,
+      "fills_a_day": 275.75,
+      "gbp_a_day": 0.3671,
+      "gbp_a_day_ci90": [
+       0.2475,
+       0.4838
+      ],
+      "won_share": 0.974,
+      "bought_on_rx_share": 0.913,
+      "net_coins_moved_rx_to_cb_a_day": 1468.3,
+      "gbp_traded_a_day": 1946.8,
+      "fills_under_1_gbp": 917
+     }
+    },
+    "5bp": {
+     "train": {
+      "fills": 469,
+      "fills_a_day": 117.25,
+      "gbp_a_day": 0.5132,
+      "gbp_a_day_ci90": [
+       0.3488,
+       0.698
+      ],
+      "won_share": 1.0,
+      "bought_on_rx_share": 0.998,
+      "net_coins_moved_rx_to_cb_a_day": 1107.5,
+      "gbp_traded_a_day": 830.6,
+      "fills_under_1_gbp": 398
+     },
+     "test": {
+      "fills": 883,
+      "fills_a_day": 220.75,
+      "gbp_a_day": 0.9531,
+      "gbp_a_day_ci90": [
+       0.7636,
+       1.1504
+      ],
+      "won_share": 1.0,
+      "bought_on_rx_share": 0.99,
+      "net_coins_moved_rx_to_cb_a_day": 1898.0,
+      "gbp_traded_a_day": 1489.6,
+      "fills_under_1_gbp": 746
+     }
+    },
+    "10bp": {
+     "train": {
+      "fills": 342,
+      "fills_a_day": 85.5,
+      "gbp_a_day": 0.6197,
+      "gbp_a_day_ci90": [
+       0.3919,
+       0.8819
+      ],
+      "won_share": 1.0,
+      "bought_on_rx_share": 1.0,
+      "net_coins_moved_rx_to_cb_a_day": 808.8,
+      "gbp_traded_a_day": 606.6,
+      "fills_under_1_gbp": 285
+     },
+     "test": {
+      "fills": 403,
+      "fills_a_day": 100.75,
+      "gbp_a_day": 0.9978,
+      "gbp_a_day_ci90": [
+       0.7446,
+       1.2837
+      ],
+      "won_share": 1.0,
+      "bought_on_rx_share": 0.985,
+      "net_coins_moved_rx_to_cb_a_day": 1266.1,
+      "gbp_traded_a_day": 965.7,
+      "fills_under_1_gbp": 321
+     }
+    },
+    "chosen_on_train": "10bp"
+   }
+  }
+ },
+ "bars": {
+  "USDC-GBP": {
+   "q3_coinbase_leads": true,
+   "q3_better_fair_this_book": false,
+   "q4_viable": true
+  },
+  "USDT-GBP": {
+   "q3_coinbase_leads": true,
+   "q3_better_fair_this_book": false,
+   "q4_viable": true
+  }
+ }
+}
