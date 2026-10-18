@@ -179,6 +179,10 @@ export type IgClientOpts = {
   /** A session from an earlier run in this isolate, reused while IG accepts it. */
   session?: IgSession | null;
   timeoutMs?: number;
+  /** At most this many logins to replace tokens IG calls invalid, in this client's life (unset: one a call, no cap). */
+  maxRelogins?: number;
+  /** After a `PUT /session` that switched account, wait this long before the next request (unset: no wait). */
+  switchWaitMs?: number;
 };
 
 /**
@@ -191,6 +195,8 @@ export class IgClient {
   requests = 0;
   logins = 0;
   switches = 0;
+  /** Logins made to replace tokens IG called invalid (counted in `logins` too). */
+  relogins = 0;
   /** The last session answer, balances stripped (accounts, current account, time zone offset, …). */
   sessionInfo: Record<string, unknown> | null = null;
   /** IG's `Date` header against this clock, from the latest answer: the run's clock check. */
@@ -278,7 +284,8 @@ export class IgClient {
   async call(method: string, path: string, o: { query?: Record<string, string>; body?: unknown; version: number }): Promise<IgAnswer> {
     if (!this.session) await this.login();
     let { answer, headers } = await this.raw(method, path, { ...o, auth: true });
-    if (isTokenError(answer.status, igErrorCode(answer.body))) {
+    if (isTokenError(answer.status, igErrorCode(answer.body)) && this.relogins < (this.opts.maxRelogins ?? Infinity)) {
+      this.relogins += 1;
       const account = this.session?.accountId ?? "";
       this.session = null;
       await this.login();
@@ -317,5 +324,8 @@ export class IgClient {
       }
     }
     if (this.session) this.session = { ...this.session, accountId };
+    // A pause before the switched account's first call (the recorder's choice; `facts` and `history` already wait 2.5 s
+    // between any two requests).
+    if (this.opts.switchWaitMs) await (this.opts.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms))))(this.opts.switchWaitMs);
   }
 }

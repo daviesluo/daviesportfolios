@@ -453,7 +453,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    S1b first), entity and tax route; no order code exists.
    **2026-10-18 03:40 UTC: the weekend recorder fails two runs in three** (`ig.quotes` 165 errors since 10-16 20:52,
    "401 error.security.account-token-invalid", about 190 logins an hour; `ig_quote_runs` still stores ~145 snapshots an
-   hour): S1b's first Sunday is 10-18. Find the cause (token expiry or the login rate) and fix it with a pin.
+   hour): S1b's first Sunday is 10-18. **Fix committed, not yet deployed** (history 2026-10-18 04:12 UTC): each run
+   logs in once, re-logs in at most once, stops at the next refusal, pauses 1 s after a switch. After it deploys, check
+   `ig_quote_runs` before 21:00 UK: `ok` on (nearly) every run, `logins` 1 (2 at most).
 
 15. **GROKPM, "Polymarket analyst" ("(Grok)" dropped 10-17): LIVE since 2026-10-17 02:39:14 UTC (Davies: "上线"); ends
    2026-11-14 00:00 UTC at the latest (wake `trig_01C3a3b3F38FYavx6jFeqJEq`); trades through our Ireland server on the shared account** (Davies, 2026-10-15: "让grok bot里开一个trading bot，给他100美元…先让他就用100美元测试"; 2026-10-16:
@@ -627,6 +629,15 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18"; each oldest first.
+
+### [2026-10-18 04:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **IG weekend recorder: one login a run** (sub-agent; item 14). From 10-16 20:52 to 10-18 04:07 UTC `ig_quote_runs`
+  succeeded by logins a run: 0 → 12/12, 1 → 237/237, 2 → 182/183, 3 → 0/208, 4 → 0/240, 5 → 0/366. Every run that
+  began with its own login worked; the failing ones began on the previous minute's session kept in the isolate, and each
+  401 account-token-invalid led to another login that failed the same way (switches stayed 2, so a re-login landed on
+  the failing account). IG's cause is not known from here. `ig?action=quotes` now logs in at the start of every run
+  (60 an hour), re-logs in at most once (`QUOTES_MAX_RELOGINS`), stops the run at the next token refusal, and waits 1 s
+  after `PUT /session`; `facts` and `history` are unchanged. Two pins fail on the old code.
 
 ### [2026-10-18 04:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Stablecoin quotes review, and every testing row** (sub-agent, not pushed; Davies, 10-18: "检查和评估下所有live和testing的

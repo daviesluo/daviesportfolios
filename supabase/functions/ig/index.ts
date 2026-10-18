@@ -27,7 +27,8 @@ import { constantTimeEqual, verifyToken } from "../_shared/token.ts";
 import { beatKeyOfRequest, writeBeat } from "../_shared/beats.ts";
 import { demoCreds, IgClient, scrubDeep, type IgSession } from "./client.ts";
 import {
-  FACTS_GAP_MS, FACTS_MAX_REQUESTS, HISTORY_GAP_MS, HISTORY_MAX_REQUESTS, HISTORY_MAX_WINDOWS, QUOTES_GAP_MS, QUOTES_MAX_REQUESTS,
+  FACTS_GAP_MS, FACTS_MAX_REQUESTS, HISTORY_GAP_MS, HISTORY_MAX_REQUESTS, HISTORY_MAX_WINDOWS, QUOTES_GAP_MS, QUOTES_MAX_RELOGINS,
+  QUOTES_MAX_REQUESTS, QUOTES_SWITCH_WAIT_MS,
   restClient, runFacts, runHistory, runQuotes, type AccountKind, type Rest,
 } from "./actions.ts";
 import { HISTORY_PLANS } from "./windows.ts";
@@ -56,7 +57,10 @@ export type Deps = {
   keepAlive: (p: Promise<unknown>) => void;
 };
 
-/** The session kept between runs in this isolate (memory only: never stored, never returned). */
+/**
+ * The recorder's latest session, kept only to scrub its tokens from a crash message. It is not reused: each quotes run
+ * logs in afresh (actions.ts, QUOTES_MAX_RELOGINS says why).
+ */
 let cachedSession: IgSession | null = null;
 
 export async function handle(req: Request, d: Deps): Promise<Response> {
@@ -109,8 +113,11 @@ export async function handle(req: Request, d: Deps): Promise<Response> {
     }
     if (action === "quotes") {
       const { result, session } = await runQuotes({
-        makeClient: (s) => new IgClient({ creds, fetchImpl: d.fetchImpl, maxRequests: QUOTES_MAX_REQUESTS, minGapMs: QUOTES_GAP_MS, sleep: d.sleep, now: d.now, session: s }),
-        session: cachedSession, rest: d.rest, now: d.now, sleep: d.sleep, report: (m, c) => d.report("ig.quotes", m, c),
+        makeClient: (s) => new IgClient({
+          creds, fetchImpl: d.fetchImpl, maxRequests: QUOTES_MAX_REQUESTS, minGapMs: QUOTES_GAP_MS, sleep: d.sleep, now: d.now, session: s,
+          maxRelogins: QUOTES_MAX_RELOGINS, switchWaitMs: QUOTES_SWITCH_WAIT_MS,
+        }),
+        session: null, rest: d.rest, now: d.now, sleep: d.sleep, report: (m, c) => d.report("ig.quotes", m, c),
       });
       cachedSession = session;
       return json(200, scrubDeep(result, [...secrets, session?.cst ?? "", session?.xst ?? ""]));

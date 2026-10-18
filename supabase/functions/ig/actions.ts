@@ -2,7 +2,7 @@
 // Each writes what it read to its own table and returns a short report; none can place, amend or close anything,
 // because the client it is given cannot (`client.ts`).
 
-import { IgClient, IgHttpError, IgRefused, stripBalances, type IgSession } from "./client.ts";
+import { IgClient, IgHttpError, IgRefused, isTokenError, stripBalances, type IgSession } from "./client.ts";
 import { keepSearch, parsePins, pickEpics, ROLES, SEARCH_TERMS, type SearchMarket } from "./epics.ts";
 import { activeWindows, historyWindows, HISTORY_PLANS, type HistoryPlanId } from "./windows.ts";
 
@@ -263,6 +263,15 @@ export async function runHistory(o: {
 
 export const QUOTES_MAX_REQUESTS = 14;
 export const QUOTES_GAP_MS = 300;
+/**
+ * Each run logs in afresh, replaces tokens IG calls invalid at most once, and stops at the next such answer; it waits
+ * after a switch. From 10-16 20:52 to 10-18 04:07 UTC two runs in three failed with 401 account-token-invalid: every
+ * failing run had started on the session the previous minute's run left in this isolate, and each 401 led to another
+ * login (up to five a run, ~190 an hour) that failed the same way, while every run that began with its own login
+ * (237 of 237) and every run whose kept session was still good (12 of 12) succeeded. One login a run is 60 an hour.
+ */
+export const QUOTES_MAX_RELOGINS = 1;
+export const QUOTES_SWITCH_WAIT_MS = 1_000;
 /** The second snapshot is taken this long after the call started, if the call started early enough. */
 export const SECOND_SAMPLE_MS = 30_000;
 export const SECOND_SAMPLE_LATEST_START_MS = 25_000;
@@ -323,7 +332,8 @@ export async function runQuotes(o: {
   const start = o.now();
   const { ids, roles } = activeWindows(start);
   if (!ids.length) return { result: { action: "quotes", skipped: "outside the recorder's windows" }, session: o.session };
-  const client = o.makeClient(o.session);
+  // Never the previous run's tokens: a run starts with its own login (see QUOTES_MAX_RELOGINS).
+  const client = o.makeClient(null);
   const errors: string[] = [];
   const samples: QuoteSample[] = [];
   let snapshots = 0;
@@ -332,8 +342,9 @@ export async function runQuotes(o: {
   try {
     plan = quoteEpics(await latestFacts(o.rest), roles);
     if (!plan.length) throw new Error("no facts row names an epic for these windows: run ?action=facts for each account");
-    if (!client.session) await client.login();
-    for (let k = 0; k < 2; k++) {
+    await client.login();
+    let tokenRefused = false;
+    for (let k = 0; k < 2 && !tokenRefused; k++) {
       if (k === 1) {
         if (o.now() - start > SECOND_SAMPLE_LATEST_START_MS) break;
         const wait = start + SECOND_SAMPLE_MS - o.now();
@@ -353,6 +364,11 @@ export async function runQuotes(o: {
         } catch (e) {
           errors.push(`${p.kind}: ${errText(e)}`);
           if (e instanceof IgRefused) throw e;
+          // Tokens refused again after this run's one re-login: stop here, no more logins this minute.
+          if (e instanceof IgHttpError && isTokenError(e.status, e.code) && client.relogins >= QUOTES_MAX_RELOGINS) {
+            tokenRefused = true;
+            break;
+          }
         }
       }
     }

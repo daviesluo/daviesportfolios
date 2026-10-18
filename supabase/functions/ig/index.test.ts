@@ -41,6 +41,8 @@ function fakeIg(o: {
   prices?: (epic: string, q: URLSearchParams) => { status: number; body: unknown };
   snapshot?: (epic: string, account: string) => Record<string, unknown>;
   tokenInvalidOnce?: boolean;
+  /** Every call but a login answers 401 account-token-invalid (the recorder's state on 10-17/18, whatever IG's cause). */
+  accountTokenAlwaysInvalid?: boolean;
 } = {}) {
   const calls: Call[] = [];
   let account = "Z6F18J";
@@ -72,6 +74,7 @@ function fakeIg(o: {
     }
     if (headers["cst"] !== CST) return res(401, { errorCode: "error.security.client-token-invalid" });
     if (headers["x-security-token"] !== accountToken) return res(401, { errorCode: "error.security.account-token-invalid" });
+    if (o.accountTokenAlwaysInvalid) return res(401, { errorCode: "error.security.account-token-invalid" });
     if (invalid && method === "GET") {
       invalid = false;
       return res(401, { errorCode: "error.security.client-token-invalid", token: CST });
@@ -559,4 +562,50 @@ Deno.test("facts and history answer 202 at once, run on under keepAlive, and log
   await Promise.all(d2.kept);
   assertClean([await r2.json(), tables.ig_action_log, tables.ig_price_pulls, reports], "crash");
   assertEquals(tables.ig_action_log.length, 2);
+});
+
+// ---------------------------------------------------------------------------------------------------------------------
+// The recorder's sessions (2026-10-18): from 10-16 20:52 UTC two runs in three failed with 401 account-token-invalid,
+// every failing run having started on the session the previous minute's run left in its isolate, with up to five logins
+// a run (~190 an hour). Each run now logs in once at its start, re-logs in at most once, stops at the next refusal, and
+// pauses after a switch.
+
+Deno.test("each quotes run starts with its own login, never the previous run's session (2026-10-18)", async () => {
+  const ig = fakeIg();
+  const { rest } = fakeRest();
+  await factsFor(rest, "sb");
+  await factsFor(rest, "cfd");
+  let t = Date.UTC(2026, 9, 18, 20, 0, 0, 400);
+  const sleeps: number[] = [];
+  const d = deps({ rest, fetchImpl: ig.impl, now: () => t, sleep: (ms) => { sleeps.push(ms); t += ms; return Promise.resolve(); } });
+  const r1 = await (await handle(req("quotes", { authorization: `Bearer ${ENV.CRON_SECRET}` }), d)).json();
+  assertEquals([r1.ok, r1.logins, r1.switches, r1.snapshots], [true, 1, 2, 4]);
+  const before = ig.calls.length;
+  t = Date.UTC(2026, 9, 18, 20, 1, 0, 400);
+  const r2 = await (await handle(req("quotes", { authorization: `Bearer ${ENV.CRON_SECRET}` }), d)).json();
+  // The second minute's first request is a login, not a call on the tokens the first minute left behind.
+  const second = ig.calls.slice(before);
+  assertEquals([second[0].method, new URL(second[0].url).pathname.endsWith("/session")], ["POST", true]);
+  assertEquals([r2.ok, r2.logins, r2.switches, r2.snapshots], [true, 1, 2, 4]);
+  // A one-second pause after each switch, before the switched account's first call.
+  assertEquals(sleeps.filter((ms) => ms === 1_000).length, 4);
+});
+
+Deno.test("a run whose tokens IG keeps refusing logs in at most twice and stops (no login storm)", async () => {
+  const ig = fakeIg({ accountTokenAlwaysInvalid: true });
+  const { rest, tables } = fakeRest();
+  await factsFor(rest, "sb");
+  await factsFor(rest, "cfd");
+  let t = Date.UTC(2026, 9, 18, 20, 0, 0, 400);
+  const d = deps({ rest, fetchImpl: ig.impl, now: () => t, sleep: (ms) => { t += ms; return Promise.resolve(); } });
+  const r = await (await handle(req("quotes", { authorization: `Bearer ${ENV.CRON_SECRET}` }), d)).json();
+  assertEquals(r.ok, false);
+  assertEquals(r.snapshots, 0);
+  // The run's login, one re-login, and nothing more this minute: the first account's call, its retry, and out.
+  assertEquals(r.logins, 2);
+  assertEquals(ig.calls.filter((c) => c.method === "POST").length, 2);
+  assert(ig.calls.length <= 4, `${ig.calls.length} requests`);
+  assert(/account-token-invalid/.test(String(r.error)));
+  assertEquals(tables.ig_quote_runs.length, 1);
+  assertClean([r, tables.ig_quote_runs], "refused run");
 });
