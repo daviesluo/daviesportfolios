@@ -1,0 +1,72 @@
+{
+  "study": "CBBOOKS-1: strategy research on Coinbase's recorded order books (cb_book_levels, ten levels a side), its prints (cb_trades) and minute record (cb_touch, cb_quote_minutes), with Revolut X's recorded books (agent_book_levels) and prints (agent_quote_prints). Davies, 2026-10-18: \"cbbooks留着并利用起来，和revolut x的订单簿一样可以做策略研究\".",
+  "frozen": "2026-10-18, before any result below was computed. Read before freezing: row counts, spans, schemas, index list, two sample rows per table, and the 2026-10-18 stablecoin review (which quotes Coinbase's weekend touch and trade counts, so this study is NOT blind). No pre-registered reading is run or pre-empted by it; the frozen Coinbase tests (11-08, 11-10), QUEUE (11-02) and PR5-W (11-25) are untouched.",
+  "window": {
+    "start": "2026-10-10T03:00:00Z",
+    "end": "2026-10-18T03:00:00Z",
+    "train": ["2026-10-10T03:00:00Z", "2026-10-14T03:00:00Z"],
+    "test": ["2026-10-14T03:00:00Z", "2026-10-18T03:00:00Z"],
+    "note": "Each half holds one weekend (train: Sat 10-10 and Sun 10-11; test: Fri 10-16 21:00 to Sun 10-18 03:00) and two to three weekdays. cb_trades is kept ten days, so prints before ~10-09 are already gone and the pull must be taken now."
+  },
+  "weekend": "Friday 21:00 UTC to Sunday 21:00 UTC (the 2026-10-18 review's definition).",
+  "products": ["USDC-GBP", "USDT-GBP", "USDC-EUR", "USDT-EUR"],
+  "revolutx_books": ["USDC-GBP", "USDT-GBP"],
+  "costs": {
+    "coinbase_maker": 0.0,
+    "coinbase_taker": 0.000045,
+    "coinbase_source": "Coinbase's fx_stablecoin schedule: 0.00 % maker, 0.0045 % taker, and stable-pair volume does not count toward the volume tiers, so the rate is the same at every tier (reviews/2026-10-09-stablecoin-venues.md line 151; agents/cb_quotes.ts CB_TAKER). Davies has no Coinbase account yet, so there is no account-specific tier to read; this schedule is the one any account gets.",
+    "revolutx_maker": 0.0,
+    "revolutx_taker": 0.0009,
+    "revolutx_source": "agents/quotes.ts QUOTE_FEE (0.09 %), every LIVE quote fill a 0 % maker fill (2026-10-18 review §4)."
+  },
+  "bootstrap": {"block": "UTC hour", "resamples": 2000, "seed": 20261018, "interval": 0.90},
+  "conventions": {
+    "coinbase_side": "cb_trades.side is the MAKER's side (reference §4 item 58): side 'buy' = a resting bid was hit by a seller.",
+    "revolutx_side": "agent_quote_prints.side is the AGGRESSOR's side (agents/quotes.ts blocks()).",
+    "mid": "(best bid + best ask) / 2 of the latest recorded book row at or before the instant (a row stands until the next one).",
+    "bps": "of the reference price, 1 bp = 1e-4."
+  },
+  "candidates": {
+    "D": {
+      "name": "Descriptive",
+      "what": "Coverage (reads a minute, gaps over 2 min), spread in ticks and bps, L1 size and order count, depth to 5 and 10 levels, by UTC hour and weekday/weekend; how often the touch moves between reads; prints per minute; share of read-to-read touch changes with and without prints between.",
+      "bar": "none"
+    },
+    "Q1": {
+      "name": "Touch queue model: fill probability and markout of a maker order joining the back of the touch",
+      "rule": "At every Coinbase book read, an order of q = 100 coins joins the back of the best bid (and, separately, the best ask) at price P behind the displayed size Q0. PESSIMISTIC fill: the cumulative size printed at P against that side (maker side = ours) after the read reaches Q0 + q, or any print strictly beyond P (a bid: a print below P), whichever first. OPTIMISTIC fill: as pessimistic, but the queue ahead is min(Q0, the smallest size later displayed at P, 0 if P has left the book on the far side without a print beyond it) less the size printed at P since the read. Horizons 1, 5, 15, 60 minutes. Markout of a fill: book mid at fill time + 5 min and + 60 min less P (an ask: P less mid), in bps of P.",
+      "metrics": "fill rate by horizon; mean markout given a fill; expected bps per attempt (fill rate x mean markout at 60 min).",
+      "bar": "A touch-maker paper test is drafted for a product only if, in TEST, the pessimistic fill rate by 60 min is at least 10 % AND the mean 60-min markout of pessimistic fills is above 0 with its hour-block bootstrap 90 % lower bound above 0, AND the TRAIN mean is above 0. Otherwise the touch-maker idea is dead on this record; the fill model stands as a calibration either way."
+    },
+    "Q2": {
+      "name": "Are the Coinbase paper rows' fills realistic? (\"with Euros\" cb_quote_trips, \"with Euros - 2\" cb_hold_trips)",
+      "rule": "For each paper ENTRY fill in the window: (a) the fill print is strictly beyond the rung (by construction); (b) at the latest book read before the order went live, a post-only order at the rung's price would have rested (a bid below the best ask, an ask above the best bid); (c) where the rung sat: inside the ten levels (its level and the size ahead at its price) or beyond them; (d) the paper fill size against the rung's 100 of the book's currency; (e) prints exactly AT a live rung's price that the paper rule did not count, and how many of those would have filled under Q1's pessimistic rule using the size displayed at that price (unknown, reported as such, when the price was beyond the ten levels).",
+      "bar": "Descriptive. The fill rule is called conservative if every paper fill passes (a) and at least 95 % pass (b); the size of the missed at-price fills says how conservative."
+    },
+    "Q3": {
+      "name": "Cross-venue lead-lag and a better fair for PR5 (Coinbase vs Revolut X, USDC-GBP and USDT-GBP)",
+      "rule": "At each Revolut X book read r: RX mid; CB mid = latest Coinbase row at or before r; gap g = (RX mid - CB mid) / CB mid in bps. Regress each venue's mid change from r to r + k (k = 1, 5, 15, 60 min, in bps) on g. The venue whose mid closes the gap (slope toward the other's) follows. Forecast RX mid at r + 60 min, in TEST, by: (i) RX mid at r (no change); (ii) PR5's fair at r (fair_u / x of agent_quote_minutes, minutes where it is lit); (iii) CB mid at r; (iv) CB mid at r + the median gap g of the previous 24 h. RMSE in bps on minutes where (ii) is lit.",
+      "bar": "Coinbase LEADS if, in both halves and both books, the RX slope on g at k = 5 is negative with its 90 % interval below 0 and its size exceeds the CB slope's. A better FAIR candidate for PR5: (iii) or (iv) beats (ii) by at least 10 % in RMSE at k = 60 in TEST in both books, and in TRAIN too. A pass is a proposal for Davies (PR5's fair is frozen in its running tests), never a change."
+    },
+    "Q4": {
+      "name": "Cross-venue arbitrage",
+      "rule": "(i) Taker-taker: share of RX reads at which RX best bid > CB best ask x (1 + 0.0009 + 0.000045) or CB best bid > RX best ask x (1 + 0.0009 + 0.000045), and the size available at both touches. (ii) Maker on Revolut X, hedged as a taker on Coinbase: a resting RX bid at b = CB best bid x (1 - 0.000045 - m) (an ask at CB best ask x (1 + 0.000045 + m)), re-priced at each Coinbase read; it fills on an RX print strictly beyond it (PR5's through rule), for min(GBP 100, 10 % of that minute's RX printed GBP); the hedge hits the Coinbase touch at the first Coinbase read after the print, paying 0.0045 %. Margins m = 1, 2, 5, 10 bps; m chosen on TRAIN by GBP a day.",
+      "bar": "Viable if, at TRAIN's m, TEST makes GBP a day above 0 with its hour-block bootstrap 90 % lower bound above 0 and at least one fill a day. A pass is a paper-test draft; live would need Davies' Coinbase account."
+    },
+    "Q5": {
+      "name": "Touch imbalance as a short-horizon signal (when to rest or cancel)",
+      "rule": "I1 = (bid L1 size - ask L1 size) / (sum); I5 the same over five levels. Target: mid change from the read to the next read (about 1 min) and to + 5 min, in ticks. Pearson correlation (IC) per product, TRAIN and TEST. Use: Q1 with a filter, do not join the bid when I1 < -theta, nor the ask when I1 > theta; theta from {0.25, 0.5, 0.75} chosen on TRAIN by expected bps per attempt at 60 min.",
+      "bar": "A signal if TEST's IC at the next read has TRAIN's sign and |IC| >= 0.05. A useful filter if, at TRAIN's theta, TEST's mean 60-min markout given a fill improves by at least 0.2 bps while keeping at least half the fills."
+    },
+    "Q6": {
+      "name": "Weekend against weekday maker economics on Coinbase",
+      "rule": "Q1's metrics split by weekend/weekday; and every print's maker markout (book mid at + 5 and + 60 min against the print price, signed for the maker), size-weighted, by weekend/weekday and UTC hour.",
+      "bar": "Descriptive; the weekend - weekday difference is reported with its hour-block bootstrap 90 % interval."
+    },
+    "Q7": {
+      "name": "Release windows",
+      "rule": "The window holds one scheduled release: US CPI 2026-10-14 12:30 UTC (not in CB_RELEASES, which starts 2026-10-28). Spread, L1 size, five-level depth and prints from 30 min before to 30 min after, against the same clock minutes on the other weekdays of the window.",
+      "bar": "None: one event. Reported descriptively; the blackout itself was priced on two 12-month spans (reviews/2026-10-15-coinbase-blackout.md)."
+    }
+  }
+}
