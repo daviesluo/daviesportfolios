@@ -60,6 +60,11 @@ function fakeIg(o: {
    *  alive gets tokens IG then refuses (account-token-invalid), and `DELETE /session` ends one. A model of the
    *  recorder's 05:07-05:16 UTC cycle, not a documented IG rule. */
   sessionCap?: number;
+  /** At most this many logins in any window of this length: a login beyond it gets a session IG refuses
+   *  (client-token-invalid), a model of the recorder's 05:45-06:10 UTC rhythm, not a documented IG rule. */
+  loginLimit?: { max: number; windowMs: number };
+  /** Every session issued before this time is refused (client-token-invalid) from it on, as weekend maintenance does. */
+  killBefore?: number;
 } = {}) {
   const calls: Call[] = [];
   let account = o.startAccount ?? "Z6F18J";
@@ -70,7 +75,9 @@ function fakeIg(o: {
   let invalid = o.tokenInvalidOnce ?? false;
   let issuedAt = 0;
   let logins = 0;
-  const live = new Map<string, { starved: boolean }>();
+  const live = new Map<string, { starved: boolean; dead?: boolean; at: number }>();
+  const loginTimes: number[] = [];
+  const perSession = !!(o.sessionCap || o.loginLimit || o.killBefore);
   const clock = o.now ?? (() => 0);
   const res = (status: number, body: unknown, headers: Record<string, string> = {}) =>
     new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json", date: "Sun, 18 Oct 2026 20:00:00 GMT", ...headers } });
@@ -85,8 +92,12 @@ function fakeIg(o: {
       accountToken = tokenFor(account);
       issuedAt = clock();
       logins += 1;
-      const cst = o.sessionCap ? `${CST}-${logins}` : CST;
-      if (o.sessionCap) live.set(cst, { starved: live.size >= o.sessionCap });
+      const cst = perSession ? `${CST}-${logins}` : CST;
+      const recent = loginTimes.filter((x) => o.loginLimit && clock() - x < o.loginLimit.windowMs).length;
+      loginTimes.push(clock());
+      if (perSession) {
+        live.set(cst, { starved: !!o.sessionCap && live.size >= o.sessionCap, dead: !!o.loginLimit && recent >= o.loginLimit.max, at: clock() });
+      }
       return res(200, {
         accountType: "CFD", currencyIsoCode: "GBP", currentAccountId: "Z6F18J", clientId: "CLIENT-1", timezoneOffset: 1,
         lightstreamerEndpoint: "https://demo-apd.marketdatasystems.com", hasActiveDemoAccounts: true, hasActiveLiveAccounts: true,
@@ -98,9 +109,13 @@ function fakeIg(o: {
         echo: `welcome ${CREDS.username}`,
       }, { CST: cst, "X-SECURITY-TOKEN": accountToken });
     }
-    if (o.sessionCap) {
+    if (perSession) {
       const s = live.get(headers["cst"]);
       if (!s) return res(401, { errorCode: "error.security.client-token-invalid" });
+      if (s.dead || (o.killBefore !== undefined && clock() >= o.killBefore && s.at < o.killBefore)) {
+        if (method === "DELETE" && path === "/session") live.delete(headers["cst"]);
+        return res(401, { errorCode: "error.security.client-token-invalid" });
+      }
       if (method === "DELETE" && path === "/session") {
         live.delete(headers["cst"]);
         return res(204, null);
@@ -525,9 +540,9 @@ Deno.test("quotes outside the windows calls nothing; inside, two snapshots an ac
   for (const c of ig.calls) assertAllowed(c.method, c.url);
   assertEquals(tables.ig_quote_runs.length, 1);
   assertClean([on.result, tables.ig_quote_runs, rpcs], "quotes");
-  // The run logs its session out: nothing is kept for the next run (2026-10-18), and no token is in the answer.
-  assertEquals(on.session, null);
-  assertEquals(ig.calls[ig.calls.length - 1].method, "DELETE");
+  // A clean run keeps its session for the next run in this isolate (fix 5); it is never in the answer.
+  assertEquals(on.session?.cst, CST);
+  assert(!ig.calls.some((c) => c.method === "DELETE"));
 });
 
 Deno.test("a market IG returns without a status is recorded UNKNOWN, and failures go to the errors box once, then hourly", () => {
@@ -556,7 +571,7 @@ function deps(o: Partial<Deps> = {}): Deps & { order: string[]; kept: Promise<un
     beat: (k) => { order.push(`beat:${k}`); return Promise.resolve(true); },
     report: () => Promise.resolve(), now: () => Date.UTC(2026, 9, 20, 12), sleep: noSleep,
     verify: (tok: string) => Promise.resolve(tok === "admin-token" ? { role: "admin" as const, exp: 0 } : tok === "ro-token" ? { role: "ro" as const, exp: 0 } : null),
-    fetchImpl: fakeIg().impl, ...o,
+    fetchImpl: fakeIg().impl, sessionStore: { session: null }, ...o,
   };
 }
 const req = (action: string, h: Record<string, string>, method = "POST") => new Request(`https://x.supabase.co/functions/v1/ig?action=${action}`, { method, headers: h });
@@ -613,7 +628,7 @@ Deno.test("facts and history answer 202 at once, run on under keepAlive, and log
 // a run (~190 an hour). Each run now logs in once at its start, re-logs in at most once, stops at the next refusal, and
 // pauses after a switch.
 
-Deno.test("each quotes run starts with its own login, never the previous run's session (2026-10-18)", async () => {
+Deno.test("a clean run keeps its session for the next run, which logs in no more (2026-10-18, fix 5)", async () => {
   const ig = fakeIg();
   const { rest } = fakeRest();
   await factsFor(rest, "sb");
@@ -626,12 +641,13 @@ Deno.test("each quotes run starts with its own login, never the previous run's s
   const before = ig.calls.length;
   t = Date.UTC(2026, 9, 18, 20, 1, 0, 400);
   const r2 = await (await handle(req("quotes", { authorization: `Bearer ${ENV.CRON_SECRET}` }), d)).json();
-  // The second minute's first request is a login, not a call on the tokens the first minute left behind.
+  // The second minute starts with the explicit switch on the kept session: no login, no log-out.
   const second = ig.calls.slice(before);
-  assertEquals([second[0].method, new URL(second[0].url).pathname.endsWith("/session")], ["POST", true]);
-  assertEquals([r2.ok, r2.logins, r2.switches, r2.snapshots], [true, 1, 3, 4]);
-  // A pause after each login and each switch (one and three a run), before the next call.
-  assertEquals(sleeps.filter((ms) => ms === 2_000).length, 8);
+  assertEquals(`${second[0].method} ${new URL(second[0].url).pathname.replace("/gateway/deal", "")}`, "PUT /session");
+  assertEquals([r2.ok, r2.logins, r2.switches, r2.snapshots, r2.logouts], [true, 0, 3, 4, 0]);
+  assertEquals(ig.calls.filter((c) => c.method === "POST" || c.method === "DELETE").length, 1);
+  // A pause after the one login and after each switch (three a run), before the next call.
+  assertEquals(sleeps.filter((ms) => ms === 2_000).length, 7);
 });
 
 Deno.test("a run whose tokens IG keeps refusing logs in at most twice and stops (no login storm)", async () => {
@@ -723,7 +739,7 @@ Deno.test("a refusal on the CFD account does not stop the spread-bet account's r
 // 2026-10-18 05:07-05:16 UTC: a strict three-minute cycle (ok on one login, ok on two, then both accounts refused),
 // five logins in three minutes and no session ever logged out.
 
-Deno.test("every recorder run logs its sessions out, so a cap on live sessions never starves the next login", async () => {
+Deno.test("the recorder holds one session, so a cap on live sessions never starves it", async () => {
   const { rest } = fakeRest();
   await factsFor(rest, "sb");
   await factsFor(rest, "cfd");
@@ -733,10 +749,49 @@ Deno.test("every recorder run logs its sessions out, so a cap on live sessions n
   for (let minute = 0; minute < 5; minute++) {
     t = Date.UTC(2026, 9, 18, 20, minute, 0, 400);
     const r = await (await handle(req("quotes", { authorization: `Bearer ${ENV.CRON_SECRET}` }), d)).json();
-    assertEquals([minute, r.ok, r.snapshots, r.logins, r.logouts], [minute, true, 4, 1, 1]);
-    // The run ends with DELETE /session and leaves no session of ours alive.
-    assertEquals(ig.calls[ig.calls.length - 1].method, "DELETE");
-    assertEquals(ig.liveSessions(), 0);
+    // One session for all five minutes: one login in the first, none after, and one session alive.
+    assertEquals([minute, r.ok, r.snapshots, r.logins, r.logouts], [minute, true, 4, minute === 0 ? 1 : 0, 0]);
+    assertEquals(ig.liveSessions(), 1);
   }
   for (const c of ig.calls) assertAllowed(c.method, c.url);
+});
+
+// Fix 5 (2026-10-18 05:45-06:10 UTC): one run in four failed on a fixed rhythm with both of its logins' tokens refused
+// (client-token-invalid), at ~1.7 logins a minute and no overlap between runs.
+
+Deno.test("a limit on logins never bites a recorder that keeps its session (fix 5)", async () => {
+  const { rest } = fakeRest();
+  await factsFor(rest, "sb");
+  await factsFor(rest, "cfd");
+  let t = Date.UTC(2026, 9, 18, 20, 0, 0, 400);
+  // At most three logins in any five minutes; a fourth gets a session IG refuses.
+  const ig = fakeIg({ loginLimit: { max: 3, windowMs: 300_000 }, now: () => t });
+  const d = deps({ rest, fetchImpl: ig.impl, now: () => t, sleep: (ms) => { t += ms; return Promise.resolve(); } });
+  for (let minute = 0; minute < 10; minute++) {
+    t = Date.UTC(2026, 9, 18, 20, minute, 0, 400);
+    const r = await (await handle(req("quotes", { authorization: `Bearer ${ENV.CRON_SECRET}` }), d)).json();
+    assertEquals([minute, r.ok, r.snapshots], [minute, true, 4]);
+  }
+  assertEquals(ig.calls.filter((c) => c.method === "POST").length, 1);
+});
+
+Deno.test("a kept session IG refuses (client-token-invalid) is logged out, replaced by one login, and the run still reads", async () => {
+  const { rest } = fakeRest();
+  await factsFor(rest, "sb");
+  await factsFor(rest, "cfd");
+  let t = Date.UTC(2026, 9, 18, 20, 0, 0, 400);
+  const kill = Date.UTC(2026, 9, 18, 20, 0, 50);
+  const ig = fakeIg({ killBefore: kill, now: () => t });
+  const d = deps({ rest, fetchImpl: ig.impl, now: () => t, sleep: (ms) => { t += ms; return Promise.resolve(); } });
+  const r1 = await (await handle(req("quotes", { authorization: `Bearer ${ENV.CRON_SECRET}` }), d)).json();
+  assertEquals([r1.ok, r1.logins], [true, 1]);
+  // IG drops every session (as weekend maintenance does) before the next minute.
+  t = Date.UTC(2026, 9, 18, 20, 1, 0, 400);
+  const r2 = await (await handle(req("quotes", { authorization: `Bearer ${ENV.CRON_SECRET}` }), d)).json();
+  assertEquals([r2.ok, r2.snapshots, r2.logins, r2.logouts], [true, 4, 1, 1]);
+  // The refused session is logged out before the one re-login, and the new session is kept.
+  const methods = ig.calls.map((c) => c.method);
+  const del = methods.lastIndexOf("DELETE"), post = methods.lastIndexOf("POST");
+  assert(del >= 0 && del < post, "the refused session is logged out before the re-login");
+  assert(d.sessionStore?.session, "the new session is kept");
 });

@@ -468,9 +468,12 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    at most one re-login. Still 3 of 13 runs failed; the waits and same-token retries (`8edc426c`, live 04:39) left 4 of
    15 failing with the token refused on the CFD account the login named, no switch made. Third fix (`8cd5fb8e`, live
    05:06): an explicit switch after every login, spread-bet account first, accounts isolated; runs then cycled every
-   three minutes (ok, ok after a re-login, both accounts refused) with no session ever logged out. Fourth fix (history
-   05:19 UTC, committed, not deployed): `DELETE /session` at the end of every run and before the one re-login. After it
-   deploys, check `ig_quote_runs` before 21:00 UK: `ok` on (nearly) every run, `logins` 1; the answer's `logouts` 1.
+   three minutes (ok, ok after a re-login, both accounts refused) with no session ever logged out. Fourth fix (live
+   05:42): log out every run; still one run in four failed, both logins refused (client-token-invalid). It ran so
+   all of 10-18 (~75 % ok; the 20:00 UTC Sunday open caught, 19:59-20:01 ok). Fifth fix (history 2026-10-18 20:19 UTC,
+   committed, not deployed): keep a clean session across runs, log in only when refused (once a run, the refused
+   session logged out first), no routine log-out. After it deploys, check `ig_quote_runs`: `ok` on (nearly) every run,
+   `logins` 0 on most.
 
 15. **GROKPM, "Polymarket analyst" ("(Grok)" dropped 10-17): LIVE since 2026-10-17 02:39:14 UTC (Davies: "上线"); ends
    2026-11-14 00:00 UTC at the latest (wake `trig_01C3a3b3F38FYavx6jFeqJEq`); trades through our Ireland server on the shared account** (Davies, 2026-10-15: "让grok bot里开一个trading bot，给他100美元…先让他就用100美元测试"; 2026-10-16:
@@ -644,6 +647,20 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)"; each oldest first.
+
+### [2026-10-18 20:19 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **IG weekend recorder, fifth fix: keep the session, no routine log-out** (sub-agent; item 14). `ig_quote_runs`
+  05:43-20:16 UTC (fix 4: a fresh login every run, `DELETE /session` at its end): every run after a failed run
+  succeeded on its first login (210 of 210); after an ok run the first login worked 86 times in 662, the re-login
+  rescued 367 and 209 failed with both logins refused (client-token-invalid on both accounts). Runs never overlap
+  (start :00, end by :33). A failed run's log-out ends a session IG had already dropped; an ok run's ends a live one,
+  and the next login 27 s later is then refused. Before fix 4, with no log-out but a fresh login a minute, the same
+  cycle ran; the only clean stretch (12 of 12) was on a session kept between runs. Davies' phone (logged out 06:16)
+  changed nothing. So a clean session is kept between runs (per isolate, memory only): a run logs in only when it has
+  none or IG refuses it, once, logging the refused session out first; a run that ends refused logs out and keeps
+  nothing; the explicit switch at the start of every run stays. Pins: a login limit (3 in 5 minutes) that fix 4 fails
+  from the fourth minute and this reads through ten minutes on one login; a kept session IG drops (client-token-invalid)
+  is logged out, replaced by one login in the same run, and the run reads all four snapshots.
 
 ### [2026-10-18 06:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **QUEUE's Kraken spare pull taken** (prereg Data item 3; wake `trig_01U3odxMpVv4zaqVueHJvaM7`): OHLC interval=60,

@@ -297,6 +297,17 @@ export const QUOTES_FORCE_SWITCH_AFTER_LOGIN = true;
  * finally, failures too, and logs the refused session out before its one re-login: at most one session of ours alive.
  */
 export const QUOTES_LOGOUT = true;
+/**
+ * With a fresh login and a log-out every run (05:43-20:16 UTC 10-18, runs never overlapping), every run after a failed
+ * run worked on its first login (210 of 210), while after an ok run the first login was refused 576 times in 662 (367
+ * rescued by the re-login, 209 failed with both logins refused, client-token-invalid). A failed run's log-out ends a
+ * session IG had already dropped; an ok run's ends a live one, and the next login is refused. Without log-outs but with
+ * a login a minute (8cd5fb8e) the same cycle ran; the only clean stretch the recorder had (12 of 12) was on a session
+ * kept between runs. So the session is kept: a run logs in only when it has none or IG refuses it, re-logs in at most
+ * once (the refused session logged out first), and keeps a session that read without refusal for the next run. A run
+ * that ends refused logs out and keeps nothing. The explicit switch at the start of every run stays (8cd5fb8e).
+ */
+export const QUOTES_KEEP_SESSION = true;
 export const QUOTES_TOKEN_RETRIES = 2;
 export const QUOTES_TOKEN_RETRY_WAIT_MS = 3_000;
 /** The second snapshot is taken this long after the call started, if the call started early enough. */
@@ -359,8 +370,8 @@ export async function runQuotes(o: {
   const start = o.now();
   const { ids, roles } = activeWindows(start);
   if (!ids.length) return { result: { action: "quotes", skipped: "outside the recorder's windows" }, session: o.session };
-  // Never the previous run's tokens: a run starts with its own login (see QUOTES_MAX_RELOGINS).
-  const client = o.makeClient(null);
+  // The session the last clean run kept, if any (QUOTES_KEEP_SESSION); otherwise this run logs in.
+  const client = o.makeClient(QUOTES_KEEP_SESSION ? o.session : null);
   const errors: string[] = [];
   const samples: QuoteSample[] = [];
   const perAccount: Partial<Record<AccountKind, { snapshots: number; errors: string[] }>> = {};
@@ -372,7 +383,7 @@ export async function runQuotes(o: {
     if (!plan.length) throw new Error("no facts row names an epic for these windows: run ?action=facts for each account");
     // The spread-bet account first (S1b's FX); `quoteEpics` lists it first.
     plan = [...plan].sort((a, b) => ACCOUNT_KINDS.indexOf(a.kind) - ACCOUNT_KINDS.indexOf(b.kind));
-    await client.login();
+    if (!client.session) await client.login();
     // Accounts whose tokens IG refused again after the run's one re-login: not called again this run.
     const refused = new Set<AccountKind>();
     let forced = false;
@@ -414,8 +425,9 @@ export async function runQuotes(o: {
   } catch (e) {
     errors.push(errText(e));
   } finally {
-    // Every session this run opened is ended here, success or not (QUOTES_LOGOUT says why).
-    await client.logout();
+    // A session IG refused in this run is ended and not kept; a clean one is kept for the next run (QUOTES_KEEP_SESSION).
+    const refusedHere = errors.some((e) => /token-invalid|token-missing/.test(e));
+    if (!QUOTES_KEEP_SESSION || refusedHere || snapshots === 0) await client.logout();
   }
   const ok = snapshots > 0 && errors.length === 0;
   const run: Record<string, unknown> = client.scrub({

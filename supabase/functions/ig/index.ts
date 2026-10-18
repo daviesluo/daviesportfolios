@@ -55,13 +55,17 @@ export type Deps = {
   verify?: typeof verifyToken;
   /** Keeps the worker until a promise settles (`EdgeRuntime.waitUntil`). */
   keepAlive: (p: Promise<unknown>) => void;
+  /** Where the recorder's kept session lives: this isolate's memory unless a test gives its own. */
+  sessionStore?: SessionStore;
 };
 
+export type SessionStore = { session: IgSession | null };
+
 /**
- * The recorder's latest session, kept only to scrub its tokens from a crash message. It is not reused: each quotes run
- * logs in afresh (actions.ts, QUOTES_MAX_RELOGINS says why).
+ * The recorder's session, kept between runs in this isolate (memory only: never stored, never returned) when the run
+ * that used it read without a refusal (actions.ts, QUOTES_KEEP_SESSION says why).
  */
-let cachedSession: IgSession | null = null;
+const isolateStore: SessionStore = { session: null };
 
 export async function handle(req: Request, d: Deps): Promise<Response> {
   // The beat first, before anything else the call does (`_shared/beats.ts`; the watchdog reads it).
@@ -119,14 +123,14 @@ export async function handle(req: Request, d: Deps): Promise<Response> {
           tokenRetries: QUOTES_TOKEN_RETRIES, tokenRetryWaitMs: QUOTES_TOKEN_RETRY_WAIT_MS,
           forceSwitchAfterLogin: QUOTES_FORCE_SWITCH_AFTER_LOGIN, logoutBeforeRelogin: QUOTES_LOGOUT,
         }),
-        session: null, rest: d.rest, now: d.now, sleep: d.sleep, report: (m, c) => d.report("ig.quotes", m, c),
+        session: (d.sessionStore ?? isolateStore).session, rest: d.rest, now: d.now, sleep: d.sleep, report: (m, c) => d.report("ig.quotes", m, c),
       });
-      cachedSession = session;
+      (d.sessionStore ?? isolateStore).session = session;
       return json(200, scrubDeep(result, [...secrets, session?.cst ?? "", session?.xst ?? ""]));
     }
     return json(404, { error: `unknown action '${action.slice(0, 20)}'` });
   } catch (e) {
-    const message = scrubDeep(e instanceof Error ? e.message : String(e), [...secrets, cachedSession?.cst ?? "", cachedSession?.xst ?? ""]).slice(0, 300);
+    const message = scrubDeep(e instanceof Error ? e.message : String(e), [...secrets, (d.sessionStore ?? isolateStore).session?.cst ?? "", (d.sessionStore ?? isolateStore).session?.xst ?? ""]).slice(0, 300);
     await d.report(`ig.${/^[a-z]{1,10}$/.test(action) ? action : "unknown"}`, `crashed: ${message}`, { action: action.slice(0, 20) }).catch(() => {});
     return json(500, { error: "ig crashed", message });
   }
