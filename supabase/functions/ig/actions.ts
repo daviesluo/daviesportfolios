@@ -261,7 +261,7 @@ export async function runHistory(o: {
 // quotes (G4 by REST): in the weekend windows, two snapshots a minute (at its start and 30 s in) of each account's epics
 // for the windows' roles, one `GET /markets?epics=…&filter=SNAPSHOT_ONLY` an account a snapshot.
 
-export const QUOTES_MAX_REQUESTS = 14;
+export const QUOTES_MAX_REQUESTS = 18;
 export const QUOTES_GAP_MS = 300;
 /**
  * Each run logs in afresh, replaces tokens IG calls invalid at most once, and stops at the next such answer; it waits
@@ -288,6 +288,15 @@ export const QUOTES_LOGIN_WAIT_MS = 2_000;
  * (S1b's FX), and a refusal on one account no longer stops the other.
  */
 export const QUOTES_FORCE_SWITCH_AFTER_LOGIN = true;
+/**
+ * With that live (05:06 UTC), runs 05:07-05:16 kept a strict three-minute cycle: ok on one login, ok on two (the first
+ * token refused), then a run with both accounts refused after its re-login; five logins in three minutes and not one
+ * session ever logged out. IG documents no session cap (IG Labs FAQ "Limits": 60 non-trading requests a minute per app,
+ * 30 per account, 10,000 history points a week; tokens live 12 h, or 6 h extended to 72 h, from the last call), but
+ * every login left a live session behind it. So the recorder logs out (`DELETE /session`) at the end of every run, in a
+ * finally, failures too, and logs the refused session out before its one re-login: at most one session of ours alive.
+ */
+export const QUOTES_LOGOUT = true;
 export const QUOTES_TOKEN_RETRIES = 2;
 export const QUOTES_TOKEN_RETRY_WAIT_MS = 3_000;
 /** The second snapshot is taken this long after the call started, if the call started early enough. */
@@ -404,6 +413,9 @@ export async function runQuotes(o: {
     if (samples.length) changed = await o.rest.rpc<number>("ig_quotes_record", { samples: client.scrub(samples) });
   } catch (e) {
     errors.push(errText(e));
+  } finally {
+    // Every session this run opened is ended here, success or not (QUOTES_LOGOUT says why).
+    await client.logout();
   }
   const ok = snapshots > 0 && errors.length === 0;
   const run: Record<string, unknown> = client.scrub({
@@ -427,6 +439,9 @@ export async function runQuotes(o: {
     errors.push(`run row: ${errText(e)}`);
   }
   // The same-token retries are in the answer, not the row (ig_quote_runs has no column for them; `requests` counts them).
-  return { result: { action: "quotes", ...run, token_retries: client.tokenRetriesUsed, accounts: client.scrub(perAccount) }, session: client.session };
+  return {
+    result: { action: "quotes", ...run, token_retries: client.tokenRetriesUsed, logouts: client.logouts, accounts: client.scrub(perAccount) },
+    session: client.session,
+  };
 }
 

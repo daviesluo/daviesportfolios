@@ -6,11 +6,12 @@
 //   * One host. Every request is built on `IG_DEMO_BASE` and checked by `assertAllowed` before `fetch` is reached: any
 //     other origin (the live host `api.ig.com` above all), scheme, port or path prefix throws `IgRefused`. Nothing here
 //     reads the live credentials; the only secrets read are the three demo names in `IG_DEMO_SECRET_NAMES`.
-//   * One list of calls. `POST /session` (log in) and `PUT /session` (switch between the two demo accounts), and GET on
-//     `/accounts`, `/markets` (by epics or a search term), `/markets/{epic}`, `/marketnavigation[/{node}]`,
-//     `/prices/{epic}` and `/clientsentiment[/{marketId}]`. Every other method or path throws before fetch: positions,
-//     working orders, confirms, watchlists, history, costs, applications, logout. There is no order code, and none can
-//     be sent through this client: a DELETE, a POST anywhere but `/session`, a PUT anywhere but `/session` are refused.
+//   * One list of calls. `POST /session` (log in), `PUT /session` (switch between the two demo accounts) and
+//     `DELETE /session` (log out, 2026-10-18: the recorder ends every session it opens), and GET on `/accounts`,
+//     `/markets` (by epics or a search term), `/markets/{epic}`, `/marketnavigation[/{node}]`, `/prices/{epic}` and
+//     `/clientsentiment[/{marketId}]`. Every other method or path throws before fetch: positions, working orders,
+//     confirms, watchlists, history, costs, applications. There is no order code, and none can be sent through this
+//     client: a DELETE anywhere but `/session`, a POST anywhere but `/session`, a PUT anywhere but `/session` are refused.
 //   * No secret leaves. The API key, username, password and both session tokens are scrubbed (`scrubDeep`) from every
 //     error, every stored payload and every answer; the session tokens live only in this isolate's memory.
 //   * A budget of requests per run (`maxRequests`) and a gap between them (`minGapMs`), so a run stays inside IG's
@@ -28,6 +29,8 @@ const EPIC = "[A-Za-z0-9._]{6,30}";
 export const IG_ALLOWED: ReadonlyArray<readonly [string, RegExp]> = [
   ["POST", /^\/session$/],
   ["PUT", /^\/session$/],
+  // Log out: it ends this client's own session and nothing else.
+  ["DELETE", /^\/session$/],
   ["GET", /^\/accounts$/],
   ["GET", /^\/markets$/],
   ["GET", new RegExp(`^/markets/${EPIC}$`)],
@@ -191,6 +194,8 @@ export type IgClientOpts = {
   tokenRetryWaitMs?: number;
   /** After a re-login, `PUT /session` to the account even when the login says it is already current. */
   forceSwitchAfterLogin?: boolean;
+  /** Before a re-login, log the refused session out (`DELETE /session`), so a run leaves no session behind it. */
+  logoutBeforeRelogin?: boolean;
 };
 
 /**
@@ -207,6 +212,8 @@ export class IgClient {
   relogins = 0;
   /** Requests sent again on the same tokens after a refusal. */
   tokenRetriesUsed = 0;
+  /** `DELETE /session` calls sent. */
+  logouts = 0;
   /** The last session answer, balances stripped (accounts, current account, time zone offset, …). */
   sessionInfo: Record<string, unknown> | null = null;
   /** IG's `Date` header against this clock, from the latest answer: the run's clock check. */
@@ -306,6 +313,7 @@ export class IgClient {
     if (isTokenError(answer.status, igErrorCode(answer.body)) && this.relogins < (this.opts.maxRelogins ?? Infinity)) {
       this.relogins += 1;
       const account = this.session?.accountId ?? "";
+      if (this.opts.logoutBeforeRelogin) await this.logout();
       this.session = null;
       await this.login();
       if (account && this.session && (this.opts.forceSwitchAfterLogin || (this.session as IgSession).accountId !== account)) {
@@ -351,6 +359,20 @@ export class IgClient {
     // A pause before the switched account's first call (the recorder's choice; `facts` and `history` already wait 2.5 s
     // between any two requests).
     if (this.opts.switchWaitMs) await this.pause(this.opts.switchWaitMs);
+  }
+
+  /**
+   * `DELETE /session`: ends this client's session at IG, whatever IG answers (a refused session may answer 401), and
+   * forgets its tokens. Never throws: a run that cannot log out still records what it read.
+   */
+  async logout(): Promise<void> {
+    if (!this.session) return;
+    this.logouts += 1;
+    try {
+      this.secrets();
+      await this.raw("DELETE", "/session", { version: 1, auth: true });
+    } catch { /* the budget spent or the network: the session then lapses at IG on its own */ }
+    this.session = null;
   }
 
   private async pause(ms: number): Promise<void> {

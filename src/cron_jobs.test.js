@@ -906,8 +906,13 @@ describe('pg_cron jobs', () => {
       // Every IG URL is the demo one.
       const hosts = [...code.matchAll(/https?:\/\/[a-z0-9.-]*ig\.com[^"'`\s]*/g)].map((m) => m[0]);
       expect(hosts.every((h) => h === 'https://demo-api.ig.com/gateway/deal'), f).toBe(true);
-      expect(code, f).not.toMatch(/\/positions|\/workingorders|\/confirms|\/watchlists|\/operations|\/history\/|dealReference|"DELETE"/);
+      // DELETE only as the log-out of the client's own session (2026-10-18): the list entry and the one call.
+      const noLogout = code.replace('["DELETE", /^\\/session$/]', '').replace('this.raw("DELETE", "/session"', '');
+      expect(noLogout, f).not.toMatch(/\/positions|\/workingorders|\/confirms|\/watchlists|\/operations|\/history\/|dealReference|"DELETE"/);
     }
+    const client = fs.readFileSync(path.join(dir, 'client.ts'), 'utf8');
+    expect(client).toContain('["DELETE", /^\\/session$/]');
+    expect(client.match(/"DELETE"/g)?.length).toBe(2);
     expect(fs.readFileSync(path.join(dir, 'client.ts'), 'utf8')).toContain('export const IG_DEMO_BASE = "https://demo-api.ig.com/gateway/deal";');
     // Deployed like the other bearer-checked functions.
     const yml = fs.readFileSync(path.join(ROOT, '.github/workflows/edge-functions.yml'), 'utf8');

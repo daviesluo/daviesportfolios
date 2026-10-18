@@ -56,6 +56,10 @@ function fakeIg(o: {
   /** Each epic's account: a snapshot request for an epic of another account than the user's current one answers 401
    *  account-token-invalid, as IG did to the recorder's CFD reads with no switch made. */
   epicAccount?: Record<string, string>;
+  /** A cap on live sessions: each login gets its own CST; a login made while this many of the user's sessions are
+   *  alive gets tokens IG then refuses (account-token-invalid), and `DELETE /session` ends one. A model of the
+   *  recorder's 05:07-05:16 UTC cycle, not a documented IG rule. */
+  sessionCap?: number;
 } = {}) {
   const calls: Call[] = [];
   let account = o.startAccount ?? "Z6F18J";
@@ -65,6 +69,8 @@ function fakeIg(o: {
   let accountToken = tokenFor(account);
   let invalid = o.tokenInvalidOnce ?? false;
   let issuedAt = 0;
+  let logins = 0;
+  const live = new Map<string, { starved: boolean }>();
   const clock = o.now ?? (() => 0);
   const res = (status: number, body: unknown, headers: Record<string, string> = {}) =>
     new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json", date: "Sun, 18 Oct 2026 20:00:00 GMT", ...headers } });
@@ -78,6 +84,9 @@ function fakeIg(o: {
       if (!o.loginKeepsAccount) account = "Z6F18J";
       accountToken = tokenFor(account);
       issuedAt = clock();
+      logins += 1;
+      const cst = o.sessionCap ? `${CST}-${logins}` : CST;
+      if (o.sessionCap) live.set(cst, { starved: live.size >= o.sessionCap });
       return res(200, {
         accountType: "CFD", currencyIsoCode: "GBP", currentAccountId: "Z6F18J", clientId: "CLIENT-1", timezoneOffset: 1,
         lightstreamerEndpoint: "https://demo-apd.marketdatasystems.com", hasActiveDemoAccounts: true, hasActiveLiveAccounts: true,
@@ -87,9 +96,18 @@ function fakeIg(o: {
           { accountId: "Z6F18K", accountName: "Spread bet", accountType: "SPREADBET", preferred: false },
         ],
         echo: `welcome ${CREDS.username}`,
-      }, { CST, "X-SECURITY-TOKEN": accountToken });
+      }, { CST: cst, "X-SECURITY-TOKEN": accountToken });
     }
-    if (headers["cst"] !== CST) return res(401, { errorCode: "error.security.client-token-invalid" });
+    if (o.sessionCap) {
+      const s = live.get(headers["cst"]);
+      if (!s) return res(401, { errorCode: "error.security.client-token-invalid" });
+      if (method === "DELETE" && path === "/session") {
+        live.delete(headers["cst"]);
+        return res(204, null);
+      }
+      if (s.starved) return res(401, { errorCode: "error.security.account-token-invalid" });
+    } else if (headers["cst"] !== CST) return res(401, { errorCode: "error.security.client-token-invalid" });
+    if (method === "DELETE" && path === "/session") return res(204, null);
     if (headers["x-security-token"] !== accountToken) return res(401, { errorCode: "error.security.account-token-invalid" });
     if (o.accountTokenAlwaysInvalid) return res(401, { errorCode: "error.security.account-token-invalid" });
     if (o.warmupMs && clock() - issuedAt < o.warmupMs) return res(401, { errorCode: "error.security.account-token-invalid" });
@@ -132,7 +150,7 @@ function fakeIg(o: {
     }
     return res(404, { errorCode: "not.found" });
   }) as typeof fetch;
-  return { impl, calls, account: () => account };
+  return { impl, calls, account: () => account, liveSessions: () => live.size };
 }
 
 /** An in-memory `Rest` with the few queries the actions make. */
@@ -168,7 +186,7 @@ const noSleep = () => Promise.resolve();
 
 Deno.test("assertAllowed takes the demo host's listed calls and nothing else", () => {
   const ok: [string, string][] = [
-    ["POST", "/session"], ["PUT", "/session"], ["GET", "/accounts"], ["GET", "/markets?epics=CS.D.AUDUSD.TODAY.IP&filter=SNAPSHOT_ONLY"],
+    ["POST", "/session"], ["PUT", "/session"], ["DELETE", "/session"], ["GET", "/accounts"], ["GET", "/markets?epics=CS.D.AUDUSD.TODAY.IP&filter=SNAPSHOT_ONLY"],
     ["GET", "/markets?searchTerm=AUD%2FUSD"], ["GET", "/markets/IX.D.SPTRD.DAILY.IP"], ["GET", "/marketnavigation"], ["GET", "/marketnavigation/123"],
     ["GET", "/prices/CS.D.AUDUSD.TODAY.IP?resolution=HOUR&from=2026-10-09T17:00:00&to=2026-10-12T23:00:00&pageSize=0"],
     ["GET", "/clientsentiment/AUDUSD"],
@@ -185,7 +203,8 @@ Deno.test("assertAllowed takes the demo host's listed calls and nothing else", (
     ["GET", IG_DEMO_BASE + "/confirms/REF1"], ["POST", IG_DEMO_BASE + "/watchlists"], ["PUT", IG_DEMO_BASE + "/watchlists/1"],
     ["DELETE", IG_DEMO_BASE + "/watchlists/1/CS.D.AUDUSD.TODAY.IP"], ["GET", IG_DEMO_BASE + "/history/activity"],
     ["POST", IG_DEMO_BASE + "/operations/application"], ["PUT", IG_DEMO_BASE + "/operations/application/disable"],
-    ["DELETE", IG_DEMO_BASE + "/session"], ["GET", IG_DEMO_BASE + "/session"], ["POST", IG_DEMO_BASE + "/session/refresh-token"],
+    ["GET", IG_DEMO_BASE + "/session"], ["POST", IG_DEMO_BASE + "/session/refresh-token"], ["DELETE", IG_DEMO_BASE + "/session?x=1"],
+    ["DELETE", IG_DEMO_BASE + "/session/1"],
     ["POST", IG_DEMO_BASE + "/markets"], ["POST", IG_DEMO_BASE + "/prices/CS.D.AUDUSD.TODAY.IP"],
     ["POST", IG_DEMO_BASE + "/indicativecostsandcharges/open"], ["GET", IG_DEMO_BASE + "/client-sentiment/AUDUSD"],
     // Tricks: traversal, a query on a write, an unlisted query parameter.
@@ -506,8 +525,9 @@ Deno.test("quotes outside the windows calls nothing; inside, two snapshots an ac
   for (const c of ig.calls) assertAllowed(c.method, c.url);
   assertEquals(tables.ig_quote_runs.length, 1);
   assertClean([on.result, tables.ig_quote_runs, rpcs], "quotes");
-  // The session is kept for the next run in this isolate; it is never in the answer.
-  assertEquals(on.session?.cst, CST);
+  // The run logs its session out: nothing is kept for the next run (2026-10-18), and no token is in the answer.
+  assertEquals(on.session, null);
+  assertEquals(ig.calls[ig.calls.length - 1].method, "DELETE");
 });
 
 Deno.test("a market IG returns without a status is recorded UNKNOWN, and failures go to the errors box once, then hourly", () => {
@@ -627,7 +647,10 @@ Deno.test("a run whose tokens IG keeps refusing logs in at most twice and stops 
   // The run's login and one re-login, never more; each account is tried, then left for the minute.
   assertEquals(r.logins, 2);
   assertEquals(ig.calls.filter((c) => c.method === "POST").length, 2);
-  assert(ig.calls.length <= 12, `${ig.calls.length} requests`);
+  assert(ig.calls.length <= 15, `${ig.calls.length} requests`);
+  // Both sessions it opened were logged out: the refused one before the re-login, the other at the end.
+  assertEquals(r.logouts, 2);
+  assertEquals(ig.calls.filter((c) => c.method === "DELETE").length, 2);
   assert(/account-token-invalid/.test(String(r.error)));
   assertEquals(tables.ig_quote_runs.length, 1);
   assertClean([r, tables.ig_quote_runs], "refused run");
@@ -695,4 +718,25 @@ Deno.test("a refusal on the CFD account does not stop the spread-bet account's r
   assert(r.logins <= 2);
   const samples = rpcs[0].args.samples as { account_kind: string }[];
   assert(samples.length > 0 && samples.every((s) => s.account_kind === "sb"));
+});
+
+// 2026-10-18 05:07-05:16 UTC: a strict three-minute cycle (ok on one login, ok on two, then both accounts refused),
+// five logins in three minutes and no session ever logged out.
+
+Deno.test("every recorder run logs its sessions out, so a cap on live sessions never starves the next login", async () => {
+  const { rest } = fakeRest();
+  await factsFor(rest, "sb");
+  await factsFor(rest, "cfd");
+  let t = Date.UTC(2026, 9, 18, 20, 0, 0, 400);
+  const ig = fakeIg({ sessionCap: 2 });
+  const d = deps({ rest, fetchImpl: ig.impl, now: () => t, sleep: (ms) => { t += ms; return Promise.resolve(); } });
+  for (let minute = 0; minute < 5; minute++) {
+    t = Date.UTC(2026, 9, 18, 20, minute, 0, 400);
+    const r = await (await handle(req("quotes", { authorization: `Bearer ${ENV.CRON_SECRET}` }), d)).json();
+    assertEquals([minute, r.ok, r.snapshots, r.logins, r.logouts], [minute, true, 4, 1, 1]);
+    // The run ends with DELETE /session and leaves no session of ours alive.
+    assertEquals(ig.calls[ig.calls.length - 1].method, "DELETE");
+    assertEquals(ig.liveSessions(), 0);
+  }
+  for (const c of ig.calls) assertAllowed(c.method, c.url);
 });

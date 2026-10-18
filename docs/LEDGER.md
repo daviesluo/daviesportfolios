@@ -466,10 +466,11 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    "401 error.security.account-token-invalid", about 190 logins an hour; `ig_quote_runs` still stores ~145 snapshots an
    hour): S1b's first Sunday is 10-18. **First fix live 04:19 UTC** (`ea3e74da`; history 04:12 UTC): one login a run,
    at most one re-login. Still 3 of 13 runs failed; the waits and same-token retries (`8edc426c`, live 04:39) left 4 of
-   15 failing with the token refused on the CFD account the login named, no switch made. Third fix (history 04:58 UTC,
-   committed, not deployed): after every login the recorder switches to the account it wants even when the login names
-   it, reads the spread-bet account first, and a refusal on one account no longer stops the other. After it deploys,
-   check `ig_quote_runs` before 21:00 UK: `ok` on (nearly) every run; the answer's `accounts.sb.snapshots` 2.
+   15 failing with the token refused on the CFD account the login named, no switch made. Third fix (`8cd5fb8e`, live
+   05:06): an explicit switch after every login, spread-bet account first, accounts isolated; runs then cycled every
+   three minutes (ok, ok after a re-login, both accounts refused) with no session ever logged out. Fourth fix (history
+   05:19 UTC, committed, not deployed): `DELETE /session` at the end of every run and before the one re-login. After it
+   deploys, check `ig_quote_runs` before 21:00 UK: `ok` on (nearly) every run, `logins` 1; the answer's `logouts` 1.
 
 15. **GROKPM, "Polymarket analyst" ("(Grok)" dropped 10-17): LIVE since 2026-10-17 02:39:14 UTC (Davies: "上线"); ends
    2026-11-14 00:00 UTC at the latest (wake `trig_01C3a3b3F38FYavx6jFeqJEq`); trades through our Ireland server on the shared account** (Davies, 2026-10-15: "让grok bot里开一个trading bot，给他100美元…先让他就用100美元测试"; 2026-10-16:
@@ -665,6 +666,18 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   mutated size failed it). No Deno pin: no Edge code changed. Note: XV-1 reads Coinbase's books and Revolut X's prints, not Coinbase's
   prints. XV-1's draft §4 now has the transfer-fee table to fill (Davies may open a Coinbase account). **Must apply before 10-20**,
   when 10-10's prints start to leave `cb_trades` (each day's go ten days after it).
+
+### [2026-10-18 05:19 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **IG weekend recorder, fourth fix: log out** (sub-agent; item 14). With `8cd5fb8e` live (05:06 UTC), runs 05:07-05:16
+  repeated a three-minute cycle: ok on one login (8 requests, 3 switches), ok on two (first token refused, re-login
+  worked; 13 requests), then a run with both accounts refused after its re-login (11 requests, 23.2 s): five logins in
+  three minutes, none logged out. IG documents no session cap (IG Labs FAQ "Limits", committed copy of 10-15: 60
+  non-trading requests a minute per app, 30 per account, 10,000 history points a week; tokens last 12 h from the last
+  call per the FAQ, 6 h extended to 72 h per the REST guide; labs.ig.com/faq answered HTTP 500 on 10-18). `DELETE /session`
+  joins the client's list (it ends the client's own session), and the recorder logs out at the end of every run, in a
+  finally, failures too, and logs the refused session out before its one re-login; facts and history unchanged. Pin: a
+  fake that starves a login made while two sessions are alive; the deployed code fails from the third minute (ok, ok,
+  then 0 snapshots every minute), the new code reads all five minutes with no session left alive.
 
 ### [2026-10-18 05:08 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **LIVE's take and weekend quoting built behind two switches, both 'off'** (sub-agent, not pushed; Davies, 10-18: "live的策略
