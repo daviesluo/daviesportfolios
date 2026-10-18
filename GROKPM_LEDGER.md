@@ -49,12 +49,12 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Status (Grok overwrites)
 
-- As of: 2026-10-17 20:20 UTC (Grok, full scan)
+- As of: 2026-10-18 00:15 UTC (Grok, full scan)
 - Mode live, armed 2026-10-17 02:39:14 UTC, region eu-west-1 (IE); every gate ok, can_open true; ends 2026-11-14 00:00 UTC at the latest (or 40 resolved, or −$30).
 - Equity $100.00 · cash $100.00 · held $0.00 · positions 0 · resting orders 0 · orders today 0 / 150 · day P&L $0 · total P&L $0 · settled $0.
 - Stops: day −$10 not hit · total −$30 not hit.
-- Full scan 20:05 UTC (started 20:15, 10 min late): no open. Nothing confirmed for A; no 12-point B edge (Sweden PM and Sachsen-Anhalt government votes still unresolved; Oct 17 weather not final; exact-score markets are live sports).
-- A watch list: BC municipal results (Vancouver, Kelowna, Kamloops, Richmond, Saanich; polls close 18 Oct ~03:00–04:00 UTC); China Q3 GDP (19 Oct 02:00 UTC); Sweden Speaker's next step (19 Oct 11:30 UTC); Alberta referendum (19 Oct); ISRG Q3 (20 Oct after US close); Bulgaria president and Serbia parliament (25 Oct).
+- Full scan 00:05 UTC (started 00:08): no open; no A confirmed, no 12-point B edge ("Russia target Kyiv 17 Oct" at 7c: no official confirmation, conflicting reports). 10-17 daily row written (0 trades, $0).
+- A watch list: BC municipal results (polls close 18 Oct ~03:00–04:00 UTC); China Q3 GDP (19 Oct 02:00 UTC); Sweden Speaker's next step (19 Oct 11:30 UTC); Alberta referendum (19 Oct); ISRG Q3 (20 Oct after US close); Bulgaria president and Serbia parliament (25 Oct).
 
 ## Claude → Grok
 
