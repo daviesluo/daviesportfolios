@@ -137,15 +137,18 @@
   "scripts/manifest.py": "d03ab824c3d5332a261f086a54abb7e3ca156014be9d9e03e29fccd795086093",
   "scripts/paper.py": "bf460d62fe0bea05b053dc7ad55d75816a513a34f3f49ea598aa3c2228c2630b",
   "scripts/queue.py": "83fe5295bf9f877e877c136b0953d4a49b49709bd566af320b3cea49dede7ab7",
+  "scripts/xv1_cadence.py": "3bd3bd37d3b6674d12cfc1f0544046d8323bc9a721578e3cc65bdadc0d1ad14f",
   "sql/pull_books.sql": "02af80c4ac37e7b131ae7019ebf900f3626a5230ac2ce414e491d091479fdab0",
   "sql/pull_paper.sql": "ce83921390305173669d7455fa48a34cd2997dd3f6e5735189c65d4fd0a1e6e1",
   "sql/pull_revx.sql": "f7f82513e3f616e119198cca317ffb107a248ac7866098c133efdcbfa518447e",
-  "sql/pull_trades.sql": "d4293b7048f2bebedd7d88b81cc09a2e8b30b1b42cffd0b3c27065702fe948cd"
+  "sql/pull_trades.sql": "d4293b7048f2bebedd7d88b81cc09a2e8b30b1b42cffd0b3c27065702fe948cd",
+  "sql/verify_print_minutes.sql": "1630d3ff19ebd51662a61aa6aad0b66cb7ea13cad178331043339f50136307c6"
  },
  "results": {
   "results/cross.json": "89641375d2974f8fe9bccc142a080f12743eefe659ae18df86449a51878deb31",
   "results/describe.json": "5471894ffadd4439507b0f78b2203587df50f4c8d32b82d9d66c372188363a5e",
   "results/paper.json": "002bae621ea103b9229d2483389b3215a7eb76a592866d8b658e7330df3f6ac3",
-  "results/queue.json": "3440da4f43cd3c85d927b47ffce85050865623c23e23aeeb420fab3e7bf78ad0"
+  "results/queue.json": "3440da4f43cd3c85d927b47ffce85050865623c23e23aeeb420fab3e7bf78ad0",
+  "results/xv1_cadence.json": "390e5c94eeb4dfe00dbcb638b6dee6334c62700053a332348e52eabb7b4e1aad"
  }
 }

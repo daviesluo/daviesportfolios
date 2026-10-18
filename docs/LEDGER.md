@@ -448,7 +448,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    cb_book_state`, no `agents.cb_books` row in `ops_errors`. **First study CBBOOKS-1** (`reviews/2026-10-18-coinbase-books-study.md`,
    `backtests/cbbooks/`, rules frozen in `params.json` before results, not blind): the Coinbase paper rows' fills all real (through
    prints, post-only accepted; slightly conservative); Coinbase leads Revolut X, no better fair for PR5; a touch maker on Coinbase
-   dead; **XV-1, a Revolut X maker hedged on Coinbase, drafted NOT frozen** (`reviews/2026-10-18-cross-venue-maker-prereg.md`: an
+   dead; **XV-1, a Revolut X maker hedged on Coinbase, drafted NOT frozen; fees read 10-18, fortnightly the cadence, recommended not to freeze (about 1.2 % a year on £23–30k with a £16–21k dollar position; history 05:50)** (`reviews/2026-10-18-cross-venue-maker-prereg.md`: an
    offline reading 10-18 → 11-15, read by 11-19; needs both venues' transfer fees read first, and Davies' word). **R1 decided and built
    (`0132`, history 2026-10-18 05:16):** `cb_print_minutes` keeps the prints 40 days; R2–R4 no change. **After `0132` applies:**
    `select count(*), min(minute), max(minute) from cb_print_minutes` (rows from 2026-10-08/09, the newest within ~12 min), the
@@ -644,6 +644,16 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)"; each oldest first.
+
+### [2026-10-18 05:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **XV-1's fees filled and its cadence priced: recommended NOT to freeze as designed** (sub-agent, not pushed; DRAFT stays).
+  Fees read for Davies 2026-10-18 06:22–06:28 BST by his assistant (to be confirmed on the first transfer): Revolut X withdrawal
+  £3 a withdrawal + network (about $0.007 Ethereum, $0.002 Polygon); Coinbase deposits free, USDT as ERC-20 only; Coinbase GBP out
+  free (1–3 working days); Revolut X GBP in free, instant. `backtests/cbbooks/scripts/xv1_cadence.py` → `results/xv1_cadence.json`:
+  weekly fails the 5 bps test (USDC 8.8–9.1 bps), **fortnightly passes** (USDC 4.4–4.6, USDT 2.3–3.5) and nets £249 (train) / £396
+  (test) a year on £23–30k tied up, 1.1–1.3 % a year, £16–21k of it an unhedged dollar position; monthly £333 / £480 on £41–53k.
+  The ceiling is structural (about 10 bps a turnover over D + 7 days in hand). Draft §2 now charges fortnightly; §4b proposes, if
+  Davies wants the free offline read anyway, a fifth bar: net return on that capital ≥ 5 % a year (expected to fail).
 
 ### [2026-10-18 05:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **LIVE PR5's take and weekend quoting in SHADOW** (Davies: "会的话就加上，然后加上周末的挂单，一定验证好没问题再推上实盘部署";

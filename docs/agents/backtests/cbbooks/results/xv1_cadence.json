@@ -1,0 +1,259 @@
+{
+ "inputs": {
+  "fees": {
+   "service_gbp": 3.0,
+   "network_usd": {
+    "USDC-GBP": 0.002,
+    "USDT-GBP": 0.007
+   },
+   "coinbase_deposit_gbp": 0.0,
+   "coinbase_gbp_withdrawal_gbp": 0.0,
+   "revolutx_gbp_deposit_gbp": 0.0
+  },
+  "gbp_per_coin": 0.75,
+  "gbp_transit_days": 5,
+  "margin_days": 1,
+  "source": "results/cross.json q4.*.rx_maker_cb_hedge['10bp'] (train 10-10 03:00 -> 10-14 03:00, test -> 10-18 03:00)"
+ },
+ "flows": {
+  "train": {
+   "USDC-GBP": {
+    "net_coins_a_day": 650.7,
+    "flow_gbp_a_day": 488.0,
+    "gross_gbp_a_day": 0.4924
+   },
+   "USDT-GBP": {
+    "net_coins_a_day": 808.8,
+    "flow_gbp_a_day": 606.6,
+    "gross_gbp_a_day": 0.6197
+   }
+  },
+  "test": {
+   "USDC-GBP": {
+    "net_coins_a_day": 627.7,
+    "flow_gbp_a_day": 470.8,
+    "gross_gbp_a_day": 0.5168
+   },
+   "USDT-GBP": {
+    "net_coins_a_day": 1266.1,
+    "flow_gbp_a_day": 949.6,
+    "gross_gbp_a_day": 0.9978
+   }
+  }
+ },
+ "cadences": {
+  "weekly": {
+   "days": 7,
+   "train": {
+    "books": {
+     "USDC-GBP": {
+      "cost_per_transfer_gbp": 3.0015,
+      "gbp_moved_per_transfer": 3416.0,
+      "cost_bps_of_flow": 8.79,
+      "passes_5bps": false,
+      "min_days_for_5bps": 12.3
+     },
+     "USDT-GBP": {
+      "cost_per_transfer_gbp": 3.0053,
+      "gbp_moved_per_transfer": 4246.0,
+      "cost_bps_of_flow": 7.08,
+      "passes_5bps": false,
+      "min_days_for_5bps": 9.9
+     }
+    },
+    "gross_gbp_a_day": 1.1121,
+    "transfer_cost_gbp_a_day": 0.8581,
+    "net_gbp_a_day": 0.254,
+    "net_gbp_a_year": 93.0,
+    "net_gbp_a_year_by_eth_fee": {
+     "eth_usd_0.007": 93.0,
+     "eth_usd_1.0": 54.0,
+     "eth_usd_5.0": -103.0
+    },
+    "capital_coins_gbp": 8757.0,
+    "capital_pounds_gbp": 6568.0,
+    "capital_total_gbp": 15324.0,
+    "net_pct_a_year_on_capital": 0.6,
+    "gross_pct_a_year_on_capital": 2.65,
+    "usd_exposure_gbp": 8757.0,
+    "one_sd_year_gbpusd_7pct_on_coins_gbp": 613.0
+   },
+   "test": {
+    "books": {
+     "USDC-GBP": {
+      "cost_per_transfer_gbp": 3.0015,
+      "gbp_moved_per_transfer": 3296.0,
+      "cost_bps_of_flow": 9.11,
+      "passes_5bps": false,
+      "min_days_for_5bps": 12.8
+     },
+     "USDT-GBP": {
+      "cost_per_transfer_gbp": 3.0053,
+      "gbp_moved_per_transfer": 6647.0,
+      "cost_bps_of_flow": 4.52,
+      "passes_5bps": true,
+      "min_days_for_5bps": 6.3
+     }
+    },
+    "gross_gbp_a_day": 1.5146,
+    "transfer_cost_gbp_a_day": 0.8581,
+    "net_gbp_a_day": 0.6565,
+    "net_gbp_a_year": 240.0,
+    "net_gbp_a_year_by_eth_fee": {
+     "eth_usd_0.007": 240.0,
+     "eth_usd_1.0": 201.0,
+     "eth_usd_5.0": 44.0
+    },
+    "capital_coins_gbp": 11363.0,
+    "capital_pounds_gbp": 8522.0,
+    "capital_total_gbp": 19886.0,
+    "net_pct_a_year_on_capital": 1.2,
+    "gross_pct_a_year_on_capital": 2.78,
+    "usd_exposure_gbp": 11363.0,
+    "one_sd_year_gbpusd_7pct_on_coins_gbp": 795.0
+   }
+  },
+  "fortnightly": {
+   "days": 14,
+   "train": {
+    "books": {
+     "USDC-GBP": {
+      "cost_per_transfer_gbp": 3.0015,
+      "gbp_moved_per_transfer": 6832.0,
+      "cost_bps_of_flow": 4.39,
+      "passes_5bps": true,
+      "min_days_for_5bps": 12.3
+     },
+     "USDT-GBP": {
+      "cost_per_transfer_gbp": 3.0053,
+      "gbp_moved_per_transfer": 8492.0,
+      "cost_bps_of_flow": 3.54,
+      "passes_5bps": true,
+      "min_days_for_5bps": 9.9
+     }
+    },
+    "gross_gbp_a_day": 1.1121,
+    "transfer_cost_gbp_a_day": 0.4291,
+    "net_gbp_a_day": 0.683,
+    "net_gbp_a_year": 249.0,
+    "net_gbp_a_year_by_eth_fee": {
+     "eth_usd_0.007": 249.0,
+     "eth_usd_1.0": 230.0,
+     "eth_usd_5.0": 152.0
+    },
+    "capital_coins_gbp": 16419.0,
+    "capital_pounds_gbp": 6568.0,
+    "capital_total_gbp": 22987.0,
+    "net_pct_a_year_on_capital": 1.08,
+    "gross_pct_a_year_on_capital": 1.77,
+    "usd_exposure_gbp": 16419.0,
+    "one_sd_year_gbpusd_7pct_on_coins_gbp": 1149.0
+   },
+   "test": {
+    "books": {
+     "USDC-GBP": {
+      "cost_per_transfer_gbp": 3.0015,
+      "gbp_moved_per_transfer": 6591.0,
+      "cost_bps_of_flow": 4.55,
+      "passes_5bps": true,
+      "min_days_for_5bps": 12.8
+     },
+     "USDT-GBP": {
+      "cost_per_transfer_gbp": 3.0053,
+      "gbp_moved_per_transfer": 13294.0,
+      "cost_bps_of_flow": 2.26,
+      "passes_5bps": true,
+      "min_days_for_5bps": 6.3
+     }
+    },
+    "gross_gbp_a_day": 1.5146,
+    "transfer_cost_gbp_a_day": 0.4291,
+    "net_gbp_a_day": 1.0855,
+    "net_gbp_a_year": 396.0,
+    "net_gbp_a_year_by_eth_fee": {
+     "eth_usd_0.007": 396.0,
+     "eth_usd_1.0": 377.0,
+     "eth_usd_5.0": 299.0
+    },
+    "capital_coins_gbp": 21306.0,
+    "capital_pounds_gbp": 8522.0,
+    "capital_total_gbp": 29828.0,
+    "net_pct_a_year_on_capital": 1.33,
+    "gross_pct_a_year_on_capital": 1.85,
+    "usd_exposure_gbp": 21306.0,
+    "one_sd_year_gbpusd_7pct_on_coins_gbp": 1491.0
+   }
+  },
+  "monthly": {
+   "days": 30,
+   "train": {
+    "books": {
+     "USDC-GBP": {
+      "cost_per_transfer_gbp": 3.0015,
+      "gbp_moved_per_transfer": 14640.0,
+      "cost_bps_of_flow": 2.05,
+      "passes_5bps": true,
+      "min_days_for_5bps": 12.3
+     },
+     "USDT-GBP": {
+      "cost_per_transfer_gbp": 3.0053,
+      "gbp_moved_per_transfer": 18198.0,
+      "cost_bps_of_flow": 1.65,
+      "passes_5bps": true,
+      "min_days_for_5bps": 9.9
+     }
+    },
+    "gross_gbp_a_day": 1.1121,
+    "transfer_cost_gbp_a_day": 0.2002,
+    "net_gbp_a_day": 0.9119,
+    "net_gbp_a_year": 333.0,
+    "net_gbp_a_year_by_eth_fee": {
+     "eth_usd_0.007": 333.0,
+     "eth_usd_1.0": 324.0,
+     "eth_usd_5.0": 287.0
+    },
+    "capital_coins_gbp": 33933.0,
+    "capital_pounds_gbp": 6568.0,
+    "capital_total_gbp": 40500.0,
+    "net_pct_a_year_on_capital": 0.82,
+    "gross_pct_a_year_on_capital": 1.0,
+    "usd_exposure_gbp": 33933.0,
+    "one_sd_year_gbpusd_7pct_on_coins_gbp": 2375.0
+   },
+   "test": {
+    "books": {
+     "USDC-GBP": {
+      "cost_per_transfer_gbp": 3.0015,
+      "gbp_moved_per_transfer": 14124.0,
+      "cost_bps_of_flow": 2.13,
+      "passes_5bps": true,
+      "min_days_for_5bps": 12.8
+     },
+     "USDT-GBP": {
+      "cost_per_transfer_gbp": 3.0053,
+      "gbp_moved_per_transfer": 28488.0,
+      "cost_bps_of_flow": 1.05,
+      "passes_5bps": true,
+      "min_days_for_5bps": 6.3
+     }
+    },
+    "gross_gbp_a_day": 1.5146,
+    "transfer_cost_gbp_a_day": 0.2002,
+    "net_gbp_a_day": 1.3144,
+    "net_gbp_a_year": 480.0,
+    "net_gbp_a_year_by_eth_fee": {
+     "eth_usd_0.007": 480.0,
+     "eth_usd_1.0": 471.0,
+     "eth_usd_5.0": 434.0
+    },
+    "capital_coins_gbp": 44032.0,
+    "capital_pounds_gbp": 8522.0,
+    "capital_total_gbp": 52555.0,
+    "net_pct_a_year_on_capital": 0.91,
+    "gross_pct_a_year_on_capital": 1.05,
+    "usd_exposure_gbp": 44032.0,
+    "one_sd_year_gbpusd_7pct_on_coins_gbp": 3082.0
+   }
+  }
+ }
+}
