@@ -1,0 +1,46 @@
+{
+ "USDC-GBP": {
+  "weekend": {
+   "printsOver1Gbp": 290,
+   "gbp": 174831,
+   "hours": 168,
+   "medianAbsDevBps": 5.24,
+   "shareBeyond10bps": 0.228,
+   "shareBeyond20bps": 0.134,
+   "gbpPerHour": 1041,
+   "printsPerHour": 1.73
+  },
+  "weekday": {
+   "printsOver1Gbp": 877,
+   "gbp": 861511,
+   "hours": 360,
+   "medianAbsDevBps": 4.3,
+   "shareBeyond10bps": 0.211,
+   "shareBeyond20bps": 0.029,
+   "gbpPerHour": 2393,
+   "printsPerHour": 2.44
+  }
+ },
+ "USDT-GBP": {
+  "weekend": {
+   "printsOver1Gbp": 865,
+   "gbp": 511222,
+   "hours": 168,
+   "medianAbsDevBps": 4.33,
+   "shareBeyond10bps": 0.199,
+   "shareBeyond20bps": 0.169,
+   "gbpPerHour": 3043,
+   "printsPerHour": 5.15
+  },
+  "weekday": {
+   "printsOver1Gbp": 2231,
+   "gbp": 1932254,
+   "hours": 360,
+   "medianAbsDevBps": 5.28,
+   "shareBeyond10bps": 0.247,
+   "shareBeyond20bps": 0.087,
+   "gbpPerHour": 5367,
+   "printsPerHour": 6.2
+  }
+ }
+}

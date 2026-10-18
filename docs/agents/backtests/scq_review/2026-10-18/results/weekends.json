@@ -1,0 +1,382 @@
+{
+ "rule": "replay.py xhold=True minus xhold=False, trips entered Fri 21:00 -> Mon 00:00 UTC, $100 a rung unless stated",
+ "fwd_through": {
+  "weekends": 4,
+  "positive": 4,
+  "sumGbp": 6.5866,
+  "medianGbp": 1.2794,
+  "worstGbp": 0.0063,
+  "bestGbp": 4.0214,
+  "bestShare": 0.611,
+  "byWeekend": {
+   "2026-09-25": {
+    "gbp": 4.0214,
+    "trips": 49,
+    "stops": 0,
+    "closedAfterReopenGbp": 0.0096
+   },
+   "2026-10-02": {
+    "gbp": 1.3088,
+    "trips": 22,
+    "stops": 0,
+    "closedAfterReopenGbp": 0.2716
+   },
+   "2026-10-09": {
+    "gbp": 1.2501,
+    "trips": 30,
+    "stops": 0,
+    "closedAfterReopenGbp": 0.2117
+   },
+   "2026-10-16": {
+    "gbp": 0.0063,
+    "trips": 5,
+    "stops": 0,
+    "closedAfterReopenGbp": 0
+   }
+  }
+ },
+ "fwd_at": {
+  "weekends": 4,
+  "positive": 4,
+  "sumGbp": 9.1235,
+  "medianGbp": 2.4626,
+  "worstGbp": 0.1768,
+  "bestGbp": 4.0214,
+  "bestShare": 0.441,
+  "byWeekend": {
+   "2026-09-25": {
+    "gbp": 4.0214,
+    "trips": 49,
+    "stops": 0,
+    "closedAfterReopenGbp": 0.0096
+   },
+   "2026-10-02": {
+    "gbp": 2.901,
+    "trips": 40,
+    "stops": 0,
+    "closedAfterReopenGbp": 0.5609
+   },
+   "2026-10-09": {
+    "gbp": 2.0242,
+    "trips": 53,
+    "stops": 0,
+    "closedAfterReopenGbp": 0.0415
+   },
+   "2026-10-16": {
+    "gbp": 0.1768,
+    "trips": 37,
+    "stops": 0,
+    "closedAfterReopenGbp": 0
+   }
+  }
+ },
+ "fwd_through_gbp10": {
+  "weekends": 4,
+  "positive": 4,
+  "sumGbp": 1.2227,
+  "medianGbp": 0.2226,
+  "worstGbp": 0.0063,
+  "bestGbp": 0.7711,
+  "bestShare": 0.631,
+  "byWeekend": {
+   "2026-09-25": {
+    "gbp": 0.7711,
+    "trips": 49,
+    "stops": 0,
+    "closedAfterReopenGbp": 0.0096
+   },
+   "2026-10-02": {
+    "gbp": 0.2606,
+    "trips": 22,
+    "stops": 0,
+    "closedAfterReopenGbp": 0.0633
+   },
+   "2026-10-09": {
+    "gbp": 0.1847,
+    "trips": 30,
+    "stops": 0,
+    "closedAfterReopenGbp": 0.0333
+   },
+   "2026-10-16": {
+    "gbp": 0.0063,
+    "trips": 5,
+    "stops": 0,
+    "closedAfterReopenGbp": 0
+   }
+  }
+ },
+ "hist_from_0101_through": {
+  "weekends": 38,
+  "positive": 37,
+  "sumGbp": 112.6854,
+  "medianGbp": 2.6939,
+  "worstGbp": -0.091,
+  "bestGbp": 11.2085,
+  "bestShare": 0.099,
+  "byWeekend": {
+   "2026-01-02": {
+    "gbp": 3.8528,
+    "trips": 104,
+    "stops": 0,
+    "closedAfterReopenGbp": 0.091
+   },
+   "2026-01-09": {
+    "gbp": 0.2944,
+    "trips": 23,
+    "stops": 3,
+    "closedAfterReopenGbp": -0.5467
+   },
+   "2026-01-16": {
+    "gbp": 5.092,
+    "trips": 70,
+    "stops": 0,
+    "closedAfterReopenGbp": 0.8904
+   },
+   "2026-01-23": {
+    "gbp": 5.2818,
+    "trips": 92,
+    "stops": 0,
+    "closedAfterReopenGbp": 0.7719
+   },
+   "2026-01-30": {
+    "gbp": 2.2639,
+    "trips": 45,
+    "stops": 1,
+    "closedAfterReopenGbp": 0.0202
+   },
+   "2026-02-06": {
+    "gbp": 2.9295,
+    "trips": 51,
+    "stops": 0,
+    "closedAfterReopenGbp": 0.3732
+   },
+   "2026-02-13": {
+    "gbp": 2.4582,
+    "trips": 51,
+    "stops": 1,
+    "closedAfterReopenGbp": 0.2133
+   },
+   "2026-02-20": {
+    "gbp": 0.9021,
+    "trips": 27,
+    "stops": 3,
+    "closedAfterReopenGbp": 1.1567
+   },
+   "2026-02-27": {
+    "gbp": 3.3721,
+    "trips": 74,
+    "stops": 3,
+    "closedAfterReopenGbp": 0.3158
+   },
+   "2026-03-06": {
+    "gbp": 6.4535,
+    "trips": 152,
+    "stops": 0,
+    "closedAfterReopenGbp": 0.397
+   },
+   "2026-03-13": {
+    "gbp": 0.7334,
+    "trips": 37,
+    "stops": 3,
+    "closedAfterReopenGbp": 0.7344
+   },
+   "2026-03-20": {
+    "gbp": 2.3418,
+    "trips": 64,
+    "stops": 4,
+    "closedAfterReopenGbp": 0.3265
+   },
+   "2026-03-27": {
+    "gbp": 11.2085,
+    "trips": 180,
+    "stops": 0,
+    "closedAfterReopenGbp": 0.9135
+   },
+   "2026-04-03": {
+    "gbp": 4.0567,
+    "trips": 75,
+    "stops": 1,
+    "closedAfterReopenGbp": 0.7308
+   },
+   "2026-04-10": {
+    "gbp": 4.5837,
+    "trips": 116,
+    "stops": 0,
+    "closedAfterReopenGbp": -0.5773
+   },
+   "2026-04-17": {
+    "gbp": 6.3137,
+    "trips": 137,
+    "stops": 0,
+    "closedAfterReopenGbp": 0.622
+   },
+   "2026-04-24": {
+    "gbp": 2.4349,
+    "trips": 80,
+    "stops": 0,
+    "closedAfterReopenGbp": 0.2765
+   },
+   "2026-05-01": {
+    "gbp": 3.5789,
+    "trips": 68,
+    "stops": 4,
+    "closedAfterReopenGbp": 0.033
+   },
+   "2026-05-08": {
+    "gbp": 3.1076,
+    "trips": 40,
+    "stops": 2,
+    "closedAfterReopenGbp": -0.0479
+   },
+   "2026-05-15": {
+    "gbp": 0.8903,
+    "trips": 32,
+    "stops": 1,
+    "closedAfterReopenGbp": 0.6815
+   },
+   "2026-05-22": {
+    "gbp": 1.37,
+    "trips": 20,
+    "stops": 0,
+    "closedAfterReopenGbp": 0.031
+   },
+   "2026-05-29": {
+    "gbp": 1.5081,
+    "trips": 25,
+    "stops": 4,
+    "closedAfterReopenGbp": 0.1048
+   },
+   "2026-06-05": {
+    "gbp": 5.5125,
+    "trips": 82,
+    "stops": 0,
+    "closedAfterReopenGbp": 0.1391
+   },
+   "2026-06-12": {
+    "gbp": 2.9669,
+    "trips": 81,
+    "stops": 2,
+    "closedAfterReopenGbp": 0.2545
+   },
+   "2026-06-19": {
+    "gbp": 2.1951,
+    "trips": 65,
+    "stops": 1,
+    "closedAfterReopenGbp": 0.0969
+   },
+   "2026-06-26": {
+    "gbp": 3.2296,
+    "trips": 64,
+    "stops": 0,
+    "closedAfterReopenGbp": 0.9027
+   },
+   "2026-07-03": {
+    "gbp": 4.2346,
+    "trips": 70,
+    "stops": 2,
+    "closedAfterReopenGbp": 0.497
+   },
+   "2026-07-10": {
+    "gbp": 3.6688,
+    "trips": 65,
+    "stops": 0,
+    "closedAfterReopenGbp": 0.0403
+   },
+   "2026-07-17": {
+    "gbp": 0.2374,
+    "trips": 13,
+    "stops": 6,
+    "closedAfterReopenGbp": 0.2315
+   },
+   "2026-07-24": {
+    "gbp": -0.091,
+    "trips": 9,
+    "stops": 6,
+    "closedAfterReopenGbp": -0.2934
+   },
+   "2026-07-31": {
+    "gbp": 2.3607,
+    "trips": 29,
+    "stops": 0,
+    "closedAfterReopenGbp": 1.1
+   },
+   "2026-08-07": {
+    "gbp": 3.9004,
+    "trips": 77,
+    "stops": 0,
+    "closedAfterReopenGbp": 0.0662
+   },
+   "2026-08-14": {
+    "gbp": 2.2425,
+    "trips": 30,
+    "stops": 2,
+    "closedAfterReopenGbp": 0.0553
+   },
+   "2026-08-21": {
+    "gbp": 4.1452,
+    "trips": 67,
+    "stops": 0,
+    "closedAfterReopenGbp": 0.7139
+   },
+   "2026-08-28": {
+    "gbp": 1.1935,
+    "trips": 19,
+    "stops": 0,
+    "closedAfterReopenGbp": 0.3508
+   },
+   "2026-09-04": {
+    "gbp": 0.5846,
+    "trips": 9,
+    "stops": 2,
+    "closedAfterReopenGbp": 0.0469
+   },
+   "2026-09-11": {
+    "gbp": 0.1826,
+    "trips": 6,
+    "stops": 2,
+    "closedAfterReopenGbp": 0.0483
+   },
+   "2026-09-18": {
+    "gbp": 1.0939,
+    "trips": 22,
+    "stops": 0,
+    "closedAfterReopenGbp": 0
+   }
+  }
+ },
+ "hist_from_0826_through": {
+  "weekends": 4,
+  "positive": 4,
+  "sumGbp": 3.0546,
+  "medianGbp": 0.8393,
+  "worstGbp": 0.1826,
+  "bestGbp": 1.1935,
+  "bestShare": 0.391,
+  "byWeekend": {
+   "2026-08-28": {
+    "gbp": 1.1935,
+    "trips": 19,
+    "stops": 0,
+    "closedAfterReopenGbp": 0.3508
+   },
+   "2026-09-04": {
+    "gbp": 0.5846,
+    "trips": 9,
+    "stops": 2,
+    "closedAfterReopenGbp": 0.0469
+   },
+   "2026-09-11": {
+    "gbp": 0.1826,
+    "trips": 6,
+    "stops": 2,
+    "closedAfterReopenGbp": 0.0483
+   },
+   "2026-09-18": {
+    "gbp": 1.0939,
+    "trips": 22,
+    "stops": 0,
+    "closedAfterReopenGbp": 0
+   }
+  }
+ }
+}

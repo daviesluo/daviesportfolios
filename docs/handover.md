@@ -45940,3 +45940,87 @@ against the 150 the reading needs, so no reading. Nothing failed, so nothing is 
   in `detail.trade`), and each turn re-reads the trades of closed live orders whose fills are short (2 days, 10 a turn): the
   three are the only such orders on record (read-only 16:30). The test venue now lists taker trades in the CLOB's shape (A24's
   test had passed on maker-shaped ones). `pm_live.ts` `9615ed0a…90f3`; `pm_lp.ts` unchanged; no migration.
+
+## LEDGER.md, archived 2026-10-18 — the 2026-10-16 14:50 → 16:30 UTC history sections, oldest first
+
+### [2026-10-16 14:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **1Y ticker chart draws a 50-day average beside the 200-day** (sub-agent; Davies, 2026-10-16: "网页中所有1Y的图目前不是有200MA么，
+  再在1Y图中都加上50MA，方便对比"). The only surface with a 200-day line is the ticker chart modal's 1Y view (`ticker_chart_modal.jsx`;
+  the vs-S&P and Investment panels and the agents charts draw no average). The 50 is the same `computeMaSeries` over the same
+  wider history with a 50-bar window (`maBarsForDays`, which `maBarsFor` now calls; `maSecondDaysFor('1Y') = 50`), so no second
+  moving-average code and no second fetch: the 200's 2y daily pre-fetch leaves 252 bars of lead-in, the line starts at the left
+  edge. Colour `#5aa9e6` (the 200 stays `#6b7280`, the price line is gain green / loss red; the site has one dark theme), label
+  "MA 50" in the same right margin as "MA 200", pushed 11 px apart when the two end within 11 px; `chart_modal_geometry` counts
+  `maSeries2` in the y range. The crosshair shows price, time and % only (never an MA), so no tooltip change. Other ranges
+  unchanged except that YTD's own single 50-day line is the same blue (Davies, same day: one indicator, one colour). Pins: `indicators.test.js` (50 at the first and last displayed bar on a
+  500-bar ramp: 224.5 and 475.5; the 200 beside it 149.5 and 400.5), `ticker_chart_modal.test.jsx` (both paths one point per
+  displayed bar from x = 56, y worked by hand, colours, labels, collision push, other ranges), `chart_modal_geometry.test.js`;
+  the sweep's ACME modal opens 1Y on a 730-bar `2y` fixture and checks both labels inside the frame and apart at both widths.
+  `docs/guide.md` gains a "Moving averages" bullet; no `docs/map.md` row (no file added).
+
+### [2026-10-16 15:06 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM D2: Grok trades through our Ireland server on the shared account** (sub-agent; Davies: "可以用目前这个polymarket跑吗",
+  "让grok用我们搭好的爱尔兰服务器下单，不是网页端"; item 15).
+  - **The order path.** `grokpm/exec.ts` on the `grokpm` function: account, market, order, cancel and cancel_all.
+    - Every order carries its journal decision.
+    - §2's rules are checked server-side from the agent's OWN orders and fills. Live-prep's dust and the shared pUSD never
+      count, and it can never sell a token it did not buy.
+    - A BUY is post-only; only a category-C close may take.
+    - Live sends need eu-west-1, the key, geoblock IE, the attestation (opens), no other armed path and no pause.
+    - Its own orders are cancelled one by one, never the venue's cancel-all. Dry-run journals and sends nothing.
+  - **Reused unchanged.** It reuses `_shared/polymarket_orders.ts` and imports `agents/pm_live.ts` helpers without
+    changing them.
+  - **The record.** `grokpm_rec` now counts only the agent's own trades from `started_at`, matched by its fills'
+    transactions.
+  - **0125.** The config's arm, attestation copy and the orders/fills/state tables; GROKPM in the one-armed trigger; the
+    minute's read-back call; live-prep disarmed where nothing is sellable. Read 2026-10-16 15:0x: the largest unsettled
+    holding was 4.2791 and nothing rested.
+  - **The PGlite check.** `backtests/grokpm/scripts/exec_check.mjs`, every migration: all pass. Both counterfactuals fail
+    (trigger and disarm).
+  - **Pre-registration.** D2 is added with a new sha. Appendix A.2 holds the trading contract.
+
+### [2026-10-16 15:13 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **IG strategy search, rules frozen** (sub-agent; item 14; Davies, 10-16: "ig除了澳元这个还有什么别的策略吗？再深度研究下…"):
+  `backtests/ig_search/params/frozen.json` fixes every rule, era split, IG cost and the bar before any data is pulled.
+
+### [2026-10-16 15:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Ticker modal: YTD becomes 6M, with MA 50 and MA 20; the second line is a muted grey-blue** (sub-agent; Davies, 2026-10-16: "你新加的1y
+  ma50线用浅灰蓝色，不要太亮…ytd的图全改成6M，然后ma50和ma20的显示和1y里的ma200和ma50一样"; reverses the same-day "one indicator, one
+  colour" rule and its blue literal). The second line of 1Y (50 beside 200) and of 6M (20 beside 50) is `#8b9bb4` (6.7:1 on the page's
+  `#0c1310`, the main grey `#6b7280` 3.9:1, 1.7:1 between the lines); the main line stays grey. The modal's range row is
+  `MODAL_RANGE_KEYS` = 1D 1W 1M 3M 6M 1Y (CN funds / `.PVT`: 1M 3M 6M 1Y); `RANGES['6M']` is `6mo` daily, MA history `1y` daily
+  (~126 bars before the window, past the 50); `modalRangeKey` maps a stray YTD to 6M in the modal's range setter; old `${t}|YTD`
+  rows in the modal's chart cache are simply never read again and age out. `maBarsFor` / `maLabelDaysFor` say 6M = 50, 1Y = 200;
+  `maSecondDaysFor` 6M = 20, 1Y = 50. Prefetch warms the union (YTD still feeds the portfolio panel, so one more daily call, 7 not 6)
+  and the MA history for the modal's keys only. Scope: the ticker modal; the vs-S&P / Investment panels keep YTD (`RANGE_KEYS`
+  untouched, Davies is asked separately). Pins: `indicators.test.js` (6M on 200 bars: MA 50 50.5 / 175.5, MA 20 65.5 / 190.5 at the first
+  / last displayed bar), `ticker_chart_modal.test.jsx` (button row, both paths 126 points from x = 56, y worked by hand, colours,
+  labels, 11 px push, CN fund row, other ranges), `ytd.test.js`, `cache.test.js`, `prefetch.test.js`; the sweep opens 6M and 1Y in the
+  ACME modal on long daily fixtures (6mo / 1y / 2y), checks the colours, both labels inside the frame and apart at both widths, and
+  that no YTD button is left. `docs/guide.md` and the `docs/map.md` notes follow.
+
+### [2026-10-16 15:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM Deviation D3: the server checks A's and B's edge, a quarter Kelly and C's holding** (Grok's dry-run rehearsal at
+  15:38 sent a B open at p 0.85 against a 0.865 mid and said the server did not check the 12 points). `grokpm/exec.ts`
+  `orderRefusals`: `edge` (A 8 / B 12 points of p over the dearer of the order's price and the server's mid; C needs p over
+  the price), `kelly` (cost at most `0.25 × (p − price)/(1 − price) × equity`, or the venue's smallest order), `adjustment`
+  (a C open needs a holding in that market). Pinned in `exec.test.ts` (the rehearsal's own numbers among them; the old
+  `exec.ts` fails it); prereg §9 D3 and three rows of A.2's table, its sha re-pinned in `src/grokpm_prereg.test.js`. The
+  rehearsal's rows checked in the database: 1 dry-run order (expires 16:14 by itself), 1 decision, 1 cycle, 0 fills.
+
+### [2026-10-16 16:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **IG strategy search, results** (sub-agent; item 14; `reviews/2026-10-16-ig-strategy-search.md`): 23 arms in 12 families
+  at IG's costs, two eras, two sources where the throttles allowed (Dukascopy and Stooq refused; FXCM H1 for FX). None
+  passes; pre-FOMC, turn-of-month and gold Sep-Nov decayed; trend Sharpe 0.40 gross → −0.01 after IG's admin fee. FXW-AUD
+  stays first. S1a: no IG history pulled yet (read-only here); the main session fires `history` probe then fxw.
+
+### [2026-10-16 16:14 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **S1a run** (sub-agent; item 14): export pinned by sha256 (`ig_deepdive/inputs/ig/fxw_sb_bars.csv`), `s1a_transfer.py`
+  unchanged: PASS on all five conditions; results `ig_deepdive/results/s1a_sb.json`, review §9. Not blind.
+
+### [2026-10-16 16:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **S1a pulls fired from the database** (main session, the Vault bearer through `net.http_post`, as `facts` was): `history`
+  `probe` sb 16:03 (5 points), then `fxw` sb `max=15` four times 16:05–16:09: 50 of 51 windows ok, 1,588 points, 8,407 of
+  the week's allowance left. Weekend 2025-11-28 failed `401 account-token-invalid` on the first request after the account
+  switch (status null, so a non-200 check misses it); re-pulled at 16:15 (32 points, ok): 51 of 51 now, allowance 8,375. S1a below ran on the 50; the 51st only clears 5b's one gap. The 2026-10-14
+  16:26 → 20:11 sections moved to the archive ("LEDGER.md, archived 2026-10-16").

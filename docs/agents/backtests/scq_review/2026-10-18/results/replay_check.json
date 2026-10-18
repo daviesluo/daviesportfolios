@@ -1,0 +1,14 @@
+{
+ "from": "2026-09-26",
+ "to": "2026-10-17",
+ "paperTrips": 180,
+ "replayTrips": 180,
+ "matched": 180,
+ "sameExit": 180,
+ "paperPnlUsd": 12.2776,
+ "replayPnlUsd": 12.2776,
+ "matchedPnlUsd_paper": 12.2776,
+ "matchedPnlUsd_replay": 12.2776,
+ "onlyPaper": [],
+ "onlyReplay": []
+}

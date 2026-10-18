@@ -1,0 +1,164 @@
+{
+ "study": "Stablecoin quotes review, 2026-10-18 (docs/agents/reviews/2026-10-18-stablecoin-quotes-review.md): every live and testing row on one basis, the Revolut X testing rows ranked, PR5 rule changes replayed one at a time, and the weekend (Revolut X and Coinbase). Not blind; no pre-registered reading run.",
+ "read": "production, SELECT only, through the Supabase connector, 2026-10-18 03:27-03:50 UTC (sql/); the committed tape docs/agents/backtests/inputs/pr5_2026-09-23 through docs/agents/scripts/pr5/pr5_sim.py (Book, fair_usd_minutes).",
+ "run": [
+  "python3 -I ../scripts/grab.py <saved connector reply of sql/pull_orders.sql> data   # the orders; data/meta.json copied in as it came",
+  "python3 -I scripts/grab_text.py <saved connector reply of sql/pull_replay.sql> data && gzip -n -9 data/minutes.txt data/prints.txt data/paper_trips.txt",
+  "npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env --no-check scripts/page_pnl.ts   # results/page_pnl.json, by the page's own functions",
+  "python3 -I scripts/replay.py check   # results/replay_check.json: the replay against PR5's 180 paper trips",
+  "python3 -I scripts/compare.py   # results/compare.json",
+  "python3 -I scripts/experiments.py   # results/experiments.json (about three minutes)",
+  "python3 -I scripts/weekends.py; python3 -I scripts/weekend_books.py",
+  "python3 -I scripts/manifest.py"
+ ],
+ "findings": [
+  "The replay (scripts/replay.py, stepMinute line for line) reproduces all 180 of PR5's paper trips entered 2026-09-26 -> 10-17, +$12.2776, and the paper engine's 714 orders of 2026-10-01.",
+  "Revolut X testing rows per pound a weekday, 09-28 -> 10-16: variant-2 (take50) 6.59 bps (90 % 3.54-10.51), variant-1 5.56, variant-3 4.84, Stablecoin quotes 4.61; variant-2 - variant-1 +1.03 (+0.23 to +2.02).",
+  "LIVE: realised +£0.5793, unrealised -£0.5941, fees £0.0840; markouts +2.0 / +5.9 bps (no adverse selection).",
+  "Rule changes replayed (FWD 09-26 -> 10-18, HIST 08-26 -> 09-23, both fill rules): only the weekend hold (PR5-W's rule) is better on every record (+£0.30 a day FWD at $100 a rung; +£0.056 at £10); an inner 0.05 % rung adds pounds at the same rate per pound; size, books, stop, re-price, exit offset, inventory caps and time gates are no better.",
+  "Coinbase's Saturday 10-17 (+£0.80 in each row) is Friday entries closed by the 24-hour stop; no weekend-entered trip has closed yet.",
+  "Weekend hold by weekend: 37 of 38 positive on the tape from 01-01, 4 of 4 from 08-26, 4 of 4 on PR5's own record."
+ ],
+ "files": [
+  {
+   "path": "data/agent_quote_live_orders.json",
+   "bytes": 93325,
+   "sha256": "a89030237d1d233932f95dd1b3766e3d63280011b9ba5fe37315d2bda29b0019"
+  },
+  {
+   "path": "data/agent_quote_twin_d_orders.json",
+   "bytes": 374362,
+   "sha256": "11a2ff84e8b11c78388c6cd2618ec6a573afcc6bdb48283362216ca714a9a709"
+  },
+  {
+   "path": "data/agent_quote_twin_p50_orders.json",
+   "bytes": 87532,
+   "sha256": "27830a3dd92fc11f75bce01327d99dfd0570f949b300a80ae2b241685f11bf11"
+  },
+  {
+   "path": "data/agent_quote_twin_pr5_orders.json",
+   "bytes": 69291,
+   "sha256": "2ac0e8e9cf858798cae606312c6f1b629d196702a8a9456ee7bc39c352783387"
+  },
+  {
+   "path": "data/agent_quote_twin_take50_orders.json",
+   "bytes": 91324,
+   "sha256": "33f421cb6d50108631f0714574cb4884bd3cc5769d2d840c17a3d327bde135f3"
+  },
+  {
+   "path": "data/meta.json",
+   "bytes": 5374,
+   "sha256": "e3e3a326691103f17ee9d8d7bcba7855cc909694cff54a301bc250dff22ce72f"
+  },
+  {
+   "path": "data/minutes.txt.gz",
+   "bytes": 352897,
+   "sha256": "8786073cb8737fa39025ba2d45bdd99f807ccaa14f7aa06c54e64d17cffcb64b"
+  },
+  {
+   "path": "data/order_counts.json",
+   "bytes": 2059,
+   "sha256": "c06c966efb259e76e106a19f829d4c430210eb63b2e5a54168bff1e49d673b01"
+  },
+  {
+   "path": "data/paper_engines.json",
+   "bytes": 2570,
+   "sha256": "8ef9fd46d28d46be98b27666b3520b071a36338f5b337901d04e847f8f6aacba"
+  },
+  {
+   "path": "data/paper_trips.txt.gz",
+   "bytes": 6003,
+   "sha256": "2b3e10fdee91b5eece2c36a897bd62df66fa508baad4f22f1229ae5781433442"
+  },
+  {
+   "path": "data/prints.txt.gz",
+   "bytes": 306016,
+   "sha256": "480e4ca0a318af850293e8ccd4adb5f078a46c2332aec3be852ef0b7f7821f65"
+  },
+  {
+   "path": "results/compare.json",
+   "bytes": 21272,
+   "sha256": "f0ca115d173474f7b58c830f9fb6a9af8ebd4db988113ebd3599ae52525e3962"
+  },
+  {
+   "path": "results/experiments.json",
+   "bytes": 223308,
+   "sha256": "e7501a0fca2779dc06f701fbe216ca65bb3e85d6cd7a05e16dd20e44c2511def"
+  },
+  {
+   "path": "results/page_pnl.json",
+   "bytes": 532282,
+   "sha256": "1750d2651393283ea78d9c6fba496718eabef9cfb33857172c8ae1d5e2ad8044"
+  },
+  {
+   "path": "results/replay_check.json",
+   "bytes": 277,
+   "sha256": "55135ddb4e0c68a5367fd7b928a140839cfdd408c62f4c7d5efa8c7566fa578c"
+  },
+  {
+   "path": "results/weekend_books.json",
+   "bytes": 906,
+   "sha256": "1078db037848f3dd0417c9045013e2b0272fce6515f1f32c0f2794f127cdd6a1"
+  },
+  {
+   "path": "results/weekends.json",
+   "bytes": 7083,
+   "sha256": "047ffa2775037a82ec0c9342906151e2916930751a065eb0870cc1c17b58ddeb"
+  },
+  {
+   "path": "scripts/compare.py",
+   "bytes": 9533,
+   "sha256": "4468ee78fc919a39f58bbaae18d459d3ac322b5d606bfd85b08a20c29cb9336d"
+  },
+  {
+   "path": "scripts/experiments.py",
+   "bytes": 11197,
+   "sha256": "5621559f89b280d0c2ed036d3e621361a96a4d119dad182a43f5cc668b596bec"
+  },
+  {
+   "path": "scripts/grab_text.py",
+   "bytes": 1115,
+   "sha256": "2877c0c293e719337b9b37f78d148f6d678de4836416283cedb553b31bfe885e"
+  },
+  {
+   "path": "scripts/manifest.py",
+   "bytes": 3303,
+   "sha256": "49c5ed20a47c4dff0fc6de83a20f8d8692733ab6675eee9915402566829967da"
+  },
+  {
+   "path": "scripts/page_pnl.ts",
+   "bytes": 5607,
+   "sha256": "d495d4dd7a0e819436306e22c933f0ce6a0c4e70ccbd85073601310b0c248857"
+  },
+  {
+   "path": "scripts/replay.py",
+   "bytes": 11014,
+   "sha256": "6898ebdb3bd8a7e23f80b6c6cfa3e02a7333a9b6c6a395750b549a94932d2211"
+  },
+  {
+   "path": "scripts/weekend_books.py",
+   "bytes": 2253,
+   "sha256": "470f7ec2b0ab1112199e476fb4682f9ef94cb16c9cdde9052a0abad267474a53"
+  },
+  {
+   "path": "scripts/weekends.py",
+   "bytes": 3463,
+   "sha256": "72ec12bc7d05e94dd4131284cf6e3eef90d44ca673727c9693361aabf909219d"
+  },
+  {
+   "path": "sql/aggregates.sql",
+   "bytes": 13094,
+   "sha256": "c7e8a4cd7e55640fce6f4c0fdfc6ece77fc4303d7babecb287d7dfaee1f67d51"
+  },
+  {
+   "path": "sql/pull_orders.sql",
+   "bytes": 4757,
+   "sha256": "cc4556302794c8d36a80ee0fe073f33af8e7337e0ba471700994e2d9460b09b9"
+  },
+  {
+   "path": "sql/pull_replay.sql",
+   "bytes": 2030,
+   "sha256": "3a50af533dad09a725597ae55365b4b00bdbc4c7540742191e4a3ca33eb870fa"
+  }
+ ]
+}
