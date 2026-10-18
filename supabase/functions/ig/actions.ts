@@ -279,6 +279,15 @@ export const QUOTES_SWITCH_WAIT_MS = 2_000;
  * on a refusal tries the same tokens again after 3 s, twice, before its one re-login.
  */
 export const QUOTES_LOGIN_WAIT_MS = 2_000;
+/**
+ * With those waits deployed (04:39 UTC), 4 runs in 15 still failed the same way, in ~10.7 s, waits and retries spent:
+ * the token stayed refused, so timing is not the cause. Every failing run made no switch: the client took the fresh
+ * login to be on the CFD account, as the login said, and called it there. IG keeps one current account per user, and
+ * a run can end on the spread-bet account. So after every login the recorder now switches to the account it wants
+ * even when the login says it is current (IG's "must be different" confirms it), reads the spread-bet account first
+ * (S1b's FX), and a refusal on one account no longer stops the other.
+ */
+export const QUOTES_FORCE_SWITCH_AFTER_LOGIN = true;
 export const QUOTES_TOKEN_RETRIES = 2;
 export const QUOTES_TOKEN_RETRY_WAIT_MS = 3_000;
 /** The second snapshot is taken this long after the call started, if the call started early enough. */
@@ -345,38 +354,49 @@ export async function runQuotes(o: {
   const client = o.makeClient(null);
   const errors: string[] = [];
   const samples: QuoteSample[] = [];
+  const perAccount: Partial<Record<AccountKind, { snapshots: number; errors: string[] }>> = {};
   let snapshots = 0;
   let changed: number | null = null;
   let plan: ReturnType<typeof quoteEpics> = [];
   try {
     plan = quoteEpics(await latestFacts(o.rest), roles);
     if (!plan.length) throw new Error("no facts row names an epic for these windows: run ?action=facts for each account");
+    // The spread-bet account first (S1b's FX); `quoteEpics` lists it first.
+    plan = [...plan].sort((a, b) => ACCOUNT_KINDS.indexOf(a.kind) - ACCOUNT_KINDS.indexOf(b.kind));
     await client.login();
-    let tokenRefused = false;
-    for (let k = 0; k < 2 && !tokenRefused; k++) {
+    // Accounts whose tokens IG refused again after the run's one re-login: not called again this run.
+    const refused = new Set<AccountKind>();
+    let forced = false;
+    for (let k = 0; k < 2 && refused.size < plan.length; k++) {
       if (k === 1) {
         if (o.now() - start > SECOND_SAMPLE_LATEST_START_MS) break;
         const wait = start + SECOND_SAMPLE_MS - o.now();
         if (wait > 0) await o.sleep(wait);
       }
-      // The account the session is on goes first, so a snapshot pair costs one switch.
-      const order = [...plan].sort((a, b) => Number(b.accountId === client.session?.accountId) - Number(a.accountId === client.session?.accountId));
+      // The first pass in plan order; the second with the account the session is on first, so it costs one switch.
+      const order = k === 0 ? plan
+        : [...plan].sort((a, b) => Number(b.accountId === client.session?.accountId) - Number(a.accountId === client.session?.accountId));
       for (const p of order) {
+        if (refused.has(p.kind)) continue;
+        const acct = (perAccount[p.kind] ??= { snapshots: 0, errors: [] });
         try {
-          await client.switchTo(p.accountId);
+          // The run's first call goes after a switch sent even if the login names this account (see above).
+          await client.switchTo(p.accountId, !forced);
+          forced = true;
           const body = await client.get("/markets", 2, { epics: p.epics.join(","), filter: "SNAPSHOT_ONLY" });
           const got = samplesOf(body, p.kind, p.accountId, new Date(o.now()).toISOString());
           samples.push(...got);
           snapshots += 1;
+          acct.snapshots += 1;
           const missing = p.epics.filter((e) => !got.some((g) => g.epic === e));
           if (missing.length) errors.push(`${p.kind}: no snapshot for ${missing.join(",")}`);
         } catch (e) {
           errors.push(`${p.kind}: ${errText(e)}`);
+          acct.errors.push(errText(e));
           if (e instanceof IgRefused) throw e;
-          // Tokens refused again after this run's one re-login: stop here, no more logins this minute.
+          // Tokens refused again after this run's one re-login: this account is left for the minute, not the other.
           if (e instanceof IgHttpError && isTokenError(e.status, e.code) && client.relogins >= QUOTES_MAX_RELOGINS) {
-            tokenRefused = true;
-            break;
+            refused.add(p.kind);
           }
         }
       }
@@ -407,6 +427,6 @@ export async function runQuotes(o: {
     errors.push(`run row: ${errText(e)}`);
   }
   // The same-token retries are in the answer, not the row (ig_quote_runs has no column for them; `requests` counts them).
-  return { result: { action: "quotes", ...run, token_retries: client.tokenRetriesUsed }, session: client.session };
+  return { result: { action: "quotes", ...run, token_retries: client.tokenRetriesUsed, accounts: client.scrub(perAccount) }, session: client.session };
 }
 

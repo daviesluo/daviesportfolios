@@ -46,12 +46,23 @@ function fakeIg(o: {
   /** A token is refused (account-token-invalid) until this long after it was issued, on the clock `now`. */
   warmupMs?: number;
   now?: () => number;
+  /** The account the user is on before the first login (IG keeps one current account per user). */
+  startAccount?: string;
+  /** A login leaves the user on the account they were on, and its token works there, while its answer still names
+   *  the CFD account as current (the recorder's failing runs, 10-18 04:43-04:54 UTC). */
+  loginKeepsAccount?: boolean;
+  /** Every GET on this account answers 401 account-token-invalid. */
+  refuseGetsOn?: string;
+  /** Each epic's account: a snapshot request for an epic of another account than the user's current one answers 401
+   *  account-token-invalid, as IG did to the recorder's CFD reads with no switch made. */
+  epicAccount?: Record<string, string>;
 } = {}) {
   const calls: Call[] = [];
-  let account = "Z6F18J";
+  let account = o.startAccount ?? "Z6F18J";
+  const tokenFor = (acct: string) => (acct === "Z6F18J" ? XST : `${XST}-${acct}`);
   // IG's X-SECURITY-TOKEN names the current account: a login hands out the default account's, a switch a new one in the
   // answer's headers alone (no CST), and from then on only the new one is accepted (production, 2026-10-15).
-  let accountToken = XST;
+  let accountToken = tokenFor(account);
   let invalid = o.tokenInvalidOnce ?? false;
   let issuedAt = 0;
   const clock = o.now ?? (() => 0);
@@ -64,8 +75,8 @@ function fakeIg(o: {
     const path = url.pathname.replace("/gateway/deal", "");
     const method = init?.method ?? "GET";
     if (method === "POST" && path === "/session") {
-      account = "Z6F18J";
-      accountToken = XST;
+      if (!o.loginKeepsAccount) account = "Z6F18J";
+      accountToken = tokenFor(account);
       issuedAt = clock();
       return res(200, {
         accountType: "CFD", currencyIsoCode: "GBP", currentAccountId: "Z6F18J", clientId: "CLIENT-1", timezoneOffset: 1,
@@ -76,12 +87,13 @@ function fakeIg(o: {
           { accountId: "Z6F18K", accountName: "Spread bet", accountType: "SPREADBET", preferred: false },
         ],
         echo: `welcome ${CREDS.username}`,
-      }, { CST, "X-SECURITY-TOKEN": XST });
+      }, { CST, "X-SECURITY-TOKEN": accountToken });
     }
     if (headers["cst"] !== CST) return res(401, { errorCode: "error.security.client-token-invalid" });
     if (headers["x-security-token"] !== accountToken) return res(401, { errorCode: "error.security.account-token-invalid" });
     if (o.accountTokenAlwaysInvalid) return res(401, { errorCode: "error.security.account-token-invalid" });
     if (o.warmupMs && clock() - issuedAt < o.warmupMs) return res(401, { errorCode: "error.security.account-token-invalid" });
+    if (o.refuseGetsOn && method === "GET" && account === o.refuseGetsOn) return res(401, { errorCode: "error.security.account-token-invalid" });
     if (invalid && method === "GET") {
       invalid = false;
       return res(401, { errorCode: "error.security.client-token-invalid", token: CST });
@@ -90,7 +102,7 @@ function fakeIg(o: {
       const b = JSON.parse(init?.body as string);
       if (b.accountId === account) return res(412, { errorCode: "error.switch.accountId-must-be-different" });
       account = b.accountId;
-      accountToken = `${XST}-${account}`;
+      accountToken = tokenFor(account);
       issuedAt = clock();
       return res(200, { dealingEnabled: true }, { "X-SECURITY-TOKEN": accountToken });
     }
@@ -104,6 +116,9 @@ function fakeIg(o: {
     }
     if (path === "/markets" && url.searchParams.has("epics")) {
       const epics = url.searchParams.get("epics")!.split(",");
+      if (o.epicAccount && epics.some((e) => o.epicAccount![e] && o.epicAccount![e] !== account)) {
+        return res(401, { errorCode: "error.security.account-token-invalid" });
+      }
       return res(200, { marketDetails: epics.map((e) => ({ instrument: { epic: e, type: "CURRENCIES" }, snapshot: o.snapshot?.(e, account) ?? { bid: 6543.1, offer: 6544.0, marketStatus: "TRADEABLE", updateTime: "21:01:00", delayTime: 0 } })) });
     }
     if (path.startsWith("/markets/")) {
@@ -486,8 +501,8 @@ Deno.test("quotes outside the windows calls nothing; inside, two snapshots an ac
   // SUN and SUNIDX and WKND: the roles the facts row names (AUD/USD, US 500, Weekend Wall Street), on both accounts, twice.
   assertEquals(samples.length, 12);
   assertEquals(new Set(samples.map((s) => s.account_kind)), new Set(["sb", "cfd"]));
-  // One switch a snapshot pair at most: login (CFD), CFD, switch, SB; then SB, switch, CFD.
-  assertEquals([on.result.logins, on.result.switches], [1, 2]);
+  // Login (CFD), the run's first switch sent to SB whatever the login says, SB, switch, CFD; then CFD, switch, SB.
+  assertEquals([on.result.logins, on.result.switches], [1, 3]);
   for (const c of ig.calls) assertAllowed(c.method, c.url);
   assertEquals(tables.ig_quote_runs.length, 1);
   assertClean([on.result, tables.ig_quote_runs, rpcs], "quotes");
@@ -587,16 +602,16 @@ Deno.test("each quotes run starts with its own login, never the previous run's s
   const sleeps: number[] = [];
   const d = deps({ rest, fetchImpl: ig.impl, now: () => t, sleep: (ms) => { sleeps.push(ms); t += ms; return Promise.resolve(); } });
   const r1 = await (await handle(req("quotes", { authorization: `Bearer ${ENV.CRON_SECRET}` }), d)).json();
-  assertEquals([r1.ok, r1.logins, r1.switches, r1.snapshots], [true, 1, 2, 4]);
+  assertEquals([r1.ok, r1.logins, r1.switches, r1.snapshots], [true, 1, 3, 4]);
   const before = ig.calls.length;
   t = Date.UTC(2026, 9, 18, 20, 1, 0, 400);
   const r2 = await (await handle(req("quotes", { authorization: `Bearer ${ENV.CRON_SECRET}` }), d)).json();
   // The second minute's first request is a login, not a call on the tokens the first minute left behind.
   const second = ig.calls.slice(before);
   assertEquals([second[0].method, new URL(second[0].url).pathname.endsWith("/session")], ["POST", true]);
-  assertEquals([r2.ok, r2.logins, r2.switches, r2.snapshots], [true, 1, 2, 4]);
-  // A pause after each login and each switch (two of each a run), before the next call.
-  assertEquals(sleeps.filter((ms) => ms === 2_000).length, 6);
+  assertEquals([r2.ok, r2.logins, r2.switches, r2.snapshots], [true, 1, 3, 4]);
+  // A pause after each login and each switch (one and three a run), before the next call.
+  assertEquals(sleeps.filter((ms) => ms === 2_000).length, 8);
 });
 
 Deno.test("a run whose tokens IG keeps refusing logs in at most twice and stops (no login storm)", async () => {
@@ -609,11 +624,10 @@ Deno.test("a run whose tokens IG keeps refusing logs in at most twice and stops 
   const r = await (await handle(req("quotes", { authorization: `Bearer ${ENV.CRON_SECRET}` }), d)).json();
   assertEquals(r.ok, false);
   assertEquals(r.snapshots, 0);
-  // The run's login, one re-login, and nothing more this minute: the first account's call, its two same-token retries,
-  // the re-login's call, and out.
+  // The run's login and one re-login, never more; each account is tried, then left for the minute.
   assertEquals(r.logins, 2);
   assertEquals(ig.calls.filter((c) => c.method === "POST").length, 2);
-  assert(ig.calls.length <= 6, `${ig.calls.length} requests`);
+  assert(ig.calls.length <= 12, `${ig.calls.length} requests`);
   assert(/account-token-invalid/.test(String(r.error)));
   assertEquals(tables.ig_quote_runs.length, 1);
   assertClean([r, tables.ig_quote_runs], "refused run");
@@ -632,10 +646,53 @@ Deno.test("a fresh token refused for a moment is waited for, not logged in again
   };
   // A token good one second after it is issued: the 2 s pause after the login and each switch covers it.
   const a = await run(1_000);
-  assertEquals([a.r.ok, a.r.logins, a.r.switches, a.r.snapshots, a.r.token_retries], [true, 1, 2, 4, 0]);
+  assertEquals([a.r.ok, a.r.logins, a.r.switches, a.r.snapshots, a.r.token_retries], [true, 1, 3, 4, 0]);
   // Good only after four seconds: each first call is refused once and its same-token retry 3 s later works.
   const b = await run(4_000);
   assertEquals([b.r.ok, b.r.logins, b.r.snapshots], [true, 1, 4]);
   assert(b.r.token_retries >= 1);
   assertEquals(b.ig.calls.filter((c) => c.method === "POST").length, 1);
+});
+
+// The recorder after 8edc426c (2026-10-18 04:41-04:56 UTC): 4 runs in 15 failed with the token refused on the CFD account
+// the login named, no switch made, waits and retries spent.
+
+Deno.test("after a login the recorder switches to the spread-bet account even when the login names another (10-18)", async () => {
+  const { rest } = fakeRest();
+  // Each account's own epics, as production's facts rows have them.
+  await rest.insert("ig_facts", { account_kind: "sb", account_id: "Z6F18K", ok: true, selected: { fx_audusd: "CS.D.AUDUSD.TODAY.IP" } });
+  await rest.insert("ig_facts", { account_kind: "cfd", account_id: "Z6F18J", ok: true, selected: { fx_audusd: "CS.D.AUDUSD.CFD.IP" } });
+  let t = Date.UTC(2026, 9, 18, 20, 0, 0, 400);
+  // The user was left on the spread-bet account; the login still answers "current: CFD".
+  const ig = fakeIg({
+    startAccount: "Z6F18K", loginKeepsAccount: true,
+    epicAccount: { "CS.D.AUDUSD.TODAY.IP": "Z6F18K", "CS.D.AUDUSD.CFD.IP": "Z6F18J" },
+  });
+  const d = deps({ rest, fetchImpl: ig.impl, now: () => t, sleep: (ms) => { t += ms; return Promise.resolve(); } });
+  const r = await (await handle(req("quotes", { authorization: `Bearer ${ENV.CRON_SECRET}` }), d)).json();
+  assertEquals([r.ok, r.snapshots, r.logins], [true, 4, 1]);
+  // The first call after the login is the switch to the spread-bet account, and the first read is that account's.
+  const calls = ig.calls.map((c) => `${c.method} ${new URL(c.url).pathname.replace("/gateway/deal", "")}`);
+  assertEquals(calls.slice(0, 3), ["POST /session", "PUT /session", "GET /markets"]);
+  assertEquals(JSON.parse(ig.calls[1].body!).accountId, "Z6F18K");
+  assertEquals(r.accounts.sb.snapshots, 2);
+  assertEquals(r.accounts.cfd.snapshots, 2);
+});
+
+Deno.test("a refusal on the CFD account does not stop the spread-bet account's readings (10-18)", async () => {
+  const { rest, rpcs } = fakeRest();
+  await factsFor(rest, "sb");
+  await factsFor(rest, "cfd");
+  let t = Date.UTC(2026, 9, 18, 20, 0, 0, 400);
+  const ig = fakeIg({ refuseGetsOn: "Z6F18J" });
+  const d = deps({ rest, fetchImpl: ig.impl, now: () => t, sleep: (ms) => { t += ms; return Promise.resolve(); } });
+  const r = await (await handle(req("quotes", { authorization: `Bearer ${ENV.CRON_SECRET}` }), d)).json();
+  assertEquals(r.ok, false);
+  // Both spread-bet snapshots are taken and recorded; the CFD account is left after its re-login fails.
+  assertEquals(r.accounts.sb.snapshots, 2);
+  assertEquals(r.accounts.cfd.snapshots, 0);
+  assertEquals(r.snapshots, 2);
+  assert(r.logins <= 2);
+  const samples = rpcs[0].args.samples as { account_kind: string }[];
+  assert(samples.length > 0 && samples.every((s) => s.account_kind === "sb"));
 });

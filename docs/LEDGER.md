@@ -459,9 +459,11 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    **2026-10-18 03:40 UTC: the weekend recorder fails two runs in three** (`ig.quotes` 165 errors since 10-16 20:52,
    "401 error.security.account-token-invalid", about 190 logins an hour; `ig_quote_runs` still stores ~145 snapshots an
    hour): S1b's first Sunday is 10-18. **First fix live 04:19 UTC** (`ea3e74da`; history 04:12 UTC): one login a run,
-   at most one re-login. Still 3 of 13 runs failed; the follow-up (history 04:31 UTC, committed, not deployed) waits
-   2 s after a login or a switch and retries the same tokens twice, 3 s apart, before the re-login. After it deploys,
-   check `ig_quote_runs` before 21:00 UK: `ok` on (nearly) every run, `logins` 1.
+   at most one re-login. Still 3 of 13 runs failed; the waits and same-token retries (`8edc426c`, live 04:39) left 4 of
+   15 failing with the token refused on the CFD account the login named, no switch made. Third fix (history 04:58 UTC,
+   committed, not deployed): after every login the recorder switches to the account it wants even when the login names
+   it, reads the spread-bet account first, and a refusal on one account no longer stops the other. After it deploys,
+   check `ig_quote_runs` before 21:00 UK: `ok` on (nearly) every run; the answer's `accounts.sb.snapshots` 2.
 
 15. **GROKPM, "Polymarket analyst" ("(Grok)" dropped 10-17): LIVE since 2026-10-17 02:39:14 UTC (Davies: "上线"); ends
    2026-11-14 00:00 UTC at the latest (wake `trig_01C3a3b3F38FYavx6jFeqJEq`); trades through our Ireland server on the shared account** (Davies, 2026-10-15: "让grok bot里开一个trading bot，给他100美元…先让他就用100美元测试"; 2026-10-16:
@@ -635,6 +637,16 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)"; each oldest first.
+
+### [2026-10-18 04:58 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **IG weekend recorder, third fix** (sub-agent; item 14). With `8edc426c` live (04:39 UTC), runs 04:41-04:56: 11 of
+  15 ok; the 4 failures (04:43, 04:47, 04:50, 04:54) each took ~10.7 s, 2 logins, 0 switches, 6 requests, "cfd: 401
+  account-token-invalid": the waits and retries ran and the token stayed refused, so timing is not the cause. The
+  client trusted the login's `currentAccountId` (CFD) and called it without a switch, while IG keeps one current account
+  per user. Now: the run's first call is a `PUT /session` to the account wanted even when the login names it ("must be
+  different" counts as done), and so is the re-login's; the spread-bet account (S1b's FX) is read first; an account
+  refused after the one re-login is left for the minute and the other is still read. The answer carries per-account
+  snapshots and errors (`accounts`); the run row is unchanged. Two pins fail on the deployed code.
 
 ### [2026-10-18 04:46 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **IG strategy search round 3, results** (sub-agent; item 14; `reviews/2026-10-18-ig-strategy-search-3.md`): 50 arms

@@ -189,6 +189,8 @@ export type IgClientOpts = {
    *  before any re-login (unset: none). */
   tokenRetries?: number;
   tokenRetryWaitMs?: number;
+  /** After a re-login, `PUT /session` to the account even when the login says it is already current. */
+  forceSwitchAfterLogin?: boolean;
 };
 
 /**
@@ -306,7 +308,9 @@ export class IgClient {
       const account = this.session?.accountId ?? "";
       this.session = null;
       await this.login();
-      if (account && this.session && (this.session as IgSession).accountId !== account) await this.switchTo(account);
+      if (account && this.session && (this.opts.forceSwitchAfterLogin || (this.session as IgSession).accountId !== account)) {
+        await this.switchTo(account, this.opts.forceSwitchAfterLogin);
+      }
       ({ answer, headers } = await this.raw(method, path, { ...o, auth: true }));
     }
     // The X-SECURITY-TOKEN names the current ACCOUNT (IG Labs REST guide: "a token identifying the current account"), so
@@ -329,9 +333,12 @@ export class IgClient {
   }
 
   /** `PUT /session` to a demo account, unless it is the current one. `defaultAccount` false: the default is left alone. */
-  async switchTo(accountId: string): Promise<void> {
+  async switchTo(accountId: string, force = false): Promise<void> {
     if (!this.session) await this.login();
-    if (this.session?.accountId === accountId) return;
+    // `force`: send the switch even when the session says it is on that account already. A login's `currentAccountId`
+    // is not always the account its token works for (the recorder, 10-18: tokens refused on the account the login
+    // named, with no switch made); IG's "accountId-must-be-different" then confirms the account.
+    if (!force && this.session?.accountId === accountId) return;
     this.switches += 1;
     const a = await this.call("PUT", "/session", { version: 1, body: { accountId, defaultAccount: false } });
     if (a.status !== 200) {

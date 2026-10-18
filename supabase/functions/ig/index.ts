@@ -28,7 +28,7 @@ import { beatKeyOfRequest, writeBeat } from "../_shared/beats.ts";
 import { demoCreds, IgClient, scrubDeep, type IgSession } from "./client.ts";
 import {
   FACTS_GAP_MS, FACTS_MAX_REQUESTS, HISTORY_GAP_MS, HISTORY_MAX_REQUESTS, HISTORY_MAX_WINDOWS, QUOTES_GAP_MS, QUOTES_MAX_RELOGINS,
-  QUOTES_LOGIN_WAIT_MS, QUOTES_MAX_REQUESTS, QUOTES_SWITCH_WAIT_MS, QUOTES_TOKEN_RETRIES, QUOTES_TOKEN_RETRY_WAIT_MS,
+  QUOTES_FORCE_SWITCH_AFTER_LOGIN, QUOTES_LOGIN_WAIT_MS, QUOTES_MAX_REQUESTS, QUOTES_SWITCH_WAIT_MS, QUOTES_TOKEN_RETRIES, QUOTES_TOKEN_RETRY_WAIT_MS,
   restClient, runFacts, runHistory, runQuotes, type AccountKind, type Rest,
 } from "./actions.ts";
 import { HISTORY_PLANS } from "./windows.ts";
@@ -117,6 +117,7 @@ export async function handle(req: Request, d: Deps): Promise<Response> {
           creds, fetchImpl: d.fetchImpl, maxRequests: QUOTES_MAX_REQUESTS, minGapMs: QUOTES_GAP_MS, sleep: d.sleep, now: d.now, session: s,
           maxRelogins: QUOTES_MAX_RELOGINS, switchWaitMs: QUOTES_SWITCH_WAIT_MS, loginWaitMs: QUOTES_LOGIN_WAIT_MS,
           tokenRetries: QUOTES_TOKEN_RETRIES, tokenRetryWaitMs: QUOTES_TOKEN_RETRY_WAIT_MS,
+          forceSwitchAfterLogin: QUOTES_FORCE_SWITCH_AFTER_LOGIN,
         }),
         session: null, rest: d.rest, now: d.now, sleep: d.sleep, report: (m, c) => d.report("ig.quotes", m, c),
       });
