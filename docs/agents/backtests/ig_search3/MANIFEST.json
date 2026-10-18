@@ -1,0 +1,246 @@
+{
+ "generated": "by scripts/build_manifest.py",
+ "note": "2026-10-18: the IG strategy search, round 3. Small derived inputs are committed; raw pulls too large to commit are pinned by their sha256 in inputs/pull_log_*.json and re-fetched by scripts/pull.py.",
+ "files": [
+  {
+   "path": "inputs/bls_dates.json",
+   "sha256": "a1a604fd9ad15c6dfa16cc78bf0dcb6b0b957271d8788ee64dfda0e7f7d6b83c"
+  },
+  {
+   "path": "inputs/fxcm_AUDJPY_weekends.csv.gz",
+   "sha256": "65e6e5b3d2fee147faa1409d3bbbf468babab1af6478ef4766e8e0862286fc3e"
+  },
+  {
+   "path": "inputs/fxcm_AUDNZD_weekends.csv.gz",
+   "sha256": "ae9ffe34089ea681d8ff2caef944687cf80995bf0ba1d30499f7f8e6082c000e"
+  },
+  {
+   "path": "inputs/fxcm_AUDUSD_weekends.csv.gz",
+   "sha256": "78536bbf64c6f56b6134e8e099e38506611b6c4990fa851cda3621250003204b"
+  },
+  {
+   "path": "inputs/fxcm_EURAUD_weekends.csv.gz",
+   "sha256": "259fd28288039aee95227f73057a0b10597f1785c4b34239658b9125e7bc5bf7"
+  },
+  {
+   "path": "inputs/fxcm_EURGBP_weekends.csv.gz",
+   "sha256": "8d42d5030f2f66d03399a67d0159092c501e7b8875a0bfe9d17542be34abfee7"
+  },
+  {
+   "path": "inputs/fxcm_EURJPY_weekends.csv.gz",
+   "sha256": "cd304865ef8687f4bb00b3b046e591c2c94ce990154ca7c9c9dd672404ab6282"
+  },
+  {
+   "path": "inputs/fxcm_EURUSD_weekends.csv.gz",
+   "sha256": "e8fae811bed77c3c732ed541e532d7c521663667f42debd09d6a972156dae7de"
+  },
+  {
+   "path": "inputs/fxcm_GBPJPY_weekends.csv.gz",
+   "sha256": "c2bdaa363e00dc0e741cbda17d127a8db7afce731c1dde4e7aca5c5fad5e0b41"
+  },
+  {
+   "path": "inputs/fxcm_GBPUSD_weekends.csv.gz",
+   "sha256": "99cb5ec87395bedd8aa34a5270a310c77bc629e717f328796e8c8a5ecaea1148"
+  },
+  {
+   "path": "inputs/fxcm_NZDJPY_weekends.csv.gz",
+   "sha256": "234c8c4cc07b2e0f1df9a49a7e747eeb8ad6058744fca80776f5189b623a8c3f"
+  },
+  {
+   "path": "inputs/fxcm_NZDUSD_weekends.csv.gz",
+   "sha256": "49969f49df435c8b8e8fba75e26debfde5bee34b68695c8217bae80004536346"
+  },
+  {
+   "path": "inputs/fxcm_USDCAD_weekends.csv.gz",
+   "sha256": "592d3b9e9364d6af03f932b667ae7721ba652d5afc6ee76822ce7e7c5abb9845"
+  },
+  {
+   "path": "inputs/fxcm_USDCHF_weekends.csv.gz",
+   "sha256": "eb4702168b6ca1417aafde4309102a556562d0e8c6e54e3c9812f614bcfc2b16"
+  },
+  {
+   "path": "inputs/fxcm_USDJPY_weekends.csv.gz",
+   "sha256": "1b57069020c4d626218d2ac9b9df6256b26548ed802a7370c6f2f1f119c96893"
+  },
+  {
+   "path": "inputs/hd_AUDJPY_weekends.csv.gz",
+   "sha256": "6e581b7a860932c9f528a644172ca222e6efdaf5b7c7c0ac33bab7083bdb7158"
+  },
+  {
+   "path": "inputs/hd_AUDNZD_weekends.csv.gz",
+   "sha256": "10782335c2cc2b785b02281649c8b3b9d0dd0f95710b99dd5f1390225aee056b"
+  },
+  {
+   "path": "inputs/hd_AUDUSD_weekends.csv.gz",
+   "sha256": "2f49056c12ce07ac4d06b9c655cb58df3b58e19c8666a480f9d368b67da9763b"
+  },
+  {
+   "path": "inputs/hd_DE40_days.csv.gz",
+   "sha256": "8f6f457011c2c752d4cebd2bcfd3ed366c8b6e3f76957b660375d08edc628be8"
+  },
+  {
+   "path": "inputs/hd_EURAUD_weekends.csv.gz",
+   "sha256": "0854b9da35564a382551670f4d93783f6f7054a7effbdd11ee2d9545cc1fe84d"
+  },
+  {
+   "path": "inputs/hd_EURGBP_weekends.csv.gz",
+   "sha256": "173e732277b3cb28c2c37849443a359c14080d908eef899ab50e783d2488f880"
+  },
+  {
+   "path": "inputs/hd_EURJPY_weekends.csv.gz",
+   "sha256": "953970fc4ab510a3ca1b0418d7819ce4089cba1da63689221436bf7ff129d7b1"
+  },
+  {
+   "path": "inputs/hd_EURUSD_weekends.csv.gz",
+   "sha256": "196e35b049241798227b60b1f71c49b978e5aadb154d2f06bab119cdb7a5917b"
+  },
+  {
+   "path": "inputs/hd_GBPJPY_weekends.csv.gz",
+   "sha256": "d3900f5011d02970a99c6547860f90f740d59b6adb3a66c5132672d89be30df1"
+  },
+  {
+   "path": "inputs/hd_GBPUSD_weekends.csv.gz",
+   "sha256": "e6a14baa6b359be11531625602339bdd0e93aa9fbf45c446ecbeb75428e4e859"
+  },
+  {
+   "path": "inputs/hd_NZDJPY_weekends.csv.gz",
+   "sha256": "43efebe376a3a7ca5864684d490ef7598a94f6d411f6fddd1400e851eae9c266"
+  },
+  {
+   "path": "inputs/hd_NZDUSD_weekends.csv.gz",
+   "sha256": "4eff0f08485f169d1e1c185a792780e8335bf2d6f6af1aff428222e3443351fd"
+  },
+  {
+   "path": "inputs/hd_UK100_days.csv.gz",
+   "sha256": "436b981344fd3f46a0d62c3cfdbca4ab9b2c1e69ebf3dcf9f9278aac5f045d29"
+  },
+  {
+   "path": "inputs/hd_US500_days.csv.gz",
+   "sha256": "32dc857efcd7ff5b892d33f5152c72b20beeb7eec2f18283a739555fcda5f83d"
+  },
+  {
+   "path": "inputs/hd_USDCAD_weekends.csv.gz",
+   "sha256": "c060996c6cf30e42d72adcae8e3b4b59b61a42022b492379110286c00655709c"
+  },
+  {
+   "path": "inputs/hd_USDCHF_weekends.csv.gz",
+   "sha256": "79a225f217dd6a190a5195e87ffb511c17f726b8e05bfd78088c347e224e37bb"
+  },
+  {
+   "path": "inputs/hd_USDJPY_weekends.csv.gz",
+   "sha256": "63e620c1ca1ac79c5173ff80fc4edc9bda546ee896710ca8ac5ac189eee5ede7"
+  },
+  {
+   "path": "inputs/hd_USTECH_days.csv.gz",
+   "sha256": "2b59f1a0cd4f284fa905badfaf31fca984a9001092c5c5f3e02bb0fc99df0273"
+  },
+  {
+   "path": "inputs/hd_WTI_days.csv.gz",
+   "sha256": "5d955e468dfee8478092557fd099ad0306c8a7250abef986d2da10a0ea4b0198"
+  },
+  {
+   "path": "inputs/hd_tzcheck.json",
+   "sha256": "c401a5d4f3e0fa7262d540a34a1339bdb20a6226984e1fd7285d7377922d9780"
+  },
+  {
+   "path": "inputs/hd_tzcheck2.json",
+   "sha256": "5d2b2ad28465a8decfa264b04bffd13697b8cb79f6dab76527bae071c906a76f"
+  },
+  {
+   "path": "inputs/ig_recorder_weekend_2026-10-17.json",
+   "sha256": "0cc03d28c21fc1dc28638a5c24348d12220005805bb641a5c13c5465ed7ff26d"
+  },
+  {
+   "path": "inputs/pull_log_fxcm.json",
+   "sha256": "1093b79ff933df4ad55ce0b488f787b86a10a12925ad6f48de9ed3927fe02b59"
+  },
+  {
+   "path": "inputs/pull_log_hd_fx.json",
+   "sha256": "6d3d75e19d8b74b57638c4a5c3b6cff8d96cc80539ea43e2c7798be577b5d4a8"
+  },
+  {
+   "path": "inputs/pull_log_hd_index.json",
+   "sha256": "c671e669504d23b81c8ac65c0e26aa028ff74ce09aa65c828961c361d37dd5a4"
+  },
+  {
+   "path": "inputs/pull_log_small.json",
+   "sha256": "648f0e45ba045b05860160e1f101921b52670a4059ed20c3eecbf7b89af5f412"
+  },
+  {
+   "path": "inputs/yahoo_1h_CL_F.json.gz",
+   "sha256": "c95b0623357d23d1d77de1103507e9d3e87f211ae06ed5e41d274dede3b4f3ca"
+  },
+  {
+   "path": "inputs/yahoo_1h_DIA.json.gz",
+   "sha256": "14a77ee9bbf68146d0a638bf7073f48f2a492eaa4386fe74480f2af7a2bb48e1"
+  },
+  {
+   "path": "inputs/yahoo_1h_ES_F.json.gz",
+   "sha256": "9933c1c1402f0a4036f98434b291c555b01be664bc5e8bdd84e0f1d8d21c433a"
+  },
+  {
+   "path": "inputs/yahoo_1h_FTSE.json.gz",
+   "sha256": "4ab3b2b4b529bb5cd591e18f6343bffd55456169b79da01c489e6df78767735e"
+  },
+  {
+   "path": "inputs/yahoo_1h_GDAXI.json.gz",
+   "sha256": "9a9275a898067df10ab60879d26bc50a5194c53d1394a81c7585ef3a134c31a5"
+  },
+  {
+   "path": "inputs/yahoo_1h_NQ_F.json.gz",
+   "sha256": "077b14fa491583ed6aa0f25a5af49bc6b882c0072cfc3034663abf9a01d7924b"
+  },
+  {
+   "path": "inputs/yahoo_1h_QQQ.json.gz",
+   "sha256": "85e2cd5107a0896531091ca87e7911f16e24e3e0fa480349f6c760f694f95a6c"
+  },
+  {
+   "path": "inputs/yahoo_1h_SPY.json.gz",
+   "sha256": "7a32c3f8f44ec2d5e8d93fe195cdd20c346607bdc589fa665966d7f6aeb6ac7a"
+  },
+  {
+   "path": "inputs/yahoo_1h_YM_F.json.gz",
+   "sha256": "47f086e8fa69b3ddff21321815cc44f492d226519b33a5c674c90b206491b696"
+  },
+  {
+   "path": "params/frozen.json",
+   "sha256": "026b0cf8b299d636bca1aa2c2e6dfdc7a56ff45c8d8097ce5468f46fd563fffc"
+  },
+  {
+   "path": "results/search.json",
+   "sha256": "949cf34118d4c2ca40cac75e8237caecbf0c1faddb3170fe7a433803b79df62c"
+  },
+  {
+   "path": "results/search_inclusive_close.json",
+   "sha256": "6f60cd3805e80af259fb301870b08b84acb3b3b18344952774e06fcc46f5dffb"
+  },
+  {
+   "path": "results/sizing.json",
+   "sha256": "e91a3ccaf9df13f6134676ebb4a2c69432176bbe2ff08ea4b5339d9c3a94cda3"
+  },
+  {
+   "path": "scripts/build_manifest.py",
+   "sha256": "6ef87e79a6f5dd7cc6216b91a9353b7e1ee423febea1c3553cea4a8cf111074b"
+  },
+  {
+   "path": "scripts/pull.py",
+   "sha256": "85d0c2b92e84eab7419cec21f5ea477d94c2584cb0d30f2b994923484d78c315"
+  },
+  {
+   "path": "scripts/report.py",
+   "sha256": "192d3b0c088588e85e72bdd1435e4bfe6148571cbd64e5b1ad762c2831d10c37"
+  },
+  {
+   "path": "scripts/search.py",
+   "sha256": "fd75f839a569793cb8d1ebc646600d2691f2f865d6431d9fcc5d1bd8804fd609"
+  },
+  {
+   "path": "scripts/sizing.py",
+   "sha256": "48032a2ff03580a6bdff3bc782e32eb7a550c91926a3f6c2443a0e44886143ef"
+  },
+  {
+   "path": "scripts/tzcheck.py",
+   "sha256": "77ac9d5bc47ee6a8a996d211a7aeebf96159c4b2277399fe5f9100920072f5d9"
+  }
+ ]
+}

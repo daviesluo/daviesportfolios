@@ -143,5 +143,26 @@
     }
   },
   "term_9_12": "each arm is classed: by hand (a fixed clock time, at most one or two dealt trades a day, a signal readable in a minute) or software (reaction within a minute of a print, or many trades a day). IG's spread-bet terms 9(12) need IG's written consent for automated strategies; the CFD account is the route for software.",
-  "deviations": []
+  "deviations": [
+    {
+      "id": 1,
+      "written": "2026-10-18 03:42 UTC, after the frozen SIZING stakes were computed and before this reading was",
+      "what": "SIZING adds, as readings beside the frozen ones, IG's maximum retail leverage on AUD/USD (20:1, a 5 % margin equal to the whole account) and, for every stake, the mark-to-market loss in GBP at the worst adverse excursion on the minute path (the trade that recovered). Added because Davies allowed more aggressive play; the frozen stakes are reported unchanged and first."
+    },
+    {
+      "id": 2,
+      "written": "2026-10-18 03:45 UTC, before any index or FX arm on corrected data was computed",
+      "what": "HistData's stamps are New York local time (EST in winter, EDT in summer), not fixed EST as its FAQ says. Found when US 500's IMOM was compared with SPY (source B): the last half hour's return correlated 0.979 on winter days and -0.089 on summer days; read as New York time the summer correlation is 0.998 (2024 and 2025, 144 and 143 days), read as fixed EST 0.049 and -0.112. Every HD file is now read as America/New_York, and the frozen tz_check is also reported for each year and season (the minute of the local day with the largest mean absolute 1-minute return must be within 2 minutes of the cash open; a year-season that fails is listed and its days dropped from the index arms). Said plainly: one debug run had computed the US 500 arms on the misread table; those numbers are discarded, not reported, and nothing in the rules changed."
+    },
+    {
+      "id": 3,
+      "written": "2026-10-18 03:58 UTC, after the frozen tz_check's output (inputs/hd_tzcheck.json) was read and before any arm on the New York-time tables was computed",
+      "what": "The frozen tz_check (the single busiest minute of the day must be the cash open) is the wrong test for a near-24-hour CFD: on US 500 the busiest minute is usually 08:30, 10:00, 15:50 or 15:59 ET (data releases and the close), all New York-anchored, so it would fail most year-seasons that are in fact on New York time. It is reported as frozen and replaced, for dropping days, by: for each year-season, r0 = the median over days of |1-minute return| in the 15 minutes after the cash open divided by the median in the 15 minutes before; the same ratio with both windows moved one hour earlier (r-) and one hour later (r+). The year-season passes when r0 >= 1.5 and r0 > max(r-, r+); otherwise its days are dropped from that market's arms and listed. WTI (no equity cash open): the same on Wednesdays around 10:30 ET (the EIA release). Medians, so release-day spikes do not decide it. Also recorded: HistData serves no WTI file for 2024, 2025 or 2026-01 to 05 (its download form carries an empty token), so EIA's test era is 2018-2023 and 2026-06 to 09."
+    },
+    {
+      "id": 4,
+      "written": "2026-10-18 04:40 UTC, AFTER the first full run's results were read",
+      "what": "Two readings added beside the frozen ones, neither replacing them. (a) The frozen cost rule treats the in-hours window as [start, end), so a deal at the cash close (16:30 UK for UK 100 and Germany 40, 21:00 UK for the US markets) is charged the out-of-hours spread; results/search_inclusive_close.json charges it in hours, as a deal a minute earlier would be. No verdict changes. (b) FXW_X reports each pair's 2013-2026 whole-sample mean and the HistData 2012-2015 reading, because FXCM's 2012 files open every weekend at Friday's close (all 52 gaps of every pair exactly 0: an artifact that yields no trade), so FXW-AUD's new out-of-sample years on FXCM are 2013-2015, not 2012-2015."
+    }
+  ]
 }

@@ -1,0 +1,1934 @@
+[
+{
+"bytes": 326983,
+"sha256": "035a3fcedcc0d5669d260e0ee2d3d94c08b96d6d7e942cd2859f83f5a1c50c57",
+"status": 200,
+"url": "histdata:AUDJPY:2012:"
+},
+{
+"bytes": 3846092,
+"sha256": "5074302bef5b7d7416dfc326261ac9faf986d0717b1ae24ca904d1c38a37dd6c",
+"status": 200,
+"url": "histdata:AUDJPY:2013:"
+},
+{
+"bytes": 3609362,
+"sha256": "7178a52166f90906e544d20041ed737dd480a72cd3145fac884bd0295a8774f9",
+"status": 200,
+"url": "histdata:AUDJPY:2014:"
+},
+{
+"bytes": 3757016,
+"sha256": "4514fd4e36f66e87b4d25f621ed26ce49995aa6b75d5e46b00b3ab493fe71cda",
+"status": 200,
+"url": "histdata:AUDJPY:2015:"
+},
+{
+"bytes": 3800759,
+"sha256": "da80d1a473f185bc252ddaca7f158e8af9d9d5b0559944b389473c1689921d22",
+"status": 200,
+"url": "histdata:AUDJPY:2016:"
+},
+{
+"bytes": 3592949,
+"sha256": "a3cadd3079c8edb85c1967fa160e591b8cb44d629a9b7ceb80af21f485babfcf",
+"status": 200,
+"url": "histdata:AUDJPY:2017:"
+},
+{
+"bytes": 3614806,
+"sha256": "6f16fdf2e93d20dd27c3f5340b66f8ae33c900a7c4fabbc562f2de884d267de0",
+"status": 200,
+"url": "histdata:AUDJPY:2018:"
+},
+{
+"bytes": 3440198,
+"sha256": "c2280e2491748b473b43bb6b3b72bf5881a925f063eae524dd1473f06437645b",
+"status": 200,
+"url": "histdata:AUDJPY:2019:"
+},
+{
+"bytes": 3655280,
+"sha256": "dd84ab792cd9007557bca3179101ea70d33ee4009593a90992924289f4c113fb",
+"status": 200,
+"url": "histdata:AUDJPY:2020:"
+},
+{
+"bytes": 3539124,
+"sha256": "5a1e8130faffd4b312ae556a247bb82b3d5a81aa6075fdc3c4fa93d1d94c062c",
+"status": 200,
+"url": "histdata:AUDJPY:2021:"
+},
+{
+"bytes": 3824349,
+"sha256": "0eae48faf6a87365e7ad54d5de299032be36ecc230c2596c4877da27b7fb4f8c",
+"status": 200,
+"url": "histdata:AUDJPY:2022:"
+},
+{
+"bytes": 3244833,
+"sha256": "8b42bf15216db19035ec704d31d00fc63af653beb10097c5f8168539d3a1429a",
+"status": 200,
+"url": "histdata:AUDJPY:2023:"
+},
+{
+"bytes": 3722335,
+"sha256": "7750f9b7b29476c4a9c16c59717fd72822923c8cbede6f1b35af7d18bf9d0b22",
+"status": 200,
+"url": "histdata:AUDJPY:2024:"
+},
+{
+"bytes": 3724635,
+"sha256": "fff5bdcc33b9cd8ca20571f7a597f746f0c5c093fda7cba09dff1b2dd806c486",
+"status": 200,
+"url": "histdata:AUDJPY:2025:"
+},
+{
+"bytes": 304190,
+"sha256": "6dd120e3c92b4b1634e5838167ba27c2209a998cb69acba89b8449e437dee2a3",
+"status": 200,
+"url": "histdata:AUDJPY:2026:1"
+},
+{
+"bytes": 301972,
+"sha256": "ec38074acd560951366add0090daf618e9aa375b92c2e6517b1f328bf20f86e9",
+"status": 200,
+"url": "histdata:AUDJPY:2026:2"
+},
+{
+"bytes": 336529,
+"sha256": "1e581d779dd444d20dceba2e6bd660d3c73b315941345f3e4e3875b1ae5aacae",
+"status": 200,
+"url": "histdata:AUDJPY:2026:3"
+},
+{
+"bytes": 310131,
+"sha256": "bacedfb9d00d1c081f3d7c751e1bb68bd8e5238f3beb49cdd721dcf050b7203b",
+"status": 200,
+"url": "histdata:AUDJPY:2026:4"
+},
+{
+"bytes": 294510,
+"sha256": "a7aec9b1d9a1b68b4e9594a5d40cb9e426eb563cee09ba90d9cf9a923f3a070c",
+"status": 200,
+"url": "histdata:AUDJPY:2026:5"
+},
+{
+"bytes": 307800,
+"sha256": "f4eb165e5f3f1a2e25c07778c6df45334286d472961074ab354dcfc761d993bd",
+"status": 200,
+"url": "histdata:AUDJPY:2026:6"
+},
+{
+"bytes": 311958,
+"sha256": "1d13a8d248757d6409bf0e35cf72d1bc1bb4f6c79033f32ceb3e07425f85e6df",
+"status": 200,
+"url": "histdata:AUDJPY:2026:7"
+},
+{
+"bytes": 286977,
+"sha256": "eff154108e01f968be264d8119de6a0e28bd4652e7fc2c380ec554fd0381015d",
+"status": 200,
+"url": "histdata:AUDJPY:2026:8"
+},
+{
+"bytes": 300500,
+"sha256": "6545a80553f8fc868062163ac9235530831403e1108936d7e78e3b488420ffd1",
+"status": 200,
+"url": "histdata:AUDJPY:2026:9"
+},
+{
+"bytes": 3465294,
+"sha256": "2fb93aba9cbc31a1d09c90e929ec1488da18e59258e435d4e8ae252beff076c5",
+"status": 200,
+"url": "histdata:AUDNZD:2012:"
+},
+{
+"bytes": 3510328,
+"sha256": "03942b2de57d317a2bfcbed43392de3ae51dc575fed92f99b000a6649c66612e",
+"status": 200,
+"url": "histdata:AUDNZD:2013:"
+},
+{
+"bytes": 3363851,
+"sha256": "0b3d8bef374b5dcd9f2fa9dc2a5ad946f12a04b38bb77ff86d0abbd8f455c909",
+"status": 200,
+"url": "histdata:AUDNZD:2014:"
+},
+{
+"bytes": 3524852,
+"sha256": "a10fddf2bceaf2eff0b55d567137d12ca67b8974f6de29adfcc0128bdaeadedb",
+"status": 200,
+"url": "histdata:AUDNZD:2015:"
+},
+{
+"bytes": 3479638,
+"sha256": "0bcd4da1b6e391b30443e6336dc38f277dbce58b19d654852b7c3dac24f35a1e",
+"status": 200,
+"url": "histdata:AUDNZD:2016:"
+},
+{
+"bytes": 3378129,
+"sha256": "785b7165fa8a43d3d0cb59dfeff276d9f2b95c0e30eb7c19eb29152ecd3246ba",
+"status": 200,
+"url": "histdata:AUDNZD:2017:"
+},
+{
+"bytes": 3353538,
+"sha256": "c71138c648428da47fa7d55f691128e5e0dbe83ab68dc146554dd03e0ec7a728",
+"status": 200,
+"url": "histdata:AUDNZD:2018:"
+},
+{
+"bytes": 3226852,
+"sha256": "2cbcbb251b88c68fb8672e262c20f8a8c1f8dee59736beed51cb551f904ffd07",
+"status": 200,
+"url": "histdata:AUDNZD:2019:"
+},
+{
+"bytes": 3394559,
+"sha256": "576c0aec3880aac655cc731ae9be8d9b42525aa562f47b2c4cada15bb65f83c5",
+"status": 200,
+"url": "histdata:AUDNZD:2020:"
+},
+{
+"bytes": 3248581,
+"sha256": "743aab49b5bb1be1ef497d22912f8621a47120637175430e5179c3b17104c7bf",
+"status": 200,
+"url": "histdata:AUDNZD:2021:"
+},
+{
+"bytes": 3382510,
+"sha256": "43c2f50b31b35d8913c2332d11cb7df9550a6763f222244e7a3654f8bb7d9a80",
+"status": 200,
+"url": "histdata:AUDNZD:2022:"
+},
+{
+"bytes": 2919455,
+"sha256": "5b8fda3cbf8236b2c4dc45e608301ca9d5da1e23d947e190c1284288421835a0",
+"status": 200,
+"url": "histdata:AUDNZD:2023:"
+},
+{
+"bytes": 3228541,
+"sha256": "93c29681852ed9bbe69d1aaf0442241e9ad33c140b6ef4a1a4c0128422bf9a59",
+"status": 200,
+"url": "histdata:AUDNZD:2024:"
+},
+{
+"bytes": 3226197,
+"sha256": "21eb5c15ad4c3bc6b26c4ceab31912eb80c9a0a43bf862dd4ad7de09fd590c74",
+"status": 200,
+"url": "histdata:AUDNZD:2025:"
+},
+{
+"bytes": 266722,
+"sha256": "da124f7e676e0b51ca385caae40487db684f2da519e2eec8627a926cce222d49",
+"status": 200,
+"url": "histdata:AUDNZD:2026:1"
+},
+{
+"bytes": 256069,
+"sha256": "b011a3aafbfe81a7be6d2d3b9b2c7f63e292b6f150489724885b4b217103f3b0",
+"status": 200,
+"url": "histdata:AUDNZD:2026:2"
+},
+{
+"bytes": 295148,
+"sha256": "00b318eabda763d082d9b39cf239eeaf89764e1db65003e7260d688d68b7df6e",
+"status": 200,
+"url": "histdata:AUDNZD:2026:3"
+},
+{
+"bytes": 277970,
+"sha256": "b2b8be77d501a1e4969c4f944477157ee9a85e4121ac30e2bd320f094194542a",
+"status": 200,
+"url": "histdata:AUDNZD:2026:4"
+},
+{
+"bytes": 263650,
+"sha256": "1cf6a813aa1a5a313311603512f699952ddd0e19fe3cc2eb5ba8a6768c9abfa0",
+"status": 200,
+"url": "histdata:AUDNZD:2026:5"
+},
+{
+"bytes": 277666,
+"sha256": "6db1dc351a257e7d18a9ace5c7b02ee32c0d4c11e095f52df638b155e314aa90",
+"status": 200,
+"url": "histdata:AUDNZD:2026:6"
+},
+{
+"bytes": 285155,
+"sha256": "52600518f2006412c4eb7d27f8d217dcde993d6a937d04247057933a7bd6b8e5",
+"status": 200,
+"url": "histdata:AUDNZD:2026:7"
+},
+{
+"bytes": 264650,
+"sha256": "f2c8f91c6b11b954b10e07d582efecce7d22b70bd232fef220ef921bf981eb33",
+"status": 200,
+"url": "histdata:AUDNZD:2026:8"
+},
+{
+"bytes": 271763,
+"sha256": "9e51e87361ed6c4a11e5350dd776239e3906ae75dc89cb6770f77f2376a52dc1",
+"status": 200,
+"url": "histdata:AUDNZD:2026:9"
+},
+{
+"bytes": 3524706,
+"sha256": "e0be9f3a166a8caa9ffcd8d76dc2fc078ce808646ae8ca8f9354e9f4456bb131",
+"status": 200,
+"url": "histdata:AUDUSD:2012:"
+},
+{
+"bytes": 3445717,
+"sha256": "5a1b6256b35b205d734624cc0cd2e5b030e6f6752dafff264013f7027074e0dc",
+"status": 200,
+"url": "histdata:AUDUSD:2013:"
+},
+{
+"bytes": 3329418,
+"sha256": "0b645b0b55c69a6489ba0ce760d43b82f5dfb7fba01f65824cc607229a9db8e6",
+"status": 200,
+"url": "histdata:AUDUSD:2014:"
+},
+{
+"bytes": 3449230,
+"sha256": "149cdd2578e2db65524705784249d717b865227518393fadc937a4c015cc461b",
+"status": 200,
+"url": "histdata:AUDUSD:2015:"
+},
+{
+"bytes": 3423109,
+"sha256": "91c86f14fb9ab38c799e70534d96ac382a29ea80c05e53c0d3ca6d82add79c56",
+"status": 200,
+"url": "histdata:AUDUSD:2016:"
+},
+{
+"bytes": 3235716,
+"sha256": "4e966f765485ab83f03a29ed5acd3b27bca3f657c4882042c82cfc8f65e8281a",
+"status": 200,
+"url": "histdata:AUDUSD:2017:"
+},
+{
+"bytes": 3298609,
+"sha256": "fa4835b74fce4e2108633a047e0c1616dab5e87a7c607310db4143e5c1272cd4",
+"status": 200,
+"url": "histdata:AUDUSD:2018:"
+},
+{
+"bytes": 3067159,
+"sha256": "e76fbcaa6f58e0337fea46cd1fcf17d2aab0b10f32d5193892ce729701c4da9c",
+"status": 200,
+"url": "histdata:AUDUSD:2019:"
+},
+{
+"bytes": 3400476,
+"sha256": "c6a383c013a4e498e7dc69a3a1c275cb0ac1a582f6505f01959fcb2d43713ef7",
+"status": 200,
+"url": "histdata:AUDUSD:2020:"
+},
+{
+"bytes": 3339867,
+"sha256": "3195b1b2a78ad67585cd68bbd91c5a775cab3476cf583d2a17acdd28c093e260",
+"status": 200,
+"url": "histdata:AUDUSD:2021:"
+},
+{
+"bytes": 3520942,
+"sha256": "95eba4fd9049568a40cbb8a7d82c5f6e2e883705cf15368e155a972830867ec4",
+"status": 200,
+"url": "histdata:AUDUSD:2022:"
+},
+{
+"bytes": 2954169,
+"sha256": "848bac7c7d4ec9db601b2d719bcd2824978f68d1ec01438944e462c3abf5e809",
+"status": 200,
+"url": "histdata:AUDUSD:2023:"
+},
+{
+"bytes": 3251072,
+"sha256": "56338ceb24d7013137e31810be1fe4326d0a4480342829e74fd9355e5efbb7f0",
+"status": 200,
+"url": "histdata:AUDUSD:2024:"
+},
+{
+"bytes": 3273066,
+"sha256": "3d2ecffedfc8e1fb5aecb9ceb7dbd7779f24361653e5f30b96b8c7bd9f5b8365",
+"status": 200,
+"url": "histdata:AUDUSD:2025:"
+},
+{
+"bytes": 265517,
+"sha256": "c0e7460e33ad3d6343ec85a9c2d63e3408e63e4f7aa5ee61330fde2a4c85fdcb",
+"status": 200,
+"url": "histdata:AUDUSD:2026:1"
+},
+{
+"bytes": 264553,
+"sha256": "353d5abbd3780d28436a20e0dc44d71d62776b94ee8b4a98c08173bfbce3403a",
+"status": 200,
+"url": "histdata:AUDUSD:2026:2"
+},
+{
+"bytes": 308272,
+"sha256": "2dad41f3c1e745e8e4e7b8a6ac04885bed89c2a70f19647e0e0e9ca15274c23c",
+"status": 200,
+"url": "histdata:AUDUSD:2026:3"
+},
+{
+"bytes": 282671,
+"sha256": "9dd9739e91398b4becbaa1a0853ed133abbda6e61406c1a72d400cb75f3773c6",
+"status": 200,
+"url": "histdata:AUDUSD:2026:4"
+},
+{
+"bytes": 262445,
+"sha256": "fd68b238af7e5cf2251c3937d6420aa2680494ff9887ba4e53ac5e7e70e96c54",
+"status": 200,
+"url": "histdata:AUDUSD:2026:5"
+},
+{
+"bytes": 276436,
+"sha256": "d61ba274e85dede2f8046880fa13b44579a36ef1be2eccacaf4abd9f226d8819",
+"status": 200,
+"url": "histdata:AUDUSD:2026:6"
+},
+{
+"bytes": 278079,
+"sha256": "959c93c7b8333139b50a147233d1617f980f8b941ed8f652ab389a2f7417ec9f",
+"status": 200,
+"url": "histdata:AUDUSD:2026:7"
+},
+{
+"bytes": 253886,
+"sha256": "6a03b9eff0077dcaafee727868db2598da53836517db0850b87aee62881deab9",
+"status": 200,
+"url": "histdata:AUDUSD:2026:8"
+},
+{
+"bytes": 256805,
+"sha256": "3abf182041a7ae32f86a4c6b2fe0a7308dcea163c9551930a0ac3c580db1ad7a",
+"status": 200,
+"url": "histdata:AUDUSD:2026:9"
+},
+{
+"bytes": 3585271,
+"sha256": "167fac81638d1024f0311e88e1800b2432c72d7e2ae34a54d434f90a7caa3c39",
+"status": 200,
+"url": "histdata:EURAUD:2012:"
+},
+{
+"bytes": 3717830,
+"sha256": "67fd40827c0dc2d3851ae364bc81f6b8c071f017c84e57291db1309be208d49c",
+"status": 200,
+"url": "histdata:EURAUD:2013:"
+},
+{
+"bytes": 3613803,
+"sha256": "797b13883c6e038392858b23d3ae935a02dca73be032f46482f2eaaf3d2bde80",
+"status": 200,
+"url": "histdata:EURAUD:2014:"
+},
+{
+"bytes": 3869823,
+"sha256": "5ff2e958deed0905034b1c2cd0215859752b632ae7fcd6bb21fe7499cd012f07",
+"status": 200,
+"url": "histdata:EURAUD:2015:"
+},
+{
+"bytes": 3813889,
+"sha256": "1a7ce5b268997295c36115fdc336e14823a3a67869b46e1631132ea48934f3fd",
+"status": 200,
+"url": "histdata:EURAUD:2016:"
+},
+{
+"bytes": 3618557,
+"sha256": "3e9664c13527288d9aac673a5594138eb5f024f881052cc9b172046325c3459c",
+"status": 200,
+"url": "histdata:EURAUD:2017:"
+},
+{
+"bytes": 3641748,
+"sha256": "33c78d522072824ab5398a8d552059bd51742b23a73d80cfbd09468b92645122",
+"status": 200,
+"url": "histdata:EURAUD:2018:"
+},
+{
+"bytes": 3570838,
+"sha256": "39c3e9877bc84053ae9a974e3749a00b7aa614ef6932a98fb6e57e20b2d99f00",
+"status": 200,
+"url": "histdata:EURAUD:2019:"
+},
+{
+"bytes": 3810768,
+"sha256": "5d6e43602124f242e4c7193c6b3476a181aed574147f476d9678be30ce6f12ae",
+"status": 200,
+"url": "histdata:EURAUD:2020:"
+},
+{
+"bytes": 3631558,
+"sha256": "d0c014563bc1d5219a20ea75cd9ae8d7eb74707c1992f3482649559a2f514edb",
+"status": 200,
+"url": "histdata:EURAUD:2021:"
+},
+{
+"bytes": 3827711,
+"sha256": "6d9932ec12db636e6ef082183d3bdaae1ee0d63243e67d22c65ecebab678e585",
+"status": 200,
+"url": "histdata:EURAUD:2022:"
+},
+{
+"bytes": 3258535,
+"sha256": "f48b938e3917d74a5a00815bdf4c93e658e177ff06efc8819be672741b1899ff",
+"status": 200,
+"url": "histdata:EURAUD:2023:"
+},
+{
+"bytes": 3622418,
+"sha256": "6ad2de35ce5bea41d1f3bce009b6ac33fecac323604bbba3bd738b6213b8178f",
+"status": 200,
+"url": "histdata:EURAUD:2024:"
+},
+{
+"bytes": 3718043,
+"sha256": "5e151193d58066f018ae56b967e11a233c11ee27f724707a3af51519e544a7ab",
+"status": 200,
+"url": "histdata:EURAUD:2025:"
+},
+{
+"bytes": 299166,
+"sha256": "267fab37ab79ef070aec61a0b79799c4bef256c09af302c4ab11772188ed771c",
+"status": 200,
+"url": "histdata:EURAUD:2026:1"
+},
+{
+"bytes": 290507,
+"sha256": "a7c81dedc8234fadf8b7f573d397e00b59ee3d0c55eef88b964f472b2cb600e9",
+"status": 200,
+"url": "histdata:EURAUD:2026:2"
+},
+{
+"bytes": 330124,
+"sha256": "bc4a09deccfdc1728c01e3442218ad393a15557e816cd3788c67e177c2a8aafb",
+"status": 200,
+"url": "histdata:EURAUD:2026:3"
+},
+{
+"bytes": 303369,
+"sha256": "e733548201e335924aaf539747cf0c4dc6b8cc7872b20ff33af9655218d794e1",
+"status": 200,
+"url": "histdata:EURAUD:2026:4"
+},
+{
+"bytes": 287321,
+"sha256": "54b5d1fa7b45d33167a3aa5bc778b6a3ae247ed5f2281907857c60566fe531ce",
+"status": 200,
+"url": "histdata:EURAUD:2026:5"
+},
+{
+"bytes": 301683,
+"sha256": "b4ad97fcbc76f1206d3e1e42caeea001f1f5844aec38cc666ced35cd50ec0bc7",
+"status": 200,
+"url": "histdata:EURAUD:2026:6"
+},
+{
+"bytes": 304798,
+"sha256": "295a3d2c1705964e36e58a5d13b1055c19fd3c6e4331869110a2ba8e390c5cfd",
+"status": 200,
+"url": "histdata:EURAUD:2026:7"
+},
+{
+"bytes": 278851,
+"sha256": "c694332055bad080995331fe5e66f238eca721414ac189ebd61ff42d7ff149a2",
+"status": 200,
+"url": "histdata:EURAUD:2026:8"
+},
+{
+"bytes": 281266,
+"sha256": "2669204a0f4231b59e9d56585214e6f9c0f90d3896a970a586195b988b46ae5b",
+"status": 200,
+"url": "histdata:EURAUD:2026:9"
+},
+{
+"bytes": 3224813,
+"sha256": "86a292f48f02d1a252db2ab9f343cb969b68c383db802c71870c54058c4f52ad",
+"status": 200,
+"url": "histdata:EURGBP:2012:"
+},
+{
+"bytes": 3235056,
+"sha256": "d8fea5827264269d6842187fc8869b597265a44f144514a9684766520a5260c9",
+"status": 200,
+"url": "histdata:EURGBP:2013:"
+},
+{
+"bytes": 3126761,
+"sha256": "8686027eaa1519cde8f35b2951ff5aadfec6f8fed8cbaf9d550ba59877b4238e",
+"status": 200,
+"url": "histdata:EURGBP:2014:"
+},
+{
+"bytes": 3332073,
+"sha256": "8baa013617609ea18684573d18ec5937b18a85237d1de71baff026b4812adfd3",
+"status": 200,
+"url": "histdata:EURGBP:2015:"
+},
+{
+"bytes": 3445875,
+"sha256": "d0a338c4fa6f04ab38fcfbc12fb0792d9baeb3d826b19e07d40fac5b1ce933a0",
+"status": 200,
+"url": "histdata:EURGBP:2016:"
+},
+{
+"bytes": 3314578,
+"sha256": "190f7bded159b1d8fa1ed02409b052e3d5cc7ff087e55dd2387663bf368127e7",
+"status": 200,
+"url": "histdata:EURGBP:2017:"
+},
+{
+"bytes": 3250850,
+"sha256": "df0d0b338da285193b41d7ae7f36e114c4489b3f003bf3457a1389e0e4becf4f",
+"status": 200,
+"url": "histdata:EURGBP:2018:"
+},
+{
+"bytes": 3238433,
+"sha256": "84cb82f3524cd66651e96cefe56c4fb4adfbb83eff37861c5336e9e8e6f8330b",
+"status": 200,
+"url": "histdata:EURGBP:2019:"
+},
+{
+"bytes": 3384603,
+"sha256": "e1dd19cb6aad3b7e3a9957d48accc16ff86547f587886c19c1f1aeb82af994b5",
+"status": 200,
+"url": "histdata:EURGBP:2020:"
+},
+{
+"bytes": 3173312,
+"sha256": "89ae90e71df735d67ab7eaa3c3cfc25ca1f82ce7cf74725ccb6484793fb80425",
+"status": 200,
+"url": "histdata:EURGBP:2021:"
+},
+{
+"bytes": 3340720,
+"sha256": "d54a0b54580ade0ccd102a5fab38227387bfa5700ad8bef91090e3c3b1d6b7da",
+"status": 200,
+"url": "histdata:EURGBP:2022:"
+},
+{
+"bytes": 2738613,
+"sha256": "284904734c775086c1999ad43593c918e704f615a40a7918bedf3ed9ca8da10e",
+"status": 200,
+"url": "histdata:EURGBP:2023:"
+},
+{
+"bytes": 3010752,
+"sha256": "09bf9c6641cbd553860e994855d946a6ff479e3e57f2af670a956d39a491740e",
+"status": 200,
+"url": "histdata:EURGBP:2024:"
+},
+{
+"bytes": 3121955,
+"sha256": "0495a462d011c82e93f1cc52e99c83d4944fe17a3390a4c4ca605d2c45e046d1",
+"status": 200,
+"url": "histdata:EURGBP:2025:"
+},
+{
+"bytes": 247726,
+"sha256": "4348fa9d1f1ee259c1ff070b138e4eaf122464fc6af7254284e320a22ac8a906",
+"status": 200,
+"url": "histdata:EURGBP:2026:1"
+},
+{
+"bytes": 237519,
+"sha256": "97a7e54ed2e76d6e2704f2780b86dfffae16fdf686c3c3b65ab37bb3d9354b70",
+"status": 200,
+"url": "histdata:EURGBP:2026:2"
+},
+{
+"bytes": 266108,
+"sha256": "f6a924b200fd98479574a77f69a30891f2b5d5631e925b0ef6cc0e90817b31f4",
+"status": 200,
+"url": "histdata:EURGBP:2026:3"
+},
+{
+"bytes": 249499,
+"sha256": "092034be7bc2ccfc3303ccb8bc439bbca20abbd497de336e4b7d7ed060f1774a",
+"status": 200,
+"url": "histdata:EURGBP:2026:4"
+},
+{
+"bytes": 237283,
+"sha256": "d204889a66a71b3a0416544bb08233d04b070a79260703f9be0c987a4f57f9ee",
+"status": 200,
+"url": "histdata:EURGBP:2026:5"
+},
+{
+"bytes": 244572,
+"sha256": "8aaffd233d33e21e8799c7f689bcb40963ace9206ab5a8025a1805c1ea6a6b8e",
+"status": 200,
+"url": "histdata:EURGBP:2026:6"
+},
+{
+"bytes": 256246,
+"sha256": "33645fe365673c3e0dfe0fe72e87da6c7f0fe704f015dff32360b961b6bb8fc1",
+"status": 200,
+"url": "histdata:EURGBP:2026:7"
+},
+{
+"bytes": 227954,
+"sha256": "30c9864bc5fe3169a950c9234cd75eff30d63c6115536b8b18bc58cb75ef337e",
+"status": 200,
+"url": "histdata:EURGBP:2026:8"
+},
+{
+"bytes": 231359,
+"sha256": "812fa0bb2e6d1e884e17f5aaa0c9ea944b027c4f43653e1626a62d1728b23ef8",
+"status": 200,
+"url": "histdata:EURGBP:2026:9"
+},
+{
+"bytes": 3784582,
+"sha256": "9c534f1fb0c89592987d4335b7d14c7a7432260a507b5dba4b9a11eb0ceafac8",
+"status": 200,
+"url": "histdata:EURJPY:2012:"
+},
+{
+"bytes": 3932341,
+"sha256": "fda7744e5f2064fad3e1146e1ae80ebb46df1db5e8ac676529a7b6e98d659268",
+"status": 200,
+"url": "histdata:EURJPY:2013:"
+},
+{
+"bytes": 3676569,
+"sha256": "598b92f04fbaf17f14f0df1fcb709b849af263c5a3a1933ce41418020e210bd3",
+"status": 200,
+"url": "histdata:EURJPY:2014:"
+},
+{
+"bytes": 3860083,
+"sha256": "f8695fcd3f1e697e34ef32e7a9c753ba288e034cff03daa30068541433a2e7dd",
+"status": 200,
+"url": "histdata:EURJPY:2015:"
+},
+{
+"bytes": 3860477,
+"sha256": "50c6ff79a2615d45a6814fe8b31db6fc5724e18cfaaa9369b479d190cabe0707",
+"status": 200,
+"url": "histdata:EURJPY:2016:"
+},
+{
+"bytes": 3737779,
+"sha256": "989bfb63852d4abfd87b9a1ae6eab8827f132ee95ce16c4330a17b928961858e",
+"status": 200,
+"url": "histdata:EURJPY:2017:"
+},
+{
+"bytes": 3783514,
+"sha256": "0780ef9595ca5defef99d451a561ff802b9adbc8bb3450fbf0d67c2321647558",
+"status": 200,
+"url": "histdata:EURJPY:2018:"
+},
+{
+"bytes": 3548247,
+"sha256": "72f02db730b977be7b5bea7bc902e48b9923148638fb6b1691b3cfb58de3f65e",
+"status": 200,
+"url": "histdata:EURJPY:2019:"
+},
+{
+"bytes": 3704796,
+"sha256": "b8f010496cbe9467ad56601ae09383af96c2681acb0b81d2de7a48331141be34",
+"status": 200,
+"url": "histdata:EURJPY:2020:"
+},
+{
+"bytes": 3552439,
+"sha256": "d2381a6de837970aecb8f9f2ffdfb356ea025efa791705099ef2f42a22152b1b",
+"status": 200,
+"url": "histdata:EURJPY:2021:"
+},
+{
+"bytes": 3939389,
+"sha256": "f6f9f4aed176479f6afbfa702610ab263177feefad2aad96a314c88a6dfcb5c7",
+"status": 200,
+"url": "histdata:EURJPY:2022:"
+},
+{
+"bytes": 3370827,
+"sha256": "1d211678d44bf3d53678ecfeb9b8081b26931b496bb248cbb554e3d461776780",
+"status": 200,
+"url": "histdata:EURJPY:2023:"
+},
+{
+"bytes": 3888366,
+"sha256": "2f0e7bf0476ed825d0a359701a343f2c46cc6f61f4a50c60e862e71a01a3707a",
+"status": 200,
+"url": "histdata:EURJPY:2024:"
+},
+{
+"bytes": 3893431,
+"sha256": "c391d498d350e307c8d144c62993212c2b5d5238bc40184b250c8e1f2e3bca98",
+"status": 200,
+"url": "histdata:EURJPY:2025:"
+},
+{
+"bytes": 312332,
+"sha256": "9af5633c07075407bc424cffb2d764492960f4cdc9414b9102b3373cf58ff658",
+"status": 200,
+"url": "histdata:EURJPY:2026:1"
+},
+{
+"bytes": 302797,
+"sha256": "b829111e062f5df27a4016cfab022094df1f129981867465cb1b44c26ef34eed",
+"status": 200,
+"url": "histdata:EURJPY:2026:2"
+},
+{
+"bytes": 317693,
+"sha256": "94ddd5d09d6e9c1c48b55f4d7dab8acf63faade7fe16f6be20bf520fc0336b12",
+"status": 200,
+"url": "histdata:EURJPY:2026:3"
+},
+{
+"bytes": 312215,
+"sha256": "cd1508399061af69fbfed2fd34846746820e2571294ca05f757ec8bed92b7aaf",
+"status": 200,
+"url": "histdata:EURJPY:2026:4"
+},
+{
+"bytes": 293546,
+"sha256": "e52885c0551a134901c53a487c1401b622e3eb1e257c727a6b663b283504fba2",
+"status": 200,
+"url": "histdata:EURJPY:2026:5"
+},
+{
+"bytes": 309475,
+"sha256": "3949f1229c2bf1e692ca437fe20bc364146abfe6712de53d94c79c30246a36a3",
+"status": 200,
+"url": "histdata:EURJPY:2026:6"
+},
+{
+"bytes": 319423,
+"sha256": "40e519735d0592d92ce7b6cd1dddac1d84549a44986088da3ec3f7be6d1f11ea",
+"status": 200,
+"url": "histdata:EURJPY:2026:7"
+},
+{
+"bytes": 296763,
+"sha256": "e092407b2fab1a430b04ddd72a84d40b4421e1c7e190af37698e7b496cd4d42b",
+"status": 200,
+"url": "histdata:EURJPY:2026:8"
+},
+{
+"bytes": 315310,
+"sha256": "ca8126db25204178eb7acda181109ea28a80dc1eac7fa47b363c9472e4fd4f15",
+"status": 200,
+"url": "histdata:EURJPY:2026:9"
+},
+{
+"bytes": 3546484,
+"sha256": "8420424955f34fe1615e0468a7e60e3c8f23ba30369b4e2d42889b6618f45754",
+"status": 200,
+"url": "histdata:EURUSD:2012:"
+},
+{
+"bytes": 3426387,
+"sha256": "e57a32dbfad5ac497964d7172cdb8fd566554940560a1ecd584e1bafdf169684",
+"status": 200,
+"url": "histdata:EURUSD:2013:"
+},
+{
+"bytes": 3272255,
+"sha256": "4407d3228ed0c7174d2ff864fba8b04a87ddeed10cefbd170f6bf5203eeb33d9",
+"status": 200,
+"url": "histdata:EURUSD:2014:"
+},
+{
+"bytes": 3558222,
+"sha256": "b6c015a65286b8e5712b4fc135bc2dbb75676a2ddb93c2b685c2dd52685a2dcd",
+"status": 200,
+"url": "histdata:EURUSD:2015:"
+},
+{
+"bytes": 3442178,
+"sha256": "231bf3a4562b729124bc8d2803a169f29c412bd03347ea25fe75abc9f79842ca",
+"status": 200,
+"url": "histdata:EURUSD:2016:"
+},
+{
+"bytes": 3365476,
+"sha256": "0dcd66dc67d7af4716404a5315d376ee1e7eaebe292afbda3c1003d2dfa16f57",
+"status": 200,
+"url": "histdata:EURUSD:2017:"
+},
+{
+"bytes": 3433859,
+"sha256": "3c478a0096426c7289db654c8b66235d8064fe56a9975282de8342fea7c170f1",
+"status": 200,
+"url": "histdata:EURUSD:2018:"
+},
+{
+"bytes": 3156192,
+"sha256": "221fa4e0db549f48719273979ea4b1a2b0877f45f1147a8416ff8bbd055f5491",
+"status": 200,
+"url": "histdata:EURUSD:2019:"
+},
+{
+"bytes": 3420002,
+"sha256": "38efbafce27f0e15df0006cc413cc02a68a18cada4f3b99e9afd42e17dd2ff2c",
+"status": 200,
+"url": "histdata:EURUSD:2020:"
+},
+{
+"bytes": 3285118,
+"sha256": "64af4aa52958685a6889cfa15df400c62dc6ad543cf6ea10a13a0d3a7e01a563",
+"status": 200,
+"url": "histdata:EURUSD:2021:"
+},
+{
+"bytes": 3545446,
+"sha256": "5ed361f3d93107f644834cac06870e830f9dc887d5aa5fde4b90c2accdf773f3",
+"status": 200,
+"url": "histdata:EURUSD:2022:"
+},
+{
+"bytes": 2919186,
+"sha256": "26e41c4bccfd70f2c76ef7f3ffcba0e3b7097231927a41640f4a7c442815f34a",
+"status": 200,
+"url": "histdata:EURUSD:2023:"
+},
+{
+"bytes": 3229550,
+"sha256": "58f074ba6b835eb2fbeaeb6678502a23b26768eefdfa509eb75ff5296bb2904d",
+"status": 200,
+"url": "histdata:EURUSD:2024:"
+},
+{
+"bytes": 3441226,
+"sha256": "b7c23d20b9577588a8b13508d58fedbe487e569b7b8b5dd368bd1d2b61115de0",
+"status": 200,
+"url": "histdata:EURUSD:2025:"
+},
+{
+"bytes": 274312,
+"sha256": "7c3ad3ae3626d6ee9575c07679212424799f3b32aac056c42584db1b89298137",
+"status": 200,
+"url": "histdata:EURUSD:2026:1"
+},
+{
+"bytes": 258342,
+"sha256": "2e38a7ae97579b0ac0180878df23b2e43aa7ee5cd7ef377f06f0f845fa8bd9e7",
+"status": 200,
+"url": "histdata:EURUSD:2026:2"
+},
+{
+"bytes": 305630,
+"sha256": "f55203d8661af3e0ce04bee4fe2dd3d22dcf42aa93a50af9948cf939a7eeb313",
+"status": 200,
+"url": "histdata:EURUSD:2026:3"
+},
+{
+"bytes": 283980,
+"sha256": "4141266da0c7cd9aab2f608ccf7d79bffb3fe573a4ad8745ee2381c2e6deb758",
+"status": 200,
+"url": "histdata:EURUSD:2026:4"
+},
+{
+"bytes": 260358,
+"sha256": "200b70301142ed9ce112ba65896bddbe199592977b030342603d643f571f03fe",
+"status": 200,
+"url": "histdata:EURUSD:2026:5"
+},
+{
+"bytes": 278938,
+"sha256": "f339d646269816031689c2f84d69db58fdfbbac23bd23a4a0c1a2323430c7713",
+"status": 200,
+"url": "histdata:EURUSD:2026:6"
+},
+{
+"bytes": 284767,
+"sha256": "d5e51949169327a82a50c52182486397b206fd95d5a0c06b700b89b435eace26",
+"status": 200,
+"url": "histdata:EURUSD:2026:7"
+},
+{
+"bytes": 258302,
+"sha256": "65c7c5d0f170abf4a60b86908723ef5068ccec7aa3c76baefbe8542f87eed5b3",
+"status": 200,
+"url": "histdata:EURUSD:2026:8"
+},
+{
+"bytes": 259835,
+"sha256": "cac4e7b1e7bf6510eb5b3bdb4b336e87706c63ea8be740efefa1bb2ef2b39f09",
+"status": 200,
+"url": "histdata:EURUSD:2026:9"
+},
+{
+"bytes": 3836996,
+"sha256": "0fd42c163ee5b355aa5e2a9de6d240d478b7f233c5c4152e04fc1bf2db4ee0fa",
+"status": 200,
+"url": "histdata:GBPJPY:2012:"
+},
+{
+"bytes": 4023897,
+"sha256": "f0ca8564747466c48c9d5adee16831c758d68047f39dd56d8d0579e1f3400a26",
+"status": 200,
+"url": "histdata:GBPJPY:2013:"
+},
+{
+"bytes": 3839708,
+"sha256": "dc5e070d7c87c2a4bec9788e954915212695658bf1f49ba7f285087c71fd70f0",
+"status": 200,
+"url": "histdata:GBPJPY:2014:"
+},
+{
+"bytes": 3981882,
+"sha256": "5ae985c340a8bf3c2cc2dc17fa3e7c8b0685e23fa090bce34e1f998a87bd048e",
+"status": 200,
+"url": "histdata:GBPJPY:2015:"
+},
+{
+"bytes": 4098967,
+"sha256": "906436724c73d5ff4a0e85596c639a2154229d5960b82d979caa4dd38ba1d99f",
+"status": 200,
+"url": "histdata:GBPJPY:2016:"
+},
+{
+"bytes": 3891337,
+"sha256": "2a274f6d3a84eae3870ea207fb536b1c8efafec978a884fabd444ee0a5e9ad49",
+"status": 200,
+"url": "histdata:GBPJPY:2017:"
+},
+{
+"bytes": 3889356,
+"sha256": "9c4332e9bfcbfa1d26bf0e100bdb77fcf6c281ad573a7df0505b0a2875f541f4",
+"status": 200,
+"url": "histdata:GBPJPY:2018:"
+},
+{
+"bytes": 3796447,
+"sha256": "2531bb0252d1899b370563fb76931c7451453a4052a4a6c7e85ab55b05a404bf",
+"status": 200,
+"url": "histdata:GBPJPY:2019:"
+},
+{
+"bytes": 3907295,
+"sha256": "a182803b0f578e5631bb2b4a42e0ecc263ee8505588a0abe36deae1d87501c68",
+"status": 200,
+"url": "histdata:GBPJPY:2020:"
+},
+{
+"bytes": 3759132,
+"sha256": "d7fd9ac2e5f6cef855f1b0c887f06bfdf5e360670281e828b0446a6fc98d055e",
+"status": 200,
+"url": "histdata:GBPJPY:2021:"
+},
+{
+"bytes": 4053129,
+"sha256": "dabe6e55d8c886a430a3e656272001581fa93dfc2d29cb379ec5fdabbf8f30cb",
+"status": 200,
+"url": "histdata:GBPJPY:2022:"
+},
+{
+"bytes": 3458931,
+"sha256": "9e50431f9d3f7302256d8c3af7cf4b03f8db49d4b53e33ef380aa3b0c8809367",
+"status": 200,
+"url": "histdata:GBPJPY:2023:"
+},
+{
+"bytes": 4011954,
+"sha256": "1665a25f48715a205853815da41b2709042a3bafb1105fd2d9de529486cb8304",
+"status": 200,
+"url": "histdata:GBPJPY:2024:"
+},
+{
+"bytes": 4010118,
+"sha256": "0476dd243e2c4d7ca90b1e4f7230a1c598122191c0135f6b5f2752e9e9181940",
+"status": 200,
+"url": "histdata:GBPJPY:2025:"
+},
+{
+"bytes": 323132,
+"sha256": "5dbc0a9bed2e72519495f687be08a8731b9db73d245b64646507a35d512f78eb",
+"status": 200,
+"url": "histdata:GBPJPY:2026:1"
+},
+{
+"bytes": 314315,
+"sha256": "2743220a27f267f7005f09e39461e5b337e40a1e7912f841936d6b5b7af1a46f",
+"status": 200,
+"url": "histdata:GBPJPY:2026:2"
+},
+{
+"bytes": 343452,
+"sha256": "89633c8fd21c5c4b6d0cf7bac025f3893268c43d4e10f9dddd6ba9c8d9dc29e2",
+"status": 200,
+"url": "histdata:GBPJPY:2026:3"
+},
+{
+"bytes": 324500,
+"sha256": "e6dd6641053a8e54ba03a0325f4f22e5826b9df6524313f665c73f173411a4ce",
+"status": 200,
+"url": "histdata:GBPJPY:2026:4"
+},
+{
+"bytes": 308086,
+"sha256": "b77299d1a1fcacc2f271917df93b6a5e55ff425e8ab0c14bcc8c95f1ab242e9f",
+"status": 200,
+"url": "histdata:GBPJPY:2026:5"
+},
+{
+"bytes": 322913,
+"sha256": "d18349544ba4e570a6b68f22cea1ba73edc766a1930e397ccceebaf24c6b47ac",
+"status": 200,
+"url": "histdata:GBPJPY:2026:6"
+},
+{
+"bytes": 334726,
+"sha256": "ecf62bca5e368e84e01dffe23975d6d642178b579afe545ac128d00cfa3b4da3",
+"status": 200,
+"url": "histdata:GBPJPY:2026:7"
+},
+{
+"bytes": 308681,
+"sha256": "e93a3bfb9fbc855e8d1a0fd3b3bf44a724ace38954911160378e63cf9f853673",
+"status": 200,
+"url": "histdata:GBPJPY:2026:8"
+},
+{
+"bytes": 324621,
+"sha256": "6de5aa5df5e4d01eff1eece7d00620943b26b27b6c84da7dc7efee1c029b84c1",
+"status": 200,
+"url": "histdata:GBPJPY:2026:9"
+},
+{
+"bytes": 3501105,
+"sha256": "83a04818d50ce20b149f6ba7e70973cebe9dca77afeb291cf0cf369f67a551bb",
+"status": 200,
+"url": "histdata:GBPUSD:2012:"
+},
+{
+"bytes": 3489013,
+"sha256": "85bf830f3418e2b8fa521126894ba5510a033826aaeadd57eec3c13f9b7893eb",
+"status": 200,
+"url": "histdata:GBPUSD:2013:"
+},
+{
+"bytes": 3357884,
+"sha256": "72b956ebd8acbcc1aaffc59fd0d39d0cf2a7f33bb4fa3a17d8c72faa8f41724b",
+"status": 200,
+"url": "histdata:GBPUSD:2014:"
+},
+{
+"bytes": 3535353,
+"sha256": "531514f5b3100be28d740b95ccf97662f6dcba3c6941cc465ac473b869b302eb",
+"status": 200,
+"url": "histdata:GBPUSD:2015:"
+},
+{
+"bytes": 3627916,
+"sha256": "39acbc0146e6ce82fc5327c56225623a0507e279534b8f2906dff19725c65838",
+"status": 200,
+"url": "histdata:GBPUSD:2016:"
+},
+{
+"bytes": 3431978,
+"sha256": "e5ba3800e37fae0e326dbaa234952ca04e8f378c08b036530a2811206110c10b",
+"status": 200,
+"url": "histdata:GBPUSD:2017:"
+},
+{
+"bytes": 3503386,
+"sha256": "38063d33cdb22634cf4ed6d67f8c6d20345c5d904be9dcd33ca928ec4153481f",
+"status": 200,
+"url": "histdata:GBPUSD:2018:"
+},
+{
+"bytes": 3411684,
+"sha256": "bc6d390e539d267fcd7856851db463fc098de5d7f7d732ddca75604f4a259bf2",
+"status": 200,
+"url": "histdata:GBPUSD:2019:"
+},
+{
+"bytes": 3625339,
+"sha256": "07ad9524551d1b5bc617cd6971e5a6f38156f92e7046fa368abd22cbe7d9a044",
+"status": 200,
+"url": "histdata:GBPUSD:2020:"
+},
+{
+"bytes": 3447415,
+"sha256": "5ce226e9e1cabcb8d3cab7d5c64135da2c864b0d79a559c8a08c6e1e3d47866e",
+"status": 200,
+"url": "histdata:GBPUSD:2021:"
+},
+{
+"bytes": 3670216,
+"sha256": "6c3134133d24effe9ebae1ee02c7b0db3bff8f60f92bd9add846abc54d00a86e",
+"status": 200,
+"url": "histdata:GBPUSD:2022:"
+},
+{
+"bytes": 3049553,
+"sha256": "4e7031d841a953ae76d1ba056780838bddd08e0d5eac62dd21c64b28b7b1a68b",
+"status": 200,
+"url": "histdata:GBPUSD:2023:"
+},
+{
+"bytes": 3375781,
+"sha256": "030b05b4c670c7e152bf4aa4112488c96695d2dcc2b31ca13a3b4834b8431077",
+"status": 200,
+"url": "histdata:GBPUSD:2024:"
+},
+{
+"bytes": 3496823,
+"sha256": "7b69c334eadd10568168634cff3ca37b06e5fb9057db4da9b590e2ef2034854e",
+"status": 200,
+"url": "histdata:GBPUSD:2025:"
+},
+{
+"bytes": 282446,
+"sha256": "870c6a632f168004e2af0bcc8d357cb07a533c68d123aec5fa48904bc3d2ce08",
+"status": 200,
+"url": "histdata:GBPUSD:2026:1"
+},
+{
+"bytes": 271128,
+"sha256": "16831fa0058c5385a3b0da8127804f944a423d78d1c35f0c8b09b01e2e4f6340",
+"status": 200,
+"url": "histdata:GBPUSD:2026:2"
+},
+{
+"bytes": 315578,
+"sha256": "55a7e44b8f74430122811bb869b52da174443721ae885fbe9e18836bcb1fcc7c",
+"status": 200,
+"url": "histdata:GBPUSD:2026:3"
+},
+{
+"bytes": 294494,
+"sha256": "65b5760fa4f06061ae7d8d549e55f29c6674162f76df8ea453dcbbe47d7ceebd",
+"status": 200,
+"url": "histdata:GBPUSD:2026:4"
+},
+{
+"bytes": 271883,
+"sha256": "8af401940ee755133fcd677b1ef4e7d07c4d45269370d4bfb4fcb9af98a79f1e",
+"status": 200,
+"url": "histdata:GBPUSD:2026:5"
+},
+{
+"bytes": 289954,
+"sha256": "b6534603559ce1d611849e99f129c224832431b0135f9cef4830c14152db2e32",
+"status": 200,
+"url": "histdata:GBPUSD:2026:6"
+},
+{
+"bytes": 296702,
+"sha256": "eed97b0e50df94532cd6bb5497210670fdbe27acf3e0f94238c7542402113dea",
+"status": 200,
+"url": "histdata:GBPUSD:2026:7"
+},
+{
+"bytes": 267749,
+"sha256": "41d82691331216fbca668d65f449cb3a0824b3bdfb7c2d94b8689dd95b52402a",
+"status": 200,
+"url": "histdata:GBPUSD:2026:8"
+},
+{
+"bytes": 269367,
+"sha256": "25381df15f6c7fcb6a747867da36ceeb12b427e65de1d25cf24b4dcdd4f0b858",
+"status": 200,
+"url": "histdata:GBPUSD:2026:9"
+},
+{
+"bytes": 3609902,
+"sha256": "24cfc44fd77df8020b8849e2eb68df2b240d22ff69a86c7c752b85ba83a1adc5",
+"status": 200,
+"url": "histdata:NZDJPY:2012:"
+},
+{
+"bytes": 3806376,
+"sha256": "86b64744e5352adbbce73fd9139a6ba1304f90f2c88ed28fbd4888607d0767bb",
+"status": 200,
+"url": "histdata:NZDJPY:2013:"
+},
+{
+"bytes": 3607354,
+"sha256": "e4e8dfbf4b661e33a2204ecaf76beaf25dde36c654d284aaaee6a1e8b7130766",
+"status": 200,
+"url": "histdata:NZDJPY:2014:"
+},
+{
+"bytes": 3742529,
+"sha256": "d57e12e971762ae92a182e08aae8bae7d9c302e280cef234d1e45c2995bd21fc",
+"status": 200,
+"url": "histdata:NZDJPY:2015:"
+},
+{
+"bytes": 3756190,
+"sha256": "85b9e2ceb665a8344321a03a91eefa3c25078a5d2012130c69b8feb4264cfbf5",
+"status": 200,
+"url": "histdata:NZDJPY:2016:"
+},
+{
+"bytes": 3544154,
+"sha256": "a6ab35e5dc647f849c87c538931c59d59d1f8e972ea86ec38aaae97d59907cc7",
+"status": 200,
+"url": "histdata:NZDJPY:2017:"
+},
+{
+"bytes": 3555286,
+"sha256": "ad23fae891e69f9d5d654195060b18316586a99b72e281c8352b52c99f8778f9",
+"status": 200,
+"url": "histdata:NZDJPY:2018:"
+},
+{
+"bytes": 3405627,
+"sha256": "514458ccf1c314d94a33d42b76cfc4a1b84cddf075a5f39d59fd2cdebb724603",
+"status": 200,
+"url": "histdata:NZDJPY:2019:"
+},
+{
+"bytes": 3577629,
+"sha256": "ea0f61f8c247b7d0ffad46af914d492ec8763bb5e4af80caf19e7349b8f71ee6",
+"status": 200,
+"url": "histdata:NZDJPY:2020:"
+},
+{
+"bytes": 3524289,
+"sha256": "16a396ce071861395ab6a5753f1c9ba4b074a4d9f5c34606429896acc28101f7",
+"status": 200,
+"url": "histdata:NZDJPY:2021:"
+},
+{
+"bytes": 3754157,
+"sha256": "5af7b590bb41e628ab80a1b4e66cae398764063af2292030b5e18d2471cd7c1b",
+"status": 200,
+"url": "histdata:NZDJPY:2022:"
+},
+{
+"bytes": 3202029,
+"sha256": "3e79fc795c44e6169b872eeddb05d4420b28199268451c741396cd535ca94389",
+"status": 200,
+"url": "histdata:NZDJPY:2023:"
+},
+{
+"bytes": 3656454,
+"sha256": "223d5b72fb34a72aa6f4a4ab7d94d04590e8b4bc3a0c469b7338010edb1492ed",
+"status": 200,
+"url": "histdata:NZDJPY:2024:"
+},
+{
+"bytes": 3649586,
+"sha256": "144f1a977d2d6bdfa60fda13687e3adde2573b26c43878419b031af5549f84ff",
+"status": 200,
+"url": "histdata:NZDJPY:2025:"
+},
+{
+"bytes": 294031,
+"sha256": "4bffcccc49f5bae502e58a90ecb42d91c4181e2a5c1f887e4768e87ea13de1b7",
+"status": 200,
+"url": "histdata:NZDJPY:2026:1"
+},
+{
+"bytes": 289561,
+"sha256": "35d55f803d84e409f5182addb7f725f4030728ea2627ac671d789504afa139a7",
+"status": 200,
+"url": "histdata:NZDJPY:2026:2"
+},
+{
+"bytes": 320118,
+"sha256": "96beb300fb8b05e444f1283aefbff3b4cc40c96e96c11751cedc236925316835",
+"status": 200,
+"url": "histdata:NZDJPY:2026:3"
+},
+{
+"bytes": 299671,
+"sha256": "0a3627b687cc7a06cce048f21163dee3d3762c6eed24dd0ed33946812dfd3646",
+"status": 200,
+"url": "histdata:NZDJPY:2026:4"
+},
+{
+"bytes": 285681,
+"sha256": "45b5c9cee259b788d15e18de49b41389ce9e22385437d718bb006af9c726f31b",
+"status": 200,
+"url": "histdata:NZDJPY:2026:5"
+},
+{
+"bytes": 299280,
+"sha256": "7225eb9d70e568984c425e0f5708825b33b42a5ad96138b6cb68a9daf905c58d",
+"status": 200,
+"url": "histdata:NZDJPY:2026:6"
+},
+{
+"bytes": 307721,
+"sha256": "3ba9ddbbac5bf3ef45f6dec58e63ae0e7b7d52cea15cbcebc8c933ff1a550899",
+"status": 200,
+"url": "histdata:NZDJPY:2026:7"
+},
+{
+"bytes": 283472,
+"sha256": "04da742781f9cfa0ac49a6be04a42ceec4b212ca468603f10e34b1ec6e0a2ffe",
+"status": 200,
+"url": "histdata:NZDJPY:2026:8"
+},
+{
+"bytes": 293902,
+"sha256": "d6865ef53e377de32bc6f51f10514b6617159d70dfcebb2c9d70bdb5c0b84485",
+"status": 200,
+"url": "histdata:NZDJPY:2026:9"
+},
+{
+"bytes": 3425025,
+"sha256": "8967deeead962cd7fd73dae00b1e100a5a04f6f19219fd35c57d59358b6968fa",
+"status": 200,
+"url": "histdata:NZDUSD:2012:"
+},
+{
+"bytes": 3438669,
+"sha256": "f65f1b55aebba984e6a92d75dfbca6923c0b4b46b93ea30a5f2e36d0e267e46a",
+"status": 200,
+"url": "histdata:NZDUSD:2013:"
+},
+{
+"bytes": 3327445,
+"sha256": "e1e1973b251f73a641e3e2429d8f3421f040a302236da6642c42d227a63ab161",
+"status": 200,
+"url": "histdata:NZDUSD:2014:"
+},
+{
+"bytes": 3447626,
+"sha256": "225865cfb4861ab4f4278e6e109c7f2927670ad25fc71d422eb89b9b5b5e4f7f",
+"status": 200,
+"url": "histdata:NZDUSD:2015:"
+},
+{
+"bytes": 3414442,
+"sha256": "41c68b156b9aa3ad6d31c9622f13d68aaf6126ad83c83ea36ffe9cee5c24cf9e",
+"status": 200,
+"url": "histdata:NZDUSD:2016:"
+},
+{
+"bytes": 3258917,
+"sha256": "b5050e732b5391cf8c835adf7c245f9d2c91b3c3cc1dd7ea3d299ea902f352e5",
+"status": 200,
+"url": "histdata:NZDUSD:2017:"
+},
+{
+"bytes": 3213947,
+"sha256": "fe02140eeb0cc77d59b990b16d71c79423521803222d28b1143bf23cfd2ceaed",
+"status": 200,
+"url": "histdata:NZDUSD:2018:"
+},
+{
+"bytes": 3054760,
+"sha256": "e81d5c9ff99e8039382b54a2d8cd3ba8a9e929fee106a568e8a6a14d226af733",
+"status": 200,
+"url": "histdata:NZDUSD:2019:"
+},
+{
+"bytes": 3305610,
+"sha256": "3c1c31a5e45942e09f126e5c6b41fecf448c93cd08824aa86ef242d083de6dc7",
+"status": 200,
+"url": "histdata:NZDUSD:2020:"
+},
+{
+"bytes": 3302612,
+"sha256": "63f44bf033e57f4ae0cecdfb8a6111530508d1f723ae06d4401d1e53644e9f6b",
+"status": 200,
+"url": "histdata:NZDUSD:2021:"
+},
+{
+"bytes": 3452835,
+"sha256": "5513315b6106b59f787a8ec88a64dca32e9f8d8706d5c0404844c7c180f1a974",
+"status": 200,
+"url": "histdata:NZDUSD:2022:"
+},
+{
+"bytes": 2924414,
+"sha256": "46a4637ad894071945598d76ee833cbc09daf370b882a345560302106061a38e",
+"status": 200,
+"url": "histdata:NZDUSD:2023:"
+},
+{
+"bytes": 3214072,
+"sha256": "94462ccf8ee9d1a23a1c14d4824565c07a5a20c9d97f29896c05d9ee80a2a5f5",
+"status": 200,
+"url": "histdata:NZDUSD:2024:"
+},
+{
+"bytes": 3240795,
+"sha256": "7a69b46af8916323923f6aaefe7a046b09510da1eece1dd653e0e4bd01d2d98a",
+"status": 200,
+"url": "histdata:NZDUSD:2025:"
+},
+{
+"bytes": 261076,
+"sha256": "f6802a2b0a38643742b5615f3a5271a1c8dcda605681f0e470e69e8a6824a329",
+"status": 200,
+"url": "histdata:NZDUSD:2026:1"
+},
+{
+"bytes": 253985,
+"sha256": "a99a2da18aa60019f6635532ded9a19fb6b763165595bc2f1f5ab4c7c04ffeba",
+"status": 200,
+"url": "histdata:NZDUSD:2026:2"
+},
+{
+"bytes": 294548,
+"sha256": "9be859502a57272de38ddef7354344cf7b3015bb0327b8897d51c467cb50fa44",
+"status": 200,
+"url": "histdata:NZDUSD:2026:3"
+},
+{
+"bytes": 274604,
+"sha256": "20ab78748d0b56acbef9d8c8ce114346daa8ad5aa6e6972fbb775e8e799c8db1",
+"status": 200,
+"url": "histdata:NZDUSD:2026:4"
+},
+{
+"bytes": 260909,
+"sha256": "0802719f82310b3d4f57d528c151b1b80d06607cd45f109d5986046e4917f317",
+"status": 200,
+"url": "histdata:NZDUSD:2026:5"
+},
+{
+"bytes": 270289,
+"sha256": "5f8056dc53aa3898cb2d5b67685fec84b9fa03495aaba678d817caab502b9ce6",
+"status": 200,
+"url": "histdata:NZDUSD:2026:6"
+},
+{
+"bytes": 277445,
+"sha256": "4cba639356f7700758aaa05f32f8ff6d7c62c2ae2173d4615584706b5d2911a5",
+"status": 200,
+"url": "histdata:NZDUSD:2026:7"
+},
+{
+"bytes": 255156,
+"sha256": "6f113d4145619d4cb70a5eb34627c4f0a73d87545580b8fa8548610188a91e1d",
+"status": 200,
+"url": "histdata:NZDUSD:2026:8"
+},
+{
+"bytes": 258911,
+"sha256": "419042b1d41f2c0a9fe5de0923bf42af5b75e0397f2d36e792980e4e76fb665e",
+"status": 200,
+"url": "histdata:NZDUSD:2026:9"
+},
+{
+"bytes": 3303353,
+"sha256": "fc08c093330f2e6c3836a02026ac0934532cb1d3c46bf4c58f2b6fae7a189f33",
+"status": 200,
+"url": "histdata:USDCAD:2012:"
+},
+{
+"bytes": 3189578,
+"sha256": "6b89b6340426a2f7c184ec03bf94763fa55bcd2c0176b6e59479318548a4d740",
+"status": 200,
+"url": "histdata:USDCAD:2013:"
+},
+{
+"bytes": 3233092,
+"sha256": "a038b161b339eaa7ff0a8dc38b55892919eeafa6a56a304f6e609336df6f7185",
+"status": 200,
+"url": "histdata:USDCAD:2014:"
+},
+{
+"bytes": 3496375,
+"sha256": "71f9837d539e2d881751e309c0800aa1d9aa08df263ad22aef16a35d8860d655",
+"status": 200,
+"url": "histdata:USDCAD:2015:"
+},
+{
+"bytes": 3587238,
+"sha256": "ffc8e08383da996dc37d31085ea793697c24bc82415d0f70fb5e61b504c9cd47",
+"status": 200,
+"url": "histdata:USDCAD:2016:"
+},
+{
+"bytes": 3399820,
+"sha256": "212940e4c580eb25ca5bf8766ab0ae0ea38bfc3a9c7fb05e7c56104745bbff22",
+"status": 200,
+"url": "histdata:USDCAD:2017:"
+},
+{
+"bytes": 3438419,
+"sha256": "1b522b2478915d185f2ffce8694b6ddb1d969b8cc2398045a99c79cf1eb04048",
+"status": 200,
+"url": "histdata:USDCAD:2018:"
+},
+{
+"bytes": 3198935,
+"sha256": "40f2f57e5b0782143965ad8ddef7d4546afa56bb6ad3bef55a461e4784c7f1fc",
+"status": 200,
+"url": "histdata:USDCAD:2019:"
+},
+{
+"bytes": 3489920,
+"sha256": "31bc62820b707045d3e9304ef5f047c518a62ef8859be3c35b0cc9e413e282f5",
+"status": 200,
+"url": "histdata:USDCAD:2020:"
+},
+{
+"bytes": 3426396,
+"sha256": "6c40e36b662935c844bd8b80e9444b1c6627352e093c9002e4a1591d71723b0b",
+"status": 200,
+"url": "histdata:USDCAD:2021:"
+},
+{
+"bytes": 3579519,
+"sha256": "023c13769f84060438344cc27e3be891054ae28604e82ce619af56251d53d6f1",
+"status": 200,
+"url": "histdata:USDCAD:2022:"
+},
+{
+"bytes": 2985103,
+"sha256": "7e65fa63d8a5875c57114f19ef03441647a4bbef0fbb562021990dce2e821434",
+"status": 200,
+"url": "histdata:USDCAD:2023:"
+},
+{
+"bytes": 3279072,
+"sha256": "f2a1288cf8bfdde840d694cf62a84cb733edd7fc0efcd9607eb5ed0a9bbbcbce",
+"status": 200,
+"url": "histdata:USDCAD:2024:"
+},
+{
+"bytes": 3345427,
+"sha256": "aa72ce3de6f6346770f44fad5928b9b2ee65b4d37380dde6ed988cc07a8e2ee3",
+"status": 200,
+"url": "histdata:USDCAD:2025:"
+},
+{
+"bytes": 270386,
+"sha256": "902178b23b5cc1a81765b9b6be14abb574c67135eba2d9ab93601cf9ac6cb9c8",
+"status": 200,
+"url": "histdata:USDCAD:2026:1"
+},
+{
+"bytes": 260534,
+"sha256": "ecb3d18d6250ab2922bed531885f4245feb68b3f9d1682e5db5e28454fb44852",
+"status": 200,
+"url": "histdata:USDCAD:2026:2"
+},
+{
+"bytes": 294057,
+"sha256": "cbe52716c9eb56ac190d3543a1340cda1632d66c3700b195fdaab3248ad69394",
+"status": 200,
+"url": "histdata:USDCAD:2026:3"
+},
+{
+"bytes": 273636,
+"sha256": "0ad29043e216ec09035a5c6ef2f946f8a9c7271d6c246c53dae010f68c6193d6",
+"status": 200,
+"url": "histdata:USDCAD:2026:4"
+},
+{
+"bytes": 260001,
+"sha256": "62752cc9ae865f3aa9f217e49f3b3aa65393d70015f052f04cbbc58f7567c5a8",
+"status": 200,
+"url": "histdata:USDCAD:2026:5"
+},
+{
+"bytes": 277528,
+"sha256": "a4fa5c554ee591a9dd82afb856dc4e99c3947efe56789cfad42514c5788471b4",
+"status": 200,
+"url": "histdata:USDCAD:2026:6"
+},
+{
+"bytes": 283860,
+"sha256": "0b429798aafe5cb20be485fa8e478d53edcefa66f407f028d846c067a8f3af08",
+"status": 200,
+"url": "histdata:USDCAD:2026:7"
+},
+{
+"bytes": 261906,
+"sha256": "bda5cb1e584ea7409068e5af813166c2d2ea62d23e64db776f0b139a8374438c",
+"status": 200,
+"url": "histdata:USDCAD:2026:8"
+},
+{
+"bytes": 258718,
+"sha256": "4b0db7c3a21eca0bb226c7b04049ddfd0f8b7a2dc8d7eebb5c371991c466d1f4",
+"status": 200,
+"url": "histdata:USDCAD:2026:9"
+},
+{
+"bytes": 3388117,
+"sha256": "4934d7a774512ad4553cb684573efb23fbce1429fd4723cf3977d6071a9e6569",
+"status": 200,
+"url": "histdata:USDCHF:2012:"
+},
+{
+"bytes": 3336851,
+"sha256": "d7cc90ebb0d4934952229c2b62d68d9165487622af9d3e693e469841d5b6c212",
+"status": 200,
+"url": "histdata:USDCHF:2013:"
+},
+{
+"bytes": 3160121,
+"sha256": "a681a51a73eb9dad331d5dfce6016c9be66ee11356a14103e6af8059bc5488f9",
+"status": 200,
+"url": "histdata:USDCHF:2014:"
+},
+{
+"bytes": 3451636,
+"sha256": "263d088a7aab72bf02465a8154a4afd74a88697c12cf0db86257cd5dd244d4db",
+"status": 200,
+"url": "histdata:USDCHF:2015:"
+},
+{
+"bytes": 3339643,
+"sha256": "1ebb15da8c96ae5671b8c1c01373a495b291deafd9b145667d2d0bc150c64afa",
+"status": 200,
+"url": "histdata:USDCHF:2016:"
+},
+{
+"bytes": 3294557,
+"sha256": "e56a77788e2726137a1665d21221788dda039bed23fc82b4fc599d845b30965b",
+"status": 200,
+"url": "histdata:USDCHF:2017:"
+},
+{
+"bytes": 3250495,
+"sha256": "eb38818df034f7f7ae884e6b85a1b3261bfee13f5490a068407360f2e25a7236",
+"status": 200,
+"url": "histdata:USDCHF:2018:"
+},
+{
+"bytes": 3079617,
+"sha256": "dcd79c0bfac91a404dd1d4b084e1def6b64876ad42f5ef1c4e2f1b2659d3af51",
+"status": 200,
+"url": "histdata:USDCHF:2019:"
+},
+{
+"bytes": 3269627,
+"sha256": "b223f05305d449544647defbf696311b08e5b3590a96fb6d2af597ba57a178be",
+"status": 200,
+"url": "histdata:USDCHF:2020:"
+},
+{
+"bytes": 3171078,
+"sha256": "92c2f58a84c1672b8d4515345c9639d01a55799fbb34822ccc34a7d1140816fd",
+"status": 200,
+"url": "histdata:USDCHF:2021:"
+},
+{
+"bytes": 3425013,
+"sha256": "be2788f2abea047c6bf4d43966976e7edd45282bd67375fccf437322f5e71c74",
+"status": 200,
+"url": "histdata:USDCHF:2022:"
+},
+{
+"bytes": 2904003,
+"sha256": "1216014396486faa84721c638387f4f6820a9ac0fbc1de0562d29421678eef88",
+"status": 200,
+"url": "histdata:USDCHF:2023:"
+},
+{
+"bytes": 3253840,
+"sha256": "a93db5099665b113e595b84639e8d3ede610059bab32a44765ebc4b8b8f90431",
+"status": 200,
+"url": "histdata:USDCHF:2024:"
+},
+{
+"bytes": 3311663,
+"sha256": "831032e80a03626df3612fc38cc17a85b7c98878f264ee8cafd7a3a01d1e8ea0",
+"status": 200,
+"url": "histdata:USDCHF:2025:"
+},
+{
+"bytes": 268119,
+"sha256": "316990263974e76a6c90fee0559f4e5ede70f07b48a3e2c3251074f2e72d34e5",
+"status": 200,
+"url": "histdata:USDCHF:2026:1"
+},
+{
+"bytes": 252932,
+"sha256": "c1432631133aa9e2cffcdd46b51ebcfd7c41b4388c5504331bfb2cfd0a9aac02",
+"status": 200,
+"url": "histdata:USDCHF:2026:2"
+},
+{
+"bytes": 290265,
+"sha256": "346cc33b705361d74b3551ff5522668fe24c81ea62f5b69c03dc3ddd4bd3d965",
+"status": 200,
+"url": "histdata:USDCHF:2026:3"
+},
+{
+"bytes": 275601,
+"sha256": "7366adedc71b3b20ad9333e0b7181c59a82fdb170130896026d03fd74d2ca050",
+"status": 200,
+"url": "histdata:USDCHF:2026:4"
+},
+{
+"bytes": 257230,
+"sha256": "ed31b164fdc7f9ec8e18dd49729643c97710ee5d2036f7178de961f6b39d58aa",
+"status": 200,
+"url": "histdata:USDCHF:2026:5"
+},
+{
+"bytes": 273606,
+"sha256": "0a0d51642272e63be057a0833e1b4440575fcbe8a161d64acadacdd13b2b6711",
+"status": 200,
+"url": "histdata:USDCHF:2026:6"
+},
+{
+"bytes": 282564,
+"sha256": "30d411a7ef82913f972e6d8a73b7de0ad59ea28cc9bbe3a487fa1db6345503c2",
+"status": 200,
+"url": "histdata:USDCHF:2026:7"
+},
+{
+"bytes": 260941,
+"sha256": "5bdc89e88232f0765b8dd9aea96e07bc9f03cd8089d1ea4d5dc675b7d4630c4a",
+"status": 200,
+"url": "histdata:USDCHF:2026:8"
+},
+{
+"bytes": 262552,
+"sha256": "62c2c2233480da2a04d0bf709cfb63020d7cd12e1b62c0c28756e385631bcc6c",
+"status": 200,
+"url": "histdata:USDCHF:2026:9"
+},
+{
+"bytes": 3376201,
+"sha256": "390f2a394c43238251c8def63c7bafa14dbaa8cca95fb66c5eca1387b596a3ef",
+"status": 200,
+"url": "histdata:USDJPY:2012:"
+},
+{
+"bytes": 3682990,
+"sha256": "ee13c99ccd29c19eed607bf5b6e23632c3e815d03a767b2e65270227ded00bd9",
+"status": 200,
+"url": "histdata:USDJPY:2013:"
+},
+{
+"bytes": 3460480,
+"sha256": "09e1e49f4f00b4fcd029602dd548026fa9b2182e5c140385996a4f458f5cb234",
+"status": 200,
+"url": "histdata:USDJPY:2014:"
+},
+{
+"bytes": 3607261,
+"sha256": "3c108f737d2a1c221c24d8da5dbae4a8ee5eca640bfdb48cb69e286226db9b29",
+"status": 200,
+"url": "histdata:USDJPY:2015:"
+},
+{
+"bytes": 3782293,
+"sha256": "11706684d9f7ffdfb7bcd92bb4303f7e8ff5b7711bda75f6dcc875fd2235479c",
+"status": 200,
+"url": "histdata:USDJPY:2016:"
+},
+{
+"bytes": 3641303,
+"sha256": "477a1f515586f06d67cb75b3662260160e1e29e63c51804a30a5e7d69b09df5f",
+"status": 200,
+"url": "histdata:USDJPY:2017:"
+},
+{
+"bytes": 3538078,
+"sha256": "db2bb2cbfe030c8ab7c9eedf42eaa495dac6dbabb89b7988a980b9cf10f37aef",
+"status": 200,
+"url": "histdata:USDJPY:2018:"
+},
+{
+"bytes": 3329299,
+"sha256": "c1e4fed59edb1a31b99e4e8b3d1e71c174ca48b3947bf11fcb31c85b98d78dcd",
+"status": 200,
+"url": "histdata:USDJPY:2019:"
+},
+{
+"bytes": 3460770,
+"sha256": "2ce7a9dc44ae0abb24d2142546e237fc34686d9f40b941ea9516a6217d9e8bee",
+"status": 200,
+"url": "histdata:USDJPY:2020:"
+},
+{
+"bytes": 3374305,
+"sha256": "604d3eab8975be93004cdb7161aaafb24dab320136b61c7f686ab9b059babc81",
+"status": 200,
+"url": "histdata:USDJPY:2021:"
+},
+{
+"bytes": 3791005,
+"sha256": "d290231856453b961d110430a98e2dd6074efea881ed6ebcf3211647d50e70c7",
+"status": 200,
+"url": "histdata:USDJPY:2022:"
+},
+{
+"bytes": 3285373,
+"sha256": "f6b03b2b9e3f7a64d64db68d73b97902e2fb6748bfcf52dfdff9730a09173cfa",
+"status": 200,
+"url": "histdata:USDJPY:2023:"
+},
+{
+"bytes": 3792736,
+"sha256": "dc99fe4b3e0ae1b457f6bfccc5d36cf6f628812f704f5556aa0a74ff3e7e8c81",
+"status": 200,
+"url": "histdata:USDJPY:2024:"
+},
+{
+"bytes": 3857070,
+"sha256": "7e4911e0971bf99e41327f37256154d351af5c8d883c4c5708a46d899b55cbaf",
+"status": 200,
+"url": "histdata:USDJPY:2025:"
+},
+{
+"bytes": 308142,
+"sha256": "6d990f8df658fb9c16238bedce3ab07956603b3bc8fa01130e2c4a3f95127917",
+"status": 200,
+"url": "histdata:USDJPY:2026:1"
+},
+{
+"bytes": 300150,
+"sha256": "e10301240946bee28629f230aea998ea28810e0f80cf59941708dc7f7adeb8ed",
+"status": 200,
+"url": "histdata:USDJPY:2026:2"
+},
+{
+"bytes": 326059,
+"sha256": "1bbea2d7877f9004554f6208243a181106a0678a5fc9b28dfc6e2db5c26c29a5",
+"status": 200,
+"url": "histdata:USDJPY:2026:3"
+},
+{
+"bytes": 306480,
+"sha256": "4077adff4ffd476bafcc2a392481d88074ae11564e5930518212afa458ddf6b9",
+"status": 200,
+"url": "histdata:USDJPY:2026:4"
+},
+{
+"bytes": 280405,
+"sha256": "4a594f2146222f939411f2cf767d5f9ee33e9b9958222c47a21d7f95e829d1e9",
+"status": 200,
+"url": "histdata:USDJPY:2026:5"
+},
+{
+"bytes": 277418,
+"sha256": "a168aa072c616b6755cb592ce6ebe18e7fa91735c8e60b1703046cfd6a917c82",
+"status": 200,
+"url": "histdata:USDJPY:2026:6"
+},
+{
+"bytes": 306263,
+"sha256": "5c8e3d8f539b071e2e47bd84da2b6c9bd2e20df8144a6491094019973a9dc583",
+"status": 200,
+"url": "histdata:USDJPY:2026:7"
+},
+{
+"bytes": 294498,
+"sha256": "bb7e86f8c9744b9f39c4d962920e7d056b7593296b6256fd96bebda5253db36e",
+"status": 200,
+"url": "histdata:USDJPY:2026:8"
+},
+{
+"bytes": 313538,
+"sha256": "ef316a7ee9404e70a7d42b176745a428b4d1580b0ecec51ed30e32c3dd18a161",
+"status": 200,
+"url": "histdata:USDJPY:2026:9"
+}
+]

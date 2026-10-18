@@ -1,0 +1,752 @@
+[
+{
+"bytes": 207454,
+"sha256": "e6d3ee1daf0b4e1d2e2a4d2bb13145961dbadad36920878643d5f05a6bd4a115",
+"status": 200,
+"url": "histdata:GRXEUR:2010:"
+},
+{
+"bytes": 1870666,
+"sha256": "9497bb10764ea8895387bf6e9231f3425c7c05ba05f74090e147e2d3f6df08c2",
+"status": 200,
+"url": "histdata:GRXEUR:2011:"
+},
+{
+"bytes": 1813983,
+"sha256": "663023cf983d928334ae8098213974b7aa9eb3796abb940415c43354aa2e6ab5",
+"status": 200,
+"url": "histdata:GRXEUR:2012:"
+},
+{
+"bytes": 1741425,
+"sha256": "53b275daf58e1aea1d48a192fe439c749b310fd54f0625f11c863425fc8bd9fa",
+"status": 200,
+"url": "histdata:GRXEUR:2013:"
+},
+{
+"bytes": 1931666,
+"sha256": "c5b8d8046eb0152c76ef2e712bda060f68061432ae140010dcae1cd51073fe15",
+"status": 200,
+"url": "histdata:GRXEUR:2014:"
+},
+{
+"bytes": 2238072,
+"sha256": "1d7fcb360370a85d63fb889c9482dffe314612d5e00e91ee4b63b936e9441c81",
+"status": 200,
+"url": "histdata:GRXEUR:2015:"
+},
+{
+"bytes": 2171718,
+"sha256": "72dae8b772a2d6ac9947f0a9d16a2ff4774df607de5a7f61efeec41d626c9441",
+"status": 200,
+"url": "histdata:GRXEUR:2016:"
+},
+{
+"bytes": 1973429,
+"sha256": "8a79af23e8e9276f111da266e4b60c9ea80d07c101a27c8e4a9195d28b440b73",
+"status": 200,
+"url": "histdata:GRXEUR:2017:"
+},
+{
+"bytes": 2190373,
+"sha256": "a4eb6f3199676037b093b9160c924900ab9f02e257ba8c18cd6d7edf78fd425e",
+"status": 200,
+"url": "histdata:GRXEUR:2018:"
+},
+{
+"bytes": 3236345,
+"sha256": "f565464491b7064a79d8ab123a21967f6aabe8c520a769ba374126259c259aca",
+"status": 200,
+"url": "histdata:GRXEUR:2019:"
+},
+{
+"bytes": 3241516,
+"sha256": "b5543bed2fc95b2407553ddb2c72fa3f0b49eedbe8938d61807e84f33019f035",
+"status": 200,
+"url": "histdata:GRXEUR:2020:"
+},
+{
+"bytes": 2162358,
+"sha256": "825972d9a89ad13ec1990ffd51bdf947f1d085ed5953533fac9a281fba6f5c49",
+"status": 200,
+"url": "histdata:GRXEUR:2021:"
+},
+{
+"bytes": 2326024,
+"sha256": "460e0b45470dd9638be6a0fd7fe7407ec6736fb5d120d43fe93b2f653d56f99a",
+"status": 200,
+"url": "histdata:GRXEUR:2022:"
+},
+{
+"bytes": 1871461,
+"sha256": "04eb7a4dc7fb2f20844e5a9457973680d80c7f3e0954c7175edb7130e6c1d3c5",
+"status": 200,
+"url": "histdata:GRXEUR:2023:"
+},
+{
+"bytes": 4059164,
+"sha256": "19c80d71914a2d834a22a2a5330911c7cfbc9176fc61a1440e5bde608245356d",
+"status": 200,
+"url": "histdata:GRXEUR:2024:"
+},
+{
+"bytes": 4241837,
+"sha256": "dc256eb0fc979f60530c6172910d88b9f27490ed0e9cce193f856c1af77b2703",
+"status": 200,
+"url": "histdata:GRXEUR:2025:"
+},
+{
+"bytes": 344526,
+"sha256": "569807688c598f43735ce2fe258c806cbaaf80f21f9c5cc79857dee5679267b9",
+"status": 200,
+"url": "histdata:GRXEUR:2026:1"
+},
+{
+"bytes": 333113,
+"sha256": "951244ff9b467c74b37dead933a5bb13229c47f37620d726741228739d9f5be4",
+"status": 200,
+"url": "histdata:GRXEUR:2026:2"
+},
+{
+"bytes": 394327,
+"sha256": "5b38048c19debc766f8e24f75caeaa25bc2f6a4cd71708d0e36a3bd1b9fa7edc",
+"status": 200,
+"url": "histdata:GRXEUR:2026:3"
+},
+{
+"bytes": 361914,
+"sha256": "ac34d8611589cb10759619b56940379770f2df5b4e1f9f087c697e1a3f3b5acd",
+"status": 200,
+"url": "histdata:GRXEUR:2026:4"
+},
+{
+"bytes": 359554,
+"sha256": "124bee50c3d462ddf983c34eb5cb2a66db0d4e963ce87f2886a177dc997a55da",
+"status": 200,
+"url": "histdata:GRXEUR:2026:5"
+},
+{
+"bytes": 400015,
+"sha256": "0ed0c809c4f72e7058064dcd9750d0621c339b00713facdfc5f031978e33948f",
+"status": 200,
+"url": "histdata:GRXEUR:2026:6"
+},
+{
+"bytes": 411858,
+"sha256": "3357f32221eea9289e61c0d6327e8d8d4738b92eca64a00411121599f45b00a8",
+"status": 200,
+"url": "histdata:GRXEUR:2026:7"
+},
+{
+"bytes": 345457,
+"sha256": "4b0c06436780d6be0f52592e213bf5d59c51c9e69f10d9327174321630da94e6",
+"status": 200,
+"url": "histdata:GRXEUR:2026:8"
+},
+{
+"bytes": 347477,
+"sha256": "c824d9c1a20934c6f9ddd081c7e47b11658cff88e46f5bef1f82ee8c83e5660d",
+"status": 200,
+"url": "histdata:GRXEUR:2026:9"
+},
+{
+"bytes": 317711,
+"sha256": "4414870d1dca686af85d7fa58346c9772971600a67a6c7d07d9978d1558968b0",
+"status": 200,
+"url": "histdata:NSXUSD:2010:"
+},
+{
+"bytes": 2683933,
+"sha256": "80d38b149989c76f72cf7f668acb329cbc08118ac3ef4c5ec28226a97dd3c385",
+"status": 200,
+"url": "histdata:NSXUSD:2011:"
+},
+{
+"bytes": 2613631,
+"sha256": "a9c25d0c3e26fe259bd2b539212a94d3e9f74220c044b33f96c107bca11ce072",
+"status": 200,
+"url": "histdata:NSXUSD:2012:"
+},
+{
+"bytes": 2521561,
+"sha256": "7474da49bbe002a661ea0f3186578a84061685c8eaa7fda27e2b48b7eac6351d",
+"status": 200,
+"url": "histdata:NSXUSD:2013:"
+},
+{
+"bytes": 2714257,
+"sha256": "3a2c5335f90ce30efe5c485aedb16300ccabd88b26c6df6b02e19229c2ac470f",
+"status": 200,
+"url": "histdata:NSXUSD:2014:"
+},
+{
+"bytes": 3173641,
+"sha256": "b3d1c62f1a02b971fbc69f84ad31ff0d21e533b648c2ce1efe694488947cfee3",
+"status": 200,
+"url": "histdata:NSXUSD:2015:"
+},
+{
+"bytes": 3142300,
+"sha256": "c78457c386eb5cd17cae4ec77f8fedf19ae37add2fafb3e4e3cbf97e9d3c8c19",
+"status": 200,
+"url": "histdata:NSXUSD:2016:"
+},
+{
+"bytes": 3005614,
+"sha256": "162b6e8b54b16dc67a31072c89cb7a48066920c7f61f513d3b2ffcce8b625213",
+"status": 200,
+"url": "histdata:NSXUSD:2017:"
+},
+{
+"bytes": 3560115,
+"sha256": "0cab833575b5967f08718a5ad869a85aa5e5c408fbbe725c01925b1da44ef34f",
+"status": 200,
+"url": "histdata:NSXUSD:2018:"
+},
+{
+"bytes": 3929822,
+"sha256": "f7e0ac7ce964c864793c8928058cef11d1a886c68876f42b3e42d5bc61732698",
+"status": 200,
+"url": "histdata:NSXUSD:2019:"
+},
+{
+"bytes": 4782514,
+"sha256": "896ff362259e56468f7a8acd32afa4dc21c309cf13a84e2c3e585dea0be4df84",
+"status": 200,
+"url": "histdata:NSXUSD:2020:"
+},
+{
+"bytes": 4941583,
+"sha256": "ea22aa9f9a10f234cde03428f8117b2725e550f45ca17eb95fb1e4a9792c2977",
+"status": 200,
+"url": "histdata:NSXUSD:2021:"
+},
+{
+"bytes": 5127487,
+"sha256": "b6bfac92a74c36719812014a38ce8cfcad05b4f15aca0d0e9e0dc1b1b3a098e7",
+"status": 200,
+"url": "histdata:NSXUSD:2022:"
+},
+{
+"bytes": 4285675,
+"sha256": "0282f3b419c254d168c5dba86cdcfe6527f0d4ad32dd407a401d9367e2520ecc",
+"status": 200,
+"url": "histdata:NSXUSD:2023:"
+},
+{
+"bytes": 5195055,
+"sha256": "70429c487544991e42d34ce505be00b2d02b74a6633b23ca07eba0f80bf24566",
+"status": 200,
+"url": "histdata:NSXUSD:2024:"
+},
+{
+"bytes": 5327460,
+"sha256": "865006539b7a3abe6ce3742e17604e5bf003b89583b349228570d343f78ae16f",
+"status": 200,
+"url": "histdata:NSXUSD:2025:"
+},
+{
+"bytes": 445108,
+"sha256": "62d23149b48dffeff745915087563f8a712eca4cb3f557376fc53d34071245af",
+"status": 200,
+"url": "histdata:NSXUSD:2026:1"
+},
+{
+"bytes": 431646,
+"sha256": "7904a738862d9dc97e3e0be943765af6e02a8550066cbe8beddd7feb629b1f4e",
+"status": 200,
+"url": "histdata:NSXUSD:2026:2"
+},
+{
+"bytes": 490055,
+"sha256": "d62628b53b06f294f9c62dcd3d165c222391d1e630a59c1e9eba71aff14acf42",
+"status": 200,
+"url": "histdata:NSXUSD:2026:3"
+},
+{
+"bytes": 449935,
+"sha256": "3f16217c1714d9039c9eb0dd28c5c98012dcdc0967151e240d41162303f9fb17",
+"status": 200,
+"url": "histdata:NSXUSD:2026:4"
+},
+{
+"bytes": 453284,
+"sha256": "5fc38b0cc76358f5d0d5ca5b7a68d0195a7148a3e22a320d85e85ad8276dbb94",
+"status": 200,
+"url": "histdata:NSXUSD:2026:5"
+},
+{
+"bytes": 495554,
+"sha256": "5a97ec616b67f0e0fb62cac4e8f8902c10309119629a36f7f651954230c58eb1",
+"status": 200,
+"url": "histdata:NSXUSD:2026:6"
+},
+{
+"bytes": 508914,
+"sha256": "dd8a7ccb5651f614de6a46ba8faceebd73996a984e6a5ed55d9abe563fa18afe",
+"status": 200,
+"url": "histdata:NSXUSD:2026:7"
+},
+{
+"bytes": 454830,
+"sha256": "b8d8cf3f1599ac2ae018883995df88ad552b790dd2a64c14c11d63b8883b8b8e",
+"status": 200,
+"url": "histdata:NSXUSD:2026:8"
+},
+{
+"bytes": 445182,
+"sha256": "2aa6fbf0a761cd414b90978a59d95b90841a10e7a78643c50acbc3037ed182f3",
+"status": 200,
+"url": "histdata:NSXUSD:2026:9"
+},
+{
+"bytes": 261120,
+"sha256": "d88b3db298075c3f938bcaf21abe0e80da30d1c994a194ac2c0229ac6aeaa129",
+"status": 200,
+"url": "histdata:SPXUSD:2010:"
+},
+{
+"bytes": 2339255,
+"sha256": "1f0d9ed95731e05c014b5b6194a91cd4f81fd6e4c1f5aac2158972a509a4f135",
+"status": 200,
+"url": "histdata:SPXUSD:2011:"
+},
+{
+"bytes": 2179331,
+"sha256": "868b0cfef7934dca64b9de72b2d7644a898b49716173ea67c493eb1eda3ce143",
+"status": 200,
+"url": "histdata:SPXUSD:2012:"
+},
+{
+"bytes": 2062316,
+"sha256": "7f69eca0096793b193cbaaacc4987a9b96fc55e0c628c50d8de4c752dbf1c611",
+"status": 200,
+"url": "histdata:SPXUSD:2013:"
+},
+{
+"bytes": 2064317,
+"sha256": "19c1f1995aaec4355b03eca690856c3061d39464d2d34ef4a67336ba97eb6c96",
+"status": 200,
+"url": "histdata:SPXUSD:2014:"
+},
+{
+"bytes": 2329031,
+"sha256": "b53bcafa90bb4fc17af12b62f09603c46827cae28a46214fc91e4baad79116c4",
+"status": 200,
+"url": "histdata:SPXUSD:2015:"
+},
+{
+"bytes": 2311662,
+"sha256": "f853cdb12bc33054967bb521b909572eb1edadc96c51cf0a4dfde3a63a357b57",
+"status": 200,
+"url": "histdata:SPXUSD:2016:"
+},
+{
+"bytes": 2072451,
+"sha256": "0df85b8f0f0c6adec40bd29bb8fb8290b5d58d9b551c99aa073a58f75297d58c",
+"status": 200,
+"url": "histdata:SPXUSD:2017:"
+},
+{
+"bytes": 2724034,
+"sha256": "b29ee026c351470929208def4c65cb4bb0adfc252b9453646adb463ee22bdec0",
+"status": 200,
+"url": "histdata:SPXUSD:2018:"
+},
+{
+"bytes": 2795335,
+"sha256": "c1f0eeba5b55834a8a6e3a88cd1d8ec69592d192419c1cd2a909a67a5aa324fe",
+"status": 200,
+"url": "histdata:SPXUSD:2019:"
+},
+{
+"bytes": 4048280,
+"sha256": "29ef33d74507484ef6f8cb2b0beec0d4477fde1e5b582b07ca04366bd984c23a",
+"status": 200,
+"url": "histdata:SPXUSD:2020:"
+},
+{
+"bytes": 3997784,
+"sha256": "14f2f6f6070e8a096f377d5d1ddf646c5c742f76912cc1fbe4ecbfb9d9221278",
+"status": 200,
+"url": "histdata:SPXUSD:2021:"
+},
+{
+"bytes": 4512711,
+"sha256": "fe8869fae70a4e536ce429daae9265e1904dc6323b5e6112ff13aa2bc5790c40",
+"status": 200,
+"url": "histdata:SPXUSD:2022:"
+},
+{
+"bytes": 3991111,
+"sha256": "ed12d6f59929101f2e09c2f1c5028f39ab8af3b36841b41532d13f7f68c3aef9",
+"status": 200,
+"url": "histdata:SPXUSD:2023:"
+},
+{
+"bytes": 4570331,
+"sha256": "759e1911963f4b3275cc30a35f8937435afb03ee1eaac2f6a28aa0c9c7068da7",
+"status": 200,
+"url": "histdata:SPXUSD:2024:"
+},
+{
+"bytes": 4477585,
+"sha256": "5a3729fd46686a0d88d43b7f64f7915bd5df43c940a8fa72ad63e348b64b2ae7",
+"status": 200,
+"url": "histdata:SPXUSD:2025:"
+},
+{
+"bytes": 336427,
+"sha256": "3b68a5b357979857fe89e1b4940272bdf73a2ccd3e200ecaada067d0bc34662c",
+"status": 200,
+"url": "histdata:SPXUSD:2026:1"
+},
+{
+"bytes": 335219,
+"sha256": "175fb8d71b5f4bdfdb610784aff6a1f4252130304972d671d64d4d98e3abe72d",
+"status": 200,
+"url": "histdata:SPXUSD:2026:2"
+},
+{
+"bytes": 395501,
+"sha256": "cdf8bf5b39bd26cd548dbab0c462d80387e8e1e54ce772e58c6de8932a352983",
+"status": 200,
+"url": "histdata:SPXUSD:2026:3"
+},
+{
+"bytes": 355281,
+"sha256": "3d6cf30c3f29558fdedf8911178ded118b45799cdf397cc06b19653ae4f76593",
+"status": 200,
+"url": "histdata:SPXUSD:2026:4"
+},
+{
+"bytes": 345098,
+"sha256": "a16ca6850ff44b32ad8c5cd8579c3711492001b8bc81df9a161f079344bd725c",
+"status": 200,
+"url": "histdata:SPXUSD:2026:5"
+},
+{
+"bytes": 387833,
+"sha256": "2d969628d3d660bf27b1b5c95c57e778ec8ed502a8ce896ccca8de37d3a7105d",
+"status": 200,
+"url": "histdata:SPXUSD:2026:6"
+},
+{
+"bytes": 417248,
+"sha256": "1b3cd6d9ef551e71e7f05fdc0ca22af40b2e7d571360a8a545d54321d2653c2c",
+"status": 200,
+"url": "histdata:SPXUSD:2026:7"
+},
+{
+"bytes": 375717,
+"sha256": "4f9c72f9d35b0ac76c1caf471ca06820312b5209178cf0cc02ae9bc4342ff9c8",
+"status": 200,
+"url": "histdata:SPXUSD:2026:8"
+},
+{
+"bytes": 373998,
+"sha256": "d1b059f927cd483c922907eb8696d0017e9d1225e621558ab0de58d374a1e81d",
+"status": 200,
+"url": "histdata:SPXUSD:2026:9"
+},
+{
+"bytes": 187250,
+"sha256": "0a1050319d3725e4ee7003db0bc05f1d6014ce7bca4cba4b7d7feb117dac0350",
+"status": 200,
+"url": "histdata:UKXGBP:2010:"
+},
+{
+"bytes": 1604846,
+"sha256": "60b8319b38904a997e7adbb606040bd1f33569a76aca77bc17979bb78587c8e2",
+"status": 200,
+"url": "histdata:UKXGBP:2011:"
+},
+{
+"bytes": 1525885,
+"sha256": "a4145e132f769ea83c7b77cfb99ee5622fa97f0d6d1cecfc7db4b39db589f064",
+"status": 200,
+"url": "histdata:UKXGBP:2012:"
+},
+{
+"bytes": 1493858,
+"sha256": "e52a4cad9c863494e1dc25f6145eeb57fc467bd65df396b0335bff7c3df5e0fb",
+"status": 200,
+"url": "histdata:UKXGBP:2013:"
+},
+{
+"bytes": 1481415,
+"sha256": "6955d56829ab3e06dc43e61b0a5f2be819ede674a551e50a5216ac087d4ff227",
+"status": 200,
+"url": "histdata:UKXGBP:2014:"
+},
+{
+"bytes": 1677890,
+"sha256": "b6c7a584814636d2143e9502d4493660d519bb64f6bb94b86d68c278a3ccf1c0",
+"status": 200,
+"url": "histdata:UKXGBP:2015:"
+},
+{
+"bytes": 1677207,
+"sha256": "f3ffa4ac7514c9cec514577c8ac77616847030c90630a8bc5f95e09ccbf9fe5c",
+"status": 200,
+"url": "histdata:UKXGBP:2016:"
+},
+{
+"bytes": 1533295,
+"sha256": "6a0ac2ae811d2bba79f632d69efc50d97d28a7c652ddfdc121f41136e9598068",
+"status": 200,
+"url": "histdata:UKXGBP:2017:"
+},
+{
+"bytes": 1777559,
+"sha256": "8b4dd2b8e429b47befff9bc7f89dbce0717ef7a2834d815ad531898abf03c603",
+"status": 200,
+"url": "histdata:UKXGBP:2018:"
+},
+{
+"bytes": 3737171,
+"sha256": "895992c6817e2e8575c58af93fafd9660f860a635392ccffd335aeb86b368436",
+"status": 200,
+"url": "histdata:UKXGBP:2019:"
+},
+{
+"bytes": 4919084,
+"sha256": "36f8fe0a8bc942987c0b369ac8a2b374aca39ad4c5ea1f176dd4a96e95f0c541",
+"status": 200,
+"url": "histdata:UKXGBP:2020:"
+},
+{
+"bytes": 4568288,
+"sha256": "be561f09fb47a7fd1e613ef9c9491c011e4cf0d28aa8b5198f42967f7bf6fe95",
+"status": 200,
+"url": "histdata:UKXGBP:2021:"
+},
+{
+"bytes": 5023054,
+"sha256": "d8a1e75980a03cd0a5ae49580b1eb3b0d34e1161aff006711836f64698658983",
+"status": 200,
+"url": "histdata:UKXGBP:2022:"
+},
+{
+"bytes": 4120177,
+"sha256": "ee1c75d4754aa1656af81b9377110936ce72f795c49a88399d350ded11dbb967",
+"status": 200,
+"url": "histdata:UKXGBP:2023:"
+},
+{
+"bytes": 4702863,
+"sha256": "bb4e97c2a29748b8af62523a4179731c5bc023cbebc6c7988ec3e083176fcd6c",
+"status": 200,
+"url": "histdata:UKXGBP:2024:"
+},
+{
+"bytes": 4742287,
+"sha256": "3d76ebd3290ac0ad2af2224ee4b426287c2ad2c7313fe16329d562b0f08795b0",
+"status": 200,
+"url": "histdata:UKXGBP:2025:"
+},
+{
+"bytes": 362770,
+"sha256": "3b8d4ccf8915703f7d2bae0506d87c2362989770dd4611080f2d131408ed3541",
+"status": 200,
+"url": "histdata:UKXGBP:2026:1"
+},
+{
+"bytes": 355541,
+"sha256": "1695661a480737cf17ea21fb34c1ec0f19714034f6f8ca563f0e36eef78a821a",
+"status": 200,
+"url": "histdata:UKXGBP:2026:2"
+},
+{
+"bytes": 410547,
+"sha256": "62df2588405bed189e68d4e73833db52ead73ae232e7e1549e3e8bb69e819ca6",
+"status": 200,
+"url": "histdata:UKXGBP:2026:3"
+},
+{
+"bytes": 375929,
+"sha256": "0a2abe771942ddb0294f6ae21db5ae835134ab5f94620dd8c9c0e913a02efd13",
+"status": 200,
+"url": "histdata:UKXGBP:2026:4"
+},
+{
+"bytes": 372956,
+"sha256": "f8da0e6a50faccb8da507d0c3e1030eac0a5bdca378197d581f9a8c593981300",
+"status": 200,
+"url": "histdata:UKXGBP:2026:5"
+},
+{
+"bytes": 395178,
+"sha256": "f87137cf0a17c7a587d9644c4f924283465426b6e3d334514ac4fecb7fbfe6a7",
+"status": 200,
+"url": "histdata:UKXGBP:2026:6"
+},
+{
+"bytes": 413113,
+"sha256": "1d7076ec7949f156e0eee2519e7a7d1b01cac878b5f8704c86959f7c183b323f",
+"status": 200,
+"url": "histdata:UKXGBP:2026:7"
+},
+{
+"bytes": 369477,
+"sha256": "1264ba57021091e23efe876cf35a03481dff5dff034f3ea38262b895257ad7a6",
+"status": 200,
+"url": "histdata:UKXGBP:2026:8"
+},
+{
+"bytes": 374020,
+"sha256": "40df4da3e8429bb6f7180a5f5a6df70fbf878a7ceed6a11527a47f35c77b125c",
+"status": 200,
+"url": "histdata:UKXGBP:2026:9"
+},
+{
+"bytes": 327700,
+"sha256": "bf1ea5ed871a13d78a777079118d2fcdd7fb0a5a8076883a74e69c421e303158",
+"status": 200,
+"url": "histdata:WTIUSD:2010:"
+},
+{
+"bytes": 2690171,
+"sha256": "43106f8baccbc7224de530e2da0daa5f97c6350453c4a19e89a169d25b0fdfba",
+"status": 200,
+"url": "histdata:WTIUSD:2011:"
+},
+{
+"bytes": 2756937,
+"sha256": "1a1cad785969d31999063e73ff7f5b14dfa32ff3a20578469198a94549a415da",
+"status": 200,
+"url": "histdata:WTIUSD:2012:"
+},
+{
+"bytes": 2674856,
+"sha256": "0a8ff345fa755d474851480487cdb995d7a8ac0d64f02a2b19a974d589830588",
+"status": 200,
+"url": "histdata:WTIUSD:2013:"
+},
+{
+"bytes": 2619514,
+"sha256": "c9ef35a76312906f93c4f28c575fc675fa52ff8001acb367514e3a27b0786763",
+"status": 200,
+"url": "histdata:WTIUSD:2014:"
+},
+{
+"bytes": 2693762,
+"sha256": "90bfefd280c926b9301b6cb62363def28de0486352606429c2c32103c5fa06e6",
+"status": 200,
+"url": "histdata:WTIUSD:2015:"
+},
+{
+"bytes": 2582792,
+"sha256": "79f468c2c62bf652d6d3a7d5fbab6900d91674dfd8209522c8be659ce561d77a",
+"status": 200,
+"url": "histdata:WTIUSD:2016:"
+},
+{
+"bytes": 2265292,
+"sha256": "d838fbe0d90697e604d2df115bb01e5a91fcf71a630c8edb8d3fb4ec30a3bf19",
+"status": 200,
+"url": "histdata:WTIUSD:2017:"
+},
+{
+"bytes": 2607486,
+"sha256": "54dc24b9f4cc00e05b477db6c439941f6a589a062596e944f655fdd64b6051cf",
+"status": 200,
+"url": "histdata:WTIUSD:2018:"
+},
+{
+"bytes": 2730613,
+"sha256": "343b69db02639c102c9ace877528b3ae1bfc96dbe956dc20ac7f551bd9d5baf7",
+"status": 200,
+"url": "histdata:WTIUSD:2019:"
+},
+{
+"bytes": 3075484,
+"sha256": "04c20df0d0a21e92af77574521d15925ef67504313725a5b43bf7ae3674a39f7",
+"status": 200,
+"url": "histdata:WTIUSD:2020:"
+},
+{
+"bytes": 3134351,
+"sha256": "d808a19ff0129ced92ca0de1d6c67dc073f271abee520338a7956ef39814e29d",
+"status": 200,
+"url": "histdata:WTIUSD:2021:"
+},
+{
+"bytes": 3726727,
+"sha256": "876d8e31b1334a5c32d490af8773cdf33c83cade33ff477d46348f3d25553468",
+"status": 200,
+"url": "histdata:WTIUSD:2022:"
+},
+{
+"bytes": 2532266,
+"sha256": "0e76bb3ed8c7f0c8f6e511ef7b4d8de1cef6604c123b843c76c079fcca9c45fd",
+"status": 200,
+"url": "histdata:WTIUSD:2023:"
+},
+{
+"bytes": 0,
+"sha256": "",
+"status": -1,
+"url": "histdata:WTIUSD:2024:"
+},
+{
+"bytes": 0,
+"sha256": "",
+"status": -1,
+"url": "histdata:WTIUSD:2025:"
+},
+{
+"bytes": 0,
+"sha256": "",
+"status": -1,
+"url": "histdata:WTIUSD:2026:1"
+},
+{
+"bytes": 0,
+"sha256": "",
+"status": -1,
+"url": "histdata:WTIUSD:2026:2"
+},
+{
+"bytes": 0,
+"sha256": "",
+"status": -1,
+"url": "histdata:WTIUSD:2026:3"
+},
+{
+"bytes": 0,
+"sha256": "",
+"status": -1,
+"url": "histdata:WTIUSD:2026:4"
+},
+{
+"bytes": 0,
+"sha256": "",
+"status": -1,
+"url": "histdata:WTIUSD:2026:5"
+},
+{
+"bytes": 29253,
+"sha256": "c600c87bb175515607d6e3f40ebd108f25166507c010c2dbb9fa1c03fcfedad7",
+"status": 200,
+"url": "histdata:WTIUSD:2026:6"
+},
+{
+"bytes": 308306,
+"sha256": "5889855eca2afae8a8af318f5ca3ede347bc91d6d4b03617ed6826f31befdfd4",
+"status": 200,
+"url": "histdata:WTIUSD:2026:7"
+},
+{
+"bytes": 290860,
+"sha256": "21252870432f1b8f7a22412497ac75f82cfb2763086a8054c7fdeae58e0b07f0",
+"status": 200,
+"url": "histdata:WTIUSD:2026:8"
+},
+{
+"bytes": 303136,
+"sha256": "ae988d595f9bdf303e16d1215b1f4b1b587bdad89d72aa4c1a94348b7ff6fc80",
+"status": 200,
+"url": "histdata:WTIUSD:2026:9"
+}
+]

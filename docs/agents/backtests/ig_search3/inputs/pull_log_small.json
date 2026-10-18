@@ -1,0 +1,158 @@
+[
+{
+"bytes": 540404,
+"sha256": "ed32e6e46bcf0da55d5b08b7924c6bb99ab12d44f1c7b7c91ed5718a6de0c2af",
+"status": 200,
+"url": "https://query1.finance.yahoo.com/v8/finance/chart/%5EFTSE?range=730d&interval=1h&includePrePost=false"
+},
+{
+"bytes": 533091,
+"sha256": "61cb5d72ea8b1118ed4d465dd935ba58d269d1da8b05e3a41af18e31e04786ea",
+"status": 200,
+"url": "https://query1.finance.yahoo.com/v8/finance/chart/%5EGDAXI?range=730d&interval=1h&includePrePost=false"
+},
+{
+"bytes": 1361661,
+"sha256": "143b00350dd77b9ac8a220afb2321999fce889a3d9e0ff2b92c7030fae260cf8",
+"status": 200,
+"url": "https://query1.finance.yahoo.com/v8/finance/chart/CL%3DF?range=730d&interval=1h&includePrePost=false"
+},
+{
+"bytes": 507415,
+"sha256": "20b9d93c4eecbb4c3e4b7b82e2424b7fa7f8d80b3bca81e53135af4b30cd3389",
+"status": 200,
+"url": "https://query1.finance.yahoo.com/v8/finance/chart/DIA?range=730d&interval=1h&includePrePost=false"
+},
+{
+"bytes": 830338,
+"sha256": "1166412396e221199fa41607bcacc0869cdd25daa5a199d804992f0fbaebd86c",
+"status": 200,
+"url": "https://query1.finance.yahoo.com/v8/finance/chart/ES%3DF?range=730d&interval=1h&includePrePost=false"
+},
+{
+"bytes": 878357,
+"sha256": "470ffd6d0ec623e38e266cb62a6a807ece190a79640d4274b042888cdf80880d",
+"status": 200,
+"url": "https://query1.finance.yahoo.com/v8/finance/chart/NQ%3DF?range=730d&interval=1h&includePrePost=false"
+},
+{
+"bytes": 508417,
+"sha256": "0c87eabc021a79679b8694ea81b07ac1c9bfe9e97b2304dfe8b3ce777e1d1eef",
+"status": 200,
+"url": "https://query1.finance.yahoo.com/v8/finance/chart/QQQ?range=730d&interval=1h&includePrePost=false"
+},
+{
+"bytes": 505500,
+"sha256": "dc6129f0b5d1f5f47ebaa8a557e02b6242d108fe959a1a8db33097a4947a877f",
+"status": 200,
+"url": "https://query1.finance.yahoo.com/v8/finance/chart/SPY?range=730d&interval=1h&includePrePost=false"
+},
+{
+"bytes": 843959,
+"sha256": "cf30ae6ca0146dced16ae7d3b11fa8c4e0331a0738a24a78fa0ac4d1eefba4f0",
+"status": 200,
+"url": "https://query1.finance.yahoo.com/v8/finance/chart/YM%3DF?range=730d&interval=1h&includePrePost=false"
+},
+{
+"bytes": 96927,
+"sha256": "58ba6ad2df51d17ca2c64955044ecc7e0a1574babde17ea759640c9b78af0a76",
+"status": 200,
+"url": "https://www.bls.gov/schedule/2010/home.htm"
+},
+{
+"bytes": 95495,
+"sha256": "7bf531385e6641dbe7c9b396119583df687a650cbc9e7f99c66bcc03ffd01e19",
+"status": 200,
+"url": "https://www.bls.gov/schedule/2011/home.htm"
+},
+{
+"bytes": 97427,
+"sha256": "4d28d4564227e713e01078fa27bf9a899364ab8b24a77287031415971b0e1287",
+"status": 200,
+"url": "https://www.bls.gov/schedule/2012/home.htm"
+},
+{
+"bytes": 93640,
+"sha256": "0f3454b4975f615361a5b9268f0519d0003ef18ba6737f04e759ec3668b28348",
+"status": 200,
+"url": "https://www.bls.gov/schedule/2013/home.htm"
+},
+{
+"bytes": 91662,
+"sha256": "691e1abbb5d5ed080a5afa6e7eaee1570dd69f65fc3bd69601b609e1688adb66",
+"status": 200,
+"url": "https://www.bls.gov/schedule/2014/home.htm"
+},
+{
+"bytes": 96815,
+"sha256": "515fcbfccaa4ca758a2376cc42560c8df4faefc46217268be8c9222c35eff416",
+"status": 200,
+"url": "https://www.bls.gov/schedule/2015/home.htm"
+},
+{
+"bytes": 96677,
+"sha256": "da838eb21650da1f7aa3ae3355bdb9b5e1cd190a467232e74ae28621453a6c0a",
+"status": 200,
+"url": "https://www.bls.gov/schedule/2016/home.htm"
+},
+{
+"bytes": 95284,
+"sha256": "cefc78608ffdf1cf295ca6ce29b60a34171b2be679aa4ff003defa56eb5dd781",
+"status": 200,
+"url": "https://www.bls.gov/schedule/2017/home.htm"
+},
+{
+"bytes": 98266,
+"sha256": "0508017239cb944b6a865537e86706e89579347cd5703cfac73abc4116f70655",
+"status": 200,
+"url": "https://www.bls.gov/schedule/2018/home.htm"
+},
+{
+"bytes": 99273,
+"sha256": "79d544badfec76a4e3687076a831e8ba4fb69c211898828f5edd173ba8e401fd",
+"status": 200,
+"url": "https://www.bls.gov/schedule/2019/home.htm"
+},
+{
+"bytes": 93767,
+"sha256": "0ee7b9af2cdef3b326eb3924154d916f89b917a0f91ffc8b0046157dbf5c9e9e",
+"status": 200,
+"url": "https://www.bls.gov/schedule/2020/home.htm"
+},
+{
+"bytes": 98083,
+"sha256": "c09deb50d5817890974a16ed7cf0c0847a55059ed1459646ab7c38f0db07ae56",
+"status": 200,
+"url": "https://www.bls.gov/schedule/2021/home.htm"
+},
+{
+"bytes": 100417,
+"sha256": "0fa59a88a3a60572e0f70d5627db9e426f97d033501fd43c710b95b1f0cedc29",
+"status": 200,
+"url": "https://www.bls.gov/schedule/2022/home.htm"
+},
+{
+"bytes": 99872,
+"sha256": "7e2fc48b29ddf437ba21ab6a8f893fa21a364ede0d66dd1b7f36bc5df4abbbf9",
+"status": 200,
+"url": "https://www.bls.gov/schedule/2023/home.htm"
+},
+{
+"bytes": 101145,
+"sha256": "87b2a4ce0bc7e2ac84c6c5cdadabc23b7649265e753862c0263862e3a677105c",
+"status": 200,
+"url": "https://www.bls.gov/schedule/2024/home.htm"
+},
+{
+"bytes": 96414,
+"sha256": "e2739b849e058c1124cc32a498bd895576feb39d871263efb933acddac1a6ca4",
+"status": 200,
+"url": "https://www.bls.gov/schedule/2025/home.htm"
+},
+{
+"bytes": 100563,
+"sha256": "1bfb9d805fb7b419504962aa22773506b558534daac3b47d72c9de99fd16acac",
+"status": 200,
+"url": "https://www.bls.gov/schedule/2026/home.htm"
+}
+]

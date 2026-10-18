@@ -1,0 +1,16 @@
+{
+  "read": "2026-10-18 ~04:20 UTC, read-only SQL through the Supabase connector (project flmvxigozjuizpckllvk), the weekend of Sat 2026-10-17 to the time of reading; the weekday markets' Friday quotes are the last recorded before 2026-10-17 00:00 UTC (Fri 20:50-21:00 UTC window)",
+  "query": "per account and epic of ig_quotes since 2026-10-17: rows (a row is a changed quote), first/last ts, median offer-bid, last/min/max mid; joined to the matching weekday epic's last Friday mid (SUNDOW->DOW, SUNNAS->NASDAQ, SUNDAX->DAX, SUNFUN->FTSE)",
+  "caveat": "two runs in three failed on 2026-10-17/18 (401 account-token-invalid), so a quote change can be missed or recorded late; one weekend, no Monday reopen yet: descriptive only",
+  "rows": [
+    {"account": "cfd", "epic": "IX.D.SUNDAX.IFS.IP", "changes": 6, "first": "2026-10-17T06:55:00Z", "last": "2026-10-18T01:00:01Z", "median_spread_pts": 35, "median_spread_bps": 13.7, "last_mid": 25470.8, "fri_mid": 25470.8, "last_vs_fri_bps": 0.0, "min_vs_fri_bps": 0.0, "max_vs_fri_bps": 18.6},
+    {"account": "cfd", "epic": "IX.D.SUNDOW.IFS.IP", "changes": 17, "first": "2026-10-17T06:55:00Z", "last": "2026-10-18T01:54:31Z", "median_spread_pts": 55, "median_spread_bps": 10.6, "last_mid": 51875.1, "fri_mid": 51982.2, "last_vs_fri_bps": -20.6, "min_vs_fri_bps": -23.0, "max_vs_fri_bps": -13.5},
+    {"account": "cfd", "epic": "IX.D.SUNFUN.IFM.IP", "changes": 3, "first": "2026-10-17T06:55:00Z", "last": "2026-10-17T11:39:31Z", "median_spread_pts": 12, "median_spread_bps": 11.1, "last_mid": 10826.0, "fri_mid": 10839.4, "last_vs_fri_bps": -12.4, "min_vs_fri_bps": -18.2, "max_vs_fri_bps": -12.4},
+    {"account": "cfd", "epic": "IX.D.SUNNAS.IFS.IP", "changes": 104, "first": "2026-10-17T06:55:00Z", "last": "2026-10-18T04:05:01Z", "median_spread_pts": 40, "median_spread_bps": 13.8, "last_mid": 29073.7, "fri_mid": 29193.2, "last_vs_fri_bps": -41.0, "min_vs_fri_bps": -79.0, "max_vs_fri_bps": 5.6},
+    {"account": "sb", "epic": "IX.D.SUNDAX.DAILY.IP", "changes": 6, "first": "2026-10-17T06:55:01Z", "last": "2026-10-18T01:00:02Z", "median_spread_pts": 35, "median_spread_bps": 13.7, "last_mid": 25470.8, "fri_mid": 25470.85, "last_vs_fri_bps": 0.0, "min_vs_fri_bps": 0.0, "max_vs_fri_bps": 18.6},
+    {"account": "sb", "epic": "IX.D.SUNFUN.DAILY.IP", "changes": 3, "first": "2026-10-17T06:55:01Z", "last": "2026-10-17T11:39:30Z", "median_spread_pts": 12, "median_spread_bps": 11.1, "last_mid": 10826.0, "fri_mid": 10839.4, "last_vs_fri_bps": -12.4, "min_vs_fri_bps": -18.2, "max_vs_fri_bps": -12.4}
+  ],
+  "weekday_spreads_friday_close": {"cfd US 500 (SPTRD.IFS)": 0.6, "cfd Wall St (DOW.IFM)": 4.8, "cfd US Tech (NASDAQ.IFM)": 2.0, "cfd Germany 40 (DAX.IFM1)": 7.0, "cfd UK 100 (FTSE.IFM)": 4.0, "sb AUD/USD (AUDUSD.TODAY, x1e4)": 0.9},
+  "levels_seen": {"US 500": 7658, "Wall St": 51978, "US Tech 100": 29190, "Germany 40": 25471, "UK 100": 10839, "AUD/USD": 0.6945},
+  "recorder_runs_2026-10-16T20:52_to_2026-10-18T04:07": {"success_by_logins_per_run": {"0": "12/12", "1": "237/237", "2": "182/183", "3": "0/208", "4": "0/240", "5": "0/366"}}
+}

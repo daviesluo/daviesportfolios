@@ -1,0 +1,455 @@
+{
+ "gsl_150": {
+  "accounts": {
+   "1000": {
+    "ig_max_20x (deviation 1)": {
+     "gbp_a_year_median": 0,
+     "gbp_a_year_p05": -55,
+     "gbp_a_year_p95": 401,
+     "leverage": 20.0,
+     "margin_gbp": 1000,
+     "notional_gbp": 20000,
+     "p_drawdown_50pct": 0.0061,
+     "p_margin_closeout": 0.0,
+     "p_ruin_equity_le_10pct": 0.0,
+     "stake_gbp_per_pip": 3.03,
+     "worst_excursion_mtm_gbp (deviation 1)": -305,
+     "worst_single_trade_gbp_seen": -311
+    },
+    "ig_minimum": {
+     "gbp_a_year_median": 38,
+     "gbp_a_year_p05": 2,
+     "gbp_a_year_p95": 67,
+     "leverage": 3.3,
+     "margin_gbp": 165,
+     "notional_gbp": 3300,
+     "p_drawdown_50pct": 0.0,
+     "p_margin_closeout": 0.0,
+     "p_ruin_equity_le_10pct": 0.0,
+     "stake_gbp_per_pip": 0.5,
+     "worst_excursion_mtm_gbp (deviation 1)": -50,
+     "worst_single_trade_gbp_seen": -51
+    },
+    "margin_half_of_account": {
+     "gbp_a_year_median": 116,
+     "gbp_a_year_p05": 9,
+     "gbp_a_year_p95": 204,
+     "leverage": 10.0,
+     "margin_gbp": 500,
+     "notional_gbp": 10000,
+     "p_drawdown_50pct": 0.0076,
+     "p_margin_closeout": 0.0,
+     "p_ruin_equity_le_10pct": 0.0,
+     "stake_gbp_per_pip": 1.52,
+     "worst_excursion_mtm_gbp (deviation 1)": -152,
+     "worst_single_trade_gbp_seen": -155
+    }
+   },
+   "2500": {
+    "ig_max_20x (deviation 1)": {
+     "gbp_a_year_median": -1,
+     "gbp_a_year_p05": -138,
+     "gbp_a_year_p95": 1002,
+     "leverage": 20.0,
+     "margin_gbp": 2500,
+     "notional_gbp": 50000,
+     "p_drawdown_50pct": 0.0061,
+     "p_margin_closeout": 0.0,
+     "p_ruin_equity_le_10pct": 0.0,
+     "stake_gbp_per_pip": 7.58,
+     "worst_excursion_mtm_gbp (deviation 1)": -761,
+     "worst_single_trade_gbp_seen": -777
+    },
+    "ig_minimum": {
+     "gbp_a_year_median": 38,
+     "gbp_a_year_p05": 2,
+     "gbp_a_year_p95": 67,
+     "leverage": 1.32,
+     "margin_gbp": 165,
+     "notional_gbp": 3300,
+     "p_drawdown_50pct": 0.0,
+     "p_margin_closeout": 0.0,
+     "p_ruin_equity_le_10pct": 0.0,
+     "stake_gbp_per_pip": 0.5,
+     "worst_excursion_mtm_gbp (deviation 1)": -50,
+     "worst_single_trade_gbp_seen": -51
+    },
+    "margin_half_of_account": {
+     "gbp_a_year_median": 291,
+     "gbp_a_year_p05": 23,
+     "gbp_a_year_p95": 511,
+     "leverage": 10.0,
+     "margin_gbp": 1250,
+     "notional_gbp": 25000,
+     "p_drawdown_50pct": 0.0076,
+     "p_margin_closeout": 0.0,
+     "p_ruin_equity_le_10pct": 0.0,
+     "stake_gbp_per_pip": 3.79,
+     "worst_excursion_mtm_gbp (deviation 1)": -381,
+     "worst_single_trade_gbp_seen": -389
+    }
+   },
+   "500": {
+    "ig_max_20x (deviation 1)": {
+     "gbp_a_year_median": 0,
+     "gbp_a_year_p05": -28,
+     "gbp_a_year_p95": 200,
+     "leverage": 20.0,
+     "margin_gbp": 500,
+     "notional_gbp": 10000,
+     "p_drawdown_50pct": 0.0061,
+     "p_margin_closeout": 0.0,
+     "p_ruin_equity_le_10pct": 0.0,
+     "stake_gbp_per_pip": 1.52,
+     "worst_excursion_mtm_gbp (deviation 1)": -152,
+     "worst_single_trade_gbp_seen": -155
+    },
+    "ig_minimum": {
+     "gbp_a_year_median": 38,
+     "gbp_a_year_p05": 2,
+     "gbp_a_year_p95": 67,
+     "leverage": 6.6,
+     "margin_gbp": 165,
+     "notional_gbp": 3300,
+     "p_drawdown_50pct": 0.0004,
+     "p_margin_closeout": 0.0,
+     "p_ruin_equity_le_10pct": 0.0,
+     "stake_gbp_per_pip": 0.5,
+     "worst_excursion_mtm_gbp (deviation 1)": -50,
+     "worst_single_trade_gbp_seen": -51
+    },
+    "margin_half_of_account": {
+     "gbp_a_year_median": 58,
+     "gbp_a_year_p05": 5,
+     "gbp_a_year_p95": 102,
+     "leverage": 10.0,
+     "margin_gbp": 250,
+     "notional_gbp": 5000,
+     "p_drawdown_50pct": 0.0076,
+     "p_margin_closeout": 0.0,
+     "p_ruin_equity_le_10pct": 0.0,
+     "stake_gbp_per_pip": 0.76,
+     "worst_excursion_mtm_gbp (deviation 1)": -76,
+     "worst_single_trade_gbp_seen": -78
+    }
+   }
+  },
+  "kelly": {
+   "boot95_lo_bps": 3.53,
+   "half_kelly_leverage": 31.4,
+   "kelly_leverage": 62.8,
+   "kelly_leverage_at_boot_lo": 16.0,
+   "mean_bps": 13.91,
+   "sd_bps": 47.1,
+   "worst_excursion_bps": 152.3,
+   "worst_trade_bps": -155.4
+  }
+ },
+ "gsl_200": {
+  "accounts": {
+   "1000": {
+    "ig_max_20x (deviation 1)": {
+     "gbp_a_year_median": 168,
+     "gbp_a_year_p05": -52,
+     "gbp_a_year_p95": 414,
+     "leverage": 20.0,
+     "margin_gbp": 1000,
+     "notional_gbp": 20000,
+     "p_drawdown_50pct": 0.0041,
+     "p_margin_closeout": 0.0,
+     "p_ruin_equity_le_10pct": 0.0,
+     "stake_gbp_per_pip": 3.03,
+     "worst_excursion_mtm_gbp (deviation 1)": -405,
+     "worst_single_trade_gbp_seen": -413
+    },
+    "ig_minimum": {
+     "gbp_a_year_median": 43,
+     "gbp_a_year_p05": 10,
+     "gbp_a_year_p95": 70,
+     "leverage": 3.3,
+     "margin_gbp": 165,
+     "notional_gbp": 3300,
+     "p_drawdown_50pct": 0.0,
+     "p_margin_closeout": 0.0,
+     "p_ruin_equity_le_10pct": 0.0,
+     "stake_gbp_per_pip": 0.5,
+     "worst_excursion_mtm_gbp (deviation 1)": -67,
+     "worst_single_trade_gbp_seen": -68
+    },
+    "margin_half_of_account": {
+     "gbp_a_year_median": 130,
+     "gbp_a_year_p05": 29,
+     "gbp_a_year_p95": 212,
+     "leverage": 10.0,
+     "margin_gbp": 500,
+     "notional_gbp": 10000,
+     "p_drawdown_50pct": 0.0037,
+     "p_margin_closeout": 0.0,
+     "p_ruin_equity_le_10pct": 0.0,
+     "stake_gbp_per_pip": 1.52,
+     "worst_excursion_mtm_gbp (deviation 1)": -202,
+     "worst_single_trade_gbp_seen": -206
+    }
+   },
+   "2500": {
+    "ig_max_20x (deviation 1)": {
+     "gbp_a_year_median": 420,
+     "gbp_a_year_p05": -129,
+     "gbp_a_year_p95": 1036,
+     "leverage": 20.0,
+     "margin_gbp": 2500,
+     "notional_gbp": 50000,
+     "p_drawdown_50pct": 0.0041,
+     "p_margin_closeout": 0.0,
+     "p_ruin_equity_le_10pct": 0.0,
+     "stake_gbp_per_pip": 7.58,
+     "worst_excursion_mtm_gbp (deviation 1)": -1011,
+     "worst_single_trade_gbp_seen": -1031
+    },
+    "ig_minimum": {
+     "gbp_a_year_median": 43,
+     "gbp_a_year_p05": 10,
+     "gbp_a_year_p95": 70,
+     "leverage": 1.32,
+     "margin_gbp": 165,
+     "notional_gbp": 3300,
+     "p_drawdown_50pct": 0.0,
+     "p_margin_closeout": 0.0,
+     "p_ruin_equity_le_10pct": 0.0,
+     "stake_gbp_per_pip": 0.5,
+     "worst_excursion_mtm_gbp (deviation 1)": -67,
+     "worst_single_trade_gbp_seen": -68
+    },
+    "margin_half_of_account": {
+     "gbp_a_year_median": 325,
+     "gbp_a_year_p05": 74,
+     "gbp_a_year_p95": 530,
+     "leverage": 10.0,
+     "margin_gbp": 1250,
+     "notional_gbp": 25000,
+     "p_drawdown_50pct": 0.0037,
+     "p_margin_closeout": 0.0,
+     "p_ruin_equity_le_10pct": 0.0,
+     "stake_gbp_per_pip": 3.79,
+     "worst_excursion_mtm_gbp (deviation 1)": -506,
+     "worst_single_trade_gbp_seen": -516
+    }
+   },
+   "500": {
+    "ig_max_20x (deviation 1)": {
+     "gbp_a_year_median": 84,
+     "gbp_a_year_p05": -26,
+     "gbp_a_year_p95": 207,
+     "leverage": 20.0,
+     "margin_gbp": 500,
+     "notional_gbp": 10000,
+     "p_drawdown_50pct": 0.0041,
+     "p_margin_closeout": 0.0,
+     "p_ruin_equity_le_10pct": 0.0,
+     "stake_gbp_per_pip": 1.52,
+     "worst_excursion_mtm_gbp (deviation 1)": -202,
+     "worst_single_trade_gbp_seen": -206
+    },
+    "ig_minimum": {
+     "gbp_a_year_median": 43,
+     "gbp_a_year_p05": 10,
+     "gbp_a_year_p95": 70,
+     "leverage": 6.6,
+     "margin_gbp": 165,
+     "notional_gbp": 3300,
+     "p_drawdown_50pct": 0.0,
+     "p_margin_closeout": 0.0,
+     "p_ruin_equity_le_10pct": 0.0,
+     "stake_gbp_per_pip": 0.5,
+     "worst_excursion_mtm_gbp (deviation 1)": -67,
+     "worst_single_trade_gbp_seen": -68
+    },
+    "margin_half_of_account": {
+     "gbp_a_year_median": 65,
+     "gbp_a_year_p05": 15,
+     "gbp_a_year_p95": 106,
+     "leverage": 10.0,
+     "margin_gbp": 250,
+     "notional_gbp": 5000,
+     "p_drawdown_50pct": 0.0037,
+     "p_margin_closeout": 0.0,
+     "p_ruin_equity_le_10pct": 0.0,
+     "stake_gbp_per_pip": 0.76,
+     "worst_excursion_mtm_gbp (deviation 1)": -101,
+     "worst_single_trade_gbp_seen": -103
+    }
+   }
+  },
+  "kelly": {
+   "boot95_lo_bps": 6.12,
+   "half_kelly_leverage": 41.7,
+   "kelly_leverage": 83.4,
+   "kelly_leverage_at_boot_lo": 32.2,
+   "mean_bps": 15.83,
+   "sd_bps": 43.6,
+   "worst_excursion_bps": 202.3,
+   "worst_trade_bps": -206.3
+  }
+ },
+ "no_stop": {
+  "accounts": {
+   "1000": {
+    "ig_max_20x (deviation 1)": {
+     "gbp_a_year_median": 224,
+     "gbp_a_year_p05": -141,
+     "gbp_a_year_p95": 436,
+     "leverage": 20.0,
+     "margin_gbp": 1000,
+     "notional_gbp": 20000,
+     "p_drawdown_50pct": 0.0926,
+     "p_margin_closeout": 0.0925,
+     "p_ruin_equity_le_10pct": 0.0,
+     "stake_gbp_per_pip": 3.03,
+     "worst_excursion_mtm_gbp (deviation 1)": -899,
+     "worst_single_trade_gbp_seen": -899
+    },
+    "ig_minimum": {
+     "gbp_a_year_median": 51,
+     "gbp_a_year_p05": 24,
+     "gbp_a_year_p95": 74,
+     "leverage": 3.3,
+     "margin_gbp": 165,
+     "notional_gbp": 3300,
+     "p_drawdown_50pct": 0.0,
+     "p_margin_closeout": 0.0,
+     "p_ruin_equity_le_10pct": 0.0,
+     "stake_gbp_per_pip": 0.5,
+     "worst_excursion_mtm_gbp (deviation 1)": -148,
+     "worst_single_trade_gbp_seen": -43
+    },
+    "margin_half_of_account": {
+     "gbp_a_year_median": 153,
+     "gbp_a_year_p05": 74,
+     "gbp_a_year_p95": 223,
+     "leverage": 10.0,
+     "margin_gbp": 500,
+     "notional_gbp": 10000,
+     "p_drawdown_50pct": 0.0,
+     "p_margin_closeout": 0.0,
+     "p_ruin_equity_le_10pct": 0.0,
+     "stake_gbp_per_pip": 1.52,
+     "worst_excursion_mtm_gbp (deviation 1)": -449,
+     "worst_single_trade_gbp_seen": -129
+    }
+   },
+   "2500": {
+    "ig_max_20x (deviation 1)": {
+     "gbp_a_year_median": 561,
+     "gbp_a_year_p05": -352,
+     "gbp_a_year_p95": 1089,
+     "leverage": 20.0,
+     "margin_gbp": 2500,
+     "notional_gbp": 50000,
+     "p_drawdown_50pct": 0.0926,
+     "p_margin_closeout": 0.0925,
+     "p_ruin_equity_le_10pct": 0.0,
+     "stake_gbp_per_pip": 7.58,
+     "worst_excursion_mtm_gbp (deviation 1)": -2247,
+     "worst_single_trade_gbp_seen": -2247
+    },
+    "ig_minimum": {
+     "gbp_a_year_median": 51,
+     "gbp_a_year_p05": 24,
+     "gbp_a_year_p95": 74,
+     "leverage": 1.32,
+     "margin_gbp": 165,
+     "notional_gbp": 3300,
+     "p_drawdown_50pct": 0.0,
+     "p_margin_closeout": 0.0,
+     "p_ruin_equity_le_10pct": 0.0,
+     "stake_gbp_per_pip": 0.5,
+     "worst_excursion_mtm_gbp (deviation 1)": -148,
+     "worst_single_trade_gbp_seen": -43
+    },
+    "margin_half_of_account": {
+     "gbp_a_year_median": 384,
+     "gbp_a_year_p05": 185,
+     "gbp_a_year_p95": 559,
+     "leverage": 10.0,
+     "margin_gbp": 1250,
+     "notional_gbp": 25000,
+     "p_drawdown_50pct": 0.0,
+     "p_margin_closeout": 0.0,
+     "p_ruin_equity_le_10pct": 0.0,
+     "stake_gbp_per_pip": 3.79,
+     "worst_excursion_mtm_gbp (deviation 1)": -1124,
+     "worst_single_trade_gbp_seen": -323
+    }
+   },
+   "500": {
+    "ig_max_20x (deviation 1)": {
+     "gbp_a_year_median": 112,
+     "gbp_a_year_p05": -70,
+     "gbp_a_year_p95": 218,
+     "leverage": 20.0,
+     "margin_gbp": 500,
+     "notional_gbp": 10000,
+     "p_drawdown_50pct": 0.0926,
+     "p_margin_closeout": 0.0925,
+     "p_ruin_equity_le_10pct": 0.0,
+     "stake_gbp_per_pip": 1.52,
+     "worst_excursion_mtm_gbp (deviation 1)": -449,
+     "worst_single_trade_gbp_seen": -449
+    },
+    "ig_minimum": {
+     "gbp_a_year_median": 51,
+     "gbp_a_year_p05": 24,
+     "gbp_a_year_p95": 74,
+     "leverage": 6.6,
+     "margin_gbp": 165,
+     "notional_gbp": 3300,
+     "p_drawdown_50pct": 0.0,
+     "p_margin_closeout": 0.0,
+     "p_ruin_equity_le_10pct": 0.0,
+     "stake_gbp_per_pip": 0.5,
+     "worst_excursion_mtm_gbp (deviation 1)": -148,
+     "worst_single_trade_gbp_seen": -43
+    },
+    "margin_half_of_account": {
+     "gbp_a_year_median": 77,
+     "gbp_a_year_p05": 37,
+     "gbp_a_year_p95": 112,
+     "leverage": 10.0,
+     "margin_gbp": 250,
+     "notional_gbp": 5000,
+     "p_drawdown_50pct": 0.0,
+     "p_margin_closeout": 0.0,
+     "p_ruin_equity_le_10pct": 0.0,
+     "stake_gbp_per_pip": 0.76,
+     "worst_excursion_mtm_gbp (deviation 1)": -225,
+     "worst_single_trade_gbp_seen": -65
+    }
+   }
+  },
+  "kelly": {
+   "boot95_lo_bps": 10.8,
+   "half_kelly_leverage": 71.6,
+   "kelly_leverage": 143.2,
+   "kelly_leverage_at_boot_lo": 81.9,
+   "mean_bps": 18.88,
+   "sd_bps": 36.3,
+   "worst_excursion_bps": 449.5,
+   "worst_trade_bps": -129.3
+  }
+ },
+ "rule": "frozen SIZING; FXW-AUD's 85 FXCM trades, 8 a year for 5 years, 10,000 paths, fixed stake (no compounding)",
+ "s1a_ig_check": {
+  "close_only": {
+   "at_target_share": 0.7,
+   "mean_bps_after_funding_line": 37.59,
+   "n": 10,
+   "t": 3.5
+  },
+  "range_crossing": {
+   "at_target_share": 0.7,
+   "mean_bps_after_funding_line": 30.17,
+   "n": 10,
+   "t": 3.19
+  }
+ }
+}

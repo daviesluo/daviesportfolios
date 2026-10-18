@@ -700,7 +700,17 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   `reviews/2026-10-18-revx-weekend-prereg.md` ("Stablecoin quotes weekend", a forward paper row, read with PR5-W on 11-25).
   Alarm: IG's weekend recorder fails two runs in three since 10-16 20:52 (item 14). The 2026-10-16 history moved to the archive.
 
-### [2026-10-18 03:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+### [2026-10-18 04:46 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **IG strategy search round 3, results** (sub-agent; item 14; `reviews/2026-10-18-ig-strategy-search-3.md`): 50 arms
+  (intraday index rules flat by the close, FOMC/CPI/payroll/EIA days, FXW's rule on 14 FX pairs), HistData 1-minute
+  2010-2026 and FXCM 2012-2026 with Yahoo hourly and HistData FX as second sources; none meets the frozen bar. Intraday
+  rules gross -2.7 to +2.8 bps against 1.6-3.6 bps of IG cost. FXW is a post-2016 effect: AUD/USD +23.6 bps (t 5.34)
+  2019-2026 but +0.6 (t 0.07) on 2013-2015, the years its discovery never saw; AUD/NZD and NZD/USD alike; EUR/JPY
+  positive in both eras and feeds but test t 1.58. FXW-AUD sizing: GBP 1,000 at GBP 1.50 a pip (10x) about GBP 150 a
+  year median before the 2013-2015 deduction; IG's 20:1 is ruinous on the 449-bps weekend. Recommendation: fund nothing
+  new; FXW-AUD stays on S1b. HistData's stamps are New York time (deviation 2), not the EST its FAQ states.
+
+### [2026-10-18 03:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **IG strategy search round 3, rules frozen** (sub-agent; item 14; Davies, 10-18: "再继续深度研究下ig的策略，可以更激进一些也可以，只要策略够好"):
   `backtests/ig_search3/params/frozen.json` fixes the intraday, event-day, EIA, Sunday-open FX and sizing rules, eras,
   IG costs and the bar before any data is pulled; results to `reviews/2026-10-18-ig-strategy-search-3.md`.
