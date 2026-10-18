@@ -449,9 +449,11 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    `backtests/cbbooks/`, rules frozen in `params.json` before results, not blind): the Coinbase paper rows' fills all real (through
    prints, post-only accepted; slightly conservative); Coinbase leads Revolut X, no better fair for PR5; a touch maker on Coinbase
    dead; **XV-1, a Revolut X maker hedged on Coinbase, drafted NOT frozen** (`reviews/2026-10-18-cross-venue-maker-prereg.md`: an
-   offline reading 10-18 → 11-15, read by 11-19; needs both venues' transfer fees read first, and Davies' word). Recorder proposals
-   for Davies: keep `cb_trades` (10 days) as long as the books (35), or a prints-by-second table (R1); levels and products as they
-   are. Note: `cb_trades.side` is the aggressor's (the recorder flips Coinbase's maker side).
+   offline reading 10-18 → 11-15, read by 11-19; needs both venues' transfer fees read first, and Davies' word). **R1 decided and built
+   (`0132`, history 2026-10-18 05:16):** `cb_print_minutes` keeps the prints 40 days; R2–R4 no change. **After `0132` applies:**
+   `select count(*), min(minute), max(minute) from cb_print_minutes` (rows from 2026-10-08/09, the newest within ~12 min), the
+   `cb-print-minutes-build` runs in `cron.job_run_details` succeeding every 10 min, and
+   `backtests/cbbooks/sql/verify_print_minutes.sql` with its stored-table swap returning the MANIFEST's five md5s. Note: `cb_trades.side` is the aggressor's (the recorder flips Coinbase's maker side).
 
 14. **IG verification: S1a passes** (Davies, 2026-10-15; spec `backtests/ig_deepdive/SPEC-for-verification.md`, review
    `reviews/2026-10-15-ig-verification.md` §9). The `ig` function and `0122` are live (demo, read-only). S1a on 50 of 51
@@ -640,7 +642,7 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
-"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)"; each oldest first.
+"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)"; each oldest first.
 
 ### [2026-10-18 05:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **LIVE PR5's take and weekend quoting in SHADOW** (Davies: "会的话就加上，然后加上周末的挂单，一定验证好没问题再推上实盘部署";
@@ -649,6 +651,20 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   on mid-closure, as designed), no error, 0 new orders. Pass criteria and the 'live' statements are in the 2026-09-24 live
   design's 2026-10-18 addendum; each goes live only after its criteria pass and the result is shown to Davies. Undo:
   `update public.agent_quote_live_config set take_mode = 'off', weekend_mode = 'off', updated_at = now() where id = 1;`.
+
+### [2026-10-18 05:16 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Coinbase's prints kept 40 days: `0132`, `cb_print_minutes`** (sub-agent, not pushed; CBBOOKS-1's R1, decided by the main
+  session on Davies' "记录器改进建议验证后你来决定"; 0131 is taken by the PR5 agent's `0131_quote_live_take_weekend.sql`, so 0132).
+  A row per book and minute, arrays of the prints summed by second, price (book steps) and aggressor side, about 1.2 MB a day
+  (per-group rows would be about 3.7 MB; `cb_trades` about 6 MB). Written by `cb_print_minutes_build` (pg_cron every 10 min over the
+  last six hours, upserting only changed minutes, never deleting, skipping each book's oldest possibly-pruned minute), not by the
+  recorder, whose code and error path are unchanged; backfilled in the migration from all `cb_trades` holds; pruned at 40 days; RLS
+  on, no grant, the function revoked from public, anon and authenticated. Checked read-only on production before applying: its
+  aggregation, unnested, reproduced the database md5 of all five CBBOOKS-1 print pulls (202,273 groups), so the study's §2 fill checks
+  and queue inputs come back identical; pinned by `src/cb_print_minutes.test.js` (the shipped aggregation equals the verified one; a
+  mutated size failed it). No Deno pin: no Edge code changed. Note: XV-1 reads Coinbase's books and Revolut X's prints, not Coinbase's
+  prints. XV-1's draft §4 now has the transfer-fee table to fill (Davies may open a Coinbase account). **Must apply before 10-20**,
+  when 10-10's prints start to leave `cb_trades` (each day's go ten days after it).
 
 ### [2026-10-18 05:08 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **LIVE's take and weekend quoting built behind two switches, both 'off'** (sub-agent, not pushed; Davies, 10-18: "live的策略
@@ -659,6 +675,7 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   shadow writes events and sends nothing; weekend source inside closures; switches read 'off' before `0131` runs),
   `quotes_live_weekend.ts` (replica copied from PR5's engine in the hour before a closure, stepped inside it). Pins:
   `quotes_live_switches.test.ts`, ten counterfactuals fail. Verification and go statements: live design addendum of 10-18.
+
 
 ### [2026-10-18 04:58 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **IG weekend recorder, third fix** (sub-agent; item 14). With `8edc426c` live (04:39 UTC), runs 04:41-04:56: 11 of
@@ -769,9 +786,3 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   viem 2.21.54 vectors (`backtests/grokpm/redeem_vectors.json`, its script beside); the in-flight guard's removal fails 2
   pins. Read keylessly 10-17: 10 redeemable markets (2 paying $0.79 and $0.62, 8 at $0), both adapters approved, all
   `version` v1. Prereg §9 D6, sha re-pinned.
-
-### [2026-10-17 03:54 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **GROKPM page: PR5's scoreboard, DAYS above JOURNAL** (sub-agent; Davies: "这个策略的页面score board请做的和stablecoin quote的
-  live策略子页面的一样，然后底下live放在journal上面"). FUNDED, DEPLOYED (cost), TODAY, UNREALIZED, REALIZED "(incl. fees …)" from
-  `rowMoney(grokPmRow(g))`; fees are its own fills' (`grokpm_fills.fee_usd`, from the go), new in the dashboard. No section
-  is labelled "live" near the bottom; read as DAYS above JOURNAL. Not pushed.

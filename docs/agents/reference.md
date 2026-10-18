@@ -4019,7 +4019,12 @@ inform策略". As Revolut X's are (`books.ts`, read by the QUEUE study): on a pe
   (`reviews/2026-10-18-coinbase-books-study.md`, `backtests/cbbooks/`, not blind): the paper rows' through fills all confirmed against
   the books, Coinbase leads Revolut X, a Revolut X maker hedged on Coinbase drafted as an offline reading
   (`reviews/2026-10-18-cross-venue-maker-prereg.md`, not frozen). `cb_trades.side` is the aggressor's (the recorder flips Coinbase's
-  maker side). Its prints are kept 10 days against the books' 35: a longer print record is the study's recorder proposal R1.
+  maker side). Its prints are kept 10 days against the books' 35; **R1 decided 2026-10-18 and built as `0132`**:
+  `cb_print_minutes` keeps them 40 days summed by second, price and aggressor side (a row per book and minute, arrays like the
+  books', about 1.2 MB a day), rebuilt by pg_cron from `cb_trades` every 10 minutes over the last six hours (`cb_print_minutes_build`,
+  which never deletes and skips each book's oldest, possibly pruned, minute) and backfilled at the migration from 2026-10-08/09.
+  Its aggregation reproduced the md5 of all five CBBOOKS-1 print pulls on production before it applied
+  (`backtests/cbbooks/sql/verify_print_minutes.sql`, pinned by `src/cb_print_minutes.test.js`). The recorder is unchanged.
 
 60. **"Stablecoin quotes with Euros - 2": the Coinbase paper test with the interbank rates held through a closure (2026-10-13,
 migration `0118`, `agents/cb_hold.ts`, `agents/cb_page.ts`, `backtests/cbwk/`, `reviews/2026-10-13-coinbase-weekend-prereg.md`).**

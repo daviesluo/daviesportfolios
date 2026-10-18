@@ -46080,3 +46080,11 @@ against the 150 the reading needs, so no reading. Nothing failed, so nothing is 
   `started_at` = 02:39:14. First live sync 02:40:01: geoblock IE, day-open equity $100, no error, 0 live orders. The end
   (D5): wake `trig_01C3a3b3F38FYavx6jFeqJEq` at 2026-11-14 00:20 UTC disarms with 0125's undo and runs §6's reading, unless
   the 40th resolved position or the total stop ends it first. **Never trade by hand in that Polymarket account now.**
+
+## LEDGER.md, archived 2026-10-18 (third) — the 2026-10-17 history sections before 04:00 UTC still in the ledger, oldest first
+
+### [2026-10-17 03:54 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM page: PR5's scoreboard, DAYS above JOURNAL** (sub-agent; Davies: "这个策略的页面score board请做的和stablecoin quote的
+  live策略子页面的一样，然后底下live放在journal上面"). FUNDED, DEPLOYED (cost), TODAY, UNREALIZED, REALIZED "(incl. fees …)" from
+  `rowMoney(grokPmRow(g))`; fees are its own fills' (`grokpm_fills.fee_usd`, from the go), new in the dashboard. No section
+  is labelled "live" near the bottom; read as DAYS above JOURNAL. Not pushed.

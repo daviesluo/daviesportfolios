@@ -11,6 +11,8 @@ cost of moving the coins it accumulates back, over four weeks it has not seen?
 
 ## 2. The rule (as `backtests/cbbooks/scripts/cross.py`, Q4 (ii), with m fixed)
 
+- Inputs: Revolut X's prints and Coinbase's book reads only (no Coinbase prints are needed; `cb_print_minutes`, `0132`, is
+  there for the fill checks).
 - Books: USDC-GBP and USDT-GBP. At every Revolut X print (`agent_quote_prints`, side = the aggressor's), the standing Coinbase read
   (`cb_book_levels`, the latest row at or before the print, at most 3 minutes old) prices a Revolut X bid at
   floor(Coinbase best bid × (1 − 0.000045 − 0.0010), 0.0001) and an ask at ceil(Coinbase best ask × (1 + 0.000045 + 0.0010), 0.0001).
@@ -32,13 +34,23 @@ cost of moving the coins it accumulates back, over four weeks it has not seen?
 
 ## 4. Costs to fill in before freezing (from the venues' own pages, quoted with the date read)
 
-| item | value | source |
-|---|---|---|
-| Revolut X: USDC withdrawal (network, fee) | TO READ | |
-| Revolut X: USDT withdrawal (network, fee) | TO READ | |
-| Coinbase: USDC / USDT deposit on that network | TO READ | |
-| Coinbase: GBP withdrawal (Faster Payments) | TO READ | |
-| Revolut X: GBP deposit | TO READ | |
+Davies is considering opening a Coinbase account (2026-10-18); these are read from the venues' own pages (or his account
+screens) on the date given, never estimated. Every coin row is needed per network the venue offers; the cheapest network both
+venues share is the one the rule charges.
+
+| leg | coin / currency | network | fee (fixed + %) | minimum | typical time to arrive | read on | source |
+|---|---|---|---|---|---|---|---|
+| Revolut X withdrawal | USDC | TO READ | TO READ | TO READ | TO READ | | |
+| Revolut X withdrawal | USDT | TO READ | TO READ | TO READ | TO READ | | |
+| Coinbase deposit | USDC | (as above) | TO READ | TO READ | TO READ (confirmations) | | |
+| Coinbase deposit | USDT | (as above) | TO READ | TO READ | TO READ (confirmations) | | |
+| Coinbase withdrawal | GBP (Faster Payments) | — | TO READ | TO READ | TO READ | | |
+| Revolut X deposit | GBP | — | TO READ | TO READ | TO READ | | |
+| Revolut X ⇄ Revolut app | GBP / coins, if the route goes through the app | — | TO READ | — | TO READ | | |
+
+The weekly round the rule charges: one coin transfer Revolut X → Coinbase per book with flow and one pound transfer Coinbase →
+Revolut X, each at its fixed fee plus its percentage. Transfer time sets how much of each venue's balance the rule needs in hand
+(at least a week's flow plus the days in transit).
 
 If a week's round of transfers costs more than about 5 bps of a week's flow at the in-sample rate (about 600–1,300 coins a day a
 book), the test is dead before it starts and is not frozen.

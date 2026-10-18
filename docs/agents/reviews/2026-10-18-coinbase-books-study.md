@@ -216,6 +216,8 @@ depth within a fifth of normal. One event: nothing to estimate. It agrees with t
   than ten days back has books without prints (this study's first day goes on about 10-20). Either keep `cb_trades` 35 days (about
   6 MB a day, about 200 MB) or, cheaper, a prints-by-second table like this study's pull (about 0.5 MB a day, all four books). The
   XV-1 reading needs only Revolut X's prints and Coinbase's books, so it does not depend on R1.
+  **Decided the same day** (the main session, on Davies' "记录器改进建议验证后你来决定"): the per-second table, built as migration `0132`
+  (`cb_print_minutes`, 40 days, about 1.2 MB a day); its aggregation reproduces this study's five print pulls to the md5. R2–R4: no change.
 - **R2. Ten levels are enough.** The paper rungs sat inside the ten levels for 55 of 61 and 49 of 53 fills; no more levels needed.
 - **R3. Faster touch reads only if the touch maker is wanted.** The queue question (§3) needs reads every few seconds (`/book?level=1`,
   within Coinbase's 10 a second) or the full order feed; the money at a one-tick touch is too small to justify it now.
