@@ -183,6 +183,12 @@ export type IgClientOpts = {
   maxRelogins?: number;
   /** After a `PUT /session` that switched account, wait this long before the next request (unset: no wait). */
   switchWaitMs?: number;
+  /** After a login, wait this long before the next request (unset: no wait). */
+  loginWaitMs?: number;
+  /** On a token refusal, send the same request again with the same tokens this many times, after `tokenRetryWaitMs`,
+   *  before any re-login (unset: none). */
+  tokenRetries?: number;
+  tokenRetryWaitMs?: number;
 };
 
 /**
@@ -197,6 +203,8 @@ export class IgClient {
   switches = 0;
   /** Logins made to replace tokens IG called invalid (counted in `logins` too). */
   relogins = 0;
+  /** Requests sent again on the same tokens after a refusal. */
+  tokenRetriesUsed = 0;
   /** The last session answer, balances stripped (accounts, current account, time zone offset, …). */
   sessionInfo: Record<string, unknown> | null = null;
   /** IG's `Date` header against this clock, from the latest answer: the run's clock check. */
@@ -277,6 +285,7 @@ export class IgClient {
     const b = (answer.body ?? {}) as Record<string, unknown>;
     this.session = { cst, xst, accountId: String(b.currentAccountId ?? ""), at: (this.opts.now ?? Date.now)() };
     this.sessionInfo = this.scrub(stripBalances(b));
+    if (this.opts.loginWaitMs) await this.pause(this.opts.loginWaitMs);
     return this.session;
   }
 
@@ -284,6 +293,14 @@ export class IgClient {
   async call(method: string, path: string, o: { query?: Record<string, string>; body?: unknown; version: number }): Promise<IgAnswer> {
     if (!this.session) await this.login();
     let { answer, headers } = await this.raw(method, path, { ...o, auth: true });
+    // A token IG has just issued is sometimes refused for a moment (the recorder, 2026-10-18 04:19-04:30 UTC: a call
+    // 0.3 s after a fresh login was refused in about half the runs; `history`, 2.5 s apart, about one in fifty): the
+    // same tokens are tried again after a pause before anything logs in again.
+    for (let i = 0; i < (this.opts.tokenRetries ?? 0) && isTokenError(answer.status, igErrorCode(answer.body)); i++) {
+      this.tokenRetriesUsed += 1;
+      await this.pause(this.opts.tokenRetryWaitMs ?? 0);
+      ({ answer, headers } = await this.raw(method, path, { ...o, auth: true }));
+    }
     if (isTokenError(answer.status, igErrorCode(answer.body)) && this.relogins < (this.opts.maxRelogins ?? Infinity)) {
       this.relogins += 1;
       const account = this.session?.accountId ?? "";
@@ -326,6 +343,10 @@ export class IgClient {
     if (this.session) this.session = { ...this.session, accountId };
     // A pause before the switched account's first call (the recorder's choice; `facts` and `history` already wait 2.5 s
     // between any two requests).
-    if (this.opts.switchWaitMs) await (this.opts.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms))))(this.opts.switchWaitMs);
+    if (this.opts.switchWaitMs) await this.pause(this.opts.switchWaitMs);
+  }
+
+  private async pause(ms: number): Promise<void> {
+    if (ms > 0) await (this.opts.sleep ?? ((x: number) => new Promise<void>((r) => setTimeout(r, x))))(ms);
   }
 }

@@ -271,7 +271,16 @@ export const QUOTES_GAP_MS = 300;
  * (237 of 237) and every run whose kept session was still good (12 of 12) succeeded. One login a run is 60 an hour.
  */
 export const QUOTES_MAX_RELOGINS = 1;
-export const QUOTES_SWITCH_WAIT_MS = 1_000;
+export const QUOTES_SWITCH_WAIT_MS = 2_000;
+/**
+ * After that fix (deployed 04:19 UTC 10-18) 3 runs in 12 still failed in about a second: login, the first call 0.3 s
+ * later refused (account-token-invalid, no switch), the re-login's call refused the same way; three more needed the
+ * re-login. A fresh token is sometimes refused for a moment, so the recorder waits 2 s after a login or a switch, and
+ * on a refusal tries the same tokens again after 3 s, twice, before its one re-login.
+ */
+export const QUOTES_LOGIN_WAIT_MS = 2_000;
+export const QUOTES_TOKEN_RETRIES = 2;
+export const QUOTES_TOKEN_RETRY_WAIT_MS = 3_000;
 /** The second snapshot is taken this long after the call started, if the call started early enough. */
 export const SECOND_SAMPLE_MS = 30_000;
 export const SECOND_SAMPLE_LATEST_START_MS = 25_000;
@@ -397,6 +406,7 @@ export async function runQuotes(o: {
   } catch (e) {
     errors.push(`run row: ${errText(e)}`);
   }
-  return { result: { action: "quotes", ...run }, session: client.session };
+  // The same-token retries are in the answer, not the row (ig_quote_runs has no column for them; `requests` counts them).
+  return { result: { action: "quotes", ...run, token_retries: client.tokenRetriesUsed }, session: client.session };
 }
 

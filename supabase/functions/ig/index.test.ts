@@ -43,6 +43,9 @@ function fakeIg(o: {
   tokenInvalidOnce?: boolean;
   /** Every call but a login answers 401 account-token-invalid (the recorder's state on 10-17/18, whatever IG's cause). */
   accountTokenAlwaysInvalid?: boolean;
+  /** A token is refused (account-token-invalid) until this long after it was issued, on the clock `now`. */
+  warmupMs?: number;
+  now?: () => number;
 } = {}) {
   const calls: Call[] = [];
   let account = "Z6F18J";
@@ -50,6 +53,8 @@ function fakeIg(o: {
   // answer's headers alone (no CST), and from then on only the new one is accepted (production, 2026-10-15).
   let accountToken = XST;
   let invalid = o.tokenInvalidOnce ?? false;
+  let issuedAt = 0;
+  const clock = o.now ?? (() => 0);
   const res = (status: number, body: unknown, headers: Record<string, string> = {}) =>
     new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json", date: "Sun, 18 Oct 2026 20:00:00 GMT", ...headers } });
   const impl = (async (input: string | URL | Request, init?: RequestInit) => {
@@ -61,6 +66,7 @@ function fakeIg(o: {
     if (method === "POST" && path === "/session") {
       account = "Z6F18J";
       accountToken = XST;
+      issuedAt = clock();
       return res(200, {
         accountType: "CFD", currencyIsoCode: "GBP", currentAccountId: "Z6F18J", clientId: "CLIENT-1", timezoneOffset: 1,
         lightstreamerEndpoint: "https://demo-apd.marketdatasystems.com", hasActiveDemoAccounts: true, hasActiveLiveAccounts: true,
@@ -75,6 +81,7 @@ function fakeIg(o: {
     if (headers["cst"] !== CST) return res(401, { errorCode: "error.security.client-token-invalid" });
     if (headers["x-security-token"] !== accountToken) return res(401, { errorCode: "error.security.account-token-invalid" });
     if (o.accountTokenAlwaysInvalid) return res(401, { errorCode: "error.security.account-token-invalid" });
+    if (o.warmupMs && clock() - issuedAt < o.warmupMs) return res(401, { errorCode: "error.security.account-token-invalid" });
     if (invalid && method === "GET") {
       invalid = false;
       return res(401, { errorCode: "error.security.client-token-invalid", token: CST });
@@ -84,6 +91,7 @@ function fakeIg(o: {
       if (b.accountId === account) return res(412, { errorCode: "error.switch.accountId-must-be-different" });
       account = b.accountId;
       accountToken = `${XST}-${account}`;
+      issuedAt = clock();
       return res(200, { dealingEnabled: true }, { "X-SECURITY-TOKEN": accountToken });
     }
     if (path === "/accounts") {
@@ -587,8 +595,8 @@ Deno.test("each quotes run starts with its own login, never the previous run's s
   const second = ig.calls.slice(before);
   assertEquals([second[0].method, new URL(second[0].url).pathname.endsWith("/session")], ["POST", true]);
   assertEquals([r2.ok, r2.logins, r2.switches, r2.snapshots], [true, 1, 2, 4]);
-  // A one-second pause after each switch, before the switched account's first call.
-  assertEquals(sleeps.filter((ms) => ms === 1_000).length, 4);
+  // A pause after each login and each switch (two of each a run), before the next call.
+  assertEquals(sleeps.filter((ms) => ms === 2_000).length, 6);
 });
 
 Deno.test("a run whose tokens IG keeps refusing logs in at most twice and stops (no login storm)", async () => {
@@ -601,11 +609,33 @@ Deno.test("a run whose tokens IG keeps refusing logs in at most twice and stops 
   const r = await (await handle(req("quotes", { authorization: `Bearer ${ENV.CRON_SECRET}` }), d)).json();
   assertEquals(r.ok, false);
   assertEquals(r.snapshots, 0);
-  // The run's login, one re-login, and nothing more this minute: the first account's call, its retry, and out.
+  // The run's login, one re-login, and nothing more this minute: the first account's call, its two same-token retries,
+  // the re-login's call, and out.
   assertEquals(r.logins, 2);
   assertEquals(ig.calls.filter((c) => c.method === "POST").length, 2);
-  assert(ig.calls.length <= 4, `${ig.calls.length} requests`);
+  assert(ig.calls.length <= 6, `${ig.calls.length} requests`);
   assert(/account-token-invalid/.test(String(r.error)));
   assertEquals(tables.ig_quote_runs.length, 1);
   assertClean([r, tables.ig_quote_runs], "refused run");
+});
+
+Deno.test("a fresh token refused for a moment is waited for, not logged in again (2026-10-18 04:21 UTC)", async () => {
+  const { rest } = fakeRest();
+  await factsFor(rest, "sb");
+  await factsFor(rest, "cfd");
+  let t = Date.UTC(2026, 9, 18, 20, 0, 0, 400);
+  const run = async (warmupMs: number) => {
+    const ig = fakeIg({ warmupMs, now: () => t });
+    const d = deps({ rest, fetchImpl: ig.impl, now: () => t, sleep: (ms) => { t += ms; return Promise.resolve(); } });
+    t += 60_000;
+    return { r: await (await handle(req("quotes", { authorization: `Bearer ${ENV.CRON_SECRET}` }), d)).json(), ig };
+  };
+  // A token good one second after it is issued: the 2 s pause after the login and each switch covers it.
+  const a = await run(1_000);
+  assertEquals([a.r.ok, a.r.logins, a.r.switches, a.r.snapshots, a.r.token_retries], [true, 1, 2, 4, 0]);
+  // Good only after four seconds: each first call is refused once and its same-token retry 3 s later works.
+  const b = await run(4_000);
+  assertEquals([b.r.ok, b.r.logins, b.r.snapshots], [true, 1, 4]);
+  assert(b.r.token_retries >= 1);
+  assertEquals(b.ig.calls.filter((c) => c.method === "POST").length, 1);
 });
