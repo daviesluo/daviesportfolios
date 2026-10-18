@@ -1,0 +1,147 @@
+{
+  "frozen": "2026-10-18 03:40 UTC, in the first commit of this search, before any of the data below was pulled or read. Read before freezing, and said so: one HistData file (SPXUSD M1 2015) was downloaded to check the format and its first three rows seen; FXCM and HistData were probed for which symbols and years exist; the weekend recorder's rows (ig_quotes, ig_quote_runs) were counted (descriptive family only); no return of any rule below was computed.",
+  "asked": "Davies, 2026-10-18: \"再继续深度研究下ig的策略，可以更激进一些也可以，只要策略够好\"",
+  "rule": "Every rule, threshold, era boundary, cost and the bar below is fixed here. Nothing is tuned on a test era. A changed rule is a new proposal, and the old one is still reported. Every arm is reported, none dropped. Deviations are appended below with the time they were written, before the result they touch is computed.",
+  "sources": {
+    "HD": "HistData.com free 1-minute ASCII bars (bid only; time stamps Eastern Standard Time with NO daylight saving, i.e. UTC-5 all year, per its FAQ). Index CFDs SPXUSD (US 500), NSXUSD (US Tech 100), GRXEUR (Germany 40), UKXGBP (UK 100), WTIUSD (US crude); FX pairs as listed. Annual files 2010-2025, monthly files for 2026. Raw zips are not committed; a per-day table of the prices each rule needs is, with every file's sha256 in the pull log.",
+    "FXCM": "FXCM's public weekly 1-minute bid/ask archive (candledata.fxcorporate.com/m1), 2012 on, the source FXW-AUD was found on. Raw files not committed; one row a weekend is, the same columns as statarb_search2/inputs/fx/fxcm_<PAIR>_weekends.csv.gz, built by the same code.",
+    "YH": "Yahoo chart API 1-hour bars (about 730 days back): SPY, QQQ, DIA (cash US markets, bars start 09:30 ET, half-hour offset), ^GDAXI, ^FTSE (cash indices), CL=F (crude). The second source for every index arm on the overlap, and the only source for Wall St.",
+    "BLS": "bls.gov/schedule/<year>/home.htm, the release calendar: dates of 'Employment Situation' and 'Consumer Price Index' (exact names, 08:30 ET), 2010-2026.",
+    "FOMC": "backtests/ig_search/inputs/fomc_dates.json (round 2, from federalreserve.gov; scheduled meetings' statement days)",
+    "CAL": "trading days: a US day is a ^GSPC date, a German day a ^GDAXI date, a UK day a ^FTSE date in backtests/ig_search/inputs/daily.csv.gz, extended past its end by HD/YH bar presence",
+    "IGREC": "the weekend recorder's own rows (ig_quotes, ig_quote_runs), read-only SQL"
+  },
+  "time": {
+    "zones": {"US": "America/New_York", "DE40": "Europe/Berlin", "UK100": "Europe/London", "FX": "UTC for weekends, as FXW"},
+    "cash_sessions_local": {"US500": ["09:30", "16:00"], "USTECH": ["09:30", "16:00"], "WALLST": ["09:30", "16:00"], "DE40": ["09:00", "17:30"], "UK100": ["08:00", "16:30"]},
+    "price_at_T": "HD: the close of the last 1-minute bar starting in [T-5 min, T-1 min]; none -> the day is skipped for that arm and counted. YH: the open or close of the hour bar named in the arm.",
+    "half_days": "a US day with fewer than 30 HD bars between 15:00 and 16:00 ET is skipped (early closes); DE40/UK100 likewise for their last hour",
+    "tz_check": "before any arm: the mean absolute 1-minute return by minute of the local day must peak within 2 minutes of each market's cash open (HD), confirming the UTC-5 stamp; if it does not, the arms on that file are not run and a deviation says why"
+  },
+  "eras": {
+    "INDEX": {"train": ["2010-01-01", "2017-12-31"], "test": ["2018-01-01", "2026-10-16"]},
+    "FX": {"train": ["2012-01-01", "2018-12-31"], "test": ["2019-01-01", "2026-10-16"]},
+    "YH": "one era, 2024-10 on (whatever Yahoo serves on the pull day), compared with HD on the same days",
+    "note": "the verdict reads the test era; the train era must agree. FXW-AUD's own 2016-2026 were its discovery sample: its new out-of-sample years are 2012-2015 (FXCM) and the HD feed."
+  },
+  "costs": {
+    "basis": "IG's charges today as a fraction of today's level, applied to every year (the question is what the rule earns at IG's present prices). Points -> bps at the level stated here.",
+    "index": {
+      "US500": {"in_hours_pt": 0.4, "out_hours_pt": 0.6, "in_hours_uk": ["14:30", "21:00"], "level": 6700, "min_gbp_per_pt": 1.0, "margin": 0.05},
+      "USTECH": {"in_hours_pt": 1.0, "out_hours_pt": 2.0, "in_hours_uk": ["14:30", "21:00"], "level": 24000, "min_gbp_per_pt": 1.0, "margin": 0.05},
+      "WALLST": {"in_hours_pt": 1.6, "out_hours_pt": 3.0, "in_hours_uk": ["14:30", "21:00"], "level": 46000, "min_gbp_per_pt": 1.0, "margin": 0.05, "note": "Wall St spread not read at source this round; IG's published 1.6 pt in hours is the figure class, flagged"},
+      "DE40": {"in_hours_pt": 1.2, "out_hours_pt": 5.0, "in_hours_uk": ["08:00", "16:30"], "level": 24000, "min_gbp_per_pt": 0.5, "margin": 0.05},
+      "UK100": {"in_hours_pt": 1.0, "out_hours_pt": 4.0, "in_hours_uk": ["08:00", "16:30"], "level": 9500, "min_gbp_per_pt": 0.5, "margin": 0.05},
+      "WTI": {"spread_pt": 2.8, "point": 0.01, "level": 60, "min_gbp_per_pt": 0.25, "margin": 0.10}
+    },
+    "slippage_bps_per_side": 0.5,
+    "stop_slippage_bps_extra": 1.0,
+    "round_trip": "entry half-spread + exit half-spread (the in-hours or out-of-hours spread at each side's UK time) + 0.5 bps each side; a stop-loss exit adds 1 bp",
+    "funding": "none for intraday arms: every one is flat by its cash close, before IG's 22:00 UK funding. FX weekend trades: one night at 0.8 % (0.22 bps) when held over Monday 22:00 UK, plus tom-next ignored",
+    "fx": {
+      "entry": "FXCM's actual first-minute bid/ask at the Sunday open (as FXW), and the verdict reading with that spread x 1.25 (S1a: IG's opening spread median 10.13 bps against FXCM's 8.35 on AUD/USD)",
+      "exit": "max(1 bp, IG's average spread in bps)",
+      "ig_avg_spread_pips": {"AUDUSD": 0.82, "EURUSD": 0.85, "GBPUSD": 1.4, "USDJPY": 0.94, "EURGBP": 1.4, "EURJPY": 1.97, "GBPJPY": 3.17, "USDCAD": 1.77, "USDCHF": 1.99, "NZDUSD": 1.5, "AUDJPY": 1.6, "NZDJPY": 2.5, "AUDNZD": 3.0, "EURAUD": 2.5},
+      "spread_source": "IG UK spread-bet forex page (ig_deepdive/inputs/sources/ig_uk_sb_forex.txt.gz, average 00:00-21:00) for EURGBP, EURJPY, GBPJPY, USDCAD, USDCHF, USDJPY, GBPUSD; G0 facts for AUDUSD, EURUSD; NZDUSD, AUDJPY, NZDJPY, AUDNZD, EURAUD are ASSUMED (the page renders the Australasian spot table in script), flagged, to be checked with ig?action=facts before any survivor is funded",
+      "levels": {"AUDUSD": 0.66, "EURUSD": 1.16, "GBPUSD": 1.34, "USDJPY": 150, "EURGBP": 0.87, "EURJPY": 174, "GBPJPY": 201, "USDCAD": 1.38, "USDCHF": 0.80, "NZDUSD": 0.58, "AUDJPY": 99, "NZDJPY": 87, "AUDNZD": 1.14, "EURAUD": 1.76},
+      "min_gbp_per_pip": 0.5
+    }
+  },
+  "bar": {
+    "candidate": "test-era mean net of IG costs > 0 with t >= 2.5 AND train-era mean net > 0 with t >= 2.0 AND the test-era bootstrap 95 % lower bound > 0 (the round-2 bar, unchanged)",
+    "second_source": "on the days both sources hold, the second source's mean has the same sign as the first's, and the two per-trade gross returns correlate >= 0.6 (else the feeds disagree on the thing being traded, said so)",
+    "sample_size": "with N test trades of per-trade stdev s, the smallest mean this bar can find is 2.5 s / sqrt(N). Each arm's result states it. The two-year YH sample alone (about 500 sessions; 16 FOMC days; 48 CPI/NFP days) cannot meet the bar for any rule whose per-trade stdev exceeds 0.56 x its mean x sqrt(N)/2.5: a YH-only arm (Wall St) is at most 'worth a demo forward test', never money.",
+    "bootstrap": {"unit": "whole trades", "draws": 10000, "seed": 20261018},
+    "verdicts": ["worth small real money after demo", "worth a demo forward test", "dead"],
+    "small_money_needs": "candidate bar met, the second source agreeing, and a worst single historical trade at IG's minimum stake that the stated account can carry without a margin close-out",
+    "demo_forward_needs": "test-era mean > 0 with t >= 2.0 and train mean > 0, or the candidate bar on a single source"
+  },
+  "families": {
+    "IMOM": {
+      "rule": "Gao, Han, Li and Zhou (2018): r1 = ln(price at cash open + 30 min / previous cash close). Trade the last 30 minutes of the session (close - 30 min -> close) long if r1 > 0, short if r1 < 0.",
+      "markets": ["US500", "USTECH", "DE40", "UK100"],
+      "YH": "SPY/QQQ/DIA: r1 from the previous 15:30 bar's close to the 09:30 bar's close (the first hour, not half hour), traded on the 15:30 bar (open -> close); ^GDAXI/^FTSE: first hour, traded on the last hour bar. WALLST on DIA only."
+    },
+    "LASTHALF": {
+      "rule": "Baltussen, Da, Lammers and Martens (2021): r = ln(price at close - 30 min / previous cash close); trade the last 30 minutes in r's direction",
+      "markets": ["US500", "USTECH", "DE40", "UK100"],
+      "YH": "r to the open of the 15:30 bar (US) or of the last bar (DE/UK), traded on that bar; WALLST on DIA"
+    },
+    "ORB30": {
+      "rule": "opening range = high and low of the first 30 minutes of the cash session (1-minute bar highs and lows). From open + 30 min to close - 5 min, the first 1-minute close above the range high buys at that close, below the range low sells; a stop at the opposite side of the range (filled at the stop level plus stop slippage, or at the bar's open if it gapped through); otherwise out at the cash close. One trade a day at most.",
+      "markets": ["US500", "USTECH", "DE40", "UK100"],
+      "YH": "not run (hour bars cannot form a 30-minute range); single source, said so"
+    },
+    "GAPFADE": {
+      "rule": "at the cash open, g = ln(price at open / previous cash close). If |g| >= 0.30 %, trade against it at the open; take profit when a 1-minute bar touches the previous cash close (at that price), else out at the cash close",
+      "markets": ["US500", "USTECH", "DE40", "UK100"],
+      "note": "IG's index markets quote through the night, so this is a fade of the overnight move entered at the cash open, which IG can deal",
+      "YH": "SPY/QQQ/DIA, ^GDAXI/^FTSE: gap from the previous last bar's close to the first bar's open; target touched if the day's bars' high/low reach it (at the target), else the last bar's close"
+    },
+    "DOW": {
+      "rule": "for each weekday, the train-era mean of the cash session's open -> close return; a weekday whose train t >= 2.0 is traded in its sign in the test era (open -> close), others not traded. If no weekday qualifies, the arm has no test trades and is dead.",
+      "markets": ["US500", "USTECH", "DE40", "UK100"],
+      "YH": "the same weekdays and signs, first bar's open -> last bar's close"
+    },
+    "TOM_ID": {
+      "rule": "long the cash session open -> close on the last trading day of each month and the first three of the next (intraday only; the round-2 overnight TOM is not repeated)",
+      "markets": ["US500", "USTECH", "DE40", "UK100"],
+      "YH": "same days, first bar's open -> last bar's close"
+    },
+    "FOMC_PRE": {
+      "rule": "on a scheduled FOMC statement day: long from the US cash open to 5 minutes before the statement. Statement time: 12:30 ET for the 2011-04 to 2012-12 meetings with a press conference (2011-04-27, 2011-06-22, 2011-11-02, 2012-01-25, 2012-04-25, 2012-06-20, 2012-09-13, 2012-12-12), 14:15 ET for the other meetings before 2013, 14:00 ET from 2013",
+      "markets": ["US500", "USTECH"],
+      "YH": "SPY/QQQ 09:30 bar open -> the 13:30 bar's open (13:30 ET), stated as an approximation"
+    },
+    "FOMC_POST": {
+      "rule": "on the same days: s = sign of ln(price at statement + 5 min / price at statement); trade in s from statement + 5 min to the cash close",
+      "markets": ["US500", "USTECH"],
+      "YH": "not run (an hour bar mixes the statement and its first minutes)"
+    },
+    "MACRO_LONG": {
+      "rule": "long the US cash session open -> close on each Employment Situation and each CPI release day (08:30 ET)",
+      "markets": ["US500", "USTECH"],
+      "YH": "SPY/QQQ first bar open -> last bar close"
+    },
+    "MACRO_MOM": {
+      "rule": "on the same days: m = ln(price at 09:30 ET / price at 08:30 ET) (the move from the release to the cash open); the train era sets the sign (follow m if the train mean of sign(m) x open->close is > 0 with t >= 2.0, fade it if < 0 with t <= -2.0, else not traded); the test era trades open -> close in that sign",
+      "markets": ["US500", "USTECH"],
+      "YH": "not run (no 08:30 price in SPY/QQQ hour bars)"
+    },
+    "EIA": {
+      "rule": "EIA weekly petroleum status report, Wednesdays 10:30 ET, only in weeks whose Monday to Wednesday are all US trading days (a holiday week shifts it, skipped and counted). e = sign of ln(WTI at 10:35 / at 10:30); the train era sets follow or fade as in MACRO_MOM; the test era trades 10:35 -> 14:30 ET in that sign",
+      "markets": ["WTI"],
+      "YH": "CL=F: the 10:00 bar's close (11:00) -> the 14:00 bar's close (15:00) in the sign of the 10:00 bar's return, stated as a coarse check"
+    },
+    "FXW_X": {
+      "rule": "FXW-AUD's frozen E0, unchanged (statarb_search2/scripts/fx_weekend_fix.py): g = ln(Sunday's first mid / Friday's last mid) on a true weekend (Friday's last minute a Friday in UTC, the Sunday open 40-60 h later); |g| >= 20 bps trades against the gap at the first minute's bid/ask, takes profit when the mid touches Friday's mid, else out at the +24 h mid; exit cost and the x1.25 entry reading as in costs.fx",
+      "pairs_new": ["NZDUSD", "AUDJPY", "NZDJPY", "AUDNZD", "EURAUD", "EURJPY", "GBPJPY", "USDCAD", "USDCHF", "EURGBP"],
+      "pairs_extended": {"AUDUSD": "2012-2015 are new to FXW-AUD (its discovery sample was 2016-2026)", "EURUSD": "2012-2015 new", "GBPUSD": "2012-2015 new", "USDJPY": "2012-2015 new"},
+      "second_source": "HD 1-minute bid bars: Friday's last bar close vs the first Sunday bar's open (bid to bid); entry at that open plus the FXCM median opening spread for the pair; take profit at Friday's close on the bid path; the same 24 h exit",
+      "note": "EUR, GBP, JPY were among STATARB-2's 32 arms (2016-2026, not significant); they are reported again on 2012-2026 for completeness, not as new tests"
+    },
+    "WEEKEND_REC": {
+      "rule": "descriptive only: from the recorder's rows, for each weekend market the weekend quotes' spread, how often they changed, and the last weekend mid against the weekday market's first quote at the Sunday reopen and its Friday close. One weekend cannot test anything; no verdict.",
+      "and": "a frozen test for when IG history is pulled (plan wknd, CFD account): WKND_FADE - on each of the 51 weekends, if the weekend market's Sunday 20:00 UK mid differs from the weekday market's Friday 21:00 UK mid by >= 0.5 %, trade against it on the weekend market at 20:00 UK, closed at the weekday market's first hour bar close after its Sunday 23:00 reopen. Costs: the weekend market's own bid/ask from the history, plus 0.5 bps a side. Bar: the candidate bar on one era is not possible with 51 weekends; it reports mean, t and the bootstrap only, and can be at most 'worth a demo forward test'."
+    },
+    "SIZING": {
+      "applies_to": "FXW-AUD (the S1a-passed rule) and any arm above that reaches 'worth small real money'",
+      "trade_returns": "FXW-AUD: the 85 FXCM 2016-2026 trades with their 24 h minute paths (ig_deepdive/inputs/fxcm_paths, results/fxw_paths.json, spread_12 reading: IG's 10.1 bps opening median plus exit), and the 10 S1a IG trades as a check",
+      "kelly": "f* = mean / variance of the per-trade return on notional (log returns), as leverage = notional / equity; reported at f*, f*/2 and f*/4, and with the mean replaced by the bootstrap 95 % lower bound",
+      "accounts_gbp": [500, 1000, 2500],
+      "stakes": "IG's minimum (GBP 0.50 a pip on AUD/USD) and the largest stake a 5 % margin allows with the margin no more than 50 % of the account, and the half-Kelly stake when smaller",
+      "stops": ["none", "guaranteed at 200 bps (premium 1.5 pips when it triggers)", "guaranteed at 150 bps"],
+      "close_out": "IG closes positions when equity falls below 50 % of the margin requirement: inside a trade the worst adverse excursion on the minute path is applied first; a close-out books the loss at that excursion",
+      "monte_carlo": "10,000 paths of 8 trades a year for 5 years, trades drawn with replacement from the 85; reported: median and 5th percentile GBP a year, the probability of a 50 % drawdown, of a margin close-out and of losing the account (equity <= 10 %); seed 20261018",
+      "combined": "if more than one arm survives, their trade-day returns' correlation on common days and an equal-risk combined book through the same Monte Carlo"
+    },
+    "DROPPED_BEFORE_DATA": {
+      "VIX_INTRADAY": "no long intraday VIX history is reachable keyless (Yahoo ^VIX 1h is two years, and IG's Volatility Index is a futures-based market whose own intraday history needs IG pulls); round 2's VIX carry already used the futures settlements",
+      "INDEX_REBALANCE": "rebalance flows move constituents against each other; there is no index-level direction with a published sign for an IG index bet, so no frozen rule can be written",
+      "WALLST_HD": "HistData has no Dow series; Wall St runs on YH (DIA) only, two years, so it can reach at most 'worth a demo forward test'",
+      "FX_SUNDAY_HD_ONLY_PAIRS": "pairs without an IG market or with IG spreads over 5 pips (e.g. GBPNZD, the emerging-market crosses) are not run"
+    }
+  },
+  "term_9_12": "each arm is classed: by hand (a fixed clock time, at most one or two dealt trades a day, a signal readable in a minute) or software (reaction within a minute of a print, or many trades a day). IG's spread-bet terms 9(12) need IG's written consent for automated strategies; the CFD account is the route for software.",
+  "deviations": []
+}

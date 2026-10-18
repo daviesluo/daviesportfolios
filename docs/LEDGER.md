@@ -700,6 +700,11 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   `reviews/2026-10-18-revx-weekend-prereg.md` ("Stablecoin quotes weekend", a forward paper row, read with PR5-W on 11-25).
   Alarm: IG's weekend recorder fails two runs in three since 10-16 20:52 (item 14). The 2026-10-16 history moved to the archive.
 
+### [2026-10-18 03:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **IG strategy search round 3, rules frozen** (sub-agent; item 14; Davies, 10-18: "再继续深度研究下ig的策略，可以更激进一些也可以，只要策略够好"):
+  `backtests/ig_search3/params/frozen.json` fixes the intraday, event-day, EIA, Sunday-open FX and sizing rules, eras,
+  IG costs and the bar before any data is pulled; results to `reviews/2026-10-18-ig-strategy-search-3.md`.
+
 ### [2026-10-18 03:08 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **GROKPM auto-redeem ON** (D6; Davies: "加上吧 全部都自动化掉", then "grokbot给我存好了" once the Relayer API key's two
   Edge Function secrets were set at 02:19 UTC). The 03:00 UTC dry run had `blockedBy` empty, no error, the expected five
