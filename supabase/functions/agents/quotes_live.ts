@@ -229,6 +229,13 @@ export type LiveConfig = {
 export type SwitchMode = "off" | "shadow" | "live";
 /** A column the database does not have yet (PostgREST's 42703, or its schema cache's PGRST204). */
 export const MISSING_COLUMN = /42703|PGRST204|column .* does not exist/i;
+/**
+ * JSON with every object's keys sorted. jsonb gives an object back with its keys in its own order (`k` before `side`), so a
+ * detail read back never stringified equal to the one written: on 2026-10-18 the weekend shadow wrote a `weekend_shadow`
+ * event every minute (1,794 of 1,802 repeats) where it meant to write one when the targets change.
+ */
+export const canonJson = (v: unknown): string =>
+  JSON.stringify(v, (_k, x) => (x && typeof x === "object" && !Array.isArray(x) ? Object.fromEntries(Object.keys(x).sort().map((k) => [k, (x as Record<string, unknown>)[k]])) : x));
 /** A config's switch as the executor reads it: anything but 'shadow' or 'live', a missing column included, is off. */
 export const switchMode = (v: unknown): SwitchMode => (v === "shadow" || v === "live" ? v : "off");
 const OPEN_STATES: LiveOrderState[] = ["pending", "new", "partially_filled"];
@@ -1469,7 +1476,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
         if (wkT !== T) guards.push(`the weekend replica's last minute is ${wkT != null ? iso(wkT) : "none"}, not ${iso(T)}: stale`);
         const prev = (await d.db.select<{ detail: { targets?: unknown; guards?: unknown } }>(inst.events,
           `mode=eq.live&kind=eq.weekend_shadow&book=eq.${b}&select=detail&order=minute.desc&limit=1`))[0]?.detail ?? null;
-        if (prev && JSON.stringify(prev.targets ?? null) === JSON.stringify(targets) && JSON.stringify(prev.guards ?? null) === JSON.stringify(guards)) continue;
+        if (prev && canonJson(prev.targets ?? null) === canonJson(targets) && canonJson(prev.guards ?? null) === canonJson(guards)) continue;
         await d.db.upsert(inst.events, [{ mode: "live", minute: iso(nowMinute), book: b, rung_side: "-", k: 0, kind: "weekend_shadow", detail: {
           at: nowIso, paperMinute: iso(T), replicaMinute: wkT != null ? iso(wkT) : null, x: lastX, fair: wi?.f ?? null, lastPrint: lp, targets, guards,
         } }], "mode,minute,book,rung_side,k,kind");

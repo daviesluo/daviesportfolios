@@ -259,10 +259,12 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      weekend paper row is drafted, NOT frozen (`reviews/2026-10-18-revx-weekend-prereg.md`): Davies' word to build it, deploy by
      10-23 for four weekends, read beside PR5-W on 11-25. PR5-W's result should name this review (it replayed PR5-W's rule on
      its first forward weekends).
-   - **LIVE's take and weekend switches, both 'off'** (`0131`; Davies 10-18 "…会的话就加上，然后加上周末的挂单，一定验证好没问题再推上实盘部署"):
-     `take_mode`, `weekend_mode` each 'off' / 'shadow' / 'live'. Plan and go statements: the live design's addendum of 10-18 —
-     take 'shadow' five weekdays, weekend 'shadow' from a Friday 20:00 through one closure, then 'live' each on Davies' word.
-     After the deploy: both columns 'off', `agent_quote_live_wkpaper` empty, no `agents.quotes_weekend` error.
+   - **LIVE's take and weekend switches, both 'shadow' since 10-18 05:17** (`0131`; Davies 10-18 "…会的话就加上，然后加上周末的挂单，
+     一定验证好没问题再推上实盘部署"). Plan and go statements: the live design's addendum of 10-18. Weekend shadow read 10-18 20:20:
+     all eight criteria pass (the addendum's log). 'live' (Davies 10-18: "没问题的话就直接live也行") set 20:28:05, back
+     to 'shadow' 20:28:43: inside a closure 'live' acts at once on the replica, which was `late`, and 11 £10 entries went out at
+     20:28:27, all cancelled by 20:29:26 with 0 filled. Re-set after 21:00 (wake `trig_01Bxs8XdREDpLLAvYeZowfLL`, 21:05);
+     first trading Fri 10-23 21:00. Take shadow: read after five weekdays (from 10-19).
    - **The review of 2026-10-09** (`reviews/2026-10-09-stablecoin-quotes-review.md`, not blind). **F1 built on Davies'
      word** (10-09: a buy-back at the venue's £0.10 minimum buys what its whole penny buys, LIVE and every twin; the twins'
      deviation 3, p50's deviation 2, TAKE's addendum 2, the live design's addendum). After its deploy: the next LIVE or
@@ -648,6 +650,23 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)"; each oldest first.
 
+### [2026-10-18 20:31 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **weekend_mode 'live' at 20:28:05, reverted to 'shadow' at 20:28:43** (item 4). The switch was meant to first trade on
+  10-23, but `paperView` follows the replica whenever PR5's minute is inside a closure, so 'live' set before Sunday 21:00
+  acts on the remaining minutes. The replica was `late` (copied 05:17 Sun, holding a paper USDC bid fill LIVE never had),
+  so the executor sent 11 £10 entries (ids 6772-6782) at 20:28:27. After the revert it cancelled all 11 by 20:29:26 with
+  0 filled. Lesson: set weekend_mode 'live' only outside a closure. It is re-set after 21:00 by `trig_01Bxs8XdREDpLLAvYeZowfLL`.
+- **IG fifth fix landed** (dc74dca2, pushed 20:2x); the deploy goes through edge-functions.yml. The Sunday open was
+  recorded (19:59-20:01 all ok) before it.
+
+### [2026-10-18 20:21 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LIVE weekend shadow read: PASS on all eight criteria** (sub-agent, item 4; 05:18 to 20:17 Sun, 900 minutes, 2 books):
+  every placement at quoteTicks(fair, k) on the held X 1.3329957 (PR5's last), none kept past the 0.05 % band; last print
+  within 13 bps of fair; £10 a rung; no stale minute, no guard, no error, no LIVE order since 10-16 23:09. Would-be fills
+  (through): USDC ask 0.1 % 06:53, USDC bid 0.1 % 07:33 (paper exit still resting); USDT ask 0.1 % touched at its price
+  12 times, never through. Variant-3 cannot be compared before 10-23. Found and fixed: the shadow wrote an event every
+  minute (1,794 of 1,802 repeats; jsonb reorders keys); `canonJson`, pinned. Details: the live design's addendum log.
+
 ### [2026-10-18 20:19 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **IG weekend recorder, fifth fix: keep the session, no routine log-out** (sub-agent; item 14). `ig_quote_runs`
   05:43-20:16 UTC (fix 4: a fresh login every run, `DELETE /session` at its end): every run after a failed run
@@ -661,6 +680,7 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   nothing; the explicit switch at the start of every run stays. Pins: a login limit (3 in 5 minutes) that fix 4 fails
   from the fourth minute and this reads through ten minutes on one login; a kept session IG drops (client-token-invalid)
   is logged out, replaced by one login in the same run, and the run reads all four snapshots.
+
 
 ### [2026-10-18 06:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **QUEUE's Kraken spare pull taken** (prereg Data item 3; wake `trig_01U3odxMpVv4zaqVueHJvaM7`): OHLC interval=60,

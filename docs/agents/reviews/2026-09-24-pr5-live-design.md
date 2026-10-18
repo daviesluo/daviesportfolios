@@ -276,3 +276,36 @@ conversation where he gives it):
 is about £0.30, inside the £1.20 daily loss stop. The governor counts weekend POSTs the same way. The take sends a taker
 IOC, the first non-maker entry LIVE has sent, and pays 0.09 % where its maker entries pay nothing. Not blind: built after
 reading LIVE's record.
+
+**Log.**
+
+* 2026-10-18 05:17 UTC: `take_mode` and `weekend_mode` set to `'shadow'` (bcd3bcaf deployed, `0131` applied). The weekend
+  replica started `late`, mid-closure, from PR5's engine as it stood, as designed.
+* 2026-10-18 20:20 UTC, the weekend shadow read (05:18 to 20:17 Sunday, the closure's last 900 minutes; read-only SQL):
+  1. Targets at `quoteTicks(fair, k)` on the held X: PASS. One X throughout, 1.3329957, the books' last (PR5's last X,
+     Friday 23:09). 32 price segments over the 12 rungs: the 18 priced ones placed exactly at `quoteTicks` of that
+     minute's fair, and fair never moved over 0.035 % within one, inside the rule's 0.05 % re-price band.
+  2. Fair within 50 bps of the last print: PASS, at most 13.3 bps. No guard on any of the 1,802 events.
+  3. £10 a rung: PASS, base × price £9.99999 to £10.00001 on every priced target.
+  4. Variant-3: no direct comparison. Its weekend rule starts 2026-10-23 21:00 and its tables hold no order yet. The
+     replica is its code (`stepTwinPaper` with the weekend rule), and 1 and 5 recompute its prices and fills
+     independently: the replica's own paper fill of the USDC bid (07:33:43.603) is the print found below.
+  5. Would-be fills covered: PASS. Through a target: USDC ask 0.1 % at 06:53:44 (0.7506–0.7507 against 0.7505) and USDC bid
+     0.1 % at 07:33:43 (0.7486 against 0.7489; the paper exit at 0.7502 still rests at 20:17). At the price, never through:
+     USDT ask 0.1 % at 0.7495, 12 prints (one of 89.4 coins at 06:03). Each needs £10 or 13.3 coins, which the account
+     held. All six bids together need about £60.0, a few pence over its free pounds, so one bid would be skipped for
+     funds as on weekdays (37 such skips 10-14 → 10-16), never sent short.
+  6. No stale minute: PASS. The replica's minute equals PR5's in every event, and the 900 minutes have no gap.
+  7. No error: PASS. `agent_quote_live_wkpaper.last_error` is null, and `ops_errors` has no `agents.quotes*` row since
+     05:17 (only `ig.quotes` and `agents.pm_lp`, unrelated).
+  8. LIVE unchanged: PASS. No `agent_quote_live_orders` row since 2026-10-16 23:09:29, none open.
+  Found: the shadow wrote an event a book every minute (1,802, of which 1,794 repeat the one before), because a jsonb
+  detail comes back with its keys reordered and never stringified equal. Fixed with `canonJson` (quotes_live.ts), pinned
+  in `quotes_live_switches.test.ts` on a database that reorders keys as jsonb does; the counterfactual writes 2 a minute.
+  It never touched an order: 'live' does not run the shadow step.
+* 2026-10-18 20:28:05 UTC: `weekend_mode` set to 'live' on Davies' word ("另外live的主动吃单和周末挂单这两个没问题的话就直接live
+  也行"), and set back to 'shadow' at 20:28:43. Inside a closure 'live' acts at once (`paperView` follows the replica
+  whenever PR5's minute is in a closure), and this weekend's replica was `late`: it was copied at 05:17 Sunday and held a
+  paper USDC bid fill that LIVE never had. The executor sent 11 £10 entries (ids 6772–6782) at 20:28:27 and cancelled
+  all 11 by 20:29:26 after the revert, 0 filled. Rule from this: `weekend_mode` turns 'live' only outside a closure, so the
+  first closure it trades starts with a replica copied in the hour before. It was re-set after 21:00 (the next log line).

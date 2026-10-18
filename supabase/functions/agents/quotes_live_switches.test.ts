@@ -29,10 +29,16 @@ const THU = Date.parse("2026-10-22T09:00:00Z");   // a Thursday: GBP/USD live
 const SAT = Date.parse("2026-10-24T09:00:00Z");   // a Saturday: inside the closure, GBP/USD dark
 const isTake = (r: Row) => (r.request as { take?: unknown } | null)?.take === true;
 
-type Opts = { t0?: number; config?: Record<string, unknown>; fxLive?: boolean; preMigration?: boolean };
+type Opts = { t0?: number; config?: Record<string, unknown>; fxLive?: boolean; preMigration?: boolean; jsonb?: boolean };
 
 /** The database as it answers before 0131 has run: a select naming its columns is PostgREST's 42703. */
 const MISSING = `db GET /rest/v1/agent_quote_live_config → 400: {"code":"42703","message":"column agent_quote_live_config.take_mode does not exist"}`;
+/** Objects as jsonb gives them back: keys in its own order (shortest first, then bytewise), never the order written. */
+const jsonbOrder = (v: unknown): unknown => Array.isArray(v) ? v.map(jsonbOrder)
+  : v && typeof v === "object" ? Object.fromEntries(Object.keys(v).sort((a, b) => a.length - b.length || (a < b ? -1 : a > b ? 1 : 0)).map((k) => [k, jsonbOrder((v as Record<string, unknown>)[k])])) : v;
+function asJsonb(db: Db): Db {
+  return { ...db, select: (async <T>(t: string, q: string) => (await db.select<T>(t, q)).map((r) => jsonbOrder(r) as T)) as Db["select"] };
+}
 function before0131(db: Db): Db {
   return { ...db, select: (<T>(t: string, q: string) => /take_mode|weekend_mode/.test(q) ? Promise.reject(new Error(MISSING)) : db.select<T>(t, q)) as Db["select"] };
 }
@@ -79,7 +85,7 @@ function world(o: Opts = {}) {
       const sim = new SimRevx(st, () => clock.now, () => null, (b) => { const r = takeFillRead(reads[b], at); return r ? simBookOfRead(r) : null; });
       const mark = (row: Record<string, unknown>) => { if (isTake(row)) sim.markTake(String(row.client_order_id)); };
       return await runQuotesLive({
-        db: stampTs(o.preMigration ? before0131(mem.db) : mem.db, I.orders, () => at, undefined, mark), now: at, holder: `h${at}`, uuid: () => `00000000-0000-4000-8000-${String(++n).padStart(12, "0")}`,
+        db: stampTs(o.preMigration ? before0131(mem.db) : o.jsonb ? asJsonb(mem.db) : mem.db, I.orders, () => at, undefined, mark), now: at, holder: `h${at}`, uuid: () => `00000000-0000-4000-8000-${String(++n).padStart(12, "0")}`,
         account: revxVenue({ apiKey: "simulated", privateKey: KEY }, sim.fetch, REVX_REGION, () => clock.now), accountNote: null,
         fetch: sim.publicFetch, pause: () => Promise.resolve(), clock: () => clock.now, instance: I,
         recordedBook: (b: QuoteBook) => Promise.resolve(takeBookRow(reads[b].before, at)),
@@ -149,8 +155,8 @@ Deno.test("deployed before 0131 has run: the switches' columns missing, the turn
 });
 
 /** Saturday turns from 09:00: PR5's engine dark, the weekend replica deciding on the held X. */
-async function weekendCase(config: Record<string, unknown>, minutes = 2, behind = false) {
-  const w = world({ t0: SAT, config, fxLive: false });
+async function weekendCase(config: Record<string, unknown>, minutes = 2, behind = false, jsonb = false) {
+  const w = world({ t0: SAT, config, fxLive: false, jsonb });
   const reports: QuoteLiveReport[] = [];
   for (let t = SAT; t < SAT + minutes * M; t += M) {
     await w.paper(t);
@@ -181,6 +187,11 @@ Deno.test("weekend_mode: off quotes nothing in the closure (PR5 is dark); shadow
   ]);
   assert(d.targets.every((t) => Number(t.base) > 0), "each rung sized");
   assertEquals(sh.reports.map((r) => r.shadow?.weekend ?? 0), [2, 0, 0]);     // one a book at the first turn, none while unchanged
+
+  // The same read back as jsonb gives it (keys reordered): still one event a book until the targets change.
+  const jb = await weekendCase({ weekend_mode: "shadow" }, 5, false, true);
+  assertEquals(jb.reports.map((r) => r.shadow?.weekend ?? 0), [2, 0, 0, 0, 0]);
+  assertEquals(jb.w.events("weekend_shadow").length, 2);
 
   const lv = await weekendCase({ weekend_mode: "live" }, 3);
   // The six rungs a book rest at the replica's prices (the asks too: the account holds coin), from the replica's minute.
