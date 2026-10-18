@@ -1,0 +1,27 @@
+{
+  "what": "QUEUE Data item 3 spare pull (docs/agents/reviews/2026-09-28-queue-prereg.md): Kraken public OHLC, interval=60, keyless, raw replies as received",
+  "pulled_utc": "2026-10-18T06:23Z",
+  "files": [
+    {
+      "file": "2026-10-18-USDTUSD.json",
+      "url": "https://api.kraken.com/0/public/OHLC?pair=USDTUSD&interval=60",
+      "key": "USDTZUSD",
+      "bars": 721,
+      "first_bar": "2026-09-18T06:00Z",
+      "last_bar_forming": "2026-10-18T06:00Z",
+      "bytes": 62523,
+      "sha256": "3d0f44c397cbe05e7376962438ccea59d9644b1fc5a93d7373cd729b3c94ae8b"
+    },
+    {
+      "file": "2026-10-18-USDCUSD.json",
+      "url": "https://api.kraken.com/0/public/OHLC?pair=USDCUSD&interval=60",
+      "key": "USDCUSD",
+      "bars": 721,
+      "first_bar": "2026-09-18T06:00Z",
+      "last_bar_forming": "2026-10-18T06:00Z",
+      "bytes": 58319,
+      "sha256": "21ea7b17a34e739b3ced7fd89ff85ce5b340b4d7af4a60fb6f71b6f039257f30"
+    }
+  ],
+  "needed_from": "2026-10-03T21:00Z (covered); the bars to 2026-11-01T22:00Z come from the main pull on 2026-11-02"
+}

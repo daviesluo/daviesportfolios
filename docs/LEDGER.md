@@ -298,8 +298,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
       `agents/books.ts`, `agent_book_levels`, its prune job, `stepMinute` in `agents/quotes.ts` or
       `agent_quote_minutes` changes, but a longer retention on Davies' word; anything else is a deviation (deviation 1,
       10-03: the book table may be read by other checks; the reading says it was not blind). Dry run done 2026-09-30
-      (no deviation). Dates: Kraken's spare pull between 2026-10-18 and 10-25 (keyless; wake
-      `trig_01U3odxMpVv4zaqVueHJvaM7`, 10-18 06:20); the scorer and checks 1–3 committed before **2026-11-02 00:00 UTC**
+      (no deviation). Dates: Kraken's spare pull DONE 2026-10-18 06:23 UTC
+      (`backtests/queue/kraken/`, 721 bars each from 09-18 06:00, covers 10-03 21:00); the scorer and checks 1–3 committed before **2026-11-02 00:00 UTC**
       (the 10-24 wake); the export after 11-02 00:10 and before **11-06 10:25 UTC**, the tape after 11-02 00:10 and
       Kraken's main pull on 11-02 between 00:05 and 19:59 UTC (wake `trig_01Q3DV4MArsf3tQ1Po8yCh1X`, 11-02 00:40); if
       check 4 has not passed by **2026-11-04 00:00 UTC**, a longer retention goes to Davies.
@@ -644,6 +644,13 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)"; each oldest first.
+
+### [2026-10-18 06:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **QUEUE's Kraken spare pull taken** (prereg Data item 3; wake `trig_01U3odxMpVv4zaqVueHJvaM7`): OHLC interval=60,
+  keyless, at 06:23 UTC. USDTUSD (key USDTZUSD) 721 bars, 62,523 B, sha256 3d0f44c3…; USDCUSD 721 bars, 58,319 B,
+  sha256 21ea7b17…; both 2026-09-18 06:00 → 10-18 06:00 (forming), so the window's first needed hour (10-03 21:00) is
+  held. Raw replies in `docs/agents/backtests/queue/kraken/` with `MANIFEST.json`; no `agent_book_levels` row read.
+  Next: the main pull on 11-02 00:05–19:59 UTC; closed bars in both must agree on vwap and count.
 
 ### [2026-10-18 05:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **XV-1's fees filled and its cadence priced: recommended NOT to freeze as designed** (sub-agent, not pushed; DRAFT stays).
