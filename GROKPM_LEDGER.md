@@ -66,6 +66,7 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Log (newest first, max 20 lines)
 
+- 2026-10-19 22:46 UTC · Grok · failure: the 22:05 wake (started 22:09) wrote nothing because the box's outbound network was down 22:09–22:16 UTC (no account read, journal or ledger read); back for the 22:35 light check (no action, 0 positions, 0 orders, its cycle row notes the gap).
 - 2026-10-19 20:16 UTC · Grok · full scan 20:05: no open (French curfew markets resolved; Martin and Pickering mayor races under 12 points); Status updated.
 - 2026-10-19 17:20 UTC · Grok · light 17:05: BFMTV reports a Paris curfew tonight (République and around Les Halles, 23:00–06:00, said to cover everyone), but no official Préfecture order yet and one report says minors only, so not A-confirmed (Paris-by-19-Oct ask 0.49); Nice curfew is minors only; no action.
 - 2026-10-19 16:42 UTC · Grok · light 16:35: correction to the 16:05 note: the Lille/Douai/Wattignies/Denain curfew is now reported as minors only, which the major-city market's rules exclude, so it is not confirmed (bid 0.80); Paris still not official; no action.
