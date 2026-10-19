@@ -477,8 +477,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    UTC): an 18 s re-login wait; changed nothing (~75 % of runs ok), and the recorder stays so (harmless, runs ~34 s).
    **Davies, 10-19: "都按你推荐的来"**: S1b's usable weekend is now judged by quote coverage, Deviation 1
    (`backtests/ig_deepdive/DEVIATION-1-S1b-coverage.md`, reading `sql/s1b_coverage.sql`; the spec is unchanged); the
-   session table (option A) is dropped, not built. First weekend 10-18/19: 448 of 448 minutes covered at 10-19 03:17
-   UTC (runs ok 338 of 448); its final figure is read after its window ends, 10-19 21:05 UTC.
+   session table (option A) is dropped, not built. Weekend 1 of 12 (10-18/19): USABLE, final 1,515 of 1,515
+   minutes covered, no gap, first TRADEABLE 20:00:05 UTC (runs ok 1,141 of 1,515); read 10-19 21:17 UTC. Next: 10-25/26.
 
 15. **GROKPM, "Polymarket analyst" ("(Grok)" dropped 10-17): LIVE since 2026-10-17 02:39:14 UTC (Davies: "上线"); ends
    2026-11-14 00:00 UTC at the latest (wake `trig_01C3a3b3F38FYavx6jFeqJEq`); trades through our Ireland server on the shared account** (Davies, 2026-10-15: "让grok bot里开一个trading bot，给他100美元…先让他就用100美元测试"; 2026-10-16:
@@ -652,6 +652,11 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)"; each oldest first.
+
+### [2026-10-19 21:18 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **S1b weekend 1 (10-18/19) is usable under Deviation 1** (item 14): `sql/s1b_coverage.sql` after the window ended
+  (window_ended true): 1,515 of 1,515 minutes covered (100.00 %), longest uncovered run 0, none uncovered in the first
+  ten, first TRADEABLE 2026-10-18 20:00:05 UTC; runs ok 1,141 of 1,515 (75.3 %), reported beside it as the deviation asks.
 
 ### [2026-10-19 06:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 
