@@ -294,7 +294,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
       at the reading) and the `agent_basis` rows (pruned at 30 days) of any event missing `o15` or `o60` into
       `backtests/mx1/basis/`. Read at the first pull with 150 eligible exit events (the first 150 by `t0`); if fewer have
       `t0` before 2027-06-30 00:00 UTC, after the first pull after it, on all (under 60: undecided); disable the wake
-      then. A pass moves only `trend-1h`'s exits, after its §6's five checks. Pulls so far: 10-05 (6 windows, 3 exits); 10-15 (10 windows, 6 exits; the 10-12 Monday pull was missed).
+      then. A pass moves only `trend-1h`'s exits, after its §6's five checks. Pulls so far: 10-05 (6 windows, 3 exits); 10-15 (10 windows, 6 exits; the 10-12 Monday pull was missed); 10-19 (4 windows, 6 exits).
    3. **RW-NEXT:** slip check done 2026-10-08 00:33 (WARM, no slip); what is left is RW-C's (item 2).
    4. **QUEUE** (`reviews/2026-09-28-queue-prereg.md`; window 10-04 → 11-01). Freeze line until the export: none of
       `agents/books.ts`, `agent_book_levels`, its prune job, `stepMinute` in `agents/quotes.ts` or
@@ -652,6 +652,17 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)"; each oldest first.
+
+### [2026-10-19 06:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**MX-1's third weekly pull, on its Monday** (item 5a.2; sub-agent). `weekly.sql` ran read-only and `pull_tape.py`
+unchanged; no price was printed. A: 20 probes since the freeze (ids 22-41), the 16 of the first two pulls and four new
+(38-41, all `momentum-1d`: ETH 2, SOL 2), written as `backtests/mx1/tape/2026-10-19.windows.json`. The pull,
+`tape/2026-10-19.json.gz` (4,507 bytes), skipped the 16 windows already held and pulled four, none failed and none
+merged, 115 UK prints (25, 37, 30, 23), its `script_sha256` and `source_sha256` equal to the script's and the windows
+file's. They are described, never judged (prereg §2). B is empty (`basis/2026-10-19.json`, `[]`). C: 6 exits and 6
+entries (unchanged since 10-15: no trend-rule event closed this week), against the 150 the reading needs and well
+before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next week's retry.
 
 ### [2026-10-19 03:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **S1b Deviation 1 recorded: a usable weekend by quote coverage** (sub-agent; item 14; Davies, 10-19: "都按你推荐的来").
