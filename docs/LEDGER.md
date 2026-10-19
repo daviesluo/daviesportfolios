@@ -473,10 +473,12 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    three minutes (ok, ok after a re-login, both accounts refused) with no session ever logged out. Fourth fix (live
    05:42): log out every run; still one run in four failed, both logins refused (client-token-invalid). It ran so
    all of 10-18 (~75 % ok; the 20:00 UTC Sunday open caught, 19:59-20:01 ok). Fifth fix (`dc74dca2`, live ~20:30
-   UTC): keep the session; changed nothing, every cron call is a fresh worker. Sixth fix (history 2026-10-18 21:12
-   UTC, committed, not deployed): the re-login waits until 18 s after the refused login. After it deploys, check
-   `ig_quote_runs`: `ok` on (nearly) every run, `logins` 2 on most. Storing the tokens across workers (option A) is
-   Davies' call; an S1b deviation for G4's 95 % uptime rule is drafted, not committed.
+   UTC): keep the session; changed nothing, every cron call is a fresh worker. Sixth fix (`ab2e8f3d`, live 21:20
+   UTC): an 18 s re-login wait; changed nothing (~75 % of runs ok), and the recorder stays so (harmless, runs ~34 s).
+   **Davies, 10-19: "都按你推荐的来"**: S1b's usable weekend is now judged by quote coverage, Deviation 1
+   (`backtests/ig_deepdive/DEVIATION-1-S1b-coverage.md`, reading `sql/s1b_coverage.sql`; the spec is unchanged); the
+   session table (option A) is dropped, not built. First weekend 10-18/19: 448 of 448 minutes covered at 10-19 03:17
+   UTC (runs ok 338 of 448); its final figure is read after its window ends, 10-19 21:05 UTC.
 
 15. **GROKPM, "Polymarket analyst" ("(Grok)" dropped 10-17): LIVE since 2026-10-17 02:39:14 UTC (Davies: "上线"); ends
    2026-11-14 00:00 UTC at the latest (wake `trig_01C3a3b3F38FYavx6jFeqJEq`); trades through our Ireland server on the shared account** (Davies, 2026-10-15: "让grok bot里开一个trading bot，给他100美元…先让他就用100美元测试"; 2026-10-16:
@@ -650,6 +652,17 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)"; each oldest first.
+
+### [2026-10-19 03:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **S1b Deviation 1 recorded: a usable weekend by quote coverage** (sub-agent; item 14; Davies, 10-19: "都按你推荐的来").
+  `backtests/ig_deepdive/DEVIATION-1-S1b-coverage.md`, beside the spec, which stays byte for byte as frozen (its
+  sha256 in `MANIFEST.json` unchanged). G4's "95 % connection uptime" becomes, for the REST recorder: a quote for the
+  S1b epic no older than 2 minutes in at least 95 % of the FX window's minutes. The other conditions stand: the first
+  TRADEABLE quote after the open captured, none of the first ten minutes uncovered, no uncovered run over 5 minutes.
+  The run-level success rate is reported beside it. Reading: `sql/s1b_coverage.sql` (read-only). Written before any
+  S1b weekend is scored. First weekend, read 10-19 03:17 UTC with its window still open: 448/448 covered, longest
+  uncovered run 0, first TRADEABLE 21:00:05 UK, runs ok 338/448. The final figure is due after 21:05 UTC today.
+  Option A's branch is deleted and there is no `0133`. The recorder stays on fix 6 (an 18 s re-login wait, runs ~34 s).
 
 ### [2026-10-18 21:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **IG weekend recorder, sixth fix: an 18 s re-login wait** (sub-agent; item 14). Under fix 5 (20:31-21:08 UTC, 39

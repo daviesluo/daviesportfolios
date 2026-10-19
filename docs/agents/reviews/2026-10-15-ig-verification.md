@@ -353,3 +353,15 @@ Ten trades is a small sample. The interval is wide, and the mean sits above FXCM
 
 **Fault found.** The fourth `history` call's first request was refused `account-token-invalid` straight after its account switch, and the client's one re-login also failed at once; the next window, 2.5 s later, worked. The likely cause is a token that becomes valid a moment after the switch. A short wait before that retry is the fix, not built here (no IG call or code change was in this task's scope).
 
+
+## 10. S1b's usable-weekend rule: Deviation 1 (2026-10-19)
+
+Recorded before any S1b weekend is scored, on Davies' word of 2026-10-19 ("都按你推荐的来"):
+`backtests/ig_deepdive/DEVIATION-1-S1b-coverage.md`. G4's "95% connection uptime" is replaced, for the REST recorder,
+by quote coverage: a quote for the S1b epic no older than 2 minutes in at least 95% of the FX window's minutes. The
+first TRADEABLE quote after the open must still be captured. None of the first ten minutes may be uncovered, and no
+uncovered stretch may run longer than 5 minutes. The run-level success rate is reported beside it. The reading is
+`sql/s1b_coverage.sql`.
+- **The spec is unchanged.**
+- **The first weekend so far** (read 10-19 03:17 UTC): 448 of 448 minutes covered, first TRADEABLE quote at 21:00:05 UK.
+- **Runs ok:** 338 of 448.
