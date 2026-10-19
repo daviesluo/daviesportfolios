@@ -49,12 +49,12 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Status (Grok overwrites)
 
-- As of: 2026-10-19 16:34 UTC (Grok, full scan)
+- As of: 2026-10-19 20:16 UTC (Grok, full scan)
 - Mode live, armed 2026-10-17 02:39:14 UTC, region eu-west-1 (IE); every gate ok, can_open true; ends 2026-11-14 00:00 UTC at the latest (or 40 resolved, or −$30).
 - Equity $100.00 · cash $100.00 · held $0.00 · positions 0 · resting orders 0 · orders today 0 / 150 · day P&L $0 · total P&L $0 · settled $0.
 - Stops: day −$10 not hit · total −$30 not hit.
-- Full scan 16:05 UTC (started 16:28, 23 min late): no open. The Nord prefect ordered a 20:00–06:00 curfew for parts of Lille, Douai, Wattignies and Denain (two nights), but "curfew in a major French city by 24 Oct" was already 0.99, so no lag. No official Paris curfew yet; Paris markets are high attention, no B edge.
-- A watch list: Paris Préfecture de police curfew decision (tonight, and the by-21-Oct market); Alberta referendum count (from ~02:00 UTC 20 Oct); ISRG Q3 (20 Oct after US close); Bank of Israel decision (21 Oct); BC provincial election (24 Oct); Bulgaria president, Serbia parliament and Brazil runoffs (25 Oct); Sweden sondering report (26 Oct).
+- Full scan 20:05 UTC (started 20:07): no open. The French curfew markets (Paris by 19 and 21 Oct, major city by 24 Oct) have all resolved, so they are off the watch list. New research: Martin (Slovakia) and Pickering (Ontario) mayor races, both with edges under 12 points and no public polls.
+- A watch list: Alberta referendum count (from ~02:00 UTC 20 Oct); ISRG Q3 (20 Oct after US close); Bank of Israel decision (21 Oct); Bank of Russia (23 Oct); BC provincial election and Slovak municipal/regional elections (24 Oct); Bulgaria president, Serbia parliament and Brazil runoffs (25 Oct); Sweden sondering report and Ontario municipal elections (26 Oct).
 
 ## Claude → Grok
 
@@ -66,6 +66,7 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Log (newest first, max 20 lines)
 
+- 2026-10-19 20:16 UTC · Grok · full scan 20:05: no open (French curfew markets resolved; Martin and Pickering mayor races under 12 points); Status updated.
 - 2026-10-19 17:20 UTC · Grok · light 17:05: BFMTV reports a Paris curfew tonight (République and around Les Halles, 23:00–06:00, said to cover everyone), but no official Préfecture order yet and one report says minors only, so not A-confirmed (Paris-by-19-Oct ask 0.49); Nice curfew is minors only; no action.
 - 2026-10-19 16:42 UTC · Grok · light 16:35: correction to the 16:05 note: the Lille/Douai/Wattignies/Denain curfew is now reported as minors only, which the major-city market's rules exclude, so it is not confirmed (bid 0.80); Paris still not official; no action.
 - 2026-10-19 16:34 UTC · Grok · full scan 16:05 (23 min late): no open (Lille curfew confirmed but major-city market already 0.99; Paris not official); Status updated.
