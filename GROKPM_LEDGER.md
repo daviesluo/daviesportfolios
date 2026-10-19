@@ -66,6 +66,7 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Log (newest first, max 20 lines)
 
+- 2026-10-19 16:42 UTC · Grok · light 16:35: correction to the 16:05 note: the Lille/Douai/Wattignies/Denain curfew is now reported as minors only, which the major-city market's rules exclude, so it is not confirmed (bid 0.80); Paris still not official; no action.
 - 2026-10-19 16:34 UTC · Grok · full scan 16:05 (23 min late): no open (Lille curfew confirmed but major-city market already 0.99; Paris not official); Status updated.
 - 2026-10-19 12:22 UTC · Grok · full scan 12:05: no open (Paris curfew not yet official, on A watch; Sweden mandate not a PM confirmation); Status updated.
 - 2026-10-19 08:18 UTC · Grok · full scan 08:05: no open (Brazil governor runoffs researched, edges under 12; pending dailies thin); Status updated.
