@@ -874,3 +874,56 @@ Deno.test("with one good session per user, a re-login 18 s after the refused log
   assertEquals(eighteen.map((r) => [r.ok, r.snapshots, r.logins]), [[true, 4, 1], [true, 4, 2], [true, 4, 2], [true, 4, 2]]);
   for (const r of eighteen) assert(r.ms < 55_000, `a run took ${r.ms} ms`);
 });
+
+// Audit 2026-10-19: the 18 s re-login wait and the forced switch after a re-login were pinned only on options the tests
+// passed in themselves, so lowering QUOTES_RELOGIN_WAIT_MS, or `index.ts` not passing it on, left every test green.
+
+Deno.test("audit 2026-10-19: the handler's own wiring re-logs in 18 s after the refused login (one good session per user)", async () => {
+  const { rest } = fakeRest();
+  await factsFor(rest, "sb");
+  await factsFor(rest, "cfd");
+  let t = Date.UTC(2026, 9, 18, 20, 0, 0, 400);
+  const sleep = (ms: number) => { t += ms; return Promise.resolve(); };
+  // The older session dies 12 s after a refused login: a re-login at 9 s (or at once) meets it alive, one at 18 s does not.
+  const ig = fakeIg({ oneGoodSession: { dieAfterMs: 12_000 }, now: () => t });
+  const postAt: number[] = [];
+  const fetchImpl = ((input: string | URL | Request, init?: RequestInit) => {
+    if ((init?.method ?? "GET") === "POST") postAt.push(t);
+    return ig.impl(input, init);
+  }) as typeof fetch;
+  // The handler builds the client from the production constants (index.ts); each run is a fresh worker with no kept session.
+  const d = deps({ rest, fetchImpl, now: () => t, sleep });
+  const out: { ok: unknown; snapshots: unknown; logins: unknown; gap: number | null; ms: number }[] = [];
+  for (let minute = 0; minute < 4; minute++) {
+    const start = Date.UTC(2026, 9, 18, 20, minute, 0, 400);
+    t = start;
+    postAt.length = 0;
+    d.sessionStore!.session = null;
+    const r = await (await handle(req("quotes", { authorization: `Bearer ${ENV.CRON_SECRET}` }), d)).json();
+    out.push({ ok: r.ok, snapshots: r.snapshots, logins: r.logins, gap: postAt.length > 1 ? postAt[1] - postAt[0] : null, ms: t - start });
+  }
+  // The first run logs in once; every later run is refused on its first login and reads after its one re-login.
+  assertEquals(out.map((r) => [r.ok, r.snapshots, r.logins]), [[true, 4, 1], [true, 4, 2], [true, 4, 2], [true, 4, 2]]);
+  for (const r of out.slice(1)) assert(r.gap !== null && r.gap >= 18_000, `the re-login came ${r.gap} ms after the refused login`);
+  for (const r of out) assert(r.ms < 55_000, `a run took ${r.ms} ms`);
+});
+
+Deno.test("audit 2026-10-19: a re-login is followed by a PUT /session to the wanted account even when the login names it", async () => {
+  // The user is left on the spread-bet account; the login (and the re-login) still answers "current: CFD", the account the
+  // client wants. The token works for the CFD epic only after the switch.
+  const ig = fakeIg({ startAccount: "Z6F18K", loginKeepsAccount: true, tokenInvalidOnce: true, epicAccount: { "CS.D.AUDUSD.CFD.IP": "Z6F18J" } });
+  const client = new IgClient({
+    creds: CREDS, fetchImpl: ig.impl, maxRequests: 10, minGapMs: 0, sleep: noSleep, maxRelogins: QUOTES_MAX_RELOGINS,
+    forceSwitchAfterLogin: QUOTES_FORCE_SWITCH_AFTER_LOGIN,
+  });
+  await client.login();
+  assertEquals(client.session?.accountId, "Z6F18J");
+  const body = await client.get("/markets", 2, { epics: "CS.D.AUDUSD.CFD.IP", filter: "SNAPSHOT_ONLY" });
+  assertEquals((body as { marketDetails: unknown[] }).marketDetails.length, 1);
+  assertEquals(client.relogins, 1);
+  const calls = ig.calls.map((c) => `${c.method} ${new URL(c.url).pathname.replace("/gateway/deal", "")}`);
+  const post = calls.lastIndexOf("POST /session");
+  assertEquals(calls.slice(post, post + 3), ["POST /session", "PUT /session", "GET /markets"]);
+  assertEquals(JSON.parse(ig.calls[post + 1].body!).accountId, "Z6F18J");
+  assert(QUOTES_FORCE_SWITCH_AFTER_LOGIN, "the recorder runs with the forced switch on");
+});

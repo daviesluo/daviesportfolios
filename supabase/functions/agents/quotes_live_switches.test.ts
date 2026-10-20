@@ -69,9 +69,12 @@ function world(o: Opts = {}) {
       for (const b of QUOTE_BOOKS) stepMinute(books[b], t, { x: fxLive ? X : null, fairU: 1.0, prints: [] });
       await mem.db.upsert(I.paper, [{ id: 1, state: { lastMinute: t, books, fetchedTo: {}, hourFetchedFor: 0 }, last_minute: iso(t), updated_at: iso(t) }], "id");
     },
-    /** The weekend replica decides minute t on the held X (PR5-W's case 2), saved where the executor reads it; `behind` leaves it a minute stale. */
-    async weekend(t: number, behind = false) {
-      for (const b of QUOTE_BOOKS) stepMinute(wkBooks[b], t, { x: X, fairU: 1.0, prints: [] });
+    /**
+     * The weekend replica decides minute t on the held X (PR5-W's case 2), saved where the executor reads it; `behind` leaves it
+     * a minute stale; `x` decides it on another X, so its prices differ from PR5's engine's.
+     */
+    async weekend(t: number, behind = false, x = X) {
+      for (const b of QUOTE_BOOKS) stepMinute(wkBooks[b], t, { x, fairU: 1.0, prints: [] });
       const at = behind ? t - M : t;
       await mem.db.upsert(LIVE_WK_PAPER, [{ id: 1, state: { lastMinute: at, books: wkBooks, fetchedTo: {}, hourFetchedFor: 0 }, last_minute: iso(at), updated_at: iso(t) }], "id");
     },
@@ -100,8 +103,9 @@ function world(o: Opts = {}) {
 const shape = (o: Row) => [o.ts, o.book, o.rung_side, o.k, o.leg, o.side, Number(o.price), Number(o.base_size), o.state, Number(o.filled_base), o.cancel_reason ?? null].join("|");
 
 /** Two Thursday turns, the second meeting a USDC read made 15 s before it and read again after it, asking 0.7539 (through the 0.1 % bid's take limit). */
-async function takeCase(config: Record<string, unknown>) {
+async function takeCase(config: Record<string, unknown>, before?: (w: ReturnType<typeof world>) => void) {
   const w = world({ config });
+  before?.(w);
   await w.paper(THU);
   await w.turn(THU);
   const at2 = THU + 2 * M + 25e3;
@@ -216,6 +220,65 @@ Deno.test("weekend_mode live: a replica behind PR5's minute is stale (no entry),
   assert(entries(a).length >= 12);
   assertEquals(b.orders().map(shape), a.orders().map(shape));
   assertEquals([b.events("weekend_shadow").length, b.events("take_shadow").length], [0, 0]);
+});
+
+Deno.test("weekend_mode live outside a closure: a replica that differs from PR5's engine (last weekend's, or on another X) is never read (audit 2026-10-19)", async () => {
+  // PR5's engine decides Thursday's minutes; the replica row is not PR5's: left from last weekend's closure (its last minute
+  // Sunday 20:59), or stepped every minute on another X. Either way the executor reads PR5's engine, as with the switch off:
+  // the same orders row for row, no stale guard, no weekend source. Reading the replica outside a closure would quote it
+  // (other prices) or stop every weekday entry as stale.
+  const SUN = Date.parse("2026-10-18T20:59:00Z");
+  const run = async (config: Record<string, unknown>, replica: "none" | "last-weekend" | "other-x") => {
+    const w = world({ config });
+    if (replica === "last-weekend") {
+      const old = Object.fromEntries(QUOTE_BOOKS.map((b) => [b, newBookState(b, { id: `o-${b}`, ts: SUN - 30e3, ticks: 7480, qty: 10, side: "sell" })])) as Record<QuoteBook, BookState>;
+      for (const b of QUOTE_BOOKS) stepMinute(old[b], SUN, { x: 1.3330, fairU: 1.0, prints: [] });
+      await w.mem.db.upsert(LIVE_WK_PAPER, [{ id: 1, state: { lastMinute: SUN, books: old, fetchedTo: {}, hourFetchedFor: 0, syncedAt: SUN, late: false }, last_minute: iso(SUN), updated_at: iso(SUN) }], "id");
+    }
+    const reports: QuoteLiveReport[] = [];
+    for (let t = THU; t < THU + 3 * M; t += M) {
+      await w.paper(t);
+      if (replica === "other-x") await w.weekend(t, false, 1.30);
+      reports.push(await w.turn(t));
+    }
+    return { w, reports };
+  };
+  const off = await run({}, "none");
+  assert(entries(off.w).length >= 12);
+  for (const replica of ["last-weekend", "other-x"] as const) {
+    const lv = await run({ weekend_mode: "live" }, replica);
+    assertEquals(lv.w.orders().map(shape), off.w.orders().map(shape), replica);
+    assertEquals(lv.reports.map((r) => r.weekend ?? null), [null, null, null], replica);
+    assert(lv.reports.every((r) => QUOTE_BOOKS.every((b) => !(r.guards[b] ?? []).some((g) => /stale/.test(g)))), `${replica}: ${JSON.stringify(lv.reports.at(-1)!.guards)}`);
+  }
+});
+
+Deno.test("weekend_mode live inside a closure obeys the kill switch: live_confirmed_at null, global_pause or dry_run send no live entry (audit 2026-10-19)", async () => {
+  // Counterfactual: armed, the replica's twelve rungs rest live (the weekend_mode test above).
+  const armed = await weekendCase({ weekend_mode: "live" }, 2);
+  assertEquals(entries(armed.w).filter((o) => o.mode === "live").length, 12);
+  const disarmed = await weekendCase({ weekend_mode: "live", live_confirmed_at: null }, 2);
+  assertEquals(entries(disarmed.w).length, 0);
+  assertEquals(disarmed.reports.map((r) => r.entryBook), [null, null]);
+  const dry = await weekendCase({ weekend_mode: "live", dry_run: true }, 2);
+  assertEquals(entries(dry.w).filter((o) => o.mode === "live").length, 0);
+  const paused = world({ t0: SAT, config: { weekend_mode: "live" }, fxLive: false });
+  (paused.mem.tables.agent_risk as Row[])[0].global_pause = true;
+  for (let t = SAT; t < SAT + 2 * M; t += M) { await paused.paper(t); await paused.weekend(t); await paused.turn(t); }
+  assertEquals(entries(paused).length, 0);
+});
+
+Deno.test("take_mode shadow records nothing on a rung that may not enter: live_confirmed_at null, or the day's loss stop (audit 2026-10-19)", async () => {
+  // Counterfactual: armed, the same read makes one take_shadow event (the take_mode test above).
+  const armed = await takeCase({ take_mode: "shadow" });
+  assertEquals(armed.w.events("take_shadow").length, 1);
+  const disarmed = await takeCase({ take_mode: "shadow", live_confirmed_at: null });
+  assertEquals([disarmed.w.events("take_shadow").length, disarmed.r.shadow?.takes ?? 0], [0, 0]);
+  const stopped = await takeCase({ take_mode: "shadow" }, (w) => {
+    (w.mem.tables.agent_quote_live_events as Row[]).push({ mode: "live", minute: iso(THU), book: "-", rung_side: "-", k: 0, kind: "loss_stop", detail: {} });
+  });
+  assertEquals([stopped.w.events("take_shadow").length, stopped.r.shadow?.takes ?? 0], [0, 0]);
+  assert(!stopped.r.errors.some((e) => /take shadow/.test(e)), JSON.stringify(stopped.r.errors));
 });
 
 // ------------------------------------------------------------------ the weekend replica (quotes_live_weekend.ts)
