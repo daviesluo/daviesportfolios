@@ -597,7 +597,8 @@ that follow from that evidence, in short:
   `reviews/2026-10-15-grokpm-prereg.md`; Davies, 2026-10-15 and 2026-10-16): an OUTSIDE Grok agent trades a $100 budget on information (category A: a confirmed outcome the price lags by
   8+ points; B: a researched 12-point mispricing in a quiet market; C: adjustments). Since Deviation D2 ("让grok用我们搭好的
   爱尔兰服务器下单，不是网页端") it holds no key and no wallet: it trades only through the `grokpm` function (`exec.ts`), forced
-  to eu-west-1, on the account live-prep used. The server checks every order against §2's rules and the agent's OWN
+  to eu-west-1, on the account live-prep used. The server checks every order against §2's rules (since D3 also A's 8 and
+  B's 12 points of p over the dearer of price and mid, a quarter-Kelly ceiling per order, a C open only on a holding) and the agent's OWN
   book (its orders and fills only: `grokpm_orders`, `grokpm_fills`; live-prep's dust and the account's pUSD never count,
   and it can never sell a token it did not buy), journals it with its decision, and only then signs and sends it with
   the order paths' client. A BUY is post-only; only a category-C close may take. It cancels its own orders one by one,
@@ -613,6 +614,8 @@ that follow from that evidence, in short:
     the go. While it is a dry-run its page's head says DRY-RUN with the list's amber light, never LIVE. The journal's
     market titles and links come from `grokpm_markets` (0126), which the record fills from Gamma; a condition id is
     never shown.
+  - **Its attestation copy.** `grokpm_config` holds one too: a revocation also runs `update public.grokpm_config set
+    ireland_until = now() where id = 1;`.
   - **The rule for us.** Never trade by hand in that account while it is armed: the agent's book is its own fills, but a
     hand order on its tokens would move what it can sell.
   - **Redemption (D6, `0128`).** `grokpm?action=redeem`, hourly, redeems the shared account's resolved positions (every

@@ -11,8 +11,10 @@ costs (test Sharpe 0.40) and nothing after them (−0.01): IG's overnight admin 
 **FXW-AUD remains the only IG strategy with a historical case**, and the recommendation is unchanged: verify it on IG's
 own data (S1a, then S1b's recorded Sundays) before any money.
 
-Everything was frozen before any data was pulled (`backtests/ig_search/params/frozen.json`, commit `b5732235`), its
-three source deviations were written before any result existed (`5aff701c`), and nothing was tuned on the test era.
+Everything was frozen before any data was pulled (`backtests/ig_search/params/frozen.json`, commit `183c380a`), its
+three source deviations were written before any result existed (`4683fbb4`), and nothing was tuned on the test era.
+(Audit, 2026-10-16: `b5732235` and `5aff701c` were these commits before a rewrite; all three reached `main` in one push
+at 16:02:30 UTC, so their order rests on their content and author times, not on an outside timestamp.)
 
 ## 1. The sources, and what each covered
 
@@ -158,7 +160,8 @@ published at the open, so IG's consent for automated strategies is not needed un
   markets (SpaceX, Hong Kong HS50, Australia 200, Germany 40, US crude, UK 100) and the searches by name for Weekend Wall
   Street, Weekend US Tech 100 and the three weekend FX pairs returned nothing, so the recorder reads those two indices on
   the CFD account, which lists them.
-- **No history has been pulled yet** (`ig_price_pulls` is empty). This search's SQL is read-only, so it could not fire
+- **No history had been pulled when this search ran** (`ig_price_pulls` was empty; the S1a pulls fired 16:03–16:15 UTC
+  the same day, ledger history 16:30). This search's SQL is read-only, so it could not fire
   them. The main session runs, with the Vault bearer and outside the recorder's windows (each call answers 202 at once):
   `ig?action=history&account=sb&plan=probe` (on the spread-bet account that is AUD/USD's one small window, since
   `wknd_wallst` is not selected there; `&account=cfd&plan=probe` adds the weekend-index probe on the CFD account's

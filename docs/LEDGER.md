@@ -64,10 +64,14 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
 
 0a⁗. **LIVE-PREP LIQUIDATING (Addendum 24, live since 2026-10-15 16:23:55 UTC; Davies: "那目前的单都尽快卖出掉吧，还剩多少").**
    16:26: 6 NO 0x76051f8c at 0.27 and 40 YES 0x7465aead at 0.12 sold, 10.2 of 80 YES 0xecc209a6 at 0.002 (pUSD [•] →
-   [•]). **Addendum 25 (built 16:35, not pushed)** books those taker trades (unbooked: TOTAL and stop missed them) on its
-   first turn: then check `pm_lp_fills` has 308e1767, cd415cc7, 7d6f857f and `last_error` is clear. 0xecc209a6's 69.8 YES
-   rest nothing (its book has no bid, read as one-sided); the market ends 10-15, likely to be redeemed at 0 with the dust.
-   Keep live-prep armed until then; stop with `update public.pm_lp_config set liquidate_at = null where id = 1;`.
+   [•]). **Addendum 25 (pushed with `f7eed09f`, `agents` deployed 16:50)** books those taker trades; read-only 19:14 UTC
+   10-15: 308e1767, cd415cc7, 7d6f857f in `pm_lp_fills`, `last_error` null. (16:23:55 is `0123`'s apply; its reader deployed
+   16:25.) **Disarmed by `0125`** (applied 15:24 UTC 10-16; its header's read: largest unsettled holding 4.2791, nothing
+   resting; item 15's 15:38 check read `live_confirmed_at` null): only dust is left, to settle and be redeemed.
+   `liquidate_at` is still set as far as this ledger knows; clear it with
+   `update public.pm_lp_config set liquidate_at = null where id = 1;` (Davies' call, PMPOST's proposal).
+   **The 10-16 01:00 seven-day read (`lp_readout_a18.sql`) is not recorded as run** (no result file, no history line): run
+   it as written, saying it cannot change anything now, or Davies withdraws it and the 14-day one by an addendum.
 
 0a‴. **Q2 CLOSED, close-only, 2026-10-15 00:08 UTC** (Davies: "看一下最新的rewards payout，还不行的话就关了然后只卖出"). 10-14 paid
    $[•] on formula $[•] (R 0.71); since the restart rewards+rebates $[•] over 718 filled shares = 0.61 c a share, under
@@ -90,14 +94,12 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    set restarted_at = null where id = 1;`, close-only, held lots exit); his call, live still running, stop room ~$[•].
 
 0c. **The audit of 2026-10-14 evening (history 2026-10-14 20:11; PR on `claude/audit-2026-10-14`): four calls for Davies.**
-   (1) and (2) **built as Addendum 23 on his word** (2026-10-15, "Addendum 21和Addendum 20都修复了"; history 15:20; not
-   pushed). (3) **`origin/lp-skew-ft`
+   (1) and (2) **built as Addendum 23 on his word** (2026-10-15, "Addendum 21和Addendum 20都修复了"; history 15:20;
+   pushed, `agents` deployed 15:27 UTC 10-15). (3) **`origin/lp-skew-ft`
    (Grok, 10-11) must not be merged:** its `0117_lpskew.sql` collides with the applied `0117_cb_minute_extremes_repair.sql`,
    its pins hold Addendum 18's `pm_live.ts`/`pm_lp.ts` bytes, its base arm is the S2 that Q2 replaced and its window
-   (10-12 → 10-19) has passed unrun; close it (deleting the branch is his). (4) **SPCX:** the board's [•] is [•] shares at another
-   platform plus Trading 212's [•] (Invest and ISA summed, `mergeShaped`); the conservative rule, not a bug; he confirms [•] in
-   the T212 app and the [•] elsewhere. No production read was possible from this session (no database connector): Q2's stop
-   (0a″) is unread since 17:47 UTC.
+   (10-12 → 10-19) has passed unrun; close it (deleting the branch is his). (4) **SPCX: closed** (Davies,
+   10-15: the Trading 212 and board share counts of SPCX, RKLB and HOOD are fine; [•] elsewhere plus T212's [•]).
 
 0b. **Every PAPER Reward quotes test is off (Davies, 2026-10-13: "目前paper testing里的reward quotes全关了吧？感觉都不赚钱没什么
    意义？"; `0120`).** Off: `pmrwc`, `pmrwc-select`, `pmrwc-e`, `pmrwc-x`, mid-pool (`pmmid`, `pmmidprep`), live-prep's paper layer
@@ -473,7 +475,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    `reviews/2026-10-15-ig-verification.md` §9). The `ig` function and `0122` are live (demo, read-only). S1a on 50 of 51
    frozen weekends of IG's spread-bet demo history: all five transfer conditions pass (median opening spread 10.1 bps,
    gap correlation with FXCM 0.957); 10 trades at IG's quotes +30 to +38 bps, t 3.2-3.5, not blind. Next: S1b, the
-   weekend recorder's twelve Sundays from 10-18. Window 2025-11-28 needs one re-pull (~32 points). Decisions left to
+   weekend recorder's twelve Sundays from 10-18. Window 2025-11-28 was re-pulled 16:15 UTC 10-16 (51 of 51); S1a's
+   committed result is on the 50. Decisions left to
    Davies: funding `LT8Q2` (£350-400 covers one £0.50 position through the worst historical excursion; the spec puts
    S1b first), entity and tax route; no order code exists.
    **2026-10-18 03:40 UTC: the weekend recorder fails two runs in three** (`ig.quotes` 165 errors since 10-16 20:52,
@@ -495,7 +498,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
 15. **GROKPM, "Polymarket analyst" ("(Grok)" dropped 10-17): LIVE since 2026-10-17 02:39:14 UTC (Davies: "上线"); ends
    2026-11-14 00:00 UTC at the latest (wake `trig_01C3a3b3F38FYavx6jFeqJEq`); trades through our Ireland server on the shared account** (Davies, 2026-10-15: "让grok bot里开一个trading bot，给他100美元…先让他就用100美元测试"; 2026-10-16:
    "可以用目前这个polymarket跑吗", "让grok用我们搭好的爱尔兰服务器下单，不是网页端"; `reviews/2026-10-15-grokpm-prereg.md`, frozen,
-   with its Deviation D2; migrations `0124`, `0125`; history 2026-10-15 GROKPM and 2026-10-16 GROKPM D2).
+   with its Deviations D2–D6 (§9); migrations `0124`–`0128`; history 2026-10-15 GROKPM, 2026-10-16 GROKPM D2 and D3,
+   2026-10-17 D4, D5, the go and D6).
    - **The design.** Grok holds no key or wallet. It calls the `grokpm` function (`?action=account|market|order|cancel|cancel_all`,
      `&forceFunctionRegion=eu-west-1`, bearer `GROKPM_LOG_TOKEN`). The server checks every order against §2's rules and the
      agent's own book, journals it, and only armed signs and sends it on the account live-prep used.

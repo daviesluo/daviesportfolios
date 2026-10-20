@@ -434,7 +434,10 @@ places stay when the number is not whole.
   key: it asks this site's server in Ireland, which checks every order
   against its fixed limits (a few dollars a market, six positions, a cash
   floor, a daily and a total stop, no long shots, no near-certain favourites
-  unless the outcome is already confirmed, no thin books) and against its own
+  unless the outcome is already confirmed, no thin books, no buy unless its
+  own probability beats the price by 8 points for a confirmed outcome or 12
+  for a researched mispricing, none bigger than a quarter of the Kelly
+  stake) and against its own
   trades only, and refuses what breaks them before anything is sent. Until
   Davies says go it runs as a dry-run: its orders are checked and journalled
   and none is sent. Its light in the list is then amber, and its page says
