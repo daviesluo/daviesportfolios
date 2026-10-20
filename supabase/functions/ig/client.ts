@@ -182,8 +182,14 @@ export type IgClientOpts = {
   /** A session from an earlier run in this isolate, reused while IG accepts it. */
   session?: IgSession | null;
   timeoutMs?: number;
+  /** At most this many logins in this client's life, including its first (unset: no cap). */
+  maxLogins?: number;
   /** At most this many logins to replace tokens IG calls invalid, in this client's life (unset: one a call, no cap). */
   maxRelogins?: number;
+  /** No ordinary request starts at or after this instant on `now`'s clock; each request's timeout is capped at what remains. */
+  deadlineAt?: number;
+  /** A log-out may use the margin up to this later instant, so a deadline can leave time to end the session. */
+  logoutDeadlineAt?: number;
   /** After a `PUT /session` that switched account, wait this long before the next request (unset: no wait). */
   switchWaitMs?: number;
   /** After a login, wait this long before the next request (unset: no wait). */
@@ -218,6 +224,11 @@ export class IgClient {
   logouts = 0;
   /** Asked before a re-login: false keeps the refusal (the caller's time budget would not hold the wait). */
   reloginAllowed: () => boolean = () => true;
+  /** The run's deadlines on `now`'s clock; a caller that knows the run's start may set them after making the client. */
+  deadlineAt: number | undefined;
+  logoutDeadlineAt: number | undefined;
+  /** A re-login that itself failed ends login attempts for this client, even if a later switch finds no session. */
+  private reloginFailed = false;
   /** The last session answer, balances stripped (accounts, current account, time zone offset, …). */
   sessionInfo: Record<string, unknown> | null = null;
   /** IG's `Date` header against this clock, from the latest answer: the run's clock check. */
@@ -229,6 +240,8 @@ export class IgClient {
   constructor(opts: IgClientOpts) {
     this.opts = opts;
     this.session = opts.session ?? null;
+    this.deadlineAt = opts.deadlineAt;
+    this.logoutDeadlineAt = opts.logoutDeadlineAt;
   }
 
   /** Every secret this client could leak: the credentials and the session's tokens. */
@@ -242,15 +255,32 @@ export class IgClient {
     return scrubDeep(v, this.secrets());
   }
 
-  private async raw(method: string, path: string, o: { query?: Record<string, string>; body?: unknown; version: number; auth: boolean }): Promise<{ answer: IgAnswer; headers: Headers }> {
+  /** Start this client's run deadlines on its own clock. */
+  beginRun(deadlineMs: number, logoutDeadlineMs = deadlineMs): void {
+    const start = (this.opts.now ?? Date.now)();
+    this.deadlineAt = start + deadlineMs;
+    this.logoutDeadlineAt = start + logoutDeadlineMs;
+  }
+
+  private async raw(method: string, path: string, o: { query?: Record<string, string>; body?: unknown; version: number; auth: boolean; logout?: boolean }): Promise<{ answer: IgAnswer; headers: Headers }> {
     const url = new URL(IG_DEMO_BASE + path);
     for (const [k, v] of Object.entries(o.query ?? {})) url.searchParams.set(k, v);
     assertAllowed(method, url.toString());
     if (this.requests >= this.opts.maxRequests) throw new IgRefused(`refused: this run's budget of ${this.opts.maxRequests} requests is spent`);
     const now = this.opts.now ?? Date.now;
     const sleep = this.opts.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
+    const deadline = o.logout && this.logoutDeadlineAt !== undefined ? this.logoutDeadlineAt : this.deadlineAt;
+    let remainingMs = deadline === undefined ? Infinity : deadline - now();
+    if (remainingMs <= 0) throw new IgRefused("refused: this run's deadline is spent");
     const wait = this.lastAt + this.opts.minGapMs - now();
-    if (this.lastAt && wait > 0) await sleep(wait);
+    if (this.lastAt && wait > 0) {
+      if (wait >= remainingMs) throw new IgRefused("refused: this run's deadline is spent");
+      await sleep(wait);
+      remainingMs = deadline === undefined ? Infinity : deadline - now();
+      if (remainingMs <= 0) throw new IgRefused("refused: this run's deadline is spent");
+    }
+    const timeoutMs = Math.min(this.opts.timeoutMs ?? 15_000, remainingMs);
+    if (timeoutMs <= 0) throw new IgRefused("refused: this run's deadline is spent");
     this.requests += 1;
     this.lastAt = now();
     const headers: Record<string, string> = {
@@ -268,7 +298,7 @@ export class IgClient {
       method,
       headers,
       body: o.body === undefined ? undefined : JSON.stringify(o.body),
-      signal: AbortSignal.timeout(this.opts.timeoutMs ?? 15_000),
+      signal: AbortSignal.timeout(timeoutMs),
     });
     const text = await res.text();
     let body: unknown = null;
@@ -287,6 +317,10 @@ export class IgClient {
 
   /** `POST /session` (version 2). Keeps the tokens in memory and the answer, balances stripped, in `sessionInfo`. */
   async login(): Promise<IgSession> {
+    if (this.reloginFailed) throw new IgRefused("refused: a re-login in this run already failed");
+    if (this.logins >= (this.opts.maxLogins ?? Infinity)) {
+      throw new IgRefused(`refused: this run's budget of ${this.opts.maxLogins} logins is spent`);
+    }
     const c = this.opts.creds;
     this.logins += 1;
     const { answer, headers } = await this.raw("POST", "/session", { version: 2, auth: false, body: { identifier: c.username, password: c.password, encryptedPassword: false } });
@@ -322,7 +356,12 @@ export class IgClient {
       if (this.opts.reloginWaitMs && since < this.opts.reloginWaitMs) await this.pause(this.opts.reloginWaitMs - since);
       if (this.opts.logoutBeforeRelogin) await this.logout();
       this.session = null;
-      await this.login();
+      try {
+        await this.login();
+      } catch (e) {
+        this.reloginFailed = true;
+        throw e;
+      }
       if (account && this.session && (this.opts.forceSwitchAfterLogin || (this.session as IgSession).accountId !== account)) {
         await this.switchTo(account, this.opts.forceSwitchAfterLogin);
       }
@@ -377,7 +416,7 @@ export class IgClient {
     this.logouts += 1;
     try {
       this.secrets();
-      await this.raw("DELETE", "/session", { version: 1, auth: true });
+      await this.raw("DELETE", "/session", { version: 1, auth: true, logout: true });
     } catch { /* the budget spent or the network: the session then lapses at IG on its own */ }
     this.session = null;
   }

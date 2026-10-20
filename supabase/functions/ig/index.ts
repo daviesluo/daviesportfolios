@@ -27,7 +27,7 @@ import { constantTimeEqual, verifyToken } from "../_shared/token.ts";
 import { beatKeyOfRequest, writeBeat } from "../_shared/beats.ts";
 import { demoCreds, IgClient, scrubDeep, type IgSession } from "./client.ts";
 import {
-  FACTS_GAP_MS, FACTS_MAX_REQUESTS, HISTORY_GAP_MS, HISTORY_MAX_REQUESTS, HISTORY_MAX_WINDOWS, QUOTES_GAP_MS, QUOTES_MAX_RELOGINS,
+  FACTS_GAP_MS, FACTS_MAX_REQUESTS, HISTORY_GAP_MS, HISTORY_MAX_REQUESTS, HISTORY_MAX_WINDOWS, QUOTES_GAP_MS, QUOTES_MAX_LOGINS, QUOTES_MAX_RELOGINS,
   QUOTES_FORCE_SWITCH_AFTER_LOGIN, QUOTES_LOGIN_WAIT_MS, QUOTES_LOGOUT, QUOTES_RELOGIN_WAIT_MS, QUOTES_MAX_REQUESTS, QUOTES_SWITCH_WAIT_MS, QUOTES_TOKEN_RETRIES, QUOTES_TOKEN_RETRY_WAIT_MS,
   restClient, runFacts, runHistory, runQuotes, type AccountKind, type Rest,
 } from "./actions.ts";
@@ -119,7 +119,7 @@ export async function handle(req: Request, d: Deps): Promise<Response> {
       const { result, session } = await runQuotes({
         makeClient: (s) => new IgClient({
           creds, fetchImpl: d.fetchImpl, maxRequests: QUOTES_MAX_REQUESTS, minGapMs: QUOTES_GAP_MS, sleep: d.sleep, now: d.now, session: s,
-          maxRelogins: QUOTES_MAX_RELOGINS, switchWaitMs: QUOTES_SWITCH_WAIT_MS, loginWaitMs: QUOTES_LOGIN_WAIT_MS,
+          maxLogins: QUOTES_MAX_LOGINS, maxRelogins: QUOTES_MAX_RELOGINS, switchWaitMs: QUOTES_SWITCH_WAIT_MS, loginWaitMs: QUOTES_LOGIN_WAIT_MS,
           tokenRetries: QUOTES_TOKEN_RETRIES, tokenRetryWaitMs: QUOTES_TOKEN_RETRY_WAIT_MS,
           forceSwitchAfterLogin: QUOTES_FORCE_SWITCH_AFTER_LOGIN, logoutBeforeRelogin: QUOTES_LOGOUT,
           reloginWaitMs: QUOTES_RELOGIN_WAIT_MS,

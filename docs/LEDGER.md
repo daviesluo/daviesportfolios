@@ -524,8 +524,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    Audit 2026-10-19: a re-login that itself fails let the next account's switch log in again (five logins a run on a fake
    IG), and nothing bounded a run (77 s on a fake that hangs, against the call's 55 s); an ok run leaves its session
    logged in. **PR #244** (Muse; a failed re-login ends the run's logins, a 50 s run deadline with the log-out allowed
-   to 55 s) fixes both; Davies, 2026-10-20: it merges on his nod when `ig` is redeployed anyway (it last deployed 10-20
-   16:44 UTC with `7ed60689`'s reporting rule, so merging it is now itself that redeploy).
+   to 55 s) fixes both; **Davies, 2026-10-22: land it** (Claude-reviewed; `ig` last deployed 10-21 21:01 UTC in
+   `7e6de307`'s every-function deploy, so landing it is its own `ig` redeploy). Muse's 10-20 03:44 history section is in
+   the archive, "LEDGER.md, archived 2026-10-22 (fourth)".
    **Davies, 10-19: "都按你推荐的来"**: S1b's usable weekend is now judged by quote coverage, Deviation 1
    (`backtests/ig_deepdive/DEVIATION-1-S1b-coverage.md`, reading `sql/s1b_coverage.sql`; the spec is unchanged); the
    session table (option A) is dropped, not built. Weekend 1 of 12 (10-18/19): USABLE, final 1,515 of 1,515
@@ -730,7 +731,7 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
-"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20", and 2026-10-18 20:19 → 21:12 UTC under "LEDGER.md, archived 2026-10-21", and 2026-10-19 03:20 → 06:45 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-19 21:18 UTC → 2026-10-21 19:50 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-21 20:39 → 21:25 UTC under "LEDGER.md, archived 2026-10-22", and the audits of 2026-10-20 19:25 and 2026-10-21 19:17 UTC under "LEDGER.md, archived 2026-10-22 (second)", and PR #242's 2026-10-15 → 10-16 sections under "LEDGER.md, archived 2026-10-22 (third)"; each oldest first.
+"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20", and 2026-10-18 20:19 → 21:12 UTC under "LEDGER.md, archived 2026-10-21", and 2026-10-19 03:20 → 06:45 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-19 21:18 UTC → 2026-10-21 19:50 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-21 20:39 → 21:25 UTC under "LEDGER.md, archived 2026-10-22", and the audits of 2026-10-20 19:25 and 2026-10-21 19:17 UTC under "LEDGER.md, archived 2026-10-22 (second)", and PR #242's 2026-10-15 → 10-16 sections under "LEDGER.md, archived 2026-10-22 (third)", and PR #244's 2026-10-20 03:44 UTC section under "LEDGER.md, archived 2026-10-22 (fourth)", with 2026-10-21 22:51 and 23:05 UTC; each oldest first.
 
 ### [2026-10-22 00:35 UTC] Platform: Claude Code via Grok Bot | Model: claude-opus-5-5
 - **Audit of 2026-10-22** (read-only; one read-only SQL of `grokpm_decisions`): `5074c6b0..4a36cb6f` (20 commits), one
@@ -769,19 +770,3 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   (mirror bar over 10-22 → 11-22, read 11-23); fixture rebuilt; `src/live_twin.test.js`. TAKE (Addendum 3), variant-3 (§7) and
   the size twin (§13) note that through-only undercounts LIVE's fills. Its page name on two lines (`strategyNameParts`, dist
   rebuilt). **Deploy before 10-24.** Sweep not run here (no browser).
-
-
-### [2026-10-21 22:51 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Real money masked in this ledger and its archive** (sub-agent; Davies 10-21: the repository is public, hide the
-  real balances and amounts without touching any function): every real balance, amount, share count, lot price,
-  transfer and live P&L in `docs/LEDGER.md` and `docs/handover.md` now reads `[•]`; settings, paper, backtests and
-  the tickers stay. `.claude/CLAUDE.md` and the working-with-davies skill (three copies) now say so. Git history
-  still holds the old text: only a rewrite and a force-push, his call, would remove it.
-
-### [2026-10-21 23:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Gates faster: two waves, Edge tests in three processes, tsc and ESLint caches** (Davies, 10-21; sub-agent).
-  Measured on 4 cores: all at once was CPU-bound (load 20-24, 813-822 s of CPU) and took 226-244 s, its end the
-  single 116 s `deno test` stretched to 225-279 s. Now the source checks, then the bundle's line: 180-186 s full,
-  643-645 s of CPU, load 14-17; `--quick` 65 s (was 158-166 s). `bin/edge-test.mjs` (processes, not `--parallel`:
-  the tests set SB_REGION and venue keys); phone `surfaces` beside its `main`; `sh bin/gates.sh --run '<cmd>'` puts a
-  check run by hand under the lock. Every check kept; CI unchanged.

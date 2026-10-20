@@ -46519,3 +46519,26 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
 
 ### [2026-10-16 19:24 UTC] Platform: Claude Code via Grok Bot | Model: claude-opus-5-5
 - **PR #242 squashed locally, with the audit's wording fixes** (fill lag, opposite-token SELLs, September arithmetic, 2026-01/02, comments; no number changed). Not pushed. FAIL or "FAIL on available sample" is Davies'. Rebased 10-17 onto `7e797ec1`, 10-18 onto the 10-18 audit (`0441727c`), 10-19 onto the 10-19 audit (`72cd5ae7`), and 10-20 onto the 10-20 audit (`083ddf80`): item 16 after main's 15; of the branch's history only Grok's five 10-15 sections stay (main archived the rest).
+
+## LEDGER.md, archived 2026-10-22 (fourth) — PR #244's 2026-10-20 03:44 UTC history section (Muse), then 2026-10-21 22:51 and 23:05 UTC
+
+### [2026-10-20 03:44 UTC] Platform: Muse | Model: muse-wonder-full-1.0
+- **IG recorder proposed seventh fix: no login after a failed re-login, and a run deadline** (Davies: separate branch
+  and PR, Claude to review, no merge or deploy). `IgClient` now latches a failed re-login (401 or network), caps a
+  recorder run at two logins, stops ordinary IG requests at 50 s and caps each at the time left; a final log-out may
+  use the margin to 55 s. New pins failed first at 3 logins and 81 s; all 30 IG tests then pass. Nothing deployed.
+
+### [2026-10-21 22:51 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Real money masked in this ledger and its archive** (sub-agent; Davies 10-21: the repository is public, hide the
+  real balances and amounts without touching any function): every real balance, amount, share count, lot price,
+  transfer and live P&L in `docs/LEDGER.md` and `docs/handover.md` now reads `[•]`; settings, paper, backtests and
+  the tickers stay. `.claude/CLAUDE.md` and the working-with-davies skill (three copies) now say so. Git history
+  still holds the old text: only a rewrite and a force-push, his call, would remove it.
+
+### [2026-10-21 23:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Gates faster: two waves, Edge tests in three processes, tsc and ESLint caches** (Davies, 10-21; sub-agent).
+  Measured on 4 cores: all at once was CPU-bound (load 20-24, 813-822 s of CPU) and took 226-244 s, its end the
+  single 116 s `deno test` stretched to 225-279 s. Now the source checks, then the bundle's line: 180-186 s full,
+  643-645 s of CPU, load 14-17; `--quick` 65 s (was 158-166 s). `bin/edge-test.mjs` (processes, not `--parallel`:
+  the tests set SB_REGION and venue keys); phone `surfaces` beside its `main`; `sh bin/gates.sh --run '<cmd>'` puts a
+  check run by hand under the lock. Every check kept; CI unchanged.
