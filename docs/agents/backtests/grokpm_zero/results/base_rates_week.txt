@@ -1,0 +1,28 @@
+data docs/agents/backtests/grokpm_zero/data: pulled 2026-10-20T16:17:42+00:00, window 2026-10-13T00:00:00Z to 2026-10-20T00:00:00Z (7 days), candidates thin 684 / low 115 / high 76, 4 days of prices
+
+== thin: 200 markets with prices (of 684 candidates; 97.7 closing a day)
+  hindsight,  1 h before close (200 priced): >=  5 pts  15.0 % ( 14.7/day)  >=  8 pts  15.0 % ( 14.7/day)  >= 10 pts  15.0 % ( 14.7/day)  >= 12 pts  12.0 % ( 11.7/day)
+  hindsight,  4 h before close (200 priced): >=  5 pts  35.5 % ( 34.7/day)  >=  8 pts  35.5 % ( 34.7/day)  >= 10 pts  35.5 % ( 34.7/day)  >= 12 pts  34.0 % ( 33.2/day)
+  hindsight, 24 h before close (192 priced): >=  5 pts  37.5 % ( 36.6/day)  >=  8 pts  37.5 % ( 36.6/day)  >= 10 pts  37.5 % ( 36.6/day)  >= 12 pts  36.5 % ( 35.6/day)
+  calibration 24 h before close:  0-10: n 101 price 0.02 won 0.00 | 10-20: n  15 price 0.14 won 0.07 | 20-30: n   6 price 0.26 won 0.17 | 30-40: n   9 price 0.34 won 0.11 | 40-50: n  11 price 0.48 won 0.55 | 50-60: n  10 price 0.55 won 0.70 | 60-70: n   5 price 0.67 won 0.80 | 70-80: n  12 price 0.73 won 0.92 | 80-90: n   5 price 0.85 won 1.00 | 90-100: n  18 price 0.96 won 1.00
+  calibration  4 h before close:  0-10: n 110 price 0.01 won 0.00 | 10-20: n   6 price 0.16 won 0.00 | 20-30: n  10 price 0.25 won 0.10 | 30-40: n  13 price 0.36 won 0.23 | 40-50: n  10 price 0.47 won 0.80 | 50-60: n   5 price 0.52 won 0.60 | 60-70: n   5 price 0.68 won 0.80 | 70-80: n  14 price 0.74 won 0.86 | 80-90: n   9 price 0.86 won 0.89 | 90-100: n  18 price 0.97 won 1.00
+  A's lag band, winner at a gap of 8 to 20 points for 30 min or more in the last 24 h: 56 of 200 (28.0 %, 27.4/day)
+  A's lag band, winner at a gap of 5 to 20 points for 30 min or more in the last 24 h: 65 of 200 (32.5 %, 31.8/day)
+
+== low: 115 markets with prices (of 115 candidates; 16.4 closing a day)
+  hindsight,  1 h before close (115 priced): >=  5 pts   0.9 % (  0.1/day)  >=  8 pts   0.9 % (  0.1/day)  >= 10 pts   0.9 % (  0.1/day)  >= 12 pts   0.9 % (  0.1/day)
+  hindsight,  4 h before close (115 priced): >=  5 pts  23.5 % (  3.9/day)  >=  8 pts  23.5 % (  3.9/day)  >= 10 pts  23.5 % (  3.9/day)  >= 12 pts  21.7 % (  3.6/day)
+  hindsight, 24 h before close (114 priced): >=  5 pts  49.1 % (  8.1/day)  >=  8 pts  49.1 % (  8.1/day)  >= 10 pts  49.1 % (  8.1/day)  >= 12 pts  45.6 % (  7.5/day)
+  calibration 24 h before close:  0-10: n  47 price 0.01 won 0.00 | 10-20: n  12 price 0.13 won 0.17 | 20-30: n   8 price 0.27 won 0.50 | 30-40: n   6 price 0.35 won 0.67 | 40-50: n   5 price 0.46 won 0.60 | 50-60: n   5 price 0.54 won 0.80 | 60-70: n   5 price 0.64 won 1.00 | 70-80: n   7 price 0.73 won 0.86 | 80-90: n   7 price 0.84 won 0.86 | 90-100: n  12 price 0.96 won 0.92
+  calibration  4 h before close:  0-10: n  59 price 0.02 won 0.02 | 10-20: n   5 price 0.13 won 0.00 | 20-30: n   3 price 0.25 won 0.33 | 30-40: n   3 price 0.34 won 0.67 | 40-50: n   3 price 0.47 won 0.33 | 50-60: n   3 price 0.53 won 0.67 | 60-70: n   3 price 0.64 won 1.00 | 70-80: n   1 price 0.71 won 1.00 | 80-90: n   5 price 0.85 won 1.00 | 90-100: n  30 price 0.98 won 1.00
+  A's lag band, winner at a gap of 8 to 20 points for 30 min or more in the last 24 h: 33 of 115 (28.7 %, 4.7/day)
+  A's lag band, winner at a gap of 5 to 20 points for 30 min or more in the last 24 h: 45 of 115 (39.1 %, 6.4/day)
+
+== high: 76 markets with prices (of 76 candidates; 10.9 closing a day)
+  hindsight,  1 h before close (76 priced): >=  5 pts   0.0 % (  0.0/day)  >=  8 pts   0.0 % (  0.0/day)  >= 10 pts   0.0 % (  0.0/day)  >= 12 pts   0.0 % (  0.0/day)
+  hindsight,  4 h before close (76 priced): >=  5 pts  22.4 % (  2.4/day)  >=  8 pts  22.4 % (  2.4/day)  >= 10 pts  22.4 % (  2.4/day)  >= 12 pts  19.7 % (  2.1/day)
+  hindsight, 24 h before close (75 priced): >=  5 pts  42.7 % (  4.6/day)  >=  8 pts  42.7 % (  4.6/day)  >= 10 pts  42.7 % (  4.6/day)  >= 12 pts  40.0 % (  4.3/day)
+  calibration 24 h before close:  0-10: n  41 price 0.02 won 0.12 * | 10-20: n   4 price 0.15 won 0.50 | 20-30: n   5 price 0.27 won 0.20 | 30-40: n   4 price 0.33 won 0.50 | 40-50: n   2 price 0.42 won 0.50 | 50-60: n   5 price 0.53 won 0.80 | 60-70: n   3 price 0.64 won 0.67 | 70-80: n   4 price 0.72 won 0.50 | 80-90: n   2 price 0.88 won 1.00 | 90-100: n   5 price 0.97 won 1.00
+  calibration  4 h before close:  0-10: n  42 price 0.01 won 0.00 | 10-20: n   3 price 0.13 won 0.00 | 20-30: n   1 price 0.28 won 0.00 | 30-40: n   3 price 0.33 won 0.67 | 40-50: n   3 price 0.42 won 0.67 | 50-60: n   3 price 0.55 won 1.00 | 60-70: n   2 price 0.60 won 0.50 | 80-90: n   2 price 0.87 won 1.00 | 90-100: n  17 price 0.97 won 1.00
+  A's lag band, winner at a gap of 8 to 20 points for 30 min or more in the last 24 h: 23 of 76 (30.3 %, 3.3/day)
+  A's lag band, winner at a gap of 5 to 20 points for 30 min or more in the last 24 h: 26 of 76 (34.2 %, 3.7/day)

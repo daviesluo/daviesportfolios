@@ -1,0 +1,25 @@
+{
+ "study": "GROKPM zero-trades study (2026-10-20): the funnel, the near misses, and base rates of price-to-outcome gaps",
+ "review": "docs/agents/reviews/2026-10-20-grokpm-zero-trades.md",
+ "public_reads": "Gamma /events?closed=true&tag_slug=<politics|economy|world|tech|geopolitics> and the CLOB's /prices-history for markets closed 2026-10-13 to 10-20 (data/); Gamma public-search, /prices-history and the data API's /trades for the near misses (read 2026-10-20 16:1x-16:2x UTC, quoted in the review). Keyless GETs only.",
+ "run_order": [
+  "python3 -I docs/agents/backtests/grokpm_zero/scripts/fetch_week.py  (re-running pulls the public record again and can differ)",
+  "python3 -I docs/agents/backtests/grokpm_zero/scripts/base_rates.py docs/agents/backtests/grokpm/data > docs/agents/backtests/grokpm_zero/results/base_rates_cadence_sample.txt",
+  "python3 -I docs/agents/backtests/grokpm_zero/scripts/base_rates.py docs/agents/backtests/grokpm_zero/data > docs/agents/backtests/grokpm_zero/results/base_rates_week.txt",
+  "python3 -I docs/agents/backtests/grokpm_zero/scripts/near_misses.py > docs/agents/backtests/grokpm_zero/results/near_misses.txt"
+ ],
+ "seeds": {
+  "sample": 20261020
+ },
+ "sha256": {
+  "scripts/fetch_week.py": "b6d39a583a684aa4f1b7eff7b13345b2edada063cbce109a2216584071c3f08c",
+  "scripts/base_rates.py": "a49f0fa75120d343e40057958ab77e1904806b113f9125e8987f3d37ef89ab0f",
+  "scripts/near_misses.py": "9c7ce1fb1af42473e2cc479fdbc41f3e5aa9301da0c1f35d78612aeb4fb2e5a7",
+  "data/markets.json": "d84de68987e0c591bca9bee2118ad92f7e2ac9fd2bb846c9a1c5426a846b0b51",
+  "data/prices.json.gz": "8161650ad4525ca94dbb64b74a07a26499078259e2fd5f1f6f0a8f7735893453",
+  "results/base_rates_cadence_sample.txt": "055d39bd5fdb4d29cd6810c5f0d825980ae6803b8280b846a347ecfb033e4e63",
+  "results/base_rates_week.txt": "b8de9177260997d490f4175fe3e999153dc7ee705909b4fa25ef7642e6482767",
+  "results/near_misses.txt": "8b31695d63db816e2b03a326ba2358fb12776e69373f59a741eaf1f00188b1f1",
+  "results/pooled_calibration.txt": "911f887b9c1f114d9088934425d75844288a246a5509575a61e6763447fa61fb"
+ }
+}

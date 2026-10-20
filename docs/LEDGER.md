@@ -516,6 +516,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    - **The reading.** 28 days from the start day, or 40 resolved positions, or the −$30 stop; continue only if P&L > 0 AND
      Brier_agent < Brier_market.
    - **Never trade by hand in that account while GROKPM is armed.**
+   - **Zero trades, reviewed 10-20** (`reviews/2026-10-20-grokpm-zero-trades.md`): no rule or server limit was the problem; looser
+     bars lost on every resolved near miss. Davies decides D7 (shadow forecasts, no rule change; §6–§7 hold its text and the
+     message for Grok). Nothing changed until he says so.
    - **Automatic redemption (D6, `0128`, `grokpm/redeem.ts`; Davies: "加上吧 全部都自动化掉")**: hourly, one gasless relayed
      transaction for up to five of the shared account's redeemable markets (pUSD back; losing tokens cleared), a dry run
      while `redeem_enabled` is false (its plan in `grokpm_exec_state.redeem_state`). **Davies does:** polymarket.com →
@@ -651,7 +654,17 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
-"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)"; each oldest first.
+"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20"; each oldest first.
+
+### [2026-10-20 16:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM zero trades: the rules, not the server, and they protected the money** (sub-agent; Davies: "一单都没下…标准是不是太严格了？
+  做个复盘研究"; item 15; `reviews/2026-10-20-grokpm-zero-trades.md`, `backtests/grokpm_zero/`). Since the go: 448 requests, no order
+  ever asked (31 refusals: 30 malformed market reads, 1 future cycle ts), 169 no_action, 21 full scans on time. Every B candidate
+  with a stated p was 3.5-10.1 points (19), the ≥ 12 gaps were all thin books (3), every A confirmation was already at 0.96-0.9995
+  (6). On the 9 resolved, the agent's side won 3 and its Brier 0.136 lost to the market's 0.106; B10 would have lost $7.49 (2
+  trades), B8 $10.59 (3), all fillable. Base rates: the 5-to-12-point bar barely moves the room. Recommendation: keep every bar;
+  D7 "shadow forecasts" (p and m journalled on no_action rows, a secondary Brier at the end; no rule change), drafted with its
+  message for Grok, only on Davies' word.
 
 ### [2026-10-20 17:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **`momentum-1d` deleted by `0133`** (Davies 10-20: "这个策略直接删了，不用加这个"; it was winding down a paper BTC/USD
@@ -736,65 +749,3 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   nothing; the explicit switch at the start of every run stays. Pins: a login limit (3 in 5 minutes) that fix 4 fails
   from the fourth minute and this reads through ten minutes on one login; a kept session IG drops (client-token-invalid)
   is logged out, replaced by one login in the same run, and the run reads all four snapshots.
-
-
-### [2026-10-18 06:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **QUEUE's Kraken spare pull taken** (prereg Data item 3; wake `trig_01U3odxMpVv4zaqVueHJvaM7`): OHLC interval=60,
-  keyless, at 06:23 UTC. USDTUSD (key USDTZUSD) 721 bars, 62,523 B, sha256 3d0f44c3…; USDCUSD 721 bars, 58,319 B,
-  sha256 21ea7b17…; both 2026-09-18 06:00 → 10-18 06:00 (forming), so the window's first needed hour (10-03 21:00) is
-  held. Raw replies in `docs/agents/backtests/queue/kraken/` with `MANIFEST.json`; no `agent_book_levels` row read.
-  Next: the main pull on 11-02 00:05–19:59 UTC; closed bars in both must agree on vwap and count.
-
-### [2026-10-18 05:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **XV-1's fees filled and its cadence priced: recommended NOT to freeze as designed** (sub-agent, not pushed; DRAFT stays).
-  Fees read for Davies 2026-10-18 06:22–06:28 BST by his assistant (to be confirmed on the first transfer): Revolut X withdrawal
-  £3 a withdrawal + network (about $0.007 Ethereum, $0.002 Polygon); Coinbase deposits free, USDT as ERC-20 only; Coinbase GBP out
-  free (1–3 working days); Revolut X GBP in free, instant. `backtests/cbbooks/scripts/xv1_cadence.py` → `results/xv1_cadence.json`:
-  weekly fails the 5 bps test (USDC 8.8–9.1 bps), **fortnightly passes** (USDC 4.4–4.6, USDT 2.3–3.5) and nets £249 (train) / £396
-  (test) a year on £23–30k tied up, 1.1–1.3 % a year, £16–21k of it an unhedged dollar position; monthly £333 / £480 on £41–53k.
-  The ceiling is structural (about 10 bps a turnover over D + 7 days in hand). Draft §2 now charges fortnightly; §4b proposes, if
-  Davies wants the free offline read anyway, a fifth bar: net return on that capital ≥ 5 % a year (expected to fail).
-
-### [2026-10-18 05:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **LIVE PR5's take and weekend quoting in SHADOW** (Davies: "会的话就加上，然后加上周末的挂单，一定验证好没问题再推上实盘部署";
-  bcd3bcaf deployed, 0131 applied). `take_mode` and `weekend_mode` set to 'shadow' at 05:17 UTC: decisions recorded as
-  `take_shadow` / `weekend_shadow` events, nothing sent. First turns: 2 `weekend_shadow` events, the replica `late` (switched
-  on mid-closure, as designed), no error, 0 new orders. Pass criteria and the 'live' statements are in the 2026-09-24 live
-  design's 2026-10-18 addendum; each goes live only after its criteria pass and the result is shown to Davies. Undo:
-  `update public.agent_quote_live_config set take_mode = 'off', weekend_mode = 'off', updated_at = now() where id = 1;`.
-
-### [2026-10-18 05:19 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **IG weekend recorder, fourth fix: log out** (sub-agent; item 14). With `8cd5fb8e` live (05:06 UTC), runs 05:07-05:16
-  repeated a three-minute cycle: ok on one login (8 requests, 3 switches), ok on two (first token refused, re-login
-  worked; 13 requests), then a run with both accounts refused after its re-login (11 requests, 23.2 s): five logins in
-  three minutes, none logged out. IG documents no session cap (IG Labs FAQ "Limits", committed copy of 10-15: 60
-  non-trading requests a minute per app, 30 per account, 10,000 history points a week; tokens last 12 h from the last
-  call per the FAQ, 6 h extended to 72 h per the REST guide; labs.ig.com/faq answered HTTP 500 on 10-18). `DELETE /session`
-  joins the client's list (it ends the client's own session), and the recorder logs out at the end of every run, in a
-  finally, failures too, and logs the refused session out before its one re-login; facts and history unchanged. Pin: a
-  fake that starves a login made while two sessions are alive; the deployed code fails from the third minute (ok, ok,
-  then 0 snapshots every minute), the new code reads all five minutes with no session left alive.
-
-### [2026-10-18 05:16 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Coinbase's prints kept 40 days: `0132`, `cb_print_minutes`** (sub-agent, not pushed; CBBOOKS-1's R1, decided by the main
-  session on Davies' "记录器改进建议验证后你来决定"; 0131 is taken by the PR5 agent's `0131_quote_live_take_weekend.sql`, so 0132).
-  A row per book and minute, arrays of the prints summed by second, price (book steps) and aggressor side, about 1.2 MB a day
-  (per-group rows would be about 3.7 MB; `cb_trades` about 6 MB). Written by `cb_print_minutes_build` (pg_cron every 10 min over the
-  last six hours, upserting only changed minutes, never deleting, skipping each book's oldest possibly-pruned minute), not by the
-  recorder, whose code and error path are unchanged; backfilled in the migration from all `cb_trades` holds; pruned at 40 days; RLS
-  on, no grant, the function revoked from public, anon and authenticated. Checked read-only on production before applying: its
-  aggregation, unnested, reproduced the database md5 of all five CBBOOKS-1 print pulls (202,273 groups), so the study's §2 fill checks
-  and queue inputs come back identical; pinned by `src/cb_print_minutes.test.js` (the shipped aggregation equals the verified one; a
-  mutated size failed it). No Deno pin: no Edge code changed. Note: XV-1 reads Coinbase's books and Revolut X's prints, not Coinbase's
-  prints. XV-1's draft §4 now has the transfer-fee table to fill (Davies may open a Coinbase account). **Must apply before 10-20**,
-  when 10-10's prints start to leave `cb_trades` (each day's go ten days after it).
-
-### [2026-10-18 05:08 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **LIVE's take and weekend quoting built behind two switches, both 'off'** (sub-agent, not pushed; Davies, 10-18: "live的策略
-  有主动吃单吗？…会的话就加上，然后加上周末的挂单，一定验证好没问题再推上实盘部署"). Priced first on LIVE's record at £10 a rung
-  (`backtests/livetw/`, not blind): take +£0.0130 a weekday (8 takes from 10-04 16:00, 6 won; 90 % 0.0017–0.0267), weekend
-  rule +£0.0556 a day (0.0178–0.1049); LIVE's real weekdays £0.6067 vs the replay's £0.6763 (through rule). `0131`: the two
-  columns, event kinds `take_shadow` / `weekend_shadow`, `agent_quote_live_wkpaper`. `quotes_live.ts` (take via `takeTurn`,
-  shadow writes events and sends nothing; weekend source inside closures; switches read 'off' before `0131` runs),
-  `quotes_live_weekend.ts` (replica copied from PR5's engine in the hour before a closure, stepped inside it). Pins:
-  `quotes_live_switches.test.ts`, ten counterfactuals fail. Verification and go statements: live design addendum of 10-18.

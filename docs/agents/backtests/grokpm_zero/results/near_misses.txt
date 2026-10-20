@@ -1,0 +1,26 @@
+decision     | market                                   | side | p     | mid   | gap  | thin | outcome | clears
+10-17 04:16 | China Q3 GDP 4.3-4.6 %                   | YES  | 0.775 | 0.735 |  4.0 |      | 1       | -
+10-17 04:16 | Vancouver mayor: Fry                     | NO   | 0.465 | 0.410 |  5.5 |      | 1       | -
+10-17 04:16 | Serbia PM: Vucic                         | YES  | 0.700 | 0.665 |  3.5 |      | None    | -
+10-17 08:14 | Vancouver mayor: Sim                     | YES  | 0.480 | 0.415 |  6.5 |      | 0       | -
+10-17 08:14 | Israel election as scheduled             | YES  | 0.950 | 0.885 |  6.5 |      | None    | -
+10-17 12:11 | Alberta Remain margin 20-40              | YES  | 0.295 | 0.195 | 10.0 |      | 0*      | B 10, B 8
+10-17 12:11 | Alberta Remain margin 40-60              | YES  | 0.600 | 0.545 |  5.5 |      | 1*      | -
+10-17 12:11 | Street Fighter weekend 30-35 M           | NO   | 0.525 | 0.424 | 10.1 |      | 1       | B 10, B 8
+10-17 12:11 | Street Fighter weekend 27-30 M           | YES  | 0.400 | 0.315 |  8.5 |      | 0       | B 8
+10-17 12:11 | Sense and Sensibility weekend 5-6 M      | YES  | 0.200 | 0.090 | 11.0 | thin | 0       | -
+10-18 08:24 | GitHub longest critical incident 3-6 h   | YES  | 0.740 | 0.690 |  5.0 |      | None    | -
+10-19 00:16 | Biggest earthquake 18 Oct under 5.3 (A)  | YES  | 0.940 | 0.900 |  4.0 | thin | 1       | -
+10-19 08:18 | Tocantins governor: Dorinha              | YES  | 0.300 | 0.225 |  7.5 |      | None    | -
+10-19 08:18 | Rio Grande do Norte governor: Allyson    | YES  | 0.620 | 0.535 |  8.5 |      | None    | B 8
+10-19 20:09 | Martin mayor: Uhercik                    | YES  | 0.475 | 0.440 |  3.5 |      | None    | -
+10-19 20:09 | Pickering mayor: Ashe                    | YES  | 0.800 | 0.730 |  7.0 |      | None    | -
+10-20 00:11 | Wildwood Rotten Tomatoes >= 96           | NO   | 0.275 | 0.120 | 15.5 | thin | None    | -
+10-20 08:19 | Alberta: Leave wins any division         | NO   | 0.575 | 0.430 | 14.5 | thin | None    | -
+10-20 12:12 | UMich October final 46.0-48.9            | YES  | 0.550 | 0.475 |  7.5 |      | None    | -
+
+resolved (9): the agent's side won 3 of 9; Brier, agent 0.1359 against market 0.1059 (lower is better)
+  B 12 (frozen)  resolved trades 0, P&L at a quarter Kelly of $100: +0.00
+  B 10           resolved trades 2, P&L at a quarter Kelly of $100: -7.49
+  B 8            resolved trades 3, P&L at a quarter Kelly of $100: -10.59
+  B 5            resolved trades 6, P&L at a quarter Kelly of $100: -13.18
