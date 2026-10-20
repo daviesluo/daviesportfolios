@@ -125,7 +125,7 @@ Deno.test("dry-run: an order is checked and journalled, answers what it would se
   assertEquals(w.db.tables.grokpm_decisions.length, 1);
   assertEquals([w.db.tables.grokpm_orders[0].mode, w.db.tables.grokpm_orders[0].state], ["dry_run", "live"]);
   // A resend of the same decision is the order it made, not a second one.
-  const again = await placeOrder(w.deps(), { ...open(), decision: (open() as { decision: Record<string, unknown> }).decision, ...{} });
+  const again = await placeOrder(w.deps(), open({ market_id: C2, token_id: "201" }));
   assertEquals(again.status, 200);
   const dup = await placeOrder(w.deps(), { decision: w.db.tables.grokpm_decisions[0].raw, theme: "theme-1" });
   assertEquals([dup.status, dup.body.duplicate], [200, true]);
@@ -226,8 +226,39 @@ Deno.test("Deviation D3: A's 8 and B's 12 points against the dearer of price and
   const hash = "0x" + "ef".repeat(32);
   w.db.tables.grokpm_orders.push({ id: 1, created_at: iso(T0 - DAY), mode: "live", decision_id: "z", cond: C1, token: "101", outcome: "Yes", side: "BUY", price: 0.44, size: 10, post_only: true, expiration: 0, neg_risk: false, hash, theme: "theme-1", category: "B", state: "filled", size_matched: 10 });
   w.db.tables.grokpm_fills.push({ trade_id: "t1", hash, cond: C1, token: "101", side: "BUY", price: 0.44, size: 10, fee_usd: 0, taker: false, status: "CONFIRMED", match_time: iso(T0 - DAY), tx_hash: "0x01" });
-  assertEquals((await placeOrder(w.deps(), open({ category: "C", p: 0.5, size: 5 }))).status, 200);
+  assertEquals((await placeOrder(w.deps(), open({ category: "C", p: 0.6, size: 5 }))).status, 200);
   assertEquals(rules(await placeOrder(w.deps(), open({ category: "C", p: 0.44, size: 5 }))), ["edge"]);
+});
+
+Deno.test("Kelly is cumulative in one market: held cost and unfilled resting buys count before a new open", async () => {
+  // No existing exposure: at p 0.6, price 0.44 and $100 equity the quarter-Kelly cap is $7.14.
+  assertEquals((await placeOrder(world().deps(), open({ size: 16 }))).status, 200);
+  assertEquals(rules(await placeOrder(world().deps(), open({ size: 17 }))), ["kelly"]);
+
+  // A filled position: 10 held at 0.44 cost $4.40. Seven more would make $7.48 and fail; six make $7.04 and pass.
+  const heldWorld = () => {
+    const w = world({ armed: true });
+    const hash = "0x" + "aa".repeat(32);
+    w.db.tables.grokpm_orders.push({ id: 1, created_at: iso(T0 - DAY), mode: "live", decision_id: "held", cond: C1, token: "101", outcome: "Yes", side: "BUY", price: 0.44, size: 10, post_only: true, expiration: 0, neg_risk: false, hash, theme: "theme-1", category: "B", state: "filled", size_matched: 10 });
+    w.db.tables.grokpm_fills.push({ trade_id: "held-fill", hash, cond: C1, token: "101", side: "BUY", price: 0.44, size: 10, fee_usd: 0, taker: false, status: "CONFIRMED", match_time: iso(T0 - DAY), tx_hash: "0x01" });
+    return w;
+  };
+  const held = heldWorld();
+  assertEquals(rules(await placeOrder(held.deps(), open({ size: 7 }))), ["kelly"]);
+  assertEquals((await placeOrder(held.deps(), open({ size: 6 }))).status, 200);
+
+  // An unfilled resting buy is exposure too: the first order's $4.40 leaves the same room as a filled position.
+  const resting = world();
+  assertEquals((await placeOrder(resting.deps(), open({ size: 10 }))).status, 200);
+  assertEquals(rules(await placeOrder(resting.deps(), open({ size: 7 }))), ["kelly"]);
+  assertEquals((await placeOrder(resting.deps(), open({ size: 6 }))).status, 200);
+
+  // Already exactly at the smaller cap: at price 0.50 and p 0.65, quarter Kelly is $7.50 (under the $10 market cap).
+  const capped = world();
+  capped.fake.markets[0].bid = 0.49;
+  capped.fake.markets[0].ask = 0.51;
+  assertEquals((await placeOrder(capped.deps(), open({ price: 0.5, p: 0.65, size: 15 }))).status, 200);
+  assertEquals(rules(await placeOrder(capped.deps(), open({ price: 0.5, p: 0.65, size: 5 }))), ["kelly"]);
 });
 
 Deno.test("positions, themes, the cash floor and the day's orders, from the agent's own resting orders", async () => {
@@ -237,18 +268,18 @@ Deno.test("positions, themes, the cash floor and the day's orders, from the agen
   for (let i = 1; i <= 6; i++) assertEquals((await placeOrder(w.deps(), { ...open({ market_id: cond(i), token_id: `${i}11` }), theme: `t${Math.ceil(i / 2)}` })).status, 200);
   const seventh = await placeOrder(w.deps(), { ...open(), theme: "t9" });
   assertEquals(rules(seventh), ["positions"]);
-  // The theme cap: t1 holds 8.80; another 4.40 there, in one of its own markets, is 13.20, under 25.
-  assertEquals((await placeOrder(w.deps(), { ...open({ market_id: cond(1), token_id: "111" }), theme: "t1" })).status, 200);
+  // The theme cap: t1 holds 8.80; another 2.20 there, in one of its own markets, is 11.00, under 25.
+  assertEquals((await placeOrder(w.deps(), { ...open({ market_id: cond(1), token_id: "111", size: 5 }), theme: "t1" })).status, 200);
   // A market keeps its first theme.
-  assertEquals(rules(await placeOrder(w.deps(), { ...open({ market_id: cond(2), token_id: "211" }), theme: "t2" })), ["theme"]);
-  // The cash floor and the theme cap, by hand on a ledger: free 100 − 26.40 − 4.40 = 69.20; a 9.90 buy leaves 59.30.
+  assertEquals(rules(await placeOrder(w.deps(), { ...open({ market_id: cond(2), token_id: "211", size: 5 }), theme: "t2" })), ["theme"]);
+  // The cash floor and the theme cap, by hand on a ledger: free 100 − 26.40 − 2.20 = 71.40.
   const c = await context(w.deps(), { readGeo: false, sync: false });
-  assertEquals([c.ledger.freeCashUsd, c.ledger.costByTheme.t1], [69.2, 13.2]);
-  const L = { ...c.ledger, freeCashUsd: 35, costByTheme: { ...c.ledger.costByTheme, t2: 20 } };
+  assertEquals([c.ledger.freeCashUsd, c.ledger.costByTheme.t1], [71.4, 11]);
+  const L = { ...c.ledger, freeCashUsd: 32, costByTheme: { ...c.ledger.costByTheme, t2: 24 } };
   const book = { tick: "0.01" as const, minSize: 5, negRisk: false, bestBid: 0.45, bestAsk: 0.47, mid: 0.46, spread: 0.02, bidDepthUsd: 1000, askDepthUsd: 1000, twoSided: true };
   const market = marketOf({ conditionId: cond(3), clobTokenIds: '["311","312"]', acceptingOrders: true, endDate: iso(T0 + 5 * DAY) });
-  // 12 at 0.44 = 5.28 in cond(3), theme t2: its market 9.68 (under 10), its theme 25.28 (over 25), cash after 29.72 (under 30).
-  const d = { ...(open({ market_id: cond(3), token_id: "311", size: 12 }).decision as Record<string, unknown>) } as never;
+  // 6 at 0.44 = 2.64 in cond(3), theme t2: its market 7.04 (under Kelly and 10), its theme 26.64 (over 25), cash after 29.36 (under 30).
+  const d = { ...(open({ market_id: cond(3), token_id: "311", size: 6 }).decision as Record<string, unknown>) } as never;
   const r = orderRefusals({ decision: d, theme: "t2", ledger: L, market, book, nowMs: T0, dayPnlUsd: 0, dailyLossUsd: 10, totalStopUsd: 30, ordersToday: 0, maxOrdersDay: 50 });
   assertEquals(r.refusals.map((x) => x.rule).sort(), ["cash_floor", "theme_cap"]);
   const day = orderRefusals({ decision: d, theme: "t2", ledger: c.ledger, market, book, nowMs: T0, dayPnlUsd: 0, dailyLossUsd: 10, totalStopUsd: 30, ordersToday: 50, maxOrdersDay: 50 });

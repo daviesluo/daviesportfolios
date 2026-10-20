@@ -47,7 +47,7 @@ export const GROKPM_RULES = {
   thinSpread: 0.05, thinDepthUsd: 500, depthBand: 0.05,
   /** An open's edge, p less the dearer of its price and the book's mid (Deviation D3): A's 8 points, B's 12. */
   edgeA: 0.08, edgeB: 0.12,
-  /** An open's cost is at most a quarter of the Kelly stake of the book's equity at its p and price (or the venue's smallest order). */
+  /** A market's cumulative cost is at most a quarter of the Kelly stake of the book's equity at its p and price (or the venue's smallest order). */
   kellyFraction: 0.25,
   /** An order's own lifetime (the venue ends a GTD order a minute before its stated expiry, which this adds). */
   minLifetimeS: 180, maxLifetimeS: 65 * 60, defaultLifetimeS: 35 * 60,
@@ -284,6 +284,8 @@ export function orderRefusals(p: {
   const exp = expiryOf(p.expiresAt, p.nowMs);
   if (side === "BUY") {
     const L = p.ledger;
+    const cost = price * size;
+    const inMarket = (L.costByCond[cond] ?? 0) + cost;
     if (price < R.longshotUnder) out.push({ rule: "longshot", why: `a buy under ${R.longshotUnder} is forbidden` });
     if (price >= R.favouriteMin && d.category !== "A") out.push({ rule: "favourite", why: `a buy at ${R.favouriteMin} or above is category A only` });
     // Deviation D3: §2's own bars, checked here rather than left to the agent. The edge is taken against the dearer of the
@@ -298,7 +300,13 @@ export function orderRefusals(p: {
       if (pr > price) {
         const kellyUsd = r6(R.kellyFraction * ((pr - price) / (1 - price)) * Math.max(0, p.ledger.equityUsd));
         const smallest = b?.minSize ? b.minSize * price : 0;
-        if (price * size > Math.max(kellyUsd, smallest) + 1e-9) out.push({ rule: "kelly", why: `$${(price * size).toFixed(2)} is over a quarter Kelly at p ${pr} and ${price}: at most $${Math.max(kellyUsd, smallest).toFixed(2)}` });
+        const kellyCapUsd = Math.min(R.marketCapUsd, Math.max(kellyUsd, smallest));
+        if (inMarket > kellyCapUsd + 1e-9) {
+          out.push({
+            rule: "kelly",
+            why: `this market would hold $${inMarket.toFixed(2)} at cost ($${(L.costByCond[cond] ?? 0).toFixed(2)} held or resting plus $${cost.toFixed(2)}), over the smaller of a quarter Kelly at p ${pr} and ${price} and $${R.marketCapUsd}: at most $${kellyCapUsd.toFixed(2)}`,
+          });
+        }
       }
     }
     if (d.category === "C" && !Object.values(p.ledger.held).some((h) => h.cond === cond)) out.push({ rule: "adjustment", why: "category C changes a position the agent already holds: it holds nothing in this market" });
@@ -306,8 +314,6 @@ export function orderRefusals(p: {
     else if (p.totalStopped) out.push({ rule: "total_stop", why: `the total stop (−${p.totalStopUsd}) was reached earlier: close only to the end of the test` });
     if (p.dayPnlUsd <= -p.dailyLossUsd) out.push({ rule: "day_stop", why: `the UTC day is ${p.dayPnlUsd.toFixed(2)}, at or past −${p.dailyLossUsd}: no new open until 00:00 UTC` });
     else if (p.dayStopped) out.push({ rule: "day_stop", why: `the day stop (−${p.dailyLossUsd}) was reached earlier today: no new open until 00:00 UTC` });
-    const cost = price * size;
-    const inMarket = (L.costByCond[cond] ?? 0) + cost;
     if (inMarket > R.marketCapUsd + 1e-9) out.push({ rule: "market_cap", why: `this market would hold ${inMarket.toFixed(2)} at cost, over ${R.marketCapUsd}` });
     if (!L.openConds.includes(cond) && L.openConds.length >= R.maxPositions) out.push({ rule: "positions", why: `${L.openConds.length} markets open, at most ${R.maxPositions}` });
     const theme = L.themeOf[cond] ?? p.theme;
