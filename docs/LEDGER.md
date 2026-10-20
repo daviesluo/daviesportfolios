@@ -479,6 +479,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    (`backtests/ig_deepdive/DEVIATION-1-S1b-coverage.md`, reading `sql/s1b_coverage.sql`; the spec is unchanged); the
    session table (option A) is dropped, not built. Weekend 1 of 12 (10-18/19): USABLE, final 1,515 of 1,515
    minutes covered, no gap, first TRADEABLE 20:00:05 UTC (runs ok 1,141 of 1,515); read 10-19 21:17 UTC. Next: 10-25/26.
+   **Proposed seventh fix** (branch `claude/ig-recorder-login-timeouts`, PR for Claude's review; not merged or deployed):
+   a failed re-login ends login attempts for that run (two logins at most), ordinary IG work gets a 50 s deadline and
+   the final log-out the margin to 55 s, each request capped at the time left. Merging and redeploying `ig` wait for Davies.
 
 15. **GROKPM, "Polymarket analyst" ("(Grok)" dropped 10-17): LIVE since 2026-10-17 02:39:14 UTC (Davies: "上线"); ends
    2026-11-14 00:00 UTC at the latest (wake `trig_01C3a3b3F38FYavx6jFeqJEq`); trades through our Ireland server on the shared account** (Davies, 2026-10-15: "让grok bot里开一个trading bot，给他100美元…先让他就用100美元测试"; 2026-10-16:
@@ -703,6 +706,12 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   150 × 170 on the phone (stacked). Now a right-hand 2×2 beside a left-hand 2×2 stacks when every tile stays 1 to 3 : 1
   wide (`board/heatmap.jsx`); every other rect unchanged, pinned against the old split in `heatmap.test.js` and in
   the browser (sweep part `heatmap-shape`).
+
+### [2026-10-20 03:44 UTC] Platform: Muse | Model: muse-wonder-full-1.0
+- **IG recorder proposed seventh fix: no login after a failed re-login, and a run deadline** (Davies: separate branch
+  and PR, Claude to review, no merge or deploy). `IgClient` now latches a failed re-login (401 or network), caps a
+  recorder run at two logins, stops ordinary IG requests at 50 s and caps each at the time left; a final log-out may
+  use the margin to 55 s. New pins failed first at 3 logins and 81 s; all 30 IG tests then pass. Nothing deployed.
 
 ### [2026-10-19 21:18 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **S1b weekend 1 (10-18/19) is usable under Deviation 1** (item 14): `sql/s1b_coverage.sql` after the window ended

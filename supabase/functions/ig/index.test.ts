@@ -45,6 +45,8 @@ function fakeIg(o: {
   tokenInvalidOnce?: boolean;
   /** Every call but a login answers 401 account-token-invalid (the recorder's state on 10-17/18, whatever IG's cause). */
   accountTokenAlwaysInvalid?: boolean;
+  /** The first login succeeds; every later login itself answers 401. */
+  failLoginsAfterFirst?: boolean;
   /** A token is refused (account-token-invalid) until this long after it was issued, on the clock `now`. */
   warmupMs?: number;
   now?: () => number;
@@ -97,6 +99,10 @@ function fakeIg(o: {
     const path = url.pathname.replace("/gateway/deal", "");
     const method = init?.method ?? "GET";
     if (method === "POST" && path === "/session") {
+      if (o.failLoginsAfterFirst && logins >= 1) {
+        logins += 1;
+        return res(401, { errorCode: "error.security.client-token-invalid" });
+      }
       if (!o.loginKeepsAccount) account = "Z6F18J";
       accountToken = tokenFor(account);
       issuedAt = clock();
@@ -712,6 +718,72 @@ Deno.test("a run whose tokens IG keeps refusing logs in at most twice and stops 
   assert(/account-token-invalid/.test(String(r.error)));
   assertEquals(tables.ig_quote_runs.length, 1);
   assertClean([r, tables.ig_quote_runs], "refused run");
+});
+
+Deno.test("a re-login that itself fails (401 or network) is the run's last login", async () => {
+  for (const mode of ["http401", "network"] as const) {
+    const ig = fakeIg({ accountTokenAlwaysInvalid: true, failLoginsAfterFirst: mode === "http401" });
+    const { rest } = fakeRest();
+    await factsFor(rest, "sb");
+    await factsFor(rest, "cfd");
+    let t = Date.UTC(2026, 9, 18, 20, 0, 0, 400);
+    let posts = 0;
+    const fetchImpl = (async (input: string | URL | Request, init?: RequestInit) => {
+      if ((init?.method ?? "GET") === "POST") {
+        posts += 1;
+        if (mode === "network" && posts > 1) throw new TypeError("network down");
+      }
+      return ig.impl(input, init);
+    }) as typeof fetch;
+    const d = deps({ rest, fetchImpl, now: () => t, sleep: (ms) => { t += ms; return Promise.resolve(); } });
+    const r = await (await handle(req("quotes", { authorization: `Bearer ${ENV.CRON_SECRET}` }), d)).json();
+    assertEquals(r.ok, false, mode);
+    assert(r.logins <= 2, `${mode}: logins ${r.logins}`);
+    assert(posts <= 2, `${mode}: POST /session calls ${posts}`);
+  }
+});
+
+Deno.test("when every IG request hangs for 15 s, the run still finishes within 55 s", async () => {
+  const ig = fakeIg();
+  const { rest } = fakeRest();
+  await factsFor(rest, "sb");
+  await factsFor(rest, "cfd");
+  const start = Date.UTC(2026, 9, 18, 20, 0, 0, 400);
+  let t = start;
+  let signalTimeout = 15_000;
+  const starts: { method: string; path: string; atMs: number; timeoutMs: number }[] = [];
+  const descriptor = Object.getOwnPropertyDescriptor(AbortSignal, "timeout")!;
+  Object.defineProperty(AbortSignal, "timeout", {
+    ...descriptor,
+    value: (ms: number) => {
+      signalTimeout = ms;
+      return new AbortController().signal;
+    },
+  });
+  const slowIg = (async (input: string | URL | Request, init?: RequestInit) => {
+    const method = init?.method ?? "GET";
+    const path = new URL(String(input)).pathname.replace("/gateway/deal", "");
+    starts.push({ method, path, atMs: t - start, timeoutMs: signalTimeout });
+    if (15_000 > signalTimeout) {
+      t += Math.max(0, signalTimeout);
+      throw new DOMException("signal timed out", "TimeoutError");
+    }
+    t += 15_000;
+    return ig.impl(input, init);
+  }) as typeof fetch;
+  try {
+    const d = deps({ rest, fetchImpl: slowIg, now: () => t, sleep: (ms) => { t += ms; return Promise.resolve(); } });
+    const r = await (await handle(req("quotes", { authorization: `Bearer ${ENV.CRON_SECRET}` }), d)).json();
+    assert(t - start <= 55_000, `the run reached ${t - start} ms`);
+    assertEquals(r.ms, t - start);
+    for (const s of starts) {
+      const limit = s.method === "DELETE" && s.path === "/session" ? 55_000 : 50_000;
+      assert(s.atMs < limit, `${s.method} ${s.path} started at ${s.atMs} ms`);
+      assert(s.timeoutMs <= Math.max(0, limit - s.atMs), `${s.method} ${s.path} timeout ${s.timeoutMs} ms at ${s.atMs} ms`);
+    }
+  } finally {
+    Object.defineProperty(AbortSignal, "timeout", descriptor);
+  }
 });
 
 Deno.test("a fresh token refused for a moment is waited for, not logged in again (2026-10-18 04:21 UTC)", async () => {
