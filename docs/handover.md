@@ -46491,3 +46491,31 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   UTC green. Item 9: the RW tables' drop was tied to RW-C's 10-23 verdict, which `0120` withdrew on 10-13; now said so.
   `grokpm-ledger` at `23b5222a`: 0 opens, D7's shadow rows coming in (its 10-20 daily check), Grok's "D7 twice" note
   unanswered there (#245's is D8, item 15).
+
+## LEDGER.md, archived 2026-10-22 (third) — PR #242's history sections, 2026-10-15 13:22 → 2026-10-16 19:24 UTC, oldest first
+
+### [2026-10-15 13:22 UTC] Platform: Grok | Model: grok-4.7
+- **PMSTATARB S1 TOUCH-CAL fails its frozen bar and is closed.** Headline title ends 2025-01-01 through
+  2026-08-31 (1,018 trades, mean ROI −0.1088, bootstrap p05 −0.2310). September and the 2026-10-01..04 tail stay
+  out: the one allowed retry of cursor key 4946930 at 2026-10-15T11:34:08Z was 403 again. Parameters are
+  `FROZEN.md` and the spec; they were not changed after the result. Write-up
+  `reviews/2026-10-15-pm-statarb-verification.md`. Prices-history fills and the touch/terminal ratio were not
+  checked. Branch `grok/pm-statarb-verification`, not merged.
+
+### [2026-10-15 14:53 UTC] Platform: Grok | Model: grok-4.7
+- **PMSTATARB #242: family CSVs leave git, and the verdict names the thin 2025 sample.** Davies accepted
+  Claude's review. `data/*.csv` is deleted from the branch; the bytes are `/tmp/pmstatarb-data/data/`, with
+  sha256, line count and pull time in `MANIFEST.json`. `results/` and `s1_headline_trades.csv` stay. The
+  verdict adds that 2025 has 19 trades and the FAIL evidence is the 2026 sample. Same branch, not merged.
+
+### [2026-10-15 14:59 UTC] Platform: Grok | Model: grok-4.7
+- **#242: a push while the branch conflicted with main started no `check.yml` run.** This commit is the retrigger. Not merged.
+
+### [2026-10-15 15:28 UTC] Platform: Grok | Model: grok-4.7
+- **#242 rebased onto `main` so `check.yml` can run.** `pull_request` had no run while `MANIFEST.json` conflicted. The spec hash in the manifest is `main`'s audited file. Not merged.
+
+### [2026-10-15 20:35 UTC] Platform: Grok | Model: grok-4.7
+- **#242 re-run after the five review notes.** May and the other three-letter month names parse; 2026-05 is in the touch sample. Fills are taker BUY. A truncated print walk is not marked done (one market capped). `FROZEN.md` records the SPEC rule 5 deviation; history was not rewritten. Print and spot sha256 are in `MANIFEST.json`. September stop counts are in `results/g1_gap_mix.txt`. Bar word FAIL: 1178 trades, mean ROI −0.1137, p05 −0.2266. 2025 has 19 trades; 2026 has 1159. Davies chooses FAIL or FAIL on available sample. Squash-merge only. Not merged.
+
+### [2026-10-16 19:24 UTC] Platform: Claude Code via Grok Bot | Model: claude-opus-5-5
+- **PR #242 squashed locally, with the audit's wording fixes** (fill lag, opposite-token SELLs, September arithmetic, 2026-01/02, comments; no number changed). Not pushed. FAIL or "FAIL on available sample" is Davies'. Rebased 10-17 onto `7e797ec1`, 10-18 onto the 10-18 audit (`0441727c`), 10-19 onto the 10-19 audit (`72cd5ae7`), and 10-20 onto the 10-20 audit (`083ddf80`): item 16 after main's 15; of the branch's history only Grok's five 10-15 sections stay (main archived the rest).

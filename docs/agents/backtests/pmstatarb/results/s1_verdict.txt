@@ -1,0 +1,60 @@
+verdict FAIL
+sample title_end 2025-01-01 through 2026-08-31
+held out title_end on or after 2026-09-01, including the incomplete September pull and the October tail
+2024 is beside the bar, not part of it
+headline horizon 24h threshold 0.04 stake 20 seed 20261014 draws 10000
+n 1178 markets 1178 mean_roi -0.1137 p05 -0.2266 pnl -2679.73
+stake50 mean_roi -0.1137 n 1178
+bar trades 1 markets 1 mean_positive 0 bound 0 neighbours 1 share 1 years 0
+top_market_share 0x2a2a7c97a192201b93c27a04338af89bf305410a52084005016eb739fc0916a1 0.0080
+top_month_share 2026-03 0.4558
+years
+2025 n 19 mean -0.2680
+2026 n 1159 mean -0.1112
+coverage complete Gamma months 2024-01 through 2026-08. Title ends on or after 2026-09-01 are held out.
+september numbers are in results/g1_gap_mix.txt
+label the bar word is FAIL. If that word is FAIL, the other name is FAIL on available sample. Davies chooses.
+neighbours
+h 72 thr 0.04 n 2427 markets 2427 mean -0.4525 p05 -0.5369 same_sign 1
+h 72 thr 0.03 n 2547 markets 2547 mean -0.4610 p05 -0.5424 same_sign 1
+h 72 thr 0.05 n 2316 markets 2316 mean -0.4438 p05 -0.5311 same_sign 1
+h 24 thr 0.03 n 1286 markets 1286 mean -0.1310 p05 -0.2340 same_sign 1
+h 24 thr 0.05 n 1048 markets 1048 mean -0.0813 p05 -0.2054 same_sign 1
+h 12 thr 0.04 n 579 markets 579 mean -0.2175 p05 -0.3901 same_sign 1
+h 12 thr 0.03 n 653 markets 653 mean -0.2451 p05 -0.3965 same_sign 1
+h 12 thr 0.05 n 488 markets 488 mean -0.2073 p05 -0.4107 same_sign 1
+y2024 n 0 markets 0 mean_roi  p05 
+counts
+no_clause 1582
+no_print_12 1052
+no_print_24 32
+no_print_72 31
+rows 6791
+tape_capped 1
+spot_last_close_ms BTCUSDT 1791072000000 ETHUSDT 1791072000000
+calibration headline T-24h model decile, all modelled markets, not only trades
+decile n mean_model realised
+0 3752 0.0099 0.0160
+1 330 0.1460 0.1394
+2 207 0.2461 0.1546
+3 166 0.3497 0.2530
+4 162 0.4508 0.4136
+5 148 0.5473 0.4324
+6 116 0.6484 0.6121
+7 113 0.7457 0.6372
+8 114 0.8484 0.8421
+9 100 0.9449 0.9600
+calibration y2024
+decile n mean_model realised
+0 0
+1 0
+2 0
+3 0
+4 0
+5 0
+6 0
+7 0
+8 0
+9 0
+not checked: prices-history fill counterfactual
+not checked: touch/terminal mid ratio (terminal prints were not pulled)
