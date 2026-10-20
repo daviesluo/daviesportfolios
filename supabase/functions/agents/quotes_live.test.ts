@@ -17,7 +17,7 @@ import {
   bookInputs, crossesBook, dustBase, entryBookOf, pennyExit, entryGuards, exitMayGo, governorLevel, lossStopHit, markedGbp, paperEntryTarget, paperRefused, parseBook, postsOf, QUOTE_LIVE_429_WAIT_MS, QUOTE_LIVE_CANCEL_REREAD_MS,
   QUOTE_LIVE_ENTRY_POSTS, QUOTE_LIVE_POST_GAP_MS, QUOTE_LIVE_STOPS_ONLY_POSTS, rungBase, rungBook, rungGbp, runQuotesConvert, runQuotesLive, stopDue, stopLimitTicks,
   venueSideOf, wasRateLimited, wasSent, asksNeedOf, makerBuyTicks, planTopUps, isAutoConvert, QUOTE_LIVE_TOPUP_REST_MS,
-  deadmanWatchReason, QUOTE_LIVE_DEADMAN_WATCH_MS, pennyUp,
+  deadmanWatchReason, QUOTE_LIVE_DEADMAN_WATCH_MS, pennyUp, faultLineKey, liveAlerts, QUOTE_LIVE_ALERT_EVERY_MS, QUOTE_LIVE_RECOVERED_AFTER_MS, type LiveFault,
 } from "./quotes_live.ts";
 import { floorToStep } from "../_shared/agents_strategy.ts";
 import { bookLiveBuy } from "./tick.ts";
@@ -539,6 +539,64 @@ Deno.test("live: an order the venue shows nowhere stays pending for a person —
   assert(r.errors.some((e) => e.includes("stays pending for a person to settle")), JSON.stringify(r.errors));
   await w.step(T0 + 2 * M);
   assertEquals([w.orders().length, w.orders().every((o) => o.state === "pending"), w.rx.orders.size], [6, true, 0]);
+});
+
+Deno.test("liveAlerts: a fault is told once, again hourly while it lasts, and once when it is over (2026-10-20: 606 rows in ten hours)", () => {
+  const t = Date.parse("2026-10-20T06:04:00Z");
+  const e = (min: number) => `USDT-GBP|ask|0.001: pending buy 0.14709 USDT/GBP (80bed3cd-0024-40a1-b57f-b45b132cdc5f) is neither among the venue's active orders nor in its history ${min} min on — outcome unknown`;
+  // The minutes it names change; the fault does not. Another order's is another fault.
+  assertEquals(faultLineKey(e(2)), faultLineKey(e(607)));
+  assert(faultLineKey(e(2)) !== faultLineKey(e(2).replace("80bed3cd-0024-40a1-b57f-b45b132cdc5f", "0f217a7e-badf-452b-bbfd-60293a9b60ac")));
+  let faults: Record<string, LiveFault> | undefined, told: string[] = [];
+  for (let m = 0; m <= 130; m++) {
+    const r = liveAlerts([e(m + 2)], faults, t + m * M);
+    faults = r.faults; told.push(...r.alerts.map((a) => `${m}: ${a.slice(0, 20)}${a.includes("[still") ? " still" : ""}`));
+  }
+  assertEquals(told.length, 3);                                        // minute 0, 60 and 120, not 131
+  assert(told[0].startsWith("0: ") && told[1].startsWith("60: ") && told[1].endsWith("still") && told[2].startsWith("120: "), JSON.stringify(told));
+  // Gone for a few minutes: the same fault, nothing said; gone for five: recovered, once.
+  told = [];
+  for (let m = 131; m <= 140; m++) { const r = liveAlerts([], faults, t + m * M); faults = r.faults; told.push(...r.alerts); }
+  assertEquals(told.length, 1);
+  assert(told[0].startsWith("recovered: USDT-GBP|ask|0.001: pending buy") && told[0].includes(`from ${iso(t)}`), told[0]);
+  assertEquals(faults, {});
+  // Back within the five minutes is not a new fault.
+  let r = liveAlerts([e(1)], undefined, t);
+  r = liveAlerts([], r.faults, t + M);
+  r = liveAlerts([e(3)], r.faults, t + 2 * M);
+  assertEquals(r.alerts, []);
+  assertEquals([QUOTE_LIVE_ALERT_EVERY_MS, QUOTE_LIVE_RECOVERED_AFTER_MS], [H, 5 * M]);
+});
+
+Deno.test("live: an order the venue shows nowhere is PARKED after an hour — still pending, never rejected — looked for every quarter hour, and told to the errors box once an hour, not every minute", async () => {
+  const w = makeWorld({ live: true, armed: true });
+  const inner = w.rx.fetch;
+  let drop = true;                                                    // the request never reached the venue
+  w.rx.fetch = (input, init) => {
+    const p = new URL(String(input)).pathname, m = (init?.method ?? "GET").toUpperCase();
+    if (drop && p === "/api/1.0/orders" && m === "POST") { w.rx.calls.push("POST /api/1.0/orders"); return Promise.reject(new TypeError("connection reset")); }
+    return inner(input, init);
+  };
+  await w.step(T0);
+  drop = false;
+  const alerts: string[][] = [], errs: number[] = [];
+  const hist = () => w.rx.calls.filter((c) => c.startsWith("GET /api/1.0/orders/historical")).length;
+  let histAt60 = 0;
+  for (let m = 1; m <= 125; m++) {
+    const r = await w.step(T0 + m * M);
+    alerts.push(r.alerts ?? r.errors); errs.push(r.errors.filter((e) => e.includes("stays pending for a person")).length);
+    if (m === 61) histAt60 = hist();
+  }
+  // Six orders, pending throughout, every turn's errors naming each: nothing guessed.
+  assertEquals(w.orders().map((o) => o.state), Array(6).fill("pending"));
+  assert(errs.every((n) => n === 6), JSON.stringify(errs));
+  // The box: six at the first turn that looked, six an hour on, six two hours on — and nothing in between.
+  const told = alerts.map((a, i) => [i + 1, a.filter((x) => x.includes("stays pending for a person")).length]).filter(([, n]) => n);
+  assertEquals(told.map(([m]) => m), [1, 61, 121]);
+  assert(told.every(([, n]) => n === 6), JSON.stringify(told));
+  // Parked from an hour on: the history is read on the quarter hours of the clock only, not each minute.
+  // Six orders: 354 reads in the first hour (one each a turn), then 24 in the next 64 turns (four quarter hours), not 384.
+  assertEquals([histAt60, hist() - histAt60], [354, 24]);
 });
 
 Deno.test("live: a cancel the venue does not carry out FREEZES the rung — no replacement until the read-back shows it cancelled", async () => {

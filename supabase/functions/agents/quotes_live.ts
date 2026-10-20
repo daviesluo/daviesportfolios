@@ -201,6 +201,58 @@ export const QUOTE_LIVE_DEADMAN_WATCH_MS = 5 * M;
 /** How every guard reason the dead-man watch writes begins, so a turn can tell whether the last one carried it. */
 export const DEADMAN_WATCH_REASON = "the dead-man switch";
 
+/**
+ * The errors box hears of a fault once, and again at most this often while it lasts, then once more when it is gone
+ * (2026-10-20: two orders whose POSTs the venue answered 500 during its outage, never found after, and one whose cancel
+ * it refused for six hours, wrote an `agents.quotes_live` row every minute, 606 in all). Each error is still in the turn's
+ * report and in the state's `last_error`; only the box is spared the repeats.
+ */
+export const QUOTE_LIVE_ALERT_EVERY_MS = H;
+/** A fault absent this long is over: the box hears it recovered. A shorter gap is the same fault coming back. */
+export const QUOTE_LIVE_RECOVERED_AFTER_MS = 5 * M;
+/**
+ * A `pending` order the venue has shown nowhere (neither active nor in its history) for this long is PARKED: it stays
+ * pending for a person, never rejected on a guess, and the venue is asked for it again only every
+ * `QUOTE_LIVE_PARKED_EVERY_MS` instead of every minute.
+ */
+export const QUOTE_LIVE_PARK_AFTER_MS = H;
+export const QUOTE_LIVE_PARKED_EVERY_MS = 15 * M;
+
+const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
+/** An error's identity in the errors box: the order ids it names, and its words with every other number dropped. */
+export function faultLineKey(e: string): string {
+  const ids = (e.match(UUID_RE) ?? []).map((x) => x.toLowerCase());
+  return `${ids.join(",")}|${e.replace(UUID_RE, "<id>").replace(/\d+(\.\d+)?/g, "#")}`.slice(0, 300);
+}
+/** A fault the errors box has heard of: when it began, when the box last heard, when it was last seen, how many turns. */
+export type LiveFault = { first: string; reported: string; seen: string; turns: number; sample: string };
+/**
+ * Which of a turn's errors go to the errors box, and the faults carried to the next turn: a new one at once, one that
+ * lasts again each `QUOTE_LIVE_ALERT_EVERY_MS` (with when it began), and one gone `QUOTE_LIVE_RECOVERED_AFTER_MS` as
+ * "recovered".
+ */
+export function liveAlerts(errors: string[], prev: Record<string, LiveFault> | undefined, now: number): { alerts: string[]; faults: Record<string, LiveFault> } {
+  const nowIso = iso(now), alerts: string[] = [], faults: Record<string, LiveFault> = {};
+  for (const e of errors) {
+    const key = faultLineKey(e);
+    if (faults[key]) continue;
+    const p = prev?.[key];
+    if (!p) { alerts.push(e); faults[key] = { first: nowIso, reported: nowIso, seen: nowIso, turns: 1, sample: e.slice(0, 300) }; continue; }
+    const due = now - Date.parse(p.reported) >= QUOTE_LIVE_ALERT_EVERY_MS;
+    if (due) alerts.push(`${e} [still, since ${p.first}, ${p.turns + 1} turns]`);
+    faults[key] = { ...p, reported: due ? nowIso : p.reported, seen: nowIso, turns: p.turns + 1, sample: e.slice(0, 300) };
+  }
+  for (const [key, p] of Object.entries(prev ?? {})) {
+    if (faults[key]) continue;
+    if (now - Date.parse(p.seen) >= QUOTE_LIVE_RECOVERED_AFTER_MS) alerts.push(`recovered: ${p.sample} [from ${p.first} to ${p.seen}, ${p.turns} turns]`);
+    else faults[key] = p;
+  }
+  // A bound on what the state keeps: the newest hundred.
+  const keys = Object.keys(faults);
+  if (keys.length > 100) for (const k of keys.sort((a, b) => faults[a].seen.localeCompare(faults[b].seen)).slice(0, keys.length - 100)) delete faults[k];
+  return { alerts, faults };
+}
+
 /** The guard reason for the dead-man's newest beat (epoch ms, or null when none is stored), or null while it is fresh. */
 export function deadmanWatchReason(beatAt: number | null, now: number): string | null {
   if (beatAt != null && Number.isFinite(beatAt) && now - beatAt <= QUOTE_LIVE_DEADMAN_WATCH_MS) return null;
@@ -658,6 +710,8 @@ export type QuoteLiveReport = {
   posts: Record<LiveMode, number>;
   dayPnlGbp: number | null;
   errors: string[];
+  /** The errors the errors box hears this turn (`liveAlerts`), where that differs from `errors`; unset, the box hears `errors`. */
+  alerts?: string[];
   /** The live account's weekend quoting (0131) in force this turn: the decisions were its weekend replica's. */
   weekend?: { source: "weekend" };
   /** What the switches in shadow (0131) recorded this turn and did not send. */
@@ -1085,6 +1139,9 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
       if (o.state === "pending") {
         const ageMs = d.now - Date.parse(o.ts);
         if (ageMs < QUOTE_LIVE_PENDING_GRACE_MS) continue;                  // the current turn's own
+        const unknown = `${label}: pending ${o.side} ${o.base_size} ${LIVE_SYMBOL[o.book]} (${o.client_order_id}) is neither among the venue's active orders nor in its history ${Math.round(ageMs / M)} min on — outcome unknown; it stays pending for a person to settle, and the rung places nothing`;
+        // Parked: an hour shown nowhere, it is looked for every quarter hour, not every minute (it stays pending all the same).
+        if (ageMs >= QUOTE_LIVE_PARK_AFTER_MS && Math.floor(d.now / M) % Math.round(QUOTE_LIVE_PARKED_EVERY_MS / M) !== 0) { report.errors.push(unknown); continue; }
         const a = await activeOnce();
         if (!a.ok) { report.errors.push(`${label}: active orders unreadable (${a.error}); ${o.client_order_id} stays pending`); continue; }
         const act = a.byClientId[o.client_order_id];
@@ -1102,7 +1159,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
           }
           if (!hist.ok) report.errors.push(`${label}: order history unreadable (${hist.error})`);
         }
-        report.errors.push(`${label}: pending ${o.side} ${o.base_size} ${LIVE_SYMBOL[o.book]} (${o.client_order_id}) is neither among the venue's active orders nor in its history ${Math.round(ageMs / M)} min on — outcome unknown; it stays pending for a person to settle, and the rung places nothing`);
+        report.errors.push(unknown);
         continue;
       }
       if (!o.venue_order_id) { report.errors.push(`${label}: ${o.state} with no venue id; left for a person`); continue; }
@@ -1539,11 +1596,13 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
     } catch (e) { report.errors.push(`stop alert not recorded (${msg(e)})`); }
   }
   try {
-    const prev = (await d.db.select<{ state: { guards?: Record<string, string[]> } }>(inst.state, "id=eq.1&select=state"))[0]?.state ?? {};
+    const prev = (await d.db.select<{ state: { guards?: Record<string, string[]>; faults?: Record<string, LiveFault> } }>(inst.state, "id=eq.1&select=state"))[0]?.state ?? {};
     // The errors box hears of a stopped dead-man switch once, on the turn its guard first appears; the guard's own
     // events below record when it came and went.
     const hadDeadman = Object.values(prev.guards ?? {}).some((rs) => Array.isArray(rs) && rs.some((r) => String(r).startsWith(DEADMAN_WATCH_REASON)));
     if (deadmanReason && !hadDeadman) report.errors.push(`DEAD-MAN SWITCH NOT RUNNING: ${deadmanReason}; exits and the 24-hour stops stay armed. Check the monitor Worker (workers/monitor).`);
+    // What the errors box hears: each fault once, hourly while it lasts, and when it is over (`liveAlerts`).
+    const { alerts, faults } = liveAlerts(report.errors, prev.faults, d.now);
     for (const b of QUOTE_BOOKS) {
       if (JSON.stringify(prev.guards?.[b] ?? []) === JSON.stringify(report.guards[b])) continue;
       await d.db.upsert(inst.events, [{ mode: entry.book ?? (cfg.dry_run ? "dry_run" : "live"), minute: iso(nowMinute), book: b, rung_side: "-", k: 0, kind: "guard",
@@ -1562,9 +1621,12 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
         // round trip, and calls a rung empty, where this executor does (Davies, 2026-10-01: an exit trimmed to the penny
         // left 0.00102 USDT on its rung, and the page held its trip open).
         dust: Object.fromEntries(QUOTE_BOOKS.map((b) => [b, rungs.find((r) => r.book === b)?.dust ?? 0])),
+        ...(Object.keys(faults).length ? { faults } : {}),
       },
     }], "id");
-  } catch (e) { report.errors.push(`state not recorded (${msg(e)})`); }
+    // Set only where the box hears something other than the turn's errors (the index reports the errors when it is unset).
+    if (JSON.stringify(alerts) !== JSON.stringify(report.errors)) report.alerts = alerts;
+  } catch (e) { report.errors.push(`state not recorded (${msg(e)})`); report.alerts = undefined; }
 }
 
 // ------------------------------------------------------------------ the one-off conversion

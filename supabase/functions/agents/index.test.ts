@@ -855,6 +855,21 @@ Deno.test("runQuotesAction — a paper minute that decides writes no agents.quot
   assertEquals((thrown as { live: { error: string } }).live, { error: "revx2 unreadable" });
 });
 
+Deno.test("runQuotesAction — the errors box hears the live executor's alerts, not every error of every turn (2026-10-20: 606 rows)", async () => {
+  const paper: QuoteReport = { minutes: 1, from: 0, to: 0, prints: 0, fills: 0, exits: 0, stops: 0, orders: 0, refused: 0, snapshots: 0, recorded: 2, errors: [] };
+  const run = async (live: QuoteLiveReport) => {
+    const reports: Array<{ message?: string }> = [];
+    await runQuotesAction(false, { paper: () => Promise.resolve(paper), live: () => Promise.resolve(live), report: (_k, o) => { reports.push(o); return Promise.resolve(); } });
+    return reports.map((r) => r.message);
+  };
+  // A fault already told this hour: in the turn's errors, not in the box.
+  assertEquals(await run({ ...liveTurn(["USDT-GBP|ask|0.001: pending buy … outcome unknown"]), alerts: [] }), []);
+  // A new one alongside it: the box hears the new one only.
+  assertEquals(await run({ ...liveTurn(["old fault", "new fault"]), alerts: ["new fault"] }), ["new fault"]);
+  // A turn that ended before its record has no alerts: every error goes, as before.
+  assertEquals(await run(liveTurn(["agent_risk unreadable"])), ["agent_risk unreadable"]);
+});
+
 Deno.test("newestDecisions: a daily row keeps its midnight decision when the hourly rows fill the newest 120", async () => {
   // A day as production has it at 16:12: two hourly rows and three 4-hour rows since 04:00, the daily row once at 00:00.
   const day = Date.UTC(2026, 8, 26);

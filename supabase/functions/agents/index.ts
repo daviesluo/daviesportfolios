@@ -482,7 +482,10 @@ export async function runQuotesAction(wait: boolean, deps: QuotesActionDeps = {}
   let live: QuoteLiveReport | { error: string };
   try {
     live = await (deps.live ?? (async () => runQuotesLive(await quotesLiveDeps())))();
-    if (live.errors.length) await report("agents.quotes_live", tickErrorReport(live));
+    // The errors box hears each fault once, hourly while it lasts and when it is over (`liveAlerts`); a turn that ended
+    // before its record has no such list, and then every error goes, as before.
+    const alerts = live.alerts ?? live.errors;
+    if (alerts.length) await report("agents.quotes_live", tickErrorReport({ errors: alerts, at: live.at }));
   } catch (e) {
     live = { error: e instanceof Error ? e.message : String(e) };
     await report("agents.quotes_live", { message: live.error.slice(0, 500), context: { at: new Date(now()).toISOString() } });

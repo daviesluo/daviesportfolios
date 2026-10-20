@@ -671,6 +671,13 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   position since `0129`): 1 row, 11 orders, 95 decisions, 2,346 observations and its maker probes (cascade; MX-1's pulled
   probes 38-41 stay in the committed tape). Rulebook and backtests stay. Applies on push (migrations.yml).
 
+### [2026-10-20 16:22 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LIVE after Revolut X's 10-20 outage** (sub-agent, item 4; reference §4 item 35): 606 `agents.quotes_live` rows, one a
+  minute; no stuck order filled; 7229 and 7230 (POST 500 at 06:02, never listed) settle as rejected on the balance evidence
+  (statements in the hand-back, run by the main session). Code: the box hears a fault once, hourly, and "recovered";
+  a pending order unseen for an hour is parked (looked for every 15 min). Entries were also off 08:02–15:12 and from 16:02
+  on the stale USD-hour guard: Revolut X serves no USDC/USD or USDT/USD hourly candle after 08:00 (venue side).
+
 ### [2026-10-20 03:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Heat map: the desktop's top four on the right stack in one column, as the phone's do** (Davies, 10-20; sub-agent).
   The split cuts by `w >= h`: the pairs PLTR/RKLB, MSTR/ORCL were 237 × 226 on desktop (side by side, a 2×2) and
