@@ -5,7 +5,7 @@
 // collapsed it. Regressing the predicate re-introduces that flash.
 
 import { describe, it, expect, vi } from 'vitest';
-import { DESKTOP_MEDIA_QUERY, isDesktopViewport, latestErrorAt } from './ops_error_badge.jsx';
+import { DESKTOP_MEDIA_QUERY, isDesktopViewport, latestErrorAt, opsBoxView, opsLineMeta } from './ops_error_badge.jsx';
 
 describe('DESKTOP_MEDIA_QUERY constant', () => {
   it('matches the header CSS mobile breakpoint (≤ 760 px)', () => {
@@ -97,5 +97,35 @@ describe('latestErrorAt', () => {
       ],
     };
     expect(latestErrorAt(summary)).toBe(Date.parse('2026-05-15T01:00:00Z'));
+  });
+});
+
+// The box shows LINES a person must act on (Davies, 2026-10-20), not every row: on that day's 24 h, 878 rows became 11
+// lines (ops-error/noise.ts). The badge counts the lines and acknowledges up to the newest line, not the newest row.
+describe('opsBoxView', () => {
+  const box = {
+    lines: [
+      { kind: 'agents.quotes_live', cls: 'other', message: 'pending buy … 548 min on', count: 83, firstAt: '2026-10-20T06:20:00Z', latestAt: '2026-10-20T16:23:00Z' },
+      { kind: 'agents.tick', cls: 'transient', message: 'upstream errors failed 08:48–11:34 UTC, 167 times; latest: …', count: 167, firstAt: '2026-10-20T08:48:00Z', latestAt: '2026-10-20T11:34:00Z', persistent: { ongoing: false } },
+    ],
+    shownRows: 250, hiddenRows: 76, latestAt: '2026-10-20T16:23:00Z',
+  };
+  it('counts the lines, not the rows, and acknowledges up to the newest line', () => {
+    const v = opsBoxView({ hours: 24, total: 878, latestAt: '2026-10-20T16:24:00Z', byKind: [], bySymbol: [], box });
+    expect([v?.count, v?.hiddenRows, v?.latestAt, v?.lines?.length]).toEqual([2, 76, Date.parse('2026-10-20T16:23:00Z'), 2]);
+  });
+  it('nothing to act on is no badge, however many rows of noise', () => {
+    expect(opsBoxView({ hours: 24, total: 69, byKind: [], bySymbol: [], box: { lines: [], shownRows: 0, hiddenRows: 69, latestAt: null } })).toEqual({ count: 0, lines: [], hiddenRows: 69, latestAt: 0 });
+  });
+  it('an older Edge deploy without box reads as before: every row', () => {
+    const v = opsBoxView({ hours: 24, total: 5, latestAt: '2026-05-15T09:00:00Z', byKind: [], bySymbol: [] });
+    expect([v?.count, v?.lines, v?.latestAt]).toEqual([5, null, Date.parse('2026-05-15T09:00:00Z')]);
+    expect(opsBoxView(null)).toBe(null);
+  });
+  it('a line says how many rows and since when, or whether its persistent failure is still going', () => {
+    expect(opsLineMeta(box.lines[0])).toBe('×83 · 06:20–16:23 UTC');
+    expect(opsLineMeta(box.lines[1])).toBe('stopped · 11:34 UTC');
+    expect(opsLineMeta({ ...box.lines[1], persistent: { ongoing: true } })).toBe('still failing · 11:34 UTC');
+    expect(opsLineMeta({ ...box.lines[0], count: 1 })).toBe('16:23 UTC');
   });
 });

@@ -624,6 +624,19 @@ button, and the rest of the page keeps working. **Refresh** retries every
 failed panel as well. Each failure is sent to the errors badge (desktop,
 edit password), named by the part that failed.
 
+The errors badge counts what someone has to look at, not every error
+row. A passing hiccup — a timeout, an exchange or database answering 502
+or "too many requests", or one failed run of a recorder whose next run
+works — is kept in the record but left off the badge, unless it goes on:
+the same job failing for 15 minutes in a row (three runs for a job that
+runs every five or ten minutes) becomes one line, "failing since 08:48
+UTC, 167 times", or "failed 08:48–11:34 UTC" once it has stopped. The
+same message repeated is one line with its count. Always shown: the
+monitor's alerts, code errors, a refused key or a missing setting, and
+anything a live strategy says about its orders. The IG recorder reports
+only when its weekend coverage is at risk: two failed runs in a row, or
+any failure in the ten minutes from Sunday's open.
+
 The errors badge also carries the production monitor's alerts. Every
 minute it checks the live site, the database's minute loop and the live
 stablecoin quotes. A check that has failed for two minutes running shows

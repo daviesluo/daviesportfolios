@@ -13,7 +13,7 @@ import {
 import {
   QUOTES_FORCE_SWITCH_AFTER_LOGIN, QUOTES_GAP_MS, QUOTES_LOGIN_WAIT_MS, QUOTES_MAX_RELOGINS, QUOTES_MAX_REQUESTS, QUOTES_SWITCH_WAIT_MS,
   QUOTES_TOKEN_RETRIES, QUOTES_TOKEN_RETRY_WAIT_MS,
-  accountOf, ALLOWANCE_RESERVE, knownAllowance, quoteEpics, runFacts, runHistory, runQuotes, samplesOf, shouldReport, type Rest,
+  accountOf, ALLOWANCE_RESERVE, knownAllowance, quoteEpics, runFacts, runHistory, runQuotes, samplesOf, shouldReport, inSundayOpenGuard, REPORT_PREV_RUN_MS, reportReason, type Rest,
 } from "./actions.ts";
 import { authorise, handle, type Deps } from "./index.ts";
 
@@ -568,16 +568,35 @@ Deno.test("quotes outside the windows calls nothing; inside, two snapshots an ac
   assert(!ig.calls.some((c) => c.method === "DELETE"));
 });
 
-Deno.test("a market IG returns without a status is recorded UNKNOWN, and failures go to the errors box once, then hourly", () => {
+Deno.test("a market IG returns without a status is recorded UNKNOWN, and failures go to the errors box only when coverage is at risk", () => {
   const s = samplesOf({ marketDetails: [{ instrument: { epic: "A.B.C.D.IP" }, snapshot: { bid: null, offer: 1 } }] }, "sb", "Z6F18K", "2026-10-18T20:00:00Z");
   assertEquals(s[0].market_status, "UNKNOWN");
   assertEquals(s[0].bid, null);
-  const t = Date.parse("2026-10-18T20:00:00Z");
-  const r = (min: number, ok: boolean, reported = false) => ({ id: min, ok, reported, started_at: new Date(t - min * 60_000).toISOString() });
-  assertEquals(shouldReport([], t), true);
-  assertEquals(shouldReport([r(1, true)], t), true);
-  assertEquals(shouldReport([r(1, false, true), r(2, true)], t), false);
-  assertEquals(shouldReport([r(1, false), r(61, false, true), r(62, true)], t), true);
+  // Sunday 2026-10-18 20:00 UTC is 21:00 UK, Sunday's open: the ten minutes from it allow no uncovered minute.
+  const open = Date.parse("2026-10-18T20:00:00Z");
+  const at = (t: number) => (min: number, ok: boolean, reported = false) => ({ id: -min, ok, reported, started_at: new Date(t - min * 60_000).toISOString() });
+  let r = at(open);
+  assertEquals([inSundayOpenGuard(open), inSundayOpenGuard(open + 9 * 60_000 + 59_000), inSundayOpenGuard(open + 10 * 60_000), inSundayOpenGuard(open - 60_000)], [true, true, false, false]);
+  assertEquals(shouldReport([], open), true);
+  assertEquals(shouldReport([r(1, true)], open + 5 * 60_000), true);
+  assertEquals(shouldReport([r(1, false, true), r(2, true)], open), false);
+  // Elsewhere in the window (Sunday 2026-10-18 16:00 UTC): one failed run after a clean one is not reported (it loses no
+  // minute under Deviation 1); the second in a row is; then once an hour.
+  const mid = Date.parse("2026-10-18T16:00:00Z");
+  r = at(mid);
+  assertEquals(shouldReport([], mid), false);
+  assertEquals(shouldReport([r(1, true)], mid), false);
+  assertEquals(shouldReport([r(1, false), r(2, true)], mid), true);
+  assertEquals(shouldReport([r(1, false, true), r(2, true)], mid), false);
+  assertEquals(shouldReport([r(1, false), r(2, false, true), r(3, true)], mid), false);
+  assertEquals(shouldReport([r(1, false), r(61, false, true), r(62, true)], mid), true);
+  // A failed run from long before (last weekend's last run) is not "the one before".
+  assertEquals(shouldReport([r(6, false), r(7, true)], mid), false);
+  assertEquals(REPORT_PREV_RUN_MS, 5 * 60_000);
+  // The reported row says why, in the words the errors box keeps on show.
+  assertEquals(reportReason([r(1, false), r(2, false), r(3, true)], mid), "coverage at risk: 3 failed runs in a row");
+  assertEquals(reportReason([], open), "coverage at risk: a failed run in the ten minutes from Sunday's open");
+  assertEquals(reportReason([r(1, true)], mid), null);
   assertEquals(quoteEpics({ sb: { account_kind: "sb", account_id: "Z6F18K", ok: true, selected: { fx_audusd: "E1.E1.E1", us500: "E2.E2.E2" } } }, ["fx_audusd", "wknd_de40"]),
     [{ kind: "sb", accountId: "Z6F18K", epics: ["E1.E1.E1"] }]);
 });

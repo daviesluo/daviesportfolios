@@ -331,7 +331,11 @@ How the less obvious parts work, and why they are built the way they are.
 - **Admin error-triage badge** (desktop only) — admin viewers get a
   red `N ERRORS / last 24h` pill in the header that polls
   `/functions/v1/ops-error?action=summary&hours=24` every 60 s.
-  Click opens a modal with the byKind / bySymbol breakdown, so
+  N counts the lines to act on (`ops-error/noise.ts`), not the rows:
+  transient upstream errors and a recorder's single failed run are
+  left out unless they persist (15 consecutive minutes of a minute
+  job), and the same message is one line with its count. Click opens a
+  modal with those lines, then the byKind / bySymbol breakdown of every row, so
   routine triage doesn't require opening the Supabase SQL editor.
   An **Acknowledge** button in the modal's header stores the newest
   error's timestamp in this browser (`dp.opsErrorAck`) and hides the
@@ -515,7 +519,7 @@ Startup, the root component, sign-in, what the browser keeps, error reports, and
 | `app/sw-banner.jsx` | The "new version available" banner. It checks every minute and whenever the tab comes back. |
 | `app/chunk_recovery.js` | Loads each page's code: a page already fetched opens at once; one whose code fails to load after a deploy is fetched fresh, the service worker and caches dropped, the app reloaded once and the failure reported. |
 | `app/surface_boundary.jsx` | One error boundary per surface (each panel, the header, the board, the sidebar, every modal and Agents page): a throw shows "failed to load" with a Retry in that surface's place and is reported under its name. |
-| `app/ops_error.js`, `app/ops_error_badge.jsx` | Sends client errors to `ops-error`, rate-limited; the admin-only header badge groups the last 24 hours. |
+| `app/ops_error.js`, `app/ops_error_badge.jsx` | Sends client errors to `ops-error`, rate-limited; the admin-only header badge lists the last 24 hours' lines to act on. |
 | `app/version.js` | The build stamp (minute-precision CalVer) that every error report carries. |
 | `app/types.d.ts`, `app/ambient.d.ts` | Shared JSDoc types, and declarations for the build stamp and CSS imports. |
 | `app/styles.css` | Every style, in one sheet. |
@@ -615,7 +619,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `snapshot-record` | Run by pg_cron every five minutes: records one price per board ticker, in the board's units (a price 100 times the board's own is never written). |
 | `overnight-record` | Run by pg_cron through the US overnight session: records Trading 212's overnight quotes. |
 | `overnight-fetch` | Serves the recorded overnight quotes to the chart. |
-| `ops-error` | Stores error reports and serves the admin summary. |
+| `ops-error` | Stores error reports and serves the admin summary, with the errors box's lines: what a person must act on, deduplicated, and transient noise only once it persists (`noise.ts`). |
 | `agents` | The crypto loop and its page (below). |
 | `weather` | The keyed weather feeds behind Polymarket's temperature markets, read-only: its probe checks the Météo-France key (`meteofrance.ts`) and the FAA's SWIM subscription (`faa_swim.ts`, through Solace's client in `solace.ts` and the Deno TLS shim in `solace_tls.ts`); `probe.ts` handles the request. Run by the scheduler's bearer only. |
 | `edge-watchdog` | A row of the one-minute job: 13 s into its minute it runs again, once, each due call that wrote no beat because the platform never started its worker, and records what each retry answered. Run by the scheduler's bearer only. |

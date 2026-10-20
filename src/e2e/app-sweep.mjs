@@ -1691,7 +1691,12 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
         (byKind[r.kind] ||= { kind: r.kind, count: 0, latestMessage: r.message }).count += 1;
         (bySymbol[`${r.symbol}|${r.kind}`] ||= { symbol: r.symbol || null, kind: r.kind, count: 0, latestMessage: r.message, latestAt: at }).count += 1;
       }
-      return json({ hours: 24, total: reps.length, latestAt: at, byKind: Object.values(byKind), bySymbol: Object.values(bySymbol) });
+      // Its `box` (ops-error/noise.ts): a page's own reports are none of them noise, so each kind and message is a line.
+      /** @type {Record<string, any>} */
+      const lines = {};
+      for (const r of reps) (lines[`${r.kind}|${r.message}`] ||= { kind: r.kind, cls: 'other', message: r.message, count: 0, firstAt: at, latestAt: at }).count += 1;
+      const box = { lines: Object.values(lines), shownRows: reps.length, hiddenRows: 0, latestAt: reps.length ? at : null };
+      return json({ hours: 24, total: reps.length, latestAt: at, byKind: Object.values(byKind), bySymbol: Object.values(bySymbol), box });
     }
     if (url.includes('/ops-error')) {
       // What the app reports is part of what the sweep checks: a healed chunk must arrive as `chunk.load`, never `render.crash`.
@@ -2870,14 +2875,17 @@ async function run() {
       // The errors badge polls the summary every minute: the report is on the page a minute on.
       await page.clock.fastForward(61_000);
       const badge = await page.locator('.live-pill.err:has-text("ERRORS")').first().waitFor({ timeout: 8_000 }).then(() => true).catch(() => false);
-      let rows = [];
+      let rows = [], lines = [];
       if (badge) {
         await page.locator('.live-pill.err:has-text("ERRORS")').first().click().catch(() => {});
         rows = await page.locator('.modal tr').allTextContents().catch(() => []);
+        lines = await page.locator('.modal .ops-line').allTextContents().catch(() => []);
         await page.keyboard.press('Escape');
       }
-      if (badge && rows.some((r) => r.includes('BRIT.L') && r.includes('quote.held'))) ok(S('badge'), 'the errors badge lists it: BRIT.L · quote.held');
-      else fail(S('badge'), `badge ${badge}, rows ${JSON.stringify(rows)}`);
+      // Its line in TO LOOK AT (the box's lines, 2026-10-20), and its row under BRIT.L in the tables of every row.
+      if (badge && rows.some((r) => r.includes('BRIT.L') && r.includes('quote.held')) && lines.some((l) => l.startsWith('quote.held') && l.includes('pence for pounds'))) {
+        ok(S('badge'), `the errors badge lists it: BRIT.L · quote.held, and its line "${lines.find((l) => l.startsWith('quote.held'))?.slice(0, 80)}"`);
+      } else fail(S('badge'), `badge ${badge}, rows ${JSON.stringify(rows)}, lines ${JSON.stringify(lines)}`);
       const still = await totalNow();
       if (near(still, 2972.5)) ok(S('still-held'), `two more refreshes from the same proxy a minute on: still held, total ${still}`);
       else fail(S('still-held'), `a minute on the total reads ${still}, wanted 2972.50`);

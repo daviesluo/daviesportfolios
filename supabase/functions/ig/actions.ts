@@ -4,7 +4,7 @@
 
 import { IgClient, IgHttpError, IgRefused, isTokenError, stripBalances, type IgSession } from "./client.ts";
 import { keepSearch, parsePins, pickEpics, ROLES, SEARCH_TERMS, type SearchMarket } from "./epics.ts";
-import { activeWindows, historyWindows, HISTORY_PLANS, type HistoryPlanId } from "./windows.ts";
+import { activeWindows, historyWindows, HISTORY_PLANS, type HistoryPlanId, ukClock } from "./windows.ts";
 
 // ---------------------------------------------------------------------------------------------------------------------
 // The database, through PostgREST with the service role.
@@ -363,17 +363,44 @@ export function quoteEpics(facts: Partial<Record<AccountKind, FactsRow>>, roles:
 
 type RunRow = { id: number; ok: boolean; started_at: string; reported: boolean };
 
+/** The previous run counts as the one just before when it started at most this long ago (runs are a minute apart). */
+export const REPORT_PREV_RUN_MS = 5 * 60_000;
+/** Sunday's documented FX open, UK time (S1b; Deviation 1's coverage rule reads the ten minutes from it). */
+export const SUNDAY_OPEN_UK = { dow: 0, minutes: 21 * 60 } as const;
+export const SUNDAY_OPEN_GUARD_MIN = 10;
+
+/** Whether an instant is in the ten minutes from Sunday's open (UK), where Deviation 1 allows no uncovered minute. */
+export function inSundayOpenGuard(ms: number): boolean {
+  const c = ukClock(ms);
+  return c.dow === SUNDAY_OPEN_UK.dow && c.minutes >= SUNDAY_OPEN_UK.minutes && c.minutes < SUNDAY_OPEN_UK.minutes + SUNDAY_OPEN_GUARD_MIN;
+}
+
 /**
- * Whether a failed run goes to the errors box: the first failure after a run that did not fail, and then once an hour
- * while the failures last. `prev` is the newest runs first.
+ * Whether a failed run goes to the errors box: only when S1b's coverage is at risk (Davies, 2026-10-20, as relayed: from now on
+ * the box shows no low-level errors that mean nothing). Under Deviation 1 one failed run loses no minute (the quote it holds is at most two minutes old), so an
+ * isolated failure is not reported: about one run in four failed on 2026-10-19, each the first after a clean one, and
+ * each went to the box. Reported: a failure whose previous run (started within `REPORT_PREV_RUN_MS`) also failed, and
+ * any failure in the ten minutes from Sunday's open; then once an hour while the failures last. `prev` is the newest
+ * runs first, this run not among them. Every run stays a row of `ig_quote_runs` either way.
  */
 export function shouldReport(prev: readonly RunRow[], nowMs: number): boolean {
+  return reportReason(prev, nowMs) !== null;
+}
+
+/**
+ * Why a failed run is reported (`shouldReport`), as the row's message begins, or null when it is not. The words "coverage
+ * at risk" are what the errors box keeps on show for this kind (`ops-error/noise.ts`).
+ */
+export function reportReason(prev: readonly RunRow[], nowMs: number): string | null {
   const streak: RunRow[] = [];
   for (const r of prev) {
     if (r.ok) break;
     streak.push(r);
   }
-  return !streak.some((r) => r.reported && nowMs - Date.parse(r.started_at) < 3_600_000);
+  if (streak.some((r) => r.reported && nowMs - Date.parse(r.started_at) < 3_600_000)) return null;
+  if (streak.length > 0 && nowMs - Date.parse(streak[0].started_at) <= REPORT_PREV_RUN_MS) return `coverage at risk: ${streak.length + 1} failed runs in a row`;
+  if (inSundayOpenGuard(nowMs)) return "coverage at risk: a failed run in the ten minutes from Sunday's open";
+  return null;
 }
 
 export async function runQuotes(o: {
@@ -449,12 +476,14 @@ export async function runQuotes(o: {
     requests: client.requests, logins: client.logins, switches: client.switches, clock_offset_ms: client.clockOffsetMs,
     ms: o.now() - start, error: errors.length ? errors.join("; ").slice(0, 1000) : null, reported: false,
   });
-  // One error-box row when a run fails after one that did not, then one an hour while it lasts: not one a minute.
+  // An error-box row only when coverage is at risk (`shouldReport`): two failed runs in a row, or a failure in the ten
+  // minutes from Sunday's open; then one an hour while it lasts.
   if (!ok) {
     try {
       const prev = await o.rest.select<RunRow>("ig_quote_runs", "select=id,ok,started_at,reported&order=id.desc", 120);
-      if (shouldReport(prev, start)) {
-        await o.report(String(run.error ?? "quotes failed"), { windows: ids, snapshots });
+      const why = reportReason(prev, start);
+      if (why) {
+        await o.report(`${why}: ${String(run.error ?? "quotes failed")}`, { windows: ids, snapshots });
         run.reported = true;
       }
     } catch { /* the run row below still records the failure */ }

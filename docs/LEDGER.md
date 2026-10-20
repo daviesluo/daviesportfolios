@@ -656,6 +656,32 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20"; each oldest first.
 
+### [2026-10-20 17:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LIVE PR5: orders 7229 and 7230 settled `rejected` by the main session on Davies' word** (10-20, the page's "a live order needs a
+  person"): both POSTs answered 500 at 06:02 UTC in the Revolut X outage, no venue id, never listed in active orders or history
+  06:04-16:09, and the `_2` balances equal the booked fills exactly (a fill would have added 13.37792 USDC or 0.14709 USDT);
+  evidence in each row's `response.settledByPerson`. 0 live orders pending after.
+
+### [2026-10-20 17:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **`momentum-1d` deleted by `0133`** (Davies 10-20: "这个策略直接删了，不用加这个"; it was winding down a paper BTC/USD
+  position since `0129`): 1 row, 11 orders, 95 decisions, 2,346 observations and its maker probes (cascade; MX-1's pulled
+  probes 38-41 stay in the committed tape). Rulebook and backtests stay. Applies on push (migrations.yml).
+
+### [2026-10-20 16:29 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Errors box: a noise policy** (sub-agent; Davies, 10-20, relayed: why so many entries; no low-level errors that mean
+  nothing). `ops-error/noise.ts` turns the summary's rows into lines: always shown monitor, code, auth/config (not IG's
+  token churn), a live path's state and unknown messages, deduplicated; transient upstream errors and a recorder's single
+  failed run hidden unless they persist (15 consecutive minutes, or 3 runs of a 5/10-min job), then one line. 24 h of real
+  rows: 878 counted before, 11 lines after (76 rows hidden). The IG recorder reports only on two failed runs in a row or a
+  failure in the ten minutes from Sunday's open. (Its archive move overlapped the zero-trades commit's and was dropped.)
+
+### [2026-10-20 16:22 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LIVE after Revolut X's 10-20 outage** (sub-agent, item 4; reference §4 item 35): 606 `agents.quotes_live` rows, one a
+  minute; no stuck order filled; 7229 and 7230 (POST 500 at 06:02, never listed) settle as rejected on the balance evidence
+  (statements in the hand-back, run by the main session). Code: the box hears a fault once, hourly, and "recovered";
+  a pending order unseen for an hour is parked (looked for every 15 min). Entries were also off 08:02–15:12 and from 16:02
+  on the stale USD-hour guard: Revolut X serves no USDC/USD or USDT/USD hourly candle after 08:00 (venue side).
+
 ### [2026-10-20 16:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **GROKPM zero trades: the rules, not the server, and they protected the money** (sub-agent; Davies: "一单都没下…标准是不是太严格了？
   做个复盘研究"; item 15; `reviews/2026-10-20-grokpm-zero-trades.md`, `backtests/grokpm_zero/`). Since the go: 448 requests, no order
@@ -665,18 +691,6 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   trades), B8 $10.59 (3), all fillable. Base rates: the 5-to-12-point bar barely moves the room. Recommendation: keep every bar;
   D7 "shadow forecasts" (p and m journalled on no_action rows, a secondary Brier at the end; no rule change), drafted with its
   message for Grok, only on Davies' word.
-
-### [2026-10-20 17:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **`momentum-1d` deleted by `0133`** (Davies 10-20: "这个策略直接删了，不用加这个"; it was winding down a paper BTC/USD
-  position since `0129`): 1 row, 11 orders, 95 decisions, 2,346 observations and its maker probes (cascade; MX-1's pulled
-  probes 38-41 stay in the committed tape). Rulebook and backtests stay. Applies on push (migrations.yml).
-
-### [2026-10-20 16:22 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **LIVE after Revolut X's 10-20 outage** (sub-agent, item 4; reference §4 item 35): 606 `agents.quotes_live` rows, one a
-  minute; no stuck order filled; 7229 and 7230 (POST 500 at 06:02, never listed) settle as rejected on the balance evidence
-  (statements in the hand-back, run by the main session). Code: the box hears a fault once, hourly, and "recovered";
-  a pending order unseen for an hour is parked (looked for every 15 min). Entries were also off 08:02–15:12 and from 16:02
-  on the stale USD-hour guard: Revolut X serves no USDC/USD or USDT/USD hourly candle after 08:00 (venue side).
 
 ### [2026-10-20 03:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Heat map: the desktop's top four on the right stack in one column, as the phone's do** (Davies, 10-20; sub-agent).

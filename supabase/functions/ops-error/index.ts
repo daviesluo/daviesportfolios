@@ -23,8 +23,12 @@
 //       {
 //         hours, total, latestAt,
 //         byKind:  [{kind, count, latestMessage}, …],
-//         bySymbol:[{symbol, kind, count, latestMessage, latestAt}, …]
+//         bySymbol:[{symbol, kind, count, latestMessage, latestAt}, …],
+//         box:     { lines, shownRows, hiddenRows, latestAt }
 //       }
+//       `box` is what the header's errors box shows (`noise.ts`, Davies 2026-10-20): the rows a person must act
+//       on as deduplicated lines, persistent noise as one line each, and how many rows it leaves out as noise.
+//       Every row stays in the table; `total`, `byKind` and `bySymbol` still count them all.
 //       `latestAt` is the newest error's timestamp across ALL rows —
 //       computed before bySymbol is sliced to the top 100, so the
 //       client's "acknowledge" gate can't miss a newer one-off error.
@@ -36,6 +40,7 @@
 
 import { constantTimeEqual, verifyToken } from "../_shared/token.ts";
 import { clientIpFromHeaders } from "../_shared/ip.ts";
+import { boxLines } from "./noise.ts";
 
 // Re-exported so this function's index.test.ts keeps pinning the exact
 // equality the token gate relies on.
@@ -160,9 +165,12 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
       // and the client's Acknowledge gate keys off this timestamp so
       // it must reflect every row.
       const latestAt = rows.length > 0 ? rows[0].created_at : null;
+      // The box's lines (noise.ts): what a person must act on, deduplicated; noise only when it persists.
+      const b = boxLines(rows, Date.now());
+      const box = { ...b, latestAt: b.lines.reduce<string | null>((m, l) => (m === null || l.latestAt > m ? l.latestAt : m), null) };
 
       return new Response(
-        JSON.stringify({ hours, total: rows.length, latestAt, byKind, bySymbol }),
+        JSON.stringify({ hours, total: rows.length, latestAt, byKind, bySymbol, box }),
         { headers: { ...CORS, "Content-Type": "application/json" } },
       );
     } catch (e) {

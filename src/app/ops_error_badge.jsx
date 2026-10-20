@@ -76,6 +76,34 @@ export function latestErrorAt(summary) {
 }
 
 /**
+ * What the box shows (Davies, 2026-10-20: the box had hundreds of rows; no low-level errors that mean nothing). The
+ * summary's `box` (`ops-error/noise.ts`): lines a person must act on, each the same message deduplicated with its count,
+ * persistent noise as one line, and how many rows it leaves out as noise. Its badge counts LINES, and its Acknowledge
+ * gate keys off the newest line. An older Edge deploy without `box` reads as before: every row.
+ * @param {any} summary  ops-error summary (external API shape)
+ * @returns {{ count: number, lines: any[] | null, hiddenRows: number, latestAt: number } | null}
+ */
+export function opsBoxView(summary) {
+  if (!summary) return null;
+  const box = summary.box;
+  if (box && Array.isArray(box.lines)) {
+    const t = Date.parse(box.latestAt ?? '');
+    return { count: box.lines.length, lines: box.lines, hiddenRows: Number(box.hiddenRows) || 0, latestAt: isFinite(t) ? t : 0 };
+  }
+  return { count: Number(summary.total) || 0, lines: null, hiddenRows: 0, latestAt: latestErrorAt(summary) };
+}
+
+/**
+ * One line of the box as it reads: the kind, and how many rows and since when it stands for.
+ * @param {{ kind: string, count: number, firstAt: string, latestAt: string, persistent?: { ongoing: boolean } }} line
+ */
+export function opsLineMeta(line) {
+  const hm = (/** @type {string} */ iso) => String(iso ?? '').slice(11, 16);
+  if (line.persistent) return `${line.persistent.ongoing ? 'still failing' : 'stopped'} · ${hm(line.latestAt)} UTC`;
+  return line.count > 1 ? `×${line.count} · ${hm(line.firstAt)}–${hm(line.latestAt)} UTC` : `${hm(line.latestAt)} UTC`;
+}
+
+/**
  * React hook returning whether the viewport currently matches the
  * desktop breakpoint (≥761 px wide). Updates on resize / orientation
  * change. Exported so callers other than OpsErrorBadge (e.g.
@@ -134,13 +162,14 @@ export function OpsErrorBadge({ isReadOnly }) {
   }, [enabled, refresh]);
 
   if (!enabled) return null;
-  // Until the first poll resolves OR the endpoint says zero, render
+  // Until the first poll resolves OR there is nothing to act on, render
   // nothing — we don't want to flash an empty badge during cold start.
-  if (!summary || summary.total === 0) return null;
+  const view = opsBoxView(summary);
+  if (!summary || !view || view.count === 0) return null;
   // "Acknowledge" hides the badge until something newer than the
   // acknowledged timestamp lands. latestAt 0 (no parseable rows) →
   // don't suppress, so errors are never silently swallowed.
-  const latestAt = latestErrorAt(summary);
+  const latestAt = view.latestAt;
   if (latestAt > 0 && latestAt <= ackAt) return null;
 
   return (
@@ -148,7 +177,7 @@ export function OpsErrorBadge({ isReadOnly }) {
       <button
         type="button"
         className="live-pill err"
-        title={`${summary.total} ops-error rows in the last ${summary.hours} h — click for breakdown`}
+        title={`${view.count} to look at in the last ${summary.hours} h (${summary.total} rows, ${view.hiddenRows} of them transient noise) — click for the list`}
         onClick={() => { setOpen(true); refresh(); }}
         // No `border: none` — drop the UA outset border but let
         // `.live-pill` / `.live-pill.err` paint the same 1px line +
@@ -157,7 +186,7 @@ export function OpsErrorBadge({ isReadOnly }) {
       >
         <span className="live-dot err" />
         <div className="live-col">
-          <span className="live-txt">{summary.total} ERRORS</span>
+          <span className="live-txt">{view.count} ERRORS</span>
           <span className="live-ago mono">last {summary.hours}h</span>
         </div>
       </button>
@@ -166,7 +195,7 @@ export function OpsErrorBadge({ isReadOnly }) {
           <header className="modal-head">
             <div>
               <div className="modal-eyebrow mono">OPS · LAST {summary.hours}H</div>
-              <h2 className="modal-title mono">{summary.total} errors</h2>
+              <h2 className="modal-title mono">{view.count} errors</h2>
             </div>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               <button
@@ -185,8 +214,29 @@ export function OpsErrorBadge({ isReadOnly }) {
             </div>
           </header>
           <div className="modal-body">
+            {view.lines && (
+              <section className="ops-lines" style={{ marginBottom: 16 }}>
+                <div className="modal-eyebrow mono" style={{ marginBottom: 6 }}>TO LOOK AT</div>
+                <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                  {view.lines.map((/** @type {any} */ l, i) => (
+                    <li key={`${l.kind}|${i}`} className="ops-line" style={{ padding: '6px 0', borderBottom: '1px solid var(--rule)', fontSize: 12 }}>
+                      <div className="mono" style={{ display: 'flex', gap: 8, justifyContent: 'space-between' }}>
+                        <span>{l.kind}</span>
+                        <span style={{ opacity: 0.6, whiteSpace: 'nowrap' }}>{opsLineMeta(l)}</span>
+                      </div>
+                      <div style={{ opacity: 0.8, overflowWrap: 'anywhere' }}>{l.message}</div>
+                    </li>
+                  ))}
+                </ul>
+                {view.hiddenRows > 0 && (
+                  <div className="mono dim ops-hidden" style={{ marginTop: 6, fontSize: 11 }}>
+                    {view.hiddenRows} rows of transient noise hidden (timeouts, 5xx, a recorder&apos;s single failed run); kept in the table
+                  </div>
+                )}
+              </section>
+            )}
             <section style={{ marginBottom: 16 }}>
-              <div className="modal-eyebrow mono" style={{ marginBottom: 6 }}>BY KIND</div>
+              <div className="modal-eyebrow mono" style={{ marginBottom: 6 }}>{view.lines ? 'ALL ROWS BY KIND' : 'BY KIND'}</div>
               {summary.byKind.length === 0 ? (
                 <div className="mono dim">—</div>
               ) : (
