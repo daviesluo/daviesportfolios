@@ -653,6 +653,13 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)"; each oldest first.
 
+### [2026-10-20 03:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Heat map: the desktop's top four on the right stack in one column, as the phone's do** (Davies, 10-20; sub-agent).
+  The split cuts by `w >= h`: the pairs PLTR/RKLB, MSTR/ORCL were 237 × 226 on desktop (side by side, a 2×2) and
+  150 × 170 on the phone (stacked). Now a right-hand 2×2 beside a left-hand 2×2 stacks when every tile stays 1 to 3 : 1
+  wide (`board/heatmap.jsx`); every other rect unchanged, pinned against the old split in `heatmap.test.js` and in
+  the browser (sweep part `heatmap-shape`).
+
 ### [2026-10-19 21:18 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **S1b weekend 1 (10-18/19) is usable under Deviation 1** (item 14): `sql/s1b_coverage.sql` after the window ended
   (window_ended true): 1,515 of 1,515 minutes covered (100.00 %), longest uncovered run 0, none uncovered in the first

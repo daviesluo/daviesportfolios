@@ -5,7 +5,7 @@
 // change which instrument the click resolves.
 
 import { describe, it, expect } from 'vitest';
-import { displayTicker, fitTicker, heatmapItems } from './heatmap.jsx';
+import { displayTicker, fitTicker, heatmapItems, treemap, STACK_MIN_RATIO, STACK_MAX_RATIO } from './heatmap.jsx';
 
 describe('displayTicker', () => {
   it('strips the exchange suffix from foreign-listed tickers', () => {
@@ -148,3 +148,144 @@ describe('heatmapItems — no tile while the exchange rates are loading (review 
     expect(heatmapItems(metrics).map((i) => [i.ticker, i.value, i.pct])).toEqual([['ACME', 1440, 0.84], ['BRIT.L', 250, 4.17]]);
   });
 });
+
+// ── The desktop map's top four on the right: one column, as the phone draws them (Davies, 2026-10-20) ──────────────
+//
+// The weights are the tile areas measured off his desktop screenshot of that day, in px² of the 530 × 810 canvas
+// (`.heatmap` 560 × 840 less its 14px padding and 1px border), so they are shares of the book, not amounts. Fed
+// through the old split they reproduce that screenshot tile for tile: MSFT/NVDA over SPCX/AMZN on the left, PLTR/RKLB
+// over MSTR/ORCL on the right (a 4 × 2 block), GOOG/NBIS/AAPL over META/BTC-USD/BE, TSM/BMNR beside APLD/HOOD, MU
+// over CRWV, and NVTS over SIVE (2DG) beside SAEM over VUAA.
+const OCT20 = [
+  ['MSFT', 34484], ['NVDA', 33785], ['SPCX', 30450], ['AMZN', 29029], ['PLTR', 27816], ['RKLB', 26220],
+  ['MSTR', 26208], ['ORCL', 23088], ['GOOG', 23000], ['NBIS', 21000], ['AAPL', 19000], ['META', 18759],
+  ['BTC-USD', 16224], ['BE', 16055], ['TSM', 13334], ['BMNR', 12862], ['APLD', 12765], ['HOOD', 12765],
+  ['MU', 11830], ['CRWV', 8300], ['NVTS', 8000], ['2DG', 5100], ['SAEM', 1400], ['VUAA', 1360],
+].map(([ticker, value]) => ({ ticker: String(ticker), value: Number(value) }));
+const DESKTOP = [530, 810];
+const PHONE = [336, 610]; // a 390px-wide phone: `.heatmap` is 100% wide there and 640px tall
+
+// The split as it was before 2026-10-20, kept here as the reference every other layout must still match.
+function oldTreemap(nodes, x, y, w, h) {
+  if (!nodes.length) return [];
+  if (nodes.length === 1) return [{ ...nodes[0], x, y, w, h }];
+  const total = nodes.reduce((s, n) => s + n.value, 0);
+  let acc = 0, split = 0;
+  for (let i = 0; i < nodes.length - 1; i++) {
+    acc += nodes[i].value;
+    split = i;
+    if (acc * 2 >= total) break;
+  }
+  const g1 = nodes.slice(0, split + 1);
+  const g2 = nodes.slice(split + 1);
+  const frac = g1.reduce((s, n) => s + n.value, 0) / total;
+  if (w >= h) {
+    const w1 = Math.max(1, Math.round(w * frac));
+    return [...oldTreemap(g1, x, y, w1, h), ...oldTreemap(g2, x + w1, y, w - w1, h)];
+  }
+  const h1 = Math.max(1, Math.round(h * frac));
+  return [...oldTreemap(g1, x, y, w, h1), ...oldTreemap(g2, x, y + h1, w, h - h1)];
+}
+const rects = (tiles) => Object.fromEntries(tiles.map((t) => [t.ticker, [t.x, t.y, t.w, t.h]]));
+const changed = (a, b) => Object.keys(a).filter((k) => JSON.stringify(a[k]) !== JSON.stringify(b[k]));
+const RIGHT4 = ['PLTR', 'RKLB', 'MSTR', 'ORCL'];
+/** @param {number[]} values */
+const nodes = (values) => values.map((value, i) => ({ ticker: `T${i}`, value }));
+
+describe('treemap — a 2×2 beside a 2×2 stacks its right half into one column (2026-10-20)', () => {
+  it('reproduces the old desktop shape first: PLTR/RKLB over MSTR/ORCL, a 2×2 on the right', () => {
+    const old = rects(oldTreemap(OCT20, 0, 0, DESKTOP[0], DESKTOP[1]));
+    expect(RIGHT4.map((t) => old[t])).toEqual([
+      [293, 0, 122, 226], [415, 0, 115, 226],
+      [293, 226, 126, 206], [419, 226, 111, 206],
+    ]);
+  });
+
+  it('stacks PLTR, RKLB, MSTR, ORCL in one column on the desktop map, as the phone does', () => {
+    const now = rects(treemap(OCT20, 0, 0, DESKTOP[0], DESKTOP[1]));
+    expect(RIGHT4.map((t) => now[t])).toEqual([
+      [293, 0, 237, 116],
+      [293, 116, 237, 110],
+      [293, 226, 237, 110],
+      [293, 336, 237, 96],
+    ]);
+    // The column fills exactly the block the 2×2 filled: x 293..530, y 0..432.
+    // Each tile as drawn (3px gap off each side) is wider than tall and no flatter than 3 : 1: 2.52 at most (ORCL).
+    for (const t of RIGHT4) {
+      const [, , w, h] = now[t];
+      expect((w - 3) / (h - 3)).toBeGreaterThanOrEqual(STACK_MIN_RATIO);
+      expect((w - 3) / (h - 3)).toBeLessThanOrEqual(STACK_MAX_RATIO);
+    }
+  });
+
+  it('leaves every other tile of that map where it was', () => {
+    const now = rects(treemap(OCT20, 0, 0, DESKTOP[0], DESKTOP[1]));
+    const old = rects(oldTreemap(OCT20, 0, 0, DESKTOP[0], DESKTOP[1]));
+    expect(changed(now, old)).toEqual(RIGHT4);
+  });
+
+  it('changes nothing on the phone, which already stacks them', () => {
+    for (let n = 1; n <= OCT20.length; n++) {
+      const set = OCT20.slice(0, n);
+      expect(treemap(set, 0, 0, PHONE[0], PHONE[1])).toEqual(oldTreemap(set, 0, 0, PHONE[0], PHONE[1]));
+    }
+    expect(rects(treemap(OCT20, 0, 0, PHONE[0], PHONE[1])).ORCL).toEqual([186, 253, 150, 73]);
+  });
+
+  it('changes only that case across the book\'s every prefix at five canvas sizes', () => {
+    const differs = [];
+    for (let n = 1; n <= OCT20.length; n++) {
+      for (const [w, h] of [DESKTOP, PHONE, [530, 610], [400, 810], [300, 610]]) {
+        const set = OCT20.slice(0, n);
+        const d = changed(rects(treemap(set, 0, 0, w, h)), rects(oldTreemap(set, 0, 0, w, h)));
+        if (d.length) differs.push(`${n}@${w}x${h}: ${d.join(' ')}`);
+      }
+    }
+    // 20 to 24 holdings: the top block as above. 14 holdings: the same shape one level down, AAPL/META over
+    // BTC-USD/BE beside MSTR/ORCL over GOOG/NBIS, now AAPL, META, BTC-USD, BE in one column (227 wide, 88 to 104 tall).
+    expect(differs).toEqual([
+      '14@530x810: AAPL META BTC-USD BE',
+      ...[20, 21, 22, 23, 24].map((n) => `${n}@530x810: ${RIGHT4.join(' ')}`),
+    ]);
+  });
+
+  it('leaves other books alone: equal weights, a steep book, one dominant holding — all but sixteen equal tiles', () => {
+    const books = [
+      nodes([1, 1, 1, 1]), nodes([1, 1, 1, 1, 1, 1, 1, 1]), nodes(Array(16).fill(1)),
+      nodes(Array.from({ length: 12 }, (_, i) => 100 * 0.8 ** i)),
+      nodes([60, 10, 9, 8, 7, 6]),
+    ];
+    const differs = [];
+    books.forEach((book, i) => {
+      for (const [w, h] of [DESKTOP, PHONE, [530, 610], [800, 400]]) {
+        const d = changed(rects(treemap(book, 0, 0, w, h)), rects(oldTreemap(book, 0, 0, w, h)));
+        if (d.length) differs.push(`${i}@${w}x${h}: ${d.join(' ')}`);
+      }
+    });
+    // Sixteen equal holdings are the one book here with the same shape: a 4 × 4 grid is two 2×2 pairs per half,
+    // and each right-hand 2×2 now stacks (T4-T7, T12-T15), at the desktop and phone sizes and the wide one alike.
+    expect(differs).toEqual(['2@530x810', '2@336x610', '2@800x400'].map((k) => `${k}: T4 T5 T6 T7 T12 T13 T14 T15`));
+  });
+
+  it('keeps the 2×2 when stacking would flatten a tile past 3 : 1', () => {
+    // Left and right are each 70 × 100, cut 60 / 40 into pairs 70 wide: both 2×2. Stacked, the right's 10 would
+    // be 70 × 10 (7 : 1), so it stays put; with near-equal weights the column reads 2.7 to 2.9 : 1 and stacks.
+    const flat = nodes([30, 30, 30, 10, 30, 30, 30, 10]);
+    expect(treemap(flat, 0, 0, 140, 100)).toEqual(oldTreemap(flat, 0, 0, 140, 100));
+    const even = nodes([26, 25, 25, 24, 26, 25, 25, 24]);
+    expect(rects(treemap(even, 0, 0, 140, 100))).toMatchObject({
+      T4: [70, 0, 70, 26], T5: [70, 26, 70, 25], T6: [70, 51, 70, 25], T7: [70, 76, 70, 24],
+    });
+    // The book's own boundary: at h 810 the column's ORCL would pass 3 : 1 from a 648px-wide canvas on, and the
+    // 2×2 stays. (`.heatmap` caps at 560px, a 530px canvas, so the desktop map never gets there.)
+    expect(rects(treemap(OCT20, 0, 0, 647, 810)).ORCL[2]).toBe(647 - 358);
+    expect(treemap(OCT20, 0, 0, 648, 810)).toEqual(oldTreemap(OCT20, 0, 0, 648, 810));
+  });
+
+  it('keeps the right 2×2 when the left half is not a 2×2 as well', () => {
+    // Seven tiles: the left half is three (35, 35, 30), so the right four keep the split's own 2×2.
+    const book = nodes([35, 35, 30, 26, 25, 25, 24]);
+    expect(treemap(book, 0, 0, 140, 100)).toEqual(oldTreemap(book, 0, 0, 140, 100));
+  });
+});
+

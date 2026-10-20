@@ -45,10 +45,13 @@ export function fitTicker(label, tw, th) {
 }
 
 // ── Treemap layout (recursive binary split) ──────────────────────────────────
-function treemap(nodes, x, y, w, h) {
-  if (!nodes.length) return [];
-  if (nodes.length === 1) return [{ ...nodes[0], x, y, w, h }];
 
+/**
+ * @template {{ value: number }} T
+ * @param {T[]} nodes  two or more, largest first
+ * @returns {{ g1: T[], g2: T[], frac: number }}  the first half by value, the rest, and the first's share
+ */
+function halve(nodes) {
   const total = nodes.reduce((s, n) => s + n.value, 0);
   let acc = 0, split = 0;
   for (let i = 0; i < nodes.length - 1; i++) {
@@ -58,14 +61,79 @@ function treemap(nodes, x, y, w, h) {
   }
   const g1 = nodes.slice(0, split + 1);
   const g2 = nodes.slice(split + 1);
-  const frac = g1.reduce((s, n) => s + n.value, 0) / total;
+  return { g1, g2, frac: g1.reduce((s, n) => s + n.value, 0) / total };
+}
 
-  if (w >= h) {
+/**
+ * Whether the binary split lays these nodes out as a 2×2 grid: four tiles in a rect taller than wide, cut into two
+ * pairs one above the other, each pair wider than tall and so set side by side.
+ * @param {{ value: number }[]} nodes
+ * @param {number} w
+ * @param {number} h
+ */
+function isTwoByTwo(nodes, w, h) {
+  if (nodes.length !== 4 || w >= h) return false;
+  const { g1, frac } = halve(nodes);
+  if (g1.length !== 2) return false;
+  const h1 = Math.max(1, Math.round(h * frac));
+  return w >= h1 && w >= h - h1;
+}
+
+// The bounds on a stacked tile's width ÷ height: never narrower than square (no skinny strip), never flatter than
+// 3 : 1. The case they were set from stacks at 2.0 to 2.5 on the desktop map; the phone's column reads 1.7 to 2.1.
+// A 2×2's pairs are each wider than tall, so its stacked tiles always clear the first bound; the second is the one
+// that can refuse (a small fourth tile in a wide block).
+export const STACK_MIN_RATIO = 1;
+export const STACK_MAX_RATIO = 3;
+
+/**
+ * Whether a group reads better as one column than as the 2×2 the binary split gives it (Davies, 2026-10-20: the
+ * desktop map's top four on the right sat 2 × 2 beside the four on the left, repeating their grid, while the phone
+ * stacks the same four in one column, which he prefers). Only that case: the right-hand half of a side-by-side cut,
+ * four tiles laid out 2×2, beside a left-hand half that is a 2×2 of four as well, and only while every stacked
+ * tile stays within the bounds above. The split itself decides the shape by `w >= h`, so the two pairs on the
+ * right come out side by side when they are barely wider than tall (237 × 226 on the desktop map) and stacked
+ * when they are barely taller (150 × 170 on the phone).
+ * @param {{ value: number }[]} left
+ * @param {number} lw
+ * @param {{ value: number }[]} right
+ * @param {number} rw
+ * @param {number} h
+ */
+function stacksRight(left, lw, right, rw, h) {
+  if (!isTwoByTwo(left, lw, h) || !isTwoByTwo(right, rw, h)) return false;
+  const total = right.reduce((s, n) => s + n.value, 0);
+  return right.every((n) => {
+    const ratio = rw / ((h * n.value) / total);
+    return ratio >= STACK_MIN_RATIO && ratio <= STACK_MAX_RATIO;
+  });
+}
+
+/**
+ * The tiles' rects: split the nodes in two by value, cut the rect across its longer side in that proportion, and
+ * recurse. `column` cuts every level across, which stacks the nodes top to bottom.
+ * @template {{ value: number }} T
+ * @param {T[]} nodes  largest first
+ * @param {number} x
+ * @param {number} y
+ * @param {number} w
+ * @param {number} h
+ * @param {boolean} [column]
+ * @returns {(T & { x: number, y: number, w: number, h: number })[]}
+ */
+export function treemap(nodes, x, y, w, h, column = false) {
+  if (!nodes.length) return [];
+  if (nodes.length === 1) return [{ ...nodes[0], x, y, w, h }];
+
+  const { g1, g2, frac } = halve(nodes);
+
+  if (w >= h && !column) {
     const w1 = Math.max(1, Math.round(w * frac));
-    return [...treemap(g1, x, y, w1, h), ...treemap(g2, x + w1, y, w - w1, h)];
+    const stack = stacksRight(g1, w1, g2, w - w1, h);
+    return [...treemap(g1, x, y, w1, h), ...treemap(g2, x + w1, y, w - w1, h, stack)];
   } else {
     const h1 = Math.max(1, Math.round(h * frac));
-    return [...treemap(g1, x, y, w, h1), ...treemap(g2, x, y + h1, w, h - h1)];
+    return [...treemap(g1, x, y, w, h1, column), ...treemap(g2, x, y + h1, w, h - h1, column)];
   }
 }
 

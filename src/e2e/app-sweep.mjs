@@ -88,7 +88,7 @@ const VIEWPORTS = [{ name: 'desktop', width: 1400, height: 1000 }, { name: 'phon
  * does. A part leaves the module's switches (`agentsMode`, `SP_BUMP`, `holdMs`, …) at rest when it ends, so it checks the
  * same thing whatever ran before it.
  */
-const PARTS = ['frame', 'recovery', 'perf-refresh', 'save-retry', 'perf-live-edge', 'reload', 'movers-load', 'banner-reload', 'unrealized', 'agents-reload', 'surfaces', 'quote-band', 'main', 'viewer'];
+const PARTS = ['frame', 'recovery', 'perf-refresh', 'save-retry', 'perf-live-edge', 'reload', 'movers-load', 'banner-reload', 'unrealized', 'agents-reload', 'surfaces', 'quote-band', 'heatmap-shape', 'main', 'viewer'];
 const PICKED = (process.env.SWEEP_PART || '').split(',').map((s) => s.trim()).filter(Boolean);
 for (const p of PICKED) if (!PARTS.includes(p.replace(/^-/, ''))) throw new Error(`SWEEP_PART names ${p}; the parts are ${PARTS.join(', ')}`);
 const part = (/** @type {string} */ name) => !PICKED.includes(`-${name}`) && (PICKED.every((p) => p.startsWith('-')) || PICKED.includes(name));
@@ -2933,6 +2933,71 @@ async function run() {
     } else fail(S('fund'), `proxy asked ${fundAsked}, reports ${JSON.stringify(fundReports())}, total ${fundTotal} (wanted ${TOTAL_USD}; unbanded 3209.50)`);
     await c2.close();
     EDGE_OMIT = new Set(); EDGE_QUOTES = {}; PROXY_CHART = {}; PROXY_FUND = null; OPS_SUMMARY = false;
+  }
+
+  // ---- 0g. the heat map's top four on the right stack in one column (Davies, 2026-10-20) ------------------------
+  // His book of that day, as tile weights (board/heatmap.test.js's OCT20: the areas measured off his desktop
+  // screenshot, in px² of the 530 × 810 canvas, not amounts), one share each at weight ÷ 100 dollars. The old split
+  // laid PLTR/RKLB over MSTR/ORCL as a 2×2 beside MSFT/NVDA over SPCX/AMZN; the phone stacked the four in one column,
+  // which he prefers. Both widths must now draw that column, the left four still a 2×2, from the committed bundle:
+  //   desktop (canvas 530 × 810): x 293, 237 wide; y 0 / 116 / 226 / 336, 116 / 110 / 110 / 96 tall (less the 3px gap)
+  //   phone: the column the split already gave it, unchanged.
+  for (const vp of viewports('heatmap-shape')) {
+    const S = (n) => `${vp.name}/heatmap-shape/${n}`;
+    const WEIGHTS = [
+      ['MSFT', 34484], ['NVDA', 33785], ['SPCX', 30450], ['AMZN', 29029], ['PLTR', 27816], ['RKLB', 26220],
+      ['MSTR', 26208], ['ORCL', 23088], ['GOOG', 23000], ['NBIS', 21000], ['AAPL', 19000], ['META', 18759],
+      ['BTCU', 16224], ['BE', 16055], ['TSM', 13334], ['BMNR', 12862], ['APLD', 12765], ['HOOD', 12765],
+      ['MU', 11830], ['CRWV', 8300], ['NVTS', 8000], ['SIVE', 5100], ['SAEM', 1400], ['VUAA', 1360],
+    ];
+    // Every slot the board knows is named, empty but for these two: a slot left out is restored on load with its
+    // demo tickers (`migrate`), and those would put MSTR, RKLB and others on the map twice.
+    const book = { ...PORTFOLIO, positions: {
+      ...Object.fromEntries(['CB1', 'CB2', 'LB', 'RB', 'CDM', 'CAM', 'LW', 'ST', 'RW'].map((k) => [k, { label: '', subtitle: '', role: '', tickers: [] }])),
+      GK: { label: 'Keeper', subtitle: '', role: 'GK', tickers: ['CASH'] },
+      CM: { label: 'Midfield', subtitle: '', role: 'MID', tickers: WEIGHTS.map(([t]) => t) },
+    }, holdings: { CASH: PORTFOLIO.holdings.CASH } };
+    EDGE_QUOTES = {};
+    for (const [t, w] of WEIGHTS) {
+      const price = Number(w) / 100;
+      book.holdings[t] = { shares: 1, cost: price, lastPrice: price, prevClose: price, dayPct: 0, currency: 'USD',
+        lots: [{ date: dayAgo(30), shares: 1, cost: price }] };
+      EDGE_QUOTES[t] = { lastPrice: price, prevClose: price, currency: 'USD', dayPct: 0 };
+    }
+    loadOverride = book;
+    const { ctx, page } = await newPage(browser, vp, errors, tokenMisses, { blockServiceWorkers: true, beforeGoto: routeProxies });
+    await page.locator('.view-toggle .view-switch:visible').first().click();
+    const read = () => page.evaluate(() => {
+      const canvas = document.querySelector('.heatmap-canvas');
+      /** @type {Record<string, number[]>} */
+      const tiles = {};
+      for (const t of document.querySelectorAll('.hm-tile')) {
+        const el = /** @type {HTMLElement} */ (t);
+        tiles[(t.querySelector('.hm-ticker')?.textContent || '').trim()] = ['left', 'top', 'width', 'height'].map((k) => parseFloat(el.style[k]));
+      }
+      return { w: canvas?.clientWidth ?? 0, h: canvas?.clientHeight ?? 0, tiles };
+    });
+    const got = await readUntil(page, read, (x) => Object.keys(x?.tiles ?? {}).length === WEIGHTS.length, { steady: 150 });
+    const tiles = got?.tiles ?? {};
+    const four = ['PLTR', 'RKLB', 'MSTR', 'ORCL'].map((t) => tiles[t]);
+    const left = ['MSFT', 'NVDA', 'SPCX', 'AMZN'].map((t) => tiles[t]);
+    const column = four.every((r) => r && r[0] === four[0][0] && r[2] === four[0][2])
+      && four.every((r, i) => i === 0 || r[1] > four[i - 1][1]) && four.every((r) => r[2] >= r[3]);
+    // Two rows of two: MSFT and NVDA side by side at one top, SPCX and AMZN at another (their lefts need not line up).
+    const grid = left.every(Boolean) && left[0][1] === left[1][1] && left[2][1] === left[3][1] && left[2][1] > left[0][1]
+      && left[1][0] > left[0][0] && left[3][0] > left[2][0];
+    const shape = four.map((r) => (r ? r.join(',') : 'missing')).join(' | ');
+    if (column && grid) ok(S('column'), `on a ${got?.w} × ${got?.h} canvas PLTR, RKLB, MSTR, ORCL stack in one column, each wider than tall (${shape}); MSFT/NVDA over SPCX/AMZN stay a 2×2`);
+    else fail(S('column'), `on a ${got?.w} × ${got?.h} canvas the four read ${shape}; the left four ${left.map((r) => (r ? r.join(',') : 'missing')).join(' | ')}`);
+    if (vp.name === 'desktop') {
+      const want = [[294.5, 1.5, 234, 113], [294.5, 117.5, 234, 107], [294.5, 227.5, 234, 107], [294.5, 337.5, 234, 93]];
+      if (got?.w === 530 && got.h === 810 && JSON.stringify(four) === JSON.stringify(want)) ok(S('desktop-rects'), `the column at x 293, 237 wide, 116 / 110 / 110 / 96 tall, as the unit test pins it`);
+      else fail(S('desktop-rects'), `canvas ${got?.w} × ${got?.h}, the four ${JSON.stringify(four)}; wanted 530 × 810 and ${JSON.stringify(want)}`);
+    }
+    await shot(page, `heatmap-shape-${vp.name}`);
+    await ctx.close();
+    loadOverride = null;
+    EDGE_QUOTES = {};
   }
 
   for (const vp of viewports('main')) {
