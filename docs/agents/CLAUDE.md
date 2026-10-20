@@ -376,8 +376,10 @@ that follow from that evidence, in short:
   stay armed); `global_pause` cancels everything. From its first real
   order it is also a row of LIVE (`quotesLiveRow`, 2026-09-26): its
   real-money book from its own fills, in LIVE's totals. PR5's paper test
-  still decides PR5 on 2026-10-21. **Two switches, both 'off' until Davies
-  says go** (`0131`, 2026-10-18, Davies: "…会的话就加上，然后加上周末的挂单，一定验证好没问题再推上实盘部署"):
+  still decides PR5 on 2026-10-21. **Two switches, 'off' by default and
+  turned only on Davies' word; since 2026-10-18 21:06 UTC `take_mode` is
+  'shadow' and `weekend_mode` 'live' (ledger item 4), and `weekend_mode`
+  turns 'live' only outside a closure** (`0131`, 2026-10-18, Davies: "…会的话就加上，然后加上周末的挂单，一定验证好没问题再推上实盘部署"):
   `take_mode` (variant-2's taker entry) and `weekend_mode` (PR5-W's quoting
   inside FX closures, from a replica copied off PR5's engine before each,
   `agents/quotes_live_weekend.ts`), each 'off', 'shadow' (a `take_shadow` /

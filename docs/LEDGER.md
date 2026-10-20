@@ -72,6 +72,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    `update public.pm_lp_config set liquidate_at = null where id = 1;` (Davies' call, PMPOST's proposal).
    **The 10-16 01:00 seven-day read (`lp_readout_a18.sql`) is not recorded as run** (no result file, no history line): run
    it as written, saying it cannot change anything now, or Davies withdraws it and the 14-day one by an addendum.
+   Davies, 2026-10-20 (Portfolio Project group): live-prep's wind-up (`liquidate_at`) is left as it is for now.
 
 0a‴. **Q2 CLOSED, close-only, 2026-10-15 00:08 UTC** (Davies: "看一下最新的rewards payout，还不行的话就关了然后只卖出"). 10-14 paid
    $[•] on formula $[•] (R 0.71); since the restart rewards+rebates $[•] over 718 filled shares = 0.61 c a share, under
@@ -98,7 +99,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    pushed, `agents` deployed 15:27 UTC 10-15). (3) **`origin/lp-skew-ft`
    (Grok, 10-11) must not be merged:** its `0117_lpskew.sql` collides with the applied `0117_cb_minute_extremes_repair.sql`,
    its pins hold Addendum 18's `pm_live.ts`/`pm_lp.ts` bytes, its base arm is the S2 that Q2 replaced and its window
-   (10-12 → 10-19) has passed unrun; close it (deleting the branch is his). (4) **SPCX: closed** (Davies,
+   (10-12 → 10-19) has passed unrun; close it. Davies, 2026-10-20 (Portfolio Project group): delete the remote branch
+   `lp-skew-ft` (approved, not yet done; `audit-2026-10-14` and `hopeful-planck-acdq5g` not approved). (4) **SPCX: closed** (Davies,
    10-15: the Trading 212 and board share counts of SPCX, RKLB and HOOD are fine; [•] elsewhere plus T212's [•]).
 
 0b. **Every PAPER Reward quotes test is off (Davies, 2026-10-13: "目前paper testing里的reward quotes全关了吧？感觉都不赚钱没什么
@@ -225,7 +227,10 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    `filled_base` in whole `base_step`s, `fromAccount`, the coin's balance against the book); after a sell, the book
    flat. Report a live order, a fill, an order `pending` over 2 minutes, a missing decision, a live-row error or a
    failed tick. Rows, caps, order path: `docs/agents/CLAUDE.md`, `docs/agents/go-live.md`, reference §3.31 and §4
-   items 32–34.
+   items 32–34. **Read `ops_errors` itself, not the box** (audit 2026-10-20): since `7ed60689` the box treats the tick's
+   rows (`agents.tick`, not a live kind in `ops-error/noise.ts`) that read transient as noise until 15 minutes in a row,
+   "trend-4h-live|…: revx answered 500 … outcome unknown; … stays pending" included. A fix (live-row lines as live
+   kinds; persistence by each kind's own cadence) changes `ops-error` and waits for Davies.
 
 4. **PR5 (GBP stablecoin quotes): live executor LIVE since 2026-10-01 16:29:53 UTC at £10 a rung; the paper test decides
    PR5 on 2026-10-21** (spec `reviews/2026-09-23-pr5-paper-test-spec.md`, six conditions; wake
@@ -273,12 +278,25 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      weekend paper row is drafted, NOT frozen (`reviews/2026-10-18-revx-weekend-prereg.md`): Davies' word to build it, deploy by
      10-23 for four weekends, read beside PR5-W on 11-25. PR5-W's result should name this review (it replayed PR5-W's rule on
      its first forward weekends).
-   - **LIVE's take and weekend switches, both 'shadow' since 10-18 05:17** (`0131`; Davies 10-18 "…会的话就加上，然后加上周末的挂单，
+   - **LIVE's take switch 'shadow' since 10-18 05:17, weekend switch 'live' since 21:06:04** (`0131`; Davies 10-18 "…会的话就加上，然后加上周末的挂单，
      一定验证好没问题再推上实盘部署"). Plan and go statements: the live design's addendum of 10-18. Weekend shadow read 10-18 20:20:
      all eight criteria pass (the addendum's log). 'live' (Davies 10-18: "没问题的话就直接live也行") set 20:28:05, back
      to 'shadow' 20:28:43: inside a closure 'live' acts at once on the replica, which was `late`, and 11 £10 entries went out at
      20:28:27, all cancelled by 20:29:26 with 0 filled. Re-set to 'live' at 21:06:04, outside the closure (PR5's
      minute 21:04); first trading Fri 10-23 21:00. Take shadow: read after five weekdays (from 10-19).
+     **Audit 2026-10-19:** the read's eight criteria are not the addendum's step 2: its "`late` is false" was dropped (the
+     replica was late), variant-3 was not compared (no orders before 10-23), and 900 of the closure's 2,880 minutes were
+     read. The executor never reads `late`; only the rule "set 'live' outside a closure" keeps a late copy from trading.
+     Pinned since (tests only): no weekend entry unless the entry book is live, no weekend source outside a closure, no
+     take shadow when not `allowed`. **Davies, 2026-10-20 (Portfolio Project group): the weekend stays 'live', and the
+     take read counts the weekend** (10-23's closure gives the take shadow fair inputs; its `take_shadow` events count).
+     **Revolut X's outage of 10-20** (reference §4 item 35, archived history 16:22 and 17:45): no stuck order filled; 7229
+     and 7230 settled `rejected` by the main session on Davies' word; since `e1439f32` the errors box hears a live fault once,
+     hourly and on recovery, and an order shown nowhere for an hour is parked (still pending, looked for every 15 min).
+     Audit 2026-10-20: a live fault the executor now writes hourly that reads transient without a state word (the
+     dead-man beat or `agent_risk` unreadable, balances unreadable, a lease claim timed out) never reaches 15 rows in a
+     row, so the box never shows it; neither does `agents.quotes_weekend` failing every other minute. Rungs share a
+     fault's key (digits dropped), and one-time lines get a "recovered" five minutes on. Plan only (redeploys).
    - **The review of 2026-10-09** (`reviews/2026-10-09-stablecoin-quotes-review.md`, not blind). **F1 built on Davies'
      word** (10-09: a buy-back at the venue's £0.10 minimum buys what its whole penny buys, LIVE and every twin; the twins'
      deviation 3, p50's deviation 2, TAKE's addendum 2, the live design's addendum). After its deploy: the next LIVE or
@@ -371,7 +389,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
 9. **Supabase, after the tests:**
    - After PR5's verdict (10-21): `quotes.ts` re-upserts its inputs every minute (`agent_quote_inputs`); write only new
      rows then. RW's tables (134 MB) stay past RW's verdict: `mid_audit.sql` reads `pm_rw_selection` on or after 10-23 and POOLAGE
-     would read `pm_rw_minutes`; dropping them is Davies' call after 10-23. `pm_view_books`
+     would read `pm_rw_minutes`; Davies, 2026-10-20: drop them after RW-C's 10-23 verdict. `pm_view_books`
      grows ~12 MB a day until its study. Since `0101` (2026-10-08) the order paths' dry-run record keeps 14 days (from
      10-15) and `db-size-watch` reports past 4 GB. Still read whole each minute, for a later change: the recorder's
      market list and the twins' filled orders (frozen with TAKE to 11-02). Davies' call: the instance (Micro, 1 GB; the
@@ -474,7 +492,10 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    (`0132`, history 2026-10-18 05:16):** `cb_print_minutes` keeps the prints 40 days; R2–R4 no change. **After `0132` applies:**
    `select count(*), min(minute), max(minute) from cb_print_minutes` (rows from 2026-10-08/09, the newest within ~12 min), the
    `cb-print-minutes-build` runs in `cron.job_run_details` succeeding every 10 min, and
-   `backtests/cbbooks/sql/verify_print_minutes.sql` with its stored-table swap returning the MANIFEST's five md5s. Note: `cb_trades.side` is the aggressor's (the recorder flips Coinbase's maker side).
+   `backtests/cbbooks/sql/verify_print_minutes.sql` with its stored-table swap returning the MANIFEST's five md5s. **Read
+   2026-10-20 ~02:00 UTC by Grok Bot, outside the repository (reported in the Portfolio Project group; not re-checked by
+   the 10-20 audit, which has no database): all three pass, 46,043 rows, `cb-print-minutes-build` 266 of 266 runs
+   succeeded, the five md5s equal the MANIFEST's.** Note: `cb_trades.side` is the aggressor's (the recorder flips Coinbase's maker side).
 
 14. **IG verification: S1a passes** (Davies, 2026-10-15; spec `backtests/ig_deepdive/SPEC-for-verification.md`, review
    `reviews/2026-10-15-ig-verification.md` §9). The `ig` function and `0122` are live (demo, read-only). S1a on 50 of 51
@@ -495,6 +516,11 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    all of 10-18 (~75 % ok; the 20:00 UTC Sunday open caught, 19:59-20:01 ok). Fifth fix (`dc74dca2`, live ~20:30
    UTC): keep the session; changed nothing, every cron call is a fresh worker. Sixth fix (`ab2e8f3d`, live 21:20
    UTC): an 18 s re-login wait; changed nothing (~75 % of runs ok), and the recorder stays so (harmless, runs ~34 s).
+   Audit 2026-10-19: a re-login that itself fails let the next account's switch log in again (five logins a run on a fake
+   IG), and nothing bounded a run (77 s on a fake that hangs, against the call's 55 s); an ok run leaves its session
+   logged in. **PR #244** (Muse; a failed re-login ends the run's logins, a 50 s run deadline with the log-out allowed
+   to 55 s) fixes both; Davies, 2026-10-20: it merges on his nod when `ig` is redeployed anyway (it last deployed 10-20
+   16:44 UTC with `7ed60689`'s reporting rule, so merging it is now itself that redeploy).
    **Davies, 10-19: "都按你推荐的来"**: S1b's usable weekend is now judged by quote coverage, Deviation 1
    (`backtests/ig_deepdive/DEVIATION-1-S1b-coverage.md`, reading `sql/s1b_coverage.sql`; the spec is unchanged); the
    session table (option A) is dropped, not built. Weekend 1 of 12 (10-18/19): USABLE, final 1,515 of 1,515
@@ -543,6 +569,10 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    - **Zero trades, reviewed 10-20** (`reviews/2026-10-20-grokpm-zero-trades.md`): no rule or server limit was the problem; looser
      bars lost on every resolved near miss. **D7 agreed 10-20 ("同意")**: shadow forecasts, no rule change (prereg §9 D7;
      the review's §7 is the message, sent via Davies and posted as C-003 in the desk ledger). The end reading adds their Brier.
+     Audit 2026-10-20: B10 and B8 lost every resolved case (5 trades, one Alberta loss on a count not yet official); B5's
+     six held one win, and one of the six A confirmations sat at 0.934/0.979 (the review's §9 lists the wording).
+     Grok answered C-003 at 16:58 UTC: D7's rows from its next wake (desk ledger). **PR #245** (Muse, the Kelly cap cumulative by market) carries
+     its own prereg deviation, approved by Claude on Davies' delegation; it is **D8**, D7 being the shadow forecasts.
    - **Automatic redemption (D6, `0128`, `grokpm/redeem.ts`; Davies: "加上吧 全部都自动化掉")**: hourly, one gasless relayed
      transaction for up to five of the shared account's redeemable markets (pUSD back; losing tokens cleared), a dry run
      while `redeem_enabled` is false (its plan in `grokpm_exec_state.redeem_state`). **Davies does:** polymarket.com →
@@ -556,7 +586,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      检查最新动态"): `GROKPM_LEDGER.md`, alone on the branch `grokpm-ledger` (no CI, no deploy; never merged into `main`).
      Grok reads it every wake, answers Claude's requests there and pushes only to that branch. **Every session that touches
      GROKPM reads it first** (`git fetch origin grokpm-ledger && git show origin/grokpm-ledger:GROKPM_LEDGER.md`), answers
-     "Grok → Claude", and keeps it under 10 KB. A daily check (trigger `trig_0165DPcrxXo6NhdDZdjDsmZ8`, 23:45 London) reads it and the record.
+     "Grok → Claude", and keeps it under 10 KB. Its introduction still says "D1–D5" twice (D1–D7 now); Davies, 2026-10-20:
+     left for now. A daily check (trigger `trig_0165DPcrxXo6NhdDZdjDsmZ8`, 23:45 London) reads it and the record.
 16. **Target price page (Davies, 2026-10-21; `targets` function, `0134`, `src/tables/target_price*`).** After the deploy and
    0134: one `analyst_targets` row a holding within ~16 min (the call waits 15 min, then runs the newest slot owed). Bitcoin's
    targets are a hand table **as of 2026-10-21** (`targets/strategists.ts`): a session refreshes it when a bank publishes a new
@@ -727,3 +758,15 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   643-645 s of CPU, load 14-17; `--quick` 65 s (was 158-166 s). `bin/edge-test.mjs` (processes, not `--parallel`:
   the tests set SB_REGION and venue keys); phone `surfaces` beside its `main`; `sh bin/gates.sh --run '<cmd>'` puts a
   check run by hand under the lock. Every check kept; CI unchanged.
+
+### [2026-10-20 19:25 UTC] Platform: Claude Code via Grok Bot | Model: claude-opus-5-5
+- **Audits of 2026-10-16 → 10-20, landed together** (read-only, no database; the 10-16 → 10-19 audits' history lines are
+  this one). `7e797ec1..5074c6b0` (33 commits): authors, headers, gate 1 and CI hold, the archive moves word for word,
+  migrations to `0133` (applied 10-20 16:26 UTC; next `0134`). Three of 10-20's headers (17:20, 17:45, 18:10) are 60-84
+  min later than their commits. Item 4: the weekend read left out step 2's `late`; Davies, 10-20, keeps the weekend 'live'
+  and counts it in the take read. GROKPM D7 adds only §9 (sha chain 902fdb0a → 4db2b03a); #245's deviation is D8. The
+  zero-trades review reproduces offline; its wording is corrected in its §9. Pins (tests only, each failing its
+  mutation): LIVE's weekend gates and take shadow, IG's 18 s wiring, the switch after a re-login, the errors-box
+  report of a second failed run, the live writers' exact lines in the noise policy, and a parked order adopted and
+  withdrawn once the venue shows it. The noise policy hides some live lines (items 3 and 4; plan only). Carried: 0a⁗, 0c, items 9, 13 (0132's check as Grok Bot read it), 14, 15 and D3 in the
+  docs; the BLS dates, Davies' own GROKPM-account position, the redeem guard's pin; CBBOOKS-1's hash.

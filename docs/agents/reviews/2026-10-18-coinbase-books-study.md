@@ -4,7 +4,7 @@ Davies, 2026-10-18: "cbbooks留着并利用起来，和revolut x的订单簿一�
 strategy research, as the Revolut X books were). This is the first study that reads `cb_book_levels`.
 
 **Not blind, and no reading.** Every record was read for research (no no-peek rule since 2026-10-04). Its rules, the date split,
-the costs and every bar were frozen in `backtests/cbbooks/params.json` (commit `836c6922`, sha256 `8866a1f7…eff1`) before any pull
+the costs and every bar were frozen in `backtests/cbbooks/params.json` (commit `158971e9`, sha256 `8866a1f7…eff1`; audit 2026-10-18: `836c6922` was that commit before a rebase, and `MANIFEST.json` and `scripts/manifest.py` still name it, left as they are so their hashes stand) before any pull
 was analysed; what was read before freezing is listed there (counts, schemas, sample rows, and the 2026-10-18 stablecoin review,
 which quotes Coinbase's weekend touch). No pre-registered reading was run or pre-empted: "with Euros" (11-08), "with Euros - 2"
 (11-10), QUEUE (11-02) and PR5-W (11-25) run as written. Nothing was changed in production; no order was placed or cancelled; no

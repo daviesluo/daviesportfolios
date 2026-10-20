@@ -261,3 +261,16 @@ Public reads:
 All of them keyless GETs.
 
 **Not blind:** every row was read as it stood; no figure here changes the test.
+
+## 9. Audit note (2026-10-20 evening, read-only; nothing above is changed)
+
+Offline, the committed scripts reproduce `results/near_misses.txt` and both base-rate files byte for byte, the MANIFEST's
+nine sha256 hold, and the headline figures stand: 3 of 9 won, Brier 0.1359 against 0.1059, B10 −7.49 on 2, B8 −10.59 on 3.
+Where the text says more than its tables:
+- "Looser bars lost on every resolved case" holds for B10 and B8 (5 trades, all lost); B5's six held one win (Alberta
+  40-60, `1*`), and the Alberta 20-40 loss in B10 and B8 rests on a count not official until 29 Oct (`0*`).
+- §1's "6 of 6 sat at 0.96 to 0.9995" against §2's Vancouver (Fry) at 0.934/0.979; and §3 lists the A earthquake check at
+  0.90, §2 at about 0.985.
+- §1's "within 9 to 84 minutes" is the four losers' (the script's header); Rio Grande do Norte (open) took 2.5 h (§3).
+- The 19 near-miss rows, the outcomes and the server counts are copied by hand from production reads (§8); no export of
+  them is committed, so they cannot be re-derived offline.
