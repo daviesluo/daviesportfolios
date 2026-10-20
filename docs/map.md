@@ -22,7 +22,7 @@ How the less obvious parts work, and why they are built the way they are.
   only its public market data, which it serves to any address): 4-hour trend following
   on BTC, ETH, SOL, AVAX and SUI (the candidate for real money), its
   1-hour variant on BTC, ETH and SOL (a 30-day momentum row ran on paper
-  until it retired by `0129`, 2026-10-18). The loop
+  until `0129` retired it, 2026-10-18, and `0133` deleted it, 2026-10-20). The loop
   runs every minute: quotes, order management, a protective floor under
   cost checked against the bid, and the state on the forming bar (shown
   live on the page); entries wait for closed bars. TypeSafe's **Jev
@@ -837,6 +837,7 @@ before touching migration state.
 | `0130_quote_twin_take50wk.sql` | Renames rule D's twin "Stablecoin quotes variant-4" and adds `take50wk`, "Stablecoin quotes variant-3": variant-2 with PR5-W's weekend rule from 2026-10-23 21:00 UTC, starting flat on 2026-10-19, as a row and its tables. |
 | `0131_quote_live_take_weekend.sql` | Gives the live account two switches, `take_mode` and `weekend_mode`, each 'off' by default, 'shadow' (record what it would send) or 'live', the shadow events' kinds, and the weekend replica's one-row table. |
 | `0132_cb_print_minutes.sql` | Coinbase's prints kept 40 days as `cb_print_minutes` (summed by second, price and aggressor side, a row per book and minute), rebuilt from `cb_trades` by `cb_print_minutes_build` every 10 minutes over the last six hours and backfilled from what `cb_trades` held; RLS on, no grant. |
+| `0133_delete_momentum_1d.sql` | Deletes the retired `momentum-1d` paper row with its orders, decisions, observations and maker probes, ending its wind-down; its rulebook and backtests stay. |
 | `0096_pm_rw_x_tb1_arms.sql` | Lets the variants' day tables, RW's and RW-C's, take TB1's two arms on x1 (tb1-skip, tb1-back). |
 | `0086_quote_live_deadman.sql` | Adds the kind `deadman` to `agent_quote_live_events`, for the row the monitor's dead-man switch writes when it cancels PR5's resting orders. |
 | `0087_quote_twins.sql` | The realistic twins' tables (each the live executor's four, a replica's and a simulated account's), their config rows and leases, and the one call that runs them. |

@@ -202,8 +202,9 @@ that follow from that evidence, in short:
   capital to a row that earns it makes its orders bigger. The gate still
   refuses an entry more than 10 % over its slot (`ORDER_SLOT_TOLERANCE`,
   reference §4.26).
-- **`momentum-1d` retired by `0129` (2026-10-18; Davies: "momentum-1d可以删了")**: paused in place, its record kept; it
-  winds down what it holds and then leaves TESTING. Three rows run from then: the live row, `trend-4h` and `trend-1h`.
+- **`momentum-1d` retired by `0129` (2026-10-18; Davies: "momentum-1d可以删了") and deleted by `0133`** (2026-10-20:
+  "这个策略直接删了，不用加这个"): its row, orders, decisions, observations and maker probes are gone, its paper position
+  with them; the rulebook and its backtests stay. Three rows run from then: the live row, `trend-4h` and `trend-1h`.
 - **FOUR ROWS run since migration `0065` (2026-09-27)**: the live row and
   the three Revolut X paper rows `0046` left (§3.17, §4.22): `trend-4h`
   (the live row's same-venue control), `momentum-1d` and `trend-1h` (kept
