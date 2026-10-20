@@ -263,6 +263,11 @@ export async function runHistory(o: {
 
 export const QUOTES_MAX_REQUESTS = 18;
 export const QUOTES_GAP_MS = 300;
+/** One opening login and at most one re-login in a recorder run. */
+export const QUOTES_MAX_LOGINS = 2;
+/** Ordinary IG work stops at 50 s; the final log-out may use the edge call's remaining margin to 55 s. */
+export const QUOTES_DEADLINE_MS = 50_000;
+export const QUOTES_LOGOUT_DEADLINE_MS = 55_000;
 /**
  * Each run logs in afresh, replaces tokens IG calls invalid at most once, and stops at the next such answer; it waits
  * after a switch. From 10-16 20:52 to 10-18 04:07 UTC two runs in three failed with 401 account-token-invalid: every
@@ -412,6 +417,7 @@ export async function runQuotes(o: {
   if (!ids.length) return { result: { action: "quotes", skipped: "outside the recorder's windows" }, session: o.session };
   // The session the last clean run kept, if any (QUOTES_KEEP_SESSION); otherwise this run logs in.
   const client = o.makeClient(QUOTES_KEEP_SESSION ? o.session : null);
+  client.beginRun(QUOTES_DEADLINE_MS, QUOTES_LOGOUT_DEADLINE_MS);
   const errors: string[] = [];
   const samples: QuoteSample[] = [];
   const perAccount: Partial<Record<AccountKind, { snapshots: number; errors: string[] }>> = {};
