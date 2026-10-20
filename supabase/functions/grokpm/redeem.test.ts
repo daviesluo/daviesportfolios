@@ -197,6 +197,19 @@ Deno.test("enabled but not sendable: no Relayer key, a key of another address, o
   }
 });
 
+Deno.test("in flight holds the whole run: a market newly redeemable while another's attempt is unsettled waits, so no second transaction races the first (audit 2026-10-17)", async () => {
+  const s = setup({ enabled: true });
+  await runRedeem(s.deps());
+  assertEquals(writes(s.net).length, 1);
+  // A third market resolves within the hour; the first transaction is still not final.
+  const C_NEW = cond(0xa3);
+  s.net.positions.push(pos(C_NEW, "701", { size: 2 }));
+  s.net.balances.set("701", 2_000_000n);
+  s.at(T0 + 20e3);
+  const r = await runRedeem(s.deps());
+  assertEquals([r.sent, r.inFlight, r.plan.map((x) => x.cond), writes(s.net).length, s.db.tables.grokpm_redeems.length], [false, 2, [C_NEW], 1, 2]);
+});
+
 Deno.test("a reverted or refused transaction is failed with its reason; one never answered is expired after two hours", async () => {
   const s = setup({ enabled: true });
   await runRedeem(s.deps());
