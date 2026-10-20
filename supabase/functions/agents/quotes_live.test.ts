@@ -1652,3 +1652,34 @@ Deno.test("PR5's golden 24-hour-stop window through the live engine: the paper r
     assert(opened != null && Date.parse(String(s.ts)) - opened >= DAY, `stop ${s.id} at ${s.ts}, fill at ${opened && iso(opened)}`);
   }
 });
+
+// Audit 2026-10-20: what a parked order does when the venue finally shows it (adopted on the next quarter hour, then
+// withdrawn by the kill switch that turn); without this, a parked order that never leaves `pending` passes the suite.
+Deno.test("live: a PARKED order the venue lists again is adopted on the next quarter hour and withdrawn by the kill switch that turn", async () => {
+  const w = makeWorld({ live: true, armed: true });
+  w.rx.loseReply = true;                                              // the venue takes the six entries; the replies are lost
+  await w.step(T0);
+  w.rx.loseReply = false;
+  const inner = w.rx.fetch;
+  let hidden = true;                                                  // the outage: the venue reads nothing back
+  w.rx.fetch = (input, init) => {
+    const p = new URL(String(input)).pathname;
+    if (hidden && (p === "/api/1.0/orders/active" || p === "/api/1.0/orders/historical")) return Promise.resolve(new Response("upstream", { status: 503 }));
+    return inner(input, init);
+  };
+  let m = 1;
+  for (; m <= 70; m++) await w.step(T0 + m * M);
+  assertEquals(w.orders().map((o) => o.state), Array(6).fill("pending"));
+  assertEquals([...w.rx.orders.values()].filter((o) => o.status === "new").length, 6);   // resting on the venue all along
+  hidden = false;
+  (w.mem.tables.agent_quote_live_config as Array<Record<string, unknown>>)[0].live_confirmed_at = null;   // the kill switch
+  // Off the quarter hour the parked orders are not looked for; the first quarter-hour turn adopts and withdraws them.
+  const quarter = (t: number) => Math.floor(t / M) % 15 === 0;
+  for (; !quarter(T0 + m * M + M + 30e3); m++) {
+    await w.step(T0 + m * M);
+    assertEquals(w.orders().filter((o) => o.state === "pending").length, 6);
+  }
+  await w.step(T0 + m * M);
+  assertEquals(w.orders().filter((o) => o.state === "pending").length, 0, JSON.stringify(w.orders().map((o) => o.state)));
+  assertEquals([...w.rx.orders.values()].filter((o) => o.status === "new").length, 0);    // nothing left resting on the venue
+});

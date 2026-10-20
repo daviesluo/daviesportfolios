@@ -927,3 +927,55 @@ Deno.test("audit 2026-10-19: a re-login is followed by a PUT /session to the wan
   assertEquals(JSON.parse(ig.calls[post + 1].body!).accountId, "Z6F18J");
   assert(QUOTES_FORCE_SWITCH_AFTER_LOGIN, "the recorder runs with the forced switch on");
 });
+
+// Audit 2026-10-20: 7ed60689 made the errors box hear of a failed run only when coverage is at risk. The two functions that
+// decide it are pinned, but every `runQuotes` test passes a `report` that does nothing, so `if (why)` at the call site could
+// become `if (false)` and leave every test green: no failed run would ever reach the box, and `reported` would stay false.
+
+Deno.test("audit 2026-10-20: a second failed run in a row reaches the errors box once, and its row says reported", async () => {
+  const ig = fakeIg({ accountTokenAlwaysInvalid: true });
+  const { rest, tables } = fakeRest();
+  await factsFor(rest, "sb");
+  await factsFor(rest, "cfd");
+  // Sunday 2026-10-18 17:00 UK (16:00 UTC): inside the windows, outside the ten minutes from Sunday's open.
+  let t = Date.UTC(2026, 9, 18, 16, 0, 0, 400);
+  const start = t;
+  // The run a minute before failed and was not reported (the first failure after a clean run is not); a clean one before it.
+  const prior = (id: number, minAgo: number, ok: boolean) => ({ id, ok, reported: false, started_at: new Date(start - minAgo * 60_000).toISOString() });
+  tables.ig_quote_runs.push(prior(901, 2, true), prior(902, 1, false));
+  const reports: [string, string, unknown][] = [];
+  const d = deps({
+    rest, fetchImpl: ig.impl, now: () => t, sleep: (ms) => { t += ms; return Promise.resolve(); },
+    report: (k, m, c) => { reports.push([k, m, c]); return Promise.resolve(); },
+  });
+  const r = await (await handle(req("quotes", { authorization: `Bearer ${ENV.CRON_SECRET}` }), d)).json();
+  assertEquals(r.ok, false);
+  assertEquals(reports.length, 1);
+  assertEquals(reports[0][0], "ig.quotes");
+  assert(reports[0][1].startsWith("coverage at risk: 2 failed runs in a row: "), reports[0][1]);
+  assert(/account-token-invalid/.test(reports[0][1]), reports[0][1]);
+  // The run is a row either way, and its row says it went to the box (the hourly rule reads that).
+  assertEquals(tables.ig_quote_runs.length, 3);
+  const row = tables.ig_quote_runs[2];
+  assertEquals([row.ok, row.reported], [false, true]);
+  assertClean([r, tables.ig_quote_runs, reports], "reported run");
+});
+
+Deno.test("audit 2026-10-20: a failed run after a clean one, away from Sunday's open, is not reported and its row says so", async () => {
+  const ig = fakeIg({ accountTokenAlwaysInvalid: true });
+  const { rest, tables } = fakeRest();
+  await factsFor(rest, "sb");
+  await factsFor(rest, "cfd");
+  let t = Date.UTC(2026, 9, 18, 16, 0, 0, 400);
+  tables.ig_quote_runs.push({ id: 901, ok: true, reported: false, started_at: new Date(t - 60_000).toISOString() });
+  const reports: unknown[] = [];
+  const d = deps({
+    rest, fetchImpl: ig.impl, now: () => t, sleep: (ms) => { t += ms; return Promise.resolve(); },
+    report: (k, m, c) => { reports.push([k, m, c]); return Promise.resolve(); },
+  });
+  const r = await (await handle(req("quotes", { authorization: `Bearer ${ENV.CRON_SECRET}` }), d)).json();
+  assertEquals(r.ok, false);
+  assertEquals(reports.length, 0);
+  assertEquals(tables.ig_quote_runs.length, 2);
+  assertEquals([tables.ig_quote_runs[1].ok, tables.ig_quote_runs[1].reported], [false, false]);
+});

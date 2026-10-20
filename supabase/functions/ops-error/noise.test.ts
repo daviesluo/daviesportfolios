@@ -101,3 +101,26 @@ Deno.test("a single failed recorder run, or a lone transient, is hidden; the lin
   assertEquals([b.shownRows, b.hiddenRows], [2, 2]);
   assertEquals(boxLines([], T0), { lines: [], shownRows: 0, hiddenRows: 0 });
 });
+
+// Audit 2026-10-20: the exact lines the live writers emit (quotes_live.ts placement and parking, liveAlerts' "[still, …]",
+// the dead-man and loss-stop lines, monitor/deadman.ts, grokpm/index.ts), where the tests above use paraphrases: without
+// these, a LIVE_STATE that drops "pending" hides "placement … has no reply …; left pending" and nothing notices.
+const CID = "80bed3cd-0024-40a1-b57f-b45b132cdc5f";
+
+Deno.test("classify: every live-order line PR5's executor writes is shown at once, in the words it writes them", () => {
+  const live = [
+    `USDT-GBP|bid|0.001: the venue answered 500 Something went wrong: outcome unknown; ${CID} stays pending for the next turn to reconcile`,
+    `USDT-GBP|bid|0.001: the venue answered 502 Bad Gateway: outcome unknown; ${CID} stays pending for the next turn to reconcile`,
+    `USDT-GBP|bid|0.001: the venue answered 503 CIRCUIT_BREAKER_OPEN_ERROR: outcome unknown; ${CID} stays pending for the next turn to reconcile`,
+    `USDT-GBP|bid|0.001: placement of ${CID} has no reply (Signal timed out.); left pending for the next turn to reconcile by client id`,
+    `USDT-GBP|ask|0.001: pending buy 0.14709 USDT/GBP (${CID}) is neither among the venue's active orders nor in its history 61 min on — outcome unknown; it stays pending for a person to settle, and the rung places nothing [still, since 2026-10-20T06:04:00.000Z, 61 turns]`,
+    `USDT-GBP|bid|0.001: active orders unreadable (503 CIRCUIT_BREAKER_OPEN_ERROR); ${CID} stays pending`,
+    "DEAD-MAN SWITCH NOT RUNNING: the dead-man switch has not run since 2026-10-20 05:50 UTC: no entries until it does; exits and the 24-hour stops stay armed. Check the monitor Worker (workers/monitor).",
+    "LOSS STOP: today's P&L -0.51 GBP is past −0.5; no live entries until the next UTC day; exits and stops stay armed",
+  ];
+  for (const m of live) assertEquals(classify({ kind: "agents.quotes_live", message: m }).noise, false, m);
+  assertEquals(classify({ kind: "monitor.deadman", message: "held: revx balances → 503 Service Unavailable" }).noise, false);
+  assertEquals(classify({ kind: "grokpm.total_stop", message: "GROKPM's total stop was reached at 2026-10-20T10:00:00Z (book 80.00): close-only to the end, and the test ends as a FAIL" }).noise, false);
+  // One such row, alone in the window, is a line of its own.
+  assertEquals(boxLines([row("agents.quotes_live", live[3], 0)], T0 + 60_000).lines.length, 1);
+});
