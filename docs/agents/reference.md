@@ -3967,7 +3967,9 @@ the venue screen (`reviews/2026-10-09-stablecoin-venues.md`) put Coinbase first.
   `fairU` is null: `stepMinute` quotes nothing new, an exit already resting stays, one due is placed at the first lit minute, the 24-hour
   stop runs, and the stored minute's `fair` is null so `replay.py` reproduces it. Priced on two 12-month spans (`reviews/2026-10-15-coinbase-fast-move.md`,
   `2026-10-15-coinbase-blackout.md`): +£25.96 and +£7.89 a year on the screen's £2,400. The Fed's, ECB's and BoE's dates are from their own
-  pages; the BLS's (CPI, NFP) are recalled (bls.gov refused this machine) and checked against the market's move.
+  pages; the BLS's (CPI, NFP) are recalled (bls.gov refused this machine) and checked against the market's move. The four
+  forward BLS dates (CPI 11-10 and 12-10, NFP 11-06 and 12-04, 13:30 UTC) were checked on bls.gov's schedule pages on 2026-10-17
+  and agree.
 - **Then the paper engine** runs PR5's `stepMinute`, called unchanged (PR5-W's freeze line). Inputs:
   - the stored prints;
   - PR5's stored GBP/USD and USD-book hourly closes (`agent_quote_inputs`);

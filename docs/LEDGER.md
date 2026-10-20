@@ -444,6 +444,11 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    `reviews/2026-10-10-coinbase-paper-prereg.md` (frozen; Deviation 1 in §7): 28 UTC days 2026-10-11 00:00 → 11-08
    00:00, read on 11-08 from 00:30 with `backtests/cbpaper/scripts/replay.py` on the export Deviation 1 names (a wake to
    set). The budget split is `reviews/2026-10-10-coinbase-vs-revolutx.md`.
+   **The blackout's BLS dates are verified** (2026-10-17 ~19:10 UTC, https://www.bls.gov/schedule/news_release/cpi.htm and
+   https://www.bls.gov/schedule/news_release/empsit.htm): CPI 11-10 and 12-10, Employment Situation 11-06 and 12-04, each
+   08:30 ET, 13:30 UTC once US summer time ends 11-01; `agents/cb_releases.ts` holds the same four instants. Its comments
+   still say recalled/UNCONFIRMED: left alone, since changing them redeploys `agents` and `src/cb_blackout.test.js:42` pins
+   the word (change both together with the next `agents` change).
 
 12b. **"Stablecoin quotes with Euros - 2" (the weekend variant; Davies, 2026-10-13: "周末变体写预注册然后上线paper trading 策略with
    Euros - 2"): pre-registered and built** (`reviews/2026-10-13-coinbase-weekend-prereg.md`, migration `0118`, `agents/cb_hold.ts`,
@@ -531,7 +536,10 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      `update public.grokpm_config set dry_run = true, armed_at = null where id = 1;`.
    - **The reading.** 28 days from the start day, or 40 resolved positions, or the −$30 stop; continue only if P&L > 0 AND
      Brier_agent < Brier_market.
-   - **Never trade by hand in that account while GROKPM is armed.**
+   - **Never trade by hand in that account while GROKPM is armed.** Davies' own exception, 2026-10-17 ~03:45 UTC (desk
+     ledger; that log line was trimmed 10-20, `ebd69f78`): a position he bought by hand in the shared wallet (CoreWeave
+     bankruptcy, NO, resolves 2027) is not the agent's; its book and record exclude it (agent cash 100 then), and D6 redeems
+     it with the rest once it resolves.
    - **Zero trades, reviewed 10-20** (`reviews/2026-10-20-grokpm-zero-trades.md`): no rule or server limit was the problem; looser
      bars lost on every resolved near miss. **D7 agreed 10-20 ("同意")**: shadow forecasts, no rule change (prereg §9 D7;
      the review's §7 is the message, sent via Davies and posted as C-003 in the desk ledger). The end reading adds their Brier.

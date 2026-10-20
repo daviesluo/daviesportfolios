@@ -169,3 +169,12 @@ null from one minute before to five after, from the same `CB_RELEASES`, GBP kind
 * **Revolut X**: the tape is PR5's pre-registered one to 2026-09-23 and the paper engine's own record after; the live executor's 12:30 orders were read for 12:30 to 12:39 only (40 rows), not the whole day.
 * That the engine **behaves** this way in production is proved on worlds (Deno) and not yet on live minutes: the first blackout is the FOMC at 2026-10-28 17:59 UTC, and the first thing to read after it is that
   `cb_quote_minutes` and `cb_hold_minutes` have `fair` null from 17:59 to 18:05 and that no entry fill is in them.
+
+## 5. Addendum, 2026-10-17: the forward BLS dates checked
+
+bls.gov's own schedule pages answered on 2026-10-17 (~19:10 UTC; https://www.bls.gov/schedule/news_release/cpi.htm and
+https://www.bls.gov/schedule/news_release/empsit.htm): CPI for October 2026 on Nov. 10, 2026 and for November on Dec. 10,
+2026; the Employment Situation for October on Nov. 06, 2026 and for November on Dec. 04, 2026; each 08:30 AM ET, which is
+13:30 UTC after US summer time ends on 11-01. They agree with `cb_releases.ts` date for date and minute for minute, so the
+UNCONFIRMED marks of §1.2 and §4 no longer hold for these four. The module's comments are left as they are until the next
+change to `agents` (`src/cb_blackout.test.js` pins the word). Nothing in the blackout changes.
