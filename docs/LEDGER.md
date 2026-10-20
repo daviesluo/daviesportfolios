@@ -517,8 +517,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      Brier_agent < Brier_market.
    - **Never trade by hand in that account while GROKPM is armed.**
    - **Zero trades, reviewed 10-20** (`reviews/2026-10-20-grokpm-zero-trades.md`): no rule or server limit was the problem; looser
-     bars lost on every resolved near miss. Davies decides D7 (shadow forecasts, no rule change; §6–§7 hold its text and the
-     message for Grok). Nothing changed until he says so.
+     bars lost on every resolved near miss. **D7 agreed 10-20 ("同意")**: shadow forecasts, no rule change (prereg §9 D7;
+     the review's §7 is the message, sent via Davies and posted as C-003 in the desk ledger). The end reading adds their Brier.
    - **Automatic redemption (D6, `0128`, `grokpm/redeem.ts`; Davies: "加上吧 全部都自动化掉")**: hourly, one gasless relayed
      transaction for up to five of the shared account's redeemable markets (pUSD back; losing tokens cleared), a dry run
      while `redeem_enabled` is false (its plan in `grokpm_exec_state.redeem_state`). **Davies does:** polymarket.com →
@@ -655,6 +655,11 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20"; each oldest first.
+
+### [2026-10-20 18:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM Deviation D7 recorded** (Davies 10-20: "同意"): §9 of the prereg gains D7, shadow forecasts journalled on `no_action`
+  rows and a secondary Brier at the end; bars, caps, stops and §6's bar unchanged; sha pin in `src/grokpm_prereg.test.js`
+  moved. Message to Grok = the review's §7, also C-003 in `grokpm-ledger`.
 
 ### [2026-10-20 17:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **LIVE PR5: orders 7229 and 7230 settled `rejected` by the main session on Davies' word** (10-20, the page's "a live order needs a

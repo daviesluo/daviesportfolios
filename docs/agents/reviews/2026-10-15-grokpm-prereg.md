@@ -345,6 +345,16 @@ CLOB's history (a mid-like price per five minutes), not executable books.
   what it would redeem). A redemption writes no fill: the agent's book (§5, D2.3, D4) and the independent record (§4) count
   what they counted before, so nothing is counted twice. Nothing about the rules, the categories, the reading (§6), its bar
   or its end changes.
+- **D7 (2026-10-20, after the start; no migration; a reading added, no rule changed).** Davies, 2026-10-20: "同意", on the
+  zero-trades retrospective (`reviews/2026-10-20-grokpm-zero-trades.md`, §6.3). In 3.5 days the agent sent no order, and on
+  the 9 candidates that resolved its sub-threshold p scored worse than the market (Brier 0.136 against 0.106), so the bars
+  stay as frozen. Added: for every candidate it researches to a number, the agent journals a `no_action` decision with
+  `market_id`, `token_id` (the side it would buy), `p` (formed from its sources before it reads the price), `m` (the mid it
+  then reads), `category` (the one it tested) and `reason`, at most one a market per scan (the journal already accepts these
+  fields; no code changes). At the end, beside §6's frozen bar, a secondary reading compares these shadow forecasts with the
+  market's m by Brier on every one whose market resolved: each market counted once, at its first shadow forecast, with
+  §6.2's paired bootstrap. It is not a bar: continuing still needs §6's two conditions on real entries; it tells Davies
+  whether a later, looser test could be worth pre-registering. The message given to the agent is the review's §7.
 
 ## Appendix A: the journal API (paste into the prompt)
 
