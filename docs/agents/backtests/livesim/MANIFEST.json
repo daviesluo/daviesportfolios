@@ -3,12 +3,13 @@
  "read": "production, SELECT only, through the Supabase connector, 2026-10-21 19:5x UTC (sql/pull.sql), and ../pr5_review/data (PR5's prints, inputs, events and go-live books, pulled 19:05 UTC).",
  "run": [
   "python3 -I scripts/grab_text.py <saved connector reply of each statement of sql/pull.sql> data && gzip -n -9 data/*.txt",
-  "python3 -I scripts/build_inputs.py   # -> data/inputs.json.gz (derived, not committed)",
+  "python3 -I scripts/build_inputs.py   # -> data/inputs.json.gz (committed: the LIVE twin's backfill input, frozen by its pre-registration)",
   "npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env scripts/replay.ts base                                      # the twins' rule as it stands (~15 min)",
   "npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env scripts/replay.ts at '{\"fill\":{\"model\":\"at\",\"from\":\"2026-09-23T00:00:00Z\"}}'",
   "npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env scripts/replay.ts base_ops '' ops",
   "npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env scripts/replay.ts at_ops '{\"fill\":{\"model\":\"at\",\"from\":\"2026-09-23T00:00:00Z\"}}' ops   # the fixed simulation (~20 min)",
-  "python3 -I scripts/compare.py <name>; npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env scripts/trips.ts <name>; python3 -I scripts/fill_model.py"
+  "python3 -I scripts/compare.py <name>; npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env scripts/trips.ts <name>; python3 -I scripts/fill_model.py",
+  "npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env scripts/backfill_live.ts   # -> ../twins/live.json.gz, the LIVE twin's backfill (0136; built twice to the same bytes)"
  ],
  "findings": [
   "LIVE filled 502 maker orders: 169 with a print through their price, 317 with prints only AT it from the other side, 16 with neither (results/fill_model.json); the twins' rule 1 predicts 169 of them, the at-price rule 486.",
@@ -18,6 +19,10 @@
   {
    "path": "sql/pull.sql",
    "md5": "ab58901c9ae6fff8ef3ce0debaef23bc"
+  },
+  {
+   "path": "scripts/backfill_live.ts",
+   "md5": "8f9f6ab4de866f10d691da3b19d5c62d"
   },
   {
    "path": "scripts/build_inputs.py",
@@ -37,11 +42,19 @@
   },
   {
    "path": "scripts/replay.ts",
-   "md5": "0deba23c31e812e0671ccccf6c3b6c36"
+   "md5": "463b61a3aa0db9cf07ddcc14793fc062"
+  },
+  {
+   "path": "scripts/timing.py",
+   "md5": "75125039c2758d1bad4033b00ab19471"
   },
   {
    "path": "scripts/trips.ts",
-   "md5": "22f62109afb7c28eedc275e7e11aa6c1"
+   "md5": "66c53bacae621e6c7b34bd3824d25a96"
+  },
+  {
+   "path": "data/inputs.json.gz",
+   "md5": "5b0bc5687c68468246f8fc90dcee7a4e"
   },
   {
    "path": "data/live_events.txt.gz",
@@ -81,7 +94,7 @@
   },
   {
    "path": "results/trips_at_ops.json",
-   "md5": "2e458138b0e647ffd4b3f91f8c97ce87"
+   "md5": "f1828af69e4160e817f79c08f1c9b258"
   },
   {
    "path": "results/trips_base.json",

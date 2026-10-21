@@ -965,7 +965,12 @@ describe("the realistic twins as rows of TESTING (Davies, 2026-10-02: the live e
     expect([r.id, r.name, rowMoney(r).capital, r.venueId, r.mode]).toEqual([`${QUOTES_TWIN_ROW_PREFIX}take50wk`, 'Stablecoin quotes variant-3', 600, 'revx', 'paper']);
     expect(strategyNameParts(r.name)).toEqual({ head: 'Stablecoin quotes', qual: 'variant-3', twoLines: true });
     const names = quotesTwinRows({ quotesTwins: twinFixture.twins }).map((x) => x.name);
-    expect(names).toEqual(['Stablecoin quotes', 'Stablecoin quotes variant-1', 'Stablecoin quotes variant-2', 'Stablecoin quotes variant-3', 'Stablecoin quotes variant-4']);
+    expect(names).toEqual(['Stablecoin quotes', 'Stablecoin quotes LIVE twin', 'Stablecoin quotes variant-1', 'Stablecoin quotes variant-2', 'Stablecoin quotes variant-3', 'Stablecoin quotes variant-4']);
+  });
+  it('is "Stablecoin quotes LIVE twin" for the simulation that mirrors LIVE (live, 0136, 2026-10-21), on two lines, at LIVE\'s £120, right after the first', () => {
+    const r = /** @type {any} */ (quotesTwinRow(twin('live')));
+    expect([r.id, r.name, rowMoney(r).capital, r.venueId, r.mode]).toEqual([`${QUOTES_TWIN_ROW_PREFIX}live`, 'Stablecoin quotes LIVE twin', 120, 'revx', 'paper']);
+    expect(strategyNameParts(r.name)).toEqual({ head: 'Stablecoin quotes', qual: 'LIVE twin', twoLines: true });
   });
   it('is "Stablecoin quotes variant-1" for PR5\'s rule at £50 a rung (2026-10-03), on two lines, at its £600', () => {
     const r = /** @type {any} */ (quotesTwinRow(p50));

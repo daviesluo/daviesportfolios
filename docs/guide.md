@@ -292,6 +292,13 @@ places stay when the number is not whole.
   when its last turn is late or failed. On a phone the tables keep their
   main columns, sizes included. With values hidden, every amount, price
   and size is hidden too.
+- **Stablecoin quotes LIVE twin.** Right after it, since 21 Oct: the
+  simulation that mirrors the live account itself, at its own £120 (£10 a
+  rung), filled the way the live account is filled (also by trades at its
+  own price, not only through it). Its record from 1 Oct is the live
+  account's life replayed, its outages included; from 21 Oct it runs on
+  its own. It is there to be checked against the live account's realised
+  pounds, not as a strategy of its own.
 - **Stablecoin quotes variant-1.** Right after it, since 3 Oct: the same
   rule and the same quotes, on £600, £50 a rung, so that what the size of a
   rung changes can be read beside it. Its record starts with the quote

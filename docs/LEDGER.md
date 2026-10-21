@@ -233,7 +233,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    - **10-21 verdict (`reviews/2026-10-21-pr5-paper-test-review.md`): NOT a pass, condition 5 misses (714 orders on 10-01);
      1–4 hold. Davies 10-21: "A，引擎也继续运行，但要确保模拟的真实性和实盘策略完全一致，不一致的地方就直接改"** — LIVE stays at £10, the
      engine and minute record keep running. Sim-vs-LIVE audit `reviews/2026-10-21-sim-vs-live-audit.md`: the twin layer gains
-     LIVE's fill rule (`fill`, opt-in; no row has it yet — which row, Davies' call) and the replay LIVE's operations; condition
+     LIVE's fill rule (`fill`, opt-in) and the replay LIVE's operations; `0136` adds "Stablecoin quotes LIVE twin" (`live`,
+     £120, the rule, backfill = LIVE's life replayed; prereg `reviews/2026-10-21-live-twin-prereg.md`, read 11-23; deploy
+     before 10-24, the beats it catches up from are kept ~3 days); condition
      5's re-price budget drafted (`reviews/2026-10-21-pr5-reprice-budget-draft.md`), not in force. The notes below are history.
    - **At the 10-21 verdict, check condition 5 first:** PR5's paper engine logged 714 orders on 2026-10-01
      (`agent_quote_days`), over the spec's 700 a day, which the spec calls "a finding to fix, not a pass"; confirm how the
@@ -664,6 +666,14 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20", and 2026-10-18 20:19 → 21:12 UTC under "LEDGER.md, archived 2026-10-21", and 2026-10-19 03:20 → 06:45 UTC under "LEDGER.md, archived 2026-10-21 (second)"; each oldest first.
+
+### [2026-10-21 21:43 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **"Stablecoin quotes LIVE twin" (`live`, `0136`)** (sub-agent, item 4; the audit's option (a), main session on Davies'
+  10-21 word): PR5's twin at LIVE's £120 with `rules.fill`; backfill `twins/live.json.gz` = LIVE's life from go-live with its
+  operations (6,295 orders, the `at_ops` arm; built twice, same bytes); frozen prereg `reviews/2026-10-21-live-twin-prereg.md`
+  (mirror bar over 10-22 → 11-22, read 11-23); fixture rebuilt; `src/live_twin.test.js`. TAKE (Addendum 3), variant-3 (§7) and
+  the size twin (§13) note that through-only undercounts LIVE's fills. Its page name on two lines (`strategyNameParts`, dist
+  rebuilt). **Deploy before 10-24.** Sweep not run here (no browser).
 
 ### [2026-10-21 21:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Heat map: the bottom-left six stack their first two beside the third, not a plain 2 × 3** (Davies, 10-21;

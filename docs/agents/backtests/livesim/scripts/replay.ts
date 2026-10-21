@@ -18,7 +18,10 @@ const Q = await import(`${REPO}/supabase/functions/agents/quotes_twin.ts`);
 const IX = await import(`${REPO}/supabase/functions/agents/index.ts`);
 type Row = Record<string, unknown>;
 
-const [name, rulesArg, opsArg] = Deno.args;
+const [name, rulesArg, opsArg, offsetArg] = Deno.args;
+// `offset` (seconds, with `ops`): the turn's instant into the call minute in place of LIVE's 30 s (the timing question of
+// 2026-10-21: place at the paper's live_at, the minute's start, or a few seconds in).
+const OFFSET_MS = offsetArg != null && offsetArg !== "" ? Number(offsetArg) * 1e3 : 30e3;
 if (!name) throw new Error("usage: replay.ts <name> ['<rules JSON>'] [ops]");
 // `ops`: what LIVE met that a twin does not, measured from its record (data/live_events.txt; ops_errors of 2026-10-20 as
 // read in the 2026-10-20 incident review): a turn in every minute (below), 30 s into it (it places a median 32.3 s in), the
@@ -64,7 +67,7 @@ const spec = {
     conversions: [{ at: Date.parse("2026-10-01T16:31:48.836Z"), book: "USDT-GBP", gbp: 30 }, { at: Date.parse("2026-10-01T16:32:49.680Z"), book: "USDC-GBP", gbp: 30 }],
     deadmanFrom: Date.parse("2026-10-02T19:06:00Z"),
     ...(OPS ? {
-      turnOffsetMs: 30e3,
+      turnOffsetMs: OFFSET_MS,
       deadmen: (await new Response(new Blob([await Deno.readFile(`${REPO}/docs/agents/backtests/livesim/data/live_events.txt.gz`)]).stream().pipeThrough(new DecompressionStream("gzip"))).text()).split("\n").filter(Boolean)
         .map((l) => l.split("|")).filter((f) => f[0] === "live" && f[5] === "deadman").map((f) => Number(f[1]) + 5e3).sort((a, b) => a - b),
       outages: [
@@ -112,7 +115,7 @@ const trips = rungs.flatMap((rg: any) => IX.liveRungTrips({ ...rg, dust: rg.dust
 const realised = rungs.reduce((a: number, rg: any) => a + rg.rb.realisedGbp, 0);
 const events_ = ((tables[I.events] ?? []) as Row[]).map((e) => [ms(e.minute), e.book, e.rung_side, e.k, e.kind, (e.detail as Row)?.reason ?? null]);
 const out = {
-  name, rules: extra, ops: OPS, until: iso(UNTIL), capitalGbp: spec.capitalGbp, turns: tw?.turns, lastTurn: tw?.lastTurn, check: tw?.check, errors: tw?.errors ?? [],
+  name, rules: extra, ops: OPS, turnOffsetMs: OPS ? OFFSET_MS : null, until: iso(UNTIL), capitalGbp: spec.capitalGbp, turns: tw?.turns, lastTurn: tw?.lastTurn, check: tw?.check, errors: tw?.errors ?? [],
   seconds: Math.round((Date.now() - t0) / 1000), realisedGbp: realised, dust, balances: sim.venue?.balances ?? null, deadmen: sim.venue?.deadmen ?? [],
   days: sim.days ?? {},
   // [id, ts, book, rung_side, k, leg, side, state, price, base_size, filled_base, avg_fill_price, fee_gbp, filled_at, not_sent, cancel_requested_at, cancelled_at, fair, cancel_reason, paper_oid]

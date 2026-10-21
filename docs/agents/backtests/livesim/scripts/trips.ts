@@ -25,12 +25,16 @@ const tripsOf = (v: any[]) => {
   return { rungs, trips, realised: rungs.reduce((a: number, rg: any) => a + rg.rb.realisedGbp, 0), fees: v.reduce((a, o) => a + Number(o.fee_gbp || 0), 0) };
 };
 const L = tripsOf(viewL), S = tripsOf(viewS);
-const day = (t: any) => String(t.tExit ?? t.exitAt ?? t.closedAt ?? "").slice(5, 10);
-const byDay = (ts: any[]) => { const o: Record<string, number> = {}; for (const t of ts) { const d = String(t.closed ?? t.exitTs ?? t.tExit ?? t.exit?.ts ?? "").slice(5, 10) || "?"; o[d] = +((o[d] ?? 0) + t.pnlGbp).toFixed(4); } return o; };
+/** Realised pounds by the UTC day each round trip closed. */
+const byDay = (ts: any[]) => {
+  const o: Record<string, number> = {};
+  for (const t of ts) { const d = iso(typeof t.tExit === "number" ? t.tExit : Date.parse(String(t.tExit)))!.slice(0, 10); o[d] = +((o[d] ?? 0) + t.pnlGbp).toFixed(6); }
+  return Object.fromEntries(Object.entries(o).sort());
+};
 const out = {
   name, live: { trips: L.trips.length, won: L.trips.filter((t: any) => t.pnlGbp > 0).length, stops: L.trips.filter((t: any) => t.how === "stop").length, realisedGbp: +L.realised.toFixed(4), feesGbp: +L.fees.toFixed(4) },
   sim: { trips: S.trips.length, won: S.trips.filter((t: any) => t.pnlGbp > 0).length, stops: S.trips.filter((t: any) => t.how === "stop").length, realisedGbp: +S.realised.toFixed(4), feesGbp: +S.fees.toFixed(4) },
-  tripKeys: Object.keys(L.trips[0] ?? {}),
+  byDay: { live: byDay(L.trips), sim: byDay(S.trips) },
 };
 await Deno.writeTextFile(`${HERE}/results/trips_${name}.json`, JSON.stringify(out, null, 1) + "\n");
-console.log(JSON.stringify(out));
+console.log(JSON.stringify({ ...out, byDay: undefined }));

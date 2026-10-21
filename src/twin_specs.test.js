@@ -130,9 +130,9 @@ describe("the twins' spec rows", () => {
     }
   });
 
-  it("are, as they stand, the page's five stablecoin rows in Davies' order (2026-10-18: take50wk variant-3, rule D's twin variant-4)", () => {
+  it("are, as they stand, the page's six stablecoin rows in Davies' order (2026-10-18: take50wk variant-3, rule D's twin variant-4; 2026-10-21: the LIVE twin after the first)", () => {
     expect(ROWS.map((r) => [r.id, r.display_name, r.display_order])).toEqual([
-      ['pr5', 'Stablecoin quotes', 10], ['p50', 'Stablecoin quotes variant-1', 20], ['take50', 'Stablecoin quotes variant-2', 30],
+      ['pr5', 'Stablecoin quotes', 10], ['live', 'Stablecoin quotes LIVE twin', 15], ['p50', 'Stablecoin quotes variant-1', 20], ['take50', 'Stablecoin quotes variant-2', 30],
       ['take50wk', 'Stablecoin quotes variant-3', 35], ['d', 'Stablecoin quotes variant-4', 40],
     ]);
   });

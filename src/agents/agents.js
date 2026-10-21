@@ -1174,8 +1174,9 @@ export function positionLines(s) {
  * @returns {{ head: string, qual: string | null, twoLines: boolean }}
  */
 export function strategyNameParts(name) {
-  // The stablecoin quotes' variants, and Coinbase's "with Euros" (Davies, 2026-10-10), on two lines in the same run.
-  const variant = /^(Stablecoin quotes) (variant-\d+|with Euros(?: - 2)?)$/.exec(name);
+  // The stablecoin quotes' variants, Coinbase's "with Euros" (Davies, 2026-10-10) and the LIVE twin (0136, 2026-10-21), on two
+  // lines in the same run.
+  const variant = /^(Stablecoin quotes) (variant-\d+|with Euros(?: - 2)?|LIVE twin)$/.exec(name);
   if (variant) return { head: variant[1], qual: variant[2], twoLines: true };
   const q = /^(.*\S)\s+(\([^()]*\))$/.exec(name);
   if (q) return { head: q[1], qual: q[2], twoLines: false };

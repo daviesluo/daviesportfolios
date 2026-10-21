@@ -146,3 +146,10 @@ and only an exit, so C4 (variant-2 above variant-1) compares the same thing befo
 whose exits it touches only when what a take's rung holds is worth under £0.11 (a take is a £50 rung, so only a
 remainder that small). The window, bar, seed and reading are unchanged. Not blind: written after the 2026-10-09 review, which read both arms'
 records (its F8 counted 5 takes since 10-04 16:00, 3 won, +£0.2926).
+
+## Addendum 3 (2026-10-21): the reading should say its twin undercounts LIVE's fills
+
+The audit of the simulation against LIVE (`2026-10-21-sim-vs-live-audit.md`) found LIVE filled 317 of its 502 filled maker orders on
+prints AT its price, which this twin's fill rule (the twins' rule 1, through only) fills nothing on; this test keeps the rule it froze,
+and its reading should say that its maker fills, in both arms, undercount LIVE's (the twins' pre-registration's deviation 7, §19).
+

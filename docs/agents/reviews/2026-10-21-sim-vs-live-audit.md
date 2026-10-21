@@ -123,14 +123,12 @@ client's `toOrderView`):
 
 ## Waiting on a decision
 
-1. **Which page row should carry LIVE's fill rule.** The code is ready; no row names it. The choices:
-   - **(a) a new row at LIVE's own £120**, "Stablecoin quotes LIVE twin", with `rules: {"fill": {"model": "at", "from": "<its
-     start>"}}`. A migration inserts it as 0130 inserted variant-3, and the browser fixture is rebuilt. This is the recommendation:
-     it is the simulation that stands for LIVE, and it reads nothing else.
-   - **(b) the rule on the `pr5` row** ("Stablecoin quotes", £1,200), from a future instant. Its pre-registered readout was due
-     10-21, and `src/twin_specs.test.js` allows no rule change to a row today.
-   - **Either way the other rows stay as they are.** TAKE (variant-2), the weekend test (variant-3) and the size twin read their
-     twins under the through-only rule their pre-registrations froze, and their readings should say it undercounts LIVE's fills.
+1. **Done: the row that carries LIVE's fill rule.** The main session chose (a) on Davies' word, 2026-10-21. `0136` adds `live`,
+   "Stablecoin quotes LIVE twin": PR5's twin at LIVE's £120 with `rules.fill`. Its backfill is LIVE's life replayed with LIVE's
+   operations (the `at_ops` arm, order for order), and its pre-registration is `2026-10-21-live-twin-prereg.md`: the mirror is
+   scored against LIVE's realised, 10-22 → 11-22. TAKE (variant-2), the weekend test (variant-3) and the size twin keep the
+   through-only rule they froze; each of their pre-registrations now says its reading undercounts LIVE's fills (TAKE's Addendum 3,
+   the weekend test's §7, the size twin's §13).
 2. **The re-price budget** (condition 5), drafted in `2026-10-21-pr5-reprice-budget-draft.md`: it changes LIVE's trading rule, and
    every reading of PR5's engine would need a deviation.
 3. **The executor's timing** (PR5-R (e)): placement at the paper's `live_at`. Only on Davies' word.
