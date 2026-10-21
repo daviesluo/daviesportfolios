@@ -9,11 +9,13 @@
   "npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env scripts/replay.ts base_ops '' ops",
   "npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env scripts/replay.ts at_ops '{\"fill\":{\"model\":\"at\",\"from\":\"2026-09-23T00:00:00Z\"}}' ops   # the fixed simulation (~20 min)",
   "python3 -I scripts/compare.py <name>; npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env scripts/trips.ts <name>; python3 -I scripts/fill_model.py",
-  "npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env scripts/backfill_live.ts   # -> ../twins/live.json.gz, the LIVE twin's backfill (0136; built twice to the same bytes)"
+  "npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env scripts/backfill_live.ts   # -> ../twins/live.json.gz, the LIVE twin's backfill (0136; built twice to the same bytes)",
+  "npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env scripts/replay.ts at_ops_t0 '{\"fill\":{\"model\":\"at\",\"from\":\"2026-09-23T00:00:00Z\"}}' ops 0   # and at_ops_t10 … ops 10; then compare.py, trips.ts on each, and python3 -I scripts/timing.py"
  ],
  "findings": [
   "LIVE filled 502 maker orders: 169 with a print through their price, 317 with prints only AT it from the other side, 16 with neither (results/fill_model.json); the twins' rule 1 predicts 169 of them, the at-price rule 486.",
-  "Fixed simulation (at_ops) against LIVE: orders 84.7 % / 86.2 % matched (base 76.4 % / 85.4 %); fills 51.1 % of LIVE's (20.3 %); on orders both placed, 92.1 % of the filled agree (67.8 %); round trips 204 v 218 (130); realised GBP 0.972 v 0.880 (0.245)."
+  "Fixed simulation (at_ops) against LIVE: orders 84.7 % / 86.2 % matched (base 76.4 % / 85.4 %); fills 51.1 % of LIVE's (20.3 %); on orders both placed, 92.1 % of the filled agree (67.8 %); round trips 204 v 218 (130); realised GBP 0.972 v 0.880 (0.245).",
+  "Placement timing on the LIVE-faithful replay: turning 0 s or 10 s into the minute instead of LIVE's 30 s loses GBP 0.245 and 0.196 (day bootstrap 90 % bands -0.403..-0.083 and -0.326..-0.079): earlier is worse (results/timing.json)."
  ],
  "files": [
   {
@@ -77,6 +79,14 @@
    "md5": "146c26aecaa7f2885098914158ad7200"
   },
   {
+   "path": "results/compare_at_ops_t0.json",
+   "md5": "c2376af8f1dd7e6df406b2cca19b6b51"
+  },
+  {
+   "path": "results/compare_at_ops_t10.json",
+   "md5": "502a543e27387231699d46e1b346f929"
+  },
+  {
    "path": "results/compare_base.json",
    "md5": "85fa49d160bfc0d28091b6138baaa5af"
   },
@@ -89,12 +99,24 @@
    "md5": "2de09124df2b62b956984af6bb99375d"
   },
   {
+   "path": "results/timing.json",
+   "md5": "de24033cbb79aff077fb939b12254278"
+  },
+  {
    "path": "results/trips_at.json",
    "md5": "2a8590659bd93e668a1d88fdf7f8053f"
   },
   {
    "path": "results/trips_at_ops.json",
    "md5": "f1828af69e4160e817f79c08f1c9b258"
+  },
+  {
+   "path": "results/trips_at_ops_t0.json",
+   "md5": "8b7ba280c762e2147bc46886c313a6e4"
+  },
+  {
+   "path": "results/trips_at_ops_t10.json",
+   "md5": "d45d84e197f7402e4568ee421a192495"
   },
   {
    "path": "results/trips_base.json",
@@ -111,6 +133,14 @@
   {
    "path": "results/runs/at_ops.json.gz",
    "md5": "7b9c24dc46305aeb9f2960ba9101dfd4"
+  },
+  {
+   "path": "results/runs/at_ops_t0.json.gz",
+   "md5": "31b32a8745cd1c997f267248523c5367"
+  },
+  {
+   "path": "results/runs/at_ops_t10.json.gz",
+   "md5": "35d38d37ddeac201ccc9497d36eaf14a"
   },
   {
    "path": "results/runs/base.json.gz",

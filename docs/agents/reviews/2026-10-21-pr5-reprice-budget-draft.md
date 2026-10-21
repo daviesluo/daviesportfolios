@@ -1,5 +1,9 @@
 # DRAFT, not frozen, not in force: a re-price budget for PR5's rule (condition 5's finding)
 
+**Not needed (2026-10-21, later the same day).** On Davies' word, condition 5's bar was loosened instead: it now reads at most 900
+orders a day, the live governor's entry limit (the review's deviation 7). Under that bar the test passes, and the trading rule
+stays as it is. What follows is kept as the replay it was.
+
 Drafted 2026-10-21 for the main session, then Davies. **Nothing here changes PR5's paper engine, LIVE or any frozen
 reading.** PR5's four-week review (`2026-10-21-pr5-paper-test-review.md`) found condition 5 missed: 714 orders on
 2026-10-01, over the 700 a day the spec allows, "a finding to fix (for example a wider re-price step), not a pass". Davies,

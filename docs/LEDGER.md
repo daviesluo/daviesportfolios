@@ -230,8 +230,10 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    (`monitor?action=deadman`) cancels every resting order when the state is over 3 minutes old. Kill switch:
    `update public.agent_quote_live_config set live_confirmed_at = null where id = 1;` (entries cancelled, exits and
    stops stay armed); `global_pause` cancels everything.
-   - **10-21 verdict (`reviews/2026-10-21-pr5-paper-test-review.md`): NOT a pass, condition 5 misses (714 orders on 10-01);
-     1–4 hold. Davies 10-21: "A，引擎也继续运行，但要确保模拟的真实性和实盘策略完全一致，不一致的地方就直接改"** — LIVE stays at £10, the
+   - **10-21 verdict (`reviews/2026-10-21-pr5-paper-test-review.md`): conditions 1–5 pass and 6 is recorded under the
+     review's deviation 7 (Davies 10-21: loosen the self-set 700 instead of changing the rule; condition 5 reads ≤ 900 a day,
+     the live governor's entry limit); as first worded, 5 missed (714 on 10-01). Re-price budget not needed. Placement timing
+     replayed (LIVE-faithful): earlier is worse (0 s −£0.25, 10 s −£0.20, both 90 % bands below 0): the code stays. Davies 10-21: "A，引擎也继续运行，但要确保模拟的真实性和实盘策略完全一致，不一致的地方就直接改"** — LIVE stays at £10, the
      engine and minute record keep running. Sim-vs-LIVE audit `reviews/2026-10-21-sim-vs-live-audit.md`: the twin layer gains
      LIVE's fill rule (`fill`, opt-in) and the replay LIVE's operations; `0136` adds "Stablecoin quotes LIVE twin" (`live`,
      £120, the rule, backfill = LIVE's life replayed; prereg `reviews/2026-10-21-live-twin-prereg.md`, read 11-23; deploy
@@ -666,6 +668,14 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20", and 2026-10-18 20:19 → 21:12 UTC under "LEDGER.md, archived 2026-10-21", and 2026-10-19 03:20 → 06:45 UTC under "LEDGER.md, archived 2026-10-21 (second)"; each oldest first.
+
+### [2026-10-21 21:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Davies' two answers on PR5 (10-21), done** (sub-agent, item 4; the review's last sections): (1) condition 5 loosened on his
+  word to ≤ 900 orders a day, the live governor's entry limit (700 was the spec's headroom under Revolut X's 1,000 POSTs a day;
+  per sub-account or per account still undocumented; other live rows capped at 40; LIVE never refused for rate, 950 rows on
+  10-07 under its governor) — deviation 7: conditions 1–5 pass, 6 recorded; budget300 not needed. (2) placement timing on the
+  LIVE-faithful replay: 30 s £0.972, 10 s £0.776, 0 s £0.727 (day bootstrap 90 % bands −£0.33…−£0.08 and −£0.40…−£0.08):
+  earlier is worse, the executor is not changed (`backtests/livesim/scripts/timing.py`).
 
 ### [2026-10-21 21:43 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **"Stablecoin quotes LIVE twin" (`live`, `0136`)** (sub-agent, item 4; the audit's option (a), main session on Davies'

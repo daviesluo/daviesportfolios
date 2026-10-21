@@ -148,6 +148,65 @@ would also end those windows early (PR5-R's prereg and the ledger note this). No
 - Condition 5's fix, a change to PR5's rule and so to LIVE's, is drafted in `2026-10-21-pr5-reprice-budget-draft.md` and not
   in force.
 
+## Deviation 7 (2026-10-21): condition 5's bar, loosened on Davies' word; the verdict under it
+
+Davies, 2026-10-21, on condition 5 (the main session's rendering of his words): "The 700-a-day limit is one we set ourselves,
+isn't it? Can we loosen it instead of changing the trading rule? Wouldn't that be better?"
+
+**What the evidence says.**
+- **Where 700 came from.** The spec set it "leaving the rest of the account's 1,000 for the other rows". It is headroom under
+  Revolut X's own cap, not a venue limit. The venue's cap is `POST /1.0/orders` at 1,000 tokens a day, a bucket refilled
+  continuously (reference §2, the endpoint's table, checked 2026-09-20).
+- **Per sub-account or per account: not documented.** The live design noted this on 2026-09-24 and assumed one budget shared.
+  It is still unknown.
+- **The other live rows are capped.** They run on the main account's key and their bucket is capped at 40 orders a day
+  (`agent_risk.max_orders_per_day` = 40, read 2026-10-21).
+- **The paper engine sends nothing.** Its 714 orders on 10-01 were paper. On that day LIVE was in dry-run until 16:29:53 and
+  then sent 167.
+- **What reaches the venue is LIVE's executor, and its own governor caps it.** It withdraws entries at 900 POSTs in a UTC day
+  and sends only stops from 950. That is under 1,000 even if the bucket is shared, since 900 + 40 < 1,000.
+- **The governor has done that job.** LIVE's busiest day, 10-07 (the dead-man storm), wrote 950 rows: the governor held. LIVE
+  has never been refused for rate (no 429 in its 6,367 orders).
+
+**The deviation.**
+- Condition 5 is read as "at most 900 orders on every day": the live governor's entry limit, which keeps every day under the
+  venue's 1,000 whether or not the bucket is shared with the main account.
+- The spec's text is not changed (`2026-09-23-pr5-paper-test-spec.md` is frozen); this section, the reference (§4 item 31) and
+  the ledger record the deviation.
+
+**The verdict under it.**
+- Condition 5 passes: the most in a day is 714 (10-01), and every other day is at most 645.
+- With conditions 1–4 as read above, **conditions 1–5 pass and 6 is recorded**.
+- The test passes under the deviation, and it does not pass as the spec first worded it. Both are stated, and the deviation is
+  on Davies' word.
+
+**So the re-price budget is not needed.** The rule change drafted in `2026-10-21-pr5-reprice-budget-draft.md` (budget300) is not
+proposed: the trading rule and every frozen reading of PR5's engine stay as they are. The draft stays on record as replayed.
+
+## Placement timing (PR5-R (e)), answered 2026-10-21: the code stays
+
+Davies, 2026-10-21 (the main session's rendering of his words): "Would adjusting the order timing be better? If it improves
+things, change it." PR5-R (e)'s rough figures, −$0.62 of entry fills lost to the lag and +$1.06 of re-price fills missed, were a
+re-reading under the paper rule's through-only fills.
+
+**Cleanly measured.** The LIVE-faithful replay (`backtests/livesim/`: the twins' code at LIVE's £120, LIVE's fill rule, LIVE's
+operations, 10-01 16:29:53 → 10-21 15:09) was run with LIVE's turn at three instants. 30 s into the minute is today's; LIVE
+places a median 32.3 s in. 0 s is the paper's `live_at`, and 10 s lies between. Results are in `scripts/timing.py` and
+`results/timing.json`. The differences from 30 s are by the day each round trip closed, with a day bootstrap of 10,000 draws:
+
+| turn | round trips | won | fills | realised | minus 30 s | 90 % of the day bootstrap | share ≤ 0 |
+|---|---|---|---|---|---|---|---|
+| 30 s (today) | 204 | 157 | 446 | £0.9719 | — | — | — |
+| 10 s | 200 | 149 | 445 | £0.7755 | −£0.1964 | −£0.326 to −£0.079 | 99.9 % |
+| 0 s (`live_at`) | 199 | 146 | 442 | £0.7267 | −£0.2452 | −£0.403 to −£0.083 | 99.7 % |
+
+**Earlier placement is worse, not better.**
+- Each earlier quote rests through more of the minute's prints at the paper's price. Under LIVE's at-price fills, the extra fills
+  it gets are the ones the market is moving through, and fewer of its round trips win (149 and 146 against 157).
+- The account's value at the end tells the same: −£0.19 and −£0.24.
+- So the executor's timing is not changed.
+- Placing at `live_at` would also have needed PR5's engine to decide earlier, which changes its frozen inputs (PR5-R (e)).
+
 ## Files
 
 - `backtests/pr5_review/sql/pull.sql`: the seven pulls; `scripts/grab_text.py` checks each against the database's md5.
