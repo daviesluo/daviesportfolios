@@ -388,8 +388,13 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
 
 9. **Supabase, after the tests:**
    - After PR5's verdict (10-21): `quotes.ts` re-upserts its inputs every minute (`agent_quote_inputs`); write only new
-     rows then. RW's tables (134 MB) stay past RW's verdict: `mid_audit.sql` reads `pm_rw_selection` on or after 10-23 and POOLAGE
-     would read `pm_rw_minutes`; Davies, 2026-10-20: drop them after RW-C's 10-23 verdict. `pm_view_books`
+     rows then. RW's tables (134 MB): Davies, 2026-10-20: drop them after RW-C's 10-23 verdict. That verdict will not run
+     (withdrawn 10-13 with `0120`: `reviews/2026-10-02-polymarket-rw-rest-prereg.md`, "Withdrawn (2026-10-13)"), nor will
+     `mid_audit.sql` (item 0b). RW's page and readers left on 10-21 (`4729e015`: `pmrw_view.ts`, `pmrwc_view`'s tests,
+     `pm_prog.ts`); its engines and replays (`pmrw*.ts`) stay, as does every `pm_rw_*` table. Still reading them: pm-rec's
+     source list (`agents/pm_book_rec.ts`, `PM_REC_OURS_SOURCES` "RW" and "RW selection"; a source it cannot read is skipped
+     and named every run, so the drop's migration takes those two lines out with it) and POOLAGE, parked (item 6b). The
+     drop is a migration and waits on his word alone (audits 2026-10-21 and 10-22). `pm_view_books`
      grows ~12 MB a day until its study. Since `0101` (2026-10-08) the order paths' dry-run record keeps 14 days (from
      10-15) and `db-size-watch` reports past 4 GB. Still read whole each minute, for a later change: the recorder's
      market list and the twins' filled orders (frozen with TAKE to 11-02). Davies' call: the instance (Micro, 1 GB; the
@@ -758,6 +763,12 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   643-645 s of CPU, load 14-17; `--quick` 65 s (was 158-166 s). `bin/edge-test.mjs` (processes, not `--parallel`:
   the tests set SB_REGION and venue keys); phone `surfaces` beside its `main`; `sh bin/gates.sh --run '<cmd>'` puts a
   check run by hand under the lock. Every check kept; CI unchanged.
+
+### [2026-10-21 19:17 UTC] Platform: Claude Code via Grok Bot | Model: claude-opus-5-5
+- **Audit of 2026-10-21** (read-only, no database): `main` unchanged at `5074c6b0`, its Actions runs since 10-20 19:00
+  UTC green. Item 9: the RW tables' drop was tied to RW-C's 10-23 verdict, which `0120` withdrew on 10-13; now said so.
+  `grokpm-ledger` at `23b5222a`: 0 opens, D7's shadow rows coming in (its 10-20 daily check), Grok's "D7 twice" note
+  unanswered there (#245's is D8, item 15).
 
 ### [2026-10-20 19:25 UTC] Platform: Claude Code via Grok Bot | Model: claude-opus-5-5
 - **Audits of 2026-10-16 → 10-20, landed together** (read-only, no database; the 10-16 → 10-19 audits' history lines are
