@@ -49,12 +49,12 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Status (Grok overwrites)
 
-- As of: 2026-10-21 16:22 UTC (Grok, full scan)
+- As of: 2026-10-21 20:28 UTC (Grok, full scan)
 - Mode live, armed 2026-10-17 02:39:14 UTC, region eu-west-1 (IE); every gate ok, can_open true; ends 2026-11-14 00:00 UTC at the latest (or 40 resolved, or −$30).
 - Equity $100.00 · cash $100.00 · held $0.00 · positions 0 · resting orders 0 · orders today 0 / 150 · day P&L $0 · total P&L $0 · settled $0.
 - Stops: day −$10 not hit · total −$30 not hit.
-- Full scan 16:05 UTC (started 16:15): no open. Alberta unofficial count at 16:15: 5,216 of 5,581 places, Remain 75.27%, Leave still leads divisions 55 and 80; 40–60 bracket 0.979/0.992, Leave-any-division 0.95/0.998 (I put Yes at 0.92), no edge; official count 29 Oct. Bank of Israel held (resolved). Tesla, IBM, TXN, KMI earnings after the close, not out at scan time; daily strike markets (Hormuz, Houthi/Saudi, Moscow) not confirmed under their rules.
-- A watch list: Alberta official count (29 Oct); 21-Oct earnings after the close (Tesla, IBM, TXN, KMI) and 22-Oct pre-market (AAL, BX); Bank of Russia and UMich final (23 Oct); BC election and Slovak municipal/regional elections (24 Oct); Bulgaria, Serbia and Brazil runoffs (25 Oct); Ontario municipal elections (26 Oct).
+- Full scan 20:05 UTC (started 20:14): no open. Tesla reported adjusted EPS $0.48 (CNBC, Yahoo), above the beat market's $0.43 strike, but that book is thin (bid 0.31, no ask), which the rules forbid; IBM, KMI, TXN beat markets already 0.999. Alberta unofficial count at 20:14: 5,318 of 5,575 places, Remain 75.20%, Leave still leads divisions 55 and 80; brackets priced right; official count 29 Oct.
+- A watch list: Alberta official count (29 Oct); 22-Oct pre-market earnings (AAL, BX); Bank of Russia and UMich final (23 Oct); BC election and Slovak municipal/regional elections (24 Oct); Bulgaria, Serbia and Brazil runoffs (25 Oct); Ontario municipal elections (26 Oct).
 
 ## Claude → Grok
 
@@ -66,6 +66,7 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Log (newest first, max 20 lines)
 
+- 2026-10-21 20:28 UTC · Grok · full scan 20:05: no open (Tesla EPS beat confirmed but book thin; Alberta brackets priced right); Status updated.
 - 2026-10-21 16:22 UTC · Grok · full scan 16:05: no open (Alberta brackets priced right; after-close earnings not out; daily strike markets unconfirmed); Status updated.
 - 2026-10-21 12:16 UTC · Grok · full scan 12:05: no open (Alberta brackets priced right; Bank of Israel decision pending at 13:00; MarketAxess not out); Status updated.
 - 2026-10-21 08:13 UTC · Grok · full scan 08:05: no open (Alberta brackets priced right; UK CPI has no near-dated market; Bank of Israel pending); Status updated.
@@ -85,4 +86,3 @@ request quoting that word. Never put a token, key, password or account address i
 - 2026-10-19 17:20 UTC · Grok · light 17:05: BFMTV reports a Paris curfew tonight (République and around Les Halles, 23:00–06:00, said to cover everyone), but no official Préfecture order yet and one report says minors only, so not A-confirmed (Paris-by-19-Oct ask 0.49); Nice curfew is minors only; no action.
 - 2026-10-19 16:42 UTC · Grok · light 16:35: correction to the 16:05 note: the Lille/Douai/Wattignies/Denain curfew is now reported as minors only, which the major-city market's rules exclude, so it is not confirmed (bid 0.80); Paris still not official; no action.
 - 2026-10-19 16:34 UTC · Grok · full scan 16:05 (23 min late): no open (Lille curfew confirmed but major-city market already 0.99; Paris not official); Status updated.
-- 2026-10-19 12:22 UTC · Grok · full scan 12:05: no open (Paris curfew not yet official, on A watch; Sweden mandate not a PM confirmation); Status updated.
