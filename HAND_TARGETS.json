@@ -1,0 +1,170 @@
+{
+  "asOf": "2026-10-21",
+  "btc": {
+    "asset": "BTC-USD",
+    "unit": "USD per bitcoin",
+    "rows": [
+      {
+        "firm": "Standard Chartered",
+        "target": 100000,
+        "date": "2026-02-12",
+        "horizon": "end-2026",
+        "url": "https://www.theblock.co/post/389609/standard-chartered-bitcoin-50000-ether-1400-rebound"
+      },
+      {
+        "firm": "Citi",
+        "target": 82000,
+        "date": "2026-07-01",
+        "horizon": "12 months",
+        "url": "https://bitcoinmagazine.com/news/citi-slashes-bitcoin-target-to-82000"
+      },
+      {
+        "firm": "Bernstein",
+        "target": 150000,
+        "date": "2026-08-26",
+        "horizon": "mid-2027",
+        "url": "https://theblock.co/news/markets/2026-08-26-bernstein-sees-bitcoin-reaching-150000-by-mid-2027-amid-debasement-trade-but-cuts-strategy-target-to-350-412778"
+      }
+    ]
+  },
+  "sp500": {
+    "asset": "VUAA.L via ^GSPC",
+    "unit": "S&P 500 index points",
+    "horizon": "end-2026",
+    "rows": [
+      {
+        "firm": "Goldman Sachs",
+        "target": 8000,
+        "date": "2026-05-26",
+        "horizon": "end-2026",
+        "url": "https://finance.yahoo.com/markets/stocks/articles/goldman-sachs-lifts-p-500-033812652.html"
+      },
+      {
+        "firm": "Morgan Stanley",
+        "target": 8000,
+        "date": "2026-05-13",
+        "horizon": "end-2026",
+        "url": "https://www.newsquawk.com/headlines/morgan-stanley-raises-its-sp-500-year-end-target-to-8000-prev-7800-and-its-2027-mid-year-target-to-8300"
+      },
+      {
+        "firm": "J.P. Morgan",
+        "target": 8000,
+        "date": "2026-08-10",
+        "horizon": "end-2026",
+        "url": "https://www.nst.com.my/amp/business/corporate/2026/08/1508037/jp-morgan-raises-sp-500-year-end-target-8000"
+      },
+      {
+        "firm": "Citigroup",
+        "target": 8100,
+        "date": "2026-06-08",
+        "horizon": "end-2026",
+        "url": "https://www.kitco.com/news/off-the-wire/2026-06-08/citigroup-lifts-sp-500-year-end-target-8100-earnings-strength-ai"
+      },
+      {
+        "firm": "BofA Global Research",
+        "target": 7400,
+        "date": "2026-09-14",
+        "horizon": "end-2026",
+        "url": "https://stocktwits.com/news-articles/markets/equity/stock-market-is-overdue-for-over-10-correction-says-bofa-ahead-of-fomc-meeting/cZtl6wBRBRm"
+      },
+      {
+        "firm": "HSBC",
+        "target": 8100,
+        "date": "2026-09-08",
+        "horizon": "end-2026",
+        "url": "https://www.kitco.com/news/off-the-wire/2026-09-08/hsbc-lifts-sp-500s-year-end-target-8100-earnings-strength"
+      },
+      {
+        "firm": "Barclays",
+        "target": 7950,
+        "date": "2026-09-09",
+        "horizon": "end-2026",
+        "url": "https://www.bnnbloomberg.ca/markets/s-p-500/2026/09/09/barclays-lifts-sp-500-indexs-year-end-target-to-7950-on-strong-earnings/"
+      },
+      {
+        "firm": "Yardeni Research",
+        "target": 7900,
+        "date": "2026-09-15",
+        "horizon": "end-2026",
+        "url": "https://www.money.it/wall-street-si-mette-sulla-difensiva-ed-yardeni-taglia-il-target-dell-sp-500-a-7900-punti"
+      },
+      {
+        "firm": "Deutsche Bank",
+        "target": 8000,
+        "date": "2026-08-11",
+        "horizon": "end-2026",
+        "url": "https://www.galvnews.com/news_reuters/business/factbox-major-brokerages-forecasts-for-s-p-500-index-in-2026/article_7275084d-b0f7-55d9-b162-d22b116e17fd.html"
+      },
+      {
+        "firm": "Wells Fargo",
+        "target": 7950,
+        "date": "2026-08-11",
+        "horizon": "end-2026",
+        "url": "https://www.galvnews.com/news_reuters/business/factbox-major-brokerages-forecasts-for-s-p-500-index-in-2026/article_7275084d-b0f7-55d9-b162-d22b116e17fd.html"
+      },
+      {
+        "firm": "UBS Global Research",
+        "target": 7500,
+        "date": "2026-08-11",
+        "horizon": "end-2026",
+        "url": "https://www.galvnews.com/news_reuters/business/factbox-major-brokerages-forecasts-for-s-p-500-index-in-2026/article_7275084d-b0f7-55d9-b162-d22b116e17fd.html"
+      },
+      {
+        "firm": "Evercore ISI",
+        "target": 7750,
+        "date": "2026-08-11",
+        "horizon": "end-2026",
+        "url": "https://www.galvnews.com/news_reuters/business/factbox-major-brokerages-forecasts-for-s-p-500-index-in-2026/article_7275084d-b0f7-55d9-b162-d22b116e17fd.html"
+      },
+      {
+        "firm": "Oppenheimer Asset Management",
+        "target": 8100,
+        "date": "2026-08-11",
+        "horizon": "end-2026",
+        "url": "https://www.galvnews.com/news_reuters/business/factbox-major-brokerages-forecasts-for-s-p-500-index-in-2026/article_7275084d-b0f7-55d9-b162-d22b116e17fd.html"
+      },
+      {
+        "firm": "RBC Capital Markets",
+        "target": 7900,
+        "date": "2026-08-11",
+        "horizon": "end-2026",
+        "url": "https://www.galvnews.com/news_reuters/business/factbox-major-brokerages-forecasts-for-s-p-500-index-in-2026/article_7275084d-b0f7-55d9-b162-d22b116e17fd.html"
+      },
+      {
+        "firm": "Societe Generale",
+        "target": 8000,
+        "date": "2026-08-11",
+        "horizon": "end-2026",
+        "url": "https://www.galvnews.com/news_reuters/business/factbox-major-brokerages-forecasts-for-s-p-500-index-in-2026/article_7275084d-b0f7-55d9-b162-d22b116e17fd.html"
+      },
+      {
+        "firm": "Jefferies",
+        "target": 7500,
+        "date": "2026-08-11",
+        "horizon": "end-2026",
+        "url": "https://www.galvnews.com/news_reuters/business/factbox-major-brokerages-forecasts-for-s-p-500-index-in-2026/article_7275084d-b0f7-55d9-b162-d22b116e17fd.html"
+      },
+      {
+        "firm": "BNP Paribas",
+        "target": 7500,
+        "date": "2026-08-11",
+        "horizon": "end-2026",
+        "url": "https://www.galvnews.com/news_reuters/business/factbox-major-brokerages-forecasts-for-s-p-500-index-in-2026/article_7275084d-b0f7-55d9-b162-d22b116e17fd.html"
+      },
+      {
+        "firm": "Canaccord Genuity",
+        "target": 7500,
+        "date": "2026-08-11",
+        "horizon": "end-2026",
+        "url": "https://www.galvnews.com/news_reuters/business/factbox-major-brokerages-forecasts-for-s-p-500-index-in-2026/article_7275084d-b0f7-55d9-b162-d22b116e17fd.html"
+      },
+      {
+        "firm": "Seaport Research Partners",
+        "target": 7800,
+        "date": "2026-08-11",
+        "horizon": "end-2026",
+        "url": "https://www.galvnews.com/news_reuters/business/factbox-major-brokerages-forecasts-for-s-p-500-index-in-2026/article_7275084d-b0f7-55d9-b162-d22b116e17fd.html"
+      }
+    ]
+  }
+}
