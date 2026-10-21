@@ -1,0 +1,316 @@
+{
+  "asOf": "2026-10-21",
+  "risks": {
+    "AAPL": [
+      {
+        "text": "earnings 11/2",
+        "until": "2026-11-02"
+      },
+      {
+        "text": "DOJ antitrust suit: settlement talks (7/2026), no trial date"
+      }
+    ],
+    "AMZN": [
+      {
+        "text": "earnings 10/29",
+        "until": "2026-10-29"
+      },
+      {
+        "text": "FTC monopoly trial 3/29/27; delay refused 10/9"
+      }
+    ],
+    "APLD": [
+      {
+        "text": "CoreWeave ~70% of contracted pipeline"
+      },
+      {
+        "text": "$2.15B 6.75% secured notes due 2031"
+      },
+      {
+        "text": "FQ1 net loss $184.1M (10/7)"
+      }
+    ],
+    "AVGO": [
+      {
+        "text": "Top 5 customers ~40% of revenue (FY25 10-K)"
+      },
+      {
+        "text": "earnings ~12/10 (est.)",
+        "until": "2026-12-10"
+      }
+    ],
+    "BE": [
+      {
+        "text": "earnings 10/22",
+        "until": "2026-10-22"
+      },
+      {
+        "text": "Converts due 2029 and 2030 (the 2030s 0%, 11/2025)"
+      }
+    ],
+    "BMNR": [
+      {
+        "text": "A leveraged ETH proxy: 6.04M ETH (10/18), ~4.9% of supply"
+      },
+      {
+        "text": "funded by ATM share sales and a 9.50% perpetual preferred (6/2026)"
+      }
+    ],
+    "BTC-USD": [
+      {
+        "text": "CLARITY Act failed cloture 49–50 (9/2026): no US market-structure law this year"
+      },
+      {
+        "text": "spot ETF outflows $450M that day"
+      },
+      {
+        "text": "trades with rates and risk appetite"
+      }
+    ],
+    "CRWV": [
+      {
+        "text": "Debt $35.1B vs PP&E $46.7B (6/30)"
+      },
+      {
+        "text": "net interest $640M in Q2"
+      },
+      {
+        "text": "earnings ~11/10–11/16 (est.)",
+        "until": "2026-11-16"
+      }
+    ],
+    "GOOGL": [
+      {
+        "text": "Ad-tech remedies ordered 9/2 (no AdX sale)"
+      },
+      {
+        "text": "search judgment under appeal"
+      },
+      {
+        "text": "earnings ~10/28 (est.)",
+        "until": "2026-10-28"
+      }
+    ],
+    "HOOD": [
+      {
+        "text": "earnings 10/27",
+        "until": "2026-10-27"
+      },
+      {
+        "text": "Prediction markets: CFTC weighing event-contract rules"
+      }
+    ],
+    "META": [
+      {
+        "text": "earnings 10/21",
+        "until": "2026-10-21"
+      },
+      {
+        "text": "2026 capex guide up to $145B"
+      },
+      {
+        "text": "Hyperion $27B off-balance-sheet JV, Meta guarantees residual value"
+      }
+    ],
+    "MSFT": [
+      {
+        "text": "earnings 10/28",
+        "until": "2026-10-28"
+      },
+      {
+        "text": "OpenAI ~45% of commercial backlog (analyst est.)"
+      },
+      {
+        "text": "capacity-constrained"
+      }
+    ],
+    "MSTR": [
+      {
+        "text": "earnings 10/29",
+        "until": "2026-10-29"
+      },
+      {
+        "text": "mNAV ~1.0x (8/21)"
+      },
+      {
+        "text": "common ranks below converts and four preferred series"
+      }
+    ],
+    "MU": [
+      {
+        "text": "Memory peak-cycle risk: FQ4 revenue $54.2B vs $11.3B a year earlier"
+      },
+      {
+        "text": "earnings ~12/16 (est.)",
+        "until": "2026-12-16"
+      }
+    ],
+    "NBIS": [
+      {
+        "text": "Average target inflated by stale targets"
+      },
+      {
+        "text": "converts ~$4.3B (3/2026) + ~$5.75B (8/2026)"
+      },
+      {
+        "text": "earnings ~11/11 (est.)",
+        "until": "2026-11-11"
+      }
+    ],
+    "NET": [
+      {
+        "text": "$2.5B 0% converts due 2031 (8/2026), conversion ~$497"
+      },
+      {
+        "text": "earnings date unconfirmed (10/23–11/11)",
+        "until": "2026-11-11"
+      }
+    ],
+    "NVDA": [
+      {
+        "text": "China: H200 sales only under licence, 25% to the US government"
+      },
+      {
+        "text": "earnings ~11/18 (est.)",
+        "until": "2026-11-18"
+      }
+    ],
+    "NVTS": [
+      {
+        "text": "earnings 11/3",
+        "until": "2026-11-03"
+      },
+      {
+        "text": "Q3 revenue guide $13–14M"
+      },
+      {
+        "text": "restructuring, history of capital raises"
+      }
+    ],
+    "ORCL": [
+      {
+        "text": "S&P BBB− since 7/9 (one notch above junk)"
+      },
+      {
+        "text": "total debt ~$130B (5/2026)"
+      },
+      {
+        "text": "investor day 10/28",
+        "until": "2026-10-28"
+      }
+    ],
+    "PLTR": [
+      {
+        "text": "US government 42% of Q2 revenue"
+      },
+      {
+        "text": "earnings ~11/2 (est.)",
+        "until": "2026-11-02"
+      }
+    ],
+    "RKLB": [
+      {
+        "text": "Net cash"
+      },
+      {
+        "text": "@lowest-target"
+      },
+      {
+        "text": "earnings ~11/9–11/12 (est.)",
+        "until": "2026-11-12"
+      }
+    ],
+    "SAEM": [
+      {
+        "text": "MSCI EM IMI ESG Screened; TSMC 14.3%, top ten 35.6%"
+      },
+      {
+        "text": "Taiwan, Korea and China risk; EM currencies against the dollar"
+      }
+    ],
+    "SFTBY": [
+      {
+        "text": "S&P outlook negative (3/2026) on OpenAI concentration"
+      },
+      {
+        "text": "$40B bridge loan due ~3/2027"
+      },
+      {
+        "text": "OpenAI-backed margin loan"
+      }
+    ],
+    "SPCX": [
+      {
+        "text": "Lock-up: up to 328.4M shares 10/24",
+        "until": "2026-10-24"
+      },
+      {
+        "text": "~1.3B more unlock after the Q3 report (10/20)",
+        "until": "2026-11-22"
+      },
+      {
+        "text": "~800M more 12/8",
+        "until": "2026-12-08"
+      }
+    ],
+    "TSLA": [
+      {
+        "text": "earnings 10/21",
+        "until": "2026-10-21"
+      },
+      {
+        "text": "Valuation rests on robotaxi and Optimus; Musk pay tied to their milestones"
+      }
+    ],
+    "TSM": [
+      {
+        "text": "Taiwan concentration and cross-strait risk"
+      },
+      {
+        "text": "US chip tariffs unsettled"
+      },
+      {
+        "text": "Q4 guide $52.3–54.3B (10/15)"
+      }
+    ],
+    "VST": [
+      {
+        "text": "Power-price and PJM capacity-market exposure"
+      },
+      {
+        "text": "2.6 GW Lotus gas plants added (2026)"
+      },
+      {
+        "text": "earnings ~11/6 (est.)",
+        "until": "2026-11-06"
+      }
+    ],
+    "VUAA": [
+      {
+        "text": "S&P 500 in USD; ten largest 39.1% (NVDA 8.4%)"
+      },
+      {
+        "text": "AI-capex concentration in the top names"
+      }
+    ],
+    "017731": [
+      {
+        "text": "QDII fund: priced in CNY a day late; dealing paused on US holidays"
+      },
+      {
+        "text": "no analyst coverage"
+      }
+    ],
+    "SIVE": [
+      {
+        "text": "Only Redeye (paid) covers it"
+      },
+      {
+        "text": "Ningi Research short report (6/1)"
+      },
+      {
+        "text": "auditor going-concern doubt; SEK 825M raise (8/27)"
+      }
+    ]
+  }
+}
