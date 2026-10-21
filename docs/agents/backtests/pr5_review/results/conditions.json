@@ -1,0 +1,228 @@
+{
+ "1_faithful": {
+  "fills_diff_pct": 2.43,
+  "fills_record": 247,
+  "fills_sim": 253,
+  "pass": true,
+  "pnl_diff_pct": 3.61,
+  "record_only": [
+   "USDC-GBP bid 0.001 2026-10-20 04:42",
+   "USDC-GBP bid 0.002 2026-10-20 21:54",
+   "USDT-GBP ask 0.001 2026-10-06 13:37",
+   "USDT-GBP ask 0.001 2026-10-08 12:19",
+   "USDT-GBP ask 0.001 2026-10-08 13:17",
+   "USDT-GBP ask 0.001 2026-10-14 07:08",
+   "USDT-GBP ask 0.001 2026-10-16 11:00",
+   "USDT-GBP ask 0.001 2026-10-19 10:01",
+   "USDT-GBP ask 0.001 2026-10-21 01:19",
+   "USDT-GBP ask 0.002 2026-10-19 10:42",
+   "USDT-GBP bid 0.001 2026-10-14 22:25",
+   "USDT-GBP bid 0.001 2026-10-16 03:52",
+   "USDT-GBP bid 0.001 2026-10-19 05:29",
+   "USDT-GBP bid 0.002 2026-09-28 11:42",
+   "USDT-GBP bid 0.003 2026-09-28 12:54"
+  ],
+  "sim": {
+   "pnl_usd": 17.5427,
+   "pnl_usd_per_day": 0.6265,
+   "taker_exits": 5,
+   "trips": 253,
+   "won": 237
+  },
+  "sim_closed": {
+   "pnl_usd": 17.7572,
+   "pnl_usd_per_day": 0.6342,
+   "taker_exits": 3,
+   "trips": 251,
+   "won": 237
+  },
+  "sim_only": [
+   "USDC-GBP ask 0.001 2026-10-15 13:31",
+   "USDC-GBP ask 0.001 2026-10-20 15:26",
+   "USDC-GBP ask 0.002 2026-10-16 17:28",
+   "USDC-GBP bid 0.001 2026-10-20 15:20",
+   "USDC-GBP bid 0.001 2026-10-20 22:57",
+   "USDC-GBP bid 0.002 2026-10-20 15:20",
+   "USDT-GBP ask 0.001 2026-10-06 15:28",
+   "USDT-GBP ask 0.001 2026-10-08 12:15",
+   "USDT-GBP ask 0.001 2026-10-08 12:54",
+   "USDT-GBP ask 0.001 2026-10-08 13:27",
+   "USDT-GBP ask 0.001 2026-10-16 11:58",
+   "USDT-GBP ask 0.001 2026-10-19 09:42",
+   "USDT-GBP ask 0.001 2026-10-20 22:49",
+   "USDT-GBP ask 0.001 2026-10-20 23:51",
+   "USDT-GBP ask 0.001 2026-10-21 01:12",
+   "USDT-GBP ask 0.001 2026-10-21 11:15",
+   "USDT-GBP ask 0.001 2026-10-21 14:06",
+   "USDT-GBP ask 0.001 2026-10-21 15:06",
+   "USDT-GBP bid 0.001 2026-10-13 22:36",
+   "USDT-GBP bid 0.001 2026-10-14 22:19",
+   "USDT-GBP bid 0.001 2026-10-14 22:27",
+   "USDT-GBP bid 0.001 2026-10-16 03:57",
+   "USDT-GBP bid 0.003 2026-09-29 00:29"
+  ],
+  "sim_open_at_end": 2,
+  "trips_matched": 230
+ },
+ "2_pnl_vs_null": {
+  "null": {
+   "draws": 2000,
+   "max": 3.694,
+   "mean": 0.5313,
+   "p50": 0.5293,
+   "p95": 2.2815,
+   "seed": 20260923,
+   "share_ge_record": 0.0,
+   "twins_simulated": 10736
+  },
+  "pass": true,
+  "pnl_usd": 17.1389
+ },
+ "3_worth_more_than_cash": {
+  "bar_usd_per_day": 0.26,
+  "pass": true,
+  "pct_per_year_on_1200": 18.62,
+  "pnl_usd_per_day": 0.6121
+ },
+ "4_fills_the_book_allowed": {
+  "accepted": 480,
+  "accepted_share_of_fills": 0.9816,
+  "accepted_share_of_snapshots": 0.9877,
+  "at_or_better_than_best_share": 0.5597,
+  "exit": {
+   "accepted_share": 0.9792,
+   "at_or_better_than_best_share": 0.7833,
+   "n": 242,
+   "with_snapshot": 240
+  },
+  "fill": {
+   "accepted_share": 0.9959,
+   "at_or_better_than_best_share": 0.3415,
+   "n": 247,
+   "with_snapshot": 246
+  },
+  "fills": 489,
+  "no_snapshot": 3,
+  "pass": true,
+  "strictly_best_share": 0.4465,
+  "with_snapshot": 486
+ },
+ "5_order_budget": {
+  "by_day": {
+   "2026-09-23": 116,
+   "2026-09-24": 440,
+   "2026-09-25": 306,
+   "2026-09-27": 14,
+   "2026-09-28": 466,
+   "2026-09-29": 343,
+   "2026-09-30": 535,
+   "2026-10-01": 714,
+   "2026-10-02": 575,
+   "2026-10-04": 24,
+   "2026-10-05": 452,
+   "2026-10-06": 519,
+   "2026-10-07": 382,
+   "2026-10-08": 591,
+   "2026-10-09": 307,
+   "2026-10-11": 24,
+   "2026-10-12": 203,
+   "2026-10-13": 233,
+   "2026-10-14": 611,
+   "2026-10-15": 645,
+   "2026-10-16": 483,
+   "2026-10-18": 24,
+   "2026-10-19": 409,
+   "2026-10-20": 336,
+   "2026-10-21": 207
+  },
+  "days_over_700": [
+   "2026-10-01"
+  ],
+  "engine_days_table_agrees": true,
+  "max": 714,
+  "max_day": "2026-10-01",
+  "pass": false
+ },
+ "6_regime_weekly": {
+  "2026-W39": {
+   "buy_minus_sell_bps_p50": 5.3,
+   "by_book": {
+    "USDC-GBP": 6.61,
+    "USDT-GBP": 3.98
+   },
+   "pairs": 41,
+   "pnl_usd": 1.0829
+  },
+  "2026-W40": {
+   "buy_minus_sell_bps_p50": 5.3,
+   "by_book": {
+    "USDC-GBP": 6.62,
+    "USDT-GBP": 5.29
+   },
+   "pairs": 53,
+   "pnl_usd": 6.9519
+  },
+  "2026-W41": {
+   "buy_minus_sell_bps_p50": 3.97,
+   "by_book": {
+    "USDC-GBP": 5.95,
+    "USDT-GBP": 3.97
+   },
+   "pairs": 838,
+   "pnl_usd": 2.9832
+  },
+  "2026-W42": {
+   "buy_minus_sell_bps_p50": 6.68,
+   "by_book": {
+    "USDC-GBP": 15.93,
+    "USDT-GBP": 6.68
+   },
+   "pairs": 1694,
+   "pnl_usd": 2.3425
+  },
+  "2026-W43": {
+   "buy_minus_sell_bps_p50": 9.33,
+   "by_book": {
+    "USDC-GBP": 12.0,
+    "USDT-GBP": 9.33
+   },
+   "pairs": 541,
+   "pnl_usd": 3.7784
+  }
+ },
+ "6_regime_weekly_recorded": true,
+ "days": 28.0,
+ "frozen_pr5_sim_sha256": "56fbad85ee4df6292f596188d091ad064d030180f33cefe3bd09089d7e772a1a",
+ "record": {
+  "closed_before_end": {
+   "pnl_usd": 17.1389,
+   "pnl_usd_per_day": 0.6121,
+   "taker_exits": 3,
+   "trips": 245,
+   "won": 230
+  },
+  "entry_fills": 247,
+  "maker_exits": 242,
+  "round_trips": {
+   "pnl_usd": 17.1389,
+   "pnl_usd_per_day": 0.6121,
+   "taker_exits": 3,
+   "trips": 245,
+   "won": 230
+  },
+  "stops": 3
+ },
+ "verdict": {
+  "1": true,
+  "2": true,
+  "3": true,
+  "4": true,
+  "5": false,
+  "6": "recorded",
+  "all_hold": false
+ },
+ "window": [
+  "2026-09-23 15:09",
+  "2026-10-21 15:09"
+ ]
+}

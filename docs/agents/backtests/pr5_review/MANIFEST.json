@@ -1,0 +1,71 @@
+{
+ "study": "PR5's paper test, 2026-09-23 15:09 -> 2026-10-21 15:09 UTC: the spec's six conditions (reviews/2026-09-23-pr5-paper-test-spec.md) and PR5-R's five readings (reviews/2026-09-28-pr5-readings-prereg.md), the review reviews/2026-10-21-pr5-paper-test-review.md. Not blind.",
+ "read": "production, SELECT only, through the Supabase connector, 2026-10-21 19:05-19:07 UTC (sql/pull.sql); the frozen docs/agents/scripts/pr5/pr5_sim.py, unchanged.",
+ "run": [
+  "python3 -I scripts/grab_text.py <saved connector reply of each statement of sql/pull.sql> data && gzip -n -9 data/*.txt",
+  "python3 -I scripts/conditions.py   # results/conditions.json, about 3 s",
+  "python3 -I scripts/readings.py     # results/readings.json, about 6 s"
+ ],
+ "findings": [
+  "Conditions 1-4 hold (fills +2.43 %, P&L +3.61 %; +$17.139 against a null p95 of $2.282; $0.612 a day; 98.2 % of fills accepted by the go-live book); condition 5 misses: 714 orders on 2026-10-01; condition 6 recorded (5.3, 5.3, 4.0, 6.7, 9.3 bps by week).",
+  "PR5-R (d): on the engine's own inputs the frozen simulator reproduces all 9,820 of its events; (a) strict fills keep 90.1 % of the P&L; (c) the bid-only live path at GBP 4.17 a rung made $0.76 in four weeks; (e1) 6 entry fills within 34 s of going live, $0.616."
+ ],
+ "files": [
+  {
+   "path": "sql/pull.sql",
+   "md5": "4491fca7877e2f5f9dbae24b2154d0cb"
+  },
+  {
+   "path": "scripts/grab_text.py",
+   "md5": "d75537e88b1838a9af8eebe5e634b0ab"
+  },
+  {
+   "path": "scripts/common.py",
+   "md5": "8a0e0064e5d04fdefd446ee118049155"
+  },
+  {
+   "path": "scripts/conditions.py",
+   "md5": "72342ba1bd754c9e51924c88fadd62d6"
+  },
+  {
+   "path": "scripts/readings.py",
+   "md5": "e47d0299e9b843a71d83d31ade2b24fd"
+  },
+  {
+   "path": "data/books.txt.gz",
+   "md5": "dd9a5a700db683f6678469446f99739c"
+  },
+  {
+   "path": "data/days.txt.gz",
+   "md5": "2d6967874be7c64b7fb7deb917f2cc03"
+  },
+  {
+   "path": "data/events.txt.gz",
+   "md5": "32649f9c1f38982c98a003ee1007f7b8"
+  },
+  {
+   "path": "data/inputs.txt.gz",
+   "md5": "b417d0ed786831a5f9d9ee7c7f9f774c"
+  },
+  {
+   "path": "data/minutes.txt.gz",
+   "md5": "4234014f7095fdf507aa9c24f1ea2dde"
+  },
+  {
+   "path": "data/prints.txt.gz",
+   "md5": "30afd66b8651552465d197476fc64126"
+  },
+  {
+   "path": "data/trips.txt.gz",
+   "md5": "7a13ae67c8fd1b7de396f6a934cab3c2"
+  },
+  {
+   "path": "results/conditions.json",
+   "md5": "aeff413779fc02c849d9a3bcf6b6b68a"
+  },
+  {
+   "path": "results/readings.json",
+   "md5": "5fc27e10d09a35eea2c15bfb8a197f6d"
+  }
+ ]
+}

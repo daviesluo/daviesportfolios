@@ -230,6 +230,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    (`monitor?action=deadman`) cancels every resting order when the state is over 3 minutes old. Kill switch:
    `update public.agent_quote_live_config set live_confirmed_at = null where id = 1;` (entries cancelled, exits and
    stops stay armed); `global_pause` cancels everything.
+   - **10-21 verdict (`reviews/2026-10-21-pr5-paper-test-review.md`): NOT a pass, condition 5 misses (714 orders on 10-01);
+     1–4 hold.** Davies to decide: LIVE at £10 or scale (recommended: stay at £10, fix the budget finding first), and keep the
+     paper engine and its minute record running (yes: LIVE, PR5V, QUEUE and PR5-W depend on them). The notes below are history.
    - **At the 10-21 verdict, check condition 5 first:** PR5's paper engine logged 714 orders on 2026-10-01
      (`agent_quote_days`), over the spec's 700 a day, which the spec calls "a finding to fix, not a pass"; confirm how the
      verdict script counts orders (SCQ-1014, `reviews/2026-10-14-stablecoin-quotes-review.md`). The same review proposes
@@ -656,12 +659,20 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20"; each oldest first.
 
+### [2026-10-21 19:14 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **PR5's four-week review** (sub-agent, item 4; `reviews/2026-10-21-pr5-paper-test-review.md`, `backtests/pr5_review/`,
+  not blind): conditions 1–4 pass (fills +2.43 %, P&L +3.61 %; $17.14 v null p95 $2.28; $0.61 a day; 98.2 % accepted),
+  **5 misses (714 orders on 10-01)**, 6 recorded (gap 4.0–9.3 bps, widening). PR5-R: (d) the frozen sim on the engine's
+  inputs = all 9,820 events; (a) keeps 90.1 %; (e1) 6 fills, $0.62. Six deviations listed in the review and reference §4
+  item 31. Nothing live run; the two questions for Davies are drafted there.
+
 ### [2026-10-21 19:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Retired strategies' page code and tests removed** (sub-agent; Davies 10-20, relayed: delete tests built for retired
   strategies if no longer needed). Gone: the dashboard's dead RW/paper-layer readers, `pmrw_view.ts`, `pm_prep_view.ts`,
   `pm_prog.ts` (+ `pmprog` route) and their tests; the page's RW, variant, mini/mid-pool and paper-layer rows and pages.
   Kept: engines and replays (live-prep's live path and committed studies import them), frozen executors, rulebooks,
   disabled paper routes pinned by migration tests. Vitest 1,533 → 1,498 tests, Deno 1,381 → 1,342. Not pushed.
+
 
 ### [2026-10-20 18:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **GROKPM Deviation D7 recorded** (Davies 10-20: "同意"): §9 of the prereg gains D7, shadow forecasts journalled on `no_action`
