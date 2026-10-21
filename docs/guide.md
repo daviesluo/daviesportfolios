@@ -111,8 +111,9 @@ Tap a tile to open its chart.
   board, the average target with the upside from the price, the average
   rating (1 Strong Buy to 5 Sell), the lowest and highest target, how
   many analysts, the range of the targets set in the last 30 days with
-  how many there were, the lowest target against the price, and a short
-  note of key risks. It opens sorted on the lowest target against the
+  how many there were, the average target against the price, and a short
+  note of key risks (debt, dilution, the next earnings date, short
+  reports, regulation). It opens sorted on the average target against the
   price, largest first; tap any heading but Key risks to sort, again to
   turn it round, and a holding without targets always sits last with
   `—`. Stocks show the analysts' consensus from Yahoo Finance. A fund
@@ -125,7 +126,8 @@ Tap a tile to open its chart.
   hand, tagged *strategist targets* (hover the row for each firm, date
   and horizon). The targets refresh by themselves at 04:00, 09:30 and the
   close (New York time) on trading days and at 09:30 on other days;
-  "Updated" under the title says when. The page opens with its figures
+  "Updated" under the title says when. Weight, Price and the average
+  target against the price move with the board's live prices. The page opens with its figures
   already there, read when the site loads.
 - **Transaction history** (edit password only). Every buy, sale and
   dividend across every holding, newest first, closed positions

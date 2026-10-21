@@ -73,10 +73,31 @@ describe('the page after the preload', () => {
     await prefetchTargets(async () => ok());
     const spy = vi.spyOn(globalThis, 'fetch');
     render(<TargetPriceModal metrics={METRICS} onTickerClick={() => {}} onClose={() => {}} />);
-    // Synchronously after render: no "Reading targets…", the row's low vs price already there (230 / 240 − 1 = −4.2 %).
+    // Synchronously after render: no "Reading targets…", the row's avg vs price already there (260 / 240 − 1 = +8.3 %).
     expect(screen.queryByText(/Reading targets/)).toBeNull();
-    expect(screen.getByText('-4.2%')).toBeTruthy();
+    expect(screen.getByText('+8.3%')).toBeTruthy();
     expect(screen.getByText('230 – 300')).toBeTruthy();   // both ends 100 and up: no decimals
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
+  it('moves Weight, Price and Avg vs price with a board tick, and asks nothing of the server', async () => {
+    await prefetchTargets(async () => ok());
+    const spy = vi.spyOn(globalThis, 'fetch');
+    const { rerender } = render(<TargetPriceModal metrics={METRICS} onTickerClick={() => {}} onClose={() => {}} />);
+    const cells = () => [...document.querySelectorAll('.tp-table tbody tr td')].map((td) => (td.textContent || '').trim());
+    // 480 / 1,000 = 48.00 %; 240; 260 / 240 − 1 = +8.3 %.
+    expect(cells().slice(1, 3)).toEqual(['48.00%', '240']);
+    expect(cells()[8]).toBe('+8.3%');
+    const updated = (document.querySelector('.tp-updated')?.textContent || '').trim();
+    // The board ticks: ACME 240 → 250 (and its value with it, 2 × 250 = 500 of 1,020).
+    const tick = { marketValue: 1020, positions: { A: { players: [{ ...METRICS.positions.A.players[0], lastPrice: 250, marketValue: 500 }] } } };
+    rerender(<TargetPriceModal metrics={tick} onTickerClick={() => {}} onClose={() => {}} />);
+    // 500 / 1,020 = 49.02 %; 250; 260 / 250 − 1 = +4.0 %. The scheduled columns and their stamp stay as they were.
+    expect(cells().slice(1, 3)).toEqual(['49.02%', '250']);
+    expect(cells()[8]).toBe('+4.0%');
+    expect(cells()[3]).toBe('260');
+    expect((document.querySelector('.tp-updated')?.textContent || '').trim()).toBe(updated);
     expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();
   });

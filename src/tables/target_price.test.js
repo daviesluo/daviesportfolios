@@ -47,7 +47,7 @@ describe('Target price rows', () => {
     // price 50 (the board; the job read 51). mean 100 → +100 %; low 60 → +20 %; range (150 − 60) / 50 = 180 %.
     // Fresh: A's 90 (2 days) and B's 120 (10 days); C's 70 is 40 days old. Width (120 − 90) / 50 = 60 %.
     expect([r.kind, r.price, r.mean, r.low, r.high, r.analysts]).toEqual(['consensus', 50, 100, 60, 150, 20]);
-    expect([r.upside, r.lowVsPrice, r.rangeSpread, r.freshSpread]).toEqual([100, 20, 180, 60]);
+    expect([r.avgVsPrice, r.lowVsPrice, r.rangeSpread, r.freshSpread]).toEqual([100, 20, 180, 60]);
     expect(r.fresh).toEqual({ low: 90, high: 120, count: 2 });
     expect([r.rating, r.ratingWord]).toEqual([1.6, 'Buy']);
     expect(by('ORCL').lowVsPrice).toBe(-20);
@@ -60,7 +60,7 @@ describe('Target price rows', () => {
     // low 82,000 / 100,000 − 1 = −18 %; mean 110,666.67 → +10.67 %.
     expect([r.kind, r.low, r.high, r.analysts, r.rating, r.fresh]).toEqual(['strategist', 82000, 150000, 3, null, null]);
     expect(r.lowVsPrice).toBeCloseTo(-18, 10);
-    expect(r.upside).toBeCloseTo(10.666667, 5);
+    expect(r.avgVsPrice).toBeCloseTo(10.666667, 5);
     expect(r.sources).toHaveLength(1);
   });
 
@@ -73,7 +73,7 @@ describe('Target price rows', () => {
   it('a holding with no targets: every target figure null, and its risk note still there', () => {
     const r = by('2DG.SG');
     expect([r.kind, r.mean, r.low, r.lowVsPrice, r.rating, r.analysts, r.fresh]).toEqual([null, null, null, null, null, null, null]);
-    expect(r.risks).toBe('Only Redeye (paid) covers it; public short report');
+    expect(r.risks).toMatch(/^Only Redeye \(paid\) covers it; Ningi Research short report/);
     // No copy at all yet: the rows are there, every one uncovered.
     expect(buildTargetRows(METRICS, null, NOW).map((x) => x.kind)).toEqual([null, null, null, null, null]);
   });
@@ -93,16 +93,17 @@ describe('Target price rows', () => {
 });
 
 describe('Target price order', () => {
-  it('opens on low vs price, largest first, an uncovered holding last', () => {
-    expect(DEFAULT_SORT).toEqual({ key: 'lowVsPrice', dir: 'desc' });
-    expect(sortTargetRows(rows, 'lowVsPrice', 'desc').map((r) => r.display)).toEqual(['RKLB', 'VUAA', 'BTC-USD', 'ORCL', 'SIVE']);
+  it('opens on avg vs price, largest first, an uncovered holding last (Davies, 2026-10-21)', () => {
+    expect(DEFAULT_SORT).toEqual({ key: 'avgVsPrice', dir: 'desc' });
+    // RKLB 100 / 50 = +100 %, ORCL 120 / 100 = +20 %, BTC 110,666.67 / 100,000 = +10.67 %, VUAA 110 / 100 = +10 %.
+    expect(sortTargetRows(rows, 'avgVsPrice', 'desc').map((r) => r.display)).toEqual(['RKLB', 'ORCL', 'BTC-USD', 'VUAA', 'SIVE']);
     // Turned round, the uncovered holding is still last.
-    expect(sortTargetRows(rows, 'lowVsPrice', 'asc').map((r) => r.display)).toEqual(['ORCL', 'BTC-USD', 'VUAA', 'RKLB', 'SIVE']);
+    expect(sortTargetRows(rows, 'avgVsPrice', 'asc').map((r) => r.display)).toEqual(['VUAA', 'BTC-USD', 'ORCL', 'RKLB', 'SIVE']);
   });
 
   it('every column but Key risks sorts both ways, nulls last; the first click goes the useful way', () => {
     expect(TARGET_COLUMNS.filter((c) => !c.sortKey).map((c) => c.label)).toEqual(['Key risks']);
-    expect(TARGET_COLUMNS.map((c) => c.label)).toEqual(['Symbol', 'Weight', 'Price', 'Avg target', 'Avg rating', 'Avg range', 'Analysts', 'Fresh range', 'Low vs price', 'Key risks']);
+    expect(TARGET_COLUMNS.map((c) => c.label)).toEqual(['Symbol', 'Weight', 'Price', 'Avg target', 'Avg rating', 'Avg range', 'Analysts', 'Fresh range', 'Avg vs price', 'Key risks']);
     for (const c of TARGET_COLUMNS.filter((x) => x.sortKey)) {
       for (const dir of /** @type {const} */ (['asc', 'desc'])) {
         const out = sortTargetRows(rows, /** @type {string} */ (c.sortKey), dir);

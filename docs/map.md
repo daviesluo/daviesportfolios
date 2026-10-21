@@ -596,9 +596,9 @@ Startup, the root component, sign-in, what the browser keeps, error reports, and
 |---|---|
 | `tables/holdings_list.jsx` | The sortable holding list. |
 | `tables/sectors_list.jsx` | The same list grouped by sector. |
-| `tables/target_price.jsx`, `tables/target_price.js` | The Target price page: each holding beside its analyst targets (mean, rating, range, analysts, the last 30 days' range, the lowest target against the price), sortable; the rows and their math are in the `.js`. |
+| `tables/target_price.jsx`, `tables/target_price.js` | The Target price page: each holding beside its analyst targets (mean, rating, range, analysts, the last 30 days' range, the mean target against the price), sortable; weight, price and avg vs price live with the board; the rows and their math are in the `.js`. |
 | `tables/targets_data.js` | The Target price page's data: one GET of the `targets` function in the app's after-paint preload, kept in memory and in this browser for two hours, so the page opens drawn. |
-| `tables/target_risks.js` | The Target price page's Key risks notes, kept by hand, dated ones dropping out after their day. |
+| `tables/target_risks.js` | The Target price page's Key risks notes for every holding, kept by hand with their sources, dated ones dropping out after their day. |
 | `tables/transaction_history.jsx` | Every buy, sale and dividend, closed positions included. |
 | `tables/table_export.jsx`, `tables/holdings_export.js` | Copy and Excel export for the three tables, formatted exactly as the tables show them. |
 

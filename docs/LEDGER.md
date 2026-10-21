@@ -671,6 +671,8 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
 - **Fixes on review:** ranges use one decimals rule (2 under 100, none from 100); a fund's holding counts only at 0.5–2×
   its mean over `financialData.currentPrice` of the same response, else "skipped" on the tag; 005935 (Samsung pref) read
   through 005930. SAEM 10-21: 3 skipped (Samsung 2.14×, SK hynix 2.39×, pref), coverage 22.5 %, mean +45 % (was +74 %).
+- **Davies' changes:** "Avg vs price" (mean / price − 1) replaces Low vs price as the default sort; Weight, Price and it
+  live with the board; Key risks for all 30 holdings, researched 10-21 with sources in `target_risks.js`; BTC horizons on hover.
 
 ### [2026-10-21 19:14 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **PR5's four-week review** (sub-agent, item 4; `reviews/2026-10-21-pr5-paper-test-review.md`, `backtests/pr5_review/`,

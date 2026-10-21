@@ -71,7 +71,8 @@ function TargetPriceModal({ metrics, onTickerClick, onClose }) {
         <div>
           <h2 className="modal-title mono">Target price</h2>
           <div className="tp-meta mono">
-            {updated ? <span className="tp-updated">{updated}</span>
+            {updated ? (<><span className="tp-updated" title="When the scheduled job last read the targets, ratings, ranges and analysts">{updated}</span>
+              <span className="tp-live"> · Weight, Price and Avg vs price live</span></>)
               : state === 'failed' ? <span>Targets could not be read</span>
               : state === 'reading' ? <span>Reading targets…</span> : null}
           </div>
@@ -117,7 +118,6 @@ function TargetPriceModal({ metrics, onTickerClick, onClose }) {
                   <td className="hl-right">{money(r.price, r.currency)}</td>
                   <td className="hl-right">
                     <div className="hl-strong">{money(r.mean, r.targetCurrency)}</div>
-                    {r.upside != null && <div className="hl-sub" style={{ color: pctColor(r.upside) }}>{fmtPct(r.upside, { precision: 1 })}</div>}
                   </td>
                   <td className="hl-right">
                     {r.rating != null ? (<><div>{r.rating.toFixed(2)}</div><div className="hl-sub tp-word">{r.ratingWord}</div></>) : <span className="dim">{DASH}</span>}
@@ -132,8 +132,8 @@ function TargetPriceModal({ metrics, onTickerClick, onClose }) {
                       : r.kind === 'holdings' ? <span className="dim" title="The fund's holdings have no dated targets to read a 30-day window from">{DASH}</span>
                       : r.kind ? <span className="dim" title="No target set in the last 30 days">none in 30d</span> : DASH}
                   </td>
-                  <td className="hl-right hl-strong" style={{ color: r.lowVsPrice != null ? pctColor(r.lowVsPrice) : undefined }}>
-                    {r.lowVsPrice != null ? fmtPct(r.lowVsPrice, { precision: 1 }) : DASH}
+                  <td className="hl-right hl-strong" style={{ color: r.avgVsPrice != null ? pctColor(r.avgVsPrice) : undefined }}>
+                    {r.avgVsPrice != null ? fmtPct(r.avgVsPrice, { precision: 1 }) : DASH}
                   </td>
                   <td className="hl-left tp-risks">{r.risks || ''}</td>
                 </tr>
@@ -147,7 +147,8 @@ function TargetPriceModal({ metrics, onTickerClick, onClose }) {
         <p className="tp-foot dim">
           Stocks: the analysts&apos; consensus as Yahoo Finance serves it. Funds: their largest holdings&apos; targets, weighted
           (hover the tag for the coverage). Bitcoin: bank targets kept by hand. Fresh range counts targets set in the last
-          30 days. Refreshed at 04:00, 09:30 and the close ET on trading days, 09:30 ET on other days.
+          30 days. Weight, Price and Avg vs price move with the board; the other columns are refreshed at 04:00, 09:30 and
+          the close ET on trading days, 09:30 ET on other days.
         </p>
       </div>
     </Modal>

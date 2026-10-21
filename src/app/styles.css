@@ -608,7 +608,7 @@ body {
 .tp-tag-note { display: block; margin-top: 2px; padding-left: 7px; color: var(--chalk-dim); font-size: 10px; letter-spacing: 0.02em; }
 .tp-table .tp-range { white-space: nowrap; }
 .tp-table .tp-word { color: var(--chalk-dim); opacity: 1; }
-.tp-table .tp-risks { min-width: 220px; max-width: 320px; white-space: normal; color: var(--chalk-dim); font-size: 12px; line-height: 1.4; }
+.tp-table .tp-risks { min-width: 280px; max-width: 380px; white-space: normal; color: var(--chalk-dim); font-size: 12px; line-height: 1.4; }
 .tp-table .tp-th-static { cursor: default; }
 .tp-table .tp-th-static:hover { color: var(--chalk-dim); }
 .tp-table tr.tp-uncovered td:not(:first-child),
@@ -619,7 +619,7 @@ body {
   .tp-table td { padding: 8px 8px; }
   .tp-table .hl-th { padding: 8px 8px; }
   .tp-table .tp-sym { min-width: 84px; }
-  .tp-table .tp-risks { min-width: 200px; }
+  .tp-table .tp-risks { min-width: 340px; }
 }
 
 /* ============= MAIN LAYOUT ============= */

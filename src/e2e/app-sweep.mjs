@@ -453,9 +453,9 @@ const TOKEN_REQUIRED = ['/prices', '/chart', '/fundamentals', '/data', '/trading
 
 /**
  * The `targets` function's GET (the Target price page, 2026-10-21), as its job would have written it for this book at
- * the close before the pinned clock (16:00 ET on 17 Sep). ACME: the board's 240 against a low of 230 is −4.2 %; NOVA:
- * 132 against 120 is +10.0 %; VUAA.L, a fund, holdings-weighted in the pounds the board prices it in: 76 against 80 is
- * −5.0 %; BRIT.L and the CN fund have none. So the page opens NOVA, ACME, VUAA, then the two without, in the board's order.
+ * the close before the pinned clock (16:00 ET on 17 Sep). Avg vs price, against the board's price: NOVA 150 / 120 is
+ * +25.0 %; VUAA.L, a fund, holdings-weighted in the pounds the board prices it in, 88 / 80 is +10.0 %; ACME 260 / 240 is
+ * +8.3 %; BRIT.L and the CN fund have none. So the page opens NOVA, VUAA, ACME, then the two without, in the board's order.
  */
 const TARGETS_BODY = {
   slot: '2026-09-17T20:00:00.000Z', asOf: '2026-09-17T20:00:30.000Z',
@@ -3028,7 +3028,7 @@ async function run() {
 
   // The Target price page (Davies, 2026-10-21): in the ☰ menu right after Sectors list; its targets read by the app's
   // preload before anything opens, so the page shows its rows within about 120 ms of the click and never an empty or
-  // loading state; opened on low vs price, largest first, the holdings without targets last; a header click turns the
+  // loading state; opened on avg vs price, largest first, the holdings without targets last; a header click turns the
   // order; the Symbol column stays put while the table scrolls sideways; the page itself never scrolls sideways.
   for (const vp of viewports('target-price')) {
     const S = (n) => `${vp.name}/target-price/${n}`;
@@ -3080,22 +3080,22 @@ async function run() {
       syms: [...document.querySelectorAll('.tp-table tbody tr .hl-ticker')].map((e) => (e.textContent || '').trim()),
       low: [...document.querySelectorAll('.tp-table tbody tr')].map((r) => (r.cells[8]?.textContent || '').trim()),
       tag: [...document.querySelectorAll('.tp-table .tp-tag')].map((e) => (e.textContent || '').trim()),
-      updated: (document.querySelector('.tp-meta')?.textContent || '').trim(),
+      updated: (document.querySelector('.tp-updated')?.textContent || '').trim(),
     }));
     const first = await read();
-    const want = ['NOVA', 'ACME', 'VUAA', 'BRIT', '017731'];
-    if (JSON.stringify(first.syms) === JSON.stringify(want) && JSON.stringify(first.low) === JSON.stringify(['+10.0%', '-4.2%', '-5.0%', '—', '—'])
+    const want = ['NOVA', 'VUAA', 'ACME', 'BRIT', '017731'];
+    if (JSON.stringify(first.syms) === JSON.stringify(want) && JSON.stringify(first.low) === JSON.stringify(['+25.0%', '+10.0%', '+8.3%', '—', '—'])
       && first.updated === 'Updated 16:00 ET' && JSON.stringify(first.tag) === JSON.stringify(['holdings-weighted · 39%'])) {
-      ok(S('default-order'), `low vs price, largest first: ${first.syms.join(' ')} (${first.low.join(' ')}); the fund tagged; "${first.updated}"`);
+      ok(S('default-order'), `avg vs price, largest first: ${first.syms.join(' ')} (${first.low.join(' ')}); the fund tagged; "${first.updated}"`);
     } else fail(S('default-order'), JSON.stringify(first));
     await shot(page, `target-price-${vp.name}`);
     // A click on the sorted header turns it round, the holdings without targets still last; another column sorts by itself.
-    await page.locator('.tp-table th.tp-col-lowVsPrice').click();
-    const asc = await readUntil(page, read, (v) => v?.syms[0] === 'VUAA');
+    await page.locator('.tp-table th.tp-col-avgVsPrice').click();
+    const asc = await readUntil(page, read, (v) => v?.syms[0] === 'ACME');
     await page.locator('.tp-table th.tp-col-ticker').click();
     const bySym = await readUntil(page, read, (v) => v?.syms[0] === '017731');
-    if (JSON.stringify(asc?.syms) === JSON.stringify(['VUAA', 'ACME', 'NOVA', 'BRIT', '017731']) && JSON.stringify(bySym?.syms) === JSON.stringify(['017731', 'ACME', 'BRIT', 'NOVA', 'VUAA'])) {
-      ok(S('sort'), `low vs price turned round: ${asc?.syms.join(' ')}; by symbol: ${bySym?.syms.join(' ')}`);
+    if (JSON.stringify(asc?.syms) === JSON.stringify(['ACME', 'VUAA', 'NOVA', 'BRIT', '017731']) && JSON.stringify(bySym?.syms) === JSON.stringify(['017731', 'ACME', 'BRIT', 'NOVA', 'VUAA'])) {
+      ok(S('sort'), `avg vs price turned round: ${asc?.syms.join(' ')}; by symbol: ${bySym?.syms.join(' ')}`);
     } else fail(S('sort'), `turned ${JSON.stringify(asc?.syms)}, by symbol ${JSON.stringify(bySym?.syms)}`);
     // The Symbol column frozen while the table scrolls sideways (a phone's table overflows; a desktop's may fit, and then
     // the rule itself is read), and no sideways scroll for the page.

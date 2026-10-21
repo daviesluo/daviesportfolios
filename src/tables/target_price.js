@@ -4,16 +4,20 @@
 //
 // The columns, exactly:
 //   Weight          the holding's share of the whole book, cash included: the Holding list's Exposure, from the same
-//                   function (`buildHoldingsRows`), so the two pages can never disagree.
-//   Price           the price the board shows (`player.lastPrice`, in the holding's own currency).
-//   Avg target      the mean of the current targets; its line below, the upside: mean / price − 1.
+//                   function (`buildHoldingsRows`), so the two pages can never disagree.                       LIVE
+//   Price           the price the board shows (`player.lastPrice`, in the holding's own currency).              LIVE
+//   Avg target      the mean of the current targets.
 //   Avg rating      the mean recommendation on Yahoo's scale, 1 (strong buy) to 5 (sell), shown with its word.
 //   Avg range       the lowest and highest of all current targets.
 //   Analysts        how many analysts the mean is of.
 //   Fresh range     the lowest and highest of the targets set in the last 30 days, and how many there are: each firm's
 //                   latest target, counted only when it was set in the window.
-//   Low vs price    the lowest target against the price: low / price − 1. The default sort, largest first.
+//   Avg vs price    the mean target against the price: mean / price − 1. The default sort, largest first.    LIVE
 //   Key risks       a short note per holding, kept by hand (target_risks.js).
+//
+// LIVE: worked out here from the board's own `metrics` on every render, so they move at the board's tick (Davies,
+// 2026-10-21): the page re-renders with each new `metrics` and asks nothing of the server. Every other column is the
+// job's snapshot and moves only at its scheduled runs; "Updated HH:MM ET" is the time of that run.
 //
 // A row's kind says where its targets come from: a stock's sell-side consensus ("consensus"), an ETF's targets weighted
 // by its holdings ("holdings": no source publishes a consensus for a fund), or bitcoin's dated bank targets kept by hand
@@ -88,7 +92,7 @@ export function buildTargetRows(metrics, data, nowMs) {
       ticker: h.ticker, display, weight: h.exposure, price: boardPrice, currency: p.currency || null,
       kind: /** @type {'consensus' | 'holdings' | 'strategist' | null} */ (null),
       mean: /** @type {number | null} */ (null), low: /** @type {number | null} */ (null), high: /** @type {number | null} */ (null),
-      upside: /** @type {number | null} */ (null), rating: /** @type {number | null} */ (null), ratingWord: /** @type {string | null} */ (null),
+      avgVsPrice: /** @type {number | null} */ (null), rating: /** @type {number | null} */ (null), ratingWord: /** @type {string | null} */ (null),
       analysts: /** @type {number | null} */ (null), rangeSpread: /** @type {number | null} */ (null),
       fresh: /** @type {{ low: number, high: number, count: number } | null} */ (null), freshSpread: /** @type {number | null} */ (null),
       lowVsPrice: /** @type {number | null} */ (null), targetCurrency: /** @type {string | null} */ (null),
@@ -116,7 +120,7 @@ export function buildTargetRows(metrics, data, nowMs) {
         row.fresh = fr.length ? { low: Math.min(...fr), high: Math.max(...fr), count: fr.length } : null;
       }
       if (basis) {
-        row.upside = pct6((row.mean / basis - 1) * 100);
+        row.avgVsPrice = pct6((row.mean / basis - 1) * 100);
         row.lowVsPrice = row.low !== null ? pct6((row.low / basis - 1) * 100) : null;
         row.rangeSpread = row.low !== null && row.high !== null ? pct6(((row.high - row.low) / basis) * 100) : null;
         row.freshSpread = row.fresh ? pct6(((row.fresh.high - row.fresh.low) / basis) * 100) : null;
@@ -132,22 +136,22 @@ export function buildTargetRows(metrics, data, nowMs) {
 
 /**
  * The page's columns. `sortKey` is what a click sorts by: the ranges by their width against the price (how far the
- * analysts are apart), Avg target by its upside; Key risks does not sort.
+ * analysts are apart); Key risks does not sort.
  */
 export const TARGET_COLUMNS = [
   { key: 'ticker', label: 'Symbol', sortKey: 'display', numeric: false, align: 'left', title: 'Sort by symbol' },
-  { key: 'weight', label: 'Weight', sortKey: 'weight', numeric: true, align: 'right', title: 'Share of the whole book, cash included (the Holding list\'s Exposure)' },
-  { key: 'price', label: 'Price', sortKey: 'price', numeric: true, align: 'right', title: 'The price the board shows' },
-  { key: 'mean', label: 'Avg target', sortKey: 'upside', numeric: true, align: 'right', title: 'Mean of the current targets; below it the upside from the price. Sorts by the upside' },
+  { key: 'weight', label: 'Weight', sortKey: 'weight', numeric: true, align: 'right', title: 'Share of the whole book, cash included (the Holding list\'s Exposure). Live with the board' },
+  { key: 'price', label: 'Price', sortKey: 'price', numeric: true, align: 'right', title: 'The price the board shows. Live with the board' },
+  { key: 'mean', label: 'Avg target', sortKey: 'mean', numeric: true, align: 'right', title: 'Mean of the current targets' },
   { key: 'rating', label: 'Avg rating', sortKey: 'rating', numeric: true, align: 'right', title: 'Mean recommendation, 1 Strong Buy to 5 Sell. Sorts by the number' },
   { key: 'range', label: 'Avg range', sortKey: 'rangeSpread', numeric: true, align: 'right', title: 'Lowest to highest current target. Sorts by its width against the price' },
   { key: 'analysts', label: 'Analysts', sortKey: 'analysts', numeric: true, align: 'right', title: 'How many analysts the mean is of' },
   { key: 'fresh', label: 'Fresh range', sortKey: 'freshSpread', numeric: true, align: 'right', title: 'Lowest to highest of the targets set in the last 30 days, with how many. Sorts by its width against the price' },
-  { key: 'lowVsPrice', label: 'Low vs price', sortKey: 'lowVsPrice', numeric: true, align: 'right', title: 'Lowest target against the price: low / price − 1' },
+  { key: 'avgVsPrice', label: 'Avg vs price', sortKey: 'avgVsPrice', numeric: true, align: 'right', title: 'Mean target against the price: avg / price − 1. Live with the board' },
   { key: 'risks', label: 'Key risks', sortKey: null, numeric: false, align: 'left', title: 'Kept by hand' },
 ];
 
-export const DEFAULT_SORT = /** @type {{ key: string, dir: 'asc' | 'desc' }} */ ({ key: 'lowVsPrice', dir: 'desc' });
+export const DEFAULT_SORT = /** @type {{ key: string, dir: 'asc' | 'desc' }} */ ({ key: 'avgVsPrice', dir: 'desc' });
 
 /**
  * The direction a column sorts in on its first click: text A→Z, numbers largest first, the rating best first (1 is a
