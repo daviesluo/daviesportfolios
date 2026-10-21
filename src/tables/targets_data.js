@@ -12,8 +12,11 @@ import { EDGE_PRICES_URL, edgeHeaders } from '../prices/yahoo_fetch.js';
 import { Storage } from '../app/storage.js';
 
 export const TARGETS_URL = EDGE_PRICES_URL.replace(/\/prices$/, '/targets');
-/** How long a copy stands before the next preload or page open asks again. */
-export const TARGETS_TTL_MS = 2 * 3600e3;
+/**
+ * How long a copy stands before the next preload or page open asks again. One GET of our own table, so short: a copy
+ * kept for hours hid the first scheduled run's rows behind the empty answer read before it (2026-10-21).
+ */
+export const TARGETS_TTL_MS = 15 * 60e3;
 const TIMEOUT_MS = 10_000;
 
 /** @type {{ at: number, data: any } | null} */
@@ -29,6 +32,15 @@ function readKept() {
   keptRead = true;
   const kept = Storage.loadTargetsCache();
   if (kept && !cache) cache = kept;
+}
+
+/**
+ * Whether a copy may stand without asking again: young enough, and holding rows. An empty answer (the job had not run)
+ * is never fresh, so the next open asks again.
+ * @param {{ at: number, data: any } | null} c @param {number} nowMs
+ */
+export function targetsFresh(c, nowMs) {
+  return !!c && nowMs - c.at < TARGETS_TTL_MS && !!c.data?.rows && Object.keys(c.data.rows).length > 0;
 }
 
 /** The copy the page draws from, or null: memory, else the one kept in this browser. */
@@ -68,7 +80,7 @@ export function fetchTargets(fetchImpl = fetch, now = Date.now) {
  */
 export function prefetchTargets(fetchImpl = fetch, now = Date.now) {
   readKept();
-  if (cache && now() - cache.at < TARGETS_TTL_MS) return Promise.resolve(cache);
+  if (targetsFresh(cache, now())) return Promise.resolve(cache);
   return fetchTargets(fetchImpl, now);
 }
 

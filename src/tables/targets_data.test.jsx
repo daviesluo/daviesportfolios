@@ -9,7 +9,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
-import { _resetTargets, fetchTargets, prefetchTargets, readTargetsCache, TARGETS_TTL_MS, TARGETS_URL } from './targets_data.js';
+import { _resetTargets, fetchTargets, prefetchTargets, readTargetsCache, targetsFresh, TARGETS_TTL_MS, TARGETS_URL } from './targets_data.js';
 import { TargetPriceModal } from './target_price.jsx';
 
 const BODY = {
@@ -50,6 +50,21 @@ describe('the targets preload', () => {
     t += 1;
     await prefetchTargets(f, now);
     expect(f).toHaveBeenCalledTimes(2);
+  });
+
+  it('an empty answer is never fresh: the next preload asks again (the 2026-10-21 first run hid behind it)', async () => {
+    let t = 5_000_000;
+    const now = () => t;
+    const empty = vi.fn(async () => new Response(JSON.stringify({ asOf: null, rows: {} }), { status: 200 }));
+    await prefetchTargets(empty, now);
+    expect(targetsFresh(readTargetsCache(), t)).toBe(false);
+    t += 60e3;
+    const full = vi.fn(async () => ok());
+    await prefetchTargets(full, now);
+    expect(full).toHaveBeenCalledTimes(1);
+    expect(readTargetsCache()?.data.rows.ACME.mean).toBe(260);
+    expect(targetsFresh(readTargetsCache(), t)).toBe(true);
+    expect(targetsFresh(readTargetsCache(), t + TARGETS_TTL_MS)).toBe(false);
   });
 
   it('a failure or a bad answer keeps the copy already here and never throws', async () => {

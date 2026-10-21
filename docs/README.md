@@ -76,6 +76,11 @@ Screenshots of the Agents page will follow once a strategy is live.
 - **Charts** for every holding and market card, including a real
   overnight line for US stocks built from recorded broker quotes. Any
   chart can be copied or saved as an image.
+- **Target price**: for every holding, the analysts' average target and
+  rating, their range, how many there are and which targets changed in
+  the last month, the average target against the live price, and a few
+  short notes on the risks. A server job refreshes it before, at and
+  after each US session; funds are scored through their largest holdings.
 - **The ledger**: buy lots and sales per holding, cost basis and realised
   gain across USD, GBP, EUR, CNY and HKD with live FX, and Chinese mutual
   funds priced from Eastmoney.

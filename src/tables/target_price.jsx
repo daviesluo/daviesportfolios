@@ -7,7 +7,7 @@ import React from 'react';
 import { Modal } from '../board/modals.jsx';
 import { dropDot00, fmtPct, fmtPrice, pctColor } from '../app/formatters.js';
 import { buildTargetRows, DEFAULT_SORT, firstSortDir, fmtRange, kindTag, sortTargetRows, strategistTitle, TARGET_COLUMNS, updatedLabel } from './target_price.js';
-import { fetchTargets, onTargets, readTargetsCache, TARGETS_TTL_MS } from './targets_data.js';
+import { fetchTargets, onTargets, readTargetsCache, targetsFresh } from './targets_data.js';
 
 const DASH = '—';
 
@@ -45,7 +45,7 @@ function TargetPriceModal({ metrics, onTickerClick, onClose }) {
     const off = onTargets(() => setCopy(readTargetsCache()));
     const have = readTargetsCache();
     if (have !== copy) setCopy(have);
-    if (!have || Date.now() - have.at >= TARGETS_TTL_MS) {
+    if (!targetsFresh(have, Date.now())) {
       if (!have) setState('reading');
       fetchTargets().then((c) => { if (!c && !readTargetsCache()) setState('failed'); else setState('idle'); });
     }
