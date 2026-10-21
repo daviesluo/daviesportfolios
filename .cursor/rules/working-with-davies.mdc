@@ -12,7 +12,8 @@ an answer, and the mistakes that have already cost a round trip.
 Distilled from the Claude Code sessions archived in `docs/handover.md` (67 turns,
 2026-07-20 → 2026-08-18). Prefer this skill over re-reading that file
 unless you need a specific measurement or the exact wording of a
-request. The transcript contains live balances; the repo is private.
+request. The repository is public (Davies, 2026-10-21): real balances and amounts
+there read `[•]`.
 
 ## Language
 
@@ -986,5 +987,8 @@ item is reopened or audited, and move closed operations into it so the
 live ledger stays cheap to read on every wake. Part 3 is the raw 67-turn Claude Code session
 (every message, tool call, and tool result; long outputs clipped at
 3000 characters). Use it to recover a specific request or a closed-form
-check. Do not copy balances out of it into new files, issues, or
-public surfaces.
+check. The repository is public since 2026-10-21, and both files mask every real
+balance, amount, share count, lot price, transfer and live P&L of his accounts as
+`[•]`: never write one into any committed file, issue or commit message (write
+`£[•]`, `$[•]`, `[•] shares`). His holdings list (the tickers) may appear; settings,
+caps, paper and backtest figures are not his money and stay.

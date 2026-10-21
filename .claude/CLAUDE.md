@@ -182,9 +182,15 @@ owner works, or pays for a mistake worth not repeating. The skill is the
 distilled agreement; the ledger and its archive are the evidence behind
 it.
 
-Do not copy live balances out of `docs/LEDGER.md` or `docs/handover.md` into new
-files, issues, or anything public. The repo is private; those files quote
-real positions.
+**The repository is public** (Davies, 2026-10-21). Never write a real balance,
+amount or P&L of Davies' accounts into any committed file, issue or commit
+message: portfolio or position value, share count, lot price, cash, deposit,
+transfer, a live strategy account's balance or its realised or unrealised P&L.
+Write `[•]` (`£[•]`, `$[•]`, `[•] shares`), as `docs/LEDGER.md` and
+`docs/handover.md` do since that day. His holdings list (the tickers) may
+appear. Strategy settings (a rung, a cap, a budget), paper and backtest results,
+public prices, counts and percentages are not his money and stay. Git history
+from before that day still holds the old text.
 ## Agents (crypto, stablecoin quotes, Polymarket, Jev)
 
 Their rules are in **`docs/agents/CLAUDE.md`** since 2026-10-03 (Davies: "你说的这四点建议全做"): about 39 KB that

@@ -1,5 +1,8 @@
 # Ledger
 
+Real balances and amounts are masked as `[•]` (Davies, 2026-10-21: the repository is public): what his accounts and
+the live strategies hold, made or lost. Settings, caps, paper and backtest figures and the tickers stay. Write `[•]`.
+
 The live handover record for this repository, under the ledger protocol
 in `.agents/skills/ledger/SKILL.md`. Read this file first on any resume; it is kept
 small on purpose. The deep record — the full decision log and the raw
@@ -29,13 +32,13 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    reward-timing hypothesis with a 1-second speed study, and Coinbase's first days. Their proposals go to Davies; a rule
    change is an addendum on his word, and a restart is his call alone. The 10-16 end-rule read still runs as written.
    **Results (landed, history 2026-10-13 23:47):** LP-ADVERSE (`reviews/2026-10-12-lp-adverse-selection.md`): the fills lost
-   to one-shot takers (adverse −$305 in the first hour against +$101 of half-spread); live realised a fraction of the formula
+   to one-shot takers (adverse −$[•] in the first hour against +$[•] of half-spread); live realised a fraction of the formula
    because carried stock held the cap; no priced package clears $0 with confidence; it recommends staying stopped, and P1
    (no quote after a 10 c hour, touch ≥ 3 c) if Davies wants it back. LP-SPEED (`reviews/2026-10-12-lp-reward-timing-speed.md`):
    programmes do change fast, but no fill came while a programme was out, paper's fills were as adverse, and a 1–30 s loop is
    worth +$0.3 to +$2.0 a day (the CLOB reward read is cached 5 s); change no cadence. Davies chooses.
    LP-BEST (`reviews/2026-10-13-lp-best-strategy.md`, `backtests/lpbest/`; Davies, 10-13: "继续研究最好的策略…给我讲讲我再评估下"):
-   a simulator calibrated to live (−$18.40 to −$24.96 a day against live's −$21.77) finds quoting a tick inside the touch loses
+   a simulator calibrated to live (−$18.40 to −$24.96 a day against live's −$[•]) finds quoting a tick inside the touch loses
    across the whole reward universe; the one positive design is **Q2, quiet books** (≤ 50 shares traded in 24 h by the data
    API, touch ≥ 4 c, RW's price, N a side, a 2N inventory cap): +$3.6/day at $316 [+1.4, +6.0], +$4.2 out of sample, not
    larger with more money; R in quiet books never measured. Its design and an Addendum 19 draft are in the review (§7–8),
@@ -52,48 +55,48 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    `.cursor/skills/`): copy-paste read-only SQL, OK/NOTE/ALERT/URGENT rules, the error box, the safe-fix workflow, the
    proposal path and the dated reads. The in-session watcher sub-agent ends with this session; the next platform runs
    watch cycles itself (Davies triggers them). State at 03:15 UTC 10-11: live-prep live and armed, Addenda 9–18 deployed
-   (`ac162cc9`; Addendum 18 seen working: `state.lp.refill.deferred` set at 02:22 with $10.53 free), stop basis −$13.71
-   (fills −48.92 marked at mid, rewards 28.41, rebates 6.79), **room $61.29**; error box empty since 00:12; PR5 fresh.
+   (`ac162cc9`; Addendum 18 seen working: `state.lp.refill.deferred` set at 02:22 with $[•] free), stop basis −$[•]
+   (fills −[•] marked at mid, rewards [•], rebates [•]), **room $[•]**; error box empty since 00:12; PR5 fresh.
    `state.pnl.total` is the fills alone, never the stop's number (the skill's Step 2). Dates: 10-13 forward tests and
    LP-RULES item 1; **10-16 ≥ 01:00 the 7-day end-rule read with `backtests/pmlp/lp_readout_a18.sql` only** and the $40
    buffer re-read; 10-22/23 LPRESEL6, TB1 C1, 14-day readout. Showcase (`daviesluo/personal`) not yet updated for this
    week's strategy changes (Addenda 9–18, LP studies): left for Claude Code.
 
 0a⁗. **LIVE-PREP LIQUIDATING (Addendum 24, live since 2026-10-15 16:23:55 UTC; Davies: "那目前的单都尽快卖出掉吧，还剩多少").**
-   16:26: 6 NO 0x76051f8c at 0.27 and 40 YES 0x7465aead at 0.12 sold, 10.2 of 80 YES 0xecc209a6 at 0.002 (pUSD 300.48 →
-   306.69). **Addendum 25 (built 16:35, not pushed)** books those taker trades (unbooked: TOTAL and stop missed them) on its
+   16:26: 6 NO 0x76051f8c at 0.27 and 40 YES 0x7465aead at 0.12 sold, 10.2 of 80 YES 0xecc209a6 at 0.002 (pUSD [•] →
+   [•]). **Addendum 25 (built 16:35, not pushed)** books those taker trades (unbooked: TOTAL and stop missed them) on its
    first turn: then check `pm_lp_fills` has 308e1767, cd415cc7, 7d6f857f and `last_error` is clear. 0xecc209a6's 69.8 YES
    rest nothing (its book has no bid, read as one-sided); the market ends 10-15, likely to be redeemed at 0 with the dust.
    Keep live-prep armed until then; stop with `update public.pm_lp_config set liquidate_at = null where id = 1;`.
 
 0a‴. **Q2 CLOSED, close-only, 2026-10-15 00:08 UTC** (Davies: "看一下最新的rewards payout，还不行的话就关了然后只卖出"). 10-14 paid
-   $2.873 on formula $4.019 (R 0.71); since the restart rewards+rebates $4.38 over 718 filled shares = 0.61 c a share, under
-   the 1.5 c bar; stop room $7.50. Ran `update public.pm_lp_config set restarted_at = null where id = 1;` (returned null;
+   $[•] on formula $[•] (R 0.71); since the restart rewards+rebates $[•] over 718 filled shares = 0.61 c a share, under
+   the 1.5 c bar; stop room $[•]. Ran `update public.pm_lp_config set restarted_at = null where id = 1;` (returned null;
    `dry_run` false, still armed so the exits work): at 00:10 `openBlockedBy` = `loss_total`, 3 SELLs resting, no BUY. The held
    lots exit on their own; no restart without Davies' word. Item 0a″ below is superseded.
    PMPOST (10-15, `reviews/2026-10-15-pm-postmortem.md`): not viable; its calls-off proposals wait for Davies.
 
-0a″. **URGENT for the next session: Q2's stop room was $3.98 of $25 at 17:47 UTC 10-14** (basis −21.02; 0x7465aead "Democratic
-   Senate odds 60-62% on October 16?" 40 YES at cost $12.20, mid 0.15, −6.20; 0x6eed2a46 20 YES bought again 17:40). The −$25
+0a″. **URGENT for the next session: Q2's stop room was $[•] of $25 at 17:47 UTC 10-14** (basis −[•]; 0x7465aead "Democratic
+   Senate odds 60-62% on October 16?" 40 YES at cost $[•], mid 0.15, −[•]; 0x6eed2a46 20 YES bought again 17:40). The −$25
    stop trips by itself at room 0 (close-only, nothing to do); this session recommended Davies stop now with the undo below;
    no answer before the 19:00 UTC handover. First read `state->'lp'->'stop'` and `trippedAt`. Then after 00:05/01:20 UTC 10-15
    read 10-14's payout and rebates (rewards and rebates per filled share since the restart: 0.27 c at 16:17; the bar, 1.5 c, counts rewards alone).
 
 0a′. **Q2 live, the second post-mortem (`reviews/2026-10-14-q2-trips.md`, landed 2026-10-14 ~16:45 UTC): no rule fixes it.**
-   15 of 16 lots lost to informed takers and the drift while held (16 lots −16.38: entry edge +5.87, first minute −9.12, held
-   −16.08, exits +3.00, residual −0.05; the review's erratum); of 27 rules none clears $0 at its 5 % bound on both spans or the 1.5 c bar on the live window. The
+   15 of 16 lots lost to informed takers and the drift while held (16 lots −[•]: entry edge +[•], first minute −[•], held
+   −[•], exits +[•], residual −[•]; the review's erratum); of 27 rules none clears $0 at its 5 % bound on both spans or the 1.5 c bar on the live window. The
    main session did NOT push its draft Addendum 23 (entries 4 c from the adjusted mid: 0.77 c a share live, under the bar),
    though Davies' standing word allowed a fix to go live. **Recommended to Davies: stop for good** (`update public.pm_lp_config
-   set restarted_at = null where id = 1;`, close-only, held lots exit); his call, live still running, stop room ~$9.
+   set restarted_at = null where id = 1;`, close-only, held lots exit); his call, live still running, stop room ~$[•].
 
 0c. **The audit of 2026-10-14 evening (history 2026-10-14 20:11; PR on `claude/audit-2026-10-14`): four calls for Davies.**
    (1) and (2) **built as Addendum 23 on his word** (2026-10-15, "Addendum 21和Addendum 20都修复了"; history 15:20; not
    pushed). (3) **`origin/lp-skew-ft`
    (Grok, 10-11) must not be merged:** its `0117_lpskew.sql` collides with the applied `0117_cb_minute_extremes_repair.sql`,
    its pins hold Addendum 18's `pm_live.ts`/`pm_lp.ts` bytes, its base arm is the S2 that Q2 replaced and its window
-   (10-12 → 10-19) has passed unrun; close it (deleting the branch is his). (4) **SPCX:** the board's 80 is 21 shares at another
-   platform plus Trading 212's 59 (Invest and ISA summed, `mergeShaped`); the conservative rule, not a bug; he confirms 59 in
-   the T212 app and the 21 elsewhere. No production read was possible from this session (no database connector): Q2's stop
+   (10-12 → 10-19) has passed unrun; close it (deleting the branch is his). (4) **SPCX:** the board's [•] is [•] shares at another
+   platform plus Trading 212's [•] (Invest and ISA summed, `mergeShaped`); the conservative rule, not a bug; he confirms [•] in
+   the T212 app and the [•] elsewhere. No production read was possible from this session (no database connector): Q2's stop
    (0a″) is unread since 17:47 UTC.
 
 0b. **Every PAPER Reward quotes test is off (Davies, 2026-10-13: "目前paper testing里的reward quotes全关了吧？感觉都不赚钱没什么
@@ -108,7 +111,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
 1. **Closed: fp5's ranked list.**
 
 2. **Polymarket reward quotes (paper; RW, RW-E, RW-X, TB1, RW-C) and the three order paths (dry-run, unarmed).**
-   - **Live-prep's Addenda 9–17 are live** (the reward check, FUNDED and the early readout, FUNDED at once: $402.028365
+   - **Live-prep's Addenda 9–17 are live** (the reward check, FUNDED and the early readout, FUNDED at once: $[•]
      booked 02:32 UTC 10-10; AI markets out; the refill, `b84cec4f`, ten refills 14:23–14:52 UTC; the $10 loss guard,
      `65650793`, 15:02 UTC; Addendum 15, the reserve ranked once a day at 00:00, `rerankEveryMin` 5 → 1440, pushed
      10-11 on Davies' "同意" of 10-10 23:59, quoted in the addendum; its programmes still read every minute;
@@ -173,14 +176,14 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      reading, not inside it. Intraday re-selection every 2 h (S2) was backtested on 10-07 and is not supported as
      specified (a longer archive would be needed).
    - **The three order paths, each in dry-run with its config row the lock** (`dry_run` true, `live_confirmed_at`
-     null; a trigger refuses arming two at once; one account, unfunded: pUSD $0.04 at the last read). **mini-pool**
+     null; a trigger refuses arming two at once; one account, unfunded: pUSD $[•] at the last read). **mini-pool**
      (`pm_live`, `0074`/`0076`/`0080`, `reviews/2026-10-01-polymarket-live-calibration.md`): every check window closed
      by Addendum 7 (2026-10-04); not a go-live candidate; off TESTING, and `pmlive` and `pmprep` off, when `0103`
      applies (Davies, 2026-10-08: "按你说的停掉mini-pool的两个调用"); config row untouched (nothing arms). **live-prep (S2)**, the lead
      candidate, with TB1's skip of a one-tick touch since its Addendum 2 (2026-10-08, Davies' word; pinned in
      `pm_lp.test.ts`, deployed with the next push of `agents`) (`0091`, `agents/pm_lp.ts`, `reviews/2026-10-04-polymarket-lp-prereg.md`): P1 checked 2026-10-07 20:22
      UTC with `backtests/pmlp/lp_check.sql` (sha256 `7e94b042…0a57`): (a)–(e) and (g) PASS, (f) FAIL on funding alone.
-     Before Davies' go, in order: P2 pUSD ≥ $81 in the account (read $0.04 on 10-09 00:00); P3 met in code (the
+     Before Davies' go, in order: P2 pUSD ≥ $81 in the account (read $[•] on 10-09 00:00); P3 met in code (the
      payouts-per-path change applied 2026-10-08, live-prep's Addendum 4, mid-pool's deviation 5; it deploys with the
      push that lands it); P4 mini-pool and mid-pool unarmed (both are); P5 the probe's read of the conditional-token
      allowances: built on branch `pm-prego` (2026-10-09 01:06 section below), read after its deploy with
@@ -692,6 +695,13 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   rebuilt). **Deploy before 10-24.** Sweep not run here (no browser).
 
 
+### [2026-10-21 22:51 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Real money masked in this ledger and its archive** (sub-agent; Davies 10-21: the repository is public, hide the
+  real balances and amounts without touching any function): every real balance, amount, share count, lot price,
+  transfer and live P&L in `docs/LEDGER.md` and `docs/handover.md` now reads `[•]`; settings, paper, backtests and
+  the tickers stay. `.claude/CLAUDE.md` and the working-with-davies skill (three copies) now say so. Git history
+  still holds the old text: only a rewrite and a force-push, his call, would remove it.
+
 ### [2026-10-21 21:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Heat map: the bottom-left six stack their first two beside the third, not a plain 2 × 3** (Davies, 10-21;
   sub-agent). ORCL+NBIS's block was 197 × 196 on one day (side by side: ORCL NBIS AAPL over META BE BTC-USD) and
@@ -721,7 +731,7 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   shared executor code, so the one large difference was the fill rule: LIVE filled 317 of 502 maker orders on prints AT its
   price. `revx_sim.ts`/`quotes_twin.ts`: twin rule `fill` (at-price fills, opt-in) and the replay's `turnOffsetMs`, `deadmen`,
   `outages`. Replayed at LIVE's £120: fills 20.3 % → 51.1 % fill for fill, orders 76.4 % → 84.7 %, realised £0.245 → £0.972
-  (LIVE £0.880), trips 130 → 204 (218). Deviations: twins §19, size twin §13, weekend test §7. No row uses `fill` yet (a
+  (LIVE £[•]), trips 130 → 204 (218). Deviations: twins §19, size twin §13, weekend test §7. No row uses `fill` yet (a
   decision). Condition 5: budget300 replayed (max 635/day, P&L unchanged), drafted only. 6 old history sections archived.
 
 ### [2026-10-21 21:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
