@@ -116,15 +116,16 @@ Tap a tile to open its chart.
   reports, regulation). It opens sorted on the average target against the
   price, largest first; tap any heading but Key risks to sort, again to
   turn it round, and a holding without targets always sits last with
-  `—`. Stocks show the analysts' consensus from Yahoo Finance. A fund
+  `—`. Prices and targets carry their currency's symbol ($, €, £ and so
+  on). Stocks show the analysts' consensus from Yahoo Finance. A fund
   (VUAA, SAEM) has no consensus of its own, so it shows its holdings'
-  targets weighted by their share of the fund, tagged
-  *holdings-weighted* with the share of the fund they cover; a holding
-  whose average target is under half or over twice its own price is
-  left out as implausible and counted on the tag as *skipped* (hover the
-  tag for the detail). Bitcoin shows banks' published targets kept by
-  hand, tagged *strategist targets* (hover the row for each firm, date
-  and horizon). The targets refresh by themselves at 04:00, 09:30 and the
+  targets weighted by their share of the fund, marked **HW** with the
+  share of the fund they cover (HW 36%); a holding whose average target
+  is under a fifth or over five times its own price is taken for a data
+  error, left out and counted under the mark as *skipped*. Bitcoin shows
+  banks' published targets kept by hand, marked **BANKS**. Hover a mark,
+  or tap it on a phone, for where the targets come from (bitcoin: each
+  firm, date and horizon). The targets refresh by themselves at 04:00, 09:30 and the
   close (New York time) on trading days and at 09:30 on other days;
   "Updated" under the title says when. Weight, Price and the average
   target against the price move with the board's live prices. The page opens with its figures

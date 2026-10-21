@@ -10,11 +10,12 @@
 //               target; the analysts the median of the holdings' counts; the fresh window the weighted mean of each
 //               covered holding's own last-30-day range, its count the number of those targets. Coverage (the share of
 //               the ETF's weight priced) travels with it, and the page shows it. Each holding's ratio is its targets
-//               over `financialData.currentPrice` of the SAME response (one quote, one currency), and a holding whose
-//               mean is under half its price or over twice it is left out and named as skipped: on 2026-10-21 Yahoo
-//               gave Samsung (005930.KS) 2.14× and SK hynix (000660.KS) 2.39× their prices, a month after a 20–30 %
-//               fall, with no dated history to show the targets were current; weighted in, they moved SAEM's mean
-//               from +45 % to +74 %.
+//               over `financialData.currentPrice` of the SAME response (one quote, one currency). A holding whose mean
+//               is under a fifth of its price or over five times it is taken for a unit or listing error and left out,
+//               named as skipped (the same bounds as a stock's, SANE_MEAN_RATIO). A tighter band (0.5–2×) briefly
+//               skipped Samsung (2.14×) and SK hynix (2.39×) on 2026-10-21; their targets were checked and are real
+//               (same-response KRW price, 36 and 38 analysts, set before a 20–30 % fall), so they count (Davies,
+//               2026-10-21).
 //   strategist  bitcoin, which no API covers: the dated, sourced bank targets in `strategists.ts`, kept by hand.
 //
 // Every snapshot is in the instrument's own currency. The page compares it with the price the board shows, so its
@@ -40,7 +41,7 @@ export type Snapshot = {
   fresh?: { low: number; high: number; count: number } | null;
   /**
    * A holdings-weighted row's basis: the share of the ETF's weight covered, how many holdings, and the holdings left out
-   * as implausible (their mean over their price outside CONSTITUENT_RATIO), with that ratio.
+   * as a likely unit or listing error (their mean over their price outside CONSTITUENT_RATIO), with that ratio.
    */
   coverage?: { weight: number; names: number; source: string; skipped?: Array<{ symbol: string; weight: number; ratio: number }> } | null;
   /** A strategist row's sources, one per target. */
@@ -114,8 +115,8 @@ export function freshTargets(targets: FirmTarget[], nowMs: number, days = FRESH_
   return targets.filter((t) => { const at = Date.parse(t.at); return at <= nowMs && nowMs - at <= days * DAY; });
 }
 
-/** A constituent's mean target over its own price must lie in this band to be weighted in (see the header). */
-export const CONSTITUENT_RATIO = { min: 0.5, max: 2 };
+/** A constituent's mean target over its own price must lie in this band to be weighted in: a stock's bounds (see the header). */
+export const CONSTITUENT_RATIO = { min: SANE_MEAN_RATIO.min, max: SANE_MEAN_RATIO.max };
 
 /**
  * A preferred share in a fund's holdings and the common share whose consensus stands for it. Yahoo's few targets on a

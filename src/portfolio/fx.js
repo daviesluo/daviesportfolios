@@ -63,6 +63,20 @@ const CURRENCY_SYMBOLS = { USD: "$", GBP: "£", CNY: "¥", HKD: "HK$", EUR: "€
 export function currencySymbol(cur) { return CURRENCY_SYMBOLS[cur] || "$"; }
 
 /**
+ * How a figure in `cur` is written, as text before and after the number: the symbol of a currency the site knows
+ * ("$", "£", "€", "¥", "HK$"), pence as a "p" after (GBp, a London price in pence), and any other code written out
+ * ("SEK 24.12"). Unlike `currencySymbol`, never a "$" for a currency that is not the dollar.
+ * @param {string | null | undefined} cur
+ * @returns {{ pre: string, post: string }}
+ */
+export function currencyAffix(cur) {
+  if (!cur) return { pre: "$", post: "" };
+  if (cur === "GBp" || cur === "GBX") return { pre: "", post: "p" };
+  const sym = /** @type {Record<string, string>} */ (CURRENCY_SYMBOLS)[cur];
+  return sym ? { pre: sym, post: "" } : { pre: `${cur} `, post: "" };
+}
+
+/**
  * FX rate: how many USD one unit of `currency` is worth, given current
  * market data. Yahoo's GBPUSD=X and EURUSD=X are quoted GBP→USD /
  * EUR→USD directly. USDCNY=X is USD→CNY (we invert). USDHKD=X same

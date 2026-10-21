@@ -3120,7 +3120,7 @@ async function run() {
     const first = await read();
     const want = ['NOVA', 'VUAA', 'ACME', 'BRIT', '017731'];
     if (JSON.stringify(first.syms) === JSON.stringify(want) && JSON.stringify(first.low) === JSON.stringify(['+25.0%', '+10.0%', '+8.3%', '—', '—'])
-      && first.updated === 'Updated 16:00 ET' && JSON.stringify(first.tag) === JSON.stringify(['holdings-weighted · 39%'])) {
+      && first.updated === 'Updated 16:00 ET' && JSON.stringify(first.tag) === JSON.stringify(['HW 39%'])) {
       ok(S('default-order'), `avg vs price, largest first: ${first.syms.join(' ')} (${first.low.join(' ')}); the fund tagged; "${first.updated}"`);
     } else fail(S('default-order'), JSON.stringify(first));
     await shot(page, `target-price-${vp.name}`);
@@ -3155,6 +3155,40 @@ async function run() {
     else fail(S('sticky'), JSON.stringify(sticky));
     if (sticky && sticky.pageOverflow <= 0) ok(S('page-overflow'), 'the page does not scroll sideways');
     else fail(S('page-overflow'), `page overflow ${sticky?.pageOverflow}`);
+    // The frozen Symbol column is as narrow as its longest ticker (Davies, 2026-10-21: on his phone it took half the
+    // screen): at most a quarter of a phone's width, every ticker on one line, and at rest no cell of the next column
+    // starts under it. A fund's mark opens its words under the row on a tap, and closes on the next.
+    const narrow = await page.evaluate(() => {
+      const sc = /** @type {HTMLElement | null} */ (document.querySelector('.tp-scroll'));
+      if (sc) sc.scrollLeft = 0;
+      const rows = [...document.querySelectorAll('.tp-table tr')].filter((tr) => !tr.classList.contains('tp-detail-row'));
+      const first = /** @type {HTMLElement | null} */ (document.querySelector('.tp-table tbody tr td:first-child'));
+      const under = rows.map((tr) => {
+        const a = /** @type {HTMLElement} */ (tr.children[0]), b = /** @type {HTMLElement} */ (tr.children[1]);
+        if (!a || !b) return null;
+        const range = document.createRange();
+        range.selectNodeContents(b);
+        const text = range.getBoundingClientRect();
+        return { cell: Math.round(b.getBoundingClientRect().left - a.getBoundingClientRect().right), text: Math.round(text.left - a.getBoundingClientRect().right) };
+      }).filter(Boolean);
+      const tickers = [...document.querySelectorAll('.tp-table .hl-ticker')].map((t) => {
+        const r = document.createRange();
+        r.selectNodeContents(t);
+        return { t: (t.textContent || '').trim(), lines: new Set([...r.getClientRects()].map((x) => Math.round(x.top))).size };
+      });
+      return { width: first ? Math.round(first.getBoundingClientRect().width) : -1, vw: window.innerWidth, under, wrapped: tickers.filter((x) => x.lines > 1).map((x) => x.t) };
+    });
+    const overlap = narrow.under.filter((u) => u && (u.cell < -1 || u.text < 0));
+    const maxShare = vp.name === 'phone' ? 0.25 : 0.12;
+    if (narrow.width > 0 && narrow.width <= narrow.vw * maxShare && overlap.length === 0 && narrow.wrapped.length === 0) {
+      ok(S('narrow-symbol'), `Symbol column ${narrow.width} px of ${narrow.vw} (${Math.round((narrow.width / narrow.vw) * 100)}%); every ticker on one line; nothing of the Weight column under it`);
+    } else fail(S('narrow-symbol'), JSON.stringify({ ...narrow, overlap }));
+    await page.locator('.tp-table .tp-tag').first().click();
+    const opened = await readUntil(page, () => page.evaluate(() => (document.querySelector('.tp-detail')?.textContent || '').trim()), (t) => /^Holdings-weighted target/.test(t || ''));
+    await page.locator('.tp-table .tp-tag').first().click();
+    const closed = await readUntil(page, () => page.evaluate(() => document.querySelectorAll('.tp-detail').length), (n) => n === 0);
+    if (/^Holdings-weighted target/.test(opened || '') && closed === 0) ok(S('mark-tap'), `tapping "HW 39%" opens "${(opened || '').slice(0, 60)}…" under the row; tapping again closes it`);
+    else fail(S('mark-tap'), `opened "${opened}", detail rows after the second tap ${closed}`);
     await closeBy(page, () => page.keyboard.press('Escape'));
     await ctx.close();
   }

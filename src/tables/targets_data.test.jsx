@@ -91,7 +91,7 @@ describe('the page after the preload', () => {
     // Synchronously after render: no "Reading targets…", the row's avg vs price already there (260 / 240 − 1 = +8.3 %).
     expect(screen.queryByText(/Reading targets/)).toBeNull();
     expect(screen.getByText('+8.3%')).toBeTruthy();
-    expect(screen.getByText('230 – 300')).toBeTruthy();   // both ends 100 and up: no decimals
+    expect(screen.getByText('$230 – $300')).toBeTruthy();   // both ends 100 and up: no decimals; the symbol on each
     expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();
   });
@@ -102,16 +102,16 @@ describe('the page after the preload', () => {
     const { rerender } = render(<TargetPriceModal metrics={METRICS} onTickerClick={() => {}} onClose={() => {}} />);
     const cells = () => [...document.querySelectorAll('.tp-table tbody tr td')].map((td) => (td.textContent || '').trim());
     // 480 / 1,000 = 48.00 %; 240; 260 / 240 − 1 = +8.3 %.
-    expect(cells().slice(1, 3)).toEqual(['48.00%', '240']);
+    expect(cells().slice(1, 3)).toEqual(['48.00%', '$240.00']);
     expect(cells()[8]).toBe('+8.3%');
     const updated = (document.querySelector('.tp-updated')?.textContent || '').trim();
     // The board ticks: ACME 240 → 250 (and its value with it, 2 × 250 = 500 of 1,020).
     const tick = { marketValue: 1020, positions: { A: { players: [{ ...METRICS.positions.A.players[0], lastPrice: 250, marketValue: 500 }] } } };
     rerender(<TargetPriceModal metrics={tick} onTickerClick={() => {}} onClose={() => {}} />);
     // 500 / 1,020 = 49.02 %; 250; 260 / 250 − 1 = +4.0 %. The scheduled columns and their stamp stay as they were.
-    expect(cells().slice(1, 3)).toEqual(['49.02%', '250']);
+    expect(cells().slice(1, 3)).toEqual(['49.02%', '$250.00']);
     expect(cells()[8]).toBe('+4.0%');
-    expect(cells()[3]).toBe('260');
+    expect(cells()[3]).toBe('$260.00');
     expect((document.querySelector('.tp-updated')?.textContent || '').trim()).toBe(updated);
     expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();

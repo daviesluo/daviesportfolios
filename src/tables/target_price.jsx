@@ -5,28 +5,24 @@
 // Nothing here is the owner's money but the Weight, which the Holding list shows unmasked too (its Exposure).
 import React from 'react';
 import { Modal } from '../board/modals.jsx';
-import { dropDot00, fmtPct, fmtPrice, pctColor } from '../app/formatters.js';
-import { buildTargetRows, DEFAULT_SORT, firstSortDir, fmtRange, kindTag, sortTargetRows, strategistTitle, TARGET_COLUMNS, updatedLabel } from './target_price.js';
+import { fmtPct, pctColor } from '../app/formatters.js';
+import { buildTargetRows, DEFAULT_SORT, firstSortDir, fmtMoneyIn, fmtRange, kindTag, sortTargetRows, strategistTitle, TARGET_COLUMNS, updatedLabel } from './target_price.js';
 import { fetchTargets, onTargets, readTargetsCache, targetsFresh } from './targets_data.js';
 
 const DASH = '—';
 
-/** A price or a target as the board writes one, less a trailing ".00" (targets are mostly round). @param {number} n */
-const fig = (n) => dropDot00(fmtPrice(n));
-
-/** A price or target, with its currency's code when it is not the dollar. @param {number | null} n @param {string | null} cur */
-function money(n, cur) {
-  if (n == null) return DASH;
-  return <>{fig(n)}{cur && cur !== 'USD' ? <span className="tp-cur">{cur}</span> : null}</>;
-}
-
-/** The tag under a symbol whose targets are not a stock's consensus, with where they come from on hover. @param {{ row: any }} p */
-function KindTag({ row }) {
+/**
+ * The small mark under a symbol whose targets are not a stock's consensus ("HW 36%", "BANKS"). Hovering it says where
+ * the targets come from; tapping it (a phone has no hover) opens the same words in a line under the row, and closes it.
+ * @param {{ row: any, open: boolean, onToggle: () => void }} p
+ */
+function KindTag({ row, open, onToggle }) {
   const t = kindTag(row);
   if (!t) return null;
   return (
-    <span className="tp-tag-wrap" title={t.title}>
-      <span className="tp-tag">{t.text}</span>
+    <span className="tp-tag-wrap">
+      <button type="button" className={`tp-tag${open ? ' on' : ''}`} title={t.title} aria-label={`${t.text}: ${t.title}`} aria-expanded={open}
+        onClick={(e) => { e.stopPropagation(); onToggle(); }}>{t.mark}</button>
       {t.note ? <span className="tp-tag-note">{t.note}</span> : null}
     </span>
   );
@@ -37,6 +33,8 @@ function KindTag({ row }) {
  */
 function TargetPriceModal({ metrics, onTickerClick, onClose }) {
   const [sort, setSort] = React.useState(DEFAULT_SORT);
+  /** The row whose mark was tapped open, if any. */
+  const [detail, setDetail] = React.useState(/** @type {string | null} */ (null));
   const [copy, setCopy] = React.useState(() => readTargetsCache());
   const [state, setState] = React.useState(/** @type {'idle' | 'reading' | 'failed'} */ ('idle'));
 
@@ -107,27 +105,28 @@ function TargetPriceModal({ metrics, onTickerClick, onClose }) {
             </thead>
             <tbody>
               {sorted.map((r) => (
-                <tr key={r.ticker} className={r.kind ? '' : 'tp-uncovered'} title={r.kind === 'strategist' ? strategistTitle(r) : undefined}>
+                <React.Fragment key={r.ticker}>
+                <tr className={r.kind ? '' : 'tp-uncovered'} title={r.kind === 'strategist' ? strategistTitle(r) : undefined}>
                   <td className="hl-left hl-sym tp-sym">
                     <button className="hl-ticker-btn" onClick={() => onTickerClick(r.ticker)} title={`Open ${r.display}`}>
                       <span className="hl-ticker mono">{r.display}</span>
                     </button>
-                    <KindTag row={r} />
+                    <KindTag row={r} open={detail === r.ticker} onToggle={() => setDetail((d) => (d === r.ticker ? null : r.ticker))} />
                   </td>
                   <td className="hl-right hl-strong">{`${r.weight.toFixed(2)}%`}</td>
-                  <td className="hl-right">{money(r.price, r.currency)}</td>
+                  <td className="hl-right">{fmtMoneyIn(r.price, r.currency)}</td>
                   <td className="hl-right">
-                    <div className="hl-strong">{money(r.mean, r.targetCurrency)}</div>
+                    <div className="hl-strong">{fmtMoneyIn(r.mean, r.targetCurrency)}</div>
                   </td>
                   <td className="hl-right">
                     {r.rating != null ? (<><div>{r.rating.toFixed(2)}</div><div className="hl-sub tp-word">{r.ratingWord}</div></>) : <span className="dim">{DASH}</span>}
                   </td>
-                  <td className="hl-right tp-range">{r.low != null && r.high != null ? fmtRange(r.low, r.high) : DASH}</td>
+                  <td className="hl-right tp-range">{r.low != null && r.high != null ? fmtRange(r.low, r.high, r.targetCurrency) : DASH}</td>
                   <td className="hl-right" title={r.kind === 'holdings' ? 'The median of the covered holdings\' analyst counts' : r.kind === 'strategist' ? 'Firms in the hand-kept table' : undefined}>
                     {r.analysts != null ? (r.kind === 'holdings' ? `~${r.analysts}` : r.analysts) : DASH}
                   </td>
                   <td className="hl-right tp-range">
-                    {r.fresh ? (<><div>{fmtRange(r.fresh.low, r.fresh.high)}</div>
+                    {r.fresh ? (<><div>{fmtRange(r.fresh.low, r.fresh.high, r.targetCurrency)}</div>
                       <div className="hl-sub tp-word">{r.fresh.count} {r.fresh.count === 1 ? 'target' : 'targets'}</div></>)
                       : r.kind === 'holdings' ? <span className="dim" title="The fund's holdings have no dated targets to read a 30-day window from">{DASH}</span>
                       : r.kind ? <span className="dim" title="No target set in the last 30 days">none in 30d</span> : DASH}
@@ -137,6 +136,14 @@ function TargetPriceModal({ metrics, onTickerClick, onClose }) {
                   </td>
                   <td className="hl-left tp-risks">{r.risks || ''}</td>
                 </tr>
+                {detail === r.ticker && (
+                  <tr className="tp-detail-row">
+                    <td colSpan={TARGET_COLUMNS.length}>
+                      <div className="tp-detail">{(kindTag(r)?.title || '').split('\n').map((line, i) => <div key={i}>{line}</div>)}</div>
+                    </td>
+                  </tr>
+                )}
+                </React.Fragment>
               ))}
               {sorted.length === 0 && (
                 <tr><td className="hl-empty dim" colSpan={TARGET_COLUMNS.length}>No holdings.</td></tr>
@@ -144,12 +151,6 @@ function TargetPriceModal({ metrics, onTickerClick, onClose }) {
             </tbody>
           </table>
         </div>
-        <p className="tp-foot dim">
-          Stocks: the analysts&apos; consensus as Yahoo Finance serves it. Funds: their largest holdings&apos; targets, weighted
-          (hover the tag for the coverage). Bitcoin: bank targets kept by hand. Fresh range counts targets set in the last
-          30 days. Weight, Price and Avg vs price move with the board; the other columns are refreshed at 04:00, 09:30 and
-          the close ET on trading days, 09:30 ET on other days.
-        </p>
       </div>
     </Modal>
   );

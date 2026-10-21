@@ -2,7 +2,7 @@
 // from the Holding list's own function, the low against the board's price, the 30-day fresh window, the three kinds of
 // row, the default order (low vs price, largest first) with uncovered holdings last either way, and the "Updated" stamp.
 import { describe, expect, it } from 'vitest';
-import { buildTargetRows, DEFAULT_SORT, firstSortDir, fmtRange, freshTargets, kindTag, rangeDecimals, ratingWord, sortTargetRows, strategistTitle, TARGET_COLUMNS, unitFactor, updatedLabel } from './target_price.js';
+import { buildTargetRows, DEFAULT_SORT, firstSortDir, fmtMoneyIn, fmtRange, freshTargets, kindTag, rangeDecimals, ratingWord, sortTargetRows, strategistTitle, TARGET_COLUMNS, unitFactor, updatedLabel } from './target_price.js';
 import { buildHoldingsRows } from './holdings_list.jsx';
 
 const NOW = Date.parse('2026-10-21T13:30:20Z');
@@ -138,6 +138,14 @@ describe('Target price helpers', () => {
   });
 });
 
+describe('Target price money', () => {
+  it('writes a price or target as the Holding list writes money, with its currency', () => {
+    expect([fmtMoneyIn(53.67, 'USD'), fmtMoneyIn(1560.57, 'USD'), fmtMoneyIn(108000, 'USD'), fmtMoneyIn(2.1, 'EUR'), fmtMoneyIn(80, 'GBP'),
+      fmtMoneyIn(1.6, 'CNY'), fmtMoneyIn(393.8, 'HKD'), fmtMoneyIn(24.12, 'SEK'), fmtMoneyIn(950, 'GBp'), fmtMoneyIn(null, 'USD')])
+      .toEqual(['$53.67', '$1,561', '$108,000', '€2.10', '£80.00', '¥1.60', 'HK$393.80', 'SEK 24.12', '950.00p', '—']);
+  });
+});
+
 describe('Target price ranges and tags', () => {
   it('writes both ends of a range with the same decimals, by the larger end: two under 100, none from 100 up', () => {
     // BMNR's Avg range on 2026-10-21 was 34 – 63.6: it read "34 – 63.60" before.
@@ -150,6 +158,14 @@ describe('Target price ranges and tags', () => {
     expect(fmtRange(82000, 150000)).toBe('82,000 – 150,000');
     expect(fmtRange(13, 13)).toBe('13.00');
     expect([rangeDecimals(1, 99.99), rangeDecimals(1, 100), rangeDecimals(500, 4700000)]).toEqual([2, 0, 0]);
+    // With the currency, its symbol on both ends (Davies, 2026-10-21: money must not read as a count or a rating).
+    expect(fmtRange(34, 63.6, 'USD')).toBe('$34.00 – $63.60');
+    expect(fmtRange(82000, 150000, 'USD')).toBe('$82,000 – $150,000');
+    expect(fmtRange(76, 100, 'GBP')).toBe('£76 – £100');
+    expect(fmtRange(1.9, 2.4, 'EUR')).toBe('€1.90 – €2.40');
+    expect(fmtRange(950, 1200, 'GBp')).toBe('950p – 1,200p');
+    expect(fmtRange(18, 36, 'SEK')).toBe('SEK 18.00 – SEK 36.00');
+    expect(fmtRange(13, 13, 'USD')).toBe('$13.00');
     // Every range of the fixture: each one's two ends carry the same number of decimals.
     for (const r of buildTargetRows(METRICS, DATA, NOW)) {
       for (const [lo, hi] of [[r.low, r.high], [r.fresh?.low, r.fresh?.high]]) {
@@ -160,15 +176,20 @@ describe('Target price ranges and tags', () => {
     }
   });
 
-  it("a fund's tag names its coverage and, when any, the holdings skipped as implausible", () => {
+  it("a fund's tag is its coverage alone; a holding left out as a data error is counted, and the tooltip says why", () => {
     const vuaa = /** @type {any} */ (by('VUAA.L'));
-    expect(kindTag(vuaa)?.text).toBe('holdings-weighted · 39%');
-    const saem = { kind: 'holdings', coverage: { weight: 0.2246, names: 7, source: "SAEM.L's top holdings (Yahoo)",
-      skipped: [{ symbol: '005930.KQ', weight: 0.069, ratio: 2.1428 }, { symbol: '000660.KQ', weight: 0.0539, ratio: 2.3928 }, { symbol: '005935', weight: 0.0086, ratio: 2.1428 }] } };
-    const t = kindTag(saem);
-    expect([t?.text, t?.note]).toEqual(['holdings-weighted · 22%', '3 skipped']);
-    expect(kindTag(vuaa)?.note).toBe('');
-    expect(t?.title).toContain('005930.KQ 6.9% of the fund, 2.14×; 000660.KQ 5.4% of the fund, 2.39×; 005935 0.9% of the fund, 2.14×');
+    expect([kindTag(vuaa)?.text, kindTag(vuaa)?.note]).toEqual(['holdings-weighted · 39%', '']);
+    // What the cell shows is a few characters, so the frozen Symbol column stays as narrow as its tickers.
+    expect([kindTag(vuaa)?.mark, kindTag({ kind: 'strategist', sources: [] })?.mark]).toEqual(['HW 39%', 'BANKS']);
+    // SAEM as the job writes it now: Samsung and SK hynix counted, nothing skipped.
+    const saem = { kind: 'holdings', coverage: { weight: 0.3561, names: 10, source: "SAEM.L's top holdings (Yahoo)", skipped: [] } };
+    expect([kindTag(saem)?.text, kindTag(saem)?.note]).toEqual(['holdings-weighted · 36%', '']);
+    expect(kindTag(saem)?.title).not.toMatch(/Left out/);
+    // A holding whose target is in another unit (6× its price) is left out, and hovering says why in plain words.
+    const unit = { kind: 'holdings', coverage: { weight: 0.3, names: 9, source: 's', skipped: [{ symbol: 'XYZ', weight: 0.012, ratio: 6 }] } };
+    const t = kindTag(unit);
+    expect([t?.text, t?.note]).toEqual(['holdings-weighted · 30%', '1 skipped']);
+    expect(t?.title).toContain("Left out as a likely data error, because the average target is under a fifth or over five times the holding's own price (a target in another unit or for another listing): XYZ (1.2% of the fund, target 6.00× its price).");
     expect(kindTag({ kind: 'consensus' })).toBe(null);
   });
 
@@ -179,9 +200,9 @@ describe('Target price ranges and tags', () => {
       { firm: 'Bernstein', target: 150000, at: '2026-08-26', horizon: 'mid-2027' },
     ] };
     expect(strategistTitle(btc).split('\n').slice(1)).toEqual([
-      'Standard Chartered: 100,000, horizon end-2026 (published 2026-02-12)',
-      'Citi: 82,000, horizon 12 months (published 2026-07-01)',
-      'Bernstein: 150,000, horizon mid-2027 (published 2026-08-26)',
+      'Standard Chartered: $100,000, horizon end-2026 (published 2026-02-12)',
+      'Citi: $82,000, horizon 12 months (published 2026-07-01)',
+      'Bernstein: $150,000, horizon mid-2027 (published 2026-08-26)',
     ]);
     expect(kindTag(btc)?.text).toBe('strategist targets');
   });

@@ -26,6 +26,8 @@
 import { buildHoldingsRows } from './holdings_list.jsx';
 import { displayTicker } from '../app/formatters.js';
 import { risksFor } from './target_risks.js';
+import { fmtMoney } from '../app/formatters.js';
+import { currencyAffix } from '../portfolio/fx.js';
 
 export const FRESH_DAYS = 30;
 const DAY = 86400e3;
@@ -208,38 +210,56 @@ export function rangeDecimals(lo, hi) {
 }
 
 /**
- * A range for the Avg range and Fresh range columns, both ends alike ("34.00 – 63.60", "440 – 1,000"); one figure when
- * the two ends are the same.
- * @param {number} lo @param {number} hi
+ * A range for the Avg range and Fresh range columns, both ends alike ("$34.00 – $63.60", "$440 – $1,000"), each end
+ * with the currency's symbol, so a range reads as money at either end and never as a count; one figure when the two
+ * ends are the same. With `cur` left out, the bare numbers.
+ * @param {number} lo @param {number} hi @param {string | null} [cur]
  */
-export function fmtRange(lo, hi) {
+export function fmtRange(lo, hi, cur) {
   const d = rangeDecimals(lo, hi);
-  const f = (/** @type {number} */ n) => n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+  const { pre, post } = cur === undefined ? { pre: '', post: '' } : currencyAffix(cur);
+  const f = (/** @type {number} */ n) => `${pre}${n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d })}${post}`;
   return f(lo) === f(hi) ? f(lo) : `${f(lo)} – ${f(hi)}`;
 }
 
 /**
- * The tag under a fund's or bitcoin's symbol, and what hovering it says. A fund's names the share of its weight priced
- * and how many holdings were skipped as implausible (their mean target outside 0.5–2× their price).
+ * One price or target in its currency, as the Holding list writes money (`fmtMoney`: two decimals under 1,000, whole
+ * numbers with separators from there): "$53.67", "$1,561", "€2.10", "£80.00"; "—" for none.
+ * @param {number | null | undefined} n @param {string | null} cur
+ */
+export function fmtMoneyIn(n, cur) {
+  if (n == null || !Number.isFinite(n)) return '—';
+  const { pre, post } = currencyAffix(cur);
+  return `${fmtMoney(n, { symbol: pre, compact: false })}${post}`;
+}
+
+/**
+ * The tag under a fund's or bitcoin's symbol, and what hovering it says. A fund's names the share of its weight priced,
+ * and, when any were left out, how many and why in plain words: a holding whose average target is under a fifth or over
+ * five times its own price is taken for a data error (a target in another unit or for another listing).
  * @param {any} row
- * @returns {{ text: string, note: string, title: string } | null}
+ * `mark` is what the cell shows, kept to a few characters so the frozen Symbol column stays as narrow as its longest
+ * ticker (Davies, 2026-10-21: on a phone the full tag made the column half the screen): "HW 36%" for a fund's
+ * holdings-weighted target with its coverage, "BANKS" for bitcoin's hand-kept bank targets. `text` says it in words.
+ * @returns {{ mark: string, text: string, note: string, title: string } | null}
  */
 export function kindTag(row) {
   if (row.kind === 'holdings') {
     const c = row.coverage;
-    if (!c) return { text: 'holdings-weighted', note: '', title: 'Holdings-weighted target' };
+    if (!c) return { mark: 'HW', text: 'holdings-weighted', note: '', title: 'Holdings-weighted target' };
     const skipped = Array.isArray(c.skipped) ? c.skipped : [];
     const skippedNote = skipped.length
-      ? ` Skipped as implausible (mean target outside 0.5–2× the holding's own price): ${skipped.map((/** @type {any} */ x) => `${x.symbol} ${(x.weight * 100).toFixed(1)}% of the fund, ${Number(x.ratio).toFixed(2)}×`).join('; ')}.`
+      ? ` Left out as a likely data error, because the average target is under a fifth or over five times the holding's own price (a target in another unit or for another listing): ${skipped.map((/** @type {any} */ x) => `${x.symbol} (${(x.weight * 100).toFixed(1)}% of the fund, target ${Number(x.ratio).toFixed(2)}× its price)`).join('; ')}.`
       : '';
     return {
+      mark: `HW ${(c.weight * 100).toFixed(0)}%`,
       text: `holdings-weighted · ${(c.weight * 100).toFixed(0)}%`,
       note: skipped.length ? `${skipped.length} skipped` : '',
       title: `Holdings-weighted target: the analyst targets of ${c.names} of the fund's holdings, ${(c.weight * 100).toFixed(0)}% of its weight, `
         + `each as a ratio to its own price and weighted by its share of the fund (${c.source}). No source publishes a consensus for a fund.${skippedNote}`,
     };
   }
-  if (row.kind === 'strategist') return { text: 'strategist targets', note: '', title: strategistTitle(row) };
+  if (row.kind === 'strategist') return { mark: 'BANKS', text: 'strategist targets', note: '', title: strategistTitle(row) };
   return null;
 }
 
@@ -249,7 +269,7 @@ export function kindTag(row) {
  * @param {any} row
  */
 export function strategistTitle(row) {
-  const lines = (row.sources || []).map((/** @type {any} */ x) => `${x.firm}: ${Number(x.target).toLocaleString('en-US')}, horizon ${x.horizon} (published ${x.at})`);
+  const lines = (row.sources || []).map((/** @type {any} */ x) => `${x.firm}: $${Number(x.target).toLocaleString('en-US')}, horizon ${x.horizon} (published ${x.at})`);
   return `Strategist targets, kept by hand (no API serves them; a session refreshes the table):\n${lines.join('\n')}`;
 }
 

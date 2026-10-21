@@ -90,24 +90,25 @@ Deno.test("holdingsSnapshot: ratios to each holding's price, weighted, put on th
   assertEquals(holdingsSnapshot("X", [{ symbol: "A", weight: 1 }], data, { price: null, currency: "USD" }, NOW, "t"), null);
 });
 
-Deno.test("holdingsSnapshot: a holding is weighted in only at 0.5× to 2× its own price, read from the same response", () => {
-  assertEquals(CONSTITUENT_RATIO, { min: 0.5, max: 2 });
-  // SAEM on 2026-10-21, trimmed: TSMC 3,390.43 / 2,420 = 1.401 (in); Samsung 478,905.62 / 223,500 = 2.143 (out); SK hynix
-  // 3,096,288 / 1,294,000 = 2.393 (out); the bounds themselves are in.
+Deno.test("holdingsSnapshot: a holding is weighted in at 0.2× to 5× its own price, read from the same response; outside, skipped", () => {
+  assertEquals(CONSTITUENT_RATIO, { min: 0.2, max: 5 });
+  // SAEM on 2026-10-21, trimmed: TSMC 3,390.43 / 2,420 = 1.401, Samsung 478,905.62 / 223,500 = 2.143, SK hynix
+  // 3,096,288 / 1,294,000 = 2.393: all in (real targets, set before a fall). The bounds themselves are in; a mean 6×
+  // the price (a unit error) is skipped.
   const at = (fdPrice: number, mean: number, price = fdPrice): Analyst => ({ ...firm(price, mean, mean, mean, 30), fdPrice });
   const data = new Map<string, Analyst | null>([
     ["2330.TW", at(2420, 3390.4285)], ["005930.KQ", at(223500, 478905.62)], ["000660.KQ", at(1294000, 3096288)],
-    ["LO", at(100, 50)], ["HI", at(100, 200)],
+    ["LO", at(100, 20)], ["HI", at(100, 500)], ["UNIT", at(10, 60)],
     // A price from another quote (`price` module) is not the targets' price: with no currentPrice the holding is uncovered.
     ["NOFD", { ...firm(10, 12, 11, 13, 5), fdPrice: null }],
   ]);
-  const h = [["2330.TW", 0.1426], ["005930.KQ", 0.069], ["000660.KQ", 0.0539], ["LO", 0.01], ["HI", 0.01], ["NOFD", 0.02]].map(([symbol, weight]) => ({ symbol: String(symbol), weight: Number(weight) }));
+  const h = [["2330.TW", 0.1426], ["005930.KQ", 0.069], ["000660.KQ", 0.0539], ["LO", 0.01], ["HI", 0.01], ["UNIT", 0.005], ["NOFD", 0.02]].map(([symbol, weight]) => ({ symbol: String(symbol), weight: Number(weight) }));
   const s = holdingsSnapshot("SAEM.L", h, data, { price: 10, currency: "USD" }, NOW, "t")!;
-  assertEquals(s.coverage?.names, 3);
-  assertEquals(s.coverage?.weight, 0.1626);
-  assertEquals(s.coverage?.skipped, [{ symbol: "005930.KQ", weight: 0.069, ratio: 2.1428 }, { symbol: "000660.KQ", weight: 0.0539, ratio: 2.3928 }]);
-  // mean 10 × (0.1426 × 1.40100 + 0.01 × 0.5 + 0.01 × 2) / 0.1626 = 13.82430
-  assertEquals(s.mean, 13.8243);
+  assertEquals(s.coverage?.names, 5);
+  assertEquals(s.coverage?.weight, 0.2855);
+  assertEquals(s.coverage?.skipped, [{ symbol: "UNIT", weight: 0.005, ratio: 6 }]);
+  // mean 10 × (0.1426 × 1.401004 + 0.069 × 2.142755 + 0.0539 × 2.392804 + 0.01 × 0.2 + 0.01 × 5) / 0.2855 = 18.5151
+  assertEquals(s.mean, 18.5151);
   // Samsung's preferred line is read through the common share.
   assertEquals(PREFERRED_COMMON["005935"], "005930.KS");
 });

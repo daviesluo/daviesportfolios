@@ -673,6 +673,12 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   stacks the 10-20 book's GOOGL over NBIS (the same shape); the phone is unchanged. Pinned in `heatmap.test.js`
   against the 10-20 split and in the sweep (`heatmap-shape/six`).
 
+### [2026-10-21 21:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Target price, Davies' review** (sub-agent; not pushed): money figures carry their currency symbol (`fmtMoney` style;
+  ranges on both ends); a fund's constituent is skipped only outside 0.2–5× (a unit or listing error), so Samsung and SK
+  hynix count again (SAEM 10-21: 10 names, 35.6 %, mean +74.5 %, nothing skipped); the small-print footnote is gone;
+  the frozen Symbol column is its tickers' width (phone 72 px, was ~150): a fund's mark is "HW NN%", its words on tap.
+
 ### [2026-10-21 21:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Simulation against LIVE, audited and fixed** (sub-agent, item 4; Davies 10-21 "…不一致的地方就直接改"; `backtests/livesim/`):
   shared executor code, so the one large difference was the fill rule: LIVE filled 317 of 502 maker orders on prints AT its
