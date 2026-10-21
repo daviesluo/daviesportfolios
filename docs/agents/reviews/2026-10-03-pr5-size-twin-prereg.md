@@ -224,3 +224,20 @@ again on the new code is the same bytes. Its readouts are unchanged. Not blind (
 
 §5, §7, §9 and §10 keep the hashes the file had before; this table names it from this deviation on (`src/size_twin_prereg.test.js`).
 
+
+## 13. Deviation 6 (2026-10-21): the simulated account and the driver gain LIVE's own fill rule, and the validation's replay of LIVE's operations
+
+Davies, 2026-10-21, on PR5's four-week review: "A，引擎也继续运行，但要确保模拟的真实性和实盘策略完全一致，不一致的地方就直接改". The audit
+(`2026-10-21-sim-vs-live-audit.md`) found LIVE filled 317 of its 502 filled maker orders on prints only AT their price, which rule 1
+fills nothing on; `revx_sim.ts` and `quotes_twin.ts` gain that rule as a twin rule, `fill`, and the validation's replay of LIVE gains
+LIVE's turn timing, dead-man cancels and venue outages (the twins' pre-registration's deviation 7, its §19). This twin is not
+changed: its row names no rule and has no replay, and every twin runs the code path it ran (`pr5.json.gz` built again on the new code
+is the same bytes). Its readouts are unchanged; they read a twin that counts no fill at its own price, which undercounts LIVE's fills
+(the audit's numbers). Not blind.
+
+| file | sha256 |
+|---|---|
+| `supabase/functions/agents/quotes_twin.ts` | 36092d7f506565d5c89d11ea389d569e2106f738768d1a7450f4e3e39595c3d7 |
+| `supabase/functions/agents/revx_sim.ts` | 7f05baba5a1a066166791e184ddac505bcd692865864dd219172d4c87569cc47 |
+
+§5, §7, §9, §10 and §12 keep the hashes the files had before; this table names them from this deviation on (`src/size_twin_prereg.test.js`).

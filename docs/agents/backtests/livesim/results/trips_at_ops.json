@@ -1,0 +1,31 @@
+{
+ "name": "at_ops",
+ "live": {
+  "trips": 218,
+  "won": 191,
+  "stops": 3,
+  "realisedGbp": 0.8796,
+  "feesGbp": 0.084
+ },
+ "sim": {
+  "trips": 204,
+  "won": 157,
+  "stops": 1,
+  "realisedGbp": 0.9719,
+  "feesGbp": 0.064
+ },
+ "tripKeys": [
+  "book",
+  "side",
+  "k",
+  "tEntry",
+  "tExit",
+  "entry",
+  "exit",
+  "qty",
+  "how",
+  "feesGbp",
+  "pnlGbp",
+  "ids"
+ ]
+}

@@ -129,4 +129,16 @@ deviations; what this test needs of it (`weekend` in `paperView`, and nothing el
 
 ## 7. Deviations
 
-None.
+**Deviation 1 (2026-10-21): two frozen files change; this test does not.** Davies, 2026-10-21, on PR5's four-week review: "A，引擎也继续
+运行，但要确保模拟的真实性和实盘策略完全一致，不一致的地方就直接改". The audit (`2026-10-21-sim-vs-live-audit.md`) found LIVE fills on prints AT
+its price far more often than the twins' rule 1 allows; `revx_sim.ts` and `quotes_twin.ts` gain that as a twin rule, `fill`, and the
+validation's replay of LIVE gains LIVE's operations (the twins' pre-registration's deviation 7, its §19). This twin's row names no
+`fill` rule and has no replay, so it runs the code path it ran: its rule, window, reading and bars are unchanged. Its reading
+should say that its fills, like every twin's, count no print at its own price, which undercounts LIVE's (the audit's figures).
+
+| file | sha256 |
+|---|---|
+| `supabase/functions/agents/quotes_twin.ts` | 36092d7f506565d5c89d11ea389d569e2106f738768d1a7450f4e3e39595c3d7 |
+| `supabase/functions/agents/revx_sim.ts` | 7f05baba5a1a066166791e184ddac505bcd692865864dd219172d4c87569cc47 |
+
+§5 keeps the hashes they were frozen at; this table names them from this deviation on (`src/weekend_twin.test.js`).

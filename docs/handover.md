@@ -46313,3 +46313,27 @@ against the 150 the reading needs, so no reading. Nothing failed, so nothing is 
   not restored (27 s after a log-out IG still refused the next login 87 % of the time). Pin: a one-good-session fake
   whose old session dies 12 s after a refused login; at 9 s the runs alternate ok/failed as in production, at 18 s
   every run reads four snapshots in under 55 s; it fails on the deployed code.
+
+## LEDGER.md, archived 2026-10-21 (second) — the 2026-10-19 03:20 → 06:45 UTC history sections, oldest first
+
+### [2026-10-19 03:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **S1b Deviation 1 recorded: a usable weekend by quote coverage** (sub-agent; item 14; Davies, 10-19: "都按你推荐的来").
+  `backtests/ig_deepdive/DEVIATION-1-S1b-coverage.md`, beside the spec, which stays byte for byte as frozen (its
+  sha256 in `MANIFEST.json` unchanged). G4's "95 % connection uptime" becomes, for the REST recorder: a quote for the
+  S1b epic no older than 2 minutes in at least 95 % of the FX window's minutes. The other conditions stand: the first
+  TRADEABLE quote after the open captured, none of the first ten minutes uncovered, no uncovered run over 5 minutes.
+  The run-level success rate is reported beside it. Reading: `sql/s1b_coverage.sql` (read-only). Written before any
+  S1b weekend is scored. First weekend, read 10-19 03:17 UTC with its window still open: 448/448 covered, longest
+  uncovered run 0, first TRADEABLE 21:00:05 UK, runs ok 338/448. The final figure is due after 21:05 UTC today.
+  Option A's branch is deleted and there is no `0133`. The recorder stays on fix 6 (an 18 s re-login wait, runs ~34 s).
+
+### [2026-10-19 06:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+
+**MX-1's third weekly pull, on its Monday** (item 5a.2; sub-agent). `weekly.sql` ran read-only and `pull_tape.py`
+unchanged; no price was printed. A: 20 probes since the freeze (ids 22-41), the 16 of the first two pulls and four new
+(38-41, all `momentum-1d`: ETH 2, SOL 2), written as `backtests/mx1/tape/2026-10-19.windows.json`. The pull,
+`tape/2026-10-19.json.gz` (4,507 bytes), skipped the 16 windows already held and pulled four, none failed and none
+merged, 115 UK prints (25, 37, 30, 23), its `script_sha256` and `source_sha256` equal to the script's and the windows
+file's. They are described, never judged (prereg §2). B is empty (`basis/2026-10-19.json`, `[]`). C: 6 exits and 6
+entries (unchanged since 10-15: no trend-rule event closed this week), against the 150 the reading needs and well
+before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next week's retry.

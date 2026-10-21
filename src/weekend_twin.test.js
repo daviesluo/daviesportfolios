@@ -32,11 +32,17 @@ describe('variant-3, variant-2 with the weekend rule', () => {
     expect(DOC).toContain('**Status: FROZEN**');
   });
 
-  it('names the sha256 of each file it froze, once, and each file is that one', () => {
+  it('names the sha256 of each file it froze, once, and each file is that one, as its deviation 1 left it', () => {
     const named = (f) => [...DOC.matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
+    // Deviation 1 (2026-10-21, its §7): the driver and the simulated account gain LIVE's fill rule (a twin rule this twin does not
+    // name) and the validation's replay of LIVE's operations. §5 keeps the hashes they were frozen at; §7 names them as they are.
+    const before = {
+      'supabase/functions/agents/quotes_twin.ts': ['fd4b6f992ea7c094c97759933fb714b49d81dcf60756dee18fee4860525a1524'],
+      'supabase/functions/agents/revx_sim.ts': ['4b8f99e925f0ba6e05e188554e4b6bf8a43eead0aaec0b5d946a65664361f8aa'],
+    };
     for (const f of [
       'supabase/migrations/0130_quote_twin_take50wk.sql', 'supabase/functions/agents/quotes_weekend.ts', 'supabase/functions/agents/quotes_twin.ts',
       'supabase/functions/agents/revx_sim.ts', 'docs/agents/backtests/wk3/scripts/read.ts', 'docs/agents/backtests/wk3/sql/export.sql',
-    ]) expect(named(f), f).toEqual([sha(f)]);
+    ]) expect(named(f), f).toEqual(before[f] ? [...before[f], sha(f)] : [sha(f)]);
   });
 });

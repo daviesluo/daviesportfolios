@@ -231,8 +231,10 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    `update public.agent_quote_live_config set live_confirmed_at = null where id = 1;` (entries cancelled, exits and
    stops stay armed); `global_pause` cancels everything.
    - **10-21 verdict (`reviews/2026-10-21-pr5-paper-test-review.md`): NOT a pass, condition 5 misses (714 orders on 10-01);
-     1–4 hold.** Davies to decide: LIVE at £10 or scale (recommended: stay at £10, fix the budget finding first), and keep the
-     paper engine and its minute record running (yes: LIVE, PR5V, QUEUE and PR5-W depend on them). The notes below are history.
+     1–4 hold. Davies 10-21: "A，引擎也继续运行，但要确保模拟的真实性和实盘策略完全一致，不一致的地方就直接改"** — LIVE stays at £10, the
+     engine and minute record keep running. Sim-vs-LIVE audit `reviews/2026-10-21-sim-vs-live-audit.md`: the twin layer gains
+     LIVE's fill rule (`fill`, opt-in; no row has it yet — which row, Davies' call) and the replay LIVE's operations; condition
+     5's re-price budget drafted (`reviews/2026-10-21-pr5-reprice-budget-draft.md`), not in force. The notes below are history.
    - **At the 10-21 verdict, check condition 5 first:** PR5's paper engine logged 714 orders on 2026-10-01
      (`agent_quote_days`), over the spec's 700 a day, which the spec calls "a finding to fix, not a pass"; confirm how the
      verdict script counts orders (SCQ-1014, `reviews/2026-10-14-stablecoin-quotes-review.md`). The same review proposes
@@ -661,7 +663,15 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
-"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20", and 2026-10-18 20:19 → 21:12 UTC under "LEDGER.md, archived 2026-10-21"; each oldest first.
+"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20", and 2026-10-18 20:19 → 21:12 UTC under "LEDGER.md, archived 2026-10-21", and 2026-10-19 03:20 → 06:45 UTC under "LEDGER.md, archived 2026-10-21 (second)"; each oldest first.
+
+### [2026-10-21 21:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Simulation against LIVE, audited and fixed** (sub-agent, item 4; Davies 10-21 "…不一致的地方就直接改"; `backtests/livesim/`):
+  shared executor code, so the one large difference was the fill rule: LIVE filled 317 of 502 maker orders on prints AT its
+  price. `revx_sim.ts`/`quotes_twin.ts`: twin rule `fill` (at-price fills, opt-in) and the replay's `turnOffsetMs`, `deadmen`,
+  `outages`. Replayed at LIVE's £120: fills 20.3 % → 51.1 % fill for fill, orders 76.4 % → 84.7 %, realised £0.245 → £0.972
+  (LIVE £0.880), trips 130 → 204 (218). Deviations: twins §19, size twin §13, weekend test §7. No row uses `fill` yet (a
+  decision). Condition 5: budget300 replayed (max 635/day, P&L unchanged), drafted only. 6 old history sections archived.
 
 ### [2026-10-21 21:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Two load-only unit failures fixed** while landing Target price: the 3M-grid chart tests get 20 s (two jsdom modal renders,
@@ -758,25 +768,3 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
 - **S1b weekend 1 (10-18/19) is usable under Deviation 1** (item 14): `sql/s1b_coverage.sql` after the window ended
   (window_ended true): 1,515 of 1,515 minutes covered (100.00 %), longest uncovered run 0, none uncovered in the first
   ten, first TRADEABLE 2026-10-18 20:00:05 UTC; runs ok 1,141 of 1,515 (75.3 %), reported beside it as the deviation asks.
-
-### [2026-10-19 06:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
-
-**MX-1's third weekly pull, on its Monday** (item 5a.2; sub-agent). `weekly.sql` ran read-only and `pull_tape.py`
-unchanged; no price was printed. A: 20 probes since the freeze (ids 22-41), the 16 of the first two pulls and four new
-(38-41, all `momentum-1d`: ETH 2, SOL 2), written as `backtests/mx1/tape/2026-10-19.windows.json`. The pull,
-`tape/2026-10-19.json.gz` (4,507 bytes), skipped the 16 windows already held and pulled four, none failed and none
-merged, 115 UK prints (25, 37, 30, 23), its `script_sha256` and `source_sha256` equal to the script's and the windows
-file's. They are described, never judged (prereg §2). B is empty (`basis/2026-10-19.json`, `[]`). C: 6 exits and 6
-entries (unchanged since 10-15: no trend-rule event closed this week), against the 150 the reading needs and well
-before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next week's retry.
-
-### [2026-10-19 03:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **S1b Deviation 1 recorded: a usable weekend by quote coverage** (sub-agent; item 14; Davies, 10-19: "都按你推荐的来").
-  `backtests/ig_deepdive/DEVIATION-1-S1b-coverage.md`, beside the spec, which stays byte for byte as frozen (its
-  sha256 in `MANIFEST.json` unchanged). G4's "95 % connection uptime" becomes, for the REST recorder: a quote for the
-  S1b epic no older than 2 minutes in at least 95 % of the FX window's minutes. The other conditions stand: the first
-  TRADEABLE quote after the open captured, none of the first ten minutes uncovered, no uncovered run over 5 minutes.
-  The run-level success rate is reported beside it. Reading: `sql/s1b_coverage.sql` (read-only). Written before any
-  S1b weekend is scored. First weekend, read 10-19 03:17 UTC with its window still open: 448/448 covered, longest
-  uncovered run 0, first TRADEABLE 21:00:05 UK, runs ok 338/448. The final figure is due after 21:05 UTC today.
-  Option A's branch is deleted and there is no `0133`. The recorder stays on fix 6 (an 18 s re-login wait, runs ~34 s).

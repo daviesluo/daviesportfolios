@@ -1,0 +1,224 @@
+{
+ "all": {
+  "at": {
+   "agree_share": 0.9916,
+   "false_fills": 37,
+   "live_filled": 502,
+   "live_qty": 3114.34,
+   "missed": 16,
+   "orders": 6302,
+   "pred_qty": 2927.23,
+   "predicted_and_filled": 486,
+   "qty_abs_error_over_filled_qty": 0.2763
+  },
+  "queue": {
+   "agree_share": 0.9915,
+   "false_fills": 3,
+   "live_filled": 297,
+   "live_qty": 2072.7,
+   "missed": 40,
+   "orders": 5071,
+   "pred_qty": 1763.04,
+   "predicted_and_filled": 257,
+   "qty_abs_error_over_filled_qty": 0.1778
+  },
+  "through": {
+   "agree_share": 0.9464,
+   "false_fills": 5,
+   "live_filled": 502,
+   "live_qty": 3114.34,
+   "missed": 333,
+   "orders": 6302,
+   "pred_qty": 1914.59,
+   "predicted_and_filled": 169,
+   "qty_abs_error_over_filled_qty": 0.4276
+  }
+ },
+ "all_with_snapshot": {
+  "at": {
+   "agree_share": 0.9947,
+   "false_fills": 17,
+   "live_filled": 297,
+   "live_qty": 2072.7,
+   "missed": 10,
+   "orders": 5071,
+   "pred_qty": 1987.64,
+   "predicted_and_filled": 287,
+   "qty_abs_error_over_filled_qty": 0.1959
+  },
+  "queue": {
+   "agree_share": 0.9915,
+   "false_fills": 3,
+   "live_filled": 297,
+   "live_qty": 2072.7,
+   "missed": 40,
+   "orders": 5071,
+   "pred_qty": 1763.04,
+   "predicted_and_filled": 257,
+   "qty_abs_error_over_filled_qty": 0.1778
+  },
+  "through": {
+   "agree_share": 0.9625,
+   "false_fills": 0,
+   "live_filled": 297,
+   "live_qty": 2072.7,
+   "missed": 190,
+   "orders": 5071,
+   "pred_qty": 1290.72,
+   "predicted_and_filled": 107,
+   "qty_abs_error_over_filled_qty": 0.3773
+  }
+ },
+ "entry": {
+  "at": {
+   "agree_share": 0.996,
+   "false_fills": 15,
+   "live_filled": 234,
+   "live_qty": 1589.64,
+   "missed": 7,
+   "orders": 5555,
+   "pred_qty": 1684.01,
+   "predicted_and_filled": 227,
+   "qty_abs_error_over_filled_qty": 0.1769
+  },
+  "queue": {
+   "agree_share": 0.9924,
+   "false_fills": 2,
+   "live_filled": 191,
+   "live_qty": 1370.29,
+   "missed": 34,
+   "orders": 4760,
+   "pred_qty": 1223.49,
+   "predicted_and_filled": 157,
+   "qty_abs_error_over_filled_qty": 0.1458
+  },
+  "through": {
+   "agree_share": 0.9721,
+   "false_fills": 5,
+   "live_filled": 234,
+   "live_qty": 1589.64,
+   "missed": 150,
+   "orders": 5555,
+   "pred_qty": 1162.95,
+   "predicted_and_filled": 84,
+   "qty_abs_error_over_filled_qty": 0.3515
+  }
+ },
+ "entry_with_snapshot": {
+  "at": {
+   "agree_share": 0.9971,
+   "false_fills": 8,
+   "live_filled": 191,
+   "live_qty": 1370.29,
+   "missed": 6,
+   "orders": 4760,
+   "pred_qty": 1384.75,
+   "predicted_and_filled": 185,
+   "qty_abs_error_over_filled_qty": 0.1273
+  },
+  "queue": {
+   "agree_share": 0.9924,
+   "false_fills": 2,
+   "live_filled": 191,
+   "live_qty": 1370.29,
+   "missed": 34,
+   "orders": 4760,
+   "pred_qty": 1223.49,
+   "predicted_and_filled": 157,
+   "qty_abs_error_over_filled_qty": 0.1458
+  },
+  "through": {
+   "agree_share": 0.9748,
+   "false_fills": 0,
+   "live_filled": 191,
+   "live_qty": 1370.29,
+   "missed": 120,
+   "orders": 4760,
+   "pred_qty": 923.89,
+   "predicted_and_filled": 71,
+   "qty_abs_error_over_filled_qty": 0.3258
+  }
+ },
+ "exit": {
+  "at": {
+   "agree_share": 0.9578,
+   "false_fills": 22,
+   "live_filled": 263,
+   "live_qty": 1522.84,
+   "missed": 9,
+   "orders": 734,
+   "pred_qty": 1241.68,
+   "predicted_and_filled": 254,
+   "qty_abs_error_over_filled_qty": 0.3803
+  },
+  "queue": {
+   "agree_share": 0.977,
+   "false_fills": 1,
+   "live_filled": 103,
+   "live_qty": 700.96,
+   "missed": 6,
+   "orders": 305,
+   "pred_qty": 538.41,
+   "predicted_and_filled": 97,
+   "qty_abs_error_over_filled_qty": 0.2403
+  },
+  "through": {
+   "agree_share": 0.7561,
+   "false_fills": 0,
+   "live_filled": 263,
+   "live_qty": 1522.84,
+   "missed": 179,
+   "orders": 734,
+   "pred_qty": 751.43,
+   "predicted_and_filled": 84,
+   "qty_abs_error_over_filled_qty": 0.5066
+  }
+ },
+ "exit_with_snapshot": {
+  "at": {
+   "agree_share": 0.9574,
+   "false_fills": 9,
+   "live_filled": 103,
+   "live_qty": 700.96,
+   "missed": 4,
+   "orders": 305,
+   "pred_qty": 601.75,
+   "predicted_and_filled": 99,
+   "qty_abs_error_over_filled_qty": 0.3299
+  },
+  "queue": {
+   "agree_share": 0.977,
+   "false_fills": 1,
+   "live_filled": 103,
+   "live_qty": 700.96,
+   "missed": 6,
+   "orders": 305,
+   "pred_qty": 538.41,
+   "predicted_and_filled": 97,
+   "qty_abs_error_over_filled_qty": 0.2403
+  },
+  "through": {
+   "agree_share": 0.7803,
+   "false_fills": 0,
+   "live_filled": 103,
+   "live_qty": 700.96,
+   "missed": 67,
+   "orders": 305,
+   "pred_qty": 366.82,
+   "predicted_and_filled": 36,
+   "qty_abs_error_over_filled_qty": 0.4767
+  }
+ },
+ "live_fills_by_prints": {
+  "at only | convert": 4,
+  "at only | entry": 143,
+  "at only | exit": 170,
+  "neither | entry": 7,
+  "neither | exit": 9,
+  "through | convert": 1,
+  "through | entry": 84,
+  "through | exit": 84
+ },
+ "orders": 6302,
+ "with_snapshot": 5071
+}

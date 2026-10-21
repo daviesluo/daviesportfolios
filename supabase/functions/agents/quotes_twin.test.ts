@@ -10,8 +10,10 @@ import { assert, assertEquals, assertRejects } from "https://deno.land/std@0.224
 import { newBookState, QUOTE_BOOKS, stepMinute, type BookState, type Print, type QuoteBook } from "./quotes.ts";
 import { printOrder } from "./quotes_variant.ts";
 import { memDb, type Row } from "./testing.ts";
+import { REVX_REGION, revxVenue } from "../_shared/revx.ts";
+import { newSimState, SimRevx } from "./revx_sim.ts";
 import {
-  loadTwinBackfill, runQuotesTwins, specFromRow, stampTs, TWIN_IDS, TWIN_READS, TWIN_SPEC_ROWS, twinBackfillOf, twinSpecs, twinWrites, TWINS,
+  applyPrintsTo, loadTwinBackfill, runQuotesTwins, specFromRow, stampTs, TWIN_IDS, TWIN_READS, TWIN_SPEC_ROWS, twinBackfillOf, twinSpecs, twinWrites, TWINS,
   type TwinBackfill, type TwinDeps, type TwinDriverState, type TwinSpec, type TwinSpecRow,
 } from "./quotes_twin.ts";
 import type { Db } from "./db.ts";
@@ -415,6 +417,68 @@ Deno.test("weekend: a twin with the rule is its control's order for order outsid
   assertEquals(restingS(WKs), 6, "the rule quotes its bids on the stray bar's X until 21:00");
   for (let t = SUN + 30 * M; t < SUN + 34 * M; t += M) { await v.pr5(t); await v.call(t); }
   assertEquals([restingS(P50s), restingS(WKs)], [0, 0]);
+});
+
+Deno.test("fill: a twin with LIVE's fill rule fills on a seller AT its bid's price, where its control (the through-only rule) does not; a row's rule is read, and refused without its settings", async () => {
+  const T0 = T0_;
+  const P50: TwinSpec = { ...TWINS.p50, start: T0 };
+  const AT: TwinSpec = { ...specFromRow(rowAs("p50at", { display_order: 25, rules: { fill: { model: "at", from: iso(T0) } } })), start: T0 };
+  assertEquals(AT.instance.simFill, { model: "at", from: T0 });
+  assertEquals([TWINS.pr5.instance.simFill, TWINS.p50.instance.simFill, QUOTE_LIVE_INSTANCE.simFill], [undefined, undefined, undefined]);
+  for (const bad of [{ model: "queue", from: iso(T0) }, { model: "at" }]) {
+    let why = "";
+    try { specFromRow(rowAs("bad", { rules: { fill: bad } })); } catch (e) { why = (e as Error).message; }
+    assert(/its rule fill needs/.test(why), why);
+  }
+  const w = world(undefined, [P50, AT]);
+  for (let t = T0; t < T0 + 3 * M; t += M) { await w.pr5(t); await w.call(t); }
+  const bid = (s: TwinSpec) => w.orders(s).find((o) => o.book === "USDC-GBP" && o.rung_side === "bid" && Number(o.k) === 0.001 && o.leg === "entry" && o.state === "new");
+  assert(bid(P50) && bid(AT), "both quote the 0.1 % bid");
+  assertEquals(Number(bid(AT)!.price), Number(bid(P50)!.price));
+  // A seller AT that price, inside the next minute.
+  w.print("USDC-GBP", T0 + 3 * M + 10e3, Number(bid(P50)!.price), 500, "sell");
+  for (let t = T0 + 3 * M; t < T0 + 5 * M; t += M) { await w.pr5(t); await w.call(t); }
+  const filled = (s: TwinSpec) => w.orders(s).filter((o) => o.book === "USDC-GBP" && o.rung_side === "bid" && Number(o.k) === 0.001 && o.leg === "entry" && Number(o.filled_base) > 0).length;
+  assertEquals([filled(P50), filled(AT)], [0, 1]);
+});
+
+Deno.test("the validation's replay of LIVE only: the live account's own dead-man cancels (`replay.deadmen`) land at their instants between turns; a print after one fills nothing", async () => {
+  const T = Date.parse("2026-10-07T02:54:25Z");
+  const mem = memDb({ agent_quote_prints: [
+    { id: "a1", book: "USDC-GBP", ts: iso(T + 10e3), price: 0.7540, qty: 5, side: "sell" },
+    { id: "a2", book: "USDC-GBP", ts: iso(T + 50e3), price: 0.7540, qty: 500, side: "sell" },
+  ] }, { now: () => T });
+  const run = async (external: number[]) => {
+    const st = newSimState({ GBP: 100 }, { "USDC-GBP": { id: "s0", ts: T - 5e3, ticks: 7553, qty: 1, side: "sell" }, "USDT-GBP": null });
+    let now = T;
+    const sim = new SimRevx(st, () => now, () => ({ bids: [[0.7549, 500]], asks: [[0.7552, 500]], source: "t", at: T }));
+    const venue = revxVenue({ apiKey: "simulated", privateKey: KEY }, sim.fetch, REVX_REGION, () => now);
+    const r = await venue.placeLimit({ clientOrderId: crypto.randomUUID(), symbol: "USDC/GBP", side: "buy", base: "100", price: "0.7550", marketable: false });
+    assert(r.ok);
+    st.lastTurnAt = T;
+    const out = await applyPrintsTo(mem.db, sim, T + 60e3, (t) => { now = t; }, -Infinity, external);
+    return { out, filled: st.orders[0].filled, status: st.orders[0].status };
+  };
+  // No dead-man: both prints go through the bid, 5 then the other 95.
+  assertEquals((await run([])).filled, 100);
+  // LIVE's dead-man at +30 s: the first print fills 5, the cancel lands, the second fills nothing.
+  const dm = await run([T + 30e3]);
+  assertEquals([dm.filled, dm.status, dm.out.cancelled], [5, "cancelled", 1]);
+  // One at or before the last turn is history: nothing.
+  assertEquals((await run([T - 10e3])).filled, 100);
+});
+
+Deno.test("the validation's replay of LIVE only: its turn runs `replay.turnOffsetMs` into the call minute (LIVE places a median 32 s in); a twin's at 25 s", async () => {
+  const replay = { firstTurn: T0_, balances: { GBP: 600 }, conversions: [], deadmanFrom: Number.POSITIVE_INFINITY };
+  const at = async (extra: Record<string, unknown>) => {
+    const R: TwinSpec = { ...TWINS.p50, start: T0_, replay: { ...replay, ...extra } };
+    const w = world(undefined, [R]);
+    await w.pr5(T0_);
+    const r = await w.call(T0_, { catchUpUntil: T0_ + M });                   // a replay catches up, as the validation runs it
+    assertEquals(r.twins[0].errors, []);
+    return String(r.twins[0].lastTurn).slice(17);
+  };
+  assertEquals([await at({}), await at({ turnOffsetMs: 30e3 })], ["25.000Z", "30.000Z"]);
 });
 
 Deno.test("the call runs the spec table's rows: a row it cannot carry out is reported, and the others turn", async () => {

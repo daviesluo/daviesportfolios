@@ -16,10 +16,10 @@ const print = (id: string, ts: number, price: number, qty: number, side: Print["
 const read = (bids: Array<[number, number]>, asks: Array<[number, number]>): SimBook => ({ bids, asks, source: "test read", at: T });
 
 /** An account with `balances`, the live client over it, and a book source that serves `book` (or nothing). */
-function account(balances: Record<string, number>, book: SimBook | null = read([[0.7549, 500]], [[0.7552, 500]]), seeds: Partial<Record<QuoteBook, Print | null>> = {}) {
+function account(balances: Record<string, number>, book: SimBook | null = read([[0.7549, 500]], [[0.7552, 500]]), seeds: Partial<Record<QuoteBook, Print | null>> = {}, opts: ConstructorParameters<typeof SimRevx>[4] = {}) {
   const clock = { now: T };
   const st = newSimState(balances, seeds);
-  const sim = new SimRevx(st, () => clock.now, () => book);
+  const sim = new SimRevx(st, () => clock.now, () => book, () => null, opts);
   const venue = revxVenue({ apiKey: "simulated", privateKey: KEY }, sim.fetch, REVX_REGION, () => clock.now);
   const place = async (side: "buy" | "sell", base: string, price: string, marketable = false) => {
     const r = await venue.placeLimit({ clientOrderId: crypto.randomUUID(), symbol: "USDC/GBP", side, base, price, marketable });
@@ -59,6 +59,33 @@ Deno.test("a resting bid fills only by the prints strictly through it, by their 
   // A print is applied once: the same one again, or an older one, fills nothing more.
   assertEquals(a.sim.applyPrint(USDC, print("p3", T + 30e3, 0.7548, 30, "sell")), 0);
   assertEquals(a.sim.applyPrint(USDC, print("p0", T + 5e3, 0.7540, 30, "sell")), 0);
+});
+
+Deno.test("LIVE's fill rule (a twin's `fill` rule, from its instant): a print AT a resting order's price, from the other side, fills it by its quantity, after the orders it goes through", async () => {
+  // The same orders and prints as the through-only pin above: the seller at 0.7550 now fills 100 of the bid at 0.7550.
+  const a = account({ GBP: 200 }, read([[0.7549, 500]], [[0.7552, 500]]), {}, { atPriceFrom: T });
+  const r = await a.place("buy", "132", "0.7550");
+  assert(r.ok, JSON.stringify(r));
+  assertEquals(a.sim.applyPrint(USDC, print("p1", T + 10e3, 0.7549, 20, "sell")), 20);
+  assertEquals(a.sim.applyPrint(USDC, print("p2", T + 20e3, 0.7550, 100, "sell")), 100);
+  // A BUYER at our bid's price is not a seller hitting it: nothing (and nothing is left to fill but 12).
+  assertEquals(a.sim.applyPrint(USDC, print("p3", T + 25e3, 0.7550, 50, "buy")), 0);
+  assertEquals(a.sim.applyPrint(USDC, print("p4", T + 30e3, 0.7548, 30, "sell")), 12);
+  a.clock.now = T + 40e3;
+  assertEquals((await a.view(r.venueOrderId)).status, "filled");
+  // Before its instant the rule is the through-only one: a print at the price fills nothing.
+  const b = account({ GBP: 200 }, read([[0.7549, 500]], [[0.7552, 500]]), {}, { atPriceFrom: T + 60e3 });
+  const r2 = await b.place("buy", "132", "0.7550");
+  assert(r2.ok);
+  assertEquals(b.sim.applyPrint(USDC, print("q1", T + 20e3, 0.7550, 100, "sell")), 0);
+  assertEquals(b.sim.applyPrint(USDC, print("q2", T + 70e3, 0.7550, 100, "sell")), 100);
+  // An ask: a buyer at its price fills it, after an ask the print goes through (0.7554 first, then 0.7556 at the price).
+  const c = account({ GBP: 0, USDC: 300 }, read([[0.7549, 500]], [[0.7552, 500]]), {}, { atPriceFrom: T });
+  const hi = await c.place("sell", "100", "0.7556"), lo = await c.place("sell", "100", "0.7554");
+  assert(hi.ok && lo.ok);
+  assertEquals(c.sim.applyPrint(USDC, print("b1", T + 5e3, 0.7556, 150, "buy")), 150);
+  const vLo = await c.view(lo.venueOrderId), vHi = await c.view(hi.venueOrderId);
+  assertEquals([vLo.filled_quantity, vHi.filled_quantity], ["100", "50"]);
 });
 
 Deno.test("an ask fills by the buyers strictly over it; the orders a print goes through share it, the best price first", async () => {
@@ -165,6 +192,33 @@ Deno.test("a marketable IOC walks the book's levels to its limit, a taker's 0.09
   assert(r3.ok);
   const v3 = await c.view(r3.venueOrderId);
   assertEquals([v3.status, v3.filled_quantity, v3.average_fill_price], ["filled", "396", "0.7552"]);
+});
+
+Deno.test("the validation's replay of LIVE only: inside an outage the venue answers its status and does nothing (2026-10-20: cancels 503, reads 500, the pair list 502); outside it, as ever", async () => {
+  const W = { from: T + 60e3, to: T + 120e3 };
+  const a = account({ GBP: 100 }, read([[0.7549, 500]], [[0.7552, 500]]), {}, { outages: [
+    { ...W, method: "DELETE", path: "/api/1.0/orders/", status: 503, message: "Failed to cancel order. Error: CIRCUIT_BREAKER_OPEN_ERROR" },
+    { ...W, method: "GET", path: "/api/1.0/orders/", status: 500, message: "Something went wrong!" },
+    { ...W, public: true, path: "/api/1.0/public/configuration/pairs", status: 502, message: "502 Server Error" },
+  ] });
+  const r = await a.place("buy", "100", "0.7550");
+  assert(r.ok);
+  a.clock.now = T + 70e3;
+  const c = await a.venue.cancel(r.venueOrderId);
+  assert(!c.ok && /503/.test(JSON.stringify(c)), JSON.stringify(c));
+  const g = await a.venue.order(r.venueOrderId);
+  assert(!g.ok && /500/.test(g.error), JSON.stringify(g));
+  assertEquals((await a.sim.publicFetch("https://revx.revolut.com/api/1.0/public/configuration/pairs")).status, 502);
+  assertEquals(a.st.orders[0].status, "new");                                     // nothing was done to it
+  // The window over: the same cancel goes through, the pair list answers.
+  a.clock.now = T + 130e3;
+  assert((await a.venue.cancel(r.venueOrderId)).ok);
+  assertEquals((await a.sim.publicFetch("https://revx.revolut.com/api/1.0/public/configuration/pairs")).status, 200);
+  // A twin's account has no outages: the same calls, the same instants, nothing refused.
+  const b = account({ GBP: 100 });
+  const r2 = await b.place("buy", "100", "0.7550");
+  b.clock.now = T + 70e3;
+  assert(r2.ok && (await b.venue.cancel(r2.venueOrderId)).ok);
 });
 
 Deno.test("a cancel lands a read after its 204; a print a second after it is asked finds the order gone", async () => {

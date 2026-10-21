@@ -1,0 +1,31 @@
+{
+ "name": "base",
+ "live": {
+  "trips": 218,
+  "won": 191,
+  "stops": 3,
+  "realisedGbp": 0.8796,
+  "feesGbp": 0.084
+ },
+ "sim": {
+  "trips": 130,
+  "won": 81,
+  "stops": 3,
+  "realisedGbp": 0.2454,
+  "feesGbp": 0.084
+ },
+ "tripKeys": [
+  "book",
+  "side",
+  "k",
+  "tEntry",
+  "tExit",
+  "entry",
+  "exit",
+  "qty",
+  "how",
+  "feesGbp",
+  "pnlGbp",
+  "ids"
+ ]
+}

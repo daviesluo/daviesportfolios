@@ -65,7 +65,7 @@ import { RULED_ARMS } from "./quotes_ruled.ts";
 import {
   pennyUp, QUOTE_LIVE_CONVERT_MAX_FRACTION, runQuotesConvert, runQuotesLive, seenUntil, takeBookRow, type QuoteLiveInstance, type QuoteLiveReport, type RecordedRead,
 } from "./quotes_live.ts";
-import { newSimState, SimRevx, type SimBook, type SimLevel, type SimState } from "./revx_sim.ts";
+import { newSimState, SimRevx, type SimOutage, type SimBook, type SimLevel, type SimState } from "./revx_sim.ts";
 import { weekendX, type WeekendRule } from "./quotes_weekend.ts";
 import { REVX_REGION, revxVenue } from "../_shared/revx.ts";
 
@@ -136,7 +136,15 @@ export type TwinSpec = {
    * instants (the go-live's taker IOCs, as they were sent) in place of the operator's maker ones, and the instant from
    * which the dead-man exists.
    */
-  replay?: { firstTurn: number; balances: Record<string, number>; conversions: Array<{ at: number; book: QuoteBook; gbp: number }>; deadmanFrom: number };
+  replay?: {
+    firstTurn: number; balances: Record<string, number>; conversions: Array<{ at: number; book: QuoteBook; gbp: number }>; deadmanFrom: number;
+    /**
+     * What the live account met that the twins do not (docs/agents/backtests/livesim/, 2026-10-21): the instant into its
+     * call minute its turn runs (LIVE places a median 32 s in, the twins turn at 25 s), the monitor's dead-man cancels of
+     * its own (2026-10-07: 48, its state unreadable), and the venue's outages as LIVE met them (`SimOutage`).
+     */
+    turnOffsetMs?: number; deadmen?: number[]; outages?: SimOutage[];
+  };
 };
 /**
  * A twin as a row of `agent_quote_twin_specs` (0088; Davies, 2026-10-03, "你说的这四点建议全做": a small variant is a row,
@@ -200,6 +208,15 @@ export const TWIN_RULES: Record<string, (v: unknown) => Partial<QuoteLiveInstanc
     const from = Date.parse(String((v as { from?: unknown } | null)?.from));
     if (!Number.isFinite(from)) throw new Error(`its rule weekend needs "from", a UTC instant`);
     return { weekend: { from } };
+  },
+  // The fill rule LIVE's own fills follow, from `from` (`QuoteLiveInstance.simFill`; docs/agents/backtests/livesim/): a print
+  // AT a resting order's price, from the other side, fills it as a print through it does. `model` "at" is the only one.
+  fill: (v) => {
+    const o = v as { model?: unknown; from?: unknown } | null;
+    const from = Date.parse(String(o?.from));
+    if (o?.model !== "at") throw new Error(`its rule fill needs "model": "at"`);
+    if (!Number.isFinite(from)) throw new Error(`its rule fill needs "from", a UTC instant`);
+    return { simFill: { model: "at", from } };
   },
 };
 
@@ -478,7 +495,7 @@ export async function snapshotsFor(db: Db, from: number, to: number): Promise<Ma
  * with the dead-man: when the twin's last turn is more than TWIN_DEADMAN_MS before `at`, the prints up to that
  * deadline are applied, every resting order is cancelled at it, and the prints after it fill nothing.
  */
-export async function applyPrintsTo(db: Db, sim: SimRevx, at: number, setClock: (t: number) => void, deadmanFrom = -Infinity): Promise<{ prints: number; deadman: number | null; cancelled: number }> {
+export async function applyPrintsTo(db: Db, sim: SimRevx, at: number, setClock: (t: number) => void, deadmanFrom = -Infinity, external: number[] = []): Promise<{ prints: number; deadman: number | null; cancelled: number }> {
   const st = sim.st;
   const from = Math.min(...QUOTE_BOOKS.map((b) => st.applied[b]?.ts ?? at - H));
   const all = await printsBetween(db, from, at + 1);
@@ -498,6 +515,13 @@ export async function applyPrintsTo(db: Db, sim: SimRevx, at: number, setClock: 
     run(deadline);
     setClock(deadline);
     cancelled = sim.deadman(deadline);
+  }
+  // The validation's replay only: the live account's own dead-man cancels (`replay.deadmen`) since its last turn.
+  for (const dm of external) {
+    if (dm > at || (st.lastTurnAt != null && dm <= st.lastTurnAt)) continue;
+    run(dm);
+    setClock(dm);
+    cancelled += sim.deadman(dm);
   }
   run(at);
   return { prints, deadman: deadline, cancelled };
@@ -685,8 +709,10 @@ async function twinTurn(
   // may take (`reads`) gives the account the recorded read each take meets (`takeFillRead`).
   let venueNow = at;
   const takeRead = reads ? (b: QuoteBook) => { const r = takeFillRead(reads[b], at); return r ? simBookOfRead(r) : null; } : undefined;
-  const sim = new SimRevx(ds.venue, () => venueNow, (b, t) => snapshots.get(`${b}|${minuteOf(t)}`) ?? null, takeRead);
-  const applied = await applyPrintsTo(d.db, sim, at, (t) => { venueNow = t; }, spec.replay?.deadmanFrom);
+  const fill = spec.instance.simFill;
+  const sim = new SimRevx(ds.venue, () => venueNow, (b, t) => snapshots.get(`${b}|${minuteOf(t)}`) ?? null, takeRead,
+    { ...(fill ? { atPriceFrom: fill.from } : {}), ...(spec.replay?.outages ? { outages: spec.replay.outages } : {}) });
+  const applied = await applyPrintsTo(d.db, sim, at, (t) => { venueNow = t; }, spec.replay?.deadmanFrom, spec.replay?.deadmen);
   venueNow = at;
   if (applied.deadman != null) {
     await d.db.upsert(spec.instance.events, [{ mode: "live", minute: iso(minuteOf(applied.deadman)), book: "-", rung_side: "-", k: 0, kind: "deadman",
@@ -838,12 +864,13 @@ async function runOneTwin(d: TwinDeps, spec: TwinSpec, began: number): Promise<T
       for (const m of minutes) {
         if (clock() - began >= budget) break;
         // A turn that may take waits for the recorder's read after it (TAKE's twin), at most TWIN_TAKE_WAIT_MS.
-        const reads = takesAt(spec, m + TWIN_TURN_OFFSET_MS) ? await takeReadsAt(d.db, m + TWIN_TURN_OFFSET_MS) : null;
-        if (reads && !QUOTE_BOOKS.every((b) => recorderReadAfter(reads[b], m + TWIN_TURN_OFFSET_MS)) && d.now < m + TWIN_TURN_OFFSET_MS + TWIN_TAKE_WAIT_MS) break;
+        const off = spec.replay?.turnOffsetMs ?? TWIN_TURN_OFFSET_MS;
+        const reads = takesAt(spec, m + off) ? await takeReadsAt(d.db, m + off) : null;
+        if (reads && !QUOTE_BOOKS.every((b) => recorderReadAfter(reads[b], m + off)) && d.now < m + off + TWIN_TAKE_WAIT_MS) break;
         if (m > snapTo) { snapTo = m + 240 * M; snapshots = await snapshotsFor(d.db, m, snapTo); }
-        await twinTurn(d, spec, ds, paper, m + TWIN_TURN_OFFSET_MS, (await pr5DecidedBy(d.db, m)) ?? paper.lastMinute, snapshots, report, reads);
+        await twinTurn(d, spec, ds, paper, m + off, (await pr5DecidedBy(d.db, m)) ?? paper.lastMinute, snapshots, report, reads);
         report.turns++;
-        report.lastTurn = iso(m + TWIN_TURN_OFFSET_MS);
+        report.lastTurn = iso(m + off);
         left--;
       }
       // Caught up: every minute PR5's call ran before its present one has had its turn. From here one turn a call.

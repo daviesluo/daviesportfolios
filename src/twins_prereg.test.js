@@ -24,13 +24,14 @@ describe("the realistic twins' pre-registration", () => {
       // its §13): quotes_twin.ts and revx_sim.ts gain TAKE's rule (0089). Each section keeps the hash it named; the last
       // names the file as it is. Deviation 4 (2026-10-09, its §15): rule D's twin retires its 0.03 % rung. Deviation 5 (the
       // same day, its §16): the rule exitOffset, p50x1's. Deviation 6 (2026-10-18, its §18): the rule weekend, take50wk's.
+      // Deviation 7 (2026-10-21, its §19): the rule fill (LIVE's own fill rule), and the validation's replay of LIVE's operations.
       // 0087 is named once, as frozen.
       if (f.endsWith('/quotes_twin.ts')) {
         expect(named, f).toEqual(['921ce33adc6d38274bd9c8de7909a2100ff55fdb2d50388e140379af2c578fc3', 'f14ecee87da252b9135dbeebcdcfd1dfa3f33c4a945c7b5b830cc2c37a61d7a8',
           'd13b3eebce3dd3e89d8707e7373597b73d7127c5d5692fc36b6fcebe1d1dac0a', '92c7d0db86dffc2b86650f99055e676902dc12ee905a89926771ee43d2329712',
-          'aac594d3266bf17444c1c17ed7201f8f5ff06d33206cd9c7c5d57cfe0fce7457', sha(f)]);
+          'aac594d3266bf17444c1c17ed7201f8f5ff06d33206cd9c7c5d57cfe0fce7457', 'fd4b6f992ea7c094c97759933fb714b49d81dcf60756dee18fee4860525a1524', sha(f)]);
       }
-      else if (f.endsWith('/revx_sim.ts')) expect(named, f).toEqual(['885def181e01899095745c7c1128a3dee06e11f960965ec439cc7a50642fcd48', sha(f)]);
+      else if (f.endsWith('/revx_sim.ts')) expect(named, f).toEqual(['885def181e01899095745c7c1128a3dee06e11f960965ec439cc7a50642fcd48', '4b8f99e925f0ba6e05e188554e4b6bf8a43eead0aaec0b5d946a65664361f8aa', sha(f)]);
       else expect(named, f).toEqual([sha(f)]);
     }
   });

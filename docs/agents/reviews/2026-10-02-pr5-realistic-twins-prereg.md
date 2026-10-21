@@ -468,3 +468,32 @@ pins the rule against a twin without it on a Friday and a Sunday. Not blind: wri
 
 §11–§16 keep the hashes the file had before; this table names it from this deviation on. `src/twins_prereg.test.js` pins all of them.
 
+
+## 19. Deviation 7 (2026-10-21): LIVE's own fill rule as a twin rule, and the validation's replay of LIVE's operations
+
+**On whose word.** Davies, 2026-10-21, answering PR5's four-week review, verbatim: "A，引擎也继续运行，但要确保模拟的真实性和实盘策略完全一致，
+不一致的地方就直接改" (option A; keep the engine running too, but make sure the simulation is realistic and matches the live strategy
+exactly; fix anything inconsistent directly). The audit is `2026-10-21-sim-vs-live-audit.md` (`backtests/livesim/`).
+
+**What LIVE's record showed.** §7 found every difference on LIVE's first day to be the fill rule: "the simulation counts no fill at
+the order's own price". Over 2026-10-01 16:29:53 → 10-21 15:09 the same holds at scale: of LIVE's 502 filled maker orders, 169 had
+a print through their price and 317 only prints AT it from the other side (`results/fill_model.json`). Replayed at LIVE's size and
+start, as §7 replayed its first day, the twins' code reproduced 20.3 % of LIVE's fills and £0.245 of its £0.880 realised.
+
+**What changed.** `revx_sim.ts`: an option of the simulated account, `atPriceFrom`, from which instant a print AT a resting order's
+price, its aggressor on the other side, fills it as a print through it does (rule 1's exception); and `SimOutage`, an outage the
+validation's replay may give it (a call matching it answers its status and does nothing). `quotes_twin.ts`: `TWIN_RULES` gains its
+fourth rule, `fill` (`{ "model": "at", "from": "<UTC>" }`), which sets the instance's `simFill` and the account's `atPriceFrom`; the
+validation's `replay` gains `turnOffsetMs` (LIVE turns about 30 s into the call minute), `deadmen` (the monitor's dead-man cancels of
+the live account, 48 on 2026-10-07) and `outages` (the venue's as LIVE met them, 2026-10-20), applied by `applyPrintsTo` and the
+account. **No twin has the rule or a replay**: every twin runs the code path it ran, and `pr5.json.gz` built again on this code is the
+same bytes (sha256 f04fb896…). Whether a page row takes the rule is put to Davies (the audit's last section): the rows'
+pre-registrations (TAKE's, PR5-W's, the size twin's) read their twins under rule 1 as it stands.
+
+| file | sha256 |
+|---|---|
+| `supabase/functions/agents/revx_sim.ts` | 7f05baba5a1a066166791e184ddac505bcd692865864dd219172d4c87569cc47 |
+| `supabase/functions/agents/quotes_twin.ts` | 36092d7f506565d5c89d11ea389d569e2106f738768d1a7450f4e3e39595c3d7 |
+
+§11–§18 keep the hashes the files had before; this table names them from this deviation on. `src/twins_prereg.test.js` pins all
+of them. Not blind: written after reading LIVE's whole record.

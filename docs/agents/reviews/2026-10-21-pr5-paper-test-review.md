@@ -141,6 +141,13 @@ engine's decisions minute by minute, so LIVE stops if the engine stops. PR5V rea
 00:30, QUEUE to 11-02, PR5-W to 11-25 (12-23 at the latest), and variant-3's weekend replica steps on it. Stopping it
 would also end those windows early (PR5-R's prereg and the ledger note this). Nothing in this review changes the engine.
 
+**Davies' decision, 2026-10-21, verbatim:** "A，引擎也继续运行，但要确保模拟的真实性和实盘策略完全一致，不一致的地方就直接改". So option A:
+- LIVE stays at £10 a rung.
+- PR5's paper engine and its minute record keep running.
+- The simulation is to match LIVE, with inconsistencies fixed directly. That is done in `2026-10-21-sim-vs-live-audit.md`.
+- Condition 5's fix, a change to PR5's rule and so to LIVE's, is drafted in `2026-10-21-pr5-reprice-budget-draft.md` and not
+  in force.
+
 ## Files
 
 - `backtests/pr5_review/sql/pull.sql`: the seven pulls; `scripts/grab_text.py` checks each against the database's md5.

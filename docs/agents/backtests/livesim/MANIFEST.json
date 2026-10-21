@@ -1,0 +1,111 @@
+{
+ "study": "The simulation that stands for LIVE (the twins' code at LIVE's £120: runQuotesTwins, quotes_live.ts, revx_sim.ts) against LIVE's own record, 2026-10-01 16:29:53 -> 2026-10-21 15:09 UTC; the audit reviews/2026-10-21-sim-vs-live-audit.md (Davies, 2026-10-21: 'A，引擎也继续运行，但要确保模拟的真实性和实盘策略完全一致，不一致的地方就直接改'). Not blind.",
+ "read": "production, SELECT only, through the Supabase connector, 2026-10-21 19:5x UTC (sql/pull.sql), and ../pr5_review/data (PR5's prints, inputs, events and go-live books, pulled 19:05 UTC).",
+ "run": [
+  "python3 -I scripts/grab_text.py <saved connector reply of each statement of sql/pull.sql> data && gzip -n -9 data/*.txt",
+  "python3 -I scripts/build_inputs.py   # -> data/inputs.json.gz (derived, not committed)",
+  "npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env scripts/replay.ts base                                      # the twins' rule as it stands (~15 min)",
+  "npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env scripts/replay.ts at '{\"fill\":{\"model\":\"at\",\"from\":\"2026-09-23T00:00:00Z\"}}'",
+  "npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env scripts/replay.ts base_ops '' ops",
+  "npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env scripts/replay.ts at_ops '{\"fill\":{\"model\":\"at\",\"from\":\"2026-09-23T00:00:00Z\"}}' ops   # the fixed simulation (~20 min)",
+  "python3 -I scripts/compare.py <name>; npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env scripts/trips.ts <name>; python3 -I scripts/fill_model.py"
+ ],
+ "findings": [
+  "LIVE filled 502 maker orders: 169 with a print through their price, 317 with prints only AT it from the other side, 16 with neither (results/fill_model.json); the twins' rule 1 predicts 169 of them, the at-price rule 486.",
+  "Fixed simulation (at_ops) against LIVE: orders 84.7 % / 86.2 % matched (base 76.4 % / 85.4 %); fills 51.1 % of LIVE's (20.3 %); on orders both placed, 92.1 % of the filled agree (67.8 %); round trips 204 v 218 (130); realised GBP 0.972 v 0.880 (0.245)."
+ ],
+ "files": [
+  {
+   "path": "sql/pull.sql",
+   "md5": "ab58901c9ae6fff8ef3ce0debaef23bc"
+  },
+  {
+   "path": "scripts/build_inputs.py",
+   "md5": "b92a1d250148b962bfdda2100a4b53ff"
+  },
+  {
+   "path": "scripts/compare.py",
+   "md5": "6300a2891d68f2f903ebff437e993f84"
+  },
+  {
+   "path": "scripts/fill_model.py",
+   "md5": "146e3ce8b82897ebe6c8b63977763ee0"
+  },
+  {
+   "path": "scripts/grab_text.py",
+   "md5": "d75537e88b1838a9af8eebe5e634b0ab"
+  },
+  {
+   "path": "scripts/replay.ts",
+   "md5": "0deba23c31e812e0671ccccf6c3b6c36"
+  },
+  {
+   "path": "scripts/trips.ts",
+   "md5": "22f62109afb7c28eedc275e7e11aa6c1"
+  },
+  {
+   "path": "data/live_events.txt.gz",
+   "md5": "d42b75ddc293cd38f5b0360e962aaee7"
+  },
+  {
+   "path": "data/live_orders.txt.gz",
+   "md5": "80030d09756fd86c7cc8eac0fc0c5dfc"
+  },
+  {
+   "path": "data/minutes_full.txt.gz",
+   "md5": "88a1cd6cf0713db8830553ee9511e542"
+  },
+  {
+   "path": "results/compare_at.json",
+   "md5": "1f8c790abde6e34a087e747e04e25c09"
+  },
+  {
+   "path": "results/compare_at_ops.json",
+   "md5": "146c26aecaa7f2885098914158ad7200"
+  },
+  {
+   "path": "results/compare_base.json",
+   "md5": "85fa49d160bfc0d28091b6138baaa5af"
+  },
+  {
+   "path": "results/compare_base_ops.json",
+   "md5": "0454bf0991f12c7f5b9668b0baee442b"
+  },
+  {
+   "path": "results/fill_model.json",
+   "md5": "2de09124df2b62b956984af6bb99375d"
+  },
+  {
+   "path": "results/trips_at.json",
+   "md5": "2a8590659bd93e668a1d88fdf7f8053f"
+  },
+  {
+   "path": "results/trips_at_ops.json",
+   "md5": "2e458138b0e647ffd4b3f91f8c97ce87"
+  },
+  {
+   "path": "results/trips_base.json",
+   "md5": "58c374a841c52f541bbd5b13a99cad66"
+  },
+  {
+   "path": "results/trips_base_ops.json",
+   "md5": "8d98dcd3e262a93a903dfe71f42db14f"
+  },
+  {
+   "path": "results/runs/at.json.gz",
+   "md5": "fb03f9b0a21965e3927a3802358a995e"
+  },
+  {
+   "path": "results/runs/at_ops.json.gz",
+   "md5": "7b9c24dc46305aeb9f2960ba9101dfd4"
+  },
+  {
+   "path": "results/runs/base.json.gz",
+   "md5": "d70048b79b42f1b1e5561541968cb379"
+  },
+  {
+   "path": "results/runs/base_ops.json.gz",
+   "md5": "00c8883189eee8780eaaa6f097459cf5"
+  }
+ ]
+}

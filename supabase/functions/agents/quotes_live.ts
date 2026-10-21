@@ -127,6 +127,13 @@ export type QuoteLiveInstance = {
    */
   weekend?: WeekendRule;
   /**
+   * A twin's simulated account only (revx_sim.ts; the executor never reads it): from `from` (ms), a public print AT a resting
+   * order's price, its aggressor on the other side, fills it as a print through it does, by the print's quantity. LIVE's own
+   * record (2026-10-01 → 10-21, docs/agents/backtests/livesim/) filled 317 of its 502 filled maker orders with prints only at
+   * their price; the through-only rule missed two in three of them. The live account's instance has none.
+   */
+  simFill?: { model: "at"; from: number };
+  /**
    * The live account's switches (0131, `agent_quote_live_config.take_mode` and `weekend_mode`) and the table of its weekend
    * replica (`agents/quotes_live_weekend.ts`). The live account's instance alone has them: a twin's config has no such columns.
    */

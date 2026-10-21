@@ -80,6 +80,12 @@ const symbolOf = (b: QuoteBook) => b.replace("-", "/");
 export type SimLevel = [number, number];
 /** The book a simulated order meets: its levels where they were read, the touch at least, or nothing known. */
 export type SimBook = { bids: SimLevel[]; asks: SimLevel[]; source: string; at: number };
+/**
+ * A stretch in which the venue failed as the live account met it (docs/agents/backtests/livesim/: 2026-10-20's outage): from
+ * `from` to `to`, every call matching `method` and `path` (a prefix; `public` for the public reads) answers `status` with
+ * `message` and does nothing. The validation's replay of the live account only; a twin meets none.
+ */
+export type SimOutage = { from: number; to: number; method?: string; path?: string; public?: boolean; status: number; message: string };
 /** Where the account's book comes from at an instant: the driver's stored reads (`quotes_twin.ts`). */
 export type SimBookSource = (book: QuoteBook, at: number) => SimBook | null;
 
@@ -131,7 +137,18 @@ const ticksOf = (price: string | number) => Math.round(Number(price) / QUOTE_TIC
 export class SimRevx {
   /** The client ids of the takes the executor wrote and has not sent yet (`markTake`). */
   private takes = new Set<string>();
-  constructor(public st: SimState, private now: () => number, private book: SimBookSource, private takeRead: SimBookSource = () => null) {}
+  /**
+   * `opts.atPriceFrom`: from that instant a print AT a resting order's price, its aggressor on the other side (a seller for
+   * a bid, a buyer for an ask), fills it as a print through it does, by the print's quantity (LIVE's own fills, rule 1's
+   * exception; a twin's `fill` rule). Unset, a print at the price fills nothing.
+   */
+  constructor(public st: SimState, private now: () => number, private book: SimBookSource, private takeRead: SimBookSource = () => null, private opts: { atPriceFrom?: number; outages?: SimOutage[] } = {}) {}
+
+  /** The outage this call meets now, if any (`opts.outages`). */
+  private down(pub: boolean, method: string, path: string): SimOutage | null {
+    const t = this.now();
+    return (this.opts.outages ?? []).find((w) => t >= w.from && t < w.to && !!w.public === pub && (!w.method || w.method === method) && (!w.path || path.startsWith(w.path))) ?? null;
+  }
 
   /** The executor wrote this order as a take (`request.take`): its IOC meets `takeRead`, not the book the turn met. */
   markTake(clientOrderId: string): void { this.takes.add(clientOrderId); }
@@ -179,13 +196,16 @@ export class SimRevx {
   /**
    * One public print of `book`, in time order: every resting order it goes STRICTLY through, placed before it and not
    * cancelled by then, fills by the print's base quantity, the best price first and then the earlier order. A print at
-   * an order's price fills none of it. Returns the coins it filled.
+   * an order's price fills none of it, unless `opts.atPriceFrom` says it does (then from the other side only, after every
+   * order it goes through). Returns the coins it filled.
    */
   applyPrint(book: QuoteBook, p: Print): number {
     const sym = symbolOf(book);
     const prev = this.st.applied[book];
     if (prev && (p.ts < prev.ts || (p.ts === prev.ts && p.id <= prev.id))) return 0;      // applied already
-    const through = (o: SimOrder) => (o.side === "buy" ? p.ticks < ticksOf(o.price) : p.ticks > ticksOf(o.price));
+    const atToo = this.opts.atPriceFrom != null && p.ts >= this.opts.atPriceFrom;
+    const through = (o: SimOrder) => (o.side === "buy" ? p.ticks < ticksOf(o.price) : p.ticks > ticksOf(o.price))
+      || (atToo && p.ticks === ticksOf(o.price) && p.side === (o.side === "buy" ? "sell" : "buy"));
     const cands = this.st.orders.filter((o) => {
       if (o.symbol !== sym || o.created >= p.ts) return false;
       if (o.cancelAsked != null && p.ts - o.cancelAsked >= 1_000) { o.status = "cancelled"; o.done = o.cancelAsked + 1_000; o.cancelAsked = o.cancelReadsLeft = undefined; }
@@ -323,6 +343,8 @@ export class SimRevx {
     const p = url.pathname, m = (init?.method ?? "GET").toUpperCase();
     const json = (status: number, body: unknown) => Promise.resolve(new Response(status === 204 ? null : JSON.stringify(body), { status }));
     if (url.host !== "revx.revolut.com") return Promise.reject(new Error(`simulated account: ${url.host} is not the venue`));
+    const out = this.down(false, m, p);
+    if (out) return json(out.status, { message: out.message });
     if (p === "/api/1.0/orders" && m === "POST") {
       let req;
       try { req = JSON.parse(String(init?.body)); } catch { return json(400, { message: "unreadable order" }); }
@@ -368,6 +390,8 @@ export class SimRevx {
     const p = url.pathname, m = (init?.method ?? "GET").toUpperCase();
     const json = (status: number, body: unknown) => Promise.resolve(new Response(JSON.stringify(body), { status }));
     if (url.host !== "revx.revolut.com" || m !== "GET") return Promise.reject(new Error(`simulated account: ${m} ${url.host}${p} is not a public read`));
+    const out = this.down(true, m, p);
+    if (out) return json(out.status, { message: out.message });
     if (p === "/api/1.0/public/configuration/pairs") {
       return json(200, Object.fromEntries(Object.keys(SYMBOLS).map((s) => [s, { base: s.split("/")[0], quote: "GBP", ...SIM_GBP_PAIR }])));
     }
