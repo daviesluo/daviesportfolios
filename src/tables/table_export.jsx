@@ -17,6 +17,10 @@ export function TableExportButtons({ getMatrix, filenameBase, disabled }) {
   // 'idle' | 'done' | 'err' — transient ✓ / ✕ feedback. Before 'err' a
   // copy where BOTH clipboard paths failed gave the user no signal.
   const [copyState, setCopyState] = React.useState(/** @type {'idle'|'done'|'err'} */ ('idle'));
+  // The ✓ / ✕ reset is cleared on unmount: a modal closed within 1.5 s of a copy otherwise set state on an unmounted
+  // component (under a slow test run it fired after jsdom's teardown and failed the suite, 2026-10-21).
+  const resetTimer = React.useRef(/** @type {ReturnType<typeof setTimeout> | null} */ (null));
+  React.useEffect(() => () => { if (resetTimer.current) clearTimeout(resetTimer.current); }, []);
 
   const onCopy = async () => {
     if (disabled) return;
@@ -35,7 +39,8 @@ export function TableExportButtons({ getMatrix, filenameBase, disabled }) {
       } catch { ok = false; }
     }
     setCopyState(ok ? 'done' : 'err');
-    setTimeout(() => setCopyState('idle'), ok ? 1500 : 2000);
+    if (resetTimer.current) clearTimeout(resetTimer.current);
+    resetTimer.current = setTimeout(() => setCopyState('idle'), ok ? 1500 : 2000);
   };
 
   const onDownload = () => {
