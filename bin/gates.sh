@@ -23,9 +23,15 @@
 # "quick gates green", which is not leave to push: the agent commits and hands back, and the session landing a batch
 # rebases every commit onto origin/main and runs this script once, without a flag, on the combined tree.
 #
-# Everything at once, each step's time printed (Davies, 2026-09-27: still slow; five and a half minutes before this):
-# the checks that read the source, beside the bundle's own line — built, then everything that reads it at once: the
-# browser sweep in shards, the perf matrix and the size budget. Nothing that reads the source reads dist/.
+# Two waves, each step's time printed. First every check that reads the source at once (the unit and Edge tests, types,
+# lint, dead code, audit); then the bundle's line: built, then everything that reads it at once (the browser sweep in
+# shards, the perf matrix, the size budget). Every failure of both waves is reported, then the run fails.
+# Why not everything at once, as from 2026-09-27 to 2026-10-21 (Davies, 2026-10-21: "gates怎么又这么慢了 … 看看还有什么可以
+# 并行跑"): on four cores it was CPU-bound with the load at 20-24, and the crowding cost CPU of its own, pages and
+# their polls waiting longer, 813-822 s of the machine's CPU a run against 645 s for the same work in two waves; the
+# run took 226-244 s, and unit tests (5 s timeouts) and sweep pages timed out under it. In two waves: 186 s, load 14.
+# The Edge tests run in three processes (bin/edge-test.mjs), which took the source wave from a 225-279 s single
+# `deno test` to about 70 s; tsc and ESLint keep caches in src/node_modules/.cache (`npm run typecheck`, `lint`).
 #
 # The sweep's shards (Davies, 2026-10-01: "gates的运行还可以更快吗 还有没有可以一起并行跑的内容"): a run of the sweep is
 # mostly waiting on its pages (a phone's alone: 222 s of wall time on 22 s of CPU), so it runs as several processes at
@@ -49,6 +55,11 @@ if command -v flock > /dev/null 2>&1; then
     w0=$(date +%s); flock 9; echo "gates: waited $(( $(date +%s) - w0 )) s"
   fi
 fi
+
+# `--run '<command>'` runs one command from src/ under the same lock and nothing else: a check run by hand (a sweep
+# part, vitest, a build, a Deno test) takes its turn instead of crowding a gate run (2026-10-21: full runs failed on
+# timeouts while other work shared the machine).
+if [ "$1" = "--run" ]; then shift; rm -rf "$LOGS"; cd "$ROOT/src"; exec sh -c "$*"; fi
 
 # The ledger hook moved from hooks/ to bin/hooks on 2026-09-23. A clone that still points at the old folder runs no
 # hook at all, and git says nothing.
@@ -110,7 +121,8 @@ together() {
 
 EDGE_CHECK="edge-check|cd .. && npx --yes deno@1.46.3 check --quiet supabase/functions/"
 # Deno 1.x, as CI's setup-deno v1.x: its last release is 1.46.3. A bare `npx deno` fetches Deno 2 instead.
-EDGE_TEST="edge-test|cd .. && npx --yes deno@1.46.3 test --allow-env supabase/functions/"
+# The Edge tests in three Deno processes at once, without the type pass `edge-check` already makes (bin/edge-test.mjs).
+EDGE_TEST="edge-test|node ../bin/edge-test.mjs"
 
 # One viewport's sweep shards, a "name|command" line each: a process for each group of parts given, and one for every
 # part those leave out (`SWEEP_PART=-a,-b`), so a part added to the sweep later runs without a change here.
@@ -137,9 +149,10 @@ bundle() {
     return 1
   fi
   echo "ok   bundle freshness (the build reproduced the committed dist/)"
-  # Two shards a viewport, by each part's seconds on an idle 4-core machine (2026-10-01): `main`, sections 1–8 on one
-  # page, ~65 s at either width, and the rest ~35 s.
-  shards="$(sweep_shards desktop main; sweep_shards phone main)"
+  # Two shards a viewport, by each part's seconds alone on an idle 4-core machine (2026-10-21): desktop `main`
+  # (sections 1–8 on one page) 61 s and the rest 62 s; on the phone `main` takes 30 s and the rest 79 s, so the phone's
+  # `surfaces` (21 s) runs beside its `main`.
+  shards="$(sweep_shards desktop main; sweep_shards phone main,surfaces)"
   set --
   while IFS= read -r s; do set -- "$@" "$s"; done <<EOF
 $shards
@@ -149,14 +162,19 @@ EOF
 
 T0=$(date +%s)
 set -- "unit|npm test"
-[ "$web" = 1 ] && [ "$quick" = 0 ] && set -- "$@" "bundle|bundle"
 [ "$web" = 1 ] && set -- "$@" "typecheck|npm run typecheck" "lint|npm run lint" "knip|npx knip" \
   "audit|npm audit --audit-level=high --omit=dev"
 [ "$edge" = 1 ] && set -- "$@" "$EDGE_CHECK" "$EDGE_TEST" "knip-edge|sh ../bin/knip-edge.sh"
-[ "$deno" = 1 ] && set -- "$@" "$EDGE_TEST"
+[ "$deno" = 1 ] && set -- "$@" "$EDGE_CHECK" "$EDGE_TEST"
 # Two steps fetching Deno at once into npx's cache can trip on each other in a fresh container: fetch it once first.
 case "$*" in *deno@*) npx --yes deno@1.46.3 --version > /dev/null ;; esac
-together "$@"
+rc=0
+together "$@" || rc=1
+if [ "$web" = 1 ] && [ "$quick" = 0 ]; then
+  echo "gates: the source checks took $(( $(date +%s) - T0 )) s; now the bundle's line"
+  together "bundle|bundle" || rc=1
+fi
+[ "$rc" = 0 ] || exit 1
 
 if [ "$quick" = 1 ]; then
   echo "quick gates green ($(( $(date +%s) - T0 )) s): not leave to push; the landing run is sh bin/gates.sh on the batch"

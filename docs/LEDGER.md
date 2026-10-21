@@ -708,6 +708,14 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   the tickers stay. `.claude/CLAUDE.md` and the working-with-davies skill (three copies) now say so. Git history
   still holds the old text: only a rewrite and a force-push, his call, would remove it.
 
+### [2026-10-21 23:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Gates faster: two waves, Edge tests in three processes, tsc and ESLint caches** (Davies, 10-21; sub-agent).
+  Measured on 4 cores: all at once was CPU-bound (load 20-24, 813-822 s of CPU) and took 226-244 s, its end the
+  single 116 s `deno test` stretched to 225-279 s. Now the source checks, then the bundle's line: 180-186 s full,
+  643-645 s of CPU, load 14-17; `--quick` 65 s (was 158-166 s). `bin/edge-test.mjs` (processes, not `--parallel`:
+  the tests set SB_REGION and venue keys); phone `surfaces` beside its `main`; `sh bin/gates.sh --run '<cmd>'` puts a
+  check run by hand under the lock. Every check kept; CI unchanged.
+
 ### [2026-10-21 21:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Heat map: the bottom-left six stack their first two beside the third, not a plain 2 × 3** (Davies, 10-21;
   sub-agent). ORCL+NBIS's block was 197 × 196 on one day (side by side: ORCL NBIS AAPL over META BE BTC-USD) and

@@ -883,7 +883,8 @@ before touching migration state.
 | `wrangler.jsonc` | Tells Cloudflare Pages to publish `dist/` and nothing else. |
 | `dist/` | The built site, committed and published as it is. |
 | `bin/setup.sh` | One-time setup for a clone: the ledger hook, the ledger path, `npm ci` in `src/`. |
-| `bin/gates.sh` | The CI gates a change can break, chosen by the paths it touches (`--full`: every gate), the independent ones at once, the bundle's freshness among them. |
+| `bin/gates.sh` | The CI gates a change can break, chosen by the paths it touches (`--full`: every gate): the source checks at once, then the bundle's line, its freshness among them; `--run` takes a check run by hand through the same lock. |
+| `bin/edge-test.mjs` | The Edge Functions' tests for the gates, split over three Deno processes at once and balanced by the last run's seconds. |
 | `bin/edge-changed.sh` | The functions a push to main deploys: those changed since the deploy workflow's last successful run. |
 | `bin/knip-edge.sh`, `supabase/knip.json` | knip for the Edge Functions. knip reads only code under the folder holding its `package.json`, which is `src/`, so the functions are checked in a scratch copy against their own settings. |
 | `bin/hooks/pre-commit` | The ledger's commit hook: the ledger moves with the work, a history section opens with a source header, and the ledger stays under 80 KiB. |
@@ -1100,6 +1101,7 @@ npm audit --audit-level=high --omit=dev   # supply-chain check on shipped deps
 cd ..
 deno check --quiet supabase/functions/
 deno test --allow-env supabase/functions/
+node bin/edge-test.mjs   # the same tests as the gates run them: three processes at once
 ```
 
 The dev server hits the deployed Edge Functions by default. To point

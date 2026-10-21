@@ -226,20 +226,28 @@ folders hold a pointer it loads the same way. What must never be missed, whereve
   `dist/` every web gate; an Edge Function the Deno checks and the unit
   tests; a migration, `docs/` or Markdown the unit tests (and the Edge
   tests for `docs/`, whose pre-registrations and fixtures they read);
-  anything else every gate. Everything runs at once: the checks that
-  read the source beside the bundle's line — built, then the browser
-  sweep in shards (each a viewport and a group of its parts,
-  `SWEEP_PART`), the perf matrix and the size budget together, each on a
-  port the system has free. Each step prints its seconds. One run at a
-  time per machine: a second run (another worktree's) waits on a shared
-  lock and says so, since two at once on four cores took longer than both
-  queued and timed out page checks.
-  `--full` forces every gate. CI runs every gate on every push either
-  way.
+  anything else every gate. It runs in two waves (Davies, 2026-10-21:
+  "gates怎么又这么慢了"): first every check that reads the source at once
+  (unit and Edge tests, types, lint, dead code, audit), then the
+  bundle's line — built, then the browser sweep in shards (each a
+  viewport and a group of its parts, `SWEEP_PART`), the perf matrix and
+  the size budget together, each on a port the system has free. All at
+  once had the four cores at a load of 20-24 and cost more CPU than the
+  work (226-244 s); two waves take about 186 s. The Edge tests run in
+  three Deno processes (`bin/edge-test.mjs`), never `deno test
+  --parallel`, whose threads share one environment that the tests set.
+  Each step prints its seconds. One run at a time per machine: a second
+  run (another worktree's) waits on a shared lock and says so, since two
+  at once on four cores took longer than both queued and timed out page
+  checks. A check run by hand (a sweep part, vitest, a build, a Deno
+  test) goes through the same lock: `sh bin/gates.sh --run '<command>'`,
+  from `src/`. `--full` forces every gate. CI runs every gate on every
+  push either way.
 - **Sub-agents run `sh bin/gates.sh --quick` and do not push** (Davies,
   2026-10-08: "如果不同agent都要跑所有gates的话可以一起就跑一个吗"). The
   quick run is the same gates less the bundle's line (build, sweep, perf,
-  size); the agent commits on its own worktree and hands back. The main
+  size), the first wave alone (about 70 s); the agent commits on its own
+  worktree and hands back. The main
   session lands the batch: rebases every handed-back commit onto
   `origin/main`, runs `sh bin/gates.sh` once on the combined tree, and
   pushes on `all gates green`; a failure names its check, and an
