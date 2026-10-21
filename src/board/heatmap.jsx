@@ -110,6 +110,68 @@ function stacksRight(left, lw, right, rw, h) {
 }
 
 /**
+ * Whether the split sets these nodes side by side in one row filling the rect, as it does three tiles in a strip
+ * wider than tall.
+ * @param {{ value: number }[]} nodes
+ * @param {number} w
+ * @param {number} h
+ */
+function isRow(nodes, w, h) {
+  return treemap(nodes, 0, 0, w, h).every((t) => t.y === 0 && t.h === h);
+}
+
+/**
+ * Whether a group of six reads better with its top row's first two tiles stacked beside its third than as the plain
+ * 2 × 3 grid the split gives it (Davies, 2026-10-21: the desktop map's bottom-left six, ORCL NBIS AAPL over META BE
+ * BTC-USD, came out a plain grid on one day and ORCL over NBIS beside a tall AAPL on another, and he prefers the
+ * second). Only that case: the left-hand half of a side-by-side cut, six tiles in a rect taller than wide, cut into
+ * three over three, each three a row side by side, the top row's first cut leaving those two tiles first, and only
+ * while each of them, stacked, stays within the stack bounds above. The split decides it by `w >= h` again: those
+ * two tiles' block was 197 × 196 on the plain day (side by side) and 196 × 198 on the other (stacked).
+ * @param {{ value: number }[]} nodes
+ * @param {number} w
+ * @param {number} h
+ */
+function stacksTopPair(nodes, w, h) {
+  if (nodes.length !== 6 || w >= h) return false;
+  const { g1: top, g2: bottom, frac } = halve(nodes);
+  if (top.length !== 3) return false;
+  const h1 = Math.max(1, Math.round(h * frac));
+  if (!isRow(top, w, h1) || !isRow(bottom, w, h - h1)) return false;
+  const { g1: pair, frac: f2 } = halve(top);
+  if (pair.length !== 2) return false;
+  const w1 = Math.max(1, Math.round(w * f2));
+  const total = pair[0].value + pair[1].value;
+  return pair.every((n) => {
+    const ratio = w1 / ((h1 * n.value) / total);
+    return ratio >= STACK_MIN_RATIO && ratio <= STACK_MAX_RATIO;
+  });
+}
+
+/**
+ * The six `stacksTopPair` accepts, laid out as the split would but with the top row's first two tiles stacked: the
+ * same cuts, in the same order, at the same rounding, so every other rect is the split's own.
+ * @template {{ value: number }} T
+ * @param {T[]} nodes
+ * @param {number} x
+ * @param {number} y
+ * @param {number} w
+ * @param {number} h
+ * @returns {(T & { x: number, y: number, w: number, h: number })[]}
+ */
+function topPairStacked(nodes, x, y, w, h) {
+  const { g1: top, g2: bottom, frac } = halve(nodes);
+  const h1 = Math.max(1, Math.round(h * frac));
+  const { g1: pair, g2: third, frac: f2 } = halve(top);
+  const w1 = Math.max(1, Math.round(w * f2));
+  return [
+    ...treemap(pair, x, y, w1, h1, true),
+    ...treemap(third, x + w1, y, w - w1, h1),
+    ...treemap(bottom, x, y + h1, w, h - h1),
+  ];
+}
+
+/**
  * The tiles' rects: split the nodes in two by value, cut the rect across its longer side in that proportion, and
  * recurse. `column` cuts every level across, which stacks the nodes top to bottom.
  * @template {{ value: number }} T
@@ -130,7 +192,8 @@ export function treemap(nodes, x, y, w, h, column = false) {
   if (w >= h && !column) {
     const w1 = Math.max(1, Math.round(w * frac));
     const stack = stacksRight(g1, w1, g2, w - w1, h);
-    return [...treemap(g1, x, y, w1, h), ...treemap(g2, x + w1, y, w - w1, h, stack)];
+    const left = stacksTopPair(g1, w1, h) ? topPairStacked(g1, x, y, w1, h) : treemap(g1, x, y, w1, h);
+    return [...left, ...treemap(g2, x + w1, y, w - w1, h, stack)];
   } else {
     const h1 = Math.max(1, Math.round(h * frac));
     return [...treemap(g1, x, y, w, h1, column), ...treemap(g2, x, y + h1, w, h - h1, column)];

@@ -665,6 +665,14 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20", and 2026-10-18 20:19 → 21:12 UTC under "LEDGER.md, archived 2026-10-21", and 2026-10-19 03:20 → 06:45 UTC under "LEDGER.md, archived 2026-10-21 (second)"; each oldest first.
 
+### [2026-10-21 21:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Heat map: the bottom-left six stack their first two beside the third, not a plain 2 × 3** (Davies, 10-21;
+  sub-agent). ORCL+NBIS's block was 197 × 196 on one day (side by side: ORCL NBIS AAPL over META BE BTC-USD) and
+  196 × 198 on the other (ORCL over NBIS beside a tall AAPL, which he prefers). A left-hand six laid 3 over 3, both
+  plain rows, now stacks the top row's first two while each stays 1 to 3 : 1 (`board/heatmap.jsx`). It also
+  stacks the 10-20 book's GOOGL over NBIS (the same shape); the phone is unchanged. Pinned in `heatmap.test.js`
+  against the 10-20 split and in the sweep (`heatmap-shape/six`).
+
 ### [2026-10-21 21:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Simulation against LIVE, audited and fixed** (sub-agent, item 4; Davies 10-21 "…不一致的地方就直接改"; `backtests/livesim/`):
   shared executor code, so the one large difference was the fill rule: LIVE filled 317 of 502 maker orders on prints AT its

@@ -2961,7 +2961,7 @@ async function run() {
     EDGE_OMIT = new Set(); EDGE_QUOTES = {}; PROXY_CHART = {}; PROXY_FUND = null; OPS_SUMMARY = false;
   }
 
-  // ---- 0g. the heat map's top four on the right stack in one column (Davies, 2026-10-20) ------------------------
+  // ---- 0g. the heat map: its top four on the right in one column (10-20), its bottom-left six (10-21) ------
   // His book of that day, as tile weights (board/heatmap.test.js's OCT20: the areas measured off his desktop
   // screenshot, in px² of the 530 × 810 canvas, not amounts), one share each at weight ÷ 100 dollars. The old split
   // laid PLTR/RKLB over MSTR/ORCL as a 2×2 beside MSFT/NVDA over SPCX/AMZN; the phone stacked the four in one column,
@@ -2978,32 +2978,37 @@ async function run() {
     ];
     // Every slot the board knows is named, empty but for these two: a slot left out is restored on load with its
     // demo tickers (`migrate`), and those would put MSTR, RKLB and others on the map twice.
-    const book = { ...PORTFOLIO, positions: {
-      ...Object.fromEntries(['CB1', 'CB2', 'LB', 'RB', 'CDM', 'CAM', 'LW', 'ST', 'RW'].map((k) => [k, { label: '', subtitle: '', role: '', tickers: [] }])),
-      GK: { label: 'Keeper', subtitle: '', role: 'GK', tickers: ['CASH'] },
-      CM: { label: 'Midfield', subtitle: '', role: 'MID', tickers: WEIGHTS.map(([t]) => t) },
-    }, holdings: { CASH: PORTFOLIO.holdings.CASH } };
-    EDGE_QUOTES = {};
-    for (const [t, w] of WEIGHTS) {
-      const price = Number(w) / 100;
-      book.holdings[t] = { shares: 1, cost: price, lastPrice: price, prevClose: price, dayPct: 0, currency: 'USD',
-        lots: [{ date: dayAgo(30), shares: 1, cost: price }] };
-      EDGE_QUOTES[t] = { lastPrice: price, prevClose: price, currency: 'USD', dayPct: 0 };
-    }
-    loadOverride = book;
-    const { ctx, page } = await newPage(browser, vp, errors, tokenMisses, { blockServiceWorkers: true, beforeGoto: routeProxies });
-    await page.locator('.view-toggle .view-switch:visible').first().click();
-    const read = () => page.evaluate(() => {
-      const canvas = document.querySelector('.heatmap-canvas');
-      /** @type {Record<string, number[]>} */
-      const tiles = {};
-      for (const t of document.querySelectorAll('.hm-tile')) {
-        const el = /** @type {HTMLElement} */ (t);
-        tiles[(t.querySelector('.hm-ticker')?.textContent || '').trim()] = ['left', 'top', 'width', 'height'].map((k) => parseFloat(el.style[k]));
+    /** Opens the heat map on a book of these weights and reads its canvas and tile rects (left, top, width, height). */
+    const openMap = async (/** @type {(string | number)[][]} */ weights) => {
+      const book = { ...PORTFOLIO, positions: {
+        ...Object.fromEntries(['CB1', 'CB2', 'LB', 'RB', 'CDM', 'CAM', 'LW', 'ST', 'RW'].map((k) => [k, { label: '', subtitle: '', role: '', tickers: [] }])),
+        GK: { label: 'Keeper', subtitle: '', role: 'GK', tickers: ['CASH'] },
+        CM: { label: 'Midfield', subtitle: '', role: 'MID', tickers: weights.map(([t]) => t) },
+      }, holdings: { CASH: PORTFOLIO.holdings.CASH } };
+      EDGE_QUOTES = {};
+      for (const [t, w] of weights) {
+        const price = Number(w) / 100;
+        book.holdings[t] = { shares: 1, cost: price, lastPrice: price, prevClose: price, dayPct: 0, currency: 'USD',
+          lots: [{ date: dayAgo(30), shares: 1, cost: price }] };
+        EDGE_QUOTES[t] = { lastPrice: price, prevClose: price, currency: 'USD', dayPct: 0 };
       }
-      return { w: canvas?.clientWidth ?? 0, h: canvas?.clientHeight ?? 0, tiles };
-    });
-    const got = await readUntil(page, read, (x) => Object.keys(x?.tiles ?? {}).length === WEIGHTS.length, { steady: 150 });
+      loadOverride = book;
+      const { ctx, page } = await newPage(browser, vp, errors, tokenMisses, { blockServiceWorkers: true, beforeGoto: routeProxies });
+      await page.locator('.view-toggle .view-switch:visible').first().click();
+      const read = () => page.evaluate(() => {
+        const canvas = document.querySelector('.heatmap-canvas');
+        /** @type {Record<string, number[]>} */
+        const tiles = {};
+        for (const t of document.querySelectorAll('.hm-tile')) {
+          const el = /** @type {HTMLElement} */ (t);
+          tiles[(t.querySelector('.hm-ticker')?.textContent || '').trim()] = ['left', 'top', 'width', 'height'].map((k) => parseFloat(el.style[k]));
+        }
+        return { w: canvas?.clientWidth ?? 0, h: canvas?.clientHeight ?? 0, tiles };
+      });
+      const got = await readUntil(page, read, (x) => Object.keys(x?.tiles ?? {}).length === weights.length, { steady: 150 });
+      return { ctx, page, got };
+    };
+    const { ctx, page, got } = await openMap(WEIGHTS);
     const tiles = got?.tiles ?? {};
     const four = ['PLTR', 'RKLB', 'MSTR', 'ORCL'].map((t) => tiles[t]);
     const left = ['MSFT', 'NVDA', 'SPCX', 'AMZN'].map((t) => tiles[t]);
@@ -3022,6 +3027,36 @@ async function run() {
     }
     await shot(page, `heatmap-shape-${vp.name}`);
     await ctx.close();
+
+    // The bottom-left six (Davies, 2026-10-21): on the day of board/heatmap.test.js's PLAIN the split laid ORCL NBIS
+    // AAPL over META BE BTC-USD as a plain 2 × 3; he prefers ORCL over NBIS beside a tall AAPL, the row of three
+    // below, as another day drew it. Desktop must now draw that (ORCL 0, 444, 198 × 99; NBIS 0, 543, 198 × 97; AAPL
+    // 198, 444, 96 × 196), and the phone the stack it already had.
+    const PLAIN = [
+      ['NVDA', 33336], ['MSFT', 32989], ['SPCX', 31575], ['MSTR', 28733], ['AMZN', 27766], ['PLTR', 27524],
+      ['RKLB', 26796], ['GOOGL', 24856], ['ORCL', 19355], ['NBIS', 19061], ['AAPL', 18670], ['META', 17903],
+      ['BE', 16112], ['BTCU', 15771], ['BMNR', 13315], ['APLD', 13074], ['TSM', 12763], ['HOOD', 12532],
+      ['MU', 11243], ['NVTS', 7956], ['CRWV', 7576], ['SIVE', 5068], ['SAEM', 1286], ['VUAA', 1262],
+    ];
+    const six = await openMap(PLAIN);
+    const [o, nb, ap, me, be, bt] = ['ORCL', 'NBIS', 'AAPL', 'META', 'BE', 'BTCU'].map((t) => six.got?.tiles?.[t]);
+    const sixRead = [o, nb, ap, me, be, bt].map((r) => (r ? r.join(',') : 'missing')).join(' | ');
+    // ORCL over NBIS (one left, one width, NBIS just below), AAPL to their right from ORCL's top past NBIS's bottom,
+    // ORCL and NBIS each wider than tall; on desktop META BE BTC-USD in one row beneath (the phone stacks META over BE
+    // beside BTC-USD there, as it always has).
+    const stackedTop = !!(o && nb && ap && me && be && bt) && o[0] === nb[0] && o[2] === nb[2] && nb[1] > o[1]
+      && ap[0] > o[0] + o[2] && ap[1] === o[1] && ap[1] + ap[3] >= nb[1] + nb[3] - 1 && o[2] >= o[3] && nb[2] >= nb[3];
+    const rowBelow = !!(me && be && bt) && me[1] === be[1] && be[1] === bt[1] && me[1] > ap[1] + ap[3];
+    if (stackedTop && (rowBelow || vp.name === 'phone')) ok(S('six'), `ORCL over NBIS beside a tall AAPL, not a plain 2 × 3 (${sixRead})`);
+    else fail(S('six'), `the six read ${sixRead}`);
+    // Desktop: the rects the unit test pins. Phone: the split's own, unchanged by the rule.
+    const want = vp.name === 'desktop'
+      ? [[1.5, 445.5, 195, 96], [1.5, 544.5, 195, 94], [199.5, 445.5, 93, 193]]
+      : [[1.5, 335.5, 122, 71], [1.5, 409.5, 122, 70], [126.5, 335.5, 58, 144]];
+    if (JSON.stringify([o, nb, ap]) === JSON.stringify(want)) ok(S('six-rects'), `ORCL, NBIS, AAPL at ${JSON.stringify(want)}, as the unit test pins them`);
+    else fail(S('six-rects'), `ORCL, NBIS, AAPL ${JSON.stringify([o, nb, ap])}; wanted ${JSON.stringify(want)}`);
+    await shot(six.page, `heatmap-six-${vp.name}`);
+    await six.ctx.close();
     loadOverride = null;
     EDGE_QUOTES = {};
   }
