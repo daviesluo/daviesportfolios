@@ -68,6 +68,9 @@ const STORAGE_KEYS = {
   // and refreshes behind. A key no earlier version wrote, so it needs no
   // schema step: a missing row reads as nothing kept.
   agentsCache:   'dp.agentsCache', // { ts, data: { at, dash, charts: { 'strategy|symbol': { at, chart } } } }
+  // The analyst targets the Target price page last read (tables/targets_data.js), so its first open after a reload
+  // paints them at once. A key no earlier version wrote: no schema step.
+  targetsCache:  'dp.targetsCache', // { ts, data: { at, data: { slot, asOf, rows } } }
   // Timestamp (ms epoch) of the newest ops-error the admin has
   // acknowledged via the error-triage badge — the badge stays hidden
   // until a newer error is reported. Admin-only single scalar; no
@@ -399,6 +402,29 @@ export const Storage = {
       if (json.length > AGENTS_CACHE_MAX_CHARS) json = JSON.stringify({ ts: Date.now(), data: { ...copy, charts: {} } });
       if (json.length > AGENTS_CACHE_MAX_CHARS) return false;
       localStorage.setItem(STORAGE_KEYS.agentsCache, json);
+      return true;
+    } catch {
+      return false;
+    }
+  },
+  // The Target price page's kept copy (see STORAGE_KEYS.targetsCache), or null: a week at most, as the board's own.
+  /** @returns {{ at: number, data: any } | null} */
+  loadTargetsCache: () => {
+    const row = readJSON(STORAGE_KEYS.targetsCache, null);
+    if (!row || typeof row !== 'object') return null;
+    const ts = Number(row.ts);
+    if (!isFinite(ts) || Date.now() - ts > LAST_SHOWN_MAX_AGE_MS) return null;
+    const d = row.data;
+    if (!d || typeof d !== 'object' || !d.data || typeof d.data !== 'object' || !d.data.rows || typeof d.data.rows !== 'object') return null;
+    return { at: Number(d.at) || ts, data: d.data };
+  },
+  /** @param {{ at: number, data: any }} copy */
+  saveTargetsCache: (copy) => {
+    if (!copy || !copy.data || typeof copy.data !== 'object') return false;
+    try {
+      const json = JSON.stringify({ ts: Date.now(), data: copy });
+      if (json.length > AGENTS_CACHE_MAX_CHARS) return false;
+      localStorage.setItem(STORAGE_KEYS.targetsCache, json);
       return true;
     } catch {
       return false;

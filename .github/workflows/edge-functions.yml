@@ -171,7 +171,7 @@ jobs:
           # ig (2026-10-15) is cron- or admin-token-only like agents: its own bearer and token checks, so the flag too.
           # grokpm (0124) takes the outside Grok agent's journal: its bearer is GROKPM_LOG_TOKEN, not a Supabase JWT, so
           # the flag too; the function refuses everything without that secret.
-          PUBLIC_FNS="auth data trading212 ops-error overnight-record snapshot-record agents weather edge-watchdog ig grokpm"
+          PUBLIC_FNS="auth data trading212 ops-error overnight-record snapshot-record agents weather edge-watchdog ig grokpm targets"
           for fn in ${{ steps.changed.outputs.functions }}; do
             FLAGS="--project-ref $SUPABASE_PROJECT_REF"
             case " $PUBLIC_FNS " in

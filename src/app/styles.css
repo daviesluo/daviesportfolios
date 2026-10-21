@@ -582,6 +582,44 @@ body {
 .hl-sector-sub { color: var(--chalk-dim); font-size: 12px; }
 .hl-sector-member .hl-sym { padding-left: 22px; }
 
+/* Target price (☰ → Target price): the Holding list's table, one row a
+   holding beside its analyst targets. Numbers in tabular figures so the
+   columns line up digit for digit; the Symbol column stays frozen (the
+   .hl-table rule above) while the nine others scroll beneath it on a
+   phone. A fund's or bitcoin's targets carry a small tag under the
+   symbol saying where they come from; a holding with none reads dim. */
+/* Wider than the other lists on a desktop: ten columns, and the one the
+   page opens sorted on (Low vs price) is the ninth. */
+@media (min-width: 761px) {
+  .modal.size-lg:has(.tp-table) { width: min(1280px, calc(100vw - 48px)); }
+}
+.tp-meta { color: var(--chalk-dim); font-size: 12px; margin-top: 4px; min-height: 16px; }
+.tp-table td { white-space: nowrap; }
+.tp-cur { color: var(--chalk-dim); font-size: 10px; margin-left: 3px; letter-spacing: 0.02em; }
+.tp-table td, .tp-table th { font-variant-numeric: tabular-nums; }
+.tp-table .tp-sym { min-width: 96px; white-space: nowrap; }
+.tp-table .hl-ticker { font-size: 14px; }
+.tp-tag {
+  display: inline-block; margin-top: 3px; padding: 1px 6px; border-radius: 999px;
+  border: 1px solid rgba(244,239,227,0.16); color: var(--chalk-dim);
+  font-size: 10px; letter-spacing: 0.02em; line-height: 15px; cursor: help; white-space: nowrap;
+}
+.tp-table .tp-range { white-space: nowrap; }
+.tp-table .tp-word { color: var(--chalk-dim); opacity: 1; }
+.tp-table .tp-risks { min-width: 220px; max-width: 320px; white-space: normal; color: var(--chalk-dim); font-size: 12px; line-height: 1.4; }
+.tp-table .tp-th-static { cursor: default; }
+.tp-table .tp-th-static:hover { color: var(--chalk-dim); }
+.tp-table tr.tp-uncovered td:not(:first-child),
+.tp-table tr.tp-uncovered td:not(:first-child) .hl-strong { color: var(--chalk-dim); font-weight: 400; }
+.tp-foot { font-size: 11px; line-height: 1.5; margin: 12px 2px 0; max-width: 760px; }
+@media (max-width: 760px) {
+  .tp-table { font-size: 12px; }
+  .tp-table td { padding: 8px 8px; }
+  .tp-table .hl-th { padding: 8px 8px; }
+  .tp-table .tp-sym { min-width: 84px; }
+  .tp-table .tp-risks { min-width: 200px; }
+}
+
 /* ============= MAIN LAYOUT ============= */
 .main {
   flex: 1;

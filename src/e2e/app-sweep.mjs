@@ -88,7 +88,7 @@ const VIEWPORTS = [{ name: 'desktop', width: 1400, height: 1000 }, { name: 'phon
  * does. A part leaves the module's switches (`agentsMode`, `SP_BUMP`, `holdMs`, …) at rest when it ends, so it checks the
  * same thing whatever ran before it.
  */
-const PARTS = ['frame', 'recovery', 'perf-refresh', 'save-retry', 'perf-live-edge', 'reload', 'movers-load', 'banner-reload', 'unrealized', 'agents-reload', 'surfaces', 'quote-band', 'heatmap-shape', 'main', 'viewer'];
+const PARTS = ['frame', 'recovery', 'perf-refresh', 'save-retry', 'perf-live-edge', 'reload', 'movers-load', 'banner-reload', 'unrealized', 'agents-reload', 'surfaces', 'quote-band', 'heatmap-shape', 'target-price', 'main', 'viewer'];
 const PICKED = (process.env.SWEEP_PART || '').split(',').map((s) => s.trim()).filter(Boolean);
 for (const p of PICKED) if (!PARTS.includes(p.replace(/^-/, ''))) throw new Error(`SWEEP_PART names ${p}; the parts are ${PARTS.join(', ')}`);
 const part = (/** @type {string} */ name) => !PICKED.includes(`-${name}`) && (PICKED.every((p) => p.startsWith('-')) || PICKED.includes(name));
@@ -449,7 +449,24 @@ const RO_TOKEN = `${b64url(JSON.stringify({ role: 'ro', exp: NOW_MS + 3600_000 }
 // ---- run -----------------------------------------------------------
 
 /** Functions whose calls MUST carry the app token. */
-const TOKEN_REQUIRED = ['/prices', '/chart', '/fundamentals', '/data', '/trading212', '/agents', '/overnight-fetch'];
+const TOKEN_REQUIRED = ['/prices', '/chart', '/fundamentals', '/data', '/trading212', '/agents', '/overnight-fetch', '/targets'];
+
+/**
+ * The `targets` function's GET (the Target price page, 2026-10-21), as its job would have written it for this book at
+ * the close before the pinned clock (16:00 ET on 17 Sep). ACME: the board's 240 against a low of 230 is −4.2 %; NOVA:
+ * 132 against 120 is +10.0 %; VUAA.L, a fund, holdings-weighted in the pounds the board prices it in: 76 against 80 is
+ * −5.0 %; BRIT.L and the CN fund have none. So the page opens NOVA, ACME, VUAA, then the two without, in the board's order.
+ */
+const TARGETS_BODY = {
+  slot: '2026-09-17T20:00:00.000Z', asOf: '2026-09-17T20:00:30.000Z',
+  rows: {
+    ACME: { ticker: 'ACME', kind: 'consensus', currency: 'USD', refPrice: 240, mean: 260, low: 230, high: 300, rating: 1.8, analysts: 12,
+      targets: [{ firm: 'Firm A', target: 270, at: '2026-09-10T12:00:00.000Z' }, { firm: 'Firm B', target: 230, at: '2026-09-01T12:00:00.000Z' }] },
+    NOVA: { ticker: 'NOVA', kind: 'consensus', currency: 'USD', refPrice: 120, mean: 150, low: 132, high: 180, rating: 2.2, analysts: 8, targets: [] },
+    'VUAA.L': { ticker: 'VUAA.L', kind: 'holdings', currency: 'GBP', refPrice: 80, mean: 88, low: 76, high: 100, rating: null, analysts: 45, targets: [],
+      fresh: { low: 82, high: 95, count: 14 }, coverage: { weight: 0.39, names: 10, source: "VUAA.L's top holdings (Yahoo)" } },
+  },
+};
 
 /**
  * RW's paper test on Polymarket (`0053`, reference §4 item 36): a row of TESTING STRATEGIES since 2026-09-24, with a
@@ -1679,6 +1696,7 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
     }
     if (url.includes('/trading212')) return json({ source: 'orders', orders: T212_ORDERS, complete: true });
     if (url.includes('/fundamentals')) return json({});
+    if (url.includes('/functions/v1/targets')) return json(TARGETS_BODY);
     if (url.includes('/overnight-fetch')) return json({});
     if (url.includes('/ops-error') && url.includes('action=summary') && OPS_SUMMARY) {
       // The errors badge's poll, answered as the ops-error function would from what this page has reported.
@@ -3006,6 +3024,104 @@ async function run() {
     await ctx.close();
     loadOverride = null;
     EDGE_QUOTES = {};
+  }
+
+  // The Target price page (Davies, 2026-10-21): in the ☰ menu right after Sectors list; its targets read by the app's
+  // preload before anything opens, so the page shows its rows within about 120 ms of the click and never an empty or
+  // loading state; opened on low vs price, largest first, the holdings without targets last; a header click turns the
+  // order; the Symbol column stays put while the table scrolls sideways; the page itself never scrolls sideways.
+  for (const vp of viewports('target-price')) {
+    const S = (n) => `${vp.name}/target-price/${n}`;
+    const { ctx, page } = await newPage(browser, vp, errors, tokenMisses, {});
+    await page.waitForSelector('.scoreboard-cell-portfolio .sb-value-lg', { timeout: 20_000 }).catch(() => {});
+    const asked = () => /** @type {string[]} */ (/** @type {any} */ (page).__requested).filter((u) => u.includes('/functions/v1/targets')).length;
+    // The preload: asked after the first paint, before any click, and once.
+    const before = await readUntil(page, async () => asked(), (n) => Number(n) > 0, { ms: 10_000, steady: 300 });
+    if (before === 1) ok(S('preload'), 'the targets were asked for once, by the preload, before the page was opened');
+    else fail(S('preload'), `targets requested ${before} time(s) before the page opened`);
+    await openMenu(page);
+    const items = (await page.locator('.header-menu-item').allTextContents()).map((t) => t.trim());
+    if (items.indexOf('Target price') === items.indexOf('Sectors list') + 1 && items.includes('Target price')) ok(S('menu'), `menu ${JSON.stringify(items)}: Target price right after Sectors list`);
+    else fail(S('menu'), `menu ${JSON.stringify(items)}`);
+    // Click and time it in the page: from the click to the rows drawn with their figures. Every DOM change on the way is
+    // looked at: a frame or a table without figures would be the empty state the preload exists to avoid.
+    const open = await page.evaluate(() => new Promise((resolve) => {
+      const item = [...document.querySelectorAll('.header-menu-item')].find((b) => (b.textContent || '').trim() === 'Target price');
+      if (!item) { resolve({ ms: -1, empty: ['no menu item'] }); return; }
+      /** @type {string[]} */
+      const empty = [];
+      const look = () => {
+        const title = [...document.querySelectorAll('.modal .modal-title')].some((t) => (t.textContent || '').trim() === 'Target price');
+        if (!title) return false;
+        const rows = [...document.querySelectorAll('.tp-table tbody tr')];
+        const filled = rows.length > 0 && rows.some((r) => /%/.test(r.cells[8]?.textContent || ''));
+        if (!filled) empty.push(`rows ${rows.length}, meta "${(document.querySelector('.tp-meta')?.textContent || '').trim()}"`);
+        if (/Reading targets|could not be read/.test(document.querySelector('.tp-meta')?.textContent || '')) empty.push('loading text');
+        return filled;
+      };
+      const t0 = performance.now();
+      const mo = new MutationObserver(() => { look(); });
+      mo.observe(document.body, { childList: true, subtree: true, characterData: true });
+      /** @type {HTMLElement} */ (item).click();
+      const tick = () => {
+        if (look()) { mo.disconnect(); resolve({ ms: Math.round(performance.now() - t0), empty }); return; }
+        if (performance.now() - t0 > 5000) { mo.disconnect(); resolve({ ms: -1, empty }); return; }
+        requestAnimationFrame(tick);
+      };
+      tick();
+    }));
+    const o = /** @type {{ ms: number, empty: string[] }} */ (open);
+    if (o.ms >= 0 && o.ms <= 120 && o.empty.length === 0) ok(S('opens-drawn'), `rows with their figures ${o.ms} ms after the click, no empty or loading state on the way`);
+    else fail(S('opens-drawn'), `${o.ms} ms; on the way: ${JSON.stringify(o.empty.slice(0, 3))}`);
+    if (asked() === 1) ok(S('no-cold-fetch'), 'opening the page asked for nothing more');
+    else fail(S('no-cold-fetch'), `targets requested ${asked()} times`);
+    await atRest(page);
+    const read = () => page.evaluate(() => ({
+      syms: [...document.querySelectorAll('.tp-table tbody tr .hl-ticker')].map((e) => (e.textContent || '').trim()),
+      low: [...document.querySelectorAll('.tp-table tbody tr')].map((r) => (r.cells[8]?.textContent || '').trim()),
+      tag: [...document.querySelectorAll('.tp-table .tp-tag')].map((e) => (e.textContent || '').trim()),
+      updated: (document.querySelector('.tp-meta')?.textContent || '').trim(),
+    }));
+    const first = await read();
+    const want = ['NOVA', 'ACME', 'VUAA', 'BRIT', '017731'];
+    if (JSON.stringify(first.syms) === JSON.stringify(want) && JSON.stringify(first.low) === JSON.stringify(['+10.0%', '-4.2%', '-5.0%', '—', '—'])
+      && first.updated === 'Updated 16:00 ET' && JSON.stringify(first.tag) === JSON.stringify(['holdings-weighted · 39%'])) {
+      ok(S('default-order'), `low vs price, largest first: ${first.syms.join(' ')} (${first.low.join(' ')}); the fund tagged; "${first.updated}"`);
+    } else fail(S('default-order'), JSON.stringify(first));
+    await shot(page, `target-price-${vp.name}`);
+    // A click on the sorted header turns it round, the holdings without targets still last; another column sorts by itself.
+    await page.locator('.tp-table th.tp-col-lowVsPrice').click();
+    const asc = await readUntil(page, read, (v) => v?.syms[0] === 'VUAA');
+    await page.locator('.tp-table th.tp-col-ticker').click();
+    const bySym = await readUntil(page, read, (v) => v?.syms[0] === '017731');
+    if (JSON.stringify(asc?.syms) === JSON.stringify(['VUAA', 'ACME', 'NOVA', 'BRIT', '017731']) && JSON.stringify(bySym?.syms) === JSON.stringify(['017731', 'ACME', 'BRIT', 'NOVA', 'VUAA'])) {
+      ok(S('sort'), `low vs price turned round: ${asc?.syms.join(' ')}; by symbol: ${bySym?.syms.join(' ')}`);
+    } else fail(S('sort'), `turned ${JSON.stringify(asc?.syms)}, by symbol ${JSON.stringify(bySym?.syms)}`);
+    // The Symbol column frozen while the table scrolls sideways (a phone's table overflows; a desktop's may fit, and then
+    // the rule itself is read), and no sideways scroll for the page.
+    const sticky = await page.evaluate(() => {
+      const sc = /** @type {HTMLElement | null} */ (document.querySelector('.tp-scroll'));
+      const cell = /** @type {HTMLElement | null} */ (document.querySelector('.tp-table tbody tr td:first-child'));
+      const other = /** @type {HTMLElement | null} */ (document.querySelector('.tp-table tbody tr td:nth-child(3)'));
+      if (!sc || !cell || !other) return null;
+      const over = sc.scrollWidth - sc.clientWidth;
+      // From the start: a header clicked off the right edge has scrolled the table already.
+      sc.scrollLeft = 0;
+      const c0 = cell.getBoundingClientRect().left, o0 = other.getBoundingClientRect().left;
+      sc.scrollLeft = Math.min(160, over);
+      const c1 = cell.getBoundingClientRect().left, o1 = other.getBoundingClientRect().left;
+      const res = { over, cellMoved: Math.round(c1 - c0), otherMoved: Math.round(o1 - o0), position: getComputedStyle(cell).position,
+        pageOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth };
+      sc.scrollLeft = 0;
+      return res;
+    });
+    const stuck = !!sticky && sticky.position === 'sticky' && sticky.cellMoved === 0 && (sticky.over <= 0 || sticky.otherMoved < 0);
+    if (stuck && (vp.name !== 'phone' || sticky.over > 0)) ok(S('sticky'), sticky.over > 0 ? `table scrolled ${Math.min(160, sticky.over)} px: the other columns moved ${sticky.otherMoved} px, Symbol stayed` : 'the table fits; Symbol is position: sticky');
+    else fail(S('sticky'), JSON.stringify(sticky));
+    if (sticky && sticky.pageOverflow <= 0) ok(S('page-overflow'), 'the page does not scroll sideways');
+    else fail(S('page-overflow'), `page overflow ${sticky?.pageOverflow}`);
+    await closeBy(page, () => page.keyboard.press('Escape'));
+    await ctx.close();
   }
 
   for (const vp of viewports('main')) {
@@ -5250,7 +5366,7 @@ async function run() {
         await closeBy(page, () => page.keyboard.press('Escape'));
       } else fail(S('modal'), 'Holding list has no ticker to open');
       await closeBy(page, () => page.keyboard.press('Escape'));
-      for (const item of ['Sectors list', 'Transaction history', 'Agents (beta)']) {
+      for (const item of ['Sectors list', 'Target price', 'Transaction history', 'Agents (beta)']) {
         await openMenuItem(item, item);
         await phoneFills(item);
         await closeBy(page, () => page.keyboard.press('Escape'));
@@ -5280,7 +5396,7 @@ async function run() {
     } else fail(S('perf'), `badge ${badge}, Investment tabs ${invTabs}, title "${title}", legend ${JSON.stringify(legend)}`);
     await openMenu(page);
     const items = (await page.locator('.header-menu-item').allTextContents()).map((t) => t.trim());
-    if (JSON.stringify(items) === JSON.stringify(['Holding list', 'Sectors list', 'Agents (beta)'])) ok(S('menu'), `menu ${JSON.stringify(items)}: no Transaction history`);
+    if (JSON.stringify(items) === JSON.stringify(['Holding list', 'Sectors list', 'Target price', 'Agents (beta)'])) ok(S('menu'), `menu ${JSON.stringify(items)}: no Transaction history`);
     else fail(S('menu'), `menu ${JSON.stringify(items)}`);
     await page.keyboard.press('Escape');
     // The desktop foot's shortcuts: a viewer has no edit mode, so no E (Davies, 2026-10-07).

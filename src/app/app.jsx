@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { fmtMoney, fmtPct, fmtPrice, pctColor } from './formatters.js';
 import { fxToUSD } from '../portfolio/fx.js';
 import { lazyPage } from './chunk_recovery.js';
+import { prefetchTargets } from '../tables/targets_data.js';
 import { SurfaceBoundary, FailedPanel } from './surface_boundary.jsx';
 import { freezeDepositFxRates } from '../charts/deposit_series.js';
 import { createPortfolioEditHandlers } from '../portfolio/portfolio_edits.js';
@@ -44,6 +45,7 @@ import { Modal, useConfirm } from '../board/modals.jsx';
 const TickerChartModal = lazyPage(() => import('../charts/ticker_chart_modal.jsx'), (m) => ({ default: m.TickerChartModal }));
 const HoldingsListModal = lazyPage(() => import('../tables/holdings_list.jsx'), (m) => ({ default: m.HoldingsListModal }));
 const SectorsListModal = lazyPage(() => import('../tables/sectors_list.jsx'), (m) => ({ default: m.SectorsListModal }));
+const TargetPriceModal = lazyPage(() => import('../tables/target_price.jsx'), (m) => ({ default: m.TargetPriceModal }));
 const TransactionHistoryModal = lazyPage(() => import('../tables/transaction_history.jsx'), (m) => ({ default: m.TransactionHistoryModal }));
 const AgentsModal = lazyPage(() => import('../agents/agents.jsx'), (m) => ({ default: m.AgentsModal }));
 // A position's drill-in, and the editors (a holding's lots, adding one, cash on hand): always a click away (batch 5's
@@ -122,9 +124,11 @@ function prefetchModalChunks() {
   // Through each page's own `preload`, so the page knows its code is here and its first open renders it at once
   // instead of suspending into its frame (see lazyPage). Best-effort: a chunk that fails here is retried, healed and
   // reported by `lazyPage` at the click, so a failure in the warm-up is not a second report.
-  for (const page of [TickerChartModal, HoldingsListModal, SectorsListModal, TransactionHistoryModal, AgentsModal, PositionDrillModal, EditTickerModal, AddTickerModal, CashModal]) page.preload();
+  for (const page of [TickerChartModal, HoldingsListModal, SectorsListModal, TargetPriceModal, TransactionHistoryModal, AgentsModal, PositionDrillModal, EditTickerModal, AddTickerModal, CashModal]) page.preload();
   // The Agents page's data too, so it opens on a drawn page rather than a spinner.
   import('../agents/agents.js').then((m) => m.prefetchAgentsDashboard()).catch(() => {});
+  // And the Target price page's analyst targets: one request for every holding, kept for hours (tables/targets_data.js).
+  prefetchTargets().catch(() => {});
 }
 import { ServiceWorkerBanner } from './sw-banner.jsx';
 import { reportError } from './ops_error.js';
@@ -504,6 +508,7 @@ function Board({ isReadOnly }) {
   const [viewingTicker, setViewingTicker] = useState(/** @type {string | null} */ (null));
   const [showHoldingsList, setShowHoldingsList] = useState(false);
   const [showSectorsList, setShowSectorsList] = useState(false);
+  const [showTargetPrice, setShowTargetPrice] = useState(false);
   const [showTransactionHistory, setShowTransactionHistory] = useState(false);
   const [showAgents, setShowAgents] = useState(false);
   const [addingToPos, setAddingToPos] = useState(/** @type {string | null} */ (null));
@@ -591,7 +596,7 @@ function Board({ isReadOnly }) {
     const anyModalOpen = () =>
       drillPos != null || editingTicker != null || viewingTicker != null
       || addingToPos != null || editingCash || showHoldingsList
-      || showSectorsList || showTransactionHistory || showAgents;
+      || showSectorsList || showTargetPrice || showTransactionHistory || showAgents;
     const onKey = (e) => {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       if (anyModalOpen()) return;
@@ -613,7 +618,7 @@ function Board({ isReadOnly }) {
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [isReadOnly, drillPos, editingTicker, viewingTicker, addingToPos, editingCash, showHoldingsList, showSectorsList, showTransactionHistory, showAgents]);
+  }, [isReadOnly, drillPos, editingTicker, viewingTicker, addingToPos, editingCash, showHoldingsList, showSectorsList, showTargetPrice, showTransactionHistory, showAgents]);
 
   // True once the REAL loadPortfolioRemote() reply has landed (demo or
   // not) — as opposed to `portfolio` merely being non-null because the
@@ -1655,6 +1660,7 @@ function Board({ isReadOnly }) {
         onToggleHideValues={toggleHideValues}
         onOpenHoldingsList={() => setShowHoldingsList(true)}
         onOpenSectorsList={() => setShowSectorsList(true)}
+        onOpenTargetPrice={() => setShowTargetPrice(true)}
         onOpenTransactionHistory={() => { if (!isReadOnly) setShowTransactionHistory(true); }}
         onOpenAgents={() => setShowAgents(true)}
       />
@@ -1838,6 +1844,18 @@ function Board({ isReadOnly }) {
               fxPending={fxPending}
               onTickerClick={(t) => setViewingTicker(t)}
               onClose={() => setShowSectorsList(false)}
+            />
+          </React.Suspense>
+        </ModalBoundary>
+      )}
+
+      {showTargetPrice && (
+        <ModalBoundary name="target-price" title="Target price" onClose={() => setShowTargetPrice(false)}>
+          <React.Suspense fallback={<ModalFrame title="Target price" onClose={() => setShowTargetPrice(false)} />}>
+            <TargetPriceModal
+              metrics={metrics}
+              onTickerClick={(t) => setViewingTicker(t)}
+              onClose={() => setShowTargetPrice(false)}
             />
           </React.Suspense>
         </ModalBoundary>

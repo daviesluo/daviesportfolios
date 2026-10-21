@@ -400,9 +400,10 @@ How the less obvious parts work, and why they are built the way they are.
   `html2canvas-pro`); the heavy one, `html2canvas-pro` (chart-modal
   screenshots), is `import()`-ed lazily so it never lands in the main
   bundle.
-- **Backend** — Supabase (Postgres + Edge Functions on Deno). Fifteen
+- **Backend** — Supabase (Postgres + Edge Functions on Deno). Seventeen
   functions: `auth`, `data`, `prices`, `chart`, `fundamentals`,
-  `ops-error`, `trading212`, `overnight-fetch`, `agents`, `weather` and `ig`;
+  `ops-error`, `trading212`, `overnight-fetch`, `agents`, `weather`, `ig`,
+  `grokpm` and `targets` (the Target price page's analyst targets);
   two recorders that `pg_cron` calls, `snapshot-record` (every board price,
   every five minutes) and `overnight-record` (Trading 212's overnight
   quotes); `edge-watchdog`, which runs a call of the minute job again when
@@ -589,12 +590,15 @@ Startup, the root component, sign-in, what the browser keeps, error reports, and
 | `board/position_drill.jsx` | The sector drill-down and its player cards, a chunk loaded after the first paint. |
 | `board/edit_modals.jsx` | The lot and sale editor and the add-ticker and cash dialogs, a chunk loaded after the first paint. |
 
-#### `tables/` — the three tables and their export
+#### `tables/` — the tables and their export
 
 | File | What it does |
 |---|---|
 | `tables/holdings_list.jsx` | The sortable holding list. |
 | `tables/sectors_list.jsx` | The same list grouped by sector. |
+| `tables/target_price.jsx`, `tables/target_price.js` | The Target price page: each holding beside its analyst targets (mean, rating, range, analysts, the last 30 days' range, the lowest target against the price), sortable; the rows and their math are in the `.js`. |
+| `tables/targets_data.js` | The Target price page's data: one GET of the `targets` function in the app's after-paint preload, kept in memory and in this browser for two hours, so the page opens drawn. |
+| `tables/target_risks.js` | The Target price page's Key risks notes, kept by hand, dated ones dropping out after their day. |
 | `tables/transaction_history.jsx` | Every buy, sale and dividend, closed positions included. |
 | `tables/table_export.jsx`, `tables/holdings_export.js` | Copy and Excel export for the three tables, formatted exactly as the tables show them. |
 
@@ -624,6 +628,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `weather` | The keyed weather feeds behind Polymarket's temperature markets, read-only: its probe checks the Météo-France key (`meteofrance.ts`) and the FAA's SWIM subscription (`faa_swim.ts`, through Solace's client in `solace.ts` and the Deno TLS shim in `solace_tls.ts`); `probe.ts` handles the request. Run by the scheduler's bearer only. |
 | `edge-watchdog` | A row of the one-minute job: 13 s into its minute it runs again, once, each due call that wrote no beat because the platform never started its worker, and records what each retry answered. Run by the scheduler's bearer only. |
 | `ig` | IG's demo API for the FXW / WKND verification, read-only and demo-only: `facts` reads an account's products and the epic for each role (`epics.ts`), `history` pulls the frozen hourly windows inside the weekly allowance, `quotes` records the weekend windows' quotes (`windows.ts`); `client.ts` refuses every call but login, the account switch and a fixed list of GETs on the demo host, before it is sent; `actions.ts` runs the three. Run by the scheduler's bearer or an admin token. |
+| `targets` | The Target price page's analyst targets: a row of the one-minute job that runs only at its slots (04:00, 09:30 and the close ET on a US trading day, 09:30 ET on any other; `schedule.ts`) and writes each holding's snapshot to `analyst_targets` (`run.ts`): a stock's Yahoo consensus, a fund's holdings-weighted target, bitcoin's hand-kept bank targets (`strategists.ts`), worked out in `compute.ts`; its GET serves them to the page with the app token. Deployed without the gateway's JWT check. |
 | `monitor` | The monitor Worker's half inside Supabase, called every minute by the Worker with `MONITOR_SECRET`: PR5's dead-man switch (`deadman.ts`), the minute loop's read-only health readings and the database's size beside them (`health.ts`), and the Worker's alerts into the errors box. Imports nothing of `agents`. |
 | `grokpm` | GROKPM's server: the outside Grok agent's journal (`ingest.ts`) and, since its Deviation D2, its only way to trade (`exec.ts`): reads of its own account and of a market, and orders and cancels checked against its frozen rules and its own book, then signed and sent from eu-west-1 on the project's Polymarket account (a dry-run until armed); bearer `GROKPM_LOG_TOKEN`, the minute's read-back of its orders by the scheduler's; and the hourly redemption of the shared account's resolved positions through Polymarket's gasless relayer (`redeem.ts`, its D6; a dry run until `redeem_enabled`). Deployed without the gateway's JWT check. |
 
@@ -839,6 +844,7 @@ before touching migration state.
 | `0131_quote_live_take_weekend.sql` | Gives the live account two switches, `take_mode` and `weekend_mode`, each 'off' by default, 'shadow' (record what it would send) or 'live', the shadow events' kinds, and the weekend replica's one-row table. |
 | `0132_cb_print_minutes.sql` | Coinbase's prints kept 40 days as `cb_print_minutes` (summed by second, price and aggressor side, a row per book and minute), rebuilt from `cb_trades` by `cb_print_minutes_build` every 10 minutes over the last six hours and backfilled from what `cb_trades` held; RLS on, no grant. |
 | `0133_delete_momentum_1d.sql` | Deletes the retired `momentum-1d` paper row with its orders, decisions, observations and maker probes, ending its wind-down; its rulebook and backtests stay. |
+| `0134_analyst_targets.sql` | The Target price page's `analyst_targets` (a snapshot per holding) and `analyst_targets_state` (the last slot done, a run's claim, a day's Alpha Vantage cache), RLS on, no grant; and `targets` as a call of the one-minute job. |
 | `0096_pm_rw_x_tb1_arms.sql` | Lets the variants' day tables, RW's and RW-C's, take TB1's two arms on x1 (tb1-skip, tb1-back). |
 | `0086_quote_live_deadman.sql` | Adds the kind `deadman` to `agent_quote_live_events`, for the row the monitor's dead-man switch writes when it cancels PR5's resting orders. |
 | `0087_quote_twins.sql` | The realistic twins' tables (each the live executor's four, a replica's and a simulated account's), their config rows and leases, and the one call that runs them. |
@@ -1164,7 +1170,7 @@ A copy-pasteable shape of the app-level vars lives at
 | `APP_ADMIN_PWD` | `auth` | Your admin password. (The function reads this exact name — `APP_ADMIN_PASSWORD` leaves auth unconfigured.) |
 | `APP_RO_PWD` | `auth` | Your read-only / shareable password. |
 | `FINNHUB_API_KEY` | `fundamentals` | Free key from finnhub.io (60 calls / min). Source of `pe3yAvg` / `ps3yAvg` (3-year averages — Yahoo doesn't expose historical-annual ratios on the free tier) and the whole-row fallback for current pe/eps/ps when Yahoo's crumb handshake fails or it's rate-limited. Without it the P/E / P/S 1Y buttons still work for tickers Yahoo covers, but the dashed 3Y AVG reference line is hidden and a Yahoo outage drops the chart entirely. *(There used to be an `FMP_API_KEY` here — FMP retired its `/v3/` endpoints and paywalled the `/stable/` replacements in 2026, so the FMP layer was removed and Yahoo `quoteSummary` + a crumb handshake is now the primary source. No FMP key is needed.)* |
-| `ALPHAVANTAGE_API_KEY` | `fundamentals` | Free key from alphavantage.co (25 calls / day). Powers index P/E for `^GSPC` / `^NDX` / `^RUT` / `^SOX` via their ETF proxies, with a 24 h server-side cache so the daily quota is never strained. Without it the function falls back to hardcoded constants — chart still draws but the printed values stop auto-refreshing. |
+| `ALPHAVANTAGE_API_KEY` | `fundamentals`, `targets` | Free key from alphavantage.co (25 calls / day). Powers index P/E for `^GSPC` / `^NDX` / `^RUT` / `^SOX` via their ETF proxies, with a 24 h server-side cache so the daily quota is never strained; `targets` asks it once a day at most for SPY's holdings (VUAA's weighted target), and without it uses Yahoo's top ten. Without it the function falls back to hardcoded constants — chart still draws but the printed values stop auto-refreshing. |
 | `T212_API_KEY` | `trading212`, `overnight-record`, `snapshot-record` | Optional. API key from Trading 212 → Settings → Account & Personal → API Settings. Powers every position, the executed fills and the overnight quotes — without it `trading212` returns `source: 'disabled'` + empty holdings and the client keeps whatever the user last typed into EditTickerModal. |
 | `T212_API_SECRET` | `trading212`, `overnight-record`, `snapshot-record` | Optional, for T212's two-key accounts. When set, the functions go straight to `Basic base64(key:secret)` and keep the raw key only as a 401 fallback; leave unset for a single-key account. |
 | `T212_ISA_API_KEY` | `trading212` | Optional. API key for a SECOND T212 account (the ISA). T212 scopes its public API per account, so ISA holdings + their live overnight prices are only reachable with this key. When set, the function fetches the ISA portfolio in parallel and merges it with the invest account (prices union'd; allow-list shares/cost summed if held in both). Without it, only the invest account (`T212_API_KEY`) is synced. |

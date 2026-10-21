@@ -536,6 +536,10 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      Grok reads it every wake, answers Claude's requests there and pushes only to that branch. **Every session that touches
      GROKPM reads it first** (`git fetch origin grokpm-ledger && git show origin/grokpm-ledger:GROKPM_LEDGER.md`), answers
      "Grok → Claude", and keeps it under 10 KB. A daily check (trigger `trig_0165DPcrxXo6NhdDZdjDsmZ8`, 23:45 London) reads it and the record.
+16. **Target price page (Davies, 2026-10-21; `targets` function, `0134`, `src/tables/target_price*`).** After the deploy and
+   0134: one `analyst_targets` row a holding within ~16 min (the call waits 15 min, then runs the newest slot owed). Bitcoin's
+   targets are a hand table **as of 2026-10-21** (`targets/strategists.ts`): a session refreshes it when a bank publishes a new
+   one. Questions to Davies in the hand-back (risks editable in the UI, SPCX note's end date, BTC's mixed horizons, fund coverage).
 ## Machine and platform setup
 
 A rebuilt container loses every line below. Run them before working.
@@ -659,6 +663,12 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20", and 2026-10-18 20:19 → 21:12 UTC under "LEDGER.md, archived 2026-10-21"; each oldest first.
 
+### [2026-10-21 19:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Target price page built** (sub-agent; not pushed): ☰ → after Sectors list; weight = the Holding list's Exposure, the
+  board's price, Yahoo consensus per stock, VUAA/SAEM holdings-weighted (coverage shown), BTC from a sourced hand table;
+  low vs price default sort, nulls last. Data from `targets` (job at 04:00 / 09:30 / close ET on trading days, 09:30 ET
+  otherwise; `0134`, RLS on, no grant) through the app's preload (2 h TTL). Pins: Deno 23, vitest, sweep part `target-price`.
+
 ### [2026-10-21 19:14 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **PR5's four-week review** (sub-agent, item 4; `reviews/2026-10-21-pr5-paper-test-review.md`, `backtests/pr5_review/`,
   not blind): conditions 1–4 pass (fills +2.43 %, P&L +3.61 %; $17.14 v null p95 $2.28; $0.61 a day; 98.2 % accepted),
@@ -672,7 +682,6 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   `pm_prog.ts` (+ `pmprog` route) and their tests; the page's RW, variant, mini/mid-pool and paper-layer rows and pages.
   Kept: engines and replays (live-prep's live path and committed studies import them), frozen executors, rulebooks,
   disabled paper routes pinned by migration tests. Vitest 1,533 → 1,498 tests, Deno 1,381 → 1,342. Not pushed.
-
 
 ### [2026-10-20 18:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **GROKPM Deviation D7 recorded** (Davies 10-20: "同意"): §9 of the prereg gains D7, shadow forecasts journalled on `no_action`

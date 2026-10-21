@@ -181,7 +181,7 @@ function usdToCcyRate(ccy, marketData) {
 /** What a money cell of the scoreboard shows in a currency whose rate has not landed. */
 const CCY_PENDING = '—';
 
-function Header({ metrics, marketData, marketDataReady, costsPending = false, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended, viewMode, onToggleView, hideValues, onToggleHideValues, onOpenHoldingsList, onOpenSectorsList, onOpenTransactionHistory, onOpenAgents }) {
+function Header({ metrics, marketData, marketDataReady, costsPending = false, source, lastUpdated, isRefreshing, onRefresh, editMode, setEditMode, isReadOnly, extendedHours, onToggleExtended, viewMode, onToggleView, hideValues, onToggleHideValues, onOpenHoldingsList, onOpenSectorsList, onOpenTargetPrice = () => {}, onOpenTransactionHistory, onOpenAgents }) {
   // Currency cycle for the scoreboard's PORTFOLIO number. Ephemeral
   // by design — every cold load starts on USD per the user's spec.
   // The button itself renders on every breakpoint; the
@@ -399,20 +399,21 @@ function Header({ metrics, marketData, marketDataReady, costsPending = false, so
             {editMode ? "✓ EDIT MODE" : "EDIT"}
           </button>
         )}
-        <HeaderMenu isReadOnly={isReadOnly} onOpenHoldingsList={onOpenHoldingsList} onOpenSectorsList={onOpenSectorsList} onOpenTransactionHistory={onOpenTransactionHistory} onOpenAgents={onOpenAgents} />
+        <HeaderMenu isReadOnly={isReadOnly} onOpenHoldingsList={onOpenHoldingsList} onOpenSectorsList={onOpenSectorsList} onOpenTargetPrice={onOpenTargetPrice} onOpenTransactionHistory={onOpenTransactionHistory} onOpenAgents={onOpenAgents} />
       </div>
     </header>
   );
 }
 
 // ☰ overflow menu to the right of EDIT. Click to toggle a dropdown;
-// click-away / Escape closes it. Items: "Holding list", "Sectors list" +
-// "Transaction history", then "Agents" (the crypto strategies page).
+// click-away / Escape closes it. Items: "Holding list", "Sectors list",
+// "Target price" (analyst targets per holding) + "Transaction history",
+// then "Agents" (the crypto strategies page).
 // Available in both view + edit mode, read-only included (every page
 // behind the menu is view-only) — except Transaction history, which a
 // read-only viewer does not get: every buy and sell with its date and
 // price is the owner's, and the viewer password is shared publicly (2026-09-23).
-function HeaderMenu({ isReadOnly = false, onOpenHoldingsList, onOpenSectorsList, onOpenTransactionHistory, onOpenAgents }) {
+function HeaderMenu({ isReadOnly = false, onOpenHoldingsList, onOpenSectorsList, onOpenTargetPrice, onOpenTransactionHistory, onOpenAgents }) {
   const [open, setOpen] = React.useState(false);
   const ref = React.useRef(/** @type {HTMLDivElement | null} */ (null));
   React.useEffect(() => {
@@ -447,6 +448,11 @@ function HeaderMenu({ isReadOnly = false, onOpenHoldingsList, onOpenSectorsList,
             role="menuitem"
             onClick={() => { setOpen(false); onOpenSectorsList && onOpenSectorsList(); }}
           >Sectors list</button>
+          <button
+            className="header-menu-item"
+            role="menuitem"
+            onClick={() => { setOpen(false); onOpenTargetPrice && onOpenTargetPrice(); }}
+          >Target price</button>
           {!isReadOnly && (
             <button
               className="header-menu-item"

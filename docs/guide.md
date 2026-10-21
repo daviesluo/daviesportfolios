@@ -72,8 +72,8 @@ theirs.
   time in this browser: the same prices, totals and 24H chart. The new
   prices replace them as they arrive, a second or two later, so the only
   numbers that change are the ones that actually moved.
-- **☰ menu.** The holding list, the sectors list, the transaction
-  history and the Agents page.
+- **☰ menu.** The holding list, the sectors list, the target price
+  page, the transaction history and the Agents page.
 
 ## Tactics board
 
@@ -96,7 +96,7 @@ One tile per holding (cash excluded), sized by its value in dollars and
 coloured by today's move: green up, red down, deeper for a bigger move.
 Tap a tile to open its chart.
 
-## Holding list, sectors list and transaction history
+## Holding list, sectors list, target price and transaction history
 
 - **Holding list.** Every holding in a sortable table: symbol and name,
   exposure, cost basis, market value, the day's change and the
@@ -106,6 +106,25 @@ Tap a tile to open its chart.
 - **Sectors list.** The same table grouped by sector, each group headed
   by its position and name (`ST · Neocloud`) and its totals. Sorting
   orders the sectors and the holdings inside them.
+- **Target price.** Every holding beside what analysts expect of it: its
+  weight in the book (the Holding list's exposure), the price on the
+  board, the average target with the upside from the price, the average
+  rating (1 Strong Buy to 5 Sell), the lowest and highest target, how
+  many analysts, the range of the targets set in the last 30 days with
+  how many there were, the lowest target against the price, and a short
+  note of key risks. It opens sorted on the lowest target against the
+  price, largest first; tap any heading but Key risks to sort, again to
+  turn it round, and a holding without targets always sits last with
+  `—`. Stocks show the analysts' consensus from Yahoo Finance. A fund
+  (VUAA, SAEM) has no consensus of its own, so it shows its holdings'
+  targets weighted by their share of the fund, tagged
+  *holdings-weighted* with the share of the fund they cover (hover the
+  tag for the detail). Bitcoin shows banks' published targets kept by
+  hand, tagged *strategist targets* (hover for each firm, date and
+  horizon). The targets refresh by themselves at 04:00, 09:30 and the
+  close (New York time) on trading days and at 09:30 on other days;
+  "Updated" under the title says when. The page opens with its figures
+  already there, read when the site loads.
 - **Transaction history** (edit password only). Every buy, sale and
   dividend across every holding, newest first, closed positions
   included, with the total realised gain in dollars at the top (`—` for

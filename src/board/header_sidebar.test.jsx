@@ -67,6 +67,7 @@ function renderHeader(overrides = {}) {
     onToggleHideValues: vi.fn(),
     onOpenHoldingsList: vi.fn(),
     onOpenSectorsList: vi.fn(),
+    onOpenTargetPrice: vi.fn(),
     onOpenTransactionHistory: vi.fn(),
     onOpenAgents: vi.fn(),
     ...overrides,
@@ -207,9 +208,20 @@ describe('Header ☰ menu', () => {
     renderHeader({ onOpenSectorsList });
     await user.click(screen.getByRole('button', { name: /Menu/i }));
     const items = screen.getAllByRole('menuitem').map(b => b.textContent);
-    expect(items).toEqual(['Holding list', 'Sectors list', 'Transaction history', 'Agents (beta)']);
+    expect(items).toEqual(['Holding list', 'Sectors list', 'Target price', 'Transaction history', 'Agents (beta)']);
     await user.click(screen.getByRole('menuitem', { name: 'Sectors list' }));
     expect(onOpenSectorsList).toHaveBeenCalledTimes(1);
+  });
+
+  it('lists Target price right after Sectors list, and fires its callback (Davies, 2026-10-21)', async () => {
+    const user = userEvent.setup();
+    const onOpenTargetPrice = vi.fn();
+    renderHeader({ onOpenTargetPrice });
+    await user.click(screen.getByRole('button', { name: /Menu/i }));
+    const items = screen.getAllByRole('menuitem').map(b => b.textContent);
+    expect(items.indexOf('Target price')).toBe(items.indexOf('Sectors list') + 1);
+    await user.click(screen.getByRole('menuitem', { name: 'Target price' }));
+    expect(onOpenTargetPrice).toHaveBeenCalledTimes(1);
   });
 
   it('leaves Transaction history out for a read-only viewer', async () => {
@@ -219,7 +231,7 @@ describe('Header ☰ menu', () => {
     renderHeader({ isReadOnly: true });
     await user.click(screen.getByRole('button', { name: /Menu/i }));
     const items = screen.getAllByRole('menuitem').map(b => b.textContent);
-    expect(items).toEqual(['Holding list', 'Sectors list', 'Agents (beta)']);
+    expect(items).toEqual(['Holding list', 'Sectors list', 'Target price', 'Agents (beta)']);
   });
 });
 

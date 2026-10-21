@@ -1079,6 +1079,32 @@ describe('pg_cron jobs', () => {
     expect(httpJobs(jobsAfter).map(([n]) => n)).toEqual(['edge-calls-every-minute']);
   });
 
+  // The "Target price" page's analyst targets (Davies, 2026-10-21): written by a job, not fetched by the browser.
+  it("adds the analyst-target job as one call a minute (0134) that runs only when a slot is due, its beat first, every other row as it was, no job of its own", () => {
+    const T = FILES.find((f) => /^0134_analyst_targets\.sql$/.test(f)) ?? '';
+    expect(T).not.toBe('');
+    const before = replayList(sqlsOf(FILES.filter((f) => f < T))), after = replayList(sqlsOf(FILES.filter((f) => f <= T)));
+    expect(after.slice(0, before.length)).toEqual(before);
+    const shape = ({ path: p, timeout, every, lastHour, enabled, retry }) => ({ path: p, timeout, every, lastHour, enabled, retry });
+    // `retry` true: a second run in its minute finds the slot claimed or done and reads nothing (targets/run.test.ts).
+    // 55 s, under the minute (0099); the run itself starts no request after 40 s.
+    expect(after.slice(before.length).map(shape)).toEqual([
+      { path: 'targets', timeout: 55000, every: 1, lastHour: 23, enabled: true, retry: true },
+    ]);
+    expect(after.at(-1).activeFrom).toBe('written + 15 minutes');
+    expect(beatKeyOfPath(after.at(-1).path)).toBe('targets');
+    const src = fs.readFileSync(path.join(ROOT, 'supabase/functions/targets/index.ts'), 'utf8');
+    expect(src).toContain('await deps.beat(beatKeyOfRequest("targets", req.url))');
+    const sql = fs.readFileSync(path.join(DIR, T), 'utf8').replace(/--[^\n]*/g, '');
+    // Row level security on both tables, and no grant or policy for anyone (0082).
+    expect(sql).toMatch(/alter table public\.analyst_targets\s+enable row level security;/);
+    expect(sql).toMatch(/alter table public\.analyst_targets_state\s+enable row level security;/);
+    expect(sql).not.toMatch(/\bgrant\b|\bcreate policy\b/i);
+    const jobsBefore = cronJobs(FILES.filter((f) => f < T)), jobsAfter = cronJobs(FILES.filter((f) => f <= T));
+    expect([...jobsAfter.keys()].filter((n) => !jobsBefore.has(n))).toEqual([]);
+    expect(httpJobs(jobsAfter).map(([n]) => n)).toEqual(['edge-calls-every-minute']);
+  });
+
   it("never cancels a migrations run in flight: a newer push's run waits for it (review D1)", () => {
     const yml = fs.readFileSync(path.join(ROOT, '.github/workflows/migrations.yml'), 'utf8');
     expect(yml).toMatch(/^concurrency:\n {2}group: \$\{\{ github\.workflow \}\}-\$\{\{ github\.ref \}\}\n {2}cancel-in-progress: false$/m);
