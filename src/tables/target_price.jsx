@@ -6,7 +6,7 @@
 import React from 'react';
 import { Modal } from '../board/modals.jsx';
 import { fmtPct, pctColor } from '../app/formatters.js';
-import { buildTargetRows, DEFAULT_SORT, firstSortDir, fmtMoneyIn, fmtRange, kindTag, sortTargetRows, strategistTitle, TARGET_COLUMNS, updatedLabel } from './target_price.js';
+import { buildTargetRows, DEFAULT_SORT, firstSortDir, fmtMoneyIn, fmtRange, kindTag, pctColumn, sortTargetRows, strategistTitle, TARGET_COLUMNS, updatedLabel } from './target_price.js';
 import { fetchTargets, onTargets, readTargetsCache, targetsFresh } from './targets_data.js';
 
 const DASH = '—';
@@ -54,6 +54,8 @@ function TargetPriceModal({ metrics, onTickerClick, onClose }) {
   const nowMs = Date.now();
   const rows = React.useMemo(() => buildTargetRows(metrics, copy?.data, nowMs), [metrics, copy]); // eslint-disable-line react-hooks/exhaustive-deps
   const sorted = React.useMemo(() => sortTargetRows(rows, sort.key, sort.dir), [rows, sort]);
+  // The last % column: "Fresh avg vs price" while sorted by Fresh range, else "Avg vs price".
+  const pct = pctColumn(sort.key);
   const updated = updatedLabel(copy?.data?.asOf, nowMs);
 
   /** @param {typeof TARGET_COLUMNS[number]} col */
@@ -70,7 +72,7 @@ function TargetPriceModal({ metrics, onTickerClick, onClose }) {
           <h2 className="modal-title mono">Target price</h2>
           <div className="tp-meta mono">
             {updated ? (<><span className="tp-updated" title="When the scheduled job last read the targets, ratings, ranges and analysts">{updated}</span>
-              <span className="tp-live"> · Weight, Price and Avg vs price live</span></>)
+              <span className="tp-live"> · Weight and Price live</span></>)
               : state === 'failed' ? <span>Targets could not be read</span>
               : state === 'reading' ? <span>Reading targets…</span> : null}
           </div>
@@ -97,8 +99,8 @@ function TargetPriceModal({ metrics, onTickerClick, onClose }) {
                       tabIndex={sortable ? 0 : undefined}
                       aria-sort={on ? (sort.dir === 'asc' ? 'ascending' : 'descending') : undefined}
                       onKeyDown={sortable ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onHeader(col); } } : undefined}
-                      title={col.title}
-                    >{col.label}{on ? (sort.dir === 'asc' ? ' ▲' : ' ▼') : ''}</th>
+                      title={col.key === 'avgVsPrice' ? pct.title : col.title}
+                    >{col.key === 'avgVsPrice' ? pct.label : col.label}{on ? (sort.dir === 'asc' ? ' ▲' : ' ▼') : ''}</th>
                   );
                 })}
               </tr>
@@ -131,8 +133,8 @@ function TargetPriceModal({ metrics, onTickerClick, onClose }) {
                       : r.kind === 'holdings' ? <span className="dim" title="The fund's holdings have no dated targets to read a 30-day window from">{DASH}</span>
                       : r.kind ? <span className="dim" title="No target set in the last 30 days">none in 30d</span> : DASH}
                   </td>
-                  <td className="hl-right hl-strong" style={{ color: r.avgVsPrice != null ? pctColor(r.avgVsPrice) : undefined }}>
-                    {r.avgVsPrice != null ? fmtPct(r.avgVsPrice, { precision: 1 }) : DASH}
+                  <td className="hl-right hl-strong" style={{ color: r[pct.key] != null ? pctColor(r[pct.key]) : undefined }}>
+                    {r[pct.key] != null ? fmtPct(r[pct.key], { precision: 1 }) : DASH}
                   </td>
                   <td className="hl-left tp-risks">{r.risks || ''}</td>
                 </tr>

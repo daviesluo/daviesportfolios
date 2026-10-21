@@ -11,11 +11,15 @@
 //   Avg range       the lowest and highest of all current targets.
 //   Analysts        how many analysts the mean is of.
 //   Fresh range     the lowest and highest of the targets set in the last 30 days, and how many there are: each firm's
-//                   latest target, counted only when it was set in the window.
+//                   latest target, counted only when it was set in the window. Sorting by it sorts by the fresh
+//                   targets' mean against the price, and the last % column shows that while it does (below).
 //   Avg vs price    the mean target against the price: mean / price − 1. The default sort, largest first.    LIVE
+//     or Fresh avg vs price, while the table is sorted by Fresh range (Davies, 2026-10-21): the mean of the targets
+//                   set in the last 30 days against the price, fresh mean / price − 1; "—" where none was set,
+//                   which sorts last. Any other sort brings back Avg vs price.                                  LIVE
 //   Key risks       a short note per holding, kept by hand (target_risks.js).
 //
-// LIVE: worked out here from the board's own `metrics` on every render, so they move at the board's tick (Davies,
+// LIVE (Weight, Price and the % column's price): worked out here from the board's own `metrics` on every render, so they move at the board's tick (Davies,
 // 2026-10-21): the page re-renders with each new `metrics` and asks nothing of the server. Every other column is the
 // job's snapshot and moves only at its scheduled runs; "Updated HH:MM ET" is the time of that run.
 //
@@ -96,7 +100,8 @@ export function buildTargetRows(metrics, data, nowMs) {
       mean: /** @type {number | null} */ (null), low: /** @type {number | null} */ (null), high: /** @type {number | null} */ (null),
       avgVsPrice: /** @type {number | null} */ (null), rating: /** @type {number | null} */ (null), ratingWord: /** @type {string | null} */ (null),
       analysts: /** @type {number | null} */ (null), rangeSpread: /** @type {number | null} */ (null),
-      fresh: /** @type {{ low: number, high: number, count: number } | null} */ (null), freshSpread: /** @type {number | null} */ (null),
+      fresh: /** @type {{ low: number, high: number, mean: number | null, count: number } | null} */ (null), freshSpread: /** @type {number | null} */ (null),
+      freshVsPrice: /** @type {number | null} */ (null),
       lowVsPrice: /** @type {number | null} */ (null), targetCurrency: /** @type {string | null} */ (null),
       coverage: /** @type {any} */ (null), sources: /** @type {any[] | null} */ (null), asOf: /** @type {string | null} */ (null),
       risks: '',
@@ -116,16 +121,20 @@ export function buildTargetRows(metrics, data, nowMs) {
       row.ratingWord = ratingWord(row.rating);
       row.analysts = num(s.analysts);
       if (s.kind === 'holdings') {
-        row.fresh = s.fresh && num(s.fresh.low) ? { low: s.fresh.low * scale, high: s.fresh.high * scale, count: s.fresh.count } : null;
+        // A snapshot written before the job kept the fresh mean has none: its % column reads "—" until the next run.
+        row.fresh = s.fresh && num(s.fresh.low)
+          ? { low: s.fresh.low * scale, high: s.fresh.high * scale, mean: num(s.fresh.mean) !== null ? s.fresh.mean * scale : null, count: s.fresh.count }
+          : null;
       } else {
         const fr = freshTargets(s.targets || [], nowMs).map((t) => t.target * scale);
-        row.fresh = fr.length ? { low: Math.min(...fr), high: Math.max(...fr), count: fr.length } : null;
+        row.fresh = fr.length ? { low: Math.min(...fr), high: Math.max(...fr), mean: fr.reduce((a, x) => a + x, 0) / fr.length, count: fr.length } : null;
       }
       if (basis) {
         row.avgVsPrice = pct6((row.mean / basis - 1) * 100);
         row.lowVsPrice = row.low !== null ? pct6((row.low / basis - 1) * 100) : null;
         row.rangeSpread = row.low !== null && row.high !== null ? pct6(((row.high - row.low) / basis) * 100) : null;
         row.freshSpread = row.fresh ? pct6(((row.fresh.high - row.fresh.low) / basis) * 100) : null;
+        row.freshVsPrice = row.fresh && row.fresh.mean !== null ? pct6((row.fresh.mean / basis - 1) * 100) : null;
       }
       row.coverage = s.coverage || null;
       row.sources = Array.isArray(s.sources) ? s.sources : null;
@@ -137,8 +146,9 @@ export function buildTargetRows(metrics, data, nowMs) {
 }
 
 /**
- * The page's columns. `sortKey` is what a click sorts by: the ranges by their width against the price (how far the
- * analysts are apart); Key risks does not sort.
+ * The page's columns. `sortKey` is what a click sorts by: Avg range by its width against the price (how far the
+ * analysts are apart), Fresh range by the fresh targets' mean against the price (which the % column then shows,
+ * `pctColumn`); Key risks does not sort.
  */
 export const TARGET_COLUMNS = [
   { key: 'ticker', label: 'Symbol', sortKey: 'display', numeric: false, align: 'left', title: 'Sort by symbol' },
@@ -148,10 +158,22 @@ export const TARGET_COLUMNS = [
   { key: 'rating', label: 'Avg rating', sortKey: 'rating', numeric: true, align: 'right', title: 'Mean recommendation, 1 Strong Buy to 5 Sell. Sorts by the number' },
   { key: 'range', label: 'Avg range', sortKey: 'rangeSpread', numeric: true, align: 'right', title: 'Lowest to highest current target. Sorts by its width against the price' },
   { key: 'analysts', label: 'Analysts', sortKey: 'analysts', numeric: true, align: 'right', title: 'How many analysts the mean is of' },
-  { key: 'fresh', label: 'Fresh range', sortKey: 'freshSpread', numeric: true, align: 'right', title: 'Lowest to highest of the targets set in the last 30 days, with how many. Sorts by its width against the price' },
+  { key: 'fresh', label: 'Fresh range', sortKey: 'freshVsPrice', numeric: true, align: 'right', title: 'Lowest to highest of the targets set in the last 30 days, with how many. Sorts by their mean against the price, shown in the last % column' },
   { key: 'avgVsPrice', label: 'Avg vs price', sortKey: 'avgVsPrice', numeric: true, align: 'right', title: 'Mean target against the price: avg / price − 1. Live with the board' },
   { key: 'risks', label: 'Key risks', sortKey: null, numeric: false, align: 'left', title: 'Kept by hand' },
 ];
+
+/**
+ * What the last % column shows for the table's sort: "Fresh avg vs price" while it is sorted by Fresh range, else
+ * "Avg vs price". `key` is the row field it reads.
+ * @param {string} sortKey
+ * @returns {{ key: 'avgVsPrice' | 'freshVsPrice', label: string, title: string }}
+ */
+export function pctColumn(sortKey) {
+  return sortKey === 'freshVsPrice'
+    ? { key: 'freshVsPrice', label: 'Fresh avg vs price', title: 'Mean of the targets set in the last 30 days against the price: fresh avg / price − 1. Shown while the table is sorted by Fresh range; any other sort brings back Avg vs price' }
+    : { key: 'avgVsPrice', label: 'Avg vs price', title: 'Mean target against the price: avg / price − 1. Live with the board' };
+}
 
 export const DEFAULT_SORT = /** @type {{ key: string, dir: 'asc' | 'desc' }} */ ({ key: 'avgVsPrice', dir: 'desc' });
 

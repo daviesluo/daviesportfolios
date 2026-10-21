@@ -8,7 +8,7 @@
 //               targets as ratios to its own price (currency-free), averaged by the holding's weight in the ETF, then put
 //               on the ETF's price. Mean, low and high are the weighted means of each holding's mean, lowest and highest
 //               target; the analysts the median of the holdings' counts; the fresh window the weighted mean of each
-//               covered holding's own last-30-day range, its count the number of those targets. Coverage (the share of
+//               covered holding's own last-30-day range and mean, its count the number of those targets. Coverage (the share of
 //               the ETF's weight priced) travels with it, and the page shows it. Each holding's ratio is its targets
 //               over `financialData.currentPrice` of the SAME response (one quote, one currency). A holding whose mean
 //               is under a fifth of its price or over five times it is taken for a unit or listing error and left out,
@@ -37,8 +37,11 @@ export type Snapshot = {
   analysts: number | null;
   /** Each firm's latest target (consensus: the last 45 days; strategist: all), newest first. */
   targets: FirmTarget[];
-  /** The fresh window computed by the job, for a holdings-weighted row only (the page computes the others' from `targets`). */
-  fresh?: { low: number; high: number; count: number } | null;
+  /**
+   * The fresh window computed by the job, for a holdings-weighted row only (the page computes the others' from
+   * `targets`): its low, high and mean (the page's "Fresh avg vs price", Davies 2026-10-21), and how many targets.
+   */
+  fresh?: { low: number; high: number; mean: number; count: number } | null;
   /**
    * A holdings-weighted row's basis: the share of the ETF's weight covered, how many holdings, and the holdings left out
    * as a likely unit or listing error (their mean over their price outside CONSTITUENT_RATIO), with that ratio.
@@ -135,7 +138,7 @@ export function holdingsSnapshot(
   etf: { price: number | null; currency: string | null }, nowMs: number, source: string,
 ): Snapshot | null {
   if (!etf.price) return null;
-  let w = 0, wMean = 0, wLow = 0, wHigh = 0, wf = 0, fLow = 0, fHigh = 0, fCount = 0, names = 0;
+  let w = 0, wMean = 0, wLow = 0, wHigh = 0, wf = 0, fLow = 0, fHigh = 0, fMean = 0, fCount = 0, names = 0;
   const counts: number[] = [];
   const skipped: Array<{ symbol: string; weight: number; ratio: number }> = [];
   for (const h of holdings) {
@@ -152,6 +155,7 @@ export function holdingsSnapshot(
     if (fresh.length) {
       wf += h.weight; fCount += fresh.length;
       fLow += h.weight * (Math.min(...fresh) / px); fHigh += h.weight * (Math.max(...fresh) / px);
+      fMean += h.weight * (fresh.reduce((s, x) => s + x, 0) / fresh.length / px);
     }
   }
   if (!(w > 0)) return null;
@@ -162,7 +166,7 @@ export function holdingsSnapshot(
     ticker, kind: "holdings", currency: etf.currency, refPrice: p,
     mean: r4(p * wMean / w), low: r4(p * wLow / w), high: r4(p * wHigh / w), rating: null,
     analysts: median === null ? null : Math.round(median), targets: [],
-    fresh: wf > 0 ? { low: r4(p * fLow / wf), high: r4(p * fHigh / wf), count: fCount } : null,
+    fresh: wf > 0 ? { low: r4(p * fLow / wf), high: r4(p * fHigh / wf), mean: r4(p * fMean / wf), count: fCount } : null,
     coverage: { weight: r4(w), names, source, skipped },
   };
 }

@@ -75,7 +75,7 @@ Deno.test("holdingsSnapshot: ratios to each holding's price, weighted, put on th
   //    20 analysts, nothing fresh. C: 10 %, no data (uncovered). D: 5 %, a mean 6× its price (skipped, named).
   //   covered weight 0.5; mean 100 × (0.3·1.2 + 0.2·1.1) / 0.5 = 116; low 100 × (0.24 + 0.18) / 0.5 = 84;
   //   high 100 × (0.48 + 0.30) / 0.5 = 156; analysts median(10, 20) = 15;
-  //   fresh over A alone: low 100 × 1.1 = 110, high 100 × 1.4 = 140, 2 targets.
+  //   fresh over A alone: low 100 × 1.1 = 110, high 100 × 1.4 = 140, mean 100 × (55 + 70) / 2 / 50 = 125, 2 targets.
   const data = new Map<string, Analyst | null>([
     ["A", firm(50, 60, 40, 80, 10, [[55, "2026-10-15T00:00:00.000Z"], [70, "2026-10-01T00:00:00.000Z"], [90, "2026-09-11T00:00:00.000Z"]])],
     ["B", firm(200, 220, 180, 300, 20)],
@@ -84,7 +84,7 @@ Deno.test("holdingsSnapshot: ratios to each holding's price, weighted, put on th
   ]);
   const s = holdingsSnapshot("SAEM.L", [{ symbol: "A", weight: 0.3 }, { symbol: "B", weight: 0.2 }, { symbol: "C", weight: 0.1 }, { symbol: "D", weight: 0.05 }], data, { price: 100, currency: "USD" }, NOW, "test")!;
   assertEquals([s.kind, s.currency, s.refPrice, s.mean, s.low, s.high, s.rating, s.analysts], ["holdings", "USD", 100, 116, 84, 156, null, 15]);
-  assertEquals(s.fresh, { low: 110, high: 140, count: 2 });
+  assertEquals(s.fresh, { low: 110, high: 140, mean: 125, count: 2 });
   assertEquals(s.coverage, { weight: 0.5, names: 2, source: "test", skipped: [{ symbol: "D", weight: 0.05, ratio: 6 }] });
   assertEquals(holdingsSnapshot("X", [{ symbol: "C", weight: 1 }], data, { price: 100, currency: "USD" }, NOW, "t"), null);
   assertEquals(holdingsSnapshot("X", [{ symbol: "A", weight: 1 }], data, { price: null, currency: "USD" }, NOW, "t"), null);

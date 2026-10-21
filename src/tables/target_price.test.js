@@ -2,7 +2,7 @@
 // from the Holding list's own function, the low against the board's price, the 30-day fresh window, the three kinds of
 // row, the default order (low vs price, largest first) with uncovered holdings last either way, and the "Updated" stamp.
 import { describe, expect, it } from 'vitest';
-import { buildTargetRows, DEFAULT_SORT, firstSortDir, fmtMoneyIn, fmtRange, freshTargets, kindTag, rangeDecimals, ratingWord, sortTargetRows, strategistTitle, TARGET_COLUMNS, unitFactor, updatedLabel } from './target_price.js';
+import { buildTargetRows, DEFAULT_SORT, firstSortDir, fmtMoneyIn, fmtRange, freshTargets, kindTag, pctColumn, rangeDecimals, ratingWord, sortTargetRows, strategistTitle, TARGET_COLUMNS, unitFactor, updatedLabel } from './target_price.js';
 import { buildHoldingsRows } from './holdings_list.jsx';
 
 const NOW = Date.parse('2026-10-21T13:30:20Z');
@@ -28,7 +28,7 @@ const DATA = {
       targets: [{ firm: 'Bernstein', target: 150000, at: '2026-08-26T00:00:00.000Z' }, { firm: 'Citi', target: 82000, at: '2026-07-01T00:00:00.000Z' }, { firm: 'Standard Chartered', target: 100000, at: '2026-02-12T00:00:00.000Z' }],
       sources: [{ firm: 'Citi', target: 82000, at: '2026-07-01', horizon: '12 months', url: 'https://x' }] },
     'VUAA.L': { kind: 'holdings', currency: 'USD', refPrice: 100, mean: 110, low: 90, high: 130, rating: null, analysts: 45, targets: [],
-      fresh: { low: 95, high: 120, count: 4 }, coverage: { weight: 0.39, names: 10, source: "VUAA.L's top holdings (Yahoo)" } },
+      fresh: { low: 95, high: 120, mean: 107.5, count: 4 }, coverage: { weight: 0.39, names: 10, source: "VUAA.L's top holdings (Yahoo)" } },
   },
 };
 const rows = buildTargetRows(METRICS, DATA, NOW);
@@ -48,7 +48,7 @@ describe('Target price rows', () => {
     // Fresh: A's 90 (2 days) and B's 120 (10 days); C's 70 is 40 days old. Width (120 − 90) / 50 = 60 %.
     expect([r.kind, r.price, r.mean, r.low, r.high, r.analysts]).toEqual(['consensus', 50, 100, 60, 150, 20]);
     expect([r.avgVsPrice, r.lowVsPrice, r.rangeSpread, r.freshSpread]).toEqual([100, 20, 180, 60]);
-    expect(r.fresh).toEqual({ low: 90, high: 120, count: 2 });
+    expect(r.fresh).toEqual({ low: 90, high: 120, mean: 105, count: 2 });
     expect([r.rating, r.ratingWord]).toEqual([1.6, 'Buy']);
     expect(by('ORCL').lowVsPrice).toBe(-20);
     expect(by('ORCL').fresh).toBe(null);
@@ -66,7 +66,7 @@ describe('Target price rows', () => {
 
   it('a fund: its holdings-weighted targets and the job\'s own fresh window, with its coverage', () => {
     const r = by('VUAA.L');
-    expect([r.kind, r.mean, r.low, r.high, r.lowVsPrice, r.fresh, r.coverage.weight]).toEqual(['holdings', 110, 90, 130, -10, { low: 95, high: 120, count: 4 }, 0.39]);
+    expect([r.kind, r.mean, r.low, r.high, r.lowVsPrice, r.fresh, r.coverage.weight]).toEqual(['holdings', 110, 90, 130, -10, { low: 95, high: 120, mean: 107.5, count: 4 }, 0.39]);
     expect(r.freshSpread).toBe(25);
   });
 
@@ -135,6 +135,28 @@ describe('Target price helpers', () => {
     expect(updatedLabel('2026-10-20T20:00:30.000Z', NOW)).toBe('Updated Oct 20, 16:00 ET');
     expect(updatedLabel('2026-11-02T14:30:05.000Z', Date.parse('2026-11-02T15:00:00Z'))).toBe('Updated 09:30 ET');
     expect(updatedLabel(null, NOW)).toBe(null);
+  });
+});
+
+describe('Fresh avg vs price (Davies, 2026-10-21)', () => {
+  it('sorting by Fresh range switches the last % column to the fresh mean against the price; any other sort switches it back', () => {
+    expect(TARGET_COLUMNS.find((c) => c.key === 'fresh')?.sortKey).toBe('freshVsPrice');
+    expect(pctColumn('freshVsPrice')).toMatchObject({ key: 'freshVsPrice', label: 'Fresh avg vs price' });
+    for (const k of ['avgVsPrice', 'weight', 'display', 'rangeSpread', 'mean']) expect(pctColumn(k)).toMatchObject({ key: 'avgVsPrice', label: 'Avg vs price' });
+  });
+
+  it('values: the fresh targets\' mean over the board price − 1; none fresh, none', () => {
+    // RKLB: (90 + 120) / 2 = 105 on 50 → +110 %. VUAA: the job's fresh mean 107.5 on 100 → +7.5 %. ORCL and bitcoin have
+    // no target set in the last 30 days; SIVE has none at all.
+    expect(rows.map((r) => [r.display, r.freshVsPrice])).toEqual([['RKLB', 110], ['ORCL', null], ['BTC-USD', null], ['VUAA', 7.5], ['SIVE', null]]);
+    // A fund snapshot from before the job kept the fresh mean: a range, but no % (until the next run).
+    const old = buildTargetRows(METRICS, { rows: { 'VUAA.L': { ...DATA.rows['VUAA.L'], fresh: { low: 95, high: 120, count: 4 } } } }, NOW);
+    expect([old[3].fresh?.low, old[3].freshVsPrice]).toEqual([95, null]);
+  });
+
+  it('sorts by it largest first, the rows without fresh targets last whichever way', () => {
+    expect(sortTargetRows(rows, 'freshVsPrice', 'desc').map((r) => r.display)).toEqual(['RKLB', 'VUAA', 'ORCL', 'BTC-USD', 'SIVE']);
+    expect(sortTargetRows(rows, 'freshVsPrice', 'asc').map((r) => r.display)).toEqual(['VUAA', 'RKLB', 'ORCL', 'BTC-USD', 'SIVE']);
   });
 });
 

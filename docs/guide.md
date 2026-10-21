@@ -115,7 +115,9 @@ Tap a tile to open its chart.
   note of key risks (debt, dilution, the next earnings date, short
   reports, regulation). It opens sorted on the average target against the
   price, largest first; tap any heading but Key risks to sort, again to
-  turn it round, and a holding without targets always sits last with
+  turn it round (sorted by Fresh range, the last column becomes *Fresh
+  avg vs price*, the average of the last 30 days' targets against the
+  price), and a holding without targets always sits last with
   `—`. Prices and targets carry their currency's symbol ($, €, £ and so
   on). Stocks show the analysts' consensus from Yahoo Finance. A fund
   (VUAA, SAEM) has no consensus of its own, so it shows its holdings'
