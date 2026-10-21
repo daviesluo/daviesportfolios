@@ -186,6 +186,19 @@ describe('VUAA from the S&P 500 strategists (Davies, 2026-10-21)', () => {
   });
 });
 
+describe('Key risks: the served copy first, the bundled one as the fallback', () => {
+  it('uses the GET\'s risks when it serves them, and the bundled notes when it does not', () => {
+    const served = { ...DATA, risks: { asOf: '2026-10-22', risks: { RKLB: [{ text: 'Served note' }, { text: '@lowest-target' }], SIVE: [{ text: 'Served SIVE' }] } } };
+    const withServed = buildTargetRows(METRICS, served, NOW);
+    expect(withServed.find((r) => r.ticker === 'RKLB')?.risks).toBe('Served note; lowest target $60 still 20% above price');
+    expect(withServed.find((r) => r.ticker === '2DG.SG')?.risks).toBe('Served SIVE');
+    // A ticker the served file leaves out has no note (the file is the whole table when it is in force).
+    expect(withServed.find((r) => r.ticker === 'ORCL')?.risks).toBe('');
+    // No served risks (the branch failed its checks): the bundled notes.
+    expect(buildTargetRows(METRICS, DATA, NOW).find((r) => r.ticker === 'ORCL')?.risks).toMatch(/^S&P BBB− since 7\/9/);
+  });
+});
+
 describe('Target price money', () => {
   it('writes a price or target as the Holding list writes money, with its currency', () => {
     expect([fmtMoneyIn(53.67, 'USD'), fmtMoneyIn(1560.57, 'USD'), fmtMoneyIn(108000, 'USD'), fmtMoneyIn(2.1, 'EUR'), fmtMoneyIn(80, 'GBP'),

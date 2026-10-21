@@ -96,6 +96,13 @@ describe('the page after the preload', () => {
     spy.mockRestore();
   });
 
+  it('shows the Key risks the GET serves (the hand-targets branch), not the bundled ones', async () => {
+    const body = { ...BODY, risks: { asOf: '2026-10-22', risks: { ACME: [{ text: 'Served by the branch' }] } } };
+    await prefetchTargets(async () => new Response(JSON.stringify(body), { status: 200, headers: { 'Content-Type': 'application/json' } }));
+    render(<TargetPriceModal metrics={METRICS} onTickerClick={() => {}} onClose={() => {}} />);
+    expect(screen.getByText('Served by the branch')).toBeTruthy();
+  });
+
   it('moves Weight, Price and Avg vs price with a board tick, and asks nothing of the server', async () => {
     await prefetchTargets(async () => ok());
     const spy = vi.spyOn(globalThis, 'fetch');

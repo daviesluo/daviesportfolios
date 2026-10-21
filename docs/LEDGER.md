@@ -672,6 +672,12 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20", and 2026-10-18 20:19 → 21:12 UTC under "LEDGER.md, archived 2026-10-21", and 2026-10-19 03:20 → 06:45 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-19 21:18 UTC → 2026-10-21 19:50 UTC under "LEDGER.md, archived 2026-10-21 (second)"; each oldest first.
 
+### [2026-10-21 22:42 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Hand tables live from `hand-targets`** (sub-agent; not pushed): the minute call checks the branch head every 5 min
+  (API, else git refs, else raw branch URL), reads both files at that commit, validates whole (keys, types, dates, https,
+  0.3–3× band, risks ≤120 chars/≤3), rebuilds BTC/VUAA rows on change; GET serves risks. Failure → baked copies, one
+  `targets.hand` report. Push → page ≤ ~21 min (5 + 1 + client 15).
+
 ### [2026-10-21 22:13 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Target price sources** (sub-agent; not pushed): SAEM's holdings from BlackRock's keyless file, 60 largest priced
   (coverage 35.6 % → 49.6 %); VUAA = 19 sourced S&P 500 year-end strategist targets, as of 2026-10-21, on VUAA's price

@@ -15,6 +15,17 @@
 const usd = (n) => `$${n >= 100 ? Math.round(n).toLocaleString('en-US') : Number(n.toFixed(2)).toString()}`;
 
 /**
+ * RKLB's computed note: its lowest target against the price, from the row, so it stays true as the price moves. The
+ * hand-kept file names it by the placeholder "@lowest-target".
+ * @param {RiskRow} r
+ */
+export function lowestTargetNote(r) {
+  if (r.low == null || r.lowVsPrice == null) return null;
+  const pct = Math.round(Math.abs(r.lowVsPrice));
+  return r.lowVsPrice >= 0 ? `lowest target ${usd(r.low)} still ${pct}% above price` : `lowest target ${usd(r.low)} ${pct}% below price`;
+}
+
+/**
  * Every holding on the board on 2026-10-21 (30), researched that day: 1–3 items each, terse, factual and dated, in the
  * style of Davies's first five (which are kept, brought up to date). The source of each figure is in the comment above
  * it. An "est." date is a calendar's estimate, not the company's; it drops out after the latest estimate.
@@ -91,13 +102,7 @@ export const TARGET_RISKS = {
   RKLB: [
     { text: 'Net cash' },
     // Davies's words: "lowest target $67 still 21% above price", worked out from the row instead of written down.
-    {
-      text: (r) => {
-        if (r.low == null || r.lowVsPrice == null) return null;
-        const pct = Math.round(Math.abs(r.lowVsPrice));
-        return r.lowVsPrice >= 0 ? `lowest target ${usd(r.low)} still ${pct}% above price` : `lowest target ${usd(r.low)} ${pct}% below price`;
-      },
-    },
+    { text: lowestTargetNote },
     { text: 'earnings ~11/9–11/12 (est.)', until: '2026-11-12' },
   ],
   // Yahoo topHoldings for SAEM.L read 2026-10-21: TSMC 14.26 %, ten largest 35.6 %; Samsung and SK hynix 12.3 % together.
@@ -154,3 +159,29 @@ export function risksFor(display, row, nowMs, map = TARGET_RISKS) {
   }
   return parts.join('; ');
 }
+
+/**
+ * The Key risks the `targets` GET serves from the `hand-targets` branch (`{TICKER: [{text, until?}]}`, checked by the
+ * function, hand.ts), as notes for `risksFor`: the "@lowest-target" placeholder becomes RKLB's computed note. Null for
+ * anything not that shape, and the bundled TARGET_RISKS stand.
+ * @param {unknown} served
+ * @returns {Record<string, RiskNote[]> | null}
+ */
+export function risksFromServed(served) {
+  if (!served || typeof served !== 'object' || Array.isArray(served)) return null;
+  /** @type {Record<string, RiskNote[]>} */
+  const out = {};
+  for (const [ticker, notes] of Object.entries(served)) {
+    if (!Array.isArray(notes)) return null;
+    out[ticker] = [];
+    for (const n of notes) {
+      if (!n || typeof n.text !== 'string') return null;
+      /** @type {RiskNote} */
+      const note = { text: n.text === '@lowest-target' ? lowestTargetNote : n.text };
+      if (typeof n.until === 'string') note.until = n.until;
+      out[ticker].push(note);
+    }
+  }
+  return Object.keys(out).length ? out : null;
+}
+

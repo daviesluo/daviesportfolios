@@ -41,3 +41,16 @@ describe('Key risks', () => {
     expect(risksFor('RKLB', row, at('2026-11-13T12:00:00Z'))).toBe('Net cash');
   });
 });
+
+describe('Key risks served from the hand-targets branch (2026-10-21)', () => {
+  it('turns the served notes into the page\'s, the placeholder into RKLB\'s computed note', async () => {
+    const { risksFromServed } = await import('./target_risks.js');
+    const map = risksFromServed({ RKLB: [{ text: 'Net cash' }, { text: '@lowest-target' }, { text: 'earnings 11/9', until: '2026-11-09' }], ORCL: [{ text: 'Rated BBB−' }] });
+    const now = at('2026-10-22T12:00:00Z');
+    expect(risksFor('RKLB', { low: 64, price: 53.67, lowVsPrice: (64 / 53.67 - 1) * 100 }, now, /** @type {any} */ (map))).toBe('Net cash; lowest target $64 still 19% above price; earnings 11/9');
+    // The until-expiry still applies: the 10th in New York, the earnings note is gone.
+    expect(risksFor('RKLB', row, at('2026-11-10T12:00:00Z'), /** @type {any} */ (map))).toBe('Net cash');
+    expect(risksFor('AAPL', row, now, /** @type {any} */ (map))).toBe('');
+    expect([risksFromServed(null), risksFromServed([]), risksFromServed({ X: 'no' }), risksFromServed({ X: [{ until: '2026-01-01' }] })]).toEqual([null, null, null, null]);
+  });
+});

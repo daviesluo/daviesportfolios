@@ -51,6 +51,8 @@ export async function handle(req: Request, deps: Deps): Promise<Response> {
     const report = await deps.run(new URL(req.url).searchParams.get("force") === "1");
     // A run that read Yahoo and found it down says so once a run (three a trading day at most).
     if (report.errors.length) await deps.report("targets.run", report.errors.join("; ").slice(0, 500));
+    // A hand-targets failure is reported when it starts, once; the run keeps the baked tables until it clears (hand.ts).
+    for (const n of report.notices ?? []) await deps.report("targets.hand", n.slice(0, 500));
     return json(200, report);
   } catch (e) {
     const msg = e instanceof Error ? `${e.message}\n${e.stack ?? ""}` : String(e);
@@ -65,7 +67,7 @@ if (import.meta.main) {
   Deno.serve((req) => handle(req, {
     cronSecret: Deno.env.get("CRON_SECRET") ?? "",
     beat: (k) => writeBeat(k),
-    run: (force) => runTargets({ db, now: Date.now(), crumb: getYahooCrumb, avKey: Deno.env.get("ALPHAVANTAGE_API_KEY") ?? null, force }),
+    run: (force) => runTargets({ db, now: Date.now(), crumb: getYahooCrumb, avKey: Deno.env.get("ALPHAVANTAGE_API_KEY") ?? null, force, hand: true }),
     read: () => readTargets(db),
     verify: (t) => verifyToken(t),
     report: (kind, message) => reportServerError(kind, { message }),

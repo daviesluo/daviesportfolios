@@ -130,7 +130,10 @@ Tap a tile to open its chart.
   published bitcoin targets; both are kept by hand and marked
   **BANKS**. Hover a mark, or tap it on a phone, for where the targets
   come from (each firm, date and horizon; for VUAA also its holdings'
-  weighted target, as a cross-check). The targets refresh by themselves at 04:00, 09:30 and the
+  weighted target, as a cross-check). The hand-kept tables and the Key risks are
+  refreshed each day at the US open on a branch of the repository; the
+  page shows a refresh within about twenty minutes, without a new
+  version of the site. The targets refresh by themselves at 04:00, 09:30 and the
   close (New York time) on trading days and at 09:30 on other days;
   "Updated" under the title says when. Weight, Price and the average
   target against the price move with the board's live prices. The page opens with its figures

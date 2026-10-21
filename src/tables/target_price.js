@@ -29,7 +29,7 @@
 
 import { buildHoldingsRows } from './holdings_list.jsx';
 import { displayTicker } from '../app/formatters.js';
-import { risksFor } from './target_risks.js';
+import { risksFor, risksFromServed, TARGET_RISKS } from './target_risks.js';
 import { fmtMoney, fmtPct } from '../app/formatters.js';
 import { currencyAffix } from '../portfolio/fx.js';
 
@@ -89,6 +89,9 @@ export function buildTargetRows(metrics, data, nowMs) {
   const players = new Map();
   for (const pos of Object.values(metrics?.positions || {})) for (const p of (/** @type {any} */ (pos).players || [])) players.set(p.ticker, p);
   const snaps = data?.rows || {};
+  // Key risks: the ones the GET serves from the hand-targets branch when it does (Grok keeps them, hand.ts), else the
+  // bundled copy. Either way a dated note drops out after its day (risksFor).
+  const riskMap = risksFromServed(/** @type {any} */ (data)?.risks?.risks) ?? TARGET_RISKS;
   return holdings.map((h) => {
     const p = players.get(h.ticker) || {};
     const display = displayTicker(h.ticker);
@@ -145,7 +148,7 @@ export function buildTargetRows(metrics, data, nowMs) {
         low: num(s.crossCheck.low) !== null ? s.crossCheck.low * scale : null, high: num(s.crossCheck.high) !== null ? s.crossCheck.high * scale : null } : null;
       row.asOf = s.asOf || null;
     }
-    row.risks = risksFor(display, row, nowMs);
+    row.risks = risksFor(display, row, nowMs, riskMap);
     return row;
   });
 }

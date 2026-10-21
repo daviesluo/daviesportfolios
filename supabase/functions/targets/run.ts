@@ -13,6 +13,7 @@ import { isFundamentalsTicker } from "../fundamentals/_shared.ts";
 import { type Analyst, consensusSnapshot, holdingsSnapshot, parseAnalyst, parseBlackrockHoldings, PREFERRED_COMMON, type Snapshot, strategistSnapshot, yahooSymbolCandidates } from "./compute.ts";
 import { dueSlot } from "./schedule.ts";
 import { INDEX_TARGETS, STRATEGIST_TARGETS } from "./strategists.ts";
+import { checkHand, type HandState, type HandTargets } from "./hand.ts";
 
 export const TARGETS_TABLE = "analyst_targets";
 export const TARGETS_STATE = "analyst_targets_state";
@@ -50,6 +51,8 @@ export type RunDeps = {
   db: Db; now: number; fetchImpl?: typeof fetch; crumb: () => Promise<Crumb | null>; avKey?: string | null; force?: boolean;
   /** The wall clock the run budget is read on (tests pass their own). */
   clock?: () => number;
+  /** Read the hand-kept tables from the `hand-targets` branch (hand.ts); off when absent (tests that do not exercise it). */
+  hand?: boolean;
 };
 type State = { last_slot: string | null; claimed_slot: string | null; claimed_at: string | null; cache: Record<string, any> | null };
 
@@ -112,31 +115,87 @@ export async function boardHoldings(db: Db): Promise<Array<{ ticker: string; cur
   return Object.entries(h).filter(([t, x]) => t !== "CASH" && !x?.isCash).map(([t, x]) => ({ ticker: t, currency: typeof x?.currency === "string" ? x.currency : null }));
 }
 
-export type RunReport = { skipped?: string; slot?: string; written?: number; covered?: string[]; uncovered?: string[]; errors: string[] };
+export type RunReport = {
+  skipped?: string; slot?: string; written?: number; covered?: string[]; uncovered?: string[]; errors: string[];
+  /** A failure that has just started (the hand-targets branch): reported once, not every minute (index.ts). */
+  notices?: string[];
+  /** The rows rebuilt between slots because the hand-kept tables changed. */
+  rebuilt?: string[];
+};
+
+/** The tables kept by hand, as the run uses them: the branch's when loaded and valid (hand.ts), else the baked copies. */
+export function handTables(hand: HandTargets | null | undefined): { strategist: typeof STRATEGIST_TARGETS; index: typeof INDEX_TARGETS } {
+  if (!hand) return { strategist: STRATEGIST_TARGETS, index: INDEX_TARGETS };
+  return {
+    strategist: { ...STRATEGIST_TARGETS, "BTC-USD": hand.btc },
+    index: { ...INDEX_TARGETS, "VUAA.L": { ...INDEX_TARGETS["VUAA.L"], asOf: hand.asOf, rows: hand.sp500 } },
+  };
+}
+
+/**
+ * The bitcoin and VUAA rows rebuilt from new hand-kept tables, between slots: bitcoin's from its table alone; VUAA's on
+ * the index level, fund price and cross-check its last run stored (so a push shows within minutes, not at the next
+ * slot). A row not on the board, or a VUAA row that is not an index row, is left as it is.
+ */
+export async function rebuildHandRows(d: Db, tables: ReturnType<typeof handTables>, nowMs: number): Promise<string[]> {
+  const rows = await d.select<{ ticker: string; slot: string; payload: Snapshot }>(TARGETS_TABLE, "ticker=in.(BTC-USD,VUAA.L)&select=ticker,slot,payload");
+  const asOf = new Date(nowMs).toISOString();
+  const next: Array<{ ticker: string; slot: string; as_of: string; payload: Snapshot }> = [];
+  for (const r of rows) {
+    let snap: Snapshot | null = null;
+    if (r.ticker === "BTC-USD") snap = strategistSnapshot("BTC-USD", tables.strategist["BTC-USD"], null);
+    else if (r.ticker === "VUAA.L" && r.payload?.kind === "strategist" && r.payload.index) {
+      snap = strategistSnapshot("VUAA.L", tables.index["VUAA.L"].rows, r.payload.refPrice, { currency: r.payload.currency, index: r.payload.index, crossCheck: r.payload.crossCheck ?? null });
+    }
+    if (snap) next.push({ ticker: r.ticker, slot: r.slot, as_of: asOf, payload: snap });
+  }
+  if (next.length) await d.upsert(TARGETS_TABLE, next, "ticker");
+  return next.map((x) => x.ticker).sort();
+}
+
+/** The current bitcoin price and S&P 500 level the hand-kept targets are checked against (chart reads, keyless). */
+async function handLevels(f: typeof fetch): Promise<{ btcPrice: number; spxLevel: number } | null> {
+  const [btc, spx] = await Promise.all([chartPrice("BTC-USD", f), chartPrice("^GSPC", f)]);
+  return btc && spx ? { btcPrice: btc.price, spxLevel: spx.price } : null;
+}
 
 export async function runTargets(o: RunDeps): Promise<RunReport> {
   const f = o.fetchImpl ?? fetch, d = o.db, errors: string[] = [];
   const clock = o.clock ?? Date.now, started = clock(), open = () => clock() - started < RUN_BUDGET_MS;
   const st = (await d.select<State>(TARGETS_STATE, "id=eq.1&select=last_slot,claimed_slot,claimed_at,cache"))[0] ?? { last_slot: null, claimed_slot: null, claimed_at: null, cache: null };
+  const cache: Record<string, any> = { ...(st.cache ?? {}) };
+  // The hand-kept tables: the branch's head checked every few minutes, its files read and checked when it moved.
+  const notices: string[] = [];
+  let rebuilt: string[] = [];
+  if (o.hand) {
+    const h = await checkHand(cache.hand as HandState | undefined, o.now, f, () => handLevels(f));
+    if (h.newError) notices.push(h.newError);
+    if (h.state.checkedAt !== (cache.hand as HandState | undefined)?.checkedAt) {
+      cache.hand = h.state;
+      await d.update(TARGETS_STATE, "id=eq.1", { cache });
+    }
+    if (h.changed) rebuilt = await rebuildHandRows(d, handTables(h.state.targets), o.now);
+  }
+  const tables = handTables((cache.hand as HandState | undefined)?.targets);
+  const extra = { ...(notices.length ? { notices } : {}), ...(rebuilt.length ? { rebuilt } : {}) };
   const slotMs = o.force ? o.now : dueSlot(o.now, st.last_slot ? Date.parse(st.last_slot) : null);
-  if (slotMs === null) return { skipped: "no slot due", errors };
+  if (slotMs === null) return { skipped: "no slot due", errors, ...extra };
   const slot = new Date(slotMs).toISOString();
   // One run a slot: a second call while the first is still working leaves it alone (the watchdog's retry included). The
   // claim is a compare-and-set, so two calls in the same instant cannot both win it: the row changes only while no live
   // claim on this slot is there (none, another slot's, or one older than CLAIM_MS, whose run died).
   const stale = new Date(o.now - CLAIM_MS).toISOString();
   const won = await d.claim(TARGETS_STATE, `id=eq.1&or=(claimed_slot.is.null,claimed_slot.neq.${slot},claimed_at.lt.${stale})`, { claimed_slot: slot, claimed_at: new Date(o.now).toISOString() });
-  if (!won.length && !o.force) return { skipped: "running", slot, errors };
+  if (!won.length && !o.force) return { skipped: "running", slot, errors, ...extra };
 
   const auth = await o.crumb();
   const holdings = await boardHoldings(d);
-  const cache: Record<string, any> = { ...(st.cache ?? {}) };
   const out: Snapshot[] = [];
   const uncovered: string[] = [];
   if (!auth) errors.push("yahoo: no crumb");
 
   // Stocks: one quoteSummary each.
-  const stocks = holdings.filter((h) => !STRATEGIST_TARGETS[h.ticker] && !ETF_SOURCES[h.ticker] && isFundamentalsTicker(h.ticker));
+  const stocks = holdings.filter((h) => !tables.strategist[h.ticker] && !ETF_SOURCES[h.ticker] && isFundamentalsTicker(h.ticker));
   if (auth) {
     await pool(stocks, YAHOO_CONCURRENCY, open, async (h) => {
       const s = consensusSnapshot(h.ticker, await quoteSummary(h.ticker, "financialData,upgradeDowngradeHistory,price", auth, f), o.now);
@@ -172,7 +231,7 @@ export async function runTargets(o: RunDeps): Promise<RunReport> {
       data.set(n.symbol, null);
     });
     const s = holdingsSnapshot(h.ticker, names, data, { price: etf?.price ?? null, currency: etf?.currency ?? null }, o.now, source);
-    const ix = INDEX_TARGETS[h.ticker];
+    const ix = tables.index[h.ticker];
     if (ix) {
       // The fund's row is its index's strategist targets on the fund's price; the holdings-weighted target rides along as
       // the bottom-up cross-check. Both prices from the same chart read, so the scale is one moment's.
@@ -188,8 +247,8 @@ export async function runTargets(o: RunDeps): Promise<RunReport> {
     if (s) out.push(s); else uncovered.push(h.ticker);
   }
   // Bitcoin and anything else kept by hand.
-  for (const h of holdings.filter((x) => STRATEGIST_TARGETS[x.ticker])) {
-    const s = strategistSnapshot(h.ticker, STRATEGIST_TARGETS[h.ticker], null);
+  for (const h of holdings.filter((x) => tables.strategist[x.ticker])) {
+    const s = strategistSnapshot(h.ticker, tables.strategist[h.ticker], null);
     if (s) out.push(s);
   }
   for (const h of holdings) if (!out.some((s) => s.ticker === h.ticker) && !uncovered.includes(h.ticker)) uncovered.push(h.ticker);
@@ -203,15 +262,26 @@ export async function runTargets(o: RunDeps): Promise<RunReport> {
     ...(done ? { last_slot: slot } : {}), claimed_slot: null, claimed_at: null, cache, updated_at: asOf,
     last_error: errors.length ? errors.join("; ").slice(0, 500) : null,
   });
-  return { slot, written: out.length, covered: out.map((s) => s.ticker).sort(), uncovered: uncovered.sort(), errors };
+  return { slot, written: out.length, covered: out.map((s) => s.ticker).sort(), uncovered: uncovered.sort(), errors, ...extra };
 }
 
-/** What the page reads: every snapshot of a held ticker, the newest slot's time, and when the run was. */
+/**
+ * What the page reads: every snapshot of a held ticker, the newest slot's time, when the run was, and the Key risks from
+ * the `hand-targets` branch when they are loaded and valid (`risks`, else null: the page's bundled copy stands), with the
+ * commit they are from (`hand`).
+ */
 export async function readTargets(db: Db) {
   const [rows, st] = await Promise.all([
     db.select<{ ticker: string; slot: string; as_of: string; payload: Snapshot }>(TARGETS_TABLE, "select=ticker,slot,as_of,payload&order=ticker.asc&limit=500"),
-    db.select<{ last_slot: string | null; updated_at: string | null }>(TARGETS_STATE, "id=eq.1&select=last_slot,updated_at"),
+    db.select<{ last_slot: string | null; updated_at: string | null; cache: Record<string, any> | null }>(TARGETS_STATE, "id=eq.1&select=last_slot,updated_at,cache"),
   ]);
   const slot = rows.reduce<string | null>((m, r) => (m === null || r.slot > m ? r.slot : m), null);
-  return { slot, asOf: st[0]?.updated_at ?? null, rows: Object.fromEntries(rows.map((r) => [r.ticker, { ...r.payload, slot: r.slot, asOf: r.as_of }])) };
+  const hand = (st[0]?.cache?.hand ?? null) as HandState | null;
+  const loaded = !!hand && !hand.error && !!hand.risks;
+  return {
+    slot, asOf: st[0]?.updated_at ?? null,
+    rows: Object.fromEntries(rows.map((r) => [r.ticker, { ...r.payload, slot: r.slot, asOf: r.as_of }])),
+    risks: loaded ? hand!.risks : null,
+    hand: hand ? { sha: hand.sha, via: hand.via, checkedAt: hand.checkedAt ? new Date(hand.checkedAt).toISOString() : null, targetsAsOf: hand.targets?.asOf ?? null, risksAsOf: hand.risks?.asOf ?? null, error: hand.error } : null,
+  };
 }

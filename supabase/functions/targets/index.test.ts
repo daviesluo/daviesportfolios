@@ -53,3 +53,9 @@ Deno.test("the page's GET: the app token, then the read; without it 401 and noth
   const put = deps();
   assertEquals([(await handle(new Request(URL_, { method: "PUT" }), put.d)).status, put.log], [405, []]);
 });
+
+Deno.test("a hand-targets failure is reported as it starts, under its own kind, and does not make the run an error", async () => {
+  const { d, log } = deps({ run: () => Promise.resolve({ skipped: "no slot due", errors: [], notices: ["hand-targets: HAND_TARGETS.json: btc.rows[0]: url is not https"] }) });
+  const res = await handle(new Request(URL_, { method: "POST", headers: { Authorization: "Bearer s3cret" } }), d);
+  assertEquals([res.status, log], [200, ["beat:targets", "report:targets.hand"]]);
+});
