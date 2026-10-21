@@ -242,7 +242,9 @@ describe('TickerChartModal — 3M sampling grid', () => {
     // density, because one instrument's night is real and the other's
     // is a carried-forward close.
     expect(index / futures).toBeGreaterThan(3);
-  });
+    // Two full modal renders under jsdom: about 1 s alone, over 5 s while the gates run the sweep shards beside it
+    // (timed out twice on 2026-10-21 that way, never alone), so this test, like the next, gets 20 s.
+  }, 20_000);
 
   it('crypto is on the grid too, and its grid keeps the weekend', async () => {
     // Nine consecutive calendar days always contain a full weekend.
@@ -254,7 +256,7 @@ describe('TickerChartModal — 3M sampling grid', () => {
     // Saturday and Sunday are real trading for one of them and not for
     // the other, so the same window holds more points for crypto.
     expect(crypto).toBeGreaterThan(futures);
-  });
+  }, 20_000);
 });
 
 // The 1Y view draws the 50-day average beside the 200-day (Davies,
