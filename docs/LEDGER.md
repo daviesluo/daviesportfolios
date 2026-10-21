@@ -657,7 +657,7 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
-"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20"; each oldest first.
+"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20", and 2026-10-18 20:19 → 21:12 UTC under "LEDGER.md, archived 2026-10-21"; each oldest first.
 
 ### [2026-10-21 19:14 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **PR5's four-week review** (sub-agent, item 4; `reviews/2026-10-21-pr5-paper-test-review.md`, `backtests/pr5_review/`,
@@ -748,48 +748,3 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   S1b weekend is scored. First weekend, read 10-19 03:17 UTC with its window still open: 448/448 covered, longest
   uncovered run 0, first TRADEABLE 21:00:05 UK, runs ok 338/448. The final figure is due after 21:05 UTC today.
   Option A's branch is deleted and there is no `0133`. The recorder stays on fix 6 (an 18 s re-login wait, runs ~34 s).
-
-### [2026-10-18 21:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **IG weekend recorder, sixth fix: an 18 s re-login wait** (sub-agent; item 14). Under fix 5 (20:31-21:08 UTC, 39
-  runs, 28 ok) no run had 0 logins and every 1-login run made exactly 8 requests: each cron call is a fresh worker and
-  the kept session was never reused. Since 05:43 (927 runs) every run after a failed run worked on its first login
-  (224 of 224) and no two failures came in a row: not a login-rate limit (IG documents none; the refusals are 401
-  token errors, not the 403 allowance error). It fits one good session per user, where a login made while an older
-  session of ours lives gets refused tokens and the older one dies some seconds later; the re-login ~9 s after it
-  worked 367 times in 576. The re-login now waits until 18 s after the refused login; it starts only in a run's first
-  25 s, and the second snapshot may start until 40 s (was 25), so a run ends inside 55 s. The end-of-run log-out is
-  not restored (27 s after a log-out IG still refused the next login 87 % of the time). Pin: a one-good-session fake
-  whose old session dies 12 s after a refused login; at 9 s the runs alternate ok/failed as in production, at 18 s
-  every run reads four snapshots in under 55 s; it fails on the deployed code.
-
-### [2026-10-18 20:31 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **weekend_mode 'live' at 20:28:05, reverted to 'shadow' at 20:28:43** (item 4). The switch was meant to first trade on
-  10-23, but `paperView` follows the replica whenever PR5's minute is inside a closure, so 'live' set before Sunday 21:00
-  acts on the remaining minutes. The replica was `late` (copied 05:17 Sun, holding a paper USDC bid fill LIVE never had),
-  so the executor sent 11 £10 entries (ids 6772-6782) at 20:28:27. After the revert it cancelled all 11 by 20:29:26 with
-  0 filled. Lesson: set weekend_mode 'live' only outside a closure. Re-set to 'live' at 21:06:04 UTC (PR5's minute 21:04,
-  outside the closure); take_mode stays 'shadow'.
-- **IG fifth fix landed** (dc74dca2, pushed 20:2x); the deploy goes through edge-functions.yml. The Sunday open was
-  recorded (19:59-20:01 all ok) before it.
-
-### [2026-10-18 20:21 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **LIVE weekend shadow read: PASS on all eight criteria** (sub-agent, item 4; 05:18 to 20:17 Sun, 900 minutes, 2 books):
-  every placement at quoteTicks(fair, k) on the held X 1.3329957 (PR5's last), none kept past the 0.05 % band; last print
-  within 13 bps of fair; £10 a rung; no stale minute, no guard, no error, no LIVE order since 10-16 23:09. Would-be fills
-  (through): USDC ask 0.1 % 06:53, USDC bid 0.1 % 07:33 (paper exit still resting); USDT ask 0.1 % touched at its price
-  12 times, never through. Variant-3 cannot be compared before 10-23. Found and fixed: the shadow wrote an event every
-  minute (1,794 of 1,802 repeats; jsonb reorders keys); `canonJson`, pinned. Details: the live design's addendum log.
-
-### [2026-10-18 20:19 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **IG weekend recorder, fifth fix: keep the session, no routine log-out** (sub-agent; item 14). `ig_quote_runs`
-  05:43-20:16 UTC (fix 4: a fresh login every run, `DELETE /session` at its end): every run after a failed run
-  succeeded on its first login (210 of 210); after an ok run the first login worked 86 times in 662, the re-login
-  rescued 367 and 209 failed with both logins refused (client-token-invalid on both accounts). Runs never overlap
-  (start :00, end by :33). A failed run's log-out ends a session IG had already dropped; an ok run's ends a live one,
-  and the next login 27 s later is then refused. Before fix 4, with no log-out but a fresh login a minute, the same
-  cycle ran; the only clean stretch (12 of 12) was on a session kept between runs. Davies' phone (logged out 06:16)
-  changed nothing. So a clean session is kept between runs (per isolate, memory only): a run logs in only when it has
-  none or IG refuses it, once, logging the refused session out first; a run that ends refused logs out and keeps
-  nothing; the explicit switch at the start of every run stays. Pins: a login limit (3 in 5 minutes) that fix 4 fails
-  from the fourth minute and this reads through ten minutes on one login; a kept session IG drops (client-token-invalid)
-  is logged out, replaced by one login in the same run, and the run reads all four snapshots.
