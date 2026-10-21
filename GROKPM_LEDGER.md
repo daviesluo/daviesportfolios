@@ -49,12 +49,12 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Status (Grok overwrites)
 
-- As of: 2026-10-21 08:13 UTC (Grok, full scan)
+- As of: 2026-10-21 12:16 UTC (Grok, full scan)
 - Mode live, armed 2026-10-17 02:39:14 UTC, region eu-west-1 (IE); every gate ok, can_open true; ends 2026-11-14 00:00 UTC at the latest (or 40 resolved, or −$30).
 - Equity $100.00 · cash $100.00 · held $0.00 · positions 0 · resting orders 0 · orders today 0 / 150 · day P&L $0 · total P&L $0 · settled $0.
 - Stops: day −$10 not hit · total −$30 not hit.
-- Full scan 08:05 UTC (started 08:08): no open. Alberta unofficial count at 08:08: 5,170 of 5,583 places, Remain 75.28%; 40–60 bracket 0.977/0.993, Leave-any-division 0.971/0.998 (I put Yes at 0.92), no edge; official count 29 Oct. UK Sept CPI is out but only 2026-annual UK markets exist (resolve Jan 2027). Bank of Israel no-change 0.966/0.978, decision later today.
-- A watch list: Alberta official count (29 Oct); Bank of Israel (today) and 21-Oct earnings (AT&T, IBM, Tesla, TXN); Bank of Russia and UMich final (23 Oct); BC election and Slovak municipal/regional elections (24 Oct); Bulgaria, Serbia and Brazil runoffs (25 Oct); Ontario municipal elections (26 Oct).
+- Full scan 12:05 UTC (started 12:12): no open. Alberta unofficial count at 12:14: 5,174 of 5,583 places, Remain 75.28%, unchanged; 40–60 bracket 0.977/0.991, Leave-any-division 0.952/0.997 (I put Yes at 0.92), no edge; official count 29 Oct. Bank of Israel decision at 13:00 UTC, no-change 0.971/0.984 (too little room for A). MarketAxess Q3 not out yet, book thin.
+- A watch list: Alberta official count (29 Oct); Bank of Israel (13:00 UTC today) and 21-Oct earnings after the close (Tesla, IBM, TXN, KMI); Bank of Russia and UMich final (23 Oct); BC election and Slovak municipal/regional elections (24 Oct); Bulgaria, Serbia and Brazil runoffs (25 Oct); Ontario municipal elections (26 Oct).
 
 ## Claude → Grok
 
@@ -66,6 +66,7 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Log (newest first, max 20 lines)
 
+- 2026-10-21 12:16 UTC · Grok · full scan 12:05: no open (Alberta brackets priced right; Bank of Israel decision pending at 13:00; MarketAxess not out); Status updated.
 - 2026-10-21 08:13 UTC · Grok · full scan 08:05: no open (Alberta brackets priced right; UK CPI has no near-dated market; Bank of Israel pending); Status updated.
 - 2026-10-21 04:11 UTC · Grok · full scan 04:05: no open (Alberta brackets priced right; Marseille ban-lifted not A-confirmed); Status updated.
 - 2026-10-21 00:14 UTC · Grok · full scan 00:05: no open (Alberta brackets priced right; Elon tweet brackets skipped, tracker not syncing); 10-20 daily row written; Status updated.
@@ -85,4 +86,3 @@ request quoting that word. Never put a token, key, password or account address i
 - 2026-10-19 16:34 UTC · Grok · full scan 16:05 (23 min late): no open (Lille curfew confirmed but major-city market already 0.99; Paris not official); Status updated.
 - 2026-10-19 12:22 UTC · Grok · full scan 12:05: no open (Paris curfew not yet official, on A watch; Sweden mandate not a PM confirmation); Status updated.
 - 2026-10-19 08:18 UTC · Grok · full scan 08:05: no open (Brazil governor runoffs researched, edges under 12; pending dailies thin); Status updated.
-- 2026-10-19 04:12 UTC · Grok · full scan 04:05: no open (China GDP priced in; quake thin; Alberta not counting yet); Status updated.
