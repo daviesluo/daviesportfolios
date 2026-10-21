@@ -588,7 +588,11 @@ that follow from that evidence, in short:
   its pre-registration: RW-C's 10-23 verdict and RW-X4/X5's Test 2 (`reviews/2026-10-02-polymarket-rw-rest-prereg.md`),
   TB1, RWC-OPT, mid-pool's 10-17 readout and 10-23 audit (and its funded draft); LPRESEL6 stands on pm-rec, its paper
   reproduction line short. What runs on Polymarket: live-prep live (`pmlp`, `pmlpreserve`) and pm-rec (`pmrec`,
-  `pmrec-meta`). Where this file describes the paper paths running, it is their history.
+  `pmrec-meta`). Where this file describes the paper paths running, it is their history. On 2026-10-20 their page code
+  left the repository (Davies: tests and code built only for retired strategies go): the dashboard's readers and
+  summaries (`pmrw_view.ts`, `pm_prep_view.ts`), the programme factor's reader (`pm_prog.ts`, its `pmprog` route) and the
+  page's RW, variant, mini-, mid-pool and paper-layer rows and pages. Their engines and replays (`pmrw*.ts`, `pm_prep.ts`,
+  `pm_mid.ts`) stay: live-prep's live path and committed studies import them.
 - **GROKPM, "Polymarket analyst"** ("(Grok)" left the name on 2026-10-17; `0124`, `0125`, `0126`,
   `reviews/2026-10-15-grokpm-prereg.md`; Davies, 2026-10-15 and 2026-10-16): an OUTSIDE Grok agent trades a $100 budget on information (category A: a confirmed outcome the price lags by
   8+ points; B: a researched 12-point mispricing in a quiet market; C: adjustments). Since Deviation D2 ("让grok用我们搭好的
@@ -631,7 +635,7 @@ that follow from that evidence, in short:
   `0103` (written 2026-10-08, ahead of the verdict) takes them out of the list once `pm_rw_days` holds 10-08, and
   `pmrw-e`, `pmrw-x` once their replays hold it on every arm (`public.retire_after_rw()`, every five minutes). On the Agents page it is
   the last row of TESTING STRATEGIES, "Reward quotes" on Polymarket, with a
-  page of its own (Davies, 2026-09-24; `agents/pmrw_view.ts`). TESTING's
+  page of its own (Davies, 2026-09-24; `agents/pmrw_view.ts`, removed 2026-10-20). TESTING's
   scoreboard includes it, on the Polymarket card rather than Revolut X's.
 - **Polymarket's rewarded markets are recorded for research** (`0092`, `agents/pm_book_rec.ts`, reference §4 item 55;
   Davies, 2026-10-04): every minute the books of every market paying $10 a day or more and of every market a Reward

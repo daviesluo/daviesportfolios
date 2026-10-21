@@ -210,8 +210,7 @@ import { PM_MID_INSTANCE, PREP_MID_INSTANCE } from "./pm_mid.ts";
 import { PM_LP_INSTANCE, PREP_LP_INSTANCE } from "./pm_lp.ts";
 import { runPmLpReserve } from "./pm_lp_reserve.ts";
 import { LP_LIVE_CLOSE_COLUMNS, LP_LIVE_CLOSE_MINUTES, LP_LIVE_FILL_COLUMNS, LP_LIVE_HOUR_COLUMNS, LP_LIVE_HOURS_VIEW, LP_LIVE_MARKET_COLUMNS, LP_LIVE_MINUTE_COLUMNS, LP_LIVE_ORDER_COLUMNS, LP_LIVE_REWARD_COLUMNS, lpCloseMinutes, lpLiveSince, lpLiveSummary, type LpLiveCloseRow, type LpLiveConfigRow, type LpLiveFillRow, type LpLiveHourRow, type LpLiveMarketRow, type LpLiveMinuteRow, type LpLiveOrderRow, type LpLiveRewardDayRow, type LpLiveStateRow, type LpLiveStopRow } from "./pm_lp_live_view.ts";
-import { PREP_STRESS_TABLE, recordPrepStress, stressLayer } from "./pm_prep_stress.ts";
-import { prepSummary, type PrepDayRow, type PrepStressDayRow, type PrepFillRow, type PrepMarketRow, type PrepMinuteRow, type PrepRateRow, type PrepStateRow } from "./pm_prep_view.ts";
+import { recordPrepStress } from "./pm_prep_stress.ts";
 import { JEV_QUESTION_VERSION, positionFromFills, unrealisedUsd, type CategoricalState, type Position, type StrategyKind } from "../_shared/agents_strategy.ts";
 import type { Venue, VenueId } from "../_shared/venue.ts";
 import { binancePaperVenue, binanceProbe, toBinanceSymbol } from "./binance.ts";
@@ -229,14 +228,11 @@ import { stepLiveWeekendPaper, type LiveWeekendReport } from "./quotes_live_week
 import { runQuotesVariant, VARIANT_ARMS, VARIANT_KEYS, VARIANT_START, variantCapitalUsd, type VariantArmName } from "./quotes_variant.ts";
 import { runQuotesRuled, RULED_ARMS } from "./quotes_ruled.ts";
 import { runQuotesTwins, twinSpecs, type TwinDriverState, type TwinSpec } from "./quotes_twin.ts";
-import { runPmrw, runPmrwSelect, RW_INSTANCE, RWC_INSTANCE, type RwInstance, type RwSelectReport } from "./pmrw.ts";
-import { rwcSummary, rweArmSummary, rwFeeTypes, rweSummary, rwPageRun, rwPageSource, rwePageReplay, rwSummary, rwxArmSummaries, rwxPageReplay, type RwDayRow, type RweDaysRow, type RweStateRow, type RwFillRow, type RwMinuteRow, type RwSelRow, type RwxDaysRow, type RwStateRow } from "./pmrw_view.ts";
-import type { RweSelRow } from "./pmrw_e.ts";
+import { runPmrw, runPmrwSelect, RWC_INSTANCE, type RwSelectReport } from "./pmrw.ts";
 import { runPmrwE, RWCE_REPLAY } from "./pmrw_e.ts";
-import { parseRwxSpecs, researchRwx, runPmrwX, RWCX_REPLAY, type RwxReplay } from "./pmrw_x.ts";
+import { parseRwxSpecs, researchRwx, runPmrwX, RWCX_REPLAY } from "./pmrw_x.ts";
 import { booksDelayMs, runBooks } from "./books.ts";
 import { PM_REC_VENUE_TIMEOUT_MS, pmRecStorage, runPmRec, runPmRecMeta } from "./pm_book_rec.ts";
-import { runPmProg } from "./pm_prog.ts";
 import { runCjRec } from "./cj_rec.ts";
 import { runGrokPmRec } from "./grokpm_rec.ts";
 import { GROKPM_CONFIG_COLUMNS, GROKPM_CYCLE_COLUMNS, GROKPM_DAILY_COLUMNS, GROKPM_DECISION_COLUMNS, GROKPM_ENTRY_COLUMNS, GROKPM_FILL_COLUMNS, GROKPM_FILL_STATUSES, GROKPM_JOURNAL_ROWS, GROKPM_MARKET_COLUMNS, GROKPM_OPEN_COLUMNS, GROKPM_SNAPSHOT_COLUMNS, grokPmSummary, type GrokPmConfigRow, type GrokPmCycleRow, type GrokPmDailyRow, type GrokPmDayOpenRow, type GrokPmDecisionRow, type GrokPmEntryRow, type GrokPmFillRow, type GrokPmMarketRow, type GrokPmOpenRow, type GrokPmResolutionRow, type GrokPmSnapshotRow } from "./grokpm_view.ts";
@@ -584,24 +580,6 @@ export async function runGrokPmRecAction(deps: { db?: Db; fetchImpl?: typeof fet
  * reads the four books' top levels into their own table. Nothing of the paper test reads them. A fault goes to
  * `ops_errors` as `agents.cb_books` when it first appears and at most hourly while it lasts; it never throws past here.
  */
-/**
- * The programme factor's reader (pm_prog.ts, 0115): the next archived hours of pm-rec's listing, for the markets the
- * TESTING Reward quotes rows selected. A fault goes to `ops_errors` as `agents.pm_prog` when it first appears and at most
- * hourly while it lasts; it never throws past here.
- */
-export async function runPmProgAction(deps: { db?: Db; fetchImpl?: typeof fetch; now?: number } = {}) {
-  try {
-    const now = deps.now ?? Date.now();
-    const report = await runPmProg({ db: deps.db ?? db(), now, holder: crypto.randomUUID(), fetchImpl: deps.fetchImpl });
-    if (report.report) await reportServerError("agents.pm_prog", tickErrorReport({ errors: report.errors, at: new Date(now).toISOString() }));
-    return report;
-  } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    await reportServerError("agents.pm_prog", { message: message.slice(0, 500), context: { at: new Date().toISOString() } });
-    return { error: message.slice(0, 300) };
-  }
-}
-
 export async function runCbBooksAction(wait: boolean, deps: { db?: Db; fetchImpl?: typeof fetch } = {}) {
   try {
     if (wait) await new Promise((r) => setTimeout(r, cbBooksDelayMs(Date.now())));
@@ -1867,60 +1845,6 @@ export function dayOpensFrom(rows: { venue: string; symbol: string; open: number
 }
 
 /**
- * A paper layer's summary for the Agents page (`prepSummary`, RW's shape), read from its instance's tables: its state
- * first (it is saved after the fills it counts), its days, its minutes at the last decided minute, every fill and
- * settlement, and from the path it shadows (`inst.reads`) the selection of every day since the layer started (a day's
- * markets and what their quotes need), the rates at that minute and the total cap, and its worst case at each day's start
- * (0094, `pm_prep_stress.ts`). Small-pool's instance reads 0077's tables and its path's; mid-pool's 0081's. A layer that
- * has decided nothing yet, or a read that fails, is no row; but for the worst case's days, whose failed read leaves them
- * a dash.
- */
-/** The recorder's table of rewarded markets, read for each market's fee type (`fee_type`, Gamma's `feeType`). */
-export const PM_REC_MARKETS = "pm_rec_markets";
-/**
- * Each condition's fee type as the book recorder holds it, read forty conditions to a request (a condition id is 66
- * characters, and a URL of hundreds of them is past what a gateway takes). A condition it does not hold is left out:
- * its fills are unknown, never guessed.
- */
-export async function readFeeTypes(d: Db, conds: string[]): Promise<Record<string, string | null>> {
-  const out: Record<string, string | null> = {};
-  for (let i = 0; i < conds.length; i += 40) {
-    const part = conds.slice(i, i + 40);
-    const rows = await d.select<{ cond: string; fee_type: string | null }>(PM_REC_MARKETS, `cond=in.(${part.map(encodeURIComponent).join(",")})&select=cond,fee_type&order=cond.asc`);
-    for (const r of rows) out[r.cond] = r.fee_type ?? null;
-  }
-  return out;
-}
-
-export async function readPrepSummary(d: Db, inst: PrepInstance, now: number, dayStartMs: number) {
-  const T = inst.tables, R = inst.reads;
-  try {
-    const st = await d.select<PrepStateRow>(T.state, "id=eq.1&select=state,last_minute,last_error,updated_at");
-    const last = st[0]?.last_minute;
-    if (!last) return null;
-    const startedAt = String((st[0].state as { startedAt?: unknown } | null)?.startedAt ?? "").slice(0, 10);
-    const firstDay = /^\d{4}-\d{2}-\d{2}$/.test(startedAt) ? startedAt : new Date(dayStartMs).toISOString().slice(0, 10);
-    const at = encodeURIComponent(last);
-    const [days, latest, rates, fills, settlements, markets, cfg, stressDays] = await Promise.all([
-      d.select<PrepDayRow>(T.days, "select=day,reward,fills_pnl_total,fills,stop_day,stop_total&order=day.asc&limit=400"),
-      d.select<PrepMinuteRow>(T.minutes, `minute=eq.${at}&select=minute,cond,class,b,a,n,qb,qa,close_only,reward&order=cond.asc`),
-      d.select<PrepRateRow>(R.minutes, `mode=eq.dry_run&minute=eq.${at}&select=cond,rate&order=cond.asc`),
-      d.selectAll<PrepFillRow>(T.fills, "select=cond,minute,print_id,ts,side,price,size,token,token_side,token_price,close_only&order=cond.asc,minute.asc,print_id.asc"),
-      d.selectAll<PmSettlement>(T.settlements, "select=cond,yes_token,no_token,payout,settled_at&order=cond.asc"),
-      d.select<PrepMarketRow>(R.markets, `day=gte.${firstDay}&select=day,cond,question,reward_rate,rank,n_size,capital&order=day.asc,rank.asc&limit=400`),
-      d.select<{ cap_total_usd: number | string }>(R.config, "id=eq.1&select=cap_total_usd"),
-      // Its worst case at each day's start (0094): a read that fails (the table not there yet) leaves the days without one.
-      d.select<PrepStressDayRow>(PREP_STRESS_TABLE, `layer=eq.${encodeURIComponent(stressLayer(inst))}&select=day,stress&order=day.asc&limit=400`).catch(() => []),
-    ]);
-    // Each filled market's fee type, as the book recorder holds it (`pm_rec_markets`, which records every market a Reward
-    // quotes path quotes): what the fills paid and would earn back as a maker (`pm_fees.ts`). A read that fails leaves
-    // them unknown, never the row off.
-    const feeTypes = await readFeeTypes(d, [...new Set(fills.map((f) => f.cond))]).catch(() => ({}));
-    return prepSummary({ state: st[0], days, latest, rates, fills, settlements, markets, stressDays, capUsd: Number(cfg[0]?.cap_total_usd) || 0, nowMs: now, feeTypes });
-  } catch { return null; }
-}
-
-/**
  * "Reward quotes live-prep"'s real-money book (`pm_lp_live_view.ts`), the dashboard's `lpLive`: the order path's own live
  * rows (`pm_lp_*`, mode `live`) and nothing of its paper layer. Its state is read first, as the path writes its fills
  * and orders before the state that follows them. Null while it has never been armed nor sent a live order, or when a
@@ -2305,91 +2229,6 @@ async function dashboard(now: number) {
      */
     grokPm,
   };
-}
-
-/**
- * What the page reads of one run of RW's engine (`pmrw.ts`): its state row, the day's portfolio, its closed days, every
- * fill, its first stored minute and the rows of the last minute it decided. The state is read first: the engine saves
- * it after the fills and day rows it counts, so every read after it holds all of those, and `rwSummary` leaves out
- * anything a later run wrote.
- */
-async function readRwRun(d: Db, inst: RwInstance, dayStartMs: number) {
-  const T = inst.tables;
-  const st = await d.select<RwStateRow>(T.state, "id=eq.1&select=state,last_minute,last_error,updated_at");
-  const [selection, days, fills, first] = await Promise.all([
-    d.select<RwSelRow>(T.selection, `day=eq.${new Date(dayStartMs).toISOString().slice(0, 10)}&select=day,cond,rank,rate,v,min_size,capital,q,cat,end_date&order=rank.asc`),
-    d.select<RwDayRow>(T.days, "select=day,total,stress_total,reward,fills,capital,markets,detail&order=day.asc"),
-    d.selectAll<RwFillRow>(T.fills, "select=cond,minute,ts,side,price,size,print_id&order=cond.asc,minute.asc,print_id.asc"),
-    d.select<{ minute: string }>(T.minutes, "select=minute&order=minute.asc&limit=1"),
-  ]);
-  const last = st[0]?.last_minute;
-  const latest = last ? await d.select<RwMinuteRow>(T.minutes, `minute=eq.${encodeURIComponent(last)}&select=cond,minute,tick,b,a,m,ours,others,qb,qa,bb,ba`) : [];
-  return { st, selection, days, fills, first, latest };
-}
-
-/**
- * Every row of RW's family on the page at `now` (Davies, 2026-10-08: RW-C is RW's rule's round 2, "合并进 Reward quotes"):
- * "Reward quotes" (`rw`), "Reward quotes variant-1" (`rwe`, RW-E) and the other variants (`rwx`), each read from the run
- * the clock picks — RW's engine run and its replays (`pm_rw_*`, `pm_rw_e_*`, `pm_rw_x_*`) before RW-C's first minute,
- * RW-C's (`pm_rwc_*`, `pm_rwc_e_*`, `pm_rwc_x_*`) from it — and never from both, so every row is one run's and TESTING's
- * totals add each run once. Each of `rw` and `rwe` says which run it reads (`rwPageSource`). Missing tables (before a
- * migration) or no state leave `rw` off the page, as before; from the switch, until RW-C's engine and RW-E's replay of it
- * write their first state, the rows are there, empty, saying when they start (`rwcSummary`, `rweArmSummary`).
- */
-export async function readRwPage(d: Db, now: number, dayStartMs: number) {
-  const inst = rwPageRun(now), eReplay = rwePageReplay(now), xReplay = rwxPageReplay(now), src = rwPageSource(inst);
-  try {
-    const { st, selection, days, fills, first, latest } = await readRwRun(d, inst, dayStartMs);
-    // RW-E beside it (`0056`): its own tables; before they exist, or before its first run, the page shows RW alone.
-    const reads = await (async () => {
-      try {
-        return await Promise.all([
-          d.select<RweStateRow>(eReplay.tables.state, "id=eq.1&select=state,last_minute,last_error,updated_at"),
-          d.select<RweDaysRow>(eReplay.tables.days, "select=day,arm,total,stress_total,reward,fills,capital,markets,detail&order=day.asc,arm.asc&limit=100"),
-          // Every day's portfolio, for the market-days RW-E leaves out (the replay reads it the same way).
-          d.select<RweSelRow>(inst.tables.selection, "select=day,cond,tick,v,min_size,rate,end_date,cat&order=day.asc,cond.asc&limit=1000"),
-        ]);
-      } catch { return null; }
-    })();
-    // Each market's fee type from every day's portfolio (today's alone when that read failed): what each row's fills paid
-    // and would earn back as a maker (`pm_fees.ts`), shown beside its realised.
-    const feeTypes = rwFeeTypes(reads?.[2] ?? selection);
-    const out = inst === RW_INSTANCE
-      ? rwSummary({ state: st[0] ?? null, selection, latest, days, fills, firstMinute: first[0]?.minute ?? null, nowMs: now, feeTypes })
-      : rwcSummary({ state: st[0] ?? null, selection, latest, days, fills, nowMs: now, feeTypes });
-    const e = reads ? rweSummary({ state: reads[0][0] ?? null, days: reads[1], selection, nowMs: now, replay: eReplay }) : null;
-    const arm = reads
-      ? rweArmSummary({ rwState: st[0] ?? null, eState: reads[0][0] ?? null, selectionAll: reads[2], today: selection, latest, days: reads[1], fills, nowMs: now, replay: eReplay, withFees: true })
-      : null;
-    // RW-E's variants (`0064`): rows of their own after it (Davies, 2026-09-27), read from the same run's replay of the arms.
-    const rwx = !reads ? [] : await readRwxRows(d, now, xReplay, { st, selection, latest, fills }, reads[2]);
-    return { rw: out && { ...out, ...src, e }, rwe: arm && { ...arm, ...src, e }, rwx };
-  } catch { return { rw: null, rwe: null, rwx: [] as Awaited<ReturnType<typeof readRwxRows>> }; }
-}
-
-/**
- * The page's variant rows from one replay of the arms (`RWX_REPLAY` on RW's minutes, `RWCX_REPLAY` on RW-C's): its state
- * and day rows, every day's portfolio of its engine run (`selectionAll`, read here unless the caller has it), and that
- * run's records (`given`, `readRwRun`'s, read here when the caller has not). Every read is that replay's and its run's
- * own tables, so a row is never RW's and RW-C's at once. A failed read leaves the rows off; a run whose records could
- * not be read is read as one with none.
- */
-export async function readRwxRows(
-  d: Db, now: number, replay: RwxReplay,
-  given?: { st: RwStateRow[]; selection: RwSelRow[]; latest: RwMinuteRow[]; fills: RwFillRow[] } | null, selectionAll?: RweSelRow[],
-) {
-  try {
-    const run = given !== undefined ? given : await readRwRun(d, replay.source, Math.floor(now / ONE_D) * ONE_D).catch(() => null);
-    const [xs, xdays, all] = await Promise.all([
-      d.select<RweStateRow>(replay.tables.state, "id=eq.1&select=state,last_minute,last_error,updated_at"),
-      d.select<RwxDaysRow>(replay.tables.days, "select=day,arm,total,stress_total,reward,fills,capital,markets&order=day.asc,arm.asc&limit=200"),
-      selectionAll ?? d.select<RweSelRow>(replay.source.tables.selection, "select=day,cond,tick,v,min_size,rate,end_date,cat&order=day.asc,cond.asc&limit=1000"),
-    ]);
-    return rwxArmSummaries({
-      rwState: run?.st[0] ?? null, xState: xs[0] ?? null, selectionAll: all, today: run?.selection ?? [], latest: run?.latest ?? [], days: xdays,
-      fills: run?.fills ?? [], nowMs: now, replay, withFees: true,
-    });
-  } catch { return []; }
 }
 
 /**
@@ -2892,8 +2731,6 @@ async function route(req: Request, who: Exclude<Who, null>, url: URL, action: st
   if (action === "cbbooks" && req.method === "POST" && operator) return json(200, await runCbBooksAction(url.searchParams.get("wait") !== "0"));
   // GROKPM's independent record (grokpm_rec.ts, 0124): the outside agent's wallet, every five minutes. Keyless reads.
   if (action === "grokpmrec" && req.method === "POST" && operator) return json(200, await runGrokPmRecAction());
-  // The programme factor's reader (pm_prog.ts, 0115): pm-rec's archived listing into `pm_prog_reads`. Reads only.
-  if (action === "pmprog" && req.method === "POST" && operator) return json(200, await runPmProgAction());
   // Polymarket's order path (pm_live.ts, 0074): its dry-run, called from eu-west-1 by the one-minute job. Cron bearer only.
   if (action === "pmlive" && req.method === "POST" && who === "cron") return json(200, await runPmLiveAction());
   // "Reward quotes small-pool" (pm_prep.ts, 0077): the path's dry-run filled on paper. Keyless public reads only.

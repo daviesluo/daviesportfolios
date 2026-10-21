@@ -16,7 +16,7 @@ import { SurfaceBoundary } from '../app/surface_boundary.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, rwFeeAsides, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, fmtUsd4, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, quotesPageFor, MID_ROW_ID, LP_ROW_ID, isPrepRowId, prepStopText, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwTestedSince, rweCheckWarn, rwRow, rwShareText, rwCatchUpText, rwStartsText, rwTodayRow, rwView, rwxCheckWarn, rwxSourceText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows, rwRoundText,
+  AGENT_TABS, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, quotesPageFor, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwShareText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -958,91 +958,6 @@ function RwFillsTable({ recent, m, waiting = null }) {
   );
 }
 
-/**
- * RW's paper test (reference §4 item 36), opened from its row in TESTING STRATEGIES: the strategy page's header and
- * scoreboard, then what differs — the bar's running figures, the closed days, today's quotes (each market, its
- * bid and ask, our share of the pool), and the fills with the prints that proved them. Every Reward quotes row opens
- * this page, the order path's paper layers' included (Davies, 2026-10-01: "the same as the other Reward quotes pages").
- * @param {{ r: any, m: (s: string) => string, at: any, nowMs?: number, row?: any }} props
- */
-function RwDetail({ r, m, at, nowMs, row: rowIn = null }) {
-  // RW-E's page is RW's page read from the replay's arm (`rweRow`), each of its variants' from its own (`rwxRows`), and
-  // mid-pool's and live-prep's from their own layers (`midRow`, `lpRow`, both `prepRow`'s); RW's own is `rwRow`, read
-  // from RW's run until RW-C's first minute and from RW-C's, its round 2, from it.
-  const row = rowIn ?? rwRow(r);
-  const v = rwView(r);
-  if (!row || !v) return null;
-  const markets = r.markets ?? [], days = r.days ?? [], recent = r.recent ?? [];
-  // A variant before its first minute has nothing of its own yet (Davies, 2026-09-27): its tables say when it starts.
-  const waiting = !r.notStarted ? null : r.catchingUp ? `${rwCatchUpText(r.lastMinute).replace(/^c/, 'C')}.` : `${rwStartsText(r.startsAt).replace(/^s/, 'S')}.`;
-  const today = rwTodayRow(r, at);
-  const dayRows = today ? [today, ...days] : days;
-  /** @param {number | null | undefined} x */
-  const usd = (x) => m(fmtUsd(Number(x) || 0, true));
-  return (
-    <div className="ag-detail ag-rw-detail">
-      <div className="ag-detail-head">
-        <ModeBadge mode="paper" />
-        <VenueBadge id={row.venueId} />
-        <StatusDot status={row.status} since={rwTestedSince(v)} until={v.runEnd} nowMs={nowMs} />
-      </div>
-      <h3 className="ag-detail-title mono sr-only">{row.name}</h3>
-      {/* Realised's rewards and orders (rwRow) and the bar's total, rewards and orders (rwView) come to the cent from
-          one split of one total (rwSplit). Unrealised is the figure alone: its split is not shown (Davies, 2026-09-24). */}
-      <div className="ag-scoreboard ag-scoreboard-sm">
-        <FundedCells fundedUsd={row.capitalUsd} deployedUsd={row.valueUsd} m={m} />
-        <div className="ag-sb-divider" />
-        <GlCell label="TODAY" usd={row.todayUsd} pct={row.todayPct} m={m} />
-        <div className="ag-sb-divider" />
-        <GlCell label="UNREALIZED G/L" usd={row.unrealisedUsd} pct={row.unrealisedPct} m={m} />
-        <div className="ag-sb-divider" />
-        {/* Its fees in LIVE's design, "(incl. fees …)", and its estimated maker rebates (Davies, 2026-10-09: "同步live页面中的加上fees的
-            设计", "按照实际情况估算"; `rwFeeAsides`). */}
-        <GlCell label="REALIZED G/L" usd={row.realisedUsd} pct={row.realisedPct} m={m} cls={row.feesUsd != null ? 'ag-sb-realised' : ''} aside={rwFeeAsides(row, m)}
-          split={[['rewards', row.rewards.realisedUsd], ['orders', row.orders.realisedUsd]]} />
-      </div>
-      {v.stoppedText && <div className="ag-warn-line">{v.stoppedText}</div>}
-      {v.mismatch && <div className="ag-warn-line">its fills and its total differ by {usd(r.mismatchUsd)}</div>}
-      {row.id === RWE_ROW_ID && rweCheckWarn(r.e) && <div className="ag-warn-line">{rweCheckWarn(r.e)}</div>}
-      {row.id.startsWith(RWX_ROW_PREFIX) && rwxCheckWarn(r) && <div className="ag-warn-line">{rwxCheckWarn(r)}</div>}
-      {/* A variant reads RW's replay until RW-C's first minute and RW-C's from it: the page says which, and since when. */}
-      {(row.id.startsWith(RWX_ROW_PREFIX) || row.id === RWE_ROW_ID) && rwxSourceText(r) && <p className="ag-note dim ag-rwx-source">{rwxSourceText(r)}</p>}
-      {/* "Reward quotes" reads round 1 (RW's run) until RW-C's first minute and round 2 (RW-C's) from it: the page says which. */}
-      {row.id === RW_ROW_ID && rwRoundText(r) && <p className="ag-note dim ag-rw-round">{rwRoundText(r)}</p>}
-      {isPrepRowId(row.id) && prepStopText(r) && <div className="ag-warn-line">{prepStopText(r)}</div>}
-      <RwBar v={v} r={r} usd={usd} />
-
-      <section className="ag-section ag-rw-days">
-        <div className="ag-section-title mono">DAYS</div>
-        <div className="hl-scroll">
-          <table className="hl-table ag-table ag-log mono">
-            <thead><tr>
-              <th className="hl-th">Day (UTC)</th><th className="hl-th">Costs</th><th className="hl-th">Fills</th><th className="hl-th">WORST CASE</th><th className="hl-th">Rewards</th><th className="hl-th">Total</th>
-            </tr></thead>
-            <tbody>
-              {dayRows.length === 0 && <tr><td className="hl-empty dim" colSpan={6}>{waiting ?? 'No day yet.'}</td></tr>}
-              {dayRows.map((d) => (
-                <tr key={d.live ? 'today' : d.day} className={d.phase === 'warm-up' ? 'ag-rw-warmup-day' : undefined}>
-                  <td className="dim">{dayLabel(d.day)}{d.phase === 'warm-up' ? ' · warm-up' : ''}{d.live ? ' · today' : ''}{d.stop ? ' · stopped' : ''}</td>
-                  <td>{d.capitalUsd == null ? '—' : m(fmtUsd(d.capitalUsd))}</td>
-                  <td>{d.fills}</td>
-                  {/* A worst case that was not recorded (a paper layer's closed days) is a dash, never $0.00. */}
-                  <td className="ag-gl" style={d.stressUsd == null ? undefined : { color: pctColor(d.stressUsd) }}>{d.stressUsd == null ? '—' : usd(d.stressUsd)}</td>
-                  <td className="ag-gl" style={{ color: pctColor(d.rewardUsd) }}>{usd(d.rewardUsd)}</td>
-                  <td className="ag-gl" style={{ color: pctColor(d.totalUsd) }}>{usd(d.totalUsd)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-      <RwQuotesTable markets={markets} m={m} usd={usd} waiting={waiting} />
-      <RwFillsTable recent={recent} m={m} waiting={waiting} />
-      <div className="ag-updated dim mono ag-rw-foot">as of {when(at)} {UK_TZ} · refreshes every minute</div>
-    </div>
-  );
-}
-
 // Status and return first: the two facts that say whether a strategy is
 // alive and making money sit right after its name at every width. The
 // money detail (cost, value, unrealised, orders, last decision) hides
@@ -1742,9 +1657,6 @@ function AgentsModal({ hideValues, onClose }) {
   // payload no longer sent; mini-pool's had left with 0103. A page opens its row only as the list has it, so a payload
   // from an older function deploy opens none of them.
   const tests = React.useMemo(() => paperTestRows(dash), [dash]);
-  const testRow = (/** @type {string} */ id) => tests.find((t) => t.id === id) ?? null;
-  const rwe = testRow(RWE_ROW_ID), mid = testRow(MID_ROW_ID), lp = testRow(LP_ROW_ID);
-  const rwx = tests.filter((t) => t.id.startsWith(RWX_ROW_PREFIX));
   const testing = React.useMemo(() => [...split.testing, ...tests], [split, tests]);
   // PR5's live executor is a row of LIVE once it trades real money (Davies, 2026-09-26), in LIVE's scoreboard and its
   // Revolut X card; its twin is on TESTING.
@@ -1765,12 +1677,6 @@ function AgentsModal({ hideValues, onClose }) {
   const quotesLiveOpen = quotesPage === 'live';
   const twinOpen = quotesPage === 'twin' ? quotesTwinOf(selected, dash) : null;
   const coinbaseOpen = quotesPage === 'coinbase' ? (selected === QUOTES_COINBASE_HOLD_ROW_ID ? dash.quotesCoinbaseHold : dash.quotesCoinbase) : null;
-  const rwOpen = selected === RW_ROW_ID && !!dash?.rw && !!testRow(RW_ROW_ID);
-  const rweOpen = selected === RWE_ROW_ID && !!dash?.rwe && !!rwe;
-  const rwxRow = rwx.find((x) => x.id === selected) ?? null;
-  const rwxOpen = rwxRow ? (dash?.rwx ?? []).find((/** @type {any} */ x) => `${RWX_ROW_PREFIX}${x.id}` === rwxRow.id) ?? null : null;
-  const midOpen = selected === MID_ROW_ID && !!dash?.prepMid && !!mid;
-  const lpOpen = selected === LP_ROW_ID && !!dash?.prepLp && !!lp;
   const lpLiveOpen = selected === LP_LIVE_ROW_ID && !!lpLiveRow(dash?.lpLive);
   const grokPmOpen = selected === GROKPM_ROW_ID && !!grokPmRow(dash?.grokPm);
   const notReady = !!dash?.notReady;
@@ -1891,71 +1797,6 @@ function AgentsModal({ hideValues, onClose }) {
         </header>
         <div className="modal-body ag-body">
           <PageGuard gen={gen}><QuotesLiveDetail q={coinbaseOpen} m={m} at={dash.at} nowMs={now} coinbase /></PageGuard>
-        </div>
-      </Modal>
-    )}
-    {rwOpen && (
-      <Modal onClose={() => setSelected(null)} size="lg">
-        <header className="modal-head">
-          <div>
-            <h2 className="modal-title mono">Reward quotes</h2>
-          </div>
-          <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
-        </header>
-        <div className="modal-body ag-body">
-          <PageGuard gen={gen}><RwDetail r={dash.rw} m={m} at={dash.at} nowMs={now} /></PageGuard>
-        </div>
-      </Modal>
-    )}
-    {rweOpen && (
-      <Modal onClose={() => setSelected(null)} size="lg">
-        <header className="modal-head">
-          <div>
-            <h2 className="modal-title mono">{rwe.name}</h2>
-          </div>
-          <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
-        </header>
-        <div className="modal-body ag-body">
-          <PageGuard gen={gen}><RwDetail r={dash.rwe} m={m} at={dash.at} nowMs={now} row={rwe} /></PageGuard>
-        </div>
-      </Modal>
-    )}
-    {rwxRow && rwxOpen && (
-      <Modal onClose={() => setSelected(null)} size="lg">
-        <header className="modal-head">
-          <div>
-            <h2 className="modal-title mono">{rwxRow.name}</h2>
-          </div>
-          <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
-        </header>
-        <div className="modal-body ag-body">
-          <PageGuard gen={gen}><RwDetail r={rwxOpen} m={m} at={dash.at} nowMs={now} row={rwxRow} /></PageGuard>
-        </div>
-      </Modal>
-    )}
-    {midOpen && mid && (
-      <Modal onClose={() => setSelected(null)} size="lg">
-        <header className="modal-head">
-          <div>
-            <h2 className="modal-title mono ag-title-wraps">{mid.name}</h2>
-          </div>
-          <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
-        </header>
-        <div className="modal-body ag-body">
-          <PageGuard gen={gen}><RwDetail r={dash.prepMid} m={m} at={dash.at} nowMs={now} row={mid} /></PageGuard>
-        </div>
-      </Modal>
-    )}
-    {lpOpen && lp && (
-      <Modal onClose={() => setSelected(null)} size="lg">
-        <header className="modal-head">
-          <div>
-            <h2 className="modal-title mono ag-title-wraps">{lp.name}</h2>
-          </div>
-          <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
-        </header>
-        <div className="modal-body ag-body">
-          <PageGuard gen={gen}><RwDetail r={dash.prepLp} m={m} at={dash.at} nowMs={now} row={lp} /></PageGuard>
         </div>
       </Modal>
     )}

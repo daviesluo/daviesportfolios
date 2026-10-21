@@ -587,7 +587,6 @@ export function totalsView(dash) {
   };
 }
 
-
 /** @param {any} o */
 export function orderView(o) {
   const price = Number(o.avg_fill_price ?? o.price), base = Number(o.filled_base || o.base_size);
@@ -1770,17 +1769,6 @@ export function testedForText(sinceIso, nowMs, untilIso = null) {
 }
 
 /**
- * When an RW row's own test began: its own first minute (a variant's is its start), never before the fourteen days did,
- * because the warm-up is counted nowhere. Null before it has started.
- * @param {{ since?: string | null, runStart?: string | null } | null | undefined} v  `rwView`
- */
-export function rwTestedSince(v) {
-  const a = Date.parse(String(v?.since ?? '')), b = Date.parse(String(v?.runStart ?? ''));
-  if (!Number.isFinite(a)) return null;
-  return new Date(Number.isFinite(b) ? Math.max(a, b) : a).toISOString();
-}
-
-/**
  * One book's ladder for the quote test's page: a row per rung distance (0.1 / 0.2 / 0.3 % from interbank), its bid
  * and its ask. A rung is idle, quoting at a price, or holding what it filled (its entry, and its P&L at the last print).
  * @param {any} book  one of the dashboard's `quotes.books`
@@ -1811,9 +1799,6 @@ export const quoteRungLabel = (k) => `${+(Number(k) * 100).toFixed(3)} %`;
 
 /** A book's name as the page writes a pair: "USDC-GBP" → "USDC/GBP". @param {string} b */
 export const quoteBookLabel = (b) => String(b ?? '').replace('-', '/');
-
-/** RW's paper test's id among the table's rows. No strategy id starts with "__", so it cannot collide with one. */
-export const RW_ROW_ID = '__rw';
 
 /** A Polymarket price in cents, as the venue writes one: "49¢", "4.5¢". @param {number | null | undefined} p */
 export function fmtCents(p) {
@@ -1876,22 +1861,6 @@ export function splitCents(total, parts) {
 }
 
 /**
- * RW's P&L as its page and its row print it: the total, and both ways it splits — rewards and orders, realised and
- * unrealised — to the cent, from ONE split of the total into its three pieces: the rewards (all realised), what
- * closed orders made, and what open orders hold. So every printed part adds up to every printed total.
- * @param {any} r  the dashboard's `rw`
- */
-export function rwSplit(r) {
-  const reward = Number(r?.rewardUsd) || 0, realised = Number(r?.realisedUsd) || 0, unrealised = Number(r?.unrealisedUsd) || 0;
-  const s = splitCents(Number(r?.totalUsd) || 0, [reward, realised - reward, unrealised]);
-  const [rw, closed, open] = s.parts.map((x) => Math.round(x * 100));
-  return {
-    totalUsd: s.total, rewardUsd: rw / 100, ordersUsd: (closed + open) / 100,
-    realisedUsd: (rw + closed) / 100, realisedOrdersUsd: closed / 100, unrealisedUsd: open / 100,
-  };
-}
-
-/**
  * Tiles under RW's status: the pessimistic total, how concentrated it is, markets quoting today, positions still held. A
  * real-money book (LIVE's "Reward quotes") has no worst case: its first tile is the actual R, what Polymarket paid over
  * what the formula gave (Davies, 2026-10-09: "STATUS里WORST CASE部分改为实际R值").
@@ -1902,38 +1871,6 @@ export function rwBarTileKeys(_phase, live = false) {
   // 2026-10-09). TESTING's pages keep theirs.
   // Its R is named by what it is since LP-OBS-DEEP (2026-10-11): paid over the whole formula (`lpLiveStatus`).
   return live ? [LP_R_TILE, 'QUOTING TODAY', 'POSITIONS STILL HELD', 'REWARDS TODAY (EST.)'] : ['WORST CASE', 'TOP SHARE', 'QUOTING TODAY', 'POSITIONS STILL HELD'];
-}
-
-/**
- * The UTC day still in progress, in the same columns as a closed day. Closed days are each the change since the
- * previous close of the same phase; this row is the snapshot minus those changes, so it does not repeat them.
- * Its total is the scoreboard's today (`todayUsd`). Costs are the capital at work now, a level, as on a closed day.
- * A closed day whose worst case was not recorded (null) leaves today's unknown too, unless the summary carries today's
- * itself (`todayStressUsd`, the order path's paper layers: their running worst case less the day's recorded start), and
- * a level that is not known (null) stays so. `stop` is a loss stop holding the day close-only (theirs).
- * @param {any} r  the dashboard's `rw`
- * @param {string | number | null | undefined} [at]  when the page was read; the day's label
- */
-export function rwTodayRow(r, at) {
-  if (!r || r.notStarted) return null;
-  const phase = r.phase;
-  const closed = (r.days ?? []).filter((d) => d.phase === phase);
-  const sum = (/** @type {string} */ k) => closed.reduce((s, d) => s + (Number(d[k]) || 0), 0);
-  const stamp = at || r.lastMinute || new Date().toISOString();
-  const ms = Date.parse(String(stamp));
-  const day = Number.isFinite(ms) ? new Date(ms).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
-  return {
-    day, phase, live: true,
-    totalUsd: Number(r.todayUsd) || 0,
-    // The paper layers send today's worst case themselves (`todayStressUsd`: the running one less the day's start), so
-    // it does not wait on every closed day having one; RW's rows send none and keep the subtraction.
-    stressUsd: 'todayStressUsd' in r ? (r.todayStressUsd == null ? null : Number(r.todayStressUsd))
-      : closed.some((d) => d.stressUsd == null) ? null : (Number(r.stressUsd) || 0) - sum('stressUsd'),
-    rewardUsd: (Number(r.rewardUsd) || 0) - sum('rewardUsd'),
-    fills: (Number(r.fills) || 0) - sum('fills'),
-    capitalUsd: r.capitalUsd == null ? null : Number(r.capitalUsd) || 0,
-    stop: !!r.stopTotal || (!!r.stopDay && r.stopDay === day),
-  };
 }
 
 /**
@@ -1976,341 +1913,6 @@ export function rwFillView(f) {
 }
 
 /**
- * Cost of RW's open inventory, the same base a strategy's unrealised percent uses. A long Yes is shares × its
- * average Yes price; a short Yes is long No, so its cost is shares × (1 − that price).
- * @param {any[] | null | undefined} markets
- */
-export function rwInventoryCost(markets) {
-  let cost = 0;
-  for (const x of markets ?? []) {
-    const net = Number(x?.net) || 0;
-    const avg = Number(x?.avgCost);
-    if (!net || !Number.isFinite(avg)) continue;
-    cost += net > 0 ? net * avg : -net * (1 - avg);
-  }
-  return cost;
-}
-
-/**
- * The one thing left of RW-E's section on RW's page (Davies, 2026-09-26: the section went): a warning, on RW-E's own
- * page, when the replay's copy of RW no longer equals RW's own closed days — RW-E's figures come from that replay, so
- * a gap there means they are not RW's rule on RW's data. null while they agree, and before a day has closed.
- * @param {any} e  the dashboard's `rwe.e`
- */
-export function rweCheckWarn(e) {
-  const days = Number(e?.check?.days) || 0;
-  if (days === 0 || e.check.ok) return null;
-  // From RW-C's first minute (2026-10-09) RW-E's replay is of RW-C's run, and its check is against RW-C's own days.
-  const src = e?.source === 'RW-C' ? 'RW-C' : 'RW';
-  return `The replay differs from ${src}'s own days by ${fmtUsd(Number(e.check.maxUsd) || 0)}, so these figures are not RW's rule on ${src}'s data.`;
-}
-
-/**
- * Which round of RW's rule "Reward quotes" reads, and since when, for its page (Davies, 2026-10-08: RW-C is no strategy
- * of its own but RW's rule on fresh days, "合并进 Reward quotes"). Round 1 is RW's own fourteen days, until RW-C's first
- * minute, 2026-10-09 00:00 UTC; round 2 is RW-C's run from it. One round at a time: at the switch the row starts again
- * from zero and never adds the two together, and round 1's figures stay where RW's verdict reads them. null for a payload
- * that does not say (one from before the switch was built).
- * @param {any} r  the dashboard's `rw`
- */
-export function rwRoundText(r) {
-  const src = r?.source;
-  if (src === 'RW') {
-    const head = `Round 1: RW's own fourteen days${r.runStart ? ` from ${rwStartStamp(r.runStart)}` : ''}.`;
-    const at = r.sourceNext?.at;
-    return at ? `${head} From ${rwStartStamp(at)} it reads round 2, RW's rule on fresh days, and starts again from zero.` : head;
-  }
-  if (src !== 'RW-C') return null;
-  const since = r.startedAt ?? r.startsAt;
-  return `Round 2: RW's rule on fresh days${since ? ` ${r.startedAt ? 'since' : 'from'} ${rwStartStamp(since)}` : ''}. Round 1's figures are not in it.`;
-}
-
-/**
- * RW's paper test (reference §4 item 36): minimum-size quotes on both sides of Polymarket's rewarded markets, a
- * portfolio re-chosen each UTC day, run on paper for fourteen days after a warm-up. `r` is the dashboard's `rw`; null
- * keeps it off the page (its tables are not there yet, or it has no state). The total, its rewards and its orders
- * come from `rwSplit`, the same split `rwRow` prints realised and unrealised from.
- * @param {any} r
- */
-export function rwView(r) {
-  if (!r) return null;
-  const total = Number(r.totalUsd) || 0, best = r.bestMarketUsd == null ? null : Number(r.bestMarketUsd);
-  const s = rwSplit(r);
-  const days = r.runStart && r.runEnd ? Math.round((Date.parse(r.runEnd) - Date.parse(r.runStart)) / 86400e3) : 14;
-  return {
-    totalUsd: s.totalUsd, rewardUsd: s.rewardUsd, ordersUsd: s.ordersUsd,
-    dayOfRun: r.phase === 'run' ? Number(r.dayOfRun) || null : null, days,
-    phase: r.phase,
-    phaseText: r.phase === 'warm-up' ? 'warm-up, counted nowhere' : r.phase === 'run' ? `day ${r.dayOfRun} of 14` : 'the fourteen days are over',
-    runStart: r.runStart, runEnd: r.runEnd, since: r.startedAt ?? null,
-    stoppedText: r.finished ? 'the fourteen days are over' : r.running ? '' : r.catchingUp ? rwCatchUpText(r.lastMinute) : rwNotRunningText(r),
-    fillsText: `${Number(r.fills) || 0} of 100`,
-    bestShareText: best != null && total > 0 ? `${Math.round((100 * best) / total)} %` : '—',
-    mismatch: Math.abs(Number(r.mismatchUsd) || 0) > 0.01,
-  };
-}
-
-/**
- * A Reward quotes row's "N open": the rows of its page's QUOTES table, the markets it quotes today and those it still
- * holds from an earlier day (Davies, 2026-10-04: "xx open应该显示的是quotes里面的行数"). It counted only the markets
- * holding inventory, which before any fill is none and so read like the FILLS table's count.
- * @param {any} r  the dashboard's `rw`, `prep`, `prepMid`, `prepLp` or a variant's
- */
-export const rwQuoteRows = (r) => (Array.isArray(r?.markets) ? r.markets.length : 0);
-
-/**
- * A Reward quotes paper row's fees, as LIVE's "Reward quotes" shows its own (Davies, 2026-10-09: "每个Reward quotes子页面的
- * scoreboard里也一样（同步live页面中的加上fees的设计）", then "按照实际情况估算"): the dashboard's `fees`, Polymarket's own rule on
- * the row's fills (`pm_fees.ts`). Every paper fill is a resting quote a print went through, a maker's, which Polymarket
- * never charges, so its fees are $0 by that rule, not by default; what it would earn back as a maker is estimated beside
- * them (`rebatesEstUsd`) and counted in no figure; `unpriced` fills are of markets no record gives a fee type. A payload
- * without `fees` (one from before them) has none, and its page shows no line rather than a made-up $0.
- * @param {any} r  a Reward quotes summary
- * @returns {{ feesUsd: number | null, rebatesEstUsd: number | null, unpricedFills: number }}
- */
-export function rwFeeCells(r) {
-  const f = r?.fees;
-  if (!f) return { feesUsd: null, rebatesEstUsd: null, unpricedFills: 0 };
-  return { feesUsd: Number(f.feesUsd) || 0, rebatesEstUsd: Number(f.rebatesEstUsd) || 0, unpricedFills: Number(f.unknownFills) || 0 };
-}
-
-/**
- * What a Reward quotes page's REALIZED says beside its figure, in LIVE's design: "(incl. fees $0.00)" and, for a paper
- * row, its estimated maker rebates, not counted. None for a row without fees.
- * @param {any} row  `rwRow`, `prepRow` or `lpLiveRow`'s
- * @param {(s: string) => string} [m]
- * @returns {string[]}
- */
-export function rwFeeAsides(row, m = (s) => s) {
-  if (row?.feesUsd == null) return [];
-  const out = [`(incl. fees ${m(fmtUsd(row.feesUsd))})`];
-  if (row.rebatesEstUsd != null) {
-    const unpriced = Number(row.unpricedFills) || 0;
-    out.push(`(est. maker rebates ${m(fmtUsd(row.rebatesEstUsd, true))}, not counted${unpriced ? `; ${unpriced} fill${unpriced === 1 ? '' : 's'} unpriced` : ''})`);
-  }
-  return out;
-}
-
-/**
- * RW as a row of TESTING STRATEGIES (Davies, 2026-09-24), in the cells a strategy's row has. Its capital is the $1,000
- * it is funded with (the dashboard's `fundedUsd`; Davies, 2026-09-26: a cap like every other strategy's), the base of
- * its today and realised percents; what its markets have at work each day (each market's first quote and its largest
- * inventory, the spec's capital) stays in its days table. A payload from before `fundedUsd` falls back to that. Unrealised is
- * the open inventory at the adjusted mid against its average cost, as a percent of what it holds; realised is the
- * rewards and what closed trades made. Realised and unrealised come to the cent from `rwSplit`, against the total
- * RW's page prints beside them, so wherever the two show they add up to it; the split is on the row too, for the page's
- * rewards-and-orders lines and the Polymarket card. null keeps it off the table.
- * @param {any} r  the dashboard's `rw`
- */
-export function rwRow(r) {
-  if (!r) return null;
-  const capital = Number(r.fundedUsd) || Number(r.capitalUsd) || 0, held = Number(r.heldUsd) || 0;
-  const pct = (usd, base) => (base > 0 ? (Number(usd) / base) * 100 : null);
-  const quoting = Number(r.quoting) || 0;
-  const split = rwSplit(r);
-  return {
-    id: RW_ROW_ID,
-    name: 'Reward quotes',
-    venue: venueLabel('polymarket'),
-    venueId: 'polymarket',
-    mode: 'paper',
-    // The scoreboard still folds what this test has deployed. The row's own percent is of inventory cost, like every
-    // other strategy's unrealised (Davies, 2026-09-25).
-    scoreDeployed: true,
-    capitalUsd: capital,
-    // Deployed is every dollar at work (Davies, 2026-10-01, as the stablecoin quotes'): what its quotes resting now tie up
-    // (`quotedUsd`, RW's own capital for a quote) and what it holds. The scoreboard's unrealised base stays what it holds.
-    valueUsd: held + (Number(r.quotedUsd) || 0), heldUsd: held,
-    todayUsd: r.todayUsd ?? 0, todayPct: pct(r.todayUsd ?? 0, capital),
-    unrealisedUsd: split.unrealisedUsd, unrealisedPct: pct(split.unrealisedUsd, rwInventoryCost(r.markets)), unrealisedBaseUsd: rwInventoryCost(r.markets),
-    realisedUsd: split.realisedUsd, realisedPct: pct(split.realisedUsd, capital),
-    rewards: { realisedUsd: split.rewardUsd, unrealisedUsd: 0 },
-    orders: { realisedUsd: split.realisedOrdersUsd, unrealisedUsd: split.unrealisedUsd },
-    ...rwFeeCells(r),
-    // Before its first minute, NEXT is when it starts: the date and time alone, two lines at most in the table's column.
-    // A replay working through a backlog (a new replay version replays from RW's start) is catching up, not stopped.
-    nextText: r.finished ? 'finished' : r.catchingUp ? 'catching up' : r.notStarted ? rwStartStamp(r.startsAt) : 'every minute',
-    openPositions: rwQuoteRows(r),
-    status: r.finished
-      ? { label: 'paper', running: false, tone: 'paused', detail: 'the fourteen days are over' }
-      : r.catchingUp
-        ? { label: 'paper', running: false, tone: 'stale', detail: rwCatchUpText(r.lastMinute) }
-      : !r.running
-        ? { label: 'paper', running: false, tone: 'stale', detail: rwNotRunningText(r) }
-        : r.notStarted
-          ? { label: 'paper', running: false, tone: 'paused', detail: rwStartsText(r.startsAt) }
-          : { label: 'paper', running: true, tone: 'running', detail: `quoting ${quoting} market${quoting === 1 ? '' : 's'} · last minute decided ${Number(r.lagMinutes) || 0} min ago` },
-  };
-}
-
-/**
- * When a variant of RW's starts, in UK time: "28 Sep 01:00 BST". A variant's row shows only what it did under its own
- * rules (Davies, 2026-09-27), so until its first minute it has nothing to show but this.
- * @param {string | null | undefined} iso
- */
-export function rwStartStamp(iso) {
-  const ms = Date.parse(String(iso));
-  return Number.isFinite(ms) ? `${fmtChartStamp(ms)} ${ukTzAbbr(new Date(ms))}` : '—';
-}
-
-/** The same in words, for its status and its page: "starts 28 Sep 01:00 BST". @param {string | null | undefined} iso */
-export function rwStartsText(iso) {
-  return Number.isFinite(Date.parse(String(iso))) ? `starts ${rwStartStamp(iso)}` : 'not started';
-}
-
-/**
- * A replay working through a backlog: how far it has got, "catching up: replayed to 25 Sep 12:59 BST". It moves every
- * minute while the replay catches up; one whose state stops being written reads "not running" instead.
- * @param {string | null | undefined} lastMinute  the replay's last minute
- */
-export function rwCatchUpText(lastMinute) {
-  return `catching up: replayed to ${rwStartStamp(lastMinute)}`;
-}
-
-/**
- * A Reward quotes row that has stopped: how old the last minute it decided is, or, for RW-C once its warm-up should have
- * begun (2026-10-08), that it has decided none at all.
- * @param {any} r  a Reward quotes summary
- */
-export function rwNotRunningText(r) {
-  return r?.lastMinute ? `not running: its last decided minute is ${r.lagMinutes} min old` : 'not running: it has decided no minute yet';
-}
-
-/**
- * "Reward quotes mini-pool"'s id among the table's rows (the row was named small-pool, and before that live-prep, until
- * 2026-10-02; that first name is the third instance's own row today, `LP_ROW_ID`, read from its own tables).
- */
-export const PREP_ROW_ID = '__prep';
-/** "Reward quotes mid-pool"'s id among the table's rows. */
-export const MID_ROW_ID = '__mid';
-/** "Reward quotes live-prep"'s id among the table's rows (`0091`, `pm_lp.ts`): the dashboard's `prepLp`. */
-export const LP_ROW_ID = '__lp';
-/**
- * Whether a row is one of the order path's paper layers, mini-pool's, mid-pool's or live-prep's: its page says when a
- * loss stop holds it close-only.
- * @param {string} id
- */
-export const isPrepRowId = (id) => id === PREP_ROW_ID || id === MID_ROW_ID || id === LP_ROW_ID;
-
-/**
- * A paper layer's loss stop that holds it close-only, in words, or '' (the dashboard sends a day stop only on its own
- * UTC day).
- * @param {any} r  the dashboard's `prep`, `prepMid` or `prepLp`
- */
-export function prepStopText(r) {
-  return r?.stopTotal ? 'its total loss stop has tripped: close-only' : r?.stopDay ? 'its day loss stop has tripped: close-only for the rest of the UTC day' : '';
-}
-
-/**
- * "Reward quotes mini-pool" (`0077`; Davies, 2026-10-01: a paper test of exactly what Polymarket's order path would do,
- * before it goes live; renamed small-pool on 2026-10-02 beside mid-pool, then mini-pool; its first name went to the third
- * instance in 2026-10-04's `0091`, whose row is `lpRow`) as a row of TESTING
- * STRATEGIES on the Polymarket card, in the cells a strategy's row has. Since 0103 (2026-10-08) mini-pool is no row of the
- * page (`paperTestRows`); this is the shape mid-pool's and live-prep's rows are made in (`midRow`, `lpRow`).
- * Its capital is the order path's total cap, the most it may commit; deployed is what the paper holds at the mid and
- * what its resting quotes tie up; today is the change since the last close, as RW's; unrealised is what it holds against
- * what it cost; realised is the rewards at the formula and what closing trades made, split on the row for the page and
- * the card. Every figure is the dashboard's `prep`, made by the layer's own functions; its page is RW's (`RwDetail`).
- * null keeps it off the table.
- * @param {any} r  the dashboard's `prep`
- */
-export function prepRow(r) {
-  if (!r) return null;
-  const capital = Number(r.capUsd) || 0, cost = Number(r.costUsd) || 0;
-  const pct = (/** @type {number} */ usd, /** @type {number} */ base) => (base > 0 ? (Number(usd) / base) * 100 : null);
-  const quoting = Number(r.quoting) || 0;
-  const stopped = prepStopText(r);
-  return {
-    id: PREP_ROW_ID,
-    name: 'Reward quotes mini-pool',
-    venue: venueLabel('polymarket'),
-    venueId: 'polymarket',
-    mode: 'paper',
-    scoreDeployed: true,
-    capitalUsd: capital,
-    // Every dollar at work, as Reward quotes' (Davies, 2026-10-01): its resting quotes' collateral and what it holds.
-    valueUsd: (Number(r.heldUsd) || 0) + (Number(r.quotedUsd) || 0), heldUsd: Number(r.heldUsd) || 0,
-    costUsd: cost,
-    todayUsd: Number(r.todayUsd) || 0, todayPct: pct(Number(r.todayUsd) || 0, capital),
-    unrealisedUsd: Number(r.unrealisedUsd) || 0, unrealisedPct: pct(Number(r.unrealisedUsd) || 0, cost), unrealisedBaseUsd: cost,
-    realisedUsd: Number(r.realisedUsd) || 0, realisedPct: pct(Number(r.realisedUsd) || 0, capital),
-    rewards: { realisedUsd: Number(r.rewardUsd) || 0, unrealisedUsd: 0 },
-    orders: { realisedUsd: Number(r.realisedFillsUsd) || 0, unrealisedUsd: Number(r.unrealisedUsd) || 0 },
-    ...rwFeeCells(r),
-    nextText: 'every minute',
-    openPositions: rwQuoteRows(r),
-    status: !r.running
-      ? { label: 'paper', running: false, tone: 'stale', detail: `not running: its last decided minute is ${Number(r.lagMinutes) || 0} min old` }
-      : stopped
-        ? { label: 'paper', running: true, tone: 'stale', detail: stopped }
-        : { label: 'paper', running: true, tone: 'running', detail: `the order path's quotes in ${quoting} market${quoting === 1 ? '' : 's'} · last minute decided ${Number(r.lagMinutes) || 0} min ago` },
-  };
-}
-
-/**
- * "Reward quotes mid-pool" (`0081`; Davies, 2026-10-02: "再做一个Reward quotes mid-pool只做10-50，同时也不打扰其他的Reward
- * quotes，也是400美元funded测试"): the order path again on pools of $10 to under $50 a day, a dry-run filled on paper by
- * the same layer, after the variants' rows (mini-pool's, before it, left the page with 0103). The dashboard's `prepMid`
- * is made by the same `prepSummary` from its own tables, so its row and its page are made as mini-pool's were, on its own
- * $320 cap. null keeps it off the table.
- * @param {any} r  the dashboard's `prepMid`
- */
-export function midRow(r) {
-  const row = prepRow(r);
-  return row && { ...row, id: MID_ROW_ID, name: 'Reward quotes mid-pool' };
-}
-
-/**
- * "Reward quotes live-prep" (`0091`; Davies, 2026-10-04: "以现在知道的所有信息，选出来一个最佳的reward区间+市场+rules等一切最优的
- * 策略…做出一个策略组合加到测试列表中叫它Reward quotes live-prep", then "验证没问题就直接落地TESTING STRATEGIES列表…目前上线live的最大
- * candidate是这个live-prep策略"): the order path on every pool of $10 a day and over with live-prep's rules, its dry-run
- * filled on paper by the same layer, the last row of TESTING after mid-pool's. The dashboard's `prepLp` is made by the
- * same `prepSummary` from its own tables (`pm_lpprep_*`), never mini-pool's, so its row and its page are the layer's, on
- * its own $320 cap. null keeps it off the table.
- * @param {any} r  the dashboard's `prepLp`
- */
-export function lpRow(r) {
-  const row = prepRow(r);
-  return row && { ...row, id: LP_ROW_ID, name: 'Reward quotes live-prep' };
-}
-
-/** RW-E's paper test's id among the table's rows. */
-export const RWE_ROW_ID = '__rwe';
-
-/**
- * RW-E as a row of TESTING STRATEGIES (Davies, 2026-09-26: two testing strategies, to compare): RW without the markets
- * that end on the day they are chosen. The dashboard's `rwe` has `rw`'s shape, read from the replay's own arm — its own
- * positions, fills and days in the same market data RW's engine read — so its row and its page are RW's, in RW's cells.
- * The replay runs every minute (`0060`), as RW does. null keeps it off the table.
- * @param {any} r  the dashboard's `rwe`
- */
-export function rweRow(r) {
-  const row = rwRow(r);
-  return row && { ...row, id: RWE_ROW_ID, name: 'Reward quotes variant-1' };
-}
-
-/**
- * RW-E's variants (Davies, 2026-09-27; `reviews/2026-09-27-polymarket-rw-variants-prereg.md` and, for TB1's two,
- * `reviews/2026-10-07-polymarket-rw-tb1-prereg.md`). Each is a row of its own after RW-E's, read the same way: the
- * dashboard's `rwx` is a list in `rw`'s shape, one entry per variant on the page, each with its `id` (x1 as variant-2, and
- * tb1-skip and tb1-back as variant-3 and -4 since 2026-10-07; x4 and x5 had those names from 2026-10-02 and left the page
- * then), its `name`, the replay's `checks` and the replay it reads (`source`: RW's until RW-C's first minute, 2026-10-09
- * 00:00 UTC, RW-C's from it, as "Reward quotes" and variant-1 do); the server names them and leaves the others off. A row's id is `__rwx-` and the variant's.
- * An empty or absent list adds no row.
- * @param {any} list  the dashboard's `rwx`
- */
-export function rwxRows(list) {
-  if (!Array.isArray(list)) return [];
-  return list.flatMap((r) => {
-    const row = r && r.id && r.name ? rwRow(r) : null;
-    return row ? [{ ...row, id: `${RWX_ROW_PREFIX}${r.id}`, name: String(r.name) }] : [];
-  });
-}
-
-/** The prefix of RW-E's variants' ids among the table's rows. */
-export const RWX_ROW_PREFIX = '__rwx-';
-
-/**
  * TESTING's paper tests, the rows its scoreboard and venue cards add after its strategies, in the page's order: the
  * realistic twins and Coinbase's two paper tests. Each is one run's row, added once.
  *
@@ -2328,39 +1930,6 @@ export function paperTestRows(dash) {
   return [
     ...quotesTwinRows(dash), ...one(quotesCoinbaseRow(dash?.quotesCoinbase)), ...one(quotesCoinbaseRow(dash?.quotesCoinbaseHold)),
   ];
-}
-
-/**
- * A warning on a variant's page when its replay no longer reproduces RW's own days or RW-E's: its figures come from
- * that replay, so either gap means they are not the variant's rule on RW's data. null while both agree.
- * @param {any} r  one entry of the dashboard's `rwx`
- */
-export function rwxCheckWarn(r) {
-  const c = r?.checks;
-  if (!c || c.ok) return null;
-  const gap = Math.max(Number(c.rwMaxUsd) || 0, Number(c.eMaxUsd) || 0);
-  // On RW-C's replay (from 2026-10-09) the checks are against RW-C's own days and RW-E's replay of them.
-  const src = r?.source === 'RW-C' ? 'RW-C' : 'RW';
-  return src === 'RW'
-    ? `The replay differs from RW's or RW-E's own days by ${fmtUsd(gap)}, so these figures are not this rule on RW's data.`
-    : `The replay differs from RW-C's own days or RW-E's on RW-C's by ${fmtUsd(gap)}, so these figures are not this rule on RW-C's data.`;
-}
-
-/**
- * Which replay a variant's row reads and since when, for its page (2026-10-08). The rows read RW's replay until RW-C's
- * first minute, 2026-10-09 00:00 UTC, and RW-C's from it, TB1's test (Davies, 2026-10-07): one at a time, so at the switch
- * a row starts again from zero, as "Reward quotes" does, and never adds the two runs together. On RW's it says when it
- * moves. null for a payload that does not say (one from before the switch was built).
- * @param {any} r  one entry of the dashboard's `rwx`
- */
-export function rwxSourceText(r) {
-  const src = r?.source;
-  if (src !== 'RW' && src !== 'RW-C') return null;
-  const since = r.startedAt ?? r.startsAt;
-  const head = `On ${src}'s minutes${since ? ` ${r.startedAt ? 'since' : 'from'} ${rwStartStamp(since)}` : ''}.`;
-  const next = r.sourceNext;
-  if (next?.source && next?.at) return `${head} From ${rwStartStamp(next.at)} it reads ${next.source}'s, its test, and starts again from zero.`;
-  return src === 'RW-C' ? `${head} Its figures on RW's minutes before then are not in it.` : head;
 }
 
 /**

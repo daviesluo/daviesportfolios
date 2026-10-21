@@ -50,11 +50,3 @@ Deno.test("a live fill's fee from its trade record: a TAKER at its fee_rate_bps,
   assertEquals([pmLiveFillFee(100, 0.5, "TAKER", "0"), pmLiveFillFee(100, 0.5, null, "700"), pmLiveFillFee(100, 0.5, "TAKER", "")], [0, 0, 0]);
 });
 
-Deno.test("RW's paper fills priced by their selection's fee types: makers', the newest day's type, an unlisted market unknown", async () => {
-  const { rwFeeTypes, rwPaperFees } = await import("./pmrw_view.ts");
-  const types = rwFeeTypes([{ cond: "a", cat: "crypto_fees_v2" }, { cond: "b", cat: null }, { cond: "a", cat: "politics_fees" }]);
-  assertEquals(types, { a: "politics_fees", b: null });
-  // a: 20 at 0.40, politics: 0.25 × 0.04 × 20 × 0.24 = 0.048; b fee-free; c on no selection.
-  assertEquals(rwPaperFees([{ cond: "a", price: "0.4", size: "20" }, { cond: "b", price: 0.5, size: 10 }, { cond: "c", price: 0.5, size: 10 }], types),
-    { feesUsd: 0, rebatesEstUsd: 0.048, makerFills: 3, takerFills: 0, unknownFills: 1 });
-});

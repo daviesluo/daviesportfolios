@@ -488,7 +488,7 @@ const AGENTS_RW = (dayStartMs) => {
       { day: iso(dayStartMs - 2 * D).slice(0, 10), phase: 'run', totalUsd: 13.3, stressUsd: 5, rewardUsd: 13.6, fills: 1, capitalUsd: 288.2, markets: 16, runningUsd: 13.3 },
       { day: iso(dayStartMs - 3 * D).slice(0, 10), phase: 'warm-up', totalUsd: 9.8, stressUsd: 3.7, rewardUsd: 10.1, fills: 1, capitalUsd: 280.1, markets: 16, runningUsd: 9.8 },
     ],
-    // RW-E beside it (pmrw_view.ts's rweSummary): the same replay's two arms since the day before this one.
+    // RW-E beside it (as pmrw_view.ts's rweSummary sent it until 0120; the module left on 2026-10-20): the same replay's two arms since the day before this one.
     e: {
       since: iso(dayStartMs - D), started: true, lastMinute: iso(NOW_MS - 7 * 60e3), lagMinutes: 7, lastError: null, running: true,
       rw: { totalUsd: 27.7, stressUsd: -3.1, rewardUsd: 60, fills: 40, capitalUsd: 290 }, e: { totalUsd: 31.4, stressUsd: 9.5, rewardUsd: 38, fills: 12, capitalUsd: 180 },
@@ -1173,23 +1173,23 @@ function readAgentsPanel(page) {
 const QUOTES_LIVE_FIXTURE = JSON.parse(fs.readFileSync(new URL('./quotes_live_fixture.json', import.meta.url), 'utf8'));
 /**
  * "Reward quotes mini-pool" (`0077`): the dashboard's own answer (`prepSummary`) for a record worked out by hand at this
- * sweep's clock (`prep_fixture.json`; pm_prep_view.test.ts pins that its `output` is the function's answer for its
- * `input`): capital $320, held $8.77 at the mids against $8.35, today +$1.47 (the total +$2.37 less 16 Sep's +$0.90),
+ * sweep's clock (`prep_fixture.json`, made by `pm_prep_view.ts`, whose page and test left on 2026-10-20; kept as the
+ * payload an older deploy sent): capital $320, held $8.77 at the mids against $8.35, today +$1.47 (the total +$2.37 less 16 Sep's +$0.90),
  * unrealised +$0.42, realised +$1.95 = rewards +$1.70 + orders +$0.25; the fills' P&L +$0.67; RW's worst case +$1.00.
  * Served in the `prep`, `mid` and `lp` modes, where the page draws nothing for it since 0103 (mini-pool left TESTING).
  */
 const PREP_FIXTURE = JSON.parse(fs.readFileSync(new URL('./prep_fixture.json', import.meta.url), 'utf8'));
 /**
  * "Reward quotes mid-pool" (`0081`): the same summary's answer for a record of its band worked out by hand at this sweep's
- * clock (`mid_fixture.json`; pm_prep_view.test.ts pins that its `output` is the function's answer for its `input`):
+ * clock (`mid_fixture.json`, made the same way, kept the same way):
  * capital $320, held $11.20 at the mids against $10.80, quotes tying up $29.20, so deployed $40.40; today +$4.60 (the
  * total +$9.40 less 16 Sep's +$4.80), unrealised +$0.40, realised +$9.00 of rewards; RW's worst case +$4.20. Served,
  * with mini-pool's, only in the `mid` mode.
  */
 const MID_FIXTURE = JSON.parse(fs.readFileSync(new URL('./mid_fixture.json', import.meta.url), 'utf8'));
 /**
- * "Reward quotes live-prep" (`0091`): the same summary's answer for a record of its own (`lp_fixture.json`, pinned by
- * pm_prep_view.test.ts the same way): mid-pool's record moved to two markets of its own, one a $120 pool (its band has no
+ * "Reward quotes live-prep" (`0091`): the same summary's answer for a record of its own (`lp_fixture.json`, made and kept
+ * the same way): mid-pool's record moved to two markets of its own, one a $120 pool (its band has no
  * ceiling), and a sell of the 20 YES its paper held at 0.43: capital $320, held $2.90 at the mid against $2.80, quotes
  * tying up $29.20, so deployed $32.10; today +$4.90 (the total +$9.70 less 16 Sep's +$4.80), unrealised +$0.10, realised
  * +$9.60 = rewards +$9.00 + orders +$0.60. Served, with mini-pool's and mid-pool's, only in the `lp` mode.

@@ -656,6 +656,13 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20"; each oldest first.
 
+### [2026-10-21 19:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Retired strategies' page code and tests removed** (sub-agent; Davies 10-20, relayed: delete tests built for retired
+  strategies if no longer needed). Gone: the dashboard's dead RW/paper-layer readers, `pmrw_view.ts`, `pm_prep_view.ts`,
+  `pm_prog.ts` (+ `pmprog` route) and their tests; the page's RW, variant, mini/mid-pool and paper-layer rows and pages.
+  Kept: engines and replays (live-prep's live path and committed studies import them), frozen executors, rulebooks,
+  disabled paper routes pinned by migration tests. Vitest 1,533 → 1,498 tests, Deno 1,381 → 1,342. Not pushed.
+
 ### [2026-10-20 18:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **GROKPM Deviation D7 recorded** (Davies 10-20: "同意"): §9 of the prereg gains D7, shadow forecasts journalled on `no_action`
   rows and a secondary Brier at the end; bars, caps, stops and §6's bar unchanged; sha pin in `src/grokpm_prereg.test.js`

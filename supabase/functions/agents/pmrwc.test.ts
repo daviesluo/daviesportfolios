@@ -4,7 +4,7 @@
 // calls read nothing before its warm-up and do nothing after its fourteen days; RW-C writes RW-C's tables and never
 // RW's (nor RW RW-C's); its warm-up counts nowhere; and the replays' `rw` arm equals RW-C's own day rows, the check that
 // voids the result when it fails. The page's summary of it is pinned in pmrwc_view.test.ts. RW's own tests
-// (pmrw.test.ts, pmrw_e.test.ts, pmrw_x.test.ts, pmrw_view.test.ts) run unchanged beside these.
+// (pmrw.test.ts, pmrw_e.test.ts, pmrw_x.test.ts) run unchanged beside these.
 
 import { assert, assertAlmostEquals, assertEquals, assertThrows } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {

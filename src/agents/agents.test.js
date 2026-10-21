@@ -3,16 +3,8 @@ import { describe, it, expect, vi } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-  defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fmtBps, fmtFees, FULL_HISTORY_LIMIT, historyLimitOf, lastChangeText, showFullHistory, symbolOrderRows,
-  fmtFrac, fmtPct2, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView,
-  strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows, VENUE_LABELS,
-  agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard,
-  newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwTestedSince, RW_ROW_ID, RWE_ROW_ID, RWX_ROW_PREFIX, rwBarTileKeys, rweCheckWarn, rweRow, rwxCheckWarn, rwxRows, rwxSourceText, rwInventoryCost, rwRow, rwStartStamp, rwStartsText, fmtUsd4, rwTodayRow, rwView, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, rwNotRunningText, paperTestRows, rwRoundText, PREP_ROW_ID, MID_ROW_ID, LP_ROW_ID, isPrepRowId, lpRow, midRow, prepRow, prepStopText, rwQuoteRows,
-  GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokPmModeTag, grokPmTiles, linkDomain, utcStamp, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmJournalView, fmtProb, fmtBrier,
-  LP_LIVE_ROW_ID, fmtR, lpStopRoomText, liveExtraRows, lpEstimateTexts, lpLiveDayCells, lpLiveQuoteRows, lpLiveRow, quoteDaysAnnualPct, lpLiveStatus, rwFeeAsides, rwFeeCells,
-  AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies,
-  fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney,
-  QUOTES_COINBASE_ROW_ID, QUOTES_COINBASE_HOLD_ROW_ID, quotesCoinbaseRow } from './agents.js';
+  defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fmtBps, fmtFees, FULL_HISTORY_LIMIT, historyLimitOf, lastChangeText, showFullHistory, symbolOrderRows, fmtFrac, fmtPct2, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView, strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows, VENUE_LABELS, agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard, newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwBarTileKeys, fmtUsd4, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, paperTestRows, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokPmModeTag, grokPmTiles, linkDomain, utcStamp, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmJournalView, fmtProb, fmtBrier, LP_LIVE_ROW_ID, fmtR, lpStopRoomText, liveExtraRows, lpEstimateTexts, lpLiveDayCells, lpLiveQuoteRows, lpLiveRow, quoteDaysAnnualPct, lpLiveStatus, AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney, QUOTES_COINBASE_ROW_ID, QUOTES_COINBASE_HOLD_ROW_ID, quotesCoinbaseRow,
+} from './agents.js';
 // The live quotes page's fixture: what the dashboard serves for a book worked out by hand (the agents function's test
 // proves it is the server's own answer for its rows; the browser test serves it).
 import liveFixture from '../e2e/quotes_live_fixture.json';
@@ -21,9 +13,6 @@ import twinFixture from '../e2e/quotes_twin_fixture.json';
 // "Stablecoin quotes with Euros"'s: its driver and the dashboard's view run on a small recorded world (cb_quotes.test.ts).
 import cbFixture from '../e2e/quotes_coinbase_fixture.json';
 import cbHoldFixture from '../e2e/quotes_coinbase_hold_fixture.json';
-import prepFixture from '../e2e/prep_fixture.json';
-// Mid-pool's: a record of its band worked out by hand, and the same summary's answer for it (pm_prep_view.test.ts).
-import midFixture from '../e2e/mid_fixture.json';
 import lpFixture from '../e2e/lp_fixture.json';
 // Live-prep's real-money book: a live record worked out by hand, and the dashboard's answer for it (pm_lp_live_view.test.ts).
 import lpLiveFixture from '../e2e/lp_live_fixture.json';
@@ -806,9 +795,14 @@ describe('the two tabs: LIVE and TESTING (Davies, 2026-09-24)', () => {
     expect(pctOf(99.75, 'held', (s) => s.replace(/\d/g, '•'))).toBe('% of $••.•• held');   // a base is money: the mask covers it
     // The paper tests are rows of TESTING that no total adds up, and each says what its unrealised percent is of.
     // A realistic twin (Davies, 2026-10-02) has a book of its own, so its unrealised is on what that book cost, as a
-    // strategy's; RW's is on what it has deployed.
+    // strategy's; a paper test scored on what it has deployed (`scoreDeployed`, as RW's row was until 0120) is on that.
+    // The row is RW's as its maker built it, kept as a literal since the maker left with RW's page (2026-10-20).
     const q = quotesTwinRow(twinFixture.twins[0]);
-    const w = rwRow({ capitalUsd: 296, heldUsd: 14.4, totalUsd: 41, rewardUsd: 41.6, realisedUsd: 42, unrealisedUsd: -1, todayUsd: 12.5, running: true, lagMinutes: 2 });
+    const w = {
+      id: '__rw', name: 'Reward quotes', venue: 'Polymarket', venueId: 'polymarket', mode: 'paper', scoreDeployed: true, capitalUsd: 296, valueUsd: 14.4, heldUsd: 14.4,
+      todayUsd: 12.5, unrealisedUsd: -1, unrealisedPct: null, unrealisedBaseUsd: 0, realisedUsd: 42, rewards: { realisedUsd: 41.6, unrealisedUsd: 0 }, orders: { realisedUsd: 0.4, unrealisedUsd: -1 },
+      feesUsd: null, nextText: 'every minute', openPositions: 0, status: { label: 'paper', running: true, tone: 'running', detail: '' },
+    };
     if (!q || !w) throw new Error('a test row was missing');
     expect([/** @type {any} */ (q).scoreDeployed, /** @type {any} */ (q).unrealisedOf, w?.scoreDeployed]).toEqual([undefined, undefined, true]);
     expect(strategyRows(dash, NOW).some((r) => 'apart' in r)).toBe(false);
@@ -1035,238 +1029,6 @@ describe('fmtUsd4 — one trip\'s P&L on the quote pages, to four places like th
   });
 });
 
-describe('rwRow / rwView — RW\'s paper test as a row of TESTING STRATEGIES', () => {
-  // Davies, 2026-09-24: the Polymarket paper test sits in the testing table beside the quote test, in the same cells.
-  const r = { phase: 'run', dayOfRun: 3, runStart: '2026-09-25T00:00:00.000Z', runEnd: '2026-10-09T00:00:00.000Z', startedAt: '2026-09-24T19:31:00Z',
-    lastMinute: '2026-09-27T10:02:00Z', lagMinutes: 2, running: true, finished: false, lastError: null,
-    capitalUsd: 296, fundedUsd: 1000, totalUsd: 60, stressUsd: 24, rewardUsd: 62, fillsPnlUsd: -2, realisedUsd: 61, unrealisedUsd: -1, mismatchUsd: 0,
-    todayUsd: 20, heldUsd: 40, open: 3, fills: 12, quoting: 16, bestMarketUsd: 12,
-    markets: [{ net: 100, avgCost: 0.4 }], days: [], recent: [] };
-  it('fills the cells a strategy row has, on paper, at Polymarket', () => {
-    const row = rwRow(r);
-    expect([row?.id, row?.name, row?.venueId, row?.venue, row?.mode, row?.nextText]).toEqual([RW_ROW_ID, 'Reward quotes', 'polymarket', 'Polymarket', 'paper', 'every minute']);
-    // Its cap is the $1,000 it is funded with (Davies, 2026-09-26), not the $296 its markets have at work today, which
-    // stays in the days table; today and realised are on the cap, unrealised on inventory cost, as on every other row.
-    // "N open" is its QUOTES table's rows (Davies, 2026-10-04), one here, not the markets holding inventory (`open`, 3).
-    expect([row?.capitalUsd, row?.valueUsd, row?.openPositions]).toEqual([1000, 40, 1]);
-    expect(row?.todayPct).toBeCloseTo((20 / 1000) * 100, 12);
-    expect(row?.realisedPct).toBeCloseTo((61 / 1000) * 100, 12);
-    // A payload from before the cap (a kept copy) still reads, on the capital at work.
-    expect(rwRow({ ...r, fundedUsd: undefined })?.capitalUsd).toBe(296);
-    expect(rwInventoryCost(r.markets)).toBeCloseTo(40, 12);
-    expect(row?.unrealisedPct).toBeCloseTo((-1 / 40) * 100, 12);
-    expect(/** @type {any} */ (row)?.unrealisedOf).toBeUndefined();
-    const shortNo = rwInventoryCost([{ net: -20, avgCost: 0.66 }]);
-    expect(shortNo).toBeCloseTo(20 * 0.34, 12);
-    expect(rwRow({ ...r, markets: [{ net: -20, avgCost: 0.66 }], heldUsd: 14.4 })?.unrealisedPct).toBeCloseTo((-1 / shortNo) * 100, 12);
-    expect(row?.status).toMatchObject({ tone: 'running', detail: 'quoting 16 markets · last minute decided 2 min ago' });
-    expect(venueLabel('polymarket')).toBe('Polymarket');
-    // Deployed is every dollar at work (Davies, 2026-10-01): what it holds and what its resting quotes tie up. The
-    // scoreboard's unrealised base stays what it holds, $40, whatever the quotes tie up.
-    const q = rwRow({ ...r, quotedUsd: 19.6 });
-    expect([q?.valueUsd, q?.heldUsd, q?.unrealisedPct]).toEqual([59.6, 40, row?.unrealisedPct]);
-    const sb = scoreboardView({ strategies: [], venues: [] }, 'testing', [q]);
-    expect([sb.valueUsd, sb.unrealisedBase]).toEqual([59.6, 40]);
-  });
-  it("Polymarket's card is every test on it summed: RW and RW-E (the first version kept RW's card and dropped RW-E's)", () => {
-    // RW as above; RW-E the sweep's figures: $235 at work and $1,000 funded, 5.60 deployed, today 7.50, unrealised −1.20
-    // on D's No (cost 20 × 0.34), realised 23.60 = rewards 23.20 + orders 0.40.
-    const e = { ...r, capitalUsd: 235, totalUsd: 22.4, rewardUsd: 23.2, realisedUsd: 23.6, unrealisedUsd: -1.2, todayUsd: 7.5, heldUsd: 5.6, open: 1,
-      markets: [{ net: -20, avgCost: 0.66 }] };
-    const tests = [rwRow(r), rweRow(e)];
-    const pm = venueRows({ strategies: [], venues: [] }, 'testing', tests).find((c) => c.id === 'polymarket');
-    // Funded is the two caps, $1,000 each (Davies, 2026-09-26), not the $296 + $235 the two have at work today.
-    expect([pm?.capitalUsd, pm?.valueUsd, pm?.todayUsd, pm?.unrealisedUsd, pm?.realisedUsd, pm?.tests]).toEqual([2000, 45.6, 27.5, -2.2, 84.6, 2]);
-    // Unrealised on the two inventories' cost (40 + 6.8); realised and today on the funded; the split adds up to realised.
-    expect(pm?.unrealisedPct).toBeCloseTo((-2.2 / 46.8) * 100, 12);
-    expect(pm?.realisedPct).toBeCloseTo((84.6 / 2000) * 100, 12);
-    expect([pm?.test?.rewards?.realisedUsd, pm?.test?.orders?.realisedUsd]).toEqual([62 + 23.2, (61 - 62) + 0.4]);
-    // One test on a venue is that test's own card, as before.
-    expect(venueRows({ strategies: [], venues: [] }, 'testing', [rwRow(r)])[0]).toMatchObject({ tests: 1, capitalUsd: 1000, test: { id: RW_ROW_ID } });
-  });
-  it("RW-E is a row of its own (Davies, 2026-09-26): RW's row read from RW-E's summary, under its own id and name", () => {
-    const e = rweRow(r);
-    // Its replay runs every minute since 0060, as RW does (Davies: "every min").
-    expect([e?.id, e?.name, e?.venueId, e?.mode, e?.nextText]).toEqual([RWE_ROW_ID, 'Reward quotes variant-1', 'polymarket', 'paper', 'every minute']);
-    // Every cell is RW's function of the same summary: the two rows are one implementation read from two arms.
-    expect({ ...e, id: RW_ROW_ID, name: 'Reward quotes' }).toEqual(rwRow(r));
-    expect(rweRow({ ...r, finished: true, running: false })?.nextText).toBe('finished');
-    expect(rweRow(null)).toBe(null);
-    expect(RWE_ROW_ID).not.toBe(RW_ROW_ID);
-  });
-  it("RW-E's variants are rows of their own after it (Davies, 2026-09-27): RW's row read from each variant's summary, under its id and name", () => {
-    // The dashboard's three since 2026-10-07: x1 (variant-2), and TB1's two (variant-3 tb1-skip and -4 tb1-back, Davies:
-    // "前端的3和4改为这两个新的测试"; x4 and x5 had the names from 2026-10-02).
-    const list = [
-      { ...r, id: 'x1', name: 'Reward quotes variant-2', checks: { rwMaxUsd: 0, eMaxUsd: 0, eDays: 1, ok: true } },
-      { ...r, id: 'tb1-skip', name: 'Reward quotes variant-3', finished: true, running: false, checks: { rwMaxUsd: 0, eMaxUsd: 0, eDays: 1, ok: true } },
-      { ...r, id: 'tb1-back', name: 'Reward quotes variant-4', checks: { rwMaxUsd: 0, eMaxUsd: 0, eDays: 1, ok: true } },
-    ];
-    const rows = rwxRows(list);
-    expect(rows.map((x) => [x.id, x.name, x.venueId, x.mode, x.nextText])).toEqual([
-      [`${RWX_ROW_PREFIX}x1`, 'Reward quotes variant-2', 'polymarket', 'paper', 'every minute'],
-      [`${RWX_ROW_PREFIX}tb1-skip`, 'Reward quotes variant-3', 'polymarket', 'paper', 'finished'],
-      [`${RWX_ROW_PREFIX}tb1-back`, 'Reward quotes variant-4', 'polymarket', 'paper', 'every minute'],
-    ]);
-    // Every cell is RW's function of the same summary, as RW-E's row is.
-    expect({ ...rows[0], id: RW_ROW_ID, name: 'Reward quotes' }).toEqual(rwRow(list[0]));
-    // Ids never meet RW's or RW-E's; nothing, or an entry without an id or name, adds no row.
-    expect(rows.some((x) => x.id === RW_ROW_ID || x.id === RWE_ROW_ID)).toBe(false);
-    expect([rwxRows(undefined), rwxRows(null), rwxRows([]), rwxRows([null, { ...r, name: 'x' }, { ...r, id: 'x3' }])]).toEqual([[], [], [], []]);
-    // Five tests on Polymarket are one card, every one summed.
-    const pm = venueRows({ strategies: [], venues: [] }, 'testing', [rwRow(r), rweRow(r), ...rows]).find((c) => c.id === 'polymarket');
-    expect([pm?.tests, pm?.capitalUsd]).toEqual([5, 5000]);
-    expect(pm?.realisedUsd).toBeCloseTo(5 * Number(rwRow(r)?.realisedUsd), 9);
-  });
-  it("a variant before its first minute shows only when it starts (Davies, 2026-09-27: only what it did under its own rules)", () => {
-    // The dashboard's summary of a variant whose replay has not reached its first minute: nothing in it yet.
-    // variant-4 (tb1-back) until 2026-10-08 00:00 UTC, its own rule's first minute.
-    const waiting = {
-      ...r, id: 'tb1-back', name: 'Reward quotes variant-4', notStarted: true, startsAt: '2026-10-08T00:00:00.000Z', running: true,
-      totalUsd: 0, rewardUsd: 0, realisedUsd: 0, unrealisedUsd: 0, todayUsd: 0, heldUsd: 0, open: 0, fills: 0, quoting: 0,
-      markets: [], days: [], recent: [], checks: { rwMaxUsd: 0, eMaxUsd: 0, eDays: 1, ok: true },
-    };
-    const [row] = rwxRows([waiting]);
-    // 2026-10-08 00:00 UTC is 01:00 in London, which is on BST until October's last Sunday.
-    expect([rwStartStamp(waiting.startsAt), rwStartsText(waiting.startsAt)]).toEqual(['8 Oct 01:00 BST', 'starts 8 Oct 01:00 BST']);
-    // NEXT is the start alone; the status says it in words.
-    expect([row.nextText, row.status.tone, row.status.running, row.status.detail]).toEqual(['8 Oct 01:00 BST', 'paused', false, 'starts 8 Oct 01:00 BST']);
-    expect([row.capitalUsd, row.valueUsd, row.todayUsd, row.unrealisedUsd, row.realisedUsd]).toEqual([1000, 0, 0, 0, 0]);
-    // No today row in its days table, as there is no day of its own yet.
-    expect(rwTodayRow(waiting, '2026-09-27T21:00:00.000Z')).toBe(null);
-    // RW-E's row reads the same way; a replay that has stopped says so first.
-    expect(rweRow({ ...waiting, startsAt: '2026-09-27T00:00:00.000Z' })?.nextText).toBe('27 Sep 01:00 BST');
-    expect(rwxRows([{ ...waiting, running: false, lagMinutes: 12 }])[0].status.tone).toBe('stale');
-    expect([rwStartStamp(null), rwStartsText(null)]).toEqual(['—', 'not started']);
-    // A replay working through a backlog (a new replay version replays from RW's start) says it is catching up and how
-    // far it has got — before its first minute and after it — never a start that has passed, nor "not running".
-    for (const notStarted of [true, false]) {
-      const r2 = { ...waiting, notStarted, startsAt: '2026-09-27T00:00:00.000Z', catchingUp: true, running: false, lagMinutes: 552, lastMinute: '2026-09-27T11:59:00.000Z' };
-      const behind = rweRow(r2);
-      expect([behind?.nextText, behind?.status.tone, behind?.status.detail]).toEqual(['catching up', 'stale', 'catching up: replayed to 27 Sep 12:59 BST']);
-      expect(rwView(r2)?.stoppedText).toBe('catching up: replayed to 27 Sep 12:59 BST');
-    }
-  });
-  it("from RW-C's first minute \"Reward quotes\" is RW-C's run, round 2 of RW's rule (Davies, 2026-10-08): RW's row, its own id and name", () => {
-    // The dashboard's `rw` from 2026-10-09 00:00 UTC is RW-C's summary (`readRwPage`); the row is RW's, read from it.
-    const c = rwRow({ ...r, source: 'RW-C', sourceNext: null, runStart: '2026-10-09T00:00:00.000Z', runEnd: '2026-10-23T00:00:00.000Z', startedAt: '2026-10-09T00:00:00.000Z' });
-    expect([c?.id, c?.name, c?.venueId, c?.venue, c?.mode, c?.nextText]).toEqual([RW_ROW_ID, 'Reward quotes', 'polymarket', 'Polymarket', 'paper', 'every minute']);
-    // Before its first minute is decided (00:00–00:02 UTC on 10-09) it has no record of its own: NEXT is its start in UK
-    // time, on a grey dot that says so, on the same $1,000 and nothing else.
-    const waiting = {
-      ...r, source: 'RW-C', sourceNext: null, notStarted: true, startsAt: '2026-10-09T00:00:00.000Z', startedAt: null, running: true, lastMinute: '2026-10-08T23:59:00.000Z', lagMinutes: 2, phase: 'warm-up', dayOfRun: null,
-      runStart: '2026-10-09T00:00:00.000Z', runEnd: '2026-10-23T00:00:00.000Z',
-      capitalUsd: 0, totalUsd: 0, rewardUsd: 0, realisedUsd: 0, unrealisedUsd: 0, todayUsd: 0, heldUsd: 0, open: 0, fills: 0, quoting: 0,
-      markets: [], days: [], recent: [],
-    };
-    const w = rwRow(waiting);
-    expect([w?.nextText, w?.status.tone, w?.status.running, w?.status.detail]).toEqual(['9 Oct 01:00 BST', 'paused', false, 'starts 9 Oct 01:00 BST']);
-    expect([w?.capitalUsd, w?.valueUsd, w?.todayUsd, w?.unrealisedUsd, w?.realisedUsd, w?.openPositions, w?.unrealisedPct]).toEqual([1000, 0, 0, 0, 0, 0, null]);
-    expect(rwView(waiting)?.stoppedText).toBe('');
-    expect(rwTodayRow(waiting, '2026-10-09T00:01:00.000Z')).toBe(null);
-    // RW-C's engine with no state at all once it should have one: stopped, in words that do not invent a minute it decided.
-    const none = { ...waiting, running: false, lastMinute: null, lagMinutes: null };
-    expect([rwRow(none)?.status.tone, rwRow(none)?.status.detail, rwView(none)?.stoppedText]).toEqual(['stale', 'not running: it has decided no minute yet', 'not running: it has decided no minute yet']);
-    expect(rwNotRunningText({ lastMinute: '2026-10-09T10:00:00.000Z', lagMinutes: 7 })).toBe('not running: its last decided minute is 7 min old');
-  });
-  it("\"Reward quotes\" says which round it reads and since when: round 1, RW's, until 9 Oct 01:00 BST, round 2, RW-C's, from it", () => {
-    const next = { source: 'RW-C', at: '2026-10-09T00:00:00.000Z' };
-    expect(rwRoundText({ ...r, source: 'RW', sourceNext: next }))
-      .toBe("Round 1: RW's own fourteen days from 25 Sep 01:00 BST. From 9 Oct 01:00 BST it reads round 2, RW's rule on fresh days, and starts again from zero.");
-    expect(rwRoundText({ ...r, source: 'RW-C', sourceNext: null, startedAt: '2026-10-09T00:00:00.000Z' }))
-      .toBe("Round 2: RW's rule on fresh days since 9 Oct 01:00 BST. Round 1's figures are not in it.");
-    expect(rwRoundText({ ...r, source: 'RW-C', sourceNext: null, startedAt: null, startsAt: '2026-10-09T00:00:00.000Z', notStarted: true }))
-      .toBe("Round 2: RW's rule on fresh days from 9 Oct 01:00 BST. Round 1's figures are not in it.");
-    // A payload from before the switch was built says nothing.
-    expect([rwRoundText(r), rwRoundText(null)]).toEqual([null, null]);
-  });
-  it("adds no paper Reward quotes row since 0120 (Davies, 2026-10-13), though an older payload still carries them, and LIVE's stays", () => {
-    // Davies, 2026-10-13: "目前paper testing里的reward quotes全关了吧？…不用在网站上显示了". RW-C's "Reward quotes", its variant-1
-    // and variants 2–4, mid-pool and live-prep's paper layer left TESTING with their calls; a payload from a function
-    // deployed before 0120 still carries them, and TESTING's rows, scoreboard and venue cards are what they are without.
-    const p = { capUsd: 320, heldUsd: 10, quotedUsd: 20, costUsd: 9, todayUsd: 1.5, unrealisedUsd: 1, realisedUsd: 2, rewardUsd: 1.5, realisedFillsUsd: 0.5, running: true, lagMinutes: 1, quoting: 2, markets: [] };
-    const rwc = { ...r, source: 'RW-C', sourceNext: null };
-    const without = { strategies: [], venues: [] };
-    const dash = { ...without, rw: rwc, rwe: rwc, rwx: [{ ...rwc, id: 'x1', name: 'Reward quotes variant-2' }], rwc, prep: p, prepMid: p, prepLp: p };
-    // Each still makes its row on its own (the page's makers stay for the record), so the list leaving them out is the rule.
-    expect([rwRow(rwc)?.id, midRow(p)?.id]).toEqual([RW_ROW_ID, MID_ROW_ID]);
-    const tests = paperTestRows(dash);
-    expect(tests).toEqual([]);
-    expect(scoreboardView(dash, 'testing', tests)).toEqual(scoreboardView(without, 'testing', paperTestRows(without)));
-    expect(venueRows(dash, 'testing', tests)).toEqual(venueRows(without, 'testing', paperTestRows(without)));
-    expect(venueRows(dash, 'testing', tests).some((/** @type {any} */ v) => v.id === 'polymarket')).toBe(false);
-    // LIVE's "Reward quotes", live-prep's real money, is LIVE's and stays.
-    const live = liveExtraRows({ ...dash, lpLive: lpLiveFixture.output });
-    expect(live.map((/** @type {any} */ x) => [x?.id, x?.name, x?.venueId])).toEqual([[LP_LIVE_ROW_ID, 'Reward quotes', 'polymarket']]);
-    expect(paperTestRows(null)).toEqual([]);
-  });
-  it('is amber when it has stopped, grey when the fourteen days are over, flat when it holds nothing, and absent before it exists', () => {
-    expect(rwRow({ ...r, running: false, lagMinutes: 9 })?.status).toMatchObject({ tone: 'stale', detail: 'not running: its last decided minute is 9 min old' });
-    expect(rwRow({ ...r, running: false, finished: true })).toMatchObject({ nextText: 'finished', status: { tone: 'paused', detail: 'the fourteen days are over' } });
-    expect(rwRow({ ...r, markets: [], heldUsd: 0, unrealisedUsd: 0 })?.unrealisedPct).toBe(null);
-    expect(rwRow({ ...r, quoting: 1 })?.status.detail).toBe('quoting 1 market · last minute decided 2 min ago');
-    expect(rwRow(null)).toBe(null);
-  });
-  it('says which part of the run it is in, the fills against the bar, and a split that disagrees', () => {
-    expect(rwView(r)).toMatchObject({ phaseText: 'day 3 of 14', fillsText: '12 of 100', bestShareText: '20 %', stoppedText: '', mismatch: false });
-    expect(rwView({ ...r, phase: 'warm-up', dayOfRun: null })?.phaseText).toBe('warm-up, counted nowhere');
-    expect(rwBarTileKeys('warm-up')).toEqual(['WORST CASE', 'TOP SHARE', 'QUOTING TODAY', 'POSITIONS STILL HELD']);
-    expect(rwBarTileKeys('run')).toEqual(['WORST CASE', 'TOP SHARE', 'QUOTING TODAY', 'POSITIONS STILL HELD']);
-    expect(rwView({ ...r, totalUsd: -5 })?.bestShareText).toBe('—');
-    expect(rwView({ ...r, mismatchUsd: 0.02 })?.mismatch).toBe(true);
-    expect(rwView(undefined)).toBe(null);
-  });
-  it('adds the UTC day still open, as that day\'s change, and leaves a warm-up day out of it', () => {
-    // Closed days of the run sum to yesterday's running total. Today's row is what has happened since, the same
-    // number the scoreboard calls today — not the running total, which would count those days again.
-    const book = {
-      ...r, phase: 'run', lastMinute: '2026-09-17T22:58:00Z', capitalUsd: 296, totalUsd: 41, todayUsd: 12.5,
-      stressUsd: 17.2, rewardUsd: 41.6, fills: 5,
-      days: [
-        { day: '2026-09-16', phase: 'run', totalUsd: 15.2, stressUsd: 6.1, rewardUsd: 15.5, fills: 2, capitalUsd: 290.4 },
-        { day: '2026-09-15', phase: 'run', totalUsd: 13.3, stressUsd: 5, rewardUsd: 13.6, fills: 1, capitalUsd: 288.2 },
-        { day: '2026-09-14', phase: 'warm-up', totalUsd: 9.8, stressUsd: 3.7, rewardUsd: 10.1, fills: 1, capitalUsd: 280.1 },
-      ],
-    };
-    const today = rwTodayRow(book, '2026-09-17T23:00:00Z');
-    expect(today).toMatchObject({ day: '2026-09-17', phase: 'run', live: true, capitalUsd: 296, fills: 2 });
-    expect(today?.totalUsd).toBeCloseTo(12.5, 12);
-    expect(today?.stressUsd).toBeCloseTo(6.1, 12);
-    expect(today?.rewardUsd).toBeCloseTo(12.5, 12);
-    expect(today?.totalUsd).not.toBeCloseTo(book.totalUsd, 6);
-    // No closed day of this phase yet: the day's rewards and fills are the whole snapshot.
-    const first = rwTodayRow({ ...r, days: [], todayUsd: 20, rewardUsd: 62, stressUsd: 24, fills: 12, capitalUsd: 296 }, '2026-09-27T10:02:00Z');
-    expect(first).toMatchObject({ day: '2026-09-27', rewardUsd: 62, stressUsd: 24, fills: 12, totalUsd: 20, capitalUsd: 296 });
-    expect(rwTodayRow(null)).toBe(null);
-  });
-  it('writes a price in cents and a holding as the side it is long', () => {
-    expect([fmtCents(0.49), fmtCents(0.045), fmtCents(0.5), fmtCents(null)]).toEqual(['49¢', '4.5¢', '50¢', '—']);
-    // A fill's size arrives as a long float. Two places; the raw tail is the bug.
-    expect([rwShareText(20.129), rwShareText(20), rwShareText(1.2), rwShareText(null)]).toEqual(['20.13', '20', '1.20', '—']);
-    expect([rwHeldText(20), rwHeldText(-20), rwHeldText(0), rwHeldText(2.5)]).toEqual(['20 Yes', '20 No', '—', '2.50 Yes']);
-  });
-  it('prints realised and unrealised, and rewards and orders, so every part adds up to the total printed beside it', () => {
-    // Production, 2026-09-24 (the ops read): total +$34.23 beside realised 55.75 and unrealised −21.53, which make 34.22.
-    // Figures of that shape: each part rounds on its own the way it did, and the rounded parts miss the rounded total.
-    const live = { ...r, totalUsd: 34.227, realisedUsd: 55.754, unrealisedUsd: -21.527, rewardUsd: 48.7149, fillsPnlUsd: 34.227 - 48.7149, mismatchUsd: 0 };
-    const printed = (x) => Math.round(Number(fmtUsd(x).replace(/[^0-9.-]/g, '')) * 100);
-    expect([fmtUsd(55.754), fmtUsd(-21.527), fmtUsd(34.227)]).toEqual(['$55.75', '-$21.53', '$34.23']);   // each alone: 34.22 of parts
-    const row = rwRow(live), view = rwView(live);
-    expect([fmtUsd(row?.realisedUsd), fmtUsd(row?.unrealisedUsd), fmtUsd(view?.totalUsd)]).toEqual(['$55.76', '-$21.53', '$34.23']);
-    const T = printed(view?.totalUsd);
-    expect(printed(row?.realisedUsd) + printed(row?.unrealisedUsd)).toBe(T);
-    expect(printed(view?.rewardUsd) + printed(view?.ordersUsd)).toBe(T);
-    // Davies (2026-09-24): realised and unrealised each split into rewards and what orders made, printed to add up.
-    expect(printed(row?.rewards.realisedUsd) + printed(row?.orders.realisedUsd)).toBe(printed(row?.realisedUsd));
-    expect(printed(row?.rewards.unrealisedUsd) + printed(row?.orders.unrealisedUsd)).toBe(printed(row?.unrealisedUsd));
-    expect(row?.rewards.realisedUsd).toBe(view?.rewardUsd);                                  // one rewards figure on the page
-    expect(printed(row?.orders.realisedUsd) + printed(row?.orders.unrealisedUsd)).toBe(printed(view?.ordersUsd));
-    // The row the table shows and the page's scoreboard are one object: the realised the table prints is the page's,
-    // on the $1,000 cap.
-    expect(row?.realisedPct).toBeCloseTo((55.76 / 1000) * 100, 12);
-  });
-});
-
 describe('splitCents — parts that add up to their total as printed', () => {
   const printed = (x) => Math.round(Number(fmtUsd(x).replace(/[^0-9.-]/g, '')) * 100);
   it('gives each missing cent to the part rounding cut the most', () => {
@@ -1474,59 +1236,6 @@ describe('the Agents page kept across a reload', () => {
   });
 });
 
-describe('rweCheckWarn: what is left of RW-E on the page besides its own row', () => {
-  // The section beside RW went (Davies, 2026-09-26); the one thing kept is the alarm that RW-E's figures are not the
-  // replay of RW they claim to be.
-  const e = { since: '2026-09-27T00:00:00.000Z', started: true, running: true, lagMinutes: 4, check: { days: 3, maxUsd: 0.002, ok: true } };
-  it('says nothing while the replay equals RW, or before a day has closed', () => {
-    expect(rweCheckWarn(e)).toBe(null);
-    expect(rweCheckWarn({ ...e, check: { days: 0, maxUsd: 0, ok: false } })).toBe(null);
-    expect(rweCheckWarn(null)).toBe(null);
-    expect(rweCheckWarn({})).toBe(null);
-  });
-  it('names the gap once the replay differs from RW', () => {
-    expect(rweCheckWarn({ ...e, check: { days: 2, maxUsd: 0.03, ok: false } }))
-      .toBe("The replay differs from RW's own days by $0.03, so these figures are not RW's rule on RW's data.");
-    // From RW-C's first minute (2026-10-09) the replay is of RW-C's run, and its check is against RW-C's own days.
-    expect(rweCheckWarn({ ...e, source: 'RW-C', check: { days: 1, maxUsd: 0.02, ok: false } }))
-      .toBe("The replay differs from RW-C's own days by $0.02, so these figures are not RW's rule on RW-C's data.");
-  });
-});
-
-
-describe("rwxCheckWarn: a variant's page says when its replay is not RW's rule on RW's data", () => {
-  it('says nothing while both checks hold, and names the larger gap when one does not', () => {
-    expect(rwxCheckWarn({ checks: { rwMaxUsd: 0, eMaxUsd: 0.001, eDays: 2, ok: true } })).toBe(null);
-    expect(rwxCheckWarn(null)).toBe(null);
-    expect(rwxCheckWarn({})).toBe(null);
-    expect(rwxCheckWarn({ checks: { rwMaxUsd: 0.002, eMaxUsd: 0.05, eDays: 2, ok: false } }))
-      .toBe("The replay differs from RW's or RW-E's own days by $0.05, so these figures are not this rule on RW's data.");
-    // On RW-C's replay (from 2026-10-09) its checks are RW-C's.
-    expect(rwxCheckWarn({ source: 'RW-C', checks: { rwMaxUsd: 0.03, eMaxUsd: 0, eDays: 1, ok: false } }))
-      .toBe("The replay differs from RW-C's own days or RW-E's on RW-C's by $0.03, so these figures are not this rule on RW-C's data.");
-  });
-});
-
-describe("rwxSourceText: a variant's page says which replay it reads and since when (RW's until 2026-10-09, RW-C's from it)", () => {
-  it("on RW's replay, since its own first minute, and that it moves to RW-C's at RW-C's first minute and starts again", () => {
-    const next = { source: 'RW-C', at: '2026-10-09T00:00:00.000Z' };
-    expect(rwxSourceText({ source: 'RW', startedAt: '2026-10-08T00:00:00.000Z', sourceNext: next }))
-      .toBe("On RW's minutes since 8 Oct 01:00 BST. From 9 Oct 01:00 BST it reads RW-C's, its test, and starts again from zero.");
-    expect(rwxSourceText({ source: 'RW', startedAt: '2026-09-28T00:00:00.000Z', sourceNext: next }))
-      .toBe("On RW's minutes since 28 Sep 01:00 BST. From 9 Oct 01:00 BST it reads RW-C's, its test, and starts again from zero.");
-  });
-  it("on RW-C's, from its first minute, with nothing of RW's in it; before it has started, from when it starts", () => {
-    expect(rwxSourceText({ source: 'RW-C', startedAt: '2026-10-09T00:00:00.000Z', sourceNext: null }))
-      .toBe("On RW-C's minutes since 9 Oct 01:00 BST. Its figures on RW's minutes before then are not in it.");
-    expect(rwxSourceText({ source: 'RW-C', startedAt: null, startsAt: '2026-10-09T00:00:00.000Z', notStarted: true, sourceNext: null }))
-      .toBe("On RW-C's minutes from 9 Oct 01:00 BST. Its figures on RW's minutes before then are not in it.");
-  });
-  it('says nothing for a payload that does not name its replay', () => {
-    expect(rwxSourceText(null)).toBe(null);
-    expect(rwxSourceText({ startedAt: '2026-10-08T00:00:00.000Z' })).toBe(null);
-  });
-});
-
 describe("PR5's live executor on LIVE (Davies, 2026-09-26)", () => {
   // The dashboard's `quotes.live` as quotesLiveSummary shapes it: live and armed, one rung holding, in USD.
   const ql = {
@@ -1584,7 +1293,7 @@ describe("the live quotes' own page (Davies, 2026-10-01: LIVE's row opened the p
     expect(quotesPageFor('__quotes', dash)).toBe(null);
     // A dry run that has never traded is no LIVE row, so it has no page.
     expect(quotesPageFor(QUOTES_LIVE_ROW_ID, { quotes: { live: { ...q, tradedLive: false, entryBook: 'dry_run' } } })).toBe(null);
-    for (const id of ['trend-4h', RW_ROW_ID, null]) expect(quotesPageFor(id, dash)).toBe(null);
+    for (const id of ['trend-4h', '__rw', null]) expect(quotesPageFor(id, dash)).toBe(null);
   });
   it('writes a resting order "open", not the venue\'s "new" (Davies, 2026-10-02)', () => {
     expect(['new', 'partially_filled', 'filled', 'rejected', 'cancelled', 'pending', null].map(orderStateText))
@@ -1654,183 +1363,10 @@ describe('how long a strategy has been under test (Davies, 2026-09-28)', () => {
     expect(testedForText('not a date', now)).toBe(null);
     expect(testedForText('2026-10-09T00:00:00Z', now)).toBe(null);
   });
-  it("starts an RW row's test at its own first minute, never in the warm-up", () => {
-    expect(rwTestedSince({ since: '2026-09-24T19:00:00Z', runStart: '2026-09-25T00:00:00Z' })).toBe('2026-09-25T00:00:00.000Z');
-    expect(rwTestedSince({ since: '2026-09-27T00:00:00Z', runStart: '2026-09-25T00:00:00Z' })).toBe('2026-09-27T00:00:00.000Z');
-    expect(rwTestedSince({ since: null, runStart: '2026-09-25T00:00:00Z' })).toBe(null);   // a variant not started yet
-  });
   it("writes a round trip's size in coins of its book", () => {
     expect(fmtQuoteQty(99.3012, 'USDC-GBP')).toBe('99.30 USDC');
     expect(fmtQuoteQty('132.6', 'USDT/GBP')).toBe('132.60 USDT');
     expect(fmtQuoteQty(null, 'USDC-GBP')).toBe('—');
-  });
-});
-
-describe('prepRow ("Reward quotes mini-pool", 0077; "live-prep", then "small-pool", until 2026-10-02)', () => {
-  it("reads the dashboard's own figures for the hand-worked record into a strategy row's cells, on the Polymarket card", () => {
-    const row = prepRow(prepFixture.output);
-    if (!row) throw new Error('no row for the fixture');
-    expect(row).toMatchObject({
-      id: PREP_ROW_ID, name: 'Reward quotes mini-pool', venueId: 'polymarket', mode: 'paper', scoreDeployed: true,
-      capitalUsd: 320, heldUsd: 8.77, costUsd: 8.35, todayUsd: 1.47, unrealisedUsd: 0.42, realisedUsd: 1.95, openPositions: 2, nextText: 'every minute',
-      rewards: { realisedUsd: 1.7, unrealisedUsd: 0 }, orders: { realisedUsd: 0.25, unrealisedUsd: 0.42 },
-      status: { running: true, tone: 'running', detail: "the order path's quotes in 2 markets · last minute decided 2 min ago" },
-    });
-    // Deployed is every dollar at work (Davies, 2026-10-01): what it holds, $8.77, and what its quotes resting now tie up,
-    // worked by hand from the record's last minute — A 5 × 0.46 + 5 × (1 − 0.48) = 4.90, B 20 × 0.201 + 20 × (1 − 0.229)
-    // = 19.44 — $24.34, so $33.11.
-    expect(prepFixture.output.quotedUsd).toBe(24.34);
-    expect(row.valueUsd).toBeCloseTo(8.77 + 4.9 + 19.44, 9);
-    // Today and realised on its capital (the path's total cap), unrealised on what it holds at cost. Today is the change
-    // since the last close, as RW's: the total 2.37 less 16 Sep's close, 0.90.
-    expect(row.todayPct).toBeCloseTo((1.47 / 320) * 100, 9);
-    expect(row.realisedPct).toBeCloseTo((1.95 / 320) * 100, 9);
-    expect(row.unrealisedPct).toBeCloseTo((0.42 / 8.35) * 100, 9);
-    // Realised is its rewards and what closing trades made, to the cent.
-    expect(row.rewards.realisedUsd + row.orders.realisedUsd).toBeCloseTo(row.realisedUsd, 9);
-  });
-
-  it('is off the table without a state; stale when its last minute is old; amber while a loss stop holds it close-only', () => {
-    expect(prepRow(null)).toBe(null);
-    expect(prepRow({ ...prepFixture.output, running: false, lagMinutes: 9 })?.status).toEqual({ label: 'paper', running: false, tone: 'stale', detail: 'not running: its last decided minute is 9 min old' });
-    expect(prepRow({ ...prepFixture.output, stopDay: '2026-09-17' })?.status).toMatchObject({ running: true, tone: 'stale', detail: 'its day loss stop has tripped: close-only for the rest of the UTC day' });
-    expect(prepRow({ ...prepFixture.output, stopTotal: '2026-09-17T10:00:00.000Z' })?.status.detail).toBe('its total loss stop has tripped: close-only');
-    expect([prepStopText(prepFixture.output), prepStopText(null)]).toEqual(['', '']);
-  });
-});
-
-describe("mini-pool's page is RW's (Davies, 2026-10-01)", () => {
-  const r = prepFixture.output;
-  it("reads its STATUS and its scoreboard's split from RW's own functions on the dashboard's figures", () => {
-    const v = rwView(r);
-    // Worst case 1.00 (A 0.69 + B 0.31), the best market A's 1.39 of 2.37, two markets quoting and two held.
-    expect(v).toMatchObject({ phase: 'run', bestShareText: '59 %', stoppedText: '', mismatch: false, since: '2026-09-16T00:00:00.000Z', runEnd: null });
-    expect([r.stressUsd, r.quoting, r.open]).toEqual([1, 2, 2]);
-    expect(rwTestedSince(v)).toBe('2026-09-16T00:00:00.000Z');
-    // Its rewards and orders split realised as the row does, to the cent: +$1.70 and +$0.25.
-    expect([v?.rewardUsd, v?.totalUsd]).toEqual([1.7, 2.37]);
-  });
-  it("adds today to its closed days, which add up to its total, the worst case too; a worst case not recorded is unknown, never $0.00", () => {
-    const today = rwTodayRow(r, '2026-09-17T23:00:00Z');
-    // Today's worst case, live, is the layer's own (`todayStressUsd`: 1.00 less 0.64 at today's start, 2026-10-07), and
-    // 16 Sep's is its close's 0.64 less its start's 0: the days and today are the running 1.00.
-    expect(today).toMatchObject({ day: '2026-09-17', live: true, fills: 2, capitalUsd: 24.34, stop: false });
-    expect(today?.stressUsd).toBeCloseTo(0.36, 12);
-    expect(r.days[0].stressUsd).toBeCloseTo(0.64, 12);
-    expect((today?.stressUsd ?? 0) + r.days.reduce((s, d) => s + (d.stressUsd ?? 0), 0)).toBeCloseTo(r.stressUsd, 12);
-    expect(today?.totalUsd).toBeCloseTo(1.47, 12);
-    expect(today?.rewardUsd).toBeCloseTo(0.5, 12);
-    expect((today?.totalUsd ?? 0) + r.days.reduce((s, d) => s + d.totalUsd, 0)).toBeCloseTo(r.totalUsd, 12);
-    // Today's comes from the layer even when a closed day has none (no start recorded for it), and a today the layer
-    // could not work out (no start for it) is unknown, never the running figure.
-    expect(rwTodayRow({ ...r, days: [{ ...r.days[0], stressUsd: null }] }, '2026-09-17T23:00:00Z')?.stressUsd).toBeCloseTo(0.36, 12);
-    expect(rwTodayRow({ ...r, todayStressUsd: null }, '2026-09-17T23:00:00Z')?.stressUsd).toBe(null);
-    // RW's rows send no `todayStressUsd`: before their first close the running worst case is today's, and after it the
-    // running one less their closed days', unchanged.
-    const { todayStressUsd: _t, ...rwShaped } = r;
-    expect(rwTodayRow({ ...rwShaped, days: [] }, '2026-09-17T23:00:00Z')?.stressUsd).toBe(1);
-    expect(rwTodayRow({ ...rwShaped, days: [{ ...r.days[0], stressUsd: 0.4 }] }, '2026-09-17T23:00:00Z')?.stressUsd).toBeCloseTo(0.6, 12);
-    expect(rwTodayRow({ ...rwShaped, days: [{ ...r.days[0], stressUsd: null }] }, '2026-09-17T23:00:00Z')?.stressUsd).toBe(null);
-    // A level it does not know stays unknown; a loss stop of the day marks it.
-    expect(rwTodayRow({ ...r, capitalUsd: null }, '2026-09-17T23:00:00Z')?.capitalUsd).toBe(null);
-    expect(rwTodayRow({ ...r, stopDay: '2026-09-17' }, '2026-09-17T23:00:00Z')?.stop).toBe(true);
-  });
-  it("lists what each market holds by token and each fill as the order path's own trade", () => {
-    expect(r.markets.map((x) => rwHeldOf(x))).toEqual(['5 Yes · 4 No', '20 Yes']);
-    expect([rwHeldOf({ yes: 0, no: 2.5 }), rwHeldOf({ yes: 0, no: 0 }), rwHeldOf({ net: -3 }), rwHeldOf({ net: 0 })]).toEqual(['2.50 No', '—', '3 No', '—']);
-    expect(r.recent.map((f) => { const x = rwFillView(f); return `${x.buy ? 'buy' : 'sell'} ${x.text} ${fmtCents(x.price)}`; }))
-      .toEqual(['sell sold Yes 50¢', 'buy bought Yes 20.1¢', 'buy bought No 52¢', 'buy bought Yes 45¢']);
-    // RW's fills are in its one YES book.
-    expect([rwFillView({ side: 'bid', price: 0.45 }), rwFillView({ side: 'ask', price: 0.48 })]).toEqual([
-      { buy: true, text: 'bought Yes', price: 0.45 }, { buy: false, text: 'sold Yes', price: 0.48 }]);
-  });
-});
-
-describe('rwQuoteRows — a Reward quotes row\'s "N open"', () => {
-  // Davies, 2026-10-04: "xx open应该显示的是quotes里面的行数". Live-prep's first evening quoted ten markets and held
-  // none: the row read "0 open", the count of markets holding inventory, which before a fill matched the FILLS table.
-  const quoting = (/** @type {number} */ n) => Array.from({ length: n }, (_, i) => ({ cond: `c${i}`, quoting: true, yes: 0, no: 0 }));
-  it('counts the QUOTES table\'s rows, quoted today or held from an earlier day, whatever is held', () => {
-    expect(rwQuoteRows({ open: 0, markets: quoting(10) })).toBe(10);
-    expect(rwQuoteRows({ open: 1, markets: [...quoting(2), { cond: 'old', quoting: false, yes: 5, no: 0 }] })).toBe(3);
-    expect([rwQuoteRows({ open: 2 }), rwQuoteRows(null)]).toEqual([0, 0]);
-  });
-  it('is what every Reward quotes row says, RW\'s and the paper layers\'', () => {
-    const lp = { ...lpFixture.output, open: 0, markets: quoting(10) };
-    expect([lpRow(lp)?.openPositions, prepRow(lp)?.openPositions, midRow(lp)?.openPositions]).toEqual([10, 10, 10]);
-  });
-});
-
-describe('lpRow ("Reward quotes live-prep", 0091)', () => {
-  it("is the layer's row under its own id and name, read from its own layer's figures (pm_lpprep_*), never mini-pool's", () => {
-    const row = lpRow(lpFixture.output);
-    if (!row) throw new Error('no row for the fixture');
-    expect(row).toMatchObject({
-      id: LP_ROW_ID, name: 'Reward quotes live-prep', venueId: 'polymarket', mode: 'paper', scoreDeployed: true,
-      capitalUsd: 320, heldUsd: 2.9, costUsd: 2.8, todayUsd: 4.9, unrealisedUsd: 0.1, realisedUsd: 9.6, openPositions: 2, nextText: 'every minute',
-      rewards: { realisedUsd: 9, unrealisedUsd: 0 }, orders: { realisedUsd: 0.6, unrealisedUsd: 0.1 },
-      status: { running: true, tone: 'running', detail: "the order path's quotes in 2 markets · last minute decided 2 min ago" },
-    });
-    // Deployed: what it holds, $2.90, and what its two quotes tie up, $29.20.
-    expect(row.valueUsd).toBeCloseTo(2.9 + 29.2, 9);
-    const { id: _a, name: _b, ...same } = row;
-    const { id: _c, name: _d, ...small } = /** @type {NonNullable<ReturnType<typeof prepRow>>} */ (prepRow(lpFixture.output));
-    expect(same).toEqual(small);
-    expect(lpRow(null)).toBe(null);
-    // The three layers' rows, each its own id; the name live-prep is this row's alone.
-    expect([prepRow(lpFixture.output)?.name, midRow(lpFixture.output)?.name, row.name]).toEqual(['Reward quotes mini-pool', 'Reward quotes mid-pool', 'Reward quotes live-prep']);
-    expect(new Set([PREP_ROW_ID, MID_ROW_ID, LP_ROW_ID]).size).toBe(3);
-  });
-  it('shows a loss stop on its page as the other layers do', () => {
-    expect(isPrepRowId(LP_ROW_ID)).toBe(true);
-    expect(lpRow({ ...lpFixture.output, stopTotal: '2026-09-17T10:00:00.000Z' })?.status.detail).toBe('its total loss stop has tripped: close-only');
-  });
-  it("reads its page from RW's functions: a sell of what it held among its fills, by token", () => {
-    const r = lpFixture.output;
-    expect(r.markets.map((x) => rwHeldOf(x))).toEqual(['—', '10 No']);
-    expect(r.recent.map((f) => { const x = rwFillView(f); return `${x.buy ? 'buy' : 'sell'} ${x.text} ${fmtCents(x.price)}`; }))
-      .toEqual(['sell sold Yes 43¢', 'buy bought No 28¢', 'buy bought Yes 40¢']);
-    // Its worst case by day: 16 Sep's 2.30 and today's 2.50 (4.80 less today's start, 2.30), live.
-    expect([rwTodayRow(r, '2026-09-17T23:00:00Z')?.stressUsd, r.days[0].stressUsd, r.stressUsd]).toEqual([2.5, 2.3, 4.8]);
-  });
-});
-
-describe('midRow ("Reward quotes mid-pool", 0081)', () => {
-  it("is mini-pool's row under its own id and name, read from its own layer's figures", () => {
-    const row = midRow(midFixture.output);
-    if (!row) throw new Error('no row for the fixture');
-    expect(row).toMatchObject({
-      id: MID_ROW_ID, name: 'Reward quotes mid-pool', venueId: 'polymarket', mode: 'paper', scoreDeployed: true,
-      capitalUsd: 320, heldUsd: 11.2, costUsd: 10.8, todayUsd: 4.6, unrealisedUsd: 0.4, realisedUsd: 9, openPositions: 2, nextText: 'every minute',
-      rewards: { realisedUsd: 9, unrealisedUsd: 0 }, orders: { realisedUsd: 0, unrealisedUsd: 0.4 },
-      status: { running: true, tone: 'running', detail: "the order path's quotes in 2 markets · last minute decided 2 min ago" },
-    });
-    // Deployed: what it holds, $11.20, and what its two quotes tie up, C 20 × 0.40 + 20 × 0.57 and D 10 × 0.70 + 10 × 0.28,
-    // $29.20: $40.40, 12.63 % of its $320.
-    expect(row.valueUsd).toBeCloseTo(11.2 + 19.4 + 9.8, 9);
-    expect(row.todayPct).toBeCloseTo((4.6 / 320) * 100, 9);
-    expect(row.realisedPct).toBeCloseTo((9 / 320) * 100, 9);
-    expect(row.unrealisedPct).toBeCloseTo((0.4 / 10.8) * 100, 9);
-    // Everything but its id and name is mini-pool's row of the same figures.
-    const { id: _a, name: _b, ...same } = row;
-    const { id: _c, name: _d, ...small } = /** @type {NonNullable<ReturnType<typeof prepRow>>} */ (prepRow(midFixture.output));
-    expect(same).toEqual(small);
-    expect(midRow(null)).toBe(null);
-  });
-  it('shows a loss stop on its page as mini-pool does, and on no other row', () => {
-    expect([isPrepRowId(PREP_ROW_ID), isPrepRowId(MID_ROW_ID), isPrepRowId(RW_ROW_ID), isPrepRowId(RWE_ROW_ID)]).toEqual([true, true, false, false]);
-    expect(midRow({ ...midFixture.output, stopTotal: '2026-09-17T10:00:00.000Z' })?.status.detail).toBe('its total loss stop has tripped: close-only');
-  });
-  it("reads its page from RW's functions: worst case 4.20, the best market D's 5.60 of 9.40, holdings by token", () => {
-    const r = midFixture.output, v = rwView(r);
-    expect(v).toMatchObject({ phase: 'run', bestShareText: '60 %', stoppedText: '', mismatch: false });
-    expect(r.markets.map((x) => rwHeldOf(x))).toEqual(['20 Yes', '10 No']);
-    const today = rwTodayRow(r, '2026-09-17T23:00:00Z');
-    // Its worst case: 16 Sep's 2.30 and today's 1.90 (4.20 less today's start, 2.30), live.
-    expect(today).toMatchObject({ day: '2026-09-17', live: true, fills: 1, capitalUsd: 29.2, stop: false });
-    expect([today?.stressUsd, r.days[0].stressUsd]).toEqual([1.9, 2.3]);
-    expect(today?.totalUsd).toBeCloseTo(4.6, 12);
-    expect((today?.totalUsd ?? 0) + r.days.reduce((s, d) => s + d.totalUsd, 0)).toBeCloseTo(r.totalUsd, 12);
   });
 });
 
@@ -1851,7 +1387,7 @@ describe('lpLiveRow (live-prep\'s real money, "Reward quotes" on LIVE, 2026-10-0
     // In dollars, the row's own currency.
     expect(rowMoney(r).ccy).toBe('USD');
     // Not TESTING's "Reward quotes" (RW's) nor live-prep's paper row: an id of its own, so no two rows share a page.
-    expect(new Set([r.id, RW_ROW_ID, LP_ROW_ID]).size).toBe(3);
+    expect(new Set([r.id, '__rw', '__lp']).size).toBe(3);
   });
   it('is no row until armed or traded; a stale, stopped or disarmed book says so', () => {
     expect(lpLiveRow(null)).toBe(null);
@@ -2000,30 +1536,6 @@ describe('lpLiveRow (live-prep\'s real money, "Reward quotes" on LIVE, 2026-10-0
     expect(lpEstimateTexts(s.est, mask)).toEqual({ text: '$•••• – $••••', color: 'var(--gain)' });
     expect(lpEstimateTexts(null, id)).toEqual({ text: '—', color: null });
     expect(lpLiveStatus({ ...l, estimate: undefined }).est).toBe(null);
-  });
-});
-
-describe('Reward quotes fees, in LIVE\'s design on every page and card (2026-10-09)', () => {
-  it("a paper row's fees are its summary's: a maker's $0 by Polymarket's rule, its maker rebates estimated apart", () => {
-    // live-prep's paper fixture: three maker fills, none charged; rebates 0.121275 + 0.02016 (pm_prep_view.test.ts).
-    const row = /** @type {any} */ (lpRow(lpFixture.output));
-    expect([row.feesUsd, row.rebatesEstUsd, row.unpricedFills]).toEqual([0, 0.141435, 0]);
-    expect(rwFeeAsides(row)).toEqual(['(incl. fees $0)', '(est. maker rebates +$0.14, not counted)']);
-    expect(rwFeeAsides({ ...row, unpricedFills: 2 })[1]).toBe('(est. maker rebates +$0.14, not counted; 2 fills unpriced)');
-    expect(rwFeeAsides(row, (s) => s.replace(/\d/g, '•')).some((t) => /\d/.test(t))).toBe(false);
-    // A payload without fees says nothing, rather than a made-up $0.
-    expect(rwFeeCells({})).toEqual({ feesUsd: null, rebatesEstUsd: null, unpricedFills: 0 });
-    expect(rwFeeAsides(rwRow({ totalUsd: 0, markets: [] }))).toEqual([]);
-    // LIVE's row: its actual fees, no estimate.
-    expect(rwFeeAsides(lpLiveRow(lpLiveFixture.output))).toEqual(['(incl. fees $0)']);
-  });
-  it("TESTING's Polymarket card carries a fees line, the rows' fees summed, and none while no row says", () => {
-    const withFees = { ...lpFixture.output, fees: { feesUsd: 0.12345, rebatesEstUsd: 0, unknownFills: 0 } };
-    const tests = [/** @type {any} */ (midRow(midFixture.output)), /** @type {any} */ (lpRow(withFees))];
-    const card = venueRows({ strategies: [] }, 'testing', tests).find((c) => c.id === 'polymarket');
-    expect(card?.feesUsd).toBeCloseTo(0 + 0.12345, 12);
-    const none = venueRows({ strategies: [] }, 'testing', [/** @type {any} */ (rwRow({ totalUsd: 0, markets: [], fundedUsd: 1000 }))]).find((c) => c.id === 'polymarket');
-    expect(none?.feesUsd).toBe(null);
   });
 });
 

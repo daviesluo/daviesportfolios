@@ -20,7 +20,6 @@ import { PREP_DB_TABLES, PREP_INSTANCE, PREP_LOCK, PREP_READS, runPmPrep, type P
 import { PM_LP_INSTANCE, PREP_LP_INSTANCE } from "./pm_lp.ts";
 import { onTick, pmLpDbTables, runPmLive, type PmLiveConfig } from "./pm_live.ts";
 import { prepDbTables, prepReads } from "./pm_prep.ts";
-import { prepSummary } from "./pm_prep_view.ts";
 import { PmOrderKey } from "../_shared/polymarket_orders.ts";
 // The path's turns run on live-prep as Addendum 18 left it (`LP_A18_INSTANCE`): the fixture's books are two cents wide,
 // which Addendum 19's quiet-book rule passes over, and the paper layer it stresses is the same under both.
@@ -166,22 +165,6 @@ Deno.test("the recorder never throws: a fill without its tick is an error and no
   assertEquals(await recordPrepStress(stressDb(none.db, PREP_INSTANCE), PREP_INSTANCE), { layer: PREP_LOCK, wrote: [], errors: [] });
 });
 
-Deno.test("the page's days: a day's worst case is the next start less its own, today's the running one less today's start; without both, a dash", () => {
-  // deno-lint-ignore no-explicit-any
-  const F = fixture as any;
-  const view = (stressDays: Array<{ day: string; stress: number }>) => prepSummary({ ...F.input, stressDays })!;
-  const full = view(F.input.stressDays);
-  near(full.days[0].stressUsd!, 0.64, "16 Sep"); near(full.todayStressUsd!, 0.36, "today");
-  // No row for 16 Sep's start: its day is a dash; today's still has its start.
-  const noStart = view([{ day: "2026-09-17", stress: 0.64 }]);
-  assertEquals([noStart.days[0].stressUsd, noStart.todayStressUsd], [null, 0.36]);
-  // No row for today's start: today's is a dash, and so is 16 Sep's, which ends there.
-  const noToday = view([{ day: "2026-09-16", stress: 0 }]);
-  assertEquals([noToday.days[0].stressUsd, noToday.todayStressUsd], [null, null]);
-  // None at all (the table not there yet): what the page showed before 0094, the running figure alone.
-  const none = prepSummary({ ...F.input, stressDays: undefined })!;
-  assertEquals([none.days[0].stressUsd, none.todayStressUsd, none.stressUsd], [null, null, 1]);
-});
 
 // ------------------------------------------------------------------ the replay is the layer: mini-pool's, on RW's golden record
 

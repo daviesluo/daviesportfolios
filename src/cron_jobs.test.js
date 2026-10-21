@@ -725,7 +725,10 @@ describe('pg_cron jobs', () => {
     ]);
     expect(beatKeyOfPath(after.at(-1).path)).toBe('agents?action=pmprog');
     const src = fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/index.ts'), 'utf8');
-    expect(src).toContain('if (action === "pmprog" && req.method === "POST" && operator) return json(200, await runPmProgAction());');
+    // Its call was switched off with every paper Reward quotes path (0120), and its code removed on 2026-10-20 (Davies:
+    // tests and code built for retired strategies go): the route is gone, the migration's history above stands.
+    expect(src).not.toContain('action === "pmprog"');
+    expect(fs.existsSync(path.join(ROOT, 'supabase/functions/agents/pm_prog.ts'))).toBe(false);
     const jobsBefore = cronJobs(FILES.filter((f) => f < T)), jobsAfter = cronJobs(FILES.filter((f) => f <= T));
     expect([...jobsAfter.keys()].filter((n) => !jobsBefore.has(n))).toEqual(['pm-prog-refresh', 'pm-prog-prune']);
     expect([jobsAfter.get('pm-prog-refresh').schedule, jobsAfter.get('pm-prog-refresh').command.trim()]).toEqual(['7,22,37,52 * * * *', 'select public.pm_prog_refresh();']);
