@@ -28,22 +28,22 @@ describe('Storage.migrate', () => {
     expect(localStorage.getItem('auth_lockout_until')).toBeNull();
     expect(localStorage.getItem('auth_attempts')).toBeNull();
     expect(localStorage.getItem('ytd-perf-cache-v12')).toBeNull();
-    expect(localStorage.getItem('dp.schema')).toBe('2');
+    expect(localStorage.getItem('dp.schema')).toBe('3');
 
     // Second run is a no-op (and must not throw).
     Storage.migrate();
-    expect(localStorage.getItem('dp.schema')).toBe('2');
+    expect(localStorage.getItem('dp.schema')).toBe('3');
   });
 
   it('treats a missing schema key as version 0 and migrates', () => {
     localStorage.setItem('ytd-perf-cache-v1', '[]');
     Storage.migrate();
     expect(localStorage.getItem('ytd-perf-cache-v1')).toBeNull();
-    expect(localStorage.getItem('dp.schema')).toBe('2');
+    expect(localStorage.getItem('dp.schema')).toBe('3');
   });
 
   it('no-ops (early return) when already at the current version', () => {
-    localStorage.setItem('dp.schema', '2');
+    localStorage.setItem('dp.schema', '3');
     // A stray legacy key wouldn't normally survive to v1, but it lets us
     // prove the migration body is skipped rather than re-run.
     localStorage.setItem('auth_token', 'keep');
@@ -72,7 +72,7 @@ describe('Storage.migrate', () => {
       expect(deleteDatabase).toHaveBeenCalledTimes(1);
       expect(deleteDatabase).toHaveBeenCalledWith('daviesportfolios');
       expect(localStorage.getItem('auth_token')).toBe('keep');
-      expect(localStorage.getItem('dp.schema')).toBe('2');
+      expect(localStorage.getItem('dp.schema')).toBe('3');
       Storage.migrate();
       expect(deleteDatabase).toHaveBeenCalledTimes(1);
     });
@@ -82,6 +82,55 @@ describe('Storage.migrate', () => {
       Storage.migrate();
       expect(deleteDatabase.mock.calls.flat()).not.toContain('dp-charts');
     });
+  });
+});
+
+describe('Storage.migrate v2 -> v3: GOOG became GOOGL (migration 0135, 2026-10-21)', () => {
+  // A board as the server kept it until 0135: Alphabet's class A position under GOOG, in a slot, with its lots, a
+  // sale and the Trading 212 tags.
+  const goog = { shares: 24, cost: 150, lastPrice: 330, currency: 'USD', t212Shares: 22, t212Cost: 160,
+    lots: [{ date: '2024-07-24', shares: 20, cost: 140 }, { date: '2025-03-28', shares: 6, cost: 180, source: 't212' }],
+    sells: [{ date: '2025-06-01', shares: 2, price: 170 }] };
+  const board = { holdings: { NVDA: { shares: 5, cost: 100 }, GOOG: goog, CASH: { shares: 1, cost: 0, isCash: true } },
+    positions: { CM: { label: 'CM', tickers: ['NVDA', 'GOOG', 'META'] }, GK: { label: 'GK', tickers: ['CASH'] } } };
+
+  it('a cached board with GOOG loads as GOOGL: the same holding, lots, sale and tags, in the same slot', () => {
+    localStorage.setItem('dp.schema', '2');
+    localStorage.setItem('dp.portfolioCache', JSON.stringify({ ts: Date.now(), data: board }));
+    Storage.migrate();
+    const p = /** @type {any} */ (Storage.loadPortfolioCache());
+    expect(Object.keys(p.holdings).sort()).toEqual(['CASH', 'GOOGL', 'NVDA']);
+    expect(p.holdings.GOOGL).toEqual(goog);
+    expect(p.positions.CM.tickers).toEqual(['NVDA', 'GOOGL', 'META']);
+    expect(p.positions.GK.tickers).toEqual(['CASH']);
+    expect(localStorage.getItem('dp.schema')).toBe('3');
+  });
+
+  it("renames this tab's unsaved draft and the cached dividends of the class A line, and nothing else", () => {
+    localStorage.setItem('dp.schema', '2');
+    sessionStorage.setItem('dp.pendingSave', JSON.stringify({ fp: 'x', baseVersion: 7, ts: 1, portfolio: board }));
+    localStorage.setItem('dp.dividends', JSON.stringify({ ts: Date.now(), data: [
+      { ticker: 'GOOG', t212_ticker: 'GOOGL_US_EQ', amount_holding: 1 },
+      { ticker: 'GOOG', t212_ticker: 'GOOG_US_EQ', amount_holding: 2 },
+      { ticker: 'NVDA', t212_ticker: 'NVDA_US_EQ', amount_holding: 3 },
+    ] }));
+    Storage.migrate();
+    const draft = JSON.parse(/** @type {string} */ (sessionStorage.getItem('dp.pendingSave')));
+    expect([draft.fp, draft.baseVersion, Object.keys(draft.portfolio.holdings).sort()]).toEqual(['x', 7, ['CASH', 'GOOGL', 'NVDA']]);
+    expect(/** @type {any[]} */ (Storage.loadDividends()).map((r) => r.ticker)).toEqual(['GOOGL', 'GOOG', 'NVDA']);
+    sessionStorage.clear();
+  });
+
+  it('leaves a board holding both GOOG and GOOGL as it is, and a later run changes nothing', () => {
+    localStorage.setItem('dp.schema', '2');
+    const both = { ...board, holdings: { ...board.holdings, GOOGL: { shares: 1, cost: 300 } } };
+    localStorage.setItem('dp.portfolioCache', JSON.stringify({ ts: Date.now(), data: both }));
+    Storage.migrate();
+    expect(/** @type {any} */ (Storage.loadPortfolioCache())).toEqual(both);
+    localStorage.setItem('dp.portfolioCache', JSON.stringify({ ts: Date.now(), data: board }));
+    Storage.migrate();
+    // Already at v3: the step does not run again.
+    expect(Object.keys(/** @type {any} */ (Storage.loadPortfolioCache()).holdings)).toContain('GOOG');
   });
 });
 

@@ -2972,7 +2972,7 @@ async function run() {
     const S = (n) => `${vp.name}/heatmap-shape/${n}`;
     const WEIGHTS = [
       ['MSFT', 34484], ['NVDA', 33785], ['SPCX', 30450], ['AMZN', 29029], ['PLTR', 27816], ['RKLB', 26220],
-      ['MSTR', 26208], ['ORCL', 23088], ['GOOG', 23000], ['NBIS', 21000], ['AAPL', 19000], ['META', 18759],
+      ['MSTR', 26208], ['ORCL', 23088], ['GOOGL', 23000], ['NBIS', 21000], ['AAPL', 19000], ['META', 18759],
       ['BTCU', 16224], ['BE', 16055], ['TSM', 13334], ['BMNR', 12862], ['APLD', 12765], ['HOOD', 12765],
       ['MU', 11830], ['CRWV', 8300], ['NVTS', 8000], ['SIVE', 5100], ['SAEM', 1400], ['VUAA', 1360],
     ];

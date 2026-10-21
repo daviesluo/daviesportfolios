@@ -31,7 +31,6 @@ export const T212_ALIASES: Readonly<Record<string, string>> = Object.freeze({
   "IIVI_US_EQ": "COHR", // II-VI, renamed Coherent in 2022
   "VACQ_US_EQ": "RKLB", // Vector Acquisition, the SPAC that became Rocket Lab in 2021
   "LOKB_US_EQ": "NVTS", // Live Oak Acquisition II, the SPAC that became Navitas in 2021
-  "GOOGL_US_EQ": "GOOG", // Alphabet's class A line; the board tracks class C, which moves within a fraction of it
   "2DGd_EQ": "2DG.SG", // Sivers on a German venue: the `d` letter has no rule
   "XFABp_EQ": "XFAB.PA", // X-FAB on Euronext Paris: nor has `p`
   "CSPX_EQ": "CSPX.L", // an LSE UCITS ETF whose code carries no exchange letter at all

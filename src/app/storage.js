@@ -18,6 +18,8 @@
 // format without scattering versioned cache keys (e.g. `ytd-perf-cache-v12`)
 // around the codebase. Call `migrateStorage()` exactly once on app startup
 // before reading any persisted state.
+import { applyTickerRenames, renameTickerRows } from '../portfolio/ticker_rename.js';
+
 const STORAGE_KEYS = {
   schemaVersion: 'dp.schema',
   auth:          'dp.auth',   // { lockoutUntil, attempts }
@@ -81,7 +83,9 @@ const STORAGE_KEYS = {
   // the legacy-localStorage migration so these names are referenced
   // there, not here.
 };
-const CURRENT_SCHEMA_VERSION = 2;
+const CURRENT_SCHEMA_VERSION = 3;
+// app.jsx's per-tab pending-save draft (`PENDING_SAVE_KEY` there), which the v3 step renames too.
+const PENDING_SAVE_KEY = 'dp.pendingSave';
 // The IndexedDB database the chart caches used until schema v2. Only one
 // of its three object stores ever existed (see chart_store.js), and the
 // caches live in `dp-charts` now, so the v2 step deletes it.
@@ -133,6 +137,28 @@ function writeJSON(key, value) {
   }
 }
 
+/** The schema v3 step: the ticker renames of `portfolio/ticker_rename.js` through every stored copy of the board. */
+function migrateTickerRenames() {
+  const board = readJSON(STORAGE_KEYS.portfolioCache, null);
+  if (board && typeof board === 'object' && board.data && typeof board.data === 'object') {
+    const out = applyTickerRenames(board.data);
+    if (out.renamed) writeJSON(STORAGE_KEYS.portfolioCache, { ...board, data: out.portfolio });
+  }
+  const divs = readJSON(STORAGE_KEYS.dividends, null);
+  if (divs && typeof divs === 'object' && Array.isArray(divs.data)) {
+    const rows = renameTickerRows(divs.data);
+    if (rows !== divs.data) writeJSON(STORAGE_KEYS.dividends, { ...divs, data: rows });
+  }
+  try {
+    const raw = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem(PENDING_SAVE_KEY) : null;
+    const draft = raw ? JSON.parse(raw) : null;
+    if (draft && typeof draft === 'object' && draft.portfolio && typeof draft.portfolio === 'object') {
+      const out = applyTickerRenames(draft.portfolio);
+      if (out.renamed) sessionStorage.setItem(PENDING_SAVE_KEY, JSON.stringify({ ...draft, portfolio: out.portfolio }));
+    }
+  } catch { /* no sessionStorage, or a draft that is not JSON: nothing to rename */ }
+}
+
 function migrateStorage() {
   // Chart caches now live in IndexedDB (chart_store.js). Their
   // module's hydrate() handles a one-shot localStorage→IDB migration
@@ -164,7 +190,14 @@ function migrateStorage() {
       if (typeof indexedDB !== 'undefined') indexedDB.deleteDatabase(LEGACY_CHART_DB);
     } catch { /* no IndexedDB here — nothing to delete */ }
   }
-  // Future migrations: if (stored < 3) { ... }
+  if (stored < 3) {
+    // v2 → v3: GOOG became GOOGL (Davies holds class A; migration 0135 renames the stored board, 2026-10-21). The
+    // copies this browser keeps of the board are brought through the same rename, so none paints GOOG again or saves
+    // it back: the cached board, the dividends read last, and this tab's unsaved draft. A copy holding both tickers is
+    // left as it is (portfolio/ticker_rename.js).
+    migrateTickerRenames();
+  }
+  // Future migrations: if (stored < 4) { ... }
 
   localStorage.setItem(STORAGE_KEYS.schemaVersion, String(CURRENT_SCHEMA_VERSION));
 }

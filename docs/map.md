@@ -543,6 +543,7 @@ Startup, the root component, sign-in, what the browser keeps, error reports, and
 | `portfolio/transactions.js` | Sales, the net position and realised gain from a holding's buys, sells and dividends. |
 | `portfolio/fx.js` | Which currency a ticker trades in, and its rate to USD. |
 | `portfolio/trading212.js` | The client half of the broker sync: positions, live prices, the fill history in each fill's own currency and the dividends, applied without touching shares held at another platform; a slice sold out at the broker comes off only when every account answered and its fills net to zero. |
+| `portfolio/ticker_rename.js` | A holding's ticker renamed through a copy of the board the browser keeps (GOOG to GOOGL, 2026-10-21): the holding moved whole, its slot entry renamed, a board holding both left alone. |
 | `portfolio/t212_fills.js` | Rebuilds a holding's lots from the broker's fills, keeping the lots bought elsewhere; turns its dividends into the ledger's events and the average cost the site shows. |
 
 #### `prices/` — prices, history and the caches
@@ -845,6 +846,7 @@ before touching migration state.
 | `0132_cb_print_minutes.sql` | Coinbase's prints kept 40 days as `cb_print_minutes` (summed by second, price and aggressor side, a row per book and minute), rebuilt from `cb_trades` by `cb_print_minutes_build` every 10 minutes over the last six hours and backfilled from what `cb_trades` held; RLS on, no grant. |
 | `0133_delete_momentum_1d.sql` | Deletes the retired `momentum-1d` paper row with its orders, decisions, observations and maker probes, ending its wind-down; its rulebook and backtests stay. |
 | `0134_analyst_targets.sql` | The Target price page's `analyst_targets` (a snapshot per holding) and `analyst_targets_state` (the last slot done, a run's claim, a day's Alpha Vantage cache), RLS on, no grant; and `targets` as a call of the one-minute job. |
+| `0135_googl_rename.sql` | Alphabet on the board renamed GOOG to GOOGL, the class A line held: the holding moved whole, its slot, the class A fills and dividends, GOOG's target snapshot dropped; the board's version bumped; stops if both are held. |
 | `0096_pm_rw_x_tb1_arms.sql` | Lets the variants' day tables, RW's and RW-C's, take TB1's two arms on x1 (tb1-skip, tb1-back). |
 | `0086_quote_live_deadman.sql` | Adds the kind `deadman` to `agent_quote_live_events`, for the row the monitor's dead-man switch writes when it cancels PR5's resting orders. |
 | `0087_quote_twins.sql` | The realistic twins' tables (each the live executor's four, a replica's and a simulated account's), their config rows and leases, and the one call that runs them. |

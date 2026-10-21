@@ -22,7 +22,7 @@ export const COMPANY_NAMES = {
   'AVGO': 'Broadcom Inc.',
   'APLD': 'Applied Digital Corporation',
   'NBIS': 'Nebius Group',
-  'GOOG': 'Alphabet Inc.',
+  'GOOGL': 'Alphabet Inc. (Class A)',
   'SPAX.PVT': 'SpaceX',
   'ORCL': 'Oracle Corporation',
   'META': 'Meta Platforms, Inc.',

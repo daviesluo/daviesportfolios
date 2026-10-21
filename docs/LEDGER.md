@@ -674,6 +674,13 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   empty pre-run answer for the 2-hour TTL. Now an empty copy is never fresh (`targetsFresh`) and the TTL is 15 minutes
   (one GET of our own table); pinned in `targets_data.test.jsx`. README's "What it does" gains Target price.
 
+
+### [2026-10-21 20:39 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GOOG → GOOGL** (sub-agent; Davies 10-21: the Google held is class A). T212 alias `GOOGL_US_EQ`→GOOG removed; `0135`
+  renames the board's holding and CM slot (version +1, history keeps the old one), 36 fills and 15 dividends
+  (`t212_ticker` GOOGL_US_EQ), drops GOOG's target row; aborts if both held. Client schema v3 renames cached copies.
+  Dry run on production: every equality true. After landing: `select count(*) from t212_orders where ticker='GOOG'` = 0.
+
 ### [2026-10-21 19:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Target price page built** (sub-agent; not pushed): ☰ → after Sectors list; weight = the Holding list's Exposure, the
   board's price, Yahoo consensus per stock, VUAA/SAEM holdings-weighted (coverage shown), BTC from a sourced hand table;

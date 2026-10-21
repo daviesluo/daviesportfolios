@@ -12,7 +12,6 @@ Deno.test("t212_tickers: both tables, whole, and each entry is what the function
     "IIVI_US_EQ": "COHR",
     "VACQ_US_EQ": "RKLB",
     "LOKB_US_EQ": "NVTS",
-    "GOOGL_US_EQ": "GOOG",
     "2DGd_EQ": "2DG.SG",
     "XFABp_EQ": "XFAB.PA",
     "CSPX_EQ": "CSPX.L",
@@ -20,6 +19,15 @@ Deno.test("t212_tickers: both tables, whole, and each entry is what the function
   for (const [code, ticker] of Object.entries({ ...T212_DCA_ETFS, ...T212_ALIASES })) {
     assertEquals(t212TickerToYahoo(code), ticker, code);
   }
+});
+
+// Davies holds Alphabet's class A line (every fill and dividend is `GOOGL_US_EQ`); until 2026-10-21 an alias put it on
+// the board as GOOG, class C. It now maps by the US rule to its own ticker, and nothing maps to GOOG.
+Deno.test("t212_tickers: GOOGL_US_EQ is GOOGL, class A, and no code maps to GOOG", () => {
+  assertEquals(t212TickerToYahoo("GOOGL_US_EQ"), "GOOGL");
+  assertEquals(t212TickerToYahoo("GOOG_US_EQ"), "GOOG");
+  assertEquals(Object.values({ ...T212_DCA_ETFS, ...T212_ALIASES }).includes("GOOG"), false);
+  assertEquals("GOOGL_US_EQ" in T212_ALIASES, false);
 });
 
 Deno.test("t212_tickers: the tables cannot be changed by a caller", () => {

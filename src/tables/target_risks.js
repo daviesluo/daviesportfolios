@@ -49,7 +49,7 @@ export const TARGET_RISKS = {
   // https://www.sec.gov/Archives/edgar/data/0001652044/000165204426000071/goog-20260630.htm (search remedies under appeal)
   // https://www.relevantaudience.com/google-ads-en/brinkema-rejects-adx-divestiture-behavioural-remedies/ (9/2: no AdX sale, conduct remedies)
   // https://www.wallstreethorizon.com/alphabet-earnings-calendar (10/28 inferred)
-  GOOG: [{ text: 'Ad-tech remedies ordered 9/2 (no AdX sale)' }, { text: 'search judgment under appeal' }, { text: 'earnings ~10/28 (est.)', until: '2026-10-28' }],
+  GOOGL: [{ text: 'Ad-tech remedies ordered 9/2 (no AdX sale)' }, { text: 'search judgment under appeal' }, { text: 'earnings ~10/28 (est.)', until: '2026-10-28' }],
   // https://www.globenewswire.com/news-release/2026/10/01/3373375/0/en/index.html (Q3 results 10/27)
   // https://www.webull.com/news/14052150590866432 (CFTC comment request on event contracts)
   HOOD: [{ text: 'earnings 10/27', until: '2026-10-27' }, { text: 'Prediction markets: CFTC weighing event-contract rules' }],

@@ -154,11 +154,11 @@ describe('heatmapItems — no tile while the exchange rates are loading (review 
 // The weights are the tile areas measured off his desktop screenshot of that day, in px² of the 530 × 810 canvas
 // (`.heatmap` 560 × 840 less its 14px padding and 1px border), so they are shares of the book, not amounts. Fed
 // through the old split they reproduce that screenshot tile for tile: MSFT/NVDA over SPCX/AMZN on the left, PLTR/RKLB
-// over MSTR/ORCL on the right (a 4 × 2 block), GOOG/NBIS/AAPL over META/BTC-USD/BE, TSM/BMNR beside APLD/HOOD, MU
+// over MSTR/ORCL on the right (a 4 × 2 block), GOOGL/NBIS/AAPL over META/BTC-USD/BE, TSM/BMNR beside APLD/HOOD, MU
 // over CRWV, and NVTS over SIVE (2DG) beside SAEM over VUAA.
 const OCT20 = [
   ['MSFT', 34484], ['NVDA', 33785], ['SPCX', 30450], ['AMZN', 29029], ['PLTR', 27816], ['RKLB', 26220],
-  ['MSTR', 26208], ['ORCL', 23088], ['GOOG', 23000], ['NBIS', 21000], ['AAPL', 19000], ['META', 18759],
+  ['MSTR', 26208], ['ORCL', 23088], ['GOOGL', 23000], ['NBIS', 21000], ['AAPL', 19000], ['META', 18759],
   ['BTC-USD', 16224], ['BE', 16055], ['TSM', 13334], ['BMNR', 12862], ['APLD', 12765], ['HOOD', 12765],
   ['MU', 11830], ['CRWV', 8300], ['NVTS', 8000], ['2DG', 5100], ['SAEM', 1400], ['VUAA', 1360],
 ].map(([ticker, value]) => ({ ticker: String(ticker), value: Number(value) }));
@@ -242,7 +242,7 @@ describe('treemap — a 2×2 beside a 2×2 stacks its right half into one column
       }
     }
     // 20 to 24 holdings: the top block as above. 14 holdings: the same shape one level down, AAPL/META over
-    // BTC-USD/BE beside MSTR/ORCL over GOOG/NBIS, now AAPL, META, BTC-USD, BE in one column (227 wide, 88 to 104 tall).
+    // BTC-USD/BE beside MSTR/ORCL over GOOGL/NBIS, now AAPL, META, BTC-USD, BE in one column (227 wide, 88 to 104 tall).
     expect(differs).toEqual([
       '14@530x810: AAPL META BTC-USD BE',
       ...[20, 21, 22, 23, 24].map((n) => `${n}@530x810: ${RIGHT4.join(' ')}`),

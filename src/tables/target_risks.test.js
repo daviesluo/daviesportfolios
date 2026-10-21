@@ -9,7 +9,7 @@ const row = { low: null, price: null, lowVsPrice: null };
 describe('Key risks', () => {
   it('holds every holding on the board of 2026-10-21, by the ticker the page shows, 1 to 3 items each', () => {
     // The board's 30 holdings (read-only SQL on board_data, 2026-10-21), through displayTicker.
-    const BOARD = ['017731', 'SIVE', 'AAPL', 'AMZN', 'APLD', 'AVGO', 'BE', 'BMNR', 'BTC-USD', 'CRWV', 'GOOG', 'HOOD', 'META', 'MSFT', 'MSTR',
+    const BOARD = ['017731', 'SIVE', 'AAPL', 'AMZN', 'APLD', 'AVGO', 'BE', 'BMNR', 'BTC-USD', 'CRWV', 'GOOGL', 'HOOD', 'META', 'MSFT', 'MSTR',
       'MU', 'NBIS', 'NET', 'NVDA', 'NVTS', 'ORCL', 'PLTR', 'RKLB', 'SAEM', 'SFTBY', 'SPCX', 'TSLA', 'TSM', 'VST', 'VUAA'];
     expect(Object.keys(TARGET_RISKS).sort()).toEqual([...BOARD].sort());
     for (const k of BOARD) {

@@ -917,3 +917,22 @@ Deno.test("handleCronPost — the cron bearer, then the beat, then the sync; any
   assertEquals(r.status, 200);
   assertEquals(steps, ["sync"]);
 });
+
+// Davies holds Alphabet's class A line (2026-10-21: every fill and dividend stored is `GOOGL_US_EQ`). Until then the
+// shared map put it on the board as GOOG, class C. A position, a fill and a dividend of it now all come out as GOOGL,
+// and nothing as GOOG, so the sync cannot add a second Alphabet line or tag the wrong one.
+Deno.test("GOOGL_US_EQ — a position, a fill and a dividend all land under GOOGL, none under GOOG", () => {
+  const { holdings, prices } = shapeT212Portfolio([
+    { instrument: { ticker: "GOOGL_US_EQ", name: "Alphabet (Class A)" }, quantity: 3, averagePricePaid: 180, currentPrice: 330 },
+  ]);
+  assertEquals(holdings["GOOGL"], { shares: 3, cost: 180 });
+  assertEquals(prices["GOOGL"], 330);
+  assertEquals("GOOG" in holdings || "GOOG" in prices, false);
+  const fill = shapeT212Order({
+    id: 1, fillId: 2, ticker: "GOOGL_US_EQ", status: "FILLED", filledQuantity: 1, fillPrice: 330, fillCost: 330,
+    dateExecuted: "2026-10-21T14:00:00.000+00:00",
+  }, "invest");
+  assertEquals([fill?.ticker, fill?.t212_ticker], ["GOOGL", "GOOGL_US_EQ"]);
+  const div = shapeT212Dividend(divItem({ ticker: "GOOGL_US_EQ", instrument: { isin: "US02079K3059", name: "Alphabet", ticker: "GOOGL_US_EQ", currency: "USD" } }), "invest");
+  assertEquals([div?.ticker, div?.t212_ticker], ["GOOGL", "GOOGL_US_EQ"]);
+});
