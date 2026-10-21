@@ -6,7 +6,7 @@
 import React from 'react';
 import { Modal } from '../board/modals.jsx';
 import { dropDot00, fmtPct, fmtPrice, pctColor } from '../app/formatters.js';
-import { buildTargetRows, DEFAULT_SORT, sortTargetRows, TARGET_COLUMNS, firstSortDir, updatedLabel } from './target_price.js';
+import { buildTargetRows, DEFAULT_SORT, firstSortDir, fmtRange, kindTag, sortTargetRows, strategistTitle, TARGET_COLUMNS, updatedLabel } from './target_price.js';
 import { fetchTargets, onTargets, readTargetsCache, TARGETS_TTL_MS } from './targets_data.js';
 
 const DASH = '—';
@@ -22,20 +22,14 @@ function money(n, cur) {
 
 /** The tag under a symbol whose targets are not a stock's consensus, with where they come from on hover. @param {{ row: any }} p */
 function KindTag({ row }) {
-  if (row.kind === 'holdings') {
-    const c = row.coverage;
-    const title = c
-      ? `Holdings-weighted target: the analyst targets of ${c.names} of the fund's holdings, ${(c.weight * 100).toFixed(0)}% of its weight, `
-        + `each as a ratio to its own price and weighted by its share of the fund (${c.source}). No source publishes a consensus for a fund.`
-      : 'Holdings-weighted target';
-    return <span className="tp-tag" title={title}>holdings-weighted{c ? ` · ${(c.weight * 100).toFixed(0)}%` : ''}</span>;
-  }
-  if (row.kind === 'strategist') {
-    const src = (row.sources || []).map((/** @type {any} */ s) => `${s.firm} ${fig(s.target)} (${s.at}, ${s.horizon})`).join('; ');
-    const asOf = (row.sources || []).reduce((/** @type {string} */ m, /** @type {any} */ s) => (s.at > m ? s.at : m), '');
-    return <span className="tp-tag" title={`Strategist targets, kept by hand: ${src}. No API serves them; a session refreshes the table.${asOf ? ` Newest ${asOf}.` : ''}`}>strategist targets</span>;
-  }
-  return null;
+  const t = kindTag(row);
+  if (!t) return null;
+  return (
+    <span className="tp-tag-wrap" title={t.title}>
+      <span className="tp-tag">{t.text}</span>
+      {t.note ? <span className="tp-tag-note">{t.note}</span> : null}
+    </span>
+  );
 }
 
 /**
@@ -112,7 +106,7 @@ function TargetPriceModal({ metrics, onTickerClick, onClose }) {
             </thead>
             <tbody>
               {sorted.map((r) => (
-                <tr key={r.ticker} className={r.kind ? '' : 'tp-uncovered'}>
+                <tr key={r.ticker} className={r.kind ? '' : 'tp-uncovered'} title={r.kind === 'strategist' ? strategistTitle(r) : undefined}>
                   <td className="hl-left hl-sym tp-sym">
                     <button className="hl-ticker-btn" onClick={() => onTickerClick(r.ticker)} title={`Open ${r.display}`}>
                       <span className="hl-ticker mono">{r.display}</span>
@@ -128,12 +122,12 @@ function TargetPriceModal({ metrics, onTickerClick, onClose }) {
                   <td className="hl-right">
                     {r.rating != null ? (<><div>{r.rating.toFixed(2)}</div><div className="hl-sub tp-word">{r.ratingWord}</div></>) : <span className="dim">{DASH}</span>}
                   </td>
-                  <td className="hl-right tp-range">{r.low != null && r.high != null ? `${fig(r.low)} – ${fig(r.high)}` : DASH}</td>
+                  <td className="hl-right tp-range">{r.low != null && r.high != null ? fmtRange(r.low, r.high) : DASH}</td>
                   <td className="hl-right" title={r.kind === 'holdings' ? 'The median of the covered holdings\' analyst counts' : r.kind === 'strategist' ? 'Firms in the hand-kept table' : undefined}>
                     {r.analysts != null ? (r.kind === 'holdings' ? `~${r.analysts}` : r.analysts) : DASH}
                   </td>
                   <td className="hl-right tp-range">
-                    {r.fresh ? (<><div>{r.fresh.low === r.fresh.high ? fig(r.fresh.low) : `${fig(r.fresh.low)} – ${fig(r.fresh.high)}`}</div>
+                    {r.fresh ? (<><div>{fmtRange(r.fresh.low, r.fresh.high)}</div>
                       <div className="hl-sub tp-word">{r.fresh.count} {r.fresh.count === 1 ? 'target' : 'targets'}</div></>)
                       : r.kind === 'holdings' ? <span className="dim" title="The fund's holdings have no dated targets to read a 30-day window from">{DASH}</span>
                       : r.kind ? <span className="dim" title="No target set in the last 30 days">none in 30d</span> : DASH}

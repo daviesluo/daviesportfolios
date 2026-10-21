@@ -193,3 +193,59 @@ export function updatedLabel(iso, nowMs) {
   const md = new Intl.DateTimeFormat('en-US', { timeZone: tz, month: 'short', day: 'numeric' }).format(t);
   return `Updated ${md}, ${hm} ET`;
 }
+
+/**
+ * The decimals both ends of a range are written with, from the larger end: two under 100, none from 100 up. One
+ * number of decimals for the pair, so a range never reads "34 – 63.60".
+ * @param {number} lo @param {number} hi
+ */
+export function rangeDecimals(lo, hi) {
+  return Math.max(Math.abs(lo), Math.abs(hi)) < 100 ? 2 : 0;
+}
+
+/**
+ * A range for the Avg range and Fresh range columns, both ends alike ("34.00 – 63.60", "440 – 1,000"); one figure when
+ * the two ends are the same.
+ * @param {number} lo @param {number} hi
+ */
+export function fmtRange(lo, hi) {
+  const d = rangeDecimals(lo, hi);
+  const f = (/** @type {number} */ n) => n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+  return f(lo) === f(hi) ? f(lo) : `${f(lo)} – ${f(hi)}`;
+}
+
+/**
+ * The tag under a fund's or bitcoin's symbol, and what hovering it says. A fund's names the share of its weight priced
+ * and how many holdings were skipped as implausible (their mean target outside 0.5–2× their price).
+ * @param {any} row
+ * @returns {{ text: string, note: string, title: string } | null}
+ */
+export function kindTag(row) {
+  if (row.kind === 'holdings') {
+    const c = row.coverage;
+    if (!c) return { text: 'holdings-weighted', note: '', title: 'Holdings-weighted target' };
+    const skipped = Array.isArray(c.skipped) ? c.skipped : [];
+    const skippedNote = skipped.length
+      ? ` Skipped as implausible (mean target outside 0.5–2× the holding's own price): ${skipped.map((/** @type {any} */ x) => `${x.symbol} ${(x.weight * 100).toFixed(1)}% of the fund, ${Number(x.ratio).toFixed(2)}×`).join('; ')}.`
+      : '';
+    return {
+      text: `holdings-weighted · ${(c.weight * 100).toFixed(0)}%`,
+      note: skipped.length ? `${skipped.length} skipped` : '',
+      title: `Holdings-weighted target: the analyst targets of ${c.names} of the fund's holdings, ${(c.weight * 100).toFixed(0)}% of its weight, `
+        + `each as a ratio to its own price and weighted by its share of the fund (${c.source}). No source publishes a consensus for a fund.${skippedNote}`,
+    };
+  }
+  if (row.kind === 'strategist') return { text: 'strategist targets', note: '', title: strategistTitle(row) };
+  return null;
+}
+
+/**
+ * Each hand-kept target with its firm, date and horizon, one a line: the tooltip on bitcoin's row (its targets reach
+ * different dates, end-2026 to mid-2027, and the average is of all of them).
+ * @param {any} row
+ */
+export function strategistTitle(row) {
+  const lines = (row.sources || []).map((/** @type {any} */ x) => `${x.firm}: ${Number(x.target).toLocaleString('en-US')}, horizon ${x.horizon} (published ${x.at})`);
+  return `Strategist targets, kept by hand (no API serves them; a session refreshes the table):\n${lines.join('\n')}`;
+}
+

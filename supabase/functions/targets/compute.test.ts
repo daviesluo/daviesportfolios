@@ -2,7 +2,7 @@
 // consensus, the 30-day fresh window, an ETF's holdings-weighted target, bitcoin's hand-kept table, and the symbols tried
 // for an Asian listing.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { type Analyst, consensusSnapshot, freshTargets, holdingsSnapshot, parseAnalyst, strategistSnapshot, yahooSymbolCandidates } from "./compute.ts";
+import { type Analyst, consensusSnapshot, CONSTITUENT_RATIO, freshTargets, holdingsSnapshot, parseAnalyst, PREFERRED_COMMON, strategistSnapshot, yahooSymbolCandidates } from "./compute.ts";
 import { STRATEGIST_AS_OF, STRATEGIST_TARGETS } from "./strategists.ts";
 
 const NOW = Date.parse("2026-10-21T13:30:00Z");
@@ -67,12 +67,12 @@ Deno.test("freshTargets: set in the last 30 days, not in the future", () => {
 
 /** A constituent as quoteSummary reads, for the weighted target. */
 const firm = (price: number, mean: number, low: number, high: number, analysts: number | null, history: Array<[number, string]> = []): Analyst =>
-  ({ currency: "USD", price, mean, low, high, rating: 2, analysts, holdings: [], history: history.map(([target, at], i) => ({ firm: `F${i}`, target, at })) });
+  ({ currency: "USD", price, fdPrice: price, mean, low, high, rating: 2, analysts, holdings: [], history: history.map(([target, at], i) => ({ firm: `F${i}`, target, at })) });
 
 Deno.test("holdingsSnapshot: ratios to each holding's price, weighted, put on the ETF's price (worked by hand)", () => {
   // A: 30 % of the ETF, priced 50: mean 60 (1.2×), low 40 (0.8×), high 80 (1.6×), 10 analysts; fresh targets 55 and 70
   //    (1.1× and 1.4×), one 40 days old (out). B: 20 %, priced 200: mean 220 (1.1×), low 180 (0.9×), high 300 (1.5×),
-  //    20 analysts, nothing fresh. C: 10 %, no data (uncovered). D: 5 %, a mean 6× its price (refused).
+  //    20 analysts, nothing fresh. C: 10 %, no data (uncovered). D: 5 %, a mean 6× its price (skipped, named).
   //   covered weight 0.5; mean 100 × (0.3·1.2 + 0.2·1.1) / 0.5 = 116; low 100 × (0.24 + 0.18) / 0.5 = 84;
   //   high 100 × (0.48 + 0.30) / 0.5 = 156; analysts median(10, 20) = 15;
   //   fresh over A alone: low 100 × 1.1 = 110, high 100 × 1.4 = 140, 2 targets.
@@ -85,9 +85,31 @@ Deno.test("holdingsSnapshot: ratios to each holding's price, weighted, put on th
   const s = holdingsSnapshot("SAEM.L", [{ symbol: "A", weight: 0.3 }, { symbol: "B", weight: 0.2 }, { symbol: "C", weight: 0.1 }, { symbol: "D", weight: 0.05 }], data, { price: 100, currency: "USD" }, NOW, "test")!;
   assertEquals([s.kind, s.currency, s.refPrice, s.mean, s.low, s.high, s.rating, s.analysts], ["holdings", "USD", 100, 116, 84, 156, null, 15]);
   assertEquals(s.fresh, { low: 110, high: 140, count: 2 });
-  assertEquals(s.coverage, { weight: 0.5, names: 2, source: "test" });
+  assertEquals(s.coverage, { weight: 0.5, names: 2, source: "test", skipped: [{ symbol: "D", weight: 0.05, ratio: 6 }] });
   assertEquals(holdingsSnapshot("X", [{ symbol: "C", weight: 1 }], data, { price: 100, currency: "USD" }, NOW, "t"), null);
   assertEquals(holdingsSnapshot("X", [{ symbol: "A", weight: 1 }], data, { price: null, currency: "USD" }, NOW, "t"), null);
+});
+
+Deno.test("holdingsSnapshot: a holding is weighted in only at 0.5× to 2× its own price, read from the same response", () => {
+  assertEquals(CONSTITUENT_RATIO, { min: 0.5, max: 2 });
+  // SAEM on 2026-10-21, trimmed: TSMC 3,390.43 / 2,420 = 1.401 (in); Samsung 478,905.62 / 223,500 = 2.143 (out); SK hynix
+  // 3,096,288 / 1,294,000 = 2.393 (out); the bounds themselves are in.
+  const at = (fdPrice: number, mean: number, price = fdPrice): Analyst => ({ ...firm(price, mean, mean, mean, 30), fdPrice });
+  const data = new Map<string, Analyst | null>([
+    ["2330.TW", at(2420, 3390.4285)], ["005930.KQ", at(223500, 478905.62)], ["000660.KQ", at(1294000, 3096288)],
+    ["LO", at(100, 50)], ["HI", at(100, 200)],
+    // A price from another quote (`price` module) is not the targets' price: with no currentPrice the holding is uncovered.
+    ["NOFD", { ...firm(10, 12, 11, 13, 5), fdPrice: null }],
+  ]);
+  const h = [["2330.TW", 0.1426], ["005930.KQ", 0.069], ["000660.KQ", 0.0539], ["LO", 0.01], ["HI", 0.01], ["NOFD", 0.02]].map(([symbol, weight]) => ({ symbol: String(symbol), weight: Number(weight) }));
+  const s = holdingsSnapshot("SAEM.L", h, data, { price: 10, currency: "USD" }, NOW, "t")!;
+  assertEquals(s.coverage?.names, 3);
+  assertEquals(s.coverage?.weight, 0.1626);
+  assertEquals(s.coverage?.skipped, [{ symbol: "005930.KQ", weight: 0.069, ratio: 2.1428 }, { symbol: "000660.KQ", weight: 0.0539, ratio: 2.3928 }]);
+  // mean 10 × (0.1426 × 1.40100 + 0.01 × 0.5 + 0.01 × 2) / 0.1626 = 13.82430
+  assertEquals(s.mean, 13.8243);
+  // Samsung's preferred line is read through the common share.
+  assertEquals(PREFERRED_COMMON["005935"], "005930.KS");
 });
 
 Deno.test("strategistSnapshot: bitcoin's table, as of its date — mean 110,666.67, low 82,000, high 150,000, 3 targets", () => {

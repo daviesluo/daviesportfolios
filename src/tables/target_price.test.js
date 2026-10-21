@@ -2,7 +2,7 @@
 // from the Holding list's own function, the low against the board's price, the 30-day fresh window, the three kinds of
 // row, the default order (low vs price, largest first) with uncovered holdings last either way, and the "Updated" stamp.
 import { describe, expect, it } from 'vitest';
-import { buildTargetRows, DEFAULT_SORT, firstSortDir, freshTargets, ratingWord, sortTargetRows, TARGET_COLUMNS, unitFactor, updatedLabel } from './target_price.js';
+import { buildTargetRows, DEFAULT_SORT, firstSortDir, fmtRange, freshTargets, kindTag, rangeDecimals, ratingWord, sortTargetRows, strategistTitle, TARGET_COLUMNS, unitFactor, updatedLabel } from './target_price.js';
 import { buildHoldingsRows } from './holdings_list.jsx';
 
 const NOW = Date.parse('2026-10-21T13:30:20Z');
@@ -136,3 +136,53 @@ describe('Target price helpers', () => {
     expect(updatedLabel(null, NOW)).toBe(null);
   });
 });
+
+describe('Target price ranges and tags', () => {
+  it('writes both ends of a range with the same decimals, by the larger end: two under 100, none from 100 up', () => {
+    // BMNR's Avg range on 2026-10-21 was 34 – 63.6: it read "34 – 63.60" before.
+    expect(fmtRange(34, 63.6)).toBe('34.00 – 63.60');
+    expect(fmtRange(8, 21)).toBe('8.00 – 21.00');
+    expect(fmtRange(11.5252, 25.8137)).toBe('11.53 – 25.81');
+    expect(fmtRange(64, 150)).toBe('64 – 150');
+    expect(fmtRange(99.5, 100)).toBe('100');           // the larger end decides: both rounded to whole numbers
+    expect(fmtRange(440, 1000)).toBe('440 – 1,000');
+    expect(fmtRange(82000, 150000)).toBe('82,000 – 150,000');
+    expect(fmtRange(13, 13)).toBe('13.00');
+    expect([rangeDecimals(1, 99.99), rangeDecimals(1, 100), rangeDecimals(500, 4700000)]).toEqual([2, 0, 0]);
+    // Every range of the fixture: each one's two ends carry the same number of decimals.
+    for (const r of buildTargetRows(METRICS, DATA, NOW)) {
+      for (const [lo, hi] of [[r.low, r.high], [r.fresh?.low, r.fresh?.high]]) {
+        if (lo == null || hi == null) continue;
+        const ends = fmtRange(lo, hi).split(' – ').map((x) => (x.split('.')[1] || '').length);
+        expect(new Set(ends).size, `${r.ticker} ${fmtRange(lo, hi)}`).toBe(1);
+      }
+    }
+  });
+
+  it("a fund's tag names its coverage and, when any, the holdings skipped as implausible", () => {
+    const vuaa = /** @type {any} */ (by('VUAA.L'));
+    expect(kindTag(vuaa)?.text).toBe('holdings-weighted · 39%');
+    const saem = { kind: 'holdings', coverage: { weight: 0.2246, names: 7, source: "SAEM.L's top holdings (Yahoo)",
+      skipped: [{ symbol: '005930.KQ', weight: 0.069, ratio: 2.1428 }, { symbol: '000660.KQ', weight: 0.0539, ratio: 2.3928 }, { symbol: '005935', weight: 0.0086, ratio: 2.1428 }] } };
+    const t = kindTag(saem);
+    expect([t?.text, t?.note]).toEqual(['holdings-weighted · 22%', '3 skipped']);
+    expect(kindTag(vuaa)?.note).toBe('');
+    expect(t?.title).toContain('005930.KQ 6.9% of the fund, 2.14×; 000660.KQ 5.4% of the fund, 2.39×; 005935 0.9% of the fund, 2.14×');
+    expect(kindTag({ kind: 'consensus' })).toBe(null);
+  });
+
+  it("bitcoin's row says each target's horizon on hover", () => {
+    const btc = { kind: 'strategist', sources: [
+      { firm: 'Standard Chartered', target: 100000, at: '2026-02-12', horizon: 'end-2026' },
+      { firm: 'Citi', target: 82000, at: '2026-07-01', horizon: '12 months' },
+      { firm: 'Bernstein', target: 150000, at: '2026-08-26', horizon: 'mid-2027' },
+    ] };
+    expect(strategistTitle(btc).split('\n').slice(1)).toEqual([
+      'Standard Chartered: 100,000, horizon end-2026 (published 2026-02-12)',
+      'Citi: 82,000, horizon 12 months (published 2026-07-01)',
+      'Bernstein: 150,000, horizon mid-2027 (published 2026-08-26)',
+    ]);
+    expect(kindTag(btc)?.text).toBe('strategist targets');
+  });
+});
+

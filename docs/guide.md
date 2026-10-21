@@ -118,10 +118,12 @@ Tap a tile to open its chart.
   `—`. Stocks show the analysts' consensus from Yahoo Finance. A fund
   (VUAA, SAEM) has no consensus of its own, so it shows its holdings'
   targets weighted by their share of the fund, tagged
-  *holdings-weighted* with the share of the fund they cover (hover the
+  *holdings-weighted* with the share of the fund they cover; a holding
+  whose average target is under half or over twice its own price is
+  left out as implausible and counted on the tag as *skipped* (hover the
   tag for the detail). Bitcoin shows banks' published targets kept by
-  hand, tagged *strategist targets* (hover for each firm, date and
-  horizon). The targets refresh by themselves at 04:00, 09:30 and the
+  hand, tagged *strategist targets* (hover the row for each firm, date
+  and horizon). The targets refresh by themselves at 04:00, 09:30 and the
   close (New York time) on trading days and at 09:30 on other days;
   "Updated" under the title says when. The page opens with its figures
   already there, read when the site loads.

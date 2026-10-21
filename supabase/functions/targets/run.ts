@@ -10,7 +10,7 @@
 
 import type { Db } from "../agents/db.ts";
 import { isFundamentalsTicker } from "../fundamentals/_shared.ts";
-import { type Analyst, consensusSnapshot, holdingsSnapshot, parseAnalyst, type Snapshot, strategistSnapshot, yahooSymbolCandidates } from "./compute.ts";
+import { type Analyst, consensusSnapshot, holdingsSnapshot, parseAnalyst, PREFERRED_COMMON, type Snapshot, strategistSnapshot, yahooSymbolCandidates } from "./compute.ts";
 import { dueSlot } from "./schedule.ts";
 import { STRATEGIST_TARGETS } from "./strategists.ts";
 
@@ -130,7 +130,8 @@ export async function runTargets(o: RunDeps): Promise<RunReport> {
     const names = list.slice(0, ETF_MAX_NAMES);
     const data = new Map<string, Analyst | null>();
     await pool(names, YAHOO_CONCURRENCY, open, async (n) => {
-      for (const sym of yahooSymbolCandidates(n.symbol)) {
+      // A preferred line is read through its common share (PREFERRED_COMMON).
+      for (const sym of PREFERRED_COMMON[n.symbol] ? [PREFERRED_COMMON[n.symbol]] : yahooSymbolCandidates(n.symbol)) {
         const a = await quoteSummary(sym, "financialData,upgradeDowngradeHistory,price", auth, f);
         if (a && a.mean !== null) { data.set(n.symbol, a); return; }
       }

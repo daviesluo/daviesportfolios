@@ -76,7 +76,7 @@ describe('the page after the preload', () => {
     // Synchronously after render: no "Reading targets…", the row's low vs price already there (230 / 240 − 1 = −4.2 %).
     expect(screen.queryByText(/Reading targets/)).toBeNull();
     expect(screen.getByText('-4.2%')).toBeTruthy();
-    expect(screen.getByText('230 – 300')).toBeTruthy();
+    expect(screen.getByText('230 – 300')).toBeTruthy();   // both ends 100 and up: no decimals
     expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();
   });

@@ -668,6 +668,9 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   board's price, Yahoo consensus per stock, VUAA/SAEM holdings-weighted (coverage shown), BTC from a sourced hand table;
   low vs price default sort, nulls last. Data from `targets` (job at 04:00 / 09:30 / close ET on trading days, 09:30 ET
   otherwise; `0134`, RLS on, no grant) through the app's preload (2 h TTL). Pins: Deno 23, vitest, sweep part `target-price`.
+- **Fixes on review:** ranges use one decimals rule (2 under 100, none from 100); a fund's holding counts only at 0.5–2×
+  its mean over `financialData.currentPrice` of the same response, else "skipped" on the tag; 005935 (Samsung pref) read
+  through 005930. SAEM 10-21: 3 skipped (Samsung 2.14×, SK hynix 2.39×, pref), coverage 22.5 %, mean +45 % (was +74 %).
 
 ### [2026-10-21 19:14 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **PR5's four-week review** (sub-agent, item 4; `reviews/2026-10-21-pr5-paper-test-review.md`, `backtests/pr5_review/`,

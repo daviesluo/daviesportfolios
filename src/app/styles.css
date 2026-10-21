@@ -604,6 +604,8 @@ body {
   border: 1px solid rgba(244,239,227,0.16); color: var(--chalk-dim);
   font-size: 10px; letter-spacing: 0.02em; line-height: 15px; cursor: help; white-space: nowrap;
 }
+.tp-tag-wrap { display: block; cursor: help; }
+.tp-tag-note { display: block; margin-top: 2px; padding-left: 7px; color: var(--chalk-dim); font-size: 10px; letter-spacing: 0.02em; }
 .tp-table .tp-range { white-space: nowrap; }
 .tp-table .tp-word { color: var(--chalk-dim); opacity: 1; }
 .tp-table .tp-risks { min-width: 220px; max-width: 320px; white-space: normal; color: var(--chalk-dim); font-size: 12px; line-height: 1.4; }

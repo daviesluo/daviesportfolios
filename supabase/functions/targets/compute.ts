@@ -9,7 +9,12 @@
 //               on the ETF's price. Mean, low and high are the weighted means of each holding's mean, lowest and highest
 //               target; the analysts the median of the holdings' counts; the fresh window the weighted mean of each
 //               covered holding's own last-30-day range, its count the number of those targets. Coverage (the share of
-//               the ETF's weight priced) travels with it, and the page shows it.
+//               the ETF's weight priced) travels with it, and the page shows it. Each holding's ratio is its targets
+//               over `financialData.currentPrice` of the SAME response (one quote, one currency), and a holding whose
+//               mean is under half its price or over twice it is left out and named as skipped: on 2026-10-21 Yahoo
+//               gave Samsung (005930.KS) 2.14× and SK hynix (000660.KS) 2.39× their prices, a month after a 20–30 %
+//               fall, with no dated history to show the targets were current; weighted in, they moved SAEM's mean
+//               from +45 % to +74 %.
 //   strategist  bitcoin, which no API covers: the dated, sourced bank targets in `strategists.ts`, kept by hand.
 //
 // Every snapshot is in the instrument's own currency. The page compares it with the price the board shows, so its
@@ -33,8 +38,11 @@ export type Snapshot = {
   targets: FirmTarget[];
   /** The fresh window computed by the job, for a holdings-weighted row only (the page computes the others' from `targets`). */
   fresh?: { low: number; high: number; count: number } | null;
-  /** A holdings-weighted row's basis: the share of the ETF's weight covered and how many holdings. */
-  coverage?: { weight: number; names: number; source: string } | null;
+  /**
+   * A holdings-weighted row's basis: the share of the ETF's weight covered, how many holdings, and the holdings left out
+   * as implausible (their mean over their price outside CONSTITUENT_RATIO), with that ratio.
+   */
+  coverage?: { weight: number; names: number; source: string; skipped?: Array<{ symbol: string; weight: number; ratio: number }> } | null;
   /** A strategist row's sources, one per target. */
   sources?: Array<{ firm: string; target: number; at: string; horizon: string; url: string }>;
 };
@@ -49,7 +57,10 @@ const r4 = (x: number) => Math.round(x * 1e4) / 1e4;
 
 /** What the job reads of one quoteSummary result. */
 export type Analyst = {
-  currency: string | null; price: number | null; mean: number | null; low: number | null; high: number | null;
+  currency: string | null; price: number | null;
+  /** `financialData.currentPrice`: the price the same response's targets stand against (null when it gives none). */
+  fdPrice: number | null;
+  mean: number | null; low: number | null; high: number | null;
   rating: number | null; analysts: number | null; history: FirmTarget[]; holdings: Array<{ symbol: string; weight: number }>;
 };
 
@@ -73,6 +84,7 @@ export function parseAnalyst(result: Record<string, any> | null | undefined): An
   return {
     currency: typeof p.currency === "string" ? p.currency : null,
     price: pos(raw(f.currentPrice)) ?? pos(raw(p.regularMarketPrice)),
+    fdPrice: pos(raw(f.currentPrice)),
     mean: pos(raw(f.targetMeanPrice)), low: pos(raw(f.targetLowPrice)), high: pos(raw(f.targetHighPrice)),
     rating: pos(raw(f.recommendationMean)), analysts: pos(raw(f.numberOfAnalystOpinions)),
     history, holdings,
@@ -102,6 +114,17 @@ export function freshTargets(targets: FirmTarget[], nowMs: number, days = FRESH_
   return targets.filter((t) => { const at = Date.parse(t.at); return at <= nowMs && nowMs - at <= days * DAY; });
 }
 
+/** A constituent's mean target over its own price must lie in this band to be weighted in (see the header). */
+export const CONSTITUENT_RATIO = { min: 0.5, max: 2 };
+
+/**
+ * A preferred share in a fund's holdings and the common share whose consensus stands for it. Yahoo's few targets on a
+ * preferred line (005935.KS: 4 analysts on 2026-10-21, against 36 on 005930.KS) are not the market's view of the company,
+ * so the ratio is read from the common share's targets over the common share's price, and applied at the preferred's
+ * weight. Keys are as `topHoldings` names them, before `yahooSymbolCandidates`.
+ */
+export const PREFERRED_COMMON: Record<string, string> = { "005935": "005930.KS", "005935.KS": "005930.KS", "005935.KQ": "005930.KS" };
+
 /**
  * An ETF's holdings-weighted snapshot (see the header): `holdings` its constituents with their weights in the ETF (fractions),
  * `data` each constituent's quoteSummary as read, `etf` the ETF's own price and currency. Null when nothing is covered.
@@ -113,17 +136,21 @@ export function holdingsSnapshot(
   if (!etf.price) return null;
   let w = 0, wMean = 0, wLow = 0, wHigh = 0, wf = 0, fLow = 0, fHigh = 0, fCount = 0, names = 0;
   const counts: number[] = [];
+  const skipped: Array<{ symbol: string; weight: number; ratio: number }> = [];
   for (const h of holdings) {
     const a = data.get(h.symbol);
-    if (!a || !a.price || a.mean === null || a.low === null || a.high === null) continue;
-    if (a.mean / a.price < SANE_MEAN_RATIO.min || a.mean / a.price > SANE_MEAN_RATIO.max) continue;
+    // The targets and the price from one response: `financialData`'s own currentPrice, never another quote's.
+    const px = a?.fdPrice ?? null;
+    if (!a || !px || a.mean === null || a.low === null || a.high === null) continue;
+    const ratio = a.mean / px;
+    if (ratio < CONSTITUENT_RATIO.min || ratio > CONSTITUENT_RATIO.max) { skipped.push({ symbol: h.symbol, weight: r4(h.weight), ratio: r4(ratio) }); continue; }
     w += h.weight; names++;
-    wMean += h.weight * (a.mean / a.price); wLow += h.weight * (a.low / a.price); wHigh += h.weight * (a.high / a.price);
+    wMean += h.weight * ratio; wLow += h.weight * (a.low / px); wHigh += h.weight * (a.high / px);
     if (a.analysts !== null) counts.push(a.analysts);
     const fresh = freshTargets(a.history, nowMs).map((t) => t.target);
     if (fresh.length) {
       wf += h.weight; fCount += fresh.length;
-      fLow += h.weight * (Math.min(...fresh) / a.price); fHigh += h.weight * (Math.max(...fresh) / a.price);
+      fLow += h.weight * (Math.min(...fresh) / px); fHigh += h.weight * (Math.max(...fresh) / px);
     }
   }
   if (!(w > 0)) return null;
@@ -135,7 +162,7 @@ export function holdingsSnapshot(
     mean: r4(p * wMean / w), low: r4(p * wLow / w), high: r4(p * wHigh / w), rating: null,
     analysts: median === null ? null : Math.round(median), targets: [],
     fresh: wf > 0 ? { low: r4(p * fLow / wf), high: r4(p * fHigh / wf), count: fCount } : null,
-    coverage: { weight: r4(w), names, source },
+    coverage: { weight: r4(w), names, source, skipped },
   };
 }
 
