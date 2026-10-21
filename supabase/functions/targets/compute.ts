@@ -47,8 +47,15 @@ export type Snapshot = {
    * as a likely unit or listing error (their mean over their price outside CONSTITUENT_RATIO), with that ratio.
    */
   coverage?: { weight: number; names: number; source: string; skipped?: Array<{ symbol: string; weight: number; ratio: number }> } | null;
-  /** A strategist row's sources, one per target. */
+  /** A strategist row's sources, one per target (in the index's points for an index row). */
   sources?: Array<{ firm: string; target: number; at: string; horizon: string; url: string }>;
+  /**
+   * An index row (a fund priced from its index's strategist targets): the index, its level and the fund's price when the
+   * job read them, and `scale`, the fund's price over the index level, which turns index points into the fund's price.
+   */
+  index?: { symbol: string; name: string; level: number; price: number; scale: number } | null;
+  /** An index row's bottom-up cross-check: the fund's holdings-weighted target, as a holdings row would show it. */
+  crossCheck?: { mean: number | null; low: number | null; high: number | null; analysts: number | null; coverage: Snapshot["coverage"] } | null;
 };
 
 const raw = (x: unknown): number | null => {
@@ -102,6 +109,11 @@ export function parseAnalyst(result: Record<string, any> | null | undefined): An
  */
 export const SANE_MEAN_RATIO = { min: 0.2, max: 5 };
 
+/** A single target within SANE_MEAN_RATIO of the price it stands against (any target when there is no price). */
+function saneTarget(target: number, price: number | null): boolean {
+  return price === null || (target / price >= SANE_MEAN_RATIO.min && target / price <= SANE_MEAN_RATIO.max);
+}
+
 /** A stock's consensus snapshot; null when Yahoo has no targets for it. Targets older than 45 days are left out of the list. */
 export function consensusSnapshot(ticker: string, a: Analyst | null, nowMs: number): Snapshot | null {
   if (!a || a.mean === null) return null;
@@ -109,7 +121,9 @@ export function consensusSnapshot(ticker: string, a: Analyst | null, nowMs: numb
   return {
     ticker, kind: "consensus", currency: a.currency, refPrice: a.price, mean: a.mean, low: a.low, high: a.high,
     rating: a.rating, analysts: a.analysts !== null ? Math.round(a.analysts) : null,
-    targets: a.history.filter((t) => nowMs - Date.parse(t.at) <= 45 * DAY),
+    // A dated target in another unit than the price (Yahoo's history for a dual listing can carry the other line's: on
+    // 2026-10-21 ANG.JO, priced in ZA cents, had a target of 104 from its NYSE line) is left out like an implausible mean.
+    targets: a.history.filter((t) => nowMs - Date.parse(t.at) <= 45 * DAY && saneTarget(t.target, a.price)),
   };
 }
 
@@ -151,7 +165,7 @@ export function holdingsSnapshot(
     w += h.weight; names++;
     wMean += h.weight * ratio; wLow += h.weight * (a.low / px); wHigh += h.weight * (a.high / px);
     if (a.analysts !== null) counts.push(a.analysts);
-    const fresh = freshTargets(a.history, nowMs).map((t) => t.target);
+    const fresh = freshTargets(a.history, nowMs).map((t) => t.target).filter((x) => saneTarget(x, px));
     if (fresh.length) {
       wf += h.weight; fCount += fresh.length;
       fLow += h.weight * (Math.min(...fresh) / px); fHigh += h.weight * (Math.max(...fresh) / px);
@@ -174,15 +188,96 @@ export function holdingsSnapshot(
 /** Bitcoin's (or any hand-kept instrument's) snapshot from its dated, sourced targets. */
 export function strategistSnapshot(
   ticker: string, rows: Array<{ firm: string; target: number; date: string; horizon: string; url: string }>, price: number | null,
+  opts: { currency?: string | null; index?: Snapshot["index"]; crossCheck?: Snapshot["crossCheck"] } = {},
 ): Snapshot | null {
   if (!rows.length) return null;
-  const ts = rows.map((r) => r.target);
+  // An index row's targets are in the index's points: `index.scale` (the fund's price over the index level) puts them on
+  // the fund's price, so its average against the fund's price is the strategists' average against the index level.
+  const k = opts.index ? opts.index.scale : 1;
+  const ts = rows.map((r) => r.target * k);
   return {
-    ticker, kind: "strategist", currency: "USD", refPrice: price,
-    mean: r4(ts.reduce((s, x) => s + x, 0) / ts.length), low: Math.min(...ts), high: Math.max(...ts), rating: null, analysts: rows.length,
-    targets: [...rows].sort((a, b) => b.date.localeCompare(a.date)).map((r) => ({ firm: r.firm, target: r.target, at: `${r.date}T00:00:00.000Z` })),
+    ticker, kind: "strategist", currency: opts.currency ?? "USD", refPrice: price,
+    mean: r4(ts.reduce((s, x) => s + x, 0) / ts.length), low: r4(Math.min(...ts)), high: r4(Math.max(...ts)), rating: null, analysts: rows.length,
+    targets: [...rows].sort((a, b) => b.date.localeCompare(a.date)).map((r) => ({ firm: r.firm, target: r4(r.target * k), at: `${r.date}T00:00:00.000Z` })),
     sources: rows.map((r) => ({ firm: r.firm, target: r.target, at: r.date, horizon: r.horizon, url: r.url })),
+    ...(opts.index ? { index: opts.index, crossCheck: opts.crossCheck ?? null } : {}),
   };
+}
+
+/**
+ * The Yahoo symbol of a holding in a BlackRock (iShares) holdings file, from its local ticker and the exchange the file
+ * names; null for an exchange not listed here (that holding is then left uncovered). Checked against SAEM.L's file of
+ * 2026-10-20, whose 100 largest holdings trade on the venues below.
+ */
+const BLACKROCK_EXCHANGE_SUFFIX: Record<string, string> = {
+  "Taiwan Stock Exchange": ".TW", "Gretai Securities Market": ".TWO",
+  "Korea Exchange (Stock Market)": ".KS", "Korea Exchange (Kosdaq)": ".KQ",
+  "Hong Kong Exchanges And Clearing Ltd": ".HK",
+  "National Stock Exchange Of India": ".NS", "Bombay Stock Exchange": ".BO",
+  "Shanghai Stock Exchange": ".SS", "Shenzhen Stock Exchange": ".SZ",
+  "Johannesburg Stock Exchange": ".JO", "XBSP": ".SA", "Bolsa Mexicana De Valores": ".MX",
+  "Saudi Stock Exchange": ".SR", "Kuwait Stock Exchange": ".KW", "Abu Dhabi Securities Exchange": ".AD",
+  "Dubai Financial Market": ".AE", "Qatar Exchange": ".QA",
+  "Warsaw Stock Exchange/Equities/Main Market": ".WA", "Budapest Stock Exchange": ".BD", "Athens Exchange S.A. Cash Market": ".AT",
+  "Istanbul Stock Exchange": ".IS", "Stock Exchange Of Thailand": ".BK", "Bursa Malaysia": ".KL",
+  "Indonesia Stock Exchange": ".JK", "Philippine Stock Exchange Inc.": ".PS", "Santiago Stock Exchange": ".SN",
+  "New York Stock Exchange Inc.": "", "NASDAQ": "",
+};
+export function blackrockYahooSymbol(ticker: string, exchange: string): string | null {
+  const t = ticker.trim().toUpperCase();
+  const sfx = BLACKROCK_EXCHANGE_SUFFIX[exchange.trim()];
+  if (!t || sfx === undefined) return null;
+  if (sfx === ".HK") return /^\d+$/.test(t) ? `${t.padStart(4, "0")}.HK` : null;
+  if (sfx === "") return t.replace(/\./g, "-");
+  return `${t}${sfx}`;
+}
+
+/** One line of a CSV file, its quoted fields (with commas inside) kept whole. */
+function csvFields(line: string): string[] {
+  const out: string[] = [];
+  let cur = "", quoted = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (quoted) {
+      if (ch === '"' && line[i + 1] === '"') { cur += '"'; i++; }
+      else if (ch === '"') quoted = false;
+      else cur += ch;
+    } else if (ch === '"') quoted = true;
+    else if (ch === ",") { out.push(cur); cur = ""; }
+    else cur += ch;
+  }
+  out.push(cur);
+  return out.map((x) => x.trim());
+}
+
+/**
+ * A BlackRock holdings CSV (the fund page's "Download holdings" file: a few lines of fund data, then a table headed
+ * `Ticker,Name,…,Weight (%),…,Exchange,…`) as the fund's equity holdings with Yahoo symbols, largest first, weights as
+ * fractions; `asOf` is the file's own "Fund Holdings as of" date. Null when the file is not that shape.
+ */
+export function parseBlackrockHoldings(text: string): { asOf: string | null; holdings: Array<{ symbol: string; weight: number; name: string }>; unmapped: number } | null {
+  const lines = text.replace(/^\uFEFF/, "").split(/\r?\n/);
+  const head = lines.findIndex((l) => l.startsWith("Ticker,"));
+  if (head < 0) return null;
+  const cols = csvFields(lines[head]);
+  const at = (name: string) => cols.indexOf(name);
+  const [iT, iN, iA, iW, iE] = [at("Ticker"), at("Name"), at("Asset Class"), at("Weight (%)"), at("Exchange")];
+  if ([iT, iA, iW, iE].some((i) => i < 0)) return null;
+  const asOfLine = lines.slice(0, head).find((l) => l.startsWith("Fund Holdings as of"));
+  const asOf = asOfLine ? csvFields(asOfLine)[1] || null : null;
+  const holdings: Array<{ symbol: string; weight: number; name: string }> = [];
+  let unmapped = 0;
+  for (const line of lines.slice(head + 1)) {
+    const f = csvFields(line);
+    if (f.length < cols.length || f[iA] !== "Equity") continue;
+    const weight = Number(f[iW].replace(/,/g, "")) / 100;
+    if (!(weight > 0)) continue;
+    const symbol = blackrockYahooSymbol(f[iT], f[iE]);
+    if (!symbol) { unmapped++; continue; }
+    holdings.push({ symbol, weight: Math.round(weight * 1e6) / 1e6, name: iN >= 0 ? f[iN] : "" });
+  }
+  holdings.sort((a, b) => b.weight - a.weight);
+  return holdings.length ? { asOf, holdings, unmapped } : null;
 }
 
 /**

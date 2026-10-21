@@ -160,6 +160,32 @@ describe('Fresh avg vs price (Davies, 2026-10-21)', () => {
   });
 });
 
+describe('VUAA from the S&P 500 strategists (Davies, 2026-10-21)', () => {
+  // The job's row: two strategists' targets in index points, put on VUAA's 150 by 150 / 7,500 = 0.02; the holdings-
+  // weighted target beside them as the cross-check.
+  const vuaa = { kind: 'strategist', currency: 'USD', refPrice: 150, mean: 155, low: 150, high: 160, rating: null, analysts: 2,
+    targets: [{ firm: 'B', target: 150, at: '2026-10-10T00:00:00.000Z' }, { firm: 'A', target: 160, at: '2026-08-10T00:00:00.000Z' }],
+    sources: [{ firm: 'A', target: 8000, at: '2026-08-10', horizon: 'end-2026', url: 'https://a' }, { firm: 'B', target: 7500, at: '2026-10-10', horizon: 'end-2026', url: 'https://b' }],
+    index: { symbol: '^GSPC', name: 'S&P 500', level: 7500, price: 150, scale: 0.02 },
+    crossCheck: { mean: 189, low: 115, high: 263, analysts: 50, coverage: { weight: 0.67, names: 60, source: 's' } } };
+  const m = { marketValue: 1000, positions: { A: { players: [player('VUAA.L', 160, 100)] } } };
+  const [r] = buildTargetRows(m, { rows: { 'VUAA.L': vuaa } }, NOW);
+
+  it('reads like bitcoin: the average of the targets against the board price, the strategists as analysts, no rating', () => {
+    // 155 / 160 − 1 = −3.125 %; fresh: B's, set 11 days before (150 on 160 → −6.25 %).
+    expect([r.kind, r.mean, r.low, r.high, r.analysts, r.rating, r.avgVsPrice]).toEqual(['strategist', 155, 150, 160, 2, null, -3.125]);
+    expect([r.fresh, r.freshVsPrice]).toEqual([{ low: 150, high: 150, mean: 150, count: 1 }, -6.25]);
+    expect(kindTag(r)?.mark).toBe('BANKS');
+  });
+
+  it('its tooltip gives each firm in index points and the bottom-up holdings-weighted target as the cross-check', () => {
+    const t = strategistTitle(r);
+    expect(t.split('\n')[0]).toBe("S&P 500 targets from strategists, kept by hand (no API serves them; a session refreshes the table), in index points, put on the fund's price by its price over the index ($150.00 / 7,500):");
+    expect(t).toContain('A: 8,000, horizon end-2026 (published 2026-08-10)');
+    expect(t.split('\n').at(-1)).toBe("Bottom-up cross-check, the fund's holdings-weighted target: $189.00, range $115 – $263, covering 67% of the fund (60 holdings) (+18.1% against the price).");
+  });
+});
+
 describe('Target price money', () => {
   it('writes a price or target as the Holding list writes money, with its currency', () => {
     expect([fmtMoneyIn(53.67, 'USD'), fmtMoneyIn(1560.57, 'USD'), fmtMoneyIn(108000, 'USD'), fmtMoneyIn(2.1, 'EUR'), fmtMoneyIn(80, 'GBP'),

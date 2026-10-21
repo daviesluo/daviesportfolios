@@ -10,9 +10,9 @@
 
 import type { Db } from "../agents/db.ts";
 import { isFundamentalsTicker } from "../fundamentals/_shared.ts";
-import { type Analyst, consensusSnapshot, holdingsSnapshot, parseAnalyst, PREFERRED_COMMON, type Snapshot, strategistSnapshot, yahooSymbolCandidates } from "./compute.ts";
+import { type Analyst, consensusSnapshot, holdingsSnapshot, parseAnalyst, parseBlackrockHoldings, PREFERRED_COMMON, type Snapshot, strategistSnapshot, yahooSymbolCandidates } from "./compute.ts";
 import { dueSlot } from "./schedule.ts";
-import { STRATEGIST_TARGETS } from "./strategists.ts";
+import { INDEX_TARGETS, STRATEGIST_TARGETS } from "./strategists.ts";
 
 export const TARGETS_TABLE = "analyst_targets";
 export const TARGETS_STATE = "analyst_targets_state";
@@ -28,15 +28,22 @@ export const RUN_BUDGET_MS = 40_000;
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 
 /**
- * The ETFs on the board and where their constituents come from. Alpha Vantage's ETF_PROFILE lists every holding with its
- * weight (QQQ: 103 holdings, 99.9 % of the weight, read 2026-10-21 with its demo key) and is tried for VUAA through SPY,
- * the same index; Yahoo's `topHoldings` (its ten largest) is the fallback, and SAEM's only source: an EM fund's holdings
- * are Asian listings whose symbols Alpha Vantage gives in a form not yet checked.
+ * The ETFs on the board and where their constituents come from, each list read at most once a day (kept in the state
+ * row) and its largest ETF_MAX_NAMES priced:
+ *   VUAA  Alpha Vantage's ETF_PROFILE for SPY, the same index (60 names covered 67 % of the weight on 2026-10-21).
+ *         VUAA's own row is its index's strategist targets (INDEX_TARGETS); this list makes the bottom-up cross-check.
+ *   SAEM  BlackRock's own holdings file for the fund (keyless, the fund page's "Download holdings"): every holding with
+ *         its weight, ticker and exchange, mapped to Yahoo symbols (`blackrockYahooSymbol`). Yahoo's ten largest covered
+ *         35.6 %; the file's 60 largest are 49.6 % of the fund (2026-10-20). SAEM holds ~2,500 names, so coverage rises
+ *         slowly past that: its 100 largest are 56.7 %.
+ * Yahoo's `topHoldings` (the ten largest) is the fallback for both.
  */
-export const ETF_SOURCES: Record<string, { yahoo: string; av?: string }> = {
+export const ETF_SOURCES: Record<string, { yahoo: string; av?: string; blackrock?: string }> = {
   "VUAA.L": { yahoo: "VUAA.L", av: "SPY" },
-  "SAEM.L": { yahoo: "SAEM.L" },
+  "SAEM.L": { yahoo: "SAEM.L", blackrock: "https://www.blackrock.com/uk/individual/products/305397/ishares-msci-em-imi-screened-ucits-etf/1472631233320.ajax?fileType=csv&fileName=SAEM_holdings&dataType=fund" },
 };
+/** How long a fund's holdings list read from Alpha Vantage or BlackRock is kept before it is read again. */
+export const HOLDINGS_CACHE_MS = 24 * 3600e3;
 
 export type Crumb = { crumb: string; cookie: string };
 export type RunDeps = {
@@ -74,6 +81,27 @@ export async function avHoldings(symbol: string, key: string, f: typeof fetch): 
       .filter((h: { symbol: string; weight: number }) => /^[A-Z][A-Z.-]{0,6}$/.test(h.symbol) && h.weight > 0)
       .sort((a: { weight: number }, b: { weight: number }) => b.weight - a.weight);
     return list.length ? list : null;
+  } catch { return null; }
+}
+
+/** A fund's holdings from its BlackRock holdings file, largest first; null when the file is not there or not that shape. */
+export async function blackrockHoldings(url: string, f: typeof fetch): Promise<{ asOf: string | null; list: Array<{ symbol: string; weight: number }> } | null> {
+  try {
+    const res = await f(url, { headers: { "User-Agent": UA, Accept: "text/csv" }, signal: AbortSignal.timeout(YAHOO_TIMEOUT_MS) });
+    if (!res.ok) { await res.body?.cancel(); return null; }
+    const parsed = parseBlackrockHoldings(await res.text());
+    return parsed ? { asOf: parsed.asOf, list: parsed.holdings.slice(0, ETF_MAX_NAMES).map((h) => ({ symbol: h.symbol, weight: h.weight })) } : null;
+  } catch { return null; }
+}
+
+/** The last price and currency Yahoo's chart endpoint gives for a symbol (keyless; an index level for `^GSPC`); null on failure. */
+export async function chartPrice(symbol: string, f: typeof fetch): Promise<{ price: number; currency: string | null } | null> {
+  try {
+    const res = await f(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=1d&interval=1d`, { headers: { "User-Agent": UA, Accept: "application/json" }, signal: AbortSignal.timeout(YAHOO_TIMEOUT_MS) });
+    if (!res.ok) { await res.body?.cancel(); return null; }
+    const meta = (await res.json())?.chart?.result?.[0]?.meta;
+    const price = Number(meta?.regularMarketPrice);
+    return price > 0 ? { price, currency: typeof meta?.currency === "string" ? meta.currency : null } : null;
   } catch { return null; }
 }
 
@@ -127,6 +155,12 @@ export async function runTargets(o: RunDeps): Promise<RunReport> {
       if (!av) { av = await avHoldings(src.av, o.avKey, f); if (av) cache[key] = { at: o.now, list: av }; }
       if (av && av.length > list.length) { list = av; source = `${src.av}'s holdings (Alpha Vantage), the same index`; }
     }
+    if (src.blackrock) {
+      const key = `br:${h.ticker}`;
+      let br = cache[key] && o.now - Number(cache[key].at) < HOLDINGS_CACHE_MS ? cache[key] : null;
+      if (!br) { const got = await blackrockHoldings(src.blackrock, f); if (got) { br = { at: o.now, asOf: got.asOf, list: got.list }; cache[key] = br; } }
+      if (br && br.list.length > list.length) { list = br.list; source = `${src.yahoo}'s holdings file (BlackRock${br.asOf ? `, ${br.asOf}` : ""})`; }
+    }
     const names = list.slice(0, ETF_MAX_NAMES);
     const data = new Map<string, Analyst | null>();
     await pool(names, YAHOO_CONCURRENCY, open, async (n) => {
@@ -138,6 +172,19 @@ export async function runTargets(o: RunDeps): Promise<RunReport> {
       data.set(n.symbol, null);
     });
     const s = holdingsSnapshot(h.ticker, names, data, { price: etf?.price ?? null, currency: etf?.currency ?? null }, o.now, source);
+    const ix = INDEX_TARGETS[h.ticker];
+    if (ix) {
+      // The fund's row is its index's strategist targets on the fund's price; the holdings-weighted target rides along as
+      // the bottom-up cross-check. Both prices from the same chart read, so the scale is one moment's.
+      const [level, fund] = await Promise.all([chartPrice(ix.index, f), chartPrice(src.yahoo, f)]);
+      if (level && fund) {
+        const idx = { symbol: ix.index, name: ix.name, level: level.price, price: fund.price, scale: fund.price / level.price };
+        const cross = s ? { mean: s.mean, low: s.low, high: s.high, analysts: s.analysts, coverage: s.coverage ?? null } : null;
+        const row = strategistSnapshot(h.ticker, ix.rows, fund.price, { currency: fund.currency ?? etf?.currency ?? null, index: idx, crossCheck: cross });
+        if (row) { out.push(row); continue; }
+      }
+      errors.push(`${h.ticker}: no ${ix.index} level or fund price; holdings-weighted target instead`);
+    }
     if (s) out.push(s); else uncovered.push(h.ticker);
   }
   // Bitcoin and anything else kept by hand.

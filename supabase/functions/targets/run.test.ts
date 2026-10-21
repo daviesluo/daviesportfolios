@@ -3,7 +3,8 @@
 // cache, and the page's read.
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { memDb, type Row } from "../agents/testing.ts";
-import { AV_CACHE_MS, CLAIM_MS, readTargets, RUN_BUDGET_MS, runTargets, TARGETS_STATE, TARGETS_TABLE } from "./run.ts";
+import { AV_CACHE_MS, CLAIM_MS, ETF_SOURCES, HOLDINGS_CACHE_MS, readTargets, RUN_BUDGET_MS, runTargets, TARGETS_STATE, TARGETS_TABLE } from "./run.ts";
+import { INDEX_TARGETS } from "./strategists.ts";
 
 const NOW = Date.parse("2026-10-21T13:30:20Z");   // 09:30 ET on a trading day, 20 s into the slot
 const SLOT = "2026-10-21T13:30:00.000Z";
@@ -24,11 +25,22 @@ const YAHOO: Record<string, unknown> = {
   "005930.KS": qs({ price: 50_000, mean: 60_000, low: 50_000, high: 70_000, n: 30, currency: "KRW" }),
 };
 
-function fakeFetch(opts: { down?: boolean; av?: Array<[string, string]> } = {}) {
+/** Yahoo's chart endpoint: the S&P 500 at 5,000 and VUAA at 100, so index points × 0.02 are VUAA's price. */
+const CHART: Record<string, number> = { "^GSPC": 5000, "VUAA.L": 100 };
+
+function fakeFetch(opts: { down?: boolean; av?: Array<[string, string]>; chartDown?: boolean; blackrock?: string } = {}) {
   const calls: string[] = [];
   const f = ((input: string | URL | Request) => {
     const url = String(input);
     calls.push(url);
+    if (url.includes("/v8/finance/chart/")) {
+      const sym = decodeURIComponent(url.split("/chart/")[1].split("?")[0]);
+      if (opts.chartDown || !(sym in CHART)) return Promise.resolve(new Response("{}", { status: 404 }));
+      return Promise.resolve(new Response(JSON.stringify({ chart: { result: [{ meta: { regularMarketPrice: CHART[sym], currency: "USD" } }] } })));
+    }
+    if (url.includes("blackrock.com")) {
+      return Promise.resolve(opts.blackrock ? new Response(opts.blackrock) : new Response("not found", { status: 404 }));
+    }
     if (url.includes("alphavantage")) {
       return Promise.resolve(new Response(JSON.stringify({ holdings: (opts.av ?? []).map(([symbol, weight]) => ({ symbol, weight })) })));
     }
@@ -54,12 +66,19 @@ Deno.test("a due slot: every holding's snapshot written under it, the slot done,
   assertEquals(r, { slot: SLOT, written: 4, covered: ["AAPL", "BTC-USD", "SAEM.L", "VUAA.L"], uncovered: ["017731"], errors: [] });
   const rows = await db.select<{ ticker: string; slot: string; payload: any }>(TARGETS_TABLE, "select=*&order=ticker.asc");
   assertEquals(rows.map((x) => [x.ticker, x.slot, x.payload.kind]), [
-    ["AAPL", SLOT, "consensus"], ["BTC-USD", SLOT, "strategist"], ["SAEM.L", SLOT, "holdings"], ["VUAA.L", SLOT, "holdings"],
+    ["AAPL", SLOT, "consensus"], ["BTC-USD", SLOT, "strategist"], ["SAEM.L", SLOT, "holdings"], ["VUAA.L", SLOT, "strategist"],
   ]);
-  // VUAA: AAPL 1.2× / 0.9× / 1.5× at 7 %, MSFT 1.25× / 1.0× / 1.5× at 6 %, on 100:
-  //   mean 100 × (0.084 + 0.075) / 0.13 = 122.3077; low 100 × (0.063 + 0.06) / 0.13 = 94.6154; high 150.
+  // VUAA: the S&P 500's 19 strategist targets (mean 7,839.47, low 7,400, high 8,100) × 100 / 5,000:
+  //   mean 156.7895, low 148, high 162, 19 analysts, no rating.
   const vuaa = rows.find((x) => x.ticker === "VUAA.L")!.payload;
-  assertEquals([vuaa.mean, vuaa.low, vuaa.high, vuaa.analysts, vuaa.coverage.weight], [122.3077, 94.6154, 150, 45, 0.13]);
+  assertEquals(INDEX_TARGETS["VUAA.L"].rows.length, 19);
+  assertEquals([vuaa.mean, vuaa.low, vuaa.high, vuaa.analysts, vuaa.rating, vuaa.refPrice], [156.7895, 148, 162, 19, null, 100]);
+  assertEquals(vuaa.index, { symbol: "^GSPC", name: "S&P 500", level: 5000, price: 100, scale: 0.02 });
+  // The bottom-up cross-check rides along: AAPL 1.2× / 0.9× / 1.5× at 7 %, MSFT 1.25× / 1.0× / 1.5× at 6 %, on 100:
+  //   mean 100 × (0.084 + 0.075) / 0.13 = 122.3077; low 100 × (0.063 + 0.06) / 0.13 = 94.6154; high 150.
+  assertEquals([vuaa.crossCheck.mean, vuaa.crossCheck.low, vuaa.crossCheck.high, vuaa.crossCheck.analysts, vuaa.crossCheck.coverage.weight], [122.3077, 94.6154, 150, 45, 0.13]);
+  // The sources keep the index's own points.
+  assertEquals(vuaa.sources.find((x: any) => x.firm === "BofA Global Research").target, 7400);
   // SAEM: Samsung asked as .KQ (nothing), then .KS: 1.2× on 10.
   const saem = rows.find((x) => x.ticker === "SAEM.L")!.payload;
   assertEquals([saem.mean, saem.low, saem.high, saem.coverage.names], [12, 10, 14, 1]);
@@ -120,8 +139,10 @@ Deno.test("Alpha Vantage: VUAA's constituents from SPY's full list when it is lo
   await runTargets({ db, now: NOW, fetchImpl: one.f, crumb, avKey: "test-key" });
   assertEquals(one.calls.filter((u) => u.includes("alphavantage")).length, 1);
   const vuaa = (await db.select<{ payload: any }>(TARGETS_TABLE, "ticker=eq.VUAA.L&select=payload"))[0].payload;
-  // NVDA has no data in the fake: covered 13 % of 19.5 %, 2 of 3 names; the source names Alpha Vantage.
-  assertEquals([vuaa.coverage.weight, vuaa.coverage.names, vuaa.coverage.source.includes("Alpha Vantage")], [0.13, 2, true]);
+  // VUAA's row is the index's targets; the cross-check is built from SPY's list. NVDA has no data in the fake: covered
+  // 13 % of 19.5 %, 2 of 3 names; the source names Alpha Vantage.
+  const c = vuaa.crossCheck.coverage;
+  assertEquals([vuaa.kind, c.weight, c.names, c.source.includes("Alpha Vantage")], ["strategist", 0.13, 2, true]);
   // The next slot, the same day: the cached list, no second call.
   const LATER = Date.parse("2026-10-21T20:00:10Z");
   const two = fakeFetch({ av });
@@ -143,3 +164,49 @@ Deno.test("the run's budget: past RUN_BUDGET_MS no request starts, what was read
   const r = await runTargets({ db, now: NOW, fetchImpl: slow, crumb, clock: () => t });
   assertEquals([calls.length, r.covered, r.errors], [1, ["AAPL", "BTC-USD"], [`budget: stopped after ${RUN_BUDGET_MS / 1000} s`]]);
 });
+
+Deno.test("VUAA without the index level: its holdings-weighted target, and the run says why", async () => {
+  const { db } = memDb(seed(), { now: () => NOW });
+  const r = await runTargets({ db, now: NOW, fetchImpl: fakeFetch({ chartDown: true }).f, crumb });
+  assertEquals(r.errors, ["VUAA.L: no ^GSPC level or fund price; holdings-weighted target instead"]);
+  const vuaa = (await db.select<{ payload: any }>(TARGETS_TABLE, "ticker=eq.VUAA.L&select=payload"))[0].payload;
+  assertEquals([vuaa.kind, vuaa.mean], ["holdings", 122.3077]);
+});
+
+// BlackRock's holdings file for SAEM, trimmed to its shape: fund lines, then the table (2026-10-20's first rows, weights
+// in %, Samsung's preferred line, and a holding on a venue the map does not know).
+const SAEM_CSV = [
+  '\uFEFFFund Holdings as of,"20/Oct/2026"',
+  " ",
+  "Ticker,Name,Sector,Asset Class,Market Value,Weight (%),Notional Value,Shares,Price,Location,Exchange,Market Currency",
+  '"2330","TAIWAN SEMICONDUCTOR MANUFACTURING","Information Technology","Equity","1,034,028,479.56","14.32","1","1","73.65","Taiwan","Taiwan Stock Exchange","TWD"',
+  '"005930","SAMSUNG ELECTRONICS LTD","Information Technology","Equity","1","5.88","1","1","159.24","Korea (South)","Korea Exchange (Stock Market)","KRW"',
+  '"700","TENCENT HOLDINGS","Communication","Equity","1","2.53","1","1","1","China","Hong Kong Exchanges And Clearing Ltd","HKD"',
+  '"005935","SAMSUNG ELECTRONICS NON VOTI","Information Technology","Equity","1","0.79","1","1","1","Korea (South)","Korea Exchange (Stock Market)","KRW"',
+  '"XYZ","SOMEWHERE","Financials","Equity","1","0.50","1","1","1","Nowhere","Unknown Exchange","XXX"',
+  '"USD","USD CASH","Cash and/or Derivatives","Cash","1","0.40","1","1","1","United States","-","USD"',
+].join("\n");
+
+Deno.test("SAEM: its holdings from BlackRock's file, mapped to Yahoo symbols, read once a day", async () => {
+  assertEquals(typeof ETF_SOURCES["SAEM.L"].blackrock, "string");
+  const yahoo = { ...YAHOO };
+  const { db } = memDb(seed(), { now: () => NOW });
+  const one = fakeFetch({ blackrock: SAEM_CSV });
+  await runTargets({ db, now: NOW, fetchImpl: one.f, crumb });
+  // The file names 2330 (Taiwan) → 2330.TW, 005930 → 005930.KS, 700 (Hong Kong) → 0700.HK, 005935 → its common line.
+  const asked = one.calls.filter((u) => u.includes("/quoteSummary/")).map((u) => decodeURIComponent(u.split("/quoteSummary/")[1].split("?")[0]));
+  for (const sym of ["2330.TW", "005930.KS", "0700.HK"]) assertEquals(asked.includes(sym), true, sym);
+  assertEquals(asked.filter((x) => x === "005930.KS").length, 2);   // Samsung, and its preferred line through it
+  const saem = (await db.select<{ payload: any }>(TARGETS_TABLE, "ticker=eq.SAEM.L&select=payload"))[0].payload;
+  // Only Samsung has targets in the fake (1.2× on 10): its 5.88 % and the preferred's 0.79 %.
+  assertEquals([saem.mean, saem.coverage.names, saem.coverage.weight, saem.coverage.source], [12, 2, 0.0667, "SAEM.L's holdings file (BlackRock, 20/Oct/2026)"]);
+  assertEquals(yahoo, YAHOO);
+  // The next slot that day reads the kept list, not the file; a day on, the file again.
+  const two = fakeFetch({ blackrock: SAEM_CSV });
+  await runTargets({ db, now: Date.parse("2026-10-21T20:00:10Z"), fetchImpl: two.f, crumb });
+  assertEquals(two.calls.filter((u) => u.includes("blackrock.com")).length, 0);
+  const three = fakeFetch({ blackrock: SAEM_CSV });
+  await runTargets({ db, now: NOW + HOLDINGS_CACHE_MS + 60_000, fetchImpl: three.f, crumb });
+  assertEquals(three.calls.filter((u) => u.includes("blackrock.com")).length, 1);
+});
+

@@ -119,15 +119,18 @@ Tap a tile to open its chart.
   avg vs price*, the average of the last 30 days' targets against the
   price), and a holding without targets always sits last with
   `—`. Prices and targets carry their currency's symbol ($, €, £ and so
-  on). Stocks show the analysts' consensus from Yahoo Finance. A fund
-  (VUAA, SAEM) has no consensus of its own, so it shows its holdings'
-  targets weighted by their share of the fund, marked **HW** with the
-  share of the fund they cover (HW 36%); a holding whose average target
-  is under a fifth or over five times its own price is taken for a data
-  error, left out and counted under the mark as *skipped*. Bitcoin shows
-  banks' published targets kept by hand, marked **BANKS**. Hover a mark,
-  or tap it on a phone, for where the targets come from (bitcoin: each
-  firm, date and horizon). The targets refresh by themselves at 04:00, 09:30 and the
+  on). Stocks show the analysts' consensus from Yahoo Finance. SAEM has
+  no consensus of its own, so it shows its largest holdings' targets
+  weighted by their share of the fund (from the fund's own holdings
+  list), marked **HW** with the share of the fund they cover (HW 50%); a
+  holding whose average target is under a fifth or over five times its
+  own price is taken for a data error, left out and counted under the
+  mark as *skipped*. VUAA shows the S&P 500's year-end targets from the
+  banks' strategists, put on VUAA's price, and bitcoin the banks'
+  published bitcoin targets; both are kept by hand and marked
+  **BANKS**. Hover a mark, or tap it on a phone, for where the targets
+  come from (each firm, date and horizon; for VUAA also its holdings'
+  weighted target, as a cross-check). The targets refresh by themselves at 04:00, 09:30 and the
   close (New York time) on trading days and at 09:30 on other days;
   "Updated" under the title says when. Weight, Price and the average
   target against the price move with the board's live prices. The page opens with its figures

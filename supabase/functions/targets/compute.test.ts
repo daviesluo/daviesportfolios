@@ -2,7 +2,7 @@
 // consensus, the 30-day fresh window, an ETF's holdings-weighted target, bitcoin's hand-kept table, and the symbols tried
 // for an Asian listing.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { type Analyst, consensusSnapshot, CONSTITUENT_RATIO, freshTargets, holdingsSnapshot, parseAnalyst, PREFERRED_COMMON, strategistSnapshot, yahooSymbolCandidates } from "./compute.ts";
+import { type Analyst, blackrockYahooSymbol, consensusSnapshot, CONSTITUENT_RATIO, freshTargets, holdingsSnapshot, parseAnalyst, parseBlackrockHoldings, PREFERRED_COMMON, strategistSnapshot, yahooSymbolCandidates } from "./compute.ts";
 import { STRATEGIST_AS_OF, STRATEGIST_TARGETS } from "./strategists.ts";
 
 const NOW = Date.parse("2026-10-21T13:30:00Z");
@@ -134,3 +134,57 @@ Deno.test("yahooSymbolCandidates: Yahoo's top-holdings symbols for Asian listing
   assertEquals(yahooSymbolCandidates("2330.TW"), ["2330.TW"]);
   assertEquals(yahooSymbolCandidates(" aapl "), ["AAPL"]);
 });
+
+Deno.test("strategistSnapshot: an index row's targets put on the fund's price by its scale, the sources kept in index points", () => {
+  const rows = [
+    { firm: "A", target: 8000, date: "2026-09-08", horizon: "end-2026", url: "https://a" },
+    { firm: "B", target: 7400, date: "2026-10-01", horizon: "end-2026", url: "https://b" },
+  ];
+  const index = { symbol: "^GSPC", name: "S&P 500", level: 7757.17, price: 149.94, scale: 149.94 / 7757.17 };
+  const cross = { mean: 188.91, low: 114.85, high: 263.12, analysts: 50, coverage: { weight: 0.39, names: 10, source: "s" } };
+  const s = strategistSnapshot("VUAA.L", rows, 149.94, { currency: "USD", index, crossCheck: cross })!;
+  // mean (8,000 + 7,400) / 2 = 7,700 × 149.94 / 7,757.17 = 148.8349; low 7,400 → 143.0362; high 8,000 → 154.6337.
+  assertEquals([s.mean, s.low, s.high, s.analysts, s.rating, s.refPrice], [148.8349, 143.0362, 154.6337, 2, null, 149.94]);
+  assertEquals(s.targets.map((t) => [t.firm, t.target]), [["B", 143.0362], ["A", 154.6337]]);
+  assertEquals(s.sources?.map((x) => x.target), [8000, 7400]);
+  assertEquals([s.index, s.crossCheck], [index, cross]);
+  // Bitcoin's (no index) is as before: no scale, no cross-check.
+  const btc = strategistSnapshot("BTC-USD", rows, null)!;
+  assertEquals([btc.mean, "index" in btc], [7700, false]);
+});
+
+Deno.test("parseBlackrockHoldings: the fund's equity lines, largest first, weights as fractions, symbols for Yahoo", () => {
+  const csv = [
+    '\uFEFFFund Holdings as of,"20/Oct/2026"',
+    "Inception Date,\"Oct 11, 2018\"",
+    " ",
+    "Ticker,Name,Sector,Asset Class,Market Value,Weight (%),Notional Value,Shares,Price,Location,Exchange,Market Currency",
+    '"005930","SAMSUNG ELECTRONICS LTD","Information Technology","Equity","424,593,236.83","5.88","1","1","159.24","Korea (South)","Korea Exchange (Stock Market)","KRW"',
+    '"2330","TAIWAN SEMICONDUCTOR MANUFACTURING","Information Technology","Equity","1,034,028,479.56","14.32","1","1","73.65","Taiwan","Taiwan Stock Exchange","TWD"',
+    '"939","CHINA CONSTRUCTION BANK CORP","Financials","Equity","1","0.82","1","1","1","China","Hong Kong Exchanges And Clearing Ltd","HKD"',
+    '"M&M","MAHINDRA AND MAHINDRA LTD","Consumer","Equity","1","0.21","1","1","1","India","National Stock Exchange Of India","INR"',
+    '"PETR4","PETROLEO BRASILEIRO PREF SA","Energy","Equity","1","0.42","1","1","1","Brazil","XBSP","BRL"',
+    '"BRK.B","BERKSHIRE","Financials","Equity","1","0.10","1","1","1","United States","New York Stock Exchange Inc.","USD"',
+    '"ZZZ","ELSEWHERE","Financials","Equity","1","0.30","1","1","1","Nowhere","Moon Exchange","XXX"',
+    '"USD","USD CASH","Cash and/or Derivatives","Cash","1","0.40","1","1","1","United States","-","USD"',
+  ].join("\r\n");
+  const p = parseBlackrockHoldings(csv)!;
+  assertEquals(p.asOf, "20/Oct/2026");
+  assertEquals(p.holdings.map((h) => [h.symbol, h.weight]), [
+    ["2330.TW", 0.1432], ["005930.KS", 0.0588], ["0939.HK", 0.0082], ["PETR4.SA", 0.0042], ["M&M.NS", 0.0021], ["BRK-B", 0.001],
+  ]);
+  assertEquals(p.unmapped, 1);
+  assertEquals(parseBlackrockHoldings("<!doctype html><html>…"), null);
+  assertEquals([blackrockYahooSymbol("700", "Hong Kong Exchanges And Clearing Ltd"), blackrockYahooSymbol("1120", "Saudi Stock Exchange"), blackrockYahooSymbol("X", "")], ["0700.HK", "1120.SR", null]);
+});
+
+Deno.test("a dated target in another unit than the price is left out of the list and the fresh window (ANG.JO, 2026-10-21)", () => {
+  // AngloGold Ashanti in Johannesburg, priced in ZA cents (150,008); Goldman's dated target of 104 is its NYSE line's.
+  const ang: Analyst = { ...firm(150008, 180000, 140000, 220000, 9, [[104, "2026-10-15T00:00:00.000Z"], [175000, "2026-10-10T00:00:00.000Z"]]) };
+  const s = holdingsSnapshot("X", [{ symbol: "ANG.JO", weight: 0.01 }], new Map([["ANG.JO", ang]]), { price: 10, currency: "USD" }, NOW, "t")!;
+  // Only the 175,000 counts: 10 × 175,000 / 150,008 = 11.66604…, so 11.666.
+  assertEquals(s.fresh, { low: 11.666, high: 11.666, mean: 11.666, count: 1 });
+  const c = consensusSnapshot("ANG.JO", ang, NOW)!;
+  assertEquals(c.targets.map((x) => x.target), [175000]);
+});
+

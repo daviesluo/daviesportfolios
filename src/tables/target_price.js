@@ -30,7 +30,7 @@
 import { buildHoldingsRows } from './holdings_list.jsx';
 import { displayTicker } from '../app/formatters.js';
 import { risksFor } from './target_risks.js';
-import { fmtMoney } from '../app/formatters.js';
+import { fmtMoney, fmtPct } from '../app/formatters.js';
 import { currencyAffix } from '../portfolio/fx.js';
 
 export const FRESH_DAYS = 30;
@@ -104,6 +104,8 @@ export function buildTargetRows(metrics, data, nowMs) {
       freshVsPrice: /** @type {number | null} */ (null),
       lowVsPrice: /** @type {number | null} */ (null), targetCurrency: /** @type {string | null} */ (null),
       coverage: /** @type {any} */ (null), sources: /** @type {any[] | null} */ (null), asOf: /** @type {string | null} */ (null),
+      /** An index row's index (VUAA: the S&P 500) and its holdings-weighted cross-check, as the job wrote them. */
+      index: /** @type {any} */ (null), crossCheck: /** @type {any} */ (null),
       risks: '',
     };
     if (s && num(s.mean)) {
@@ -138,6 +140,9 @@ export function buildTargetRows(metrics, data, nowMs) {
       }
       row.coverage = s.coverage || null;
       row.sources = Array.isArray(s.sources) ? s.sources : null;
+      row.index = s.index || null;
+      row.crossCheck = s.crossCheck ? { ...s.crossCheck, mean: num(s.crossCheck.mean) !== null ? s.crossCheck.mean * scale : null,
+        low: num(s.crossCheck.low) !== null ? s.crossCheck.low * scale : null, high: num(s.crossCheck.high) !== null ? s.crossCheck.high * scale : null } : null;
       row.asOf = s.asOf || null;
     }
     row.risks = risksFor(display, row, nowMs);
@@ -291,6 +296,21 @@ export function kindTag(row) {
  * @param {any} row
  */
 export function strategistTitle(row) {
+  if (row.index) {
+    // A fund priced from its index's strategist targets (VUAA from the S&P 500's): the targets in index points, how they
+    // were put on the fund's price, and the bottom-up holdings-weighted target beside them as a cross-check.
+    const ix = row.index, c = row.crossCheck;
+    const lines = (row.sources || []).map((/** @type {any} */ x) => `${x.firm}: ${Number(x.target).toLocaleString('en-US')}, horizon ${x.horizon} (published ${x.at})`);
+    const cross = c && c.mean != null
+      ? `Bottom-up cross-check, the fund's holdings-weighted target: ${fmtMoneyIn(c.mean, row.targetCurrency)}`
+        + `${c.low != null && c.high != null ? `, range ${fmtRange(c.low, c.high, row.targetCurrency)}` : ''}`
+        + `${c.coverage ? `, covering ${(c.coverage.weight * 100).toFixed(0)}% of the fund (${c.coverage.names} holdings)` : ''}`
+        + `${row.price ? ` (${fmtPct((c.mean / row.price - 1) * 100, { precision: 1 })} against the price)` : ''}.`
+      : 'Bottom-up cross-check: none this run.';
+    return `${ix.name} targets from strategists, kept by hand (no API serves them; a session refreshes the table), in index points, `
+      + `put on the fund's price by its price over the index (${fmtMoneyIn(ix.price, row.targetCurrency)} / ${Number(ix.level).toLocaleString('en-US', { maximumFractionDigits: 2 })}):\n`
+      + `${lines.join('\n')}\n${cross}`;
+  }
   const lines = (row.sources || []).map((/** @type {any} */ x) => `${x.firm}: $${Number(x.target).toLocaleString('en-US')}, horizon ${x.horizon} (published ${x.at})`);
   return `Strategist targets, kept by hand (no API serves them; a session refreshes the table):\n${lines.join('\n')}`;
 }

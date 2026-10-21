@@ -667,7 +667,13 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
-"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20", and 2026-10-18 20:19 → 21:12 UTC under "LEDGER.md, archived 2026-10-21", and 2026-10-19 03:20 → 06:45 UTC under "LEDGER.md, archived 2026-10-21 (second)"; each oldest first.
+"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20", and 2026-10-18 20:19 → 21:12 UTC under "LEDGER.md, archived 2026-10-21", and 2026-10-19 03:20 → 06:45 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-19 21:18 UTC → 2026-10-21 19:50 UTC under "LEDGER.md, archived 2026-10-21 (second)"; each oldest first.
+
+### [2026-10-21 22:13 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Target price sources** (sub-agent; not pushed): SAEM's holdings from BlackRock's keyless file, 60 largest priced
+  (coverage 35.6 % → 49.6 %); VUAA = 19 sourced S&P 500 year-end strategist targets, as of 2026-10-21, on VUAA's price
+  (`INDEX_TARGETS`), holdings-weighted kept as cross-check; dated targets in another unit dropped (ANG.JO). Hand tables
+  (BTC, S&P 500) need a session to refresh them; a weekly re-verify proposal is with the coordinator.
 
 ### [2026-10-21 21:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Davies' two answers on PR5 (10-21), done** (sub-agent, item 4; the review's last sections): (1) condition 5 loosened on his
@@ -684,6 +690,7 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   (mirror bar over 10-22 → 11-22, read 11-23); fixture rebuilt; `src/live_twin.test.js`. TAKE (Addendum 3), variant-3 (§7) and
   the size twin (§13) note that through-only undercounts LIVE's fills. Its page name on two lines (`strategyNameParts`, dist
   rebuilt). **Deploy before 10-24.** Sweep not run here (no browser).
+
 
 ### [2026-10-21 21:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Heat map: the bottom-left six stack their first two beside the third, not a plain 2 × 3** (Davies, 10-21;
@@ -734,81 +741,3 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   renames the board's holding and CM slot (version +1, history keeps the old one), 36 fills and 15 dividends
   (`t212_ticker` GOOGL_US_EQ), drops GOOG's target row; aborts if both held. Client schema v3 renames cached copies.
   Dry run on production: every equality true. After landing: `select count(*) from t212_orders where ticker='GOOG'` = 0.
-
-### [2026-10-21 19:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Target price page built** (sub-agent; not pushed): ☰ → after Sectors list; weight = the Holding list's Exposure, the
-  board's price, Yahoo consensus per stock, VUAA/SAEM holdings-weighted (coverage shown), BTC from a sourced hand table;
-  low vs price default sort, nulls last. Data from `targets` (job at 04:00 / 09:30 / close ET on trading days, 09:30 ET
-  otherwise; `0134`, RLS on, no grant) through the app's preload (2 h TTL). Pins: Deno 23, vitest, sweep part `target-price`.
-- **Fixes on review:** ranges use one decimals rule (2 under 100, none from 100); a fund's holding counts only at 0.5–2×
-  its mean over `financialData.currentPrice` of the same response, else "skipped" on the tag; 005935 (Samsung pref) read
-  through 005930. SAEM 10-21: 3 skipped (Samsung 2.14×, SK hynix 2.39×, pref), coverage 22.5 %, mean +45 % (was +74 %).
-- **Davies' changes:** "Avg vs price" (mean / price − 1) replaces Low vs price as the default sort; Weight, Price and it
-  live with the board; Key risks for all 30 holdings, researched 10-21 with sources in `target_risks.js`; BTC horizons on hover.
-
-### [2026-10-21 19:14 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **PR5's four-week review** (sub-agent, item 4; `reviews/2026-10-21-pr5-paper-test-review.md`, `backtests/pr5_review/`,
-  not blind): conditions 1–4 pass (fills +2.43 %, P&L +3.61 %; $17.14 v null p95 $2.28; $0.61 a day; 98.2 % accepted),
-  **5 misses (714 orders on 10-01)**, 6 recorded (gap 4.0–9.3 bps, widening). PR5-R: (d) the frozen sim on the engine's
-  inputs = all 9,820 events; (a) keeps 90.1 %; (e1) 6 fills, $0.62. Six deviations listed in the review and reference §4
-  item 31. Nothing live run; the two questions for Davies are drafted there.
-
-### [2026-10-21 19:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Retired strategies' page code and tests removed** (sub-agent; Davies 10-20, relayed: delete tests built for retired
-  strategies if no longer needed). Gone: the dashboard's dead RW/paper-layer readers, `pmrw_view.ts`, `pm_prep_view.ts`,
-  `pm_prog.ts` (+ `pmprog` route) and their tests; the page's RW, variant, mini/mid-pool and paper-layer rows and pages.
-  Kept: engines and replays (live-prep's live path and committed studies import them), frozen executors, rulebooks,
-  disabled paper routes pinned by migration tests. Vitest 1,533 → 1,498 tests, Deno 1,381 → 1,342. Not pushed.
-
-### [2026-10-20 18:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **GROKPM Deviation D7 recorded** (Davies 10-20: "同意"): §9 of the prereg gains D7, shadow forecasts journalled on `no_action`
-  rows and a secondary Brier at the end; bars, caps, stops and §6's bar unchanged; sha pin in `src/grokpm_prereg.test.js`
-  moved. Message to Grok = the review's §7, also C-003 in `grokpm-ledger`.
-
-### [2026-10-20 17:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **LIVE PR5: orders 7229 and 7230 settled `rejected` by the main session on Davies' word** (10-20, the page's "a live order needs a
-  person"): both POSTs answered 500 at 06:02 UTC in the Revolut X outage, no venue id, never listed in active orders or history
-  06:04-16:09, and the `_2` balances equal the booked fills exactly (a fill would have added 13.37792 USDC or 0.14709 USDT);
-  evidence in each row's `response.settledByPerson`. 0 live orders pending after.
-
-### [2026-10-20 17:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **`momentum-1d` deleted by `0133`** (Davies 10-20: "这个策略直接删了，不用加这个"; it was winding down a paper BTC/USD
-  position since `0129`): 1 row, 11 orders, 95 decisions, 2,346 observations and its maker probes (cascade; MX-1's pulled
-  probes 38-41 stay in the committed tape). Rulebook and backtests stay. Applies on push (migrations.yml).
-
-### [2026-10-20 16:29 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Errors box: a noise policy** (sub-agent; Davies, 10-20, relayed: why so many entries; no low-level errors that mean
-  nothing). `ops-error/noise.ts` turns the summary's rows into lines: always shown monitor, code, auth/config (not IG's
-  token churn), a live path's state and unknown messages, deduplicated; transient upstream errors and a recorder's single
-  failed run hidden unless they persist (15 consecutive minutes, or 3 runs of a 5/10-min job), then one line. 24 h of real
-  rows: 878 counted before, 11 lines after (76 rows hidden). The IG recorder reports only on two failed runs in a row or a
-  failure in the ten minutes from Sunday's open. (Its archive move overlapped the zero-trades commit's and was dropped.)
-
-### [2026-10-20 16:22 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **LIVE after Revolut X's 10-20 outage** (sub-agent, item 4; reference §4 item 35): 606 `agents.quotes_live` rows, one a
-  minute; no stuck order filled; 7229 and 7230 (POST 500 at 06:02, never listed) settle as rejected on the balance evidence
-  (statements in the hand-back, run by the main session). Code: the box hears a fault once, hourly, and "recovered";
-  a pending order unseen for an hour is parked (looked for every 15 min). Entries were also off 08:02–15:12 and from 16:02
-  on the stale USD-hour guard: Revolut X serves no USDC/USD or USDT/USD hourly candle after 08:00 (venue side).
-
-### [2026-10-20 16:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **GROKPM zero trades: the rules, not the server, and they protected the money** (sub-agent; Davies: "一单都没下…标准是不是太严格了？
-  做个复盘研究"; item 15; `reviews/2026-10-20-grokpm-zero-trades.md`, `backtests/grokpm_zero/`). Since the go: 448 requests, no order
-  ever asked (31 refusals: 30 malformed market reads, 1 future cycle ts), 169 no_action, 21 full scans on time. Every B candidate
-  with a stated p was 3.5-10.1 points (19), the ≥ 12 gaps were all thin books (3), every A confirmation was already at 0.96-0.9995
-  (6). On the 9 resolved, the agent's side won 3 and its Brier 0.136 lost to the market's 0.106; B10 would have lost $7.49 (2
-  trades), B8 $10.59 (3), all fillable. Base rates: the 5-to-12-point bar barely moves the room. Recommendation: keep every bar;
-  D7 "shadow forecasts" (p and m journalled on no_action rows, a secondary Brier at the end; no rule change), drafted with its
-  message for Grok, only on Davies' word.
-
-### [2026-10-20 03:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Heat map: the desktop's top four on the right stack in one column, as the phone's do** (Davies, 10-20; sub-agent).
-  The split cuts by `w >= h`: the pairs PLTR/RKLB, MSTR/ORCL were 237 × 226 on desktop (side by side, a 2×2) and
-  150 × 170 on the phone (stacked). Now a right-hand 2×2 beside a left-hand 2×2 stacks when every tile stays 1 to 3 : 1
-  wide (`board/heatmap.jsx`); every other rect unchanged, pinned against the old split in `heatmap.test.js` and in
-  the browser (sweep part `heatmap-shape`).
-
-### [2026-10-19 21:18 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **S1b weekend 1 (10-18/19) is usable under Deviation 1** (item 14): `sql/s1b_coverage.sql` after the window ended
-  (window_ended true): 1,515 of 1,515 minutes covered (100.00 %), longest uncovered run 0, none uncovered in the first
-  ten, first TRADEABLE 2026-10-18 20:00:05 UTC; runs ok 1,141 of 1,515 (75.3 %), reported beside it as the deviation asks.
