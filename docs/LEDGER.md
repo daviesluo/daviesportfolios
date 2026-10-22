@@ -227,10 +227,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    `filled_base` in whole `base_step`s, `fromAccount`, the coin's balance against the book); after a sell, the book
    flat. Report a live order, a fill, an order `pending` over 2 minutes, a missing decision, a live-row error or a
    failed tick. Rows, caps, order path: `docs/agents/CLAUDE.md`, `docs/agents/go-live.md`, reference §3.31 and §4
-   items 32–34. **Read `ops_errors` itself, not the box** (audit 2026-10-20): since `7ed60689` the box treats the tick's
-   rows (`agents.tick`, not a live kind in `ops-error/noise.ts`) that read transient as noise until 15 minutes in a row,
-   "trend-4h-live|…: revx answered 500 … outcome unknown; … stays pending" included. A fix (live-row lines as live
-   kinds; persistence by each kind's own cadence) changes `ops-error` and waits for Davies.
+   items 32–34. The errors box shows each `trend-4h-live` row that says "outcome unknown" or "left pending" on its own
+   (`keptSeparate` in `ops-error/noise.ts`). `7ed60689` classed those `agents.tick` rows as transient noise until 15
+   minutes in a row, and folded the repeats into one count.
 
 4. **PR5 (GBP stablecoin quotes): live executor LIVE since 2026-10-01 16:29:53 UTC at £10 a rung; the paper test decides
    PR5 on 2026-10-21** (spec `reviews/2026-09-23-pr5-paper-test-spec.md`, six conditions; wake
@@ -293,10 +292,10 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      **Revolut X's outage of 10-20** (reference §4 item 35, archived history 16:22 and 17:45): no stuck order filled; 7229
      and 7230 settled `rejected` by the main session on Davies' word; since `e1439f32` the errors box hears a live fault once,
      hourly and on recovery, and an order shown nowhere for an hour is parked (still pending, looked for every 15 min).
-     Audit 2026-10-20: a live fault the executor now writes hourly that reads transient without a state word (the
-     dead-man beat or `agent_risk` unreadable, balances unreadable, a lease claim timed out) never reaches 15 rows in a
-     row, so the box never shows it; neither does `agents.quotes_weekend` failing every other minute. Rungs share a
-     fault's key (digits dropped), and one-time lines get a "recovered" five minutes on. Plan only (redeploys).
+     The errors box shows, each as its own line, an hourly guard fault that reads transient without a state word (the
+     dead-man beat, `agent_risk` unreadable, balances unreadable, a lease claim timed out) and an intermittent
+     `agents.quotes_weekend` fault. `7ed60689` hid both: one row an hour, or every other minute, never made 15 in a row.
+     `grokpm.redeem` is shown the same way, and not folded into a count.
    - **The review of 2026-10-09** (`reviews/2026-10-09-stablecoin-quotes-review.md`, not blind). **F1 built on Davies'
      word** (10-09: a buy-back at the venue's £0.10 minimum buys what its whole penny buys, LIVE and every twin; the twins'
      deviation 3, p50's deviation 2, TAKE's addendum 2, the live design's addendum). After its deploy: the next LIVE or
@@ -732,6 +731,9 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20", and 2026-10-18 20:19 → 21:12 UTC under "LEDGER.md, archived 2026-10-21", and 2026-10-19 03:20 → 06:45 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-19 21:18 UTC → 2026-10-21 19:50 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-21 20:39 → 21:25 UTC under "LEDGER.md, archived 2026-10-22", and the audits of 2026-10-20 19:25 and 2026-10-21 19:17 UTC under "LEDGER.md, archived 2026-10-22 (second)", and PR #242's 2026-10-15 → 10-16 sections under "LEDGER.md, archived 2026-10-22 (third)", and PR #244's 2026-10-20 03:44 UTC section under "LEDGER.md, archived 2026-10-22 (fourth)", with 2026-10-21 22:51 and 23:05 UTC; each oldest first.
+
+### [2026-10-22 06:40 UTC] Platform: Grok | Model: grok-4.7
+- **Errors box: four live faults stay their own lines** (`ops-error/noise.ts`; not merged, not deployed). `7ed60689` hid or folded a `trend-4h-live` order whose outcome is unknown, an hourly guard fault with no state word (dead-man beat, `agent_risk`, balances, a lease), `grokpm.redeem`, and an intermittent `agents.quotes_weekend` fault. `keptSeparate` shows each row at once and does not fold it into a count. Merging redeploys `ops-error`; do that before 2026-10-23 22:00 BST.
 
 ### [2026-10-22 00:35 UTC] Platform: Claude Code via Grok Bot | Model: claude-opus-5-5
 - **Audit of 2026-10-22** (read-only; one read-only SQL of `grokpm_decisions`): `5074c6b0..4a36cb6f` (20 commits), one

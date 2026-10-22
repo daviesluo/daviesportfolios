@@ -124,3 +124,80 @@ Deno.test("classify: every live-order line PR5's executor writes is shown at onc
   // One such row, alone in the window, is a line of its own.
   assertEquals(boxLines([row("agents.quotes_live", live[3], 0)], T0 + 60_000).lines.length, 1);
 });
+
+// 7ed60689 hid or folded four live faults. Each test is one of them, and each fails on that code: classify() called the
+// timeout a transient, and the counted-line rule then folded whatever was left. A neighbour that is still noise stays noise.
+
+const CID2 = "0f217a7e-badf-452b-bbfd-60293a9b60ac";
+
+Deno.test("trend-4h-live: an order whose outcome is unknown is its own line, even when the venue said 500", () => {
+  const unknown = (id: string, status: string) =>
+    `trend-4h-live|BTC/USD: revx answered ${status} — outcome unknown; ${id} stays pending for the next turn to reconcile`;
+  const lost = (id: string) =>
+    `trend-4h-live|BTC/USD: placement of ${id} has no reply (Signal timed out.); left pending for the next turn to reconcile`;
+  assertEquals(classify({ kind: "agents.tick", message: unknown(CID, "500 Something went wrong") }).noise, false);
+  assertEquals(classify({ kind: "agents.tick", message: lost(CID) }).noise, false);
+  // Two orders, same words once the ids are gone: not one line with a count.
+  const rows = [row("agents.tick", unknown(CID, "500 Something went wrong"), 0), row("agents.tick", unknown(CID2, "502 Bad Gateway"), 1)];
+  const b = boxLines(rows, Date.parse(at(2)));
+  assertEquals(b.lines.length, 2);
+  assertEquals(b.lines.every((l) => l.count === 1), true);
+  assertEquals([b.shownRows, b.hiddenRows], [2, 0]);
+  // A known rejection still folds, and a tick timeout that is not this order is still noise.
+  const rejected = (n: number) => `trend-4h-live|BTC/USD: revx rejected → 400 no fill, attempt ${n}`;
+  assertEquals(boxLines([row("agents.tick", rejected(1), 0), row("agents.tick", rejected(2), 1)], Date.parse(at(2))).lines.map((l) => l.count), [2]);
+  assertEquals(classify({ kind: "agents.tick", message: "revx: quotes Signal timed out." }).noise, true);
+});
+
+Deno.test("hourly guard: a fault reported once an hour is shown, and the next hour is not folded into it", () => {
+  const beat = "the dead-man switch's beat is unreadable (Signal timed out.): entries go on this turn";
+  const risk = "agent_risk unreadable (pairs" + HTML502 + "): no entries this turn, exits still run";
+  const balances = "balances unreadable (Signal timed out.): no entries this turn; exits are not capped by the account";
+  const lease = "LEASE CLAIM FAILED — agent_locks: Signal timed out.; nothing done this minute";
+  const loss = "loss stop unreadable (Signal timed out.): no live entries this turn";
+  for (const m of [beat, risk, balances, lease, loss]) assertEquals(classify({ kind: "agents.quotes_live", message: m }).noise, false, m);
+  // One row an hour never makes 15 consecutive minutes, so the old rule hid it. Two hours are two lines.
+  const hours = [row("agents.quotes_live", beat, 0), row("agents.quotes_live", beat, 60)];
+  const b = boxLines(hours, Date.parse(at(61)));
+  assertEquals(b.lines.length, 2);
+  assertEquals([b.shownRows, b.hiddenRows], [2, 0]);
+  // The hourly repeat of a guard that is already shown, differing by the clock and the turn count, stays two lines.
+  const stop = (t: string, n: number) =>
+    `LOSS STOP: today's P&L -0.51 GBP is past −0.5; no live entries until the next UTC day; exits and stops stay armed [still, since ${t}, ${n} turns]`;
+  const repeats = boxLines([
+    row("agents.quotes_live", stop("2026-10-20T08:00:00.000Z", 2), 0),
+    row("agents.quotes_live", stop("2026-10-20T09:00:00.000Z", 3), 60),
+  ], Date.parse(at(61)));
+  assertEquals(repeats.lines.map((l) => l.count), [1, 1]);
+  // A pure upstream error on the same path, with no guard in it, is still noise.
+  assertEquals(classify({ kind: "agents.quotes_live", message: "pair config unreadable (pairs" + HTML502 }).noise, true);
+});
+
+Deno.test("grokpm.redeem: a failed redemption is shown at once, and the next hour is its own line", () => {
+  const unread = "redeemable positions unread: Signal timed out.";
+  const stalled = (hex: string) => `redemption ${hex} not final after two hours`;
+  assertEquals(classify({ kind: "grokpm.redeem", message: unread }).noise, false);
+  assertEquals(classify({ kind: "grokpm.redeem", message: "TypeError: x.map is not a function" }).cls, "code");
+  const b = boxLines([
+    row("grokpm.redeem", unread, 0),
+    row("grokpm.redeem", unread, 60),
+    row("grokpm.redeem", stalled("0xabcdef12"), 120),
+    row("grokpm.redeem", stalled("0x1234abcd"), 180),
+  ], Date.parse(at(181)));
+  assertEquals(b.lines.length, 4);
+  assertEquals(b.lines.every((l) => l.count === 1), true);
+  assertEquals(b.hiddenRows, 0);
+});
+
+Deno.test("weekend replica: an intermittent fault is shown, and the same words an hour apart are not one count", () => {
+  // Every other minute, so it never lasts 15 in a row. Each row is a line.
+  const rows = [0, 2, 4, 6].map((m) => row("agents.quotes_weekend", "Signal timed out.", m));
+  rows.push(row("agents.quotes_weekend", "fetch failed", 8));
+  const b = boxLines(rows, Date.parse(at(9)));
+  assertEquals(b.lines.length, 5);
+  assertEquals(b.lines.every((l) => l.count === 1), true);
+  assertEquals([b.shownRows, b.hiddenRows], [5, 0]);
+  assertEquals(classify({ kind: "agents.quotes_weekend", message: "Signal timed out." }).noise, false);
+  // A recorder's single failed run is still hidden.
+  assertEquals(boxLines([row("agents.pm_rec", "Signal timed out.", 0)], Date.parse(at(1))).lines.length, 0);
+});

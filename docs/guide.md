@@ -673,7 +673,13 @@ works — is kept in the record but left off the badge, unless it goes on:
 the same job failing for 15 minutes in a row (three runs for a job that
 runs every five or ten minutes) becomes one line, "failing since 08:48
 UTC, 167 times", or "failed 08:48–11:34 UTC" once it has stopped. The
-same message repeated is one line with its count. Always shown: the
+same message repeated is one line with its count. Four live faults are not
+part of that count, and one of them is shown even when the words look
+like a passing timeout: a trend-4h-live order whose outcome is unknown,
+a guard the live quotes report at most once an hour (the dead-man beat,
+the risk or the balances unread, a lease that timed out), a redemption
+that failed, and a fault in the weekend replica. Each of those rows is
+its own line. Always shown: the
 monitor's alerts, code errors, a refused key or a missing setting, and
 anything a live strategy says about its orders. The IG recorder reports
 only when its weekend coverage is at risk: two failed runs in a row, or
