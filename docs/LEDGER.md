@@ -539,8 +539,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    2026-10-17 D4, D5, the go and D6).
    - **The design.** Grok holds no key or wallet. It calls the `grokpm` function (`?action=account|market|order|cancel|cancel_all`,
      `&forceFunctionRegion=eu-west-1`, bearer `GROKPM_LOG_TOKEN`). The server checks every order against §2's rules and the
-     agent's own book, journals it, and only armed signs and sends it on the account live-prep used. A cumulative-Kelly
-     fix is in a PR for review; not merged/deployed.
+     agent's own book, journals it, and only armed signs and sends it on the account live-prep used.
    - **0125.** It disarms live-prep (only with nothing sellable left; its dust waits to settle) and adds GROKPM to the
      one-armed trigger.
    - **Davies does:** (1) create the Supabase Edge Function secret `GROKPM_LOG_TOKEN` (32 or more random characters; never
