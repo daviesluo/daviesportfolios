@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-10-21",
+  "asOf": "2026-10-22",
   "btc": {
     "asset": "BTC-USD",
     "unit": "USD per bitcoin",
@@ -13,10 +13,10 @@
       },
       {
         "firm": "Citi",
-        "target": 82000,
-        "date": "2026-07-01",
+        "target": 113000,
+        "date": "2026-10-01",
         "horizon": "12 months",
-        "url": "https://bitcoinmagazine.com/news/citi-slashes-bitcoin-target-to-82000"
+        "url": "https://fortune.com/2026/10/01/citigroup-one-year-bitcoin-forecast-113000/"
       },
       {
         "firm": "Bernstein",
@@ -24,6 +24,13 @@
         "date": "2026-08-26",
         "horizon": "mid-2027",
         "url": "https://theblock.co/news/markets/2026-08-26-bernstein-sees-bitcoin-reaching-150000-by-mid-2027-amid-debasement-trade-but-cuts-strategy-target-to-350-412778"
+      },
+      {
+        "firm": "TD Cowen",
+        "target": 109000,
+        "date": "2026-10-08",
+        "horizon": "end-2026",
+        "url": "https://investinglive.com/cryptocurrency/td-cowen-lifts-2026-bitcoin-projection-to-about-109-000-reversing-september-cut/"
       }
     ]
   },

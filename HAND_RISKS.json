@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-10-21",
+  "asOf": "2026-10-22",
   "risks": {
     "AAPL": [
       {
@@ -72,7 +72,7 @@
         "text": "Debt $35.1B vs PP&E $46.7B (6/30)"
       },
       {
-        "text": "net interest $640M in Q2"
+        "text": "unsecured debt yields ~15%, 5y CDS ~1,067bp (10/21)"
       },
       {
         "text": "earnings ~11/10–11/16 (est.)",
@@ -87,7 +87,7 @@
         "text": "search judgment under appeal"
       },
       {
-        "text": "earnings ~10/28 (est.)",
+        "text": "earnings 10/28",
         "until": "2026-10-28"
       }
     ],
@@ -101,10 +101,6 @@
       }
     ],
     "META": [
-      {
-        "text": "earnings 10/21",
-        "until": "2026-10-21"
-      },
       {
         "text": "2026 capex guide up to $145B"
       },
@@ -162,8 +158,8 @@
         "text": "$2.5B 0% converts due 2031 (8/2026), conversion ~$497"
       },
       {
-        "text": "earnings date unconfirmed (10/23–11/11)",
-        "until": "2026-11-11"
+        "text": "earnings 11/5",
+        "until": "2026-11-05"
       }
     ],
     "NVDA": [
@@ -216,8 +212,8 @@
         "text": "@lowest-target"
       },
       {
-        "text": "earnings ~11/9–11/12 (est.)",
-        "until": "2026-11-12"
+        "text": "earnings 11/9",
+        "until": "2026-11-09"
       }
     ],
     "SAEM": [
@@ -254,10 +250,6 @@
       }
     ],
     "TSLA": [
-      {
-        "text": "earnings 10/21",
-        "until": "2026-10-21"
-      },
       {
         "text": "Valuation rests on robotaxi and Optimus; Musk pay tied to their milestones"
       }
