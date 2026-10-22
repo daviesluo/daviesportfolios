@@ -756,6 +756,9 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   - Interim, 19 resolved: Brier agent 0.0242, m 0.0546, last trade 0.0241.
   - Ledger: the 2026-10-24 07:40 and 09:48 UTC sections moved to the archive.
 
+### [2026-10-22 00:52 UTC] Platform: Muse | Model: muse-wonder-full-1.0
+- **GROKPM D8 in §9** (PR #245 rebased to 2ccc2b69; not deployed).
+
 ### [2026-10-20 04:03 UTC] Platform: Muse | Model: muse-wonder-full-1.0
 - **GROKPM proposed cumulative Kelly** (Davies: separate PR, Claude review, no merge/deploy). Held cost + resting buys +
-  the new buy now count against the smaller of ¼ Kelly × equity and $10 a market; coefficient unchanged. Nothing deployed.
+  the new buy now count against the smaller of ¼ Kelly × equity and $10 a market; coefficient unchanged; prereg §9 D8 added (Claude, per Davies 10-20). Nothing deployed.
