@@ -46471,3 +46471,23 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   plain rows, now stacks the top row's first two while each stays 1 to 3 : 1 (`board/heatmap.jsx`). It also
   stacks the 10-20 book's GOOGL over NBIS (the same shape); the phone is unchanged. Pinned in `heatmap.test.js`
   against the 10-20 split and in the sweep (`heatmap-shape/six`).
+
+## LEDGER.md, archived 2026-10-22 (second) — the audits of 2026-10-20 19:25 and 2026-10-21 19:17 UTC, oldest first
+
+### [2026-10-20 19:25 UTC] Platform: Claude Code via Grok Bot | Model: claude-opus-5-5
+- **Audits of 2026-10-16 → 10-20, landed together** (read-only, no database; the 10-16 → 10-19 audits' history lines are
+  this one). `7e797ec1..5074c6b0` (33 commits): authors, headers, gate 1 and CI hold, the archive moves word for word,
+  migrations to `0133` (applied 10-20 16:26 UTC; next `0134`). Three of 10-20's headers (17:20, 17:45, 18:10) are 60-84
+  min later than their commits. Item 4: the weekend read left out step 2's `late`; Davies, 10-20, keeps the weekend 'live'
+  and counts it in the take read. GROKPM D7 adds only §9 (sha chain 902fdb0a → 4db2b03a); #245's deviation is D8. The
+  zero-trades review reproduces offline; its wording is corrected in its §9. Pins (tests only, each failing its
+  mutation): LIVE's weekend gates and take shadow, IG's 18 s wiring, the switch after a re-login, the errors-box
+  report of a second failed run, the live writers' exact lines in the noise policy, and a parked order adopted and
+  withdrawn once the venue shows it. The noise policy hides some live lines (items 3 and 4; plan only). Carried: 0a⁗, 0c, items 9, 13 (0132's check as Grok Bot read it), 14, 15 and D3 in the
+  docs; the BLS dates, Davies' own GROKPM-account position, the redeem guard's pin; CBBOOKS-1's hash.
+
+### [2026-10-21 19:17 UTC] Platform: Claude Code via Grok Bot | Model: claude-opus-5-5
+- **Audit of 2026-10-21** (read-only, no database): `main` unchanged at `5074c6b0`, its Actions runs since 10-20 19:00
+  UTC green. Item 9: the RW tables' drop was tied to RW-C's 10-23 verdict, which `0120` withdrew on 10-13; now said so.
+  `grokpm-ledger` at `23b5222a`: 0 opens, D7's shadow rows coming in (its 10-20 daily check), Grok's "D7 twice" note
+  unanswered there (#245's is D8, item 15).

@@ -569,7 +569,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      Brier_agent < Brier_market.
    - **Never trade by hand in that account while GROKPM is armed.** Davies' own exception, 2026-10-17 ~03:45 UTC (desk
      ledger; that log line was trimmed 10-20, `ebd69f78`): a position he bought by hand in the shared wallet (CoreWeave
-     bankruptcy, NO, resolves 2027) is not the agent's; its book and record exclude it (agent cash 100 then), and D6 redeems
+     bankruptcy, NO, resolves 2027) is not the agent's; its book and record exclude it (agent cash $[•] then), and D6 redeems
      it with the rest once it resolves.
    - **Zero trades, reviewed 10-20** (`reviews/2026-10-20-grokpm-zero-trades.md`): no rule or server limit was the problem; looser
      bars lost on every resolved near miss. **D7 agreed 10-20 ("同意")**: shadow forecasts, no rule change (prereg §9 D7;
@@ -577,7 +577,11 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      Audit 2026-10-20: B10 and B8 lost every resolved case (5 trades, one Alberta loss on a count not yet official); B5's
      six held one win, and one of the six A confirmations sat at 0.934/0.979 (the review's §9 lists the wording).
      Grok answered C-003 at 16:58 UTC: D7's rows from its next wake (desk ledger). **PR #245** (Muse, the Kelly cap cumulative by market) carries
-     its own prereg deviation, approved by Claude on Davies' delegation; it is **D8**, D7 being the shadow forecasts.
+     its own prereg deviation, approved by Claude on Davies' delegation; it is **D8**, D7 being the shadow forecasts
+     (Davies confirmed D8, 2026-10-22). **D7's sample (Davies, 2026-10-22):** shadow forecasts count from C-003's start,
+     2026-10-20 16:58 UTC (17:58 London); the 17:05 UTC wake's two rows (ids `2026-10-20T17:05Z-d7-*`) are left out, that
+     round having read price and votes together, so each market's first counted forecast is 17:35 UTC's. Recorded in the
+     zero-trades review's §10; the prereg's §9 gains it as D9 after #245's D8, so its sha chain stays one line.
    - **Automatic redemption (D6, `0128`, `grokpm/redeem.ts`; Davies: "加上吧 全部都自动化掉")**: hourly, one gasless relayed
      transaction for up to five of the shared account's redeemable markets (pUSD back; losing tokens cleared), a dry run
      while `redeem_enabled` is false (its plan in `grokpm_exec_state.redeem_state`). **Davies does:** polymarket.com →
@@ -591,7 +595,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      检查最新动态"): `GROKPM_LEDGER.md`, alone on the branch `grokpm-ledger` (no CI, no deploy; never merged into `main`).
      Grok reads it every wake, answers Claude's requests there and pushes only to that branch. **Every session that touches
      GROKPM reads it first** (`git fetch origin grokpm-ledger && git show origin/grokpm-ledger:GROKPM_LEDGER.md`), answers
-     "Grok → Claude", and keeps it under 10 KB. Its introduction still says "D1–D5" twice (D1–D7 now); Davies, 2026-10-20:
+     "Grok → Claude", and keeps it under 10 KB, read as 10,240 bytes (Davies, 2026-10-22). Its introduction still says "D1–D5" twice (D1–D7 now); Davies, 2026-10-20:
      left for now. A daily check (trigger `trig_0165DPcrxXo6NhdDZdjDsmZ8`, 23:45 London) reads it and the record.
 16. **Target price page (Davies, 2026-10-21; `targets` function, `0134`, `src/tables/target_price*`).** After the deploy and
    0134: one `analyst_targets` row a holding within ~16 min (the call waits 15 min, then runs the newest slot owed). Bitcoin's
@@ -718,7 +722,17 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
-"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20", and 2026-10-18 20:19 → 21:12 UTC under "LEDGER.md, archived 2026-10-21", and 2026-10-19 03:20 → 06:45 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-19 21:18 UTC → 2026-10-21 19:50 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-21 20:39 → 21:25 UTC under "LEDGER.md, archived 2026-10-22"; each oldest first.
+"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20", and 2026-10-18 20:19 → 21:12 UTC under "LEDGER.md, archived 2026-10-21", and 2026-10-19 03:20 → 06:45 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-19 21:18 UTC → 2026-10-21 19:50 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-21 20:39 → 21:25 UTC under "LEDGER.md, archived 2026-10-22", and the audits of 2026-10-20 19:25 and 2026-10-21 19:17 UTC under "LEDGER.md, archived 2026-10-22 (second)"; each oldest first.
+
+### [2026-10-22 00:35 UTC] Platform: Claude Code via Grok Bot | Model: claude-opus-5-5
+- **Audit of 2026-10-22** (read-only; one read-only SQL of `grokpm_decisions`): `5074c6b0..4a36cb6f` (20 commits), one
+  author; CI green on every push. Deploys: `targets` (four times), `agents` (twice), and every function once with
+  `7e6de307` (`_shared/t212_tickers.ts`). Migrations `0134`–`0136` applied; next `0137`. Live paths: `quotes_live.ts`
+  gains only a twin-only type (`simFill`, the executor never reads it); `0136` adds the LIVE twin row (paper); PR5's
+  condition 5 reads 900 on Davies' word (the review's deviation 7). Every 10-21 history line's "not pushed" is out of date:
+  all landed by `4a36cb6f`. Davies, 10-22: D8 confirmed; D7 counts from 16:58 UTC without the 17:05 UTC wake (item 15,
+  the zero-trades review's §10); the desk ledger's 10 KB is 10,240 bytes. Masked a share count and GROKPM's cash in this
+  stack; this ledger's closed 10-21 sections and two audits to the archive.
 
 ### [2026-10-21 22:42 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Hand tables live from `hand-targets`** (sub-agent; not pushed): the minute call checks the branch head every 5 min
@@ -763,21 +777,3 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   643-645 s of CPU, load 14-17; `--quick` 65 s (was 158-166 s). `bin/edge-test.mjs` (processes, not `--parallel`:
   the tests set SB_REGION and venue keys); phone `surfaces` beside its `main`; `sh bin/gates.sh --run '<cmd>'` puts a
   check run by hand under the lock. Every check kept; CI unchanged.
-
-### [2026-10-21 19:17 UTC] Platform: Claude Code via Grok Bot | Model: claude-opus-5-5
-- **Audit of 2026-10-21** (read-only, no database): `main` unchanged at `5074c6b0`, its Actions runs since 10-20 19:00
-  UTC green. Item 9: the RW tables' drop was tied to RW-C's 10-23 verdict, which `0120` withdrew on 10-13; now said so.
-  `grokpm-ledger` at `23b5222a`: 0 opens, D7's shadow rows coming in (its 10-20 daily check), Grok's "D7 twice" note
-  unanswered there (#245's is D8, item 15).
-
-### [2026-10-20 19:25 UTC] Platform: Claude Code via Grok Bot | Model: claude-opus-5-5
-- **Audits of 2026-10-16 → 10-20, landed together** (read-only, no database; the 10-16 → 10-19 audits' history lines are
-  this one). `7e797ec1..5074c6b0` (33 commits): authors, headers, gate 1 and CI hold, the archive moves word for word,
-  migrations to `0133` (applied 10-20 16:26 UTC; next `0134`). Three of 10-20's headers (17:20, 17:45, 18:10) are 60-84
-  min later than their commits. Item 4: the weekend read left out step 2's `late`; Davies, 10-20, keeps the weekend 'live'
-  and counts it in the take read. GROKPM D7 adds only §9 (sha chain 902fdb0a → 4db2b03a); #245's deviation is D8. The
-  zero-trades review reproduces offline; its wording is corrected in its §9. Pins (tests only, each failing its
-  mutation): LIVE's weekend gates and take shadow, IG's 18 s wiring, the switch after a re-login, the errors-box
-  report of a second failed run, the live writers' exact lines in the noise policy, and a parked order adopted and
-  withdrawn once the venue shows it. The noise policy hides some live lines (items 3 and 4; plan only). Carried: 0a⁗, 0c, items 9, 13 (0132's check as Grok Bot read it), 14, 15 and D3 in the
-  docs; the BLS dates, Davies' own GROKPM-account position, the redeem guard's pin; CBBOOKS-1's hash.

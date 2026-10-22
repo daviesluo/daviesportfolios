@@ -274,3 +274,13 @@ Where the text says more than its tables:
 - §1's "within 9 to 84 minutes" is the four losers' (the script's header); Rio Grande do Norte (open) took 2.5 h (§3).
 - The 19 near-miss rows, the outcomes and the server counts are copied by hand from production reads (§8); no export of
   them is committed, so they cannot be re-derived offline.
+
+## 10. D7's sample (Davies, 2026-10-22; nothing above is changed)
+
+Davies, 2026-10-22, on the audit's proposal ("6-9听你建议的"): the shadow forecasts that D7's secondary reading counts start at
+C-003's start, 2026-10-20 16:58 UTC (17:58 London; the desk ledger's "C-003 started"). The first wake after it, the one
+whose decision ids begin `2026-10-20T17:05Z-d7-` (two rows, received 17:12:37 UTC: Alberta "Leave wins any division" and
+"Remain wins by 40-60%"), is left out: that round read the price and the vote count together, so its p was not formed
+before its m as D7 requires. Each market's first counted forecast is then the 17:35 UTC wake's (`2026-10-20T17:35Z-d7-`).
+The reading's rule, its bar (none) and §6's frozen bar are unchanged. The pre-registration records this as a deviation in
+its §9 after #245's D8, so the file's sha chain stays a single line.
