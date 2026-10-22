@@ -43,8 +43,8 @@
 //   * The de-peg guard. A book quotes no entry while its USD book's last hourly close is more than 50 bps from its 24-hour
 //     median, or while the GBP book's last print is more than 50 bps from fair.
 //   * Stale inputs. No entry quotes when the paper engine has not decided the minute just closed, when GBP/USD is older
-//     than ten minutes (the rule makes that dark), or when the USD book's newest hour ended more than two hours before.
-//     Exits keep their price.
+//     than ten minutes (the rule makes that dark), when the USD book's newest hour ended more than two hours before, or
+//     in weekend live when a book's newest market print is missing or older than ten minutes. Exits keep their price.
 //   * The 24-hour stop is an IOC bounded at fair ± 50 bps. If it comes back unfilled, that is an alert: the book quotes no
 //     entries while it holds a position past its stop, and the stop is tried again an hour later, not every minute.
 //   * The kill switch. `live_confirmed_at` cleared cancels every live entry and places none, and exits and stops stay
@@ -207,6 +207,14 @@ export const QUOTE_LIVE_CANCEL_REREAD_MS = [300, 700] as const;
 export const QUOTE_LIVE_DEADMAN_WATCH_MS = 5 * M;
 /** How every guard reason the dead-man watch writes begins, so a turn can tell whether the last one carried it. */
 export const DEADMAN_WATCH_REASON = "the dead-man switch";
+/**
+ * Weekend live's market-data freshness bound: the same ten minutes after which GBP/USD is dark
+ * (`QUOTE_FX_LOOKBACK_MS`). The weekend replica is stepped on stored prints; if its newest print on a book is older
+ * than this, or it has no usable print timestamp, the turn places no entry on that book and reports the age and limit.
+ */
+export const QUOTE_LIVE_WEEKEND_PRINT_FRESH_MS = QUOTE_FX_LOOKBACK_MS;
+/** How every weekend stale-data guard reason begins. */
+export const WEEKEND_DATA_STALE_REASON = "weekend market data stale";
 
 /**
  * The errors box hears of a fault once, and again at most this often while it lasts, then once more when it is gone
@@ -266,6 +274,18 @@ export function deadmanWatchReason(beatAt: number | null, now: number): string |
   return beatAt != null && Number.isFinite(beatAt)
     ? `${DEADMAN_WATCH_REASON} has not run since ${iso(beatAt).slice(0, 16).replace("T", " ")} UTC: no entries until it does`
     : `${DEADMAN_WATCH_REASON} has never run: no entries until it does`;
+}
+
+/** The weekend stale-data guard reason for one book's newest market print, or null while that print is fresh. */
+export function weekendDataStaleReason(book: QuoteBook, state: { lastPrint: Print | null } | undefined, now: number): string | null {
+  const limitMin = QUOTE_LIVE_WEEKEND_PRINT_FRESH_MS / M;
+  const ts = state?.lastPrint?.ts;
+  if (typeof ts !== "number" || !Number.isFinite(ts)) return `${WEEKEND_DATA_STALE_REASON}: ${book} has no print timestamp (limit ${limitMin} min): no entries`;
+  const ageMs = now - ts;
+  if (ageMs < 0) return `${WEEKEND_DATA_STALE_REASON}: ${book} last print timestamp is ${(-ageMs / M).toFixed(1)} min in the future (limit ${limitMin} min): no entries`;
+  return ageMs > QUOTE_LIVE_WEEKEND_PRINT_FRESH_MS
+    ? `${WEEKEND_DATA_STALE_REASON}: ${book} last print ${(ageMs / M).toFixed(1)} min old, over ${limitMin} min: no entries`
+    : null;
 }
 
 export type LiveMode = "dry_run" | "live";
@@ -1239,9 +1259,19 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
     try { deadmanReason = deadmanWatchReason(await d.deadmanBeatAt(), d.now); }
     catch (e) { report.errors.push(`the dead-man switch's beat is unreadable (${msg(e)}): entries go on this turn`); }
   }
+  const weekendStale = new Map<QuoteBook, string>();
+  if (source === "weekend" && weekendMode === "live") {
+    for (const b of QUOTE_BOOKS) {
+      const reason = weekendDataStaleReason(b, paper?.books?.[b], d.now);
+      if (reason) weekendStale.set(b, reason);
+    }
+    if (weekendStale.size) report.errors.push([...weekendStale.values()].join("; "));
+  }
   for (const b of QUOTE_BOOKS) {
     const reasons: string[] = [];
     if (deadmanReason) reasons.push(deadmanReason);
+    const staleData = weekendStale.get(b);
+    if (staleData) reasons.push(staleData);
     if (!caughtUp) reasons.push(`the paper engine's last minute is ${T != null ? iso(T) : "none"}, not ${iso(nowMinute - M)}: stale inputs`);
     if (T != null && inputs[b]) reasons.push(...entryGuards(T, inputs[b]!, lastPrintPx(b)));
     if (!pairs[LIVE_SYMBOL[b]]) reasons.push("no pair config this turn");

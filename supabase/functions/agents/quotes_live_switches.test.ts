@@ -29,7 +29,7 @@ const THU = Date.parse("2026-10-22T09:00:00Z");   // a Thursday: GBP/USD live
 const SAT = Date.parse("2026-10-24T09:00:00Z");   // a Saturday: inside the closure, GBP/USD dark
 const isTake = (r: Row) => (r.request as { take?: unknown } | null)?.take === true;
 
-type Opts = { t0?: number; config?: Record<string, unknown>; fxLive?: boolean; preMigration?: boolean; jsonb?: boolean };
+type Opts = { t0?: number; config?: Record<string, unknown>; fxLive?: boolean; preMigration?: boolean; jsonb?: boolean; wkPrintTs?: number | null };
 
 /** The database as it answers before 0131 has run: a select naming its columns is PostgREST's 42703. */
 const MISSING = `db GET /rest/v1/agent_quote_live_config → 400: {"code":"42703","message":"column agent_quote_live_config.take_mode does not exist"}`;
@@ -59,7 +59,8 @@ function world(o: Opts = {}) {
   }, { now: () => clock.now });
   const seed = (b: QuoteBook): Print => ({ id: `s-${b}`, ts: T0 - 30e3, ticks: 7553, qty: 10, side: "sell" });
   const books = Object.fromEntries(QUOTE_BOOKS.map((b) => [b, newBookState(b, seed(b))])) as Record<QuoteBook, BookState>;
-  const wkBooks = Object.fromEntries(QUOTE_BOOKS.map((b) => [b, newBookState(b, seed(b))])) as Record<QuoteBook, BookState>;
+  const wkSeed = (b: QuoteBook): Print | null => o.wkPrintTs === null ? null : { ...seed(b), ts: o.wkPrintTs ?? T0 - 30e3 };
+  const wkBooks = Object.fromEntries(QUOTE_BOOKS.map((b) => [b, newBookState(b, wkSeed(b))])) as Record<QuoteBook, BookState>;
   const st: SimState = newSimState({ GBP: 300, USDC: 200, USDT: 200 }, { [USDC]: seed(USDC), "USDT-GBP": seed("USDT-GBP") });
   let n = 0;
   const w = {
@@ -159,8 +160,8 @@ Deno.test("deployed before 0131 has run: the switches' columns missing, the turn
 });
 
 /** Saturday turns from 09:00: PR5's engine dark, the weekend replica deciding on the held X. */
-async function weekendCase(config: Record<string, unknown>, minutes = 2, behind = false, jsonb = false) {
-  const w = world({ t0: SAT, config, fxLive: false, jsonb });
+async function weekendCase(config: Record<string, unknown>, minutes = 2, behind = false, jsonb = false, wkPrintTs?: number | null) {
+  const w = world({ t0: SAT, config, fxLive: false, jsonb, wkPrintTs });
   const reports: QuoteLiveReport[] = [];
   for (let t = SAT; t < SAT + minutes * M; t += M) {
     await w.paper(t);
@@ -220,6 +221,22 @@ Deno.test("weekend_mode live: a replica behind PR5's minute is stale (no entry),
   assert(entries(a).length >= 12);
   assertEquals(b.orders().map(shape), a.orders().map(shape));
   assertEquals([b.events("weekend_shadow").length, b.events("take_shadow").length], [0, 0]);
+});
+
+Deno.test("weekend_mode live: fresh market prints quote; stale or missing print timestamps quote no entry and report age and limit", async () => {
+  const fresh = await weekendCase({ weekend_mode: "live" }, 2, false, false, SAT - 30e3);
+  assertEquals(entries(fresh.w).filter((o) => o.state === "new").length, 12);
+  assert(!fresh.reports.some((r) => r.errors.some((e) => /weekend market data stale/.test(e))), JSON.stringify(fresh.reports.map((r) => r.errors)));
+
+  const stale = await weekendCase({ weekend_mode: "live" }, 2, false, false, SAT - 11 * M);
+  assertEquals(entries(stale.w).length, 0);
+  assert(stale.reports.at(-1)!.guards[USDC].some((g) => /weekend market data stale/.test(g) && /min old/.test(g) && /10 min/.test(g)), JSON.stringify(stale.reports.at(-1)!.guards));
+  assert(stale.reports.some((r) => r.errors.some((e) => /weekend market data stale/.test(e) && /min old/.test(e) && /10 min/.test(e))), JSON.stringify(stale.reports.map((r) => r.errors)));
+
+  const missing = await weekendCase({ weekend_mode: "live" }, 2, false, false, null);
+  assertEquals(entries(missing.w).length, 0);
+  assert(missing.reports.at(-1)!.guards[USDC].some((g) => /weekend market data stale/.test(g) && /no print timestamp/.test(g) && /10 min/.test(g)), JSON.stringify(missing.reports.at(-1)!.guards));
+  assert(missing.reports.some((r) => r.errors.some((e) => /weekend market data stale/.test(e) && /no print timestamp/.test(e) && /10 min/.test(e))), JSON.stringify(missing.reports.map((r) => r.errors)));
 });
 
 Deno.test("weekend_mode live outside a closure: a replica that differs from PR5's engine (last weekend's, or on another X) is never read (audit 2026-10-19)", async () => {
