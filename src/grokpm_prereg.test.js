@@ -22,15 +22,17 @@ const INGEST = read('supabase/functions/grokpm/ingest.ts');
 const SCHEMA = read('supabase/functions/_shared/grokpm_schema.ts');
 
 describe('GROKPM pre-registration', () => {
-  // Frozen 2026-10-15; its sha256 since Deviation D7 (2026-10-20: shadow forecasts, a reading added), which added §9's D7
-  // only. Before it, Deviation D6 (2026-10-17: the shared account's automatic redemption, operational),
+  // Frozen 2026-10-15; the sha256 of the whole file since Deviation D8 (2026-10-20: cumulative Kelly within a market),
+  // which added §9's D8 only. Before it, Deviation D7 (2026-10-20: shadow forecasts, a reading added; sha256
+  // 4db2b03a3fe4e35429d5f7624835e521e90f0c5bdeebef8096a44b273c38e3de), which added §9's D7 only. Before it, Deviation
+  // D6 (2026-10-17: the shared account's automatic redemption, operational),
   // which added §9's D6 only. D5 (150 orders a day, the end closed by the main session) added §9's D5 and named 150 beside
   // §9 D2's 50 and in the refusal table's `orders_day`. D4 (the pre-go audit)
   // added §9's D4 only. D3
   // (2026-10-16) added §9's D3 and three rows to A.2's refusal table; D2 before it added §9's D2 and Appendix A.2 and
   // moved the hourly request cap from 120 to 600.
   it('is frozen: its sha256', () => {
-    expect(sha(PREREG_PATH)).toBe('4db2b03a3fe4e35429d5f7624835e521e90f0c5bdeebef8096a44b273c38e3de');
+    expect(sha(PREREG_PATH)).toBe('0cfc80c886e615d4ac081540c6d1952135b04396de2fc813b4e90a8e6f295528');
   });
 
   it("has its cadence study's files as its manifest names them, and quotes the study's own numbers", () => {
