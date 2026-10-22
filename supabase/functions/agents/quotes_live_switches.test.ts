@@ -29,7 +29,7 @@ const THU = Date.parse("2026-10-22T09:00:00Z");   // a Thursday: GBP/USD live
 const SAT = Date.parse("2026-10-24T09:00:00Z");   // a Saturday: inside the closure, GBP/USD dark
 const isTake = (r: Row) => (r.request as { take?: unknown } | null)?.take === true;
 
-type Opts = { t0?: number; config?: Record<string, unknown>; fxLive?: boolean; preMigration?: boolean; jsonb?: boolean };
+type Opts = { t0?: number; config?: Record<string, unknown>; fxLive?: boolean; preMigration?: boolean; jsonb?: boolean; wkPrintTs?: number | null; printFetchedTo?: number | null };
 
 /** The database as it answers before 0131 has run: a select naming its columns is PostgREST's 42703. */
 const MISSING = `db GET /rest/v1/agent_quote_live_config → 400: {"code":"42703","message":"column agent_quote_live_config.take_mode does not exist"}`;
@@ -59,7 +59,8 @@ function world(o: Opts = {}) {
   }, { now: () => clock.now });
   const seed = (b: QuoteBook): Print => ({ id: `s-${b}`, ts: T0 - 30e3, ticks: 7553, qty: 10, side: "sell" });
   const books = Object.fromEntries(QUOTE_BOOKS.map((b) => [b, newBookState(b, seed(b))])) as Record<QuoteBook, BookState>;
-  const wkBooks = Object.fromEntries(QUOTE_BOOKS.map((b) => [b, newBookState(b, seed(b))])) as Record<QuoteBook, BookState>;
+  const wkSeed = (b: QuoteBook): Print | null => o.wkPrintTs === null ? null : { ...seed(b), ts: o.wkPrintTs ?? T0 - 30e3 };
+  const wkBooks = Object.fromEntries(QUOTE_BOOKS.map((b) => [b, newBookState(b, wkSeed(b))])) as Record<QuoteBook, BookState>;
   const st: SimState = newSimState({ GBP: 300, USDC: 200, USDT: 200 }, { [USDC]: seed(USDC), "USDT-GBP": seed("USDT-GBP") });
   let n = 0;
   const w = {
@@ -67,7 +68,8 @@ function world(o: Opts = {}) {
     /** PR5's engine decides minute t, as its call does (dark when GBP/USD is), and saves it where the executor reads it. */
     async paper(t: number) {
       for (const b of QUOTE_BOOKS) stepMinute(books[b], t, { x: fxLive ? X : null, fairU: 1.0, prints: [] });
-      await mem.db.upsert(I.paper, [{ id: 1, state: { lastMinute: t, books, fetchedTo: {}, hourFetchedFor: 0 }, last_minute: iso(t), updated_at: iso(t) }], "id");
+      const fetchedTo = o.printFetchedTo === null ? {} : Object.fromEntries(QUOTE_BOOKS.map((b) => [b, o.printFetchedTo ?? t + M + 25e3]));
+      await mem.db.upsert(I.paper, [{ id: 1, state: { lastMinute: t, books, fetchedTo, hourFetchedFor: 0 }, last_minute: iso(t), updated_at: iso(t) }], "id");
     },
     /**
      * The weekend replica decides minute t on the held X (PR5-W's case 2), saved where the executor reads it; `behind` leaves it
@@ -159,8 +161,8 @@ Deno.test("deployed before 0131 has run: the switches' columns missing, the turn
 });
 
 /** Saturday turns from 09:00: PR5's engine dark, the weekend replica deciding on the held X. */
-async function weekendCase(config: Record<string, unknown>, minutes = 2, behind = false, jsonb = false) {
-  const w = world({ t0: SAT, config, fxLive: false, jsonb });
+async function weekendCase(config: Record<string, unknown>, minutes = 2, behind = false, jsonb = false, wkPrintTs?: number | null, printFetchedTo?: number | null) {
+  const w = world({ t0: SAT, config, fxLive: false, jsonb, wkPrintTs, printFetchedTo });
   const reports: QuoteLiveReport[] = [];
   for (let t = SAT; t < SAT + minutes * M; t += M) {
     await w.paper(t);
@@ -220,6 +222,30 @@ Deno.test("weekend_mode live: a replica behind PR5's minute is stale (no entry),
   assert(entries(a).length >= 12);
   assertEquals(b.orders().map(shape), a.orders().map(shape));
   assertEquals([b.events("weekend_shadow").length, b.events("take_shadow").length], [0, 0]);
+});
+
+Deno.test("weekend_mode live: a quiet book quotes while the print poller is fresh; a stopped, missing or future fetch quotes no entry", async () => {
+  // No trade for four hours, but PR5's print poller succeeds every minute: a quiet book is not stale data.
+  const quiet = await weekendCase({ weekend_mode: "live" }, 2, false, false, SAT - 240 * M);
+  assertEquals(entries(quiet.w).filter((o) => o.state === "new").length, 12);
+  assert(!quiet.reports.some((r) => r.errors.some((e) => /weekend market data stale/.test(e))), JSON.stringify(quiet.reports.map((r) => r.errors)));
+
+  const stopped = await weekendCase({ weekend_mode: "live" }, 2, false, false, SAT - 30e3, SAT - 11 * M);
+  assertEquals(entries(stopped.w).length, 0);
+  const stoppedErrors = stopped.reports.at(-1)!.errors.filter((e) => /weekend market data stale/.test(e));
+  assertEquals(stoppedErrors.length, 2, JSON.stringify(stopped.reports.at(-1)!.errors));
+  assert(stoppedErrors.every((e) => /last successful print fetch/.test(e) && /min old/.test(e) && /10 min/.test(e) && !e.includes(";")), JSON.stringify(stoppedErrors));
+  assert(stopped.reports.at(-1)!.guards[USDC].some((g) => /weekend market data stale/.test(g) && /min old/.test(g) && /10 min/.test(g)), JSON.stringify(stopped.reports.at(-1)!.guards));
+
+  const missing = await weekendCase({ weekend_mode: "live" }, 2, false, false, SAT - 30e3, null);
+  assertEquals(entries(missing.w).length, 0);
+  const missingErrors = missing.reports.at(-1)!.errors.filter((e) => /weekend market data stale/.test(e));
+  assertEquals(missingErrors.length, 2, JSON.stringify(missing.reports.at(-1)!.errors));
+  assert(missingErrors.every((e) => /no successful print fetch timestamp/.test(e) && /10 min/.test(e) && !e.includes(";")), JSON.stringify(missingErrors));
+
+  const future = await weekendCase({ weekend_mode: "live" }, 2, false, false, SAT - 30e3, SAT + 11 * M);
+  assertEquals(entries(future.w).length, 0);
+  assert(future.reports.at(-1)!.errors.some((e) => /weekend market data stale/.test(e) && /in the future/.test(e) && /10 min/.test(e)), JSON.stringify(future.reports.at(-1)!.errors));
 });
 
 Deno.test("weekend_mode live outside a closure: a replica that differs from PR5's engine (last weekend's, or on another X) is never read (audit 2026-10-19)", async () => {

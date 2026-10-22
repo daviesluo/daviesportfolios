@@ -43,8 +43,8 @@
 //   * The de-peg guard. A book quotes no entry while its USD book's last hourly close is more than 50 bps from its 24-hour
 //     median, or while the GBP book's last print is more than 50 bps from fair.
 //   * Stale inputs. No entry quotes when the paper engine has not decided the minute just closed, when GBP/USD is older
-//     than ten minutes (the rule makes that dark), or when the USD book's newest hour ended more than two hours before.
-//     Exits keep their price.
+//     than ten minutes (the rule makes that dark), when the USD book's newest hour ended more than two hours before, or
+//     in weekend live when a book's print poller has no successful fetch in the last ten minutes. Exits keep price.
 //   * The 24-hour stop is an IOC bounded at fair ± 50 bps. If it comes back unfilled, that is an alert: the book quotes no
 //     entries while it holds a position past its stop, and the stop is tried again an hour later, not every minute.
 //   * The kill switch. `live_confirmed_at` cleared cancels every live entry and places none, and exits and stops stay
@@ -207,6 +207,15 @@ export const QUOTE_LIVE_CANCEL_REREAD_MS = [300, 700] as const;
 export const QUOTE_LIVE_DEADMAN_WATCH_MS = 5 * M;
 /** How every guard reason the dead-man watch writes begins, so a turn can tell whether the last one carried it. */
 export const DEADMAN_WATCH_REASON = "the dead-man switch";
+/**
+ * Weekend live's market-data freshness bound: the same ten minutes after which GBP/USD is dark
+ * (`QUOTE_FX_LOOKBACK_MS`). It bounds PR5 print poller's last successful fetch (`QuoteState.fetchedTo`), not the
+ * newest trade: a quiet book can go hours without a print while its source is updating. A missing, future or older
+ * fetch timestamp places no entry on that book and reports the age and limit.
+ */
+export const QUOTE_LIVE_WEEKEND_FETCH_FRESH_MS = QUOTE_FX_LOOKBACK_MS;
+/** How every weekend stale-data guard reason begins. */
+export const WEEKEND_DATA_STALE_REASON = "weekend market data stale";
 
 /**
  * The errors box hears of a fault once, and again at most this often while it lasts, then once more when it is gone
@@ -266,6 +275,17 @@ export function deadmanWatchReason(beatAt: number | null, now: number): string |
   return beatAt != null && Number.isFinite(beatAt)
     ? `${DEADMAN_WATCH_REASON} has not run since ${iso(beatAt).slice(0, 16).replace("T", " ")} UTC: no entries until it does`
     : `${DEADMAN_WATCH_REASON} has never run: no entries until it does`;
+}
+
+/** The weekend stale-data guard reason for one book's last successful print fetch, or null while that fetch is fresh. */
+export function weekendDataStaleReason(book: QuoteBook, fetchedAt: number | undefined, now: number): string | null {
+  const limitMin = QUOTE_LIVE_WEEKEND_FETCH_FRESH_MS / M;
+  if (typeof fetchedAt !== "number" || !Number.isFinite(fetchedAt)) return `${WEEKEND_DATA_STALE_REASON}: ${book} has no successful print fetch timestamp (limit ${limitMin} min): no entries`;
+  const ageMs = now - fetchedAt;
+  if (ageMs < 0) return `${WEEKEND_DATA_STALE_REASON}: ${book} last successful print fetch timestamp is ${(-ageMs / M).toFixed(1)} min in the future (limit ${limitMin} min): no entries`;
+  return ageMs > QUOTE_LIVE_WEEKEND_FETCH_FRESH_MS
+    ? `${WEEKEND_DATA_STALE_REASON}: ${book} last successful print fetch ${(ageMs / M).toFixed(1)} min old, over ${limitMin} min: no entries`
+    : null;
 }
 
 export type LiveMode = "dry_run" | "live";
@@ -906,8 +926,9 @@ function makeCtxHelpers(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLi
 }
 
 /** The paper engine's decided minute and the inputs it priced each book from, read the way it reads them. */
-async function paperView(d: QuoteLiveDeps, inst: QuoteLiveInstance, weekendLive = false): Promise<{ paper: QuoteState | null; T: number | null; inputs: Partial<Record<QuoteBook, BookInputs>>; source: "paper" | "weekend" }> {
+async function paperView(d: QuoteLiveDeps, inst: QuoteLiveInstance, weekendLive = false): Promise<{ paper: QuoteState | null; T: number | null; inputs: Partial<Record<QuoteBook, BookInputs>>; source: "paper" | "weekend"; printFetchedTo: Partial<Record<QuoteBook, number>> }> {
   let row = (await d.db.select<{ state: QuoteState | Record<string, never>; last_minute: string | null }>(inst.paper, "id=eq.1&select=state,last_minute"))[0];
+  const printFetchedTo: Partial<Record<QuoteBook, number>> = row?.state && "books" in row.state ? { ...((row.state as QuoteState).fetchedTo ?? {}) } : {};
   // The live account's weekend quoting (0131, `weekend_mode` 'live'): inside an FX closure it carries out its weekend
   // replica's decisions (PR5's rule with PR5-W's weekend rule, `quotes_live_weekend.ts`), read as the paper engine is, at
   // fair on the replica's held X. A replica that has not decided the paper engine's minute is stale, as any paper engine.
@@ -920,7 +941,7 @@ async function paperView(d: QuoteLiveDeps, inst: QuoteLiveInstance, weekendLive 
   const paper = row && row.state && "books" in row.state ? row.state as QuoteState : null;
   const T = row?.last_minute ? Date.parse(row.last_minute) : null;
   const inputs: Partial<Record<QuoteBook, BookInputs>> = {};
-  if (T == null) return { paper, T, inputs, source };
+  if (T == null) return { paper, T, inputs, source, printFetchedTo };
   const series = async (kind: string, from: number) => (await d.db.selectAll<{ t: string; value: number | string }>("agent_quote_inputs",
     `kind=eq.${enc(kind)}&t=gte.${enc(iso(from))}&t=lte.${enc(iso(T))}&select=t,value&order=kind.asc,t.asc`)).map((r) => [Date.parse(r.t), Number(r.value)] as [number, number]);
   const fx = await series("fx", T - QUOTE_FX_LOOKBACK_MS);
@@ -930,7 +951,7 @@ async function paperView(d: QuoteLiveDeps, inst: QuoteLiveInstance, weekendLive 
     const rule = source === "weekend" ? LIVE_WEEKEND_RULE : inst.weekend;
     inputs[b] = rule ? weekendInputs(i, T, paper?.books?.[b]?.lastX ?? null, rule) : i;
   }
-  return { paper, T, inputs, source };
+  return { paper, T, inputs, source, printFetchedTo };
 }
 
 /**
@@ -1002,7 +1023,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
 
   // The live account's switches (0131): off unless its config says shadow or live; a twin has none.
   const takeMode = inst.liveSwitches ? switchMode(cfg.take_mode) : "off", weekendMode = inst.liveSwitches ? switchMode(cfg.weekend_mode) : "off";
-  const { paper, T, inputs, source } = await paperView(d, inst, weekendMode === "live");
+  const { paper, T, inputs, source, printFetchedTo } = await paperView(d, inst, weekendMode === "live");
   report.minute = T != null ? iso(T) : null;
   if (source === "weekend") report.weekend = { source };
   const caughtUp = T != null && T === nowMinute - M;
@@ -1239,9 +1260,19 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
     try { deadmanReason = deadmanWatchReason(await d.deadmanBeatAt(), d.now); }
     catch (e) { report.errors.push(`the dead-man switch's beat is unreadable (${msg(e)}): entries go on this turn`); }
   }
+  const weekendStale = new Map<QuoteBook, string>();
+  if (source === "weekend" && weekendMode === "live") {
+    for (const b of QUOTE_BOOKS) {
+      const reason = weekendDataStaleReason(b, printFetchedTo[b], d.now);
+      if (reason) weekendStale.set(b, reason);
+    }
+    for (const reason of weekendStale.values()) report.errors.push(reason);
+  }
   for (const b of QUOTE_BOOKS) {
     const reasons: string[] = [];
     if (deadmanReason) reasons.push(deadmanReason);
+    const staleData = weekendStale.get(b);
+    if (staleData) reasons.push(staleData);
     if (!caughtUp) reasons.push(`the paper engine's last minute is ${T != null ? iso(T) : "none"}, not ${iso(nowMinute - M)}: stale inputs`);
     if (T != null && inputs[b]) reasons.push(...entryGuards(T, inputs[b]!, lastPrintPx(b)));
     if (!pairs[LIVE_SYMBOL[b]]) reasons.push("no pair config this turn");
