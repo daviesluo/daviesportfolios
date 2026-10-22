@@ -355,6 +355,18 @@ CLOB's history (a mid-like price per five minutes), not executable books.
   market's m by Brier on every one whose market resolved: each market counted once, at its first shadow forecast, with
   §6.2's paired bootstrap. It is not a bar: continuing still needs §6's two conditions on real entries; it tells Davies
   whether a later, looser test could be worth pre-registering. The message given to the agent is the review's §7.
+- **D8 (2026-10-20, after the start; no migration).** The server's `kelly` rule is cumulative within one market: the
+  cost already held, plus the cost of buys still resting, plus the new buy, must be no more than
+  `min($10, max(0.25 × (p − price) / (1 − price) × equity, the venue's smallest order at that price))`. Thus Davies'
+  2026-10-20 basis — the smaller of a quarter Kelly of equity and $10 a market — replaces D3's per-open reading, and
+  the venue-smallest-order exception is likewise applied to the cumulative total, not to the new order alone. The ¼
+  Kelly coefficient does not change. This is never looser than §2/D3 judged order by order: a buy that passes the
+  cumulative cap would pass the old per-open cap, while a buy that passed alone can now be refused because the market
+  already holds or rests cost. D8 takes effect only from the moment PR #245 is merged and `grokpm` is redeployed;
+  every order sent before that deployment remains judged under §2/D3's per-open rule. At the time D8 is recorded,
+  GROKPM live had sent 0 orders. Authorization: Davies, 2026-10-20, in the group: "claude来决定D4"; Claude approved.
+  §2, the agent prompt, the appendices and D1–D7 are unchanged; nothing about the categories, the reading (§6), its
+  bar or its end changes.
 
 ## Appendix A: the journal API (paste into the prompt)
 
