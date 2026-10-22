@@ -367,6 +367,12 @@ CLOB's history (a mid-like price per five minutes), not executable books.
   GROKPM live had sent 0 orders. Authorization: Davies, 2026-10-20, in the group: "claude来决定D4"; Claude approved.
   §2, the agent prompt, the appendices and D1–D7 are unchanged; nothing about the categories, the reading (§6), its
   bar or its end changes.
+- **D9 (2026-10-22, after the start; no migration; D7's reading, no rule changed).** Davies, 2026-10-22: "6-9听你建议的", on
+  when D7's shadow forecasts start counting. D7's secondary reading counts the shadow forecasts journalled from C-003's
+  start, 2026-10-20 16:58 UTC. The first wake after it (decision ids `2026-10-20T17:05Z-d7-*`, two rows) is left out: that
+  round read the price and the vote count together, so its p was not formed before its m as D7 requires. Each market's
+  first counted forecast is then its next one (for both of those markets, the 17:35 UTC wake's). Nothing about the rules,
+  the categories, §6's reading, its bar or its end changes (the zero-trades review's §10).
 
 ## Appendix A: the journal API (paste into the prompt)
 

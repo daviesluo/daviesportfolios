@@ -584,7 +584,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      (Davies confirmed D8, 2026-10-22). **D7's sample (Davies, 2026-10-22):** shadow forecasts count from C-003's start,
      2026-10-20 16:58 UTC (17:58 London); the 17:05 UTC wake's two rows (ids `2026-10-20T17:05Z-d7-*`) are left out, that
      round having read price and votes together, so each market's first counted forecast is 17:35 UTC's. Recorded in the
-     zero-trades review's §10; the prereg's §9 gains it as D9 after #245's D8, so its sha chain stays one line.
+     zero-trades review's §10 and as the prereg's §9 D9, after #245's D8 (sha chain 0cfc80c8 → D9's).
    - **Rules study, 10-23** (`reviews/2026-10-23-grokpm-rules-study.md`): the bars are not what binds. Every gap was an
      emptied, thin book the market had already settled, and no looser rule fills. **Decided 10-23** (Davies: "同意，按你的
      建议做"): rules kept; C-004 posted on the desk ledger (`6144d1d0`). **D10 still to write into §9** after D8 (#245) and
