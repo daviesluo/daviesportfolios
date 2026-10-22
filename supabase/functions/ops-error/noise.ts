@@ -16,12 +16,14 @@
 //                  1.6 runs of its cadence) for at least `PERSIST_MINUTES` of a minute job, or `PERSIST_RUNS` runs of a
 //                  slower one, becomes ONE line: "failing since HH:MM UTC, n times", or "failed HH:MM–HH:MM UTC, n times"
 //                  once it has stopped.
-//   dedupe         identical messages, ids, numbers and times aside, are one line with a count, except a row
-//                  `keptSeparate` names. Those are shown at once, one line each: a trend-4h-live order whose outcome is
-//                  unknown; a live-quotes guard fault reported at most hourly (the dead-man beat, agent_risk or the
-//                  balances unread, a lease that failed); `grokpm.redeem`; and the weekend replica. `7ed60689` hid the
-//                  ones that look like a passing timeout, because one row an hour or every other minute never lasts 15
-//                  minutes, and folded the repeats into a count.
+//   dedupe         identical messages, ids, numbers and times aside, are one line with a count. A row `keptSeparate`
+//                  names is shown at once, and the same fault is one line per hour: a trend-4h-live order whose outcome
+//                  is unknown; a live-quotes guard (the dead-man beat, agent_risk or the balances unread, the loss stop,
+//                  a lease renewal or a lease lost — the executor writes those at most hourly — and `LEASE CLAIM FAILED`,
+//                  which it writes every minute, because the claim returns before that throttle); `grokpm.redeem`; and
+//                  the weekend replica. The hour, the order or redeem ids and the words are the key, so a different order
+//                  stays its own line and a minute writer is not sixty lines. `7ed60689` hid the ones that look like a
+//                  passing timeout, because one row an hour or every other minute never lasts 15 minutes.
 
 export type OpsRow = { kind: string; symbol: string | null; message: string | null; created_at: string };
 export type NoiseClass = "monitor" | "code" | "auth" | "transient" | "recorder" | "other";
@@ -61,15 +63,17 @@ const TRANSIENT = /timed? ?out|timeout|\b429\b|too many requests|rate[- ]?limit|
 const LIVE_STATE = /FROZEN|pending|outcome unknown|left as it is|stays|settle|stopp?ed|halt|disarm|tripped/i;
 
 /**
- * A guard fault the live executor writes at most hourly (audit 2026-10-20). One row an hour never makes 15 consecutive
- * minutes, so classifying it as transient noise hides it for good. The phrases are the writer's.
+ * Guard faults on `agents.quotes_live` that must stay visible. The dead-man beat, `agent_risk`, the balances and the
+ * loss stop are written at most hourly (`liveAlerts`). `LEASE CLAIM FAILED` is not: the claim returns before that
+ * throttle, so the fault writes a row every minute. A timeout-shaped row never made 15 consecutive minutes either, so
+ * classifying it as transient noise hid it. The phrases are the writer's.
  */
 const HOURLY_GUARD = /dead-man switch|agent_risk unreadable|balances unreadable|loss stop|LEASE CLAIM FAILED|lease renewal|lease lost|the lease is lost/i;
 
 /**
- * Rows the box shows one by one: never noise, and never folded into a counted line. `7ed60689` hid or merged these.
- * A code or auth error on one of these kinds is still that class (`classify` checks those first); this only stops the
- * transient path, and the dedupe, from swallowing the row.
+ * Rows the box always shows, even when the words are a timeout. `7ed60689` hid these. A code or auth error on one of
+ * these kinds is still that class (`classify` checks those first). `boxLines` then folds the same fault within one
+ * hour; a different order or redeem stays its own line.
  */
 function keptSeparate(row: Pick<OpsRow, "kind" | "message">): boolean {
   const kind = row.kind ?? "", msg = row.message ?? "";
@@ -97,6 +101,15 @@ export function classify(row: Pick<OpsRow, "kind" | "message">): { cls: NoiseCla
   }
   if (RECORDER_KINDS.test(kind)) return { cls: "recorder", noise: true };
   return { cls: "other", noise: false };
+}
+
+/**
+ * The order ids and redeem hashes a message names, lower case, in the order they appear, joined with commas.
+ * Two rows of one fault share these; two orders do not.
+ */
+export function faultIds(msg: string | null): string {
+  const found = String(msg ?? "").match(/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b|\b0x[0-9a-f]{6,}\b/gi) ?? [];
+  return found.map((s) => s.toLowerCase()).join(",");
 }
 
 /** A message with its ids, numbers and times taken out, so the same error reads as one line; an HTML page as its title. */
@@ -158,8 +171,6 @@ const LABEL: Record<NoiseClass, string> = {
 export function boxLines(rows: OpsRow[], nowMs: number): { lines: OpsLine[]; shownRows: number; hiddenRows: number } {
   const shown = new Map<string, OpsLine>();
   const noise = new Map<string, OpsRow[]>();
-  // A kept-separate row must not share a key with another, even when the words match once ids and numbers are gone.
-  let apart = 0;
   for (const r of rows) {
     const { cls, noise: isNoise } = classify(r);
     if (isNoise) {
@@ -167,8 +178,9 @@ export function boxLines(rows: OpsRow[], nowMs: number): { lines: OpsLine[]; sho
       (noise.get(k) ?? noise.set(k, []).get(k)!).push(r);
       continue;
     }
+    // The hour bucket, the ids and the words. The same fault in one hour is one line; another order is not.
     const k = keptSeparate(r)
-      ? `apart|${apart++}|${r.created_at}`
+      ? `${r.kind}|${cls}|keep|${r.created_at.slice(0, 13)}|${faultIds(r.message)}|${normalizeMessage(r.message)}`
       : `${r.kind}|${cls}|${normalizeMessage(r.message)}`;
     const line = shown.get(k);
     if (!line) shown.set(k, { kind: r.kind, cls, message: displayMessage(r.message), count: 1, firstAt: r.created_at, latestAt: r.created_at });

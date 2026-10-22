@@ -223,9 +223,10 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    `filled_base` in whole `base_step`s, `fromAccount`, the coin's balance against the book); after a sell, the book
    flat. Report a live order, a fill, an order `pending` over 2 minutes, a missing decision, a live-row error or a
    failed tick. Rows, caps, order path: `docs/agents/CLAUDE.md`, `docs/agents/go-live.md`, reference §3.31 and §4
-   items 32–34. The errors box shows each `trend-4h-live` row that says "outcome unknown" or "left pending" on its own
-   (`keptSeparate` in `ops-error/noise.ts`). `7ed60689` classed those `agents.tick` rows as transient noise until 15
-   minutes in a row, and folded the repeats into one count.
+   items 32–34. **Read `ops_errors` itself, not the box** (audit 2026-10-20): since `7ed60689` the box treats the tick's
+   rows (`agents.tick`, not a live kind in `ops-error/noise.ts`) that read transient as noise until 15 minutes in a row,
+   "trend-4h-live|…: revx answered 500 … outcome unknown; … stays pending" included. A fix (live-row lines as live
+   kinds; persistence by each kind's own cadence) changes `ops-error` and waits for Davies.
 
 4. **PR5 (GBP stablecoin quotes): live executor LIVE since 2026-10-01 16:29:53 UTC at £10 a rung; the paper test decides
    PR5 on 2026-10-21** (spec `reviews/2026-09-23-pr5-paper-test-spec.md`, six conditions; wake
@@ -289,10 +290,11 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      **Revolut X's outage of 10-20** (reference §4 item 35, archived history 16:22 and 17:45): no stuck order filled; 7229
      and 7230 settled `rejected` by the main session on Davies' word; since `e1439f32` the errors box hears a live fault once,
      hourly and on recovery, and an order shown nowhere for an hour is parked (still pending, looked for every 15 min).
-     The errors box shows, each as its own line, an hourly guard fault that reads transient without a state word (the
-     dead-man beat, `agent_risk` unreadable, balances unreadable, a lease claim timed out) and an intermittent
-     `agents.quotes_weekend` fault. `7ed60689` hid both: one row an hour, or every other minute, never made 15 in a row.
-     `grokpm.redeem` is shown the same way, and not folded into a count.
+     Until `ops-error` deploys, read `ops_errors` for these, not the box. `7ed60689` hides an hourly guard fault with no
+     state word (the dead-man beat, `agent_risk` unreadable, balances unreadable, the loss stop), a `LEASE CLAIM FAILED`
+     written every minute, an intermittent `agents.quotes_weekend` fault, and `grokpm.redeem`. This branch shows each,
+     and folds the same fault to one line per hour (its count and its latest time); a different order or redeem stays
+     its own line.
    - **The review of 2026-10-09** (`reviews/2026-10-09-stablecoin-quotes-review.md`, not blind). **F1 built on Davies'
      word** (10-09: a buy-back at the venue's £0.10 minimum buys what its whole penny buys, LIVE and every twin; the twins'
      deviation 3, p50's deviation 2, TAKE's addendum 2, the live design's addendum). After its deploy: the next LIVE or
@@ -757,6 +759,9 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
 ### [2026-10-23 19:15 UTC] Platform: Claude Code via Grok Bot | Model: claude-opus-5-5
 - **GROKPM D10 in the pre-registration's §9** (the 10-23 audit; local, not pushed): the rules study's §7 text, dated
   10-23 with Davies' "同意，按你的建议做", after D8 (#245) and D9; the pin moves. Rules, §6's reading and its bar unchanged.
+
+### [2026-10-22 07:02 UTC] Platform: Grok | Model: grok-4.7
+- **Errors box: the same live fault is one line per hour** (`ops-error/noise.ts`; not merged, not deployed). A minute writer (`agents.quotes_weekend`, a `trend-4h-live` order whose outcome is unknown, `LEASE CLAIM FAILED`) was one line per row, sixty an hour. `boxLines` keys those rows by kind, class, the hour, the order or redeem ids and the normalized words, so the same fault in one hour is one line with a count and the latest time, and a different order or redeem stays its own line. Until `ops-error` deploys, item 3 still says read `ops_errors` itself, not the box. Merging redeploys `ops-error`; do that before 2026-10-23 22:00 BST.
 
 ### [2026-10-22 06:40 UTC] Platform: Grok | Model: grok-4.7
 - **Errors box: four live faults stay their own lines** (`ops-error/noise.ts`; not merged, not deployed). `7ed60689` hid or folded a `trend-4h-live` order whose outcome is unknown, an hourly guard fault with no state word (dead-man beat, `agent_risk`, balances, a lease), `grokpm.redeem`, and an intermittent `agents.quotes_weekend` fault. `keptSeparate` shows each row at once and does not fold it into a count. Merging redeploys `ops-error`; do that before 2026-10-23 22:00 BST.
