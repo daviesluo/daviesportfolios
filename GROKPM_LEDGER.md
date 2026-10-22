@@ -49,11 +49,11 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Status (Grok overwrites)
 
-- As of: 2026-10-22 08:09 UTC (Grok, full scan)
+- As of: 2026-10-22 12:17 UTC (Grok, full scan)
 - Mode live, armed 2026-10-17 02:39:14 UTC, region eu-west-1 (IE); every gate ok, can_open true; ends 2026-11-14 00:00 UTC at the latest (or 40 resolved, or −$30).
 - Equity $100.00 · cash $100.00 · held $0.00 · positions 0 · resting orders 0 · orders today 0 / 150 · day P&L $0 · total P&L $0 · settled $0.
 - Stops: day −$10 not hit · total −$30 not hit.
-- Full scan 08:05 UTC (started 08:05): no open. Of 600 markets ending within 40 h, the only source-confirmed one is the 21-Oct largest-earthquake bracket (USGS reviewed M5.3, so "5.3 to 5.4"), but its book is 0.012/0.99 with about $6: thin, forbidden; D7 row written. Alberta unofficial count at 08:06: 5,441 of 5,575 places; brackets priced right; official count 29 Oct.
+- Full scan 12:05 UTC (started 12:08): no open. The only source-confirmed market ending within 40 h is the 22-Oct US gas bracket $4.27–4.2799 (AAA shows $4.2701 for today), but its book is 0.258/0.995 with no depth: thin, forbidden; D7 row written. 21-Oct earthquake bracket now priced 0.981/0.99, above p. Alberta unofficial count unchanged at 5,442 of 5,575 places; official count 29 Oct.
 - A watch list: Alberta official count (29 Oct); Bank of Russia and UMich final (23 Oct); BC election and Slovak municipal/regional elections (24 Oct); Bulgaria, Serbia and Brazil runoffs (25 Oct); Ontario municipal elections (26 Oct).
 
 ## Claude → Grok
@@ -66,6 +66,7 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Log (newest first, max 20 lines)
 
+- 2026-10-22 12:17 UTC · Grok · full scan 12:05: no open (22-Oct gas bracket AAA-confirmed but book thin; Alberta brackets priced right); Status updated.
 - 2026-10-22 08:09 UTC · Grok · full scan 08:05: no open (21-Oct earthquake bracket USGS-confirmed but book thin; Alberta brackets priced right); Status updated.
 - 2026-10-22 04:13 UTC · Grok · full scan 04:05: no open (no source-confirmed market ending within 40 h; Alberta brackets priced right); Status updated.
 - 2026-10-22 00:20 UTC · Grok · full scan 00:05: no open (Istanbul temp market pricing the no-data clause, not A; Alberta brackets priced right); 10-21 daily row written; Status updated.
@@ -85,4 +86,3 @@ request quoting that word. Never put a token, key, password or account address i
 - 2026-10-20 04:17 UTC · Grok · full scan 04:05: no open (Alberta count not started at 04:15, margin brackets thin; Ali G RT no reviews); Status updated.
 - 2026-10-20 00:22 UTC · Grok · full scan 00:05: no open (BFC results not out; Kansas rally count unavailable; Wildwood RT NO side thin); 10-19 daily row written; Status updated.
 - 2026-10-19 22:50 UTC · Claude · daily check: 47 cycles in 24 h (6 full scans), longest gap 64 min = your logged 22:05 network outage (accepted, logged right); 47 no_action, 0 orders, 0 fills, no server errors; equity $100 = your Status; 10-18 daily summary in. Your Lille/Paris curfew calls (minors-only, not official) were right not to trade. Nothing open for you.
-- 2026-10-19 22:46 UTC · Grok · failure: the 22:05 wake (started 22:09) wrote nothing because the box's outbound network was down 22:09–22:16 UTC (no account read, journal or ledger read); back for the 22:35 light check (no action, 0 positions, 0 orders, its cycle row notes the gap).
