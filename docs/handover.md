@@ -46422,3 +46422,52 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   through 005930. SAEM 10-21: 3 skipped (Samsung 2.14×, SK hynix 2.39×, pref), coverage 22.5 %, mean +45 % (was +74 %).
 - **Davies' changes:** "Avg vs price" (mean / price − 1) replaces Low vs price as the default sort; Weight, Price and it
   live with the board; Key risks for all 30 holdings, researched 10-21 with sources in `target_risks.js`; BTC horizons on hover.
+
+## LEDGER.md, archived 2026-10-22 — the 2026-10-21 20:39 → 21:25 UTC history sections, oldest first
+
+### [2026-10-21 20:39 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GOOG → GOOGL** (sub-agent; Davies 10-21: the Google held is class A). T212 alias `GOOGL_US_EQ`→GOOG removed; `0135`
+  renames the board's holding and CM slot (version +1, history keeps the old one), 36 fills and 15 dividends
+  (`t212_ticker` GOOGL_US_EQ), drops GOOG's target row; aborts if both held. Client schema v3 renames cached copies.
+  Dry run on production: every equality true. After landing: `select count(*) from t212_orders where ticker='GOOG'` = 0.
+
+### [2026-10-21 20:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Target price: the first run's rows were hidden behind a cached empty answer** (Davies, 20:31 London: no data after a
+  refresh). The job wrote 28 rows at 20:30:00 UTC (`active_from` moved to 20:30 on his word), but the browser had kept the
+  empty pre-run answer for the 2-hour TTL. Now an empty copy is never fresh (`targetsFresh`) and the TTL is 15 minutes
+  (one GET of our own table); pinned in `targets_data.test.jsx`. README's "What it does" gains Target price.
+
+### [2026-10-21 21:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Two load-only unit failures fixed** while landing Target price: the 3M-grid chart tests get 20 s (two jsdom modal renders,
+  over 5 s beside the sweep shards), and `TableExportButtons` clears its ✓/✕ reset timer on unmount (it fired after jsdom's
+  teardown and failed the suite with "window is not defined").
+
+### [2026-10-21 21:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Simulation against LIVE, audited and fixed** (sub-agent, item 4; Davies 10-21 "…不一致的地方就直接改"; `backtests/livesim/`):
+  shared executor code, so the one large difference was the fill rule: LIVE filled 317 of 502 maker orders on prints AT its
+  price. `revx_sim.ts`/`quotes_twin.ts`: twin rule `fill` (at-price fills, opt-in) and the replay's `turnOffsetMs`, `deadmen`,
+  `outages`. Replayed at LIVE's £120: fills 20.3 % → 51.1 % fill for fill, orders 76.4 % → 84.7 %, realised £0.245 → £0.972
+  (LIVE £[•]), trips 130 → 204 (218). Deviations: twins §19, size twin §13, weekend test §7. No row uses `fill` yet (a
+  decision). Condition 5: budget300 replayed (max 635/day, P&L unchanged), drafted only. 6 old history sections archived.
+
+### [2026-10-21 21:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Target price, Davies' review** (sub-agent; not pushed): money figures carry their currency symbol (`fmtMoney` style;
+  ranges on both ends); a fund's constituent is skipped only outside 0.2–5× (a unit or listing error), so Samsung and SK
+  hynix count again (SAEM 10-21: 10 names, 35.6 %, mean +74.5 %, nothing skipped); the small-print footnote is gone;
+  the frozen Symbol column is its tickers' width (phone 72 px, was ~150): a fund's mark is "HW NN%", its words on tap.
+  Sorted by Fresh range, the % column is "Fresh avg vs price" (the job now stores a fund's fresh mean); header small
+  print "Weight and Price live"; the sweep's open-time bar is 400 ms (no empty state is the real check).
+
+### [2026-10-21 21:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Target price, Davies' review** (sub-agent; not pushed): money figures carry their currency symbol (`fmtMoney` style;
+  ranges on both ends); a fund's constituent is skipped only outside 0.2–5× (a unit or listing error), so Samsung and SK
+  hynix count again (SAEM 10-21: 10 names, 35.6 %, mean +74.5 %, nothing skipped); the small-print footnote is gone;
+  the frozen Symbol column is its tickers' width (phone 72 px, was ~150): a fund's mark is "HW NN%", its words on tap.
+
+### [2026-10-21 21:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Heat map: the bottom-left six stack their first two beside the third, not a plain 2 × 3** (Davies, 10-21;
+  sub-agent). ORCL+NBIS's block was 197 × 196 on one day (side by side: ORCL NBIS AAPL over META BE BTC-USD) and
+  196 × 198 on the other (ORCL over NBIS beside a tall AAPL, which he prefers). A left-hand six laid 3 over 3, both
+  plain rows, now stacks the top row's first two while each stays 1 to 3 : 1 (`board/heatmap.jsx`). It also
+  stacks the 10-20 book's GOOGL over NBIS (the same shape); the phone is unchanged. Pinned in `heatmap.test.js`
+  against the 10-20 split and in the sweep (`heatmap-shape/six`).
