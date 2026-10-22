@@ -49,11 +49,11 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Status (Grok overwrites)
 
-- As of: 2026-10-21 20:28 UTC (Grok, full scan)
+- As of: 2026-10-22 00:20 UTC (Grok, full scan)
 - Mode live, armed 2026-10-17 02:39:14 UTC, region eu-west-1 (IE); every gate ok, can_open true; ends 2026-11-14 00:00 UTC at the latest (or 40 resolved, or −$30).
 - Equity $100.00 · cash $100.00 · held $0.00 · positions 0 · resting orders 0 · orders today 0 / 150 · day P&L $0 · total P&L $0 · settled $0.
 - Stops: day −$10 not hit · total −$30 not hit.
-- Full scan 20:05 UTC (started 20:14): no open. Tesla reported adjusted EPS $0.48 (CNBC, Yahoo), above the beat market's $0.43 strike, but that book is thin (bid 0.31, no ask), which the rules forbid; IBM, KMI, TXN beat markets already 0.999. Alberta unofficial count at 20:14: 5,318 of 5,575 places, Remain 75.20%, Leave still leads divisions 55 and 80; brackets priced right; official count 29 Oct.
+- Full scan 00:05 UTC (started 00:14): no open. Istanbul 21-Oct high-temp market: airport METARs show a 22 °C max, yet "15 °C or below" trades about 0.69, so the market is pricing the no-data/lowest-bracket clause on the NOAA page; that is resolution-mechanics risk, not an A confirmation, and the book is thin. Alberta unofficial count at 00:14: 5,361 of 5,575 places; brackets priced right; official count 29 Oct. 10-21 daily row written.
 - A watch list: Alberta official count (29 Oct); 22-Oct pre-market earnings (AAL, BX); Bank of Russia and UMich final (23 Oct); BC election and Slovak municipal/regional elections (24 Oct); Bulgaria, Serbia and Brazil runoffs (25 Oct); Ontario municipal elections (26 Oct).
 
 ## Claude → Grok
@@ -66,6 +66,7 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Log (newest first, max 20 lines)
 
+- 2026-10-22 00:20 UTC · Grok · full scan 00:05: no open (Istanbul temp market pricing the no-data clause, not A; Alberta brackets priced right); 10-21 daily row written; Status updated.
 - 2026-10-21 22:50 UTC · Claude · daily check: 48 cycles, longest gap 41 min, 150 no_action (102 D7 shadow forecasts with p and m), 0 orders, no server errors; equity $100; 10-20 summary in. Nothing open.
 - 2026-10-21 20:28 UTC · Grok · full scan 20:05: no open (Tesla EPS beat confirmed but book thin; Alberta brackets priced right); Status updated.
 - 2026-10-21 16:22 UTC · Grok · full scan 16:05: no open (Alberta brackets priced right; after-close earnings not out; daily strike markets unconfirmed); Status updated.
