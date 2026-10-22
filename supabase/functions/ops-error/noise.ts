@@ -16,7 +16,12 @@
 //                  1.6 runs of its cadence) for at least `PERSIST_MINUTES` of a minute job, or `PERSIST_RUNS` runs of a
 //                  slower one, becomes ONE line: "failing since HH:MM UTC, n times", or "failed HH:MM–HH:MM UTC, n times"
 //                  once it has stopped.
-//   dedupe         identical messages, ids, numbers and times aside, are one line with a count.
+//   dedupe         identical messages, ids, numbers and times aside, are one line with a count, except a row
+//                  `keptSeparate` names. Those are shown at once, one line each: a trend-4h-live order whose outcome is
+//                  unknown; a live-quotes guard fault reported at most hourly (the dead-man beat, agent_risk or the
+//                  balances unread, a lease that failed); `grokpm.redeem`; and the weekend replica. `7ed60689` hid the
+//                  ones that look like a passing timeout, because one row an hour or every other minute never lasts 15
+//                  minutes, and folded the repeats into a count.
 
 export type OpsRow = { kind: string; symbol: string | null; message: string | null; created_at: string };
 export type NoiseClass = "monitor" | "code" | "auth" | "transient" | "recorder" | "other";
@@ -55,6 +60,26 @@ const TRANSIENT = /timed? ?out|timeout|\b429\b|too many requests|rate[- ]?limit|
 /** A live path saying what it did about the failure: its state, not a pure transient. */
 const LIVE_STATE = /FROZEN|pending|outcome unknown|left as it is|stays|settle|stopp?ed|halt|disarm|tripped/i;
 
+/**
+ * A guard fault the live executor writes at most hourly (audit 2026-10-20). One row an hour never makes 15 consecutive
+ * minutes, so classifying it as transient noise hides it for good. The phrases are the writer's.
+ */
+const HOURLY_GUARD = /dead-man switch|agent_risk unreadable|balances unreadable|loss stop|LEASE CLAIM FAILED|lease renewal|lease lost|the lease is lost/i;
+
+/**
+ * Rows the box shows one by one: never noise, and never folded into a counted line. `7ed60689` hid or merged these.
+ * A code or auth error on one of these kinds is still that class (`classify` checks those first); this only stops the
+ * transient path, and the dedupe, from swallowing the row.
+ */
+function keptSeparate(row: Pick<OpsRow, "kind" | "message">): boolean {
+  const kind = row.kind ?? "", msg = row.message ?? "";
+  if (kind === "grokpm.redeem" || kind === "agents.quotes_weekend") return true;
+  // The tick is not a LIVE_KIND, so "answered 500 … outcome unknown" was transient noise, and two orders became one count.
+  if (kind === "agents.tick" && /\btrend-4h-live\b/.test(msg) && /outcome unknown|left pending/i.test(msg)) return true;
+  if (kind === "agents.quotes_live" && HOURLY_GUARD.test(msg)) return true;
+  return false;
+}
+
 /** A row's class, and whether it is shown at once or only when it persists. */
 export function classify(row: Pick<OpsRow, "kind" | "message">): { cls: NoiseClass; noise: boolean } {
   const kind = row.kind ?? "", msg = row.message ?? "";
@@ -64,6 +89,8 @@ export function classify(row: Pick<OpsRow, "kind" | "message">): { cls: NoiseCla
   if (CODE.test(msg)) return { cls: "code", noise: false };
   if (kind.startsWith("ig.") && IG_TOKEN_CHURN.test(msg)) return { cls: RECORDER_KINDS.test(kind) ? "recorder" : "transient", noise: true };
   if (AUTH.test(msg)) return { cls: "auth", noise: false };
+  // Before the transient path: these four are visible even when the words are a timeout or a 502.
+  if (keptSeparate(row)) return { cls: "other", noise: false };
   if (TRANSIENT.test(msg)) {
     if (LIVE_KINDS.test(kind) && LIVE_STATE.test(msg)) return { cls: "other", noise: false };
     return { cls: "transient", noise: true };
@@ -131,6 +158,8 @@ const LABEL: Record<NoiseClass, string> = {
 export function boxLines(rows: OpsRow[], nowMs: number): { lines: OpsLine[]; shownRows: number; hiddenRows: number } {
   const shown = new Map<string, OpsLine>();
   const noise = new Map<string, OpsRow[]>();
+  // A kept-separate row must not share a key with another, even when the words match once ids and numbers are gone.
+  let apart = 0;
   for (const r of rows) {
     const { cls, noise: isNoise } = classify(r);
     if (isNoise) {
@@ -138,7 +167,9 @@ export function boxLines(rows: OpsRow[], nowMs: number): { lines: OpsLine[]; sho
       (noise.get(k) ?? noise.set(k, []).get(k)!).push(r);
       continue;
     }
-    const k = `${r.kind}|${cls}|${normalizeMessage(r.message)}`;
+    const k = keptSeparate(r)
+      ? `apart|${apart++}|${r.created_at}`
+      : `${r.kind}|${cls}|${normalizeMessage(r.message)}`;
     const line = shown.get(k);
     if (!line) shown.set(k, { kind: r.kind, cls, message: displayMessage(r.message), count: 1, firstAt: r.created_at, latestAt: r.created_at });
     else {
