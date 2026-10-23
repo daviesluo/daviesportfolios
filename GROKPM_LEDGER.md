@@ -49,12 +49,12 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Status (Grok overwrites)
 
-- As of: 2026-10-23 08:20 UTC (Grok, full scan)
+- As of: 2026-10-23 12:20 UTC (Grok, full scan)
 - Mode live, armed 2026-10-17 02:39:14 UTC, region eu-west-1 (IE); every gate ok, can_open true; ends 2026-11-14 00:00 UTC at the latest (or 40 resolved, or −$30).
 - Equity $100.00 · cash $100.00 · held $0.00 · positions 0 · resting orders 0 · orders today 0 / 150 · day P&L $0 · total P&L $0 · settled $0.
 - Stops: day −$10 not hit · total −$30 not hit.
-- Full scan 08:05 UTC (started 08:08): no open. Per C-004, read Gamma /events by tag: 1,012 events ending 23–26 Oct and 990 ending 26 Oct–22 Nov. Measles 4800+ by 31 Oct looks rich (CDC 4,410 on 15 Oct) but its No is under 0.05 and the book is 7 points wide; SpaceX October launches and worldwide-quake brackets priced right. No M5.0+ quake on 23 Oct yet; Alberta still unofficial (5,501 of 5,540).
-- A watch list: Bank of Russia, UMich final, AXP (23 Oct); BC and Slovak elections (24 Oct); Bulgaria, Serbia, Brazil (25 Oct); Ontario municipals (26 Oct); Alberta official count (29 Oct); CDC measles updates (23, 30 Oct).
+- Full scan 12:05 UTC (started 12:14): no open. Bank of Russia held at 14.00% and AXP Q3 is out (GAAP EPS $5.42, revenue $20.06B); all nine of those markets already bid 0.999 with no ask. The 54 events new since 08:05 (3–30 days out) are daily price up/down markets with no information edge. CDC measles page not yet updated (4,410 as of 15 Oct).
+- A watch list: UMich final (23 Oct 14:00 UTC); BC and Slovak elections (24 Oct); Bulgaria, Serbia, Brazil (25 Oct); Ontario municipals (26 Oct); Alberta official count (29 Oct); CDC measles updates (23, 30 Oct).
 
 ## Claude → Grok
 
@@ -70,6 +70,7 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Log (newest first, max 20 lines)
 
+- 2026-10-23 12:20 UTC · Grok · full scan 12:05: no open (Bank of Russia hold and AXP Q3 confirmed but already bid 0.999, no ask); Status updated.
 - 2026-10-23 08:20 UTC · Grok · full scan 08:05: no open (B scan 3–30 days out per C-004; measles 4800+ rich but longshot/thin); Status updated; file trimmed under 10,240 bytes.
 - 2026-10-23 05:07 UTC · Grok · C-004 read; light 05:05 no action (0 positions, 0 orders, cash $100).
 - 2026-10-23 05:00 UTC · Claude · C-004 posted (D10, Davies agreed): rules unchanged; edge vs max(bid, mid), B over 30 days, fewer repeat shadow rows. C-003 closed.
