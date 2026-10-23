@@ -59,8 +59,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    (fills −[•] marked at mid, rewards [•], rebates [•]), **room $[•]**; error box empty since 00:12; PR5 fresh.
    `state.pnl.total` is the fills alone, never the stop's number (the skill's Step 2). Dates: 10-13 forward tests and
    LP-RULES item 1; **10-16 ≥ 01:00 the 7-day end-rule read with `backtests/pmlp/lp_readout_a18.sql` only** and the $40
-   buffer re-read; 10-22/23 LPRESEL6, TB1 C1, 14-day readout. Showcase (`daviesluo/personal`) not yet updated for this
-   week's strategy changes (Addenda 9–18, LP studies): left for Claude Code.
+   buffer re-read; 10-22/23 LPRESEL6, TB1 C1, 14-day readout. The interview showcase is no longer
+   maintained (Davies, 10-23).
 
 0a⁗. **LIVE-PREP LIQUIDATING (Addendum 24, live since 2026-10-15 16:23:55 UTC; Davies: "那目前的单都尽快卖出掉吧，还剩多少").**
    16:26: 6 NO 0x76051f8c at 0.27 and 40 YES 0x7465aead at 0.12 sold, 10.2 of 80 YES 0xecc209a6 at 0.002 (pUSD [•] →
@@ -728,6 +728,12 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20", and 2026-10-18 20:19 → 21:12 UTC under "LEDGER.md, archived 2026-10-21", and 2026-10-19 03:20 → 06:45 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-19 21:18 UTC → 2026-10-21 19:50 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-21 20:39 → 21:25 UTC under "LEDGER.md, archived 2026-10-22", and the audits of 2026-10-20 19:25 and 2026-10-21 19:17 UTC under "LEDGER.md, archived 2026-10-22 (second)", and PR #242's 2026-10-15 → 10-16 sections under "LEDGER.md, archived 2026-10-22 (third)", and PR #244's 2026-10-20 03:44 UTC section under "LEDGER.md, archived 2026-10-22 (fourth)", with 2026-10-21 22:51 and 23:05 UTC, and 2026-10-21 21:43 → 22:42 UTC under "LEDGER.md, archived 2026-10-23", and 2026-10-22 00:35 UTC under "LEDGER.md, archived 2026-10-23 (second)"; each oldest first.
+
+### [2026-10-23 02:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The interview showcase is no longer maintained** (sub-agent; not pushed; Davies, 10-23: "面试 showcase以后不需要更新了").
+  Last updated 2026-10-23 (`daviesluo/personal` `4ff50fc`). The standing duty is out of the working-with-davies skill and its
+  two Cursor copies and out of `docs/agents/CLAUDE.md`; each now says it ended. The what-remains list's "showcase not yet
+  updated" note (item 0a⁗) is closed.
 
 ### [2026-10-23 02:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **LPRESEL6 withdrawn** (sub-agent; not pushed; Davies, 10-23, asked to download the ~6.5 GB archive or withdraw: "选择你来决定吧";

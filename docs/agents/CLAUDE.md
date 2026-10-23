@@ -734,9 +734,5 @@ that follow from that evidence, in short:
   deployed): `edge_calls.active_from` defaults to `now() + 15 minutes`, the
   minute job and `edge-watchdog` skip a row until then, and an insert never
   names it, which the test checks.
-- **The interview showcase mirrors this section** (Davies, 2026-09-30):
-  `showcase/daviesportfolios/README.md` in the private `daviesluo/personal`
-  repository explains every strategy for his interviews, with no figure from
-  the real book. A change to the strategy set, a verdict, or a moved number it
-  quotes updates that page and rebuilds its PDF in the same week (the
-  working-with-davies skill has the steps).
+- **The interview showcase is no longer maintained** (Davies, 2026-10-23: "面试 showcase以后不需要更新了"; last updated
+  2026-10-23, `daviesluo/personal` `4ff50fc`). Nothing here updates it.
