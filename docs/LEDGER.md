@@ -101,7 +101,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    (Grok, 10-11) must not be merged:** its `0117_lpskew.sql` collides with the applied `0117_cb_minute_extremes_repair.sql`,
    its pins hold Addendum 18's `pm_live.ts`/`pm_lp.ts` bytes, its base arm is the S2 that Q2 replaced and its window
    (10-12 → 10-19) has passed unrun; close it. Davies, 2026-10-20 (Portfolio Project group): delete the remote branch
-   `lp-skew-ft` (approved, not yet done; `audit-2026-10-14` and `hopeful-planck-acdq5g` not approved). (4) **SPCX: closed** (Davies,
+   `lp-skew-ft` (deleted 2026-10-22; `audit-2026-10-14` and `hopeful-planck-acdq5g` not approved). (4) **SPCX: closed** (Davies,
    10-15: the Trading 212 and board share counts of SPCX, RKLB and HOOD are fine; [•] elsewhere plus T212's [•]).
 
 0b. **Every PAPER Reward quotes test is off (Davies, 2026-10-13: "目前paper testing里的reward quotes全关了吧？感觉都不赚钱没什么
@@ -755,6 +755,11 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   - C-006 is on the desk ledger. The push redeploys `grokpm` and `agents`; there is no migration.
   - Interim, 19 resolved: Brier agent 0.0242, m 0.0546, last trade 0.0241.
   - Ledger: the 2026-10-24 07:40 and 09:48 UTC sections moved to the archive.
+
+### [2026-10-23 19:16 UTC] Platform: Claude Code via Grok Bot | Model: claude-opus-5-5
+- **Audit of 2026-10-23** (local, not pushed; no SQL): `2ccc2b69..eac96b1e`, 8 commits, one author, CI green; `0137`
+  applied 01:03 UTC; no function deployed. Next migration `0138`. This stack on `eac96b1e`: #245 with D8, D9, D10, and
+  #248, each PR's code byte for byte (#247 left out); it deploys `grokpm` and `ops-error`. `lp-skew-ft` is gone (item 0c).
 
 ### [2026-10-23 19:15 UTC] Platform: Claude Code via Grok Bot | Model: claude-opus-5-5
 - **GROKPM D10 in the pre-registration's §9** (the 10-23 audit; local, not pushed): the rules study's §7 text, dated
