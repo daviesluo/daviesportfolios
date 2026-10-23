@@ -70,8 +70,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    resting; item 15's 15:38 check read `live_confirmed_at` null): only dust is left, to settle and be redeemed.
    `liquidate_at` is still set as far as this ledger knows; clear it with
    `update public.pm_lp_config set liquidate_at = null where id = 1;` (Davies' call, PMPOST's proposal).
-   **The 10-16 01:00 seven-day read (`lp_readout_a18.sql`) is not recorded as run** (no result file, no history line): run
-   it as written, saying it cannot change anything now, or Davies withdraws it and the 14-day one by an addendum.
+   **The seven-day read: done 2026-10-23, late** (R 0.7156 over 220 market-days, the restart's days 0.7642; no trip;
+   `reviews/2026-10-23-lp-reads.md`). **The 14-day readout is due no earlier than 10-27 13:25 UTC** (Addendum 19's window
+   end): run it as written then, or Davies withdraws it by an addendum.
    Davies, 2026-10-20 (Portfolio Project group): live-prep's wind-up (`liquidate_at`) is left as it is for now.
 
 0a‴. **Q2 CLOSED, close-only, 2026-10-15 00:08 UTC** (Davies: "看一下最新的rewards payout，还不行的话就关了然后只卖出"). 10-14 paid
@@ -109,7 +110,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    (`pmrec`, `pmrec-meta`). TESTING shows no Reward quotes row. Withdrawn, each noted in its pre-registration: RW-C's verdict,
    RW-X4/X5's Test 2, TB1, RWC-OPT, mid-pool's readout and audit and its funded draft. LPRESEL6 still reads (pm-rec), with a
    deviation note. **Davies' wakes:** `trig_01XwUUNT5yXL3pzHoyH4JLaG` (10-17) is moot; `trig_018MBeyZsWkLBmbMq9ta3GNf`
-   (10-23) still has LPRESEL6 and live-prep's own reads, its other tasks withdrawn. Item 2's paragraphs on those tests are
+   (10-23) fired: live-prep's 7-day read done, its 14-day readout not yet due, LPRESEL6 not run (below). Item 2's paragraphs on those tests are
    history from here.
 
 1. **Closed: fp5's ranked list.**
@@ -165,6 +166,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      again every 6 h, offline on pm-rec's whole-universe record 10-09 → 10-23. **Read on or after 2026-10-23 00:05 UTC**
      beside RWC-OPT: `sql/archive_urls.sql` → `scripts/fetch.py`, `sql/aux.sql`, `build.ts`, `run.ts`, `bar.py`; coverage
      ≥ 90 % a day else void. Needs `pmrec`/`pmrec-meta` running to 10-23 00:00; the archive is never pruned.
+     **10-23: not run** (`reviews/2026-10-23-lp-reads.md`). The archive download was refused by the session's permissions,
+     and the 6.5 GB archive is more than the free disk. The index is complete: 336 hours of each kind, 1,436–1,440 book
+     minutes a day. **Needs** permission to download from Davies or the main session, then a run at `242596a1`.
    - **RWC-OPT** (`reviews/2026-10-09-rwc-optimised-arms-prereg.md`, frozen 2026-10-08 before RW-C's first minute;
      scripts `backtests/rwc_opt/`, pinned by `src/rwc_opt_prereg.test.js`): offline replays of RW-C's record, C1 = live-prep's
      S2 + TB1's skip against S2 (primary), C3 = x1 + x2's pause + TB1's skip against x1, C2's exits reported. **Read on or
@@ -731,7 +735,18 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
-"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20", and 2026-10-18 20:19 → 21:12 UTC under "LEDGER.md, archived 2026-10-21", and 2026-10-19 03:20 → 06:45 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-19 21:18 UTC → 2026-10-21 19:50 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-21 20:39 → 21:25 UTC under "LEDGER.md, archived 2026-10-22", and the audits of 2026-10-20 19:25 and 2026-10-21 19:17 UTC under "LEDGER.md, archived 2026-10-22 (second)", and PR #242's 2026-10-15 → 10-16 sections under "LEDGER.md, archived 2026-10-22 (third)", and PR #244's 2026-10-20 03:44 UTC section under "LEDGER.md, archived 2026-10-22 (fourth)", with 2026-10-21 22:51 and 23:05 UTC; each oldest first.
+"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20", and 2026-10-18 20:19 → 21:12 UTC under "LEDGER.md, archived 2026-10-21", and 2026-10-19 03:20 → 06:45 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-19 21:18 UTC → 2026-10-21 19:50 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-21 20:39 → 21:25 UTC under "LEDGER.md, archived 2026-10-22", and the audits of 2026-10-20 19:25 and 2026-10-21 19:17 UTC under "LEDGER.md, archived 2026-10-22 (second)", and PR #242's 2026-10-15 → 10-16 sections under "LEDGER.md, archived 2026-10-22 (third)", and PR #244's 2026-10-20 03:44 UTC section under "LEDGER.md, archived 2026-10-22 (fourth)", with 2026-10-21 22:51 and 23:05 UTC, and 2026-10-21 21:43 → 22:42 UTC under "LEDGER.md, archived 2026-10-23"; each oldest first.
+
+### [2026-10-23 00:56 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The 10-23 reads** (sub-agent, the 10-23 wake; not pushed; `reviews/2026-10-23-lp-reads.md`, reference §3.47; not blind).
+  - **Live-prep's 7-day end rule**, run late with `lp_readout_a18.sql` as written
+    (`backtests/pmlp/results/lp_readout_a18_2026-10-23.txt`, dollars masked). R 0.7156 over 220 market-days, and the
+    restart's days R 0.7642. **No trip.** The run is late by seven days, a deviation; it changes nothing (disarmed since `0125`).
+  - **The 14-day readout** is not due before 10-27 13:25 UTC.
+  - **LPRESEL6 was not run.** The archive download was refused by the session's permissions, and the archive is larger
+    than the free disk. Its index is complete.
+  - LP-RULES' near-end and 3N/5N re-reads were never pre-registered and are moot. The readings `0120` withdrew stay
+    withdrawn. Ledger: the four 2026-10-21 21:43 → 22:42 UTC sections moved to the archive.
 
 ### [2026-10-22 00:35 UTC] Platform: Claude Code via Grok Bot | Model: claude-opus-5-5
 - **Audit of 2026-10-22** (read-only; one read-only SQL of `grokpm_decisions`): `5074c6b0..4a36cb6f` (20 commits), one
@@ -742,31 +757,3 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   all landed by `4a36cb6f`. Davies, 10-22: D8 confirmed; D7 counts from 16:58 UTC without the 17:05 UTC wake (item 15,
   the zero-trades review's §10); the desk ledger's 10 KB is 10,240 bytes. Masked a share count and GROKPM's cash in this
   stack; this ledger's closed 10-21 sections and two audits to the archive.
-
-### [2026-10-21 22:42 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Hand tables live from `hand-targets`** (sub-agent; not pushed): the minute call checks the branch head every 5 min
-  (API, else git refs, else raw branch URL), reads both files at that commit, validates whole (keys, types, dates, https,
-  0.3–3× band, risks ≤120 chars/≤3), rebuilds BTC/VUAA rows on change; GET serves risks. Failure → baked copies, one
-  `targets.hand` report. Push → page ≤ ~21 min (5 + 1 + client 15).
-
-### [2026-10-21 22:13 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Target price sources** (sub-agent; not pushed): SAEM's holdings from BlackRock's keyless file, 60 largest priced
-  (coverage 35.6 % → 49.6 %); VUAA = 19 sourced S&P 500 year-end strategist targets, as of 2026-10-21, on VUAA's price
-  (`INDEX_TARGETS`), holdings-weighted kept as cross-check; dated targets in another unit dropped (ANG.JO). Hand tables
-  (BTC, S&P 500) need a session to refresh them; a weekly re-verify proposal is with the coordinator.
-
-### [2026-10-21 21:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Davies' two answers on PR5 (10-21), done** (sub-agent, item 4; the review's last sections): (1) condition 5 loosened on his
-  word to ≤ 900 orders a day, the live governor's entry limit (700 was the spec's headroom under Revolut X's 1,000 POSTs a day;
-  per sub-account or per account still undocumented; other live rows capped at 40; LIVE never refused for rate, 950 rows on
-  10-07 under its governor) — deviation 7: conditions 1–5 pass, 6 recorded; budget300 not needed. (2) placement timing on the
-  LIVE-faithful replay: 30 s £0.972, 10 s £0.776, 0 s £0.727 (day bootstrap 90 % bands −£0.33…−£0.08 and −£0.40…−£0.08):
-  earlier is worse, the executor is not changed (`backtests/livesim/scripts/timing.py`).
-
-### [2026-10-21 21:43 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **"Stablecoin quotes LIVE twin" (`live`, `0136`)** (sub-agent, item 4; the audit's option (a), main session on Davies'
-  10-21 word): PR5's twin at LIVE's £120 with `rules.fill`; backfill `twins/live.json.gz` = LIVE's life from go-live with its
-  operations (6,295 orders, the `at_ops` arm; built twice, same bytes); frozen prereg `reviews/2026-10-21-live-twin-prereg.md`
-  (mirror bar over 10-22 → 11-22, read 11-23); fixture rebuilt; `src/live_twin.test.js`. TAKE (Addendum 3), variant-3 (§7) and
-  the size twin (§13) note that through-only undercounts LIVE's fills. Its page name on two lines (`strategyNameParts`, dist
-  rebuilt). **Deploy before 10-24.** Sweep not run here (no browser).

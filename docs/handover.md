@@ -46542,3 +46542,34 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   643-645 s of CPU, load 14-17; `--quick` 65 s (was 158-166 s). `bin/edge-test.mjs` (processes, not `--parallel`:
   the tests set SB_REGION and venue keys); phone `surfaces` beside its `main`; `sh bin/gates.sh --run '<cmd>'` puts a
   check run by hand under the lock. Every check kept; CI unchanged.
+
+
+## LEDGER.md, archived 2026-10-23 — the 2026-10-21 21:43 → 22:42 UTC history sections, oldest first
+
+### [2026-10-21 21:43 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **"Stablecoin quotes LIVE twin" (`live`, `0136`)** (sub-agent, item 4; the audit's option (a), main session on Davies'
+  10-21 word): PR5's twin at LIVE's £120 with `rules.fill`; backfill `twins/live.json.gz` = LIVE's life from go-live with its
+  operations (6,295 orders, the `at_ops` arm; built twice, same bytes); frozen prereg `reviews/2026-10-21-live-twin-prereg.md`
+  (mirror bar over 10-22 → 11-22, read 11-23); fixture rebuilt; `src/live_twin.test.js`. TAKE (Addendum 3), variant-3 (§7) and
+  the size twin (§13) note that through-only undercounts LIVE's fills. Its page name on two lines (`strategyNameParts`, dist
+  rebuilt). **Deploy before 10-24.** Sweep not run here (no browser).
+
+### [2026-10-21 21:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Davies' two answers on PR5 (10-21), done** (sub-agent, item 4; the review's last sections): (1) condition 5 loosened on his
+  word to ≤ 900 orders a day, the live governor's entry limit (700 was the spec's headroom under Revolut X's 1,000 POSTs a day;
+  per sub-account or per account still undocumented; other live rows capped at 40; LIVE never refused for rate, 950 rows on
+  10-07 under its governor) — deviation 7: conditions 1–5 pass, 6 recorded; budget300 not needed. (2) placement timing on the
+  LIVE-faithful replay: 30 s £0.972, 10 s £0.776, 0 s £0.727 (day bootstrap 90 % bands −£0.33…−£0.08 and −£0.40…−£0.08):
+  earlier is worse, the executor is not changed (`backtests/livesim/scripts/timing.py`).
+
+### [2026-10-21 22:13 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Target price sources** (sub-agent; not pushed): SAEM's holdings from BlackRock's keyless file, 60 largest priced
+  (coverage 35.6 % → 49.6 %); VUAA = 19 sourced S&P 500 year-end strategist targets, as of 2026-10-21, on VUAA's price
+  (`INDEX_TARGETS`), holdings-weighted kept as cross-check; dated targets in another unit dropped (ANG.JO). Hand tables
+  (BTC, S&P 500) need a session to refresh them; a weekly re-verify proposal is with the coordinator.
+
+### [2026-10-21 22:42 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Hand tables live from `hand-targets`** (sub-agent; not pushed): the minute call checks the branch head every 5 min
+  (API, else git refs, else raw branch URL), reads both files at that commit, validates whole (keys, types, dates, https,
+  0.3–3× band, risks ≤120 chars/≤3), rebuilds BTC/VUAA rows on change; GET serves risks. Failure → baked copies, one
+  `targets.hand` report. Push → page ≤ ~21 min (5 + 1 + client 15).

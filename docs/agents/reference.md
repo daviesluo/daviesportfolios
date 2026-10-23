@@ -3230,6 +3230,26 @@ Read once after `pm_rw_days` closed 10-08 (`reviews/2026-10-09-polymarket-rw-pap
 - **Deviation named in advance:** RW stored 1,429 of 10-08's 1,440 minutes (the seven `:X0` minutes and four more), and
   19,800 of 20,160 in all.
 
+### 3.47 The 10-23 reads: live-prep's end rule does not trip, its 14-day readout waits for 10-27, LPRESEL6 not yet run (2026-10-23)
+
+Read 2026-10-23 (`reviews/2026-10-23-lp-reads.md`, not blind; the live account's dollars masked).
+
+- **Live-prep's 7-day end rule**, due on or after 10-16 01:00 UTC, was run seven days late as a deviation. It can change
+  nothing: the path has been disarmed since `0125`. It was run with `backtests/pmlp/lp_readout_a18.sql` as written
+  (`results/lp_readout_a18_2026-10-23.txt`).
+  - The first 7 live days: 220 market-days, **R 0.7156**.
+  - Addendum 19's reading over the restart's first seven days: 162 market-days, **R 0.7642**.
+  - **Neither trips** the 0.20 bar.
+- **The 14-day readout and Addendum 19's bar** are not due until the restart's window ends, no earlier than 10-27 13:25 UTC.
+  Davies either has them run then or withdraws them.
+- **LPRESEL6 stands and was not run.**
+  - Why: the signed-URL download of pm-rec's archive was refused by the session's permissions, and the 6.5 GB archive did
+    not fit the machine's free disk.
+  - What was read instead: the archive's index holds all 336 hours of each kind for 10-09 → 10-22, at 1,436–1,440 book
+    minutes a day.
+- **Not run:** LP-RULES' near-end and 3N/5N re-reads (never pre-registered, and moot). The readings `0120` withdrew stay
+  withdrawn.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

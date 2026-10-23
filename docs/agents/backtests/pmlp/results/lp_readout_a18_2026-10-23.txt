@@ -1,0 +1,29 @@
+lp_readout_a18.sql (Addendum 18's corrected copy of lp_readout.sql; sha256 5ec9a030...87b8, as Addendum 18 names it), run
+read-only on production (flmvxigozjuizpckllvk) through the Supabase connector, 2026-10-23 about 00:50 UTC, word for word.
+The 7-day end rule's reading, due on or after 2026-10-16 01:00 UTC and run seven days late (reviews/2026-10-23-lp-reads.md).
+Not blind. The repository is public: every dollar column is the live account's money and is masked [•] (2026-10-21 rule);
+R, the counts and the minutes are as the query returned them.
+
+row                                                  market_days minutes scored formula_usd paid_usd rebates_usd r      formula_scored_usd r_scored
+day 1 2026-10-09                                     10          9666    2643   [•]         [•]      [•]         0.8072 [•]                0.8072
+day 2 2026-10-10                                     28          11687   2663   [•]         [•]      [•]         0.7179 [•]                0.7511
+day 3 2026-10-11                                     35          14727   1525   [•]         [•]      [•]         0.8066 [•]                0.8332
+day 4 2026-10-12                                     36          13662   1240   [•]         [•]      [•]         0.5613 [•]                0.6093
+day 5 2026-10-13                                     55          5222    329    [•]         [•]      [•]         0.7187 [•]                0.7564
+day 6 2026-10-14                                     33          6966    567    [•]         [•]      [•]         0.7147 [•]                0.7809
+day 7 2026-10-15                                     23          2339    33     [•]         [•]      [•]         1.1401 [•]                1.2005
+day 8 2026-10-16                                     19          364     0      0.0000      0.0000   0.0000      null   0.0000                null
+day 9 2026-10-17                                     18          0       0      0.0000      0.0000   0.0000      null   0.0000                null
+day 10 2026-10-18                                    7           0       0      0.0000      0.0000   0.0000      null   0.0000                null
+day 11 2026-10-19                                    7           0       0      0.0000      0.0000   0.0000      null   0.0000                null
+day 12 2026-10-20                                    7           0       0      0.0000      0.0000   0.0000      null   0.0000                null
+day 13 2026-10-21                                    7           0       0      0.0000      0.0000   0.0000      null   0.0000                null
+R after the first 7 live days (the end rule ...)     220         64269   9000   [•]         [•]      [•]         0.7156 [•]                0.7505
+total over 13 live days; fills 480 (7780.08 shares), 285         64633   9000   [•]         [•]      [•]         0.7156 [•]                0.7505
+  their P&L $[•], per share $[•] (paper record: -0.0110; the live figure is worse)
+
+Days 8-13 carry market-days of the dust holdings and nothing scored: formula, paid and rebates are 0, so R is null (the
+script divides by nullif).
+
+Addendum 19's second reading, "the same script over day >= the restart's day" (restart 2026-10-13 13:25:32 UTC), summed
+from the rows above for the restart's first seven days, 10-13 -> 10-19: 162 market-days, R 0.7642 (scored 0.8249).
