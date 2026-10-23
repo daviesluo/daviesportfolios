@@ -274,3 +274,13 @@ The public reads are in `scripts/fetch.py`, all keyless GETs:
 - the CLOB's `/prices-history` (1 minute).
 
 They were read 2026-10-23 04:48 UTC into `data/public.json.gz`.
+
+## 10. Decision (Davies, 2026-10-23; nothing above is changed)
+
+Davies, 2026-10-23: "同意，按你的建议做" (agreed, do as you recommend).
+- Every rule is kept.
+- D10 is agreed with §7's text, dated 2026-10-23, with these words as its quote. It goes into the pre-registration's §9
+  after D8 (#245) and D9 (D7's sample rule, the zero-trades review's §10), so its sha chain stays one line.
+- C-004 is posted on the desk ledger as §7 gives it.
+- D7's end reading has no script yet (§6 of the pre-registration: written before the end). When it is written, it
+  carries D10's last-trade column; until then D10's text is the change.

@@ -580,8 +580,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      round having read price and votes together, so each market's first counted forecast is 17:35 UTC's. Recorded in the
      zero-trades review's §10; the prereg's §9 gains it as D9 after #245's D8, so its sha chain stays one line.
    - **Rules study, 10-23** (`reviews/2026-10-23-grokpm-rules-study.md`): the bars are not what binds. Every gap was an
-     emptied, thin book the market had already settled, and no looser rule fills. **Open for Davies:** keep the rules,
-     and say yes or no to D10 (the last trade beside m in D7's reading) and C-004 (the review's §7, texts ready).
+     emptied, thin book the market had already settled, and no looser rule fills. **Decided 10-23** (Davies: "同意，按你的
+     建议做"): rules kept; C-004 posted on the desk ledger (`6144d1d0`). **D10 still to write into §9** after D8 (#245) and
+     D9, neither in the file yet; the text is the review's §7, and the pin moves with it.
    - **Automatic redemption (D6, `0128`, `grokpm/redeem.ts`; Davies: "加上吧 全部都自动化掉")**: hourly, one gasless relayed
      transaction for up to five of the shared account's redeemable markets (pUSD back; losing tokens cleared), a dry run
      while `redeem_enabled` is false (its plan in `grokpm_exec_state.redeem_state`). **Davies does:** polymarket.com →
@@ -730,7 +731,16 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
-"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20", and 2026-10-18 20:19 → 21:12 UTC under "LEDGER.md, archived 2026-10-21", and 2026-10-19 03:20 → 06:45 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-19 21:18 UTC → 2026-10-21 19:50 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-21 20:39 → 21:25 UTC under "LEDGER.md, archived 2026-10-22", and the audits of 2026-10-20 19:25 and 2026-10-21 19:17 UTC under "LEDGER.md, archived 2026-10-22 (second)", and PR #242's 2026-10-15 → 10-16 sections under "LEDGER.md, archived 2026-10-22 (third)", and PR #244's 2026-10-20 03:44 UTC section under "LEDGER.md, archived 2026-10-22 (fourth)", with 2026-10-21 22:51 and 23:05 UTC, and 2026-10-21 21:43 → 22:42 UTC under "LEDGER.md, archived 2026-10-23", and 2026-10-22 00:35 UTC under "LEDGER.md, archived 2026-10-23 (second)"; each oldest first.
+"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20", and 2026-10-18 20:19 → 21:12 UTC under "LEDGER.md, archived 2026-10-21", and 2026-10-19 03:20 → 06:45 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-19 21:18 UTC → 2026-10-21 19:50 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-21 20:39 → 21:25 UTC under "LEDGER.md, archived 2026-10-22", and the audits of 2026-10-20 19:25 and 2026-10-21 19:17 UTC under "LEDGER.md, archived 2026-10-22 (second)", and PR #242's 2026-10-15 → 10-16 sections under "LEDGER.md, archived 2026-10-22 (third)", and PR #244's 2026-10-20 03:44 UTC section under "LEDGER.md, archived 2026-10-22 (fourth)", with 2026-10-21 22:51 and 23:05 UTC, and 2026-10-21 21:43 → 22:42 UTC under "LEDGER.md, archived 2026-10-23", and the audit of 2026-10-22 00:35 UTC under "LEDGER.md, archived 2026-10-23 (second)", and the 10-23 reads of 2026-10-23 00:56 UTC under "LEDGER.md, archived 2026-10-23 (third)"; each oldest first.
+
+### [2026-10-23 05:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM D10 and C-004 agreed** (sub-agent; not pushed; Davies, 10-23: "同意，按你的建议做").
+  - Rules unchanged.
+  - C-004 is on the desk ledger (`grokpm-ledger` `6144d1d0`), and C-003 is closed.
+  - **D10 is not in the pre-registration yet.** Its §9 holds D1–D7: D8 (#245) and D9 (D7's sample rule) come first.
+    The sub-agent does not edit a frozen file. The text is the review's §7, dated 2026-10-23 and quoting his words.
+  - No reading script exists to carry the last-trade column yet (§6: written before the end).
+  - Recorded in the review's §10 and reference §3.48. Ledger: the 2026-10-23 00:56 UTC section moved to the archive.
 
 ### [2026-10-23 04:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **GROKPM rules study** (sub-agent; not pushed; Davies, 10-23: "一整周了一单都没下…是不是规则太严格了";
@@ -772,14 +782,3 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
     on.
   - Neither the watchdog nor `monitor/health.ts` expected the recorders. Pinned in `src/cron_jobs.test.js`. Applies on
     push (`migrations.yml`).
-
-### [2026-10-23 00:56 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **The 10-23 reads** (sub-agent, the 10-23 wake; not pushed; `reviews/2026-10-23-lp-reads.md`, reference §3.47; not blind).
-  - **Live-prep's 7-day end rule**, run late with `lp_readout_a18.sql` as written
-    (`backtests/pmlp/results/lp_readout_a18_2026-10-23.txt`, dollars masked). R 0.7156 over 220 market-days, and the
-    restart's days R 0.7642. **No trip.** The run is late by seven days, a deviation; it changes nothing (disarmed since `0125`).
-  - **The 14-day readout** is not due before 10-27 13:25 UTC.
-  - **LPRESEL6 was not run.** The archive download was refused by the session's permissions, and the archive is larger
-    than the free disk. Its index is complete.
-  - LP-RULES' near-end and 3N/5N re-reads were never pre-registered and are moot. The readings `0120` withdrew stay
-    withdrawn. Ledger: the four 2026-10-21 21:43 → 22:42 UTC sections moved to the archive.

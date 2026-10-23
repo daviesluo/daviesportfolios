@@ -3280,6 +3280,9 @@ Read 2026-10-23 (`reviews/2026-10-23-grokpm-rules-study.md`, `backtests/grokpm_r
   - C-004 for Grok: the edge of a post-only bid is measured against max(bid, mid), not the ask; B research over the
     whole 30-day window; one shadow row a market a full scan unless p or the price moves.
   - Expected trades: 0–1 a week, as now.
+- **Decided 2026-10-23** (Davies: "同意，按你的建议做"): every rule kept; D10 and C-004 agreed. C-004 is posted on the
+  desk ledger. D10 enters the pre-registration's §9 after #245's D8 and D7's sample rule (D9), neither of which is in the
+  file yet. No reading script exists yet (§6 says it is written before the end), so D10's text is the whole change.
 
 ## 4. Design consequences (decided by the evidence above)
 

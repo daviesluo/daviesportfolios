@@ -46585,3 +46585,16 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   all landed by `4a36cb6f`. Davies, 10-22: D8 confirmed; D7 counts from 16:58 UTC without the 17:05 UTC wake (item 15,
   the zero-trades review's §10); the desk ledger's 10 KB is 10,240 bytes. Masked a share count and GROKPM's cash in this
   stack; this ledger's closed 10-21 sections and two audits to the archive.
+
+## LEDGER.md, archived 2026-10-23 (third) — the 10-23 reads of 2026-10-23 00:56 UTC
+
+### [2026-10-23 00:56 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The 10-23 reads** (sub-agent, the 10-23 wake; not pushed; `reviews/2026-10-23-lp-reads.md`, reference §3.47; not blind).
+  - **Live-prep's 7-day end rule**, run late with `lp_readout_a18.sql` as written
+    (`backtests/pmlp/results/lp_readout_a18_2026-10-23.txt`, dollars masked). R 0.7156 over 220 market-days, and the
+    restart's days R 0.7642. **No trip.** The run is late by seven days, a deviation; it changes nothing (disarmed since `0125`).
+  - **The 14-day readout** is not due before 10-27 13:25 UTC.
+  - **LPRESEL6 was not run.** The archive download was refused by the session's permissions, and the archive is larger
+    than the free disk. Its index is complete.
+  - LP-RULES' near-end and 3N/5N re-reads were never pre-registered and are moot. The readings `0120` withdrew stay
+    withdrawn. Ledger: the four 2026-10-21 21:43 → 22:42 UTC sections moved to the archive.
