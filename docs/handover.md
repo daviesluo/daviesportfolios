@@ -46598,3 +46598,16 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
     than the free disk. Its index is complete.
   - LP-RULES' near-end and 3N/5N re-reads were never pre-registered and are moot. The readings `0120` withdrew stay
     withdrawn. Ledger: the four 2026-10-21 21:43 → 22:42 UTC sections moved to the archive.
+
+## LEDGER.md, archived 2026-10-23 (fourth) — the 2026-10-23 01:00 UTC history section
+
+### [2026-10-23 01:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The Polymarket recorders retired, `0137`** (sub-agent; not pushed; Davies, 10-18, "还是你觉得删了更好", and the main
+  session's decision: delete; reference §4 item 62).
+  - **Off:** `agents?action=pmrec`, `pmrec-meta` and `views`.
+  - **Unscheduled:** `pm-rec-prune`. With the recorder stopped, it would only have deleted rows and the data of frames not
+    yet archived.
+  - **Kept:** every table, row and archive object. `grokpmrec`, `grokpm?action=sync|redeem`, `pmlp` and `pmlpreserve` run
+    on.
+  - Neither the watchdog nor `monitor/health.ts` expected the recorders. Pinned in `src/cron_jobs.test.js`. Applies on
+    push (`migrations.yml`).

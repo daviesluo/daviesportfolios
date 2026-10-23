@@ -279,7 +279,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      all eight criteria pass (the addendum's log). 'live' (Davies 10-18: "没问题的话就直接live也行") set 20:28:05, back
      to 'shadow' 20:28:43: inside a closure 'live' acts at once on the replica, which was `late`, and 11 £10 entries went out at
      20:28:27, all cancelled by 20:29:26 with 0 filled. Re-set to 'live' at 21:06:04, outside the closure (PR5's
-     minute 21:04); first trading Fri 10-23 21:00. Take shadow: read after five weekdays (from 10-19).
+     minute 21:04); first trading Fri 10-23 21:00. Take shadow read 10-23 18:05 (five weekdays): 0 events, not a fail,
+     'shadow' kept (the addendum's log); next read 2026-10-30 18:00 UTC, counting 10-23's closure.
      **Audit 2026-10-19:** the read's eight criteria are not the addendum's step 2: its "`late` is false" was dropped (the
      replica was late), variant-3 was not compared (no orders before 10-23), and 900 of the closure's 2,880 minutes were
      read. The executor never reads `late`; only the rule "set 'live' outside a closure" keeps a late copy from trading.
@@ -731,7 +732,17 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
-"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20", and 2026-10-18 20:19 → 21:12 UTC under "LEDGER.md, archived 2026-10-21", and 2026-10-19 03:20 → 06:45 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-19 21:18 UTC → 2026-10-21 19:50 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-21 20:39 → 21:25 UTC under "LEDGER.md, archived 2026-10-22", and the audits of 2026-10-20 19:25 and 2026-10-21 19:17 UTC under "LEDGER.md, archived 2026-10-22 (second)", and PR #242's 2026-10-15 → 10-16 sections under "LEDGER.md, archived 2026-10-22 (third)", and PR #244's 2026-10-20 03:44 UTC section under "LEDGER.md, archived 2026-10-22 (fourth)", with 2026-10-21 22:51 and 23:05 UTC, and 2026-10-21 21:43 → 22:42 UTC under "LEDGER.md, archived 2026-10-23", and the audit of 2026-10-22 00:35 UTC under "LEDGER.md, archived 2026-10-23 (second)", and the 10-23 reads of 2026-10-23 00:56 UTC under "LEDGER.md, archived 2026-10-23 (third)"; each oldest first.
+"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20", and 2026-10-18 20:19 → 21:12 UTC under "LEDGER.md, archived 2026-10-21", and 2026-10-19 03:20 → 06:45 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-19 21:18 UTC → 2026-10-21 19:50 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-21 20:39 → 21:25 UTC under "LEDGER.md, archived 2026-10-22", and the audits of 2026-10-20 19:25 and 2026-10-21 19:17 UTC under "LEDGER.md, archived 2026-10-22 (second)", and PR #242's 2026-10-15 → 10-16 sections under "LEDGER.md, archived 2026-10-22 (third)", and PR #244's 2026-10-20 03:44 UTC section under "LEDGER.md, archived 2026-10-22 (fourth)", with 2026-10-21 22:51 and 23:05 UTC, and 2026-10-21 21:43 → 22:42 UTC under "LEDGER.md, archived 2026-10-23", and the audit of 2026-10-22 00:35 UTC under "LEDGER.md, archived 2026-10-23 (second)", and the 10-23 reads of 2026-10-23 00:56 UTC under "LEDGER.md, archived 2026-10-23 (third)", and the recorders' retirement of 2026-10-23 01:00 UTC under "LEDGER.md, archived 2026-10-23 (fourth)"; each oldest first.
+
+### [2026-10-23 18:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LIVE's take shadow read** after five weekdays (sub-agent, the 10-23 18:00 wake; not pushed; read-only SQL, not blind;
+  the live design's addendum log).
+  - 0 `take_shadow` events since 10-18 05:17. Fewer than two is not a fail, so `take_mode` stays 'shadow'. Next read
+    2026-10-30 18:00 UTC (scheduled), counting 10-23's closure.
+  - Criterion 3 PASS: 1,527 LIVE orders, none a take; the only IOC was a 24-hour stop.
+  - Variant-2's two takes (10-20 12:28 and 13:59, USDT ask) fell on LIVE rungs with frozen cancels (08:37 → 15:02), and at
+    13:59 also behind LIVE's stale-input guard.
+  - `weekend_mode` 'live'; first live closure tonight. Ledger: the 2026-10-23 01:00 UTC section moved to the archive.
 
 ### [2026-10-23 05:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **GROKPM D10 and C-004 agreed** (sub-agent; not pushed; Davies, 10-23: "同意，按你的建议做").
@@ -771,14 +782,3 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   disarmed since `0125`, recorders off by `0137`, no decision to change, 6.5 GB and 12 GB heap). Archive and rows kept; it
   could run from `242596a1`. The frozen pre-registration is untouched. Reference §3.47, §4 item 62 and `docs/agents/CLAUDE.md`
   say so; the 10-22 audit section went to the archive.
-
-### [2026-10-23 01:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **The Polymarket recorders retired, `0137`** (sub-agent; not pushed; Davies, 10-18, "还是你觉得删了更好", and the main
-  session's decision: delete; reference §4 item 62).
-  - **Off:** `agents?action=pmrec`, `pmrec-meta` and `views`.
-  - **Unscheduled:** `pm-rec-prune`. With the recorder stopped, it would only have deleted rows and the data of frames not
-    yet archived.
-  - **Kept:** every table, row and archive object. `grokpmrec`, `grokpm?action=sync|redeem`, `pmlp` and `pmlpreserve` run
-    on.
-  - Neither the watchdog nor `monitor/health.ts` expected the recorders. Pinned in `src/cron_jobs.test.js`. Applies on
-    push (`migrations.yml`).

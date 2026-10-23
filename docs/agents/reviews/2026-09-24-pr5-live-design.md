@@ -311,3 +311,37 @@ reading LIVE's record.
   first closure it trades starts with a replica copied in the hour before. It was re-set after 21:00 (the next log line).
 * 2026-10-18 21:06:04 UTC: `weekend_mode` 'live' again, outside the closure (PR5's minute 21:04 Sunday). The first closure
   it trades opens Fri 2026-10-23 21:00 UTC, with the replica copied from PR5's engine from 20:00. `take_mode` stays 'shadow'.
+* 2026-10-23 18:05 UTC, the take shadow read after five weekdays (10-18 05:17 → 10-23 18:02; read-only SQL, not blind):
+  **0 `take_shadow` events.** Fewer than two is not a fail: the shadow runs on, and the next read is 2026-10-30 18:00 UTC,
+  counting 10-23's closure (Davies, 10-20).
+  1. Matched to a variant-2 take: no event to match. The other way round, variant-2 took twice, both on 10-20's USDT ask:
+     k 0.2 % at 12:28:25 (limit 0.7485) and k 0.3 % at 13:59:25 (limit 0.7483). Both filled whole at or through the limit
+     and exited at 0.7457 / 0.7458. LIVE wrote nothing because each rung had a frozen cancel: entries 7237 and 7238, cancel
+     asked 08:37:26, read back cancelled 15:02:28. A rung with an order in flight places nothing and is not shadowed. At
+     13:59 LIVE's stale-input guard also stood (the USD book's newest hour 178 min old); it cleared at 14:00, a minute after
+     variant-2's.
+     A reconstruction (fair = `fair_u / x` of `agent_quote_minutes`, which gives variant-2's recorded fair; the recorder's
+     last read at most 90 s old) finds every other through-limit minute on a rung shut out by name:
+     * LIVE holding the rung: 10-20 USDT ask 0.1 %, a 0.147-coin remnant whose exit met a venue 500.
+     * A guard: stale USD hour, or de-peg.
+     * The paper rung in position: every minute of 10-22 and 10-23.
+  2. `fundsOk`: no event.
+  3. LIVE as 'off': PASS.
+     * 1,527 orders since 05:17, none with `request.take`.
+     * Every entry and exit was post-only GTC; the one IOC was a 24-hour stop (7798, 10-22 10:13).
+     * `ops_errors` has no `take shadow`, `take:` or "recorded book is unreadable" line.
+  4. Would-be fills inside the limit at the read's touch: no event.
+  **Switches:** `take_mode` 'shadow', `weekend_mode` 'live' (since 10-18 21:06:04). The weekend replica still holds 10-18's
+  late copy; it copies again from 20:00 tonight. **Verdict: keep 'shadow'.**
+  **Found beside it:** on 10-20 a cancel stayed frozen for 6 h 25 min (08:37 → 15:02) on six rungs. It would have held a
+  live take back too.
+  **To watch on the first real take:**
+  * It is a taker IOC: not post-only, no post-only check and no fresh read of the touch. Only its limit bounds it, on a
+    read up to 90 s old.
+  * It cancels the rung's entry first. A frozen cancel, or funds short, idles the rung that turn, where the shadow left the
+    maker entry resting. Funds short shows only as a `take:` line in the turn report, with no `skip` event.
+  * Each take costs the governor a cancel and an IOC POST.
+  * The fee is 0.09 %. A sell pays it in pounds, pennied up (as the stops book theirs). A buy pays it in coin, booked net
+    (D4): the exit must sell exactly the net coin and leave no remnant.
+  * The entry has no paper order. Check that LIVE's row books its fill, fee and exit at fair, and that the paper rung's
+    own fill opens no second entry while LIVE holds.
