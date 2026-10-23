@@ -590,7 +590,7 @@ that follow from that evidence, in short:
   its pre-registration: RW-C's 10-23 verdict and RW-X4/X5's Test 2 (`reviews/2026-10-02-polymarket-rw-rest-prereg.md`),
   TB1, RWC-OPT, mid-pool's 10-17 readout and 10-23 audit (and its funded draft); LPRESEL6 stands on pm-rec, its paper
   reproduction line short. What runs on Polymarket: live-prep live (`pmlp`, `pmlpreserve`) and pm-rec (`pmrec`,
-  `pmrec-meta`). Where this file describes the paper paths running, it is their history. On 2026-10-20 their page code
+  `pmrec-meta`) until `0137` (2026-10-23) switched pm-rec and the view recorder off, their records kept. Where this file describes the paper paths running, it is their history. On 2026-10-20 their page code
   left the repository (Davies: tests and code built only for retired strategies go): the dashboard's readers and
   summaries (`pmrw_view.ts`, `pm_prep_view.ts`), the programme factor's reader (`pm_prog.ts`, its `pmprog` route) and the
   page's RW, variant, mini-, mid-pool and paper-layer rows and pages. Their engines and replays (`pmrw*.ts`, `pm_prep.ts`,
@@ -649,7 +649,8 @@ that follow from that evidence, in short:
   `pm_rec_archive`. Keyless reads, its own tables, leases and `edge_calls` rows; nothing of a trading path reads it, and
   a new Reward quotes path is one line of `PM_REC_OURS_SOURCES`. An archive row's signed URL opens its object to anyone
   for a year: read it with SQL, never commit it. Frames the archive has not taken in six hours are dropped: the
-  database's budget outranks the record.
+  database's budget outranks the record. **Off since `0137` (2026-10-23)**, with the view-count recorder (`views`) and
+  pm-rec's prune: every row and archive object stays; GROKPM keeps its own record (`grokpmrec`).
 - Secrets already in Supabase: `Revolut_X_API_kEY` + `REVOLUT_X_PRIVATE_KEY`,
   `Revolut_X_API_kEY_2` + `REVOLUT_X_PRIVATE_KEY_2` (a second Revolut X
   sub-account for PR5's GBP stablecoin quotes, Davies 2026-09-24; read by

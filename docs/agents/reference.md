@@ -4115,6 +4115,23 @@ paper row's design.
   (`pm_rwc_minutes` 41,917, `pm_midprep_minutes` 51,796, `pm_mid_minutes` 11,504, `pm_mid_orders` 4,038, `pm_prog_reads`
   3,752); about four hours of Edge wall time.
 
+62. **The Polymarket research recorders stop (2026-10-23, migration `0137`).**
+
+Davies asked on 2026-10-18, "还是你觉得删了更好" (or do you think deleting them is better), and the main session decided to
+delete them. GROKPM keeps its own keyless record (`agents?action=grokpmrec`), which holds everything its reading needs.
+Live-prep has been disarmed since `0125`. LPRESEL6 needed pm-rec only to 10-23 00:00, and the archive holds that whole
+window.
+
+- **Off** (`enabled = false`): `pmrec` and `pmrec-meta` (item 55) and `views`, the view-count recorder (item 38). The view
+  recorder's study was never pre-registered.
+- **Unscheduled:** `pm-rec-prune`. With the recorder stopped, it would only delete: the data of the last frames that are
+  not yet archived (after six hours), the frames' rows (after seven days), and dropped markets.
+- **Kept:** every table, row, lease, state row and archive object. Nothing is dropped.
+  - The archive's signed URLs are no longer re-signed. Each lasts a year from its last signing, and the objects stay in the
+    bucket.
+- **Still running:** `grokpmrec`, `grokpm?action=sync|redeem`, `pmlp` and `pmlpreserve`, and every other call. Neither
+  `monitor/health.ts` nor the watchdog expected the recorders.
+
 ### Twin variants
 
 The realistic twins, a row each of `agent_quote_twin_specs`, in the page's order. A new one is a row here in the commit

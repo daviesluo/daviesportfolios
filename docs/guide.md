@@ -698,7 +698,8 @@ markets' order books, reward terms and trades for research: a read it
 could not make, an hour it could not archive, or one of its two calls
 not running. It shows once, then at most hourly while the fault lasts.
 Nothing on the page and no strategy reads the record, so it never stops
-a strategy.
+a strategy. It was switched off on 2026-10-23, its record kept, so this
+row should no longer appear.
 
 `trading212.upstream` means Trading 212 refused, or did not answer, the
 board's read of its positions: the board keeps the shares it had, and the

@@ -107,7 +107,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
 0b. **Every PAPER Reward quotes test is off (Davies, 2026-10-13: "目前paper testing里的reward quotes全关了吧？感觉都不赚钱没什么
    意义？"; `0120`).** Off: `pmrwc`, `pmrwc-select`, `pmrwc-e`, `pmrwc-x`, mid-pool (`pmmid`, `pmmidprep`), live-prep's paper layer
    (`pmlpprep`) and `pmprog` (with the `pm-prog-refresh` cron). On: live-prep's live call and `pmlpreserve`, the recorder
-   (`pmrec`, `pmrec-meta`). TESTING shows no Reward quotes row. Withdrawn, each noted in its pre-registration: RW-C's verdict,
+   (`pmrec`, `pmrec-meta`; off with the view recorder and `pm-rec-prune` by `0137`, written 10-23, records kept). TESTING shows no Reward quotes row. Withdrawn, each noted in its pre-registration: RW-C's verdict,
    RW-X4/X5's Test 2, TB1, RWC-OPT, mid-pool's readout and audit and its funded draft. LPRESEL6 still reads (pm-rec), with a
    deviation note. **Davies' wakes:** `trig_01XwUUNT5yXL3pzHoyH4JLaG` (10-17) is moot; `trig_018MBeyZsWkLBmbMq9ta3GNf`
    (10-23) fired: live-prep's 7-day read done, its 14-day readout not yet due, LPRESEL6 not run (below). Item 2's paragraphs on those tests are
@@ -317,8 +317,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      Expect the governor to bind on fresh weekdays. A faster GBP/USD feed (TrueFX) counts only in a live executor that
      posts at once: PR5's live path after 10-21, as a pre-registered change; no frozen test may switch.
 
-5. **Closed: the studies of 2026-09-26/27** (reference §3.37–§3.42). Two notes: the view recorder's study is
-   pre-registered after 4–6 weeks of recording (~10-25 → 11-08); PMLATE's and SPEED's post counts read one page of the
+5. **Closed: the studies of 2026-09-26/27** (reference §3.37–§3.42). Two notes: the view recorder stops with `0137` (10-23, its record
+   kept), and its study was never pre-registered; PMLATE's and SPEED's post counts read one page of the
    post tracker, so re-run them with HARVEST's paged reader before any post-count idea is taken up again.
 
 5a. **The seven measurements of 2026-09-27, frozen 2026-09-28** (`reviews/2026-09-27-testing-portfolio-review.md`,
@@ -399,7 +399,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      source list (`agents/pm_book_rec.ts`, `PM_REC_OURS_SOURCES` "RW" and "RW selection"; a source it cannot read is skipped
      and named every run, so the drop's migration takes those two lines out with it) and POOLAGE, parked (item 6b). The
      drop is a migration and waits on his word alone (audits 2026-10-21 and 10-22). `pm_view_books`
-     grows ~12 MB a day until its study. Since `0101` (2026-10-08) the order paths' dry-run record keeps 14 days (from
+     stops growing with `0137`. Since `0101` (2026-10-08) the order paths' dry-run record keeps 14 days (from
      10-15) and `db-size-watch` reports past 4 GB. Still read whole each minute, for a later change: the recorder's
      market list and the twins' filled orders (frozen with TAKE to 11-02). Davies' call: the instance (Micro, 1 GB; the
      database 1.3 GB on 10-07) or incremental reads.
@@ -736,6 +736,17 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20", and 2026-10-18 20:19 → 21:12 UTC under "LEDGER.md, archived 2026-10-21", and 2026-10-19 03:20 → 06:45 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-19 21:18 UTC → 2026-10-21 19:50 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-21 20:39 → 21:25 UTC under "LEDGER.md, archived 2026-10-22", and the audits of 2026-10-20 19:25 and 2026-10-21 19:17 UTC under "LEDGER.md, archived 2026-10-22 (second)", and PR #242's 2026-10-15 → 10-16 sections under "LEDGER.md, archived 2026-10-22 (third)", and PR #244's 2026-10-20 03:44 UTC section under "LEDGER.md, archived 2026-10-22 (fourth)", with 2026-10-21 22:51 and 23:05 UTC, and 2026-10-21 21:43 → 22:42 UTC under "LEDGER.md, archived 2026-10-23"; each oldest first.
+
+### [2026-10-23 01:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The Polymarket recorders retired, `0137`** (sub-agent; not pushed; Davies, 10-18, "还是你觉得删了更好", and the main
+  session's decision: delete; reference §4 item 62).
+  - **Off:** `agents?action=pmrec`, `pmrec-meta` and `views`.
+  - **Unscheduled:** `pm-rec-prune`. With the recorder stopped, it would only have deleted rows and the data of frames not
+    yet archived.
+  - **Kept:** every table, row and archive object. `grokpmrec`, `grokpm?action=sync|redeem`, `pmlp` and `pmlpreserve` run
+    on.
+  - Neither the watchdog nor `monitor/health.ts` expected the recorders. Pinned in `src/cron_jobs.test.js`. Applies on
+    push (`migrations.yml`).
 
 ### [2026-10-23 00:56 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The 10-23 reads** (sub-agent, the 10-23 wake; not pushed; `reviews/2026-10-23-lp-reads.md`, reference §3.47; not blind).

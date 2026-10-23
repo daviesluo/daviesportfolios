@@ -1105,6 +1105,34 @@ describe('pg_cron jobs', () => {
     expect(httpJobs(jobsAfter).map(([n]) => n)).toEqual(['edge-calls-every-minute']);
   });
 
+  // 0137 (Davies, 2026-10-18: "还是你觉得删了更好"; decision: delete): pm-rec and the view-count recorder off, pm-rec's prune
+  // unscheduled so nothing they recorded is deleted, GROKPM's record and every other call kept, nothing dropped.
+  it("turns the two Polymarket research recorders off and unschedules pm-rec's prune, keeping GROKPM and every other call (0137)", () => {
+    const T = FILES.find((f) => /^\d{4}_pm_recorders_off\.sql$/.test(f)) ?? '';
+    expect(T).not.toBe('');
+    const listBefore = replayList(sqlsOf(FILES.filter((f) => f < T))), listAfter = replayList(sqlsOf(FILES.filter((f) => f <= T)));
+    const OFF = ['agents?action=pmrec', 'agents?action=pmrec-meta', 'agents?action=views'];
+    const KEPT = [
+      'agents?action=grokpmrec', 'grokpm?action=sync&forceFunctionRegion=eu-west-1', 'grokpm?action=redeem&forceFunctionRegion=eu-west-1',
+      'agents?action=pmlp&forceFunctionRegion=eu-west-1', 'agents?action=pmlpreserve',
+    ];
+    // Each was on, and is off after; nothing else of the list moves (no row added, deleted or otherwise changed).
+    expect(OFF.map((p) => listBefore.find((r) => r.path === p)?.enabled)).toEqual(OFF.map(() => true));
+    expect(listAfter).toEqual(listBefore.map((r) => (OFF.includes(r.path) ? { ...r, enabled: false } : r)));
+    expect(KEPT.map((p) => listAfter.find((r) => r.path === p)?.enabled)).toEqual(KEPT.map(() => true));
+    // One job leaves, pm-rec's prune, which calls nothing; every other job stays as it was.
+    const jobsBefore = cronJobs(FILES.filter((f) => f < T)), jobsAfter = cronJobs(FILES.filter((f) => f <= T));
+    expect(jobsBefore.get('pm-rec-prune')?.command).toContain('delete from public.pm_rec_frames');
+    expect([...jobsBefore.keys()].filter((n) => !jobsAfter.has(n))).toEqual(['pm-rec-prune']);
+    expect([...jobsAfter.keys()].filter((n) => !jobsBefore.has(n))).toEqual([]);
+    for (const [n, j] of jobsAfter) expect([n, j]).toEqual([n, jobsBefore.get(n)]);
+    // It writes `enabled = false` on the list and nothing else: no insert, delete, drop, truncate or other update.
+    const sql = fs.readFileSync(path.join(DIR, T), 'utf8').replace(/--[^\n]*/g, '');
+    expect(sql).not.toMatch(/\b(insert|delete|truncate|drop|alter|create)\b/i);
+    expect(count(sql, 'update ')).toBe(1);
+    expect(norm(sql)).toMatch(/^set lock_timeout = '3s'; update public\.edge_calls set enabled = false where path in \([^)]*\); select cron\.unschedule\('pm-rec-prune'\); reset lock_timeout;$/);
+  });
+
   it("never cancels a migrations run in flight: a newer push's run waits for it (review D1)", () => {
     const yml = fs.readFileSync(path.join(ROOT, '.github/workflows/migrations.yml'), 'utf8');
     expect(yml).toMatch(/^concurrency:\n {2}group: \$\{\{ github\.workflow \}\}-\$\{\{ github\.ref \}\}\n {2}cancel-in-progress: false$/m);
