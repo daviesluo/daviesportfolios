@@ -373,6 +373,18 @@ CLOB's history (a mid-like price per five minutes), not executable books.
   round read the price and the vote count together, so its p was not formed before its m as D7 requires. Each market's
   first counted forecast is then its next one (for both of those markets, the 17:35 UTC wake's). Nothing about the rules,
   the categories, §6's reading, its bar or its end changes (the zero-trades review's §10).
+- **D10 (2026-10-23, after the start; no migration; a reading's column added, no rule changed).** Davies, 2026-10-23:
+  "同意，按你的建议做", on the rules study (`reviews/2026-10-23-grokpm-rules-study.md`). In its first six days the agent sent no
+  order. Every shadow forecast that cleared its category's bar on p − m (19 rows in 4 markets, 2026-10-20 16:58 to
+  10-23 04:45 UTC) stood in a book §2 forbids as thin. In the three of them that resolved, the market had last traded
+  at 0.97 or more before the forecast: the agent's m was the midpoint of an emptied book, not a price anyone would sell
+  at. On the 4 resolved forecasts, Brier against m was 0.0019 for the agent and 0.1270 for the market; against the
+  market's last trade, 0.0004. The rules stay as frozen. D7's secondary reading adds a second market reference beside
+  m: the market's last trade of the forecast token before each counted forecast (the data API's taker trades, keyless;
+  a trade of the other outcome at q counts as 1 − q). It is scored the same way (Brier, log loss, and §6.2's paired
+  bootstrap) and reported beside the m column, which stays as D7 defined it. Each counted forecast whose book was
+  one-sided or wider than 5 points is marked. It is not a bar: continuing still needs §6's two conditions on real
+  entries. Nothing about the categories, the rules, §6's reading, its bar or its end changes.
 
 ## Appendix A: the journal API (paste into the prompt)
 

@@ -587,8 +587,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      zero-trades review's §10 and as the prereg's §9 D9, after #245's D8 (sha chain 0cfc80c8 → D9's).
    - **Rules study, 10-23** (`reviews/2026-10-23-grokpm-rules-study.md`): the bars are not what binds. Every gap was an
      emptied, thin book the market had already settled, and no looser rule fills. **Decided 10-23** (Davies: "同意，按你的
-     建议做"): rules kept; C-004 posted on the desk ledger (`6144d1d0`). **D10 still to write into §9** after D8 (#245) and
-     D9, neither in the file yet; the text is the review's §7, and the pin moves with it.
+     建议做"): rules kept; C-004 posted on the desk ledger (`6144d1d0`); D10 is §9's D10, the review's §7 word for word,
+     after D8 and D9 (sha chain 0cfc80c8 → c5c663f3 → D10's).
    - **C-005 posted 10-24** (Davies: "同意"; desk ledger `33f674ac`): far B markets chosen by title before any price. **Optimisation
      review, 10-24** (`reviews/2026-10-24-grokpm-optimisation.md`): F1–F4 fixed and pinned (forecast outcomes, `0138`'s last
      trades and books, busy retries, market-read ids), F5 the D7/D10 reading's SQL. **After the push:** read
@@ -754,6 +754,10 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
   - C-006 is on the desk ledger. The push redeploys `grokpm` and `agents`; there is no migration.
   - Interim, 19 resolved: Brier agent 0.0242, m 0.0546, last trade 0.0241.
   - Ledger: the 2026-10-24 07:40 and 09:48 UTC sections moved to the archive.
+
+### [2026-10-23 19:15 UTC] Platform: Claude Code via Grok Bot | Model: claude-opus-5-5
+- **GROKPM D10 in the pre-registration's §9** (the 10-23 audit; local, not pushed): the rules study's §7 text, dated
+  10-23 with Davies' "同意，按你的建议做", after D8 (#245) and D9; the pin moves. Rules, §6's reading and its bar unchanged.
 
 ### [2026-10-22 00:52 UTC] Platform: Muse | Model: muse-wonder-full-1.0
 - **GROKPM D8 in §9** (PR #245 rebased to 2ccc2b69; not deployed).
