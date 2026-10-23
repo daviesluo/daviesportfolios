@@ -3251,6 +3251,36 @@ Read 2026-10-23 (`reviews/2026-10-23-lp-reads.md`, not blind; the live account's
 - **Not run:** LP-RULES' near-end and 3N/5N re-reads (never pre-registered, and moot). The readings `0120` withdrew stay
   withdrawn.
 
+### 3.48 GROKPM's rules after six days: not too strict; the gaps were empty books the market had already settled (2026-10-23)
+
+Read 2026-10-23 (`reviews/2026-10-23-grokpm-rules-study.md`, `backtests/grokpm_rules/`, not blind), on Davies' "是不是规则太严格了".
+
+- **The record.** From the go (10-17 02:39 UTC) to 10-23 04:45 UTC there were 291 cycles and 567 decisions, every one
+  `no_action`, and 0 orders.
+  - From D7's start (10-20 16:58 UTC) the agent journalled 274 counted shadow forecasts in 10 markets; 238 of them are
+    two Alberta markets re-priced every 30 minutes.
+- **The funnel.** 19 rows in 4 markets clear their category's bar on p − m, and all 19 are in thin books, so the server
+  refuses them (`thin`).
+  - Every row with a gap of 5 points or more is thin, so lowering the bars adds no order while `thin` stands.
+  - No other gate was reached.
+- **Why the books were thin.** In the three A markets that resolved (Tesla's EPS beat, the 21-Oct earthquake bracket,
+  the 22-Oct gas price), the market's last trade before the agent's forecast was 0.999, 0.970 and 0.983.
+  - The "gap" was to the midpoint of a stale bid and an ask at 0.99 or 1.00.
+  - The market had priced the confirmations 25 minutes to 9 hours before the agent first looked.
+- **The candidates.** Seven candidate rule sets were filled from the public tape: lower bars (A 6/B 10, A 5/B 8), thin
+  allowed for A, and thin allowed at $2 or at $10.
+  - They place 0 to 6 bids in 2.49 days, and none fills.
+  - Looser B bars lost on every resolved case in the first review (B 10: 2 of 2; B 8: 3 of 3).
+- **Scores, on 4 resolved forecasts (all YES at p ≥ 0.93).**
+  - Brier: agent 0.0019, the agent's m 0.1270, the market's last trade 0.0004.
+  - D7's reading as written credits the agent with what the market already knew.
+- **Proposed, for Davies' word only.**
+  - Keep every rule.
+  - D10: D7's reading adds the last trade as a second market reference and marks thin-book forecasts.
+  - C-004 for Grok: the edge of a post-only bid is measured against max(bid, mid), not the ask; B research over the
+    whole 30-day window; one shadow row a market a full scan unless p or the price moves.
+  - Expected trades: 0–1 a week, as now.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

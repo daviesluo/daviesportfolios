@@ -579,6 +579,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      2026-10-20 16:58 UTC (17:58 London); the 17:05 UTC wake's two rows (ids `2026-10-20T17:05Z-d7-*`) are left out, that
      round having read price and votes together, so each market's first counted forecast is 17:35 UTC's. Recorded in the
      zero-trades review's §10; the prereg's §9 gains it as D9 after #245's D8, so its sha chain stays one line.
+   - **Rules study, 10-23** (`reviews/2026-10-23-grokpm-rules-study.md`): the bars are not what binds. Every gap was an
+     emptied, thin book the market had already settled, and no looser rule fills. **Open for Davies:** keep the rules,
+     and say yes or no to D10 (the last trade beside m in D7's reading) and C-004 (the review's §7, texts ready).
    - **Automatic redemption (D6, `0128`, `grokpm/redeem.ts`; Davies: "加上吧 全部都自动化掉")**: hourly, one gasless relayed
      transaction for up to five of the shared account's redeemable markets (pUSD back; losing tokens cleared), a dry run
      while `redeem_enabled` is false (its plan in `grokpm_exec_state.redeem_state`). **Davies does:** polymarket.com →
@@ -728,6 +731,19 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
 "LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20", and 2026-10-18 20:19 → 21:12 UTC under "LEDGER.md, archived 2026-10-21", and 2026-10-19 03:20 → 06:45 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-19 21:18 UTC → 2026-10-21 19:50 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-21 20:39 → 21:25 UTC under "LEDGER.md, archived 2026-10-22", and the audits of 2026-10-20 19:25 and 2026-10-21 19:17 UTC under "LEDGER.md, archived 2026-10-22 (second)", and PR #242's 2026-10-15 → 10-16 sections under "LEDGER.md, archived 2026-10-22 (third)", and PR #244's 2026-10-20 03:44 UTC section under "LEDGER.md, archived 2026-10-22 (fourth)", with 2026-10-21 22:51 and 23:05 UTC, and 2026-10-21 21:43 → 22:42 UTC under "LEDGER.md, archived 2026-10-23", and 2026-10-22 00:35 UTC under "LEDGER.md, archived 2026-10-23 (second)"; each oldest first.
+
+### [2026-10-23 04:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM rules study** (sub-agent; not pushed; Davies, 10-23: "一整周了一单都没下…是不是规则太严格了";
+  `reviews/2026-10-23-grokpm-rules-study.md`, `backtests/grokpm_rules/`, reference §3.48; read-only SQL, not blind).
+  - **Not too strict.** 0 orders in 567 decisions since the go. Of 274 shadow forecasts, 19 rows in 4 markets cleared
+    their bar on p − m, and all 19 were in thin books.
+  - In the 3 that resolved, the last trade was already 0.97–0.999: the gaps were to the midpoints of emptied books.
+  - 7 candidate rule sets (lower bars, thin allowed for A, at $2 or $10) place 0–6 bids in 2.49 days; none fills on the
+    tape.
+  - On 4 resolved forecasts, Brier: agent 0.0019, its m 0.1270, last trade 0.0004.
+  - **Proposed, Davies decides:** keep every rule; D10 adds the last trade to D7's reading; C-004 for Grok (edge
+    against max(bid, mid) not the ask, B over 30 days, fewer repeat rows). Neither is applied, and the desk ledger is
+    untouched.
 
 ### [2026-10-23 02:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **No second redaction pass and no history purge** (sub-agent; not pushed; Davies, 10-23, on masking real amounts in the

@@ -1,0 +1,20 @@
+{
+ "study": "GROKPM rules study (2026-10-23): the funnel of the D7 shadow forecasts, their scores against the agent's m and the market's last trade, and seven candidate rule sets filled from the public tape",
+ "review": "docs/agents/reviews/2026-10-23-grokpm-rules-study.md",
+ "not_blind": "no-peek rules cancelled 2026-10-04; every row was read as it stood",
+ "window": "D7 shadow forecasts 2026-10-20 16:58 UTC to 2026-10-23 04:45 UTC; public record read 2026-10-23 04:48:51 UTC",
+ "public_reads": "Gamma /markets?condition_ids=, the data API's /trades?market= (takerOnly true and false), the CLOB's /prices-history; keyless GETs only",
+ "run_order": [
+  "read-only SQL sql/shadow.sql through the Supabase connector; its output copied by hand to data/shadow.json",
+  "python3 -I docs/agents/backtests/grokpm_rules/scripts/fetch.py  (re-running pulls the public record again and can differ)",
+  "python3 -I docs/agents/backtests/grokpm_rules/scripts/study.py > docs/agents/backtests/grokpm_rules/results/study.txt"
+ ],
+ "sha256": {
+  "sql/shadow.sql": "7d726239f2c141775d5fab09f79010aa0c635c08cdb2f7b63b73d89f2a253bf7",
+  "scripts/fetch.py": "632c122eeaf8960ac050e2a6a2b532dab709c20665fe87f9c0e4609785a72ec3",
+  "scripts/study.py": "f39c1ec589b9119ef9790340e9f1a991ad628d8014bd2acf1e4f23fc535d2774",
+  "data/shadow.json": "f4ea660884968be6b58dc1bb8020b2f8944c4670d8e0334ebad96f2e845d8693",
+  "data/public.json.gz": "19b0e818670136d41db418f03b3fd7e52930e105e7696f19da634cbc772371e5",
+  "results/study.txt": "a5801dbe7693a05d5100282ebd35c5f958fb7b6cc575aabe0189c7a5bb484347"
+ }
+}

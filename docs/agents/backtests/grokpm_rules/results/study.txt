@@ -1,0 +1,51 @@
+GROKPM rules study: D7 shadow forecasts 2026-10-20T16:58:00Z to 2026-10-23T04:45:00Z (2.49 days); public record read 2026-10-23T04:48:51Z
+Not blind: every row was read as it stood.
+
+1. FUNNEL (rows, then markets)
+   shadow rows with p and m: 274 (238 on the two Alberta markets), markets: 10
+   market                          | cat | rows | max p-m | rows p-m >= bar | outcome | why no order (rows over the bar)
+   Alberta: Remain by 40-60 %      |  A  |  119 |    4.4  |               0 | open    | edge: p − m at most 4.4 points
+   Alberta: Leave wins a division  |  B  |  119 |    4.5  |               0 | open    | edge: p − m at most 4.5 points
+   Bank of Israel holds (Oct)      |  A  |    2 |   -1.4  |               0 | won     | edge (under the bar)
+   Tesla beats Q3 EPS              |  A  |    4 |   32.5  |               2 | won     | thin 2
+   Biggest quake 21 Oct 5.3-5.4    |  A  |   20 |   43.5  |              15 | won     | thin 15
+   US gas 22 Oct $4.270-4.2799     |  A  |    1 |   34.4  |               1 | won     | thin 1
+   UMich Oct final 43.0-45.9       |  B  |    2 |   15.0  |               1 | open    | thin 1
+   UMich Oct final 46.0-48.9       |  B  |    2 |    4.0  |               0 | open    | edge (under the bar)
+   HOOD low $95, week of 19 Oct    |  B  |    2 |   11.0  |               0 | open    | edge (under the bar)
+   Biggest quake 22 Oct >= 6.1     |  A  |    3 |    4.0  |               0 | open    | edge (under the bar)
+   rows over their category's bar on p − m: 19 in 4 markets; every one refused by `thin` (19 of 19); orders sent: 0
+
+2. THE GAPS: each market with a row over its bar, its first such row, and the tape from then to its close
+   Tesla beats Q3 EPS: first over the bar 10-21T20:27 p 0.98 m 0.655 book 0.31/none; last trade before it 10-21 20:08 at 0.999
+      a resting bid at 0.90 from then to the close: 0 taker fills; outcome 1.0
+   Biggest quake 21 Oct 5.3-5.4: first over the bar 10-22T08:08 p 0.93 m 0.501 book 0.012/0.99; last trade before it 10-22 01:27 at 0.970
+      a resting bid at 0.85 from then to the close: 0 taker fills; outcome 1.0
+   US gas 22 Oct $4.270-4.2799: first over the bar 10-22T12:14 p 0.97 m 0.6265 book 0.258/0.995; last trade before it 10-22 07:34 at 0.983
+      a resting bid at 0.89 from then to the close: 0 taker fills; outcome 1.0
+   UMich Oct final 43.0-45.9: first over the bar 10-22T20:27 p 0.37 m 0.22 book 0.03/0.41; last trade before it 10-22 18:37 at 0.390
+      a resting bid at 0.25 from then to the close: 0 taker fills; outcome None
+
+3. SCORES on resolved markets, each at its first counted shadow forecast (D7's rule)
+   market                          | p     | m (agent) | last trade | price history | y
+   Bank of Israel holds (Oct)      | 0.960 | 0.9775    | 0.983      | 0.974         | 1
+   Tesla beats Q3 EPS              | 0.980 | 0.6550    | 0.999      | 0.655         | 1
+   Biggest quake 21 Oct 5.3-5.4    | 0.930 | 0.5010    | 0.970      | 0.501         | 1
+   US gas 22 Oct $4.270-4.2799     | 0.970 | 0.6265    | 0.983      | 0.626         | 1
+   Brier on 4: agent 0.0019 against the agent's m (D7's reading) 0.1270
+   Brier on 4: agent 0.0019 against the last trade before the forecast 0.0004
+   Brier on 4: agent 0.0019 against the CLOB price history at the forecast 0.1271
+   log loss on 4: agent 0.0410, m 0.4012, last trade 0.0165
+   calibration: all 4 resolved forecasts were p 0.93-0.98 on a YES that paid 1; no forecast under 0.9 has resolved
+   resolved: 4 of 10 markets; open: Alberta: Remain by 40-60 %, Alberta: Leave wins a division, UMich Oct final 43.0-45.9, UMich Oct final 46.0-48.9, HOOD low $95, week of 19 Oct, Biggest quake 22 Oct >= 6.1
+
+4. CANDIDATE RULE SETS on every shadow row (one order a market, at its first passing row)
+   candidate                                         | orders | filled (rest) | filled (wake) | resolved fills | won | P&L per $1 | % of budget | worst
+   K0 current: A 8, B 12, thin forbidden             |      0 |             0 |             0 |              0 |   0 |     +0.000 |      +0.00% | +0.00%
+   K1 A 6, B 10, thin forbidden                      |      0 |             0 |             0 |              0 |   0 |     +0.000 |      +0.00% | +0.00%
+   K2 A 5, B 8, thin forbidden                       |      0 |             0 |             0 |              0 |   0 |     +0.000 |      +0.00% | +0.00%
+   K3 A 8, B 12, thin allowed for A (held to payout) |      4 |             0 |             0 |              0 |   0 |     +0.000 |      +0.00% | +0.00%
+   K4 A 8, B 12, thin allowed at $2 a market         |      5 |             0 |             0 |              0 |   0 |     +0.000 |      +0.00% | +0.00%
+   K5 A 5, B 8, thin allowed at $2 a market          |      6 |             0 |             0 |              0 |   0 |     +0.000 |      +0.00% | +0.00%
+   K6 A 5, B 8, thin allowed at $10 (no thin rule)   |      6 |             0 |             0 |              0 |   0 |     +0.000 |      +0.00% | +0.00%
+   per week: multiply the orders by 7 / 2.49 = 2.81
