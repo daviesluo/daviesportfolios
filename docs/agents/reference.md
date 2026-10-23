@@ -3230,7 +3230,7 @@ Read once after `pm_rw_days` closed 10-08 (`reviews/2026-10-09-polymarket-rw-pap
 - **Deviation named in advance:** RW stored 1,429 of 10-08's 1,440 minutes (the seven `:X0` minutes and four more), and
   19,800 of 20,160 in all.
 
-### 3.47 The 10-23 reads: live-prep's end rule does not trip, its 14-day readout waits for 10-27, LPRESEL6 not yet run (2026-10-23)
+### 3.47 The 10-23 reads: live-prep's end rule does not trip, its 14-day readout waits for 10-27, LPRESEL6 not run and withdrawn (2026-10-23)
 
 Read 2026-10-23 (`reviews/2026-10-23-lp-reads.md`, not blind; the live account's dollars masked).
 
@@ -3242,8 +3242,9 @@ Read 2026-10-23 (`reviews/2026-10-23-lp-reads.md`, not blind; the live account's
   - **Neither trips** the 0.20 bar.
 - **The 14-day readout and Addendum 19's bar** are not due until the restart's window ends, no earlier than 10-27 13:25 UTC.
   Davies either has them run then or withdraws them.
-- **LPRESEL6 stands and was not run.**
-  - Why: the signed-URL download of pm-rec's archive was refused by the session's permissions, and the 6.5 GB archive did
+- **LPRESEL6 was not run, and was withdrawn the same day** (`reviews/2026-10-23-lpresel6-withdrawn.md`, Davies: "选择你来决定吧",
+  the main session decided).
+  - Why it was not run: the signed-URL download of pm-rec's archive was refused by the session's permissions, and the 6.5 GB archive did
     not fit the machine's free disk.
   - What was read instead: the archive's index holds all 336 hours of each kind for 10-09 → 10-22, at 1,436–1,440 book
     minutes a day.
@@ -4109,7 +4110,7 @@ paper row's design.
   unchanged.
 - **Readings withdrawn**, each recorded in its pre-registration: RW-C's 10-23 verdict (RW-NEXT Part 2) and RW-X4/X5's
   Test 2 (`reviews/2026-10-02-polymarket-rw-rest-prereg.md`), TB1, RWC-OPT (its Addendum 2), mid-pool's 10-17 readout and
-  10-23 audit (and its funded draft). LPRESEL6 stands on pm-rec (its Deviation 1: the paper reproduction line is short).
+  10-23 audit (and its funded draft). LPRESEL6, which stood on pm-rec (its Deviation 1), was withdrawn on 10-23 (`reviews/2026-10-23-lpresel6-withdrawn.md`).
   POOLAGE (§3.44) read RW's round 1 only and is not touched.
 - **Saved** (production, 2026-10-12, one UTC day): 10,647 calls and as many beats and pg_net responses; about 114,500 rows
   (`pm_rwc_minutes` 41,917, `pm_midprep_minutes` 51,796, `pm_mid_minutes` 11,504, `pm_mid_orders` 4,038, `pm_prog_reads`
@@ -4120,7 +4121,7 @@ paper row's design.
 Davies asked on 2026-10-18, "还是你觉得删了更好" (or do you think deleting them is better), and the main session decided to
 delete them. GROKPM keeps its own keyless record (`agents?action=grokpmrec`), which holds everything its reading needs.
 Live-prep has been disarmed since `0125`. LPRESEL6 needed pm-rec only to 10-23 00:00, and the archive holds that whole
-window.
+window; LPRESEL6 itself was withdrawn the same day (`reviews/2026-10-23-lpresel6-withdrawn.md`).
 
 - **Off** (`enabled = false`): `pmrec` and `pmrec-meta` (item 55) and `views`, the view-count recorder (item 38). The view
   recorder's study was never pre-registered.

@@ -418,8 +418,8 @@ All times are UTC.
 | 10-13 | LP-RULES item 1: capital held by carried stock | `docs/agents/reviews/2026-10-11-lp-rules-audit.md` lists its triggers and three options. Report which trigger fired. Propose only |
 | **10-16 ≥ 01:00** | **7-day end-rule read** (R < 0.20 stops live-prep for good) | Run `docs/agents/backtests/pmlp/lp_readout_a18.sql` read-only (NEVER the frozen `lp_readout.sql`). Report R. Above 0.20 = continue. At or below 0.20: STOP, tell Davies, change nothing |
 | 10-16 | LP-CAPDEEP: release $40 of the $80 cap buffer? | Release only if all three hold: (1) the buy budget still binds in most minutes of 10-13 → 10-15; (2) buys at ranks 5+ have not lost money at 6 h; (3) stop room ≥ $100. Report; Davies decides |
-| 10-22 / 10-23 | LPRESEL6 reading (10-09 → 10-22); TB1 C1; near-end inventory; 3N vs 5N; RW-C Part 3 bar (on or after 10-23 00:05); the 14-day readout (with `lp_readout_a18.sql`) | Pre-registered readings. Run each as its file says, and say it was not blind. These are heavier: if unsure, record them in the ledger for Claude Code |
-| After LPRESEL6 | Turn off the live-prep paper layer's calls | Needs a migration. Leave it for Claude Code; write it in the ledger |
+| 10-22 / 10-23 | LPRESEL6 reading (withdrawn 10-23); TB1 C1; near-end inventory; 3N vs 5N; RW-C Part 3 bar (on or after 10-23 00:05); the 14-day readout (with `lp_readout_a18.sql`) | Pre-registered readings. Run each as its file says, and say it was not blind. These are heavier: if unsure, record them in the ledger for Claude Code |
+| After LPRESEL6 | Turn off the live-prep paper layer's calls | Done: `0120` turned them off. Nothing left |
 | 11-08 | "Stablecoin quotes with Euros" (Coinbase paper) window ends | Leave it for Claude Code |
 
 ## 9. Words you will meet

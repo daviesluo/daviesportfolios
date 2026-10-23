@@ -588,8 +588,8 @@ that follow from that evidence, in short:
   `pm-prog-refresh` is unscheduled; their tables, records and config rows stay (nothing arms). TESTING has no paper
   Reward quotes row and no Polymarket card, and the dashboard reads none of them (`agents/index.ts`). Withdrawn, each in
   its pre-registration: RW-C's 10-23 verdict and RW-X4/X5's Test 2 (`reviews/2026-10-02-polymarket-rw-rest-prereg.md`),
-  TB1, RWC-OPT, mid-pool's 10-17 readout and 10-23 audit (and its funded draft); LPRESEL6 stands on pm-rec, its paper
-  reproduction line short. What runs on Polymarket: live-prep live (`pmlp`, `pmlpreserve`) and pm-rec (`pmrec`,
+  TB1, RWC-OPT, mid-pool's 10-17 readout and 10-23 audit (and its funded draft); LPRESEL6 was withdrawn on 10-23
+  (`reviews/2026-10-23-lpresel6-withdrawn.md`). What runs on Polymarket: live-prep live (`pmlp`, `pmlpreserve`) and pm-rec (`pmrec`,
   `pmrec-meta`) until `0137` (2026-10-23) switched pm-rec and the view recorder off, their records kept. Where this file describes the paper paths running, it is their history. On 2026-10-20 their page code
   left the repository (Davies: tests and code built only for retired strategies go): the dashboard's readers and
   summaries (`pmrw_view.ts`, `pm_prep_view.ts`), the programme factor's reader (`pm_prog.ts`, its `pmprog` route) and the

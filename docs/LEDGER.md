@@ -108,9 +108,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    意义？"; `0120`).** Off: `pmrwc`, `pmrwc-select`, `pmrwc-e`, `pmrwc-x`, mid-pool (`pmmid`, `pmmidprep`), live-prep's paper layer
    (`pmlpprep`) and `pmprog` (with the `pm-prog-refresh` cron). On: live-prep's live call and `pmlpreserve`, the recorder
    (`pmrec`, `pmrec-meta`; off with the view recorder and `pm-rec-prune` by `0137`, written 10-23, records kept). TESTING shows no Reward quotes row. Withdrawn, each noted in its pre-registration: RW-C's verdict,
-   RW-X4/X5's Test 2, TB1, RWC-OPT, mid-pool's readout and audit and its funded draft. LPRESEL6 still reads (pm-rec), with a
-   deviation note. **Davies' wakes:** `trig_01XwUUNT5yXL3pzHoyH4JLaG` (10-17) is moot; `trig_018MBeyZsWkLBmbMq9ta3GNf`
-   (10-23) fired: live-prep's 7-day read done, its 14-day readout not yet due, LPRESEL6 not run (below). Item 2's paragraphs on those tests are
+   RW-X4/X5's Test 2, TB1, RWC-OPT, mid-pool's readout and audit and its funded draft. LPRESEL6 was withdrawn 10-23 (history 10-23 02:10). **Davies' wakes:** `trig_01XwUUNT5yXL3pzHoyH4JLaG` (10-17) is moot; `trig_018MBeyZsWkLBmbMq9ta3GNf`
+   (10-23) fired: live-prep's 7-day read done, its 14-day readout not yet due, LPRESEL6 withdrawn. Item 2's paragraphs on those tests are
    history from here.
 
 1. **Closed: fp5's ranked list.**
@@ -121,13 +120,12 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      `65650793`, 15:02 UTC; Addendum 15, the reserve ranked once a day at 00:00, `rerankEveryMin` 5 → 1440, pushed
      10-11 on Davies' "同意" of 10-10 23:59, quoted in the addendum; its programmes still read every minute;
      no migration, `pm_live.ts` unchanged; Addendum 16, a carried market in a one-tick book rests its exit, and 17, the
-     caps fund whole markets in rank order on Davies' "按照你推荐的来" of 00:29 UTC 10-11, both pushed 10-11). Its paper layer's calls stay on until
-     LPRESEL6 has read 10-09 → 10-22 (then a migration turns them off); LPRESEL6's "live-prep's own selection" is now the
-     day's `pm_lp_markets` rows without `detail.refill`. Left for Davies: ranking on a rate that does not flip within the
+     caps fund whole markets in rank order on Davies' "按照你推荐的来" of 00:29 UTC 10-11, both pushed 10-11). Its paper layer's calls were turned off by
+     `0120`. Left for Davies: ranking on a rate that does not flip within the
      hour (not built).
    - **LP-RULES (10-11): no rule change today** (`reviews/2026-10-11-lp-rules-audit.md`). Reads it leaves: capital held
-     by carried stock over 10-11 → 10-13 (its triggers and three options for Davies are in the review); TB1, LPRESEL6,
-     near-end inventory and 3N/5N by 10-23.
+     by carried stock over 10-11 → 10-13 (its triggers and three options for Davies are in the review); TB1, near-end
+     inventory and 3N/5N by 10-23 (LPRESEL6 withdrawn).
    - **Addendum 18 (Davies 01:41 UTC 10-11: "同意，这些都按你推荐的来"), with the display fix before it: pushed 10-11
      by the main session** (LP-OBS-DEEP, LP-CAPDEEP). The end rule and 14-day readout read `backtests/pmlp/lp_readout_a18.sql`
      (10-09 like for like: R 0.7366 now, the frozen script 0.154); the 7-day read is on or after **10-16 01:00 UTC**. The
@@ -161,14 +159,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      (`detail.rewardByMarket`); void if either arm carries a `start` in
      `pm_rwc_x_state` or a day row is missing. TB1's health: both arms in `pm_rwc_x_state.state.arms`, `base` {}, no
      `start` after 10-09 00:05; x4 and x5 still written in both replays.
-   - **LPRESEL6** (`reviews/2026-10-09-lp-reselect6h-prereg.md`, frozen 2026-10-09 before any pm-rec data of 10-09 on was
-     read for design; `backtests/lpresel6/`, pinned by `src/lp_resel6_prereg.test.js`): live-prep's rule against it choosing
-     again every 6 h, offline on pm-rec's whole-universe record 10-09 → 10-23. **Read on or after 2026-10-23 00:05 UTC**
-     beside RWC-OPT: `sql/archive_urls.sql` → `scripts/fetch.py`, `sql/aux.sql`, `build.ts`, `run.ts`, `bar.py`; coverage
-     ≥ 90 % a day else void. Needs `pmrec`/`pmrec-meta` running to 10-23 00:00; the archive is never pruned.
-     **10-23: not run** (`reviews/2026-10-23-lp-reads.md`). The archive download was refused by the session's permissions,
-     and the 6.5 GB archive is more than the free disk. The index is complete: 336 hours of each kind, 1,436–1,440 book
-     minutes a day. **Needs** permission to download from Davies or the main session, then a run at `242596a1`.
+   - **LPRESEL6: withdrawn 2026-10-23** (`reviews/2026-10-23-lpresel6-withdrawn.md`; frozen at `242596a1`, its file untouched;
+     Davies: "选择你来决定吧", the main session decided). Archive and rows kept; nothing pending.
    - **RWC-OPT** (`reviews/2026-10-09-rwc-optimised-arms-prereg.md`, frozen 2026-10-08 before RW-C's first minute;
      scripts `backtests/rwc_opt/`, pinned by `src/rwc_opt_prereg.test.js`): offline replays of RW-C's record, C1 = live-prep's
      S2 + TB1's skip against S2 (primary), C3 = x1 + x2's pause + TB1's skip against x1, C2's exits reported. **Read on or
@@ -735,7 +727,14 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
-"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20", and 2026-10-18 20:19 → 21:12 UTC under "LEDGER.md, archived 2026-10-21", and 2026-10-19 03:20 → 06:45 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-19 21:18 UTC → 2026-10-21 19:50 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-21 20:39 → 21:25 UTC under "LEDGER.md, archived 2026-10-22", and the audits of 2026-10-20 19:25 and 2026-10-21 19:17 UTC under "LEDGER.md, archived 2026-10-22 (second)", and PR #242's 2026-10-15 → 10-16 sections under "LEDGER.md, archived 2026-10-22 (third)", and PR #244's 2026-10-20 03:44 UTC section under "LEDGER.md, archived 2026-10-22 (fourth)", with 2026-10-21 22:51 and 23:05 UTC, and 2026-10-21 21:43 → 22:42 UTC under "LEDGER.md, archived 2026-10-23"; each oldest first.
+"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20", and 2026-10-18 20:19 → 21:12 UTC under "LEDGER.md, archived 2026-10-21", and 2026-10-19 03:20 → 06:45 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-19 21:18 UTC → 2026-10-21 19:50 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-21 20:39 → 21:25 UTC under "LEDGER.md, archived 2026-10-22", and the audits of 2026-10-20 19:25 and 2026-10-21 19:17 UTC under "LEDGER.md, archived 2026-10-22 (second)", and PR #242's 2026-10-15 → 10-16 sections under "LEDGER.md, archived 2026-10-22 (third)", and PR #244's 2026-10-20 03:44 UTC section under "LEDGER.md, archived 2026-10-22 (fourth)", with 2026-10-21 22:51 and 23:05 UTC, and 2026-10-21 21:43 → 22:42 UTC under "LEDGER.md, archived 2026-10-23", and 2026-10-22 00:35 UTC under "LEDGER.md, archived 2026-10-23 (second)"; each oldest first.
+
+### [2026-10-23 02:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LPRESEL6 withdrawn** (sub-agent; not pushed; Davies, 10-23, asked to download the ~6.5 GB archive or withdraw: "选择你来决定吧";
+  the main session decided: withdraw). `reviews/2026-10-23-lpresel6-withdrawn.md` says why (Reward quotes closed, live-prep
+  disarmed since `0125`, recorders off by `0137`, no decision to change, 6.5 GB and 12 GB heap). Archive and rows kept; it
+  could run from `242596a1`. The frozen pre-registration is untouched. Reference §3.47, §4 item 62 and `docs/agents/CLAUDE.md`
+  say so; the 10-22 audit section went to the archive.
 
 ### [2026-10-23 01:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The Polymarket recorders retired, `0137`** (sub-agent; not pushed; Davies, 10-18, "还是你觉得删了更好", and the main
@@ -758,13 +757,3 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
     than the free disk. Its index is complete.
   - LP-RULES' near-end and 3N/5N re-reads were never pre-registered and are moot. The readings `0120` withdrew stay
     withdrawn. Ledger: the four 2026-10-21 21:43 → 22:42 UTC sections moved to the archive.
-
-### [2026-10-22 00:35 UTC] Platform: Claude Code via Grok Bot | Model: claude-opus-5-5
-- **Audit of 2026-10-22** (read-only; one read-only SQL of `grokpm_decisions`): `5074c6b0..4a36cb6f` (20 commits), one
-  author; CI green on every push. Deploys: `targets` (four times), `agents` (twice), and every function once with
-  `7e6de307` (`_shared/t212_tickers.ts`). Migrations `0134`–`0136` applied; next `0137`. Live paths: `quotes_live.ts`
-  gains only a twin-only type (`simFill`, the executor never reads it); `0136` adds the LIVE twin row (paper); PR5's
-  condition 5 reads 900 on Davies' word (the review's deviation 7). Every 10-21 history line's "not pushed" is out of date:
-  all landed by `4a36cb6f`. Davies, 10-22: D8 confirmed; D7 counts from 16:58 UTC without the 17:05 UTC wake (item 15,
-  the zero-trades review's §10); the desk ledger's 10 KB is 10,240 bytes. Masked a share count and GROKPM's cash in this
-  stack; this ledger's closed 10-21 sections and two audits to the archive.

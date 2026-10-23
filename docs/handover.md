@@ -46573,3 +46573,15 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   (API, else git refs, else raw branch URL), reads both files at that commit, validates whole (keys, types, dates, https,
   0.3–3× band, risks ≤120 chars/≤3), rebuilds BTC/VUAA rows on change; GET serves risks. Failure → baked copies, one
   `targets.hand` report. Push → page ≤ ~21 min (5 + 1 + client 15).
+
+## LEDGER.md, archived 2026-10-23 (second) — the 2026-10-22 00:35 UTC history section
+
+### [2026-10-22 00:35 UTC] Platform: Claude Code via Grok Bot | Model: claude-opus-5-5
+- **Audit of 2026-10-22** (read-only; one read-only SQL of `grokpm_decisions`): `5074c6b0..4a36cb6f` (20 commits), one
+  author; CI green on every push. Deploys: `targets` (four times), `agents` (twice), and every function once with
+  `7e6de307` (`_shared/t212_tickers.ts`). Migrations `0134`–`0136` applied; next `0137`. Live paths: `quotes_live.ts`
+  gains only a twin-only type (`simFill`, the executor never reads it); `0136` adds the LIVE twin row (paper); PR5's
+  condition 5 reads 900 on Davies' word (the review's deviation 7). Every 10-21 history line's "not pushed" is out of date:
+  all landed by `4a36cb6f`. Davies, 10-22: D8 confirmed; D7 counts from 16:58 UTC without the 17:05 UTC wake (item 15,
+  the zero-trades review's §10); the desk ledger's 10 KB is 10,240 bytes. Masked a share count and GROKPM's cash in this
+  stack; this ledger's closed 10-21 sections and two audits to the archive.
