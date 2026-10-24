@@ -46702,3 +46702,18 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   - Check 2: PR6's 8,341 and PR5's 8,192 trips, every field. Check 3: 18 pins, each failing on a broken copy.
     The hand-worked end to end passes 21 checks, check 5 included.
   - Ledger: the 2026-10-23 18:10 UTC section moved to the archive.
+
+## LEDGER.md, archived 2026-10-24 (sixth) — PRs #245 and #248's 2026-10-20 04:03 → 10-22 07:02 UTC sections, oldest first
+
+### [2026-10-20 04:03 UTC] Platform: Muse | Model: muse-wonder-full-1.0
+- **GROKPM proposed cumulative Kelly** (Davies: separate PR, Claude review, no merge/deploy). Held cost + resting buys +
+  the new buy now count against the smaller of ¼ Kelly × equity and $10 a market; coefficient unchanged; prereg §9 D8 added (Claude, per Davies 10-20). Nothing deployed.
+
+### [2026-10-22 00:52 UTC] Platform: Muse | Model: muse-wonder-full-1.0
+- **GROKPM D8 in §9** (PR #245 rebased to 2ccc2b69; not deployed).
+
+### [2026-10-22 06:40 UTC] Platform: Grok | Model: grok-4.7
+- **Errors box: four live faults stay their own lines** (`ops-error/noise.ts`; not merged, not deployed). `7ed60689` hid or folded a `trend-4h-live` order whose outcome is unknown, an hourly guard fault with no state word (dead-man beat, `agent_risk`, balances, a lease), `grokpm.redeem`, and an intermittent `agents.quotes_weekend` fault. `keptSeparate` shows each row at once and does not fold it into a count. Merging redeploys `ops-error`; do that before 2026-10-23 22:00 BST.
+
+### [2026-10-22 07:02 UTC] Platform: Grok | Model: grok-4.7
+- **Errors box: the same live fault is one line per hour** (`ops-error/noise.ts`; not merged, not deployed). A minute writer (`agents.quotes_weekend`, a `trend-4h-live` order whose outcome is unknown, `LEASE CLAIM FAILED`) was one line per row, sixty an hour. `boxLines` keys those rows by kind, class, the hour, the order or redeem ids and the normalized words, so the same fault in one hour is one line with a count and the latest time, and a different order or redeem stays its own line. Until `ops-error` deploys, item 3 still says read `ops_errors` itself, not the box. Merging redeploys `ops-error`; do that before 2026-10-23 22:00 BST.
