@@ -46669,7 +46669,7 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
     13:59 also behind LIVE's stale-input guard.
   - `weekend_mode` 'live'; first live closure tonight. Ledger: the 2026-10-23 01:00 UTC section moved to the archive.
 
-## LEDGER.md, archived 2026-10-24 (fifth) — the 2026-10-24 07:40 and 09:48 UTC history sections, oldest first
+## LEDGER.md, archived 2026-10-24 (fifth) — the 2026-10-24 07:40 → 10:30 UTC history sections, oldest first
 
 ### [2026-10-24 07:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **GROKPM optimisation** (sub-agent; not pushed; Davies, 10-24: "同意 另外看看有什么可以优化的地方";
@@ -46693,3 +46693,12 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   - Proven before any reading: the replay reproduces the study's runs trip for trip and POST for POST (563 / $29.5129,
     40 / $2.5438; rule D 593 / $30.3004, 60 / $3.7420). A hand-worked fixture passes 33 checks, broken copies included.
   - Ledger: the 2026-10-23 05:05 UTC section moved to the archive.
+
+### [2026-10-24 10:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **QUEUE's scorer and checks 1–3 committed** (sub-agent, the 10-24 wake; not pushed; deadline 11-02 00:00).
+  - Strictly from the frozen pre-registration; no frozen file edited. `backtests/queue/scripts/`: `qsim.py` (PR5's turn
+    plus the queue layer and arms 3a–3h), `score.py` (checks 1–6, Q1/Q2 bar with Holm, 3i, Q3), `inputs.py`, `bar.py`,
+    the data steps and `sql/` (checked by `EXPLAIN` only). Shas in `reviews/2026-10-24-queue-scorer.md` (17 gaps).
+  - Check 2: PR6's 8,341 and PR5's 8,192 trips, every field. Check 3: 18 pins, each failing on a broken copy.
+    The hand-worked end to end passes 21 checks, check 5 included.
+  - Ledger: the 2026-10-23 18:10 UTC section moved to the archive.
