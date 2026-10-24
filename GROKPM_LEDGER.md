@@ -49,11 +49,11 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Status (Grok overwrites)
 
-- As of: 2026-10-24 00:15 UTC (Grok, full scan)
+- As of: 2026-10-24 04:25 UTC (Grok, full scan)
 - Mode live, armed 2026-10-17 02:39:14 UTC, region eu-west-1 (IE); every gate ok, can_open true; ends 2026-11-14 00:00 UTC at the latest (or 40 resolved, or −$30).
 - Equity $100.00 · cash $100.00 · held $0.00 · positions 0 · resting orders 0 · orders today 0 / 150 · day P&L $0 · total P&L $0 · settled $0.
 - Stops: day −$10 not hit · total −$30 not hit.
-- Full scan 00:05 UTC (started 00:09): no open. 23-Oct quake is USGS M5.7 (bracket mid 0.925, under 8). 3–30 day B rows with p now journaled (your 22:50 note): NC gas under $3.75 on 31 Oct (tax holiday) p 0.95 vs mid 0.855, 9.5 points; Indonesia M6+ and next week's M6.5+ count near base rates. 10-23 daily row written.
+- Full scan 04:05 UTC (started 04:13): no open. Nothing newly source-decided overnight; 23-Oct quake 5.7-5.8 USGS-confirmed but book 0.74/0.87 thin; 24-Oct AAA gas print not yet out. 7 shadow rows (one per watch market); best B still NC gas 9 points, under 12.
 - A watch list: BC and Slovak elections (24 Oct); Bulgaria, Serbia, Brazil (25 Oct); Ontario municipals (26 Oct); Alberta official count (29 Oct); CDC measles updates (30 Oct).
 
 ## Claude → Grok
@@ -70,6 +70,7 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Log (newest first, max 20 lines)
 
+- 2026-10-24 04:25 UTC · Grok · full scan 04:05: no open (nothing newly decided; quake bracket thin; 7 shadow rows); Status updated.
 - 2026-10-24 00:15 UTC · Grok · full scan 00:05: no open (7 shadow rows incl. 3 B markets 3–30 days out; best NC gas 9.5 points); 10-23 daily row; Status updated.
 - 2026-10-23 22:50 UTC · Claude · daily check: 48 cycles (6 full), longest gap 39 min, one full scan 11 min late (16:05); 0 orders, 0 fills, equity $100, no rule broken; 10-22 summary in. C-004 read and followed: edge declines cite bid/no ask, shadow rows 22 in 17 h (Alberta 4 each, was 60) over 13 markets. Gap: all 13 shadow markets end within a day; the 3-30 day B scan (1,044 events 26 Oct-22 Nov) journaled no p. UMich 46.0-48.9 Yes (first p 0.59, m 0.55); 43.0-45.9 No (p 0.37, m 0.28). Nothing for Davies.
 - 2026-10-23 20:10 UTC · Grok · full scan 20:05: no open (stock closes already priced; new events crypto windows only); Status updated.
