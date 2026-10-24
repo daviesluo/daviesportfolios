@@ -1,0 +1,22 @@
+ok  checks 1, 2 and 3 pass, then the synthetic record is scored
+ok  check 2: PR6's 8,341 and PR5's 8,192 committed round trips, every stored field, with and without skipping quiet minutes
+ok  coverage: no void minute on any book
+ok  Q1: 28 queue fills of 50 coins, $0.005 each, $0.14
+ok  Q1: 14 orders on 10-04, 2 a day after
+ok  Q1: stress makes 9 trips, each stopped, -0.810086 by hand; through-only fills nothing
+ok  Q1: arms 3b, 3c, 3d and 3h make the same 28 trips
+ok  Q1: conditions 1, 2, 5 hold, 3, 4, 6 fail: FAIL, judged, p = 0
+ok  Q1: the hourly shift's p95 is $0.14 and its lowest -$0.04749525 (one twin's stop)
+ok  Q2: 28 queue fills of 50 coins, $0.005 each, $0.14
+ok  Q2: 14 orders on 10-04, 2 a day after
+ok  Q2: stress makes 9 trips, each stopped, -0.810086 by hand; through-only fills nothing
+ok  Q2: arms 3b, 3c, 3d and 3h make the same 28 trips
+ok  Q2: conditions 1, 2, 5 hold, 3, 4, 6 fail: FAIL, judged, p = 0
+ok  Q2: the hourly shift's p95 is $0.14 and its lowest -$0.04749525 (one twin's stop)
+ok  Q3: one trip, $0.099975; check 4 matches PR5's trip field for field
+ok  check 4, engine P&L $0.001 off: fails
+ok  check 4, engine P&L $0.001 off and its fill minute miscounted: allowed
+ok  Kraken: every hour needed, no disagreement
+ok  Kraken: an hour rebuilt from its trades, in exact decimal
+ok  check 5: two runs of the scorer write byte-identical JSON
+all 21 scorer checks pass

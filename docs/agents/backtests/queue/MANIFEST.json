@@ -1,0 +1,29 @@
+{
+ "what": "QUEUE's scorer and checks 1-3 (docs/agents/reviews/2026-09-28-queue-prereg.md), committed 2026-10-24, before the pre-registration's deadline (2026-11-02 00:00 UTC) and before the export; proven on synthetic data only. The note: docs/agents/reviews/2026-10-24-queue-scorer.md.",
+ "data_dir": "docs/agents/backtests/queue/reading/ (the reading session's choice of folder: the pre-registration names none)",
+ "run": [
+  "2026-11-02 00:05-19:59 UTC: python3 -I docs/agents/backtests/queue/scripts/pull_kraken.py <data>/kraken (the main pull)",
+  "after 2026-11-02 00:10 and before 2026-11-06 10:25 UTC: sql/book_pages.sql through the connector (A0, then A for each book and day, then B), each reply saved unread to <data>/pages/<BOOK>_<DAY>.json and <data>/pages/count.json; python3 -I docs/agents/backtests/queue/scripts/decode_pages.py <data>",
+  "after 2026-11-02 00:10 UTC: python3 -I docs/agents/backtests/queue/scripts/pull_tape.py <data> (about 4 x 30 days of pages at 1.1 s a request)",
+  "after 2026-11-02 00:10 UTC: sql/pr5_records.sql through the connector, each reply cut by scripts/grab.py into <data>/pr5/, then gzip -n -9 <data>/pr5/*.txt",
+  "only if Kraken's hours miss one: python3 -I docs/agents/backtests/queue/scripts/pull_kraken.py trades <data>/kraken_trades",
+  "python3 -I docs/agents/backtests/queue/scripts/score.py --twice <data> <data>/../queue.json   (checks 1-3 first; check 5 in queue.json.check5.json)",
+  "the synthetic checks, before any of it: python3 -I docs/agents/backtests/queue/scripts/checks.py > check3.txt; python3 -I docs/agents/backtests/queue/scripts/test_score.py > test_score.txt (about 70 s)"
+ ],
+ "sha256": {
+  "docs/agents/backtests/queue/scripts/qsim.py": "552540b991a00dc345e3d3183dad8f5f6b596b61409319a1172a7053f585207c",
+  "docs/agents/backtests/queue/scripts/inputs.py": "f7a764f2df63bd7e7373d1bdcca80cc5073e7f85cd612d90c7df63d89ff46a77",
+  "docs/agents/backtests/queue/scripts/bar.py": "01218b613aa483850b17cb9a3001759523e79311cb40ba31409167085f131af2",
+  "docs/agents/backtests/queue/scripts/checks.py": "d9fdc6aa46fb515dd149016767ae1cf6fee015c606cfe2f43a645bb0cf0f94cf",
+  "docs/agents/backtests/queue/scripts/score.py": "9f8f805de3f83cc0472f2c3d8c5b5bd2c89f4cad796c1d5e798c37c11947990b",
+  "docs/agents/backtests/queue/scripts/test_score.py": "b20180000ca5e458100803741cc40fe8f0bbc1c393b2286082b0db7d26719bb9",
+  "docs/agents/backtests/queue/scripts/decode_pages.py": "23083633fdd0b623e2aed2ca3c829f30b2b9eb0bb5fc14585069cb55786bb8ad",
+  "docs/agents/backtests/queue/scripts/grab.py": "d2feca7334dd22cf489a8e852b854603f06032b3abd184a5fdd2182c57017f54",
+  "docs/agents/backtests/queue/scripts/pull_tape.py": "2795545026a2678a768832b4cce5882af316c1c1f68d4dcc5c29db713f480102",
+  "docs/agents/backtests/queue/scripts/pull_kraken.py": "3fc9c70cdee4702ffe605ecc813ea47cb60ff7f8fd9563b5215c345242e656ee",
+  "docs/agents/backtests/queue/sql/book_pages.sql": "290058dee8270f88f0f1db59eae1edf26dca26d24afd2eb9d20e1f56c4e45ff5",
+  "docs/agents/backtests/queue/sql/pr5_records.sql": "9ce94bebba7d02684f54a3a2d0be4427fbd812b18ff99f262ab9b7ee2651ed81",
+  "docs/agents/backtests/queue/check3.txt": "23591291b46dd4206682f42a4407939d9072be511eb57f623824401fceb27f2a",
+  "docs/agents/backtests/queue/test_score.txt": "693eebd02b74be634af863637d0fe1dcea4795188b21d37ebc61adb702c128e8"
+ }
+}

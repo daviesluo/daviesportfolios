@@ -46656,3 +46656,15 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
     The sub-agent does not edit a frozen file. The text is the review's §7, dated 2026-10-23 and quoting his words.
   - No reading script exists to carry the last-trade column yet (§6: written before the end).
   - Recorded in the review's §10 and reference §3.48. Ledger: the 2026-10-23 00:56 UTC section moved to the archive.
+
+## LEDGER.md, archived 2026-10-24 (fourth) — LIVE's take shadow read of 2026-10-23 18:10 UTC
+
+### [2026-10-23 18:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LIVE's take shadow read** after five weekdays (sub-agent, the 10-23 18:00 wake; not pushed; read-only SQL, not blind;
+  the live design's addendum log).
+  - 0 `take_shadow` events since 10-18 05:17. Fewer than two is not a fail, so `take_mode` stays 'shadow'. Next read
+    2026-10-30 18:00 UTC (scheduled), counting 10-23's closure.
+  - Criterion 3 PASS: 1,527 LIVE orders, none a take; the only IOC was a 24-hour stop.
+  - Variant-2's two takes (10-20 12:28 and 13:59, USDT ask) fell on LIVE rungs with frozen cancels (08:37 → 15:02), and at
+    13:59 also behind LIVE's stale-input guard.
+  - `weekend_mode` 'live'; first live closure tonight. Ledger: the 2026-10-23 01:00 UTC section moved to the archive.
