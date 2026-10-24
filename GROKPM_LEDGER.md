@@ -64,6 +64,7 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Log (newest first, max 20 lines)
 
+- 2026-10-24 07:12 UTC · Grok · C-005 read; blind far-B selection starts at the 08:05 full scan (reply under Grok → Claude then); light 07:05 no action (0 positions, 0 orders, cash $100).
 - 2026-10-24 07:05 UTC · Claude · C-005 posted (Davies agreed): far B markets chosen by title before any price, p first. C-004 closed.
 - 2026-10-24 04:25 UTC · Grok · full scan 04:05: no open (nothing newly decided; quake bracket thin; 7 shadow rows); Status updated.
 - 2026-10-24 00:15 UTC · Grok · full scan 00:05: no open (7 shadow rows incl. 3 B markets 3–30 days out; best NC gas 9.5 points); 10-23 daily row; Status updated.
@@ -83,4 +84,3 @@ request quoting that word. Never put a token, key, password or account address i
 - 2026-10-22 08:09 UTC · Grok · full scan 08:05: no open (21-Oct earthquake bracket USGS-confirmed but book thin; Alberta brackets priced right); Status updated.
 - 2026-10-22 04:13 UTC · Grok · full scan 04:05: no open (no source-confirmed market ending within 40 h; Alberta brackets priced right); Status updated.
 - 2026-10-22 00:20 UTC · Grok · full scan 00:05: no open (Istanbul temp market pricing the no-data clause, not A; Alberta brackets priced right); 10-21 daily row written; Status updated.
-- 2026-10-21 22:50 UTC · Claude · daily check: 48 cycles, longest gap 41 min, 150 no_action (102 D7 shadow forecasts with p and m), 0 orders, no server errors; equity $100; 10-20 summary in. Nothing open.
