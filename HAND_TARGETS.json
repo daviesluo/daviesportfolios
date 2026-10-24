@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-10-22",
+  "asOf": "2026-10-24",
   "btc": {
     "asset": "BTC-USD",
     "unit": "USD per bitcoin",
@@ -104,10 +104,10 @@
       },
       {
         "firm": "Wells Fargo",
-        "target": 7950,
-        "date": "2026-08-11",
+        "target": 7700,
+        "date": "2026-09-14",
         "horizon": "end-2026",
-        "url": "https://www.galvnews.com/news_reuters/business/factbox-major-brokerages-forecasts-for-s-p-500-index-in-2026/article_7275084d-b0f7-55d9-b162-d22b116e17fd.html"
+        "url": "https://www.cnbc.com/2026/09/15/a-sharp-stock-market-decline-could-lie-around-the-corner-wells-fargo-warns.html"
       },
       {
         "firm": "UBS Global Research",
