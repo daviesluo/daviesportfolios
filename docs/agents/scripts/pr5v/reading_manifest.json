@@ -1,0 +1,20 @@
+{
+ "what": "PR5V's and rule D's reading scripts, committed 2026-10-24 before their deadline (2026-10-27 00:00 UTC) and before either reading (on or after 2026-10-28 01:00 UTC); tested on synthetic data only. The note: docs/agents/reviews/2026-10-24-pr5v-ruled-reading-scripts.md.",
+ "run": [
+  "the reading session runs each statement of reading_pull.sql (reading_pull_ruled.sql), saves each reply, and cuts it with python3 -I docs/agents/scripts/pr5v/reading_grab.py <reply> docs/agents/backtests/pr5v/forward/data (ruled/data); gzip -n -9 data/*.txt",
+  "python3 -I docs/agents/scripts/pr5v/reading_pr5v.py   # docs/agents/backtests/pr5v/forward/reading.json",
+  "python3 -I docs/agents/scripts/pr5v/reading_ruled.py  # docs/agents/backtests/pr5v/ruled/reading.json",
+  "python3 -I docs/agents/scripts/pr5v/test_reading.py > docs/agents/backtests/pr5v/test_reading.txt   # the synthetic checks, about 30 s"
+ ],
+ "sha256": {
+  "docs/agents/scripts/pr5v/reading_common.py": "1b89c9d736bca5037df4fbc641e65684af8e98f2ef19bf0ed2513061d9073393",
+  "docs/agents/scripts/pr5v/reading_pr5v.py": "3e60421d8a1968bf61e8c0a2abe7b24e741de4596ee0a2a3021c708955ed52da",
+  "docs/agents/scripts/pr5v/reading_ruled.py": "2aff5328b41caf4e2fd810d17763d9dadf967f79ce3d7c154a2dc7ec8380c1d9",
+  "docs/agents/scripts/pr5v/reading_grab.py": "50188c51477e1f5ed45c7c3da5dadb61713ca7284339b194b8e1313cccf358b6",
+  "docs/agents/scripts/pr5v/reading_pull.sql": "1432aecca76a60fbce81434483fc342f55fd1cb682cc3314c245cd4decedb44a",
+  "docs/agents/scripts/pr5v/reading_pull_ruled.sql": "eff969d00c796e22a8d9c8f68d778894b40c9f5717703f7f869b7e55688963a5",
+  "docs/agents/scripts/pr5v/reading_fixture.py": "10e74846f0fc4cdf714660e0eb8711ad04e85bbd920b3842a3f0db3df730e4da",
+  "docs/agents/scripts/pr5v/test_reading.py": "d882a5ab3463a441eaa4d8b93e0818e2b8037df830a16d49a1c498df85df2908",
+  "docs/agents/backtests/pr5v/test_reading.txt": "1c9586d22d21b470c24cc9f42728874ae37b8c2566fad57b2162f9881a3664a4"
+ }
+}

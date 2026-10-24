@@ -1,0 +1,35 @@
+inputs loaded in 1.1s
+ok  PR5V: the reproduction check passes on the study's markets (563 / 29.5129, 40 / 2.5438) before any export is read
+ok  PR5V: the fixture's pages add up to its meta counts
+ok  PR5V: the window is 09-29 -> 10-26, 28 days
+ok  condition 1: 56 of 56 trips each way, P&L 2.451094 = 28 x (3/7997 + 4/7996) x 100
+ok  condition 2: every draw is 56 twins at 100/7999, p95 0.7001 under the window's 2.451094
+ok  condition 3: the daily difference is +0.0775 every day, p <= 0 = 0 (PR5's two $5 trips outside the window are not counted)
+ok  condition 4: stress fills only the 7997 bid, 28 trips, $1.050394
+ok  condition 5: at most 20 POSTs a key a day (USDC-GBP's bid key on 09-28), detail.n = the recount
+ok  PR5V: the fixture reads PASS
+ok  described: POSTs a key a day 11 / 9 / 9 / 9, and 18 on USDT-GBP's keys on 10-15 (all nine re-priced on the +0.04 % move)
+ok  described: the most POSTs at one turn, 9 (the re-placement after the dark minute)
+ok  described: the miscounted minute is listed, the rebuilt one counted
+ok  top5 (never judged): 28 trips at 4/7996, its stress fills nothing, its null 0.35
+ok  described: the days from PR5's first live order (10-10) apart: 11 before, 17 from
+ok  described: the gain over PR5 a day against the $0.526 line
+ok  broken: 4 engine trips gone -> 52 of 56 replay trips matched (92.9 %), condition 1 fails
+ok  broken: 895 POSTs before 10-10's placements -> the 4th to 9th placement at 10:06 had 900-905 before them: 6 violations, condition 5 fails
+ok  broken: the forged events' detail.n disagrees with the recount and is reported
+ok  broken: an export whose pages do not add up to its counts is refused
+ok  a missing minute while PR5's engine decided to E: the reading waits
+ok  §3: PR5's record stopping at 10-20 05:00 ends the window on 10-18 (E 10-20 00:30): 20 days, fewer than 21
+ok  the null: with E = N1 it is study.py's own (identical result); on the window every twin runs no step, p95 0
+ok  the null: with E = N1 it equals study.py's on the study's own markets (12 trips, 40 draws)
+ok  rule D: the reproduction check passes on the study's markets (593 / 30.3004, 60 / 3.742) before any export is read
+ok  rule D: the deviation check passes (v1 = PR5V's main, 56 of 56, daily difference 0)
+ok  rule D: conditions 1, 2, 4 and 5 pass on the fixture
+ok  rule D: arm d equal to variant-1 every day -> every resampled mean 0, p <= 0 = 1: condition 3 fails, the reading FAILs
+ok  rule D: on 10-15's +0.04 % move arm d re-prices k <= 0.10 % only (13 POSTs on the key), v1 all nine (18)
+ok  rule D: every window minute read Yahoo (deviation 2), no TrueFX row
+ok  rule D's replay: the rule reaches fastx_sim (8 re-prices on USDT-GBP at 10-15 12:00 against 18 without it; 60 trips each)
+ok  rule D: variant-1 $0.001 a trip worse (v1 with it) -> +$0.002 a day every day, p <= 0 = 0, condition 3 passes and the reading PASSes
+ok  broken: v1 $0.006 a trip off PR5V's main -> every trip still matches, but $0.012 a day >= $0.01: the deviation check fails, not judged
+ok  broken: 3 of v1's window trips gone -> 53 of 56 of PR5V's matched (94.6 %), not judged
+all 33 reading checks pass

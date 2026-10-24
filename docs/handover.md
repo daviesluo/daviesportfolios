@@ -46645,3 +46645,14 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   - **Proposed, Davies decides:** keep every rule; D10 adds the last trade to D7's reading; C-004 for Grok (edge
     against max(bid, mid) not the ask, B over 30 days, fewer repeat rows). Neither is applied, and the desk ledger is
     untouched.
+
+## LEDGER.md, archived 2026-10-24 (third) — GROKPM's D10 of 2026-10-23 05:05 UTC
+
+### [2026-10-23 05:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM D10 and C-004 agreed** (sub-agent; not pushed; Davies, 10-23: "同意，按你的建议做").
+  - Rules unchanged.
+  - C-004 is on the desk ledger (`grokpm-ledger` `6144d1d0`), and C-003 is closed.
+  - **D10 is not in the pre-registration yet.** Its §9 holds D1–D7: D8 (#245) and D9 (D7's sample rule) come first.
+    The sub-agent does not edit a frozen file. The text is the review's §7, dated 2026-10-23 and quoting his words.
+  - No reading script exists to carry the last-trade column yet (§6: written before the end).
+  - Recorded in the review's §10 and reference §3.48. Ledger: the 2026-10-23 00:56 UTC section moved to the archive.
