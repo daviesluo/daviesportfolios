@@ -49,11 +49,11 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Status (Grok overwrites)
 
-- As of: 2026-10-24 16:24 UTC (Grok, full scan)
+- As of: 2026-10-24 20:17 UTC (Grok, full scan)
 - Mode live, armed 2026-10-17 02:39:14 UTC, region eu-west-1 (IE); every gate ok, can_open true; ends 2026-11-14 00:00 UTC at the latest (or 40 resolved, or −$30).
 - Equity $100.00 · cash $100.00 · held $0.00 · positions 0 · resting orders 0 · orders today 0 / 150 · day P&L $0 · total P&L $0 · settled $0.
 - Stops: day −$10 not hit · total −$30 not hit.
-- Full scan 16:05 UTC (started 16:12): no open. USGS M5.8 Bouvet (15:24 UTC) makes 14 firm 5.5+ quakes 19–25 Oct, so 'more than 13' is met, but the book is already 0.965/0.97. SPC tornado-risk cities (24 Oct): no listed city in a 2% area, books 0.01/0.99 thin. Blind far pick (C-005): 5-year Treasury to hit 5.08% in October, No p 0.90 vs mid 0.815 (8.5 points, thin). 5 shadow rows.
+- Full scan 20:05 UTC (started 20:13): no open. New near events are short-dated crypto only; no new far events. Blind far pick (C-005): Chinook past Bonneville by 31 Oct, DART sum 581,603 through 23 Oct, so 575k Yes (p 0.99) and 585k No (p 0.93) both priced right. Watch markets (SpaceX <14, 5y Treasury, gas $4.30, 24-Oct quake) thin or no edge. 6 shadow rows.
 - A watch list: BC (results after 03:00 UTC 25 Oct) and Slovak elections (24 Oct); Bulgaria, Serbia, Brazil (25 Oct); Ontario municipals (26 Oct); Alberta official count (29 Oct); CDC measles updates (30 Oct).
 
 ## Claude → Grok
@@ -66,6 +66,7 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Log (newest first, max 20 lines)
 
+- 2026-10-24 20:17 UTC · Grok · full scan 20:05: no open (new events crypto only; Bonneville Chinook blind far pick priced right; 6 shadow rows); Status updated.
 - 2026-10-24 16:24 UTC · Grok · full scan 16:05: no open (5.5+ count over 13 now met but already priced; tornado-city books thin; 5y Treasury blind far pick under 12; 5 shadow rows); Status updated.
 - 2026-10-24 12:13 UTC · Grok · full scan 12:05: no open (24-Oct quake 6.1+ USGS-confirmed but book thin; Canada GDP blind far pick under 12 after August indicators; 13 shadow rows); Status updated.
 - 2026-10-24 08:25 UTC · Grok · full scan 08:05: no open; C-005 blind far-B selection started (2 rows, 2 dropped as contaminated); 10 shadow rows; Status updated.
@@ -85,4 +86,3 @@ request quoting that word. Never put a token, key, password or account address i
 - 2026-10-22 22:50 UTC · Claude · daily check: 48 cycles (6 full, 42 light), longest gap 44 min, all wakes 4-5 min after slot; 123 D7 shadow forecasts (7 markets, 17 with a 12-point gap, all unopened as thin books), 0 orders, 0 fills, journal fields complete; equity $100; no server errors; 10-21 summary in. Nothing open. Open question to Davies: D7 numbering clash (Grok's note).
 - 2026-10-22 20:28 UTC · Grok · full scan 20:05: no open (Hormuz 22-Oct strikes unconfirmed; Gamma now caps pages at 100, scan partial); Status updated.
 - 2026-10-22 16:14 UTC · Grok · full scan 16:05: no open (HOOD weekly low touch not Pyth-verifiable; UMich brackets no edge; Alberta brackets priced right); Status updated.
-- 2026-10-22 12:17 UTC · Grok · full scan 12:05: no open (22-Oct gas bracket AAA-confirmed but book thin; Alberta brackets priced right); Status updated.
