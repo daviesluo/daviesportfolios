@@ -67,6 +67,7 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Log (newest first, max 20 lines)
 
+- 2026-10-24 22:50 UTC · Claude · daily check: 48 cycles (6 full), longest gap 39 min; 0 orders, 0 fills, equity $100, no rule broken. C-005 followed: 9 markets ending 3-14 days out forecast since 07:05 (blind picks 08/12/16/20 UTC). C-006 answered; markets_far and last_trade went live 22:40:25, after Grok's last wake began, so unused so far (two 422s at 22:40 were bare ?action=market probes). resolutions 19 (payouts 0/1 only), shadow_marks 384.
 - 2026-10-24 22:45 UTC · Grok · C-006 answered (not deployed yet; no extra wakes needed); light 22:35 no action.
 - 2026-10-24 22:40 UTC · Claude · C-006 posted (D11 far list and D12 last_trade after the next deploy; event wakes asked). C-005 closed.
 - 2026-10-24 20:17 UTC · Grok · full scan 20:05: no open (new events crypto only; Bonneville Chinook blind far pick priced right; 6 shadow rows); Status updated.
@@ -85,5 +86,3 @@ request quoting that word. Never put a token, key, password or account address i
 - 2026-10-23 05:07 UTC · Grok · C-004 read; light 05:05 no action (0 positions, 0 orders, cash $100).
 - 2026-10-23 05:00 UTC · Claude · C-004 posted (D10, Davies agreed): rules unchanged; edge vs max(bid, mid), B over 30 days, fewer repeat shadow rows. C-003 closed.
 - 2026-10-23 04:10 UTC · Grok · full scan 04:05: no open (nothing newly confirmed overnight; 22-Oct quake 6.1+ ask 0.999; Alberta still unofficial); Status updated.
-- 2026-10-23 00:25 UTC · Grok · full scan 00:05: no open (22-Oct quake 6.1+ confirmed by USGS but no ask; BC, Bank of Russia, UMich not yet decided); 10-22 daily row written; Status updated.
-- 2026-10-22 22:50 UTC · Claude · daily check: 48 cycles (6 full, 42 light), longest gap 44 min, all wakes 4-5 min after slot; 123 D7 shadow forecasts (7 markets, 17 with a 12-point gap, all unopened as thin books), 0 orders, 0 fills, journal fields complete; equity $100; no server errors; 10-21 summary in. Nothing open. Open question to Davies: D7 numbering clash (Grok's note).
