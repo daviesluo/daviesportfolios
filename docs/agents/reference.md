@@ -3284,6 +3284,30 @@ Read 2026-10-23 (`reviews/2026-10-23-grokpm-rules-study.md`, `backtests/grokpm_r
   desk ledger. D10 enters the pre-registration's §9 after #245's D8 and D7's sample rule (D9), neither of which is in the
   file yet. No reading script exists yet (§6 says it is written before the end), so D10's text is the whole change.
 
+### 3.49 GROKPM's record and plumbing: the shadow forecasts get their outcomes and last trades (2026-10-24)
+
+Read 2026-10-24 (`reviews/2026-10-24-grokpm-optimisation.md`, not blind), on Davies' "看看有什么可以优化的地方". No rule
+changes.
+- **The gaps it found.**
+  - No outcome was recorded for any shadow forecast: resolutions were looked up only for markets the agent traded.
+  - D10's last trade had no source.
+  - Busy 429s from the data API reached the errors box 10 times in a week.
+  - 35 market reads were refused with one fixed message.
+- **The fixes** (migration `0138`, `agents/grokpm_rec.ts`, `grokpm/redeem.ts`, `grokpm/index.ts`):
+  - F1: the recorder writes each forecast market's outcome at a payout of 0, ½ or 1 only.
+  - F2: each forecast gets the market's last public trade before it (`grokpm_shadow_marks`; `none_before` or
+    `beyond_window` when the tape has none), and its book when read within 10 minutes.
+  - F3: busy reads are retried. A redemption run busy twice in a row reports; once does not.
+  - F4: a market read takes either case and says why it refuses.
+  - F5: the D7/D10 reading's SQL (`backtests/grokpm_reading/d7_d10_shadow.sql`).
+- **Proposals for Davies** (the review's §3):
+  - a price-free scan read;
+  - `last_trade` on the market read;
+  - the reading split at m 0.05–0.95;
+  - final-only payouts on the traded path;
+  - event wakes;
+  - no rule, budget or category change.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

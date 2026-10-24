@@ -31,6 +31,21 @@
 // hold yet, newest first and at most `GROKPM_MARKETS_PER_RUN`, is looked up on Gamma in two requests (its open markets and
 // its closed ones: Gamma answers one or the other) and written once. A failure is the run's error like any other read's;
 // the snapshot never waits on it.
+//
+// The shadow forecasts' scoring record (2026-10-24, the optimisation review `reviews/2026-10-24-grokpm-optimisation.md`;
+// Davies: "同意 另外看看有什么可以优化的地方"). D7's reading scores each shadow forecast (a journal row with p and m) on its
+// market's outcome, and D10 (2026-10-23) adds the market's last trade before the forecast beside m. Neither was recorded:
+// resolutions were looked up only for markets the agent traded, and nothing kept a last trade. Two reads, neither of
+// which any trading path or the agent's book reads:
+//   - every half hour, each market a forecast names that `grokpm_resolutions` does not hold is looked up on Gamma, and a
+//     market closed at a payout of 0, 1/2 or 1 is written there (a market closed at any other price waits for the next look);
+//   - each run, the forecasts not yet in `grokpm_shadow_marks` (0138), a few markets at once, newest first: one read of
+//     the market's public taker trades (data API, newest `GROKPM_SHADOW_TRADES`), and for each forecast the newest trade at
+//     or before its time, as the forecast token's price (a trade of the other outcome at q is 1 - q). When the page holds
+//     no trade that old it says which: the market had not traded (`none_before`) or the page ends after it
+//     (`beyond_window`), so a gap is never filled with a guess. Beside it, the token's best bid and ask from one public
+//     book read, kept only when the read is within `GROKPM_SHADOW_BOOK_LAG_MS` of the forecast (D10 marks a forecast
+//     whose book was one-sided or wider than 5 points). Written once.
 
 import type { Db } from "./db.ts";
 import { faultKey, reportDue } from "./pm_book_rec.ts";
@@ -49,8 +64,17 @@ export const GROKPM_ACTIVITY_PAGE = 500;
 export const GROKPM_RESOLVE_EVERY_MS = 30 * 60e3;
 /** Each read waits at most this long: four rounds of reads stay inside the call's 30 s. */
 export const GROKPM_TIMEOUT_MS = 6_000;
+/** A data-API read refused as busy (429 or a 5xx) is tried once more after this wait (the optimisation review's F3:
+ *  eight "activity → 429" lines in the errors box in six days, each gone by the next slot). */
+export const GROKPM_BUSY_RETRY_MS = 1_500;
 /** Market titles looked up a run at most: two Gamma requests (open and closed markets), fifty ids each at most. */
 export const GROKPM_MARKETS_PER_RUN = 20;
+/** Markets whose shadow forecasts get their last trade a run, at most: one data-API read each, all at once. */
+export const GROKPM_SHADOW_MARKETS_PER_RUN = 4;
+/** The taker trades one such read asks for (the data API's page: newest first). */
+export const GROKPM_SHADOW_TRADES = 1000;
+/** A forecast's book is kept only when read this soon after it: later, it is not the book the forecast saw. */
+export const GROKPM_SHADOW_BOOK_LAG_MS = 10 * 60e3;
 const HOSTS = new Set([new URL(PM_DATA).host, new URL(GROKPM_RPC).host, new URL(PM_GAMMA).host]);
 const COND = /^0x[0-9a-f]{64}$/;
 const UA = "daviesportfolios-grokpm-rec/1.0 (public data only)";
@@ -173,6 +197,61 @@ export function marketRow(m: Record<string, unknown>, now: number) {
   return { cond, question: q || null, slug, end_date: end, updated_at: new Date(now).toISOString() };
 }
 
+/** A forecast the scoring record reads: a journal row with both p and m. */
+export type GrokPmForecast = { id: string; ts: string; market_id: string | null; token_id: string | null; p: number | string | null; m: number | string | null };
+const isForecast = (d: GrokPmForecast) =>
+  d.p !== null && d.p !== undefined && d.m !== null && d.m !== undefined && !!d.token_id && COND.test(String(d.market_id ?? "").toLowerCase());
+
+/** The condition ids the forecasts name, lower case, once, newest first. */
+export function forecastMarkets(decisions: GrokPmForecast[]): string[] {
+  return [...new Set([...decisions].filter(isForecast).sort((a, b) => b.ts.localeCompare(a.ts)).map((d) => String(d.market_id).toLowerCase()))];
+}
+
+/** The forecasts not yet marked, grouped by market, the market of the newest such forecast first, at most `limit` markets. */
+export function pendingForecasts(decisions: GrokPmForecast[], marked: Set<string>, limit = GROKPM_SHADOW_MARKETS_PER_RUN): Map<string, GrokPmForecast[]> {
+  const out = new Map<string, GrokPmForecast[]>();
+  for (const d of [...decisions].filter((x) => isForecast(x) && !marked.has(x.id)).sort((a, b) => b.ts.localeCompare(a.ts) || b.id.localeCompare(a.id))) {
+    const c = String(d.market_id).toLowerCase();
+    if (!out.has(c) && out.size >= limit) continue;
+    out.set(c, [...(out.get(c) ?? []), d]);
+  }
+  return out;
+}
+
+/** A taker trade as the data API serves it, reduced to what the mark reads. */
+export type GrokPmTape = { asset: string; side: string; price: number; size: number; timestamp: number };
+
+/**
+ * The last trade at or before `atMs` on a market's tape (newest first, `full` when the page was full), as the price of
+ * `token`: a trade of the other outcome at q counts as 1 - q. Without one, why: the tape has nothing that old and the page
+ * was not full (`none_before`: the market had not traded), or it was (`beyond_window`: the trade, if any, is older than
+ * the page).
+ */
+export function lastTradeBefore(tape: GrokPmTape[], token: string, atMs: number, full: boolean) {
+  let best: GrokPmTape | null = null;
+  for (const t of tape) if (t.timestamp * 1000 <= atMs && Number.isFinite(t.price) && (!best || t.timestamp > best.timestamp)) best = t;
+  if (!best) return { status: full ? "beyond_window" : "none_before", price: null, trade_at: null, trade_asset: null, trade_side: null, trade_size: null };
+  return {
+    status: "found", price: r6(best.asset === token ? best.price : 1 - best.price), trade_at: new Date(best.timestamp * 1000).toISOString(),
+    trade_asset: best.asset, trade_side: best.side, trade_size: r6(best.size),
+  };
+}
+
+/** A forecast token's best bid and ask from `books`, only when read within `GROKPM_SHADOW_BOOK_LAG_MS` of the forecast. */
+export function touchOf(books: Map<string, { bids: Array<[number, number]>; asks: Array<[number, number]> }>, x: { ts: string; token_id: string | null }, now: number) {
+  const b = now - Date.parse(x.ts) <= GROKPM_SHADOW_BOOK_LAG_MS ? books.get(String(x.token_id)) : undefined;
+  return { book_bid: b?.bids[0]?.[0] ?? null, book_ask: b?.asks[0]?.[0] ?? null };
+}
+
+/** Gamma's answer for a market a forecast names, as a resolution row, only once it has closed at 0, 1/2 or 1. */
+export function forecastResolution(m: { cond: string; yes: string; no: string; closed: boolean; payout: number | null; closedTime: string | null }) {
+  if (!m.closed || m.payout === null || ![0, 0.5, 1].includes(m.payout)) return null;
+  return {
+    cond: m.cond.toLowerCase(), tokens: [m.yes, m.no], payouts: [m.payout, r6(1 - m.payout)],
+    closed_at: m.closedTime ? new Date(m.closedTime.replace(" ", "T").replace(/\+00$/, "Z")).toISOString() : null,
+  };
+}
+
 async function getJson(url: string, f: typeof fetch, body?: unknown): Promise<unknown> {
   const u = new URL(url);
   if (u.protocol !== "https:" || !HOSTS.has(u.host)) throw new Error(`grokpm: host not allowed: ${u.host}`);
@@ -184,6 +263,15 @@ async function getJson(url: string, f: typeof fetch, body?: unknown): Promise<un
   const text = await res.text();
   if (!res.ok) throw new Error(`${u.host}${u.pathname} → ${res.status} ${text.slice(0, 120)}`);
   try { return JSON.parse(text); } catch { throw new Error(`${u.host}${u.pathname} → not JSON`); }
+}
+
+/** `getJson`, tried once more after `GROKPM_BUSY_RETRY_MS` when the host answers 429 or a 5xx. */
+async function getJsonRetry(url: string, f: typeof fetch, sleep: (ms: number) => Promise<void>): Promise<unknown> {
+  try { return await getJson(url, f); } catch (e) {
+    if (!/ → (429|5\d\d)\b/.test((e as Error).message)) throw e;
+    await sleep(GROKPM_BUSY_RETRY_MS);
+    return await getJson(url, f);
+  }
 }
 
 /** The wallet's three stablecoin balances, by one public JSON-RPC batch of `balanceOf` calls. */
@@ -202,7 +290,11 @@ export async function readCash(wallet: string, f: typeof fetch): Promise<{ pusd:
   return out;
 }
 
-export type GrokPmRecReport = { skipped?: string; slot?: string; equity?: number; positions?: number; activity?: number; entries?: number; resolved?: number; markets?: number; started?: boolean; errors: string[]; report?: boolean };
+export type GrokPmRecReport = {
+  skipped?: string; slot?: string; equity?: number; positions?: number; activity?: number; entries?: number; resolved?: number; markets?: number; started?: boolean;
+  /** The forecasts' scoring record: markets whose outcome was written, and forecasts given their last trade. */
+  forecastResolved?: number; marked?: number; errors: string[]; report?: boolean;
+};
 
 /**
  * One run: nothing while the wallet is unset. Then the shared account's public activity, stored whole; and once the
@@ -210,18 +302,18 @@ export type GrokPmRecReport = { skipped?: string; slot?: string; equity?: number
  * told apart by the order path's fills), its holdings at the books' mids, the snapshot, new entries, and every half hour
  * the resolutions of the markets it traded. The wallet's balances are read for information; their failure stops nothing.
  */
-export async function runGrokPmRec(o: { db: Db; now: number; fetchImpl?: typeof fetch }): Promise<GrokPmRecReport> {
-  const f = o.fetchImpl ?? fetch, d = o.db;
+export async function runGrokPmRec(o: { db: Db; now: number; fetchImpl?: typeof fetch; sleep?: (ms: number) => Promise<void> }): Promise<GrokPmRecReport> {
+  const f = o.fetchImpl ?? fetch, d = o.db, sleep = o.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
   const cfg = (await d.select<GrokPmConfig>("grokpm_config", "id=eq.1&select=wallet,funded_usd,started_at"))[0];
   if (!cfg?.wallet) return { skipped: "no wallet configured", errors: [] };
   const w = cfg.wallet, slot = Math.floor(o.now / GROKPM_SLOT_MS) * GROKPM_SLOT_MS, bust = `_=${slot}`;
   const st = (await d.select<{ state: Record<string, unknown> | null; last_report: { key: string; at: number } | null }>("grokpm_rec_state", "id=eq.1&select=state,last_report"))[0];
-  const state = (st?.state ?? {}) as { lastResolveAt?: number };
+  const state = (st?.state ?? {}) as { lastResolveAt?: number; lastForecastResolveAt?: number };
   const errors: string[] = [];
   const report: GrokPmRecReport = { slot: new Date(slot).toISOString(), errors };
 
   try {
-    const raw = await getJson(`${PM_DATA}/activity?user=${w}&limit=${GROKPM_ACTIVITY_PAGE}&offset=0&${bust}`, f);
+    const raw = await getJsonRetry(`${PM_DATA}/activity?user=${w}&limit=${GROKPM_ACTIVITY_PAGE}&offset=0&${bust}`, f, sleep);
     if (!Array.isArray(raw)) throw new Error("activity: not a list");
     const rows = await Promise.all((raw as Array<Record<string, unknown>>).filter((x) => x && typeof x === "object").map(activityRow));
     if (rows.length) await d.upsert("grokpm_activity", rows, "key");
@@ -307,6 +399,51 @@ export async function runGrokPmRec(o: { db: Db; now: number; fetchImpl?: typeof 
       }
     } catch (e) { errors.push(`snapshot: ${(e as Error).message}`); }
   }
+
+  // The shadow forecasts' scoring record (see the header): their markets' outcomes, every half hour, and each forecast's
+  // last trade, a few markets a run, at once.
+  try {
+    const [decisions, marks, resolved] = await Promise.all([
+      d.select<GrokPmForecast>("grokpm_decisions", "select=id,ts,market_id,token_id,p,m&order=ts.desc,id.desc&limit=1000"),
+      d.select<{ decision_id: string }>("grokpm_shadow_marks", "select=decision_id&order=decision_id.asc&limit=5000"),
+      d.select<{ cond: string }>("grokpm_resolutions", "select=cond&order=cond.asc&limit=1000"),
+    ]);
+    const have = new Set(resolved.map((x) => x.cond));
+    const dueF = !state.lastForecastResolveAt || o.now - state.lastForecastResolveAt >= GROKPM_RESOLVE_EVERY_MS;
+    const conds = dueF ? forecastMarkets(decisions).filter((c) => !have.has(c)) : [];
+    const pending = pendingForecasts(decisions, new Set(marks.map((x) => x.decision_id)));
+    const fresh = [...pending.values()].flat().filter((x) => o.now - Date.parse(x.ts) <= GROKPM_SHADOW_BOOK_LAG_MS).map((x) => String(x.token_id));
+    const [ms, tapes, books] = await Promise.all([
+      conds.length ? pmMarkets(conds, true, { fetchImpl: f, timeoutMs: GROKPM_TIMEOUT_MS }) : Promise.resolve([]),
+      Promise.all([...pending.keys()].map(async (c) => {
+        try {
+          const raw = await getJsonRetry(`${PM_DATA}/trades?market=${c}&takerOnly=true&limit=${GROKPM_SHADOW_TRADES}&offset=0&${bust}`, f, sleep);
+          if (!Array.isArray(raw)) throw new Error("trades: not a list");
+          const tape = (raw as Array<Record<string, unknown>>).filter((t) => t && typeof t.asset === "string")
+            .map((t) => ({ asset: String(t.asset), side: String(t.side ?? ""), price: Number(t.price), size: num(t.size), timestamp: num(t.timestamp) }));
+          return { c, tape, full: raw.length >= GROKPM_SHADOW_TRADES };
+        } catch (e) { errors.push(`forecast trades: ${(e as Error).message}`); return null; }
+      })),
+      fresh.length ? pmBooks([...new Set(fresh)], { fetchImpl: f, timeoutMs: GROKPM_TIMEOUT_MS }).catch((e) => { errors.push(`forecast books: ${(e as Error).message}`); return new Map(); })
+        : Promise.resolve(new Map()),
+    ]);
+    const rows = ms.map(forecastResolution).filter((x): x is NonNullable<typeof x> => x !== null && conds.includes(x.cond));
+    if (rows.length) await d.upsert("grokpm_resolutions", rows, "cond");
+    if (dueF) state.lastForecastResolveAt = o.now;
+    report.forecastResolved = rows.length;
+    const now = new Date(o.now).toISOString(), out: Record<string, unknown>[] = [];
+    for (const t of tapes) {
+      if (!t) continue;
+      for (const x of pending.get(t.c) ?? []) {
+        out.push({
+          decision_id: x.id, market_id: t.c, token_id: String(x.token_id), decision_ts: new Date(Date.parse(x.ts)).toISOString(),
+          ...lastTradeBefore(t.tape, String(x.token_id), Date.parse(x.ts), t.full), ...touchOf(books, x, o.now), read_at: now,
+        });
+      }
+    }
+    if (out.length) await d.upsert("grokpm_shadow_marks", out, "decision_id");
+    report.marked = out.length;
+  } catch (e) { errors.push(`forecasts: ${(e as Error).message}`); }
 
   const key = faultKey(errors);
   const last = st?.last_report ?? null;

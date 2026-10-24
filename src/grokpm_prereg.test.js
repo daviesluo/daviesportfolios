@@ -18,6 +18,7 @@ const SQL = read('supabase/migrations/0124_grokpm.sql');
 const SQL2 = read('supabase/migrations/0125_grokpm_exec.sql');
 const SQL3 = read('supabase/migrations/0126_grokpm_markets.sql');
 const SQL4 = read('supabase/migrations/0128_grokpm_redeem.sql');
+const SQL5 = read('supabase/migrations/0138_grokpm_shadow_marks.sql');
 const INGEST = read('supabase/functions/grokpm/ingest.ts');
 const SCHEMA = read('supabase/functions/_shared/grokpm_schema.ts');
 
@@ -77,7 +78,7 @@ describe('GROKPM pre-registration', () => {
         return own ?? /^primary key \(([^)]*)\)/m.exec(lines.join('\n'))?.[1].replace(/\s+/g, '');
       })(),
     }));
-    const tables = [...creates(SQL), ...creates(SQL2), ...creates(SQL3), ...creates(SQL4)];
+    const tables = [...creates(SQL), ...creates(SQL2), ...creates(SQL3), ...creates(SQL4), ...creates(SQL5)];
     // 0125's added columns, in its order, after 0124's; then 0128's (D6: the redemption switch and its state).
     for (const m of (SQL2 + SQL4).matchAll(/alter table public\.(\w+) add column if not exists (\w+) /g)) {
       const t = tables.find((x) => x.name === m[1]);
@@ -85,7 +86,8 @@ describe('GROKPM pre-registration', () => {
       t.columns.push(m[2]);
     }
     expect(tables.map((t) => t.name)).toEqual(['grokpm_config', 'grokpm_decisions', 'grokpm_cycles', 'grokpm_daily', 'grokpm_requests', 'grokpm_snapshots', 'grokpm_activity',
-      'grokpm_entries', 'grokpm_resolutions', 'grokpm_rec_state', 'grokpm_orders', 'grokpm_fills', 'grokpm_exec_state', 'grokpm_markets', 'grokpm_redeems']);
+      'grokpm_entries', 'grokpm_resolutions', 'grokpm_rec_state', 'grokpm_orders', 'grokpm_fills', 'grokpm_exec_state', 'grokpm_markets', 'grokpm_redeems',
+      'grokpm_shadow_marks']);
     // The code's list has no table the migrations do not create.
     expect([...SCHEMA.matchAll(/^ {2}(grokpm_\w+): \{/gm)].map((m) => m[1]).sort()).toEqual(tables.map((t) => t.name).sort());
     for (const t of tables) {
@@ -93,9 +95,12 @@ describe('GROKPM pre-registration', () => {
       const cols = JSON.parse((/columns: (\[[^\]]*\])/.exec(block)?.[1] ?? 'null').replace(/,\s*\]/, ']'));
       const key = /key: "([\w,]+)"/.exec(block)?.[1];
       expect([t.name, cols, key]).toEqual([t.name, t.columns, t.key]);
-      expect(SQL + SQL2 + SQL3 + SQL4).toMatch(new RegExp(`alter table public\\.${t.name} +enable row level security;`));
+      expect(SQL + SQL2 + SQL3 + SQL4 + SQL5).toMatch(new RegExp(`alter table public\\.${t.name} +enable row level security;`));
     }
-    expect((SQL + SQL2 + SQL3 + SQL4).replace(/--[^\n]*/g, '')).not.toMatch(/\bgrant\b|create policy/i);
+    expect((SQL + SQL2 + SQL3 + SQL4 + SQL5).replace(/--[^\n]*/g, '')).not.toMatch(/\bgrant\b|create policy/i);
+    // 0138 (the optimisation review's F2): the shadow forecasts' last trades, a row a decision, a price only when one was found.
+    expect(SQL5).toContain("decision_id  text primary key references public.grokpm_decisions (id),");
+    expect(SQL5).toContain("check ((status = 'found') = (price is not null and trade_at is not null))");
     // 0128 (D6): redemption off by default; its go step is a comment, never a statement.
     expect(SQL4).toContain('add column if not exists redeem_enabled boolean not null default false;');
     expect(SQL4).toContain('--   update public.grokpm_config set redeem_enabled = true where id = 1 and redeem_enabled = false returning redeem_enabled;');

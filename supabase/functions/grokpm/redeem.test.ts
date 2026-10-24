@@ -94,10 +94,10 @@ function strictDb(seed: Record<string, Row[]>): Db & { tables: Record<string, Ro
     update: (t, q, p) => { try { check(t, p); } catch (e) { return Promise.reject(e); } return mem.update(t, q, p); },
   };
 }
-type Host = { calls: Array<{ method: string; url: string; body?: string; headers?: Record<string, string> }>; relayState: string; receipt: string | null; balances: Map<string, bigint>; positions: unknown[] };
+type Host = { calls: Array<{ method: string; url: string; body?: string; headers?: Record<string, string> }>; relayState: string; receipt: string | null; balances: Map<string, bigint>; positions: unknown[]; positionsStatus: number[] };
 function hosts(): Host & { fetch: typeof fetch } {
   const h: Host = {
-    calls: [], relayState: "STATE_NEW", receipt: null, balances: new Map([["501", 3_500_000n], ["502", 0n], ["601", 1_250_000n]]),
+    calls: [], relayState: "STATE_NEW", receipt: null, positionsStatus: [], balances: new Map([["501", 3_500_000n], ["502", 0n], ["601", 1_250_000n]]),
     positions: [
       pos(C_WIN, "501", { size: 3.5 }), pos(C_WIN, "502", { size: 20, curPrice: 0, outcomeIndex: 1 }), pos(C_NEG, "601", { size: 1.25, negativeRisk: true }),
     ],
@@ -106,7 +106,10 @@ function hosts(): Host & { fetch: typeof fetch } {
     const url = String(input), u = new URL(url), method = init?.method ?? "GET", body = typeof init?.body === "string" ? init.body : undefined;
     h.calls.push({ method, url, body, headers: init?.headers as Record<string, string> | undefined });
     const ok = (x: unknown) => Promise.resolve(new Response(JSON.stringify(x), { status: 200 }));
-    if (u.host === "data-api.polymarket.com") return ok(h.positions);
+    if (u.host === "data-api.polymarket.com") {
+      const st = h.positionsStatus.shift();
+      return st && st !== 200 ? Promise.resolve(new Response("Too Many Requests", { status: st })) : ok(h.positions);
+    }
     if (u.host === "gamma-api.polymarket.com") {
       const ids = u.searchParams.getAll("condition_ids");
       return ok({ markets: ids.map((c) => ({ conditionId: c, closed: true, negRisk: c === C_NEG, version: "v1" })) });
@@ -139,8 +142,10 @@ function setup(o: { enabled?: boolean; relayer?: boolean; pause?: boolean; relay
   const deps = (): RedeemDeps => ({
     db, now, region: "eu-west-1", fetchImpl: net.fetch, wallet: WALLET, eoa: PM_TEST_SIGNER, signer: new PmOrderKey(PM_TEST_KEY), keyProblem: null,
     relayer: o.relayer === false ? null : { key: "relayer-key-for-tests-0123456789", address: o.relayerAddress ?? PM_TEST_SIGNER },
+    sleep: (ms: number) => { waits.push(ms); return Promise.resolve(); },
   });
-  return { db, net, deps, at: (t: number) => { now = t; } };
+  const waits: number[] = [];
+  return { db, net, deps, waits, at: (t: number) => { now = t; } };
 }
 const writes = (net: Host) => net.calls.filter((c) => c.method === "POST" && c.url.startsWith("https://relayer-v2.polymarket.com/submit"));
 
@@ -267,4 +272,30 @@ Deno.test("the endpoint: redeem takes only the scheduler's bearer, beats first, 
   await handle(req("c".repeat(40)), deps("eu-west-1") as never);
   assertEquals([beats.every((k) => k === "grokpm?action=redeem"), reports], [true, ["grokpm.redeem"]]);
   assertEquals(writes(s.net).length, 0);
+});
+
+// The optimisation review's F3 (2026-10-24): the 10-23 14:00 UTC run's "redeemable positions unread: positions: 429".
+Deno.test("a busy positions read is tried again; one busy run plans nothing and says nothing; two in a row reach the errors box", async () => {
+  const s = setup({ enabled: false });
+  // 429 then 200: the retry reads the positions and the run plans as usual.
+  s.net.positionsStatus.push(429);
+  const ok1 = await runRedeem(s.deps());
+  assertEquals([ok1.errors, ok1.rateLimited, ok1.plan.length, s.waits], [[], undefined, 2, [2_000]]);
+  // Busy on all three tries: nothing planned, nothing sent, no error, the state says so.
+  s.waits.length = 0;
+  s.net.positionsStatus.push(429, 429, 503);
+  const busy1 = await runRedeem(s.deps());
+  assertEquals([busy1.errors, busy1.rateLimited, busy1.plan.length, writes(s.net).length, s.waits], [[], true, 0, 0, [2_000, 5_000]]);
+  assertEquals((s.db.tables.grokpm_exec_state[0].redeem_state as { rateLimited: boolean }).rateLimited, true);
+  // The next run busy too: now it is an error.
+  s.net.positionsStatus.push(429, 429, 429);
+  const busy2 = await runRedeem(s.deps());
+  assertEquals(busy2.errors, ["redeemable positions unread: positions: 429 after 3 tries, two runs running"]);
+  // And a run that reads them clears the flag.
+  const ok2 = await runRedeem(s.deps());
+  assertEquals([ok2.errors, (s.db.tables.grokpm_exec_state[0].redeem_state as { rateLimited: boolean }).rateLimited], [[], false]);
+  // A refusal that is not busy (a 404) is still the run's error at once, as before.
+  s.net.positionsStatus.push(404);
+  const nf = await runRedeem(s.deps());
+  assertEquals(nf.errors, ["redeemable positions unread: positions: 404"]);
 });

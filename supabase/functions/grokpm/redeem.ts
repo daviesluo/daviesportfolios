@@ -34,6 +34,11 @@
 // sends nothing. Enabled, it sends ONE relayed transaction carrying them all (one relay nonce a run, so a second
 // transaction never races the first), each market a row of `grokpm_redeems` written before the relayer is called.
 //
+// A busy data API (2026-10-23 14:00 UTC: "redeemable positions unread: positions: 429" in the errors box; the
+// optimisation review's F3). The positions read is tried again after `GROKPM_REDEEM.retryWaitsMs` when it answers 429 or
+// a 5xx. Still refused, the run plans and sends nothing (as before) and records `rateLimited`; the errors box hears of it
+// only when the previous run was refused too, so one busy minute an hour is not an alarm and two in a row are.
+//
 // The book. Nothing here writes a fill: GROKPM's book (`exec.ts` `ledgerOf`) counts its fills and the resolutions
 // (`grokpm_resolutions`), and the keyless record (`agents/grokpm_rec.ts` `agentBook`) counts TRADE activity matched to
 // those fills; a REDEEM activity item is neither, so a redemption changes neither figure. Pinned in redeem.test.ts.
@@ -74,6 +79,8 @@ export const GROKPM_REDEEM = {
   /** A market whose attempts failed this many times in a day waits for a person. */
   maxFailsDay: 3,
   timeoutMs: 8_000,
+  /** Waits before the positions read is tried again after a 429 or a 5xx: three tries in all, inside the call's 30 s. */
+  retryWaitsMs: [2_000, 5_000],
 } as const;
 
 // ── encoding (pinned against vectors computed independently, by viem, in redeem.test.ts) ─────────────────────────────
@@ -193,6 +200,8 @@ export type RedeemDeps = {
   wallet: string | null; eoa: string | null; signer: PmSigner | null; keyProblem: string | null;
   /** The Relayer API key and the address it belongs to; null when the secrets are not set. */
   relayer: { key: string; address: string } | null;
+  /** How a retry waits (a test passes one that does not). */
+  sleep?: (ms: number) => Promise<void>;
 };
 export type RedeemRow = {
   id: number; created_at: string; updated_at: string; cond: string; neg_risk: boolean; adapter: string; tokens: unknown; size: number | string; payout_usd: number | string;
@@ -202,6 +211,8 @@ export type RedeemReport = {
   mode: "dry_run" | "live"; settled: number; inFlight: number; plan: RedeemPlanItem[]; skipped: RedeemSkip[]; sent: boolean; relayId: string | null; errors: string[];
   /** What would stop a send now besides a redemption in flight (read in a dry run too): empty when enabling it would send. */
   blockedBy: string[];
+  /** The positions read was still refused as busy (429 or a 5xx) after its retries. */
+  rateLimited?: boolean;
 };
 
 /** A keyless (or relayer-keyed) JSON request to one of four hosts, with its time limit; the relayer key never in a message. */
@@ -214,6 +225,18 @@ async function call(d: RedeemDeps, url: string, init: RequestInit = {}): Promise
   try { body = text ? JSON.parse(text) : null; } catch { body = text.slice(0, 200); }
   return { status: res.status, body };
 }
+/** `call`, tried again after each of `GROKPM_REDEEM.retryWaitsMs` while it answers 429 or a 5xx. */
+async function callRetrying(d: RedeemDeps, url: string): Promise<{ status: number; body: unknown }> {
+  const wait = d.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
+  let r = await call(d, url);
+  for (const ms of GROKPM_REDEEM.retryWaitsMs) {
+    if (r.status !== 429 && r.status < 500) break;
+    await wait(ms);
+    r = await call(d, url);
+  }
+  return r;
+}
+const busy = (status: number) => status === 429 || status >= 500;
 const scrubbed = (d: RedeemDeps, s: string) => (d.relayer?.key ? s.split(d.relayer.key).join("[redacted]") : s).slice(0, 300);
 async function rpc(d: RedeemDeps, method: string, params: unknown[]): Promise<unknown> {
   const r = await call(d, PM_RPC, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }) });
@@ -229,6 +252,7 @@ export async function runRedeem(d: RedeemDeps): Promise<RedeemReport> {
   const cfg = (await db.select<{ redeem_enabled: boolean | null }>("grokpm_config", "id=eq.1&select=redeem_enabled"))[0];
   const enabled = cfg?.redeem_enabled === true;
   const report: RedeemReport = { mode: enabled ? "live" : "dry_run", settled: 0, inFlight: 0, plan: [], skipped: [], sent: false, relayId: null, errors, blockedBy: [] };
+  const before = (await db.select<{ redeem_state: { rateLimited?: boolean } | null }>("grokpm_exec_state", "id=eq.1&select=redeem_state").catch(() => []))[0]?.redeem_state ?? {};
 
   // 1. The attempts in flight: the relayer's state, then the receipt.
   const open = await db.select<RedeemRow>("grokpm_redeems", "status=in.(pending,submitted)&select=*&order=id.asc&limit=100");
@@ -265,7 +289,12 @@ export async function runRedeem(d: RedeemDeps): Promise<RedeemReport> {
   if (!d.wallet) { errors.push("no account wallet loaded"); return finish(d, report); }
   const wallet = d.wallet.toLowerCase();
   try {
-    const pos = await call(d, `${PM_DATA_API}/positions?user=${wallet}&redeemable=true&sizeThreshold=0&limit=500&_=${Math.floor(now / 60e3)}`);
+    const pos = await callRetrying(d, `${PM_DATA_API}/positions?user=${wallet}&redeemable=true&sizeThreshold=0&limit=500&_=${Math.floor(now / 60e3)}`);
+    if (busy(pos.status)) {
+      report.rateLimited = true;
+      if (before.rateLimited === true) errors.push(`redeemable positions unread: positions: ${pos.status} after ${GROKPM_REDEEM.retryWaitsMs.length + 1} tries, two runs running`);
+      return finish(d, report);
+    }
     if (pos.status !== 200 || !Array.isArray(pos.body)) throw new Error(`positions: ${pos.status}`);
     const positions = (pos.body as Array<Record<string, unknown>>).filter((x) => x && x.redeemable === true);
     const conds = [...new Set(positions.map((x) => String(x.conditionId ?? "").toLowerCase()).filter((c) => /^0x[0-9a-f]{64}$/.test(c)))];
@@ -344,7 +373,7 @@ async function finish(d: RedeemDeps, r: RedeemReport): Promise<RedeemReport> {
   const state = {
     at: new Date(d.now).toISOString(), mode: r.mode, sent: r.sent, relayId: r.relayId, inFlight: r.inFlight, blockedBy: r.blockedBy,
     plan: r.plan.map((x) => ({ cond: x.cond, title: x.title, negRisk: x.negRisk, size: x.size, payoutUsd: x.payoutUsd })),
-    skipped: r.skipped.slice(0, 30), errors: r.errors.slice(0, 10),
+    skipped: r.skipped.slice(0, 30), errors: r.errors.slice(0, 10), rateLimited: r.rateLimited === true,
   };
   await d.db.update("grokpm_exec_state", "id=eq.1", { redeem_state: state }).catch((e) => { r.errors.push(`state not written: ${(e as Error).message.slice(0, 120)}`); });
   return r;

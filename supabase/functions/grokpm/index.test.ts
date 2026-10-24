@@ -5,7 +5,7 @@
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import examples from "../../../docs/agents/backtests/grokpm/contract_examples.json" with { type: "json" };
 import { GROKPM_TABLES } from "../_shared/grokpm_schema.ts";
-import { handle, type IngestDb } from "./index.ts";
+import { handle, type IngestDb, marketQuery } from "./index.ts";
 import {
   GROKPM_MAX_BODY_BYTES, GROKPM_MAX_REQUESTS_PER_HOUR, GROKPM_MAX_ROWS_PER_HOUR, GROKPM_MAX_ROWS_PER_REQUEST, isAuthorised, rateVerdict, tableRows,
   validateBatch,
@@ -198,4 +198,18 @@ Deno.test("tableRows keeps each row as sent in raw, beside its typed columns", (
   assertEquals(t.grokpm_decisions[0].raw, DECISION);
   assertEquals(t.grokpm_cycles[0].raw, CYCLE);
   for (const [table, rows] of Object.entries(t)) for (const r of rows) for (const k of Object.keys(r)) assert(columnsOf(table).includes(k), `${table}.${k}`);
+});
+
+// The optimisation review's F4 (2026-10-24): a market read takes a condition id in either case, and a refusal says why.
+Deno.test("marketQuery: either case and spaces are taken; a refusal names what was wrong", () => {
+  const c = "0x" + "ab".repeat(32);
+  assertEquals(marketQuery(` ${c.toUpperCase().replace("0X", "0x")} `, null), { cond: c });
+  assertEquals(marketQuery(null, " 123 "), { token: "123" });
+  assertEquals(marketQuery(c, "123"), { cond: c });
+  const short = marketQuery(c.slice(0, -1), null) as { error: string };
+  assert(short.error.endsWith("because it has 63 hex digits, not 64"), short.error);
+  assert((marketQuery("will-x-happen", null) as { error: string }).error.includes("does not start with 0x"));
+  assert((marketQuery("0x" + "zz".repeat(32), null) as { error: string }).error.includes("not a hex digit"));
+  assert((marketQuery(null, "12a") as { error: string }).error.includes("not a decimal token id"));
+  assertEquals(marketQuery(null, null), { error: "cond (0x and 64 hex digits) or token (decimal) is required" });
 });

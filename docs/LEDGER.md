@@ -584,6 +584,10 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      emptied, thin book the market had already settled, and no looser rule fills. **Decided 10-23** (Davies: "同意，按你的
      建议做"): rules kept; C-004 posted on the desk ledger (`6144d1d0`). **D10 still to write into §9** after D8 (#245) and
      D9, neither in the file yet; the text is the review's §7, and the pin moves with it.
+   - **C-005 posted 10-24** (Davies: "同意"; desk ledger `33f674ac`): far B markets chosen by title before any price. **Optimisation
+     review, 10-24** (`reviews/2026-10-24-grokpm-optimisation.md`): F1–F4 fixed and pinned (forecast outcomes, `0138`'s last
+     trades and books, busy retries, market-read ids), F5 the D7/D10 reading's SQL. **After the push:** read
+     `grokpm_shadow_marks` and `grokpm_resolutions` filling. **Open for Davies:** the review's P1–P5 (no rule change proposed).
    - **Automatic redemption (D6, `0128`, `grokpm/redeem.ts`; Davies: "加上吧 全部都自动化掉")**: hourly, one gasless relayed
      transaction for up to five of the shared account's redeemable markets (pUSD back; losing tokens cleared), a dry run
      while `redeem_enabled` is false (its plan in `grokpm_exec_state.redeem_state`). **Davies does:** polymarket.com →
@@ -732,7 +736,19 @@ under "LEDGER.md, archived 2026-10-01", the 2026-09-30 → 10-08 16:52 UTC secti
 (second)", the 2026-10-09 00:10 → 02:46 UTC sections under "LEDGER.md, archived 2026-10-09 (third)", and the 2026-10-09
 03:20 → 22:53 UTC sections under "LEDGER.md, archived 2026-10-10", and the 2026-10-10 sections under "LEDGER.md,
 archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 2026-10-14", and the 2026-10-12 23:05 → 2026-10-13 03:02 UTC sections under
-"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20", and 2026-10-18 20:19 → 21:12 UTC under "LEDGER.md, archived 2026-10-21", and 2026-10-19 03:20 → 06:45 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-19 21:18 UTC → 2026-10-21 19:50 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-21 20:39 → 21:25 UTC under "LEDGER.md, archived 2026-10-22", and the audits of 2026-10-20 19:25 and 2026-10-21 19:17 UTC under "LEDGER.md, archived 2026-10-22 (second)", and PR #242's 2026-10-15 → 10-16 sections under "LEDGER.md, archived 2026-10-22 (third)", and PR #244's 2026-10-20 03:44 UTC section under "LEDGER.md, archived 2026-10-22 (fourth)", with 2026-10-21 22:51 and 23:05 UTC, and 2026-10-21 21:43 → 22:42 UTC under "LEDGER.md, archived 2026-10-23", and the audit of 2026-10-22 00:35 UTC under "LEDGER.md, archived 2026-10-23 (second)", and the 10-23 reads of 2026-10-23 00:56 UTC under "LEDGER.md, archived 2026-10-23 (third)", and the recorders' retirement of 2026-10-23 01:00 UTC under "LEDGER.md, archived 2026-10-23 (fourth)"; each oldest first.
+"LEDGER.md, archived 2026-10-15", and the rest of 2026-10-13 under "LEDGER.md, archived 2026-10-15 (second)", and the 2026-10-14 01:09 → 06:46 UTC sections under "LEDGER.md, archived 2026-10-15 (third)", and the rest of 2026-10-14 under "LEDGER.md, archived 2026-10-16", and the 2026-10-15 01:24 → 03:29 UTC sections under "LEDGER.md, archived 2026-10-17", and its 03:41 → 15:20 UTC sections under "LEDGER.md, archived 2026-10-17 (second)", and the rest of 2026-10-15 under "LEDGER.md, archived 2026-10-17 (third)", and the 2026-10-16 sections under "LEDGER.md, archived 2026-10-18", and the remaining sections up to 2026-10-17 02:41 UTC under "LEDGER.md, archived 2026-10-18 (second)", and the 2026-10-17 sections before 04:00 UTC still there under "LEDGER.md, archived 2026-10-18 (third)", and 2026-10-17 04:02 → 2026-10-18 03:29 UTC under "LEDGER.md, archived 2026-10-18 (fourth)", and 2026-10-18 03:30 → 04:19 UTC under "LEDGER.md, archived 2026-10-18 (fifth)", and 04:31 → 04:58 UTC under "LEDGER.md, archived 2026-10-18 (sixth)", and 05:08 → 06:30 UTC under "LEDGER.md, archived 2026-10-20", and 2026-10-18 20:19 → 21:12 UTC under "LEDGER.md, archived 2026-10-21", and 2026-10-19 03:20 → 06:45 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-19 21:18 UTC → 2026-10-21 19:50 UTC under "LEDGER.md, archived 2026-10-21 (second)", and 2026-10-21 20:39 → 21:25 UTC under "LEDGER.md, archived 2026-10-22", and the audits of 2026-10-20 19:25 and 2026-10-21 19:17 UTC under "LEDGER.md, archived 2026-10-22 (second)", and PR #242's 2026-10-15 → 10-16 sections under "LEDGER.md, archived 2026-10-22 (third)", and PR #244's 2026-10-20 03:44 UTC section under "LEDGER.md, archived 2026-10-22 (fourth)", with 2026-10-21 22:51 and 23:05 UTC, and 2026-10-21 21:43 → 22:42 UTC under "LEDGER.md, archived 2026-10-23", and the audit of 2026-10-22 00:35 UTC under "LEDGER.md, archived 2026-10-23 (second)", and the 10-23 reads of 2026-10-23 00:56 UTC under "LEDGER.md, archived 2026-10-23 (third)", and the recorders' retirement of 2026-10-23 01:00 UTC under "LEDGER.md, archived 2026-10-23 (fourth)", and 2026-10-23 02:10 → 02:30 UTC under "LEDGER.md, archived 2026-10-24", and the rules study of 2026-10-23 04:55 UTC under "LEDGER.md, archived 2026-10-24 (second)"; each oldest first.
+
+### [2026-10-24 07:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM optimisation** (sub-agent; not pushed; Davies, 10-24: "同意 另外看看有什么可以优化的地方";
+  `reviews/2026-10-24-grokpm-optimisation.md`, reference §3.49; no rule change, the frozen file untouched).
+  - C-005 is on the desk ledger (`33f674ac`). The fixes, each pinned:
+    - F1: the recorder writes the forecast markets' outcomes at 0, ½ or 1;
+    - F2: `0138`'s `grokpm_shadow_marks`, each forecast's last trade and its book when read within 10 minutes;
+    - F3: retries for busy 429s in the redemption and the recorder;
+    - F4: market-read ids in either case, with a reason on refusal;
+    - F5: `backtests/grokpm_reading/d7_d10_shadow.sql`.
+  - The push redeploys `agents` and `grokpm` and applies `0138`. P1–P5 are proposals for Davies.
+  - Ledger: the 2026-10-23 02:10, 02:25, 02:30 and 04:55 UTC sections moved to the archive.
 
 ### [2026-10-23 18:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **LIVE's take shadow read** after five weekdays (sub-agent, the 10-23 18:00 wake; not pushed; read-only SQL, not blind;
@@ -752,33 +768,3 @@ archived 2026-10-11", and the 2026-10-11 sections under "LEDGER.md, archived 202
     The sub-agent does not edit a frozen file. The text is the review's §7, dated 2026-10-23 and quoting his words.
   - No reading script exists to carry the last-trade column yet (§6: written before the end).
   - Recorded in the review's §10 and reference §3.48. Ledger: the 2026-10-23 00:56 UTC section moved to the archive.
-
-### [2026-10-23 04:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **GROKPM rules study** (sub-agent; not pushed; Davies, 10-23: "一整周了一单都没下…是不是规则太严格了";
-  `reviews/2026-10-23-grokpm-rules-study.md`, `backtests/grokpm_rules/`, reference §3.48; read-only SQL, not blind).
-  - **Not too strict.** 0 orders in 567 decisions since the go. Of 274 shadow forecasts, 19 rows in 4 markets cleared
-    their bar on p − m, and all 19 were in thin books.
-  - In the 3 that resolved, the last trade was already 0.97–0.999: the gaps were to the midpoints of emptied books.
-  - 7 candidate rule sets (lower bars, thin allowed for A, at $2 or $10) place 0–6 bids in 2.49 days; none fills on the
-    tape.
-  - On 4 resolved forecasts, Brier: agent 0.0019, its m 0.1270, last trade 0.0004.
-  - **Proposed, Davies decides:** keep every rule; D10 adds the last trade to D7's reading; C-004 for Grok (edge
-    against max(bid, mid) not the ask, B over 30 days, fewer repeat rows). Neither is applied, and the desk ledger is
-    untouched.
-
-### [2026-10-23 02:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **No second redaction pass and no history purge** (sub-agent; not pushed; Davies, 10-23, on masking real amounts in the
-  other committed files and purging git history: "不需要管了"). Neither is open; no file touched.
-
-### [2026-10-23 02:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **The interview showcase is no longer maintained** (sub-agent; not pushed; Davies, 10-23: "面试 showcase以后不需要更新了").
-  Last updated 2026-10-23 (`daviesluo/personal` `4ff50fc`). The standing duty is out of the working-with-davies skill and its
-  two Cursor copies and out of `docs/agents/CLAUDE.md`; each now says it ended. The what-remains list's "showcase not yet
-  updated" note (item 0a⁗) is closed.
-
-### [2026-10-23 02:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **LPRESEL6 withdrawn** (sub-agent; not pushed; Davies, 10-23, asked to download the ~6.5 GB archive or withdraw: "选择你来决定吧";
-  the main session decided: withdraw). `reviews/2026-10-23-lpresel6-withdrawn.md` says why (Reward quotes closed, live-prep
-  disarmed since `0125`, recorders off by `0137`, no decision to change, 6.5 GB and 12 GB heap). Archive and rows kept; it
-  could run from `242596a1`. The frozen pre-registration is untouched. Reference §3.47, §4 item 62 and `docs/agents/CLAUDE.md`
-  say so; the 10-22 audit section went to the archive.

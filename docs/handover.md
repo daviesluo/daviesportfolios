@@ -46611,3 +46611,37 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
     on.
   - Neither the watchdog nor `monitor/health.ts` expected the recorders. Pinned in `src/cron_jobs.test.js`. Applies on
     push (`migrations.yml`).
+
+## LEDGER.md, archived 2026-10-24 — the 2026-10-23 02:10 → 02:30 UTC history sections, oldest first
+
+### [2026-10-23 02:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LPRESEL6 withdrawn** (sub-agent; not pushed; Davies, 10-23, asked to download the ~6.5 GB archive or withdraw: "选择你来决定吧";
+  the main session decided: withdraw). `reviews/2026-10-23-lpresel6-withdrawn.md` says why (Reward quotes closed, live-prep
+  disarmed since `0125`, recorders off by `0137`, no decision to change, 6.5 GB and 12 GB heap). Archive and rows kept; it
+  could run from `242596a1`. The frozen pre-registration is untouched. Reference §3.47, §4 item 62 and `docs/agents/CLAUDE.md`
+  say so; the 10-22 audit section went to the archive.
+
+### [2026-10-23 02:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The interview showcase is no longer maintained** (sub-agent; not pushed; Davies, 10-23: "面试 showcase以后不需要更新了").
+  Last updated 2026-10-23 (`daviesluo/personal` `4ff50fc`). The standing duty is out of the working-with-davies skill and its
+  two Cursor copies and out of `docs/agents/CLAUDE.md`; each now says it ended. The what-remains list's "showcase not yet
+  updated" note (item 0a⁗) is closed.
+
+### [2026-10-23 02:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **No second redaction pass and no history purge** (sub-agent; not pushed; Davies, 10-23, on masking real amounts in the
+  other committed files and purging git history: "不需要管了"). Neither is open; no file touched.
+
+## LEDGER.md, archived 2026-10-24 (second) — the rules study of 2026-10-23 04:55 UTC
+
+### [2026-10-23 04:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM rules study** (sub-agent; not pushed; Davies, 10-23: "一整周了一单都没下…是不是规则太严格了";
+  `reviews/2026-10-23-grokpm-rules-study.md`, `backtests/grokpm_rules/`, reference §3.48; read-only SQL, not blind).
+  - **Not too strict.** 0 orders in 567 decisions since the go. Of 274 shadow forecasts, 19 rows in 4 markets cleared
+    their bar on p − m, and all 19 were in thin books.
+  - In the 3 that resolved, the last trade was already 0.97–0.999: the gaps were to the midpoints of emptied books.
+  - 7 candidate rule sets (lower bars, thin allowed for A, at $2 or $10) place 0–6 bids in 2.49 days; none fills on the
+    tape.
+  - On 4 resolved forecasts, Brier: agent 0.0019, its m 0.1270, last trade 0.0004.
+  - **Proposed, Davies decides:** keep every rule; D10 adds the last trade to D7's reading; C-004 for Grok (edge
+    against max(bid, mid) not the ask, B over 30 days, fewer repeat rows). Neither is applied, and the desk ledger is
+    untouched.

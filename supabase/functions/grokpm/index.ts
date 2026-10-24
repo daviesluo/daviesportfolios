@@ -123,9 +123,8 @@ export async function handle(req: Request, deps: HandleDeps): Promise<Response> 
         const c = await context(x, { readGeo: true, sync: true });
         out = { status: 200, body: accountView(c, t) };
       } else if (action === "market") {
-        const cond = url.searchParams.get("cond"), token = url.searchParams.get("token");
-        out = cond && /^0x[0-9a-f]{64}$/.test(cond) ? await marketView(x, { cond }) : token && /^[0-9]{1,80}$/.test(token) ? await marketView(x, { token })
-          : { status: 422, body: { error: "invalid", errors: ["cond (0x and 64 lower-case hex digits) or token (decimal) is required"] } };
+        const q = marketQuery(url.searchParams.get("cond"), url.searchParams.get("token"));
+        out = "error" in q ? { status: 422, body: { error: "invalid", errors: [q.error] } } : await marketView(x, q);
       } else {
         const type = req.headers.get("content-type") ?? "";
         const text = await req.text();
@@ -198,6 +197,25 @@ async function cronGate(req: Request, deps: HandleDeps): Promise<Response | null
  * while `grokpm_config.redeem_enabled` is false, what would be. A fault goes to the errors box as `grokpm.redeem` when it
  * first appears and at most hourly while it lasts.
  */
+/**
+ * A market read's id (the optimisation review's F4, 2026-10-24: 35 reads refused since 10-18 with one fixed message). A
+ * condition id is taken in either case and trimmed (the venue's ids are lower case); a token id trimmed. A refusal says
+ * what was wrong with what was sent, so the agent can correct it.
+ */
+export function marketQuery(cond: string | null, token: string | null): { cond: string } | { token: string } | { error: string } {
+  const c = (cond ?? "").trim().toLowerCase(), t = (token ?? "").trim();
+  if (c && /^0x[0-9a-f]{64}$/.test(c)) return { cond: c };
+  if (!c && t && /^[0-9]{1,80}$/.test(t)) return { token: t };
+  const need = "cond (0x and 64 hex digits) or token (decimal) is required";
+  if (c) {
+    const hex = c.startsWith("0x") ? c.slice(2) : null;
+    const why = hex === null ? "it does not start with 0x" : /[^0-9a-f]/.test(hex) ? "it has a character that is not a hex digit" : `it has ${hex.length} hex digits, not 64`;
+    return { error: `${need}: the cond sent (${c.length} characters) is not a condition id, because ${why}${t ? "; send cond or token, not both" : ""}` };
+  }
+  if (t) return { error: `${need}: the token sent (${t.length} characters) is not a decimal token id` };
+  return { error: need };
+}
+
 async function handleRedeem(req: Request, deps: HandleDeps, t: number): Promise<Response> {
   const stop = await cronGate(req, deps);
   if (stop) return stop;

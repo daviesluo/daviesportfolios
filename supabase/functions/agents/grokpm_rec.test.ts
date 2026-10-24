@@ -9,7 +9,10 @@ import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.t
 import type { Db } from "./db.ts";
 import { memDb, type Row } from "./testing.ts";
 import { GROKPM_TABLES } from "../_shared/grokpm_schema.ts";
-import { activityRow, agentBook, agentPositions, balanceOf, GROKPM_CASH_TOKENS, GROKPM_MARKETS_PER_RUN, marketRow, midOf, missingMarkets, runGrokPmRec, snapshotRow } from "./grokpm_rec.ts";
+import {
+  activityRow, agentBook, agentPositions, balanceOf, forecastMarkets, forecastResolution, GROKPM_CASH_TOKENS, GROKPM_MARKETS_PER_RUN, GROKPM_SHADOW_MARKETS_PER_RUN, GROKPM_SHADOW_TRADES,
+  lastTradeBefore, marketRow, midOf, missingMarkets, pendingForecasts, runGrokPmRec, snapshotRow, touchOf,
+} from "./grokpm_rec.ts";
 
 const T0 = Date.parse("2026-10-16T09:31:12Z");
 const W = "0xabcdef0123456789abcdef0123456789abcdef01";
@@ -71,7 +74,7 @@ const GAMMA_MARKETS = [
 const hex = (usd: number) => "0x" + BigInt(Math.round(usd * 1e6)).toString(16).padStart(64, "0");
 
 /** The public hosts as measured on 2026-10-15, answering what each read asks; every request is logged. */
-function fakeFetch(log: string[], o: { cash?: Record<string, number>; closed?: boolean; failRpc?: boolean; failGamma?: boolean } = {}): typeof fetch {
+function fakeFetch(log: string[], o: { cash?: Record<string, number>; closed?: boolean; failRpc?: boolean; failGamma?: boolean; keyset?: unknown[]; tapes?: Record<string, unknown[] | number> } = {}): typeof fetch {
   return (async (url: string | URL | Request, init?: RequestInit) => {
     const u = new URL(String(url));
     log.push(`${init?.method ?? "GET"} ${u.host}${u.pathname}${u.search}`);
@@ -79,6 +82,10 @@ function fakeFetch(log: string[], o: { cash?: Record<string, number>; closed?: b
     if (u.host === "data-api.polymarket.com" && u.pathname === "/positions") return ok(POSITIONS);
     if (u.host === "data-api.polymarket.com" && u.pathname === "/value") return ok([{ user: W, value: 19.1 }]);
     if (u.host === "data-api.polymarket.com" && u.pathname === "/activity") return ok(ACTIVITY);
+    if (u.host === "data-api.polymarket.com" && u.pathname === "/trades") {
+      const t = o.tapes?.[u.searchParams.get("market") ?? ""];
+      return typeof t === "number" ? new Response("rate limited", { status: t }) : ok(t ?? []);
+    }
     if (u.host === "clob.polymarket.com" && u.pathname === "/books") {
       const ids = (JSON.parse(String(init?.body)) as Array<{ token_id: string }>).map((x) => x.token_id);
       return ok(ids.filter((t) => t === "111").map((t) => ({ asset_id: t, bids: [{ price: "0.45", size: "100" }], asks: [{ price: "0.47", size: "50" }], tick_size: "0.01" })));
@@ -89,6 +96,7 @@ function fakeFetch(log: string[], o: { cash?: Record<string, number>; closed?: b
       return ok(GAMMA_MARKETS.filter((m) => ids.has(m.conditionId) && m.closed === closed));
     }
     if (u.host === "gamma-api.polymarket.com") {
+      if (o.keyset) return ok({ markets: o.keyset.filter((m) => u.searchParams.getAll("condition_ids").includes((m as { conditionId: string }).conditionId)) });
       return ok({ markets: o.closed ? [{ conditionId: COND2, clobTokenIds: JSON.stringify(["333", "555"]), outcomePrices: JSON.stringify(["1", "0"]), closed: true, closedTime: "2026-10-15 20:00:00+00", question: "Will B?" }] : [] });
     }
     if (u.host === "polygon-bor-rpc.publicnode.com") {
@@ -234,4 +242,108 @@ Deno.test("market titles: the pure parts", () => {
   assertEquals(marketRow({ conditionId: COND, question: "Q", slug: "../evil?x=1", endDate: "never" }, T0)?.slug, null);
   assertEquals(marketRow({ conditionId: COND, question: "Q", slug: "../evil?x=1", endDate: "never" }, T0)?.end_date, null);
   assertEquals(marketRow({ question: "Q" }, T0), null);
+});
+
+// The shadow forecasts' scoring record (the optimisation review of 2026-10-24, F1 and F2; 0138): their markets' outcomes
+// and each forecast's last trade (D10), neither of which was recorded before.
+const forecast = (id: string, ts: string, market_id: string, token_id: string, p: number | null = 0.9, m: number | null = 0.6) => ({ id, ts, market_id, token_id, p, m });
+const tr = (asset: string, price: number, iso: string, side = "BUY", size = 10) => ({ asset, price, side, size, timestamp: Date.parse(iso) / 1000 });
+
+Deno.test("forecasts: each one gets the market's last trade before it, once; its outcome is written only at 0, 1/2 or 1", async () => {
+  const log: string[] = [];
+  const decisions = [
+    forecast("f1", "2026-10-16T08:00:00Z", COND3, "31"), forecast("f2", "2026-10-16T09:00:00Z", COND3, "31"),
+    forecast("f3", "2026-10-16T09:10:00Z", COND4, "41"), { id: "n1", ts: "2026-10-16T09:20:00Z", market_id: COND, token_id: null, p: null, m: null },
+  ];
+  const d = strictDb({ ...seed(W), grokpm_markets: [], grokpm_decisions: decisions, grokpm_shadow_marks: [] }, () => T0);
+  const tapes = {
+    // COND3: newest first; the other outcome's trade at 0.3 is this token's 0.7; the trade after f2 is not its.
+    [COND3]: [tr("31", 0.95, "2026-10-16T09:05:00Z"), tr("32", 0.3, "2026-10-16T08:30:00Z", "SELL"), tr("31", 0.55, "2026-10-16T07:00:00Z")],
+    [COND4]: [tr("41", 0.5, "2026-10-16T09:30:00Z")],  // nothing before f3, and the page is not full
+  };
+  const keyset = [
+    { conditionId: COND3, clobTokenIds: JSON.stringify(["31", "32"]), outcomePrices: JSON.stringify(["1", "0"]), closed: true, closedTime: "2026-10-16 09:20:00+00" },
+    // Closed, but at a price that is not a payout: not written.
+    { conditionId: COND4, clobTokenIds: JSON.stringify(["41", "42"]), outcomePrices: JSON.stringify(["0.9995", "0.0005"]), closed: true, closedTime: "2026-10-16 09:40:00+00" },
+  ];
+  const r = await runGrokPmRec({ db: d, now: T0, fetchImpl: fakeFetch(log, { tapes, keyset }) });
+  assertEquals(r.errors, []);
+  assertEquals([r.marked, r.forecastResolved], [3, 1]);
+  const marks = Object.fromEntries(d.tables().grokpm_shadow_marks.map((x) => [x.decision_id, [x.status, x.price, x.trade_at]]));
+  assertEquals(marks, {
+    f1: ["found", 0.55, "2026-10-16T07:00:00.000Z"], f2: ["found", 0.7, "2026-10-16T08:30:00.000Z"], f3: ["none_before", null, null],
+  });
+  assertEquals(d.tables().grokpm_resolutions.map((x) => [x.cond, x.tokens, x.payouts]), [[COND3, ["31", "32"], [1, 0]]]);
+  // Every tape read is keyless, taker-only and carries the slot.
+  for (const l of log.filter((x) => x.includes("/trades"))) assert(l.startsWith("GET data-api.polymarket.com/trades?market=") && l.includes("takerOnly=true") && l.includes("_="), l);
+  // The next run reads no tape for a forecast already marked, and looks up an outcome again only after half an hour.
+  const log2: string[] = [];
+  const r2 = await runGrokPmRec({ db: d, now: T0 + 5 * 60e3, fetchImpl: fakeFetch(log2, { tapes, keyset }) });
+  assertEquals([r2.marked, log2.filter((x) => x.includes("/trades")).length, log2.filter((x) => x.includes("/markets/keyset")).length], [0, 0, 0]);
+  const log3: string[] = [];
+  await runGrokPmRec({ db: d, now: T0 + 31 * 60e3, fetchImpl: fakeFetch(log3, { tapes, keyset }) });
+  // (The traded markets' own half-hourly look, COND and COND2, is the other keyset read.)
+  const asked = log3.filter((x) => x.includes("/markets/keyset")).map((l) => new URL(`https://${l.split(" ")[1]}`).searchParams.getAll("condition_ids"));
+  assertEquals(asked.filter((ids) => !ids.includes(COND)), [[COND4]]);
+});
+
+Deno.test("forecasts: a failed tape read is the run's error, marks nothing for that market, and the snapshot stands", async () => {
+  const d = strictDb({ ...seed(W), grokpm_markets: [], grokpm_decisions: [forecast("f1", "2026-10-16T08:00:00Z", COND3, "31")], grokpm_shadow_marks: [] }, () => T0);
+  const waits: number[] = [];
+  const r = await runGrokPmRec({ db: d, now: T0, fetchImpl: fakeFetch([], { tapes: { [COND3]: 429 } }), sleep: (ms) => { waits.push(ms); return Promise.resolve(); } });
+  assert(r.errors.length === 1 && r.errors[0].startsWith("forecast trades: data-api.polymarket.com/trades → 429"), r.errors.join());
+  assertEquals(waits, [1_500]);  // tried once more before it is an error
+  assertEquals([d.tables().grokpm_shadow_marks.length, d.tables().grokpm_snapshots[0].equity_usd], [0, 104.4]);
+});
+
+Deno.test("forecasts: the pure parts", () => {
+  const tape = [tr("1", 0.8, "2026-10-16T10:00:00Z"), tr("2", 0.25, "2026-10-16T09:00:00Z", "SELL", 3)];
+  assertEquals(lastTradeBefore(tape, "1", Date.parse("2026-10-16T09:30:00Z"), false),
+    { status: "found", price: 0.75, trade_at: "2026-10-16T09:00:00.000Z", trade_asset: "2", trade_side: "SELL", trade_size: 3 });
+  // A trade at the forecast's own second counts; with none that old, why depends on whether the page was full.
+  assertEquals(lastTradeBefore(tape, "1", Date.parse("2026-10-16T10:00:00Z"), true).price, 0.8);
+  assertEquals(lastTradeBefore(tape, "1", Date.parse("2026-10-16T08:00:00Z"), false).status, "none_before");
+  assertEquals(lastTradeBefore(tape, "1", Date.parse("2026-10-16T08:00:00Z"), true).status, "beyond_window");
+  // Forecasts only (p and m, a token, a condition id), each market once, newest first, at most the run's markets.
+  const ds = Array.from({ length: 6 }, (_, i) => forecast(`f${i}`, `2026-10-16T0${i}:00:00Z`, "0x" + String(i).repeat(64), String(i)));
+  ds.push(forecast("g5", "2026-10-16T05:30:00Z", "0x" + "5".repeat(64), "5"), forecast("x", "2026-10-16T07:00:00Z", COND, "9", null, 0.5));
+  assertEquals(forecastMarkets(ds)[0], "0x" + "5".repeat(64));
+  const p = pendingForecasts(ds, new Set(["f4"]));
+  assertEquals([...p.keys()], ["5", "3", "2", "1"].map((c) => "0x" + c.repeat(64)).slice(0, GROKPM_SHADOW_MARKETS_PER_RUN));
+  assertEquals(p.get("0x" + "5".repeat(64))!.map((x) => x.id), ["g5", "f5"]);
+  assertEquals(GROKPM_SHADOW_TRADES, 1000);
+  assertEquals(forecastResolution({ cond: COND, yes: "1", no: "2", closed: true, payout: 0.5, closedTime: null })?.payouts, [0.5, 0.5]);
+  assertEquals(forecastResolution({ cond: COND, yes: "1", no: "2", closed: true, payout: 0.98, closedTime: null }), null);
+  assertEquals(forecastResolution({ cond: COND, yes: "1", no: "2", closed: false, payout: 1, closedTime: null }), null);
+  // The book is the forecast's only when read within ten minutes of it; a one-sided book keeps its empty side null.
+  const books = new Map([["7", { bids: [[0.31, 50]] as Array<[number, number]>, asks: [] as Array<[number, number]> }]]);
+  const at = Date.parse("2026-10-16T09:00:00Z");
+  assertEquals(touchOf(books, { ts: "2026-10-16T09:00:00Z", token_id: "7" }, at + 9 * 60e3), { book_bid: 0.31, book_ask: null });
+  assertEquals(touchOf(books, { ts: "2026-10-16T09:00:00Z", token_id: "7" }, at + 11 * 60e3), { book_bid: null, book_ask: null });
+});
+
+Deno.test("forecasts: a fresh forecast keeps the book it saw; an old one is marked without a book", async () => {
+  const log: string[] = [];
+  const now = Date.parse("2026-10-16T09:34:00Z");
+  const d = strictDb({ ...seed(W), grokpm_markets: [], grokpm_decisions: [forecast("new", "2026-10-16T09:30:00Z", COND, "111"), forecast("old", "2026-10-16T08:00:00Z", COND3, "31")], grokpm_shadow_marks: [] }, () => now);
+  await runGrokPmRec({ db: d, now, fetchImpl: fakeFetch(log, { tapes: { [COND]: [tr("111", 0.46, "2026-10-16T09:20:00Z")], [COND3]: [] } }) });
+  const m = Object.fromEntries(d.tables().grokpm_shadow_marks.map((x) => [x.decision_id, [x.status, x.price, x.book_bid, x.book_ask]]));
+  assertEquals(m, { new: ["found", 0.46, 0.45, 0.47], old: ["none_before", null, null, null] });
+});
+
+// The optimisation review's F3: a busy activity read is tried once more, so one 429 is not a line in the errors box.
+Deno.test("activity: a 429 is tried once more after a short wait; a second refusal is the run's error", async () => {
+  for (const [answers, ok] of [[[429], true], [[429, 503], false]] as const) {
+    const left = [...answers];
+    const base = fakeFetch([]);
+    const f = ((url: string | URL | Request, init?: RequestInit) => {
+      const u = new URL(String(url));
+      if (u.pathname === "/activity" && left.length) return Promise.resolve(new Response("Too Many Requests", { status: left.shift()! }));
+      return base(url, init);
+    }) as typeof fetch;
+    const d = strictDb(seed(W, null), () => T0);
+    const waits: number[] = [];
+    const r = await runGrokPmRec({ db: d, now: T0, fetchImpl: f, sleep: (ms) => { waits.push(ms); return Promise.resolve(); } });
+    assertEquals([r.errors.length === 0, d.tables().grokpm_activity.length === ACTIVITY.length, waits], [ok, ok, [1_500]]);
+  }
 });
