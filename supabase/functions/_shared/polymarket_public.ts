@@ -216,6 +216,28 @@ export async function pmOpenEventsByTag(tagId: string, o: PmPublicOpts = {}): Pr
   return Array.isArray(d) ? d.filter((e): e is Record<string, unknown> => !!e && typeof e === "object") : [];
 }
 
+/**
+ * A market's newest public taker trades (`/trades?market=&takerOnly=true`), `limit` of them, newest first, as served.
+ * `bust` is a parameter no earlier read carried (the data API is cached by CloudFront). GROKPM's `market` read takes the
+ * last trade from it (Deviation D12).
+ */
+export async function pmTakerTape(cond: string, limit: number, bust: number, o: PmPublicOpts = {}): Promise<unknown> {
+  const q = new URLSearchParams({ market: cond, takerOnly: "true", limit: String(limit), offset: "0", _: String(bust) });
+  return await call("GET", `${PM_DATA}/trades?${q}`, undefined, o);
+}
+
+/**
+ * Gamma's open, active events ending in [fromIso, toIso], a hundred from `offset`, soonest first, optionally under one tag
+ * slug, each with its markets, as served. GROKPM's far list keeps only what it names (Deviation D11).
+ */
+export async function pmEventsEnding(q: { fromIso: string; toIso: string; tag: string | null; offset: number }, o: PmPublicOpts = {}): Promise<unknown> {
+  const p = new URLSearchParams({
+    closed: "false", active: "true", end_date_min: q.fromIso, end_date_max: q.toIso, limit: "100", offset: String(q.offset), order: "endDate", ascending: "true",
+  });
+  if (q.tag) p.set("tag_slug", q.tag);
+  return await call("GET", `${PM_GAMMA}/events?${p}`, undefined, o);
+}
+
 /** RW's order for prints of one second: the order rw_test.py read them in (a sorted list of [ts, side, oi, price, size]). */
 export function printOrder(a: PmPrint, b: PmPrint): number {
   return a.ts - b.ts || (a.side < b.side ? -1 : a.side > b.side ? 1 : 0) || a.oi - b.oi || a.price - b.price || a.size - b.size || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);

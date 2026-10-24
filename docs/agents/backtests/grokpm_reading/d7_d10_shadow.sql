@@ -10,6 +10,10 @@
 -- Sources: `grokpm_decisions` (the journal), `grokpm_resolutions` (outcomes, which the recorder writes for every market a
 -- forecast names since 0138), `grokpm_shadow_marks` (0138: the last trade and, when read within ten minutes, the book).
 -- `thin` is null where no book was kept (every forecast before 0138's deploy): the end report says how many.
+--
+-- D13 (2026-10-24, the optimisation review's P3; Davies: "这些你看看需要做的话就做"): beside the full set, which stays as D7
+-- defines it, the same means on the stratum of forecasts whose m lies in [0.05, 0.95]. A forecast on a market already at
+-- 0.9995 scores near 0 for both sides and only dilutes a difference; the stratum is where there is something to forecast.
 
 with counted as (
   select d.* from public.grokpm_decisions d
@@ -40,4 +44,12 @@ union all
 select 'mean vs last trade', null, null, null, null, null, null, null, null, null, null,
        count(*), avg((p - y) ^ 2), null, avg((last_trade - y) ^ 2)
   from scored where y is not null and last_trade is not null
+union all
+select 'stratum m 0.05-0.95: mean vs m', null, null, null, null, null, null, null, null, null, null,
+       count(*), avg((p - y) ^ 2), avg((m - y) ^ 2), null
+  from scored where y is not null and m between 0.05 and 0.95
+union all
+select 'stratum m 0.05-0.95: mean vs last trade', null, null, null, null, null, null, null, null, null, null,
+       count(*), avg((p - y) ^ 2), null, avg((last_trade - y) ^ 2)
+  from scored where y is not null and last_trade is not null and m between 0.05 and 0.95
 order by kind desc, ts;

@@ -10,7 +10,7 @@ import type { Db } from "./db.ts";
 import { memDb, type Row } from "./testing.ts";
 import { GROKPM_TABLES } from "../_shared/grokpm_schema.ts";
 import {
-  activityRow, agentBook, agentPositions, balanceOf, forecastMarkets, forecastResolution, GROKPM_CASH_TOKENS, GROKPM_MARKETS_PER_RUN, GROKPM_SHADOW_MARKETS_PER_RUN, GROKPM_SHADOW_TRADES,
+  activityRow, agentBook, agentPositions, balanceOf, finalResolution, forecastMarkets, GROKPM_CASH_TOKENS, GROKPM_MARKETS_PER_RUN, GROKPM_SHADOW_MARKETS_PER_RUN, GROKPM_SHADOW_TRADES,
   lastTradeBefore, marketRow, midOf, missingMarkets, pendingForecasts, runGrokPmRec, snapshotRow, touchOf,
 } from "./grokpm_rec.ts";
 
@@ -312,9 +312,9 @@ Deno.test("forecasts: the pure parts", () => {
   assertEquals([...p.keys()], ["5", "3", "2", "1"].map((c) => "0x" + c.repeat(64)).slice(0, GROKPM_SHADOW_MARKETS_PER_RUN));
   assertEquals(p.get("0x" + "5".repeat(64))!.map((x) => x.id), ["g5", "f5"]);
   assertEquals(GROKPM_SHADOW_TRADES, 1000);
-  assertEquals(forecastResolution({ cond: COND, yes: "1", no: "2", closed: true, payout: 0.5, closedTime: null })?.payouts, [0.5, 0.5]);
-  assertEquals(forecastResolution({ cond: COND, yes: "1", no: "2", closed: true, payout: 0.98, closedTime: null }), null);
-  assertEquals(forecastResolution({ cond: COND, yes: "1", no: "2", closed: false, payout: 1, closedTime: null }), null);
+  assertEquals(finalResolution({ cond: COND, yes: "1", no: "2", closed: true, payout: 0.5, closedTime: null })?.payouts, [0.5, 0.5]);
+  assertEquals(finalResolution({ cond: COND, yes: "1", no: "2", closed: true, payout: 0.98, closedTime: null }), null);
+  assertEquals(finalResolution({ cond: COND, yes: "1", no: "2", closed: false, payout: 1, closedTime: null }), null);
   // The book is the forecast's only when read within ten minutes of it; a one-sided book keeps its empty side null.
   const books = new Map([["7", { bids: [[0.31, 50]] as Array<[number, number]>, asks: [] as Array<[number, number]> }]]);
   const at = Date.parse("2026-10-16T09:00:00Z");
@@ -346,4 +346,21 @@ Deno.test("activity: a 429 is tried once more after a short wait; a second refus
     const r = await runGrokPmRec({ db: d, now: T0, fetchImpl: f, sleep: (ms) => { waits.push(ms); return Promise.resolve(); } });
     assertEquals([r.errors.length === 0, d.tables().grokpm_activity.length === ACTIVITY.length, waits], [ok, ok, [1_500]]);
   }
+});
+
+// Deviation D14 (2026-10-24, the optimisation review's P4): a traded market settles only at a final payout.
+Deno.test("D14: a traded market closed at a price short of its outcome is not a resolution; at 1 it is, and the holding is marked at it", async () => {
+  const at = (prices: string[]) => [{ conditionId: COND2, clobTokenIds: JSON.stringify(["333", "555"]), outcomePrices: JSON.stringify(prices), closed: true, closedTime: "2026-10-15 20:00:00+00", question: "Will B?" }];
+  const d = strictDb(seed(W), () => T0);
+  await runGrokPmRec({ db: d, now: T0, fetchImpl: fakeFetch([], { keyset: at(["0.9995", "0.0005"]) }) });
+  assertEquals(d.tables().grokpm_resolutions.filter((x) => x.cond === COND2).length, 0);
+  // 333 is still marked as a holding (the data API's price, no book), not settled.
+  assertEquals((d.tables().grokpm_snapshots.at(-1)!.positions as Row[]).find((x) => x.asset === "333")!.redeemable, false);
+  await runGrokPmRec({ db: d, now: T0 + 31 * 60e3, fetchImpl: fakeFetch([], { keyset: at(["1", "0"]) }) });
+  assertEquals(d.tables().grokpm_resolutions.filter((x) => x.cond === COND2).map((x) => x.payouts), [[1, 0]]);
+  // A row written before D14 at a non-final price is not read as a payout either.
+  d.tables().grokpm_resolutions.push({ cond: COND, tokens: ["111", "999"], payouts: [0.9995, 0.0005], closed_at: null, read_at: null });
+  await runGrokPmRec({ db: d, now: T0 + 36 * 60e3, fetchImpl: fakeFetch([], { keyset: at(["1", "0"]) }) });
+  const p = (d.tables().grokpm_snapshots.at(-1)!.positions as Row[]).find((x) => x.asset === "111")!;
+  assertEquals([p.redeemable, p.mark], [false, 0.46]);
 });

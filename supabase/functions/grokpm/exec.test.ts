@@ -10,9 +10,10 @@ import { GROKPM_TABLES } from "../_shared/grokpm_schema.ts";
 import type { Db } from "../agents/db.ts";
 import { FakePolymarket, memDb, PM_TEST_FUNDER, PM_TEST_KEY, PM_TEST_SIGNER, type Row } from "../agents/testing.ts";
 import {
-  accountView, bookOf, cancelOrders, context, type ExecDeps, expiryOf, type GrokVenue, ledgerOf, liveGateRefusals, marketOf, marketView, orderRefusals, placeOrder, syncOrders,
+  accountView, bookOf, cancelOrders, context, type ExecDeps, expiryOf, FAR_FIELDS, farMarketsOf, farMarketsView, type GrokVenue, ledgerOf, liveGateRefusals, marketOf, marketView,
+  orderRefusals, placeOrder, syncOrders,
 } from "./exec.ts";
-import { handle, type IngestDb } from "./index.ts";
+import { farQuery, handle, type IngestDb } from "./index.ts";
 import examples from "../../../docs/agents/backtests/grokpm/contract_examples.json" with { type: "json" };
 
 const T0 = Date.parse("2026-10-16T09:30:00Z");
@@ -546,4 +547,112 @@ Deno.test("audit: more than 1,000 orders are read whole, not refused (50 a day r
   }
   const c = await context(w.deps(), { readGeo: true, sync: false });
   assertEquals([c.orders.length, c.ledger.cashUsd], [1001, 100]);
+});
+
+// Deviation D14 (2026-10-24, the optimisation review's P4): the book settles a holding only at a final payout.
+Deno.test("D14: a resolution at a price short of the outcome settles nothing; at 1 the holding is cash", async () => {
+  const w = world({ armed: true });
+  seedFill(w, { hash: "0x" + "a3".repeat(32), cond: C2, token: "201", price: 0.88, size: 75 });
+  w.db.tables.grokpm_resolutions.push({ cond: C2, tokens: ["201", "202"], payouts: [0.9995, 0.0005], closed_at: iso(T0 - 600e3), read_at: iso(T0 - 300e3) });
+  const held = await context(w.deps(), { readGeo: true, sync: false });
+  assertEquals([held.ledger.settledUsd, held.ledger.openConds], [0, [C2]]);
+  w.db.tables.grokpm_resolutions[0].payouts = [1, 0];
+  const done = await context(w.deps(), { readGeo: true, sync: false });
+  assertEquals([done.ledger.settledUsd, done.ledger.cashUsd, done.ledger.openConds], [75, 109, []]);
+});
+
+// Deviation D12 (2026-10-24, the optimisation review's P2): the market read carries each outcome's last public trade.
+Deno.test("D12: the market read gives each outcome's last trade (the other side's at 1 - q), and null with 'unread' when the tape fails", async () => {
+  const w = world();
+  const s = (iso_: string) => Date.parse(iso_) / 1000;
+  const venue = w.deps().venue;
+  const tapeOk: GrokVenue["tape"] = () => Promise.resolve([
+    { asset: "102", side: "BUY", price: 0.03, size: 5, timestamp: s(iso(T0 - 60e3)) },
+    { asset: "101", side: "SELL", price: 0.5, size: 9, timestamp: s(iso(T0 - 3600e3)) },
+  ]);
+  const r = await marketView({ ...w.deps(), venue: { ...venue, tape: tapeOk } }, { cond: C1 });
+  const b = r.body as { outcomes: Array<{ token_id: string; last_trade: { price: number; at: string } | null }>; last_trade_read: string };
+  assertEquals([b.last_trade_read, b.outcomes.map((o) => [o.token_id, o.last_trade])], ["ok", [["101", { price: 0.97, at: iso(T0 - 60e3) }], ["102", { price: 0.03, at: iso(T0 - 60e3) }]]]);
+  const bad = await marketView({ ...w.deps(), venue: { ...venue, tape: () => Promise.reject(new Error("429")) } }, { cond: C1 });
+  const bb = bad.body as { outcomes: Array<{ last_trade: unknown }>; last_trade_read: string };
+  assertEquals([bad.status, bb.last_trade_read, bb.outcomes.map((o) => o.last_trade)], [200, "unread", [null, null]]);
+  // A market that never traded: no last trade, read ok.
+  const none = await marketView({ ...w.deps(), venue: { ...venue, tape: () => Promise.resolve([]) } }, { cond: C1 });
+  assertEquals((none.body as { outcomes: Array<{ last_trade: unknown }> }).outcomes.map((o) => o.last_trade), [null, null]);
+});
+
+// Deviation D11 (2026-10-24, the optimisation review's P1): the far list, for choosing markets by title before any price.
+const DAYS = (n: number) => iso(T0 + n * DAY);
+const farEvent = (o: Record<string, unknown> = {}, markets: Array<Record<string, unknown>> = []) => ({
+  id: "1", title: "Toronto mayor", slug: "toronto-mayor", endDate: DAYS(10), volume: 999999, liquidity: 5000, competitive: 0.9,
+  tags: [{ slug: "politics" }, { slug: "rewards-20-4pt5-50" }, { slug: "Canada" }], markets, ...o,
+});
+const farMarket = (cond: string, o: Record<string, unknown> = {}) => ({
+  conditionId: cond, question: `Will ${cond.slice(2, 6)} win?`, slug: `will-${cond.slice(2, 6)}-win`, clobTokenIds: '["1","2"]', outcomes: '["Yes","No"]',
+  endDate: DAYS(10), active: true, closed: false, archived: false, acceptingOrders: true, enableOrderBook: true, volumeNum: 25_000, volume: "25000",
+  outcomePrices: '["0.41","0.59"]', bestBid: 0.4, bestAsk: 0.42, lastTradePrice: 0.41, spread: 0.02, liquidityNum: 3000, oneDayPriceChange: 0.01,
+  description: "This market resolves to Yes if   X wins.\n\nOtherwise No.", ...o,
+});
+
+Deno.test("D11: the far list keeps open, low-attention markets ending 3 to 30 days out, and carries no price-like field at all", () => {
+  const ok = "0x" + "a1".repeat(32);
+  const events = [farEvent({}, [
+    farMarket(ok),
+    farMarket("0x" + "a2".repeat(32), { endDate: DAYS(2) }),            // too soon
+    farMarket("0x" + "a3".repeat(32), { endDate: DAYS(31) }),           // too far
+    farMarket("0x" + "a4".repeat(32), { volumeNum: 60_000 }),           // high attention
+    farMarket("0x" + "a5".repeat(32), { volumeNum: 4_000 }),            // thin
+    farMarket("0x" + "a6".repeat(32), { closed: true }),
+    farMarket("0x" + "a7".repeat(32), { acceptingOrders: false }),
+  ])];
+  const low = farMarketsOf(events, T0, "low");
+  assertEquals(low.map((m) => m.market_id), [ok]);
+  assertEquals(low[0], {
+    market_id: ok, question: "Will a1a1 win?", slug: "will-a1a1-win", event_title: "Toronto mayor", event_slug: "toronto-mayor", end_date: DAYS(10),
+    tags: ["politics", "canada"], description: "This market resolves to Yes if X wins. Otherwise No.", sports: false, crypto: false,
+  });
+  assertEquals(farMarketsOf(events, T0, "all").length, 3);
+  // Every row carries exactly FAR_FIELDS, and no key or value anywhere looks like a price, a book, a volume or a trade.
+  const priceLike = /price|bid|ask|volume|liquid|spread|mid|trade|competitive|interest|change|outcome/i;
+  const walk = (x: unknown, path: string): void => {
+    if (Array.isArray(x)) x.forEach((y, i) => walk(y, `${path}[${i}]`));
+    else if (x && typeof x === "object") for (const [k, v] of Object.entries(x)) { assert(!priceLike.test(k), `${path}.${k}`); walk(v, `${path}.${k}`); }
+  };
+  for (const m of farMarketsOf(events, T0, "all")) {
+    assertEquals(Object.keys(m).sort(), [...FAR_FIELDS].sort());
+    walk(m, "market");
+    assert(!/0\.4[12]|0\.59|25000|60000/.test(JSON.stringify(m)), JSON.stringify(m));
+  }
+});
+
+Deno.test("D11: the far list's view and query: one Gamma page, the window it asked for, the next offset, and refusals", async () => {
+  const w = world();
+  const asked: unknown[] = [];
+  const venue = { ...w.deps().venue, farEvents: (q: unknown) => { asked.push(q); return Promise.resolve(Array.from({ length: 100 }, () => farEvent({}, [farMarket("0x" + "b1".repeat(32))]))); } };
+  const r = await farMarketsView({ ...w.deps(), venue }, { tag: "politics", offset: 100, attention: "low" });
+  const b = r.body as Record<string, unknown>;
+  assertEquals([r.status, b.next_offset, b.events_read, (b.markets as unknown[]).length], [200, 200, 100, 100]);
+  assertEquals(asked, [{ fromIso: DAYS(3), toIso: DAYS(30), tag: "politics", offset: 100 }]);
+  assert(!/price|bid|ask|volume|liquid/i.test(JSON.stringify(b)), "the whole answer is price-free");
+  assertEquals((await farMarketsView({ ...w.deps(), venue: { ...w.deps().venue, farEvents: () => Promise.reject(new Error("503")) } }, { tag: null, offset: 0, attention: "low" })).status, 502);
+  assertEquals((await farMarketsView(w.deps(), { tag: null, offset: 0, attention: "low" })).status, 503);
+  const q = (s: string) => farQuery(new URLSearchParams(s));
+  assertEquals(q(""), { tag: null, offset: 0, attention: "low" });
+  assertEquals(q("tag=Politics&offset=200&attention=all"), { tag: "politics", offset: 200, attention: "all" });
+  for (const bad of ["tag=../x", "offset=50", "offset=-100", "attention=high"]) assert("error" in q(bad), bad);
+});
+
+Deno.test("D11: markets_far is an authorised GET in eu-west-1 like every action", async () => {
+  const secret = "s".repeat(40);
+  const ingest: IngestDb = { recentRequests: () => Promise.resolve([]), insertIgnore: () => Promise.resolve(0), logRequest: () => Promise.resolve() };
+  const w = world();
+  const deps = { ...w.deps(), venue: { ...w.deps().venue, farEvents: () => Promise.resolve([farEvent({}, [farMarket("0x" + "c1".repeat(32))])]) } };
+  const base = { secret, db: ingest, now: () => T0, exec: () => Promise.resolve(deps), cronSecret: "c".repeat(40) };
+  const req = (path: string, auth = true, method = "GET") => new Request(`https://x.test/functions/v1/grokpm${path}`, { method, headers: auth ? { Authorization: `Bearer ${secret}` } : {} });
+  assertEquals((await handle(req("?action=markets_far", false), { ...base, region: "eu-west-1" })).status, 401);
+  assertEquals((await handle(req("?action=markets_far"), { ...base, region: "us-east-1" })).status, 403);
+  assertEquals((await handle(req("?action=markets_far", true, "POST"), { ...base, region: "eu-west-1" })).status, 405);
+  const ok = await handle(req("?action=markets_far&tag=politics"), { ...base, region: "eu-west-1" });
+  assertEquals([ok.status, ((await ok.json()).markets as unknown[]).length], [200, 1]);
+  assertEquals((await handle(req("?action=markets_far&offset=7"), { ...base, region: "eu-west-1" })).status, 422);
 });

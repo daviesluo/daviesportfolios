@@ -29,6 +29,7 @@
 // wire with its region and route rules) and live-prep's pure helpers (`agents/pm_live.ts`: the book's touch, a send's
 // outcome, a read-back's state, a trade's fill, the attestation; `agents/pm_fees.ts`: a taker fill's fee).
 
+import { finalPayouts, lastTradeBefore, tapeOf } from "../_shared/grokpm_public.ts";
 import {
   asTickSize, buildOrder, newSalt, orderProblems, PM_GTD_EARLY_S, PM_ORDER_REGION, type PmOpenOrder, type PmReply, type PmSigner, type PmTickSize, type PmTrade,
   type PmVenue,
@@ -66,6 +67,10 @@ const COND = /^0x[0-9a-f]{64}$/, TOKEN = /^[0-9]{1,80}$/, HASH = /^0x[0-9a-f]{64
 /** The venue as this path asks it: the order path's own calls, and Gamma by condition or token id with its tags. */
 export type GrokVenue = Pick<PmVenue, "geoblock" | "book" | "closedOnly" | "collateral" | "order" | "trade" | "postOrder" | "cancelOrder"> & {
   gamma(q: { cond?: string; token?: string }): Promise<PmReply<{ markets?: Array<Record<string, unknown>> }>>;
+  /** A market's newest public taker trades (data API, keyless), the `market` read's `last_trade` (Deviation D12). */
+  tape?(cond: string): Promise<unknown>;
+  /** Gamma's open events ending in a window, a page of them, optionally under one tag (the far list, Deviation D11). */
+  farEvents?(q: { fromIso: string; toIso: string; tag: string | null; offset: number }): Promise<unknown>;
 };
 
 export type GrokConfig = {
@@ -483,11 +488,8 @@ export async function context(deps: ExecDeps, opts: { readGeo: boolean; sync: bo
     db.select<{ cond: string; tokens: unknown; payouts: unknown }>("grokpm_resolutions", "select=cond,tokens,payouts&order=cond.asc&limit=1000").catch(() => []),
   ]);
   const liveFills = mode === "live" ? fills : [];
-  const payouts: Record<string, number> = {};
-  for (const r of resolutions) {
-    const t = Array.isArray(r.tokens) ? r.tokens.map(String) : [], p = Array.isArray(r.payouts) ? r.payouts.map(Number) : [];
-    t.forEach((tok, i) => { if (Number.isFinite(p[i])) payouts[tok] = p[i]; });
-  }
+  // Final payouts only (Deviation D14, 2026-10-24): a resolution row at any other price settles nothing.
+  const payouts = finalPayouts(resolutions);
   // The mids of what the agent still holds (not of every token it ever traded), read together.
   const net = new Map<string, number>();
   for (const f of liveFills) if (f.status !== "FAILED") net.set(f.token, (net.get(f.token) ?? 0) + (f.side === "BUY" ? 1 : -1) * num(f.size));
@@ -581,7 +583,10 @@ export async function marketView(deps: ExecDeps, q: { cond?: string; token?: str
   if (!g.ok) return { status: 502, body: { error: "Gamma unreadable", detail: g.error ?? String(g.status) } };
   const m = marketOf((g.data?.markets ?? [])[0]);
   if (!m) return { status: 404, body: { error: "no open market for that id" } };
-  const books = await Promise.all(m.tokens.map(async (t, i) => {
+  // The market's last public trade beside its books (Deviation D12, 2026-10-24): an emptied book's mid is the midpoint of a
+  // stale bid and an ask at 0.99 or 1, and the last trade shows where the market actually changed hands. Unread, it is null.
+  const tapeP = deps.venue.tape ? deps.venue.tape(m.cond).then(tapeOf).catch(() => null) : Promise.resolve(null);
+  const [tape, books] = await Promise.all([tapeP, Promise.all(m.tokens.map(async (t, i) => {
     const r = await deps.venue.book(t);
     const b = r.ok ? bookOf(r.data) : null;
     return {
@@ -589,7 +594,11 @@ export async function marketView(deps: ExecDeps, q: { cond?: string; token?: str
       bid_depth_usd_5pt: b?.bidDepthUsd ?? 0, ask_depth_usd_5pt: b?.askDepthUsd ?? 0, tick: b?.tick ?? null, min_size: b?.minSize ?? null,
       thin: !b || !b.twoSided || (b.spread ?? 1) > GROKPM_RULES.thinSpread + 1e-9 || b.bidDepthUsd < GROKPM_RULES.thinDepthUsd,
     };
-  }));
+  }))]);
+  const outcomes = books.map((o) => {
+    const lt = tape ? lastTradeBefore(tape, o.token_id, deps.now, false) : null;
+    return { ...o, last_trade: lt && lt.status === "found" ? { price: lt.price, at: lt.trade_at } : null };
+  });
   const end = timeMs(m.endDate), now = deps.now, R = GROKPM_RULES;
   const blocks: string[] = [];
   if (!m.accepting) blocks.push("not accepting orders");
@@ -602,7 +611,62 @@ export async function marketView(deps: ExecDeps, q: { cond?: string; token?: str
     status: 200, body: {
       market_id: m.cond, question: m.question, end_date: m.endDate, neg_risk: m.negRisk, accepting_orders: m.accepting, closed: m.closed,
       fee_type: m.feeType, tags: m.tags, sports: m.sports, crypto: m.crypto, game_start_time: m.gameStartTime, tick: m.tick, min_size: m.minSize,
-      outcomes: books, open_blocked_by: blocks,
+      outcomes, last_trade_read: tape ? "ok" : "unread", open_blocked_by: blocks,
+    },
+  };
+}
+
+// ── the far list (Deviation D11, 2026-10-24) ──────────────────────────────────────────────────────────────────────
+
+/**
+ * Markets to choose by title before any price (C-005; the optimisation review's P1): open markets ending 3 to 30 days out,
+ * low-attention by default (lifetime volume $10k to under $50k, the pre-registration's §7.1 stratum, applied here and
+ * never shown), each with its question, slugs, event title, end date, tags (no reward tags), a short description and the
+ * server's sports and crypto flags. No price, bid, ask, volume, liquidity, spread or trade field is ever returned: the
+ * agent forms p before it reads a price, and `FAR_FIELDS` is the whole of what a row may carry.
+ */
+export const GROKPM_FAR = { minDays: 3, maxDays: 30, lowVolumeMin: 10_000, lowVolumeMax: 50_000, page: 100, descriptionChars: 400 } as const;
+export const FAR_FIELDS = ["market_id", "question", "slug", "event_title", "event_slug", "end_date", "tags", "description", "sports", "crypto"] as const;
+export type FarMarket = { [K in (typeof FAR_FIELDS)[number]]: K extends "tags" ? string[] : K extends "sports" | "crypto" ? boolean : string | null };
+
+export function farMarketsOf(events: unknown, nowMs: number, attention: "low" | "all"): FarMarket[] {
+  const out: FarMarket[] = [];
+  const from = nowMs + GROKPM_FAR.minDays * DAY, to = nowMs + GROKPM_FAR.maxDays * DAY;
+  for (const e of (Array.isArray(events) ? events : []) as Array<Record<string, unknown>>) {
+    if (!e || typeof e !== "object") continue;
+    const tags = (Array.isArray(e.tags) ? e.tags : []).map((t) => String((t as Record<string, unknown>)?.slug ?? "").toLowerCase())
+      .filter((t) => t && !t.startsWith("rewards"));
+    for (const raw of (Array.isArray(e.markets) ? e.markets : []) as Array<Record<string, unknown>>) {
+      const m = marketOf({ ...raw, tags: (Array.isArray(e.tags) ? e.tags : []) });
+      if (!m || m.closed || !m.accepting || raw.archived === true || raw.active === false) continue;
+      const end = timeMs(m.endDate);
+      if (end === null || end < from || end > to) continue;
+      const vol = Number(raw.volumeNum ?? raw.volume);
+      if (attention === "low" && !(vol >= GROKPM_FAR.lowVolumeMin && vol < GROKPM_FAR.lowVolumeMax)) continue;
+      const slug = typeof raw.slug === "string" && /^[a-z0-9][a-z0-9-]{0,199}$/i.test(raw.slug) ? raw.slug : null;
+      const eslug = typeof e.slug === "string" && /^[a-z0-9][a-z0-9-]{0,199}$/i.test(e.slug) ? e.slug : null;
+      const desc = typeof raw.description === "string" ? raw.description.replace(/\s+/g, " ").trim().slice(0, GROKPM_FAR.descriptionChars) : null;
+      out.push({
+        market_id: m.cond, question: m.question || null, slug, event_title: typeof e.title === "string" ? e.title.slice(0, 200) : null, event_slug: eslug,
+        end_date: new Date(end).toISOString(), tags, description: desc || null, sports: m.sports, crypto: m.crypto,
+      });
+    }
+  }
+  return out.sort((a, b) => String(a.end_date).localeCompare(String(b.end_date)) || String(a.market_id).localeCompare(String(b.market_id)));
+}
+
+/** `?action=markets_far&tag=<slug>&offset=<n>&attention=low|all`: one page of Gamma's events, as `farMarketsOf` keeps them. */
+export async function farMarketsView(deps: ExecDeps, q: { tag: string | null; offset: number; attention: "low" | "all" }) {
+  if (!deps.venue.farEvents) return { status: 503, body: { error: "the far list is not available" } };
+  const fromIso = iso(deps.now + GROKPM_FAR.minDays * DAY), toIso = iso(deps.now + GROKPM_FAR.maxDays * DAY);
+  let events: unknown;
+  try { events = await deps.venue.farEvents({ fromIso, toIso, tag: q.tag, offset: q.offset }); }
+  catch (e) { return { status: 502, body: { error: "Gamma unreadable", detail: (e as Error).message.slice(0, 160) } }; }
+  const n = Array.isArray(events) ? events.length : 0;
+  return {
+    status: 200, body: {
+      window: { from: fromIso, to: toIso }, attention: q.attention, tag: q.tag, offset: q.offset, events_read: n,
+      next_offset: n >= GROKPM_FAR.page ? q.offset + GROKPM_FAR.page : null, markets: farMarketsOf(events, deps.now, q.attention),
     },
   };
 }

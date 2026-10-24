@@ -100,3 +100,77 @@ select updated_at, last_error, state from public.grokpm_rec_state;              
 select count(*) from public.grokpm_resolutions;                                         -- 0
 -- F5's reading, with an empty stand-in for grokpm_shadow_marks (not yet in production): 24 counted markets, 0 resolved
 ```
+
+## 6. Decided (Davies, 2026-10-24; §1–§5 above are unchanged)
+
+Davies, 2026-10-24, on §3: "这些你看看需要做的话就做" (do the ones that are worth doing). All five are worth doing:
+- P1, P2 and P4 are built, with pins: §6.2.
+- P3 is in the reading's SQL.
+- P5 is C-006 on the desk ledger, since only Grok's scheduler can wake Grok.
+
+P6 stands: no rule, budget or category change beyond D14.
+
+### 6.1 The deviations, for the pre-registration's §9
+
+Each one goes into §9 after D8 (#245, still an open PR), D9 (D7's sample rule) and D10 (the rules study), in this order,
+so the file's sha chain stays one line. The frozen file is not edited here: these are the texts to append when #245 lands.
+
+> - **D11 (2026-10-24, after the start; no migration; a read added to Appendix A.2, no rule changed).** Davies,
+>   2026-10-24: "这些你看看需要做的话就做", on the optimisation review (`reviews/2026-10-24-grokpm-optimisation.md`, P1).
+>   `GET ?action=markets_far` (optional `tag=<Gamma tag slug>`, `offset=0, 100, …`, `attention=low|all`, default `low`)
+>   answers one page of Gamma's open events ending 3 to 30 days from now. For each open market accepting orders it
+>   returns `market_id`, `question`, `slug`, `event_title`, `event_slug`, `end_date`, `tags` (no reward tags), a
+>   `description` of at most 400 characters, `sports` and `crypto`, and nothing else: no price, bid, ask, volume,
+>   liquidity, spread or trade field. `attention=low` keeps lifetime volume of $10k to under $50k (§7.1's stratum),
+>   applied by the server and never shown. Use it to choose markets by title before any price (C-005): p first, then
+>   `?action=market`. Same bearer, region and request limits as every action. Nothing about the rules, the reading, its
+>   bar or its end changes.
+> - **D12 (2026-10-24, after the start; no migration; a field added to Appendix A.2's `market` read, no rule changed).**
+>   Davies, 2026-10-24: "这些你看看需要做的话就做", on the optimisation review (P2). Each outcome of `?action=market`
+>   carries `last_trade`: `{price, at}` of the market's newest public taker trade, as that outcome's price (a trade of
+>   the other outcome at q is 1 − q), or null when the market has not traded. The read carries `last_trade_read` ("ok",
+>   or "unread" when the public tape could not be read). An emptied book's mid is the midpoint of a stale bid and an ask
+>   at 0.99 or 1; the last trade shows where the market last changed hands. The `edge` and `thin` rules are unchanged:
+>   they read the book, not the last trade.
+> - **D13 (2026-10-24, after the start; no migration; a reading's stratum added, no rule changed).** Davies,
+>   2026-10-24: "这些你看看需要做的话就做", on the optimisation review (P3). D7's secondary reading, with D9's sample and
+>   D10's column, reports beside the full set (which stays as D7 defines it) the same Brier means on the stratum of
+>   counted forecasts whose m lies in [0.05, 0.95] (`backtests/grokpm_reading/d7_d10_shadow.sql`). A forecast on a market
+>   at 0.9995 scores near 0 for both sides and only dilutes a difference. It is not a bar.
+> - **D14 (2026-10-24, after the start; no migration; D4's settlement held to a final payout).** Davies, 2026-10-24:
+>   "这些你看看需要做的话就做", on the optimisation review (P4). D4 settles a resolved holding into the agent's cash at its
+>   payout. Since D14 a resolution counts only at a payout of 0, ½ or 1, in the recorder that writes `grokpm_resolutions`
+>   and in the server's book that reads it (`_shared/grokpm_public.ts`, `finalPayouts`). A market Gamma calls closed at
+>   any other price (for example 0.9995) stays a holding at its mark until a later read shows the payout. The agent had
+>   held nothing when it was made. Nothing else about D4, the rules, the reading, its bar or its end changes.
+
+### 6.2 What was built (commit on top of `6e955747`), each pinned
+
+| # | what | where | pinned by |
+|---|---|---|---|
+| D11 | `?action=markets_far`. One Gamma `/events` page by end date (and tag), kept to FAR_FIELDS. Its query takes a tag slug, offsets in hundreds up to 10,000, and `low`/`all`. | `grokpm/exec.ts` (`farMarketsOf`, `farMarketsView`, `GROKPM_FAR`, `FAR_FIELDS`); `grokpm/index.ts` (`ACTIONS`, `farQuery`); `_shared/polymarket_public.ts` (`pmEventsEnding`) | `exec.test.ts`: three D11 tests. The window, attention band, closed and not-accepting are dropped. Every row has exactly FAR_FIELDS, and no key or value anywhere looks like a price, book, volume or trade (a deep walk, plus a check that the fixture's prices and volumes never appear). The view's window and next offset; 502 and 503. The query's refusals. Bearer 401, region 403, POST 405, bad offset 422 |
+| D12 | `last_trade` on each outcome and `last_trade_read` on the `market` read, from one tape read beside the books. | `grokpm/exec.ts` (`marketView`); `_shared/grokpm_public.ts` (`tapeOf`, `lastTradeBefore`, moved from the recorder, which re-exports it); `_shared/polymarket_public.ts` (`pmTakerTape`) | `exec.test.ts`: "D12…". The other side's trade at 1 − q; an unread tape gives null and "unread"; a market that never traded gives null |
+| D13 | The stratum m ∈ [0.05, 0.95], against m and against the last trade. | `backtests/grokpm_reading/d7_d10_shadow.sql` | None (SQL). Run read-only on production 2026-10-24 ~08:2x UTC (below) |
+| D14 | Final payouts only, in the recorder's traded and forecast lookups (`finalResolution`) and in every payout read (`finalPayouts`: the recorder's marks and the server's book). | `_shared/grokpm_public.ts`; `agents/grokpm_rec.ts`; `grokpm/exec.ts` (`context`) | `grokpm_rec.test.ts`: "D14…" (closed at 0.9995 is no resolution and the holding stays marked; at 1 it is; a pre-D14 row at 0.9995 is not read as a payout). `exec.test.ts`: "D14…" (the book settles nothing at 0.9995 and 75 at 1) |
+
+**An interim read of D13's SQL** (production, 2026-10-24 ~08:2x UTC, not blind; 34 counted markets, 19 resolved; every
+one has a last trade, 9 have a book):
+
+| | n | agent | market's m | market's last trade |
+|---|---:|---:|---:|---:|
+| full set | 19 | 0.0242 | 0.0546 | 0.0241 |
+| m in [0.05, 0.95] | 8 | 0.0572 | 0.1296 | 0.0570 |
+
+Against m, the agent looks better; against the last trade it is even. That is the rules study's finding (§5 there)
+holding on more markets. Nineteen resolved forecasts in four days decide nothing; the reading at the end does.
+
+**Not built:** P5. Event wakes are Grok's scheduler's to set; C-006 asks Grok whether it can (§6.3).
+
+### 6.3 C-006 (desk ledger)
+
+Tells Grok:
+- what D11 and D12 add, once they are deployed;
+- how C-005 uses the far list.
+
+It asks whether Grok's scheduler can add one-off wakes at scheduled release times for markets Grok watches, and if so to
+set them itself for markets it already holds a p on. No rule change.

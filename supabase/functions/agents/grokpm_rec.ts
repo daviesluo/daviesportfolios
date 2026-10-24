@@ -50,6 +50,10 @@
 import type { Db } from "./db.ts";
 import { faultKey, reportDue } from "./pm_book_rec.ts";
 import { PM_DATA, PM_GAMMA, pmBooks, pmMarkets } from "../_shared/polymarket_public.ts";
+import { finalPayouts, type GrokPmTape, isFinalPayout, lastTradeBefore, tapeOf } from "../_shared/grokpm_public.ts";
+
+// The tape helpers live in `_shared/grokpm_public.ts` (the server's `market` read uses them too, Deviation D12).
+export { type GrokPmTape, lastTradeBefore };
 
 export const GROKPM_RPC = "https://polygon-bor-rpc.publicnode.com";
 /** The stablecoins whose balance is the wallet's cash, all six decimals (read keylessly, `decimals()`, 2026-10-15). */
@@ -218,34 +222,18 @@ export function pendingForecasts(decisions: GrokPmForecast[], marked: Set<string
   return out;
 }
 
-/** A taker trade as the data API serves it, reduced to what the mark reads. */
-export type GrokPmTape = { asset: string; side: string; price: number; size: number; timestamp: number };
-
-/**
- * The last trade at or before `atMs` on a market's tape (newest first, `full` when the page was full), as the price of
- * `token`: a trade of the other outcome at q counts as 1 - q. Without one, why: the tape has nothing that old and the page
- * was not full (`none_before`: the market had not traded), or it was (`beyond_window`: the trade, if any, is older than
- * the page).
- */
-export function lastTradeBefore(tape: GrokPmTape[], token: string, atMs: number, full: boolean) {
-  let best: GrokPmTape | null = null;
-  for (const t of tape) if (t.timestamp * 1000 <= atMs && Number.isFinite(t.price) && (!best || t.timestamp > best.timestamp)) best = t;
-  if (!best) return { status: full ? "beyond_window" : "none_before", price: null, trade_at: null, trade_asset: null, trade_side: null, trade_size: null };
-  return {
-    status: "found", price: r6(best.asset === token ? best.price : 1 - best.price), trade_at: new Date(best.timestamp * 1000).toISOString(),
-    trade_asset: best.asset, trade_side: best.side, trade_size: r6(best.size),
-  };
-}
-
 /** A forecast token's best bid and ask from `books`, only when read within `GROKPM_SHADOW_BOOK_LAG_MS` of the forecast. */
 export function touchOf(books: Map<string, { bids: Array<[number, number]>; asks: Array<[number, number]> }>, x: { ts: string; token_id: string | null }, now: number) {
   const b = now - Date.parse(x.ts) <= GROKPM_SHADOW_BOOK_LAG_MS ? books.get(String(x.token_id)) : undefined;
   return { book_bid: b?.bids[0]?.[0] ?? null, book_ask: b?.asks[0]?.[0] ?? null };
 }
 
-/** Gamma's answer for a market a forecast names, as a resolution row, only once it has closed at 0, 1/2 or 1. */
-export function forecastResolution(m: { cond: string; yes: string; no: string; closed: boolean; payout: number | null; closedTime: string | null }) {
-  if (!m.closed || m.payout === null || ![0, 0.5, 1].includes(m.payout)) return null;
+/**
+ * Gamma's answer for a market, as a resolution row, only once it has closed at 0, 1/2 or 1: for a market a forecast names
+ * (F1) and, since Deviation D14 (2026-10-24), for a market the agent traded, whose holding the server's book then settles.
+ */
+export function finalResolution(m: { cond: string; yes: string; no: string; closed: boolean; payout: number | null; closedTime: string | null }) {
+  if (!m.closed || m.payout === null || !isFinalPayout(m.payout)) return null;
   return {
     cond: m.cond.toLowerCase(), tokens: [m.yes, m.no], payouts: [m.payout, r6(1 - m.payout)],
     closed_at: m.closedTime ? new Date(m.closedTime.replace(" ", "T").replace(/\+00$/, "Z")).toISOString() : null,
@@ -355,11 +343,7 @@ export async function runGrokPmRec(o: { db: Db; now: number; fetchImpl?: typeof 
       ]);
       if (trades.length >= 1000) throw new Error("over 1,000 trades since the start: the record would be read in part");
       const book = agentBook(trades, fills, startedAt);
-      const payouts: Record<string, number> = {};
-      for (const r of resolutionRows) {
-        const t = Array.isArray(r.tokens) ? r.tokens.map(String) : [], p = Array.isArray(r.payouts) ? r.payouts.map(Number) : [];
-        t.forEach((tok, i) => { if (Number.isFinite(p[i])) payouts[tok] = p[i]; });
-      }
+      const payouts = finalPayouts(resolutionRows);
       const held = book.assets.filter((a) => a.size > 0 && payouts[a.asset] === undefined).map((a) => a.asset);
       const [cash, rawPositions, value] = await Promise.all([
         readCash(w, f).catch((e) => { errors.push(`balances: ${(e as Error).message}`); return { pusd: 0, usdce: 0, usdc: 0 }; }),
@@ -390,9 +374,8 @@ export async function runGrokPmRec(o: { db: Db; now: number; fetchImpl?: typeof 
       if (due) {
         const open = [...new Set(book.assets.map((a) => a.cond))].filter((c) => /^0x[0-9a-f]{64}$/.test(c) && !resolutionRows.some((r) => r.cond === c));
         const ms = open.length ? await pmMarkets(open, true, { fetchImpl: f, timeoutMs: GROKPM_TIMEOUT_MS }) : [];
-        const rows = ms.filter((m) => m.closed && m.payout !== null).map((m) => ({
-          cond: m.cond, tokens: [m.yes, m.no], payouts: [m.payout, r6(1 - (m.payout as number))], closed_at: m.closedTime ? new Date(m.closedTime.replace(" ", "T").replace(/\+00$/, "Z")).toISOString() : null,
-        }));
+        // Final payouts only (D14): a market closed at 0.9995 waits for the next look.
+        const rows = ms.map(finalResolution).filter((x): x is NonNullable<typeof x> => x !== null);
         if (rows.length) await d.upsert("grokpm_resolutions", rows, "cond");
         report.resolved = rows.length;
         state.lastResolveAt = o.now;
@@ -418,16 +401,14 @@ export async function runGrokPmRec(o: { db: Db; now: number; fetchImpl?: typeof 
       Promise.all([...pending.keys()].map(async (c) => {
         try {
           const raw = await getJsonRetry(`${PM_DATA}/trades?market=${c}&takerOnly=true&limit=${GROKPM_SHADOW_TRADES}&offset=0&${bust}`, f, sleep);
-          if (!Array.isArray(raw)) throw new Error("trades: not a list");
-          const tape = (raw as Array<Record<string, unknown>>).filter((t) => t && typeof t.asset === "string")
-            .map((t) => ({ asset: String(t.asset), side: String(t.side ?? ""), price: Number(t.price), size: num(t.size), timestamp: num(t.timestamp) }));
-          return { c, tape, full: raw.length >= GROKPM_SHADOW_TRADES };
+          const tape: GrokPmTape[] = tapeOf(raw);
+          return { c, tape, full: (raw as unknown[]).length >= GROKPM_SHADOW_TRADES };
         } catch (e) { errors.push(`forecast trades: ${(e as Error).message}`); return null; }
       })),
       fresh.length ? pmBooks([...new Set(fresh)], { fetchImpl: f, timeoutMs: GROKPM_TIMEOUT_MS }).catch((e) => { errors.push(`forecast books: ${(e as Error).message}`); return new Map(); })
         : Promise.resolve(new Map()),
     ]);
-    const rows = ms.map(forecastResolution).filter((x): x is NonNullable<typeof x> => x !== null && conds.includes(x.cond));
+    const rows = ms.map(finalResolution).filter((x): x is NonNullable<typeof x> => x !== null && conds.includes(x.cond));
     if (rows.length) await d.upsert("grokpm_resolutions", rows, "cond");
     if (dueF) state.lastForecastResolveAt = o.now;
     report.forecastResolved = rows.length;

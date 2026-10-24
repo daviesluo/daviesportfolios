@@ -3307,6 +3307,14 @@ changes.
   - final-only payouts on the traded path;
   - event wakes;
   - no rule, budget or category change.
+- **Decided 2026-10-24** (Davies: "这些你看看需要做的话就做"), each a deviation to append to §9 after D8–D10 (the
+  review's §6.1 has the texts):
+  - **D11**: `?action=markets_far`, markets ending 3–30 days out by title, with no price-like field.
+  - **D12**: `last_trade` on the `market` read.
+  - **D13**: the reading's stratum at m 0.05–0.95.
+  - **D14**: a resolution settles only at 0, ½ or 1, in the recorder and the server's book (`_shared/grokpm_public.ts`).
+  - Event wakes are asked of Grok in C-006.
+  - Interim (19 resolved forecasts, not blind): Brier agent 0.0242, m 0.0546, last trade 0.0241.
 
 ## 4. Design consequences (decided by the evidence above)
 

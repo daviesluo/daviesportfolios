@@ -46668,3 +46668,28 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   - Variant-2's two takes (10-20 12:28 and 13:59, USDT ask) fell on LIVE rungs with frozen cancels (08:37 → 15:02), and at
     13:59 also behind LIVE's stale-input guard.
   - `weekend_mode` 'live'; first live closure tonight. Ledger: the 2026-10-23 01:00 UTC section moved to the archive.
+
+## LEDGER.md, archived 2026-10-24 (fifth) — the 2026-10-24 07:40 and 09:48 UTC history sections, oldest first
+
+### [2026-10-24 07:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM optimisation** (sub-agent; not pushed; Davies, 10-24: "同意 另外看看有什么可以优化的地方";
+  `reviews/2026-10-24-grokpm-optimisation.md`, reference §3.49; no rule change, the frozen file untouched).
+  - C-005 is on the desk ledger (`33f674ac`). The fixes, each pinned:
+    - F1: the recorder writes the forecast markets' outcomes at 0, ½ or 1;
+    - F2: `0138`'s `grokpm_shadow_marks`, each forecast's last trade and its book when read within 10 minutes;
+    - F3: retries for busy 429s in the redemption and the recorder;
+    - F4: market-read ids in either case, with a reason on refusal;
+    - F5: `backtests/grokpm_reading/d7_d10_shadow.sql`.
+  - The push redeploys `agents` and `grokpm` and applies `0138`. P1–P5 are proposals for Davies.
+  - Ledger: the 2026-10-23 02:10, 02:25, 02:30 and 04:55 UTC sections moved to the archive.
+
+### [2026-10-24 09:48 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **PR5V's and rule D's reading scripts committed** (sub-agent, the 10-24 09:20 wake; not pushed; deadline 10-27 00:00).
+  - Written strictly from the two frozen pre-registrations and their deviations (governor 900/950; arm d on PR5's X), with
+    no discretionary choice; the 09-30 early read is disclosed in every output. No frozen file edited.
+  - `scripts/pr5v/reading_pr5v.py`, `reading_ruled.py`, `reading_common.py`; exports `reading_pull*.sql` (checked by
+    `EXPLAIN` only), `reading_grab.py`. Shas in `reviews/2026-10-24-pr5v-ruled-reading-scripts.md`, which names 12 gaps
+    read narrowly; nothing needs Davies before 10-28.
+  - Proven before any reading: the replay reproduces the study's runs trip for trip and POST for POST (563 / $29.5129,
+    40 / $2.5438; rule D 593 / $30.3004, 60 / $3.7420). A hand-worked fixture passes 33 checks, broken copies included.
+  - Ledger: the 2026-10-23 05:05 UTC section moved to the archive.

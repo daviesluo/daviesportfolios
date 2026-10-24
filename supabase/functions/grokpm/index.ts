@@ -31,7 +31,8 @@ import { POLYMARKET_GAMMA_HOST } from "../_shared/polymarket.ts";
 import { loadPmLiveEnv, pmOrderCall, pmVenue, PM_ORDER_REGION } from "../_shared/polymarket_orders.ts";
 import { makeDb } from "../agents/db.ts";
 import { type RedeemDeps, runRedeem } from "./redeem.ts";
-import { accountView, cancelOrders, context, type ExecDeps, type GrokVenue, marketView, placeOrder, syncOrders } from "./exec.ts";
+import { accountView, cancelOrders, context, type ExecDeps, farMarketsView, type GrokVenue, marketView, placeOrder, syncOrders } from "./exec.ts";
+import { pmEventsEnding, pmTakerTape } from "../_shared/polymarket_public.ts";
 import {
   GROKPM_MAX_BODY_BYTES, GROKPM_MAX_ERRORS, GROKPM_MAX_REQUESTS_PER_HOUR, GROKPM_MAX_ROWS_PER_HOUR, isAuthorised, rateVerdict, type RequestRow, tableRows, validateBatch,
 } from "./ingest.ts";
@@ -88,7 +89,7 @@ export type HandleDeps = {
   redeem?: (now: number) => Promise<RedeemDeps>;
 };
 /** The actions besides the journal, and the method each takes. */
-export const ACTIONS: Record<string, "GET" | "POST"> = { account: "GET", market: "GET", order: "POST", cancel: "POST", cancel_all: "POST", sync: "POST" };
+export const ACTIONS: Record<string, "GET" | "POST"> = { account: "GET", market: "GET", markets_far: "GET", order: "POST", cancel: "POST", cancel_all: "POST", sync: "POST" };
 
 export async function handle(req: Request, deps: HandleDeps): Promise<Response> {
   const now = deps.now ?? Date.now;
@@ -125,6 +126,9 @@ export async function handle(req: Request, deps: HandleDeps): Promise<Response> 
       } else if (action === "market") {
         const q = marketQuery(url.searchParams.get("cond"), url.searchParams.get("token"));
         out = "error" in q ? { status: 422, body: { error: "invalid", errors: [q.error] } } : await marketView(x, q);
+      } else if (action === "markets_far") {
+        const f = farQuery(url.searchParams);
+        out = "error" in f ? { status: 422, body: { error: "invalid", errors: [f.error] } } : await farMarketsView(x, f);
       } else {
         const type = req.headers.get("content-type") ?? "";
         const text = await req.text();
@@ -214,6 +218,17 @@ export function marketQuery(cond: string | null, token: string | null): { cond: 
   }
   if (t) return { error: `${need}: the token sent (${t.length} characters) is not a decimal token id` };
   return { error: need };
+}
+
+/** The far list's query (Deviation D11): an optional tag slug, an offset in pages of 100, and the attention band. */
+export function farQuery(p: URLSearchParams): { tag: string | null; offset: number; attention: "low" | "all" } | { error: string } {
+  const tag = (p.get("tag") ?? "").trim().toLowerCase() || null;
+  if (tag !== null && !/^[a-z0-9][a-z0-9-]{0,63}$/.test(tag)) return { error: "tag: a Gamma tag slug (letters, digits, hyphens)" };
+  const off = p.get("offset") ?? "0";
+  if (!/^[0-9]{1,5}$/.test(off) || Number(off) % 100 !== 0 || Number(off) > 10_000) return { error: "offset: 0, 100, 200 … up to 10000" };
+  const attention = (p.get("attention") ?? "low").trim().toLowerCase();
+  if (attention !== "low" && attention !== "all") return { error: "attention: low (the default) or all" };
+  return { tag, offset: Number(off), attention };
 }
 
 async function handleRedeem(req: Request, deps: HandleDeps, t: number): Promise<Response> {
@@ -306,6 +321,9 @@ export async function productionExec(t: number): Promise<ExecDeps> {
       const qs = new URLSearchParams([["limit", "2"], ["closed", "false"], ["include_tag", "true"], q.cond ? ["condition_ids", q.cond] : ["clob_token_ids", q.token ?? ""]]);
       return pmOrderCall("GET", `${POLYMARKET_GAMMA_HOST}/markets/keyset?${qs}`, undefined, wire);
     },
+    // Keyless public reads (D11, D12): a minute's cache-buster, so a read is never CloudFront's copy of an older one.
+    tape: (cond) => pmTakerTape(cond, 100, Math.floor(t / 60e3), { timeoutMs: 6_000 }),
+    farEvents: (q) => pmEventsEnding(q, { timeoutMs: 8_000 }),
   };
   if (env.funder) await db.update("grokpm_config", "id=eq.1&wallet=is.null", { wallet: env.funder.toLowerCase() }).catch(() => {});
   return {
