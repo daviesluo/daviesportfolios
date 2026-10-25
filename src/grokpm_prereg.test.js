@@ -23,8 +23,13 @@ const INGEST = read('supabase/functions/grokpm/ingest.ts');
 const SCHEMA = read('supabase/functions/_shared/grokpm_schema.ts');
 
 describe('GROKPM pre-registration', () => {
-  // Frozen 2026-10-15; the sha256 of the whole file since Deviation D10 (2026-10-23: D7's reading adds the last trade
-  // beside m), which added §9's D10 only. Before it, Deviation D9 (2026-10-22: D7's sample, from C-003's start without
+  // Frozen 2026-10-15; the sha256 of the whole file since Deviation D14 (2026-10-24: D4's settlement held to a final
+  // payout), which added §9's D14 only. Before it, D13 (2026-10-24: the reading's m 0.05–0.95 stratum; sha256
+  // 956c8fb8e1913cf96c1ba6e8d49ce28eec440f1e6e124b2bbedadcdf1f026c5b), D12 (2026-10-24: `last_trade` on the market read;
+  // sha256 e24382385bb19e4080448e861dce29a336a82006d881d43f6569d282a43ba7e4) and D11 (2026-10-24: `?action=markets_far`;
+  // sha256 f7c10f3f621fb5a5864d1c5333e937aa8dae730efddfb6b91ea19a0fecc100b6), each adding its own §9 entry only. Before
+  // them, Deviation D10 (2026-10-23: D7's reading adds the last trade beside m; sha256
+  // a83d12d8907b2e1b1cabff9461ecc18538b1a1f40e15dea1ff6aa748ca20bcb2), which added §9's D10 only. Before it, Deviation D9 (2026-10-22: D7's sample, from C-003's start without
   // the 17:05 UTC wake; sha256 c5c663f31b54fdd24d2300227f38ccf73796ba9a3c4766dad6f3b7afd89ccb09), which added §9's D9
   // only. Before it, Deviation D8 (2026-10-20: cumulative Kelly within a
   // market; sha256 0cfc80c886e615d4ac081540c6d1952135b04396de2fc813b4e90a8e6f295528), which added §9's D8 only. Before it, Deviation D7 (2026-10-20: shadow forecasts, a reading added; sha256
@@ -36,7 +41,7 @@ describe('GROKPM pre-registration', () => {
   // (2026-10-16) added §9's D3 and three rows to A.2's refusal table; D2 before it added §9's D2 and Appendix A.2 and
   // moved the hourly request cap from 120 to 600.
   it('is frozen: its sha256', () => {
-    expect(sha(PREREG_PATH)).toBe('a83d12d8907b2e1b1cabff9461ecc18538b1a1f40e15dea1ff6aa748ca20bcb2');
+    expect(sha(PREREG_PATH)).toBe('409b6acd9ea9048b309efe7ac46215cc2b932d1c9f5fc28321c4a6d4149f8774');
   });
 
   it("has its cadence study's files as its manifest names them, and quotes the study's own numbers", () => {

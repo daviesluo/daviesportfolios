@@ -385,6 +385,34 @@ CLOB's history (a mid-like price per five minutes), not executable books.
   bootstrap) and reported beside the m column, which stays as D7 defined it. Each counted forecast whose book was
   one-sided or wider than 5 points is marked. It is not a bar: continuing still needs §6's two conditions on real
   entries. Nothing about the categories, the rules, §6's reading, its bar or its end changes.
+- **D11 (2026-10-24, after the start; no migration; a read added to Appendix A.2, no rule changed).** Davies,
+  2026-10-24: "这些你看看需要做的话就做", on the optimisation review (`reviews/2026-10-24-grokpm-optimisation.md`, P1).
+  `GET ?action=markets_far` (optional `tag=<Gamma tag slug>`, `offset=0, 100, …`, `attention=low|all`, default `low`)
+  answers one page of Gamma's open events ending 3 to 30 days from now. For each open market accepting orders it
+  returns `market_id`, `question`, `slug`, `event_title`, `event_slug`, `end_date`, `tags` (no reward tags), a
+  `description` of at most 400 characters, `sports` and `crypto`, and nothing else: no price, bid, ask, volume,
+  liquidity, spread or trade field. `attention=low` keeps lifetime volume of $10k to under $50k (§7.1's stratum),
+  applied by the server and never shown. Use it to choose markets by title before any price (C-005): p first, then
+  `?action=market`. Same bearer, region and request limits as every action. Nothing about the rules, the reading, its
+  bar or its end changes.
+- **D12 (2026-10-24, after the start; no migration; a field added to Appendix A.2's `market` read, no rule changed).**
+  Davies, 2026-10-24: "这些你看看需要做的话就做", on the optimisation review (P2). Each outcome of `?action=market`
+  carries `last_trade`: `{price, at}` of the market's newest public taker trade, as that outcome's price (a trade of
+  the other outcome at q is 1 − q), or null when the market has not traded. The read carries `last_trade_read` ("ok",
+  or "unread" when the public tape could not be read). An emptied book's mid is the midpoint of a stale bid and an ask
+  at 0.99 or 1; the last trade shows where the market last changed hands. The `edge` and `thin` rules are unchanged:
+  they read the book, not the last trade.
+- **D13 (2026-10-24, after the start; no migration; a reading's stratum added, no rule changed).** Davies,
+  2026-10-24: "这些你看看需要做的话就做", on the optimisation review (P3). D7's secondary reading, with D9's sample and
+  D10's column, reports beside the full set (which stays as D7 defines it) the same Brier means on the stratum of
+  counted forecasts whose m lies in [0.05, 0.95] (`backtests/grokpm_reading/d7_d10_shadow.sql`). A forecast on a market
+  at 0.9995 scores near 0 for both sides and only dilutes a difference. It is not a bar.
+- **D14 (2026-10-24, after the start; no migration; D4's settlement held to a final payout).** Davies, 2026-10-24:
+  "这些你看看需要做的话就做", on the optimisation review (P4). D4 settles a resolved holding into the agent's cash at its
+  payout. Since D14 a resolution counts only at a payout of 0, ½ or 1, in the recorder that writes `grokpm_resolutions`
+  and in the server's book that reads it (`_shared/grokpm_public.ts`, `finalPayouts`). A market Gamma calls closed at
+  any other price (for example 0.9995) stays a holding at its mark until a later read shows the payout. The agent had
+  held nothing when it was made. Nothing else about D4, the rules, the reading, its bar or its end changes.
 
 ## Appendix A: the journal API (paste into the prompt)
 

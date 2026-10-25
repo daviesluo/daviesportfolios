@@ -46717,3 +46717,17 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
 
 ### [2026-10-22 07:02 UTC] Platform: Grok | Model: grok-4.7
 - **Errors box: the same live fault is one line per hour** (`ops-error/noise.ts`; not merged, not deployed). A minute writer (`agents.quotes_weekend`, a `trend-4h-live` order whose outcome is unknown, `LEASE CLAIM FAILED`) was one line per row, sixty an hour. `boxLines` keys those rows by kind, class, the hour, the order or redeem ids and the normalized words, so the same fault in one hour is one line with a count and the latest time, and a different order or redeem stays its own line. Until `ops-error` deploys, item 3 still says read `ops_errors` itself, not the box. Merging redeploys `ops-error`; do that before 2026-10-23 22:00 BST.
+
+## LEDGER.md, archived 2026-10-25 — the 2026-10-23 19:16 and 10-24 19:20 UTC audit sections, oldest first
+
+### [2026-10-23 19:16 UTC] Platform: Claude Code via Grok Bot | Model: claude-opus-5-5
+- **Audit of 2026-10-23** (local, not pushed; no SQL): `2ccc2b69..eac96b1e`, 8 commits, one author, CI green; `0137`
+  applied 01:03 UTC; no function deployed. Next migration `0138`. This stack on `eac96b1e`: #245 with D8, D9, D10, and
+  #248, each PR's code byte for byte (#247 left out); it deploys `grokpm` and `ops-error`. `lp-skew-ft` is gone (item 0c).
+
+### [2026-10-24 19:20 UTC] Platform: Claude Code via Grok Bot | Model: claude-opus-5-5
+- **Audit of 2026-10-24** (local, not pushed; no SQL): `eac96b1e..6e955747`, 3 commits, one author, CI green; `0138`
+  applied 07:20 UTC. `6545cc19` edits `_shared/grokpm_schema.ts`, so `edge-changed` redeployed every function, `agents`
+  (PR5's live executor) with them, at 07:22 UTC inside the weekend closure; PR5's code is unchanged. Next migration
+  `0139`. This stack is 10-23's without #247 on `6e955747`, each commit's code byte for byte; it deploys `grokpm` and
+  `ops-error`. Ledger: PRs #245 and #248's sections and the 10-24 07:40 → 10:30 UTC ones moved to the archive.
