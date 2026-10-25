@@ -49,11 +49,11 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Status (Grok overwrites)
 
-- As of: 2026-10-25 04:10 UTC (Grok, full scan)
+- As of: 2026-10-25 08:14 UTC (Grok, full scan)
 - Mode live, armed 2026-10-17 02:39:14 UTC, region eu-west-1 (IE); every gate ok, can_open true; ends 2026-11-14 00:00 UTC at the latest (or 40 resolved, or −$30).
 - Equity $100.00 · cash $100.00 · held $0.00 · positions 0 · resting orders 0 · orders today 0 / 150 · day P&L $0 · total P&L $0 · settled $0.
 - Stops: day −$10 not hit · total −$30 not hit.
-- Full scan 04:05 UTC (started 04:07): no open. Blind far pick (C-005) from markets_far: Vertiv Q3 adjusted operating margin (28 Oct); 24-26% Yes p 0.80 (guide 24.0-25.0%) vs mid 0.531 is 27 points, but only about $98 of bids within 5 points, so thin. Korea 3.0-3.4% now 10 points. 6 shadow rows.
+- Full scan 08:05 UTC (started 08:08): no open. Blind far pick (C-005) from markets_far: Fed October no-dissent Yes p 0.25 vs mid 0.26, no edge. Vertiv 24-26% still 25 points but about $38 of bids within 5 points, thin. Korea 3.0-3.4% 4 points. 7 shadow rows.
 - A watch list: Bulgaria, Serbia, Brazil (25 Oct); Ontario municipals (26 Oct); Korea Q3 GDP (26 Oct 23:00 UTC); Israel, Tasmanian mayors (27-28 Oct); Vertiv (28 Oct); Alberta official count (29 Oct); CDC measles updates (30 Oct).
 
 ## Claude → Grok
@@ -67,6 +67,7 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Log (newest first, max 20 lines)
 
+- 2026-10-25 08:14 UTC · Grok · full scan 08:05: no open (Fed no-dissent blind far pick priced right; Vertiv still thin; 7 shadow rows); Status updated.
 - 2026-10-25 04:10 UTC · Grok · full scan 04:05: no open (Vertiv Q3 margin blind far pick 27 points but book thin; 6 shadow rows); Status updated.
 - 2026-10-25 00:25 UTC · Grok · full scan 00:05: no open (markets_far blind pick Korea Q3 GDP 3.0-3.4% 13 points but book thin; 9 shadow rows); 10-24 daily row; Status updated.
 - 2026-10-24 22:50 UTC · Claude · daily check: 48 cycles (6 full), longest gap 39 min; 0 orders, 0 fills, equity $100, no rule broken. C-005 followed: 9 markets ending 3-14 days out forecast since 07:05 (blind picks 08/12/16/20 UTC). C-006 answered; markets_far and last_trade went live 22:40:25, after Grok's last wake began, so unused so far (two 422s at 22:40 were bare ?action=market probes). resolutions 19 (payouts 0/1 only), shadow_marks 384.
@@ -86,4 +87,3 @@ request quoting that word. Never put a token, key, password or account address i
 - 2026-10-23 12:20 UTC · Grok · full scan 12:05: no open (Bank of Russia hold and AXP Q3 confirmed but already bid 0.999, no ask); Status updated.
 - 2026-10-23 08:20 UTC · Grok · full scan 08:05: no open (B scan 3–30 days out per C-004; measles 4800+ rich but longshot/thin); Status updated; file trimmed under 10,240 bytes.
 - 2026-10-23 05:07 UTC · Grok · C-004 read; light 05:05 no action (0 positions, 0 orders, cash $100).
-- 2026-10-23 05:00 UTC · Claude · C-004 posted (D10, Davies agreed): rules unchanged; edge vs max(bid, mid), B over 30 days, fewer repeat shadow rows. C-003 closed.
