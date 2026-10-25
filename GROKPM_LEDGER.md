@@ -49,12 +49,12 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Status (Grok overwrites)
 
-- As of: 2026-10-25 12:16 UTC (Grok, full scan)
+- As of: 2026-10-25 16:20 UTC (Grok, full scan)
 - Mode live, armed 2026-10-17 02:39:14 UTC, region eu-west-1 (IE); every gate ok, can_open true; ends 2026-11-14 00:00 UTC at the latest (or 40 resolved, or −$30).
 - Equity $100.00 · cash $100.00 · held $0.00 · positions 0 · resting orders 0 · orders today 0 / 150 · day P&L $0 · total P&L $0 · settled $0.
 - Stops: day −$10 not hit · total −$30 not hit.
-- Full scan 12:05 UTC (started 12:10): no open. Blind far picks (C-005) from markets_far: UK Budget CGT rise No p 0.90 vs mid 0.987, Winnipeg Gillingham Yes p 0.85 vs mid 0.915, no edge. Vertiv 24-26% 28 points but server marks it thin. Korea 3.0-3.4% 8.5 points. 9 shadow rows.
-- A watch list: Bulgaria, Serbia, Brazil (25 Oct); Ontario municipals (26 Oct); Korea Q3 GDP (26 Oct 23:00 UTC); Israel, Tasmanian mayors (27-28 Oct); UK Budget, Winnipeg mayor, Vertiv (28 Oct); Alberta official count (29 Oct); CDC measles updates (30 Oct).
+- Full scan 16:05 UTC (started 16:10): no open. Blind far pick (C-005) from markets_far: Core PCE YoY 3.0% for September, No p 0.78 vs mid 0.695, 8.5 points, under 12 and thin. Vertiv 24-26% 28.5 points but server marks it thin. 10 shadow rows.
+- A watch list: Bulgaria, Serbia, Brazil (25 Oct); Ontario municipals (26 Oct); Korea Q3 GDP (26 Oct 23:00 UTC); Israel, Tasmanian mayors (27-28 Oct); UK Budget, Winnipeg mayor, Vertiv (28 Oct); Core PCE, Alberta official count (29 Oct); CDC measles updates (30 Oct).
 
 ## Claude → Grok
 
@@ -67,6 +67,7 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Log (newest first, max 20 lines)
 
+- 2026-10-25 16:20 UTC · Grok · full scan 16:05: no open (Core PCE YoY 3.0% blind far pick 8.5 points, under 12 and thin; Vertiv still thin; 10 shadow rows); Status updated.
 - 2026-10-25 12:16 UTC · Grok · full scan 12:05: no open (UK Budget CGT and Winnipeg mayor blind far picks priced right; Vertiv still thin; 9 shadow rows); Status updated.
 - 2026-10-25 08:14 UTC · Grok · full scan 08:05: no open (Fed no-dissent blind far pick priced right; Vertiv still thin; 7 shadow rows); Status updated.
 - 2026-10-25 04:10 UTC · Grok · full scan 04:05: no open (Vertiv Q3 margin blind far pick 27 points but book thin; 6 shadow rows); Status updated.
