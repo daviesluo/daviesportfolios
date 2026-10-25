@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-10-24",
+  "asOf": "2026-10-25",
   "btc": {
     "asset": "BTC-USD",
     "unit": "USD per bitcoin",
@@ -146,10 +146,10 @@
       },
       {
         "firm": "Jefferies",
-        "target": 7500,
-        "date": "2026-08-11",
+        "target": 8000,
+        "date": "2026-09-16",
         "horizon": "end-2026",
-        "url": "https://www.galvnews.com/news_reuters/business/factbox-major-brokerages-forecasts-for-s-p-500-index-in-2026/article_7275084d-b0f7-55d9-b162-d22b116e17fd.html"
+        "url": "https://rallies.ai/news/live-markets-jefferies-sees-earnings-pushing-sp-500-to-8000-by-year-end-671a253c45b06354"
       },
       {
         "firm": "BNP Paribas",
@@ -171,6 +171,13 @@
         "date": "2026-08-11",
         "horizon": "end-2026",
         "url": "https://www.galvnews.com/news_reuters/business/factbox-major-brokerages-forecasts-for-s-p-500-index-in-2026/article_7275084d-b0f7-55d9-b162-d22b116e17fd.html"
+      },
+      {
+        "firm": "Stifel",
+        "target": 7900,
+        "date": "2026-10-04",
+        "horizon": "end-2026",
+        "url": "https://www.boursorama.com/bourse/actualites/stifel-releve-son-objectif-de-fin-d-annee-pour-le-s-p-500-a-7-900-points-0593c034a4d33a4317a1d6fbb3e1c5b0"
       }
     ]
   }

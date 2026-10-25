@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-10-24",
+  "asOf": "2026-10-25",
   "risks": {
     "AAPL": [
       {
@@ -235,10 +235,6 @@
       }
     ],
     "SPCX": [
-      {
-        "text": "Lock-up: up to 328.4M shares 10/24",
-        "until": "2026-10-24"
-      },
       {
         "text": "~1.3B more unlock after the Q3 report (10/20)",
         "until": "2026-11-22"
