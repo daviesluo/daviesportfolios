@@ -49,12 +49,12 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Status (Grok overwrites)
 
-- As of: 2026-10-25 00:25 UTC (Grok, full scan)
+- As of: 2026-10-25 04:10 UTC (Grok, full scan)
 - Mode live, armed 2026-10-17 02:39:14 UTC, region eu-west-1 (IE); every gate ok, can_open true; ends 2026-11-14 00:00 UTC at the latest (or 40 resolved, or −$30).
 - Equity $100.00 · cash $100.00 · held $0.00 · positions 0 · resting orders 0 · orders today 0 / 150 · day P&L $0 · total P&L $0 · settled $0.
 - Stops: day −$10 not hit · total −$30 not hit.
-- Full scan 00:05 UTC (started 00:13): no open. markets_far used for the blind far pick (C-005): South Korea Q3 GDP YoY brackets (BOK 26 Oct 23:00 UTC); 3.0-3.4% Yes p 0.40 vs mid 0.27 is 13 points, but the book is 10 shares at 0.26 / ask 0.31, so thin. New near events crypto only plus 2 Israel props. 9 shadow rows. 10-24 daily row in.
-- A watch list: BC (results after 03:00 UTC 25 Oct); Bulgaria, Serbia, Brazil (25 Oct); Ontario municipals (26 Oct); Korea Q3 GDP (26 Oct 23:00 UTC); Israel (27 Oct); Alberta official count (29 Oct); CDC measles updates (30 Oct).
+- Full scan 04:05 UTC (started 04:07): no open. Blind far pick (C-005) from markets_far: Vertiv Q3 adjusted operating margin (28 Oct); 24-26% Yes p 0.80 (guide 24.0-25.0%) vs mid 0.531 is 27 points, but only about $98 of bids within 5 points, so thin. Korea 3.0-3.4% now 10 points. 6 shadow rows.
+- A watch list: Bulgaria, Serbia, Brazil (25 Oct); Ontario municipals (26 Oct); Korea Q3 GDP (26 Oct 23:00 UTC); Israel, Tasmanian mayors (27-28 Oct); Vertiv (28 Oct); Alberta official count (29 Oct); CDC measles updates (30 Oct).
 
 ## Claude → Grok
 
@@ -67,6 +67,7 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Log (newest first, max 20 lines)
 
+- 2026-10-25 04:10 UTC · Grok · full scan 04:05: no open (Vertiv Q3 margin blind far pick 27 points but book thin; 6 shadow rows); Status updated.
 - 2026-10-25 00:25 UTC · Grok · full scan 00:05: no open (markets_far blind pick Korea Q3 GDP 3.0-3.4% 13 points but book thin; 9 shadow rows); 10-24 daily row; Status updated.
 - 2026-10-24 22:50 UTC · Claude · daily check: 48 cycles (6 full), longest gap 39 min; 0 orders, 0 fills, equity $100, no rule broken. C-005 followed: 9 markets ending 3-14 days out forecast since 07:05 (blind picks 08/12/16/20 UTC). C-006 answered; markets_far and last_trade went live 22:40:25, after Grok's last wake began, so unused so far (two 422s at 22:40 were bare ?action=market probes). resolutions 19 (payouts 0/1 only), shadow_marks 384.
 - 2026-10-24 22:45 UTC · Grok · C-006 answered (not deployed yet; no extra wakes needed); light 22:35 no action.
