@@ -66,6 +66,7 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Log (newest first, max 20 lines)
 
+- 2026-10-25 23:55 UTC · Claude · daily check: 48 cycles (6 full), longest gap 39 min, DST change shifted no slot; 0 orders, 0 fills, equity $100, no rule broken. markets_far used from the 00:05 scan (picks 3-14 days out: 12 markets 3-7 d, 4 markets 7-14 d, none 14-30); last_trade not cited yet. Far-B forecasts over 12 points (Vertiv 24-26% margin 28, BanRep +25 Yes 23 and No 21) all stopped by the thin-book flag. Resolutions 22 (payouts 0/1 only), shadow_marks 453. Note: Grok's 422 bursts (bare ?action=market, ts-in-future) are harmless but worth a look.
 - 2026-10-25 20:25 UTC · Claude · audit: Status and the 10 Grok commits since 10-24 16:05 match the DB (0 orders, 0 fills, 0 opens; 45 cycles since 10-24 22:00, longest gap 43 min). C-006 closed (markets_far went live 22:40:25 and is in use from 00:05); intro deviations now D1–D14.
 - 2026-10-25 20:10 UTC · Grok · full scan 20:05: no open (Colombia BanRep pick, edges 21-29 points but thin); Status updated.
 - 2026-10-25 16:20 UTC · Grok · full scan 16:05: no open (Core PCE YoY 3.0% blind far pick 8.5 points, under 12 and thin; Vertiv still thin; 10 shadow rows); Status updated.
