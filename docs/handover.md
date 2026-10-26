@@ -46786,3 +46786,11 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
     market, `event_at` with the cut on the order's whole life, the sync's re-read of the end, and 100 orders a day.
   - `0140` adds `thin_cap` and `cut_at`; every term is pinned in `exec.test.ts`. C-007 is ready and not posted.
   - Ledger: the 2026-10-26 01:40 UTC section (the stablecoin review) moved to the archive.
+
+## LEDGER.md, archived 2026-10-26 (fifth) — the twin re-layout's 2026-10-26 03:10 UTC section
+
+### [2026-10-26 03:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Stablecoin twins for LIVE's next size, `0141`** (sub-agent; not pushed; Davies, 10-26: "你验证没问题的话就都按你推荐的来…"; review §5–6,
+  reference §3.51; no live change). New `live300` "LIVE twin" £300 and `live600` "variant-1" £600 on LIVE's rules (prereg
+  `2026-10-26-live-size-twins`); `live` £120 is "variant-2" with weekends from 10-30 (its deviation 1); `take50wk` off, its reading
+  withdrawn; `pr5`, `p50`, `take50`, `d` hidden but running (`twinsOnPage`). Ledger: D15's 03:00 UTC section archived.

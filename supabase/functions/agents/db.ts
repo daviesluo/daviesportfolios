@@ -59,6 +59,8 @@ const PAGED_KEYS: Record<string, string> = {
   cb_quote_trips: "book,side,k,t_entry",
   // The weekend variant's tables (0118), the paper test's own shapes: the page reads its trips.
   cb_hold_events: "book,minute,side,k,kind", cb_hold_minutes: "book,minute", cb_hold_trips: "book,side,k,t_entry",
+  // The USDC arm's tables (0142), the same shapes: the page reads its trips.
+  cb_usdc_events: "book,minute,side,k,kind", cb_usdc_minutes: "book,minute", cb_usdc_trips: "book,side,k,t_entry",
   // The programme factor (0115): a row a source, day and market; the listing's readings by market and minute.
   pm_prog_factors: "source,day,cond", pm_prog_reads: "cond,minute",
 };

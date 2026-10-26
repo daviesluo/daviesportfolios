@@ -398,3 +398,13 @@ By book (`cb_quote_trips`, `cb_hold_trips`, `agent_quote_trips`, trips closed fr
 - **If neither reading passes,** retire both rows. Their case is diversification, not return, and two weeks of USDT losses on
   Coinbase argue against the USDT books there.
 - **Not proposed:** a Coinbase weekend variant beyond "with Euros - 2" (it is that), and any change to LIVE from this evidence.
+
+## 7. Later the same day, `0142`
+
+- **TAKE's twin on the page again**, as "Stablecoin quotes variant-3" (Davies: "那这个加到variant-3吧"). It is after variant-2, with
+  its TAKE reading and its role as the take shadow's yardstick unchanged. The switched-off weekend twin gave up the name first
+  ("Stablecoin quotes weekend twin").
+- **Coinbase.** The weekend variant is "Stablecoin quotes with Euros - 1". "with Euros - 2" is §6's proposal built on it,
+  weekends included: the two USDC books at £25/€25 a rung, about £281 (`agents/cb_usdc.ts`). It is pre-registered for two
+  weeks (`2026-10-26-cb-usdc-prereg.md`) with the bar: realised above zero, at least 8 % a year, at least +5 bps a trip. Both
+  thresholds were chosen with hindsight on 10-11 → 10-25, so the test is out of sample. "With Euros" itself is unchanged.

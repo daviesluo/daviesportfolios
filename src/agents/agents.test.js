@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-  defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fmtBps, fmtFees, FULL_HISTORY_LIMIT, historyLimitOf, lastChangeText, showFullHistory, symbolOrderRows, fmtFrac, fmtPct2, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView, strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows, VENUE_LABELS, agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard, newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwBarTileKeys, fmtUsd4, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, paperTestRows, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokPmModeTag, grokPmTiles, linkDomain, utcStamp, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmJournalView, fmtProb, fmtBrier, LP_LIVE_ROW_ID, fmtR, lpStopRoomText, liveExtraRows, lpEstimateTexts, lpLiveDayCells, lpLiveQuoteRows, lpLiveRow, quoteDaysAnnualPct, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, lpLiveStatus, AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney, QUOTES_COINBASE_ROW_ID, QUOTES_COINBASE_HOLD_ROW_ID, quotesCoinbaseRow,
+  defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fmtBps, fmtFees, FULL_HISTORY_LIMIT, historyLimitOf, lastChangeText, showFullHistory, symbolOrderRows, fmtFrac, fmtPct2, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView, strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows, VENUE_LABELS, agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard, newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwBarTileKeys, fmtUsd4, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, paperTestRows, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokPmModeTag, grokPmTiles, linkDomain, utcStamp, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmJournalView, fmtProb, fmtBrier, LP_LIVE_ROW_ID, fmtR, lpStopRoomText, liveExtraRows, lpEstimateTexts, lpLiveDayCells, lpLiveQuoteRows, lpLiveRow, quoteDaysAnnualPct, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, lpLiveStatus, AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney, QUOTES_COINBASE_ROW_ID, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesCoinbaseRow,
 } from './agents.js';
 // The live quotes page's fixture: what the dashboard serves for a book worked out by hand (the agents function's test
 // proves it is the server's own answer for its rows; the browser test serves it).
@@ -967,7 +967,7 @@ describe("the realistic twins as rows of TESTING (Davies, 2026-10-02: the live e
     expect(strategyNameParts(r6.name)).toEqual({ head: 'Stablecoin quotes', qual: 'variant-1', twoLines: true });
     // The fixture keeps the hidden twins (they still run; the dashboard leaves them out, `twinsOnPage`) and drops variant-3 (off).
     const names = quotesTwinRows({ quotesTwins: twinFixture.twins }).map((x) => x.name);
-    expect(names).toEqual(['Stablecoin quotes', 'Stablecoin quotes LIVE twin', 'Stablecoin quotes variant-1', 'Stablecoin quotes variant-2', 'Stablecoin quotes size twin', 'Stablecoin quotes TAKE', 'Stablecoin quotes variant-4']);
+    expect(names).toEqual(['Stablecoin quotes', 'Stablecoin quotes LIVE twin', 'Stablecoin quotes variant-1', 'Stablecoin quotes variant-2', 'Stablecoin quotes size twin', 'Stablecoin quotes variant-3', 'Stablecoin quotes variant-4']);
   });
   it('is "Stablecoin quotes variant-2" for the £120 simulation that mirrors LIVE (live, 0136; renamed by 0141, 2026-10-26), on two lines', () => {
     const r = /** @type {any} */ (quotesTwinRow(twin('live')));
@@ -1151,6 +1151,30 @@ describe('quoteLadderRows — a book as the page draws it', () => {
     const cb = venues.find((r) => r.id === 'coinbase');
     expect(cb?.capitalUsd).toBeCloseTo(q.capitalUsd + h.capitalUsd, 6);
     expect(cb?.valueUsd).toBeCloseTo(q.valueUsd + h.valueUsd, 6);
+  });
+  it('"Stablecoin quotes with Euros - 2" since 0142 is the USDC arm (cb_usdc.ts), right after the weekend variant, now "- 1"; each opens its own page', () => {
+    // Davies, 2026-10-26: "目前的Stablecoin quotes with Euros - 2改为-1，然后-2改为你说的这个新策略在-1（含周末）的基础上做". The dashboard sends the
+    // weekend variant under "- 1" (`CB_HOLD_PAGE_NAME`, cb_page.ts) and the USDC arm as `quotesCoinbaseUsdc`, twin id `coinbaseusdc`.
+    const q = cbFixture.quotesCoinbase, h0 = cbHoldFixture.quotesCoinbaseHold;
+    const h = { ...h0, twin: { ...h0.twin, name: 'Stablecoin quotes with Euros - 1' } };
+    const u = { ...h0, capitalGbp: 281.25, twin: { ...h0.twin, id: 'coinbaseusdc', name: 'Stablecoin quotes with Euros - 2' } };
+    const row = quotesCoinbaseRow(u);
+    expect(row).toMatchObject({ id: QUOTES_COINBASE_USDC_ROW_ID, name: 'Stablecoin quotes with Euros - 2', venueId: 'coinbase', mode: 'paper', ccy: 'GBP' });
+    expect(new Set([QUOTES_COINBASE_ROW_ID, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID]).size).toBe(3);
+    expect(row?.status.detail).toMatch(/the USDC books at 25 a rung, the interbank rates held through a closure/);
+    expect(quotesCoinbaseRow(h)?.status.detail).not.toMatch(/USDC/);
+    expect(row?.gbp.capital).toBe(281.25);
+    const dash = { quotesTwins: twinFixture.twins, quotesCoinbase: q, quotesCoinbaseHold: h, quotesCoinbaseUsdc: u };
+    const names = paperTestRows(dash).map((r) => r.name);
+    const at = names.indexOf('Stablecoin quotes with Euros');
+    expect(names.slice(at, at + 3)).toEqual(['Stablecoin quotes with Euros', 'Stablecoin quotes with Euros - 1', 'Stablecoin quotes with Euros - 2']);
+    expect(paperTestRows({ ...dash, quotesCoinbaseUsdc: null }).map((r) => r.name)).not.toContain('Stablecoin quotes with Euros - 2');
+    for (const n of ['with Euros - 1', 'with Euros - 2']) expect(strategyNameParts(`Stablecoin quotes ${n}`)).toEqual({ head: 'Stablecoin quotes', qual: n, twoLines: true });
+    expect(quotesPageFor(QUOTES_COINBASE_USDC_ROW_ID, dash)).toBe('coinbase');
+    expect(quotesPageFor(QUOTES_COINBASE_USDC_ROW_ID, { quotesTwins: [], quotesCoinbase: q, quotesCoinbaseHold: h })).toBe(null);
+    // Coinbase's card adds the three rows.
+    const cb = venueRows(dash, 'testing', paperTestRows(dash)).find((r) => r.id === 'coinbase');
+    expect(cb?.capitalUsd).toBeCloseTo(q.capitalUsd + h.capitalUsd + u.capitalUsd, 6);
   });
 });
 

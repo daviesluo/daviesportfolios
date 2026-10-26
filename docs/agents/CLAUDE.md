@@ -327,8 +327,10 @@ that follow from that evidence, in short:
   `d` "variant-3" again; the rule `exitOffset` stays in the code, named by no
   row. **Since `0141` (2026-10-26; Davies: "…£300 和 £600在最新live的rules上建吧…")** the page shows three twins on LIVE's
   rules (its fill rule, its weekend from 10-30 21:00, no take): "Stablecoin quotes LIVE twin" (`live300`, £300), "variant-1"
-  (`live600`, £600) and "variant-2" (`live`, the £120 twin); `pr5`, `p50` ("size twin"), `take50` ("TAKE", the take shadow's
-  yardstick) and `d` run off the page (`hidden`) until their readings, and `take50wk` is off (its reading withdrawn).
+  (`live600`, £600) and "variant-2" (`live`, the £120 twin), and since `0142` "variant-3" (`take50`, TAKE's twin, the take
+  shadow's yardstick); `pr5`, `p50` ("size twin") and `d` run off the page (`hidden`) until their readings, and `take50wk` is
+  off (its reading withdrawn). Since `0142` the Coinbase weekend variant is "with Euros - 1" and "with Euros - 2" is its rule on
+  the two USDC books at £25/€25 a rung (`agents/cb_usdc.ts`, `reviews/2026-10-26-cb-usdc-prereg.md`).
   The names above are their history. TESTING's scoreboard and the
   Revolut X card include them. **"Stablecoin quotes with Euros"** (`0112`,
   reference §4 item 58; "Stablecoin quotes Coinbase" until 2026-10-10) follows

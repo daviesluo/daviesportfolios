@@ -3389,6 +3389,9 @@ Read 2026-10-26 (`reviews/2026-10-26-stablecoin-quotes-review.md`, `backtests/sc
 - **Coinbase** (the review's §6): the gap to LIVE is rung size (£100/€100 against £10) and the USDT books (USDT-EUR −1, USDT-GBP
   −2.5 bps a trip, against Revolut X's USDT-GBP, LIVE's best book). Its USDC books earn about what Revolut X's USDC book does
   (10–12 % a year at £100 a rung). Fees are about nothing on Coinbase, and the 24-hour stops were net positive.
+- **Decided later on 2026-10-26** (`0142`): TAKE's twin is on the page again as "variant-3" (Davies: "那这个加到variant-3吧"). The
+  weekend variant is "with Euros - 1", and "with Euros - 2" is its rule on the two USDC books at £25/€25 a rung (item 60's
+  addendum; Davies: "…-2改为你说的这个新策略在-1（含周末）的基础上做").
 
 ## 4. Design consequences (decided by the evidence above)
 
@@ -4192,7 +4195,7 @@ inform策略". As Revolut X's are (`books.ts`, read by the QUEUE study): on a pe
   Its aggregation reproduced the md5 of all five CBBOOKS-1 print pulls on production before it applied
   (`backtests/cbbooks/sql/verify_print_minutes.sql`, pinned by `src/cb_print_minutes.test.js`). The recorder is unchanged.
 
-60. **"Stablecoin quotes with Euros - 2": the Coinbase paper test with the interbank rates held through a closure (2026-10-13,
+60. **"Stablecoin quotes with Euros - 2" ("- 1" since `0142`, 2026-10-26): the Coinbase paper test with the interbank rates held through a closure (2026-10-13,
 migration `0118`, `agents/cb_hold.ts`, `agents/cb_page.ts`, `backtests/cbwk/`, `reviews/2026-10-13-coinbase-weekend-prereg.md`).**
 Davies, 2026-10-13: "周末变体写预注册然后上线paper trading 策略with Euros - 2", after the first-days review
 (`reviews/2026-10-12-coinbase-first-days.md`, §6 item 3).
@@ -4226,6 +4229,20 @@ Davies, 2026-10-13: "周末变体写预注册然后上线paper trading 策略wit
   two calls (the base test goes dark and fills nothing; this arm makes the base test's own £0.1001 round trip); the hold ends at
   60 hours; with no closure the two arms write the same rows; the record starts at the next midnight; the browser test's fixture.
   `src/cb_hold_prereg.test.js`: the frozen files' hashes, 0112's table shapes under the new prefix, the pre-registration's numbers.
+
+- **Addendum 2026-10-26: renamed "with Euros - 1", and a USDC arm "with Euros - 2" (`0142`, `agents/cb_usdc.ts`,
+  `reviews/2026-10-26-cb-usdc-prereg.md`).** This arm's page name is `CB_HOLD_PAGE_NAME` (cb_page.ts). Its id, tables, call and
+  11-10 reading are unchanged, and `cb_hold.ts` still names it "- 2", frozen, as does the browser test's fixture its frozen test
+  checks.
+  - **The new arm.** Its rule, held rates and release blackout on USDC-GBP and USDC-EUR alone, at £25/€25 a rung: £150 + €150,
+    about £281.
+  - **How 25 is made without touching `stepMinute`.** Its prints go in × 4 and its sizes come out ÷ 4. Its decisions are the
+    weekend arm's minute for minute, and its per-pound return can only match or beat them; `cb_usdc.test.ts` pins this on one
+    world.
+  - **Its own pieces:** tables `cb_usdc_*`, lease `cb-usdc`, call `agents?action=cbusdc` (watchdog, retry), prune
+    `cb-usdc-prune`, dashboard `quotesCoinbaseUsdc` (`readCbUsdc`). It starts at the first 00:00 UTC after its first run.
+  - **Bar over 14 days:** realised above zero, at least 8 % a year of its capital, and at least +5 bps a trip. Both thresholds
+    were chosen with hindsight on 10-11 → 10-25, so this is the out-of-sample check.
 
 61. **Every paper Reward quotes test stops; live-prep live and pm-rec keep running (2026-10-13, migration `0120`).**
 Davies, 2026-10-13: "目前paper testing里的reward quotes全关了吧？感觉都不赚钱没什么意义？如果你实在觉得还有用的话就转到后台记录，不用在网站上显示了"
@@ -4286,8 +4303,8 @@ p50x1：回到 4 个测试版本，规则 D 改回 variant-3。"; the F3 replay,
 | `live600` | Stablecoin quotes variant-1 (from `0141`, 2026-10-26) | `live` | £600: £50 a rung, 3 a side, one key | the same as `live300` | the same; bar: realised per pound ≥ 80 % of `live`'s over the window | `reviews/2026-10-26-live-size-twins-prereg.md` |
 | `live` | Stablecoin quotes variant-2 since `0141` (2026-10-26; Stablecoin quotes LIVE twin from `0136`, 2026-10-21) | `pr5` | £120: £10 a rung, 3 a side, one key (LIVE's) | PR5's, filled as LIVE is filled: a print AT a resting order's price, from the other side, fills it too (`rules.fill`, `simFill`, `revx_sim.ts` `atPriceFrom`; the audit `reviews/2026-10-21-sim-vs-live-audit.md`); and from 2026-10-30 21:00 LIVE's weekend (`rules.weekend`, its deviation 1) | backfill from LIVE's go-live 2026-10-01 16:29:53 with LIVE's operations replayed, to 2026-10-21 15:09; forward from there; scored against LIVE's realised from 2026-10-22, read 2026-11-23 | `reviews/2026-10-21-live-twin-prereg.md` |
 | `p50` | Stablecoin quotes size twin since `0141` (variant-1 before; off the page, still running) | `pr5` | £600: £50 a rung, 3 a side, one key | PR5's, unchanged | from 2026-10-04 00:00; read 2026-10-21 beside `pr5`, and beside `d` after rule D's reading; descriptive | `reviews/2026-10-03-pr5-size-twin-prereg.md` |
-| `take50` | Stablecoin quotes TAKE since `0141` (variant-2 before; off the page, still running: TAKE's reading and the yardstick of LIVE's take shadow) | `p50` | £600: £50 a rung, 3 a side, one key | PR5's, and from 2026-10-05 00:00 a taker IOC at k + 0.09 % from fair when the recorded book (`agent_book_levels`, at most 90 s old) is through it, filled against the recorder's next read (`rules.take`; item 52) | take trips opened 2026-10-05 → 11-02 (to 15 trips, 11-30 at most); read 2 days after, four conditions | `reviews/2026-10-03-take-prereg.md` |
-| `take50wk` | Stablecoin quotes variant-3 (from `0130`, 2026-10-18; switched off by `0141`, its reading withdrawn: `reviews/2026-10-26-variant3-withdrawn.md`) | `take50` | £600: £50 a rung, 3 a side, one key | `take50`'s, and from 2026-10-23 21:00 UTC PR5-W's weekend rule: inside an FX closure a dark GBP/USD minute is decided on the book's last X, and the executor reads fair at it (`rules.weekend`, `QuoteLiveInstance.weekend`, `quotes_weekend.ts`) | starts flat 2026-10-19 00:00; trips opened 2026-10-23 21:00 → 11-23 00:00, five whole weekends; read on or after 11-25 00:30, after PR5-W, four bars (`backtests/wk3/`) | `reviews/2026-10-18-revx-weekend-prereg.md` |
+| `take50` | Stablecoin quotes variant-3 since `0142`, on the page again (TAKE since `0141`, off the page; variant-2 before; TAKE's reading and the yardstick of LIVE's take shadow) | `p50` | £600: £50 a rung, 3 a side, one key | PR5's, and from 2026-10-05 00:00 a taker IOC at k + 0.09 % from fair when the recorded book (`agent_book_levels`, at most 90 s old) is through it, filled against the recorder's next read (`rules.take`; item 52) | take trips opened 2026-10-05 → 11-02 (to 15 trips, 11-30 at most); read 2 days after, four conditions | `reviews/2026-10-03-take-prereg.md` |
+| `take50wk` | Stablecoin quotes weekend twin since `0142` (variant-3 from `0130`, 2026-10-18; switched off by `0141`, its reading withdrawn: `reviews/2026-10-26-variant3-withdrawn.md`) | `take50` | £600: £50 a rung, 3 a side, one key | `take50`'s, and from 2026-10-23 21:00 UTC PR5-W's weekend rule: inside an FX closure a dark GBP/USD minute is decided on the book's last X, and the executor reads fair at it (`rules.weekend`, `QuoteLiveInstance.weekend`, `quotes_weekend.ts`) | starts flat 2026-10-19 00:00; trips opened 2026-10-23 21:00 → 11-23 00:00, five whole weekends; read on or after 11-25 00:30, after PR5-W, four bars (`backtests/wk3/`) | `reviews/2026-10-18-revx-weekend-prereg.md` |
 | `d` | Stablecoin quotes variant-4 (off the page since `0141`, still running; from `0130`, 2026-10-18; variant-3 before, but variant-4 from `0108` to `0109`, 2026-10-09) | rule D's paper engine | £1,800: £50 a rung, 9 a side, four keys | rule D's arm `d` (`stepVariantMinute`); from 2026-10-10 00:00 no entries on the 0.03 % rungs (`RULED_D_RETIRED`, its deviation 4) | from 2026-09-28 00:00; read after rule D's reading, 2026-10-28, its two spans apart | `reviews/2026-10-02-pr5-realistic-twins-prereg.md` |
 
 ## 5. Questions that blocked the build — answered 2026-09-20

@@ -314,12 +314,17 @@ places stay when the number is not whole.
   the live account has since 23 Oct. It is there to be checked against the
   live account's realised pounds. A variant's name in the table is two
   lines, and the first is the whole of "Stablecoin quotes".
+- **Stablecoin quotes variant-3.** After it, since 26 Oct (the taker twin,
+  on the page again): the quote test's rule on £600, £50 a rung, which since
+  5 Oct also buys or sells at once, as a taker, when the order book has moved
+  past a rung by at least the taker's fee, then exits like any other fill.
+  The live account's own taker switch is checked against its takes.
 - **Older stablecoin twins, off the page.** The £1,200 twin, the £50-a-rung
-  size twin, the taker twin and the nine-rung rule's twin keep running behind
-  the page until their readings, then stop; the weekend twin of 18 Oct has
-  stopped, since the live account's own weekends now answer its question.
+  size twin and the nine-rung rule's twin keep running behind the page until
+  their readings, then stop; the weekend twin of 18 Oct has stopped, since
+  the live account's own weekends now answer its question.
 - **Stablecoin quotes with Euros.** Right after "Stablecoin quotes
-  variant-2", its name on two lines as the variants', on Coinbase (its own
+  variant-3", its name on two lines as the variants', on Coinbase (its own
   badge and venue card): the same rule on paper on Coinbase's four stablecoin
   books, USDC and USDT against pounds and against euros, from Coinbase's own
   public trades recorded every minute since 10 Oct. £100 a rung on the two
@@ -329,14 +334,21 @@ places stay when the number is not whole.
   page without INVENTORY, since a paper test holds no coins of its own (what
   a rung holds is in BOOKS), so its DAYS and 7-day realised, annualised figure read
   straight beside the live row's on Revolut X.
-- **Stablecoin quotes with Euros - 2.** Right after it, the same test with
-  one change, the weekend: the first goes quiet from Friday evening to Sunday
+- **Stablecoin quotes with Euros - 1.** Right after it (called "- 2" until
+  26 Oct), the same test with one change, the weekend: the first goes quiet from Friday evening to Sunday
   evening, when the exchange rates it prices from are not published, and this
   one keeps quoting on Friday's rates until they come back. Its name is on two
-  lines, its page is the first's, and Coinbase's card adds the two. A paper
+  lines, its page is the first's, and Coinbase's card adds the rows. A paper
   test, starting at the next midnight after it went up; the rule for judging
   it is written down first.
-  Since 15 October both Coinbase tests also step aside for seven minutes
+- **Stablecoin quotes with Euros - 2.** Right after it, since 26 Oct: "- 1"
+  again, weekends included, on the two USDC books alone (USDC against pounds
+  and against euros), £25 a rung on the pound book and €25 on the euro book,
+  about £281 in all. Coinbase's USDT books lost money in the first weeks
+  while its USDC books earned, so this checks forward, over two weeks, whether
+  the USDC books keep earning. It starts flat at the next midnight after it
+  went up; its page is the others', with two books.
+  Since 15 October the Coinbase tests also step aside for seven minutes
   around each scheduled data release (US inflation and jobs, the Fed, the ECB,
   the Bank of England), when the market jumps faster than a quote can follow.
 - **No paper Reward quotes since 13 October.** The paper tests of quoting

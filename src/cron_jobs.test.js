@@ -712,6 +712,37 @@ describe('pg_cron jobs', () => {
     expect(sql).toContain("insert into public.agent_locks (name) values ('cb-hold') on conflict (name) do nothing;");
   });
 
+  // The USDC arm of the Coinbase paper test (Davies, 2026-10-26: "…然后-2改为你说的这个新策略在-1（含周末）的基础上做"): as 0118 added
+  // the weekend variant, one call a minute, its beat first, every other row as it was, and a prune of SQL alone.
+  it("adds the USDC arm of Coinbase's paper test as one call a minute (0142), its beat first, every other row as it was, and a prune of SQL alone", () => {
+    const T = FILES.find((f) => /^0142_quote_twins_take50_cb_usdc\.sql$/.test(f)) ?? '';
+    expect(T).not.toBe('');
+    const before = replayList(sqlsOf(FILES.filter((f) => f < T))), after = replayList(sqlsOf(FILES.filter((f) => f <= T)));
+    expect(after.slice(0, before.length)).toEqual(before);
+    const shape = ({ path: p, timeout, every, lastHour, enabled, retry }) => ({ path: p, timeout, every, lastHour, enabled, retry });
+    // `retry` true for the reasons 0118's is: a lease, the recorder's coverage, every row upserted on its natural key.
+    expect(after.slice(before.length).map(shape)).toEqual([
+      { path: 'agents?action=cbusdc', timeout: 30000, every: 1, lastHour: 23, enabled: true, retry: true },
+    ]);
+    expect(beatKeyOfPath(after.at(-1).path)).toBe('agents?action=cbusdc');
+    const src = fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/index.ts'), 'utf8');
+    expect(src).toContain('if (action === "cbusdc" && req.method === "POST" && operator) return json(200, await runCbUsdcAction());');
+    const jobsBefore = cronJobs(FILES.filter((f) => f < T)), jobsAfter = cronJobs(FILES.filter((f) => f <= T));
+    expect([...jobsAfter.keys()].filter((n) => !jobsBefore.has(n))).toEqual(['cb-usdc-prune']);
+    const prune = jobsAfter.get('cb-usdc-prune');
+    expect(prune.command.trim()).toBe("delete from public.cb_usdc_minutes where minute < now() - interval '120 days';");
+    expect(Number(prune.schedule.split(' ')[0]) % 5).not.toBe(0);
+    expect([...jobsBefore.values()].some((j) => j.schedule === prune.schedule)).toBe(false);
+    expect(httpJobs(jobsAfter).map(([n]) => n)).toEqual(['edge-calls-every-minute']);
+    for (const [n, j] of jobsBefore) expect([n, jobsAfter.get(n)]).toEqual([n, j]);
+    // Its tables hold the two USDC books alone; no grant, no policy; row level security on every table.
+    const sql = fs.readFileSync(path.join(DIR, T), 'utf8').replace(/--[^\n]*/g, '');
+    expect(count(sql, "check (book in ('USDC-GBP', 'USDC-EUR'))")).toBe(3);
+    for (const t of ['cb_usdc_state', 'cb_usdc_events', 'cb_usdc_trips', 'cb_usdc_minutes']) expect(sql).toMatch(new RegExp(`alter table public\\.${t} +enable row level security;`));
+    expect(sql).not.toMatch(/\bgrant\b|create policy/i);
+    expect(sql).toContain("insert into public.agent_locks (name) values ('cb-usdc') on conflict (name) do nothing;");
+  });
+
   // The programme factor (Davies, 2026-10-10: "之前testing的每一个不都赚了很多吗"): TESTING's Reward quotes rows priced on the
   // programme the listing showed each 15 minutes.
   it("adds the programme factor's reader as one call every five minutes (0115), its beat first, a refresh and a prune of SQL alone", () => {

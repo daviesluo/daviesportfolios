@@ -33,7 +33,7 @@ const DELETE = /delete from public\.agent_quote_twin_specs\s+where id = '(\w+)';
  */
 const RULE_ADD = /update public\.agent_quote_twin_specs\s+set rules = rules \|\| '(\{[^']*\})'::jsonb\s+where id = '(\w+)' and not \(rules \? '(\w+)'\);/g;
 const OFF = /update public\.agent_quote_twin_specs\s+set enabled = false\s+where id = '(\w+)';/g;
-const HIDE = /update public\.agent_quote_twin_specs\s+set hidden = true\s+where id in \(([^)]*)\);/g;
+const HIDE = /update public\.agent_quote_twin_specs\s+set hidden = (true|false)\s+where id in \(([^)]*)\);/g;
 const ADD_HIDDEN = /alter table public\.agent_quote_twin_specs add column if not exists hidden boolean;/g;
 const renames = FILES.flatMap((file) => [...sqlOf(file).matchAll(RENAME)].map((m) => ({ file, to: m[1], id: m[2], from: m[3] })));
 const deletes = FILES.flatMap((file) => [...sqlOf(file).matchAll(DELETE)].map((m) => ({ file, id: m[1] })));
@@ -46,7 +46,7 @@ const OPS = FILES.flatMap((file) => [
   ...[...sqlOf(file).matchAll(DELETE)].map((m) => ({ at: m.index ?? 0, op: { kind: 'delete', id: m[1] } })),
   ...[...sqlOf(file).matchAll(RULE_ADD)].map((m) => ({ at: m.index ?? 0, op: { kind: 'rule', add: JSON.parse(m[1]), id: m[2], key: m[3] } })),
   ...[...sqlOf(file).matchAll(OFF)].map((m) => ({ at: m.index ?? 0, op: { kind: 'off', id: m[1] } })),
-  ...[...sqlOf(file).matchAll(HIDE)].map((m) => ({ at: m.index ?? 0, op: { kind: 'hide', ids: m[1].split(',').map((x) => x.trim().replace(/^'|'$/g, '')) } })),
+  ...[...sqlOf(file).matchAll(HIDE)].map((m) => ({ at: m.index ?? 0, op: { kind: 'hide', hidden: m[1] === 'true', ids: m[2].split(',').map((x) => x.trim().replace(/^'|'$/g, '')) } })),
 ].sort((a, b) => a.at - b.at).map((x) => x.op));
 /**
  * The rows as the migrations leave them: the first insert of an id stands (`on conflict do nothing`), each rename and
@@ -55,7 +55,7 @@ const OPS = FILES.flatMap((file) => [
 const ROWS = OPS.reduce((rows, n) => n.kind === 'delete' ? rows.filter((r) => r.id !== n.id)
   : n.kind === 'rule' ? rows.map((r) => (r.id === n.id && !(n.key in (r.rules ?? {})) ? { ...r, rules: { ...(r.rules ?? {}), ...n.add } } : r))
   : n.kind === 'off' ? rows.map((r) => (r.id === n.id ? { ...r, enabled: false } : r))
-  : n.kind === 'hide' ? rows.map((r) => (n.ids.includes(r.id) ? { ...r, hidden: true } : r))
+  : n.kind === 'hide' ? rows.map((r) => (n.ids.includes(r.id) ? { ...r, hidden: n.hidden } : r))
   : rows.map((r) => (n.id === r.id && n.from === r.display_name ? { ...r, display_name: n.to } : r)),
 inserted.filter((x, i) => inserted.findIndex((y) => y.row.id === x.row.id) === i).map((x) => ({ ...x.row })))
   .sort((a, b) => a.display_order - b.display_order);
@@ -121,13 +121,14 @@ describe("the twins' spec rows", () => {
       // 0141 adds `hidden`, one rule to one row, switches one row off and hides four: once each.
       expect(named, f).toBe(2 * inserts + moves + names + offs + later + (f === SPECS_0088 ? 5 : 0));
     }
-    expect(FILES.filter((f) => [RULE_ADD, OFF, HIDE, ADD_HIDDEN].some((re) => [...sqlOf(f).matchAll(re)].length)).map((f) => f.slice(0, 4))).toEqual(['0141']);
+    expect(FILES.filter((f) => [RULE_ADD, OFF, HIDE, ADD_HIDDEN].some((re) => [...sqlOf(f).matchAll(re)].length)).map((f) => f.slice(0, 4))).toEqual(['0141', '0142']);
     expect(FILES.filter((f) => [...sqlOf(f).matchAll(RULE_MOVE)].length).map((f) => f.slice(0, 4))).toEqual(['0090']);
     expect(renames.map((n) => [n.file.slice(0, 4), n.id, n.from, n.to])).toEqual([
       ['0108', 'd', 'Stablecoin quotes variant-3', 'Stablecoin quotes variant-4'], ['0109', 'd', 'Stablecoin quotes variant-4', 'Stablecoin quotes variant-3'],
       ['0130', 'd', 'Stablecoin quotes variant-3', 'Stablecoin quotes variant-4'],
       ['0141', 'take50', 'Stablecoin quotes variant-2', 'Stablecoin quotes TAKE'], ['0141', 'p50', 'Stablecoin quotes variant-1', 'Stablecoin quotes size twin'],
       ['0141', 'live', 'Stablecoin quotes LIVE twin', 'Stablecoin quotes variant-2'],
+      ['0142', 'take50wk', 'Stablecoin quotes variant-3', 'Stablecoin quotes weekend twin'], ['0142', 'take50', 'Stablecoin quotes TAKE', 'Stablecoin quotes variant-3'],
     ]);
     expect(deletes.map((n) => [n.file.slice(0, 4), n.id])).toEqual([['0109', 'p50x1']]);
     // Names are unique, so a rename comes before an insert in the same migration that takes the old name (0108), and a
@@ -143,6 +144,11 @@ describe("the twins' spec rows", () => {
     expect(at("set display_name = 'Stablecoin quotes size twin'")).toBeLessThan(sql0141.search(INSERT));
     expect(at("set display_name = 'Stablecoin quotes variant-2'")).toBeLessThan(sql0141.search(INSERT));
     expect(sql0141.search(ADD_HIDDEN)).toBeLessThan(sql0141.search(HIDE));
+    // 0142 (Davies, 2026-10-26: "那这个加到variant-3吧"): the switched-off weekend twin gives up "variant-3" before TAKE's twin
+    // takes it, and TAKE's twin comes back on the page.
+    const sql0142 = sqlOf('0142_quote_twins_take50_cb_usdc.sql');
+    expect(sql0142.indexOf("set display_name = 'Stablecoin quotes weekend twin'")).toBeLessThan(sql0142.indexOf("set display_name = 'Stablecoin quotes variant-3'"));
+    expect(sql0142).toContain("set hidden = false\n where id in ('take50');");
     expect(sql0109.search(DELETE)).toBeGreaterThanOrEqual(0);
     expect(sql0109.search(DELETE)).toBeLessThan(sql0109.search(RENAME));
     expect(new Set(ROWS.map((r) => r.display_name)).size).toBe(ROWS.length);
@@ -157,18 +163,20 @@ describe("the twins' spec rows", () => {
     }
   });
 
-  it("are, as they stand, the stablecoin twins in Davies' order (2026-10-26: the LIVE twin £300, variant-1 £600, variant-2 the £120 twin; variant-3 off; four hidden until their readings)", () => {
+  it("are, as they stand, the stablecoin twins in Davies' order (2026-10-26: the LIVE twin £300, variant-1 £600, variant-2 the £120 twin, variant-3 TAKE's twin; the weekend twin off; three hidden until their readings)", () => {
     expect(ROWS.map((r) => [r.id, r.display_name, r.display_order, Number(r.capital_gbp), r.enabled, r.hidden === true])).toEqual([
       ['pr5', 'Stablecoin quotes', 10, 1200, true, true], ['live300', 'Stablecoin quotes LIVE twin', 11, 300, true, false],
       ['live600', 'Stablecoin quotes variant-1', 12, 600, true, false], ['live', 'Stablecoin quotes variant-2', 15, 120, true, false],
-      ['p50', 'Stablecoin quotes size twin', 20, 600, true, true], ['take50', 'Stablecoin quotes TAKE', 30, 600, true, true],
-      ['take50wk', 'Stablecoin quotes variant-3', 35, 600, false, false], ['d', 'Stablecoin quotes variant-4', 40, 1800, true, true],
+      ['p50', 'Stablecoin quotes size twin', 20, 600, true, true], ['take50', 'Stablecoin quotes variant-3', 30, 600, true, false],
+      ['take50wk', 'Stablecoin quotes weekend twin', 35, 600, false, false], ['d', 'Stablecoin quotes variant-4', 40, 1800, true, true],
     ]);
     // The page shows the three on LIVE's rules, each with LIVE's fill rule and, from the closure of 2026-10-30 21:00 UTC,
     // LIVE's weekend; none takes (LIVE's take is in shadow, which sends nothing).
     const onPage = ROWS.filter((r) => r.enabled && !r.hidden);
-    expect(onPage.map((r) => r.id)).toEqual(['live300', 'live600', 'live']);
-    for (const r of onPage) {
+    expect(onPage.map((r) => r.id)).toEqual(['live300', 'live600', 'live', 'take50']);
+    // TAKE's twin keeps its own rule (a take from 2026-10-04 16:00); the three on LIVE's rules do not take.
+    expect(onPage.at(-1).rules.take).toBeTruthy();
+    for (const r of onPage.slice(0, 3)) {
       expect([r.rules.fill.model, r.rules.weekend.from, 'take' in r.rules], r.id).toEqual(['at', '2026-10-30T21:00:00Z', false]);
     }
   });

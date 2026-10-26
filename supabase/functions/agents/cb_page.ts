@@ -1,11 +1,18 @@
-// The Agents page's read of one Coinbase paper arm (the base test, "Stablecoin quotes with Euros", and the weekend variant,
-// "Stablecoin quotes with Euros - 2", cb_hold.ts): the arm's state, trips, days, newest orders and last minute from its own
+// The Agents page's read of one Coinbase paper arm (the base test, "Stablecoin quotes with Euros", the weekend variant,
+// "Stablecoin quotes with Euros - 1", cb_hold.ts, and the USDC arm, "- 2", cb_usdc.ts): the arm's state, trips, days, newest orders and last minute from its own
 // tables, through `cbQuotesView` (cb_view.ts). The dashboard (index.ts) and the browser test's fixture (testing.ts) both call it.
 
 import type { Db } from "./db.ts";
 import { cbQuotesView, CB_PAGE_ROWS, type CbDayRow, type CbEventRow, type CbMinuteRow, type CbStateRow, type CbTripRow } from "./cb_view.ts";
 
 export type CbArmTables = { state: string; trips: string; days: string; events: string; minutes: string };
+
+/**
+ * The weekend variant's page name since 0142 (Davies, 2026-10-26: "目前的Stablecoin quotes with Euros - 2改为-1"): "with Euros - 1".
+ * cb_hold.ts (frozen with its pre-registration) still names it "- 2" (`CB_HOLD_ROW_NAME`); the page reads this. Its id, tables,
+ * call and reading are unchanged, and "with Euros - 2" is now the USDC arm's (cb_usdc.ts).
+ */
+export const CB_HOLD_PAGE_NAME = "Stablecoin quotes with Euros - 1";
 
 /**
  * One Coinbase paper arm for the Agents page: its state, trips, days, newest orders and last minute from the arm's own tables,

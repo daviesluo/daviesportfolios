@@ -1,5 +1,5 @@
 {
- "about": "The realistic twins' rows as the dashboard serves them (`readQuotesTwin`), made by docs/agents/backtests/twins/scripts/fixture.ts from the twins' spec rows (`specs`), in the page's order: \"Stablecoin quotes\" (`pr5`, £1,200), \"Stablecoin quotes LIVE twin\" (`live300`, £300), \"Stablecoin quotes variant-1\" (`live600`, £600), \"Stablecoin quotes variant-2\" (`live`, £120), \"Stablecoin quotes size twin\" (`p50`, £600), \"Stablecoin quotes TAKE\" (`take50`, £600), \"Stablecoin quotes variant-4\" (`d`, £1,800). Each is the live quotes fixture's book (quotes_live_fixture.json: no real balance or fill) run as its tables at its capital, beside a driver state of its engine's (`sims`: its account, mode, turns, replica check, backfill and orders sent each day, with its operator's quarter of its capital), its start (`starts`) moved before the browser test's clock, 2026-09-17 23:00 UTC. `twins` is the function's answer, which the agents function's test asserts and the browser test serves.",
+ "about": "The realistic twins' rows as the dashboard serves them (`readQuotesTwin`), made by docs/agents/backtests/twins/scripts/fixture.ts from the twins' spec rows (`specs`), in the page's order: \"Stablecoin quotes\" (`pr5`, £1,200), \"Stablecoin quotes LIVE twin\" (`live300`, £300), \"Stablecoin quotes variant-1\" (`live600`, £600), \"Stablecoin quotes variant-2\" (`live`, £120), \"Stablecoin quotes size twin\" (`p50`, £600), \"Stablecoin quotes variant-3\" (`take50`, £600), \"Stablecoin quotes variant-4\" (`d`, £1,800). Each is the live quotes fixture's book (quotes_live_fixture.json: no real balance or fill) run as its tables at its capital, beside a driver state of its engine's (`sims`: its account, mode, turns, replica check, backfill and orders sent each day, with its operator's quarter of its capital), its start (`starts`) moved before the browser test's clock, 2026-09-17 23:00 UTC. `twins` is the function's answer, which the agents function's test asserts and the browser test serves.",
  "nowMs": 1789686000000,
  "dayStartMs": 1789603200000,
  "specs": [
@@ -123,7 +123,7 @@
   },
   {
    "id": "take50",
-   "display_name": "Stablecoin quotes TAKE",
+   "display_name": "Stablecoin quotes variant-3",
    "display_order": 30,
    "engine": "pr5",
    "capital_gbp": 600,
@@ -144,7 +144,7 @@
    "prereg": "docs/agents/reviews/2026-10-03-take-prereg.md",
    "migration": "0089",
    "enabled": true,
-   "hidden": true
+   "hidden": false
   },
   {
    "id": "d",
@@ -3869,7 +3869,7 @@
    },
    "twin": {
     "id": "take50",
-    "name": "Stablecoin quotes TAKE",
+    "name": "Stablecoin quotes variant-3",
     "engine": "pr5",
     "rungsASide": 3,
     "rungGbp": 50,

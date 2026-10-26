@@ -32,8 +32,8 @@ const SIMS = {
  * "variant-3" to "variant-4"; 0109: back to "variant-3", Davies 2026-10-09; 0141), each `update … set display_name = '<new>'
  * where id = '<id>' and display_name = '<old>'`; a row taken off (0109: `p50x1`), each `delete from
  * public.agent_quote_twin_specs where id = '<id>'`; and since 0141 a rule added (`set rules = rules || '<json>'::jsonb where id
- * = '<id>' and not (rules ? '<key>')`), a row switched off (`set enabled = false where id = '<id>'`) and rows left off the page
- * (`set hidden = true where id in (…)`). src/twin_specs.test.js reads them the same way. spec_rows.ts (frozen with p50's
+ * = '<id>' and not (rules ? '<key>')`), a row switched off (`set enabled = false where id = '<id>'`) and rows left off the page or
+ * brought back (`set hidden = true|false where id in (…)`, 0142 for TAKE's twin). src/twin_specs.test.js reads them the same way. spec_rows.ts (frozen with p50's
  * pre-registration) returns the rows as first inserted; this makes them the rows as they stand. A hidden row stays in the
  * fixture: it still runs, and the browser test keeps its page under test until a migration switches it off.
  */
@@ -41,7 +41,7 @@ const RENAME = /update public\.agent_quote_twin_specs\s+set display_name = '([^'
 const DELETE = /delete from public\.agent_quote_twin_specs\s+where id = '(\w+)';/g;
 const RULE_ADD = /update public\.agent_quote_twin_specs\s+set rules = rules \|\| '(\{[^']*\})'::jsonb\s+where id = '(\w+)' and not \(rules \? '(\w+)'\);/g;
 const OFF = /update public\.agent_quote_twin_specs\s+set enabled = false\s+where id = '(\w+)';/g;
-const HIDE = /update public\.agent_quote_twin_specs\s+set hidden = true\s+where id in \(([^)]*)\);/g;
+const HIDE = /update public\.agent_quote_twin_specs\s+set hidden = (true|false)\s+where id in \(([^)]*)\);/g;
 const MIGRATIONS = new URL("../../../../../supabase/migrations/", import.meta.url);
 type Op = { at: number; apply: (rows: Array<Record<string, unknown> & { id: string; display_name: string }>) => typeof rows };
 const asTheyStand = async <T extends { id: string; display_name: string }>(first: T[]): Promise<T[]> => {
@@ -59,8 +59,8 @@ const asTheyStand = async <T extends { id: string; display_name: string }>(first
       }) })),
       ...[...sql.matchAll(OFF)].map((m): Op => ({ at: m.index ?? 0, apply: (rs) => rs.map((r) => (r.id === m[1] ? { ...r, enabled: false } : r)) })),
       ...[...sql.matchAll(HIDE)].map((m): Op => {
-        const ids = m[1].split(",").map((x) => x.trim().replace(/^'|'$/g, ""));
-        return { at: m.index ?? 0, apply: (rs) => rs.map((r) => (ids.includes(r.id) ? { ...r, hidden: true } : r)) };
+        const ids = m[2].split(",").map((x) => x.trim().replace(/^'|'$/g, ""));
+        return { at: m.index ?? 0, apply: (rs) => rs.map((r) => (ids.includes(r.id) ? { ...r, hidden: m[1] === "true" } : r)) };
       }),
     ].sort((a, b) => a.at - b.at);
     for (const op of ops) rows = op.apply(rows);
