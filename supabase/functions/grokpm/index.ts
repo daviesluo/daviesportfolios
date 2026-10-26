@@ -31,7 +31,7 @@ import { POLYMARKET_GAMMA_HOST } from "../_shared/polymarket.ts";
 import { loadPmLiveEnv, pmOrderCall, pmVenue, PM_ORDER_REGION } from "../_shared/polymarket_orders.ts";
 import { makeDb } from "../agents/db.ts";
 import { type RedeemDeps, runRedeem } from "./redeem.ts";
-import { accountView, cancelOrders, context, type ExecDeps, farMarketsView, type GrokVenue, marketView, placeOrder, syncOrders } from "./exec.ts";
+import { accountView, cancelOrders, context, cutThinCapOrders, type ExecDeps, farMarketsView, type GrokVenue, marketView, placeOrder, syncOrders } from "./exec.ts";
 import { pmEventsEnding, pmTakerTape } from "../_shared/polymarket_public.ts";
 import {
   GROKPM_MAX_BODY_BYTES, GROKPM_MAX_ERRORS, GROKPM_MAX_REQUESTS_PER_HOUR, GROKPM_MAX_ROWS_PER_HOUR, isAuthorised, rateVerdict, type RequestRow, tableRows, validateBatch,
@@ -281,6 +281,8 @@ async function handleSync(req: Request, deps: HandleDeps, t: number): Promise<Re
     const x = await deps.exec(t);
     const errors: string[] = [];
     const r = await syncOrders(x, errors);
+    // Deviation D15's cut: a resting D15 order is cancelled once its market is inside 48 hours of its end or named release.
+    const cut = await cutThinCapOrders(x, errors);
     // The day's opening equity, the last good geoblock and the stops' latches are kept by the same reading every request makes.
     const c = await context(x, { readGeo: true, sync: false });
     // The kill switches reach what already rests (2026-10-17 audit): under the global pause, or once the path is disarmed
@@ -308,7 +310,7 @@ async function handleSync(req: Request, deps: HandleDeps, t: number): Promise<Re
       next = { ...(next ?? st), totalStopReported: t };
     }
     if (next) await x.db.update("grokpm_exec_state", "id=eq.1", { state: next });
-    return json(200, { ok: true, ...r, cancelled, errors: errors.length });
+    return json(200, { ok: true, ...r, cancelled, d15_cut: cut, errors: errors.length });
   } catch (e) {
     const message = (e instanceof Error ? e.message : String(e)).slice(0, 300);
     await (deps.report ?? reportServerError)("grokpm.sync", { message });

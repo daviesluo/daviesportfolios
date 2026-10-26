@@ -227,3 +227,101 @@ select kind, count(*), max(extract(epoch from (received_at - ts)) / 60), min(ext
   from public.grokpm_cycles where ts >= '2026-10-23T05:00Z' group by 1;                -- rows up to 9.4 min ahead
 -- the clears with their books and last trades: backtests/grokpm_thin/sql/clears.sql → data/clears.json
 ```
+
+## 9. Verified again, then decided (Davies, 2026-10-26; §1–§8 above are unchanged)
+
+Davies, 2026-10-26: "你再验证下D15的修改，推荐的话就做" — verify D15 once more and, if it is still recommended, build it.
+
+### 9.1 The adversarial check, and what it changed
+
+| hole | finding | D15 now |
+|---|---|---|
+| more than $5 in a market through partial fills and re-bids, or two bids at once | §6's "$5 a market" read as an order's size would let a partly filled bid be re-placed for $5 again | The **market's** cost (held at cost, resting buys and the order) is at most $5, so a re-bid after a partial fill only tops up to $5. **One D15 buy rests in a market at a time** |
+| a later buy in a D15 market once its book deepens, or a category-C add | it would fall under the ordinary $10 cap | A market stays a D15 market while the agent holds or rests anything in it after a D15 order. **Every buy there, of any category, is held to $5 at cost.** Category C in a thin book is refused by `thin` as before |
+| a bid surviving the 48-hour cut because a sync minute was missed | every order already lives at most 65 minutes (GTD) | The cut is checked against the order's **whole life**: it must end before the cut, so no sync is needed to honour it. The sync's cancel is a second line |
+| Gamma moving a market's end earlier, or closing it | the stored cut would be late | The sync re-reads each resting D15 order's market every minute. It cancels once the market is inside 48 hours of its current end, or no longer accepts orders |
+| an event that decides the market before its end date (a scheduled data release, an earnings report) | the end date can be days after the release, as with BanRep's meeting (10-30) against an end of 10-30 00:00, or the other way round | The order must name **`event_at`**, the scheduled release that decides its market, or null when none. The cut is 48 hours before the earlier of that and the end. An order without the key is refused. The agent's honesty is the limit: §6.4 counts a wrong `event_at` as a breach |
+| adverse selection near an event when more than 48 hours out | unscheduled news can come at any time, and a scheduled release now has its own cut | Accepted, at $5 a market and $15 at once |
+| the exit, and marks | a D15 position is held to resolution (B); a broken thesis may cross the spread as a category-C close, losing at most its cost | Unchanged. It is marked at the mid (at cost when one-sided) and settled at a final payout only (D14). A mid swing in a thin book can bring the day stop (−$10) sooner, which only stops opens. It cannot reach the total stop alone ($15 at most) |
+| D15 bids eating the 150 orders a day | three markets re-bid every wake would take 144 | **No D15 order once the day holds 100**, so 50 stay for closes and cancels |
+| the 2-resting discipline | not a server rule; the agent's prompt | One D15 buy a market (above) |
+| the existing stops | per market $10, theme $25, 6 markets, cash floor $30, day −$10, total −$30 | All still apply on top. D15 only narrows |
+
+**Data.** No forecast since 0139's deploy has a depth reading yet, so D15's size term will first meet real depth when it
+goes live. The study's Vertiv and BanRep books ($38–94 and ~$40) give $9.50–23.50 and ~$10 at a quarter, so the $5 binds.
+
+**Still recommended.** Every hole found has a term. Losses are bounded at $5 a market and $15 at once, inside the stops
+that already exist. What it buys is real entries for §6 to read. The record still says to expect about zero edge per fill,
+not profit.
+
+### 9.2 D15, as built (for the pre-registration's §9, after D14)
+
+> - **D15 (2026-10-26, after the start; migration `0140`; §2's thin rule given a capped exception).** Davies, 2026-10-26:
+>   "你再验证下D15的修改，推荐的话就做", on the thin-rule study (`reviews/2026-10-26-grokpm-thin-rule-study.md`, §6 and §9).
+>   From 10-23 05:00 to 10-26 01:00 UTC every one of the 42 shadow forecasts that cleared its bar on p − m (9 markets) was
+>   refused only by `thin`. Five were open markets 3 to 6 days from their end, with spreads of 5 points or under and
+>   roughly $30 to $100 of bids within 5 points; §2's $500 is fifty times the largest open the rules allow. An open of
+>   category B that `thin` refuses only for its depth (the book two-sided, its spread at most 5 points) is allowed when
+>   every term holds:
+>   (1) **event_at**: the order names the scheduled release that decides its market (`event_at`, an ISO time), or null
+>   when there is none;
+>   (2) **cut**: the order's whole life ends before the cut, 48 hours before the earlier of the market's end and that
+>   release;
+>   (3) **size**: the market's cost (held at cost, resting buys and the order) is at most the smaller of $5 and a quarter
+>   of the bid depth within 5 points of the mid. The quarter-Kelly cap and every other cap still apply, and the order meets
+>   the venue's minimum;
+>   (4) **one bid**: no other buy of the agent rests in that market;
+>   (5) **markets**: at most 3 D15 markets are open. A market is one from its first D15 order while the agent holds or
+>   rests anything in it;
+>   (6) **orders**: the UTC day holds fewer than 100 orders.
+>
+>   In a D15 market every buy, of any category and whatever its book is later, is held to $5 at cost. The minute's sync
+>   cancels a resting D15 order once its cut has come, or earlier if the market's end moves inside 48 hours or the market
+>   stops accepting orders. A refusal names `thin_cap` and the term. Unchanged: category A, a category-C open in a thin
+>   book, the spread half of `thin`, every other rule, cap and stop, the categories, §6's reading, its bar and its end. D15
+>   entries count in §6.3's category B and are marked in the reading.
+
+### 9.3 Built, each term pinned (`grokpm/exec.test.ts`)
+
+| term | code | pin |
+|---|---|---|
+| the exception applies only to B, two-sided, spread ≤ 5, depth alone | `orderRefusals` (the thin block) | "D15: the exception is for category B…" (A in the same book: `thin`; a wide book: `thin`, `thin`); the open-rule table (`thin` for A, `thin_cap` for B) |
+| (1) event_at | `placeOrder` (body key), `thinCapRefusals` | "D15: each term…" (no key); "the pure terms" (an unreadable time) |
+| (2) cut | `thinCapRefusals` (`cutMs`, the order's GTD end) | "each term…" (a release 2 days out); "the pure terms" (an end 2 days out; no end date) |
+| (3) size | `thinCapRefusals` | "each term…" ($5.28 over $5); "the pure terms" (a quarter of $4) |
+| (4) one bid | `ledgerOf` (`restingBuyConds`), `thinCapRefusals` | "each term…" |
+| (5) markets | `ledgerOf` (`thinCapConds`), `thinCapRefusals` | "each term…" (a fourth market) |
+| (6) orders | `thinCapRefusals` | "the pure terms" (100 orders) |
+| the $5 market cap after the book deepens, partial fills and re-bids | `orderRefusals` (`thin_cap` cap) | "D15: a D15 market stays held to $5…" |
+| the row records it | `placeOrder` (`thin_cap`, `cut_at`); `0140` | "D15: a category-B open…" (row and account view); `src/grokpm_prereg.test.js` (0140's columns) |
+| the sync's cut | `cutThinCapOrders`, called by `handleSync` | "D15: the minute's cut…" (Gamma moves the end; the stored cut; an ordinary order left); "D15: the minute's sync runs the cut" (through the endpoint, `d15_cut`) |
+
+The account answer gains `budget.thin_cap_markets`, `thin_cap_max_markets` and `thin_cap_market_usd`. Each open order
+shows `thin_cap` and `cut_at`.
+
+### 9.4 C-007 (to post once the deploy is verified)
+
+> **C-007 (from Davies, 2026-10-26: "你再验证下D15的修改，推荐的话就做"; Deviation D15).** The thin rule has a capped
+> exception, live from the deploy that shows `thin_cap_markets` in `?action=account`.
+>
+> When it applies: a category-B open whose book is two-sided with a spread of 5 points or under, but under $500 of bids
+> within 5 points. Then you may rest a post-only bid at a price the edge rule allows, when all of these hold:
+> (1) the order body carries `event_at`: the time of the scheduled release that decides the market (a data release, an
+> earnings report, a meeting), or null when there is none. Get it right: it sets the cut;
+> (2) the bid's whole life ends 48 hours before the earlier of the market's end and `event_at` (set `expires_at` short
+> enough);
+> (3) the market holds at most $5 at cost in all, and at most a quarter of the bid depth within 5 points;
+> (4) only one bid of yours rests in that market;
+> (5) at most 3 such markets at once (`budget.thin_cap_markets`);
+> (6) fewer than 100 orders that UTC day.
+>
+> Once a market has a D15 order, every buy there stays within $5 at cost while you hold or rest anything in it. The
+> server cancels a D15 bid when its market comes within 48 hours of its end or release. Refusals name `thin_cap` and the
+> term. Everything else is unchanged. Hold a D15 position to resolution unless the thesis breaks.
+>
+> Two working notes:
+> (1) In a book with a spread over 10 points the mid moves with every quote: re-journal a shadow row there only when your
+> p changes.
+> (2) Stamp each journal row with the time you write it, not the slot it belongs to.
+>
+> Reply under Grok → Claude.

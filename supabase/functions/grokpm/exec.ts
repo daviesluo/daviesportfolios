@@ -15,7 +15,12 @@
 //   a SELL       closes what the agent itself bought (its own fills, less its own resting sells), never a token it did
 //                not buy: the account's other holdings (live-prep's dust) are never the agent's. It rests unless it would
 //                cross the book, which only a close of category C (a broken thesis) may do.
-//   every order  GTD, at least 3 minutes and at most 65 minutes ahead (`expires_at`, clamped), at most 50 a UTC day.
+//   every order  GTD, at least 3 minutes and at most 65 minutes ahead (`expires_at`, clamped), at most 150 a UTC day.
+//   D15          (2026-10-26, the thin-rule study) a capped exception to the thin rule's depth half: a category-B open in a
+//                two-sided book of spread 5 points or under but under $500 of bids within 5 points may rest when every
+//                term of `GROKPM_RULES.thinCap` holds (`thinCapRefusals`); a refusal names `thin_cap` and the term. Its
+//                market is a D15 market while it holds or rests anything: every buy there is held to $5 at cost. The
+//                minute's sync cancels a D15 order once its market is inside the cut (`cutThinCapOrders`).
 // Live sends need, besides: eu-west-1, the config armed (`dry_run` false, `armed_at` set), the key loaded for the stored
 // signer, Davies' Ireland attestation current, the account's geoblock read from here answering country IE, no global
 // pause, no other order path of the account armed, and the account not closed-only (for a BUY). Disarmed, everything is
@@ -53,6 +58,14 @@ export const GROKPM_RULES = {
   minLifetimeS: 180, maxLifetimeS: 65 * 60, defaultLifetimeS: 35 * 60,
   /** A held token at least this big is a position; under it, rounding dust of the agent's own fills. */
   heldMin: 0.01,
+  /**
+   * Deviation D15 (2026-10-26): the thin rule's capped exception. A market's cost (held at cost, resting buys and the
+   * order) at most `maxUsd` and at most `depthShare` of the bid depth within 5 points; the order's whole life before the
+   * cut, `cutMs` before the earlier of the market's end and the scheduled release the agent names (`event_at`); one
+   * resting buy a market; at most `maxMarkets` D15 markets; none once the UTC day holds `ordersDayMax` orders (the rest
+   * of the 150 stay for closes and cancels).
+   */
+  thinCap: { maxUsd: 5, depthShare: 0.25, cutMs: 48 * 3600e3, maxMarkets: 3, ordersDayMax: 100 },
 } as const;
 /** The last good geoblock reading is used for this long when a new read fails. */
 export const GROKPM_GEO_CACHE_MS = 10 * M;
@@ -83,6 +96,8 @@ export type GrokOrderRow = {
   price: number | string; size: number | string; post_only: boolean; expiration: number | string; neg_risk: boolean; hash: string; theme: string | null;
   category: string | null; state: "pending" | "live" | "filled" | "cancelled" | "rejected" | "expired"; size_matched: number | string;
   request?: unknown; response?: unknown; cancel_requested_at: string | null; cancelled_at: string | null; filled_at: string | null;
+  /** Deviation D15 (0140): an order sent under the thin rule's capped exception, and the time it must be gone by. */
+  thin_cap?: boolean | null; cut_at?: string | null;
 };
 export type GrokFillRow = {
   trade_id: string; hash: string; cond: string; token: string; side: "BUY" | "SELL"; price: number | string; size: number | string; fee_usd: number | string;
@@ -166,6 +181,8 @@ export type GrokLedger = {
   themeOf: Record<string, string>;
   costByTheme: Record<string, number>;
   openConds: string[];
+  /** D15: the markets open (held or resting) that hold or rest a D15 order, and the markets with a resting buy. */
+  thinCapConds: string[]; restingBuyConds: string[];
 };
 /**
  * The agent's book from its own orders and fills only. `orders` are the current mode's (dry-run counts its own resting
@@ -222,6 +239,9 @@ export function ledgerOf(p: {
     fundedUsd: p.fundedUsd, cashUsd: r6(cash), feesUsd: r6(fees), heldValueUsd: r6(heldValue), equityUsd: r6(cash + heldValue), totalUsd: r6(total), settledUsd: r6(settled),
     restingBuyUsd: r6(restingBuy), freeCashUsd: r6(cash - restingBuy), held, restingSell, costByCond, themeOf, costByTheme,
     openConds: Object.keys(costByCond).filter((c) => costByCond[c] > 1e-9).sort(),
+    // A market stays a D15 market while it holds or rests anything after a D15 order (its fills, a partial fill's rest).
+    thinCapConds: [...new Set(p.orders.filter((o) => o.thin_cap === true).map((o) => o.cond))].filter((c) => (costByCond[c] ?? 0) > 1e-9).sort(),
+    restingBuyConds: [...new Set(p.orders.filter((o) => isOpen(o) && o.side === "BUY").map((o) => o.cond))].sort(),
   };
 }
 
@@ -257,7 +277,11 @@ export function liveGateRefusals(g: Gates, side: "BUY" | "SELL"): Refusal[] {
   return out;
 }
 
-export type OrderPlan = { token: string; cond: string; side: "BUY" | "SELL"; price: number; size: number; postOnly: boolean; tick: PmTickSize; minSize: number; negRisk: boolean; expiration: number };
+export type OrderPlan = {
+  token: string; cond: string; side: "BUY" | "SELL"; price: number; size: number; postOnly: boolean; tick: PmTickSize; minSize: number; negRisk: boolean; expiration: number;
+  /** Deviation D15: sent under the thin rule's capped exception, and the time it must be gone by. */
+  thinCap?: boolean; cutAt?: string | null;
+};
 /**
  * Every rule an order breaks, given the agent's own book, the market as Gamma has it, the token's book now, today's
  * orders and the stops. Pure: the run below feeds it what it read.
@@ -267,6 +291,8 @@ export function orderRefusals(p: {
   dayPnlUsd: number; dailyLossUsd: number; totalStopUsd: number; ordersToday: number; maxOrdersDay: number; expiresAt?: string | null;
   /** Deviation D4: a stop once reached holds (the day's until 00:00 UTC, the total's to the end), whatever the marks do after. */
   dayStopped?: boolean; totalStopped?: boolean;
+  /** D15: the order body's `event_at` (an ISO time, null for none, undefined when the key was not sent). */
+  eventAt?: string | null;
 }): { refusals: Refusal[]; plan: OrderPlan | null } {
   const d = p.decision, out: Refusal[] = [];
   const R = GROKPM_RULES;
@@ -282,6 +308,7 @@ export function orderRefusals(p: {
   }
   if (!b || !b.tick || !b.minSize) out.push({ rule: "book", why: "the token's book could not be read (no tick or minimum size)" });
   const exp = expiryOf(p.expiresAt, p.nowMs);
+  let thinCap: { refusals: Refusal[]; cutMs: number | null } | null = null;
   if (side === "BUY") {
     const L = p.ledger;
     const cost = price * size;
@@ -332,10 +359,19 @@ export function orderRefusals(p: {
     if (b) {
       if (!b.twoSided || b.mid === null) out.push({ rule: "thin", why: "the book is one-sided" });
       else {
-        if (b.spread! > R.thinSpread + 1e-9) out.push({ rule: "thin", why: `the spread is ${(b.spread! * 100).toFixed(1)} points, over 5` });
-        if (b.bidDepthUsd < R.thinDepthUsd) out.push({ rule: "thin", why: `$${b.bidDepthUsd.toFixed(0)} bid within 5 points of the mid, under $${R.thinDepthUsd}` });
+        const wide = b.spread! > R.thinSpread + 1e-9, shallow = b.bidDepthUsd < R.thinDepthUsd;
+        if (wide) out.push({ rule: "thin", why: `the spread is ${(b.spread! * 100).toFixed(1)} points, over 5` });
+        // Deviation D15: thin for its depth alone, in category B, the capped exception's terms decide instead.
+        if (shallow && !wide && d.category === "B") {
+          thinCap = thinCapRefusals({ cond, cost, inMarket, depthUsd: b.bidDepthUsd, ledger: L, market: m, nowMs: p.nowMs, expirationS: exp.expiration, eventAt: p.eventAt, ordersToday: p.ordersToday });
+          out.push(...thinCap.refusals);
+        } else if (shallow) out.push({ rule: "thin", why: `$${b.bidDepthUsd.toFixed(0)} bid within 5 points of the mid, under $${R.thinDepthUsd}` });
         if (b.bestAsk !== null && price >= b.bestAsk - 1e-9) out.push({ rule: "post_only", why: `a buy at ${price} would take the ask ${b.bestAsk}: an open rests (post-only)` });
       }
+    }
+    // A D15 market holds at most $5 at cost whatever its book is now, every buy there (category C's included).
+    if (!thinCap && L.thinCapConds.includes(cond) && inMarket > R.thinCap.maxUsd + 1e-9) {
+      out.push({ rule: "thin_cap", why: `cap: this market holds a D15 position, so at most $${R.thinCap.maxUsd} at cost; it would hold $${inMarket.toFixed(2)}` });
     }
   } else {
     const h = p.ledger.held[token];
@@ -349,8 +385,70 @@ export function orderRefusals(p: {
     else out.push({ rule: "post_only", why: `a sell at ${price} would take the bid ${b.bestBid}: only a close of category C (a broken thesis) may cross` });
   }
   if (b?.tick && b.minSize) for (const why of orderProblems({ price, size, expiration: exp.expiration }, { tick: b.tick, minSize: b.minSize, nowS: Math.floor(p.nowMs / 1000) })) out.push({ rule: "venue", why });
-  const plan = b?.tick && b.minSize ? { token, cond, side, price, size, postOnly, tick: b.tick, minSize: b.minSize, negRisk: m?.negRisk ?? b.negRisk, expiration: exp.expiration } : null;
+  const plan = b?.tick && b.minSize ? {
+    token, cond, side, price, size, postOnly, tick: b.tick, minSize: b.minSize, negRisk: m?.negRisk ?? b.negRisk, expiration: exp.expiration,
+    thinCap: !!thinCap && !thinCap.refusals.length, cutAt: thinCap && !thinCap.refusals.length && thinCap.cutMs !== null ? iso(thinCap.cutMs) : null,
+  } : null;
   return { refusals: out, plan };
+}
+
+/**
+ * Deviation D15's terms for a category-B open whose book is thin for its depth alone (two-sided, spread at most 5 points).
+ * Each broken term is a refusal `thin_cap` that names it. `cutMs` is when the order must be gone: `thinCap.cutMs` before
+ * the earlier of the market's end and the scheduled release the agent names.
+ */
+export function thinCapRefusals(p: {
+  cond: string; cost: number; inMarket: number; depthUsd: number; ledger: GrokLedger; market: GrokMarket | null; nowMs: number; expirationS: number;
+  eventAt: string | null | undefined; ordersToday: number;
+}): { refusals: Refusal[]; cutMs: number | null } {
+  const T = GROKPM_RULES.thinCap, out: Refusal[] = [];
+  const end = p.market ? timeMs(p.market.endDate) : null;
+  let event: number | null = null;
+  if (p.eventAt === undefined) out.push({ rule: "thin_cap", why: "event_at: a D15 order names the scheduled release that decides its market (an ISO time), or null when there is none" });
+  else if (p.eventAt !== null) {
+    event = timeMs(p.eventAt);
+    if (event === null) out.push({ rule: "thin_cap", why: "event_at: not a readable ISO time" });
+  }
+  const decides = [end, event].filter((x): x is number => x !== null);
+  const cutMs = decides.length ? Math.min(...decides) - T.cutMs : null;
+  const goneMs = (p.expirationS - PM_GTD_EARLY_S) * 1000;
+  if (cutMs === null) out.push({ rule: "thin_cap", why: "cut: the market names no end date" });
+  else if (goneMs > cutMs) {
+    out.push({ rule: "thin_cap", why: `cut: the order would rest until ${iso(goneMs)}, past ${iso(cutMs)}, 48 hours before the market's ${event !== null && event <= (end ?? Infinity) ? "named release" : "end"}` });
+  }
+  const capUsd = Math.min(T.maxUsd, T.depthShare * p.depthUsd);
+  if (p.inMarket > capUsd + 1e-9) {
+    out.push({ rule: "thin_cap", why: `size: this market would hold $${p.inMarket.toFixed(2)} at cost, over the smaller of $${T.maxUsd} and a quarter of the $${p.depthUsd.toFixed(2)} bid depth within 5 points: at most $${capUsd.toFixed(2)}` });
+  }
+  if (p.ledger.restingBuyConds.includes(p.cond)) out.push({ rule: "thin_cap", why: "one bid: a buy of yours already rests in this market; cancel it or let it expire first" });
+  if (!p.ledger.thinCapConds.includes(p.cond) && p.ledger.thinCapConds.length >= T.maxMarkets) {
+    out.push({ rule: "thin_cap", why: `markets: ${p.ledger.thinCapConds.length} D15 markets are open, at most ${T.maxMarkets}` });
+  }
+  if (p.ordersToday >= T.ordersDayMax) out.push({ rule: "thin_cap", why: `orders: ${p.ordersToday} orders today; a D15 order needs fewer than ${T.ordersDayMax} (the rest stay for closes and cancels)` });
+  return { refusals: out, cutMs };
+}
+
+/**
+ * Deviation D15's cut, every minute: a resting D15 order is cancelled, by its own id, once its cut has come (as stored, or
+ * 48 hours before the market's end as Gamma now gives it, if that is earlier), or its market no longer accepts orders.
+ * A market Gamma does not answer for keeps its order (its GTD life, which ends before the stored cut, bounds it).
+ */
+export async function cutThinCapOrders(deps: ExecDeps, errors: string[]): Promise<number> {
+  const open = (await deps.db.select<GrokOrderRow>("grokpm_orders", "state=in.(pending,live)&thin_cap=eq.true&select=*&order=id.asc&limit=100"));
+  let n = 0;
+  for (const o of open) {
+    const g = await deps.venue.gamma({ cond: o.cond });
+    if (!g.ok) { errors.push(`D15 cut: Gamma unread for ${o.cond.slice(0, 10)}…: ${g.status}`); continue; }
+    const m = marketOf((g.data?.markets ?? []).find((x) => String(x.conditionId ?? "").toLowerCase() === o.cond));
+    const end = m ? timeMs(m.endDate) : null;
+    const cut = Math.min(o.cut_at ? Date.parse(o.cut_at) : Infinity, end !== null ? end - GROKPM_RULES.thinCap.cutMs : Infinity);
+    if (!m || !m.accepting || deps.now >= cut) {
+      const k = await cancelOrders(deps, { order_id: o.hash }, false, false);
+      if (k.status === 200) n++;
+      else errors.push(`D15 cut: order ${o.hash.slice(0, 12)}… not cancelled: ${k.status}`);
+    }
+  }
+  return n;
 }
 
 // ── the runs ──────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -569,6 +667,8 @@ export function accountView(c: ExecContext, nowMs: number) {
       settled_usd: L.settledUsd, orders_today: c.ordersToday, max_orders_day: cfg.max_orders_day,
       markets_open: L.openConds.length, max_markets: GROKPM_RULES.maxPositions, market_cap_usd: GROKPM_RULES.marketCapUsd,
       theme_cap_usd: GROKPM_RULES.themeCapUsd, cost_by_theme: L.costByTheme, cost_by_market: L.costByCond,
+      // Deviation D15: the thin rule's capped exception, as the agent's account shows it.
+      thin_cap_markets: L.thinCapConds, thin_cap_max_markets: GROKPM_RULES.thinCap.maxMarkets, thin_cap_market_usd: GROKPM_RULES.thinCap.maxUsd,
     },
     positions: Object.entries(L.held).map(([token, h]) => ({
       market_id: h.cond, token_id: token, size: h.held, avg_price: h.avgCost, mark: h.mark, mark_from: h.markFrom,
@@ -578,7 +678,7 @@ export function accountView(c: ExecContext, nowMs: number) {
     open_orders: c.orders.filter(isOpen).map((o) => ({
       order_id: o.hash, decision_id: o.decision_id, market_id: o.cond, token_id: o.token, side: o.side, price: num(o.price), size: num(o.size),
       size_matched: num(o.size_matched), post_only: o.post_only, state: o.state, expires_at: iso((num(o.expiration) - PM_GTD_EARLY_S) * 1000),
-      expires_in_s: Math.max(0, num(o.expiration) - PM_GTD_EARLY_S - nowS), theme: o.theme,
+      expires_in_s: Math.max(0, num(o.expiration) - PM_GTD_EARLY_S - nowS), theme: o.theme, thin_cap: o.thin_cap === true, cut_at: o.cut_at ?? null,
     })),
   };
 }
@@ -684,11 +784,14 @@ export async function farMarketsView(deps: ExecDeps, q: { tag: string | null; of
  */
 export async function placeOrder(deps: ExecDeps, body: unknown): Promise<{ status: number; body: Record<string, unknown> }> {
   const b = (body && typeof body === "object" && !Array.isArray(body) ? body : {}) as Record<string, unknown>;
-  const unknown = Object.keys(b).filter((k) => !["decision", "theme", "expires_at"].includes(k));
+  const unknown = Object.keys(b).filter((k) => !["decision", "theme", "expires_at", "event_at"].includes(k));
   const errors: string[] = unknown.map((k) => `${k}: unknown field`);
   const theme = b.theme === undefined || b.theme === null ? null : typeof b.theme === "string" && /^[\p{L}\p{N} ._:/-]{1,64}$/u.test(b.theme) ? b.theme : (errors.push("theme: 1–64 letters, digits, spaces or . _ : / -"), null);
   const expiresAt = b.expires_at === undefined || b.expires_at === null ? null
     : typeof b.expires_at === "string" && Number.isFinite(Date.parse(b.expires_at)) ? b.expires_at : (errors.push("expires_at: an ISO 8601 time"), null);
+  // Deviation D15: the scheduled release that decides the market (an ISO time) or null; undefined when not sent.
+  const eventAt = !("event_at" in b) ? undefined : b.event_at === null ? null
+    : typeof b.event_at === "string" && Number.isFinite(Date.parse(b.event_at)) ? b.event_at : (errors.push("event_at: an ISO 8601 time, or null"), null);
   const decision = decisionOf(b.decision, "decision", deps.now, errors);
   if (errors.length || !decision) return { status: 422, body: { error: "invalid", errors: errors.slice(0, 20) } };
   if (decision.action !== "open" && decision.action !== "close") return { status: 422, body: { error: "invalid", errors: ["decision.action: an order is an open or a close"] } };
@@ -707,7 +810,7 @@ export async function placeOrder(deps: ExecDeps, body: unknown): Promise<{ statu
   const { refusals, plan } = orderRefusals({
     decision, theme, ledger: c.ledger, market, book, nowMs: now, dayPnlUsd: c.dayPnlUsd, dailyLossUsd: num(c.cfg.daily_loss_usd),
     totalStopUsd: num(c.cfg.total_stop_usd), ordersToday: c.ordersToday, maxOrdersDay: c.cfg.max_orders_day, expiresAt,
-    dayStopped: !!c.dayStopAt, totalStopped: !!c.totalStopAt,
+    dayStopped: !!c.dayStopAt, totalStopped: !!c.totalStopAt, eventAt,
   });
   const gateRefusals = liveGateRefusals(c.gates, decision.side!);
   const all = [...gateRefusals, ...refusals];
@@ -724,7 +827,7 @@ export async function placeOrder(deps: ExecDeps, body: unknown): Promise<{ statu
   const [row] = await db.insert<GrokOrderRow>("grokpm_orders", {
     mode: c.mode, created_at: iso(now), decision_id: decision.id, cond: plan.cond, token: plan.token, outcome: decision.outcome, side: plan.side, price: plan.price, size: plan.size,
     post_only: plan.postOnly, expiration: plan.expiration, neg_risk: plan.negRisk, hash: built.hash, theme: plan.side === "BUY" ? c.ledger.themeOf[plan.cond] ?? theme : theme,
-    category: decision.category, state: "pending", request,
+    category: decision.category, state: "pending", request, thin_cap: plan.thinCap === true, cut_at: plan.cutAt ?? null,
   }, true);
   if (c.mode === "dry_run") {
     await db.update("grokpm_orders", `id=eq.${row.id}`, { state: "live", response: { dryRun: true }, updated_at: iso(now) });

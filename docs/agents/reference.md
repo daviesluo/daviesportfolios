@@ -3339,6 +3339,16 @@ Read 2026-10-26 (`reviews/2026-10-26-grokpm-thin-rule-study.md`, `backtests/grok
   - G1: market-read id synonyms, and empty reads named;
   - G2: future-stamp refusals say by how much;
   - G3: `0139`, the book's depth on each shadow mark.
+- **D15 verified and built (2026-10-26;** Davies: "你再验证下D15的修改，推荐的话就做"; the review's §9; `0140`, `grokpm/exec.ts`
+  `thinCapRefusals`, `cutThinCapOrders`). The terms, each refused as `thin_cap`:
+  - event_at named, or null;
+  - the whole GTD life ends before 48 h ahead of the earlier of end and release;
+  - the market at most min($5, 25 % of the bid depth) at cost;
+  - one resting bid a market;
+  - 3 D15 markets;
+  - under 100 orders that day.
+
+  A D15 market stays capped at $5 for every buy. The sync cancels inside the cut, or earlier when Gamma moves the end.
 
 ### 3.51 Stablecoin quotes: LIVE's "+64.9 %" is one week realised, half of it a weekend; size; every row (2026-10-26)
 

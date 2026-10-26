@@ -46763,3 +46763,16 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   - D15 is proposed and not applied: a capped thin exception, $15 at risk at once.
   - G1 (market-read synonyms), G2 (future-stamp message) and G3 (`0139`, depth on shadow marks) are fixed and pinned.
   - Ledger: the 2026-10-23 19:15 and 2026-10-24 22:45 UTC sections moved to the archive.
+
+## LEDGER.md, archived 2026-10-26 (third) — the stablecoin review of 2026-10-26 01:40 UTC
+
+### [2026-10-26 01:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Stablecoin quotes review** (sub-agent; not pushed; Davies, 10-26: "…“7-day annualised +64.9%”，怎么这么高？是有问题吗？…要不要再加一些资金？";
+  `reviews/2026-10-26-stablecoin-quotes-review.md`, `backtests/scq_review/2026-10-26/`, reference §3.51; read-only SQL, not blind).
+  - The figure recomputes to 64.91 % (page walk) and 64.90 % (cash flows). It is realised-only and simple-annualised.
+    The first live weekend is 51 % of its week, and the coins' GBP/USD loss is left out.
+  - Marked to market: 54.6 % (7 days), 25.1 % (14 days), 15.5 % since 10-02. Daily sd 17.3 bps of the capital,
+    realised t 2.87.
+  - Page: the DAYS heading reads "7-day realised, annualised" with a tooltip, pinned in `agents.test.js`; the sweep's
+    expectations and the guide follow, and `dist/` is rebuilt. The sweep was not run here (no Chromium).
+  - Proposals only: capital £120 → £300; a LIVE twin deviation; retirements after 10-28; LIVE-rule twins at £300/£600.
