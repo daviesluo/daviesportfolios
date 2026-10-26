@@ -46746,3 +46746,20 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   - C-006 is on the desk ledger. The push redeploys `grokpm` and `agents`; there is no migration.
   - Interim, 19 resolved: Brier agent 0.0242, m 0.0546, last trade 0.0241.
   - Ledger: the 2026-10-24 07:40 and 09:48 UTC sections moved to the archive.
+
+## LEDGER.md, archived 2026-10-26 (second) — the 2026-10-25 15:00 and 2026-10-26 01:20 UTC history sections, oldest first
+
+### [2026-10-25 15:00 UTC] Platform: Grok Bot | Model: not recorded (session policy)
+- **This stack rebased on `56492f36`** (local, not pushed; no SQL writes): 10-24's no-#247 stack, each commit's code as
+  before; `exec.ts` auto-merged beside D11, D12 and D14. §9 gains D11–D14 after D10, the review's §6.1 word for word; the
+  pin moves. It deploys `grokpm` and `ops-error`, not `agents`. Ledger: 10-23 and 10-24's audit sections archived.
+
+### [2026-10-26 01:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM thin-rule study** (sub-agent; not pushed; Davies, 10-26: "grok bot的live策略到现在还是一单没下…是不是规则还是太严了";
+  `reviews/2026-10-26-grokpm-thin-rule-study.md`, reference §3.50; read-only SQL, not blind).
+  - From 10-23 05:00, 42 rows on 9 markets clear the bar, and all are refused by `thin` alone.
+  - A bid alive while the rows cleared fills in 2 open markets. The one resolved fill-able clear, gas, went to 0 at its
+    print.
+  - D15 is proposed and not applied: a capped thin exception, $15 at risk at once.
+  - G1 (market-read synonyms), G2 (future-stamp message) and G3 (`0139`, depth on shadow marks) are fixed and pinned.
+  - Ledger: the 2026-10-23 19:15 and 2026-10-24 22:45 UTC sections moved to the archive.

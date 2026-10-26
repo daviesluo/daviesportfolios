@@ -1,0 +1,553 @@
+{
+ "now": "2026-10-26T00:58:00Z",
+ "rows": {
+  "LIVE": {
+   "capital": "LIVE's (whole account)",
+   "coins_now_pct_of_capital": 50.4,
+   "daily_mtm": {
+    "best_bps": 48.42,
+    "max_drawdown_pct": -0.24,
+    "mean_bps": 4.27,
+    "n": 24,
+    "sd_bps": 17.27,
+    "t": 1.18,
+    "worst_bps": -18.55
+   },
+   "daily_realised": {
+    "mean_bps": 7.26,
+    "n": 24,
+    "negative_days": 2,
+    "sd_bps": 12.38,
+    "t": 2.87
+   },
+   "entry_fills": 342,
+   "first_live_weekend": {
+    "bps_of_capital": 63.4,
+    "trips": 70,
+    "won": 70
+   },
+   "page_figure": {
+    "compounded_annualised_pct": 90.6,
+    "days": [
+     "2026-10-25",
+     "2026-10-24",
+     "2026-10-23",
+     "2026-10-22",
+     "2026-10-21",
+     "2026-10-20",
+     "2026-10-19"
+    ],
+    "realised_pct_of_capital": 1.2449,
+    "simple_annualised_pct": 64.91,
+    "weekend_share_pct": 50.9
+   },
+   "takes": 0,
+   "unrealised_now_pct_of_capital": -0.755,
+   "weekdays_to_1023_2100": {
+    "from": "2026-10-12",
+    "realised_per_100_day": 0.0773,
+    "trips": 215
+   },
+   "windows": {
+    "d14": {
+     "days": 14.04,
+     "mtm_bps_day": 6.87,
+     "mtm_pct_yr": 25.06,
+     "mtm_per_100_day": 0.0687,
+     "realised_pct_yr": 40.16,
+     "realised_per_100_day": 0.11,
+     "stops": 2,
+     "trips": 286,
+     "won": 269
+    },
+    "d7": {
+     "days": 7.04,
+     "mtm_bps_day": 14.97,
+     "mtm_pct_yr": 54.64,
+     "mtm_per_100_day": 0.1497,
+     "realised_pct_yr": 64.54,
+     "realised_per_100_day": 0.1768,
+     "stops": 2,
+     "trips": 165,
+     "won": 160
+    },
+    "since_1002": {
+     "days": 24.04,
+     "mtm_bps_day": 4.26,
+     "mtm_pct_yr": 15.54,
+     "mtm_per_100_day": 0.0426,
+     "realised_pct_yr": 26.47,
+     "realised_per_100_day": 0.0725,
+     "stops": 5,
+     "trips": 328,
+     "won": 299
+    },
+    "weekdays_1019_1022": {
+     "days": 4.0,
+     "mtm_bps_day": 4.53,
+     "mtm_pct_yr": 16.55,
+     "mtm_per_100_day": 0.0453,
+     "realised_pct_yr": 32.67,
+     "realised_per_100_day": 0.0895,
+     "stops": 1,
+     "trips": 66,
+     "won": 62
+    }
+   }
+  },
+  "d": {
+   "capital": 1800,
+   "coins_now_pct_of_capital": 49.9,
+   "daily_mtm": {
+    "best_bps": 31.27,
+    "max_drawdown_pct": -0.579,
+    "mean_bps": -0.77,
+    "n": 24,
+    "sd_bps": 12.27,
+    "t": -0.3,
+    "worst_bps": -21.21
+   },
+   "entry_fills": 938,
+   "first_live_weekend": {
+    "bps_of_capital": 7.5,
+    "trips": 15,
+    "won": 15
+   },
+   "takes": 0,
+   "unrealised_now_pct_of_capital": -0.62,
+   "weekdays_to_1023_2100": {
+    "from": "2026-10-12",
+    "realised_per_100_day": 0.0181,
+    "trips": 493
+   },
+   "windows": {
+    "d14": {
+     "days": 14.04,
+     "mtm_bps_day": -2.19,
+     "mtm_gbp": -5.5445,
+     "mtm_pct_yr": -8.01,
+     "mtm_per_100_day": -0.0219,
+     "realised_gbp": 4.8165,
+     "realised_pct_yr": 6.96,
+     "realised_per_100_day": 0.0191,
+     "stops": 21,
+     "trips": 512,
+     "won": 256
+    },
+    "d7": {
+     "days": 7.04,
+     "mtm_bps_day": 1.38,
+     "mtm_gbp": 1.7463,
+     "mtm_pct_yr": 5.03,
+     "mtm_per_100_day": 0.0138,
+     "realised_gbp": 5.1152,
+     "realised_pct_yr": 14.73,
+     "realised_per_100_day": 0.0404,
+     "stops": 19,
+     "trips": 219,
+     "won": 135
+    },
+    "since_1002": {
+     "days": 24.04,
+     "mtm_bps_day": -0.76,
+     "mtm_gbp": -3.3069,
+     "mtm_pct_yr": -2.79,
+     "mtm_per_100_day": -0.0076,
+     "realised_gbp": 10.1349,
+     "realised_pct_yr": 8.55,
+     "realised_per_100_day": 0.0234,
+     "stops": 30,
+     "trips": 724,
+     "won": 391
+    },
+    "weekdays_1019_1022": {
+     "days": 4.0,
+     "mtm_bps_day": -1.87,
+     "mtm_gbp": -1.3476,
+     "mtm_pct_yr": -6.83,
+     "mtm_per_100_day": -0.0187,
+     "realised_gbp": 2.1314,
+     "realised_pct_yr": 10.8,
+     "realised_per_100_day": 0.0296,
+     "stops": 14,
+     "trips": 131,
+     "won": 67
+    }
+   }
+  },
+  "live": {
+   "capital": 120,
+   "coins_now_pct_of_capital": 50.4,
+   "daily_mtm": {
+    "best_bps": 37.02,
+    "max_drawdown_pct": -0.351,
+    "mean_bps": 2.33,
+    "n": 24,
+    "sd_bps": 13.43,
+    "t": 0.83,
+    "worst_bps": -22.44
+   },
+   "entry_fills": 252,
+   "first_live_weekend": {
+    "bps_of_capital": 9.4,
+    "trips": 5,
+    "won": 5
+   },
+   "takes": 0,
+   "unrealised_now_pct_of_capital": -0.758,
+   "weekdays_to_1023_2100": {
+    "from": "2026-10-12",
+    "realised_per_100_day": 0.075,
+    "trips": 192
+   },
+   "windows": {
+    "d14": {
+     "days": 14.04,
+     "mtm_bps_day": 2.79,
+     "mtm_gbp": 0.4696,
+     "mtm_pct_yr": 10.17,
+     "mtm_per_100_day": 0.0279,
+     "realised_gbp": 1.1722,
+     "realised_pct_yr": 25.4,
+     "realised_per_100_day": 0.0696,
+     "stops": 0,
+     "trips": 197,
+     "won": 157
+    },
+    "d7": {
+     "days": 7.04,
+     "mtm_bps_day": 8.6,
+     "mtm_gbp": 0.7268,
+     "mtm_pct_yr": 31.4,
+     "mtm_per_100_day": 0.086,
+     "realised_gbp": 0.9555,
+     "realised_pct_yr": 41.28,
+     "realised_per_100_day": 0.1131,
+     "stops": 0,
+     "trips": 119,
+     "won": 102
+    },
+    "since_1002": {
+     "days": 24.04,
+     "mtm_bps_day": 2.33,
+     "mtm_gbp": 0.6716,
+     "mtm_pct_yr": 8.5,
+     "mtm_per_100_day": 0.0233,
+     "realised_gbp": 1.5514,
+     "realised_pct_yr": 19.63,
+     "realised_per_100_day": 0.0538,
+     "stops": 1,
+     "trips": 247,
+     "won": 197
+    },
+    "weekdays_1019_1022": {
+     "days": 4.0,
+     "mtm_bps_day": 7.04,
+     "mtm_gbp": 0.3379,
+     "mtm_pct_yr": 25.69,
+     "mtm_per_100_day": 0.0704,
+     "realised_gbp": 0.5287,
+     "realised_pct_yr": 40.2,
+     "realised_per_100_day": 0.1101,
+     "stops": 0,
+     "trips": 87,
+     "won": 73
+    }
+   }
+  },
+  "p50": {
+   "capital": 600,
+   "coins_now_pct_of_capital": 50.3,
+   "daily_mtm": {
+    "best_bps": 30.7,
+    "max_drawdown_pct": -0.491,
+    "mean_bps": 0.24,
+    "n": 24,
+    "sd_bps": 12.77,
+    "t": 0.09,
+    "worst_bps": -21.89
+   },
+   "entry_fills": 231,
+   "first_live_weekend": {
+    "bps_of_capital": 9.5,
+    "trips": 5,
+    "won": 5
+   },
+   "takes": 0,
+   "unrealised_now_pct_of_capital": -0.594,
+   "weekdays_to_1023_2100": {
+    "from": "2026-10-12",
+    "realised_per_100_day": 0.0388,
+    "trips": 124
+   },
+   "windows": {
+    "d14": {
+     "days": 14.04,
+     "mtm_bps_day": -0.34,
+     "mtm_gbp": -0.2848,
+     "mtm_pct_yr": -1.23,
+     "mtm_per_100_day": -0.0034,
+     "realised_gbp": 3.1762,
+     "realised_pct_yr": 13.76,
+     "realised_per_100_day": 0.0377,
+     "stops": 2,
+     "trips": 129,
+     "won": 79
+    },
+    "d7": {
+     "days": 7.04,
+     "mtm_bps_day": 4.48,
+     "mtm_gbp": 1.8907,
+     "mtm_pct_yr": 16.34,
+     "mtm_per_100_day": 0.0448,
+     "realised_gbp": 3.0267,
+     "realised_pct_yr": 26.15,
+     "realised_per_100_day": 0.0717,
+     "stops": 2,
+     "trips": 55,
+     "won": 44
+    },
+    "since_1002": {
+     "days": 24.04,
+     "mtm_bps_day": 0.24,
+     "mtm_gbp": 0.35,
+     "mtm_pct_yr": 0.89,
+     "mtm_per_100_day": 0.0024,
+     "realised_gbp": 4.893,
+     "realised_pct_yr": 12.38,
+     "realised_per_100_day": 0.0339,
+     "stops": 5,
+     "trips": 165,
+     "won": 107
+    },
+    "weekdays_1019_1022": {
+     "days": 4.0,
+     "mtm_bps_day": 3.29,
+     "mtm_gbp": 0.7906,
+     "mtm_pct_yr": 12.02,
+     "mtm_per_100_day": 0.0329,
+     "realised_gbp": 1.6994,
+     "realised_pct_yr": 25.84,
+     "realised_per_100_day": 0.0708,
+     "stops": 1,
+     "trips": 34,
+     "won": 24
+    }
+   }
+  },
+  "pr5": {
+   "capital": 1200,
+   "coins_now_pct_of_capital": 50.1,
+   "daily_mtm": {
+    "best_bps": 30.62,
+    "max_drawdown_pct": -0.483,
+    "mean_bps": -0.08,
+    "n": 24,
+    "sd_bps": 12.76,
+    "t": -0.03,
+    "worst_bps": -23.39
+   },
+   "entry_fills": 190,
+   "first_live_weekend": {
+    "bps_of_capital": 9.5,
+    "trips": 5,
+    "won": 5
+   },
+   "takes": 0,
+   "unrealised_now_pct_of_capital": -0.608,
+   "weekdays_to_1023_2100": {
+    "from": "2026-10-12",
+    "realised_per_100_day": 0.0318,
+    "trips": 102
+   },
+   "windows": {
+    "d14": {
+     "days": 14.04,
+     "mtm_bps_day": -0.77,
+     "mtm_gbp": -1.2973,
+     "mtm_pct_yr": -2.81,
+     "mtm_per_100_day": -0.0077,
+     "realised_gbp": 5.6326,
+     "realised_pct_yr": 12.2,
+     "realised_per_100_day": 0.0334,
+     "stops": 3,
+     "trips": 107,
+     "won": 66
+    },
+    "d7": {
+     "days": 7.04,
+     "mtm_bps_day": 3.44,
+     "mtm_gbp": 2.9098,
+     "mtm_pct_yr": 12.57,
+     "mtm_per_100_day": 0.0344,
+     "realised_gbp": 5.1754,
+     "realised_pct_yr": 22.36,
+     "realised_per_100_day": 0.0613,
+     "stops": 3,
+     "trips": 51,
+     "won": 41
+    },
+    "since_1002": {
+     "days": 24.04,
+     "mtm_bps_day": -0.07,
+     "mtm_gbp": -0.2163,
+     "mtm_pct_yr": -0.27,
+     "mtm_per_100_day": -0.0007,
+     "realised_gbp": 8.8515,
+     "realised_pct_yr": 11.2,
+     "realised_per_100_day": 0.0307,
+     "stops": 6,
+     "trips": 142,
+     "won": 94
+    },
+    "weekdays_1019_1022": {
+     "days": 4.0,
+     "mtm_bps_day": 2.34,
+     "mtm_gbp": 1.1209,
+     "mtm_pct_yr": 8.52,
+     "mtm_per_100_day": 0.0234,
+     "realised_gbp": 3.0322,
+     "realised_pct_yr": 23.06,
+     "realised_per_100_day": 0.0632,
+     "stops": 1,
+     "trips": 33,
+     "won": 24
+    }
+   }
+  },
+  "take50": {
+   "capital": 600,
+   "coins_now_pct_of_capital": 50.4,
+   "daily_mtm": {
+    "best_bps": 30.7,
+    "max_drawdown_pct": -0.37,
+    "mean_bps": 1.05,
+    "n": 24,
+    "sd_bps": 12.14,
+    "t": 0.41,
+    "worst_bps": -18.48
+   },
+   "entry_fills": 242,
+   "first_live_weekend": {
+    "bps_of_capital": 9.5,
+    "trips": 5,
+    "won": 5
+   },
+   "takes": 11,
+   "unrealised_now_pct_of_capital": -0.595,
+   "weekdays_to_1023_2100": {
+    "from": "2026-10-12",
+    "realised_per_100_day": 0.0517,
+    "trips": 134
+   },
+   "windows": {
+    "d14": {
+     "days": 14.04,
+     "mtm_bps_day": 0.79,
+     "mtm_gbp": 0.6654,
+     "mtm_pct_yr": 2.88,
+     "mtm_per_100_day": 0.0079,
+     "realised_gbp": 4.1292,
+     "realised_pct_yr": 17.89,
+     "realised_per_100_day": 0.049,
+     "stops": 2,
+     "trips": 139,
+     "won": 85
+    },
+    "d7": {
+     "days": 7.04,
+     "mtm_bps_day": 5.01,
+     "mtm_gbp": 2.1169,
+     "mtm_pct_yr": 18.29,
+     "mtm_per_100_day": 0.0501,
+     "realised_gbp": 3.2571,
+     "realised_pct_yr": 28.14,
+     "realised_per_100_day": 0.0771,
+     "stops": 2,
+     "trips": 57,
+     "won": 45
+    },
+    "since_1002": {
+     "days": 24.04,
+     "mtm_bps_day": 1.05,
+     "mtm_gbp": 1.5078,
+     "mtm_pct_yr": 3.82,
+     "mtm_per_100_day": 0.0105,
+     "realised_gbp": 6.0536,
+     "realised_pct_yr": 15.32,
+     "realised_per_100_day": 0.042,
+     "stops": 5,
+     "trips": 179,
+     "won": 115
+    },
+    "weekdays_1019_1022": {
+     "days": 4.0,
+     "mtm_bps_day": 4.44,
+     "mtm_gbp": 1.0647,
+     "mtm_pct_yr": 16.19,
+     "mtm_per_100_day": 0.0444,
+     "realised_gbp": 1.9781,
+     "realised_pct_yr": 30.08,
+     "realised_per_100_day": 0.0824,
+     "stops": 1,
+     "trips": 36,
+     "won": 26
+    }
+   }
+  },
+  "take50wk": {
+   "capital": 600,
+   "coins_now_pct_of_capital": 50.9,
+   "daily_mtm": {
+    "best_bps": 31.15,
+    "max_drawdown_pct": -0.151,
+    "mean_bps": 10.42,
+    "n": 7,
+    "sd_bps": 16.26,
+    "t": 1.57,
+    "worst_bps": -12.34
+   },
+   "entry_fills": 99,
+   "first_live_weekend": {
+    "bps_of_capital": 53.0,
+    "trips": 48,
+    "won": 37
+   },
+   "takes": 2,
+   "unrealised_now_pct_of_capital": -0.19,
+   "weekdays_to_1023_2100": {
+    "from": "2026-10-19",
+    "realised_per_100_day": 0.0805,
+    "trips": 45
+   },
+   "windows": {
+    "d7": {
+     "days": 7.04,
+     "mtm_bps_day": 10.36,
+     "mtm_gbp": 4.376,
+     "mtm_pct_yr": 37.81,
+     "mtm_per_100_day": 0.1036,
+     "realised_gbp": 5.5142,
+     "realised_pct_yr": 47.65,
+     "realised_per_100_day": 0.1305,
+     "stops": 3,
+     "trips": 94,
+     "won": 72
+    },
+    "weekdays_1019_1022": {
+     "days": 4.0,
+     "mtm_bps_day": 3.54,
+     "mtm_gbp": 0.85,
+     "mtm_pct_yr": 12.93,
+     "mtm_per_100_day": 0.0354,
+     "realised_gbp": 1.8104,
+     "realised_pct_yr": 27.53,
+     "realised_per_100_day": 0.0754,
+     "stops": 1,
+     "trips": 33,
+     "won": 24
+    }
+   }
+  }
+ }
+}

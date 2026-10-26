@@ -1,0 +1,29 @@
+{
+ "read": "2026-10-26 00:59-01:06 UTC, sql/pulls.sql [D]-[H], as the connector returned them (rounded)",
+ "paper": {
+  "_note": "realised in each engine's own currency (paper: USD for PR5, PR5V and rule D, GBP for Coinbase); capital: PR5 $1,200, PR5V main $3,600, top5 $2,000, rule D d $3,600 (v1 is PR5V main replayed, its check arm), Coinbase about £2,240 (£1,200 + €1,200)",
+  "pr5":        {"trips_all": 282, "won_all": 266, "r_since1002": 12.3114, "r_14": 8.9528, "r_7": 6.6103},
+  "pr5v_main":  {"trips_all": 1434, "won_all": 1237, "r_since1002": 28.0738, "r_14": 23.1645, "r_7": 14.8407},
+  "pr5v_top5":  {"trips_all": 983, "won_all": 876, "r_since1002": 22.2025, "r_14": 17.4938, "r_7": 10.1480},
+  "ruled_d":    {"trips_all": 1532, "won_all": 1321, "r_since1002": 30.3709, "r_14": 25.0844, "r_7": 15.8689},
+  "ruled_v1":   {"trips_all": 1434, "won_all": 1237, "r_since1002": 28.0738, "r_14": 23.1645, "r_7": 14.8407},
+  "coinbase":       {"from": "2026-10-11", "trips_all": 107, "won_all": 66, "r_14": 4.3405, "r_7": 3.0595, "worst_day": -2.6951},
+  "coinbase_hold":  {"from": "2026-10-13", "trips_all": 125, "won_all": 80, "r_14": 5.1929, "r_7": 4.0366, "worst_day": -2.5532}
+ },
+ "fill_rates_1012_1026": {
+  "LIVE": {"entries": 3242, "entry_filled": 298, "orders": 3961},
+  "live": {"entries": 3203, "entry_filled": 200, "orders": 3839},
+  "pr5": {"entries": 3146, "entry_filled": 112, "orders": 3739},
+  "p50": {"entries": 3197, "entry_filled": 142, "orders": 3852},
+  "take50": {"entries": 3211, "entry_filled": 149, "orders": 3917},
+  "take50wk": {"entries": 1310, "entry_filled": 99, "orders": 1708},
+  "d": {"entries": 8849, "entry_filled": 533, "orders": 13767}
+ },
+ "capacity_live_1012": {
+  "_note": "LIVE's orders since 2026-10-12, the prints that met each one's price while it rested, capped at a rung size; shown as a multiple of the cap at £10 (queue ignored: an upper bound)",
+  "entries": {"orders": 3245, "with_prints": 297, "filled_vs_cap10": 1.0125, "x_cap25": 2.409, "x_cap50": 4.643, "x_cap100": 8.578},
+  "exits": {"orders": 693, "with_prints": 337, "filled_vs_cap10": 1.0756, "x_cap25": 2.324, "x_cap50": 4.300, "x_cap100": 7.716}
+ },
+ "live_fill_fraction_1012": {"entry": {"filled_orders": 298, "partial": 144, "share_of_size_filled": 0.5387}, "exit": {"filled_orders": 330, "partial": 95, "share_of_size_filled": 0.8438}},
+ "book_prints_1012_1025_gbp_a_day": {"USDC-GBP": "11k-119k (540k on 10-19), median print £34-334", "USDT-GBP": "30k-108k, median print £0.10, p90 £93-344"}
+}

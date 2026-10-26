@@ -1,0 +1,57 @@
+{
+ "study": "Stablecoin quotes review, 2026-10-26 (docs/agents/reviews/2026-10-26-stablecoin-quotes-review.md): LIVE's 7-day figure recomputed, the case for more capital, and every row on one basis. Not blind; no pre-registered reading run.",
+ "read": "production, SELECT only, through the Supabase connector, 2026-10-26 00:59-01:06 UTC (sql/pulls.sql)",
+ "public": "LIVE's figures are committed as shares of its capital only; results/raw.json, which series.ts writes in pounds, is git-ignored.",
+ "run": [
+  "npx --yes deno@1.46.3 run --allow-read --allow-write --allow-env --no-check scripts/series.ts   # results/raw.json (not committed), by the page's own functions",
+  "python3 -I scripts/summary.py   # results/summary.json",
+  "python3 -I scripts/cashflow_check.py   # LIVE's week without the page's code: 64.90 %"
+ ],
+ "files": [
+  {
+   "path": "data/fairs.txt",
+   "bytes": 1214,
+   "sha256": "525b917a2529f8a30c3b2c42ae1148369378fd9ea076128d2160bf73f934cd6a"
+  },
+  {
+   "path": "data/live_orders.json.gz",
+   "bytes": 25572,
+   "sha256": "992cada26a5cf1de3f4301b73456142e46836eb0e3038ca12e0cef0f8be959dd"
+  },
+  {
+   "path": "data/twin_orders.json.gz",
+   "bytes": 116428,
+   "sha256": "b8a8c1676b98caae70ee2e3355bba3ce5f7027fc4397d02605e0a45065e92413"
+  },
+  {
+   "path": "results/aggregates.json",
+   "bytes": 2524,
+   "sha256": "3a85f59983e784a3978b6cb90138504bc26cc9e1f70157ccc5fa0810f7192b29"
+  },
+  {
+   "path": "results/summary.json",
+   "bytes": 11995,
+   "sha256": "1801971730a16f161fc468d670f6496bf64ccab9dc923054516e18b6ab48fb3c"
+  },
+  {
+   "path": "scripts/cashflow_check.py",
+   "bytes": 1729,
+   "sha256": "a5ec712d93063211e6b3dbb0a6cb62cb15373360b26d5eff83e404b8406d3323"
+  },
+  {
+   "path": "scripts/series.ts",
+   "bytes": 3488,
+   "sha256": "7b2997621d95c1f0504c51e2e3e5e2c4690bd653d68ea8f9f9ebee615ed64041"
+  },
+  {
+   "path": "scripts/summary.py",
+   "bytes": 4893,
+   "sha256": "a17edd5820497cbcf1627a175c022951bbd9b136174329533107f379555f2f93"
+  },
+  {
+   "path": "sql/pulls.sql",
+   "bytes": 7468,
+   "sha256": "88eea6b8b127cd5a48819a94448a5a2ccc3e61989aec3b6b44d2190c8f2a8689"
+  }
+ ]
+}

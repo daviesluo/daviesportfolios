@@ -3340,6 +3340,35 @@ Read 2026-10-26 (`reviews/2026-10-26-grokpm-thin-rule-study.md`, `backtests/grok
   - G2: future-stamp refusals say by how much;
   - G3: `0139`, the book's depth on each shadow mark.
 
+### 3.51 Stablecoin quotes: LIVE's "+64.9 %" is one week realised, half of it a weekend; size; every row (2026-10-26)
+
+Read 2026-10-26 (`reviews/2026-10-26-stablecoin-quotes-review.md`, `backtests/scq_review/2026-10-26/`, not blind), on Davies'
+"…“7-day annualised +64.9%”，怎么这么高？是有问题吗？…要不要再加一些资金？". No rule, switch or config changed.
+- **The figure.** `quoteDaysAnnualPct`: the seven closed days' realised over `capital_gbp`, × 365 / 7.
+  - It recomputes to 64.91 % by the page's walk and 64.90 % from the fills' cash flows: right as computed.
+  - The first live weekend (10-23 21:00 → 10-25 21:00, 70 trips, all won, 63 bps of the capital) is 51 % of the week.
+  - The coins' GBP/USD loss is not in it. The coins are about half the capital, 0.75 % of the capital below cost since the go.
+  - Marked to market on the whole capital: 54.6 % a year over 7 days, 25.1 % over 14, 15.5 % since 10-02.
+  - Daily: mean +4.3 bps, sd 17.3 bps, max drawdown −0.24 %. Realised t 2.87, marked t 1.18.
+  - The heading now reads "7-day realised, annualised" with a tooltip (`QUOTE_DAYS_ANNUAL_LABEL`, `_TITLE`).
+- **Size.** Per pound, relative to £10 a rung, from three sources:
+  - the size study: 0.96× at £25, 0.89× at £50, 0.69× at £100;
+  - LIVE's own resting orders against the prints that met them (an upper bound): entries 0.96 / 0.93 / 0.86×, exits
+    0.93 / 0.86 / 0.77×;
+  - the through-fill twins forward: £100 a rung at 0.82× of £50.
+  - LIVE's realised since 10-02 is £0.0725 per £100 a day, so about £0.069 per extra £100 a day at £25 a rung.
+  - Proposed, Davies' call: capital £120 → £300 (§2.4 has the funding, `capital_gbp = 300` and two `quotes-convert` statements),
+    then LIVE-rule twins at £300 and £600 before any further step.
+- **Rows, weekdays 10-12 → 10-23 21:00, realised per £100 of capital a day:**
+  - LIVE 0.077, LIVE twin 0.075, variant-2 0.052, variant-1 0.039, "Stablecoin quotes" 0.032, variant-4 0.018;
+  - variant-3 0.081 from 10-19, and 53 bps of capital on its first weekend;
+  - paper over 14 days: PR5 $0.053, PR5V `main` 0.046, `top5` 0.062, rule D 0.050 per $100; Coinbase £0.014 and £0.017.
+- **Found.** The LIVE twin has no weekend rule while LIVE trades the closures since 10-23 21:00. From 10-22 the twin has 48 %
+  of LIVE's realised, against 97 % on weekdays. Its 11-23 bar would fail on that alone; a deviation (closure minutes left
+  out, or `rules.weekend` from 10-30) is proposed.
+- **Proposed retirements:** the `pr5`, `d` and `p50` twins and PR5V's and rule D's paper arms, after their 10-28 readouts
+  (unless a pass needs them).
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
