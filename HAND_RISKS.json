@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-10-25",
+  "asOf": "2026-10-26",
   "risks": {
     "AAPL": [
       {
@@ -49,7 +49,7 @@
     ],
     "BMNR": [
       {
-        "text": "A leveraged ETH proxy: 6.04M ETH (10/18), ~4.9% of supply"
+        "text": "A leveraged ETH proxy: 6.05M ETH (10/25), ~4.95% of supply"
       },
       {
         "text": "funded by ATM share sales and a 9.50% perpetual preferred (6/2026)"
@@ -225,10 +225,11 @@
     ],
     "SFTBY": [
       {
-        "text": "S&P outlook negative (3/2026) on OpenAI concentration"
+        "text": "earnings 11/10",
+        "until": "2026-11-10"
       },
       {
-        "text": "$40B bridge loan due ~3/2027"
+        "text": "S&P outlook negative (3/2026) on OpenAI concentration"
       },
       {
         "text": "OpenAI-backed margin loan"

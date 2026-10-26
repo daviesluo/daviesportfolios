@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-10-25",
+  "asOf": "2026-10-26",
   "btc": {
     "asset": "BTC-USD",
     "unit": "USD per bitcoin",
@@ -111,10 +111,10 @@
       },
       {
         "firm": "UBS Global Research",
-        "target": 7500,
-        "date": "2026-08-11",
+        "target": 8100,
+        "date": "2026-07-21",
         "horizon": "end-2026",
-        "url": "https://www.galvnews.com/news_reuters/business/factbox-major-brokerages-forecasts-for-s-p-500-index-in-2026/article_7275084d-b0f7-55d9-b162-d22b116e17fd.html"
+        "url": "https://www.cnbc.com/2026/07/21/ubs-hikes-its-year-end-sp-500-target-to-8100-heres-why.html"
       },
       {
         "firm": "Evercore ISI",
@@ -140,9 +140,9 @@
       {
         "firm": "Societe Generale",
         "target": 8000,
-        "date": "2026-08-11",
+        "date": "2026-06-26",
         "horizon": "end-2026",
-        "url": "https://www.galvnews.com/news_reuters/business/factbox-major-brokerages-forecasts-for-s-p-500-index-in-2026/article_7275084d-b0f7-55d9-b162-d22b116e17fd.html"
+        "url": "https://finance.yahoo.com/markets/stocks/articles/socgen-raises-p-500-target-172538237.html"
       },
       {
         "firm": "Jefferies",
