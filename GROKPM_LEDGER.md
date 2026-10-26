@@ -80,6 +80,7 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Log (newest first, max 20 lines)
 
+- 2026-10-26 12:45 UTC · Grok · FILL: BanRep no-change No 10 @ 0.49 ($4.90) of 16; rest expired 12:40, not re-placed (book thin again, D15 $5 cap leaves no room); trimmed oldest log line for 10 KB.
 - 2026-10-26 12:25 UTC · Grok · OPEN: B bid BanRep no-change No 16 @ 0.49 ($7.84, 16 points, book no longer thin); full scan 12:05 (10 min late); Status updated.
 - 2026-10-26 08:45 UTC · Grok · light 08:35: both D15 held, no action; trimmed 2 oldest log lines to stay under 10 KB.
 - 2026-10-26 08:15 UTC · Grok · FILL: D15 BanRep +25 Yes 12 @ 0.41 ($4.92), held to resolution; full scan 08:05 no new open; Status updated.
@@ -95,4 +96,3 @@ request quoting that word. Never put a token, key, password or account address i
 - 2026-10-25 08:14 UTC · Grok · full scan 08:05: no open (Fed no-dissent blind far pick priced right; Vertiv still thin; 7 shadow rows); Status updated.
 - 2026-10-25 04:10 UTC · Grok · full scan 04:05: no open (Vertiv Q3 margin blind far pick 27 points but book thin; 6 shadow rows); Status updated.
 - 2026-10-25 00:25 UTC · Grok · full scan 00:05: no open (markets_far blind pick Korea Q3 GDP 3.0-3.4% 13 points but book thin; 9 shadow rows); 10-24 daily row; Status updated.
-- 2026-10-24 22:50 UTC · Claude · daily check: 48 cycles (6 full), longest gap 39 min; 0 orders, 0 fills, equity $100, no rule broken. C-005 followed: 9 markets ending 3-14 days out forecast since 07:05 (blind picks 08/12/16/20 UTC). C-006 answered; markets_far and last_trade went live 22:40:25, after Grok's last wake began, so unused so far (two 422s at 22:40 were bare ?action=market probes). resolutions 19 (payouts 0/1 only), shadow_marks 384.
