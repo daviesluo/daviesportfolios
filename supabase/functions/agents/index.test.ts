@@ -11,7 +11,7 @@ import {
   exitOverbuy, liveBookGbp, liveCoinBooks, liveConversionShares, liveIndexPrices, liveOrderReason, liveRestingBuysGbp, liveRungs, liveRungTrips, quotesLiveDetail, tripEnds, QUOTE_LIVE_ORDER_COLUMNS,
   QUOTE_TICKER_FRESH_MS,
   QUOTE_LIVE_REASON_COLUMNS, QUOTE_LIVE_SUMMARY_COLUMNS, QUOTES_LIVE_KNOWN_REFUSALS, QUOTES_LIVE_ORDERS_FILTER, QUOTES_LIVE_PAGE_ROWS, type QuoteLiveRecentRow, withConversionFees,
-  liveDays, readQuotesTwin, twinsDelayMs, TWINS_START_MS,
+  liveDays, readQuotesTwin, twinsDelayMs, twinsOnPage, TWINS_START_MS,
   deadmanBeatAt, DEADMAN_BEAT_KEY, runSelectKeptAlive, runQuotesAction, quotesPaperErrorReport,
 } from "./index.ts";
 import { QUOTE_LEASE_STEP, runQuotes, type QuoteReport } from "./quotes.ts";
@@ -1435,6 +1435,17 @@ Deno.test("readQuotesTwin: each twin of the spec rows is read as the live accoun
   // deno-lint-ignore no-explicit-any
   const bare = memDb(twinFixtureTables(live, TWINS.pr5, { id: 1, state: {}, updated_at: new Date(f.nowMs).toISOString(), last_error: null } as any), { now: () => f.nowMs });
   assertEquals(await readQuotesTwin(bare.db, TWINS.pr5, f.nowMs, f.dayStartMs, live.tickers), null);
+});
+
+Deno.test("twinsOnPage: a twin whose row says hidden runs but is not on the page; without the column every twin shows (0141)", () => {
+  const specs = ["pr5", "live300", "live600", "live", "p50", "take50", "d"].map((id) => ({ id }));
+  // 0141 hides the four that stop at or after their readings (Davies, 2026-10-26).
+  const hidden = ["pr5", "p50", "take50", "d"].map((id) => ({ id }));
+  assertEquals(twinsOnPage(specs, hidden).map((s) => s.id), ["live300", "live600", "live"]);
+  // Before 0141 the read fails and is taken as none hidden: the page is as it was.
+  assertEquals(twinsOnPage(specs, []).map((s) => s.id), specs.map((s) => s.id));
+  // A hidden id with no enabled row (variant-3, off since 0141) changes nothing.
+  assertEquals(twinsOnPage([{ id: "live" }], [{ id: "take50wk" }]).map((s) => s.id), ["live"]);
 });
 
 Deno.test("liveDays: a twin's orders a day are its driver's count, the live account's its rows'", () => {

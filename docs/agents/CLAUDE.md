@@ -325,7 +325,11 @@ that follow from that evidence, in short:
   (`0108`, `p50` with its exit a tick beyond fair) was withdrawn before its
   window by `0109` (Davies 2026-10-09, after the F3 replay, `backtests/scq_f3/`),
   `d` "variant-3" again; the rule `exitOffset` stays in the code, named by no
-  row. TESTING's scoreboard and the
+  row. **Since `0141` (2026-10-26; Davies: "…£300 和 £600在最新live的rules上建吧…")** the page shows three twins on LIVE's
+  rules (its fill rule, its weekend from 10-30 21:00, no take): "Stablecoin quotes LIVE twin" (`live300`, £300), "variant-1"
+  (`live600`, £600) and "variant-2" (`live`, the £120 twin); `pr5`, `p50` ("size twin"), `take50` ("TAKE", the take shadow's
+  yardstick) and `d` run off the page (`hidden`) until their readings, and `take50wk` is off (its reading withdrawn).
+  The names above are their history. TESTING's scoreboard and the
   Revolut X card include them. **"Stablecoin quotes with Euros"** (`0112`,
   reference §4 item 58; "Stablecoin quotes Coinbase" until 2026-10-10) follows
   them: PR5's `stepMinute`, unchanged, on Coinbase's four GBP and EUR books

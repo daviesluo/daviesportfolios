@@ -314,3 +314,87 @@ A pass is the evidence for the step to £600. They cost database rows and nothin
   stands in for it. At the read the two differ by under 0.1 %.
 - It did not run the browser sweep. This container has no Chromium. The sweep's three expectations were changed to the new
   label, and the main session's full gates run it.
+
+## 5. Davies' answers (2026-10-26), and what `0141` built
+
+Verbatim: "同意 之后加好了给你讲" (capital: agreed; he will say when the money is in), and "你验证没问题的话就都按你推荐的来，£300 和 £600在最新
+live的rules上建吧，live twin要改成300磅的， £600改为variant-1，variant-2和variant-3周末的策略已经都实现进live的rules了吧存在还有意义吗要不删了吧，
+目前的LIVE 模拟分身改为variant-2；另外测试里的“Stablecoin quotes”有什么用？要不关了吧？剩下几个马上就停了的就不在网页上显示了，到时候你在这里读就行",
+and "Coinbase 两行为什么年化表现低这么多，可以优化吗".
+
+**On the page now:**
+
+| page name | id | capital | rules | reading |
+|---|---|---|---|---|
+| Stablecoin quotes LIVE twin | `live300` (new) | £300, £25 a rung | LIVE's: its fill rule from 10-27, its weekend from 10-30 21:00, no take | beside `live600`'s bar, after 11-11 |
+| Stablecoin quotes variant-1 | `live600` (new) | £600, £50 a rung | the same | bar: per pound ≥ 80 % of `live`'s, 10-28 → 11-11 (`2026-10-26-live-size-twins-prereg.md`) |
+| Stablecoin quotes variant-2 | `live` (the £120 LIVE twin) | £120, £10 a rung | LIVE's fill rule; LIVE's weekend from 10-30 21:00 (its deviation 1) | its own bar, 11-23, with the closure of 10-23/25 left out |
+
+**Running, off the page** (`hidden`, read here):
+
+| page name | id | why it still runs | stops |
+|---|---|---|---|
+| Stablecoin quotes | `pr5` | its descriptive readout after rule D's reading (the twins' pre-registration §9) | after 10-28 |
+| Stablecoin quotes size twin | `p50` (variant-1 before) | its readout beside rule D's twin after 10-28 | after 10-28 |
+| Stablecoin quotes TAKE | `take50` (variant-2 before) | TAKE's own reading, and the yardstick of LIVE's take shadow: the addendum's criterion 1 matches each `take_shadow` event against a take of this twin (next check 10-30) | at TAKE's reading (11-02, at most 11-30) or LIVE's take decision, whichever is later |
+| Stablecoin quotes variant-4 | `d` | its readout after rule D's reading | after 10-28 |
+
+**Switched off:** variant-3 (`take50wk`), its reading withdrawn (`2026-10-26-variant3-withdrawn.md`). LIVE's own weekends and the
+three LIVE-rule twins carry what it was to show, and nothing reads it.
+
+**What "Stablecoin quotes" in TESTING is.** It is the `pr5` twin. It carries out PR5's paper engine's decisions at £1,200 (£100 a
+rung, through-only fills) on a simulated account. It was made on 10-02 as the first realistic twin, when it was the only
+simulation of LIVE's code. It is not PR5's paper engine:
+- LIVE follows the paper engine (`agent_quote_state`, `agent_quote_events`), never this twin.
+- PR5V, rule D, QUEUE, PR5-W and LIVE's weekend replica all read the engine, which keeps running.
+- The twin's only remaining use is its readout after 10-28; the LIVE-rule twins replaced its purpose. So it is off the page now
+  and is switched off after 10-28.
+
+**Variant-2 (`take50`) and variant-3, Davies' question.** The weekend is in LIVE's rules. The take is not: LIVE's take is in
+shadow and sends nothing.
+- **Variant-2 still decides something.** It is the only forward evidence that a take earns (11 takes so far; TAKE needs 15). The
+  live design's take shadow check matches LIVE's shadow events against its takes. Retiring it now would leave LIVE's take
+  decision without its yardstick. It stays, off the page.
+- **Variant-3 decides nothing** that LIVE's own record and the LIVE-rule twins do not, so it stops.
+
+**PR5V and rule D's paper arms** are not on the page (since 10-02). They read on 10-28 and run until then.
+
+**After deploy, check:**
+- the next `quotestwins` beats with no `agents.quotes_twins` error;
+- `live300` and `live600` turn from 10-27 00:00 with their conversions;
+- every enabled twin's `_sim.updated_at` stays within a few minutes: seven twins now run in the call's 12 s budget, one more
+  than before;
+- TESTING shows the three twins and the two Coinbase rows;
+- `take50wk_sim.updated_at` stops advancing.
+
+## 6. Why the Coinbase rows earn less, and what could change
+
+Coinbase "with Euros", from 10-11 (15 days, 107 trips), and "with Euros - 2", from 10-13 (125 trips): about 5 % and 6 % a year on
+about £2,240. Over the same days PR5's paper engine on Revolut X made 15.6 % (at $100 a rung) and LIVE 26.5 % realised (at £10).
+
+By book (`cb_quote_trips`, `cb_hold_trips`, `agent_quote_trips`, trips closed from 10-11):
+
+| book | Coinbase trips | P&L | bps a trip | Revolut X PR5 paper |
+|---|---|---|---|---|
+| USDC-GBP | 37 | +£2.85 | +9.5 | 54 trips, +8.4 bps |
+| USDC-EUR | 27 | +£2.14 | +9.4 | — |
+| USDT-EUR | 24 | −£0.23 | −1.1 (makers −8.1, stops +10.6) | — |
+| USDT-GBP | 19 | −£0.33 | −2.5 (makers +0.2, stops −10.4) | **127 trips, +14.8 bps**: Revolut X's best book, and LIVE's |
+
+**Where the gap comes from:**
+- **The USDT books.** On Revolut X, USDT-GBP is where the strategy earns: retail flow crosses the book, and 237 of LIVE's 330
+  round trips were on it. On Coinbase both USDT books lost, so half the capital earned nothing.
+- **The USDC books earn as Revolut X's does:** 10–12 % a year a book at £100 a rung, against 9 % on Revolut X's USDC-GBP.
+- **Rung size.** £100 and €100 a rung, against LIVE's £10. Per pound, £100 a rung kept about 0.7× of £10 in the size study.
+- **Turnover.** Coinbase made about 3–4 trips a day per £1,000 against Revolut X's 13. Its GBP books are thinner, and a holding
+  waited 4–5 hours on the EUR books against 1–2 on Revolut X.
+- **Not the cause:** fees (Coinbase's maker 0 %, taker 0.0045 %), the EUR conversion (counted at the day's rate, no fee) and the
+  24-hour stops (net +£1.03 in the first row: they closed at a profit more often than not).
+
+**What could change, proposals only** (their pre-registrations read on 11-08 and 11-10 and are not altered):
+- **A USDC-only paper row on Coinbase**, the two USDC books at £25 a rung, would have earned about 10–11 % a year on these days.
+  That is an in-sample selection, so it needs its own pre-registration and a forward window before it means anything. It is worth
+  adding only if one of the two readings passes.
+- **If neither reading passes,** retire both rows. Their case is diversification, not return, and two weeks of USDT losses on
+  Coinbase argue against the USDT books there.
+- **Not proposed:** a Coinbase weekend variant beyond "with Euros - 2" (it is that), and any change to LIVE from this evidence.

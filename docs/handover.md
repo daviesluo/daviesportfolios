@@ -46776,3 +46776,13 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   - Page: the DAYS heading reads "7-day realised, annualised" with a tooltip, pinned in `agents.test.js`; the sweep's
     expectations and the guide follow, and `dist/` is rebuilt. The sweep was not run here (no Chromium).
   - Proposals only: capital £120 → £300; a LIVE twin deviation; retirements after 10-28; LIVE-rule twins at £300/£600.
+
+## LEDGER.md, archived 2026-10-26 (fourth) — GROKPM D15's 2026-10-26 03:00 UTC section
+
+### [2026-10-26 03:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM D15 verified and built** (sub-agent; not pushed; Davies, 10-26: "你再验证下D15的修改，推荐的话就做"; the thin-rule
+  review's §9, reference §3.50; the frozen file untouched).
+  - The holes the check found, and the terms that close them: a market-level $5 (partial fills and re-bids), one bid a
+    market, `event_at` with the cut on the order's whole life, the sync's re-read of the end, and 100 orders a day.
+  - `0140` adds `thin_cap` and `cut_at`; every term is pinned in `exec.test.ts`. C-007 is ready and not posted.
+  - Ledger: the 2026-10-26 01:40 UTC section (the stablecoin review) moved to the archive.

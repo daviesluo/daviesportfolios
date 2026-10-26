@@ -29,28 +29,43 @@ const SIMS = {
 
 /**
  * What later migrations did to the rows, in the migrations' order and each file's: a page name given (0108: rule D's twin,
- * "variant-3" to "variant-4"; 0109: back to "variant-3", Davies 2026-10-09), each `update … set display_name = '<new>'
- * where id = '<id>' and display_name = '<old>'`, and a row taken off (0109: `p50x1`), each `delete from
- * public.agent_quote_twin_specs where id = '<id>'`; src/twin_specs.test.js reads them the same way. spec_rows.ts (frozen
- * with p50's pre-registration) returns the rows as first inserted; this makes them the rows as they stand.
+ * "variant-3" to "variant-4"; 0109: back to "variant-3", Davies 2026-10-09; 0141), each `update … set display_name = '<new>'
+ * where id = '<id>' and display_name = '<old>'`; a row taken off (0109: `p50x1`), each `delete from
+ * public.agent_quote_twin_specs where id = '<id>'`; and since 0141 a rule added (`set rules = rules || '<json>'::jsonb where id
+ * = '<id>' and not (rules ? '<key>')`), a row switched off (`set enabled = false where id = '<id>'`) and rows left off the page
+ * (`set hidden = true where id in (…)`). src/twin_specs.test.js reads them the same way. spec_rows.ts (frozen with p50's
+ * pre-registration) returns the rows as first inserted; this makes them the rows as they stand. A hidden row stays in the
+ * fixture: it still runs, and the browser test keeps its page under test until a migration switches it off.
  */
 const RENAME = /update public\.agent_quote_twin_specs\s+set display_name = '([^']+)'\s+where id = '(\w+)' and display_name = '([^']+)';/g;
 const DELETE = /delete from public\.agent_quote_twin_specs\s+where id = '(\w+)';/g;
+const RULE_ADD = /update public\.agent_quote_twin_specs\s+set rules = rules \|\| '(\{[^']*\})'::jsonb\s+where id = '(\w+)' and not \(rules \? '(\w+)'\);/g;
+const OFF = /update public\.agent_quote_twin_specs\s+set enabled = false\s+where id = '(\w+)';/g;
+const HIDE = /update public\.agent_quote_twin_specs\s+set hidden = true\s+where id in \(([^)]*)\);/g;
 const MIGRATIONS = new URL("../../../../../supabase/migrations/", import.meta.url);
+type Op = { at: number; apply: (rows: Array<Record<string, unknown> & { id: string; display_name: string }>) => typeof rows };
 const asTheyStand = async <T extends { id: string; display_name: string }>(first: T[]): Promise<T[]> => {
-  let rows = first;
+  let rows = first as unknown as Array<Record<string, unknown> & { id: string; display_name: string }>;
   const files: string[] = [];
   for await (const e of Deno.readDir(MIGRATIONS)) if (e.isFile && /^\d{4}_.*\.sql$/.test(e.name)) files.push(e.name);
   for (const f of files.sort()) {
     const sql = (await Deno.readTextFile(new URL(f, MIGRATIONS))).replace(/--[^\n]*/g, "");
-    const ops = [...[...sql.matchAll(RENAME)].map((m) => ({ at: m.index ?? 0, m })), ...[...sql.matchAll(DELETE)].map((m) => ({ at: m.index ?? 0, m }))]
-      .sort((a, b) => a.at - b.at);
-    for (const { m } of ops) {
-      if (m.length === 2) rows = rows.filter((r) => r.id !== m[1]);
-      else for (const r of rows) if (r.id === m[2] && r.display_name === m[3]) r.display_name = m[1];
-    }
+    const ops: Op[] = [
+      ...[...sql.matchAll(RENAME)].map((m): Op => ({ at: m.index ?? 0, apply: (rs) => rs.map((r) => (r.id === m[2] && r.display_name === m[3] ? { ...r, display_name: m[1] } : r)) })),
+      ...[...sql.matchAll(DELETE)].map((m): Op => ({ at: m.index ?? 0, apply: (rs) => rs.filter((r) => r.id !== m[1]) })),
+      ...[...sql.matchAll(RULE_ADD)].map((m): Op => ({ at: m.index ?? 0, apply: (rs) => rs.map((r) => {
+        const rules = (r.rules ?? {}) as Record<string, unknown>;
+        return r.id === m[2] && !(m[3] in rules) ? { ...r, rules: { ...rules, ...JSON.parse(m[1]) } } : r;
+      }) })),
+      ...[...sql.matchAll(OFF)].map((m): Op => ({ at: m.index ?? 0, apply: (rs) => rs.map((r) => (r.id === m[1] ? { ...r, enabled: false } : r)) })),
+      ...[...sql.matchAll(HIDE)].map((m): Op => {
+        const ids = m[1].split(",").map((x) => x.trim().replace(/^'|'$/g, ""));
+        return { at: m.index ?? 0, apply: (rs) => rs.map((r) => (ids.includes(r.id) ? { ...r, hidden: true } : r)) };
+      }),
+    ].sort((a, b) => a.at - b.at);
+    for (const op of ops) rows = op.apply(rows);
   }
-  return rows;
+  return rows as unknown as T[];
 };
 const rows = (await asTheyStand(await specRowsOfMigrations())).filter((r) => r.enabled);
 const starts: Record<string, string> = {}, sims: Record<string, unknown> = {}, twins: unknown[] = [];

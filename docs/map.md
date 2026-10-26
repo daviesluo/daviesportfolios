@@ -853,6 +853,7 @@ before touching migration state.
 | `0138_grokpm_shadow_marks.sql` | GROKPM's shadow forecasts' scoring record: each forecast's last public trade before it (its D10 column) and, read within ten minutes, its book, written by the keyless recorder. |
 | `0139_grokpm_shadow_depth.sql` | GROKPM's shadow forecasts also keep the dollars of bids and asks within 5 points of the mid in the book they saw, so the thin rule's depth half can be judged on the record. |
 | `0140_grokpm_thin_cap.sql` | GROKPM's Deviation D15: each order says whether it was sent under the thin rule's capped exception, and the time it must be gone by. |
+| `0141_quote_twins_relayout.sql` | The stablecoin twins laid out for LIVE's next size: two new twins on LIVE's rules (`live300` "LIVE twin" £300, `live600` "variant-1" £600), the £120 LIVE twin renamed variant-2 and given LIVE's weekend from 10-30, variant-3 switched off, and four twins kept running but off the page (`hidden`). |
 | `0096_pm_rw_x_tb1_arms.sql` | Lets the variants' day tables, RW's and RW-C's, take TB1's two arms on x1 (tb1-skip, tb1-back). |
 | `0086_quote_live_deadman.sql` | Adds the kind `deadman` to `agent_quote_live_events`, for the row the monitor's dead-man switch writes when it cancels PR5's resting orders. |
 | `0087_quote_twins.sql` | The realistic twins' tables (each the live executor's four, a replica's and a simulated account's), their config rows and leases, and the one call that runs them. |

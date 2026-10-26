@@ -1693,6 +1693,17 @@ export function quotesLiveDetail(input: {
   };
 }
 
+/**
+ * The twins the page shows (Davies, 2026-10-26: "剩下几个马上就停了的就不在网页上显示了": those that stop soon leave the page):
+ * every enabled twin but those whose spec row says `hidden` (0141). A hidden twin still runs, in `runQuotesTwins`, until its
+ * reading; the page reads nothing of it, and its record stays for the reading. Before 0141 the column is missing and the read
+ * fails: every twin shows, as before.
+ */
+export function twinsOnPage<T extends { id: string }>(specs: T[], hidden: ReadonlyArray<{ id: string }>): T[] {
+  const off = new Set(hidden.map((h) => h.id));
+  return specs.filter((s) => !off.has(s.id));
+}
+
 /** The orders of a realistic twin its page reads: those that filled or still rest (`readQuotesTwin`). */
 export const QUOTE_TWIN_SUMMARY_FILTER = "or=(filled_base.gt.0,state.in.(pending,new,partially_filled))";
 /** A realistic twin's own state as its call saved it (`quotes_twin.ts`): how it runs and what it has checked. */
@@ -2082,12 +2093,15 @@ async function dashboard(now: number) {
   // valued at. Before the table exists, or if it cannot be read, they are valued at the last trade.
   const quoteTickersRead = d.select<QuoteTickerRow>("agent_quote_tickers", "select=book,index_price,ts").catch(() => [] as QuoteTickerRow[]);
   const quoteIndexRead = quoteTickersRead.then((rows) => liveIndexPrices(rows, now));
-  // The realistic twins: the enabled rows of `agent_quote_twin_specs` (0088) in their order, TESTING's "Stablecoin quotes",
-  // "…variant-1" (p50) and "…variant-3" (d), each the live executor's record on a simulated account, read beside the rest;
-  // a twin not loaded yet, or a read that fails, is no row (and the spec table unread, no twin).
+  // The realistic twins: the enabled rows of `agent_quote_twin_specs` (0088) in their order that are on the page
+  // (`twinsOnPage`, 0141), each the live executor's record on a simulated account, read beside the rest; a twin not loaded
+  // yet, or a read that fails, is no row (and the spec table unread, no twin).
   const quotesTwinsRead = quoteTickersRead.then(async (tickers) => {
-    const { specs } = await twinSpecs(d).catch(() => ({ specs: [] as TwinSpec[] }));
-    return Promise.all(specs.map((spec) => readQuotesTwin(d, spec, now, dayStartMs, tickers)));
+    const [{ specs }, hidden] = await Promise.all([
+      twinSpecs(d).catch(() => ({ specs: [] as TwinSpec[] })),
+      d.select<{ id: string }>("agent_quote_twin_specs", "hidden=eq.true&select=id").catch(() => [] as Array<{ id: string }>),
+    ]);
+    return Promise.all(twinsOnPage(specs, hidden).map((spec) => readQuotesTwin(d, spec, now, dayStartMs, tickers)));
   });
 
   // "Stablecoin quotes with Euros" (0112, cb_quotes.ts): the paper test of PR5's rule on Coinbase's four books, in a twin's

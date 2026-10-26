@@ -234,26 +234,27 @@ places stay when the number is not whole.
   is of. With nothing live, LIVE says
   so and TESTING holds everything. A strategy still holding real coins
   after it was paused or relabelled stays on LIVE until it has sold them.
-- **Stablecoin quotes.** The first of the tests, after the testing strategies:
-  the live stablecoin quotes' own code, every rule the real-money account
-  runs by, trading a simulated Revolut X account of £1,200, £100 a rung:
-  resting quotes 0.1–0.3 % either side of the interbank rate on the USDC/GBP
-  and USDT/GBP books, placed where the quote test decides each minute. The
-  simulated account fills a resting order only when a real trade on the
-  exchange went through its price, and only by that trade's size (a trade at
-  its price fills nothing, since where it stood in the queue is not known);
+- **Stablecoin quotes LIVE twin.** The first of the tests, after the testing
+  strategies, since 27 Oct: the live stablecoin quotes' own code, every rule
+  the real-money account runs by, trading a simulated Revolut X account of
+  £300, £25 a rung, the size the live account is about to take: resting
+  quotes 0.1–0.3 % either side of the interbank rate on the USDC/GBP and
+  USDT/GBP books, placed where the quote test decides each minute, and from
+  Friday 30 Oct quoting through the weekends as the live account does. The
+  simulated account fills a resting order the way the live account is
+  filled: when a real trade on the exchange went through its price, or met
+  it there from the other side, by that trade's size;
   it moves pounds as Revolut X does, rounded to the penny against the
   account; it buys each coin for its asks with a conversion resting at the
   top of the bids, for no fee, so an ask has nothing to sell until that
   conversion fills (the page says so meanwhile); and if its turns stop for
   more than three minutes, its resting orders are cancelled, as the live
   account's are. Its row reads as the live row does, in pounds: funded
-  £1,200, deployed every pound at work, today, unrealised on what its coins
+  £300, deployed every pound at work, today, unrealised on what its coins
   cost, realised with its fees. Tap it for its page, laid out as the live
   page below and marked PAPER, with a line saying what it is. Its record
-  starts with the quote test's first minute, 23 Sep. The quote test it
-  follows keeps running behind the page until its verdict; its own row and
-  page are gone. The foot is when the page was read, and that it refreshes
+  starts on 27 Oct with a fresh account. The quote test it follows keeps
+  running behind the page; its own row and page are gone. The foot is when the page was read, and that it refreshes
   every minute.
 - **Stablecoin quotes on LIVE.** The live path's own row, once it has
   traded real money on its own Revolut X account. Tap it for a page of its
@@ -300,40 +301,25 @@ places stay when the number is not whole.
   when its last turn is late or failed. On a phone the tables keep their
   main columns, sizes included. With values hidden, every amount, price
   and size is hidden too.
-- **Stablecoin quotes LIVE twin.** Right after it, since 21 Oct: the
-  simulation that mirrors the live account itself, at its own £120 (£10 a
-  rung), filled the way the live account is filled (also by trades at its
-  own price, not only through it). Its record from 1 Oct is the live
-  account's life replayed, its outages included; from 21 Oct it runs on
-  its own. It is there to be checked against the live account's realised
-  pounds, not as a strategy of its own.
-- **Stablecoin quotes variant-1.** Right after it, since 3 Oct: the same
-  rule and the same quotes, on £600, £50 a rung, so that what the size of a
-  rung changes can be read beside it. Its record starts with the quote
-  test's first minute too; its page is the same, with £50 rungs. Each
-  variant is the same page with its own figures, and the variants are listed
-  in the table of twin variants in the agents' reference.
-- **Stablecoin quotes variant-2.** After it: variant-1 again, and from 5 Oct
-  it also buys or sells at once, as a taker, when the order book has moved
-  past a rung by at least the taker's fee, then exits like any other fill.
-- **Stablecoin quotes variant-3.** After it, since 18 Oct: variant-2 again,
-  and from Friday 23 Oct at 21:00 UTC it also quotes at weekends. When the
-  pound-dollar rate stops updating at the Friday close, it keeps quoting on
-  the last rate it had instead of going quiet, until Sunday 21:00 UTC. It
-  started on 19 Oct with a fresh record, so its figures before the first
-  weekend are its own, not variant-2's.
-- **Stablecoin quotes variant-4.** After it (called variant-1 until 3 Oct,
-  variant-3 until 18 Oct): the same, for the rule with nine rungs a side, from 0.03 % to 0.3 %, whose
-  quotes move at every 0.03 % move of fair, an entry only once fair has moved
-  at least a third of its rung's distance: on £1,800, £50 a rung, from
-  28 Sep. Its page is the same, with nine rungs a side in each book; from
-  10 Oct the innermost, 0.03 %, quotes nothing (it earned about nothing),
-  and its row stays on the page with what it made before. A
-  variant's name in the table is two lines, and the first is the whole of
-  "Stablecoin quotes". The paper test of that rule keeps running behind the
-  page until its reading.
+- **Stablecoin quotes variant-1.** Right after it, since 27 Oct: the same
+  twin on £600, £50 a rung, so that what a bigger rung does to the live
+  account's own rules can be read beside the others before the live account
+  grows further. Each variant is the same page with its own figures, and the
+  variants are listed in the table of twin variants in the agents' reference.
+- **Stablecoin quotes variant-2.** After it: the same twin at the live
+  account's own £120 (£10 a rung), the simulation that mirrors the live
+  account itself (called the LIVE twin until 26 Oct). Its record from 1 Oct
+  is the live account's life replayed, its outages included; from 21 Oct it
+  runs on its own, and from Friday 30 Oct it quotes through the weekends as
+  the live account has since 23 Oct. It is there to be checked against the
+  live account's realised pounds. A variant's name in the table is two
+  lines, and the first is the whole of "Stablecoin quotes".
+- **Older stablecoin twins, off the page.** The £1,200 twin, the £50-a-rung
+  size twin, the taker twin and the nine-rung rule's twin keep running behind
+  the page until their readings, then stop; the weekend twin of 18 Oct has
+  stopped, since the live account's own weekends now answer its question.
 - **Stablecoin quotes with Euros.** Right after "Stablecoin quotes
-  variant-4", its name on two lines as the variants', on Coinbase (its own
+  variant-2", its name on two lines as the variants', on Coinbase (its own
   badge and venue card): the same rule on paper on Coinbase's four stablecoin
   books, USDC and USDT against pounds and against euros, from Coinbase's own
   public trades recorded every minute since 10 Oct. £100 a rung on the two

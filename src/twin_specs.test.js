@@ -27,6 +27,14 @@ const inserted = FILES.flatMap((file) => [...sqlOf(file).matchAll(INSERT)].flatM
 const RENAME = /update public\.agent_quote_twin_specs\s+set display_name = '([^']+)'\s+where id = '(\w+)' and display_name = '([^']+)';/g;
 /** A row a later migration takes off, by its id (0109: p50x1, Davies 2026-10-09: "删掉 p50x1"), its tables dropped with it. */
 const DELETE = /delete from public\.agent_quote_twin_specs\s+where id = '(\w+)';/g;
+/**
+ * Since 0141 (Davies, 2026-10-26): a rule added to a row that has none of that key, guarded on its absence (the £120 LIVE twin's
+ * weekend); a row switched off (variant-3); rows left off the page but still running (`hidden`, the column 0141 adds).
+ */
+const RULE_ADD = /update public\.agent_quote_twin_specs\s+set rules = rules \|\| '(\{[^']*\})'::jsonb\s+where id = '(\w+)' and not \(rules \? '(\w+)'\);/g;
+const OFF = /update public\.agent_quote_twin_specs\s+set enabled = false\s+where id = '(\w+)';/g;
+const HIDE = /update public\.agent_quote_twin_specs\s+set hidden = true\s+where id in \(([^)]*)\);/g;
+const ADD_HIDDEN = /alter table public\.agent_quote_twin_specs add column if not exists hidden boolean;/g;
 const renames = FILES.flatMap((file) => [...sqlOf(file).matchAll(RENAME)].map((m) => ({ file, to: m[1], id: m[2], from: m[3] })));
 const deletes = FILES.flatMap((file) => [...sqlOf(file).matchAll(DELETE)].map((m) => ({ file, id: m[1] })));
 /**
@@ -36,12 +44,18 @@ const deletes = FILES.flatMap((file) => [...sqlOf(file).matchAll(DELETE)].map((m
 const OPS = FILES.flatMap((file) => [
   ...[...sqlOf(file).matchAll(RENAME)].map((m) => ({ at: m.index ?? 0, op: { kind: 'rename', to: m[1], id: m[2], from: m[3] } })),
   ...[...sqlOf(file).matchAll(DELETE)].map((m) => ({ at: m.index ?? 0, op: { kind: 'delete', id: m[1] } })),
+  ...[...sqlOf(file).matchAll(RULE_ADD)].map((m) => ({ at: m.index ?? 0, op: { kind: 'rule', add: JSON.parse(m[1]), id: m[2], key: m[3] } })),
+  ...[...sqlOf(file).matchAll(OFF)].map((m) => ({ at: m.index ?? 0, op: { kind: 'off', id: m[1] } })),
+  ...[...sqlOf(file).matchAll(HIDE)].map((m) => ({ at: m.index ?? 0, op: { kind: 'hide', ids: m[1].split(',').map((x) => x.trim().replace(/^'|'$/g, '')) } })),
 ].sort((a, b) => a.at - b.at).map((x) => x.op));
 /**
  * The rows as the migrations leave them: the first insert of an id stands (`on conflict do nothing`), each rename and
  * delete applied in the migrations' order, in the page's order.
  */
 const ROWS = OPS.reduce((rows, n) => n.kind === 'delete' ? rows.filter((r) => r.id !== n.id)
+  : n.kind === 'rule' ? rows.map((r) => (r.id === n.id && !(n.key in (r.rules ?? {})) ? { ...r, rules: { ...(r.rules ?? {}), ...n.add } } : r))
+  : n.kind === 'off' ? rows.map((r) => (r.id === n.id ? { ...r, enabled: false } : r))
+  : n.kind === 'hide' ? rows.map((r) => (n.ids.includes(r.id) ? { ...r, hidden: true } : r))
   : rows.map((r) => (n.id === r.id && n.from === r.display_name ? { ...r, display_name: n.to } : r)),
 inserted.filter((x, i) => inserted.findIndex((y) => y.row.id === x.row.id) === i).map((x) => ({ ...x.row })))
   .sort((a, b) => a.display_order - b.display_order);
@@ -99,23 +113,36 @@ describe("the twins' spec rows", () => {
       const moves = [...sql.matchAll(RULE_MOVE)].length;
       const names = [...sql.matchAll(RENAME)].length;
       const offs = [...sql.matchAll(DELETE)].length;
+      const later = [RULE_ADD, OFF, HIDE, ADD_HIDDEN].reduce((a, re) => a + [...sql.matchAll(re)].length, 0);
       // An insert names the table twice; 0088 also creates it, enables its row level security, and its function reads it
       // (its type, its select and its refusal). A pre-registration's addendum may move one rule's date of one row, guarded
       // on the date it replaces (0090: TAKE's take.from, its Addendum 1): that names it once. A page name may change,
-      // guarded on the name it replaces (0108, 0109, 0130): once. A row may be taken off by its id (0109): once.
-      expect(named, f).toBe(2 * inserts + moves + names + offs + (f === SPECS_0088 ? 5 : 0));
+      // guarded on the name it replaces (0108, 0109, 0130, 0141): once. A row may be taken off by its id (0109): once.
+      // 0141 adds `hidden`, one rule to one row, switches one row off and hides four: once each.
+      expect(named, f).toBe(2 * inserts + moves + names + offs + later + (f === SPECS_0088 ? 5 : 0));
     }
+    expect(FILES.filter((f) => [RULE_ADD, OFF, HIDE, ADD_HIDDEN].some((re) => [...sqlOf(f).matchAll(re)].length)).map((f) => f.slice(0, 4))).toEqual(['0141']);
     expect(FILES.filter((f) => [...sqlOf(f).matchAll(RULE_MOVE)].length).map((f) => f.slice(0, 4))).toEqual(['0090']);
     expect(renames.map((n) => [n.file.slice(0, 4), n.id, n.from, n.to])).toEqual([
       ['0108', 'd', 'Stablecoin quotes variant-3', 'Stablecoin quotes variant-4'], ['0109', 'd', 'Stablecoin quotes variant-4', 'Stablecoin quotes variant-3'],
       ['0130', 'd', 'Stablecoin quotes variant-3', 'Stablecoin quotes variant-4'],
+      ['0141', 'take50', 'Stablecoin quotes variant-2', 'Stablecoin quotes TAKE'], ['0141', 'p50', 'Stablecoin quotes variant-1', 'Stablecoin quotes size twin'],
+      ['0141', 'live', 'Stablecoin quotes LIVE twin', 'Stablecoin quotes variant-2'],
     ]);
     expect(deletes.map((n) => [n.file.slice(0, 4), n.id])).toEqual([['0109', 'p50x1']]);
     // Names are unique, so a rename comes before an insert in the same migration that takes the old name (0108), and a
     // delete before a rename that takes the deleted row's name (0109); every name as the rows stand is distinct.
     const sql0108 = sqlOf('0108_quote_twin_p50x1.sql'), sql0109 = sqlOf('0109_quote_twin_p50x1_off.sql'), sql0130 = sqlOf('0130_quote_twin_take50wk.sql');
+    const sql0141 = sqlOf('0141_quote_twins_relayout.sql');
     expect(sql0108.search(RENAME)).toBeLessThan(sql0108.search(INSERT));
     expect(sql0130.search(RENAME)).toBeLessThan(sql0130.search(INSERT));
+    // 0141: each rename frees the name the next takes (variant-2, then variant-1, then LIVE twin), all before its insert;
+    // and the column comes before the rows that set it.
+    const at = (t) => sql0141.indexOf(t);
+    expect(at("set display_name = 'Stablecoin quotes TAKE'")).toBeLessThan(at("set display_name = 'Stablecoin quotes variant-2'"));
+    expect(at("set display_name = 'Stablecoin quotes size twin'")).toBeLessThan(sql0141.search(INSERT));
+    expect(at("set display_name = 'Stablecoin quotes variant-2'")).toBeLessThan(sql0141.search(INSERT));
+    expect(sql0141.search(ADD_HIDDEN)).toBeLessThan(sql0141.search(HIDE));
     expect(sql0109.search(DELETE)).toBeGreaterThanOrEqual(0);
     expect(sql0109.search(DELETE)).toBeLessThan(sql0109.search(RENAME));
     expect(new Set(ROWS.map((r) => r.display_name)).size).toBe(ROWS.length);
@@ -130,14 +157,23 @@ describe("the twins' spec rows", () => {
     }
   });
 
-  it("are, as they stand, the page's six stablecoin rows in Davies' order (2026-10-18: take50wk variant-3, rule D's twin variant-4; 2026-10-21: the LIVE twin after the first)", () => {
-    expect(ROWS.map((r) => [r.id, r.display_name, r.display_order])).toEqual([
-      ['pr5', 'Stablecoin quotes', 10], ['live', 'Stablecoin quotes LIVE twin', 15], ['p50', 'Stablecoin quotes variant-1', 20], ['take50', 'Stablecoin quotes variant-2', 30],
-      ['take50wk', 'Stablecoin quotes variant-3', 35], ['d', 'Stablecoin quotes variant-4', 40],
+  it("are, as they stand, the stablecoin twins in Davies' order (2026-10-26: the LIVE twin £300, variant-1 £600, variant-2 the £120 twin; variant-3 off; four hidden until their readings)", () => {
+    expect(ROWS.map((r) => [r.id, r.display_name, r.display_order, Number(r.capital_gbp), r.enabled, r.hidden === true])).toEqual([
+      ['pr5', 'Stablecoin quotes', 10, 1200, true, true], ['live300', 'Stablecoin quotes LIVE twin', 11, 300, true, false],
+      ['live600', 'Stablecoin quotes variant-1', 12, 600, true, false], ['live', 'Stablecoin quotes variant-2', 15, 120, true, false],
+      ['p50', 'Stablecoin quotes size twin', 20, 600, true, true], ['take50', 'Stablecoin quotes TAKE', 30, 600, true, true],
+      ['take50wk', 'Stablecoin quotes variant-3', 35, 600, false, false], ['d', 'Stablecoin quotes variant-4', 40, 1800, true, true],
     ]);
+    // The page shows the three on LIVE's rules, each with LIVE's fill rule and, from the closure of 2026-10-30 21:00 UTC,
+    // LIVE's weekend; none takes (LIVE's take is in shadow, which sends nothing).
+    const onPage = ROWS.filter((r) => r.enabled && !r.hidden);
+    expect(onPage.map((r) => r.id)).toEqual(['live300', 'live600', 'live']);
+    for (const r of onPage) {
+      expect([r.rules.fill.model, r.rules.weekend.from, 'take' in r.rules], r.id).toEqual(['at', '2026-10-30T21:00:00Z', false]);
+    }
   });
 
-  it("make the browser test's fixture as they stand: every enabled row, in the page's order", () => {
+  it("make the browser test's fixture as they stand: every enabled row, in the page's order, a hidden one too (it still runs)", () => {
     const enabled = ROWS.filter((r) => r.enabled);
     expect(fixture.specs).toEqual(enabled);
     expect(fixture.twins.map((t) => [t.twin.id, t.twin.name, t.capitalGbp])).toEqual(enabled.map((r) => [r.id, r.display_name, Number(r.capital_gbp)]));

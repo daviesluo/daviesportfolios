@@ -99,4 +99,24 @@ which is the point.
 
 ## 7. Deviations
 
-None.
+**Deviation 1 (2026-10-26): LIVE trades the weekends, so its mirror does too, and the window leaves out the one closure it
+did not. Also a new page name.**
+
+Davies, 2026-10-26, on the stablecoin quotes review of that day (`2026-10-26-stablecoin-quotes-review.md`, §3.2), verbatim:
+"你验证没问题的话就都按你推荐的来…目前的LIVE 模拟分身改为variant-2" (if it checks out, do it as recommended; the current LIVE twin
+becomes variant-2).
+
+- **Why.** LIVE has quoted inside FX closures since 2026-10-23 21:00 UTC (`weekend_mode` 'live', the live design's addendum).
+  This twin had no weekend rule and sat dark. From 10-22 it therefore had 48 % of LIVE's realised, against 97 % on weekdays.
+  §3's bar would have failed on that difference alone, which says nothing about the mirror.
+- **The change, by `0141`.** The twin gains `rules.weekend` from **2026-10-30 21:00 UTC**, the next closure's first minute. Its
+  weekend is PR5-W's rule on its own replica (variant-3's). LIVE's is a replica copied from PR5's engine in the hour before each
+  closure: the live design's addendum names that difference.
+- **The window and the bar.** The window keeps its dates (10-22 → 11-22) and its bar keeps its three thresholds. The minutes of
+  the closure 2026-10-23 21:00 → 10-25 21:00 UTC are left out of both records: round trips that closed inside it, and LIVE's
+  orders in it. That is the one closure LIVE traded and the twin could not. The reading names what that closure was for LIVE.
+  - Later closures count for both.
+  - A closure in which the two weekend replicas decided differently is read with those minutes named, as §3 reads an outage.
+- **The page name.** It is now "Stablecoin quotes variant-2" (its id, tables, lease and record stay `live`). "Stablecoin quotes
+  LIVE twin" is the £300 twin of the same rules (`live300`, `2026-10-26-live-size-twins-prereg.md`), the size LIVE is about to
+  take. This file's row in §1 is as `0136` inserted it.
