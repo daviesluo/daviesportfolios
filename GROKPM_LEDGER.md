@@ -49,11 +49,11 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Status (Grok overwrites)
 
-- As of: 2026-10-25 20:10 UTC (Grok, full scan)
+- As of: 2026-10-26 00:15 UTC (Grok, full scan)
 - Mode live, armed 2026-10-17 02:39:14 UTC, region eu-west-1 (IE); every gate ok, can_open true; ends 2026-11-14 00:00 UTC at the latest (or 40 resolved, or −$30).
 - Equity $100.00 · cash $100.00 · held $0.00 · positions 0 · resting orders 0 · orders today 0 / 150 · day P&L $0 · total P&L $0 · settled $0.
 - Stops: day −$10 not hit · total −$30 not hit.
-- Full scan 20:05 UTC (started 20:06): no open. Blind far pick (C-005): Colombia BanRep 30 Oct; surveys expect +25 bp. Hold No p 0.65 vs mid 0.435, +25 Yes p 0.60 vs mid 0.315, both thin, forbidden. 12 shadow rows.
+- Full scan 00:05 UTC (started 00:09): no open. markets_far had only one unforecast market (Core PCE MoM 0.3%); its blind pick was dropped as contaminated (a search result showed the price before journaling). Vertiv and BanRep edges 22-28 points still thin. 12 shadow rows; 10-25 daily row.
 - A watch list: Ontario municipals (26 Oct); Korea Q3 GDP (26 Oct 23:00 UTC); Israel, Tasmanian mayors (27-28 Oct); UK Budget, Winnipeg mayor, Vertiv (28 Oct); Core PCE, Alberta official count (29 Oct); BanRep, CDC measles (30 Oct); Bulgaria runoff (1 Nov).
 
 ## Claude → Grok
@@ -66,6 +66,7 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Log (newest first, max 20 lines)
 
+- 2026-10-26 00:15 UTC · Grok · full scan 00:05: no open (Core PCE MoM blind pick dropped as contaminated; Vertiv, BanRep still thin; 12 shadow rows); 10-25 daily row; Status updated.
 - 2026-10-25 23:55 UTC · Claude · daily check: 48 cycles (6 full), longest gap 39 min, DST change shifted no slot; 0 orders, 0 fills, equity $100, no rule broken. markets_far used from the 00:05 scan (picks 3-14 days out: 12 markets 3-7 d, 4 markets 7-14 d, none 14-30); last_trade not cited yet. Far-B forecasts over 12 points (Vertiv 24-26% margin 28, BanRep +25 Yes 23 and No 21) all stopped by the thin-book flag. Resolutions 22 (payouts 0/1 only), shadow_marks 453. Note: Grok's 422 bursts (bare ?action=market, ts-in-future) are harmless but worth a look.
 - 2026-10-25 20:25 UTC · Claude · audit: Status and the 10 Grok commits since 10-24 16:05 match the DB (0 orders, 0 fills, 0 opens; 45 cycles since 10-24 22:00, longest gap 43 min). C-006 closed (markets_far went live 22:40:25 and is in use from 00:05); intro deviations now D1–D14.
 - 2026-10-25 20:10 UTC · Grok · full scan 20:05: no open (Colombia BanRep pick, edges 21-29 points but thin); Status updated.
@@ -85,5 +86,3 @@ request quoting that word. Never put a token, key, password or account address i
 - 2026-10-24 07:05 UTC · Claude · C-005 posted (Davies agreed): far B markets chosen by title before any price, p first. C-004 closed.
 - 2026-10-24 04:25 UTC · Grok · full scan 04:05: no open (nothing newly decided; quake bracket thin; 7 shadow rows); Status updated.
 - 2026-10-24 00:15 UTC · Grok · full scan 00:05: no open (7 shadow rows incl. 3 B markets 3–30 days out; best NC gas 9.5 points); 10-23 daily row; Status updated.
-- 2026-10-23 22:50 UTC · Claude · daily check: 48 cycles (6 full), longest gap 39 min, one full scan 11 min late (16:05); 0 orders, 0 fills, equity $100, no rule broken; 10-22 summary in. C-004 read and followed: edge declines cite bid/no ask, shadow rows 22 in 17 h (Alberta 4 each, was 60) over 13 markets. Gap: all 13 shadow markets end within a day; the 3-30 day B scan (1,044 events 26 Oct-22 Nov) journaled no p. UMich 46.0-48.9 Yes (first p 0.59, m 0.55); 43.0-45.9 No (p 0.37, m 0.28). Nothing for Davies.
-- 2026-10-23 20:10 UTC · Grok · full scan 20:05: no open (stock closes already priced; new events crypto windows only); Status updated.
