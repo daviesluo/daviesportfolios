@@ -273,9 +273,11 @@ places stay when the number is not whole.
   in pounds at the index price shown beside it, and with its unrealised;
   their unrealised add up to the scoreboard's. DAYS: each UTC day's orders, entry
   fills, round trips and what it realised, which add up to realised; its
-  heading shows what the seven full days before today made (a day with no
-  trading counts as nothing), as a yearly rate on the
-  capital (every Stablecoin quotes page has it). Then
+  heading shows what the round trips of the seven full days before today
+  realised (a day with no trading counts as nothing), as a simple yearly
+  rate on the capital, labelled "7-day realised, annualised" (every
+  Stablecoin quotes page has it). It leaves out the coins' unrealised, and
+  one good week reads as a year of them: hover it for that. Then
   its round trips (entry, exit, size, fees and what each made: a round
   trip that sold coins a conversion bought carries that conversion's fee
   on those coins, in its fees and its P&L). A round trip ends when the
@@ -339,7 +341,7 @@ places stay when the number is not whole.
   €1,200, counted in pounds at the latest euro rate. Every money figure is in
   pounds; a euro book's prices are shown in euros. Its page is the twins'
   page without INVENTORY, since a paper test holds no coins of its own (what
-  a rung holds is in BOOKS), so its DAYS and 7-day annualised figure read
+  a rung holds is in BOOKS), so its DAYS and 7-day realised, annualised figure read
   straight beside the live row's on Revolut X.
 - **Stablecoin quotes with Euros - 2.** Right after it, the same test with
   one change, the weekend: the first goes quiet from Friday evening to Sunday

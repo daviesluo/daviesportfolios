@@ -694,6 +694,17 @@ export function quoteDaysAnnualPct(days, capitalGbp, nowMs) {
   return (sum / cap) * (365 / n) * 100;
 }
 
+/**
+ * What DAYS' heading figure is called, and what its tooltip says it measures (Davies, 2026-10-26: "网页显示“7-day annualised
+ * +64.9%”，怎么这么高？是有问题吗？"). The figure (`quoteDaysAnnualPct`) is the round trips realised, simple-annualised: the coins
+ * a book holds are not marked into it, so a week whose GBP/USD moved against them reads higher than the account grew, and
+ * a strong week (the first live weekend, 2026-10-23 → 25) reads as a year of such weeks. It was labelled "7-day annualised",
+ * which reads as the account's return; the label now names it, and the tooltip says the rest.
+ */
+export const QUOTE_DAYS_ANNUAL_LABEL = '7-day realised, annualised';
+export const QUOTE_DAYS_ANNUAL_TITLE = 'Round trips realised over the last seven closed UTC days, over the capital, times 365 / 7 (simple). '
+  + 'The coins held are not marked into it (UNREALIZED G/L shows them), and one week is a short sample.';
+
 export function rowMoney(r) {
   if (r?.ccy === 'GBP' && r.gbp) return { ccy: 'GBP', ...r.gbp };
   return {

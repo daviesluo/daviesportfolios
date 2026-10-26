@@ -696,7 +696,7 @@ const cbRow = (/** @type {any} */ q) => {
     scoreboard: `FUNDED=${TW.money(q.capitalGbp, '£')} | DEPLOYED=${TW.money(q.valueGbp, '£')}(${TW.pct((q.valueGbp / q.capitalGbp) * 100, false)}) | TODAY=`
       + `${TW.money(q.todayGbp, '£', true)}(${TW.pct((q.todayGbp / q.capitalGbp) * 100)}) | UNREALIZED G/L=${TW.money(q.unrealisedGbp, '£', true)}(${TW.pct((q.unrealisedGbp / q.costGbp) * 100)}) | `
       + `REALIZED G/L [(incl. fees ${TW.money(q.feesGbp, '£')})]=${TW.money(q.realisedGbp, '£', true)}(${TW.pct((q.realisedGbp / q.capitalGbp) * 100)})`,
-    annual: `- 7-day annualised ${annual > 0 ? '+' : ''}${annual.toFixed(1)}%`,
+    annual: `- 7-day realised, annualised ${annual > 0 ? '+' : ''}${annual.toFixed(1)}%`,
   };
 };
 const CBQ = cbRow(QUOTES_COINBASE_FIXTURE.quotesCoinbase);
@@ -1372,7 +1372,7 @@ const readQuotesBookPage = (page, rootSel) => page.evaluate((rootSel) => {
         return `${txt(c.querySelector('.ag-sb-name'))}${asides.length ? ` [${asides.join('; ')}]` : ''}=${txt(c.querySelector('.sb-value'))}`;
       }).join(' | '),
       // A DAYS heading's figure is read apart (`annual`), so the sections read as their names.
-      sections: [...root.querySelectorAll('.ag-section > .ag-section-title')].map((el) => txt(el).replace(/ - 7-day annualised .*$/, '')),
+      sections: [...root.querySelectorAll('.ag-section > .ag-section-title')].map((el) => txt(el).replace(/ - 7-day realised, annualised .*$/, '')),
       annual: txt(root.querySelector('.ag-quote-days-annual')),
       tiles: [...root.querySelectorAll('.ag-ql-tile')].map((t) => [txt(t.querySelector('.ag-ql-tile-k')), txt(t.querySelector('.ag-ql-tile-v')), txt(t.querySelector('.ag-ql-tile-note'))].join(' | ')),
       guards: [...root.querySelectorAll('.ag-ql-guard')].map((g) => `${txt(g)}${g.classList.contains('is-warn') ? ' [amber]' : ''}`),
@@ -4087,7 +4087,7 @@ async function run() {
       else fail(S('agents'), 'the twin page did not close back to the list');
       // Its page is a twin's, PAPER on Coinbase (Davies, 2026-10-10: compared directly with LIVE on Revolut X): its
       // scoreboard on £1,200 + €1,200, BOOKS of four books (each EUR book's prices in euros, USDT-EUR's to five places), no INVENTORY
-      // (a paper test has no account and no coin), DAYS with its 7-day annualised heading, its three round trips and its orders.
+      // (a paper test has no account and no coin), DAYS with its 7-day realised, annualised heading, its three round trips and its orders.
       await cbRowEl.first().click();
       await settled(page, '.ag-quotes-cb-detail');
       const cp = await readQuotesBookPage(page, '.ag-quotes-cb-detail');
@@ -4790,7 +4790,7 @@ async function run() {
       // DAYS' heading carries the last seven closed days a year over the capital (Davies, 2026-10-09: "days表格标题days旁边加上
       // 近七天平均年化收益率"). By hand: one closed day, 16 Sep's +£0.0288 (17 Sep is today), over £1,200 a year of such
       // days: 0.0288 / 1,200 × 365 × 100 = 0.876 %, printed +0.9%.
-      if (lp?.annual === '- 7-day annualised +0.9%') ok(T('pr5-page'), `DAYS' heading carries its last closed days a year: "${lp.annual}"`);
+      if (lp?.annual === '- 7-day realised, annualised +0.9%') ok(T('pr5-page'), `DAYS' heading carries its last closed days a year: "${lp.annual}"`);
       else fail(T('pr5-page'), `DAYS' heading figure "${lp?.annual}", days ${JSON.stringify(lp?.days)}`);
       } else fail(T('pr5-page'), `sections ${lp?.sections.join(',')}, tiles ${lp?.tiles.length}, guards ${lp?.guards.length}, events ${lp?.events.length}, notes ${lp?.notes}, conversions ${lp?.conversions.length}, fills ${lp?.fills.length}, rungs ${lp?.oldRungs}, one ORDERS table ${lp?.oldOrders}`);
       // BOOKS: each rung's live order, or what it holds at its entry with what that has made in pounds at the index, as the
