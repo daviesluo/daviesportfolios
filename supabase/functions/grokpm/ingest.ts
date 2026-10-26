@@ -105,7 +105,11 @@ function timeOf(c: ReturnType<typeof rowChecker>, f: string, nowMs: number): str
   if (v === null) return null;
   const t = Date.parse(v);
   if (!Number.isFinite(t)) return c.err(f, "is not a valid time");
-  if (t > nowMs + GROKPM_FUTURE_SKEW_MS) return c.err(f, "is more than 10 minutes in the future");
+  // The thin-rule study's G2 (2026-10-26): three batches refused on 10-24/25 for times up to 12 minutes ahead (cycle rows
+  // ran up to 9.4 minutes ahead). The refusal now says by how much, against which clock, and what to stamp.
+  if (t > nowMs + GROKPM_FUTURE_SKEW_MS) {
+    return c.err(f, `is more than 10 minutes in the future: ${((t - nowMs) / 60e3).toFixed(1)} minutes ahead of the server's clock (${new Date(nowMs).toISOString()}); stamp the time the row is written, not the slot it belongs to`);
+  }
   if (t < nowMs - GROKPM_MAX_AGE_MS) return c.err(f, "is more than 7 days old");
   return new Date(t).toISOString();
 }

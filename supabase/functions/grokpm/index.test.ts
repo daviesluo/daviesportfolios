@@ -5,7 +5,7 @@
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import examples from "../../../docs/agents/backtests/grokpm/contract_examples.json" with { type: "json" };
 import { GROKPM_TABLES } from "../_shared/grokpm_schema.ts";
-import { handle, type IngestDb, marketQuery } from "./index.ts";
+import { handle, type IngestDb, marketParam, marketQuery } from "./index.ts";
 import {
   GROKPM_MAX_BODY_BYTES, GROKPM_MAX_REQUESTS_PER_HOUR, GROKPM_MAX_ROWS_PER_HOUR, GROKPM_MAX_ROWS_PER_REQUEST, isAuthorised, rateVerdict, tableRows,
   validateBatch,
@@ -110,7 +110,7 @@ Deno.test("one bad row refuses the whole request, every reason named", async () 
     [{ ...DECISION, reason: "x".repeat(2001) }, "decisions[0].reason: must be 1–2000 characters"],
     [{ ...DECISION, reason: "a\u0000b" }, "decisions[0].reason: must not contain NUL"],
     [{ ...DECISION, ts: "2026-10-16 09:30" }, "decisions[0].ts: must be an ISO 8601 time with a zone, e.g. 2026-10-16T09:30:00Z"],
-    [{ ...DECISION, ts: "2026-10-16T10:00:00Z" }, "decisions[0].ts: is more than 10 minutes in the future"],
+    [{ ...DECISION, ts: "2026-10-16T10:00:00Z" }, "decisions[0].ts: is more than 10 minutes in the future: 30.0 minutes ahead of the server's clock (2026-10-16T09:30:00.000Z); stamp the time the row is written, not the slot it belongs to"],
     [{ ...DECISION, ts: "2026-10-08T09:00:00Z" }, "decisions[0].ts: is more than 7 days old"],
     [{ ...DECISION, invalidation: undefined }, "decisions[0].invalidation: required"],
     [{ ...DECISION, id: "has space" }, "decisions[0].id: must be 1–64 of A–Z a–z 0–9 . _ : -"],
@@ -211,5 +211,11 @@ Deno.test("marketQuery: either case and spaces are taken; a refusal names what w
   assert((marketQuery("will-x-happen", null) as { error: string }).error.includes("does not start with 0x"));
   assert((marketQuery("0x" + "zz".repeat(32), null) as { error: string }).error.includes("not a hex digit"));
   assert((marketQuery(null, "12a") as { error: string }).error.includes("not a decimal token id"));
-  assertEquals(marketQuery(null, null), { error: "cond (0x and 64 hex digits) or token (decimal) is required" });
+  assertEquals(marketQuery(null, null), { error: "cond (0x and 64 hex digits) or token (decimal) is required: this request named none" });
+  // The thin-rule study's G1: an empty read names what it was sent, and the agent's own names for the ids are read.
+  assertEquals(marketQuery(null, null, ["action", "forceFunctionRegion", "slug"]),
+    { error: "cond (0x and 64 hex digits) or token (decimal) is required: this request named slug (cond, market_id, condition_id, token and token_id are read)" });
+  const qp = new URLSearchParams(`action=market&market_id=${c}&token_id=7`);
+  assertEquals([marketParam(qp, "cond"), marketParam(qp, "token")], [c, "7"]);
+  assertEquals(marketParam(new URLSearchParams(`cond=&condition_id=${c}`), "cond"), c);
 });

@@ -124,7 +124,7 @@ export async function handle(req: Request, deps: HandleDeps): Promise<Response> 
         const c = await context(x, { readGeo: true, sync: true });
         out = { status: 200, body: accountView(c, t) };
       } else if (action === "market") {
-        const q = marketQuery(url.searchParams.get("cond"), url.searchParams.get("token"));
+        const q = marketQuery(marketParam(url.searchParams, "cond"), marketParam(url.searchParams, "token"), [...url.searchParams.keys()]);
         out = "error" in q ? { status: 422, body: { error: "invalid", errors: [q.error] } } : await marketView(x, q);
       } else if (action === "markets_far") {
         const f = farQuery(url.searchParams);
@@ -206,7 +206,18 @@ async function cronGate(req: Request, deps: HandleDeps): Promise<Response | null
  * condition id is taken in either case and trimmed (the venue's ids are lower case); a token id trimmed. A refusal says
  * what was wrong with what was sent, so the agent can correct it.
  */
-export function marketQuery(cond: string | null, token: string | null): { cond: string } | { token: string } | { error: string } {
+/**
+ * A market read's id under its documented name or a name the agent has used for it (the thin-rule study's G1,
+ * 2026-10-26: 24 reads on 10-24/25 named neither `cond` nor `token`): `market_id` or `condition_id` for `cond`, and
+ * `token_id` for `token`.
+ */
+export function marketParam(p: URLSearchParams, which: "cond" | "token"): string | null {
+  const names = which === "cond" ? ["cond", "market_id", "condition_id"] : ["token", "token_id"];
+  for (const n of names) { const v = p.get(n); if (v !== null && v.trim()) return v; }
+  return null;
+}
+
+export function marketQuery(cond: string | null, token: string | null, sent: string[] = []): { cond: string } | { token: string } | { error: string } {
   const c = (cond ?? "").trim().toLowerCase(), t = (token ?? "").trim();
   if (c && /^0x[0-9a-f]{64}$/.test(c)) return { cond: c };
   if (!c && t && /^[0-9]{1,80}$/.test(t)) return { token: t };
@@ -217,7 +228,8 @@ export function marketQuery(cond: string | null, token: string | null): { cond: 
     return { error: `${need}: the cond sent (${c.length} characters) is not a condition id, because ${why}${t ? "; send cond or token, not both" : ""}` };
   }
   if (t) return { error: `${need}: the token sent (${t.length} characters) is not a decimal token id` };
-  return { error: need };
+  const other = sent.filter((k) => !["action", "forceFunctionRegion"].includes(k));
+  return { error: other.length ? `${need}: this request named ${other.slice(0, 5).map((k) => k.slice(0, 32)).join(", ")} (cond, market_id, condition_id, token and token_id are read)` : `${need}: this request named none` };
 }
 
 /** The far list's query (Deviation D11): an optional tag slug, an offset in pages of 100, and the attention band. */

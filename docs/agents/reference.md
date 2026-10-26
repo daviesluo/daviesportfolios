@@ -3317,6 +3317,29 @@ changes.
   - Event wakes are asked of Grok in C-006.
   - Interim (19 resolved forecasts, not blind): Brier agent 0.0242, m 0.0546, last trade 0.0241.
 
+### 3.50 GROKPM's thin rule: now the only gate on real edges, and a capped exception proposed (2026-10-26)
+
+Read 2026-10-26 (`reviews/2026-10-26-grokpm-thin-rule-study.md`, `backtests/grokpm_thin/`, not blind), on Davies' "是不是规则还是太严了".
+- **The funnel, 10-23 05:00 → 10-26 01:00 UTC:** 189 forecasts on 40 markets; 42 rows on 9 markets clear the bar on
+  p − m. Every one is refused by `thin` alone, and there are 0 orders.
+  - Six of the 9 are open markets 3 to 8 days out, with prices that still move.
+  - The depth half (under $500 of bids within 5 points, fifty times the largest open) binds every tight-spread far
+    market.
+- **What a small bid would have done.** A post-only bid at the edge price, alive while the rows cleared, fills in 2
+  markets (Vertiv, BanRep no-change), both open: −0.58 % and +2.66 % of the budget at today's mids.
+  - The only resolved thin clear a bid could have filled, US gas $4.30, went to 0.
+  - Its sellers came at the deciding print.
+- **Proposed D15** (not applied): category B in a two-sided book of spread ≤ 5 points may bid despite thin depth when
+  the market ends ≥ 48 h out.
+  - Size: ≤ min($5, 25 % of the bid depth, quarter-Kelly).
+  - At most 3 such markets; cancelled inside 48 h.
+  - About 12 bids and 5 fills a week, with $15 at risk at once.
+  - Keeping the rule is the alternative.
+- **Fixed, no rule changed:**
+  - G1: market-read id synonyms, and empty reads named;
+  - G2: future-stamp refusals say by how much;
+  - G3: `0139`, the book's depth on each shadow mark.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

@@ -851,6 +851,7 @@ before touching migration state.
 | `0136_quote_twin_live.sql` | Adds `live`, "Stablecoin quotes LIVE twin": PR5's rule at LIVE's £120 with LIVE's own fill rule (`rules.fill`), its backfill LIVE's life replayed from its go-live, as a row and its tables. |
 | `0137_pm_recorders_off.sql` | Turns the Polymarket research recorders off (pm-rec's two calls and the view-count recorder's) and unschedules pm-rec's prune, so every recorded row and archive object stays; GROKPM's own record keeps running. |
 | `0138_grokpm_shadow_marks.sql` | GROKPM's shadow forecasts' scoring record: each forecast's last public trade before it (its D10 column) and, read within ten minutes, its book, written by the keyless recorder. |
+| `0139_grokpm_shadow_depth.sql` | GROKPM's shadow forecasts also keep the dollars of bids and asks within 5 points of the mid in the book they saw, so the thin rule's depth half can be judged on the record. |
 | `0096_pm_rw_x_tb1_arms.sql` | Lets the variants' day tables, RW's and RW-C's, take TB1's two arms on x1 (tb1-skip, tb1-back). |
 | `0086_quote_live_deadman.sql` | Adds the kind `deadman` to `agent_quote_live_events`, for the row the monitor's dead-man switch writes when it cancels PR5's resting orders. |
 | `0087_quote_twins.sql` | The realistic twins' tables (each the live executor's four, a replica's and a simulated account's), their config rows and leases, and the one call that runs them. |

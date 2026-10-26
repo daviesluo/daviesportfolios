@@ -77,6 +77,8 @@ export const GROKPM_MARKETS_PER_RUN = 20;
 export const GROKPM_SHADOW_MARKETS_PER_RUN = 4;
 /** The taker trades one such read asks for (the data API's page: newest first). */
 export const GROKPM_SHADOW_TRADES = 1000;
+/** The band the depth columns count in, the server's thin rule's (`GROKPM_RULES.depthBand` in `grokpm/exec.ts`). */
+export const GROKPM_SHADOW_DEPTH_BAND = 0.05;
 /** A forecast's book is kept only when read this soon after it: later, it is not the book the forecast saw. */
 export const GROKPM_SHADOW_BOOK_LAG_MS = 10 * 60e3;
 const HOSTS = new Set([new URL(PM_DATA).host, new URL(GROKPM_RPC).host, new URL(PM_GAMMA).host]);
@@ -225,7 +227,16 @@ export function pendingForecasts(decisions: GrokPmForecast[], marked: Set<string
 /** A forecast token's best bid and ask from `books`, only when read within `GROKPM_SHADOW_BOOK_LAG_MS` of the forecast. */
 export function touchOf(books: Map<string, { bids: Array<[number, number]>; asks: Array<[number, number]> }>, x: { ts: string; token_id: string | null }, now: number) {
   const b = now - Date.parse(x.ts) <= GROKPM_SHADOW_BOOK_LAG_MS ? books.get(String(x.token_id)) : undefined;
-  return { book_bid: b?.bids[0]?.[0] ?? null, book_ask: b?.asks[0]?.[0] ?? null };
+  const bid = b?.bids[0]?.[0] ?? null, ask = b?.asks[0]?.[0] ?? null;
+  // The dollars within 5 points of the mid on each side, as the server's thin rule counts them (0139, the thin-rule
+  // study's G3); null without a two-sided book.
+  const mid = bid !== null && ask !== null && bid < ask ? (bid + ask) / 2 : null, band = GROKPM_SHADOW_DEPTH_BAND;
+  const usd = (lv: Array<[number, number]>, inBand: (p: number) => boolean) => r6(lv.filter(([p]) => inBand(p)).reduce((s, [p, q]) => s + p * q, 0));
+  return {
+    book_bid: bid, book_ask: ask,
+    bid_depth_usd: mid === null || !b ? null : usd(b.bids, (p) => p >= mid - band - 1e-9),
+    ask_depth_usd: mid === null || !b ? null : usd(b.asks, (p) => p <= mid + band + 1e-9),
+  };
 }
 
 /**

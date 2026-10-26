@@ -46731,3 +46731,18 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   (PR5's live executor) with them, at 07:22 UTC inside the weekend closure; PR5's code is unchanged. Next migration
   `0139`. This stack is 10-23's without #247 on `6e955747`, each commit's code byte for byte; it deploys `grokpm` and
   `ops-error`. Ledger: PRs #245 and #248's sections and the 10-24 07:40 → 10:30 UTC ones moved to the archive.
+
+## LEDGER.md, archived 2026-10-26 — the 2026-10-23 19:15 and 2026-10-24 22:45 UTC history sections, oldest first
+
+### [2026-10-23 19:15 UTC] Platform: Claude Code via Grok Bot | Model: claude-opus-5-5
+- **GROKPM D10 in the pre-registration's §9** (the 10-23 audit; local, not pushed): the rules study's §7 text, dated
+  10-23 with Davies' "同意，按你的建议做", after D8 (#245) and D9; the pin moves. Rules, §6's reading and its bar unchanged.
+
+### [2026-10-24 22:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM D11–D14** (sub-agent; not pushed; Davies, 10-24: "这些你看看需要做的话就做"; the optimisation review's §6,
+  reference §3.49; the frozen file untouched, each text ready for §9).
+  - D11 `?action=markets_far` (no price-like field, pinned by a deep walk) and D12 `last_trade` on the market read.
+  - D13 is the reading SQL's m 0.05–0.95 stratum. D14: final payouts only, in the recorder and the server's book.
+  - C-006 is on the desk ledger. The push redeploys `grokpm` and `agents`; there is no migration.
+  - Interim, 19 resolved: Brier agent 0.0242, m 0.0546, last trade 0.0241.
+  - Ledger: the 2026-10-24 07:40 and 09:48 UTC sections moved to the archive.

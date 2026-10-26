@@ -1,0 +1,27 @@
+GROKPM thin-rule study: clears 2026-10-23T05:00:00Z to 2026-10-26T01:00:00Z (2.83 days); public record read 2026-10-26T01:00:00Z. Not blind.
+
+market                                   | cat | p     | book at row    | bid  | tick  | rule $ | min $ | tape fills (rest / wake), shares | outcome or mark now | P&L per $1 if filled | book now: spread, bid $ within 5 pts
+US gas hits $4.30 (High), week of 19 Oct | B   | 0.500 | 0.060/0.61 | 0.380 | 0.001 |   4.84 |  1.90 |    696.4 /      0.0 | 0.000 (paid) | -1.000 | closed
+Biggest quake 23 Oct 5.7-5.8             | A   | 0.960 | 0.740/0.87 | 0.869 | 0.001 |  10.00 |  4.34 |      0.0 /      0.0 | 1.000 (paid) | +0.151 | closed
+SpaceX under 14 launches in October      | B   | 0.980 | 0.683/0.989 | 0.860 | 0.001 |  10.00 |  4.30 |      0.0 /      0.0 | 0.797 (mid now) | -0.073 | 38.4 pts, $0
+Biggest quake 24 Oct 6.1+                | A   | 0.995 | 0.990/0.997 | 0.910 | 0.001 |  10.00 |  4.55 |      0.0 /      0.0 | 1.000 (paid) | +0.099 | closed
+Canada GDP August 0.2-0.3 % MoM          | B   | 0.600 | 0.350/0.39 | 0.380 | 0.01  |   8.87 |  1.90 |    612.5 /      0.0 | 0.405 (mid now) | +0.066 | 7.0 pts, $88
+South Korea Q3 GDP 3.0-3.4 %             | B   | 0.400 | 0.260/0.27 | 0.260 | 0.01  |   4.73 |  1.30 |      0.0 /      0.0 | 0.385 (mid now) | +0.481 | 23.0 pts, $0
+Vertiv Q3 adj. operating margin 24-26 %  | B   | 0.800 | 0.514/0.548 | 0.547 | 0.001 |  10.00 |  2.74 |     30.0 /     30.0 | 0.516 (mid now) | -0.058 | 0.9 pts, $30
+BanRep +25 bp on 30 Oct (Yes)            | B   | 0.600 | 0.300/0.33 | 0.320 | 0.01  |  10.00 |  1.60 |      0.0 /      0.0 | 0.360 (mid now) | +0.125 | 8.0 pts, $56
+BanRep no change on 30 Oct (No)          | B   | 0.650 | 0.420/0.45 | 0.440 | 0.01  |   9.38 |  2.20 |     30.9 /     30.9 | 0.565 (mid now) | +0.284 | 17.0 pts, $0
+
+By size (wake fills: alive while the rows clear, plus one GTD): shares filled, and P&L at the mark in % of the $100 budget
+  $1   : placeable in 0 of 9 markets; filled in 0; P&L at marks +0.00 % of budget  [-]
+  $2   : placeable in 4 of 9 markets; filled in 0; P&L at marks +0.00 % of budget  [-]
+  $5   : placeable in 9 of 9 markets; filled in 2; P&L at marks +1.13 % of budget  [Vertiv Q3 adj. operating 9.1 sh -0.29 (open); BanRep no change on 30 O 11.4 sh +1.42 (open)]
+  rule : placeable in 9 of 9 markets; filled in 2; P&L at marks +2.09 % of budget  [Vertiv Q3 adj. operating 18.3 sh -0.58 (open); BanRep no change on 30 O 21.3 sh +2.66 (open)]
+
+By size (rest fills: re-placed to the close: generous): shares filled, and P&L at the mark in % of the $100 budget
+  $1   : placeable in 0 of 9 markets; filled in 0; P&L at marks +0.00 % of budget  [-]
+  $2   : placeable in 4 of 9 markets; filled in 2; P&L at marks -1.87 % of budget  [US gas hits $4.30 (High) 5.3 sh -2.00; Canada GDP August 0.2-0. 5.3 sh +0.13 (open)]
+  $5   : placeable in 9 of 9 markets; filled in 4; P&L at marks -3.54 % of budget  [US gas hits $4.30 (High) 13.2 sh -5.00; Canada GDP August 0.2-0. 13.2 sh +0.33 (open); Vertiv Q3 adj. operating 9.1 sh -0.29 (open); BanRep no change on 30 O 11.4 sh +1.42 (open)]
+  rule : placeable in 9 of 9 markets; filled in 4; P&L at marks -2.17 % of budget  [US gas hits $4.30 (High) 12.7 sh -4.84; Canada GDP August 0.2-0. 23.3 sh +0.58 (open); Vertiv Q3 adj. operating 18.3 sh -0.58 (open); BanRep no change on 30 O 21.3 sh +2.66 (open)]
+
+Per week: multiply by 7 / 2.83 = 2.47
+Days from the first clearing row to the market's end date: US gas hits $4.30  1.6, Biggest quake 23 O 0.6, SpaceX under 14 la 7.8, Biggest quake 24 O 1.2, Canada GDP August  6.0, South Korea Q3 GDP 3.1, Vertiv Q3 adj. ope 3.4, BanRep +25 bp on 3 4.2, BanRep no change o 4.2

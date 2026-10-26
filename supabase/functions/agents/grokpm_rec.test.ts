@@ -318,8 +318,12 @@ Deno.test("forecasts: the pure parts", () => {
   // The book is the forecast's only when read within ten minutes of it; a one-sided book keeps its empty side null.
   const books = new Map([["7", { bids: [[0.31, 50]] as Array<[number, number]>, asks: [] as Array<[number, number]> }]]);
   const at = Date.parse("2026-10-16T09:00:00Z");
-  assertEquals(touchOf(books, { ts: "2026-10-16T09:00:00Z", token_id: "7" }, at + 9 * 60e3), { book_bid: 0.31, book_ask: null });
-  assertEquals(touchOf(books, { ts: "2026-10-16T09:00:00Z", token_id: "7" }, at + 11 * 60e3), { book_bid: null, book_ask: null });
+  assertEquals(touchOf(books, { ts: "2026-10-16T09:00:00Z", token_id: "7" }, at + 9 * 60e3), { book_bid: 0.31, book_ask: null, bid_depth_usd: null, ask_depth_usd: null });
+  assertEquals(touchOf(books, { ts: "2026-10-16T09:00:00Z", token_id: "7" }, at + 11 * 60e3), { book_bid: null, book_ask: null, bid_depth_usd: null, ask_depth_usd: null });
+  // 0139 (the thin-rule study's G3): the dollars within 5 points of the mid, as the server's thin rule counts them.
+  // Mid 0.515: bids at 0.511 (20) and 0.47 (100) count, 0.40 does not; asks at 0.52 (10) and 0.56 (5) count, 0.60 does not.
+  const deep = new Map([["8", { bids: [[0.511, 20], [0.47, 100], [0.4, 1000]] as Array<[number, number]>, asks: [[0.52, 10], [0.56, 5], [0.6, 1000]] as Array<[number, number]> }]]);
+  assertEquals(touchOf(deep, { ts: "2026-10-16T09:00:00Z", token_id: "8" }, at), { book_bid: 0.511, book_ask: 0.52, bid_depth_usd: 57.22, ask_depth_usd: 8 });
 });
 
 Deno.test("forecasts: a fresh forecast keeps the book it saw; an old one is marked without a book", async () => {
@@ -329,6 +333,7 @@ Deno.test("forecasts: a fresh forecast keeps the book it saw; an old one is mark
   await runGrokPmRec({ db: d, now, fetchImpl: fakeFetch(log, { tapes: { [COND]: [tr("111", 0.46, "2026-10-16T09:20:00Z")], [COND3]: [] } }) });
   const m = Object.fromEntries(d.tables().grokpm_shadow_marks.map((x) => [x.decision_id, [x.status, x.price, x.book_bid, x.book_ask]]));
   assertEquals(m, { new: ["found", 0.46, 0.45, 0.47], old: ["none_before", null, null, null] });
+  assertEquals(d.tables().grokpm_shadow_marks.map((x) => [x.decision_id, x.bid_depth_usd, x.ask_depth_usd]), [["new", 45, 23.5], ["old", null, null]]);
 });
 
 // The optimisation review's F3: a busy activity read is tried once more, so one 429 is not a line in the errors box.

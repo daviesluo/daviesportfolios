@@ -1,0 +1,18 @@
+{
+ "study": "GROKPM thin-rule study (2026-10-26): the thin-stopped clears of 2026-10-23 05:00 to 10-26 01:00 UTC and what a small post-only bid would have done on the public tape",
+ "review": "docs/agents/reviews/2026-10-26-grokpm-thin-rule-study.md",
+ "not_blind": "no-peek rules cancelled 2026-10-04",
+ "run_order": [
+  "read-only SQL sql/clears.sql through the Supabase connector; its output copied by hand to data/clears.json",
+  "python3 -I docs/agents/backtests/grokpm_thin/scripts/fetch.py  (re-running pulls the public record again and can differ)",
+  "python3 -I docs/agents/backtests/grokpm_thin/scripts/study.py > docs/agents/backtests/grokpm_thin/results/study.txt"
+ ],
+ "sha256": {
+  "sql/clears.sql": "bfa61a36d4f39ef9543d78c701a515cc42e515e0259a84553c14f2b59a80efd6",
+  "scripts/fetch.py": "d2befb89ad85a87f52b35f55c498147c6a4c9a50f3712fc0396e3353f8866826",
+  "scripts/study.py": "fd4dc5652b89dbe6da2c487e9421787099bdfa2d03d0e6e30810274119853719",
+  "data/clears.json": "1c2a0e31ba58c1a8088ce38d603fdb99d28cb7fca26453f4c6af113dd445e107",
+  "data/public.json.gz": "2ddcb906b0f3b6f2e0ff45f1df504d4d5f74d962e314ba9a6c576144745d88a9",
+  "results/study.txt": "24088a1c1dbd2a980f551be2b072329a203a7981ddcc266e6b2d85e419d50569"
+ }
+}

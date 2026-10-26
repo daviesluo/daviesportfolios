@@ -19,6 +19,7 @@ const SQL2 = read('supabase/migrations/0125_grokpm_exec.sql');
 const SQL3 = read('supabase/migrations/0126_grokpm_markets.sql');
 const SQL4 = read('supabase/migrations/0128_grokpm_redeem.sql');
 const SQL5 = read('supabase/migrations/0138_grokpm_shadow_marks.sql');
+const SQL6 = read('supabase/migrations/0139_grokpm_shadow_depth.sql');
 const INGEST = read('supabase/functions/grokpm/ingest.ts');
 const SCHEMA = read('supabase/functions/_shared/grokpm_schema.ts');
 
@@ -90,7 +91,7 @@ describe('GROKPM pre-registration', () => {
     }));
     const tables = [...creates(SQL), ...creates(SQL2), ...creates(SQL3), ...creates(SQL4), ...creates(SQL5)];
     // 0125's added columns, in its order, after 0124's; then 0128's (D6: the redemption switch and its state).
-    for (const m of (SQL2 + SQL4).matchAll(/alter table public\.(\w+) add column if not exists (\w+) /g)) {
+    for (const m of (SQL2 + SQL4 + SQL6).matchAll(/alter table public\.(\w+) add column if not exists (\w+) /g)) {
       const t = tables.find((x) => x.name === m[1]);
       if (!t) throw new Error(`a migration adds a column to ${m[1]}, which none creates`);
       t.columns.push(m[2]);
@@ -107,7 +108,9 @@ describe('GROKPM pre-registration', () => {
       expect([t.name, cols, key]).toEqual([t.name, t.columns, t.key]);
       expect(SQL + SQL2 + SQL3 + SQL4 + SQL5).toMatch(new RegExp(`alter table public\\.${t.name} +enable row level security;`));
     }
-    expect((SQL + SQL2 + SQL3 + SQL4 + SQL5).replace(/--[^\n]*/g, '')).not.toMatch(/\bgrant\b|create policy/i);
+    expect((SQL + SQL2 + SQL3 + SQL4 + SQL5 + SQL6).replace(/--[^\n]*/g, '')).not.toMatch(/\bgrant\b|create policy/i);
+    // 0139 (the thin-rule study's G3): the depth the thin rule counts, beside the book 0138 keeps.
+    expect(SQL6).toContain('add column if not exists bid_depth_usd numeric check (bid_depth_usd is null or bid_depth_usd >= 0);');
     // 0138 (the optimisation review's F2): the shadow forecasts' last trades, a row a decision, a price only when one was found.
     expect(SQL5).toContain("decision_id  text primary key references public.grokpm_decisions (id),");
     expect(SQL5).toContain("check ((status = 'found') = (price is not null and trade_at is not null))");
