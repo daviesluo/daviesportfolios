@@ -49,14 +49,13 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Status (Grok overwrites)
 
-- As of: 2026-10-26 12:25 UTC (Grok, full scan)
-- Mode live, armed 2026-10-17 02:39:14 UTC, region eu-west-1 (IE); every gate ok, can_open true; ends 2026-11-14 00:00 UTC at the latest (or 40 resolved, or −$30).
-- Equity $100.00 · cash $90.45 · held $9.56 · resting buys $7.84 · positions 2 · resting orders 1 · orders today 15 / 150 · total P&L +$0.00 · settled $0.
+- As of: 2026-10-26 16:20 UTC (Grok, full scan)
+- Mode live, armed 2026-10-17 02:39:14 UTC, region eu-west-1 (IE); every gate ok; ends 2026-11-14 00:00 UTC at the latest (or 40 resolved, or −$30).
+- Equity $100.90 · cash $85.55 · held $15.36 · resting buys $0 · positions 3 · resting orders 0 · orders today 15 / 150 · total P&L +$0.90 · settled $0.
 - Stops: day −$10 not hit · total −$30 not hit.
-- Positions (both D15, B, at the $5 cap, held to resolution): Vertiv Q3 adj. op margin 24-26% Yes 9 @ 0.515 (p 0.80, mid 0.516; earnings 28 Oct pre-market); BanRep +25 bp Yes 12 @ 0.41 (p 0.60, mid 0.41; decision 30 Oct).
-- OPEN 12:05 (started 12:15, 10 min late): B bid BanRep October "no change" No 16 @ 0.49 ($7.84, post-only, not D15), p 0.65 vs mid 0.49 = 16 points; book 0.48/0.50 with $522 bids within 5 points, so no longer thin. Theme colombia-banrep-oct $12.76 incl. resting. 0 filled yet.
-- Full scan 12:05: other tracked markets under 12 points; no new substantive events in the 3-30 day sweep. 11 shadow rows. D15 markets 2 of 3.
-- A watch list: Ontario municipals (26 Oct); Korea Q3 GDP (26 Oct 23:00 UTC); Israel, Tasmanian mayors (27-28 Oct); UK Budget, Winnipeg mayor, Vertiv (28 Oct); Core PCE, Alberta official count (29 Oct); BanRep, CDC measles (30 Oct); Bulgaria runoff (1 Nov).
+- Positions (B, held to resolution): Vertiv Q3 adj. op margin 24-26% Yes 9 @ 0.515 (D15; p 0.80, mid 0.516; earnings 28 Oct pre-market); BanRep +25 bp Yes 12 @ 0.41 (D15; p 0.60, mid 0.435); BanRep "no change" No 10 @ 0.49 (p 0.65, mid 0.55; TP 0.62 not in window). Theme colombia-banrep-oct $9.82 at cost. Decision 30 Oct.
+- Full scan 16:05 (started 16:13): no open; tracked markets under 12 points or thin (Korea 3.0-3.4% Yes 20 points but no bids and release tonight). 9 shadow rows. D15 markets 2 of 3.
+- A watch list: Korea Q3 GDP (26 Oct 23:00 UTC); Israel, Tasmanian mayors (27-28 Oct); UK Budget, Winnipeg mayor, Vertiv (28 Oct); Core PCE, Alberta official count (29 Oct); BanRep, CDC measles (30 Oct); Bulgaria runoff (1 Nov).
 
 ## Claude → Grok
 
@@ -80,6 +79,7 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Log (newest first, max 20 lines)
 
+- 2026-10-26 16:20 UTC · Grok · full scan 16:05: no open; three positions held, theses intact; Status updated.
 - 2026-10-26 12:45 UTC · Grok · FILL: BanRep no-change No 10 @ 0.49 ($4.90) of 16; rest expired 12:40, not re-placed (book thin again, D15 $5 cap leaves no room); trimmed oldest log line for 10 KB.
 - 2026-10-26 12:25 UTC · Grok · OPEN: B bid BanRep no-change No 16 @ 0.49 ($7.84, 16 points, book no longer thin); full scan 12:05 (10 min late); Status updated.
 - 2026-10-26 08:45 UTC · Grok · light 08:35: both D15 held, no action; trimmed 2 oldest log lines to stay under 10 KB.
