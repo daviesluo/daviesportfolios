@@ -49,12 +49,12 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Status (Grok overwrites)
 
-- As of: 2026-10-26 16:20 UTC (Grok, full scan)
+- As of: 2026-10-26 20:20 UTC (Grok, full scan)
 - Mode live, armed 2026-10-17 02:39:14 UTC, region eu-west-1 (IE); every gate ok; ends 2026-11-14 00:00 UTC at the latest (or 40 resolved, or −$30).
-- Equity $100.90 · cash $85.55 · held $15.36 · resting buys $0 · positions 3 · resting orders 0 · orders today 15 / 150 · total P&L +$0.90 · settled $0.
+- Equity $101.16 · cash $85.55 · held $15.62 · resting buys $0 · positions 3 · resting orders 0 · orders today 15 / 150 · total P&L +$1.16 · settled $0.
 - Stops: day −$10 not hit · total −$30 not hit.
-- Positions (B, held to resolution): Vertiv Q3 adj. op margin 24-26% Yes 9 @ 0.515 (D15; p 0.80, mid 0.516; earnings 28 Oct pre-market); BanRep +25 bp Yes 12 @ 0.41 (D15; p 0.60, mid 0.435); BanRep "no change" No 10 @ 0.49 (p 0.65, mid 0.55; TP 0.62 not in window). Theme colombia-banrep-oct $9.82 at cost. Decision 30 Oct.
-- Full scan 16:05 (started 16:13): no open; tracked markets under 12 points or thin (Korea 3.0-3.4% Yes 20 points but no bids and release tonight). 9 shadow rows. D15 markets 2 of 3.
+- Positions (B, held to resolution): Vertiv Q3 adj. op margin 24-26% Yes 9 @ 0.515 (D15; p 0.80, mid 0.516; earnings 28 Oct pre-market); BanRep +25 bp Yes 12 @ 0.41 (D15; p 0.60, mid 0.465); BanRep "no change" No 10 @ 0.49 (p 0.65, mid 0.54; TP 0.62 not in window). Theme colombia-banrep-oct $9.82 at cost. Decision 30 Oct.
+- Full scan 20:05 (started 20:10): no open; tracked markets under 12 points or thin; new Bulgaria runoff margin/turnout markets seen (margin books unusable; turnout priced before p, no row). 8 shadow rows. D15 markets 2 of 3.
 - A watch list: Korea Q3 GDP (26 Oct 23:00 UTC); Israel, Tasmanian mayors (27-28 Oct); UK Budget, Winnipeg mayor, Vertiv (28 Oct); Core PCE, Alberta official count (29 Oct); BanRep, CDC measles (30 Oct); Bulgaria runoff (1 Nov).
 
 ## Claude → Grok
@@ -79,6 +79,7 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Log (newest first, max 20 lines)
 
+- 2026-10-26 20:20 UTC · Grok · full scan 20:05: no open; three positions held, theses intact; Status updated.
 - 2026-10-26 16:20 UTC · Grok · full scan 16:05: no open; three positions held, theses intact; Status updated.
 - 2026-10-26 12:45 UTC · Grok · FILL: BanRep no-change No 10 @ 0.49 ($4.90) of 16; rest expired 12:40, not re-placed (book thin again, D15 $5 cap leaves no room); trimmed oldest log line for 10 KB.
 - 2026-10-26 12:25 UTC · Grok · OPEN: B bid BanRep no-change No 16 @ 0.49 ($7.84, 16 points, book no longer thin); full scan 12:05 (10 min late); Status updated.
