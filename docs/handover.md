@@ -46794,3 +46794,12 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   reference §3.51; no live change). New `live300` "LIVE twin" £300 and `live600` "variant-1" £600 on LIVE's rules (prereg
   `2026-10-26-live-size-twins`); `live` £120 is "variant-2" with weekends from 10-30 (its deviation 1); `take50wk` off, its reading
   withdrawn; `pr5`, `p50`, `take50`, `d` hidden but running (`twinsOnPage`). Ledger: D15's 03:00 UTC section archived.
+
+## LEDGER.md, archived 2026-10-26 (sixth) — the 2026-10-26 04:20 UTC section (`0142`, TAKE's twin and the USDC books)
+
+### [2026-10-26 04:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **`0142`: TAKE's twin back as "variant-3", and Coinbase "with Euros - 2" on the USDC books** (sub-agent; not pushed; Davies,
+  10-26: "那这个加到variant-3吧", "…-2改为你说的这个新策略在-1…做"; reference item 60; no live change).
+  - `agents/cb_usdc.ts`: `runCbHold`'s steps on the USDC books at 25 a rung (prints × 4, sizes ÷ 4; frozen files untouched),
+    own tables, call `cbusdc`, prune. The hold arm's page name is "- 1" (`CB_HOLD_PAGE_NAME`); its browser fixture keeps "- 2"
+    (frozen `cb_hold.test.ts`). Ledger: the 03:10 UTC section archived.
