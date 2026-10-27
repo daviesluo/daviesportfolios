@@ -1,0 +1,24 @@
+snapshot 2026-10-27T04:21:05Z UTC; clean covers with a positive edge, one per seat/chamber pair: 123; their capacity $17840.20, profit at capacity $125.70
+  COMBO: 3 relations, capacity $4535.99, profit at capacity $21.39 (0.47 % of capital)
+  DUP: 4 relations, capacity $775.88, profit at capacity $1.23 (0.16 % of capital)
+  SEATMOV: 116 relations, capacity $12528.33, profit at capacity $103.08 (0.82 % of capital)
+budget $100: profit $5.62 (5.62 %) across 5 relations; latest end date among them 2026-11-04
+budget $300: profit $12.21 (4.07 %) across 8 relations; latest end date among them 2026-11-04
+budget $1000: profit $26.83 (2.68 %) across 14 relations; latest end date among them 2026-11-04
+budget $5000: profit $69.75 (1.40 %) across 42 relations; latest end date among them 2026-11-04
+top 15 by edge per dollar:
+  SEATMOV-FL-07-HOU-R T.NO+S.YES legs 8: 8.34 % on $6.10 (profit $0.51), end 2026-11-04
+  SEATMOV-TX-27-HOU-R T.NO+S.YES legs 8: 5.65 % on $56.69 (profit $3.20), end 2026-11-04
+  SEATMOV-OR-02-HOU-R T.NO+S.YES legs 9: 5.52 % on $8.38 (profit $0.46), end 2026-11-04
+  SEATMOV-GA-12-HOU-D T.NO+S.YES legs 3: 5.49 % on $7.58 (profit $0.42), end 2026-11-04
+  SEATMOV-IA-02-HOU-D T.NO+S.YES legs 6: 4.87 % on $53.23 (profit $2.59), end 2026-11-04
+  SEATMOV-WI-06-HOU-D T.NO+S.YES legs 2: 3.09 % on $33.06 (profit $1.02), end 2026-11-04
+  SEATMOV-PA-09-HOU-D T.NO+S.YES legs 2: 2.99 % on $110.13 (profit $3.29), end 2026-11-04
+  SEATMOV-OH-04-HOU-D T.NO+S.YES legs 2: 2.88 % on $29.91 (profit $0.86), end 2026-11-04
+  SEATMOV-TX-21-HOU-D T.NO+S.YES legs 2: 2.78 % on $96.73 (profit $2.69), end 2026-11-04
+  SEATMOV-TN-05-HOU-D T.NO+S.YES legs 3: 2.65 % on $66.42 (profit $1.76), end 2026-11-04
+  SEATMOV-SC-02-HOU-D T.NO+S.YES legs 3: 2.61 % on $24.46 (profit $0.64), end 2026-11-04
+  SEATMOV-MO-06-HOU-D T.NO+S.YES legs 2: 2.02 % on $168.94 (profit $3.41), end 2026-11-04
+  SEATMOV-IL-01-HOU-R T.NO+S.YES legs 2: 1.83 % on $12.24 (profit $0.22), end 2026-11-04
+  SEATMOV-VA-03-HOU-R T.NO+S.YES legs 2: 1.77 % on $326.26 (profit $5.76), end 2026-11-04
+  SEATMOV-MN-03-HOU-R T.NO+S.YES legs 2: 1.76 % on $96.73 (profit $1.70), end 2026-11-04

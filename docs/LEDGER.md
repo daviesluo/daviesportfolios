@@ -641,6 +641,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
     still has 19 trades; 2026 has 1159. Do not retune. September cursor key 4946930 stays quarantined. Print and spot sha256 are in `MANIFEST.json`;
     the bytes stay on `/tmp/pmstatarb-data/`. `FROZEN.md` records the late freeze. #242 squash-merges only.
     S2 is not started. S4 is one snapshot on 2026-10-18, not before. History: "LEDGER.md, archived 2026-10-22 (third)".
+    **PMSAMEBET (10-27, `reviews/2026-10-27-pm-same-bet-statarb.md`)**: the same bet across events has real gaps that are
+    pennies deep, and Kalshi leads nothing. Nothing to run. Davies decides only whether SAMEBET-REC (§6) is ever wanted
+    (recommended: no).
 
 ## Machine and platform setup
 
@@ -758,6 +761,17 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to PR5-OPT's study section of 2026-10-27 03:50 UTC (archived
 2026-10-27, fourth).
+
+### [2026-10-27 04:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **PMSAMEBET: same-bet stat-arb across Polymarket events, and Kalshi as a clock** (sub-agent; not pushed; Davies, 10-27:
+  "…本质同一赌注的不同问题/市场中的价差来做stat arb…"; `reviews/2026-10-27-pm-same-bet-statarb.md`, reference §3.53,
+  `backtests/pmsamebet/`; keyless reads only, nothing placed or built).
+  - New ground: 1,232 cross-event relations. Clean gaps at the asks: 123 relations, $17,840 of capacity for $125.70, almost
+    all midterm seats. $300 locks $12.21 once.
+  - Tape, no hindsight: $18.08 in 14 days at up to $100 a signal. Kalshi leads nothing at the minute.
+  - Every wide gap is a clause (Manchester City's expulsion). Verdict: nothing to run; SAMEBET-REC is specified, not
+    recommended.
+  - Ledger: the 01:00 UTC section is archived.
 
 ### [2026-10-27 04:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **PR5-OPT's twins start now, plus USDT 3:1 and USDT alone (`0149`)** (sub-agent; not pushed; Davies, 10-27: "为啥要等到29？现在就开始…

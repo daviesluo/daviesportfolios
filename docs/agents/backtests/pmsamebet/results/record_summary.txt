@@ -1,0 +1,73 @@
+minutes recorded 59: 2026-10-27T03:47:37Z to 2026-10-27T04:45:37Z UTC; relations 465
+a relation-minute's edge is its best cover's touch edge at the asks (fees in)
+
+=== every cover ===
+COMBO: relations 10, relation-minutes 590, edge>0 326 (55.3 %), >=1c 2; positive all along 4, ever 6
+   positive stretches 6: median 59.0 min, p90 59 min, longest 59 min
+   stretches opened during the record 0: profit at the opening minute $0.00 at $100 each, $0.00 at $300, $0.00 at capacity
+   capacity while positive: median $499 a relation-minute
+DUP: relations 9, relation-minutes 531, edge>0 295 (55.6 %), >=1c 59; positive all along 5, ever 5
+   positive stretches 5: median 59 min, p90 59 min, longest 59 min
+   stretches opened during the record 0: profit at the opening minute $0.00 at $100 each, $0.00 at $300, $0.00 at capacity
+   capacity while positive: median $292 a relation-minute
+FED: relations 3, relation-minutes 177, edge>0 0 (0.0 %), >=1c 0; positive all along 0, ever 0
+   stretches opened during the record 0: profit at the opening minute $0.00 at $100 each, $0.00 at $300, $0.00 at capacity
+NOMWIN: relations 22, relation-minutes 1298, edge>0 32 (2.5 %), >=1c 0; positive all along 0, ever 1
+   positive stretches 2: median 16.0 min, p90 1 min, longest 31 min
+   stretches opened during the record 1: profit at the opening minute $0.01 at $100 each, $0.01 at $300, $0.01 at capacity
+   capacity while positive: median $305 a relation-minute
+OSCAR: relations 1, relation-minutes 59, edge>0 0 (0.0 %), >=1c 0; positive all along 0, ever 0
+   stretches opened during the record 0: profit at the opening minute $0.00 at $100 each, $0.00 at $300, $0.00 at capacity
+SEATMOV: relations 420, relation-minutes 24780, edge>0 15387 (62.1 %), >=1c 9002; positive all along 238, ever 286
+   positive stretches 440: median 59.0 min, p90 59 min, longest 59 min
+   stretches opened during the record 176: profit at the opening minute $29.83 at $100 each, $30.03 at $300, $30.03 at capacity
+   capacity while positive: median $89 a relation-minute
+
+=== clean covers only ===
+COMBO: relations 10, relation-minutes 590, edge>0 163 (27.6 %), >=1c 1; positive all along 2, ever 3
+   positive stretches 3: median 59 min, p90 59 min, longest 59 min
+   stretches opened during the record 0: profit at the opening minute $0.00 at $100 each, $0.00 at $300, $0.00 at capacity
+   capacity while positive: median $499 a relation-minute
+DUP: relations 8, relation-minutes 472, edge>0 236 (50.0 %), >=1c 0; positive all along 4, ever 4
+   positive stretches 4: median 59.0 min, p90 59 min, longest 59 min
+   stretches opened during the record 0: profit at the opening minute $0.00 at $100 each, $0.00 at $300, $0.00 at capacity
+   capacity while positive: median $99 a relation-minute
+FED: relations 3, relation-minutes 177, edge>0 0 (0.0 %), >=1c 0; positive all along 0, ever 0
+   stretches opened during the record 0: profit at the opening minute $0.00 at $100 each, $0.00 at $300, $0.00 at capacity
+NOMWIN: relations 22, relation-minutes 1298, edge>0 32 (2.5 %), >=1c 0; positive all along 0, ever 1
+   positive stretches 2: median 16.0 min, p90 1 min, longest 31 min
+   stretches opened during the record 1: profit at the opening minute $0.01 at $100 each, $0.01 at $300, $0.01 at capacity
+   capacity while positive: median $305 a relation-minute
+OSCAR: relations 1, relation-minutes 59, edge>0 0 (0.0 %), >=1c 0; positive all along 0, ever 0
+   stretches opened during the record 0: profit at the opening minute $0.00 at $100 each, $0.00 at $300, $0.00 at capacity
+SEATMOV: relations 420, relation-minutes 24780, edge>0 6847 (27.6 %), >=1c 3062; positive all along 103, ever 133
+   positive stretches 225: median 24 min, p90 59 min, longest 59 min
+   stretches opened during the record 107: profit at the opening minute $12.59 at $100 each, $12.72 at $300, $12.72 at capacity
+   capacity while positive: median $78 a relation-minute
+
+clean: relations positive in >= 1 minute, by minutes positive:
+  SEATMOV-FL-07-HOU-R (SEATMOV): 59/59 min positive, best edge 0.0770, median capacity profit $0.59
+  SEATMOV-OR-02-HOU-R (SEATMOV): 59/59 min positive, best edge 0.0620, median capacity profit $0.46
+  SEATMOV-WI-06-HOU-D (SEATMOV): 59/59 min positive, best edge 0.0350, median capacity profit $1.11
+  SEATMOV-PA-09-HOU-D (SEATMOV): 59/59 min positive, best edge 0.0300, median capacity profit $3.23
+  SEATMOV-TX-21-HOU-D (SEATMOV): 59/59 min positive, best edge 0.0300, median capacity profit $2.69
+  SEATMOV-OH-04-HOU-D (SEATMOV): 59/59 min positive, best edge 0.0280, median capacity profit $0.86
+  SEATMOV-TN-05-HOU-D (SEATMOV): 59/59 min positive, best edge 0.0280, median capacity profit $1.65
+  SEATMOV-MO-06-HOU-D (SEATMOV): 59/59 min positive, best edge 0.0270, median capacity profit $3.41
+  SEATMOV-SC-02-HOU-D (SEATMOV): 59/59 min positive, best edge 0.0270, median capacity profit $0.64
+  SEATMOV-OR-06-HOU-R (SEATMOV): 59/59 min positive, best edge 0.0230, median capacity profit $3.29
+  SEATMOV-NY-08-HOU-R (SEATMOV): 59/59 min positive, best edge 0.0220, median capacity profit $1.60
+  SEATMOV-VA-03-HOU-R (SEATMOV): 59/59 min positive, best edge 0.0220, median capacity profit $5.76
+  SEATMOV-FL-23-HOU-R (SEATMOV): 59/59 min positive, best edge 0.0210, median capacity profit $3.76
+  SEATMOV-MN-03-HOU-R (SEATMOV): 59/59 min positive, best edge 0.0200, median capacity profit $1.70
+  SEATMOV-MN-04-HOU-R (SEATMOV): 59/59 min positive, best edge 0.0190, median capacity profit $1.37
+  SEATMOV-WI-04-HOU-R (SEATMOV): 59/59 min positive, best edge 0.0190, median capacity profit $0.77
+  SEATMOV-NORTH-CAROLINA-SEN-R (SEATMOV): 59/59 min positive, best edge 0.0180, median capacity profit $3.91
+  SEATMOV-NJ-05-HOU-R (SEATMOV): 59/59 min positive, best edge 0.0180, median capacity profit $0.01
+  SEATMOV-IL-01-HOU-R (SEATMOV): 59/59 min positive, best edge 0.0180, median capacity profit $0.22
+  SEATMOV-IL-14-HOU-R (SEATMOV): 59/59 min positive, best edge 0.0180, median capacity profit $4.22
+  SEATMOV-NC-04-HOU-R (SEATMOV): 59/59 min positive, best edge 0.0180, median capacity profit $1.91
+  SEATMOV-TX-07-HOU-R (SEATMOV): 59/59 min positive, best edge 0.0170, median capacity profit $2.44
+  SEATMOV-CO-08-HOU-R (SEATMOV): 59/59 min positive, best edge 0.0160, median capacity profit $1.40
+  SEATMOV-IL-06-HOU-R (SEATMOV): 59/59 min positive, best edge 0.0160, median capacity profit $0.00
+  SEATMOV-NY-13-HOU-R (SEATMOV): 59/59 min positive, best edge 0.0160, median capacity profit $1.41

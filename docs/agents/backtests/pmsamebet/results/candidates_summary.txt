@@ -1,0 +1,488 @@
+universe markets 43057; pairs scored 4375682; pairs cos>=0.5 600297
+  num_only: 105400
+  other: 490859
+  same_text: 4038
+
+== top same_text pairs by the smaller liquidity (cos>=0.75) ==
+1.000 liq 48915 diff=[]
+  A [mlb-mil-tb-2026-10-27] Milwaukee Brewers vs. Tampa Bay Rays | end 2026-11-04T00:00:00Z bid/ask 0.55/0.56
+  B [mlb-mil-tb-2026-10-28] Milwaukee Brewers vs. Tampa Bay Rays | end 2026-11-05T00:00:00Z bid/ask 0.52/0.73
+1.000 liq 30353 diff=[]
+  A [republicans-win-the-senate-pending-oil-above-or-below-80] Will oil be at least $80 on November 2 and the Republicans win the Senate? | end 2026-11-04T04:59:00Z bid/ask 0.323/0.362
+  B [who-wins-the-senate-pending-oil-above-or-below-80-before-the-midterms] Will oil be at least $80 on November 2 and the Republicans win the Senate? | end 2026-11-04T04:59:00Z bid/ask 0.306/0.322
+1.000 liq 27362 diff=[]
+  A [republicans-win-the-senate-pending-oil-above-or-below-80] Will oil be below $80 on November 2 and the Republicans win the Senate? | end 2026-11-04T04:59:00Z bid/ask 0.014/0.019
+  B [who-wins-the-senate-pending-oil-above-or-below-80-before-the-midterms] Will oil be below $80 on November 2 and the Republicans win the Senate? | end 2026-11-04T04:59:00Z bid/ask 0.01/0.016
+1.000 liq 22119 diff=[]
+  A [cs2-tl1-aur1-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T17:00:00Z bid/ask 0.43/0.44
+  B [lol-ig1-ly-2026-10-28] Games Total: O/U 2.5 | end 2026-10-29T05:00:00Z bid/ask 0.47/0.5
+1.000 liq 22086 diff=[]
+  A [cs2-tl1-aur1-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T17:00:00Z bid/ask 0.43/0.44
+  B [lol-tes-blg-2026-10-28] Games Total: O/U 2.5 | end 2026-10-29T02:00:00Z bid/ask 0.4/0.42
+1.000 liq 22086 diff=[]
+  A [lol-tes-blg-2026-10-28] Games Total: O/U 2.5 | end 2026-10-29T02:00:00Z bid/ask 0.4/0.42
+  B [lol-ig1-ly-2026-10-28] Games Total: O/U 2.5 | end 2026-10-29T05:00:00Z bid/ask 0.47/0.5
+1.000 liq 22070 diff=[]
+  A [nba-orl-tor-2026-10-28] Magic vs. Raptors | end 2026-10-28T23:30:00Z bid/ask 0.32/0.33
+  B [nba-orl-tor-2026-10-30] Magic vs. Raptors | end 2026-10-30T23:30:00Z bid/ask 0.28/0.53
+1.000 liq 21226 diff=[]
+  A [cs2-tl1-aur1-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T17:00:00Z bid/ask 0.43/0.44
+  B [cs2-ts7-mouz-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T20:00:00Z bid/ask 0.47/0.48
+1.000 liq 21226 diff=[]
+  A [cs2-ts7-mouz-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T20:00:00Z bid/ask 0.47/0.48
+  B [lol-tes-blg-2026-10-28] Games Total: O/U 2.5 | end 2026-10-29T02:00:00Z bid/ask 0.4/0.42
+1.000 liq 21226 diff=[]
+  A [cs2-ts7-mouz-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T20:00:00Z bid/ask 0.47/0.48
+  B [lol-ig1-ly-2026-10-28] Games Total: O/U 2.5 | end 2026-10-29T05:00:00Z bid/ask 0.47/0.5
+1.000 liq 19802 diff=[]
+  A [sea-ven-int-2026-10-28-more-markets] Spread: FC Internazionale Milano (-1.5) | end 2026-10-28T17:30:00Z bid/ask 0.49/0.5
+  B [ucl-fey-int-2026-11-03-more-markets] Spread: FC Internazionale Milano (-1.5) | end 2026-11-03T20:00:00Z bid/ask 0.33/0.36
+1.000 liq 19500 diff=[]
+  A [cs2-tl1-aur1-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T17:00:00Z bid/ask 0.43/0.44
+  B [cs2-vit-navi-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T23:00:00Z bid/ask 0.43/0.44
+1.000 liq 19500 diff=[]
+  A [cs2-ts7-mouz-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T20:00:00Z bid/ask 0.47/0.48
+  B [cs2-vit-navi-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T23:00:00Z bid/ask 0.43/0.44
+1.000 liq 19500 diff=[]
+  A [cs2-vit-navi-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T23:00:00Z bid/ask 0.43/0.44
+  B [lol-tes-blg-2026-10-28] Games Total: O/U 2.5 | end 2026-10-29T02:00:00Z bid/ask 0.4/0.42
+1.000 liq 19500 diff=[]
+  A [cs2-vit-navi-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T23:00:00Z bid/ask 0.43/0.44
+  B [lol-ig1-ly-2026-10-28] Games Total: O/U 2.5 | end 2026-10-29T05:00:00Z bid/ask 0.47/0.5
+1.000 liq 18549 diff=[]
+  A [cs2-nemi1-dendel-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T17:00:00Z bid/ask 0.46/0.47
+  B [cs2-tl1-aur1-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T17:00:00Z bid/ask 0.43/0.44
+1.000 liq 18549 diff=[]
+  A [cs2-nemi1-dendel-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T17:00:00Z bid/ask 0.46/0.47
+  B [cs2-ts7-mouz-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T20:00:00Z bid/ask 0.47/0.48
+1.000 liq 18549 diff=[]
+  A [cs2-nemi1-dendel-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T17:00:00Z bid/ask 0.46/0.47
+  B [cs2-vit-navi-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T23:00:00Z bid/ask 0.43/0.44
+1.000 liq 18549 diff=[]
+  A [cs2-nemi1-dendel-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T17:00:00Z bid/ask 0.46/0.47
+  B [lol-tes-blg-2026-10-28] Games Total: O/U 2.5 | end 2026-10-29T02:00:00Z bid/ask 0.4/0.42
+1.000 liq 18549 diff=[]
+  A [cs2-nemi1-dendel-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T17:00:00Z bid/ask 0.46/0.47
+  B [lol-ig1-ly-2026-10-28] Games Total: O/U 2.5 | end 2026-10-29T05:00:00Z bid/ask 0.47/0.5
+1.000 liq 16779 diff=[]
+  A [cs2-nemi1-dendel-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T17:00:00Z bid/ask 0.46/0.47
+  B [cs2-mglz-lgc-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T20:00:00Z bid/ask 0.46/0.47
+1.000 liq 16779 diff=[]
+  A [cs2-tl1-aur1-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T17:00:00Z bid/ask 0.43/0.44
+  B [cs2-mglz-lgc-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T20:00:00Z bid/ask 0.46/0.47
+1.000 liq 16779 diff=[]
+  A [cs2-mglz-lgc-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T20:00:00Z bid/ask 0.46/0.47
+  B [cs2-ts7-mouz-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T20:00:00Z bid/ask 0.47/0.48
+1.000 liq 16779 diff=[]
+  A [cs2-mglz-lgc-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T20:00:00Z bid/ask 0.46/0.47
+  B [cs2-vit-navi-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T23:00:00Z bid/ask 0.43/0.44
+1.000 liq 16779 diff=[]
+  A [cs2-mglz-lgc-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T20:00:00Z bid/ask 0.46/0.47
+  B [lol-tes-blg-2026-10-28] Games Total: O/U 2.5 | end 2026-10-29T02:00:00Z bid/ask 0.4/0.42
+1.000 liq 16779 diff=[]
+  A [cs2-mglz-lgc-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T20:00:00Z bid/ask 0.46/0.47
+  B [lol-ig1-ly-2026-10-28] Games Total: O/U 2.5 | end 2026-10-29T05:00:00Z bid/ask 0.47/0.5
+1.000 liq 16349 diff=[]
+  A [sea-tor-com-2026-10-27-more-markets] Spread: Como 1907 (-1.5) | end 2026-10-27T19:45:00Z bid/ask 0.32/0.34
+  B [ucl-rcl-com-2026-11-04-more-markets] Spread: Como 1907 (-1.5) | end 2026-11-04T20:00:00Z bid/ask 0.21/0.27
+1.000 liq 16239 diff=[]
+  A [anthropic-ipo-closing-market-cap-119] Will Anthropic not IPO by December 31, 2027? | end 2028-01-01T04:59:00Z bid/ask 0.021/0.037
+  B [anthropic-ipo-closing-market-cap-higher-strikes] Will Anthropic not IPO by December 31, 2027? | end 2028-01-01T04:59:00Z bid/ask 0.022/0.027
+1.000 liq 16159 diff=[]
+  A [nhl-fla-wpg-2026-10-27] Spread: Jets (-1.5) | end 2026-10-28T00:00:00Z bid/ask 0.24/0.25
+  B [nfl-lv-nyj-2026-11-01] Spread: Jets (-1.5) | end 2026-11-01T18:00:00Z bid/ask 0.46/0.49
+1.000 liq 15671 diff=[]
+  A [efl-mnc-bha-2026-10-28] Will Manchester City FC vs. Brighton & Hove Albion FC end in a draw? | end 2026-10-28T19:30:00Z bid/ask 0.21/0.22
+  B [epl-mac-bri-2026-10-31] Will Manchester City FC vs. Brighton & Hove Albion FC end in a draw? | end 2026-10-31T15:00:00Z bid/ask 0.2/0.21
+1.000 liq 13962 diff=[]
+  A [nhl-fla-wpg-2026-10-27] Spread: Jets (-2.5) | end 2026-10-28T00:00:00Z bid/ask 0.16/0.17
+  B [nfl-lv-nyj-2026-11-01] Spread: Jets (-2.5) | end 2026-11-01T18:00:00Z bid/ask 0.44/0.46
+1.000 liq 13338 diff=[]
+  A [uwcl-oly-im-2026-10-28] Will FC Internazionale Milano win on 2026-10-28? | end 2026-10-28T20:00:00Z bid/ask 0.028/0.039
+  B [sea-ven-int-2026-10-28] Will FC Internazionale Milano win on 2026-10-28? | end 2026-10-28T17:30:00Z bid/ask 0.72/0.73
+1.000 liq 13330 diff=[]
+  A [kbo-kia-sam-2026-10-26] KBO Playoff: Kia Tigers vs. Samsung Lions | end 2026-11-03T09:30:00Z bid/ask 0.621/0.622
+  B [kbo-kia-sam-2026-10-27] KBO Playoff: Kia Tigers vs. Samsung Lions | end 2026-11-03T09:30:00Z bid/ask 0.61/0.63
+1.000 liq 13252 diff=[]
+  A [sea-rom-cag-2026-10-27-halftime-result] AS Roma leading at halftime? | end 2026-10-27T19:45:00Z bid/ask 0.54/0.55
+  B [ucl-mnu-rom-2026-11-03-halftime-result] AS Roma leading at halftime? | end 2026-11-03T20:00:00Z bid/ask 0.26/0.29
+1.000 liq 13229 diff=[]
+  A [efl-mnc-bha-2026-10-28-more-markets] Spread: Manchester City FC (-1.5) | end 2026-10-28T19:30:00Z bid/ask 0.35/0.36
+  B [ucl-rbl-mnc-2026-11-04-more-markets] Spread: Manchester City FC (-1.5) | end 2026-11-04T20:00:00Z bid/ask 0.39/0.43
+1.000 liq 13104 diff=[]
+  A [sea-tor-com-2026-10-27-halftime-result] Como 1907 leading at halftime? | end 2026-10-27T19:45:00Z bid/ask 0.41/0.43
+  B [ucl-rcl-com-2026-11-04-halftime-result] Como 1907 leading at halftime? | end 2026-11-04T20:00:00Z bid/ask 0.34/0.38
+1.000 liq 11076 diff=[]
+  A [will-elon-musk-announce-presidential-run-before-2027] Will Elon Musk announce Presidential run before 2027? | end 2027-01-01T04:59:00Z bid/ask 0.011/0.04
+  B [who-will-announce-presidential-run-before-2027] Will Elon Musk announce a presidential run before 2027? | end 2027-01-01T04:59:00Z bid/ask 0.013/0.056
+1.000 liq 11035 diff=[]
+  A [trump-meets-with-mark-carney-byptptpt] Will Trump meet with Mark Carney by October 31, 2026? | end 2026-11-01T03:59:00Z bid/ask 0.014/0.05
+  B [who-will-trump-meet-with-by-october-31] Will Trump meet with Mark Carney by October 31, 2026? | end 2026-11-01T03:59:00Z bid/ask 0.011/0.041
+1.000 liq 10628 diff=[]
+  A [lal-bar-ala-2026-10-31-more-markets] Spread: FC Barcelona (-2.5) | end 2026-10-31T20:00:00Z bid/ask 0.52/0.53
+  B [ucl-fcb-ast-2026-11-03-more-markets] Spread: FC Barcelona (-2.5) | end 2026-11-03T20:00:00Z bid/ask 0.39/0.41
+1.000 liq 10601 diff=[]
+  A [cs2-mibr-ef1-2026-10-27] Games Total: O/U 2.5 | end 2026-10-28T00:30:00Z bid/ask 0.44/0.46
+  B [cs2-nemi1-dendel-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T17:00:00Z bid/ask 0.46/0.47
+1.000 liq 10601 diff=[]
+  A [cs2-mibr-ef1-2026-10-27] Games Total: O/U 2.5 | end 2026-10-28T00:30:00Z bid/ask 0.44/0.46
+  B [cs2-tl1-aur1-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T17:00:00Z bid/ask 0.43/0.44
+1.000 liq 10601 diff=[]
+  A [cs2-mibr-ef1-2026-10-27] Games Total: O/U 2.5 | end 2026-10-28T00:30:00Z bid/ask 0.44/0.46
+  B [cs2-mglz-lgc-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T20:00:00Z bid/ask 0.46/0.47
+1.000 liq 10601 diff=[]
+  A [cs2-mibr-ef1-2026-10-27] Games Total: O/U 2.5 | end 2026-10-28T00:30:00Z bid/ask 0.44/0.46
+  B [cs2-ts7-mouz-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T20:00:00Z bid/ask 0.47/0.48
+1.000 liq 10601 diff=[]
+  A [cs2-mibr-ef1-2026-10-27] Games Total: O/U 2.5 | end 2026-10-28T00:30:00Z bid/ask 0.44/0.46
+  B [cs2-vit-navi-2026-10-27] Games Total: O/U 2.5 | end 2026-10-27T23:00:00Z bid/ask 0.43/0.44
+1.000 liq 10601 diff=[]
+  A [cs2-mibr-ef1-2026-10-27] Games Total: O/U 2.5 | end 2026-10-28T00:30:00Z bid/ask 0.44/0.46
+  B [lol-tes-blg-2026-10-28] Games Total: O/U 2.5 | end 2026-10-29T02:00:00Z bid/ask 0.4/0.42
+1.000 liq 10601 diff=[]
+  A [cs2-mibr-ef1-2026-10-27] Games Total: O/U 2.5 | end 2026-10-28T00:30:00Z bid/ask 0.44/0.46
+  B [lol-ig1-ly-2026-10-28] Games Total: O/U 2.5 | end 2026-10-29T05:00:00Z bid/ask 0.47/0.5
+1.000 liq 10478 diff=[]
+  A [oh-10-house-margin-of-victory-2026] Will the Republican Party candidate win the 2026 OH-10 House election by 12%-15%? | end 2026-11-04T04:59:00Z bid/ask 0.04/0.09
+  B [oh-12-house-margin-of-victory-2026] Will the Republican Party candidate win the 2026 OH-12 House election by 10%-15%? | end 2026-11-04T04:59:00Z bid/ask 0.012/0.086
+0.940 liq 10452 diff=[]
+  A [ny-25-house-margin-of-victory-2026] Will the Democratic Party candidate win the 2026 NY-25 House election by 20%-25%? | end 2026-11-04T04:59:00Z bid/ask 0.048/0.088
+  B [ny-20-house-margin-of-victory-2026] Will the Democratic Party candidate win the 2026 NY-20 House election by 20%-25%? | end 2026-11-04T04:59:00Z bid/ask 0.148/0.15
+1.000 liq 9694 diff=[]
+  A [dfb-scp-stu-2026-10-28-more-markets] Spread: VfB Stuttgart (-1.5) | end 2026-10-28T17:00:00Z bid/ask 0.39/0.41
+  B [ucl-gal-stu-2026-11-03-more-markets] Spread: VfB Stuttgart (-1.5) | end 2026-11-03T17:45:00Z bid/ask 0.14/0.2
+1.000 liq 9450 diff=[]
+  A [sea-rom-cag-2026-10-27-more-markets] Spread: AS Roma (-1.5) | end 2026-10-27T19:45:00Z bid/ask 0.49/0.5
+  B [ucl-mnu-rom-2026-11-03-more-markets] Spread: AS Roma (-1.5) | end 2026-11-03T20:00:00Z bid/ask 0.13/0.19
+1.000 liq 9434 diff=[]
+  A [sea-rom-cag-2026-10-27-more-markets] Spread: AS Roma (-2.5) | end 2026-10-27T19:45:00Z bid/ask 0.27/0.28
+  B [ucl-mnu-rom-2026-11-03-more-markets] Spread: AS Roma (-2.5) | end 2026-11-03T20:00:00Z bid/ask 0.021/0.091
+1.000 liq 9351 diff=[]
+  A [sea-ven-int-2026-10-28-more-markets] Spread: FC Internazionale Milano (-2.5) | end 2026-10-28T17:30:00Z bid/ask 0.29/0.3
+  B [ucl-fey-int-2026-11-03-more-markets] Spread: FC Internazionale Milano (-2.5) | end 2026-11-03T20:00:00Z bid/ask 0.16/0.21
+1.000 liq 9342 diff=[]
+  A [anthropic-ipo-closing-market-cap-119] Will Anthropic not IPO by December 31, 2027? | end 2028-01-01T04:59:00Z bid/ask 0.021/0.037
+  B [anthropic-ipo-closing-market-cap-979] Will Anthropic not IPO by December 31 2027? | end 2028-01-01T04:59:00Z bid/ask 0.03/0.052
+1.000 liq 9342 diff=[]
+  A [anthropic-ipo-closing-market-cap-979] Will Anthropic not IPO by December 31 2027? | end 2028-01-01T04:59:00Z bid/ask 0.03/0.052
+  B [anthropic-ipo-closing-market-cap-higher-strikes] Will Anthropic not IPO by December 31, 2027? | end 2028-01-01T04:59:00Z bid/ask 0.022/0.027
+1.000 liq 9342 diff=[]
+  A [sea-mon-nap-2026-10-28-more-markets] Spread: SSC Napoli (-1.5) | end 2026-10-28T19:45:00Z bid/ask 0.3/0.31
+  B [ucl-por-nap-2026-11-04-more-markets] Spread: SSC Napoli (-1.5) | end 2026-11-04T20:00:00Z bid/ask 0.11/0.15
+1.000 liq 9305 diff=[]
+  A [sea-tor-com-2026-10-27-more-markets] Spread: Como 1907 (-2.5) | end 2026-10-27T19:45:00Z bid/ask 0.15/0.16
+  B [ucl-rcl-com-2026-11-04-more-markets] Spread: Como 1907 (-2.5) | end 2026-11-04T20:00:00Z bid/ask 0.08/0.13
+1.000 liq 9287 diff=[]
+  A [por-por-est-2026-10-31-more-markets] Spread: FC Porto (-1.5) | end 2026-10-31T20:30:00Z bid/ask 0.58/0.6
+  B [ucl-por-nap-2026-11-04-more-markets] Spread: FC Porto (-1.5) | end 2026-11-04T20:00:00Z bid/ask 0.19/0.24
+1.000 liq 9061 diff=[]
+  A [efl-eve-new-2026-10-29] Will Everton FC vs. Newcastle United FC end in a draw? | end 2026-10-29T19:45:00Z bid/ask 0.26/0.27
+  B [epl-new-eve-2026-11-02] Will Newcastle United FC vs. Everton FC end in a draw? | end 2026-11-02T20:00:00Z bid/ask 0.26/0.27
+1.000 liq 8964 diff=[]
+  A [efl-sun-bre-2026-10-28-more-markets] Spread: Brentford FC (-1.5) | end 2026-10-28T19:45:00Z bid/ask 0.24/0.25
+  B [epl-bre-not-2026-10-31-more-markets] Spread: Brentford FC (-1.5) | end 2026-10-31T15:00:00Z bid/ask 0.24/0.26
+1.000 liq 8854 diff=[]
+  A [ucl-gal-stu-2026-11-03-exact-score] Exact Score: Any Other Score? | end 2026-11-03T17:45:00Z bid/ask None/0.49
+  B [ucl-shd-spo-2026-11-03-exact-score] Exact Score: Any Other Score? | end 2026-11-03T17:45:00Z bid/ask None/0.49
+1.000 liq 8853 diff=[]
+  A [ucl-gal-stu-2026-11-03-exact-score] Exact Score: Any Other Score? | end 2026-11-03T17:45:00Z bid/ask None/0.49
+  B [ucl-atm-bay-2026-11-03-exact-score] Exact Score: Any Other Score? | end 2026-11-03T20:00:00Z bid/ask None/0.49
+1.000 liq 8853 diff=[]
+  A [ucl-shd-spo-2026-11-03-exact-score] Exact Score: Any Other Score? | end 2026-11-03T17:45:00Z bid/ask None/0.49
+  B [ucl-atm-bay-2026-11-03-exact-score] Exact Score: Any Other Score? | end 2026-11-03T20:00:00Z bid/ask None/0.49
+1.000 liq 8822 diff=[]
+  A [ucl-gal-stu-2026-11-03-exact-score] Exact Score: Any Other Score? | end 2026-11-03T17:45:00Z bid/ask None/0.49
+  B [ucl-vf-sf-2026-11-04-exact-score] Exact Score: Any Other Score? | end 2026-11-04T20:00:00Z bid/ask None/0.49
+1.000 liq 8822 diff=[]
+  A [ucl-shd-spo-2026-11-03-exact-score] Exact Score: Any Other Score? | end 2026-11-03T17:45:00Z bid/ask None/0.49
+  B [ucl-vf-sf-2026-11-04-exact-score] Exact Score: Any Other Score? | end 2026-11-04T20:00:00Z bid/ask None/0.49
+1.000 liq 8822 diff=[]
+  A [ucl-atm-bay-2026-11-03-exact-score] Exact Score: Any Other Score? | end 2026-11-03T20:00:00Z bid/ask None/0.49
+  B [ucl-vf-sf-2026-11-04-exact-score] Exact Score: Any Other Score? | end 2026-11-04T20:00:00Z bid/ask None/0.49
+1.000 liq 8814 diff=[]
+  A [ucl-gal-stu-2026-11-03-exact-score] Exact Score: Any Other Score? | end 2026-11-03T17:45:00Z bid/ask None/0.49
+  B [ucl-aek1-rma-2026-11-04-exact-score] Exact Score: Any Other Score? | end 2026-11-04T17:45:00Z bid/ask None/0.49
+1.000 liq 8814 diff=[]
+  A [ucl-shd-spo-2026-11-03-exact-score] Exact Score: Any Other Score? | end 2026-11-03T17:45:00Z bid/ask None/0.49
+  B [ucl-aek1-rma-2026-11-04-exact-score] Exact Score: Any Other Score? | end 2026-11-04T17:45:00Z bid/ask None/0.49
+1.000 liq 8814 diff=[]
+  A [ucl-atm-bay-2026-11-03-exact-score] Exact Score: Any Other Score? | end 2026-11-03T20:00:00Z bid/ask None/0.49
+  B [ucl-aek1-rma-2026-11-04-exact-score] Exact Score: Any Other Score? | end 2026-11-04T17:45:00Z bid/ask None/0.49
+1.000 liq 8814 diff=[]
+  A [ucl-aek1-rma-2026-11-04-exact-score] Exact Score: Any Other Score? | end 2026-11-04T17:45:00Z bid/ask None/0.49
+  B [ucl-vf-sf-2026-11-04-exact-score] Exact Score: Any Other Score? | end 2026-11-04T20:00:00Z bid/ask None/0.49
+1.000 liq 8814 diff=[]
+  A [ucl-gal-stu-2026-11-03-exact-score] Exact Score: Any Other Score? | end 2026-11-03T17:45:00Z bid/ask None/0.49
+  B [ucl-lin2-sba-2026-11-03-exact-score] Exact Score: Any Other Score? | end 2026-11-03T20:00:00Z bid/ask None/0.49
+1.000 liq 8814 diff=[]
+  A [ucl-shd-spo-2026-11-03-exact-score] Exact Score: Any Other Score? | end 2026-11-03T17:45:00Z bid/ask None/0.49
+  B [ucl-lin2-sba-2026-11-03-exact-score] Exact Score: Any Other Score? | end 2026-11-03T20:00:00Z bid/ask None/0.49
+1.000 liq 8814 diff=[]
+  A [ucl-lin2-sba-2026-11-03-exact-score] Exact Score: Any Other Score? | end 2026-11-03T20:00:00Z bid/ask None/0.49
+  B [ucl-atm-bay-2026-11-03-exact-score] Exact Score: Any Other Score? | end 2026-11-03T20:00:00Z bid/ask None/0.49
+1.000 liq 8814 diff=[]
+  A [ucl-lin2-sba-2026-11-03-exact-score] Exact Score: Any Other Score? | end 2026-11-03T20:00:00Z bid/ask None/0.49
+  B [ucl-aek1-rma-2026-11-04-exact-score] Exact Score: Any Other Score? | end 2026-11-04T17:45:00Z bid/ask None/0.49
+1.000 liq 8814 diff=[]
+  A [ucl-lin2-sba-2026-11-03-exact-score] Exact Score: Any Other Score? | end 2026-11-03T20:00:00Z bid/ask None/0.49
+  B [ucl-vf-sf-2026-11-04-exact-score] Exact Score: Any Other Score? | end 2026-11-04T20:00:00Z bid/ask None/0.49
+1.000 liq 8757 diff=[]
+  A [ucl-gal-stu-2026-11-03-exact-score] Exact Score: Any Other Score? | end 2026-11-03T17:45:00Z bid/ask None/0.49
+  B [ucl-rbl-mnc-2026-11-04-exact-score] Exact Score: Any Other Score? | end 2026-11-04T20:00:00Z bid/ask None/0.49
+1.000 liq 8757 diff=[]
+  A [ucl-shd-spo-2026-11-03-exact-score] Exact Score: Any Other Score? | end 2026-11-03T17:45:00Z bid/ask None/0.49
+  B [ucl-rbl-mnc-2026-11-04-exact-score] Exact Score: Any Other Score? | end 2026-11-04T20:00:00Z bid/ask None/0.49
+1.000 liq 8757 diff=[]
+  A [ucl-lin2-sba-2026-11-03-exact-score] Exact Score: Any Other Score? | end 2026-11-03T20:00:00Z bid/ask None/0.49
+  B [ucl-rbl-mnc-2026-11-04-exact-score] Exact Score: Any Other Score? | end 2026-11-04T20:00:00Z bid/ask None/0.49
+1.000 liq 8757 diff=[]
+  A [ucl-atm-bay-2026-11-03-exact-score] Exact Score: Any Other Score? | end 2026-11-03T20:00:00Z bid/ask None/0.49
+  B [ucl-rbl-mnc-2026-11-04-exact-score] Exact Score: Any Other Score? | end 2026-11-04T20:00:00Z bid/ask None/0.49
+1.000 liq 8757 diff=[]
+  A [ucl-aek1-rma-2026-11-04-exact-score] Exact Score: Any Other Score? | end 2026-11-04T17:45:00Z bid/ask None/0.49
+  B [ucl-rbl-mnc-2026-11-04-exact-score] Exact Score: Any Other Score? | end 2026-11-04T20:00:00Z bid/ask None/0.49
+1.000 liq 8757 diff=[]
+  A [ucl-vf-sf-2026-11-04-exact-score] Exact Score: Any Other Score? | end 2026-11-04T20:00:00Z bid/ask None/0.49
+  B [ucl-rbl-mnc-2026-11-04-exact-score] Exact Score: Any Other Score? | end 2026-11-04T20:00:00Z bid/ask None/0.49
+
+== top other pairs by the smaller liquidity (cos>=0.75) ==
+0.818 liq 2443749 diff=['democratic', 'election', 'nomination', 'us']
+  A [democratic-presidential-nominee-2028] Will LeBron James win the 2028 Democratic presidential nomination? | end 2028-11-08T04:59:00Z bid/ask None/0.001
+  B [presidential-election-winner-2028] Will LeBron James win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask None/0.001
+0.825 liq 2436504 diff=['democratic', 'house', 'republican', 'senate']
+  A [which-party-will-win-the-senate-in-2026] Will the Republican Party control the Senate after the 2026 Midterm elections? | end 2026-11-04T04:59:00Z bid/ask 0.34/0.35
+  B [which-party-will-win-the-house-in-2026] Will the Democratic Party control the House after the 2026 Midterm elections? | end 2026-11-04T04:59:00Z bid/ask 0.91/0.92
+0.904 liq 2436504 diff=['house', 'senate']
+  A [which-party-will-win-the-senate-in-2026] Will the Republican Party control the Senate after the 2026 Midterm elections? | end 2026-11-04T04:59:00Z bid/ask 0.34/0.35
+  B [which-party-will-win-the-house-in-2026] Will the Republican Party control the House after the 2026 Midterm elections? | end 2026-11-04T04:59:00Z bid/ask 0.08/0.09
+0.957 liq 2298644 diff=['democratic', 'republican']
+  A [democratic-presidential-nominee-2028] Will Kim Kardashian win the 2028 Democratic presidential nomination? | end 2028-11-08T04:59:00Z bid/ask None/0.001
+  B [republican-presidential-nominee-2028] Will Kim Kardashian win the 2028 Republican presidential nomination? | end 2028-11-08T04:59:00Z bid/ask None/0.001
+0.848 liq 2227399 diff=['democratic', 'election', 'nomination', 'us']
+  A [democratic-presidential-nominee-2028] Will Tim Walz win the 2028 Democratic presidential nomination? | end 2028-11-08T04:59:00Z bid/ask None/0.001
+  B [presidential-election-winner-2028] Will Tim Walz win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask None/0.001
+0.848 liq 2066605 diff=['democratic', 'election', 'nomination', 'us']
+  A [democratic-presidential-nominee-2028] Will Kim Kardashian win the 2028 Democratic presidential nomination? | end 2028-11-08T04:59:00Z bid/ask None/0.001
+  B [presidential-election-winner-2028] Will Kim Kardashian win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask None/0.001
+0.848 liq 2066605 diff=['election', 'nomination', 'republican', 'us']
+  A [presidential-election-winner-2028] Will Kim Kardashian win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask None/0.001
+  B [republican-presidential-nominee-2028] Will Kim Kardashian win the 2028 Republican presidential nomination? | end 2028-11-08T04:59:00Z bid/ask None/0.001
+0.856 liq 1921341 diff=['democratic', 'election', 'nomination', 'us']
+  A [democratic-presidential-nominee-2028] Will Josh Stein win the 2028 Democratic presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.001/0.002
+  B [presidential-election-winner-2028] Will Josh Stein win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask None/0.001
+0.863 liq 1800515 diff=['democratic', 'election', 'nomination', 'us']
+  A [democratic-presidential-nominee-2028] Will Adam Schiff win the 2028 Democratic presidential nomination? | end 2028-11-08T04:59:00Z bid/ask None/0.001
+  B [presidential-election-winner-2028] Will Adam Schiff win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask None/0.001
+0.847 liq 1793193 diff=['democratic', 'election', 'nomination', 'us']
+  A [democratic-presidential-nominee-2028] Will Alex Padilla win the 2028 Democratic presidential nomination? | end 2028-11-08T04:59:00Z bid/ask None/0.001
+  B [presidential-election-winner-2028] Will Alex Padilla win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask None/0.001
+0.808 liq 1570491 diff=['election', 'nomination', 'republican', 'us']
+  A [presidential-election-winner-2028] Will Eric Trump win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask None/0.001
+  B [republican-presidential-nominee-2028] Will Eric Trump win the 2028 Republican presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.001/0.003
+0.849 liq 1496160 diff=['democratic', 'election', 'nomination', 'us']
+  A [democratic-presidential-nominee-2028] Will Zohran Mamdani win the 2028 Democratic presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.001/0.002
+  B [presidential-election-winner-2028] Will Zohran Mamdani win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask None/0.001
+0.861 liq 1480603 diff=['election', 'nomination', 'republican', 'us']
+  A [presidential-election-winner-2028] Will Greg Abbott win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask 0.001/0.002
+  B [republican-presidential-nominee-2028] Will Greg Abbott win the 2028 Republican presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.002/0.004
+0.865 liq 1326549 diff=['election', 'nomination', 'republican', 'us']
+  A [presidential-election-winner-2028] Will Nikki Haley win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask None/0.001
+  B [republican-presidential-nominee-2028] Will Nikki Haley win the 2028 Republican presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.001/0.002
+0.835 liq 1255121 diff=['election', 'nomination', 'republican', 'us']
+  A [presidential-election-winner-2028] Will Pete Hegseth win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask None/0.001
+  B [republican-presidential-nominee-2028] Will Pete Hegseth win the 2028 Republican presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.003/0.004
+0.829 liq 1232052 diff=['democratic', 'election', 'nomination', 'us']
+  A [democratic-presidential-nominee-2028] Will Stephen A. Smith win the 2028 Democratic presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.001/0.002
+  B [presidential-election-winner-2028] Will Stephen Smith win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask None/0.001
+0.851 liq 1201246 diff=['election', 'nomination', 'republican', 'us']
+  A [presidential-election-winner-2028] Will Rick Scott win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask None/0.001
+  B [republican-presidential-nominee-2028] Will Rick Scott win the 2028 Republican presidential nomination? | end 2028-11-08T04:59:00Z bid/ask None/0.001
+0.831 liq 1107523 diff=['election', 'nomination', 'republican', 'us']
+  A [presidential-election-winner-2028] Will Mike Johnson win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask None/0.001
+  B [republican-presidential-nominee-2028] Will Mike Johnson win the 2028 Republican presidential nomination? | end 2028-11-08T04:59:00Z bid/ask None/0.001
+0.849 liq 1008981 diff=['election', 'nomination', 'republican', 'us']
+  A [presidential-election-winner-2028] Will John N. Kennedy win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask None/0.001
+  B [republican-presidential-nominee-2028] Will John N. Kennedy win the 2028 Republican presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.001/0.002
+0.875 liq 997283 diff=['democratic', 'election', 'nomination', 'us']
+  A [democratic-presidential-nominee-2028] Will Elissa Slotkin win the 2028 Democratic presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.001/0.002
+  B [presidential-election-winner-2028] Will Elissa Slotkin win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask None/0.001
+0.844 liq 990914 diff=['democratic', 'election', 'nomination', 'us']
+  A [democratic-presidential-nominee-2028] Will Michelle Obama win the 2028 Democratic presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.007/0.008
+  B [presidential-election-winner-2028] Will Michelle Obama win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask 0.002/0.004
+0.861 liq 909169 diff=['election', 'nomination', 'republican', 'us']
+  A [presidential-election-winner-2028] Will Tulsi Gabbard win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask 0.001/0.002
+  B [republican-presidential-nominee-2028] Will Tulsi Gabbard win the 2028 Republican presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.001/0.002
+0.835 liq 853336 diff=['election', 'nomination', 'republican', 'us']
+  A [presidential-election-winner-2028] Will Tim Scott win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask None/0.001
+  B [republican-presidential-nominee-2028] Will Tim Scott win the 2028 Republican presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.001/0.002
+0.869 liq 831637 diff=['election', 'nomination', 'republican', 'us']
+  A [presidential-election-winner-2028] Will Candace Owens win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask None/0.001
+  B [republican-presidential-nominee-2028] Will Candace Owens win the 2028 Republican presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.002/0.003
+0.904 liq 820882 diff=['house', 'senate']
+  A [which-party-will-win-the-senate-in-2026] Will the Democratic Party control the Senate after the 2026 Midterm elections? | end 2026-11-04T04:59:00Z bid/ask 0.65/0.66
+  B [which-party-will-win-the-house-in-2026] Will the Democratic Party control the House after the 2026 Midterm elections? | end 2026-11-04T04:59:00Z bid/ask 0.91/0.92
+0.825 liq 820882 diff=['democratic', 'house', 'republican', 'senate']
+  A [which-party-will-win-the-senate-in-2026] Will the Democratic Party control the Senate after the 2026 Midterm elections? | end 2026-11-04T04:59:00Z bid/ask 0.65/0.66
+  B [which-party-will-win-the-house-in-2026] Will the Republican Party control the House after the 2026 Midterm elections? | end 2026-11-04T04:59:00Z bid/ask 0.08/0.09
+0.767 liq 803947 diff=['election', 'nomination', 'republican', 'us']
+  A [presidential-election-winner-2028] Will Elon Musk win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask 0.001/0.002
+  B [republican-presidential-nominee-2028] Will Elon Musk win the 2028 Republican presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.002/0.005
+0.858 liq 770160 diff=['election', 'nomination', 'republican', 'us']
+  A [presidential-election-winner-2028] Will Vivek Ramaswamy win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask None/0.001
+  B [republican-presidential-nominee-2028] Will Vivek Ramaswamy win the 2028 Republican presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.001/0.002
+0.875 liq 744780 diff=['democratic', 'election', 'nomination', 'us']
+  A [democratic-presidential-nominee-2028] Will Hakeem Jeffries win the 2028 Democratic presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.001/0.002
+  B [presidential-election-winner-2028] Will Hakeem Jeffries win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask None/0.001
+0.861 liq 583838 diff=['democratic', 'election', 'nomination', 'us']
+  A [democratic-presidential-nominee-2028] Will Rahm Emanuel win the 2028 Democratic presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.015/0.016
+  B [presidential-election-winner-2028] Will Rahm Emanuel win the 2028 US Presidential Election? | end 2028-11-07T00:00:00Z bid/ask 0.004/0.005
+0.827 liq 573698 diff=['election', 'nomination', 'republican', 'us']
+  A [presidential-election-winner-2028] Will Donald Trump Jr. win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask 0.005/0.006
+  B [republican-presidential-nominee-2028] Will Donald Trump Jr. win the 2028 Republican presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.018/0.019
+0.828 liq 559493 diff=['election', 'nomination', 'republican', 'us']
+  A [presidential-election-winner-2028] Will Ted Cruz win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask 0.005/0.006
+  B [republican-presidential-nominee-2028] Will Ted Cruz win the 2028 Republican presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.024/0.025
+0.867 liq 525681 diff=['election', 'nomination', 'republican', 'us']
+  A [presidential-election-winner-2028] Will Doug Burgum win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask None/0.001
+  B [republican-presidential-nominee-2028] Will Doug Burgum win the 2028 Republican presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.001/0.002
+0.876 liq 416070 diff=['democratic', 'election', 'nomination', 'us']
+  A [democratic-presidential-nominee-2028] Will Abigail Spanberger win the 2028 Democratic presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.001/0.002
+  B [presidential-election-winner-2028] Will Abigail Spanberger win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask None/0.001
+0.845 liq 402313 diff=['democratic', 'election', 'nomination', 'us']
+  A [democratic-presidential-nominee-2028] Will Pete Buttigieg win the 2028 Democratic presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.05/0.052
+  B [presidential-election-winner-2028] Will Pete Buttigieg win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask 0.025/0.026
+0.820 liq 375984 diff=['democratic', 'election', 'nomination', 'us']
+  A [democratic-presidential-nominee-2028] Will James Talarico win the 2028 Democratic presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.025/0.026
+  B [presidential-election-winner-2028] Will James Talarico win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask 0.016/0.019
+0.869 liq 356638 diff=['democratic', 'election', 'nomination', 'us']
+  A [democratic-presidential-nominee-2028] Will Ro Khanna win the 2028 Democratic presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.013/0.015
+  B [presidential-election-winner-2028] Will Ro Khanna win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask 0.008/0.009
+0.769 liq 341591 diff=['election', 'nomination', 'republican', 'us']
+  A [presidential-election-winner-2028] Will Donald Trump win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask 0.015/0.017
+  B [republican-presidential-nominee-2028] Will Donald Trump win the 2028 Republican presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.019/0.02
+0.857 liq 296410 diff=['election', 'nomination', 'republican', 'us']
+  A [presidential-election-winner-2028] Will Thomas Massie win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask 0.008/0.01
+  B [republican-presidential-nominee-2028] Will Thomas Massie win the 2028 Republican presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.007/0.008
+0.855 liq 295517 diff=['election', 'nomination', 'republican', 'us']
+  A [presidential-election-winner-2028] Will Glenn Youngkin win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask 0.001/0.002
+  B [republican-presidential-nominee-2028] Will Glenn Youngkin win the 2028 Republican presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.003/0.004
+0.877 liq 294683 diff=['democratic', 'election', 'nomination', 'us']
+  A [democratic-presidential-nominee-2028] Will Alexandria Ocasio-Cortez win the 2028 Democratic presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.162/0.167
+  B [presidential-election-winner-2028] Will Alexandria Ocasio-Cortez win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask 0.126/0.132
+0.834 liq 294579 diff=['democratic', 'election', 'nomination', 'us']
+  A [democratic-presidential-nominee-2028] Will Kamala Harris win the 2028 Democratic presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.062/0.063
+  B [presidential-election-winner-2028] Will Kamala Harris win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask 0.038/0.039
+0.842 liq 293780 diff=['democratic', 'election', 'nomination', 'us']
+  A [democratic-presidential-nominee-2028] Will Gavin Newsom win the 2028 Democratic presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.164/0.165
+  B [presidential-election-winner-2028] Will Gavin Newsom win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask 0.11/0.12
+0.836 liq 286526 diff=['democratic', 'election', 'nomination', 'us']
+  A [democratic-presidential-nominee-2028] Will Jon Ossoff win the 2028 Democratic presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.146/0.147
+  B [presidential-election-winner-2028] Will Jon Ossoff win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask 0.093/0.094
+0.831 liq 283256 diff=['democratic', 'election', 'nomination', 'us']
+  A [democratic-presidential-nominee-2028] Will Mark Kelly win the 2028 Democratic presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.02/0.023
+  B [presidential-election-winner-2028] Will Mark Kelly win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask 0.01/0.012
+0.839 liq 269869 diff=['democratic', 'election', 'nomination', 'us']
+  A [democratic-presidential-nominee-2028] Will Josh Shapiro win the 2028 Democratic presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.048/0.052
+  B [presidential-election-winner-2028] Will Josh Shapiro win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask 0.029/0.03
+0.819 liq 268817 diff=['election', 'nomination', 'republican', 'us']
+  A [presidential-election-winner-2028] Will Ivanka Trump win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask 0.005/0.008
+  B [republican-presidential-nominee-2028] Will Ivanka Trump win the 2028 Republican presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.014/0.016
+0.855 liq 248340 diff=['democratic', 'election', 'nomination', 'us']
+  A [democratic-presidential-nominee-2028] Will Raphael Warnock win the 2028 Democratic presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.019/0.021
+  B [presidential-election-winner-2028] Will Raphael Warnock win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask 0.008/0.01
+0.852 liq 236699 diff=['election', 'nomination', 'republican', 'us']
+  A [presidential-election-winner-2028] Will Tom Cotton win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask None/0.001
+  B [republican-presidential-nominee-2028] Will Tom Cotton win the 2028 Republican presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.003/0.004
+0.831 liq 230764 diff=['election', 'nomination', 'republican', 'us']
+  A [presidential-election-winner-2028] Will Marco Rubio win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask 0.098/0.099
+  B [republican-presidential-nominee-2028] Will Marco Rubio win the 2028 Republican presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.18/0.181
+0.852 liq 218435 diff=['democratic', 'election', 'nomination', 'us']
+  A [democratic-presidential-nominee-2028] Will Wes Moore win the 2028 Democratic presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.02/0.021
+  B [presidential-election-winner-2028] Will Wes Moore win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask 0.01/0.011
+0.865 liq 217870 diff=['democratic', 'election', 'nomination', 'us']
+  A [democratic-presidential-nominee-2028] Will Gretchen Whitmer win the 2028 Democratic presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.005/0.006
+  B [presidential-election-winner-2028] Will Gretchen Whitmer win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask 0.003/0.004
+0.852 liq 216790 diff=['democratic', 'election', 'nomination', 'us']
+  A [democratic-presidential-nominee-2028] Will Andy Beshear win the 2028 Democratic presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.035/0.038
+  B [presidential-election-winner-2028] Will Andy Beshear win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask 0.02/0.021
+0.855 liq 215360 diff=['election', 'nomination', 'republican', 'us']
+  A [presidential-election-winner-2028] Will Tucker Carlson win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask 0.012/0.014
+  B [republican-presidential-nominee-2028] Will Tucker Carlson win the 2028 Republican presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.029/0.031
+0.776 liq 178031 diff=['december', 'decrease', 'increase', 'october']
+  A [fed-decision-in-october-20260617190323537] Will the Fed increase interest rates by 25 bps after the October 2026 meeting? | end 2026-10-29T03:59:00Z bid/ask 0.06/0.07
+  B [fed-decision-in-december-20260729232808632] Will the Fed decrease interest rates by 25 bps after the December 2026 meeting? | end 2026-12-09T23:59:00Z bid/ask 0.006/0.007
+0.886 liq 171486 diff=['2026', '2027', '31', 'december', 'end']
+  A [will-china-invade-taiwan-before-2027] Will China invade Taiwan by end of 2026? | end 2027-01-01T04:59:00Z bid/ask 0.02/0.021
+  B [will-china-invade-taiwan-by-december-31-2027] Will China invade Taiwan by December 31, 2027? | end 2028-01-01T04:59:00Z bid/ask 0.1/0.11
+0.778 liq 163850 diff=['north', 'south']
+  A [north-carolina-senate-election-winner] Will the Democrats win the North Carolina Senate race in 2026? | end 2026-11-04T04:59:00Z bid/ask 0.964/0.976
+  B [south-carolina-senate-election-winner] Will the Democrats win the South Carolina Senate race in 2026? | end 2026-11-04T04:59:00Z bid/ask 0.22/0.23
+0.815 liq 163469 diff=['31', 'midterms', 'october', 'x']
+  A [us-iran-ceasefire-continues-throughptptpt] US x Iran ceasefire continues through October 31? | end 2026-10-31T23:59:00Z bid/ask 0.9/0.91
+  B [us-iran-ceasefire-continues-through-the-midterms] US-Iran ceasefire continues through the midterms? | end 2026-11-04T04:59:00Z bid/ask 0.84/0.85
+0.891 liq 148654 diff=['democratic', 'election', 'nomination', 'us']
+  A [democratic-presidential-nominee-2028] Will Dwayne 'The Rock' Johnson win the 2028 Democratic presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.011/0.013
+  B [presidential-election-winner-2028] Will Dwayne 'The Rock' Johnson win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask 0.015/0.016
+0.776 liq 140693 diff=['december', 'decrease', 'increase', 'october']
+  A [fed-decision-in-october-20260617190323537] Will the Fed decrease interest rates by 25 bps after the October 2026 meeting? | end 2026-10-29T03:59:00Z bid/ask None/0.001
+  B [fed-decision-in-december-20260729232808632] Will the Fed increase interest rates by 25 bps after the December 2026 meeting? | end 2026-12-09T23:59:00Z bid/ask 0.74/0.76
+0.824 liq 134437 diff=['governor', 'senate']
+  A [florida-governor-winner-2026] Will the Democrats win the Florida governor race in 2026? | end 2026-11-04T04:59:00Z bid/ask 0.19/0.2
+  B [florida-senate-election-winner] Will the Democrats win the Florida Senate race in 2026? | end 2026-11-04T04:59:00Z bid/ask 0.09/0.1
+0.808 liq 127232 diff=['28', 'midterms', 'october', 'x']
+  A [us-iran-ceasefire-continues-throughptptpt] US x Iran ceasefire continues through October 28? | end 2026-10-29T03:59:00Z bid/ask 0.968/0.97
+  B [us-iran-ceasefire-continues-through-the-midterms] US-Iran ceasefire continues through the midterms? | end 2026-11-04T04:59:00Z bid/ask 0.84/0.85
+0.840 liq 123538 diff=['governor', 'senate']
+  A [ohio-governor-winner-2026] Will the Republicans win the Ohio governor race in 2026? | end 2026-11-04T04:59:00Z bid/ask 0.17/0.18
+  B [ohio-senate-election-winner] Will the Republicans win the Ohio Senate race in 2026? | end 2026-11-04T04:59:00Z bid/ask 0.31/0.32
+0.866 liq 122801 diff=['2026', '2027', 'agreement']
+  A [russia-x-ukraine-ceasefire-agreement-by] Russia x Ukraine ceasefire agreement by December 31, 2027? | end 2028-01-01T04:59:00Z bid/ask 0.7/0.71
+  B [russia-x-ukraine-ceasefire-by] Russia x Ukraine ceasefire by December 31, 2026? | end 2026-12-31T21:59:00Z bid/ask 0.13/0.14
+0.763 liq 122801 diff=['agreement', 'december', 'march']
+  A [russia-x-ukraine-ceasefire-agreement-by] Russia x Ukraine ceasefire agreement by December 31, 2027? | end 2028-01-01T04:59:00Z bid/ask 0.7/0.71
+  B [russia-x-ukraine-ceasefire-by] Russia x Ukraine ceasefire by March 31, 2027? | end 2027-04-01T03:59:00Z bid/ask 0.26/0.27
+0.837 liq 122413 diff=['governor', 'senate']
+  A [iowa-governor-winner-2026] Will the Republicans win the Iowa governor race in 2026? | end 2026-11-04T04:59:00Z bid/ask 0.13/0.14
+  B [iowa-senate-election-winner] Will the Republicans win the Iowa Senate race in 2026? | end 2026-11-04T04:59:00Z bid/ask 0.57/0.58
+0.817 liq 119873 diff=['governor', 'senate']
+  A [texas-governor-winner-2026] Will the Democrats win the Texas governor race in 2026? | end 2026-11-04T04:59:00Z bid/ask 0.3/0.32
+  B [texas-senate-election-winner] Will the Democrats win the Texas Senate race in 2026? | end 2026-11-04T04:59:00Z bid/ask 0.65/0.66
+0.840 liq 119697 diff=['agreement', 'december', 'october']
+  A [russia-x-ukraine-ceasefire-agreement-by] Russia x Ukraine ceasefire agreement by October 31, 2026? | end 2026-11-01T03:59:00Z bid/ask 0.017/0.019
+  B [russia-x-ukraine-ceasefire-by] Russia x Ukraine ceasefire by December 31, 2026? | end 2026-12-31T21:59:00Z bid/ask 0.13/0.14
+0.854 liq 117696 diff=['election', 'nomination', 'republican', 'us']
+  A [presidential-election-winner-2028] Will Ron DeSantis win the 2028 US Presidential Election? | end 2028-11-08T04:59:00Z bid/ask 0.024/0.032
+  B [republican-presidential-nominee-2028] Will Ron DeSantis win the 2028 Republican presidential nomination? | end 2028-11-08T04:59:00Z bid/ask 0.035/0.037
+0.833 liq 113140 diff=['governor', 'senate']
+  A [michigan-governor-winner-2026] Will the Republicans win the Michigan governor race in 2026? | end 2026-11-04T04:59:00Z bid/ask 0.058/0.068
+  B [michigan-senate-election-winner] Will the Republicans win the Michigan Senate race in 2026? | end 2026-11-04T04:59:00Z bid/ask 0.31/0.32
+0.824 liq 104737 diff=['governor', 'senate']
+  A [texas-governor-winner-2026] Will the Republicans win the Texas governor race in 2026? | end 2026-11-04T04:59:00Z bid/ask 0.682/0.688
+  B [texas-senate-election-winner] Will the Republicans win the Texas Senate race in 2026? | end 2026-11-04T04:59:00Z bid/ask 0.33/0.34
+0.779 liq 103331 diff=['december', 'decrease', 'increase', 'october']
+  A [fed-decision-in-october-20260617190323537] Will the Fed decrease interest rates by 50+ bps after the October 2026 meeting? | end 2026-10-29T03:59:00Z bid/ask None/0.001
+  B [fed-decision-in-december-20260729232808632] Will the Fed increase interest rates by 50+ bps after the December 2026 meeting? | end 2026-12-09T23:59:00Z bid/ask 0.026/0.027
+0.808 liq 99631 diff=['30', '34', 'most']
+  A [israeli-legislative-election-winner] Will Likud win the most seats in the 2026 Israeli legislative election? | end 2026-10-28T03:59:00Z bid/ask 0.29/0.3
+  B [israel-election-likud-of-seats] Will Likud win 30-34 seats in the 2026 Israeli legislative election? | end 2026-10-28T03:59:00Z bid/ask 0.092/0.099
+0.889 liq 97333 diff=['agreement']
+  A [russia-x-ukraine-ceasefire-agreement-by] Russia x Ukraine ceasefire agreement by December 31, 2026? | end 2027-01-01T04:59:00Z bid/ask 0.16/0.17
+  B [russia-x-ukraine-ceasefire-by] Russia x Ukraine ceasefire by December 31, 2026? | end 2026-12-31T21:59:00Z bid/ask 0.13/0.14
+0.905 liq 94255 diff=['israel', 'us']
+  A [israel-x-iran-ceasefire-continues-throughptptpt-20260716224448963] Israel x Iran ceasefire continues through October 31? | end 2026-10-31T20:29:00Z bid/ask 0.92/0.93
+  B [us-iran-ceasefire-continues-throughptptpt] US x Iran ceasefire continues through October 31? | end 2026-10-31T23:59:00Z bid/ask 0.9/0.91
+0.863 liq 94255 diff=['28', '31', 'israel', 'us']
+  A [israel-x-iran-ceasefire-continues-throughptptpt-20260716224448963] Israel x Iran ceasefire continues through October 31? | end 2026-10-31T20:29:00Z bid/ask 0.92/0.93
+  B [us-iran-ceasefire-continues-throughptptpt] US x Iran ceasefire continues through October 28? | end 2026-10-29T03:59:00Z bid/ask 0.968/0.97
+0.757 liq 88661 diff=['end', 'head', 'lead', 'state']
+  A [iran-leader-end-of-2026] Will Reza Pahlavi be head of state in Iran end of 2026? | end 2026-12-31T17:00:00Z bid/ask 0.021/0.024
+  B [will-reza-pahlavi-lead-iran-in-2026] Will Reza Pahlavi lead Iran in 2026? | end 2027-01-01T04:59:00Z bid/ask 0.023/0.025
+0.779 liq 88510 diff=['december', 'decrease', 'increase', 'october']
+  A [fed-decision-in-october-20260617190323537] Will the Fed increase interest rates by 50+ bps after the October 2026 meeting? | end 2026-10-29T03:59:00Z bid/ask 0.003/0.004
+  B [fed-decision-in-december-20260729232808632] Will the Fed decrease interest rates by 50+ bps after the December 2026 meeting? | end 2026-12-09T23:59:00Z bid/ask 0.007/0.012
+0.876 liq 87843 diff=['december', 'israel', 'october', 'us']
+  A [israel-x-iran-ceasefire-continues-throughptptpt-20260716224448963] Israel x Iran ceasefire continues through October 31? | end 2026-10-31T20:29:00Z bid/ask 0.92/0.93
+  B [us-iran-ceasefire-continues-throughptptpt] US x Iran ceasefire continues through December 31? | end 2026-12-31T23:59:00Z bid/ask 0.29/0.3
+0.802 liq 87843 diff=['31', 'december', 'midterms', 'x']
+  A [us-iran-ceasefire-continues-throughptptpt] US x Iran ceasefire continues through December 31? | end 2026-12-31T23:59:00Z bid/ask 0.29/0.3
+  B [us-iran-ceasefire-continues-through-the-midterms] US-Iran ceasefire continues through the midterms? | end 2026-11-04T04:59:00Z bid/ask 0.84/0.85

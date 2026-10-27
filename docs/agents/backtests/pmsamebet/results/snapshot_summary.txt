@@ -1,0 +1,41 @@
+read 2026-10-27T04:21:05Z UTC; relations 1232; cover rows 2125; rows without a book 31
+edge = floor − Σ best asks − taker fees, in $ a share; capacity = shares/capital while the walked edge > 0
+
+BYON: relations priced 2; best cover edge > 0 in 0; >= 0.5c 0; >= 1c 0; >= 2c 0; median best edge -0.007
+   sum over positive relations: capacity $0.00, profit at capacity $0.00, profit at $100 each $0.00
+COMBO: relations priced 16; best cover edge > 0 in 7; >= 0.5c 2; >= 1c 0; >= 2c 0; median best edge -0.007
+   sum over positive relations: capacity $7887.03, profit at capacity $38.99, profit at $100 each $1.98
+   COMBO-SENR-HORMUZ80 T.NO+S.YES legs 3 edge 0.0080 cap 3997 sh $3977.06 profit $20.32 (@$100 0.66) end 2026-11-04
+   COMBO-SEND-HORMUZ80 T.YES+Sc.YES legs 3 edge 0.0080 cap 2769 sh $2752.23 profit $16.42 (@$100 0.66) end 2026-11-04
+   COMBO-SENR-OIL85 T.NO+S.YES legs 3 edge 0.0020 cap 500 sh $499.00 profit $1.00 (@$100 0.20) end 2026-11-04
+   COMBO-SEND-OIL85 T.YES+Sc.YES legs 3 edge 0.0020 cap 500 sh $499.00 profit $1.00 (@$100 0.20) end 2026-11-04
+   COMBO-MID-3WAY T.YES+Sc.YES legs 5 edge 0.0030 cap 40 sh $39.88 profit $0.12 (@$100 0.12) end 2026-11-04
+   COMBO-SENR-OIL80 T.NO+S.YES legs 3 edge 0.0020 cap 60 sh $59.93 profit $0.07 (@$100 0.07) end 2026-11-04
+   COMBO-SEND-OIL80 T.YES+Sc.YES legs 3 edge 0.0020 cap 60 sh $59.93 profit $0.07 (@$100 0.07) end 2026-11-04
+DUP: relations priced 11; best cover edge > 0 in 5; >= 0.5c 1; >= 1c 1; >= 2c 1; median best edge -0.004
+   sum over positive relations: capacity $1168.63, profit at capacity $8.05, profit at $100 each $3.51
+   DUP-MANCITY S.NO+T.YES legs 2 edge 0.0334 cap 400 sh $392.75 profit $6.82 (@$100 2.72) end 2027-07-01
+   DUP-MSTR S.NO+T.YES legs 2 edge 0.0040 cap 352 sh $351.73 profit $0.51 (@$100 0.26) end 2027-01-01
+   DUP-ANTH-ACQ T.NO+S.YES legs 2 edge 0.0020 cap 293 sh $292.48 profit $0.39 (@$100 0.20) end 2027-01-01
+   DUP-ANTH-NOIPO-b T.NO+S.YES legs 2 edge 0.0030 cap 99 sh $98.70 profit $0.30 (@$100 0.30) end 2028-01-01
+   DUP-OIL80R-hi T.NO+S.YES legs 2 edge 0.0010 cap 33 sh $32.97 profit $0.03 (@$100 0.03) end 2026-11-04
+FED: relations priced 14; best cover edge > 0 in 0; >= 0.5c 0; >= 1c 0; >= 2c 0; median best edge -0.061
+   sum over positive relations: capacity $0.00, profit at capacity $0.00, profit at $100 each $0.00
+NOMWIN: relations priced 30; best cover edge > 0 in 0; >= 0.5c 0; >= 1c 0; >= 2c 0; median best edge -0.012
+   sum over positive relations: capacity $0.00, profit at capacity $0.00, profit at $100 each $0.00
+OSCAR: relations priced 269; best cover edge > 0 in 0; >= 0.5c 0; >= 1c 0; >= 2c 0; median best edge -0.349
+   sum over positive relations: capacity $0.00, profit at capacity $0.00, profit at $100 each $0.00
+SEATMOV: relations priced 863; best cover edge > 0 in 262; >= 0.5c 212; >= 1c 151; >= 2c 50; median best edge -0.022
+   sum over positive relations: capacity $32903.97, profit at capacity $335.52, profit at $100 each $210.06
+   SEATMOV-TX-28-HOU-D T.YES+Sc.YES legs 3 edge 0.0190 cap 1192 sh $1173.14 profit $18.71 (@$100 1.94) end 2026-11-04
+   SEATMOV-VA-03-HOU-D T.YES+Sc.YES legs 2 edge 0.0250 cap 627 sh $617.16 profit $9.38 (@$100 2.49) end 2026-11-04
+   SEATMOV-OK-03-HOU-R T.YES+Sc.YES legs 2 edge 0.0230 cap 628 sh $620.17 profit $8.13 (@$100 2.33) end 2026-11-04
+   SEATMOV-TX-28-HOU-R T.NO+S.YES legs 3 edge 0.0090 cap 928 sh $920.12 profit $7.61 (@$100 0.91) end 2026-11-04
+   SEATMOV-IL-14-HOU-D T.YES+Sc.YES legs 2 edge 0.0270 cap 369 sh $362.75 profit $6.31 (@$100 2.66) end 2026-11-04
+   SEATMOV-VA-03-HOU-R T.NO+S.YES legs 2 edge 0.0220 cap 332 sh $326.26 profit $5.76 (@$100 2.09) end 2026-11-04
+   SEATMOV-GA-09-HOU-R T.YES+Sc.YES legs 2 edge 0.0240 cap 266 sh $260.73 profit $5.63 (@$100 2.35) end 2026-11-04
+   SEATMOV-ID-01-HOU-R T.YES+Sc.YES legs 2 edge 0.0230 cap 329 sh $323.38 profit $5.30 (@$100 2.35) end 2026-11-04
+   SEATMOV-IN-02-HOU-R T.YES+Sc.YES legs 2 edge 0.0200 cap 265 sh $259.52 profit $5.19 (@$100 2.04) end 2026-11-04
+   SEATMOV-TX-07-HOU-D T.YES+Sc.YES legs 2 edge 0.0220 cap 248 sh $242.81 profit $5.19 (@$100 2.23) end 2026-11-04
+   SEATMOV-FL-23-HOU-D T.YES+Sc.YES legs 2 edge 0.0220 cap 242 sh $237.12 profit $4.77 (@$100 2.15) end 2026-11-04
+   SEATMOV-IL-05-HOU-D T.YES+Sc.YES legs 2 edge 0.0170 cap 301 sh $296.44 profit $4.56 (@$100 1.72) end 2026-11-04

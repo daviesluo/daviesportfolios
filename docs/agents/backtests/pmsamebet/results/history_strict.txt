@@ -1,0 +1,18 @@
+signal: past ask prints of every leg within 120 s sum to more than 0.005 under the floor; fill: each leg's first ask print in (t+2 s, t+120 s]; one signal a cover per 300 s
+COMBO: signals 79, all legs printed after the signal 8, fill edge > 0 in 8, mean fill edge +0.0131, median +0.0145; P&L at <= $100 a signal $+7.49, at <= $300 $+15.32
+DUP: signals 22, all legs printed after the signal 1, fill edge > 0 in 1, mean fill edge +0.0161, median +0.0161; P&L at <= $100 a signal $+0.08, at <= $300 $+0.08
+FED: signals 47, all legs printed after the signal 11, fill edge > 0 in 10, mean fill edge +0.0388, median +0.0400; P&L at <= $100 a signal $+8.95, at <= $300 $+8.95
+SEATMOV: signals 48, all legs printed after the signal 1, fill edge > 0 in 1, mean fill edge +0.0158, median +0.0158; P&L at <= $100 a signal $+1.57, at <= $300 $+1.57
+all families: P&L $+18.08 at <= $100 a signal, $+25.92 at <= $300, over the tapes' 14 days
+covers with the most filled signals:
+  FED-HPx-OCTNC-sum B.YES+A.NO: 6 filled, mean edge +0.0467, positive 5
+  FED-ANOTHER-COUNT T.YES+Sc.YES: 4 filled, mean edge +0.0367, positive 4
+  COMBO-HOUD-BOP T.NO+S.YES: 2 filled, mean edge +0.0200, positive 2
+  COMBO-SEND-OIL80 T.YES+Sc.YES: 2 filled, mean edge +0.0123, positive 2
+  DUP-OIL80R-hi T.NO+S.YES: 1 filled, mean edge +0.0161, positive 1
+  COMBO-SEND-BOP T.NO+S.YES: 1 filled, mean edge +0.0110, positive 1
+  COMBO-SENR-OIL80 T.NO+S.YES: 1 filled, mean edge +0.0060, positive 1
+  COMBO-SEND-OIL80 T.NO+S.YES: 1 filled, mean edge +0.0050, positive 1
+  COMBO-SEND-OIL85 T.YES+Sc.YES: 1 filled, mean edge +0.0180, positive 1
+  FED-HPP-DECNC A.NO+B.YES: 1 filled, mean edge +0.0000, positive 0
+  SEATMOV-KS-01-HOU-D T.NO+S.YES: 1 filled, mean edge +0.0158, positive 1

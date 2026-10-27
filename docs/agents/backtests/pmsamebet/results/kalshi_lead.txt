@@ -1,0 +1,57 @@
+read 2026-10-27T04:19Z
+
+FED-OCT-HOLD: Polymarket Will there be no change in Fed interest rates after the October 2026 meeting? (5373 prints over 169.0 h, 10-20 04:00 to 10-27 05:00 UTC); Kalshi KXFEDDECISION-26OCT-H0 candles 4989; joint minutes 10110
+  levels: |Kalshi mid − Polymarket| mean 0.0096, median 0.005; Kalshi [0.855, 0.945], Polymarket [0.85, 0.96]; hourly changes corr 0.249 over 168 hours
+  corr(dKalshi_t, dPoly_t+k): k=-5:0.003, k=-4:0.003, k=-3:0.007, k=-2:-0.013, k=-1:0.023, k=0:-0.009, k=1:0.018, k=2:-0.013, k=3:0.012, k=4:-0.005, k=5:0.005
+  corr of 5-minute changes, Polymarket shifted by k five-minute steps: k=-3:0.016, k=-2:0.036, k=-1:0.012, k=0:0.067, k=1:-0.003, k=2:-0.015, k=3:0.006
+  Kalshi minutes moving >= 1c: 22; Polymarket moved first (>= half, the minute before) in 2
+  share of Kalshi's move Polymarket made by t+0: median 0.00, mean 0.03 (n 22)
+  share of Kalshi's move Polymarket made by t+1: median 0.00, mean 0.03 (n 22)
+  share of Kalshi's move Polymarket made by t+2: median 0.00, mean -0.01 (n 22)
+  share of Kalshi's move Polymarket made by t+5: median 0.00, mean 0.03 (n 22)
+  share of Kalshi's move Polymarket made by t+15: median 0.00, mean 0.06 (n 22)
+  rule P&L a share, marked at t+15: n 8, mean -0.0054, median -0.0050, positive 0, sum -0.044
+  rule P&L a share, marked at t+60: n 8, mean -0.0094, median -0.0100, positive 0, sum -0.075
+
+FED-OCT-H25: Polymarket Will the Fed increase interest rates by 25 bps after the October 2026 meeting? (2610 prints over 169.0 h, 10-20 04:00 to 10-27 05:00 UTC); Kalshi KXFEDDECISION-26OCT-H25 candles 3068; joint minutes 10097
+  levels: |Kalshi mid − Polymarket| mean 0.0082, median 0.005; Kalshi [0.055, 0.135], Polymarket [0.04, 0.15]; hourly changes corr 0.421 over 168 hours
+  corr(dKalshi_t, dPoly_t+k): k=-5:0.011, k=-4:-0.005, k=-3:0.022, k=-2:-0.002, k=-1:0.056, k=0:-0.012, k=1:-0.005, k=2:0.025, k=3:-0.003, k=4:-0.007, k=5:0.011
+  corr of 5-minute changes, Polymarket shifted by k five-minute steps: k=-3:-0.027, k=-2:0.027, k=-1:0.047, k=0:0.064, k=1:0.053, k=2:0.039, k=3:0.027
+  Kalshi minutes moving >= 1c: 31; Polymarket moved first (>= half, the minute before) in 5
+  share of Kalshi's move Polymarket made by t+0: median -0.00, mean 0.00 (n 31)
+  share of Kalshi's move Polymarket made by t+1: median 0.00, mean -0.03 (n 31)
+  share of Kalshi's move Polymarket made by t+2: median 0.00, mean 0.06 (n 31)
+  share of Kalshi's move Polymarket made by t+5: median 0.00, mean 0.04 (n 31)
+  share of Kalshi's move Polymarket made by t+15: median -0.00, mean 0.27 (n 31)
+  rule P&L a share, marked at t+15: n 7, mean -0.0008, median +0.0000, positive 2, sum -0.005
+  rule P&L a share, marked at t+60: n 7, mean -0.0025, median -0.0000, positive 2, sum -0.017
+
+SENATE-R: Polymarket Will the Republican Party control the Senate after the 2026 Midterm elections? (2676 prints over 169.0 h, 10-20 03:00 to 10-27 04:00 UTC); Kalshi CONTROLS-2026-R candles 7119; joint minutes 10089
+  levels: |Kalshi mid − Polymarket| mean 0.011, median 0.005; Kalshi [0.315, 0.375], Polymarket [0.3, 0.37]; hourly changes corr 0.134 over 168 hours
+  corr(dKalshi_t, dPoly_t+k): k=-5:0.023, k=-4:-0.027, k=-3:-0.008, k=-2:0.007, k=-1:0.018, k=0:-0.017, k=1:0.007, k=2:0.012, k=3:-0.003, k=4:0.017, k=5:-0.028
+  corr of 5-minute changes, Polymarket shifted by k five-minute steps: k=-3:0.007, k=-2:-0.018, k=-1:0.036, k=0:-0.001, k=1:0.017, k=2:0.022, k=3:-0.001
+  Kalshi minutes moving >= 1c: 22; Polymarket moved first (>= half, the minute before) in 1
+  share of Kalshi's move Polymarket made by t+0: median 0.00, mean -0.04 (n 22)
+  share of Kalshi's move Polymarket made by t+1: median 0.00, mean -0.04 (n 22)
+  share of Kalshi's move Polymarket made by t+2: median 0.00, mean -0.04 (n 22)
+  share of Kalshi's move Polymarket made by t+5: median 0.00, mean -0.02 (n 22)
+  share of Kalshi's move Polymarket made by t+15: median 0.00, mean 0.05 (n 22)
+  rule P&L a share, marked at t+15: n 2, mean -0.0025, median -0.0025, positive 0, sum -0.005
+  rule P&L a share, marked at t+60: n 2, mean +0.0000, median +0.0000, positive 1, sum +0.000
+
+HOUSE-R: Polymarket Will the Republican Party control the House after the 2026 Midterm elections? (4422 prints over 169.0 h, 10-20 04:00 to 10-27 05:00 UTC); Kalshi CONTROLH-2026-R candles 7168; joint minutes 10122
+  levels: |Kalshi mid − Polymarket| mean 0.0089, median 0.0075; Kalshi [0.084, 0.105], Polymarket [0.07, 0.09]; hourly changes corr 0.066 over 168 hours
+  corr(dKalshi_t, dPoly_t+k): k=-5:0.003, k=-4:0.01, k=-3:-0.004, k=-2:0.009, k=-1:0.007, k=0:-0.008, k=1:-0.012, k=2:-0.009, k=3:-0.009, k=4:-0.014, k=5:0.007
+  corr of 5-minute changes, Polymarket shifted by k five-minute steps: k=-3:-0.02, k=-2:-0.011, k=-1:0.017, k=0:0.003, k=1:-0.048, k=2:0.024, k=3:0.04
+  Kalshi minutes moving >= 1c: 0; Polymarket moved first (>= half, the minute before) in 0
+
+TXSEN-R: Polymarket Will the Republicans win the Texas Senate race in 2026? (2270 prints over 169.0 h, 10-20 04:00 to 10-27 05:00 UTC); Kalshi SENATETX-26-R candles 7838; joint minutes 10124
+  levels: |Kalshi mid − Polymarket| mean 0.0071, median 0.005; Kalshi [0.315, 0.385], Polymarket [0.31, 0.39]; hourly changes corr 0.055 over 168 hours
+  corr(dKalshi_t, dPoly_t+k): k=-5:-0.005, k=-4:0.017, k=-3:-0.0, k=-2:-0.018, k=-1:0.012, k=0:0.009, k=1:0.004, k=2:-0.004, k=3:0.001, k=4:0.018, k=5:0.009
+  corr of 5-minute changes, Polymarket shifted by k five-minute steps: k=-3:0.019, k=-2:0.011, k=-1:0.024, k=0:-0.001, k=1:0.04, k=2:-0.001, k=3:-0.102
+  Kalshi minutes moving >= 1c: 19; Polymarket moved first (>= half, the minute before) in 1
+  share of Kalshi's move Polymarket made by t+0: median 0.00, mean 0.05 (n 19)
+  share of Kalshi's move Polymarket made by t+1: median 0.00, mean 0.05 (n 19)
+  share of Kalshi's move Polymarket made by t+2: median 0.00, mean 0.05 (n 19)
+  share of Kalshi's move Polymarket made by t+5: median -0.00, mean 0.16 (n 19)
+  share of Kalshi's move Polymarket made by t+15: median 0.00, mean 0.15 (n 19)

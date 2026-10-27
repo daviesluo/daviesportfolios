@@ -1,0 +1,131 @@
+{
+ "reads": "keyless public GETs only: Gamma /events/keyset (closed=false) and /events, /public-search; CLOB POST /books; data API /trades; Kalshi /trade-api/v2 markets, events and 1-minute candlesticks; one public rules PDF on polymarket-upload.s3. 2026-10-27 03:29-04:47 UTC. No SQL, no key, nothing placed.",
+ "review": "docs/agents/reviews/2026-10-27-pm-same-bet-statarb.md",
+ "run_order": [
+  "PM_DATA=<scratch> python3 -I docs/agents/backtests/pmsamebet/scripts/pull_open.py",
+  "PM_DATA=<scratch> python3 -I docs/agents/backtests/pmsamebet/scripts/compact.py",
+  "PM_DATA=<scratch> python3 -I docs/agents/backtests/pmsamebet/scripts/candidates.py docs/agents/backtests/pmsamebet/results",
+  "PM_DATA=<scratch> python3 -I docs/agents/backtests/pmsamebet/scripts/relations.py",
+  "PM_DATA=<scratch> python3 -I docs/agents/backtests/pmsamebet/scripts/snapshot.py docs/agents/backtests/pmsamebet/results (live books: differs on every run)",
+  "PM_DATA=<scratch> python3 -I docs/agents/backtests/pmsamebet/scripts/allocate.py <snapshot json> docs/agents/backtests/pmsamebet/results",
+  "PM_DATA=<scratch> python3 -I docs/agents/backtests/pmsamebet/scripts/record.py <snapshot json> 240 (live books, a read a minute; stopped by hand after 59 minutes)",
+  "PM_DATA=<scratch> python3 -I docs/agents/backtests/pmsamebet/scripts/record_summary.py docs/agents/backtests/pmsamebet/results",
+  "PM_DATA=<scratch> python3 -I docs/agents/backtests/pmsamebet/scripts/history.py <snapshot json> 14 docs/agents/backtests/pmsamebet/results",
+  "PM_DATA=<scratch> python3 -I docs/agents/backtests/pmsamebet/scripts/kalshi_lead.py docs/agents/backtests/pmsamebet/results",
+  "PM_DATA=<scratch> python3 -I docs/agents/backtests/pmsamebet/scripts/manifest.py"
+ ],
+ "scratch_inputs": {
+  "candidates.jsonl": {
+   "bytes": 485960440,
+   "lines": 600297,
+   "sha256": "3e0ef7b0707aa458a6158591b9221d7450defbb5886cc3465d22ccd7adffb257"
+  },
+  "history_14d.json": {
+   "bytes": 233787,
+   "lines": 1,
+   "sha256": "946622842bc4010e26bdabf7a8e2f28cfbcc439e9ac3f6606f9bcc962e8e40c3"
+  },
+  "kalshi_CONTROLH-2026-R_1792468800_1793077200.json": {
+   "bytes": 135198,
+   "lines": 1,
+   "sha256": "ca7e4a4758cdd04a0208ace86f9c7b87e09f1f77b142a6009b7ecbe080fa826c"
+  },
+  "kalshi_CONTROLS-2026-R_1792465200_1793073600.json": {
+   "bytes": 121051,
+   "lines": 1,
+   "sha256": "8626e50a5fa66c03acb0b6baf1bdbf9491469b17e9d5e25e0752ef2dee7b57e0"
+  },
+  "kalshi_KXFEDDECISION-26OCT-H0_1792468800_1793077200.json": {
+   "bytes": 84712,
+   "lines": 1,
+   "sha256": "ab593dfdb5a49a69e1d7c495c5d3f7d01c2580faf661e591b26c23c65a9e745d"
+  },
+  "kalshi_KXFEDDECISION-26OCT-H25_1792468800_1793077200.json": {
+   "bytes": 69553,
+   "lines": 1,
+   "sha256": "a8b3263db0f94024a4db682f44ba3cbda98f4f25ff8336e45ce1f4425ea4269a"
+  },
+  "kalshi_SENATETX-26-R_1792468800_1793077200.json": {
+   "bytes": 134210,
+   "lines": 1,
+   "sha256": "5de4cd2fdddaee732f29666d7b681ebba2394bc1480142e66b459d05b967d4db"
+  },
+  "kalshi_lead.json": {
+   "bytes": 11531,
+   "lines": 1,
+   "sha256": "9f23dccf094ee9de5f2817fc317c292adf4e06a9e2ba7fe3cba75809d9af334a"
+  },
+  "open_events.json": {
+   "bytes": 1029888615,
+   "lines": 1,
+   "sha256": "894c20a27874d39e6a0cd017658284bd78383a14d11f0497def537de8b2ed642"
+  },
+  "record.jsonl": {
+   "bytes": 15722245,
+   "lines": 53395,
+   "sha256": "ff1835d259ee583c795344521d096be89a8a09b7247f17edd330b8afbbae1ff4"
+  },
+  "rel_events.json": {
+   "bytes": 36038095,
+   "lines": 1,
+   "sha256": "33ca3b18476731890f7767663fa0db1eab6597808aca96caff2a9013c622cfa2"
+  },
+  "relations.json": {
+   "bytes": 4083798,
+   "lines": 1,
+   "sha256": "b1ea9c7fd6d2a115b89fc951ca61b9499929b7c3fa55b4772f26efc001756970"
+  },
+  "snapshot_2026-10-27T034527Z.json": {
+   "bytes": 568811,
+   "lines": 1,
+   "sha256": "8d153b43780c1a12f401c63c4d46548b0f876d1a270520d712c3f11a9ed9f2aa"
+  },
+  "snapshot_2026-10-27T034655Z.json": {
+   "bytes": 568740,
+   "lines": 1,
+   "sha256": "3516876fb0260b8267d5c081e3e4b3765aee65111406a2b8395d24c05a4316f1"
+  },
+  "snapshot_2026-10-27T042105Z.json": {
+   "bytes": 569775,
+   "lines": 1,
+   "sha256": "691384a32a01069c2e9ad062b315fdfc8d66f1e72928d57ff9f0c4891afbb871"
+  },
+  "trades/*.json.gz": {
+   "bytes": 1408200,
+   "files": 1557,
+   "sha256_of_names_and_hashes": "75fc6174c45c8e089f878612dd866dc82039333921b1a966038ceef61527524f"
+  },
+  "universe.jsonl": {
+   "bytes": 152436776,
+   "lines": 43057,
+   "sha256": "e50469b0ae27917d9bf6df16495ef44de50fb4d4e30c52c7cb26e98a39c8fb3b"
+  }
+ },
+ "sha256": {
+  "data/history_strict.json.gz": "156819b42be4f6dde4d82bc6cca26e1e126a021ed12a5f47dd390ba5bd34fab6",
+  "data/relations.json.gz": "acca0e8bc76f7aed6a8e2c96df50350b27c0d7ba6ae59bf4fe1a8ee35bb6c077",
+  "data/snapshot_2026-10-27T042105Z.json.gz": "7b1e49fca044b75c4b2c96129540ead793e2cc358d2b32cde791076714627b21",
+  "results/allocate.txt": "70512fa432d791a0615ccc43175966cb1709695830488fc61acd3d0288320d7b",
+  "results/candidates_summary.txt": "b255723f552bf1d45bc3a16b01b4d68c7fc4dc7cdb858aa71bf3048aed796e81",
+  "results/history_14d_summary.txt": "8ecab92c341ca9df9825f82f0bbde923746ff3bf3b3de3e0facaf5e70b0575f7",
+  "results/history_strict.txt": "697252735a76336bd5c49168bc61b727bdddd3420e57c896041610a4c12b2ebe",
+  "results/kalshi_lead.txt": "726fc29c5fc8a9e52e55dda72bf2be0c6ec00926d7c2e7aaa8ee4b187672056a",
+  "results/record_summary.txt": "13f3559249c63842bb766296a87687a6369e8412a0bc70be9318ff6638684df3",
+  "results/snapshot_summary.txt": "51f7efe395151756dad8a25a0c2b8cb35b483c747489b7c6ab60c18fbb957314",
+  "scripts/allocate.py": "867c0675e178f85a4ee6ebce08f533dbd39f0fa079b9268df4c118553426eed7",
+  "scripts/books.py": "6cf971056b103ce40426a9c9bee9cedfad59ac0ea5531e6e31f2f2009a576a19",
+  "scripts/candidates.py": "e5d04a3ba6f743ea097d8d6ac52781ea719e5e6aa533946aae873f8ef04391f7",
+  "scripts/compact.py": "07f9bf8d5857fde6f127f87cf1173b93ef8846c7bd840ee232cbb5316785f5b3",
+  "scripts/history.py": "c4134ff57382b4ae11db888550560efac59918822a55f837cd589987233a38fa",
+  "scripts/history_strict.py": "75074fd93a80014a03983bbd5b520817bb5f35b891d929d795b81cd78978a106",
+  "scripts/kalshi_lead.py": "ae7a0292c8608dc515c9a5eafee51a227c6643abec4698ce269801120c4556e5",
+  "scripts/manifest.py": "d3f55eadc9ffd504a50f1f156b228297e7e73820785f7f081b1a72c423feb1af",
+  "scripts/pmnet.py": "87203dbcf4253615f3b326594f99cfb9207ff908748226878b9edd30be5dd3ee",
+  "scripts/pull_open.py": "16b794c3338478423cb305fed94aed71d860b3f0e3ff5a50e9ca328bb6a42732",
+  "scripts/record.py": "952d6d807316f57037cfc028b0ff5e69b360c893f090a89b91360ed2b3a1943f",
+  "scripts/record_summary.py": "de26ea0a360109db62b396231b3554569345ed070c9d72ae09c485510eb5f18c",
+  "scripts/relations.py": "488b53d6bb133fb13bb69e35a936a393ead68baf20a93d02b39c44821501ef1d",
+  "scripts/snapshot.py": "f1b08903cdcc34c72801f8512e13a919418cbe768910a1b31d195d2920075a16"
+ },
+ "study": "PMSAMEBET: Polymarket stat-arb between markets that are (nearly) the same bet in different events, and Kalshi as a minute-scale clock (2026-10-27)"
+}

@@ -3448,6 +3448,38 @@ Read 2026-10-27 (`reviews/2026-10-27-pr5-rules-optimisation.md`, `backtests/pr5_
   (`backtests/pr5_opt/results/usdt_weights.json`). `pr5`, `p50` and `d` keep running: the twins call works a 90th percentile of
   8–14 s after :38 on seven twins (10-26 → 10-27 logs).
 
+### 3.53 PMSAMEBET: the same bet in two Polymarket markets — real gaps, pennies deep, and Kalshi leads nothing (2026-10-27)
+
+Read 2026-10-27 (`reviews/2026-10-27-pm-same-bet-statarb.md`, `backtests/pmsamebet/`, not blind, keyless reads only, nothing
+placed), on Davies' "…有没有研究过本质同一赌注的不同问题/市场中的价差来做stat arb的？…".
+- **New ground.** Earlier work priced links inside one structure (YES/NO, one negative-risk event, ladders,
+  touch/terminal). This study matched the same outcome across events, 1,232 relations in seven families:
+  - SEATMOV: a seat's party winner against that party's margin brackets;
+  - COMBO: chamber or state against balance of power, oil × Senate and the Texas–Michigan–Maine combo;
+  - FED: path combos and hike counts against the meeting markets;
+  - DUP: duplicate listings;
+  - BYON: "by a date" against "not by that date";
+  - NOMWIN and OSCAR implications.
+- **Clauses.** Every gap over 3 ¢ between two single markets that was checked was a clause, not an arbitrage:
+  - Manchester City 0.41 against 0.48: the standalone also pays on an expulsion later overturned;
+  - Anthropic IPO pricing against listing;
+  - a direct listing in the valuation event;
+  - "another hike" against the count, which differ on Dec 10–31 hikes.
+- **At the asks** (politics and Fed charge no taker fee), the 04:21 UTC snapshot:
+  - 123 clean relations with a positive locked edge: capacity $17,840 for $125.70 (0.70 %), nearly all midterm seats;
+  - $300 locks $12.21 once, to about 4 November; $100 locks $5.62.
+  - The gaps stand (103 of 420 seats positive through a whole recorded hour; a median capacity of $78 while positive): they are a few dollars deep.
+- **On 14 days of tape without hindsight** (signal from past prints, every leg filled at a later print): 21 trades of
+  196 signals, $18.08 at up to $100 a signal and $25.92 at up to $300. A bot already works House control against
+  balance of power in 5-share lots.
+- **Kalshi as a clock** (Fed October, Senate, House, Texas Senate; 7 days of minutes):
+  - levels agree to a median 0.5–0.75 ¢;
+  - minute and 5-minute change correlations are |r| ≤ 0.10 at every lag;
+  - Kalshi's 1-cent minute moves are not followed;
+  - a Polymarket-only rule after them averaged −0.54 ¢ to −0.08 ¢ a share.
+- **Verdict: no tradable same-bet stat-arb at our size.** The SAMEBET-REC paper recorder is specified in §6 of the
+  review and not recommended.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
