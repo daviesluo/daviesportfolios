@@ -46810,3 +46810,19 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
 - **MX-1's fourth weekly pull** (sub-agent; not pushed; `weekly.sql` A, B, C; no price here). A: 14 probes, all `trend-1h`
   (`0133` deleted `momentum-1d`'s); 2 new windows (42, 43), 0 failed. B: empty. C: 7 buys, 7 sells: 7 exits of 150, limit
   2027-06-30 far off, no reading due. The 04:20 UTC section archived.
+
+## LEDGER.md, archived 2026-10-27 (second) — the 2026-10-27 01:00 and 03:30 UTC history sections, oldest first
+
+### [2026-10-27 01:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **`edge-watchdog`: a minute's mass boot failure is run again** (sub-agent; not pushed; reference item 63; no migration, no
+  live change). From about 10-26 06:00 UTC eu-west-2 serves several `agents` calls per worker; one failing to start 503s 5–9
+  calls at once (82 minutes in 12 h). The old "more than 4 missing" rule ran none again: `edge-watchdog.beats` 4–11 an hour,
+  LIVE's `quotes` call lost 74 of 1,128 minutes (10 of 1,440 the day before). Now nothing is run again only when no due call
+  wrote a beat (`beatsUnwritten`); a retry that fails is still reported. Pin: the 10-27 00:42 minute. 06:38 UTC section archived.
+
+### [2026-10-27 03:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM's first orders verified** (sub-agent; not pushed; Davies, 10-27: "Polymarket analyst下了几单，你也仔细验证下并且也看看有没有什么可以
+  优化的地方"; `reviews/2026-10-27-grokpm-first-orders.md`, reference §3.50).
+  - Every order and fill is OK end to end, and no server bug was found.
+  - V1 (`0143`): `event_at` and the checks' book stored on each order, pinned in `exec.test.ts` and `src/grokpm_prereg.test.js`.
+  - P1 and P2 are proposals; C-008 is drafted.

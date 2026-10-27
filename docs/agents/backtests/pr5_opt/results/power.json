@@ -1,0 +1,32 @@
+{
+ "book_usdt_2to1": {
+  "meanBpsDay": 1.242,
+  "sdDailyDiffBps": 2.746,
+  "pass_atEffect_share<=0.20": 0.928,
+  "pass_atEffect_share<=0.10": 0.848,
+  "pass_atHalf_share<=0.20": 0.592,
+  "pass_atHalf_share<=0.10": 0.454,
+  "pass_atZero_share<=0.20": 0.189,
+  "pass_atZero_share<=0.10": 0.109
+ },
+ "size_75_75_0": {
+  "meanBpsDay": 1.145,
+  "sdDailyDiffBps": 3.434,
+  "pass_atEffect_share<=0.20": 0.755,
+  "pass_atEffect_share<=0.10": 0.628,
+  "pass_atHalf_share<=0.20": 0.537,
+  "pass_atHalf_share<=0.10": 0.414,
+  "pass_atZero_share<=0.20": 0.278,
+  "pass_atZero_share<=0.10": 0.185
+ },
+ "hold_min_1gbp": {
+  "meanBpsDay": 0.484,
+  "sdDailyDiffBps": 0.995,
+  "pass_atEffect_share<=0.20": 0.989,
+  "pass_atEffect_share<=0.10": 0.973,
+  "pass_atHalf_share<=0.20": 0.595,
+  "pass_atHalf_share<=0.10": 0.432,
+  "pass_atZero_share<=0.20": 0.198,
+  "pass_atZero_share<=0.10": 0.105
+ }
+}

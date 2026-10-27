@@ -1,0 +1,26 @@
+{
+ "entryFills": {
+  "USDC-GBP before 10-08": 7,
+  "USDC-GBP from 10-08": 86,
+  "USDT-GBP before 10-08": 17,
+  "USDT-GBP from 10-08": 232
+ },
+ "entryFillsUnder1Gbp": {
+  "USDC-GBP from 10-08": 1,
+  "USDT-GBP from 10-08": 142
+ },
+ "tripsUnder1Gbp": {
+  "USDC-GBP from 10-08": 1,
+  "USDT-GBP from 10-08": 142
+ },
+ "heldMinutesUnder1GbpTrips": {
+  "USDC-GBP from 10-08": 33,
+  "USDT-GBP from 10-08": 1174
+ },
+ "tripsAll": {
+  "USDC-GBP before 10-08": 7,
+  "USDC-GBP from 10-08": 86,
+  "USDT-GBP before 10-08": 14,
+  "USDT-GBP from 10-08": 302
+ }
+}

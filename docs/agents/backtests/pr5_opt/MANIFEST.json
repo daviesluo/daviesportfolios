@@ -1,0 +1,135 @@
+{
+ "study": "PR5-OPT, 2026-10-27 (docs/agents/reviews/2026-10-27-pr5-rules-optimisation.md): LIVE's rules (PR5's paper engine carried out by the live executor, LIVE's 'at' fill rule, weekends on the held X) replayed at £600 with one change at a time: sizes per rung and per book, rung distances, exits, re-price, stops, gates, guards, skew, fair, holding. Not blind; no pre-registered reading run; nothing in production changed.",
+ "read": "production, SELECT only, through the Supabase connector, 2026-10-27 03:07-03:45 UTC (sql/pulls.sql); LIVE's filled orders from ../scq_review/2026-10-26/data/live_orders.json.gz; the committed tape docs/agents/backtests/inputs/pr5_2026-09-23 through docs/agents/scripts/pr5/pr5_sim.py; the release list ../cbreview/inputs/events.json; the 2026-10-18 replay ../scq_review/2026-10-18/scripts/replay.py.",
+ "run": [
+  "python3 -I scripts/grab_text.py <saved connector reply of each statement of sql/pulls.sql> data && gzip -n -9 data/*.txt",
+  "python3 -I scripts/check_paper.py   # results/check_paper.json: the paper layer against PR5's engine (273 of 273 trips)",
+  "python3 -I scripts/calibrate.py     # results/calibration.json: the replay against LIVE at £10 a rung, 10-02 -> 10-26 (bps only)",
+  "python3 -I scripts/experiments.py   # results/experiments.json: 55 candidates x FWD (at, at50, through), HIST (at, through), LONG (at); about nine minutes",
+  "python3 -I scripts/robust.py        # results/robust.json: the shortlist by week, weekdays and closures, combinations, the engine/executor equivalence",
+  "python3 -I scripts/dust_fills.py    # results/dust_fills.json: LIVE's entry fills under £1 since the £0.10 bot (counts and minutes)",
+  "python3 -I scripts/power.py         # results/power.json: the proposed bar's power over 28 days",
+  "python3 -I scripts/table.py         # results/table.md: the review's candidate table",
+  "python3 -I scripts/manifest.py"
+ ],
+ "findings": [
+  "The replay's paper layer reproduces all 273 of PR5's paper trips entered 2026-09-26 -> 10-26 (+$18.8879, 4 stops); against LIVE at £10 a rung it makes 1.20x LIVE's realised on clean days under LIVE's 'at' fill rule and 0.91x under 'through' (daily correlation 0.94 / 0.92).",
+  "LIVE's rules at £600 on FWD (09-26 -> 10-27): 12.98 bps of capital a day ('at'), 10.27 ('through'); HIST 6.64 / 5.33; LONG 33.70.",
+  "USDT-GBP at twice USDC-GBP's pounds: +1.24 bps/day (90 % +0.35 to +2.24), +1.22 under 'through', +0.51 HIST, +5.03 LONG, 39 of 39 long-tape weeks ahead.",
+  "The 0.3 % rungs' money on the 0.1 / 0.2 % rungs (£75/£75/£0): +1.15 (90 % -0.17 to +2.32), +0.99 HIST, +1.26 LONG; behind in 8 of 39 long-tape weeks.",
+  "A rung counted as held only above £1: +0.48 under 'at', +0.05 under 'through', 0 before the £0.10 bot of 10-08; 142 of LIVE's 232 USDT-GBP entry fills since 10-08 were under £1.",
+  "Weekend off: -5.41 bps/day. Wider ladders, a 0.4 % rung, other re-price steps, exit offsets, shorter stops, time gates, release blackouts, skew, a basis-adjusted fair and a tighter de-peg guard: no better or worse."
+ ],
+ "files": [
+  {
+   "path": "data/minutes_a.txt.gz",
+   "bytes": 161598,
+   "sha256": "ca9d2672f943e07dfa38e23d0482726f6d6e7d92e2a8d3b63ce1fd05fe2ab080"
+  },
+  {
+   "path": "data/minutes_b.txt.gz",
+   "bytes": 181811,
+   "sha256": "e19362df4f5fc5c98b49666b9d053674f10cbcdaa3d959fb442a3cdf1fc2eede"
+  },
+  {
+   "path": "data/minutes_c.txt.gz",
+   "bytes": 138273,
+   "sha256": "65934810a934dcc96bd80db990bc564d12934fafb22d5711c0b88d5f1c7f295d"
+  },
+  {
+   "path": "data/prints.txt.gz",
+   "bytes": 499934,
+   "sha256": "e4a20367891a0536a8a10d81c550d00cd5db95b127e020b9bc8624f3af3fc458"
+  },
+  {
+   "path": "results/calibration.json",
+   "bytes": 3582,
+   "sha256": "76482ced137e7cefd620a78bc13f42f24b71852e356e3e2aaae6e7107947852d"
+  },
+  {
+   "path": "results/check_paper.json",
+   "bytes": 205,
+   "sha256": "5ffad3f877e5484c7e1ea305ec40b5d49a51c6f881d6e8e8235f595d1ff2eeac"
+  },
+  {
+   "path": "results/dust_fills.json",
+   "bytes": 544,
+   "sha256": "c08e5ac8a32ae7e1332fccecce0318630ebee25077d59fc872d30faa77b58979"
+  },
+  {
+   "path": "results/experiments.json",
+   "bytes": 196287,
+   "sha256": "3377e7a4d38efb0c0050d45b251aac35bc204daa0e03aed9facd3f2a90972122"
+  },
+  {
+   "path": "results/power.json",
+   "bytes": 881,
+   "sha256": "a0ec74561b361d674a1153ec7a58bac69e613af7a8d2ccc64e8f2517646843de"
+  },
+  {
+   "path": "results/robust.json",
+   "bytes": 17019,
+   "sha256": "8fdf4c17dde753cfc2a930d09dc44b16addc922e30a249dbb3a0cd6de5177f70"
+  },
+  {
+   "path": "results/table.md",
+   "bytes": 9014,
+   "sha256": "4f60b712d225535c35784ef8604666b57e8e024bb7a51ac90414153b3bc01aa1"
+  },
+  {
+   "path": "scripts/calibrate.py",
+   "bytes": 5730,
+   "sha256": "919b22807660575590b3d03e719dd3efc210357af17614f8b5d2156676cc3070"
+  },
+  {
+   "path": "scripts/check_paper.py",
+   "bytes": 2170,
+   "sha256": "22e11d50c48e2f1114829138d5cce771a40debf33be15fdf4bf272a5b0587532"
+  },
+  {
+   "path": "scripts/dust_fills.py",
+   "bytes": 2525,
+   "sha256": "84e142bde021a499986015bf5d40b98f48423e564f86ef2ab0abf95aa1df85ff"
+  },
+  {
+   "path": "scripts/experiments.py",
+   "bytes": 14459,
+   "sha256": "22b7b05533cab24ae6be2f236afdb2bc681fa8835fb5dc88fb8fb2432cd92742"
+  },
+  {
+   "path": "scripts/grab_text.py",
+   "bytes": 1115,
+   "sha256": "2877c0c293e719337b9b37f78d148f6d678de4836416283cedb553b31bfe885e"
+  },
+  {
+   "path": "scripts/manifest.py",
+   "bytes": 3844,
+   "sha256": "3465eee4fe1319ea6c430b40c6d2b2334198e369dabdefc71f20ca361599fdf3"
+  },
+  {
+   "path": "scripts/power.py",
+   "bytes": 2392,
+   "sha256": "256b9139f3400b0eb0648160474936287e7e6060ebab6d879dc92be5075539f2"
+  },
+  {
+   "path": "scripts/robust.py",
+   "bytes": 4486,
+   "sha256": "4387c6e3d973e9c53e92990715ccb2d24b83378a34db0e9a4da1b498668d5546"
+  },
+  {
+   "path": "scripts/sim.py",
+   "bytes": 21453,
+   "sha256": "1750cd7b3e4578f02bac810f1e0e1377b8bc1e4c76d58830edb084c9d8763526"
+  },
+  {
+   "path": "scripts/table.py",
+   "bytes": 1805,
+   "sha256": "2013e71222e920128334f49876052edcecd72262f7024eb88bb4ea9f795cf081"
+  },
+  {
+   "path": "sql/pulls.sql",
+   "bytes": 3264,
+   "sha256": "d8399b501e9f82d1c13d1cfd3457d768018881251b53077ff72fb7cfa1ef4fd9"
+  }
+ ]
+}

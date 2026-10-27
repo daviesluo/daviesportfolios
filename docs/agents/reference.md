@@ -3406,6 +3406,35 @@ Read 2026-10-26 (`reviews/2026-10-26-stablecoin-quotes-review.md`, `backtests/sc
   weekend variant is "with Euros - 1", and "with Euros - 2" is its rule on the two USDC books at £25/€25 a rung (item 60's
   addendum; Davies: "…-2改为你说的这个新策略在-1（含周末）的基础上做").
 
+### 3.52 PR5-OPT: LIVE's rules hold up, except how the capital is split; three twins proposed (2026-10-27)
+
+Read 2026-10-27 (`reviews/2026-10-27-pr5-rules-optimisation.md`, `backtests/pr5_opt/`, not blind), on Davies' "看看目前live的策略是所有
+已知信息和推算所得出的最佳rules吗…". Nothing in production changed.
+- **The replay.** PR5's paper engine reproduced, 273 of 273 trips (09-26 → 10-26). The live executor is simulated as the LIVE twin
+  does it: at-price fills by print size, £0.10 dust, the 24-hour stop, weekends on the held X.
+  - Against LIVE at £10 a rung, on clean days: 1.20× its realised under "at", 0.91× under "through"; daily correlation 0.94.
+  - 55 changes were replayed at £600 on PR5's record (FWD, 31 days), the tape's last tight 28 days (HIST) and 265 days (LONG).
+  - Each was paired by day, with a 3-day block bootstrap, and judged by a rule written before the first run.
+- **LIVE's re-price is 0.05 %** (`QUOTE_REPRICE`), not 0.03 % (rule D's).
+- **Kept, re-tested:**
+  - rungs 0.1 / 0.2 / 0.3 % (wider, 0.4 % and Davies' 0.075 / 0.15 / 0.25 / 0.4 % are worse);
+  - exit at fair; re-price 0.05 %; the 24-hour stop; the 50 bps de-peg guard;
+  - the fair (a basis-adjusted one is worse);
+  - no time gate, release blackout or inventory skew.
+  - The weekend is the strongest rule: off, −5.41 bps of capital a day.
+- **Never tested before, now improvable:**
+  - **Per-book allocation.** USDT-GBP at twice USDC-GBP's pounds: +1.24 bps/day (90 % +0.35 to +2.24), +1.22 under "through",
+    +0.51 HIST, +5.03 LONG; 39 of 39 long-tape weeks ahead.
+  - **The 0.3 % rungs' money on 0.1 / 0.2 %** (£75 / £75 / £0): +1.15, +0.99 HIST, +1.26 LONG; behind in 8 of 39 weeks.
+  - **A rung counted as held only above £1:** +0.48 under "at", 0 before the £0.10 USDT-GBP bot of 10-08 (about 450 prints a day).
+    142 of LIVE's 232 USDT-GBP entry fills since then were under £1.
+- **Size, per pound against £120:** £300 0.92×, £600 0.85×, £1,200 0.75×; `live600`'s 11-11 bar is 80 %.
+- **Proposed** (specs and a 28-day bar against `live600` in the review's §4; Davies' word, then the main session builds):
+  - `live600usdt2` (`weights.book`), `live600no03` (`weights.k`) and `live600hold1` (`holdMin`);
+  - two executor options, absent on LIVE's instance;
+  - a code-only deviation in the five pre-registrations that pin `quotes_twin.ts`;
+  - start no earlier than 10-29 00:00, after the 10-28 retirements.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

@@ -1,0 +1,266 @@
+{
+ "window": [
+  "2026-10-02",
+  "2026-10-26"
+ ],
+ "days": 24,
+ "note": "bps of capital; LIVE in bps only (public repository)",
+ "live": {
+  "trips": 407,
+  "bpsDay": 7.389,
+  "entryFills": 340,
+  "entryFilledShareMean": 0.569
+ },
+ "at": {
+  "trips": 362,
+  "bpsDay": 10.458,
+  "ratioToLive": 1.415,
+  "dailyCorrelation": 0.938,
+  "weekdaysRatio": 1.555,
+  "cleanDaysRatio": 1.195
+ },
+ "byRung": {
+  "USDC-GBP|ask|0.001": {
+   "sim": [
+    34,
+    28.21
+   ],
+   "live": [
+    34,
+    27.58
+   ]
+  },
+  "USDC-GBP|ask|0.002": {
+   "sim": [
+    12,
+    15.01
+   ],
+   "live": [
+    10,
+    11.11
+   ]
+  },
+  "USDC-GBP|ask|0.003": {
+   "sim": [
+    1,
+    2.74
+   ],
+   "live": [
+    0,
+    0.0
+   ]
+  },
+  "USDC-GBP|bid|0.001": {
+   "sim": [
+    47,
+    32.38
+   ],
+   "live": [
+    39,
+    25.86
+   ]
+  },
+  "USDC-GBP|bid|0.002": {
+   "sim": [
+    10,
+    14.23
+   ],
+   "live": [
+    9,
+    9.3
+   ]
+  },
+  "USDC-GBP|bid|0.003": {
+   "sim": [
+    1,
+    1.21
+   ],
+   "live": [
+    1,
+    0.33
+   ]
+  },
+  "USDT-GBP|ask|0.001": {
+   "sim": [
+    121,
+    38.33
+   ],
+   "live": [
+    150,
+    32.33
+   ]
+  },
+  "USDT-GBP|ask|0.002": {
+   "sim": [
+    35,
+    41.73
+   ],
+   "live": [
+    41,
+    34.67
+   ]
+  },
+  "USDT-GBP|ask|0.003": {
+   "sim": [
+    13,
+    28.14
+   ],
+   "live": [
+    15,
+    23.98
+   ]
+  },
+  "USDT-GBP|bid|0.001": {
+   "sim": [
+    76,
+    28.28
+   ],
+   "live": [
+    96,
+    7.97
+   ]
+  },
+  "USDT-GBP|bid|0.002": {
+   "sim": [
+    7,
+    9.67
+   ],
+   "live": [
+    9,
+    3.36
+   ]
+  },
+  "USDT-GBP|bid|0.003": {
+   "sim": [
+    5,
+    11.07
+   ],
+   "live": [
+    3,
+    0.84
+   ]
+  }
+ },
+ "daily": {
+  "2026-10-02": {
+   "simBps": 6.41,
+   "liveBps": -0.67
+  },
+  "2026-10-03": {
+   "simBps": 0.66,
+   "liveBps": 0.66
+  },
+  "2026-10-04": {
+   "simBps": 0.0,
+   "liveBps": 0.0
+  },
+  "2026-10-05": {
+   "simBps": 2.43,
+   "liveBps": 0.99
+  },
+  "2026-10-06": {
+   "simBps": 10.41,
+   "liveBps": 11.79
+  },
+  "2026-10-07": {
+   "simBps": 7.06,
+   "liveBps": 0.77
+  },
+  "2026-10-08": {
+   "simBps": 16.17,
+   "liveBps": 6.06
+  },
+  "2026-10-09": {
+   "simBps": 6.68,
+   "liveBps": 3.23
+  },
+  "2026-10-10": {
+   "simBps": 0.0,
+   "liveBps": 0.0
+  },
+  "2026-10-11": {
+   "simBps": 0.0,
+   "liveBps": 0.0
+  },
+  "2026-10-12": {
+   "simBps": 1.1,
+   "liveBps": 1.1
+  },
+  "2026-10-13": {
+   "simBps": 6.34,
+   "liveBps": 3.86
+  },
+  "2026-10-14": {
+   "simBps": 7.14,
+   "liveBps": -2.05
+  },
+  "2026-10-15": {
+   "simBps": 15.33,
+   "liveBps": 12.58
+  },
+  "2026-10-16": {
+   "simBps": 16.67,
+   "liveBps": 14.52
+  },
+  "2026-10-17": {
+   "simBps": 0.0,
+   "liveBps": 0.0
+  },
+  "2026-10-18": {
+   "simBps": 0.01,
+   "liveBps": 0.01
+  },
+  "2026-10-19": {
+   "simBps": 22.58,
+   "liveBps": 16.32
+  },
+  "2026-10-20": {
+   "simBps": 21.29,
+   "liveBps": 3.81
+  },
+  "2026-10-21": {
+   "simBps": 4.56,
+   "liveBps": 6.45
+  },
+  "2026-10-22": {
+   "simBps": 12.92,
+   "liveBps": 8.54
+  },
+  "2026-10-23": {
+   "simBps": 48.52,
+   "liveBps": 44.91
+  },
+  "2026-10-24": {
+   "simBps": 43.13,
+   "liveBps": 43.19
+  },
+  "2026-10-25": {
+   "simBps": 1.57,
+   "liveBps": 1.26
+  }
+ },
+ "at_half": {
+  "trips": 326,
+  "bpsDay": 10.448,
+  "ratioToLive": 1.414,
+  "dailyCorrelation": 0.944,
+  "weekdaysRatio": 1.529,
+  "cleanDaysRatio": 1.201
+ },
+ "through": {
+  "trips": 231,
+  "bpsDay": 8.159,
+  "ratioToLive": 1.104,
+  "dailyCorrelation": 0.917,
+  "weekdaysRatio": 1.123,
+  "cleanDaysRatio": 0.906
+ },
+ "at_off10": {
+  "trips": 370,
+  "bpsDay": 10.511,
+  "ratioToLive": 1.423,
+  "dailyCorrelation": 0.945,
+  "weekdaysRatio": 1.537,
+  "cleanDaysRatio": 1.213
+ }
+}

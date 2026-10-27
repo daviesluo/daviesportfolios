@@ -1,0 +1,17 @@
+{
+ "replay": {
+  "n": 273,
+  "pnlUsd": 18.8879,
+  "stops": 4
+ },
+ "engine": {
+  "n": 273,
+  "pnlUsd": 18.8879,
+  "stops": 4
+ },
+ "simPaperLayer": {
+  "n": 273,
+  "stops": 4,
+  "sameTripsAsReplay": 273
+ }
+}

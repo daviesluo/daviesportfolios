@@ -287,6 +287,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      `live600` per pound, no loss-stop day), `live300` off; compounding (`0146`) built OFF, his switch (review §9.3); `live` "variant-2" £120, weekends from 10-30; `pr5`, `p50`, `d` hidden, off after
      their 10-28 readouts; `take50wk` off. `0142`: `take50` "variant-3" on the page; Coinbase "with Euros - 1" (hold, 11-10) and
      "- 2", the USDC arm at £25/€25 (prereg `cb-usdc`, 14 days, bar > 0, ≥ 8 %/yr, ≥ 5 bps a trip).
+     **PR5-OPT 10-27** (`reviews/2026-10-27-pr5-rules-optimisation.md` §4): three twins on LIVE's rules against `live600`
+     (`live600usdt2`, `live600no03`, `live600hold1`) wait for Davies' word; build after the 10-28 retirements (history 03:50).
      **Audit 2026-10-19:** the read's eight criteria are not the addendum's step 2: its "`late` is false" was dropped (the
      replica was late), variant-3 was not compared (no orders before 10-23), and 900 of the closure's 2,880 minutes were
      read. The executor never reads `late`; only the rule "set 'live' outside a closure" keeps a late copy from trading.
@@ -753,8 +755,20 @@ Facts a fresh session would otherwise rediscover:
 
 Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's archive, each batch under a heading
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
-first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to MX-1's 2026-10-26 06:38 UTC section (archived
-2026-10-27).
+first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to GROKPM's first-orders section of 2026-10-27 03:30 UTC (archived
+2026-10-27, second).
+
+### [2026-10-27 03:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **PR5-OPT: is LIVE's rule set the best known?** (sub-agent; not pushed; `reviews/2026-10-27-pr5-rules-optimisation.md`,
+  `backtests/pr5_opt/`, reference §3.52; not blind; nothing in production changed.) It replays LIVE-realistic: PR5's engine is
+  273 of 273 trips, and on LIVE's clean days the replay is 1.20× its realised under "at" and 0.91× under "through". 55 changes were
+  replayed at £600. Rungs, exit, re-price (0.05 %, not 0.03 %), stop, guards and fair hold up; the weekend is worth +5.4 bps a
+  day. Never tested before:
+  - USDT-GBP 2:1 is +1.24 bps/day, ahead in 39 of 39 long-tape weeks;
+  - the 0.3 % money moved to 0.1 / 0.2 % is +1.15;
+  - holding counted only above £1 is +0.48 (the £0.10 bot since 10-08).
+  **For Davies:** three twins against `live600`, 28 days each: `live600usdt2`, `live600no03` and `live600hold1`. Their specs, bar
+  and the code they need (`weights`, `holdMin`) are in §4; build no earlier than 10-29, after the 10-28 retirements.
 
 ### [2026-10-27 03:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **LIVE at £600; its twin is the £600 one, variant-1 tests £1,200 (`0144`)** (sub-agent; not pushed; Davies, 10-27: "我已经加到600了…
@@ -774,17 +788,3 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to MX-1
   - D17 (`0147`): one cap per negative-risk event, `negRiskMarketID` stored on each order with the three live markets
     filled in; pinned in `exec.test.ts` and `src/grokpm_prereg.test.js`.
   - C-008's text is in the review's §5.3, for the main session to post after the deploy.
-
-### [2026-10-27 03:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **GROKPM's first orders verified** (sub-agent; not pushed; Davies, 10-27: "Polymarket analyst下了几单，你也仔细验证下并且也看看有没有什么可以
-  优化的地方"; `reviews/2026-10-27-grokpm-first-orders.md`, reference §3.50).
-  - Every order and fill is OK end to end, and no server bug was found.
-  - V1 (`0143`): `event_at` and the checks' book stored on each order, pinned in `exec.test.ts` and `src/grokpm_prereg.test.js`.
-  - P1 and P2 are proposals; C-008 is drafted.
-
-### [2026-10-27 01:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **`edge-watchdog`: a minute's mass boot failure is run again** (sub-agent; not pushed; reference item 63; no migration, no
-  live change). From about 10-26 06:00 UTC eu-west-2 serves several `agents` calls per worker; one failing to start 503s 5–9
-  calls at once (82 minutes in 12 h). The old "more than 4 missing" rule ran none again: `edge-watchdog.beats` 4–11 an hour,
-  LIVE's `quotes` call lost 74 of 1,128 minutes (10 of 1,440 the day before). Now nothing is run again only when no due call
-  wrote a beat (`beatsUnwritten`); a retry that fails is still reported. Pin: the 10-27 00:42 minute. 06:38 UTC section archived.
