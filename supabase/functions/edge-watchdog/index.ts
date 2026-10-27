@@ -22,9 +22,14 @@
 //   * Only what the job sent. A row the job holds back until its `active_from` (0104: a call added in the same push as
 //     the code it calls waits 15 minutes for the deploy) is not due here either, so it is never missing, and never run
 //     again on code that may not know it yet.
-//   * Only a few. More than `MAX_RETRIES` due calls with no beat is far likelier to be beats not being written (a deploy
-//     in flight, the table refusing them) than workers not starting (the five failures the ledger recorded on 2026-10-01
-//     fell in five different minutes): nothing is run again, and it is reported.
+//   * Only a few, unless the minute shows the beats are being written. More than `MAX_RETRIES` due calls with no beat,
+//     and not one due call with a beat, is beats not being written (a deploy in flight, the table refusing them), not
+//     workers not starting: nothing is run again, and it is reported. The five failures the ledger recorded on 2026-10-01
+//     fell in five different minutes; from about 06:00 UTC on 2026-10-26 the platform has served several of the minute's
+//     `agents` calls from one worker in eu-west-2 (workers per call fell from about 0.6 to 0.25), and a worker that fails
+//     to start now answers 503 BOOT_ERROR to 5–9 calls at once, in 5–11 minutes an hour. The other calls' beats in the
+//     same minute show the table takes them, so those calls are run again (`beatsUnwritten`): before, each such minute
+//     was lost whole, PR5's live executor (`agents?action=quotes`) with it in 74 of 1,128 minutes to 2026-10-27 00:47.
 //   * A call whose retry answered and still wrote no beat under the key looked for would be run twice every minute; it is
 //     reported, and not run again for `HOLD_MS`.
 //   * A watchdog that starts more than `LATE_MS` into its minute is in a batch that began late (reference §4 item 39
@@ -59,7 +64,10 @@ export const CHECK_AT_MS = 13_000;
 export const AFTER_ARRIVAL_MS = 12_000;
 /** Started later than this into its minute, it runs nothing again (see the header). */
 export const LATE_MS = 8_000;
-/** More due calls than this with no beat (those the list excludes counted too), and nothing is run again: see the header. */
+/**
+ * More due calls than this with no beat (those the list excludes counted too), when no due call wrote one, and nothing
+ * is run again: see the header and `beatsUnwritten`.
+ */
 export const MAX_RETRIES = 4;
 /** A call whose retry answered and wrote no beat is not run again for this long. */
 export const HOLD_MS = 10 * 60_000;
@@ -131,6 +139,15 @@ export function plan(calls: EdgeCall[], beats: Iterable<string>, minuteMs: numbe
   const due = calls.filter((c) => c.path !== WATCHDOG_PATH && isDue(c, minuteMs));
   const missing = due.filter((c) => !have.has(beatKeyOfPath(c.path)));
   return { due: due.length, retry: missing.filter((c) => c.retry), excluded: missing.filter((c) => !c.retry) };
+}
+
+/**
+ * Whether the minute's missing beats are beats not being written rather than workers that did not start: more than
+ * `MAX_RETRIES` missing and no due call's beat at all. One due call's beat in the minute is the table taking them, and
+ * then any number missing is a boot failure, run again.
+ */
+export function beatsUnwritten(due: number, missing: number): boolean {
+  return missing > MAX_RETRIES && missing >= due;
 }
 
 /** When the beats are read: `CHECK_AT_MS` into the minute, and no sooner than `AFTER_ARRIVAL_MS` after starting. */
@@ -213,8 +230,9 @@ export async function runWatchdog(d: WatchdogDeps): Promise<WatchdogReport> {
     } catch (e) { report.errors.push(`${c.path}: not recorded (${msg(e)})`); }
   }
   if (!p.retry.length) return report;
-  // Counted over every missing beat, the excluded calls' too: that many at once is the beats, not a boot.
-  if (report.missing.length > MAX_RETRIES) {
+  // Counted over every missing beat, the excluded calls' too: that many at once, with no due call's beat, is the beats, not
+  // a boot. With one, it is a worker that served several calls and did not start, and they are run again (the header).
+  if (beatsUnwritten(p.due, report.missing.length)) {
     report.errors.push(`${report.missing.length} of ${p.due} due calls wrote no beat by ${(checkedMs / 1000).toFixed(1)} s: beats are not being written (a deploy in flight, or the table refusing them), not a worker that failed to start; nothing is run again`);
     await d.report("edge-watchdog.beats", { message: report.errors.at(-1), context: { minute: minuteIso, missing: report.missing } });
     return report;

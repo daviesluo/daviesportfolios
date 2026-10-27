@@ -46803,3 +46803,10 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   - `agents/cb_usdc.ts`: `runCbHold`'s steps on the USDC books at 25 a rung (prints × 4, sizes ÷ 4; frozen files untouched),
     own tables, call `cbusdc`, prune. The hold arm's page name is "- 1" (`CB_HOLD_PAGE_NAME`); its browser fixture keeps "- 2"
     (frozen `cb_hold.test.ts`). Ledger: the 03:10 UTC section archived.
+
+## LEDGER.md, archived 2026-10-27 — MX-1's 2026-10-26 06:38 UTC section
+
+### [2026-10-26 06:38 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **MX-1's fourth weekly pull** (sub-agent; not pushed; `weekly.sql` A, B, C; no price here). A: 14 probes, all `trend-1h`
+  (`0133` deleted `momentum-1d`'s); 2 new windows (42, 43), 0 failed. B: empty. C: 7 buys, 7 sells: 7 exits of 150, limit
+  2027-06-30 far off, no reading due. The 04:20 UTC section archived.

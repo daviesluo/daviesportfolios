@@ -4,7 +4,7 @@
 // keys, columns and the outcome CHECK, and refuses what PostgREST would (`Rest`).
 import { assert, assertEquals, assertRejects } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
-  activeBy, AFTER_ARRIVAL_MS, CHECK_AT_MS, checkAt, classify, type EdgeCall, handle, HOLD_MS, isCron, isDue, LATE_MS, makeCall, makeRest, MAX_RETRIES, plan,
+  activeBy, AFTER_ARRIVAL_MS, beatsUnwritten, CHECK_AT_MS, checkAt, classify, type EdgeCall, handle, HOLD_MS, isCron, isDue, LATE_MS, makeCall, makeRest, MAX_RETRIES, plan,
   type Rest, retryUrl, runWatchdog, WATCHDOG_PATH, type WatchdogDeps, type WatchdogReport,
 } from "./index.ts";
 import { beatKeyOfPath, minuteOf } from "../_shared/beats.ts";
@@ -315,16 +315,46 @@ Deno.test("the calls run again go out at once, not one after another", async () 
   assertEquals([w.sent.length, most], [2, 2]);
 });
 
-Deno.test(`more than ${MAX_RETRIES} due calls with no beat is not a failed boot: nothing is run again, and it is reported`, async () => {
-  const w = world({ at: MINUTE + 100, beats: dueKeys(MINUTE).slice(0, 8) });
+Deno.test(`more than ${MAX_RETRIES} due calls with no beat and not one due call's beat is the beats: nothing is run again, and it is reported`, async () => {
+  const w = world({ at: MINUTE + 100, beats: [] });
   const r = await runWatchdog(w.d);
   assertEquals(w.sent, []);
-  assertEquals(r.missing.length, 5);
+  assertEquals(r.missing.length, 13);
   assertEquals(w.reports.map((x) => x.kind), ["edge-watchdog.beats"]);
+  assert(String(w.reports[0].message).startsWith("13 of 13 due calls wrote no beat by 13.0 s: beats are not being written"));
   // Four is still a boot failure each: all four run again.
   const four = world({ at: MINUTE + 100, beats: dueKeys(MINUTE).filter((k) => !["agents?action=tick", "agents?action=quotes", "agents?action=books", "agents?action=views"].includes(k)) });
   await runWatchdog(four.d);
   assertEquals(four.sent.length, 4);
+});
+
+Deno.test("beatsUnwritten — more than four missing and no due call's beat; one beat in the minute makes any number a boot failure", () => {
+  assertEquals([beatsUnwritten(13, 13), beatsUnwritten(15, 15), beatsUnwritten(15, 14), beatsUnwritten(15, 8), beatsUnwritten(4, 4), beatsUnwritten(13, 4)], [true, true, false, false, false, false]);
+});
+
+Deno.test("2026-10-27 00:42: one worker for several agents calls failed to start, 9 of 15 with no beat while the rest wrote theirs: all 9 run again, LIVE's executor among them", async () => {
+  // The minute as production had it: 15 due, the watchdog aside; 503 BOOT_ERROR at 10.2 s to these nine at once.
+  const now: EdgeCall[] = [
+    "agents?action=tick", "agents?action=quotes", "agents?action=quotesv", "agents?action=quotesd", "agents?action=books", "agents?action=quotestwins",
+    "agents?action=pmlp&forceFunctionRegion=eu-west-1", "agents?action=cjrec", "agents?action=cbrec", "agents?action=cbbooks", "agents?action=pmlpreserve",
+    "agents?action=cbhold", "grokpm?action=sync&forceFunctionRegion=eu-west-1", "targets", "agents?action=cbusdc", "edge-watchdog",
+  ].map((path) => ({ path, timeout_ms: 58_000, every_minutes: 1, last_utc_hour: 23, enabled: true, retry: path !== "edge-watchdog" }));
+  const lost = ["agents?action=tick", "agents?action=quotes", "agents?action=quotesd", "agents?action=books", "agents?action=quotestwins",
+    "agents?action=cjrec", "agents?action=cbrec", "agents?action=cbhold", "agents?action=cbusdc"];
+  const at = T("2026-10-27T00:42:00Z");
+  const w = world({ at: at + 687, db: fakeDb(now), beats: dueKeys(at, now).filter((k) => !lost.map(beatKeyOfPath).includes(k)) });
+  const r = await runWatchdog(w.d);
+  assertEquals([r.due, r.beats, r.missing.length], [15, 6, 9]);
+  assertEquals(w.sent.map((s) => s.path), lost);
+  assertEquals(r.retried.map((x) => x.outcome), lost.map(() => "ok"));
+  assertEquals(w.sent[0].at, at + 13_000);
+  assertEquals(w.reports, []);
+  // Run again and failed to start again: a real miss, reported as one, never silenced.
+  const w2 = world({ at: at + 687, db: fakeDb(now), beats: dueKeys(at, now).filter((k) => !lost.map(beatKeyOfPath).includes(k)), answer: () => Promise.resolve({ status: 503, body: '{"code":"BOOT_ERROR","message":"Function failed to start (please check logs)"}' }) });
+  const r2 = await runWatchdog(w2.d);
+  assertEquals(r2.retried.map((x) => x.outcome), lost.map(() => "failed"));
+  assertEquals(w2.reports.map((x) => x.kind), ["edge-watchdog.retry"]);
+  assert(String(w2.reports[0].message).includes("agents?action=quotes failed 503: {\"code\":\"BOOT_ERROR\""));
 });
 
 Deno.test("RW's and RW-C's paper engines with no beat are recorded excluded: never run again, never reported", async () => {
