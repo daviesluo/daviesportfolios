@@ -760,6 +760,8 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to MX-1
   把测试的Stablecoin quotes LIVE twin改为600，Stablecoin quotes variant-1改为…下次加仓的目标仓位本金的测试"; review §8). Read first: the account
   funded by the executor's own balances, `capital_gbp` 600 set by him at 03:09, two maker conversions sent. LIVE's own orders,
   queue-aware: per pound 0.90 of £10's at £50, 0.82 at £100, 0.76 at £150. No twin resized; size twins' deviation 1.
+- **DAYS' 7-day figure reads each day over the capital it ran on** (Davies, 10-27; `0145`: `agent_quote_live_capital`, kept by a
+  trigger on LIVE's config, seeded £120 from go-live and £600 from 03:08:37; `dayCapitalGbp`; pinned on 10-19 → 25's week).
 
 ### [2026-10-27 03:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **GROKPM's first orders verified** (sub-agent; not pushed; Davies, 10-27: "Polymarket analyst下了几单，你也仔细验证下并且也看看有没有什么可以

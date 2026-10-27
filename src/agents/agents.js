@@ -674,8 +674,10 @@ export function glTextIn(n, pct, ccy) {
  * 表格标题days旁边加上近七天平均年化收益率"): what the seven calendar days before today realised, over the row's capital, a year
  * of them. Calendar days, not rows: a day with no order has no row (a weekend, an outage) and earned nothing, so seven
  * rows could span nine days and overstate the rate by 9/7 (it did, 2026-10-09). A row younger than seven days is read over
- * the days since its first. null without a closed day or a capital.
- * @param {Array<{ day: string, realisedGbp: number }>} days  the page's rows, any order
+ * the days since its first. Each day is read over the capital it ran on, where its row carries one (`capitalGbp`, LIVE's
+ * since 0145: Davies, 2026-10-27, LIVE £120 → £600), and over the row's capital where it does not: the mean of the days'
+ * returns, so a week at £120 is not divided by £600. null without a closed day or a capital.
+ * @param {Array<{ day: string, realisedGbp: number, capitalGbp?: number | null }>} days  the page's rows, any order
  * @param {number | null | undefined} capitalGbp
  * @param {number} nowMs
  * @returns {number | null} percent a year
@@ -690,8 +692,9 @@ export function quoteDaysAnnualPct(days, capitalGbp, nowMs) {
   const start = first > from ? first : from;
   const n = Math.round((todayMs - Date.parse(`${start}T00:00:00Z`)) / DAY);
   if (!(n > 0)) return null;
-  const sum = days.filter((d) => d.day >= start && d.day < today).reduce((s, d) => s + (Number(d.realisedGbp) || 0), 0);
-  return (sum / cap) * (365 / n) * 100;
+  const capOf = (d) => (Number(d.capitalGbp) > 0 ? Number(d.capitalGbp) : cap);
+  const sum = days.filter((d) => d.day >= start && d.day < today).reduce((s, d) => s + (Number(d.realisedGbp) || 0) / capOf(d), 0);
+  return sum * (365 / n) * 100;
 }
 
 /**
@@ -702,7 +705,7 @@ export function quoteDaysAnnualPct(days, capitalGbp, nowMs) {
  * which reads as the account's return; the label now names it, and the tooltip says the rest.
  */
 export const QUOTE_DAYS_ANNUAL_LABEL = '7-day realised, annualised';
-export const QUOTE_DAYS_ANNUAL_TITLE = 'Round trips realised over the last seven closed UTC days, over the capital, times 365 / 7 (simple). '
+export const QUOTE_DAYS_ANNUAL_TITLE = 'Round trips realised over the last seven closed UTC days, each over the capital it ran on, times 365 / 7 (simple). '
   + 'The coins held are not marked into it (UNREALIZED G/L shows them), and one week is a short sample.';
 
 export function rowMoney(r) {

@@ -858,6 +858,7 @@ before touching migration state.
 | `0142_quote_twins_take50_cb_usdc.sql` | TAKE's twin back on the page as "Stablecoin quotes variant-3", and "Stablecoin quotes with Euros - 2", the Coinbase USDC arm: its tables, lock, call a minute and prune. |
 | `0143_grokpm_order_checks.sql` | GROKPM's orders keep the `event_at` the agent sent and what the server's checks read (book, edge, costs, Kelly cap, D15 cap and cut). |
 | `0144_quote_twins_live_at_600.sql` | LIVE at £600: the £600 twin becomes "Stablecoin quotes LIVE twin", the £300 twin stops, and "variant-1" is a new £1,200 twin on LIVE's rules, the next step's test. |
+| `0145_quote_live_capital_history.sql` | LIVE's capital by when it held (`agent_quote_live_capital`), kept by a trigger on its config, so DAYS reads each day over the capital it ran on. |
 | `0096_pm_rw_x_tb1_arms.sql` | Lets the variants' day tables, RW's and RW-C's, take TB1's two arms on x1 (tb1-skip, tb1-back). |
 | `0086_quote_live_deadman.sql` | Adds the kind `deadman` to `agent_quote_live_events`, for the row the monitor's dead-man switch writes when it cancels PR5's resting orders. |
 | `0087_quote_twins.sql` | The realistic twins' tables (each the live executor's four, a replica's and a simulated account's), their config rows and leases, and the one call that runs them. |

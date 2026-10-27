@@ -276,7 +276,8 @@ places stay when the number is not whole.
   fills, round trips and what it realised, which add up to realised; its
   heading shows what the round trips of the seven full days before today
   realised (a day with no trading counts as nothing), as a simple yearly
-  rate on the capital, labelled "7-day realised, annualised" (every
+  rate on the capital each day ran on (when LIVE's capital changes, the
+  days before still count on the old one), labelled "7-day realised, annualised" (every
   Stablecoin quotes page has it). It leaves out the coins' unrealised, and
   one good week reads as a year of them: hover it for that. Then
   its round trips (entry, exit, size, fees and what each made: a round

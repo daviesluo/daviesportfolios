@@ -1640,6 +1640,28 @@ export function liveDays(orders: QuoteLiveOrderView[], rungs: LiveRung[], trips:
  * orders bar the cancels that filled nothing (`recent`), of which the page lists all but the refusals already known; the
  * round trips are the newest `QUOTES_RECENT_TRIPS`.
  */
+/** A change of LIVE's capital as `agent_quote_live_capital` (`0145`) keeps it: the capital from that instant on. */
+export type LiveCapitalRow = { from_at: string; capital_gbp: number | string };
+/**
+ * The capital a UTC day of LIVE ran on (Davies, 2026-10-27, LIVE £120 → £600 at 03:09 UTC): the history's capitals over the day,
+ * each weighted by the part of the day it held, the first one standing for anything before it. Each day's realised is read over
+ * this, so DAYS' 7-day figure does not divide a £120 week by £600. Null without a history: the page then uses the row's capital.
+ */
+export function dayCapitalGbp(history: readonly LiveCapitalRow[], day: string): number | null {
+  const h = history.map((r) => ({ at: Date.parse(r.from_at), gbp: Number(r.capital_gbp) })).filter((r) => Number.isFinite(r.at) && r.gbp > 0)
+    .sort((a, b) => a.at - b.at);
+  if (!h.length) return null;
+  const DAY = 86400e3, start = Date.parse(`${day}T00:00:00Z`), end = start + DAY;
+  if (!Number.isFinite(start)) return null;
+  let sum = 0;
+  for (let i = 0; i < h.length; i++) {
+    const from = i === 0 ? -Infinity : h[i].at, to = i + 1 < h.length ? h[i + 1].at : Infinity;
+    const lo = Math.max(start, from), hi = Math.min(end, to);
+    if (hi > lo) sum += h[i].gbp * (hi - lo);
+  }
+  return sum / DAY;
+}
+
 export function quotesLiveDetail(input: {
   config: QuoteLiveConfigRow | null; state: QuoteLiveStateRow | null; orders: QuoteLiveOrderView[]; open: QuoteLiveOrderView[];
   recent: QuoteLiveRecentRow[]; paper: QuoteStateRow | null; nowMs: number; dayStartMs: number; tickers?: QuoteTickerRow[];
@@ -1647,6 +1669,8 @@ export function quotesLiveDetail(input: {
   rungs?: readonly number[]; knownRefusals?: ReadonlySet<number>;
   /** A realistic twin's orders sent each UTC day, its `orders` being only those that filled or rest (`liveDays`). */
   ordersByDay?: Record<string, number>;
+  /** LIVE's capital changes (`0145`): each day then carries the capital it ran on (`dayCapitalGbp`). */
+  capitalHistory?: readonly LiveCapitalRow[];
 }) {
   const cfg = input.config;
   if (!cfg) return null;
@@ -1705,7 +1729,10 @@ export function quotesLiveDetail(input: {
         })),
       ],
     },
-    days: liveDays(input.orders, rungs, trips, input.dayStartMs, input.ordersByDay).map(({ realisedGbp, ...d }) => ({ ...d, realisedGbp, realisedUsd: usd(realisedGbp) })),
+    days: liveDays(input.orders, rungs, trips, input.dayStartMs, input.ordersByDay).map(({ realisedGbp, ...d }) => {
+      const capitalGbp = input.capitalHistory?.length ? dayCapitalGbp(input.capitalHistory, d.day) : null;
+      return { ...d, realisedGbp, realisedUsd: usd(realisedGbp), ...(capitalGbp != null ? { capitalGbp } : {}) };
+    }),
     trips: trips.slice(0, QUOTES_RECENT_TRIPS).map(({ ids: _ids, ...t }) => ({ ...t, feesUsd: usd(t.feesGbp), pnlUsd: usd(t.pnlGbp) })),
     tripCount: trips.length, tripsWon: trips.filter((t) => t.pnlGbp > 0).length,
     // The newest orders, less those of a round trip already closed (Davies, 2026-10-02: its entry and its exit are both in
@@ -2197,12 +2224,14 @@ async function dashboard(now: number) {
           // leaves the page without them, never the LIVE row without its figures.
           const detail = !summary.tradedLive && summary.entryBook !== "live" ? null : await (async () => {
             try {
-              const [open, recent] = await Promise.all([
+              const [open, recent, capitalHistory] = await Promise.all([
                 d.select<QuoteLiveOrderView>("agent_quote_live_orders", `mode=eq.live&state=in.(pending,new,partially_filled)&select=${QUOTE_LIVE_ORDER_COLUMNS}&order=id.asc`),
                 d.select<QuoteLiveRecentRow>("agent_quote_live_orders",
                   `mode=eq.live&${QUOTES_LIVE_ORDERS_FILTER}&select=${QUOTE_LIVE_REASON_COLUMNS}&order=id.desc&limit=${QUOTES_LIVE_PAGE_ROWS}`),
+                // Its capital's history (0145); before the table exists, every day is read over today's capital, as before.
+                d.select<LiveCapitalRow>("agent_quote_live_capital", "select=from_at,capital_gbp&order=from_at.asc&limit=1000").catch(() => [] as LiveCapitalRow[]),
               ]);
-              return quotesLiveDetail({ ...base, open, recent });
+              return quotesLiveDetail({ ...base, open, recent, capitalHistory });
             } catch { return null; }
           })();
           return { ...summary, detail };

@@ -8,7 +8,7 @@ import {
   STATE_VOCAB, strategyBooks, SYMBOLS, probeSummary, quotesDelayMs, quotesSummary, quoteDays, QUOTES_CAPITAL_USD, QUOTES_RECENT_TRIPS, tickErrorReport, crashReport, type ProbeSummaryRow,
   REVX_KEY_NAMES, REVX2_PROBE_SYMBOLS, runProbe, PROBE_PARTS, newestDecisions, quotesLiveSummary, type QuoteLiveOrderView, quotesVariantSummary, quotesRuledSummary,
   serveRequest, type ServeDeps, type Who,
-  exitOverbuy, liveBookGbp, liveCoinBooks, liveConversionShares, liveIndexPrices, liveOrderReason, liveRestingBuysGbp, liveRungs, liveRungTrips, quotesLiveDetail, tripEnds, QUOTE_LIVE_ORDER_COLUMNS,
+  exitOverbuy, liveBookGbp, liveCoinBooks, liveConversionShares, liveIndexPrices, liveOrderReason, liveRestingBuysGbp, liveRungs, liveRungTrips, quotesLiveDetail, dayCapitalGbp, tripEnds, QUOTE_LIVE_ORDER_COLUMNS,
   QUOTE_TICKER_FRESH_MS,
   QUOTE_LIVE_REASON_COLUMNS, QUOTE_LIVE_SUMMARY_COLUMNS, QUOTES_LIVE_KNOWN_REFUSALS, QUOTES_LIVE_ORDERS_FILTER, QUOTES_LIVE_PAGE_ROWS, type QuoteLiveRecentRow, withConversionFees,
   liveDays, readQuotesTwin, twinsDelayMs, twinsOnPage, TWINS_START_MS,
@@ -1278,6 +1278,30 @@ Deno.test("liveRungTrips with the executor's dust: an exit trimmed to the penny 
 
 // Davies, 2026-10-02: "只是让你把已知问题的订单删掉，不是以后再出现问题的订单也不显示". The fixture's day gains two
 // refusals: 1517, one of the five known (the venue refused it), and 1600, refused at the book it met and never sent.
+Deno.test("dayCapitalGbp: each UTC day of LIVE over the capital it ran on, weighted by the part of the day each held (0145)", () => {
+  const h = [{ from_at: "2026-10-01T16:29:53.51132+00:00", capital_gbp: "120" }, { from_at: "2026-10-27T03:08:37.112067+00:00", capital_gbp: 600 }];
+  assertEquals([dayCapitalGbp(h, "2026-10-20"), dayCapitalGbp(h, "2026-10-28"), dayCapitalGbp(h, "2026-09-30")], [120, 600, 120]);
+  // 10-27: £120 for 3 h 08 min 37.112 s (an instant is read to the millisecond), £600 for the rest of the day.
+  const f = (3 * 3600 + 8 * 60 + 37.112) / 86400;
+  assertAlmostEquals(dayCapitalGbp(h, "2026-10-27")!, 120 * f + 600 * (1 - f), 1e-9);
+  // Given in any order, and nothing without a usable row.
+  assertEquals(dayCapitalGbp([...h].reverse(), "2026-10-28"), 600);
+  assertEquals([dayCapitalGbp([], "2026-10-20"), dayCapitalGbp([{ from_at: "x", capital_gbp: 1 }], "2026-10-20")], [null, null]);
+});
+
+Deno.test("quotesLiveDetail: each day carries the capital it ran on from LIVE's capital history, and none without one", () => {
+  const f = liveFixture;
+  const reads = liveReads(f);
+  // deno-lint-ignore no-explicit-any
+  const base: any = { config: f.config, state: f.state, orders: reads.orders, paper: f.paper, nowMs: f.nowMs, dayStartMs: f.dayStartMs, tickers: f.tickers };
+  const without = quotesLiveDetail({ ...base, open: reads.open, recent: reads.recent })!;
+  assertEquals(without.days.map((y) => "capitalGbp" in y), [false, false]);
+  const capitalHistory = [{ from_at: "2026-09-01T00:00:00Z", capital_gbp: 120 }, { from_at: "2026-09-17T00:00:00Z", capital_gbp: 600 }];
+  const withH = quotesLiveDetail({ ...base, open: reads.open, recent: reads.recent, capitalHistory })!;
+  assertEquals(withH.days.map((y) => [y.day, (y as { capitalGbp?: number }).capitalGbp]), [["2026-09-17", 600], ["2026-09-16", 120]]);
+  assertEquals(withH.days.map((y) => y.realisedGbp), without.days.map((y) => y.realisedGbp));
+});
+
 Deno.test("quotesLiveDetail lists every refusal but the five known of 2026-10-02, and DAYS counts only the orders that went to the venue", () => {
   const f = liveFixture;
   type Row = Record<string, unknown>;

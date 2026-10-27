@@ -1598,6 +1598,21 @@ describe("the Stablecoin quotes pages' DAYS heading: the seven calendar days bef
       .map((day, i) => ({ day, realisedGbp: [0.1959, 0.0458, 0.0773, 0.1107, 0.5308, 0.5183, 0.0151][i] }));
     expect(quoteDaysAnnualPct([{ day: '2026-10-26', realisedGbp: 0 }, ...week], 120, Date.parse('2026-10-26T00:59:00Z'))).toBeCloseTo(64.91, 2);
   });
+  it('reads each day over the capital it ran on, so a week at £120 is not divided by £600 (Davies, 2026-10-27: LIVE £120 → £600)', () => {
+    const at = Date.parse('2026-10-26T00:59:00Z');
+    const week = ['2026-10-19', '2026-10-20', '2026-10-21', '2026-10-22', '2026-10-23', '2026-10-24', '2026-10-25']
+      .map((day, i) => ({ day, realisedGbp: [0.1959, 0.0458, 0.0773, 0.1107, 0.5308, 0.5183, 0.0151][i], capitalGbp: 120 }));
+    // The row's capital is £600 now; each day still carries its £120: the figure is the week's, 64.91 %, not a fifth of it.
+    expect(quoteDaysAnnualPct(week, 600, at)).toBeCloseTo(64.91, 2);
+    expect(quoteDaysAnnualPct(week.map(({ capitalGbp: _c, ...d }) => d), 600, at)).toBeCloseTo(64.91 / 5, 2);
+    // A mixed week: the last three days at £600 each earn their own share. By hand: (0.1959 + 0.0458 + 0.0773 + 0.1107) / 120
+    // + (0.5308 + 0.5183 + 0.0151) / 600, times 365 / 7.
+    const mixed = week.map((d, i) => ({ ...d, capitalGbp: i < 4 ? 120 : 600 }));
+    const want = ((0.1959 + 0.0458 + 0.0773 + 0.1107) / 120 + (0.5308 + 0.5183 + 0.0151) / 600) * (365 / 7) * 100;
+    expect(quoteDaysAnnualPct(mixed, 600, at)).toBeCloseTo(want, 10);
+    // A day with no capital of its own (a twin's) falls back to the row's; a constant capital gives the old figure exactly.
+    expect(quoteDaysAnnualPct(week.map((d) => ({ ...d, capitalGbp: null })), 120, at)).toBeCloseTo(64.91, 2);
+  });
 });
 
 describe('grokPmRow and its page (GROKPM, "Polymarket analyst" on LIVE, 2026-10-15; renamed and its journal redone 2026-10-17)', () => {
