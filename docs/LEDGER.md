@@ -282,8 +282,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      minute 21:04); first trading Fri 10-23 21:00. Take shadow read 10-23 18:05 (five weekdays): 0 events, not a fail,
      'shadow' kept (the addendum's log); next read 2026-10-30 18:00 UTC, counting 10-23's closure.
      **Review 10-26** (`reviews/2026-10-26-stablecoin-quotes-review.md`): "+64.9 %" right but realised-only, half one weekend.
-     Capital £120 → £300 agreed: **wait for Davies' word that the funds are in** (§2.4). `0141` (§5): `live300` "LIVE twin" £300,
-     `live600` "variant-1" £600 (bar 11-11), `live` "variant-2" £120, weekends from 10-30; `pr5`, `p50`, `d` hidden, off after
+     **LIVE at £600 since 2026-10-27 03:09 UTC** (Davies; §8): his two maker conversions for the asks' coin. `0144`:
+     `live600` "LIVE twin" (bar 11-11), `live1200` "variant-1" £1,200 from 10-28 (prereg `live-next-size`, bar 11-11: ≥ 80 % of
+     `live600` per pound, no loss-stop day), `live300` off; `live` "variant-2" £120, weekends from 10-30; `pr5`, `p50`, `d` hidden, off after
      their 10-28 readouts; `take50wk` off. `0142`: `take50` "variant-3" on the page; Coinbase "with Euros - 1" (hold, 11-10) and
      "- 2", the USDC arm at £25/€25 (prereg `cb-usdc`, 14 days, bar > 0, ≥ 8 %/yr, ≥ 5 bps a trip).
      **Audit 2026-10-19:** the read's eight criteria are not the addendum's step 2: its "`late` is false" was dropped (the
@@ -753,6 +754,12 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to MX-1's 2026-10-26 06:38 UTC section (archived
 2026-10-27).
+
+### [2026-10-27 03:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LIVE at £600; its twin is the £600 one, variant-1 tests £1,200 (`0144`)** (sub-agent; not pushed; Davies, 10-27: "我已经加到600了…
+  把测试的Stablecoin quotes LIVE twin改为600，Stablecoin quotes variant-1改为…下次加仓的目标仓位本金的测试"; review §8). Read first: the account
+  funded by the executor's own balances, `capital_gbp` 600 set by him at 03:09, two maker conversions sent. LIVE's own orders,
+  queue-aware: per pound 0.90 of £10's at £50, 0.82 at £100, 0.76 at £150. No twin resized; size twins' deviation 1.
 
 ### [2026-10-27 03:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **GROKPM's first orders verified** (sub-agent; not pushed; Davies, 10-27: "Polymarket analyst下了几单，你也仔细验证下并且也看看有没有什么可以

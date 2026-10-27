@@ -329,7 +329,7 @@ that follow from that evidence, in short:
   rules (its fill rule, its weekend from 10-30 21:00, no take): "Stablecoin quotes LIVE twin" (`live300`, £300), "variant-1"
   (`live600`, £600) and "variant-2" (`live`, the £120 twin), and since `0142` "variant-3" (`take50`, TAKE's twin, the take
   shadow's yardstick); `pr5`, `p50` ("size twin") and `d` run off the page (`hidden`) until their readings, and `take50wk` is
-  off (its reading withdrawn). Since `0142` the Coinbase weekend variant is "with Euros - 1" and "with Euros - 2" is its rule on
+  off (its reading withdrawn). **Since `0144`** (2026-10-27; Davies: "我已经加到600了…把测试的Stablecoin quotes LIVE twin改为600，Stablecoin quotes variant-1改为…下次加仓的目标仓位本金的测试") LIVE runs at £600: "LIVE twin" is `live600`, `live300` is off, and "variant-1" is `live1200`, £1,200 from 10-28, the next step's test (`reviews/2026-10-27-live-next-size-prereg.md`). Since `0142` the Coinbase weekend variant is "with Euros - 1" and "with Euros - 2" is its rule on
   the two USDC books at £25/€25 a rung (`agents/cb_usdc.ts`, `reviews/2026-10-26-cb-usdc-prereg.md`).
   The names above are their history. TESTING's scoreboard and the
   Revolut X card include them. **"Stablecoin quotes with Euros"** (`0112`,
@@ -357,7 +357,7 @@ that follow from that evidence, in short:
   `agents/quotes_live.ts`, reference §4 item 35; Davies' word the same
   afternoon, after the settings were verified in
   `reviews/2026-10-01-pr5-live-go.md`): on PR5's own sub-account (key
-  `_2`, capital £120, £10 a rung) it carries out the paper engine's
+  `_2`, capital £120, £10 a rung; £600, £50 a rung, since 2026-10-27 03:09 UTC) it carries out the paper engine's
   decisions order for order, at the paper's prices, under the design's
   limits (a POST governor at 900/950, raised from 600/700 on Davies' word
   on 2026-10-01; a −1 % daily loss stop; de-peg and stale-input guards; a

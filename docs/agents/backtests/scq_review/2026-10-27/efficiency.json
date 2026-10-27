@@ -1,0 +1,15 @@
+{
+  "study": "LIVE's next size: per-pound fill efficiency of LIVE's own orders at larger sizes, queue-aware, against £10 a rung (sql/capacity.sql). Ratios only: LIVE's pounds stay out of the repository.",
+  "window": "2026-10-01 16:29 -> 2026-10-27 03:00 UTC",
+  "orders": { "entry": 6519, "exit": 1067 },
+  "met_by_a_print": { "entry": 363, "exit": 406 },
+  "filled": { "entry": 355, "exit": 388 },
+  "model_at_10_against_real_fills": { "entry": 0.862, "exit": 0.880 },
+  "rung_gbp": [10, 25, 50, 75, 100, 125, 150, 200, 300],
+  "capital_gbp": [120, 300, 600, 900, 1200, 1500, 1800, 2400, 3600],
+  "entry": [1.000, 0.958, 0.920, 0.877, 0.842, 0.810, 0.785, 0.745, 0.688],
+  "exit": [1.000, 0.939, 0.881, 0.830, 0.788, 0.753, 0.724, 0.672, 0.598],
+  "mean": [1.000, 0.949, 0.900, 0.854, 0.815, 0.782, 0.755, 0.709, 0.643],
+  "mean_against_50": [1.110, 1.054, 1.000, 0.948, 0.905, 0.868, 0.838, 0.787, 0.714],
+  "upper_bound_no_queue": { "entry": { "50": 0.924, "100": 0.853 }, "exit": { "50": 0.871, "100": 0.780 } }
+}

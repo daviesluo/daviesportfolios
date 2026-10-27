@@ -959,13 +959,14 @@ describe("the realistic twins as rows of TESTING (Davies, 2026-10-02: the live e
     expect(strategyNameParts('Reward quotes variant-1')).toEqual({ head: 'Reward quotes variant-1', qual: null, twoLines: false });
     expect(strategyNameParts('Reward quotes (no same-day)')).toEqual({ head: 'Reward quotes', qual: '(no same-day)', twoLines: false });
   });
-  it('is "Stablecoin quotes LIVE twin" (live300) and "variant-1" (live600) for LIVE\'s rules at £300 and £600 (0141, 2026-10-26), on two lines, right after the first', () => {
-    const r3 = /** @type {any} */ (quotesTwinRow(twin('live300'))), r6 = /** @type {any} */ (quotesTwinRow(twin('live600')));
-    expect([r3.id, r3.name, rowMoney(r3).capital, r3.venueId, r3.mode]).toEqual([`${QUOTES_TWIN_ROW_PREFIX}live300`, 'Stablecoin quotes LIVE twin', 300, 'revx', 'paper']);
-    expect([r6.id, r6.name, rowMoney(r6).capital, r6.venueId, r6.mode]).toEqual([`${QUOTES_TWIN_ROW_PREFIX}live600`, 'Stablecoin quotes variant-1', 600, 'revx', 'paper']);
-    expect(strategyNameParts(r3.name)).toEqual({ head: 'Stablecoin quotes', qual: 'LIVE twin', twoLines: true });
-    expect(strategyNameParts(r6.name)).toEqual({ head: 'Stablecoin quotes', qual: 'variant-1', twoLines: true });
-    // The fixture keeps the hidden twins (they still run; the dashboard leaves them out, `twinsOnPage`) and drops variant-3 (off).
+  it('is "Stablecoin quotes LIVE twin" (live600, LIVE\'s size since 2026-10-27) and "variant-1" (live1200, the next step) on LIVE\'s rules (0144), on two lines, right after the first', () => {
+    const r6 = /** @type {any} */ (quotesTwinRow(twin('live600'))), r12 = /** @type {any} */ (quotesTwinRow(twin('live1200')));
+    expect([r6.id, r6.name, rowMoney(r6).capital, r6.venueId, r6.mode]).toEqual([`${QUOTES_TWIN_ROW_PREFIX}live600`, 'Stablecoin quotes LIVE twin', 600, 'revx', 'paper']);
+    expect([r12.id, r12.name, rowMoney(r12).capital, r12.venueId, r12.mode]).toEqual([`${QUOTES_TWIN_ROW_PREFIX}live1200`, 'Stablecoin quotes variant-1', 1200, 'revx', 'paper']);
+    expect(strategyNameParts(r6.name)).toEqual({ head: 'Stablecoin quotes', qual: 'LIVE twin', twoLines: true });
+    expect(strategyNameParts(r12.name)).toEqual({ head: 'Stablecoin quotes', qual: 'variant-1', twoLines: true });
+    // The fixture keeps the hidden twins (they still run; the dashboard leaves them out, `twinsOnPage`) and drops the switched-off
+    // ones (the £300 twin and the weekend twin).
     const names = quotesTwinRows({ quotesTwins: twinFixture.twins }).map((x) => x.name);
     expect(names).toEqual(['Stablecoin quotes', 'Stablecoin quotes LIVE twin', 'Stablecoin quotes variant-1', 'Stablecoin quotes variant-2', 'Stablecoin quotes size twin', 'Stablecoin quotes variant-3', 'Stablecoin quotes variant-4']);
   });

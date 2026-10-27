@@ -408,3 +408,58 @@ By book (`cb_quote_trips`, `cb_hold_trips`, `agent_quote_trips`, trips closed fr
   weekends included: the two USDC books at £25/€25 a rung, about £281 (`agents/cb_usdc.ts`). It is pre-registered for two
   weeks (`2026-10-26-cb-usdc-prereg.md`) with the bar: realised above zero, at least 8 % a year, at least +5 bps a trip. Both
   thresholds were chosen with hindsight on 10-11 → 10-25, so the test is out of sample. "With Euros" itself is unchanged.
+
+## 8. LIVE at £600, and the next step (2026-10-27)
+
+Davies, 2026-10-27: "我已经加到600了，你验证下并检查确保策略所有细节都没问题，然后把测试的Stablecoin quotes LIVE twin改为600，Stablecoin quotes
+variant-1改为你仔细研究下下次加仓的目标仓位本金的测试，所有数据都可以看". LIVE's `capital_gbp` became 600 at 03:09 UTC (£50 a rung, a −£6
+daily loss stop, conversions of up to £150), after the account's balances, read by the executor itself, showed it funded. Two
+maker conversions (£[•] each) then went to the books' bids for the asks' coin. Nothing else of the executor follows capital:
+the governor counts orders, and the de-peg, stale, 24-hour-stop and dead-man guards are in basis points or minutes. The
+automatic top-up stays at £5 a book a day, meant for drift.
+
+### 8.1 How far size goes: LIVE's own orders, queue-aware
+
+The read: every live entry and exit from go-live to 2026-10-27 03:00 UTC that rested, 6,519 and 1,067
+(`backtests/scq_review/2026-10-27/sql/capacity.sql`):
+- **Prints that met the order.** The other side's prints at its price or through it while it rested; 363 entries and 406 exits
+  were met.
+- **Less the queue ahead.** What already rested at its price in the recorder's book read before it was posted.
+- **What a larger order could take** is `min(size, met − ahead)`.
+- **It is conservative.** Queue ahead that cancels is counted as ahead. At £10 it gives 0.86× of LIVE's real entry fills and 0.88×
+  of its exits.
+
+Per pound, against £10:
+
+| rung (capital) | £25 (£300) | £50 (£600) | £75 (£900) | £100 (£1,200) | £125 (£1,500) | £150 (£1,800) | £200 (£2,400) | £300 (£3,600) |
+|---|---|---|---|---|---|---|---|---|
+| entries | 0.96 | 0.92 | 0.88 | 0.84 | 0.81 | 0.79 | 0.75 | 0.69 |
+| exits | 0.94 | 0.88 | 0.83 | 0.79 | 0.75 | 0.72 | 0.67 | 0.60 |
+| mean | 0.95 | 0.90 | 0.85 | **0.82** | 0.78 | 0.76 | 0.71 | 0.64 |
+| mean against £50 | 1.05 | 1.00 | 0.95 | **0.91** | 0.87 | 0.84 | 0.79 | 0.71 |
+
+The other sources agree in direction and are more pessimistic:
+- the size study (simulated round trips, 09-23 → 10-02): £50 at 0.89 and £100 at 0.69 of £10;
+- the through-fill twins forward (10-12 → 10-23): £100 at 0.82 of £50.
+
+### 8.2 The next size: £1,200
+
+- **The per-pound line.** On the mean, £1,200 (£100 a rung) is the last size above 80 % of £120's per-pound rate (0.82); £1,500
+  falls to 0.78.
+- **What it adds.** At LIVE's realised rate since 10-02 (£0.0725 per £100 a day at £10 a rung), the read gives about 23.8 % a year
+  on the capital at £600 and about 21.6 % at £1,200. That is roughly 1.8× the pounds a day for 2× the capital.
+- **What it costs in risk:**
+  - FX: about half the capital is held in dollar coins, so a 1 % GBP/USD move is about ±0.5 % of the capital;
+  - the loss stop doubles to −£12 a day;
+  - more money rests through an outage like 10-20's frozen cancels.
+- **Against the £600 twin**, the read puts £1,200 at 0.91; the size study puts it at 0.78. So variant-1's bar (80 % of the £600
+  twin's per pound, and no day at the loss stop) can fail, and either answer tells Davies something.
+
+### 8.3 What `0144` does
+
+- **The £600 twin (`live600`) becomes "Stablecoin quotes LIVE twin".** It is LIVE's rules at LIVE's size since 10-27 00:00, so
+  nothing is resized and its record and reading stand.
+- **The £300 twin (`live300`) stops.** LIVE skipped £300.
+- **"Variant-1" is a new twin, `live1200`.** It runs at £1,200 from 2026-10-28 00:00 UTC
+  (`2026-10-27-live-next-size-prereg.md`), read with its base's window, 10-28 → 11-11.
+- **Why a new row rather than a resize.** A resize would mix two capitals into one record and leave neither reading honest.

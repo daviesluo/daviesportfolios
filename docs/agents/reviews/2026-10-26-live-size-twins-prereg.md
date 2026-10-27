@@ -94,4 +94,12 @@ stands, as LIVE does.
 
 ## 7. Deviations
 
-None.
+**Deviation 1 (2026-10-27): LIVE went to £600, so the £600 twin is the LIVE twin and the £300 twin stops (`0144`).** Davies,
+2026-10-27: "我已经加到600了，你验证下并检查确保策略所有细节都没问题，然后把测试的Stablecoin quotes LIVE twin改为600，Stablecoin quotes variant-1改为
+你仔细研究下下次加仓的目标仓位本金的测试，所有数据都可以看". LIVE's capital became £600 at 03:09 UTC that day, before this window opened.
+- `live600` is renamed "Stablecoin quotes LIVE twin". Its capital, rules, start and record do not change, and §3's bar is read as
+  written: it now checks a step Davies has taken, not one he is weighing.
+- `live300` is renamed "Stablecoin quotes 300 twin" and switched off at `0144`; its ratio beside the bar is withdrawn. Its record
+  (2026-10-27 00:00 to the migration) stays in its tables.
+- "Stablecoin quotes variant-1" is a new twin at £1,200 (`live1200`), pre-registered on its own
+  (`2026-10-27-live-next-size-prereg.md`). No twin was resized.

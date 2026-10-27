@@ -121,7 +121,7 @@ describe("the twins' spec rows", () => {
       // 0141 adds `hidden`, one rule to one row, switches one row off and hides four: once each.
       expect(named, f).toBe(2 * inserts + moves + names + offs + later + (f === SPECS_0088 ? 5 : 0));
     }
-    expect(FILES.filter((f) => [RULE_ADD, OFF, HIDE, ADD_HIDDEN].some((re) => [...sqlOf(f).matchAll(re)].length)).map((f) => f.slice(0, 4))).toEqual(['0141', '0142']);
+    expect(FILES.filter((f) => [RULE_ADD, OFF, HIDE, ADD_HIDDEN].some((re) => [...sqlOf(f).matchAll(re)].length)).map((f) => f.slice(0, 4))).toEqual(['0141', '0142', '0144']);
     expect(FILES.filter((f) => [...sqlOf(f).matchAll(RULE_MOVE)].length).map((f) => f.slice(0, 4))).toEqual(['0090']);
     expect(renames.map((n) => [n.file.slice(0, 4), n.id, n.from, n.to])).toEqual([
       ['0108', 'd', 'Stablecoin quotes variant-3', 'Stablecoin quotes variant-4'], ['0109', 'd', 'Stablecoin quotes variant-4', 'Stablecoin quotes variant-3'],
@@ -129,6 +129,7 @@ describe("the twins' spec rows", () => {
       ['0141', 'take50', 'Stablecoin quotes variant-2', 'Stablecoin quotes TAKE'], ['0141', 'p50', 'Stablecoin quotes variant-1', 'Stablecoin quotes size twin'],
       ['0141', 'live', 'Stablecoin quotes LIVE twin', 'Stablecoin quotes variant-2'],
       ['0142', 'take50wk', 'Stablecoin quotes variant-3', 'Stablecoin quotes weekend twin'], ['0142', 'take50', 'Stablecoin quotes TAKE', 'Stablecoin quotes variant-3'],
+      ['0144', 'live300', 'Stablecoin quotes LIVE twin', 'Stablecoin quotes 300 twin'], ['0144', 'live600', 'Stablecoin quotes variant-1', 'Stablecoin quotes LIVE twin'],
     ]);
     expect(deletes.map((n) => [n.file.slice(0, 4), n.id])).toEqual([['0109', 'p50x1']]);
     // Names are unique, so a rename comes before an insert in the same migration that takes the old name (0108), and a
@@ -149,6 +150,12 @@ describe("the twins' spec rows", () => {
     const sql0142 = sqlOf('0142_quote_twins_take50_cb_usdc.sql');
     expect(sql0142.indexOf("set display_name = 'Stablecoin quotes weekend twin'")).toBeLessThan(sql0142.indexOf("set display_name = 'Stablecoin quotes variant-3'"));
     expect(sql0142).toContain("set hidden = false\n where id in ('take50');");
+    // 0144 (Davies, 2026-10-27: LIVE at £600): the £300 twin gives up "LIVE twin" before the £600 twin takes it, which gives up
+    // "variant-1" before the £1,200 twin's insert takes it; no twin's capital changes.
+    const sql0144 = sqlOf('0144_quote_twins_live_at_600.sql');
+    expect(sql0144.indexOf("set display_name = 'Stablecoin quotes 300 twin'")).toBeLessThan(sql0144.indexOf("set display_name = 'Stablecoin quotes LIVE twin'"));
+    expect(sql0144.indexOf("set display_name = 'Stablecoin quotes LIVE twin'")).toBeLessThan(sql0144.search(INSERT));
+    expect(/capital_gbp\s*=/.test(sql0144)).toBe(false);
     expect(sql0109.search(DELETE)).toBeGreaterThanOrEqual(0);
     expect(sql0109.search(DELETE)).toBeLessThan(sql0109.search(RENAME));
     expect(new Set(ROWS.map((r) => r.display_name)).size).toBe(ROWS.length);
@@ -163,17 +170,18 @@ describe("the twins' spec rows", () => {
     }
   });
 
-  it("are, as they stand, the stablecoin twins in Davies' order (2026-10-26: the LIVE twin £300, variant-1 £600, variant-2 the £120 twin, variant-3 TAKE's twin; the weekend twin off; three hidden until their readings)", () => {
+  it("are, as they stand, the stablecoin twins in Davies' order (2026-10-27: the LIVE twin £600 as LIVE, variant-1 £1,200 the next step, variant-2 the £120 twin, variant-3 TAKE's twin; the £300 and weekend twins off; three hidden until their readings)", () => {
     expect(ROWS.map((r) => [r.id, r.display_name, r.display_order, Number(r.capital_gbp), r.enabled, r.hidden === true])).toEqual([
-      ['pr5', 'Stablecoin quotes', 10, 1200, true, true], ['live300', 'Stablecoin quotes LIVE twin', 11, 300, true, false],
-      ['live600', 'Stablecoin quotes variant-1', 12, 600, true, false], ['live', 'Stablecoin quotes variant-2', 15, 120, true, false],
+      ['pr5', 'Stablecoin quotes', 10, 1200, true, true], ['live300', 'Stablecoin quotes 300 twin', 11, 300, false, false],
+      ['live600', 'Stablecoin quotes LIVE twin', 12, 600, true, false], ['live1200', 'Stablecoin quotes variant-1', 13, 1200, true, false],
+      ['live', 'Stablecoin quotes variant-2', 15, 120, true, false],
       ['p50', 'Stablecoin quotes size twin', 20, 600, true, true], ['take50', 'Stablecoin quotes variant-3', 30, 600, true, false],
       ['take50wk', 'Stablecoin quotes weekend twin', 35, 600, false, false], ['d', 'Stablecoin quotes variant-4', 40, 1800, true, true],
     ]);
     // The page shows the three on LIVE's rules, each with LIVE's fill rule and, from the closure of 2026-10-30 21:00 UTC,
     // LIVE's weekend; none takes (LIVE's take is in shadow, which sends nothing).
     const onPage = ROWS.filter((r) => r.enabled && !r.hidden);
-    expect(onPage.map((r) => r.id)).toEqual(['live300', 'live600', 'live', 'take50']);
+    expect(onPage.map((r) => r.id)).toEqual(['live600', 'live1200', 'live', 'take50']);
     // TAKE's twin keeps its own rule (a take from 2026-10-04 16:00); the three on LIVE's rules do not take.
     expect(onPage.at(-1).rules.take).toBeTruthy();
     for (const r of onPage.slice(0, 3)) {
