@@ -49,13 +49,13 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Status (Grok overwrites)
 
-- As of: 2026-10-26 20:20 UTC (Grok, full scan)
+- As of: 2026-10-27 00:20 UTC (Grok, full scan)
 - Mode live, armed 2026-10-17 02:39:14 UTC, region eu-west-1 (IE); every gate ok; ends 2026-11-14 00:00 UTC at the latest (or 40 resolved, or −$30).
-- Equity $101.16 · cash $85.55 · held $15.62 · resting buys $0 · positions 3 · resting orders 0 · orders today 15 / 150 · total P&L +$1.16 · settled $0.
+- Equity $100.52 · cash $85.55 · held $14.98 · resting buys $0 · positions 3 · resting orders 0 · orders today 0 / 150 · total P&L +$0.52 · settled $0.
 - Stops: day −$10 not hit · total −$30 not hit.
-- Positions (B, held to resolution): Vertiv Q3 adj. op margin 24-26% Yes 9 @ 0.515 (D15; p 0.80, mid 0.516; earnings 28 Oct pre-market); BanRep +25 bp Yes 12 @ 0.41 (D15; p 0.60, mid 0.465); BanRep "no change" No 10 @ 0.49 (p 0.65, mid 0.54; TP 0.62 not in window). Theme colombia-banrep-oct $9.82 at cost. Decision 30 Oct.
-- Full scan 20:05 (started 20:10): no open; tracked markets under 12 points or thin; new Bulgaria runoff margin/turnout markets seen (margin books unusable; turnout priced before p, no row). 8 shadow rows. D15 markets 2 of 3.
-- A watch list: Korea Q3 GDP (26 Oct 23:00 UTC); Israel, Tasmanian mayors (27-28 Oct); UK Budget, Winnipeg mayor, Vertiv (28 Oct); Core PCE, Alberta official count (29 Oct); BanRep, CDC measles (30 Oct); Bulgaria runoff (1 Nov).
+- Positions (B, held to resolution): Vertiv Q3 adj. op margin 24-26% Yes 9 @ 0.515 (D15; p 0.80, mid 0.516; earnings 28 Oct pre-market); BanRep +25 bp Yes 12 @ 0.41 (D15; p 0.60, mid 0.40); BanRep "no change" No 10 @ 0.49 (p 0.65, mid 0.56; TP 0.62 not in window). Theme colombia-banrep-oct $9.82 at cost. Decision 30 Oct.
+- Full scan 00:05 (started 00:14): no open; tracked markets under 12 points or thin; Korea Q3 GDP already priced. New: many zero-volume earnings-beat markets (29 Oct-9 Nov), Brandon MB mayor; not yet researched. 8 shadow rows; 10-26 daily row written. D15 markets 2 of 3.
+- A watch list: Israel, Tasmanian mayors (27-28 Oct); UK Budget, Winnipeg mayor, Vertiv (28 Oct); Core PCE, Alberta official count (29 Oct); BanRep, CDC measles (30 Oct); Bulgaria runoff (1 Nov).
 
 ## Claude → Grok
 
@@ -79,6 +79,7 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Log (newest first, max 20 lines)
 
+- 2026-10-27 00:20 UTC · Grok · full scan 00:05: no open; three positions held, theses intact; 10-26 daily row; Status updated.
 - 2026-10-26 23:55 UTC · Claude · daily check: 48 cycles (6 full), longest gap 41 min (12:05 scan 10 min late); equity matches Grok's Status (snapshot 20:05); no stop. D15 audited: 11 thin_cap orders (Vertiv 24-26% Yes, BanRep +25 Yes), 15 orders in all, 3 fills (the third BanRep No, ordinary rules); each within $5 and 25% of depth, cut_at set (Vertiv 10-26 09:00, BanRep 10-28 00:00), nothing resting past it, no thin_cap refusal, no D15 cut error. Only refusals: one 403 wrong region (00:06) and one duplicate decision id. shadow_marks 532 (49 with depth since 0139), resolutions 22 (0/1 only). Nothing for Davies.
 - 2026-10-26 20:20 UTC · Grok · full scan 20:05: no open; three positions held, theses intact; Status updated.
 - 2026-10-26 16:20 UTC · Grok · full scan 16:05: no open; three positions held, theses intact; Status updated.
