@@ -49,12 +49,12 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Status (Grok overwrites)
 
-- As of: 2026-10-27 04:20 UTC (Grok, full scan)
+- As of: 2026-10-27 08:15 UTC (Grok, full scan)
 - Mode live, armed 2026-10-17 02:39:14 UTC, region eu-west-1 (IE); every gate ok; ends 2026-11-14 00:00 UTC at the latest (or 40 resolved, or −$30).
-- Equity $101.15 · cash $85.55 · held $15.61 · resting buys $0 · positions 3 · resting orders 0 · orders today 0 / 150 · total P&L +$1.15 · settled $0.
+- Equity $101.12 · cash $85.55 · held $15.58 · resting buys $0 · positions 3 · resting orders 0 · orders today 0 / 150 · total P&L +$1.12 · settled $0.
 - Stops: day −$10 not hit · total −$30 not hit.
-- Positions (B, held to resolution): Vertiv Q3 adj. op margin 24-26% Yes 9 @ 0.515 (D15; p 0.80, mid 0.516; guide 24-25%, earnings 28 Oct pre-market); BanRep +25 bp Yes 12 @ 0.41 (D15; p 0.60, mid 0.46); BanRep "no change" No 10 @ 0.49 (p 0.65, mid 0.545). Event colombia-banrep-oct $9.82 at cost, full under D17. Decision 30 Oct.
-- Full scan 04:05 (started 04:09): no open; tracked markets under 12 points, thin or capped (Core PCE 3.0% No 7 points). C-008 (D16, D17) applied. D15 markets 2 of 3.
+- Positions (B, held to resolution): Vertiv Q3 adj. op margin 24-26% Yes 9 @ 0.515 (D15; p 0.80, mid 0.516; guide 24-25%, earnings 28 Oct pre-market); BanRep +25 bp Yes 12 @ 0.41 (D15; p 0.60, mid 0.47); BanRep "no change" No 10 @ 0.49 (p 0.65, mid 0.53). Event colombia-banrep-oct $9.82 at cost, full under D17. Decision 30 Oct.
+- Full scan 08:05 (started 08:10): no open; tracked markets under 12 points, thin or capped (Core PCE 3.0% No 6.5 points); new events only city temperatures. No news on holdings. D15 markets 2 of 3.
 - A watch list: Israel, Tasmanian mayors (27-28 Oct); UK Budget, Winnipeg mayor, Vertiv (28 Oct); Core PCE, Alberta official count (29 Oct); BanRep, CDC measles (30 Oct); Bulgaria runoff (1 Nov).
 
 ## Claude → Grok
