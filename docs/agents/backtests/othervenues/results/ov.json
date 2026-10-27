@@ -1,0 +1,7454 @@
+{
+ "books": {
+  "bitstamp:eurcvusdc": {
+   "arms": {
+    "at_price_50": {
+     "orders_per_day": 98.2,
+     "windows": {
+      "last_28d": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.1079,
+       "bps_per_trip": -9.0503,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.07,
+         "trips": 1
+        },
+        "0.2%": {
+         "pnl_gbp": -0.0207,
+         "trips": 1
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": 0,
+        "bid": -0.0907
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 0,
+       "from": "2026-09-29",
+       "gbp_per_day": -0.0032,
+       "pct_per_year": -0.3939,
+       "pnl_gbp": -0.0907,
+       "stop_pnl_gbp": -0.0907,
+       "stops": 2,
+       "trips": 2,
+       "trips_per_day": 0.0714
+      },
+      "since_08-24": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.0472,
+       "bps_per_trip": -9.0503,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.07,
+         "trips": 1
+        },
+        "0.2%": {
+         "pnl_gbp": -0.0207,
+         "trips": 1
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": 0,
+        "bid": -0.0907
+       },
+       "days": 64.0,
+       "days_negative": 1,
+       "days_positive": 0,
+       "from": "2026-08-24",
+       "gbp_per_day": -0.0014,
+       "pct_per_year": -0.1723,
+       "pnl_gbp": -0.0907,
+       "stop_pnl_gbp": -0.0907,
+       "stops": 2,
+       "trips": 2,
+       "trips_per_day": 0.0312
+      },
+      "since_tgbp": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.0138,
+       "bps_per_trip": -3.057,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.1338,
+         "trips": 3
+        },
+        "0.2%": {
+         "pnl_gbp": 0.0562,
+         "trips": 3
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": 0.0887,
+        "bid": -0.1662
+       },
+       "days": 187.0,
+       "days_negative": 3,
+       "days_positive": 1,
+       "from": "2026-04-23",
+       "gbp_per_day": -0.0004,
+       "pct_per_year": -0.0505,
+       "pnl_gbp": -0.0776,
+       "stop_pnl_gbp": -0.0776,
+       "stops": 6,
+       "trips": 6,
+       "trips_per_day": 0.0321
+      },
+      "whole": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.0081,
+       "bps_per_trip": -3.1888,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.1432,
+         "trips": 4
+        },
+        "0.2%": {
+         "pnl_gbp": 0.0562,
+         "trips": 3
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": 0.0887,
+        "bid": -0.1757
+       },
+       "days": 358.0,
+       "days_negative": 4,
+       "days_positive": 1,
+       "from": "2025-11-03",
+       "gbp_per_day": -0.0002,
+       "pct_per_year": -0.0296,
+       "pnl_gbp": -0.087,
+       "stop_pnl_gbp": -0.087,
+       "stops": 7,
+       "trips": 7,
+       "trips_per_day": 0.0196
+      }
+     }
+    },
+    "stress_50": {
+     "orders_per_day": 98.2,
+     "windows": {
+      "last_28d": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.1359,
+       "bps_per_trip": -11.3937,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.0817,
+         "trips": 1
+        },
+        "0.2%": {
+         "pnl_gbp": -0.0325,
+         "trips": 1
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": 0,
+        "bid": -0.1141
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 0,
+       "from": "2026-09-29",
+       "gbp_per_day": -0.0041,
+       "pct_per_year": -0.4959,
+       "pnl_gbp": -0.1141,
+       "stop_pnl_gbp": -0.1141,
+       "stops": 2,
+       "trips": 2,
+       "trips_per_day": 0.0714
+      },
+      "since_08-24": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.0594,
+       "bps_per_trip": -11.3937,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.0817,
+         "trips": 1
+        },
+        "0.2%": {
+         "pnl_gbp": -0.0325,
+         "trips": 1
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": 0,
+        "bid": -0.1141
+       },
+       "days": 64.0,
+       "days_negative": 1,
+       "days_positive": 0,
+       "from": "2026-08-24",
+       "gbp_per_day": -0.0018,
+       "pct_per_year": -0.217,
+       "pnl_gbp": -0.1141,
+       "stop_pnl_gbp": -0.1141,
+       "stops": 2,
+       "trips": 2,
+       "trips_per_day": 0.0312
+      },
+      "since_tgbp": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.0195,
+       "bps_per_trip": -5.4486,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.1537,
+         "trips": 2
+        },
+        "0.2%": {
+         "pnl_gbp": 0.0446,
+         "trips": 2
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": 0.077,
+        "bid": -0.1861
+       },
+       "days": 187.0,
+       "days_negative": 2,
+       "days_positive": 1,
+       "from": "2026-04-23",
+       "gbp_per_day": -0.0006,
+       "pct_per_year": -0.071,
+       "pnl_gbp": -0.1091,
+       "stop_pnl_gbp": -0.1091,
+       "stops": 4,
+       "trips": 4,
+       "trips_per_day": 0.0214
+      },
+      "whole": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.0115,
+       "bps_per_trip": -5.6084,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.1675,
+         "trips": 3
+        },
+        "0.2%": {
+         "pnl_gbp": 0.0446,
+         "trips": 2
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": 0.077,
+        "bid": -0.2
+       },
+       "days": 358.0,
+       "days_negative": 3,
+       "days_positive": 1,
+       "from": "2025-11-03",
+       "gbp_per_day": -0.0003,
+       "pct_per_year": -0.0418,
+       "pnl_gbp": -0.123,
+       "stop_pnl_gbp": -0.123,
+       "stops": 5,
+       "trips": 5,
+       "trips_per_day": 0.014
+      }
+     }
+    },
+    "through_10": {
+     "orders_per_day": 98.2,
+     "windows": {
+      "last_28d": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.1079,
+       "bps_per_trip": -9.0503,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.014,
+         "trips": 1
+        },
+        "0.2%": {
+         "pnl_gbp": -0.0041,
+         "trips": 1
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": 0,
+        "bid": -0.0181
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 0,
+       "from": "2026-09-29",
+       "gbp_per_day": -0.0006,
+       "pct_per_year": -0.3939,
+       "pnl_gbp": -0.0181,
+       "stop_pnl_gbp": -0.0181,
+       "stops": 2,
+       "trips": 2,
+       "trips_per_day": 0.0714
+      },
+      "since_08-24": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.0472,
+       "bps_per_trip": -9.0503,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.014,
+         "trips": 1
+        },
+        "0.2%": {
+         "pnl_gbp": -0.0041,
+         "trips": 1
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": 0,
+        "bid": -0.0181
+       },
+       "days": 64.0,
+       "days_negative": 1,
+       "days_positive": 0,
+       "from": "2026-08-24",
+       "gbp_per_day": -0.0003,
+       "pct_per_year": -0.1723,
+       "pnl_gbp": -0.0181,
+       "stop_pnl_gbp": -0.0181,
+       "stops": 2,
+       "trips": 2,
+       "trips_per_day": 0.0312
+      },
+      "since_tgbp": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.0111,
+       "bps_per_trip": -3.1062,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.026,
+         "trips": 2
+        },
+        "0.2%": {
+         "pnl_gbp": 0.0136,
+         "trips": 2
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": 0.0177,
+        "bid": -0.0302
+       },
+       "days": 187.0,
+       "days_negative": 2,
+       "days_positive": 1,
+       "from": "2026-04-23",
+       "gbp_per_day": -0.0001,
+       "pct_per_year": -0.0405,
+       "pnl_gbp": -0.0124,
+       "stop_pnl_gbp": -0.0124,
+       "stops": 4,
+       "trips": 4,
+       "trips_per_day": 0.0214
+      },
+      "whole": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.0081,
+       "bps_per_trip": -3.4728,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.031,
+         "trips": 3
+        },
+        "0.2%": {
+         "pnl_gbp": 0.0136,
+         "trips": 2
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": 0.0177,
+        "bid": -0.0351
+       },
+       "days": 358.0,
+       "days_negative": 3,
+       "days_positive": 1,
+       "from": "2025-11-03",
+       "gbp_per_day": -0.0,
+       "pct_per_year": -0.0295,
+       "pnl_gbp": -0.0174,
+       "stop_pnl_gbp": -0.0174,
+       "stops": 5,
+       "trips": 5,
+       "trips_per_day": 0.014
+      }
+     }
+    },
+    "through_100": {
+     "orders_per_day": 98.2,
+     "windows": {
+      "last_28d": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.1079,
+       "bps_per_trip": -9.0503,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.1399,
+         "trips": 1
+        },
+        "0.2%": {
+         "pnl_gbp": -0.0414,
+         "trips": 1
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": 0,
+        "bid": -0.1813
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 0,
+       "from": "2026-09-29",
+       "gbp_per_day": -0.0065,
+       "pct_per_year": -0.3939,
+       "pnl_gbp": -0.1813,
+       "stop_pnl_gbp": -0.1813,
+       "stops": 2,
+       "trips": 2,
+       "trips_per_day": 0.0714
+      },
+      "since_08-24": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.0472,
+       "bps_per_trip": -9.0503,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.1399,
+         "trips": 1
+        },
+        "0.2%": {
+         "pnl_gbp": -0.0414,
+         "trips": 1
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": 0,
+        "bid": -0.1813
+       },
+       "days": 64.0,
+       "days_negative": 1,
+       "days_positive": 0,
+       "from": "2026-08-24",
+       "gbp_per_day": -0.0028,
+       "pct_per_year": -0.1723,
+       "pnl_gbp": -0.1813,
+       "stop_pnl_gbp": -0.1813,
+       "stops": 2,
+       "trips": 2,
+       "trips_per_day": 0.0312
+      },
+      "since_tgbp": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.0111,
+       "bps_per_trip": -3.1062,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.2604,
+         "trips": 2
+        },
+        "0.2%": {
+         "pnl_gbp": 0.136,
+         "trips": 2
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": 0.1774,
+        "bid": -0.3018
+       },
+       "days": 187.0,
+       "days_negative": 2,
+       "days_positive": 1,
+       "from": "2026-04-23",
+       "gbp_per_day": -0.0007,
+       "pct_per_year": -0.0405,
+       "pnl_gbp": -0.1244,
+       "stop_pnl_gbp": -0.1244,
+       "stops": 4,
+       "trips": 4,
+       "trips_per_day": 0.0214
+      },
+      "whole": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.0062,
+       "bps_per_trip": -3.1896,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.2698,
+         "trips": 3
+        },
+        "0.2%": {
+         "pnl_gbp": 0.136,
+         "trips": 2
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": 0.1774,
+        "bid": -0.3112
+       },
+       "days": 358.0,
+       "days_negative": 3,
+       "days_positive": 1,
+       "from": "2025-11-03",
+       "gbp_per_day": -0.0004,
+       "pct_per_year": -0.0227,
+       "pnl_gbp": -0.1338,
+       "stop_pnl_gbp": -0.1338,
+       "stops": 5,
+       "trips": 5,
+       "trips_per_day": 0.014
+      }
+     }
+    },
+    "through_1000": {
+     "orders_per_day": 98.2,
+     "windows": {
+      "last_28d": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.1079,
+       "bps_per_trip": -9.0503,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -1.399,
+         "trips": 1
+        },
+        "0.2%": {
+         "pnl_gbp": -0.4142,
+         "trips": 1
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": 0,
+        "bid": -1.8132
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 0,
+       "from": "2026-09-29",
+       "gbp_per_day": -0.0648,
+       "pct_per_year": -0.3939,
+       "pnl_gbp": -1.8132,
+       "stop_pnl_gbp": -1.8132,
+       "stops": 2,
+       "trips": 2,
+       "trips_per_day": 0.0714
+      },
+      "since_08-24": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.0472,
+       "bps_per_trip": -9.0503,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -1.399,
+         "trips": 1
+        },
+        "0.2%": {
+         "pnl_gbp": -0.4142,
+         "trips": 1
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": 0,
+        "bid": -1.8132
+       },
+       "days": 64.0,
+       "days_negative": 1,
+       "days_positive": 0,
+       "from": "2026-08-24",
+       "gbp_per_day": -0.0283,
+       "pct_per_year": -0.1723,
+       "pnl_gbp": -1.8132,
+       "stop_pnl_gbp": -1.8132,
+       "stops": 2,
+       "trips": 2,
+       "trips_per_day": 0.0312
+      },
+      "since_tgbp": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.003,
+       "bps_per_trip": -1.0232,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -1.6918,
+         "trips": 2
+        },
+        "0.2%": {
+         "pnl_gbp": 1.3597,
+         "trips": 2
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": 1.7739,
+        "bid": -2.106
+       },
+       "days": 187.0,
+       "days_negative": 2,
+       "days_positive": 1,
+       "from": "2026-04-23",
+       "gbp_per_day": -0.0018,
+       "pct_per_year": -0.0108,
+       "pnl_gbp": -0.3321,
+       "stop_pnl_gbp": -0.3321,
+       "stops": 4,
+       "trips": 4,
+       "trips_per_day": 0.0214
+      },
+      "whole": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.0016,
+       "bps_per_trip": -1.0461,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -1.7012,
+         "trips": 3
+        },
+        "0.2%": {
+         "pnl_gbp": 1.3597,
+         "trips": 2
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": 1.7739,
+        "bid": -2.1154
+       },
+       "days": 358.0,
+       "days_negative": 3,
+       "days_positive": 1,
+       "from": "2025-11-03",
+       "gbp_per_day": -0.001,
+       "pct_per_year": -0.0058,
+       "pnl_gbp": -0.3415,
+       "stop_pnl_gbp": -0.3415,
+       "stops": 5,
+       "trips": 5,
+       "trips_per_day": 0.014
+      }
+     }
+    },
+    "through_300": {
+     "orders_per_day": 98.2,
+     "windows": {
+      "last_28d": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.1079,
+       "bps_per_trip": -9.0503,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.4197,
+         "trips": 1
+        },
+        "0.2%": {
+         "pnl_gbp": -0.1243,
+         "trips": 1
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": 0,
+        "bid": -0.544
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 0,
+       "from": "2026-09-29",
+       "gbp_per_day": -0.0194,
+       "pct_per_year": -0.3939,
+       "pnl_gbp": -0.544,
+       "stop_pnl_gbp": -0.544,
+       "stops": 2,
+       "trips": 2,
+       "trips_per_day": 0.0714
+      },
+      "since_08-24": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.0472,
+       "bps_per_trip": -9.0503,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.4197,
+         "trips": 1
+        },
+        "0.2%": {
+         "pnl_gbp": -0.1243,
+         "trips": 1
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": 0,
+        "bid": -0.544
+       },
+       "days": 64.0,
+       "days_negative": 1,
+       "days_positive": 0,
+       "from": "2026-08-24",
+       "gbp_per_day": -0.0085,
+       "pct_per_year": -0.1723,
+       "pnl_gbp": -0.544,
+       "stop_pnl_gbp": -0.544,
+       "stops": 2,
+       "trips": 2,
+       "trips_per_day": 0.0312
+      },
+      "since_tgbp": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.009,
+       "bps_per_trip": -2.6616,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.7125,
+         "trips": 2
+        },
+        "0.2%": {
+         "pnl_gbp": 0.4079,
+         "trips": 2
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": 0.5322,
+        "bid": -0.8368
+       },
+       "days": 187.0,
+       "days_negative": 2,
+       "days_positive": 1,
+       "from": "2026-04-23",
+       "gbp_per_day": -0.0016,
+       "pct_per_year": -0.033,
+       "pnl_gbp": -0.3046,
+       "stop_pnl_gbp": -0.3046,
+       "stops": 4,
+       "trips": 4,
+       "trips_per_day": 0.0214
+      },
+      "whole": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.0049,
+       "bps_per_trip": -2.699,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.7219,
+         "trips": 3
+        },
+        "0.2%": {
+         "pnl_gbp": 0.4079,
+         "trips": 2
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": 0.5322,
+        "bid": -0.8462
+       },
+       "days": 358.0,
+       "days_negative": 3,
+       "days_positive": 1,
+       "from": "2025-11-03",
+       "gbp_per_day": -0.0009,
+       "pct_per_year": -0.0178,
+       "pnl_gbp": -0.314,
+       "stop_pnl_gbp": -0.314,
+       "stops": 5,
+       "trips": 5,
+       "trips_per_day": 0.014
+      }
+     }
+    },
+    "through_50": {
+     "bootstrap_last_28d": {
+      "days": 28,
+      "p05_gbp_per_day": -0.0097,
+      "p95_gbp_per_day": 0.0,
+      "share_draws_gt_0": 0.0,
+      "sum_gbp": -0.0907
+     },
+     "bootstrap_whole": {
+      "days": 358,
+      "p05_gbp_per_day": -0.0009,
+      "p95_gbp_per_day": 0.0005,
+      "share_draws_gt_0": 0.298,
+      "sum_gbp": -0.0716
+     },
+     "by_month": {
+      "2025-11": -0.0094,
+      "2026-07": 0.0285,
+      "2026-10": -0.0907
+     },
+     "orders_per_day": 98.2,
+     "windows": {
+      "last_28d": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.1079,
+       "bps_per_trip": -9.0503,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.07,
+         "trips": 1
+        },
+        "0.2%": {
+         "pnl_gbp": -0.0207,
+         "trips": 1
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": 0,
+        "bid": -0.0907
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 0,
+       "from": "2026-09-29",
+       "gbp_per_day": -0.0032,
+       "pct_per_year": -0.3939,
+       "pnl_gbp": -0.0907,
+       "stop_pnl_gbp": -0.0907,
+       "stops": 2,
+       "trips": 2,
+       "trips_per_day": 0.0714
+      },
+      "since_08-24": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.0472,
+       "bps_per_trip": -9.0503,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.07,
+         "trips": 1
+        },
+        "0.2%": {
+         "pnl_gbp": -0.0207,
+         "trips": 1
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": 0,
+        "bid": -0.0907
+       },
+       "days": 64.0,
+       "days_negative": 1,
+       "days_positive": 0,
+       "from": "2026-08-24",
+       "gbp_per_day": -0.0014,
+       "pct_per_year": -0.1723,
+       "pnl_gbp": -0.0907,
+       "stop_pnl_gbp": -0.0907,
+       "stops": 2,
+       "trips": 2,
+       "trips_per_day": 0.0312
+      },
+      "since_tgbp": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.0111,
+       "bps_per_trip": -3.1062,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.1302,
+         "trips": 2
+        },
+        "0.2%": {
+         "pnl_gbp": 0.068,
+         "trips": 2
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": 0.0887,
+        "bid": -0.1509
+       },
+       "days": 187.0,
+       "days_negative": 2,
+       "days_positive": 1,
+       "from": "2026-04-23",
+       "gbp_per_day": -0.0003,
+       "pct_per_year": -0.0405,
+       "pnl_gbp": -0.0622,
+       "stop_pnl_gbp": -0.0622,
+       "stops": 4,
+       "trips": 4,
+       "trips_per_day": 0.0214
+      },
+      "whole": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.0067,
+       "bps_per_trip": -3.2658,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.1396,
+         "trips": 3
+        },
+        "0.2%": {
+         "pnl_gbp": 0.068,
+         "trips": 2
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": 0.0887,
+        "bid": -0.1603
+       },
+       "days": 358.0,
+       "days_negative": 3,
+       "days_positive": 1,
+       "from": "2025-11-03",
+       "gbp_per_day": -0.0002,
+       "pct_per_year": -0.0243,
+       "pnl_gbp": -0.0716,
+       "stop_pnl_gbp": -0.0716,
+       "stops": 5,
+       "trips": 5,
+       "trips_per_day": 0.014
+      }
+     }
+    }
+   },
+   "meta": {
+    "candle_grade": true,
+    "coin": "EURCV",
+    "first_print_day": "2025-11-03",
+    "half_touch_bps": 1.345,
+    "lit_share": 0.7088,
+    "minutes_with_prints": 250,
+    "peg_check_bps": {
+     "2025-11": {
+      "median": -4.81,
+      "n": 17,
+      "p10": -10.97,
+      "p90": 4.6
+     },
+     "2025-12": {
+      "median": -6.71,
+      "n": 12,
+      "p10": -9.39,
+      "p90": 2.95
+     },
+     "2026-01": {
+      "median": -8.67,
+      "n": 10,
+      "p10": -52.76,
+      "p90": 2.86
+     },
+     "2026-02": {
+      "median": -1.09,
+      "n": 6,
+      "p10": -7.08,
+      "p90": 3.32
+     },
+     "2026-03": {
+      "median": -6.59,
+      "n": 8,
+      "p10": -37.46,
+      "p90": 2.55
+     },
+     "2026-04": {
+      "median": 4.53,
+      "n": 1,
+      "p10": 4.53,
+      "p90": 4.53
+     },
+     "2026-06": {
+      "median": 6.54,
+      "n": 10,
+      "p10": -9.52,
+      "p90": 8.39
+     },
+     "2026-07": {
+      "median": -6.4,
+      "n": 12,
+      "p10": -12.15,
+      "p90": -5.02
+     },
+     "2026-08": {
+      "median": -4.43,
+      "n": 88,
+      "p10": -7.37,
+      "p90": -0.08
+     },
+     "2026-09": {
+      "median": -1.2,
+      "n": 25,
+      "p10": -7.91,
+      "p90": 0.45
+     },
+     "2026-10": {
+      "median": -2.29,
+      "n": 9,
+      "p10": -26.81,
+      "p90": -1.39
+     }
+    },
+    "prints": 250,
+    "quote": "USDC",
+    "t0": 1762128000000,
+    "taker_fee": 0.0001,
+    "tick": 0.0001,
+    "venue": "bitstamp",
+    "volume_gbp_per_day": {
+     "last_28d": 3794.0,
+     "since_08-24": 2474.0,
+     "since_tgbp": 2229.0
+    }
+   }
+  },
+  "coinbase:EURC-USDC": {
+   "arms": {
+    "at_price_50": {
+     "orders_per_day": 147.1,
+     "windows": {
+      "12m": {
+       "best_day_share": 0.0797,
+       "bps_per_day_of_capital": 3.1827,
+       "bps_per_trip": 6.793,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 17.56,
+         "trips": 880
+        },
+        "0.2%": {
+         "pnl_gbp": 8.5603,
+         "trips": 103
+        },
+        "0.3%": {
+         "pnl_gbp": 8.7303,
+         "trips": 65
+        }
+       },
+       "by_side": {
+        "ask": 16.1133,
+        "bid": 18.7373
+       },
+       "days": 365.0,
+       "days_negative": 43,
+       "days_positive": 190,
+       "from": "2025-10-27",
+       "gbp_per_day": 0.0955,
+       "pct_per_year": 11.6169,
+       "pnl_gbp": 34.8506,
+       "stop_pnl_gbp": -0.25,
+       "stops": 19,
+       "trips": 1048,
+       "trips_per_day": 2.8712
+      },
+      "last_28d": {
+       "best_day_share": 0.6771,
+       "bps_per_day_of_capital": 0.6582,
+       "bps_per_trip": 1.0919,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 0.1655,
+         "trips": 97
+        },
+        "0.2%": {
+         "pnl_gbp": 0.0751,
+         "trips": 6
+        },
+        "0.3%": {
+         "pnl_gbp": 0.3123,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": 0.3469,
+        "bid": 0.206
+       },
+       "days": 28.0,
+       "days_negative": 6,
+       "days_positive": 12,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.0197,
+       "pct_per_year": 2.4026,
+       "pnl_gbp": 0.5529,
+       "stop_pnl_gbp": -0.0577,
+       "stops": 3,
+       "trips": 105,
+       "trips_per_day": 3.75
+      },
+      "since_08-24": {
+       "best_day_share": 0.2162,
+       "bps_per_day_of_capital": 2.2793,
+       "bps_per_trip": 5.0511,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 2.7891,
+         "trips": 158
+        },
+        "0.2%": {
+         "pnl_gbp": 0.7571,
+         "trips": 14
+        },
+        "0.3%": {
+         "pnl_gbp": 0.8301,
+         "trips": 6
+        }
+       },
+       "by_side": {
+        "ask": 2.4975,
+        "bid": 1.8788
+       },
+       "days": 64.0,
+       "days_negative": 6,
+       "days_positive": 34,
+       "from": "2026-08-24",
+       "gbp_per_day": 0.0684,
+       "pct_per_year": 8.3196,
+       "pnl_gbp": 4.3763,
+       "stop_pnl_gbp": -0.0577,
+       "stops": 3,
+       "trips": 178,
+       "trips_per_day": 2.7812
+      },
+      "since_tgbp": {
+       "best_day_share": 0.1229,
+       "bps_per_day_of_capital": 2.2417,
+       "bps_per_trip": 6.3727,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 6.4853,
+         "trips": 331
+        },
+        "0.2%": {
+         "pnl_gbp": 2.7391,
+         "trips": 43
+        },
+        "0.3%": {
+         "pnl_gbp": 3.3515,
+         "trips": 27
+        }
+       },
+       "by_side": {
+        "ask": 5.7524,
+        "bid": 6.8236
+       },
+       "days": 187.0,
+       "days_negative": 14,
+       "days_positive": 90,
+       "from": "2026-04-23",
+       "gbp_per_day": 0.0673,
+       "pct_per_year": 8.1822,
+       "pnl_gbp": 12.576,
+       "stop_pnl_gbp": -0.1027,
+       "stops": 7,
+       "trips": 401,
+       "trips_per_day": 2.1444
+      },
+      "whole": {
+       "best_day_share": 0.0797,
+       "bps_per_day_of_capital": 3.1827,
+       "bps_per_trip": 6.793,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 17.56,
+         "trips": 880
+        },
+        "0.2%": {
+         "pnl_gbp": 8.5603,
+         "trips": 103
+        },
+        "0.3%": {
+         "pnl_gbp": 8.7303,
+         "trips": 65
+        }
+       },
+       "by_side": {
+        "ask": 16.1133,
+        "bid": 18.7373
+       },
+       "days": 365.0,
+       "days_negative": 43,
+       "days_positive": 190,
+       "from": "2025-10-27",
+       "gbp_per_day": 0.0955,
+       "pct_per_year": 11.6169,
+       "pnl_gbp": 34.8506,
+       "stop_pnl_gbp": -0.25,
+       "stops": 19,
+       "trips": 1048,
+       "trips_per_day": 2.8712
+      }
+     }
+    },
+    "stress_50": {
+     "orders_per_day": 145.6,
+     "windows": {
+      "12m": {
+       "best_day_share": 0.085,
+       "bps_per_day_of_capital": 1.8835,
+       "bps_per_trip": 7.7186,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 6.3655,
+         "trips": 390
+        },
+        "0.2%": {
+         "pnl_gbp": 6.838,
+         "trips": 88
+        },
+        "0.3%": {
+         "pnl_gbp": 7.4207,
+         "trips": 58
+        }
+       },
+       "by_side": {
+        "ask": 11.5789,
+        "bid": 9.0453
+       },
+       "days": 365.0,
+       "days_negative": 50,
+       "days_positive": 134,
+       "from": "2025-10-27",
+       "gbp_per_day": 0.0565,
+       "pct_per_year": 6.8747,
+       "pnl_gbp": 20.6242,
+       "stop_pnl_gbp": -0.3203,
+       "stops": 21,
+       "trips": 536,
+       "trips_per_day": 1.4685
+      },
+      "last_28d": {
+       "best_day_share": 2.1957,
+       "bps_per_day_of_capital": 0.1984,
+       "bps_per_trip": 0.9262,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.3406,
+         "trips": 29
+        },
+        "0.2%": {
+         "pnl_gbp": 0.1371,
+         "trips": 5
+        },
+        "0.3%": {
+         "pnl_gbp": 0.3702,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": 0.262,
+        "bid": -0.0953
+       },
+       "days": 28.0,
+       "days_negative": 7,
+       "days_positive": 8,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.006,
+       "pct_per_year": 0.7243,
+       "pnl_gbp": 0.1667,
+       "stop_pnl_gbp": -0.0892,
+       "stops": 5,
+       "trips": 36,
+       "trips_per_day": 1.2857
+      },
+      "since_08-24": {
+       "best_day_share": 0.2916,
+       "bps_per_day_of_capital": 1.2924,
+       "bps_per_trip": 6.3629,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 0.9513,
+         "trips": 61
+        },
+        "0.2%": {
+         "pnl_gbp": 0.6685,
+         "trips": 11
+        },
+        "0.3%": {
+         "pnl_gbp": 0.8617,
+         "trips": 6
+        }
+       },
+       "by_side": {
+        "ask": 1.7422,
+        "bid": 0.7393
+       },
+       "days": 64.0,
+       "days_negative": 8,
+       "days_positive": 23,
+       "from": "2026-08-24",
+       "gbp_per_day": 0.0388,
+       "pct_per_year": 4.7174,
+       "pnl_gbp": 2.4815,
+       "stop_pnl_gbp": -0.0892,
+       "stops": 5,
+       "trips": 78,
+       "trips_per_day": 1.2188
+      },
+      "since_tgbp": {
+       "best_day_share": 0.1699,
+       "bps_per_day_of_capital": 1.2999,
+       "bps_per_trip": 7.2214,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 1.9365,
+         "trips": 142
+        },
+        "0.2%": {
+         "pnl_gbp": 2.1382,
+         "trips": 35
+        },
+        "0.3%": {
+         "pnl_gbp": 3.2176,
+         "trips": 25
+        }
+       },
+       "by_side": {
+        "ask": 3.8877,
+        "bid": 3.4046
+       },
+       "days": 187.0,
+       "days_negative": 19,
+       "days_positive": 60,
+       "from": "2026-04-23",
+       "gbp_per_day": 0.039,
+       "pct_per_year": 4.7445,
+       "pnl_gbp": 7.2923,
+       "stop_pnl_gbp": -0.1686,
+       "stops": 10,
+       "trips": 202,
+       "trips_per_day": 1.0802
+      },
+      "whole": {
+       "best_day_share": 0.085,
+       "bps_per_day_of_capital": 1.8835,
+       "bps_per_trip": 7.7186,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 6.3655,
+         "trips": 390
+        },
+        "0.2%": {
+         "pnl_gbp": 6.838,
+         "trips": 88
+        },
+        "0.3%": {
+         "pnl_gbp": 7.4207,
+         "trips": 58
+        }
+       },
+       "by_side": {
+        "ask": 11.5789,
+        "bid": 9.0453
+       },
+       "days": 365.0,
+       "days_negative": 50,
+       "days_positive": 134,
+       "from": "2025-10-27",
+       "gbp_per_day": 0.0565,
+       "pct_per_year": 6.8747,
+       "pnl_gbp": 20.6242,
+       "stop_pnl_gbp": -0.3203,
+       "stops": 21,
+       "trips": 536,
+       "trips_per_day": 1.4685
+      }
+     }
+    },
+    "through_10": {
+     "orders_per_day": 146.0,
+     "windows": {
+      "12m": {
+       "best_day_share": 0.0773,
+       "bps_per_day_of_capital": 2.2588,
+       "bps_per_trip": 6.989,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 1.9,
+         "trips": 557
+        },
+        "0.2%": {
+         "pnl_gbp": 1.468,
+         "trips": 93
+        },
+        "0.3%": {
+         "pnl_gbp": 1.5789,
+         "trips": 61
+        }
+       },
+       "by_side": {
+        "ask": 2.7042,
+        "bid": 2.2427
+       },
+       "days": 365.0,
+       "days_negative": 55,
+       "days_positive": 148,
+       "from": "2025-10-27",
+       "gbp_per_day": 0.0136,
+       "pct_per_year": 8.2448,
+       "pnl_gbp": 4.9469,
+       "stop_pnl_gbp": -0.0454,
+       "stops": 20,
+       "trips": 711,
+       "trips_per_day": 1.9479
+      },
+      "last_28d": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.1995,
+       "bps_per_trip": -0.5494,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.1127,
+         "trips": 54
+        },
+        "0.2%": {
+         "pnl_gbp": 0.0167,
+         "trips": 5
+        },
+        "0.3%": {
+         "pnl_gbp": 0.0624,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": 0.072,
+        "bid": -0.1055
+       },
+       "days": 28.0,
+       "days_negative": 10,
+       "days_positive": 7,
+       "from": "2026-09-29",
+       "gbp_per_day": -0.0012,
+       "pct_per_year": -0.7283,
+       "pnl_gbp": -0.0335,
+       "stop_pnl_gbp": -0.0187,
+       "stops": 4,
+       "trips": 61,
+       "trips_per_day": 2.1786
+      },
+      "since_08-24": {
+       "best_day_share": 0.3215,
+       "bps_per_day_of_capital": 1.3659,
+       "bps_per_trip": 4.6825,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 0.2245,
+         "trips": 94
+        },
+        "0.2%": {
+         "pnl_gbp": 0.1393,
+         "trips": 12
+        },
+        "0.3%": {
+         "pnl_gbp": 0.1607,
+         "trips": 6
+        }
+       },
+       "by_side": {
+        "ask": 0.4118,
+        "bid": 0.1127
+       },
+       "days": 64.0,
+       "days_negative": 10,
+       "days_positive": 23,
+       "from": "2026-08-24",
+       "gbp_per_day": 0.0082,
+       "pct_per_year": 4.9855,
+       "pnl_gbp": 0.5245,
+       "stop_pnl_gbp": -0.0187,
+       "stops": 4,
+       "trips": 112,
+       "trips_per_day": 1.75
+      },
+      "since_tgbp": {
+       "best_day_share": 0.1747,
+       "bps_per_day_of_capital": 1.5458,
+       "bps_per_trip": 6.3736,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 0.5856,
+         "trips": 207
+        },
+        "0.2%": {
+         "pnl_gbp": 0.4855,
+         "trips": 39
+        },
+        "0.3%": {
+         "pnl_gbp": 0.6633,
+         "trips": 27
+        }
+       },
+       "by_side": {
+        "ask": 0.9489,
+        "bid": 0.7855
+       },
+       "days": 187.0,
+       "days_negative": 20,
+       "days_positive": 65,
+       "from": "2026-04-23",
+       "gbp_per_day": 0.0093,
+       "pct_per_year": 5.6422,
+       "pnl_gbp": 1.7344,
+       "stop_pnl_gbp": -0.0249,
+       "stops": 9,
+       "trips": 273,
+       "trips_per_day": 1.4599
+      },
+      "whole": {
+       "best_day_share": 0.0773,
+       "bps_per_day_of_capital": 2.2588,
+       "bps_per_trip": 6.989,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 1.9,
+         "trips": 557
+        },
+        "0.2%": {
+         "pnl_gbp": 1.468,
+         "trips": 93
+        },
+        "0.3%": {
+         "pnl_gbp": 1.5789,
+         "trips": 61
+        }
+       },
+       "by_side": {
+        "ask": 2.7042,
+        "bid": 2.2427
+       },
+       "days": 365.0,
+       "days_negative": 55,
+       "days_positive": 148,
+       "from": "2025-10-27",
+       "gbp_per_day": 0.0136,
+       "pct_per_year": 8.2448,
+       "pnl_gbp": 4.9469,
+       "stop_pnl_gbp": -0.0454,
+       "stops": 20,
+       "trips": 711,
+       "trips_per_day": 1.9479
+      }
+     }
+    },
+    "through_100": {
+     "orders_per_day": 146.0,
+     "windows": {
+      "12m": {
+       "best_day_share": 0.0779,
+       "bps_per_day_of_capital": 2.2429,
+       "bps_per_trip": 7.1244,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 18.6999,
+         "trips": 557
+        },
+        "0.2%": {
+         "pnl_gbp": 14.6307,
+         "trips": 93
+        },
+        "0.3%": {
+         "pnl_gbp": 15.7889,
+         "trips": 61
+        }
+       },
+       "by_side": {
+        "ask": 26.9916,
+        "bid": 22.1279
+       },
+       "days": 365.0,
+       "days_negative": 55,
+       "days_positive": 148,
+       "from": "2025-10-27",
+       "gbp_per_day": 0.1346,
+       "pct_per_year": 8.1866,
+       "pnl_gbp": 49.1195,
+       "stop_pnl_gbp": -0.3887,
+       "stops": 20,
+       "trips": 711,
+       "trips_per_day": 1.9479
+      },
+      "last_28d": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.1876,
+       "bps_per_trip": -0.5483,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -1.107,
+         "trips": 54
+        },
+        "0.2%": {
+         "pnl_gbp": 0.1673,
+         "trips": 5
+        },
+        "0.3%": {
+         "pnl_gbp": 0.6244,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": 0.7199,
+        "bid": -1.035
+       },
+       "days": 28.0,
+       "days_negative": 10,
+       "days_positive": 7,
+       "from": "2026-09-29",
+       "gbp_per_day": -0.0113,
+       "pct_per_year": -0.6847,
+       "pnl_gbp": -0.3152,
+       "stop_pnl_gbp": -0.1872,
+       "stops": 4,
+       "trips": 61,
+       "trips_per_day": 2.1786
+      },
+      "since_08-24": {
+       "best_day_share": 0.3203,
+       "bps_per_day_of_capital": 1.3711,
+       "bps_per_trip": 4.8535,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 2.2651,
+         "trips": 94
+        },
+        "0.2%": {
+         "pnl_gbp": 1.3926,
+         "trips": 12
+        },
+        "0.3%": {
+         "pnl_gbp": 1.6074,
+         "trips": 6
+        }
+       },
+       "by_side": {
+        "ask": 4.1179,
+        "bid": 1.1471
+       },
+       "days": 64.0,
+       "days_negative": 10,
+       "days_positive": 23,
+       "from": "2026-08-24",
+       "gbp_per_day": 0.0823,
+       "pct_per_year": 5.0045,
+       "pnl_gbp": 5.2651,
+       "stop_pnl_gbp": -0.1872,
+       "stops": 4,
+       "trips": 112,
+       "trips_per_day": 1.75
+      },
+      "since_tgbp": {
+       "best_day_share": 0.1749,
+       "bps_per_day_of_capital": 1.5448,
+       "bps_per_trip": 6.5053,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 5.8451,
+         "trips": 207
+        },
+        "0.2%": {
+         "pnl_gbp": 4.8547,
+         "trips": 39
+        },
+        "0.3%": {
+         "pnl_gbp": 6.6332,
+         "trips": 27
+        }
+       },
+       "by_side": {
+        "ask": 9.4892,
+        "bid": 7.8437
+       },
+       "days": 187.0,
+       "days_negative": 20,
+       "days_positive": 65,
+       "from": "2026-04-23",
+       "gbp_per_day": 0.0927,
+       "pct_per_year": 5.6386,
+       "pnl_gbp": 17.3329,
+       "stop_pnl_gbp": -0.2424,
+       "stops": 9,
+       "trips": 273,
+       "trips_per_day": 1.4599
+      },
+      "whole": {
+       "best_day_share": 0.0779,
+       "bps_per_day_of_capital": 2.2429,
+       "bps_per_trip": 7.1244,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 18.6999,
+         "trips": 557
+        },
+        "0.2%": {
+         "pnl_gbp": 14.6307,
+         "trips": 93
+        },
+        "0.3%": {
+         "pnl_gbp": 15.7889,
+         "trips": 61
+        }
+       },
+       "by_side": {
+        "ask": 26.9916,
+        "bid": 22.1279
+       },
+       "days": 365.0,
+       "days_negative": 55,
+       "days_positive": 148,
+       "from": "2025-10-27",
+       "gbp_per_day": 0.1346,
+       "pct_per_year": 8.1866,
+       "pnl_gbp": 49.1195,
+       "stop_pnl_gbp": -0.3887,
+       "stops": 20,
+       "trips": 711,
+       "trips_per_day": 1.9479
+      }
+     }
+    },
+    "through_1000": {
+     "orders_per_day": 146.0,
+     "windows": {
+      "12m": {
+       "best_day_share": 0.0624,
+       "bps_per_day_of_capital": 2.1435,
+       "bps_per_trip": 8.5254,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 182.8236,
+         "trips": 557
+        },
+        "0.2%": {
+         "pnl_gbp": 134.7943,
+         "trips": 93
+        },
+        "0.3%": {
+         "pnl_gbp": 151.7987,
+         "trips": 61
+        }
+       },
+       "by_side": {
+        "ask": 269.2435,
+        "bid": 200.1731
+       },
+       "days": 365.0,
+       "days_negative": 53,
+       "days_positive": 150,
+       "from": "2025-10-27",
+       "gbp_per_day": 1.2861,
+       "pct_per_year": 7.8236,
+       "pnl_gbp": 469.4166,
+       "stop_pnl_gbp": 1.3111,
+       "stops": 20,
+       "trips": 711,
+       "trips_per_day": 1.9479
+      },
+      "last_28d": {
+       "best_day_share": 1.6262,
+       "bps_per_day_of_capital": 0.2378,
+       "bps_per_trip": 1.1375,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -3.9231,
+         "trips": 54
+        },
+        "0.2%": {
+         "pnl_gbp": 1.6735,
+         "trips": 5
+        },
+        "0.3%": {
+         "pnl_gbp": 6.2445,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": 7.1986,
+        "bid": -3.2037
+       },
+       "days": 28.0,
+       "days_negative": 9,
+       "days_positive": 8,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.1427,
+       "pct_per_year": 0.8679,
+       "pnl_gbp": 3.9949,
+       "stop_pnl_gbp": -0.8475,
+       "stops": 4,
+       "trips": 61,
+       "trips_per_day": 2.1786
+      },
+      "since_08-24": {
+       "best_day_share": 0.277,
+       "bps_per_day_of_capital": 1.4525,
+       "bps_per_trip": 6.7878,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 25.7746,
+         "trips": 94
+        },
+        "0.2%": {
+         "pnl_gbp": 13.9257,
+         "trips": 12
+        },
+        "0.3%": {
+         "pnl_gbp": 16.074,
+         "trips": 6
+        }
+       },
+       "by_side": {
+        "ask": 40.7493,
+        "bid": 15.025
+       },
+       "days": 64.0,
+       "days_negative": 9,
+       "days_positive": 24,
+       "from": "2026-08-24",
+       "gbp_per_day": 0.8715,
+       "pct_per_year": 5.3015,
+       "pnl_gbp": 55.7743,
+       "stop_pnl_gbp": -0.8475,
+       "stops": 4,
+       "trips": 112,
+       "trips_per_day": 1.75
+      },
+      "since_tgbp": {
+       "best_day_share": 0.1235,
+       "bps_per_day_of_capital": 1.4599,
+       "bps_per_trip": 7.3923,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 57.2764,
+         "trips": 207
+        },
+        "0.2%": {
+         "pnl_gbp": 44.0958,
+         "trips": 39
+        },
+        "0.3%": {
+         "pnl_gbp": 62.431,
+         "trips": 27
+        }
+       },
+       "by_side": {
+        "ask": 94.5148,
+        "bid": 69.2885
+       },
+       "days": 187.0,
+       "days_negative": 19,
+       "days_positive": 66,
+       "from": "2026-04-23",
+       "gbp_per_day": 0.876,
+       "pct_per_year": 5.3287,
+       "pnl_gbp": 163.8032,
+       "stop_pnl_gbp": -0.2049,
+       "stops": 9,
+       "trips": 273,
+       "trips_per_day": 1.4599
+      },
+      "whole": {
+       "best_day_share": 0.0624,
+       "bps_per_day_of_capital": 2.1435,
+       "bps_per_trip": 8.5254,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 182.8236,
+         "trips": 557
+        },
+        "0.2%": {
+         "pnl_gbp": 134.7943,
+         "trips": 93
+        },
+        "0.3%": {
+         "pnl_gbp": 151.7987,
+         "trips": 61
+        }
+       },
+       "by_side": {
+        "ask": 269.2435,
+        "bid": 200.1731
+       },
+       "days": 365.0,
+       "days_negative": 53,
+       "days_positive": 150,
+       "from": "2025-10-27",
+       "gbp_per_day": 1.2861,
+       "pct_per_year": 7.8236,
+       "pnl_gbp": 469.4166,
+       "stop_pnl_gbp": 1.3111,
+       "stops": 20,
+       "trips": 711,
+       "trips_per_day": 1.9479
+      }
+     }
+    },
+    "through_300": {
+     "orders_per_day": 146.0,
+     "windows": {
+      "12m": {
+       "best_day_share": 0.0757,
+       "bps_per_day_of_capital": 2.219,
+       "bps_per_trip": 7.5326,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 56.6518,
+         "trips": 557
+        },
+        "0.2%": {
+         "pnl_gbp": 42.088,
+         "trips": 93
+        },
+        "0.3%": {
+         "pnl_gbp": 47.0471,
+         "trips": 61
+        }
+       },
+       "by_side": {
+        "ask": 80.8763,
+        "bid": 64.9107
+       },
+       "days": 365.0,
+       "days_negative": 56,
+       "days_positive": 147,
+       "from": "2025-10-27",
+       "gbp_per_day": 0.3994,
+       "pct_per_year": 8.0993,
+       "pnl_gbp": 145.787,
+       "stop_pnl_gbp": -0.4256,
+       "stops": 20,
+       "trips": 711,
+       "trips_per_day": 1.9479
+      },
+      "last_28d": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.0423,
+       "bps_per_trip": -0.147,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -2.5884,
+         "trips": 54
+        },
+        "0.2%": {
+         "pnl_gbp": 0.502,
+         "trips": 5
+        },
+        "0.3%": {
+         "pnl_gbp": 1.8733,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": 2.1596,
+        "bid": -2.3726
+       },
+       "days": 28.0,
+       "days_negative": 10,
+       "days_positive": 7,
+       "from": "2026-09-29",
+       "gbp_per_day": -0.0076,
+       "pct_per_year": -0.1543,
+       "pnl_gbp": -0.213,
+       "stop_pnl_gbp": -0.4095,
+       "stops": 4,
+       "trips": 61,
+       "trips_per_day": 2.1786
+      },
+      "since_08-24": {
+       "best_day_share": 0.3051,
+       "bps_per_day_of_capital": 1.4276,
+       "bps_per_trip": 5.5336,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 7.4463,
+         "trips": 94
+        },
+        "0.2%": {
+         "pnl_gbp": 4.1777,
+         "trips": 12
+        },
+        "0.3%": {
+         "pnl_gbp": 4.8222,
+         "trips": 6
+        }
+       },
+       "by_side": {
+        "ask": 12.3538,
+        "bid": 4.0924
+       },
+       "days": 64.0,
+       "days_negative": 10,
+       "days_positive": 23,
+       "from": "2026-08-24",
+       "gbp_per_day": 0.257,
+       "pct_per_year": 5.2108,
+       "pnl_gbp": 16.4462,
+       "stop_pnl_gbp": -0.4095,
+       "stops": 4,
+       "trips": 112,
+       "trips_per_day": 1.75
+      },
+      "since_tgbp": {
+       "best_day_share": 0.1679,
+       "bps_per_day_of_capital": 1.5485,
+       "bps_per_trip": 6.8876,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 17.9986,
+         "trips": 207
+        },
+        "0.2%": {
+         "pnl_gbp": 14.4296,
+         "trips": 39
+        },
+        "0.3%": {
+         "pnl_gbp": 19.6948,
+         "trips": 27
+        }
+       },
+       "by_side": {
+        "ask": 28.4676,
+        "bid": 23.6553
+       },
+       "days": 187.0,
+       "days_negative": 21,
+       "days_positive": 64,
+       "from": "2026-04-23",
+       "gbp_per_day": 0.2787,
+       "pct_per_year": 5.6521,
+       "pnl_gbp": 52.1229,
+       "stop_pnl_gbp": -0.3096,
+       "stops": 9,
+       "trips": 273,
+       "trips_per_day": 1.4599
+      },
+      "whole": {
+       "best_day_share": 0.0757,
+       "bps_per_day_of_capital": 2.219,
+       "bps_per_trip": 7.5326,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 56.6518,
+         "trips": 557
+        },
+        "0.2%": {
+         "pnl_gbp": 42.088,
+         "trips": 93
+        },
+        "0.3%": {
+         "pnl_gbp": 47.0471,
+         "trips": 61
+        }
+       },
+       "by_side": {
+        "ask": 80.8763,
+        "bid": 64.9107
+       },
+       "days": 365.0,
+       "days_negative": 56,
+       "days_positive": 147,
+       "from": "2025-10-27",
+       "gbp_per_day": 0.3994,
+       "pct_per_year": 8.0993,
+       "pnl_gbp": 145.787,
+       "stop_pnl_gbp": -0.4256,
+       "stops": 20,
+       "trips": 711,
+       "trips_per_day": 1.9479
+      }
+     }
+    },
+    "through_50": {
+     "bootstrap_last_28d": {
+      "days": 28,
+      "p05_gbp_per_day": -0.0367,
+      "p95_gbp_per_day": 0.0284,
+      "share_draws_gt_0": 0.3875,
+      "sum_gbp": -0.1412
+     },
+     "bootstrap_whole": {
+      "days": 365,
+      "p05_gbp_per_day": 0.0506,
+      "p95_gbp_per_day": 0.0839,
+      "share_draws_gt_0": 1.0,
+      "sum_gbp": 24.5814
+     },
+     "by_month": {
+      "2025-10": -0.2119,
+      "2025-11": 5.5007,
+      "2025-12": 1.976,
+      "2026-01": 2.0733,
+      "2026-02": 1.6479,
+      "2026-03": 4.7194,
+      "2026-04": 0.1491,
+      "2026-05": 2.1228,
+      "2026-06": 1.6404,
+      "2026-07": 1.2834,
+      "2026-08": 2.0849,
+      "2026-09": 1.8158,
+      "2026-10": -0.2205
+     },
+     "orders_per_day": 146.0,
+     "windows": {
+      "12m": {
+       "best_day_share": 0.0778,
+       "bps_per_day_of_capital": 2.2449,
+       "bps_per_trip": 7.0157,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 9.3471,
+         "trips": 557
+        },
+        "0.2%": {
+         "pnl_gbp": 7.3398,
+         "trips": 93
+        },
+        "0.3%": {
+         "pnl_gbp": 7.8944,
+         "trips": 61
+        }
+       },
+       "by_side": {
+        "ask": 13.4986,
+        "bid": 11.0828
+       },
+       "days": 365.0,
+       "days_negative": 56,
+       "days_positive": 147,
+       "from": "2025-10-27",
+       "gbp_per_day": 0.0673,
+       "pct_per_year": 8.1938,
+       "pnl_gbp": 24.5814,
+       "stop_pnl_gbp": -0.227,
+       "stops": 20,
+       "trips": 711,
+       "trips_per_day": 1.9479
+      },
+      "last_28d": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.1681,
+       "bps_per_trip": -0.4745,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.5371,
+         "trips": 54
+        },
+        "0.2%": {
+         "pnl_gbp": 0.0837,
+         "trips": 5
+        },
+        "0.3%": {
+         "pnl_gbp": 0.3122,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": 0.3599,
+        "bid": -0.5011
+       },
+       "days": 28.0,
+       "days_negative": 10,
+       "days_positive": 7,
+       "from": "2026-09-29",
+       "gbp_per_day": -0.005,
+       "pct_per_year": -0.6136,
+       "pnl_gbp": -0.1412,
+       "stop_pnl_gbp": -0.0936,
+       "stops": 4,
+       "trips": 61,
+       "trips_per_day": 2.1786
+      },
+      "since_08-24": {
+       "best_day_share": 0.3183,
+       "bps_per_day_of_capital": 1.3796,
+       "bps_per_trip": 4.7932,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 1.1489,
+         "trips": 94
+        },
+        "0.2%": {
+         "pnl_gbp": 0.6963,
+         "trips": 12
+        },
+        "0.3%": {
+         "pnl_gbp": 0.8037,
+         "trips": 6
+        }
+       },
+       "by_side": {
+        "ask": 2.059,
+        "bid": 0.5899
+       },
+       "days": 64.0,
+       "days_negative": 10,
+       "days_positive": 23,
+       "from": "2026-08-24",
+       "gbp_per_day": 0.0414,
+       "pct_per_year": 5.0356,
+       "pnl_gbp": 2.6489,
+       "stop_pnl_gbp": -0.0936,
+       "stops": 4,
+       "trips": 112,
+       "trips_per_day": 1.75
+      },
+      "since_tgbp": {
+       "best_day_share": 0.1743,
+       "bps_per_day_of_capital": 1.5495,
+       "bps_per_trip": 6.4415,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 2.9487,
+         "trips": 207
+        },
+        "0.2%": {
+         "pnl_gbp": 2.4273,
+         "trips": 39
+        },
+        "0.3%": {
+         "pnl_gbp": 3.3166,
+         "trips": 27
+        }
+       },
+       "by_side": {
+        "ask": 4.7446,
+        "bid": 3.948
+       },
+       "days": 187.0,
+       "days_negative": 20,
+       "days_positive": 65,
+       "from": "2026-04-23",
+       "gbp_per_day": 0.0465,
+       "pct_per_year": 5.6556,
+       "pnl_gbp": 8.6926,
+       "stop_pnl_gbp": -0.1244,
+       "stops": 9,
+       "trips": 273,
+       "trips_per_day": 1.4599
+      },
+      "whole": {
+       "best_day_share": 0.0778,
+       "bps_per_day_of_capital": 2.2449,
+       "bps_per_trip": 7.0157,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 9.3471,
+         "trips": 557
+        },
+        "0.2%": {
+         "pnl_gbp": 7.3398,
+         "trips": 93
+        },
+        "0.3%": {
+         "pnl_gbp": 7.8944,
+         "trips": 61
+        }
+       },
+       "by_side": {
+        "ask": 13.4986,
+        "bid": 11.0828
+       },
+       "days": 365.0,
+       "days_negative": 56,
+       "days_positive": 147,
+       "from": "2025-10-27",
+       "gbp_per_day": 0.0673,
+       "pct_per_year": 8.1938,
+       "pnl_gbp": 24.5814,
+       "stop_pnl_gbp": -0.227,
+       "stops": 20,
+       "trips": 711,
+       "trips_per_day": 1.9479
+      }
+     }
+    }
+   },
+   "meta": {
+    "candle_grade": false,
+    "coin": "EURC",
+    "first_print_day": "2025-10-27",
+    "half_touch_bps": 0.45,
+    "lit_share": 0.7088,
+    "minutes_with_prints": 494571,
+    "peg_check_bps": {
+     "2025-10": {
+      "median": -2.26,
+      "n": 7029,
+      "p10": -5.32,
+      "p90": 1.26
+     },
+     "2025-11": {
+      "median": -2.82,
+      "n": 28093,
+      "p10": -6.56,
+      "p90": 3.56
+     },
+     "2025-12": {
+      "median": -2.2,
+      "n": 29808,
+      "p10": -5.48,
+      "p90": 2.81
+     },
+     "2026-01": {
+      "median": -3.23,
+      "n": 28742,
+      "p10": -6.42,
+      "p90": -0.05
+     },
+     "2026-02": {
+      "median": -4.94,
+      "n": 27417,
+      "p10": -9.07,
+      "p90": -2.06
+     },
+     "2026-03": {
+      "median": -1.96,
+      "n": 30197,
+      "p10": -4.89,
+      "p90": 0.79
+     },
+     "2026-04": {
+      "median": -1.44,
+      "n": 30007,
+      "p10": -4.36,
+      "p90": 1.21
+     },
+     "2026-05": {
+      "median": -1.35,
+      "n": 28493,
+      "p10": -3.26,
+      "p90": 0.91
+     },
+     "2026-06": {
+      "median": -2.49,
+      "n": 30244,
+      "p10": -4.66,
+      "p90": -0.21
+     },
+     "2026-07": {
+      "median": -2.03,
+      "n": 30405,
+      "p10": -4.07,
+      "p90": -0.24
+     },
+     "2026-08": {
+      "median": -1.68,
+      "n": 28460,
+      "p10": -3.24,
+      "p90": 0.39
+     },
+     "2026-09": {
+      "median": -1.82,
+      "n": 30402,
+      "p10": -3.8,
+      "p90": 0.57
+     },
+     "2026-10": {
+      "median": -4.17,
+      "n": 24678,
+      "p10": -7.09,
+      "p90": -1.68
+     }
+    },
+    "prints": 10641463,
+    "quote": "USDC",
+    "t0": 1761523200000,
+    "taker_fee": 4.5e-05,
+    "tick": 0.0001,
+    "venue": "coinbase",
+    "volume_gbp_per_day": {
+     "12m": 3932740.0,
+     "last_28d": 4499187.0,
+     "since_08-24": 4508023.0,
+     "since_tgbp": 4151754.0
+    }
+   }
+  },
+  "coinbase:TGBP-USDC": {
+   "arms": {
+    "at_price_50": {
+     "orders_per_day": 140.3,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 1.4317,
+       "bps_per_day_of_capital": 0.058,
+       "bps_per_trip": 1.2477,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 0.0638,
+         "trips": 9
+        },
+        "0.2%": {
+         "pnl_gbp": -0.0151,
+         "trips": 1
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": -0.0226,
+        "bid": 0.0713
+       },
+       "days": 28.0,
+       "days_negative": 2,
+       "days_positive": 4,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.0017,
+       "pct_per_year": 0.2118,
+       "pnl_gbp": 0.0488,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 10,
+       "trips_per_day": 0.3571
+      },
+      "since_08-24": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.0747,
+       "bps_per_trip": -1.4839,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.0838,
+         "trips": 20
+        },
+        "0.2%": {
+         "pnl_gbp": -0.0597,
+         "trips": 3
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": -0.0375,
+        "bid": -0.106
+       },
+       "days": 64.0,
+       "days_negative": 6,
+       "days_positive": 8,
+       "from": "2026-08-24",
+       "gbp_per_day": -0.0022,
+       "pct_per_year": -0.2728,
+       "pnl_gbp": -0.1435,
+       "stop_pnl_gbp": 0.0028,
+       "stops": 2,
+       "trips": 23,
+       "trips_per_day": 0.3594
+      },
+      "since_tgbp": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.129,
+       "bps_per_trip": -4.2795,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.4391,
+         "trips": 45
+        },
+        "0.2%": {
+         "pnl_gbp": -0.2888,
+         "trips": 9
+        },
+        "0.3%": {
+         "pnl_gbp": 0.0044,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": -0.7195,
+        "bid": -0.004
+       },
+       "days": 187.0,
+       "days_negative": 15,
+       "days_positive": 14,
+       "from": "2026-04-23",
+       "gbp_per_day": -0.0039,
+       "pct_per_year": -0.4708,
+       "pnl_gbp": -0.7235,
+       "stop_pnl_gbp": 0.0028,
+       "stops": 2,
+       "trips": 56,
+       "trips_per_day": 0.2995
+      },
+      "whole": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.1171,
+       "bps_per_trip": -3.6889,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.3761,
+         "trips": 47
+        },
+        "0.2%": {
+         "pnl_gbp": -0.2888,
+         "trips": 9
+        },
+        "0.3%": {
+         "pnl_gbp": 0.0044,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": -0.7195,
+        "bid": 0.0589
+       },
+       "days": 188.0,
+       "days_negative": 15,
+       "days_positive": 15,
+       "from": "2026-04-22",
+       "gbp_per_day": -0.0035,
+       "pct_per_year": -0.4275,
+       "pnl_gbp": -0.6606,
+       "stop_pnl_gbp": 0.0028,
+       "stops": 2,
+       "trips": 58,
+       "trips_per_day": 0.3085
+      }
+     }
+    },
+    "stress_50": {
+     "orders_per_day": 140.2,
+     "windows": {
+      "last_28d": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.0867,
+       "bps_per_trip": -4.5853,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.0577,
+         "trips": 3
+        },
+        "0.2%": {
+         "pnl_gbp": -0.0151,
+         "trips": 1
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": -0.0717,
+        "bid": -0.0011
+       },
+       "days": 28.0,
+       "days_negative": 2,
+       "days_positive": 1,
+       "from": "2026-09-29",
+       "gbp_per_day": -0.0026,
+       "pct_per_year": -0.3165,
+       "pnl_gbp": -0.0728,
+       "stop_pnl_gbp": -0.012,
+       "stops": 1,
+       "trips": 4,
+       "trips_per_day": 0.1429
+      },
+      "since_08-24": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.1507,
+       "bps_per_trip": -5.4006,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.2296,
+         "trips": 10
+        },
+        "0.2%": {
+         "pnl_gbp": -0.0597,
+         "trips": 3
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": -0.1236,
+        "bid": -0.1657
+       },
+       "days": 64.0,
+       "days_negative": 5,
+       "days_positive": 4,
+       "from": "2026-08-24",
+       "gbp_per_day": -0.0045,
+       "pct_per_year": -0.5499,
+       "pnl_gbp": -0.2893,
+       "stop_pnl_gbp": 0.0092,
+       "stops": 2,
+       "trips": 13,
+       "trips_per_day": 0.2031
+      },
+      "since_tgbp": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.1685,
+       "bps_per_trip": -8.3816,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.6525,
+         "trips": 30
+        },
+        "0.2%": {
+         "pnl_gbp": -0.2971,
+         "trips": 7
+        },
+        "0.3%": {
+         "pnl_gbp": 0.0044,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": -0.8431,
+        "bid": -0.1022
+       },
+       "days": 187.0,
+       "days_negative": 13,
+       "days_positive": 10,
+       "from": "2026-04-23",
+       "gbp_per_day": -0.0051,
+       "pct_per_year": -0.615,
+       "pnl_gbp": -0.9452,
+       "stop_pnl_gbp": 0.0089,
+       "stops": 3,
+       "trips": 39,
+       "trips_per_day": 0.2086
+      },
+      "whole": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.1564,
+       "bps_per_trip": -7.1862,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.5895,
+         "trips": 32
+        },
+        "0.2%": {
+         "pnl_gbp": -0.2971,
+         "trips": 7
+        },
+        "0.3%": {
+         "pnl_gbp": 0.0044,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": -0.8431,
+        "bid": -0.0392
+       },
+       "days": 188.0,
+       "days_negative": 13,
+       "days_positive": 11,
+       "from": "2026-04-22",
+       "gbp_per_day": -0.0047,
+       "pct_per_year": -0.571,
+       "pnl_gbp": -0.8823,
+       "stop_pnl_gbp": 0.0089,
+       "stops": 3,
+       "trips": 41,
+       "trips_per_day": 0.2181
+      }
+     }
+    },
+    "through_10": {
+     "orders_per_day": 140.3,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 1.5543,
+       "bps_per_day_of_capital": 0.0417,
+       "bps_per_trip": 1.7993,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 0.01,
+         "trips": 3
+        },
+        "0.2%": {
+         "pnl_gbp": -0.003,
+         "trips": 1
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": -0.0143,
+        "bid": 0.0213
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 2,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.0003,
+       "pct_per_year": 0.1522,
+       "pnl_gbp": 0.007,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 4,
+       "trips_per_day": 0.1429
+      },
+      "since_08-24": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.0679,
+       "bps_per_trip": -1.6219,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.0142,
+         "trips": 14
+        },
+        "0.2%": {
+         "pnl_gbp": -0.0119,
+         "trips": 3
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": -0.0173,
+        "bid": -0.0088
+       },
+       "days": 64.0,
+       "days_negative": 5,
+       "days_positive": 6,
+       "from": "2026-08-24",
+       "gbp_per_day": -0.0004,
+       "pct_per_year": -0.248,
+       "pnl_gbp": -0.0261,
+       "stop_pnl_gbp": 0.0006,
+       "stops": 2,
+       "trips": 17,
+       "trips_per_day": 0.2656
+      },
+      "since_tgbp": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.1447,
+       "bps_per_trip": -4.6214,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.1069,
+         "trips": 36
+        },
+        "0.2%": {
+         "pnl_gbp": -0.0628,
+         "trips": 9
+        },
+        "0.3%": {
+         "pnl_gbp": 0.0073,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": -0.1654,
+        "bid": 0.003
+       },
+       "days": 187.0,
+       "days_negative": 15,
+       "days_positive": 10,
+       "from": "2026-04-23",
+       "gbp_per_day": -0.0009,
+       "pct_per_year": -0.5283,
+       "pnl_gbp": -0.1624,
+       "stop_pnl_gbp": 0.0006,
+       "stops": 2,
+       "trips": 47,
+       "trips_per_day": 0.2513
+      },
+      "whole": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.1328,
+       "bps_per_trip": -4.0335,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.0944,
+         "trips": 38
+        },
+        "0.2%": {
+         "pnl_gbp": -0.0628,
+         "trips": 9
+        },
+        "0.3%": {
+         "pnl_gbp": 0.0073,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": -0.1654,
+        "bid": 0.0156
+       },
+       "days": 188.0,
+       "days_negative": 15,
+       "days_positive": 11,
+       "from": "2026-04-22",
+       "gbp_per_day": -0.0008,
+       "pct_per_year": -0.4847,
+       "pnl_gbp": -0.1498,
+       "stop_pnl_gbp": 0.0006,
+       "stops": 2,
+       "trips": 49,
+       "trips_per_day": 0.2606
+      }
+     }
+    },
+    "through_100": {
+     "orders_per_day": 140.3,
+     "windows": {
+      "last_28d": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.034,
+       "bps_per_trip": -2.0328,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.0269,
+         "trips": 3
+        },
+        "0.2%": {
+         "pnl_gbp": -0.0302,
+         "trips": 1
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": -0.1434,
+        "bid": 0.0864
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 2,
+       "from": "2026-09-29",
+       "gbp_per_day": -0.002,
+       "pct_per_year": -0.124,
+       "pnl_gbp": -0.0571,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 4,
+       "trips_per_day": 0.1429
+      },
+      "since_08-24": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.1219,
+       "bps_per_trip": -3.6508,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.3499,
+         "trips": 14
+        },
+        "0.2%": {
+         "pnl_gbp": -0.1182,
+         "trips": 3
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": -0.1733,
+        "bid": -0.2948
+       },
+       "days": 64.0,
+       "days_negative": 5,
+       "days_positive": 6,
+       "from": "2026-08-24",
+       "gbp_per_day": -0.0073,
+       "pct_per_year": -0.4449,
+       "pnl_gbp": -0.4681,
+       "stop_pnl_gbp": 0.0055,
+       "stops": 2,
+       "trips": 17,
+       "trips_per_day": 0.2656
+      },
+      "since_tgbp": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.1216,
+       "bps_per_trip": -5.8968,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.867,
+         "trips": 36
+        },
+        "0.2%": {
+         "pnl_gbp": -0.4975,
+         "trips": 9
+        },
+        "0.3%": {
+         "pnl_gbp": 0.0007,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": -1.222,
+        "bid": -0.1418
+       },
+       "days": 187.0,
+       "days_negative": 14,
+       "days_positive": 11,
+       "from": "2026-04-23",
+       "gbp_per_day": -0.0073,
+       "pct_per_year": -0.4437,
+       "pnl_gbp": -1.3638,
+       "stop_pnl_gbp": 0.0055,
+       "stops": 2,
+       "trips": 47,
+       "trips_per_day": 0.2513
+      },
+      "whole": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.1097,
+       "bps_per_trip": -4.9264,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.7411,
+         "trips": 38
+        },
+        "0.2%": {
+         "pnl_gbp": -0.4975,
+         "trips": 9
+        },
+        "0.3%": {
+         "pnl_gbp": 0.0007,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": -1.222,
+        "bid": -0.0159
+       },
+       "days": 188.0,
+       "days_negative": 14,
+       "days_positive": 12,
+       "from": "2026-04-22",
+       "gbp_per_day": -0.0066,
+       "pct_per_year": -0.4006,
+       "pnl_gbp": -1.2379,
+       "stop_pnl_gbp": 0.0055,
+       "stops": 2,
+       "trips": 49,
+       "trips_per_day": 0.2606
+      }
+     }
+    },
+    "through_1000": {
+     "orders_per_day": 140.3,
+     "windows": {
+      "last_28d": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.0436,
+       "bps_per_trip": -4.7731,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.4309,
+         "trips": 3
+        },
+        "0.2%": {
+         "pnl_gbp": -0.3017,
+         "trips": 1
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": -0.819,
+        "bid": 0.0864
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 2,
+       "from": "2026-09-29",
+       "gbp_per_day": -0.0262,
+       "pct_per_year": -0.1592,
+       "pnl_gbp": -0.7326,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 4,
+       "trips_per_day": 0.1429
+      },
+      "since_08-24": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.0583,
+       "bps_per_trip": -3.5173,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -1.8497,
+         "trips": 14
+        },
+        "0.2%": {
+         "pnl_gbp": -0.3898,
+         "trips": 3
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": -1.1175,
+        "bid": -1.1219
+       },
+       "days": 64.0,
+       "days_negative": 5,
+       "days_positive": 6,
+       "from": "2026-08-24",
+       "gbp_per_day": -0.035,
+       "pct_per_year": -0.2129,
+       "pnl_gbp": -2.2394,
+       "stop_pnl_gbp": -0.3666,
+       "stops": 2,
+       "trips": 17,
+       "trips_per_day": 0.2656
+      },
+      "since_tgbp": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.0863,
+       "bps_per_trip": -7.7649,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -6.3092,
+         "trips": 36
+        },
+        "0.2%": {
+         "pnl_gbp": -3.3031,
+         "trips": 9
+        },
+        "0.3%": {
+         "pnl_gbp": -0.0662,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": -9.0151,
+        "bid": -0.6634
+       },
+       "days": 187.0,
+       "days_negative": 14,
+       "days_positive": 11,
+       "from": "2026-04-23",
+       "gbp_per_day": -0.0518,
+       "pct_per_year": -0.3149,
+       "pnl_gbp": -9.6785,
+       "stop_pnl_gbp": -0.3666,
+       "stops": 2,
+       "trips": 47,
+       "trips_per_day": 0.2513
+      },
+      "whole": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.0831,
+       "bps_per_trip": -7.2351,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -5.9998,
+         "trips": 38
+        },
+        "0.2%": {
+         "pnl_gbp": -3.3031,
+         "trips": 9
+        },
+        "0.3%": {
+         "pnl_gbp": -0.0662,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": -9.0151,
+        "bid": -0.354
+       },
+       "days": 188.0,
+       "days_negative": 14,
+       "days_positive": 12,
+       "from": "2026-04-22",
+       "gbp_per_day": -0.0498,
+       "pct_per_year": -0.3032,
+       "pnl_gbp": -9.3691,
+       "stop_pnl_gbp": -0.3666,
+       "stops": 2,
+       "trips": 49,
+       "trips_per_day": 0.2606
+      }
+     }
+    },
+    "through_300": {
+     "orders_per_day": 140.3,
+     "windows": {
+      "last_28d": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.0682,
+       "bps_per_trip": -5.0579,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.2534,
+         "trips": 3
+        },
+        "0.2%": {
+         "pnl_gbp": -0.0905,
+         "trips": 1
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": -0.4302,
+        "bid": 0.0864
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 2,
+       "from": "2026-09-29",
+       "gbp_per_day": -0.0123,
+       "pct_per_year": -0.2491,
+       "pnl_gbp": -0.3439,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 4,
+       "trips_per_day": 0.1429
+      },
+      "since_08-24": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.0855,
+       "bps_per_trip": -3.6294,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.8061,
+         "trips": 14
+        },
+        "0.2%": {
+         "pnl_gbp": -0.1786,
+         "trips": 3
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": -0.5198,
+        "bid": -0.4648
+       },
+       "days": 64.0,
+       "days_negative": 5,
+       "days_positive": 6,
+       "from": "2026-08-24",
+       "gbp_per_day": -0.0154,
+       "pct_per_year": -0.312,
+       "pnl_gbp": -0.9846,
+       "stop_pnl_gbp": -0.0237,
+       "stops": 2,
+       "trips": 17,
+       "trips_per_day": 0.2656
+      },
+      "since_tgbp": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.0933,
+       "bps_per_trip": -6.107,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -2.0041,
+         "trips": 36
+        },
+        "0.2%": {
+         "pnl_gbp": -1.121,
+         "trips": 9
+        },
+        "0.3%": {
+         "pnl_gbp": -0.0142,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": -3.0509,
+        "bid": -0.0884
+       },
+       "days": 187.0,
+       "days_negative": 14,
+       "days_positive": 11,
+       "from": "2026-04-23",
+       "gbp_per_day": -0.0168,
+       "pct_per_year": -0.3404,
+       "pnl_gbp": -3.1393,
+       "stop_pnl_gbp": -0.0237,
+       "stops": 2,
+       "trips": 47,
+       "trips_per_day": 0.2513
+      },
+      "whole": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.0836,
+       "bps_per_trip": -5.0304,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -1.6947,
+         "trips": 38
+        },
+        "0.2%": {
+         "pnl_gbp": -1.121,
+         "trips": 9
+        },
+        "0.3%": {
+         "pnl_gbp": -0.0142,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": -3.0509,
+        "bid": 0.221
+       },
+       "days": 188.0,
+       "days_negative": 14,
+       "days_positive": 12,
+       "from": "2026-04-22",
+       "gbp_per_day": -0.0151,
+       "pct_per_year": -0.3052,
+       "pnl_gbp": -2.8299,
+       "stop_pnl_gbp": -0.0237,
+       "stops": 2,
+       "trips": 49,
+       "trips_per_day": 0.2606
+      }
+     }
+    },
+    "through_50": {
+     "bootstrap_last_28d": {
+      "days": 28,
+      "p05_gbp_per_day": -0.0058,
+      "p95_gbp_per_day": 0.0041,
+      "share_draws_gt_0": 0.4495,
+      "sum_gbp": -0.0085
+     },
+     "bootstrap_whole": {
+      "days": 188,
+      "p05_gbp_per_day": -0.0076,
+      "p95_gbp_per_day": -0.0005,
+      "share_draws_gt_0": 0.025,
+      "sum_gbp": -0.7171
+     },
+     "by_month": {
+      "2026-04": 0.0806,
+      "2026-05": -0.0052,
+      "2026-06": -0.0672,
+      "2026-07": -0.2963,
+      "2026-08": -0.2027,
+      "2026-09": -0.2178,
+      "2026-10": -0.0085
+     },
+     "orders_per_day": 140.3,
+     "windows": {
+      "last_28d": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.0102,
+       "bps_per_trip": -0.5371,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 0.0066,
+         "trips": 3
+        },
+        "0.2%": {
+         "pnl_gbp": -0.0151,
+         "trips": 1
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": -0.0717,
+        "bid": 0.0632
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 2,
+       "from": "2026-09-29",
+       "gbp_per_day": -0.0003,
+       "pct_per_year": -0.0371,
+       "pnl_gbp": -0.0085,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 4,
+       "trips_per_day": 0.1429
+      },
+      "since_08-24": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.1037,
+       "bps_per_trip": -2.7953,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.1394,
+         "trips": 14
+        },
+        "0.2%": {
+         "pnl_gbp": -0.0597,
+         "trips": 3
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": -0.0866,
+        "bid": -0.1124
+       },
+       "days": 64.0,
+       "days_negative": 5,
+       "days_positive": 6,
+       "from": "2026-08-24",
+       "gbp_per_day": -0.0031,
+       "pct_per_year": -0.3785,
+       "pnl_gbp": -0.1991,
+       "stop_pnl_gbp": 0.0028,
+       "stops": 2,
+       "trips": 17,
+       "trips_per_day": 0.2656
+      },
+      "since_tgbp": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.1391,
+       "bps_per_trip": -5.5975,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.4864,
+         "trips": 36
+        },
+        "0.2%": {
+         "pnl_gbp": -0.2981,
+         "trips": 9
+        },
+        "0.3%": {
+         "pnl_gbp": 0.0044,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": -0.7648,
+        "bid": -0.0153
+       },
+       "days": 187.0,
+       "days_negative": 14,
+       "days_positive": 11,
+       "from": "2026-04-23",
+       "gbp_per_day": -0.0042,
+       "pct_per_year": -0.5076,
+       "pnl_gbp": -0.7801,
+       "stop_pnl_gbp": 0.0028,
+       "stops": 2,
+       "trips": 47,
+       "trips_per_day": 0.2513
+      },
+      "whole": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.1272,
+       "bps_per_trip": -4.8013,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": -0.4234,
+         "trips": 38
+        },
+        "0.2%": {
+         "pnl_gbp": -0.2981,
+         "trips": 9
+        },
+        "0.3%": {
+         "pnl_gbp": 0.0044,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": -0.7648,
+        "bid": 0.0477
+       },
+       "days": 188.0,
+       "days_negative": 14,
+       "days_positive": 12,
+       "from": "2026-04-22",
+       "gbp_per_day": -0.0038,
+       "pct_per_year": -0.4641,
+       "pnl_gbp": -0.7171,
+       "stop_pnl_gbp": 0.0028,
+       "stops": 2,
+       "trips": 49,
+       "trips_per_day": 0.2606
+      }
+     }
+    }
+   },
+   "meta": {
+    "candle_grade": false,
+    "coin": "TGBP",
+    "first_print_day": "2026-04-22",
+    "half_touch_bps": 0.75,
+    "lit_share": 0.7116,
+    "minutes_with_prints": 6526,
+    "peg_check_bps": {
+     "2026-04": {
+      "median": -1.84,
+      "n": 395,
+      "p10": -6.18,
+      "p90": 4.64
+     },
+     "2026-05": {
+      "median": -1.66,
+      "n": 511,
+      "p10": -4.48,
+      "p90": 1.99
+     },
+     "2026-06": {
+      "median": -1.51,
+      "n": 1037,
+      "p10": -3.56,
+      "p90": 1.33
+     },
+     "2026-07": {
+      "median": -0.95,
+      "n": 968,
+      "p10": -3.26,
+      "p90": 1.56
+     },
+     "2026-08": {
+      "median": -1.74,
+      "n": 651,
+      "p10": -3.6,
+      "p90": 1.04
+     },
+     "2026-09": {
+      "median": -1.38,
+      "n": 1077,
+      "p10": -4.66,
+      "p90": 1.62
+     },
+     "2026-10": {
+      "median": -1.49,
+      "n": 635,
+      "p10": -4.91,
+      "p90": 1.57
+     }
+    },
+    "prints": 42712,
+    "quote": "USDC",
+    "t0": 1776816000000,
+    "taker_fee": 4.5e-05,
+    "tick": 0.0001,
+    "venue": "coinbase",
+    "volume_gbp_per_day": {
+     "last_28d": 31988.0,
+     "since_08-24": 42504.0,
+     "since_tgbp": 32467.0
+    }
+   }
+  },
+  "coinbase:USDC-GBP": {
+   "arms": {
+    "at_price_50": {
+     "orders_per_day": 158.1,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.2505,
+       "bps_per_day_of_capital": 8.9059,
+       "bps_per_trip": 14.3329,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 2.2197,
+         "trips": 62
+        },
+        "0.2%": {
+         "pnl_gbp": 2.7184,
+         "trips": 30
+        },
+        "0.3%": {
+         "pnl_gbp": 2.5429,
+         "trips": 18
+        }
+       },
+       "by_side": {
+        "ask": 1.2471,
+        "bid": 6.2339
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 19,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.2672,
+       "pct_per_year": 32.5066,
+       "pnl_gbp": 7.481,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 110,
+       "trips_per_day": 3.9286
+      },
+      "whole": {
+       "best_day_share": 0.2505,
+       "bps_per_day_of_capital": 8.9059,
+       "bps_per_trip": 14.3329,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 2.2197,
+         "trips": 62
+        },
+        "0.2%": {
+         "pnl_gbp": 2.7184,
+         "trips": 30
+        },
+        "0.3%": {
+         "pnl_gbp": 2.5429,
+         "trips": 18
+        }
+       },
+       "by_side": {
+        "ask": 1.2471,
+        "bid": 6.2339
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 19,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.2672,
+       "pct_per_year": 32.5066,
+       "pnl_gbp": 7.481,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 110,
+       "trips_per_day": 3.9286
+      }
+     }
+    },
+    "stress_50": {
+     "orders_per_day": 156.1,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.2485,
+       "bps_per_day_of_capital": 5.077,
+       "bps_per_trip": 12.5185,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 1.1968,
+         "trips": 35
+        },
+        "0.2%": {
+         "pnl_gbp": 2.1741,
+         "trips": 27
+        },
+        "0.3%": {
+         "pnl_gbp": 0.8938,
+         "trips": 8
+        }
+       },
+       "by_side": {
+        "ask": 0.9242,
+        "bid": 3.3405
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 13,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.1523,
+       "pct_per_year": 18.5311,
+       "pnl_gbp": 4.2647,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 70,
+       "trips_per_day": 2.5
+      },
+      "whole": {
+       "best_day_share": 0.2485,
+       "bps_per_day_of_capital": 5.077,
+       "bps_per_trip": 12.5185,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 1.1968,
+         "trips": 35
+        },
+        "0.2%": {
+         "pnl_gbp": 2.1741,
+         "trips": 27
+        },
+        "0.3%": {
+         "pnl_gbp": 0.8938,
+         "trips": 8
+        }
+       },
+       "by_side": {
+        "ask": 0.9242,
+        "bid": 3.3405
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 13,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.1523,
+       "pct_per_year": 18.5311,
+       "pnl_gbp": 4.2647,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 70,
+       "trips_per_day": 2.5
+      }
+     }
+    },
+    "through_10": {
+     "orders_per_day": 157.2,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.1997,
+       "bps_per_day_of_capital": 7.1052,
+       "bps_per_trip": 14.0431,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 0.3267,
+         "trips": 43
+        },
+        "0.2%": {
+         "pnl_gbp": 0.4955,
+         "trips": 28
+        },
+        "0.3%": {
+         "pnl_gbp": 0.3715,
+         "trips": 14
+        }
+       },
+       "by_side": {
+        "ask": 0.232,
+        "bid": 0.9617
+       },
+       "days": 28.0,
+       "days_negative": 3,
+       "days_positive": 14,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.0426,
+       "pct_per_year": 25.9338,
+       "pnl_gbp": 1.1937,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 85,
+       "trips_per_day": 3.0357
+      },
+      "whole": {
+       "best_day_share": 0.1997,
+       "bps_per_day_of_capital": 7.1052,
+       "bps_per_trip": 14.0431,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 0.3267,
+         "trips": 43
+        },
+        "0.2%": {
+         "pnl_gbp": 0.4955,
+         "trips": 28
+        },
+        "0.3%": {
+         "pnl_gbp": 0.3715,
+         "trips": 14
+        }
+       },
+       "by_side": {
+        "ask": 0.232,
+        "bid": 0.9617
+       },
+       "days": 28.0,
+       "days_negative": 3,
+       "days_positive": 14,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.0426,
+       "pct_per_year": 25.9338,
+       "pnl_gbp": 1.1937,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 85,
+       "trips_per_day": 3.0357
+      }
+     }
+    },
+    "through_100": {
+     "orders_per_day": 157.2,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.2072,
+       "bps_per_day_of_capital": 6.8504,
+       "bps_per_trip": 14.1334,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 3.0029,
+         "trips": 43
+        },
+        "0.2%": {
+         "pnl_gbp": 4.7908,
+         "trips": 28
+        },
+        "0.3%": {
+         "pnl_gbp": 3.7151,
+         "trips": 14
+        }
+       },
+       "by_side": {
+        "ask": 1.8921,
+        "bid": 9.6167
+       },
+       "days": 28.0,
+       "days_negative": 3,
+       "days_positive": 14,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.411,
+       "pct_per_year": 25.0041,
+       "pnl_gbp": 11.5087,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 85,
+       "trips_per_day": 3.0357
+      },
+      "whole": {
+       "best_day_share": 0.2072,
+       "bps_per_day_of_capital": 6.8504,
+       "bps_per_trip": 14.1334,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 3.0029,
+         "trips": 43
+        },
+        "0.2%": {
+         "pnl_gbp": 4.7908,
+         "trips": 28
+        },
+        "0.3%": {
+         "pnl_gbp": 3.7151,
+         "trips": 14
+        }
+       },
+       "by_side": {
+        "ask": 1.8921,
+        "bid": 9.6167
+       },
+       "days": 28.0,
+       "days_negative": 3,
+       "days_positive": 14,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.411,
+       "pct_per_year": 25.0041,
+       "pnl_gbp": 11.5087,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 85,
+       "trips_per_day": 3.0357
+      }
+     }
+    },
+    "through_1000": {
+     "orders_per_day": 157.2,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.2163,
+       "bps_per_day_of_capital": 6.5609,
+       "bps_per_trip": 14.5184,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 25.3711,
+         "trips": 43
+        },
+        "0.2%": {
+         "pnl_gbp": 47.702,
+         "trips": 28
+        },
+        "0.3%": {
+         "pnl_gbp": 37.1505,
+         "trips": 14
+        }
+       },
+       "by_side": {
+        "ask": 15.6088,
+        "bid": 94.6148
+       },
+       "days": 28.0,
+       "days_negative": 3,
+       "days_positive": 14,
+       "from": "2026-09-29",
+       "gbp_per_day": 3.9366,
+       "pct_per_year": 23.9474,
+       "pnl_gbp": 110.2236,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 85,
+       "trips_per_day": 3.0357
+      },
+      "whole": {
+       "best_day_share": 0.2163,
+       "bps_per_day_of_capital": 6.5609,
+       "bps_per_trip": 14.5184,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 25.3711,
+         "trips": 43
+        },
+        "0.2%": {
+         "pnl_gbp": 47.702,
+         "trips": 28
+        },
+        "0.3%": {
+         "pnl_gbp": 37.1505,
+         "trips": 14
+        }
+       },
+       "by_side": {
+        "ask": 15.6088,
+        "bid": 94.6148
+       },
+       "days": 28.0,
+       "days_negative": 3,
+       "days_positive": 14,
+       "from": "2026-09-29",
+       "gbp_per_day": 3.9366,
+       "pct_per_year": 23.9474,
+       "pnl_gbp": 110.2236,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 85,
+       "trips_per_day": 3.0357
+      }
+     }
+    },
+    "through_300": {
+     "orders_per_day": 157.2,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.2113,
+       "bps_per_day_of_capital": 6.7165,
+       "bps_per_trip": 14.3371,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 8.3792,
+         "trips": 43
+        },
+        "0.2%": {
+         "pnl_gbp": 14.3266,
+         "trips": 28
+        },
+        "0.3%": {
+         "pnl_gbp": 11.1452,
+         "trips": 14
+        }
+       },
+       "by_side": {
+        "ask": 5.2078,
+        "bid": 28.6432
+       },
+       "days": 28.0,
+       "days_negative": 3,
+       "days_positive": 14,
+       "from": "2026-09-29",
+       "gbp_per_day": 1.209,
+       "pct_per_year": 24.5151,
+       "pnl_gbp": 33.851,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 85,
+       "trips_per_day": 3.0357
+      },
+      "whole": {
+       "best_day_share": 0.2113,
+       "bps_per_day_of_capital": 6.7165,
+       "bps_per_trip": 14.3371,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 8.3792,
+         "trips": 43
+        },
+        "0.2%": {
+         "pnl_gbp": 14.3266,
+         "trips": 28
+        },
+        "0.3%": {
+         "pnl_gbp": 11.1452,
+         "trips": 14
+        }
+       },
+       "by_side": {
+        "ask": 5.2078,
+        "bid": 28.6432
+       },
+       "days": 28.0,
+       "days_negative": 3,
+       "days_positive": 14,
+       "from": "2026-09-29",
+       "gbp_per_day": 1.209,
+       "pct_per_year": 24.5151,
+       "pnl_gbp": 33.851,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 85,
+       "trips_per_day": 3.0357
+      }
+     }
+    },
+    "through_50": {
+     "bootstrap_last_28d": {
+      "days": 28,
+      "p05_gbp_per_day": 0.1095,
+      "p95_gbp_per_day": 0.3134,
+      "share_draws_gt_0": 1.0,
+      "sum_gbp": 5.8196
+     },
+     "bootstrap_whole": {
+      "days": 28,
+      "p05_gbp_per_day": 0.1095,
+      "p95_gbp_per_day": 0.3134,
+      "share_draws_gt_0": 1.0,
+      "sum_gbp": 5.8196
+     },
+     "by_month": {
+      "2026-09": 0.6581,
+      "2026-10": 5.1615
+     },
+     "orders_per_day": 157.2,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.2048,
+       "bps_per_day_of_capital": 6.9281,
+       "bps_per_trip": 14.0592,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 1.5552,
+         "trips": 43
+        },
+        "0.2%": {
+         "pnl_gbp": 2.4068,
+         "trips": 28
+        },
+        "0.3%": {
+         "pnl_gbp": 1.8575,
+         "trips": 14
+        }
+       },
+       "by_side": {
+        "ask": 1.0113,
+        "bid": 4.8083
+       },
+       "days": 28.0,
+       "days_negative": 3,
+       "days_positive": 14,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.2078,
+       "pct_per_year": 25.2875,
+       "pnl_gbp": 5.8196,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 85,
+       "trips_per_day": 3.0357
+      },
+      "whole": {
+       "best_day_share": 0.2048,
+       "bps_per_day_of_capital": 6.9281,
+       "bps_per_trip": 14.0592,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 1.5552,
+         "trips": 43
+        },
+        "0.2%": {
+         "pnl_gbp": 2.4068,
+         "trips": 28
+        },
+        "0.3%": {
+         "pnl_gbp": 1.8575,
+         "trips": 14
+        }
+       },
+       "by_side": {
+        "ask": 1.0113,
+        "bid": 4.8083
+       },
+       "days": 28.0,
+       "days_negative": 3,
+       "days_positive": 14,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.2078,
+       "pct_per_year": 25.2875,
+       "pnl_gbp": 5.8196,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 85,
+       "trips_per_day": 3.0357
+      }
+     }
+    }
+   },
+   "meta": {
+    "candle_grade": false,
+    "coin": "USDC",
+    "first_print_day": "2026-09-29",
+    "half_touch_bps": 0.665,
+    "lit_share": 0.7054,
+    "minutes_with_prints": 35376,
+    "peg_check_bps": {
+     "2026-09": {
+      "median": 1.31,
+      "n": 2610,
+      "p10": -0.57,
+      "p90": 2.94
+     },
+     "2026-10": {
+      "median": 1.5,
+      "n": 22594,
+      "p10": -1.37,
+      "p90": 3.84
+     }
+    },
+    "prints": 134580,
+    "quote": "GBP",
+    "t0": 1790640000000,
+    "taker_fee": 4.5e-05,
+    "tick": 0.0001,
+    "venue": "coinbase",
+    "volume_gbp_per_day": {
+     "last_28d": 2551757.0
+    }
+   }
+  },
+  "coinbase:USDT-GBP": {
+   "arms": {
+    "at_price_50": {
+     "orders_per_day": 151.4,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.4613,
+       "bps_per_day_of_capital": 0.6831,
+       "bps_per_trip": 3.694,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 0.5474,
+         "trips": 33
+        },
+        "0.2%": {
+         "pnl_gbp": 0.0264,
+         "trips": 3
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": 0.1445,
+        "bid": 0.4293
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 12,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.0205,
+       "pct_per_year": 2.4933,
+       "pnl_gbp": 0.5738,
+       "stop_pnl_gbp": 0.1337,
+       "stops": 1,
+       "trips": 36,
+       "trips_per_day": 1.2857
+      },
+      "whole": {
+       "best_day_share": 0.4613,
+       "bps_per_day_of_capital": 0.6831,
+       "bps_per_trip": 3.694,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 0.5474,
+         "trips": 33
+        },
+        "0.2%": {
+         "pnl_gbp": 0.0264,
+         "trips": 3
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": 0.1445,
+        "bid": 0.4293
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 12,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.0205,
+       "pct_per_year": 2.4933,
+       "pnl_gbp": 0.5738,
+       "stop_pnl_gbp": 0.1337,
+       "stops": 1,
+       "trips": 36,
+       "trips_per_day": 1.2857
+      }
+     }
+    },
+    "stress_50": {
+     "orders_per_day": 150.5,
+     "windows": {
+      "last_28d": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.1,
+       "bps_per_trip": -1.866,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 0.0022,
+         "trips": 7
+        },
+        "0.2%": {
+         "pnl_gbp": -0.0861,
+         "trips": 2
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": -0.1657,
+        "bid": 0.0818
+       },
+       "days": 28.0,
+       "days_negative": 2,
+       "days_positive": 3,
+       "from": "2026-09-29",
+       "gbp_per_day": -0.003,
+       "pct_per_year": -0.3649,
+       "pnl_gbp": -0.084,
+       "stop_pnl_gbp": 0.128,
+       "stops": 1,
+       "trips": 9,
+       "trips_per_day": 0.3214
+      },
+      "whole": {
+       "best_day_share": null,
+       "bps_per_day_of_capital": -0.1,
+       "bps_per_trip": -1.866,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 0.0022,
+         "trips": 7
+        },
+        "0.2%": {
+         "pnl_gbp": -0.0861,
+         "trips": 2
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": -0.1657,
+        "bid": 0.0818
+       },
+       "days": 28.0,
+       "days_negative": 2,
+       "days_positive": 3,
+       "from": "2026-09-29",
+       "gbp_per_day": -0.003,
+       "pct_per_year": -0.3649,
+       "pnl_gbp": -0.084,
+       "stop_pnl_gbp": 0.128,
+       "stops": 1,
+       "trips": 9,
+       "trips_per_day": 0.3214
+      }
+     }
+    },
+    "through_10": {
+     "orders_per_day": 150.6,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 1.6101,
+       "bps_per_day_of_capital": 0.2211,
+       "bps_per_trip": 2.1854,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 0.0292,
+         "trips": 14
+        },
+        "0.2%": {
+         "pnl_gbp": 0.0079,
+         "trips": 3
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": -0.0239,
+        "bid": 0.061
+       },
+       "days": 28.0,
+       "days_negative": 2,
+       "days_positive": 6,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.0013,
+       "pct_per_year": 0.8072,
+       "pnl_gbp": 0.0372,
+       "stop_pnl_gbp": 0.0267,
+       "stops": 1,
+       "trips": 17,
+       "trips_per_day": 0.6071
+      },
+      "whole": {
+       "best_day_share": 1.6101,
+       "bps_per_day_of_capital": 0.2211,
+       "bps_per_trip": 2.1854,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 0.0292,
+         "trips": 14
+        },
+        "0.2%": {
+         "pnl_gbp": 0.0079,
+         "trips": 3
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": -0.0239,
+        "bid": 0.061
+       },
+       "days": 28.0,
+       "days_negative": 2,
+       "days_positive": 6,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.0013,
+       "pct_per_year": 0.8072,
+       "pnl_gbp": 0.0372,
+       "stop_pnl_gbp": 0.0267,
+       "stops": 1,
+       "trips": 17,
+       "trips_per_day": 0.6071
+      }
+     }
+    },
+    "through_100": {
+     "orders_per_day": 150.6,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 1.6175,
+       "bps_per_day_of_capital": 0.2075,
+       "bps_per_trip": 2.2192,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 0.2693,
+         "trips": 14
+        },
+        "0.2%": {
+         "pnl_gbp": 0.0792,
+         "trips": 3
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": -0.2733,
+        "bid": 0.6219
+       },
+       "days": 28.0,
+       "days_negative": 2,
+       "days_positive": 6,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.0124,
+       "pct_per_year": 0.7573,
+       "pnl_gbp": 0.3486,
+       "stop_pnl_gbp": 0.2673,
+       "stops": 1,
+       "trips": 17,
+       "trips_per_day": 0.6071
+      },
+      "whole": {
+       "best_day_share": 1.6175,
+       "bps_per_day_of_capital": 0.2075,
+       "bps_per_trip": 2.2192,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 0.2693,
+         "trips": 14
+        },
+        "0.2%": {
+         "pnl_gbp": 0.0792,
+         "trips": 3
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": -0.2733,
+        "bid": 0.6219
+       },
+       "days": 28.0,
+       "days_negative": 2,
+       "days_positive": 6,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.0124,
+       "pct_per_year": 0.7573,
+       "pnl_gbp": 0.3486,
+       "stop_pnl_gbp": 0.2673,
+       "stops": 1,
+       "trips": 17,
+       "trips_per_day": 0.6071
+      }
+     }
+    },
+    "through_1000": {
+     "orders_per_day": 150.6,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 1.6539,
+       "bps_per_day_of_capital": 0.2047,
+       "bps_per_trip": 2.3636,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 2.6471,
+         "trips": 14
+        },
+        "0.2%": {
+         "pnl_gbp": 0.7925,
+         "trips": 3
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": -2.9058,
+        "bid": 6.3454
+       },
+       "days": 28.0,
+       "days_negative": 2,
+       "days_positive": 6,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.1228,
+       "pct_per_year": 0.7473,
+       "pnl_gbp": 3.4396,
+       "stop_pnl_gbp": 2.6732,
+       "stops": 1,
+       "trips": 17,
+       "trips_per_day": 0.6071
+      },
+      "whole": {
+       "best_day_share": 1.6539,
+       "bps_per_day_of_capital": 0.2047,
+       "bps_per_trip": 2.3636,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 2.6471,
+         "trips": 14
+        },
+        "0.2%": {
+         "pnl_gbp": 0.7925,
+         "trips": 3
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": -2.9058,
+        "bid": 6.3454
+       },
+       "days": 28.0,
+       "days_negative": 2,
+       "days_positive": 6,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.1228,
+       "pct_per_year": 0.7473,
+       "pnl_gbp": 3.4396,
+       "stop_pnl_gbp": 2.6732,
+       "stops": 1,
+       "trips": 17,
+       "trips_per_day": 0.6071
+      }
+     }
+    },
+    "through_300": {
+     "orders_per_day": 150.6,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 1.5771,
+       "bps_per_day_of_capital": 0.2115,
+       "bps_per_trip": 2.3317,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 0.828,
+         "trips": 14
+        },
+        "0.2%": {
+         "pnl_gbp": 0.2377,
+         "trips": 3
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": -0.8307,
+        "bid": 1.8964
+       },
+       "days": 28.0,
+       "days_negative": 2,
+       "days_positive": 6,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.0381,
+       "pct_per_year": 0.7718,
+       "pnl_gbp": 1.0657,
+       "stop_pnl_gbp": 0.802,
+       "stops": 1,
+       "trips": 17,
+       "trips_per_day": 0.6071
+      },
+      "whole": {
+       "best_day_share": 1.5771,
+       "bps_per_day_of_capital": 0.2115,
+       "bps_per_trip": 2.3317,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 0.828,
+         "trips": 14
+        },
+        "0.2%": {
+         "pnl_gbp": 0.2377,
+         "trips": 3
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": -0.8307,
+        "bid": 1.8964
+       },
+       "days": 28.0,
+       "days_negative": 2,
+       "days_positive": 6,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.0381,
+       "pct_per_year": 0.7718,
+       "pnl_gbp": 1.0657,
+       "stop_pnl_gbp": 0.802,
+       "stops": 1,
+       "trips": 17,
+       "trips_per_day": 0.6071
+      }
+     }
+    },
+    "through_50": {
+     "bootstrap_last_28d": {
+      "days": 28,
+      "p05_gbp_per_day": -0.0147,
+      "p95_gbp_per_day": 0.0286,
+      "share_draws_gt_0": 0.684,
+      "sum_gbp": 0.1712
+     },
+     "bootstrap_whole": {
+      "days": 28,
+      "p05_gbp_per_day": -0.0147,
+      "p95_gbp_per_day": 0.0286,
+      "share_draws_gt_0": 0.684,
+      "sum_gbp": 0.1712
+     },
+     "by_month": {
+      "2026-09": 0.0531,
+      "2026-10": 0.1181
+     },
+     "orders_per_day": 150.6,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 1.662,
+       "bps_per_day_of_capital": 0.2038,
+       "bps_per_trip": 2.105,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 0.1316,
+         "trips": 14
+        },
+        "0.2%": {
+         "pnl_gbp": 0.0396,
+         "trips": 3
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": -0.134,
+        "bid": 0.3052
+       },
+       "days": 28.0,
+       "days_negative": 2,
+       "days_positive": 6,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.0061,
+       "pct_per_year": 0.744,
+       "pnl_gbp": 0.1712,
+       "stop_pnl_gbp": 0.1337,
+       "stops": 1,
+       "trips": 17,
+       "trips_per_day": 0.6071
+      },
+      "whole": {
+       "best_day_share": 1.662,
+       "bps_per_day_of_capital": 0.2038,
+       "bps_per_trip": 2.105,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 0.1316,
+         "trips": 14
+        },
+        "0.2%": {
+         "pnl_gbp": 0.0396,
+         "trips": 3
+        },
+        "0.3%": {
+         "pnl_gbp": 0,
+         "trips": 0
+        }
+       },
+       "by_side": {
+        "ask": -0.134,
+        "bid": 0.3052
+       },
+       "days": 28.0,
+       "days_negative": 2,
+       "days_positive": 6,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.0061,
+       "pct_per_year": 0.744,
+       "pnl_gbp": 0.1712,
+       "stop_pnl_gbp": 0.1337,
+       "stops": 1,
+       "trips": 17,
+       "trips_per_day": 0.6071
+      }
+     }
+    }
+   },
+   "meta": {
+    "candle_grade": false,
+    "coin": "USDT",
+    "first_print_day": "2026-09-29",
+    "half_touch_bps": 0.67,
+    "lit_share": 0.7054,
+    "minutes_with_prints": 27303,
+    "peg_check_bps": {
+     "2026-09": {
+      "median": 0.73,
+      "n": 2092,
+      "p10": -1.74,
+      "p90": 2.93
+     },
+     "2026-10": {
+      "median": 1.18,
+      "n": 18018,
+      "p10": -2.25,
+      "p90": 4.08
+     }
+    },
+    "prints": 119121,
+    "quote": "GBP",
+    "t0": 1790640000000,
+    "taker_fee": 4.5e-05,
+    "tick": 0.0001,
+    "venue": "coinbase",
+    "volume_gbp_per_day": {
+     "last_28d": 2669917.0
+    }
+   }
+  },
+  "okx:EURC-USDC": {
+   "arms": {
+    "at_price_50": {
+     "orders_per_day": 163.2,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.1084,
+       "bps_per_day_of_capital": 20.9608,
+       "bps_per_trip": 23.5452,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 6.6164,
+         "trips": 139
+        },
+        "0.2%": {
+         "pnl_gbp": 6.283,
+         "trips": 52
+        },
+        "0.3%": {
+         "pnl_gbp": 4.7077,
+         "trips": 29
+        }
+       },
+       "by_side": {
+        "ask": 6.9375,
+        "bid": 10.6696
+       },
+       "days": 28.0,
+       "days_negative": 0,
+       "days_positive": 20,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.6288,
+       "pct_per_year": 76.5069,
+       "pnl_gbp": 17.6071,
+       "stop_pnl_gbp": -0.02,
+       "stops": 1,
+       "trips": 220,
+       "trips_per_day": 7.8571
+      },
+      "whole": {
+       "best_day_share": 0.0836,
+       "bps_per_day_of_capital": 21.1429,
+       "bps_per_trip": 23.7659,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 8.5271,
+         "trips": 170
+        },
+        "0.2%": {
+         "pnl_gbp": 8.3281,
+         "trips": 67
+        },
+        "0.3%": {
+         "pnl_gbp": 5.9791,
+         "trips": 35
+        }
+       },
+       "by_side": {
+        "ask": 9.4521,
+        "bid": 13.3822
+       },
+       "days": 36.0,
+       "days_negative": 0,
+       "days_positive": 26,
+       "from": "2026-09-21",
+       "gbp_per_day": 0.6343,
+       "pct_per_year": 77.1716,
+       "pnl_gbp": 22.8343,
+       "stop_pnl_gbp": -0.02,
+       "stops": 1,
+       "trips": 272,
+       "trips_per_day": 7.5556
+      }
+     }
+    },
+    "stress_50": {
+     "orders_per_day": 151.9,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.284,
+       "bps_per_day_of_capital": 2.2307,
+       "bps_per_trip": 7.9347,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 0.14,
+         "trips": 21
+        },
+        "0.2%": {
+         "pnl_gbp": 0.7275,
+         "trips": 16
+        },
+        "0.3%": {
+         "pnl_gbp": 1.0063,
+         "trips": 13
+        }
+       },
+       "by_side": {
+        "ask": 2.5687,
+        "bid": -0.6949
+       },
+       "days": 28.0,
+       "days_negative": 6,
+       "days_positive": 9,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.0669,
+       "pct_per_year": 8.1421,
+       "pnl_gbp": 1.8738,
+       "stop_pnl_gbp": -1.5602,
+       "stops": 15,
+       "trips": 50,
+       "trips_per_day": 1.7857
+      },
+      "whole": {
+       "best_day_share": 0.3344,
+       "bps_per_day_of_capital": 4.4989,
+       "bps_per_trip": 15.3703,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 0.9302,
+         "trips": 27
+        },
+        "0.2%": {
+         "pnl_gbp": 1.6931,
+         "trips": 21
+        },
+        "0.3%": {
+         "pnl_gbp": 2.2355,
+         "trips": 18
+        }
+       },
+       "by_side": {
+        "ask": 4.1466,
+        "bid": 0.7123
+       },
+       "days": 36.0,
+       "days_negative": 6,
+       "days_positive": 12,
+       "from": "2026-09-21",
+       "gbp_per_day": 0.135,
+       "pct_per_year": 16.4211,
+       "pnl_gbp": 4.8588,
+       "stop_pnl_gbp": -1.5602,
+       "stops": 15,
+       "trips": 66,
+       "trips_per_day": 1.8333
+      }
+     }
+    },
+    "through_10": {
+     "orders_per_day": 154.0,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.156,
+       "bps_per_day_of_capital": 10.1482,
+       "bps_per_trip": 20.6752,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 0.5012,
+         "trips": 42
+        },
+        "0.2%": {
+         "pnl_gbp": 0.5719,
+         "trips": 26
+        },
+        "0.3%": {
+         "pnl_gbp": 0.6318,
+         "trips": 20
+        }
+       },
+       "by_side": {
+        "ask": 1.123,
+        "bid": 0.5819
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 15,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.0609,
+       "pct_per_year": 37.0411,
+       "pnl_gbp": 1.7049,
+       "stop_pnl_gbp": -0.1292,
+       "stops": 4,
+       "trips": 88,
+       "trips_per_day": 3.1429
+      },
+      "whole": {
+       "best_day_share": 0.1475,
+       "bps_per_day_of_capital": 11.0208,
+       "bps_per_trip": 22.572,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 0.7554,
+         "trips": 55
+        },
+        "0.2%": {
+         "pnl_gbp": 0.7562,
+         "trips": 31
+        },
+        "0.3%": {
+         "pnl_gbp": 0.8688,
+         "trips": 25
+        }
+       },
+       "by_side": {
+        "ask": 1.4911,
+        "bid": 0.8894
+       },
+       "days": 36.0,
+       "days_negative": 1,
+       "days_positive": 20,
+       "from": "2026-09-21",
+       "gbp_per_day": 0.0661,
+       "pct_per_year": 40.226,
+       "pnl_gbp": 2.3805,
+       "stop_pnl_gbp": -0.1292,
+       "stops": 4,
+       "trips": 111,
+       "trips_per_day": 3.0833
+      }
+     }
+    },
+    "through_100": {
+     "orders_per_day": 154.0,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.1589,
+       "bps_per_day_of_capital": 9.8875,
+       "bps_per_trip": 21.3639,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 5.1297,
+         "trips": 42
+        },
+        "0.2%": {
+         "pnl_gbp": 5.4907,
+         "trips": 26
+        },
+        "0.3%": {
+         "pnl_gbp": 5.9906,
+         "trips": 20
+        }
+       },
+       "by_side": {
+        "ask": 10.5875,
+        "bid": 6.0234
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 15,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.5932,
+       "pct_per_year": 36.0892,
+       "pnl_gbp": 16.6109,
+       "stop_pnl_gbp": -0.8684,
+       "stops": 4,
+       "trips": 88,
+       "trips_per_day": 3.1429
+      },
+      "whole": {
+       "best_day_share": 0.1509,
+       "bps_per_day_of_capital": 10.7774,
+       "bps_per_trip": 23.2883,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 7.5842,
+         "trips": 55
+        },
+        "0.2%": {
+         "pnl_gbp": 7.3341,
+         "trips": 31
+        },
+        "0.3%": {
+         "pnl_gbp": 8.3609,
+         "trips": 25
+        }
+       },
+       "by_side": {
+        "ask": 14.2186,
+        "bid": 9.0607
+       },
+       "days": 36.0,
+       "days_negative": 1,
+       "days_positive": 20,
+       "from": "2026-09-21",
+       "gbp_per_day": 0.6466,
+       "pct_per_year": 39.3377,
+       "pnl_gbp": 23.2793,
+       "stop_pnl_gbp": -0.8684,
+       "stops": 4,
+       "trips": 111,
+       "trips_per_day": 3.0833
+      }
+     }
+    },
+    "through_1000": {
+     "orders_per_day": 154.0,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.2246,
+       "bps_per_day_of_capital": 5.6439,
+       "bps_per_trip": 25.7925,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 23.0227,
+         "trips": 42
+        },
+        "0.2%": {
+         "pnl_gbp": 32.5066,
+         "trips": 26
+        },
+        "0.3%": {
+         "pnl_gbp": 39.2876,
+         "trips": 20
+        }
+       },
+       "by_side": {
+        "ask": 65.6083,
+        "bid": 29.2087
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 15,
+       "from": "2026-09-29",
+       "gbp_per_day": 3.3863,
+       "pct_per_year": 20.6001,
+       "pnl_gbp": 94.817,
+       "stop_pnl_gbp": -1.2925,
+       "stops": 4,
+       "trips": 88,
+       "trips_per_day": 3.1429
+      },
+      "whole": {
+       "best_day_share": 0.2058,
+       "bps_per_day_of_capital": 6.8695,
+       "bps_per_trip": 28.4393,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 34.4499,
+         "trips": 55
+        },
+        "0.2%": {
+         "pnl_gbp": 50.9409,
+         "trips": 31
+        },
+        "0.3%": {
+         "pnl_gbp": 62.9913,
+         "trips": 25
+        }
+       },
+       "by_side": {
+        "ask": 97.928,
+        "bid": 50.454
+       },
+       "days": 36.0,
+       "days_negative": 1,
+       "days_positive": 20,
+       "from": "2026-09-21",
+       "gbp_per_day": 4.1217,
+       "pct_per_year": 25.0738,
+       "pnl_gbp": 148.3821,
+       "stop_pnl_gbp": -1.2925,
+       "stops": 4,
+       "trips": 111,
+       "trips_per_day": 3.0833
+      }
+     }
+    },
+    "through_300": {
+     "orders_per_day": 154.0,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.1702,
+       "bps_per_day_of_capital": 8.6553,
+       "bps_per_trip": 23.5851,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 12.1307,
+         "trips": 42
+        },
+        "0.2%": {
+         "pnl_gbp": 15.1216,
+         "trips": 26
+        },
+        "0.3%": {
+         "pnl_gbp": 16.3704,
+         "trips": 20
+        }
+       },
+       "by_side": {
+        "ask": 28.1807,
+        "bid": 15.442
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 15,
+       "from": "2026-09-29",
+       "gbp_per_day": 1.558,
+       "pct_per_year": 31.5918,
+       "pnl_gbp": 43.6227,
+       "stop_pnl_gbp": -1.2925,
+       "stops": 4,
+       "trips": 88,
+       "trips_per_day": 3.1429
+      },
+      "whole": {
+       "best_day_share": 0.1567,
+       "bps_per_day_of_capital": 9.4979,
+       "bps_per_trip": 25.5271,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 17.4131,
+         "trips": 55
+        },
+        "0.2%": {
+         "pnl_gbp": 20.6519,
+         "trips": 31
+        },
+        "0.3%": {
+         "pnl_gbp": 23.4815,
+         "trips": 25
+        }
+       },
+       "by_side": {
+        "ask": 38.4077,
+        "bid": 23.1387
+       },
+       "days": 36.0,
+       "days_negative": 1,
+       "days_positive": 20,
+       "from": "2026-09-21",
+       "gbp_per_day": 1.7096,
+       "pct_per_year": 34.6674,
+       "pnl_gbp": 61.5464,
+       "stop_pnl_gbp": -1.2925,
+       "stops": 4,
+       "trips": 111,
+       "trips_per_day": 3.0833
+      }
+     }
+    },
+    "through_50": {
+     "bootstrap_last_28d": {
+      "days": 28,
+      "p05_gbp_per_day": 0.1793,
+      "p95_gbp_per_day": 0.4322,
+      "share_draws_gt_0": 1.0,
+      "sum_gbp": 8.4595
+     },
+     "bootstrap_whole": {
+      "days": 36,
+      "p05_gbp_per_day": 0.2035,
+      "p95_gbp_per_day": 0.4663,
+      "share_draws_gt_0": 1.0,
+      "sum_gbp": 11.8374
+     },
+     "by_month": {
+      "2026-09": 3.9047,
+      "2026-10": 7.9328
+     },
+     "orders_per_day": 154.0,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.1572,
+       "bps_per_day_of_capital": 10.0708,
+       "bps_per_trip": 21.2269,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 2.6366,
+         "trips": 42
+        },
+        "0.2%": {
+         "pnl_gbp": 2.7756,
+         "trips": 26
+        },
+        "0.3%": {
+         "pnl_gbp": 3.0472,
+         "trips": 20
+        }
+       },
+       "by_side": {
+        "ask": 5.3796,
+        "bid": 3.0799
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 15,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.3021,
+       "pct_per_year": 36.7584,
+       "pnl_gbp": 8.4595,
+       "stop_pnl_gbp": -0.4577,
+       "stops": 4,
+       "trips": 88,
+       "trips_per_day": 3.1429
+      },
+      "whole": {
+       "best_day_share": 0.1484,
+       "bps_per_day_of_capital": 10.9606,
+       "bps_per_trip": 23.051,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 3.9077,
+         "trips": 55
+        },
+        "0.2%": {
+         "pnl_gbp": 3.6973,
+         "trips": 31
+        },
+        "0.3%": {
+         "pnl_gbp": 4.2324,
+         "trips": 25
+        }
+       },
+       "by_side": {
+        "ask": 7.2198,
+        "bid": 4.6176
+       },
+       "days": 36.0,
+       "days_negative": 1,
+       "days_positive": 20,
+       "from": "2026-09-21",
+       "gbp_per_day": 0.3288,
+       "pct_per_year": 40.0062,
+       "pnl_gbp": 11.8374,
+       "stop_pnl_gbp": -0.4577,
+       "stops": 4,
+       "trips": 111,
+       "trips_per_day": 3.0833
+      }
+     }
+    }
+   },
+   "meta": {
+    "candle_grade": false,
+    "coin": "EURC",
+    "first_print_day": "2026-09-21",
+    "half_touch_bps": 4.475,
+    "lit_share": 0.7149,
+    "minutes_with_prints": 863,
+    "peg_check_bps": {
+     "2026-09": {
+      "median": 2.18,
+      "n": 190,
+      "p10": -14.34,
+      "p90": 14.44
+     },
+     "2026-10": {
+      "median": 0.09,
+      "n": 503,
+      "p10": -21.17,
+      "p90": 10.87
+     }
+    },
+    "prints": 2862,
+    "quote": "USDC",
+    "t0": 1789948800000,
+    "taker_fee": 0.0005,
+    "tick": 0.001,
+    "venue": "okx",
+    "volume_gbp_per_day": {
+     "last_28d": 22499.0
+    }
+   }
+  },
+  "okx:USDG-EUR": {
+   "arms": {
+    "at_price_50": {
+     "orders_per_day": 154.8,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.1531,
+       "bps_per_day_of_capital": 22.1851,
+       "bps_per_trip": 18.1286,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 4.0194,
+         "trips": 276
+        },
+        "0.2%": {
+         "pnl_gbp": 6.03,
+         "trips": 149
+        },
+        "0.3%": {
+         "pnl_gbp": 8.586,
+         "trips": 115
+        }
+       },
+       "by_side": {
+        "ask": 16.8891,
+        "bid": 1.7463
+       },
+       "days": 28.0,
+       "days_negative": 0,
+       "days_positive": 21,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.6656,
+       "pct_per_year": 80.9756,
+       "pnl_gbp": 18.6355,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 540,
+       "trips_per_day": 19.2857
+      },
+      "since_08-24": {
+       "best_day_share": 0.0571,
+       "bps_per_day_of_capital": 31.1106,
+       "bps_per_trip": 18.8473,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 13.2098,
+         "trips": 733
+        },
+        "0.2%": {
+         "pnl_gbp": 19.0231,
+         "trips": 457
+        },
+        "0.3%": {
+         "pnl_gbp": 27.4993,
+         "trips": 394
+        }
+       },
+       "by_side": {
+        "ask": 54.072,
+        "bid": 5.6602
+       },
+       "days": 64.0,
+       "days_negative": 0,
+       "days_positive": 49,
+       "from": "2026-08-24",
+       "gbp_per_day": 0.9333,
+       "pct_per_year": 113.5535,
+       "pnl_gbp": 59.7323,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 1584,
+       "trips_per_day": 24.75
+      },
+      "since_tgbp": {
+       "best_day_share": 0.0467,
+       "bps_per_day_of_capital": 13.0204,
+       "bps_per_trip": 17.9304,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 17.9847,
+         "trips": 1025
+        },
+        "0.2%": {
+         "pnl_gbp": 22.4808,
+         "trips": 523
+        },
+        "0.3%": {
+         "pnl_gbp": 32.5789,
+         "trips": 443
+        }
+       },
+       "by_side": {
+        "ask": 64.8364,
+        "bid": 8.208
+       },
+       "days": 187.0,
+       "days_negative": 11,
+       "days_positive": 123,
+       "from": "2026-04-23",
+       "gbp_per_day": 0.3906,
+       "pct_per_year": 47.5244,
+       "pnl_gbp": 73.0444,
+       "stop_pnl_gbp": -0.0559,
+       "stops": 5,
+       "trips": 1991,
+       "trips_per_day": 10.6471
+      },
+      "whole": {
+       "best_day_share": 0.0467,
+       "bps_per_day_of_capital": 9.8951,
+       "bps_per_trip": 17.6252,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 18.0411,
+         "trips": 1077
+        },
+        "0.2%": {
+         "pnl_gbp": 22.3673,
+         "trips": 529
+        },
+        "0.3%": {
+         "pnl_gbp": 32.6171,
+         "trips": 449
+        }
+       },
+       "by_side": {
+        "ask": 64.7846,
+        "bid": 8.2409
+       },
+       "days": 246.0,
+       "days_negative": 27,
+       "days_positive": 142,
+       "from": "2026-02-23",
+       "gbp_per_day": 0.2969,
+       "pct_per_year": 36.1169,
+       "pnl_gbp": 73.0255,
+       "stop_pnl_gbp": -0.1911,
+       "stops": 16,
+       "trips": 2055,
+       "trips_per_day": 8.3537
+      }
+     }
+    },
+    "stress_50": {
+     "orders_per_day": 150.9,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.1863,
+       "bps_per_day_of_capital": 17.4588,
+       "bps_per_trip": 18.389,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 2.7858,
+         "trips": 181
+        },
+        "0.2%": {
+         "pnl_gbp": 4.934,
+         "trips": 128
+        },
+        "0.3%": {
+         "pnl_gbp": 6.9457,
+         "trips": 94
+        }
+       },
+       "by_side": {
+        "ask": 13.333,
+        "bid": 1.3324
+       },
+       "days": 28.0,
+       "days_negative": 0,
+       "days_positive": 19,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.5238,
+       "pct_per_year": 63.7246,
+       "pnl_gbp": 14.6654,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 403,
+       "trips_per_day": 14.3929
+      },
+      "since_08-24": {
+       "best_day_share": 0.062,
+       "bps_per_day_of_capital": 25.925,
+       "bps_per_trip": 19.3735,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 9.3701,
+         "trips": 511
+        },
+        "0.2%": {
+         "pnl_gbp": 16.453,
+         "trips": 397
+        },
+        "0.3%": {
+         "pnl_gbp": 23.9529,
+         "trips": 345
+        }
+       },
+       "by_side": {
+        "ask": 46.2244,
+        "bid": 3.5516
+       },
+       "days": 64.0,
+       "days_negative": 0,
+       "days_positive": 44,
+       "from": "2026-08-24",
+       "gbp_per_day": 0.7777,
+       "pct_per_year": 94.6262,
+       "pnl_gbp": 49.776,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 1253,
+       "trips_per_day": 19.5781
+      },
+      "since_tgbp": {
+       "best_day_share": 0.0536,
+       "bps_per_day_of_capital": 10.2539,
+       "bps_per_trip": 18.9628,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 10.9306,
+         "trips": 607
+        },
+        "0.2%": {
+         "pnl_gbp": 19.1235,
+         "trips": 440
+        },
+        "0.3%": {
+         "pnl_gbp": 27.4706,
+         "trips": 381
+        }
+       },
+       "by_side": {
+        "ask": 52.2892,
+        "bid": 5.2354
+       },
+       "days": 187.0,
+       "days_negative": 8,
+       "days_positive": 76,
+       "from": "2026-04-23",
+       "gbp_per_day": 0.3076,
+       "pct_per_year": 37.4269,
+       "pnl_gbp": 57.5247,
+       "stop_pnl_gbp": -0.0873,
+       "stops": 4,
+       "trips": 1428,
+       "trips_per_day": 7.6364
+      },
+      "whole": {
+       "best_day_share": 0.0537,
+       "bps_per_day_of_capital": 7.7928,
+       "bps_per_trip": 18.8509,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 10.9022,
+         "trips": 626
+        },
+        "0.2%": {
+         "pnl_gbp": 19.1151,
+         "trips": 445
+        },
+        "0.3%": {
+         "pnl_gbp": 27.4933,
+         "trips": 385
+        }
+       },
+       "by_side": {
+        "ask": 52.2469,
+        "bid": 5.2638
+       },
+       "days": 246.0,
+       "days_negative": 16,
+       "days_positive": 83,
+       "from": "2026-02-23",
+       "gbp_per_day": 0.2338,
+       "pct_per_year": 28.4436,
+       "pnl_gbp": 57.5107,
+       "stop_pnl_gbp": -0.1539,
+       "stops": 10,
+       "trips": 1456,
+       "trips_per_day": 5.9187
+      }
+     }
+    },
+    "through_10": {
+     "orders_per_day": 152.7,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.1174,
+       "bps_per_day_of_capital": 38.2064,
+       "bps_per_trip": 18.1622,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 1.362,
+         "trips": 215
+        },
+        "0.2%": {
+         "pnl_gbp": 2.1735,
+         "trips": 142
+        },
+        "0.3%": {
+         "pnl_gbp": 2.8832,
+         "trips": 107
+        }
+       },
+       "by_side": {
+        "ask": 5.7463,
+        "bid": 0.6724
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 20,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.2292,
+       "pct_per_year": 139.4535,
+       "pnl_gbp": 6.4187,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 464,
+       "trips_per_day": 16.5714
+      },
+      "since_08-24": {
+       "best_day_share": 0.0562,
+       "bps_per_day_of_capital": 53.8991,
+       "bps_per_trip": 18.9126,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 4.3181,
+         "trips": 609
+        },
+        "0.2%": {
+         "pnl_gbp": 6.8256,
+         "trips": 435
+        },
+        "0.3%": {
+         "pnl_gbp": 9.5536,
+         "trips": 375
+        }
+       },
+       "by_side": {
+        "ask": 18.8089,
+        "bid": 1.8884
+       },
+       "days": 64.0,
+       "days_negative": 2,
+       "days_positive": 46,
+       "from": "2026-08-24",
+       "gbp_per_day": 0.3234,
+       "pct_per_year": 196.7318,
+       "pnl_gbp": 20.6973,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 1419,
+       "trips_per_day": 22.1719
+      },
+      "since_tgbp": {
+       "best_day_share": 0.0492,
+       "bps_per_day_of_capital": 21.0755,
+       "bps_per_trip": 18.1694,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 5.246,
+         "trips": 781
+        },
+        "0.2%": {
+         "pnl_gbp": 7.7227,
+         "trips": 492
+        },
+        "0.3%": {
+         "pnl_gbp": 10.678,
+         "trips": 416
+        }
+       },
+       "by_side": {
+        "ask": 21.3024,
+        "bid": 2.3443
+       },
+       "days": 187.0,
+       "days_negative": 13,
+       "days_positive": 102,
+       "from": "2026-04-23",
+       "gbp_per_day": 0.1265,
+       "pct_per_year": 76.9256,
+       "pnl_gbp": 23.6467,
+       "stop_pnl_gbp": 0.0011,
+       "stops": 3,
+       "trips": 1689,
+       "trips_per_day": 9.0321
+      },
+      "whole": {
+       "best_day_share": 0.0491,
+       "bps_per_day_of_capital": 16.0414,
+       "bps_per_trip": 17.9222,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 5.2509,
+         "trips": 814
+        },
+        "0.2%": {
+         "pnl_gbp": 7.7182,
+         "trips": 497
+        },
+        "0.3%": {
+         "pnl_gbp": 10.708,
+         "trips": 421
+        }
+       },
+       "by_side": {
+        "ask": 21.2995,
+        "bid": 2.3775
+       },
+       "days": 246.0,
+       "days_negative": 23,
+       "days_positive": 118,
+       "from": "2026-02-23",
+       "gbp_per_day": 0.0962,
+       "pct_per_year": 58.551,
+       "pnl_gbp": 23.6771,
+       "stop_pnl_gbp": -0.0821,
+       "stops": 12,
+       "trips": 1732,
+       "trips_per_day": 7.0407
+      }
+     }
+    },
+    "through_100": {
+     "orders_per_day": 152.7,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.2005,
+       "bps_per_day_of_capital": 12.6869,
+       "bps_per_trip": 19.2711,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 3.8081,
+         "trips": 215
+        },
+        "0.2%": {
+         "pnl_gbp": 7.059,
+         "trips": 142
+        },
+        "0.3%": {
+         "pnl_gbp": 10.4468,
+         "trips": 107
+        }
+       },
+       "by_side": {
+        "ask": 19.7053,
+        "bid": 1.6086
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 20,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.7612,
+       "pct_per_year": 46.307,
+       "pnl_gbp": 21.3139,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 464,
+       "trips_per_day": 16.5714
+      },
+      "since_08-24": {
+       "best_day_share": 0.0625,
+       "bps_per_day_of_capital": 17.8232,
+       "bps_per_trip": 19.4386,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 13.5112,
+         "trips": 609
+        },
+        "0.2%": {
+         "pnl_gbp": 22.0993,
+         "trips": 435
+        },
+        "0.3%": {
+         "pnl_gbp": 32.8306,
+         "trips": 375
+        }
+       },
+       "by_side": {
+        "ask": 62.6205,
+        "bid": 5.8207
+       },
+       "days": 64.0,
+       "days_negative": 2,
+       "days_positive": 46,
+       "from": "2026-08-24",
+       "gbp_per_day": 1.0694,
+       "pct_per_year": 65.0548,
+       "pnl_gbp": 68.4412,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 1419,
+       "trips_per_day": 22.1719
+      },
+      "since_tgbp": {
+       "best_day_share": 0.0517,
+       "bps_per_day_of_capital": 7.3703,
+       "bps_per_trip": 18.3357,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 17.3216,
+         "trips": 781
+        },
+        "0.2%": {
+         "pnl_gbp": 26.5323,
+         "trips": 492
+        },
+        "0.3%": {
+         "pnl_gbp": 38.8408,
+         "trips": 416
+        }
+       },
+       "by_side": {
+        "ask": 73.1472,
+        "bid": 9.5475
+       },
+       "days": 187.0,
+       "days_negative": 12,
+       "days_positive": 103,
+       "from": "2026-04-23",
+       "gbp_per_day": 0.4422,
+       "pct_per_year": 26.9016,
+       "pnl_gbp": 82.6948,
+       "stop_pnl_gbp": 0.0094,
+       "stops": 3,
+       "trips": 1689,
+       "trips_per_day": 9.0321
+      },
+      "whole": {
+       "best_day_share": 0.0516,
+       "bps_per_day_of_capital": 5.6074,
+       "bps_per_trip": 18.2,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 17.3672,
+         "trips": 814
+        },
+        "0.2%": {
+         "pnl_gbp": 26.5278,
+         "trips": 497
+        },
+        "0.3%": {
+         "pnl_gbp": 38.8708,
+         "trips": 421
+        }
+       },
+       "by_side": {
+        "ask": 73.185,
+        "bid": 9.5807
+       },
+       "days": 246.0,
+       "days_negative": 23,
+       "days_positive": 118,
+       "from": "2026-02-23",
+       "gbp_per_day": 0.3364,
+       "pct_per_year": 20.4671,
+       "pnl_gbp": 82.7658,
+       "stop_pnl_gbp": -0.2022,
+       "stops": 12,
+       "trips": 1732,
+       "trips_per_day": 7.0407
+      }
+     }
+    },
+    "through_1000": {
+     "orders_per_day": 152.7,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.2552,
+       "bps_per_day_of_capital": 1.5987,
+       "bps_per_trip": 16.836,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 3.8195,
+         "trips": 215
+        },
+        "0.2%": {
+         "pnl_gbp": 9.9208,
+         "trips": 142
+        },
+        "0.3%": {
+         "pnl_gbp": 13.1185,
+         "trips": 107
+        }
+       },
+       "by_side": {
+        "ask": 25.4132,
+        "bid": 1.4455
+       },
+       "days": 28.0,
+       "days_negative": 2,
+       "days_positive": 19,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.9592,
+       "pct_per_year": 5.8354,
+       "pnl_gbp": 26.8587,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 464,
+       "trips_per_day": 16.5714
+      },
+      "since_08-24": {
+       "best_day_share": 0.0803,
+       "bps_per_day_of_capital": 2.2239,
+       "bps_per_trip": 18.5807,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 17.5726,
+         "trips": 609
+        },
+        "0.2%": {
+         "pnl_gbp": 27.9383,
+         "trips": 435
+        },
+        "0.3%": {
+         "pnl_gbp": 39.887,
+         "trips": 375
+        }
+       },
+       "by_side": {
+        "ask": 77.1651,
+        "bid": 8.2329
+       },
+       "days": 64.0,
+       "days_negative": 3,
+       "days_positive": 45,
+       "from": "2026-08-24",
+       "gbp_per_day": 1.3343,
+       "pct_per_year": 8.1173,
+       "pnl_gbp": 85.398,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 1419,
+       "trips_per_day": 22.1719
+      },
+      "since_tgbp": {
+       "best_day_share": 0.126,
+       "bps_per_day_of_capital": 1.1548,
+       "bps_per_trip": 17.1413,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 31.8762,
+         "trips": 781
+        },
+        "0.2%": {
+         "pnl_gbp": 40.4999,
+         "trips": 492
+        },
+        "0.3%": {
+         "pnl_gbp": 57.1915,
+         "trips": 416
+        }
+       },
+       "by_side": {
+        "ask": 101.3431,
+        "bid": 28.2245
+       },
+       "days": 187.0,
+       "days_negative": 13,
+       "days_positive": 102,
+       "from": "2026-04-23",
+       "gbp_per_day": 0.6929,
+       "pct_per_year": 4.215,
+       "pnl_gbp": 129.5676,
+       "stop_pnl_gbp": 0.0094,
+       "stops": 3,
+       "trips": 1689,
+       "trips_per_day": 9.0321
+      },
+      "whole": {
+       "best_day_share": 0.126,
+       "bps_per_day_of_capital": 0.8783,
+       "bps_per_trip": 17.0659,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 31.9218,
+         "trips": 814
+        },
+        "0.2%": {
+         "pnl_gbp": 40.4954,
+         "trips": 497
+        },
+        "0.3%": {
+         "pnl_gbp": 57.2214,
+         "trips": 421
+        }
+       },
+       "by_side": {
+        "ask": 101.3809,
+        "bid": 28.2577
+       },
+       "days": 246.0,
+       "days_negative": 24,
+       "days_positive": 117,
+       "from": "2026-02-23",
+       "gbp_per_day": 0.527,
+       "pct_per_year": 3.2058,
+       "pnl_gbp": 129.6386,
+       "stop_pnl_gbp": -0.2022,
+       "stops": 12,
+       "trips": 1732,
+       "trips_per_day": 7.0407
+      }
+     }
+    },
+    "through_300": {
+     "orders_per_day": 152.7,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.2629,
+       "bps_per_day_of_capital": 5.1725,
+       "bps_per_trip": 18.4472,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 3.9397,
+         "trips": 215
+        },
+        "0.2%": {
+         "pnl_gbp": 9.1581,
+         "trips": 142
+        },
+        "0.3%": {
+         "pnl_gbp": 12.9714,
+         "trips": 107
+        }
+       },
+       "by_side": {
+        "ask": 24.3825,
+        "bid": 1.6867
+       },
+       "days": 28.0,
+       "days_negative": 2,
+       "days_positive": 19,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.931,
+       "pct_per_year": 18.8795,
+       "pnl_gbp": 26.0692,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 464,
+       "trips_per_day": 16.5714
+      },
+      "since_08-24": {
+       "best_day_share": 0.0852,
+       "bps_per_day_of_capital": 6.9856,
+       "bps_per_trip": 19.1734,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 15.9165,
+         "trips": 609
+        },
+        "0.2%": {
+         "pnl_gbp": 26.1789,
+         "trips": 435
+        },
+        "0.3%": {
+         "pnl_gbp": 38.3793,
+         "trips": 375
+        }
+       },
+       "by_side": {
+        "ask": 73.1447,
+        "bid": 7.33
+       },
+       "days": 64.0,
+       "days_negative": 3,
+       "days_positive": 45,
+       "from": "2026-08-24",
+       "gbp_per_day": 1.2574,
+       "pct_per_year": 25.4976,
+       "pnl_gbp": 80.4747,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 1419,
+       "trips_per_day": 22.1719
+      },
+      "since_tgbp": {
+       "best_day_share": 0.0921,
+       "bps_per_day_of_capital": 3.1965,
+       "bps_per_trip": 17.7962,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 23.4525,
+         "trips": 781
+        },
+        "0.2%": {
+         "pnl_gbp": 34.5118,
+         "trips": 492
+        },
+        "0.3%": {
+         "pnl_gbp": 49.6314,
+         "trips": 416
+        }
+       },
+       "by_side": {
+        "ask": 91.0358,
+        "bid": 16.5599
+       },
+       "days": 187.0,
+       "days_negative": 13,
+       "days_positive": 102,
+       "from": "2026-04-23",
+       "gbp_per_day": 0.5754,
+       "pct_per_year": 11.6674,
+       "pnl_gbp": 107.5957,
+       "stop_pnl_gbp": 0.0094,
+       "stops": 3,
+       "trips": 1689,
+       "trips_per_day": 9.0321
+      },
+      "whole": {
+       "best_day_share": 0.092,
+       "bps_per_day_of_capital": 2.4315,
+       "bps_per_trip": 17.6981,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 23.4981,
+         "trips": 814
+        },
+        "0.2%": {
+         "pnl_gbp": 34.5073,
+         "trips": 497
+        },
+        "0.3%": {
+         "pnl_gbp": 49.6613,
+         "trips": 421
+        }
+       },
+       "by_side": {
+        "ask": 91.0736,
+        "bid": 16.5931
+       },
+       "days": 246.0,
+       "days_negative": 24,
+       "days_positive": 117,
+       "from": "2026-02-23",
+       "gbp_per_day": 0.4377,
+       "pct_per_year": 8.875,
+       "pnl_gbp": 107.6667,
+       "stop_pnl_gbp": -0.2022,
+       "stops": 12,
+       "trips": 1732,
+       "trips_per_day": 7.0407
+      }
+     }
+    },
+    "through_50": {
+     "bootstrap_last_28d": {
+      "days": 28,
+      "p05_gbp_per_day": 0.3628,
+      "p95_gbp_per_day": 0.875,
+      "share_draws_gt_0": 1.0,
+      "sum_gbp": 16.8865
+     },
+     "bootstrap_whole": {
+      "days": 246,
+      "p05_gbp_per_day": 0.1977,
+      "p95_gbp_per_day": 0.3341,
+      "share_draws_gt_0": 1.0,
+      "sum_gbp": 64.4141
+     },
+     "by_month": {
+      "2026-02": 0.1102,
+      "2026-03": -0.0434,
+      "2026-04": -0.0365,
+      "2026-05": 0.134,
+      "2026-06": 0.1362,
+      "2026-07": 0.5194,
+      "2026-08": 8.9324,
+      "2026-09": 40.3075,
+      "2026-10": 14.3543
+     },
+     "orders_per_day": 152.7,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.1696,
+       "bps_per_day_of_capital": 20.103,
+       "bps_per_trip": 18.8416,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 3.2206,
+         "trips": 215
+        },
+        "0.2%": {
+         "pnl_gbp": 5.5574,
+         "trips": 142
+        },
+        "0.3%": {
+         "pnl_gbp": 8.1085,
+         "trips": 107
+        }
+       },
+       "by_side": {
+        "ask": 15.4639,
+        "bid": 1.4227
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 20,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.6031,
+       "pct_per_year": 73.376,
+       "pnl_gbp": 16.8865,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 464,
+       "trips_per_day": 16.5714
+      },
+      "since_08-24": {
+       "best_day_share": 0.0587,
+       "bps_per_day_of_capital": 28.5135,
+       "bps_per_trip": 19.2486,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 10.9825,
+         "trips": 609
+        },
+        "0.2%": {
+         "pnl_gbp": 17.7534,
+         "trips": 435
+        },
+        "0.3%": {
+         "pnl_gbp": 26.0098,
+         "trips": 375
+        }
+       },
+       "by_side": {
+        "ask": 50.0691,
+        "bid": 4.6767
+       },
+       "days": 64.0,
+       "days_negative": 2,
+       "days_positive": 46,
+       "from": "2026-08-24",
+       "gbp_per_day": 0.8554,
+       "pct_per_year": 104.0741,
+       "pnl_gbp": 54.7458,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 1419,
+       "trips_per_day": 22.1719
+      },
+      "since_tgbp": {
+       "best_day_share": 0.0499,
+       "bps_per_day_of_capital": 11.4754,
+       "bps_per_trip": 18.3422,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 13.6047,
+         "trips": 781
+        },
+        "0.2%": {
+         "pnl_gbp": 20.7326,
+         "trips": 492
+        },
+        "0.3%": {
+         "pnl_gbp": 30.0397,
+         "trips": 416
+        }
+       },
+       "by_side": {
+        "ask": 57.7261,
+        "bid": 6.6509
+       },
+       "days": 187.0,
+       "days_negative": 12,
+       "days_positive": 103,
+       "from": "2026-04-23",
+       "gbp_per_day": 0.3443,
+       "pct_per_year": 41.8852,
+       "pnl_gbp": 64.377,
+       "stop_pnl_gbp": 0.0054,
+       "stops": 3,
+       "trips": 1689,
+       "trips_per_day": 9.0321
+      },
+      "whole": {
+       "best_day_share": 0.0499,
+       "bps_per_day_of_capital": 8.7282,
+       "bps_per_trip": 18.1644,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 13.6164,
+         "trips": 814
+        },
+        "0.2%": {
+         "pnl_gbp": 20.7281,
+         "trips": 497
+        },
+        "0.3%": {
+         "pnl_gbp": 30.0696,
+         "trips": 421
+        }
+       },
+       "by_side": {
+        "ask": 57.73,
+        "bid": 6.6841
+       },
+       "days": 246.0,
+       "days_negative": 23,
+       "days_positive": 118,
+       "from": "2026-02-23",
+       "gbp_per_day": 0.2618,
+       "pct_per_year": 31.8579,
+       "pnl_gbp": 64.4141,
+       "stop_pnl_gbp": -0.2063,
+       "stops": 12,
+       "trips": 1732,
+       "trips_per_day": 7.0407
+      }
+     }
+    }
+   },
+   "meta": {
+    "candle_grade": false,
+    "coin": "USDG",
+    "first_print_day": "2026-02-23",
+    "half_touch_bps": 5.025,
+    "lit_share": 0.7146,
+    "minutes_with_prints": 14950,
+    "peg_check_bps": {
+     "2026-02": {
+      "median": 11.3,
+      "n": 126,
+      "p10": -2.55,
+      "p90": 21.06
+     },
+     "2026-03": {
+      "median": 7.48,
+      "n": 191,
+      "p10": -6.87,
+      "p90": 10.97
+     },
+     "2026-04": {
+      "median": 6.58,
+      "n": 305,
+      "p10": -7.55,
+      "p90": 10.15
+     },
+     "2026-05": {
+      "median": 5.33,
+      "n": 528,
+      "p10": -8.97,
+      "p90": 8.11
+     },
+     "2026-06": {
+      "median": 5.44,
+      "n": 867,
+      "p10": -7.52,
+      "p90": 9.07
+     },
+     "2026-07": {
+      "median": 7.05,
+      "n": 2210,
+      "p10": -3.96,
+      "p90": 9.97
+     },
+     "2026-08": {
+      "median": 6.35,
+      "n": 2492,
+      "p10": -5.9,
+      "p90": 11.97
+     },
+     "2026-09": {
+      "median": 6.8,
+      "n": 2232,
+      "p10": -8.62,
+      "p90": 20.71
+     },
+     "2026-10": {
+      "median": 7.89,
+      "n": 1768,
+      "p10": -5.6,
+      "p90": 17.93
+     }
+    },
+    "prints": 55404,
+    "quote": "EUR",
+    "t0": 1771804800000,
+    "taker_fee": 0.0005,
+    "tick": 0.0001,
+    "venue": "okx",
+    "volume_gbp_per_day": {
+     "last_28d": 25601.0,
+     "since_08-24": 26035.0,
+     "since_tgbp": 26448.0
+    }
+   }
+  },
+  "revx:USDC-GBP": {
+   "arms": {
+    "at_price_50": {
+     "orders_per_day": 154.6,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.1209,
+       "bps_per_day_of_capital": 4.127,
+       "bps_per_trip": 11.6722,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 2.082,
+         "trips": 83
+        },
+        "0.2%": {
+         "pnl_gbp": 1.1441,
+         "trips": 21
+        },
+        "0.3%": {
+         "pnl_gbp": 0.2406,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": 1.1561,
+        "bid": 2.3106
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 18,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.1238,
+       "pct_per_year": 15.0636,
+       "pnl_gbp": 3.4667,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 106,
+       "trips_per_day": 3.7857
+      },
+      "whole": {
+       "best_day_share": 0.1209,
+       "bps_per_day_of_capital": 4.127,
+       "bps_per_trip": 11.6722,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 2.082,
+         "trips": 83
+        },
+        "0.2%": {
+         "pnl_gbp": 1.1441,
+         "trips": 21
+        },
+        "0.3%": {
+         "pnl_gbp": 0.2406,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": 1.1561,
+        "bid": 2.3106
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 18,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.1238,
+       "pct_per_year": 15.0636,
+       "pnl_gbp": 3.4667,
+       "stop_pnl_gbp": 0,
+       "stops": 0,
+       "trips": 106,
+       "trips_per_day": 3.7857
+      }
+     }
+    },
+    "stress_50": {
+     "orders_per_day": 153.5,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.2835,
+       "bps_per_day_of_capital": 1.8526,
+       "bps_per_trip": 8.4675,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 1.0451,
+         "trips": 52
+        },
+        "0.2%": {
+         "pnl_gbp": 0.2714,
+         "trips": 10
+        },
+        "0.3%": {
+         "pnl_gbp": 0.2397,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": 0.8469,
+        "bid": 0.7093
+       },
+       "days": 28.0,
+       "days_negative": 4,
+       "days_positive": 12,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.0556,
+       "pct_per_year": 6.7621,
+       "pnl_gbp": 1.5562,
+       "stop_pnl_gbp": -0.2401,
+       "stops": 2,
+       "trips": 64,
+       "trips_per_day": 2.2857
+      },
+      "whole": {
+       "best_day_share": 0.2835,
+       "bps_per_day_of_capital": 1.8526,
+       "bps_per_trip": 8.4675,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 1.0451,
+         "trips": 52
+        },
+        "0.2%": {
+         "pnl_gbp": 0.2714,
+         "trips": 10
+        },
+        "0.3%": {
+         "pnl_gbp": 0.2397,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": 0.8469,
+        "bid": 0.7093
+       },
+       "days": 28.0,
+       "days_negative": 4,
+       "days_positive": 12,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.0556,
+       "pct_per_year": 6.7621,
+       "pnl_gbp": 1.5562,
+       "stop_pnl_gbp": -0.2401,
+       "stops": 2,
+       "trips": 64,
+       "trips_per_day": 2.2857
+      }
+     }
+    },
+    "through_10": {
+     "orders_per_day": 152.5,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.1665,
+       "bps_per_day_of_capital": 3.525,
+       "bps_per_trip": 9.1108,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 0.3552,
+         "trips": 62
+        },
+        "0.2%": {
+         "pnl_gbp": 0.1816,
+         "trips": 13
+        },
+        "0.3%": {
+         "pnl_gbp": 0.0554,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": 0.2306,
+        "bid": 0.3616
+       },
+       "days": 28.0,
+       "days_negative": 3,
+       "days_positive": 14,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.0211,
+       "pct_per_year": 12.8662,
+       "pnl_gbp": 0.5922,
+       "stop_pnl_gbp": -0.0257,
+       "stops": 1,
+       "trips": 77,
+       "trips_per_day": 2.75
+      },
+      "whole": {
+       "best_day_share": 0.1665,
+       "bps_per_day_of_capital": 3.525,
+       "bps_per_trip": 9.1108,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 0.3552,
+         "trips": 62
+        },
+        "0.2%": {
+         "pnl_gbp": 0.1816,
+         "trips": 13
+        },
+        "0.3%": {
+         "pnl_gbp": 0.0554,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": 0.2306,
+        "bid": 0.3616
+       },
+       "days": 28.0,
+       "days_negative": 3,
+       "days_positive": 14,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.0211,
+       "pct_per_year": 12.8662,
+       "pnl_gbp": 0.5922,
+       "stop_pnl_gbp": -0.0257,
+       "stops": 1,
+       "trips": 77,
+       "trips_per_day": 2.75
+      }
+     }
+    },
+    "through_100": {
+     "orders_per_day": 152.5,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.205,
+       "bps_per_day_of_capital": 2.5237,
+       "bps_per_trip": 11.5339,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 2.3333,
+         "trips": 62
+        },
+        "0.2%": {
+         "pnl_gbp": 1.4364,
+         "trips": 13
+        },
+        "0.3%": {
+         "pnl_gbp": 0.4701,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": 1.7889,
+        "bid": 2.4508
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 16,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.1514,
+       "pct_per_year": 9.2114,
+       "pnl_gbp": 4.2398,
+       "stop_pnl_gbp": -0.1334,
+       "stops": 1,
+       "trips": 77,
+       "trips_per_day": 2.75
+      },
+      "whole": {
+       "best_day_share": 0.205,
+       "bps_per_day_of_capital": 2.5237,
+       "bps_per_trip": 11.5339,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 2.3333,
+         "trips": 62
+        },
+        "0.2%": {
+         "pnl_gbp": 1.4364,
+         "trips": 13
+        },
+        "0.3%": {
+         "pnl_gbp": 0.4701,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": 1.7889,
+        "bid": 2.4508
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 16,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.1514,
+       "pct_per_year": 9.2114,
+       "pnl_gbp": 4.2398,
+       "stop_pnl_gbp": -0.1334,
+       "stops": 1,
+       "trips": 77,
+       "trips_per_day": 2.75
+      }
+     }
+    },
+    "through_1000": {
+     "orders_per_day": 152.5,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.3135,
+       "bps_per_day_of_capital": 1.2885,
+       "bps_per_trip": 14.4618,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 12.2623,
+         "trips": 62
+        },
+        "0.2%": {
+         "pnl_gbp": 8.7433,
+         "trips": 13
+        },
+        "0.3%": {
+         "pnl_gbp": 0.6414,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": 6.5425,
+        "bid": 15.1046
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 16,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.7731,
+       "pct_per_year": 4.7031,
+       "pnl_gbp": 21.6471,
+       "stop_pnl_gbp": -0.1334,
+       "stops": 1,
+       "trips": 77,
+       "trips_per_day": 2.75
+      },
+      "whole": {
+       "best_day_share": 0.3135,
+       "bps_per_day_of_capital": 1.2885,
+       "bps_per_trip": 14.4618,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 12.2623,
+         "trips": 62
+        },
+        "0.2%": {
+         "pnl_gbp": 8.7433,
+         "trips": 13
+        },
+        "0.3%": {
+         "pnl_gbp": 0.6414,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": 6.5425,
+        "bid": 15.1046
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 16,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.7731,
+       "pct_per_year": 4.7031,
+       "pnl_gbp": 21.6471,
+       "stop_pnl_gbp": -0.1334,
+       "stops": 1,
+       "trips": 77,
+       "trips_per_day": 2.75
+      }
+     }
+    },
+    "through_300": {
+     "orders_per_day": 152.5,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.2113,
+       "bps_per_day_of_capital": 1.9123,
+       "bps_per_trip": 12.8418,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 5.212,
+         "trips": 62
+        },
+        "0.2%": {
+         "pnl_gbp": 3.7845,
+         "trips": 13
+        },
+        "0.3%": {
+         "pnl_gbp": 0.6414,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": 3.4423,
+        "bid": 6.1956
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 16,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.3442,
+       "pct_per_year": 6.9798,
+       "pnl_gbp": 9.6379,
+       "stop_pnl_gbp": -0.1334,
+       "stops": 1,
+       "trips": 77,
+       "trips_per_day": 2.75
+      },
+      "whole": {
+       "best_day_share": 0.2113,
+       "bps_per_day_of_capital": 1.9123,
+       "bps_per_trip": 12.8418,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 5.212,
+         "trips": 62
+        },
+        "0.2%": {
+         "pnl_gbp": 3.7845,
+         "trips": 13
+        },
+        "0.3%": {
+         "pnl_gbp": 0.6414,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": 3.4423,
+        "bid": 6.1956
+       },
+       "days": 28.0,
+       "days_negative": 1,
+       "days_positive": 16,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.3442,
+       "pct_per_year": 6.9798,
+       "pnl_gbp": 9.6379,
+       "stop_pnl_gbp": -0.1334,
+       "stops": 1,
+       "trips": 77,
+       "trips_per_day": 2.75
+      }
+     }
+    },
+    "through_50": {
+     "bootstrap_last_28d": {
+      "days": 28,
+      "p05_gbp_per_day": 0.039,
+      "p95_gbp_per_day": 0.1212,
+      "share_draws_gt_0": 1.0,
+      "sum_gbp": 2.2098
+     },
+     "bootstrap_whole": {
+      "days": 28,
+      "p05_gbp_per_day": 0.039,
+      "p95_gbp_per_day": 0.1212,
+      "share_draws_gt_0": 1.0,
+      "sum_gbp": 2.2098
+     },
+     "by_month": {
+      "2026-09": 0.3972,
+      "2026-10": 1.8126
+     },
+     "orders_per_day": 152.5,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.1996,
+       "bps_per_day_of_capital": 2.6307,
+       "bps_per_trip": 10.183,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 1.2351,
+         "trips": 62
+        },
+        "0.2%": {
+         "pnl_gbp": 0.7349,
+         "trips": 13
+        },
+        "0.3%": {
+         "pnl_gbp": 0.2397,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": 0.9669,
+        "bid": 1.2429
+       },
+       "days": 28.0,
+       "days_negative": 2,
+       "days_positive": 15,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.0789,
+       "pct_per_year": 9.6021,
+       "pnl_gbp": 2.2098,
+       "stop_pnl_gbp": -0.1286,
+       "stops": 1,
+       "trips": 77,
+       "trips_per_day": 2.75
+      },
+      "whole": {
+       "best_day_share": 0.1996,
+       "bps_per_day_of_capital": 2.6307,
+       "bps_per_trip": 10.183,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 1.2351,
+         "trips": 62
+        },
+        "0.2%": {
+         "pnl_gbp": 0.7349,
+         "trips": 13
+        },
+        "0.3%": {
+         "pnl_gbp": 0.2397,
+         "trips": 2
+        }
+       },
+       "by_side": {
+        "ask": 0.9669,
+        "bid": 1.2429
+       },
+       "days": 28.0,
+       "days_negative": 2,
+       "days_positive": 15,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.0789,
+       "pct_per_year": 9.6021,
+       "pnl_gbp": 2.2098,
+       "stop_pnl_gbp": -0.1286,
+       "stops": 1,
+       "trips": 77,
+       "trips_per_day": 2.75
+      }
+     }
+    }
+   },
+   "meta": {
+    "candle_grade": false,
+    "coin": "USDC",
+    "first_print_day": "2026-09-22",
+    "half_touch_bps": 0.67,
+    "lit_share": 0.7052,
+    "minutes_with_prints": 1241,
+    "peg_check_bps": {
+     "2026-09": {
+      "median": -2.26,
+      "n": 92,
+      "p10": -9.11,
+      "p90": 3.72
+     },
+     "2026-10": {
+      "median": -3.6,
+      "n": 836,
+      "p10": -14.26,
+      "p90": 7.94
+     }
+    },
+    "prints": 2329,
+    "quote": "GBP",
+    "t0": 1790640000000,
+    "taker_fee": 0.0009,
+    "tick": 0.0001,
+    "venue": "revx",
+    "volume_gbp_per_day": {
+     "last_28d": 65444.0
+    }
+   }
+  },
+  "revx:USDT-GBP": {
+   "arms": {
+    "at_price_50": {
+     "orders_per_day": 171.1,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.1509,
+       "bps_per_day_of_capital": 8.3699,
+       "bps_per_trip": 13.6523,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 3.3432,
+         "trips": 247
+        },
+        "0.2%": {
+         "pnl_gbp": 2.0298,
+         "trips": 45
+        },
+        "0.3%": {
+         "pnl_gbp": 1.6578,
+         "trips": 20
+        }
+       },
+       "by_side": {
+        "ask": 3.6779,
+        "bid": 3.3528
+       },
+       "days": 28.0,
+       "days_negative": 2,
+       "days_positive": 19,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.2511,
+       "pct_per_year": 30.5503,
+       "pnl_gbp": 7.0308,
+       "stop_pnl_gbp": -0.1836,
+       "stops": 2,
+       "trips": 312,
+       "trips_per_day": 11.1429
+      },
+      "whole": {
+       "best_day_share": 0.1509,
+       "bps_per_day_of_capital": 8.3699,
+       "bps_per_trip": 13.6523,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 3.3432,
+         "trips": 247
+        },
+        "0.2%": {
+         "pnl_gbp": 2.0298,
+         "trips": 45
+        },
+        "0.3%": {
+         "pnl_gbp": 1.6578,
+         "trips": 20
+        }
+       },
+       "by_side": {
+        "ask": 3.6779,
+        "bid": 3.3528
+       },
+       "days": 28.0,
+       "days_negative": 2,
+       "days_positive": 19,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.2511,
+       "pct_per_year": 30.5503,
+       "pnl_gbp": 7.0308,
+       "stop_pnl_gbp": -0.1836,
+       "stops": 2,
+       "trips": 312,
+       "trips_per_day": 11.1429
+      }
+     }
+    },
+    "stress_50": {
+     "orders_per_day": 158.9,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.2147,
+       "bps_per_day_of_capital": 5.204,
+       "bps_per_trip": 13.2879,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 2.1707,
+         "trips": 92
+        },
+        "0.2%": {
+         "pnl_gbp": 1.353,
+         "trips": 27
+        },
+        "0.3%": {
+         "pnl_gbp": 0.8477,
+         "trips": 11
+        }
+       },
+       "by_side": {
+        "ask": 2.5116,
+        "bid": 1.8597
+       },
+       "days": 28.0,
+       "days_negative": 2,
+       "days_positive": 18,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.1561,
+       "pct_per_year": 18.9945,
+       "pnl_gbp": 4.3713,
+       "stop_pnl_gbp": -0.1356,
+       "stops": 5,
+       "trips": 130,
+       "trips_per_day": 4.6429
+      },
+      "whole": {
+       "best_day_share": 0.2147,
+       "bps_per_day_of_capital": 5.204,
+       "bps_per_trip": 13.2879,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 2.1707,
+         "trips": 92
+        },
+        "0.2%": {
+         "pnl_gbp": 1.353,
+         "trips": 27
+        },
+        "0.3%": {
+         "pnl_gbp": 0.8477,
+         "trips": 11
+        }
+       },
+       "by_side": {
+        "ask": 2.5116,
+        "bid": 1.8597
+       },
+       "days": 28.0,
+       "days_negative": 2,
+       "days_positive": 18,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.1561,
+       "pct_per_year": 18.9945,
+       "pnl_gbp": 4.3713,
+       "stop_pnl_gbp": -0.1356,
+       "stops": 5,
+       "trips": 130,
+       "trips_per_day": 4.6429
+      }
+     }
+    },
+    "through_10": {
+     "orders_per_day": 161.3,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.1822,
+       "bps_per_day_of_capital": 8.0693,
+       "bps_per_trip": 13.5721,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 0.6671,
+         "trips": 130
+        },
+        "0.2%": {
+         "pnl_gbp": 0.4099,
+         "trips": 33
+        },
+        "0.3%": {
+         "pnl_gbp": 0.2786,
+         "trips": 14
+        }
+       },
+       "by_side": {
+        "ask": 0.8587,
+        "bid": 0.497
+       },
+       "days": 28.0,
+       "days_negative": 2,
+       "days_positive": 18,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.0484,
+       "pct_per_year": 29.453,
+       "pnl_gbp": 1.3556,
+       "stop_pnl_gbp": 0.0131,
+       "stops": 5,
+       "trips": 177,
+       "trips_per_day": 6.3214
+      },
+      "whole": {
+       "best_day_share": 0.1822,
+       "bps_per_day_of_capital": 8.0693,
+       "bps_per_trip": 13.5721,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 0.6671,
+         "trips": 130
+        },
+        "0.2%": {
+         "pnl_gbp": 0.4099,
+         "trips": 33
+        },
+        "0.3%": {
+         "pnl_gbp": 0.2786,
+         "trips": 14
+        }
+       },
+       "by_side": {
+        "ask": 0.8587,
+        "bid": 0.497
+       },
+       "days": 28.0,
+       "days_negative": 2,
+       "days_positive": 18,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.0484,
+       "pct_per_year": 29.453,
+       "pnl_gbp": 1.3556,
+       "stop_pnl_gbp": 0.0131,
+       "stops": 5,
+       "trips": 177,
+       "trips_per_day": 6.3214
+      }
+     }
+    },
+    "through_100": {
+     "orders_per_day": 161.3,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.1969,
+       "bps_per_day_of_capital": 5.4307,
+       "bps_per_trip": 12.8842,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 4.5048,
+         "trips": 130
+        },
+        "0.2%": {
+         "pnl_gbp": 2.6301,
+         "trips": 33
+        },
+        "0.3%": {
+         "pnl_gbp": 1.9887,
+         "trips": 14
+        }
+       },
+       "by_side": {
+        "ask": 5.0418,
+        "bid": 4.0818
+       },
+       "days": 28.0,
+       "days_negative": 2,
+       "days_positive": 18,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.3258,
+       "pct_per_year": 19.822,
+       "pnl_gbp": 9.1235,
+       "stop_pnl_gbp": 0.0013,
+       "stops": 5,
+       "trips": 177,
+       "trips_per_day": 6.3214
+      },
+      "whole": {
+       "best_day_share": 0.1969,
+       "bps_per_day_of_capital": 5.4307,
+       "bps_per_trip": 12.8842,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 4.5048,
+         "trips": 130
+        },
+        "0.2%": {
+         "pnl_gbp": 2.6301,
+         "trips": 33
+        },
+        "0.3%": {
+         "pnl_gbp": 1.9887,
+         "trips": 14
+        }
+       },
+       "by_side": {
+        "ask": 5.0418,
+        "bid": 4.0818
+       },
+       "days": 28.0,
+       "days_negative": 2,
+       "days_positive": 18,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.3258,
+       "pct_per_year": 19.822,
+       "pnl_gbp": 9.1235,
+       "stop_pnl_gbp": 0.0013,
+       "stops": 5,
+       "trips": 177,
+       "trips_per_day": 6.3214
+      }
+     }
+    },
+    "through_1000": {
+     "orders_per_day": 161.3,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.2371,
+       "bps_per_day_of_capital": 2.5355,
+       "bps_per_trip": 12.9521,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 19.8608,
+         "trips": 130
+        },
+        "0.2%": {
+         "pnl_gbp": 11.7968,
+         "trips": 33
+        },
+        "0.3%": {
+         "pnl_gbp": 10.9381,
+         "trips": 14
+        }
+       },
+       "by_side": {
+        "ask": 21.0457,
+        "bid": 21.5501
+       },
+       "days": 28.0,
+       "days_negative": 2,
+       "days_positive": 18,
+       "from": "2026-09-29",
+       "gbp_per_day": 1.5213,
+       "pct_per_year": 9.2544,
+       "pnl_gbp": 42.5958,
+       "stop_pnl_gbp": -0.0905,
+       "stops": 5,
+       "trips": 177,
+       "trips_per_day": 6.3214
+      },
+      "whole": {
+       "best_day_share": 0.2371,
+       "bps_per_day_of_capital": 2.5355,
+       "bps_per_trip": 12.9521,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 19.8608,
+         "trips": 130
+        },
+        "0.2%": {
+         "pnl_gbp": 11.7968,
+         "trips": 33
+        },
+        "0.3%": {
+         "pnl_gbp": 10.9381,
+         "trips": 14
+        }
+       },
+       "by_side": {
+        "ask": 21.0457,
+        "bid": 21.5501
+       },
+       "days": 28.0,
+       "days_negative": 2,
+       "days_positive": 18,
+       "from": "2026-09-29",
+       "gbp_per_day": 1.5213,
+       "pct_per_year": 9.2544,
+       "pnl_gbp": 42.5958,
+       "stop_pnl_gbp": -0.0905,
+       "stops": 5,
+       "trips": 177,
+       "trips_per_day": 6.3214
+      }
+     }
+    },
+    "through_300": {
+     "orders_per_day": 161.3,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.2175,
+       "bps_per_day_of_capital": 4.1927,
+       "bps_per_trip": 13.0816,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 10.5397,
+         "trips": 130
+        },
+        "0.2%": {
+         "pnl_gbp": 5.7649,
+         "trips": 33
+        },
+        "0.3%": {
+         "pnl_gbp": 4.8265,
+         "trips": 14
+        }
+       },
+       "by_side": {
+        "ask": 11.2544,
+        "bid": 9.8766
+       },
+       "days": 28.0,
+       "days_negative": 2,
+       "days_positive": 18,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.7547,
+       "pct_per_year": 15.3033,
+       "pnl_gbp": 21.1311,
+       "stop_pnl_gbp": -0.0905,
+       "stops": 5,
+       "trips": 177,
+       "trips_per_day": 6.3214
+      },
+      "whole": {
+       "best_day_share": 0.2175,
+       "bps_per_day_of_capital": 4.1927,
+       "bps_per_trip": 13.0816,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 10.5397,
+         "trips": 130
+        },
+        "0.2%": {
+         "pnl_gbp": 5.7649,
+         "trips": 33
+        },
+        "0.3%": {
+         "pnl_gbp": 4.8265,
+         "trips": 14
+        }
+       },
+       "by_side": {
+        "ask": 11.2544,
+        "bid": 9.8766
+       },
+       "days": 28.0,
+       "days_negative": 2,
+       "days_positive": 18,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.7547,
+       "pct_per_year": 15.3033,
+       "pnl_gbp": 21.1311,
+       "stop_pnl_gbp": -0.0905,
+       "stops": 5,
+       "trips": 177,
+       "trips_per_day": 6.3214
+      }
+     }
+    },
+    "through_50": {
+     "bootstrap_last_28d": {
+      "days": 28,
+      "p05_gbp_per_day": 0.1057,
+      "p95_gbp_per_day": 0.2751,
+      "share_draws_gt_0": 1.0,
+      "sum_gbp": 5.2983
+     },
+     "bootstrap_whole": {
+      "days": 28,
+      "p05_gbp_per_day": 0.1057,
+      "p95_gbp_per_day": 0.2751,
+      "share_draws_gt_0": 1.0,
+      "sum_gbp": 5.2983
+     },
+     "by_month": {
+      "2026-09": 0.2726,
+      "2026-10": 5.0257
+     },
+     "orders_per_day": 161.3,
+     "windows": {
+      "last_28d": {
+       "best_day_share": 0.1872,
+       "bps_per_day_of_capital": 6.3076,
+       "bps_per_trip": 13.1525,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 2.6432,
+         "trips": 130
+        },
+        "0.2%": {
+         "pnl_gbp": 1.5288,
+         "trips": 33
+        },
+        "0.3%": {
+         "pnl_gbp": 1.1264,
+         "trips": 14
+        }
+       },
+       "by_side": {
+        "ask": 3.0163,
+        "bid": 2.2821
+       },
+       "days": 28.0,
+       "days_negative": 2,
+       "days_positive": 18,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.1892,
+       "pct_per_year": 23.0226,
+       "pnl_gbp": 5.2983,
+       "stop_pnl_gbp": 0.0598,
+       "stops": 5,
+       "trips": 177,
+       "trips_per_day": 6.3214
+      },
+      "whole": {
+       "best_day_share": 0.1872,
+       "bps_per_day_of_capital": 6.3076,
+       "bps_per_trip": 13.1525,
+       "by_k": {
+        "0.1%": {
+         "pnl_gbp": 2.6432,
+         "trips": 130
+        },
+        "0.2%": {
+         "pnl_gbp": 1.5288,
+         "trips": 33
+        },
+        "0.3%": {
+         "pnl_gbp": 1.1264,
+         "trips": 14
+        }
+       },
+       "by_side": {
+        "ask": 3.0163,
+        "bid": 2.2821
+       },
+       "days": 28.0,
+       "days_negative": 2,
+       "days_positive": 18,
+       "from": "2026-09-29",
+       "gbp_per_day": 0.1892,
+       "pct_per_year": 23.0226,
+       "pnl_gbp": 5.2983,
+       "stop_pnl_gbp": 0.0598,
+       "stops": 5,
+       "trips": 177,
+       "trips_per_day": 6.3214
+      }
+     }
+    }
+   },
+   "meta": {
+    "candle_grade": false,
+    "coin": "USDT",
+    "first_print_day": "2026-09-22",
+    "half_touch_bps": 0.67,
+    "lit_share": 0.7052,
+    "minutes_with_prints": 7609,
+    "peg_check_bps": {
+     "2026-09": {
+      "median": 1.38,
+      "n": 228,
+      "p10": -9.54,
+      "p90": 8.39
+     },
+     "2026-10": {
+      "median": 1.07,
+      "n": 4942,
+      "p10": -11.98,
+      "p90": 14.37
+     }
+    },
+    "prints": 13207,
+    "quote": "GBP",
+    "t0": 1790640000000,
+    "taker_fee": 0.0009,
+    "tick": 0.0001,
+    "venue": "revx",
+    "volume_gbp_per_day": {
+     "last_28d": 88330.0
+    }
+   }
+  }
+ },
+ "end": "2026-10-27",
+ "windows": {
+  "12m": "2025-10-27",
+  "last_28d": "2026-09-29",
+  "since_08-24": "2026-08-24",
+  "since_tgbp": "2026-04-23"
+ }
+}

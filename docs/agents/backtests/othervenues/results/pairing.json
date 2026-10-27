@@ -1,0 +1,35 @@
+{
+ "corr_with_eurc_daily": {
+  "bitstamp:usdceur (\u00a3100)": 0.066,
+  "coinbase:USDC-EUR (\u00a3100)": 0.277,
+  "coinbase:USDC-GBP (\u00a3100)": -0.016,
+  "coinbase:USDT-EUR (\u00a3100)": 0.116,
+  "coinbase:USDT-GBP (\u00a3100)": 0.125,
+  "okx:USDG-EUR (\u00a3100)": 0.006,
+  "revx PR5 USDC+USDT-GBP (\u00a3100)": 0.094
+ },
+ "corr_with_eurc_weekly": {
+  "bitstamp:usdceur (\u00a3100)": 0.215,
+  "coinbase:USDC-EUR (\u00a3100)": 0.129,
+  "coinbase:USDC-GBP (\u00a3100)": 0.029,
+  "coinbase:USDT-EUR (\u00a3100)": 0.111,
+  "coinbase:USDT-GBP (\u00a3100)": 0.199,
+  "okx:USDG-EUR (\u00a3100)": -0.1,
+  "revx PR5 USDC+USDT-GBP (\u00a3100)": -0.056
+ },
+ "days": [
+  "2025-11-26",
+  "2026-10-08",
+  317
+ ],
+ "rate_bps_of_capital_a_day": {
+  "bitstamp:usdceur (\u00a3100)": 2.291,
+  "coinbase:EURC-USDC (\u00a350)": 2.043,
+  "coinbase:USDC-EUR (\u00a3100)": 1.213,
+  "coinbase:USDC-GBP (\u00a3100)": 1.43,
+  "coinbase:USDT-EUR (\u00a3100)": 1.075,
+  "coinbase:USDT-GBP (\u00a3100)": 4.388,
+  "okx:USDG-EUR (\u00a3100)": 3.964,
+  "revx PR5 USDC+USDT-GBP (\u00a3100)": 17.68
+ }
+}

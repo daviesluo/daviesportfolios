@@ -46872,3 +46872,25 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   instant and at its neutral setting the executor equals the frozen one turn by turn (four new six-hour pins). Deviations in the
   six pre-registrations pinning `quotes_twin.ts`. After deploy: 0148 applied, the three rows' first turn after 10-29 00:00 with
   conversions £199.98 USDT / £99.99 USDC (variant-4) and £150 each (-5, -6). The 10-27 03:40 section archived.
+
+## LEDGER.md, archived 2026-10-27 (sixth) — the 2026-10-27 04:50 and 04:55 UTC history sections, oldest first
+
+### [2026-10-27 04:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **PR5-OPT's twins start now, plus USDT 3:1 and USDT alone (`0149`)** (sub-agent; not pushed; Davies, 10-27: "为啥要等到29？现在就开始…
+  再在实盘rules的基础上开variant-7和8"; frozen `reviews/2026-10-27-pr5-opt-twins-now-prereg.md`, 0148's prereg deviation 1). 0148's
+  rows are off (their replicas wait for 10-29). Variant-4 to -8 (USDT last, Davies: "…usdt比例大的放一起"): `o600no03`, `o600hold1`,
+  `o600usdt2` 2:1, `o600usdt3` 3:1, `o600usdt` USDT-GBP alone; from 10-27 06:00 to 11-24 06:00, same bar. `runQuotesConvert` answers a weighted book with no pounds "already holds" (LIVE
+  unreachable; six-hour pins equal). Twelve twins: the call works a p90 of 8–14 s after :38, so `pr5`/`p50`/`d` stay to 10-28.
+  After deploy: conversions £199.98/£99.99, £150/£150 twice, £225/£75, £300 USDT and one USDC "already holds". The 03:45 and 03:50
+  sections archived.
+
+### [2026-10-27 04:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **PMSAMEBET: same-bet stat-arb across Polymarket events, and Kalshi as a clock** (sub-agent; not pushed; Davies, 10-27:
+  "…本质同一赌注的不同问题/市场中的价差来做stat arb…"; `reviews/2026-10-27-pm-same-bet-statarb.md`, reference §3.53,
+  `backtests/pmsamebet/`; keyless reads only, nothing placed or built).
+  - New ground: 1,232 cross-event relations. Clean gaps at the asks: 123 relations, $17,840 of capacity for $125.70, almost
+    all midterm seats. $300 locks $12.21 once.
+  - Tape, no hindsight: $18.08 in 14 days at up to $100 a signal. Kalshi leads nothing at the minute.
+  - Every wide gap is a clause (Manchester City's expulsion). Verdict: nothing to run; SAMEBET-REC is specified, not
+    recommended.
+  - Ledger: the 01:00 UTC section is archived.

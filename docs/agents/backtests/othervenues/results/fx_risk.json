@@ -1,0 +1,12 @@
+{
+ "from": "2025-10-27",
+ "note": "the edge in the same unit is in ov.json (bps_per_day_of_capital): EURC-USDC 2.24 over 12 months at \u00a350",
+ "sd_bps_of_capital_a_day": {
+  "EUR alone": 20.01,
+  "EURC-USDC held from GBP (half EUR, half USD)": 25.38,
+  "GBP book (half in USD coins)": 19.21,
+  "USD alone": 38.42
+ },
+ "to": "2026-10-26",
+ "weekdays": 259
+}

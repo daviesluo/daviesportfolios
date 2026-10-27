@@ -3503,6 +3503,36 @@ Read 2026-10-27 (`reviews/2026-10-27-per-book-returns.md`, `backtests/pr5_opt/sc
 - **Verdict.** Revolut X USDT-heavy dominates at £600; variant-6 to -8 price the issuer hedge. No two-venue twin: read
   variant-8 with Coinbase's USDC record offline. Revisit a second venue past about £1,200 on Revolut X.
 
+### 3.55 OTHERVENUES: other coins and venues for PR5's rule — OKX Europe's two small books, and nothing else new (2026-10-27)
+
+Read 2026-10-27 (`reviews/2026-10-27-other-coins-venues.md`, `backtests/othervenues/`, not blind), on Davies'
+"研究下还有别的币和别的币所可以做类似策略吗？". Keyless reads, plus two SELECTs of stored FX minutes. Nothing opened, placed
+or changed.
+- **The screen.** Twelve venues' instrument lists were read, then the candidate books' touch and volume. It adds to
+  SCQ-VENUES (`reviews/2026-10-09-stablecoin-venues.md`):
+  - Revolut X UK has only USDC and USDT against GBP and USD;
+  - Kraken's EURC, TGBP, EUROP, EURQ, EURR, RLUSD and USDS books pay 0.20 % maker;
+  - Bitfinex is 0 % but closed to UK individuals;
+  - Crypto.com's EUR_USDT has a 0.09 bps touch;
+  - Gemini's GUSD/GBP trades £176 a day;
+  - the only GBP stablecoin with a book is tGBP (Coinbase TGBP-USDC since 2026-04-22, Kraken TGBP/USD).
+- **PR5's frozen simulator at £50 a rung, through fills, windows to 10-27 00:00 UTC** (% a year on £300):
+  - OKX EEA USDG-EUR: 73.4 % over the last 28 days (464 trips, 0 stops), 104 % since 08-24, 31.9 % since its listing.
+    It is one-sided: prints sit +5 to +8 bps over fair; asks £57.73 of £64.41. It saturates: 3.2 % at £1,000.
+  - OKX EURC-USDC (listed 2026-09-21): 36.8 % over 28 days. Its tick is 0.001 (about 9 bps). At-price fills give 77 %,
+    stress 16 %.
+  - Coinbase EURC-USDC: 8.2 % over 12 months (711 trips), −0.6 % over 28 days. It scales flat (7.8 % at £1,000) and
+    correlates 0.09 with PR5. Its inventory sits wholly in EUR and USD: 25.4 bps a day sd against a 2.24 bps edge.
+  - Coinbase TGBP-USDC −0.5 %; Bitstamp EURCV/USDC −0.0 % (250 traded minutes in a year).
+  - The same 28 days: Revolut X USDT-GBP 23.0 %, USDC-GBP 9.6 %; Coinbase USDC-GBP 25.3 %, USDT-GBP 0.7 %.
+- **Verdict.** OKX Europe, as an Irish resident with a spot-only account, is the one new venue worth it: about £0.9 a
+  day on £600 at £50 a rung. It needs a recorder and a 28-day paper twin first (review §4 R1, bar not frozen).
+  Coinbase EURC-USDC is a low-priority fifth Coinbase book (R2). The rest are dead.
+- **Unconfirmed.**
+  - EURC-USDC's listing and 0 % on OKX Europe;
+  - EURC's UK access on Coinbase;
+  - Bitstamp's and Crypto.com's stable-pair fees.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

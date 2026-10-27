@@ -1,0 +1,1249 @@
+{
+ "read_at_utc": "2026-10-27T05:04:09Z",
+ "venues": {
+  "bitfinex": {
+   "books": [
+    {
+     "id": "EURQ:EUR"
+    },
+    {
+     "id": "EURQ:USD"
+    },
+    {
+     "id": "EURQ:UST"
+    },
+    {
+     "id": "EURR:EUR"
+    },
+    {
+     "id": "EURR:USD"
+    },
+    {
+     "id": "EURR:UST"
+    },
+    {
+     "id": "EURUST"
+    },
+    {
+     "id": "GBPUST"
+    },
+    {
+     "id": "UDCUSD"
+    },
+    {
+     "id": "UDCUST"
+    },
+    {
+     "id": "USDQ:USD"
+    },
+    {
+     "id": "USDQ:UST"
+    },
+    {
+     "id": "USDR:USD"
+    },
+    {
+     "id": "USDR:UST"
+    },
+    {
+     "id": "USTUSD"
+    }
+   ],
+   "bytes": 2105,
+   "sha256": "d678691d5a383efef4aa661f88de35f273970974748c6adeea4c6efb561170d4",
+   "url": "https://api-pub.bitfinex.com/v2/conf/pub:list:pair:exchange"
+  },
+  "bitpanda": {
+   "books": [
+    {
+     "id": "EURC",
+     "quotes": [
+      "EUR",
+      "GBP",
+      "USD"
+     ]
+    },
+    {
+     "id": "EURCV",
+     "quotes": [
+      "EUR",
+      "GBP",
+      "USD"
+     ]
+    },
+    {
+     "id": "EUROC",
+     "quotes": [
+      "EUR",
+      "GBP",
+      "USD"
+     ]
+    },
+    {
+     "id": "EUROP",
+     "quotes": [
+      "EUR",
+      "GBP",
+      "USD"
+     ]
+    },
+    {
+     "id": "FRAX",
+     "quotes": [
+      "EUR",
+      "GBP",
+      "USD"
+     ]
+    },
+    {
+     "id": "RLUSD",
+     "quotes": [
+      "EUR",
+      "GBP",
+      "USD"
+     ]
+    },
+    {
+     "id": "TGBP",
+     "quotes": [
+      "EUR",
+      "GBP",
+      "USD"
+     ]
+    },
+    {
+     "id": "USDC",
+     "quotes": [
+      "EUR",
+      "GBP",
+      "USD"
+     ]
+    },
+    {
+     "id": "USDCV",
+     "quotes": [
+      "EUR",
+      "GBP",
+      "USD"
+     ]
+    },
+    {
+     "id": "USDG",
+     "quotes": [
+      "EUR",
+      "GBP",
+      "USD"
+     ]
+    },
+    {
+     "id": "USDQ",
+     "quotes": [
+      "EUR",
+      "GBP",
+      "USD"
+     ]
+    },
+    {
+     "id": "USDT",
+     "quotes": [
+      "EUR",
+      "GBP",
+      "USD"
+     ]
+    }
+   ],
+   "bytes": 171459,
+   "sha256": "d86f9b70663ae02281d0990c6141bec852b34da0441064531d9445bbb701228b",
+   "url": "https://api.bitpanda.com/v1/ticker"
+  },
+  "bitstamp": {
+   "books": [
+    {
+     "counter_decimals": 4,
+     "id": "eurceur",
+     "instant_and_market_orders": "Disabled",
+     "min_order": "10.0000 EUR",
+     "name": "EURC/EUR",
+     "trading": "Enabled"
+    },
+    {
+     "counter_decimals": 4,
+     "id": "eurcusdc",
+     "instant_and_market_orders": "Enabled",
+     "min_order": "10.0000 USDC",
+     "name": "EURC/USDC",
+     "trading": "Enabled"
+    },
+    {
+     "counter_decimals": 4,
+     "id": "eurcveur",
+     "instant_and_market_orders": "Enabled",
+     "min_order": "10.0000 EUR",
+     "name": "EURCV/EUR",
+     "trading": "Enabled"
+    },
+    {
+     "counter_decimals": 4,
+     "id": "eurcvusdc",
+     "instant_and_market_orders": "Enabled",
+     "min_order": "10.0000 USDC",
+     "name": "EURCV/USDC",
+     "trading": "Enabled"
+    },
+    {
+     "counter_decimals": 4,
+     "id": "eurcvusdt",
+     "instant_and_market_orders": "Enabled",
+     "min_order": "10.0000 USDT",
+     "name": "EURCV/USDT",
+     "trading": "Enabled"
+    },
+    {
+     "counter_decimals": 4,
+     "id": "pyusdusd",
+     "instant_and_market_orders": "Disabled",
+     "min_order": "10.0000 USD",
+     "name": "PYUSD/USD",
+     "trading": "Enabled"
+    },
+    {
+     "counter_decimals": 5,
+     "id": "rlusdeur",
+     "instant_and_market_orders": "Enabled",
+     "min_order": "10.00000 EUR",
+     "name": "RLUSD/EUR",
+     "trading": "Enabled"
+    },
+    {
+     "counter_decimals": 5,
+     "id": "rlusdusd",
+     "instant_and_market_orders": "Enabled",
+     "min_order": "10.00000 USD",
+     "name": "RLUSD/USD",
+     "trading": "Enabled"
+    },
+    {
+     "counter_decimals": 5,
+     "id": "rlusdusdt",
+     "instant_and_market_orders": "Enabled",
+     "min_order": "10.00000 USDT",
+     "name": "RLUSD/USDT",
+     "trading": "Enabled"
+    },
+    {
+     "counter_decimals": 5,
+     "id": "usdceur",
+     "instant_and_market_orders": "Enabled",
+     "min_order": "10.00000 EUR",
+     "name": "USDC/EUR",
+     "trading": "Enabled"
+    },
+    {
+     "counter_decimals": 5,
+     "id": "usdcusd",
+     "instant_and_market_orders": "Enabled",
+     "min_order": "10.00000 USD",
+     "name": "USDC/USD",
+     "trading": "Enabled"
+    },
+    {
+     "counter_decimals": 5,
+     "id": "usdcusdt",
+     "instant_and_market_orders": "Disabled",
+     "min_order": "10.00000 USDT",
+     "name": "USDC/USDT",
+     "trading": "Enabled"
+    },
+    {
+     "counter_decimals": 5,
+     "id": "usdgusd",
+     "instant_and_market_orders": "Enabled",
+     "min_order": "10.00000 USD",
+     "name": "USDG/USD",
+     "trading": "Enabled"
+    },
+    {
+     "counter_decimals": 5,
+     "id": "usdteur",
+     "instant_and_market_orders": "Enabled",
+     "min_order": "10.00000 EUR",
+     "name": "USDT/EUR",
+     "trading": "Enabled"
+    },
+    {
+     "counter_decimals": 5,
+     "id": "usdtusd",
+     "instant_and_market_orders": "Enabled",
+     "min_order": "10.00000 USD",
+     "name": "USDT/USD",
+     "trading": "Enabled"
+    },
+    {
+     "counter_decimals": 5,
+     "id": "xsgdusd",
+     "instant_and_market_orders": "Disabled",
+     "min_order": "10.00000 USD",
+     "name": "XSGD/USD",
+     "trading": "Enabled"
+    },
+    {
+     "counter_decimals": 5,
+     "id": "xsgdusdt",
+     "instant_and_market_orders": "Disabled",
+     "min_order": "10.00000 USDT",
+     "name": "XSGD/USDT",
+     "trading": "Enabled"
+    }
+   ],
+   "bytes": 66578,
+   "sha256": "da1117ab86d98d29a76cf9bd1cb20b22f2f1459eb23bc69729bedfe69c6de9d8",
+   "url": "https://www.bitstamp.net/api/v2/trading-pairs-info/"
+  },
+  "bitvavo": {
+   "books": [
+    {
+     "id": "EURC-EUR",
+     "status": "trading"
+    },
+    {
+     "id": "EURC-USDC",
+     "status": "trading"
+    },
+    {
+     "id": "EURCV-EUR",
+     "status": "trading"
+    },
+    {
+     "id": "EUROP-EUR",
+     "status": "trading"
+    },
+    {
+     "id": "FRAX-EUR",
+     "status": "trading"
+    },
+    {
+     "id": "USDC-EUR",
+     "status": "trading"
+    },
+    {
+     "id": "USDCV-EUR",
+     "status": "trading"
+    },
+    {
+     "id": "USDCV-USDC",
+     "status": "trading"
+    }
+   ],
+   "bytes": 188581,
+   "sha256": "9c5ada473c039eba29e125ca1ef3ef6d934f5709c949344f40816df7fe817ab7",
+   "url": "https://api.bitvavo.com/v2/markets"
+  },
+  "coinbase": {
+   "books": [
+    {
+     "fx_stablecoin": true,
+     "id": "DAI-USD",
+     "limit_only": false,
+     "min_funds": "1",
+     "post_only": false,
+     "status": "delisted",
+     "tick": "0.0001",
+     "trading_disabled": true
+    },
+    {
+     "fx_stablecoin": true,
+     "id": "DAI-USDC",
+     "limit_only": false,
+     "min_funds": "1",
+     "post_only": false,
+     "status": "delisted",
+     "tick": "0.0001",
+     "trading_disabled": true
+    },
+    {
+     "fx_stablecoin": true,
+     "id": "EURC-EUR",
+     "limit_only": false,
+     "min_funds": "1",
+     "post_only": false,
+     "status": "delisted",
+     "tick": "0.001",
+     "trading_disabled": true
+    },
+    {
+     "fx_stablecoin": true,
+     "id": "EURC-USD",
+     "limit_only": false,
+     "min_funds": "1",
+     "post_only": false,
+     "status": "delisted",
+     "tick": "0.001",
+     "trading_disabled": true
+    },
+    {
+     "fx_stablecoin": true,
+     "id": "EURC-USDC",
+     "limit_only": true,
+     "min_funds": "1",
+     "post_only": false,
+     "status": "online",
+     "tick": "0.0001",
+     "trading_disabled": false
+    },
+    {
+     "fx_stablecoin": true,
+     "id": "GUSD-USD",
+     "limit_only": false,
+     "min_funds": "1",
+     "post_only": false,
+     "status": "delisted",
+     "tick": "0.001",
+     "trading_disabled": true
+    },
+    {
+     "fx_stablecoin": true,
+     "id": "PAX-USD",
+     "limit_only": true,
+     "min_funds": "1",
+     "post_only": false,
+     "status": "online",
+     "tick": "0.0001",
+     "trading_disabled": false
+    },
+    {
+     "fx_stablecoin": true,
+     "id": "PAX-USDT",
+     "limit_only": false,
+     "min_funds": "1",
+     "post_only": false,
+     "status": "delisted",
+     "tick": "0.0001",
+     "trading_disabled": true
+    },
+    {
+     "fx_stablecoin": true,
+     "id": "PYUSD-USD",
+     "limit_only": false,
+     "min_funds": "1",
+     "post_only": false,
+     "status": "delisted",
+     "tick": "0.00001",
+     "trading_disabled": true
+    },
+    {
+     "fx_stablecoin": true,
+     "id": "TGBP-USDC",
+     "limit_only": true,
+     "min_funds": "1",
+     "post_only": false,
+     "status": "online",
+     "tick": "0.0001",
+     "trading_disabled": false
+    },
+    {
+     "fx_stablecoin": true,
+     "id": "USD1-USD",
+     "limit_only": true,
+     "min_funds": "1",
+     "post_only": false,
+     "status": "online",
+     "tick": "0.0001",
+     "trading_disabled": false
+    },
+    {
+     "fx_stablecoin": true,
+     "id": "USDC-EUR",
+     "limit_only": false,
+     "min_funds": "0.84",
+     "post_only": false,
+     "status": "online",
+     "tick": "0.0001",
+     "trading_disabled": false
+    },
+    {
+     "fx_stablecoin": true,
+     "id": "USDC-GBP",
+     "limit_only": false,
+     "min_funds": "0.72",
+     "post_only": false,
+     "status": "online",
+     "tick": "0.0001",
+     "trading_disabled": false
+    },
+    {
+     "fx_stablecoin": true,
+     "id": "USDS-USD",
+     "limit_only": true,
+     "min_funds": "1",
+     "post_only": false,
+     "status": "online",
+     "tick": "0.0001",
+     "trading_disabled": false
+    },
+    {
+     "fx_stablecoin": true,
+     "id": "USDT-EUR",
+     "limit_only": false,
+     "min_funds": "0.84",
+     "post_only": false,
+     "status": "online",
+     "tick": "0.00001",
+     "trading_disabled": false
+    },
+    {
+     "fx_stablecoin": true,
+     "id": "USDT-GBP",
+     "limit_only": false,
+     "min_funds": "0.72",
+     "post_only": false,
+     "status": "online",
+     "tick": "0.0001",
+     "trading_disabled": false
+    },
+    {
+     "fx_stablecoin": false,
+     "id": "USDT-USD",
+     "limit_only": false,
+     "min_funds": "1",
+     "post_only": false,
+     "status": "online",
+     "tick": "0.00001",
+     "trading_disabled": false
+    },
+    {
+     "fx_stablecoin": false,
+     "id": "USDT-USDC",
+     "limit_only": true,
+     "min_funds": "1",
+     "post_only": false,
+     "status": "online",
+     "tick": "0.0001",
+     "trading_disabled": false
+    },
+    {
+     "fx_stablecoin": true,
+     "id": "UST-EUR",
+     "limit_only": false,
+     "min_funds": "0.84",
+     "post_only": false,
+     "status": "delisted",
+     "tick": "0.00001",
+     "trading_disabled": true
+    },
+    {
+     "fx_stablecoin": true,
+     "id": "UST-USD",
+     "limit_only": false,
+     "min_funds": "1",
+     "post_only": false,
+     "status": "delisted",
+     "tick": "0.00001",
+     "trading_disabled": true
+    },
+    {
+     "fx_stablecoin": true,
+     "id": "UST-USDT",
+     "limit_only": false,
+     "min_funds": "1",
+     "post_only": false,
+     "status": "delisted",
+     "tick": "0.00001",
+     "trading_disabled": true
+    },
+    {
+     "fx_stablecoin": true,
+     "id": "XSGD-USDC",
+     "limit_only": true,
+     "min_funds": "1",
+     "post_only": false,
+     "status": "online",
+     "tick": "0.0001",
+     "trading_disabled": false
+    }
+   ],
+   "bytes": 355898,
+   "sha256": "16e508d8788c0d127d46852ccf47a27c9965e6c98f2c864cdf379263a13d94a7",
+   "url": "https://api.exchange.coinbase.com/products"
+  },
+  "cryptocom": {
+   "books": [
+    {
+     "id": "EURC_USD",
+     "tradable": true
+    },
+    {
+     "id": "EUR_USDT",
+     "tradable": true
+    },
+    {
+     "id": "FRAX_USD",
+     "tradable": true
+    },
+    {
+     "id": "PYUSD_USD",
+     "tradable": true
+    },
+    {
+     "id": "PYUSD_USDT",
+     "tradable": true
+    },
+    {
+     "id": "USD1_USD",
+     "tradable": true
+    },
+    {
+     "id": "USDG_USD",
+     "tradable": true
+    },
+    {
+     "id": "USDS_USD",
+     "tradable": true
+    },
+    {
+     "id": "USDT_USD",
+     "tradable": true
+    }
+   ],
+   "bytes": 549568,
+   "sha256": "b3146d6d052fe0f6dc1a1f8bc30990e559d119b202c192a1a7cbcb6345188181",
+   "url": "https://api.crypto.com/exchange/v1/public/get-instruments"
+  },
+  "gemini": {
+   "books": [
+    {
+     "id": "daigusd"
+    },
+    {
+     "id": "dairlusd"
+    },
+    {
+     "id": "daiusd"
+    },
+    {
+     "id": "daiusdc"
+    },
+    {
+     "id": "eurusdc"
+    },
+    {
+     "id": "gusdgbp"
+    },
+    {
+     "id": "gusdusd"
+    },
+    {
+     "id": "paxgusd"
+    },
+    {
+     "id": "rlusdgusd"
+    },
+    {
+     "id": "rlusdusd"
+    },
+    {
+     "id": "rlusdusdc"
+    },
+    {
+     "id": "usd1usd"
+    },
+    {
+     "id": "usdcusd"
+    },
+    {
+     "id": "usdggusd"
+    },
+    {
+     "id": "usdgrlusd"
+    },
+    {
+     "id": "usdgusd"
+    },
+    {
+     "id": "usdgusdc"
+    },
+    {
+     "id": "usdtgusd"
+    },
+    {
+     "id": "usdtrlusd"
+    },
+    {
+     "id": "usdtusd"
+    },
+    {
+     "id": "usdtusdc"
+    }
+   ],
+   "bytes": 3730,
+   "sha256": "e5b0681e774be3115e77801936b5a6455fbd54d793de275418b9b47f3effe1e3",
+   "url": "https://api.gemini.com/v1/symbols"
+  },
+  "kraken": {
+   "books": [
+    {
+     "altname": "DAIEUR",
+     "id": "DAI/EUR",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "5",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.00001"
+    },
+    {
+     "altname": "DAIUSD",
+     "id": "DAI/USD",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "5",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.00001"
+    },
+    {
+     "altname": "DAIUSDT",
+     "id": "DAI/USDT",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "5",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.00001"
+    },
+    {
+     "altname": "EURCEUR",
+     "id": "EURC/EUR",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "4",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.0001"
+    },
+    {
+     "altname": "EURCUSD",
+     "id": "EURC/USD",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "4",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.00001"
+    },
+    {
+     "altname": "EURCUSDC",
+     "id": "EURC/USDC",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "4",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.00001"
+    },
+    {
+     "altname": "EUROPEUR",
+     "id": "EUROP/EUR",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "4",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.0001"
+    },
+    {
+     "altname": "EUROPUSD",
+     "id": "EUROP/USD",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "4",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.0001"
+    },
+    {
+     "altname": "EUROPUSDC",
+     "id": "EUROP/USDC",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "4",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.0001"
+    },
+    {
+     "altname": "EURQEUR",
+     "id": "EURQ/EUR",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "4",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.0001"
+    },
+    {
+     "altname": "EURQUSD",
+     "id": "EURQ/USD",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "4",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.0001"
+    },
+    {
+     "altname": "EURREUR",
+     "id": "EURR/EUR",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "4",
+     "status": "post_only",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.0001"
+    },
+    {
+     "altname": "EURRUSD",
+     "id": "EURR/USD",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "4",
+     "status": "post_only",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.0001"
+    },
+    {
+     "altname": "EURRUSDC",
+     "id": "EURR/USDC",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "4",
+     "status": "post_only",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.0001"
+    },
+    {
+     "altname": "EURRUSDT",
+     "id": "EURR/USDT",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "4",
+     "status": "post_only",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.0001"
+    },
+    {
+     "altname": "PYUSDUSD",
+     "id": "PYUSD/USD",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "5",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.0001"
+    },
+    {
+     "altname": "RLUSDEUR",
+     "id": "RLUSD/EUR",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "5",
+     "status": "post_only",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.00001"
+    },
+    {
+     "altname": "RLUSDUSD",
+     "id": "RLUSD/USD",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "5",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.00001"
+    },
+    {
+     "altname": "RLUSDUSDC",
+     "id": "RLUSD/USDC",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "5",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.00001"
+    },
+    {
+     "altname": "RLUSDUSDT",
+     "id": "RLUSD/USDT",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "5",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.00001"
+    },
+    {
+     "altname": "TGBPUSD",
+     "id": "TGBP/USD",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "4",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.00001"
+    },
+    {
+     "altname": "USD1USD",
+     "id": "USD1/USD",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "5",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.0001"
+    },
+    {
+     "altname": "USD1USDC",
+     "id": "USD1/USDC",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "5",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.0001"
+    },
+    {
+     "altname": "USDCEUR",
+     "id": "USDC/EUR",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "5",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.0001"
+    },
+    {
+     "altname": "USDCGBP",
+     "id": "USDC/GBP",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "5",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.0001"
+    },
+    {
+     "altname": "USDCUSD",
+     "id": "USDC/USD",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "5",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.0001"
+    },
+    {
+     "altname": "USDCUSDT",
+     "id": "USDC/USDT",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "5",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.0001"
+    },
+    {
+     "altname": "USDEEUR",
+     "id": "USDE/EUR",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "5",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.0001"
+    },
+    {
+     "altname": "USDEUSD",
+     "id": "USDE/USD",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "5",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.0001"
+    },
+    {
+     "altname": "USDEUSDC",
+     "id": "USDE/USDC",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "5",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.0001"
+    },
+    {
+     "altname": "USDEUSDT",
+     "id": "USDE/USDT",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "5",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.0001"
+    },
+    {
+     "altname": "USDGUSD",
+     "id": "USDG/USD",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "5",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.0001"
+    },
+    {
+     "altname": "USDGUSDC",
+     "id": "USDG/USDC",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "5",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.0001"
+    },
+    {
+     "altname": "USDGUSDT",
+     "id": "USDG/USDT",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "5",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.0001"
+    },
+    {
+     "altname": "USDQUSD",
+     "id": "USDQ/USD",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "5",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.0001"
+    },
+    {
+     "altname": "USDQUSDC",
+     "id": "USDQ/USDC",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "5",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.0001"
+    },
+    {
+     "altname": "USDQUSDT",
+     "id": "USDQ/USDT",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "5",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.0001"
+    },
+    {
+     "altname": "USDREUR",
+     "id": "USDR/EUR",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "5",
+     "status": "post_only",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.0001"
+    },
+    {
+     "altname": "USDRUSD",
+     "id": "USDR/USD",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "5",
+     "status": "post_only",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.0001"
+    },
+    {
+     "altname": "USDRUSDC",
+     "id": "USDR/USDC",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "5",
+     "status": "post_only",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.0001"
+    },
+    {
+     "altname": "USDRUSDT",
+     "id": "USDR/USDT",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "5",
+     "status": "post_only",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.0001"
+    },
+    {
+     "altname": "USDSEUR",
+     "id": "USDS/EUR",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "5",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.00001"
+    },
+    {
+     "altname": "USDSUSD",
+     "id": "USDS/USD",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "5",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.00001"
+    },
+    {
+     "altname": "USDTEUR",
+     "id": "USDT/EUR",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "5",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.0001"
+    },
+    {
+     "altname": "USDTGBP",
+     "id": "USDT/GBP",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "5",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.0001"
+    },
+    {
+     "altname": "USDTUSD",
+     "id": "USDT/USD",
+     "maker_fee_pct_tier0": null,
+     "ordermin": "5",
+     "status": "online",
+     "taker_fee_pct_tier0": null,
+     "tick": "0.00001"
+    }
+   ],
+   "bytes": 680641,
+   "sha256": "a68b8665efd08700cfae1349e146f4c541df9ac951da10f7862ed4bcec4be978",
+   "url": "https://api.kraken.com/0/public/AssetPairs"
+  },
+  "kucoin": {
+   "books": [
+    {
+     "enable": true,
+     "id": "FRAX-USDT"
+    },
+    {
+     "enable": true,
+     "id": "PYUSD-USDT"
+    },
+    {
+     "enable": true,
+     "id": "TUSD-USDT"
+    },
+    {
+     "enable": true,
+     "id": "USD1-USDT"
+    },
+    {
+     "enable": true,
+     "id": "USDC-EUR"
+    },
+    {
+     "enable": true,
+     "id": "USDC-USDT"
+    },
+    {
+     "enable": true,
+     "id": "USDE-USDT"
+    },
+    {
+     "enable": true,
+     "id": "USDG-USDT"
+    },
+    {
+     "enable": true,
+     "id": "USDS-USDT"
+    },
+    {
+     "enable": true,
+     "id": "USDT-EUR"
+    },
+    {
+     "enable": true,
+     "id": "USDT-USDC"
+    }
+   ],
+   "bytes": 693499,
+   "sha256": "944f8b827efc6db4d5906ca51c8fdbe0c40125fc048856134c68785891b0ae5d",
+   "url": "https://api.kucoin.com/api/v2/symbols"
+  },
+  "luno": {
+   "books": [
+    {
+     "id": "USDCUSDT",
+     "status": "ACTIVE"
+    }
+   ],
+   "bytes": 22111,
+   "sha256": "5f0cf3fd565834375cf70eceeefe313a07e50efc80c684e97d3bb482cf868168",
+   "url": "https://api.luno.com/api/1/tickers"
+  },
+  "okx": {
+   "books": [
+    {
+     "id": "EURC-USDC",
+     "min": "1",
+     "state": "live",
+     "tick": "0.001"
+    },
+    {
+     "id": "PYUSD-USDT",
+     "min": "1",
+     "state": "live",
+     "tick": "0.0001"
+    },
+    {
+     "id": "RLUSD-USDT",
+     "min": "1",
+     "state": "live",
+     "tick": "0.0001"
+    },
+    {
+     "id": "USD1-USDT",
+     "min": "1",
+     "state": "live",
+     "tick": "0.0001"
+    },
+    {
+     "id": "USDC-EUR",
+     "min": "1",
+     "state": "live",
+     "tick": "0.00001"
+    },
+    {
+     "id": "USDC-USDT",
+     "min": "1",
+     "state": "live",
+     "tick": "0.00001"
+    },
+    {
+     "id": "USDG-EUR",
+     "min": "1",
+     "state": "live",
+     "tick": "0.0001"
+    },
+    {
+     "id": "USDG-USDT",
+     "min": "1",
+     "state": "live",
+     "tick": "0.0001"
+    },
+    {
+     "id": "USDS-USDT",
+     "min": "1",
+     "state": "live",
+     "tick": "0.0001"
+    },
+    {
+     "id": "USDT-EUR",
+     "min": "1",
+     "state": "live",
+     "tick": "0.0001"
+    },
+    {
+     "id": "USDT-USD",
+     "min": "1",
+     "state": "live",
+     "tick": "0.00001"
+    }
+   ],
+   "bytes": 1308391,
+   "sha256": "8056affff0af33988bf5e0ba45f60c640a8a3aed764dedc4a96018d3d3101b7a",
+   "url": "https://www.okx.com/api/v5/public/instruments?instType=SPOT"
+  },
+  "onetrading": {
+   "books": [
+    {
+     "id": "USDC_EUR",
+     "state": "ACTIVE"
+    }
+   ],
+   "bytes": 12199,
+   "sha256": "6a23e64ee3594669fdb80ffd782fa0513f9f83b3aa9f931349796669226834a4",
+   "url": "https://api.onetrading.com/fast/v1/instruments"
+  }
+ }
+}
