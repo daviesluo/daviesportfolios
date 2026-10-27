@@ -22,6 +22,8 @@ m = {
   'python3 -I scripts/dust_fills.py    # results/dust_fills.json: LIVE\'s entry fills under £1 since the £0.10 bot (counts and minutes)',
   'python3 -I scripts/power.py         # results/power.json: the proposed bar\'s power over 28 days',
   'python3 -I scripts/table.py         # results/table.md: the review\'s candidate table',
+  'python3 -I scripts/usdt_weights.py  # results/usdt_weights.json: USDT-GBP 1:1, 3:2, 2:1, 3:1 and alone on every record, by week (variant-6 to -8, 0149); about four minutes',
+  'python3 -I scripts/power_usdt.py    # results/power_usdt.json: the bar\'s power for 3:1 and USDT-GBP alone',
   'python3 -I scripts/manifest.py'
  ],
  'findings': [
@@ -30,6 +32,7 @@ m = {
   "USDT-GBP at twice USDC-GBP's pounds: +1.24 bps/day (90 % +0.35 to +2.24), +1.22 under 'through', +0.51 HIST, +5.03 LONG, 39 of 39 long-tape weeks ahead.",
   "The 0.3 % rungs' money on the 0.1 / 0.2 % rungs (£75/£75/£0): +1.15 (90 % -0.17 to +2.32), +0.99 HIST, +1.26 LONG; behind in 8 of 39 long-tape weeks.",
   "A rung counted as held only above £1: +0.48 under 'at', +0.05 under 'through', 0 before the £0.10 bot of 10-08; 142 of LIVE's 232 USDT-GBP entry fills since 10-08 were under £1.",
+  "USDT-GBP 3:1 (£75 / £25 rungs): +1.64 bps/day FWD at (+12.6 %), +1.77 through, +0.73 HIST, +7.21 LONG (38 of 39 weeks); USDT-GBP alone (£100 rungs): +2.38 (+18.3 %), +3.02, +1.10, +12.43 (38 of 39), worst HIST week -16.83 and worst marked LONG day -24.8 bps against LIVE's rules' -7.8.",
   "Weekend off: -5.41 bps/day. Wider ladders, a 0.4 % rung, other re-price steps, exit offsets, shorter stops, time gates, release blackouts, skew, a basis-adjusted fair and a tighter de-peg guard: no better or worse."
  ],
  'files': files,

@@ -1,0 +1,22 @@
+{
+ "book_usdt_3to1": {
+  "meanBpsDay": 1.638,
+  "sdDailyDiffBps": 3.84,
+  "pass_atEffect_share<=0.20": 0.895,
+  "pass_atEffect_share<=0.10": 0.809,
+  "pass_atHalf_share<=0.20": 0.583,
+  "pass_atHalf_share<=0.10": 0.433,
+  "pass_atZero_share<=0.20": 0.21,
+  "pass_atZero_share<=0.10": 0.116
+ },
+ "book_usdt_only": {
+  "meanBpsDay": 2.38,
+  "sdDailyDiffBps": 7.567,
+  "pass_atEffect_share<=0.20": 0.758,
+  "pass_atEffect_share<=0.10": 0.627,
+  "pass_atHalf_share<=0.20": 0.488,
+  "pass_atHalf_share<=0.10": 0.351,
+  "pass_atZero_share<=0.20": 0.229,
+  "pass_atZero_share<=0.10": 0.129
+ }
+}

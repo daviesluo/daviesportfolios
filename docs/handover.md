@@ -46836,3 +46836,28 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   - D17 (`0147`): one cap per negative-risk event, `negRiskMarketID` stored on each order with the three live markets
     filled in; pinned in `exec.test.ts` and `src/grokpm_prereg.test.js`.
   - C-008's text is in the review's §5.3, for the main session to post after the deploy.
+
+## LEDGER.md, archived 2026-10-27 (fourth) — the 2026-10-27 03:45 and 03:50 UTC history sections, oldest first
+
+### [2026-10-27 03:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LIVE at £600; its twin is the £600 one, variant-1 tests £1,200 (`0144`)** (sub-agent; not pushed; Davies, 10-27: "我已经加到600了…
+  把测试的Stablecoin quotes LIVE twin改为600，Stablecoin quotes variant-1改为…下次加仓的目标仓位本金的测试"; review §8). Read first: the account
+  funded by the executor's own balances, `capital_gbp` 600 set by him at 03:09, two maker conversions sent. LIVE's own orders,
+  queue-aware: per pound 0.90 of £10's at £50, 0.82 at £100, 0.76 at £150. No twin resized; size twins' deviation 1.
+- **DAYS' 7-day figure reads each day over the capital it ran on** (Davies, 10-27; `0145`: `agent_quote_live_capital`, kept by a
+  trigger on LIVE's config, seeded £120 from go-live and £600 from 03:08:37; `dayCapitalGbp`; pinned on 10-19 → 25's week).
+- **Compounding built, OFF** (Davies, 10-27: "…我希望赚的钱也能利用起来…"; `0146`, `agents/quotes_compound.ts`, review §9): daily, base +
+  realised since on, whole £12, floor £300, cap £1,200, step £12. About +2.5 points of the capital in year 1. **Davies' switch**:
+  the statement in review §9.3; suggested after a clean week at £600 (by 11-03).
+
+### [2026-10-27 03:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **PR5-OPT: is LIVE's rule set the best known?** (sub-agent; not pushed; `reviews/2026-10-27-pr5-rules-optimisation.md`,
+  `backtests/pr5_opt/`, reference §3.52; not blind; nothing in production changed.) It replays LIVE-realistic: PR5's engine is
+  273 of 273 trips, and on LIVE's clean days the replay is 1.20× its realised under "at" and 0.91× under "through". 55 changes were
+  replayed at £600. Rungs, exit, re-price (0.05 %, not 0.03 %), stop, guards and fair hold up; the weekend is worth +5.4 bps a
+  day. Never tested before:
+  - USDT-GBP 2:1 is +1.24 bps/day, ahead in 39 of 39 long-tape weeks;
+  - the 0.3 % money moved to 0.1 / 0.2 % is +1.15;
+  - holding counted only above £1 is +0.48 (the £0.10 bot since 10-08).
+  **For Davies:** three twins against `live600`, 28 days each: `live600usdt2`, `live600no03` and `live600hold1`. Their specs, bar
+  and the code they need (`weights`, `holdMin`) are in §4; build no earlier than 10-29, after the 10-28 retirements.

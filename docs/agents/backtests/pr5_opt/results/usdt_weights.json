@@ -1,0 +1,272 @@
+{
+ "1:1": {
+  "fwd_at": {
+   "bpsDay": 12.981,
+   "trips": 502,
+   "won": 0.954,
+   "stops": 3,
+   "mtmWorstDayBps": 0.0,
+   "mtmMaxDrawdownBps": 0.0,
+   "usdtRungGbp": 50.0
+  },
+  "fwd_through": {
+   "bpsDay": 10.273,
+   "trips": 351,
+   "won": 0.94,
+   "stops": 5,
+   "mtmWorstDayBps": -3.91,
+   "mtmMaxDrawdownBps": 3.91,
+   "usdtRungGbp": 50.0
+  },
+  "hist_at": {
+   "bpsDay": 6.638,
+   "trips": 187,
+   "won": 0.925,
+   "stops": 4,
+   "mtmWorstDayBps": -0.74,
+   "mtmMaxDrawdownBps": 0.74,
+   "usdtRungGbp": 50.0
+  },
+  "long_at": {
+   "bpsDay": 33.703,
+   "trips": 7253,
+   "won": 0.945,
+   "stops": 79,
+   "mtmWorstDayBps": -7.84,
+   "mtmMaxDrawdownBps": 7.84,
+   "usdtRungGbp": 50.0
+  }
+ },
+ "3:2": {
+  "fwd_at": {
+   "bpsDay": 13.738,
+   "trips": 499,
+   "won": 0.954,
+   "stops": 3,
+   "mtmWorstDayBps": 0.0,
+   "mtmMaxDrawdownBps": 0.0,
+   "usdtRungGbp": 60.0,
+   "vsBaseBpsDay": 0.757,
+   "upliftPct": 5.8,
+   "weeksAhead": 5,
+   "weeks": 6,
+   "worstWeekBps": -0.73
+  },
+  "fwd_through": {
+   "bpsDay": 10.983,
+   "trips": 350,
+   "won": 0.94,
+   "stops": 6,
+   "mtmWorstDayBps": -2.56,
+   "mtmMaxDrawdownBps": 2.56,
+   "usdtRungGbp": 60.0,
+   "vsBaseBpsDay": 0.71,
+   "upliftPct": 6.9,
+   "weeksAhead": 5,
+   "weeks": 6,
+   "worstWeekBps": -0.89
+  },
+  "hist_at": {
+   "bpsDay": 6.972,
+   "trips": 188,
+   "won": 0.926,
+   "stops": 4,
+   "mtmWorstDayBps": -0.37,
+   "mtmMaxDrawdownBps": 0.37,
+   "usdtRungGbp": 60.0,
+   "vsBaseBpsDay": 0.334,
+   "upliftPct": 5.0,
+   "weeksAhead": 4,
+   "weeks": 5,
+   "worstWeekBps": -2.54
+  },
+  "long_at": {
+   "bpsDay": 36.844,
+   "trips": 7161,
+   "won": 0.945,
+   "stops": 81,
+   "mtmWorstDayBps": -11.1,
+   "mtmMaxDrawdownBps": 11.1,
+   "usdtRungGbp": 60.0,
+   "vsBaseBpsDay": 3.141,
+   "upliftPct": 9.3,
+   "weeksAhead": 38,
+   "weeks": 39,
+   "worstWeekBps": -0.07
+  }
+ },
+ "2:1": {
+  "fwd_at": {
+   "bpsDay": 14.223,
+   "trips": 497,
+   "won": 0.954,
+   "stops": 3,
+   "mtmWorstDayBps": 0.0,
+   "mtmMaxDrawdownBps": 0.0,
+   "usdtRungGbp": 66.67,
+   "vsBaseBpsDay": 1.242,
+   "upliftPct": 9.6,
+   "weeksAhead": 5,
+   "weeks": 6,
+   "worstWeekBps": -1.22
+  },
+  "fwd_through": {
+   "bpsDay": 11.494,
+   "trips": 350,
+   "won": 0.94,
+   "stops": 6,
+   "mtmWorstDayBps": -1.66,
+   "mtmMaxDrawdownBps": 1.66,
+   "usdtRungGbp": 66.67,
+   "vsBaseBpsDay": 1.221,
+   "upliftPct": 11.9,
+   "weeksAhead": 5,
+   "weeks": 6,
+   "worstWeekBps": -1.57
+  },
+  "hist_at": {
+   "bpsDay": 7.143,
+   "trips": 188,
+   "won": 0.926,
+   "stops": 4,
+   "mtmWorstDayBps": -0.12,
+   "mtmMaxDrawdownBps": 0.12,
+   "usdtRungGbp": 66.67,
+   "vsBaseBpsDay": 0.505,
+   "upliftPct": 7.6,
+   "weeksAhead": 4,
+   "weeks": 5,
+   "worstWeekBps": -4.82
+  },
+  "long_at": {
+   "bpsDay": 38.736,
+   "trips": 7114,
+   "won": 0.945,
+   "stops": 76,
+   "mtmWorstDayBps": -13.4,
+   "mtmMaxDrawdownBps": 13.4,
+   "usdtRungGbp": 66.67,
+   "vsBaseBpsDay": 5.033,
+   "upliftPct": 14.9,
+   "weeksAhead": 39,
+   "weeks": 39,
+   "worstWeekBps": 0.16
+  }
+ },
+ "3:1": {
+  "fwd_at": {
+   "bpsDay": 14.62,
+   "trips": 496,
+   "won": 0.954,
+   "stops": 4,
+   "mtmWorstDayBps": 0.0,
+   "mtmMaxDrawdownBps": 0.0,
+   "usdtRungGbp": 75.0,
+   "vsBaseBpsDay": 1.639,
+   "upliftPct": 12.6,
+   "weeksAhead": 5,
+   "weeks": 6,
+   "worstWeekBps": -1.83
+  },
+  "fwd_through": {
+   "bpsDay": 12.039,
+   "trips": 350,
+   "won": 0.937,
+   "stops": 6,
+   "mtmWorstDayBps": -1.51,
+   "mtmMaxDrawdownBps": 1.51,
+   "usdtRungGbp": 75.0,
+   "vsBaseBpsDay": 1.766,
+   "upliftPct": 17.2,
+   "weeksAhead": 5,
+   "weeks": 6,
+   "worstWeekBps": -2.42
+  },
+  "hist_at": {
+   "bpsDay": 7.367,
+   "trips": 189,
+   "won": 0.926,
+   "stops": 4,
+   "mtmWorstDayBps": -0.03,
+   "mtmMaxDrawdownBps": 0.03,
+   "usdtRungGbp": 75.0,
+   "vsBaseBpsDay": 0.729,
+   "upliftPct": 11.0,
+   "weeksAhead": 4,
+   "weeks": 5,
+   "worstWeekBps": -7.66
+  },
+  "long_at": {
+   "bpsDay": 40.918,
+   "trips": 7061,
+   "won": 0.945,
+   "stops": 74,
+   "mtmWorstDayBps": -16.29,
+   "mtmMaxDrawdownBps": 16.29,
+   "usdtRungGbp": 75.0,
+   "vsBaseBpsDay": 7.215,
+   "upliftPct": 21.4,
+   "weeksAhead": 38,
+   "weeks": 39,
+   "worstWeekBps": -0.22
+  }
+ },
+ "USDT only": {
+  "fwd_at": {
+   "bpsDay": 15.362,
+   "trips": 326,
+   "won": 0.966,
+   "stops": 3,
+   "mtmWorstDayBps": -2.34,
+   "mtmMaxDrawdownBps": 2.34,
+   "usdtRungGbp": 100.0,
+   "vsBaseBpsDay": 2.381,
+   "upliftPct": 18.3,
+   "weeksAhead": 5,
+   "weeks": 6,
+   "worstWeekBps": -3.98
+  },
+  "fwd_through": {
+   "bpsDay": 13.293,
+   "trips": 225,
+   "won": 0.947,
+   "stops": 4,
+   "mtmWorstDayBps": -5.89,
+   "mtmMaxDrawdownBps": 5.89,
+   "usdtRungGbp": 100.0,
+   "vsBaseBpsDay": 3.02,
+   "upliftPct": 29.4,
+   "weeksAhead": 5,
+   "weeks": 6,
+   "worstWeekBps": -5.05
+  },
+  "hist_at": {
+   "bpsDay": 7.736,
+   "trips": 109,
+   "won": 0.917,
+   "stops": 1,
+   "mtmWorstDayBps": -0.04,
+   "mtmMaxDrawdownBps": 0.04,
+   "usdtRungGbp": 100.0,
+   "vsBaseBpsDay": 1.098,
+   "upliftPct": 16.5,
+   "weeksAhead": 4,
+   "weeks": 5,
+   "worstWeekBps": -16.83
+  },
+  "long_at": {
+   "bpsDay": 46.131,
+   "trips": 4925,
+   "won": 0.959,
+   "stops": 36,
+   "mtmWorstDayBps": -24.76,
+   "mtmMaxDrawdownBps": 24.76,
+   "usdtRungGbp": 100.0,
+   "vsBaseBpsDay": 12.428,
+   "upliftPct": 36.9,
+   "weeksAhead": 38,
+   "weeks": 39,
+   "worstWeekBps": -6.7
+  }
+ }
+}

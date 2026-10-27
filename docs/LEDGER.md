@@ -287,8 +287,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      `live600` per pound, no loss-stop day), `live300` off; compounding (`0146`) built OFF, his switch (review §9.3); `live` "variant-2" £120, weekends from 10-30; `pr5`, `p50`, `d` hidden, off after
      their 10-28 readouts; `take50wk` off. `0142`: `take50` "variant-3" on the page; Coinbase "with Euros - 1" (hold, 11-10) and
      "- 2", the USDC arm at £25/€25 (prereg `cb-usdc`, 14 days, bar > 0, ≥ 8 %/yr, ≥ 5 bps a trip).
-     **PR5-OPT 10-27** (`reviews/2026-10-27-pr5-rules-optimisation.md` §4): three twins on LIVE's rules against `live600`
-     (`live600usdt2`, `live600no03`, `live600hold1`) built by `0148`, from 10-29 00:00, read on or after 11-26 (history 04:20).
+     **PR5-OPT 10-27** (`reviews/2026-10-27-pr5-rules-optimisation.md` §4): five twins on LIVE's rules against `live600`,
+     variant-4 to -8 (`o600no03`, `o600hold1`, `o600usdt2`, `o600usdt3`, `o600usdt`) by `0149`, from 10-27 06:00, read on or
+     after 11-24 06:00 (prereg `pr5-opt-twins-now`; history 04:50); 0148's three off.
      **Audit 2026-10-19:** the read's eight criteria are not the addendum's step 2: its "`late` is false" was dropped (the
      replica was late), variant-3 was not compared (no orders before 10-23), and 900 of the closure's 2,880 minutes were
      read. The executor never reads `late`; only the rule "set 'live' outside a closure" keeps a late copy from trading.
@@ -755,8 +756,17 @@ Facts a fresh session would otherwise rediscover:
 
 Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's archive, each batch under a heading
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
-first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to GROKPM's D16/D17 section of 2026-10-27 03:40 UTC (archived
-2026-10-27, third).
+first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to PR5-OPT's study section of 2026-10-27 03:50 UTC (archived
+2026-10-27, fourth).
+
+### [2026-10-27 04:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **PR5-OPT's twins start now, plus USDT 3:1 and USDT alone (`0149`)** (sub-agent; not pushed; Davies, 10-27: "为啥要等到29？现在就开始…
+  再在实盘rules的基础上开variant-7和8"; frozen `reviews/2026-10-27-pr5-opt-twins-now-prereg.md`, 0148's prereg deviation 1). 0148's
+  rows are off (their replicas wait for 10-29). Variant-4 to -8 (USDT last, Davies: "…usdt比例大的放一起"): `o600no03`, `o600hold1`,
+  `o600usdt2` 2:1, `o600usdt3` 3:1, `o600usdt` USDT-GBP alone; from 10-27 06:00 to 11-24 06:00, same bar. `runQuotesConvert` answers a weighted book with no pounds "already holds" (LIVE
+  unreachable; six-hour pins equal). Twelve twins: the call works a p90 of 8–14 s after :38, so `pr5`/`p50`/`d` stay to 10-28.
+  After deploy: conversions £199.98/£99.99, £150/£150 twice, £225/£75, £300 USDT and one USDC "already holds". The 03:45 and 03:50
+  sections archived.
 
 ### [2026-10-27 04:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **PR5-OPT's three twins built (`0148`)** (sub-agent; not pushed; Davies, 10-27: "…还有哪些可以值得研究和测试的地方…"; frozen
@@ -766,26 +776,3 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to GROK
   instant and at its neutral setting the executor equals the frozen one turn by turn (four new six-hour pins). Deviations in the
   six pre-registrations pinning `quotes_twin.ts`. After deploy: 0148 applied, the three rows' first turn after 10-29 00:00 with
   conversions £199.98 USDT / £99.99 USDC (variant-4) and £150 each (-5, -6). The 10-27 03:40 section archived.
-
-### [2026-10-27 03:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **PR5-OPT: is LIVE's rule set the best known?** (sub-agent; not pushed; `reviews/2026-10-27-pr5-rules-optimisation.md`,
-  `backtests/pr5_opt/`, reference §3.52; not blind; nothing in production changed.) It replays LIVE-realistic: PR5's engine is
-  273 of 273 trips, and on LIVE's clean days the replay is 1.20× its realised under "at" and 0.91× under "through". 55 changes were
-  replayed at £600. Rungs, exit, re-price (0.05 %, not 0.03 %), stop, guards and fair hold up; the weekend is worth +5.4 bps a
-  day. Never tested before:
-  - USDT-GBP 2:1 is +1.24 bps/day, ahead in 39 of 39 long-tape weeks;
-  - the 0.3 % money moved to 0.1 / 0.2 % is +1.15;
-  - holding counted only above £1 is +0.48 (the £0.10 bot since 10-08).
-  **For Davies:** three twins against `live600`, 28 days each: `live600usdt2`, `live600no03` and `live600hold1`. Their specs, bar
-  and the code they need (`weights`, `holdMin`) are in §4; build no earlier than 10-29, after the 10-28 retirements.
-
-### [2026-10-27 03:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **LIVE at £600; its twin is the £600 one, variant-1 tests £1,200 (`0144`)** (sub-agent; not pushed; Davies, 10-27: "我已经加到600了…
-  把测试的Stablecoin quotes LIVE twin改为600，Stablecoin quotes variant-1改为…下次加仓的目标仓位本金的测试"; review §8). Read first: the account
-  funded by the executor's own balances, `capital_gbp` 600 set by him at 03:09, two maker conversions sent. LIVE's own orders,
-  queue-aware: per pound 0.90 of £10's at £50, 0.82 at £100, 0.76 at £150. No twin resized; size twins' deviation 1.
-- **DAYS' 7-day figure reads each day over the capital it ran on** (Davies, 10-27; `0145`: `agent_quote_live_capital`, kept by a
-  trigger on LIVE's config, seeded £120 from go-live and £600 from 03:08:37; `dayCapitalGbp`; pinned on 10-19 → 25's week).
-- **Compounding built, OFF** (Davies, 10-27: "…我希望赚的钱也能利用起来…"; `0146`, `agents/quotes_compound.ts`, review §9): daily, base +
-  realised since on, whole £12, floor £300, cap £1,200, step £12. About +2.5 points of the capital in year 1. **Davies' switch**:
-  the statement in review §9.3; suggested after a clean week at £600 (by 11-03).

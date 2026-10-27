@@ -1720,6 +1720,9 @@ export async function runQuotesConvert(d: QuoteLiveDeps, body: unknown): Promise
   const cfg = (await d.db.select<LiveConfig>(inst.config, "id=eq.1&select=dry_run,live_confirmed_at,capital_gbp"))[0];
   if (!cfg) return { error: `no ${inst.config} row: migration ${inst.migration} has not run` };
   const capital = Number(cfg.capital_gbp), cap = convertCapGbp(inst, capital, book, d.now);
+  // A book whose weights give its asks no pounds (a twin's USDT-only rule) needs no coin: the operator's "already holds" is
+  // its answer, which marks the book done. Without weights the cap is a quarter of the capital, never 0.
+  if (weightsOn(inst, d.now) && !(cap > 0)) return { error: `the account already holds what ${book}'s asks need (0: its weights give them no pounds): nothing to convert` };
   const gbp = Number(b.gbp);
   if (!(gbp > 0) || gbp > cap + 1e-9) return { error: `gbp: more than 0 and at most ${cap} (${rungsWord(inst.rungs)} rungs' worth of ${capital})` };
   const send = b.send === true;

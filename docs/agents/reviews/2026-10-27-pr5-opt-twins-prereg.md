@@ -110,4 +110,15 @@ stands, as LIVE does.
 
 ## 7. Deviations
 
-None.
+**Deviation 1 (2026-10-27, before the start; migration `0149`): the three start at 2026-10-27 06:00 UTC, under new ids.** Davies,
+2026-10-27, verbatim: "variant-4、5、6是在实盘rules的基础上建的吧？为啥要等到29？现在就开始…你再在实盘rules的基础上开variant-7和8测试这两个".
+- 0148's rows turned from 04:20 UTC with their replicas built from the 10-29 start, so their start cannot move in place. `0149`
+  switches `live600usdt2`, `live600no03` and `live600hold1` off (renamed "… from 10-29", their tables kept, no order in them)
+  and inserts the same three rules as `o600usdt2`, `o600no03` and `o600hold1`, each from 2026-10-27 06:00 UTC, beside USDT-GBP
+  3:1 and USDT-GBP alone. Their page names move so that the USDT weightings sit together (Davies, the same day:
+  "做好后variant-4和5与5和6替换，这样的话usdt比例大的放一起", then his final numbering): no 0.3 % rung is "variant-4", the £1 holding
+  line "variant-5", USDT 2:1 "variant-6", and USDT 3:1 and USDT alone "variant-7" and "-8".
+- The window moves with them: 2026-10-27 06:00 → 2026-11-24 06:00 UTC, each day 06:00 → 06:00. The bar, the readings beside it
+  and their power are this document's §3, unchanged, and are read under
+  `2026-10-27-pr5-opt-twins-now-prereg.md`, which pre-registers all five together.
+- §6's count of twins is that document's: twelve from `0149`, `pr5`, `p50` and `d` running to their 10-28 readouts.

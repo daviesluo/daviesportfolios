@@ -429,6 +429,28 @@ Deno.test("weights: a twin's start conversions buy each book's own asks' worth (
   for (const [book, gbp] of bids) assertEquals(gbp, book === "USDT-GBP" ? 133 : 67, String(book));
 });
 
+Deno.test("weights: USDT-GBP alone (variant-8, 0149): USDC-GBP converts nothing and its operator is done at once; USDT-GBP's £300 buys its three £100 asks, and the bids are its three alone", async () => {
+  const W: TwinSpec = { ...specFromRow(rowAs("wo", { capital_gbp: 600, rules: { weights: { from: iso(T0), book: { "USDC-GBP": 0, "USDT-GBP": 1 } } } })), start: T0 };
+  const w = world(undefined, [W]);
+  await w.pr5(T0);
+  const r0 = await w.call(T0, {}, [W]);
+  // The one error of its start, the executor's record's and no fault of the twin: the USDC book's asks have no pounds.
+  assertEquals([r0.twins[0].errors, r0.twins[0].executorErrors], [[], 1]);
+  const ds = w.driver(W)!;
+  assert(/^conversion USDC-GBP: the account already holds what USDC-GBP's asks need \(0/.test(String(ds.lastReport?.errors?.[0])), JSON.stringify(ds.lastReport));
+  assertEquals([ds.operator?.["USDC-GBP"]?.done, ds.operator?.["USDT-GBP"]?.done], [true, false]);
+  // USDT-GBP's conversion: £300 at the seller's 0.7553, 397.19316 coins; its three bids at £100 each from the £300 left.
+  assertEquals(w.orders(W).filter((o) => o.leg === "convert").map((o) => [o.book, Number(o.price), Number(o.base_size)]), [["USDT-GBP", 0.7553, 397.19316]]);
+  const entries = w.orders(W).filter((o) => o.leg === "entry");
+  assert(entries.every((o) => o.book === "USDT-GBP"), "no USDC-GBP entry");
+  assertEquals(entries.filter((o) => o.side === "buy").map((o) => Math.round(Number(o.base_size) * Number(o.price))), [100, 100, 100]);
+  // The next minute sends nothing more for USDC-GBP and records no error of it.
+  await w.pr5(T0 + M);
+  const r1 = await w.call(T0 + M, {}, [W]);
+  assertEquals([r1.twins[0].errors, w.driver(W)?.lastReport?.errors], [[], []]);
+  assertEquals(w.orders(W).filter((o) => o.leg === "convert").length, 1);
+});
+
 Deno.test("weekend: a twin with the rule is its control's order for order outside a closure and before its instant; inside a closure with GBP/USD dark it quotes at the last X while its control withdraws, and from Sunday 21:00 it is dark again", async () => {
   // A Friday: GBP/USD's last bar starts 21:29 (dark from 21:40, ten minutes on); the closure began at 21:00.
   const FRI = Date.parse("2026-10-23T21:20:00Z");
