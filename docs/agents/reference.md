@@ -3349,6 +3349,13 @@ Read 2026-10-26 (`reviews/2026-10-26-grokpm-thin-rule-study.md`, `backtests/grok
   - under 100 orders that day.
 
   A D15 market stays capped at $5 for every buy. The sync cancels inside the cut, or earlier when Gamma moves the end.
+- **The first orders, verified (2026-10-27,** `reviews/2026-10-27-grokpm-first-orders.md`; Davies: "下了几单，你也仔细验证下").
+  - 15 orders and 3 fills from D15's go to 10-27 03:10 UTC, each OK end to end: the checks, the venue, the booking at
+    cost, the marks and the record.
+  - Orders 9 and 11 went out as ordinary orders because their market held nothing at that moment.
+  - V1 (`0143`): each order keeps its `event_at` and the checks' book.
+  - Proposed: a longer life for a resting B bid (6 and 9 orders went to one fill each), and one cap for the outcomes of
+    one event.
 
 ### 3.51 Stablecoin quotes: LIVE's "+64.9 %" is one week realised, half of it a weekend; size; every row (2026-10-26)
 

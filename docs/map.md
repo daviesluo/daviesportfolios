@@ -856,6 +856,7 @@ before touching migration state.
 | `0140_grokpm_thin_cap.sql` | GROKPM's Deviation D15: each order says whether it was sent under the thin rule's capped exception, and the time it must be gone by. |
 | `0141_quote_twins_relayout.sql` | The stablecoin twins laid out for LIVE's next size: two new twins on LIVE's rules (`live300` "LIVE twin" £300, `live600` "variant-1" £600), the £120 LIVE twin renamed variant-2 and given LIVE's weekend from 10-30, variant-3 switched off, and four twins kept running but off the page (`hidden`). |
 | `0142_quote_twins_take50_cb_usdc.sql` | TAKE's twin back on the page as "Stablecoin quotes variant-3", and "Stablecoin quotes with Euros - 2", the Coinbase USDC arm: its tables, lock, call a minute and prune. |
+| `0143_grokpm_order_checks.sql` | GROKPM's orders keep the `event_at` the agent sent and what the server's checks read (book, edge, costs, Kelly cap, D15 cap and cut). |
 | `0096_pm_rw_x_tb1_arms.sql` | Lets the variants' day tables, RW's and RW-C's, take TB1's two arms on x1 (tb1-skip, tb1-back). |
 | `0086_quote_live_deadman.sql` | Adds the kind `deadman` to `agent_quote_live_events`, for the row the monitor's dead-man switch writes when it cancels PR5's resting orders. |
 | `0087_quote_twins.sql` | The realistic twins' tables (each the live executor's four, a replica's and a simulated account's), their config rows and leases, and the one call that runs them. |

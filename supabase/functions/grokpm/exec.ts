@@ -98,6 +98,8 @@ export type GrokOrderRow = {
   request?: unknown; response?: unknown; cancel_requested_at: string | null; cancelled_at: string | null; filled_at: string | null;
   /** Deviation D15 (0140): an order sent under the thin rule's capped exception, and the time it must be gone by. */
   thin_cap?: boolean | null; cut_at?: string | null;
+  /** 0143: the body's `event_at` as sent, and what the server read and computed for the order (`orderChecks`). */
+  event_at?: string | null; checks?: unknown;
 };
 export type GrokFillRow = {
   trade_id: string; hash: string; cond: string; token: string; side: "BUY" | "SELL"; price: number | string; size: number | string; fee_usd: number | string;
@@ -679,6 +681,7 @@ export function accountView(c: ExecContext, nowMs: number) {
       order_id: o.hash, decision_id: o.decision_id, market_id: o.cond, token_id: o.token, side: o.side, price: num(o.price), size: num(o.size),
       size_matched: num(o.size_matched), post_only: o.post_only, state: o.state, expires_at: iso((num(o.expiration) - PM_GTD_EARLY_S) * 1000),
       expires_in_s: Math.max(0, num(o.expiration) - PM_GTD_EARLY_S - nowS), theme: o.theme, thin_cap: o.thin_cap === true, cut_at: o.cut_at ?? null,
+      event_at: o.event_at ?? null,
     })),
   };
 }
@@ -828,6 +831,7 @@ export async function placeOrder(deps: ExecDeps, body: unknown): Promise<{ statu
     mode: c.mode, created_at: iso(now), decision_id: decision.id, cond: plan.cond, token: plan.token, outcome: decision.outcome, side: plan.side, price: plan.price, size: plan.size,
     post_only: plan.postOnly, expiration: plan.expiration, neg_risk: plan.negRisk, hash: built.hash, theme: plan.side === "BUY" ? c.ledger.themeOf[plan.cond] ?? theme : theme,
     category: decision.category, state: "pending", request, thin_cap: plan.thinCap === true, cut_at: plan.cutAt ?? null,
+    event_at: typeof eventAt === "string" ? iso(Date.parse(eventAt)) : null, checks: orderChecks({ decision, book, ledger: c.ledger, plan }),
   }, true);
   if (c.mode === "dry_run") {
     await db.update("grokpm_orders", `id=eq.${row.id}`, { state: "live", response: { dryRun: true }, updated_at: iso(now) });
@@ -848,6 +852,23 @@ export async function placeOrder(deps: ExecDeps, body: unknown): Promise<{ statu
   await db.update("grokpm_orders", `id=eq.${row.id}`, { ...patch, updated_at: iso(now) });
   const final = { ...row, ...(patch as Partial<GrokOrderRow>) };
   return { status: out.state === "rejected" ? 409 : 200, body: { ok: out.state !== "rejected", mode: "live", sent: true, venue: out.why, order: orderOut(final) } };
+}
+
+/**
+ * What the server read and computed for an order it sends (0143, the order verification's V1): the book as read, the edge
+ * against the dearer of price and mid, the market's cost with the order, the quarter-Kelly cap, and for a D15 order its
+ * cap and cut. A record for later checks; no rule reads it.
+ */
+export function orderChecks(p: { decision: Decision; book: GrokBook | null; ledger: GrokLedger; plan: OrderPlan }) {
+  const { decision: d, book: b, ledger: L, plan } = p, R = GROKPM_RULES;
+  const cost = plan.price * plan.size, inMarket = r6((L.costByCond[plan.cond] ?? 0) + (plan.side === "BUY" ? cost : 0));
+  const pr = Number(d.p), against = Math.max(plan.price, b?.mid ?? plan.price);
+  const kelly = Number.isFinite(pr) && pr > plan.price ? r6(Math.min(R.marketCapUsd, R.kellyFraction * ((pr - plan.price) / (1 - plan.price)) * Math.max(0, L.equityUsd))) : null;
+  return {
+    book: b ? { best_bid: b.bestBid, best_ask: b.bestAsk, mid: b.mid, spread: b.spread, bid_depth_usd: b.bidDepthUsd, ask_depth_usd: b.askDepthUsd } : null,
+    edge: Number.isFinite(pr) ? r6(pr - against) : null, cost_usd: r6(cost), market_cost_usd: inMarket, kelly_cap_usd: kelly,
+    thin_cap: plan.thinCap === true ? { cap_usd: r6(Math.min(R.thinCap.maxUsd, R.thinCap.depthShare * (b?.bidDepthUsd ?? 0))), cut_at: plan.cutAt ?? null } : null,
+  };
 }
 
 const wouldSend = (p: OrderPlan) => ({ token_id: p.token, side: p.side, price: p.price, size: p.size, post_only: p.postOnly, order_type: "GTD", expires_at: iso((p.expiration - PM_GTD_EARLY_S) * 1000) });

@@ -1,4 +1,4 @@
-// GROKPM's tables as migrations 0124, 0125, 0126, 0128, 0138, 0139 and 0140 leave them: each table's columns in order (0125's added columns last)
+// GROKPM's tables as migrations 0124, 0125, 0126, 0128, 0138, 0139, 0140 and 0143 leave them: each table's columns in order (0125's added columns last)
 // and its primary key. The Edge tests run
 // without file access, so their database doubles hold every write to this list, and `src/grokpm_prereg.test.js` holds the
 // list to the migration's own text: a column renamed in one and not the other fails there.
@@ -28,7 +28,8 @@ export const GROKPM_TABLES: Readonly<Record<string, { columns: readonly string[]
   grokpm_rec_state: { columns: ["id", "state", "updated_at", "last_error", "last_report"], key: "id" },
   grokpm_orders: {
     columns: ["id", "created_at", "updated_at", "mode", "decision_id", "cond", "token", "outcome", "side", "price", "size", "post_only", "expiration", "neg_risk", "hash", "theme",
-      "category", "state", "size_matched", "request", "response", "cancel_requested_at", "cancelled_at", "filled_at", "thin_cap", "cut_at"],
+      "category", "state", "size_matched", "request", "response", "cancel_requested_at", "cancelled_at", "filled_at", "thin_cap", "cut_at",
+      "event_at", "checks"],
     key: "id",
   },
   grokpm_fills: { columns: ["trade_id", "hash", "cond", "token", "side", "price", "size", "fee_usd", "taker", "status", "match_time", "tx_hash", "detail", "updated_at"], key: "trade_id,hash" },

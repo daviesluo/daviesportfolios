@@ -607,6 +607,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      the review's §9, `0140`): a capped thin exception for far B markets, $5 a market, 3 at once, `event_at` and a 48 h cut.
      **After the deploy:** `?action=account` shows `thin_cap_markets`; then post C-007 (the review's §9.4) and append D15 to
      §9 after D14. Score the filled-bid markets after 11-01 (`backtests/grokpm_thin/`).
+   - **First orders verified 10-27** (`reviews/2026-10-27-grokpm-first-orders.md`; Davies: "下了几单，你也仔细验证下"): 15 orders,
+     3 fills, all OK. V1 (`0143`) stores each order's `event_at` and checks. **Open for Davies:** P1 (a resting B bid lives up to
+     65 min or 2 h) and P2 (one cap per event). C-008 (desk-ledger money as `$[•]`) is drafted and not posted.
    - **Automatic redemption (D6, `0128`, `grokpm/redeem.ts`; Davies: "加上吧 全部都自动化掉")**: hourly, one gasless relayed
      transaction for up to five of the shared account's redeemable markets (pUSD back; losing tokens cleared), a dry run
      while `redeem_enabled` is false (its plan in `grokpm_exec_state.redeem_state`). **Davies does:** polymarket.com →
@@ -750,6 +753,13 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to MX-1's 2026-10-26 06:38 UTC section (archived
 2026-10-27).
+
+### [2026-10-27 03:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM's first orders verified** (sub-agent; not pushed; Davies, 10-27: "Polymarket analyst下了几单，你也仔细验证下并且也看看有没有什么可以
+  优化的地方"; `reviews/2026-10-27-grokpm-first-orders.md`, reference §3.50).
+  - Every order and fill is OK end to end, and no server bug was found.
+  - V1 (`0143`): `event_at` and the checks' book stored on each order, pinned in `exec.test.ts` and `src/grokpm_prereg.test.js`.
+  - P1 and P2 are proposals; C-008 is drafted.
 
 ### [2026-10-27 01:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **`edge-watchdog`: a minute's mass boot failure is run again** (sub-agent; not pushed; reference item 63; no migration, no

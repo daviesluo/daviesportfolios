@@ -809,3 +809,24 @@ Deno.test("D15: the minute's sync runs the cut (an armed D15 bid inside its cut 
   assertEquals([res.status, body.d15_cut], [200, 1]);
   assertEquals(w.db.tables.grokpm_orders.map((o) => o.state), ["cancelled"]);
 });
+
+// 0143 (the order verification of 2026-10-27, V1): an order keeps the event_at it was sent and what its checks read.
+Deno.test("V1: a D15 order keeps its event_at and its checks (book, edge, costs, Kelly cap, D15 cap and cut); an ordinary one its checks", async () => {
+  const w = thinWorld();
+  const event = iso(T0 + 4 * DAY);
+  assertEquals((await placeOrder(w.deps(), d15({ size: 5 }, { event_at: event }))).status, 200);
+  const row = w.db.tables.grokpm_orders.at(-1)!;
+  assertEquals([row.event_at, row.cut_at], [event, iso(T0 + 4 * DAY - 48 * 3600e3)]);
+  // By hand: book 0.45/0.47 (mid 0.46, spread 0.02, bids within 5 points 0.45 × 40 + 0.44 × 40 = 35.6, asks 0.47 × 40 + 0.48 × 40 = 38);
+  // edge 0.6 − max(0.44, 0.46) = 0.14; cost 5 × 0.44 = 2.2; Kelly min(10, 0.25 × 0.16 / 0.56 × 100) = 7.142857; D15 cap min(5, 8.9) = 5.
+  assertEquals(row.checks, {
+    book: { best_bid: 0.45, best_ask: 0.47, mid: 0.46, spread: 0.02, bid_depth_usd: 35.6, ask_depth_usd: 38 }, edge: 0.14, cost_usd: 2.2, market_cost_usd: 2.2,
+    kelly_cap_usd: 7.142857, thin_cap: { cap_usd: 5, cut_at: iso(T0 + 4 * DAY - 48 * 3600e3) },
+  });
+  const acct = accountView(await context(w.deps(), { readGeo: true, sync: false }), T0);
+  assertEquals((acct.open_orders as Array<{ event_at: string | null }>)[0].event_at, event);
+  // An ordinary order in a deep book: no event_at, no D15 part.
+  assertEquals((await placeOrder(w.deps(), open({ size: 5 }))).status, 200);
+  const o = w.db.tables.grokpm_orders.at(-1)!;
+  assertEquals([o.event_at, (o.checks as { thin_cap: unknown }).thin_cap, (o.checks as { book: { bid_depth_usd: number } }).book.bid_depth_usd > 500], [null, null, true]);
+});
