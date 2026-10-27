@@ -759,8 +759,16 @@ Facts a fresh session would otherwise rediscover:
 
 Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's archive, each batch under a heading
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
-first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to PR5-OPT's study section of 2026-10-27 03:50 UTC (archived
-2026-10-27, fourth).
+first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to PR5-OPT's `0148` section of 2026-10-27 04:20 UTC (archived
+2026-10-27, fifth).
+
+### [2026-10-27 05:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **PER-BOOK: each stablecoin book alone, and Revolut X USDT beside Coinbase USDC** (sub-agent; not pushed; Davies, 10-27:
+  "…如果一个光做usdt和一个光做usdc会更好吗？正好抵消币的风险"; `reviews/2026-10-27-per-book-returns.md`, reference §3.54,
+  `backtests/pr5_opt/scripts/per_book.py`; read-only). Alone at £600, LIVE's fill, 10-17 → 10-27, bps a day: Revolut X USDT-GBP
+  16.26, USDC-GBP 8.61; Coinbase USDC-GBP 9.39, USDC-EUR 6.75, USDT-GBP 0.43, USDT-EUR −0.50. The split at £600 makes 13.97 (USDT
+  alone 16.26); at £1,200 it makes 12.82 (13.49). Splitting coins halves issuer risk as 1:1 already does, offsets no GBP/USD, and
+  adds venue diversification. No two-venue twin: read variant-8 with Coinbase's USDC record offline. The 04:20 section archived.
 
 ### [2026-10-27 04:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **PMSAMEBET: same-bet stat-arb across Polymarket events, and Kalshi as a clock** (sub-agent; not pushed; Davies, 10-27:
@@ -781,12 +789,3 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to PR5-
   unreachable; six-hour pins equal). Twelve twins: the call works a p90 of 8–14 s after :38, so `pr5`/`p50`/`d` stay to 10-28.
   After deploy: conversions £199.98/£99.99, £150/£150 twice, £225/£75, £300 USDT and one USDC "already holds". The 03:45 and 03:50
   sections archived.
-
-### [2026-10-27 04:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **PR5-OPT's three twins built (`0148`)** (sub-agent; not pushed; Davies, 10-27: "…还有哪些可以值得研究和测试的地方…"; frozen
-  `reviews/2026-10-27-pr5-opt-twins-prereg.md`). From 10-29 00:00, 28 days, each £600 on LIVE's rules against `live600`:
-  "variant-4" `live600usdt2` (USDT 2:1, `rules.weights`), "-5" `live600no03` (no 0.3 % rung), "-6" `live600hold1` (£1 holding
-  line, `rules.holdMin`); `d` is "rule-D twin". `quotes_live.ts` options absent on LIVE's instance: with each absent, before its
-  instant and at its neutral setting the executor equals the frozen one turn by turn (four new six-hour pins). Deviations in the
-  six pre-registrations pinning `quotes_twin.ts`. After deploy: 0148 applied, the three rows' first turn after 10-29 00:00 with
-  conversions £199.98 USDT / £99.99 USDC (variant-4) and £150 each (-5, -6). The 10-27 03:40 section archived.

@@ -24,6 +24,8 @@ m = {
   'python3 -I scripts/table.py         # results/table.md: the review\'s candidate table',
   'python3 -I scripts/usdt_weights.py  # results/usdt_weights.json: USDT-GBP 1:1, 3:2, 2:1, 3:1 and alone on every record, by week (variant-6 to -8, 0149); about four minutes',
   'python3 -I scripts/power_usdt.py    # results/power_usdt.json: the bar\'s power for 3:1 and USDT-GBP alone',
+  'python3 -I scripts/grab_text.py <saved reply of each of sql/cb_pulls.sql C1-C5> data_cb && gzip -n -9 data_cb/*.txt',
+  'python3 -I scripts/per_book.py      # results/per_book.json: each book alone on Revolut X and Coinbase, and the two-venue portfolios (PER-BOOK, 2026-10-27); about five minutes',
   'python3 -I scripts/manifest.py'
  ],
  'findings': [
@@ -33,6 +35,7 @@ m = {
   "The 0.3 % rungs' money on the 0.1 / 0.2 % rungs (£75/£75/£0): +1.15 (90 % -0.17 to +2.32), +0.99 HIST, +1.26 LONG; behind in 8 of 39 long-tape weeks.",
   "A rung counted as held only above £1: +0.48 under 'at', +0.05 under 'through', 0 before the £0.10 bot of 10-08; 142 of LIVE's 232 USDT-GBP entry fills since 10-08 were under £1.",
   "USDT-GBP 3:1 (£75 / £25 rungs): +1.64 bps/day FWD at (+12.6 %), +1.77 through, +0.73 HIST, +7.21 LONG (38 of 39 weeks); USDT-GBP alone (£100 rungs): +2.38 (+18.3 %), +3.02, +1.10, +12.43 (38 of 39), worst HIST week -16.83 and worst marked LONG day -24.8 bps against LIVE's rules' -7.8.",
+  "PER-BOOK (2026-10-27-per-book-returns.md): each book alone at £600 (£100 rungs), LIVE's 'at' fill, 10-17 -> 10-27: Revolut X USDT-GBP 16.26 bps/day, USDC-GBP 8.61; Coinbase USDC-GBP 9.39, USDC-EUR 6.75, USDT-GBP 0.43, USDT-EUR -0.50. At £600 in all, Revolut X USDT-GBP alone 16.26 beats £300 of it beside £300 of Coinbase USDC-GBP (13.97); at £1,200 the split (12.82) sits between Revolut X USDT-GBP alone (13.49) and LIVE's 1:1 (12.44).",
   "Weekend off: -5.41 bps/day. Wider ladders, a 0.4 % rung, other re-price steps, exit offsets, shorter stops, time gates, release blackouts, skew, a basis-adjusted fair and a tighter de-peg guard: no better or worse."
  ],
  'files': files,

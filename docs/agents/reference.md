@@ -3480,6 +3480,29 @@ placed), on Davies' "…有没有研究过本质同一赌注的不同问题/市�
 - **Verdict: no tradable same-bet stat-arb at our size.** The SAMEBET-REC paper recorder is specified in §6 of the
   review and not recommended.
 
+### 3.54 PER-BOOK: each stablecoin book alone, and USDT on one venue beside USDC on the other (2026-10-27)
+
+Read 2026-10-27 (`reviews/2026-10-27-per-book-returns.md`, `backtests/pr5_opt/scripts/per_book.py`, `sql/cb_pulls.sql`,
+`data_cb/`; not blind, read-only), on Davies' "…revolut x上usdt和usdc跟coinbase的这两个分别的单独收益率，如果一个光做usdt和一个光做usdc会更好吗？
+正好抵消币的风险".
+- **Basis.** PR5-OPT's replay (LIVE's executor on PR5's engine, "at" fill, weekends quoted). Coinbase runs on its own prints
+  (`cb_trades` by 30-second bucket, from 10-16 10:53), on "with Euros - 2"'s held fair, and with its tick, 0.0045 % taker fee and
+  touch. Common window 10-17 → 10-27.
+- **Each book alone at £600 (£100 rungs), bps of capital a day ("at" / "through"):**
+  - Revolut X USDT-GBP 16.26 / 16.25 (LONG 46.13);
+  - Revolut X USDC-GBP 8.61 / 5.57 (LONG 10.55);
+  - Coinbase USDC-GBP 9.39 / 7.91, USDC-EUR 6.75 / 6.59, USDT-GBP 0.43 / 0.19, USDT-EUR −0.50 / −0.32.
+  - PR5's and the Coinbase paper engines' own records (10-11 → 10-27) rank them the same.
+- **Size.** Revolut X USDT-GBP per pound is 1.00 at £50 rungs, 0.89 at £100, 0.73 at £200; Coinbase USDC-GBP is 0.98 at £100.
+- **Davies' split (Revolut X USDT, Coinbase USDC).**
+  - At £600 in all: 13.97, against 16.26 for USDT alone and 15.75 for 3:1.
+  - At £1,200: 12.82, against 13.49 for USDT alone and 12.44 for 1:1, with smoother days.
+  - The reverse: 5.24.
+- **Risks.** Splitting halves the issuer (de-peg) exposure, as LIVE's 1:1 already does on one venue. It offsets no GBP/USD (both
+  coins are dollars). It adds venue diversification. Coinbase has no live path (§5 of the review).
+- **Verdict.** Revolut X USDT-heavy dominates at £600; variant-6 to -8 price the issuer hedge. No two-venue twin: read
+  variant-8 with Coinbase's USDC record offline. Revisit a second venue past about £1,200 on Revolut X.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.

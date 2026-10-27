@@ -46861,3 +46861,14 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   - holding counted only above £1 is +0.48 (the £0.10 bot since 10-08).
   **For Davies:** three twins against `live600`, 28 days each: `live600usdt2`, `live600no03` and `live600hold1`. Their specs, bar
   and the code they need (`weights`, `holdMin`) are in §4; build no earlier than 10-29, after the 10-28 retirements.
+
+## LEDGER.md, archived 2026-10-27 (fifth) — PR5-OPT's `0148` section of 2026-10-27 04:20 UTC
+
+### [2026-10-27 04:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **PR5-OPT's three twins built (`0148`)** (sub-agent; not pushed; Davies, 10-27: "…还有哪些可以值得研究和测试的地方…"; frozen
+  `reviews/2026-10-27-pr5-opt-twins-prereg.md`). From 10-29 00:00, 28 days, each £600 on LIVE's rules against `live600`:
+  "variant-4" `live600usdt2` (USDT 2:1, `rules.weights`), "-5" `live600no03` (no 0.3 % rung), "-6" `live600hold1` (£1 holding
+  line, `rules.holdMin`); `d` is "rule-D twin". `quotes_live.ts` options absent on LIVE's instance: with each absent, before its
+  instant and at its neutral setting the executor equals the frozen one turn by turn (four new six-hour pins). Deviations in the
+  six pre-registrations pinning `quotes_twin.ts`. After deploy: 0148 applied, the three rows' first turn after 10-29 00:00 with
+  conversions £199.98 USDT / £99.99 USDC (variant-4) and £150 each (-5, -6). The 10-27 03:40 section archived.

@@ -1,0 +1,1245 @@
+{
+ "windows": {
+  "W10": [
+   "2026-10-17",
+   "2026-10-27"
+  ],
+  "FWD": [
+   "2026-09-26",
+   "2026-10-27"
+  ],
+  "HIST": [
+   "2026-08-26",
+   "2026-09-23"
+  ],
+  "LONG": [
+   "2026-01-01",
+   "2026-09-23"
+  ]
+ },
+ "gbpPerEur": 0.84005,
+ "revolutX": {
+  "LIVE 1:1 £600": {
+   "W10_at": {
+    "bpsDay": 14.177,
+    "pctYear": 51.75,
+    "trips": 189,
+    "won": 0.958,
+    "stops": 1,
+    "perTripBps": 15.06,
+    "worstDayBps": 0.65,
+    "maxDrawdownBps": 0.0,
+    "mtmWorstDayBps": 0.87,
+    "mtmMaxDrawdownBps": 0.0,
+    "worstWeekBps": 4.24,
+    "weeks": 3
+   },
+   "W10_through": {
+    "bpsDay": 12.584,
+    "pctYear": 45.93,
+    "trips": 120,
+    "won": 0.933,
+    "stops": 2,
+    "perTripBps": 14.63,
+    "worstDayBps": 1.04,
+    "maxDrawdownBps": 0.0,
+    "mtmWorstDayBps": 1.04,
+    "mtmMaxDrawdownBps": 0.0,
+    "worstWeekBps": 4.27,
+    "weeks": 3
+   },
+   "FWD_at": {
+    "bpsDay": 12.981,
+    "pctYear": 47.38,
+    "trips": 502,
+    "won": 0.954,
+    "stops": 3,
+    "perTripBps": 14.53,
+    "worstDayBps": 0.65,
+    "maxDrawdownBps": 0.0,
+    "mtmWorstDayBps": 0.0,
+    "mtmMaxDrawdownBps": 0.0,
+    "worstWeekBps": 4.24,
+    "weeks": 6
+   },
+   "FWD_through": {
+    "bpsDay": 10.273,
+    "pctYear": 37.5,
+    "trips": 351,
+    "won": 0.94,
+    "stops": 5,
+    "perTripBps": 13.73,
+    "worstDayBps": -3.8,
+    "maxDrawdownBps": 3.8,
+    "mtmWorstDayBps": -3.91,
+    "mtmMaxDrawdownBps": 3.91,
+    "worstWeekBps": 5.95,
+    "weeks": 6
+   },
+   "HIST_at": {
+    "bpsDay": 6.638,
+    "pctYear": 24.23,
+    "trips": 187,
+    "won": 0.925,
+    "stops": 4,
+    "perTripBps": 13.33,
+    "worstDayBps": 0.0,
+    "maxDrawdownBps": 0.0,
+    "mtmWorstDayBps": -0.74,
+    "mtmMaxDrawdownBps": 0.74,
+    "worstWeekBps": 21.21,
+    "weeks": 5
+   },
+   "LONG_at": {
+    "bpsDay": 33.703,
+    "pctYear": 123.02,
+    "trips": 7253,
+    "won": 0.945,
+    "stops": 79,
+    "perTripBps": 16.41,
+    "worstDayBps": 0.0,
+    "maxDrawdownBps": 0.0,
+    "mtmWorstDayBps": -7.84,
+    "mtmMaxDrawdownBps": 7.84,
+    "worstWeekBps": 21.21,
+    "weeks": 39
+   }
+  },
+  "USDT 2:1 £600": {
+   "W10_at": {
+    "bpsDay": 15.531,
+    "pctYear": 56.69,
+    "trips": 188,
+    "won": 0.957,
+    "stops": 1,
+    "perTripBps": 15.78,
+    "worstDayBps": 1.03,
+    "maxDrawdownBps": 0.0,
+    "mtmWorstDayBps": 1.18,
+    "mtmMaxDrawdownBps": 0.0,
+    "worstWeekBps": 3.02,
+    "weeks": 3
+   },
+   "W10_through": {
+    "bpsDay": 14.123,
+    "pctYear": 51.55,
+    "trips": 120,
+    "won": 0.933,
+    "stops": 3,
+    "perTripBps": 15.37,
+    "worstDayBps": 1.04,
+    "maxDrawdownBps": 0.0,
+    "mtmWorstDayBps": 1.04,
+    "mtmMaxDrawdownBps": 0.0,
+    "worstWeekBps": 3.79,
+    "weeks": 3
+   },
+   "FWD_at": {
+    "bpsDay": 14.223,
+    "pctYear": 51.91,
+    "trips": 497,
+    "won": 0.954,
+    "stops": 3,
+    "perTripBps": 15.07,
+    "worstDayBps": 0.73,
+    "maxDrawdownBps": 0.0,
+    "mtmWorstDayBps": 0.0,
+    "mtmMaxDrawdownBps": 0.0,
+    "worstWeekBps": 3.02,
+    "weeks": 6
+   },
+   "FWD_through": {
+    "bpsDay": 11.494,
+    "pctYear": 41.95,
+    "trips": 350,
+    "won": 0.94,
+    "stops": 6,
+    "perTripBps": 14.34,
+    "worstDayBps": -1.58,
+    "maxDrawdownBps": 1.58,
+    "mtmWorstDayBps": -1.66,
+    "mtmMaxDrawdownBps": 1.66,
+    "worstWeekBps": 4.38,
+    "weeks": 6
+   },
+   "HIST_at": {
+    "bpsDay": 7.143,
+    "pctYear": 26.07,
+    "trips": 188,
+    "won": 0.926,
+    "stops": 4,
+    "perTripBps": 13.42,
+    "worstDayBps": 0.0,
+    "maxDrawdownBps": 0.0,
+    "mtmWorstDayBps": -0.12,
+    "mtmMaxDrawdownBps": 0.12,
+    "worstWeekBps": 22.11,
+    "weeks": 5
+   },
+   "LONG_at": {
+    "bpsDay": 38.736,
+    "pctYear": 141.39,
+    "trips": 7114,
+    "won": 0.945,
+    "stops": 76,
+    "perTripBps": 16.7,
+    "worstDayBps": -2.19,
+    "maxDrawdownBps": 2.19,
+    "mtmWorstDayBps": -13.4,
+    "mtmMaxDrawdownBps": 13.4,
+    "worstWeekBps": 22.11,
+    "weeks": 39
+   }
+  },
+  "USDT 3:1 £600": {
+   "W10_at": {
+    "bpsDay": 15.753,
+    "pctYear": 57.5,
+    "trips": 188,
+    "won": 0.963,
+    "stops": 2,
+    "perTripBps": 16.01,
+    "worstDayBps": 1.22,
+    "maxDrawdownBps": 0.0,
+    "mtmWorstDayBps": 1.33,
+    "mtmMaxDrawdownBps": 0.0,
+    "worstWeekBps": 2.41,
+    "weeks": 3
+   },
+   "W10_through": {
+    "bpsDay": 14.884,
+    "pctYear": 54.33,
+    "trips": 123,
+    "won": 0.935,
+    "stops": 3,
+    "perTripBps": 15.69,
+    "worstDayBps": 1.04,
+    "maxDrawdownBps": 0.0,
+    "mtmWorstDayBps": 1.04,
+    "mtmMaxDrawdownBps": 0.0,
+    "worstWeekBps": 3.52,
+    "weeks": 3
+   },
+   "FWD_at": {
+    "bpsDay": 14.62,
+    "pctYear": 53.36,
+    "trips": 496,
+    "won": 0.954,
+    "stops": 4,
+    "perTripBps": 15.31,
+    "worstDayBps": 0.55,
+    "maxDrawdownBps": 0.0,
+    "mtmWorstDayBps": 0.0,
+    "mtmMaxDrawdownBps": 0.0,
+    "worstWeekBps": 2.41,
+    "weeks": 6
+   },
+   "FWD_through": {
+    "bpsDay": 12.039,
+    "pctYear": 43.94,
+    "trips": 350,
+    "won": 0.937,
+    "stops": 6,
+    "perTripBps": 14.63,
+    "worstDayBps": -1.51,
+    "maxDrawdownBps": 1.51,
+    "mtmWorstDayBps": -1.51,
+    "mtmMaxDrawdownBps": 1.51,
+    "worstWeekBps": 3.52,
+    "weeks": 6
+   },
+   "HIST_at": {
+    "bpsDay": 7.367,
+    "pctYear": 26.89,
+    "trips": 189,
+    "won": 0.926,
+    "stops": 4,
+    "perTripBps": 13.49,
+    "worstDayBps": 0.0,
+    "maxDrawdownBps": 0.0,
+    "mtmWorstDayBps": -0.03,
+    "mtmMaxDrawdownBps": 0.03,
+    "worstWeekBps": 21.17,
+    "weeks": 5
+   },
+   "LONG_at": {
+    "bpsDay": 40.918,
+    "pctYear": 149.35,
+    "trips": 7061,
+    "won": 0.945,
+    "stops": 74,
+    "perTripBps": 16.8,
+    "worstDayBps": -3.75,
+    "maxDrawdownBps": 3.75,
+    "mtmWorstDayBps": -16.29,
+    "mtmMaxDrawdownBps": 16.29,
+    "worstWeekBps": 22.55,
+    "weeks": 39
+   }
+  },
+  "USDT only £600": {
+   "W10_at": {
+    "bpsDay": 16.257,
+    "pctYear": 59.34,
+    "trips": 127,
+    "won": 0.961,
+    "stops": 1,
+    "perTripBps": 16.7,
+    "worstDayBps": 0.26,
+    "maxDrawdownBps": 0.0,
+    "mtmWorstDayBps": 0.26,
+    "mtmMaxDrawdownBps": 0.0,
+    "worstWeekBps": 0.26,
+    "weeks": 3
+   },
+   "W10_through": {
+    "bpsDay": 16.248,
+    "pctYear": 59.3,
+    "trips": 76,
+    "won": 0.934,
+    "stops": 1,
+    "perTripBps": 16.36,
+    "worstDayBps": 0.89,
+    "maxDrawdownBps": 0.0,
+    "mtmWorstDayBps": 0.89,
+    "mtmMaxDrawdownBps": 0.0,
+    "worstWeekBps": 0.89,
+    "weeks": 3
+   },
+   "FWD_at": {
+    "bpsDay": 15.362,
+    "pctYear": 56.07,
+    "trips": 326,
+    "won": 0.966,
+    "stops": 3,
+    "perTripBps": 15.84,
+    "worstDayBps": -2.34,
+    "maxDrawdownBps": 2.34,
+    "mtmWorstDayBps": -2.34,
+    "mtmMaxDrawdownBps": 2.34,
+    "worstWeekBps": 0.26,
+    "weeks": 6
+   },
+   "FWD_through": {
+    "bpsDay": 13.293,
+    "pctYear": 48.52,
+    "trips": 225,
+    "won": 0.947,
+    "stops": 4,
+    "perTripBps": 15.31,
+    "worstDayBps": -5.89,
+    "maxDrawdownBps": 5.89,
+    "mtmWorstDayBps": -5.89,
+    "mtmMaxDrawdownBps": 5.89,
+    "worstWeekBps": 0.89,
+    "weeks": 6
+   },
+   "HIST_at": {
+    "bpsDay": 7.736,
+    "pctYear": 28.24,
+    "trips": 109,
+    "won": 0.917,
+    "stops": 1,
+    "perTripBps": 13.58,
+    "worstDayBps": 0.0,
+    "maxDrawdownBps": 0.0,
+    "mtmWorstDayBps": -0.04,
+    "mtmMaxDrawdownBps": 0.04,
+    "worstWeekBps": 12.01,
+    "weeks": 5
+   },
+   "LONG_at": {
+    "bpsDay": 46.131,
+    "pctYear": 168.38,
+    "trips": 4925,
+    "won": 0.959,
+    "stops": 36,
+    "perTripBps": 17.15,
+    "worstDayBps": -8.85,
+    "maxDrawdownBps": 8.85,
+    "mtmWorstDayBps": -24.76,
+    "mtmMaxDrawdownBps": 24.76,
+    "worstWeekBps": 23.45,
+    "weeks": 39
+   }
+  },
+  "USDC only £600": {
+   "W10_at": {
+    "bpsDay": 8.613,
+    "pctYear": 31.44,
+    "trips": 52,
+    "won": 0.942,
+    "stops": 2,
+    "perTripBps": 11.91,
+    "worstDayBps": -0.5,
+    "maxDrawdownBps": 0.5,
+    "mtmWorstDayBps": -0.05,
+    "mtmMaxDrawdownBps": 0.05,
+    "worstWeekBps": 6.32,
+    "weeks": 3
+   },
+   "W10_through": {
+    "bpsDay": 5.569,
+    "pctYear": 20.33,
+    "trips": 39,
+    "won": 0.923,
+    "stops": 3,
+    "perTripBps": 10.21,
+    "worstDayBps": -4.29,
+    "maxDrawdownBps": 4.29,
+    "mtmWorstDayBps": -4.29,
+    "mtmMaxDrawdownBps": 4.29,
+    "worstWeekBps": 4.82,
+    "weeks": 3
+   },
+   "FWD_at": {
+    "bpsDay": 7.662,
+    "pctYear": 27.96,
+    "trips": 146,
+    "won": 0.918,
+    "stops": 2,
+    "perTripBps": 12.05,
+    "worstDayBps": -0.68,
+    "maxDrawdownBps": 0.68,
+    "mtmWorstDayBps": -0.9,
+    "mtmMaxDrawdownBps": 0.9,
+    "worstWeekBps": 5.65,
+    "weeks": 6
+   },
+   "FWD_through": {
+    "bpsDay": 5.013,
+    "pctYear": 18.3,
+    "trips": 111,
+    "won": 0.91,
+    "stops": 3,
+    "perTripBps": 10.31,
+    "worstDayBps": -5.92,
+    "maxDrawdownBps": 5.92,
+    "mtmWorstDayBps": -6.14,
+    "mtmMaxDrawdownBps": 6.14,
+    "worstWeekBps": 5.65,
+    "weeks": 6
+   },
+   "HIST_at": {
+    "bpsDay": 4.72,
+    "pctYear": 17.23,
+    "trips": 75,
+    "won": 0.933,
+    "stops": 4,
+    "perTripBps": 12.77,
+    "worstDayBps": -2.45,
+    "maxDrawdownBps": 2.45,
+    "mtmWorstDayBps": -3.09,
+    "mtmMaxDrawdownBps": 3.09,
+    "worstWeekBps": 18.51,
+    "weeks": 5
+   },
+   "LONG_at": {
+    "bpsDay": 10.549,
+    "pctYear": 38.5,
+    "trips": 1542,
+    "won": 0.89,
+    "stops": 52,
+    "perTripBps": 13.8,
+    "worstDayBps": -29.67,
+    "maxDrawdownBps": 29.67,
+    "mtmWorstDayBps": -20.6,
+    "mtmMaxDrawdownBps": 21.24,
+    "worstWeekBps": 18.51,
+    "weeks": 39
+   }
+  },
+  "LIVE 1:1 £300": {
+   "W10_at": {
+    "bpsDay": 15.6,
+    "pctYear": 56.94,
+    "trips": 194,
+    "won": 0.964,
+    "stops": 1,
+    "perTripBps": 15.18,
+    "worstDayBps": 0.66,
+    "maxDrawdownBps": 0.0,
+    "mtmWorstDayBps": 0.88,
+    "mtmMaxDrawdownBps": 0.0,
+    "worstWeekBps": 4.59,
+    "weeks": 3
+   },
+   "W10_through": {
+    "bpsDay": 13.824,
+    "pctYear": 50.46,
+    "trips": 129,
+    "won": 0.938,
+    "stops": 2,
+    "perTripBps": 14.93,
+    "worstDayBps": 1.2,
+    "maxDrawdownBps": 0.0,
+    "mtmWorstDayBps": 1.2,
+    "mtmMaxDrawdownBps": 0.0,
+    "worstWeekBps": 4.42,
+    "weeks": 3
+   },
+   "FWD_at": {
+    "bpsDay": 14.096,
+    "pctYear": 51.45,
+    "trips": 517,
+    "won": 0.956,
+    "stops": 3,
+    "perTripBps": 14.62,
+    "worstDayBps": 0.66,
+    "maxDrawdownBps": 0.0,
+    "mtmWorstDayBps": 0.0,
+    "mtmMaxDrawdownBps": 0.0,
+    "worstWeekBps": 4.59,
+    "weeks": 6
+   }
+  },
+  "USDT only £300": {
+   "W10_at": {
+    "bpsDay": 18.367,
+    "pctYear": 67.04,
+    "trips": 131,
+    "won": 0.962,
+    "stops": 0,
+    "perTripBps": 17.22,
+    "worstDayBps": 0.29,
+    "maxDrawdownBps": 0.0,
+    "mtmWorstDayBps": 0.29,
+    "mtmMaxDrawdownBps": 0.0,
+    "worstWeekBps": 0.29,
+    "weeks": 3
+   },
+   "W10_through": {
+    "bpsDay": 18.205,
+    "pctYear": 66.45,
+    "trips": 78,
+    "won": 0.936,
+    "stops": 0,
+    "perTripBps": 16.56,
+    "worstDayBps": 0.9,
+    "maxDrawdownBps": 0.0,
+    "mtmWorstDayBps": 0.9,
+    "mtmMaxDrawdownBps": 0.0,
+    "worstWeekBps": 0.9,
+    "weeks": 3
+   },
+   "FWD_at": {
+    "bpsDay": 16.865,
+    "pctYear": 61.56,
+    "trips": 343,
+    "won": 0.968,
+    "stops": 2,
+    "perTripBps": 16.16,
+    "worstDayBps": -1.98,
+    "maxDrawdownBps": 1.98,
+    "mtmWorstDayBps": -1.98,
+    "mtmMaxDrawdownBps": 1.98,
+    "worstWeekBps": 0.29,
+    "weeks": 6
+   }
+  },
+  "USDC only £300": {
+   "W10_at": {
+    "bpsDay": 9.987,
+    "pctYear": 36.45,
+    "trips": 58,
+    "won": 0.948,
+    "stops": 1,
+    "perTripBps": 12.24,
+    "worstDayBps": -0.5,
+    "maxDrawdownBps": 0.5,
+    "mtmWorstDayBps": -0.05,
+    "mtmMaxDrawdownBps": 0.05,
+    "worstWeekBps": 8.19,
+    "weeks": 3
+   },
+   "W10_through": {
+    "bpsDay": 6.964,
+    "pctYear": 25.42,
+    "trips": 42,
+    "won": 0.929,
+    "stops": 2,
+    "perTripBps": 11.22,
+    "worstDayBps": -4.29,
+    "maxDrawdownBps": 4.29,
+    "mtmWorstDayBps": -4.29,
+    "mtmMaxDrawdownBps": 4.29,
+    "worstWeekBps": 4.97,
+    "weeks": 3
+   },
+   "FWD_at": {
+    "bpsDay": 9.097,
+    "pctYear": 33.2,
+    "trips": 159,
+    "won": 0.925,
+    "stops": 1,
+    "perTripBps": 12.24,
+    "worstDayBps": -2.43,
+    "maxDrawdownBps": 2.43,
+    "mtmWorstDayBps": -2.65,
+    "mtmMaxDrawdownBps": 2.65,
+    "worstWeekBps": 5.78,
+    "weeks": 6
+   }
+  },
+  "LIVE 1:1 £1200": {
+   "W10_at": {
+    "bpsDay": 12.435,
+    "pctYear": 45.39,
+    "trips": 179,
+    "won": 0.955,
+    "stops": 3,
+    "perTripBps": 14.66,
+    "worstDayBps": 0.65,
+    "maxDrawdownBps": 0.0,
+    "mtmWorstDayBps": 0.87,
+    "mtmMaxDrawdownBps": 0.0,
+    "worstWeekBps": 3.29,
+    "weeks": 3
+   },
+   "W10_through": {
+    "bpsDay": 10.909,
+    "pctYear": 39.82,
+    "trips": 115,
+    "won": 0.93,
+    "stops": 4,
+    "perTripBps": 14.18,
+    "worstDayBps": 0.52,
+    "maxDrawdownBps": 0.0,
+    "mtmWorstDayBps": 0.52,
+    "mtmMaxDrawdownBps": 0.0,
+    "worstWeekBps": 3.75,
+    "weeks": 3
+   },
+   "FWD_at": {
+    "bpsDay": 11.512,
+    "pctYear": 42.02,
+    "trips": 472,
+    "won": 0.951,
+    "stops": 5,
+    "perTripBps": 14.34,
+    "worstDayBps": 0.65,
+    "maxDrawdownBps": 0.0,
+    "mtmWorstDayBps": 0.0,
+    "mtmMaxDrawdownBps": 0.0,
+    "worstWeekBps": 3.29,
+    "weeks": 6
+   }
+  },
+  "USDT only £1200": {
+   "W10_at": {
+    "bpsDay": 13.489,
+    "pctYear": 49.24,
+    "trips": 123,
+    "won": 0.959,
+    "stops": 2,
+    "perTripBps": 16.32,
+    "worstDayBps": 0.07,
+    "maxDrawdownBps": 0.0,
+    "mtmWorstDayBps": 0.07,
+    "mtmMaxDrawdownBps": 0.0,
+    "worstWeekBps": 0.07,
+    "weeks": 3
+   },
+   "W10_through": {
+    "bpsDay": 12.909,
+    "pctYear": 47.12,
+    "trips": 73,
+    "won": 0.918,
+    "stops": 3,
+    "perTripBps": 15.7,
+    "worstDayBps": 0.45,
+    "maxDrawdownBps": 0.0,
+    "mtmWorstDayBps": 0.45,
+    "mtmMaxDrawdownBps": 0.0,
+    "worstWeekBps": 0.65,
+    "weeks": 3
+   },
+   "FWD_at": {
+    "bpsDay": 13.297,
+    "pctYear": 48.53,
+    "trips": 314,
+    "won": 0.962,
+    "stops": 4,
+    "perTripBps": 15.43,
+    "worstDayBps": -2.6,
+    "maxDrawdownBps": 2.6,
+    "mtmWorstDayBps": -2.6,
+    "mtmMaxDrawdownBps": 2.6,
+    "worstWeekBps": 0.07,
+    "weeks": 6
+   }
+  },
+  "USDC only £1200": {
+   "W10_at": {
+    "bpsDay": 6.917,
+    "pctYear": 25.25,
+    "trips": 52,
+    "won": 0.923,
+    "stops": 3,
+    "perTripBps": 10.94,
+    "worstDayBps": -1.14,
+    "maxDrawdownBps": 1.14,
+    "mtmWorstDayBps": -0.05,
+    "mtmMaxDrawdownBps": 0.05,
+    "worstWeekBps": 3.73,
+    "weeks": 3
+   },
+   "W10_through": {
+    "bpsDay": 4.434,
+    "pctYear": 16.18,
+    "trips": 39,
+    "won": 0.923,
+    "stops": 3,
+    "perTripBps": 9.59,
+    "worstDayBps": -4.29,
+    "maxDrawdownBps": 4.29,
+    "mtmWorstDayBps": -4.29,
+    "mtmMaxDrawdownBps": 4.81,
+    "worstWeekBps": 4.74,
+    "weeks": 3
+   },
+   "FWD_at": {
+    "bpsDay": 6.738,
+    "pctYear": 24.59,
+    "trips": 138,
+    "won": 0.913,
+    "stops": 3,
+    "perTripBps": 12.47,
+    "worstDayBps": -1.14,
+    "maxDrawdownBps": 1.14,
+    "mtmWorstDayBps": -1.39,
+    "mtmMaxDrawdownBps": 1.39,
+    "worstWeekBps": 3.73,
+    "weeks": 6
+   }
+  }
+ },
+ "coinbase": {
+  "USDC-GBP £100 a rung (£600)": {
+   "W10_at": {
+    "bpsDay": 9.391,
+    "pctYear": 34.28,
+    "trips": 43,
+    "won": 0.93,
+    "stops": 2,
+    "perTripBps": 15.0,
+    "worstDayBps": 0.22,
+    "maxDrawdownBps": 0.0,
+    "mtmWorstDayBps": 0.22,
+    "mtmMaxDrawdownBps": 0.0,
+    "worstWeekBps": 11.12,
+    "weeks": 3
+   },
+   "W10_through": {
+    "bpsDay": 7.912,
+    "pctYear": 28.88,
+    "trips": 36,
+    "won": 0.889,
+    "stops": 1,
+    "perTripBps": 14.75,
+    "worstDayBps": -0.06,
+    "maxDrawdownBps": 0.06,
+    "mtmWorstDayBps": -0.06,
+    "mtmMaxDrawdownBps": 0.06,
+    "worstWeekBps": 8.52,
+    "weeks": 3
+   }
+  },
+  "USDC-GBP £50 a rung (£300)": {
+   "W10_at": {
+    "bpsDay": 9.573,
+    "pctYear": 34.94,
+    "trips": 43,
+    "won": 0.93,
+    "stops": 2,
+    "perTripBps": 14.81,
+    "worstDayBps": 0.22,
+    "maxDrawdownBps": 0.0,
+    "mtmWorstDayBps": 0.22,
+    "mtmMaxDrawdownBps": 0.0,
+    "worstWeekBps": 11.27,
+    "weeks": 3
+   },
+   "W10_through": {
+    "bpsDay": 8.34,
+    "pctYear": 30.44,
+    "trips": 36,
+    "won": 0.889,
+    "stops": 1,
+    "perTripBps": 14.74,
+    "worstDayBps": -0.12,
+    "maxDrawdownBps": 0.12,
+    "mtmWorstDayBps": -0.12,
+    "mtmMaxDrawdownBps": 0.12,
+    "worstWeekBps": 8.52,
+    "weeks": 3
+   }
+  },
+  "USDT-GBP £100 a rung (£600)": {
+   "W10_at": {
+    "bpsDay": 0.429,
+    "pctYear": 1.57,
+    "trips": 18,
+    "won": 0.5,
+    "stops": 3,
+    "perTripBps": 2.02,
+    "worstDayBps": -2.01,
+    "maxDrawdownBps": 2.19,
+    "mtmWorstDayBps": -4.89,
+    "mtmMaxDrawdownBps": 4.89,
+    "worstWeekBps": -0.41,
+    "weeks": 3
+   },
+   "W10_through": {
+    "bpsDay": 0.186,
+    "pctYear": 0.68,
+    "trips": 15,
+    "won": 0.667,
+    "stops": 7,
+    "perTripBps": 0.9,
+    "worstDayBps": -3.48,
+    "maxDrawdownBps": 4.97,
+    "mtmWorstDayBps": -6.59,
+    "mtmMaxDrawdownBps": 6.59,
+    "worstWeekBps": -1.48,
+    "weeks": 3
+   }
+  },
+  "USDT-GBP £50 a rung (£300)": {
+   "W10_at": {
+    "bpsDay": 0.5,
+    "pctYear": 1.83,
+    "trips": 18,
+    "won": 0.5,
+    "stops": 3,
+    "perTripBps": 2.1,
+    "worstDayBps": -2.01,
+    "maxDrawdownBps": 2.19,
+    "mtmWorstDayBps": -4.89,
+    "mtmMaxDrawdownBps": 4.89,
+    "worstWeekBps": -0.41,
+    "weeks": 3
+   },
+   "W10_through": {
+    "bpsDay": 0.218,
+    "pctYear": 0.79,
+    "trips": 15,
+    "won": 0.667,
+    "stops": 6,
+    "perTripBps": 0.96,
+    "worstDayBps": -3.48,
+    "maxDrawdownBps": 4.97,
+    "mtmWorstDayBps": -6.59,
+    "mtmMaxDrawdownBps": 7.38,
+    "worstWeekBps": -1.48,
+    "weeks": 3
+   }
+  },
+  "USDC-EUR £100 a rung (£600)": {
+   "W10_at": {
+    "bpsDay": 6.745,
+    "pctYear": 24.62,
+    "trips": 36,
+    "won": 0.639,
+    "stops": 8,
+    "perTripBps": 12.58,
+    "worstDayBps": -0.94,
+    "maxDrawdownBps": 0.94,
+    "mtmWorstDayBps": -0.94,
+    "mtmMaxDrawdownBps": 0.94,
+    "worstWeekBps": 15.63,
+    "weeks": 3
+   },
+   "W10_through": {
+    "bpsDay": 6.594,
+    "pctYear": 24.07,
+    "trips": 29,
+    "won": 0.69,
+    "stops": 7,
+    "perTripBps": 17.45,
+    "worstDayBps": -2.54,
+    "maxDrawdownBps": 3.48,
+    "mtmWorstDayBps": -2.54,
+    "mtmMaxDrawdownBps": 3.48,
+    "worstWeekBps": 7.85,
+    "weeks": 3
+   }
+  },
+  "USDC-EUR £50 a rung (£300)": {
+   "W10_at": {
+    "bpsDay": 6.779,
+    "pctYear": 24.74,
+    "trips": 36,
+    "won": 0.639,
+    "stops": 8,
+    "perTripBps": 11.91,
+    "worstDayBps": -0.94,
+    "maxDrawdownBps": 0.94,
+    "mtmWorstDayBps": -0.94,
+    "mtmMaxDrawdownBps": 0.94,
+    "worstWeekBps": 15.98,
+    "weeks": 3
+   },
+   "W10_through": {
+    "bpsDay": 6.576,
+    "pctYear": 24.0,
+    "trips": 29,
+    "won": 0.69,
+    "stops": 7,
+    "perTripBps": 16.8,
+    "worstDayBps": -2.27,
+    "maxDrawdownBps": 3.21,
+    "mtmWorstDayBps": -2.27,
+    "mtmMaxDrawdownBps": 3.21,
+    "worstWeekBps": 8.61,
+    "weeks": 3
+   }
+  },
+  "USDT-EUR £100 a rung (£600)": {
+   "W10_at": {
+    "bpsDay": -0.504,
+    "pctYear": -1.84,
+    "trips": 18,
+    "won": 0.444,
+    "stops": 8,
+    "perTripBps": -1.78,
+    "worstDayBps": -10.1,
+    "maxDrawdownBps": 10.7,
+    "mtmWorstDayBps": -4.97,
+    "mtmMaxDrawdownBps": 6.75,
+    "worstWeekBps": -8.4,
+    "weeks": 3
+   },
+   "W10_through": {
+    "bpsDay": -0.321,
+    "pctYear": -1.17,
+    "trips": 17,
+    "won": 0.412,
+    "stops": 8,
+    "perTripBps": -1.13,
+    "worstDayBps": -10.1,
+    "maxDrawdownBps": 10.7,
+    "mtmWorstDayBps": -4.97,
+    "mtmMaxDrawdownBps": 6.14,
+    "worstWeekBps": -5.61,
+    "weeks": 3
+   }
+  },
+  "USDT-EUR £50 a rung (£300)": {
+   "W10_at": {
+    "bpsDay": -0.5,
+    "pctYear": -1.83,
+    "trips": 18,
+    "won": 0.444,
+    "stops": 8,
+    "perTripBps": -1.76,
+    "worstDayBps": -10.1,
+    "maxDrawdownBps": 10.7,
+    "mtmWorstDayBps": -4.97,
+    "mtmMaxDrawdownBps": 6.75,
+    "worstWeekBps": -8.4,
+    "weeks": 3
+   },
+   "W10_through": {
+    "bpsDay": -0.321,
+    "pctYear": -1.17,
+    "trips": 17,
+    "won": 0.412,
+    "stops": 8,
+    "perTripBps": -1.13,
+    "worstDayBps": -10.1,
+    "maxDrawdownBps": 10.7,
+    "mtmWorstDayBps": -4.97,
+    "mtmMaxDrawdownBps": 6.14,
+    "worstWeekBps": -5.61,
+    "weeks": 3
+   }
+  }
+ },
+ "portfolios": {
+  "W10_at": {
+   "£600: RX LIVE 1:1": {
+    "bpsDay": 14.177,
+    "worstDayBps": 0.65,
+    "worstWeekBps": 4.24,
+    "parts": [
+     14.177
+    ]
+   },
+   "£600: RX USDT 3:1": {
+    "bpsDay": 15.753,
+    "worstDayBps": 1.22,
+    "worstWeekBps": 2.41,
+    "parts": [
+     15.753
+    ]
+   },
+   "£600: RX USDT only": {
+    "bpsDay": 16.257,
+    "worstDayBps": 0.26,
+    "worstWeekBps": 0.26,
+    "parts": [
+     16.257
+    ]
+   },
+   "£600: RX USDT only £300 + CB USDC-GBP £300": {
+    "bpsDay": 13.97,
+    "worstDayBps": 3.45,
+    "worstWeekBps": 5.78,
+    "parts": [
+     18.367,
+     9.573
+    ]
+   },
+   "£600: RX USDC only £300 + CB USDT-GBP £300 (the reverse)": {
+    "bpsDay": 5.244,
+    "worstDayBps": -0.1,
+    "worstWeekBps": 4.02,
+    "parts": [
+     9.987,
+     0.5
+    ]
+   },
+   "£1,200: RX LIVE 1:1": {
+    "bpsDay": 12.435,
+    "worstDayBps": 0.65,
+    "worstWeekBps": 3.29,
+    "parts": [
+     12.435
+    ]
+   },
+   "£1,200: RX USDT only": {
+    "bpsDay": 13.489,
+    "worstDayBps": 0.07,
+    "worstWeekBps": 0.07,
+    "parts": [
+     13.489
+    ]
+   },
+   "£1,200: RX USDT only £600 + CB USDC-GBP £600": {
+    "bpsDay": 12.824,
+    "worstDayBps": 3.0,
+    "worstWeekBps": 5.69,
+    "parts": [
+     16.257,
+     9.391
+    ]
+   },
+   "£1,200: RX USDT only £600 + CB USDC-GBP £300 + USDC-EUR £300": {
+    "bpsDay": 12.217,
+    "worstDayBps": 3.68,
+    "worstWeekBps": 10.45,
+    "parts": [
+     16.257,
+     9.573,
+     6.779
+    ]
+   },
+   "£1,200: RX USDT 3:1 £600 + CB USDC-GBP £600": {
+    "bpsDay": 12.572,
+    "worstDayBps": 3.48,
+    "worstWeekBps": 6.76,
+    "parts": [
+     15.753,
+     9.391
+    ]
+   },
+   "£1,200: RX USDC only £600 + CB USDT-GBP £600 (the reverse)": {
+    "bpsDay": 4.521,
+    "worstDayBps": -0.18,
+    "worstWeekBps": 3.35,
+    "parts": [
+     8.613,
+     0.429
+    ]
+   },
+   "£1,200: RX USDT only £600 + CB USDT-GBP £600": {
+    "bpsDay": 8.343,
+    "worstDayBps": 0.32,
+    "worstWeekBps": 0.32,
+    "parts": [
+     16.257,
+     0.429
+    ]
+   }
+  },
+  "W10_through": {
+   "£600: RX LIVE 1:1": {
+    "bpsDay": 12.584,
+    "worstDayBps": 1.04,
+    "worstWeekBps": 4.27,
+    "parts": [
+     12.584
+    ]
+   },
+   "£600: RX USDT 3:1": {
+    "bpsDay": 14.884,
+    "worstDayBps": 1.04,
+    "worstWeekBps": 3.52,
+    "parts": [
+     14.884
+    ]
+   },
+   "£600: RX USDT only": {
+    "bpsDay": 16.248,
+    "worstDayBps": 0.89,
+    "worstWeekBps": 0.89,
+    "parts": [
+     16.248
+    ]
+   },
+   "£600: RX USDT only £300 + CB USDC-GBP £300": {
+    "bpsDay": 13.273,
+    "worstDayBps": 3.01,
+    "worstWeekBps": 4.71,
+    "parts": [
+     18.205,
+     8.34
+    ]
+   },
+   "£600: RX USDC only £300 + CB USDT-GBP £300 (the reverse)": {
+    "bpsDay": 3.591,
+    "worstDayBps": -3.13,
+    "worstWeekBps": 1.74,
+    "parts": [
+     6.964,
+     0.218
+    ]
+   },
+   "£1,200: RX LIVE 1:1": {
+    "bpsDay": 10.909,
+    "worstDayBps": 0.52,
+    "worstWeekBps": 3.75,
+    "parts": [
+     10.909
+    ]
+   },
+   "£1,200: RX USDT only": {
+    "bpsDay": 12.909,
+    "worstDayBps": 0.45,
+    "worstWeekBps": 0.65,
+    "parts": [
+     12.909
+    ]
+   },
+   "£1,200: RX USDT only £600 + CB USDC-GBP £600": {
+    "bpsDay": 12.08,
+    "worstDayBps": 2.56,
+    "worstWeekBps": 4.71,
+    "parts": [
+     16.248,
+     7.912
+    ]
+   },
+   "£1,200: RX USDT only £600 + CB USDC-GBP £300 + USDC-EUR £300": {
+    "bpsDay": 11.853,
+    "worstDayBps": 3.59,
+    "worstWeekBps": 10.84,
+    "parts": [
+     16.248,
+     8.34,
+     6.576
+    ]
+   },
+   "£1,200: RX USDT 3:1 £600 + CB USDC-GBP £600": {
+    "bpsDay": 11.398,
+    "worstDayBps": 2.64,
+    "worstWeekBps": 6.02,
+    "parts": [
+     14.884,
+     7.912
+    ]
+   },
+   "£1,200: RX USDC only £600 + CB USDT-GBP £600 (the reverse)": {
+    "bpsDay": 2.878,
+    "worstDayBps": -2.65,
+    "worstWeekBps": 1.67,
+    "parts": [
+     5.569,
+     0.186
+    ]
+   },
+   "£1,200: RX USDT only £600 + CB USDT-GBP £600": {
+    "bpsDay": 8.217,
+    "worstDayBps": -0.31,
+    "worstWeekBps": 0.59,
+    "parts": [
+     16.248,
+     0.186
+    ]
+   }
+  }
+ },
+ "engines": {
+  "cb_hold USDC-EUR": {
+   "bpsDay": 2.02,
+   "trips": 29,
+   "bpsTrip": 5.85,
+   "days": 14,
+   "worstDayBps": -13.29
+  },
+  "cb_hold USDC-GBP": {
+   "bpsDay": 5.09,
+   "trips": 47,
+   "bpsTrip": 11.02,
+   "days": 14,
+   "worstDayBps": -4.65
+  },
+  "cb_hold USDT-EUR": {
+   "bpsDay": -0.23,
+   "trips": 29,
+   "bpsTrip": -0.66,
+   "days": 14,
+   "worstDayBps": -26.31
+  },
+  "cb_hold USDT-GBP": {
+   "bpsDay": -0.16,
+   "trips": 25,
+   "bpsTrip": -0.7,
+   "days": 14,
+   "worstDayBps": -4.63
+  },
+  "cb_quote USDC-EUR": {
+   "bpsDay": 2.41,
+   "trips": 28,
+   "bpsTrip": 8.25,
+   "days": 16,
+   "worstDayBps": -13.29
+  },
+  "cb_quote USDC-GBP": {
+   "bpsDay": 2.83,
+   "trips": 38,
+   "bpsTrip": 8.78,
+   "days": 16,
+   "worstDayBps": -4.65
+  },
+  "cb_quote USDT-EUR": {
+   "bpsDay": -0.4,
+   "trips": 25,
+   "bpsTrip": -1.52,
+   "days": 16,
+   "worstDayBps": -26.31
+  },
+  "cb_quote USDT-GBP": {
+   "bpsDay": -0.29,
+   "trips": 20,
+   "bpsTrip": -1.98,
+   "days": 16,
+   "worstDayBps": -6.99
+  },
+  "rx_pr5 USDC-GBP": {
+   "bpsDay": 2.74,
+   "trips": 60,
+   "bpsTrip": 8.84,
+   "days": 16,
+   "worstDayBps": -2.98
+  },
+  "rx_pr5 USDT-GBP": {
+   "bpsDay": 7.1,
+   "trips": 131,
+   "bpsTrip": 14.49,
+   "days": 16,
+   "worstDayBps": 1.55
+  }
+ }
+}

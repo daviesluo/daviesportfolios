@@ -12,6 +12,8 @@
   "python3 -I scripts/table.py         # results/table.md: the review's candidate table",
   "python3 -I scripts/usdt_weights.py  # results/usdt_weights.json: USDT-GBP 1:1, 3:2, 2:1, 3:1 and alone on every record, by week (variant-6 to -8, 0149); about four minutes",
   "python3 -I scripts/power_usdt.py    # results/power_usdt.json: the bar's power for 3:1 and USDT-GBP alone",
+  "python3 -I scripts/grab_text.py <saved reply of each of sql/cb_pulls.sql C1-C5> data_cb && gzip -n -9 data_cb/*.txt",
+  "python3 -I scripts/per_book.py      # results/per_book.json: each book alone on Revolut X and Coinbase, and the two-venue portfolios (PER-BOOK, 2026-10-27); about five minutes",
   "python3 -I scripts/manifest.py"
  ],
  "findings": [
@@ -21,6 +23,7 @@
   "The 0.3 % rungs' money on the 0.1 / 0.2 % rungs (£75/£75/£0): +1.15 (90 % -0.17 to +2.32), +0.99 HIST, +1.26 LONG; behind in 8 of 39 long-tape weeks.",
   "A rung counted as held only above £1: +0.48 under 'at', +0.05 under 'through', 0 before the £0.10 bot of 10-08; 142 of LIVE's 232 USDT-GBP entry fills since 10-08 were under £1.",
   "USDT-GBP 3:1 (£75 / £25 rungs): +1.64 bps/day FWD at (+12.6 %), +1.77 through, +0.73 HIST, +7.21 LONG (38 of 39 weeks); USDT-GBP alone (£100 rungs): +2.38 (+18.3 %), +3.02, +1.10, +12.43 (38 of 39), worst HIST week -16.83 and worst marked LONG day -24.8 bps against LIVE's rules' -7.8.",
+  "PER-BOOK (2026-10-27-per-book-returns.md): each book alone at £600 (£100 rungs), LIVE's 'at' fill, 10-17 -> 10-27: Revolut X USDT-GBP 16.26 bps/day, USDC-GBP 8.61; Coinbase USDC-GBP 9.39, USDC-EUR 6.75, USDT-GBP 0.43, USDT-EUR -0.50. At £600 in all, Revolut X USDT-GBP alone 16.26 beats £300 of it beside £300 of Coinbase USDC-GBP (13.97); at £1,200 the split (12.82) sits between Revolut X USDT-GBP alone (13.49) and LIVE's 1:1 (12.44).",
   "Weekend off: -5.41 bps/day. Wider ladders, a 0.4 % rung, other re-price steps, exit offsets, shorter stops, time gates, release blackouts, skew, a basis-adjusted fair and a tighter de-peg guard: no better or worse."
  ],
  "files": [
@@ -45,6 +48,36 @@
    "sha256": "e4a20367891a0536a8a10d81c550d00cd5db95b127e020b9bc8624f3af3fc458"
   },
   {
+   "path": "data_cb/cb_USDC-EUR.txt.gz",
+   "bytes": 399840,
+   "sha256": "a832e91ab1e6ca44e871fdb7e4c1b40916ff127e517b2fd344b9ef4e3838245f"
+  },
+  {
+   "path": "data_cb/cb_USDC-GBP.txt.gz",
+   "bytes": 193958,
+   "sha256": "eb055854c67948a5057087e44b38f7a8be9f8b049846c9acea39f500590a282f"
+  },
+  {
+   "path": "data_cb/cb_USDT-EUR.txt.gz",
+   "bytes": 211653,
+   "sha256": "86ae4b4da70300614a744f85c97e552d6b8db73f3aa666845f7944ce542205db"
+  },
+  {
+   "path": "data_cb/cb_USDT-GBP.txt.gz",
+   "bytes": 115276,
+   "sha256": "f4ea2328d1c69f80af5631a3f532275dbdd79501b7e77684847f33a404778249"
+  },
+  {
+   "path": "data_cb/cb_minutes.txt.gz",
+   "bytes": 264764,
+   "sha256": "f249e0c0e58c5e0af1208339c6baa67843c84c1fd56066dec6bcd28db376907d"
+  },
+  {
+   "path": "data_cb/engine_books.json",
+   "bytes": 2144,
+   "sha256": "160982cec60dbfe905586ea9a3f7813db447aff0fb325206275aa926bf15aea9"
+  },
+  {
    "path": "results/calibration.json",
    "bytes": 3582,
    "sha256": "76482ced137e7cefd620a78bc13f42f24b71852e356e3e2aaae6e7107947852d"
@@ -63,6 +96,11 @@
    "path": "results/experiments.json",
    "bytes": 196287,
    "sha256": "3377e7a4d38efb0c0050d45b251aac35bc204daa0e03aed9facd3f2a90972122"
+  },
+  {
+   "path": "results/per_book.json",
+   "bytes": 25186,
+   "sha256": "7a5a9ae844ef3e4be80ac5c47ffa3e36058f99f6a789304d5075001bb1c0feed"
   },
   {
    "path": "results/power.json",
@@ -116,8 +154,13 @@
   },
   {
    "path": "scripts/manifest.py",
-   "bytes": 4427,
-   "sha256": "71f97b2fdec9690b35ca5ddca89937fbdb7c05b9a4ea54e66fee9e72ed262edd"
+   "bytes": 5178,
+   "sha256": "3f0b41ae0d9e9e932df76840a4f798d1c8737799cae46fb2edd92d63a3e5ff1b"
+  },
+  {
+   "path": "scripts/per_book.py",
+   "bytes": 9488,
+   "sha256": "69e0d52436ce03cd9502ea41bc837f8bf4a06547218f28c131a565ae997137c0"
   },
   {
    "path": "scripts/power.py",
@@ -148,6 +191,11 @@
    "path": "scripts/usdt_weights.py",
    "bytes": 2242,
    "sha256": "f936c30ab0d5b4eaa9a658a1991d9ad8e74b0d9dc439602c5751c2f6db5b4557"
+  },
+  {
+   "path": "sql/cb_pulls.sql",
+   "bytes": 3128,
+   "sha256": "e891fb5fc970df2c9c54ce0ceb60db330f9e1f56a2ed85de7fd5530ad481fa56"
   },
   {
    "path": "sql/pulls.sql",
