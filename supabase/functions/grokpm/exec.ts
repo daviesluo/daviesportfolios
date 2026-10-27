@@ -21,6 +21,10 @@
 //                term of `GROKPM_RULES.thinCap` holds (`thinCapRefusals`); a refusal names `thin_cap` and the term. Its
 //                market is a D15 market while it holds or rests anything: every buy there is held to $5 at cost. The
 //                minute's sync cancels a D15 order once its market is inside the cut (`cutThinCapOrders`).
+//   D16          (2026-10-27, the first orders' review) a resting B bid is asked for the full 65 minutes and kept across a
+//                wake; the server needs no change (the clamp above, D15's cut, the sync's cancels), and pins it.
+//   D17          (2026-10-27) the outcome markets of one event (Gamma's `negRiskMarketID`, stored on each order) count
+//                as one market for the $10 cap and D15's $5 (`eventKeyOf`, `eventCostUsd`).
 // Live sends need, besides: eu-west-1, the config armed (`dry_run` false, `armed_at` set), the key loaded for the stored
 // signer, Davies' Ireland attestation current, the account's geoblock read from here answering country IE, no global
 // pause, no other order path of the account armed, and the account not closed-only (for a BUY). Disarmed, everything is
@@ -100,6 +104,8 @@ export type GrokOrderRow = {
   thin_cap?: boolean | null; cut_at?: string | null;
   /** 0143: the body's `event_at` as sent, and what the server read and computed for the order (`orderChecks`). */
   event_at?: string | null; checks?: unknown;
+  /** Deviation D17 (0147): Gamma's `negRiskMarketID` of the order's market (null when not negative-risk), its event's key. */
+  neg_risk_market_id?: string | null;
 };
 export type GrokFillRow = {
   trade_id: string; hash: string; cond: string; token: string; side: "BUY" | "SELL"; price: number | string; size: number | string; fee_usd: number | string;
@@ -110,6 +116,8 @@ const isOpen = (o: Pick<GrokOrderRow, "state">) => o.state === "pending" || o.st
 /** A market as Gamma describes it, reduced to what the rules read. */
 export type GrokMarket = {
   cond: string; question: string; tokens: string[]; outcomes: string[]; endDate: string | null; negRisk: boolean; closed: boolean; accepting: boolean;
+  /** Deviation D17: the negative-risk group (Gamma's `negRiskMarketID`) every outcome market of one event shares; null when none. */
+  negRiskId: string | null;
   tick: number | null; minSize: number | null; feeType: string | null; sports: boolean; crypto: boolean; gameStartTime: string | null; tags: string[];
   payouts: number[] | null;
 };
@@ -132,6 +140,7 @@ export function marketOf(m: Record<string, unknown> | undefined): GrokMarket | n
   return {
     cond, question: String(m.question ?? "").slice(0, 300), tokens, outcomes: parseList(m.outcomes), endDate: typeof m.endDate === "string" ? m.endDate : null,
     negRisk: m.negRisk === true, closed, accepting: m.acceptingOrders === true && m.enableOrderBook !== false && !closed,
+    negRiskId: m.negRisk === true && COND.test(String(m.negRiskMarketID ?? "").toLowerCase()) ? String(m.negRiskMarketID).toLowerCase() : null,
     tick: Number.isFinite(Number(m.orderPriceMinTickSize)) && Number(m.orderPriceMinTickSize) > 0 ? Number(m.orderPriceMinTickSize) : null,
     minSize: Number.isFinite(Number(m.orderMinSize)) && Number(m.orderMinSize) > 0 ? Number(m.orderMinSize) : null,
     feeType, gameStartTime: gst, tags,
@@ -185,7 +194,21 @@ export type GrokLedger = {
   openConds: string[];
   /** D15: the markets open (held or resting) that hold or rest a D15 order, and the markets with a resting buy. */
   thinCapConds: string[]; restingBuyConds: string[];
+  /** D17: each market's event key (its negative-risk group, or the market itself), and the cost at cost of each event open. */
+  eventOf: Record<string, string>; costByEvent: Record<string, number>;
 };
+/**
+ * Deviation D17 (2026-10-27): the outcome markets of one event (one negative-risk group) count as one market for the $10
+ * cap and D15's $5. The key is Gamma's `negRiskMarketID` as the market read gives it, else what the agent's orders stored,
+ * else the market itself; a market the book holds under another key still counts when it is this market.
+ */
+export function eventKeyOf(L: Pick<GrokLedger, "eventOf">, cond: string, market: Pick<GrokMarket, "negRiskId"> | null): string {
+  return market?.negRiskId ?? L.eventOf[cond] ?? cond;
+}
+/** What an event holds at cost (held and resting buys), every market of it counted once. */
+export function eventCostUsd(L: Pick<GrokLedger, "eventOf" | "costByCond">, key: string, cond: string): number {
+  return r6(Object.entries(L.costByCond).filter(([c]) => c === cond || (L.eventOf[c] ?? c) === key).reduce((s, [, v]) => s + v, 0));
+}
 /**
  * The agent's book from its own orders and fills only. `orders` are the current mode's (dry-run counts its own resting
  * orders the same way, so its answers are live's); `fills` are the live orders' (a dry-run order never fills).
@@ -235,6 +258,11 @@ export function ledgerOf(p: {
   const costByTheme: Record<string, number> = {};
   for (const [cond, c] of Object.entries(costByCond)) { const t = themeOf[cond] ?? "(none)"; costByTheme[t] = r6((costByTheme[t] ?? 0) + c); }
   for (const k of Object.keys(costByCond)) costByCond[k] = r6(costByCond[k]);
+  // D17: a market's event is the negative-risk group its orders stored (the newest that names one), else the market.
+  const eventOf: Record<string, string> = {};
+  for (const o of [...p.orders].sort((a, b) => a.id - b.id)) if (o.neg_risk_market_id || !(o.cond in eventOf)) eventOf[o.cond] = o.neg_risk_market_id || eventOf[o.cond] || o.cond;
+  const costByEvent: Record<string, number> = {};
+  for (const [cond, c] of Object.entries(costByCond)) { const e = eventOf[cond] ?? cond; costByEvent[e] = r6((costByEvent[e] ?? 0) + c); }
   // The total is the equity less the budget: the trades' cash and what is held at its mark (`bookPnl`'s total less fees).
   const total = cash + heldValue - p.fundedUsd;
   return {
@@ -244,6 +272,7 @@ export function ledgerOf(p: {
     // A market stays a D15 market while it holds or rests anything after a D15 order (its fills, a partial fill's rest).
     thinCapConds: [...new Set(p.orders.filter((o) => o.thin_cap === true).map((o) => o.cond))].filter((c) => (costByCond[c] ?? 0) > 1e-9).sort(),
     restingBuyConds: [...new Set(p.orders.filter((o) => isOpen(o) && o.side === "BUY").map((o) => o.cond))].sort(),
+    eventOf, costByEvent,
   };
 }
 
@@ -283,6 +312,8 @@ export type OrderPlan = {
   token: string; cond: string; side: "BUY" | "SELL"; price: number; size: number; postOnly: boolean; tick: PmTickSize; minSize: number; negRisk: boolean; expiration: number;
   /** Deviation D15: sent under the thin rule's capped exception, and the time it must be gone by. */
   thinCap?: boolean; cutAt?: string | null;
+  /** Deviation D17: the market's negative-risk group as Gamma gave it (stored with the order), and its event's key. */
+  negRiskId?: string | null; eventKey?: string;
 };
 /**
  * Every rule an order breaks, given the agent's own book, the market as Gamma has it, the token's book now, today's
@@ -315,6 +346,9 @@ export function orderRefusals(p: {
     const L = p.ledger;
     const cost = price * size;
     const inMarket = (L.costByCond[cond] ?? 0) + cost;
+    // Deviation D17: the event's outcome markets together, for the $10 cap and D15's $5.
+    const eventKey = eventKeyOf(L, cond, m), inEvent = r6(eventCostUsd(L, eventKey, cond) + cost), others = inEvent > inMarket + 1e-9;
+    const what = others ? `this market and the other outcomes of its event (D17) would hold $${inEvent.toFixed(2)}` : `this market would hold $${inEvent.toFixed(2)}`;
     if (price < R.longshotUnder) out.push({ rule: "longshot", why: `a buy under ${R.longshotUnder} is forbidden` });
     if (price >= R.favouriteMin && d.category !== "A") out.push({ rule: "favourite", why: `a buy at ${R.favouriteMin} or above is category A only` });
     // Deviation D3: §2's own bars, checked here rather than left to the agent. The edge is taken against the dearer of the
@@ -343,7 +377,7 @@ export function orderRefusals(p: {
     else if (p.totalStopped) out.push({ rule: "total_stop", why: `the total stop (−${p.totalStopUsd}) was reached earlier: close only to the end of the test` });
     if (p.dayPnlUsd <= -p.dailyLossUsd) out.push({ rule: "day_stop", why: `the UTC day is ${p.dayPnlUsd.toFixed(2)}, at or past −${p.dailyLossUsd}: no new open until 00:00 UTC` });
     else if (p.dayStopped) out.push({ rule: "day_stop", why: `the day stop (−${p.dailyLossUsd}) was reached earlier today: no new open until 00:00 UTC` });
-    if (inMarket > R.marketCapUsd + 1e-9) out.push({ rule: "market_cap", why: `this market would hold ${inMarket.toFixed(2)} at cost, over ${R.marketCapUsd}` });
+    if (inEvent > R.marketCapUsd + 1e-9) out.push({ rule: "market_cap", why: `${what} at cost, over ${R.marketCapUsd}` });
     if (!L.openConds.includes(cond) && L.openConds.length >= R.maxPositions) out.push({ rule: "positions", why: `${L.openConds.length} markets open, at most ${R.maxPositions}` });
     const theme = L.themeOf[cond] ?? p.theme;
     if (!p.theme) out.push({ rule: "theme", why: "an open names its theme (`theme`)" });
@@ -365,15 +399,17 @@ export function orderRefusals(p: {
         if (wide) out.push({ rule: "thin", why: `the spread is ${(b.spread! * 100).toFixed(1)} points, over 5` });
         // Deviation D15: thin for its depth alone, in category B, the capped exception's terms decide instead.
         if (shallow && !wide && d.category === "B") {
-          thinCap = thinCapRefusals({ cond, cost, inMarket, depthUsd: b.bidDepthUsd, ledger: L, market: m, nowMs: p.nowMs, expirationS: exp.expiration, eventAt: p.eventAt, ordersToday: p.ordersToday });
+          thinCap = thinCapRefusals({ cond, cost, inMarket: inEvent, eventOthers: others, depthUsd: b.bidDepthUsd, ledger: L, market: m, nowMs: p.nowMs, expirationS: exp.expiration, eventAt: p.eventAt, ordersToday: p.ordersToday });
           out.push(...thinCap.refusals);
         } else if (shallow) out.push({ rule: "thin", why: `$${b.bidDepthUsd.toFixed(0)} bid within 5 points of the mid, under $${R.thinDepthUsd}` });
         if (b.bestAsk !== null && price >= b.bestAsk - 1e-9) out.push({ rule: "post_only", why: `a buy at ${price} would take the ask ${b.bestAsk}: an open rests (post-only)` });
       }
     }
-    // A D15 market holds at most $5 at cost whatever its book is now, every buy there (category C's included).
-    if (!thinCap && L.thinCapConds.includes(cond) && inMarket > R.thinCap.maxUsd + 1e-9) {
-      out.push({ rule: "thin_cap", why: `cap: this market holds a D15 position, so at most $${R.thinCap.maxUsd} at cost; it would hold $${inMarket.toFixed(2)}` });
+    // A D15 market holds at most $5 at cost whatever its book is now, every buy there (category C's included); under D17,
+    // every market of an event one of whose markets is a D15 market, the event's markets together.
+    const thinEvent = L.thinCapConds.some((c) => c === cond || (L.eventOf[c] ?? c) === eventKey);
+    if (!thinCap && thinEvent && inEvent > R.thinCap.maxUsd + 1e-9) {
+      out.push({ rule: "thin_cap", why: `cap: ${L.thinCapConds.includes(cond) ? "this market holds" : "another outcome of this event holds"} a D15 position, so at most $${R.thinCap.maxUsd} at cost; ${what}` });
     }
   } else {
     const h = p.ledger.held[token];
@@ -389,6 +425,7 @@ export function orderRefusals(p: {
   if (b?.tick && b.minSize) for (const why of orderProblems({ price, size, expiration: exp.expiration }, { tick: b.tick, minSize: b.minSize, nowS: Math.floor(p.nowMs / 1000) })) out.push({ rule: "venue", why });
   const plan = b?.tick && b.minSize ? {
     token, cond, side, price, size, postOnly, tick: b.tick, minSize: b.minSize, negRisk: m?.negRisk ?? b.negRisk, expiration: exp.expiration,
+    negRiskId: m?.negRiskId ?? null, eventKey: eventKeyOf(p.ledger, cond, m),
     thinCap: !!thinCap && !thinCap.refusals.length, cutAt: thinCap && !thinCap.refusals.length && thinCap.cutMs !== null ? iso(thinCap.cutMs) : null,
   } : null;
   return { refusals: out, plan };
@@ -402,6 +439,8 @@ export function orderRefusals(p: {
 export function thinCapRefusals(p: {
   cond: string; cost: number; inMarket: number; depthUsd: number; ledger: GrokLedger; market: GrokMarket | null; nowMs: number; expirationS: number;
   eventAt: string | null | undefined; ordersToday: number;
+  /** D17: `inMarket` counts the other outcome markets of its event too (worded so). */
+  eventOthers?: boolean;
 }): { refusals: Refusal[]; cutMs: number | null } {
   const T = GROKPM_RULES.thinCap, out: Refusal[] = [];
   const end = p.market ? timeMs(p.market.endDate) : null;
@@ -420,7 +459,7 @@ export function thinCapRefusals(p: {
   }
   const capUsd = Math.min(T.maxUsd, T.depthShare * p.depthUsd);
   if (p.inMarket > capUsd + 1e-9) {
-    out.push({ rule: "thin_cap", why: `size: this market would hold $${p.inMarket.toFixed(2)} at cost, over the smaller of $${T.maxUsd} and a quarter of the $${p.depthUsd.toFixed(2)} bid depth within 5 points: at most $${capUsd.toFixed(2)}` });
+    out.push({ rule: "thin_cap", why: `size: this market${p.eventOthers ? " and the other outcomes of its event (D17)" : ""} would hold $${p.inMarket.toFixed(2)} at cost, over the smaller of $${T.maxUsd} and a quarter of the $${p.depthUsd.toFixed(2)} bid depth within 5 points: at most $${capUsd.toFixed(2)}` });
   }
   if (p.ledger.restingBuyConds.includes(p.cond)) out.push({ rule: "thin_cap", why: "one bid: a buy of yours already rests in this market; cancel it or let it expire first" });
   if (!p.ledger.thinCapConds.includes(p.cond) && p.ledger.thinCapConds.length >= T.maxMarkets) {
@@ -668,7 +707,7 @@ export function accountView(c: ExecContext, nowMs: number) {
       can_open: L.totalUsd > -totalLimit && c.dayPnlUsd > -dayLimit && !c.dayStopAt && !c.totalStopAt, day_stop_hit_at: c.dayStopAt, total_stop_hit_at: c.totalStopAt,
       settled_usd: L.settledUsd, orders_today: c.ordersToday, max_orders_day: cfg.max_orders_day,
       markets_open: L.openConds.length, max_markets: GROKPM_RULES.maxPositions, market_cap_usd: GROKPM_RULES.marketCapUsd,
-      theme_cap_usd: GROKPM_RULES.themeCapUsd, cost_by_theme: L.costByTheme, cost_by_market: L.costByCond,
+      theme_cap_usd: GROKPM_RULES.themeCapUsd, cost_by_theme: L.costByTheme, cost_by_market: L.costByCond, cost_by_event: L.costByEvent,
       // Deviation D15: the thin rule's capped exception, as the agent's account shows it.
       thin_cap_markets: L.thinCapConds, thin_cap_max_markets: GROKPM_RULES.thinCap.maxMarkets, thin_cap_market_usd: GROKPM_RULES.thinCap.maxUsd,
     },
@@ -718,7 +757,7 @@ export async function marketView(deps: ExecDeps, q: { cond?: string; token?: str
   if (m.crypto && end !== null && end <= now + R.shortDays * DAY) blocks.push("crypto price market within 7 days");
   return {
     status: 200, body: {
-      market_id: m.cond, question: m.question, end_date: m.endDate, neg_risk: m.negRisk, accepting_orders: m.accepting, closed: m.closed,
+      market_id: m.cond, question: m.question, end_date: m.endDate, neg_risk: m.negRisk, neg_risk_market_id: m.negRiskId, accepting_orders: m.accepting, closed: m.closed,
       fee_type: m.feeType, tags: m.tags, sports: m.sports, crypto: m.crypto, game_start_time: m.gameStartTime, tick: m.tick, min_size: m.minSize,
       outcomes, last_trade_read: tape ? "ok" : "unread", open_blocked_by: blocks,
     },
@@ -832,6 +871,7 @@ export async function placeOrder(deps: ExecDeps, body: unknown): Promise<{ statu
     post_only: plan.postOnly, expiration: plan.expiration, neg_risk: plan.negRisk, hash: built.hash, theme: plan.side === "BUY" ? c.ledger.themeOf[plan.cond] ?? theme : theme,
     category: decision.category, state: "pending", request, thin_cap: plan.thinCap === true, cut_at: plan.cutAt ?? null,
     event_at: typeof eventAt === "string" ? iso(Date.parse(eventAt)) : null, checks: orderChecks({ decision, book, ledger: c.ledger, plan }),
+    neg_risk_market_id: plan.negRiskId ?? null,
   }, true);
   if (c.mode === "dry_run") {
     await db.update("grokpm_orders", `id=eq.${row.id}`, { state: "live", response: { dryRun: true }, updated_at: iso(now) });
@@ -861,12 +901,14 @@ export async function placeOrder(deps: ExecDeps, body: unknown): Promise<{ statu
  */
 export function orderChecks(p: { decision: Decision; book: GrokBook | null; ledger: GrokLedger; plan: OrderPlan }) {
   const { decision: d, book: b, ledger: L, plan } = p, R = GROKPM_RULES;
-  const cost = plan.price * plan.size, inMarket = r6((L.costByCond[plan.cond] ?? 0) + (plan.side === "BUY" ? cost : 0));
+  const cost = plan.price * plan.size, buy = plan.side === "BUY" ? cost : 0, inMarket = r6((L.costByCond[plan.cond] ?? 0) + buy);
+  const key = plan.eventKey ?? plan.cond, inEvent = r6(eventCostUsd(L, key, plan.cond) + buy);
   const pr = Number(d.p), against = Math.max(plan.price, b?.mid ?? plan.price);
   const kelly = Number.isFinite(pr) && pr > plan.price ? r6(Math.min(R.marketCapUsd, R.kellyFraction * ((pr - plan.price) / (1 - plan.price)) * Math.max(0, L.equityUsd))) : null;
   return {
     book: b ? { best_bid: b.bestBid, best_ask: b.bestAsk, mid: b.mid, spread: b.spread, bid_depth_usd: b.bidDepthUsd, ask_depth_usd: b.askDepthUsd } : null,
-    edge: Number.isFinite(pr) ? r6(pr - against) : null, cost_usd: r6(cost), market_cost_usd: inMarket, kelly_cap_usd: kelly,
+    edge: Number.isFinite(pr) ? r6(pr - against) : null, cost_usd: r6(cost), market_cost_usd: inMarket,
+    event: { key, cost_usd: inEvent }, kelly_cap_usd: kelly,
     thin_cap: plan.thinCap === true ? { cap_usd: r6(Math.min(R.thinCap.maxUsd, R.thinCap.depthShare * (b?.bidDepthUsd ?? 0))), cut_at: plan.cutAt ?? null } : null,
   };
 }

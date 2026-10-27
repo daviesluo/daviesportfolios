@@ -10,8 +10,8 @@ import { GROKPM_TABLES } from "../_shared/grokpm_schema.ts";
 import type { Db } from "../agents/db.ts";
 import { FakePolymarket, memDb, PM_TEST_FUNDER, PM_TEST_KEY, PM_TEST_SIGNER, type Row } from "../agents/testing.ts";
 import {
-  accountView, bookOf, cancelOrders, context, cutThinCapOrders, type ExecDeps, expiryOf, FAR_FIELDS, farMarketsOf, farMarketsView, type GrokVenue, ledgerOf, liveGateRefusals,
-  marketOf, marketView, orderRefusals, placeOrder, syncOrders, thinCapRefusals,
+  accountView, bookOf, cancelOrders, context, cutThinCapOrders, eventCostUsd, eventKeyOf, type ExecDeps, expiryOf, FAR_FIELDS, farMarketsOf, farMarketsView,
+  type GrokOrderRow, type GrokVenue, ledgerOf, liveGateRefusals, marketOf, marketView, orderRefusals, placeOrder, syncOrders, thinCapRefusals,
 } from "./exec.ts";
 import { farQuery, handle, type IngestDb } from "./index.ts";
 import examples from "../../../docs/agents/backtests/grokpm/contract_examples.json" with { type: "json" };
@@ -821,7 +821,7 @@ Deno.test("V1: a D15 order keeps its event_at and its checks (book, edge, costs,
   // edge 0.6 − max(0.44, 0.46) = 0.14; cost 5 × 0.44 = 2.2; Kelly min(10, 0.25 × 0.16 / 0.56 × 100) = 7.142857; D15 cap min(5, 8.9) = 5.
   assertEquals(row.checks, {
     book: { best_bid: 0.45, best_ask: 0.47, mid: 0.46, spread: 0.02, bid_depth_usd: 35.6, ask_depth_usd: 38 }, edge: 0.14, cost_usd: 2.2, market_cost_usd: 2.2,
-    kelly_cap_usd: 7.142857, thin_cap: { cap_usd: 5, cut_at: iso(T0 + 4 * DAY - 48 * 3600e3) },
+    event: { key: C3, cost_usd: 2.2 }, kelly_cap_usd: 7.142857, thin_cap: { cap_usd: 5, cut_at: iso(T0 + 4 * DAY - 48 * 3600e3) },
   });
   const acct = accountView(await context(w.deps(), { readGeo: true, sync: false }), T0);
   assertEquals((acct.open_orders as Array<{ event_at: string | null }>)[0].event_at, event);
@@ -829,4 +829,120 @@ Deno.test("V1: a D15 order keeps its event_at and its checks (book, edge, costs,
   assertEquals((await placeOrder(w.deps(), open({ size: 5 }))).status, 200);
   const o = w.db.tables.grokpm_orders.at(-1)!;
   assertEquals([o.event_at, (o.checks as { thin_cap: unknown }).thin_cap, (o.checks as { book: { bid_depth_usd: number } }).book.bid_depth_usd > 500], [null, null, true]);
+});
+
+// ── Deviation D16 (2026-10-27): a resting category-B bid lives up to the server's 65 minutes ──────────────────────────
+Deno.test("D16: a bid asked to rest 65 minutes rests 65 (the server's limit), 2 hours is held to 65, 35 stays 35", async () => {
+  const w = world();
+  const nowS = Math.floor(T0 / 1000);
+  for (const [ask, life] of [[65, 3900], [120, 3900], [35, 2100]] as const) {
+    const r = await placeOrder(w.deps(), { ...open({ size: 5 }), expires_at: iso(T0 + ask * 60e3) });
+    assertEquals(r.status, 200, JSON.stringify(r.body));
+    // The venue is sent its minute on top (it ends a GTD order a minute early); the agent is told when it ends.
+    assertEquals([w.db.tables.grokpm_orders.at(-1)!.expiration, (r.body.would_send as { expires_at: string }).expires_at], [nowS + 60 + life, iso(T0 + life * 1000)], `${ask}`);
+  }
+});
+
+Deno.test("D16: a D15 bid's whole 65 minutes must end before its cut: refused with the cut 64 minutes away, sent with it 66", async () => {
+  // A release `min` minutes past 48 hours from now puts the cut `min` minutes from now.
+  const release = (min: number) => iso(T0 + 48 * 3600e3 + min * 60e3);
+  const w = thinWorld();
+  const r = await placeOrder(w.deps(), d15({ size: 5 }, { event_at: release(64), expires_at: iso(T0 + 65 * 60e3) }));
+  assertEquals(refusalsOf(r).map((x) => [x.rule, x.why.split(":")[0]]), [["thin_cap", "cut"]]);
+  // The same bid for 35 minutes ends before that cut.
+  assertEquals((await placeOrder(w.deps(), d15({ size: 5 }, { event_at: release(64), expires_at: iso(T0 + 35 * 60e3) }))).status, 200);
+  const v = thinWorld();
+  assertEquals((await placeOrder(v.deps(), d15({ size: 5 }, { event_at: release(66), expires_at: iso(T0 + 65 * 60e3) }))).status, 200);
+  const row = v.db.tables.grokpm_orders.at(-1)!;
+  assertEquals([row.expiration, row.cut_at], [Math.floor(T0 / 1000) + 60 + 3900, iso(T0 + 66 * 60e3)]);
+});
+
+Deno.test("D16: a 65-minute bid is cancelled by the minute's sync once disarmed or paused, as any bid is", async () => {
+  for (const how of ["disarm", "pause"] as const) {
+    const w = world({ armed: true });
+    assertEquals((await placeOrder(w.deps(), { ...open(), expires_at: iso(T0 + 65 * 60e3) })).status, 200);
+    const hash = w.db.tables.grokpm_orders[0].hash as string;
+    if (how === "disarm") Object.assign(w.db.tables.grokpm_config[0], { dry_run: true, armed_at: null });
+    else w.db.tables.agent_risk[0].global_pause = true;
+    w.fake.cancelLagReads = 0;
+    w.at(T0 + 60e3);
+    const ingest: IngestDb = { recentRequests: () => Promise.resolve([]), insertIgnore: () => Promise.resolve(0), logRequest: () => Promise.resolve() };
+    const res = await handle(new Request("https://x.test/functions/v1/grokpm?action=sync&forceFunctionRegion=eu-west-1", { method: "POST", headers: { Authorization: `Bearer ${"c".repeat(40)}` } }),
+      { secret: "s".repeat(40), db: ingest, now: () => w.now, exec: () => Promise.resolve(w.deps()), cronSecret: "c".repeat(40), region: "eu-west-1", beat: () => Promise.resolve(), report: () => Promise.resolve() });
+    assertEquals([res.status, (await res.json()).cancelled], [200, 1], how);
+    assertEquals([w.fake.orders.get(hash)?.status, w.db.tables.grokpm_orders[0].state], ["CANCELED", "cancelled"], how);
+  }
+});
+
+// ── Deviation D17 (2026-10-27): one event's outcome markets are one market for the $10 cap and D15's $5 ────────────────
+const G1 = "0x" + "e1".repeat(32), G2 = "0x" + "e2".repeat(32);
+/** Put markets under one negative-risk group, as Gamma shows the outcomes of one event (and the venue's books agree). */
+function oneEvent(w: ReturnType<typeof world>, key: string, ...conds: string[]) {
+  for (const c of conds) {
+    w.fake.markets.find((x) => x.cond === c)!.negRisk = true;
+    w.gammaExtra.set(c, { ...w.gammaExtra.get(c), negRisk: true, negRiskMarketID: key });
+  }
+}
+
+Deno.test("D17: a market's event is Gamma's negRiskMarketID (lowercased); none when not negative-risk or malformed", () => {
+  const base = { conditionId: C1, clobTokenIds: '["101","102"]' };
+  assertEquals(marketOf({ ...base, negRisk: true, negRiskMarketID: "0x" + "E1".repeat(32) })!.negRiskId, G1);
+  assertEquals(marketOf({ ...base, negRisk: false, negRiskMarketID: G1 })!.negRiskId, null);
+  assertEquals(marketOf({ ...base, negRisk: true, negRiskMarketID: "0x12" })!.negRiskId, null);
+  assertEquals(marketOf({ ...base, negRisk: true })!.negRiskId, null);
+});
+
+Deno.test("D17: the ledger groups the agent's markets by the event its orders stored (the newest that names one), else alone", () => {
+  const row = (id: number, cond: string, g: string | null, price: number, size: number): GrokOrderRow => ({
+    id, created_at: iso(T0), mode: "live", decision_id: `x${id}`, cond, token: `${id}0`, outcome: "Yes", side: "BUY", price, size, post_only: true,
+    expiration: Math.floor(T0 / 1000) + 600, neg_risk: true, hash: `h${id}`, theme: "t", category: "B", state: "live", size_matched: 0,
+    cancel_requested_at: null, cancelled_at: null, filled_at: null, neg_risk_market_id: g,
+  });
+  // C1's first order is from before 0147 (no group); its second names G1. C3 names none.
+  const L = ledgerOf({ fundedUsd: 100, orders: [row(1, C1, null, 0.5, 4), row(2, C1, G1, 0.5, 2), row(3, C2, G1, 0.4, 5), row(4, C3, null, 0.3, 10)], fills: [], mids: {}, payouts: {}, nowMs: T0 });
+  assertEquals(L.eventOf, { [C1]: G1, [C2]: G1, [C3]: C3 });
+  assertEquals([L.costByCond, L.costByEvent], [{ [C1]: 3, [C2]: 2, [C3]: 3 }, { [G1]: 5, [C3]: 3 }]);
+  // Gamma's group first; a market the book holds under another key still counts as this market.
+  assertEquals([eventKeyOf(L, C1, null), eventKeyOf(L, C3, null), eventKeyOf(L, C3, { negRiskId: G2 })], [G1, C3, G2]);
+  assertEquals([eventCostUsd(L, G1, C1), eventCostUsd(L, G2, C3), eventCostUsd(L, G1, C3)], [5, 3, 8]);
+});
+
+Deno.test("D17: one event's outcome markets share the $10 cap ($5.28 + $5.28 refused, $5.28 + $4.40 sent); apart, both go", async () => {
+  const w = world();
+  oneEvent(w, G1, C1, C2);
+  assertEquals((await placeOrder(w.deps(), open({ size: 12 }))).status, 200);   // C1: 12 × 0.44 = $5.28
+  const r = await placeOrder(w.deps(), open({ market_id: C2, token_id: "201", size: 12 }));
+  assertEquals(refusalsOf(r).map((x) => x.rule), ["market_cap"]);
+  assert(refusalsOf(r)[0].why.startsWith("this market and the other outcomes of its event (D17) would hold $10.56 at cost"), refusalsOf(r)[0].why);
+  assertEquals((await placeOrder(w.deps(), open({ market_id: C2, token_id: "201", size: 10 }))).status, 200);   // $5.28 + $4.40 = $9.68
+  assertEquals(w.db.tables.grokpm_orders.map((o) => o.neg_risk_market_id), [G1, G1]);
+  assertEquals((w.db.tables.grokpm_orders.at(-1)!.checks as { event: unknown }).event, { key: G1, cost_usd: 9.68 });
+  const acct = accountView(await context(w.deps(), { readGeo: true, sync: false }), T0);
+  assertEquals(acct.budget.cost_by_event, { [G1]: 9.68 });
+  assertEquals(((await marketView(w.deps(), { cond: C2 })).body as { neg_risk_market_id?: string }).neg_risk_market_id, G1);
+  // Not one event: the same two buys both go, and nothing is grouped.
+  const v = world();
+  assertEquals((await placeOrder(v.deps(), open({ size: 12 }))).status, 200);
+  assertEquals((await placeOrder(v.deps(), open({ market_id: C2, token_id: "201", size: 12 }))).status, 200);
+  assertEquals(v.db.tables.grokpm_orders.map((o) => o.neg_risk_market_id), [null, null]);
+});
+
+Deno.test("D17: D15's $5 is the event's: a second thin outcome gets what the first leaves, and so does a deep one", async () => {
+  const w = thinWorld();
+  oneEvent(w, G2, C3, C4, C1);
+  assertEquals((await placeOrder(w.deps(), d15({ size: 5 }))).status, 200);   // C3 under D15: $2.20
+  // C4, thin too: $2.20 + 7 × 0.44 = $5.28, over min($5, a quarter of $35.60): the size term, counted over the event.
+  const r = await placeOrder(w.deps(), d15({ market_id: C4, token_id: "401", size: 7 }));
+  assertEquals(refusalsOf(r).map((x) => [x.rule, x.why.split(":")[0]]), [["thin_cap", "size"]]);
+  assert(refusalsOf(r)[0].why.includes("this market and the other outcomes of its event (D17) would hold $5.28"), refusalsOf(r)[0].why);
+  // C1, a deep book (an ordinary order): the event holds a D15 bid, so $2.20 + $4.40 = $6.60 is refused and $2.20 + $2.64 goes.
+  const deep = await placeOrder(w.deps(), open({ size: 10 }));
+  assertEquals(refusalsOf(deep).map((x) => [x.rule, x.why.split(":")[0]]), [["thin_cap", "cap"]]);
+  assert(refusalsOf(deep)[0].why.includes("another outcome of this event holds a D15 position"), refusalsOf(deep)[0].why);
+  assertEquals((await placeOrder(w.deps(), open({ size: 6 }))).status, 200);
+  // Apart, each of the three would have gone.
+  const v = thinWorld();
+  assertEquals((await placeOrder(v.deps(), d15({ size: 5 }))).status, 200);
+  assertEquals((await placeOrder(v.deps(), d15({ market_id: C4, token_id: "401", size: 7 }))).status, 200);
+  assertEquals((await placeOrder(v.deps(), open({ size: 10 }))).status, 200);
 });

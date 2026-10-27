@@ -3354,8 +3354,14 @@ Read 2026-10-26 (`reviews/2026-10-26-grokpm-thin-rule-study.md`, `backtests/grok
     cost, the marks and the record.
   - Orders 9 and 11 went out as ordinary orders because their market held nothing at that moment.
   - V1 (`0143`): each order keeps its `event_at` and the checks' book.
-  - Proposed: a longer life for a resting B bid (6 and 9 orders went to one fill each), and one cap for the outcomes of
+  - Proposed: a longer life for a resting B bid (6 and 8 orders went to one fill each), and one cap for the outcomes of
     one event.
+- **D16 and D17 (2026-10-27;** Davies: "剩下两点由你权衡后来做出最优选择"; the review's §5; `0147`).
+  - D16: a resting B bid lives 65 minutes, the server's limit, and is re-placed only at the last wake before it ends.
+    The record's two fills would have come at the same moments with 7 orders instead of 14, and the 12 gaps held no
+    trade at the bid. Two hours bought no fill and doubled the bids the mid passed below (4 of 15 against 2).
+  - D17: one event's outcome markets, keyed by Gamma's `negRiskMarketID`, count as one market for the $10 cap and D15's
+    $5. Kelly, the 6 markets and D15's 3 stay per market. BanRep October is now full.
 
 ### 3.51 Stablecoin quotes: LIVE's "+64.9 %" is one week realised, half of it a weekend; size; every row (2026-10-26)
 
