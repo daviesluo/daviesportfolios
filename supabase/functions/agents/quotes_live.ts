@@ -138,7 +138,25 @@ export type QuoteLiveInstance = {
    * replica (`agents/quotes_live_weekend.ts`). The live account's instance alone has them: a twin's config has no such columns.
    */
   liveSwitches?: { wkPaper: string };
+  /**
+   * PR5-OPT's capital split (docs/agents/reviews/2026-10-27-pr5-opt-twins-prereg.md), from `from` (ms): a rung's pounds are
+   * the capital × w(book) × w(side) × w(k) ÷ the same summed over every rung of the instance (a weight not named is 1), in
+   * place of the capital over every rung (`rungGbp`). A rung of weight 0 quotes no entry, as a retired rung, while a holding
+   * still exits; its pounds go to the others. The asks' coin (`asksNeedOf`, `planTopUps`) and the operator's conversion cap
+   * (`convertCapGbp`) follow each book's own asks. Equal weights are `rungGbp` exactly. The live account's instance has none.
+   */
+  weights?: RungWeights;
+  /**
+   * PR5-OPT's holding line (the same pre-registration), from `from` (ms): a rung counts as holding only above max(the
+   * venue's minimum, `gbp` of coin at fair), so a fill under it (the £0.10 prints on USDT-GBP since 2026-10-08) leaves the
+   * rung's entry resting and its coin carried into the trip; over it, the exit sells the whole holding, and an exit once
+   * resting runs to the venue's minimum. The 24-hour stop counts from the fill that crossed the line. The live account's
+   * instance has none.
+   */
+  holdMin?: { from: number; gbp: number };
 };
+/** The weights of `QuoteLiveInstance.weights`: by book, by side and by rung distance (the key is `String(k)`, "0.001"). */
+export type RungWeights = { from: number; book?: Partial<Record<QuoteBook, number>>; side?: Partial<Record<Side, number>>; k?: Record<string, number> };
 /** The live account: PR5's own sub-account, the paper engine's own state, three rungs, one key. */
 export const QUOTE_LIVE_INSTANCE: QuoteLiveInstance = {
   config: "agent_quote_live_config", orders: "agent_quote_live_orders", events: "agent_quote_live_events", state: "agent_quote_live_state",
@@ -315,6 +333,38 @@ const ticksOf = (price: number | string) => Math.round(Number(price) / QUOTE_TIC
 export function rungGbp(capitalGbp: number, rungs: readonly number[] = QUOTE_RUNGS): number {
   return capitalGbp / (QUOTE_BOOKS.length * 2 * rungs.length);
 }
+/** Whether an instance's `weights` are in force at `now`: never on the live account's instance, which has none. */
+export const weightsOn = (inst: QuoteLiveInstance, now: number): boolean => !!inst.weights && now >= inst.weights.from;
+/** A rung's weight under `w`: the product of its book's, side's and distance's, each 1 when not named. */
+export function rungWeight(w: RungWeights, book: QuoteBook, side: Side, k: number): number {
+  const of = (m: Record<string, number | undefined> | undefined, key: string) => (m && Object.hasOwn(m, key) ? Number(m[key]) : 1);
+  return of(w.book, book) * of(w.side, side) * of(w.k, String(k));
+}
+/** A rung's pounds: `rungGbp` unless the instance's weights are in force, then its weight's share of the capital. */
+export function rungGbpOf(inst: QuoteLiveInstance, capitalGbp: number, book: QuoteBook, side: Side, k: number, now: number): number {
+  if (!weightsOn(inst, now)) return rungGbp(capitalGbp, inst.rungs);
+  const w = inst.weights!;
+  let sum = 0;
+  for (const b of QUOTE_BOOKS) for (const s of ["bid", "ask"] as Side[]) for (const kk of inst.rungs) sum += rungWeight(w, b, s, kk);
+  // Floored to the penny: three rungs of a third of £200 must not ask for £200.01 between them (the bids' pounds are held
+  // rounded up to the penny, `pennyUp`, and a book's GBP is exactly what the conversions leave).
+  return sum > 0 ? Math.floor(capitalGbp * rungWeight(w, book, side, k) / sum * 100 + 1e-9) / 100 : 0;
+}
+/** Whether the instance's weights retire this rung at `now` (weight 0): it quotes no entry; a holding still exits. */
+export const weightRetired = (inst: QuoteLiveInstance, now: number, book: QuoteBook, side: Side, k: number): boolean =>
+  weightsOn(inst, now) && !(rungWeight(inst.weights!, book, side, k) > 0);
+/**
+ * The most one operator's conversion of a book may buy: a quarter of the capital (three asks' worth of equal rungs), or,
+ * while the instance's weights are in force, what the book's own ask rungs sell.
+ */
+export function convertCapGbp(inst: QuoteLiveInstance, capitalGbp: number, book: QuoteBook, now: number): number {
+  if (!weightsOn(inst, now)) return capitalGbp * QUOTE_LIVE_CONVERT_MAX_FRACTION;
+  return inst.rungs.reduce((a, k) => a + rungGbpOf(inst, capitalGbp, book, "ask", k, now), 0);
+}
+/** The coin a rung must hold above to count as holding: the venue's minimum (`dustBase`), or the instance's `holdMin` line. */
+export function holdLineBase(inst: QuoteLiveInstance, now: number, dust: number, price: number): number {
+  return inst.holdMin && now >= inst.holdMin.from && price > 0 ? Math.max(dust, inst.holdMin.gbp / price) : dust;
+}
 
 /** The venue side of a rung's order: a bid rung buys to enter and sells to get out; an ask rung the reverse. */
 export function venueSideOf(rungSide: Side, leg: "entry" | "exit" | "stop"): "buy" | "sell" {
@@ -375,9 +425,9 @@ export const pennyUp = (gbp: number): number => Math.ceil(gbp * 100 - 1e-9) / 10
  * A retired rung (`QuoteLiveInstance.retired`, in `skip`) quotes no ask, so its coin is not held for it; each rung keeps
  * its share of the capital over every rung.
  */
-export function asksNeedOf(fair: number, capitalGbp: number, pair: PairConfig, rungs: readonly number[] = QUOTE_RUNGS, skip: readonly number[] = []): number {
+export function asksNeedOf(fair: number, capitalGbp: number, pair: PairConfig, rungs: readonly number[] = QUOTE_RUNGS, skip: readonly number[] = [], gbpOfK?: (k: number) => number): number {
   return rungs.filter((k) => !skip.includes(k))
-    .reduce((a, k) => a + Number(rungBase(rungGbp(capitalGbp, rungs), Math.ceil(fair * (1 + k) / QUOTE_TICK - 1e-9) * QUOTE_TICK, pair, "sell") ?? 0), 0);
+    .reduce((a, k) => a + Number(rungBase(gbpOfK ? gbpOfK(k) : rungGbp(capitalGbp, rungs), Math.ceil(fair * (1 + k) / QUOTE_TICK - 1e-9) * QUOTE_TICK, pair, "sell") ?? 0), 0);
 }
 
 /** A maker's price for a conversion: the top of the bids, one tick over the best bid when the ask stays a tick above it; never over fair + 50 bps. */
@@ -397,13 +447,13 @@ export type TopUpPlan =
  * shared out of what is left, so one book's buffer never starves another's shortfall. A book whose shortfall the free
  * GBP cannot cover, or that would pass the day's QUOTE_LIVE_TOPUP_MAX_GBP_DAY, is skipped with the reason.
  */
-export function planTopUps(books: TopUpBook[], capitalGbp: number, freeGbp: number, rungs: readonly number[] = QUOTE_RUNGS, skip: readonly number[] = []): TopUpPlan[] {
+export function planTopUps(books: TopUpBook[], capitalGbp: number, freeGbp: number, rungs: readonly number[] = QUOTE_RUNGS, skip: readonly number[] = [], gbpOf?: (book: QuoteBook, k: number) => number): TopUpPlan[] {
   const out: TopUpPlan[] = [];
   const due: { b: TopUpBook; ticks: number; price: number; asksNeed: number; min: number; minCost: number; full: number; room: number }[] = [];
   for (const b of books) {
     if (b.bestBid == null || b.bestAsk == null) { out.push({ book: b.book, skip: "the order book is unreadable" }); continue; }
     const ticks = makerBuyTicks(b.bestBid, b.bestAsk, b.fair), price = ticks * QUOTE_TICK;
-    const asksNeed = asksNeedOf(b.fair, capitalGbp, b.pair, rungs, skip);
+    const asksNeed = asksNeedOf(b.fair, capitalGbp, b.pair, rungs, skip, gbpOf ? (k) => gbpOf(b.book, k) : undefined);
     const short = asksNeed - b.beyond;
     if (!(short > 1e-9)) { out.push({ book: b.book, skip: `it holds its ${rungsWord(rungs)} asks' worth` }); continue; }
     const min = Number(ceilToStep(Math.max(short, dustBase(b.pair, price)), b.pair.base_step)), minCost = pennyUp(min * price);
@@ -1211,9 +1261,13 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
     const pair = pairs[LIVE_SYMBOL[b]];
     const px = inputs[b]?.f ?? lastPrintPx(b) ?? 0;
     const dust = pair && px > 0 ? dustBase(pair, px) : 0;
-    const live = rungBook(side, mine, dayStart, dust);
+    // `holdMin` (PR5-OPT; none on the live account's instance, whose line is the venue's dust): the line a holding must pass to
+    // count, and once its exit or stop is open, the venue's dust again, so the exit runs to the end.
+    const line = holdLineBase(inst, d.now, dust, px);
+    const exiting = line > dust && open.some((o) => isOpen(o) && o.mode === "live" && o.book === b && o.rung_side === side && Number(o.k) === k && o.leg !== "entry");
+    const live = rungBook(side, mine, dayStart, line);
     const pr = paper?.books?.[b]?.rungs?.find((r) => r.side === side && r.k === k);
-    rungs.push({ book: b, side, k, label: rungLabel(b, side, k), paper: paperEntryTarget(pr), paperRefused: paperRefused(pr), paperMode: pr?.mode ?? null, live, holding: live.held > dust, dust });
+    rungs.push({ book: b, side, k, label: rungLabel(b, side, k), paper: paperEntryTarget(pr), paperRefused: paperRefused(pr), paperMode: pr?.mode ?? null, live, holding: live.held > (exiting ? dust : line), dust });
   }
   const mark = (b: QuoteBook) => lastPrintPx(b) ?? inputs[b]?.f ?? null;
   const dayPnl = rungs.reduce((a, r) => a + r.live.realisedTodayGbp + markedGbp(r.side, r.live, mark(r.book)), 0);
@@ -1379,6 +1433,8 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
   // ── 6. entries: the paper rung's order, in the book entries go to; withdrawn everywhere else ─────────────────────────
   takeStock();
   const gbpPerRung = rungGbp(capital, inst.rungs);
+  /** A rung's pounds: `gbpPerRung`, unless the instance's `weights` are in force (PR5-OPT; none on the live account's instance). */
+  const gbpOf = (r: { book: QuoteBook; side: Side; k: number }) => (weightsOn(inst, d.now) ? rungGbpOf(inst, capital, r.book, r.side, r.k, d.now) : gbpPerRung);
   const skipEvent = async (mode: LiveMode, r: RungNow, t: PaperTarget, reason: string, detail: Record<string, unknown>) => {
     report.skippedEntries.push({ mode, rung: r.label, reason });
     try {
@@ -1417,14 +1473,14 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
     if (!takeTriggered(r.side, limit, touch)) return;
     const pair = pairs[LIVE_SYMBOL[r.book]];
     const price = limit * QUOTE_TICK, side = venueSideOf(r.side, "entry");
-    const base = pair ? rungBase(gbpPerRung, price, pair, side) : null;
+    const base = pair ? rungBase(gbpOf(r), price, pair, side) : null;
     const need = base == null ? null : side === "buy" ? pennyUp(Number(base) * price) : Number(base);
     // The live take cancels the rung's entry first, and that cancel gives back what the entry held: so does the shadow's count.
     const asset = side === "buy" ? "GBP" : coinOf(r.book), back = o ? promised.get(o.id) : undefined;
     const have = (free[asset] ?? 0) + (back && back.asset === asset ? back.amount : 0);
     const px = (t: number | null) => (t == null ? null : Number((t * QUOTE_TICK).toFixed(4)));
     await d.db.upsert(inst.events, [{ mode: "live", minute: iso(nowMinute), book: r.book, rung_side: r.side, k: r.k, kind: "take_shadow", detail: {
-      at: nowIso, paperMinute: T != null ? iso(T) : null, fair: f, limit: px(limit), side, base, gbp: gbpPerRung, fundsOk: need != null && have + 1e-9 >= need,
+      at: nowIso, paperMinute: T != null ? iso(T) : null, fair: f, limit: px(limit), side, base, gbp: gbpOf(r), fundsOk: need != null && have + 1e-9 >= need,
       replaces: o?.id ?? null, read: { ts: read.ts, seenUntil: read.seen_until, bestBid: px(touch.bid), bestAsk: px(touch.ask) },
     } }], "mode,minute,book,rung_side,k,kind");
     (report.shadow ??= { takes: 0, weekend: 0 }).takes++;
@@ -1439,7 +1495,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
     if (o && (await cancelConfirmed(o, "a take replaces the rung's entry")) !== "cancelled") return true;
     const pair = pairs[LIVE_SYMBOL[r.book]];
     const price = limit * QUOTE_TICK, side = venueSideOf(r.side, "entry");
-    const base = rungBase(gbpPerRung, price, pair, side);
+    const base = rungBase(gbpOf(r), price, pair, side);
     const skip = (reason: string) => { report.skippedEntries.push({ mode: "live", rung: r.label, reason: `take: ${reason}` }); return true; };
     if (!base) return skip("the rung's size is under the venue's minimum");
     if (side === "buy") {
@@ -1465,7 +1521,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
         if (mode === "live" && r.holding) continue;                                                  // step 5's
         if (o && o.leg !== "entry") continue;
         if (o && (o.state === "pending" || o.cancel_requested_at || unreadable.has(o.id))) continue;  // in flight or frozen: never a second order
-        const retired = retiredAt(inst, d.now).includes(r.k);
+        const retired = retiredAt(inst, d.now).includes(r.k) || weightRetired(inst, d.now, r.book, r.side, r.k);
         const allowed = !retired && entry.book === mode && !report.guards[r.book].length && levelOf(mode, r.book, r.side) === "all" && !(mode === "live" && lossStopped) && !!bal;
         if (takeOn && mode === "live" && allowed && r.paperMode !== "position" && (await takeTurn(r, o))) continue;
         if (takeMode === "shadow" && mode === "live" && allowed && r.paperMode !== "position") {
@@ -1495,8 +1551,8 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
         const pair = pairs[LIVE_SYMBOL[r.book]];
         const price = target.ticks * QUOTE_TICK;
         const side = venueSideOf(r.side, "entry");
-        const base = rungBase(gbpPerRung, price, pair, side);
-        if (!base) { await skipEvent(mode, r, target, "the rung's size is under the venue's minimum", { gbp: gbpPerRung, price }); continue; }
+        const base = rungBase(gbpOf(r), price, pair, side);
+        if (!base) { await skipEvent(mode, r, target, "the rung's size is under the venue's minimum", { gbp: gbpOf(r), price }); continue; }
         if (side === "buy") {
           const need = pennyUp(Number(base) * price);
           if (!((free.GBP ?? 0) + 1e-9 >= need)) { await skipEvent(mode, r, target, "not enough free GBP", { needGbp: need, freeGbp: free.GBP ?? 0 }); continue; }
@@ -1534,7 +1590,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
         const targets = wkT === T && wkState ? rungs.filter((r) => r.book === b).map((r) => {
           const tgt = paperEntryTarget(wkState.books[b].rungs.find((x) => x.side === r.side && x.k === r.k));
           const side = venueSideOf(r.side, "entry"), price = tgt ? Number((tgt.ticks * QUOTE_TICK).toFixed(4)) : null;
-          return { side: r.side, k: r.k, price, base: price != null && pair ? rungBase(gbpPerRung, price, pair, side) : null, holding: r.holding };
+          return { side: r.side, k: r.k, price, base: price != null && pair ? rungBase(gbpOf(r), price, pair, side) : null, holding: r.holding };
         }) : null;
         const guards = wi ? entryGuards(T, wi, lp) : ["no inputs"];
         if (wkT !== T) guards.push(`the weekend replica's last minute is ${wkT != null ? iso(wkT) : "none"}, not ${iso(T)}: stale`);
@@ -1580,7 +1636,8 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
             .reduce((a, o) => a + Number(isOpen(o as LiveOrderRow) ? o.base_size : o.filled_base) * Number(o.price), 0),
         });
       }
-      for (const p of planTopUps(cases, capital, free.GBP ?? 0, inst.rungs, retiredAt(inst, d.now))) {
+      const topUpGbpOf = weightsOn(inst, d.now) ? (b: QuoteBook, k: number) => rungGbpOf(inst, capital, b, "ask", k, d.now) : undefined;
+      for (const p of planTopUps(cases, capital, free.GBP ?? 0, inst.rungs, retiredAt(inst, d.now), topUpGbpOf)) {
         if ("skip" in p) { report.skippedEntries.push({ mode: "live", rung: `${p.book}|convert`, reason: `top-up: ${p.skip}` }); continue; }
         const row = await placeOrder(ctx, { mode: "live", book: p.book, rungSide: null, k: null, leg: "convert", side: "buy", ticks: p.ticks, base: p.base,
           marketable: false, fair: p.fair, extra: { auto: true, asksNeed: p.asksNeed, coinBeyondLongs: p.beyond } });
@@ -1662,7 +1719,7 @@ export async function runQuotesConvert(d: QuoteLiveDeps, body: unknown): Promise
   const inst = d.instance ?? QUOTE_LIVE_INSTANCE;
   const cfg = (await d.db.select<LiveConfig>(inst.config, "id=eq.1&select=dry_run,live_confirmed_at,capital_gbp"))[0];
   if (!cfg) return { error: `no ${inst.config} row: migration ${inst.migration} has not run` };
-  const capital = Number(cfg.capital_gbp), cap = capital * QUOTE_LIVE_CONVERT_MAX_FRACTION;
+  const capital = Number(cfg.capital_gbp), cap = convertCapGbp(inst, capital, book, d.now);
   const gbp = Number(b.gbp);
   if (!(gbp > 0) || gbp > cap + 1e-9) return { error: `gbp: more than 0 and at most ${cap} (${rungsWord(inst.rungs)} rungs' worth of ${capital})` };
   const send = b.send === true;
@@ -1704,7 +1761,7 @@ export async function runQuotesConvert(d: QuoteLiveDeps, body: unknown): Promise
   const heldBy = (side: Side) => Math.max(0, fills.filter((o) => o.book === book && o.rung_side === side).reduce((a, o) => a + (o.leg === "entry" ? 1 : -1) * Number(o.filled_base), 0));
   const beyond = (bal[coin] ?? 0) - heldBy("bid") + heldBy("ask");
   // What the book's three ask rungs sell at the rule's prices (0.1 / 0.2 / 0.3 % over fair): once held, nothing to convert.
-  const asksNeed = asksNeedOf(fair, capital, pair, inst.rungs, retiredAt(inst, d.now));
+  const asksNeed = asksNeedOf(fair, capital, pair, inst.rungs, retiredAt(inst, d.now), weightsOn(inst, d.now) ? (k) => rungGbpOf(inst, capital, book, "ask", k, d.now) : undefined);
   if (beyond + 1e-12 >= asksNeed) return { error: `the account already holds ${beyond} ${coin} beyond its longs, ${rungsWord(inst.rungs)} asks' worth (${asksNeed}) or more: nothing to convert` };
   const openBuys = open.filter((o) => o.side === "buy").reduce((a, o) => a + pennyUp(Math.max(0, Number(o.base_size) - Number(o.filled_base)) * Number(o.price)), 0);
   const needGbp = pennyUp(Number(base) * price * (taker ? 1.0009 : 1));

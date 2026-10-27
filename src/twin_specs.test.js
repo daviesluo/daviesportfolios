@@ -130,6 +130,7 @@ describe("the twins' spec rows", () => {
       ['0141', 'live', 'Stablecoin quotes LIVE twin', 'Stablecoin quotes variant-2'],
       ['0142', 'take50wk', 'Stablecoin quotes variant-3', 'Stablecoin quotes weekend twin'], ['0142', 'take50', 'Stablecoin quotes TAKE', 'Stablecoin quotes variant-3'],
       ['0144', 'live300', 'Stablecoin quotes LIVE twin', 'Stablecoin quotes 300 twin'], ['0144', 'live600', 'Stablecoin quotes variant-1', 'Stablecoin quotes LIVE twin'],
+      ['0148', 'd', 'Stablecoin quotes variant-4', 'Stablecoin quotes rule-D twin'],
     ]);
     expect(deletes.map((n) => [n.file.slice(0, 4), n.id])).toEqual([['0109', 'p50x1']]);
     // Names are unique, so a rename comes before an insert in the same migration that takes the old name (0108), and a
@@ -156,6 +157,9 @@ describe("the twins' spec rows", () => {
     expect(sql0144.indexOf("set display_name = 'Stablecoin quotes 300 twin'")).toBeLessThan(sql0144.indexOf("set display_name = 'Stablecoin quotes LIVE twin'"));
     expect(sql0144.indexOf("set display_name = 'Stablecoin quotes LIVE twin'")).toBeLessThan(sql0144.search(INSERT));
     expect(/capital_gbp\s*=/.test(sql0144)).toBe(false);
+    // 0148 (PR5-OPT, 2026-10-27): rule D's hidden twin gives up "variant-4" before the first of the three new rows takes it.
+    const sql0148 = sqlOf('0148_quote_twins_pr5_opt.sql');
+    expect(sql0148.indexOf("set display_name = 'Stablecoin quotes rule-D twin'")).toBeLessThan(sql0148.search(INSERT));
     expect(sql0109.search(DELETE)).toBeGreaterThanOrEqual(0);
     expect(sql0109.search(DELETE)).toBeLessThan(sql0109.search(RENAME));
     expect(new Set(ROWS.map((r) => r.display_name)).size).toBe(ROWS.length);
@@ -170,23 +174,30 @@ describe("the twins' spec rows", () => {
     }
   });
 
-  it("are, as they stand, the stablecoin twins in Davies' order (2026-10-27: the LIVE twin £600 as LIVE, variant-1 £1,200 the next step, variant-2 the £120 twin, variant-3 TAKE's twin; the £300 and weekend twins off; three hidden until their readings)", () => {
+  it("are, as they stand, the stablecoin twins in Davies' order (2026-10-27: the LIVE twin £600 as LIVE, variant-1 £1,200 the next step, variant-2 the £120 twin, variant-3 TAKE's twin, variant-4 to -6 PR5-OPT's three; the £300 and weekend twins off; three hidden until their readings)", () => {
     expect(ROWS.map((r) => [r.id, r.display_name, r.display_order, Number(r.capital_gbp), r.enabled, r.hidden === true])).toEqual([
       ['pr5', 'Stablecoin quotes', 10, 1200, true, true], ['live300', 'Stablecoin quotes 300 twin', 11, 300, false, false],
       ['live600', 'Stablecoin quotes LIVE twin', 12, 600, true, false], ['live1200', 'Stablecoin quotes variant-1', 13, 1200, true, false],
       ['live', 'Stablecoin quotes variant-2', 15, 120, true, false],
       ['p50', 'Stablecoin quotes size twin', 20, 600, true, true], ['take50', 'Stablecoin quotes variant-3', 30, 600, true, false],
-      ['take50wk', 'Stablecoin quotes weekend twin', 35, 600, false, false], ['d', 'Stablecoin quotes variant-4', 40, 1800, true, true],
+      ['live600usdt2', 'Stablecoin quotes variant-4', 31, 600, true, false], ['live600no03', 'Stablecoin quotes variant-5', 32, 600, true, false],
+      ['live600hold1', 'Stablecoin quotes variant-6', 33, 600, true, false],
+      ['take50wk', 'Stablecoin quotes weekend twin', 35, 600, false, false], ['d', 'Stablecoin quotes rule-D twin', 40, 1800, true, true],
     ]);
     // The page shows the three on LIVE's rules, each with LIVE's fill rule and, from the closure of 2026-10-30 21:00 UTC,
     // LIVE's weekend; none takes (LIVE's take is in shadow, which sends nothing).
     const onPage = ROWS.filter((r) => r.enabled && !r.hidden);
-    expect(onPage.map((r) => r.id)).toEqual(['live600', 'live1200', 'live', 'take50']);
-    // TAKE's twin keeps its own rule (a take from 2026-10-04 16:00); the three on LIVE's rules do not take.
-    expect(onPage.at(-1).rules.take).toBeTruthy();
+    expect(onPage.map((r) => r.id)).toEqual(['live600', 'live1200', 'live', 'take50', 'live600usdt2', 'live600no03', 'live600hold1']);
+    // TAKE's twin keeps its own rule (a take from 2026-10-04 16:00); the six on LIVE's rules do not take.
+    expect(onPage[3].rules.take).toBeTruthy();
     for (const r of onPage.slice(0, 3)) {
       expect([r.rules.fill.model, r.rules.weekend.from, 'take' in r.rules], r.id).toEqual(['at', '2026-10-30T21:00:00Z', false]);
     }
+    // PR5-OPT's three (0148): LIVE's fill rule and weekend from their start, 2026-10-29 00:00, and one rule each.
+    for (const r of onPage.slice(4)) {
+      expect([r.rules.fill.model, r.rules.fill.from, r.rules.weekend.from, 'take' in r.rules], r.id).toEqual(['at', '2026-10-29T00:00:00Z', '2026-10-29T00:00:00Z', false]);
+    }
+    expect(onPage.slice(4).map((r) => Object.keys(r.rules).filter((k) => k !== 'fill' && k !== 'weekend'))).toEqual([['weights'], ['weights'], ['holdMin']]);
   });
 
   it("make the browser test's fixture as they stand: every enabled row, in the page's order, a hidden one too (it still runs)", () => {

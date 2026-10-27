@@ -34,12 +34,15 @@ describe('the LIVE twin', () => {
     expect(DOC).toContain('**Status: FROZEN**');
   });
 
-  it('names the sha256 of each file it froze, once, and each file is that one', () => {
+  it('names the sha256 of each file it froze, once, and each file is that one, as its deviation 2 left it', () => {
+    // Its deviation (2026-10-27): the driver gains PR5-OPT's rules weights and holdMin; §5 keeps the hash it was frozen at and the
+    // deviation names it as it is.
+    const before = { 'supabase/functions/agents/quotes_twin.ts': ['36092d7f506565d5c89d11ea389d569e2106f738768d1a7450f4e3e39595c3d7'] };
     const named = (f) => [...DOC.matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
     for (const f of [
       'supabase/migrations/0136_quote_twin_live.sql', 'docs/agents/backtests/twins/live.json.gz', 'docs/agents/backtests/livesim/scripts/backfill_live.ts',
       'docs/agents/backtests/livesim/data/inputs.json.gz', 'docs/agents/backtests/livesim/data/live_events.txt.gz',
       'supabase/functions/agents/quotes_twin.ts', 'supabase/functions/agents/revx_sim.ts',
-    ]) expect(named(f), f).toEqual([sha(f)]);
+    ]) expect(named(f), f).toEqual(before[f] ? [...before[f], sha(f)] : [sha(f)]);
   });
 });

@@ -320,12 +320,20 @@ places stay when the number is not whole.
   5 Oct also buys or sells at once, as a taker, when the order book has moved
   past a rung by at least the taker's fee, then exits like any other fill.
   The live account's own taker switch is checked against its takes.
+- **Stablecoin quotes variant-4, -5 and -6.** After it, from 29 Oct: three
+  tests of the live account's rules at £600, each with one change, read
+  against the £600 LIVE twin after four weeks. Variant-4 puts twice the
+  pounds on the USDT/GBP book's rungs as on USDC/GBP's; variant-5 quotes
+  nothing at 0.3 % and puts that money on the 0.1 % and 0.2 % rungs (£75
+  each); variant-6 ignores a fill of £1 or less (the many £0.10 trades on
+  USDT/GBP) and keeps its order resting instead of switching to selling it
+  back. Each is the same page with its own figures.
 - **Older stablecoin twins, off the page.** The £1,200 twin, the £50-a-rung
-  size twin and the nine-rung rule's twin keep running behind the page until
+  size twin and the nine-rung rule's twin ("rule-D twin" since 27 Oct) keep running behind the page until
   their readings, then stop; the weekend twin of 18 Oct has stopped, since
   the live account's own weekends now answer its question.
 - **Stablecoin quotes with Euros.** Right after "Stablecoin quotes
-  variant-3", its name on two lines as the variants', on Coinbase (its own
+  variant-6", its name on two lines as the variants', on Coinbase (its own
   badge and venue card): the same rule on paper on Coinbase's four stablecoin
   books, USDC and USDT against pounds and against euros, from Coinbase's own
   public trades recorded every minute since 10 Oct. £100 a rung on the two

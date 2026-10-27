@@ -36,8 +36,9 @@ describe('variant-3, variant-2 with the weekend rule', () => {
     const named = (f) => [...DOC.matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
     // Deviation 1 (2026-10-21, its §7): the driver and the simulated account gain LIVE's fill rule (a twin rule this twin does not
     // name) and the validation's replay of LIVE's operations. §5 keeps the hashes they were frozen at; §7 names them as they are.
+    // Deviation 2 (2026-10-27): the driver gains PR5-OPT's rules weights and holdMin; it names the driver as it is.
     const before = {
-      'supabase/functions/agents/quotes_twin.ts': ['fd4b6f992ea7c094c97759933fb714b49d81dcf60756dee18fee4860525a1524'],
+      'supabase/functions/agents/quotes_twin.ts': ['fd4b6f992ea7c094c97759933fb714b49d81dcf60756dee18fee4860525a1524', '36092d7f506565d5c89d11ea389d569e2106f738768d1a7450f4e3e39595c3d7'],
       'supabase/functions/agents/revx_sim.ts': ['4b8f99e925f0ba6e05e188554e4b6bf8a43eead0aaec0b5d946a65664361f8aa'],
     };
     for (const f of [

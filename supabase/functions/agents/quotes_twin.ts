@@ -63,7 +63,7 @@ import {
 import { newGovCounts, newVariantBook, printOrder, stepVariantMinute, variantKey, type GovCounts } from "./quotes_variant.ts";
 import { RULED_ARMS } from "./quotes_ruled.ts";
 import {
-  pennyUp, QUOTE_LIVE_CONVERT_MAX_FRACTION, runQuotesConvert, runQuotesLive, seenUntil, takeBookRow, type QuoteLiveInstance, type QuoteLiveReport, type RecordedRead,
+  convertCapGbp, pennyUp, runQuotesConvert, runQuotesLive, seenUntil, takeBookRow, type QuoteLiveInstance, type QuoteLiveReport, type RecordedRead, type RungWeights,
 } from "./quotes_live.ts";
 import { newSimState, SimRevx, type SimOutage, type SimBook, type SimLevel, type SimState } from "./revx_sim.ts";
 import { weekendX, type WeekendRule } from "./quotes_weekend.ts";
@@ -184,8 +184,9 @@ const GOV_KEYS: Record<TwinSpecRow["gov"], QuoteLiveInstance["govKey"]> = {
 /**
  * The rule extensions a spec row may name in `rules`, by key, each the instance option it sets: `take`, TAKE's taker
  * entry from `from` (`QuoteLiveInstance.take`; docs/agents/reviews/2026-10-03-take-prereg.md); `exitOffset`, the exit
- * that many ticks beyond fair from `from` (`QuoteLiveInstance.exitOffset`; p50x1). A key with no code here, or one whose
- * settings it cannot read, is refused.
+ * that many ticks beyond fair from `from` (`QuoteLiveInstance.exitOffset`; p50x1); `weekend`, `fill`; and PR5-OPT's
+ * `weights` and `holdMin` (0148: the capital split by book, side and rung, and the holding line). A key with no code here,
+ * or one whose settings it cannot read, is refused.
  */
 export const TWIN_RULES: Record<string, (v: unknown) => Partial<QuoteLiveInstance>> = {
   take: (v) => {
@@ -208,6 +209,41 @@ export const TWIN_RULES: Record<string, (v: unknown) => Partial<QuoteLiveInstanc
     const from = Date.parse(String((v as { from?: unknown } | null)?.from));
     if (!Number.isFinite(from)) throw new Error(`its rule weekend needs "from", a UTC instant`);
     return { weekend: { from } };
+  },
+  // PR5-OPT's capital split from `from` (`QuoteLiveInstance.weights`; docs/agents/reviews/2026-10-27-pr5-opt-twins-prereg.md):
+  // weights by `book` (USDC-GBP, USDT-GBP), `side` (bid, ask) and `k` (a rung's distance as written, "0.001"), each a number
+  // from 0 to 10; not every book, nor every side, at 0.
+  weights: (v) => {
+    const o = v as { from?: unknown; book?: unknown; side?: unknown; k?: unknown } | null;
+    const from = Date.parse(String(o?.from));
+    if (!Number.isFinite(from)) throw new Error(`its rule weights needs "from", a UTC instant`);
+    const out: RungWeights = { from };
+    const part = (name: "book" | "side" | "k", ok: (key: string) => boolean) => {
+      const m = o?.[name];
+      if (m == null) return;
+      if (typeof m !== "object" || Array.isArray(m)) throw new Error(`its rule weights' "${name}" must be an object`);
+      const r: Record<string, number> = {};
+      for (const [key, val] of Object.entries(m as Record<string, unknown>)) {
+        const n = Number(val);
+        if (!ok(key) || typeof val !== "number" || !Number.isFinite(n) || n < 0 || n > 10) throw new Error(`its rule weights' "${name}" cannot read ${key}: ${String(val)}`);
+        r[key] = n;
+      }
+      (out as Record<string, unknown>)[name] = r;
+    };
+    part("book", (key) => (QUOTE_BOOKS as readonly string[]).includes(key));
+    part("side", (key) => key === "bid" || key === "ask");
+    part("k", (key) => Number.isFinite(Number(key)) && Number(key) > 0 && String(Number(key)) === key);
+    const allZero = (m: Record<string, number> | undefined, keys: readonly string[]) => !!m && keys.every((key) => m[key] === 0);
+    if (allZero(out.book, QUOTE_BOOKS) || allZero(out.side, ["bid", "ask"])) throw new Error(`its rule weights leave no rung any pounds`);
+    return { weights: out };
+  },
+  // PR5-OPT's holding line from `from` (`QuoteLiveInstance.holdMin`; the same pre-registration): `gbp` from 0.1 to 100.
+  holdMin: (v) => {
+    const o = v as { from?: unknown; gbp?: unknown } | null;
+    const from = Date.parse(String(o?.from)), gbp = Number(o?.gbp);
+    if (!Number.isFinite(from)) throw new Error(`its rule holdMin needs "from", a UTC instant`);
+    if (typeof o?.gbp !== "number" || !(gbp >= 0.1 && gbp <= 100)) throw new Error(`its rule holdMin needs "gbp", a number from 0.1 to 100`);
+    return { holdMin: { from, gbp } };
   },
   // The fill rule LIVE's own fills follow, from `from` (`QuoteLiveInstance.simFill`; docs/agents/backtests/livesim/): a print
   // AT a resting order's price, from the other side, fills it as a print through it does. `model` "at" is the only one.
@@ -759,7 +795,8 @@ async function twinTurn(
   // places its bids from the pounds the conversions leave. Its asks wait for their coin until a conversion fills.
   if (ds.turns === 0 && !spec.replay) {
     for (const [i, book] of QUOTE_BOOKS.entries()) {
-      const c = { at: at - 1_000 * (QUOTE_BOOKS.length - i), book, gbp: spec.capitalGbp * QUOTE_LIVE_CONVERT_MAX_FRACTION };
+      const t0 = at - 1_000 * (QUOTE_BOOKS.length - i);
+      const c = { at: t0, book, gbp: convertCapGbp(spec.instance, spec.capitalGbp, book, t0) };
       const r = await convert(c);
       (ds.operator ??= {})[book] = { cid: cidOf(r), at: iso(c.at), gbp: c.gbp, sent: 1, done: false, ...("error" in r ? { last: String(r.error) } : {}) };
       if ("error" in r) errors.push(`conversion ${book}: ${String(r.error)}`);
@@ -784,7 +821,7 @@ async function twinTurn(
     // Filled whole, it is done. One cancelled after filling in part is booked `filled` with what it filled (the executor's
     // own rule): the asks still lack the rest, as after a cancel that filled nothing.
     if (row?.state === "filled" && Number(row.filled_base) >= Number(row.base_size) - 1e-9) { op.done = true; continue; }
-    const t = at + 1_000 * (2 + i), cap = spec.capitalGbp * QUOTE_LIVE_CONVERT_MAX_FRACTION;
+    const t = at + 1_000 * (2 + i), cap = convertCapGbp(spec.instance, spec.capitalGbp, book, t);
     const would = await convert({ at: t, book, gbp: cap }, { send: false });
     const ws = (would as { wouldSend?: { limit?: string; asksNeed?: number; coinBeyondLongs?: number } }).wouldSend;
     if (!ws) {

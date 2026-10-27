@@ -142,3 +142,18 @@ should say that its fills, like every twin's, count no print at its own price, w
 | `supabase/functions/agents/revx_sim.ts` | 7f05baba5a1a066166791e184ddac505bcd692865864dd219172d4c87569cc47 |
 
 §5 keeps the hashes they were frozen at; this table names them from this deviation on (`src/weekend_twin.test.js`).
+
+**Deviation 2 (2026-10-27): `quotes_twin.ts` gains PR5-OPT's rules; this test does not change.** Davies, 2026-10-27: "…还有哪些可以值得研究和测试的地方（比如每个%不同的档挂单钱数不同？不同的档位%？不同的细分rules等等）". The
+study (`2026-10-27-pr5-rules-optimisation.md`) recommended three twins on LIVE's rules, built by `0148`
+(`2026-10-27-pr5-opt-twins-prereg.md`). For them `quotes_twin.ts` gains two rules, `weights` and `holdMin`, and sizes a twin's start
+conversions by `convertCapGbp`, which is a quarter of the capital for every twin without `weights`; `quotes_live.ts` gains the two
+instance options they set, absent on the live account's instance and on every twin before `0148`. **This test is not changed**:
+its row names neither rule, so it runs the code path it ran (pinned in `quotes_live_instance.test.ts`: the executor with each
+option absent, before its instant, and at its neutral setting is the frozen executor, turn by turn). Its window, reading and bar
+are as written. Not blind.
+
+| file | sha256 |
+|---|---|
+| `supabase/functions/agents/quotes_twin.ts` | 015f3af08ba852c372e6b0a9f9d6815999731bd3322e03c8b5f944cdac8f4544 |
+
+§5 and deviation 1 keep the hashes the file had before; this table names it from this deviation on (`src/weekend_twin.test.js`).

@@ -54,11 +54,14 @@ describe("the size twins on LIVE's rules", () => {
     expect(fs.existsSync(path.join(ROOT, 'docs/agents/reviews/2026-10-26-variant3-withdrawn.md'))).toBe(true);
   });
 
-  it('names the sha256 of each file it froze, once, and each file is that one', () => {
+  it('names the sha256 of each file it froze, once, and each file is that one, as its deviation 2 left it', () => {
+    // Its deviation (2026-10-27): the driver gains PR5-OPT's rules weights and holdMin; §5 keeps the hash it was frozen at and the
+    // deviation names it as it is.
+    const before = { 'supabase/functions/agents/quotes_twin.ts': ['36092d7f506565d5c89d11ea389d569e2106f738768d1a7450f4e3e39595c3d7'] };
     const named = (f) => [...DOC.matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
     for (const f of [
       `supabase/migrations/${M}`, 'supabase/functions/agents/quotes_twin.ts', 'supabase/functions/agents/revx_sim.ts',
       'supabase/functions/agents/quotes_weekend.ts',
-    ]) expect(named(f), f).toEqual([sha(f)]);
+    ]) expect(named(f), f).toEqual(before[f] ? [...before[f], sha(f)] : [sha(f)]);
   });
 });

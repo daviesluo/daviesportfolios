@@ -96,6 +96,103 @@ Deno.test("a weekend rule before its instant is the frozen executor: the same si
 Deno.test("a weekend rule in force on a weekday is the frozen executor: the Thursday's dark hour stays dark, turn by turn", () =>
   sixHours({ ...Now.QUOTE_LIVE_INSTANCE, weekend: { from: T0 - 24 * H } }));
 
+// PR5-OPT's two options (docs/agents/reviews/2026-10-27-pr5-opt-twins-prereg.md) are the live account's code untouched where
+// they are absent (the default instance above), before their instant, and in force at their neutral settings: equal weights
+// size every rung at the capital over twelve and cap a conversion at three asks' worth, as `rungGbp` and a quarter of the
+// capital do; a holding line of £0.10 is the venue's own minimum. Every table, the account and every report equal the frozen
+// executor's after every turn of the six hours, with their fills, exits, stops, top-ups and conversions.
+Deno.test("weights before their instant are the frozen executor: the same six hours, turn by turn", () =>
+  sixHours({ ...Now.QUOTE_LIVE_INSTANCE, weights: { from: T0 + (HOURS + 1) * H, book: { "USDT-GBP": 2 }, k: { "0.003": 0 } } }));
+Deno.test("equal weights in force are the frozen executor: the same six hours, turn by turn", () =>
+  sixHours({ ...Now.QUOTE_LIVE_INSTANCE, weights: { from: T0 - 24 * H, book: { "USDC-GBP": 1, "USDT-GBP": 1 }, side: { bid: 1, ask: 1 } } }));
+Deno.test("a holding line before its instant is the frozen executor: the same six hours, turn by turn", () =>
+  sixHours({ ...Now.QUOTE_LIVE_INSTANCE, holdMin: { from: T0 + (HOURS + 1) * H, gbp: 1 } }));
+Deno.test("a holding line of £0.10 in force (the venue's own minimum) is the frozen executor: the same six hours, turn by turn", () =>
+  sixHours({ ...Now.QUOTE_LIVE_INSTANCE, holdMin: { from: T0 - 24 * H, gbp: 0.1 } }));
+
+Deno.test("the live account's instance has neither PR5-OPT option, and its sizes, retirements, conversion cap and holding line are the frozen rule's", () => {
+  const I = Now.QUOTE_LIVE_INSTANCE;
+  assertEquals([I.weights, I.holdMin], [undefined, undefined]);
+  for (const now of [0, Date.parse("2026-10-29T00:00:00Z"), Date.parse("2030-01-01T00:00:00Z")]) {
+    for (const b of QUOTE_BOOKS) for (const side of ["bid", "ask"] as const) for (const k of I.rungs) {
+      assertEquals(Now.rungGbpOf(I, 600, b, side, k, now), Now.rungGbp(600, I.rungs));
+      assertEquals(Now.weightRetired(I, now, b, side, k), false);
+    }
+    for (const b of QUOTE_BOOKS) assertEquals(Now.convertCapGbp(I, 600, b, now), 600 * Now.QUOTE_LIVE_CONVERT_MAX_FRACTION);
+    assertEquals(Now.holdLineBase(I, now, 0.1337, 0.748), 0.1337);
+  }
+});
+
+Deno.test("PR5-OPT's weights size each rung by its weight's share and retire a rung of weight 0; the conversion cap is the book's asks", () => {
+  const usdt2 = { ...Now.QUOTE_LIVE_INSTANCE, weights: { from: 0, book: { "USDC-GBP": 1, "USDT-GBP": 2 } } };
+  const no03 = { ...Now.QUOTE_LIVE_INSTANCE, weights: { from: 0, k: { "0.001": 1, "0.002": 1, "0.003": 0 } } };
+  const r = (x: number) => Math.round(x * 1e8) / 1e8;
+  assertEquals([r(Now.rungGbpOf(usdt2, 600, "USDT-GBP", "bid", 0.001, 1)), r(Now.rungGbpOf(usdt2, 600, "USDC-GBP", "ask", 0.003, 1))], [66.66, 33.33]);
+  assertEquals([r(Now.convertCapGbp(usdt2, 600, "USDT-GBP", 1)), r(Now.convertCapGbp(usdt2, 600, "USDC-GBP", 1))], [199.98, 99.99]);
+  assertEquals([Now.rungGbpOf(no03, 600, "USDC-GBP", "bid", 0.001, 1), Now.rungGbpOf(no03, 600, "USDT-GBP", "ask", 0.003, 1)], [75, 0]);
+  assertEquals([Now.weightRetired(no03, 1, "USDT-GBP", "ask", 0.003), Now.weightRetired(no03, 1, "USDT-GBP", "ask", 0.002)], [true, false]);
+  assertEquals(Now.convertCapGbp(no03, 600, "USDC-GBP", 1), 150);
+  // Before the instant, the rule's: £50 a rung, a quarter of the capital.
+  const later = { ...usdt2, weights: { ...usdt2.weights, from: 10 } };
+  assertEquals([Now.rungGbpOf(later, 600, "USDT-GBP", "bid", 0.001, 9), Now.convertCapGbp(later, 600, "USDT-GBP", 9)], [50, 150]);
+});
+
+Deno.test("PR5-OPT's weights through the executor: USDT-GBP's entries twice USDC-GBP's, and no 0.3 % entry where its weight is 0", async () => {
+  const entries = async (instance: Now.QuoteLiveInstance) => {
+    const w = world(Now, instance);
+    w.sim.st.balances.USDC = 60; w.sim.st.balances.USDT = 60;
+    const books = Object.fromEntries(QUOTE_BOOKS.map((bk) => [bk, newBookState(bk, { id: "seed", ts: T0 - 30e3, ticks: bk === "USDC-GBP" ? 7553 : 7551, qty: 10, side: "sell" })])) as Record<QuoteBook, BookState>;
+    for (let t = T0; t < T0 + 3 * M; t += M) {
+      for (const bk of QUOTE_BOOKS) stepMinute(books[bk], t, { x: 1.3238, fairU: 1.0, prints: [] });
+      await w.mem.db.upsert("agent_quote_state", [{ id: 1, state: { lastMinute: t, books: JSON.parse(JSON.stringify(books)), fetchedTo: {}, hourFetchedFor: 0 }, last_minute: iso(t), updated_at: iso(t), last_error: null }], "id");
+      await w.turn(t + M + 30e3);
+    }
+    return Object.fromEntries((w.mem.tables.agent_quote_live_orders as Row[]).filter((o) => o.leg === "entry")
+      .map((o) => [`${o.book} ${o.rung_side} ${o.k}`, Math.round(Number(o.base_size) * Number(o.price) * 100) / 100]));
+  };
+  const usdt2 = await entries({ ...Now.QUOTE_LIVE_INSTANCE, weights: { from: T0, book: { "USDC-GBP": 1, "USDT-GBP": 2 } } });
+  // £120: USDT-GBP's rungs £13.33, USDC-GBP's £6.66 (a third of £20, floored to the penny), each in coin floored to the step (a sell one step up to its penny).
+  for (const [key, gbp] of Object.entries(usdt2)) assert(Math.abs(gbp - (key.startsWith("USDT") ? 13.33 : 6.66)) <= 0.01, `${key}: £${gbp}`);
+  assertEquals(Object.keys(usdt2).length, 12);
+  const no03 = await entries({ ...Now.QUOTE_LIVE_INSTANCE, weights: { from: T0, k: { "0.003": 0 } } });
+  assertEquals(Object.keys(no03).filter((k) => k.endsWith(" 0.003")), []);
+  for (const [key, gbp] of Object.entries(no03)) assert(Math.abs(gbp - 15) <= 0.01, `${key}: £${gbp}`);
+  assertEquals(Object.keys(no03).length, 8);
+});
+
+Deno.test("PR5-OPT's holding line through the executor: a £0.10 nibble leaves the rung unheld (no exit, its coin carried); the next fill takes it over and the exit buys back the whole", async () => {
+  // A buyer of 0.135 USDC through USDC's 0.1 % ask (7562) at minute 4 nibbles it (£0.102). Without a line the rung is held and
+  // buys its 0.135 back at fair (the F1 test above). With a £1 line it is not: no exit; the paper rung, filled by the same print,
+  // holds the entry back until its own exit at fair fills (a seller at 7553, minute 6), and then the rung quotes again; a buyer
+  // of 20 at minute 9 fills it, the holding passes £1, and one exit buys back everything, the nibble's 0.135 with it.
+  const run = async (instance?: Now.QuoteLiveInstance) => {
+    const w = world(Now, instance);
+    w.sim.st.balances.USDC = 40;
+    const books = Object.fromEntries(QUOTE_BOOKS.map((bk) => [bk, newBookState(bk, { id: "seed", ts: T0 - 30e3, ticks: bk === "USDC-GBP" ? 7553 : 7551, qty: 10, side: "sell" })])) as Record<QuoteBook, BookState>;
+    for (let t = T0; t < T0 + 13 * M; t += M) {
+      const prints: Record<QuoteBook, Print[]> = { "USDC-GBP": [], "USDT-GBP": [] };
+      if (t === T0 + 4 * M) prints["USDC-GBP"].push({ id: "dust", ts: t + 10e3, ticks: 7563, qty: 0.135, side: "buy" });
+      if (t === T0 + 6 * M) prints["USDC-GBP"].push({ id: "under", ts: t + 10e3, ticks: 7553, qty: 0.5, side: "sell" });
+      if (t === T0 + 9 * M) prints["USDC-GBP"].push({ id: "big", ts: t + 40e3, ticks: 7563, qty: 20, side: "buy" });
+      for (const bk of QUOTE_BOOKS) for (const p of prints[bk]) w.print(bk, p);
+      for (const bk of QUOTE_BOOKS) stepMinute(books[bk], t, { x: 1.3238, fairU: 1.0, prints: prints[bk] });
+      await w.mem.db.upsert("agent_quote_state", [{ id: 1, state: { lastMinute: t, books: JSON.parse(JSON.stringify(books)), fetchedTo: {}, hourFetchedFor: 0 }, last_minute: iso(t), updated_at: iso(t), last_error: null }], "id");
+      await w.turn(t + M + 30e3);
+    }
+    return (w.mem.tables.agent_quote_live_orders as Row[]).filter((o) => o.book === "USDC-GBP" && o.rung_side === "ask" && Number(o.k) === 0.001)
+      .map((o) => `${o.leg} ${Math.round(Number(o.price) / 1e-4)} ${o.state} ${Number(o.filled_base)}/${Number(o.base_size)}`);
+  };
+  const line = await run({ ...Now.QUOTE_LIVE_INSTANCE, holdMin: { from: T0, gbp: 1 } });
+  const none = await run(), later = await run({ ...Now.QUOTE_LIVE_INSTANCE, holdMin: { from: T0 + 60 * M, gbp: 1 } });
+  assertEquals(later, none);
+  // Without the line: the nibble is held and bought back at fair at once.
+  assertEquals(none, ["entry 7562 filled 0.135/13.22402", "exit 7554 new 0/0.14561"]);
+  // With it: no exit for the nibble alone, and the entry, re-placed once the paper rung quotes again, is the same order of
+  // 13.22402 (a fresh POST at the same price after the paper's exit). The big buyer fills it; the holding, 0.135 + 13.22402 =
+  // 13.35902, passes £1 and one exit buys it back at fair, trimmed to the penny as every exit is (`pennyExit`: 13.35716).
+  assertEquals(line, ["entry 7562 filled 0.135/13.22402", "entry 7562 filled 13.22402/13.22402", "exit 7554 new 0/13.35716"]);
+});
+
 async function sixHours(instance?: Now.QuoteLiveInstance) {
   const a = world(Now, instance), b = world(Frozen);
   const both = async <T>(f: (w: ReturnType<typeof world>) => Promise<T>): Promise<[T, T]> => [await f(a), await f(b)];

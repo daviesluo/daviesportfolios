@@ -952,10 +952,10 @@ describe("the realistic twins as rows of TESTING (Davies, 2026-10-02: the live e
     const x = rowMoney(r);
     expect([x.ccy, x.capital, x.fees]).toEqual(['GBP', 1200, pr5.feesGbp]);
   });
-  it('is "Stablecoin quotes variant-4" for rule D (variant-1 until 2026-10-03, variant-3 until 0130 on 2026-10-18 but for a few hours of 2026-10-09), on two lines, at its £1,800', () => {
+  it('is "Stablecoin quotes rule-D twin" for rule D (variant-1 until 2026-10-03, variant-3 until 0130, variant-4 until 0148 on 2026-10-27), one line, at its £1,800', () => {
     const r = /** @type {any} */ (quotesTwinRow(d));
-    expect([r.id, r.name, rowMoney(r).capital, r.capitalUsd]).toEqual([`${QUOTES_TWIN_ROW_PREFIX}d`, 'Stablecoin quotes variant-4', 1800, 2376]);
-    expect(strategyNameParts(r.name)).toEqual({ head: 'Stablecoin quotes', qual: 'variant-4', twoLines: true });
+    expect([r.id, r.name, rowMoney(r).capital, r.capitalUsd]).toEqual([`${QUOTES_TWIN_ROW_PREFIX}d`, 'Stablecoin quotes rule-D twin', 1800, 2376]);
+    expect(strategyNameParts(r.name)).toEqual({ head: 'Stablecoin quotes rule-D twin', qual: null, twoLines: false });
     expect(strategyNameParts('Reward quotes variant-1')).toEqual({ head: 'Reward quotes variant-1', qual: null, twoLines: false });
     expect(strategyNameParts('Reward quotes (no same-day)')).toEqual({ head: 'Reward quotes', qual: '(no same-day)', twoLines: false });
   });
@@ -968,7 +968,8 @@ describe("the realistic twins as rows of TESTING (Davies, 2026-10-02: the live e
     // The fixture keeps the hidden twins (they still run; the dashboard leaves them out, `twinsOnPage`) and drops the switched-off
     // ones (the £300 twin and the weekend twin).
     const names = quotesTwinRows({ quotesTwins: twinFixture.twins }).map((x) => x.name);
-    expect(names).toEqual(['Stablecoin quotes', 'Stablecoin quotes LIVE twin', 'Stablecoin quotes variant-1', 'Stablecoin quotes variant-2', 'Stablecoin quotes size twin', 'Stablecoin quotes variant-3', 'Stablecoin quotes variant-4']);
+    expect(names).toEqual(['Stablecoin quotes', 'Stablecoin quotes LIVE twin', 'Stablecoin quotes variant-1', 'Stablecoin quotes variant-2', 'Stablecoin quotes size twin', 'Stablecoin quotes variant-3',
+      'Stablecoin quotes variant-4', 'Stablecoin quotes variant-5', 'Stablecoin quotes variant-6', 'Stablecoin quotes rule-D twin']);
   });
   it('is "Stablecoin quotes variant-2" for the £120 simulation that mirrors LIVE (live, 0136; renamed by 0141, 2026-10-26), on two lines', () => {
     const r = /** @type {any} */ (quotesTwinRow(twin('live')));
@@ -987,10 +988,10 @@ describe("the realistic twins as rows of TESTING (Davies, 2026-10-02: the live e
   });
   it('lists the twins in the payload\'s order, opens each on its page, and is absent before its record is loaded', () => {
     const dash = { quotesTwins: [pr5, null, d], quotes: { live: liveFixture.live } };
-    expect(quotesTwinRows(dash).map((r) => r.name)).toEqual(['Stablecoin quotes', 'Stablecoin quotes variant-4']);
-    // Three of the dashboard's twins, variant-1 above rule D's (variant-4 since 0130); one not loaded yet is no row.
+    expect(quotesTwinRows(dash).map((r) => r.name)).toEqual(['Stablecoin quotes', 'Stablecoin quotes rule-D twin']);
+    // Three of the dashboard's twins, the size twin above rule D's ("rule-D twin" since 0148); one not loaded yet is no row.
     const three = { quotesTwins: [pr5, p50, d] };
-    expect(quotesTwinRows(three).map((r) => r.name)).toEqual(['Stablecoin quotes', 'Stablecoin quotes size twin', 'Stablecoin quotes variant-4']);
+    expect(quotesTwinRows(three).map((r) => r.name)).toEqual(['Stablecoin quotes', 'Stablecoin quotes size twin', 'Stablecoin quotes rule-D twin']);
     expect([quotesTwinOf(`${QUOTES_TWIN_ROW_PREFIX}p50`, three), quotesPageFor(`${QUOTES_TWIN_ROW_PREFIX}p50`, three)]).toEqual([p50, 'twin']);
     expect(quotesTwinOf(`${QUOTES_TWIN_ROW_PREFIX}d`, dash)).toBe(d);
     expect(quotesPageFor(`${QUOTES_TWIN_ROW_PREFIX}pr5`, dash)).toBe('twin');
@@ -1091,7 +1092,7 @@ describe('quoteLadderRows — a book as the page draws it', () => {
     // A EUR book's in euros, USDT-EUR's to its five-place step (Coinbase, 0112).
     expect([fmtQuotePrice(0.8649, 'USDC-EUR'), fmtQuotePrice(0.86493, 'USDT-EUR'), fmtQuotePrice(0.7568, 'USDC-GBP')]).toEqual(['€0.8649', '€0.86493', '£0.7568']);
   });
-  it('"Stablecoin quotes with Euros" is the TESTING row right after the last twin, "Stablecoin quotes variant-4", on Coinbase, in pounds, and opens its own page', () => {
+  it('"Stablecoin quotes with Euros" is the TESTING row right after the last twin, "Stablecoin quotes rule-D twin" in the fixture (hidden on the page), on Coinbase, in pounds, and opens its own page', () => {
     const q = cbFixture.quotesCoinbase;
     const row = quotesCoinbaseRow(q);
     expect(row).toMatchObject({ id: QUOTES_COINBASE_ROW_ID, name: 'Stablecoin quotes with Euros', venue: 'Coinbase', venueId: 'coinbase', mode: 'paper', ccy: 'GBP' });
@@ -1102,7 +1103,7 @@ describe('quoteLadderRows — a book as the page draws it', () => {
     const dash = { quotesTwins: twinFixture.twins, quotesCoinbase: q };
     const names = paperTestRows(dash).map((r) => r.name);
     expect(names.indexOf('Stablecoin quotes with Euros')).toBe(twinFixture.twins.length);
-    expect(names[names.indexOf('Stablecoin quotes with Euros') - 1]).toBe('Stablecoin quotes variant-4');
+    expect(names[names.indexOf('Stablecoin quotes with Euros') - 1]).toBe('Stablecoin quotes rule-D twin');
     // On two lines, as the variants are: the same run of rows.
     expect(strategyNameParts(String(row?.name))).toEqual({ head: 'Stablecoin quotes', qual: 'with Euros', twoLines: true });
     expect(quotesPageFor(QUOTES_COINBASE_ROW_ID, dash)).toBe('coinbase');

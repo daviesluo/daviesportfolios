@@ -33,11 +33,12 @@ describe("p50's pre-registration", () => {
     // they were frozen at; §7 names them as they are. Every other frozen file is named once, as frozen.
     // Deviation 3 (2026-10-09, its §9): the driver gains rule D's twin's retired rung; deviation 4 (its §10), p50x1's
     // exitOffset; §10 names it as it is. Deviation 5 (2026-10-18, its §12): the weekend rule. Deviation 6 (2026-10-21, its
-    // §13): LIVE's fill rule and the validation's replay of LIVE's operations; §13 names both as they are.
+    // §13): LIVE's fill rule and the validation's replay of LIVE's operations; §13 names both as they are. Deviation 7
+    // (2026-10-27, its §14): PR5-OPT's rules `weights` and `holdMin`; §14 names the driver as it is.
     const before = {
       'supabase/functions/agents/quotes_twin.ts': ['f14ecee87da252b9135dbeebcdcfd1dfa3f33c4a945c7b5b830cc2c37a61d7a8', 'd13b3eebce3dd3e89d8707e7373597b73d7127c5d5692fc36b6fcebe1d1dac0a',
         '92c7d0db86dffc2b86650f99055e676902dc12ee905a89926771ee43d2329712', 'aac594d3266bf17444c1c17ed7201f8f5ff06d33206cd9c7c5d57cfe0fce7457',
-        'fd4b6f992ea7c094c97759933fb714b49d81dcf60756dee18fee4860525a1524'],
+        'fd4b6f992ea7c094c97759933fb714b49d81dcf60756dee18fee4860525a1524', '36092d7f506565d5c89d11ea389d569e2106f738768d1a7450f4e3e39595c3d7'],
       'supabase/functions/agents/revx_sim.ts': ['885def181e01899095745c7c1128a3dee06e11f960965ec439cc7a50642fcd48', '4b8f99e925f0ba6e05e188554e4b6bf8a43eead0aaec0b5d946a65664361f8aa'],
     };
     for (const f of FROZEN) expect(named(f), f).toEqual(before[f] ? [...before[f], sha(f)] : [sha(f)]);

@@ -46826,3 +46826,13 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   - Every order and fill is OK end to end, and no server bug was found.
   - V1 (`0143`): `event_at` and the checks' book stored on each order, pinned in `exec.test.ts` and `src/grokpm_prereg.test.js`.
   - P1 and P2 are proposals; C-008 is drafted.
+
+## LEDGER.md, archived 2026-10-27 (third) — GROKPM's D16/D17 section of 2026-10-27 03:40 UTC
+
+### [2026-10-27 03:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM D16 and D17 built** (sub-agent; not pushed; Davies, 10-27: "剩下两点由你权衡后来做出最优选择"; the review's §5).
+  - D16: B bids live 65 minutes. The choice rests on the public tape: the same fills with half the orders, and no trade
+    in the gaps. No server change; pinned in `exec.test.ts`.
+  - D17 (`0147`): one cap per negative-risk event, `negRiskMarketID` stored on each order with the three live markets
+    filled in; pinned in `exec.test.ts` and `src/grokpm_prereg.test.js`.
+  - C-008's text is in the review's §5.3, for the main session to post after the deploy.

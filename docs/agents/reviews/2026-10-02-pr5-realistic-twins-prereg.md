@@ -497,3 +497,20 @@ pre-registrations (TAKE's, PR5-W's, the size twin's) read their twins under rule
 
 §11–§18 keep the hashes the files had before; this table names them from this deviation on. `src/twins_prereg.test.js` pins all
 of them. Not blind: written after reading LIVE's whole record.
+
+## 20. Deviation 8 (2026-10-27): PR5-OPT's two rules, `weights` and `holdMin`, and the start conversions sized by `convertCapGbp`
+
+Davies, 2026-10-27: "…还有哪些可以值得研究和测试的地方（比如每个%不同的档挂单钱数不同？不同的档位%？不同的细分rules等等）". The
+study (`2026-10-27-pr5-rules-optimisation.md`) recommended three twins on LIVE's rules, built by `0148`
+(`2026-10-27-pr5-opt-twins-prereg.md`). For them `quotes_twin.ts` gains two rules, `weights` and `holdMin`, and sizes a twin's start
+conversions by `convertCapGbp`, which is a quarter of the capital for every twin without `weights`; `quotes_live.ts` gains the two
+instance options they set, absent on the live account's instance and on every twin before `0148`. **This test is not changed**:
+its row names neither rule, so it runs the code path it ran (pinned in `quotes_live_instance.test.ts`: the executor with each
+option absent, before its instant, and at its neutral setting is the frozen executor, turn by turn). Its window, reading and bar
+are as written. Not blind.
+
+| file | sha256 |
+|---|---|
+| `supabase/functions/agents/quotes_twin.ts` | 015f3af08ba852c372e6b0a9f9d6815999731bd3322e03c8b5f944cdac8f4544 |
+
+§11–§19 keep the hashes the file had before; this table names it from this deviation on (`src/twins_prereg.test.js`).

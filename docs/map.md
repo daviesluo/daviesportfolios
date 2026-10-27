@@ -862,6 +862,7 @@ before touching migration state.
 | `0145_quote_live_capital_history.sql` | LIVE's capital by when it held (`agent_quote_live_capital`), kept by a trigger on its config, so DAYS reads each day over the capital it ran on. |
 | `0146_quote_live_compound.sql` | LIVE's capital compounding switch (off by default) and its cap, floor and step, on its config. |
 | `0147_grokpm_event_key.sql` | GROKPM's orders keep their market's negative-risk group, so one event's outcomes share the $10 and D15 caps (Deviation D17). |
+| `0148_quote_twins_pr5_opt.sql` | PR5-OPT's three twins on LIVE's rules at £600 from 2026-10-29 (variant-4 USDT 2:1, variant-5 no 0.3 % rung, variant-6 a £1 holding line); rule D's hidden twin renamed "rule-D twin". |
 | `0096_pm_rw_x_tb1_arms.sql` | Lets the variants' day tables, RW's and RW-C's, take TB1's two arms on x1 (tb1-skip, tb1-back). |
 | `0086_quote_live_deadman.sql` | Adds the kind `deadman` to `agent_quote_live_events`, for the row the monitor's dead-man switch writes when it cancels PR5's resting orders. |
 | `0087_quote_twins.sql` | The realistic twins' tables (each the live executor's four, a replica's and a simulated account's), their config rows and leases, and the one call that runs them. |

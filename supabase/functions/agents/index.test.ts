@@ -1450,8 +1450,8 @@ Deno.test("readQuotesTwin: each twin of the spec rows is read as the live accoun
   assertEquals([...new Set(d.detail!.rungs.map((r) => r.k))], [...RULED_ARMS.d.rungs]);
   // What it says of itself: what it follows, its size and keys, where its record began, its replica's check.
   assertEquals([pr5.twin.name, pr5.twin.rungsASide, pr5.twin.rungGbp, pr5.twin.keys], ["Stablecoin quotes", 3, 100, 1]);
-  // Its name is its row's: "variant-4" since 0130 (2026-10-18: take50wk takes "variant-3"; 0108 to 0109 had done the same for p50x1).
-  assertEquals([d.twin.name, d.twin.rungsASide, d.twin.rungGbp, d.twin.keys], ["Stablecoin quotes variant-4", 9, 50, 4]);
+  // Its name is its row's: "rule-D twin" since 0148 (2026-10-27: PR5-OPT's first twin takes "variant-4"; "variant-4" from 0130).
+  assertEquals([d.twin.name, d.twin.rungsASide, d.twin.rungGbp, d.twin.keys], ["Stablecoin quotes rule-D twin", 9, 50, 4]);
   assertEquals([pr5.twin.origin, pr5.twin.paperCheck?.mismatches, pr5.twin.converting], ["backfill", 0, []]);
   // Its DAYS' orders are its driver's count of what it sent each day: the page reads only the orders that filled or rest.
   assertEquals(pr5.detail!.days.map((x) => [x.day, x.orders]), [["2026-09-17", 18], ["2026-09-16", 6]]);

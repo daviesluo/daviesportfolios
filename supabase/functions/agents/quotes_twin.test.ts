@@ -379,6 +379,56 @@ Deno.test("weekend (variant-3's rule, 0130): sets the instance's weekend from it
   assertEquals(QUOTE_LIVE_INSTANCE.weekend, undefined);
 });
 
+Deno.test("weights and holdMin (PR5-OPT's rules, docs/agents/reviews/2026-10-27-pr5-opt-twins-prereg.md): each sets the instance's option from its instant; a row whose settings it cannot read is refused; no other twin and not the live account has one", async () => {
+  const from = "2026-10-29T00:00:00Z";
+  const mem = memDb({
+    agent_quote_twin_specs: [
+      ...TWIN_SPEC_ROWS,
+      rowAs("wu", { display_order: 31, rules: { weights: { from, book: { "USDC-GBP": 1, "USDT-GBP": 2 } } } }),
+      rowAs("wk3", { display_order: 32, rules: { weights: { from, k: { "0.001": 1, "0.002": 1, "0.003": 0 } } } }),
+      rowAs("hm", { display_order: 33, rules: { holdMin: { from, gbp: 1 } } }),
+      rowAs("wbad1", { display_order: 34, rules: { weights: { book: { "USDT-GBP": 2 } } } }),
+      rowAs("wbad2", { display_order: 35, rules: { weights: { from, book: { "BTC-GBP": 2 } } } }),
+      rowAs("wbad3", { display_order: 36, rules: { weights: { from, k: { "0.0010": 1 } } } }),
+      rowAs("wbad4", { display_order: 37, rules: { weights: { from, side: { bid: -1 } } } }),
+      rowAs("wbad5", { display_order: 38, rules: { weights: { from, book: { "USDC-GBP": 0, "USDT-GBP": 0 } } } }),
+      rowAs("hbad1", { display_order: 39, rules: { holdMin: { from, gbp: 0.05 } } }),
+      rowAs("hbad2", { display_order: 41, rules: { holdMin: { from, gbp: "1" } } }),
+    ],
+  }, { now: () => T0 });
+  const r = await twinSpecs(mem.db);
+  assertEquals(r.specs.map((x) => x.id), ["pr5", "p50", "wu", "wk3", "hm", "d"]);
+  const at = Date.parse(from);
+  assertEquals(r.specs[2].instance.weights, { from: at, book: { "USDC-GBP": 1, "USDT-GBP": 2 } });
+  assertEquals(r.specs[3].instance.weights, { from: at, k: { "0.001": 1, "0.002": 1, "0.003": 0 } });
+  assertEquals(r.specs[4].instance.holdMin, { from: at, gbp: 1 });
+  // Everything else of each is p50's, under its own tables and lease.
+  const { weights: _w, ...rest } = r.specs[2].instance;
+  assertEquals({ ...rest, govKey: null }, { ...TWINS.p50.instance, config: "agent_quote_twin_wu_config", orders: "agent_quote_twin_wu_orders", events: "agent_quote_twin_wu_events", state: "agent_quote_twin_wu_state", paper: "agent_quote_twin_wu_paper", lease: "quotes-twin-wu", govKey: null });
+  assertEquals(r.refused.map((x) => x.id), ["wbad1", "wbad2", "wbad3", "wbad4", "wbad5", "hbad1", "hbad2"]);
+  assertEquals(r.refused[0].why, `twin wbad1: its rule weights needs "from", a UTC instant`);
+  assertEquals(r.refused[4].why, `twin wbad5: its rule weights leave no rung any pounds`);
+  assertEquals(r.refused[5].why, `twin hbad1: its rule holdMin needs "gbp", a number from 0.1 to 100`);
+  for (const x of [TWINS.pr5, TWINS.p50, TWINS.d]) assertEquals([x.instance.weights, x.instance.holdMin], [undefined, undefined], x.id);
+  assertEquals([QUOTE_LIVE_INSTANCE.weights, QUOTE_LIVE_INSTANCE.holdMin], [undefined, undefined]);
+});
+
+Deno.test("weights: a twin's start conversions buy each book's own asks' worth (USDT-GBP 2:1 at £1,200: £399.99 and £199.98), where equal rungs buy a quarter of the capital each", async () => {
+  const W: TwinSpec = { ...specFromRow(rowAs("wu", { capital_gbp: 1200, rules: { weights: { from: iso(T0), book: { "USDC-GBP": 1, "USDT-GBP": 2 } } } })), start: T0 };
+  const w = world(undefined, [W]);
+  await w.pr5(T0);
+  const r0 = await w.call(T0, {}, [W]);
+  assertEquals(r0.twins[0].errors, []);
+  // At the seller's 0.7553: three asks of £66.66 and of £133.33 (each rung floored to the penny), £199.98 / 0.7553 = 264.76896 USDC and £399.99 / 0.7553 = 529.57765 USDT, each floored to the step.
+  assertEquals(w.orders(W).filter((o) => o.leg === "convert").map((o) => [o.book, Number(o.price), Number(o.base_size)]), [
+    ["USDC-GBP", 0.7553, 264.76896], ["USDT-GBP", 0.7553, 529.57765],
+  ]);
+  // The first turn's bids, all six from the £600.03 the conversions leave: USDT-GBP's three at £133.33 each, USDC-GBP's at £66.66.
+  const bids = w.orders(W).filter((o) => o.leg === "entry" && o.side === "buy").map((o) => [o.book, Math.round(Number(o.base_size) * Number(o.price))]);
+  assertEquals(bids.length, 6);
+  for (const [book, gbp] of bids) assertEquals(gbp, book === "USDT-GBP" ? 133 : 67, String(book));
+});
+
 Deno.test("weekend: a twin with the rule is its control's order for order outside a closure and before its instant; inside a closure with GBP/USD dark it quotes at the last X while its control withdraws, and from Sunday 21:00 it is dark again", async () => {
   // A Friday: GBP/USD's last bar starts 21:29 (dark from 21:40, ten minutes on); the closure began at 21:00.
   const FRI = Date.parse("2026-10-23T21:20:00Z");

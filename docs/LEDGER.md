@@ -288,7 +288,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      their 10-28 readouts; `take50wk` off. `0142`: `take50` "variant-3" on the page; Coinbase "with Euros - 1" (hold, 11-10) and
      "- 2", the USDC arm at £25/€25 (prereg `cb-usdc`, 14 days, bar > 0, ≥ 8 %/yr, ≥ 5 bps a trip).
      **PR5-OPT 10-27** (`reviews/2026-10-27-pr5-rules-optimisation.md` §4): three twins on LIVE's rules against `live600`
-     (`live600usdt2`, `live600no03`, `live600hold1`) wait for Davies' word; build after the 10-28 retirements (history 03:50).
+     (`live600usdt2`, `live600no03`, `live600hold1`) built by `0148`, from 10-29 00:00, read on or after 11-26 (history 04:20).
      **Audit 2026-10-19:** the read's eight criteria are not the addendum's step 2: its "`late` is false" was dropped (the
      replica was late), variant-3 was not compared (no orders before 10-23), and 900 of the closure's 2,880 minutes were
      read. The executor never reads `late`; only the rule "set 'live' outside a closure" keeps a late copy from trading.
@@ -755,8 +755,17 @@ Facts a fresh session would otherwise rediscover:
 
 Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's archive, each batch under a heading
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
-first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to GROKPM's first-orders section of 2026-10-27 03:30 UTC (archived
-2026-10-27, second).
+first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to GROKPM's D16/D17 section of 2026-10-27 03:40 UTC (archived
+2026-10-27, third).
+
+### [2026-10-27 04:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **PR5-OPT's three twins built (`0148`)** (sub-agent; not pushed; Davies, 10-27: "…还有哪些可以值得研究和测试的地方…"; frozen
+  `reviews/2026-10-27-pr5-opt-twins-prereg.md`). From 10-29 00:00, 28 days, each £600 on LIVE's rules against `live600`:
+  "variant-4" `live600usdt2` (USDT 2:1, `rules.weights`), "-5" `live600no03` (no 0.3 % rung), "-6" `live600hold1` (£1 holding
+  line, `rules.holdMin`); `d` is "rule-D twin". `quotes_live.ts` options absent on LIVE's instance: with each absent, before its
+  instant and at its neutral setting the executor equals the frozen one turn by turn (four new six-hour pins). Deviations in the
+  six pre-registrations pinning `quotes_twin.ts`. After deploy: 0148 applied, the three rows' first turn after 10-29 00:00 with
+  conversions £199.98 USDT / £99.99 USDC (variant-4) and £150 each (-5, -6). The 10-27 03:40 section archived.
 
 ### [2026-10-27 03:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **PR5-OPT: is LIVE's rule set the best known?** (sub-agent; not pushed; `reviews/2026-10-27-pr5-rules-optimisation.md`,
@@ -780,11 +789,3 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to GROK
 - **Compounding built, OFF** (Davies, 10-27: "…我希望赚的钱也能利用起来…"; `0146`, `agents/quotes_compound.ts`, review §9): daily, base +
   realised since on, whole £12, floor £300, cap £1,200, step £12. About +2.5 points of the capital in year 1. **Davies' switch**:
   the statement in review §9.3; suggested after a clean week at £600 (by 11-03).
-
-### [2026-10-27 03:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **GROKPM D16 and D17 built** (sub-agent; not pushed; Davies, 10-27: "剩下两点由你权衡后来做出最优选择"; the review's §5).
-  - D16: B bids live 65 minutes. The choice rests on the public tape: the same fills with half the orders, and no trade
-    in the gaps. No server change; pinned in `exec.test.ts`.
-  - D17 (`0147`): one cap per negative-risk event, `negRiskMarketID` stored on each order with the three live markets
-    filled in; pinned in `exec.test.ts` and `src/grokpm_prereg.test.js`.
-  - C-008's text is in the review's §5.3, for the main session to post after the deploy.
