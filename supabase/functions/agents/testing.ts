@@ -166,7 +166,9 @@ const twinSide = (table: string) => {
   const m = /^agent_quote_twin_[a-z][a-z0-9]{0,15}_(paper|sim)$/.exec(table); return m ? TWIN_SIDE_SHAPES[m[1]] : undefined;
 };
 /** The live account's own config and event columns and kinds since 0131 (its switches): the twins' tables (0087's template) have none of them. */
-const LIVE_ONLY_CONFIG_COLUMNS = ["take_mode", "weekend_mode"];
+const LIVE_ONLY_CONFIG_COLUMNS = ["take_mode", "weekend_mode",
+  // 0146: its capital compounding, off by default.
+  "compound_mode", "compound_base_gbp", "compound_from", "compound_cap_gbp", "compound_floor_gbp", "compound_step_gbp", "compound_on", "compound_last"];
 const LIVE_ONLY_EVENT_KINDS = ["take_shadow", "weekend_shadow"];
 const liveColumns = (table: string) => [...(LIVE_QUOTE_TABLES[liveQuoteShape(table)]?.columns ?? []), ...(table === "agent_quote_live_config" ? LIVE_ONLY_CONFIG_COLUMNS : [])];
 /** The twins' spec table as 0088 creates it: one row a twin, read by the call and the page, written by migrations only. */
@@ -568,7 +570,13 @@ export function schemaRefusal(table: string, r: Row): string | null {
     if (shape === "agent_quote_live_config") {
       return check("id", r.id === 1) ?? notNull(["dry_run", "capital_gbp"]) ?? check("capital_gbp", Number(r.capital_gbp) > 0)
         ?? check("take_mode", r.take_mode == null || ["off", "shadow", "live"].includes(String(r.take_mode)))
-        ?? check("weekend_mode", r.weekend_mode == null || ["off", "shadow", "live"].includes(String(r.weekend_mode)));
+        ?? check("weekend_mode", r.weekend_mode == null || ["off", "shadow", "live"].includes(String(r.weekend_mode)))
+        // 0146's one check, named: the mode, a cap over a positive floor, a positive step, and a base and a start while it is on.
+        ?? (r.compound_mode == null || (["off", "realised"].includes(String(r.compound_mode))
+          && (r.compound_mode === "off" || (Number(r.compound_base_gbp) > 0 && r.compound_from != null))
+          && (r.compound_cap_gbp == null || (Number(r.compound_cap_gbp) > 0 && Number(r.compound_floor_gbp) > 0 && Number(r.compound_floor_gbp) <= Number(r.compound_cap_gbp)))
+          && (r.compound_step_gbp == null || Number(r.compound_step_gbp) > 0))
+          ? null : `new row for relation "${table}" violates check constraint "agent_quote_live_config_compound_check"`);
     }
     if (shape === "agent_quote_live_state") return check("id", r.id === 1) ?? notNull(["state"]);
     if (shape === "agent_quote_live_events") {

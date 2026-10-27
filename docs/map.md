@@ -648,6 +648,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `agents/quotes_live_frozen.ts` | The live executor as it was before it became an instance, byte for byte, run only by `quotes_live_instance.test.ts` beside today's default instance. |
 | `agents/quotes_live_instance.test.ts` | Runs the executor's default instance beside the frozen one over six simulated hours, turn by turn, and finds every table, the account and every report the same. |
 | `agents/quotes_live_weekend.ts` | The live account's weekend replica (0131): PR5's engine copied in the hour before an FX closure and stepped inside it with PR5-W's weekend rule, for the executor's `weekend_mode` to record or carry out; kept only while that switch is on. |
+| `agents/quotes_compound.ts` | LIVE's capital compounding (0146, off by default): once a UTC day, the capital from what was put in plus what was realised, in whole £12, between a floor and a cap, moved only a step or more. |
 | `agents/quotes_live_switches.test.ts` | Pins the live account's `take_mode` and `weekend_mode`, off, shadow and live, on a simulated account, and the weekend replica's copy and stepping. |
 | `agents/quotes_twin.ts` | The realistic twins, TESTING's "Stablecoin quotes" rows: each a row of `agent_quote_twin_specs`, the live executor's code on a simulated Revolut X account carrying out its engine's paper decisions (PR5's or rule D's) at its size, minute by minute, with its replica of the engine checked against that engine's record, and the loader of their backfills. |
 | `agents/revx_sim.ts` | A simulated Revolut X account for the twins: it answers the live client's calls from memory, fills a resting order only by the public prints strictly through it, a take against the book recorder's read after it, and moves money as the venue moves it. |
@@ -859,6 +860,7 @@ before touching migration state.
 | `0143_grokpm_order_checks.sql` | GROKPM's orders keep the `event_at` the agent sent and what the server's checks read (book, edge, costs, Kelly cap, D15 cap and cut). |
 | `0144_quote_twins_live_at_600.sql` | LIVE at £600: the £600 twin becomes "Stablecoin quotes LIVE twin", the £300 twin stops, and "variant-1" is a new £1,200 twin on LIVE's rules, the next step's test. |
 | `0145_quote_live_capital_history.sql` | LIVE's capital by when it held (`agent_quote_live_capital`), kept by a trigger on its config, so DAYS reads each day over the capital it ran on. |
+| `0146_quote_live_compound.sql` | LIVE's capital compounding switch (off by default) and its cap, floor and step, on its config. |
 | `0096_pm_rw_x_tb1_arms.sql` | Lets the variants' day tables, RW's and RW-C's, take TB1's two arms on x1 (tb1-skip, tb1-back). |
 | `0086_quote_live_deadman.sql` | Adds the kind `deadman` to `agent_quote_live_events`, for the row the monitor's dead-man switch writes when it cancels PR5's resting orders. |
 | `0087_quote_twins.sql` | The realistic twins' tables (each the live executor's four, a replica's and a simulated account's), their config rows and leases, and the one call that runs them. |

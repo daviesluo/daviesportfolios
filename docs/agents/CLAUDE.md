@@ -357,7 +357,7 @@ that follow from that evidence, in short:
   `agents/quotes_live.ts`, reference §4 item 35; Davies' word the same
   afternoon, after the settings were verified in
   `reviews/2026-10-01-pr5-live-go.md`): on PR5's own sub-account (key
-  `_2`, capital £120, £10 a rung; £600, £50 a rung, since 2026-10-27 03:09 UTC) it carries out the paper engine's
+  `_2`, capital £120, £10 a rung; £600, £50 a rung, since 2026-10-27 03:09 UTC; `0146`'s compounding of what it realises is built and OFF, Davies' switch) it carries out the paper engine's
   decisions order for order, at the paper's prices, under the design's
   limits (a POST governor at 900/950, raised from 600/700 on Davies' word
   on 2026-10-01; a −1 % daily loss stop; de-peg and stale-input guards; a

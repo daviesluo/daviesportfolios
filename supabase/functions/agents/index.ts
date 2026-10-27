@@ -229,6 +229,7 @@ import {
   type LiveLeg, type QuoteLiveDeps, type QuoteLiveReport, type RungBook, type RungFill,
 } from "./quotes_live.ts";
 import { stepLiveWeekendPaper, type LiveWeekendReport } from "./quotes_live_weekend.ts";
+import { runLiveCompound, type CompoundReport } from "./quotes_compound.ts";
 import { runQuotesVariant, VARIANT_ARMS, VARIANT_KEYS, VARIANT_START, variantCapitalUsd, type VariantArmName } from "./quotes_variant.ts";
 import { runQuotesRuled, RULED_ARMS } from "./quotes_ruled.ts";
 import { runQuotesTwins, twinSpecs, type TwinDriverState, type TwinSpec } from "./quotes_twin.ts";
@@ -444,6 +445,8 @@ export type QuotesActionDeps = {
   live?: () => Promise<QuoteLiveReport>;
   /** The live account's weekend replica (0131, quotes_live_weekend.ts); a test that stubs the paper or the live turn runs none. */
   weekend?: () => Promise<LiveWeekendReport>;
+  /** LIVE's capital compounding (0146, quotes_compound.ts), off until its config says so; a test that stubs a turn runs none. */
+  compound?: () => Promise<CompoundReport>;
   report?: (kind: string, o: { message?: string; context?: unknown }) => Promise<void>;
   now?: () => number;
 };
@@ -476,6 +479,13 @@ export async function runQuotesAction(wait: boolean, deps: QuotesActionDeps = {}
   if (weekendStep) {
     const wk = await weekendStep();
     if (wk.error) await report("agents.quotes_weekend", { message: wk.error, context: { at: new Date(now()).toISOString() } });
+  }
+  // Then LIVE's capital compounding (0146, `quotes_compound.ts`), once a UTC day and only while its config turns it on: before the
+  // executor's turn, so the turn sizes from the day's capital. It never throws; a fault is one `agents.quotes_compound` row.
+  const compoundStep = deps.compound ?? (deps.paper || deps.live ? undefined : () => runLiveCompound(db(), Date.now()));
+  if (compoundStep) {
+    const c = await compoundStep();
+    if (c.error) await report("agents.quotes_compound", { message: c.error, context: { at: new Date(now()).toISOString(), day: c.day ?? null } });
   }
   // Then the live executor (`quotes_live.ts`), on the minute the paper engine just saved: the same decisions, carried to
   // PR5's own sub-account — in dry-run until `agent_quote_live_config` says otherwise. It runs after the paper engine has

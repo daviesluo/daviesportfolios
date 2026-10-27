@@ -463,3 +463,78 @@ The other sources agree in direction and are more pessimistic:
 - **"Variant-1" is a new twin, `live1200`.** It runs at £1,200 from 2026-10-28 00:00 UTC
   (`2026-10-27-live-next-size-prereg.md`), read with its base's window, 10-28 → 11-11.
 - **Why a new row rather than a resize.** A resize would mix two capitals into one record and leave neither reading honest.
+
+## 9. Using what LIVE earns: compounding (2026-10-27)
+
+Davies, 2026-10-27: "你再研究下策略如何能够有效利用账户中赚的钱，我希望赚的钱也能利用起来，现在好像完全没用到" (study how the strategy can use the
+money the account earns; I want the profit used too, it seems unused now).
+
+**Today.** The executor sizes every rung from `capital_gbp`, a twelfth of it, so what LIVE realises stays in the account as idle GBP
+and coin.
+
+### 9.1 The rule: `0146`, `agents/quotes_compound.ts`
+
+It is built behind a switch that is **off**.
+
+- **When it runs.** With `compound_mode` 'realised', the first quotes call of each UTC day sets the capital, before the executor's
+  turn.
+- **The equity it counts:**
+  - what was put in (`compound_base_gbp`, the capital when it was turned on);
+  - plus every rung's realised P&L since `compound_from`, fees included, by the executor's own walk.
+- **How the equity becomes the capital:**
+  - in whole £12, so a rung is whole pounds;
+  - at most `compound_cap_gbp`, **£1,200** (§8's per-pound cliff) until variant-1's reading says more;
+  - at least `compound_floor_gbp`, **£300**.
+- **Hysteresis.** The capital moves only when the target is at least `compound_step_gbp`, **£12** (a pound a rung), away. A day's
+  pennies never resize twelve rungs.
+- **Everything else follows the capital the next turn:**
+  - the −1 % loss stop and the £-cap of a conversion;
+  - the asks' coin: a £12 step needs about £3 more of each coin, inside the executor's own £5 a book a day of top-ups, so no hand
+    conversion is needed;
+  - resting orders keep their size until the paper engine re-prices them, as on any capital change.
+- **History.** `0145`'s trigger records each change, so DAYS reads each day over its own capital.
+
+**Why realised, not equity at fair.** The account's value at fair moves with GBP/USD. About half of it is held in dollar coins, so
+a 2 % move shifts it by 1 % of the capital.
+- **Sized on that value, FX would resize the rungs.** A weak pound would grow them and a strong one would shrink them, for reasons
+  that are not the strategy's.
+- **Realised P&L moves only with round trips.**
+- **What it costs:**
+  - **Deposits and withdrawals.** Realised P&L does not see them, so Davies adds a deposit to the base with one statement (`0146`'s
+    header).
+  - **A conversion's fee is not counted**, under a penny a rung.
+
+### 9.2 What it adds, honestly
+
+- **The model:** §8's per-pound curve, LIVE's realised rate at £10 a rung since 10-02, starting at £600, daily, with the £12 step and
+  the £1,200 cap.
+- **Year 1:**
+  - realised 26.3 % of the starting capital, against 23.8 % fixed: **+2.5 points**, about 4p a day;
+  - the capital ends near £756.
+- **Two years:** +10.7 points over fixed.
+- **Three years:** +25.8 points, the capital near the £1,200 cap.
+- **The first step comes after about a month.** It is small because the profit is small: about 0.065 % of the capital a day.
+
+**Risks:**
+- **A drawdown shrinks the rungs, a step at a time.** That is the intended response. The £300 floor stops a bad record, or a bug
+  in it, from shrinking them to nothing.
+- **Growth runs into the per-pound fall of §8.** That is the reason for the cap. Raising it waits for variant-1's reading.
+- **FX does not move it.** The coins' value is left out by design (§9.1).
+- **It writes `capital_gbp`.**
+  - **One writer at a time.** A by-hand change on a day it is on is overwritten at the next 00:00 unless the base is set again.
+    Turn it off before changing the capital by hand.
+
+### 9.3 The statement (Davies' decision)
+
+```sql
+update public.agent_quote_live_config
+   set compound_mode = 'realised', compound_base_gbp = capital_gbp, compound_from = now(),
+       compound_on = (now() at time zone 'utc')::date, updated_at = now()
+ where id = 1;
+```
+
+- **The first change** can come at the next 00:00 UTC, once £12 has been realised.
+- **Off:** `update public.agent_quote_live_config set compound_mode = 'off' where id = 1;`. The capital stays where it is.
+
+**Recommendation.** Turn it on once LIVE has run a clean week at £600, by 11-03. It is small but free, and it shrinks with a
+drawdown.

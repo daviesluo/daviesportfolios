@@ -284,7 +284,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      **Review 10-26** (`reviews/2026-10-26-stablecoin-quotes-review.md`): "+64.9 %" right but realised-only, half one weekend.
      **LIVE at £600 since 2026-10-27 03:09 UTC** (Davies; §8): his two maker conversions for the asks' coin. `0144`:
      `live600` "LIVE twin" (bar 11-11), `live1200` "variant-1" £1,200 from 10-28 (prereg `live-next-size`, bar 11-11: ≥ 80 % of
-     `live600` per pound, no loss-stop day), `live300` off; `live` "variant-2" £120, weekends from 10-30; `pr5`, `p50`, `d` hidden, off after
+     `live600` per pound, no loss-stop day), `live300` off; compounding (`0146`) built OFF, his switch (review §9.3); `live` "variant-2" £120, weekends from 10-30; `pr5`, `p50`, `d` hidden, off after
      their 10-28 readouts; `take50wk` off. `0142`: `take50` "variant-3" on the page; Coinbase "with Euros - 1" (hold, 11-10) and
      "- 2", the USDC arm at £25/€25 (prereg `cb-usdc`, 14 days, bar > 0, ≥ 8 %/yr, ≥ 5 bps a trip).
      **Audit 2026-10-19:** the read's eight criteria are not the addendum's step 2: its "`late` is false" was dropped (the
@@ -762,6 +762,9 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to MX-1
   queue-aware: per pound 0.90 of £10's at £50, 0.82 at £100, 0.76 at £150. No twin resized; size twins' deviation 1.
 - **DAYS' 7-day figure reads each day over the capital it ran on** (Davies, 10-27; `0145`: `agent_quote_live_capital`, kept by a
   trigger on LIVE's config, seeded £120 from go-live and £600 from 03:08:37; `dayCapitalGbp`; pinned on 10-19 → 25's week).
+- **Compounding built, OFF** (Davies, 10-27: "…我希望赚的钱也能利用起来…"; `0146`, `agents/quotes_compound.ts`, review §9): daily, base +
+  realised since on, whole £12, floor £300, cap £1,200, step £12. About +2.5 points of the capital in year 1. **Davies' switch**:
+  the statement in review §9.3; suggested after a clean week at £600 (by 11-03).
 
 ### [2026-10-27 03:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **GROKPM's first orders verified** (sub-agent; not pushed; Davies, 10-27: "Polymarket analyst下了几单，你也仔细验证下并且也看看有没有什么可以
