@@ -16,7 +16,7 @@ import { SurfaceBoundary } from '../app/surface_boundary.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesPageFor, quotesOkxOf, quotesOkxRow, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwShareText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows,
+  AGENT_TABS, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesPageFor, quotesOkxOf, quotesOkxRow, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quoteDaysRecent, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwShareText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -401,11 +401,16 @@ function QuoteBooks({ books, m, empty = null }) {
  * The quote pages' DAYS, newest first (Davies, 2026-09-28; on the live page under INVENTORY, 2026-10-01): each UTC day's
  * orders, entry fills, the round trips that closed and what it realised, in pounds. The days add up to REALIZED. Beside
  * its heading, the last seven closed days' realised a year, over the capital (`quoteDaysAnnualPct`; Davies, 2026-10-09),
- * named for what it is (`QUOTE_DAYS_ANNUAL_LABEL`, its tooltip `QUOTE_DAYS_ANNUAL_TITLE`; 2026-10-26).
+ * named for what it is (`QUOTE_DAYS_ANNUAL_LABEL`, its tooltip `QUOTE_DAYS_ANNUAL_TITLE`; 2026-10-26). By default only
+ * today's open row and the seven closed days the figure sums show (`quoteDaysRecent`, its own window; Davies, 2026-10-28), with "Load full history" under the
+ * table for the rest and "Show last 7 days" to fold it back. Every Stablecoin quotes page (live, twins, Coinbase, OKX) draws it.
  * @param {{ days: any[], m: (s: string) => string, empty?: string | null, capitalGbp?: number | null, nowMs?: number }} props
  */
-function QuoteDaysTable({ days, m, empty = null, capitalGbp = null, nowMs = Date.now() }) {
+export function QuoteDaysTable({ days, m, empty = null, capitalGbp = null, nowMs = Date.now() }) {
   const annual = quoteDaysAnnualPct(days, capitalGbp, nowMs);
+  const [full, setFull] = React.useState(false);
+  const recent = quoteDaysRecent(days, nowMs);
+  const shown = full ? days : recent;
   return (
     <section className="ag-section ag-quote-days">
       <div className="ag-section-title mono">DAYS{annual != null && (
@@ -419,7 +424,7 @@ function QuoteDaysTable({ days, m, empty = null, capitalGbp = null, nowMs = Date
           </tr></thead>
           <tbody>
             {days.length === 0 && <tr><td className="hl-empty dim" colSpan={5}>{empty ?? 'No day yet.'}</td></tr>}
-            {days.map((d) => (
+            {shown.map((d) => (
               <tr key={d.day}>
                 <td className="dim">{dayLabel(d.day)}{d.today ? ' · today' : ''}</td>
                 <td className="ag-ph">{d.orders}</td>
@@ -431,6 +436,9 @@ function QuoteDaysTable({ days, m, empty = null, capitalGbp = null, nowMs = Date
           </tbody>
         </table>
       </div>
+      {recent.length < days.length && (
+        <button type="button" className="btn-ghost ag-more" onClick={() => setFull((f) => !f)}>{full ? 'Show last 7 days' : 'Load full history'}</button>
+      )}
     </section>
   );
 }

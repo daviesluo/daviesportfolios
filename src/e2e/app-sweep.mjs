@@ -4806,6 +4806,10 @@ async function run() {
       const DAYS = ['17 Sep · today | 18 | 3 | 2 · 50 % won | -£0.0633', '16 Sep | 6 | 2 | 1 · 100 % won | +£0.0288'];
       if (lp && JSON.stringify(lp.days) === JSON.stringify(DAYS)) ok(T('pr5-page'), `DAYS under INVENTORY: ${lp.days.join(' / ')}, which add up to REALIZED`);
       else fail(T('pr5-page'), `days ${JSON.stringify(lp?.days)}`);
+      // DAYS shows today's open row and the seven closed days its heading sums (Davies, 2026-10-28), "Load full history" for the
+      // rest; the fixture's two days are both in view, so there is nothing to load (the toggle is pinned in quote_days.test.js).
+      if (await page.locator('.ag-quotes-live-detail .ag-quote-days .ag-more').count() === 0) ok(T('pr5-page'), 'DAYS shows both fixture days (today and 16 Sep) and no "Load full history" button: nothing is folded away');
+      else fail(T('pr5-page'), 'DAYS offers "Load full history" with every day in view');
       // ROUND TRIPS: D's fees are its share of the USDT conversion's fee and its P&L carries it (+£0.1188 − £0.0900).
       const TRIPS = ['17 Sep 21:00 24-hour stop | USDT/GBP | bought | 0.3 % | £0.7556 | £0.7550 | 132.00 USDT | £0.0897 | -£0.1689',
         '17 Sep 11:30 | USDC/GBP | bought | 0.1 % | £0.7568 | £0.7576 | 132.00 USDC | £0 | +£0.1056',

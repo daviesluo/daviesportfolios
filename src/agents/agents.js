@@ -686,8 +686,7 @@ export function quoteDaysAnnualPct(days, capitalGbp, nowMs) {
   const cap = Number(capitalGbp);
   if (!(cap > 0) || !days?.length) return null;
   const DAY = 86400e3, todayMs = Math.floor(nowMs / DAY) * DAY;
-  const iso = (ms) => new Date(ms).toISOString().slice(0, 10);
-  const from = iso(todayMs - 7 * DAY), today = iso(todayMs);
+  const { from, today } = quoteDaysWindow(nowMs);
   const first = days.reduce((m, d) => (d.day < m ? d.day : m), days[0].day);
   const start = first > from ? first : from;
   const n = Math.round((todayMs - Date.parse(`${start}T00:00:00Z`)) / DAY);
@@ -695,6 +694,33 @@ export function quoteDaysAnnualPct(days, capitalGbp, nowMs) {
   const capOf = (d) => (Number(d.capitalGbp) > 0 ? Number(d.capitalGbp) : cap);
   const sum = days.filter((d) => d.day >= start && d.day < today).reduce((s, d) => s + (Number(d.realisedGbp) || 0) / capOf(d), 0);
   return sum * (365 / n) * 100;
+}
+
+/**
+ * The seven closed UTC days `quoteDaysAnnualPct` reads, as the day strings that bound them: a row is in the window when
+ * `from <= day < today`. One definition, so DAYS' default rows (`quoteDaysRecent`) and its heading figure always agree.
+ * @param {number} nowMs
+ * @returns {{ from: string, today: string }}
+ */
+export function quoteDaysWindow(nowMs) {
+  const DAY = 86400e3, todayMs = Math.floor(nowMs / DAY) * DAY;
+  const iso = (/** @type {number} */ ms) => new Date(ms).toISOString().slice(0, 10);
+  return { from: iso(todayMs - 7 * DAY), today: iso(todayMs) };
+}
+
+/**
+ * The rows DAYS shows by default (Davies, 2026-10-28: "DAYS ... 只显示最近7天", then "keep today's open row visible"): today's
+ * open row, which he reads daily, and exactly the closed rows the 7-day figure sums, in the page's order. "Load full
+ * history" shows the rest. A page with no closed row in the window (a young row, a long outage) shows all of them.
+ * @template {{ day: string }} D
+ * @param {D[]} days
+ * @param {number} nowMs
+ * @returns {D[]}
+ */
+export function quoteDaysRecent(days, nowMs) {
+  const { from, today } = quoteDaysWindow(nowMs);
+  const recent = days.filter((d) => d.day >= from && d.day <= today);
+  return recent.some((d) => d.day < today) ? recent : days;
 }
 
 /**

@@ -279,7 +279,9 @@ places stay when the number is not whole.
   rate on the capital each day ran on (when LIVE's capital changes, the
   days before still count on the old one), labelled "7-day realised, annualised" (every
   Stablecoin quotes page has it). It leaves out the coins' unrealised, and
-  one good week reads as a year of them: hover it for that. Then
+  one good week reads as a year of them: hover it for that. The table lists
+  today's open day and only those same seven days; "Load full history" under it
+  shows every day, and "Show last 7 days" folds it back. Then
   its round trips (entry, exit, size, fees and what each made: a round
   trip that sold coins a conversion bought carries that conversion's fee
   on those coins, in its fees and its P&L). A round trip ends when the
