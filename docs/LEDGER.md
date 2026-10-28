@@ -758,6 +758,10 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 19:45 UTC section of 2026-10-28
 (archived 2026-10-28, fifth).
 
+### [2026-10-28 21:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep's calls off, step 2: `0153`** (`pmlp`, `pmlpreserve` `enabled = false`; rows and records stay), after the monitor
+  change deployed. Its dust is redeemed by GROKPM's hourly redemption of the shared account.
+
 ### [2026-10-28 20:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep's calls off, step 1: the monitor stops reading it** (Davies, 10-28: "这个关掉", on `pmlp`/`pmlpreserve`). `monitor/health.ts`
   drops `pmLp` (four readings), so the Worker does not page when `pm_lp_state` stops; the calls go off by the next migration,

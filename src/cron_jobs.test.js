@@ -898,6 +898,23 @@ describe('pg_cron jobs', () => {
   // 0120 (Davies, 2026-10-13: "目前paper testing里的reward quotes全关了吧？…"; none moved to the background): every paper
   // Reward quotes call off, the live path and the recorder kept, the programme factor's refresh unscheduled, nothing
   // dropped or deleted.
+  // 0153 (Davies, 2026-10-28: "这个关掉"): live-prep's two calls off after its 14-day readout failed; nothing else moves.
+  it("turns live-prep's order path and its reserve off and nothing else (0153)", () => {
+    const T = FILES.find((f) => /^0153_pm_lp_calls_off\.sql$/.test(f)) ?? '';
+    expect(T).not.toBe('');
+    const listBefore = replayList(sqlsOf(FILES.filter((f) => f < T))), listAfter = replayList(sqlsOf(FILES.filter((f) => f <= T)));
+    const OFF = ['agents?action=pmlp&forceFunctionRegion=eu-west-1', 'agents?action=pmlpreserve'];
+    expect(OFF.map((p) => listBefore.find((r) => r.path === p)?.enabled)).toEqual([true, true]);
+    expect(listAfter).toEqual(listBefore.map((r) => (OFF.includes(r.path) ? { ...r, enabled: false } : r)));
+    // GROKPM's calls stay on (the recorder `pmrec` has been off since 0137).
+    expect(listAfter.filter((r) => r.enabled && /^grokpm\?action=(sync|redeem)/.test(r.path)).length).toBe(2);
+    const jobsBefore = cronJobs(FILES.filter((f) => f < T)), jobsAfter = cronJobs(FILES.filter((f) => f <= T));
+    expect([...jobsAfter.keys()].sort()).toEqual([...jobsBefore.keys()].sort());
+    const sql = fs.readFileSync(path.join(DIR, T), 'utf8').replace(/--[^\n]*/g, '');
+    expect(sql).not.toMatch(/\b(insert|delete|truncate|drop|alter|create)\b/i);
+    expect(norm(sql)).toMatch(/^set lock_timeout = '3s'; update public\.edge_calls set enabled = false where path in \([^)]*\); reset lock_timeout;$/);
+  });
+
   it("turns every paper Reward quotes call off and keeps live-prep's live path and pm-rec on (0120)", () => {
     const T = FILES.find((f) => /^0120_reward_quotes_paper_off\.sql$/.test(f)) ?? '';
     expect(T).not.toBe('');
