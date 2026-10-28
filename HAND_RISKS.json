@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-10-27",
+  "asOf": "2026-10-28",
   "risks": {
     "AAPL": [
       {
@@ -92,8 +92,7 @@
     ],
     "HOOD": [
       {
-        "text": "earnings 10/27",
-        "until": "2026-10-27"
+        "text": "Q3 crypto revenue $120M, −55% y/y (10/27)"
       },
       {
         "text": "Prediction markets: CFTC weighing event-contract rules"
