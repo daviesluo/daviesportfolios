@@ -49,11 +49,18 @@ Deno.test("validateHandRisks: 1–3 notes, ≤ 120 characters, real until dates,
   const ok = validateHandRisks(RISKS());
   assert(ok.ok);
   assertEquals(ok.value.risks.RKLB[1], { text: "@lowest-target" });
+  // "@" before a price is not a placeholder: Grok's "@$625" note of 10-27 took both tables down for 30 hours.
+  const at = RISKS();
+  at.risks.ORCL[0].text = "Sold 2 calls @$625, 1 @ 640";
+  const atOk = validateHandRisks(at);
+  assert(atOk.ok, JSON.stringify(atOk));
+  assertEquals(atOk.value.risks.ORCL[0].text, "Sold 2 calls @$625, 1 @ 640");
   const faults: Array<[string, (r: any) => void]> = [
     ["4 notes", (r) => { r.risks.ORCL = [{ text: "a" }, { text: "b" }, { text: "c" }, { text: "d" }]; }],
     ["121 characters", (r) => { r.risks.ORCL[0].text = "x".repeat(121); }],
     ["until is not a date", (r) => { r.risks.RKLB[2].until = "11/9"; }],
     ["unknown placeholder", (r) => { r.risks.ORCL[0].text = "@highest-target"; }],
+    ["unknown placeholder", (r) => { r.risks.ORCL[0].text = "below @lowest-target"; }],
     ["has no text", (r) => { r.risks.ORCL[0].text = " "; }],
     ["keys are not text, until", (r) => { r.risks.ORCL[0].source = "x"; }],
     ["keys are not asOf, risks", (r) => { delete r.asOf; }],

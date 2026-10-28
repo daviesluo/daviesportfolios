@@ -101,7 +101,7 @@ export function validateHandTargets(raw: unknown, now: { btcPrice: number; spxLe
 /**
  * HAND_RISKS.json checked whole: `{asOf, risks: {TICKER: [{text, until?}]}}`, at most HAND_RISK_MAX_NOTES notes a
  * ticker, each text non-empty and at most HAND_RISK_MAX_CHARS, an `until` a real date; the `@lowest-target` placeholder
- * only alone in its note. Returns the table, or the first fault.
+ * only alone in its note, and no other "@" followed by a letter. Returns the table, or the first fault.
  */
 export function validateHandRisks(raw: unknown): { ok: true; value: HandRisks } | { ok: false; error: string } {
   const bad = (error: string) => ({ ok: false as const, error });
@@ -118,7 +118,8 @@ export function validateHandRisks(raw: unknown): { ok: true; value: HandRisks } 
       if (!keysAre(n, ["text"], ["until"])) return bad(`HAND_RISKS.json: ${ticker}[${i}] keys are not text, until`);
       if (typeof n.text !== "string" || !n.text.trim()) return bad(`HAND_RISKS.json: ${ticker}[${i}] has no text`);
       if (n.text.length > HAND_RISK_MAX_CHARS) return bad(`HAND_RISKS.json: ${ticker}[${i}] is ${n.text.length} characters (${HAND_RISK_MAX_CHARS} at most)`);
-      if (n.text.includes("@") && n.text !== LOWEST_TARGET_PLACEHOLDER) return bad(`HAND_RISKS.json: ${ticker}[${i}] has an unknown placeholder`);
+      // A placeholder is "@" then a letter; "@$625" is a price ("at $625", 10-27: it took both tables down for 30 hours).
+      if (/@[A-Za-z]/.test(n.text) && n.text !== LOWEST_TARGET_PLACEHOLDER) return bad(`HAND_RISKS.json: ${ticker}[${i}] has an unknown placeholder`);
       if ("until" in n && !isYmd(n.until)) return bad(`HAND_RISKS.json: ${ticker}[${i}] until is not a date`);
       out[ticker].push("until" in n ? { text: n.text, until: n.until } : { text: n.text });
     }

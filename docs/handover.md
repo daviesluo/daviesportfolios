@@ -46894,3 +46894,13 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   - Every wide gap is a clause (Manchester City's expulsion). Verdict: nothing to run; SAMEBET-REC is specified, not
     recommended.
   - Ledger: the 01:00 UTC section is archived.
+
+## LEDGER.md, archived 2026-10-28 (first) — PER-BOOK's section of 2026-10-27 05:20 UTC
+
+### [2026-10-27 05:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **PER-BOOK: each stablecoin book alone, and Revolut X USDT beside Coinbase USDC** (sub-agent; not pushed; Davies, 10-27:
+  "…如果一个光做usdt和一个光做usdc会更好吗？正好抵消币的风险"; `reviews/2026-10-27-per-book-returns.md`, reference §3.54,
+  `backtests/pr5_opt/scripts/per_book.py`; read-only). Alone at £600, LIVE's fill, 10-17 → 10-27, bps a day: Revolut X USDT-GBP
+  16.26, USDC-GBP 8.61; Coinbase USDC-GBP 9.39, USDC-EUR 6.75, USDT-GBP 0.43, USDT-EUR −0.50. The split at £600 makes 13.97 (USDT
+  alone 16.26); at £1,200 it makes 12.82 (13.49). Splitting coins halves issuer risk as 1:1 already does, offsets no GBP/USD, and
+  adds venue diversification. No two-venue twin: read variant-8 with Coinbase's USDC record offline. The 04:20 section archived.

@@ -759,8 +759,19 @@ Facts a fresh session would otherwise rediscover:
 
 Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's archive, each batch under a heading
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
-first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to PMSAMEBET's section of 2026-10-27 04:55 UTC (archived
-2026-10-27, sixth).
+first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to PER-BOOK's section of 2026-10-27 05:20 UTC (archived
+2026-10-28, first).
+
+### [2026-10-28 19:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Resumed after a usage-limit stop; health check of every live and test row** (Davies, 10-28: "请继续执行任务并且仔细看下最新的
+  live/testings策略进展，有问题就修复"). LIVE at £600 armed and quoting, guards clear, no loss stop; 12 twins, Coinbase rows, the
+  variants and every recurring call beating (about 1,430 of 1,440 a day; the BOOT_ERROR batches were retried by the watchdog).
+  **Fixed:** LIVE's USDC conversion `8823` rested 24 h at 0.7485 while the bid rose and was cancelled unfilled, so USDC's asks ran
+  short ([•] USDC against about 200 needed) from 10-27 03:10; sent again (`9405`, post-only at 0.7500, the bid; on Davies' 10-27 £600
+  word). The automatic top-up's £5 a day cannot cover a capital step: an operator conversion that follows the bid is next.
+  **Fixed:** the targets page lost both hand tables from 10-27 13:51: Grok's note "@$625" failed `validateHandRisks`' "@" rule.
+  A placeholder is now "@" then a letter (`targets/hand.ts`, pin test; fails on the old rule); the branch head passes.
+  GROKPM desk check of 10-27/10-28 (missed 23:45 run): OK, Vertiv redeemed, BanRep flat, C-009 on `grokpm-ledger`.
 
 ### [2026-10-27 06:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **OTHERVENUES: other coins and venues for PR5's rule** (sub-agent; not pushed; Davies, 10-27: "研究下还有别的币和别的币所可以做类似策略吗？";
@@ -770,11 +781,3 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to PMSA
   the same days 23 % / 10 %. Coinbase EURC-USDC 8 % over 12 months, 0 lately. Dead: TGBP-USDC, Bitstamp EURCV, Kraken (0.20 %),
   Gemini, Crypto.com, Bitfinex (no UK). **For Davies:** R1, an OKX recorder and 28-day paper twin (review §4, bar not frozen); R2 low.
   Ledger: the 04:20 UTC section archived.
-
-### [2026-10-27 05:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **PER-BOOK: each stablecoin book alone, and Revolut X USDT beside Coinbase USDC** (sub-agent; not pushed; Davies, 10-27:
-  "…如果一个光做usdt和一个光做usdc会更好吗？正好抵消币的风险"; `reviews/2026-10-27-per-book-returns.md`, reference §3.54,
-  `backtests/pr5_opt/scripts/per_book.py`; read-only). Alone at £600, LIVE's fill, 10-17 → 10-27, bps a day: Revolut X USDT-GBP
-  16.26, USDC-GBP 8.61; Coinbase USDC-GBP 9.39, USDC-EUR 6.75, USDT-GBP 0.43, USDT-EUR −0.50. The split at £600 makes 13.97 (USDT
-  alone 16.26); at £1,200 it makes 12.82 (13.49). Splitting coins halves issuer risk as 1:1 already does, offsets no GBP/USD, and
-  adds venue diversification. No two-venue twin: read variant-8 with Coinbase's USDC record offline. The 04:20 section archived.
