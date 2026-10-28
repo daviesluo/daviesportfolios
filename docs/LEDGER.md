@@ -758,6 +758,11 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to PR5-OPT's restart of 2026-10-28 19:56 UTC (archived
 2026-10-28, seventh).
 
+### [2026-10-28 21:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **OKX's paper twins start at 22:00 too (`0155`; Davies, 10-28: "okx")**: `okx_quote_state.startedAt` 10-29 00:00 → 10-28 22:00,
+  guarded; window → 11-25 22:00 (prereg deviation 1). After it applies, check `startedAt` stayed moved (a minute call in
+  flight could write the old one back) and that `okx_quote_minutes` fills from 22:00.
+
 ### [2026-10-28 21:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **LIVE: an exit the book shows crossing rests inside it, from 10-29 00:00** (sub-agent; not pushed; Davies, 10-28, on exits
   "rejected — not sent: its price crossed the book"). Measured to 10-28: 21 exits refused by our own crossing check (16 turns,

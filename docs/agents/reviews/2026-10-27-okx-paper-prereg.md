@@ -157,4 +157,9 @@ p05 = s[100]
 
 ## 8. Deviations
 
-None.
+**Deviation 1 (2026-10-28, migration `0155`): the window starts at 2026-10-28 22:00 UTC, not 2026-10-29 00:00 UTC.** Davies,
+2026-10-28, after PR5-OPT's five twins were moved to start at 22:00: "okx" (start these now, too). Nothing had been decided:
+both books idle, `okx_quote_minutes` empty. `startedAt` and `lastMinute` in `okx_quote_state` move back two hours; the engine
+catches up from 22:00 on the recorder's prints since 19:53. §4's 28 UTC days run 2026-10-28 22:00 → 2026-11-25 22:00 and §6's
+`:start` is the new `startedAt`; the first and last UTC days are partial (2 h and 22 h), the daily loss stop still resets at
+00:00 UTC. The rule, the bar and §7's files are unchanged.

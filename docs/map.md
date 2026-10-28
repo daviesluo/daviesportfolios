@@ -871,6 +871,7 @@ before touching migration state.
 | `0152_quote_twins_pr5_opt_restart.sql` | PR5-OPT's five twins again from 2026-10-29 06:00 under new ids (0149's five off), their start conversions under their rules. |
 | `0153_pm_lp_calls_off.sql` | Switches off live-prep's order path and refill reserve after its 14-day readout failed; rows and records stay. |
 | `0154_quote_twins_pr5_opt_start_now.sql` | Moves PR5-OPT's five `n600*` twins' start and rules' instants in place to 2026-10-28 22:00 (Davies: start now). |
+| `0155_okx_paper_start_now.sql` | Moves OKX's two paper twins' window start from 2026-10-29 00:00 to 2026-10-28 22:00 UTC, guarded on the old values. |
 | `0096_pm_rw_x_tb1_arms.sql` | Lets the variants' day tables, RW's and RW-C's, take TB1's two arms on x1 (tb1-skip, tb1-back). |
 | `0086_quote_live_deadman.sql` | Adds the kind `deadman` to `agent_quote_live_events`, for the row the monitor's dead-man switch writes when it cancels PR5's resting orders. |
 | `0087_quote_twins.sql` | The realistic twins' tables (each the live executor's four, a replica's and a simulated account's), their config rows and leases, and the one call that runs them. |
