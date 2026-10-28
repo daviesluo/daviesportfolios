@@ -755,8 +755,14 @@ Facts a fresh session would otherwise rediscover:
 
 Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's archive, each batch under a heading
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
-first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to OKX's section of 2026-10-28 19:30 UTC
-(archived 2026-10-28, fourth).
+first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 19:45 UTC section of 2026-10-28
+(archived 2026-10-28, fifth).
+
+### [2026-10-28 20:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep's calls off, step 1: the monitor stops reading it** (Davies, 10-28: "这个关掉", on `pmlp`/`pmlpreserve`). `monitor/health.ts`
+  drops `pmLp` (four readings), so the Worker does not page when `pm_lp_state` stops; the calls go off by the next migration,
+  pushed after this deploys. Its dust is the shared account's and GROKPM's hourly redemption takes it. OKX's hue: `#dfe3ea`,
+  a cool silver for OKX's black-and-white mark (Davies: the pink was off-brand; its lime would read as `--gain`).
 
 ### [2026-10-28 20:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **`0152` failed on push** (unique `display_order`: 41 still the old row's) and rolled back whole; the fixed driver deployed.
@@ -777,15 +783,3 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to OKX'
   `runQuotesConvert`'s checks, capped at what the asks still lack; the 24 h count from the first send (`request.firstTs`);
   once the asks hold their coin it is cancelled. Twins unchanged: no twin rule sets it; LIVE twin and `o600*` turn for turn
   equal with and without it; six hours vs the frozen file equal with it in force. Design addendum 2026-10-28.
-
-### [2026-10-28 19:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Live-prep's 14-day readout and Addendum 19's bar, read a day late (due 10-27 13:25 UTC; usage-limit stop), not blind**
-  (sub-agent; not pushed; `backtests/pmlp/lp_readout_a18.sql` as written, `results/lp_readout_a18_2026-10-28.txt`,
-  `reviews/2026-10-28-lp-reads.md`, reference §3.56). Window 10-14 → 10-27: rewards 0.769 c a filled share (474.20 shares)
-  against 1.5 c, and the total since the restart negative: **FAIL**. No day under −$15 and the −$25 stop untripped. R by rule:
-  0.7112 (A18), 0.7762 (A19), 0.7156 overall. Meaning: rewards end, the state since `0125`; nothing armed or changed.
-
-### [2026-10-28 19:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **PR5V / rule D readings and the hidden twins' readouts** (sub-agent; not pushed). Committed scripts run unchanged on
-  read-only exports (`backtests/pr5v/forward/`, `ruled/`): PR5V PASS, rule D FAIL (condition 3). Twins `pr5`, `p50`, `d`
-  read (`ruled/twins/`) and switched off by `0151` (unapplied until pushed); tests and the sweep's fixture now use `live1200`.

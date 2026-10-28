@@ -46937,3 +46937,17 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   prints and five levels of USDG-EUR and EURC-USDC, then "Stablecoin quotes OKX USDG" / "… OKX EURC", LIVE's rules at €50 a rung,
   28 days from the first 00:00 after deploy. **UK account not settled**: the prereg's §1 lists Davies' in-app checks (pairs, EUR or
   EURC, maker fee; UK regular spot is quoted 0.08 %). After deploy: `okx_rec_state.last_report.reached` true, both books' prints.
+
+## LEDGER.md, archived 2026-10-28 (fifth) — the 2026-10-28 19:40 and 19:45 UTC history sections, oldest first
+
+### [2026-10-28 19:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **PR5V / rule D readings and the hidden twins' readouts** (sub-agent; not pushed). Committed scripts run unchanged on
+  read-only exports (`backtests/pr5v/forward/`, `ruled/`): PR5V PASS, rule D FAIL (condition 3). Twins `pr5`, `p50`, `d`
+  read (`ruled/twins/`) and switched off by `0151` (unapplied until pushed); tests and the sweep's fixture now use `live1200`.
+
+### [2026-10-28 19:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep's 14-day readout and Addendum 19's bar, read a day late (due 10-27 13:25 UTC; usage-limit stop), not blind**
+  (sub-agent; not pushed; `backtests/pmlp/lp_readout_a18.sql` as written, `results/lp_readout_a18_2026-10-28.txt`,
+  `reviews/2026-10-28-lp-reads.md`, reference §3.56). Window 10-14 → 10-27: rewards 0.769 c a filled share (474.20 shares)
+  against 1.5 c, and the total since the restart negative: **FAIL**. No day under −$15 and the −$25 stop untripped. R by rule:
+  0.7112 (A18), 0.7762 (A19), 0.7156 overall. Meaning: rewards end, the state since `0125`; nothing armed or changed.

@@ -20,7 +20,7 @@ export const KIND_LABELS = { 'trend-4h': 'Trend 4h', 'trend-1h': 'Trend 1h', 'mo
  * colour vision and 15.7 under deuteranopia, and further from Binance's, the gain green and the loss red (checked with
  * the dataviz validator, 2026-09-24). Every badge also says the venue's name.
  */
-export const VENUE_HUES = { revx: '#8ec5ff', binance: '#f0b90b', polymarket: '#7d8bff', coinbase: '#9fd8c8', okx: '#e8a3c8' };
+export const VENUE_HUES = { revx: '#8ec5ff', binance: '#f0b90b', polymarket: '#7d8bff', coinbase: '#9fd8c8', okx: '#dfe3ea' };
 
 /** @param {string} id */
 export const venueLabel = (id) => VENUE_LABELS[id] ?? id;
