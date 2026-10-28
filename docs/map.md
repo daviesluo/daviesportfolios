@@ -868,6 +868,7 @@ before touching migration state.
 | `0150_okx_rec_paper.sql` | OKX's recorder and its two paper twins: their tables, the days view, lock, one call a minute and prune. |
 | `0149_quote_twins_pr5_opt_now.sql` | PR5-OPT's twins from 2026-10-27 06:00 under new ids (0148's three off), plus USDT 3:1 and USDT-GBP alone: variant-4 no 0.3 % rung, -5 the £1 holding line, -6 to -8 USDT 2:1, 3:1 and alone. |
 | `0151_quote_twins_hidden_off.sql` | Switches off the three hidden stablecoin twins (`pr5`, `p50`, `d`) once their 10-28 readouts were written; their rows, tables and records stay. |
+| `0152_quote_twins_pr5_opt_restart.sql` | PR5-OPT's five twins again from 2026-10-29 06:00 under new ids (0149's five off), their start conversions under their rules. |
 | `0096_pm_rw_x_tb1_arms.sql` | Lets the variants' day tables, RW's and RW-C's, take TB1's two arms on x1 (tb1-skip, tb1-back). |
 | `0086_quote_live_deadman.sql` | Adds the kind `deadman` to `agent_quote_live_events`, for the row the monitor's dead-man switch writes when it cancels PR5's resting orders. |
 | `0087_quote_twins.sql` | The realistic twins' tables (each the live executor's four, a replica's and a simulated account's), their config rows and leases, and the one call that runs them. |

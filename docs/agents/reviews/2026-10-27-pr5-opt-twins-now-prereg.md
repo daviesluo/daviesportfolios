@@ -149,4 +149,36 @@ turn.
 
 ## 7. Deviations
 
-None.
+**Deviation 1 (2026-10-28, migration `0152`): the five start again at 2026-10-29 06:00 UTC, under new ids, with start conversions
+under their rules.** Davies noticed on 2026-10-28 that variant-6, -7 and -8 hold the same coin as LIVE, about 200 USDC and 200
+USDT each.
+- **Cause.** `0149` applied at 04:56 UTC on 10-27, before the 06:00 start. The driver sent a twin whose start was still ahead
+  straight to forward turns, so each turned from 04:56, and its operator's start conversions went out at 05:50:27–05:51:28 UTC,
+  once its replica's fair could be read. That was before the rules' instant, so they were sized without weights: £150 into each
+  coin, where §1's table says £199.98 / £99.99, £225 / £75 and £300 / none. From 06:00 the quotes were weighted and the coin was
+  not: the USDT asks of variant-6 to -8 ran short (variant-8: 63 ask entries against 192 bids from 06:00) and variant-8 held its
+  USDC with no USDC rung; variant-4 bought three asks' worth for its two rungs a side. Variant-5 has no weights and was right.
+- **Fix.** `quotes_twin.ts` turns no twin before the minute after its start, the minute a catch-up's first turn stands in; a twin
+  whose row lands early waits, and its start conversions are sized under the rules in force at its first turn
+  (`quotes_twin.test.ts`: a USDT-only twin whose row lands ten minutes early converts no USDC and £300 of USDT at the minute after
+  its start; on the code before, it turned at once).
+- **Restart.** As `0149` did for `0148`'s rows, and for the same reasons (a replica built from the old start, a driver state that
+  counts its turns, a reset that could race the minute call), `0152` switches the five off (renamed "… from 10-27"; their tables
+  and records stay and are not read) and inserts the same five rules under new ids, `n600no03`, `n600hold1`, `n600usdt2`,
+  `n600usdt3` and `n600usdt`, each its §1 row but for the id, tables, lease, start, rules' instants (2026-10-29 06:00 UTC) and
+  migration. The page names "variant-4" to "-8" and their places move to them. Variant-5 restarts too, so the five share one
+  window.
+- **Window**: 2026-10-29 06:00 → 2026-11-26 06:00 UTC (28 days), each day 06:00 → 06:00, `live600` read over the same days.
+  §3's reading, bar, the figures beside it and their power are unchanged. §4: each starts flat at 2026-10-29 06:00. §6's count
+  of twins: `0151` switched `pr5`, `p50` and `d` off, and `0152` swaps five for five.
+- **Order with the function**, as `0152`'s header says: should the rows land before the fixed driver deploys, they turn inert
+  minutes before their start, and their start conversions go out at the first turn after it.
+- Not blind: the restart was chosen after reading the five's record to 2026-10-28.
+
+| file | sha256 |
+|---|---|
+| `supabase/migrations/0152_quote_twins_pr5_opt_restart.sql` | 8d0966804f83ab8b2373d65fa4ddc50e2caead05cd911b6a5d3089bc15ed2eee |
+| `supabase/functions/agents/quotes_twin.ts` | 2b84a1ebbdc1172375ff7c783a463ce39e266c490b2256314eae8893b5548e68 |
+
+§5 keeps the hashes it was frozen at; this table names `quotes_twin.ts` from this deviation on, and `0152`
+(`src/pr5_opt_twins_now.test.js`).

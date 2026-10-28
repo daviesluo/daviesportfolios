@@ -290,8 +290,10 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      (10-28 readouts); `take50wk` off. `0142`: `take50` "variant-3" on the page; Coinbase "with Euros - 1" (hold, 11-10) and
      "- 2", the USDC arm at £25/€25 (prereg `cb-usdc`, 14 days, bar > 0, ≥ 8 %/yr, ≥ 5 bps a trip).
      **PR5-OPT 10-27** (`reviews/2026-10-27-pr5-rules-optimisation.md` §4): five twins on LIVE's rules against `live600`,
-     variant-4 to -8 (`o600no03`, `o600hold1`, `o600usdt2`, `o600usdt3`, `o600usdt`) by `0149`, from 10-27 06:00, read on or
-     after 11-24 06:00 (prereg `pr5-opt-twins-now`; history 04:50); 0148's three off.
+     variant-4 to -8, restarted by `0152` as `n600no03`, `n600hold1`, `n600usdt2`, `n600usdt3`, `n600usdt` from 10-29 06:00,
+     read on or after 11-26 06:00 (prereg `pr5-opt-twins-now`, its deviation 1; history 10-28 19:56); 0148's three and 0149's
+     five (`o600*`, start conversions unweighted) off. After deploy: each `n600*` turns nothing before 06:01 on 10-29, then
+     converts as the prereg's §1 table says (£199.98/£99.99, £225/£75, £300/none; no 0.3 % and hold £1: £150/£150).
      **Audit 2026-10-19:** the read's eight criteria are not the addendum's step 2: its "`late` is false" was dropped (the
      replica was late), variant-3 was not compared (no orders before 10-23), and 900 of the closure's 2,880 minutes were
      read. The executor never reads `late`; only the rule "set 'live' outside a closure" keeps a late copy from trading.
@@ -753,8 +755,16 @@ Facts a fresh session would otherwise rediscover:
 
 Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's archive, each batch under a heading
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
-first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the resume health check's section of 2026-10-28 19:20 UTC
-(archived 2026-10-28, third).
+first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to OKX's section of 2026-10-28 19:30 UTC
+(archived 2026-10-28, fourth).
+
+### [2026-10-28 19:56 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **PR5-OPT's five twins restart from 10-29 06:00 (`0152`)** (sub-agent; not pushed; Davies noticed variant-6/7/8 hold LIVE's
+  ~200 USDC + ~200 USDT). Cause: `0149` landed 04:56 for a 06:00 start; the driver sent a twin whose start was ahead straight
+  to forward turns, so the start conversions went out 05:50, before `weights.from`: unweighted. Fix: `quotes_twin.ts` turns no
+  twin before the minute after its start (pin fails on the old code). `0152`: `o600*` renamed "… from 10-27" and off; `n600*`
+  from 10-29 06:00, window to 11-26 06:00 (prereg deviation 1); code deviations in the seven preregs that pin `quotes_twin.ts`;
+  sweep fixture rebuilt. Order risk: if `0152` applies before the function deploys, the old driver turns them early (inert).
 
 ### [2026-10-28 19:48 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **LIVE: an operator's conversion follows the bid** (sub-agent; not pushed; the 19:20 section's "next", archived; Davies'
@@ -775,10 +785,3 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 - **PR5V / rule D readings and the hidden twins' readouts** (sub-agent; not pushed). Committed scripts run unchanged on
   read-only exports (`backtests/pr5v/forward/`, `ruled/`): PR5V PASS, rule D FAIL (condition 3). Twins `pr5`, `p50`, `d`
   read (`ruled/twins/`) and switched off by `0151` (unapplied until pushed); tests and the sweep's fixture now use `live1200`.
-
-### [2026-10-28 19:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **OKX's recorder and paper twins built (`0150`)** (sub-agent; not pushed; Davies, 10-27: "我已经有okx在英国的账户了…可以的话就加盘口记录器和开
-  testings策略（目前live的rules？）"; frozen `reviews/2026-10-27-okx-paper-prereg.md`, reference §4 item 64). One call `agents?action=okxrec`:
-  prints and five levels of USDG-EUR and EURC-USDC, then "Stablecoin quotes OKX USDG" / "… OKX EURC", LIVE's rules at €50 a rung,
-  28 days from the first 00:00 after deploy. **UK account not settled**: the prereg's §1 lists Davies' in-app checks (pairs, EUR or
-  EURC, maker fee; UK regular spot is quoted 0.08 %). After deploy: `okx_rec_state.last_report.reached` true, both books' prints.

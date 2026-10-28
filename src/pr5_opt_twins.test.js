@@ -48,12 +48,15 @@ describe("PR5-OPT's three twins on LIVE's rules", () => {
     for (const id of ['live600usdt2', 'live600no03', 'live600hold1']) expect(sql).toContain(`select public.create_quote_twin_tables('${id}');`);
   });
 
-  it('names the sha256 of each file it froze, once, and each file is that one', () => {
+  it('names the sha256 of each file it froze, once, and each file is that one, as its last deviation left it', () => {
+    // Its deviation of 2026-10-28 (`0152`): the driver turns no twin before the minute after its start; §5 keeps the hash
+    // it was frozen at and the deviation names the file as it is.
+    const before = { 'supabase/functions/agents/quotes_twin.ts': ['015f3af08ba852c372e6b0a9f9d6815999731bd3322e03c8b5f944cdac8f4544'] };
     const named = (f) => [...DOC.matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
     for (const f of [
       `supabase/migrations/${M}`, 'supabase/functions/agents/quotes_twin.ts', 'supabase/functions/agents/revx_sim.ts',
       'supabase/functions/agents/quotes_weekend.ts',
-    ]) expect(named(f), f).toEqual([sha(f)]);
+    ]) expect(named(f), f).toEqual(before[f] ? [...before[f], sha(f)] : [sha(f)]);
   });
 
   it("the code each rule needs exists, and the live account's instance names neither", () => {

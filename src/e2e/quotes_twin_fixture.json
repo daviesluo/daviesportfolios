@@ -1,5 +1,5 @@
 {
- "about": "The realistic twins' rows as the dashboard serves them (`readQuotesTwin`), made by docs/agents/backtests/twins/scripts/fixture.ts from the twins' spec rows (`specs`), in the page's order: \"Stablecoin quotes LIVE twin\" (`live600`, £600), \"Stablecoin quotes variant-1\" (`live1200`, £1,200), \"Stablecoin quotes variant-2\" (`live`, £120), \"Stablecoin quotes variant-3\" (`take50`, £600), \"Stablecoin quotes variant-4\" (`o600no03`, £600), \"Stablecoin quotes variant-5\" (`o600hold1`, £600), \"Stablecoin quotes variant-6\" (`o600usdt2`, £600), \"Stablecoin quotes variant-7\" (`o600usdt3`, £600), \"Stablecoin quotes variant-8\" (`o600usdt`, £600). Each is the live quotes fixture's book (quotes_live_fixture.json: no real balance or fill) run as its tables at its capital, beside a driver state of its engine's (`sims`: its account, mode, turns, replica check, backfill and orders sent each day, with its operator's quarter of its capital), its start (`starts`) moved before the browser test's clock, 2026-09-17 23:00 UTC. `twins` is the function's answer, which the agents function's test asserts and the browser test serves.",
+ "about": "The realistic twins' rows as the dashboard serves them (`readQuotesTwin`), made by docs/agents/backtests/twins/scripts/fixture.ts from the twins' spec rows (`specs`), in the page's order: \"Stablecoin quotes LIVE twin\" (`live600`, £600), \"Stablecoin quotes variant-1\" (`live1200`, £1,200), \"Stablecoin quotes variant-2\" (`live`, £120), \"Stablecoin quotes variant-3\" (`take50`, £600), \"Stablecoin quotes variant-4\" (`n600no03`, £600), \"Stablecoin quotes variant-5\" (`n600hold1`, £600), \"Stablecoin quotes variant-6\" (`n600usdt2`, £600), \"Stablecoin quotes variant-7\" (`n600usdt3`, £600), \"Stablecoin quotes variant-8\" (`n600usdt`, £600). Each is the live quotes fixture's book (quotes_live_fixture.json: no real balance or fill) run as its tables at its capital, beside a driver state of its engine's (`sims`: its account, mode, turns, replica check, backfill and orders sent each day, with its operator's quarter of its capital), its start (`starts`) moved before the browser test's clock, 2026-09-17 23:00 UTC. `twins` is the function's answer, which the agents function's test asserts and the browser test serves.",
  "nowMs": 1789686000000,
  "dayStartMs": 1789603200000,
  "specs": [
@@ -105,25 +105,25 @@
    "hidden": false
   },
   {
-   "id": "o600no03",
+   "id": "n600no03",
    "display_name": "Stablecoin quotes variant-4",
    "display_order": 41,
    "engine": "pr5",
    "capital_gbp": 600,
    "gov": "account",
-   "start": "2026-10-27T06:00:00Z",
-   "table_prefix": "agent_quote_twin_o600no03",
-   "lease": "quotes-twin-o600no03",
+   "start": "2026-10-29T06:00:00Z",
+   "table_prefix": "agent_quote_twin_n600no03",
+   "lease": "quotes-twin-n600no03",
    "rules": {
     "fill": {
      "model": "at",
-     "from": "2026-10-27T06:00:00Z"
+     "from": "2026-10-29T06:00:00Z"
     },
     "weekend": {
-     "from": "2026-10-27T06:00:00Z"
+     "from": "2026-10-29T06:00:00Z"
     },
     "weights": {
-     "from": "2026-10-27T06:00:00Z",
+     "from": "2026-10-29T06:00:00Z",
      "k": {
       "0.001": 1,
       "0.002": 1,
@@ -133,57 +133,57 @@
    },
    "backfill": null,
    "prereg": "docs/agents/reviews/2026-10-27-pr5-opt-twins-now-prereg.md",
-   "migration": "0149",
+   "migration": "0152",
    "enabled": true
   },
   {
-   "id": "o600hold1",
+   "id": "n600hold1",
    "display_name": "Stablecoin quotes variant-5",
    "display_order": 42,
    "engine": "pr5",
    "capital_gbp": 600,
    "gov": "account",
-   "start": "2026-10-27T06:00:00Z",
-   "table_prefix": "agent_quote_twin_o600hold1",
-   "lease": "quotes-twin-o600hold1",
+   "start": "2026-10-29T06:00:00Z",
+   "table_prefix": "agent_quote_twin_n600hold1",
+   "lease": "quotes-twin-n600hold1",
    "rules": {
     "fill": {
      "model": "at",
-     "from": "2026-10-27T06:00:00Z"
+     "from": "2026-10-29T06:00:00Z"
     },
     "weekend": {
-     "from": "2026-10-27T06:00:00Z"
+     "from": "2026-10-29T06:00:00Z"
     },
     "holdMin": {
-     "from": "2026-10-27T06:00:00Z",
+     "from": "2026-10-29T06:00:00Z",
      "gbp": 1
     }
    },
    "backfill": null,
    "prereg": "docs/agents/reviews/2026-10-27-pr5-opt-twins-now-prereg.md",
-   "migration": "0149",
+   "migration": "0152",
    "enabled": true
   },
   {
-   "id": "o600usdt2",
+   "id": "n600usdt2",
    "display_name": "Stablecoin quotes variant-6",
    "display_order": 43,
    "engine": "pr5",
    "capital_gbp": 600,
    "gov": "account",
-   "start": "2026-10-27T06:00:00Z",
-   "table_prefix": "agent_quote_twin_o600usdt2",
-   "lease": "quotes-twin-o600usdt2",
+   "start": "2026-10-29T06:00:00Z",
+   "table_prefix": "agent_quote_twin_n600usdt2",
+   "lease": "quotes-twin-n600usdt2",
    "rules": {
     "fill": {
      "model": "at",
-     "from": "2026-10-27T06:00:00Z"
+     "from": "2026-10-29T06:00:00Z"
     },
     "weekend": {
-     "from": "2026-10-27T06:00:00Z"
+     "from": "2026-10-29T06:00:00Z"
     },
     "weights": {
-     "from": "2026-10-27T06:00:00Z",
+     "from": "2026-10-29T06:00:00Z",
      "book": {
       "USDC-GBP": 1,
       "USDT-GBP": 2
@@ -192,29 +192,29 @@
    },
    "backfill": null,
    "prereg": "docs/agents/reviews/2026-10-27-pr5-opt-twins-now-prereg.md",
-   "migration": "0149",
+   "migration": "0152",
    "enabled": true
   },
   {
-   "id": "o600usdt3",
+   "id": "n600usdt3",
    "display_name": "Stablecoin quotes variant-7",
    "display_order": 44,
    "engine": "pr5",
    "capital_gbp": 600,
    "gov": "account",
-   "start": "2026-10-27T06:00:00Z",
-   "table_prefix": "agent_quote_twin_o600usdt3",
-   "lease": "quotes-twin-o600usdt3",
+   "start": "2026-10-29T06:00:00Z",
+   "table_prefix": "agent_quote_twin_n600usdt3",
+   "lease": "quotes-twin-n600usdt3",
    "rules": {
     "fill": {
      "model": "at",
-     "from": "2026-10-27T06:00:00Z"
+     "from": "2026-10-29T06:00:00Z"
     },
     "weekend": {
-     "from": "2026-10-27T06:00:00Z"
+     "from": "2026-10-29T06:00:00Z"
     },
     "weights": {
-     "from": "2026-10-27T06:00:00Z",
+     "from": "2026-10-29T06:00:00Z",
      "book": {
       "USDC-GBP": 1,
       "USDT-GBP": 3
@@ -223,29 +223,29 @@
    },
    "backfill": null,
    "prereg": "docs/agents/reviews/2026-10-27-pr5-opt-twins-now-prereg.md",
-   "migration": "0149",
+   "migration": "0152",
    "enabled": true
   },
   {
-   "id": "o600usdt",
+   "id": "n600usdt",
    "display_name": "Stablecoin quotes variant-8",
    "display_order": 45,
    "engine": "pr5",
    "capital_gbp": 600,
    "gov": "account",
-   "start": "2026-10-27T06:00:00Z",
-   "table_prefix": "agent_quote_twin_o600usdt",
-   "lease": "quotes-twin-o600usdt",
+   "start": "2026-10-29T06:00:00Z",
+   "table_prefix": "agent_quote_twin_n600usdt",
+   "lease": "quotes-twin-n600usdt",
    "rules": {
     "fill": {
      "model": "at",
-     "from": "2026-10-27T06:00:00Z"
+     "from": "2026-10-29T06:00:00Z"
     },
     "weekend": {
-     "from": "2026-10-27T06:00:00Z"
+     "from": "2026-10-29T06:00:00Z"
     },
     "weights": {
-     "from": "2026-10-27T06:00:00Z",
+     "from": "2026-10-29T06:00:00Z",
      "book": {
       "USDC-GBP": 0,
       "USDT-GBP": 1
@@ -254,7 +254,7 @@
    },
    "backfill": null,
    "prereg": "docs/agents/reviews/2026-10-27-pr5-opt-twins-now-prereg.md",
-   "migration": "0149",
+   "migration": "0152",
    "enabled": true
   }
  ],
@@ -263,11 +263,11 @@
   "live1200": "2026-09-16T15:09:00.000Z",
   "live": "2026-09-16T15:09:00.000Z",
   "take50": "2026-09-16T15:09:00.000Z",
-  "o600no03": "2026-09-16T15:09:00.000Z",
-  "o600hold1": "2026-09-16T15:09:00.000Z",
-  "o600usdt2": "2026-09-16T15:09:00.000Z",
-  "o600usdt3": "2026-09-16T15:09:00.000Z",
-  "o600usdt": "2026-09-16T15:09:00.000Z"
+  "n600no03": "2026-09-16T15:09:00.000Z",
+  "n600hold1": "2026-09-16T15:09:00.000Z",
+  "n600usdt2": "2026-09-16T15:09:00.000Z",
+  "n600usdt3": "2026-09-16T15:09:00.000Z",
+  "n600usdt": "2026-09-16T15:09:00.000Z"
  },
  "sims": {
   "live600": {
@@ -514,7 +514,7 @@
     }
    }
   },
-  "o600no03": {
+  "n600no03": {
    "id": 1,
    "updated_at": "2026-09-17T22:59:25.000Z",
    "last_error": null,
@@ -573,7 +573,7 @@
     }
    }
   },
-  "o600hold1": {
+  "n600hold1": {
    "id": 1,
    "updated_at": "2026-09-17T22:59:25.000Z",
    "last_error": null,
@@ -632,7 +632,7 @@
     }
    }
   },
-  "o600usdt2": {
+  "n600usdt2": {
    "id": 1,
    "updated_at": "2026-09-17T22:59:25.000Z",
    "last_error": null,
@@ -691,7 +691,7 @@
     }
    }
   },
-  "o600usdt3": {
+  "n600usdt3": {
    "id": 1,
    "updated_at": "2026-09-17T22:59:25.000Z",
    "last_error": null,
@@ -750,7 +750,7 @@
     }
    }
   },
-  "o600usdt": {
+  "n600usdt": {
    "id": 1,
    "updated_at": "2026-09-17T22:59:25.000Z",
    "last_error": null,
@@ -3524,7 +3524,7 @@
     ]
    },
    "twin": {
-    "id": "o600no03",
+    "id": "n600no03",
     "name": "Stablecoin quotes variant-4",
     "engine": "pr5",
     "rungsASide": 3,
@@ -4071,7 +4071,7 @@
     ]
    },
    "twin": {
-    "id": "o600hold1",
+    "id": "n600hold1",
     "name": "Stablecoin quotes variant-5",
     "engine": "pr5",
     "rungsASide": 3,
@@ -4618,7 +4618,7 @@
     ]
    },
    "twin": {
-    "id": "o600usdt2",
+    "id": "n600usdt2",
     "name": "Stablecoin quotes variant-6",
     "engine": "pr5",
     "rungsASide": 3,
@@ -5165,7 +5165,7 @@
     ]
    },
    "twin": {
-    "id": "o600usdt3",
+    "id": "n600usdt3",
     "name": "Stablecoin quotes variant-7",
     "engine": "pr5",
     "rungsASide": 3,
@@ -5712,7 +5712,7 @@
     ]
    },
    "twin": {
-    "id": "o600usdt",
+    "id": "n600usdt",
     "name": "Stablecoin quotes variant-8",
     "engine": "pr5",
     "rungsASide": 3,

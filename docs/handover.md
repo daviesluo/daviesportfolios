@@ -46928,3 +46928,12 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   **Fixed:** the targets page lost both hand tables from 10-27 13:51: Grok's note "@$625" failed `validateHandRisks`' "@" rule.
   A placeholder is now "@" then a letter (`targets/hand.ts`, pin test; fails on the old rule); the branch head passes.
   GROKPM desk check of 10-27/10-28 (missed 23:45 run): OK, Vertiv redeemed, BanRep flat, C-009 on `grokpm-ledger`.
+
+## LEDGER.md, archived 2026-10-28 (fourth) — OKX's section of 2026-10-28 19:30 UTC
+
+### [2026-10-28 19:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **OKX's recorder and paper twins built (`0150`)** (sub-agent; not pushed; Davies, 10-27: "我已经有okx在英国的账户了…可以的话就加盘口记录器和开
+  testings策略（目前live的rules？）"; frozen `reviews/2026-10-27-okx-paper-prereg.md`, reference §4 item 64). One call `agents?action=okxrec`:
+  prints and five levels of USDG-EUR and EURC-USDC, then "Stablecoin quotes OKX USDG" / "… OKX EURC", LIVE's rules at €50 a rung,
+  28 days from the first 00:00 after deploy. **UK account not settled**: the prereg's §1 lists Davies' in-app checks (pairs, EUR or
+  EURC, maker fee; UK regular spot is quoted 0.08 %). After deploy: `okx_rec_state.last_report.reached` true, both books' prints.

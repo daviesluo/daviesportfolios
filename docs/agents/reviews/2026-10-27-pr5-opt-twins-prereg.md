@@ -122,3 +122,15 @@ stands, as LIVE does.
   and their power are this document's §3, unchanged, and are read under
   `2026-10-27-pr5-opt-twins-now-prereg.md`, which pre-registers all five together.
 - §6's count of twins is that document's: twelve from `0149`, `pr5`, `p50` and `d` running to their 10-28 readouts.
+
+**Deviation 2 (2026-10-28): `quotes_twin.ts` turns no twin before the minute after its start; the three are off.** `0149`'s
+five, which carry this document's three rules from 2026-10-27 06:00 (deviation 1), converted before their rules' instant
+because the driver sent a twin whose start was ahead straight to forward turns; `0152` restarts them from 2026-10-29 06:00 UTC
+under new ids, and the driver now turns no twin before the minute after its start (`2026-10-27-pr5-opt-twins-now-prereg.md`
+§7, deviation 1). This document's own rows have been off since `0149` and are not read. Not blind.
+
+| file | sha256 |
+|---|---|
+| `supabase/functions/agents/quotes_twin.ts` | 2b84a1ebbdc1172375ff7c783a463ce39e266c490b2256314eae8893b5548e68 |
+
+§5 keeps the hash the file was frozen at; this table names it from this deviation on (`src/pr5_opt_twins.test.js`).

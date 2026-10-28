@@ -882,6 +882,14 @@ async function runOneTwin(d: TwinDeps, spec: TwinSpec, began: number): Promise<T
   if (!pr5?.last_minute) return { ...report, skipped: "PR5's engine has decided no minute yet" };
   const T = msOf(pr5.last_minute);
   const horizon = Math.min(...QUOTE_BOOKS.map((b) => Number(pr5.fetched?.[b] ?? NaN)));
+  // A twin turns nothing before its first minute, the one after its start, where a catch-up's first turn stands: a row that
+  // lands before its start waits for it, and starts then (its replica seeded from the last print before the start). Until
+  // 2026-10-28 such a twin went straight to forward turns: 0149's five, applied at 04:56 UTC for a 06:00 start, turned from
+  // 04:56 and sent their start conversions at 05:50, before their rules' instant, so unweighted, a quarter of the capital
+  // into each coin (the pre-registration's deviation 1).
+  if (!spec.replay && (Number.isFinite(horizon) ? horizon : T + M) < spec.start + M) {
+    return { ...report, skipped: `it starts at ${iso(spec.start)}: its first turn is in the minute after` };
+  }
   const row = (await d.db.select<{ state: TwinDriverState }>(spec.sim, "id=eq.1&select=state"))[0];
   const ds = row?.state && "venue" in row.state ? row.state : await startTwin(d, spec);
   const paperRow = (await d.db.select<{ state: TwinPaper }>(spec.instance.paper, "id=eq.1&select=state"))[0];

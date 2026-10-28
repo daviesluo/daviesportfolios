@@ -118,3 +118,16 @@ are as written. Not blind.
 | `supabase/functions/agents/quotes_twin.ts` | 015f3af08ba852c372e6b0a9f9d6815999731bd3322e03c8b5f944cdac8f4544 |
 
 §5 keeps the hash the file was frozen at; this table names it from this deviation on (`src/live_size_twins.test.js`).
+
+**Deviation 3 (2026-10-28): `quotes_twin.ts` turns no twin before the minute after its start; these twins do not change.** `2026-10-27-pr5-opt-twins-now-prereg.md`'s five twins, inserted by `0149` at 04:56 UTC on 10-27 for a 06:00 start, were
+sent straight to forward turns, and their start conversions went out at 05:50, before their rules' instant, so unweighted (that
+pre-registration's deviation 1, `0152`). `quotes_twin.ts` now turns no twin before the minute after its start, the minute a
+catch-up's first turn stands in: a twin whose row lands early waits for it. **These twins are not changed**: it started before this change and is
+past its start, where the driver runs the code path it ran (every test of a running twin in `quotes_twin.test.ts` is
+unchanged). Its window, reading and bar are as written. Not blind.
+
+| file | sha256 |
+|---|---|
+| `supabase/functions/agents/quotes_twin.ts` | 2b84a1ebbdc1172375ff7c783a463ce39e266c490b2256314eae8893b5548e68 |
+
+§5 and deviation 2 keep the hashes the file had before; this table names it from this deviation on (`src/live_size_twins.test.js`).

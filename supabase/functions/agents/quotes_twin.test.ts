@@ -451,6 +451,30 @@ Deno.test("weights: USDT-GBP alone (variant-8, 0149): USDC-GBP converts nothing 
   assertEquals(w.orders(W).filter((o) => o.leg === "convert").length, 1);
 });
 
+// 0149's five landed at 04:56 UTC for a 06:00 start: each turned from 04:56, and sent its start conversions at 05:50 (once its
+// replica's fair was readable), before its rules' instant, so unweighted: £150 of each coin, the USDT-only twin's USDC with
+// them. From 2026-10-28 a twin turns nothing before the minute after its start, and converts under the rules in force then.
+Deno.test("a twin whose row lands before its start turns nothing until the minute after it, and its start conversions are its rules' (USDT-GBP alone: no USDC, £300 of USDT)", async () => {
+  const S = T0 + 10 * M;
+  const W: TwinSpec = { ...specFromRow(rowAs("wl", { capital_gbp: 600, start: iso(S), rules: { weights: { from: iso(S), book: { "USDC-GBP": 0, "USDT-GBP": 1 } } } })), start: S };
+  const w = world(undefined, [W]);
+  for (let t = T0; t < S; t += M) {
+    await w.pr5(t);
+    const r = await w.call(t, {}, [W]);
+    assertEquals([r.twins[0].turns, r.twins[0].skipped], [0, `it starts at ${iso(S)}: its first turn is in the minute after`], iso(t));
+  }
+  assertEquals([w.orders(W).length, w.driver(W)], [0, null]);
+  await w.pr5(S);
+  const r0 = await w.call(S, {}, [W]);
+  assertEquals([r0.twins[0].turns, r0.twins[0].errors], [1, []]);
+  // At the first turn, a minute after the start: USDC-GBP converts nothing ("already holds": its asks have no pounds); USDT-GBP's
+  // £300 buys its three £100 asks at the seller's 0.7553.
+  assertEquals(w.orders(W).filter((o) => o.leg === "convert").map((o) => [o.ts, o.book, Number(o.price), Number(o.base_size)]),
+    [[iso(S + M + 24e3), "USDT-GBP", 0.7553, 397.19316]]);
+  assertEquals([w.driver(W)?.operator?.["USDC-GBP"]?.done, w.driver(W)?.operator?.["USDT-GBP"]?.done, w.driver(W)?.started], [true, false, S + M + 25e3]);
+  assert(w.orders(W).every((o) => Date.parse(String(o.ts)) > S), "nothing before the start");
+});
+
 Deno.test("weekend: a twin with the rule is its control's order for order outside a closure and before its instant; inside a closure with GBP/USD dark it quotes at the last X while its control withdraws, and from Sunday 21:00 it is dark again", async () => {
   // A Friday: GBP/USD's last bar starts 21:29 (dark from 21:40, ten minutes on); the closure began at 21:00.
   const FRI = Date.parse("2026-10-23T21:20:00Z");

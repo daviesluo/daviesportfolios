@@ -14,6 +14,8 @@ const sha = (p) => crypto.createHash('sha256').update(read(p)).digest('hex');
 const sqlOf = (f) => read(`supabase/migrations/${f}`).toString('utf8').replace(/--[^\n]*/g, '');
 const rowsOf = (f) => JSON.parse(/null::public\.agent_quote_twin_specs, \$json\$(\[[\s\S]*?\])\$json\$/.exec(sqlOf(f))?.[1] ?? '[]');
 const M = '0149_quote_twins_pr5_opt_now.sql';
+/** 0152: the five again from 2026-10-29 06:00 UTC under new ids (deviation 1). */
+const R = '0152_quote_twins_pr5_opt_restart.sql';
 const BASE = rowsOf('0141_quote_twins_relayout.sql').find((r) => r.id === 'live600');
 const DOC = read('docs/agents/reviews/2026-10-27-pr5-opt-twins-now-prereg.md').toString('utf8');
 const FIRST = read('docs/agents/reviews/2026-10-27-pr5-opt-twins-prereg.md').toString('utf8');
@@ -66,12 +68,15 @@ describe("PR5-OPT's five twins on LIVE's rules from 06:00", () => {
     expect(/```json/.test(dev)).toBe(false);
   });
 
-  it('names the sha256 of each file it froze, once, and each file is that one', () => {
+  it('names the sha256 of each file it froze, once, and each file is that one, as its last deviation left it', () => {
+    // Its deviation of 2026-10-28 (`0152`): the driver turns no twin before the minute after its start; §5 keeps the hash
+    // it was frozen at and the deviation names the file as it is.
+    const before = { 'supabase/functions/agents/quotes_twin.ts': ['015f3af08ba852c372e6b0a9f9d6815999731bd3322e03c8b5f944cdac8f4544'] };
     const named = (f) => [...DOC.matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
     for (const f of [
-      `supabase/migrations/${M}`, 'supabase/functions/agents/quotes_twin.ts', 'supabase/functions/agents/revx_sim.ts',
+      `supabase/migrations/${M}`, `supabase/migrations/${R}`, 'supabase/functions/agents/quotes_twin.ts', 'supabase/functions/agents/revx_sim.ts',
       'supabase/functions/agents/quotes_weekend.ts',
-    ]) expect(named(f), f).toEqual([sha(f)]);
+    ]) expect(named(f), f).toEqual(before[f] ? [...before[f], sha(f)] : [sha(f)]);
   });
 
   it("answers a weighted book with no pounds 'already holds', where the live account's instance has no weights", () => {
@@ -80,5 +85,30 @@ describe("PR5-OPT's five twins on LIVE's rules from 06:00", () => {
     const inst = /export const QUOTE_LIVE_INSTANCE: QuoteLiveInstance = \{([\s\S]*?)\n\};/.exec(live)?.[1] ?? '';
     expect(inst).toContain('agent_quote_live_config');
     expect(/weights|holdMin/.test(inst)).toBe(false);
+  });
+
+  it("start again from 2026-10-29 06:00 under 0152 (deviation 1): each its 0149 row but for id, tables, lease, start, rules' dates and migration; 0149's five off and renamed first", () => {
+    const S2 = '2026-10-29T06:00:00Z';
+    const again = (r) => {
+      const id = `n${r.id.slice(1)}`;
+      return { ...r, id, table_prefix: `agent_quote_twin_${id}`, lease: `quotes-twin-${id}`, start: S2, migration: '0152', rules: JSON.parse(JSON.stringify(r.rules).replaceAll(S, S2)) };
+    };
+    expect(rowsOf(R)).toEqual(rowsOf(M).map(again));
+    const sql = sqlOf(R), insert = sql.indexOf('insert into public.agent_quote_twin_specs');
+    for (const r of rowsOf(M)) {
+      const off = sql.indexOf(`set enabled = false\n where id = '${r.id}';`), rename = sql.indexOf(`where id = '${r.id}' and display_name = '${r.display_name}';`);
+      expect([off > -1, off < insert, rename > -1, rename < insert], r.id).toEqual([true, true, true, true]);
+    }
+    for (const r of rowsOf(R)) expect(sql.indexOf(`select public.create_quote_twin_tables('${r.id}');`), r.id).toBeGreaterThan(insert);
+    expect(/capital_gbp\s*=|agent_quote_live_config|edge_calls|take_mode|weekend_mode|cron\./.test(sql)).toBe(false);
+    const dev = DOC.slice(DOC.indexOf('## 7. Deviations'));
+    expect(dev).toContain('**Deviation 1 (2026-10-28, migration `0152`)');
+    expect(dev).toContain('2026-10-29 06:00 → 2026-11-26 06:00 UTC (28 days)');
+    expect(/```json/.test(dev)).toBe(false);
+  });
+
+  it("turns no twin before the minute after its start (deviation 1's fix)", () => {
+    const driver = read('supabase/functions/agents/quotes_twin.ts').toString('utf8');
+    expect(driver).toContain('if (!spec.replay && (Number.isFinite(horizon) ? horizon : T + M) < spec.start + M) {');
   });
 });
