@@ -759,8 +759,15 @@ Facts a fresh session would otherwise rediscover:
 
 Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's archive, each batch under a heading
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
-first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to PER-BOOK's section of 2026-10-27 05:20 UTC (archived
-2026-10-28, first).
+first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to OTHERVENUES' section of 2026-10-27 06:05 UTC (archived
+2026-10-28, second).
+
+### [2026-10-28 19:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **OKX's recorder and paper twins built (`0150`)** (sub-agent; not pushed; Davies, 10-27: "我已经有okx在英国的账户了…可以的话就加盘口记录器和开
+  testings策略（目前live的rules？）"; frozen `reviews/2026-10-27-okx-paper-prereg.md`, reference §4 item 64). One call `agents?action=okxrec`:
+  prints and five levels of USDG-EUR and EURC-USDC, then "Stablecoin quotes OKX USDG" / "… OKX EURC", LIVE's rules at €50 a rung,
+  28 days from the first 00:00 after deploy. **UK account not settled**: the prereg's §1 lists Davies' in-app checks (pairs, EUR or
+  EURC, maker fee; UK regular spot is quoted 0.08 %). After deploy: `okx_rec_state.last_report.reached` true, both books' prints.
 
 ### [2026-10-28 19:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Resumed after a usage-limit stop; health check of every live and test row** (Davies, 10-28: "请继续执行任务并且仔细看下最新的
@@ -772,12 +779,3 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to PER-
   **Fixed:** the targets page lost both hand tables from 10-27 13:51: Grok's note "@$625" failed `validateHandRisks`' "@" rule.
   A placeholder is now "@" then a letter (`targets/hand.ts`, pin test; fails on the old rule); the branch head passes.
   GROKPM desk check of 10-27/10-28 (missed 23:45 run): OK, Vertiv redeemed, BanRep flat, C-009 on `grokpm-ledger`.
-
-### [2026-10-27 06:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **OTHERVENUES: other coins and venues for PR5's rule** (sub-agent; not pushed; Davies, 10-27: "研究下还有别的币和别的币所可以做类似策略吗？";
-  `reviews/2026-10-27-other-coins-venues.md`, reference §3.55, `backtests/othervenues/`; keyless reads and two FX SELECTs, nothing opened
-  or placed). Twelve venues screened; PR5's simulator at £50 a rung, through fills, to 10-27. New and worth it: **OKX Europe (Irish,
-  spot-only)**, USDG-EUR 73 % a year over 28 days and EURC-USDC (new) 37 %, thin (about £0.9 a day on £600) and one-sided; Revolut X
-  the same days 23 % / 10 %. Coinbase EURC-USDC 8 % over 12 months, 0 lately. Dead: TGBP-USDC, Bitstamp EURCV, Kraken (0.20 %),
-  Gemini, Crypto.com, Bitfinex (no UK). **For Davies:** R1, an OKX recorder and 28-day paper twin (review §4, bar not frozen); R2 low.
-  Ledger: the 04:20 UTC section archived.

@@ -4441,6 +4441,27 @@ more than four missing and not one due call's beat in the minute (`beatsUnwritte
 with any due call's beat, the table is taking them, and every missing call whose row allows it is run again, a retry that
 fails too still reported (`edge-watchdog.retry`). In the three days before, 1,344 of 1,348 retries answered 200.
 
+64. **OKX's recorder and its paper twins (2026-10-27, migration `0150`; `agents/okx_rec.ts`, `agents/okx_quotes.ts`).** On
+    Davies' "我已经有okx在英国的账户了，okx的这两个策略在这个账户上可以做吗？可以的话就加盘口记录器和开testings策略（目前live的rules？）", after
+    OTHERVENUES (§3.55) ranked OKX's two small books first.
+    - **The recorder** (`agents?action=okxrec`, a row of `edge_calls` under the watchdog): every print of USDG-EUR and EURC-USDC
+      by trade id (OKX's `market/trades`, 500 newest; a gap paged back with `market/history-trades … type=1&after=`; ids run one
+      a print with no gap, the side is the taker's) and the best five levels a side each minute. Keyless, GET only.
+    - **The books are unified** (OKX's instrument list, `tradeQuoteCcyList`): USDG-EUR trades against EUR or EURC, EURC-USDC
+      against USDC, USD, USDG or RLUSD, one book each; the instrument ids stay `USDG-EUR` and `EURC-USDC`. So both are EUR/USD
+      books: fair 1 / EUR/USD euros a USDG, EUR/USD dollars a EURC, each coin at par.
+    - **The twins** ("Stablecoin quotes OKX USDG", "… OKX EURC"): PR5's rungs, re-price, exit at fair and 24-hour stop, carried
+      out as LIVE does: each book's own grid (EURC-USDC's 0.001), €50 a rung (€600 ÷ 12), a post-only order refused against the
+      recorded book, LIVE's "at" fill by the print's quantity, the weekend on the held EUR/USD, the 50 bps de-peg guard and the
+      account's 1 % daily loss stop on both books. Not `stepMinute` (frozen; it cannot), pinned rule by rule in
+      `okx_quotes.test.ts`, eight mutations each failing a pin, and equal to `stepMinute`'s placements on PR5's grid with no fill.
+    - **The bar** (`reviews/2026-10-27-okx-paper-prereg.md`, frozen): 28 days from the first 00:00 UTC after its first run;
+      P&L > 0 on each book, ≥ 150 trips USDG-EUR and ≥ 40 EURC-USDC, stops ≤ 10 % of trips, the day bootstrap's 5th percentile
+      ≥ 0, ≥ 5 bps of the capital a day.
+    - **Davies' UK account is not settled** (that pre-registration's §1): which OKX entity serves UK retail, whether it lists
+      these books or EUR/EURC, and its maker fee on them could not be read from public pages (OKX's "Spot Stablecoins" fee group
+      is 0 % / 0.05 % where it applies; third parties quote 0.08 % / 0.10 % for UK regular spot). He reads it in the app.
+
 ### Twin variants
 
 The realistic twins, a row each of `agent_quote_twin_specs`, in the page's order. A new one is a row here in the commit

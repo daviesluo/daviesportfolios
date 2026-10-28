@@ -2007,6 +2007,7 @@ body {
 .ag-venue-binance { color: #f0b90b; border-color: rgba(240,185,11,0.4); background: rgba(240,185,11,0.1); }
 .ag-venue-polymarket { color: #7d8bff; border-color: rgba(125,139,255,0.4); background: rgba(125,139,255,0.1); }
 .ag-venue-coinbase { color: #9fd8c8; border-color: rgba(159,216,200,0.4); background: rgba(159,216,200,0.1); }
+.ag-venue-okx { color: #e8a3c8; border-color: rgba(232,163,200,0.4); background: rgba(232,163,200,0.1); }
 .ag-venue-signal { font-weight: 500; letter-spacing: 0; opacity: 0.8; }
 .ag-venues { margin-bottom: 14px; }
 .ag-share-bar { display: flex; height: 18px; border-radius: 4px; overflow: hidden; background: rgba(255,255,255,0.04); border: 1px solid var(--line); margin-bottom: 8px; }
@@ -2394,6 +2395,9 @@ a.ag-gpm-market:hover, a.ag-gpm-market:focus-visible { text-decoration-color: va
    slice was drawn with no colour at all (Davies, 2026-10-10: "testing页面venue中最上面的占比条里没有coinbase"). */
 .ag-venue-card-coinbase { border-left-color: rgba(159,216,200,0.75); }
 .ag-share-coinbase { background: rgba(159,216,200,0.35); color: #eafaf5; }
+/* OKX's card and slice (VENUE_HUES.okx, #e8a3c8): its two paper twins, 0150. */
+.ag-venue-card-okx { border-left-color: rgba(232,163,200,0.75); }
+.ag-share-okx { background: rgba(232,163,200,0.35); color: #fbeef5; }
 
 /* RW's bar: where the run is, then four tiles — the total and its rewards and orders, the pessimistic total, the
    fills against the 100 it needs, the best market's share. Polymarket's blue marks the run and the fills. */
@@ -2489,7 +2493,7 @@ a.ag-gpm-market:hover, a.ag-gpm-market:focus-visible { text-decoration-color: va
 /* The live quotes' own page (Davies, 2026-10-01): the paper page's BOOKS and DAYS as they are, its inventory in a card
    of the quote cards' rules, and an order's reason on a line under its row, read from the left. */
 .ag-ql-balances { margin-bottom: 10px; }
-.ag-quotes-live-detail .hl-sub, .ag-quotes-twin-detail .hl-sub, .ag-quotes-cb-detail .hl-sub { display: block; }
+.ag-quotes-live-detail .hl-sub, .ag-quotes-twin-detail .hl-sub, .ag-quotes-cb-detail .hl-sub, .ag-quotes-okx-detail .hl-sub { display: block; }
 .ag-table tr.ag-ql-has-sub td { border-bottom: none; padding-bottom: 2px; }
 /* The live page's round trips and orders on a phone: every column inside the screen, Size included (Davies,
    2026-10-01). A time stacks its date over its clock, a book is its coin, a size its number, and the cells sit closer. */

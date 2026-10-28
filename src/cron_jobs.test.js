@@ -743,6 +743,45 @@ describe('pg_cron jobs', () => {
     expect(sql).toContain("insert into public.agent_locks (name) values ('cb-usdc') on conflict (name) do nothing;");
   });
 
+  // OKX's recorder and its paper twins (Davies, 2026-10-27: "…可以的话就加盘口记录器和开testings策略（目前live的rules？）"): as 0112
+  // added Coinbase's, one call a minute that records and then decides, its beat first, every other row as it was, a prune of SQL.
+  it("adds OKX's recorder and its paper twins as one call a minute (0150), its beat first, every other row as it was, and a prune of SQL alone", () => {
+    const T = FILES.find((f) => /^0150_okx_rec_paper\.sql$/.test(f)) ?? '';
+    expect(T).not.toBe('');
+    const before = replayList(sqlsOf(FILES.filter((f) => f < T))), after = replayList(sqlsOf(FILES.filter((f) => f <= T)));
+    expect(after.slice(0, before.length)).toEqual(before);
+    const shape = ({ path: p, timeout, every, lastHour, enabled, retry }) => ({ path: p, timeout, every, lastHour, enabled, retry });
+    // `retry` true: every print and book read is upserted on its key, and the twins hold a lease and decide what is covered.
+    expect(after.slice(before.length).map(shape)).toEqual([
+      { path: 'agents?action=okxrec', timeout: 30000, every: 1, lastHour: 23, enabled: true, retry: true },
+    ]);
+    expect(beatKeyOfPath(after.at(-1).path)).toBe('agents?action=okxrec');
+    const src = fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/index.ts'), 'utf8');
+    expect(src).toContain('if (action === "okxrec" && req.method === "POST" && operator) return json(200, await runOkxRecAction());');
+    const jobsBefore = cronJobs(FILES.filter((f) => f < T)), jobsAfter = cronJobs(FILES.filter((f) => f <= T));
+    expect([...jobsAfter.keys()].filter((n) => !jobsBefore.has(n))).toEqual(['okx-prune']);
+    const prune = jobsAfter.get('okx-prune');
+    expect(prune.command.trim().split(/\n\s*/)).toEqual([
+      "delete from public.okx_trades where ts < now() - interval '400 days';",
+      "delete from public.okx_books where ts < now() - interval '60 days';",
+      "delete from public.okx_quote_minutes where minute < now() - interval '120 days';",
+    ]);
+    expect(Number(prune.schedule.split(' ')[0]) % 5).not.toBe(0);
+    expect([...jobsBefore.values()].some((j) => j.schedule === prune.schedule)).toBe(false);
+    expect(httpJobs(jobsAfter).map(([n]) => n)).toEqual(['edge-calls-every-minute']);
+    for (const [n, j] of jobsBefore) expect([n, jobsAfter.get(n)]).toEqual([n, j]);
+    // Its tables hold the books the recorder writes; no grant, no policy; row level security on every table.
+    const sql = fs.readFileSync(path.join(DIR, T), 'utf8').replace(/--[^\n]*/g, '');
+    const rec = fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/okx_rec.ts'), 'utf8');
+    const books = JSON.parse(/^export const OKX_BOOKS = (\[[^\]]*\]) as const;$/m.exec(rec)?.[1] ?? 'null');
+    expect(count(sql, `check (book in (${books.map((b) => `'${b}'`).join(', ')}))`)).toBe(5);
+    for (const t of ['okx_trades', 'okx_books', 'okx_rec_state', 'okx_quote_state', 'okx_quote_events', 'okx_quote_trips', 'okx_quote_minutes']) {
+      expect(sql).toMatch(new RegExp(`alter table public\\.${t} +enable row level security;`));
+    }
+    expect(sql).not.toMatch(/\bgrant\b|create policy/i);
+    expect(sql).toContain("insert into public.agent_locks (name) values ('okx-quotes') on conflict (name) do nothing;");
+  });
+
   // The programme factor (Davies, 2026-10-10: "之前testing的每一个不都赚了很多吗"): TESTING's Reward quotes rows priced on the
   // programme the listing showed each 15 minutes.
   it("adds the programme factor's reader as one call every five minutes (0115), its beat first, a refresh and a prune of SQL alone", () => {

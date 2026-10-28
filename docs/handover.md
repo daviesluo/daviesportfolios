@@ -46904,3 +46904,14 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   16.26, USDC-GBP 8.61; Coinbase USDC-GBP 9.39, USDC-EUR 6.75, USDT-GBP 0.43, USDT-EUR −0.50. The split at £600 makes 13.97 (USDT
   alone 16.26); at £1,200 it makes 12.82 (13.49). Splitting coins halves issuer risk as 1:1 already does, offsets no GBP/USD, and
   adds venue diversification. No two-venue twin: read variant-8 with Coinbase's USDC record offline. The 04:20 section archived.
+
+## LEDGER.md, archived 2026-10-28 (second) — OTHERVENUES' section of 2026-10-27 06:05 UTC
+
+### [2026-10-27 06:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **OTHERVENUES: other coins and venues for PR5's rule** (sub-agent; not pushed; Davies, 10-27: "研究下还有别的币和别的币所可以做类似策略吗？";
+  `reviews/2026-10-27-other-coins-venues.md`, reference §3.55, `backtests/othervenues/`; keyless reads and two FX SELECTs, nothing opened
+  or placed). Twelve venues screened; PR5's simulator at £50 a rung, through fills, to 10-27. New and worth it: **OKX Europe (Irish,
+  spot-only)**, USDG-EUR 73 % a year over 28 days and EURC-USDC (new) 37 %, thin (about £0.9 a day on £600) and one-sided; Revolut X
+  the same days 23 % / 10 %. Coinbase EURC-USDC 8 % over 12 months, 0 lately. Dead: TGBP-USDC, Bitstamp EURCV, Kraken (0.20 %),
+  Gemini, Crypto.com, Bitfinex (no UK). **For Davies:** R1, an OKX recorder and 28-day paper twin (review §4, bar not frozen); R2 low.
+  Ledger: the 04:20 UTC section archived.

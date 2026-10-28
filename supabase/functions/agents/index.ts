@@ -118,6 +118,13 @@
 //                             0142): the weekend variant's rule on the two USDC
 //                             books at 25 a rung; its own tables and lease.
 //                             Reads only the database. Cron or admin.
+//   POST ?action=okxrec     — OKX's recorder and its paper twins (okx_rec.ts,
+//                             okx_quotes.ts, 0150): every minute, every new print
+//                             of USDG-EUR and EURC-USDC by trade id and their top
+//                             five levels, then PR5's rule as LIVE carries it out
+//                             ("Stablecoin quotes OKX USDG", "… OKX EURC") on
+//                             paper. Keyless reads of OKX's public market data
+//                             only. Cron or admin.
 //   POST ?action=econcal&from=YYYY-MM-DD&to=YYYY-MM-DD
 //                           — Finnhub's economic calendar for the window
 //                             (econcal.ts): country, event, time (UTC) and
@@ -246,6 +253,8 @@ import { cbBooksDelayMs, runCbBooks } from "./cb_books.ts";
 import { runCbQuotes } from "./cb_quotes.ts";
 import { CB_HOLD_ID, CB_HOLD_TABLES, runCbHold } from "./cb_hold.ts";
 import { readCbUsdc, runCbUsdc } from "./cb_usdc.ts";
+import { runOkxRec } from "./okx_rec.ts";
+import { readOkxQuotes, runOkxQuotes } from "./okx_quotes.ts";
 import { CB_HOLD_PAGE_NAME, readCoinbaseArm } from "./cb_page.ts";
 import { runEconcal } from "./econcal.ts";
 import { dayOpenOf, dayPnl, decisionBarMs, isOffBook, jevViewOf, resolveBook, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
@@ -660,6 +669,29 @@ export async function runCbHoldAction(deps: { db?: Db; now?: number } = {}) {
  * variant's (`runCbHoldAction`): the recorder's state row, then the minutes it has covered on the two USDC books (cb_usdc.ts).
  * It reads no venue. A fault goes to `ops_errors` as `agents.cb_usdc` when it first appears and at most hourly while it lasts.
  */
+/**
+ * OKX's recorder and its paper twins (0150), one call a minute as Coinbase's base test is (`runCbRecAction`): the two books'
+ * new prints and top levels (okx_rec.ts), then PR5's rule as LIVE carries it out on them (okx_quotes.ts). Keyless; nothing is
+ * placed. A fault goes to `ops_errors` as `agents.okx_rec` when it first appears and at most hourly while it lasts.
+ */
+export async function runOkxRecAction(deps: { db?: Db; fetchImpl?: typeof fetch; now?: number } = {}) {
+  try {
+    const dbi = deps.db ?? db();
+    const now = deps.now ?? Date.now();
+    const rec = await runOkxRec({ db: dbi, now, fetchImpl: deps.fetchImpl });
+    const quotes = await runOkxQuotes({ db: dbi, now, holder: crypto.randomUUID(), rec: rec.state })
+      .catch((e) => ({ errors: [e instanceof Error ? e.message : String(e)], report: true }));
+    const { state: _state, ...recReport } = rec;
+    const errors = [...rec.errors, ...quotes.errors.map((e) => `paper: ${e}`)];
+    if (rec.report || quotes.report) await reportServerError("agents.okx_rec", tickErrorReport({ errors, at: rec.at }));
+    return { ...recReport, quotes };
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    await reportServerError("agents.okx_rec", { message: message.slice(0, 500), context: { at: new Date().toISOString() } });
+    return { error: message.slice(0, 300) };
+  }
+}
+
 export async function runCbUsdcAction(deps: { db?: Db; now?: number } = {}) {
   try {
     const dbi = deps.db ?? db();
@@ -2176,6 +2208,9 @@ async function dashboard(now: number) {
   // "Stablecoin quotes with Euros - 2" (0142, cb_usdc.ts): the weekend variant's rule on the two USDC books at 25 a rung, in its
   // own shape (`readCbUsdc`: two books, its capital, its rungs' sizes); null before its first decided minute.
   const quotesCoinbaseUsdcRead = readCbUsdc(d, now, dayStartMs).catch(() => null);
+  // "Stablecoin quotes OKX USDG" and "Stablecoin quotes OKX EURC" (0150, okx_quotes.ts): PR5's rule as LIVE carries it out, on
+  // paper, on OKX's two books, a twin each in Coinbase's shape with `venue` "okx"; none before the record decides a minute.
+  const quotesOkxRead = readOkxQuotes(d, now, dayStartMs).catch(() => []);
 
   // "Stablecoin quotes - variant" (`0071`), read beside PR5's: its own tables; missing ones (before the migration), or no
   // state yet, leave it off the page, and a failed read leaves the rest of the page as it is.
@@ -2304,6 +2339,11 @@ async function dashboard(now: number) {
      * rung, in the same shape (`twin.id` "coinbaseusdc"; `readCbUsdc`); null until it has decided a minute.
      */
     quotesCoinbaseUsdc: await quotesCoinbaseUsdcRead,
+    /**
+     * "Stablecoin quotes OKX USDG" and "Stablecoin quotes OKX EURC" (`0150`, okx_quotes.ts): PR5's rule as LIVE carries it out,
+     * on paper, on OKX's USDG-EUR and EURC-USDC, one twin a book (`twin.id` "okxusdg", "okxeurc"); empty until it has decided a minute.
+     */
+    quotesOkx: await quotesOkxRead,
     // `rw`, `rwe`, `rwx`, `prep`, `prepMid`, `prepLp`: the paper Reward quotes rows, not sent since 0120 (above).
     /**
      * "Reward quotes live-prep"'s real money (`pm_lp_live_view.ts`): a row of LIVE, its figures from the path's live rows
@@ -2814,6 +2854,8 @@ async function route(req: Request, who: Exclude<Who, null>, url: URL, action: st
   if (action === "cbhold" && req.method === "POST" && operator) return json(200, await runCbHoldAction());
   // "Stablecoin quotes with Euros - 2" (cb_usdc.ts, 0142): the USDC arm, decided from the database alone.
   if (action === "cbusdc" && req.method === "POST" && operator) return json(200, await runCbUsdcAction());
+  // OKX's recorder and its paper twins (okx_rec.ts, okx_quotes.ts, 0150): keyless reads, then the paper rule on the database.
+  if (action === "okxrec" && req.method === "POST" && operator) return json(200, await runOkxRecAction());
   // Finnhub's economic calendar, read only (econcal.ts, 2026-10-15): the events of a window for the Coinbase blackout's release list. Cron bearer only; the key stays here.
   if (action === "econcal" && req.method === "POST" && who === "cron") return json(200, await runEconcal({ from: url.searchParams.get("from"), to: url.searchParams.get("to"), key: Deno.env.get("FINNHUB_API_KEY") }));
   // Coinbase's order books (cb_books.ts, 0114): the top ten levels a side, 30 s into the minute. Keyless reads.

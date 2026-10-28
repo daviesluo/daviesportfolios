@@ -361,6 +361,16 @@ places stay when the number is not whole.
   Since 15 October the Coinbase tests also step aside for seven minutes
   around each scheduled data release (US inflation and jobs, the Fed, the ECB,
   the Bank of England), when the market jumps faster than a quote can follow.
+- **Stablecoin quotes OKX USDG and OKX EURC.** After Coinbase's rows, on
+  OKX (its own badge and venue card): the live rules on paper on OKX's two
+  euro-against-dollar stablecoin books, USDG against euros and EURC against
+  dollars, from OKX's public trades recorded every minute. €50 a rung, six a
+  book, €600 on the two, every money figure in pounds; USDG/EUR's prices in
+  euros, EURC/USDC's in dollars. It quotes through the weekend on Friday's
+  euro rate, as the live account does. A 28-day paper test from the first
+  midnight after it went up, its rule for judging it written down first.
+  Whether Davies' UK OKX account can trade these books is checked in the
+  app before any money goes there.
 - **No paper Reward quotes since 13 October.** The paper tests of quoting
   for Polymarket's liquidity rewards (Reward quotes, its variant-1 to
   variant-4, and Reward quotes mid-pool) left TESTING and stopped on

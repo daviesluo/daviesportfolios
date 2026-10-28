@@ -12,7 +12,7 @@ import { fmtChartStamp } from './agents_chart.js';
 // Kraken keeps its label, not a place on the page: it is the signal venue every rule reads candles from, and nothing
 // trades there since `0046`. VENUES shows Revolut X, where the loop executes, and Binance, the account it may use next.
 // Polymarket is the venue of RW's paper test, a row of TESTING STRATEGIES; it has no card in VENUES.
-export const VENUE_LABELS = { revx: 'Revolut X', binance: 'Binance', kraken: 'Kraken', polymarket: 'Polymarket', coinbase: 'Coinbase' };
+export const VENUE_LABELS = { revx: 'Revolut X', binance: 'Binance', kraken: 'Kraken', polymarket: 'Polymarket', coinbase: 'Coinbase', okx: 'OKX' };
 export const KIND_LABELS = { 'trend-4h': 'Trend 4h', 'trend-1h': 'Trend 1h', 'momentum-1d': 'Momentum 30d', 'rotation-1d': 'Rotation', 'dislocation-1m': 'Dislocation' };
 /**
  * The venue hues the badges, the share bar and the detail chart all share. Binance's is its own yellow, which is why
@@ -20,7 +20,7 @@ export const KIND_LABELS = { 'trend-4h': 'Trend 4h', 'trend-1h': 'Trend 1h', 'mo
  * colour vision and 15.7 under deuteranopia, and further from Binance's, the gain green and the loss red (checked with
  * the dataviz validator, 2026-09-24). Every badge also says the venue's name.
  */
-export const VENUE_HUES = { revx: '#8ec5ff', binance: '#f0b90b', polymarket: '#7d8bff', coinbase: '#9fd8c8' };
+export const VENUE_HUES = { revx: '#8ec5ff', binance: '#f0b90b', polymarket: '#7d8bff', coinbase: '#9fd8c8', okx: '#e8a3c8' };
 
 /** @param {string} id */
 export const venueLabel = (id) => VENUE_LABELS[id] ?? id;
@@ -1299,6 +1299,40 @@ export function quotesCoinbaseRow(q) {
   };
 }
 
+/** The OKX twins' ids among TESTING's rows: this prefix and the twin's id (`okxusdg`, `okxeurc`; okx_quotes.ts, 0150). */
+export const QUOTES_OKX_ROW_PREFIX = '__quotes_okx_';
+
+/**
+ * "Stablecoin quotes OKX USDG" and "Stablecoin quotes OKX EURC" as rows of TESTING (okx_quotes.ts, 0150; Davies, 2026-10-27:
+ * "…可以的话就加盘口记录器和开testings策略（目前live的rules？）"): PR5's rule as LIVE carries it out, on paper, on OKX's USDG-EUR and
+ * EURC-USDC from its recorder's prints, a twin a book in Coinbase's shape and in pounds (€50 or 50 USDC a rung), on a card of
+ * OKX's own. `paperTestRows` puts them after Coinbase's. null before the record has decided a minute.
+ * @param {any} q  one of the dashboard's `quotesOkx`
+ */
+export function quotesOkxRow(q) {
+  if (!q?.twin) return null;
+  return {
+    id: `${QUOTES_OKX_ROW_PREFIX}${q.twin.id}`,
+    name: String(q.twin.name),
+    venue: venueLabel('okx'),
+    venueId: 'okx',
+    mode: 'paper',
+    ...quoteBookCells(q),
+    status: q.running
+      ? { label: 'paper', running: true, tone: 'running', detail: `PR5's rule as LIVE runs it, on OKX's recorded prints · last minute ${Number(q.lagMinutes) || 0} min ago` }
+      : { label: 'paper', running: false, tone: 'stale', detail: `its last decided minute was ${q.lagMinutes ?? '?'} min ago` },
+  };
+}
+
+/** The OKX twins' rows, in the payload's order. @param {any} dash */
+export const quotesOkxRows = (dash) => (dash?.quotesOkx ?? []).map(quotesOkxRow).filter(Boolean);
+
+/** The OKX twin a row opens, or null. @param {string | null} selected @param {any} dash */
+export function quotesOkxOf(selected, dash) {
+  if (!selected || !selected.startsWith(QUOTES_OKX_ROW_PREFIX)) return null;
+  return (dash?.quotesOkx ?? []).find((/** @type {any} */ q) => q?.twin && `${QUOTES_OKX_ROW_PREFIX}${q.twin.id}` === selected) ?? null;
+}
+
 /** The twin a row opens, or null. @param {string | null} selected @param {any} dash */
 export function quotesTwinOf(selected, dash) {
   if (!selected || !selected.startsWith(QUOTES_TWIN_ROW_PREFIX)) return null;
@@ -1353,13 +1387,14 @@ export function quotesLiveRow(q) {
  * nothing to show: the live page needs its LIVE row (`quotesLiveRow`), a twin's page its twin.
  * @param {string | null} selected  the row opened
  * @param {any} dash
- * @returns {'live' | 'twin' | 'coinbase' | null}
+ * @returns {'live' | 'twin' | 'coinbase' | 'okx' | null}
  */
 export function quotesPageFor(selected, dash) {
   if (selected === QUOTES_LIVE_ROW_ID) return quotesLiveRow(dash?.quotes?.live) ? 'live' : null;
   if (selected === QUOTES_COINBASE_ROW_ID) return quotesCoinbaseRow(dash?.quotesCoinbase) ? 'coinbase' : null;
   if (selected === QUOTES_COINBASE_HOLD_ROW_ID) return quotesCoinbaseRow(dash?.quotesCoinbaseHold) ? 'coinbase' : null;
   if (selected === QUOTES_COINBASE_USDC_ROW_ID) return quotesCoinbaseRow(dash?.quotesCoinbaseUsdc) ? 'coinbase' : null;
+  if (selected?.startsWith(QUOTES_OKX_ROW_PREFIX)) return quotesOkxRow(quotesOkxOf(selected, dash)) ? 'okx' : null;
   return quotesTwinRow(quotesTwinOf(selected, dash)) ? 'twin' : null;
 }
 
@@ -1757,12 +1792,13 @@ export function quotesLiveInventory(q, m = (s) => s) {
 
 /**
  * A price a coin, as its book quotes it: pounds to four places; a EUR book's in euros, USDT-EUR's to five (Coinbase's step,
- * "Stablecoin quotes with Euros"). @param {number | null | undefined} p @param {string | null} [book]
+ * "Stablecoin quotes with Euros"); a dollar book's in dollars (OKX's EURC-USDC, 0150). @param {number | null | undefined} p @param {string | null} [book]
  */
 export const fmtQuotePrice = (p, book = null) => {
   if (p == null || !Number.isFinite(Number(p))) return '—';
-  const eur = /EUR$/.test(String(book ?? ''));
-  return `${eur ? '€' : '£'}${Number(p).toFixed(book === 'USDT-EUR' ? 5 : 4)}`;
+  const b = String(book ?? '');
+  const sign = /EUR$/.test(b) ? '€' : /USDC?$/.test(b) ? '$' : '£';
+  return `${sign}${Number(p).toFixed(book === 'USDT-EUR' ? 5 : 4)}`;
 };
 
 /**
@@ -1952,6 +1988,7 @@ export function paperTestRows(dash) {
   const one = (/** @type {any} */ row) => (row ? [row] : []);
   return [
     ...quotesTwinRows(dash), ...one(quotesCoinbaseRow(dash?.quotesCoinbase)), ...one(quotesCoinbaseRow(dash?.quotesCoinbaseHold)), ...one(quotesCoinbaseRow(dash?.quotesCoinbaseUsdc)),
+    ...quotesOkxRows(dash),
   ];
 }
 

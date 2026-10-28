@@ -331,6 +331,12 @@ that follow from that evidence, in short:
   shadow's yardstick); `pr5`, `p50` ("size twin") and `d` run off the page (`hidden`) until their readings, and `take50wk` is
   off (its reading withdrawn). **Since `0144`** (2026-10-27; Davies: "我已经加到600了…把测试的Stablecoin quotes LIVE twin改为600，Stablecoin quotes variant-1改为…下次加仓的目标仓位本金的测试") LIVE runs at £600: "LIVE twin" is `live600`, `live300` is off, and "variant-1" is `live1200`, £1,200 from 10-28, the next step's test (`reviews/2026-10-27-live-next-size-prereg.md`). **Since `0148`** (PR5-OPT, `reviews/2026-10-27-pr5-opt-twins-prereg.md`) "variant-4" to "-6" are LIVE's rules at £600 with one change each from 10-29 (`live600usdt2` USDT 2:1 by `rules.weights`, `live600no03` no 0.3 % rung, `live600hold1` a £1 holding line by `rules.holdMin`; both options absent on LIVE's instance), and `d` is "rule-D twin". **Since `0149`** (Davies, 2026-10-27: "现在就开始") they run from 10-27 06:00 (0148's rows off), the USDT weightings together and last: "variant-4" `o600no03`, "-5" `o600hold1`, "-6" `o600usdt2` (2:1), "-7" `o600usdt3` (3:1), "-8" `o600usdt` (USDT-GBP alone) (`reviews/2026-10-27-pr5-opt-twins-now-prereg.md`). Since `0142` the Coinbase weekend variant is "with Euros - 1" and "with Euros - 2" is its rule on
   the two USDC books at £25/€25 a rung (`agents/cb_usdc.ts`, `reviews/2026-10-26-cb-usdc-prereg.md`).
+  **"Stablecoin quotes OKX USDG" and "… OKX EURC"** (`0150`, `agents/okx_rec.ts`, `agents/okx_quotes.ts`, reference §4 item 64;
+  Davies, 2026-10-27: "…可以的话就加盘口记录器和开testings策略（目前live的rules？）"): a keyless recorder of OKX's USDG-EUR and EURC-USDC
+  and a paper twin a book on LIVE's rules (€50 a rung, LIVE's "at" fill, the weekend on the held EUR/USD, de-peg, the account's
+  1 % loss stop), in a file of its own because `stepMinute` cannot fill by print size or price on a 0.001 grid; one call
+  (`agents?action=okxrec`), pre-registered in `reviews/2026-10-27-okx-paper-prereg.md` (28 days). Whether Davies' UK OKX account
+  may trade these books and at what maker fee is unconfirmed (that review's §1): nothing goes live there without his in-app check.
   The names above are their history. TESTING's scoreboard and the
   Revolut X card include them. **"Stablecoin quotes with Euros"** (`0112`,
   reference §4 item 58; "Stablecoin quotes Coinbase" until 2026-10-10) follows

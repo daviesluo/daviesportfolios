@@ -16,7 +16,7 @@ import { SurfaceBoundary } from '../app/surface_boundary.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesPageFor, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwShareText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows,
+  AGENT_TABS, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesPageFor, quotesOkxOf, quotesOkxRow, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwShareText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -521,11 +521,13 @@ function LiveOrdersTable({ title, cls, orders, m, empty }) {
  * on its simulated account and its TESTING row (`quotesTwinRow`), PAPER, its name for a title, and a line under its
  * scoreboard for what it is and for each book whose asks wait for their coin. Each page has a container of its own: the
  * sweep tells them apart by it. "Stablecoin quotes with Euros" (`coinbase`, 0112) opens the same page as a twin, on
- * Coinbase: a paper test with no account and no coin of its own, so no INVENTORY, and each EUR book's prices in euros.
- * @param {{ q: any, m: (s: string) => string, at: any, nowMs: number, twin?: boolean, coinbase?: boolean }} props
+ * Coinbase: a paper test with no account and no coin of its own, so no INVENTORY, and each EUR book's prices in euros. The OKX
+ * twins (`okx`, 0150) open it the same way, on OKX.
+ * @param {{ q: any, m: (s: string) => string, at: any, nowMs: number, twin?: boolean, coinbase?: boolean, okx?: boolean }} props
  */
-function QuotesLiveDetail({ q, m, at, nowMs, twin = false, coinbase = false }) {
-  const row = coinbase ? quotesCoinbaseRow(q) : twin ? quotesTwinRow(q) : quotesLiveRow(q);
+function QuotesLiveDetail({ q, m, at, nowMs, twin = false, coinbase: cbOnly = false, okx = false }) {
+  const coinbase = cbOnly || okx;
+  const row = okx ? quotesOkxRow(q) : coinbase ? quotesCoinbaseRow(q) : twin ? quotesTwinRow(q) : quotesLiveRow(q);
   if (!row) return null;
   const lines = twin || coinbase ? quotesTwinLines(q, m) : null;
   const x = rowMoney(row);
@@ -536,10 +538,10 @@ function QuotesLiveDetail({ q, m, at, nowMs, twin = false, coinbase = false }) {
   const entryOrders = orders.filter((/** @type {any} */ o) => o.leg === 'entry');
   const empty = d ? null : 'Not in this answer: the next refresh brings it.';
   return (
-    <div className={`ag-detail ${coinbase ? 'ag-quotes-cb-detail' : twin ? 'ag-quotes-twin-detail' : 'ag-quotes-live-detail'}`}>
+    <div className={`ag-detail ${okx ? 'ag-quotes-okx-detail' : coinbase ? 'ag-quotes-cb-detail' : twin ? 'ag-quotes-twin-detail' : 'ag-quotes-live-detail'}`}>
       <div className="ag-detail-head">
         <ModeBadge mode={twin || coinbase ? 'paper' : 'live'} />
-        <VenueBadge id={coinbase ? 'coinbase' : 'revx'} />
+        <VenueBadge id={okx ? 'okx' : coinbase ? 'coinbase' : 'revx'} />
         <StatusDot status={row.status} since={twin || coinbase ? q.twin?.startedAt ?? null : q.armed ? q.armedAt : null} nowMs={nowMs} live={!twin && !coinbase} />
       </div>
       <h3 className="ag-detail-title mono sr-only">{row.name}</h3>
@@ -1680,6 +1682,7 @@ function AgentsModal({ hideValues, onClose }) {
   const coinbaseOpen = quotesPage === 'coinbase'
     ? (selected === QUOTES_COINBASE_HOLD_ROW_ID ? dash.quotesCoinbaseHold : selected === QUOTES_COINBASE_USDC_ROW_ID ? dash.quotesCoinbaseUsdc : dash.quotesCoinbase)
     : null;
+  const okxOpen = quotesPage === 'okx' ? quotesOkxOf(selected, dash) : null;
   const lpLiveOpen = selected === LP_LIVE_ROW_ID && !!lpLiveRow(dash?.lpLive);
   const grokPmOpen = selected === GROKPM_ROW_ID && !!grokPmRow(dash?.grokPm);
   const notReady = !!dash?.notReady;
@@ -1800,6 +1803,19 @@ function AgentsModal({ hideValues, onClose }) {
         </header>
         <div className="modal-body ag-body">
           <PageGuard gen={gen}><QuotesLiveDetail q={coinbaseOpen} m={m} at={dash.at} nowMs={now} coinbase /></PageGuard>
+        </div>
+      </Modal>
+    )}
+    {okxOpen && (
+      <Modal onClose={() => setSelected(null)} size="lg">
+        <header className="modal-head">
+          <div>
+            <h2 className="modal-title mono"><NameText name={String(okxOpen.twin.name)} /></h2>
+          </div>
+          <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
+        </header>
+        <div className="modal-body ag-body">
+          <PageGuard gen={gen}><QuotesLiveDetail q={okxOpen} m={m} at={dash.at} nowMs={now} okx /></PageGuard>
         </div>
       </Modal>
     )}
