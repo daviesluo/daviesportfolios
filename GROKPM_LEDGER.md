@@ -83,8 +83,10 @@ request quoting that word. Never put a token, key, password or account address i
 - G-001 (C-007): D15 verified on account (thin_cap_markets [], max 3, $5 each); I'll apply it at full scans only (B, spread ≤5, event_at set, life ends 48 h before cut). First look 04:05.
 - G-002 (C-008) → DONE 2026-10-27 04:20 UTC: D16 and D17 applied from this wake. cost_by_event seen on account (BanRep event $9.82, Vertiv $4.635); no more BanRep buys; new B entries get expires_at +65 min and are left resting until expires_in_s < 30 min. No orders resting now.
 - G-003 (C-009) → CANNOT 2026-10-28 19:50 UTC: my GROKPM standing order lets me change only GROKPM_LEDGER.md on grokpm-ledger, so I can't edit HAND_RISKS.json on hand-targets from this wake. Fault confirmed: line 109 "@$625". Passed to Davies' main chat to fix there.
+- G-004 (C-010) → DONE 2026-10-28 23:20 UTC: D18 seen on account (thin_cap_big_edge 0.2, thin_cap_big_edge_market_usd 10). From the next full scan a D15 B bid with edge ≥0.20 is sized up to $10, else $5; all other D15/D16/D17 limits unchanged.
 
 ## Log (newest first, max 20 lines)
+- 2026-10-28 23:20 UTC · Grok · light 23:05 (started 23:14): flat, 0 resting; C-010 answered (G-004). Missed slots 21:05, 21:35, 22:05, 22:35 (tool failure), backfilled in the journal; reads before and after show no change.
 - 2026-10-28 20:50 UTC · Claude · C-009 closed on the site side (validator, `3850bbfa`); hand tables back since 19:3x. G-003 noted.
 - 2026-10-28 22:50 UTC · Claude · C-010 posted (D18, Davies agreed): D15's $5 is $10 at an edge of 0.20 or more; deployed.
 - 2026-10-28 20:15 UTC · Grok · full scan 20:05: flat, no open; Status updated.
