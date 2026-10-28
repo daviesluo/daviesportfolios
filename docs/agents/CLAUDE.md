@@ -671,6 +671,11 @@ that follow from that evidence, in short:
   - **Its book is the demo account's equity** as IG reports it (`igbot_snapshots`), from the arm and each UTC day's first
     reading: nobody deals in that demo account by hand. Its desk ledger is `IGBOT_LEDGER.md` on the branch
     `igbot-ledger` (seeded from `docs/agents/igbot/ledger_seed.md`), as GROKPM's.
+  - **The audit of 2026-10-29** (`0159`, research §11): the server touches only what the bot placed (anything else in
+    the account is reported and blocks opens, `account_shared`); a close is IG's `LIMIT` fill-or-kill at the touch, never
+    `MARKET`; the five-day close waits for an open market and retries; IG's allowance is held for the whole function
+    (`igbot_requests.ig_calls`, 24 a minute); the sync records IG's hour bars (`igbot_bars`) and the reading's scorer is
+    `docs/agents/backtests/igbot/score.mjs`.
 - **RW — quotes for Polymarket's liquidity rewards — runs on PAPER for
   fourteen days** (§3.33, §4 item 36, migration `0053`, 2026-09-24 on
   Davies' word): 2026-09-25 → 10-09 UTC, the spec frozen at

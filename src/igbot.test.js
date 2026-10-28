@@ -12,6 +12,8 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
 const SQL = read('supabase/migrations/0157_igbot.sql');
 const SQL_NC = SQL.replace(/--[^\n]*/g, '');
+// 0159 (the 2026-10-29 audit): a column on igbot_requests and the hour bars' table.
+const SQL2_NC = read('supabase/migrations/0159_igbot_audit.sql').replace(/--[^\n]*/g, '');
 const SCHEMA = read('supabase/functions/igbot/schema.ts');
 const RULES = read('supabase/functions/igbot/rules.ts');
 const PROMPT = read('docs/agents/igbot/GROK_PROMPT.md');
@@ -19,32 +21,38 @@ const EXAMPLES = JSON.parse(read('docs/agents/igbot/examples.json'));
 const DIR = path.join(ROOT, 'supabase/functions/igbot');
 const stripComments = (s) => s.replace(/\/\/[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
 
-/** Each `create table` of the migration: its columns, in order. */
-function tablesOf(sql) {
+/** Each `create table` of the migrations: its columns, in order, with every `add column` after them. */
+function tablesOf(...sqls) {
   const out = {};
-  for (const m of sql.matchAll(/create table if not exists public\.(\w+) \(([\s\S]*?)\n\);/g)) {
-    out[m[1]] = m[2].split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('constraint')).map((l) => l.split(/\s+/)[0]);
+  for (const sql of sqls) {
+    for (const m of sql.matchAll(/create table if not exists public\.(\w+) \(([\s\S]*?)\n\);/g)) {
+      out[m[1]] = m[2].split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('constraint') && !l.startsWith('primary key')).map((l) => l.split(/\s+/)[0]);
+    }
+    for (const m of sql.matchAll(/alter table public\.(\w+) add column if not exists (\w+) /g)) out[m[1]].push(m[2]);
   }
   return out;
 }
 /** `schema.ts`'s list, read as text: table → columns. */
 function schemaOf(src) {
   const out = {};
-  for (const m of src.matchAll(/(igbot_\w+): \{\s*key: "(\w+)",\s*columns: \[([\s\S]*?)\]/g)) out[m[1]] = [...m[3].matchAll(/"(\w+)"/g)].map((x) => x[1]);
+  for (const m of src.matchAll(/(igbot_\w+): \{\s*key: "([\w,]+)",\s*columns: \[([\s\S]*?)\]/g)) out[m[1]] = [...m[3].matchAll(/"(\w+)"/g)].map((x) => x[1]);
   return out;
 }
 
 describe('IGBOT, the demo-only IG path', () => {
-  it("writes only the migration's columns: schema.ts lists every table of 0157 with exactly its columns", () => {
-    const t = tablesOf(SQL_NC), s = schemaOf(SCHEMA);
+  it("writes only the migrations' columns: schema.ts lists every table of 0157 and 0159 with exactly its columns", () => {
+    const t = tablesOf(SQL_NC, SQL2_NC), s = schemaOf(SCHEMA);
     expect(Object.keys(t).sort()).toEqual(Object.keys(s).sort());
-    expect(Object.keys(t).length).toBe(10);
+    expect(Object.keys(t).length).toBe(11);
+    expect(t.igbot_requests.at(-1)).toBe('ig_calls');
     for (const k of Object.keys(t)) expect([k, t[k]]).toEqual([k, s[k]]);
   });
 
   it('locks every table to the service role: row level security on, no grant and no policy for anon or authenticated', () => {
     for (const k of Object.keys(tablesOf(SQL_NC))) expect(SQL_NC).toMatch(new RegExp(`alter table public\\.${k} +enable row level security;`));
     expect(SQL_NC).not.toMatch(/\bgrant\b|create policy/i);
+    expect(SQL2_NC).toMatch(/alter table public\.igbot_bars enable row level security;/);
+    expect(SQL2_NC).not.toMatch(/\bgrant\b|create policy|edge_calls|igbot_config/i);
   });
 
   it("holds the environment to the demo, starts in dry-run, ties the arm to the mode, and adds one call a minute", () => {
@@ -97,6 +105,21 @@ describe('IGBOT, the demo-only IG path', () => {
     expect(PROMPT).toContain('−£20 today');
     expect(PROMPT).toContain('−£100 from the start');
     expect(PROMPT).toContain('40 orders a UTC day');
+  });
+
+  it('names in the prompt every rule the server can refuse by, and the limits the 2026-10-29 audit added', () => {
+    const named = new Set([...stripComments(RULES + read('supabase/functions/igbot/exec.ts')).matchAll(/rule: "(\w+)"/g)].map((m) => m[1]));
+    expect(named.size).toBeGreaterThan(25);
+    for (const r of named) expect(PROMPT, r).toContain('`' + r + '`');
+    expect(RULES).toContain('pendingBlockMs: 2 * H,');
+    expect(PROMPT).toContain('for up to two hours');
+    expect(read('supabase/functions/igbot/ingest.ts')).toContain('export const IGBOT_IG_CALLS_PER_MINUTE = 24;');
+    expect(PROMPT).toContain('past 24 IG requests in a minute');
+    expect(RULES).toContain('export const IGBOT_CALENDAR_UNTIL_MS = Date.parse("2027-01-01T00:00:00Z");');
+    expect(PROMPT).toContain('the release list ends 2026-12-31');
+    // The wake schedule: event wakes before T−5 (the blackout), holding checks every 10 minutes.
+    expect(PROMPT).toContain('| T−60, T−20, T+5, T+15, T+60, T+180 |');
+    expect(PROMPT).toContain('every 10 minutes while you hold a position or a working order');
   });
 
   it('seeds a desk ledger under 10 KB', () => {

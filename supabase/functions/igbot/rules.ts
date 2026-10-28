@@ -47,7 +47,21 @@ export const IGBOT_RULES = {
   eventAheadMs: 72 * H, eventBehindMs: 24 * H,
   /** A size has at most two decimals (IG's spread-bet stakes: £0.50, £1.25 a point). */
   sizeDecimals: 2,
+  /** An order whose answer is still pending or unknown blocks a new open in its market for this long (2026-10-29 audit). */
+  pendingBlockMs: 2 * H,
+  /**
+   * A close is IG's LIMIT fill-or-kill at the exit touch less this much (2026-10-29 audit: every whitelisted market's
+   * `marketOrderPreference` is AVAILABLE_DEFAULT_OFF on the demo spread-bet account, so a MARKET close may be refused):
+   * the larger of three spreads and this share of the price, rounded outward to a whole point.
+   */
+  closeSpreads: 3, closeMinFrac: 0.0005,
 } as const;
+
+/**
+ * The release list (`agents/cb_releases.ts`) stops at 2026-12-31. Past this instant the blackout would silently stop, so
+ * no open is taken until a migration-and-code change extends the list (2026-10-29 audit).
+ */
+export const IGBOT_CALENDAR_UNTIL_MS = Date.parse("2027-01-01T00:00:00Z");
 
 /** The release kinds the calendar lists (CPI, NFP, FOMC, ECB, BoE: `agents/cb_releases.ts`, frozen to 2026-12-31). */
 export const IGBOT_RELEASE_MS: readonly number[] = CB_RELEASES.map(([t]) => Date.parse(t));
@@ -66,17 +80,24 @@ export const rulePoints = (r: DealingRule, level: number): number => !r ? 0 : r.
 export type IgMarket = {
   epic: string; name: string; type: string; expiry: string; status: string; bid: number | null; offer: number | null;
   minDealSize: number; minGsDistance: DealingRule; gsPremium: number; gbp: boolean; updateTime: string | null;
+  /** IG's `minNormalStopOrLimitDistance` (binds the limit) and `maxStopOrLimitDistance` (binds both); null when unread. */
+  minLimitDistance?: DealingRule; maxStopLimitDistance?: DealingRule;
+  /** The day's range so far as IG's snapshot gives it (the agent's yardstick for a stop beyond the day's noise). */
+  dayHigh?: number | null; dayLow?: number | null;
 };
 
 /** An open position as IG lists it (`GET /positions`). */
 export type IgPosition = {
   dealId: string; dealReference: string | null; epic: string; direction: Direction; size: number; level: number;
   stopLevel: number | null; limitLevel: number | null; guaranteed: boolean; premium: number; createdMs: number | null; bid: number | null; offer: number | null;
+  /** The market's status as `GET /positions` reports it (`market.marketStatus`), when it does. */
+  marketStatus?: string | null;
 };
 /** A working order as IG lists it (`GET /workingorders`). */
 export type IgWorkingOrder = {
   dealId: string; epic: string; direction: Direction; size: number; level: number; type: string; goodTillMs: number | null;
   guaranteed: boolean; stopDistance: number | null; limitDistance: number | null; premium: number;
+  dealReference?: string | null;
 };
 
 const sign = (d: Direction) => (d === "BUY" ? 1 : -1);
@@ -155,6 +176,8 @@ export type OpenRequest = {
 export type Gates = {
   mode: "dry_run" | "demo"; armed: boolean; globalPause: boolean; credsProblem: string | null; equityRead: boolean;
   dayStopped: boolean; totalStopped: boolean;
+  /** A position or working order in the account that the bot did not place: the account's equity is then not its book. */
+  foreign?: string | null;
 };
 
 /** Why the server would send nothing now (the order rules aside): an open needs every gate, a close every gate but the stops. */
@@ -167,6 +190,7 @@ export function gateRefusals(g: Gates, kind: "open" | "close" | "amend" | "cance
     if (!g.equityRead && g.mode === "demo") out.push({ rule: "account", why: "the account's equity could not be read: no new open on a guess" });
     if (g.totalStopped) out.push({ rule: "total_stop", why: "the total stop was reached: close-only to the end of the test" });
     if (g.dayStopped) out.push({ rule: "day_stop", why: "the day stop was reached: no new open until 00:00 UTC" });
+    if (g.foreign) out.push({ rule: "account_shared", why: g.foreign });
   }
   return out;
 }
@@ -178,6 +202,10 @@ export function gateRefusals(g: Gates, kind: "open" | "close" | "amend" | "cance
 export function openRefusals(p: {
   req: OpenRequest; market: IgMarket | null; book: Book; whitelist: string[]; nowMs: number;
   ordersToday: number; maxOrdersDay: number; ordersLastMinute: number; releases?: readonly number[];
+  /** Markets where an order of the bot is still pending or unknown (`pendingBlockMs`). */
+  pendingEpics?: readonly string[];
+  /** The release list's last covered instant (`IGBOT_CALENDAR_UNTIL_MS`). */
+  calendarUntilMs?: number;
 }): { refusals: Refusal[]; checks: Record<string, unknown> } {
   const { req, market: m, book: b } = p, R = IGBOT_RULES, out: Refusal[] = [];
   const releases = p.releases ?? IGBOT_RELEASE_MS;
@@ -206,8 +234,17 @@ export function openRefusals(p: {
       out.push({ rule: "edge", why: `p ${req.p} is ${((req.p - br.m) * 100).toFixed(1)} points over the bracket's driftless m ${br.m}, at least ${R.edgeMin * 100}` });
     }
     if (m) {
-      const minGs = rulePoints(m.minGsDistance, req.level);
-      if (br.dStop < minGs - EPS) out.push({ rule: "stop_distance", why: `the guaranteed stop is ${br.dStop} points away, IG's minimum is ${r4(minGs)}` });
+      // IG measures the guaranteed distance from the deal's level. An immediate deal fills at the touch or better, so its
+      // stop is measured from the touch, never from the worst fill accepted (2026-10-29 audit: a level beyond the touch
+      // passed here and IG would refuse the deal).
+      const from = req.entry === "market" && touch !== null ? touch : req.level;
+      const dIg = r4(sign(req.direction) * (from - req.stopLevel));
+      const minGs = rulePoints(m.minGsDistance, from);
+      if (dIg < minGs - EPS) out.push({ rule: "stop_distance", why: `the guaranteed stop is ${dIg} points from ${req.entry === "market" ? "the touch" : "the level"}, IG's minimum is ${r4(minGs)}` });
+      const minLim = rulePoints(m.minLimitDistance ?? null, req.level);
+      if (br.dLimit < minLim - EPS) out.push({ rule: "limit_distance", why: `the limit is ${br.dLimit} points away, IG's minimum is ${r4(minLim)}` });
+      const maxD = m.maxStopLimitDistance ? rulePoints(m.maxStopLimitDistance, req.level) : Infinity;
+      if (br.dStop > maxD + EPS || br.dLimit > maxD + EPS) out.push({ rule: "limit_distance", why: `IG's maximum stop or limit distance is ${r4(maxD)} points` });
     }
     if (touch !== null) {
       const s = sign(req.direction);
@@ -258,13 +295,19 @@ export function openRefusals(p: {
       if (req.goodTillMs! > nextWeekendStart(p.nowMs)) out.push({ rule: "weekend", why: "a working order ends before Friday 20:00 UTC" });
     }
   }
-  // The category's own terms.
-  const ev = req.eventAt === null ? null : Date.parse(req.eventAt);
-  if (req.category === "E" && !(ev !== null && ev > p.nowMs && ev <= p.nowMs + R.eventAheadMs)) {
-    out.push({ rule: "category", why: "category E names the scheduled event it is positioned for (`event_at`, within 72 hours ahead)" });
+  if ((p.pendingEpics ?? []).includes(req.epic)) {
+    out.push({ rule: "pending_order", why: "an earlier order of the bot in this market has no answer from IG yet: read ?action=account, never send it again under a new id" });
   }
-  if (req.category === "R" && !(ev !== null && ev <= p.nowMs && ev >= p.nowMs - R.eventBehindMs)) {
-    out.push({ rule: "category", why: "category R names the event it trades the reaction to (`event_at`, within 24 hours behind)" });
+  if (p.nowMs >= (p.calendarUntilMs ?? IGBOT_CALENDAR_UNTIL_MS)) out.push({ rule: "calendar", why: "the release list ends 2026-12-31: no open until it is extended" });
+  // The category's own terms: E and R name a LISTED release (the pre-registration's §2 and the prompt say so; until the
+  // 2026-10-29 audit any time passed), to the minute.
+  const ev = req.eventAt === null ? null : Date.parse(req.eventAt);
+  const listed = ev !== null && releases.some((t) => Math.abs(t - ev) < 60e3);
+  if (req.category === "E" && !(listed && ev! > p.nowMs && ev! <= p.nowMs + R.eventAheadMs)) {
+    out.push({ rule: "category", why: "category E names the listed release it is positioned for (`event_at`, a time from ?action=calendar, within 72 hours ahead)" });
+  }
+  if (req.category === "R" && !(listed && ev! <= p.nowMs && ev! >= p.nowMs - R.eventBehindMs)) {
+    out.push({ rule: "category", why: "category R names the listed release it trades the reaction to (`event_at`, a time from ?action=calendar, within 24 hours behind)" });
   }
   if (!req.sources.length) out.push({ rule: "sources", why: "an open links at least one source" });
   return {
@@ -303,6 +346,16 @@ export function closeRefusals(pos: IgPosition | null, size: number | null): Refu
   if (!pos) return [{ rule: "not_held", why: "no open position of the bot with that deal_id" }];
   if (size !== null && !(size > 0 && size <= pos.size + EPS)) return [{ rule: "size", why: `a close is over 0 and at most the position's ${pos.size}` }];
   return [];
+}
+
+/**
+ * The level of a close sent as IG's LIMIT fill-or-kill: the exit touch (a buy closes into the bid) less the larger of
+ * `closeSpreads` spreads and `closeMinFrac` of the price, rounded outward to a whole point. Null without a two-sided price.
+ */
+export function closeLimitLevel(pos: Pick<IgPosition, "direction" | "bid" | "offer">): number | null {
+  if (pos.bid === null || pos.offer === null || !(pos.offer >= pos.bid)) return null;
+  const tol = Math.max(IGBOT_RULES.closeSpreads * (pos.offer - pos.bid), IGBOT_RULES.closeMinFrac * pos.bid);
+  return pos.direction === "BUY" ? Math.floor(pos.bid - tol) : Math.ceil(pos.offer + tol);
 }
 
 /** The positions the server closes itself: older than `maxHoldMs`. */

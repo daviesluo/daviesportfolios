@@ -7,7 +7,10 @@
 import { assert, assertEquals, assertRejects, assertThrows } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import type { Db } from "../agents/db.ts";
 import { assertIgbotAllowed, IGBOT_DEMO_BASE, IgbotClient, igbotCreds, IgbotRefused, type IgbotSession } from "./client.ts";
-import { accountOf, closedPnl, closeOf, confirmOf, type ExecDeps, type IgApi, type IgSend, marketOf, positionsOf, workingOf } from "./exec.ts";
+import {
+  accountOf, barsOf, closedPnl, closeOf, confirmOf, type ExecDeps, type IgApi, IGBOT_MISSING_GRACE_MS, type IgSend, marketOf, positionsOf, premiumOf, workingOf,
+} from "./exec.ts";
+import { IGBOT_IG_CALLS_PER_MINUTE, rateVerdict } from "./ingest.ts";
 import { handle } from "./index.ts";
 import { IGBOT_TABLES } from "./schema.ts";
 
@@ -75,7 +78,8 @@ class FakeDb implements Db {
   upsert(table: string, rows: unknown, onConflict: string): Promise<void> {
     for (const r of rows as Row[]) {
       this.check(table, r);
-      const i = this.t[table].findIndex((x) => x[onConflict] === r[onConflict]);
+      const keys = onConflict.split(",");
+      const i = this.t[table].findIndex((x) => keys.every((k) => x[k] === r[k]));
       if (i >= 0) this.t[table][i] = { ...this.t[table][i], ...r };
       else this.t[table].push({ ...r });
     }
@@ -103,6 +107,7 @@ function test(x: unknown, op: string, val: string): boolean {
     case "gte": return s !== null && s >= val;
     case "lt": return s !== null && s < val;
     case "in": return val.slice(1, -1).split(",").map((v) => v.replace(/^"|"$/g, "")).includes(s ?? "");
+    case "like": return s !== null && new RegExp(`^${val.split("*").map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join(".*")}$`).test(s);
     default: throw new Error(`filter op ${op}`);
   }
 }
@@ -124,24 +129,40 @@ class FakeIg implements IgApi {
   /** What the database held when each send reached IG (the order row must already be there). */
   seenRows: number[] = [];
   failSend = false;
+  /** IG refuses the next deals (`dealStatus` REJECTED) while set. */
+  reject = false;
+  /** Called while the open path reads the market (to change the world mid-request). */
+  onMarket: (() => void) | null = null;
   constructor(public db: FakeDb) {}
   accounts() { this.calls.push("accounts"); return Promise.resolve({ accounts: [{ accountId: "ZDEMO1", balance: { balance: this.equity, profitLoss: 0, deposit: 0, available: this.equity } }] }); }
-  market(epic: string) { this.calls.push(`market ${epic}`); return Promise.resolve(marketRaw(epic)); }
+  market(epic: string) { this.calls.push(`market ${epic}`); this.onMarket?.(); return Promise.resolve(marketRaw(epic)); }
   markets(epics: string[]) { this.calls.push("markets"); return Promise.resolve({ marketDetails: epics.map((e) => marketRaw(e)) }); }
   positions() { this.calls.push("positions"); return Promise.resolve({ positions: this.pos }); }
   working() { this.calls.push("list-working"); return Promise.resolve({ workingOrders: this.wo }); }
   confirm(ref: string) { this.calls.push(`confirm ${ref}`); const c = this.confirms.get(ref); return c ? Promise.resolve(c) : Promise.reject(new Error("404 deal-not-found")); }
-  activity(q: { dealId: string }) { this.calls.push(`activity ${q.dealId}`); return Promise.resolve({ activities: this.hist }); }
+  /** The history IG gives for a query by deal id (`hist`) and for one without (`histAll`, the whole account since). */
+  histAll: Row[] | null = null;
+  activity(q: { dealId?: string }) {
+    this.calls.push(`activity ${q.dealId ?? "*"}`);
+    return Promise.resolve({ activities: q.dealId || this.histAll === null ? this.hist : this.histAll });
+  }
+  bars: Record<string, Row[]> = {};
+  prices(epic: string, max: number) { this.calls.push(`prices ${epic} ${max}`); return Promise.resolve({ prices: this.bars[epic] ?? [] }); }
   private send(kind: string, body: Row): Promise<IgSend> {
     this.calls.push(kind);
     this.seenRows.push(this.db.t.igbot_orders.filter((o) => o.deal_reference === body.dealReference).length);
     if (this.failSend) return Promise.reject(new Error("connection reset"));
     const ref = String(body.dealReference ?? `IG-${this.calls.length}`);
+    if (this.reject) {
+      this.confirms.set(ref, { dealStatus: "REJECTED", reason: "MARKET_CLOSED_WITH_EDITS", dealId: null });
+      return Promise.resolve({ status: 200, dealReference: ref, error: null });
+    }
     if (kind === "open") {
       this.confirms.set(ref, { dealStatus: "ACCEPTED", reason: "SUCCESS", dealId: "DIAAAA1", level: 6800.6, size: body.size, status: "OPEN" });
       this.pos.push({ position: { dealId: "DIAAAA1", dealReference: ref, size: body.size, direction: body.direction, level: 6800.6, stopLevel: body.stopLevel, limitLevel: body.limitLevel, controlledRisk: true, limitedRiskPremium: { value: 0.6 }, createdDateUTC: "2026-11-03T15:00:00" }, market: { epic: body.epic, bid: 6800, offer: 6800.4 } });
     }
     if (kind === "close") {
+      this.lastClose = body;
       this.confirms.set(ref, { dealStatus: "ACCEPTED", reason: "SUCCESS", dealId: "DIAAAA9", level: 6820, size: body.size, status: "CLOSED", profit: 4.66 });
       this.pos = this.pos.filter((p) => (p.position as Row).dealId !== body.dealId);
     }
@@ -150,6 +171,8 @@ class FakeIg implements IgApi {
   open(b: Row) { return this.send("open", b); }
   close(b: Row) { return this.send("close", b); }
   amend(dealId: string, b: Row) { this.calls.push(`amend ${dealId} ${JSON.stringify(b)}`); return Promise.resolve({ status: 200, dealReference: "AMD1", error: null }); }
+  /** The last close body IG received, as sent. */
+  lastClose: Row | null = null;
   placeWorking(b: Row) { return this.send("working", b); }
   deleteWorking(dealId: string) { this.calls.push(`delete ${dealId}`); this.wo = this.wo.filter((w) => (w.workingOrderData as Row).dealId !== dealId); return Promise.resolve({ status: 200, dealReference: "DEL1", error: null }); }
 }
@@ -160,7 +183,10 @@ function world(o: { mode?: "dry_run" | "demo"; ig?: boolean } = {}) {
   if (o.mode === "demo") Object.assign(db.t.igbot_config[0], { mode: "demo", armed_at: "2026-11-01T00:00:00Z", started_at: "2026-11-01T00:00:00Z" });
   const beats: string[] = [];
   let now = T0, refs = 0;
-  const exec = (t: number): ExecDeps => ({ db, now: t, ig: o.ig === false ? null : ig, credsProblem: o.ig === false ? "IG's demo secrets are not set: IGBOT_DEMO_API_KEY" : null, accountId: "ZDEMO1", rand: () => `r${++refs}`, sleep: () => Promise.resolve() });
+  const exec = (t: number): ExecDeps => ({
+    db, now: t, ig: o.ig === false ? null : ig, credsProblem: o.ig === false ? "IG's demo secrets are not set: IGBOT_DEMO_API_KEY" : null, accountId: "ZDEMO1", rand: () => `r${++refs}`,
+    sleep: () => Promise.resolve(), clock: () => now, igCalls: ((base) => () => ig.calls.length - base)(ig.calls.length),
+  });
   const call = async (method: string, action: string, body?: unknown, auth = `Bearer ${TOKEN}`) => {
     const res = await handle(new Request(`https://x.test/functions/v1/igbot${action ? `?action=${action}` : ""}`, {
       method, headers: { Authorization: auth, "Content-Type": "application/json" }, body: body === undefined ? undefined : JSON.stringify(body),
@@ -331,7 +357,7 @@ Deno.test("sync: the server closes a position held five days, and deletes workin
   assertEquals(w.db.t.igbot_orders.at(-1)!.kind, "auto_close");
   // Disarmed with a working order resting at IG: it is deleted by its own id.
   Object.assign(w.db.t.igbot_config[0], { mode: "dry_run", armed_at: null });
-  w.ig.wo = [{ workingOrderData: { dealId: "WO1", epic: US500, direction: "BUY", orderSize: 0.2, orderLevel: 6750, orderType: "LIMIT", guaranteedStop: true, stopDistance: 40, limitDistance: 80 } }];
+  w.ig.wo = [{ workingOrderData: { dealId: "WO1", dealReference: "IGB-x-1", epic: US500, direction: "BUY", orderSize: 0.2, orderLevel: 6750, orderType: "LIMIT", guaranteedStop: true, stopDistance: 40, limitDistance: 80 } }];
   w.at(T0 + 5 * 86400e3 + 60e3);
   const s2 = await w.call("POST", "sync", undefined, `Bearer ${CRON}`);
   assertEquals(s2.body.cancelled, 1);
@@ -352,6 +378,196 @@ Deno.test("IG's answers read: markets, positions, working orders, confirmations,
   assertEquals(closeOf(hist, { dealId: "D1", stopLevel: 6761, limitLevel: 6881 })?.how, "limit");
   assertEquals(closeOf(hist, { dealId: "D2", stopLevel: 6761, limitLevel: 6881 }), null);
   assertEquals(closedPnl({ direction: "SELL", size: 2, openLevel: 100, closeLevel: 90, guaranteed: true, premium: 1, how: "limit" }), 20);
+});
+
+
+// ── the 2026-10-29 audit's pins: each fails on the code as it stood before it ─────────────────────────────────────────
+
+const CLOSE = { id: "c-1", ts: "2026-11-03T15:00:00Z", action: "close", deal_id: "DIAAAA1", reason: "Thesis broken." };
+
+Deno.test("a close is IG's LIMIT fill-or-kill at the bid less a tolerance, carries no deal reference, and is confirmed under IG's own", async () => {
+  const w = world({ mode: "demo" });
+  await w.call("POST", "order", { decision: OPEN });
+  const c = await w.call("POST", "close", { decision: CLOSE });
+  assertEquals([c.status, c.body.order.state], [200, "accepted"], JSON.stringify(c.body));
+  // The bid 6800 less max(3 x 0.4, 0.0005 x 6800 = 3.4) = 6796.6, down to a whole point. No `dealReference`: IG's close
+  // takes none (its reference lists the close's fields), and MARKET may be refused on an account whose market-order
+  // preference is off (all six markets: AVAILABLE_DEFAULT_OFF on the demo, ig_facts 3).
+  assertEquals(w.ig.lastClose, { dealId: "DIAAAA1", direction: "SELL", size: 0.24, orderType: "LIMIT", level: 6796, timeInForce: "FILL_OR_KILL" });
+  const row = w.db.t.igbot_orders.find((o) => o.kind === "close")!;
+  assert(String(row.deal_reference).startsWith("IG-"), String(row.deal_reference));
+  assertEquals(w.ig.calls.filter((x) => x.startsWith("confirm")).length, 2); // the open's, then the close's under IG's reference
+});
+
+Deno.test("an amend is confirmed under the reference IG answered with, and says what IG said", async () => {
+  const w = world({ mode: "demo" });
+  await w.call("POST", "order", { decision: OPEN });
+  w.ig.confirms.set("AMD1", { dealStatus: "ACCEPTED", reason: "SUCCESS", dealId: "DIAAAA1" });
+  const ok = await w.call("POST", "amend", { decision: { id: "a-1", ts: "2026-11-03T15:00:00Z", action: "amend", deal_id: "DIAAAA1", stop_level: 6780, reason: "Lock in." } });
+  assertEquals([ok.status, ok.body.order.state, ok.body.order.deal_reference], [200, "accepted", "AMD1"]);
+  assertEquals(w.ig.calls.filter((x) => x.startsWith("confirm IGB-")).length, 1); // the open's only
+});
+
+Deno.test("the five-day close waits while the market is closed and is tried again ten minutes after IG refuses it", async () => {
+  const w = world({ mode: "demo" });
+  await w.call("POST", "order", { decision: OPEN });
+  const mkt = w.ig.pos[0].market as Row;
+  mkt.marketStatus = "CLOSED"; // a Saturday
+  w.at(T0 + 5 * 86400e3);
+  const s0 = await w.call("POST", "sync", undefined, `Bearer ${CRON}`);
+  assertEquals([s0.body.auto_closed, sends(w.ig)], [0, ["open"]]);
+  mkt.marketStatus = "TRADEABLE";
+  w.ig.reject = true;
+  w.at(T0 + 5 * 86400e3 + 60e3);
+  await w.call("POST", "sync", undefined, `Bearer ${CRON}`);
+  assertEquals(sends(w.ig), ["open", "close"]);
+  assertEquals(w.db.t.igbot_orders.at(-1)!.state, "rejected");
+  w.at(T0 + 5 * 86400e3 + 3 * 60e3); // within ten minutes: not again
+  await w.call("POST", "sync", undefined, `Bearer ${CRON}`);
+  assertEquals(sends(w.ig), ["open", "close"]);
+  w.ig.reject = false;
+  w.at(T0 + 5 * 86400e3 + 12 * 60e3);
+  const s3 = await w.call("POST", "sync", undefined, `Bearer ${CRON}`);
+  assertEquals([s3.body.auto_closed, sends(w.ig)], [1, ["open", "close", "close"]]);
+  assertEquals(w.db.t.igbot_positions[0].close_how, "server");
+});
+
+Deno.test("nothing the bot did not place is touched: the sync deletes, books and closes none of it, and no open is taken beside it", async () => {
+  const w = world();
+  w.ig.wo = [{ workingOrderData: { dealId: "MANUALWO", epic: US500, direction: "BUY", orderSize: 1, orderLevel: 6700, orderType: "LIMIT", guaranteedStop: false } }];
+  w.ig.pos = [{ position: { dealId: "MANUALPOS", dealReference: "WEB123", size: 1, direction: "BUY", level: 6000, stopLevel: null, controlledRisk: false, createdDateUTC: "2026-10-01T10:00:00" }, market: { epic: US500, bid: 6800, offer: 6800.4, marketStatus: "TRADEABLE" } }];
+  const s = await w.call("POST", "sync", undefined, `Bearer ${CRON}`);
+  assertEquals([s.status, s.body.cancelled, s.body.opened, sends(w.ig)], [200, 0, 0, []]);
+  assert(s.body.errors >= 1);
+  assertEquals(w.db.t.igbot_positions.length, 0);
+  const r = await w.call("POST", "order", { decision: { ...OPEN, epic: "CS.D.AUDUSD.TODAY.IP", direction: "SELL", level: 6799.5, stop_level: 6839.5, limit_level: 6719.5 } });
+  assert(r.body.refusals.some((x: { rule: string }) => x.rule === "account_shared"), JSON.stringify(r.body));
+  // Armed, a five-day-old foreign position is not closed by the server either.
+  Object.assign(w.db.t.igbot_config[0], { mode: "demo", armed_at: "2026-11-01T00:00:00Z", started_at: "2026-11-01T00:00:00Z" });
+  w.at(T0 + 60e3);
+  const s2 = await w.call("POST", "sync", undefined, `Bearer ${CRON}`);
+  assertEquals([s2.body.auto_closed, sends(w.ig)], [0, []]);
+});
+
+Deno.test("IG's allowance is held across requests: an action that could take the minute past 24 IG requests is refused before it reads IG", async () => {
+  const w = world({ mode: "demo" });
+  w.db.t.igbot_requests.push({ id: 900, at: new Date(T0 - 10e3).toISOString(), status: 200, rows: 0, action: "sync", error: null, ig_calls: 20 });
+  const r = await w.call("POST", "order", { decision: OPEN });
+  assertEquals(r.status, 429);
+  assert(String(r.body.detail).includes("IG's allowance"), JSON.stringify(r.body));
+  assertEquals(w.ig.calls, []);
+  // A minute later the budget is free again; the sync's own requests are a row of their own.
+  w.at(T0 + 61e3);
+  const ok = await w.call("POST", "order", { decision: OPEN });
+  assertEquals(ok.status, 200, JSON.stringify(ok.body));
+  const sync = await w.call("POST", "sync", undefined, `Bearer ${CRON}`);
+  assertEquals(sync.status, 200);
+  const rows = w.db.t.igbot_requests.filter((x) => x.action === "sync" && x.id !== 900);
+  assertEquals(rows.length, 1);
+  assert(Number(rows[0].ig_calls) >= 3);
+  assert(Number(w.db.t.igbot_requests.find((x) => x.action === "order" && x.status === 200)!.ig_calls) >= 5);
+  assertEquals(IGBOT_IG_CALLS_PER_MINUTE, 24);
+});
+
+Deno.test("the agent's limits count neither the sync's rows nor its own 429s", () => {
+  const at = (s: number) => new Date(T0 - s * 1000).toISOString();
+  const sync = Array.from({ length: 50 }, (_, i) => ({ at: at(i), status: 200, rows: 0, action: "sync" }));
+  assertEquals(rateVerdict(sync, 0, T0, true).ok, true);
+  assertEquals(rateVerdict(sync, 0, T0, true).requests, 0);
+  const refused = Array.from({ length: 6 }, (_, i) => ({ at: at(i), status: 429, rows: 0, action: "order" }));
+  assertEquals(rateVerdict(refused, 0, T0, true).ok, true);
+  const done = Array.from({ length: 4 }, (_, i) => ({ at: at(i), status: 200, rows: 0, action: "account" }));
+  assertEquals(rateVerdict(done, 0, T0, true).ok, false);
+});
+
+Deno.test("a position IG no longer lists stays open until its close is in the history, read by deal id and then across the account", async () => {
+  const w = world({ mode: "demo" });
+  await w.call("POST", "order", { decision: OPEN });
+  w.ig.pos = [];
+  w.ig.hist = [];
+  w.ig.histAll = [];
+  w.at(T0 + 60e3);
+  const s1 = await w.call("POST", "sync", undefined, `Bearer ${CRON}`);
+  assertEquals([s1.body.closed, w.db.t.igbot_positions[0].state], [0, "open"]);
+  assert(w.ig.calls.includes("activity DIAAAA1") && w.ig.calls.includes("activity *"));
+  // The close arrives in the account's history (an activity of its own deal id, its action naming the position).
+  w.ig.histAll = [{ date: "2026-11-03T15:01:30", channel: "SYSTEM", status: "ACCEPTED", dealId: "DIAAAA9", details: { level: 6881, actions: [{ actionType: "POSITION_CLOSED", affectedDealId: "DIAAAA1" }] } }];
+  w.at(T0 + 3 * 60e3);
+  const s2 = await w.call("POST", "sync", undefined, `Bearer ${CRON}`);
+  assertEquals(s2.body.closed, 1);
+  const p = w.db.t.igbot_positions[0];
+  // 0.24 x (6881 - 6800.6) = 19.296
+  assertEquals([p.state, p.close_how, p.close_level, p.pnl_gbp], ["closed", "limit", 6881, 19.3]);
+});
+
+Deno.test("with no close in the history after fifteen minutes, a position IG no longer lists is booked closed unknown", async () => {
+  const w = world({ mode: "demo" });
+  await w.call("POST", "order", { decision: OPEN });
+  w.ig.pos = [];
+  w.ig.histAll = [];
+  w.at(T0 + 60e3);
+  await w.call("POST", "sync", undefined, `Bearer ${CRON}`);
+  w.at(T0 + 60e3 + IGBOT_MISSING_GRACE_MS - 1000);
+  await w.call("POST", "sync", undefined, `Bearer ${CRON}`);
+  assertEquals(w.db.t.igbot_positions[0].state, "open");
+  w.at(T0 + 60e3 + IGBOT_MISSING_GRACE_MS);
+  const s = await w.call("POST", "sync", undefined, `Bearer ${CRON}`);
+  assertEquals([s.body.closed, w.db.t.igbot_positions[0].state, w.db.t.igbot_positions[0].close_how], [1, "closed", "unknown"]);
+});
+
+Deno.test("the sync keeps IG's hour bars for the reading: each market once an hour, two a minute", async () => {
+  const w = world();
+  const bar = (h: string) => ({
+    snapshotTimeUTC: h, openPrice: { bid: 6800, ask: 6800.4 }, highPrice: { bid: 6810, ask: 6810.4 }, lowPrice: { bid: 6790, ask: 6790.4 }, closePrice: { bid: 6805, ask: 6805.4 },
+  });
+  w.ig.bars[US500] = [bar("2026-11-03T14:00:00"), bar("2026-11-03T15:00:00")];
+  w.ig.bars["CS.D.AUDUSD.TODAY.IP"] = [bar("2026-11-03T14:00:00")];
+  w.at(T0 + 3 * 60e3); // 15:03
+  const s = await w.call("POST", "sync", undefined, `Bearer ${CRON}`);
+  assertEquals(s.body.bars, 2);
+  assertEquals(w.ig.calls.filter((x) => x.startsWith("prices")), ["prices CS.D.AUDUSD.TODAY.IP 2", `prices ${US500} 2`]);
+  assertEquals(w.db.t.igbot_bars.length, 3);
+  const b = w.db.t.igbot_bars.find((x) => x.epic === US500 && x.hour === "2026-11-03T14:00:00.000Z")!;
+  assertEquals([b.bid_high, b.ask_low, b.fetched_at], [6810, 6790.4, new Date(T0 + 3 * 60e3).toISOString()]);
+  w.at(T0 + 4 * 60e3);
+  await w.call("POST", "sync", undefined, `Bearer ${CRON}`);
+  assertEquals(w.ig.calls.filter((x) => x.startsWith("prices")).length, 2);
+  // The next hour, again; the forming 15:00 bar is read complete and replaces the first read.
+  w.at(T0 + 63 * 60e3);
+  await w.call("POST", "sync", undefined, `Bearer ${CRON}`);
+  assertEquals(w.ig.calls.filter((x) => x.startsWith("prices")).length, 4);
+  assertEquals(w.db.t.igbot_bars.find((x) => x.epic === US500 && x.hour === "2026-11-03T15:00:00.000Z")!.fetched_at, new Date(T0 + 63 * 60e3).toISOString());
+  assertEquals(barsOf({ prices: [bar("2026-11-03T15:30:00"), { snapshotTimeUTC: "2026-11-03T14:00:00", highPrice: {} }] }, US500, T0 + 3600e3), []);
+});
+
+Deno.test("the lease is held again before a send: a request whose lease ran out while it read IG sends and journals nothing", async () => {
+  const w = world({ mode: "demo" });
+  w.ig.onMarket = () => Object.assign(w.db.t.igbot_exec_state[0], { lease_owner: "the-sync", lease_until: new Date(T0 + 60e3).toISOString() });
+  const r = await w.call("POST", "order", { decision: OPEN });
+  assertEquals([r.status, r.body.error], [409, "busy"]);
+  assertEquals([sends(w.ig), w.db.t.igbot_decisions.length, w.db.t.igbot_orders.length], [[], 0, 0]);
+  // The lease it lost is not given back by it.
+  assertEquals(w.db.t.igbot_exec_state[0].lease_owner, "the-sync");
+});
+
+Deno.test("an open waits while an earlier order in its market has no answer from IG", async () => {
+  const w = world({ mode: "demo" });
+  w.ig.failSend = true;
+  const r1 = await w.call("POST", "order", { decision: OPEN });
+  assertEquals(r1.body.order.state, "unknown");
+  w.ig.failSend = false;
+  const r2 = await w.call("POST", "order", { decision: { ...OPEN, id: "o-again" } });
+  assertEquals(r2.body.refusals?.map((x: { rule: string }) => x.rule), ["pending_order"]);
+  assertEquals(sends(w.ig), ["open"]);
+});
+
+Deno.test("a guaranteed-stop premium IG states as a percentage is a share of the level, never read as points", () => {
+  assertEquals(premiumOf({ unit: "PERCENTAGE", value: 0.01 }, 6800.4), 0.68);
+  assertEquals(premiumOf({ unit: "POINTS", value: 0.6 }, 6800.4), 0.6);
+  assertEquals(premiumOf({ unit: "PERCENTAGE", value: 0.01 }, null), Infinity);
+  const m = marketOf({ ...marketRaw(), instrument: { ...marketRaw().instrument, limitedRiskPremium: { value: 0.01, unit: "PERCENTAGE" } } })!;
+  assertEquals(m.gsPremium, 0.68);
+  assertEquals([m.minLimitDistance, m.maxStopLimitDistance], [null, null]);
 });
 
 // ── the client: demo host only, its list of calls, its secrets ──────────────────────────────────────────────────────
@@ -416,9 +632,21 @@ Deno.test("the client refuses an account that is not a spread-bet account, or no
   }
 });
 
+Deno.test("the client's minute budget is the isolate's: a second client counts what the first sent (the 2026-10-29 audit)", async () => {
+  const x = fakeIgHttp({ accounts: [{ accountId: "ZSB1", accountType: "SPREADBET" }], current: "ZSB1" });
+  const t = Date.now() + 365 * 86400e3; // past every other test's clock, so their entries in the isolate's list have aged out
+  const a = new IgbotClient({ creds: CREDS, fetchImpl: x.f, store: { s: null }, now: () => t });
+  for (let i = 0; i < 20; i++) await a.get("/positions", 2); // with the login, 21 non-trading requests
+  const b = new IgbotClient({ creds: CREDS, fetchImpl: x.f, store: { s: null }, now: () => t });
+  for (let i = 0; i < 2; i++) await b.get("/positions", 2); // b logs in too: 24
+  await assertRejects(() => b.get("/positions", 2), IgbotRefused, "non-trading");
+  assertEquals(assertIgbotAllowed("GET", `${IGBOT_DEMO_BASE}/prices/${US500}?resolution=HOUR&max=2&pageSize=0`).trading, false);
+  assertThrows(() => assertIgbotAllowed("GET", `${IGBOT_DEMO_BASE}/prices/${US500}?from=2026-01-01`), IgbotRefused);
+});
+
 Deno.test("the client's minute budget sits under IG's allowances", async () => {
   const x = fakeIgHttp({ accounts: [{ accountId: "ZSB1", accountType: "SPREADBET" }], current: "ZSB1" });
-  const c = new IgbotClient({ creds: CREDS, fetchImpl: x.f, store: { s: null }, now: () => T0 });
+  const c = new IgbotClient({ creds: CREDS, fetchImpl: x.f, store: { s: null }, now: () => T0, sent: [] });
   for (let i = 0; i < 23; i++) await c.get("/positions", 2); // with the login, 24 non-trading requests
   await assertRejects(() => c.get("/positions", 2), IgbotRefused, "non-trading");
 });

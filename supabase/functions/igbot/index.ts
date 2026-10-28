@@ -18,7 +18,12 @@
 //   POST ?action=amend     move a position's stop toward the price, or its limit.
 //   POST ?action=cancel    one working order (`deal_id`); ?action=cancel_all every one.
 //   POST ?action=sync      the scheduler's (bearer CRON_SECRET), every minute: its beat first, then IG's lists read back
-//                          into the book, the server's own closes and cancels, and a snapshot each five minutes.
+//                          into the book, the server's own closes and cancels, a snapshot each five minutes and IG's hour
+//                          bars for the reading; its IG requests are a row of `igbot_requests` (action `sync`).
+//
+// IG's allowance is held for the whole function: every request's IG calls are written on its `igbot_requests` row
+// (`ig_calls`, 0159), and an action that could take the last minute's total over `IGBOT_IG_CALLS_PER_MINUTE` is answered
+// 429 before it reads anything.
 //
 // Auth: `Authorization: Bearer <IGBOT_TOKEN>` (a Supabase secret Davies creates and gives only to the agent; 32 characters
 // or more, compared in constant time); `sync` takes the scheduler's CRON_SECRET. Deployed without the gateway's JWT check
@@ -36,7 +41,8 @@ import {
   accountView, amendPosition, cancelOrders, closePosition, context, type ExecDeps, type IgApi, type IgSend, marketOf, marketOut, placeOrder, syncAll,
 } from "./exec.ts";
 import {
-  IGBOT_MAX_BODY_BYTES, IGBOT_MAX_ERRORS, IGBOT_MAX_ROWS_PER_HOUR, isAuthorised, isObj, rateVerdict, type RequestRow, validateBatch,
+  IGBOT_ACTION_IG_COST, IGBOT_IG_CALLS_PER_MINUTE, IGBOT_MAX_BODY_BYTES, IGBOT_MAX_ERRORS, IGBOT_MAX_ROWS_PER_HOUR, igCallsLastMinute, isAuthorised, isObj, rateVerdict,
+  type RequestRow, validateBatch,
 } from "./ingest.ts";
 import { bracketOf, IGBOT_RELEASE_MS, IGBOT_RULES } from "./rules.ts";
 
@@ -68,14 +74,21 @@ export async function handle(req: Request, deps: HandleDeps): Promise<Response> 
   if (action && req.method !== ACTIONS[action]) return json(405, { error: `${action} takes ${ACTIONS[action]}` }, { Allow: ACTIONS[action] });
   const t = now();
   const db = deps.db;
+  let igCalls: () => number = () => 0;
   const log = (status: number, rows: number, error: string | null) =>
-    db.insert("igbot_requests", [{ status, rows, action: action || null, error: error ? error.slice(0, 300) : null }], false).catch(() => {});
+    db.insert("igbot_requests", [{ status, rows, action: action || null, error: error ? error.slice(0, 300) : null, ig_calls: igCalls() }], false).catch(() => {});
   try {
-    const last = await db.select<RequestRow>("igbot_requests", `at=gt.${encodeURIComponent(new Date(t - 3600e3).toISOString())}&select=at,status,rows,action&order=id.asc&limit=1000`);
+    const last = await db.select<RequestRow>("igbot_requests", `at=gt.${encodeURIComponent(new Date(t - 3600e3).toISOString())}&select=at,status,rows,action,ig_calls&order=id.asc&limit=1000`);
     if (action) {
       const rate = rateVerdict(last, 0, t, true);
       if (!rate.ok) { await log(429, 0, "rate"); return json(429, { error: "rate limited", retry_after_s: rate.retryAfterS }, { "Retry-After": String(rate.retryAfterS) }); }
-      const x = deps.exec(t);
+      const used = igCallsLastMinute(last, t), cost = IGBOT_ACTION_IG_COST[action] ?? 0;
+      if (cost > 0 && used + cost > IGBOT_IG_CALLS_PER_MINUTE) {
+        await log(429, 0, "ig allowance");
+        return json(429, { error: "rate limited", detail: `IG's allowance: ${used} IG requests in the last minute, this action may take ${cost} more, at most ${IGBOT_IG_CALLS_PER_MINUTE}`, retry_after_s: 20 }, { "Retry-After": "20" });
+      }
+      const x = { ...deps.exec(t), igBudget: IGBOT_IG_CALLS_PER_MINUTE - used };
+      igCalls = () => x.igCalls?.() ?? 0;
       const owner = (deps.owner ?? (() => crypto.randomUUID()))();
       let out: { status: number; body: Record<string, unknown> };
       if (action === "calendar") {
@@ -178,9 +191,19 @@ async function handleSync(req: Request, deps: HandleDeps, t: number): Promise<Re
   if (!deps.cronSecret || !presented || !constantTimeEqual(presented, deps.cronSecret)) return json(401, { error: "unauthorised" });
   if (req.method !== "POST") return json(405, { error: "method not allowed" }, { Allow: "POST" });
   await (deps.beat ?? ((k: string) => writeBeat(k)))(beatKeyOfRequest("igbot", req.url)).catch(() => false);
+  let x: ExecDeps | null = null;
+  // The sync's IG requests are a row like any other (action `sync`, which no agent limit counts), so the minute's budget sees them.
+  const logSync = (status: number, error: string | null) =>
+    x?.ig ? x.db.insert("igbot_requests", [{ status, rows: 0, action: "sync", error: error ? error.slice(0, 300) : null, ig_calls: x.igCalls?.() ?? 0 }], false).catch(() => {}) : Promise.resolve();
   try {
-    const x = deps.exec(t);
+    const base = deps.exec(t);
+    const last = base.ig
+      ? await base.db.select<RequestRow>("igbot_requests", `at=gt.${encodeURIComponent(new Date(t - 60e3).toISOString())}&select=at,status,rows,action,ig_calls&order=id.asc&limit=1000`)
+      : [];
+    // Its reads of the book always run (the kill switch and the stops rest on them); what is optional fits in what is left.
+    x = { ...base, igBudget: Math.max(3, IGBOT_IG_CALLS_PER_MINUTE - igCallsLastMinute(last, t)) };
     const r = await syncAll(x, (deps.owner ?? (() => crypto.randomUUID()))());
+    await logSync(200, r.errors.length ? r.errors.join("; ") : null);
     if (r.errors.length) {
       const key = r.errors.map((e) => e.replace(/\d+(\.\d+)?/g, "#")).sort().join(" | ").slice(0, 400);
       const st = (await x.db.select<{ state: Record<string, unknown> | null }>("igbot_exec_state", "id=eq.1&select=state"))[0]?.state ?? {};
@@ -193,6 +216,7 @@ async function handleSync(req: Request, deps: HandleDeps, t: number): Promise<Re
     return json(200, { ok: r.ok, configured: r.configured, busy: r.busy ?? false, ...r.did, errors: r.errors.length });
   } catch (e) {
     const message = (e instanceof Error ? e.message : String(e)).slice(0, 300);
+    await logSync(500, message);
     await (deps.report ?? reportServerError)("igbot.sync", { message });
     return json(500, { error: "sync failed" });
   }
@@ -212,7 +236,8 @@ export function igApiOf(client: IgbotClient): IgApi {
     positions: () => client.get("/positions", 2),
     working: () => client.get("/workingorders", 2),
     confirm: (ref) => client.get(`/confirms/${ref}`, 1),
-    activity: (q) => client.get("/history/activity", 3, { from: q.fromIso.slice(0, 19), dealId: q.dealId, detailed: "true", pageSize: "50" }),
+    activity: (q) => client.get("/history/activity", 3, { from: q.fromIso.slice(0, 19), ...(q.dealId ? { dealId: q.dealId, pageSize: "50" } : { pageSize: "500" }), detailed: "true" }),
+    prices: (epic, max) => client.get(`/prices/${epic}`, 3, { resolution: "HOUR", max: String(max), pageSize: "0" }),
     open: async (body) => sent(await client.call("POST", "/positions/otc", { version: 2, body })),
     // IG's documented form for a DELETE with a body: a POST carrying `_method: DELETE`.
     close: async (body) => sent(await client.call("POST", "/positions/otc", { version: 1, body, override: "DELETE" })),
@@ -227,7 +252,8 @@ export function productionExec(t: number): ExecDeps {
   const db = makeDb(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "");
   const creds = igbotCreds(Deno.env.toObject());
   if ("missing" in creds) return { db, now: t, ig: null, credsProblem: `IG's demo secrets are not set: ${creds.missing.join(", ")}`, accountId: null };
-  return { db, now: t, ig: igApiOf(new IgbotClient({ creds })), credsProblem: null, accountId: creds.accountId };
+  const client = new IgbotClient({ creds });
+  return { db, now: t, ig: igApiOf(client), credsProblem: null, accountId: creds.accountId, igCalls: () => client.requests };
 }
 
 if (import.meta.main) {

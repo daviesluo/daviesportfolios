@@ -47058,7 +47058,7 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
       `trig_018Ni6ydYybx39fE2wn7ZLeo`, which reads at 16 pairs or after 2027-01-31 and then disables itself; under 8
       pairs by its date, undecided. 2 pairs on 10-01.
 
-## LEDGER.md, archived 2026-10-29 (first) — the 2026-10-28 22:40 UTC and 2026-10-28 22:55 UTC history sections, oldest first
+## LEDGER.md, archived 2026-10-29 (second) — the 2026-10-28 22:40 UTC and 2026-10-28 22:55 UTC history sections, oldest first
 
 ### [2026-10-28 22:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **GROKPM D18** (sub-agent; commit, not pushed; Davies, 10-28: "同意'边际 ≥20 个点时上限 $10'", on the utilisation review): D15's
@@ -47070,3 +47070,12 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
 - **IGBOT built on IG's demo** (sub-agent; commit, not pushed; item 18): `igbot` (Grok proposes, `IGBOT_RULES` enforce, a
   demo-only client), `0157` (tables, RLS, a minute read-back), 34 Deno and 8 vitest pins; research says the edge is
   unproven (IG's 70 % loss rate; GROKPM's p not yet better than the market's). The 22:05 and 22:18 sections archived.
+
+## LEDGER.md, archived 2026-10-29 (third) — the 2026-10-28 23:27 UTC history section
+
+### [2026-10-28 23:27 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The monitor stops reading the newest strategy decision** (sub-agent; commit, not pushed; step 1 of 2 for Davies, 10-28:
+  "把实盘的Trend 4h和测试的Trend 1h Trend 4h删了吧"): `monitor/health.ts` drops `decisions` (a decision within 75 min), which
+  would page 75 min after the crypto loop's last row stops deciding; the tick's beat and turn stay. Pinned (three tests
+  fail on the old file). Push and let `edge-functions.yml` deploy `monitor` BEFORE step 2's migration (`0158`). The 22:30
+  section archived.

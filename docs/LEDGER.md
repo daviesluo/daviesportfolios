@@ -636,7 +636,12 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
     `IGBOT_DEMO_ACCOUNT_ID` (a spread-bet demo account), `IGBOT_TOKEN` (32+ chars, to Grok only); Grok gets the prompt.
     **The main session:** create `igbot-ledger` (an orphan branch holding `docs/agents/igbot/ledger_seed.md` as
     `IGBOT_LEDGER.md`); after the deploy, the ping answers `ig_configured`; the dry-run rehearsal (prereg §3.1); the demo arm
-    (0157's header) only on his word. No live path exists.
+    (0157's header) only on his word. No live path exists. **Audited 2026-10-29** (research §11, prereg §10, `0159`): land
+    0159 with the function (the code reads `igbot_requests.ig_calls`); the demo account must hold nothing (`account_shared`);
+    before the arm, read the demo key's own allowances (`GET /operations/application`) and confirm on the first demo deals:
+    a close as `LIMIT` fill-or-kill, how IG's stop or limit close shows in `/history/activity`, and that a filled working
+    order's position keeps our `IGB-` reference (else `account_shared` refuses opens, safely). The release list ends
+    2026-12-31 (opens refused after it).
 
 19. **CXBOT, a Grok crypto bot, long and short: researched, nothing built** (Davies, 2026-10-28: "…币所的买卖交易也做成一套…
     long和short都可以做", then "交易所不限…币安 hyperliquid等都是可以做空的"; `reviews/2026-10-29-crypto-grok-bot-research.md`).
@@ -757,13 +762,19 @@ Facts a fresh session would otherwise rediscover:
 
 Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's archive, each batch under a heading
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
-first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-28 22:55 UTC section (archived
-2026-10-29, first).
+first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-28 23:27 UTC section (archived
+2026-10-29, third).
 
 ### [2026-10-28 23:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **A Grok crypto bot, long and short, researched** (sub-agent; commit, not pushed; item 19): `reviews/2026-10-29-crypto-grok-bot-research.md`.
   Long+short: Kraken margin (UK) or Hyperliquid perps (terms exclude US/Ontario, not the UK; trade-only API wallet).
   No edge shown, so Phase 0 first: Grok against Polymarket crypto prices. The 22:30 section archived.
+
+### [2026-10-28 23:47 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **IGBOT audited before the prompt goes out** (sub-agent; commit, not pushed; item 18; Davies, 10-28: "有任何问题或漏洞的话指出并
+  修复"): close as IG `LIMIT` FOK with no reference; five-day close retried; nothing foreign touched; IG budget across
+  isolates (`0159`); missing closes wait; hour bars + scorer; prereg baseline m*; prompt answers and wake schedule. 18 pins.
+  The 23:27 section archived.
 
 ### [2026-10-28 23:33 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The crypto loop's three rows retire: `0158`** (sub-agent; commit, not pushed; step 2 of 2, push AFTER the monitor
@@ -772,10 +783,3 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
   row holds a coin or has an order in flight. Read at ~23:00–23:30 UTC: all flat, no open order, no watched probe. Pin in
   `tick.test.ts`. EX-GAP and MX-1 closed undecided (`reviews/2026-10-28-trend-rows-retired.md`; reference item 65).
   Docs: map, guide, README, agents CLAUDE, live-watch. Items 3, 5a.2, 5a.7 rewritten. No `src/` change.
-
-### [2026-10-28 23:27 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **The monitor stops reading the newest strategy decision** (sub-agent; commit, not pushed; step 1 of 2 for Davies, 10-28:
-  "把实盘的Trend 4h和测试的Trend 1h Trend 4h删了吧"): `monitor/health.ts` drops `decisions` (a decision within 75 min), which
-  would page 75 min after the crypto loop's last row stops deciding; the tick's beat and turn stay. Pinned (three tests
-  fail on the old file). Push and let `edge-functions.yml` deploy `monitor` BEFORE step 2's migration (`0158`). The 22:30
-  section archived.

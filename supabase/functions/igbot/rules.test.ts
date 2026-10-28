@@ -2,8 +2,9 @@
 // under its own name. The numbers are worked by hand in each test's comment.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
-  amendRefusals, bookOf, bracketOf, closeRefusals, gateRefusals, IGBOT_RULES, igGoodTill, type IgMarket, type IgPosition, inWeekend, nextWeekendStart,
-  openRefusals, type OpenRequest, overdue, positionRisk, positionUpl, releaseAt, releaseBetween, rulePoints, stopLatches, workingRisk,
+  amendRefusals, bookOf, bracketOf, closeLimitLevel, closeRefusals, gateRefusals, IGBOT_CALENDAR_UNTIL_MS, IGBOT_RELEASE_MS, IGBOT_RULES, igGoodTill, type IgMarket,
+  type IgPosition, inWeekend, nextWeekendStart, openRefusals, type OpenRequest, overdue, positionRisk, positionUpl, releaseAt, releaseBetween, rulePoints, stopLatches,
+  workingRisk,
 } from "./rules.ts";
 import { type Decision, decisionOf, validateBatch } from "./ingest.ts";
 import examples from "../../../docs/agents/igbot/examples.json" with { type: "json" };
@@ -88,6 +89,15 @@ Deno.test("the market and the list: whitelisted, tradeable, a £ daily funded be
   assertEquals(rules(run({ size: 0.29, p: 0.5 })), ["risk"]); // 0.29 has two decimals (a float that is not exactly 29/100)
   // A stop 3 points away is under IG's 4: R 26.7 at that distance, p 0.5 still clears; risk tiny.
   assertEquals(rules(run({ level: 6800.4, stopLevel: 6797.4, limitLevel: 6881 })), ["stop_distance"]);
+  // The 2026-10-29 audit: IG measures the guaranteed distance from the deal's level, and an immediate deal fills at the
+  // touch. Level 6800.8 (0.4 over the offer, inside a tenth of the stop) with the stop at 6796.5 is 4.3 points from the
+  // level but 3.9 from the offer 6800.4: under IG's 4, refused (until then it passed, and IG would refuse the deal).
+  assertEquals(rules(run({ level: 6800.8, stopLevel: 6796.5, limitLevel: 6881 })), ["stop_distance"]);
+  assertEquals(rules(run({ level: 6800.8, stopLevel: 6796.4, limitLevel: 6881 })), []);
+  // IG's other two dealing rules: the limit's minimum distance and the maximum distance of either.
+  assertEquals(rules(run({}, { market: { ...MKT, minLimitDistance: { unit: "POINTS", value: 100 } } })), ["limit_distance"]);
+  assertEquals(rules(run({}, { market: { ...MKT, maxStopLimitDistance: { unit: "POINTS", value: 50 } } })), ["limit_distance"]);
+  assertEquals(rules(run({}, { market: { ...MKT, minLimitDistance: { unit: "POINTS", value: 1 }, maxStopLimitDistance: { unit: "POINTS", value: 1500 } } })), []);
   assertEquals(rulePoints({ unit: "PERCENTAGE", value: 2 }, 25000), 500);
   assertEquals(rulePoints(null, 25000), 0);
 });
@@ -130,12 +140,20 @@ Deno.test("time: the release windows, the weekend, and a working order's life", 
   assertEquals(igGoodTill(Date.parse("2026-11-03T09:05:07Z")), "2026/11/03 09:05:07");
 });
 
-Deno.test("the categories: E names a release ahead, R one behind, every open a source; orders a day and a minute", () => {
+Deno.test("the categories: E names a listed release ahead, R one behind, every open a source; orders a day and a minute", () => {
   assertEquals(rules(run({ category: "E" })), ["category"]);
-  assertEquals(rules(run({ category: "E", eventAt: "2026-11-05T12:00:00Z" })), []);
-  assertEquals(rules(run({ category: "E", eventAt: "2026-11-07T12:00:00Z" })), ["category"]); // 93 hours ahead
-  assertEquals(rules(run({ category: "R", eventAt: "2026-11-03T13:30:00Z" })), []);
-  assertEquals(rules(run({ category: "R", eventAt: "2026-11-02T13:30:00Z" })), ["category"]);
+  assertEquals(rules(run({ category: "E", eventAt: "2026-11-05T12:00:00Z" })), []); // the BoE, listed
+  assertEquals(rules(run({ category: "E", eventAt: "2026-11-07T12:00:00Z" })), ["category"]); // 93 hours ahead, and not listed
+  // An R on a release listed 1.5 hours before T0 (a list given to the rules), and one 25.5 hours before.
+  const rel = [Date.parse("2026-11-02T13:30:00Z"), Date.parse("2026-11-03T13:30:00Z")];
+  assertEquals(rules(run({ category: "R", eventAt: "2026-11-03T13:30:00Z" }, { releases: rel })), []);
+  assertEquals(rules(run({ category: "R", eventAt: "2026-11-02T13:30:00Z" }, { releases: rel })), ["category"]);
+  // The 2026-10-29 audit: E and R name a LISTED release, as the pre-registration and the prompt say. Until then any time
+  // within the window passed: an E "positioned" for a time no calendar lists (the BoE's hour, a day early) is refused.
+  assertEquals(rules(run({ category: "E", eventAt: "2026-11-04T12:00:00Z" })), ["category"]);
+  assertEquals(rules(run({ category: "R", eventAt: "2026-11-03T13:30:00Z" })), ["category"]);
+  // To the minute: the BoE at 12:00:30 is the listed 12:00 release.
+  assertEquals(rules(run({ category: "E", eventAt: "2026-11-05T12:00:30Z" })), []);
   assertEquals(rules(run({ sources: [] })), ["sources"]);
   assertEquals(rules(run({}, { ordersToday: 40 })), ["orders_day"]);
   assertEquals(rules(run({}, { ordersLastMinute: IGBOT_RULES.maxOrdersPerMinute })), ["orders_minute"]);
@@ -152,6 +170,34 @@ Deno.test("the gates: an open needs every one; a close every one but the stops; 
   assertEquals(gateRefusals({ ...g, dayStopped: true, totalStopped: true }, "open").map((r) => r.rule), ["total_stop", "day_stop"]);
   assertEquals(gateRefusals({ ...g, dayStopped: true, totalStopped: true }, "close"), []);
   assertEquals(gateRefusals({ ...g, credsProblem: "IG is not configured" }, "close").map((r) => r.rule), ["credentials"]);
+  // The 2026-10-29 audit: an account holding what the bot did not place is not the bot's book: no open, in either mode; a
+  // close of the bot's own still goes.
+  assertEquals(gateRefusals({ ...g, foreign: "1 foreign" }, "open").map((r) => r.rule), ["account_shared"]);
+  assertEquals(gateRefusals({ ...g, foreign: "1 foreign", mode: "dry_run", armed: false }, "open").map((r) => r.rule), ["account_shared"]);
+  assertEquals(gateRefusals({ ...g, foreign: "1 foreign" }, "close"), []);
+});
+
+Deno.test("an open waits for an earlier order's answer in its market, and stops where the release list ends", () => {
+  assertEquals(rules(run({}, { pendingEpics: [US500] })), ["pending_order"]);
+  assertEquals(rules(run({}, { pendingEpics: ["CS.D.AUDUSD.TODAY.IP"] })), []);
+  assertEquals(new Date(IGBOT_CALENDAR_UNTIL_MS).toISOString(), "2027-01-01T00:00:00.000Z");
+  // The list's last release is in it, and nothing past 2026-12-31.
+  assert(IGBOT_RELEASE_MS.every((t) => t < IGBOT_CALENDAR_UNTIL_MS));
+  const jan = Date.parse("2027-01-05T15:00:00Z");
+  assertEquals(rules(run({}, { nowMs: jan })), ["calendar"]);
+  assertEquals(rules(run({}, { nowMs: jan, calendarUntilMs: Date.parse("2027-02-01T00:00:00Z") })), []);
+});
+
+Deno.test("a close is a fill-or-kill at the exit touch less three spreads or 5 bps, rounded outward to a point", () => {
+  // A buy closes into the bid 6800: the spread 0.4 x 3 = 1.2 < 0.0005 x 6800 = 3.4, so 6796.6, down to 6796.
+  assertEquals(closeLimitLevel(POS), 6796);
+  // A sell closes into the offer 6800.4: up to 6804.
+  assertEquals(closeLimitLevel({ ...POS, direction: "SELL" }), 6804);
+  // AUD/USD at 6910.7 / 6911.3: 3 x 0.6 = 1.8 < 3.46, so 6907.24, down to 6907.
+  assertEquals(closeLimitLevel({ direction: "BUY", bid: 6910.7, offer: 6911.3 }), 6907);
+  // A wide spread (the US 500 out of hours, 1.5) widens it: 4.5 over 3.4.
+  assertEquals(closeLimitLevel({ direction: "BUY", bid: 6800, offer: 6801.5 }), 6795);
+  assertEquals(closeLimitLevel({ direction: "BUY", bid: null, offer: 6800 }), null);
 });
 
 Deno.test("amend: a guaranteed stop only toward the price, never through it or inside IG's distance; a limit on the profit side", () => {

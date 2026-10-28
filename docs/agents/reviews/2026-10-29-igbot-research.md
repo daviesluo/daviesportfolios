@@ -93,7 +93,8 @@ whitelisted market (`controlledRiskAllowed` true on all nine epics `ig_facts` id
   `GOOD_TILL_CANCELLED` or `GOOD_TILL_DATE` (`goodTillDate` "yyyy/mm/dd hh:mm:ss" UTC), and, with a guaranteed stop,
   `stopDistance` ("If guaranteedStop equals true, then set only one of stopDistance"). `DELETE /workingorders/otc/{dealId}`.
 - **Closing, amending, confirming.** `DELETE /positions/otc` with a body (`dealId`, the opposite `direction`, `size`,
-  `orderType`), sent as a POST with `_method: DELETE` by clients that cannot send a body with DELETE;
+  `orderType`, `level` for a `LIMIT`, `timeInForce`; **no `dealReference`**: IG's reference lists it only in the close's
+  answer [audit 2026-10-29]), sent as a POST with `_method: DELETE` by clients that cannot send a body with DELETE;
   `PUT /positions/otc/{dealId}` (v2) sets the stop and limit (both are sent: one left out is removed);
   `GET /confirms/{dealReference}` reads a deal's outcome (`dealStatus` ACCEPTED or REJECTED, `reason`, `dealId`, `level`).
 - **Reading.** `GET /accounts` (balance, deposit, profitLoss, available), `GET /positions`, `GET /workingorders`,
@@ -102,7 +103,10 @@ whitelisted market (`controlledRiskAllowed` true on all nine epics `ig_facts` id
 - **Allowances** (FAQ, "default REST Trading API limits"): 60 non-trading requests a minute per app; **30 non-trading and
   100 trading** ("create/amend position or working order requests") a minute per account; 10,000 historical price points
   a week; 40 streaming subscriptions; "no possibility to increase the limits"; "do not create multiple concurrent
-  connections as this may lead to your API key being suspended". Using the API is free at these quotas.
+  connections as this may lead to your API key being suspended". Using the API is free at these quotas. [audit
+  2026-10-29: these are the live defaults. "The limits for DEMO are lower, and have been known to change randomly and
+  without notice" (trading-ig's FAQ, https://trading-ig.readthedocs.io/en/latest/faq.html); a key's own are
+  `allowanceAccountOverall` and `allowanceAccountTrading` from `GET /operations/application`. Read them before the arm.]
 - **Dealing rules per market** (`/markets/{epic}` `dealingRules`): `minDealSize`, `minNormalStopOrLimitDistance`,
   `minControlledRiskStopDistance` (the guaranteed minimum, in points or a percentage), `maxStopOrLimitDistance`,
   `minStepDistance`, `trailingStopsPreference`; the instrument's `limitedRiskPremium` is the guaranteed-stop premium.
@@ -239,9 +243,13 @@ Grok (outside, scheduled wakes)                                     IG demo gate
   from each UTC day's first reading. Funding, premiums and fills are all in it, so the money never rests on the agent's
   word. That requires the demo account to be the bot's alone (§10 says so to Davies).
 - **Every send is written first**: the order row and its `dealReference` are inserted before IG is called; the
-  confirmation is read by that reference; a lost answer stays `unknown` and the sync settles it (go-live audit D3's
-  rule: never rejected on a guess).
-- **One decision at a time**: a 20-second lease on `igbot_exec_state` taken by every sending action and the sync.
+  confirmation is read by the reference IG answers with (an open's is ours; a close's, an amend's and a delete's are
+  IG's own [audit 2026-10-29: the build read every confirmation under ours and sent ours on the close, which IG's close
+  does not take]); a lost answer stays `unknown` and the sync settles it (go-live audit D3's rule: never rejected on a
+  guess).
+- **One decision at a time**: a 60-second lease on `igbot_exec_state` taken by every sending action and the sync, held
+  again on the live clock just before each send [audit 2026-10-29: it was 20 s, which four IG reads at up to 10 s each
+  could outlast].
 
 ### 7.2 IGBOT_RULES (`rules.ts`), with the reason for each number
 
@@ -261,11 +269,11 @@ Grok (outside, scheduled wakes)                                     IG demo gate
 | working orders | `LIMIT` or `STOP`, good-till-date 5 minutes to 24 hours, never resting into a release window or past Friday 20:00 UTC | no stale order picked off; no unattended weekend entry |
 | release blackout | no open from 5 minutes before to 2 minutes after a listed CPI, NFP, FOMC, ECB or BoE release (`agents/cb_releases.ts`, listed to 2026-12-31) | spreads widen and fills slip at the print; positioning before and the reaction after stay allowed (categories E and R) |
 | weekend | no open from Friday 20:00 to Sunday 22:00 UTC | the weekend markets are a later candidate (§5.5) |
-| categories | E (a release within 72 h ahead, `event_at`), R (a release within 24 h behind), N (news); C for changes; every open ≥ 1 source and an invalidation | GROKPM's journal discipline |
+| categories | E (a **listed** release within 72 h ahead, `event_at`), R (a listed release within 24 h behind), N (news); C for changes; every open ≥ 1 source and an invalidation | GROKPM's journal discipline [audit 2026-10-29: the build took any time as `event_at`] |
 | day stop | −£20 (2 %) from the day's first equity reading: no open until 00:00 UTC, latched | GROKPM's latches (D4) |
 | total stop | −£100 (10 %) from the arm: close-only to the end, latched; the test ends as a FAIL | as GROKPM's |
 | max hold | the server closes a position held 5 days | funding (≈ 2 bps a night on indices) and stale theses |
-| order rate | ≤ 3 trading requests a minute and ≤ 40 a UTC day; ≤ 4 IG-reading actions a minute and 300 requests an hour from the agent; the client itself ≤ 24 non-trading and 20 trading IG requests a minute | IG's 30/100 a minute per account |
+| order rate | ≤ 3 trading requests a minute and ≤ 40 a UTC day; ≤ 4 IG-reading actions a minute and 300 requests an hour from the agent; ≤ 24 IG requests a minute for the whole function, kept in `igbot_requests.ig_calls` (0159), and the client's own count for its isolate | IG's 30/100 a minute per account (lower on the demo) [audit 2026-10-29: the client's count was per request, so nothing held the minute's total] |
 | gates | the global pause (nothing sent but cancels; the sync deletes working orders), armed, credentials read, equity read (no open on an unread book) | the project's kill switches reach IG too |
 
 All of it is pinned in `igbot/rules.test.ts` (15 tests, each rule broken alone and refused under its own name, with the
@@ -302,9 +310,11 @@ demo closes (§9).
   barrier pages found are IG Ireland's). A demo `GET /markets?searchTerm=` on knock-out names settles it.
 - **FX funding**: tom-next + 1.5 % a year or + 0.0022 % a day (IG's pages disagree).
 - **The close's channel and level in `/history/activity`** for a guaranteed stop or a limit triggered by IG: built from
-  the reference; confirm on the first demo closes. **`MARKET` closes on spread bets**: IG's reference lists
-  "error.trading.otc.market-orders.not-supported" for some accounts; the first demo close settles it. If IG refuses, the
-  close path needs a change (a `LIMIT` fill-or-kill at the touch), which is not built.
+  the reference; confirm on the first demo closes. IG's reference does not say whether the `dealId` filter matches the
+  closing activity, so the sync reads the whole account's history since the open when it finds nothing [audit
+  2026-10-29]. **`MARKET` closes on spread bets**: IG's reference lists "error.trading.otc.market-orders.not-supported" for
+  some accounts, and all six markets read `marketOrderPreference` AVAILABLE_DEFAULT_OFF on the demo (`ig_facts` 3).
+  [audit 2026-10-29: the close is now the `LIMIT` fill-or-kill at the exit touch less three spreads or 5 bps.]
 - **Two sessions on one demo login**: if Davies reuses the weekend recorder's demo login for the bot, whether IG's
   sessions interfere was not tested; a separate demo login is recommended.
 - **IG's written consent under Term 9(12)** for automated dealing: not asked.
@@ -322,6 +332,36 @@ demo closes (§9).
 2. Store four Supabase Edge Function secrets: `IGBOT_DEMO_API_KEY`, `IGBOT_DEMO_USERNAME`, `IGBOT_DEMO_PASSWORD`,
    `IGBOT_DEMO_ACCOUNT_ID` (the demo spread-bet account's id, from the demo platform's account switcher). And
    `IGBOT_TOKEN`: 32 or more random characters, given only to Grok.
-3. **Never deal by hand in that demo account**: its equity is the bot's book.
+3. **Never deal by hand in that demo account**: its equity is the bot's book. It must hold nothing when the dry-run
+   starts: the server refuses every open while it holds a position or working order the bot did not place
+   (`account_shared`, audit 2026-10-29).
 4. Configure Grok with `docs/agents/igbot/GROK_PROMPT.md` and its schedule.
 5. After the dry-run rehearsal, say go for the demo arm (0157's statement). Live is a separate decision, much later.
+
+## 11. The independent audit of 2026-10-29
+
+Davies (2026-10-28): "有任何问题或漏洞的话指出并修复，确保一切细节完美我再发grokbot". An independent session read this review, the
+server, 0157, the prompt and the draft pre-registration against IG's reference (labs.ig.com, `positions-otc`,
+`history-activity`), the demo facts (`ig_facts` id 3) and the code, before the prompt went to the agent. Corrections made
+in place above are marked "[audit 2026-10-29]". What it found and changed (the ledger's entry of 2026-10-29 has the list
+ranked, the commits and the tests):
+
+- The close was a `MARKET` order carrying our `dealReference`; IG's close takes no reference, and the demo's six markets
+  default market orders off. Now a `LIMIT` fill-or-kill at the exit touch less max(3 spreads, 5 bps), confirmed under the
+  reference IG answers with.
+- The five-day close used its decision id once: a refusal (a closed market at the weekend) left the position open for
+  good. It now waits for the market and tries again ten minutes after a refusal.
+- The sync deleted, booked and five-day-closed whatever the demo account held, in dry-run too. It now touches only what
+  the bot placed (our reference prefix, or an id IG answered our order with); anything else is reported and blocks opens
+  (`account_shared`), since the account's equity is the book.
+- The IG allowance was counted per request; it is now held for the function in `igbot_requests.ig_calls` (0159).
+- A position missing from IG's list was booked closed `unknown` the first minute its close was not yet in the history;
+  it now waits fifteen minutes and also reads the account's history without the deal filter.
+- The pre-registration resolved shadow brackets on IG's hour bars that nothing recorded; the sync now records them
+  (`igbot_bars`, 0159), and the scorer is written (`docs/agents/backtests/igbot/score.mjs`). Its baseline was the
+  bracket's own m, which overstates the limit's chance by the spread, and an hour reaching both sides counted as the
+  stop: both reward a forecaster who shades p down without skill. The draft now scores against the exit side's m and
+  excludes ambiguous hours, with an oracle-shift guard in the bar.
+- Smaller: a percentage premium read as points; IG's guaranteed distance measured from the level, not the touch; IG's
+  limit distances unchecked; E and R accepting any time; nothing stopping opens after the release list ends; a second
+  open allowed while the first's answer was unknown; 429s locking the agent out of its own next minute.

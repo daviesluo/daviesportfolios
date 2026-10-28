@@ -7,15 +7,20 @@
 //   * One host. Every request is built on `IGBOT_DEMO_BASE` and checked by `assertIgbotAllowed`: any other origin (the
 //     live host `api.ig.com` above all), scheme, port or path prefix throws `IgbotRefused`. There is no live host in this
 //     folder and no live secret is read: going live is a code change, a migration and Davies' word, never a switch.
-//   * One list of calls. Log in, switch account and log out (`/session`); GET the accounts, markets, positions, working
-//     orders, a deal's confirmation and the account's activity history; open a spread-bet position (`POST
+//   * One list of calls. Log in, switch account and log out (`/session`); GET the accounts, markets, a market's HOUR
+//     bars (`/prices/{epic}`, for the reading), positions, working orders, a deal's confirmation and the account's
+//     activity history; open a spread-bet position (`POST
 //     /positions/otc`), close one (`POST /positions/otc` with `_method: DELETE`, IG's documented form for a DELETE with a
 //     body), amend its stop or limit (`PUT /positions/otc/{dealId}`), place and delete a working order. Nothing else:
 //     no watchlist, no application, no transfer, no funds path.
 //   * No secret leaves. The API key, username, password and both session tokens are scrubbed (`scrubDeep`, shared with
 //     the read-only `ig` function) from every answer and error; the session tokens live only in this isolate's memory.
-//   * IG's allowances (IG Labs FAQ, "Limits"): 30 non-trading and 100 trading requests a minute per account. The client
-//     counts both a minute at a time and refuses past `IGBOT_IG_LIMITS`, which sit under them.
+//   * IG's allowances (IG Labs FAQ, "Limits"): 30 non-trading and 100 trading requests a minute per account on live; the
+//     demo's are lower and IG changes them without notice (trading-ig's FAQ; IG reports a key's own as
+//     `allowanceAccountOverall` and `allowanceAccountTrading` from `GET /operations/application`, which this client does
+//     not call: read them once by hand before the arm). The client counts both a minute at a time, across every client this
+//     isolate makes (until the 2026-10-29 audit each request's new client counted from zero), and refuses past
+//     `IGBOT_IG_LIMITS`; `index.ts` holds every isolate together to a minute's budget kept in `igbot_requests`.
 
 import { igErrorCode, isTokenError, scrubDeep } from "../ig/client.ts";
 
@@ -40,6 +45,7 @@ export const IGBOT_ALLOWED: ReadonlyArray<readonly [string, RegExp, boolean]> = 
   ["GET", /^\/accounts$/, false],
   ["GET", /^\/markets$/, false],
   ["GET", new RegExp(`^/markets/${EPIC}$`), false],
+  ["GET", new RegExp(`^/prices/${EPIC}$`), false],
   ["GET", /^\/positions$/, false],
   ["GET", /^\/workingorders$/, false],
   ["GET", new RegExp(`^/confirms/${DEAL}$`), false],
@@ -53,6 +59,7 @@ export const IGBOT_ALLOWED: ReadonlyArray<readonly [string, RegExp, boolean]> = 
 const ALLOWED_QUERY: Record<string, ReadonlySet<string>> = {
   "/markets": new Set(["epics"]),
   "/history": new Set(["from", "to", "detailed", "dealId", "pageSize"]),
+  "/prices": new Set(["resolution", "max", "pageSize"]),
 };
 
 export class IgbotRefused extends Error {
@@ -122,6 +129,8 @@ export function withTokens(s: IgbotSession, headers: Headers): IgbotSession {
 
 /** A session kept between requests of one isolate (memory only: never stored, never returned). */
 const isolateSession: { s: IgbotSession | null } = { s: null };
+/** Every IG request this isolate sent in the last minute, whichever client sent it. */
+const isolateSent: Array<{ at: number; trading: boolean }> = [];
 
 export type IgbotClientOpts = {
   creds: IgbotCreds;
@@ -130,6 +139,8 @@ export type IgbotClientOpts = {
   timeoutMs?: number;
   /** Where the session is kept; this isolate's memory unless a test gives its own. */
   store?: { s: IgbotSession | null };
+  /** Where the minute's requests are counted; this isolate's list unless a test gives its own. */
+  sent?: Array<{ at: number; trading: boolean }>;
 };
 
 /**
@@ -140,7 +151,7 @@ export type IgbotClientOpts = {
 export class IgbotClient {
   readonly opts: IgbotClientOpts;
   private store: { s: IgbotSession | null };
-  private sent: Array<{ at: number; trading: boolean }> = [];
+  private sent: Array<{ at: number; trading: boolean }>;
   private tokensSeen: string[] = [];
   requests = 0;
   logins = 0;
@@ -148,6 +159,7 @@ export class IgbotClient {
   constructor(opts: IgbotClientOpts) {
     this.opts = opts;
     this.store = opts.store ?? isolateSession;
+    this.sent = opts.sent ?? isolateSent;
   }
 
   secrets(): string[] {
@@ -161,7 +173,8 @@ export class IgbotClient {
 
   private budget(trading: boolean): void {
     const now = (this.opts.now ?? Date.now)();
-    this.sent = this.sent.filter((r) => r.at > now - 60e3);
+    // Pruned in place: the list is shared by every client of the isolate.
+    for (let i = this.sent.length - 1; i >= 0; i--) if (this.sent[i].at <= now - 60e3) this.sent.splice(i, 1);
     const n = this.sent.filter((r) => r.trading === trading).length;
     const cap = trading ? IGBOT_IG_LIMITS.tradingPerMinute : IGBOT_IG_LIMITS.nonTradingPerMinute;
     if (n >= cap) throw new IgbotRefused(`refused: ${n} ${trading ? "trading" : "non-trading"} requests in the last minute, at most ${cap}`);

@@ -10,6 +10,14 @@ export const IGBOT_MAX_ROWS_PER_HOUR = 200;
 export const IGBOT_MAX_REQUESTS_PER_HOUR = 300;
 /** Actions that read or trade at IG (everything but the ping and the journal) a rolling minute: IG's 30 a minute is shared. */
 export const IGBOT_MAX_ACTIONS_PER_MINUTE = 4;
+/**
+ * IG requests a rolling minute for the whole function, every isolate and the minute's sync together, kept in
+ * `igbot_requests.ig_calls` (0159): under IG's 30 non-trading a minute per account, with room for a login (2026-10-29 audit:
+ * the client's own count was per request, so nothing held the minute's total).
+ */
+export const IGBOT_IG_CALLS_PER_MINUTE = 24;
+/** The most IG requests each action can make (its reads, its send and two confirmation reads), checked before it starts. */
+export const IGBOT_ACTION_IG_COST: Record<string, number> = { account: 3, markets: 1, market: 1, calendar: 0, order: 7, close: 6, amend: 7, cancel: 6, cancel_all: 6 };
 export const IGBOT_MIN_SECRET_CHARS = 32;
 export const IGBOT_FUTURE_SKEW_MS = 10 * 60e3;
 export const IGBOT_MAX_AGE_MS = 7 * 86400e3;
@@ -224,12 +232,21 @@ export function validateBatch(body: unknown, nowMs: number): { ok: true; batch: 
   return { ok: true, batch, rows: n };
 }
 
-export type RequestRow = { at: string; status: number; rows: number; action: string | null };
+export type RequestRow = { at: string; status: number; rows: number; action: string | null; ig_calls?: number | null };
 
-/** Whether a request may be taken now: the hour's requests and rows, and for an action the minute's actions. */
+/** IG requests in the last minute, by everyone (the agent's actions and the sync's rows). */
+export function igCallsLastMinute(last: RequestRow[], nowMs: number): number {
+  return last.filter((r) => Date.parse(r.at) > nowMs - 60e3).reduce((s, r) => s + (Number(r.ig_calls) || 0), 0);
+}
+
+/**
+ * Whether a request may be taken now: the hour's requests and rows, and for an action the minute's actions. The sync's own
+ * rows are not the agent's and never count; nor does a request refused 429, so an agent that retries is not locked out by
+ * its own refusals (2026-10-29 audit).
+ */
 export function rateVerdict(last: RequestRow[], rows: number, nowMs: number, isAction: boolean) {
-  const hour = last.filter((r) => Date.parse(r.at) > nowMs - 3600e3);
-  const minuteActions = hour.filter((r) => r.action && Date.parse(r.at) > nowMs - 60e3).length;
+  const hour = last.filter((r) => Date.parse(r.at) > nowMs - 3600e3 && r.action !== "sync");
+  const minuteActions = hour.filter((r) => r.action && r.status !== 429 && Date.parse(r.at) > nowMs - 60e3).length;
   const used = hour.reduce((s, r) => s + (Number(r.rows) || 0), 0);
   const oldest = hour.reduce((m, r) => Math.min(m, Date.parse(r.at)), Infinity);
   const retryAfterS = isAction && minuteActions >= IGBOT_MAX_ACTIONS_PER_MINUTE ? 60

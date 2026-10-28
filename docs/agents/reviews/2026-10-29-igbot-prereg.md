@@ -1,7 +1,8 @@
 # Pre-registration (DRAFT): IGBOT, "IG analyst (Grok)", an outside LLM agent trading IG spread bets on the demo (2026-10-29)
 
 **Status: DRAFT, not frozen.** It freezes at the commit that adds Davies' word to §0 (with the date) and pins its sha256
-in a test; until then any part may change. The research behind it is `reviews/2026-10-29-igbot-research.md`; the server is
+in a test; until then any part may change. **Revised by the independent audit of 2026-10-29** (§10): the rules, the
+record, the baseline, the outcome and the bar below are the audit's. The research behind it is `reviews/2026-10-29-igbot-research.md`; the server is
 `supabase/functions/igbot/` (migration `0157_igbot.sql`); the agent's prompt is `docs/agents/igbot/GROK_PROMPT.md`. The
 record is **not blind**: every row may be read at any time (Davies, 2026-10-04); the reading in §6 runs as written here and
 its report says it was not blind. Money: IG's **demo** account only. Nothing here can reach Davies' live IG account.
@@ -34,17 +35,25 @@ reason):
 
 - Spread bets only (daily funded bets, £ a point) on the whitelist `igbot_instruments`: US 500, US Tech 100, Wall Street,
   FTSE 100, Germany 40, AUD/USD.
-- Every open: a **guaranteed stop** (at least IG's minimum distance), a **limit**, reward ≥ 1.5 × risk, p ≥ m + 0.08, risk
-  at the stop (premium included) ≤ 1 % of the budget and ≤ ¼ Kelly of the bot's equity (budget + its P&L), at least one
-  source, an invalidation; category E needs a listed release within 72 h ahead, R one within 24 h behind.
+- Every open: a **guaranteed stop** (at least IG's minimum distance, measured from the touch for an immediate deal), a
+  **limit** (at least IG's minimum distance; neither past IG's maximum), reward ≥ 1.5 × risk, p ≥ m + 0.08, risk at the
+  stop (premium included, a percentage premium as its share of the level) ≤ 1 % of the budget and ≤ ¼ Kelly of the bot's
+  equity (budget + its P&L), at least one source, an invalidation; category E names a **listed** release (`event_at`, to
+  the minute) within 72 h ahead, R one within 24 h behind.
 - Immediate deals: IG `LIMIT` fill-or-kill, the level at most a tenth of the stop beyond the touch. Working orders:
-  `LIMIT` or `STOP`, 5 minutes to 24 hours, never into a release window or past Friday 20:00 UTC.
+  `LIMIT` or `STOP`, 5 minutes to 24 hours, never into a release window or past Friday 20:00 UTC. A close is IG's `LIMIT`
+  fill-or-kill at the exit touch less the larger of three spreads and 5 bps.
+- No open in a market where an earlier order of the bot has no answer from IG yet (two hours); none while the account
+  holds a position or working order the bot did not place (its equity would not be the bot's book); none after
+  2026-12-31, where the release list ends.
 - At most 3 positions and working orders, one per market (no adding, averaging down or hedging), 3 % of the budget at the
   stops in all, notional ≤ 5 × the budget.
 - No open from T−5 to T+2 minutes of a listed CPI, NFP, FOMC, ECB or BoE release, nor from Friday 20:00 to Sunday 22:00
   UTC. A stop may only be tightened. The server closes a position held 5 days.
 - Day stop −£20 (no open until 00:00 UTC), total stop −£100 (close-only to the end, the test FAILS); both latched.
-- ≤ 3 trading requests a minute, ≤ 40 orders a UTC day; the global pause outranks everything but cancels.
+- ≤ 3 trading requests a minute, ≤ 40 orders a UTC day; ≤ 24 IG requests a minute for the whole function (the agent's
+  actions and the minute's sync together); the global pause outranks everything but cancels. Nothing the server does
+  (the five-day close, the kill switch's cancels) touches a deal the bot did not place.
 
 ## 3. Phases, window and stops
 
@@ -63,43 +72,59 @@ reason):
   **The test's money is this**, never the agent's journal.
 - `igbot_positions`: every position the account held, its open and close levels, how it closed (stop, limit, bot,
   server) and its P&L from the levels (less the premium when its guaranteed stop closed it).
-- `igbot_orders`, `igbot_decisions` (with the server's m beside the agent's p), `igbot_cycles`, `igbot_daily`,
-  `igbot_requests` (every refusal by rule name).
+- `igbot_orders` (with the bid and offer each open was decided on, in `checks`), `igbot_decisions` (with the server's m
+  beside the agent's p), `igbot_cycles`, `igbot_daily`, `igbot_requests` (every refusal by rule name, and the IG requests
+  each made).
+- `igbot_bars` (0159): IG's own HOUR bars, bid and ask, of every whitelisted market, read by the minute's sync once an
+  hour; `fetched_at` says whether a bar was read after its hour closed. The shadow brackets resolve on these.
 - **The demo account is the bot's alone.** A deal made there by hand would be counted as the bot's.
 
 ## 5. Definitions
 
-- **Bracket**: a direction, an entry level, a stop and a limit. **m** = d_stop / (d_stop + d_limit), distances from the
-  entry level. **p**: the agent's probability that the limit is reached before the stop.
-- **Real bracket**: an open the server sent and IG filled (a working order counts from its fill). It **resolves** y = 1
-  if it closed at its limit, 0 at its stop; closed by the agent or by the five-day rule, it is excluded from the Brier
-  reading and counted in P&L.
+- **Bracket**: a direction, an entry level, a stop and a limit. **m** (the rules' bar) = d_stop / (d_stop + d_limit),
+  distances from the entry level. **p**: the agent's probability that the limit is reached before the stop.
+- **The scored baseline m\*** is the exit side's driftless chance: a buy's limit and stop are reached by the BID, so
+  m\* = (x0 − stop) / (limit − stop) with x0 the bid at the start (the entry less the spread); a sell's by the OFFER,
+  mirrored. The rules' m overstates the limit's chance by spread / (d_stop + d_limit): scored against it, a forecaster
+  could win by shading every p down, with no skill (the audit's finding; `src/igbot_score.test.js` shows it).
+- **Real bracket**: an open the server sent and IG filled (a working order counts from its fill). Its x0 is its fill less
+  the spread the server read when it decided (`checks`). It **resolves** y = 1 if IG closed it at its limit, 0 at its
+  stop; closed by the agent or by the five-day rule, or amended, it is excluded from the Brier reading (counted) and
+  counted in P&L.
 - **Shadow bracket**: a `no_action` decision with `epic`, `direction`, `level`, `stop_level`, `limit_level` and
   `p_target`, journalled as the agent's considered view (the prompt asks for one for every candidate it researches to a
-  number). It starts at its `ts` (an entry level away from the touch starts when IG's price first reaches it within 24 h,
-  or never). It resolves on IG's own HOUR bars (`/prices`, the bid for a sell's stop and a buy's limit, the offer for the
-  other two): y = 1 if the limit is touched first, 0 if the stop is; an hour that touches both counts as the stop first;
-  neither within five days is excluded and counted. At most one shadow bracket per market per four hours is counted (the
+  number). It starts in the first hour, from its `ts`'s, whose bars reach its entry (a buy's level at or above the hour's
+  lowest ask, a sell's at or below its highest bid), within 24 h, or never. Its x0 uses that hour's opening spread. It
+  resolves on IG's own HOUR bars (`igbot_bars`): y = 1 if the limit is reached first, 0 if the stop is. **An hour that
+  reaches both, or the start's own hour reaching either, cannot be ordered: excluded and counted** (the draft counted
+  both as the stop first, which biases y down and rewards shading p down). Neither within five days, or an incomplete
+  bar before it resolves: excluded and counted. At most one shadow bracket per market per four hours is counted (the
   first); a market with a real bracket open counts no shadow one.
-- **Brier**: mean (p − y)² for the agent, mean (m − y)² for the baseline, over the same resolved brackets.
+- **Brier**: mean (p − y)² for the agent, mean (m\* − y)² for the baseline, over the same resolved brackets (p and m\*
+  clamped to [0.001, 0.999]).
 - **P&L**: the snapshot's equity at the end less the equity at the arm (funding and premiums included), in £ and in units
   of the 1 % risk (£10).
 
 ## 6. The reading (at the end)
 
-Read-only SQL over the `igbot_*` tables and a script written and committed before the end
-(`docs/agents/backtests/igbot/`), from the repository root:
+Read-only SQL over the `igbot_*` tables (`docs/agents/backtests/igbot/export.sql`) and the scorer written and tested
+before the demo starts, `docs/agents/backtests/igbot/score.mjs` (pinned by `src/igbot_score.test.js`), from the
+repository root:
 
-1. **Calibration (primary).** D = Brier_m − Brier_p over every resolved bracket, real and shadow (positive: the agent is
-   better); a paired bootstrap of D, 10,000 resamples of brackets, `random.Random(20261029)`, its 5th and 95th
-   percentiles; the same on real brackets alone and by category.
+1. **Calibration (primary).** D = Brier_m\* − Brier_p over every resolved bracket, real and shadow (positive: the agent
+   is better); a paired bootstrap of D, 10,000 resamples of brackets, the generator mulberry32 seeded 20261029, its 5th
+   and 95th percentiles; the same on real brackets alone and by category. **D_c**: the same difference against the
+   baseline moved by c = mean (y − m\*) over all resolved brackets, an oracle shift in the baseline's favour, so that a
+   constant bias in p is not read as skill.
 2. **Money.** Total P&L (§5), the day-by-day table, the worst drawdown, and per real bracket in risk units.
 3. **Discipline.** Refusals by rule; journal rows against the record (an open the record shows that no decision names);
    cycles by kind against the schedule.
 
-**Bar to propose a live pre-registration** (all four): at least **150** resolved brackets; D > 0 **and** its bootstrap
-5th percentile > 0; demo P&L > 0; the total stop never reached. Otherwise the test stops, and a different design is a new
-pre-registration. Passing the bar proposes; it decides nothing. The live step needs Davies' word, IG's written consent
+**Bar to propose a live pre-registration** (all five): at least **150** resolved brackets; D > 0 **and** its bootstrap
+5th percentile > 0; D_c > 0; demo P&L > 0; the total stop never reached. Otherwise the test stops, and a different design
+is a new pre-registration. Passing the bar proposes; it decides nothing. **Power:** 150 is a floor, not a design: a
+small true edge (D near 0.005) has a standard error of about 0.004 at 150 brackets and will not clear the 5th
+percentile; only a clear one will. A miss says "not shown", never "no edge". The live step needs Davies' word, IG's written consent
 under its Term 9(12), a live key, a migration lifting the demo-only check and code that knows the live host.
 
 ## 7. Budget proposal (Davies decides)
@@ -119,3 +144,12 @@ under its Term 9(12), a live key, a migration lifting the demo-only check and co
 ## 9. Deviations
 
 None (draft).
+
+## 10. The audit of 2026-10-29 (what changed in this draft, and why)
+
+An independent audit read the server, the migration, the prompt and this draft against IG's reference before the prompt
+went to the agent (`docs/LEDGER.md`, 2026-10-29). In this file: the scored baseline is the exit side's (m\*), the
+ambiguous hour is excluded instead of counted as the stop, the oracle-shift guard D_c joins the bar, the hour bars are
+recorded (they were not, and the client could not read them, so §5 could not have been run), the scorer and its export
+are written and tested, and §2 lists the rules the audit added (listed releases for E and R, IG's distances from the
+touch, the close's level, the pending-order and shared-account refusals, the calendar's end, the minute's IG budget).
