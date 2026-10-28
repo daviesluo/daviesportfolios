@@ -758,6 +758,10 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to OKX's section of 2026-10-28 19:30 UTC
 (archived 2026-10-28, fourth).
 
+### [2026-10-28 20:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **`0152` failed on push** (unique `display_order`: 41 still the old row's) and rolled back whole; the fixed driver deployed.
+  New rows take 46-50, old keep 41-45 (page order unchanged); prereg §7 note and §5 hash, tests and the sweep's fixture follow.
+
 ### [2026-10-28 19:56 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **PR5-OPT's five twins restart from 10-29 06:00 (`0152`)** (sub-agent; not pushed; Davies noticed variant-6/7/8 hold LIVE's
   ~200 USDC + ~200 USDT). Cause: `0149` landed 04:56 for a 06:00 start; the driver sent a twin whose start was ahead straight

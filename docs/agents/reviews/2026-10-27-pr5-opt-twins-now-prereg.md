@@ -173,11 +173,14 @@ USDT each.
   of twins: `0151` switched `pr5`, `p50` and `d` off, and `0152` swaps five for five.
 - **Order with the function**, as `0152`'s header says: should the rows land before the fixed driver deploys, they turn inert
   minutes before their start, and their start conversions go out at the first turn after it.
+- **Display order** (2026-10-28 20:10 UTC): the first push of `0152` failed on `agent_quote_twin_specs`' unique
+  `display_order` (41 was still the old row's), and the whole migration rolled back, nothing applied. The new rows take 46-50,
+  the old keep 41-45; the page's order is the same, since the old rows are off. §5's hash of `0152` is the corrected file's.
 - Not blind: the restart was chosen after reading the five's record to 2026-10-28.
 
 | file | sha256 |
 |---|---|
-| `supabase/migrations/0152_quote_twins_pr5_opt_restart.sql` | 8d0966804f83ab8b2373d65fa4ddc50e2caead05cd911b6a5d3089bc15ed2eee |
+| `supabase/migrations/0152_quote_twins_pr5_opt_restart.sql` | c2241dae606c403eb2efa8a874eaca7e5c17970069a5a3645c05bbccada1199f |
 | `supabase/functions/agents/quotes_twin.ts` | 2b84a1ebbdc1172375ff7c783a463ce39e266c490b2256314eae8893b5548e68 |
 
 §5 keeps the hashes it was frozen at; this table names `quotes_twin.ts` from this deviation on, and `0152`

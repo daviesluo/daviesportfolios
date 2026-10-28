@@ -107,7 +107,7 @@
   {
    "id": "n600no03",
    "display_name": "Stablecoin quotes variant-4",
-   "display_order": 41,
+   "display_order": 46,
    "engine": "pr5",
    "capital_gbp": 600,
    "gov": "account",
@@ -139,7 +139,7 @@
   {
    "id": "n600hold1",
    "display_name": "Stablecoin quotes variant-5",
-   "display_order": 42,
+   "display_order": 47,
    "engine": "pr5",
    "capital_gbp": 600,
    "gov": "account",
@@ -167,7 +167,7 @@
   {
    "id": "n600usdt2",
    "display_name": "Stablecoin quotes variant-6",
-   "display_order": 43,
+   "display_order": 48,
    "engine": "pr5",
    "capital_gbp": 600,
    "gov": "account",
@@ -198,7 +198,7 @@
   {
    "id": "n600usdt3",
    "display_name": "Stablecoin quotes variant-7",
-   "display_order": 44,
+   "display_order": 49,
    "engine": "pr5",
    "capital_gbp": 600,
    "gov": "account",
@@ -229,7 +229,7 @@
   {
    "id": "n600usdt",
    "display_name": "Stablecoin quotes variant-8",
-   "display_order": 45,
+   "display_order": 50,
    "engine": "pr5",
    "capital_gbp": 600,
    "gov": "account",

@@ -87,11 +87,11 @@ describe("PR5-OPT's five twins on LIVE's rules from 06:00", () => {
     expect(/weights|holdMin/.test(inst)).toBe(false);
   });
 
-  it("start again from 2026-10-29 06:00 under 0152 (deviation 1): each its 0149 row but for id, tables, lease, start, rules' dates and migration; 0149's five off and renamed first", () => {
+  it("start again from 2026-10-29 06:00 under 0152 (deviation 1): each its 0149 row but for id, display order (41-45 stay with the old rows: the column is unique), tables, lease, start, rules' dates and migration; 0149's five off and renamed first", () => {
     const S2 = '2026-10-29T06:00:00Z';
     const again = (r) => {
       const id = `n${r.id.slice(1)}`;
-      return { ...r, id, table_prefix: `agent_quote_twin_${id}`, lease: `quotes-twin-${id}`, start: S2, migration: '0152', rules: JSON.parse(JSON.stringify(r.rules).replaceAll(S, S2)) };
+      return { ...r, id, display_order: r.display_order + 5, table_prefix: `agent_quote_twin_${id}`, lease: `quotes-twin-${id}`, start: S2, migration: '0152', rules: JSON.parse(JSON.stringify(r.rules).replaceAll(S, S2)) };
     };
     expect(rowsOf(R)).toEqual(rowsOf(M).map(again));
     const sql = sqlOf(R), insert = sql.indexOf('insert into public.agent_quote_twin_specs');

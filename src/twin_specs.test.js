@@ -210,11 +210,11 @@ describe("the twins' spec rows", () => {
       ['live600usdt2', 'Stablecoin quotes USDT 2:1 from 10-29', 31, 600, false, false], ['live600no03', 'Stablecoin quotes no 0.3 % from 10-29', 32, 600, false, false],
       ['live600hold1', 'Stablecoin quotes hold £1 from 10-29', 33, 600, false, false],
       ['take50wk', 'Stablecoin quotes weekend twin', 35, 600, false, false], ['d', 'Stablecoin quotes rule-D twin', 40, 1800, false, true],
-      ['o600no03', 'Stablecoin quotes no 0.3 % from 10-27', 41, 600, false, false], ['n600no03', 'Stablecoin quotes variant-4', 41, 600, true, false],
-      ['o600hold1', 'Stablecoin quotes hold £1 from 10-27', 42, 600, false, false], ['n600hold1', 'Stablecoin quotes variant-5', 42, 600, true, false],
-      ['o600usdt2', 'Stablecoin quotes USDT 2:1 from 10-27', 43, 600, false, false], ['n600usdt2', 'Stablecoin quotes variant-6', 43, 600, true, false],
-      ['o600usdt3', 'Stablecoin quotes USDT 3:1 from 10-27', 44, 600, false, false], ['n600usdt3', 'Stablecoin quotes variant-7', 44, 600, true, false],
-      ['o600usdt', 'Stablecoin quotes USDT only from 10-27', 45, 600, false, false], ['n600usdt', 'Stablecoin quotes variant-8', 45, 600, true, false],
+      ['o600no03', 'Stablecoin quotes no 0.3 % from 10-27', 41, 600, false, false], ['o600hold1', 'Stablecoin quotes hold £1 from 10-27', 42, 600, false, false],
+      ['o600usdt2', 'Stablecoin quotes USDT 2:1 from 10-27', 43, 600, false, false], ['o600usdt3', 'Stablecoin quotes USDT 3:1 from 10-27', 44, 600, false, false],
+      ['o600usdt', 'Stablecoin quotes USDT only from 10-27', 45, 600, false, false], ['n600no03', 'Stablecoin quotes variant-4', 46, 600, true, false],
+      ['n600hold1', 'Stablecoin quotes variant-5', 47, 600, true, false], ['n600usdt2', 'Stablecoin quotes variant-6', 48, 600, true, false],
+      ['n600usdt3', 'Stablecoin quotes variant-7', 49, 600, true, false], ['n600usdt', 'Stablecoin quotes variant-8', 50, 600, true, false],
     ]);
     // The page shows the three on LIVE's rules, each with LIVE's fill rule and, from the closure of 2026-10-30 21:00 UTC,
     // LIVE's weekend; none takes (LIVE's take is in shadow, which sends nothing).
