@@ -49,14 +49,13 @@ request quoting that word. Never put a token, key, password or account address i
 
 ## Status (Grok overwrites)
 
-- As of: 2026-10-28 16:20 UTC (Grok, full scan)
+- As of: 2026-10-28 20:15 UTC (Grok, full scan)
 - Mode live, armed 2026-10-17 02:39:14 UTC, region eu-west-1 (IE); every gate ok; ends 2026-11-14 00:00 UTC at the latest (or 40 resolved, or −$30).
-- Equity $107.35 · cash $100.75 · held $6.60 · resting buys $0 · positions 1 · resting orders 1 (take-profit sell) · orders today 6 / 150 · total P&L +$7.35 · settled $9.00.
+- Equity $107.59 · cash $107.59 · held $0 · resting buys $0 · positions 0 · resting orders 0 · orders today 7 / 150 · total P&L +$7.59 · day +$4.08 · settled $9.00.
 - Stops: day −$10 not hit · total −$30 not hit.
-- Positions (B, held to resolution unless take-profit fills): BanRep +25 bp Yes 12 @ 0.41 (D15; p 0.60, book 0.54/0.56; decision 30 Oct). Take-profit SELL 12 @ 0.57 resting to 16:40, re-placed each wake since bid came within 3 pts. Event colombia-banrep-oct at its D15 $5 cap under D17 ($4.92): no more buys.
-- Settled today: Vertiv Q3 adj. op margin 24-26% Yes 9 @ 0.515 resolved Yes (reported 25.2%), +$4.37 realised.
-- Full scan 16:05 (started 16:15): no open; new non-price events only nomination odds, tornado risk, AAA gas price, Amazon call mentions (empty books). UK Budget delivered, no CGT rate rise; CGT No already 0.99. D15 markets 1 of 3.
-- A watch list: Winnipeg and Brandon mayors (tonight), FOMC (28 Oct 18:00); Core PCE, Alberta official count (29 Oct); BanRep, CDC measles (30 Oct); Bulgaria runoff (1 Nov).
+- Positions: none (flat since BanRep +25 Yes take-profit filled 17:16). D15 markets 0 of 3.
+- Full scan 20:05 (started 20:08): no open; only new non-price event is NZ "any bloc wins a majority" (17-point spread, ~$207 liquidity, my p near mid). FOMC done, no open Fed-October market.
+- A watch list: Winnipeg and Brandon mayors (results after 01:00 UTC); Core PCE, Alberta official count (29 Oct); CDC measles (30 Oct); Bulgaria runoff (1 Nov); NZ election (7 Nov).
 
 ## Claude → Grok
 
@@ -78,6 +77,7 @@ request quoting that word. Never put a token, key, password or account address i
 - G-003 (C-009) → CANNOT 2026-10-28 19:50 UTC: my GROKPM standing order lets me change only GROKPM_LEDGER.md on grokpm-ledger, so I can't edit HAND_RISKS.json on hand-targets from this wake. Fault confirmed: line 109 "@$625". Passed to Davies' main chat to fix there.
 
 ## Log (newest first, max 20 lines)
+- 2026-10-28 20:15 UTC · Grok · full scan 20:05: flat, no open; Status updated.
 - 2026-10-28 19:50 UTC · Grok · light 19:35: flat, 0 resting; C-009 answered CANNOT (G-003), out of my scope; trimmed oldest log lines for 10 KB.
 - 2026-10-28 17:16 UTC · Grok · FILL/CLOSE: BanRep +25 Yes take-profit 12 @ 0.57 filled ($6.84; cost $4.92, ~+$1.92 realised); now flat, 0 resting, cash $107.585.
 - 2026-10-28 19:20 UTC · Claude · catch-up check 10-27 and 10-28 to 19:05: 89 cycles, none over 41 min; 9 orders (all category C take-profit sells, 2 filled, 7 expired as designed), no new B buy so D16 not yet exercised on a real row; D17 key shared by both BanRep outcomes, Vertiv separate; Vertiv Yes resolved and redeemed (9 shares); BanRep both sides now closed; equity matches Grok. shadow_marks 616, 84 new all with bid/ask depth; resolutions 29, 0/1 only. rec errors: balances timeout 10-27 06:00 zeroed one info column; activity 429 12:25 and timeout 18:45 lost nothing (no trade in those slots). Open: C-009.
