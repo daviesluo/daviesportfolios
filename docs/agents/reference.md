@@ -3362,6 +3362,13 @@ Read 2026-10-26 (`reviews/2026-10-26-grokpm-thin-rule-study.md`, `backtests/grok
     trade at the bid. Two hours bought no fill and doubled the bids the mid passed below (4 of 15 against 2).
   - D17: one event's outcome markets, keyed by Gamma's `negRiskMarketID`, count as one market for the $10 cap and D15's
     $5. Kelly, the 6 markets and D15's 3 stay per market. BanRep October is now full.
+- **The utilisation review and D18 (2026-10-28;** `reviews/2026-10-28-grokpm-utilisation.md`, `backtests/grokpm_util/`; Davies:
+  "下的单太少了，用的钱也太少", then "同意'边际 ≥20 个点时上限 $10'").
+  - 24 orders and 5 fills, all correct. About 2 % of the budget was deployed (10 % since D15) because few edges clear a
+    bar: 14 markets cleared A 8 or B 12 in 8 days, 3 were bought, and the untraded B ones lost 3 to 1. No looser bar,
+    more markets or longer window changes it in a tape replay. Adding money is a new pre-registration.
+  - D18: D15's $5 is $10 for an order whose edge is 0.20 or more (`thinCapMaxUsd`); the quarter of the depth, the $10
+    market cap, Kelly and the rest still bind. `checks.thin_cap` names `max_usd` and `big_edge`. From the deploy, no backfill.
 
 ### 3.51 Stablecoin quotes: LIVE's "+64.9 %" is one week realised, half of it a weekend; size; every row (2026-10-26)
 

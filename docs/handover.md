@@ -46993,3 +46993,18 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
 ### [2026-10-28 21:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep's calls off, step 2: `0153`** (`pmlp`, `pmlpreserve` `enabled = false`; rows and records stay), after the monitor
   change deployed. Its dust is redeemed by GROKPM's hourly redemption of the shared account.
+
+## LEDGER.md, archived 2026-10-28 (ninth) — the 2026-10-28 21:12 UTC, 2026-10-28 21:40 UTC history sections, oldest first
+
+### [2026-10-28 21:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LIVE: an exit the book shows crossing rests inside it, from 10-29 00:00** (sub-agent; not pushed; Davies, 10-28, on exits
+  "rejected — not sent: its price crossed the book"). Measured to 10-28: 21 exits refused by our own crossing check (16 turns,
+  1–3 ticks), the next exit sent a median 58 min later (max 297); one tick inside, a print reached it in a median 9. Now
+  (`exitTicksOnBook`, every instance, so twins mirror LIVE): a crossing exit rests a tick inside the opposite best, never
+  worse than the rule's price; a still-crossing exit is a skip, not a row. Entries unchanged. Design addendum; deviations
+  in the live600/live1200/live/n600* preregs, take prereg Addendum 4. The 19:56 section archived.
+
+### [2026-10-28 21:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **OKX's paper twins start at 22:00 too (`0155`; Davies, 10-28: "okx")**: `okx_quote_state.startedAt` 10-29 00:00 → 10-28 22:00,
+  guarded; window → 11-25 22:00 (prereg deviation 1). After it applies, check `startedAt` stayed moved (a minute call in
+  flight could write the old one back) and that `okx_quote_minutes` fills from 22:00.

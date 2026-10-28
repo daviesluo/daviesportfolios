@@ -413,6 +413,87 @@ CLOB's history (a mid-like price per five minutes), not executable books.
   and in the server's book that reads it (`_shared/grokpm_public.ts`, `finalPayouts`). A market Gamma calls closed at
   any other price (for example 0.9995) stays a holding at its mark until a later read shows the payout. The agent had
   held nothing when it was made. Nothing else about D4, the rules, the reading, its bar or its end changes.
+- **D15 (2026-10-26, after the start; migration `0140`; §2's thin rule given a capped exception).** Davies, 2026-10-26:
+  "你再验证下D15的修改，推荐的话就做", on the thin-rule study (`reviews/2026-10-26-grokpm-thin-rule-study.md`, §6 and §9).
+  From 10-23 05:00 to 10-26 01:00 UTC every one of the 42 shadow forecasts that cleared its bar on p − m (9 markets) was
+  refused only by `thin`. Five were open markets 3 to 6 days from their end, with spreads of 5 points or under and
+  roughly $30 to $100 of bids within 5 points; §2's $500 is fifty times the largest open the rules allow. An open of
+  category B that `thin` refuses only for its depth (the book two-sided, its spread at most 5 points) is allowed when
+  every term holds:
+  (1) **event_at**: the order names the scheduled release that decides its market (`event_at`, an ISO time), or null
+  when there is none;
+  (2) **cut**: the order's whole life ends before the cut, 48 hours before the earlier of the market's end and that
+  release;
+  (3) **size**: the market's cost (held at cost, resting buys and the order) is at most the smaller of $5 and a quarter
+  of the bid depth within 5 points of the mid. The quarter-Kelly cap and every other cap still apply, and the order meets
+  the venue's minimum;
+  (4) **one bid**: no other buy of the agent rests in that market;
+  (5) **markets**: at most 3 D15 markets are open. A market is one from its first D15 order while the agent holds or
+  rests anything in it;
+  (6) **orders**: the UTC day holds fewer than 100 orders.
+
+  In a D15 market every buy, of any category and whatever its book is later, is held to $5 at cost. The minute's sync
+  cancels a resting D15 order once its cut has come, or earlier if the market's end moves inside 48 hours or the market
+  stops accepting orders. A refusal names `thin_cap` and the term. Unchanged: category A, a category-C open in a thin
+  book, the spread half of `thin`, every other rule, cap and stop, the categories, §6's reading, its bar and its end. D15
+  entries count in §6.3's category B and are marked in the reading.
+- **D16 (2026-10-27, after the start; no migration; §2's and §7.4's expiry for a category-B entry).** Davies, 2026-10-27:
+  "剩下两点由你权衡后来做出最优选择". The rule:
+  - A category-B entry is sent with `expires_at` 65 minutes ahead, the server's limit.
+  - At each wake, a resting B bid whose thesis and price still hold is left resting. It is re-placed only at the last wake
+    before it ends: when the account read's `expires_in_s` is under 30 minutes.
+  - It is cancelled as before when its thesis breaks, its price should change, or news on it is due.
+  - A D15 bid's whole life still ends before its cut. The server refuses `thin_cap` "cut" otherwise, and the agent then asks
+    for a life that ends before the cut.
+  - Category A entries and exits are unchanged: the next wake plus five minutes.
+  - The minute's sync still cancels every resting order under the global pause or a disarm.
+
+  The server needs no change: it already clamps every order to 3–65 minutes. Nothing else about the rules, the reading, its bar or
+  its end changes.
+- **D17 (2026-10-27, after the start; migration `0147`; the $10 market cap and D15's $5 by event).** Davies, 2026-10-27:
+  "剩下两点由你权衡后来做出最优选择".
+
+  - **The rule.** The outcome markets of one event, one negative-risk group, count as one market for the $10 cap and D15's
+    $5. The server sums held at cost, resting buys and the order over every market of the event.
+    - The $10 cap is refused as `market_cap`.
+    - D15's size term (min($5, ¼ of this book's bid depth)) is refused as `thin_cap` "size".
+    - Once any market of the event is a D15 market, every buy in the event is held to $5, refused as `thin_cap` "cap".
+  - **The key.** Gamma's `negRiskMarketID`, which every outcome market of a negative-risk event shares. The server reads it
+    with the market (`marketOf`, `negRiskId`), stores it on each order (`grokpm_orders.neg_risk_market_id`), and groups the
+    agent's markets by it (`ledgerOf`: `eventOf`, `costByEvent`).
+    - A market that is not negative-risk is its own event.
+  - **What stays per market.** The quarter-Kelly cap, the 6 open markets, D15's 3 markets and its one bid a market all stay
+    per market. Counted by event, the last three would loosen.
+  - **New reads.** `?action=account` shows `cost_by_event`, and `?action=market` shows `neg_risk_market_id`. Each order's
+    `checks` gain `event`: its key and cost.
+  - **The backfill.** `0147` fills the column on the orders placed before it, read from Gamma on 10-27:
+    - BanRep's two outcomes share `0x05b05f89…3600`.
+    - Vertiv's market has `0x6a791055…6400` to itself.
+  - **What it does to the book now.** The BanRep event holds `$[•]` at cost, over $5, from the +25 bp D15 fill and the
+    no-change fill. D17 would have refused order 16. It sells nothing. It refuses any further buy in either BanRep outcome
+    until the event holds less than $5.
+  - **Pinned** in `grokpm/exec.test.ts`:
+    - "D17: a market's event is Gamma's negRiskMarketID…";
+    - "D17: the ledger groups…";
+    - "D17: one event's outcome markets share the $10 cap…": refused at $10.56 and sent at $9.68; apart, both go;
+    - "D17: D15's $5 is the event's…": a second thin outcome and a deep one; apart, all three go.
+- **D18 (2026-10-28, after the start; no migration; D15's size term given a second cap).** Davies, 2026-10-28:
+  "同意'边际 ≥20 个点时上限 $10'", on the utilisation review (`reviews/2026-10-28-grokpm-utilisation.md`, §4.4), which had
+  recommended $7.50 at that edge. The record: in 12 days the agent made 3 entries, one with an edge over 20 points (Vertiv
+  Q3 margin 24–26 %, 28 points), where a quarter Kelly of equity was about three times D15's $5; the cap, not the Kelly
+  stake or the depth, was what bound it. The rule: D15's term (3), **size**, reads the smaller of **$10** and a quarter of
+  the bid depth within 5 points of the mid for an order whose edge (D3: p less the dearer of the order's price and the
+  book's mid) is **0.20 or more**, and the smaller of $5 and that quarter for an order under it (0.199 is under). A D15
+  market holds, for any further buy there, the cap that buy's own edge allows. Unchanged: the quarter of the depth, the $10
+  market cap (and D17's per event), quarter Kelly, the $25 theme cap, the $30 cash floor, 3 D15 markets, one bid, the 48 h
+  cut, the 100 orders, D16, D17, the stops, the categories, §6's reading, its bar and its end. **Why $10 and not more:** the
+  per-market $10 cap (§2) and the −$30 total stop at a $100 budget (three D15 markets at $10 are the whole stop); $15–20
+  belongs to a second test at $200 with the caps doubled (the review's §5). **From the deploy of this commit; no backfill:**
+  the orders sent before it were judged as they were. Each order's `checks.thin_cap` records `max_usd` (the cap that
+  applied) and `big_edge`; the account answer names `thin_cap_big_edge` and `thin_cap_big_edge_market_usd`. Pinned in
+  `grokpm/exec.test.ts` ("D18: …": 0.20 gives $10 and 0.199 $5, the depth share and the $10 market cap still bind, a held
+  D15 market takes a further buy only to its own edge's cap). D15 entries count in §6.3's category B; the reading marks
+  those opened at the $10 cap.
 
 ## Appendix A: the journal API (paste into the prompt)
 

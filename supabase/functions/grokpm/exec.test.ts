@@ -10,8 +10,8 @@ import { GROKPM_TABLES } from "../_shared/grokpm_schema.ts";
 import type { Db } from "../agents/db.ts";
 import { FakePolymarket, memDb, PM_TEST_FUNDER, PM_TEST_KEY, PM_TEST_SIGNER, type Row } from "../agents/testing.ts";
 import {
-  accountView, bookOf, cancelOrders, context, cutThinCapOrders, eventCostUsd, eventKeyOf, type ExecDeps, expiryOf, FAR_FIELDS, farMarketsOf, farMarketsView,
-  type GrokOrderRow, type GrokVenue, ledgerOf, liveGateRefusals, marketOf, marketView, orderRefusals, placeOrder, syncOrders, thinCapRefusals,
+  accountView, bookOf, cancelOrders, context, cutThinCapOrders, GROKPM_RULES, eventCostUsd, eventKeyOf, type ExecDeps, expiryOf, FAR_FIELDS, farMarketsOf, farMarketsView,
+  type GrokOrderRow, type GrokVenue, ledgerOf, liveGateRefusals, marketOf, marketView, orderRefusals, placeOrder, syncOrders, thinCapMaxUsd, thinCapRefusals,
 } from "./exec.ts";
 import { farQuery, handle, type IngestDb } from "./index.ts";
 import examples from "../../../docs/agents/backtests/grokpm/contract_examples.json" with { type: "json" };
@@ -821,7 +821,7 @@ Deno.test("V1: a D15 order keeps its event_at and its checks (book, edge, costs,
   // edge 0.6 − max(0.44, 0.46) = 0.14; cost 5 × 0.44 = 2.2; Kelly min(10, 0.25 × 0.16 / 0.56 × 100) = 7.142857; D15 cap min(5, 8.9) = 5.
   assertEquals(row.checks, {
     book: { best_bid: 0.45, best_ask: 0.47, mid: 0.46, spread: 0.02, bid_depth_usd: 35.6, ask_depth_usd: 38 }, edge: 0.14, cost_usd: 2.2, market_cost_usd: 2.2,
-    event: { key: C3, cost_usd: 2.2 }, kelly_cap_usd: 7.142857, thin_cap: { cap_usd: 5, cut_at: iso(T0 + 4 * DAY - 48 * 3600e3) },
+    event: { key: C3, cost_usd: 2.2 }, kelly_cap_usd: 7.142857, thin_cap: { cap_usd: 5, max_usd: 5, big_edge: false, cut_at: iso(T0 + 4 * DAY - 48 * 3600e3) },
   });
   const acct = accountView(await context(w.deps(), { readGeo: true, sync: false }), T0);
   assertEquals((acct.open_orders as Array<{ event_at: string | null }>)[0].event_at, event);
@@ -945,4 +945,72 @@ Deno.test("D17: D15's $5 is the event's: a second thin outcome gets what the fir
   assertEquals((await placeOrder(v.deps(), d15({ size: 5 }))).status, 200);
   assertEquals((await placeOrder(v.deps(), d15({ market_id: C4, token_id: "401", size: 7 }))).status, 200);
   assertEquals((await placeOrder(v.deps(), open({ size: 10 }))).status, 200);
+});
+
+// ── Deviation D18 (2026-10-28): D15's $5 is $10 for an order whose edge is 20 points or more ─────────────────────────
+Deno.test("D18: D15's cap is $10 at an edge of 0.20 or more and $5 under it (0.199), and $5 when the edge is unknown", () => {
+  assertEquals([0.2, 0.28, 0.199, 0.14, 0, -0.1, null, undefined, NaN].map((e) => thinCapMaxUsd(e)), [10, 10, 5, 5, 5, 5, 5, 5, 5]);
+  assertEquals([GROKPM_RULES.thinCap.bigEdge, GROKPM_RULES.thinCap.bigEdgeMaxUsd, GROKPM_RULES.thinCap.maxUsd], [0.2, 10, 5]);
+});
+
+Deno.test("D18: the pure size term: $10 at the big edge, still a quarter of the bid depth, still $5 under it", () => {
+  const L = ledgerOf({ fundedUsd: 100, orders: [], fills: [], mids: {}, payouts: {}, nowMs: T0 });
+  const market = marketOf({ conditionId: C3, clobTokenIds: '["301","302"]', endDate: iso(T0 + 5 * DAY), acceptingOrders: true });
+  const base = { cond: C3, cost: 8.8, inMarket: 8.8, depthUsd: 100, ledger: L, market, nowMs: T0, expirationS: Math.floor(T0 / 1000) + 60 + 35 * 60, eventAt: null, ordersToday: 0 };
+  const why = (x: Parameters<typeof thinCapRefusals>[0]) => thinCapRefusals(x).refusals.map((r) => r.why.split(":")[0]);
+  assertEquals(why({ ...base, edge: 0.2 }), []);                 // $8.80 under min($10, a quarter of $100)
+  assertEquals(why({ ...base, edge: 0.199 }), ["size"]);         // the same order is over $5
+  assertEquals(why({ ...base }), ["size"]);                      // no edge named: $5, as before D18
+  assertEquals(why({ ...base, edge: 0.3, inMarket: 10.5 }), ["size"]);              // over $10 whatever the edge
+  assertEquals(why({ ...base, edge: 0.3, depthUsd: 30, inMarket: 8.8 }), ["size"]);  // a quarter of $30 is $7.50: the depth share binds
+  assertEquals(why({ ...base, edge: 0.3, depthUsd: 30, inMarket: 7.5 }), []);
+  const r = thinCapRefusals({ ...base, edge: 0.199 }).refusals[0].why;
+  assert(r.includes("over the smaller of $5 and a quarter of the $100.00 bid depth"), r);
+});
+
+Deno.test("D18: an order at a 0.20 edge rests up to $10 in a thin market and records the cap that applied; at 0.199 it is refused at $5", async () => {
+  const w = thinWorld();
+  // Book 0.45/0.47 (mid 0.46), bids within 5 points $35.60: a quarter is $8.90. 20 × 0.44 = $8.80; Kelly 0.25 × 0.22 / 0.56 × 100 = $9.82.
+  const big = await placeOrder(w.deps(), d15({ size: 20, p: 0.66 }));       // edge 0.66 − 0.46 = 0.20
+  assertEquals(big.status, 200, JSON.stringify(big.body));
+  const row = w.db.tables.grokpm_orders.at(-1)!;
+  assertEquals([row.thin_cap, (row.checks as { edge: number }).edge, (row.checks as { thin_cap: unknown }).thin_cap],
+    [true, 0.2, { cap_usd: 8.9, max_usd: 10, big_edge: true, cut_at: iso(T0 + 5 * DAY - 48 * 3600e3) }]);
+  const near = thinWorld();
+  const r = await placeOrder(near.deps(), d15({ size: 20, p: 0.659 }));    // edge 0.199
+  assertEquals(refusalsOf(r).map((x) => [x.rule, x.why.split(":")[0]]), [["thin_cap", "size"]]);
+  // The depth share still binds at the big edge: 21 × 0.44 = $9.24 is over a quarter of $35.60 ($8.90).
+  const deepShare = await placeOrder(thinWorld().deps(), d15({ size: 21, p: 0.7 }));
+  assertEquals(refusalsOf(deepShare).map((x) => [x.rule, x.why.split(":")[0]]), [["thin_cap", "size"]]);
+  assert(refusalsOf(deepShare)[0].why.includes("at most $8.90"), refusalsOf(deepShare)[0].why);
+});
+
+Deno.test("D18: the $10 market cap still binds at the big edge, and so does quarter Kelly", async () => {
+  const w = thinWorld();
+  w.fake.markets.find((x) => x.cond === C3)!.depth = [[0, 500], [1, 500]];   // $445 of bids: still thin, a quarter is $111
+  const r = await placeOrder(w.deps(), d15({ size: 25, p: 0.7 }));            // $11.00 at edge 0.24
+  const rules = refusalsOf(r).map((x) => x.rule);
+  assert(rules.includes("market_cap") && rules.includes("kelly"), JSON.stringify(rules));
+  const ok = await placeOrder(w.deps(), d15({ size: 22, p: 0.7 }));           // $9.68: under $10, under Kelly min(10, 11.6)
+  assertEquals(ok.status, 200, JSON.stringify(ok.body));
+});
+
+Deno.test("D18: a D15 market that holds a big-edge position takes a further buy only up to the cap that buy's own edge allows", async () => {
+  const w = thinWorld({ armed: true });
+  assertEquals((await placeOrder(w.deps(), d15({ size: 12, p: 0.66 }))).status, 200);   // $5.28 resting, over $5: only the big edge allows it
+  seedFill(w, { hash: "0x" + "d2".repeat(32), cond: C3, token: "301", price: 0.44, size: 12 });
+  w.fake.markets.find((x) => x.cond === C3)!.depth = [[0, 2000], [1, 2000]];             // now deep: the held cap decides
+  for (const o of w.db.tables.grokpm_orders.filter((x) => x.state === "live")) await cancelOrders(w.deps(), { order_id: o.hash }, false);
+  // A buy of the venue's smallest size (5 × 0.44 = $2.20) at the ordinary 0.14 edge: the market would hold $7.48, over $5.
+  const low = await placeOrder(w.deps(), d15({ size: 5 }, { event_at: null, theme: "seeded" }));
+  assert(refusalsOf(low).some((x) => x.rule === "thin_cap" && x.why.startsWith("cap") && x.why.includes("at most $5 at cost")), JSON.stringify(refusalsOf(low)));
+  // The same buy at the 0.20 edge: $7.48 is within $10.
+  const big = await placeOrder(w.deps(), d15({ size: 5, p: 0.66 }, { event_at: null, theme: "seeded" }));
+  assertEquals(big.status, 200, JSON.stringify(big.body));
+});
+
+Deno.test("D18: the account answer names the big-edge terms", async () => {
+  const w = thinWorld();
+  const acct = accountView(await context(w.deps(), { readGeo: true, sync: false }), T0);
+  assertEquals([acct.budget.thin_cap_market_usd, acct.budget.thin_cap_big_edge, acct.budget.thin_cap_big_edge_market_usd], [5, 0.2, 10]);
 });

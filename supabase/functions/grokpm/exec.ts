@@ -25,6 +25,8 @@
 //                wake; the server needs no change (the clamp above, D15's cut, the sync's cancels), and pins it.
 //   D17          (2026-10-27) the outcome markets of one event (Gamma's `negRiskMarketID`, stored on each order) count
 //                as one market for the $10 cap and D15's $5 (`eventKeyOf`, `eventCostUsd`).
+//   D18          (2026-10-28) D15's $5 is $10 for an order whose edge (D3) is 20 points or more (`thinCapMaxUsd`); the quarter
+//                of the bid depth, the $10 market cap, quarter Kelly and every other term still bind.
 // Live sends need, besides: eu-west-1, the config armed (`dry_run` false, `armed_at` set), the key loaded for the stored
 // signer, Davies' Ireland attestation current, the account's geoblock read from here answering country IE, no global
 // pause, no other order path of the account armed, and the account not closed-only (for a BUY). Disarmed, everything is
@@ -68,9 +70,16 @@ export const GROKPM_RULES = {
    * cut, `cutMs` before the earlier of the market's end and the scheduled release the agent names (`event_at`); one
    * resting buy a market; at most `maxMarkets` D15 markets; none once the UTC day holds `ordersDayMax` orders (the rest
    * of the 150 stay for closes and cancels).
+   * Deviation D18 (2026-10-28): `maxUsd` is `bigEdgeMaxUsd` for an order whose edge (D3: p less the dearer of its price and
+   * the book's mid) is at least `bigEdge`; the share of the depth, the market cap and every other term are unchanged.
    */
-  thinCap: { maxUsd: 5, depthShare: 0.25, cutMs: 48 * 3600e3, maxMarkets: 3, ordersDayMax: 100 },
+  thinCap: { maxUsd: 5, bigEdge: 0.20, bigEdgeMaxUsd: 10, depthShare: 0.25, cutMs: 48 * 3600e3, maxMarkets: 3, ordersDayMax: 100 },
 } as const;
+/** Deviation D18: D15's cap in dollars for an order of this edge (D3's: p less the dearer of its price and the book's mid). */
+export function thinCapMaxUsd(edge: number | null | undefined): number {
+  const T = GROKPM_RULES.thinCap;
+  return typeof edge === "number" && Number.isFinite(edge) && edge >= T.bigEdge - 1e-9 ? T.bigEdgeMaxUsd : T.maxUsd;
+}
 /** The last good geoblock reading is used for this long when a new read fails. */
 export const GROKPM_GEO_CACHE_MS = 10 * M;
 
@@ -342,6 +351,7 @@ export function orderRefusals(p: {
   if (!b || !b.tick || !b.minSize) out.push({ rule: "book", why: "the token's book could not be read (no tick or minimum size)" });
   const exp = expiryOf(p.expiresAt, p.nowMs);
   let thinCap: { refusals: Refusal[]; cutMs: number | null } | null = null;
+  let edgeD3: number | null = null;
   if (side === "BUY") {
     const L = p.ledger;
     const cost = price * size;
@@ -356,6 +366,7 @@ export function orderRefusals(p: {
     const pr = Number(d.p);
     if (Number.isFinite(pr)) {
       const against = Math.max(price, b?.mid ?? price), edge = r6(pr - against);
+      edgeD3 = edge;
       const bar = d.category === "A" ? R.edgeA : d.category === "B" ? R.edgeB : 0;
       if (d.category === "A" || d.category === "B") {
         if (edge < bar - 1e-9) out.push({ rule: "edge", why: `category ${d.category} needs p at least ${Math.round(bar * 100)} points over the price: p ${pr} against ${r6(against)} is ${(edge * 100).toFixed(1)}` });
@@ -399,17 +410,19 @@ export function orderRefusals(p: {
         if (wide) out.push({ rule: "thin", why: `the spread is ${(b.spread! * 100).toFixed(1)} points, over 5` });
         // Deviation D15: thin for its depth alone, in category B, the capped exception's terms decide instead.
         if (shallow && !wide && d.category === "B") {
-          thinCap = thinCapRefusals({ cond, cost, inMarket: inEvent, eventOthers: others, depthUsd: b.bidDepthUsd, ledger: L, market: m, nowMs: p.nowMs, expirationS: exp.expiration, eventAt: p.eventAt, ordersToday: p.ordersToday });
+          thinCap = thinCapRefusals({ cond, cost, inMarket: inEvent, eventOthers: others, depthUsd: b.bidDepthUsd, ledger: L, market: m, nowMs: p.nowMs, expirationS: exp.expiration, eventAt: p.eventAt, ordersToday: p.ordersToday, edge: edgeD3 });
           out.push(...thinCap.refusals);
         } else if (shallow) out.push({ rule: "thin", why: `$${b.bidDepthUsd.toFixed(0)} bid within 5 points of the mid, under $${R.thinDepthUsd}` });
         if (b.bestAsk !== null && price >= b.bestAsk - 1e-9) out.push({ rule: "post_only", why: `a buy at ${price} would take the ask ${b.bestAsk}: an open rests (post-only)` });
       }
     }
     // A D15 market holds at most $5 at cost whatever its book is now, every buy there (category C's included); under D17,
-    // every market of an event one of whose markets is a D15 market, the event's markets together.
+    // every market of an event one of whose markets is a D15 market, the event's markets together. Under D18 the $5 is
+    // $10 for a buy whose own edge is 20 points or more.
     const thinEvent = L.thinCapConds.some((c) => c === cond || (L.eventOf[c] ?? c) === eventKey);
-    if (!thinCap && thinEvent && inEvent > R.thinCap.maxUsd + 1e-9) {
-      out.push({ rule: "thin_cap", why: `cap: ${L.thinCapConds.includes(cond) ? "this market holds" : "another outcome of this event holds"} a D15 position, so at most $${R.thinCap.maxUsd} at cost; ${what}` });
+    const heldCapUsd = thinCapMaxUsd(edgeD3);
+    if (!thinCap && thinEvent && inEvent > heldCapUsd + 1e-9) {
+      out.push({ rule: "thin_cap", why: `cap: ${L.thinCapConds.includes(cond) ? "this market holds" : "another outcome of this event holds"} a D15 position, so at most $${heldCapUsd} at cost; ${what}` });
     }
   } else {
     const h = p.ledger.held[token];
@@ -439,6 +452,8 @@ export function orderRefusals(p: {
 export function thinCapRefusals(p: {
   cond: string; cost: number; inMarket: number; depthUsd: number; ledger: GrokLedger; market: GrokMarket | null; nowMs: number; expirationS: number;
   eventAt: string | null | undefined; ordersToday: number;
+  /** D18: the order's edge (D3's); 20 points or more lifts D15's $5 to $10. Absent or null: $5. */
+  edge?: number | null;
   /** D17: `inMarket` counts the other outcome markets of its event too (worded so). */
   eventOthers?: boolean;
 }): { refusals: Refusal[]; cutMs: number | null } {
@@ -457,9 +472,9 @@ export function thinCapRefusals(p: {
   else if (goneMs > cutMs) {
     out.push({ rule: "thin_cap", why: `cut: the order would rest until ${iso(goneMs)}, past ${iso(cutMs)}, 48 hours before the market's ${event !== null && event <= (end ?? Infinity) ? "named release" : "end"}` });
   }
-  const capUsd = Math.min(T.maxUsd, T.depthShare * p.depthUsd);
+  const maxUsd = thinCapMaxUsd(p.edge), capUsd = Math.min(maxUsd, T.depthShare * p.depthUsd);
   if (p.inMarket > capUsd + 1e-9) {
-    out.push({ rule: "thin_cap", why: `size: this market${p.eventOthers ? " and the other outcomes of its event (D17)" : ""} would hold $${p.inMarket.toFixed(2)} at cost, over the smaller of $${T.maxUsd} and a quarter of the $${p.depthUsd.toFixed(2)} bid depth within 5 points: at most $${capUsd.toFixed(2)}` });
+    out.push({ rule: "thin_cap", why: `size: this market${p.eventOthers ? " and the other outcomes of its event (D17)" : ""} would hold $${p.inMarket.toFixed(2)} at cost, over the smaller of $${maxUsd}${maxUsd > T.maxUsd ? ` (D18: $${T.maxUsd} under a ${Math.round(T.bigEdge * 100)}-point edge)` : ""} and a quarter of the $${p.depthUsd.toFixed(2)} bid depth within 5 points: at most $${capUsd.toFixed(2)}` });
   }
   if (p.ledger.restingBuyConds.includes(p.cond)) out.push({ rule: "thin_cap", why: "one bid: a buy of yours already rests in this market; cancel it or let it expire first" });
   if (!p.ledger.thinCapConds.includes(p.cond) && p.ledger.thinCapConds.length >= T.maxMarkets) {
@@ -709,7 +724,7 @@ export function accountView(c: ExecContext, nowMs: number) {
       markets_open: L.openConds.length, max_markets: GROKPM_RULES.maxPositions, market_cap_usd: GROKPM_RULES.marketCapUsd,
       theme_cap_usd: GROKPM_RULES.themeCapUsd, cost_by_theme: L.costByTheme, cost_by_market: L.costByCond, cost_by_event: L.costByEvent,
       // Deviation D15: the thin rule's capped exception, as the agent's account shows it.
-      thin_cap_markets: L.thinCapConds, thin_cap_max_markets: GROKPM_RULES.thinCap.maxMarkets, thin_cap_market_usd: GROKPM_RULES.thinCap.maxUsd,
+      thin_cap_markets: L.thinCapConds, thin_cap_max_markets: GROKPM_RULES.thinCap.maxMarkets, thin_cap_market_usd: GROKPM_RULES.thinCap.maxUsd, thin_cap_big_edge: GROKPM_RULES.thinCap.bigEdge, thin_cap_big_edge_market_usd: GROKPM_RULES.thinCap.bigEdgeMaxUsd,
     },
     positions: Object.entries(L.held).map(([token, h]) => ({
       market_id: h.cond, token_id: token, size: h.held, avg_price: h.avgCost, mark: h.mark, mark_from: h.markFrom,
@@ -909,7 +924,11 @@ export function orderChecks(p: { decision: Decision; book: GrokBook | null; ledg
     book: b ? { best_bid: b.bestBid, best_ask: b.bestAsk, mid: b.mid, spread: b.spread, bid_depth_usd: b.bidDepthUsd, ask_depth_usd: b.askDepthUsd } : null,
     edge: Number.isFinite(pr) ? r6(pr - against) : null, cost_usd: r6(cost), market_cost_usd: inMarket,
     event: { key, cost_usd: inEvent }, kelly_cap_usd: kelly,
-    thin_cap: plan.thinCap === true ? { cap_usd: r6(Math.min(R.thinCap.maxUsd, R.thinCap.depthShare * (b?.bidDepthUsd ?? 0))), cut_at: plan.cutAt ?? null } : null,
+    // D18: `max_usd` is the cap that applied ($5, or $10 for an edge of 20 points or more); `cap_usd` is the smaller of it and the depth share.
+    thin_cap: plan.thinCap === true ? (() => {
+      const maxUsd = thinCapMaxUsd(Number.isFinite(pr) ? r6(pr - against) : null);
+      return { cap_usd: r6(Math.min(maxUsd, R.thinCap.depthShare * (b?.bidDepthUsd ?? 0))), max_usd: maxUsd, big_edge: maxUsd > R.thinCap.maxUsd, cut_at: plan.cutAt ?? null };
+    })() : null,
   };
 }
 

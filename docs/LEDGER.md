@@ -610,7 +610,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    - **First orders verified 10-27** (`reviews/2026-10-27-grokpm-first-orders.md`; Davies: "下了几单，你也仔细验证下"): 15 orders,
      3 fills, all OK. V1 (`0143`) stores each order's `event_at` and checks. **P1 and P2 decided 10-27** (Davies: "剩下两点由你
      权衡后来做出最优选择"; no money note, "台账里的金额无所谓"): D16, a B bid lives 65 min; D17 (`0147`), one cap per
-     negative-risk event. **After the deploy:** post C-008 (the review's §5.3), and append D16 and D17 to §9 after D15. **Utilisation review 10-28:** keep every rule; a D15 cap of $7.50 at 20+ points only after BanRep resolves; funds wait (new prereg).
+     negative-risk event. **After the deploy:** post C-008 (the review's §5.3), and append D16 and D17 to §9 after D15. **Utilisation review 10-28:** keep every rule; funds wait (new prereg). **D18 (Davies, 10-28): D15's $5 is $10 at an edge of 0.20+**, in §9 with D15–D17 (their texts were still unwritten); **after the deploy:** post C-010 on the desk ledger (Grok's note on D18; drafted, held until the deploy is confirmed).
    - **Automatic redemption (D6, `0128`, `grokpm/redeem.ts`; Davies: "加上吧 全部都自动化掉")**: hourly, one gasless relayed
      transaction for up to five of the shared account's redeemable markets (pUSD back; losing tokens cleared), a dry run
      while `redeem_enabled` is false (its plan in `grokpm_exec_state.redeem_state`). **Davies does:** polymarket.com →
@@ -755,8 +755,14 @@ Facts a fresh session would otherwise rediscover:
 
 Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's archive, each batch under a heading
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
-first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-28 21:10 UTC section (archived
-2026-10-28, eighth).
+first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-28 21:40 UTC section (archived
+2026-10-28, ninth).
+
+### [2026-10-28 22:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM D18** (sub-agent; commit, not pushed; Davies, 10-28: "同意'边际 ≥20 个点时上限 $10'", on the utilisation review): D15's
+  $5 is $10 for an order whose edge (D3) is 0.20 or more (`thinCapMaxUsd`, `thinCap.bigEdge`/`bigEdgeMaxUsd`); the depth quarter,
+  the $10 market cap, Kelly, 3 markets, D16, D17 and the stops still bind. `checks.thin_cap` records `max_usd` and `big_edge`.
+  From the deploy, no backfill. Prereg §9 gains D15–D18 (pin `6940b42e…`). C-010 is for Grok once the deploy is confirmed.
 
 ### [2026-10-28 22:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **PR5V and rule D stop (`0156`; Davies, 10-28: "按照你的推荐来决定")**: `quotesv`, `quotesd` off, as both preregs say at the
@@ -766,16 +772,3 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 - **GROKPM orders verified and the rules weighed** (sub-agent; commit, not pushed; Davies: "下的单太少了，用的钱也太少"):
   `reviews/2026-10-28-grokpm-utilisation.md`, `backtests/grokpm_util/`. 24 orders, 5 fills, all correct; money used ~2 %
   (~10 % since D15) because few edges clear a bar, not because of the bars; no looser rule supported; no money added yet.
-
-### [2026-10-28 21:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **OKX's paper twins start at 22:00 too (`0155`; Davies, 10-28: "okx")**: `okx_quote_state.startedAt` 10-29 00:00 → 10-28 22:00,
-  guarded; window → 11-25 22:00 (prereg deviation 1). After it applies, check `startedAt` stayed moved (a minute call in
-  flight could write the old one back) and that `okx_quote_minutes` fills from 22:00.
-
-### [2026-10-28 21:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **LIVE: an exit the book shows crossing rests inside it, from 10-29 00:00** (sub-agent; not pushed; Davies, 10-28, on exits
-  "rejected — not sent: its price crossed the book"). Measured to 10-28: 21 exits refused by our own crossing check (16 turns,
-  1–3 ticks), the next exit sent a median 58 min later (max 297); one tick inside, a print reached it in a median 9. Now
-  (`exitTicksOnBook`, every instance, so twins mirror LIVE): a crossing exit rests a tick inside the opposite best, never
-  worse than the rule's price; a still-crossing exit is a skip, not a row. Entries unchanged. Design addendum; deviations
-  in the live600/live1200/live/n600* preregs, take prereg Addendum 4. The 19:56 section archived.

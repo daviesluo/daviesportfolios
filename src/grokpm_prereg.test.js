@@ -27,8 +27,10 @@ const INGEST = read('supabase/functions/grokpm/ingest.ts');
 const SCHEMA = read('supabase/functions/_shared/grokpm_schema.ts');
 
 describe('GROKPM pre-registration', () => {
-  // Frozen 2026-10-15; the sha256 of the whole file since Deviation D14 (2026-10-24: D4's settlement held to a final
-  // payout), which added §9's D14 only. Before it, D13 (2026-10-24: the reading's m 0.05–0.95 stratum; sha256
+  // Frozen 2026-10-15; the sha256 of the whole file since Deviation D18 (2026-10-28: D15's size term is $10 at an edge of 20
+  // points or more), which wrote §9's D15, D16 and D17 (built and live since 10-26 and 10-27, their texts from the thin-rule
+  // study and the first-orders review) and D18 in one step. Before it, D14's (2026-10-24: D4's settlement held to a final
+  // payout; sha256 409b6acd9ea9048b309efe7ac46215cc2b932d1c9f5fc28321c4a6d4149f8774), which added §9's D14 only. Before it, D13 (2026-10-24: the reading's m 0.05–0.95 stratum; sha256
   // 956c8fb8e1913cf96c1ba6e8d49ce28eec440f1e6e124b2bbedadcdf1f026c5b), D12 (2026-10-24: `last_trade` on the market read;
   // sha256 e24382385bb19e4080448e861dce29a336a82006d881d43f6569d282a43ba7e4) and D11 (2026-10-24: `?action=markets_far`;
   // sha256 f7c10f3f621fb5a5864d1c5333e937aa8dae730efddfb6b91ea19a0fecc100b6), each adding its own §9 entry only. Before
@@ -45,7 +47,7 @@ describe('GROKPM pre-registration', () => {
   // (2026-10-16) added §9's D3 and three rows to A.2's refusal table; D2 before it added §9's D2 and Appendix A.2 and
   // moved the hourly request cap from 120 to 600.
   it('is frozen: its sha256', () => {
-    expect(sha(PREREG_PATH)).toBe('409b6acd9ea9048b309efe7ac46215cc2b932d1c9f5fc28321c4a6d4149f8774');
+    expect(sha(PREREG_PATH)).toBe('6940b42e32565f1ea9b6dc2573e5818576f3b008f52741e5624391ec5b8a8f78');
   });
 
   it("has its cadence study's files as its manifest names them, and quotes the study's own numbers", () => {
