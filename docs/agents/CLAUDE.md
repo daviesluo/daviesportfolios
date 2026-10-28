@@ -642,6 +642,24 @@ that follow from that evidence, in short:
     `grokpm_config.redeem_enabled`, and nothing without the Relayer API key's two secrets. It writes no fill.
   - **The reading.** 28 days, 40 resolved positions, or the −$30 stop. Continue only if P&L > 0 and its Brier beats the
     market's.
+- **IGBOT, "IG analyst"** (`igbot` function, `0157`, `reviews/2026-10-29-igbot-research.md`, its pre-registration a DRAFT
+  `reviews/2026-10-29-igbot-prereg.md`, the prompt `docs/agents/igbot/GROK_PROMPT.md`; Davies, 2026-10-28: "…做个类似的做ig的
+  cfd/options/spread betting的trading bot并搭建架构，做好了给我发prompt"): GROKPM's design on IG. An outside Grok agent trades
+  **spread bets on IG's DEMO environment only** through the server and holds no credential; every open is a bracket (an
+  entry, a guaranteed stop, a limit) checked against `IGBOT_RULES` (`igbot/rules.ts`: 1 % of a notional £1,000 at risk,
+  3 % in all, 3 open, one per market, reward ≥ 1.5 × risk, p ≥ m + 0.08 where m = d_stop/(d_stop+d_limit), release and
+  weekend blackouts, day −£20 and total −£100 latched, a five-day hold), journalled, and only then sent.
+  - **Demo by construction.** `igbot/client.ts` knows one host, `demo-api.ig.com`, and refuses every call off its list
+    before `fetch`; `igbot_config.environment` is under `check (environment = 'demo')`; the secrets read are
+    `IGBOT_DEMO_API_KEY`, `IGBOT_DEMO_USERNAME`, `IGBOT_DEMO_PASSWORD`, `IGBOT_DEMO_ACCOUNT_ID` (a spread-bet account, or
+    the client refuses) and the agent's bearer `IGBOT_TOKEN`. **There is no live path**: live is a new pre-registration,
+    Davies' word, IG's written consent under its Term 9(12), a migration lifting the check and code that knows the host.
+  - **The arm.** `mode` 'dry_run' (the default: checked and journalled, nothing sent) or 'demo'; the arm and its undo are
+    in 0157's header, run only on Davies' word. Disarmed or under the global pause, the minute's sync deletes the bot's
+    working orders; positions keep their guaranteed stops.
+  - **Its book is the demo account's equity** as IG reports it (`igbot_snapshots`), from the arm and each UTC day's first
+    reading: nobody deals in that demo account by hand. Its desk ledger is `IGBOT_LEDGER.md` on the branch
+    `igbot-ledger` (seeded from `docs/agents/igbot/ledger_seed.md`), as GROKPM's.
 - **RW — quotes for Polymarket's liquidity rewards — runs on PAPER for
   fourteen days** (§3.33, §4 item 36, migration `0053`, 2026-09-24 on
   Davies' word): 2026-09-25 → 10-09 UTC, the spec frozen at

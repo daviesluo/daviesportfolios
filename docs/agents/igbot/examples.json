@@ -1,0 +1,108 @@
+{
+  "order": {
+    "decision": {
+      "id": "2026-11-03T15:00Z-open-1",
+      "ts": "2026-11-03T15:00:00Z",
+      "action": "open",
+      "category": "E",
+      "epic": "IX.D.SPTRD.DAILY.IP",
+      "direction": "BUY",
+      "size": 0.24,
+      "level": 7701,
+      "stop_level": 7661,
+      "limit_level": 7781,
+      "p_target": 0.5,
+      "event_at": "2026-11-05T12:00:00Z",
+      "sources": ["https://www.bankofengland.co.uk/monetary-policy/upcoming-mpc-dates"],
+      "reason": "Positioned ahead of the BoE decision: the curve prices no cut, my reading of the minutes says a dovish hold; US 500 tends to follow gilts lower in yield. Limit 80 points, stop 40: m 0.333, my p 0.50.",
+      "invalidation": "A hawkish hold with a vote split towards hikes, or US 500 closing under 7680 before the decision."
+    },
+    "entry": "market"
+  },
+  "working": {
+    "decision": {
+      "id": "2026-11-03T15:05Z-open-2",
+      "ts": "2026-11-03T15:05:00Z",
+      "action": "open",
+      "category": "N",
+      "epic": "CS.D.AUDUSD.TODAY.IP",
+      "direction": "SELL",
+      "size": 0.3,
+      "level": 6930,
+      "stop_level": 6960,
+      "limit_level": 6880,
+      "p_target": 0.47,
+      "sources": ["https://www.rba.gov.au/media-releases/"],
+      "reason": "RBA statement this morning cut the growth outlook; a sell on a retrace to 6930 against the 6960 high. Limit 50 pips, stop 30: m 0.375, my p 0.47.",
+      "invalidation": "AUD/USD trades above 6960, or Chinese data surprise strongly upward."
+    },
+    "entry": "limit",
+    "good_till": "2026-11-03T20:00:00Z"
+  },
+  "close": {
+    "decision": {
+      "id": "2026-11-03T16:30Z-close-1",
+      "ts": "2026-11-03T16:30:00Z",
+      "action": "close",
+      "category": "C",
+      "deal_id": "DIAAAAWXYZ123",
+      "reason": "Thesis broken: the MPC minutes were hawkish after all. Closing at the market."
+    }
+  },
+  "amend": {
+    "decision": {
+      "id": "2026-11-03T17:00Z-amend-1",
+      "ts": "2026-11-03T17:00:00Z",
+      "action": "amend",
+      "category": "C",
+      "deal_id": "DIAAAAWXYZ123",
+      "stop_level": 7700,
+      "reason": "Price is 50 points in profit: stop to break-even."
+    }
+  },
+  "cancel": {
+    "deal_id": "DIAAAAWORKING1",
+    "decision": {
+      "id": "2026-11-03T18:00Z-cancel-1",
+      "ts": "2026-11-03T18:00:00Z",
+      "action": "cancel",
+      "deal_id": "DIAAAAWORKING1",
+      "reason": "The retrace did not come and US CPI is due within 24 hours."
+    }
+  },
+  "shadow": {
+    "id": "2026-11-03T16:05Z-shadow-1",
+    "ts": "2026-11-03T16:05:00Z",
+    "action": "no_action",
+    "category": "E",
+    "epic": "IX.D.FTSE.DAILY.IP",
+    "direction": "SELL",
+    "level": 10820,
+    "stop_level": 10880,
+    "limit_level": 10730,
+    "p_target": 0.42,
+    "event_at": "2026-11-05T12:00:00Z",
+    "sources": ["https://www.bankofengland.co.uk/monetary-policy/upcoming-mpc-dates"],
+    "reason": "Considered a FTSE sell into the BoE: p 0.42 against m 0.40 is under the 8-point bar. Not opened."
+  },
+  "cycle": {
+    "id": "2026-11-03T16:00Z-cycle",
+    "ts": "2026-11-03T16:00:05Z",
+    "kind": "full",
+    "equity_gbp": 1000,
+    "open_positions": 1,
+    "open_risk_gbp": 9.74,
+    "actions": 2,
+    "notes": "Full scan: one E bracket open on US 500, one shadow bracket on FTSE."
+  },
+  "daily": {
+    "id": "2026-11-03-daily",
+    "day": "2026-11-03",
+    "equity_gbp": 1004.2,
+    "pnl_day_gbp": 4.2,
+    "pnl_total_gbp": 4.2,
+    "trades": 1,
+    "summary": "One E bracket on US 500 ahead of the BoE; two shadow brackets; no refusals.",
+    "lessons": "AUD/USD's guaranteed minimum is 6 pips: a 30-pip stop is fine."
+  }
+}
