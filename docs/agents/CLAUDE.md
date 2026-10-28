@@ -371,7 +371,8 @@ that follow from that evidence, in short:
   on 2026-10-01; a −1 % daily loss stop; de-peg and stale-input guards; a
   bounded 24-hour stop; a refused exit sent again only after a newer print
   that is not through it; a post-only order the book it met shows crossing
-  recorded refused and never sent, 2026-10-02; and a **dead-man switch**
+  recorded refused and never sent, 2026-10-02, but for an exit, which from 2026-10-29 rests one tick inside the book
+  instead, never worse than its rule's price (`exitTicksOnBook`, every instance); and a **dead-man switch**
   outside Supabase, 2026-10-02 on Davies' word: when the executor has not
   finished a turn for three minutes, or its state cannot be read and no
   read in the last three minutes found it fresh (2026-10-07, Davies:

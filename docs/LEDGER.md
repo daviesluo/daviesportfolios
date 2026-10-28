@@ -755,8 +755,16 @@ Facts a fresh session would otherwise rediscover:
 
 Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's archive, each batch under a heading
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
-first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to LIVE's operator conversion of 2026-10-28 19:48 UTC (archived
-2026-10-28, sixth).
+first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to PR5-OPT's restart of 2026-10-28 19:56 UTC (archived
+2026-10-28, seventh).
+
+### [2026-10-28 21:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LIVE: an exit the book shows crossing rests inside it, from 10-29 00:00** (sub-agent; not pushed; Davies, 10-28, on exits
+  "rejected — not sent: its price crossed the book"). Measured to 10-28: 21 exits refused by our own crossing check (16 turns,
+  1–3 ticks), the next exit sent a median 58 min later (max 297); one tick inside, a print reached it in a median 9. Now
+  (`exitTicksOnBook`, every instance, so twins mirror LIVE): a crossing exit rests a tick inside the opposite best, never
+  worse than the rule's price; a still-crossing exit is a skip, not a row. Entries unchanged. Design addendum; deviations
+  in the live600/live1200/live/n600* preregs, take prereg Addendum 4. The 19:56 section archived.
 
 ### [2026-10-28 21:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep's calls off, step 2: `0153`** (`pmlp`, `pmlpreserve` `enabled = false`; rows and records stay), after the monitor
@@ -777,11 +785,3 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to LIVE
 ### [2026-10-28 20:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **`0152` failed on push** (unique `display_order`: 41 still the old row's) and rolled back whole; the fixed driver deployed.
   New rows take 46-50, old keep 41-45 (page order unchanged); prereg §7 note and §5 hash, tests and the sweep's fixture follow.
-
-### [2026-10-28 19:56 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **PR5-OPT's five twins restart from 10-29 06:00 (`0152`)** (sub-agent; not pushed; Davies noticed variant-6/7/8 hold LIVE's
-  ~200 USDC + ~200 USDT). Cause: `0149` landed 04:56 for a 06:00 start; the driver sent a twin whose start was ahead straight
-  to forward turns, so the start conversions went out 05:50, before `weights.from`: unweighted. Fix: `quotes_twin.ts` turns no
-  twin before the minute after its start (pin fails on the old code). `0152`: `o600*` renamed "… from 10-27" and off; `n600*`
-  from 10-29 06:00, window to 11-26 06:00 (prereg deviation 1); code deviations in the seven preregs that pin `quotes_twin.ts`;
-  sweep fixture rebuilt. Order risk: if `0152` applies before the function deploys, the old driver turns them early (inert).

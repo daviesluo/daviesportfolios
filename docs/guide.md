@@ -287,7 +287,8 @@ places stay when the number is not whole.
   rounds each order's pounds to the penny, so an exit buys back a hair
   less than the entry sold rather than pay the penny over, and that hair
   goes into the rung's next trip. Then its latest orders, with why any
-  was refused: EXIT ORDERS first, shown only while there are any, then
+  was refused (from 29 Oct an exit whose price would cross the book rests
+  a tick inside it, at a better price, instead of showing as not sent): EXIT ORDERS first, shown only while there are any, then
   ENTRY ORDERS, each with its side, buy or sell, its price, its size and
   its state (one resting on the book is "open"); a 24-hour stop says so
   under its time. The orders of a round trip that has closed are left

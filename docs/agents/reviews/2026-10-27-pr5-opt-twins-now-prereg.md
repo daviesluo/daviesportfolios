@@ -205,3 +205,12 @@ USDT each.
 | `supabase/migrations/0154_quote_twins_pr5_opt_start_now.sql` | 3f8a008cd880763f75357c38b07bee9cb7345c06d5ca40705547a592bf293bd0 |
 
 This table names `0154` (`src/pr5_opt_twins_now.test.js`).
+
+**Deviation 3 (2026-10-28): an exit that would cross the book rests inside it, from 10-29; the five as LIVE.** `quotes_live.ts` (2026-10-28, on Davies' word that day about LIVE's exits "rejected — not sent: its price crossed the book"): from
+2026-10-29 00:00 UTC every instance's exit whose rule price the book it meets shows crossing rests one tick inside the opposite
+best (a buy at the best ask less a tick, a sell at the best bid plus one), always at least as good as the rule's price, instead
+of a refused row that held the rung's next exit back a median 58 minutes on LIVE's record; a refused-for-crossing row from
+before the instant holds nothing back after it. LIVE and every twin on its rules take it together, so the twins keep
+mirroring LIVE. Where no exit crosses nothing changes (pinned in `quotes_live.test.ts` and `quotes_live_instance.test.ts`:
+the same turns in force or not, and on each twin instance until the first crossing exit, which then rests inside). Entries
+are unchanged. Window, reading and bar as written. Not blind.

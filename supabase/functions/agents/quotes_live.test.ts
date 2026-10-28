@@ -18,6 +18,7 @@ import {
   QUOTE_LIVE_ENTRY_POSTS, QUOTE_LIVE_POST_GAP_MS, QUOTE_LIVE_STOPS_ONLY_POSTS, rungBase, rungBook, rungGbp, runQuotesConvert, runQuotesLive, stopDue, stopLimitTicks,
   venueSideOf, wasRateLimited, wasSent, asksNeedOf, makerBuyTicks, planTopUps, isAutoConvert, QUOTE_LIVE_TOPUP_REST_MS,
   deadmanWatchReason, QUOTE_LIVE_DEADMAN_WATCH_MS, pennyUp, faultLineKey, liveAlerts, QUOTE_LIVE_ALERT_EVERY_MS, QUOTE_LIVE_RECOVERED_AFTER_MS, type LiveFault,
+  exitInsideOn, exitTicksOnBook, QUOTE_LIVE_EXIT_INSIDE_FROM,
   convertFirstAt, convertRepegDue, repegBase, CONVERT_REPEG_REASON, QUOTE_LIVE_CONVERT_REPEG_MS, QUOTE_LIVE_CONVERT_REST_MS, QUOTE_LIVE_INSTANCE, type QuoteLiveInstance,
 } from "./quotes_live.ts";
 import { ceilToStep, floorToStep } from "../_shared/agents_strategy.ts";
@@ -1821,4 +1822,90 @@ Deno.test("a re-peg whose cancel the venue has not carried out is sent once the 
   const [old, next] = opConverts(w);
   assertEquals([old.state, next && Number(next.price), next && (next.request as Record<string, unknown>).firstTs], ["cancelled", 0.755, iso(C0)]);
   assertEquals(Number(next.base_size), Number(ceilToStep(asksNeedOf(1 / X, 50, PAIR), PAIR.base_step)));
+});
+
+// ------------------------------------------------------------------ an exit meets the book (2026-10-29)
+
+// Production, 2026-10-28: LIVE's exits "rejected — not sent: its price crossed the book" (06:33 USDT-GBP ask 0.2 % buy at
+// 0.7514 against a best ask of 0.7513; 06:35 ask 0.1 % buy at 0.7515; 17:58 ask 0.1 % buy at 0.7509 against 0.7507), each a
+// refused row, and the rung's next exit held back by the refused-exit wait: 21 such exits to 10-28, the next sent a median
+// 58 minutes later. From 2026-10-29 every instance's exit rests one tick inside the opposite best instead.
+Deno.test("exitTicksOnBook: a crossing exit rests one tick inside the opposite best, always at least as good as the rule's; any other stays at the rule's", () => {
+  assertEquals(QUOTE_LIVE_EXIT_INSIDE_FROM, Date.parse("2026-10-29T00:00:00Z"));
+  assertEquals([QUOTE_LIVE_INSTANCE.exitInside, exitInsideOn(QUOTE_LIVE_INSTANCE, QUOTE_LIVE_EXIT_INSIDE_FROM - 1), exitInsideOn(QUOTE_LIVE_INSTANCE, QUOTE_LIVE_EXIT_INSIDE_FROM)], [undefined, false, true]);
+  assertEquals(exitInsideOn({ ...QUOTE_LIVE_INSTANCE, exitInside: { from: T0 } }, T0), true);
+  const book = (bestBid: number | null, bestAsk: number | null) => ({ bestBid, bestAsk, source: "paper" as const, at: iso(T0), levels: null });
+  // The three of 10-28, each from the book the executor met.
+  assertEquals(exitTicksOnBook("buy", 7514, book(0.7510, 0.7513)), 7512);
+  assertEquals(exitTicksOnBook("buy", 7515, book(0.7508, 0.7513)), 7512);
+  assertEquals(exitTicksOnBook("buy", 7509, book(0.7506, 0.7507)), 7506);
+  // A sell at the best bid crosses (10-05 18:01: 0.7563 against a best bid of 0.7563): it rests a tick over it.
+  assertEquals(exitTicksOnBook("sell", 7563, book(0.7563, 0.7565)), 7564);
+  assertEquals(exitTicksOnBook("sell", 7558, book(0.7560, 0.7561)), 7561);
+  // Not crossing, or a book that says nothing of the side it would cross: the rule's price.
+  assertEquals([exitTicksOnBook("buy", 7510, book(0.7508, 0.7513)), exitTicksOnBook("sell", 7566, book(0.7563, 0.7565))], [7510, 7566]);
+  assertEquals([exitTicksOnBook("buy", 7514, book(0.7510, null)), exitTicksOnBook("sell", 7514, book(null, 0.7520)), exitTicksOnBook("buy", 7514, null)], [7514, 7514, 7514]);
+  // Never worse than the rule's, and never crossing the book it was read from.
+  for (let rule = 7500; rule <= 7520; rule++) for (let bid = 7500; bid <= 7518; bid++) for (let ask = bid + 1; ask <= 7520; ask++) {
+    const b = book(bid * QUOTE_TICK, ask * QUOTE_TICK);
+    const buy = exitTicksOnBook("buy", rule, b), sell = exitTicksOnBook("sell", rule, b);
+    assert(buy <= rule && buy < ask && sell >= rule && sell > bid, `${rule} ${bid} ${ask}: ${buy} ${sell}`);
+  }
+});
+
+Deno.test("an exit the book shows crossing rests one tick inside it, no refused row and no wait; before the instant, a refused row and the rung waits (the old code)", async () => {
+  const fair = 1 / X, rule = exitTicks(fair, "ask");
+  const run = async (instance?: QuoteLiveInstance) => {
+    const w = makeWorld({ live: true, armed: true, balances: { GBP: 50 }, ...(instance ? { instance } : {}) });
+    await w.seed({ mode: "live", book: "USDT-GBP", rung_side: "ask", k: 0.001, leg: "entry", side: "sell", price: 0.7562, base_size: 5, filled_base: 5, avg_fill_price: 0.7562, ts: iso(T0 - H), filled_at: iso(T0 - H) });
+    // The book's best ask a tick under the exit's buy-back price: a post-only buy there would cross.
+    w.rx.gbpBooks["USDT/GBP"] = { bid: (rule - 4) * QUOTE_TICK, ask: (rule - 1) * QUOTE_TICK };
+    const r0 = await w.step(T0);
+    const r1 = await w.step(T0 + M);
+    const exits = w.orders().filter((o) => o.leg === "exit" && o.book === "USDT-GBP");
+    return { w, r0, r1, exits };
+  };
+  const now = await run({ ...QUOTE_LIVE_INSTANCE, exitInside: { from: T0 - DAY } });
+  assertEquals(now.exits.map((o) => [ticks(o), o.state, (o.request as Record<string, unknown>).ruleTicks, (o.response as Record<string, unknown> | null)?.wouldBeRefused]),
+    [[rule - 2, "new", rule, undefined]]);
+  const exitIds = (w: typeof now.w) => new Set(w.orders().filter((o) => o.leg === "exit").map((o) => String(o.client_order_id)));
+  assertEquals(now.w.rx.resting("USDT/GBP").filter((o) => exitIds(now.w).has(o.client_order_id)).map((o) => Math.round(Number(o.price) / QUOTE_TICK)), [rule - 2]);
+  assertEquals(now.r0.errors, []);
+  // The counterfactual, before the instant (the code as it was): a refused row, never sent, and the next turn waits.
+  const was = await run();
+  assertEquals(was.exits.map((o) => [ticks(o), o.state, (o.response as Record<string, unknown> | null)?.wouldBeRefused]), [[rule, "rejected", true]]);
+  assertEquals(was.w.rx.resting("USDT/GBP").filter((o) => exitIds(was.w).has(o.client_order_id)).length, 0);
+});
+
+Deno.test("at the instant, an exit refused for crossing before it holds nothing back: the next turn rests it inside the book", async () => {
+  const rule = exitTicks(1 / X, "ask");
+  const w = makeWorld({ live: true, armed: true, balances: { GBP: 50 }, instance: { ...QUOTE_LIVE_INSTANCE, exitInside: { from: T0 + M + 45e3 } } });
+  await w.seed({ mode: "live", book: "USDT-GBP", rung_side: "ask", k: 0.001, leg: "entry", side: "sell", price: 0.7562, base_size: 5, filled_base: 5, avg_fill_price: 0.7562, ts: iso(T0 - H), filled_at: iso(T0 - H) });
+  w.rx.gbpBooks["USDT/GBP"] = { bid: (rule - 4) * QUOTE_TICK, ask: (rule - 1) * QUOTE_TICK };
+  await w.step(T0);                                                    // before the instant: refused, as before
+  await w.step(T0 + M);                                                // after it: no wait for a newer print
+  assertEquals(w.orders().filter((o) => o.leg === "exit").map((o) => [ticks(o), o.state]), [[rule, "rejected"], [rule - 2, "new"]]);
+});
+
+Deno.test("an exit meeting the book changes nothing where no exit crosses: a wide book, four holdings, their exits placed and re-priced, the same turns in force or not", async () => {
+  const run = async (instance: QuoteLiveInstance) => {
+    const w = makeWorld({ live: true, armed: true, balances: { GBP: 50, USDC: 20, USDT: 20 }, instance });
+    for (const book of ["USDC-GBP", "USDT-GBP"]) {
+      w.rx.gbpBooks[book.replace("-", "/")] = { bid: 0.7530, ask: 0.7580 };
+      await w.seed({ mode: "live", book, rung_side: "ask", k: 0.001, leg: "entry", side: "sell", price: 0.7562, base_size: 5, filled_base: 5, avg_fill_price: 0.7562, ts: iso(T0 - H), filled_at: iso(T0 - H) });
+      await w.seed({ mode: "live", book, rung_side: "bid", k: 0.002, leg: "entry", side: "buy", price: 0.7539, base_size: 5, filled_base: 5, avg_fill_price: 0.7539, ts: iso(T0 - H), filled_at: iso(T0 - H) });
+    }
+    w.setFx(T0 + 5 * M, T0 + 11 * M, 1.3200);                            // fair up 0.29 %: every exit is re-priced, twice
+    const reports = [];
+    for (let t = T0; t <= T0 + 16 * M; t += M) {
+      const r = await w.step(t);
+      reports.push({ placed: r.placed, cancelled: r.cancelled, skipped: r.skippedEntries, guards: r.guards, posts: r.posts, errors: r.errors.map((e) => e.replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "<id>")) });
+    }
+    const orders = w.orders().map((o) => [o.leg, o.book, o.rung_side, Number(o.k), o.side, ticks(o), Number(o.base_size), o.state, Number(o.filled_base), o.cancel_reason ?? null]);
+    return { reports, orders };
+  };
+  const on = await run({ ...QUOTE_LIVE_INSTANCE, exitInside: { from: T0 - DAY } }), off = await run(QUOTE_LIVE_INSTANCE);
+  assertEquals(on, off);
+  const exits = off.orders.filter((o) => o[0] === "exit");
+  assert(exits.length >= 8 && exits.some((o) => o[7] === "cancelled"), JSON.stringify(exits));
 });

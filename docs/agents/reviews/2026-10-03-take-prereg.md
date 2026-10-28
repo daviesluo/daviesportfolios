@@ -153,3 +153,13 @@ The audit of the simulation against LIVE (`2026-10-21-sim-vs-live-audit.md`) fou
 prints AT its price, which this twin's fill rule (the twins' rule 1, through only) fills nothing on; this test keeps the rule it froze,
 and its reading should say that its maker fills, in both arms, undercount LIVE's (the twins' pre-registration's deviation 7, §19).
 
+## Addendum 4 (2026-10-28): an exit that would cross the book rests inside it, from 10-29
+
+`quotes_live.ts` (2026-10-28, on Davies' word that day about LIVE's exits "rejected — not sent: its price crossed the book"): from
+2026-10-29 00:00 UTC every instance's exit whose rule price the book it meets shows crossing rests one tick inside the opposite
+best (a buy at the best ask less a tick, a sell at the best bid plus one), always at least as good as the rule's price, instead
+of a refused row that held the rung's next exit back a median 58 minutes on LIVE's record; a refused-for-crossing row from
+before the instant holds nothing back after it. LIVE and every twin on its rules take it together, so the twins keep
+mirroring LIVE. Where no exit crosses nothing changes (pinned in `quotes_live.test.ts` and `quotes_live_instance.test.ts`:
+the same turns in force or not, and on each twin instance until the first crossing exit, which then rests inside). Entries
+are unchanged. Window, reading and bar as written. Not blind. A take is a taker IOC and is not touched.

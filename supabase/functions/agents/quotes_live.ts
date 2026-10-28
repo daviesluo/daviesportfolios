@@ -18,7 +18,8 @@
 // did not give.
 //
 // WHAT IT NEVER DOES:
-//   * It never prices an order the rule did not price.
+//   * It never prices an order the rule did not price, but one way: from 2026-10-29 an exit whose rule price the book it
+//     meets shows crossing rests one tick inside the opposite best, a price better for us than the rule's (`exitTicksOnBook`).
 //   * It never places a second order on a rung. The database's partial unique index refuses one, and a replacement waits
 //     until the cancel is READ BACK as cancelled or filled, never on the DELETE's word. A rung whose cancel cannot be
 //     confirmed is frozen and reported every minute.
@@ -32,7 +33,8 @@
 //     GET, which the dry-run does when the key loads ("the dry-run on the real account").
 //   * It never sends a post-only order the book it met shows crossing, in either mode. The row is recorded refused, as
 //     the venue refuses it, and counts as no POST. Until 2026-10-02 a live one was sent all the same: the venue refused
-//     all four the executor had read as crossing, 30 ms before, and none of the 465 it had not.
+//     all four the executor had read as crossing, 30 ms before, and none of the 465 it had not. From 2026-10-29 an exit
+//     the book shows crossing is not refused but rests inside it, and one still crossing is a skip, not a row.
 //
 // ITS HARD LIMITS, each enforced here and pinned in quotes_live.test.ts:
 //   * The order governor, on its own POSTs in a UTC day. At 900 the entry quotes are withdrawn, which costs DELETEs only,
@@ -161,6 +163,11 @@ export type QuoteLiveInstance = {
    * first send. The live account's instance alone: a twin's operator conversion rests as it did (no `TWIN_RULES` key).
    */
   convertRepeg?: { from: number };
+  /**
+   * When `exitTicksOnBook` starts for this instance: QUOTE_LIVE_EXIT_INSIDE_FROM, every instance's, when left out (the tests
+   * move it to put the rule in force over their fixtures, or out of it).
+   */
+  exitInside?: { from: number };
 };
 /** The weights of `QuoteLiveInstance.weights`: by book, by side and by rung distance (the key is `String(k)`, "0.001"). */
 export type RungWeights = { from: number; book?: Partial<Record<QuoteBook, number>>; side?: Partial<Record<Side, number>>; k?: Record<string, number> };
@@ -762,6 +769,32 @@ export function parseBook(raw: unknown, source: BookSeen["source"], at: string):
   return { bestBid: bids.length ? Math.max(...bids) : null, bestAsk: asks.length ? Math.min(...asks) : null, source, at, levels: { bids: d.bids, asks: d.asks } };
 }
 /** Would a post-only order at `price` have crossed this book? A buy at or above the best ask, a sell at or below the best bid; null when the book says nothing. */
+/**
+ * From this instant every instance's exits meet the book (`exitTicksOnBook`; an instance's `exitInside` moves it): LIVE and the
+ * twins on its rules (`live600`, `live1200`, `live`, `take50`, and `n600*` from their start) together, so a twin keeps mirroring
+ * LIVE (Davies, 2026-10-28, on the exits "rejected — not sent: its price crossed the book"). Before it the executor refused a
+ * crossing exit as a row, and the rule's refused-exit wait (`exitMayGo`) held the rung's next exit back: on LIVE's record to
+ * 2026-10-28, 21 exits in 16 turns, the next sent a median 58 minutes later (at most 297).
+ */
+export const QUOTE_LIVE_EXIT_INSIDE_FROM = Date.parse("2026-10-29T00:00:00Z");
+/** Whether an instance's exits meet the book at `now` (`QuoteLiveInstance.exitInside`, else QUOTE_LIVE_EXIT_INSIDE_FROM). */
+export const exitInsideOn = (inst: QuoteLiveInstance, now: number): boolean => now >= (inst.exitInside?.from ?? QUOTE_LIVE_EXIT_INSIDE_FROM);
+/**
+ * An exit's price on the book it meets. The rule's own (`ruleTicks`) when the book does not show it crossing, or says
+ * nothing of the side it would cross. When it does cross (a buy at or over the best ask, a sell at or under the best bid,
+ * which the venue refuses for a post-only order), one tick inside the opposite best: a buy at the best ask less a tick, a
+ * sell at the best bid plus a tick. That price never crosses the same book and is always at least as good for us as the
+ * rule's: a crossing buy's rule price is at or over the ask, so the ask less a tick is under it; a sell's the mirror. If it
+ * were not, the rule's price stands and the crossing check refuses it.
+ */
+export function exitTicksOnBook(side: "buy" | "sell", ruleTicks: number, b: BookSeen | null): number {
+  const touch = side === "buy" ? b?.bestAsk : b?.bestBid;
+  if (touch == null) return ruleTicks;
+  const t = Math.round(touch / QUOTE_TICK);
+  if (side === "buy" ? ruleTicks < t : ruleTicks > t) return ruleTicks;           // rests where the rule put it
+  const inside = side === "buy" ? t - 1 : t + 1;
+  return (side === "buy" ? inside <= ruleTicks : inside >= ruleTicks) && inside > 0 ? inside : ruleTicks;
+}
 export function crossesBook(side: "buy" | "sell", price: number, b: BookSeen | null): boolean | null {
   if (!b) return null;
   const touch = side === "buy" ? b.bestAsk : b.bestBid;
@@ -869,12 +902,21 @@ async function placeOrder(ctx: Ctx, o: {
   lastPrint?: SeenPrint | null;
   /** Kept in the request beside the order: an automatic top-up's `auto` and the figures it was sized from. */
   extra?: Record<string, unknown>;
+  /**
+   * An exit that meets the book (`exitInsideOn`): when the book it met still shows it crossing, nothing is written and
+   * nothing sent, and the turn's report says why; the next turn tries again. Otherwise a crossing order is a refused row.
+   */
+  skipIfCrossing?: boolean;
 }): Promise<LiveOrderRow | null> {
   const { d, report } = ctx;
   const label = o.rungSide ? rungLabel(o.book, o.rungSide, o.k!) : `${o.book}|convert`;
   const price = (o.ticks * QUOTE_TICK).toFixed(4);
   const seen = await ctx.bookSeen(o.book);
   const crosses = o.marketable ? null : crossesBook(o.side, Number(price), seen);
+  if (crosses && o.skipIfCrossing) {
+    report.skippedEntries.push({ mode: o.mode, rung: label, reason: `${o.leg} ${o.side} at ${price} crosses the book it met (best bid ${seen?.bestBid ?? "none"}, best ask ${seen?.bestAsk ?? "none"}): not sent; the next turn tries again` });
+    return null;
+  }
   if (o.mode === "live" && !(await ctx.holdLease())) { report.errors.push(`${label}: live ${o.leg} not placed: the lease is lost`); return null; }
   const clientOrderId = d.uuid();
   const request = {
@@ -1436,6 +1478,21 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
     const pair = pairs[LIVE_SYMBOL[r.book]];
     return base && pair ? pennyExit(venueSideOf(r.side, "exit"), base, ticks * QUOTE_TICK, pair, r.dust) : base;
   };
+  /**
+   * Place a rung's exit at the rule's `ruleTicks`, or, while the instance's exits meet the book (`exitInsideOn`), where
+   * `exitTicksOnBook` puts it on the book this turn met, sized and trimmed at that price; the rule's price is kept in the
+   * request (`ruleTicks`) when it moved. One the book still shows crossing is a skip, not a refused row.
+   */
+  const meetBook = exitInsideOn(inst, d.now);
+  const placeExit = async (r: RungNow, ruleTicks: number, fair: number, lastPrint: Print | null): Promise<void> => {
+    const side = venueSideOf(r.side, "exit");
+    const ticks = meetBook ? exitTicksOnBook(side, ruleTicks, await ctx.bookSeen(r.book)) : ruleTicks;
+    const base = trimExit(r, ticks, exitBase(r, ticks * QUOTE_TICK, null));
+    if (base) {
+      sent(await placeOrder(ctx, { mode: "live", book: r.book, rungSide: r.side, k: r.k, leg: "exit", side, ticks, base, marketable: false, fair, lastPrint: seenPrint(lastPrint),
+        ...(ticks !== ruleTicks ? { extra: { ruleTicks } } : {}), ...(meetBook ? { skipIfCrossing: true } : {}) }));
+    }
+  };
   for (const r of rungs) {
     const o = openOf("live", r);
     try {
@@ -1463,23 +1520,21 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
       if (!o) {
         if (fair == null) continue;                                                                   // the rule places an exit only at a fair
         const ticks = exitAt(fair, r.side);
-        // An exit the venue refused waits as the rule's refused order waits: for a newer print, and one not through it.
+        // An exit the venue refused waits as the rule's refused order waits: for a newer print, and one not through it. One
+        // this executor refused for crossing the book, never sent, holds nothing back once exits meet the book (`meetBook`).
         const prev = lastLeg(r, "exit");
-        if (prev && prev.state === "rejected") {
+        if (prev && prev.state === "rejected" && !(meetBook && !wasSent(prev))) {
           const request = (await d.db.select<{ request: { paperLastPrint?: SeenPrint | null } | null }>(inst.orders, `id=eq.${prev.id}&select=request`))[0]?.request ?? null;
           if (!exitMayGo({ ...prev, request }, r.live.openedAt, r.side === "bid" ? "ask" : "bid", ticks, lastPrint)) continue;
         }
-        const base = trimExit(r, ticks, exitBase(r, ticks * QUOTE_TICK, null));
-        if (base) sent(await placeOrder(ctx, { mode: "live", book: r.book, rungSide: r.side, k: r.k, leg: "exit", side: venueSideOf(r.side, "exit"), ticks, base, marketable: false, fair, lastPrint: seenPrint(lastPrint) }));
+        await placeExit(r, ticks, fair, lastPrint);
         continue;
       }
       // A resting exit follows fair by the rule's own step, on inputs that still stand; stale, it keeps its price.
       if (fair == null || staleBook(r.book) || o.fair == null || Math.abs(fair / Number(o.fair) - 1) <= inst.exitReprice) continue;
       const c = await cancelConfirmed(o, "the rule re-prices the exit");
       if (c !== "cancelled") continue;
-      const ticks = exitAt(fair, r.side);
-      const base = trimExit(r, ticks, exitBase(r, ticks * QUOTE_TICK, null));
-      if (base) sent(await placeOrder(ctx, { mode: "live", book: r.book, rungSide: r.side, k: r.k, leg: "exit", side: venueSideOf(r.side, "exit"), ticks, base, marketable: false, fair, lastPrint: seenPrint(lastPrint) }));
+      await placeExit(r, exitAt(fair, r.side), fair, lastPrint);
     } catch (e) {
       report.errors.push(`${r.label}: ${msg(e)}`);
     }

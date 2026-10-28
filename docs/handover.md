@@ -46961,3 +46961,13 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   `runQuotesConvert`'s checks, capped at what the asks still lack; the 24 h count from the first send (`request.firstTs`);
   once the asks hold their coin it is cancelled. Twins unchanged: no twin rule sets it; LIVE twin and `o600*` turn for turn
   equal with and without it; six hours vs the frozen file equal with it in force. Design addendum 2026-10-28.
+
+## LEDGER.md, archived 2026-10-28 (seventh) — PR5-OPT's restart (`0152`), 2026-10-28 19:56 UTC
+
+### [2026-10-28 19:56 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **PR5-OPT's five twins restart from 10-29 06:00 (`0152`)** (sub-agent; not pushed; Davies noticed variant-6/7/8 hold LIVE's
+  ~200 USDC + ~200 USDT). Cause: `0149` landed 04:56 for a 06:00 start; the driver sent a twin whose start was ahead straight
+  to forward turns, so the start conversions went out 05:50, before `weights.from`: unweighted. Fix: `quotes_twin.ts` turns no
+  twin before the minute after its start (pin fails on the old code). `0152`: `o600*` renamed "… from 10-27" and off; `n600*`
+  from 10-29 06:00, window to 11-26 06:00 (prereg deviation 1); code deviations in the seven preregs that pin `quotes_twin.ts`;
+  sweep fixture rebuilt. Order risk: if `0152` applies before the function deploys, the old driver turns them early (inert).

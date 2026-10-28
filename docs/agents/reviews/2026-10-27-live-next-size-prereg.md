@@ -117,3 +117,12 @@ unchanged). Its window, reading and bar are as written. Not blind.
 | `supabase/functions/agents/quotes_twin.ts` | 2b84a1ebbdc1172375ff7c783a463ce39e266c490b2256314eae8893b5548e68 |
 
 §5 and deviation 1 keep the hashes the file had before; this table names it from this deviation on (`src/live_next_size.test.js`).
+
+**Deviation 3 (2026-10-28): an exit that would cross the book rests inside it, from 10-29; this twin as LIVE.** `quotes_live.ts` (2026-10-28, on Davies' word that day about LIVE's exits "rejected — not sent: its price crossed the book"): from
+2026-10-29 00:00 UTC every instance's exit whose rule price the book it meets shows crossing rests one tick inside the opposite
+best (a buy at the best ask less a tick, a sell at the best bid plus one), always at least as good as the rule's price, instead
+of a refused row that held the rung's next exit back a median 58 minutes on LIVE's record; a refused-for-crossing row from
+before the instant holds nothing back after it. LIVE and every twin on its rules take it together, so the twins keep
+mirroring LIVE. Where no exit crosses nothing changes (pinned in `quotes_live.test.ts` and `quotes_live_instance.test.ts`:
+the same turns in force or not, and on each twin instance until the first crossing exit, which then rests inside). Entries
+are unchanged. Window, reading and bar as written. Not blind.

@@ -357,3 +357,23 @@ the top of the bids, under `runQuotesConvert`'s own checks and never for more co
 count from the operator's send (`request.firstTs`). Entries, exits, stops, top-ups and every twin are unchanged (pinned:
 the six hours against the frozen file with the rule in force, and LIVE's twin and the five `o600*` twins turn for turn with
 and without it). Not blind: a change made after reading the live record.
+
+## Addendum (2026-10-28): an exit the book shows crossing rests inside it
+
+Davies, 2026-10-28, on LIVE's exits shown "rejected — not sent: its price crossed the book, which the venue refuses for a
+post-only order" (06:33 a USDT-GBP 0.2 % ask's buy-back at 0.7514 against a best ask of 0.7513; 06:35 the 0.1 % at 0.7515;
+17:58 the 0.1 % at 0.7509 against 0.7507). Those rows were this executor's own check (2026-10-02: never send a post-only
+order the book shows crossing), and the refused-exit wait (`exitMayGo`) then held the rung's next exit until a newer print
+not through it. Measured on LIVE's whole record to 2026-10-28 (read-only): 21 exits refused so in 16 turns, 1–3 ticks through
+(one at the touch), the rung's next exit sent a median 58 minutes later (mean 94, at most 297); a price one tick inside the
+opposite best met a print at or through it a median 9 minutes later (19 of 21 within two hours, 2 not within 12); the
+holdings' actual exits filled a median 129 minutes later. 39 entries were refused the same way; they are the paper's own
+orders at the paper's prices, one POST per decision, and stay as they are.
+
+From 2026-10-29 00:00 UTC (`QUOTE_LIVE_EXIT_INSIDE_FROM`, every instance; `exitTicksOnBook`) an exit whose rule price the
+book it meets shows crossing rests one tick inside the opposite best instead: a buy at the best ask less a tick, a sell at
+the best bid plus one. A crossing buy's rule price is at or over the ask, so this is always a better price for us than the
+rule's, and it never crosses the book it was read from; the rule's price is kept in the request (`ruleTicks`). It is
+re-priced as any exit, when fair moves past the rule's step. An exit the book still shows crossing is a skip in the turn's
+report, not a row, and a refused-for-crossing row from before the instant holds nothing back. A real venue refusal is
+still a row and still waits. LIVE's twins take it from the same instant (their pre-registrations' deviations). Not blind.

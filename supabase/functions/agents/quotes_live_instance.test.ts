@@ -124,6 +124,16 @@ Deno.test("a conversion following the bid, in force over the six hours, is the f
   assertEquals(seen.repegs, 0);
 });
 
+// An exit meeting the book (`exitTicksOnBook`, every instance from 2026-10-29). Before its instant the default instance is the
+// frozen executor (the first test above). In force over the six hours, it is the frozen executor turn by turn until the first
+// exit whose rule price crosses the book it meets: there the frozen one records a refused row and this one rests that exit
+// inside the book, at a better price; nothing else differs at that turn's start.
+Deno.test("an exit meeting the book, in force over the six hours, is the frozen executor turn by turn until an exit crosses; that exit rests inside the book", async () => {
+  const seen = await sixHoursSeen({ ...Now.QUOTE_LIVE_INSTANCE, exitInside: { from: T0 - 24 * H } }, { untilExitCrosses: true });
+  assert(seen.equalTurns >= 10, JSON.stringify(seen));
+  assertEquals(seen.crossed.length, 1, JSON.stringify(seen.crossed));
+});
+
 // The twins (quotes_twin.ts) run this executor on instances their spec rows build (`specFromRow`), and no twin rule sets
 // `convertRepeg`: LIVE's twin (`live600`, 0141) and PR5-OPT's five (`o600*`, 0149) rest their operator's conversion as
 // they did. The counterfactual: each of their instances, its options in force from before the six hours, with and without
@@ -156,6 +166,15 @@ Deno.test("no twin follows the bid: LIVE's twin and PR5-OPT's five carry no conv
   try { specFromRow({ ...twinRow(TWIN_ROWS[0]), rules: { convertRepeg: { from: "2026-10-28T00:00:00Z" } } }); } catch (e) { why = (e as Error).message; }
   assertEquals(why, "twin live600: no code for its rule convertRepeg");
 });
+// An exit meeting the book is every instance's, the twins' with LIVE's: on each twin's instance (its rules in force), the same
+// six hours in force or not are equal turn by turn until an exit crosses, and that exit rests inside the book.
+for (const r of TWIN_ROWS) {
+  Deno.test(`${r.id}'s instance: an exit meeting the book changes nothing until an exit crosses, and rests that one inside the book`, async () => {
+    const t = twinOnLiveTables(r);
+    const seen = await sixHoursSeen({ ...t, exitInside: { from: T0 - 24 * H } }, { against: t, operator: false, untilExitCrosses: true });
+    assert(seen.equalTurns >= 10 && seen.crossed.length >= 1, JSON.stringify({ equalTurns: seen.equalTurns, crossed: seen.crossed }));
+  });
+}
 for (const r of TWIN_ROWS) {
   Deno.test(`${r.id}'s instance with no operator conversion: following the bid in force or not, the same six hours, turn by turn`, async () => {
     const t = twinOnLiveTables(r);
@@ -256,7 +275,13 @@ async function sixHours(instance?: Now.QuoteLiveInstance, o: { against?: Now.Quo
   await sixHoursSeen(instance, o);
 }
 /** The six hours (`sixHours`), returning what they went through. */
-async function sixHoursSeen(instance?: Now.QuoteLiveInstance, o: { against?: Now.QuoteLiveInstance; operator?: boolean } = {}) {
+/**
+ * `untilExitCrosses`: compare turn by turn only until the first turn at which the executor `against` (the frozen one, or the
+ * same instance with exits not meeting the book) records an exit refused for crossing the book; at that turn, check that
+ * `instance` rests that exit inside the book instead (`request.ruleTicks` the refused exit's price), and stop, returning
+ * how many turns were equal (`equalTurns`) and the exits it compared (`crossed`).
+ */
+async function sixHoursSeen(instance?: Now.QuoteLiveInstance, o: { against?: Now.QuoteLiveInstance; operator?: boolean; untilExitCrosses?: boolean } = {}) {
   const operator = o.operator !== false;
   const a = world(Now, instance), b = o.against ? world(Now, o.against) : world(Frozen);
   const both = async <T>(f: (w: ReturnType<typeof world>) => Promise<T>): Promise<[T, T]> => [await f(a), await f(b)];
@@ -277,7 +302,7 @@ async function sixHoursSeen(instance?: Now.QuoteLiveInstance, o: { against?: Now
   const books = Object.fromEntries(QUOTE_BOOKS.map((bk) => [bk, newBookState(bk, { id: "seed", ts: T0 - 30e3, ticks: bk === "USDC-GBP" ? 7553 : 7551, qty: 10, side: "sell" })])) as Record<QuoteBook, BookState>;
   const r = rng(20261002);
   let seq = 0;
-  const seen = { fills: 0, partial: 0, exits: 0, reprices: 0, refusals: 0, stops: 0, topups: 0, makerConv: 0, takerConv: 0, stale: 0, depeg: 0, governor: 0, paused: 0, unarmed: 0, repegs: 0 };
+  const seen = { fills: 0, partial: 0, exits: 0, reprices: 0, refusals: 0, stops: 0, topups: 0, makerConv: 0, takerConv: 0, stale: 0, depeg: 0, governor: 0, paused: 0, unarmed: 0, repegs: 0, insides: 0, equalTurns: 0, crossed: [] as string[] };
   for (let t = T0; t < T0 + HOURS * H; t += M) {
     // The minute's prints: a seller under fair and a buyer over it, now and then, of random size, at random depth.
     const fair = 1 / (fxAtMinute(t) ?? 1.3238);
@@ -317,6 +342,18 @@ async function sixHoursSeen(instance?: Now.QuoteLiveInstance, o: { against?: Now
     if (h >= 4.5 && h < 4.75) { for (const w of [a, b]) (w.mem.tables.agent_quote_live_config as Row[])[0].live_confirmed_at = null; seen.unarmed++; }
     else for (const w of [a, b]) (w.mem.tables.agent_quote_live_config as Row[])[0].live_confirmed_at = iso(T0 - H);
     const [ra, rb] = await both((w) => w.turn(at));
+    if (o.untilExitCrosses) {
+      const refused = (b.mem.tables.agent_quote_live_orders as Row[]).filter((x) => x.leg === "exit" && (x.response as Row | null)?.wouldBeRefused === true);
+      if (refused.length) {
+        const inside = (a.mem.tables.agent_quote_live_orders as Row[]).filter((x) => x.leg === "exit" && (x.request as Row | null)?.ruleTicks != null);
+        const tk = (x: Row) => Math.round(Number(x.price) / 1e-4);
+        assertEquals(inside.map((x) => [x.book, x.rung_side, Number(x.k), (x.request as Row).ruleTicks]), refused.map((x) => [x.book, x.rung_side, Number(x.k), tk(x)]));
+        for (const [i, x] of inside.entries()) assert(x.side === "buy" ? tk(x) < tk(refused[i]) : tk(x) > tk(refused[i]), `inside is better: ${tk(x)} vs ${tk(refused[i])}`);
+        seen.equalTurns = Math.round((t - T0) / M);
+        seen.crossed = refused.map((x) => `${x.book} ${x.rung_side} ${Number(x.k)} ${x.side} rule ${tk(x)} → ${tk(inside[refused.indexOf(x)])}`);
+        return seen;
+      }
+    }
     assertEquals(ra, rb, `the reports of the turn at ${iso(at)}`);
     assertEquals(a.snapshot(), b.snapshot(), `the tables and the account after the turn at ${iso(at)}`);
     if (Object.values(ra.guards).some((g) => g.some((x) => /stale|dark|old/i.test(x)))) seen.stale++;
@@ -332,11 +369,12 @@ async function sixHoursSeen(instance?: Now.QuoteLiveInstance, o: { against?: Now
   seen.stops = orders.filter((o) => o.leg === "stop").length;
   seen.topups = orders.filter((o) => o.leg === "convert" && (o.request as Row)?.auto === true).length;
   seen.repegs = orders.filter((o) => o.leg === "convert" && (o.request as Row)?.repegOf != null).length;
+  seen.insides = orders.filter((o) => o.leg === "exit" && (o.request as Row)?.ruleTicks != null).length;
   // What the hours went through, or the equality above proves nothing (the operator's conversions only when there is one; a
   // conversion following the bid is counted, not required: `seen.repegs`).
   for (const [k, v] of Object.entries(seen)) {
     // Without the operator the asks hold only the account's starting coin, a shortfall past the top-ups' £5 a day: none goes out.
-    if (k === "repegs" || (!operator && (k === "makerConv" || k === "takerConv" || k === "topups"))) continue;
+    if (typeof v !== "number" || k === "repegs" || k === "insides" || k === "equalTurns" || (!operator && (k === "makerConv" || k === "takerConv" || k === "topups"))) continue;
     assert(v > 0, `the simulated hours never reached ${k}: ${JSON.stringify(seen)}`);
   }
   return seen;
