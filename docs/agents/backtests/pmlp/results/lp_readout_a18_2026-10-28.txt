@@ -1,0 +1,126 @@
+lp_readout_a18.sql (Addendum 18's corrected copy of lp_readout.sql; sha256 5ec9a030...87b8, as Addendum 18 names it, the
+bytes at HEAD 52de1e04 checked equal), run read-only on production (flmvxigozjuizpckllvk) through the Supabase connector,
+2026-10-28 about 19:38 UTC, word for word. The 14-day readout and Addendum 19's bar, due at the restart window's end (no
+earlier than 2026-10-27 13:25 UTC) and read a day late (reviews/2026-10-28-lp-reads.md). Not blind. The repository is
+public: every dollar column is the live account's money and is masked [•] (2026-10-21 rule); R, the counts, the minutes and
+the cents a share are as read.
+
+Part 1: the script's output, as returned
+
+row                                                  market_days minutes scored formula_usd paid_usd rebates_usd r      formula_scored_usd r_scored
+day 1 2026-10-09                                     10          9666    2643   [•]         [•]      [•]         0.8072 [•]                0.8072
+day 2 2026-10-10                                     28          11687   2663   [•]         [•]      [•]         0.7179 [•]                0.7511
+day 3 2026-10-11                                     35          14727   1525   [•]         [•]      [•]         0.8066 [•]                0.8332
+day 4 2026-10-12                                     36          13662   1240   [•]         [•]      [•]         0.5613 [•]                0.6093
+day 5 2026-10-13                                     55          5222    329    [•]         [•]      [•]         0.7187 [•]                0.7564
+day 6 2026-10-14                                     33          6966    567    [•]         [•]      [•]         0.7147 [•]                0.7809
+day 7 2026-10-15                                     23          2339    33     [•]         [•]      [•]         1.1401 [•]                1.2005
+day 8 2026-10-16                                     19          364     0      0.0000      0.0000   0.0000      null   0.0000                null
+day 9 2026-10-17                                     18          0       0      0.0000      0.0000   0.0000      null   0.0000                null
+day 10 2026-10-18                                    7           0       0      0.0000      0.0000   0.0000      null   0.0000                null
+day 11 2026-10-19                                    7           0       0      0.0000      0.0000   0.0000      null   0.0000                null
+day 12 2026-10-20                                    7           0       0      0.0000      0.0000   0.0000      null   0.0000                null
+day 13 2026-10-21                                    7           0       0      0.0000      0.0000   0.0000      null   0.0000                null
+day 14 2026-10-22                                    7           0       0      0.0000      0.0000   0.0000      null   0.0000                null
+day 15 2026-10-23                                    7           0       0      0.0000      0.0000   0.0000      null   0.0000                null
+day 16 2026-10-24                                    7           0       0      0.0000      0.0000   0.0000      null   0.0000                null
+day 17 2026-10-25                                    7           0       0      0.0000      0.0000   0.0000      null   0.0000                null
+day 18 2026-10-26                                    6           0       0      0.0000      0.0000   0.0000      null   0.0000                null
+day 19 2026-10-27                                    6           0       0      0.0000      0.0000   0.0000      null   0.0000                null
+R after the first 7 live days (the end rule ...)     220         64269   9000   [•]         [•]      [•]         0.7156 [•]                0.7505
+total over 19 live days; fills 480 (7780.08 shares), 325         64633   9000   [•]         [•]      [•]         0.7156 [•]                0.7505
+  their P&L $[•], per share $[•] (paper record: -0.0110; the live figure is worse)
+
+Days 8-19 carry market-days of the dust holdings and nothing scored: formula, paid and rebates are 0, so R is null (the
+script divides by nullif).
+
+Part 2: Addendum 19's bar, read from pm_lp_* live rows (read-only SELECTs beside the script, same session)
+
+Window: the first 14 full UTC days after restarted_at 2026-10-13 13:25:32 UTC, so 10-14 -> 10-27; the restart's day,
+10-13 from 13:25:32, read beside and not in the bar. The restart was undone on 2026-10-15 00:08 UTC (restarted_at null,
+Davies' word; ledger 0a'''), so the path stopped keeping state.lp.stop's restart basis then: condition 1 and 3 below are
+rebuilt from the records, every CONFIRMED fill (pm_lp_fills) with each token marked at the mid ((bb+ba)/2 of YES's book in
+pm_lp_minutes, the latest minute at or before the instant; NO = 1 - that), or at its payout once pm_lp_settlements shows it
+settled. The same rebuild on today's holdings differs from the path's own state.pnl.total by $0.21 (0.14 % of it).
+
+  1. The total from the restart >= $0 (fills' change since the restart, each holding at the restart from its mid then,
+     plus rewards paid and rebates for the days from 10-13, less fees; fees are 0: every fill's fee_rate_bps is 0):
+       at the restart's close (10-15 00:08 UTC)       $[•]   negative   FAILS
+       to the window's end (10-28 00:00 UTC)          $[•]   negative   FAILS
+  2. Rewards paid >= 1.5 c a filled share over the window:
+       window 10-14 -> 10-27: 27 fills, 474.20 shares (418.00 maker, 56.20 the 10-15 liquidation's taker sells)
+         rewards paid / all filled shares               0.769 c    FAILS
+         rewards paid / maker shares only               0.873 c    FAILS
+         rewards and rebates / all filled shares        0.920 c    FAILS (the bar counts rewards alone)
+       from the restart (10-13 13:25:32 ->): 43 fills, 794.20 shares; rewards from 10-13: 0.572 c   FAILS
+       the restart to its close (10-13 13:25:32 -> 10-15 00:08): 38 fills, 718.00 shares; 10-13 + 10-14 rewards: 0.524 c
+  3. No UTC day below -$15, and the -$25 stop not reached:
+       daily total (change of the marked fills over the UTC day, plus that day's rewards paid and rebates, less fees):
+         10-13 from 13:25:32 (beside)  $[•]
+         10-14                         $[•]   the worst day of the window; above -$15 by less than a dollar on this rebuild
+         10-15                         $[•]   positive
+         10-16 -> 10-27                each within 30 cents of zero (dust marks only)
+       the -$25 stop: no loss_stop event in pm_lp_events from the restart on (the only one, of either stop, is the -$75
+       total stop's of 2026-10-12 07:30 UTC); the rebuilt basis at each UTC midnight and at the close stays above -$25.
+     HOLDS, narrowly (10-14)
+  The bar needs every condition: 1 and 2 fail. FAIL.
+
+Part 3: the 14-day readout (the pre-registration's "Live: what is read", Addendum 19's split by rule)
+
+R with its 90 % interval: a day-block bootstrap over the days' paid and formula sums, 2,000 draws, mulberry32 seed
+20261004, the 5th and 95th percentiles of sum(paid) / sum(formula) (exp.ts's boot, on the ratio; a draw whose formula sums
+to 0 is left out and counted):
+  Addendum 18's rule, 10-09 -> 10-12 (4 days, 109 market-days)    R 0.7112  [0.6505, 0.8067]  2,000 draws used
+  Addendum 19's window, 10-14 -> 10-27 (14 days, 161 market-days) R 0.7762  [0.7147, 1.1401]  1,774 used, 226 with no formula
+      (the same over its two days with formula, 10-14 and 10-15:     R 0.7762  [0.7147, 1.1401])
+  the restart's day, 10-13 (beside)                                R 0.7187
+  every live day, 10-09 -> 10-27 (19 days)                         R 0.7156  [0.6495, 0.8028]
+  Scored R (paid / formula Polymarket scored): Addendum 18's span 0.7439, Addendum 19's window 0.8435.
+
+The P&L at the measured R, against the record's $109 (R = 1) and $37 (R = 0.40) a day: negative on both spans ($[•] a
+quoting day), below both.
+
+The fills' P&L per filled share, against the paper record's -$0.0110:
+  Addendum 18's rule (fills before the restart, 6,985.88 shares, marked at the restart)   $[•]   worse
+  Addendum 19's window (474.20 shares, 10-14 00:00 -> 10-28 00:00)                       $[•]   worse
+
+Per market, Addendum 19's window (cond prefix, question, market-days, quoted minutes, two-sided, scored, R, fills, shares;
+formula and paid masked):
+  0x76051f8c Will a Junior win the 2026 Heisman Trophy?                       2  2419    0    0  -      1    6.00
+  0x7465aead Democratic Senate odds 60-62% on October 16?                     2  2158   12    9  4.394  3   80.00
+  0xecc209a6 Will Iran release a Trump voicemail about the Strait of ...      3  1054    0    0  -      1   10.20
+  0x3b162968 Will Rory Nisan win the 2026 Burlington mayoral election?        1   947  151  155  0.460  6   98.00
+  0x397bea1f Will the Republican Party candidate win the 2026 IN-03 ...       1   730    0    0  -      2   40.00
+  0x6eed2a46 Will Google (GOOGL) Q3 YouTube ads revenue be above $11...       1   589   85   83  0.896  6  120.00
+  0x750ce9d6 Will the Democratic Party candidate win the 2026 IL-07 ...       1   485    0    0  -      1   20.00
+  0xed1eabc9 Will Drew Dilkens win the 2026 Windsor mayoral election?         1   298    0    0  -      1   20.00
+  0xd95404d1 Will the Republican Party candidate win the 2026 AZ-09 ...       1   254    0    0  -      1   20.00
+  0x8f0d07d4 Will Lorenzo Pazolini win the 2026 Espirito Santo guber...       1   209  115  119  0.524  0    0.00
+  0x80d0bb74 Will the Democratic Party candidate win the 2026 CO-06 ...       1    91   64   63  0.358  0    0.00
+  0x7edaab96 Will Honeywell Technologies (HON) Q3 Building Automatio...       1    86   19   13  0.014  0    0.00
+  0x99a0647b Will the Democratic Party candidate win the 2026 ME-01 ...       1    73   24   25  0.505  0    0.00
+  0x04c3a77d Will Kellie Sloane be the next Premier of New South Wal...       1    67   41   41  0.168  0    0.00
+  0xeee67c2a Will Manchester City finish in last place in the 2026-2...       1    56   17   19  0.174  0    0.00
+  0x7d542d01 US imports Russian diesel by November 30?                        1    37    1    1  1.464  3   40.00
+  0xe612eb64 Procter & Gamble (PG) Q1 organic sales growth 2.5% to 3...       1    28    0    0  -      2   20.00
+  and 17 more market-days of under 20 quoted minutes each, none with a fill (R 0 to 1.149 where a formula was read).
+  The window's other 123 market-days are dust holdings with no quoted minute.
+  ("-": no formula that day; the market was quoted close-only or one-sided.)
+
+Capital used: the account's money, masked. The day's selection named 12 markets on 10-13 (the restart) and 10-14 and 11 on
+10-15, each inside 90 % of the cap (Addendum 19 item 4).
+
+Read beside it (Addendum 19's descriptive list):
+  - R in quiet books: Addendum 19's window R above, 0.7762 over 161 market-days (of which 2 days carried formula).
+  - Quoting minutes in the window: 9,669 (Part 1's rows 10-14 to 10-27).
+  - The fills' 60-minute markout (mid 60 minutes after the fill against its price, our side; cents a share):
+      10-13 from the restart, 16 maker fills, 320 shares           +0.031 c
+      window, 24 maker fills, 418 shares                           -1.862 c   (6 of the 24 marks are older than 50 minutes)
+      window, the 3 liquidation taker sells, 56.20 shares          +3.379 c   (all 3 marks stale: the book had no rows by then)
+  - Quiet books each 00:00 found and reads spent (the selection event's `quiet`): 10-13 13:26 (the restart) 14 quiet of 60
+    reads, picked 12; 10-14 13 of 40, 12; 10-15 12 of 30, 11; 10-16 11 of 30, 11; 10-17 11 of 40, 11; 10-18 -> 10-26 1 to 7
+    quiet of 10-20 reads, 1 picked; 10-27 none read and none picked, the empty selection tried again every 5 minutes (176
+    selection events that day). Disarmed since 0125 (10-16): nothing picked after the close rested an order.
+
+Addendum 19's second end-rule reading (the same script over day >= the restart's day, from its seventh day with >= 40
+market-days): 10-13 -> 10-27, 15 days, 216 market-days, R 0.7642. Does not trip (>= 0.20).

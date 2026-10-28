@@ -46915,3 +46915,16 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   the same days 23 % / 10 %. Coinbase EURC-USDC 8 % over 12 months, 0 lately. Dead: TGBP-USDC, Bitstamp EURCV, Kraken (0.20 %),
   Gemini, Crypto.com, Bitfinex (no UK). **For Davies:** R1, an OKX recorder and 28-day paper twin (review §4, bar not frozen); R2 low.
   Ledger: the 04:20 UTC section archived.
+
+## LEDGER.md, archived 2026-10-28 (third) — the resume health check's section of 2026-10-28 19:20 UTC
+
+### [2026-10-28 19:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Resumed after a usage-limit stop; health check of every live and test row** (Davies, 10-28: "请继续执行任务并且仔细看下最新的
+  live/testings策略进展，有问题就修复"). LIVE at £600 armed and quoting, guards clear, no loss stop; 12 twins, Coinbase rows, the
+  variants and every recurring call beating (about 1,430 of 1,440 a day; the BOOT_ERROR batches were retried by the watchdog).
+  **Fixed:** LIVE's USDC conversion `8823` rested 24 h at 0.7485 while the bid rose and was cancelled unfilled, so USDC's asks ran
+  short ([•] USDC against about 200 needed) from 10-27 03:10; sent again (`9405`, post-only at 0.7500, the bid; on Davies' 10-27 £600
+  word). The automatic top-up's £5 a day cannot cover a capital step: an operator conversion that follows the bid is next.
+  **Fixed:** the targets page lost both hand tables from 10-27 13:51: Grok's note "@$625" failed `validateHandRisks`' "@" rule.
+  A placeholder is now "@" then a letter (`targets/hand.ts`, pin test; fails on the old rule); the branch head passes.
+  GROKPM desk check of 10-27/10-28 (missed 23:45 run): OK, Vertiv redeemed, BanRep flat, C-009 on `grokpm-ledger`.

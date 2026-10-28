@@ -71,8 +71,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    `liquidate_at` is still set as far as this ledger knows; clear it with
    `update public.pm_lp_config set liquidate_at = null where id = 1;` (Davies' call, PMPOST's proposal).
    **The seven-day read: done 2026-10-23, late** (R 0.7156 over 220 market-days, the restart's days 0.7642; no trip;
-   `reviews/2026-10-23-lp-reads.md`). **The 14-day readout is due no earlier than 10-27 13:25 UTC** (Addendum 19's window
-   end): run it as written then, or Davies withdraws it by an addendum.
+   `reviews/2026-10-23-lp-reads.md`). **The 14-day readout: read 2026-10-28, a day late; Addendum 19's bar FAILS**
+   (rewards 0.769 c a filled share against 1.5 c, the total since the restart negative; `reviews/2026-10-28-lp-reads.md`):
+   Polymarket rewards end, as the disarmed path already is. Its `pmlp`/`pmlpreserve` calls still run (Davies' call).
    Davies, 2026-10-20 (Portfolio Project group): live-prep's wind-up (`liquidate_at`) is left as it is for now.
 
 0a‴. **Q2 CLOSED, close-only, 2026-10-15 00:08 UTC** (Davies: "看一下最新的rewards payout，还不行的话就关了然后只卖出"). 10-14 paid
@@ -751,8 +752,15 @@ Facts a fresh session would otherwise rediscover:
 
 Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's archive, each batch under a heading
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
-first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to OTHERVENUES' section of 2026-10-27 06:05 UTC (archived
-2026-10-28, second).
+first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the resume health check's section of 2026-10-28 19:20 UTC
+(archived 2026-10-28, third).
+
+### [2026-10-28 19:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep's 14-day readout and Addendum 19's bar, read a day late (due 10-27 13:25 UTC; usage-limit stop), not blind**
+  (sub-agent; not pushed; `backtests/pmlp/lp_readout_a18.sql` as written, `results/lp_readout_a18_2026-10-28.txt`,
+  `reviews/2026-10-28-lp-reads.md`, reference §3.56). Window 10-14 → 10-27: rewards 0.769 c a filled share (474.20 shares)
+  against 1.5 c, and the total since the restart negative: **FAIL**. No day under −$15 and the −$25 stop untripped. R by rule:
+  0.7112 (A18), 0.7762 (A19), 0.7156 overall. Meaning: rewards end, the state since `0125`; nothing armed or changed.
 
 ### [2026-10-28 19:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **PR5V / rule D readings and the hidden twins' readouts** (sub-agent; not pushed). Committed scripts run unchanged on
@@ -765,14 +773,3 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to OTHE
   prints and five levels of USDG-EUR and EURC-USDC, then "Stablecoin quotes OKX USDG" / "… OKX EURC", LIVE's rules at €50 a rung,
   28 days from the first 00:00 after deploy. **UK account not settled**: the prereg's §1 lists Davies' in-app checks (pairs, EUR or
   EURC, maker fee; UK regular spot is quoted 0.08 %). After deploy: `okx_rec_state.last_report.reached` true, both books' prints.
-
-### [2026-10-28 19:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Resumed after a usage-limit stop; health check of every live and test row** (Davies, 10-28: "请继续执行任务并且仔细看下最新的
-  live/testings策略进展，有问题就修复"). LIVE at £600 armed and quoting, guards clear, no loss stop; 12 twins, Coinbase rows, the
-  variants and every recurring call beating (about 1,430 of 1,440 a day; the BOOT_ERROR batches were retried by the watchdog).
-  **Fixed:** LIVE's USDC conversion `8823` rested 24 h at 0.7485 while the bid rose and was cancelled unfilled, so USDC's asks ran
-  short ([•] USDC against about 200 needed) from 10-27 03:10; sent again (`9405`, post-only at 0.7500, the bid; on Davies' 10-27 £600
-  word). The automatic top-up's £5 a day cannot cover a capital step: an operator conversion that follows the bid is next.
-  **Fixed:** the targets page lost both hand tables from 10-27 13:51: Grok's note "@$625" failed `validateHandRisks`' "@" rule.
-  A placeholder is now "@" then a letter (`targets/hand.ts`, pin test; fails on the old rule); the branch head passes.
-  GROKPM desk check of 10-27/10-28 (missed 23:45 run): OK, Vertiv redeemed, BanRep flat, C-009 on `grokpm-ledger`.

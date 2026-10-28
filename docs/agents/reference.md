@@ -3533,6 +3533,23 @@ or changed.
   - EURC's UK access on Coinbase;
   - Bitstamp's and Crypto.com's stable-pair fees.
 
+### 3.56 Live-prep's 14-day readout: Addendum 19's bar fails, and Polymarket rewards end (2026-10-28)
+
+Read on 2026-10-28, a day late (`reviews/2026-10-28-lp-reads.md`). Not blind, and the live account's dollars are masked.
+It ran `backtests/pmlp/lp_readout_a18.sql` as written (`results/lp_readout_a18_2026-10-28.txt`).
+
+- **Addendum 19's bar** covers the window 10-14 → 10-27, the 14 full days after the restart.
+  - The total from the restart is negative: **fails**.
+  - Rewards were **0.769 ¢ a filled share** against the 1.5 ¢ bar (474.20 shares): **fails**.
+  - No day was below −$15 (10-14 the closest) and the −$25 stop never tripped: holds.
+  - So the bar fails. Its consequence, staying stopped, already holds: the path has been disarmed since `0125`.
+- **R by rule**, with the day-block bootstrap's 90 % interval:
+  - Addendum 18, 10-09 → 10-12: 0.7112 [0.6505, 0.8067].
+  - Addendum 19's window: 0.7762 [0.7147, 1.1401], resting on two days with formula.
+  - Every live day: 0.7156.
+- **The fills' P&L per share** was worse than paper's −$0.0110 on both rules.
+- **Addendum 19's second end-rule reading**: R 0.7642 over 216 market-days. It does not trip.
+
 ## 4. Design consequences (decided by the evidence above)
 
 1. **Jev is a decision node, not a strategist.** Code computes indicators, regime, position and risk; Jev sees ≤ 1–2 k tokens of categorical state and answers typed questions; a deterministic risk layer has the last word. Anything else contradicts the vendor's own jaggedness page.
