@@ -47008,3 +47008,16 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
 - **OKX's paper twins start at 22:00 too (`0155`; Davies, 10-28: "okx")**: `okx_quote_state.startedAt` 10-29 00:00 → 10-28 22:00,
   guarded; window → 11-25 22:00 (prereg deviation 1). After it applies, check `startedAt` stayed moved (a minute call in
   flight could write the old one back) and that `okx_quote_minutes` fills from 22:00.
+
+## LEDGER.md, archived 2026-10-29 (first) — the 2026-10-28 22:05 UTC, 2026-10-28 22:18 UTC history sections, oldest first
+
+### [2026-10-28 22:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM orders verified and the rules weighed** (sub-agent; commit, not pushed; Davies: "下的单太少了，用的钱也太少"):
+  `reviews/2026-10-28-grokpm-utilisation.md`, `backtests/grokpm_util/`. 24 orders, 5 fills, all correct; money used ~2 %
+  (~10 % since D15) because few edges clear a bar, not because of the bars; no looser rule supported; no money added yet.
+
+### [2026-10-28 22:18 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **DAYS shows today and the figure's seven days (sub-agent; commit, not pushed; Davies, 10-28)**: every Stablecoin quotes page
+  (LIVE, twins, Coinbase, OKX share `QuoteDaysTable`) lists today's open row and the seven closed UTC days "7-day realised, annualised" sums
+  (`quoteDaysWindow`, one definition for both); "Load full history" shows all, then
+  "Show last 7 days". `quote_days.test.js`. Dist rebuilt; the main session runs the gates.

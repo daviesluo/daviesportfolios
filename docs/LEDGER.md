@@ -641,6 +641,15 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
     pennies deep, and Kalshi leads nothing. Nothing to run. Davies decides only whether SAMEBET-REC (§6) is ever wanted
     (recommended: no).
 
+18. **IGBOT, "IG analyst": a Grok bot on IG's DEMO, built, dry-run, not deployed** (Davies, 2026-10-28: "…做个类似的做ig的
+    cfd/options/spread betting的trading bot并搭建架构，做好了给我发prompt"; `reviews/2026-10-29-igbot-research.md`, prereg DRAFT
+    `reviews/2026-10-29-igbot-prereg.md`, prompt `docs/agents/igbot/GROK_PROMPT.md`, `0157`, `igbot` function). **Davies does:**
+    a demo login and demo API key; secrets `IGBOT_DEMO_API_KEY`, `IGBOT_DEMO_USERNAME`, `IGBOT_DEMO_PASSWORD`,
+    `IGBOT_DEMO_ACCOUNT_ID` (a spread-bet demo account), `IGBOT_TOKEN` (32+ chars, to Grok only); Grok gets the prompt.
+    **The main session:** create `igbot-ledger` (an orphan branch holding `docs/agents/igbot/ledger_seed.md` as
+    `IGBOT_LEDGER.md`); after the deploy, the ping answers `ig_configured`; the dry-run rehearsal (prereg §3.1); the demo arm
+    (0157's header) only on his word. No live path exists.
+
 ## Machine and platform setup
 
 A rebuilt container loses every line below. Run them before working.
@@ -755,8 +764,13 @@ Facts a fresh session would otherwise rediscover:
 
 Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's archive, each batch under a heading
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
-first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-28 21:40 UTC section (archived
-2026-10-28, ninth).
+first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-28 22:18 UTC section (archived
+2026-10-29, first).
+
+### [2026-10-28 22:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **IGBOT built on IG's demo** (sub-agent; commit, not pushed; item 18): `igbot` (Grok proposes, `IGBOT_RULES` enforce, a
+  demo-only client), `0157` (tables, RLS, a minute read-back), 34 Deno and 8 vitest pins; research says the edge is
+  unproven (IG's 70 % loss rate; GROKPM's p not yet better than the market's). The 22:05 and 22:18 sections archived.
 
 ### [2026-10-28 22:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **GROKPM D18** (sub-agent; commit, not pushed; Davies, 10-28: "同意'边际 ≥20 个点时上限 $10'", on the utilisation review): D15's
@@ -767,14 +781,3 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 ### [2026-10-28 22:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **PR5V and rule D stop (`0156`; Davies, 10-28: "按照你的推荐来决定")**: `quotesv`, `quotesd` off, as both preregs say at the
   reading; records stay. PR5V's question (more capital at LIVE's rule) continues as `live1200` (variant-1).
-
-### [2026-10-28 22:18 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **DAYS shows today and the figure's seven days (sub-agent; commit, not pushed; Davies, 10-28)**: every Stablecoin quotes page
-  (LIVE, twins, Coinbase, OKX share `QuoteDaysTable`) lists today's open row and the seven closed UTC days "7-day realised, annualised" sums
-  (`quoteDaysWindow`, one definition for both); "Load full history" shows all, then
-  "Show last 7 days". `quote_days.test.js`. Dist rebuilt; the main session runs the gates.
-
-### [2026-10-28 22:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **GROKPM orders verified and the rules weighed** (sub-agent; commit, not pushed; Davies: "下的单太少了，用的钱也太少"):
-  `reviews/2026-10-28-grokpm-utilisation.md`, `backtests/grokpm_util/`. 24 orders, 5 fills, all correct; money used ~2 %
-  (~10 % since D15) because few edges clear a bar, not because of the bars; no looser rule supported; no money added yet.
