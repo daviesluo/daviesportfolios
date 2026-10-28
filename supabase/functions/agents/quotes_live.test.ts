@@ -18,8 +18,9 @@ import {
   QUOTE_LIVE_ENTRY_POSTS, QUOTE_LIVE_POST_GAP_MS, QUOTE_LIVE_STOPS_ONLY_POSTS, rungBase, rungBook, rungGbp, runQuotesConvert, runQuotesLive, stopDue, stopLimitTicks,
   venueSideOf, wasRateLimited, wasSent, asksNeedOf, makerBuyTicks, planTopUps, isAutoConvert, QUOTE_LIVE_TOPUP_REST_MS,
   deadmanWatchReason, QUOTE_LIVE_DEADMAN_WATCH_MS, pennyUp, faultLineKey, liveAlerts, QUOTE_LIVE_ALERT_EVERY_MS, QUOTE_LIVE_RECOVERED_AFTER_MS, type LiveFault,
+  convertFirstAt, convertRepegDue, repegBase, CONVERT_REPEG_REASON, QUOTE_LIVE_CONVERT_REPEG_MS, QUOTE_LIVE_CONVERT_REST_MS, QUOTE_LIVE_INSTANCE, type QuoteLiveInstance,
 } from "./quotes_live.ts";
-import { floorToStep } from "../_shared/agents_strategy.ts";
+import { ceilToStep, floorToStep } from "../_shared/agents_strategy.ts";
 import { bookLiveBuy } from "./tick.ts";
 import { FakeRevx, GBP_BOOK_PAIR, memDb, type Row } from "./testing.ts";
 import { revxDeadmanVenue, runDeadman } from "../monitor/deadman.ts";
@@ -34,7 +35,7 @@ const PAIR = { base_step: GBP_BOOK_PAIR.base_step, quote_step: GBP_BOOK_PAIR.quo
 /** The rung's size in coin at `price`, worked out by hand: £50 over twelve rungs, floored to the 0.00001 step. */
 const handBase = (price: number, capital = 50) => Math.floor(capital / 12 / price * 1e5) / 1e5;
 
-type Opts = { live?: boolean; armed?: boolean; key?: boolean; balances?: Record<string, number>; capital?: number };
+type Opts = { live?: boolean; armed?: boolean; key?: boolean; balances?: Record<string, number>; capital?: number; instance?: QuoteLiveInstance };
 
 function makeWorld(o: Opts = {}) {
   const clock = { now: T0 + M + 30e3 };
@@ -85,7 +86,7 @@ function makeWorld(o: Opts = {}) {
       const pause = (ms: number) => { pauses.taken.push(ms); if (pauses.advance) clock.now += ms; return Promise.resolve(); };
       return runQuotesLive({
         db: executorDb, now: at, holder: `h${at}`, uuid: () => crypto.randomUUID(), account, accountNote: account ? null : "no key", fetch: rx.fetch, pause, clock: () => clock.now,
-        ...(w.deadmanBeatAt ? { deadmanBeatAt: w.deadmanBeatAt } : {}),
+        ...(w.deadmanBeatAt ? { deadmanBeatAt: w.deadmanBeatAt } : {}), ...(o.instance ? { instance: o.instance } : {}),
       });
     },
     /** The dead-man switch's newest beat, as `quotesLiveDeps` reads it for the live account; unset, nothing is watched. */
@@ -1682,4 +1683,142 @@ Deno.test("live: a PARKED order the venue lists again is adopted on the next qua
   await w.step(T0 + m * M);
   assertEquals(w.orders().filter((o) => o.state === "pending").length, 0, JSON.stringify(w.orders().map((o) => o.state)));
   assertEquals([...w.rx.orders.values()].filter((o) => o.status === "new").length, 0);    // nothing left resting on the venue
+});
+
+// ------------------------------------------------------------------ an operator's conversion follows the bid (2026-10-28)
+
+// Production, 2026-10-27: conversion 8823, LIVE's USDC conversion for the capital step to £600, rested a tick under a bid
+// that rose past it, filled nothing in its 24 hours, and LIVE's USDC asks ran short for about 40 hours; the top-ups' £5 a
+// day cannot cover a capital step. From 2026-10-28 the live account's conversion follows the bid (`convertRepeg`).
+/** The live account's instance with the rule in force over these September fixtures (its own instant is 2026-10-28). */
+const REPEG: QuoteLiveInstance = { ...QUOTE_LIVE_INSTANCE, convertRepeg: { from: T0 - DAY } };
+const opConverts = (w: ReturnType<typeof makeWorld>, book = "USDT-GBP") =>
+  w.orders().filter((o) => o.leg === "convert" && o.book === book && !isAutoConvert(o as { leg: string; request: unknown }));
+async function operatorConvert(w: ReturnType<typeof makeWorld>, now: number, instance?: QuoteLiveInstance) {
+  return await runQuotesConvert({ db: w.mem.db, now, holder: "op", uuid: () => crypto.randomUUID(), account: w.account, fetch: w.rx.fetch, pause: () => Promise.resolve(), clock: () => now, ...(instance ? { instance } : {}) },
+    { book: "USDT-GBP", gbp: 12.5, send: true });
+}
+
+Deno.test("convertRepegDue, convertFirstAt, repegBase: an operator's maker conversion rested 30 minutes under a higher bid, inside 24 hours of its first send; the remainder, at most what the asks lack", () => {
+  const C0 = T0, o = { mode: "live", leg: "convert", state: "new", ts: iso(C0), price: 0.7547, request: { postOnly: true, marketable: false } as Record<string, unknown>, cancel_requested_at: null };
+  assertEquals(QUOTE_LIVE_CONVERT_REPEG_MS, 30 * M);
+  assertEquals(convertRepegDue(o, 0.7549, C0 + 30 * M), true);
+  assertEquals(convertRepegDue(o, 0.7549, C0 + 30 * M - 1), false);                       // rested under 30 minutes
+  assertEquals(convertRepegDue(o, 0.7547, C0 + 2 * H), false);                            // still the top of the bids
+  assertEquals(convertRepegDue(o, 0.7546, C0 + 2 * H), false);
+  assertEquals(convertRepegDue(o, null, C0 + 2 * H), false);
+  assertEquals(convertRepegDue({ ...o, state: "partially_filled" }, 0.7549, C0 + H), true);
+  for (const x of [{ state: "pending" }, { state: "filled" }, { mode: "dry_run" }, { leg: "entry" }, { cancel_requested_at: iso(C0 + H) },
+    { request: { auto: true } }, { request: { marketable: true } }]) assertEquals(convertRepegDue({ ...o, ...x }, 0.7549, C0 + H), false, JSON.stringify(x));
+  // A re-peg counts its 24 hours from the first send it carries, never from its own.
+  const again = { ...o, ts: iso(C0 + 23 * H), request: { firstTs: iso(C0) } };
+  assertEquals(convertFirstAt(again), C0);
+  assertEquals(convertFirstAt(o), C0);
+  assertEquals(convertFirstAt({ ts: iso(C0), request: { firstTs: "nonsense" } }), C0);
+  assertEquals(convertRepegDue(again, 0.7549, C0 + 23 * H + 30 * M), true);
+  assertEquals(convertRepegDue(again, 0.7549, C0 + QUOTE_LIVE_CONVERT_REST_MS), false);
+  // The remainder, capped at the asks' shortfall rounded up to the step; nothing under the venue's minimum or when nothing is short.
+  assertEquals(repegBase(11.56287, 11.49731, PAIR, 0.755), "11.49731");
+  assertEquals(repegBase(11.56287, 11.497312, PAIR, 0.755), "11.49732");
+  assertEquals(repegBase(11.56287, 40, PAIR, 0.755), "11.56287");
+  assertEquals([repegBase(11.56287, 0, PAIR, 0.755), repegBase(0.1, 5, PAIR, 0.755), repegBase(0, 5, PAIR, 0.755)], [null, null, null]);
+});
+
+Deno.test("an operator's conversion under a moved bid for 30 minutes is cancelled and its remainder sent at the new top of the bids, at most what the asks still lack; a twin's rests where it was", async () => {
+  const run = async (instance: QuoteLiveInstance) => {
+    const w = makeWorld({ live: true, armed: true, capital: 50, balances: { USDC: 20 }, instance });
+    await w.paperStep(T0);
+    const C0 = T0 + M + 30e3;
+    await operatorConvert(w, C0, instance);
+    const conv = opConverts(w)[0];
+    assertEquals([Number(conv.price), conv.state], [0.7547, "new"]);
+    await w.step(T0 + M);
+    w.rx.fillResting(String(conv.venue_order_id), 5);                    // a seller takes 5 of it
+    await w.step(T0 + 2 * M);
+    w.rx.gbpBooks["USDT/GBP"] = { bid: 0.7549, ask: 0.7553 };             // the bid moves up past it
+    await w.run(T0 + 3 * M, T0 + 29 * M);                               // the last of these turns is 29 minutes after it was sent
+    assertEquals(opConverts(w).map((o) => [Number(o.price), o.state]), [[0.7547, "partially_filled"]]);
+    const r = await w.step(T0 + 30 * M);                                // 30 minutes
+    return { w, C0, conv, r };
+  };
+  const { w, C0, conv, r } = await run(REPEG);
+  const [old, next] = opConverts(w);
+  // The old one: cancelled, read back, its 5 booked (a part-filled order cancelled is booked `filled` with what it filled).
+  assertEquals([old.id, old.state, Number(old.filled_base), String(old.cancel_reason).startsWith(CONVERT_REPEG_REASON)], [conv.id, "filled", 5, true]);
+  // The new one: one tick over the new best bid (0.7550, the ask a tick above stays clear), post-only, for what the asks
+  // still lack: three asks' worth at the rule's prices less the 5 held, rounded up to the step — under the 11.56287 left.
+  const asksNeed = asksNeedOf(1 / X, 50, PAIR);
+  const short = Number(ceilToStep(asksNeed - 5, PAIR.base_step));
+  assert(short < Number(conv.base_size) - 5, `${short} is the cap that binds`);
+  const req = next.request as Record<string, unknown>;
+  assertEquals([Number(next.price), Number(next.base_size), next.state, req.postOnly, req.crossesBook, req.firstTs, req.repegOf, req.auto],
+    [0.755, short, "new", true, false, iso(C0), conv.id, undefined]);
+  assertEquals(w.rx.resting("USDT/GBP").filter((o) => o.side === "buy" && Number(o.price) === 0.755).map((o) => Number(o.quantity)), [short]);
+  assertEquals(w.rx.resting("USDT/GBP").filter((o) => Number(o.price) === 0.7547).length, 0);
+  assertEquals(r.errors, []);
+  // It rests at the top: no further re-peg, and no top-up beside it.
+  await w.run(T0 + 31 * M, T0 + 40 * M);
+  assertEquals(opConverts(w).length, 2);
+  assertEquals(w.orders().filter((o) => isAutoConvert(o as { leg: string; request: unknown }) && o.book === "USDT-GBP").length, 0);
+  // The counterfactual, the executor as it was (a twin's instance, and the live account's before 2026-10-28): it rests under the bid.
+  for (const inst of [{ ...QUOTE_LIVE_INSTANCE, convertRepeg: undefined }, QUOTE_LIVE_INSTANCE]) {
+    const cf = await run(inst);
+    await cf.w.run(T0 + 31 * M, T0 + 40 * M);
+    assertEquals(opConverts(cf.w).map((o) => [Number(o.price), o.state]), [[0.7547, "partially_filled"]]);
+  }
+});
+
+Deno.test("a conversion following the bid keeps its first send's 24 hours: re-pegged three times, it is cancelled 24 hours from the operator's send, and nothing goes again", async () => {
+  const w = makeWorld({ live: true, armed: true, capital: 50, balances: { USDC: 20 }, instance: REPEG });
+  await w.paperStep(T0);
+  const C0 = T0 + M + 30e3;
+  await operatorConvert(w, C0, REPEG);
+  const move = (bid: number) => { w.rx.gbpBooks["USDT/GBP"] = { bid, ask: Math.round((bid + 0.0004) * 1e4) / 1e4 }; };
+  move(0.7549);
+  await w.step(T0 + 30 * M);                                            // 30 minutes after the send: the first re-peg
+  move(0.7551);
+  await w.step(T0 + 70 * M);                                            // 40 minutes after it: the second
+  move(0.7553);
+  await w.step(T0 + 24 * H - 3 * M);                                    // 23 h 57 min after the operator's send: the third
+  assertEquals(opConverts(w).map((o) => [Number(o.price), o.state]), [[0.7547, "cancelled"], [0.755, "cancelled"], [0.7552, "cancelled"], [0.7554, "new"]]);
+  assertEquals(opConverts(w).slice(1).map((o) => (o.request as Record<string, unknown>).firstTs), [iso(C0), iso(C0), iso(C0)]);
+  // 24 hours from the operator's send (the third re-peg is 3 minutes old): cancelled, whatever the bid does, and not sent again.
+  move(0.7555);
+  await w.step(T0 + 24 * H);
+  const last = opConverts(w).at(-1)!;
+  assertEquals([last.state, String(last.cancel_reason).startsWith("unfilled after 24 hours")], ["cancelled", true]);
+  await w.run(T0 + 24 * H + M, T0 + 24 * H + 40 * M);
+  assertEquals(opConverts(w).length, 4);
+  assertEquals(w.open("live").filter((o) => o.leg === "convert" && !isAutoConvert(o as { leg: string; request: unknown })).length, 0);
+});
+
+Deno.test("a conversion under the bid once the asks hold their coin is cancelled and not sent again: never more than the asks still need", async () => {
+  const w = makeWorld({ live: true, armed: true, capital: 50, balances: { USDC: 20, USDT: 10 }, instance: REPEG });
+  await w.paperStep(T0);
+  await operatorConvert(w, T0 + M + 30e3, REPEG);
+  const conv = opConverts(w)[0];
+  w.rx.fillResting(String(conv.venue_order_id), 7);                    // 10 + 7 is past the asks' three
+  assert(17 > asksNeedOf(1 / X, 50, PAIR));
+  w.rx.gbpBooks["USDT/GBP"] = { bid: 0.7549, ask: 0.7553 };
+  await w.run(T0 + M, T0 + 30 * M);
+  const [old, ...rest] = opConverts(w);
+  assertEquals([old.state, Number(old.filled_base), String(old.cancel_reason).startsWith("the asks hold their three asks' worth")], ["filled", 7, true]);
+  assertEquals(rest, []);
+});
+
+Deno.test("a re-peg whose cancel the venue has not carried out is sent once the next turn reads the cancel back", async () => {
+  const w = makeWorld({ live: true, armed: true, capital: 50, balances: { USDC: 20 }, instance: REPEG });
+  await w.paperStep(T0);
+  const C0 = T0 + M + 30e3;
+  await operatorConvert(w, C0, REPEG);
+  w.rx.gbpBooks["USDT/GBP"] = { bid: 0.7549, ask: 0.7553 };
+  await w.run(T0 + M, T0 + 29 * M);
+  w.rx.cancelMode = "lost";                                             // the DELETE answers 204 and the order stays
+  await w.step(T0 + 30 * M);
+  assertEquals(opConverts(w).map((o) => [Number(o.price), o.state, !!o.cancel_requested_at]), [[0.7547, "new", true]]);
+  w.rx.cancelMode = "ok";
+  await w.step(T0 + 31 * M);
+  const [old, next] = opConverts(w);
+  assertEquals([old.state, next && Number(next.price), next && (next.request as Record<string, unknown>).firstTs], ["cancelled", 0.755, iso(C0)]);
+  assertEquals(Number(next.base_size), Number(ceilToStep(asksNeedOf(1 / X, 50, PAIR), PAIR.base_step)));
 });

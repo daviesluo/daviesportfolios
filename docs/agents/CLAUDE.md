@@ -382,7 +382,9 @@ that follow from that evidence, in short:
   stops armed, one error when it starts, `QUOTE_LIVE_DEADMAN_WATCH_MS`). Its asks hold coin bought by `quotes-convert`
   (£30 of each, 16:31–16:32 UTC), topped up by the executor itself since
   2026-10-02 when an ask runs short (a maker conversion at the bid, at most £5
-  a book a day, `planTopUps`). It went live with `update
+  a book a day, `planTopUps`); since 2026-10-28 an operator's conversion left 30 minutes under a higher bid goes again
+  at the top for its remainder, at most what the asks lack, within its first send's 24 hours (`convertRepeg`, LIVE's
+  instance alone). It went live with `update
   public.agent_quote_live_config set dry_run = false, live_confirmed_at =
   now() where id = 1;`. Its `live_confirmed_at` is its kill switch (exits
   stay armed); `global_pause` cancels everything. From its first real

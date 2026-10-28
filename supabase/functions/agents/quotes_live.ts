@@ -54,7 +54,7 @@
 //     book's coin up itself (Davies, 2026-10-02): a maker conversion at the top of the bids, back to three asks' worth
 //     and 2 % over, out of the GBP the entries leave free, one at a time a book, at most £5 a book in a UTC day,
 //     cancelled after 30 minutes unfilled (`planTopUps`). The operator's conversion, `runQuotesConvert`, stays for
-//     capital added.
+//     capital added; on the live account it follows the bid while it rests (2026-10-28, `convertRepegDue`).
 
 import { ceilToStep, floorToStep, type PairConfig } from "../_shared/agents_strategy.ts";
 import { revxPublic } from "../_shared/revx.ts";
@@ -154,6 +154,13 @@ export type QuoteLiveInstance = {
    * instance has none.
    */
   holdMin?: { from: number; gbp: number };
+  /**
+   * An operator's conversion follows the bid from `from` (ms; `convertRepegDue`; 2026-10-28, on Davies' word of 10-02): rested
+   * QUOTE_LIVE_CONVERT_REPEG_MS under a best bid that has moved above it, it is cancelled and sent again at the top of the
+   * bids for what it has not filled, under `runQuotesConvert`'s own checks, until QUOTE_LIVE_CONVERT_REST_MS from its
+   * first send. The live account's instance alone: a twin's operator conversion rests as it did (no `TWIN_RULES` key).
+   */
+  convertRepeg?: { from: number };
 };
 /** The weights of `QuoteLiveInstance.weights`: by book, by side and by rung distance (the key is `String(k)`, "0.001"). */
 export type RungWeights = { from: number; book?: Partial<Record<QuoteBook, number>>; side?: Partial<Record<Side, number>>; k?: Record<string, number> };
@@ -162,6 +169,7 @@ export const QUOTE_LIVE_INSTANCE: QuoteLiveInstance = {
   config: "agent_quote_live_config", orders: "agent_quote_live_orders", events: "agent_quote_live_events", state: "agent_quote_live_state",
   migration: "0052", paper: "agent_quote_state", lease: "quotes-live", rungs: QUOTE_RUNGS, exitReprice: QUOTE_REPRICE, govKey: () => "account",
   liveSwitches: { wkPaper: "agent_quote_live_wkpaper" },
+  convertRepeg: { from: Date.parse("2026-10-28T00:00:00Z") },
 };
 /** The rungs an instance has retired at `now` (`QuoteLiveInstance.retired`): none for the live account. */
 export const retiredAt = (inst: QuoteLiveInstance, now: number): readonly number[] => (inst.retired && now >= inst.retired.from ? inst.retired.ks : []);
@@ -187,7 +195,10 @@ export const QUOTE_LIVE_STOP_RETRY_MS = H;          // an unfilled stop is tried
 export const QUOTE_LIVE_LEASE_MS = 55e3;
 export const QUOTE_LIVE_PENDING_GRACE_MS = 60e3;    // a `pending` row younger than this is the current turn's own
 export const QUOTE_LIVE_CONVERT_MAX_FRACTION = 0.25; // one conversion buys at most three rungs' worth: the design's inventory for one coin
-/** A conversion resting at the bid (maker, 0 %) that has not filled in this long is cancelled; the operator sends another. */
+/**
+ * A conversion resting at the bid (maker, 0 %) that has not filled in this long from its first send (`convertFirstAt`) is
+ * cancelled; the operator sends another.
+ */
 export const QUOTE_LIVE_CONVERT_REST_MS = 24 * H;
 /**
  * The asks' coin, topped up by the minute loop itself (Davies, 2026-10-02: "以后这种问题自动处理，用昨天新加的规则maker换币").
@@ -197,6 +208,17 @@ export const QUOTE_LIVE_CONVERT_REST_MS = 24 * H;
 export const QUOTE_LIVE_TOPUP_BUFFER = 0.02;
 /** An automatic top-up resting unfilled this long is cancelled; a turn that still finds an ask short sends another at the book as it then stands. */
 export const QUOTE_LIVE_TOPUP_REST_MS = 30 * M;
+/**
+ * An operator's conversion (`runQuotesConvert`, not a top-up) that has rested this long while the best bid moved above it
+ * is no longer at the top of the bids: on an instance with `convertRepeg` the minute loop cancels it and sends what it has
+ * not filled again at the top, at most what the asks still lack (2026-10-28, on Davies' standing word of 10-02 that coin
+ * shortages are handled automatically; on 10-27 conversion 8823 sat a tick under a rising bid for its 24 hours, filled
+ * nothing, and LIVE's USDC asks ran short for about 40 hours after the capital step to £600, which the £5-a-day top-ups
+ * cannot cover). The top-ups' own 30 minutes (QUOTE_LIVE_TOPUP_REST_MS; the tests pin the two equal).
+ */
+export const QUOTE_LIVE_CONVERT_REPEG_MS = 30 * M;
+/** How a conversion's cancel to follow the bid begins (`cancel_reason`): a later turn that reads a frozen one back sends its remainder. */
+export const CONVERT_REPEG_REASON = "following the bid: under a best bid";
 /** At most this many pounds of automatic top-ups a book in a UTC day: a shortfall past it is reported, never chased. */
 export const QUOTE_LIVE_TOPUP_MAX_GBP_DAY = 5;
 /**
@@ -486,6 +508,38 @@ export function planTopUps(books: TopUpBook[], capitalGbp: number, freeGbp: numb
 /** An automatic top-up (`request.auto`), as against an operator's `quotes-convert`. */
 export const isAutoConvert = (o: { leg?: string; request?: unknown }) =>
   o.leg === "convert" && (o.request as { auto?: unknown } | null | undefined)?.auto === true;
+/**
+ * When a conversion was first sent: its own `ts`, or, for one that follows the bid, the first send's (`request.firstTs`,
+ * which each re-peg carries on), so QUOTE_LIVE_CONVERT_REST_MS counts from the operator's send, not from each re-peg.
+ */
+export function convertFirstAt(o: { ts: string; request?: unknown }): number {
+  const own = Date.parse(o.ts), f = (o.request as { firstTs?: unknown } | null | undefined)?.firstTs;
+  const first = typeof f === "string" ? Date.parse(f) : NaN;
+  return Number.isFinite(first) && first < own ? first : own;
+}
+/**
+ * Is an operator's conversion due to follow the bid (`QuoteLiveInstance.convertRepeg`)? A live maker conversion the
+ * operator sent (not a top-up, not an IOC), resting with no cancel asked, sent at least QUOTE_LIVE_CONVERT_REPEG_MS ago
+ * and less than QUOTE_LIVE_CONVERT_REST_MS after its first send, under a best bid now above its price: no longer at the top.
+ */
+export function convertRepegDue(
+  o: { mode: string; leg: string; state: string; ts: string; price: number | string; request?: unknown; cancel_requested_at?: string | null },
+  bestBid: number | null, now: number,
+): boolean {
+  if (o.mode !== "live" || o.leg !== "convert" || isAutoConvert(o) || (o.state !== "new" && o.state !== "partially_filled") || o.cancel_requested_at) return false;
+  if ((o.request as { marketable?: unknown } | null | undefined)?.marketable === true) return false;
+  if (now - Date.parse(o.ts) < QUOTE_LIVE_CONVERT_REPEG_MS || now - convertFirstAt(o) >= QUOTE_LIVE_CONVERT_REST_MS) return false;
+  return bestBid != null && Math.round(bestBid / QUOTE_TICK) > Math.round(Number(o.price) / QUOTE_TICK);
+}
+/**
+ * A re-pegged conversion's size: what it has not filled, and never more than the asks still lack (`short`, in coin,
+ * rounded up to the step: the least that covers it); null under the venue's minimum at `price`.
+ */
+export function repegBase(remainder: number, short: number, pair: PairConfig, price: number): string | null {
+  if (!(remainder > 0) || !(short > 1e-9) || !(price > 0)) return null;
+  const base = floorToStep(Math.min(remainder, Number(ceilToStep(short, pair.base_step))), pair.base_step);
+  return Number(base) > 0 && Number(base) >= dustBase(pair, price) ? base : null;
+}
 /**
  * A resting exit sized to the penny the venue rounds to, the hair it rounds off kept on the rung as dust. Revolut X credits
  * a sell's GBP floored to the penny and debits a buy's rounded UP (PR5's first round trip, 2026-10-01: the ask sold
@@ -1232,12 +1286,13 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
   }
   const open = openAll.filter(isOpen);
   // A conversion resting at the bid (`quotes-convert`, maker by default) buys coin, as an entry does: it goes with the global
-  // pause, whenever the executor is not live and armed, and once it has rested unfilled for QUOTE_LIVE_CONVERT_REST_MS. Its
-  // fills are booked above, as every live order's are; a cancel already asked is asked again there.
+  // pause, whenever the executor is not live and armed, and once QUOTE_LIVE_CONVERT_REST_MS have passed since its first send
+  // (`convertFirstAt`: a re-pegged one's 24 hours count from the operator's send, step 6b′). Its fills are booked above, as
+  // every live order's are; a cancel already asked is asked again there.
   for (const o of open.filter((x) => x.mode === "live" && x.leg === "convert" && x.state !== "pending" && !x.cancel_requested_at && !unreadable.has(x.id))) {
     const why = globalPause ? "global pause" : entry.book !== "live" ? `not live and armed (${entry.why})`
       : isAutoConvert(o) ? (d.now - Date.parse(o.ts) >= QUOTE_LIVE_TOPUP_REST_MS ? "a top-up unfilled after 30 minutes: the next turn that finds an ask short sends another at the book as it stands" : null)
-      : d.now - Date.parse(o.ts) >= QUOTE_LIVE_CONVERT_REST_MS ? "unfilled after 24 hours: send another conversion if it is still wanted" : null;
+      : d.now - convertFirstAt(o) >= QUOTE_LIVE_CONVERT_REST_MS ? "unfilled after 24 hours: send another conversion if it is still wanted" : null;
     if (!why) continue;
     try { await cancelConfirmed(o, why); } catch (e) { report.errors.push(`${o.book}|convert: cancel ${msg(e)}`); }
   }
@@ -1605,6 +1660,76 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
     } catch (e) { report.errors.push(`weekend shadow: ${msg(e)}`); }
   }
 
+  // ── 6b′. an operator's conversion follows the bid (`QuoteLiveInstance.convertRepeg`, the live account's alone, from
+  // 2026-10-28; Davies' standing word of 10-02: "以后这种问题自动处理"), before the top-ups, so a book whose conversion goes
+  // again gets none beside it. One that has rested QUOTE_LIVE_CONVERT_REPEG_MS under a best bid that moved above it
+  // (`convertRepegDue`) is cancelled, read back, and what it has not filled is sent again at the top of the bids, under
+  // `runQuotesConvert`'s own checks: a fair no older than three minutes, the best ask within fair + 50 bps, a maker's price
+  // that never crosses, the governor open, the GBP free beyond every open buy, and never more coin than the asks still lack
+  // (`repegBase`). The replacement carries the first send's instant (`request.firstTs`), so step 1 still cancels it 24 hours
+  // from the operator's send, and nothing is re-pegged after that. A check that fails leaves the conversion resting as it
+  // is, and says why; once the asks hold their coin it is cancelled, since it would only buy what nothing needs. A re-peg
+  // whose cancel the venue had not carried out (frozen) is sent once step 1 reads the cancel back. Entries, exits, stops
+  // and top-ups are untouched.
+  if (inst.convertRepeg && d.now >= inst.convertRepeg.from && entry.book === "live" && !globalPause && acct) {
+    const resting = (book: QuoteBook) => [...open, ...sentNow].some((x) => isOpen(x) && x.mode === "live" && x.leg === "convert" && x.book === book);
+    // A re-peg's cancel left frozen on an earlier turn and read back cancelled by step 1 on this one: its remainder is sent now.
+    const confirmedNow = (x: LiveOrderRow) => !isOpen(x) && x.cancelled_at === nowIso && String(x.cancel_reason ?? "").startsWith(CONVERT_REPEG_REASON);
+    for (const o of openAll.filter((x) => x.mode === "live" && x.leg === "convert" && !isAutoConvert(x) && !unreadable.has(x.id) && (isOpen(x) || confirmedNow(x)))) {
+      const label = `${o.book}|convert`, already = !isOpen(o);
+      const leave = (reason: string) => {
+        report.skippedEntries.push({ mode: "live", rung: label, reason: already ? `conversion ${o.id}'s re-peg is not sent: ${reason}` : `conversion ${o.id} is under the bid and rests where it is: ${reason}` });
+      };
+      try {
+        const seen = await ctx.bookSeen(o.book);
+        if (already ? d.now - convertFirstAt(o) >= QUOTE_LIVE_CONVERT_REST_MS || resting(o.book) : !convertRepegDue(o, seen?.bestBid ?? null, d.now)) continue;
+        const fair = inputs[o.book]?.f ?? null, pair = pairs[LIVE_SYMBOL[o.book]];
+        if (T == null || fair == null) { leave("no fair value for the book: nothing to bound the price by"); continue; }
+        if (d.now - T > 3 * M) { leave(`the paper engine's last minute is ${iso(T)}: its fair is stale`); continue; }
+        if (!pair) { leave("no pair config"); continue; }
+        if (!bal) { leave("balances unreadable"); continue; }
+        // What the asks still lack, as `runQuotesConvert` reckons it: their coin at the rule's prices, less the coin held beyond the longs.
+        const asksNeed = asksNeedOf(fair, capital, pair, inst.rungs, retiredAt(inst, d.now), weightsOn(inst, d.now) ? (k) => rungGbpOf(inst, capital, o.book, "ask", k, d.now) : undefined);
+        const held = (side: Side) => rungs.filter((r) => r.book === o.book && r.side === side).reduce((a, r) => a + Math.max(0, r.live.held), 0);
+        const short = asksNeed - ((bal[coinOf(o.book)] ?? 0) - held("bid") + held("ask"));
+        if (!(short > 1e-9)) {
+          if (!already) await cancelConfirmed(o, `the asks hold their ${rungsWord(inst.rungs)} asks' worth (${asksNeed}): nothing left to convert`);
+          continue;
+        }
+        const limitTicks = Math.floor(fair * (1 + QUOTE_LIVE_STOP_BOUND) / QUOTE_TICK + 1e-9);
+        if (seen?.bestBid == null || seen.bestAsk == null) { leave("the order book is unreadable"); continue; }
+        if (seen.bestAsk > limitTicks * QUOTE_TICK + 1e-12) { leave(`the best ask ${seen.bestAsk} is more than 50 bps over fair ${fair.toFixed(5)}`); continue; }
+        const ticks = makerBuyTicks(seen.bestBid, seen.bestAsk, fair), price = ticks * QUOTE_TICK;
+        if (!already && !(ticks > ticksOf(o.price))) { leave(`the top of the bids it may rest at, ${price.toFixed(4)}, is not above its price`); continue; }
+        if (levelOf("live", o.book, null) !== "all") { leave(`the governor has closed entries: ${keyCount(ctx, "live", o.book, null)} POSTs today`); continue; }
+        const filledBefore = Number(o.filled_base) || 0;
+        const base0 = repegBase(Number(o.base_size) - filledBefore, short, pair, price);
+        if (!base0) { leave("what it has left to buy is under the venue's minimum"); continue; }
+        const own = already ? undefined : promised.get(o.id), need0 = pennyUp(Number(base0) * price);
+        const free0 = (free.GBP ?? 0) + (own?.asset === "GBP" ? own.amount : 0);
+        if (free0 + 1e-9 < need0) { leave(`not enough free GBP: £${need0.toFixed(2)} needed, £${Math.max(0, free0).toFixed(2)} free`); continue; }
+        if (!already) {
+          const c = await cancelConfirmed(o, `${CONVERT_REPEG_REASON} of ${seen.bestBid} for ${Math.round((d.now - Date.parse(o.ts)) / M)} min: what it has not filled goes again at the top of the bids`);
+          // A cancel that lands on a part-filled order books it `filled` with what it filled: the rest is the remainder to send.
+          if (c === "frozen" || (c === "filled" && !(Number(o.base_size) - (Number(o.filled_base) || 0) > 1e-9))) continue;
+          if (c === "filled") { const p = promised.get(o.id); if (p) { free[p.asset] = (free[p.asset] ?? 0) + p.amount; promised.delete(o.id); } }
+        }
+        const filled = Number(o.filled_base) || 0;
+        const base = repegBase(Number(o.base_size) - filled, short - Math.max(0, filled - filledBefore), pair, price);
+        if (!base) { report.skippedEntries.push({ mode: "live", rung: label, reason: `conversion ${o.id} filled as it was cancelled: what is left is under the venue's minimum, or not needed` }); continue; }
+        const needGbp = pennyUp(Number(base) * price);
+        if ((free.GBP ?? 0) + 1e-9 < needGbp) { report.errors.push(`${label}: conversion ${o.id} was cancelled to follow the bid and not sent again: £${needGbp.toFixed(2)} needed, £${Math.max(0, free.GBP ?? 0).toFixed(2)} free`); continue; }
+        const row = await placeOrder(ctx, { mode: "live", book: o.book, rungSide: null, k: null, leg: "convert", side: "buy", ticks, base, marketable: false, fair,
+          extra: { firstTs: iso(convertFirstAt(o)), repegOf: o.id, asksNeed, short } });
+        sent(row);
+        free.GBP = (free.GBP ?? 0) - needGbp;
+        if (row?.state === "rejected" && wasSent(row) && !wasRateLimited(row)) {
+          report.errors.push(`${label}: the venue refused conversion ${o.id}'s re-peg of ${base} at ${price.toFixed(4)}: ${(row.response as { error?: string } | null)?.error ?? "no reason given"}`);
+        }
+      } catch (e) { report.errors.push(`${label}: following the bid ${msg(e)}`); }
+    }
+  }
+
   // ── 6b. the asks' coin, topped up when an ask ran short (Davies, 2026-10-02: "以后这种问题自动处理，用昨天新加的规则maker换币")
   // An ask skipped for want of coin means the book holds less than its three asks sell: GBP has risen since its coin was
   // bought, so each £10 ask needs more of it. A maker conversion at the top of the bids buys it back (`planTopUps`), one
@@ -1707,7 +1832,10 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
  * By default it RESTS at the top of the bids, post-only, a maker's 0 % (Davies, 2026-10-02: the go-live's two IOC
  * conversions paid the 0.09 % taker fee, £0.027 each, which the first ask trips then carried): one tick over the best
  * bid when the spread leaves room, else at it. The minute loop books its fills as every live order's, and cancels it on a
- * global pause, whenever the executor is not live and armed, and after QUOTE_LIVE_CONVERT_REST_MS unfilled. `taker: true`
+ * global pause, whenever the executor is not live and armed, and after QUOTE_LIVE_CONVERT_REST_MS unfilled. On an instance
+ * with `convertRepeg` (the live account's) it also follows the bid: under a best bid that has moved above it for
+ * QUOTE_LIVE_CONVERT_REPEG_MS, what it has not filled goes again at the top of the bids under these same checks, at most
+ * what the asks still lack, and the 24 hours count from this send (step 6b′). `taker: true`
  * sends the IOC buy limited to fair + 50 bps instead, for coin wanted at once. The row is written `pending` first, and
  * the coins it bought count in the book the account is checked against (D8/D11/D12).
  */

@@ -283,7 +283,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      minute 21:04); first trading Fri 10-23 21:00. Take shadow read 10-23 18:05 (five weekdays): 0 events, not a fail,
      'shadow' kept (the addendum's log); next read 2026-10-30 18:00 UTC, counting 10-23's closure.
      **Review 10-26** (`reviews/2026-10-26-stablecoin-quotes-review.md`): "+64.9 %" right but realised-only, half one weekend.
-     **LIVE at £600 since 2026-10-27 03:09 UTC** (Davies; §8): his two maker conversions for the asks' coin. `0144`:
+     **LIVE at £600 since 2026-10-27 03:09 UTC** (Davies; §8): his two maker conversions for the asks' coin. Since 10-28 an operator's
+     conversion left under the bid goes again at the top for its remainder (history 10-28 19:48). `0144`:
      `live600` "LIVE twin" (bar 11-11), `live1200` "variant-1" £1,200 from 10-28 (prereg `live-next-size`, bar 11-11: ≥ 80 % of
      `live600` per pound, no loss-stop day), `live300` off; compounding (`0146`) built OFF, his switch (review §9.3); `live` "variant-2" £120, weekends from 10-30; `pr5`, `p50`, `d` off by `0151`
      (10-28 readouts); `take50wk` off. `0142`: `take50` "variant-3" on the page; Coinbase "with Euros - 1" (hold, 11-10) and
@@ -754,6 +755,14 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the resume health check's section of 2026-10-28 19:20 UTC
 (archived 2026-10-28, third).
+
+### [2026-10-28 19:48 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LIVE: an operator's conversion follows the bid** (sub-agent; not pushed; the 19:20 section's "next", archived; Davies'
+  standing word 10-02). `quotes_live.ts` step 6b′, `convertRepeg` on LIVE's instance from 10-28 00:00: a conversion that
+  rested ≥ 30 min under a higher best bid is cancelled (read back) and its remainder re-sent at the top of the bids under
+  `runQuotesConvert`'s checks, capped at what the asks still lack; the 24 h count from the first send (`request.firstTs`);
+  once the asks hold their coin it is cancelled. Twins unchanged: no twin rule sets it; LIVE twin and `o600*` turn for turn
+  equal with and without it; six hours vs the frozen file equal with it in force. Design addendum 2026-10-28.
 
 ### [2026-10-28 19:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep's 14-day readout and Addendum 19's bar, read a day late (due 10-27 13:25 UTC; usage-limit stop), not blind**

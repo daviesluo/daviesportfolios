@@ -345,3 +345,15 @@ reading LIVE's record.
     (D4): the exit must sell exactly the net coin and leave no remnant.
   * The entry has no paper order. Check that LIVE's row books its fill, fee and exit at fair, and that the paper rung's
     own fill opens no second entry while LIVE holds.
+
+## Addendum (2026-10-28): the operator's conversion follows the bid
+
+On 10-27 the operator's USDC conversion for the step to £600 (order 8823) rested a tick under a bid that rose past it,
+filled nothing in its 24 hours, and LIVE's USDC asks ran short for about 40 hours; the top-ups' £5 a book a day cannot
+cover a capital step, and Davies' standing word (10-02) is that coin shortages are handled automatically. From 2026-10-28
+00:00 UTC (`QuoteLiveInstance.convertRepeg`, the live account's instance alone) a conversion `quotes-convert` sent that has
+rested 30 minutes under a best bid now above its price is cancelled, read back, and what it has not filled goes again at
+the top of the bids, under `runQuotesConvert`'s own checks and never for more coin than the asks still lack; the 24 hours
+count from the operator's send (`request.firstTs`). Entries, exits, stops, top-ups and every twin are unchanged (pinned:
+the six hours against the frozen file with the rule in force, and LIVE's twin and the five `o600*` twins turn for turn with
+and without it). Not blind: a change made after reading the live record.

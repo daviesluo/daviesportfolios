@@ -17,6 +17,7 @@ import * as Now from "./quotes_live.ts";
 import * as Frozen from "./quotes_live_frozen.ts";
 import { newSimState, SimRevx } from "./revx_sim.ts";
 import { memDb, type Row } from "./testing.ts";
+import { specFromRow, TWIN_SPEC_ROWS } from "./quotes_twin.ts";
 
 const M = 60e3, H = 3600e3;
 const T0 = Date.parse("2026-09-24T10:00:00Z");
@@ -110,6 +111,59 @@ Deno.test("a holding line before its instant is the frozen executor: the same si
 Deno.test("a holding line of £0.10 in force (the venue's own minimum) is the frozen executor: the same six hours, turn by turn", () =>
   sixHours({ ...Now.QUOTE_LIVE_INSTANCE, holdMin: { from: T0 - 24 * H, gbp: 0.1 } }));
 
+// An operator's conversion following the bid (`convertRepeg`, 2026-10-28; the live account's instance alone). Before its
+// instant the live account's instance is the frozen executor (the first test above runs it, its instant after the six
+// hours). In force, on these six hours, the operator's maker conversion fills before it falls behind a moved bid, and the
+// executor is still the frozen one, turn by turn: the rule changes nothing until a conversion is left under the bid.
+Deno.test("the live account's instance has its conversion follow the bid from 2026-10-28 00:00 UTC, the top-ups' 30 minutes after it fell behind; no other option", () => {
+  assertEquals(Now.QUOTE_LIVE_INSTANCE.convertRepeg, { from: Date.parse("2026-10-28T00:00:00Z") });
+  assertEquals([Now.QUOTE_LIVE_CONVERT_REPEG_MS, Now.QUOTE_LIVE_TOPUP_REST_MS, Now.QUOTE_LIVE_CONVERT_REST_MS], [30 * M, 30 * M, 24 * H]);
+});
+Deno.test("a conversion following the bid, in force over the six hours, is the frozen executor: no conversion is left under the bid, turn by turn", async () => {
+  const seen = await sixHoursSeen({ ...Now.QUOTE_LIVE_INSTANCE, convertRepeg: { from: T0 - 24 * H } });
+  assertEquals(seen.repegs, 0);
+});
+
+// The twins (quotes_twin.ts) run this executor on instances their spec rows build (`specFromRow`), and no twin rule sets
+// `convertRepeg`: LIVE's twin (`live600`, 0141) and PR5-OPT's five (`o600*`, 0149) rest their operator's conversion as
+// they did. The counterfactual: each of their instances, its options in force from before the six hours, with and without
+// the rule in force too, on the hours with no operator conversion (the asks' coin from the executor's own top-ups), gives
+// the same tables, account and reports turn by turn: the rule acts on an operator's conversion and on nothing else.
+const TWIN_ROWS = [
+  { id: "live600", rules: { fill: { model: "at", from: "2026-10-27T00:00:00Z" }, weekend: { from: "2026-10-30T21:00:00Z" } } },
+  { id: "o600no03", rules: { fill: { model: "at", from: "2026-10-27T06:00:00Z" }, weekend: { from: "2026-10-27T06:00:00Z" }, weights: { from: "2026-10-27T06:00:00Z", k: { "0.001": 1, "0.002": 1, "0.003": 0 } } } },
+  { id: "o600hold1", rules: { fill: { model: "at", from: "2026-10-27T06:00:00Z" }, weekend: { from: "2026-10-27T06:00:00Z" }, holdMin: { from: "2026-10-27T06:00:00Z", gbp: 1 } } },
+  { id: "o600usdt2", rules: { fill: { model: "at", from: "2026-10-27T06:00:00Z" }, weekend: { from: "2026-10-27T06:00:00Z" }, weights: { from: "2026-10-27T06:00:00Z", book: { "USDC-GBP": 1, "USDT-GBP": 2 } } } },
+  { id: "o600usdt3", rules: { fill: { model: "at", from: "2026-10-27T06:00:00Z" }, weekend: { from: "2026-10-27T06:00:00Z" }, weights: { from: "2026-10-27T06:00:00Z", book: { "USDC-GBP": 1, "USDT-GBP": 3 } } } },
+  { id: "o600usdt", rules: { fill: { model: "at", from: "2026-10-27T06:00:00Z" }, weekend: { from: "2026-10-27T06:00:00Z" }, weights: { from: "2026-10-27T06:00:00Z", book: { "USDC-GBP": 0, "USDT-GBP": 1 } } } },
+];
+const twinRow = (r: (typeof TWIN_ROWS)[number]) => ({
+  ...TWIN_SPEC_ROWS[1], id: r.id, display_name: r.id, table_prefix: `agent_quote_twin_${r.id}`, lease: `quotes-twin-${r.id}`, capital_gbp: 600, rules: r.rules,
+});
+/** A twin's instance on the live account's tables (the six hours' world), each of its options in force from a day before them. */
+function twinOnLiveTables(r: (typeof TWIN_ROWS)[number]): Now.QuoteLiveInstance {
+  const I = Now.QUOTE_LIVE_INSTANCE, t = specFromRow(twinRow(r)).instance, from = T0 - 24 * H;
+  return {
+    ...t, config: I.config, orders: I.orders, events: I.events, state: I.state, paper: I.paper, lease: I.lease, migration: I.migration,
+    ...(t.weights ? { weights: { ...t.weights, from } } : {}), ...(t.holdMin ? { holdMin: { ...t.holdMin, from } } : {}),
+    ...(t.weekend ? { weekend: { from } } : {}), ...(t.simFill ? { simFill: { ...t.simFill, from } } : {}),
+  };
+}
+Deno.test("no twin follows the bid: LIVE's twin and PR5-OPT's five carry no convertRepeg, and no twin row can set it", () => {
+  for (const r of TWIN_ROWS) assertEquals(specFromRow(twinRow(r)).instance.convertRepeg, undefined, r.id);
+  for (const r of TWIN_SPEC_ROWS) assertEquals(specFromRow(r).instance.convertRepeg, undefined, r.id);
+  let why = "";
+  try { specFromRow({ ...twinRow(TWIN_ROWS[0]), rules: { convertRepeg: { from: "2026-10-28T00:00:00Z" } } }); } catch (e) { why = (e as Error).message; }
+  assertEquals(why, "twin live600: no code for its rule convertRepeg");
+});
+for (const r of TWIN_ROWS) {
+  Deno.test(`${r.id}'s instance with no operator conversion: following the bid in force or not, the same six hours, turn by turn`, async () => {
+    const t = twinOnLiveTables(r);
+    const seen = await sixHoursSeen({ ...t, convertRepeg: { from: T0 - 24 * H } }, { against: t, operator: false });
+    assertEquals([seen.makerConv, seen.takerConv, seen.repegs], [0, 0, 0]);
+  });
+}
+
 Deno.test("the live account's instance has neither PR5-OPT option, and its sizes, retirements, conversion cap and holding line are the frozen rule's", () => {
   const I = Now.QUOTE_LIVE_INSTANCE;
   assertEquals([I.weights, I.holdMin], [undefined, undefined]);
@@ -193,8 +247,18 @@ Deno.test("PR5-OPT's holding line through the executor: a £0.10 nibble leaves t
   assertEquals(line, ["entry 7562 filled 0.135/13.22402", "entry 7562 filled 13.22402/13.22402", "exit 7554 new 0/13.35716"]);
 });
 
-async function sixHours(instance?: Now.QuoteLiveInstance) {
-  const a = world(Now, instance), b = world(Frozen);
+/**
+ * The six hours, `instance` on today's executor against the frozen file, or with `against` against today's executor on
+ * that instance instead. `operator: false` leaves the operator out (no `quotes-convert`): the asks' coin comes from the
+ * executor's own top-ups alone.
+ */
+async function sixHours(instance?: Now.QuoteLiveInstance, o: { against?: Now.QuoteLiveInstance; operator?: boolean } = {}): Promise<void> {
+  await sixHoursSeen(instance, o);
+}
+/** The six hours (`sixHours`), returning what they went through. */
+async function sixHoursSeen(instance?: Now.QuoteLiveInstance, o: { against?: Now.QuoteLiveInstance; operator?: boolean } = {}) {
+  const operator = o.operator !== false;
+  const a = world(Now, instance), b = o.against ? world(Now, o.against) : world(Frozen);
   const both = async <T>(f: (w: ReturnType<typeof world>) => Promise<T>): Promise<[T, T]> => [await f(a), await f(b)];
   // An old long on USDT's 0.2 % bid, bought a day and a minute before the start: its 24-hour stop goes at the first turn.
   for (const w of [a, b]) {
@@ -213,7 +277,7 @@ async function sixHours(instance?: Now.QuoteLiveInstance) {
   const books = Object.fromEntries(QUOTE_BOOKS.map((bk) => [bk, newBookState(bk, { id: "seed", ts: T0 - 30e3, ticks: bk === "USDC-GBP" ? 7553 : 7551, qty: 10, side: "sell" })])) as Record<QuoteBook, BookState>;
   const r = rng(20261002);
   let seq = 0;
-  const seen = { fills: 0, partial: 0, exits: 0, reprices: 0, refusals: 0, stops: 0, topups: 0, makerConv: 0, takerConv: 0, stale: 0, depeg: 0, governor: 0, paused: 0, unarmed: 0 };
+  const seen = { fills: 0, partial: 0, exits: 0, reprices: 0, refusals: 0, stops: 0, topups: 0, makerConv: 0, takerConv: 0, stale: 0, depeg: 0, governor: 0, paused: 0, unarmed: 0, repegs: 0 };
   for (let t = T0; t < T0 + HOURS * H; t += M) {
     // The minute's prints: a seller under fair and a buyer over it, now and then, of random size, at random depth.
     const fair = 1 / (fxAtMinute(t) ?? 1.3238);
@@ -237,12 +301,12 @@ async function sixHours(instance?: Now.QuoteLiveInstance) {
     const at = t + M + 30e3;
     const h = (t - T0) / H;
     // The operator: maker conversions at the start, a taker one later; a pause and a stretch unarmed.
-    if (t === T0) {
+    if (t === T0 && operator) {
       const [ca, cb] = await both((w) => w.convert(at - 5e3, { book: "USDT-GBP", gbp: 20, send: true }));
       assertEquals(ca, cb);
       if ((ca as Row).sent) seen.makerConv++;
     }
-    if (t === T0 + 5 * H) {
+    if (t === T0 + 5 * H && operator) {
       const [ca, cb] = await both((w) => w.convert(at - 5e3, { book: "USDC-GBP", gbp: 15, send: true, taker: true }));
       assertEquals(ca, cb);
       if ((ca as Row).sent) seen.takerConv++;
@@ -267,8 +331,15 @@ async function sixHours(instance?: Now.QuoteLiveInstance) {
   seen.refusals = orders.filter((o) => o.state === "rejected").length;
   seen.stops = orders.filter((o) => o.leg === "stop").length;
   seen.topups = orders.filter((o) => o.leg === "convert" && (o.request as Row)?.auto === true).length;
-  // What the hours went through, or the equality above proves nothing.
-  for (const [k, v] of Object.entries(seen)) assert(v > 0, `the simulated hours never reached ${k}: ${JSON.stringify(seen)}`);
+  seen.repegs = orders.filter((o) => o.leg === "convert" && (o.request as Row)?.repegOf != null).length;
+  // What the hours went through, or the equality above proves nothing (the operator's conversions only when there is one; a
+  // conversion following the bid is counted, not required: `seen.repegs`).
+  for (const [k, v] of Object.entries(seen)) {
+    // Without the operator the asks hold only the account's starting coin, a shortfall past the top-ups' £5 a day: none goes out.
+    if (k === "repegs" || (!operator && (k === "makerConv" || k === "takerConv" || k === "topups"))) continue;
+    assert(v > 0, `the simulated hours never reached ${k}: ${JSON.stringify(seen)}`);
+  }
+  return seen;
 }
 
 Deno.test("F1 through the executor and the simulated account: a £0.10 print nibbles an ask; the buy-back buys what its whole penny buys (the frozen executor paid it for nothing)", async () => {
