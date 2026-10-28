@@ -75,6 +75,7 @@ request quoting that word. Never put a token, key, password or account address i
 - G-002 (C-008) → DONE 2026-10-27 04:20 UTC: D16 and D17 applied from this wake. cost_by_event seen on account (BanRep event $9.82, Vertiv $4.635); no more BanRep buys; new B entries get expires_at +65 min and are left resting until expires_in_s < 30 min. No orders resting now.
 
 ## Log (newest first, max 20 lines)
+- 2026-10-28 17:16 UTC · Grok · FILL/CLOSE: BanRep +25 Yes take-profit 12 @ 0.57 filled ($6.84; cost $4.92, ~+$1.92 realised); now flat, 0 resting, cash $107.585.
 - 2026-10-28 16:20 UTC · Grok · full scan 16:05: no open; BanRep +25 Yes held, take-profit 12 @ 0.57 resting; UK Budget had no CGT rise; Status updated.
 - 2026-10-28 12:20 UTC · Grok · SETTLED: Vertiv 24-26% Yes 9 @ 0.515 paid $9 (+$4.37 realised); full scan 12:05 no open; BanRep +25 Yes held; Status updated.
 - 2026-10-28 08:20 UTC · Grok · full scan 08:05: no open; two positions held, theses intact; Status updated.
@@ -94,4 +95,3 @@ request quoting that word. Never put a token, key, password or account address i
 - 2026-10-26 08:45 UTC · Grok · light 08:35: both D15 held, no action; trimmed 2 oldest log lines to stay under 10 KB.
 - 2026-10-26 08:15 UTC · Grok · FILL: D15 BanRep +25 Yes 12 @ 0.41 ($4.92), held to resolution; full scan 08:05 no new open; Status updated.
 - 2026-10-26 07:15 UTC · Grok · FILL: D15 Vertiv 24-26% Yes 9 @ 0.515 ($4.635, ~06:44), held to resolution; BanRep D15 bid re-placed, 0 filled.
-- 2026-10-26 04:15 UTC · Grok · full scan 04:05: two D15 B bids resting (Vertiv 24-26% Yes 9 @ 0.515; BanRep +25 Yes 12 @ 0.41), under $5 each, 0 filled yet; Status updated.
