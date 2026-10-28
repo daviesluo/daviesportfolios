@@ -1,0 +1,180 @@
+read at 2026-10-28T21:32:38Z; rows for 12 markets; book-era window from 2026-10-24T08:12:00Z
+
+V0 check: D15 as it ran 10-26 to 10-28 (no D17 yet), live from 10-26 02:45 [wake: one 65-minute bid]  bids 3, filled 1
+   BanRep 30 Oct, no change (No)                d15       bid 10-26 04:13  size, price, fill and pnl [•] (the agent traded it)   filled: yes at 10-26 04:23
+   Vertiv Q3 margin 24-26% (Yes)                d15       bid 10-26 04:40  size, price, fill and pnl [•] (the agent traded it)   filled: no
+   BanRep 30 Oct, +25 bp (Yes)                  d15       bid 10-26 04:40  size, price, fill and pnl [•] (the agent traded it)   filled: no
+   most held at once (cost): 1 % of the budget
+   added (markets the agent did not trade): 0 filled, cost 0.00, paper pnl +0.00, resolved 0 (0 won)
+
+V0 check: D15 as it ran 10-26 to 10-28 (no D17 yet), live from 10-26 02:45 [rest: kept while rows pass]  bids 3, filled 3
+   BanRep 30 Oct, no change (No)                d15       bid 10-26 04:13  size, price, fill and pnl [•] (the agent traded it)   filled: yes at 10-26 04:23
+   Vertiv Q3 margin 24-26% (Yes)                d15       bid 10-26 04:40  size, price, fill and pnl [•] (the agent traded it)   filled: yes at 10-26 06:43
+   BanRep 30 Oct, +25 bp (Yes)                  d15       bid 10-26 04:40  size, price, fill and pnl [•] (the agent traded it)   filled: yes at 10-26 08:03
+   most held at once (cost): 11 % of the budget
+   added (markets the agent did not trade): 0 filled, cost 0.00, paper pnl +0.00, resolved 0 (0 won)
+
+K0 current rules (A 8, B 12, D15 $5 x3 markets, cut 48 h, D17), live from 10-26 02:45 [wake: one 65-minute bid]  bids 2, filled 1
+   BanRep 30 Oct, no change (No)                d15       bid 10-26 04:13  size, price, fill and pnl [•] (the agent traded it)   filled: yes at 10-26 04:23
+   Vertiv Q3 margin 24-26% (Yes)                d15       bid 10-26 04:40  size, price, fill and pnl [•] (the agent traded it)   filled: no
+   most held at once (cost): 1 % of the budget
+   added (markets the agent did not trade): 0 filled, cost 0.00, paper pnl +0.00, resolved 0 (0 won)
+
+K0 current rules (A 8, B 12, D15 $5 x3 markets, cut 48 h, D17), live from 10-26 02:45 [rest: kept while rows pass]  bids 2, filled 2
+   BanRep 30 Oct, no change (No)                d15       bid 10-26 04:13  size, price, fill and pnl [•] (the agent traded it)   filled: yes at 10-26 04:23
+   Vertiv Q3 margin 24-26% (Yes)                d15       bid 10-26 04:40  size, price, fill and pnl [•] (the agent traded it)   filled: yes at 10-26 06:43
+   most held at once (cost): 6 % of the budget
+   added (markets the agent did not trade): 0 filled, cost 0.00, paper pnl +0.00, resolved 0 (0 won)
+
+K0r the same rules, had they been live from the first recorded book [wake: one 65-minute bid]  bids 3, filled 0
+   South Korea Q3 GDP 3.0-3.4% (Yes)            d15 (dept bid 10-25 00:17 @0.265 x 17 (4.50) p 0.40 fill   0.0            RESOLVED pnl +0.00
+   Vertiv Q3 margin 24-26% (Yes)                d15 (dept bid 10-25 04:10  size, price, fill and pnl [•] (the agent traded it)   filled: no
+   BanRep 30 Oct, +25 bp (Yes)                  d15 (dept bid 10-25 20:09  size, price, fill and pnl [•] (the agent traded it)   filled: no
+   most held at once (cost): 0 % of the budget
+   added (markets the agent did not trade): 0 filled, cost 0.00, paper pnl +0.00, resolved 0 (0 won)
+
+K0r the same rules, had they been live from the first recorded book [rest: kept while rows pass]  bids 3, filled 2
+   South Korea Q3 GDP 3.0-3.4% (Yes)            d15 (dept bid 10-25 00:17 @0.265 x 17 (4.50) p 0.40 fill   0.0            RESOLVED pnl +0.00
+   Vertiv Q3 margin 24-26% (Yes)                d15 (dept bid 10-25 04:10  size, price, fill and pnl [•] (the agent traded it)   filled: yes at 10-25 10:18
+   BanRep 30 Oct, +25 bp (Yes)                  d15 (dept bid 10-25 20:09  size, price, fill and pnl [•] (the agent traded it)   filled: yes at 10-26 08:03
+   most held at once (cost): 11 % of the budget
+   added (markets the agent did not trade): 0 filled, cost 0.00, paper pnl +0.00, resolved 0 (0 won)
+
+K1 B 10 [wake: one 65-minute bid]  bids 3, filled 0
+   South Korea Q3 GDP 3.0-3.4% (Yes)            d15 (dept bid 10-25 00:17 @0.265 x 17 (4.50) p 0.40 fill   0.0            RESOLVED pnl +0.00
+   Vertiv Q3 margin 24-26% (Yes)                d15 (dept bid 10-25 04:10  size, price, fill and pnl [•] (the agent traded it)   filled: no
+   BanRep 30 Oct, +25 bp (Yes)                  d15 (dept bid 10-25 20:09  size, price, fill and pnl [•] (the agent traded it)   filled: no
+   most held at once (cost): 0 % of the budget
+   added (markets the agent did not trade): 0 filled, cost 0.00, paper pnl +0.00, resolved 0 (0 won)
+
+K1 B 10 [rest: kept while rows pass]  bids 3, filled 2
+   South Korea Q3 GDP 3.0-3.4% (Yes)            d15 (dept bid 10-25 00:17 @0.265 x 17 (4.50) p 0.40 fill   0.0            RESOLVED pnl +0.00
+   Vertiv Q3 margin 24-26% (Yes)                d15 (dept bid 10-25 04:10  size, price, fill and pnl [•] (the agent traded it)   filled: yes at 10-25 10:18
+   BanRep 30 Oct, +25 bp (Yes)                  d15 (dept bid 10-25 20:09  size, price, fill and pnl [•] (the agent traded it)   filled: yes at 10-26 08:03
+   most held at once (cost): 11 % of the budget
+   added (markets the agent did not trade): 0 filled, cost 0.00, paper pnl +0.00, resolved 0 (0 won)
+
+K2 B 8 [wake: one 65-minute bid]  bids 4, filled 0
+   South Korea Q3 GDP 3.0-3.4% (Yes)            d15 (dept bid 10-25 00:17 @0.265 x 17 (4.50) p 0.40 fill   0.0            RESOLVED pnl +0.00
+   Vertiv Q3 margin 24-26% (Yes)                d15 (dept bid 10-25 04:10  size, price, fill and pnl [•] (the agent traded it)   filled: no
+   Core PCE YoY 3.0% in September (No)          d15 (dept bid 10-25 16:13 @0.695 x  7 (4.86) p 0.78 fill   0.0            open@0.750 pnl +0.00
+   BanRep 30 Oct, +25 bp (Yes)                  d15 (dept bid 10-25 20:09  size, price, fill and pnl [•] (the agent traded it)   filled: no
+   most held at once (cost): 0 % of the budget
+   added (markets the agent did not trade): 0 filled, cost 0.00, paper pnl +0.00, resolved 0 (0 won)
+
+K2 B 8 [rest: kept while rows pass]  bids 4, filled 3
+   South Korea Q3 GDP 3.0-3.4% (Yes)            d15 (dept bid 10-25 00:17 @0.265 x 17 (4.50) p 0.40 fill   0.0            RESOLVED pnl +0.00
+   Vertiv Q3 margin 24-26% (Yes)                d15 (dept bid 10-25 04:10  size, price, fill and pnl [•] (the agent traded it)   filled: yes at 10-25 10:18
+   Core PCE YoY 3.0% in September (No)          d15 (dept bid 10-25 16:13 @0.695 x  7 (4.86) p 0.78 fill   6.5 at 10-26 01:31 open@0.750 pnl +0.35
+   BanRep 30 Oct, +25 bp (Yes)                  d15 (dept bid 10-25 20:09  size, price, fill and pnl [•] (the agent traded it)   filled: yes at 10-26 08:03
+   most held at once (cost): 16 % of the budget
+   added (markets the agent did not trade): 1 filled, cost 4.48, paper pnl +0.35, resolved 0 (0 won)
+
+K3 B 6 [wake: one 65-minute bid]  bids 5, filled 0
+   South Korea Q3 GDP 3.0-3.4% (Yes)            d15 (dept bid 10-25 00:17 @0.265 x 17 (4.50) p 0.40 fill   0.0            RESOLVED pnl +0.00
+   Vertiv Q3 margin 24-26% (Yes)                d15 (dept bid 10-25 04:10  size, price, fill and pnl [•] (the agent traded it)   filled: no
+   South Korea Q3 GDP 2.0-2.4% (No)             d15 (dept bid 10-25 12:14 @0.880 x  5 (4.40) p 0.94 fill   0.0            RESOLVED pnl +0.00
+   Core PCE YoY 3.0% in September (No)          d15 (dept bid 10-25 16:13 @0.695 x  7 (4.86) p 0.78 fill   0.0            open@0.750 pnl +0.00
+   BanRep 30 Oct, +25 bp (Yes)                  d15 (dept bid 10-25 20:09  size, price, fill and pnl [•] (the agent traded it)   filled: no
+   most held at once (cost): 0 % of the budget
+   added (markets the agent did not trade): 0 filled, cost 0.00, paper pnl +0.00, resolved 0 (0 won)
+
+K3 B 6 [rest: kept while rows pass]  bids 4, filled 3
+   South Korea Q3 GDP 3.0-3.4% (Yes)            d15 (dept bid 10-25 00:17 @0.265 x 17 (4.50) p 0.40 fill   0.0            RESOLVED pnl +0.00
+   Vertiv Q3 margin 24-26% (Yes)                d15 (dept bid 10-25 04:10  size, price, fill and pnl [•] (the agent traded it)   filled: yes at 10-25 10:18
+   Core PCE YoY 3.0% in September (No)          d15 (dept bid 10-25 16:13 @0.695 x  7 (4.86) p 0.78 fill   6.5 at 10-26 01:31 open@0.750 pnl +0.35
+   BanRep 30 Oct, +25 bp (Yes)                  d15 (dept bid 10-25 20:09  size, price, fill and pnl [•] (the agent traded it)   filled: yes at 10-26 08:03
+   most held at once (cost): 16 % of the budget
+   added (markets the agent did not trade): 1 filled, cost 4.48, paper pnl +0.35, resolved 0 (0 won)
+
+K4 B 5 [wake: one 65-minute bid]  bids 6, filled 0
+   No 6.0+ quake in Indonesia in the month (No) d15 (dept bid 10-24 08:12 @0.745 x  6 (4.47) p 0.80 fill   0.0            open@0.845 pnl +0.00
+   South Korea Q3 GDP 3.0-3.4% (Yes)            d15 (dept bid 10-25 00:17 @0.265 x 17 (4.50) p 0.40 fill   0.0            RESOLVED pnl +0.00
+   Vertiv Q3 margin 24-26% (Yes)                d15 (dept bid 10-25 04:10  size, price, fill and pnl [•] (the agent traded it)   filled: no
+   South Korea Q3 GDP 2.0-2.4% (No)             d15 (dept bid 10-25 12:14 @0.880 x  5 (4.40) p 0.94 fill   0.0            RESOLVED pnl +0.00
+   Core PCE YoY 3.0% in September (No)          d15 (dept bid 10-25 16:13 @0.695 x  7 (4.86) p 0.78 fill   0.0            open@0.750 pnl +0.00
+   BanRep 30 Oct, +25 bp (Yes)                  d15 (dept bid 10-25 20:09  size, price, fill and pnl [•] (the agent traded it)   filled: no
+   most held at once (cost): 0 % of the budget
+   added (markets the agent did not trade): 0 filled, cost 0.00, paper pnl +0.00, resolved 0 (0 won)
+
+K4 B 5 [rest: kept while rows pass]  bids 4, filled 3
+   No 6.0+ quake in Indonesia in the month (No) d15 (dept bid 10-24 08:12 @0.745 x  6 (4.47) p 0.80 fill   6.0 at 10-24 13:17 open@0.845 pnl +0.60
+   South Korea Q3 GDP 3.0-3.4% (Yes)            d15 (dept bid 10-25 00:17 @0.265 x 17 (4.50) p 0.40 fill   0.0            RESOLVED pnl +0.00
+   Vertiv Q3 margin 24-26% (Yes)                d15 (dept bid 10-25 04:10  size, price, fill and pnl [•] (the agent traded it)   filled: yes at 10-25 10:18
+   Core PCE YoY 3.0% in September (No)          d15 (dept bid 10-25 16:13 @0.695 x  7 (4.86) p 0.78 fill   6.5 at 10-26 01:31 open@0.750 pnl +0.35
+   most held at once (cost): 14 % of the budget
+   added (markets the agent did not trade): 2 filled, cost 8.95, paper pnl +0.95, resolved 0 (0 won)
+
+K5 D15 cap $10 [wake: one 65-minute bid]  bids 3, filled 0
+   South Korea Q3 GDP 3.0-3.4% (Yes)            d15 (dept bid 10-25 00:17 @0.265 x 17 (4.50) p 0.40 fill   0.0            RESOLVED pnl +0.00
+   Vertiv Q3 margin 24-26% (Yes)                d15 (dept bid 10-25 04:10  size, price, fill and pnl [•] (the agent traded it)   filled: no
+   BanRep 30 Oct, +25 bp (Yes)                  d15 (dept bid 10-25 20:09  size, price, fill and pnl [•] (the agent traded it)   filled: no
+   most held at once (cost): 0 % of the budget
+   added (markets the agent did not trade): 0 filled, cost 0.00, paper pnl +0.00, resolved 0 (0 won)
+
+K5 D15 cap $10 [rest: kept while rows pass]  bids 3, filled 2
+   South Korea Q3 GDP 3.0-3.4% (Yes)            d15 (dept bid 10-25 00:17 @0.265 x 17 (4.50) p 0.40 fill   0.0            RESOLVED pnl +0.00
+   Vertiv Q3 margin 24-26% (Yes)                d15 (dept bid 10-25 04:10  size, price, fill and pnl [•] (the agent traded it)   filled: yes at 10-25 10:18
+   BanRep 30 Oct, +25 bp (Yes)                  d15 (dept bid 10-25 20:09  size, price, fill and pnl [•] (the agent traded it)   filled: yes at 10-26 08:03
+   most held at once (cost): 23 % of the budget
+   added (markets the agent did not trade): 0 filled, cost 0.00, paper pnl +0.00, resolved 0 (0 won)
+
+K6 D15 markets 6 [wake: one 65-minute bid]  bids 3, filled 0
+   South Korea Q3 GDP 3.0-3.4% (Yes)            d15 (dept bid 10-25 00:17 @0.265 x 17 (4.50) p 0.40 fill   0.0            RESOLVED pnl +0.00
+   Vertiv Q3 margin 24-26% (Yes)                d15 (dept bid 10-25 04:10  size, price, fill and pnl [•] (the agent traded it)   filled: no
+   BanRep 30 Oct, +25 bp (Yes)                  d15 (dept bid 10-25 20:09  size, price, fill and pnl [•] (the agent traded it)   filled: no
+   most held at once (cost): 0 % of the budget
+   added (markets the agent did not trade): 0 filled, cost 0.00, paper pnl +0.00, resolved 0 (0 won)
+
+K6 D15 markets 6 [rest: kept while rows pass]  bids 3, filled 2
+   South Korea Q3 GDP 3.0-3.4% (Yes)            d15 (dept bid 10-25 00:17 @0.265 x 17 (4.50) p 0.40 fill   0.0            RESOLVED pnl +0.00
+   Vertiv Q3 margin 24-26% (Yes)                d15 (dept bid 10-25 04:10  size, price, fill and pnl [•] (the agent traded it)   filled: yes at 10-25 10:18
+   BanRep 30 Oct, +25 bp (Yes)                  d15 (dept bid 10-25 20:09  size, price, fill and pnl [•] (the agent traded it)   filled: yes at 10-26 08:03
+   most held at once (cost): 11 % of the budget
+   added (markets the agent did not trade): 0 filled, cost 0.00, paper pnl +0.00, resolved 0 (0 won)
+
+K7 D15 cut 24 h [wake: one 65-minute bid]  bids 3, filled 0
+   South Korea Q3 GDP 3.0-3.4% (Yes)            d15 (dept bid 10-25 00:17 @0.265 x 17 (4.50) p 0.40 fill   0.0            RESOLVED pnl +0.00
+   Vertiv Q3 margin 24-26% (Yes)                d15 (dept bid 10-25 04:10  size, price, fill and pnl [•] (the agent traded it)   filled: no
+   BanRep 30 Oct, +25 bp (Yes)                  d15 (dept bid 10-25 20:09  size, price, fill and pnl [•] (the agent traded it)   filled: no
+   most held at once (cost): 0 % of the budget
+   added (markets the agent did not trade): 0 filled, cost 0.00, paper pnl +0.00, resolved 0 (0 won)
+
+K7 D15 cut 24 h [rest: kept while rows pass]  bids 3, filled 2
+   South Korea Q3 GDP 3.0-3.4% (Yes)            d15 (dept bid 10-25 00:17 @0.265 x 17 (4.50) p 0.40 fill   0.0            RESOLVED pnl +0.00
+   Vertiv Q3 margin 24-26% (Yes)                d15 (dept bid 10-25 04:10  size, price, fill and pnl [•] (the agent traded it)   filled: yes at 10-25 10:18
+   BanRep 30 Oct, +25 bp (Yes)                  d15 (dept bid 10-25 20:09  size, price, fill and pnl [•] (the agent traded it)   filled: yes at 10-26 08:03
+   most held at once (cost): 11 % of the budget
+   added (markets the agent did not trade): 0 filled, cost 0.00, paper pnl +0.00, resolved 0 (0 won)
+
+K8 D15 no cut [wake: one 65-minute bid]  bids 3, filled 0
+   South Korea Q3 GDP 3.0-3.4% (Yes)            d15 (dept bid 10-25 00:17 @0.265 x 17 (4.50) p 0.40 fill   0.0            RESOLVED pnl +0.00
+   Vertiv Q3 margin 24-26% (Yes)                d15 (dept bid 10-25 04:10  size, price, fill and pnl [•] (the agent traded it)   filled: no
+   BanRep 30 Oct, +25 bp (Yes)                  d15 (dept bid 10-25 20:09  size, price, fill and pnl [•] (the agent traded it)   filled: no
+   most held at once (cost): 0 % of the budget
+   added (markets the agent did not trade): 0 filled, cost 0.00, paper pnl +0.00, resolved 0 (0 won)
+
+K8 D15 no cut [rest: kept while rows pass]  bids 3, filled 2
+   South Korea Q3 GDP 3.0-3.4% (Yes)            d15 (dept bid 10-25 00:17 @0.265 x 17 (4.50) p 0.40 fill   0.0            RESOLVED pnl +0.00
+   Vertiv Q3 margin 24-26% (Yes)                d15 (dept bid 10-25 04:10  size, price, fill and pnl [•] (the agent traded it)   filled: yes at 10-25 10:18
+   BanRep 30 Oct, +25 bp (Yes)                  d15 (dept bid 10-25 20:09  size, price, fill and pnl [•] (the agent traded it)   filled: yes at 10-26 08:03
+   most held at once (cost): 11 % of the budget
+   added (markets the agent did not trade): 0 filled, cost 0.00, paper pnl +0.00, resolved 0 (0 won)
+
+K9 B 8 + cap $10 + 6 markets + cut 24 h [wake: one 65-minute bid]  bids 5, filled 1
+   More than 13 quakes of 5.5+ (Yes)            d15 (dept bid 10-24 12:12 @0.890 x 11 (9.79) p 0.97 fill  11.0 at 10-24 12:52 RESOLVED pnl +1.21
+   South Korea Q3 GDP 3.0-3.4% (Yes)            d15 (dept bid 10-25 00:17 @0.265 x 17 (4.50) p 0.40 fill   0.0            RESOLVED pnl +0.00
+   Vertiv Q3 margin 24-26% (Yes)                d15 (dept bid 10-25 04:10  size, price, fill and pnl [•] (the agent traded it)   filled: no
+   Core PCE YoY 3.0% in September (No)          d15 (dept bid 10-25 16:13 @0.695 x 10 (6.95) p 0.78 fill   0.0            open@0.750 pnl +0.00
+   BanRep 30 Oct, +25 bp (Yes)                  d15 (dept bid 10-25 20:09  size, price, fill and pnl [•] (the agent traded it)   filled: no
+   most held at once (cost): 10 % of the budget
+   added (markets the agent did not trade): 1 filled, cost 9.79, paper pnl +1.21, resolved 1 (1 won)
+
+K9 B 8 + cap $10 + 6 markets + cut 24 h [rest: kept while rows pass]  bids 5, filled 4
+   More than 13 quakes of 5.5+ (Yes)            d15 (dept bid 10-24 12:12 @0.890 x 11 (9.79) p 0.97 fill  11.0 at 10-24 12:52 RESOLVED pnl +1.21
+   South Korea Q3 GDP 3.0-3.4% (Yes)            d15 (dept bid 10-25 00:17 @0.265 x 17 (4.50) p 0.40 fill   0.0            RESOLVED pnl +0.00
+   Vertiv Q3 margin 24-26% (Yes)                d15 (dept bid 10-25 04:10  size, price, fill and pnl [•] (the agent traded it)   filled: yes at 10-25 10:18
+   Core PCE YoY 3.0% in September (No)          d15 (dept bid 10-25 16:13 @0.695 x 10 (6.95) p 0.78 fill   6.5 at 10-26 01:31 open@0.750 pnl +0.35
+   BanRep 30 Oct, +25 bp (Yes)                  d15 (dept bid 10-25 20:09  size, price, fill and pnl [•] (the agent traded it)   filled: yes at 10-26 08:03
+   most held at once (cost): 38 % of the budget
+   added (markets the agent did not trade): 2 filled, cost 14.27, paper pnl +1.56, resolved 1 (1 won)

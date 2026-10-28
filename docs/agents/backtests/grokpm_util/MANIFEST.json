@@ -1,0 +1,23 @@
+{
+ "study": "GROKPM utilisation study (2026-10-28): the record's orders and fills checked, the funnel by day, the edge bands of the shadow forecasts, and nine looser rule sets replayed on the public tape",
+ "review": "docs/agents/reviews/2026-10-28-grokpm-utilisation.md",
+ "not_blind": "no-peek rules cancelled 2026-10-04; every row was read as it stood",
+ "window": "shadow forecasts 2026-10-20 17:30 UTC to 2026-10-28 ~21:30 UTC; the replay from 2026-10-24 08:12 UTC (the first recorded book); public record read 2026-10-28 21:32 UTC",
+ "public_reads": "Gamma /markets?condition_ids=, the data API's /trades?market= (takerOnly true, paged 500 back to 2026-10-24 00:00 UTC); keyless GETs only",
+ "run_order": [
+  "read-only SQL sql/rows.sql through the Supabase connector; the twelve markets' output, copied by hand, is data/rows.txt (sql/funnel.sql and sql/bands.sql feed the review's tables)",
+  "python3 -I docs/agents/backtests/grokpm_util/scripts/fetch.py  (re-running pulls the public record again and can differ)",
+  "python3 -I docs/agents/backtests/grokpm_util/scripts/study.py > docs/agents/backtests/grokpm_util/results/study.txt"
+ ],
+ "sha256": {
+  "sql/rows.sql": "294d4362cfd908a27ce32e532b499ec29ddfd4091dda6b28f268bed056a784c5",
+  "sql/bands.sql": "2964fbc5fe2cae4c8fbe7640db70c0f0a23bd66f7e0339c3221fb33008b0c148",
+  "sql/funnel.sql": "94375be7f3077ceef036ce62b850f834fc206ecca23aafbd41fc66d4e6b63b0e",
+  "scripts/fetch.py": "6420e1f963419f16a838ed758991b4c17fea2a15a714f43bd73e5d0dcbed986d",
+  "scripts/study.py": "b0c39d551785bc5dc14eec309b2f9ca5f71281344c7ebf245cb35e82a8e9ae44",
+  "data/markets.json": "2b8c123ef4dc1ab6d667cb77df6360ec9721409996358ef0a1d33aec47329057",
+  "data/rows.txt": "cf8dc29f0709c50f88b2c8f3cb94d406c09147c042958c9337f2687c7b034996",
+  "data/public.json.gz": "6e66d630ae64702f99d74bc220b0ea16ab032c7188d9dd62969e326ffd2528af",
+  "results/study.txt": "5ea7f6eecab04340aee2d758e247419fe7082173df7f224761b3e702397afc51"
+ }
+}

@@ -610,7 +610,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    - **First orders verified 10-27** (`reviews/2026-10-27-grokpm-first-orders.md`; Davies: "下了几单，你也仔细验证下"): 15 orders,
      3 fills, all OK. V1 (`0143`) stores each order's `event_at` and checks. **P1 and P2 decided 10-27** (Davies: "剩下两点由你
      权衡后来做出最优选择"; no money note, "台账里的金额无所谓"): D16, a B bid lives 65 min; D17 (`0147`), one cap per
-     negative-risk event. **After the deploy:** post C-008 (the review's §5.3), and append D16 and D17 to §9 after D15.
+     negative-risk event. **After the deploy:** post C-008 (the review's §5.3), and append D16 and D17 to §9 after D15. **Utilisation review 10-28:** keep every rule; a D15 cap of $7.50 at 20+ points only after BanRep resolves; funds wait (new prereg).
    - **Automatic redemption (D6, `0128`, `grokpm/redeem.ts`; Davies: "加上吧 全部都自动化掉")**: hourly, one gasless relayed
      transaction for up to five of the shared account's redeemable markets (pUSD back; losing tokens cleared), a dry run
      while `redeem_enabled` is false (its plan in `grokpm_exec_state.redeem_state`). **Davies does:** polymarket.com →
@@ -755,8 +755,13 @@ Facts a fresh session would otherwise rediscover:
 
 Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's archive, each batch under a heading
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
-first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to PR5-OPT's restart of 2026-10-28 19:56 UTC (archived
-2026-10-28, seventh).
+first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-28 20:12 UTC section (archived
+2026-10-28, eighth).
+
+### [2026-10-28 22:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM orders verified and the rules weighed** (sub-agent; commit, not pushed; Davies: "下的单太少了，用的钱也太少"):
+  `reviews/2026-10-28-grokpm-utilisation.md`, `backtests/grokpm_util/`. 24 orders, 5 fills, all correct; money used ~2 %
+  (~10 % since D15) because few edges clear a bar, not because of the bars; no looser rule supported; no money added yet.
 
 ### [2026-10-28 21:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **OKX's paper twins start at 22:00 too (`0155`; Davies, 10-28: "okx")**: `okx_quote_state.startedAt` 10-29 00:00 → 10-28 22:00,
@@ -770,23 +775,3 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to PR5-
   (`exitTicksOnBook`, every instance, so twins mirror LIVE): a crossing exit rests a tick inside the opposite best, never
   worse than the rule's price; a still-crossing exit is a skip, not a row. Entries unchanged. Design addendum; deviations
   in the live600/live1200/live/n600* preregs, take prereg Addendum 4. The 19:56 section archived.
-
-### [2026-10-28 21:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Live-prep's calls off, step 2: `0153`** (`pmlp`, `pmlpreserve` `enabled = false`; rows and records stay), after the monitor
-  change deployed. Its dust is redeemed by GROKPM's hourly redemption of the shared account.
-
-### [2026-10-28 21:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **PR5-OPT's five start now (`0154`)** (sub-agent; not pushed; Davies, ~21:00: "修好了的话现在就开始"). `n600*`'s start and every
-  rule `from` move in place 10-29 06:00 → 10-28 22:00, guarded on the old value (tables empty at 20:15 and 20:58; the driver
-  builds nothing before a start). Window to 11-25 22:00, prereg deviation 2. The twins' op parser applies rule and start
-  moves (sweep fixture rebuilt: take50's take.from now 0090's). The 19:48 section archived.
-
-### [2026-10-28 20:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Live-prep's calls off, step 1: the monitor stops reading it** (Davies, 10-28: "这个关掉", on `pmlp`/`pmlpreserve`). `monitor/health.ts`
-  drops `pmLp` (four readings), so the Worker does not page when `pm_lp_state` stops; the calls go off by the next migration,
-  pushed after this deploys. Its dust is the shared account's and GROKPM's hourly redemption takes it. OKX's hue: `#dfe3ea`,
-  a cool silver for OKX's black-and-white mark (Davies: the pink was off-brand; its lime would read as `--gain`).
-
-### [2026-10-28 20:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **`0152` failed on push** (unique `display_order`: 41 still the old row's) and rolled back whole; the fixed driver deployed.
-  New rows take 46-50, old keep 41-45 (page order unchanged); prereg §7 note and §5 hash, tests and the sweep's fixture follow.
