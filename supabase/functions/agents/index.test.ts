@@ -18,7 +18,7 @@ import { QUOTE_LEASE_STEP, runQuotes, type QuoteReport } from "./quotes.ts";
 import type { QuoteLiveReport } from "./quotes_live.ts";
 import { beatKeyOfRequest } from "../_shared/beats.ts";
 import { memDb, pickRow, selectItems, twinFixtureTables } from "./testing.ts";
-import { specFromRow, TWINS, type TwinSpecRow } from "./quotes_twin.ts";
+import { specFromRow, TWIN_SPEC_ROWS, TWINS, type TwinSpecRow } from "./quotes_twin.ts";
 import { RULED_ARMS } from "./quotes_ruled.ts";
 // The realistic twins' fixture: the live fixture's rows run as each twin's tables, and what the dashboard serves for them.
 import twinFixture from "../../../src/e2e/quotes_twin_fixture.json" with { type: "json" };
@@ -1427,8 +1427,30 @@ Deno.test("readQuotesTwin: each twin of the spec rows is read as the live accoun
   // The function's own answer for its rows is what the browser test serves.
   assertEquals(JSON.parse(JSON.stringify(answers)), f.twins);
   const read = answers as NonNullable<(typeof answers)[number]>[];
-  const byId = (id: string) => read[specs.findIndex((s) => s.id === id)];
-  const pr5 = byId("pr5"), d = byId("d");
+  // "Stablecoin quotes" (pr5) and rule D's twin (d) are off since 0151 (2026-10-28, their readouts written), so the fixture
+  // no longer carries them; their code paths (PR5's engine from a backfill, rule D's nine rungs on four keys) are read here
+  // from their seed rows, on the same book and the driver state fixture.ts gives each engine (its `SIMS`), at the names
+  // their rows had last.
+  const pr5Row = TWIN_SPEC_ROWS.find((r) => r.id === "pr5")!, dRow = { ...TWIN_SPEC_ROWS.find((r) => r.id === "d")!, display_name: "Stablecoin quotes rule-D twin" };
+  const at = (x: string) => Date.parse(x);
+  type Eng = { start: string; seq: number; deadmen: { at: number; cancelled: number }[]; turns: number; events: number };
+  // deno-lint-ignore no-explicit-any
+  const simOf = (row: TwinSpecRow, e: Eng): any => {
+    const base = sims.live1200.state;
+    return { ...sims.live1200, state: {
+      ...base, venue: { ...base.venue, seq: e.seq, deadmen: e.deadmen }, turns: e.turns, started: at(e.start) + 85e3,
+      paperCheck: { ...base.paperCheck, minutes: e.turns, events: e.events },
+      origin: { kind: "backfill", file: row.backfill!.file, sha256: "0".repeat(64), until: at("2026-09-17T20:00:00Z"), loadedAt: at("2026-09-17T20:00:30Z") },
+      operator: Object.fromEntries(["USDC-GBP", "USDT-GBP"].map((b) => [b, { cid: null, at: e.start, gbp: Number(row.capital_gbp) / 4, sent: 1, done: true }])),
+    } };
+  };
+  const offRead = async (row: TwinSpecRow, e: Eng) => {
+    const spec = specFromRow(row);
+    const mem = memDb(twinFixtureTables(live, spec, simOf(row, e)), { now: () => f.nowMs });
+    return (await readQuotesTwin(mem.db, { ...spec, start: at(e.start) }, f.nowMs, f.dayStartMs, live.tickers))!;
+  };
+  const pr5 = await offRead(pr5Row, { start: "2026-09-16T15:09:00.000Z", seq: 412, deadmen: [{ at: at("2026-09-17T16:00:00Z"), cancelled: 11 }], turns: 1910, events: 3480 });
+  const d = await offRead(dRow, { start: "2026-09-17T03:00:00.000Z", seq: 1530, deadmen: [], turns: 1195, events: 6112 });
   // PR5's twin on the live account's rows reads exactly as the live account does: every figure of the LIVE row's.
   for (const k of ["capitalGbp", "realisedGbp", "todayGbp", "unrealisedGbp", "costGbp", "valueGbp", "feesGbp", "realisedUsd", "todayUsd", "unrealisedUsd", "costUsd", "valueUsd", "feesUsd", "heldRungs", "openOrders", "fills"] as const) {
     assertEquals(pr5[k], live.live[k], k);
@@ -1437,8 +1459,9 @@ Deno.test("readQuotesTwin: each twin of the spec rows is read as the live accoun
   assertEquals(JSON.parse(JSON.stringify(pr5.detail!.books)), live.live.detail.books);
   // Every twin, from its row alone: its capital (in USD at 1.32) and its loss stop of 1 % of it, its engine's rungs a side
   // of each book on its page and their size, its keys, its name; and on the same book's fills, the same money as PR5's.
-  for (const [i, t] of read.entries()) {
-    const s = specs[i], n = s.instance.rungs.length;
+  const all = [...specs, specFromRow(pr5Row), specFromRow(dRow)];
+  for (const [i, t] of [...read, pr5, d].entries()) {
+    const s = all[i], n = s.instance.rungs.length;
     assertEquals([t.twin.id, t.twin.name, t.capitalGbp, t.capitalUsd, t.lossStopGbp, t.detail!.rungs.length, t.twin.rungsASide, t.twin.rungGbp, t.twin.keys],
       [s.id, s.name, s.capitalGbp, s.capitalGbp * 1.32, -s.capitalGbp / 100, 4 * n, n, s.capitalGbp / (4 * n), s.engine === "pr5" ? 1 : 4], s.id);
     assertEquals([...new Set(t.detail!.rungs.map((r) => r.k))], [...s.instance.rungs], s.id);

@@ -1,0 +1,2226 @@
+{
+ "what": "The 10-28 readouts of the hidden twins pr5, p50 and d (descriptive; no pass bar). Not blind: the stablecoin quote reviews of 10-09, 10-14, 10-18, 10-21 and 10-26 read these twins' records, and no-peek rules were cancelled on 2026-10-04.",
+ "cut": "2026-10-28T00:00:00.000Z",
+ "health": [
+  {
+   "twin": "d",
+   "dust": {
+    "USDC-GBP": 0.13338858287812808,
+    "USDT-GBP": 0.13340193909950368
+   },
+   "state_error": null,
+   "sim_error": null,
+   "mismatches": 0,
+   "orders": 35205,
+   "sent": 33432
+  },
+  {
+   "twin": "p50",
+   "dust": {
+    "USDC-GBP": 0.13338858287812808,
+    "USDT-GBP": 0.13340193909950368
+   },
+   "state_error": null,
+   "sim_error": null,
+   "mismatches": 46,
+   "orders": 10441,
+   "sent": 10284
+  },
+  {
+   "twin": "pr5",
+   "dust": {
+    "USDC-GBP": 0.13338858287812808,
+    "USDT-GBP": 0.13340193909950368
+   },
+   "state_error": null,
+   "sim_error": null,
+   "mismatches": 46,
+   "orders": 10087,
+   "sent": 9950
+  }
+ ],
+ "fairsAtCut": [
+  {
+   "fair": "USDC-GBP",
+   "at": "2026-10-28T00:00:00+00:00",
+   "value": 0.7504678471937718
+  },
+  {
+   "fair": "USDT-GBP",
+   "at": "2026-10-28T00:00:00+00:00",
+   "value": 0.7498666312136446
+  }
+ ],
+ "pr5": {
+  "capitalGbp": 1200,
+  "rungs": 12,
+  "all": {
+   "trips": 219,
+   "won": 159,
+   "stops": 6,
+   "realisedGbp": 17.5464,
+   "feesGbp": 0.3991,
+   "tradedGbp": 15645.2127,
+   "bps": 11.2152
+  },
+  "backfill": {
+   "trips": 47,
+   "won": 44,
+   "stops": 0,
+   "realisedGbp": 6.0476,
+   "feesGbp": 0,
+   "tradedGbp": 4282.6801,
+   "bps": 14.121
+  },
+  "between": {
+   "trips": 1,
+   "won": 1,
+   "stops": 0,
+   "realisedGbp": 0.0662,
+   "feesGbp": 0,
+   "tradedGbp": 100,
+   "bps": 6.6198
+  },
+  "window": {
+   "trips": 171,
+   "won": 114,
+   "stops": 6,
+   "realisedGbp": 11.4327,
+   "feesGbp": 0.3991,
+   "tradedGbp": 11262.5326,
+   "bps": 10.1511
+  },
+  "windowRealisedPerCapital": 0.0095,
+  "heldRungsAtCut": 1,
+  "conversions": 5,
+  "conversionFeesGbp": 0,
+  "minBuyBacks": {
+   "beforeF1": {
+    "n": 5,
+    "gbp": 0.55
+   },
+   "afterF1": {
+    "n": 28,
+    "gbp": 3.07
+   }
+  },
+  "byRung": {
+   "USDC-GBP bid 0.1 %": {
+    "all": {
+     "trips": 28,
+     "won": 23,
+     "stops": 1,
+     "realisedGbp": 1.2188,
+     "feesGbp": 0.09,
+     "tradedGbp": 2542.33,
+     "bps": 4.7938
+    },
+    "window": {
+     "trips": 20,
+     "won": 15,
+     "stops": 1,
+     "realisedGbp": 0.2291,
+     "feesGbp": 0.09,
+     "tradedGbp": 1823.93,
+     "bps": 1.2562
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDC-GBP bid 0.2 %": {
+    "all": {
+     "trips": 7,
+     "won": 5,
+     "stops": 0,
+     "realisedGbp": 0.6258,
+     "feesGbp": 0,
+     "tradedGbp": 556.37,
+     "bps": 11.2472
+    },
+    "window": {
+     "trips": 4,
+     "won": 2,
+     "stops": 0,
+     "realisedGbp": 0,
+     "feesGbp": 0,
+     "tradedGbp": 346.06,
+     "bps": -0.0007
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDC-GBP bid 0.3 %": {
+    "all": {
+     "trips": 0,
+     "won": 0,
+     "stops": 0,
+     "realisedGbp": 0,
+     "feesGbp": 0,
+     "tradedGbp": 0,
+     "bps": null
+    },
+    "window": {
+     "trips": 0,
+     "won": 0,
+     "stops": 0,
+     "realisedGbp": 0,
+     "feesGbp": 0,
+     "tradedGbp": 0,
+     "bps": null
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDC-GBP ask 0.1 %": {
+    "all": {
+     "trips": 26,
+     "won": 22,
+     "stops": 0,
+     "realisedGbp": 1.2889,
+     "feesGbp": 0,
+     "tradedGbp": 1942.95,
+     "bps": 6.6337
+    },
+    "window": {
+     "trips": 25,
+     "won": 22,
+     "stops": 0,
+     "realisedGbp": 1.3286,
+     "feesGbp": 0,
+     "tradedGbp": 1842.95,
+     "bps": 7.2091
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDC-GBP ask 0.2 %": {
+    "all": {
+     "trips": 9,
+     "won": 8,
+     "stops": 0,
+     "realisedGbp": 1.3269,
+     "feesGbp": 0,
+     "tradedGbp": 726.1201,
+     "bps": 18.2741
+    },
+    "window": {
+     "trips": 8,
+     "won": 7,
+     "stops": 0,
+     "realisedGbp": 1.2819,
+     "feesGbp": 0,
+     "tradedGbp": 626.1201,
+     "bps": 20.4741
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDC-GBP ask 0.3 %": {
+    "all": {
+     "trips": 1,
+     "won": 1,
+     "stops": 0,
+     "realisedGbp": 0.1881,
+     "feesGbp": 0,
+     "tradedGbp": 57.76,
+     "bps": 32.5739
+    },
+    "window": {
+     "trips": 1,
+     "won": 1,
+     "stops": 0,
+     "realisedGbp": 0.1881,
+     "feesGbp": 0,
+     "tradedGbp": 57.76,
+     "bps": 32.5739
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDT-GBP bid 0.1 %": {
+    "all": {
+     "trips": 40,
+     "won": 21,
+     "stops": 1,
+     "realisedGbp": 1.1146,
+     "feesGbp": 0.01,
+     "tradedGbp": 2272.5888,
+     "bps": 4.9046
+    },
+    "window": {
+     "trips": 29,
+     "won": 12,
+     "stops": 1,
+     "realisedGbp": 0.5736,
+     "feesGbp": 0.01,
+     "tradedGbp": 1227.6188,
+     "bps": 4.6723
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDT-GBP bid 0.2 %": {
+    "all": {
+     "trips": 12,
+     "won": 11,
+     "stops": 1,
+     "realisedGbp": 1.9391,
+     "feesGbp": 0.1,
+     "tradedGbp": 996.1193,
+     "bps": 19.467
+    },
+    "window": {
+     "trips": 4,
+     "won": 3,
+     "stops": 1,
+     "realisedGbp": 0.5129,
+     "feesGbp": 0.1,
+     "tradedGbp": 300.1093,
+     "bps": 17.0895
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDT-GBP bid 0.3 %": {
+    "all": {
+     "trips": 6,
+     "won": 6,
+     "stops": 1,
+     "realisedGbp": 1.84,
+     "feesGbp": 0.1,
+     "tradedGbp": 600,
+     "bps": 30.6667
+    },
+    "window": {
+     "trips": 1,
+     "won": 1,
+     "stops": 1,
+     "realisedGbp": 0.2844,
+     "feesGbp": 0.1,
+     "tradedGbp": 100,
+     "bps": 28.442
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDT-GBP ask 0.1 %": {
+    "all": {
+     "trips": 66,
+     "won": 42,
+     "stops": 1,
+     "realisedGbp": 3.9523,
+     "feesGbp": 0.0189,
+     "tradedGbp": 4071.5533,
+     "bps": 9.7072
+    },
+    "window": {
+     "trips": 57,
+     "won": 33,
+     "stops": 1,
+     "realisedGbp": 3.3395,
+     "feesGbp": 0.0189,
+     "tradedGbp": 3258.5632,
+     "bps": 10.2483
+    },
+    "heldCoins": 66.6042,
+    "heldCostGbp": 49.9798,
+    "overCoins": 0.0831
+   },
+   "USDT-GBP ask 0.2 %": {
+    "all": {
+     "trips": 17,
+     "won": 14,
+     "stops": 1,
+     "realisedGbp": 2.5468,
+     "feesGbp": 0.0802,
+     "tradedGbp": 1309.6911,
+     "bps": 19.4458
+    },
+    "window": {
+     "trips": 15,
+     "won": 12,
+     "stops": 1,
+     "realisedGbp": 2.1895,
+     "feesGbp": 0.0802,
+     "tradedGbp": 1109.6911,
+     "bps": 19.7309
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0.0047
+   },
+   "USDT-GBP ask 0.3 %": {
+    "all": {
+     "trips": 7,
+     "won": 6,
+     "stops": 0,
+     "realisedGbp": 1.505,
+     "feesGbp": 0,
+     "tradedGbp": 569.73,
+     "bps": 26.4168
+    },
+    "window": {
+     "trips": 7,
+     "won": 6,
+     "stops": 0,
+     "realisedGbp": 1.505,
+     "feesGbp": 0,
+     "tradedGbp": 569.73,
+     "bps": 26.4168
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0.0131
+   }
+  }
+ },
+ "p50": {
+  "capitalGbp": 600,
+  "rungs": 12,
+  "all": {
+   "trips": 259,
+   "won": 182,
+   "stops": 5,
+   "realisedGbp": 10.3536,
+   "feesGbp": 0.1787,
+   "tradedGbp": 9663.0267,
+   "bps": 10.7147
+  },
+  "backfill": {
+   "trips": 57,
+   "won": 53,
+   "stops": 0,
+   "realisedGbp": 3.904,
+   "feesGbp": 0,
+   "tradedGbp": 2672.5397,
+   "bps": 14.6077
+  },
+  "between": {
+   "trips": 1,
+   "won": 1,
+   "stops": 0,
+   "realisedGbp": 0.0331,
+   "feesGbp": 0,
+   "tradedGbp": 50,
+   "bps": 6.6203
+  },
+  "window": {
+   "trips": 201,
+   "won": 128,
+   "stops": 5,
+   "realisedGbp": 6.4166,
+   "feesGbp": 0.1787,
+   "tradedGbp": 6940.487,
+   "bps": 9.2451
+  },
+  "windowRealisedPerCapital": 0.0107,
+  "heldRungsAtCut": 1,
+  "conversions": 7,
+  "conversionFeesGbp": 0,
+  "minBuyBacks": {
+   "beforeF1": {
+    "n": 6,
+    "gbp": 0.66
+   },
+   "afterF1": {
+    "n": 27,
+    "gbp": 2.96
+   }
+  },
+  "byRung": {
+   "USDC-GBP bid 0.1 %": {
+    "all": {
+     "trips": 39,
+     "won": 32,
+     "stops": 1,
+     "realisedGbp": 1.2572,
+     "feesGbp": 0.05,
+     "tradedGbp": 1839.0101,
+     "bps": 6.8365
+    },
+    "window": {
+     "trips": 27,
+     "won": 20,
+     "stops": 1,
+     "realisedGbp": 0.5003,
+     "feesGbp": 0.05,
+     "tradedGbp": 1270.6101,
+     "bps": 3.9376
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDC-GBP bid 0.2 %": {
+    "all": {
+     "trips": 7,
+     "won": 5,
+     "stops": 0,
+     "realisedGbp": 0.4564,
+     "feesGbp": 0,
+     "tradedGbp": 346.06,
+     "bps": 13.1889
+    },
+    "window": {
+     "trips": 4,
+     "won": 2,
+     "stops": 0,
+     "realisedGbp": 0.0776,
+     "feesGbp": 0,
+     "tradedGbp": 196.06,
+     "bps": 3.9605
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDC-GBP bid 0.3 %": {
+    "all": {
+     "trips": 0,
+     "won": 0,
+     "stops": 0,
+     "realisedGbp": 0,
+     "feesGbp": 0,
+     "tradedGbp": 0,
+     "bps": null
+    },
+    "window": {
+     "trips": 0,
+     "won": 0,
+     "stops": 0,
+     "realisedGbp": 0,
+     "feesGbp": 0,
+     "tradedGbp": 0,
+     "bps": null
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDC-GBP ask 0.1 %": {
+    "all": {
+     "trips": 30,
+     "won": 24,
+     "stops": 0,
+     "realisedGbp": 0.7826,
+     "feesGbp": 0,
+     "tradedGbp": 1192.6995,
+     "bps": 6.5619
+    },
+    "window": {
+     "trips": 28,
+     "won": 24,
+     "stops": 0,
+     "realisedGbp": 0.8121,
+     "feesGbp": 0,
+     "tradedGbp": 1142.5099,
+     "bps": 7.1083
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDC-GBP ask 0.2 %": {
+    "all": {
+     "trips": 9,
+     "won": 8,
+     "stops": 0,
+     "realisedGbp": 0.6253,
+     "feesGbp": 0,
+     "tradedGbp": 439.9701,
+     "bps": 14.2114
+    },
+    "window": {
+     "trips": 8,
+     "won": 7,
+     "stops": 0,
+     "realisedGbp": 0.5988,
+     "feesGbp": 0,
+     "tradedGbp": 389.9701,
+     "bps": 15.3555
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDC-GBP ask 0.3 %": {
+    "all": {
+     "trips": 1,
+     "won": 1,
+     "stops": 0,
+     "realisedGbp": 0.1646,
+     "feesGbp": 0,
+     "tradedGbp": 50,
+     "bps": 32.9109
+    },
+    "window": {
+     "trips": 1,
+     "won": 1,
+     "stops": 0,
+     "realisedGbp": 0.1646,
+     "feesGbp": 0,
+     "tradedGbp": 50,
+     "bps": 32.9109
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDT-GBP bid 0.1 %": {
+    "all": {
+     "trips": 62,
+     "won": 29,
+     "stops": 1,
+     "realisedGbp": 0.7255,
+     "feesGbp": 0.01,
+     "tradedGbp": 1624.6001,
+     "bps": 4.4659
+    },
+    "window": {
+     "trips": 50,
+     "won": 19,
+     "stops": 1,
+     "realisedGbp": 0.2182,
+     "feesGbp": 0.01,
+     "tradedGbp": 1029.6299,
+     "bps": 2.1192
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDT-GBP bid 0.2 %": {
+    "all": {
+     "trips": 13,
+     "won": 11,
+     "stops": 1,
+     "realisedGbp": 1.1058,
+     "feesGbp": 0.05,
+     "tradedGbp": 577.2295,
+     "bps": 19.1564
+    },
+    "window": {
+     "trips": 4,
+     "won": 2,
+     "stops": 1,
+     "realisedGbp": 0.1997,
+     "feesGbp": 0.05,
+     "tradedGbp": 150.1095,
+     "bps": 13.3008
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDT-GBP bid 0.3 %": {
+    "all": {
+     "trips": 7,
+     "won": 7,
+     "stops": 1,
+     "realisedGbp": 0.95,
+     "feesGbp": 0.05,
+     "tradedGbp": 318.87,
+     "bps": 29.7927
+    },
+    "window": {
+     "trips": 1,
+     "won": 1,
+     "stops": 1,
+     "realisedGbp": 0.1363,
+     "feesGbp": 0.05,
+     "tradedGbp": 50,
+     "bps": 27.259
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDT-GBP ask 0.1 %": {
+    "all": {
+     "trips": 66,
+     "won": 44,
+     "stops": 0,
+     "realisedGbp": 2.0846,
+     "feesGbp": 0,
+     "tradedGbp": 2214.8563,
+     "bps": 9.4121
+    },
+    "window": {
+     "trips": 55,
+     "won": 33,
+     "stops": 0,
+     "realisedGbp": 1.686,
+     "feesGbp": 0,
+     "tradedGbp": 1701.8664,
+     "bps": 9.9067
+    },
+    "heldCoins": 66.6042,
+    "heldCostGbp": 49.9798,
+    "overCoins": 0.0464
+   },
+   "USDT-GBP ask 0.2 %": {
+    "all": {
+     "trips": 18,
+     "won": 14,
+     "stops": 1,
+     "realisedGbp": 1.2913,
+     "feesGbp": 0.0187,
+     "tradedGbp": 709.9209,
+     "bps": 18.19
+    },
+    "window": {
+     "trips": 16,
+     "won": 12,
+     "stops": 1,
+     "realisedGbp": 1.1127,
+     "feesGbp": 0.0187,
+     "tradedGbp": 609.921,
+     "bps": 18.2437
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0.0092
+   },
+   "USDT-GBP ask 0.3 %": {
+    "all": {
+     "trips": 7,
+     "won": 7,
+     "stops": 0,
+     "realisedGbp": 0.9102,
+     "feesGbp": 0,
+     "tradedGbp": 349.8102,
+     "bps": 26.0209
+    },
+    "window": {
+     "trips": 7,
+     "won": 7,
+     "stops": 0,
+     "realisedGbp": 0.9102,
+     "feesGbp": 0,
+     "tradedGbp": 349.8102,
+     "bps": 26.0209
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   }
+  }
+ },
+ "d": {
+  "capitalGbp": 1800,
+  "rungs": 36,
+  "all": {
+   "trips": 1064,
+   "won": 632,
+   "stops": 30,
+   "realisedGbp": 22.1485,
+   "feesGbp": 1.3071,
+   "tradedGbp": 38105.2215,
+   "bps": 5.8125
+  },
+  "backfill": {
+   "trips": 205,
+   "won": 163,
+   "stops": 0,
+   "realisedGbp": 8.5608,
+   "feesGbp": 0,
+   "tradedGbp": 9726.2899,
+   "bps": 8.8017
+  },
+  "between": {
+   "trips": 3,
+   "won": 2,
+   "stops": 0,
+   "realisedGbp": 0.0453,
+   "feesGbp": 0,
+   "tradedGbp": 150,
+   "bps": 3.0186
+  },
+  "window": {
+   "trips": 856,
+   "won": 467,
+   "stops": 30,
+   "realisedGbp": 13.5425,
+   "feesGbp": 1.3071,
+   "tradedGbp": 28228.9316,
+   "bps": 4.7974
+  },
+  "windowRealisedPerCapital": 0.0075,
+  "heldRungsAtCut": 2,
+  "conversions": 4,
+  "conversionFeesGbp": 0,
+  "minBuyBacks": {
+   "beforeF1": {
+    "n": 28,
+    "gbp": 3.08
+   },
+   "afterF1": {
+    "n": 126,
+    "gbp": 13.86
+   }
+  },
+  "byRung": {
+   "USDC-GBP bid 0.03 %": {
+    "all": {
+     "trips": 21,
+     "won": 13,
+     "stops": 0,
+     "realisedGbp": 0.3365,
+     "feesGbp": 0,
+     "tradedGbp": 863.81,
+     "bps": 3.8952
+    },
+    "window": {
+     "trips": 7,
+     "won": 2,
+     "stops": 0,
+     "realisedGbp": -0.0504,
+     "feesGbp": 0,
+     "tradedGbp": 280.24,
+     "bps": -1.7971
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDC-GBP bid 0.05 %": {
+    "all": {
+     "trips": 61,
+     "won": 44,
+     "stops": 1,
+     "realisedGbp": 1.0198,
+     "feesGbp": 0.05,
+     "tradedGbp": 2771.86,
+     "bps": 3.6792
+    },
+    "window": {
+     "trips": 48,
+     "won": 34,
+     "stops": 1,
+     "realisedGbp": 0.6208,
+     "feesGbp": 0.05,
+     "tradedGbp": 2121.86,
+     "bps": 2.9256
+    },
+    "heldCoins": 9.0929,
+    "heldCostGbp": 6.8198,
+    "overCoins": 0
+   },
+   "USDC-GBP bid 0.075 %": {
+    "all": {
+     "trips": 45,
+     "won": 36,
+     "stops": 1,
+     "realisedGbp": 0.8463,
+     "feesGbp": 0.05,
+     "tradedGbp": 2076.03,
+     "bps": 4.0766
+    },
+    "window": {
+     "trips": 34,
+     "won": 25,
+     "stops": 1,
+     "realisedGbp": 0.2684,
+     "feesGbp": 0.05,
+     "tradedGbp": 1557.62,
+     "bps": 1.723
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDC-GBP bid 0.1 %": {
+    "all": {
+     "trips": 32,
+     "won": 26,
+     "stops": 1,
+     "realisedGbp": 1.0491,
+     "feesGbp": 0.05,
+     "tradedGbp": 1473.2701,
+     "bps": 7.1207
+    },
+    "window": {
+     "trips": 25,
+     "won": 20,
+     "stops": 1,
+     "realisedGbp": 0.675,
+     "feesGbp": 0.05,
+     "tradedGbp": 1162.95,
+     "bps": 5.8041
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDC-GBP bid 0.125 %": {
+    "all": {
+     "trips": 25,
+     "won": 21,
+     "stops": 1,
+     "realisedGbp": 1.3673,
+     "feesGbp": 0.05,
+     "tradedGbp": 1176.3301,
+     "bps": 11.6233
+    },
+    "window": {
+     "trips": 18,
+     "won": 14,
+     "stops": 1,
+     "realisedGbp": 0.6768,
+     "feesGbp": 0.05,
+     "tradedGbp": 826.33,
+     "bps": 8.1901
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDC-GBP bid 0.15 %": {
+    "all": {
+     "trips": 18,
+     "won": 14,
+     "stops": 1,
+     "realisedGbp": 0.9126,
+     "feesGbp": 0.05,
+     "tradedGbp": 821.5201,
+     "bps": 11.1087
+    },
+    "window": {
+     "trips": 14,
+     "won": 10,
+     "stops": 1,
+     "realisedGbp": 0.4961,
+     "feesGbp": 0.05,
+     "tradedGbp": 621.5201,
+     "bps": 7.9813
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDC-GBP bid 0.2 %": {
+    "all": {
+     "trips": 6,
+     "won": 5,
+     "stops": 1,
+     "realisedGbp": 0.3618,
+     "feesGbp": 0.05,
+     "tradedGbp": 300,
+     "bps": 12.0596
+    },
+    "window": {
+     "trips": 5,
+     "won": 4,
+     "stops": 1,
+     "realisedGbp": 0.2623,
+     "feesGbp": 0.05,
+     "tradedGbp": 250,
+     "bps": 10.4906
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDC-GBP bid 0.25 %": {
+    "all": {
+     "trips": 0,
+     "won": 0,
+     "stops": 0,
+     "realisedGbp": 0,
+     "feesGbp": 0,
+     "tradedGbp": 0,
+     "bps": null
+    },
+    "window": {
+     "trips": 0,
+     "won": 0,
+     "stops": 0,
+     "realisedGbp": 0,
+     "feesGbp": 0,
+     "tradedGbp": 0,
+     "bps": null
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDC-GBP bid 0.3 %": {
+    "all": {
+     "trips": 0,
+     "won": 0,
+     "stops": 0,
+     "realisedGbp": 0,
+     "feesGbp": 0,
+     "tradedGbp": 0,
+     "bps": null
+    },
+    "window": {
+     "trips": 0,
+     "won": 0,
+     "stops": 0,
+     "realisedGbp": 0,
+     "feesGbp": 0,
+     "tradedGbp": 0,
+     "bps": null
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDC-GBP ask 0.03 %": {
+    "all": {
+     "trips": 20,
+     "won": 10,
+     "stops": 0,
+     "realisedGbp": -0.1011,
+     "feesGbp": 0,
+     "tradedGbp": 873.45,
+     "bps": -1.1573
+    },
+    "window": {
+     "trips": 10,
+     "won": 8,
+     "stops": 0,
+     "realisedGbp": 0.1054,
+     "feesGbp": 0,
+     "tradedGbp": 421.45,
+     "bps": 2.5009
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDC-GBP ask 0.05 %": {
+    "all": {
+     "trips": 37,
+     "won": 24,
+     "stops": 1,
+     "realisedGbp": 0.5946,
+     "feesGbp": 0.0218,
+     "tradedGbp": 1435.25,
+     "bps": 4.1428
+    },
+    "window": {
+     "trips": 35,
+     "won": 23,
+     "stops": 1,
+     "realisedGbp": 0.6277,
+     "feesGbp": 0.0218,
+     "tradedGbp": 1335.25,
+     "bps": 4.7011
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDC-GBP ask 0.075 %": {
+    "all": {
+     "trips": 22,
+     "won": 16,
+     "stops": 1,
+     "realisedGbp": 0.3486,
+     "feesGbp": 0.045,
+     "tradedGbp": 1052.3901,
+     "bps": 3.3121
+    },
+    "window": {
+     "trips": 20,
+     "won": 15,
+     "stops": 1,
+     "realisedGbp": 0.3552,
+     "feesGbp": 0.045,
+     "tradedGbp": 952.3901,
+     "bps": 3.7293
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDC-GBP ask 0.1 %": {
+    "all": {
+     "trips": 20,
+     "won": 16,
+     "stops": 0,
+     "realisedGbp": 0.6735,
+     "feesGbp": 0,
+     "tradedGbp": 948.4598,
+     "bps": 7.1005
+    },
+    "window": {
+     "trips": 19,
+     "won": 16,
+     "stops": 0,
+     "realisedGbp": 0.691,
+     "feesGbp": 0,
+     "tradedGbp": 898.4598,
+     "bps": 7.6909
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDC-GBP ask 0.125 %": {
+    "all": {
+     "trips": 14,
+     "won": 11,
+     "stops": 1,
+     "realisedGbp": 0.6421,
+     "feesGbp": 0.0048,
+     "tradedGbp": 617.1901,
+     "bps": 10.403
+    },
+    "window": {
+     "trips": 13,
+     "won": 11,
+     "stops": 1,
+     "realisedGbp": 0.6553,
+     "feesGbp": 0.0048,
+     "tradedGbp": 567.1901,
+     "bps": 11.5534
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDC-GBP ask 0.15 %": {
+    "all": {
+     "trips": 11,
+     "won": 9,
+     "stops": 0,
+     "realisedGbp": 0.7895,
+     "feesGbp": 0,
+     "tradedGbp": 493.48,
+     "bps": 15.9989
+    },
+    "window": {
+     "trips": 10,
+     "won": 9,
+     "stops": 0,
+     "realisedGbp": 0.7961,
+     "feesGbp": 0,
+     "tradedGbp": 443.48,
+     "bps": 17.952
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDC-GBP ask 0.2 %": {
+    "all": {
+     "trips": 5,
+     "won": 5,
+     "stops": 0,
+     "realisedGbp": 0.5529,
+     "feesGbp": 0,
+     "tradedGbp": 217.9901,
+     "bps": 25.3652
+    },
+    "window": {
+     "trips": 5,
+     "won": 5,
+     "stops": 0,
+     "realisedGbp": 0.5529,
+     "feesGbp": 0,
+     "tradedGbp": 217.9901,
+     "bps": 25.3652
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDC-GBP ask 0.25 %": {
+    "all": {
+     "trips": 3,
+     "won": 3,
+     "stops": 0,
+     "realisedGbp": 0.3512,
+     "feesGbp": 0,
+     "tradedGbp": 150.0001,
+     "bps": 23.4122
+    },
+    "window": {
+     "trips": 3,
+     "won": 3,
+     "stops": 0,
+     "realisedGbp": 0.3512,
+     "feesGbp": 0,
+     "tradedGbp": 150.0001,
+     "bps": 23.4122
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDC-GBP ask 0.3 %": {
+    "all": {
+     "trips": 1,
+     "won": 1,
+     "stops": 0,
+     "realisedGbp": 0.237,
+     "feesGbp": 0,
+     "tradedGbp": 50,
+     "bps": 47.3954
+    },
+    "window": {
+     "trips": 1,
+     "won": 1,
+     "stops": 0,
+     "realisedGbp": 0.237,
+     "feesGbp": 0,
+     "tradedGbp": 50,
+     "bps": 47.3954
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDT-GBP bid 0.03 %": {
+    "all": {
+     "trips": 37,
+     "won": 19,
+     "stops": 0,
+     "realisedGbp": 0.0389,
+     "feesGbp": 0,
+     "tradedGbp": 1292.74,
+     "bps": 0.3013
+    },
+    "window": {
+     "trips": 23,
+     "won": 11,
+     "stops": 0,
+     "realisedGbp": 0.1057,
+     "feesGbp": 0,
+     "tradedGbp": 629.4301,
+     "bps": 1.6793
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDT-GBP bid 0.05 %": {
+    "all": {
+     "trips": 117,
+     "won": 44,
+     "stops": 2,
+     "realisedGbp": -0.2202,
+     "feesGbp": 0.1,
+     "tradedGbp": 2897.8943,
+     "bps": -0.76
+    },
+    "window": {
+     "trips": 107,
+     "won": 36,
+     "stops": 2,
+     "realisedGbp": -0.3915,
+     "feesGbp": 0.1,
+     "tradedGbp": 2397.8943,
+     "bps": -1.6325
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDT-GBP bid 0.075 %": {
+    "all": {
+     "trips": 73,
+     "won": 33,
+     "stops": 1,
+     "realisedGbp": 0.4474,
+     "feesGbp": 0.05,
+     "tradedGbp": 1999.0204,
+     "bps": 2.2381
+    },
+    "window": {
+     "trips": 63,
+     "won": 24,
+     "stops": 1,
+     "realisedGbp": -0.0169,
+     "feesGbp": 0.05,
+     "tradedGbp": 1499.0204,
+     "bps": -0.1129
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDT-GBP bid 0.1 %": {
+    "all": {
+     "trips": 39,
+     "won": 22,
+     "stops": 1,
+     "realisedGbp": 0.8438,
+     "feesGbp": 0.05,
+     "tradedGbp": 1301.4298,
+     "bps": 6.4838
+    },
+    "window": {
+     "trips": 30,
+     "won": 14,
+     "stops": 1,
+     "realisedGbp": 0.2599,
+     "feesGbp": 0.05,
+     "tradedGbp": 851.4298,
+     "bps": 3.053
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDT-GBP bid 0.125 %": {
+    "all": {
+     "trips": 28,
+     "won": 17,
+     "stops": 1,
+     "realisedGbp": 0.9835,
+     "feesGbp": 0.05,
+     "tradedGbp": 1050.7698,
+     "bps": 9.3602
+    },
+    "window": {
+     "trips": 19,
+     "won": 9,
+     "stops": 1,
+     "realisedGbp": 0.2935,
+     "feesGbp": 0.05,
+     "tradedGbp": 600.7699,
+     "bps": 4.8847
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDT-GBP bid 0.15 %": {
+    "all": {
+     "trips": 20,
+     "won": 14,
+     "stops": 1,
+     "realisedGbp": 1.0999,
+     "feesGbp": 0.05,
+     "tradedGbp": 850.3301,
+     "bps": 12.9354
+    },
+    "window": {
+     "trips": 11,
+     "won": 6,
+     "stops": 1,
+     "realisedGbp": 0.3539,
+     "feesGbp": 0.05,
+     "tradedGbp": 400.3301,
+     "bps": 8.8412
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDT-GBP bid 0.2 %": {
+    "all": {
+     "trips": 10,
+     "won": 10,
+     "stops": 1,
+     "realisedGbp": 1.16,
+     "feesGbp": 0.05,
+     "tradedGbp": 468.92,
+     "bps": 24.7379
+    },
+    "window": {
+     "trips": 2,
+     "won": 2,
+     "stops": 1,
+     "realisedGbp": 0.2342,
+     "feesGbp": 0.05,
+     "tradedGbp": 100,
+     "bps": 23.4181
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDT-GBP bid 0.25 %": {
+    "all": {
+     "trips": 6,
+     "won": 6,
+     "stops": 1,
+     "realisedGbp": 0.72,
+     "feesGbp": 0.05,
+     "tradedGbp": 300,
+     "bps": 24
+    },
+    "window": {
+     "trips": 1,
+     "won": 1,
+     "stops": 1,
+     "realisedGbp": 0.1287,
+     "feesGbp": 0.05,
+     "tradedGbp": 50,
+     "bps": 25.7392
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDT-GBP bid 0.3 %": {
+    "all": {
+     "trips": 4,
+     "won": 4,
+     "stops": 1,
+     "realisedGbp": 0.58,
+     "feesGbp": 0.05,
+     "tradedGbp": 200,
+     "bps": 29
+    },
+    "window": {
+     "trips": 1,
+     "won": 1,
+     "stops": 1,
+     "realisedGbp": 0.1608,
+     "feesGbp": 0.05,
+     "tradedGbp": 50,
+     "bps": 32.1638
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0
+   },
+   "USDT-GBP ask 0.03 %": {
+    "all": {
+     "trips": 47,
+     "won": 19,
+     "stops": 0,
+     "realisedGbp": -0.0857,
+     "feesGbp": 0,
+     "tradedGbp": 1524.2015,
+     "bps": -0.5621
+    },
+    "window": {
+     "trips": 27,
+     "won": 7,
+     "stops": 0,
+     "realisedGbp": -0.2836,
+     "feesGbp": 0,
+     "tradedGbp": 671.1515,
+     "bps": -4.2254
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0.0013
+   },
+   "USDT-GBP ask 0.05 %": {
+    "all": {
+     "trips": 124,
+     "won": 46,
+     "stops": 2,
+     "realisedGbp": -0.5371,
+     "feesGbp": 0.0883,
+     "tradedGbp": 2981.0558,
+     "bps": -1.8018
+    },
+    "window": {
+     "trips": 112,
+     "won": 36,
+     "stops": 2,
+     "realisedGbp": -0.6993,
+     "feesGbp": 0.0883,
+     "tradedGbp": 2421.0858,
+     "bps": -2.8884
+    },
+    "heldCoins": 66.6608,
+    "heldCostGbp": 50.008,
+    "overCoins": 0.055
+   },
+   "USDT-GBP ask 0.075 %": {
+    "all": {
+     "trips": 76,
+     "won": 40,
+     "stops": 2,
+     "realisedGbp": 1.0598,
+     "feesGbp": 0.0366,
+     "tradedGbp": 2377.0832,
+     "bps": 4.4583
+    },
+    "window": {
+     "trips": 68,
+     "won": 33,
+     "stops": 2,
+     "realisedGbp": 0.8462,
+     "feesGbp": 0.0366,
+     "tradedGbp": 1977.0832,
+     "bps": 4.2799
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0.0741
+   },
+   "USDT-GBP ask 0.1 %": {
+    "all": {
+     "trips": 49,
+     "won": 33,
+     "stops": 2,
+     "realisedGbp": 1.2336,
+     "feesGbp": 0.0901,
+     "tradedGbp": 1820.7537,
+     "bps": 6.7753
+    },
+    "window": {
+     "trips": 43,
+     "won": 27,
+     "stops": 2,
+     "realisedGbp": 0.9953,
+     "feesGbp": 0.0901,
+     "tradedGbp": 1520.7537,
+     "bps": 6.5445
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0.0271
+   },
+   "USDT-GBP ask 0.125 %": {
+    "all": {
+     "trips": 35,
+     "won": 27,
+     "stops": 2,
+     "realisedGbp": 1.4165,
+     "feesGbp": 0.0902,
+     "tradedGbp": 1377.2104,
+     "bps": 10.285
+    },
+    "window": {
+     "trips": 30,
+     "won": 22,
+     "stops": 2,
+     "realisedGbp": 1.1779,
+     "feesGbp": 0.0902,
+     "tradedGbp": 1127.2104,
+     "bps": 10.4498
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0.0173
+   },
+   "USDT-GBP ask 0.15 %": {
+    "all": {
+     "trips": 26,
+     "won": 21,
+     "stops": 1,
+     "realisedGbp": 1.2989,
+     "feesGbp": 0.045,
+     "tradedGbp": 1060.825,
+     "bps": 12.2446
+    },
+    "window": {
+     "trips": 23,
+     "won": 18,
+     "stops": 1,
+     "realisedGbp": 1.1545,
+     "feesGbp": 0.045,
+     "tradedGbp": 944.085,
+     "bps": 12.2286
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0.0084
+   },
+   "USDT-GBP ask 0.2 %": {
+    "all": {
+     "trips": 14,
+     "won": 11,
+     "stops": 1,
+     "realisedGbp": 0.8843,
+     "feesGbp": 0.0451,
+     "tradedGbp": 600.1832,
+     "bps": 14.7337
+    },
+    "window": {
+     "trips": 12,
+     "won": 9,
+     "stops": 1,
+     "realisedGbp": 0.7453,
+     "feesGbp": 0.0451,
+     "tradedGbp": 500.1832,
+     "bps": 14.9003
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0.0079
+   },
+   "USDT-GBP ask 0.25 %": {
+    "all": {
+     "trips": 11,
+     "won": 7,
+     "stops": 1,
+     "realisedGbp": 0.6945,
+     "feesGbp": 0.0451,
+     "tradedGbp": 381.6835,
+     "bps": 18.1948
+    },
+    "window": {
+     "trips": 10,
+     "won": 6,
+     "stops": 1,
+     "realisedGbp": 0.6084,
+     "feesGbp": 0.0451,
+     "tradedGbp": 331.6835,
+     "bps": 18.3418
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0.0166
+   },
+   "USDT-GBP ask 0.3 %": {
+    "all": {
+     "trips": 7,
+     "won": 5,
+     "stops": 1,
+     "realisedGbp": 0.5488,
+     "feesGbp": 0.045,
+     "tradedGbp": 300.0904,
+     "bps": 18.289
+    },
+    "window": {
+     "trips": 7,
+     "won": 5,
+     "stops": 1,
+     "realisedGbp": 0.5488,
+     "feesGbp": 0.045,
+     "tradedGbp": 300.0904,
+     "bps": 18.289
+    },
+    "heldCoins": 0,
+    "heldCostGbp": 0,
+    "overCoins": 0.0091
+   }
+  }
+ },
+ "d_beside_arm_d": {
+  "note": "arm d's paper trips (agent_quoted_trips, its nine rungs a side throughout, $100 a rung) closed before the cut, beside the twin (£50 a rung).",
+  "paper": {
+   "all": {
+    "trips": 1772,
+    "won": 1535,
+    "takers": 10,
+    "pnlUsd": 50.3446
+   },
+   "byRung": {
+    "USDC-GBP bid 0.03 %": {
+     "trips": 93,
+     "won": 65,
+     "takers": 1,
+     "pnlUsd": 0.5434
+    },
+    "USDC-GBP bid 0.05 %": {
+     "trips": 54,
+     "won": 43,
+     "takers": 1,
+     "pnlUsd": 1.0183
+    },
+    "USDC-GBP bid 0.075 %": {
+     "trips": 40,
+     "won": 34,
+     "takers": 1,
+     "pnlUsd": 1.9787
+    },
+    "USDC-GBP bid 0.1 %": {
+     "trips": 30,
+     "won": 26,
+     "takers": 1,
+     "pnlUsd": 2.2552
+    },
+    "USDC-GBP bid 0.125 %": {
+     "trips": 25,
+     "won": 21,
+     "takers": 1,
+     "pnlUsd": 2.4434
+    },
+    "USDC-GBP bid 0.15 %": {
+     "trips": 16,
+     "won": 15,
+     "takers": 1,
+     "pnlUsd": 2.4505
+    },
+    "USDC-GBP bid 0.2 %": {
+     "trips": 4,
+     "won": 3,
+     "takers": 1,
+     "pnlUsd": 0.321
+    },
+    "USDC-GBP bid 0.25 %": {
+     "trips": 0,
+     "won": 0,
+     "takers": 0,
+     "pnlUsd": 0
+    },
+    "USDC-GBP bid 0.3 %": {
+     "trips": 0,
+     "won": 0,
+     "takers": 0,
+     "pnlUsd": 0
+    },
+    "USDC-GBP ask 0.03 %": {
+     "trips": 73,
+     "won": 56,
+     "takers": 0,
+     "pnlUsd": 1.0732
+    },
+    "USDC-GBP ask 0.05 %": {
+     "trips": 30,
+     "won": 27,
+     "takers": 0,
+     "pnlUsd": 1.111
+    },
+    "USDC-GBP ask 0.075 %": {
+     "trips": 21,
+     "won": 19,
+     "takers": 0,
+     "pnlUsd": 0.9883
+    },
+    "USDC-GBP ask 0.1 %": {
+     "trips": 13,
+     "won": 12,
+     "takers": 0,
+     "pnlUsd": 0.895
+    },
+    "USDC-GBP ask 0.125 %": {
+     "trips": 12,
+     "won": 11,
+     "takers": 0,
+     "pnlUsd": 0.9535
+    },
+    "USDC-GBP ask 0.15 %": {
+     "trips": 4,
+     "won": 4,
+     "takers": 0,
+     "pnlUsd": 0.1976
+    },
+    "USDC-GBP ask 0.2 %": {
+     "trips": 1,
+     "won": 1,
+     "takers": 0,
+     "pnlUsd": 0.2787
+    },
+    "USDC-GBP ask 0.25 %": {
+     "trips": 0,
+     "won": 0,
+     "takers": 0,
+     "pnlUsd": 0
+    },
+    "USDC-GBP ask 0.3 %": {
+     "trips": 0,
+     "won": 0,
+     "takers": 0,
+     "pnlUsd": 0
+    },
+    "USDT-GBP bid 0.03 %": {
+     "trips": 262,
+     "won": 215,
+     "takers": 0,
+     "pnlUsd": 0.9747
+    },
+    "USDT-GBP bid 0.05 %": {
+     "trips": 149,
+     "won": 132,
+     "takers": 1,
+     "pnlUsd": 2.7496
+    },
+    "USDT-GBP bid 0.075 %": {
+     "trips": 75,
+     "won": 68,
+     "takers": 1,
+     "pnlUsd": 2.7409
+    },
+    "USDT-GBP bid 0.1 %": {
+     "trips": 38,
+     "won": 33,
+     "takers": 1,
+     "pnlUsd": 1.7274
+    },
+    "USDT-GBP bid 0.125 %": {
+     "trips": 22,
+     "won": 20,
+     "takers": 0,
+     "pnlUsd": 1.8842
+    },
+    "USDT-GBP bid 0.15 %": {
+     "trips": 16,
+     "won": 15,
+     "takers": 0,
+     "pnlUsd": 2.4255
+    },
+    "USDT-GBP bid 0.2 %": {
+     "trips": 10,
+     "won": 10,
+     "takers": 0,
+     "pnlUsd": 2.0709
+    },
+    "USDT-GBP bid 0.25 %": {
+     "trips": 8,
+     "won": 8,
+     "takers": 0,
+     "pnlUsd": 1.6649
+    },
+    "USDT-GBP bid 0.3 %": {
+     "trips": 5,
+     "won": 5,
+     "takers": 0,
+     "pnlUsd": 1.2547
+    },
+    "USDT-GBP ask 0.03 %": {
+     "trips": 314,
+     "won": 268,
+     "takers": 0,
+     "pnlUsd": 1.1614
+    },
+    "USDT-GBP ask 0.05 %": {
+     "trips": 181,
+     "won": 161,
+     "takers": 0,
+     "pnlUsd": 1.9261
+    },
+    "USDT-GBP ask 0.075 %": {
+     "trips": 105,
+     "won": 97,
+     "takers": 0,
+     "pnlUsd": 2.6413
+    },
+    "USDT-GBP ask 0.1 %": {
+     "trips": 64,
+     "won": 61,
+     "takers": 0,
+     "pnlUsd": 2.6119
+    },
+    "USDT-GBP ask 0.125 %": {
+     "trips": 44,
+     "won": 43,
+     "takers": 0,
+     "pnlUsd": 2.4245
+    },
+    "USDT-GBP ask 0.15 %": {
+     "trips": 28,
+     "won": 27,
+     "takers": 0,
+     "pnlUsd": 1.13
+    },
+    "USDT-GBP ask 0.2 %": {
+     "trips": 14,
+     "won": 14,
+     "takers": 0,
+     "pnlUsd": 1.4529
+    },
+    "USDT-GBP ask 0.25 %": {
+     "trips": 13,
+     "won": 13,
+     "takers": 0,
+     "pnlUsd": 1.2738
+    },
+    "USDT-GBP ask 0.3 %": {
+     "trips": 8,
+     "won": 8,
+     "takers": 0,
+     "pnlUsd": 1.7219
+    }
+   }
+  },
+  "twinSpans": {
+   "nineRungs_enteredTo_1009": {
+    "trips": 396,
+    "won": 279,
+    "stops": 9,
+    "realisedGbp": 12.9811,
+    "feesGbp": 0.4048,
+    "tradedGbp": 16957.2715,
+    "bps": 7.6552
+   },
+   "eightRungs_enteredFrom_1010": {
+    "trips": 668,
+    "won": 353,
+    "stops": 21,
+    "realisedGbp": 9.1674,
+    "feesGbp": 0.9022,
+    "tradedGbp": 21147.95,
+    "bps": 4.3349
+   }
+  },
+  "paperSpans": {
+   "enteredTo_1009": {
+    "trips": 419,
+    "won": 355,
+    "takers": 3,
+    "pnlUsd": 19.6768
+   },
+   "enteredFrom_1010": {
+    "trips": 1353,
+    "won": 1180,
+    "takers": 7,
+    "pnlUsd": 30.6677
+   }
+  },
+  "eightCommonRungs_wholeSpan": {
+   "twin": {
+    "trips": 939,
+    "won": 571,
+    "stops": 30,
+    "realisedGbp": 21.9599,
+    "feesGbp": 1.3071,
+    "tradedGbp": 33551.0199,
+    "bps": 6.5452
+   },
+   "paper": {
+    "trips": 1030,
+    "won": 931,
+    "takers": 9,
+    "pnlUsd": 46.5918
+   }
+  },
+  "rung003_enteredBefore_1010": {
+   "twin": {
+    "trips": 125,
+    "won": 61,
+    "stops": 0,
+    "realisedGbp": 0.1887,
+    "feesGbp": 0,
+    "tradedGbp": 4554.2016,
+    "bps": 0.4142
+   },
+   "paper": {
+    "trips": 178,
+    "won": 139,
+    "takers": 0,
+    "pnlUsd": 0.8473
+   }
+  },
+  "rung003_enteredFrom_1010": {
+   "twin": {
+    "trips": 0,
+    "won": 0,
+    "stops": 0,
+    "realisedGbp": 0,
+    "feesGbp": 0,
+    "tradedGbp": 0,
+    "bps": null
+   },
+   "paper": {
+    "trips": 564,
+    "won": 465,
+    "takers": 1,
+    "pnlUsd": 2.9054
+   }
+  },
+  "rung003_openAt_1010": [
+   {
+    "book": "USDC-GBP",
+    "side": "ask",
+    "tEntry": "2026-10-09T20:39:25.005Z",
+    "tExit": "2026-10-10T03:00:25.005Z",
+    "how": "exit",
+    "pnlGbp": 0.0066
+   }
+  ]
+ },
+ "d_vs_p50_window": {
+  "note": "trips closed 2026-10-04 00:00 -> 2026-10-28 00:00 UTC; both at £50 a rung; d quotes nine rungs a side (eight from 10-10), p50 three.",
+  "byRung": {
+   "USDC-GBP bid 0.1 %": {
+    "d": {
+     "trips": 25,
+     "won": 20,
+     "stops": 1,
+     "realisedGbp": 0.675,
+     "feesGbp": 0.05,
+     "tradedGbp": 1162.95,
+     "bps": 5.8041
+    },
+    "p50": {
+     "trips": 27,
+     "won": 20,
+     "stops": 1,
+     "realisedGbp": 0.5003,
+     "feesGbp": 0.05,
+     "tradedGbp": 1270.6101,
+     "bps": 3.9376
+    }
+   },
+   "USDC-GBP bid 0.2 %": {
+    "d": {
+     "trips": 5,
+     "won": 4,
+     "stops": 1,
+     "realisedGbp": 0.2623,
+     "feesGbp": 0.05,
+     "tradedGbp": 250,
+     "bps": 10.4906
+    },
+    "p50": {
+     "trips": 4,
+     "won": 2,
+     "stops": 0,
+     "realisedGbp": 0.0776,
+     "feesGbp": 0,
+     "tradedGbp": 196.06,
+     "bps": 3.9605
+    }
+   },
+   "USDC-GBP bid 0.3 %": {
+    "d": {
+     "trips": 0,
+     "won": 0,
+     "stops": 0,
+     "realisedGbp": 0,
+     "feesGbp": 0,
+     "tradedGbp": 0,
+     "bps": null
+    },
+    "p50": {
+     "trips": 0,
+     "won": 0,
+     "stops": 0,
+     "realisedGbp": 0,
+     "feesGbp": 0,
+     "tradedGbp": 0,
+     "bps": null
+    }
+   },
+   "USDC-GBP ask 0.1 %": {
+    "d": {
+     "trips": 19,
+     "won": 16,
+     "stops": 0,
+     "realisedGbp": 0.691,
+     "feesGbp": 0,
+     "tradedGbp": 898.4598,
+     "bps": 7.6909
+    },
+    "p50": {
+     "trips": 28,
+     "won": 24,
+     "stops": 0,
+     "realisedGbp": 0.8121,
+     "feesGbp": 0,
+     "tradedGbp": 1142.5099,
+     "bps": 7.1083
+    }
+   },
+   "USDC-GBP ask 0.2 %": {
+    "d": {
+     "trips": 5,
+     "won": 5,
+     "stops": 0,
+     "realisedGbp": 0.5529,
+     "feesGbp": 0,
+     "tradedGbp": 217.9901,
+     "bps": 25.3652
+    },
+    "p50": {
+     "trips": 8,
+     "won": 7,
+     "stops": 0,
+     "realisedGbp": 0.5988,
+     "feesGbp": 0,
+     "tradedGbp": 389.9701,
+     "bps": 15.3555
+    }
+   },
+   "USDC-GBP ask 0.3 %": {
+    "d": {
+     "trips": 1,
+     "won": 1,
+     "stops": 0,
+     "realisedGbp": 0.237,
+     "feesGbp": 0,
+     "tradedGbp": 50,
+     "bps": 47.3954
+    },
+    "p50": {
+     "trips": 1,
+     "won": 1,
+     "stops": 0,
+     "realisedGbp": 0.1646,
+     "feesGbp": 0,
+     "tradedGbp": 50,
+     "bps": 32.9109
+    }
+   },
+   "USDT-GBP bid 0.1 %": {
+    "d": {
+     "trips": 30,
+     "won": 14,
+     "stops": 1,
+     "realisedGbp": 0.2599,
+     "feesGbp": 0.05,
+     "tradedGbp": 851.4298,
+     "bps": 3.053
+    },
+    "p50": {
+     "trips": 50,
+     "won": 19,
+     "stops": 1,
+     "realisedGbp": 0.2182,
+     "feesGbp": 0.01,
+     "tradedGbp": 1029.6299,
+     "bps": 2.1192
+    }
+   },
+   "USDT-GBP bid 0.2 %": {
+    "d": {
+     "trips": 2,
+     "won": 2,
+     "stops": 1,
+     "realisedGbp": 0.2342,
+     "feesGbp": 0.05,
+     "tradedGbp": 100,
+     "bps": 23.4181
+    },
+    "p50": {
+     "trips": 4,
+     "won": 2,
+     "stops": 1,
+     "realisedGbp": 0.1997,
+     "feesGbp": 0.05,
+     "tradedGbp": 150.1095,
+     "bps": 13.3008
+    }
+   },
+   "USDT-GBP bid 0.3 %": {
+    "d": {
+     "trips": 1,
+     "won": 1,
+     "stops": 1,
+     "realisedGbp": 0.1608,
+     "feesGbp": 0.05,
+     "tradedGbp": 50,
+     "bps": 32.1638
+    },
+    "p50": {
+     "trips": 1,
+     "won": 1,
+     "stops": 1,
+     "realisedGbp": 0.1363,
+     "feesGbp": 0.05,
+     "tradedGbp": 50,
+     "bps": 27.259
+    }
+   },
+   "USDT-GBP ask 0.1 %": {
+    "d": {
+     "trips": 43,
+     "won": 27,
+     "stops": 2,
+     "realisedGbp": 0.9953,
+     "feesGbp": 0.0901,
+     "tradedGbp": 1520.7537,
+     "bps": 6.5445
+    },
+    "p50": {
+     "trips": 55,
+     "won": 33,
+     "stops": 0,
+     "realisedGbp": 1.686,
+     "feesGbp": 0,
+     "tradedGbp": 1701.8664,
+     "bps": 9.9067
+    }
+   },
+   "USDT-GBP ask 0.2 %": {
+    "d": {
+     "trips": 12,
+     "won": 9,
+     "stops": 1,
+     "realisedGbp": 0.7453,
+     "feesGbp": 0.0451,
+     "tradedGbp": 500.1832,
+     "bps": 14.9003
+    },
+    "p50": {
+     "trips": 16,
+     "won": 12,
+     "stops": 1,
+     "realisedGbp": 1.1127,
+     "feesGbp": 0.0187,
+     "tradedGbp": 609.921,
+     "bps": 18.2437
+    }
+   },
+   "USDT-GBP ask 0.3 %": {
+    "d": {
+     "trips": 7,
+     "won": 5,
+     "stops": 1,
+     "realisedGbp": 0.5488,
+     "feesGbp": 0.045,
+     "tradedGbp": 300.0904,
+     "bps": 18.289
+    },
+    "p50": {
+     "trips": 7,
+     "won": 7,
+     "stops": 0,
+     "realisedGbp": 0.9102,
+     "feesGbp": 0,
+     "tradedGbp": 349.8102,
+     "bps": 26.0209
+    }
+   }
+  },
+  "threeCommonRungs": {
+   "d": {
+    "trips": 150,
+    "won": 104,
+    "stops": 9,
+    "realisedGbp": 5.3625,
+    "feesGbp": 0.4302,
+    "tradedGbp": 5901.857,
+    "bps": 9.0861
+   },
+   "p50": {
+    "trips": 201,
+    "won": 128,
+    "stops": 5,
+    "realisedGbp": 6.4166,
+    "feesGbp": 0.1787,
+    "tradedGbp": 6940.487,
+    "bps": 9.2451
+   }
+  },
+  "total": {
+   "d": {
+    "trips": 856,
+    "won": 467,
+    "stops": 30,
+    "realisedGbp": 13.5425,
+    "feesGbp": 1.3071,
+    "tradedGbp": 28228.9316,
+    "bps": 4.7974,
+    "capitalGbp": 1800,
+    "realisedPerPound": 0.0075
+   },
+   "p50": {
+    "trips": 201,
+    "won": 128,
+    "stops": 5,
+    "realisedGbp": 6.4166,
+    "feesGbp": 0.1787,
+    "tradedGbp": 6940.487,
+    "bps": 9.2451,
+    "capitalGbp": 600,
+    "realisedPerPound": 0.0107
+   },
+   "pr5": {
+    "trips": 171,
+    "won": 114,
+    "stops": 6,
+    "realisedGbp": 11.4327,
+    "feesGbp": 0.3991,
+    "tradedGbp": 11262.5326,
+    "bps": 10.1511,
+    "capitalGbp": 1200,
+    "realisedPerPound": 0.0095
+   }
+  }
+ }
+}

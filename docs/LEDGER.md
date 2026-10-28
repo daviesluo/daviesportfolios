@@ -284,8 +284,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      **Review 10-26** (`reviews/2026-10-26-stablecoin-quotes-review.md`): "+64.9 %" right but realised-only, half one weekend.
      **LIVE at £600 since 2026-10-27 03:09 UTC** (Davies; §8): his two maker conversions for the asks' coin. `0144`:
      `live600` "LIVE twin" (bar 11-11), `live1200` "variant-1" £1,200 from 10-28 (prereg `live-next-size`, bar 11-11: ≥ 80 % of
-     `live600` per pound, no loss-stop day), `live300` off; compounding (`0146`) built OFF, his switch (review §9.3); `live` "variant-2" £120, weekends from 10-30; `pr5`, `p50`, `d` hidden, off after
-     their 10-28 readouts; `take50wk` off. `0142`: `take50` "variant-3" on the page; Coinbase "with Euros - 1" (hold, 11-10) and
+     `live600` per pound, no loss-stop day), `live300` off; compounding (`0146`) built OFF, his switch (review §9.3); `live` "variant-2" £120, weekends from 10-30; `pr5`, `p50`, `d` off by `0151`
+     (10-28 readouts); `take50wk` off. `0142`: `take50` "variant-3" on the page; Coinbase "with Euros - 1" (hold, 11-10) and
      "- 2", the USDC arm at £25/€25 (prereg `cb-usdc`, 14 days, bar > 0, ≥ 8 %/yr, ≥ 5 bps a trip).
      **PR5-OPT 10-27** (`reviews/2026-10-27-pr5-rules-optimisation.md` §4): five twins on LIVE's rules against `live600`,
      variant-4 to -8 (`o600no03`, `o600hold1`, `o600usdt2`, `o600usdt3`, `o600usdt`) by `0149`, from 10-27 06:00, read on or
@@ -310,18 +310,10 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      twin buy-back worth £0.10–£0.11 has `base_size` = floor(£0.11 / price), is debited £0.11, and the rung reads flat.
      The 10-21 and 10-28 readouts count such buy-backs before and after the deploy. Every reading named here should
      cite the review as a non-blind read.
-   - **PR5V and variant-2 (rule D), frozen 2026-09-28** (`reviews/2026-09-28-pr5-variant-prereg.md`,
-     `reviews/2026-09-28-pr5-rule-d-prereg.md`; governor 900/950 since their deviations of 2026-10-01): PR5V's window
-     09-29 → 10-26 by entry day, E = 10-28 00:30 UTC; both reading scripts **committed 2026-10-24**, before the
-     10-27 deadline (`scripts/pr5v/reading_pr5v.py` sha256 3e60421d…, `reading_ruled.py` 2aff5328…, every file's sha in
-     `reviews/2026-10-24-pr5v-ruled-reading-scripts.md`, pinned by `src/pr5v_reading_prereg.test.js`; synthetic checks only,
-     `backtests/pr5v/test_reading.txt`; run as `scripts/pr5v/reading_manifest.json` says: export with `reading_pull*.sql`,
-     cut with `reading_grab.py`), both read on or after **10-28 01:00** (latest 11-04; wake
-     `trig_01SekCNjJaux9Qbhn2Yaj7QD`, 10-28 01:20), each result file repeating the disclosure of 2026-09-30 22:14 (this
-     ledger read their 09-28 → 09-30 results early). Variant-2 is judged only if arm `v1` equals PR5V's `main`; its
-     health: `agent_quoted_state` code 4, caught up, no error, `checkMaxUsd` under $0.01, no `x_source = 'truefx'`.
-     Expect the governor to bind on fresh weekdays. A faster GBP/USD feed (TrueFX) counts only in a live executor that
-     posts at once: PR5's live path after 10-21, as a pre-registered change; no frozen test may switch.
+   - **PR5V and rule D, read 2026-10-28** (`reviews/2026-10-28-pr5v-ruled-readings.md`, not blind): PR5V **PASS** (5 of 5;
+     paired +$0.743/day, p 0.0000), rule D **FAIL** on condition 3 (paired +$0.055/day, p 0.1825). **For Davies:** both
+     pre-registrations stop their arms at the reading unless he says otherwise: `quotesv`/`quotesd` still run (calls off,
+     rows kept, on his word). A PR5V pass moves no money. Twins `pr5`, `p50`, `d` read and off by `0151`.
 
 5. **Closed: the studies of 2026-09-26/27** (reference §3.37–§3.42). Two notes: the view recorder stops with `0137` (10-23, its record
    kept), and its study was never pre-registered; PMLATE's and SPEED's post counts read one page of the
@@ -761,6 +753,11 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to OTHERVENUES' section of 2026-10-27 06:05 UTC (archived
 2026-10-28, second).
+
+### [2026-10-28 19:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **PR5V / rule D readings and the hidden twins' readouts** (sub-agent; not pushed). Committed scripts run unchanged on
+  read-only exports (`backtests/pr5v/forward/`, `ruled/`): PR5V PASS, rule D FAIL (condition 3). Twins `pr5`, `p50`, `d`
+  read (`ruled/twins/`) and switched off by `0151` (unapplied until pushed); tests and the sweep's fixture now use `live1200`.
 
 ### [2026-10-28 19:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **OKX's recorder and paper twins built (`0150`)** (sub-agent; not pushed; Davies, 10-27: "我已经有okx在英国的账户了…可以的话就加盘口记录器和开

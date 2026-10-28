@@ -667,6 +667,8 @@ const TW = (() => {
     })),
   };
 })();
+/** The £1,200 twin (LIVE's rules at £100 a rung, `live1200`), whose page the sweep works by hand: the old PR5 twin's size. */
+const TW1200 = TW.rows[TWINS.findIndex((t) => t.twin.id === 'live1200')];
 /**
  * "Stablecoin quotes with Euros" (`cb_quotes.ts`, 0112; Davies, 2026-10-10): the dashboard's own view (`cbQuotesView`) of the
  * paper test's own driver run on a small recorded world (quotes_coinbase_fixture.json, made by
@@ -3871,7 +3873,7 @@ async function run() {
         const cell = row.querySelector('td.ag-col-next') || span;
         return { name: (row.querySelector('.ag-name-btn')?.textContent || '').trim(), text: (span?.textContent || '').trim(), scroll: cell ? cell.scrollWidth : -1, client: cell ? cell.clientWidth : -1 };
       }));
-      const quotesNext = nextCells.find((c) => c.name === 'Stablecoin quotes');
+      const quotesNext = nextCells.find((c) => c.name === TW.rows[0].name);
       const clippedNext = nextCells.filter((c) => c.scroll > c.client + 0.5);
       if (quotesNext && quotesNext.text === 'every minute' && clippedNext.length === 0) {
         ok(S('agents'), `every NEXT cell reads whole, the quote test's "${quotesNext.text}" included (${quotesNext.scroll} of ${quotesNext.client} px)`);
@@ -3984,10 +3986,12 @@ async function run() {
       // four resting buys), today +£0.23, unrealised -£0.13, realised -£0.03, each percent on its own capital; a variant's
       // name on two lines. The paper test, PR5V and rule D, which the payload still carries, are no rows.
       const twinRowOf = (/** @type {string} */ name) => page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, name) });
-      const twinRow = twinRowOf('Stablecoin quotes');
+      // The first twin row is "Stablecoin quotes LIVE twin" since 0151 (2026-10-28) switched "Stablecoin quotes" (pr5), the size
+      // twin and rule D's twin off; the £1,200 twin whose page is worked by hand below is LIVE's rules at £1,200 (variant-1).
+      const twinRow = twinRowOf(TW1200.name);
       const testingNames = (await page.locator('.ag-strategies-testing .ag-row .ag-name-btn').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim());
       const oldCard = await page.locator('.ag-quotes .ag-section-title').count() + await page.locator('text=STABLECOIN QUOTES — PAPER TEST').count();
-      const twinAt = testingNames.indexOf('Stablecoin quotes');
+      const twinAt = testingNames.indexOf(TW.rows[0].name);
       const nameParts = (/** @type {import('playwright').Locator} */ row) => Promise.all(['.ag-name-head', '.ag-name-qual'].map(async (sel) => ((await row.first().locator(sel).textContent().catch(() => '')) || '').trim()));
       const twinBad = [];
       for (const [i, r] of TW.rows.entries()) {
@@ -4033,7 +4037,7 @@ async function run() {
       const TWIN_TRIPS = ['17 Sep 21:00 24-hour stop | USDT/GBP | bought | 0.3 % | £0.7556 | £0.7550 | 132.00 USDT | £0.0897 | -£0.1689',
         '17 Sep 11:30 | USDC/GBP | bought | 0.1 % | £0.7568 | £0.7576 | 132.00 USDC | £0 | +£0.1056',
         '16 Sep 14:00 | USDT/GBP | sold | 0.1 % | £0.7580 | £0.7571 | 132.00 USDT | £0.0900 | +£0.0288'];
-      if (tp && tp.title === 'Stablecoin quotes' && tp.modals === 2 && tp.head === 'PAPER Revolut X' && tp.status === 'running' && tp.tested === 'tested 1d 7h' && tp.livePages === 0 && tp.paperPage === 0
+      if (tp && tp.title === TW1200.name && tp.modals === 2 && tp.head === 'PAPER Revolut X' && tp.status === 'running' && tp.tested === 'tested 1d 7h' && tp.livePages === 0 && tp.paperPage === 0
         && tp.scoreboard === 'FUNDED=£1,200 | DEPLOYED=£999.14(83.26%) | TODAY [(loss stop -£12)]=+£0.23(+0.02%) | UNREALIZED G/L=-£0.13(-0.02%) | REALIZED G/L [(incl. fees £0.18)]=-£0.03(0%)'
         && tp.twinLines.length === 0 && tp.warns.length === 0
         && tp.sections.join(',') === 'BOOKS,INVENTORY,DAYS,ROUND TRIPS,EXIT ORDERS,ENTRY ORDERS' && tp.cards.length === 2 && tp.cards.every((c) => c.ladder.length === 3)
@@ -4047,22 +4051,8 @@ async function run() {
       if (qHeads.join(',') === 'Refresh,Close') ok(S('agents'), 'the twin page has the same refresh button beside close');
       else fail(S('agents'), `twin page actions ${qHeads.join(',')}`);
       await closeBy(page, () => page.locator('.ag-detail-close').click().catch(() => {}));
-      // Rule D's twin ("variant-4" since 0130; its name is its spec row's): its own title on two lines, nine rungs a
-      // side, £1,800 and its loss stop of 1 % of it, £18.
-      const dName = TWINS.find((t) => t.twin.engine === 'ruled-d')?.twin.name ?? 'rule D';
-      await twinRowOf(dName).first().click();
-      await settled(page, '.ag-quotes-twin-detail');
-      const tdp = await readQuotesBookPage(page, '.ag-quotes-twin-detail');
-      await shot(page, 'agents-quotes-twin-d');
-      const RULED_LADDER = ['0.03 % | idle | idle', '0.05 % | idle | idle', '0.075 % | idle | idle', '0.1 % | £0.7569 | £0.7585', '0.125 % | idle | idle', '0.15 % | idle | idle',
-        '0.2 % | £0.7561 | held £0.7591 +£0.2112', '0.25 % | idle | idle', '0.3 % | £0.7553 | £0.7600'];
-      if (tdp && tdp.title === dName && tdp.head === 'PAPER Revolut X' && tdp.tested === 'tested 20h'
-        && tdp.scoreboard === 'FUNDED=£1,800 | DEPLOYED=£999.14(55.51%) | TODAY [(loss stop -£18)]=+£0.23(+0.01%) | UNREALIZED G/L=-£0.13(-0.02%) | REALIZED G/L [(incl. fees £0.18)]=-£0.03(0%)'
-        && tdp.twinLines.length === 0
-        && tdp.cards.length === 2 && tdp.cards.every((c) => c.ladder.length === 9) && tdp.cards[0].ladder.join(' / ') === RULED_LADDER.join(' / ') && tdp.overflow <= 1) {
-        ok(S('agents'), `rule D's twin's page: "${dName}", PAPER, tested 20h, FUNDED £1,800 (deployed 55.51 % of it, loss stop -£18), nine rungs a side (0.03 % … 0.3 %), the same book on its 0.1, 0.2 and 0.3 % rungs`);
-      } else fail(S('agents'), `rule D twin page ${JSON.stringify(tdp && { ...tdp, cards: tdp.cards.map((c) => c.ladder.join(' / ')) })}`);
-      await closeBy(page, () => page.locator('.ag-detail-close').click().catch(() => {}));
+      // Rule D's twin (nine rungs a side, £1,800) had a page check here until 0151 (2026-10-28) switched it off, its readout
+      // written; the agents function's test still reads its page from its seed row (readQuotesTwin's test).
       // Every twin's page, from its row: the same page (the live executor's, PAPER, running), its own title, how long it
       // has been tested, its scoreboard on its own capital with its loss stop of 1 % of it, its line (its rungs a side and
       // their size), two books of its rungs, and the sections of PR5's twin's page; each closes back to the list. The
@@ -4870,9 +4860,9 @@ async function run() {
       const p1 = await readAgentsPanel(page);
       if (p1.rows.length === TESTING.rows && sbText(p1) === PAPER_SB) ok(T('pr5-live'), "its twin stays on TESTING, whose totals do not take the live book");
       else fail(T('pr5-live'), `TESTING rows ${p1.rows.length}, scoreboard ${sbText(p1)}`);
-      // TESTING's "Stablecoin quotes" opens its twin's page (Davies, 2026-10-02), never the live executor's: PAPER, its
-      // own container, its line, its two books of three rungs and the fixture's three round trips.
-      await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, 'Stablecoin quotes') }).first().click();
+      // TESTING's first twin ("Stablecoin quotes" until 0151) opens its twin's page (Davies, 2026-10-02), never the live
+      // executor's: PAPER, its own container, its line, its two books of three rungs and the fixture's three round trips.
+      await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, TW.rows[0].name) }).first().click();
       await settled(page, '.ag-quotes-twin-detail');
       const pp = await readQuotesBookPage(page, '.ag-quotes-twin-detail');
       if (pp && pp.livePages === 0 && pp.twinPages === 1 && pp.head === 'PAPER Revolut X' && pp.cards.map((c) => c.head).join(',') === 'USDC/GBP,USDT/GBP' && pp.cards.every((c) => c.ladder.length === 3)

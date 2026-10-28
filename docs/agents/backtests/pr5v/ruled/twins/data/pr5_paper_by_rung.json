@@ -1,0 +1,18 @@
+{
+ "what": "PR5's paper trips (agent_quote_trips, $100 a rung, in dollars) closed before 2026-10-28 00:00 UTC, by rung: all of them, and the window's (closed at or after 2026-10-04 00:00). sql/pull.sql statement 5, read 2026-10-28 ~19:16 UTC; the reply was short and is copied here as it came.",
+ "rows": [
+  {"book":"USDC-GBP","side":"ask","k":"0.001","trips":31,"won":30,"pnl_usd":"1.4922","w_trips":29,"w_won":28,"w_pnl_usd":"1.3466","takers":0},
+  {"book":"USDC-GBP","side":"ask","k":"0.002","trips":10,"won":9,"pnl_usd":"1.1000","w_trips":9,"w_won":8,"w_pnl_usd":"0.9810","takers":0},
+  {"book":"USDC-GBP","side":"ask","k":"0.003","trips":1,"won":1,"pnl_usd":"0.4614","w_trips":1,"w_won":1,"w_pnl_usd":"0.4614","takers":0},
+  {"book":"USDC-GBP","side":"bid","k":"0.001","trips":50,"won":43,"pnl_usd":"2.7843","w_trips":36,"w_won":29,"w_pnl_usd":"1.2299","takers":1},
+  {"book":"USDC-GBP","side":"bid","k":"0.002","trips":9,"won":9,"pnl_usd":"1.3922","w_trips":5,"w_won":5,"w_pnl_usd":"0.7499","takers":0},
+  {"book":"USDC-GBP","side":"bid","k":"0.003","trips":1,"won":1,"pnl_usd":"0.0123","w_trips":1,"w_won":1,"w_pnl_usd":"0.0123","takers":0},
+  {"book":"USDT-GBP","side":"ask","k":"0.001","trips":88,"won":86,"pnl_usd":"3.8220","w_trips":78,"w_won":76,"w_pnl_usd":"3.1907","takers":0},
+  {"book":"USDT-GBP","side":"ask","k":"0.002","trips":28,"won":28,"pnl_usd":"2.4944","w_trips":26,"w_won":26,"w_pnl_usd":"2.1505","takers":0},
+  {"book":"USDT-GBP","side":"ask","k":"0.003","trips":12,"won":12,"pnl_usd":"1.7442","w_trips":12,"w_won":12,"w_pnl_usd":"1.7442","takers":0},
+  {"book":"USDT-GBP","side":"bid","k":"0.001","trips":68,"won":63,"pnl_usd":"2.5114","w_trips":56,"w_won":53,"w_pnl_usd":"1.6857","takers":1},
+  {"book":"USDT-GBP","side":"bid","k":"0.002","trips":16,"won":16,"pnl_usd":"2.9152","w_trips":7,"w_won":7,"w_pnl_usd":"1.0421","takers":1},
+  {"book":"USDT-GBP","side":"bid","k":"0.003","trips":10,"won":10,"pnl_usd":"2.4827","w_trips":3,"w_won":3,"w_pnl_usd":"0.5832","takers":1},
+  {"book":null,"side":null,"k":null,"trips":324,"won":308,"pnl_usd":"23.2124","w_trips":263,"w_won":249,"w_pnl_usd":"15.1776","takers":4}
+ ]
+}

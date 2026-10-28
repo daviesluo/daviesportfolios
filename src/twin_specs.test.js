@@ -121,7 +121,7 @@ describe("the twins' spec rows", () => {
       // 0141 adds `hidden`, one rule to one row, switches one row off and hides four: once each.
       expect(named, f).toBe(2 * inserts + moves + names + offs + later + (f === SPECS_0088 ? 5 : 0));
     }
-    expect(FILES.filter((f) => [RULE_ADD, OFF, HIDE, ADD_HIDDEN].some((re) => [...sqlOf(f).matchAll(re)].length)).map((f) => f.slice(0, 4))).toEqual(['0141', '0142', '0144', '0149']);
+    expect(FILES.filter((f) => [RULE_ADD, OFF, HIDE, ADD_HIDDEN].some((re) => [...sqlOf(f).matchAll(re)].length)).map((f) => f.slice(0, 4))).toEqual(['0141', '0142', '0144', '0149', '0151']);
     expect(FILES.filter((f) => [...sqlOf(f).matchAll(RULE_MOVE)].length).map((f) => f.slice(0, 4))).toEqual(['0090']);
     expect(renames.map((n) => [n.file.slice(0, 4), n.id, n.from, n.to])).toEqual([
       ['0108', 'd', 'Stablecoin quotes variant-3', 'Stablecoin quotes variant-4'], ['0109', 'd', 'Stablecoin quotes variant-4', 'Stablecoin quotes variant-3'],
@@ -186,15 +186,15 @@ describe("the twins' spec rows", () => {
     }
   });
 
-  it("are, as they stand, the stablecoin twins in Davies' order (2026-10-27: the LIVE twin £600 as LIVE, variant-1 £1,200 the next step, variant-2 the £120 twin, variant-3 TAKE's twin, variant-4 to -8 PR5-OPT's five from 06:00, the USDT weightings last; the £300 and weekend twins and 0148's three off; three hidden until their readings)", () => {
+  it("are, as they stand, the stablecoin twins in Davies' order (2026-10-27: the LIVE twin £600 as LIVE, variant-1 £1,200 the next step, variant-2 the £120 twin, variant-3 TAKE's twin, variant-4 to -8 PR5-OPT's five from 06:00, the USDT weightings last; the £300 and weekend twins and 0148's three off; the three hidden ones off since 0151, their 10-28 readouts written)", () => {
     expect(ROWS.map((r) => [r.id, r.display_name, r.display_order, Number(r.capital_gbp), r.enabled, r.hidden === true])).toEqual([
-      ['pr5', 'Stablecoin quotes', 10, 1200, true, true], ['live300', 'Stablecoin quotes 300 twin', 11, 300, false, false],
+      ['pr5', 'Stablecoin quotes', 10, 1200, false, true], ['live300', 'Stablecoin quotes 300 twin', 11, 300, false, false],
       ['live600', 'Stablecoin quotes LIVE twin', 12, 600, true, false], ['live1200', 'Stablecoin quotes variant-1', 13, 1200, true, false],
       ['live', 'Stablecoin quotes variant-2', 15, 120, true, false],
-      ['p50', 'Stablecoin quotes size twin', 20, 600, true, true], ['take50', 'Stablecoin quotes variant-3', 30, 600, true, false],
+      ['p50', 'Stablecoin quotes size twin', 20, 600, false, true], ['take50', 'Stablecoin quotes variant-3', 30, 600, true, false],
       ['live600usdt2', 'Stablecoin quotes USDT 2:1 from 10-29', 31, 600, false, false], ['live600no03', 'Stablecoin quotes no 0.3 % from 10-29', 32, 600, false, false],
       ['live600hold1', 'Stablecoin quotes hold £1 from 10-29', 33, 600, false, false],
-      ['take50wk', 'Stablecoin quotes weekend twin', 35, 600, false, false], ['d', 'Stablecoin quotes rule-D twin', 40, 1800, true, true],
+      ['take50wk', 'Stablecoin quotes weekend twin', 35, 600, false, false], ['d', 'Stablecoin quotes rule-D twin', 40, 1800, false, true],
       ['o600no03', 'Stablecoin quotes variant-4', 41, 600, true, false], ['o600hold1', 'Stablecoin quotes variant-5', 42, 600, true, false],
       ['o600usdt2', 'Stablecoin quotes variant-6', 43, 600, true, false], ['o600usdt3', 'Stablecoin quotes variant-7', 44, 600, true, false],
       ['o600usdt', 'Stablecoin quotes variant-8', 45, 600, true, false],

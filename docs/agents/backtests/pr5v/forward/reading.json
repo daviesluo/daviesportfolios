@@ -1,0 +1,1054 @@
+{
+ "described": {
+  "extra_capital": {
+   "gain_over_pr5_usd_per_day": 0.743107,
+   "gain_pct_per_year_on_the_extra_2400": 11.3014,
+   "line_8pct_on_2400_usd_per_day": 0.526027
+  },
+  "main": {
+   "by_book": {
+    "USDC-GBP": {
+     "pnl_usd": 12.034734,
+     "taker_exits": 7,
+     "trips": 337,
+     "win_rate": 0.819,
+     "won": 276
+    },
+    "USDT-GBP": {
+     "pnl_usd": 23.425655,
+     "taker_exits": 3,
+     "trips": 1087,
+     "win_rate": 0.874,
+     "won": 950
+    }
+   },
+   "by_rung": {
+    "0.03%": {
+     "pnl_usd": 2.431071,
+     "taker_exits": 1,
+     "trips": 618,
+     "win_rate": 0.8139,
+     "won": 503
+    },
+    "0.05%": {
+     "pnl_usd": 5.354451,
+     "taker_exits": 2,
+     "trips": 352,
+     "win_rate": 0.8807,
+     "won": 310
+    },
+    "0.075%": {
+     "pnl_usd": 6.736793,
+     "taker_exits": 2,
+     "trips": 198,
+     "win_rate": 0.904,
+     "won": 179
+    },
+    "0.1%": {
+     "pnl_usd": 5.644401,
+     "taker_exits": 2,
+     "trips": 109,
+     "win_rate": 0.8991,
+     "won": 98
+    },
+    "0.125%": {
+     "pnl_usd": 5.818546,
+     "taker_exits": 1,
+     "trips": 67,
+     "win_rate": 0.9254,
+     "won": 62
+    },
+    "0.15%": {
+     "pnl_usd": 3.685596,
+     "taker_exits": 1,
+     "trips": 40,
+     "win_rate": 0.875,
+     "won": 35
+    },
+    "0.2%": {
+     "pnl_usd": 2.608282,
+     "taker_exits": 1,
+     "trips": 17,
+     "win_rate": 0.9412,
+     "won": 16
+    },
+    "0.25%": {
+     "pnl_usd": 1.763237,
+     "taker_exits": 0,
+     "trips": 14,
+     "win_rate": 1.0,
+     "won": 14
+    },
+    "0.3%": {
+     "pnl_usd": 1.418012,
+     "taker_exits": 0,
+     "trips": 9,
+     "win_rate": 1.0,
+     "won": 9
+    }
+   },
+   "by_side": {
+    "ask": {
+     "pnl_usd": 16.163495,
+     "taker_exits": 0,
+     "trips": 738,
+     "win_rate": 0.8875,
+     "won": 655
+    },
+    "bid": {
+     "pnl_usd": 19.296894,
+     "taker_exits": 10,
+     "trips": 686,
+     "win_rate": 0.8324,
+     "won": 571
+    }
+   },
+   "capital_usd": 3600.0,
+   "fills_per_rung": {
+    "USDC-GBP ask 0.03%": 59,
+    "USDC-GBP ask 0.05%": 24,
+    "USDC-GBP ask 0.075%": 16,
+    "USDC-GBP ask 0.1%": 11,
+    "USDC-GBP ask 0.125%": 9,
+    "USDC-GBP ask 0.15%": 6,
+    "USDC-GBP ask 0.2%": 1,
+    "USDC-GBP bid 0.03%": 78,
+    "USDC-GBP bid 0.05%": 47,
+    "USDC-GBP bid 0.075%": 34,
+    "USDC-GBP bid 0.1%": 21,
+    "USDC-GBP bid 0.125%": 17,
+    "USDC-GBP bid 0.15%": 11,
+    "USDC-GBP bid 0.2%": 3,
+    "USDT-GBP ask 0.03%": 256,
+    "USDT-GBP ask 0.05%": 152,
+    "USDT-GBP ask 0.075%": 86,
+    "USDT-GBP ask 0.1%": 49,
+    "USDT-GBP ask 0.125%": 28,
+    "USDT-GBP ask 0.15%": 15,
+    "USDT-GBP ask 0.2%": 9,
+    "USDT-GBP ask 0.25%": 10,
+    "USDT-GBP ask 0.3%": 7,
+    "USDT-GBP bid 0.03%": 225,
+    "USDT-GBP bid 0.05%": 129,
+    "USDT-GBP bid 0.075%": 62,
+    "USDT-GBP bid 0.1%": 28,
+    "USDT-GBP bid 0.125%": 13,
+    "USDT-GBP bid 0.15%": 8,
+    "USDT-GBP bid 0.2%": 4,
+    "USDT-GBP bid 0.25%": 4,
+    "USDT-GBP bid 0.3%": 2
+   },
+   "pct_per_year_on_capital": 12.8403,
+   "pnl_usd": 35.460389,
+   "taker_exits": 10,
+   "trips": 1424,
+   "usd_per_day": 1.266442,
+   "win_rate": 0.861,
+   "won": 1226
+  },
+  "posts_main": {
+   "governor_withdrawal_key_days": {
+    "USDC-GBP/ask 2026-10-01": {
+     "first": "2026-10-01T15:52:00Z",
+     "withdrawals": 9
+    },
+    "USDC-GBP/ask 2026-10-02": {
+     "first": "2026-10-02T18:51:00Z",
+     "withdrawals": 9
+    },
+    "USDC-GBP/ask 2026-10-14": {
+     "first": "2026-10-14T21:05:00Z",
+     "withdrawals": 8
+    },
+    "USDC-GBP/ask 2026-10-15": {
+     "first": "2026-10-15T17:18:00Z",
+     "withdrawals": 9
+    },
+    "USDC-GBP/bid 2026-10-01": {
+     "first": "2026-10-01T17:51:00Z",
+     "withdrawals": 9
+    },
+    "USDC-GBP/bid 2026-10-02": {
+     "first": "2026-10-02T18:51:00Z",
+     "withdrawals": 7
+    },
+    "USDC-GBP/bid 2026-10-14": {
+     "first": "2026-10-14T22:45:00Z",
+     "withdrawals": 8
+    },
+    "USDC-GBP/bid 2026-10-15": {
+     "first": "2026-10-15T17:06:00Z",
+     "withdrawals": 7
+    },
+    "USDT-GBP/ask 2026-10-01": {
+     "first": "2026-10-01T15:54:00Z",
+     "withdrawals": 9
+    },
+    "USDT-GBP/ask 2026-10-02": {
+     "first": "2026-10-02T18:59:00Z",
+     "withdrawals": 5
+    },
+    "USDT-GBP/ask 2026-10-08": {
+     "first": "2026-10-08T21:05:00Z",
+     "withdrawals": 7
+    },
+    "USDT-GBP/ask 2026-10-14": {
+     "first": "2026-10-14T21:04:00Z",
+     "withdrawals": 9
+    },
+    "USDT-GBP/ask 2026-10-15": {
+     "first": "2026-10-15T14:24:00Z",
+     "withdrawals": 8
+    },
+    "USDT-GBP/bid 2026-10-01": {
+     "first": "2026-10-01T18:14:00Z",
+     "withdrawals": 9
+    },
+    "USDT-GBP/bid 2026-10-02": {
+     "first": "2026-10-02T18:51:00Z",
+     "withdrawals": 9
+    },
+    "USDT-GBP/bid 2026-10-08": {
+     "first": "2026-10-08T21:35:00Z",
+     "withdrawals": 9
+    },
+    "USDT-GBP/bid 2026-10-14": {
+     "first": "2026-10-14T22:57:00Z",
+     "withdrawals": 9
+    },
+    "USDT-GBP/bid 2026-10-15": {
+     "first": "2026-10-15T14:46:00Z",
+     "withdrawals": 9
+    },
+    "USDT-GBP/bid 2026-10-16": {
+     "first": "2026-10-16T22:47:00Z",
+     "withdrawals": 2
+    }
+   },
+   "most_posts_one_key_one_turn": {
+    "key": "USDC-GBP/ask",
+    "minute": "2026-09-29T00:05:00Z",
+    "posts": 9,
+    "venue_limit_per_second": 10
+   },
+   "posts_per_key_day": {
+    "USDC-GBP/ask 2026-09-29": 668,
+    "USDC-GBP/ask 2026-09-30": 815,
+    "USDC-GBP/ask 2026-10-01": 900,
+    "USDC-GBP/ask 2026-10-02": 900,
+    "USDC-GBP/ask 2026-10-04": 36,
+    "USDC-GBP/ask 2026-10-05": 845,
+    "USDC-GBP/ask 2026-10-06": 657,
+    "USDC-GBP/ask 2026-10-07": 776,
+    "USDC-GBP/ask 2026-10-08": 896,
+    "USDC-GBP/ask 2026-10-09": 473,
+    "USDC-GBP/ask 2026-10-11": 27,
+    "USDC-GBP/ask 2026-10-12": 326,
+    "USDC-GBP/ask 2026-10-13": 436,
+    "USDC-GBP/ask 2026-10-14": 903,
+    "USDC-GBP/ask 2026-10-15": 900,
+    "USDC-GBP/ask 2026-10-16": 593,
+    "USDC-GBP/ask 2026-10-18": 27,
+    "USDC-GBP/ask 2026-10-19": 552,
+    "USDC-GBP/ask 2026-10-20": 422,
+    "USDC-GBP/ask 2026-10-21": 639,
+    "USDC-GBP/ask 2026-10-22": 695,
+    "USDC-GBP/ask 2026-10-23": 517,
+    "USDC-GBP/ask 2026-10-26": 474,
+    "USDC-GBP/bid 2026-09-29": 636,
+    "USDC-GBP/bid 2026-09-30": 833,
+    "USDC-GBP/bid 2026-10-01": 900,
+    "USDC-GBP/bid 2026-10-02": 908,
+    "USDC-GBP/bid 2026-10-04": 31,
+    "USDC-GBP/bid 2026-10-05": 737,
+    "USDC-GBP/bid 2026-10-06": 656,
+    "USDC-GBP/bid 2026-10-07": 661,
+    "USDC-GBP/bid 2026-10-08": 897,
+    "USDC-GBP/bid 2026-10-09": 484,
+    "USDC-GBP/bid 2026-10-11": 27,
+    "USDC-GBP/bid 2026-10-12": 335,
+    "USDC-GBP/bid 2026-10-13": 473,
+    "USDC-GBP/bid 2026-10-14": 907,
+    "USDC-GBP/bid 2026-10-15": 903,
+    "USDC-GBP/bid 2026-10-16": 657,
+    "USDC-GBP/bid 2026-10-18": 27,
+    "USDC-GBP/bid 2026-10-19": 525,
+    "USDC-GBP/bid 2026-10-20": 697,
+    "USDC-GBP/bid 2026-10-21": 647,
+    "USDC-GBP/bid 2026-10-22": 682,
+    "USDC-GBP/bid 2026-10-23": 508,
+    "USDC-GBP/bid 2026-10-26": 490,
+    "USDT-GBP/ask 2026-09-29": 682,
+    "USDT-GBP/ask 2026-09-30": 806,
+    "USDT-GBP/ask 2026-10-01": 900,
+    "USDT-GBP/ask 2026-10-02": 916,
+    "USDT-GBP/ask 2026-10-04": 35,
+    "USDT-GBP/ask 2026-10-05": 811,
+    "USDT-GBP/ask 2026-10-06": 613,
+    "USDT-GBP/ask 2026-10-07": 804,
+    "USDT-GBP/ask 2026-10-08": 902,
+    "USDT-GBP/ask 2026-10-09": 571,
+    "USDT-GBP/ask 2026-10-11": 27,
+    "USDT-GBP/ask 2026-10-12": 374,
+    "USDT-GBP/ask 2026-10-13": 441,
+    "USDT-GBP/ask 2026-10-14": 900,
+    "USDT-GBP/ask 2026-10-15": 902,
+    "USDT-GBP/ask 2026-10-16": 873,
+    "USDT-GBP/ask 2026-10-18": 27,
+    "USDT-GBP/ask 2026-10-19": 710,
+    "USDT-GBP/ask 2026-10-20": 733,
+    "USDT-GBP/ask 2026-10-21": 642,
+    "USDT-GBP/ask 2026-10-22": 700,
+    "USDT-GBP/ask 2026-10-23": 663,
+    "USDT-GBP/ask 2026-10-26": 564,
+    "USDT-GBP/bid 2026-09-29": 550,
+    "USDT-GBP/bid 2026-09-30": 825,
+    "USDT-GBP/bid 2026-10-01": 900,
+    "USDT-GBP/bid 2026-10-02": 900,
+    "USDT-GBP/bid 2026-10-04": 36,
+    "USDT-GBP/bid 2026-10-05": 712,
+    "USDT-GBP/bid 2026-10-06": 650,
+    "USDT-GBP/bid 2026-10-07": 572,
+    "USDT-GBP/bid 2026-10-08": 900,
+    "USDT-GBP/bid 2026-10-09": 460,
+    "USDT-GBP/bid 2026-10-11": 29,
+    "USDT-GBP/bid 2026-10-12": 297,
+    "USDT-GBP/bid 2026-10-13": 544,
+    "USDT-GBP/bid 2026-10-14": 900,
+    "USDT-GBP/bid 2026-10-15": 900,
+    "USDT-GBP/bid 2026-10-16": 900,
+    "USDT-GBP/bid 2026-10-18": 37,
+    "USDT-GBP/bid 2026-10-19": 604,
+    "USDT-GBP/bid 2026-10-20": 792,
+    "USDT-GBP/bid 2026-10-21": 616,
+    "USDT-GBP/bid 2026-10-22": 712,
+    "USDT-GBP/bid 2026-10-23": 550,
+    "USDT-GBP/bid 2026-10-26": 546
+   }
+  },
+  "posts_top5": {
+   "governor_withdrawal_key_days": {},
+   "most_posts_one_key_one_turn": {
+    "key": "USDC-GBP/ask",
+    "minute": "2026-09-29T00:05:00Z",
+    "posts": 5,
+    "venue_limit_per_second": 10
+   },
+   "posts_per_key_day": {
+    "USDC-GBP/ask 2026-09-29": 373,
+    "USDC-GBP/ask 2026-09-30": 441,
+    "USDC-GBP/ask 2026-10-01": 693,
+    "USDC-GBP/ask 2026-10-02": 528,
+    "USDC-GBP/ask 2026-10-04": 20,
+    "USDC-GBP/ask 2026-10-05": 463,
+    "USDC-GBP/ask 2026-10-06": 363,
+    "USDC-GBP/ask 2026-10-07": 434,
+    "USDC-GBP/ask 2026-10-08": 496,
+    "USDC-GBP/ask 2026-10-09": 264,
+    "USDC-GBP/ask 2026-10-11": 15,
+    "USDC-GBP/ask 2026-10-12": 187,
+    "USDC-GBP/ask 2026-10-13": 242,
+    "USDC-GBP/ask 2026-10-14": 552,
+    "USDC-GBP/ask 2026-10-15": 555,
+    "USDC-GBP/ask 2026-10-16": 359,
+    "USDC-GBP/ask 2026-10-18": 15,
+    "USDC-GBP/ask 2026-10-19": 308,
+    "USDC-GBP/ask 2026-10-20": 228,
+    "USDC-GBP/ask 2026-10-21": 355,
+    "USDC-GBP/ask 2026-10-22": 390,
+    "USDC-GBP/ask 2026-10-23": 294,
+    "USDC-GBP/ask 2026-10-26": 265,
+    "USDC-GBP/bid 2026-09-29": 346,
+    "USDC-GBP/bid 2026-09-30": 473,
+    "USDC-GBP/bid 2026-10-01": 558,
+    "USDC-GBP/bid 2026-10-02": 534,
+    "USDC-GBP/bid 2026-10-04": 18,
+    "USDC-GBP/bid 2026-10-05": 391,
+    "USDC-GBP/bid 2026-10-06": 368,
+    "USDC-GBP/bid 2026-10-07": 345,
+    "USDC-GBP/bid 2026-10-08": 515,
+    "USDC-GBP/bid 2026-10-09": 268,
+    "USDC-GBP/bid 2026-10-11": 15,
+    "USDC-GBP/bid 2026-10-12": 192,
+    "USDC-GBP/bid 2026-10-13": 283,
+    "USDC-GBP/bid 2026-10-14": 531,
+    "USDC-GBP/bid 2026-10-15": 547,
+    "USDC-GBP/bid 2026-10-16": 351,
+    "USDC-GBP/bid 2026-10-18": 15,
+    "USDC-GBP/bid 2026-10-19": 294,
+    "USDC-GBP/bid 2026-10-20": 390,
+    "USDC-GBP/bid 2026-10-21": 365,
+    "USDC-GBP/bid 2026-10-22": 389,
+    "USDC-GBP/bid 2026-10-23": 284,
+    "USDC-GBP/bid 2026-10-26": 284,
+    "USDT-GBP/ask 2026-09-29": 383,
+    "USDT-GBP/ask 2026-09-30": 438,
+    "USDT-GBP/ask 2026-10-01": 693,
+    "USDT-GBP/ask 2026-10-02": 504,
+    "USDT-GBP/ask 2026-10-04": 20,
+    "USDT-GBP/ask 2026-10-05": 465,
+    "USDT-GBP/ask 2026-10-06": 315,
+    "USDT-GBP/ask 2026-10-07": 446,
+    "USDT-GBP/ask 2026-10-08": 558,
+    "USDT-GBP/ask 2026-10-09": 348,
+    "USDT-GBP/ask 2026-10-11": 15,
+    "USDT-GBP/ask 2026-10-12": 199,
+    "USDT-GBP/ask 2026-10-13": 242,
+    "USDT-GBP/ask 2026-10-14": 530,
+    "USDT-GBP/ask 2026-10-15": 680,
+    "USDT-GBP/ask 2026-10-16": 503,
+    "USDT-GBP/ask 2026-10-18": 15,
+    "USDT-GBP/ask 2026-10-19": 421,
+    "USDT-GBP/ask 2026-10-20": 437,
+    "USDT-GBP/ask 2026-10-21": 355,
+    "USDT-GBP/ask 2026-10-22": 392,
+    "USDT-GBP/ask 2026-10-23": 379,
+    "USDT-GBP/ask 2026-10-26": 313,
+    "USDT-GBP/bid 2026-09-29": 292,
+    "USDT-GBP/bid 2026-09-30": 462,
+    "USDT-GBP/bid 2026-10-01": 578,
+    "USDT-GBP/bid 2026-10-02": 513,
+    "USDT-GBP/bid 2026-10-04": 20,
+    "USDT-GBP/bid 2026-10-05": 383,
+    "USDT-GBP/bid 2026-10-06": 361,
+    "USDT-GBP/bid 2026-10-07": 322,
+    "USDT-GBP/bid 2026-10-08": 499,
+    "USDT-GBP/bid 2026-10-09": 258,
+    "USDT-GBP/bid 2026-10-11": 15,
+    "USDT-GBP/bid 2026-10-12": 155,
+    "USDT-GBP/bid 2026-10-13": 323,
+    "USDT-GBP/bid 2026-10-14": 501,
+    "USDT-GBP/bid 2026-10-15": 659,
+    "USDT-GBP/bid 2026-10-16": 540,
+    "USDT-GBP/bid 2026-10-18": 21,
+    "USDT-GBP/bid 2026-10-19": 324,
+    "USDT-GBP/bid 2026-10-20": 441,
+    "USDT-GBP/bid 2026-10-21": 337,
+    "USDT-GBP/bid 2026-10-22": 396,
+    "USDT-GBP/bid 2026-10-23": 312,
+    "USDT-GBP/bid 2026-10-26": 300
+   }
+  },
+  "pr5": {
+   "by_book": {
+    "USDC-GBP": {
+     "pnl_usd": 4.622957,
+     "taker_exits": 1,
+     "trips": 79,
+     "win_rate": 0.8861,
+     "won": 70
+    },
+    "USDT-GBP": {
+     "pnl_usd": 10.030437,
+     "taker_exits": 3,
+     "trips": 175,
+     "win_rate": 0.9657,
+     "won": 169
+    }
+   },
+   "by_rung": {
+    "0.1%": {
+     "pnl_usd": 7.473485,
+     "taker_exits": 2,
+     "trips": 191,
+     "win_rate": 0.9267,
+     "won": 177
+    },
+    "0.2%": {
+     "pnl_usd": 4.915946,
+     "taker_exits": 1,
+     "trips": 48,
+     "win_rate": 0.9792,
+     "won": 47
+    },
+    "0.3%": {
+     "pnl_usd": 2.263963,
+     "taker_exits": 1,
+     "trips": 15,
+     "win_rate": 1.0,
+     "won": 15
+    }
+   },
+   "by_side": {
+    "ask": {
+     "pnl_usd": 7.87477,
+     "taker_exits": 0,
+     "trips": 133,
+     "win_rate": 0.9699,
+     "won": 129
+    },
+    "bid": {
+     "pnl_usd": 6.778625,
+     "taker_exits": 4,
+     "trips": 121,
+     "win_rate": 0.9091,
+     "won": 110
+    }
+   },
+   "capital_usd": 1200.0,
+   "fills_per_rung": {
+    "USDC-GBP ask 0.1%": 23,
+    "USDC-GBP ask 0.2%": 7,
+    "USDC-GBP ask 0.3%": 1,
+    "USDC-GBP bid 0.1%": 39,
+    "USDC-GBP bid 0.2%": 8,
+    "USDC-GBP bid 0.3%": 1,
+    "USDT-GBP ask 0.1%": 68,
+    "USDT-GBP ask 0.2%": 24,
+    "USDT-GBP ask 0.3%": 10,
+    "USDT-GBP bid 0.1%": 61,
+    "USDT-GBP bid 0.2%": 9,
+    "USDT-GBP bid 0.3%": 3
+   },
+   "pct_per_year_on_capital": 15.9181,
+   "pnl_usd": 14.653394,
+   "taker_exits": 4,
+   "trips": 254,
+   "usd_per_day": 0.523336,
+   "win_rate": 0.9409,
+   "won": 239
+  },
+  "pr5_first_live_order": {
+   "applies": true,
+   "before": {
+    "against_pnl_usd": 1.213799,
+    "arm_pnl_usd": 2.721225,
+    "days": 2,
+    "diff_usd": 1.507425
+   },
+   "first_live_order": "2026-10-01T16:30:29Z",
+   "from": {
+    "against_pnl_usd": 13.439595,
+    "arm_pnl_usd": 32.739164,
+    "days": 26,
+    "diff_usd": 19.299569
+   },
+   "split_day": "2026-10-01"
+  },
+  "top5": {
+   "conditions_never_judged": {
+    "1_faithful": {
+     "engine_trips": 977,
+     "matched": 977,
+     "pass": true,
+     "pnl_diff_usd": -0.0,
+     "pnl_engine_usd": 28.498565,
+     "pnl_replay_usd": 28.498565,
+     "replay_trips": 977,
+     "share_engine_matched": 1.0,
+     "share_replay_matched": 1.0,
+     "tolerance_usd": 2.849856,
+     "unmatched_engine_first50": [],
+     "unmatched_replay_first50": []
+    },
+    "2_above_null": {
+     "actual": 28.4986,
+     "distinct_twins": 12196,
+     "draws": 2000,
+     "max": 7.3397,
+     "mean": 0.7928,
+     "p95": 4.0656,
+     "pass": true,
+     "seed": 20260923,
+     "share_draws_ge_actual": 0.0,
+     "window_pnl_usd": 28.498565
+    },
+    "3_better_than_pr5": {
+     "a_daily": [
+      1.456871,
+      1.266602,
+      2.39249,
+      0.323204,
+      0.0,
+      0.0,
+      0.399509,
+      1.132321,
+      0.359905,
+      1.058735,
+      0.933259,
+      0.0,
+      0.0,
+      -0.053659,
+      2.18883,
+      0.504425,
+      3.004542,
+      1.697441,
+      0.0,
+      0.004229,
+      1.846134,
+      2.658803,
+      0.455173,
+      1.422875,
+      3.765028,
+      0.0,
+      0.0,
+      1.681848
+     ],
+     "b_daily": [
+      0.802667,
+      0.411133,
+      0.515661,
+      0.296308,
+      0.0,
+      0.0,
+      0.059525,
+      0.942958,
+      0.589885,
+      1.077223,
+      0.313571,
+      0.0,
+      0.0,
+      -0.026993,
+      0.749708,
+      0.174783,
+      0.769162,
+      0.675833,
+      0.0,
+      0.0,
+      1.416178,
+      1.897329,
+      0.694186,
+      0.688815,
+      1.913796,
+      0.0,
+      0.0,
+      0.691668
+     ],
+     "better_days": 17,
+     "bootstrap": {
+      "block_days": 7,
+      "ci95": [
+       0.2476,
+       0.6983
+      ],
+      "mean": 0.4945,
+      "p_le_0": 0.0,
+      "resamples": 10000
+     },
+     "days": 28,
+     "diff_daily": [
+      0.654204,
+      0.855469,
+      1.876829,
+      0.026896,
+      0.0,
+      0.0,
+      0.339984,
+      0.189363,
+      -0.22998,
+      -0.018488,
+      0.619688,
+      0.0,
+      0.0,
+      -0.026666,
+      1.439122,
+      0.329642,
+      2.23538,
+      1.021608,
+      0.0,
+      0.004229,
+      0.429956,
+      0.761474,
+      -0.239013,
+      0.73406,
+      1.851232,
+      0.0,
+      0.0,
+      0.99018
+     ],
+     "pass": true
+    },
+    "4_stress": {
+     "pass": true,
+     "pnl_usd": 21.072969,
+     "trips": 671
+    },
+    "5_governor": {
+     "detail_n_disagrees_with_recount": 0,
+     "key_days": 104,
+     "limits": {
+      "entry_at": 900,
+      "stop_at": 950
+     },
+     "max_posts_key_day": 693,
+     "pass": true,
+     "violations_by_detail_n": [],
+     "violations_recount": []
+    },
+    "replay_closed_at_last_step": []
+   },
+   "table": {
+    "by_book": {
+     "USDC-GBP": {
+      "pnl_usd": 11.054016,
+      "taker_exits": 5,
+      "trips": 249,
+      "win_rate": 0.8434,
+      "won": 210
+     },
+     "USDT-GBP": {
+      "pnl_usd": 17.444549,
+      "taker_exits": 3,
+      "trips": 728,
+      "win_rate": 0.908,
+      "won": 661
+     }
+    },
+    "by_rung": {
+     "0.05%": {
+      "pnl_usd": 4.767688,
+      "taker_exits": 1,
+      "trips": 481,
+      "win_rate": 0.8773,
+      "won": 422
+     },
+     "0.075%": {
+      "pnl_usd": 6.749622,
+      "taker_exits": 2,
+      "trips": 247,
+      "win_rate": 0.9109,
+      "won": 225
+     },
+     "0.1%": {
+      "pnl_usd": 6.818875,
+      "taker_exits": 2,
+      "trips": 131,
+      "win_rate": 0.9008,
+      "won": 118
+     },
+     "0.125%": {
+      "pnl_usd": 6.33986,
+      "taker_exits": 2,
+      "trips": 75,
+      "win_rate": 0.92,
+      "won": 69
+     },
+     "0.15%": {
+      "pnl_usd": 3.822519,
+      "taker_exits": 1,
+      "trips": 43,
+      "win_rate": 0.8605,
+      "won": 37
+     }
+    },
+    "by_side": {
+     "ask": {
+      "pnl_usd": 13.457655,
+      "taker_exits": 0,
+      "trips": 503,
+      "win_rate": 0.9165,
+      "won": 461
+     },
+     "bid": {
+      "pnl_usd": 15.04091,
+      "taker_exits": 8,
+      "trips": 474,
+      "win_rate": 0.865,
+      "won": 410
+     }
+    },
+    "capital_usd": 2000.0,
+    "fills_per_rung": {
+     "USDC-GBP ask 0.05%": 39,
+     "USDC-GBP ask 0.075%": 18,
+     "USDC-GBP ask 0.1%": 12,
+     "USDC-GBP ask 0.125%": 10,
+     "USDC-GBP ask 0.15%": 7,
+     "USDC-GBP bid 0.05%": 67,
+     "USDC-GBP bid 0.075%": 40,
+     "USDC-GBP bid 0.1%": 25,
+     "USDC-GBP bid 0.125%": 19,
+     "USDC-GBP bid 0.15%": 12,
+     "USDT-GBP ask 0.05%": 204,
+     "USDT-GBP ask 0.075%": 111,
+     "USDT-GBP ask 0.1%": 57,
+     "USDT-GBP ask 0.125%": 30,
+     "USDT-GBP ask 0.15%": 15,
+     "USDT-GBP bid 0.05%": 171,
+     "USDT-GBP bid 0.075%": 78,
+     "USDT-GBP bid 0.1%": 37,
+     "USDT-GBP bid 0.125%": 16,
+     "USDT-GBP bid 0.15%": 9
+    },
+    "pct_per_year_on_capital": 18.575,
+    "pnl_usd": 28.498565,
+    "taker_exits": 8,
+    "trips": 977,
+    "usd_per_day": 1.017806,
+    "win_rate": 0.8915,
+    "won": 871
+   }
+  }
+ },
+ "deviations": {
+  "1 (2026-09-30)": "VARIANT_CODE_VERSION bumped to 2 and the record re-decided from 2026-09-28 00:00 (entryBand added after minutes were decided); changes no input of this reading.",
+  "2 (2026-10-01, Davies)": "the governor is the live design's, 900 / 950: the replay's gov and condition 5 read 900 and 950 (VARIANT_CODE_VERSION 3, re-decided from 2026-09-28 00:00). The reproduction check replays the study's runs, at their 600 / 700."
+ },
+ "disclosure": "Not blind. The ledger read PR5V's and variant-2's daily results for 2026-09-28 -> 09-30 on 2026-09-30 (its history 22:14 UTC), before this script was written; no-peek rules were cancelled on 2026-10-04, and the stablecoin quote reviews of 2026-10-09, 10-14, 10-18 and 10-21 read the variants' records. This script was written strictly from the pre-registration and its recorded deviations, with no discretionary choice.",
+ "export_complete": {
+  "pass": true,
+  "tables": {
+   "events": {
+    "loaded": 102037,
+    "meta": 102037
+   },
+   "minutes": {
+    "loaded": 86460,
+    "meta": 86460
+   },
+   "pr5_trips": {
+    "loaded": 322,
+    "meta": 322
+   },
+   "trips": {
+    "loaded": 2866,
+    "meta": 2866
+   }
+  }
+ },
+ "gaps": {
+  "first_live_split": "'The days from its first live order' are the window's UTC entry days from the day of PR5's first order of mode live, that day included; the days before it are reported beside them.",
+  "governor_order": "The engine's events carry no sequence column. Condition 5 counts a key's POSTs before each POST in the order the engine decides: by minute, the turn's POSTs before the minute's stops, each in k order (a key is one book and side; bids before asks is then the order of the keys, not within one). The count each POST event carries (detail.n, the key's count after it) is checked against that recount; the condition passes only if it holds on both.",
+  "last_step_close": "'None may close at a run's last step': a scored replay trip closed at the replay's last step means the replay is not the one \u00a75 describes; the reading is then reported, not judged, and says so.",
+  "match_empty": "A share over an empty set (no engine trip, or no replay trip, in the window) is not 'at least 95 %': the condition fails.",
+  "match_multiset": "Condition 1's 'has a trip in the other with the same book, side, k, t_entry and entry ticks' is read one to one: each trip matches at most one trip of the other set (a multiset intersection).",
+  "null_p95_rounded": "Condition 2 compares the window's P&L, unrounded, with the p95 as the frozen null_twins returns it (rounded to 4 decimals by study.py).",
+  "pnl_tolerance_zero": "With the engine's window P&L exactly 0, the 10 % tolerance is 0: the two sets' P&L must be equal.",
+  "posts_one_turn": "'The most POSTs a key sent at one turn, stops included' is counted per key and decided minute: the turn's POSTs plus the stops of that minute.",
+  "stepminute_changed": "Whether stepMinute changed before E is read from the repository: the function's text in supabase/functions/agents/quotes.ts at the freeze commit 157ad527 and as checked out. A difference stops the reading with that finding: when it deployed is not in the repository, and \u00a73's end rule then needs that date, which this script does not guess.",
+  "stopped_record": "If PR5's engine's last decided minute is before E - 1 min, the window ends on the last UTC day D whose D + 2 days 00:30 the variant's record covers without a gap, and E moves to that instant (PR5V \u00a73). Its record is read only from the minute rows the variant engine wrote, which it writes only once PR5's engine has decided the minute (or rebuilt it, which is not its record stopping)."
+ },
+ "hashes": {
+  "../pr5/pr5_sim.py": "56fbad85ee4df6292f596188d091ad064d030180f33cefe3bd09089d7e772a1a",
+  "pr5v_sim.py": "54ad41982d143758ece6ee8e5bb48d5a4aafe1dc0429ccc0af6d1c57282de27a",
+  "study.py": "4a5d077ef0f97060ee5613d9a5f1c75b6e404b15ed052d367c1fe67f6d8e7b50"
+ },
+ "main": {
+  "1_faithful": {
+   "engine_trips": 1424,
+   "matched": 1424,
+   "pass": true,
+   "pnl_diff_usd": -0.0,
+   "pnl_engine_usd": 35.460389,
+   "pnl_replay_usd": 35.460389,
+   "replay_trips": 1424,
+   "share_engine_matched": 1.0,
+   "share_replay_matched": 1.0,
+   "tolerance_usd": 3.546039,
+   "unmatched_engine_first50": [],
+   "unmatched_replay_first50": []
+  },
+  "2_above_null": {
+   "actual": 35.4604,
+   "distinct_twins": 12196,
+   "draws": 2000,
+   "max": 7.7317,
+   "mean": 0.8249,
+   "p95": 4.6002,
+   "pass": true,
+   "seed": 20260923,
+   "share_draws_ge_actual": 0.0,
+   "window_pnl_usd": 35.460389
+  },
+  "3_better_than_pr5": {
+   "a_daily": [
+    2.143292,
+    0.577933,
+    2.756396,
+    0.282614,
+    0.0,
+    -0.036763,
+    0.468239,
+    1.226589,
+    0.279639,
+    1.530108,
+    1.158986,
+    0.0,
+    -3.5e-05,
+    -0.019375,
+    2.464459,
+    1.825843,
+    1.758084,
+    2.290488,
+    0.0,
+    0.004229,
+    2.917291,
+    4.086993,
+    1.140119,
+    1.611325,
+    5.085011,
+    0.0,
+    0.0,
+    1.908924
+   ],
+   "b_daily": [
+    0.802667,
+    0.411133,
+    0.515661,
+    0.296308,
+    0.0,
+    0.0,
+    0.059525,
+    0.942958,
+    0.589885,
+    1.077223,
+    0.313571,
+    0.0,
+    0.0,
+    -0.026993,
+    0.749708,
+    0.174783,
+    0.769162,
+    0.675833,
+    0.0,
+    0.0,
+    1.416178,
+    1.897329,
+    0.694186,
+    0.688815,
+    1.913796,
+    0.0,
+    0.0,
+    0.691668
+   ],
+   "better_days": 19,
+   "bootstrap": {
+    "block_days": 7,
+    "ci95": [
+     0.3897,
+     1.0543
+    ],
+    "mean": 0.7431,
+    "p_le_0": 0.0,
+    "resamples": 10000
+   },
+   "days": 28,
+   "diff_daily": [
+    1.340625,
+    0.1668,
+    2.240735,
+    -0.013694,
+    0.0,
+    -0.036763,
+    0.408714,
+    0.283631,
+    -0.310246,
+    0.452885,
+    0.845415,
+    0.0,
+    -3.5e-05,
+    0.007618,
+    1.714751,
+    1.65106,
+    0.988922,
+    1.614655,
+    0.0,
+    0.004229,
+    1.501113,
+    2.189664,
+    0.445933,
+    0.92251,
+    3.171215,
+    0.0,
+    0.0,
+    1.217256
+   ],
+   "pass": true
+  },
+  "4_stress": {
+   "pass": true,
+   "pnl_usd": 25.677186,
+   "trips": 1038
+  },
+  "5_governor": {
+   "detail_n_disagrees_with_recount": 0,
+   "key_days": 104,
+   "limits": {
+    "entry_at": 900,
+    "stop_at": 950
+   },
+   "max_posts_key_day": 916,
+   "pass": true,
+   "violations_by_detail_n": [],
+   "violations_recount": []
+  },
+  "replay_closed_at_last_step": []
+ },
+ "print_count_differs": [],
+ "reading_scripts": {
+  "reading_common.py": "1b89c9d736bca5037df4fbc641e65684af8e98f2ef19bf0ed2513061d9073393",
+  "reading_pr5v.py": "3e60421d8a1968bf61e8c0a2abe7b24e741de4596ee0a2a3021c708955ed52da"
+ },
+ "rebuilt_minutes": {
+  "USDC-GBP": [],
+  "USDT-GBP": []
+ },
+ "record": {
+  "first_live_order": "2026-10-01T16:30:29Z",
+  "pr5_last_minute": "2026-10-28T19:08:00Z",
+  "variant_code_version": "3",
+  "variant_last_error": null,
+  "variant_last_minute": "2026-10-28T19:07:00Z"
+ },
+ "reproduction": {
+  "F": {
+   "expected": [
+    40,
+    2.5438
+   ],
+   "pass": true,
+   "posts": 7374,
+   "posts_identical": true,
+   "scored_pnl_usd": 2.5438,
+   "scored_trips": 40,
+   "trips": 40,
+   "trips_identical": true
+  },
+  "N": {
+   "expected": [
+    563,
+    29.5129
+   ],
+   "pass": true,
+   "posts": 39774,
+   "posts_identical": true,
+   "scored_pnl_usd": 29.5129,
+   "scored_trips": 563,
+   "trips": 563,
+   "trips_identical": true
+  },
+  "pass": true
+ },
+ "run_at": "2026-10-28T19:11:37Z",
+ "run_at_or_after_earliest_instant": true,
+ "seconds": 42.3,
+ "status": "read",
+ "step_minute": {
+  "checked": true,
+  "sha256_at_freeze": "3ea26c7ba031efb48a9e572dc641a0fbf9cd2c7f2ddff83b0860046133462df1",
+  "sha256_now": "3ea26c7ba031efb48a9e572dc641a0fbf9cd2c7f2ddff83b0860046133462df1",
+  "unchanged": true
+ },
+ "verdict": {
+  "conditions": {
+   "1_faithful": true,
+   "2_above_null": true,
+   "3_better_than_pr5": true,
+   "4_stress": true,
+   "5_governor": true
+  },
+  "judged": true,
+  "pass": true,
+  "reading": "PASS",
+  "replay_closed_at_last_step_ok": true
+ },
+ "what": "PR5V's reading (docs/agents/reviews/2026-09-28-pr5-variant-prereg.md)",
+ "window": {
+  "days": 28,
+  "e": "2026-10-28T00:30:00Z",
+  "ok": true,
+  "stopped": false,
+  "w0": "2026-09-29T00:00:00Z",
+  "w1": "2026-10-27T00:00:00Z"
+ }
+}

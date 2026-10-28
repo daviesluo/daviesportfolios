@@ -1,0 +1,5 @@
+{"fair" : "USDC-GBP", "at" : "2026-10-28T00:00:00+00:00", "value" : 0.75046784719377176501}
+{"fair" : "USDT-GBP", "at" : "2026-10-28T00:00:00+00:00", "value" : 0.74986663121364456953}
+{"twin" : "d", "dust" : {"USDC-GBP": 0.13338858287812808, "USDT-GBP": 0.13340193909950368}, "state_error" : null, "sim_error" : null, "mismatches" : 0, "orders" : 35205, "sent" : 33432}
+{"twin" : "p50", "dust" : {"USDC-GBP": 0.13338858287812808, "USDT-GBP": 0.13340193909950368}, "state_error" : null, "sim_error" : null, "mismatches" : 46, "orders" : 10441, "sent" : 10284}
+{"twin" : "pr5", "dust" : {"USDC-GBP": 0.13338858287812808, "USDT-GBP": 0.13340193909950368}, "state_error" : null, "sim_error" : null, "mismatches" : 46, "orders" : 10087, "sent" : 9950}
