@@ -758,6 +758,10 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-28 21:10 UTC section (archived
 2026-10-28, eighth).
 
+### [2026-10-28 22:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **PR5V and rule D stop (`0156`; Davies, 10-28: "按照你的推荐来决定")**: `quotesv`, `quotesd` off, as both preregs say at the
+  reading; records stay. PR5V's question (more capital at LIVE's rule) continues as `live1200` (variant-1).
+
 ### [2026-10-28 22:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **GROKPM orders verified and the rules weighed** (sub-agent; commit, not pushed; Davies: "下的单太少了，用的钱也太少"):
   `reviews/2026-10-28-grokpm-utilisation.md`, `backtests/grokpm_util/`. 24 orders, 5 fills, all correct; money used ~2 %

@@ -898,6 +898,22 @@ describe('pg_cron jobs', () => {
   // 0120 (Davies, 2026-10-13: "目前paper testing里的reward quotes全关了吧？…"; none moved to the background): every paper
   // Reward quotes call off, the live path and the recorder kept, the programme factor's refresh unscheduled, nothing
   // dropped or deleted.
+  // 0156 (both pre-registrations: the arms stop at the reading; Davies, 2026-10-28: "按照你的推荐来决定"): PR5V and rule D off.
+  it("turns PR5V's and rule D's engines off and nothing else (0156)", () => {
+    const T = FILES.find((f) => /^0156_pr5v_ruled_calls_off\.sql$/.test(f)) ?? '';
+    expect(T).not.toBe('');
+    const listBefore = replayList(sqlsOf(FILES.filter((f) => f < T))), listAfter = replayList(sqlsOf(FILES.filter((f) => f <= T)));
+    const OFF = ['agents?action=quotesv', 'agents?action=quotesd'];
+    expect(OFF.map((p) => listBefore.find((r) => r.path === p)?.enabled)).toEqual([true, true]);
+    expect(listAfter).toEqual(listBefore.map((r) => (OFF.includes(r.path) ? { ...r, enabled: false } : r)));
+    expect(listAfter.find((r) => r.path === 'agents?action=quotes')?.enabled).toBe(true);
+    const jobsBefore = cronJobs(FILES.filter((f) => f < T)), jobsAfter = cronJobs(FILES.filter((f) => f <= T));
+    expect([...jobsAfter.keys()].sort()).toEqual([...jobsBefore.keys()].sort());
+    const sql = fs.readFileSync(path.join(DIR, T), 'utf8').replace(/--[^\n]*/g, '');
+    expect(sql).not.toMatch(/\b(insert|delete|truncate|drop|alter|create)\b/i);
+    expect(norm(sql)).toMatch(/^set lock_timeout = '3s'; update public\.edge_calls set enabled = false where path in \([^)]*\); reset lock_timeout;$/);
+  });
+
   // 0153 (Davies, 2026-10-28: "这个关掉"): live-prep's two calls off after its 14-day readout failed; nothing else moves.
   it("turns live-prep's order path and its reserve off and nothing else (0153)", () => {
     const T = FILES.find((f) => /^0153_pm_lp_calls_off\.sql$/.test(f)) ?? '';
