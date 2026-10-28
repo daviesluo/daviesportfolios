@@ -75,8 +75,10 @@ request quoting that word. Never put a token, key, password or account address i
 
 - G-001 (C-007): D15 verified on account (thin_cap_markets [], max 3, $5 each); I'll apply it at full scans only (B, spread ≤5, event_at set, life ends 48 h before cut). First look 04:05.
 - G-002 (C-008) → DONE 2026-10-27 04:20 UTC: D16 and D17 applied from this wake. cost_by_event seen on account (BanRep event $9.82, Vertiv $4.635); no more BanRep buys; new B entries get expires_at +65 min and are left resting until expires_in_s < 30 min. No orders resting now.
+- G-003 (C-009) → CANNOT 2026-10-28 19:50 UTC: my GROKPM standing order lets me change only GROKPM_LEDGER.md on grokpm-ledger, so I can't edit HAND_RISKS.json on hand-targets from this wake. Fault confirmed: line 109 "@$625". Passed to Davies' main chat to fix there.
 
 ## Log (newest first, max 20 lines)
+- 2026-10-28 19:50 UTC · Grok · light 19:35: flat, 0 resting; C-009 answered CANNOT (G-003), out of my scope; trimmed oldest log lines for 10 KB.
 - 2026-10-28 17:16 UTC · Grok · FILL/CLOSE: BanRep +25 Yes take-profit 12 @ 0.57 filled ($6.84; cost $4.92, ~+$1.92 realised); now flat, 0 resting, cash $107.585.
 - 2026-10-28 19:20 UTC · Claude · catch-up check 10-27 and 10-28 to 19:05: 89 cycles, none over 41 min; 9 orders (all category C take-profit sells, 2 filled, 7 expired as designed), no new B buy so D16 not yet exercised on a real row; D17 key shared by both BanRep outcomes, Vertiv separate; Vertiv Yes resolved and redeemed (9 shares); BanRep both sides now closed; equity matches Grok. shadow_marks 616, 84 new all with bid/ask depth; resolutions 29, 0/1 only. rec errors: balances timeout 10-27 06:00 zeroed one info column; activity 429 12:25 and timeout 18:45 lost nothing (no trade in those slots). Open: C-009.
 - 2026-10-28 16:20 UTC · Grok · full scan 16:05: no open; BanRep +25 Yes held, take-profit 12 @ 0.57 resting; UK Budget had no CGT rise; Status updated.
@@ -90,5 +92,3 @@ request quoting that word. Never put a token, key, password or account address i
 - 2026-10-27 16:15 UTC · Grok · full scan 16:05: no open; take-profit sell BanRep no-change No 10 @ 0.62 placed (p−0.03, bid 0.60); Status updated.
 - 2026-10-27 04:20 UTC · Grok · full scan 04:05: no open; three positions held, theses intact; C-008 done (G-002); Status updated.
 - 2026-10-27 00:20 UTC · Grok · full scan 00:05: no open; three positions held, theses intact; 10-26 daily row; Status updated.
-- 2026-10-26 23:55 UTC · Claude · daily check: 48 cycles (6 full), longest gap 41 min (12:05 scan 10 min late); equity matches Grok's Status (snapshot 20:05); no stop. D15 audited: 11 thin_cap orders (Vertiv 24-26% Yes, BanRep +25 Yes), 15 orders in all, 3 fills (the third BanRep No, ordinary rules); each within $5 and 25% of depth, cut_at set (Vertiv 10-26 09:00, BanRep 10-28 00:00), nothing resting past it, no thin_cap refusal, no D15 cut error. Only refusals: one 403 wrong region (00:06) and one duplicate decision id. shadow_marks 532 (49 with depth since 0139), resolutions 22 (0/1 only). Nothing for Davies.
-- 2026-10-26 20:20 UTC · Grok · full scan 20:05: no open; three positions held, theses intact; Status updated.
