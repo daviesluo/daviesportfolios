@@ -46972,17 +46972,11 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   from 10-29 06:00, window to 11-26 06:00 (prereg deviation 1); code deviations in the seven preregs that pin `quotes_twin.ts`;
   sweep fixture rebuilt. Order risk: if `0152` applies before the function deploys, the old driver turns them early (inert).
 
-## LEDGER.md, archived 2026-10-28 (eighth) — the 2026-10-28 21:10 UTC, 2026-10-28 21:00 UTC, 2026-10-28 20:40 UTC, 2026-10-28 20:12 UTC history sections, oldest first
+## LEDGER.md, archived 2026-10-28 (eighth) — the 2026-10-28 20:12, 20:40, 21:00 and 21:10 UTC history sections, oldest first
 
-### [2026-10-28 21:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Live-prep's calls off, step 2: `0153`** (`pmlp`, `pmlpreserve` `enabled = false`; rows and records stay), after the monitor
-  change deployed. Its dust is redeemed by GROKPM's hourly redemption of the shared account.
-
-### [2026-10-28 21:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **PR5-OPT's five start now (`0154`)** (sub-agent; not pushed; Davies, ~21:00: "修好了的话现在就开始"). `n600*`'s start and every
-  rule `from` move in place 10-29 06:00 → 10-28 22:00, guarded on the old value (tables empty at 20:15 and 20:58; the driver
-  builds nothing before a start). Window to 11-25 22:00, prereg deviation 2. The twins' op parser applies rule and start
-  moves (sweep fixture rebuilt: take50's take.from now 0090's). The 19:48 section archived.
+### [2026-10-28 20:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **`0152` failed on push** (unique `display_order`: 41 still the old row's) and rolled back whole; the fixed driver deployed.
+  New rows take 46-50, old keep 41-45 (page order unchanged); prereg §7 note and §5 hash, tests and the sweep's fixture follow.
 
 ### [2026-10-28 20:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep's calls off, step 1: the monitor stops reading it** (Davies, 10-28: "这个关掉", on `pmlp`/`pmlpreserve`). `monitor/health.ts`
@@ -46990,6 +46984,12 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   pushed after this deploys. Its dust is the shared account's and GROKPM's hourly redemption takes it. OKX's hue: `#dfe3ea`,
   a cool silver for OKX's black-and-white mark (Davies: the pink was off-brand; its lime would read as `--gain`).
 
-### [2026-10-28 20:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **`0152` failed on push** (unique `display_order`: 41 still the old row's) and rolled back whole; the fixed driver deployed.
-  New rows take 46-50, old keep 41-45 (page order unchanged); prereg §7 note and §5 hash, tests and the sweep's fixture follow.
+### [2026-10-28 21:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **PR5-OPT's five start now (`0154`)** (sub-agent; not pushed; Davies, ~21:00: "修好了的话现在就开始"). `n600*`'s start and every
+  rule `from` move in place 10-29 06:00 → 10-28 22:00, guarded on the old value (tables empty at 20:15 and 20:58; the driver
+  builds nothing before a start). Window to 11-25 22:00, prereg deviation 2. The twins' op parser applies rule and start
+  moves (sweep fixture rebuilt: take50's take.from now 0090's). The 19:48 section archived.
+
+### [2026-10-28 21:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Live-prep's calls off, step 2: `0153`** (`pmlp`, `pmlpreserve` `enabled = false`; rows and records stay), after the monitor
+  change deployed. Its dust is redeemed by GROKPM's hourly redemption of the shared account.
