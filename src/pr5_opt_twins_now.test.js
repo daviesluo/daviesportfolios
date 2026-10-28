@@ -16,6 +16,8 @@ const rowsOf = (f) => JSON.parse(/null::public\.agent_quote_twin_specs, \$json\$
 const M = '0149_quote_twins_pr5_opt_now.sql';
 /** 0152: the five again from 2026-10-29 06:00 UTC under new ids (deviation 1). */
 const R = '0152_quote_twins_pr5_opt_restart.sql';
+/** 0154: the five start at 2026-10-28 22:00 UTC, moved in place (deviation 2). */
+const N = '0154_quote_twins_pr5_opt_start_now.sql';
 const BASE = rowsOf('0141_quote_twins_relayout.sql').find((r) => r.id === 'live600');
 const DOC = read('docs/agents/reviews/2026-10-27-pr5-opt-twins-now-prereg.md').toString('utf8');
 const FIRST = read('docs/agents/reviews/2026-10-27-pr5-opt-twins-prereg.md').toString('utf8');
@@ -74,7 +76,7 @@ describe("PR5-OPT's five twins on LIVE's rules from 06:00", () => {
     const before = { 'supabase/functions/agents/quotes_twin.ts': ['015f3af08ba852c372e6b0a9f9d6815999731bd3322e03c8b5f944cdac8f4544'] };
     const named = (f) => [...DOC.matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
     for (const f of [
-      `supabase/migrations/${M}`, `supabase/migrations/${R}`, 'supabase/functions/agents/quotes_twin.ts', 'supabase/functions/agents/revx_sim.ts',
+      `supabase/migrations/${M}`, `supabase/migrations/${R}`, `supabase/migrations/${N}`, 'supabase/functions/agents/quotes_twin.ts', 'supabase/functions/agents/revx_sim.ts',
       'supabase/functions/agents/quotes_weekend.ts',
     ]) expect(named(f), f).toEqual(before[f] ? [...before[f], sha(f)] : [sha(f)]);
   });
@@ -105,6 +107,20 @@ describe("PR5-OPT's five twins on LIVE's rules from 06:00", () => {
     expect(dev).toContain('**Deviation 1 (2026-10-28, migration `0152`)');
     expect(dev).toContain('2026-10-29 06:00 → 2026-11-26 06:00 UTC (28 days)');
     expect(/```json/.test(dev)).toBe(false);
+  });
+
+  it("start at 2026-10-28 22:00 under 0154 (deviation 2): each row's start and every rule's instant moved in place, guarded on 10-29 06:00, and nothing else", () => {
+    const from = '2026-10-29T06:00:00Z', to = '2026-10-28T22:00:00Z';
+    const sql = sqlOf(N);
+    const expected = rowsOf(R).flatMap((r) => [
+      `update public.agent_quote_twin_specs\n   set start = '${to}'\n where id = '${r.id}' and start = '${from}';`,
+      ...Object.keys(r.rules).map((k) => `update public.agent_quote_twin_specs\n   set rules = jsonb_set(rules, '{${k},from}', '"${to}"'::jsonb)\n where id = '${r.id}' and rules->'${k}'->>'from' = '${from}';`),
+    ]);
+    expect(sql.trim().split(/\n(?=update )/).map((x) => x.trim())).toEqual(expected);
+    for (const r of rowsOf(R)) expect(Object.values(r.rules).every((v) => v.from === from), r.id).toBe(true);
+    const dev = DOC.slice(DOC.indexOf('## 7. Deviations'));
+    expect(dev).toContain('**Deviation 2 (2026-10-28, migration `0154`)');
+    expect(dev).toContain('2026-10-28 22:00 → 2026-11-25 22:00 UTC (28 days)');
   });
 
   it("turns no twin before the minute after its start (deviation 1's fix)", () => {

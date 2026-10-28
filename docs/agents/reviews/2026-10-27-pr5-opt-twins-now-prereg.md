@@ -185,3 +185,23 @@ USDT each.
 
 §5 keeps the hashes it was frozen at; this table names `quotes_twin.ts` from this deviation on, and `0152`
 (`src/pr5_opt_twins_now.test.js`).
+
+**Deviation 2 (2026-10-28, migration `0154`): the five start at 2026-10-28 22:00 UTC, in place.** Davies, 2026-10-28 about
+21:00 UTC, once deviation 1's fix was deployed: "修好了的话现在就开始" (if it is fixed, start now).
+- **In place, not under new ids.** `0154` moves each `n600*` row's `start`, and each of its rules' `from` (`fill`, `weekend`,
+  and `weights` or `holdMin`), from 2026-10-29 06:00 to 2026-10-28 22:00 UTC, each statement guarded on the value it replaces.
+  Deviation 1 needed new ids because its twins had turned; these have not. Read at 20:15 and again at 20:58 UTC, their
+  `_orders`, `_sim` and `_paper` tables were empty: the driver returns before it builds a replica or a driver state while a
+  twin is before its start, so nothing holds the old start.
+- **Start.** If `0154` applies before 22:00, the five wait for 22:01; after it, each catches up from 22:01 on PR5's record,
+  as a twin whose start is behind it does, and its start conversions go out at that first turn under its rules.
+- **Window**: 2026-10-28 22:00 → 2026-11-25 22:00 UTC (28 days), each day 22:00 → 22:00 so the 28 days are whole, `live600`
+  read over the same days. §3's reading, bar, the figures beside it and their power are otherwise unchanged. §4: each starts
+  flat at 2026-10-28 22:00.
+- Not blind: moved after reading the record to 2026-10-28.
+
+| file | sha256 |
+|---|---|
+| `supabase/migrations/0154_quote_twins_pr5_opt_start_now.sql` | 3f8a008cd880763f75357c38b07bee9cb7345c06d5ca40705547a592bf293bd0 |
+
+This table names `0154` (`src/pr5_opt_twins_now.test.js`).

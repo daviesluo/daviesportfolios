@@ -42,6 +42,9 @@ const DELETE = /delete from public\.agent_quote_twin_specs\s+where id = '(\w+)';
 const RULE_ADD = /update public\.agent_quote_twin_specs\s+set rules = rules \|\| '(\{[^']*\})'::jsonb\s+where id = '(\w+)' and not \(rules \? '(\w+)'\);/g;
 const OFF = /update public\.agent_quote_twin_specs\s+set enabled = false\s+where id = '(\w+)';/g;
 const HIDE = /update public\.agent_quote_twin_specs\s+set hidden = (true|false)\s+where id in \(([^)]*)\);/g;
+/** A rule's instant, and a row's start, moved, each guarded on the value it replaces (0090, 0154), as src/twin_specs.test.js reads them. */
+const RULE_MOVE = /update public\.agent_quote_twin_specs\s+set rules = jsonb_set\(rules, '\{(\w+),from\}', '"([0-9T:Z-]+)"'::jsonb\)\s+where id = '(\w+)' and rules->'(\w+)'->>'from' = '([0-9T:Z-]+)';/g;
+const START = /update public\.agent_quote_twin_specs\s+set start = '([0-9T:Z-]+)'\s+where id = '(\w+)' and start = '([0-9T:Z-]+)';/g;
 const MIGRATIONS = new URL("../../../../../supabase/migrations/", import.meta.url);
 type Op = { at: number; apply: (rows: Array<Record<string, unknown> & { id: string; display_name: string }>) => typeof rows };
 const asTheyStand = async <T extends { id: string; display_name: string }>(first: T[]): Promise<T[]> => {
@@ -62,6 +65,11 @@ const asTheyStand = async <T extends { id: string; display_name: string }>(first
         const ids = m[2].split(",").map((x) => x.trim().replace(/^'|'$/g, ""));
         return { at: m.index ?? 0, apply: (rs) => rs.map((r) => (ids.includes(r.id) ? { ...r, hidden: m[1] === "true" } : r)) };
       }),
+      ...[...sql.matchAll(RULE_MOVE)].map((m): Op => ({ at: m.index ?? 0, apply: (rs) => rs.map((r) => {
+        const rules = (r.rules ?? {}) as Record<string, Record<string, unknown>>;
+        return r.id === m[3] && rules[m[1]]?.from === m[5] ? { ...r, rules: { ...rules, [m[1]]: { ...rules[m[1]], from: m[2] } } } : r;
+      }) })),
+      ...[...sql.matchAll(START)].map((m): Op => ({ at: m.index ?? 0, apply: (rs) => rs.map((r) => (r.id === m[2] && Date.parse(String(r.start)) === Date.parse(m[3]) ? { ...r, start: m[1] } : r)) })),
     ].sort((a, b) => a.at - b.at);
     for (const op of ops) rows = op.apply(rows);
   }

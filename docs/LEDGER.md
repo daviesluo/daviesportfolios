@@ -290,9 +290,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      (10-28 readouts); `take50wk` off. `0142`: `take50` "variant-3" on the page; Coinbase "with Euros - 1" (hold, 11-10) and
      "- 2", the USDC arm at £25/€25 (prereg `cb-usdc`, 14 days, bar > 0, ≥ 8 %/yr, ≥ 5 bps a trip).
      **PR5-OPT 10-27** (`reviews/2026-10-27-pr5-rules-optimisation.md` §4): five twins on LIVE's rules against `live600`,
-     variant-4 to -8, restarted by `0152` as `n600no03`, `n600hold1`, `n600usdt2`, `n600usdt3`, `n600usdt` from 10-29 06:00,
-     read on or after 11-26 06:00 (prereg `pr5-opt-twins-now`, its deviation 1; history 10-28 19:56); 0148's three and 0149's
-     five (`o600*`, start conversions unweighted) off. After deploy: each `n600*` turns nothing before 06:01 on 10-29, then
+     variant-4 to -8, restarted by `0152` as `n600no03`, `n600hold1`, `n600usdt2`, `n600usdt3`, `n600usdt`, started at once
+     by `0154` from 10-28 22:00, read on or after 11-25 22:00 (prereg `pr5-opt-twins-now`, deviations 1-2; history 10-28 19:56,
+     21:00); 0148's three and 0149's five (`o600*`, start conversions unweighted) off. After deploy: each `n600*` turns nothing before 22:01 on 10-28, then
      converts as the prereg's §1 table says (£199.98/£99.99, £225/£75, £300/none; no 0.3 % and hold £1: £150/£150).
      **Audit 2026-10-19:** the read's eight criteria are not the addendum's step 2: its "`late` is false" was dropped (the
      replica was late), variant-3 was not compared (no orders before 10-23), and 900 of the closure's 2,880 minutes were
@@ -755,12 +755,18 @@ Facts a fresh session would otherwise rediscover:
 
 Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's archive, each batch under a heading
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
-first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 19:45 UTC section of 2026-10-28
-(archived 2026-10-28, fifth).
+first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to LIVE's operator conversion of 2026-10-28 19:48 UTC (archived
+2026-10-28, sixth).
 
 ### [2026-10-28 21:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep's calls off, step 2: `0153`** (`pmlp`, `pmlpreserve` `enabled = false`; rows and records stay), after the monitor
   change deployed. Its dust is redeemed by GROKPM's hourly redemption of the shared account.
+
+### [2026-10-28 21:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **PR5-OPT's five start now (`0154`)** (sub-agent; not pushed; Davies, ~21:00: "修好了的话现在就开始"). `n600*`'s start and every
+  rule `from` move in place 10-29 06:00 → 10-28 22:00, guarded on the old value (tables empty at 20:15 and 20:58; the driver
+  builds nothing before a start). Window to 11-25 22:00, prereg deviation 2. The twins' op parser applies rule and start
+  moves (sweep fixture rebuilt: take50's take.from now 0090's). The 19:48 section archived.
 
 ### [2026-10-28 20:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Live-prep's calls off, step 1: the monitor stops reading it** (Davies, 10-28: "这个关掉", on `pmlp`/`pmlpreserve`). `monitor/health.ts`
@@ -779,11 +785,3 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
   twin before the minute after its start (pin fails on the old code). `0152`: `o600*` renamed "… from 10-27" and off; `n600*`
   from 10-29 06:00, window to 11-26 06:00 (prereg deviation 1); code deviations in the seven preregs that pin `quotes_twin.ts`;
   sweep fixture rebuilt. Order risk: if `0152` applies before the function deploys, the old driver turns them early (inert).
-
-### [2026-10-28 19:48 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **LIVE: an operator's conversion follows the bid** (sub-agent; not pushed; the 19:20 section's "next", archived; Davies'
-  standing word 10-02). `quotes_live.ts` step 6b′, `convertRepeg` on LIVE's instance from 10-28 00:00: a conversion that
-  rested ≥ 30 min under a higher best bid is cancelled (read back) and its remainder re-sent at the top of the bids under
-  `runQuotesConvert`'s checks, capped at what the asks still lack; the 24 h count from the first send (`request.firstTs`);
-  once the asks hold their coin it is cancelled. Twins unchanged: no twin rule sets it; LIVE twin and `o600*` turn for turn
-  equal with and without it; six hours vs the frozen file equal with it in force. Design addendum 2026-10-28.

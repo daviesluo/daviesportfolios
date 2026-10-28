@@ -320,7 +320,7 @@ places stay when the number is not whole.
   5 Oct also buys or sells at once, as a taker, when the order book has moved
   past a rung by at least the taker's fee, then exits like any other fill.
   The live account's own taker switch is checked against its takes.
-- **Stablecoin quotes variant-4 to -8.** After it, from 29 Oct 06:00 UTC
+- **Stablecoin quotes variant-4 to -8.** After it, from 28 Oct 22:00 UTC
   (started again then: on 27 Oct their coins were bought before their own
   rules applied, so the weighted ones held the wrong coins):
   five tests of the live account's rules at £600, each with one change, read

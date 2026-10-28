@@ -3453,6 +3453,10 @@ Read 2026-10-27 (`reviews/2026-10-27-pr5-rules-optimisation.md`, `backtests/pr5_
   with no USDC rung). `quotes_twin.ts` now turns no twin before the minute after its start (pinned in `quotes_twin.test.ts`). The
   five (variant-5 too, one window) are `n600no03`, `n600hold1`, `n600usdt2`, `n600usdt3`, `n600usdt`; `o600*` off, renamed
   "… from 10-27". Window 10-29 06:00 → 11-26 06:00; bar unchanged.
+- **Started at once** (`0154`, the prereg's deviation 2; Davies, 2026-10-28 ~21:00 UTC: "修好了的话现在就开始"): the five rows' start
+  and every rule's `from` moved in place from 10-29 06:00 to 2026-10-28 22:00 UTC, each guarded on the old value; their
+  tables were empty and the driver builds nothing before a twin's start, so no state held the old one. Window 10-28 22:00 →
+  11-25 22:00, days 22:00 → 22:00.
 
 ### 3.53 PMSAMEBET: the same bet in two Polymarket markets — real gaps, pennies deep, and Kalshi leads nothing (2026-10-27)
 
@@ -4510,11 +4514,11 @@ p50x1：回到 4 个测试版本，规则 D 改回 variant-3。"; the F3 replay,
 | `o600usdt2` | off since `0152` ("USDT 2:1 from 10-27"; variant-6 from `0149`, 2026-10-27; its start conversions unweighted) | `live600` | £600: USDT-GBP £66.66 a rung, USDC-GBP £33.33 | LIVE's rules, and `rules.weights` `book` 2 : 1 | the same | the same |
 | `o600usdt3` | off since `0152` ("USDT 3:1 from 10-27"; variant-7 from `0149`, 2026-10-27; its start conversions unweighted) | `live600` | £600: USDT-GBP £75 a rung, USDC-GBP £25 | LIVE's rules, and `rules.weights` `book` 3 : 1 | the same | the same |
 | `o600usdt` | off since `0152` ("USDT only from 10-27"; variant-8 from `0149`, 2026-10-27; its start conversions unweighted) | `live600` | £600: USDT-GBP £100 a rung, nothing on USDC-GBP | LIVE's rules, and `rules.weights` `book` 0 : 1 (USDC-GBP quotes, converts and tops up nothing; all the coin is USDT) | the same | the same |
-| `n600no03` | Stablecoin quotes variant-4 (from `0152`, 2026-10-29; `o600no03` before) | `live600` | £600: £75 on each 0.1 % and 0.2 % rung, none on 0.3 % | LIVE's rules from its start, and `rules.weights` `k` 1 / 1 / 0 (as `live600no03`) | starts flat 2026-10-29 06:00; window to 11-26 06:00, days 06:00 → 06:00; bar against `live600`: mean daily difference per pound > 0 and a 3-day block bootstrap at most 10 % ≤ 0 | `reviews/2026-10-27-pr5-opt-twins-now-prereg.md` |
-| `n600hold1` | Stablecoin quotes variant-5 (from `0152`, 2026-10-29; `o600hold1` before) | `live600` | £600: £50 a rung | LIVE's rules, and `rules.holdMin` £1 | the same | the same |
-| `n600usdt2` | Stablecoin quotes variant-6 (from `0152`, 2026-10-29; `o600usdt2` before) | `live600` | £600: USDT-GBP £66.66 a rung, USDC-GBP £33.33 | LIVE's rules, and `rules.weights` `book` 2 : 1 | the same | the same |
-| `n600usdt3` | Stablecoin quotes variant-7 (from `0152`, 2026-10-29; `o600usdt3` before) | `live600` | £600: USDT-GBP £75 a rung, USDC-GBP £25 | LIVE's rules, and `rules.weights` `book` 3 : 1 | the same | the same |
-| `n600usdt` | Stablecoin quotes variant-8 (from `0152`, 2026-10-29; `o600usdt` before) | `live600` | £600: USDT-GBP £100 a rung, nothing on USDC-GBP | LIVE's rules, and `rules.weights` `book` 0 : 1 (USDC-GBP quotes, converts and tops up nothing; all the coin is USDT) | the same | the same |
+| `n600no03` | Stablecoin quotes variant-4 (from `0152`, started 2026-10-28 22:00 by `0154`; `o600no03` before) | `live600` | £600: £75 on each 0.1 % and 0.2 % rung, none on 0.3 % | LIVE's rules from its start, and `rules.weights` `k` 1 / 1 / 0 (as `live600no03`) | starts flat 2026-10-28 22:00; window to 11-25 22:00, days 22:00 → 22:00; bar against `live600`: mean daily difference per pound > 0 and a 3-day block bootstrap at most 10 % ≤ 0 | `reviews/2026-10-27-pr5-opt-twins-now-prereg.md` |
+| `n600hold1` | Stablecoin quotes variant-5 (from `0152`, started 2026-10-28 22:00 by `0154`; `o600hold1` before) | `live600` | £600: £50 a rung | LIVE's rules, and `rules.holdMin` £1 | the same | the same |
+| `n600usdt2` | Stablecoin quotes variant-6 (from `0152`, started 2026-10-28 22:00 by `0154`; `o600usdt2` before) | `live600` | £600: USDT-GBP £66.66 a rung, USDC-GBP £33.33 | LIVE's rules, and `rules.weights` `book` 2 : 1 | the same | the same |
+| `n600usdt3` | Stablecoin quotes variant-7 (from `0152`, started 2026-10-28 22:00 by `0154`; `o600usdt3` before) | `live600` | £600: USDT-GBP £75 a rung, USDC-GBP £25 | LIVE's rules, and `rules.weights` `book` 3 : 1 | the same | the same |
+| `n600usdt` | Stablecoin quotes variant-8 (from `0152`, started 2026-10-28 22:00 by `0154`; `o600usdt` before) | `live600` | £600: USDT-GBP £100 a rung, nothing on USDC-GBP | LIVE's rules, and `rules.weights` `book` 0 : 1 (USDC-GBP quotes, converts and tops up nothing; all the coin is USDT) | the same | the same |
 
 ## 5. Questions that blocked the build — answered 2026-09-20
 

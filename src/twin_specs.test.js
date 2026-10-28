@@ -35,6 +35,12 @@ const RULE_ADD = /update public\.agent_quote_twin_specs\s+set rules = rules \|\|
 const OFF = /update public\.agent_quote_twin_specs\s+set enabled = false\s+where id = '(\w+)';/g;
 const HIDE = /update public\.agent_quote_twin_specs\s+set hidden = (true|false)\s+where id in \(([^)]*)\);/g;
 const ADD_HIDDEN = /alter table public\.agent_quote_twin_specs add column if not exists hidden boolean;/g;
+/**
+ * A rule's instant moved, guarded on the instant it replaces (0090: TAKE's take.from; 0154: the five PR5-OPT twins' rules), and
+ * a row's start moved the same way (0154, Davies 2026-10-28: "修好了的话现在就开始").
+ */
+const RULE_MOVE_OP = /update public\.agent_quote_twin_specs\s+set rules = jsonb_set\(rules, '\{(\w+),from\}', '"([0-9T:Z-]+)"'::jsonb\)\s+where id = '(\w+)' and rules->'(\w+)'->>'from' = '([0-9T:Z-]+)';/g;
+const START = /update public\.agent_quote_twin_specs\s+set start = '([0-9T:Z-]+)'\s+where id = '(\w+)' and start = '([0-9T:Z-]+)';/g;
 const renames = FILES.flatMap((file) => [...sqlOf(file).matchAll(RENAME)].map((m) => ({ file, to: m[1], id: m[2], from: m[3] })));
 const deletes = FILES.flatMap((file) => [...sqlOf(file).matchAll(DELETE)].map((m) => ({ file, id: m[1] })));
 /**
@@ -47,6 +53,8 @@ const OPS = FILES.flatMap((file) => [
   ...[...sqlOf(file).matchAll(RULE_ADD)].map((m) => ({ at: m.index ?? 0, op: { kind: 'rule', add: JSON.parse(m[1]), id: m[2], key: m[3] } })),
   ...[...sqlOf(file).matchAll(OFF)].map((m) => ({ at: m.index ?? 0, op: { kind: 'off', id: m[1] } })),
   ...[...sqlOf(file).matchAll(HIDE)].map((m) => ({ at: m.index ?? 0, op: { kind: 'hide', hidden: m[1] === 'true', ids: m[2].split(',').map((x) => x.trim().replace(/^'|'$/g, '')) } })),
+  ...[...sqlOf(file).matchAll(RULE_MOVE_OP)].map((m) => ({ at: m.index ?? 0, op: { kind: 'move', key: m[1], to: m[2], id: m[3], from: m[5] } })),
+  ...[...sqlOf(file).matchAll(START)].map((m) => ({ at: m.index ?? 0, op: { kind: 'start', to: m[1], id: m[2], from: m[3] } })),
 ].sort((a, b) => a.at - b.at).map((x) => x.op));
 /**
  * The rows as the migrations leave them: the first insert of an id stands (`on conflict do nothing`), each rename and
@@ -56,6 +64,8 @@ const ROWS = OPS.reduce((rows, n) => n.kind === 'delete' ? rows.filter((r) => r.
   : n.kind === 'rule' ? rows.map((r) => (r.id === n.id && !(n.key in (r.rules ?? {})) ? { ...r, rules: { ...(r.rules ?? {}), ...n.add } } : r))
   : n.kind === 'off' ? rows.map((r) => (r.id === n.id ? { ...r, enabled: false } : r))
   : n.kind === 'hide' ? rows.map((r) => (n.ids.includes(r.id) ? { ...r, hidden: n.hidden } : r))
+  : n.kind === 'move' ? rows.map((r) => (r.id === n.id && r.rules?.[n.key]?.from === n.from ? { ...r, rules: { ...r.rules, [n.key]: { ...r.rules[n.key], from: n.to } } } : r))
+  : n.kind === 'start' ? rows.map((r) => (r.id === n.id && Date.parse(r.start) === Date.parse(n.from) ? { ...r, start: n.to } : r))
   : rows.map((r) => (n.id === r.id && n.from === r.display_name ? { ...r, display_name: n.to } : r)),
 inserted.filter((x, i) => inserted.findIndex((y) => y.row.id === x.row.id) === i).map((x) => ({ ...x.row })))
   .sort((a, b) => a.display_order - b.display_order);
@@ -110,7 +120,7 @@ describe("the twins' spec rows", () => {
       const sql = sqlOf(f);
       const named = (sql.match(/agent_quote_twin_specs/g) ?? []).length;
       const inserts = [...sql.matchAll(INSERT)].length;
-      const moves = [...sql.matchAll(RULE_MOVE)].length;
+      const moves = [...sql.matchAll(RULE_MOVE)].length + [...sql.matchAll(START)].length;
       const names = [...sql.matchAll(RENAME)].length;
       const offs = [...sql.matchAll(DELETE)].length;
       const later = [RULE_ADD, OFF, HIDE, ADD_HIDDEN].reduce((a, re) => a + [...sql.matchAll(re)].length, 0);
@@ -118,11 +128,15 @@ describe("the twins' spec rows", () => {
       // (its type, its select and its refusal). A pre-registration's addendum may move one rule's date of one row, guarded
       // on the date it replaces (0090: TAKE's take.from, its Addendum 1): that names it once. A page name may change,
       // guarded on the name it replaces (0108, 0109, 0130, 0141): once. A row may be taken off by its id (0109): once.
-      // 0141 adds `hidden`, one rule to one row, switches one row off and hides four: once each.
+      // 0141 adds `hidden`, one rule to one row, switches one row off and hides four: once each. 0154 moves five rows' start
+      // and their rules' instants, each guarded on the value it replaces: once each.
       expect(named, f).toBe(2 * inserts + moves + names + offs + later + (f === SPECS_0088 ? 5 : 0));
     }
     expect(FILES.filter((f) => [RULE_ADD, OFF, HIDE, ADD_HIDDEN].some((re) => [...sqlOf(f).matchAll(re)].length)).map((f) => f.slice(0, 4))).toEqual(['0141', '0142', '0144', '0149', '0151', '0152']);
-    expect(FILES.filter((f) => [...sqlOf(f).matchAll(RULE_MOVE)].length).map((f) => f.slice(0, 4))).toEqual(['0090']);
+    expect(FILES.filter((f) => [...sqlOf(f).matchAll(RULE_MOVE)].length).map((f) => f.slice(0, 4))).toEqual(['0090', '0154']);
+    expect(FILES.filter((f) => [...sqlOf(f).matchAll(START)].length).map((f) => f.slice(0, 4))).toEqual(['0154']);
+    // Every rule move matches the parser that applies it.
+    for (const f of FILES) expect([...sqlOf(f).matchAll(RULE_MOVE_OP)].length, f).toBe([...sqlOf(f).matchAll(RULE_MOVE)].length);
     expect(renames.map((n) => [n.file.slice(0, 4), n.id, n.from, n.to])).toEqual([
       ['0108', 'd', 'Stablecoin quotes variant-3', 'Stablecoin quotes variant-4'], ['0109', 'd', 'Stablecoin quotes variant-4', 'Stablecoin quotes variant-3'],
       ['0130', 'd', 'Stablecoin quotes variant-3', 'Stablecoin quotes variant-4'],
@@ -225,8 +239,9 @@ describe("the twins' spec rows", () => {
     for (const r of onPage.slice(0, 3)) {
       expect([r.rules.fill.model, r.rules.weekend.from, 'take' in r.rules], r.id).toEqual(['at', '2026-10-30T21:00:00Z', false]);
     }
-    // PR5-OPT's five (0149, restarted by 0152): LIVE's fill rule and weekend from their start, 2026-10-29 06:00, and one rule each from it.
-    const S = '2026-10-29T06:00:00Z';
+    // PR5-OPT's five (0149, restarted by 0152, started at once by 0154): LIVE's fill rule and weekend from their start,
+    // 2026-10-28 22:00, and one rule each from it.
+    const S = '2026-10-28T22:00:00Z';
     for (const r of onPage.slice(4)) {
       expect([r.start, r.rules.fill.model, r.rules.fill.from, r.rules.weekend.from, 'take' in r.rules], r.id).toEqual([S, 'at', S, S, false]);
     }

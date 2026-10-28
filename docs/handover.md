@@ -46951,3 +46951,13 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   `reviews/2026-10-28-lp-reads.md`, reference §3.56). Window 10-14 → 10-27: rewards 0.769 c a filled share (474.20 shares)
   against 1.5 c, and the total since the restart negative: **FAIL**. No day under −$15 and the −$25 stop untripped. R by rule:
   0.7112 (A18), 0.7762 (A19), 0.7156 overall. Meaning: rewards end, the state since `0125`; nothing armed or changed.
+
+## LEDGER.md, archived 2026-10-28 (sixth) — LIVE's operator conversion following the bid, 2026-10-28 19:48 UTC
+
+### [2026-10-28 19:48 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LIVE: an operator's conversion follows the bid** (sub-agent; not pushed; the 19:20 section's "next", archived; Davies'
+  standing word 10-02). `quotes_live.ts` step 6b′, `convertRepeg` on LIVE's instance from 10-28 00:00: a conversion that
+  rested ≥ 30 min under a higher best bid is cancelled (read back) and its remainder re-sent at the top of the bids under
+  `runQuotesConvert`'s checks, capped at what the asks still lack; the 24 h count from the first send (`request.firstTs`);
+  once the asks hold their coin it is cancelled. Twins unchanged: no twin rule sets it; LIVE twin and `o600*` turn for turn
+  equal with and without it; six hours vs the frozen file equal with it in force. Design addendum 2026-10-28.

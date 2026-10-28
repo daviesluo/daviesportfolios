@@ -91,7 +91,7 @@
    "lease": "quotes-twin-take50",
    "rules": {
     "take": {
-     "from": "2026-10-05T00:00:00Z"
+     "from": "2026-10-04T16:00:00Z"
     }
    },
    "backfill": {
@@ -111,19 +111,19 @@
    "engine": "pr5",
    "capital_gbp": 600,
    "gov": "account",
-   "start": "2026-10-29T06:00:00Z",
+   "start": "2026-10-28T22:00:00Z",
    "table_prefix": "agent_quote_twin_n600no03",
    "lease": "quotes-twin-n600no03",
    "rules": {
     "fill": {
      "model": "at",
-     "from": "2026-10-29T06:00:00Z"
+     "from": "2026-10-28T22:00:00Z"
     },
     "weekend": {
-     "from": "2026-10-29T06:00:00Z"
+     "from": "2026-10-28T22:00:00Z"
     },
     "weights": {
-     "from": "2026-10-29T06:00:00Z",
+     "from": "2026-10-28T22:00:00Z",
      "k": {
       "0.001": 1,
       "0.002": 1,
@@ -143,19 +143,19 @@
    "engine": "pr5",
    "capital_gbp": 600,
    "gov": "account",
-   "start": "2026-10-29T06:00:00Z",
+   "start": "2026-10-28T22:00:00Z",
    "table_prefix": "agent_quote_twin_n600hold1",
    "lease": "quotes-twin-n600hold1",
    "rules": {
     "fill": {
      "model": "at",
-     "from": "2026-10-29T06:00:00Z"
+     "from": "2026-10-28T22:00:00Z"
     },
     "weekend": {
-     "from": "2026-10-29T06:00:00Z"
+     "from": "2026-10-28T22:00:00Z"
     },
     "holdMin": {
-     "from": "2026-10-29T06:00:00Z",
+     "from": "2026-10-28T22:00:00Z",
      "gbp": 1
     }
    },
@@ -171,19 +171,19 @@
    "engine": "pr5",
    "capital_gbp": 600,
    "gov": "account",
-   "start": "2026-10-29T06:00:00Z",
+   "start": "2026-10-28T22:00:00Z",
    "table_prefix": "agent_quote_twin_n600usdt2",
    "lease": "quotes-twin-n600usdt2",
    "rules": {
     "fill": {
      "model": "at",
-     "from": "2026-10-29T06:00:00Z"
+     "from": "2026-10-28T22:00:00Z"
     },
     "weekend": {
-     "from": "2026-10-29T06:00:00Z"
+     "from": "2026-10-28T22:00:00Z"
     },
     "weights": {
-     "from": "2026-10-29T06:00:00Z",
+     "from": "2026-10-28T22:00:00Z",
      "book": {
       "USDC-GBP": 1,
       "USDT-GBP": 2
@@ -202,19 +202,19 @@
    "engine": "pr5",
    "capital_gbp": 600,
    "gov": "account",
-   "start": "2026-10-29T06:00:00Z",
+   "start": "2026-10-28T22:00:00Z",
    "table_prefix": "agent_quote_twin_n600usdt3",
    "lease": "quotes-twin-n600usdt3",
    "rules": {
     "fill": {
      "model": "at",
-     "from": "2026-10-29T06:00:00Z"
+     "from": "2026-10-28T22:00:00Z"
     },
     "weekend": {
-     "from": "2026-10-29T06:00:00Z"
+     "from": "2026-10-28T22:00:00Z"
     },
     "weights": {
-     "from": "2026-10-29T06:00:00Z",
+     "from": "2026-10-28T22:00:00Z",
      "book": {
       "USDC-GBP": 1,
       "USDT-GBP": 3
@@ -233,19 +233,19 @@
    "engine": "pr5",
    "capital_gbp": 600,
    "gov": "account",
-   "start": "2026-10-29T06:00:00Z",
+   "start": "2026-10-28T22:00:00Z",
    "table_prefix": "agent_quote_twin_n600usdt",
    "lease": "quotes-twin-n600usdt",
    "rules": {
     "fill": {
      "model": "at",
-     "from": "2026-10-29T06:00:00Z"
+     "from": "2026-10-28T22:00:00Z"
     },
     "weekend": {
-     "from": "2026-10-29T06:00:00Z"
+     "from": "2026-10-28T22:00:00Z"
     },
     "weights": {
-     "from": "2026-10-29T06:00:00Z",
+     "from": "2026-10-28T22:00:00Z",
      "book": {
       "USDC-GBP": 0,
       "USDT-GBP": 1
