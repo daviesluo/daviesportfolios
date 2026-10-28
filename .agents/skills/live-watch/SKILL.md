@@ -27,7 +27,7 @@ say to Davies is Chinese (中文), including one-line progress notes.
 |---|---|---|---|
 | **Live-prep** = Polymarket "Reward quotes" LIVE | YES, about $402 deposit, USDC on Polymarket | `supabase/functions/agents/pm_lp.ts` (rules) + `pm_live.ts` (engine), runs every minute | `public.pm_lp_state` |
 | **PR5** = GBP stablecoin quotes LIVE on Revolut X (sub-account key `_2`) | YES, £10 a rung | `supabase/functions/agents/quotes_live.ts` | `public.agent_quote_live_state` |
-| **trend-4h-live** = crypto loop LIVE on Revolut X | YES, cap $60 | `supabase/functions/agents/` tick | errors only (`agents.tick`) |
+| **trend-4h-live** = crypto loop, RETIRED 2026-10-28 (`0158`, flat, live confirmation cleared) | no longer | `supabase/functions/agents/` tick, which decides nothing since | errors only (`agents.tick`); any live order of it is an ALERT |
 | Paper tests, recorders (RW-C, mid-pool, mini-pool, lpprep, Coinbase, CoinJar…) | no | same function | errors only |
 | The site and the minute loop | no | Cloudflare Worker `workers/monitor/` | errors `monitor.*` |
 

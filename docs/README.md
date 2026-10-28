@@ -165,9 +165,11 @@ closed bar it asks its rulebook what to do.
   (the gap never covers the fee), and real money on Kraken (its fees).
 - **Paper first, then small.** Every rule runs on paper before it
   touches money. Two have so far, each on a small account of its own:
-  trend following on 4-hour bars over BTC, ETH, SOL and AVAX since
+  trend following on 4-hour bars over BTC, ETH, SOL and AVAX from
   24 September 2026, with its paper twin beside it as the control, and
-  the stablecoin quotes below since 1 October. A live order needs the
+  the stablecoin quotes below since 1 October. I retired the trend rules,
+  live and paper, on 28 October: a month in, they were not worth running.
+  Their record and code stay. A live order needs the
   row switched to live, a confirmation in the database, the risk gate's
   approval and my go-ahead.
 - **Tests with a bar written first.** Beside the loop, four ideas run

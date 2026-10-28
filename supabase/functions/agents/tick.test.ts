@@ -254,6 +254,32 @@ Deno.test("a retired strategy row is never ticked, whatever its mode says: its r
   assert(w.mem.tables.agent_observations.every((o) => o.strategy_id !== "trend-4h-retired"));
 });
 
+// 0158 (Davies, 2026-10-28: "把实盘的Trend 4h和测试的Trend 1h Trend 4h删了吧"): every row the loop has, the live one included,
+// retired flat with the live confirmation cleared. On a bar that would enter, the tick decides nothing, writes no
+// observation and sends nothing to either venue; what it keeps doing is the record of the two venues' books.
+Deno.test("0158's rows — all three retired flat, the live confirmation cleared — decide nothing and send nothing, and the basis is still recorded", async () => {
+  const row = (id: string, kind: "trend-4h" | "trend-1h") => strategy({ id, kind, venue: "revx", signal_venue: "kraken", name: id, mode: "paused", retired_at: new Date(NOW - ONE_M).toISOString() });
+  const roundTrip = (id: string, mode: "paper" | "live", n: number) => [
+    longSince(30 * ONE_D, 100, 0.2, { id: n, strategy_id: id, venue: "revx", mode, client_order_id: `b${n}` }),
+    longSince(29 * ONE_D, 101, 0.2, { id: n + 1, strategy_id: id, venue: "revx", mode, side: "sell", client_order_id: `s${n}` }),
+  ];
+  const rows = [row("trend-4h-live", "trend-4h"), row("trend-4h", "trend-4h"), row("trend-1h", "trend-1h")];
+  const orders = [...roundTrip("trend-4h-live", "live", 10), ...roundTrip("trend-4h", "paper", 20), ...roundTrip("trend-1h", "paper", 30)];
+  const w = world({ strategies: rows, orders, revxCanTrade: true, revxBalances: { USD: 1000, BTC: 0 }, risk: { live_confirmed_at: null } });
+  const r = await tick(w.deps);
+  assertEquals([r.errors, r.decisions, r.windingDown, r.observations], [[], [], [], 0]);
+  assertEquals([w.mem.tables.agent_decisions.length, w.mem.tables.agent_orders.length, w.mem.tables.agent_observations.length], [0, 6, 0]);
+  assertEquals([...w.revx.calls, ...w.kraken.calls].filter((c) => /^(place|cancel|order|balances|activeOrders)/.test(c)), []);
+  assert(w.mem.tables.agent_basis.length > 0);                          // a fifth minute: the two books' basis is written as before
+  // The same rows before 0158 (live, armed, not retired) do decide this bar: the test is not passing on an empty world.
+  const before = world({
+    strategies: rows.map((s) => ({ ...s, retired_at: null, mode: s.id === "trend-4h-live" ? "live" : "paper" })), orders,
+    revxCanTrade: true, revxBalances: { USD: 1000, BTC: 0 }, risk: { live_confirmed_at: new Date(NOW - ONE_D).toISOString() },
+  });
+  const rb = await tick(before.deps);
+  assert(rb.decisions.some((d) => d.strategy === "trend-4h-live"), JSON.stringify(rb.decisions));
+});
+
 Deno.test("one tick at a time: a turn that finds the lease held does nothing, and a turn that ran holds it for the cron minute at most", async () => {
   const w = world({ leaseUntil: new Date(NOW + 20e3).toISOString() });      // another turn is still running
   const r = await tick(w.deps);

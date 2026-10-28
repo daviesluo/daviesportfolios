@@ -14,15 +14,15 @@ How the less obvious parts work, and why they are built the way they are.
   drops a ticker does the client fall back, for that ticker alone, to a
   race across public CORS proxies.
 - **Agents (crypto, paper first)** — the Agents page behind the ☰ menu.
-  Three strategies run today, all in paper, all reading Kraken's candles
-  for their signals, each on Revolut X and, as a paper twin shown for the
-  same decisions at Binance's price, on Binance (the page's VENUES shows
-  Revolut X and Binance, each card the paper book of that venue's
-  strategies; no real balance is shown, and Binance's paper venue reads
-  only its public market data, which it serves to any address): 4-hour trend following
-  on BTC, ETH, SOL, AVAX and SUI (the candidate for real money), its
-  1-hour variant on BTC, ETH and SOL (a 30-day momentum row ran on paper
-  until `0129` retired it, 2026-10-18, and `0133` deleted it, 2026-10-20). The loop
+  The crypto loop's strategy rows, all reading Kraken's candles for their
+  signals and trading on Revolut X, are retired: 4-hour trend following
+  (live on a small account from 2026-09-24, with its paper control) and
+  its 1-hour variant ran until `0158` retired all three on 2026-10-28,
+  on Davies' word, flat and with their records kept (a 30-day momentum
+  row ran on paper until `0129` retired it, 2026-10-18, and `0133`
+  deleted it, 2026-10-20). Since then the tick decides nothing and only
+  records the two venues' quotes, the basis and Kraken's candles. The
+  rest of this note says how the loop worked while it ran. The loop
   runs every minute: quotes, order management, a protective floor under
   cost checked against the bid, and the state on the forming bar (shown
   live on the page); entries wait for closed bars. TypeSafe's **Jev
@@ -875,6 +875,7 @@ before touching migration state.
 | `0155_okx_paper_start_now.sql` | Moves OKX's two paper twins' window start from 2026-10-29 00:00 to 2026-10-28 22:00 UTC, guarded on the old values. |
 | `0156_pr5v_ruled_calls_off.sql` | Switches off PR5V's and rule D's paper engines after their 10-28 readings, as both pre-registrations say; records stay. |
 | `0157_igbot.sql` | IGBOT's tables (its config held to IG's demo and starting in dry-run, the whitelist, the journal, its orders, positions, five-minute snapshots and state), RLS on with no grant, and its read-back call every minute. |
+| `0158_retire_trend_rows.sql` | Retires the crypto loop's last three rows in place (`trend-4h-live`, `trend-4h`, `trend-1h`: paused, `retired_at`) and clears the loop's live confirmation; refuses to run while the live row holds a coin or has an order in flight. Records stay. |
 | `0096_pm_rw_x_tb1_arms.sql` | Lets the variants' day tables, RW's and RW-C's, take TB1's two arms on x1 (tb1-skip, tb1-back). |
 | `0086_quote_live_deadman.sql` | Adds the kind `deadman` to `agent_quote_live_events`, for the row the monitor's dead-man switch writes when it cancels PR5's resting orders. |
 | `0087_quote_twins.sql` | The realistic twins' tables (each the live executor's four, a replica's and a simulated account's), their config rows and leases, and the one call that runs them. |
@@ -1064,7 +1065,7 @@ pg_cron → pg_net → Edge Functions (no browser needed; one job queues every c
  ├─ edge-watchdog      every minute, at :13   a due call with no beat (its worker never started) run again, once → edge_call_retries
  ├─ snapshot-record    every 5 min   board prices → price_snapshots
  ├─ overnight-record   every 5 min, 00:00–09:55 UTC   T212 quotes → overnight_intraday_points
- ├─ agents ?action=tick  every minute   quotes, orders, stops, decisions → agent_* tables
+ ├─ agents ?action=tick  every minute   quotes and the basis, Kraken's candles → agent_* tables (no strategy row decides since 0158)
  ├─ agents ?action=quotes  every minute   PR5's paper quotes → agent_quote_*, then its live executor → agent_quote_live_*
  ├─ agents ?action=quotesv  every minute   PR5's stored minutes replayed through the variant's rule, two arms → agent_quotev_*
  ├─ agents ?action=pmrw  every minute   RW's paper quotes on Polymarket (public reads) → pm_rw_*

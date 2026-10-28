@@ -234,6 +234,9 @@ places stay when the number is not whole.
   is of. With nothing live, LIVE says
   so and TESTING holds everything. A strategy still holding real coins
   after it was paused or relabelled stays on LIVE until it has sold them.
+  The crypto loop's trend strategies (Trend 4h on real money, Trend 4h and
+  Trend 1h on paper) were retired on 28 Oct 2026, each holding nothing:
+  they are on neither tab any more, and their records are kept.
 - **Stablecoin quotes LIVE twin.** The first of the tests, after the testing
   strategies, since 27 Oct: the live stablecoin quotes' own code, every rule
   the real-money account runs by, trading a simulated Revolut X account of

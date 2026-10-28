@@ -88,6 +88,16 @@ that follow from that evidence, in short:
   coin clears the same bar on Kraken's costs (40 bps maker a side, 80 bps
   a round trip before the spread) and a Kraken book of ≥ $100k a day, and
   joins the Kraken row only, paper first like everything else.
+- **Every strategy row of the loop is retired since `0158` (2026-10-28; Davies: "把实盘的Trend 4h和测试的Trend 1h
+  Trend 4h删了吧，那一整套都表现太差了感觉不值得做")**: `trend-4h-live`, `trend-4h` and `trend-1h`, paused in place with
+  `retired_at`, all flat, their records kept; `agent_risk.live_confirmed_at` cleared (no row is labelled live; a future
+  live row is armed again only in the conversation where Davies says go; `global_pause` was NOT set, it would stop PR5,
+  GROKPM and IGBOT). The migration refuses to run while the live row holds a coin or has an order in flight, since a
+  retired row that holds something keeps its exits (`windingDown`) and a live exit is a real sell. The tick still runs:
+  it decides nothing, and records the two venues' quotes, the basis every fifth minute and Kraken's candles for the
+  rows' coins; nothing live or pre-registered reads them any more, so switching its call off is Davies' call (the
+  monitor's `tickBeat`/`tickTurn` readings go first, as `decisions` went before `0158`). EX-GAP and MX-1 closed the same
+  day, undecided (`reviews/2026-10-28-trend-rows-retired.md`). The paragraphs below are the loop's history while it ran.
 - **The set that is live is ONE row**: `trend-4h-live` ("Trend 4h ·
   live"; no name says its venue since `0061`) on Revolut X, BTC/ETH/SOL/AVAX, four equal $25
   slots, $100 (raised from $50 on 2026-09-25, on Davies' word), created
@@ -204,7 +214,8 @@ that follow from that evidence, in short:
   reference §4.26).
 - **`momentum-1d` retired by `0129` (2026-10-18; Davies: "momentum-1d可以删了") and deleted by `0133`** (2026-10-20:
   "这个策略直接删了，不用加这个"): its row, orders, decisions, observations and maker probes are gone, its paper position
-  with them; the rulebook and its backtests stay. Three rows run from then: the live row, `trend-4h` and `trend-1h`.
+  with them; the rulebook and its backtests stay. Three rows ran from then, until `0158`: the live row, `trend-4h` and
+  `trend-1h`.
 - **FOUR ROWS run since migration `0065` (2026-09-27)**: the live row and
   the three Revolut X paper rows `0046` left (§3.17, §4.22): `trend-4h`
   (the live row's same-venue control), `momentum-1d` and `trend-1h` (kept

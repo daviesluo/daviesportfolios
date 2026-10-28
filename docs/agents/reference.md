@@ -4496,6 +4496,16 @@ fails too still reported (`edge-watchdog.retry`). In the three days before, 1,34
       these books or EUR/EURC, and its maker fee on them could not be read from public pages (OKX's "Spot Stablecoins" fee group
       is 0 % / 0.05 % where it applies; third parties quote 0.08 % / 0.10 % for UK regular spot). He reads it in the app.
 
+65. **The crypto loop's strategy rows retire (2026-10-28, migration `0158`).** Davies: "把实盘的Trend 4h和测试的Trend 1h Trend 4h删了吧，
+    那一整套都表现太差了感觉不值得做". `trend-4h-live`, `trend-4h` and `trend-1h` are paused in place with `retired_at`, flat, their
+    records kept; `agent_risk.live_confirmed_at` is cleared and `global_pause` left alone. The migration refuses to run while
+    the live row holds a coin or has an order in flight (a retired row that holds something keeps its exits, and a live exit
+    is a real sell); pinned in `tick.test.ts` (the three rows as `0158` leaves them decide and send nothing, and the same
+    rows un-retired do decide). The monitor's `decisions` reading went first. The tick keeps recording the venues' quotes,
+    the basis and Kraken's candles; nothing live or pre-registered reads them now. **EX-GAP and MX-1 close undecided**, each
+    on its own rule read early because no event can be added (2 pairs of the 8 EX-GAP needs; 7 eligible exits of the 60
+    MX-1 needs): `reviews/2026-10-28-trend-rows-retired.md`, their deviation 1.
+
 ### Twin variants
 
 The realistic twins, a row each of `agent_quote_twin_specs`, in the page's order. A new one is a row here in the commit

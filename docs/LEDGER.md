@@ -213,22 +213,14 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      tool; revoking that tool's token is his). A path's first live day reads how soon a cancel shows on the venue (the
      calibration doc's "Not verified" query).
 
-3. **`trend-4h-live`: LIVE on Revolut X, cap $60 (two $25 slots of four) since 2026-10-01 02:24:51 UTC.** The $150 step
-   was checked 2026-10-08 06:23–06:26 UTC and held at $60, Davies' call (the clean week not literally clean, no live entry
-   all week to prove two concurrent positions, four slots doubling the drawdown). Raise only on his word:
-   `update public.agent_risk set max_exposure_usd = 150, updated_at = now() where id = 1;`, then read it back; re-read
-   AVAX's book (`scripts/cap/book_30d.py`) before any raise; AVAX stays. No trade needs his confirmation; a session
-   watches when asked and reports, never asks. **When asked to look (read-only):** after a 4h close + 3 min (00:03,
-   04:03 … 20:03 UTC) the live row's four decisions beside `trend-4h`'s, `agent_orders` with `mode = 'live'`,
-   `ops_errors`, the tick's cron runs; five minutes after a live order its read-back (fee fields or `feeDerived`,
-   `filled_base` in whole `base_step`s, `fromAccount`, the coin's balance against the book); after a sell, the book
-   flat. Report a live order, a fill, an order `pending` over 2 minutes, a missing decision, a live-row error or a
-   failed tick. Rows, caps, order path: `docs/agents/CLAUDE.md`, `docs/agents/go-live.md`, reference §3.31 and §4
-   items 32–34. **Read `ops_errors` itself, not the box** (audit 2026-10-20): since `7ed60689` the box treats the tick's
-   rows (`agents.tick`, not a live kind in `ops-error/noise.ts`) that read transient as noise until 15 minutes in a row,
-   "trend-4h-live|…: revx answered 500 … outcome unknown; … stays pending" included. A fix (live-row lines as live
-   kinds; persistence by each kind's own cadence) changes `ops-error` and waits for Davies.
-
+3. **`trend-4h-live`, `trend-4h`, `trend-1h`: RETIRED by `0158`** (Davies, 2026-10-28: "把实盘的Trend 4h和测试的Trend 1h Trend 4h删了吧，
+   那一整套都表现太差了感觉不值得做"). Push order: the monitor commit first (drops `decisions`), wait for `edge-functions.yml`
+   to deploy `monitor`, then the migration (`migrations.yml`); `0158` refuses while the live row holds a coin or has an
+   order in flight (re-run once flat). After it applies, read back: three rows `paused` with `retired_at`,
+   `agent_risk.live_confirmed_at` null, no new `agent_decisions` row from the next turn, no `agents.tick` error, and the
+   page's LIVE/TESTING without them. The tick still records quotes, basis and Kraken candles that nothing live or
+   pre-registered reads: switching its call off is Davies' call, and the monitor's `tickBeat`/`tickTurn` go first. This
+   item, 5a.2 and 5a.7 as they stood before: `docs/handover.md`, "LEDGER.md, archived 2026-10-28 (eleventh)".
 4. **PR5 (GBP stablecoin quotes): live executor LIVE since 2026-10-01 16:29:53 UTC at £10 a rung; the paper test decides
    PR5 on 2026-10-21** (spec `reviews/2026-09-23-pr5-paper-test-spec.md`, six conditions; wake
    `trig_01QsXPKHc6Nt6NK3BJmbB2RY`, 10-21 15:40). Every verdict below says the paper tests ran beside a live executor
@@ -326,13 +318,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
 5a. **The seven measurements of 2026-09-27, frozen 2026-09-28** (`reviews/2026-09-27-testing-portfolio-review.md`,
    reference §3.43):
    1. **JEV-DRIFT: done** (option (c), 2026-09-28; reference §4 item 43).
-   2. **MX-1** (`reviews/2026-09-28-mx1-maker-first-prereg.md`, C* = 110 bps): **every Monday** the wake
-      `trig_01Dm3nw4TbBm2GCX2z12tN7o` (06:37 UTC) runs `scripts/mx1/weekly.sql` and `scripts/mx1/pull_tape.py`: the UK
-      tape of each event's window into `backtests/mx1/tape/` (a failed window retried weekly, void only if it still fails
-      at the reading) and the `agent_basis` rows (pruned at 30 days) of any event missing `o15` or `o60` into
-      `backtests/mx1/basis/`. Read at the first pull with 150 eligible exit events (the first 150 by `t0`); if fewer have
-      `t0` before 2027-06-30 00:00 UTC, after the first pull after it, on all (under 60: undecided); disable the wake
-      then. A pass moves only `trend-1h`'s exits, after its §6's five checks. Pulls so far: 10-05 (6 windows, 3 exits); 10-15 (10 windows, 6 exits; the 10-12 Monday pull was missed); 10-19 (4 windows, 6 exits); 10-26 (2 windows, 0 failed, 7 exits of 150; B empty).
+   2. **MX-1: closed 2026-10-28, undecided** (7 eligible exits of the 60 it needs; no event can be added once `0158`
+      retires the trend rows): `reviews/2026-10-28-trend-rows-retired.md`, its deviation 1. Wake
+      `trig_01Dm3nw4TbBm2GCX2z12tN7o` (Mondays 06:37) to be disabled (Davies).
    3. **RW-NEXT:** slip check done 2026-10-08 00:33 (WARM, no slip); what is left is RW-C's (item 2).
    4. **QUEUE** (`reviews/2026-09-28-queue-prereg.md`; window 10-04 → 11-01). Freeze line until the export: none of
       `agents/books.ts`, `agent_book_levels`, its prune job, `stepMinute` in `agents/quotes.ts` or
@@ -352,9 +340,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
       **2026-11-25 00:05 UTC** (wake `trig_01Ecb6B2TUMRhvYiyc3a8BuE`, 11-20 09:20); the reading, with 3b's second export,
       on 2026-11-25 from 00:05 UTC, 12-23 at the latest (wake `trig_01JVzTyxtpoSkB7Wgw2eRkqk`, 11-25 00:40). At the 10-21
       verdict, ask whether PR5's paper engine keeps running to it (item 4).
-   7. **EX-GAP** (`reviews/2026-09-28-ex-gap-prereg.md`): counted on the 1st of each month at 09:23 UTC by
-      `trig_018Ni6ydYybx39fE2wn7ZLeo`, which reads at 16 pairs or after 2027-01-31 and then disables itself; under 8
-      pairs by its date, undecided. 2 pairs on 10-01.
+   7. **EX-GAP: closed 2026-10-28, undecided** (2 pairs, mean gap +3.73 bps; the live arm retired by `0158`, so its
+      2027-01-31 reading is recorded now): `reviews/2026-10-28-trend-rows-retired.md`, its deviation 1. Wake
+      `trig_018Ni6ydYybx39fE2wn7ZLeo` (the 1st, 09:23) to be disabled (Davies).
 
 6. **Davies' to decide or to do; nothing waits on them:**
    - **Cloudflare Pages:** turn off Pages' own Git build's automatic deployments (Settings → Build → Branch control):
@@ -766,6 +754,14 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-28 22:30 UTC section (archived
 2026-10-28, tenth).
+
+### [2026-10-28 23:33 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The crypto loop's three rows retire: `0158`** (sub-agent; commit, not pushed; step 2 of 2, push AFTER the monitor
+  commit has deployed; Davies, 10-28): `trend-4h-live`, `trend-4h`, `trend-1h` paused with `retired_at`, records kept;
+  `agent_risk.live_confirmed_at` cleared (`global_pause` not: it would stop PR5, GROKPM, IGBOT); refuses while the live
+  row holds a coin or has an order in flight. Read at ~23:00–23:30 UTC: all flat, no open order, no watched probe. Pin in
+  `tick.test.ts`. EX-GAP and MX-1 closed undecided (`reviews/2026-10-28-trend-rows-retired.md`; reference item 65).
+  Docs: map, guide, README, agents CLAUDE, live-watch. Items 3, 5a.2, 5a.7 rewritten. No `src/` change.
 
 ### [2026-10-28 23:27 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The monitor stops reading the newest strategy decision** (sub-agent; commit, not pushed; step 1 of 2 for Davies, 10-28:

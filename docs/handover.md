@@ -47027,3 +47027,33 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
 ### [2026-10-28 22:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **PR5V and rule D stop (`0156`; Davies, 10-28: "按照你的推荐来决定")**: `quotesv`, `quotesd` off, as both preregs say at the
   reading; records stay. PR5V's question (more capital at LIVE's rule) continues as `live1200` (variant-1).
+
+## LEDGER.md, archived 2026-10-28 (eleventh) — "What remains" items 3, 5a.2 (MX-1) and 5a.7 (EX-GAP) as they stood before `0158` retired the trend rows
+
+3. **`trend-4h-live`: LIVE on Revolut X, cap $60 (two $25 slots of four) since 2026-10-01 02:24:51 UTC.** The $150 step
+   was checked 2026-10-08 06:23–06:26 UTC and held at $60, Davies' call (the clean week not literally clean, no live entry
+   all week to prove two concurrent positions, four slots doubling the drawdown). Raise only on his word:
+   `update public.agent_risk set max_exposure_usd = 150, updated_at = now() where id = 1;`, then read it back; re-read
+   AVAX's book (`scripts/cap/book_30d.py`) before any raise; AVAX stays. No trade needs his confirmation; a session
+   watches when asked and reports, never asks. **When asked to look (read-only):** after a 4h close + 3 min (00:03,
+   04:03 … 20:03 UTC) the live row's four decisions beside `trend-4h`'s, `agent_orders` with `mode = 'live'`,
+   `ops_errors`, the tick's cron runs; five minutes after a live order its read-back (fee fields or `feeDerived`,
+   `filled_base` in whole `base_step`s, `fromAccount`, the coin's balance against the book); after a sell, the book
+   flat. Report a live order, a fill, an order `pending` over 2 minutes, a missing decision, a live-row error or a
+   failed tick. Rows, caps, order path: `docs/agents/CLAUDE.md`, `docs/agents/go-live.md`, reference §3.31 and §4
+   items 32–34. **Read `ops_errors` itself, not the box** (audit 2026-10-20): since `7ed60689` the box treats the tick's
+   rows (`agents.tick`, not a live kind in `ops-error/noise.ts`) that read transient as noise until 15 minutes in a row,
+   "trend-4h-live|…: revx answered 500 … outcome unknown; … stays pending" included. A fix (live-row lines as live
+   kinds; persistence by each kind's own cadence) changes `ops-error` and waits for Davies.
+
+   2. **MX-1** (`reviews/2026-09-28-mx1-maker-first-prereg.md`, C* = 110 bps): **every Monday** the wake
+      `trig_01Dm3nw4TbBm2GCX2z12tN7o` (06:37 UTC) runs `scripts/mx1/weekly.sql` and `scripts/mx1/pull_tape.py`: the UK
+      tape of each event's window into `backtests/mx1/tape/` (a failed window retried weekly, void only if it still fails
+      at the reading) and the `agent_basis` rows (pruned at 30 days) of any event missing `o15` or `o60` into
+      `backtests/mx1/basis/`. Read at the first pull with 150 eligible exit events (the first 150 by `t0`); if fewer have
+      `t0` before 2027-06-30 00:00 UTC, after the first pull after it, on all (under 60: undecided); disable the wake
+      then. A pass moves only `trend-1h`'s exits, after its §6's five checks. Pulls so far: 10-05 (6 windows, 3 exits); 10-15 (10 windows, 6 exits; the 10-12 Monday pull was missed); 10-19 (4 windows, 6 exits); 10-26 (2 windows, 0 failed, 7 exits of 150; B empty).
+
+   7. **EX-GAP** (`reviews/2026-09-28-ex-gap-prereg.md`): counted on the 1st of each month at 09:23 UTC by
+      `trig_018Ni6ydYybx39fE2wn7ZLeo`, which reads at 16 pairs or after 2027-01-31 and then disables itself; under 8
+      pairs by its date, undecided. 2 pairs on 10-01.
