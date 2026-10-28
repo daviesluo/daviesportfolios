@@ -764,8 +764,15 @@ Facts a fresh session would otherwise rediscover:
 
 Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's archive, each batch under a heading
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
-first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-28 22:18 UTC section (archived
-2026-10-29, first).
+first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-28 22:30 UTC section (archived
+2026-10-28, tenth).
+
+### [2026-10-28 23:27 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The monitor stops reading the newest strategy decision** (sub-agent; commit, not pushed; step 1 of 2 for Davies, 10-28:
+  "把实盘的Trend 4h和测试的Trend 1h Trend 4h删了吧"): `monitor/health.ts` drops `decisions` (a decision within 75 min), which
+  would page 75 min after the crypto loop's last row stops deciding; the tick's beat and turn stay. Pinned (three tests
+  fail on the old file). Push and let `edge-functions.yml` deploy `monitor` BEFORE step 2's migration (`0158`). The 22:30
+  section archived.
 
 ### [2026-10-28 22:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **IGBOT built on IG's demo** (sub-agent; commit, not pushed; item 18): `igbot` (Grok proposes, `IGBOT_RULES` enforce, a
@@ -777,7 +784,3 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
   $5 is $10 for an order whose edge (D3) is 0.20 or more (`thinCapMaxUsd`, `thinCap.bigEdge`/`bigEdgeMaxUsd`); the depth quarter,
   the $10 market cap, Kelly, 3 markets, D16, D17 and the stops still bind. `checks.thin_cap` records `max_usd` and `big_edge`.
   From the deploy, no backfill. Prereg §9 gains D15–D18 (pin `6940b42e…`). C-010 is for Grok once the deploy is confirmed.
-
-### [2026-10-28 22:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **PR5V and rule D stop (`0156`; Davies, 10-28: "按照你的推荐来决定")**: `quotesv`, `quotesd` off, as both preregs say at the
-  reading; records stay. PR5V's question (more capital at LIVE's rule) continues as `live1200` (variant-1).

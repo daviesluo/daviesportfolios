@@ -9,18 +9,19 @@
 //   * tickTurn  — the tick's lease: released at the end of a turn with `lease_until` set to the turn's start, and held
 //                 into the future while a turn runs. A turn that finished, or one in flight, is fresh.
 //   * quotes    — PR5's live executor finished a turn (`agent_quote_live_state.updated_at`, written at its end).
-//   * decisions — the newest strategy decision: one each hour at the least (trend-1h's three coins), so a tick that
-//                 runs and decides nothing shows here. The day no hourly row runs any more, this limit moves to the
-//                 slowest row's bar plus a quarter of an hour, or it alerts every hour.
 //   (pmLp, live-prep's order path, was read here from 2026-10-08 until 2026-10-28, when Davies switched its calls off
 //    after the 14-day readout failed: "这个关掉". A path that no longer runs has no freshness to watch.)
-// A minute's reading is stale past three minutes, the dead-man's own line (`deadman.ts`); the hourly one past 75
-// minutes. The Worker alerts only after two failing minutes in a row, so one slow minute never pages.
+//   (decisions, the newest strategy decision within 75 minutes, was read here from 2026-10-02 until 2026-10-28, when
+//    Davies retired the crypto loop's three strategy rows: "把实盘的Trend 4h和测试的Trend 1h Trend 4h删了吧" (`0158`). With
+//    no row deciding, the newest decision only ages, and the reading would page 75 minutes after the last one. The
+//    tick's own beat and turn above still say whether the loop runs.)
+// A reading is stale past three minutes, the dead-man's own line (`deadman.ts`). The Worker alerts only after two
+// failing minutes in a row, so one slow minute never pages.
 //
-// Read-only: four small selects with the service key, each with its own timeout, none of which writes.
+// Read-only: three small selects with the service key, each with its own timeout, none of which writes.
 //
 // Beside them, the database's size (review F4, 0101: it grew about 120 MB a day): `size`, from `db_size_bytes()`, shown
-// with the four and never failing them, so a database grown large does not hold the loop's alert open and hide a stall
+// with the three and never failing them, so a database grown large does not hold the loop's alert open and hide a stall
 // behind it. Its own watch is SQL's: `db-size-watch` (0101) writes a `db.size` row to the errors box once a day while
 // it is over `DB_SIZE_WATCH_BYTES`.
 
@@ -29,7 +30,7 @@ const msg = (e: unknown) => (e instanceof Error ? e.message : String(e)).slice(0
 
 export const HEALTH_READ_TIMEOUT_MS = 5_000;
 /** How old each reading may be, in seconds. */
-export const HEALTH_LIMITS_S = { tickBeat: 180, tickTurn: 180, quotes: 180, decisions: 75 * 60 } as const;
+export const HEALTH_LIMITS_S = { tickBeat: 180, tickTurn: 180, quotes: 180 } as const;
 export type HealthName = keyof typeof HEALTH_LIMITS_S;
 export const HEALTH_NAMES = Object.keys(HEALTH_LIMITS_S) as HealthName[];
 /** The beat key the tick's call writes (`_shared/beats.ts`: the function, and `?action=` with its action). */
@@ -59,13 +60,11 @@ export function judgeHealth(now: number, readings: Record<HealthName, Reading>):
   return { at: iso(now), ok: HEALTH_NAMES.every((n) => checks[n].ok), checks };
 }
 
-/** The four selects, as PostgREST paths, and the column each reading takes its time from. */
+/** The three selects, as PostgREST paths, and the column each reading takes its time from. */
 export const HEALTH_QUERIES: Record<HealthName, { path: string; column: string }> = {
   tickBeat: { path: `edge_call_beats?path=eq.${encodeURIComponent(TICK_BEAT_KEY)}&select=minute&order=minute.desc&limit=1`, column: "minute" },
   tickTurn: { path: "agent_locks?name=eq.tick&select=lease_until", column: "lease_until" },
   quotes: { path: "agent_quote_live_state?id=eq.1&select=updated_at", column: "updated_at" },
-  // By id, which only grows: the primary key answers at once, where `ts` has no index of its own.
-  decisions: { path: "agent_decisions?select=ts&order=id.desc&limit=1", column: "ts" },
 };
 
 /** One reading over PostgREST with the service key. */
@@ -100,7 +99,7 @@ export async function readDbSize(sbUrl: string, key: string, f: typeof fetch = f
   }
 }
 
-/** The four readings at once, judged, and the size beside them (outside `ok`). */
+/** The three readings at once, judged, and the size beside them (outside `ok`). */
 export async function runHealth(sbUrl: string, key: string, now: () => number, f: typeof fetch = fetch): Promise<HealthReport> {
   const [entries, size] = await Promise.all([
     Promise.all(HEALTH_NAMES.map(async (n) => [n, await readOne(sbUrl, key, HEALTH_QUERIES[n], f)] as const)),

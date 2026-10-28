@@ -47021,3 +47021,9 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   (LIVE, twins, Coinbase, OKX share `QuoteDaysTable`) lists today's open row and the seven closed UTC days "7-day realised, annualised" sums
   (`quoteDaysWindow`, one definition for both); "Load full history" shows all, then
   "Show last 7 days". `quote_days.test.js`. Dist rebuilt; the main session runs the gates.
+
+## LEDGER.md, archived 2026-10-28 (tenth) — the 2026-10-28 22:30 UTC history section
+
+### [2026-10-28 22:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **PR5V and rule D stop (`0156`; Davies, 10-28: "按照你的推荐来决定")**: `quotesv`, `quotesd` off, as both preregs say at the
+  reading; records stay. PR5V's question (more capital at LIVE's rule) continues as `live1200` (variant-1).
