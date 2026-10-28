@@ -638,6 +638,11 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
     `IGBOT_LEDGER.md`); after the deploy, the ping answers `ig_configured`; the dry-run rehearsal (prereg §3.1); the demo arm
     (0157's header) only on his word. No live path exists.
 
+19. **CXBOT, a Grok crypto bot, long and short: researched, nothing built** (Davies, 2026-10-28: "…币所的买卖交易也做成一套…
+    long和short都可以做", then "交易所不限…币安 hyperliquid等都是可以做空的"; `reviews/2026-10-29-crypto-grok-bot-research.md`).
+    No edge shown, so **Phase 0** first: keyless forecasts scored against Polymarket's crypto prices. Then paper
+    plus a Hyperliquid testnet rehearsal; live is a new prereg. **Davies:** choose Phase 0 or stop, and a venue.
+
 ## Machine and platform setup
 
 A rebuilt container loses every line below. Run them before working.
@@ -752,8 +757,13 @@ Facts a fresh session would otherwise rediscover:
 
 Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's archive, each batch under a heading
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
-first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-28 22:30 UTC section (archived
-2026-10-28, tenth).
+first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-28 22:55 UTC section (archived
+2026-10-29, first).
+
+### [2026-10-28 23:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **A Grok crypto bot, long and short, researched** (sub-agent; commit, not pushed; item 19): `reviews/2026-10-29-crypto-grok-bot-research.md`.
+  Long+short: Kraken margin (UK) or Hyperliquid perps (terms exclude US/Ontario, not the UK; trade-only API wallet).
+  No edge shown, so Phase 0 first: Grok against Polymarket crypto prices. The 22:30 section archived.
 
 ### [2026-10-28 23:33 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The crypto loop's three rows retire: `0158`** (sub-agent; commit, not pushed; step 2 of 2, push AFTER the monitor
@@ -769,14 +779,3 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
   would page 75 min after the crypto loop's last row stops deciding; the tick's beat and turn stay. Pinned (three tests
   fail on the old file). Push and let `edge-functions.yml` deploy `monitor` BEFORE step 2's migration (`0158`). The 22:30
   section archived.
-
-### [2026-10-28 22:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **IGBOT built on IG's demo** (sub-agent; commit, not pushed; item 18): `igbot` (Grok proposes, `IGBOT_RULES` enforce, a
-  demo-only client), `0157` (tables, RLS, a minute read-back), 34 Deno and 8 vitest pins; research says the edge is
-  unproven (IG's 70 % loss rate; GROKPM's p not yet better than the market's). The 22:05 and 22:18 sections archived.
-
-### [2026-10-28 22:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **GROKPM D18** (sub-agent; commit, not pushed; Davies, 10-28: "同意'边际 ≥20 个点时上限 $10'", on the utilisation review): D15's
-  $5 is $10 for an order whose edge (D3) is 0.20 or more (`thinCapMaxUsd`, `thinCap.bigEdge`/`bigEdgeMaxUsd`); the depth quarter,
-  the $10 market cap, Kelly, 3 markets, D16, D17 and the stops still bind. `checks.thin_cap` records `max_usd` and `big_edge`.
-  From the deploy, no backfill. Prereg §9 gains D15–D18 (pin `6940b42e…`). C-010 is for Grok once the deploy is confirmed.

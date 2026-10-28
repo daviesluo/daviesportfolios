@@ -47057,3 +47057,16 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
    7. **EX-GAP** (`reviews/2026-09-28-ex-gap-prereg.md`): counted on the 1st of each month at 09:23 UTC by
       `trig_018Ni6ydYybx39fE2wn7ZLeo`, which reads at 16 pairs or after 2027-01-31 and then disables itself; under 8
       pairs by its date, undecided. 2 pairs on 10-01.
+
+## LEDGER.md, archived 2026-10-29 (first) — the 2026-10-28 22:40 UTC and 2026-10-28 22:55 UTC history sections, oldest first
+
+### [2026-10-28 22:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM D18** (sub-agent; commit, not pushed; Davies, 10-28: "同意'边际 ≥20 个点时上限 $10'", on the utilisation review): D15's
+  $5 is $10 for an order whose edge (D3) is 0.20 or more (`thinCapMaxUsd`, `thinCap.bigEdge`/`bigEdgeMaxUsd`); the depth quarter,
+  the $10 market cap, Kelly, 3 markets, D16, D17 and the stops still bind. `checks.thin_cap` records `max_usd` and `big_edge`.
+  From the deploy, no backfill. Prereg §9 gains D15–D18 (pin `6940b42e…`). C-010 is for Grok once the deploy is confirmed.
+
+### [2026-10-28 22:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **IGBOT built on IG's demo** (sub-agent; commit, not pushed; item 18): `igbot` (Grok proposes, `IGBOT_RULES` enforce, a
+  demo-only client), `0157` (tables, RLS, a minute read-back), 34 Deno and 8 vitest pins; research says the edge is
+  unproven (IG's 70 % loss rate; GROKPM's p not yet better than the market's). The 22:05 and 22:18 sections archived.
