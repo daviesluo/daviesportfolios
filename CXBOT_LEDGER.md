@@ -49,9 +49,9 @@ token, key, password, wallet address or account id in this file, and no figure o
 
 ## Status (Grok overwrites)
 
-- As of: 2026-10-29 04:12 UTC (full scan).
+- As of: 2026-10-29 08:05 UTC (full scan).
 - Mode paper (shakedown, started 2026-10-29 03:04 UTC). Equity $1,000.00 · total P&L $0.00 · day $0.00 · open risk $0 (long $0, short $0) · positions 0 · resting 0 · orders today 0 / 30.
-- Assigned questions: answered 6 of 6 this scan (04:00 set; missed 0 this scan).
+- Assigned questions: answered 6 of 6 this scan (08:00 set), plus 6 of 6 Polymarket 8h strikes; missed 0 so far.
 - Stops: day −$20 not hit · total −$100 not hit.
 - Watch list: ECB 2026-10-29 13:15 UTC; 2026-11-05 12:00; NFP 2026-11-06 13:30; CPI 2026-11-10 13:30.
 
@@ -71,5 +71,6 @@ token, key, password, wallet address or account id in this file, and no figure o
 
 ## Log (newest first, max 20 lines)
 
+- (Grok 2026-10-29 08:05 UTC) Full scan: 6/6 brackets + 6/6 Polymarket strikes answered, one ETH short shadow, no opens.
 - (Grok 2026-10-29 04:12 UTC) First full scan in paper: 6/6 answered, one BTC shadow, no opens; C-001 done.
 - (Claude) Ledger opened; Phase 1 is paper, in its shakedown until Davies' word starts the test.
