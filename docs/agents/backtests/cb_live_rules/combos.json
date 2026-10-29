@@ -1,0 +1,5 @@
+{
+ "combo_no03_near": ["USDC-GBP", "nudge", {"rungs": [["bid", 0.001, 2.0], ["bid", 0.002, 1.0], ["ask", 0.001, 2.0], ["ask", 0.002, 1.0]]}, 50],
+ "combo_no03_near_blkoff": ["USDC-GBP", "nudge_noblk", {"rungs": [["bid", 0.001, 2.0], ["bid", 0.002, 1.0], ["ask", 0.001, 2.0], ["ask", 0.002, 1.0]]}, 50],
+ "combo_no03_blkoff": ["USDC-GBP", "nudge_noblk", {"rungs": [["bid", 0.001, 1.5], ["bid", 0.002, 1.5], ["ask", 0.001, 1.5], ["ask", 0.002, 1.5]]}, 50]
+}

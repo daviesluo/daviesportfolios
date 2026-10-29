@@ -802,6 +802,16 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   coin under £1 a rung). The twin is 21 hours old: no evidence either way. Step 2 (LIVE + every twin, variant-4 retired) waits for
   the main session.
 
+### [2026-10-29 19:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **CB-LIVE-RULES: take "with Euros - 2" live as it runs** (sub-agent; commit, not pushed; Davies, 10-29: "Coinbase做好实盘搭建并且准备with Euros
+  - 2这个策略的live上线（…确保这个策略一切最优）"). `reviews/2026-10-29-cb-live-rules.md`, `backtests/cb_live_rules/` (`vsim.py`: PR5's simulator with
+  parameters, checked equal at defaults). USDC-GBP, 2024-10-01 → 10-28, STRATEGY-COMPARE's method × e 0.825: "- 2" 30.2 %/yr since 09-01
+  [27.3, 33.1], £68 on $300; 22.0 % if a print must clear a tick (queue), blend 14.4 %. No single change passes the bar (dropping the
+  0.3 % rung is one month short; exit a tick beyond, re-price, stop length, wider/no blackout, nudge changes all fail; weekend dark
+  −£19/yr since 09-01). No 0.3 % rung + no blackout passes but was chosen after the first pass: paper twin. Size nearly linear (£517
+  at $400 rungs); USDC-EUR not before USDC-GBP grows; keep three asks (FX £7/yr against £68); post-only crossing 0.18 %; fee tier to
+  read authenticated before the go.
+
 ### [2026-10-29 18:43 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **STRATEGY-COMPARE Revolut X: the £1 holding line and the ranked view** (sub-agent; commit, not pushed; the main session's ask).
   Each rule set also run with variant-4's `holdMin {gbp: 1}` (LIVE does not run it): since 09-01 LIVE + holdMin gains +5.3 / +3.0
