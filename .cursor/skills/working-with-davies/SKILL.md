@@ -37,6 +37,12 @@ A fifth time on 2026-09-28: deep in a long task, with sub-agents
 reporting back in English, the progress notes slipped into English and
 he had to say it again: "请保持说中文，别再忘了".
 
+What he wants, once it was right (2026-10-29): "这段时间你在这个会话的的中文+英文用的很好，正是我想要的样子，一定要继续保持".
+The shape he approved: every sentence Chinese, with the specific terms left in English where that is what the code, the
+venue or the page calls them (dry-run, maker, post-only, twin, variant-4, USDT-GBP, probe, commit hashes, file names);
+short sections with bold lead-ins; times in UTC and numbers exact; and what is still open said plainly, an admission
+included when a step was dropped.
+
 ## What "done" means to him
 
 **Push it.** "直接改好直接推main" — fix it and push to main, don't come

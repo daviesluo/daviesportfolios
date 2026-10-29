@@ -44,6 +44,13 @@ turn only after the English is on his screen ("怎么又有英文了，你之前
 repeats the rule when he writes and after every tool call, and `chinese-pretool.mjs` refuses the next tool call after
 an English note until it is said again in Chinese ("还是英文，这个问题还是没解决，请真正彻底解决").
 
+What he wants, once it was right (2026-10-29, the same evening): "这段时间你在这个会话的的中文+英文用的很好，正是我想要的样子，一定要继续保持".
+The shape he approved: every sentence Chinese, with the specific terms left in English where that is what the code, the
+venue or the page calls them (dry-run, maker, post-only, twin, variant-4, USDT-GBP, probe, commit hashes, file names);
+short sections with bold lead-ins; times in UTC and numbers exact; and what is still open said plainly, an admission
+included when a step was dropped. When the Stop hook flags a reply crowded with such terms, rewrite it with fewer of them
+rather than translating the names.
+
 ## What "done" means to him
 
 **Push it.** "直接改好直接推main" — fix it and push to main, don't come
