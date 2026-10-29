@@ -775,6 +775,14 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth).
 
+### [2026-10-29 03:07 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **IGBOT armed on IG demo and CXBOT started on paper** (Davies, 10-29: "请检查状态，并且确保没问题后testing列表中的策略现在就上线";
+  both Grok agents had their prompts and answered the ping). Checked first: IGBOT's sync clean since 0165 (32 minutes, 0
+  errors, ≤ 5 calls), the demo account holding no position or working order. `igbot_config` mode `demo`, armed and
+  started 2026-10-29 03:03:59 UTC (0157's statement). `cxbot_config` mode `paper`, started 03:04:03 UTC (0163's
+  statement): the 48-hour shakedown, then 56 days; the CXBOT prereg is frozen as it stands on main at this commit.
+  FXW-AUD starts by itself on Fri 10-30 21:35 UK. The 23:45 review covers all three Grok desks.
+
 ### [2026-10-29 03:02 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The pre-tool Chinese gate refuses each English note once** (10-29): the transcript lags the conversation, so a note it
   had refused stayed "the latest" and refused every call after it, the Chinese rewrite's included, locking the session's
