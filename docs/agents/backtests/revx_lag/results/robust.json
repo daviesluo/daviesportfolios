@@ -1,0 +1,174 @@
+{
+ "at_share0.25|exit1": {
+  "arm_oos": {
+   "bps_trip": 17.26,
+   "pnl_gbp": 257.97,
+   "stops": 62,
+   "trips": 3449
+  },
+  "base_oos": {
+   "bps_trip": 16.08,
+   "pnl_gbp": 244.98,
+   "stops": 57,
+   "trips": 3530
+  },
+  "is_gbp_year": 46.38,
+  "months_n": 12,
+  "months_pos": 12,
+  "oos_boot90_pLe0": [
+   19.92,
+   37.19,
+   0.0
+  ],
+  "oos_gbp_year": 28.39
+ },
+ "at_share0.5|exit1": {
+  "arm_oos": {
+   "bps_trip": 17.32,
+   "pnl_gbp": 262.6,
+   "stops": 60,
+   "trips": 3471
+  },
+  "base_oos": {
+   "bps_trip": 16.18,
+   "pnl_gbp": 249.97,
+   "stops": 51,
+   "trips": 3549
+  },
+  "is_gbp_year": 47.86,
+  "months_n": 12,
+  "months_pos": 12,
+  "oos_boot90_pLe0": [
+   18.32,
+   37.03,
+   0.0
+  ],
+  "oos_gbp_year": 27.6
+ },
+ "at_share1|exit1": {
+  "arm_oos": {
+   "bps_trip": 17.3,
+   "pnl_gbp": 264.67,
+   "stops": 57,
+   "trips": 3516
+  },
+  "base_oos": {
+   "bps_trip": 16.22,
+   "pnl_gbp": 252.67,
+   "stops": 46,
+   "trips": 3592
+  },
+  "is_gbp_year": 49.99,
+  "months_n": 12,
+  "months_pos": 12,
+  "oos_boot90_pLe0": [
+   15.82,
+   36.56,
+   0.0
+  ],
+  "oos_gbp_year": 26.23
+ },
+ "at_share1|exit2": {
+  "arm_oos": {
+   "bps_trip": 18.49,
+   "pnl_gbp": 274.54,
+   "stops": 66,
+   "trips": 3383
+  },
+  "base_oos": {
+   "bps_trip": 16.22,
+   "pnl_gbp": 252.67,
+   "stops": 46,
+   "trips": 3592
+  },
+  "is_gbp_year": 89.36,
+  "months_n": 12,
+  "months_pos": 11,
+  "oos_boot90_pLe0": [
+   32.34,
+   63.52,
+   0.0
+  ],
+  "oos_gbp_year": 47.8
+ },
+ "taker_recorded_books": {
+  "USDC-GBP": {
+   "th10": {
+    "maker_exit_at_mid_bound_bps": -13.78,
+    "share_taker_positive": 0.02,
+    "taker_both_bps": -28.94,
+    "trades_per_day": 125.6
+   },
+   "th15": {
+    "maker_exit_at_mid_bound_bps": -14.96,
+    "share_taker_positive": 0.015,
+    "taker_both_bps": -30.45,
+    "trades_per_day": 34.6
+   },
+   "th20": {
+    "maker_exit_at_mid_bound_bps": -15.95,
+    "share_taker_positive": 0.021,
+    "taker_both_bps": -31.63,
+    "trades_per_day": 8.6
+   },
+   "th25": {
+    "maker_exit_at_mid_bound_bps": -26.64,
+    "share_taker_positive": 0.026,
+    "taker_both_bps": -42.06,
+    "trades_per_day": 1.2
+   },
+   "touch_bps_median": 6.65
+  },
+  "USDT-GBP": {
+   "th10": {
+    "maker_exit_at_mid_bound_bps": -8.9,
+    "share_taker_positive": 0.032,
+    "taker_both_bps": -21.21,
+    "trades_per_day": 134.2
+   },
+   "th15": {
+    "maker_exit_at_mid_bound_bps": -7.86,
+    "share_taker_positive": 0.06,
+    "taker_both_bps": -20.05,
+    "trades_per_day": 46.2
+   },
+   "th20": {
+    "maker_exit_at_mid_bound_bps": -8.94,
+    "share_taker_positive": 0.079,
+    "taker_both_bps": -21.51,
+    "trades_per_day": 8.8
+   },
+   "th25": {
+    "maker_exit_at_mid_bound_bps": -18.91,
+    "share_taker_positive": 0.0,
+    "taker_both_bps": -30.68,
+    "trades_per_day": 1.3
+   },
+   "touch_bps_median": 5.34
+  },
+  "books_cleaned_of_live_orders": true
+ },
+ "through|exit1": {
+  "arm_oos": {
+   "bps_trip": 16.78,
+   "pnl_gbp": 224.6,
+   "stops": 68,
+   "trips": 3002
+  },
+  "base_oos": {
+   "bps_trip": 15.51,
+   "pnl_gbp": 213.86,
+   "stops": 59,
+   "trips": 3102
+  },
+  "is_gbp_year": 37.9,
+  "months_n": 12,
+  "months_pos": 11,
+  "oos_boot90_pLe0": [
+   15.04,
+   32.2,
+   0.0
+  ],
+  "oos_gbp_year": 23.47
+ }
+}

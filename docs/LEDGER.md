@@ -792,6 +792,14 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth).
 
+### [2026-10-29 10:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **REVX-LAG: can LIVE's rules use Revolut X's lag against the fair?** (sub-agent; commit, not pushed; Davies, 10-29: "这个有办法解决吗？有的话仔细研究").
+  `reviews/2026-10-29-revx-lag-study.md`, `backtests/revx_lag/`; PR5-OPT's engine unchanged, every print since the listings, inputs as of
+  t + 60 s, bar written first. The book's next prints are forecastable (OOS R² 0.42 / 0.26, mostly Coinbase's premium) but every lean
+  on it loses £60–330/yr OOS on live600, live1200, take50 and variant-5; variant-7's nudge over the history −£5 OOS; taking the lag
+  −20 to −42 bps a trade on recorded books. Only exits one tick beyond fair pass every row (live600 +£26/yr OOS [+16, +37], all fill
+  assumptions; ~0 in Sep–Oct; the 10-09 F3 replay disagreed). Recommended: an `exitOffset` 1-tick twin of LIVE's rules; LIVE unchanged.
+
 ### [2026-10-29 09:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Coinbase USDT books dark 08:00–~09:50: `cb_quote_inputs` refused `cb:USDT-USD`** (main session, found in the post-deploy
   error read). 0112's kind check admitted only `fx:EURUSD`, so the `cb_live` switch's USDT-USD minutes were refused 13 times from

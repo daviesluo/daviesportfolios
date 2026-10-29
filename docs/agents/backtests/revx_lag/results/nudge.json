@@ -1,0 +1,142 @@
+{
+ "live1200": {
+  "USDC-GBP": {
+   "is_gbp_year": 16.77,
+   "months_n": 11,
+   "months_pos": 6,
+   "oos_boot90_pLe0": [
+    -7.5,
+    16.95,
+    0.2804
+   ],
+   "oos_gbp_year": 4.49
+  },
+  "USDT-GBP": {
+   "is_gbp_year": 8.18,
+   "months_n": 11,
+   "months_pos": 5,
+   "oos_boot90_pLe0": [
+    -27.99,
+    7.44,
+    0.8443
+   ],
+   "oos_gbp_year": -10.71
+  },
+  "all": {
+   "is_gbp_year": 24.96,
+   "months_n": 11,
+   "months_pos": 5,
+   "oos_boot90_pLe0": [
+    -27.09,
+    14.5,
+    0.685
+   ],
+   "oos_gbp_year": -6.22
+  }
+ },
+ "live600": {
+  "USDC-GBP": {
+   "is_gbp_year": 10.09,
+   "months_n": 11,
+   "months_pos": 5,
+   "oos_boot90_pLe0": [
+    -6.32,
+    6.64,
+    0.4987
+   ],
+   "oos_gbp_year": 0.05
+  },
+  "USDT-GBP": {
+   "is_gbp_year": 6.95,
+   "months_n": 11,
+   "months_pos": 6,
+   "oos_boot90_pLe0": [
+    -15.48,
+    5.85,
+    0.7897
+   ],
+   "oos_gbp_year": -5.13
+  },
+  "all": {
+   "is_gbp_year": 17.03,
+   "months_n": 11,
+   "months_pos": 6,
+   "oos_boot90_pLe0": [
+    -16.82,
+    6.81,
+    0.76
+   ],
+   "oos_gbp_year": -5.08
+  }
+ },
+ "n600usdt3": {
+  "USDC-GBP": {
+   "is_gbp_year": 5.93,
+   "months_n": 11,
+   "months_pos": 6,
+   "oos_boot90_pLe0": [
+    -3.12,
+    5.04,
+    0.3739
+   ],
+   "oos_gbp_year": 0.85
+  },
+  "USDT-GBP": {
+   "is_gbp_year": 9.92,
+   "months_n": 11,
+   "months_pos": 5,
+   "oos_boot90_pLe0": [
+    -19.84,
+    6.48,
+    0.8164
+   ],
+   "oos_gbp_year": -7.14
+  },
+  "all": {
+   "is_gbp_year": 15.85,
+   "months_n": 11,
+   "months_pos": 5,
+   "oos_boot90_pLe0": [
+    -19.58,
+    7.7,
+    0.7777
+   ],
+   "oos_gbp_year": -6.29
+  }
+ },
+ "take50": {
+  "USDC-GBP": {
+   "is_gbp_year": 6.14,
+   "months_n": 11,
+   "months_pos": 5,
+   "oos_boot90_pLe0": [
+    -1.7,
+    10.74,
+    0.1257
+   ],
+   "oos_gbp_year": 4.23
+  },
+  "USDT-GBP": {
+   "is_gbp_year": 3.27,
+   "months_n": 11,
+   "months_pos": 6,
+   "oos_boot90_pLe0": [
+    -2.45,
+    16.5,
+    0.1198
+   ],
+   "oos_gbp_year": 6.81
+  },
+  "all": {
+   "is_gbp_year": 9.41,
+   "months_n": 11,
+   "months_pos": 5,
+   "oos_boot90_pLe0": [
+    -0.59,
+    23.42,
+    0.0609
+   ],
+   "oos_gbp_year": 11.04
+  }
+ }
+}
