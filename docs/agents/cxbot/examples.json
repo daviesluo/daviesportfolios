@@ -1,0 +1,123 @@
+{
+  "order": {
+    "decision": {
+      "id": "2026-11-04T08:00Z-open-1",
+      "ts": "2026-11-04T08:00:00Z",
+      "action": "open",
+      "category": "E",
+      "coin": "BTC",
+      "direction": "long",
+      "size": 0.0054,
+      "entry": 81240,
+      "stop": 79580,
+      "limit": 84450,
+      "p": 0.47,
+      "event_at": "2026-11-06T13:30:00Z",
+      "sources": ["https://www.bls.gov/schedule/news_release/empsit.htm"],
+      "reason": "Long into payrolls: the claims trend and the ADP print point to a soft number the curve does not price; BTC has followed front-end yields lower all month. quote: m 0.341, bar 0.459; my p 0.47.",
+      "invalidation": "A hot ISM services employment print on Wednesday, or BTC trading under 80,000 before payrolls."
+    },
+    "entry_type": "market"
+  },
+  "working": {
+    "decision": {
+      "id": "2026-11-04T08:05Z-open-2",
+      "ts": "2026-11-04T08:05:00Z",
+      "action": "open",
+      "category": "N",
+      "coin": "ETH",
+      "direction": "short",
+      "size": 0.156,
+      "entry": 2430,
+      "stop": 2490,
+      "limit": 2310,
+      "p": 0.46,
+      "sources": ["https://www.deribit.com/statistics/ETH/volatility-index"],
+      "reason": "A short on a retrace to 2,430: funding at the cap on two venues and open interest up 12 % in a day while spot flows are flat; crowded longs. quote: m 0.333, bar 0.428; my p 0.46.",
+      "invalidation": "ETH trades above 2,490, or funding normalises with price holding."
+    },
+    "entry_type": "limit",
+    "good_till": "2026-11-04T20:00:00Z"
+  },
+  "close": {
+    "decision": {
+      "id": "2026-11-04T16:30Z-close-1",
+      "ts": "2026-11-04T16:30:00Z",
+      "action": "close",
+      "category": "C",
+      "position_id": 12,
+      "reason": "Thesis broken: the ISM employment index came in hot. Closing at the market."
+    }
+  },
+  "amend": {
+    "decision": {
+      "id": "2026-11-04T17:00Z-amend-1",
+      "ts": "2026-11-04T17:00:00Z",
+      "action": "amend",
+      "category": "C",
+      "position_id": 12,
+      "stop": 81240,
+      "reason": "Up 2 % with the thesis intact: stop to break-even."
+    }
+  },
+  "cancel": {
+    "order_id": 7,
+    "decision": {
+      "id": "2026-11-04T18:00Z-cancel-1",
+      "ts": "2026-11-04T18:00:00Z",
+      "action": "cancel",
+      "category": "C",
+      "reason": "The retrace did not come and funding has eased: the short's reason is gone."
+    }
+  },
+  "shadow": {
+    "id": "2026-11-04T08:10Z-shadow-1",
+    "ts": "2026-11-04T08:10:00Z",
+    "action": "no_action",
+    "category": "N",
+    "coin": "SOL",
+    "direction": "long",
+    "entry": 182.5,
+    "stop": 176.9,
+    "limit": 194.0,
+    "p": 0.38,
+    "sources": ["https://defillama.com/chain/Solana"],
+    "reason": "Considered a SOL long on rising on-chain volume: p 0.38 against the bar 0.43. Not opened."
+  },
+  "forecast": {
+    "answers": [
+      {
+        "question_id": "A-2026-11-04T08:00-BTC-long",
+        "p": 0.36,
+        "reason": "Mildly constructive into payrolls, but a 72-hour bracket of 1 and 2 day-sd mostly times out; the implied vol prices more range than last week realised. Slightly above m.",
+        "sources": ["https://www.deribit.com/statistics/BTC/volatility-index"]
+      },
+      {
+        "question_id": "A-2026-11-04T08:00-BTC-short",
+        "p": 0.31,
+        "reason": "The mirror of my long view: slightly below m."
+      }
+    ]
+  },
+  "cycle": {
+    "id": "2026-11-04T08:00Z-cycle",
+    "ts": "2026-11-04T08:20:05Z",
+    "kind": "full",
+    "equity_usd": 1000,
+    "open_positions": 1,
+    "open_risk_usd": 9.97,
+    "answered": 6,
+    "actions": 2,
+    "notes": "Full scan: six assigned brackets answered, one E long on BTC, one shadow on SOL."
+  },
+  "daily": {
+    "id": "2026-11-04-daily",
+    "day": "2026-11-04",
+    "equity_usd": 1003.1,
+    "pnl_day_usd": 3.1,
+    "pnl_total_usd": 3.1,
+    "trades": 1,
+    "summary": "36 assigned brackets answered, 6 Polymarket strikes; one E long on BTC ahead of payrolls; two shadows; no refusals.",
+    "lessons": "SOL's day-sd is near 3.5 %: a 1.5 % stop is inside its noise and refused."
+  }
+}

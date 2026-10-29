@@ -64,6 +64,8 @@ const PAGED_KEYS: Record<string, string> = {
   // OKX's recorder and its paper twins (0150): prints by trade id, book reads by time, the twins' events, minutes and trips.
   okx_trades: "book,trade_id", okx_books: "book,ts", okx_quote_events: "book,minute,side,k,kind", okx_quote_minutes: "book,minute",
   okx_quote_trips: "book,side,k,t_entry",
+  // CXBOT's recorder (0163): one row a venue, coin and minute; the paper engine and the questions read it in order.
+  cxbot_tape: "venue,coin,t",
   // The programme factor (0115): a row a source, day and market; the listing's readings by market and minute.
   pm_prog_factors: "source,day,cond", pm_prog_reads: "cond,minute",
 };

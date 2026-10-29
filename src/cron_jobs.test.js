@@ -1329,6 +1329,26 @@ describe('pg_cron jobs', () => {
     expect(httpJobs(jobsAfter).map(([n]) => n)).toEqual(['edge-calls-every-minute']);
   });
 
+  it("adds CXBOT's minute as one call a minute (0163), its beat first, every other row as it was, no job of its own", () => {
+    const T = FILES.find((f) => /^0163_cxbot\.sql$/.test(f)) ?? '';
+    expect(T).not.toBe('');
+    const before = replayList(sqlsOf(FILES.filter((f) => f < T))), after = replayList(sqlsOf(FILES.filter((f) => f <= T)));
+    expect(after.slice(0, before.length)).toEqual(before);
+    const shape = ({ path: p, timeout, every, lastHour, enabled, retry }) => ({ path: p, timeout, every, lastHour, enabled, retry });
+    // `retry` true: the recorder upserts on (venue, coin, minute) and the paper engine moves on from the minute it last
+    // decided (cxbot_exec_state), under its lease, so a second run in the minute decides nothing twice.
+    expect(after.slice(before.length).map(shape)).toEqual([
+      { path: 'cxbot?action=tick', timeout: 50000, every: 1, lastHour: 23, enabled: true, retry: true },
+    ]);
+    expect(after.at(-1).activeFrom).toBe('written + 15 minutes');
+    expect(beatKeyOfPath(after.at(-1).path)).toBe('cxbot?action=tick');
+    const src = fs.readFileSync(path.join(ROOT, 'supabase/functions/cxbot/index.ts'), 'utf8');
+    expect(src).toContain('if (action === "tick" || action === "reach") return await handleCron(req, h, now(), action);');
+    const jobsBefore = cronJobs(FILES.filter((f) => f < T)), jobsAfter = cronJobs(FILES.filter((f) => f <= T));
+    expect([...jobsAfter.keys()].filter((n) => !jobsBefore.has(n))).toEqual([]);
+    expect(httpJobs(jobsAfter).map(([n]) => n)).toEqual(['edge-calls-every-minute']);
+  });
+
   it("never cancels a migrations run in flight: a newer push's run waits for it (review D1)", () => {
     const yml = fs.readFileSync(path.join(ROOT, '.github/workflows/migrations.yml'), 'utf8');
     expect(yml).toMatch(/^concurrency:\n {2}group: \$\{\{ github\.workflow \}\}-\$\{\{ github\.ref \}\}\n {2}cancel-in-progress: false$/m);

@@ -682,6 +682,16 @@ that follow from that evidence, in short:
   FXW-AUD rule on the live IG recorder's own quotes (`ig_quotes`, `environment = 'live'`), £1,000 at £1.50 a pip, no stop. It
   never calls IG; fills only at a recorded bid or offer, a minute after the open with no recorded quote makes the weekend
   MISSED. Its rules are frozen with the spec: a change is a new proposal to Davies, never an edit of `fxw.ts`' constants.
+- **CXBOT, "Crypto analyst"** (`cxbot` function, `0163`, the audit `reviews/2026-10-29-crypto-grok-bot-audit.md`, its
+  pre-registration a DRAFT `reviews/2026-10-29-cxbot-phase1-prereg.md`, the prompt `docs/agents/cxbot/GROK_PROMPT.md`; Davies,
+  2026-10-28/29): an outside Grok agent forecasts and trades BTC, ETH and SOL perpetuals, long and short, **on PAPER** against a
+  venue's public tape (Hyperliquid; Binance, then OKX, only by a migration after `reach`, never routed round a refusal). No
+  key, wallet or login exists: `cxbot/client.ts` knows public market-data hosts alone. The server assigns the questions the
+  reading scores (both directions of each coin every 4 h; Polymarket's daily strikes), checks every open against
+  `CXBOT_RULES`, fills it by a conservative model and scores a bracket that times out where its price stands between stop and
+  limit (the audit's F1). `mode` 'dry_run' until 0163's go statement on Davies' word. Its desk ledger is `CXBOT_LEDGER.md` on
+  `cxbot-ledger`. It and IGBOT ("IG Trader") are rows of TESTING (`agents/grok_tests_view.ts`): IG Trader's money is its
+  £1,000 budget plus the demo account's change since its arm, never the account's balance.
 - **RW — quotes for Polymarket's liquidity rewards — runs on PAPER for
   fourteen days** (§3.33, §4 item 36, migration `0053`, 2026-09-24 on
   Davies' word): 2026-09-25 → 10-09 UTC, the spec frozen at

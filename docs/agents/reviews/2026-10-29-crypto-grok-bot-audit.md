@@ -11,7 +11,8 @@ corrected design. It read the research, GROKPM (`supabase/functions/grokpm/`, it
 10-27, 10-28) and IGBOT after its audit (`supabase/functions/igbot/`, `reviews/2026-10-29-igbot-research.md` §11, the
 prereg's §5/§6/§10, `docs/agents/igbot/GROK_PROMPT.md`, `docs/agents/backtests/igbot/score.mjs`). Its outputs: this file,
 marked corrections in the research ("[audit 2026-10-29]"), a DRAFT pre-registration (`reviews/2026-10-29-cxbot-phase1-prereg.md`),
-a DRAFT prompt (`docs/agents/cxbot/GROK_PROMPT_DRAFT.md`), the desk ledger's seed (`docs/agents/cxbot/ledger_seed.md`) and the
+a DRAFT prompt (then `docs/agents/cxbot/GROK_PROMPT_DRAFT.md`; **[build 2026-10-29]** replaced by the final
+`docs/agents/cxbot/GROK_PROMPT.md` when `cxbot` was built), the desk ledger's seed (`docs/agents/cxbot/ledger_seed.md`) and the
 scripts behind every number (`docs/agents/backtests/cxbot/`). **Nothing was built, placed, cancelled or changed; no credential
 was read.** Production was read twice, read-only (the trend rows' fills, §3; OKX's recorder, §2.2). Every market number is
 keyless public data taken 2026-10-29 00:12–00:25 UTC from this container, whose egress is in the US (Columbus, Ohio; a

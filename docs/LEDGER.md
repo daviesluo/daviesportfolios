@@ -645,15 +645,13 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
     IGBOT's alone. **Before Fri 21:35 UK, after `0161` and `ig` deploy:** run `facts` on live for `sb` and `cfd` and read back
     `ig_action_log` and `igbot_requests` (the SQL: `reviews/2026-10-15-ig-verification.md` §11).
 
-19. **CXBOT, a Grok crypto bot, long and short: researched and AUDITED, nothing built** (Davies, 2026-10-28: "…币所的买卖交易也做成一套…
-    long和short都可以做"; 2026-10-29: "…只判断对策略来说最优的币所…确保一切设定最佳"; `reviews/2026-10-29-crypto-grok-bot-research.md`,
-    the audit `reviews/2026-10-29-crypto-grok-bot-audit.md`, prereg DRAFT `reviews/2026-10-29-cxbot-phase1-prereg.md`, prompt DRAFT
-    `docs/agents/cxbot/GROK_PROMPT_DRAFT.md`, ledger seed `docs/agents/cxbot/ledger_seed.md`). Venue for the strategy: Hyperliquid,
-    then Binance USDⓈ-M (reference/history), OKX, Bybit. Phase 1 = paper on Hyperliquid's public tape, three scored layers
-    (assigned brackets every 4 h, primary; Polymarket daily strikes; own brackets), a timeout scored at its fraction, 56 days.
-    **Main session:** verify the audit; build `cxbot` with `reach` first (Hyperliquid, Binance futures, Bybit unmeasured from
-    eu-west-2; fallback Binance, then OKX, never routed round); `cxbot-ledger` from the seed; a daily desk check; the scorer
-    pinned before the start; decide whether IGBOT's draft takes the same y (audit F11). **Davies:** `CXBOT_TOKEN` only, a name, go.
+19. **CXBOT, "Crypto analyst": BUILT, paper only, dry-run until Davies' go** (Davies, 2026-10-28/29; the audit
+    `reviews/2026-10-29-crypto-grok-bot-audit.md`, prereg DRAFT `reviews/2026-10-29-cxbot-phase1-prereg.md`, prompt
+    `docs/agents/cxbot/GROK_PROMPT.md`, seed `docs/agents/cxbot/ledger_seed.md`; `cxbot` function, `0163`). No key of any venue.
+    **Main session after the deploy:** fire `reach` once (SQL in the 01:32 history line) and read `cxbot_reach`: if Hyperliquid
+    is not 200 from eu-west-2, `update public.cxbot_config set venue = 'binance'` (then OKX) before the go, never routed
+    round; create `cxbot-ledger` from the seed; the daily desk check (~23:27 UK). **Davies:** the secret `CXBOT_TOKEN` (32+
+    chars, to Grok only), the name, then the go (0163's statement; 48 h shakedown, 56 days).
 
 ## Machine and platform setup
 
@@ -771,6 +769,13 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 00:59 UTC section (archived
 2026-10-29, ninth).
+
+### [2026-10-29 01:32 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **CXBOT built** (sub-agent; commit, not pushed; item 19): `cxbot` (public reads only, `reach`, recorder, context, assigned
+  questions, paper engine, quote), `0163` (dry-run), scorer `backtests/cxbot/score.mjs`, prompt + `examples.json`; 20 Deno, 15
+  vitest pins. Reach after deploy: `select net.http_post(url := 'https://flmvxigozjuizpckllvk.supabase.co/functions/v1/cxbot?action=reach',
+  headers := jsonb_build_object('Authorization', concat('Bearer ', (select decrypted_secret from vault.decrypted_secrets where name = 'cron_secret')), 'Content-Type', 'application/json'), body := '{}'::jsonb, timeout_milliseconds := 30000);`
+  then `select * from public.cxbot_reach order by id desc;`.
 
 ### [2026-10-29 01:31 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **IGBOT F11** (sub-agent; commit, not pushed; item 18; the main session's decision on the CXBOT audit's F11): a bracket

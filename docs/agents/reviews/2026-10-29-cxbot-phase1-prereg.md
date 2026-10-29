@@ -2,8 +2,8 @@
 
 **Status: DRAFT, not frozen.** It freezes at the commit that adds Davies' word to §0 (with its date) and pins its sha256 in a
 test; until then any part may change. It is written from the independent audit (`reviews/2026-10-29-crypto-grok-bot-audit.md`,
-the audit) on the research (`reviews/2026-10-29-crypto-grok-bot-research.md`). The server, `supabase/functions/cxbot/`, is
-not built; the prompt is `docs/agents/cxbot/GROK_PROMPT_DRAFT.md` (a draft). The record is **not blind** (Davies,
+the audit) on the research (`reviews/2026-10-29-crypto-grok-bot-research.md`). The server is `supabase/functions/cxbot/`
+(migration `0163_cxbot.sql`, built 2026-10-29); the prompt is `docs/agents/cxbot/GROK_PROMPT.md`. The record is **not blind** (Davies,
 2026-10-04): every row may be read at any time; the reading of §6 runs as written here and its report says it was not
 blind. **Money: none.** Phase 1 holds no key, no wallet and no session at any venue; every read is public.
 
@@ -55,7 +55,8 @@ Frozen as the code stands at the freeze commit; a change is a deviation (§9). T
 ## 3. Phases, window and stops
 
 1. **Shakedown** (mode `paper`, the first 48 hours after the start): everything runs and is recorded; nothing of it is
-   scored. A fix in the shakedown is not a deviation; the main session writes each in the ledger.
+   scored. A fix in the shakedown is not a deviation; the main session writes each in the ledger. The start is 0163's go
+   statement (`mode` 'paper', `started_at`), run only on Davies' word.
 2. **The test**: 56 days from the end of the shakedown, or the total stop (a FAIL), or the futility look of §6.4.
 3. **The end** is closed by the main session: mode `dry_run` (no new open; open paper positions run to their stop, limit
    or the 7-day close and are booked), then the reading.
@@ -88,11 +89,12 @@ Frozen as the code stands at the freeze commit; a change is a deviation (§9). T
 - **Layer B (Polymarket)**: for each daily "Bitcoin above ___" and "Ethereum above ___" question, at 24 h, 8 h and 2 h
   before its resolution, the three strikes whose mid is nearest 0.25, 0.50 and 0.75 at issue; due 15 minutes later; its
   baselines the mid and the last trade at the deadline; y the question's resolution (0 or 1).
-- **Layer C (own brackets)**: a real bracket is a paper open the server filled; its start is the fill, e the fill price; it
-  is scored on its ORIGINAL levels on the tape, whatever the position later did (closed, amended, the 7-day close: those
+- **Layer C (own brackets)**: a real bracket is a paper open the server filled; its start is the minute after its fill, e
+  the fill price; it is scored on its ORIGINAL levels on the tape, whatever the position later did (closed, amended, the 7-day close: those
   change the money, not the forecast), with H = 7 days. A shadow bracket is a `no_action` decision with coin, direction,
-  level, stop, limit and p; it starts at the first minute within 24 h of its `ts` whose trades reach its level (never: not
-  scored, counted), H = 7 days. At most one bracket per coin per four hours is scored (the first); none while a real one in
+  level, stop, limit and p; it is reached in the first minute within 24 h of its `ts` whose trades span its level (never:
+  not scored, counted), resolves from the minute after, and is excluded (counted) if that first minute already reached its
+  stop or limit; H = 7 days. At most one bracket per coin per four hours is scored (the first); none while a real one in
   that coin is open.
 - **Brier**: mean (p − y)² against mean (m − y)², p and m clamped to [0.001, 0.999]. **D** = Brier(m) − Brier(p): positive,
   Grok is better. **D_c**: the same with each (coin, direction) cell's m moved by that cell's mean (y − m), clamped.
