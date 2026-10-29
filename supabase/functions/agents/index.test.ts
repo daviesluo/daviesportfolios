@@ -11,7 +11,7 @@ import {
   exitOverbuy, liveBookGbp, liveCoinBooks, liveConversionShares, liveIndexPrices, liveOrderReason, liveRestingBuysGbp, liveRungs, liveRungTrips, quotesLiveDetail, dayCapitalGbp, tripEnds, QUOTE_LIVE_ORDER_COLUMNS,
   QUOTE_TICKER_FRESH_MS,
   QUOTE_LIVE_REASON_COLUMNS, QUOTE_LIVE_SUMMARY_COLUMNS, QUOTES_LIVE_KNOWN_REFUSALS, QUOTES_LIVE_ORDERS_FILTER, QUOTES_LIVE_PAGE_ROWS, type QuoteLiveRecentRow, withConversionFees,
-  liveDays, readQuotesTwin, twinsDelayMs, twinsOnPage, TWINS_START_MS,
+  liveDays, readQuotesTwin, twinInUsd, twinsDelayMs, twinsOnPage, TWINS_START_MS,
   deadmanBeatAt, DEADMAN_BEAT_KEY, runSelectKeptAlive, runQuotesAction, quotesPaperErrorReport,
 } from "./index.ts";
 import { QUOTE_LEASE_STEP, runQuotes, type QuoteReport } from "./quotes.ts";
@@ -1482,6 +1482,29 @@ Deno.test("readQuotesTwin: each twin of the spec rows is read as the live accoun
   // deno-lint-ignore no-explicit-any
   const bare = memDb(twinFixtureTables(live, TWINS.pr5, { id: 1, state: {}, updated_at: new Date(f.nowMs).toISOString(), last_error: null } as any), { now: () => f.nowMs });
   assertEquals(await readQuotesTwin(bare.db, TWINS.pr5, f.nowMs, f.dayStartMs, live.tickers), null);
+});
+
+Deno.test("twinInUsd (0169): variant-7 shows FUNDED as its $300 exactly, in dollars, its six rungs of £37.55; every other twin, and a null row, as it was", () => {
+  const from = "2026-10-30T00:00:00Z";
+  const row = (id: string, rules: Record<string, unknown>) => specFromRow({ ...TWIN_SPEC_ROWS[1], id, table_prefix: `agent_quote_twin_${id}`, lease: `quotes-twin-${id}`, capital_gbp: 225.33, backfill: null, start: from, rules });
+  const base = { fill: { model: "at", from }, weekend: { from }, weights: { from, book: { "USDC-GBP": 1, "USDT-GBP": 0 } }, usdCapital: { usd: 300, gbpusd: 1.3314 } };
+  const nu = row("u300nudge", { ...base, fairNudge: { from, book: "USDC-GBP" } });
+  const q = {
+    capitalGbp: 225.33, capitalUsd: 225.33 * 1.33, x: 1.33, realisedUsd: 1.33, realisedGbp: 1, lossStopGbp: -2.2533,
+    detail: { rungs: [{ book: "USDC-GBP", held: { costGbp: 37.5, unrealisedGbp: 0.1, unrealisedUsd: 0.133 } }, { book: "USDC-GBP", held: null }] },
+    twin: { id: "u300nudge", name: "Stablecoin quotes variant-7" },
+  };
+  const now = Date.parse("2026-10-30T12:00:00Z");
+  const u = twinInUsd(q, nu, now);
+  assertEquals([u.ccy, u.capitalUsd, u.capitalGbp, u.realisedUsd, u.lossStopGbp], ["USD", 300, 225.33, 1.33, -2.2533]);
+  assertAlmostEquals(u.lossStopUsd, -2.2533 * 1.33, 1e-12);
+  assertEquals([u.twin.rungGbp, u.twin.rungUsd, u.twin.usdCapital], [37.55, 49.99, { usd: 300, gbpusd: 1.3314 }]);
+  assertAlmostEquals(u.detail.rungs[0].held.costUsd, 37.5 * 1.33, 1e-12);
+  assertEquals(u.detail.rungs[1], q.detail.rungs[1]);
+  // A twin without `usdCapital`: the same object back; a null row stays null.
+  assertEquals(twinInUsd(q, TWINS.p50, now), q);
+  assert(twinInUsd(q, TWINS.p50, now) === q);
+  assertEquals(twinInUsd(null, nu, now), null);
 });
 
 Deno.test("twinsOnPage: a twin whose row says hidden runs but is not on the page; without the column every twin shows (0141)", () => {

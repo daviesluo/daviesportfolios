@@ -245,11 +245,13 @@ describe("the twins' spec rows", () => {
       ['o600usdt', 'Stablecoin quotes USDT only from 10-27', 45, 600, false, false], ['n600no03', 'Stablecoin quotes variant-3', 46, 600, true, false],
       ['n600hold1', 'Stablecoin quotes variant-4', 47, 600, true, false], ['n600usdt2', 'Stablecoin quotes USDT 2:1 from 10-28', 48, 600, true, true],
       ['n600usdt3', 'Stablecoin quotes variant-5', 49, 600, true, false], ['n600usdt', 'Stablecoin quotes variant-6', 50, 600, true, false],
+      // 0169 (Davies, 2026-10-29: REVX-FAIR's USDC-GBP lead "开testing variant-7…做300美元funded"): $300 at 1.3314, and its control, hidden.
+      ['u300nudge', 'Stablecoin quotes variant-7', 51, 225.33, true, false], ['u300ctl', 'Stablecoin quotes USDC control from 10-30', 52, 225.33, true, true],
     ]);
     // The page shows the two on LIVE's rules, each with LIVE's fill rule and, from the closure of 2026-10-30 21:00 UTC,
     // LIVE's weekend; none takes (LIVE's take is in shadow, which sends nothing).
     const onPage = ROWS.filter((r) => r.enabled && !r.hidden);
-    expect(onPage.map((r) => r.id)).toEqual(['live600', 'live1200', 'take50', 'n600no03', 'n600hold1', 'n600usdt3', 'n600usdt']);
+    expect(onPage.map((r) => r.id)).toEqual(['live600', 'live1200', 'take50', 'n600no03', 'n600hold1', 'n600usdt3', 'n600usdt', 'u300nudge']);
     // TAKE's twin keeps its own rule (a take from 2026-10-04 16:00); the others on LIVE's rules do not take.
     expect(onPage[2].rules.take).toBeTruthy();
     for (const r of onPage.slice(0, 2)) {
@@ -258,11 +260,23 @@ describe("the twins' spec rows", () => {
     // PR5-OPT's five (0149, restarted by 0152, started at once by 0154; the USDT 2:1 one hidden by 0167, so four are on the page): LIVE's fill rule and weekend from their start,
     // 2026-10-28 22:00, and one rule each from it.
     const S = '2026-10-28T22:00:00Z';
-    for (const r of onPage.slice(3)) {
+    const opt = onPage.slice(3, 7);
+    for (const r of opt) {
       expect([r.start, r.rules.fill.model, r.rules.fill.from, r.rules.weekend.from, 'take' in r.rules], r.id).toEqual([S, 'at', S, S, false]);
     }
-    expect(onPage.slice(3).map((r) => Object.keys(r.rules).filter((k) => k !== 'fill' && k !== 'weekend'))).toEqual([['weights'], ['holdMin'], ['weights'], ['weights']]);
-    expect(onPage.slice(3).map((r) => (r.rules.weights ?? r.rules.holdMin).from)).toEqual([S, S, S, S]);
+    expect(opt.map((r) => Object.keys(r.rules).filter((k) => k !== 'fill' && k !== 'weekend'))).toEqual([['weights'], ['holdMin'], ['weights'], ['weights']]);
+    expect(opt.map((r) => (r.rules.weights ?? r.rules.holdMin).from)).toEqual([S, S, S, S]);
+    // 0169's variant-7 and its hidden control: LIVE's fill rule and weekend from 2026-10-30 00:00, USDC-GBP alone, $300 at the
+    // rate its pounds were set at, and the nudge on variant-7 alone (the control is the same row without it).
+    const N = '2026-10-30T00:00:00Z';
+    const [nu, ctl] = ['u300nudge', 'u300ctl'].map((id) => ROWS.find((r) => r.id === id));
+    for (const r of [nu, ctl]) {
+      expect([r.start, r.rules.fill.from, r.rules.weekend.from, r.rules.weights.book, r.rules.usdCapital, 'take' in r.rules], r.id)
+        .toEqual([N, N, N, { 'USDC-GBP': 1, 'USDT-GBP': 0 }, { usd: 300, gbpusd: 1.3314 }, false]);
+      expect(Math.round((300 / 1.3314) * 100) / 100, r.id).toBe(Number(r.capital_gbp));
+    }
+    expect(nu.rules.fairNudge).toEqual({ from: N, book: 'USDC-GBP', w: 0.5, halfLifeMin: 1440 });
+    expect('fairNudge' in ctl.rules).toBe(false);
   });
 
   it("make the browser test's fixture as they stand: every enabled row, in the page's order, a hidden one too (it still runs)", () => {

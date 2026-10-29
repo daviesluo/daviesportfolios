@@ -238,7 +238,7 @@ import { youtubeProbe } from "./youtube.ts";
 import { runViews } from "./views.ts";
 import { QUOTE_BOOKS, QUOTE_RUNGS, QUOTE_TICK, runQuotes, type QuoteBook, type QuoteReport, type Side } from "./quotes.ts";
 import {
-  coinOf, markedGbp, QUOTE_LIVE_LOSS_FRACTION, rungBook, runQuotesConvert, runQuotesLive,
+  coinOf, markedGbp, QUOTE_LIVE_LOSS_FRACTION, rungBook, rungGbpOf, runQuotesConvert, runQuotesLive,
   type LiveLeg, type QuoteLiveDeps, type QuoteLiveReport, type RungBook, type RungFill,
 } from "./quotes_live.ts";
 import { stepLiveWeekendPaper, type LiveWeekendReport } from "./quotes_live_weekend.ts";
@@ -1885,6 +1885,35 @@ export async function readQuotesTwin(d: Db, spec: TwinSpec, now: number, dayStar
 }
 
 /**
+ * A twin booked in pounds and shown in WHOLE DOLLARS (`rules.usdCapital`, 0169; Davies, 2026-10-29: "做300美元funded"), as the
+ * Coinbase arms are (`coinbaseInUsd`): `ccy` "USD" and FUNDED its `usd` exactly. Its record is in pounds, its capital the
+ * row's `usd` ÷ `gbpusd` to the penny; every other dollar figure is the payload's own (pounds at the paper books' last
+ * GBP/USD, as every twin's), and a held rung's cost gains its dollars beside its pounds so the page draws one currency. Its
+ * rung in both (`rungGbpOf` on the book its weights fund). Any other twin, or a null payload, comes back as it is.
+ */
+// deno-lint-ignore no-explicit-any
+export function twinInUsd(q: any, spec: TwinSpec, now: number) {
+  const u = spec.instance.usdCapital;
+  if (!q || !u) return q;
+  const x = Number(q.x) > 0 ? Number(q.x) : u.gbpusd;
+  const capitalGbp = Number(q.capitalGbp) || spec.capitalGbp;
+  const book = spec.instance.fairNudge?.book ?? "USDC-GBP";
+  const rungGbp = rungGbpOf(spec.instance, capitalGbp, book, "bid", spec.instance.rungs[0], Math.max(now, spec.start));
+  const d = q.detail ?? {};
+  return {
+    ...q, ccy: "USD" as const, capitalUsd: u.usd,
+    // Its loss stop (1 % of its capital, the executor's in pounds) in the row's dollars, beside the pounds the stop reads.
+    lossStopUsd: q.lossStopGbp == null ? null : Number(q.lossStopGbp) * x,
+    detail: {
+      ...d,
+      // deno-lint-ignore no-explicit-any
+      rungs: (d.rungs ?? []).map((r: any) => (r.held ? { ...r, held: { ...r.held, costUsd: r.held.costGbp == null ? null : r.held.costGbp * x } } : r)),
+    },
+    twin: { ...q.twin, rungGbp, rungUsd: Math.round(rungGbp * u.gbpusd * 100) / 100, usdCapital: u },
+  };
+}
+
+/**
  * Everything the Agents page shows, computed here and nowhere else:
  * positions and P&L come from `positionFromFills` over the filled orders,
  * marked at each venue's current mid. Money is USD throughout.
@@ -2222,7 +2251,8 @@ async function dashboard(now: number) {
       twinSpecs(d).catch(() => ({ specs: [] as TwinSpec[] })),
       d.select<{ id: string }>("agent_quote_twin_specs", "hidden=eq.true&select=id").catch(() => [] as Array<{ id: string }>),
     ]);
-    return Promise.all(twinsOnPage(specs, hidden).map((spec) => readQuotesTwin(d, spec, now, dayStartMs, tickers)));
+    // A twin funded in dollars (0169's variant-7) is shown in them (`twinInUsd`); every other twin as `readQuotesTwin` reads it.
+    return Promise.all(twinsOnPage(specs, hidden).map(async (spec) => twinInUsd(await readQuotesTwin(d, spec, now, dayStartMs, tickers), spec, now)));
   });
 
   // "Stablecoin quotes with Euros" (0112, cb_quotes.ts): the paper test of PR5's rule on Coinbase's four books, in a twin's

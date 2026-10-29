@@ -749,3 +749,76 @@ Deno.test("a twin added later costs the running ones nothing: the call that load
   assert(b.orders(P50).length > 0 && e.orders(P50).length > 0, "p50 quoted after its load in both, or the comparison proves less");
   assert(a.orders().some((o) => o.leg === "entry" && Number(o.filled_base) > 0 && Date.parse(String(o.filled_at ?? o.ts)) >= T0 + 6 * M), "PR5's twin filled from minute 6, or the comparison proves less");
 });
+
+// ------------------------------------------------------------------ "Stablecoin quotes variant-7" (0169): the USDC-GBP nudge
+
+const NUDGE_RULES = (from: string) => ({
+  fill: { model: "at", from }, weekend: { from }, weights: { from, book: { "USDC-GBP": 1, "USDT-GBP": 0 } }, usdCapital: { usd: 300, gbpusd: 1.3314 },
+});
+function assertThrowsMsg(f: () => unknown, msg: string) {
+  try { f(); } catch (e) { assert(String((e as Error).message).includes(msg), `${(e as Error).message} lacks ${msg}`); return; }
+  throw new Error(`did not throw: ${msg}`);
+}
+
+Deno.test("fairNudge and usdCapital (0169): read from a row; refused unreadable or when the pounds are not the dollars at its rate; no other twin and not the live account has one", () => {
+  const from = iso(T0);
+  const nu = specFromRow(rowAs("nu", { capital_gbp: 225.33, backfill: null, rules: { ...NUDGE_RULES(from), fairNudge: { from, book: "USDC-GBP", w: 0.5, halfLifeMin: 1440 } } }));
+  assertEquals([nu.instance.fairNudge?.book, nu.instance.fairNudge?.w, nu.instance.fairNudge?.halfLifeMin, nu.instance.fairNudge?.from], ["USDC-GBP", 0.5, 1440, T0]);
+  assertEquals(nu.instance.usdCapital, { usd: 300, gbpusd: 1.3314 });
+  assertEquals(twinWrites(nu).at(-1), "agent_quote_twin_nudge");
+  const bad = (rules: Record<string, unknown>, capital = 225.33) => () => specFromRow(rowAs("nb", { capital_gbp: capital, backfill: null, rules }));
+  assertThrowsMsg(bad({ ...NUDGE_RULES(from), fairNudge: { book: "USDC-GBP" } }), `twin nb: its rule fairNudge needs "from"`);
+  assertThrowsMsg(bad({ ...NUDGE_RULES(from) }, 225.34), "twin nb: its capital_gbp 225.34 is not its usdCapital's 300 ÷ 1.3314 to the penny");
+  assertThrowsMsg(bad({ usdCapital: { usd: 300.5, gbpusd: 1.3314 } }), `its rule usdCapital needs "usd"`);
+  for (const inst of [...Object.values(TWINS).map((s) => s.instance), QUOTE_LIVE_INSTANCE]) assertEquals([inst.fairNudge, inst.usdCapital], [undefined, undefined]);
+  assert(!twinWrites(TWINS.p50).includes("agent_quote_twin_nudge"));
+});
+
+Deno.test("fairNudge (0169): its control's order for order while Coinbase sits on its usual gap; once Coinbase's USDC-GBP moves off it, its USDC-GBP quotes move by half the deviation and its control's do not; every minute recorded; a twin without the rule unchanged beside it", async () => {
+  const from = iso(T0);
+  const CTL: TwinSpec = { ...specFromRow(rowAs("ctl", { display_order: 60, capital_gbp: 225.33, backfill: null, rules: NUDGE_RULES(from) })), start: T0 };
+  const NU: TwinSpec = { ...specFromRow(rowAs("nu", { display_order: 61, capital_gbp: 225.33, backfill: null, rules: { ...NUDGE_RULES(from), fairNudge: { from, book: "USDC-GBP" } } })), start: T0 };
+  const P50: TwinSpec = { ...TWINS.p50, start: T0 };
+  const f = 1 / X, JUMP = T0 + 4 * M;
+  // Coinbase's USDC-GBP touch each minute, stamped 20 s in, 2 bps over fair, then 22 bps from JUMP (20 bps off its usual gap);
+  // none for the minutes T0 + 8 to T0 + 14, so the minutes T0 + 13 to T0 + 15 read T0 + 7's touch (stamped 7:20), over five
+  // minutes before their t − 1 ms: stale.
+  const touches: Row[] = [];
+  for (let t = T0 - 2 * H; t <= T0 + 30 * M; t += M) {
+    if (t >= T0 + 8 * M && t < T0 + 15 * M) continue;
+    const mid = f * (1 + (t + 20e3 < JUMP ? 0.0002 : 0.0022));
+    touches.push({ product: "USDC-GBP", ts: iso(t + 20e3), bid: mid - 0.00005, ask: mid + 0.00005, bid_size: 1000, ask_size: 1000, bid_orders: 1, ask_orders: 1 });
+  }
+  const w = world(undefined, [P50, CTL, NU]);
+  w.mem.tables.cb_touch = touches;
+  w.mem.tables.agent_quote_twin_nudge = [];
+  // P50 alone, in a world of its own: what it does must not depend on a nudged twin running beside it.
+  const alone = world(undefined, [P50]);
+  const entryTicks = (s: TwinSpec) => w.orders(s).filter((o) => o.leg === "entry" && o.book === "USDC-GBP").map((o) => [o.ts, o.rung_side, o.k, Number(o.price), o.state].join("|"));
+  for (let t = T0; t < T0 + 20 * M; t += M) {
+    await w.pr5(t); await alone.pr5(t);
+    const r = await w.call(t);
+    await alone.call(t);
+    assertEquals(r.twins.map((x) => [x.twin, x.errors]), [["p50", []], ["ctl", []], ["nu", []]], iso(t));
+    if (t < JUMP) assertEquals(entryTicks(NU), entryTicks(CTL), iso(t));
+  }
+  // The twin without the rule is the same order for order with or without the nudged twin beside it.
+  assertEquals(w.orders(P50).map(shape), alone.orders(P50).map(shape));
+  // Neither USDC-only twin quotes a USDT-GBP entry.
+  assert([CTL, NU].every((s) => w.orders(s).every((o) => !(o.leg === "entry" && o.book === "USDT-GBP"))));
+  // After the jump the nudged twin's USDC-GBP 0.1 % bid rests 10 bps (half of 20) above its control's, within a tick.
+  const lastBid = (s: TwinSpec) => Math.max(...w.orders(s).filter((o) => o.leg === "entry" && o.book === "USDC-GBP" && o.rung_side === "bid" && Number(o.k) === 0.001).map((o) => Number(o.price)));
+  const ctlBid = lastBid(CTL), nuBid = lastBid(NU);
+  assert(Math.abs(nuBid / ctlBid - 1 - 0.001) < 0.00015, `nudged ${nuBid} against control ${ctlBid}`);
+  // The record: every minute of USDC-GBP from the start, none of USDT-GBP; the jump's deviation, then the stale minutes.
+  const rec = (w.mem.tables.agent_quote_twin_nudge as Row[]).filter((r) => r.twin_id === "nu").sort((a, b) => Date.parse(String(a.minute)) - Date.parse(String(b.minute)));
+  assert(rec.length > 0 && rec.every((r) => r.book === "USDC-GBP"));
+  assertEquals([rec[0].minute, rec[0].dev, rec[0].fallback], [iso(T0), 0, null]);
+  const atJump = rec.find((r) => r.minute === iso(JUMP + M))!;
+  assert(Math.abs(Number(atJump.dev) - 0.002) < 0.0001 && atJump.fallback === null, JSON.stringify(atJump));
+  assert(Math.abs(Number(atJump.fair_nudged) / (Number(atJump.fair) * (1 + 0.5 * Number(atJump.dev))) - 1) < 1e-12);
+  assertEquals(rec.filter((r) => r.fallback === "stale").map((r) => r.minute), [T0 + 13 * M, T0 + 14 * M, T0 + 15 * M].map(iso));
+  // The replica's last record is of its last minute: the one the executor carries out.
+  const paper = (w.mem.tables[NU.instance.paper] as Row[])[0].state as { lastMinute: number; nudge: { last: { minute: number } } };
+  assertEquals(paper.nudge.last.minute, paper.lastMinute);
+});

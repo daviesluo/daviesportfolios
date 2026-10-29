@@ -67,6 +67,7 @@ import {
 } from "./quotes_live.ts";
 import { newSimState, SimRevx, type SimOutage, type SimBook, type SimLevel, type SimState } from "./revx_sim.ts";
 import { weekendX, type WeekendRule } from "./quotes_weekend.ts";
+import { newNudgeState, nudgeRow, nudgeStep, parseFairNudge, touchAt, type FairNudgeRule, type NudgeRec, type NudgeState, type Touch } from "./quotes_nudge.ts";
 import { REVX_REGION, revxVenue } from "../_shared/revx.ts";
 
 const M = 60e3, H = 3600e3, DAY = 86400e3;
@@ -245,6 +246,18 @@ export const TWIN_RULES: Record<string, (v: unknown) => Partial<QuoteLiveInstanc
     if (typeof o?.gbp !== "number" || !(gbp >= 0.1 && gbp <= 100)) throw new Error(`its rule holdMin needs "gbp", a number from 0.1 to 100`);
     return { holdMin: { from, gbp } };
   },
+  // REVX-FAIR's USDC-GBP nudge from `from` (`QuoteLiveInstance.fairNudge`, quotes_nudge.ts; "variant-7", 0169,
+  // docs/agents/reviews/2026-10-29-revx-usdc-nudge-twin-prereg.md): the book's fair moved by half Coinbase's deviation.
+  fairNudge: (v) => ({ fairNudge: parseFairNudge(v) }),
+  // A twin shown in dollars (`QuoteLiveInstance.usdCapital`; 0169): `usd` its funded dollars, `gbpusd` the fixed rate its pounds
+  // were set at. Its row's capital must be `usd` ÷ `gbpusd` to the penny (`specFromRow` checks it).
+  usdCapital: (v) => {
+    const o = v as { usd?: unknown; gbpusd?: unknown } | null;
+    const usd = Number(o?.usd), gbpusd = Number(o?.gbpusd);
+    if (typeof o?.usd !== "number" || !Number.isInteger(usd) || usd < 1 || usd > 100000) throw new Error(`its rule usdCapital needs "usd", whole dollars from 1 to 100000`);
+    if (typeof o?.gbpusd !== "number" || !(gbpusd > 0.5 && gbpusd < 3)) throw new Error(`its rule usdCapital needs "gbpusd", a GBP/USD rate`);
+    return { usdCapital: { usd, gbpusd } };
+  },
   // The fill rule LIVE's own fills follow, from `from` (`QuoteLiveInstance.simFill`; docs/agents/backtests/livesim/): a print
   // AT a resting order's price, from the other side, fills it as a print through it does. `model` "at" is the only one.
   fill: (v) => {
@@ -268,6 +281,9 @@ export function specFromRow(r: TwinSpecRow): TwinSpec {
     try { Object.assign(rules, TWIN_RULES[k](v)); } catch (e) { throw new Error(`twin ${r.id}: ${msg(e)}`); }
   }
   const p = r.table_prefix;
+  if (rules.usdCapital && Math.abs(Math.round(rules.usdCapital.usd / rules.usdCapital.gbpusd * 100) / 100 - Number(r.capital_gbp)) > 1e-9) {
+    throw new Error(`twin ${r.id}: its capital_gbp ${r.capital_gbp} is not its usdCapital's ${rules.usdCapital.usd} ÷ ${rules.usdCapital.gbpusd} to the penny`);
+  }
   return {
     id: r.id, name: r.display_name, engine: r.engine, sim: `${p}_sim`, capitalGbp: Number(r.capital_gbp), start: Date.parse(r.start),
     ...(r.backfill ? { backfill: r.backfill } : {}),
@@ -316,10 +332,13 @@ export async function twinSpecs(db: Db): Promise<{ specs: TwinSpec[]; refused: A
   return { specs, refused };
 }
 /** Every table a twin writes, and every table it reads: what `onlyTables` holds it to in the tests. */
-export const twinWrites = (s: TwinSpec) => [s.instance.config, s.instance.orders, s.instance.events, s.instance.state, s.instance.paper, s.sim];
+export const twinWrites = (s: TwinSpec) => [s.instance.config, s.instance.orders, s.instance.events, s.instance.state, s.instance.paper, s.sim,
+  ...(s.instance.fairNudge ? [TWIN_NUDGE_TABLE] : [])];
+/** Each minute of a nudged twin's book (0169): what its fair was, Coinbase's mid, the EMA, the deviation and the fair it priced off. */
+export const TWIN_NUDGE_TABLE = "agent_quote_twin_nudge";
 export const TWIN_READS = [
   "agent_quote_state", "agent_quote_minutes", "agent_quote_prints", "agent_quote_inputs", "agent_quote_events", "agent_quoted_state", "agent_quoted_events",
-  "edge_call_beats", "agent_risk", "agent_quote_twin_specs", "agent_book_levels",
+  "edge_call_beats", "agent_risk", "agent_quote_twin_specs", "agent_book_levels", "cb_touch",
 ];
 
 // ------------------------------------------------------------------ TAKE's reads of the recorded books
@@ -362,7 +381,11 @@ export type TwinPaper = {
   fetchedTo: Record<string, number>; hourFetchedFor: number;
   /** Events the replica decided that its engine's own record has not been checked against yet: [minute, book, side, k, kind, ticks]. */
   unchecked: Array<[number, string, string, number, string, number | null]>;
+  /** The USDC-GBP nudge's EMA and its last minute's record (`rules.fairNudge`, quotes_nudge.ts): a nudged twin's alone. */
+  nudge?: NudgeState;
 };
+/** A nudged twin's rule and its id, as its replica is stepped with them (`stepTwinPaper`). */
+export type TwinNudge = { rule: FairNudgeRule; twinId: string };
 /** The kinds checked against each engine's own record: every one of PR5's; rule D's decisions only (its no-peek). */
 const CHECKED: Record<TwinPaper["engine"], string[]> = { pr5: ["order", "refused", "withdraw", "fill", "exit", "stop"], "ruled-d": ["order", "refused", "withdraw"] };
 
@@ -403,21 +426,29 @@ export async function printsBetween(db: Db, from: number, to: number): Promise<R
  * minute's stored prints; a book-minute with no record is rebuilt from the stored series with PR5's own functions, as the
  * variant engines rebuild it. Rule D's books are stepped minute by minute across both (their governor's day is shared).
  */
-export async function stepTwinPaper(db: Db, p: TwinPaper, upTo: number, maxMinutes = TWIN_PAPER_MAX_MINUTES, weekend: WeekendRule | null = null): Promise<{ minutes: number; rebuilt: number }> {
+export async function stepTwinPaper(db: Db, p: TwinPaper, upTo: number, maxMinutes = TWIN_PAPER_MAX_MINUTES, weekend: WeekendRule | null = null, nudge: TwinNudge | null = null): Promise<{ minutes: number; rebuilt: number }> {
   const out = { minutes: 0, rebuilt: 0 };
   const stop = Math.min(upTo, p.lastMinute + maxMinutes * M);
   // Eight hours at most per read: two books' records of 480 minutes are 960 rows, inside PostgREST's 1,000 a request
   // (a longer chunk lost its later records to that cap and rebuilt those minutes from the series instead).
   while (p.lastMinute < stop) {
-    const r = await stepChunk(db, p, Math.min(stop, p.lastMinute + TWIN_PAPER_CHUNK_MINUTES * M), weekend);
+    const r = await stepChunk(db, p, Math.min(stop, p.lastMinute + TWIN_PAPER_CHUNK_MINUTES * M), weekend, nudge);
     out.minutes += r.minutes; out.rebuilt += r.rebuilt;
   }
   return out;
 }
 
-async function stepChunk(db: Db, p: TwinPaper, last: number, weekend: WeekendRule | null): Promise<{ minutes: number; rebuilt: number }> {
+async function stepChunk(db: Db, p: TwinPaper, last: number, weekend: WeekendRule | null, nudge: TwinNudge | null): Promise<{ minutes: number; rebuilt: number }> {
   const first = p.lastMinute + M;
   if (last < first) return { minutes: 0, rebuilt: 0 };
+  // The nudge's inputs (a nudged twin's alone): its EMA warmed once over the hours before its first minute, and Coinbase's
+  // touches this chunk's minutes read.
+  let touches: Touch[] = [];
+  const nudged: NudgeRec[] = [];
+  if (nudge) {
+    if (!p.nudge) p.nudge = await warmNudge(db, nudge.rule, first);
+    touches = await touchesBetween(db, nudge.rule.book, first - nudge.rule.staleMs - M, last);
+  }
   const n = (last - first) / M + 1;
   const recRows = await db.select<MinuteRow>("agent_quote_minutes", `minute=gte.${enc(first)}&minute=lte.${enc(last)}&select=book,minute,x,fair_u&order=minute.asc,book.asc&limit=${2 * n}`);
   if (recRows.length >= 1000) throw new Error(`replica: ${recRows.length} minute records in one read of ${n} minutes, at PostgREST's page size`);
@@ -451,15 +482,61 @@ async function stepChunk(db: Db, p: TwinPaper, last: number, weekend: WeekendRul
       // PR5-W's weekend rule, a twin's alone (`rules.weekend`): a dark closure minute is decided on the book's last X. With
       // none, or before its instant, or outside a closure, or with X live, the minute is PR5's exactly.
       if (weekend) inp = { ...inp, x: weekendX(t, inp.x, p.books[b].lastX, weekend) };
+      // The USDC-GBP nudge, a twin's alone (`rules.fairNudge`): on its book its EMA moves every minute, and from its instant
+      // the minute is decided on the nudged fair (fairU = f′ × X), recorded. With none, or on the other book, PR5's exactly.
+      if (nudge && p.nudge && b === nudge.rule.book) {
+        const f = inp.x && inp.fairU ? inp.fairU / inp.x : null;
+        const rec = nudgeStep(p.nudge, t, f, touchAt(touches, t, nudge.rule.staleMs), nudge.rule);
+        if (t >= nudge.rule.from) {
+          p.nudge.last = rec;
+          nudged.push(rec);
+          if (rec.fairNudged != null && rec.fallback == null && inp.x) inp = { ...inp, fairU: rec.fairNudged * inp.x };
+        }
+      }
       const events = p.engine === "pr5" ? stepMinute(p.books[b], t, inp).events : stepVariantMinute(p.books[b], t, inp, RULED_ARMS.d, p.gov!).events;
       // From its weekend rule's instant the replica decides closures PR5's engine leaves dark, so from then on its state is
       // its own and PR5's record is no check of it: its events are checked against that record up to the instant only.
       if (weekend && t >= weekend.from) continue;
+      if (nudge && t >= nudge.rule.from && b === nudge.rule.book) continue;
       for (const e of events) if (CHECKED[p.engine].includes(e.kind)) p.unchecked.push([t, b, e.side, e.k, e.kind, e.ticks]);
     }
   }
   p.lastMinute = last;
+  if (nudge && nudged.length) await db.upsert(TWIN_NUDGE_TABLE, nudged.map((r) => nudgeRow(nudge.twinId, nudge.rule.book, r)), "twin_id,book,minute");
   return { minutes: n, rebuilt };
+}
+
+/** Coinbase's touches of a book in [from, to] as [instant, mid], ascending (`cb_touch`, the "with Euros" recorder's). */
+export async function touchesBetween(db: Db, book: string, from: number, to: number): Promise<Touch[]> {
+  const rows = await db.selectAll<{ ts: string; bid: number | string; ask: number | string }>("cb_touch",
+    `product=eq.${book}&ts=gte.${enc(from)}&ts=lte.${enc(to)}&select=ts,bid,ask&order=product.asc,ts.asc`);
+  const out: Touch[] = [];
+  for (const r of rows) {
+    const b = Number(r.bid), a = Number(r.ask);
+    if (a > b && b > 0) out.push([msOf(r.ts), (a + b) / 2]);
+  }
+  return out;
+}
+
+/**
+ * The nudge's EMA before its twin's first minute: stepped over `rule.warmMs` (72 hours) of PR5's own record of the book (its X
+ * held through a closure, as the weekend rule holds it) and Coinbase's touches, so the rule starts on a settled EMA, as the
+ * study's replay did. Nothing is recorded.
+ */
+export async function warmNudge(db: Db, rule: FairNudgeRule, first: number): Promise<NudgeState> {
+  const s = newNudgeState();
+  const from = first - rule.warmMs;
+  const rows = await db.selectAll<MinuteRow>("agent_quote_minutes", `book=eq.${rule.book}&minute=gte.${enc(from)}&minute=lt.${enc(first)}&select=book,minute,x,fair_u&order=book.asc,minute.asc`);
+  const touches = await touchesBetween(db, rule.book, from - rule.staleMs - M, first);
+  let lastX: number | null = null;
+  for (const r of rows) {
+    const t = msOf(r.minute), x0 = num(r.x), fu = num(r.fair_u);
+    const x = weekendX(t, x0, lastX, { from: 0 });
+    if (x0) lastX = x0;
+    nudgeStep(s, t, x && fu ? fu / x : null, touchAt(touches, t, rule.staleMs), rule);
+  }
+  s.warmedFrom = from;
+  return s;
 }
 
 /** What the last check of the replica against its engine's own record found. */
@@ -738,7 +815,8 @@ async function twinTurn(
   // Catching up, the replica stands where its engine stood at each of those turns: caught up, as PR5's engine was
   // whenever its call ran (it decides up to 120 missed minutes a run, and no gap in its beats is longer). Forward, it
   // steps as PR5's engine does, at most TWIN_PAPER_MAX_MINUTES a call: behind, the executor's stale-input guard holds.
-  const stepped = await stepTwinPaper(d.db, paper, upTo, ds.mode === "catch-up" ? Number.POSITIVE_INFINITY : TWIN_PAPER_MAX_MINUTES, spec.instance.weekend ?? null);
+  const stepped = await stepTwinPaper(d.db, paper, upTo, ds.mode === "catch-up" ? Number.POSITIVE_INFINITY : TWIN_PAPER_MAX_MINUTES, spec.instance.weekend ?? null,
+    spec.instance.fairNudge ? { rule: spec.instance.fairNudge, twinId: spec.id } : null);
   report.paper = { minutes: (report.paper?.minutes ?? 0) + stepped.minutes, rebuilt: (report.paper?.rebuilt ?? 0) + stepped.rebuilt };
   await d.db.upsert(spec.instance.paper, [{ id: 1, state: paper, last_minute: iso(paper.lastMinute), updated_at: iso(at) }], "id");
   // The venue's clock: a print's instant while the prints are applied, then the turn's for the whole turn. A turn that

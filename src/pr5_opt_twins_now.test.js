@@ -72,13 +72,17 @@ describe("PR5-OPT's five twins on LIVE's rules from 06:00", () => {
 
   it('names the sha256 of each file it froze, once, and each file is that one, as its last deviation left it', () => {
     // Its deviation of 2026-10-28 (`0152`): the driver turns no twin before the minute after its start; §5 keeps the hash
-    // it was frozen at and the deviation names the file as it is.
-    const before = { 'supabase/functions/agents/quotes_twin.ts': ['015f3af08ba852c372e6b0a9f9d6815999731bd3322e03c8b5f944cdac8f4544'] };
+    // it was frozen at and the deviation names the file as it is. That of 2026-10-29 (`0169`, variant-7's rules), recorded apart
+    // (docs/agents/reviews/2026-10-29-variant7-frozen-files-deviation.md, under this pre-registration's heading), names the driver as it is.
+    const before = { 'supabase/functions/agents/quotes_twin.ts': ['015f3af08ba852c372e6b0a9f9d6815999731bd3322e03c8b5f944cdac8f4544', '2b84a1ebbdc1172375ff7c783a463ce39e266c490b2256314eae8893b5548e68'] };
     const named = (f) => [...DOC.matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
+    const V7 = read('docs/agents/reviews/2026-10-29-variant7-frozen-files-deviation.md').toString('utf8');
+    const s = V7.indexOf('### `docs/agents/reviews/2026-10-27-pr5-opt-twins-now-prereg.md`'), rest = s < 0 ? '' : V7.slice(s + 1), e = rest.search(/\n##/);
+    const v7Named = (f) => [...rest.slice(0, e < 0 ? undefined : e).matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
     for (const f of [
       `supabase/migrations/${M}`, `supabase/migrations/${R}`, `supabase/migrations/${N}`, 'supabase/functions/agents/quotes_twin.ts', 'supabase/functions/agents/revx_sim.ts',
       'supabase/functions/agents/quotes_weekend.ts',
-    ]) expect(named(f), f).toEqual(before[f] ? [...before[f], sha(f)] : [sha(f)]);
+    ]) expect([...named(f), ...v7Named(f)], f).toEqual(before[f] ? [...before[f], sha(f)] : [sha(f)]);
   });
 
   it("answers a weighted book with no pounds 'already holds', where the live account's instance has no weights", () => {

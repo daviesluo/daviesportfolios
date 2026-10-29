@@ -68,6 +68,7 @@ import {
 } from "./quotes.ts";
 import { bookLiveBuy, fillStamp, isUniqueViolation, withFeeNote, type FromAccount } from "./tick.ts";
 import { inQuoteClosure, weekendInputs, type WeekendRule } from "./quotes_weekend.ts";
+import { nudgedFair, type FairNudgeRule, type NudgeRec, type NudgeState } from "./quotes_nudge.ts";
 /** The weekend rule as the live account's weekend source reads fair: in force at every closure minute it is used in. */
 const LIVE_WEEKEND_RULE: WeekendRule = { from: 0 };
 
@@ -168,7 +169,29 @@ export type QuoteLiveInstance = {
    * move it to put the rule in force over their fixtures, or out of it).
    */
   exitInside?: { from: number };
+  /**
+   * REVX-FAIR's USDC-GBP nudge (quotes_nudge.ts; "Stablecoin quotes variant-7", 0169): from `from` (ms), the rule's book prices
+   * its exits, its stop's bound and its guards off the fair its replica nudged for the minute carried out (`nudgedInputs`), as
+   * the replica's own quotes do. A twin's rule alone: the live account's instance has none, and without it nothing changes.
+   */
+  fairNudge?: FairNudgeRule;
+  /**
+   * A twin booked in pounds and shown in dollars (0169; Davies: "做300美元funded"): `usd` its funded dollars, `gbpusd` the fixed
+   * rate its spec row's pounds were set at (capital_gbp = usd ÷ gbpusd, to the penny). The page alone reads it (`twinInUsd`,
+   * index.ts): FUNDED is `usd` exactly. The live account's instance has none.
+   */
+  usdCapital?: { usd: number; gbpusd: number };
 };
+/**
+ * A book's inputs with its replica's nudge applied (`QuoteLiveInstance.fairNudge`): on the rule's book, from its instant, when
+ * the replica's record is of the paper minute `T` this turn carries out and nudged it, fair is f × (1 + w × dev); otherwise
+ * (no rule, another book, before `from`, a record of another minute, a fallback) the inputs as they are.
+ */
+export function nudgedInputs(i: BookInputs, book: QuoteBook, T: number, rule: FairNudgeRule | undefined, rec: NudgeRec | null | undefined): BookInputs {
+  if (!rule || book !== rule.book || T < rule.from || i.f == null || !rec || rec.minute !== T) return i;
+  const f = nudgedFair(i.f, rec, rule.w);
+  return f === i.f ? i : { ...i, f };
+}
 /** The weights of `QuoteLiveInstance.weights`: by book, by side and by rung distance (the key is `String(k)`, "0.001"). */
 export type RungWeights = { from: number; book?: Partial<Record<QuoteBook, number>>; side?: Partial<Record<Side, number>>; k?: Record<string, number> };
 /** The live account: PR5's own sub-account, the paper engine's own state, three rungs, one key. */
@@ -1074,7 +1097,9 @@ async function paperView(d: QuoteLiveDeps, inst: QuoteLiveInstance, weekendLive 
     const i = bookInputs(T, fx, await series(`fair:${QUOTE_USD_BOOK[b]}`, T - 26 * H));
     // The weekend rule, an instance's alone (none for the live account): a dark closure minute at the replica's last X.
     const rule = source === "weekend" ? LIVE_WEEKEND_RULE : inst.weekend;
-    inputs[b] = rule ? weekendInputs(i, T, paper?.books?.[b]?.lastX ?? null, rule) : i;
+    const wi = rule ? weekendInputs(i, T, paper?.books?.[b]?.lastX ?? null, rule) : i;
+    // The USDC-GBP nudge, a twin's alone (`fairNudge`): the fair its replica priced the minute off. Without it, `wi` exactly.
+    inputs[b] = inst.fairNudge ? nudgedInputs(wi, b, T, inst.fairNudge, (paper as { nudge?: NudgeState } | null)?.nudge?.last) : wi;
   }
   return { paper, T, inputs, source };
 }

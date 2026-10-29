@@ -18,21 +18,30 @@ const MANIFEST = JSON.parse(read('docs/agents/backtests/twins/MANIFEST.json').to
 
 describe("the realistic twins' pre-registration", () => {
   it('names the sha256 of each file it froze, and each file is that one, as its last deviation left it', () => {
+    // The deviation of 2026-10-29 (`0169`, variant-7's rules `fairNudge` and `usdCapital`), recorded apart from the frozen text
+    // (docs/agents/reviews/2026-10-29-variant7-frozen-files-deviation.md): its hashes under this pre-registration's heading follow
+    // the document's own.
+    const V7 = read('docs/agents/reviews/2026-10-29-variant7-frozen-files-deviation.md').toString('utf8');
+    const s = V7.indexOf('### `docs/agents/reviews/2026-10-02-pr5-realistic-twins-prereg.md`'), rest = s < 0 ? '' : V7.slice(s + 1), e = rest.search(/\n##/);
+    const sec = rest.slice(0, e < 0 ? undefined : e);
     for (const f of ['supabase/functions/agents/revx_sim.ts', 'supabase/functions/agents/quotes_twin.ts', 'supabase/migrations/0087_quote_twins.sql']) {
-      const named = [...DOC.matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
+      const re = new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g');
+      const named = [...[...DOC.matchAll(re)].map((m) => m[1]), ...[...sec.matchAll(re)].map((m) => m[1])];
       // Deviation 1 (2026-10-03, its §12): quotes_twin.ts reads its twins from their rows (0088). Deviation 2 (the same day,
       // its §13): quotes_twin.ts and revx_sim.ts gain TAKE's rule (0089). Each section keeps the hash it named; the last
       // names the file as it is. Deviation 4 (2026-10-09, its §15): rule D's twin retires its 0.03 % rung. Deviation 5 (the
       // same day, its §16): the rule exitOffset, p50x1's. Deviation 6 (2026-10-18, its §18): the rule weekend, take50wk's.
       // Deviation 7 (2026-10-21, its §19): the rule fill (LIVE's own fill rule), and the validation's replay of LIVE's operations.
       // Deviation 8 (2026-10-27, its §20): PR5-OPT's rules weights and holdMin. Deviation 9 (2026-10-28, its §21): no twin
-      // turns before the minute after its start.
+      // turns before the minute after its start. The deviation of 2026-10-29 (0169, recorded apart): the rules fairNudge and
+      // usdCapital, variant-7's.
       // 0087 is named once, as frozen.
       if (f.endsWith('/quotes_twin.ts')) {
         expect(named, f).toEqual(['921ce33adc6d38274bd9c8de7909a2100ff55fdb2d50388e140379af2c578fc3', 'f14ecee87da252b9135dbeebcdcfd1dfa3f33c4a945c7b5b830cc2c37a61d7a8',
           'd13b3eebce3dd3e89d8707e7373597b73d7127c5d5692fc36b6fcebe1d1dac0a', '92c7d0db86dffc2b86650f99055e676902dc12ee905a89926771ee43d2329712',
           'aac594d3266bf17444c1c17ed7201f8f5ff06d33206cd9c7c5d57cfe0fce7457', 'fd4b6f992ea7c094c97759933fb714b49d81dcf60756dee18fee4860525a1524',
-          '36092d7f506565d5c89d11ea389d569e2106f738768d1a7450f4e3e39595c3d7', '015f3af08ba852c372e6b0a9f9d6815999731bd3322e03c8b5f944cdac8f4544', sha(f)]);
+          '36092d7f506565d5c89d11ea389d569e2106f738768d1a7450f4e3e39595c3d7', '015f3af08ba852c372e6b0a9f9d6815999731bd3322e03c8b5f944cdac8f4544',
+          '2b84a1ebbdc1172375ff7c783a463ce39e266c490b2256314eae8893b5548e68', sha(f)]);
       }
       else if (f.endsWith('/revx_sim.ts')) expect(named, f).toEqual(['885def181e01899095745c7c1128a3dee06e11f960965ec439cc7a50642fcd48', '4b8f99e925f0ba6e05e188554e4b6bf8a43eead0aaec0b5d946a65664361f8aa', sha(f)]);
       else expect(named, f).toEqual([sha(f)]);

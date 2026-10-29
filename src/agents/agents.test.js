@@ -974,7 +974,9 @@ describe("the realistic twins as rows of TESTING (Davies, 2026-10-02: the live e
     const names = quotesTwinRows({ quotesTwins: shownTwins }).map((x) => x.name);
     // Since 0167 (Davies, 2026-10-29): the £120 twin is off, the USDT 2:1 twin hidden, and the visible variants count 1 to 6.
     expect(names).toEqual(['Stablecoin quotes LIVE twin', 'Stablecoin quotes variant-1', 'Stablecoin quotes variant-2', 'Stablecoin quotes variant-3',
-      'Stablecoin quotes variant-4', 'Stablecoin quotes variant-5', 'Stablecoin quotes variant-6']);
+      'Stablecoin quotes variant-4', 'Stablecoin quotes variant-5', 'Stablecoin quotes variant-6', 'Stablecoin quotes variant-7']);
+    // 0169: variant-7's control runs hidden, as the USDT 2:1 twin does.
+    expect(names).not.toContain('Stablecoin quotes USDC control from 10-30');
     expect(twin('live')).toBeUndefined();
     expect(twinFixture.twins.map((t) => t.twin.name)).toContain('Stablecoin quotes USDT 2:1 from 10-28');
     expect(names).not.toContain('Stablecoin quotes USDT 2:1 from 10-28');
@@ -1093,7 +1095,7 @@ describe('quoteLadderRows — a book as the page draws it', () => {
     // A EUR book's in euros, USDT-EUR's to its five-place step (Coinbase, 0112).
     expect([fmtQuotePrice(0.8649, 'USDC-EUR'), fmtQuotePrice(0.86493, 'USDT-EUR'), fmtQuotePrice(0.7568, 'USDC-GBP')]).toEqual(['€0.8649', '€0.86493', '£0.7568']);
   });
-  it('"Stablecoin quotes with Euros" is the TESTING row right after the last twin, "Stablecoin quotes variant-6" in the fixture, on Coinbase, in pounds, and opens its own page', () => {
+  it('"Stablecoin quotes with Euros" is the TESTING row right after the last twin, "Stablecoin quotes variant-7" in the fixture (0169), on Coinbase, in pounds, and opens its own page', () => {
     const q = cbFixture.quotesCoinbase;
     const row = quotesCoinbaseRow(q);
     expect(row).toMatchObject({ id: QUOTES_COINBASE_ROW_ID, name: 'Stablecoin quotes with Euros', venue: 'Coinbase', venueId: 'coinbase', mode: 'paper', ccy: 'GBP' });
@@ -1104,7 +1106,7 @@ describe('quoteLadderRows — a book as the page draws it', () => {
     const dash = { quotesTwins: shownTwins, quotesCoinbase: q };
     const names = paperTestRows(dash).map((r) => r.name);
     expect(names.indexOf('Stablecoin quotes with Euros')).toBe(shownTwins.length);
-    expect(names[names.indexOf('Stablecoin quotes with Euros') - 1]).toBe('Stablecoin quotes variant-6');
+    expect(names[names.indexOf('Stablecoin quotes with Euros') - 1]).toBe('Stablecoin quotes variant-7');
     // On two lines, as the variants are: the same run of rows.
     expect(strategyNameParts(String(row?.name))).toEqual({ head: 'Stablecoin quotes', qual: 'with Euros', twoLines: true });
     expect(quotesPageFor(QUOTES_COINBASE_ROW_ID, dash)).toBe('coinbase');

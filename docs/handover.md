@@ -47230,3 +47230,61 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   (sealed, AES-GCM), one login at a time (`login_until`), waits, an always-sent switch, same-token retry, one re-login
   18 s after a refused login, a refused session logged out (`IGBOT_SESSION`). 7 pins on a mock IG fail on the old client.
   The prompt's login rule now gives the real cause. The 2026-10-29 02:19 section(s) archived (fourteenth).
+
+## LEDGER.md, archived 2026-10-29 (sixteenth) — the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 UTC history sections, oldest first
+
+### [2026-10-29 02:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The ledger's budget is 100 KiB, not 80** (Davies, 10-29: "交接记录目前限制是80kb吗？改为100kb吧"): `bin/hooks/pre-commit`
+  (`LEDGER_BUDGET=102400`), `src/ledger_budget.test.js`, `.claude/CLAUDE.md`, the live-watch skill and this file's header.
+
+### [2026-10-29 02:43 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The Chinese gate before every tool call** (Davies, 10-29: "还是英文，这个问题还是没解决，请真正彻底解决"):
+  `.claude/hooks/chinese-pretool.mjs` (PreToolUse) refuses a tool call while the latest main-thread note reads as English,
+  until it is said again in Chinese. Its first live check caught an English note the model meant to write in Chinese.
+  Pinned in `src/chinese_reply_hook.test.js` (8 cases).
+
+### [2026-10-29 02:36 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **CXBOT: Davies' three audit decisions** (sub-agent; commit, not pushed; item 19; "你说的那三件事全按你的建议来"):
+  7-day bootstrap blocks; `CXBOT_RELEASES_2027Q1` (CPI, NFP, FOMC to 03-31, from bls.gov and federalreserve.gov), for CXBOT's
+  blackout only, `cb_releases.ts` untouched; P&L from the shakedown's end, in prereg §0. An ended test's row reads "ended";
+  `dist/`. Prompt changed (calendar to 2027-03-31). The 02:13 section archived (fifteenth).
+
+### [2026-10-29 02:49 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **One daily review at 23:45 London for all three Grok desks** (Davies, 10-29: "每天23:45的复盘把这两个也加上"): the
+  GROKPM trigger `trig_0165DPcrxXo6NhdDZdjDsmZ8` now checks GROKPM, IGBOT and CXBOT; the separate 23:17 (IGBOT) and 23:27
+  (CXBOT) triggers are deleted. The IGBOT and CXBOT prompts and the CXBOT seed say 23:45; prompts resent to Davies.
+
+### [2026-10-29 03:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Agents page: display names and tiles** (sub-agent; commit, not pushed; Davies, 10-29: "“AUD weekend (FXW-AUD)”改名为 FXW-AUD
+  weekend … Stablecoin quotes USDG/EUR … EURC/USDC … on 1 resolved删了 … trades和record调换位置"). "AUD weekend (FXW-AUD)" is
+  "FXW-AUD weekend" in `ig/fxw.ts` (`FXW.name`, which the run writes to `ig_fxw_state.name`), `fxw_view.ts`' fallback, the docs, and
+  `0166` renames the stored row, guarded by the old name. The OKX twins' names stay in `okx_quotes.ts` (its sha256 is in the frozen
+  OKX pre-registration, `okx_prereg.test.js`): the page maps the twin id to "Stablecoin quotes USDG/EUR" and "Stablecoin quotes
+  EURC/USDC" (`quotesOkxName`). DAYS RUN is gone from the STATUS of FXW-AUD weekend, IG Trader and Crypto analyst; the Polymarket
+  analyst's Brier tile lost its "on N resolved" note (the only such note), and its DAYS table reads Day, Trades, Agent says,
+  Record. Pins: `agents.test.js`, `agents_fxw.test.js` (also the name in the migration), `agents_okx.test.js`,
+  `grok_tests.test.js`; the sweep's GROKPM days, status text and mask check, and FXW tiles. Also (Davies, 10-29: "hyperliquid的主题颜色不对吧
+  ... Coinbase应该改成他们的主题蓝"): `VENUE_HUES` Hyperliquid `#97fce4` (badge, card border, share slice) and Coinbase `#0052ff` (card
+  border, slice, badge fill; badge text the tint `#4d8bff`, 5.4:1 on the page); pinned in `agents.test.js` and by a contrast check in the
+  sweep's agents section at both widths. `dist/` rebuilt.
+
+### [2026-10-29 03:02 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The pre-tool Chinese gate refuses each English note once** (10-29): the transcript lags the conversation, so a note it
+  had refused stayed "the latest" and refused every call after it, the Chinese rewrite's included, locking the session's
+  tools until Davies wrote again. Refused notes are now kept as hashes beside the transcript and never refused twice.
+
+### [2026-10-29 03:07 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **IGBOT armed on IG demo and CXBOT started on paper** (Davies, 10-29: "请检查状态，并且确保没问题后testing列表中的策略现在就上线";
+  both Grok agents had their prompts and answered the ping). Checked first: IGBOT's sync clean since 0165 (32 minutes, 0
+  errors, ≤ 5 calls), the demo account holding no position or working order. `igbot_config` mode `demo`, armed and
+  started 2026-10-29 03:03:59 UTC (0157's statement). `cxbot_config` mode `paper`, started 03:04:03 UTC (0163's
+  statement): the 48-hour shakedown, then 56 days; the CXBOT prereg is frozen as it stands on main at this commit.
+  FXW-AUD starts by itself on Fri 10-30 21:35 UK. The 23:45 review covers all three Grok desks.
+
+### [2026-10-29 03:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **IGBOT's agent watches FXW-AUD for Davies** (sub-agent; commit, not pushed; item 18; Davies, 10-29: "我想让ig trader bot帮我也盯着澳元策略的记录和run的情况"):
+  `GET /igbot?action=fxw_watch` (`igbot/fxw_watch.ts`), the bearer's, read-only from the database before IG's client is built:
+  the book, the newest 3 weekends with their quotes, the live recorder's runs and streak, the window, live facts (ids masked to 2
+  chars), the two calls' beats, and `problems` (six codes). GROK_PROMPT gains "Watching the AUD weekend strategy (FXW-AUD) for
+  Davies" (when to call, each field, each problem; report in Chinese and in "Grok → Claude"; never fix, trade or log in).
+  Davies forwards the section to Grok as an addendum. Deno 3 new tests, a vitest pin of the prompt against the code.

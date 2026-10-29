@@ -333,6 +333,13 @@ places stay when the number is not whole.
   coin in USDT). Each is the same page with its own figures. A fifth test,
   with twice the pounds on USDT/GBP (USDT 2:1), runs behind the page and is
   not shown (29 Oct); the numbers on the page stay 1 to 6.
+- **Stablecoin quotes variant-7.** From 30 Oct 00:00 UTC: the live account's
+  rules on the USDC/GBP book alone, $300 funded (its money is shown in
+  dollars), six rungs of about $50, with its fair price nudged each minute by
+  half of how far Coinbase's own USDC/GBP price has moved off its usual gap to
+  that fair (the fair-price study of 29 Oct found this the one change worth
+  testing). A copy without the nudge runs behind the page on the same money,
+  and after four weeks the two are compared day by day.
 - **Older stablecoin twins, off the page.** The £1,200 twin, the £50-a-rung
   size twin and the nine-rung rule's twin ("rule-D twin" since 27 Oct) keep running behind the page until
   their readings, then stop; the weekend twin of 18 Oct has stopped, since

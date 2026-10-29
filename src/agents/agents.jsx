@@ -559,7 +559,7 @@ function QuotesLiveDetail({ q, m, at, nowMs, twin = false, coinbase: cbOnly = fa
       <div className="ag-scoreboard ag-scoreboard-sm">
         <FundedCells fundedUsd={x.capital} deployedUsd={x.value} m={m} ccy={x.ccy} />
         <div className="ag-sb-divider" />
-        <GlCell label="TODAY" usd={x.today} pct={x.todayPct} m={m} ccy={x.ccy} aside={q.lossStopGbp != null ? `(loss stop ${m(fmtGbp(q.lossStopGbp))})` : null} />
+        <GlCell label="TODAY" usd={x.today} pct={x.todayPct} m={m} ccy={x.ccy} aside={q.lossStopGbp != null ? `(loss stop ${m(x.ccy === 'USD' && q.lossStopUsd != null ? fmtIn(q.lossStopUsd, 'USD') : fmtGbp(q.lossStopGbp))})` : null} />
         <div className="ag-sb-divider" />
         <GlCell label="UNREALIZED G/L" usd={x.unrealised} pct={x.unrealisedPct} m={m} ccy={x.ccy} />
         <div className="ag-sb-divider" />

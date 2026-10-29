@@ -17,6 +17,15 @@ const M = '0144_quote_twins_live_at_600.sql';
 const BASE = rowsOf('0141_quote_twins_relayout.sql').find((r) => r.id === 'live600');
 const DOC = read('docs/agents/reviews/2026-10-27-live-next-size-prereg.md').toString('utf8');
 const SIZE_DOC = read('docs/agents/reviews/2026-10-26-live-size-twins-prereg.md').toString('utf8');
+/**
+ * The deviation of 2026-10-29 (0169: the driver gains variant-7's rules `fairNudge` and `usdCapital`), recorded apart from the
+ * frozen text: the files as they are, under this pre-registration's own heading of that record.
+ */
+const V7 = read('docs/agents/reviews/2026-10-29-variant7-frozen-files-deviation.md').toString('utf8');
+const v7Named = (f) => {
+  const s = V7.indexOf('### `docs/agents/reviews/2026-10-27-live-next-size-prereg.md`'), rest = s < 0 ? '' : V7.slice(s + 1), e = rest.search(/\n##/);
+  return [...rest.slice(0, e < 0 ? undefined : e).matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
+};
 
 describe("LIVE's next size, £1,200 on LIVE's rules", () => {
   it("is the one row of 0144: the £600 twin's but for id, name, place, capital, tables, lease, start, fill date and pre-registration", () => {
@@ -47,12 +56,14 @@ describe("LIVE's next size, £1,200 on LIVE's rules", () => {
 
   it('names the sha256 of each file it froze, once, and each file is that one, as its deviation 2 left it', () => {
     // Its deviation 1 (2026-10-27): the driver gains PR5-OPT's rules weights and holdMin; §5 keeps the hash it was frozen at and the
-    // deviation names it as it is.
-    const before = { 'supabase/functions/agents/quotes_twin.ts': ['36092d7f506565d5c89d11ea389d569e2106f738768d1a7450f4e3e39595c3d7', '015f3af08ba852c372e6b0a9f9d6815999731bd3322e03c8b5f944cdac8f4544'] };
+    // deviation names it as it is. Its deviation 2 (2026-10-28, `0152`) names it again; and that of 2026-10-29 (`0169`, variant-7's
+    // rules), recorded apart (V7), names the driver as it is.
+    const before = { 'supabase/functions/agents/quotes_twin.ts': ['36092d7f506565d5c89d11ea389d569e2106f738768d1a7450f4e3e39595c3d7', '015f3af08ba852c372e6b0a9f9d6815999731bd3322e03c8b5f944cdac8f4544',
+      '2b84a1ebbdc1172375ff7c783a463ce39e266c490b2256314eae8893b5548e68'] };
     const named = (f) => [...DOC.matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
     for (const f of [
       `supabase/migrations/${M}`, 'supabase/functions/agents/quotes_twin.ts', 'supabase/functions/agents/revx_sim.ts',
       'supabase/functions/agents/quotes_weekend.ts',
-    ]) expect(named(f), f).toEqual(before[f] ? [...before[f], sha(f)] : [sha(f)]);
+    ]) expect([...named(f), ...v7Named(f)], f).toEqual(before[f] ? [...before[f], sha(f)] : [sha(f)]);
   });
 });
