@@ -40,6 +40,13 @@ Deno.test("every figure matches the arithmetic worked by hand", () => {
   assertEquals([o.status.open, o.status.scored, o.status.resolved], [2, 2, 2]);
   assertEquals(o.days.map((d) => [d.day, d.recordUsd, d.agentUsd, d.mismatch]), [["2026-09-17", 0.7, null, false], ["2026-09-16", 1.6, 1.5, false]]);
   close(o.days.reduce((s, d) => s + Number(d.recordUsd), 0), o.totalUsd);
+  // Each day's realised (DAYS' 7-day figure): its P&L less the change in unrealised. 09-16 opened holding nothing and closed
+  // holding 333 at 0.95 (unrealised 10 × 0.25 = +2.50): 1.60 − 2.50 = −0.90, 444's 15 × (0.25 − 0.31). 09-17 ends at +0.20
+  // unrealised: 0.70 − (0.20 − 2.50) = +3.00, 333's 10 × 0.30 at its resolution. Together REALIZED's +2.10.
+  assertEquals(o.days.map((d) => d.realisedUsd), [3, -0.9]);
+  close(o.days.reduce((s, d) => s + Number(d.realisedUsd), 0), o.realisedUsd);
+  // Without the open snapshot a day's realised is unknown, not guessed.
+  assertEquals(grokPmSummary({ ...input, openSnaps: [] })!.days.map((d) => d.realisedUsd), [null, null]);
   assertEquals(o.cycle, { ts: "2026-09-17T22:31:00.000Z", kind: "light", actions: 0, openPositions: 3, agentEquityUsd: 100.1, agentPnlUsd: 0.1, recordEquityUsd: 102.3, recordPnlUsd: 2.3, mismatch: true });
   assertEquals(o.mismatch, true);
   assertEquals(o.running, true);

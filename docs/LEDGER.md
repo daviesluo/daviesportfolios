@@ -796,6 +796,16 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second).
 
+### [2026-10-29 19:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Polymarket analyst: a redeemed position leaves POSITIONS; DAYS gets the 7-day figure and the last-7 default** (sub-agent;
+  commit, not pushed; Davies, 10-29: "…Vertiv…resolved · to redeem - 这个怎么没有自动redeem？…是不是有问题", then "…days和Stablecoin quotes的live
+  页面一样在days旁边加上"- 7-day realised, annualised"…默认只显示今天+过去7天和"Load full history"按钮"). Vertiv was redeemed on chain at
+  10-28 11:57:47, 9 s after its market closed: Polymarket's own redemption, not ours (no `grokpm_redeems` row after 10-18; the hourly
+  run is healthy, `redeem_enabled`, its 19:00 plan empty, no error; the "positions: 429" report key is from 10-23). The record
+  (`grokpm_rec.ts` `agentBook`) now counts the account's REDEEM of an agent token, its share (min(held, redeemed), payout pro rata)
+  into cash: equity unchanged ($[•], equal to the server's cycle), POSITIONS empty. DAYS: each day's realised (P&L less Δunrealised
+  from day-open snapshots), `quoteDaysAnnualPct` on FUNDED $100, `useDaysWindow`/`DaysTitle` shared with the quote pages.
+
 ### [2026-10-29 19:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Coinbase's live path, part 2: "Stablecoin quotes USDC/GBP", built dry-run and unarmed** (sub-agent; commit, not pushed; Davies,
   10-29: "…先把"with Euros - 2"用120磅资金上限，上线后live策略名字叫Stablecoin quotes USDC/GBP"). `agents/cb_live.ts`, migration `0177`,

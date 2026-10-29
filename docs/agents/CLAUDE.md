@@ -691,7 +691,10 @@ that follow from that evidence, in short:
     hand order on its tokens would move what it can sell.
   - **Redemption (D6, `0128`).** `grokpm?action=redeem`, hourly, redeems the shared account's resolved positions (every
     owner's: value-neutral) in one gasless relayed transaction a run, at most five markets; a dry run until
-    `grokpm_config.redeem_enabled`, and nothing without the Relayer API key's two secrets. It writes no fill.
+    `grokpm_config.redeem_enabled`, and nothing without the Relayer API key's two secrets. It writes no fill. Polymarket
+    also redeems by itself at resolution (Vertiv's, 2026-10-28, 9 s after its market closed; the hourly run then finds
+    nothing), so since 2026-10-29 the keyless record counts the account's REDEEM of a token the agent holds, for the agent's
+    share, into its cash: the position leaves POSITIONS ("resolved · to redeem" no longer sticks) and the equity is unchanged.
   - **The reading.** 28 days, 40 resolved positions, or the −$30 stop. Continue only if P&L > 0 and its Brier beats the
     market's.
 - **IGBOT, "IG analyst"** (`igbot` function, `0157`, `reviews/2026-10-29-igbot-research.md`, its pre-registration a DRAFT

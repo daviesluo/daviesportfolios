@@ -572,8 +572,13 @@ places stay when the number is not whole.
   more than $1. STATUS shows the open positions, the cash, how well its
   probabilities scored against the market's prices on the markets that have
   resolved (the Brier score: lower is better, its own first), and how many
-  have resolved. Then POSITIONS from the record; DAYS, each day's trades,
-  the result the agent reported and, last, the result from the record; and last the JOURNAL, its
+  have resolved. Then POSITIONS from the record (a resolved position leaves
+  it once its winnings are redeemed, into the cash); DAYS, each day's trades,
+  the result the agent reported and, last, the result from the record, with
+  "7-day realised, annualised" beside its heading as on the Stablecoin quotes
+  pages (what its closed trades and resolved markets made over the last seven
+  closed days, on its $100, as a year), today and the last seven days shown
+  and "Load full history" for the rest; and last the JOURNAL, its
   latest decisions, each with its time in UTC, what it did, the market's
   title as an underlined link to that market on Polymarket ("market title
   pending" until the site has read it), the probability it gave against the

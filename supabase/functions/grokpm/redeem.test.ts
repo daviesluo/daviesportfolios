@@ -241,16 +241,17 @@ Deno.test("the book: a redemption writes no fill, so GROKPM's ledger and the key
   const after = ledgerOf({ fundedUsd: 100, orders: [], fills: s.db.tables.grokpm_fills as never, mids: {}, payouts: { "501": 1 }, nowMs: T0 + 3600e3 });
   assertEquals([after.cashUsd, after.equityUsd, after.totalUsd], [before.cashUsd, before.equityUsd, before.totalUsd]);
   assertEquals([before.cashUsd, before.totalUsd], [106, 6]);
-  // The record: the account's REDEEM item (same token, the payout in) is not the agent's trade; only the matched TRADE counts.
+  // The record (since 2026-10-29): the account's REDEEM item turns the agent's resolved holding into its cash, once. Before
+  // it, the holding was marked at its payout ($10 of position value); after it, the $10 is cash and nothing is held, so the
+  // record's equity (budget + cash flows + holdings at their marks) is $106 either way, as D4's ledger above has it.
   const trade = { ts: new Date(T0 - 86400e3).toISOString(), type: "TRADE", cond: C_WIN, asset: "501", side: "BUY", size: 10, usdc_size: 4, tx: "0x" + "cd".repeat(32), outcome_index: 0, title: null };
   const redeem = { ts: new Date(T0 + 1800e3).toISOString(), type: "REDEEM", cond: C_WIN, asset: "501", side: null, size: 10, usdc_size: 10, tx: "0x" + "ab".repeat(32), outcome_index: 0, title: null };
   const start = new Date(T0 - 2 * 86400e3).toISOString();
   const book = agentBook([trade, redeem], fills, start), without = agentBook([trade], fills, start);
-  assertEquals(book, without);
-  assertEquals([book.flowUsd, book.assets[0].size], [-4, 10]);
-  // Counterfactual: read as a trade, the redemption would add its $10 a second time on top of D4's payout.
-  const asTrade = agentBook([trade, { ...redeem, type: "TRADE", side: "SELL", tx: "0x" + "cd".repeat(32) }], fills, start);
-  assertEquals(asTrade.flowUsd, 6);
+  assertEquals([without.flowUsd, without.assets[0].size], [-4, 10]);
+  assertEquals([book.flowUsd, book.assets[0].size, book.assets[0].redeemedUsd], [6, 0, 10]);
+  assertEquals([100 + without.flowUsd + without.assets[0].size * 1, 100 + book.flowUsd + book.assets[0].size * 1], [106, 106]);
+  assertEquals(before.equityUsd, 106);
 });
 
 Deno.test("the endpoint: redeem takes only the scheduler's bearer, beats first, runs in eu-west-1, and reports a fault once an hour", async () => {

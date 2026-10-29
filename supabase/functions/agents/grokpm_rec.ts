@@ -6,8 +6,9 @@
 // wallet is shared: its proxy address is `grokpm_config.wallet`, written by the `grokpm` function from the account's own
 // settings (never printed). The agent's book is its OWN trades only: the account's public activity, each TRADE from the
 // go statement's `started_at` on whose transaction and token are one of the agent's fills as the order path read them
-// back (`grokpm_fills.tx_hash`), counted at the data API's own sizes and dollars (`agentBook`). Live-prep's dust, its
-// redemptions and anything else the account does are never the agent's.
+// back (`grokpm_fills.tx_hash`), counted at the data API's own sizes and dollars (`agentBook`), and, since 2026-10-29,
+// the account's redemption of a token the agent holds, for the agent's share of it (`agentBook`). Live-prep's dust, its
+// trades and anything else the account does are never the agent's.
 //
 // It trades nothing, reads no key and places nothing. Every read is a public GET or a public JSON-RPC `eth_call`:
 //   data-api.polymarket.com  /activity?user= (500 a read, all stored), /positions?user= (the data API's price for a
@@ -141,24 +142,45 @@ export type GrokPmTrade = { ts: string; type: string; cond: string | null; asset
 /**
  * The agent's own trades in the shared account's public activity (Deviation D2): a TRADE from the start on whose
  * transaction and token are one of the agent's own fills as the order path read them back (`grokpm_fills.tx_hash`).
- * Everything else the account does (live-prep's dust, its redemptions) is not the agent's. Its cash flows are the data
- * API's own `usdcSize`; its holdings the trades' sizes. Each asset: its market, net size, cash out and in, and average
- * buy price.
+ * Its cash flows are the data API's own `usdcSize`; its holdings the trades' sizes. Each asset: its market, net size, cash
+ * out and in, and average buy price.
+ *
+ * And the account's REDEEM of a token the agent holds (2026-10-29; Davies: "…resolved · to redeem - 这个怎么没有自动redeem？"):
+ * a redemption burns the account's resolved tokens for their payout, whoever redeemed them (the hourly redeemer, D6;
+ * Polymarket itself, which redeemed Vertiv's 9 s after its market closed on 2026-10-28; or a person). Polymarket's collateral
+ * adapters redeem the account's WHOLE balance of the token, so the item's size is the account's holding then, and the
+ * agent's part of it is its own share, min(its size, the item's size); the payout comes in pro rata, `usdcSize` × part ÷
+ * size. So a redeemed holding leaves the
+ * agent's positions and its payout enters its cash once. Its equity does not move: before, the holding was marked at that
+ * payout (`agentPositions`); D4's settlement in the server's book counted it as cash from the resolution, which this now
+ * matches. Everything else the account does (live-prep's dust and trades, other owners' tokens) is not the agent's.
  */
 export function agentBook(trades: GrokPmTrade[], fills: Array<{ tx_hash: string | null; token: string }>, startedAt: string) {
   const ours = new Set(fills.filter((f) => f.tx_hash).map((f) => `${String(f.tx_hash).toLowerCase()}|${f.token}`));
-  const out = new Map<string, { asset: string; cond: string; outcomeIndex: number | null; title: string | null; size: number; buySize: number; buyUsd: number; flowUsd: number; firstBuy: string | null }>();
+  const out = new Map<string, { asset: string; cond: string; outcomeIndex: number | null; title: string | null; size: number; buySize: number; buyUsd: number; flowUsd: number; redeemedUsd: number; firstBuy: string | null }>();
   let flow = 0;
   for (const t of [...trades].sort((a, b) => a.ts.localeCompare(b.ts))) {
+    if (t.type === "REDEEM") {
+      const x = t.asset ? out.get(t.asset) : undefined;
+      if (!x || t.ts < startedAt || !(x.size > 0)) continue;
+      const size = Number(t.size), usd = Number(t.usdc_size);
+      if (!(size > 0) || !(usd >= 0)) continue;
+      const part = Math.min(x.size, size), cash = (usd * part) / size;
+      x.size -= part; x.flowUsd += cash; x.redeemedUsd += cash; flow += cash;
+      continue;
+    }
     if (t.type !== "TRADE" || !t.asset || !t.cond || !t.tx || t.ts < startedAt || !ours.has(`${t.tx.toLowerCase()}|${t.asset}`)) continue;
     const size = Number(t.size), usd = Number(t.usdc_size);
     if (!(size > 0) || !(usd >= 0)) continue;
-    const x = out.get(t.asset) ?? { asset: t.asset, cond: t.cond, outcomeIndex: t.outcome_index, title: t.title, size: 0, buySize: 0, buyUsd: 0, flowUsd: 0, firstBuy: null };
+    const x = out.get(t.asset) ?? { asset: t.asset, cond: t.cond, outcomeIndex: t.outcome_index, title: t.title, size: 0, buySize: 0, buyUsd: 0, flowUsd: 0, redeemedUsd: 0, firstBuy: null };
     if (t.side === "BUY") { x.size += size; x.buySize += size; x.buyUsd += usd; x.flowUsd -= usd; x.firstBuy ??= t.ts; flow -= usd; }
     else if (t.side === "SELL") { x.size -= size; x.flowUsd += usd; flow += usd; }
     out.set(t.asset, x);
   }
-  return { assets: [...out.values()].map((x) => ({ ...x, size: r6(x.size), avgPrice: x.buySize > 0 ? r6(x.buyUsd / x.buySize) : 0 })), flowUsd: r6(flow) };
+  return {
+    assets: [...out.values()].map((x) => ({ ...x, size: r6(x.size), redeemedUsd: r6(x.redeemedUsd), avgPrice: x.buySize > 0 ? r6(x.buyUsd / x.buySize) : 0 })),
+    flowUsd: r6(flow),
+  };
 }
 
 /**
@@ -348,11 +370,11 @@ export async function runGrokPmRec(o: { db: Db; now: number; fetchImpl?: typeof 
     try {
       const startedAt = new Date(Date.parse(cfg.started_at)).toISOString();
       const [trades, fills, resolutionRows] = await Promise.all([
-        d.select<GrokPmTrade>("grokpm_activity", `type=eq.TRADE&ts=gte.${encodeURIComponent(startedAt)}&select=ts,type,cond,asset,side,size,usdc_size,tx,outcome_index,title&order=ts.asc,key.asc&limit=1000`),
+        d.select<GrokPmTrade>("grokpm_activity", `type=in.(TRADE,REDEEM)&ts=gte.${encodeURIComponent(startedAt)}&select=ts,type,cond,asset,side,size,usdc_size,tx,outcome_index,title&order=ts.asc,key.asc&limit=1000`),
         d.select<{ tx_hash: string | null; token: string }>("grokpm_fills", "status=in.(MATCHED,MINED,CONFIRMED,RETRYING)&select=tx_hash,token&order=trade_id.asc,hash.asc&limit=1000"),
         d.select<{ cond: string; tokens: unknown; payouts: unknown }>("grokpm_resolutions", "select=cond,tokens,payouts&order=cond.asc&limit=1000"),
       ]);
-      if (trades.length >= 1000) throw new Error("over 1,000 trades since the start: the record would be read in part");
+      if (trades.length >= 1000) throw new Error("over 1,000 trades and redemptions since the start: the record would be read in part");
       const book = agentBook(trades, fills, startedAt);
       const payouts = finalPayouts(resolutionRows);
       const held = book.assets.filter((a) => a.size > 0 && payouts[a.asset] === undefined).map((a) => a.asset);

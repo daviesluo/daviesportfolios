@@ -276,7 +276,7 @@ import { PM_REC_VENUE_TIMEOUT_MS, pmRecStorage, runPmRec, runPmRecMeta } from ".
 import { runCjRec } from "./cj_rec.ts";
 import { runGrokPmRec } from "./grokpm_rec.ts";
 import { readCxbot, readIgbot } from "./grok_tests_view.ts";
-import { GROKPM_CONFIG_COLUMNS, GROKPM_CYCLE_COLUMNS, GROKPM_DAILY_COLUMNS, GROKPM_DECISION_COLUMNS, GROKPM_ENTRY_COLUMNS, GROKPM_FILL_COLUMNS, GROKPM_FILL_STATUSES, GROKPM_JOURNAL_ROWS, GROKPM_MARKET_COLUMNS, GROKPM_OPEN_COLUMNS, GROKPM_SNAPSHOT_COLUMNS, grokPmSummary, type GrokPmConfigRow, type GrokPmCycleRow, type GrokPmDailyRow, type GrokPmDayOpenRow, type GrokPmDecisionRow, type GrokPmEntryRow, type GrokPmFillRow, type GrokPmMarketRow, type GrokPmOpenRow, type GrokPmResolutionRow, type GrokPmSnapshotRow } from "./grokpm_view.ts";
+import { GROKPM_CONFIG_COLUMNS, GROKPM_CYCLE_COLUMNS, GROKPM_DAILY_COLUMNS, GROKPM_DECISION_COLUMNS, GROKPM_ENTRY_COLUMNS, GROKPM_FILL_COLUMNS, GROKPM_FILL_STATUSES, GROKPM_JOURNAL_ROWS, GROKPM_MARKET_COLUMNS, GROKPM_OPEN_COLUMNS, GROKPM_SNAPSHOT_COLUMNS, grokPmSummary, type GrokPmConfigRow, type GrokPmCycleRow, type GrokPmDailyRow, type GrokPmDayOpenRow, type GrokPmDecisionRow, type GrokPmEntryRow, type GrokPmOpenSnapRow, type GrokPmFillRow, type GrokPmMarketRow, type GrokPmOpenRow, type GrokPmResolutionRow, type GrokPmSnapshotRow } from "./grokpm_view.ts";
 import { runCbRec, type CbRecState } from "./cb_rec.ts";
 import { cbBooksDelayMs, runCbBooks } from "./cb_books.ts";
 import { runFxRec, type FxRecReport } from "./fx_rec.ts";
@@ -2173,8 +2173,14 @@ export async function readGrokPm(d: Db, now: number) {
         `slot=in.(${[slot, slot - 300e3].map((t) => encodeURIComponent(new Date(t).toISOString())).join(",")})&select=${GROKPM_SNAPSHOT_COLUMNS}&order=slot.desc&limit=1`).catch(() => []);
       cycleSnap = near[0] ?? null;
     }
+    // The day-open snapshots' positions, for each day's realised (DAYS' 7-day figure). Without them the days' realised is
+    // null and the rest of the page stands.
+    const openSnaps = dayOpens.length ? await d.select<GrokPmOpenSnapRow>("grokpm_snapshots",
+      `slot=in.(${dayOpens.map((o) => encodeURIComponent(new Date(Date.parse(o.slot)).toISOString())).join(",")})&select=slot,positions&order=slot.desc&limit=${dayOpens.length}`)
+      .catch(() => [] as GrokPmOpenSnapRow[]) : [];
     return grokPmSummary({
       config: cfg[0], latest: latest[0] ?? null, dayOpens, decisions, cycle: c ?? null, cycleSnap, daily, entries, resolutions, opens, recState: rec[0] ?? null, nowMs: now, markets, fills,
+      openSnaps,
     });
   } catch { return null; }
 }

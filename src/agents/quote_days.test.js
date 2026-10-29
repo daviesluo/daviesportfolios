@@ -4,8 +4,8 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import React from 'react';
 import { render, fireEvent, cleanup } from '@testing-library/react';
-import { QuoteDaysTable } from './agents.jsx';
-import { quoteDaysAnnualPct, quoteDaysRecent, quoteDaysWindow } from './agents.js';
+import { GrokPmDays, QuoteDaysTable } from './agents.jsx';
+import { grokPmDaysAnnualPct, quoteDaysAnnualPct, quoteDaysRecent, quoteDaysWindow } from './agents.js';
 
 afterEach(cleanup);
 
@@ -74,5 +74,38 @@ describe('DAYS, last seven by default', () => {
     cleanup();
     const old = [{ ...days[11], day: '2026-10-01', today: false }];
     expect(view(old).container.querySelectorAll('tbody tr')).toHaveLength(1);
+  });
+});
+
+// "Polymarket analyst"'s DAYS (Davies, 2026-10-29: "…days和Stablecoin quotes的live页面一样在days旁边加上"- 7-day realised, annualised
+// +66.7%"，然后底下默认只显示今天+过去7天和"Load full history"按钮"): the same heading figure over each day's realised and FUNDED, the
+// same default rows and the same button, beside its own columns.
+describe('Polymarket analyst DAYS, as the quote pages', () => {
+  const gDays = days.map((d, i) => ({ day: d.day, today: d.today, recordUsd: 0.05 * (12 - i), realisedUsd: 0.04 * (12 - i), agentUsd: null, trades: null, summary: null, mismatch: false }));
+  const g = { started: true, fundedUsd: 100, days: gDays };
+  const gView = (/** @type {any} */ gg) => render(React.createElement(GrokPmDays, { g: gg, m, nowMs: NOW }));
+
+  it('shows today and the seven closed days, Load full history for the rest, and the figure over realised and FUNDED', () => {
+    const { container, getByText } = gView(g);
+    expect(container.querySelectorAll('tbody tr')).toHaveLength(8);
+    expect(dayCells(container)[0]).toBe('28 Oct · today');
+    expect(dayCells(container)[7]).toBe('21 Oct');
+    const sum = gDays.filter((d) => !d.today && d.day >= '2026-10-21').reduce((s, d) => s + d.realisedUsd / 100, 0);
+    const annual = container.querySelector('.ag-quote-days-annual');
+    expect(annual?.textContent).toBe(` - 7-day realised, annualised +${(sum * (365 / 7) * 100).toFixed(1)}%`);
+    expect(grokPmDaysAnnualPct(g, NOW)).toBeCloseTo(sum * (365 / 7) * 100, 10);
+    // Realised, not the record's P&L (which also moves with what it holds).
+    expect(annual?.getAttribute('title')).toMatch(/^Realised over the last seven closed UTC days/);
+    fireEvent.click(getByText('Load full history'));
+    expect(container.querySelectorAll('tbody tr')).toHaveLength(12);
+    fireEvent.click(getByText('Show last 7 days'));
+    expect(container.querySelectorAll('tbody tr')).toHaveLength(8);
+  });
+
+  it('before the start there is no figure and no button', () => {
+    const { container, queryByText } = gView({ started: false, fundedUsd: null, days: [] });
+    expect(container.querySelector('.ag-quote-days-annual')).toBeNull();
+    expect(container.querySelector('.ag-section-title')?.textContent).toBe('DAYS');
+    expect(queryByText('Load full history')).toBeNull();
   });
 });

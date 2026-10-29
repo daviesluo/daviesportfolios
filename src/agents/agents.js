@@ -734,6 +734,28 @@ export function quoteDaysRecent(days, nowMs) {
  * which reads as the account's return; the label now names it, and the tooltip says the rest.
  */
 export const QUOTE_DAYS_ANNUAL_LABEL = '7-day realised, annualised';
+/**
+ * "Polymarket analyst"'s DAYS heading figure (Davies, 2026-10-29: "Polymarket analyst策略页面里的days和Stablecoin quotes的live页面一样在days
+ * 旁边加上…"): the same helper and window as the quote pages (`quoteDaysAnnualPct`), over each day's realised from the record
+ * (`grokpm_view.ts`: the day's P&L less the change in what its open positions are marked at) and FUNDED, the $100 budget, as
+ * LIVE's is over its capital, the money put in, not its equity. Null before the start.
+ * @param {any} g  the dashboard's `grokPm`
+ * @param {number} nowMs
+ */
+export function grokPmDaysAnnualPct(g, nowMs) {
+  if (!g?.started) return null;
+  return quoteDaysAnnualPct(grokPmDaysRealised(g.days), g.fundedUsd, nowMs);
+}
+/**
+ * GROKPM's days in the quote helpers' shape: each day's realised as `realisedGbp`, which those helpers read in the row's own
+ * currency (dollars here). A day the record cannot split yet (null) counts nothing.
+ * @param {any[] | null | undefined} days
+ */
+export function grokPmDaysRealised(days) {
+  return (days ?? []).map((d) => ({ ...d, realisedGbp: d.realisedUsd ?? 0 }));
+}
+export const GROKPM_DAYS_ANNUAL_TITLE = 'Realised over the last seven closed UTC days (its trades closed and its markets resolved), over FUNDED, times 365 / 7 (simple). '
+  + 'What it still holds is not marked into it (UNREALIZED G/L shows it), and one week is a short sample.';
 export const QUOTE_DAYS_ANNUAL_TITLE = 'Round trips realised over the last seven closed UTC days, each over the capital it ran on, times 365 / 7 (simple). '
   + 'The coins held are not marked into it (UNREALIZED G/L shows them), and one week is a short sample.';
 

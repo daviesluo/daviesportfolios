@@ -40,8 +40,11 @@
 // only when the previous run was refused too, so one busy minute an hour is not an alarm and two in a row are.
 //
 // The book. Nothing here writes a fill: GROKPM's book (`exec.ts` `ledgerOf`) counts its fills and the resolutions
-// (`grokpm_resolutions`), and the keyless record (`agents/grokpm_rec.ts` `agentBook`) counts TRADE activity matched to
-// those fills; a REDEEM activity item is neither, so a redemption changes neither figure. Pinned in redeem.test.ts.
+// (`grokpm_resolutions`), so a redemption leaves it as it was. The keyless record (`agents/grokpm_rec.ts` `agentBook`)
+// counts TRADE activity matched to those fills and, since 2026-10-29, the account's REDEEM of a token the agent holds, for
+// the agent's share: the holding leaves its positions and the payout enters its cash, so its equity is what it was (the
+// holding was marked at that payout) and matches the server's book, which settled it at the resolution (D4). Whoever
+// redeems (this run, Polymarket at resolution, a person) the record is the same. Pinned in redeem.test.ts.
 //
 // Secrets: the signing key is the order path's (`loadPmLiveEnv`, held where nothing prints it); the relayer key travels
 // only in its header and is scrubbed from every message. No address is returned to the agent: this action takes the

@@ -16,7 +16,7 @@ import { SurfaceBoundary } from '../app/surface_boundary.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, FXW_ROW_ID, fmtFx, fxwAudRow, fxwTiles, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokTestRow, grokTestOf, grokTestTiles, grokTestLayerCells, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtFeeIn4, fmtGbp, fmtGbp4, fmtIn, fmtIn4, quotesDetailInCcy, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_NUDGE_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesPageFor, quotesOkxName, quotesOkxOf, quotesOkxRow, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quoteDaysRecent, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwShareText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows,
+  AGENT_TABS, FXW_ROW_ID, fmtFx, fxwAudRow, fxwTiles, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokTestRow, grokTestOf, grokTestTiles, grokTestLayerCells, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmDaysAnnualPct, GROKPM_DAYS_ANNUAL_TITLE, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtFeeIn4, fmtGbp, fmtGbp4, fmtIn, fmtIn4, quotesDetailInCcy, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_NUDGE_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesPageFor, quotesOkxName, quotesOkxOf, quotesOkxRow, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quoteDaysRecent, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwShareText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -409,14 +409,10 @@ function QuoteBooks({ books, m, empty = null, ccy = 'GBP' }) {
  */
 export function QuoteDaysTable({ days, m, empty = null, capitalGbp = null, nowMs = Date.now(), ccy = 'GBP' }) {
   const annual = quoteDaysAnnualPct(days, capitalGbp, nowMs);
-  const [full, setFull] = React.useState(false);
-  const recent = quoteDaysRecent(days, nowMs);
-  const shown = full ? days : recent;
+  const { shown, more } = useDaysWindow(days, nowMs);
   return (
     <section className="ag-section ag-quote-days">
-      <div className="ag-section-title mono">DAYS{annual != null && (
-        <span className="ag-quote-days-annual" title={QUOTE_DAYS_ANNUAL_TITLE}> - {QUOTE_DAYS_ANNUAL_LABEL} <span style={{ color: pctColor(annual) }}>{fmtPctSigned(annual, 1)}</span></span>
-      )}</div>
+      <DaysTitle annual={annual} title={QUOTE_DAYS_ANNUAL_TITLE} />
       <div className="hl-scroll">
         <table className="hl-table ag-table ag-log mono">
           <thead><tr>
@@ -437,11 +433,40 @@ export function QuoteDaysTable({ days, m, empty = null, capitalGbp = null, nowMs
           </tbody>
         </table>
       </div>
-      {recent.length < days.length && (
-        <button type="button" className="btn-ghost ag-more" onClick={() => setFull((f) => !f)}>{full ? 'Show last 7 days' : 'Load full history'}</button>
-      )}
+      {more}
     </section>
   );
+}
+
+/**
+ * DAYS' heading with its "7-day realised, annualised" figure beside it, as the Stablecoin quotes pages draw it and "Polymarket
+ * analyst" draws it too (Davies, 2026-10-29: "…和Stablecoin quotes的live页面一样在days旁边加上"): nothing beside DAYS while
+ * there is no figure. `title` is the tooltip saying what the figure measures on that page.
+ * @param {{ annual: number | null, title: string }} props
+ */
+function DaysTitle({ annual, title }) {
+  return (
+    <div className="ag-section-title mono">DAYS{annual != null && (
+      <span className="ag-quote-days-annual" title={title}> - {QUOTE_DAYS_ANNUAL_LABEL} <span style={{ color: pctColor(annual) }}>{fmtPctSigned(annual, 1)}</span></span>
+    )}</div>
+  );
+}
+
+/**
+ * DAYS' rows by default, today's open row and the seven closed days the heading figure sums (`quoteDaysRecent`), and the
+ * button under the table that shows every day ("Load full history") and folds them back ("Show last 7 days"); no button when
+ * nothing is folded away. One for every page that has DAYS, so they cannot drift apart.
+ * @template {{ day: string }} D
+ * @param {D[]} days
+ * @param {number} nowMs
+ */
+function useDaysWindow(days, nowMs) {
+  const [full, setFull] = React.useState(false);
+  const recent = quoteDaysRecent(days, nowMs);
+  const more = recent.length < days.length
+    ? <button type="button" className="btn-ghost ag-more" onClick={() => setFull((f) => !f)}>{full ? 'Show last 7 days' : 'Load full history'}</button>
+    : null;
+  return { shown: full ? days : recent, more };
 }
 
 /** A closed UTC day as the page names it: "25 Sep", in the site's own month table (en-GB alone writes "Sept"). @param {string} day */
@@ -898,6 +923,45 @@ function GrokTestDetail({ g, m, nowMs }) {
   );
 }
 
+/**
+ * "Polymarket analyst"'s DAYS (Davies, 2026-10-29: "…days和Stablecoin quotes的live页面一样在days旁边加上"- 7-day realised, annualised
+ * +66.7%"，然后底下默认只显示今天+过去7天和"Load full history"按钮"): the quote pages' heading figure over each day's realised and
+ * FUNDED (`grokPmDaysAnnualPct`), and their default of today and the seven closed days with the same button
+ * (`useDaysWindow`). Its columns are its own: the agent's word beside the record's.
+ * @param {{ g: any, m: (s: string) => string, nowMs: number }} props
+ */
+export function GrokPmDays({ g, m, nowMs }) {
+  const days = g?.days ?? [];
+  const annual = grokPmDaysAnnualPct(g, nowMs);
+  const { shown, more } = useDaysWindow(days, nowMs);
+  return (
+    <section className="ag-section ag-gpm-days">
+      <DaysTitle annual={annual} title={GROKPM_DAYS_ANNUAL_TITLE} />
+      <div className="hl-scroll">
+        <table className="hl-table ag-table ag-log mono">
+          <thead><tr><th className="hl-th">Day (UTC)</th><th className="hl-th">Trades</th><th className="hl-th">Agent says</th><th className="hl-th">Record</th><th className="hl-th" aria-label="mismatch" /></tr></thead>
+          <tbody>
+            {days.length === 0 && <tr><td className="hl-empty dim" colSpan={5}>No day yet: the first starts when the funding arrives.</td></tr>}
+            {shown.map((/** @type {any} */ d) => {
+              const c = grokPmDayCells(d, m);
+              return (
+                <tr key={d.day}>
+                  <td className="dim">{dayLabel(d.day)}{d.today ? ' · today' : ''}</td>
+                  <td>{c.trades}</td>
+                  <td>{c.agent}</td>
+                  <td className="ag-gl" style={c.recordUsd == null ? undefined : { color: pctColor(c.recordUsd) }}>{c.record}</td>
+                  <td className="ag-gpm-flag">{c.flag}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      {more}
+    </section>
+  );
+}
+
 function GrokPmDetail({ g, m, at, nowMs }) {
   const row = grokPmRow(g);
   if (!row) return null;
@@ -905,7 +969,7 @@ function GrokPmDetail({ g, m, at, nowMs }) {
   const usd = (x) => m(fmtUsd(Number(x) || 0, true));
   const money = rowMoney(row);
   const stop = grokPmStopText(g, m), mismatch = grokPmMismatchText(g, m);
-  const positions = g.positions ?? [], journal = g.journal ?? [], days = g.days ?? [];
+  const positions = g.positions ?? [], journal = g.journal ?? [];
   return (
     <div className="ag-detail ag-gpm-detail">
       <div className="ag-detail-head">
@@ -962,29 +1026,7 @@ function GrokPmDetail({ g, m, at, nowMs }) {
           </table>
         </div>
       </section>
-      <section className="ag-section ag-gpm-days">
-        <div className="ag-section-title mono">DAYS</div>
-        <div className="hl-scroll">
-          <table className="hl-table ag-table ag-log mono">
-            <thead><tr><th className="hl-th">Day (UTC)</th><th className="hl-th">Trades</th><th className="hl-th">Agent says</th><th className="hl-th">Record</th><th className="hl-th" aria-label="mismatch" /></tr></thead>
-            <tbody>
-              {days.length === 0 && <tr><td className="hl-empty dim" colSpan={5}>No day yet: the first starts when the funding arrives.</td></tr>}
-              {days.map((/** @type {any} */ d) => {
-                const c = grokPmDayCells(d, m);
-                return (
-                  <tr key={d.day}>
-                    <td className="dim">{dayLabel(d.day)}{d.today ? ' · today' : ''}</td>
-                    <td>{c.trades}</td>
-                    <td>{c.agent}</td>
-                    <td className="ag-gl" style={c.recordUsd == null ? undefined : { color: pctColor(c.recordUsd) }}>{c.record}</td>
-                    <td className="ag-gpm-flag">{c.flag}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <GrokPmDays g={g} m={m} nowMs={nowMs} />
       <section className="ag-section ag-gpm-journal">
         <div className="ag-section-title mono">JOURNAL</div>
         {journal.length === 0 && <div className="hl-empty dim ag-gpm-empty">Nothing reported yet.</div>}

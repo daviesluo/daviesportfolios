@@ -5203,7 +5203,9 @@ async function run() {
             tiles: [...root.querySelectorAll('.ag-gpm-bar .ag-rw-tile')].map((t) => `${txt(t.querySelector('.ag-rw-tile-k'))}=${txt(t.querySelector('.ag-rw-tile-v'))}`).join(' | '),
             // The whole STATUS text: a tile's note ("on 2 resolved", Davies, 2026-10-29: "on 1 resolved删了") is not in `tiles`.
             statusText: txt(root.querySelector('.ag-gpm-bar')),
-            sections: [...root.querySelectorAll('.ag-section > .ag-section-title')].map(txt).join(','),
+            // DAYS' heading figure is read apart (`annual`), so the sections read as their names (2026-10-29: the quote pages' figure).
+            sections: [...root.querySelectorAll('.ag-section > .ag-section-title')].map((el) => txt(el).replace(/ - 7-day realised, annualised .*$/, '')).join(','),
+            annual: txt(root.querySelector('.ag-gpm-days .ag-quote-days-annual')), daysMore: root.querySelectorAll('.ag-gpm-days .ag-more').length,
             positions: rows('.ag-gpm-positions'), days: rows('.ag-gpm-days'),
             entries: [...root.querySelectorAll('.ag-gpm-entry')].map((e) => txt(e)),
             heads: [...root.querySelectorAll('.ag-gpm-entry-head')].map((e) => [...e.querySelectorAll('.ag-gpm-time, .ag-gpm-chip, .ag-gpm-meta')].map(txt).join(' | ')),
@@ -5237,6 +5239,9 @@ async function run() {
         const SB = `FUNDED=$100 | DEPLOYED=${TW.money(G.costUsd)}(${TW.pct((G.costUsd / 100) * 100, false)}) | TODAY=${GL[0].replace(' ', '')} | UNREALIZED G/L=${GL[1].replace(' ', '')} | REALIZED G/L [(incl. fees $0)]=${GL[2].replace(' ', '')}`;
         const WANT = {
           sections: 'STATUS,POSITIONS,DAYS,JOURNAL',
+          // DAYS' 7-day figure (2026-10-29), from the fixture's own days: 16 Sep, the one closed day since the start, realised -$0.90
+          // on FUNDED $100 over one day, a year: the quote pages' arithmetic (`quoteDaysAnnualPct`).
+          annual: (() => { const r = GROKPM_FIXTURE.output.days.filter((/** @type {any} */ d) => !d.today).reduce((/** @type {number} */ a, /** @type {any} */ d) => a + d.realisedUsd, 0) / 100 * 365 * 100; return `- 7-day realised, annualised ${r > 0 ? '+' : ''}${r.toFixed(1)}%`; })(),
           tiles: 'OPEN POSITIONS=2 | CASH=$69.10 | BRIER YOU / MARKET=0.106 / 0.084 | RESOLVED=2',
           stop: 'total stop at -$30: $32.30 of room · day stop at -$10.16: $10.86 of room',
           mismatch: "the agent's numbers differ from the record by more than $1: its 22:31 UTC report says $100.10 (+$0.10), the record $102.30 (+$2.30)",
@@ -5284,10 +5289,10 @@ async function run() {
             ok(GT('scoreboard'), `its scoreboard is the stablecoin quotes' live page's, cell for cell (${gv.sbShape.split(' | ').filter((c) => !c.startsWith('ag-sb-divider')).map((c) => c.split(':')[1]).join(', ')}; ${gv.sbCols} columns, "${gsb}")`);
           } else fail(GT('scoreboard'), `GROKPM ${gv.sbShape} (${gv.sbCols} columns, "${gsb}") against PR5's ${pr5?.shape} (${pr5?.cols} columns, "${pr5?.cls}")`);
         } else fail(GT('page'), `page ${JSON.stringify(gv && { title: gv.title, modals: gv.modals, head: gv.head, headDot: gv.headDot, sb: gv.scoreboard, stop: gv.stop, mismatch: gv.mismatch, waiting: gv.waiting })}, wanted ${SB}`);
-        if (gv && gv.sections === WANT.sections && gv.tiles === WANT.tiles && !/\bon \d+ resolved/.test(gv.statusText) && JSON.stringify(gv.positions) === JSON.stringify(WANT.positions) && JSON.stringify(gv.days) === JSON.stringify(WANT.days)
+        if (gv && gv.sections === WANT.sections && gv.tiles === WANT.tiles && !/\bon \d+ resolved/.test(gv.statusText) && JSON.stringify(gv.positions) === JSON.stringify(WANT.positions) && JSON.stringify(gv.days) === JSON.stringify(WANT.days) && gv.annual === WANT.annual && gv.daysMore === 0
           && gv.entries.length === 8 && JSON.stringify(gv.heads) === JSON.stringify(WANT.heads) && /^as of \d{1,2} \w{3} \d{2}:\d{2} [A-Z]+ · armed · read every 5 min · refreshes every minute$/.test(gv.foot)) {
-          ok(GT('page'), `its sections are ${WANT.sections}: STATUS ${gv.tiles}; POSITIONS from the record (3, one resolved); JOURNAL newest first (8 entries, each head "${gv.heads[1]}"); DAYS ${JSON.stringify(gv.days)}`);
-        } else fail(GT('page'), `sections ${gv?.sections}, tiles "${gv?.tiles}", status "${gv?.statusText}", positions ${JSON.stringify(gv?.positions)}, days ${JSON.stringify(gv?.days)}, heads ${JSON.stringify(gv?.heads)}, foot "${gv?.foot}"`);
+          ok(GT('page'), `its sections are ${WANT.sections}: STATUS ${gv.tiles}; POSITIONS from the record (3, one resolved); JOURNAL newest first (8 entries, each head "${gv.heads[1]}"); DAYS "${gv.annual}" ${JSON.stringify(gv.days)}, both days in view and no "Load full history"`);
+        } else fail(GT('page'), `sections ${gv?.sections}, tiles "${gv?.tiles}", status "${gv?.statusText}", positions ${JSON.stringify(gv?.positions)}, days ${JSON.stringify(gv?.days)} "${gv?.annual}" (${WANT.annual}) more ${gv?.daysMore}, heads ${JSON.stringify(gv?.heads)}, foot "${gv?.foot}"`);
         // The JOURNAL (Davies, 2026-10-17): titles linked and underlined, never a condition id; sources named by their domain.
         const e5 = gv?.entries[5] ?? '', x2 = gv?.entries[6] ?? '';
         if (gv && JSON.stringify(gv.markets) === JSON.stringify(WANT.markets) && JSON.stringify(gv.links) === JSON.stringify(WANT.links) && !gv.hex && gv.linkAttrs

@@ -162,6 +162,41 @@ Deno.test("a second run in the slot changes nothing the first did", async () => 
   assertEquals(twice[0][0].equity_usd, a[0][0].equity_usd);
 });
 
+Deno.test("a redeemed holding leaves the positions and its payout enters the cash once; the equity is what it was (2026-10-29, Vertiv)", async () => {
+  // The bug: the record counted TRADE activity only, so a token the account had redeemed stayed a position at its payout,
+  // "resolved · to redeem", for ever. The redemption is the account's (no fill of the agent's names it).
+  const d = strictDb(seed(W), () => T0);
+  await runGrokPmRec({ db: d, now: T0, fetchImpl: fakeFetch([], { closed: true }) });
+  await runGrokPmRec({ db: d, now: T0 + 5 * 60e3, fetchImpl: fakeFetch([], { closed: true }) });
+  const before = d.tables().grokpm_snapshots.at(-1)!;
+  assertEquals((before.positions as Row[]).map((p) => [p.asset, p.redeemable]), [["111", false], ["333", true]]);
+  const redeem = await activityRow({ proxyWallet: W, timestamp: s("2026-10-16T09:40:00Z"), conditionId: COND2, type: "REDEEM", size: 10, usdcSize: 10,
+    transactionHash: "0x0c", price: 0, asset: "333", side: "", outcomeIndex: 0, title: "Will B?" });
+  await d.upsert("grokpm_activity", [redeem], "key");
+  await runGrokPmRec({ db: d, now: T0 + 10 * 60e3, fetchImpl: fakeFetch([], { closed: true }) });
+  const after = d.tables().grokpm_snapshots.at(-1)!;
+  assertEquals((after.positions as Row[]).map((p) => p.asset), ["111"]);
+  const r6 = (x: number) => Math.round(x * 1e6) / 1e6;
+  assertEquals([r6(Number(after.cash_usd) - Number(before.cash_usd)), r6(Number(after.positions_value_usd) - Number(before.positions_value_usd))], [10, -10]);
+  assertEquals(after.equity_usd, before.equity_usd);
+});
+
+Deno.test("the book: a buy then the account's redemption leaves no position and the payout in cash once; a share when the account held more", () => {
+  const fills = [{ tx_hash: "0xaa", token: "777" }];
+  const buy = { ts: "2026-10-26T06:43:44.000Z", type: "TRADE", cond: COND, asset: "777", side: "BUY", size: 9, usdc_size: 4.635, tx: "0xaa", outcome_index: 0, title: "Vertiv" };
+  const red = { ts: "2026-10-28T11:57:47.000Z", type: "REDEEM", cond: COND, asset: "777", side: null, size: 9, usdc_size: 9, tx: "0xbb", outcome_index: 0, title: "Vertiv" };
+  const b = agentBook([red, buy], fills, START);
+  assertEquals([b.flowUsd, b.assets[0].size, b.assets[0].redeemedUsd], [4.365, 0, 9]);
+  assertEquals(agentPositions(b, { "777": 1 }, new Map(), new Map()), []);
+  // The account held 11 (2 of them someone else's): the agent's 9 leave and 9/11 of the payout is its.
+  const share = agentBook([buy, { ...red, size: 11, usdc_size: 11 }], fills, START);
+  assertEquals([share.flowUsd, share.assets[0].size], [4.365, 0]);
+  // A losing token redeemed at 0 leaves at 0; a redemption of a token the agent does not hold, or before the start, is not its.
+  assertEquals(agentBook([buy, { ...red, usdc_size: 0 }], fills, START).flowUsd, -4.635);
+  assertEquals(agentBook([buy, { ...red, asset: "888" }], fills, START).assets[0].size, 9);
+  assertEquals(agentBook([{ ...red, ts: "2026-10-14T00:00:00.000Z" }, buy], fills, START).assets[0].size, 9);
+});
+
 Deno.test("a resolution is stored, and a resolved holding is marked at its payout", async () => {
   const d = strictDb(seed(W), () => T0);
   await runGrokPmRec({ db: d, now: T0, fetchImpl: fakeFetch([], { closed: true }) });

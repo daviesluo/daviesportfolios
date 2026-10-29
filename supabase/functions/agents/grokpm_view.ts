@@ -30,7 +30,13 @@
 //               read from Gamma (`grokpm_markets`, 0126), else the record's own title for a market it holds, else none (the
 //               page then says the title is pending; it never shows the condition id).
 //   DAYS        each UTC day from the start: the record's P&L (its close, the next day's opening equity, or the latest for
-//               today, less its open) beside the agent's own daily summary; a gap over $1 is a mismatch.
+//               today, less its open) beside the agent's own daily summary; a gap over $1 is a mismatch. And the day's
+//               realised (2026-10-29; Davies: "…和Stablecoin quotes的live页面一样在days旁边加上 7-day realised, annualised"): the
+//               day's P&L less the change in unrealised over it (unrealised at its open snapshot, `openSnaps`, 0 on the start
+//               day, and at its close: the next day's open snapshot, or the latest for today), so the days' realised add up
+//               to REALIZED. Null when a snapshot it needs is missing. The page's "7-day realised, annualised" is the stablecoin
+//               quotes' own helper (`quoteDaysAnnualPct`) over these and FUNDED: realised over the last seven closed days ÷
+//               FUNDED × 365 / 7, as LIVE's is realised ÷ its capital (its funded amount, not its equity).
 
 import { grokpmCaps } from "../_shared/grokpm_public.ts";
 
@@ -60,6 +66,13 @@ export type GrokPmSnapshotRow = {
   positions: Array<Record<string, unknown>> | null;
 };
 export type GrokPmDayOpenRow = { day: string; slot: string; equity_usd: number | string };
+/** A day-open snapshot's positions (`grokpm_snapshots` at a `grokpm_day_opens` slot), for the day's realised. */
+export type GrokPmOpenSnapRow = { slot: string; positions: Array<Record<string, unknown>> | null };
+
+/** A snapshot's unrealised: Σ over its positions still trading (not redeemable) of size × (mark − average price). */
+export function unrealisedOf(positions: Array<Record<string, unknown>> | null | undefined): number {
+  return r6((positions ?? []).reduce((s, x) => s + (x.redeemable === true ? 0 : num(x.size) * (num(x.mark) - num(x.avgPrice))), 0));
+}
 export type GrokPmDecisionRow = {
   id: string; ts: string; action: string; market_id: string | null; token_id: string | null; outcome: string | null; side: string | null;
   price: number | string | null; size: number | string | null; p: number | string | null; m: number | string | null; category: string | null;
@@ -144,6 +157,7 @@ export function grokPmSummary(input: {
   config: GrokPmConfigRow | null; latest: GrokPmSnapshotRow | null; dayOpens: GrokPmDayOpenRow[]; decisions: GrokPmDecisionRow[]; cycle: GrokPmCycleRow | null;
   cycleSnap: GrokPmSnapshotRow | null; daily: GrokPmDailyRow[]; entries: GrokPmEntryRow[]; resolutions: GrokPmResolutionRow[]; opens: GrokPmOpenRow[];
   recState: { updated_at: string | null; last_error: string | null } | null; nowMs: number; markets?: GrokPmMarketRow[]; fills?: GrokPmFillRow[];
+  openSnaps?: GrokPmOpenSnapRow[];
 }) {
   const cfg = input.config;
   if (!cfg?.wallet) return null;
@@ -187,15 +201,25 @@ export function grokPmSummary(input: {
   const agentDay = new Map<string, GrokPmDailyRow>();
   for (const y of [...input.daily].sort((a, b) => a.received_at.localeCompare(b.received_at))) agentDay.set(dayOf(y.day), y);   // the newest summary of a day
   const days: Array<Record<string, unknown>> = [];
+  // Each day's unrealised at its open (the start day: nothing held, 0) and at its close, for its realised (see the header).
+  const slotOf = new Map(input.dayOpens.map((o) => [dayOf(o.day), new Date(Date.parse(o.slot)).toISOString()]));
+  const snapAt = new Map((input.openSnaps ?? []).map((s) => [new Date(Date.parse(s.slot)).toISOString(), s.positions]));
+  const uOpen = (d: string): number | null => {
+    if (d === startDay) return 0;
+    const slot = slotOf.get(d);
+    return slot !== undefined && snapAt.has(slot) ? unrealisedOf(snapAt.get(slot)) : null;
+  };
   if (started && startDay) {
     for (let t = Date.parse(`${startDay}T00:00:00Z`); t <= Date.parse(`${today}T00:00:00Z`); t += DAY) {
       const d = iso(t).slice(0, 10), next = iso(t + DAY).slice(0, 10);
       const open = dayOpen(d), close = d === today ? equity : openOf.get(next) ?? null;
       const record = open !== null && close !== null ? r6(close - open) : null;
+      const u0 = uOpen(d), u1 = d === today ? unrealisedOf(input.latest?.positions) : uOpen(next);
+      const realised = record !== null && u0 !== null && u1 !== null ? r6(record - (u1 - u0)) : null;
       const a = agentDay.get(d);
       const agent = a ? r6(num(a.pnl_day_usd)) : null;
       days.push({
-        day: d, today: d === today, recordUsd: record, agentUsd: agent, trades: a ? a.trades : null, summary: a ? a.summary : null,
+        day: d, today: d === today, recordUsd: record, realisedUsd: realised, agentUsd: agent, trades: a ? a.trades : null, summary: a ? a.summary : null,
         mismatch: record !== null && agent !== null && Math.abs(record - agent) > GROKPM_MISMATCH_USD,
       });
     }

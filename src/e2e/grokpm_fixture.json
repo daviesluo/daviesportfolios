@@ -411,6 +411,28 @@
     "status": "MINED",
     "match_time": "2026-09-17T14:02:00.000Z"
    }
+  ],
+  "openSnaps": [
+   {
+    "slot": "2026-09-17T00:00:00.000Z",
+    "positions": [
+     {
+      "asset": "333",
+      "cond": "0xc3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+      "outcome": "Yes",
+      "outcomeIndex": 0,
+      "title": "Will the nominee be confirmed?",
+      "size": 10,
+      "avgPrice": 0.7,
+      "curPrice": 0.95,
+      "redeemable": false,
+      "endDate": "2026-09-17",
+      "mid": 0.95,
+      "mark": 0.95,
+      "value": 9.5
+     }
+    ]
+   }
   ]
  },
  "output": {
@@ -657,6 +679,7 @@
     "day": "2026-09-17",
     "today": true,
     "recordUsd": 0.7,
+    "realisedUsd": 3,
     "agentUsd": null,
     "trades": null,
     "summary": null,
@@ -666,6 +689,7 @@
     "day": "2026-09-16",
     "today": false,
     "recordUsd": 1.6,
+    "realisedUsd": -0.9,
     "agentUsd": 1.5,
     "trades": 3,
     "summary": "Bought a confirmed outcome (A) and cut a broken thesis (C).",
