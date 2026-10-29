@@ -776,6 +776,19 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth).
 
+### [2026-10-29 06:56 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The fair price of the Coinbase and OKX quote rows, studied** (sub-agent; commit, not pushed; Davies, 10-29: "…你仔细深度研究下这个价格的计算还有没有
+  优化和改进的空间…不同币所和币也可以结论不同"). `reviews/2026-10-29-cb-okx-fair-price-study.md`, `backtests/fair_price_cb_okx/`; not blind,
+  no reading run or pre-empted, nothing in production or any frozen file changed.
+  - **Coinbase's fair sat 2–9 bps under the book** (weekday median USDC-GBP +2.2, USDT-GBP +5.6, USDC-EUR +5.9, USDT-EUR +8.9 bps):
+    it prices the coin at Revolut X's USD-book F3, which ran 2–5 bps under Coinbase's own (6 bps from 10-20). So the USDT books
+    filled asks only (136 of 137) and stopped; that, not the market, is their loss. Replay reproduces the engine exactly.
+  - **Candidates** (history IS 2025-11-21 → 05-15, OOS → 10-09, then production): Coinbase's own coin price (`cb_live`) OOS +£6/yr on
+    £2,400 [−15, +28], stops 60 → 7, worst day halved: proposed for the next Coinbase arm or a paper twin, not the running rows.
+    Venue-only fairs, sibling-implied FX, inventory skew, weekend drift: no. FX timing bound: −£11 (a minute staler) to +£38 (look-ahead).
+  - **OKX**: USDG/EUR trades +4.4 bps over par; a half-weight 24 h basis adds +£0.070/day per £300 book in OKX history OOS
+    [+0.039, +0.102]: proposed as a paper twin. EURC/USDC: keep par. OKX's own record (from 10-28 22:00) supports no verdict.
+
 ### [2026-10-29 06:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Coinbase "with Euros - 2" doubled to $50 a rung ($600), and "with Euros - 3" built** (sub-agent; commit, not pushed; Davies, 10-29:
   "建USDC 那个线索，在with euro-2的基础上开-3，只做300美元的USDC-GBP；另外把目前的-2数字*2做600美元funded", then "-3 只在休市时用").

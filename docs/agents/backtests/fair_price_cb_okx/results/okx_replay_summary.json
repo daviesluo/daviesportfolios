@@ -1,0 +1,175 @@
+{
+ "EURC-USDC|coinbase_usdceur": {
+  "asks": 24,
+  "bids": 22,
+  "bps_per_trip": 21.52,
+  "days": 8.23,
+  "from": "2026-10-21",
+  "guards": {
+   "dark": 305,
+   "de-peg": 1
+  },
+  "held_at_end": 2,
+  "orders": 1700,
+  "pnl_quote": 3.8158,
+  "refused": 32,
+  "stops": 0,
+  "trips": 46,
+  "vs_par_per_day": {
+   "mean_day": -0.0019,
+   "p05": -0.169,
+   "p95": 0.1334,
+   "share_gt0": 0.51
+  }
+ },
+ "EURC-USDC|par": {
+  "asks": 23,
+  "bids": 22,
+  "bps_per_trip": 20.68,
+  "days": 8.23,
+  "from": "2026-10-21",
+  "guards": {
+   "dark": 181,
+   "de-peg": 1
+  },
+  "held_at_end": 2,
+  "orders": 1333,
+  "pnl_quote": 3.8332,
+  "refused": 31,
+  "stops": 0,
+  "trips": 45,
+  "vs_par_per_day": {
+   "mean_day": 0.0,
+   "p05": 0.0,
+   "p95": 0.0,
+   "share_gt0": 0.0
+  }
+ },
+ "EURC-USDC|par+b24h_0.5": {
+  "asks": 18,
+  "bids": 20,
+  "bps_per_trip": 18.59,
+  "days": 8.23,
+  "from": "2026-10-21",
+  "guards": {
+   "dark": 181,
+   "de-peg": 1
+  },
+  "held_at_end": 2,
+  "orders": 1432,
+  "pnl_quote": 3.2185,
+  "refused": 52,
+  "stops": 0,
+  "trips": 38,
+  "vs_par_per_day": {
+   "mean_day": -0.0683,
+   "p05": -0.1431,
+   "p95": 0.0083,
+   "share_gt0": 0.0685
+  }
+ },
+ "EURC-USDC|par+b24h_1.0": {
+  "asks": 19,
+  "bids": 25,
+  "bps_per_trip": 15.9,
+  "days": 8.23,
+  "from": "2026-10-21",
+  "guards": {
+   "dark": 181
+  },
+  "held_at_end": 3,
+  "orders": 1493,
+  "pnl_quote": 3.0024,
+  "refused": 65,
+  "stops": 2,
+  "trips": 44,
+  "vs_par_per_day": {
+   "mean_day": -0.0923,
+   "p05": -0.2128,
+   "p95": 0.0263,
+   "share_gt0": 0.087
+  }
+ },
+ "USDG-EUR|coinbase_usdceur": {
+  "asks": 4,
+  "bids": 0,
+  "bps_per_trip": 10.58,
+  "days": 1.23,
+  "from": "2026-10-28",
+  "guards": {
+   "dark": 20
+  },
+  "held_at_end": 1,
+  "orders": 506,
+  "pnl_quote": 0.1999,
+  "refused": 8,
+  "stops": 0,
+  "trips": 4,
+  "vs_par_per_day": {
+   "mean_day": -0.0183,
+   "p05": -0.0367,
+   "p95": 0.0,
+   "share_gt0": 0.0
+  }
+ },
+ "USDG-EUR|par": {
+  "asks": 4,
+  "bids": 1,
+  "bps_per_trip": 12.2,
+  "days": 1.23,
+  "from": "2026-10-28",
+  "guards": {},
+  "held_at_end": 1,
+  "orders": 470,
+  "pnl_quote": 0.2366,
+  "refused": 9,
+  "stops": 0,
+  "trips": 5,
+  "vs_par_per_day": {
+   "mean_day": 0.0,
+   "p05": 0.0,
+   "p95": 0.0,
+   "share_gt0": 0.0
+  }
+ },
+ "USDG-EUR|par+b24h_0.5": {
+  "asks": 2,
+  "bids": 3,
+  "bps_per_trip": 15.82,
+  "days": 1.23,
+  "from": "2026-10-28",
+  "guards": {},
+  "held_at_end": 1,
+  "orders": 453,
+  "pnl_quote": 0.3401,
+  "refused": 6,
+  "stops": 0,
+  "trips": 5,
+  "vs_par_per_day": {
+   "mean_day": 0.0517,
+   "p05": 0.0,
+   "p95": 0.1035,
+   "share_gt0": 0.73
+  }
+ },
+ "USDG-EUR|par+b24h_1.0": {
+  "asks": 1,
+  "bids": 5,
+  "bps_per_trip": 10.61,
+  "days": 1.23,
+  "from": "2026-10-28",
+  "guards": {},
+  "held_at_end": 0,
+  "orders": 521,
+  "pnl_quote": 0.1727,
+  "refused": 9,
+  "stops": 0,
+  "trips": 6,
+  "vs_par_per_day": {
+   "mean_day": -0.0319,
+   "p05": -0.0639,
+   "p95": 0.0,
+   "share_gt0": 0.0
+  }
+ }
+}

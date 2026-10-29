@@ -1,0 +1,4090 @@
+{
+ "hist": {
+  "base": {
+   "orders": {
+    "cb_own+b6h_1.0|skew0.0": 215286,
+    "cb_own+b6h_1.0|skew0.5": 215584,
+    "cb_own+b6h_1.0|skew1.0": 216238,
+    "cb_own+b6h_1.0|skew2.0": 218366,
+    "cb_own+b6h_1.0|skew3.0": 220667,
+    "engine|skew0.0": 214287,
+    "engine|skew0.5": 215768,
+    "engine|skew1.0": 216685,
+    "engine|skew2.0": 218999,
+    "engine|skew3.0": 221134
+   },
+   "per_book_picks": {
+    "coinbase:USDC-EUR": {
+     "IS": {
+      "asks": 75,
+      "bids": 114,
+      "bps_per_trip": 8.44,
+      "pnl": 15.9509,
+      "stop_pnl": 0,
+      "stops": 0,
+      "trips": 189,
+      "vs_base": -0.5767
+     },
+     "OOS": {
+      "asks": 50,
+      "bids": 59,
+      "bps_per_trip": 6.45,
+      "pnl": 7.0291,
+      "stop_pnl": 0,
+      "stops": 0,
+      "trips": 109,
+      "vs_base": -0.8875
+     },
+     "base_IS": {
+      "asks": 164,
+      "bids": 149,
+      "bps_per_trip": 5.36,
+      "pnl": 16.5276,
+      "stop_pnl": -0.7368,
+      "stops": 43,
+      "trips": 313,
+      "vs_base": 0.0
+     },
+     "base_OOS": {
+      "asks": 97,
+      "bids": 66,
+      "bps_per_trip": 4.88,
+      "pnl": 7.9166,
+      "stop_pnl": -0.414,
+      "stops": 16,
+      "trips": 163,
+      "vs_base": 0.0
+     },
+     "pick": "cb_own+b6h_1.0|skew0.5"
+    },
+    "coinbase:USDC-GBP": {
+     "IS": {
+      "asks": 81,
+      "bids": 184,
+      "bps_per_trip": 4.76,
+      "pnl": 12.378,
+      "stop_pnl": 0,
+      "stops": 0,
+      "trips": 265,
+      "vs_base": 6.2432
+     },
+     "OOS": {
+      "asks": 49,
+      "bids": 116,
+      "bps_per_trip": 9.7,
+      "pnl": 15.7228,
+      "stop_pnl": 0,
+      "stops": 0,
+      "trips": 165,
+      "vs_base": 0.9701
+     },
+     "base_IS": {
+      "asks": 130,
+      "bids": 242,
+      "bps_per_trip": 1.75,
+      "pnl": 6.1348,
+      "stop_pnl": -1.7407,
+      "stops": 41,
+      "trips": 372,
+      "vs_base": 0.0
+     },
+     "base_OOS": {
+      "asks": 85,
+      "bids": 121,
+      "bps_per_trip": 7.85,
+      "pnl": 14.7527,
+      "stop_pnl": 0.6156,
+      "stops": 10,
+      "trips": 206,
+      "vs_base": 0.0
+     },
+     "pick": "cb_own+b6h_1.0|skew0.0"
+    },
+    "coinbase:USDT-EUR": {
+     "IS": {
+      "asks": 135,
+      "bids": 153,
+      "bps_per_trip": 7.18,
+      "pnl": 20.3591,
+      "stop_pnl": 0,
+      "stops": 0,
+      "trips": 288,
+      "vs_base": 3.177
+     },
+     "OOS": {
+      "asks": 49,
+      "bids": 68,
+      "bps_per_trip": 3.27,
+      "pnl": 3.8202,
+      "stop_pnl": -0.1407,
+      "stops": 1,
+      "trips": 117,
+      "vs_base": 0.1992
+     },
+     "base_IS": {
+      "asks": 262,
+      "bids": 214,
+      "bps_per_trip": 3.93,
+      "pnl": 17.1821,
+      "stop_pnl": -0.2437,
+      "stops": 45,
+      "trips": 476,
+      "vs_base": 0.0
+     },
+     "base_OOS": {
+      "asks": 146,
+      "bids": 109,
+      "bps_per_trip": 1.46,
+      "pnl": 3.621,
+      "stop_pnl": 1.1986,
+      "stops": 18,
+      "trips": 255,
+      "vs_base": 0.0
+     },
+     "pick": "cb_own+b6h_1.0|skew0.5"
+    },
+    "coinbase:USDT-GBP": {
+     "IS": {
+      "asks": 371,
+      "bids": 339,
+      "bps_per_trip": 9.25,
+      "pnl": 63.1579,
+      "stop_pnl": 0.1111,
+      "stops": 1,
+      "trips": 710,
+      "vs_base": -3.9533
+     },
+     "OOS": {
+      "asks": 136,
+      "bids": 130,
+      "bps_per_trip": 8.81,
+      "pnl": 22.9616,
+      "stop_pnl": 0,
+      "stops": 0,
+      "trips": 266,
+      "vs_base": 2.788
+     },
+     "base_IS": {
+      "asks": 394,
+      "bids": 404,
+      "bps_per_trip": 9.38,
+      "pnl": 67.1112,
+      "stop_pnl": 3.2102,
+      "stops": 21,
+      "trips": 798,
+      "vs_base": 0.0
+     },
+     "base_OOS": {
+      "asks": 169,
+      "bids": 160,
+      "bps_per_trip": 6.78,
+      "pnl": 20.1736,
+      "stop_pnl": 1.1935,
+      "stops": 16,
+      "trips": 329,
+      "vs_base": 0.0
+     },
+     "pick": "cb_own+b6h_1.0|skew2.0"
+    }
+   },
+   "picks": {
+    "cb_own + basis": "cb_own+b6h_1.0|skew0.0"
+   },
+   "table": {
+    "cb_own+b6h_1.0|skew0.0": {
+     "IS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 75,
+        "bids": 113,
+        "bps_per_trip": 8.45,
+        "pnl": 15.8916,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 188,
+        "vs_base": -0.636
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 81,
+        "bids": 184,
+        "bps_per_trip": 4.76,
+        "pnl": 12.378,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 265,
+        "vs_base": 6.2432
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 132,
+        "bids": 153,
+        "bps_per_trip": 7.12,
+        "pnl": 20.0069,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 285,
+        "vs_base": 2.8248
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 367,
+        "bids": 330,
+        "bps_per_trip": 9.36,
+        "pnl": 63.0856,
+        "stop_pnl": 0.1111,
+        "stops": 1,
+        "trips": 697,
+        "vs_base": -4.0256
+       }
+      },
+      "days": 175,
+      "total": {
+       "asks": 655,
+       "bids": 780,
+       "bps_per_trip": 7.94,
+       "per_year": 232.27,
+       "pnl": 111.3621,
+       "stop_pnl": 0.1111,
+       "stops": 1,
+       "trips": 1435
+      },
+      "vs_base_per_year": {
+       "mean_day": 9.19,
+       "p05": -24.22,
+       "p95": 40.24,
+       "share_gt0": 0.685
+      }
+     },
+     "OOS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 46,
+        "bids": 59,
+        "bps_per_trip": 6.62,
+        "pnl": 6.9485,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 105,
+        "vs_base": -0.9681
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 49,
+        "bids": 116,
+        "bps_per_trip": 9.7,
+        "pnl": 15.7228,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 165,
+        "vs_base": 0.9701
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 42,
+        "bids": 68,
+        "bps_per_trip": 3.28,
+        "pnl": 3.6089,
+        "stop_pnl": -0.1407,
+        "stops": 1,
+        "trips": 110,
+        "vs_base": -0.0121
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 134,
+        "bids": 128,
+        "bps_per_trip": 9.34,
+        "pnl": 23.9678,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 262,
+        "vs_base": 3.7942
+       }
+      },
+      "days": 147,
+      "total": {
+       "asks": 271,
+       "bids": 371,
+       "bps_per_trip": 7.93,
+       "per_year": 124.77,
+       "pnl": 50.248,
+       "stop_pnl": -0.1407,
+       "stops": 1,
+       "trips": 642
+      },
+      "vs_base_per_year": {
+       "mean_day": 9.4,
+       "p05": -11.73,
+       "p95": 31.7,
+       "share_gt0": 0.764
+      }
+     },
+     "all": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 121,
+        "bids": 172,
+        "bps_per_trip": 7.8,
+        "pnl": 22.8401,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 293,
+        "vs_base": -1.604
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 130,
+        "bids": 300,
+        "bps_per_trip": 6.65,
+        "pnl": 28.1008,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 430,
+        "vs_base": 7.2133
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 174,
+        "bids": 221,
+        "bps_per_trip": 6.04,
+        "pnl": 23.6157,
+        "stop_pnl": -0.1407,
+        "stops": 1,
+        "trips": 395,
+        "vs_base": 2.8126
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 501,
+        "bids": 458,
+        "bps_per_trip": 9.36,
+        "pnl": 87.0533,
+        "stop_pnl": 0.1111,
+        "stops": 1,
+        "trips": 959,
+        "vs_base": -0.2315
+       }
+      },
+      "days": 322,
+      "total": {
+       "asks": 926,
+       "bids": 1151,
+       "bps_per_trip": 7.93,
+       "per_year": 183.19,
+       "pnl": 161.6099,
+       "stop_pnl": -0.0296,
+       "stops": 2,
+       "trips": 2077
+      },
+      "vs_base_per_year": {
+       "mean_day": 9.28,
+       "p05": -11.81,
+       "p95": 29.65,
+       "share_gt0": 0.792
+      }
+     }
+    },
+    "cb_own+b6h_1.0|skew0.5": {
+     "IS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 75,
+        "bids": 114,
+        "bps_per_trip": 8.44,
+        "pnl": 15.9509,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 189,
+        "vs_base": -0.5767
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 82,
+        "bids": 186,
+        "bps_per_trip": 4.65,
+        "pnl": 12.1979,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 268,
+        "vs_base": 6.0631
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 135,
+        "bids": 153,
+        "bps_per_trip": 7.18,
+        "pnl": 20.3591,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 288,
+        "vs_base": 3.177
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 366,
+        "bids": 331,
+        "bps_per_trip": 9.33,
+        "pnl": 62.8077,
+        "stop_pnl": 0.1111,
+        "stops": 1,
+        "trips": 697,
+        "vs_base": -4.3035
+       }
+      },
+      "days": 175,
+      "total": {
+       "asks": 658,
+       "bids": 784,
+       "bps_per_trip": 7.9,
+       "per_year": 232.17,
+       "pnl": 111.3156,
+       "stop_pnl": 0.1111,
+       "stops": 1,
+       "trips": 1442
+      },
+      "vs_base_per_year": {
+       "mean_day": 9.09,
+       "p05": -24.56,
+       "p95": 40.21,
+       "share_gt0": 0.676
+      }
+     },
+     "OOS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 50,
+        "bids": 59,
+        "bps_per_trip": 6.45,
+        "pnl": 7.0291,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 109,
+        "vs_base": -0.8875
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 50,
+        "bids": 117,
+        "bps_per_trip": 9.47,
+        "pnl": 15.5466,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 167,
+        "vs_base": 0.7939
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 49,
+        "bids": 68,
+        "bps_per_trip": 3.27,
+        "pnl": 3.8202,
+        "stop_pnl": -0.1407,
+        "stops": 1,
+        "trips": 117,
+        "vs_base": 0.1992
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 135,
+        "bids": 128,
+        "bps_per_trip": 9.34,
+        "pnl": 24.0482,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 263,
+        "vs_base": 3.8746
+       }
+      },
+      "days": 147,
+      "total": {
+       "asks": 284,
+       "bids": 372,
+       "bps_per_trip": 7.79,
+       "per_year": 125.25,
+       "pnl": 50.4441,
+       "stop_pnl": -0.1407,
+       "stops": 1,
+       "trips": 656
+      },
+      "vs_base_per_year": {
+       "mean_day": 9.88,
+       "p05": -11.32,
+       "p95": 32.46,
+       "share_gt0": 0.77
+      }
+     },
+     "all": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 125,
+        "bids": 173,
+        "bps_per_trip": 7.71,
+        "pnl": 22.9799,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 298,
+        "vs_base": -1.4642
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 132,
+        "bids": 303,
+        "bps_per_trip": 6.51,
+        "pnl": 27.7445,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 435,
+        "vs_base": 6.857
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 184,
+        "bids": 221,
+        "bps_per_trip": 6.04,
+        "pnl": 24.1793,
+        "stop_pnl": -0.1407,
+        "stops": 1,
+        "trips": 405,
+        "vs_base": 3.3762
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 501,
+        "bids": 459,
+        "bps_per_trip": 9.33,
+        "pnl": 86.8559,
+        "stop_pnl": 0.1111,
+        "stops": 1,
+        "trips": 960,
+        "vs_base": -0.4289
+       }
+      },
+      "days": 322,
+      "total": {
+       "asks": 942,
+       "bids": 1156,
+       "bps_per_trip": 7.87,
+       "per_year": 183.36,
+       "pnl": 161.7596,
+       "stop_pnl": -0.0296,
+       "stops": 2,
+       "trips": 2098
+      },
+      "vs_base_per_year": {
+       "mean_day": 9.45,
+       "p05": -12.08,
+       "p95": 29.85,
+       "share_gt0": 0.79
+      }
+     }
+    },
+    "cb_own+b6h_1.0|skew1.0": {
+     "IS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 76,
+        "bids": 116,
+        "bps_per_trip": 8.19,
+        "pnl": 15.7264,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 192,
+        "vs_base": -0.8012
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 82,
+        "bids": 187,
+        "bps_per_trip": 4.57,
+        "pnl": 12.0347,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 269,
+        "vs_base": 5.8999
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 137,
+        "bids": 155,
+        "bps_per_trip": 6.95,
+        "pnl": 20.054,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 292,
+        "vs_base": 2.8719
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 363,
+        "bids": 332,
+        "bps_per_trip": 9.23,
+        "pnl": 61.9505,
+        "stop_pnl": 0.1111,
+        "stops": 1,
+        "trips": 695,
+        "vs_base": -5.1607
+       }
+      },
+      "days": 175,
+      "total": {
+       "asks": 658,
+       "bids": 790,
+       "bps_per_trip": 7.76,
+       "per_year": 228.94,
+       "pnl": 109.7656,
+       "stop_pnl": 0.1111,
+       "stops": 1,
+       "trips": 1448
+      },
+      "vs_base_per_year": {
+       "mean_day": 5.86,
+       "p05": -27.97,
+       "p95": 37.08,
+       "share_gt0": 0.623
+      }
+     },
+     "OOS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 50,
+        "bids": 59,
+        "bps_per_trip": 6.29,
+        "pnl": 6.8596,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 109,
+        "vs_base": -1.057
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 51,
+        "bids": 117,
+        "bps_per_trip": 9.5,
+        "pnl": 15.6369,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 168,
+        "vs_base": 0.8842
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 47,
+        "bids": 68,
+        "bps_per_trip": 3.32,
+        "pnl": 3.8123,
+        "stop_pnl": -0.1407,
+        "stops": 1,
+        "trips": 115,
+        "vs_base": 0.1913
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 137,
+        "bids": 130,
+        "bps_per_trip": 9.31,
+        "pnl": 24.3539,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 267,
+        "vs_base": 4.1803
+       }
+      },
+      "days": 147,
+      "total": {
+       "asks": 285,
+       "bids": 374,
+       "bps_per_trip": 7.79,
+       "per_year": 125.8,
+       "pnl": 50.6627,
+       "stop_pnl": -0.1407,
+       "stops": 1,
+       "trips": 659
+      },
+      "vs_base_per_year": {
+       "mean_day": 10.43,
+       "p05": -11.28,
+       "p95": 33.44,
+       "share_gt0": 0.781
+      }
+     },
+     "all": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 126,
+        "bids": 175,
+        "bps_per_trip": 7.5,
+        "pnl": 22.586,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 301,
+        "vs_base": -1.8581
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 133,
+        "bids": 304,
+        "bps_per_trip": 6.47,
+        "pnl": 27.6716,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 437,
+        "vs_base": 6.7841
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 184,
+        "bids": 223,
+        "bps_per_trip": 5.92,
+        "pnl": 23.8663,
+        "stop_pnl": -0.1407,
+        "stops": 1,
+        "trips": 407,
+        "vs_base": 3.0632
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 500,
+        "bids": 462,
+        "bps_per_trip": 9.25,
+        "pnl": 86.3045,
+        "stop_pnl": 0.1111,
+        "stops": 1,
+        "trips": 962,
+        "vs_base": -0.9803
+       }
+      },
+      "days": 322,
+      "total": {
+       "asks": 943,
+       "bids": 1164,
+       "bps_per_trip": 7.77,
+       "per_year": 181.85,
+       "pnl": 160.4284,
+       "stop_pnl": -0.0296,
+       "stops": 2,
+       "trips": 2107
+      },
+      "vs_base_per_year": {
+       "mean_day": 7.94,
+       "p05": -13.32,
+       "p95": 28.32,
+       "share_gt0": 0.758
+      }
+     }
+    },
+    "cb_own+b6h_1.0|skew2.0": {
+     "IS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 83,
+        "bids": 119,
+        "bps_per_trip": 7.77,
+        "pnl": 15.6866,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 202,
+        "vs_base": -0.841
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 87,
+        "bids": 188,
+        "bps_per_trip": 4.25,
+        "pnl": 11.4688,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 275,
+        "vs_base": 5.334
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 147,
+        "bids": 157,
+        "bps_per_trip": 6.47,
+        "pnl": 19.4175,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 304,
+        "vs_base": 2.2354
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 371,
+        "bids": 339,
+        "bps_per_trip": 9.25,
+        "pnl": 63.1579,
+        "stop_pnl": 0.1111,
+        "stops": 1,
+        "trips": 710,
+        "vs_base": -3.9533
+       }
+      },
+      "days": 175,
+      "total": {
+       "asks": 688,
+       "bids": 803,
+       "bps_per_trip": 7.54,
+       "per_year": 228.87,
+       "pnl": 109.7308,
+       "stop_pnl": 0.1111,
+       "stops": 1,
+       "trips": 1491
+      },
+      "vs_base_per_year": {
+       "mean_day": 5.79,
+       "p05": -27.06,
+       "p95": 37.13,
+       "share_gt0": 0.617
+      }
+     },
+     "OOS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 50,
+        "bids": 62,
+        "bps_per_trip": 6.27,
+        "pnl": 7.0197,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 112,
+        "vs_base": -0.8969
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 54,
+        "bids": 124,
+        "bps_per_trip": 9.14,
+        "pnl": 15.9002,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 178,
+        "vs_base": 1.1475
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 55,
+        "bids": 71,
+        "bps_per_trip": 2.84,
+        "pnl": 3.5688,
+        "stop_pnl": -0.1407,
+        "stops": 1,
+        "trips": 126,
+        "vs_base": -0.0522
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 136,
+        "bids": 130,
+        "bps_per_trip": 8.81,
+        "pnl": 22.9616,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 266,
+        "vs_base": 2.788
+       }
+      },
+      "days": 147,
+      "total": {
+       "asks": 295,
+       "bids": 387,
+       "bps_per_trip": 7.36,
+       "per_year": 122.78,
+       "pnl": 49.4503,
+       "stop_pnl": -0.1407,
+       "stops": 1,
+       "trips": 682
+      },
+      "vs_base_per_year": {
+       "mean_day": 7.42,
+       "p05": -13.09,
+       "p95": 29.66,
+       "share_gt0": 0.714
+      }
+     },
+     "all": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 133,
+        "bids": 181,
+        "bps_per_trip": 7.23,
+        "pnl": 22.7063,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 314,
+        "vs_base": -1.7378
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 141,
+        "bids": 312,
+        "bps_per_trip": 6.17,
+        "pnl": 27.369,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 453,
+        "vs_base": 6.4815
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 202,
+        "bids": 228,
+        "bps_per_trip": 5.4,
+        "pnl": 22.9864,
+        "stop_pnl": -0.1407,
+        "stops": 1,
+        "trips": 430,
+        "vs_base": 2.1833
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 507,
+        "bids": 469,
+        "bps_per_trip": 9.13,
+        "pnl": 86.1196,
+        "stop_pnl": 0.1111,
+        "stops": 1,
+        "trips": 976,
+        "vs_base": -1.1652
+       }
+      },
+      "days": 322,
+      "total": {
+       "asks": 983,
+       "bids": 1190,
+       "bps_per_trip": 7.48,
+       "per_year": 180.44,
+       "pnl": 159.1813,
+       "stop_pnl": -0.0296,
+       "stops": 2,
+       "trips": 2173
+      },
+      "vs_base_per_year": {
+       "mean_day": 6.53,
+       "p05": -14.48,
+       "p95": 27.03,
+       "share_gt0": 0.717
+      }
+     }
+    },
+    "cb_own+b6h_1.0|skew3.0": {
+     "IS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 89,
+        "bids": 119,
+        "bps_per_trip": 7.45,
+        "pnl": 15.4955,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 208,
+        "vs_base": -1.0321
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 97,
+        "bids": 187,
+        "bps_per_trip": 4.07,
+        "pnl": 11.3598,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 284,
+        "vs_base": 5.225
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 165,
+        "bids": 160,
+        "bps_per_trip": 6.26,
+        "pnl": 20.1011,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 325,
+        "vs_base": 2.919
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 383,
+        "bids": 353,
+        "bps_per_trip": 8.87,
+        "pnl": 62.4246,
+        "stop_pnl": 0.1111,
+        "stops": 1,
+        "trips": 736,
+        "vs_base": -4.6866
+       }
+      },
+      "days": 175,
+      "total": {
+       "asks": 734,
+       "bids": 819,
+       "bps_per_trip": 7.23,
+       "per_year": 228.14,
+       "pnl": 109.381,
+       "stop_pnl": 0.1111,
+       "stops": 1,
+       "trips": 1553
+      },
+      "vs_base_per_year": {
+       "mean_day": 5.06,
+       "p05": -29.06,
+       "p95": 37.5,
+       "share_gt0": 0.599
+      }
+     },
+     "OOS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 51,
+        "bids": 68,
+        "bps_per_trip": 5.44,
+        "pnl": 6.4712,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 119,
+        "vs_base": -1.4454
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 61,
+        "bids": 130,
+        "bps_per_trip": 8.29,
+        "pnl": 15.2438,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 191,
+        "vs_base": 0.4911
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 56,
+        "bids": 73,
+        "bps_per_trip": 2.37,
+        "pnl": 3.0591,
+        "stop_pnl": -0.1407,
+        "stops": 1,
+        "trips": 129,
+        "vs_base": -0.5619
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 145,
+        "bids": 135,
+        "bps_per_trip": 8.6,
+        "pnl": 23.1681,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 280,
+        "vs_base": 2.9945
+       }
+      },
+      "days": 147,
+      "total": {
+       "asks": 313,
+       "bids": 406,
+       "bps_per_trip": 6.83,
+       "per_year": 119.04,
+       "pnl": 47.9422,
+       "stop_pnl": -0.1407,
+       "stops": 1,
+       "trips": 719
+      },
+      "vs_base_per_year": {
+       "mean_day": 3.67,
+       "p05": -16.21,
+       "p95": 25.44,
+       "share_gt0": 0.609
+      }
+     },
+     "all": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 140,
+        "bids": 187,
+        "bps_per_trip": 6.72,
+        "pnl": 21.9667,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 327,
+        "vs_base": -2.4774
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 158,
+        "bids": 317,
+        "bps_per_trip": 5.74,
+        "pnl": 26.6036,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 475,
+        "vs_base": 5.7161
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 221,
+        "bids": 233,
+        "bps_per_trip": 5.15,
+        "pnl": 23.1602,
+        "stop_pnl": -0.1407,
+        "stops": 1,
+        "trips": 454,
+        "vs_base": 2.3571
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 528,
+        "bids": 488,
+        "bps_per_trip": 8.79,
+        "pnl": 85.5927,
+        "stop_pnl": 0.1111,
+        "stops": 1,
+        "trips": 1016,
+        "vs_base": -1.6921
+       }
+      },
+      "days": 322,
+      "total": {
+       "asks": 1047,
+       "bids": 1225,
+       "bps_per_trip": 7.11,
+       "per_year": 178.33,
+       "pnl": 157.3232,
+       "stop_pnl": -0.0296,
+       "stops": 2,
+       "trips": 2272
+      },
+      "vs_base_per_year": {
+       "mean_day": 4.43,
+       "p05": -16.9,
+       "p95": 24.8,
+       "share_gt0": 0.64
+      }
+     }
+    },
+    "engine|skew0.0": {
+     "IS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 164,
+        "bids": 149,
+        "bps_per_trip": 5.36,
+        "pnl": 16.5276,
+        "stop_pnl": -0.7368,
+        "stops": 43,
+        "trips": 313,
+        "vs_base": 0.0
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 130,
+        "bids": 242,
+        "bps_per_trip": 1.75,
+        "pnl": 6.1348,
+        "stop_pnl": -1.7407,
+        "stops": 41,
+        "trips": 372,
+        "vs_base": 0.0
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 262,
+        "bids": 214,
+        "bps_per_trip": 3.93,
+        "pnl": 17.1821,
+        "stop_pnl": -0.2437,
+        "stops": 45,
+        "trips": 476,
+        "vs_base": 0.0
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 394,
+        "bids": 404,
+        "bps_per_trip": 9.38,
+        "pnl": 67.1112,
+        "stop_pnl": 3.2102,
+        "stops": 21,
+        "trips": 798,
+        "vs_base": 0.0
+       }
+      },
+      "days": 175,
+      "total": {
+       "asks": 950,
+       "bids": 1009,
+       "bps_per_trip": 5.9,
+       "per_year": 223.08,
+       "pnl": 106.9557,
+       "stop_pnl": 0.489,
+       "stops": 150,
+       "trips": 1959
+      },
+      "vs_base_per_year": {
+       "mean_day": 0.0,
+       "p05": 0.0,
+       "p95": 0.0,
+       "share_gt0": 0.0
+      }
+     },
+     "OOS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 97,
+        "bids": 66,
+        "bps_per_trip": 4.88,
+        "pnl": 7.9166,
+        "stop_pnl": -0.414,
+        "stops": 16,
+        "trips": 163,
+        "vs_base": 0.0
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 85,
+        "bids": 121,
+        "bps_per_trip": 7.85,
+        "pnl": 14.7527,
+        "stop_pnl": 0.6156,
+        "stops": 10,
+        "trips": 206,
+        "vs_base": 0.0
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 146,
+        "bids": 109,
+        "bps_per_trip": 1.46,
+        "pnl": 3.621,
+        "stop_pnl": 1.1986,
+        "stops": 18,
+        "trips": 255,
+        "vs_base": 0.0
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 169,
+        "bids": 160,
+        "bps_per_trip": 6.78,
+        "pnl": 20.1736,
+        "stop_pnl": 1.1935,
+        "stops": 16,
+        "trips": 329,
+        "vs_base": 0.0
+       }
+      },
+      "days": 147,
+      "total": {
+       "asks": 497,
+       "bids": 456,
+       "bps_per_trip": 5.19,
+       "per_year": 115.37,
+       "pnl": 46.4639,
+       "stop_pnl": 2.5937,
+       "stops": 60,
+       "trips": 953
+      },
+      "vs_base_per_year": {
+       "mean_day": 0.0,
+       "p05": 0.0,
+       "p95": 0.0,
+       "share_gt0": 0.0
+      }
+     },
+     "all": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 261,
+        "bids": 215,
+        "bps_per_trip": 5.2,
+        "pnl": 24.4441,
+        "stop_pnl": -1.1508,
+        "stops": 59,
+        "trips": 476,
+        "vs_base": 0.0
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 215,
+        "bids": 363,
+        "bps_per_trip": 3.88,
+        "pnl": 20.8875,
+        "stop_pnl": -1.1251,
+        "stops": 51,
+        "trips": 578,
+        "vs_base": 0.0
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 408,
+        "bids": 323,
+        "bps_per_trip": 3.04,
+        "pnl": 20.8031,
+        "stop_pnl": 0.9549,
+        "stops": 63,
+        "trips": 731,
+        "vs_base": 0.0
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 563,
+        "bids": 564,
+        "bps_per_trip": 8.62,
+        "pnl": 87.2848,
+        "stop_pnl": 4.4037,
+        "stops": 37,
+        "trips": 1127,
+        "vs_base": 0.0
+       }
+      },
+      "days": 322,
+      "total": {
+       "asks": 1447,
+       "bids": 1465,
+       "bps_per_trip": 5.67,
+       "per_year": 173.91,
+       "pnl": 153.4195,
+       "stop_pnl": 3.0827,
+       "stops": 210,
+       "trips": 2912
+      },
+      "vs_base_per_year": {
+       "mean_day": 0.0,
+       "p05": 0.0,
+       "p95": 0.0,
+       "share_gt0": 0.0
+      }
+     }
+    },
+    "engine|skew0.5": {
+     "IS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 165,
+        "bids": 150,
+        "bps_per_trip": 5.57,
+        "pnl": 17.2169,
+        "stop_pnl": -0.4938,
+        "stops": 44,
+        "trips": 315,
+        "vs_base": 0.6893
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 135,
+        "bids": 243,
+        "bps_per_trip": 2.02,
+        "pnl": 7.2247,
+        "stop_pnl": -1.999,
+        "stops": 40,
+        "trips": 378,
+        "vs_base": 1.0899
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 265,
+        "bids": 215,
+        "bps_per_trip": 4.12,
+        "pnl": 18.1721,
+        "stop_pnl": 0.0183,
+        "stops": 43,
+        "trips": 480,
+        "vs_base": 0.99
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 394,
+        "bids": 405,
+        "bps_per_trip": 9.47,
+        "pnl": 67.7419,
+        "stop_pnl": 4.4384,
+        "stops": 24,
+        "trips": 799,
+        "vs_base": 0.6307
+       }
+      },
+      "days": 175,
+      "total": {
+       "asks": 959,
+       "bids": 1013,
+       "bps_per_trip": 6.06,
+       "per_year": 230.17,
+       "pnl": 110.3556,
+       "stop_pnl": 1.9639,
+       "stops": 151,
+       "trips": 1972
+      },
+      "vs_base_per_year": {
+       "mean_day": 7.09,
+       "p05": -0.26,
+       "p95": 14.94,
+       "share_gt0": 0.945
+      }
+     },
+     "OOS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 101,
+        "bids": 66,
+        "bps_per_trip": 4.89,
+        "pnl": 8.1236,
+        "stop_pnl": -0.4367,
+        "stops": 16,
+        "trips": 167,
+        "vs_base": 0.207
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 85,
+        "bids": 123,
+        "bps_per_trip": 7.84,
+        "pnl": 14.979,
+        "stop_pnl": 0.5788,
+        "stops": 10,
+        "trips": 208,
+        "vs_base": 0.2263
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 148,
+        "bids": 109,
+        "bps_per_trip": 1.5,
+        "pnl": 3.7335,
+        "stop_pnl": 1.2509,
+        "stops": 18,
+        "trips": 257,
+        "vs_base": 0.1125
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 169,
+        "bids": 162,
+        "bps_per_trip": 6.81,
+        "pnl": 20.1491,
+        "stop_pnl": 1.288,
+        "stops": 17,
+        "trips": 331,
+        "vs_base": -0.0245
+       }
+      },
+      "days": 147,
+      "total": {
+       "asks": 503,
+       "bids": 460,
+       "bps_per_trip": 5.21,
+       "per_year": 116.66,
+       "pnl": 46.9852,
+       "stop_pnl": 2.681,
+       "stops": 61,
+       "trips": 963
+      },
+      "vs_base_per_year": {
+       "mean_day": 1.29,
+       "p05": -2.48,
+       "p95": 4.79,
+       "share_gt0": 0.731
+      }
+     },
+     "all": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 266,
+        "bids": 216,
+        "bps_per_trip": 5.33,
+        "pnl": 25.3405,
+        "stop_pnl": -0.9305,
+        "stops": 60,
+        "trips": 482,
+        "vs_base": 0.8964
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 220,
+        "bids": 366,
+        "bps_per_trip": 4.05,
+        "pnl": 22.2037,
+        "stop_pnl": -1.4202,
+        "stops": 50,
+        "trips": 586,
+        "vs_base": 1.3162
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 413,
+        "bids": 324,
+        "bps_per_trip": 3.18,
+        "pnl": 21.9056,
+        "stop_pnl": 1.2692,
+        "stops": 61,
+        "trips": 737,
+        "vs_base": 1.1025
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 563,
+        "bids": 567,
+        "bps_per_trip": 8.69,
+        "pnl": 87.891,
+        "stop_pnl": 5.7264,
+        "stops": 41,
+        "trips": 1130,
+        "vs_base": 0.6062
+       }
+      },
+      "days": 322,
+      "total": {
+       "asks": 1462,
+       "bids": 1473,
+       "bps_per_trip": 5.78,
+       "per_year": 178.35,
+       "pnl": 157.3408,
+       "stop_pnl": 4.6449,
+       "stops": 212,
+       "trips": 2935
+      },
+      "vs_base_per_year": {
+       "mean_day": 4.44,
+       "p05": -0.24,
+       "p95": 9.39,
+       "share_gt0": 0.946
+      }
+     }
+    },
+    "engine|skew1.0": {
+     "IS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 168,
+        "bids": 153,
+        "bps_per_trip": 5.14,
+        "pnl": 16.1396,
+        "stop_pnl": -1.7694,
+        "stops": 50,
+        "trips": 321,
+        "vs_base": -0.388
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 137,
+        "bids": 244,
+        "bps_per_trip": 2.06,
+        "pnl": 7.4102,
+        "stop_pnl": -2.2549,
+        "stops": 39,
+        "trips": 381,
+        "vs_base": 1.2754
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 266,
+        "bids": 218,
+        "bps_per_trip": 4.39,
+        "pnl": 19.666,
+        "stop_pnl": 0.3989,
+        "stops": 43,
+        "trips": 484,
+        "vs_base": 2.4839
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 406,
+        "bids": 415,
+        "bps_per_trip": 9.76,
+        "pnl": 71.5051,
+        "stop_pnl": 6.0408,
+        "stops": 25,
+        "trips": 821,
+        "vs_base": 4.3939
+       }
+      },
+      "days": 175,
+      "total": {
+       "asks": 977,
+       "bids": 1030,
+       "bps_per_trip": 6.18,
+       "per_year": 239.28,
+       "pnl": 114.7209,
+       "stop_pnl": 2.4154,
+       "stops": 157,
+       "trips": 2007
+      },
+      "vs_base_per_year": {
+       "mean_day": 16.2,
+       "p05": 1.41,
+       "p95": 30.9,
+       "share_gt0": 0.966
+      }
+     },
+     "OOS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 106,
+        "bids": 67,
+        "bps_per_trip": 4.31,
+        "pnl": 7.4506,
+        "stop_pnl": -0.7279,
+        "stops": 16,
+        "trips": 173,
+        "vs_base": -0.466
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 86,
+        "bids": 123,
+        "bps_per_trip": 7.69,
+        "pnl": 14.882,
+        "stop_pnl": 0.5277,
+        "stops": 9,
+        "trips": 209,
+        "vs_base": 0.1293
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 150,
+        "bids": 110,
+        "bps_per_trip": 1.52,
+        "pnl": 3.8263,
+        "stop_pnl": 1.2329,
+        "stops": 18,
+        "trips": 260,
+        "vs_base": 0.2053
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 166,
+        "bids": 163,
+        "bps_per_trip": 6.56,
+        "pnl": 19.1218,
+        "stop_pnl": 1.288,
+        "stops": 17,
+        "trips": 329,
+        "vs_base": -1.0518
+       }
+      },
+      "days": 147,
+      "total": {
+       "asks": 508,
+       "bids": 463,
+       "bps_per_trip": 4.98,
+       "per_year": 112.43,
+       "pnl": 45.2807,
+       "stop_pnl": 2.3207,
+       "stops": 60,
+       "trips": 971
+      },
+      "vs_base_per_year": {
+       "mean_day": -2.94,
+       "p05": -7.53,
+       "p95": 1.42,
+       "share_gt0": 0.147
+      }
+     },
+     "all": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 274,
+        "bids": 220,
+        "bps_per_trip": 4.84,
+        "pnl": 23.5902,
+        "stop_pnl": -2.4973,
+        "stops": 66,
+        "trips": 494,
+        "vs_base": -0.8539
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 223,
+        "bids": 367,
+        "bps_per_trip": 4.02,
+        "pnl": 22.2922,
+        "stop_pnl": -1.7273,
+        "stops": 48,
+        "trips": 590,
+        "vs_base": 1.4047
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 416,
+        "bids": 328,
+        "bps_per_trip": 3.36,
+        "pnl": 23.4923,
+        "stop_pnl": 1.6318,
+        "stops": 61,
+        "trips": 744,
+        "vs_base": 2.6892
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 572,
+        "bids": 578,
+        "bps_per_trip": 8.85,
+        "pnl": 90.6269,
+        "stop_pnl": 7.3288,
+        "stops": 42,
+        "trips": 1150,
+        "vs_base": 3.3421
+       }
+      },
+      "days": 322,
+      "total": {
+       "asks": 1485,
+       "bids": 1493,
+       "bps_per_trip": 5.79,
+       "per_year": 181.37,
+       "pnl": 160.0016,
+       "stop_pnl": 4.736,
+       "stops": 217,
+       "trips": 2978
+      },
+      "vs_base_per_year": {
+       "mean_day": 7.46,
+       "p05": -0.84,
+       "p95": 15.21,
+       "share_gt0": 0.927
+      }
+     }
+    },
+    "engine|skew2.0": {
+     "IS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 170,
+        "bids": 151,
+        "bps_per_trip": 4.75,
+        "pnl": 14.8168,
+        "stop_pnl": -1.2724,
+        "stops": 46,
+        "trips": 321,
+        "vs_base": -1.7108
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 139,
+        "bids": 251,
+        "bps_per_trip": 2.27,
+        "pnl": 8.3199,
+        "stop_pnl": -2.1791,
+        "stops": 39,
+        "trips": 390,
+        "vs_base": 2.1851
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 273,
+        "bids": 227,
+        "bps_per_trip": 4.3,
+        "pnl": 19.7167,
+        "stop_pnl": -0.319,
+        "stops": 42,
+        "trips": 500,
+        "vs_base": 2.5346
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 412,
+        "bids": 431,
+        "bps_per_trip": 9.24,
+        "pnl": 68.3392,
+        "stop_pnl": 4.2843,
+        "stops": 26,
+        "trips": 843,
+        "vs_base": 1.228
+       }
+      },
+      "days": 175,
+      "total": {
+       "asks": 994,
+       "bids": 1060,
+       "bps_per_trip": 5.92,
+       "per_year": 231.92,
+       "pnl": 111.1926,
+       "stop_pnl": 0.5138,
+       "stops": 153,
+       "trips": 2054
+      },
+      "vs_base_per_year": {
+       "mean_day": 8.84,
+       "p05": -2.95,
+       "p95": 20.58,
+       "share_gt0": 0.893
+      }
+     },
+     "OOS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 105,
+        "bids": 67,
+        "bps_per_trip": 4.32,
+        "pnl": 7.3967,
+        "stop_pnl": -0.7274,
+        "stops": 16,
+        "trips": 172,
+        "vs_base": -0.5199
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 90,
+        "bids": 126,
+        "bps_per_trip": 7.48,
+        "pnl": 14.9105,
+        "stop_pnl": 0.8002,
+        "stops": 11,
+        "trips": 216,
+        "vs_base": 0.1578
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 159,
+        "bids": 106,
+        "bps_per_trip": 1.27,
+        "pnl": 3.2565,
+        "stop_pnl": 1.0979,
+        "stops": 16,
+        "trips": 265,
+        "vs_base": -0.3645
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 169,
+        "bids": 167,
+        "bps_per_trip": 6.46,
+        "pnl": 19.3103,
+        "stop_pnl": 1.4369,
+        "stops": 19,
+        "trips": 336,
+        "vs_base": -0.8633
+       }
+      },
+      "days": 147,
+      "total": {
+       "asks": 523,
+       "bids": 466,
+       "bps_per_trip": 4.85,
+       "per_year": 111.42,
+       "pnl": 44.874,
+       "stop_pnl": 2.6076,
+       "stops": 62,
+       "trips": 989
+      },
+      "vs_base_per_year": {
+       "mean_day": -3.95,
+       "p05": -10.04,
+       "p95": 2.05,
+       "share_gt0": 0.136
+      }
+     },
+     "all": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 275,
+        "bids": 218,
+        "bps_per_trip": 4.6,
+        "pnl": 22.2135,
+        "stop_pnl": -1.9998,
+        "stops": 62,
+        "trips": 493,
+        "vs_base": -2.2306
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 229,
+        "bids": 377,
+        "bps_per_trip": 4.1,
+        "pnl": 23.2304,
+        "stop_pnl": -1.3788,
+        "stops": 50,
+        "trips": 606,
+        "vs_base": 2.3429
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 432,
+        "bids": 333,
+        "bps_per_trip": 3.21,
+        "pnl": 22.9733,
+        "stop_pnl": 0.779,
+        "stops": 58,
+        "trips": 765,
+        "vs_base": 2.1702
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 581,
+        "bids": 598,
+        "bps_per_trip": 8.44,
+        "pnl": 87.6495,
+        "stop_pnl": 5.7213,
+        "stops": 45,
+        "trips": 1179,
+        "vs_base": 0.3647
+       }
+      },
+      "days": 322,
+      "total": {
+       "asks": 1517,
+       "bids": 1526,
+       "bps_per_trip": 5.57,
+       "per_year": 176.91,
+       "pnl": 156.0667,
+       "stop_pnl": 3.1217,
+       "stops": 215,
+       "trips": 3043
+      },
+      "vs_base_per_year": {
+       "mean_day": 3.0,
+       "p05": -3.77,
+       "p95": 10.14,
+       "share_gt0": 0.761
+      }
+     }
+    },
+    "engine|skew3.0": {
+     "IS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 183,
+        "bids": 152,
+        "bps_per_trip": 4.54,
+        "pnl": 14.8935,
+        "stop_pnl": -0.9568,
+        "stops": 47,
+        "trips": 335,
+        "vs_base": -1.6341
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 149,
+        "bids": 246,
+        "bps_per_trip": 1.68,
+        "pnl": 6.2412,
+        "stop_pnl": -2.3361,
+        "stops": 39,
+        "trips": 395,
+        "vs_base": 0.1064
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 272,
+        "bids": 220,
+        "bps_per_trip": 4.3,
+        "pnl": 19.3529,
+        "stop_pnl": -0.0995,
+        "stops": 41,
+        "trips": 492,
+        "vs_base": 2.1708
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 415,
+        "bids": 439,
+        "bps_per_trip": 8.77,
+        "pnl": 65.3216,
+        "stop_pnl": 4.1799,
+        "stops": 27,
+        "trips": 854,
+        "vs_base": -1.7896
+       }
+      },
+      "days": 175,
+      "total": {
+       "asks": 1019,
+       "bids": 1057,
+       "bps_per_trip": 5.59,
+       "per_year": 220.69,
+       "pnl": 105.8092,
+       "stop_pnl": 0.7875,
+       "stops": 154,
+       "trips": 2076
+      },
+      "vs_base_per_year": {
+       "mean_day": -2.39,
+       "p05": -15.89,
+       "p95": 10.16,
+       "share_gt0": 0.388
+      }
+     },
+     "OOS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 108,
+        "bids": 74,
+        "bps_per_trip": 4.3,
+        "pnl": 7.8208,
+        "stop_pnl": -0.7149,
+        "stops": 17,
+        "trips": 182,
+        "vs_base": -0.0958
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 102,
+        "bids": 133,
+        "bps_per_trip": 6.95,
+        "pnl": 15.0197,
+        "stop_pnl": 0.702,
+        "stops": 9,
+        "trips": 235,
+        "vs_base": 0.267
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 162,
+        "bids": 106,
+        "bps_per_trip": 1.05,
+        "pnl": 2.7285,
+        "stop_pnl": 0.9523,
+        "stops": 17,
+        "trips": 268,
+        "vs_base": -0.8925
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 176,
+        "bids": 177,
+        "bps_per_trip": 6.14,
+        "pnl": 18.9115,
+        "stop_pnl": 1.8537,
+        "stops": 21,
+        "trips": 353,
+        "vs_base": -1.2621
+       }
+      },
+      "days": 147,
+      "total": {
+       "asks": 548,
+       "bids": 490,
+       "bps_per_trip": 4.6,
+       "per_year": 110.44,
+       "pnl": 44.4805,
+       "stop_pnl": 2.7931,
+       "stops": 64,
+       "trips": 1038
+      },
+      "vs_base_per_year": {
+       "mean_day": -4.92,
+       "p05": -13.3,
+       "p95": 3.21,
+       "share_gt0": 0.155
+      }
+     },
+     "all": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 291,
+        "bids": 226,
+        "bps_per_trip": 4.45,
+        "pnl": 22.7143,
+        "stop_pnl": -1.6717,
+        "stops": 64,
+        "trips": 517,
+        "vs_base": -1.7298
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 251,
+        "bids": 379,
+        "bps_per_trip": 3.61,
+        "pnl": 21.2609,
+        "stop_pnl": -1.6341,
+        "stops": 48,
+        "trips": 630,
+        "vs_base": 0.3734
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 434,
+        "bids": 326,
+        "bps_per_trip": 3.11,
+        "pnl": 22.0813,
+        "stop_pnl": 0.8528,
+        "stops": 58,
+        "trips": 760,
+        "vs_base": 1.2782
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 591,
+        "bids": 616,
+        "bps_per_trip": 8.0,
+        "pnl": 84.2331,
+        "stop_pnl": 6.0336,
+        "stops": 48,
+        "trips": 1207,
+        "vs_base": -3.0517
+       }
+      },
+      "days": 322,
+      "total": {
+       "asks": 1567,
+       "bids": 1547,
+       "bps_per_trip": 5.25,
+       "per_year": 170.36,
+       "pnl": 150.2896,
+       "stop_pnl": 3.5806,
+       "stops": 218,
+       "trips": 3114
+      },
+      "vs_base_per_year": {
+       "mean_day": -3.55,
+       "p05": -11.35,
+       "p95": 4.29,
+       "share_gt0": 0.229
+      }
+     }
+    }
+   }
+  },
+  "hold": {
+   "orders": {
+    "hold:cb_own+b6h_1.0|skew0.0": 217567,
+    "hold:cb_own+b6h_1.0|skew0.5": 217844,
+    "hold:cb_own+b6h_1.0|skew1.0": 218579,
+    "hold:cb_own+b6h_1.0|skew2.0": 221156,
+    "hold:cb_own+b6h_1.0|skew3.0": 224186,
+    "hold:engine|skew0.0": 216024,
+    "hold:engine|skew0.5": 217191,
+    "hold:engine|skew1.0": 218540,
+    "hold:engine|skew2.0": 220994,
+    "hold:engine|skew3.0": 224070
+   },
+   "per_book_picks": {
+    "coinbase:USDC-EUR": {
+     "IS": {
+      "asks": 116,
+      "bids": 152,
+      "bps_per_trip": 5.88,
+      "pnl": 15.7684,
+      "stop_pnl": 0,
+      "stops": 0,
+      "trips": 268,
+      "vs_base": -0.0654
+     },
+     "OOS": {
+      "asks": 59,
+      "bids": 92,
+      "bps_per_trip": 6.05,
+      "pnl": 9.1409,
+      "stop_pnl": 0,
+      "stops": 0,
+      "trips": 151,
+      "vs_base": -1.0349
+     },
+     "base_IS": {
+      "asks": 207,
+      "bids": 157,
+      "bps_per_trip": 4.46,
+      "pnl": 15.8338,
+      "stop_pnl": -1.8678,
+      "stops": 60,
+      "trips": 364,
+      "vs_base": 0.0
+     },
+     "base_OOS": {
+      "asks": 115,
+      "bids": 87,
+      "bps_per_trip": 5.08,
+      "pnl": 10.1758,
+      "stop_pnl": -0.7795,
+      "stops": 27,
+      "trips": 202,
+      "vs_base": 0.0
+     },
+     "pick": "hold:cb_own+b6h_1.0|skew2.0"
+    },
+    "coinbase:USDC-GBP": {
+     "IS": {
+      "asks": 124,
+      "bids": 223,
+      "bps_per_trip": 5.1,
+      "pnl": 17.284,
+      "stop_pnl": 0,
+      "stops": 0,
+      "trips": 347,
+      "vs_base": 7.0289
+     },
+     "OOS": {
+      "asks": 82,
+      "bids": 162,
+      "bps_per_trip": 10.03,
+      "pnl": 23.5121,
+      "stop_pnl": 0,
+      "stops": 0,
+      "trips": 244,
+      "vs_base": -0.411
+     },
+     "base_IS": {
+      "asks": 175,
+      "bids": 270,
+      "bps_per_trip": 2.47,
+      "pnl": 10.2551,
+      "stop_pnl": -0.5709,
+      "stops": 49,
+      "trips": 445,
+      "vs_base": 0.0
+     },
+     "base_OOS": {
+      "asks": 129,
+      "bids": 151,
+      "bps_per_trip": 9.55,
+      "pnl": 23.9231,
+      "stop_pnl": 2.5653,
+      "stops": 27,
+      "trips": 280,
+      "vs_base": 0.0
+     },
+     "pick": "hold:cb_own+b6h_1.0|skew0.0"
+    },
+    "coinbase:USDT-EUR": {
+     "IS": {
+      "asks": 177,
+      "bids": 189,
+      "bps_per_trip": 6.35,
+      "pnl": 22.4907,
+      "stop_pnl": 0,
+      "stops": 0,
+      "trips": 366,
+      "vs_base": 3.9022
+     },
+     "OOS": {
+      "asks": 66,
+      "bids": 93,
+      "bps_per_trip": 3.92,
+      "pnl": 6.1845,
+      "stop_pnl": -0.0868,
+      "stops": 2,
+      "trips": 159,
+      "vs_base": -1.9468
+     },
+     "base_IS": {
+      "asks": 306,
+      "bids": 226,
+      "bps_per_trip": 3.84,
+      "pnl": 18.5885,
+      "stop_pnl": 0.2779,
+      "stops": 62,
+      "trips": 532,
+      "vs_base": 0.0
+     },
+     "base_OOS": {
+      "asks": 155,
+      "bids": 142,
+      "bps_per_trip": 2.83,
+      "pnl": 8.1313,
+      "stop_pnl": 1.4628,
+      "stops": 31,
+      "trips": 297,
+      "vs_base": 0.0
+     },
+     "pick": "hold:cb_own+b6h_1.0|skew0.5"
+    },
+    "coinbase:USDT-GBP": {
+     "IS": {
+      "asks": 473,
+      "bids": 443,
+      "bps_per_trip": 9.66,
+      "pnl": 84.978,
+      "stop_pnl": -0.2522,
+      "stops": 2,
+      "trips": 916,
+      "vs_base": 0.1517
+     },
+     "OOS": {
+      "asks": 210,
+      "bids": 197,
+      "bps_per_trip": 9.5,
+      "pnl": 37.7576,
+      "stop_pnl": 0,
+      "stops": 0,
+      "trips": 407,
+      "vs_base": 3.0876
+     },
+     "base_IS": {
+      "asks": 484,
+      "bids": 470,
+      "bps_per_trip": 9.9,
+      "pnl": 84.8263,
+      "stop_pnl": 5.9153,
+      "stops": 49,
+      "trips": 954,
+      "vs_base": 0.0
+     },
+     "base_OOS": {
+      "asks": 243,
+      "bids": 211,
+      "bps_per_trip": 8.36,
+      "pnl": 34.67,
+      "stop_pnl": 1.2256,
+      "stops": 30,
+      "trips": 454,
+      "vs_base": 0.0
+     },
+     "pick": "hold:cb_own+b6h_1.0|skew2.0"
+    }
+   },
+   "picks": {
+    "cb_own + basis": "hold:cb_own+b6h_1.0|skew0.0"
+   },
+   "table": {
+    "hold:cb_own+b6h_1.0|skew0.0": {
+     "IS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 106,
+        "bids": 143,
+        "bps_per_trip": 6.3,
+        "pnl": 15.6407,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 249,
+        "vs_base": -0.1931
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 124,
+        "bids": 223,
+        "bps_per_trip": 5.1,
+        "pnl": 17.284,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 347,
+        "vs_base": 7.0289
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 175,
+        "bids": 186,
+        "bps_per_trip": 6.31,
+        "pnl": 21.9337,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 361,
+        "vs_base": 3.3452
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 468,
+        "bids": 429,
+        "bps_per_trip": 9.78,
+        "pnl": 84.7551,
+        "stop_pnl": -0.216,
+        "stops": 2,
+        "trips": 897,
+        "vs_base": -0.0712
+       }
+      },
+      "days": 175,
+      "total": {
+       "asks": 873,
+       "bids": 981,
+       "bps_per_trip": 7.75,
+       "per_year": 291.19,
+       "pnl": 139.6135,
+       "stop_pnl": -0.216,
+       "stops": 2,
+       "trips": 1854
+      },
+      "vs_base_per_year": {
+       "mean_day": 21.09,
+       "p05": -19.55,
+       "p95": 59.33,
+       "share_gt0": 0.803
+      }
+     },
+     "OOS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 55,
+        "bids": 85,
+        "bps_per_trip": 6.31,
+        "pnl": 8.8359,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 140,
+        "vs_base": -1.3399
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 82,
+        "bids": 162,
+        "bps_per_trip": 10.03,
+        "pnl": 23.5121,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 244,
+        "vs_base": -0.411
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 59,
+        "bids": 94,
+        "bps_per_trip": 4.04,
+        "pnl": 6.1267,
+        "stop_pnl": -0.0868,
+        "stops": 2,
+        "trips": 153,
+        "vs_base": -2.0046
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 204,
+        "bids": 188,
+        "bps_per_trip": 9.9,
+        "pnl": 38.0844,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 392,
+        "vs_base": 3.4144
+       }
+      },
+      "days": 147,
+      "total": {
+       "asks": 400,
+       "bids": 529,
+       "bps_per_trip": 8.41,
+       "per_year": 190.1,
+       "pnl": 76.5591,
+       "stop_pnl": -0.0868,
+       "stops": 2,
+       "trips": 929
+      },
+      "vs_base_per_year": {
+       "mean_day": -0.85,
+       "p05": -25.03,
+       "p95": 25.29,
+       "share_gt0": 0.483
+      }
+     },
+     "all": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 161,
+        "bids": 228,
+        "bps_per_trip": 6.31,
+        "pnl": 24.4766,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 389,
+        "vs_base": -1.533
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 206,
+        "bids": 385,
+        "bps_per_trip": 7.12,
+        "pnl": 40.7961,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 591,
+        "vs_base": 6.6179
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 234,
+        "bids": 280,
+        "bps_per_trip": 5.62,
+        "pnl": 28.0604,
+        "stop_pnl": -0.0868,
+        "stops": 2,
+        "trips": 514,
+        "vs_base": 1.3406
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 672,
+        "bids": 617,
+        "bps_per_trip": 9.82,
+        "pnl": 122.8395,
+        "stop_pnl": -0.216,
+        "stops": 2,
+        "trips": 1289,
+        "vs_base": 3.3432
+       }
+      },
+      "days": 322,
+      "total": {
+       "asks": 1273,
+       "bids": 1510,
+       "bps_per_trip": 7.97,
+       "per_year": 245.04,
+       "pnl": 216.1726,
+       "stop_pnl": -0.3028,
+       "stops": 4,
+       "trips": 2783
+      },
+      "vs_base_per_year": {
+       "mean_day": 11.07,
+       "p05": -12.9,
+       "p95": 35.32,
+       "share_gt0": 0.784
+      }
+     }
+    },
+    "hold:cb_own+b6h_1.0|skew0.5": {
+     "IS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 105,
+        "bids": 142,
+        "bps_per_trip": 6.27,
+        "pnl": 15.4277,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 247,
+        "vs_base": -0.4061
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 124,
+        "bids": 225,
+        "bps_per_trip": 5.01,
+        "pnl": 17.0064,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 349,
+        "vs_base": 6.7513
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 177,
+        "bids": 189,
+        "bps_per_trip": 6.35,
+        "pnl": 22.4907,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 366,
+        "vs_base": 3.9022
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 466,
+        "bids": 435,
+        "bps_per_trip": 9.74,
+        "pnl": 84.6802,
+        "stop_pnl": -0.216,
+        "stops": 2,
+        "trips": 901,
+        "vs_base": -0.1461
+       }
+      },
+      "days": 175,
+      "total": {
+       "asks": 872,
+       "bids": 991,
+       "bps_per_trip": 7.72,
+       "per_year": 291.18,
+       "pnl": 139.605,
+       "stop_pnl": -0.216,
+       "stops": 2,
+       "trips": 1863
+      },
+      "vs_base_per_year": {
+       "mean_day": 21.07,
+       "p05": -20.3,
+       "p95": 60.83,
+       "share_gt0": 0.796
+      }
+     },
+     "OOS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 59,
+        "bids": 87,
+        "bps_per_trip": 6.39,
+        "pnl": 9.2854,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 146,
+        "vs_base": -0.8904
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 84,
+        "bids": 163,
+        "bps_per_trip": 10.04,
+        "pnl": 23.8389,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 247,
+        "vs_base": -0.0842
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 66,
+        "bids": 93,
+        "bps_per_trip": 3.92,
+        "pnl": 6.1845,
+        "stop_pnl": -0.0868,
+        "stops": 2,
+        "trips": 159,
+        "vs_base": -1.9468
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 207,
+        "bids": 188,
+        "bps_per_trip": 9.95,
+        "pnl": 38.5159,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 395,
+        "vs_base": 3.8459
+       }
+      },
+      "days": 147,
+      "total": {
+       "asks": 416,
+       "bids": 531,
+       "bps_per_trip": 8.39,
+       "per_year": 193.24,
+       "pnl": 77.8247,
+       "stop_pnl": -0.0868,
+       "stops": 2,
+       "trips": 947
+      },
+      "vs_base_per_year": {
+       "mean_day": 2.3,
+       "p05": -21.61,
+       "p95": 28.55,
+       "share_gt0": 0.567
+      }
+     },
+     "all": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 164,
+        "bids": 229,
+        "bps_per_trip": 6.32,
+        "pnl": 24.7131,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 393,
+        "vs_base": -1.2965
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 208,
+        "bids": 388,
+        "bps_per_trip": 7.08,
+        "pnl": 40.8453,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 596,
+        "vs_base": 6.6671
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 243,
+        "bids": 282,
+        "bps_per_trip": 5.6,
+        "pnl": 28.6752,
+        "stop_pnl": -0.0868,
+        "stops": 2,
+        "trips": 525,
+        "vs_base": 1.9554
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 673,
+        "bids": 623,
+        "bps_per_trip": 9.81,
+        "pnl": 123.1962,
+        "stop_pnl": -0.216,
+        "stops": 2,
+        "trips": 1296,
+        "vs_base": 3.6999
+       }
+      },
+      "days": 322,
+      "total": {
+       "asks": 1288,
+       "bids": 1522,
+       "bps_per_trip": 7.95,
+       "per_year": 246.47,
+       "pnl": 217.4298,
+       "stop_pnl": -0.3028,
+       "stops": 4,
+       "trips": 2810
+      },
+      "vs_base_per_year": {
+       "mean_day": 12.5,
+       "p05": -11.76,
+       "p95": 37.32,
+       "share_gt0": 0.808
+      }
+     }
+    },
+    "hold:cb_own+b6h_1.0|skew1.0": {
+     "IS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 104,
+        "bids": 147,
+        "bps_per_trip": 6.24,
+        "pnl": 15.5829,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 251,
+        "vs_base": -0.2509
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 124,
+        "bids": 224,
+        "bps_per_trip": 4.66,
+        "pnl": 15.838,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 348,
+        "vs_base": 5.5829
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 181,
+        "bids": 190,
+        "bps_per_trip": 6.11,
+        "pnl": 21.9053,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 371,
+        "vs_base": 3.3168
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 463,
+        "bids": 434,
+        "bps_per_trip": 9.6,
+        "pnl": 83.0436,
+        "stop_pnl": -0.216,
+        "stops": 2,
+        "trips": 897,
+        "vs_base": -1.7827
+       }
+      },
+      "days": 175,
+      "total": {
+       "asks": 872,
+       "bids": 995,
+       "bps_per_trip": 7.52,
+       "per_year": 284.43,
+       "pnl": 136.3698,
+       "stop_pnl": -0.216,
+       "stops": 2,
+       "trips": 1867
+      },
+      "vs_base_per_year": {
+       "mean_day": 14.32,
+       "p05": -27.64,
+       "p95": 53.28,
+       "share_gt0": 0.715
+      }
+     },
+     "OOS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 58,
+        "bids": 88,
+        "bps_per_trip": 6.18,
+        "pnl": 9.0256,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 146,
+        "vs_base": -1.1502
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 85,
+        "bids": 164,
+        "bps_per_trip": 10.01,
+        "pnl": 23.898,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 249,
+        "vs_base": -0.0251
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 63,
+        "bids": 93,
+        "bps_per_trip": 4.04,
+        "pnl": 6.2484,
+        "stop_pnl": -0.0868,
+        "stops": 2,
+        "trips": 156,
+        "vs_base": -1.8829
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 209,
+        "bids": 191,
+        "bps_per_trip": 9.88,
+        "pnl": 38.7666,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 400,
+        "vs_base": 4.0966
+       }
+      },
+      "days": 147,
+      "total": {
+       "asks": 415,
+       "bids": 536,
+       "bps_per_trip": 8.37,
+       "per_year": 193.52,
+       "pnl": 77.9386,
+       "stop_pnl": -0.0868,
+       "stops": 2,
+       "trips": 951
+      },
+      "vs_base_per_year": {
+       "mean_day": 2.58,
+       "p05": -21.81,
+       "p95": 29.35,
+       "share_gt0": 0.573
+      }
+     },
+     "all": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 162,
+        "bids": 235,
+        "bps_per_trip": 6.22,
+        "pnl": 24.6085,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 397,
+        "vs_base": -1.4011
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 209,
+        "bids": 388,
+        "bps_per_trip": 6.87,
+        "pnl": 39.7361,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 597,
+        "vs_base": 5.5579
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 244,
+        "bids": 283,
+        "bps_per_trip": 5.48,
+        "pnl": 28.1537,
+        "stop_pnl": -0.0868,
+        "stops": 2,
+        "trips": 527,
+        "vs_base": 1.4339
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 672,
+        "bids": 625,
+        "bps_per_trip": 9.69,
+        "pnl": 121.8101,
+        "stop_pnl": -0.216,
+        "stops": 2,
+        "trips": 1297,
+        "vs_base": 2.3138
+       }
+      },
+      "days": 322,
+      "total": {
+       "asks": 1287,
+       "bids": 1531,
+       "bps_per_trip": 7.81,
+       "per_year": 242.93,
+       "pnl": 214.3084,
+       "stop_pnl": -0.3028,
+       "stops": 4,
+       "trips": 2818
+      },
+      "vs_base_per_year": {
+       "mean_day": 8.96,
+       "p05": -15.68,
+       "p95": 33.4,
+       "share_gt0": 0.733
+      }
+     }
+    },
+    "hold:cb_own+b6h_1.0|skew2.0": {
+     "IS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 116,
+        "bids": 152,
+        "bps_per_trip": 5.88,
+        "pnl": 15.7684,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 268,
+        "vs_base": -0.0654
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 131,
+        "bids": 234,
+        "bps_per_trip": 4.52,
+        "pnl": 16.1225,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 365,
+        "vs_base": 5.8674
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 189,
+        "bids": 192,
+        "bps_per_trip": 5.7,
+        "pnl": 20.9882,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 381,
+        "vs_base": 2.3997
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 473,
+        "bids": 443,
+        "bps_per_trip": 9.66,
+        "pnl": 84.978,
+        "stop_pnl": -0.2522,
+        "stops": 2,
+        "trips": 916,
+        "vs_base": 0.1517
+       }
+      },
+      "days": 175,
+      "total": {
+       "asks": 909,
+       "bids": 1021,
+       "bps_per_trip": 7.36,
+       "per_year": 287.53,
+       "pnl": 137.8571,
+       "stop_pnl": -0.2522,
+       "stops": 2,
+       "trips": 1930
+      },
+      "vs_base_per_year": {
+       "mean_day": 17.42,
+       "p05": -23.73,
+       "p95": 56.53,
+       "share_gt0": 0.758
+      }
+     },
+     "OOS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 59,
+        "bids": 92,
+        "bps_per_trip": 6.05,
+        "pnl": 9.1409,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 151,
+        "vs_base": -1.0349
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 89,
+        "bids": 170,
+        "bps_per_trip": 9.47,
+        "pnl": 23.3039,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 259,
+        "vs_base": -0.6192
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 72,
+        "bids": 96,
+        "bps_per_trip": 3.58,
+        "pnl": 5.9431,
+        "stop_pnl": -0.0868,
+        "stops": 2,
+        "trips": 168,
+        "vs_base": -2.1882
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 210,
+        "bids": 197,
+        "bps_per_trip": 9.5,
+        "pnl": 37.7576,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 407,
+        "vs_base": 3.0876
+       }
+      },
+      "days": 147,
+      "total": {
+       "asks": 430,
+       "bids": 555,
+       "bps_per_trip": 7.93,
+       "per_year": 189.07,
+       "pnl": 76.1455,
+       "stop_pnl": -0.0868,
+       "stops": 2,
+       "trips": 985
+      },
+      "vs_base_per_year": {
+       "mean_day": -1.87,
+       "p05": -26.48,
+       "p95": 25.12,
+       "share_gt0": 0.464
+      }
+     },
+     "all": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 175,
+        "bids": 244,
+        "bps_per_trip": 5.95,
+        "pnl": 24.9093,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 419,
+        "vs_base": -1.1003
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 220,
+        "bids": 404,
+        "bps_per_trip": 6.54,
+        "pnl": 39.4264,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 624,
+        "vs_base": 5.2482
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 261,
+        "bids": 288,
+        "bps_per_trip": 5.04,
+        "pnl": 26.9314,
+        "stop_pnl": -0.0868,
+        "stops": 2,
+        "trips": 549,
+        "vs_base": 0.2116
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 683,
+        "bids": 640,
+        "bps_per_trip": 9.61,
+        "pnl": 122.7356,
+        "stop_pnl": -0.2522,
+        "stops": 2,
+        "trips": 1323,
+        "vs_base": 3.2393
+       }
+      },
+      "days": 322,
+      "total": {
+       "asks": 1339,
+       "bids": 1576,
+       "bps_per_trip": 7.55,
+       "per_year": 242.58,
+       "pnl": 214.0027,
+       "stop_pnl": -0.339,
+       "stops": 4,
+       "trips": 2915
+      },
+      "vs_base_per_year": {
+       "mean_day": 8.61,
+       "p05": -15.7,
+       "p95": 33.41,
+       "share_gt0": 0.725
+      }
+     }
+    },
+    "hold:cb_own+b6h_1.0|skew3.0": {
+     "IS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 119,
+        "bids": 152,
+        "bps_per_trip": 5.74,
+        "pnl": 15.5435,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 271,
+        "vs_base": -0.2903
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 142,
+        "bids": 237,
+        "bps_per_trip": 4.54,
+        "pnl": 16.899,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 379,
+        "vs_base": 6.6439
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 207,
+        "bids": 198,
+        "bps_per_trip": 5.53,
+        "pnl": 21.8412,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 405,
+        "vs_base": 3.2527
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 488,
+        "bids": 461,
+        "bps_per_trip": 9.26,
+        "pnl": 83.6765,
+        "stop_pnl": -0.2004,
+        "stops": 1,
+        "trips": 949,
+        "vs_base": -1.1498
+       }
+      },
+      "days": 175,
+      "total": {
+       "asks": 956,
+       "bids": 1048,
+       "bps_per_trip": 7.11,
+       "per_year": 287.75,
+       "pnl": 137.9602,
+       "stop_pnl": -0.2004,
+       "stops": 1,
+       "trips": 2004
+      },
+      "vs_base_per_year": {
+       "mean_day": 17.64,
+       "p05": -24.05,
+       "p95": 56.75,
+       "share_gt0": 0.752
+      }
+     },
+     "OOS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 60,
+        "bids": 96,
+        "bps_per_trip": 5.16,
+        "pnl": 8.0547,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 156,
+        "vs_base": -2.1211
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 99,
+        "bids": 176,
+        "bps_per_trip": 8.7,
+        "pnl": 22.6885,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 275,
+        "vs_base": -1.2346
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 74,
+        "bids": 97,
+        "bps_per_trip": 2.9,
+        "pnl": 4.8824,
+        "stop_pnl": -0.0868,
+        "stops": 2,
+        "trips": 171,
+        "vs_base": -3.2489
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 217,
+        "bids": 202,
+        "bps_per_trip": 9.19,
+        "pnl": 37.3209,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 419,
+        "vs_base": 2.6509
+       }
+      },
+      "days": 147,
+      "total": {
+       "asks": 450,
+       "bids": 571,
+       "bps_per_trip": 7.36,
+       "per_year": 181.13,
+       "pnl": 72.9465,
+       "stop_pnl": -0.0868,
+       "stops": 2,
+       "trips": 1021
+      },
+      "vs_base_per_year": {
+       "mean_day": -9.82,
+       "p05": -34.36,
+       "p95": 16.35,
+       "share_gt0": 0.281
+      }
+     },
+     "all": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 179,
+        "bids": 248,
+        "bps_per_trip": 5.53,
+        "pnl": 23.5982,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 427,
+        "vs_base": -2.4114
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 241,
+        "bids": 413,
+        "bps_per_trip": 6.26,
+        "pnl": 39.5875,
+        "stop_pnl": 0,
+        "stops": 0,
+        "trips": 654,
+        "vs_base": 5.4093
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 281,
+        "bids": 295,
+        "bps_per_trip": 4.75,
+        "pnl": 26.7237,
+        "stop_pnl": -0.0868,
+        "stops": 2,
+        "trips": 576,
+        "vs_base": 0.0039
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 705,
+        "bids": 663,
+        "bps_per_trip": 9.24,
+        "pnl": 120.9973,
+        "stop_pnl": -0.2004,
+        "stops": 1,
+        "trips": 1368,
+        "vs_base": 1.501
+       }
+      },
+      "days": 322,
+      "total": {
+       "asks": 1406,
+       "bids": 1619,
+       "bps_per_trip": 7.19,
+       "per_year": 239.07,
+       "pnl": 210.9067,
+       "stop_pnl": -0.2872,
+       "stops": 3,
+       "trips": 3025
+      },
+      "vs_base_per_year": {
+       "mean_day": 5.1,
+       "p05": -18.88,
+       "p95": 30.34,
+       "share_gt0": 0.641
+      }
+     }
+    },
+    "hold:engine|skew0.0": {
+     "IS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 207,
+        "bids": 157,
+        "bps_per_trip": 4.46,
+        "pnl": 15.8338,
+        "stop_pnl": -1.8678,
+        "stops": 60,
+        "trips": 364,
+        "vs_base": 0.0
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 175,
+        "bids": 270,
+        "bps_per_trip": 2.47,
+        "pnl": 10.2551,
+        "stop_pnl": -0.5709,
+        "stops": 49,
+        "trips": 445,
+        "vs_base": 0.0
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 306,
+        "bids": 226,
+        "bps_per_trip": 3.84,
+        "pnl": 18.5885,
+        "stop_pnl": 0.2779,
+        "stops": 62,
+        "trips": 532,
+        "vs_base": 0.0
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 484,
+        "bids": 470,
+        "bps_per_trip": 9.9,
+        "pnl": 84.8263,
+        "stop_pnl": 5.9153,
+        "stops": 49,
+        "trips": 954,
+        "vs_base": 0.0
+       }
+      },
+      "days": 175,
+      "total": {
+       "asks": 1172,
+       "bids": 1123,
+       "bps_per_trip": 6.13,
+       "per_year": 270.11,
+       "pnl": 129.5037,
+       "stop_pnl": 3.7545,
+       "stops": 220,
+       "trips": 2295
+      },
+      "vs_base_per_year": {
+       "mean_day": 0.0,
+       "p05": 0.0,
+       "p95": 0.0,
+       "share_gt0": 0.0
+      }
+     },
+     "OOS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 115,
+        "bids": 87,
+        "bps_per_trip": 5.08,
+        "pnl": 10.1758,
+        "stop_pnl": -0.7795,
+        "stops": 27,
+        "trips": 202,
+        "vs_base": 0.0
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 129,
+        "bids": 151,
+        "bps_per_trip": 9.55,
+        "pnl": 23.9231,
+        "stop_pnl": 2.5653,
+        "stops": 27,
+        "trips": 280,
+        "vs_base": 0.0
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 155,
+        "bids": 142,
+        "bps_per_trip": 2.83,
+        "pnl": 8.1313,
+        "stop_pnl": 1.4628,
+        "stops": 31,
+        "trips": 297,
+        "vs_base": 0.0
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 243,
+        "bids": 211,
+        "bps_per_trip": 8.36,
+        "pnl": 34.67,
+        "stop_pnl": 1.2256,
+        "stops": 30,
+        "trips": 454,
+        "vs_base": 0.0
+       }
+      },
+      "days": 147,
+      "total": {
+       "asks": 642,
+       "bids": 591,
+       "bps_per_trip": 6.67,
+       "per_year": 190.94,
+       "pnl": 76.9002,
+       "stop_pnl": 4.4742,
+       "stops": 115,
+       "trips": 1233
+      },
+      "vs_base_per_year": {
+       "mean_day": 0.0,
+       "p05": 0.0,
+       "p95": 0.0,
+       "share_gt0": 0.0
+      }
+     },
+     "all": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 322,
+        "bids": 244,
+        "bps_per_trip": 4.68,
+        "pnl": 26.0096,
+        "stop_pnl": -2.6474,
+        "stops": 87,
+        "trips": 566,
+        "vs_base": 0.0
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 304,
+        "bids": 421,
+        "bps_per_trip": 5.13,
+        "pnl": 34.1782,
+        "stop_pnl": 1.9944,
+        "stops": 76,
+        "trips": 725,
+        "vs_base": 0.0
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 461,
+        "bids": 368,
+        "bps_per_trip": 3.46,
+        "pnl": 26.7198,
+        "stop_pnl": 1.7407,
+        "stops": 93,
+        "trips": 829,
+        "vs_base": 0.0
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 727,
+        "bids": 681,
+        "bps_per_trip": 9.4,
+        "pnl": 119.4963,
+        "stop_pnl": 7.141,
+        "stops": 79,
+        "trips": 1408,
+        "vs_base": 0.0
+       }
+      },
+      "days": 322,
+      "total": {
+       "asks": 1814,
+       "bids": 1714,
+       "bps_per_trip": 6.32,
+       "per_year": 233.97,
+       "pnl": 206.4039,
+       "stop_pnl": 8.2287,
+       "stops": 335,
+       "trips": 3528
+      },
+      "vs_base_per_year": {
+       "mean_day": 0.0,
+       "p05": 0.0,
+       "p95": 0.0,
+       "share_gt0": 0.0
+      }
+     }
+    },
+    "hold:engine|skew0.5": {
+     "IS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 208,
+        "bids": 162,
+        "bps_per_trip": 4.17,
+        "pnl": 15.0679,
+        "stop_pnl": -2.8748,
+        "stops": 64,
+        "trips": 370,
+        "vs_base": -0.7659
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 180,
+        "bids": 273,
+        "bps_per_trip": 2.68,
+        "pnl": 11.3128,
+        "stop_pnl": -0.7355,
+        "stops": 48,
+        "trips": 453,
+        "vs_base": 1.0577
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 304,
+        "bids": 225,
+        "bps_per_trip": 3.77,
+        "pnl": 18.0663,
+        "stop_pnl": 0.404,
+        "stops": 61,
+        "trips": 529,
+        "vs_base": -0.5222
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 481,
+        "bids": 471,
+        "bps_per_trip": 10.0,
+        "pnl": 85.2442,
+        "stop_pnl": 7.1136,
+        "stops": 51,
+        "trips": 952,
+        "vs_base": 0.4179
+       }
+      },
+      "days": 175,
+      "total": {
+       "asks": 1173,
+       "bids": 1131,
+       "bps_per_trip": 6.13,
+       "per_year": 270.5,
+       "pnl": 129.6912,
+       "stop_pnl": 3.9073,
+       "stops": 224,
+       "trips": 2304
+      },
+      "vs_base_per_year": {
+       "mean_day": 0.39,
+       "p05": -8.72,
+       "p95": 8.61,
+       "share_gt0": 0.549
+      }
+     },
+     "OOS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 120,
+        "bids": 87,
+        "bps_per_trip": 4.86,
+        "pnl": 9.98,
+        "stop_pnl": -0.8371,
+        "stops": 27,
+        "trips": 207,
+        "vs_base": -0.1958
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 129,
+        "bids": 153,
+        "bps_per_trip": 9.47,
+        "pnl": 24.0888,
+        "stop_pnl": 2.5018,
+        "stops": 27,
+        "trips": 282,
+        "vs_base": 0.1657
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 156,
+        "bids": 142,
+        "bps_per_trip": 2.83,
+        "pnl": 8.154,
+        "stop_pnl": 1.4233,
+        "stops": 31,
+        "trips": 298,
+        "vs_base": 0.0227
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 240,
+        "bids": 215,
+        "bps_per_trip": 8.4,
+        "pnl": 34.6348,
+        "stop_pnl": 1.3708,
+        "stops": 30,
+        "trips": 455,
+        "vs_base": -0.0352
+       }
+      },
+      "days": 147,
+      "total": {
+       "asks": 645,
+       "bids": 597,
+       "bps_per_trip": 6.63,
+       "per_year": 190.84,
+       "pnl": 76.8576,
+       "stop_pnl": 4.4588,
+       "stops": 115,
+       "trips": 1242
+      },
+      "vs_base_per_year": {
+       "mean_day": -0.11,
+       "p05": -4.98,
+       "p95": 4.54,
+       "share_gt0": 0.488
+      }
+     },
+     "all": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 328,
+        "bids": 249,
+        "bps_per_trip": 4.42,
+        "pnl": 25.048,
+        "stop_pnl": -3.7119,
+        "stops": 91,
+        "trips": 577,
+        "vs_base": -0.9616
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 309,
+        "bids": 426,
+        "bps_per_trip": 5.23,
+        "pnl": 35.4016,
+        "stop_pnl": 1.7664,
+        "stops": 75,
+        "trips": 735,
+        "vs_base": 1.2234
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 460,
+        "bids": 367,
+        "bps_per_trip": 3.42,
+        "pnl": 26.2203,
+        "stop_pnl": 1.8272,
+        "stops": 92,
+        "trips": 827,
+        "vs_base": -0.4995
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 721,
+        "bids": 686,
+        "bps_per_trip": 9.48,
+        "pnl": 119.879,
+        "stop_pnl": 8.4843,
+        "stops": 81,
+        "trips": 1407,
+        "vs_base": 0.3827
+       }
+      },
+      "days": 322,
+      "total": {
+       "asks": 1818,
+       "bids": 1728,
+       "bps_per_trip": 6.3,
+       "per_year": 234.13,
+       "pnl": 206.5489,
+       "stop_pnl": 8.366,
+       "stops": 339,
+       "trips": 3546
+      },
+      "vs_base_per_year": {
+       "mean_day": 0.16,
+       "p05": -5.1,
+       "p95": 4.97,
+       "share_gt0": 0.513
+      }
+     }
+    },
+    "hold:engine|skew1.0": {
+     "IS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 213,
+        "bids": 162,
+        "bps_per_trip": 4.24,
+        "pnl": 15.5228,
+        "stop_pnl": -2.5944,
+        "stops": 66,
+        "trips": 375,
+        "vs_base": -0.311
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 184,
+        "bids": 275,
+        "bps_per_trip": 2.62,
+        "pnl": 11.2727,
+        "stop_pnl": -0.9354,
+        "stops": 49,
+        "trips": 459,
+        "vs_base": 1.0176
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 308,
+        "bids": 230,
+        "bps_per_trip": 3.93,
+        "pnl": 19.2458,
+        "stop_pnl": 1.0191,
+        "stops": 63,
+        "trips": 538,
+        "vs_base": 0.6573
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 494,
+        "bids": 484,
+        "bps_per_trip": 10.1,
+        "pnl": 88.2754,
+        "stop_pnl": 8.6613,
+        "stops": 52,
+        "trips": 978,
+        "vs_base": 3.4491
+       }
+      },
+      "days": 175,
+      "total": {
+       "asks": 1199,
+       "bids": 1151,
+       "bps_per_trip": 6.22,
+       "per_year": 280.15,
+       "pnl": 134.3167,
+       "stop_pnl": 6.1506,
+       "stops": 230,
+       "trips": 2350
+      },
+      "vs_base_per_year": {
+       "mean_day": 10.04,
+       "p05": -6.04,
+       "p95": 24.08,
+       "share_gt0": 0.862
+      }
+     },
+     "OOS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 124,
+        "bids": 91,
+        "bps_per_trip": 4.48,
+        "pnl": 9.587,
+        "stop_pnl": -1.0262,
+        "stops": 26,
+        "trips": 215,
+        "vs_base": -0.5888
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 131,
+        "bids": 155,
+        "bps_per_trip": 9.42,
+        "pnl": 24.4388,
+        "stop_pnl": 2.5308,
+        "stops": 26,
+        "trips": 286,
+        "vs_base": 0.5157
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 160,
+        "bids": 142,
+        "bps_per_trip": 2.96,
+        "pnl": 8.5965,
+        "stop_pnl": 1.3594,
+        "stops": 31,
+        "trips": 302,
+        "vs_base": 0.4652
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 238,
+        "bids": 215,
+        "bps_per_trip": 8.19,
+        "pnl": 33.4278,
+        "stop_pnl": 1.3416,
+        "stops": 31,
+        "trips": 453,
+        "vs_base": -1.2422
+       }
+      },
+      "days": 147,
+      "total": {
+       "asks": 653,
+       "bids": 603,
+       "bps_per_trip": 6.48,
+       "per_year": 188.83,
+       "pnl": 76.0501,
+       "stop_pnl": 4.2056,
+       "stops": 114,
+       "trips": 1256
+      },
+      "vs_base_per_year": {
+       "mean_day": -2.11,
+       "p05": -8.03,
+       "p95": 3.83,
+       "share_gt0": 0.28
+      }
+     },
+     "all": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 337,
+        "bids": 253,
+        "bps_per_trip": 4.33,
+        "pnl": 25.1098,
+        "stop_pnl": -3.6206,
+        "stops": 92,
+        "trips": 590,
+        "vs_base": -0.8998
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 315,
+        "bids": 430,
+        "bps_per_trip": 5.18,
+        "pnl": 35.7115,
+        "stop_pnl": 1.5954,
+        "stops": 75,
+        "trips": 745,
+        "vs_base": 1.5333
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 468,
+        "bids": 372,
+        "bps_per_trip": 3.57,
+        "pnl": 27.8423,
+        "stop_pnl": 2.3785,
+        "stops": 94,
+        "trips": 840,
+        "vs_base": 1.1225
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 732,
+        "bids": 699,
+        "bps_per_trip": 9.49,
+        "pnl": 121.7032,
+        "stop_pnl": 10.0029,
+        "stops": 83,
+        "trips": 1431,
+        "vs_base": 2.2069
+       }
+      },
+      "days": 322,
+      "total": {
+       "asks": 1852,
+       "bids": 1754,
+       "bps_per_trip": 6.31,
+       "per_year": 238.46,
+       "pnl": 210.3668,
+       "stop_pnl": 10.3562,
+       "stops": 344,
+       "trips": 3606
+      },
+      "vs_base_per_year": {
+       "mean_day": 4.49,
+       "p05": -4.17,
+       "p95": 12.97,
+       "share_gt0": 0.813
+      }
+     }
+    },
+    "hold:engine|skew2.0": {
+     "IS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 213,
+        "bids": 161,
+        "bps_per_trip": 4.66,
+        "pnl": 16.9276,
+        "stop_pnl": -1.0045,
+        "stops": 61,
+        "trips": 374,
+        "vs_base": 1.0938
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 183,
+        "bids": 280,
+        "bps_per_trip": 2.85,
+        "pnl": 12.327,
+        "stop_pnl": -0.9142,
+        "stops": 49,
+        "trips": 463,
+        "vs_base": 2.0719
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 317,
+        "bids": 243,
+        "bps_per_trip": 3.84,
+        "pnl": 19.3733,
+        "stop_pnl": 0.3701,
+        "stops": 65,
+        "trips": 560,
+        "vs_base": 0.7848
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 504,
+        "bids": 504,
+        "bps_per_trip": 9.69,
+        "pnl": 86.57,
+        "stop_pnl": 6.7239,
+        "stops": 54,
+        "trips": 1008,
+        "vs_base": 1.7437
+       }
+      },
+      "days": 175,
+      "total": {
+       "asks": 1217,
+       "bids": 1188,
+       "bps_per_trip": 6.17,
+       "per_year": 281.98,
+       "pnl": 135.1979,
+       "stop_pnl": 5.1753,
+       "stops": 229,
+       "trips": 2405
+      },
+      "vs_base_per_year": {
+       "mean_day": 11.88,
+       "p05": -1.17,
+       "p95": 24.54,
+       "share_gt0": 0.931
+      }
+     },
+     "OOS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 128,
+        "bids": 92,
+        "bps_per_trip": 4.41,
+        "pnl": 9.6683,
+        "stop_pnl": -0.9791,
+        "stops": 26,
+        "trips": 220,
+        "vs_base": -0.5075
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 135,
+        "bids": 160,
+        "bps_per_trip": 9.05,
+        "pnl": 24.3477,
+        "stop_pnl": 2.7818,
+        "stops": 28,
+        "trips": 295,
+        "vs_base": 0.4246
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 169,
+        "bids": 138,
+        "bps_per_trip": 2.57,
+        "pnl": 7.5913,
+        "stop_pnl": 1.6306,
+        "stops": 29,
+        "trips": 307,
+        "vs_base": -0.54
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 240,
+        "bids": 222,
+        "bps_per_trip": 8.04,
+        "pnl": 33.4768,
+        "stop_pnl": 1.1487,
+        "stops": 34,
+        "trips": 462,
+        "vs_base": -1.1932
+       }
+      },
+      "days": 147,
+      "total": {
+       "asks": 672,
+       "bids": 612,
+       "bps_per_trip": 6.26,
+       "per_year": 186.43,
+       "pnl": 75.0841,
+       "stop_pnl": 4.582,
+       "stops": 117,
+       "trips": 1284
+      },
+      "vs_base_per_year": {
+       "mean_day": -4.51,
+       "p05": -12.18,
+       "p95": 2.83,
+       "share_gt0": 0.151
+      }
+     },
+     "all": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 341,
+        "bids": 253,
+        "bps_per_trip": 4.57,
+        "pnl": 26.5959,
+        "stop_pnl": -1.9836,
+        "stops": 87,
+        "trips": 594,
+        "vs_base": 0.5863
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 318,
+        "bids": 440,
+        "bps_per_trip": 5.23,
+        "pnl": 36.6747,
+        "stop_pnl": 1.8676,
+        "stops": 77,
+        "trips": 758,
+        "vs_base": 2.4965
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 486,
+        "bids": 381,
+        "bps_per_trip": 3.37,
+        "pnl": 26.9646,
+        "stop_pnl": 2.0007,
+        "stops": 94,
+        "trips": 867,
+        "vs_base": 0.2448
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 744,
+        "bids": 726,
+        "bps_per_trip": 9.17,
+        "pnl": 120.0469,
+        "stop_pnl": 7.8726,
+        "stops": 88,
+        "trips": 1470,
+        "vs_base": 0.5506
+       }
+      },
+      "days": 322,
+      "total": {
+       "asks": 1889,
+       "bids": 1800,
+       "bps_per_trip": 6.2,
+       "per_year": 238.36,
+       "pnl": 210.2821,
+       "stop_pnl": 9.7573,
+       "stops": 346,
+       "trips": 3689
+      },
+      "vs_base_per_year": {
+       "mean_day": 4.4,
+       "p05": -3.46,
+       "p95": 12.26,
+       "share_gt0": 0.815
+      }
+     }
+    },
+    "hold:engine|skew3.0": {
+     "IS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 232,
+        "bids": 162,
+        "bps_per_trip": 4.83,
+        "pnl": 18.5579,
+        "stop_pnl": 0.9837,
+        "stops": 58,
+        "trips": 394,
+        "vs_base": 2.7241
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 199,
+        "bids": 286,
+        "bps_per_trip": 2.38,
+        "pnl": 10.6859,
+        "stop_pnl": -0.6726,
+        "stops": 52,
+        "trips": 485,
+        "vs_base": 0.4308
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 315,
+        "bids": 236,
+        "bps_per_trip": 4.06,
+        "pnl": 20.1898,
+        "stop_pnl": 0.545,
+        "stops": 61,
+        "trips": 551,
+        "vs_base": 1.6013
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 506,
+        "bids": 515,
+        "bps_per_trip": 9.23,
+        "pnl": 82.9004,
+        "stop_pnl": 6.6619,
+        "stops": 55,
+        "trips": 1021,
+        "vs_base": -1.9259
+       }
+      },
+      "days": 175,
+      "total": {
+       "asks": 1252,
+       "bids": 1199,
+       "bps_per_trip": 5.94,
+       "per_year": 276.01,
+       "pnl": 132.334,
+       "stop_pnl": 7.518,
+       "stops": 226,
+       "trips": 2451
+      },
+      "vs_base_per_year": {
+       "mean_day": 5.9,
+       "p05": -7.75,
+       "p95": 19.83,
+       "share_gt0": 0.756
+      }
+     },
+     "OOS": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 131,
+        "bids": 96,
+        "bps_per_trip": 4.38,
+        "pnl": 9.8971,
+        "stop_pnl": -0.9334,
+        "stops": 26,
+        "trips": 227,
+        "vs_base": -0.2787
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 150,
+        "bids": 165,
+        "bps_per_trip": 8.45,
+        "pnl": 23.9636,
+        "stop_pnl": 2.4447,
+        "stops": 27,
+        "trips": 315,
+        "vs_base": 0.0405
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 174,
+        "bids": 140,
+        "bps_per_trip": 2.64,
+        "pnl": 7.9994,
+        "stop_pnl": 2.1,
+        "stops": 29,
+        "trips": 314,
+        "vs_base": -0.1319
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 256,
+        "bids": 236,
+        "bps_per_trip": 7.76,
+        "pnl": 33.9027,
+        "stop_pnl": 1.5178,
+        "stops": 37,
+        "trips": 492,
+        "vs_base": -0.7673
+       }
+      },
+      "days": 147,
+      "total": {
+       "asks": 711,
+       "bids": 637,
+       "bps_per_trip": 6.06,
+       "per_year": 188.12,
+       "pnl": 75.7628,
+       "stop_pnl": 5.1291,
+       "stops": 119,
+       "trips": 1348
+      },
+      "vs_base_per_year": {
+       "mean_day": -2.82,
+       "p05": -12.69,
+       "p95": 6.88,
+       "share_gt0": 0.328
+      }
+     },
+     "all": {
+      "books": {
+       "coinbase:USDC-EUR": {
+        "asks": 363,
+        "bids": 258,
+        "bps_per_trip": 4.66,
+        "pnl": 28.4551,
+        "stop_pnl": 0.0503,
+        "stops": 84,
+        "trips": 621,
+        "vs_base": 2.4455
+       },
+       "coinbase:USDC-GBP": {
+        "asks": 349,
+        "bids": 451,
+        "bps_per_trip": 4.72,
+        "pnl": 34.6495,
+        "stop_pnl": 1.7721,
+        "stops": 79,
+        "trips": 800,
+        "vs_base": 0.4713
+       },
+       "coinbase:USDT-EUR": {
+        "asks": 489,
+        "bids": 376,
+        "bps_per_trip": 3.52,
+        "pnl": 28.1893,
+        "stop_pnl": 2.645,
+        "stops": 90,
+        "trips": 865,
+        "vs_base": 1.4695
+       },
+       "coinbase:USDT-GBP": {
+        "asks": 762,
+        "bids": 751,
+        "bps_per_trip": 8.75,
+        "pnl": 116.8031,
+        "stop_pnl": 8.1797,
+        "stops": 92,
+        "trips": 1513,
+        "vs_base": -2.6932
+       }
+      },
+      "days": 322,
+      "total": {
+       "asks": 1963,
+       "bids": 1836,
+       "bps_per_trip": 5.98,
+       "per_year": 235.89,
+       "pnl": 208.097,
+       "stop_pnl": 12.6471,
+       "stops": 345,
+       "trips": 3799
+      },
+      "vs_base_per_year": {
+       "mean_day": 1.92,
+       "p05": -6.88,
+       "p95": 10.77,
+       "share_gt0": 0.639
+      }
+     }
+    }
+   }
+  }
+ }
+}

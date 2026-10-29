@@ -1,0 +1,46 @@
+{
+ "USDC-GBP": {
+  "minutes": 18566,
+  "share_abs_gt_0.5bp": 0.0873,
+  "abs_mean_bp": 0.085,
+  "p01": -1.501,
+  "p10": 0.0,
+  "median": 0.0,
+  "p90": 0.0,
+  "p99": 1.001,
+  "share_newest_stored_bar_is_the_bar_read": 0.9823
+ },
+ "USDT-GBP": {
+  "minutes": 18566,
+  "share_abs_gt_0.5bp": 0.2939,
+  "abs_mean_bp": 0.247,
+  "p01": -2.003,
+  "p10": -0.501,
+  "median": 0.0,
+  "p90": 0.501,
+  "p99": 1.503,
+  "share_newest_stored_bar_is_the_bar_read": 0.9823
+ },
+ "USDC-EUR": {
+  "minutes": 18542,
+  "share_abs_gt_0.5bp": 0.0873,
+  "abs_mean_bp": 0.085,
+  "p01": -1.501,
+  "p10": 0.0,
+  "median": 0.0,
+  "p90": 0.0,
+  "p99": 1.001,
+  "share_newest_stored_bar_is_the_bar_read": 1.0
+ },
+ "USDT-EUR": {
+  "minutes": 18542,
+  "share_abs_gt_0.5bp": 0.2943,
+  "abs_mean_bp": 0.248,
+  "p01": -2.003,
+  "p10": -0.501,
+  "median": 0.0,
+  "p90": 0.501,
+  "p99": 1.503,
+  "share_newest_stored_bar_is_the_bar_read": 1.0
+ }
+}

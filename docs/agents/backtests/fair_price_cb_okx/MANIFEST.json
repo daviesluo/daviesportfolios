@@ -1,0 +1,250 @@
+{
+ "files": {
+  "inputs/cb_usdtusd_1m.json.gz": {
+   "sha256": "5e9d78b896bc3cff1b24d2af8829cd297bdb6b08404e523292badd5c38b1765d",
+   "bytes": 229402
+  },
+  "inputs/cb_usdtusd_1m_hist.json.gz": {
+   "sha256": "4be6c414e879c3326f8fa2d965ad705068674190314093b0809545db5754b1da",
+   "bytes": 3527278
+  },
+  "inputs/prod/events_daily.txt.gz": {
+   "sha256": "7630f04fe2903936a02b617db5bc9833130982b703a83d25b6bdb7950d89db53",
+   "bytes": 984
+  },
+  "inputs/prod/fx.txt.gz": {
+   "sha256": "85a16be3fdc42b178765ce515629c56db9dcbb2807059b914373e7319856cffd",
+   "bytes": 163898
+  },
+  "inputs/prod/fx_1029.txt.gz": {
+   "sha256": "68da83a8a3c3f2b02899ef927c11ad9fb374a3e21b2c7b85fffa9afdb5a913e2",
+   "bytes": 3547
+  },
+  "inputs/prod/hours.txt.gz": {
+   "sha256": "2e77142f37debed91e4cf2c6a86a88a7bf0a24b54dd3ebeb915558163b43c54f",
+   "bytes": 5568
+  },
+  "inputs/prod/minutes_USDC-EUR.txt.gz": {
+   "sha256": "3306bb4b9a68c684ffaa396deef41671d68108013748eac9098081df05207fb0",
+   "bytes": 443510
+  },
+  "inputs/prod/minutes_USDC-GBP.txt.gz": {
+   "sha256": "e72fbf4c71ca862977e9d929a9cbb788dad4326eebf21416b1863711f226fae1",
+   "bytes": 320089
+  },
+  "inputs/prod/minutes_USDT-EUR.txt.gz": {
+   "sha256": "4ed6033e5b64e14093536cd9285e5f874793f64d4df27a7f809e5abc2b34998d",
+   "bytes": 439092
+  },
+  "inputs/prod/minutes_USDT-GBP.txt.gz": {
+   "sha256": "880b7a24e592b4f92508ed1d5c9c2ad81af79dbdf4675c82e4c0840592b5df82",
+   "bytes": 304010
+  },
+  "inputs/prod/okx_books.txt.gz": {
+   "sha256": "c30c51e93f719b2e49fe50b93aa6a72a36224c3868789a3f4cff825f15719ce7",
+   "bytes": 9000
+  },
+  "inputs/prod/okx_minutes.txt.gz": {
+   "sha256": "2daf6f249966bf420dfd09732980214ec8b8454eed59a6bca638fc958e10c3a7",
+   "bytes": 4321
+  },
+  "inputs/prod/okx_trades.txt.gz": {
+   "sha256": "dd5ff677bc5b1d7fd96364b95dede7e0795a0388cf807351338a41a125f2b8b7",
+   "bytes": 11070
+  },
+  "inputs/prod/okx_trips.txt.gz": {
+   "sha256": "b7125f3239d9c8a2f4b4e2b038824cf5baafc1b0cf5ae0c0a67a91e07c3a7b8d",
+   "bytes": 241
+  },
+  "inputs/prod/touch.txt.gz": {
+   "sha256": "36c7ec3cf9c463091378dec88a4552ac99e3e7e94006c1ee46ec32086c58b5e6",
+   "bytes": 1357140
+  },
+  "inputs/prod/touch_1029.txt.gz": {
+   "sha256": "ab3037f6174ad0fb5cec17561801d8951249253a22c3e8b605c92aaef175ca91",
+   "bytes": 5429
+  },
+  "inputs/prod/trips.txt.gz": {
+   "sha256": "3824046b2d3cca62654cd3766638ce5481c37d46eee4d9ec255773404b632356",
+   "bytes": 23569
+  },
+  "results/measure.json": {
+   "sha256": "d8cde835f7207fab3d44681dda45524b4997450f60ed1882f1205a5b92c03d79",
+   "bytes": 53064
+  },
+  "results/okx.json": {
+   "sha256": "462243be376f14a495dadd32bdc917e62d43a8d6cfb451ca5d86c46d70bfc488",
+   "bytes": 20035
+  },
+  "results/okx_replay.json": {
+   "sha256": "0acad85ffe6cdbad8315581c03bdb76133f35c9d32e7c32ae5e0548cf7f26747",
+   "bytes": 19568
+  },
+  "results/okx_replay_repro.json": {
+   "sha256": "e5f470ed2a0b3741dabb1401c8635a7a5f3d38326bfedfd4ea2979c04863668e",
+   "bytes": 1565
+  },
+  "results/okx_replay_summary.json": {
+   "sha256": "06839a614ef8e31238a4a73acd0f598cd9f53fe18664f25d23e633e84269d3ab",
+   "bytes": 2924
+  },
+  "results/peg_gap.json": {
+   "sha256": "9931bb39208ddfb2f42a74f24d6eecb7e66e7a8e86ea68e37debaebd66fd89b2",
+   "bytes": 2270
+  },
+  "results/prod_runs.json.gz": {
+   "sha256": "502bb35e401897928e1795c37c860d415a7a0aeb8c926cad18bc35f02a009ce8",
+   "bytes": 92518
+  },
+  "results/revisions.json": {
+   "sha256": "24ae1c5d65b1fa63725415bc88926b13c0401da8cb56d49e3a5043303fe3804b",
+   "bytes": 906
+  },
+  "results/skew_summary.json": {
+   "sha256": "28694050410783b6e112561e489817fd7e3b1a63b47415029d116157633f41ce",
+   "bytes": 88498
+  },
+  "results/summary.json": {
+   "sha256": "c31465b07b8f0d94aa8d50a4d3ccbfc5a0e0bba1533bca23bb9193bebfd9faed",
+   "bytes": 548312
+  },
+  "scripts/analyze.py": {
+   "sha256": "0f3abcb48fbbc43cbb582e73f98ad16436f9ebe5a086b20e11c2d94d95c38f5d",
+   "bytes": 7305
+  },
+  "scripts/fetch_cb_usdt.py": {
+   "sha256": "3891c6772cc3400c92586149eeed48bd1c88a39635dde936d11d4df350435b50",
+   "bytes": 2092
+  },
+  "scripts/fpc.py": {
+   "sha256": "934d078ef6216d88fd4dc19c5a02ffec4ebde4c45bc5fc70403cbfe11ea55e94",
+   "bytes": 6144
+  },
+  "scripts/grab.py": {
+   "sha256": "6a7b32b4648750bfccdba02a82a8eac9a14fca1fcddee9837d89d0b8e62f01ce",
+   "bytes": 1142
+  },
+  "scripts/hist.py": {
+   "sha256": "dd6ecb29be74218051a4340bc5bc32640781801bade36a4ed03cbd6ac9efe0bd",
+   "bytes": 13002
+  },
+  "scripts/manifest.py": {
+   "sha256": "688e124ff1d68e92d28497c6584245ac026348e0d5898b130cd31ba35cb4f900",
+   "bytes": 1403
+  },
+  "scripts/measure.py": {
+   "sha256": "da4df81054da824ce3f4650abeb0434d987ed9436fc7c4cdf1f01da828696c26",
+   "bytes": 14241
+  },
+  "scripts/okx.py": {
+   "sha256": "1a4267b5c9029abb7c55be9ca28dfc7414709bc4015cca24b4e29bbd4d524eb0",
+   "bytes": 8574
+  },
+  "scripts/okx_replay.ts": {
+   "sha256": "3a5a2f2349f82c0f67ea50a28941afda62cdeb602d6daa0deaf70d8df91bee4a",
+   "bytes": 3105
+  },
+  "scripts/okx_replay_prep.py": {
+   "sha256": "efc4459ad01a3f0997d2dd0f0e18a9ba09b3a9fc01088439c152e4539c520537",
+   "bytes": 4876
+  },
+  "scripts/okx_replay_summary.py": {
+   "sha256": "e1b08358d2ba6934d015b9168ede5bde63f7e6f4e0eed9d3ac126e79e939583c",
+   "bytes": 2261
+  },
+  "scripts/peg_gap.py": {
+   "sha256": "a90803f0fc2da3e3088d86441f2e102566fd32590ef76be7166a88c120f9bf93",
+   "bytes": 2483
+  },
+  "scripts/prod.py": {
+   "sha256": "0ff212de2025f45bead3a3874eb10b52458057467400d5d050b4e5504d4db06c",
+   "bytes": 8456
+  },
+  "scripts/revisions.py": {
+   "sha256": "9f9b6ffaa192e02d1d641b97e30042a939cef504f7146e9b3ed284acdc5cd616",
+   "bytes": 2478
+  },
+  "scripts/skew.py": {
+   "sha256": "2059b3c35e1df36dc54ce19839d93e36940a7e8bb2b2ba4e73f3c777639b1821",
+   "bytes": 3639
+  },
+  "sql/pull_inputs.sql": {
+   "sha256": "f75d1f1feee0fa7ead22fc15adfb21a95c506b9fe9c19495e7119242317af9aa",
+   "bytes": 3910
+  },
+  "sql/pull_minutes.sql": {
+   "sha256": "6265f840b499742bdd2198cc21f68e38494358482975328645e9392bc010e85a",
+   "bytes": 1728
+  },
+  "sql/pull_okx.sql": {
+   "sha256": "fb4e498ad0f87d5d1ab237966d7f9fd4feb451aa588ce69b5a925ff9f9871c1a",
+   "bytes": 1861
+  },
+  "sql/pull_tail_1029.sql": {
+   "sha256": "6e79d4dfdb398d58375c7603c7117823ed6d0cca693b89d2be12d49e05645974",
+   "bytes": 1371
+  }
+ },
+ "pulls": {
+  "events_daily": {
+   "md5": "59881d08b0d8aed4ddbb0a772d133279",
+   "lines": 144
+  },
+  "fx": {
+   "md5": "73fc054895ccf19f94831cb2bb48f8a0",
+   "lines": 41096
+  },
+  "fx_1029": {
+   "md5": "65c093a1dbd28b4e5dc04a961a0cfe47",
+   "lines": 720
+  },
+  "hours": {
+   "md5": "93c69e7f28cf38ed3e62490af119bba6",
+   "lines": 1744
+  },
+  "minutes_USDC-EUR": {
+   "md5": "43082fc8a6aa989f0cb2c2622aea744a",
+   "lines": 27360
+  },
+  "minutes_USDC-GBP": {
+   "md5": "c9ab39573b9dec23eed2ce4482109362",
+   "lines": 27360
+  },
+  "minutes_USDT-EUR": {
+   "md5": "da2c98065f4e009997b03c9d4f1272cf",
+   "lines": 27360
+  },
+  "minutes_USDT-GBP": {
+   "md5": "9b27db513200d45a55e4e6476951500d",
+   "lines": 27360
+  },
+  "okx_books": {
+   "md5": "6ae6f85d28c131d3dd78d9a109ed3831",
+   "lines": 1194
+  },
+  "okx_minutes": {
+   "md5": "20fa537de5d964b5f96dbf5576a06e71",
+   "lines": 940
+  },
+  "okx_trades": {
+   "md5": "bf817e23a49830bbfd39312fcf803134",
+   "lines": 1030
+  },
+  "okx_trips": {
+   "md5": "a6b97c2455e31641612bec40689b0fa8",
+   "lines": 1
+  },
+  "touch": {
+   "md5": "457468681ef46fb331c0a6fa293cb31f",
+   "lines": 108363
+  },
+  "touch_1029": {
+   "md5": "801be8491ec22fa3465a61921953a4b3",
+   "lines": 358
+  },
+  "trips": {
+   "md5": "0858d80d35227b3d60da44eb7e0d0821",
+   "lines": 325
+  }
+ }
+}

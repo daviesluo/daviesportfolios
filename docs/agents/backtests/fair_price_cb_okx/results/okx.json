@@ -1,0 +1,1022 @@
+{
+ "basis": {
+  "EURC-USDC": {
+   "book mid vs Coinbase USDC-EUR fair": {
+    "mean": 0.199,
+    "median": -0.1,
+    "n": 595,
+    "p10": -3.467,
+    "p90": 3.266
+   },
+   "book mid vs par fair": {
+    "mean": -1.519,
+    "median": -1.773,
+    "n": 597,
+    "p10": -5.14,
+    "p90": 2.665
+   },
+   "book spread, bps": {
+    "mean": 19.427,
+    "median": 17.953,
+    "n": 597,
+    "p10": 17.937,
+    "p90": 26.93
+   },
+   "prints vs Coinbase USDC-EUR fair": {
+    "mean": 0.89,
+    "median": -0.64,
+    "n": 507,
+    "p10": -26.912,
+    "p90": 25.518
+   },
+   "prints vs par fair, aggressor buy": {
+    "mean": 13.317,
+    "median": 11.636,
+    "n": 237,
+    "p10": -2.922,
+    "p90": 31.7
+   },
+   "prints vs par fair, aggressor sell": {
+    "mean": -15.233,
+    "median": -13.01,
+    "n": 265,
+    "p10": -39.7,
+    "p90": 4.925
+   },
+   "prints vs par fair, all": {
+    "mean": -1.754,
+    "median": 1.418,
+    "n": 502,
+    "p10": -30.775,
+    "p90": 22.775
+   },
+   "prints vs par fair, closure": {
+    "mean": -1.166,
+    "median": 4.925,
+    "n": 148,
+    "p10": -39.7,
+    "p90": 31.7
+   },
+   "prints vs par fair, day 2026-10-19": {
+    "mean": -2.475,
+    "median": -7.468,
+    "n": 23,
+    "p10": -21.919,
+    "p90": 12.668
+   },
+   "prints vs par fair, day 2026-10-20": {
+    "mean": 8.061,
+    "median": 9.125,
+    "n": 31,
+    "p10": -7.546,
+    "p90": 18.022
+   },
+   "prints vs par fair, day 2026-10-21": {
+    "mean": 9.8,
+    "median": 4.808,
+    "n": 54,
+    "p10": -15.322,
+    "p90": 49.353
+   },
+   "prints vs par fair, day 2026-10-22": {
+    "mean": -20.805,
+    "median": -27.472,
+    "n": 67,
+    "p10": -40.856,
+    "p90": 8.287
+   },
+   "prints vs par fair, day 2026-10-23": {
+    "mean": -10.899,
+    "median": -11.806,
+    "n": 56,
+    "p10": -27.44,
+    "p90": 11.606
+   },
+   "prints vs par fair, day 2026-10-24": {
+    "mean": -6.397,
+    "median": -12.925,
+    "n": 108,
+    "p10": -39.7,
+    "p90": 31.7
+   },
+   "prints vs par fair, day 2026-10-25": {
+    "mean": 19.032,
+    "median": 22.775,
+    "n": 31,
+    "p10": -4.0,
+    "p90": 40.625
+   },
+   "prints vs par fair, day 2026-10-26": {
+    "mean": 3.487,
+    "median": 7.217,
+    "n": 30,
+    "p10": -11.84,
+    "p90": 13.791
+   },
+   "prints vs par fair, day 2026-10-27": {
+    "mean": 5.115,
+    "median": 4.968,
+    "n": 51,
+    "p10": -2.964,
+    "p90": 11.636
+   },
+   "prints vs par fair, day 2026-10-28": {
+    "mean": 3.783,
+    "median": 7.124,
+    "n": 45,
+    "p10": -14.332,
+    "p90": 16.099
+   },
+   "prints vs par fair, day 2026-10-29": {
+    "mean": -5.529,
+    "median": -10.762,
+    "n": 6,
+    "p10": -19.729,
+    "p90": 13.905
+   },
+   "prints vs par fair, weekday": {
+    "mean": -2.0,
+    "median": 0.503,
+    "n": 354,
+    "p10": -27.472,
+    "p90": 14.984
+   }
+  },
+  "USDG-EUR": {
+   "book mid vs Coinbase USDC-EUR fair": {
+    "mean": 0.612,
+    "median": 0.557,
+    "n": 595,
+    "p10": -0.557,
+    "p90": 2.231
+   },
+   "book mid vs par fair": {
+    "mean": 2.326,
+    "median": 2.23,
+    "n": 597,
+    "p10": 0.558,
+    "p90": 4.462
+   },
+   "book spread, bps": {
+    "mean": 13.558,
+    "median": 14.496,
+    "n": 597,
+    "p10": 11.157,
+    "p90": 14.515
+   },
+   "prints vs Coinbase USDC-EUR fair": {
+    "mean": 2.758,
+    "median": 5.008,
+    "n": 507,
+    "p10": -6.149,
+    "p90": 8.343
+   },
+   "prints vs par fair, aggressor buy": {
+    "mean": 6.316,
+    "median": 6.691,
+    "n": 187,
+    "p10": 3.337,
+    "p90": 8.957
+   },
+   "prints vs par fair, aggressor sell": {
+    "mean": 0.486,
+    "median": 1.116,
+    "n": 334,
+    "p10": -7.802,
+    "p90": 6.686
+   },
+   "prints vs par fair, all": {
+    "mean": 2.579,
+    "median": 4.448,
+    "n": 521,
+    "p10": -5.603,
+    "p90": 8.904
+   },
+   "prints vs par fair, day 2026-10-26": {
+    "mean": 2.489,
+    "median": 4.478,
+    "n": 139,
+    "p10": -5.599,
+    "p90": 8.948
+   },
+   "prints vs par fair, day 2026-10-27": {
+    "mean": 1.06,
+    "median": 3.346,
+    "n": 144,
+    "p10": -7.802,
+    "p90": 6.691
+   },
+   "prints vs par fair, day 2026-10-28": {
+    "mean": 3.416,
+    "median": 3.345,
+    "n": 231,
+    "p10": -2.227,
+    "p90": 8.918
+   },
+   "prints vs par fair, day 2026-10-29": {
+    "mean": 7.964,
+    "median": 8.917,
+    "n": 7,
+    "p10": 6.689,
+    "p90": 8.923
+   },
+   "prints vs par fair, weekday": {
+    "mean": 2.579,
+    "median": 4.448,
+    "n": 521,
+    "p10": -5.603,
+    "p90": 8.904
+   }
+  }
+ },
+ "history": {
+  "okx:EURC-USDC": {
+   "OTHERVENUES' (EUR/USD over USDC's F3)|at_price": {
+    "all": {
+     "asks": 96,
+     "bids": 176,
+     "bps_per_trip": 23.77,
+     "gbp_per_day": 0.6343,
+     "pnl_gbp": 22.834,
+     "stops": 1,
+     "trips": 272,
+     "vs_par_gbp_per_day": {
+      "mean_day": 0.0,
+      "p05": -0.0327,
+      "p95": 0.0315,
+      "share_gt0": 0.4915
+     }
+    }
+   },
+   "OTHERVENUES' (EUR/USD over USDC's F3)|through": {
+    "all": {
+     "asks": 53,
+     "bids": 58,
+     "bps_per_trip": 23.05,
+     "gbp_per_day": 0.3288,
+     "pnl_gbp": 11.837,
+     "stops": 4,
+     "trips": 111,
+     "vs_par_gbp_per_day": {
+      "mean_day": -0.0186,
+      "p05": -0.0584,
+      "p95": 0.0161,
+      "share_gt0": 0.231
+     }
+    }
+   },
+   "par (the OKX rows')|at_price": {
+    "all": {
+     "asks": 107,
+     "bids": 157,
+     "bps_per_trip": 24.27,
+     "gbp_per_day": 0.6343,
+     "pnl_gbp": 22.834,
+     "stops": 0,
+     "trips": 264,
+     "vs_par_gbp_per_day": {
+      "mean_day": 0.0,
+      "p05": 0.0,
+      "p95": 0.0,
+      "share_gt0": 0.0
+     }
+    }
+   },
+   "par (the OKX rows')|through": {
+    "all": {
+     "asks": 55,
+     "bids": 59,
+     "bps_per_trip": 23.27,
+     "gbp_per_day": 0.3474,
+     "pnl_gbp": 12.506,
+     "stops": 4,
+     "trips": 114,
+     "vs_par_gbp_per_day": {
+      "mean_day": 0.0,
+      "p05": 0.0,
+      "p95": 0.0,
+      "share_gt0": 0.0
+     }
+    }
+   },
+   "par+b24h_0.5|at_price": {
+    "all": {
+     "asks": 111,
+     "bids": 168,
+     "bps_per_trip": 21.98,
+     "gbp_per_day": 0.5974,
+     "pnl_gbp": 21.506,
+     "stops": 1,
+     "trips": 279,
+     "vs_par_gbp_per_day": {
+      "mean_day": -0.0369,
+      "p05": -0.0884,
+      "p95": 0.0192,
+      "share_gt0": 0.13
+     }
+    }
+   },
+   "par+b24h_0.5|through": {
+    "all": {
+     "asks": 57,
+     "bids": 58,
+     "bps_per_trip": 20.67,
+     "gbp_per_day": 0.2993,
+     "pnl_gbp": 10.775,
+     "stops": 2,
+     "trips": 115,
+     "vs_par_gbp_per_day": {
+      "mean_day": -0.0481,
+      "p05": -0.1146,
+      "p95": 0.0213,
+      "share_gt0": 0.1315
+     }
+    }
+   },
+   "par+b24h_1.0|at_price": {
+    "all": {
+     "asks": 110,
+     "bids": 169,
+     "bps_per_trip": 21.39,
+     "gbp_per_day": 0.5665,
+     "pnl_gbp": 20.395,
+     "stops": 2,
+     "trips": 279,
+     "vs_par_gbp_per_day": {
+      "mean_day": -0.0677,
+      "p05": -0.1472,
+      "p95": 0.0101,
+      "share_gt0": 0.0765
+     }
+    }
+   },
+   "par+b24h_1.0|through": {
+    "all": {
+     "asks": 55,
+     "bids": 58,
+     "bps_per_trip": 18.04,
+     "gbp_per_day": 0.2496,
+     "pnl_gbp": 8.985,
+     "stops": 8,
+     "trips": 113,
+     "vs_par_gbp_per_day": {
+      "mean_day": -0.0978,
+      "p05": -0.206,
+      "p95": -0.0017,
+      "share_gt0": 0.045
+     }
+    }
+   },
+   "par+b6h_0.5|at_price": {
+    "all": {
+     "asks": 119,
+     "bids": 161,
+     "bps_per_trip": 22.3,
+     "gbp_per_day": 0.6009,
+     "pnl_gbp": 21.633,
+     "stops": 1,
+     "trips": 280,
+     "vs_par_gbp_per_day": {
+      "mean_day": -0.0334,
+      "p05": -0.0946,
+      "p95": 0.0311,
+      "share_gt0": 0.186
+     }
+    }
+   },
+   "par+b6h_0.5|through": {
+    "all": {
+     "asks": 56,
+     "bids": 55,
+     "bps_per_trip": 22.76,
+     "gbp_per_day": 0.319,
+     "pnl_gbp": 11.485,
+     "stops": 1,
+     "trips": 111,
+     "vs_par_gbp_per_day": {
+      "mean_day": -0.0284,
+      "p05": -0.097,
+      "p95": 0.0344,
+      "share_gt0": 0.2615
+     }
+    }
+   },
+   "par+b6h_1.0|at_price": {
+    "all": {
+     "asks": 138,
+     "bids": 161,
+     "bps_per_trip": 21.84,
+     "gbp_per_day": 0.5906,
+     "pnl_gbp": 21.26,
+     "stops": 0,
+     "trips": 299,
+     "vs_par_gbp_per_day": {
+      "mean_day": -0.0437,
+      "p05": -0.1218,
+      "p95": 0.04,
+      "share_gt0": 0.182
+     }
+    }
+   },
+   "par+b6h_1.0|through": {
+    "all": {
+     "asks": 64,
+     "bids": 63,
+     "bps_per_trip": 21.48,
+     "gbp_per_day": 0.3113,
+     "pnl_gbp": 11.205,
+     "stops": 4,
+     "trips": 127,
+     "vs_par_gbp_per_day": {
+      "mean_day": -0.0361,
+      "p05": -0.1058,
+      "p95": 0.0374,
+      "share_gt0": 0.2205
+     }
+    }
+   },
+   "par+b72h_0.5|at_price": {
+    "all": {
+     "asks": 96,
+     "bids": 167,
+     "bps_per_trip": 23.23,
+     "gbp_per_day": 0.6007,
+     "pnl_gbp": 21.624,
+     "stops": 0,
+     "trips": 263,
+     "vs_par_gbp_per_day": {
+      "mean_day": -0.0336,
+      "p05": -0.0685,
+      "p95": 0.0008,
+      "share_gt0": 0.057
+     }
+    }
+   },
+   "par+b72h_0.5|through": {
+    "all": {
+     "asks": 51,
+     "bids": 60,
+     "bps_per_trip": 20.46,
+     "gbp_per_day": 0.289,
+     "pnl_gbp": 10.405,
+     "stops": 4,
+     "trips": 111,
+     "vs_par_gbp_per_day": {
+      "mean_day": -0.0584,
+      "p05": -0.1236,
+      "p95": 0.0043,
+      "share_gt0": 0.0615
+     }
+    }
+   },
+   "par+b72h_1.0|at_price": {
+    "all": {
+     "asks": 98,
+     "bids": 176,
+     "bps_per_trip": 23.15,
+     "gbp_per_day": 0.6005,
+     "pnl_gbp": 21.618,
+     "stops": 1,
+     "trips": 274,
+     "vs_par_gbp_per_day": {
+      "mean_day": -0.0338,
+      "p05": -0.0856,
+      "p95": 0.0175,
+      "share_gt0": 0.1335
+     }
+    }
+   },
+   "par+b72h_1.0|through": {
+    "all": {
+     "asks": 55,
+     "bids": 63,
+     "bps_per_trip": 18.85,
+     "gbp_per_day": 0.276,
+     "pnl_gbp": 9.937,
+     "stops": 9,
+     "trips": 118,
+     "vs_par_gbp_per_day": {
+      "mean_day": -0.0714,
+      "p05": -0.164,
+      "p95": 0.0138,
+      "share_gt0": 0.0905
+     }
+    }
+   }
+  },
+  "okx:USDG-EUR": {
+   "Coinbase USDC-EUR last print|at_price": {
+    "IS": {
+     "asks": 115,
+     "bids": 50,
+     "bps_per_trip": 4.03,
+     "gbp_per_day": 0.006,
+     "pnl_gbp": 0.769,
+     "stops": 14,
+     "trips": 165,
+     "vs_par_gbp_per_day": {
+      "mean_day": -0.0016,
+      "p05": -0.0093,
+      "p95": 0.0053,
+      "share_gt0": 0.366
+     }
+    },
+    "OOS": {
+     "asks": 1477,
+     "bids": 318,
+     "bps_per_trip": 17.06,
+     "gbp_per_day": 0.6441,
+     "pnl_gbp": 64.415,
+     "stops": 3,
+     "trips": 1795,
+     "vs_par_gbp_per_day": {
+      "mean_day": -0.0049,
+      "p05": -0.0282,
+      "p95": 0.018,
+      "share_gt0": 0.3485
+     }
+    }
+   },
+   "Coinbase USDC-EUR last print|through": {
+    "IS": {
+     "asks": 65,
+     "bids": 22,
+     "bps_per_trip": -6.05,
+     "gbp_per_day": -0.0045,
+     "pnl_gbp": -0.579,
+     "stops": 11,
+     "trips": 87,
+     "vs_par_gbp_per_day": {
+      "mean_day": -0.0069,
+      "p05": -0.0164,
+      "p95": 0.0008,
+      "share_gt0": 0.0885
+     }
+    },
+    "OOS": {
+     "asks": 1333,
+     "bids": 248,
+     "bps_per_trip": 17.72,
+     "gbp_per_day": 0.5983,
+     "pnl_gbp": 59.83,
+     "stops": 3,
+     "trips": 1581,
+     "vs_par_gbp_per_day": {
+      "mean_day": 0.0215,
+      "p05": 0.0009,
+      "p95": 0.0424,
+      "share_gt0": 0.958
+     }
+    }
+   },
+   "par (the OKX rows')|at_price": {
+    "IS": {
+     "asks": 95,
+     "bids": 50,
+     "bps_per_trip": 5.58,
+     "gbp_per_day": 0.0076,
+     "pnl_gbp": 0.969,
+     "stops": 13,
+     "trips": 145,
+     "vs_par_gbp_per_day": {
+      "mean_day": 0.0,
+      "p05": 0.0,
+      "p95": 0.0,
+      "share_gt0": 0.0
+     }
+    },
+    "OOS": {
+     "asks": 1608,
+     "bids": 302,
+     "bps_per_trip": 18.15,
+     "gbp_per_day": 0.6106,
+     "pnl_gbp": 72.056,
+     "stops": 3,
+     "trips": 1910,
+     "vs_par_gbp_per_day": {
+      "mean_day": 0.0,
+      "p05": 0.0,
+      "p95": 0.0,
+      "share_gt0": 0.0
+     }
+    }
+   },
+   "par (the OKX rows')|through": {
+    "IS": {
+     "asks": 51,
+     "bids": 27,
+     "bps_per_trip": 3.64,
+     "gbp_per_day": 0.0023,
+     "pnl_gbp": 0.3,
+     "stops": 9,
+     "trips": 78,
+     "vs_par_gbp_per_day": {
+      "mean_day": 0.0,
+      "p05": 0.0,
+      "p95": 0.0,
+      "share_gt0": 0.0
+     }
+    },
+    "OOS": {
+     "asks": 1425,
+     "bids": 229,
+     "bps_per_trip": 18.51,
+     "gbp_per_day": 0.5433,
+     "pnl_gbp": 64.114,
+     "stops": 3,
+     "trips": 1654,
+     "vs_par_gbp_per_day": {
+      "mean_day": 0.0,
+      "p05": 0.0,
+      "p95": 0.0,
+      "share_gt0": 0.0
+     }
+    }
+   },
+   "par+b24h_0.5|at_price": {
+    "IS": {
+     "asks": 49,
+     "bids": 134,
+     "bps_per_trip": 7.96,
+     "gbp_per_day": 0.0141,
+     "pnl_gbp": 1.804,
+     "stops": 9,
+     "trips": 183,
+     "vs_par_gbp_per_day": {
+      "mean_day": 0.0065,
+      "p05": 0.0011,
+      "p95": 0.0119,
+      "share_gt0": 0.9795
+     }
+    },
+    "OOS": {
+     "asks": 1566,
+     "bids": 559,
+     "bps_per_trip": 17.64,
+     "gbp_per_day": 0.6792,
+     "pnl_gbp": 80.143,
+     "stops": 1,
+     "trips": 2125,
+     "vs_par_gbp_per_day": {
+      "mean_day": 0.0685,
+      "p05": 0.0419,
+      "p95": 0.0953,
+      "share_gt0": 1.0
+     }
+    }
+   },
+   "par+b24h_0.5|through": {
+    "IS": {
+     "asks": 34,
+     "bids": 102,
+     "bps_per_trip": 9.29,
+     "gbp_per_day": 0.0126,
+     "pnl_gbp": 1.608,
+     "stops": 7,
+     "trips": 136,
+     "vs_par_gbp_per_day": {
+      "mean_day": 0.0102,
+      "p05": 0.0033,
+      "p95": 0.0173,
+      "share_gt0": 0.9875
+     }
+    },
+    "OOS": {
+     "asks": 1439,
+     "bids": 437,
+     "bps_per_trip": 17.79,
+     "gbp_per_day": 0.6133,
+     "pnl_gbp": 72.374,
+     "stops": 3,
+     "trips": 1876,
+     "vs_par_gbp_per_day": {
+      "mean_day": 0.07,
+      "p05": 0.0391,
+      "p95": 0.1022,
+      "share_gt0": 1.0
+     }
+    }
+   },
+   "par+b24h_1.0|at_price": {
+    "IS": {
+     "asks": 50,
+     "bids": 177,
+     "bps_per_trip": 6.93,
+     "gbp_per_day": 0.0145,
+     "pnl_gbp": 1.861,
+     "stops": 11,
+     "trips": 227,
+     "vs_par_gbp_per_day": {
+      "mean_day": 0.007,
+      "p05": -0.0031,
+      "p95": 0.0153,
+      "share_gt0": 0.8925
+     }
+    },
+    "OOS": {
+     "asks": 1495,
+     "bids": 870,
+     "bps_per_trip": 16.26,
+     "gbp_per_day": 0.6829,
+     "pnl_gbp": 80.588,
+     "stops": 1,
+     "trips": 2365,
+     "vs_par_gbp_per_day": {
+      "mean_day": 0.0723,
+      "p05": 0.0304,
+      "p95": 0.1155,
+      "share_gt0": 0.998
+     }
+    }
+   },
+   "par+b24h_1.0|through": {
+    "IS": {
+     "asks": 40,
+     "bids": 141,
+     "bps_per_trip": 5.46,
+     "gbp_per_day": 0.009,
+     "pnl_gbp": 1.155,
+     "stops": 12,
+     "trips": 181,
+     "vs_par_gbp_per_day": {
+      "mean_day": 0.0067,
+      "p05": -0.0028,
+      "p95": 0.0149,
+      "share_gt0": 0.8955
+     }
+    },
+    "OOS": {
+     "asks": 1401,
+     "bids": 722,
+     "bps_per_trip": 16.3,
+     "gbp_per_day": 0.6273,
+     "pnl_gbp": 74.022,
+     "stops": 1,
+     "trips": 2123,
+     "vs_par_gbp_per_day": {
+      "mean_day": 0.084,
+      "p05": 0.0445,
+      "p95": 0.1257,
+      "share_gt0": 1.0
+     }
+    }
+   },
+   "par+b6h_0.5|at_price": {
+    "IS": {
+     "asks": 39,
+     "bids": 149,
+     "bps_per_trip": 7.19,
+     "gbp_per_day": 0.0135,
+     "pnl_gbp": 1.724,
+     "stops": 11,
+     "trips": 188,
+     "vs_par_gbp_per_day": {
+      "mean_day": 0.0059,
+      "p05": 0.0012,
+      "p95": 0.0106,
+      "share_gt0": 0.9835
+     }
+    },
+    "OOS": {
+     "asks": 1580,
+     "bids": 578,
+     "bps_per_trip": 17.17,
+     "gbp_per_day": 0.6755,
+     "pnl_gbp": 79.714,
+     "stops": 4,
+     "trips": 2158,
+     "vs_par_gbp_per_day": {
+      "mean_day": 0.0649,
+      "p05": 0.0354,
+      "p95": 0.0947,
+      "share_gt0": 1.0
+     }
+    }
+   },
+   "par+b6h_0.5|through": {
+    "IS": {
+     "asks": 29,
+     "bids": 109,
+     "bps_per_trip": 5.95,
+     "gbp_per_day": 0.0082,
+     "pnl_gbp": 1.055,
+     "stops": 15,
+     "trips": 138,
+     "vs_par_gbp_per_day": {
+      "mean_day": 0.0059,
+      "p05": -0.0007,
+      "p95": 0.0122,
+      "share_gt0": 0.933
+     }
+    },
+    "OOS": {
+     "asks": 1423,
+     "bids": 474,
+     "bps_per_trip": 17.29,
+     "gbp_per_day": 0.6121,
+     "pnl_gbp": 72.229,
+     "stops": 4,
+     "trips": 1897,
+     "vs_par_gbp_per_day": {
+      "mean_day": 0.0688,
+      "p05": 0.0375,
+      "p95": 0.1017,
+      "share_gt0": 1.0
+     }
+    }
+   },
+   "par+b6h_1.0|at_price": {
+    "IS": {
+     "asks": 45,
+     "bids": 173,
+     "bps_per_trip": 6.32,
+     "gbp_per_day": 0.0132,
+     "pnl_gbp": 1.695,
+     "stops": 17,
+     "trips": 218,
+     "vs_par_gbp_per_day": {
+      "mean_day": 0.0057,
+      "p05": -0.0016,
+      "p95": 0.0134,
+      "share_gt0": 0.903
+     }
+    },
+    "OOS": {
+     "asks": 1490,
+     "bids": 921,
+     "bps_per_trip": 15.6,
+     "gbp_per_day": 0.6681,
+     "pnl_gbp": 78.831,
+     "stops": 1,
+     "trips": 2411,
+     "vs_par_gbp_per_day": {
+      "mean_day": 0.0574,
+      "p05": 0.0201,
+      "p95": 0.0967,
+      "share_gt0": 0.995
+     }
+    }
+   },
+   "par+b6h_1.0|through": {
+    "IS": {
+     "asks": 38,
+     "bids": 143,
+     "bps_per_trip": 3.7,
+     "gbp_per_day": 0.0064,
+     "pnl_gbp": 0.82,
+     "stops": 24,
+     "trips": 181,
+     "vs_par_gbp_per_day": {
+      "mean_day": 0.0041,
+      "p05": -0.0036,
+      "p95": 0.0113,
+      "share_gt0": 0.818
+     }
+    },
+    "OOS": {
+     "asks": 1377,
+     "bids": 770,
+     "bps_per_trip": 15.36,
+     "gbp_per_day": 0.5904,
+     "pnl_gbp": 69.665,
+     "stops": 1,
+     "trips": 2147,
+     "vs_par_gbp_per_day": {
+      "mean_day": 0.047,
+      "p05": 0.0121,
+      "p95": 0.0853,
+      "share_gt0": 0.986
+     }
+    }
+   },
+   "par+b72h_0.5|at_price": {
+    "IS": {
+     "asks": 31,
+     "bids": 138,
+     "bps_per_trip": 6.21,
+     "gbp_per_day": 0.0099,
+     "pnl_gbp": 1.263,
+     "stops": 9,
+     "trips": 169,
+     "vs_par_gbp_per_day": {
+      "mean_day": 0.0023,
+      "p05": -0.0068,
+      "p95": 0.0104,
+      "share_gt0": 0.668
+     }
+    },
+    "OOS": {
+     "asks": 1555,
+     "bids": 569,
+     "bps_per_trip": 17.72,
+     "gbp_per_day": 0.685,
+     "pnl_gbp": 80.83,
+     "stops": 2,
+     "trips": 2124,
+     "vs_par_gbp_per_day": {
+      "mean_day": 0.0744,
+      "p05": 0.0456,
+      "p95": 0.1028,
+      "share_gt0": 1.0
+     }
+    }
+   },
+   "par+b72h_0.5|through": {
+    "IS": {
+     "asks": 22,
+     "bids": 109,
+     "bps_per_trip": 4.82,
+     "gbp_per_day": 0.0059,
+     "pnl_gbp": 0.749,
+     "stops": 10,
+     "trips": 131,
+     "vs_par_gbp_per_day": {
+      "mean_day": 0.0035,
+      "p05": -0.0044,
+      "p95": 0.0109,
+      "share_gt0": 0.7705
+     }
+    },
+    "OOS": {
+     "asks": 1414,
+     "bids": 448,
+     "bps_per_trip": 17.86,
+     "gbp_per_day": 0.6125,
+     "pnl_gbp": 72.279,
+     "stops": 3,
+     "trips": 1862,
+     "vs_par_gbp_per_day": {
+      "mean_day": 0.0692,
+      "p05": 0.0412,
+      "p95": 0.0993,
+      "share_gt0": 1.0
+     }
+    }
+   },
+   "par+b72h_1.0|at_price": {
+    "IS": {
+     "asks": 29,
+     "bids": 175,
+     "bps_per_trip": 2.86,
+     "gbp_per_day": 0.0051,
+     "pnl_gbp": 0.654,
+     "stops": 13,
+     "trips": 204,
+     "vs_par_gbp_per_day": {
+      "mean_day": -0.0025,
+      "p05": -0.0149,
+      "p95": 0.0078,
+      "share_gt0": 0.399
+     }
+    },
+    "OOS": {
+     "asks": 1506,
+     "bids": 889,
+     "bps_per_trip": 16.36,
+     "gbp_per_day": 0.6928,
+     "pnl_gbp": 81.747,
+     "stops": 1,
+     "trips": 2395,
+     "vs_par_gbp_per_day": {
+      "mean_day": 0.0821,
+      "p05": 0.0433,
+      "p95": 0.1226,
+      "share_gt0": 1.0
+     }
+    }
+   },
+   "par+b72h_1.0|through": {
+    "IS": {
+     "asks": 24,
+     "bids": 135,
+     "bps_per_trip": 0.86,
+     "gbp_per_day": 0.0011,
+     "pnl_gbp": 0.143,
+     "stops": 15,
+     "trips": 159,
+     "vs_par_gbp_per_day": {
+      "mean_day": -0.0012,
+      "p05": -0.012,
+      "p95": 0.0079,
+      "share_gt0": 0.458
+     }
+    },
+    "OOS": {
+     "asks": 1416,
+     "bids": 729,
+     "bps_per_trip": 16.28,
+     "gbp_per_day": 0.6291,
+     "pnl_gbp": 74.238,
+     "stops": 2,
+     "trips": 2145,
+     "vs_par_gbp_per_day": {
+      "mean_day": 0.0858,
+      "p05": 0.0459,
+      "p95": 0.1281,
+      "share_gt0": 1.0
+     }
+    }
+   }
+  }
+ }
+}
