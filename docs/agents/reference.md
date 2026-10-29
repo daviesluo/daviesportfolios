@@ -4588,10 +4588,14 @@ fails too still reported (`edge-watchdog.retry`). In the three days before, 1,34
   - **The key.** A CDP API key, stored as the function's secrets `COINBASE_API_KEY_NAME` and `COINBASE_API_PRIVATE_KEY`
     (Davies, 2026-10-29). Never printed, logged or moved.
   - **Authentication** (docs.cdp.coinbase.com, "API Key Authentication", read 2026-10-29): `Authorization: Bearer <JWT>`, a new
-    JWT per request, ES256; header `kid` the key name, a random `nonce`, `typ` JWT; claims `sub` the key name, `iss` "cdp",
-    `nbf` now, `exp` now + 120 s, `uri` "METHOD api.coinbase.com/path" without the query. Keys must be ECDSA ("Ed25519 may
-    fail"); the PEM is SEC1 ("BEGIN EC PRIVATE KEY"), imported by wrapping it as PKCS#8. Pinned against an OpenSSL-signed vector
-    (`_shared/coinbase.test.ts`); OpenSSL also verified a token from this signer.
+    JWT per request; header `kid` the key name, a random `nonce`, `typ` JWT; claims `sub` the key name, `iss` "cdp",
+    `nbf` now, `exp` now + 120 s, `uri` "METHOD api.coinbase.com/path" without the query. Either key kind a CDP key comes in
+    (`cbKeyKind`): an ECDSA key's EC PEM (SEC1 "BEGIN EC PRIVATE KEY", wrapped as PKCS#8), signed ES256; or an Ed25519 secret
+    (CDP's default: base64 of the 32-byte seed and its 32-byte public key, or the seed alone), signed `alg` "EdDSA", with the same
+    claims (the "JWT Authentication" page's Ed25519 samples; some add `aud: ["cdp_service"]`, which this does not send). The Coinbase
+    App page says an Ed25519 key "may fail"; whether Advanced Trade REST takes it is the probe's answer (Davies' first key is
+    Ed25519). ES256 is pinned against an OpenSSL-signed vector; EdDSA signs RFC 8032 TEST 1 to the RFC's signature and a JWT byte
+    for byte OpenSSL's (`_shared/coinbase.test.ts`).
   - **The calls** (Create Order, List Orders, List Fills, Cancel Orders, Get API Key Permissions, read 2026-10-29):
     `POST /api/v3/brokerage/orders` (`client_order_id`: a reused one returns the existing order, not a new one;
     `limit_limit_gtc` / `limit_limit_gtd` with `post_only`, `sor_limit_ioc`; a post-only order that would cross fails with

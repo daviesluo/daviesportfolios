@@ -472,7 +472,7 @@ that follow from that evidence, in short:
   `0066`) so they measure independently. The pre-live
   review that found these is `docs/agents/reviews/`, its status §4.17.
 - **Coinbase's live path is being built for "Stablecoin quotes with Euros - 2" (2026-10-29, Davies: "Coinbase做好实盘搭建并且准备with Euros - 2这个策略的live上线").**
-  Its key is the function's secrets `COINBASE_API_KEY_NAME` and `COINBASE_API_PRIVATE_KEY` (a CDP key, ECDSA), never printed or
+  Its key is the function's secrets `COINBASE_API_KEY_NAME` and `COINBASE_API_PRIVATE_KEY` (a CDP key, ECDSA or Ed25519), never printed or
   moved; `_shared/coinbase.ts` signs each request (reference §4 item 67). `agents?action=cblive&mode=probe` reads, never sends,
   and says whether the key can transfer: it must not, view and trade are all the path needs. Nothing on Coinbase is sent until
   Davies arms it in the conversation where he says go; never trade by hand in the account or portfolio that key trades.

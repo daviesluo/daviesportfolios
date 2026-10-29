@@ -2,6 +2,7 @@
 // (a stub that fails the test on anything else) and every one carries a JWT for its own path; it answers the key's
 // permissions, a loud warning when the key can transfer, the GBP, USDC and EUR balances, USDC-GBP's product, the touch, the
 // fees and the resting orders; a 401 reads as a rejected JWT; missing secrets name the secret; and no answer carries the key.
+// An Ed25519 secret (CDP's default) signs EdDSA and its form is "ed25519"; a key of neither kind is "unknown", not ok.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { b64ToBytes } from "../_shared/bytes.ts";
@@ -55,7 +56,8 @@ Deno.test("the probe: GETs alone, each signed for its path; permissions, balance
   assertEquals(r.fees, { tier: "Advanced 1", makerPct: 0.4, takerPct: 0.6, scope: "the account's spot tier; stable pairs may be priced apart" });
   assertEquals((r.warnings as string[]).length, 1);
   assert((r.warnings as string[])[0].startsWith("the account's spot tier charges makers 0.4 %"));
-  assertEquals(r.secrets, { name: "organizations-path", key: "pem-sec1", escapedNewlines: true });
+  assertEquals(r.secrets, { name: "organizations-path", key: "pem-ec", escapedNewlines: true });
+  assertEquals(r.alg, "ES256");
   assertEquals(r.permissions, { can_view: true, can_trade: true, can_transfer: false, portfolio_type: "DEFAULT", portfolio_uuid: "p-1" });
   assertEquals(r.balances, { GBP: { available: 10.5, hold: 0, accounts: 1 }, USDC: { available: 20, hold: 1, accounts: 1 }, EUR: { available: 0, hold: 0, accounts: 0 } });
   assertEquals((r.product as Record<string, unknown>).base_increment, "0.01");
@@ -79,4 +81,29 @@ Deno.test("a key that can transfer is a loud warning and not ok; a 401 is a reje
   const m = await runCbLiveProbe((n) => (n === CB_KEY_NAME_SECRET ? KEY_NAME : undefined), venue().fetchImpl);
   assertEquals([m.ok, m.why], [false, "COINBASE_API_PRIVATE_KEY is not set"]);
   assertEquals(permissionWarnings({ can_view: true, can_trade: false, can_transfer: false }), ["the key cannot trade: the probe works, the live path would not"]);
+});
+
+Deno.test("an Ed25519 secret: the probe signs EdDSA (each GET verifies under its public key); an unknown key is not ok and sends nothing", async () => {
+  const kp = await crypto.subtle.generateKey({ name: "Ed25519" }, true, ["sign", "verify"]) as CryptoKeyPair;
+  const seed = new Uint8Array(await crypto.subtle.exportKey("pkcs8", kp.privateKey)).slice(16);
+  const pubRaw = new Uint8Array(await crypto.subtle.exportKey("raw", kp.publicKey));
+  const secret = btoa(String.fromCharCode(...seed, ...pubRaw));
+  const tokens: string[] = [];
+  const v = venue();
+  const fetchImpl = ((url: string, init: RequestInit) => { tokens.push(new Headers(init.headers).get("authorization")!.replace(/^Bearer /, "")); return v.fetchImpl(url, init); }) as unknown as typeof fetch;
+  const r = await runCbLiveProbe((n) => ({ [CB_KEY_NAME_SECRET]: KEY_NAME, [CB_PRIVATE_KEY_SECRET]: secret } as Record<string, string>)[n], fetchImpl);
+  assertEquals([r.ok, r.jwt, r.alg, (r.secrets as { key: string }).key], [true, "accepted", "EdDSA", "ed25519"]);
+  const pub = await crypto.subtle.importKey("raw", pubRaw, { name: "Ed25519" }, false, ["verify"]);
+  for (const t of tokens) {
+    const [h, c, sg] = t.split(".");
+    assertEquals(JSON.parse(new TextDecoder().decode(b64ToBytes(h))).alg, "EdDSA");
+    assert(await crypto.subtle.verify({ name: "Ed25519" }, pub, b64ToBytes(sg), new TextEncoder().encode(`${h}.${c}`)));
+  }
+  assert(!JSON.stringify(r).includes(secret.slice(0, 16)));
+  // Neither kind: not ok, no request.
+  const w = venue();
+  const u = await runCbLiveProbe((n) => ({ [CB_KEY_NAME_SECRET]: KEY_NAME, [CB_PRIVATE_KEY_SECRET]: "c29tZXRoaW5nLWVsc2U=" } as Record<string, string>)[n], w.fetchImpl);
+  assertEquals([u.ok, (u.secrets as { key: string }).key, u.alg, w.calls.length], [false, "unknown", null, 0]);
+  assert((u.warnings as string[]).some((x) => x.startsWith("COINBASE_API_PRIVATE_KEY is neither")));
+  assert(!JSON.stringify(u).includes("c29tZXRoaW5n"));
 });

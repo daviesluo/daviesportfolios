@@ -121,7 +121,8 @@ Every minute the call `agents?action=cblive` takes the turn's lease `cb-live`. I
   2 bps a round trip.
   - The probe reads the account's spot tier and warns if its maker fee is above 0. The stable pair may be priced apart.
   - Fees are booked from Coinbase's own fills (`commission`).
-- **The key.** It needs view and trade only. One that can transfer is the probe's loud warning.
+- **The key.** It needs view and trade only. One that can transfer is the probe's loud warning. ECDSA and Ed25519 keys both
+  sign (ES256, EdDSA); Advanced Trade's acceptance of Ed25519 is confirmed only by the probe.
   - The IP allow-list: Supabase's Edge egress has no fixed address, so an allow-list on the key would refuse it. The probe's
     401 says so if one is set.
 - **Not verified against Coinbase.** Every request shape is the documented one, pinned against an in-memory venue
@@ -150,14 +151,16 @@ conversion it will make.
 
 ## 6. Davies' checklist
 
-1. **The key.** A CDP API key, created with the **ECDSA** algorithm, permissions **View and Trade only (no Transfer)**, on the
-   portfolio holding the £120.
-   - It is stored as `COINBASE_API_KEY_NAME` (the key name) and `COINBASE_API_PRIVATE_KEY` (the PEM).
+1. **The key.** A CDP API key, permissions **View and Trade only (no Transfer)**, on the portfolio holding the £120.
+   - **Either algorithm is accepted by the client**: ECDSA (its PEM, signed ES256) or Ed25519 (CDP's default, the base64 secret,
+     signed EdDSA). Whether Advanced Trade accepts an Ed25519 key is **the probe's answer** (Coinbase's pages disagree): if the
+     probe reads `alg` "EdDSA" and `jwt` "rejected (401)", create an ECDSA key instead.
+   - It is stored as `COINBASE_API_KEY_NAME` (the key name) and `COINBASE_API_PRIVATE_KEY` (the PEM or the Ed25519 secret).
    - No IP allow-list.
    - A dedicated portfolio is best. **Never trade by hand in that portfolio**: the executor books only its own fills, but its
      inventory checks read the whole balance.
 2. **The probe.** `agents?action=cblive&mode=probe` answers `ok: true` with:
-   - `jwt` "accepted";
+   - `secrets.key` "pem-ec" or "ed25519" (never "unknown"), and `jwt` "accepted";
    - `can_transfer` false;
    - GBP about 120;
    - USDC-GBP `online`, not `trading_disabled` or `cancel_only`;

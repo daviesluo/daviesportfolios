@@ -796,6 +796,13 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second).
 
+### [2026-10-29 20:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Coinbase client signs Ed25519 too** (sub-agent; commit, not pushed; the main session's ask: Davies' CDP key is Ed25519, not a
+  PEM). `_shared/coinbase.ts`: `cbKeyKind` ("pem-ec" ES256 | "ed25519" EdDSA | "unknown", refused), `importCbSigner` (base64 of a
+  64-byte seed + public key, checked consistent, or the 32-byte seed; an Ed25519 PKCS#8 PEM). The probe reports `secrets.key` and
+  `alg`; `ok` false for an unknown key. Pins: RFC 8032 TEST 1 to its signature and a JWT byte for byte OpenSSL's; generated keys'
+  both forms verify; the ES256 pins unchanged. Whether Advanced Trade takes Ed25519: the probe, once deployed.
+
 ### [2026-10-29 19:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Polymarket analyst: a redeemed position leaves POSITIONS; DAYS gets the 7-day figure and the last-7 default** (sub-agent;
   commit, not pushed; Davies, 10-29: "…Vertiv…resolved · to redeem - 这个怎么没有自动redeem？…是不是有问题", then "…days和Stablecoin quotes的live

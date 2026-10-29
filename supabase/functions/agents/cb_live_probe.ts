@@ -1,7 +1,8 @@
 // The Coinbase key's probe (`agents?action=cblive&mode=probe`, operator only): GETs alone, through a client that cannot
 // POST (`cbClient` with `post` false throws before any request). Davies stored the key on 2026-10-29 as the function's
 // secrets `COINBASE_API_KEY_NAME` and `COINBASE_API_PRIVATE_KEY`; this reads them and answers, in the HTTP response only:
-//   * the secrets' forms, never their values (`cbKeyForm`: the key name's shape, PEM SEC1 or PKCS#8, literal "\n"s);
+//   * the secrets' forms, never their values (`cbKeyForm`: the key name's shape; the key "pem-ec" (ES256), "ed25519" (EdDSA)
+//     or "unknown", which alone makes `ok` false of the two; literal "\n"s), and the JWT algorithm it signs with (`alg`);
 //   * whether Coinbase accepted the signed JWT, and what the key may do (`GET /key_permissions`: view, trade, TRANSFER,
 //     its portfolio). A key that can transfer (deposit or withdraw) is a loud warning: the live path needs view and trade
 //     only, and Davies should replace it;
@@ -38,7 +39,8 @@ export async function runCbLiveProbe(read: (n: string) => string | undefined, fe
   const out: Record<string, unknown> = { ok: false, secrets: form, warnings: [] as string[] };
   const warnings = out.warnings as string[];
   if (form.name === "other") warnings.push("COINBASE_API_KEY_NAME is neither \"organizations/{org_id}/apiKeys/{key_id}\" nor a bare key id");
-  if (form.key === "not-pem") warnings.push("COINBASE_API_PRIVATE_KEY is not a PEM: an Ed25519 secret? Create the CDP key with the ECDSA signature algorithm");
+  if (form.key === "unknown") warnings.push("COINBASE_API_PRIVATE_KEY is neither an EC PEM nor an Ed25519 secret (base64 of 64 or 32 bytes)");
+  out.alg = form.key === "ed25519" ? "EdDSA" : form.key === "pem-ec" ? "ES256" : null;
   if (!client) { out.why = why; return out; }
   let accepted = false, rejected = false;
   const step = async (k: string, f: () => Promise<unknown>) => {
@@ -71,7 +73,9 @@ export async function runCbLiveProbe(read: (n: string) => string | undefined, fe
     warnings.push(`the account's spot tier charges makers ${f.makerPct} %: the CB-LIVE-RULES study assumed 0 % on the stable pair (each 0.01 % costs about 2 bps a round trip); confirm USDC-GBP's own rate on Coinbase's fee page before arming`);
   }
   await step("openOrders", async () => (await client.listOrders(CB_PROBE_PRODUCT, { open: true })).filter((o) => CB_ALIVE.includes(o.status)).length);
-  out.jwt = rejected && !accepted ? "rejected (401): check the key name, the key's algorithm (ECDSA) and its IP allow-list" : accepted ? "accepted" : "unknown";
+  out.jwt = rejected && !accepted
+    ? `rejected (401): check the key name and its IP allow-list${form.key === "ed25519" ? "; an Ed25519 key may not be accepted by Advanced Trade (Coinbase's App page says it may fail): if so, create an ECDSA key" : ""}`
+    : accepted ? "accepted" : "unknown";
   out.ok = accepted && !rejected && warnings.every((w) => !w.startsWith("WARNING"));
   return out;
 }

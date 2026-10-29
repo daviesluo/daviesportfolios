@@ -4,14 +4,20 @@
 // Orders"); the design doc quotes what each call relies on.
 //
 // AUTHENTICATION. Every request carries `Authorization: Bearer <JWT>`, a fresh JWT per request:
-//   header  { alg: "ES256", kid: <key name>, nonce: <random hex>, typ: "JWT" }
+//   header  { alg: "ES256" | "EdDSA", kid: <key name>, nonce: <random hex>, typ: "JWT" }
 //   claims  { sub: <key name>, iss: "cdp", nbf: now, exp: now + 120, uri: "<METHOD> api.coinbase.com<path>" }
-// The key name is `organizations/{org_id}/apiKeys/{key_id}`, the private key an ECDSA P-256 key as Coinbase hands it out,
-// a SEC1 PEM ("-----BEGIN EC PRIVATE KEY-----"), with real newlines or literal "\n". The key must be created with the
-// ECDSA signature algorithm: Coinbase's page says an Ed25519 key "may fail". The probe (agents/cb_live_probe.ts) says which
-// form each secret is in (`cbKeyForm`) without its value: the name "organizations/{org_id}/apiKeys/{key_id}" or a bare key
-// id (newer CDP keys), the key a SEC1 or PKCS#8 PEM, or not a PEM at all (an Ed25519 secret: create an ECDSA key instead). `uri` names the path WITHOUT its query string,
-// as the official samples build it. ES256 signatures are randomised, so the pins verify signatures, not bytes.
+// The key name is `organizations/{org_id}/apiKeys/{key_id}` (or a bare key id). The private key is either kind a CDP key
+// comes in (`cbKeyKind`, `importCbSigner`):
+//   * "pem-ec": an ECDSA P-256 key, a SEC1 PEM ("-----BEGIN EC PRIVATE KEY-----") or an EC PKCS#8 PEM, with real newlines
+//     or literal "\n"; signed ES256 (the raw r || s WebCrypto gives, JOSE's form; randomised, so pins verify, not compare).
+//   * "ed25519": CDP's default since 2025, base64 of 64 bytes (the 32-byte seed, then its 32-byte public key, which must
+//     match) or of the 32-byte seed alone; signed EdDSA (Ed25519, deterministic). Coinbase's "JWT Authentication" page
+//     (docs.cdp.coinbase.com/get-started/authentication/jwt-authentication, read 2026-10-29) gives Ed25519 samples with these
+//     claims (some samples add `aud: ["cdp_service"]`, Java's does not; this sends none, as the ES256 samples). Its Coinbase
+//     App page says an Ed25519 key "may fail"; whether Advanced Trade REST accepts it is the probe's answer.
+//   * anything else is "unknown" and refused, its text never echoed.
+// `uri` names the path WITHOUT its query string, as the official samples build it. The probe (agents/cb_live_probe.ts) says
+// which kind each secret is (`cbKeyForm`) without its value.
 //
 // WHAT NEVER LEAVES. The private key is read from the function's secrets, imported as a non-extractable CryptoKey and
 // never logged, returned or stored; an error names a secret, never its value. A failed request's error carries the
@@ -63,7 +69,7 @@ export function pemDer(secret: string): { der: Uint8Array; kind: "sec1" | "pkcs8
   return { der: b64ToBytes(m[2]), kind: m[1] ? "sec1" : "pkcs8" };
 }
 
-/** The signing key, non-extractable. */
+/** The signing key of an EC PEM, non-extractable (ES256). */
 export async function importCbKey(secret: string): Promise<CryptoKey> {
   const { der, kind } = pemDer(secret);
   const pkcs8 = kind === "sec1" ? sec1ToPkcs8(der) : der;
@@ -74,25 +80,80 @@ export async function importCbKey(secret: string): Promise<CryptoKey> {
   }
 }
 
+export type CbAlg = "ES256" | "EdDSA";
+export type CbKeyKind = "pem-ec" | "ed25519" | "unknown";
+/** A key ready to sign: its JWT algorithm and the non-extractable CryptoKey. */
+export type CbSigner = { alg: CbAlg; key: CryptoKey };
+/** PKCS#8's 16 bytes before an Ed25519 seed (RFC 8410). */
+const ED25519_PKCS8_PREFIX = new Uint8Array([0x30, 0x2e, 0x02, 0x01, 0x00, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65, 0x70, 0x04, 0x22, 0x04, 0x20]);
+const startsWith = (b: Uint8Array, p: Uint8Array) => b.length >= p.length && p.every((x, i) => b[i] === x);
+
+/** Pure: the Ed25519 secret's bytes (seed, and the public key when it carries one), or null when it is not one. */
+export function ed25519Bytes(secret: string): { seed: Uint8Array; pub: Uint8Array | null } | null {
+  const t = secret.replace(/\\n/g, "\n").trim();
+  if (t.includes("-----BEGIN")) {
+    try {
+      const { der, kind } = pemDer(t);
+      return kind === "pkcs8" && der.length === 48 && startsWith(der, ED25519_PKCS8_PREFIX) ? { seed: der.slice(16), pub: null } : null;
+    } catch { return null; }
+  }
+  const b = t.replace(/\s+/g, "");
+  if (!/^[A-Za-z0-9+/_-]+={0,2}$/.test(b)) return null;
+  let bytes: Uint8Array;
+  try { bytes = b64ToBytes(b); } catch { return null; }
+  if (bytes.length === 64) return { seed: bytes.slice(0, 32), pub: bytes.slice(32) };
+  if (bytes.length === 32) return { seed: bytes, pub: null };
+  return null;
+}
+
+/** Pure: which kind a private-key secret is, from its shape alone. */
+export function cbKeyKind(secret: string): CbKeyKind {
+  if (ed25519Bytes(secret)) return "ed25519";
+  try { pemDer(secret); return "pem-ec"; } catch { return "unknown"; }
+}
+
+/**
+ * The signer for whichever kind the secret is: ES256 for an EC PEM, EdDSA for an Ed25519 secret (a 64-byte one's public half
+ * must be its seed's). Throws on an unknown kind, naming the secret, never its value.
+ */
+export async function importCbSigner(secret: string): Promise<CbSigner> {
+  const kind = cbKeyKind(secret);
+  if (kind === "pem-ec") return { alg: "ES256", key: await importCbKey(secret) };
+  if (kind === "unknown") throw new Error(`${CB_PRIVATE_KEY_SECRET} is neither an EC PEM nor an Ed25519 secret (base64 of 64 or 32 bytes)`);
+  const { seed, pub } = ed25519Bytes(secret)!;
+  const pkcs8 = new Uint8Array([...ED25519_PKCS8_PREFIX, ...seed]);
+  try {
+    if (pub) {
+      const probe = await crypto.subtle.importKey("pkcs8", toArrayBuffer(pkcs8), { name: "Ed25519" }, true, ["sign"]);
+      const x = (await crypto.subtle.exportKey("jwk", probe)).x ?? "";
+      if (b64url(pub) !== x) throw new Error("mismatch");
+    }
+    return { alg: "EdDSA", key: await crypto.subtle.importKey("pkcs8", toArrayBuffer(pkcs8), { name: "Ed25519" }, false, ["sign"]) };
+  } catch {
+    throw new Error(`${CB_PRIVATE_KEY_SECRET} is not a consistent Ed25519 secret (its last 32 bytes must be its seed's public key)`);
+  }
+}
+
 /** Pure: the `uri` claim, method and host and path, no query string. */
 export function jwtUri(method: string, path: string): string {
   return `${method.toUpperCase()} ${CB_ADV_HOST}${path.split("?")[0]}`;
 }
 
 /** Pure: the JWT's header and claims for one request at `nowS` (seconds). */
-export function jwtParts(keyName: string, method: string, path: string, nowS: number, nonce: string) {
+export function jwtParts(keyName: string, method: string, path: string, nowS: number, nonce: string, alg: CbAlg = "ES256") {
   return {
-    header: { alg: "ES256", kid: keyName, nonce, typ: "JWT" },
+    header: { alg, kid: keyName, nonce, typ: "JWT" },
     claims: { sub: keyName, iss: "cdp", nbf: nowS, exp: nowS + CB_JWT_TTL_S, uri: jwtUri(method, path) },
   };
 }
 
-/** One request's JWT (ES256: the raw r || s signature WebCrypto gives, which is JOSE's form). */
-export async function cbJwt(key: CryptoKey, keyName: string, method: string, path: string, nowMs: number, nonce?: string): Promise<string> {
+/** One request's JWT. ES256: the raw r || s signature WebCrypto gives, which is JOSE's form; EdDSA: the 64-byte Ed25519 signature. */
+export async function cbJwt(key: CryptoKey, keyName: string, method: string, path: string, nowMs: number, nonce?: string, alg: CbAlg = "ES256"): Promise<string> {
   const n = nonce ?? Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, "0")).join("");
-  const { header, claims } = jwtParts(keyName, method, path, Math.floor(nowMs / 1000), n);
+  const { header, claims } = jwtParts(keyName, method, path, Math.floor(nowMs / 1000), n, alg);
   const input = `${b64urlJson(header)}.${b64urlJson(claims)}`;
-  const sig = new Uint8Array(await crypto.subtle.sign({ name: "ECDSA", hash: "SHA-256" }, key, enc.encode(input)));
+  const params = alg === "EdDSA" ? { name: "Ed25519" } : { name: "ECDSA", hash: "SHA-256" };
+  const sig = new Uint8Array(await crypto.subtle.sign(params, key, enc.encode(input)));
   return `${input}.${b64url(sig)}`;
 }
 
@@ -148,11 +209,11 @@ export function cbQuery(q: Record<string, string | number | readonly string[] | 
 
 /** The authenticated client. `fetchImpl` and `now` are seams for the tests; `post` false refuses every non-GET. */
 export type CbClient = ReturnType<typeof cbClient>;
-export function cbClient(o: { key: CryptoKey; keyName: string; fetchImpl?: typeof fetch; now?: () => number; post: boolean }) {
+export function cbClient(o: { key: CryptoKey; keyName: string; alg?: CbAlg; fetchImpl?: typeof fetch; now?: () => number; post: boolean }) {
   const f = o.fetchImpl ?? fetch, now = o.now ?? Date.now;
   const call = async <T>(method: "GET" | "POST", path: string, body?: unknown): Promise<T> => {
     if (method !== "GET" && !o.post) throw new Error(`coinbase ${method} ${path} refused: this client is read-only (dry-run or probe)`);
-    const jwt = await cbJwt(o.key, o.keyName, method, path, now());
+    const jwt = await cbJwt(o.key, o.keyName, method, path, now(), undefined, o.alg ?? "ES256");
     const res = await f(`${CB_ADV_BASE}${path}`, {
       method, headers: { authorization: `Bearer ${jwt}`, "content-type": "application/json", accept: "application/json" },
       body: body == null ? undefined : JSON.stringify(body), signal: AbortSignal.timeout(CB_TIMEOUT_MS),
@@ -226,19 +287,19 @@ export async function cbClientFromEnv(read: (n: string) => string | undefined, p
   const form = cbKeyForm(keyName, pem);
   if (!keyName || !pem) return { client: null, why: `${!keyName ? CB_KEY_NAME_SECRET : CB_PRIVATE_KEY_SECRET} is not set`, form };
   try {
-    return { client: cbClient({ key: await importCbKey(pem), keyName, fetchImpl, now, post }), why: null, form };
+    const signer = await importCbSigner(pem);
+    return { client: cbClient({ key: signer.key, alg: signer.alg, keyName, fetchImpl, now, post }), why: null, form };
   } catch (e) {
     return { client: null, why: e instanceof Error ? e.message : "the private key could not be read", form };
   }
 }
 
 /** What the secrets look like, with nothing of their values: the key name's form and the private key's. */
-export type CbKeyForm = { name: "organizations-path" | "bare-id" | "missing" | "other"; key: "pem-sec1" | "pem-pkcs8" | "missing" | "not-pem"; escapedNewlines: boolean };
+export type CbKeyForm = { name: "organizations-path" | "bare-id" | "missing" | "other"; key: CbKeyKind | "missing"; escapedNewlines: boolean };
 /** Pure. */
 export function cbKeyForm(keyName: string | undefined, pem: string | undefined): CbKeyForm {
   const n = keyName?.trim();
   const name = !n ? "missing" : /^organizations\/[^/\s]+\/apiKeys\/[^/\s]+$/.test(n) ? "organizations-path" : /^[0-9a-f-]{20,}$/i.test(n) ? "bare-id" : "other";
-  let key: CbKeyForm["key"] = "missing";
-  if (pem) { try { key = pemDer(pem).kind === "sec1" ? "pem-sec1" : "pem-pkcs8"; } catch { key = "not-pem"; } }
+  const key: CbKeyForm["key"] = pem ? cbKeyKind(pem) : "missing";
   return { name, key, escapedNewlines: !!pem && pem.includes("\\n") };
 }
