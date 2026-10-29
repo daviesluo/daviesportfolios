@@ -247,6 +247,7 @@ import { booksDelayMs, runBooks } from "./books.ts";
 import { PM_REC_VENUE_TIMEOUT_MS, pmRecStorage, runPmRec, runPmRecMeta } from "./pm_book_rec.ts";
 import { runCjRec } from "./cj_rec.ts";
 import { runGrokPmRec } from "./grokpm_rec.ts";
+import { readCxbot, readIgbot } from "./grok_tests_view.ts";
 import { GROKPM_CONFIG_COLUMNS, GROKPM_CYCLE_COLUMNS, GROKPM_DAILY_COLUMNS, GROKPM_DECISION_COLUMNS, GROKPM_ENTRY_COLUMNS, GROKPM_FILL_COLUMNS, GROKPM_FILL_STATUSES, GROKPM_JOURNAL_ROWS, GROKPM_MARKET_COLUMNS, GROKPM_OPEN_COLUMNS, GROKPM_SNAPSHOT_COLUMNS, grokPmSummary, type GrokPmConfigRow, type GrokPmCycleRow, type GrokPmDailyRow, type GrokPmDayOpenRow, type GrokPmDecisionRow, type GrokPmEntryRow, type GrokPmFillRow, type GrokPmMarketRow, type GrokPmOpenRow, type GrokPmResolutionRow, type GrokPmSnapshotRow } from "./grokpm_view.ts";
 import { runCbRec, type CbRecState } from "./cb_rec.ts";
 import { cbBooksDelayMs, runCbBooks } from "./cb_books.ts";
@@ -2297,6 +2298,8 @@ async function dashboard(now: number) {
   const lpLive = await readLpLive(d, now);
   // GROKPM's row of LIVE (Davies, 2026-10-15): the independent record of the outside agent's wallet, its journal beside it.
   const grokPm = await readGrokPm(d, now);
+  // The outside-Grok tests of TESTING (Davies, 2026-10-29): CXBOT on paper, IGBOT on IG's demo (grok_tests_view.ts).
+  const [cxbot, igbot] = await Promise.all([readCxbot(d, now), readIgbot(d, now)]);
   const quotesVariant = await quotesVariantRead;
   const quotesRuled = await quotesRuledRead;
 
@@ -2363,6 +2366,13 @@ async function dashboard(now: number) {
      * journal beside it; a row of LIVE. Null until a wallet is configured.
      */
     grokPm,
+    /**
+     * "Crypto analyst" (CXBOT, 0161) and "IG Trader" (IGBOT, 0157), rows of TESTING (`grok_tests_view.ts`): the mode, the
+     * budget and the equity against it (IG Trader's from the demo account's change since its arm, never its balance), today,
+     * open positions with their stop and limit, trades, days run and the scores per layer. Null until the table exists.
+     */
+    cxbot,
+    igbot,
   };
 }
 

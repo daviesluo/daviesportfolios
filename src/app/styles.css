@@ -2009,6 +2009,9 @@ body {
 .ag-venue-coinbase { color: #9fd8c8; border-color: rgba(159,216,200,0.4); background: rgba(159,216,200,0.1); }
 .ag-venue-okx { color: #dfe3ea; border-color: rgba(223,227,234,0.4); background: rgba(223,227,234,0.1); }
 .ag-venue-ig { color: #d6a2e8; border-color: rgba(214,162,232,0.4); background: rgba(214,162,232,0.1); }
+/* Hyperliquid (CXBOT's paper tape): the neutral fallback hue (`venueHue`), the name on the badge. */
+.ag-venue-hyperliquid { color: rgba(244,239,227,0.85); border-color: rgba(244,239,227,0.35); background: rgba(244,239,227,0.06); }
+.ag-grok-note { margin-top: 6px; font-size: 11px; line-height: 1.45; }
 .ag-venue-signal { font-weight: 500; letter-spacing: 0; opacity: 0.8; }
 .ag-venues { margin-bottom: 14px; }
 .ag-share-bar { display: flex; height: 18px; border-radius: 4px; overflow: hidden; background: rgba(255,255,255,0.04); border: 1px solid var(--line); margin-bottom: 8px; }
@@ -2404,6 +2407,8 @@ a.ag-gpm-market:hover, a.ag-gpm-market:focus-visible { text-decoration-color: va
 .ag-share-ig { background: rgba(214,162,232,0.35); color: #f8eefb; }
 /* Its weekends table: the quotes a fill used sit under the price, one per line. */
 .ag-fxw-detail .hl-sub { display: block; }
+/* Hyperliquid's slice: the neutral fallback hue. */
+.ag-share-hyperliquid { background: rgba(244,239,227,0.22); color: #f7f8fa; }
 
 /* RW's bar: where the run is, then four tiles — the total and its rewards and orders, the pessimistic total, the
    fills against the 100 it needs, the best market's share. Polymarket's blue marks the run and the fills. */

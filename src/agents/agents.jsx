@@ -16,7 +16,7 @@ import { SurfaceBoundary } from '../app/surface_boundary.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, FXW_ROW_ID, fmtFx, fxwAudRow, fxwTiles, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesPageFor, quotesOkxOf, quotesOkxRow, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quoteDaysRecent, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwShareText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows,
+  AGENT_TABS, FXW_ROW_ID, fmtFx, fxwAudRow, fxwTiles, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokTestRow, grokTestOf, grokTestTiles, grokTestLayerCells, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesPageFor, quotesOkxOf, quotesOkxRow, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quoteDaysRecent, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwShareText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -798,6 +798,103 @@ function FxwDetail({ f, m, at, nowMs }) {
  * 上面" (the same day). Everything is the dashboard's `grokPm` (`grokpm_view.ts`).
  * @param {{ g: any, m: (s: string) => string, at: any, nowMs: number }} props
  */
+/**
+ * An outside-Grok test's page (CXBOT "Crypto analyst", IGBOT "IG Trader"; Davies, 2026-10-29), in the Grok rows' style: its
+ * head (DRY-RUN until the test starts, then PAPER or DEMO, and the list's own status light), the scoreboard from its LIST
+ * row (`rowMoney(grokTestRow(g))`, so the row and the page read the same figures), STATUS (mode, days run, trades, open,
+ * equity against the budget), POSITIONS with their stop and limit, and SCORES per layer: the agent's Brier against the
+ * baseline's and D, positive when the agent is better. Everything is the dashboard's `cxbot` or `igbot` (`grok_tests_view.ts`).
+ * @param {{ g: any, m: (s: string) => string, nowMs: number }} props
+ */
+function GrokTestDetail({ g, m, nowMs }) {
+  const row = grokTestRow(g);
+  if (!row) return null;
+  const money = rowMoney(row);
+  const ccy = money.ccy;
+  const positions = g.positions ?? [], layers = g.layers ?? [];
+  const px = (/** @type {unknown} */ x) => (x == null ? '—' : m(String(+Number(x).toPrecision(8))));
+  return (
+    <div className="ag-detail ag-gpm-detail ag-grok-detail">
+      <div className="ag-detail-head">
+        <ModeBadge mode={g.mode === 'dry_run' ? 'dry-run' : 'paper'} />
+        <VenueBadge id={g.venueId} />
+        <StatusDot status={row.status} since={g.startedAt ?? null} nowMs={nowMs} toned />
+      </div>
+      <h3 className="ag-detail-title mono sr-only">{row.name}</h3>
+      <div className="ag-scoreboard ag-scoreboard-sm">
+        <FundedCells fundedUsd={money.capital} deployedUsd={money.value} m={m} ccy={ccy} known={row.fundedKnown} />
+        <div className="ag-sb-divider" />
+        <GlCell label="TODAY" usd={money.today} pct={money.todayPct} m={m} ccy={ccy} />
+        <div className="ag-sb-divider" />
+        <GlCell label="UNREALIZED G/L" usd={money.unrealised} pct={money.unrealisedPct} m={m} ccy={ccy} />
+        <div className="ag-sb-divider" />
+        <GlCell label="REALIZED G/L" usd={money.realised} pct={money.realisedPct} m={m} ccy={ccy} cls="ag-sb-realised" aside={g.id === 'cxbot' ? `(incl. fees ${m(fmtIn(money.fees ?? 0, ccy))})` : null} />
+      </div>
+      {g.mode !== 'dry_run' && !g.running && <div className="ag-warn-line">{row.status.detail}</div>}
+      {g.stops?.totalHit && <div className="ag-warn-line">its total stop is reached: close-only to the end</div>}
+      <section className="ag-section ag-rw-bar ag-gpm-bar">
+        <div className="ag-section-title mono">STATUS</div>
+        <div className="ag-rw-tiles">
+          {grokTestTiles(g, m).map((t) => (
+            <div key={t.k} className="ag-rw-tile">
+              <div className="ag-rw-tile-k mono">{t.k}</div>
+              <div className="ag-rw-tile-v mono">{t.v}</div>
+              {t.note ? <div className="ag-rw-tile-note dim mono">{t.note}</div> : null}
+            </div>
+          ))}
+        </div>
+      </section>
+      <section className="ag-section ag-grok-positions">
+        <div className="ag-section-title mono">POSITIONS</div>
+        <div className="hl-scroll">
+          <table className="hl-table ag-table ag-log mono">
+            <thead><tr>
+              <th className="hl-th">Market</th><th className="hl-th">Side</th><th className="hl-th">Size</th><th className="hl-th">Entry</th><th className="hl-th">Stop</th><th className="hl-th">Limit</th><th className="hl-th">Unrealised</th>
+            </tr></thead>
+            <tbody>
+              {positions.length === 0 && <tr><td className="hl-empty dim" colSpan={7}>Nothing open.</td></tr>}
+              {positions.map((/** @type {any} */ x, /** @type {number} */ i) => (
+                <tr key={`${x.market}-${x.openedAt}-${i}`}>
+                  <td className="hl-strong">{x.market}</td>
+                  <td>{x.direction}</td>
+                  <td>{m(String(+Number(x.size).toFixed(5)))}</td>
+                  <td>{px(x.entry)}</td>
+                  <td>{px(x.stop)}</td>
+                  <td>{px(x.limit)}</td>
+                  <td className="ag-gl" style={x.pnl == null ? undefined : { color: pctColor(Number(x.pnl)) }}>{x.pnl == null ? '—' : m(fmtIn(Number(x.pnl), ccy, true))}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section className="ag-section ag-grok-scores">
+        <div className="ag-section-title mono">SCORES</div>
+        <div className="hl-scroll">
+          <table className="hl-table ag-table ag-log mono">
+            <thead><tr><th className="hl-th">Layer</th><th className="hl-th">Scored</th><th className="hl-th">Brier agent / baseline</th><th className="hl-th">Baseline</th><th className="hl-th">D</th></tr></thead>
+            <tbody>
+              {layers.map((/** @type {any} */ l) => {
+                const c = grokTestLayerCells(l);
+                return (
+                  <tr key={l.key}>
+                    <td className="hl-strong">{c.label}</td>
+                    <td>{c.scored}</td>
+                    <td>{c.brier}</td>
+                    <td className="dim">{c.base}</td>
+                    <td className="ag-gl" style={c.dTone ? { color: pctColor(c.dTone === 'gain' ? 1 : -1) } : undefined}>{c.d}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <div className="dim mono ag-grok-note">D = Brier of the baseline less Brier of the agent: positive means the agent forecast better. A bracket that neither side ends, or that is closed early, scores where its price stands between stop and limit.</div>
+      </section>
+    </div>
+  );
+}
+
 function GrokPmDetail({ g, m, at, nowMs }) {
   const row = grokPmRow(g);
   if (!row) return null;
@@ -1772,6 +1869,7 @@ function AgentsModal({ hideValues, onClose }) {
   const lpLiveOpen = selected === LP_LIVE_ROW_ID && !!lpLiveRow(dash?.lpLive);
   const grokPmOpen = selected === GROKPM_ROW_ID && !!grokPmRow(dash?.grokPm);
   const fxwOpen = selected === FXW_ROW_ID && !!fxwAudRow(dash?.fxwAud);
+  const grokTestOpen = grokTestOf(selected, dash);
   const notReady = !!dash?.notReady;
   const tabRows = tab === 'live' ? liveRows : testing;
 
@@ -1864,6 +1962,19 @@ function AgentsModal({ hideValues, onClose }) {
         </header>
         <div className="modal-body ag-body">
           <PageGuard gen={gen}><GrokPmDetail g={dash.grokPm} m={m} at={dash.at} nowMs={now} /></PageGuard>
+        </div>
+      </Modal>
+    )}
+    {grokTestOpen && (
+      <Modal onClose={() => setSelected(null)} size="lg">
+        <header className="modal-head">
+          <div>
+            <h2 className="modal-title mono ag-title-wraps">{String(grokTestOpen.name)}</h2>
+          </div>
+          <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
+        </header>
+        <div className="modal-body ag-body">
+          <PageGuard gen={gen}><GrokTestDetail g={grokTestOpen} m={m} nowMs={now} /></PageGuard>
         </div>
       </Modal>
     )}

@@ -12,7 +12,8 @@ import { fmtChartStamp } from './agents_chart.js';
 // Kraken keeps its label, not a place on the page: it is the signal venue every rule reads candles from, and nothing
 // trades there since `0046`. VENUES shows Revolut X, where the loop executes, and Binance, the account it may use next.
 // Polymarket is the venue of RW's paper test, a row of TESTING STRATEGIES; it has no card in VENUES.
-export const VENUE_LABELS = { revx: 'Revolut X', binance: 'Binance', kraken: 'Kraken', polymarket: 'Polymarket', coinbase: 'Coinbase', okx: 'OKX', ig: 'IG' };
+// Hyperliquid (CXBOT's paper tape) carries no hue of its own: its badge says the name, on the neutral fallback (`venueHue`).
+export const VENUE_LABELS = { revx: 'Revolut X', binance: 'Binance', kraken: 'Kraken', polymarket: 'Polymarket', coinbase: 'Coinbase', okx: 'OKX', ig: 'IG', hyperliquid: 'Hyperliquid' };
 export const KIND_LABELS = { 'trend-4h': 'Trend 4h', 'trend-1h': 'Trend 1h', 'momentum-1d': 'Momentum 30d', 'rotation-1d': 'Rotation', 'dislocation-1m': 'Dislocation' };
 /**
  * The venue hues the badges, the share bar and the detail chart all share. Binance's is its own yellow, which is why
@@ -2083,8 +2084,90 @@ export function paperTestRows(dash) {
   const one = (/** @type {any} */ row) => (row ? [row] : []);
   return [
     ...quotesTwinRows(dash), ...one(quotesCoinbaseRow(dash?.quotesCoinbase)), ...one(quotesCoinbaseRow(dash?.quotesCoinbaseHold)), ...one(quotesCoinbaseRow(dash?.quotesCoinbaseUsdc)),
-    ...quotesOkxRows(dash), ...one(fxwAudRow(dash?.fxwAud)),
+    ...quotesOkxRows(dash), ...grokTestRows(dash), ...one(fxwAudRow(dash?.fxwAud)),
   ];
+}
+
+/** The outside-Grok test rows' ids among TESTING's rows: this prefix and the test's id (`cxbot`, `igbot`). */
+export const GROK_TEST_ROW_PREFIX = '__grok_';
+
+/**
+ * "Crypto analyst" (CXBOT, paper on Hyperliquid's public tape, 0161) and "IG Trader" (IGBOT, spread bets on IG's demo, 0157)
+ * as rows of TESTING (Davies, 2026-10-29: "在testing列表中把IG Trader…都上线"; `grok_tests_view.ts`): funded is the test's
+ * budget ($1,000; £1,000), the money its equity against it (IG Trader's the demo account's change since its arm, never the
+ * account's balance), deployed its margin. Before the go its status is the amber "dry-run". null until its table exists.
+ * @param {any} g  the dashboard's `cxbot` or `igbot`
+ */
+export function grokTestRow(g) {
+  if (!g?.id) return null;
+  const fx = g.ccy === 'GBP' ? Number(g.usdPerUnit) || 0 : 1;
+  const budget = Number(g.budget) || 0, deployed = Number(g.deployed) || 0;
+  const today = Number(g.today) || 0, unrealised = Number(g.unrealised) || 0, realised = Number(g.realised) || 0, fees = Number(g.fees) || 0;
+  /** @param {number} x @param {number} base */
+  const pct = (x, base) => (base > 0 ? (x / base) * 100 : null);
+  const open = (g.positions ?? []).length;
+  const dry = g.mode === 'dry_run';
+  const where = g.id === 'igbot' ? "IG's demo" : 'paper';
+  return {
+    id: `${GROK_TEST_ROW_PREFIX}${g.id}`, name: String(g.name), venue: venueLabel(g.venueId), venueId: g.venueId, mode: 'paper',
+    capitalUsd: budget * fx, fundedKnown: fx > 0, valueUsd: deployed * fx, costUsd: 0, feesUsd: fees * fx, unrealisedOf: 'deployed',
+    todayUsd: today * fx, todayPct: pct(today, budget), unrealisedUsd: unrealised * fx, unrealisedPct: pct(unrealised, deployed),
+    realisedUsd: realised * fx, realisedPct: pct(realised, budget),
+    ...(g.ccy === 'GBP' ? {
+      ccy: 'GBP',
+      gbp: { capital: budget, value: deployed, today, todayPct: pct(today, budget), unrealised, unrealisedPct: pct(unrealised, deployed), realised, realisedPct: pct(realised, budget), fees },
+    } : {}),
+    nextText: 'every minute', openPositions: open, openOrders: Number(g.resting) || 0,
+    status: dry
+      ? { label: 'dry-run', running: false, tone: 'stale', detail: g.id === 'igbot' ? "dry-run on IG's demo: orders checked and journalled, none sent" : 'dry-run: the market recorded; orders checked and journalled, none booked; the test starts on Davies\u2019 word' }
+      : !g.running
+        ? { label: 'paper', running: false, tone: 'stale', detail: g.lagMinutes == null ? 'its record has not read the market yet' : `its record last read the market ${g.lagMinutes} min ago` }
+        : g.stops?.totalHit
+          ? { label: 'paper', running: true, tone: 'stale', detail: 'its total stop is reached: by its rules it may only close' }
+          : { label: 'paper', running: true, tone: 'running', detail: `an outside Grok agent on ${where} · day ${g.daysRun ?? 0}${g.shakedown ? ' (shakedown)' : ''} · ${open} open` },
+  };
+}
+
+/** The outside-Grok rows, CXBOT's then IGBOT's. @param {any} dash */
+export const grokTestRows = (dash) => [dash?.cxbot, dash?.igbot].map(grokTestRow).filter(Boolean);
+
+/** The outside-Grok test a row opens, or null. @param {string | null} selected @param {any} dash */
+export function grokTestOf(selected, dash) {
+  if (!selected || !selected.startsWith(GROK_TEST_ROW_PREFIX)) return null;
+  const id = selected.slice(GROK_TEST_ROW_PREFIX.length);
+  const g = id === 'cxbot' ? dash?.cxbot : id === 'igbot' ? dash?.igbot : null;
+  return g?.id ? g : null;
+}
+
+/**
+ * The STATUS tiles of an outside-Grok test's page: the mode, the days run, trades, open positions, and the equity against its
+ * budget (through `m`, the hide-values mask).
+ * @param {any} g @param {(s: string) => string} m
+ */
+export function grokTestTiles(g, m) {
+  const fmt = (/** @type {number} */ x) => (g.ccy === 'GBP' ? fmtGbp(x) : fmtUsd(x));
+  return [
+    { k: 'MODE', v: g.mode === 'dry_run' ? 'DRY-RUN' : g.id === 'igbot' ? 'DEMO' : 'PAPER', note: g.shakedown ? 'shakedown' : null },
+    { k: 'DAYS RUN', v: g.daysRun == null ? '—' : String(g.daysRun) },
+    { k: 'TRADES', v: String(Number(g.trades) || 0) },
+    { k: 'OPEN', v: String((g.positions ?? []).length), note: Number(g.resting) ? `${g.resting} resting` : null },
+    { k: 'EQUITY', v: m(fmt(Number(g.equity) || 0)), note: `of ${m(fmt(Number(g.budget) || 0))}` },
+  ];
+}
+
+/**
+ * A layer's cells on its page: how many brackets are scored (and, for the assigned ones, issued and answered), the agent's
+ * Brier and the baseline's, and D = Brier(baseline) − Brier(agent), positive when the agent is better.
+ * @param {any} l
+ */
+export function grokTestLayerCells(l) {
+  const f = (/** @type {unknown} */ x) => (x == null || !Number.isFinite(Number(x)) ? '—' : Number(x).toFixed(3));
+  const d = l?.d == null ? null : Number(l.d);
+  return {
+    label: String(l?.label ?? ''), scored: l?.issued != null ? `${Number(l.scored) || 0} of ${Number(l.answered) || 0} answered, ${Number(l.issued) || 0} issued` : String(Number(l?.scored) || 0),
+    brier: l?.brierP == null ? '—' : `${f(l.brierP)} / ${f(l.brierBase)}`, base: String(l?.base ?? ''),
+    d: d === null ? '—' : `${d >= 0 ? '+' : '−'}${Math.abs(d).toFixed(3)}`, dTone: d === null ? null : d > 0 ? 'gain' : d < 0 ? 'loss' : null,
+  };
 }
 
 /**

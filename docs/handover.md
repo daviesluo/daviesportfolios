@@ -47163,3 +47163,11 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   records that type and says `missing_accounts`. Spec untouched (sha in `MANIFEST.json`); amendment and S1b deviation in
   `DEVIATION-2-live-prices.md`; review §11 holds the operator's facts calls and read-backs. `ig` Deno tests 37, two
   counterfactuals fail without the live filters.
+
+## LEDGER.md, archived 2026-10-29 (tenth) — the 2026-10-29 01:24 UTC history section
+
+### [2026-10-29 01:24 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **"AUD weekend (FXW-AUD)" on TESTING, paper** (sub-agent; commit, not pushed; Davies, 10-29: "…澳元策略都上线…确保模拟一切
+  真实"): the frozen rule on the live recorder's `ig_quotes`, £1,000 at £1.50 a pip, no stop (search-3 §5). `ig?action=fxw`
+  every 5 min (`0162`, no IG call) writes `ig_fxw_weekends`; fills at recorded bid/offer only, a minute uncovered after the open
+  is MISSED, 5 % margin, close-out at half, 0.22 bps a weekday night. First weekend Fri 30 Oct 21:35 UK. Fill/funding pins by hand.

@@ -379,7 +379,26 @@ places stay when the number is not whole.
   midnight after it went up, its rule for judging it written down first.
   Whether Davies' UK OKX account can trade these books is checked in the
   app before any money goes there.
-- **AUD weekend (FXW-AUD).** After OKX's rows, on IG (its own badge and
+- **Crypto analyst.** After OKX's rows, on Hyperliquid (a plain badge and
+  its own venue card): an outside Grok agent forecasting and trading bitcoin,
+  ether and solana, up or down, on paper, against Hyperliquid's live public
+  prices; no exchange account is involved. Funded is its $1,000 budget.
+  Every four hours it must give a probability for six set brackets (each
+  coin up and down), and before Polymarket's daily bitcoin and ether price
+  questions for three of their strikes; it may also open trades of its own,
+  each with a stop and a target, filled by a cautious paper model. Its page
+  shows the equity against the budget, today, what is open with its stop
+  and target, the days run, and how its forecasts score against the
+  market's own baseline in each of those three parts (D above zero means it
+  did better). Until Davies starts it, it reads "dry-run": it records the
+  market and books nothing.
+- **IG Trader.** Next, on IG: the same kind of agent trading IG spread bets on IG's
+  demo account (play money), funded with its £1,000 budget; its money is
+  that budget plus what it has made or lost since it was switched on, never
+  the demo account's own balance. Its page shows what is open with its stop
+  and limit, today, trades, the days run and how the trades it closed
+  forecast against their baseline. It stays "dry-run" until Davies' word.
+- **AUD weekend (FXW-AUD).** Last, on IG (its own badge and
   venue card), from Friday 30 October: the AUD/USD weekend rule on paper, on
   the quotes IG's live login records every weekend. It notes Friday's last
   mid before 22:00. At Sunday's 21:00 open, if the first tradable quote is 20

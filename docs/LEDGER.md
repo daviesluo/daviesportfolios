@@ -640,7 +640,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
     before the arm, read the demo key's own allowances (`GET /operations/application`) and confirm on the first demo deals:
     a close as `LIMIT` fill-or-kill, how IG's stop or limit close shows in `/history/activity`, and that a filled working
     order's position keeps our `IGB-` reference (else `account_shared` refuses opens, safely). The release list ends
-    2026-12-31 (opens refused after it). **Settled 2026-10-29 ("同意，按方案1改"):** the `ig` recorder reads
+    2026-12-31 (opens refused after it). Shown on TESTING as "IG Trader" (dry-run until armed). **Settled 2026-10-29 ("同意，按方案1改"):** the `ig` recorder reads
     IG's LIVE login for prices only (`IG_*_LIVE`, `0161`'s `environment`; `DEVIATION-2-live-prices.md`); the demo login is
     IGBOT's alone. **Before Fri 21:35 UK, after `0161` and `ig` deploy:** run `facts` on live for `sb` and `cfd` and read back
     `ig_action_log` and `igbot_requests` (the SQL: `reviews/2026-10-15-ig-verification.md` §11).
@@ -767,8 +767,13 @@ Facts a fresh session would otherwise rediscover:
 
 Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's archive, each batch under a heading
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
-first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 00:59 UTC section (archived
-2026-10-29, ninth).
+first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 01:24 UTC section (archived
+2026-10-29, tenth).
+
+### [2026-10-29 01:33 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Crypto analyst and IG Trader on TESTING** (sub-agent; commit, not pushed; items 18, 19; Davies, 10-29: "在testing列表中把IG
+  Trader…都上线"): `agents/grok_tests_view.ts` (mode, budget and equity, today, open with stop and limit, trades, days, scores
+  per layer; IG Trader £1,000 + the demo's change since the arm, never its balance), page rows and pages, `dist/`. 7 pins.
 
 ### [2026-10-29 01:32 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **CXBOT built** (sub-agent; commit, not pushed; item 19): `cxbot` (public reads only, `reach`, recorder, context, assigned
@@ -781,9 +786,3 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 - **IGBOT F11** (sub-agent; commit, not pushed; item 18; the main session's decision on the CXBOT audit's F11): a bracket
   that times out, and one the agent or server closes or amends, scores where its price stands between stop (0) and limit
   (1), never dropped. `score.mjs`, `export.sql`, prereg §5 and its F11 note, the prompt's scoring paragraph; 2 pins added.
-
-### [2026-10-29 01:24 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **"AUD weekend (FXW-AUD)" on TESTING, paper** (sub-agent; commit, not pushed; Davies, 10-29: "…澳元策略都上线…确保模拟一切
-  真实"): the frozen rule on the live recorder's `ig_quotes`, £1,000 at £1.50 a pip, no stop (search-3 §5). `ig?action=fxw`
-  every 5 min (`0162`, no IG call) writes `ig_fxw_weekends`; fills at recorded bid/offer only, a minute uncovered after the open
-  is MISSED, 5 % margin, close-out at half, 0.22 bps a weekday night. First weekend Fri 30 Oct 21:35 UK. Fill/funding pins by hand.
