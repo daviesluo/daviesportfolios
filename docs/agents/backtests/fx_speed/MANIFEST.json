@@ -1,0 +1,40 @@
+{
+ "study": "FX-SPEED, docs/agents/reviews/2026-10-29-fx-second-sources.md \u00a77",
+ "read": "2026-10-29 07:54 UTC, keyless GET, no login",
+ "exness_zips": {
+  "Exness_EURUSD_2026_09.zip": {
+   "url": "https://ticks.ex2archive.com/ticks/EURUSD/2026/09/Exness_EURUSD_2026_09.zip",
+   "sha256": "67f15e7d270e211ee234c3531b880173f094511654023110dd6a37914e5c51cc",
+   "bytes": 5467945,
+   "ticks": 822037,
+   "note": ""
+  },
+  "Exness_EURUSD_2026_10.zip": {
+   "url": "https://ticks.ex2archive.com/ticks/EURUSD/2026/10/Exness_EURUSD_2026_10.zip",
+   "sha256": "a7c99294636a3013ad3493c8ba41d68260ac844d714f58de5d2b63734d1e08a3",
+   "bytes": 6131376,
+   "ticks": 928924,
+   "note": "the current month's file is rewritten nightly; this copy ends 2026-10-28 23:59:59"
+  },
+  "Exness_GBPUSD_2026_09.zip": {
+   "url": "https://ticks.ex2archive.com/ticks/GBPUSD/2026/09/Exness_GBPUSD_2026_09.zip",
+   "sha256": "1a99ad6e93d966a1e54827402f6cf35a8f60f7e3c96ac17160a581f0d8ed0806",
+   "bytes": 8031262,
+   "ticks": 1200423,
+   "note": ""
+  },
+  "Exness_GBPUSD_2026_10.zip": {
+   "url": "https://ticks.ex2archive.com/ticks/GBPUSD/2026/10/Exness_GBPUSD_2026_10.zip",
+   "sha256": "74b99567b8369d35c2d187b953902bb1f7e40f7728d28235ce6d0050b62490d1",
+   "bytes": 7699439,
+   "ticks": 1149677,
+   "note": "the current month's file is rewritten nightly; this copy ends 2026-10-28 23:59:59"
+  }
+ },
+ "derived": {
+  "data/exness_offsets.txt.gz": {
+   "sha256": "11323e83702cf9b9109fd7eb65283c588dc8d7ff3871659bebe885a0fe92ca66",
+   "by": "EXN_DIR=<zips> python3 -I scripts/exness.py build data/exness_offsets.txt.gz"
+  }
+ }
+}

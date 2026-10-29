@@ -37,6 +37,19 @@ here needs one. Public data only; no figure of Davies' own accounts.
    and lag against Dukascopy, Yahoo's bar timing, who leads whom against the books, and the engines replayed on the
    recorded X. The bar for proposing any switch is written there now, and the recorder goes off at the end unless it is
    met.
+8. **What a faster X would have earned (the backtest, §7; Davies' addition).** The rows' engines replayed unchanged on their
+   production windows, with X read from Exness's keyless ticks 2 s before each order goes live instead of Yahoo's bar:
+   - **Revolut X (LIVE's rules, £600): nothing.** −0.27 bps of capital a day (−£6 a year) with LIVE's fill, 90 % band −£29
+     to +£15; −£3 with PR5's. As the 09-28 and REVX-FAIR studies found.
+   - **Coinbase "with Euros" (£2,400 on 19 days): +£66 a year** [+£10, +£149], trips 157 → 95, per trip better on all four
+     books; most of it in the first half (+£117 a year, then +£9). The weekend arm "- 1": +£44 [−£56, +£162].
+   - **OKX: too short to say.** EURC-USDC +€0.05 a day over 8 days; USDG-EUR one day.
+   - **The Coinbase study's "+£38 look-ahead bound" is not look-ahead for orders that rest from t + 60 s.** Its history engine
+     read Exness's close at t, and the bound was the price at t + 60, when the order goes live. Here, Yahoo → Exness at t is
+     +£30 a year (Yahoo's bar is the price of about t − 32 s), t → t + 60 is +£43 (the study's +£38 again), and a feed read
+     2 s before go-live gets +£66 of the +£73. The steps between reading 0, 2, 5 and 15 s early are inside the noise.
+   - A real feed would capture about nine-tenths of the gap to the bound, on Coinbase only. This is 19 days of one paper
+     arm. It earns nothing on Revolut X, and nothing changes before the recorder's comparison (§4) and a pre-registration.
 
 ## 1. The candidates
 
@@ -217,8 +230,8 @@ path = 'agents?action=fxrec';`).
 - **Weekend and overnight behaviour were not observed**: the sample is 25 minutes of a Thursday morning in London. What
   TrueFX and Kraken do while the market is closed is assumed (§1), and the recorder slows its reads then rather than
   relying on it.
-- **No strategy, engine, frozen file or pre-registration was touched.** Whether a faster X earns anything is the historical
-  backtest's question and the comparison's (§4), not this note's.
+- **No strategy, engine, frozen file or pre-registration was touched.** Whether a faster X earns anything is §7's backtest
+  (on Exness's ticks) and, on the live feed, the comparison's (§4).
 
 ## 6. Files
 
@@ -229,3 +242,141 @@ path = 'agents?action=fxrec';`).
   `FX_CA_BUNDLE` behind a proxy); `scripts/analyse.py` (`YAHOO=data/yahoo_2026-10-29.txt python3 -I scripts/analyse.py
   results/sample_2026-10-29.json data/sample_2026-10-29.jsonl.gz`); `scripts/cpu.ts` (one real minute of the recorder and
   its CPU); `data/` (the raw sample and Yahoo's stored bars); `results/sample_2026-10-29.json`.
+- `docs/agents/backtests/fx_speed/`: the backtest of §7 (its files are listed in §7.8).
+
+## 7. The backtest: what a faster X would have earned (FX-SPEED)
+
+Davies, 2026-10-29: "秒级汇率你研究好后，开始记录的同时也用历史数据仔细审读回测下目前我们用的yahoo来判断对我们的策略回报能提升多少" (alongside
+the recording, backtest carefully on history how much better our strategies would do than with Yahoo).
+
+### 7.1 The data
+
+- **Keyless sub-second history for the production windows.** Dukascopy reset the connection to two plain, paced requests
+  (07:53 and 08:04 UTC); its headers were not changed to get round that. Exness's public tick archives (`ticks.ex2archive.com`)
+  have no login. Their October file is rewritten nightly and held every tick to 2026-10-28 23:59:59.
+  - GBPUSD: 1,200,423 ticks in September and 1,149,677 in October; EURUSD: 822,037 and 928,924. Millisecond stamps, about one
+    tick every 2 s in London hours.
+  - The four zips' sha256 are in `backtests/fx_speed/MANIFEST.json`. The replays read one committed file derived from them:
+    the last tick's mid at nine instants of every minute (`data/exness_offsets.txt.gz`, `scripts/exness.py`).
+- **Yahoo, as the engines stored it**: `fair_price_cb_okx/inputs/prod/fx.txt.gz` (10-08 → 10-28), and for GBP/USD before
+  that, PR5's own minute record.
+- Our own `fx_ticks` starts today and is not used here.
+
+### 7.2 Where Yahoo's bar sits in time (`scripts/yahoo_timing.py`, 21,126 GBP/USD and 19,761 EUR/USD weekday bars)
+
+| bar labelled t against Exness at | t − 60 s | t | t + 15 | **t + 28** | t + 45 | t + 60 (its end) | t + 90 |
+|---|---|---|---|---|---|---|---|
+| GBP/USD, mean abs difference (bps) | 0.80 | 0.53 | 0.41 | **0.29** | 0.34 | 0.44 | 0.63 |
+| EUR/USD, mean abs difference (bps) | 0.84 | 0.58 | 0.48 | **0.39** | 0.44 | 0.52 | 0.69 |
+
+- **The bar is the price of the middle of its minute, not its close.** Yahoo's minute change correlates 0.56 (GBP) / 0.51
+  (EUR) with Exness's change over the same minute and 0.33 / 0.34 with the minute before. That is the Coinbase study's
+  0.50 / 0.30 split (its §2.6), from a mid-minute stamp.
+- **Level offsets: GBPUSD=X sits +0.33 bps over Exness, EURUSD=X +2.82 bps**, steady over three weeks. That is the 25-minute
+  sample's +2.87 over TrueFX (§2), so it is Yahoo's level, not either source's.
+
+### 7.3 The method
+
+- **The engines, each imported unchanged**, as the 2026-10-29 studies ran them:
+  - Revolut X: PR5-OPT's LIVE-realistic replay, through REVX-FAIR's runner (`fair_price/scripts/replay.py`).
+  - Coinbase: PR5's frozen `pr5_sim.simulate` on each book's minute record, through the CB/OKX study's `prod.py`.
+  - OKX: `stepOkxMinute`, through the study's `okx_replay.ts`.
+- **One thing changes: X.** Fair = coin value / X. On Coinbase the coin is valued at `cb_live`, which every Coinbase arm uses
+  from 10-29; that run reproduces the study's committed `cb_live` run trip for trip on all eight arm-book pairs.
+  - Outside FX closures only. Inside one, the held Yahoo X stays (Exness has no closure ticks).
+  - Dark minutes and release blackouts stay the engine's own.
+- **Timing, without look-ahead.** Each engine prices minute t's orders on data before t, and those orders go live later:
+  - the PR5-OPT executor at t + 90 s (its turn 30 s into the next minute);
+  - PR5's simulator and the OKX engine at t + 60 s.
+  - Yahoo's X for minute t is the bar labelled t − 1, about the price of t − 32 s (§7.2).
+  - The candidate **L2** is Exness's last tick at or before go-live − 2 s. That is what the recorder's TrueFX gives a reader
+    (its quote is a median 1.4 s old on arrival, §2). L2 was named the primary before any run, and nothing was fitted.
+  - L60, L30, L15, L5 and L0 show the shape. L0 is the price at go-live, the bound for an order resting from then.
+  - `ex_ytime` is Exness at Yahoo's own timing (t − 32 s), the control for the source.
+- **`aligned`**: Exness × (1 + the trailing 1,440-minute median of Yahoo / Exness-at-Yahoo's-timing − 1). It is causal and
+  carries Yahoo's level, so it differs in timing alone; `raw` takes Exness's level too.
+- **Scoring:** paired with Yahoo by UTC day; 3-day circular block bootstrap, 10,000 draws, seed 20261029, 90 % band and the
+  share at or below zero, as REVX-FAIR. Halves at 10-12 (Revolut X) and 10-20 (Coinbase).
+
+### 7.4 Revolut X: LIVE's rules at £600, 2026-09-26 → 10-29 (33 days; `results/revx.json`)
+
+| X | 'at' bps/day | Δ vs Yahoo, bps/day [90 %], P(≤0) | £/yr | halves | trips, stops, bps/trip | 'through' Δ |
+|---|---|---|---|---|---|---|
+| Yahoo (today) | 13.25 | — | — | — | 541, 3, 14.48 | (10.52 bps/day) |
+| Exness at Yahoo's timing | 12.55 | −0.71 [−1.73, +0.25], 0.88 | −£15 | −1.27 / −0.18 | 504, 4, 13.64 | +0.39 |
+| L60 | 12.88 | −0.38 [−0.98, +0.27], 0.84 | −£8 | −0.23 / −0.51 | 511, 5, 14.17 | +0.25 |
+| L15 | 13.52 | +0.27 [−0.36, +0.93], 0.25 | +£6 | +0.57 / −0.02 | 508, 4, 14.94 | +0.61 |
+| L5 | 13.10 | −0.15 [−0.70, +0.39], 0.66 | −£3 | −0.45 / +0.14 | 501, 4, 14.69 | +0.05 |
+| **L2 (primary)** | 12.98 | **−0.27 [−1.34, +0.66], 0.64** | **−£6** | −0.69 / +0.11 | 495, 4, 14.44 | −0.15 [−0.79, +0.51] |
+| L0 (the bound) | 12.92 | −0.33 [−1.01, +0.36], 0.79 | −£7 | −0.41 / −0.25 | 491, 5, 14.31 | −0.08 |
+
+- **A faster X earns nothing on Revolut X**, on either fill rule. Changing the source alone, at the same timing, moves the
+  result as much as any timing does. Passing the stored X back through the hook gives the base trip for trip
+  (`yahoo_adj`).
+- **This matches** the 09-28 fast-X study (on PR5V's rule a faster X was worth −$0.003 to +$0.065 a day ungoverned, no
+  interval clear of zero) and REVX-FAIR's `fx_extrapolate` (no gain).
+
+### 7.5 Coinbase: "with Euros" and "- 1", 2026-10-10 (10-13) → 10-29, £/€100 a rung, cb_live (`results/cb.json`)
+
+| X | "with Euros" (19 days): £/yr [90 %], P(≤0) | halves £/yr | trips, stops | "- 1" (16 days): £/yr [90 %] |
+|---|---|---|---|---|
+| Yahoo (today) | — (£7.65 in the window) | — | 157, 0 | — (£8.92; 171, 4) |
+| Exness at Yahoo's timing, aligned / raw | +9 [−12, +30] / −13 [−34, +5] | −6 / +25 | 151, 0 | −25 [−88, +29] / −61 [−127, −12] |
+| L60 (the history engine's timing) | +30 [+1, +67], 0.045 | +41 / +18 | 143, 0 | +9 [−69, +82] |
+| L30 | +46 [+2, +107] | +75 / +13 | 100, 0 | +26 [−46, +102] |
+| L15 | +73 [+13, +158] | +114 / +27 | 97, 0 | +64 [−26, +174] |
+| L5 | +33 [−17, +102] | +75 / −13 | 87, 0 | +27 [−48, +116] |
+| **L2 (primary), aligned** | **+66 [+10, +149], 0.0001** | +117 / +9 | 95, 0 | **+44 [−56, +162]**, 0.28 |
+| L2, raw (Exness's EUR level) | +31 [−22, +103] | +83 / −27 | 75, 0 | −1 [−78, +92] |
+| L0 (the bound) | +73 [+10, +163] | +124 / +17 | 95, 0 | +57 [−35, +170] |
+
+- **By book, L2 aligned on "with Euros"**, £/yr: USDC-GBP +25 [+5, +50]; USDT-GBP +7; USDC-EUR +13 [+0.2, +33];
+  USDT-EUR +21.
+  - Per trip on the four books: 9.9 / −0.1 / 7.5 / 0.6 bps with Yahoo, 14.0 / 11.5 / 15.7 / 8.8 with L2.
+  - The faster fair is filled less often and better. The 62 trips it does not make were the ones the stale fair gave away.
+- **Caveats.**
+  - 19 and 16 days. The gain is mostly the first half's.
+  - The source alone moves the weekend arm by −£25 to −£61. With Exness's own EUR level (`raw`), half the base arm's gain
+    goes, because EURUSD=X sits 2.8 bps over Exness and every EUR book's fair moves with it. Which level is right is the
+    recorder's comparison's question (§4: against Dukascopy and TrueFX).
+
+### 7.6 OKX, the twins' engine (`results/okx_summary.json`)
+
+- **EURC-USDC** (2026-10-21 → 10-29 after a warm-up day; €50 a rung; its 0.001 step is about 9 bps): par (Yahoo) 44 trips
+  €3.78.
+  - L2 aligned: 46 trips, €4.15, +€0.046 a day (day bootstrap 5 %–95 % +€0.001 to +€0.103).
+  - L0: +€0.001 a day. L60: +€0.061 a day.
+  - No shape: the grid is wider than any FX timing.
+- **USDG-EUR**: one day after warm-up (5 trips). Nothing can be read.
+
+### 7.7 Reconciled with the earlier findings
+
+- **Revolut X: a faster X is worth about nothing.** The 2026-09-28 fast-X study and REVX-FAIR said so; this says so again,
+  with LIVE's own engine and a 2 s feed.
+- **Coinbase: the "bounds" were one ladder, and Yahoo sits below its first rung.** The CB/OKX study's history engine read
+  Exness's minute close at t (L60 here). Its "a minute staler" (−£11) and "FX of minute t, look-ahead" (+£38) were the
+  steps either side of that. On the production window:
+  - Yahoo → L60 is **+£30 a year**: Yahoo's bar is the price of about t − 32 s, not the close.
+  - L60 → L0 is **+£43**: the study's +£38 again, out of sample.
+  - The +£38 was look-ahead only against the paper rule's "data to t − 1". For an order that rests from t + 60 s it is the
+    price at go-live, which a feed read at placement can have.
+  - L2, a feed read 2 s before, makes **+£66 of the +£73** (90 %). Its share of the L60 → L0 step is 83 %.
+  - The differences among L0, L2, L5 and L15 are inside the noise (L5 +£33, L15 +£73). The defensible statement: a feed
+    read within about 15 s of placement captures most of the bound, and one read at Yahoo's timing captures none of it.
+- **To capture it, the rule would change, not only the source.** The engines decide minute t on data to t − 1 by their
+  pre-registrations; the gain needs X read at placement. The Coinbase paper engines run a minute behind on recorded data, so
+  they could read the recorder's `fx_ticks` at t + 58 s. That is a rule change: a pre-registration, Davies' word, and the
+  recorder's §4 comparison first.
+
+### 7.8 Files
+
+`backtests/fx_speed/`, all keyless and read-only:
+- `scripts/exness.py` (the archives → `data/exness_offsets.txt.gz`) and `scripts/manifest.py` (→ `MANIFEST.json`);
+- `scripts/fast.py` (the candidates' X);
+- `scripts/yahoo_timing.py` → `results/yahoo_timing.json`;
+- `scripts/revx.py` → `results/revx.json` (about a minute);
+- `scripts/cb.py` → `results/cb.json`;
+- `scripts/okx_prep.py`, which takes `fair_price_cb_okx/scripts/okx_replay_prep.py`'s output, then `okx_replay.ts` and
+  `okx_replay_summary.py` → `results/okx_runs.json`, `results/okx_summary.json`.
+
+No production table was read for this part beyond the studies' committed pulls. Paper money only.

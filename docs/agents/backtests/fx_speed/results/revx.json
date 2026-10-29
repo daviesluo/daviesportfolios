@@ -1,0 +1,939 @@
+{
+ "golive_s": 90,
+ "instants_rel_t_s": {
+  "L0": 90,
+  "L15": 75,
+  "L2": 88,
+  "L30": 60,
+  "L5": 85,
+  "L60": 30,
+  "ex_ytime": -32
+ },
+ "runs": {
+  "L0|aligned|at": {
+   "book_USDC-GBP": {
+    "boot90_pLe0": [
+     -0.91,
+     0.099,
+     0.908
+    ],
+    "diffBpsDay": -0.394,
+    "h1": -0.394,
+    "h2": -0.395
+   },
+   "book_USDT-GBP": {
+    "boot90_pLe0": [
+     -0.35,
+     0.454,
+     0.3849
+    ],
+    "diffBpsDay": 0.063,
+    "h1": -0.02,
+    "h2": 0.142
+   },
+   "boot90_pLe0": [
+    -1.006,
+    0.361,
+    0.789
+   ],
+   "bpsDay": 12.921,
+   "closureEntryBpsDay": 5.417,
+   "days": 33,
+   "daysAhead": 16,
+   "daysBehind": 15,
+   "diffBpsDay": -0.331,
+   "h1": -0.413,
+   "h2": -0.254,
+   "h2_boot90_pLe0": [
+    -0.988,
+    0.546,
+    0.7099
+   ],
+   "open": 2,
+   "perTripBps": 14.31,
+   "refusals": 18181,
+   "stops": 5,
+   "trips": 491
+  },
+  "L0|aligned|through": {
+   "book_USDC-GBP": {
+    "boot90_pLe0": [
+     -0.488,
+     0.4,
+     0.5137
+    ],
+    "diffBpsDay": -0.022,
+    "h1": -0.374,
+    "h2": 0.308
+   },
+   "book_USDT-GBP": {
+    "boot90_pLe0": [
+     -0.847,
+     0.698,
+     0.5302
+    ],
+    "diffBpsDay": -0.056,
+    "h1": 0.637,
+    "h2": -0.707
+   },
+   "boot90_pLe0": [
+    -0.728,
+    0.536,
+    0.573
+   ],
+   "bpsDay": 10.441,
+   "closureEntryBpsDay": 4.626,
+   "days": 33,
+   "daysAhead": 13,
+   "daysBehind": 17,
+   "diffBpsDay": -0.078,
+   "h1": 0.263,
+   "h2": -0.399,
+   "h2_boot90_pLe0": [
+    -1.378,
+    0.46,
+    0.744
+   ],
+   "open": 4,
+   "perTripBps": 14.04,
+   "refusals": 18997,
+   "stops": 8,
+   "trips": 367
+  },
+  "L15|aligned|at": {
+   "book_USDC-GBP": {
+    "boot90_pLe0": [
+     -0.208,
+     0.776,
+     0.1718
+    ],
+    "diffBpsDay": 0.281,
+    "h1": 0.099,
+    "h2": 0.453
+   },
+   "book_USDT-GBP": {
+    "boot90_pLe0": [
+     -0.429,
+     0.387,
+     0.5193
+    ],
+    "diffBpsDay": -0.015,
+    "h1": 0.47,
+    "h2": -0.471
+   },
+   "boot90_pLe0": [
+    -0.364,
+    0.925,
+    0.2512
+   ],
+   "bpsDay": 13.519,
+   "closureEntryBpsDay": 5.466,
+   "days": 33,
+   "daysAhead": 20,
+   "daysBehind": 11,
+   "diffBpsDay": 0.266,
+   "h1": 0.569,
+   "h2": -0.019,
+   "h2_boot90_pLe0": [
+    -0.82,
+    0.793,
+    0.5178
+   ],
+   "open": 3,
+   "perTripBps": 14.94,
+   "refusals": 17880,
+   "stops": 4,
+   "trips": 508
+  },
+  "L15|aligned|through": {
+   "book_USDC-GBP": {
+    "boot90_pLe0": [
+     -0.073,
+     0.585,
+     0.099
+    ],
+    "diffBpsDay": 0.262,
+    "h1": 0.172,
+    "h2": 0.346
+   },
+   "book_USDT-GBP": {
+    "boot90_pLe0": [
+     -0.271,
+     1.002,
+     0.1843
+    ],
+    "diffBpsDay": 0.352,
+    "h1": 1.188,
+    "h2": -0.435
+   },
+   "boot90_pLe0": [
+    -0.029,
+    1.275,
+    0.0591
+   ],
+   "bpsDay": 11.132,
+   "closureEntryBpsDay": 4.832,
+   "days": 33,
+   "daysAhead": 18,
+   "daysBehind": 11,
+   "diffBpsDay": 0.613,
+   "h1": 1.36,
+   "h2": -0.09,
+   "h2_boot90_pLe0": [
+    -0.724,
+    0.507,
+    0.5739
+   ],
+   "open": 3,
+   "perTripBps": 14.91,
+   "refusals": 17514,
+   "stops": 4,
+   "trips": 375
+  },
+  "L2|aligned|at": {
+   "book_USDC-GBP": {
+    "boot90_pLe0": [
+     -1.533,
+     0.284,
+     0.8232
+    ],
+    "diffBpsDay": -0.538,
+    "h1": -1.367,
+    "h2": 0.242
+   },
+   "book_USDT-GBP": {
+    "boot90_pLe0": [
+     -0.103,
+     0.63,
+     0.1213
+    ],
+    "diffBpsDay": 0.264,
+    "h1": 0.681,
+    "h2": -0.129
+   },
+   "boot90_pLe0": [
+    -1.335,
+    0.663,
+    0.6443
+   ],
+   "bpsDay": 12.978,
+   "closureEntryBpsDay": 4.931,
+   "days": 33,
+   "daysAhead": 18,
+   "daysBehind": 14,
+   "diffBpsDay": -0.274,
+   "h1": -0.686,
+   "h2": 0.113,
+   "h2_boot90_pLe0": [
+    -0.887,
+    1.075,
+    0.4218
+   ],
+   "open": 3,
+   "perTripBps": 14.44,
+   "refusals": 19080,
+   "stops": 4,
+   "trips": 495
+  },
+  "L2|aligned|through": {
+   "book_USDC-GBP": {
+    "boot90_pLe0": [
+     -0.661,
+     0.356,
+     0.6809
+    ],
+    "diffBpsDay": -0.15,
+    "h1": -0.809,
+    "h2": 0.47
+   },
+   "book_USDT-GBP": {
+    "boot90_pLe0": [
+     -0.748,
+     0.732,
+     0.4917
+    ],
+    "diffBpsDay": -0.002,
+    "h1": 0.703,
+    "h2": -0.665
+   },
+   "boot90_pLe0": [
+    -0.791,
+    0.509,
+    0.6464
+   ],
+   "bpsDay": 10.367,
+   "closureEntryBpsDay": 4.52,
+   "days": 33,
+   "daysAhead": 13,
+   "daysBehind": 17,
+   "diffBpsDay": -0.152,
+   "h1": -0.106,
+   "h2": -0.195,
+   "h2_boot90_pLe0": [
+    -1.027,
+    0.621,
+    0.6433
+   ],
+   "open": 3,
+   "perTripBps": 14.22,
+   "refusals": 18540,
+   "stops": 8,
+   "trips": 361
+  },
+  "L2|raw|at": {
+   "book_USDC-GBP": {
+    "boot90_pLe0": [
+     -1.563,
+     0.23,
+     0.8471
+    ],
+    "diffBpsDay": -0.578,
+    "h1": -1.253,
+    "h2": 0.057
+   },
+   "book_USDT-GBP": {
+    "boot90_pLe0": [
+     -0.276,
+     0.68,
+     0.2685
+    ],
+    "diffBpsDay": 0.187,
+    "h1": 0.686,
+    "h2": -0.283
+   },
+   "boot90_pLe0": [
+    -1.523,
+    0.641,
+    0.7038
+   ],
+   "bpsDay": 12.861,
+   "closureEntryBpsDay": 4.827,
+   "days": 33,
+   "daysAhead": 16,
+   "daysBehind": 14,
+   "diffBpsDay": -0.391,
+   "h1": -0.567,
+   "h2": -0.226,
+   "h2_boot90_pLe0": [
+    -1.206,
+    0.75,
+    0.6476
+   ],
+   "open": 4,
+   "perTripBps": 14.51,
+   "refusals": 17948,
+   "stops": 4,
+   "trips": 492
+  },
+  "L2|raw|through": {
+   "book_USDC-GBP": {
+    "boot90_pLe0": [
+     -0.232,
+     0.624,
+     0.2351
+    ],
+    "diffBpsDay": 0.192,
+    "h1": -0.367,
+    "h2": 0.717
+   },
+   "book_USDT-GBP": {
+    "boot90_pLe0": [
+     -0.107,
+     0.943,
+     0.1069
+    ],
+    "diffBpsDay": 0.382,
+    "h1": 0.639,
+    "h2": 0.139
+   },
+   "boot90_pLe0": [
+    -0.07,
+    1.219,
+    0.0725
+   ],
+   "bpsDay": 11.093,
+   "closureEntryBpsDay": 4.57,
+   "days": 33,
+   "daysAhead": 17,
+   "daysBehind": 12,
+   "diffBpsDay": 0.573,
+   "h1": 0.273,
+   "h2": 0.857,
+   "h2_boot90_pLe0": [
+    0.154,
+    1.551,
+    0.0227
+   ],
+   "open": 3,
+   "perTripBps": 14.78,
+   "refusals": 17542,
+   "stops": 5,
+   "trips": 371
+  },
+  "L30|aligned|at": {
+   "book_USDC-GBP": {
+    "boot90_pLe0": [
+     -0.825,
+     0.2,
+     0.8092
+    ],
+    "diffBpsDay": -0.283,
+    "h1": -0.513,
+    "h2": -0.066
+   },
+   "book_USDT-GBP": {
+    "boot90_pLe0": [
+     -1.123,
+     -0.134,
+     0.98
+    ],
+    "diffBpsDay": -0.626,
+    "h1": -0.446,
+    "h2": -0.796
+   },
+   "boot90_pLe0": [
+    -1.673,
+    -0.16,
+    0.977
+   ],
+   "bpsDay": 12.343,
+   "closureEntryBpsDay": 5.034,
+   "days": 33,
+   "daysAhead": 11,
+   "daysBehind": 19,
+   "diffBpsDay": -0.909,
+   "h1": -0.959,
+   "h2": -0.862,
+   "h2_boot90_pLe0": [
+    -1.978,
+    0.249,
+    0.8941
+   ],
+   "open": 2,
+   "perTripBps": 14.23,
+   "refusals": 20154,
+   "stops": 3,
+   "trips": 494
+  },
+  "L30|aligned|through": {
+   "book_USDC-GBP": {
+    "boot90_pLe0": [
+     -0.158,
+     0.537,
+     0.1731
+    ],
+    "diffBpsDay": 0.197,
+    "h1": 0.014,
+    "h2": 0.369
+   },
+   "book_USDT-GBP": {
+    "boot90_pLe0": [
+     -0.561,
+     0.642,
+     0.4608
+    ],
+    "diffBpsDay": 0.037,
+    "h1": 0.482,
+    "h2": -0.381
+   },
+   "boot90_pLe0": [
+    -0.523,
+    0.977,
+    0.3008
+   ],
+   "bpsDay": 10.753,
+   "closureEntryBpsDay": 4.581,
+   "days": 33,
+   "daysAhead": 16,
+   "daysBehind": 12,
+   "diffBpsDay": 0.234,
+   "h1": 0.496,
+   "h2": -0.012,
+   "h2_boot90_pLe0": [
+    -0.985,
+    0.89,
+    0.4843
+   ],
+   "open": 3,
+   "perTripBps": 14.26,
+   "refusals": 20923,
+   "stops": 5,
+   "trips": 376
+  },
+  "L5|aligned|at": {
+   "book_USDC-GBP": {
+    "boot90_pLe0": [
+     -0.256,
+     0.587,
+     0.2257
+    ],
+    "diffBpsDay": 0.185,
+    "h1": -0.173,
+    "h2": 0.521
+   },
+   "book_USDT-GBP": {
+    "boot90_pLe0": [
+     -0.699,
+     -0.004,
+     0.9526
+    ],
+    "diffBpsDay": -0.335,
+    "h1": -0.28,
+    "h2": -0.386
+   },
+   "boot90_pLe0": [
+    -0.702,
+    0.391,
+    0.6605
+   ],
+   "bpsDay": 13.103,
+   "closureEntryBpsDay": 5.242,
+   "days": 33,
+   "daysAhead": 17,
+   "daysBehind": 12,
+   "diffBpsDay": -0.15,
+   "h1": -0.453,
+   "h2": 0.135,
+   "h2_boot90_pLe0": [
+    -0.671,
+    0.924,
+    0.3777
+   ],
+   "open": 2,
+   "perTripBps": 14.69,
+   "refusals": 17440,
+   "stops": 4,
+   "trips": 501
+  },
+  "L5|aligned|through": {
+   "book_USDC-GBP": {
+    "boot90_pLe0": [
+     -0.428,
+     0.193,
+     0.7315
+    ],
+    "diffBpsDay": -0.115,
+    "h1": -0.484,
+    "h2": 0.232
+   },
+   "book_USDT-GBP": {
+    "boot90_pLe0": [
+     -0.267,
+     0.669,
+     0.2974
+    ],
+    "diffBpsDay": 0.162,
+    "h1": 0.456,
+    "h2": -0.114
+   },
+   "boot90_pLe0": [
+    -0.449,
+    0.601,
+    0.4528
+   ],
+   "bpsDay": 10.567,
+   "closureEntryBpsDay": 4.421,
+   "days": 33,
+   "daysAhead": 15,
+   "daysBehind": 13,
+   "diffBpsDay": 0.047,
+   "h1": -0.028,
+   "h2": 0.119,
+   "h2_boot90_pLe0": [
+    -0.513,
+    0.754,
+    0.3797
+   ],
+   "open": 3,
+   "perTripBps": 14.55,
+   "refusals": 18114,
+   "stops": 4,
+   "trips": 366
+  },
+  "L60|aligned|at": {
+   "book_USDC-GBP": {
+    "boot90_pLe0": [
+     -0.788,
+     0.175,
+     0.8409
+    ],
+    "diffBpsDay": -0.291,
+    "h1": -0.163,
+    "h2": -0.412
+   },
+   "book_USDT-GBP": {
+    "boot90_pLe0": [
+     -0.523,
+     0.36,
+     0.6268
+    ],
+    "diffBpsDay": -0.087,
+    "h1": -0.071,
+    "h2": -0.101
+   },
+   "boot90_pLe0": [
+    -0.982,
+    0.268,
+    0.8357
+   ],
+   "bpsDay": 12.875,
+   "closureEntryBpsDay": 5.365,
+   "days": 33,
+   "daysAhead": 15,
+   "daysBehind": 16,
+   "diffBpsDay": -0.377,
+   "h1": -0.234,
+   "h2": -0.513,
+   "h2_boot90_pLe0": [
+    -1.324,
+    0.299,
+    0.8498
+   ],
+   "open": 3,
+   "perTripBps": 14.17,
+   "refusals": 18829,
+   "stops": 5,
+   "trips": 511
+  },
+  "L60|aligned|through": {
+   "book_USDC-GBP": {
+    "boot90_pLe0": [
+     -0.251,
+     0.424,
+     0.336
+    ],
+    "diffBpsDay": 0.087,
+    "h1": -0.066,
+    "h2": 0.231
+   },
+   "book_USDT-GBP": {
+    "boot90_pLe0": [
+     -0.54,
+     0.835,
+     0.3351
+    ],
+    "diffBpsDay": 0.163,
+    "h1": 0.799,
+    "h2": -0.436
+   },
+   "boot90_pLe0": [
+    -0.352,
+    0.875,
+    0.2471
+   ],
+   "bpsDay": 10.769,
+   "closureEntryBpsDay": 4.651,
+   "days": 33,
+   "daysAhead": 13,
+   "daysBehind": 17,
+   "diffBpsDay": 0.25,
+   "h1": 0.734,
+   "h2": -0.205,
+   "h2_boot90_pLe0": [
+    -0.904,
+    0.432,
+    0.6732
+   ],
+   "open": 4,
+   "perTripBps": 14.17,
+   "refusals": 18747,
+   "stops": 7,
+   "trips": 383
+  },
+  "ex_ytime|aligned|at": {
+   "book_USDC-GBP": {
+    "boot90_pLe0": [
+     -1.51,
+     0.282,
+     0.8258
+    ],
+    "diffBpsDay": -0.538,
+    "h1": -1.251,
+    "h2": 0.132
+   },
+   "book_USDT-GBP": {
+    "boot90_pLe0": [
+     -0.553,
+     0.233,
+     0.7666
+    ],
+    "diffBpsDay": -0.169,
+    "h1": -0.015,
+    "h2": -0.315
+   },
+   "boot90_pLe0": [
+    -1.733,
+    0.252,
+    0.8783
+   ],
+   "bpsDay": 12.545,
+   "closureEntryBpsDay": 4.926,
+   "days": 33,
+   "daysAhead": 16,
+   "daysBehind": 15,
+   "diffBpsDay": -0.708,
+   "h1": -1.266,
+   "h2": -0.182,
+   "h2_boot90_pLe0": [
+    -1.133,
+    0.838,
+    0.6317
+   ],
+   "open": 3,
+   "perTripBps": 13.64,
+   "refusals": 17743,
+   "stops": 4,
+   "trips": 504
+  },
+  "ex_ytime|aligned|through": {
+   "book_USDC-GBP": {
+    "boot90_pLe0": [
+     -0.307,
+     0.535,
+     0.3142
+    ],
+    "diffBpsDay": 0.12,
+    "h1": -0.363,
+    "h2": 0.576
+   },
+   "book_USDT-GBP": {
+    "boot90_pLe0": [
+     -0.239,
+     0.85,
+     0.2105
+    ],
+    "diffBpsDay": 0.269,
+    "h1": 0.687,
+    "h2": -0.125
+   },
+   "boot90_pLe0": [
+    -0.236,
+    1.009,
+    0.1502
+   ],
+   "bpsDay": 10.908,
+   "closureEntryBpsDay": 4.464,
+   "days": 33,
+   "daysAhead": 17,
+   "daysBehind": 11,
+   "diffBpsDay": 0.389,
+   "h1": 0.324,
+   "h2": 0.451,
+   "h2_boot90_pLe0": [
+    -0.016,
+    0.921,
+    0.0553
+   ],
+   "open": 3,
+   "perTripBps": 14.27,
+   "refusals": 17536,
+   "stops": 5,
+   "trips": 383
+  },
+  "ex_ytime|raw|at": {
+   "book_USDC-GBP": {
+    "boot90_pLe0": [
+     -1.597,
+     0.351,
+     0.8045
+    ],
+    "diffBpsDay": -0.544,
+    "h1": -1.333,
+    "h2": 0.199
+   },
+   "book_USDT-GBP": {
+    "boot90_pLe0": [
+     -0.382,
+     0.258,
+     0.6144
+    ],
+    "diffBpsDay": -0.06,
+    "h1": 0.112,
+    "h2": -0.222
+   },
+   "boot90_pLe0": [
+    -1.72,
+    0.423,
+    0.8129
+   ],
+   "bpsDay": 12.648,
+   "closureEntryBpsDay": 4.846,
+   "days": 33,
+   "daysAhead": 18,
+   "daysBehind": 11,
+   "diffBpsDay": -0.604,
+   "h1": -1.221,
+   "h2": -0.024,
+   "h2_boot90_pLe0": [
+    -0.994,
+    0.933,
+    0.5121
+   ],
+   "open": 4,
+   "perTripBps": 13.97,
+   "refusals": 19523,
+   "stops": 4,
+   "trips": 500
+  },
+  "ex_ytime|raw|through": {
+   "book_USDC-GBP": {
+    "boot90_pLe0": [
+     -0.192,
+     0.755,
+     0.1572
+    ],
+    "diffBpsDay": 0.295,
+    "h1": -0.243,
+    "h2": 0.801
+   },
+   "book_USDT-GBP": {
+    "boot90_pLe0": [
+     -0.291,
+     0.86,
+     0.2444
+    ],
+    "diffBpsDay": 0.251,
+    "h1": 0.522,
+    "h2": -0.003
+   },
+   "boot90_pLe0": [
+    -0.207,
+    1.284,
+    0.1144
+   ],
+   "bpsDay": 11.065,
+   "closureEntryBpsDay": 4.512,
+   "days": 33,
+   "daysAhead": 17,
+   "daysBehind": 11,
+   "diffBpsDay": 0.546,
+   "h1": 0.278,
+   "h2": 0.798,
+   "h2_boot90_pLe0": [
+    0.214,
+    1.362,
+    0.0127
+   ],
+   "open": 3,
+   "perTripBps": 13.99,
+   "refusals": 18755,
+   "stops": 5,
+   "trips": 388
+  },
+  "yahoo_adj|at": {
+   "book_USDC-GBP": {
+    "boot90_pLe0": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "diffBpsDay": 0.0,
+    "h1": 0.0,
+    "h2": 0.0
+   },
+   "book_USDT-GBP": {
+    "boot90_pLe0": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "diffBpsDay": 0.0,
+    "h1": 0.0,
+    "h2": 0.0
+   },
+   "boot90_pLe0": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "bpsDay": 13.252,
+   "closureEntryBpsDay": 5.159,
+   "days": 33,
+   "daysAhead": 0,
+   "daysBehind": 0,
+   "diffBpsDay": 0.0,
+   "h1": 0.0,
+   "h2": 0.0,
+   "h2_boot90_pLe0": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "identical_to_base": true,
+   "open": 4,
+   "perTripBps": 14.48,
+   "refusals": 18273,
+   "stops": 3,
+   "trips": 541
+  },
+  "yahoo_adj|through": {
+   "book_USDC-GBP": {
+    "boot90_pLe0": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "diffBpsDay": 0.0,
+    "h1": 0.0,
+    "h2": 0.0
+   },
+   "book_USDT-GBP": {
+    "boot90_pLe0": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "diffBpsDay": 0.0,
+    "h1": 0.0,
+    "h2": 0.0
+   },
+   "boot90_pLe0": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "bpsDay": 10.519,
+   "closureEntryBpsDay": 4.45,
+   "days": 33,
+   "daysAhead": 0,
+   "daysBehind": 0,
+   "diffBpsDay": 0.0,
+   "h1": 0.0,
+   "h2": 0.0,
+   "h2_boot90_pLe0": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "identical_to_base": true,
+   "open": 4,
+   "perTripBps": 13.87,
+   "refusals": 19578,
+   "stops": 5,
+   "trips": 375
+  },
+  "yahoo|at": {
+   "bpsDay": 13.252,
+   "closureEntryBpsDay": 5.159,
+   "open": 4,
+   "perTripBps": 14.48,
+   "refusals": 18273,
+   "stops": 3,
+   "trips": 541
+  },
+  "yahoo|through": {
+   "bpsDay": 10.519,
+   "closureEntryBpsDay": 4.45,
+   "open": 4,
+   "perTripBps": 13.87,
+   "refusals": 19578,
+   "stops": 5,
+   "trips": 375
+  }
+ },
+ "window": [
+  "2026-09-26",
+  "2026-10-29",
+  "2026-10-12"
+ ]
+}

@@ -662,8 +662,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
     `agents/fx_rec.ts`, `reviews/2026-10-29-fx-second-sources.md`). TrueFX every second, Kraken the marked fallback, into
     `fx_ticks`; no strategy reads it. **After the deploy:** `fx_rec_state.last_report` each minute (59 TrueFX reads, 12 Kraken,
     `primaryHealthy` true), `fx_ticks.failed` low, no `agents.fx_rec` in `ops_errors`. The comparison (that review's §4) reads
-    14 days from the first full day; then the switch-off statement there unless its bar is met. The historical backtest of a
-    faster X (Davies' addition) follows as its own commit.
+    14 days from the first full day; then the switch-off statement there unless its bar is met. **Backtest done (§7,
+    FX-SPEED):** a faster X is worth nothing on Revolut X and about +£66/yr on Coinbase's £2,400 (19 days); using it is a rule
+    change (X read at placement), so a pre-registration and Davies' word, after the comparison.
 
 ## Machine and platform setup
 
@@ -782,6 +783,13 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 01:24 UTC section (archived
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth).
+
+### [2026-10-29 08:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **FX-SPEED: what a faster X than Yahoo's bar would have earned** (sub-agent; commit, not pushed; Davies, 10-29: "…用历史数据仔细审读回测下目前我们用的
+  yahoo来判断对我们的策略回报能提升多少"). `reviews/2026-10-29-fx-second-sources.md` §7, `backtests/fx_speed/`. Exness's keyless tick archives
+  (Dukascopy reset the connection twice). Yahoo's bar is the price of mid-minute (best match t + 28 s); EURUSD=X +2.82 bps over Exness.
+  Engines unchanged, X read 2 s before go-live: Revolut X −£6/yr on £600 [−£29, +£15]; Coinbase "with Euros" +£66/yr on £2,400 [+£10,
+  +£149], "- 1" +£44 [−£56, +£162]; OKX too short. The CB/OKX "+£38 look-ahead" is the price at go-live: reachable, but a rule change.
 
 ### [2026-10-29 07:58 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Second-level GBP/USD and EUR/USD recorded beside Yahoo** (sub-agent; commit, not pushed; Davies, 10-29: "并行记录秒级汇率

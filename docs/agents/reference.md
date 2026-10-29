@@ -4557,7 +4557,7 @@ fails too still reported (`edge-watchdog.retry`). In the three days before, 1,34
     Into `fx_ticks` (a row per source, pair and minute, the reads as arrays; the view `fx_tick_reads` a row per read), 42 days.
     TrueFX unhealthy five minutes, the fallback failing a minute it was needed, or a failed write goes to `ops_errors` as
     `agents.fx_rec`, then hourly while it lasts. **No strategy reads it**: every quote row keeps Yahoo's bar. The sources, their
-    measurement and the 2–4-week comparison plan are `reviews/2026-10-29-fx-second-sources.md`.
+    measurement and the 2–4-week comparison plan are `reviews/2026-10-29-fx-second-sources.md`. Its §7 (FX-SPEED, `backtests/fx_speed/`) replays the engines unchanged on Exness's keyless ticks: X read 2 s before each order goes live, against Yahoo's bar (about the price of t − 32 s), is worth nothing on Revolut X (−£6 a year on £600, 90 % −£29 to +£15) and +£66 a year on Coinbase's £2,400 "with Euros" (+£10 to +£149, 19 days, mostly the first half); the CB/OKX study's "+£38 look-ahead bound" is the price at go-live, reachable by a feed read at placement, and capturing it is a rule change.
 
 ### Twin variants
 
