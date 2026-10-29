@@ -812,6 +812,17 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   at $400 rungs); USDC-EUR not before USDC-GBP grows; keep three asks (FX £7/yr against £68); post-only crossing 0.18 %; fee tier to
   read authenticated before the go.
 
+### [2026-10-29 19:28 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Coinbase's live path, part 1: the client and the key's probe** (sub-agent; commit, not pushed; Davies, 10-29: "Coinbase做好实盘搭建并且准备
+  with Euros - 2这个策略的live上线"). `_shared/coinbase.ts` (ES256 JWT per request, Coinbase's documented shape; reads; POSTs only on
+  a client built to send) and `agents/cb_live_probe.ts` (`agents?action=cblive&mode=probe`, cron or admin, GETs only).
+  - **Secrets:** `COINBASE_API_KEY_NAME`, `COINBASE_API_PRIVATE_KEY` (Davies stored them 10-29); SEC1 or PKCS#8 PEM, real or literal `\n`.
+  - **The probe answers** the secrets' forms (no values), whether the JWT was accepted, `key_permissions` (can_transfer is a
+    WARNING), GBP/USDC/EUR balances, USDC-GBP's product, touch, fee tier and resting orders, to the caller only.
+  - **Pins:** `_shared/coinbase.test.ts` (an OpenSSL-signed vector, SEC1 import with both newline forms, read-only refuses a
+    POST before any request), `agents/cb_live_probe.test.ts` (GETs only, each signed for its path; transfer warning; 401).
+  - **Next:** run the probe once landed; the executor (dry-run, inert, migration `0176`) follows as part 2.
+
 ### [2026-10-29 18:43 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **STRATEGY-COMPARE Revolut X: the £1 holding line and the ranked view** (sub-agent; commit, not pushed; the main session's ask).
   Each rule set also run with variant-4's `holdMin {gbp: 1}` (LIVE does not run it): since 09-01 LIVE + holdMin gains +5.3 / +3.0

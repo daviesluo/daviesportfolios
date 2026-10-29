@@ -4582,6 +4582,33 @@ fails too still reported (`edge-watchdog.retry`). In the three days before, 1,34
     `agents.fx_rec`, then hourly while it lasts. **No strategy read it until `0173`**: every Revolut X and OKX row keeps Yahoo's bar; every Coinbase arm prices its rate on it since (item 60's addendum "every Coinbase arm on the rate at second resolution"). The sources, their
     measurement and the 2–4-week comparison plan are `reviews/2026-10-29-fx-second-sources.md`. Its §7 (FX-SPEED, `backtests/fx_speed/`) replays the engines unchanged on Exness's keyless ticks: X read 2 s before each order goes live, against Yahoo's bar (about the price of t − 32 s), is worth nothing on Revolut X (−£6 a year on £600, 90 % −£29 to +£15) and +£66 a year on Coinbase's £2,400 "with Euros" (+£10 to +£149, 19 days, mostly the first half); the CB/OKX study's "+£38 look-ahead bound" is the price at go-live, reachable by a feed read at placement, and capturing it is a rule change. Its §9 (FX-SPEED-RX) runs the long test on Revolut X's whole print history, 2025-11-26 → 2026-10-29: no row passes (LIVE −£2.0 a year out of sample, 90 % −£13.2 to +£9.3; the go-live bound earns nothing either), because Revolut X's GBP books carry 2 % of a GBP/USD move within a minute against Coinbase's fifth, so a stale quote is not picked off there; Revolut X keeps Yahoo. REVX-LAG (`reviews/2026-10-29-revx-lag-study.md`, `backtests/revx_lag/`) asked whether that lag can be used: Revolut X's next prints are forecastable (out-of-sample R² 0.26–0.42, mostly Coinbase's premium), but every lean on the forecast (predicted mid, one-sided quotes, Coinbase's lead, variant-7's nudge over the history) loses £60–330 a year out of sample on LIVE's rules and three twins, a taker loses 20–42 bps a trade on the recorded books, and only exits one tick beyond fair pass (live600 +£26 a year out of sample, every fill assumption, fading to ~0 in September–October); a paper twin is the recommendation, LIVE unchanged. That twin runs as "Stablecoin quotes variant-8" (`live600x1`, `0175`, from 2026-10-29 19:00 against a hidden control from the same minute; `reviews/2026-10-29-revx-exit-tick-twin-prereg.md`, the "Twin variants" table): in the replay +1.20 bps of £600 a day out of sample (+0.27 in September–October), and 94 % of its 28-day windows pass the twin's bar (86 % of those ending in September–October). STRATEGY-COMPARE (`reviews/2026-10-29-strategy-compare-revx.md`, `backtests/compare/revx/`) runs LIVE, variant-7, variant-8 and both on one book at a time at £600, £1,200 and £2,400: since the books tightened (from 2026-09-01), after LIVE's own haircut, LIVE's rules expect +13.6 to +18.7 % a year on USDC-GBP and +28.0 to +34.7 % on USDT-GBP (falling with size), variant-8 a point or two more, variant-7 less on USDT-GBP; USDT-GBP's figure is at risk from "dust" trips (a minimum-size print filling a rung, then about 2p of whole-penny rounding on its exit), which PR5-OPT's £1 holding line (variant-4's `holdMin`, which LIVE does not run) removes, adding +5.3, +3.0 and +1.9 points a year on USDT-GBP at the three sizes (+0.2 on USDC-GBP).
 
+67. **Coinbase Advanced Trade: the key, its client and its probe (2026-10-29; `_shared/coinbase.ts`, `agents/cb_live_probe.ts`).**
+    Davies: "Coinbase做好实盘搭建并且准备with Euros - 2这个策略的live上线". The live path of "Stablecoin quotes with Euros - 2"
+    (`coinbasenudge`) starts with its key and a read-only probe; the executor comes after it, inert, and only Davies arms it.
+  - **The key.** A CDP API key, stored as the function's secrets `COINBASE_API_KEY_NAME` and `COINBASE_API_PRIVATE_KEY`
+    (Davies, 2026-10-29). Never printed, logged or moved.
+  - **Authentication** (docs.cdp.coinbase.com, "API Key Authentication", read 2026-10-29): `Authorization: Bearer <JWT>`, a new
+    JWT per request, ES256; header `kid` the key name, a random `nonce`, `typ` JWT; claims `sub` the key name, `iss` "cdp",
+    `nbf` now, `exp` now + 120 s, `uri` "METHOD api.coinbase.com/path" without the query. Keys must be ECDSA ("Ed25519 may
+    fail"); the PEM is SEC1 ("BEGIN EC PRIVATE KEY"), imported by wrapping it as PKCS#8. Pinned against an OpenSSL-signed vector
+    (`_shared/coinbase.test.ts`); OpenSSL also verified a token from this signer.
+  - **The calls** (Create Order, List Orders, List Fills, Cancel Orders, Get API Key Permissions, read 2026-10-29):
+    `POST /api/v3/brokerage/orders` (`client_order_id`: a reused one returns the existing order, not a new one;
+    `limit_limit_gtc` / `limit_limit_gtd` with `post_only`, `sor_limit_ioc`; a post-only order that would cross fails with
+    `INVALID_LIMIT_PRICE_POST_ONLY`); `GET …/orders/historical/batch` (`order_status`, `product_ids`, `start_date`, cursor; no
+    filter by client id); `GET …/orders/historical/{id}`; `GET …/orders/historical/fills` (`order_ids`; `commission` in the quote
+    currency, `liquidity_indicator`); `POST …/orders/batch_cancel`; `GET …/key_permissions` (`can_view`, `can_trade`,
+    `can_transfer`, `portfolio_uuid`, `portfolio_type`).
+  - **Fees and limits, not confirmed for this account:** Coinbase's fee page gives stable pairs a 0 % maker fee and a taker fee
+    of 0.10–0.45 bps by tier; the probe reads the account's own spot tier (`transaction_summary`) as maker and taker per cent, and
+    warns when the maker fee is above 0 % (CB-LIVE-RULES assumed 0 % maker, 0.0045 % taker). Advanced Trade's private REST
+    limit was not found on an official page (a third-party client says 30 a second); a 429 is an error like any other.
+  - **The probe**, `agents?action=cblive&mode=probe` (cron or admin): GETs only through a client that cannot POST. It answers
+    the secrets' forms (never values), whether Coinbase accepted the JWT, the key's permissions (one that can transfer is a
+    WARNING: the live path needs view and trade only), the GBP, USDC and EUR balances, USDC-GBP's increments and status, the
+    touch, the fee tier and the resting orders, to the caller alone. Called through `pg_net`, its answer sits in
+    `net._http_response` until pg_net prunes it.
+
 ### Twin variants
 
 The realistic twins, a row each of `agent_quote_twin_specs`, in the page's order. A new one is a row here in the commit

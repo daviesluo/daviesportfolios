@@ -124,6 +124,12 @@
 //                             rung, its fair nudged by Revolut X's recorded
 //                             USDC-GBP book; its own tables and lease. Reads
 //                             only the database. Cron or admin.
+//   POST ?action=cblive&mode=probe — the Coinbase key's probe
+//                             (cb_live_probe.ts): signed GETs only, through a
+//                             client that cannot POST: the key's permissions
+//                             (a key that can transfer is a warning), GBP,
+//                             USDC and EUR balances, USDC-GBP's product, touch
+//                             and fees, in the response only. Cron or admin.
 //   POST ?action=okxrec     — OKX's recorder and its paper twins (okx_rec.ts,
 //                             okx_quotes.ts, 0150): every minute, every new print
 //                             of USDG-EUR and EURC-USDC by trade id and their top
@@ -273,6 +279,7 @@ import { CB_RUNG_USD, runCbQuotes } from "./cb_quotes.ts";
 import { CB_HOLD_ID, CB_HOLD_TABLES, runCbHold } from "./cb_hold.ts";
 import { CB_USDC_FACTOR_50, CB_USDC_ID, CB_USDC_RUNG_USD_50, CB_USDC_TABLES, cbUsdcFactorNow, cbUsdcView, runCbUsdc } from "./cb_usdc.ts";
 import { CB_NUDGE_ID, CB_NUDGE_PRODUCTS, CB_NUDGE_RUNG_USD, CB_NUDGE_TABLES, runCbNudge } from "./cb_nudge.ts";
+import { runCbLiveProbe } from "./cb_live_probe.ts";
 import { runOkxRec, type OkxRecState } from "./okx_rec.ts";
 import { readOkxQuotes, runOkxQuotes } from "./okx_quotes.ts";
 import { okxRowsWithBasis, readOkxBasis, runOkxBasis } from "./okx_basis.ts";
@@ -2996,6 +3003,8 @@ async function route(req: Request, who: Exclude<Who, null>, url: URL, action: st
   if (action === "cbusdc" && req.method === "POST" && operator) return json(200, await runCbUsdcAction());
   // "Stablecoin quotes with Euros - 3" (cb_nudge.ts, 0168): "- 2"'s rule on USDC-GBP with the nudged fair, decided from the database alone.
   if (action === "cbnudge" && req.method === "POST" && operator) return json(200, await runCbNudgeAction());
+  // The Coinbase key's probe (cb_live_probe.ts): GETs only; its answer goes to the caller alone, never to a log or a table.
+  if (action === "cblive" && req.method === "POST" && operator && url.searchParams.get("mode") === "probe") return json(200, await runCbLiveProbe((n) => Deno.env.get(n)));
   // OKX's recorder and its paper twins (okx_rec.ts, okx_quotes.ts, 0150): keyless reads, then the paper rule on the database.
   if (action === "okxrec" && req.method === "POST" && operator) return json(200, await runOkxRecAction());
   // "Stablecoin quotes USDG/EUR - 1" (okx_basis.ts, 0171): the USDG/EUR twin's rule with the basis fair, decided from the database alone.

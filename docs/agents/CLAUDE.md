@@ -463,6 +463,11 @@ that follow from that evidence, in short:
   (`paper_exposure_usd`) and daily loss limit (`paper_daily_loss_limit_usd`,
   `0066`) so they measure independently. The pre-live
   review that found these is `docs/agents/reviews/`, its status §4.17.
+- **Coinbase's live path is being built for "Stablecoin quotes with Euros - 2" (2026-10-29, Davies: "Coinbase做好实盘搭建并且准备with Euros - 2这个策略的live上线").**
+  Its key is the function's secrets `COINBASE_API_KEY_NAME` and `COINBASE_API_PRIVATE_KEY` (a CDP key, ECDSA), never printed or
+  moved; `_shared/coinbase.ts` signs each request (reference §4 item 67). `agents?action=cblive&mode=probe` reads, never sends,
+  and says whether the key can transfer: it must not, view and trade are all the path needs. Nothing on Coinbase is sent until
+  Davies arms it in the conversation where he says go; never trade by hand in the account or portfolio that key trades.
 - **The Revolut X account the key sees is the loop's alone.** The floor counts a live buy it cannot read back by
   the venue's balance beyond the settled book, and every live sell is capped at that balance (reference §4.24).
   A trade made there by hand would be counted and could be sold by the floor: never trade by hand in that
