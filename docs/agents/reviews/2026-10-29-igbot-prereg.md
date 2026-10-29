@@ -89,19 +89,21 @@ reason):
   could win by shading every p down, with no skill (the audit's finding; `src/igbot_score.test.js` shows it).
 - **Real bracket**: an open the server sent and IG filled (a working order counts from its fill). Its x0 is its fill less
   the spread the server read when it decided (`checks`). It **resolves** y = 1 if IG closed it at its limit, 0 at its
-  stop; closed by the agent or by the five-day rule, or amended, it is excluded from the Brier reading (counted) and
-  counted in P&L.
+  stop; closed by the agent or by the five-day rule, or amended, **y is where its close level stands between the stop
+  (0) and the limit (1) it opened with, clipped**, never dropped (§10's F11). It counts in P&L either way.
 - **Shadow bracket**: a `no_action` decision with `epic`, `direction`, `level`, `stop_level`, `limit_level` and
   `p_target`, journalled as the agent's considered view (the prompt asks for one for every candidate it researches to a
   number). It starts in the first hour, from its `ts`'s, whose bars reach its entry (a buy's level at or above the hour's
   lowest ask, a sell's at or below its highest bid), within 24 h, or never. Its x0 uses that hour's opening spread. It
   resolves on IG's own HOUR bars (`igbot_bars`): y = 1 if the limit is reached first, 0 if the stop is. **An hour that
   reaches both, or the start's own hour reaching either, cannot be ordered: excluded and counted** (the draft counted
-  both as the stop first, which biases y down and rewards shading p down). Neither within five days, or an incomplete
-  bar before it resolves: excluded and counted. At most one shadow bracket per market per four hours is counted (the
+  both as the stop first, which biases y down and rewards shading p down). **Neither within five days: y is where the
+  exit side's close of the last hour inside them (a buy's bid, a sell's offer) stands between the stop (0) and the limit
+  (1), clipped** (§10's F11). An incomplete bar before it resolves: excluded and counted. At most one shadow bracket per market per four hours is counted (the
   first); a market with a real bracket open counts no shadow one.
 - **Brier**: mean (p − y)² for the agent, mean (m\* − y)² for the baseline, over the same resolved brackets (p and m\*
-  clamped to [0.001, 0.999]).
+  clamped to [0.001, 0.999]); y in [0, 1], so p is the agent's expected outcome of the bracket: the limit's chance first,
+  and where the price would stand if neither side is reached in five days or the bracket is closed early.
 - **P&L**: the snapshot's equity at the end less the equity at the arm (funding and premiums included), in £ and in units
   of the 1 % risk (£10).
 
@@ -153,3 +155,12 @@ ambiguous hour is excluded instead of counted as the stop, the oracle-shift guar
 recorded (they were not, and the client could not read them, so §5 could not have been run), the scorer and its export
 are written and tested, and §2 lists the rules the audit added (listed releases for E and R, IG's distances from the
 touch, the close's level, the pending-order and shared-account refusals, the calendar's end, the minute's IG budget).
+
+**F11 (2026-10-29, the CXBOT audit, `reviews/2026-10-29-crypto-grok-bot-audit.md` §5; the main session's decision the same
+day, while IGBOT is a dry-run and this draft unfrozen).** A bracket that neither side ends within five days, and a real
+bracket the agent or the server closes (or that was amended), was excluded from the reading. Both exclusions bias y: among
+brackets that resolve, the nearer stop comes first more often than m says, and an agent can drop a losing bracket from the
+score by closing it. Now each is scored where its price stands between its stop (0) and its limit (1), clipped, never
+dropped; at a fair price the expected outcome is then the baseline for any hold (optional stopping). `score.mjs` and its
+export read the hour bars' closes and the positions' close levels; `src/igbot_score.test.js` pins both and shows the
+old exclusion's bias on a fair walk.

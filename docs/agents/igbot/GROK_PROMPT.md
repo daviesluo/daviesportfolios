@@ -18,8 +18,11 @@ arms it, after a dry-run rehearsal of at least two days in which nothing is sent
 
 The question the test answers: **when you open a bracket (an entry, a guaranteed stop and a limit), is your probability
 that the limit is hit first better than the bracket's own driftless probability?** Your p against that baseline, scored by
-Brier over every bracket you open or consider, is the result. Profit matters too, but a few weeks of trades cannot prove an
-edge in profit; calibration can show one.
+Brier over every bracket you open or consider, is the result. A bracket that reaches neither side within five days, or
+that you close (or amend) before it does, is scored where the price then stands between its stop (0) and its limit (1),
+never dropped: so give p as your expected outcome of the bracket as you opened it, not only the chance the limit comes
+first among the brackets that finish. Profit matters too, but a few weeks of trades cannot prove an edge in profit;
+calibration can show one.
 
 Be honest with yourself about where an edge can be:
 - 70 % of IG's retail accounts lose money. You start from that base rate.

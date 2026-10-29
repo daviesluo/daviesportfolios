@@ -13,10 +13,10 @@ select json_build_object(
     from public.igbot_orders where kind in ('open', 'working')) o),
   'amended', (select coalesce(json_agg(distinct deal_id), '[]'::json) from public.igbot_orders where kind = 'amend' and state = 'accepted' and deal_id is not null),
   'positions', (select coalesce(json_agg(p order by p.opened_at), '[]'::json) from (
-    select deal_id, decision_id, epic, direction, open_level, stop_level, limit_level, opened_at, closed_at, close_how, state
+    select deal_id, decision_id, epic, direction, open_level, stop_level, limit_level, opened_at, closed_at, close_level, close_how, state
     from public.igbot_positions) p),
   'bars', (select coalesce(json_agg(b order by b.epic, b.hour), '[]'::json) from (
-    select epic, hour, fetched_at, bid_open, bid_high, bid_low, ask_open, ask_high, ask_low from public.igbot_bars) b),
+    select epic, hour, fetched_at, bid_open, bid_high, bid_low, bid_close, ask_open, ask_high, ask_low, ask_close from public.igbot_bars) b),
   'snapshots', (select coalesce(json_agg(s order by s.slot), '[]'::json) from (
     select slot, equity_gbp from public.igbot_snapshots where ok) s)
 ) as export;

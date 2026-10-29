@@ -47151,3 +47151,15 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   (keyless proof of the book, sign-only key, 1.5/4.5 bps, mark stops); IGBOT-style scoring passed no-skill forecasters in
   8–32 % of simulated crypto windows (unresolved brackets excluded): a timeout now scores at its fraction, on assigned
   brackets; scripts in `backtests/cxbot/`; desk-ledger seed. Landed by the main session, which re-ran `falsepass.py` on seed 777 (80 windows): design A passed no-skill forecasters 8.7–21.2 %, design B 0. The 00:40 section archived.
+
+## LEDGER.md, archived 2026-10-29 (ninth) — the 2026-10-29 00:59 UTC history section
+
+### [2026-10-29 00:59 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The `ig` recorder moves to IG's LIVE login, prices only** (sub-agent; commit, not pushed; item 18; Davies, 10-29:
+  "同意，按方案1改"). `ig/client.ts` calls only `api.ig.com/gateway/deal`, refuses the demo host, reads only
+  `IG_API_KEY_LIVE`/`IG_LIVE_USERNAME`/`IG_LIVE_PASSWORD`; the read-only list is unchanged. `0161`: `environment` (default
+  `demo`) on the five `ig_*` tables; quotes' key, done pulls and `ig_quotes_record` per environment (checked on PGlite: demo
+  rows kept, a live quote never extends a demo row, replay safe); facts and pulls are read on live only; a one-type login
+  records that type and says `missing_accounts`. Spec untouched (sha in `MANIFEST.json`); amendment and S1b deviation in
+  `DEVIATION-2-live-prices.md`; review §11 holds the operator's facts calls and read-backs. `ig` Deno tests 37, two
+  counterfactuals fail without the live filters.

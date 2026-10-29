@@ -14,9 +14,12 @@
 //     "beat" by shading every p down without any skill;
 //   * its outcome y on IG's own hour bars (`igbot_bars`): 1 if the limit is reached first, 0 if the stop is; an hour that
 //     reaches both, or the start's own hour reaching either, cannot be ordered and is excluded (counted); five days with
-//     neither, excluded (counted); a gap of incomplete bars before it resolves, excluded (counted). A real bracket resolves
-//     by how IG closed it (`igbot_positions.close_how`: limit 1, stop 0); closed by the agent or the server, or amended,
-//     it is excluded from the Brier reading (counted) and kept in the money;
+//     neither: y is where the exit side's close stands between the stop (0) and the limit (1), clipped; a gap of
+//     incomplete bars before it resolves, excluded (counted). A real bracket resolves by how IG closed it
+//     (`igbot_positions.close_how`: limit 1, stop 0); closed by the agent or the server, or amended, y is where its close
+//     level stands between the stop and the limit it opened with, clipped, never dropped (CXBOT audit F11, 2026-10-29:
+//     dropping the brackets that time out or that the agent closes biases y, which shading p could exploit; with the
+//     fraction, a fair price's expected y is the baseline for any hold, by optional stopping);
 //   * D = Brier(m) − Brier(p) (positive: the agent is better), its paired bootstrap (10,000 resamples of brackets,
 //     mulberry32 seeded 20261029) 5th and 95th percentiles, the same on real brackets alone and by category; and D_c, the
 //     same against the baseline moved by the mean of (y − m) over all brackets (an oracle shift in the baseline's favour),
@@ -64,6 +67,16 @@ export function baseline(direction, entry, stop, limit, spread) {
   return (stop - x0) / (stop - limit);
 }
 
+/**
+ * Where a price stands in a bracket, from the stop (0) to the limit (1), clipped: a buy's (x − stop) / (limit − stop), a
+ * sell's (stop − x) / (stop − limit). The outcome of a bracket that neither side ended (CXBOT audit F11).
+ */
+export function fractionOf(direction, stop, limit, x) {
+  if (![stop, limit, x].every(Number.isFinite) || stop === limit) return null;
+  const f = direction === 'BUY' ? (x - stop) / (limit - stop) : (stop - x) / (stop - limit);
+  return Math.min(1, Math.max(0, f));
+}
+
 /** Hour bars by market, complete ones flagged (read after their hour ended), ascending. */
 export function barsByEpic(bars) {
   const out = new Map();
@@ -72,6 +85,7 @@ export function barsByEpic(bars) {
     const row = {
       t, complete: Date.parse(b.fetched_at) >= t + H,
       bidHigh: num(b.bid_high), bidLow: num(b.bid_low), askHigh: num(b.ask_high), askLow: num(b.ask_low),
+      bidClose: num(b.bid_close), askClose: num(b.ask_close),
       spread: spreadOf(num(b.bid_open), num(b.ask_open)),
     };
     if (!out.has(b.epic)) out.set(b.epic, []);
@@ -104,17 +118,22 @@ export function resolveOnBars(br, list) {
   });
   const first = touches(start);
   if (first.limit || first.stop) return { excluded: 'ambiguous', spread: start.spread };
+  let lastIn = start;
   for (const b of path) {
     if (b.t <= start.t) continue;
-    if (b.t > start.t + RESOLVE_MS) break;
+    if (b.t >= start.t + RESOLVE_MS) break;
     if (!b.complete) return { excluded: 'data', spread: start.spread };
     const x = touches(b);
     if (x.limit && x.stop) return { excluded: 'ambiguous', spread: start.spread };
     if (x.limit) return { y: 1, spread: start.spread };
     if (x.stop) return { y: 0, spread: start.spread };
+    lastIn = b;
   }
   const last = path.length ? path[path.length - 1].t : -Infinity;
-  return { excluded: last >= start.t + RESOLVE_MS ? 'unresolved' : 'open', spread: start.spread };
+  if (last < start.t + RESOLVE_MS) return { excluded: 'open', spread: start.spread };
+  // Five days with neither: the exit side's close of the last hour inside them (a buy's bid, a sell's offer).
+  const y = fractionOf(br.direction, br.stop_level, br.limit_level, buy ? lastIn.bidClose : lastIn.askClose);
+  return y === null ? { excluded: 'data', spread: start.spread } : { y, timeout: true, spread: start.spread };
 }
 
 /** Every bracket of the export, real and shadow, each with its m, p, y or the reason it is excluded. */
@@ -134,11 +153,15 @@ export function brackets(x) {
     const m = baseline(d.direction, num(pos.open_level), num(d.stop_level), num(d.limit_level), spread);
     const row = { id: d.id, kind: 'real', category: d.category, epic: d.epic, p: num(d.p_target), m };
     realSpans.push([d.epic, Date.parse(pos.opened_at), pos.closed_at ? Date.parse(pos.closed_at) : Infinity]);
+    const amend = amended.has(pos.deal_id);
+    const frac = fractionOf(d.direction, num(d.stop_level), num(d.limit_level), num(pos.close_level));
     if (m === null) row.excluded = 'baseline';
-    else if (amended.has(pos.deal_id)) row.excluded = 'amended';
-    else if (pos.close_how === 'limit') row.y = 1;
-    else if (pos.close_how === 'stop') row.y = 0;
-    else row.excluded = pos.state === 'open' ? 'open' : `closed_by_${pos.close_how ?? 'unknown'}`;
+    else if (pos.state === 'open') row.excluded = 'open';
+    else if (!amend && pos.close_how === 'limit') row.y = 1;
+    else if (!amend && pos.close_how === 'stop') row.y = 0;
+    // Closed by the agent or the server, or amended: where its close level stands in the bracket it opened with.
+    else if (pos.close_how !== 'unknown' && frac !== null) { row.y = frac; row.closedAt = pos.close_how; }
+    else row.excluded = `closed_by_${pos.close_how ?? 'unknown'}`;
     out.push(row);
   }
   const lastShadow = new Map();
@@ -205,7 +228,7 @@ export function money(snapshots, startedAt) {
 /** The whole reading and the bar (§6): every part, and whether it is met. */
 export function score(x) {
   const all = brackets(x);
-  const resolved = all.filter((b) => b.y === 0 || b.y === 1);
+  const resolved = all.filter((b) => typeof b.y === 'number' && b.y >= 0 && b.y <= 1);
   const excluded = {};
   for (const b of all) if (b.excluded) excluded[b.excluded] = (excluded[b.excluded] ?? 0) + 1;
   const cal = calibration(resolved);
@@ -220,7 +243,7 @@ export function score(x) {
     pnl_positive: (m.pnl_gbp ?? 0) > 0,
     total_stop_never: !x.total_stop_hit,
   };
-  return { brackets: all.length, resolved: resolved.length, excluded, calibration: cal, real, by_category: byCategory, money: m, bar, passes: Object.values(bar).every(Boolean) };
+  return { brackets: all.length, resolved: resolved.length, timeouts: all.filter((b) => b.timeout).length, closed_early: all.filter((b) => b.closedAt).length, excluded, calibration: cal, real, by_category: byCategory, money: m, bar, passes: Object.values(bar).every(Boolean) };
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

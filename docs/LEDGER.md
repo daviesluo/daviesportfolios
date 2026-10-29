@@ -769,21 +769,16 @@ Facts a fresh session would otherwise rediscover:
 
 Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's archive, each batch under a heading
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
-first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 00:40 UTC section (archived
-2026-10-29, seventh) and the 00:34 and 00:42 ones (eighth).
+first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 00:59 UTC section (archived
+2026-10-29, ninth).
+
+### [2026-10-29 01:31 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **IGBOT F11** (sub-agent; commit, not pushed; item 18; the main session's decision on the CXBOT audit's F11): a bracket
+  that times out, and one the agent or server closes or amends, scores where its price stands between stop (0) and limit
+  (1), never dropped. `score.mjs`, `export.sql`, prereg §5 and its F11 note, the prompt's scoring paragraph; 2 pins added.
 
 ### [2026-10-29 01:24 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **"AUD weekend (FXW-AUD)" on TESTING, paper** (sub-agent; commit, not pushed; Davies, 10-29: "…澳元策略都上线…确保模拟一切
   真实"): the frozen rule on the live recorder's `ig_quotes`, £1,000 at £1.50 a pip, no stop (search-3 §5). `ig?action=fxw`
   every 5 min (`0162`, no IG call) writes `ig_fxw_weekends`; fills at recorded bid/offer only, a minute uncovered after the open
   is MISSED, 5 % margin, close-out at half, 0.22 bps a weekday night. First weekend Fri 30 Oct 21:35 UK. Fill/funding pins by hand.
-
-### [2026-10-29 00:59 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **The `ig` recorder moves to IG's LIVE login, prices only** (sub-agent; commit, not pushed; item 18; Davies, 10-29:
-  "同意，按方案1改"). `ig/client.ts` calls only `api.ig.com/gateway/deal`, refuses the demo host, reads only
-  `IG_API_KEY_LIVE`/`IG_LIVE_USERNAME`/`IG_LIVE_PASSWORD`; the read-only list is unchanged. `0161`: `environment` (default
-  `demo`) on the five `ig_*` tables; quotes' key, done pulls and `ig_quotes_record` per environment (checked on PGlite: demo
-  rows kept, a live quote never extends a demo row, replay safe); facts and pulls are read on live only; a one-type login
-  records that type and says `missing_accounts`. Spec untouched (sha in `MANIFEST.json`); amendment and S1b deviation in
-  `DEVIATION-2-live-prices.md`; review §11 holds the operator's facts calls and read-backs. `ig` Deno tests 37, two
-  counterfactuals fail without the live filters.

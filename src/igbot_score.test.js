@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  BAR, baseline, barsByEpic, brackets, calibration, money, mulberry32, RESAMPLES, resolveOnBars, score, SEED,
+  BAR, baseline, barsByEpic, brackets, calibration, fractionOf, money, mulberry32, RESAMPLES, resolveOnBars, score, SEED,
 } from '../docs/agents/backtests/igbot/score.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -15,10 +15,10 @@ const PREREG = fs.readFileSync(path.join(ROOT, 'docs/agents/reviews/2026-10-29-i
 const H = 3600e3;
 const T0 = Date.parse('2026-11-03T15:00:00Z');
 const iso = (t) => new Date(t).toISOString();
-/** An hour bar of US 500 at hour `h` after T0's hour: bid range [lo, hi], the ask 0.4 above, read after the hour ended. */
+/** An hour bar of US 500 at hour `h` after T0's hour: bid range [lo, hi], closing mid-range, the ask 0.4 above, read after the hour ended. */
 const bar = (h, lo, hi, o = {}) => ({
   epic: 'US500', hour: iso(T0 + h * H), fetched_at: iso(T0 + (h + 1) * H + 120e3),
-  bid_open: lo, bid_high: hi, bid_low: lo, ask_open: lo + 0.4, ask_high: hi + 0.4, ask_low: lo + 0.4, ...o,
+  bid_open: lo, bid_high: hi, bid_low: lo, bid_close: (lo + hi) / 2, ask_open: lo + 0.4, ask_high: hi + 0.4, ask_low: lo + 0.4, ask_close: (lo + hi) / 2 + 0.4, ...o,
 });
 const BUY = { ts: iso(T0 + 5 * 60e3), direction: 'BUY', level: 6801, stop_level: 6761, limit_level: 6881 };
 
@@ -44,9 +44,19 @@ describe("IGBOT's reading", () => {
     expect(r([bar(0, 6760, 6805)]).excluded).toBe('ambiguous'); // the start hour reaches the stop: order unknown
     expect(r([bar(0, 6810, 6820), bar(1, 6810, 6830)]).excluded).toBe('never_filled'); // the ask never came down to 6801
     expect(r([bar(0, 6795, 6805), bar(1, 6800, 6885, { fetched_at: iso(T0 + 1.5 * H) })]).excluded).toBe('data');
+    // Five days with neither side (CXBOT audit F11): scored where the bid closed in the bracket, never dropped. The last
+    // hour inside the five days (T0 + 119 h) closes its bid at 6800: (6800 − 6761) / (6881 − 6761) = 39 / 120.
     const flat = [bar(0, 6795, 6805), ...Array.from({ length: 121 }, (_, i) => bar(i + 1, 6790, 6810))];
-    expect(r(flat).excluded).toBe('unresolved');
+    const timeout = r(flat);
+    expect(timeout.excluded).toBe(undefined);
+    expect(timeout.timeout).toBe(true);
+    expect(timeout.y).toBeCloseTo(39 / 120, 12);
     expect(r(flat.slice(0, 30)).excluded).toBe('open');
+    // A sell's timeout reads the offer: stop 6841, limit 6721, the last hour's ask closing at 6800.4: (6841 − 6800.4) / 120.
+    const SELL = { ts: BUY.ts, direction: 'SELL', level: 6799, stop_level: 6841, limit_level: 6721 };
+    const sell = resolveOnBars(SELL, barsByEpic(flat).get('US500'));
+    expect(sell.y).toBeCloseTo(40.6 / 120, 12);
+    expect([fractionOf('BUY', 6761, 6881, 6700), fractionOf('BUY', 6761, 6881, 6900), fractionOf('SELL', 6841, 6721, 6781)]).toEqual([0, 1, 0.5]);
   });
 
   it('counts one shadow a market each four hours, none while a real bracket is open there, and resolves real brackets by how IG closed them', () => {
@@ -65,11 +75,20 @@ describe("IGBOT's reading", () => {
     expect([b['open-1'].kind, b['open-1'].y]).toEqual(['real', 0]);
     expect(b['open-1'].m).toBeCloseTo(39.4 / 120, 10);
     expect([b['s-1'].y, b['s-2'].excluded, b['s-3'].y, b['s-4'].excluded]).toEqual([1, 'dedupe', 0, 'real_open']);
-    // Closed by the agent, or amended: kept out of the Brier reading.
+    // Closed by the agent (or the server), or amended: scored where the close level stands in the bracket it opened with,
+    // never dropped (CXBOT audit F11: dropping the brackets the agent closes lets a loser leave the score).
     x.positions[0].close_how = 'bot';
-    expect(brackets(x).find((r) => r.id === 'open-1')?.excluded).toBe('closed_by_bot');
-    x.positions[0].close_how = 'limit';
-    expect(brackets({ ...x, amended: ['D1'] }).find((r) => r.id === 'open-1')?.excluded).toBe('amended');
+    x.positions[0].close_level = 6820.4;
+    const bot = brackets(x).find((r) => r.id === 'open-1');
+    expect(bot?.excluded).toBe(undefined);
+    expect(bot?.y).toBeCloseTo((6820.4 - 6761) / 120, 12);
+    x.positions[0].close_how = 'stop';
+    x.positions[0].close_level = 6790;
+    expect(brackets({ ...x, amended: ['D1'] }).find((r) => r.id === 'open-1')?.y).toBeCloseTo(29 / 120, 12);
+    x.positions[0].close_how = 'unknown';
+    expect(brackets(x).find((r) => r.id === 'open-1')?.excluded).toBe('closed_by_unknown');
+    x.positions[0].state = 'open';
+    expect(brackets(x).find((r) => r.id === 'open-1')?.excluded).toBe('open');
   });
 
   it('D, its bootstrap and the oracle shift, on four brackets worked by hand', () => {
@@ -111,6 +130,24 @@ describe("IGBOT's reading", () => {
     expect(c.d).toBeGreaterThan(0);
     expect(c.d_p05).toBeGreaterThan(0);
     expect(c.d_c > 0).toBe(false);
+  });
+
+  it('a bracket scored at its fraction has the baseline as its expected outcome, so shading p cannot beat m (F11)', () => {
+    // A martingale walk from 0 with the stop at -1 and the limit at +2 (m = 1/3), five steps of ±1 at most: the walks that
+    // end neither way score where they stand, and the mean outcome over every path is m exactly (optional stopping).
+    const outcomes = [];
+    const walk = (x, n, w) => {
+      if (x <= -1) { outcomes.push([0, w]); return; }
+      if (x >= 2) { outcomes.push([1, w]); return; }
+      if (n === 0) { outcomes.push([fractionOf('BUY', -1, 2, x), w]); return; }
+      walk(x + 1, n - 1, w / 2); walk(x - 1, n - 1, w / 2);
+    };
+    walk(0, 5, 1);
+    expect(outcomes.reduce((s, [y, w]) => s + y * w, 0)).toBeCloseTo(1 / 3, 12);
+    // Dropping the paths that time out leaves the limit-first share below m: the bias the old rule handed to shading.
+    const ended = outcomes.filter(([y]) => y === 0 || y === 1);
+    const share = ended.reduce((s, [y, w]) => s + y * w, 0) / ended.reduce((s, [, w]) => s + w, 0);
+    expect(share).toBeLessThan(1 / 3);
   });
 
   it('a forecaster with skill passes the calibration bar: it knows part of what moves the true chance', () => {
