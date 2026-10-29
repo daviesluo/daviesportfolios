@@ -775,6 +775,11 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth).
 
+### [2026-10-29 03:02 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The pre-tool Chinese gate refuses each English note once** (10-29): the transcript lags the conversation, so a note it
+  had refused stayed "the latest" and refused every call after it, the Chinese rewrite's included, locking the session's
+  tools until Davies wrote again. Refused notes are now kept as hashes beside the transcript and never refused twice.
+
 ### [2026-10-29 03:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Agents page: display names and tiles** (sub-agent; commit, not pushed; Davies, 10-29: "“AUD weekend (FXW-AUD)”改名为 FXW-AUD
   weekend … Stablecoin quotes USDG/EUR … EURC/USDC … on 1 resolved删了 … trades和record调换位置"). "AUD weekend (FXW-AUD)" is

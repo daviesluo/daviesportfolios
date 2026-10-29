@@ -5,7 +5,8 @@
 // tool call and refuses it while the latest note reads as English, telling the model to say it again in Chinese first.
 // A tool call's own note is not yet in the transcript when the hook runs (measured 2026-10-29), so the note judged is
 // the previous step's: an English note can appear once, and the next call is refused until it is said again in Chinese.
-import { readFileSync } from "node:fs";
+import { appendFileSync, readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { isEnglish } from "./chinese-reply.mjs";
 
 /**
@@ -45,12 +46,29 @@ export function decide(lines) {
   };
 }
 
+/**
+ * Each English note is refused once, never again: the transcript can lag the conversation, and on 2026-10-29 a note the
+ * hook had already refused kept being judged the latest, refusing every call after it, the rewrite's included. The
+ * notes already refused are kept, as hashes, in a file beside the transcript.
+ */
+export function onceOnly(out, lines, seen) {
+  if (!out) return { out: null, key: null };
+  const key = createHash("sha256").update(latestNote(lines).join("\n")).digest("hex");
+  return seen.has(key) ? { out: null, key: null } : { out, key };
+}
+
 if (import.meta.url === `file://${process.argv[1]}`) {
   let input = {};
   try { input = JSON.parse(readFileSync(0, "utf8") || "{}"); } catch { /* nothing to judge */ }
   let lines = [];
   try { lines = readFileSync(input.transcript_path ?? "", "utf8").split("\n"); } catch { process.exit(0); }
-  const out = decide(lines);
-  if (out) process.stdout.write(JSON.stringify(out));
+  const store = `${input.transcript_path}.chinese-refused`;
+  let seen = new Set();
+  try { seen = new Set(readFileSync(store, "utf8").split("\n").filter(Boolean)); } catch { /* none refused yet */ }
+  const { out, key } = onceOnly(decide(lines), lines, seen);
+  if (out && key) {
+    try { appendFileSync(store, key + "\n"); } catch { /* cannot remember: refuse anyway, once */ }
+    process.stdout.write(JSON.stringify(out));
+  }
   process.exit(0);
 }

@@ -59,3 +59,13 @@ describe('chinese-pretool hook', async () => {
     expect(decide([user('问题'), said('A sub-agent note in English, long enough to count here.', { isSidechain: true })])).toBeNull();
   });
 });
+
+describe('chinese-pretool hook refuses a note once', async () => {
+  const { decide, onceOnly } = await import('../.claude/hooks/chinese-pretool.mjs');
+  it('refuses an English note the first time and never again, so it cannot lock every later call', () => {
+    const lines = [user('问题'), said('The only conflict is in the handover log, and the bundle files need a rebuild.'), tool()];
+    const first = onceOnly(decide(lines), lines, new Set());
+    expect(first.out?.hookSpecificOutput.permissionDecision).toBe('deny');
+    expect(onceOnly(decide(lines), lines, new Set([first.key])).out).toBeNull();
+  });
+});
