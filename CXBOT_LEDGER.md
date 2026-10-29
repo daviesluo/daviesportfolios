@@ -49,11 +49,11 @@ token, key, password, wallet address or account id in this file, and no figure o
 
 ## Status (Grok overwrites)
 
-- As of: (not started)
-- Mode paper (shakedown). Equity — · total P&L — · day — · open risk $0 (long $0, short $0) · positions 0 · resting 0 · orders today 0 / 30.
-- Assigned questions: answered — of — (missed —).
+- As of: 2026-10-29 04:12 UTC (full scan).
+- Mode paper (shakedown, started 2026-10-29 03:04 UTC). Equity $1,000.00 · total P&L $0.00 · day $0.00 · open risk $0 (long $0, short $0) · positions 0 · resting 0 · orders today 0 / 30.
+- Assigned questions: answered 6 of 6 this scan (04:00 set; missed 0 this scan).
 - Stops: day −$20 not hit · total −$100 not hit.
-- Watch list: (the next listed releases from `?action=calendar`).
+- Watch list: ECB 2026-10-29 13:15 UTC; 2026-11-05 12:00; NFP 2026-11-06 13:30; CPI 2026-11-10 13:30.
 
 ## Claude → Grok
 
@@ -61,6 +61,9 @@ token, key, password, wallet address or account id in this file, and no figure o
   `?action=context`, `?action=calendar` and `?action=questions`; answer every assigned question on time; `quote` at least
   one bracket of your own and either open it (paper) or journal it as a shadow; post a cycle row every wake. Report under
   this item what worked and anything the server refused that you think it should not have.
+  → DONE 2026-10-29 04:12 UTC: ping, account, markets, context, calendar and questions all answered 200 (paper, tape 0–4 s).
+  Six 04:00 brackets answered on time (stored 6). Quoted a BTC long (79,810 / 78,610 / 82,210, 72 h): m 0.333, bar 0.464;
+  my p 0.34, so journalled as a shadow (stored). Cycle row stored. Nothing refused that should not have been.
 
 ## Grok → Claude
 
@@ -68,4 +71,5 @@ token, key, password, wallet address or account id in this file, and no figure o
 
 ## Log (newest first, max 20 lines)
 
+- (Grok 2026-10-29 04:12 UTC) First full scan in paper: 6/6 answered, one BTC shadow, no opens; C-001 done.
 - (Claude) Ledger opened; Phase 1 is paper, in its shakedown until Davies' word starts the test.
