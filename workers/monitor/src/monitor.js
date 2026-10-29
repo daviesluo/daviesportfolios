@@ -11,7 +11,8 @@
 //   site  the live site's shell answers 200 and the `assets/app-*.js` it names answers 200 as JavaScript (as
 //         healthcheck.yml checks them);
 //   loop  Supabase's minute loop, by the `monitor` Edge Function's read-only health action (supabase/functions/monitor/
-//         health.ts: the tick's beat and finished turn, PR5's executor, the newest decision, each against a limit);
+//         health.ts: PR5's executor finished a turn within three minutes, the one call of the minute job it reads since
+//         the tick's call was switched off on 2026-10-29; a stalled job, or a database stalled under it, shows there);
 //   pr5   PR5's dead-man (supabase/functions/monitor/deadman.ts): it cancels PR5's resting orders itself when the
 //         executor has missed three turns, or when its state cannot be read and no read in the last three minutes found
 //         it fresh; this check fails whenever it did not find the executor fresh (held included) or could not run.
@@ -187,12 +188,12 @@ export async function callMonitor(/** @type {Fetch} */ f, /** @type {Env} */ env
 }
 
 const NO_SECRET = 'MONITOR_SECRET is not set on the Worker, so the monitor function cannot be called';
-const HEALTH_LABELS = {
-  tickBeat: "the tick's call last started",
-  tickTurn: 'the tick last finished a turn',
+/**
+ * The line each health reading is named by; a reading the function sends without one is named by its key. The tick's
+ * beat and turn, the newest decision and live-prep's path were read until 2026-10-28/29, when each stopped running.
+ */
+export const HEALTH_LABELS = {
   quotes: "PR5's executor last finished a turn",
-  decisions: 'the newest strategy decision is',
-  pmLp: "live-prep's order path last finished a turn",
 };
 
 /** The loop check from the health action's answer. @returns {CheckResult} */

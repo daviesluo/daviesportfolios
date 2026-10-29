@@ -15,7 +15,7 @@ import {
   type DeadmanReport, type DeadmanVenue, graceOf, judge,
   PR5_KEY_NAMES, pr5KeyFrom, readState, readStateOnce, recordRows, revxDeadmanVenue, runDeadman, type StateRead, summary, writeRecord,
 } from "./deadman.ts";
-import { DB_SIZE_PATH, DB_SIZE_WATCH_BYTES, HEALTH_LIMITS_S, HEALTH_NAMES, HEALTH_QUERIES, judgeHealth, type Reading, runHealth, TICK_BEAT_KEY } from "./health.ts";
+import { DB_SIZE_PATH, DB_SIZE_WATCH_BYTES, HEALTH_LIMITS_S, HEALTH_NAMES, HEALTH_QUERIES, judgeHealth, type Reading, runHealth } from "./health.ts";
 import { handle, type HandlerDeps, insertReports, isAuthorised, lastFreshOf, reportRows, SECRET_HEADER } from "./index.ts";
 
 const T0 = Date.parse("2026-10-02T13:05:02Z");
@@ -405,14 +405,11 @@ Deno.test("a cancel is read again after the executor's own pauses", () => {
 
 // ---------------------------------------------------------------------------------------------------- health
 
-Deno.test("health: each reading against its limit of three minutes; a failed read fails", () => {
-  assertEquals(HEALTH_LIMITS_S, { tickBeat: 180, tickTurn: 180, quotes: 180 });
-  const ok: Record<string, Reading> = {
-    tickBeat: { ok: true, at: iso(T0 - 62e3) }, tickTurn: { ok: true, at: iso(T0 + 50e3) },   // a turn in flight holds its lease ahead
-    quotes: { ok: true, at: iso(T0 - 35e3) },
-  };
+Deno.test("health: PR5's executor is the one reading, against three minutes; a late, failed or empty read fails", () => {
+  assertEquals(HEALTH_LIMITS_S, { quotes: 180 });
+  const ok: Record<string, Reading> = { quotes: { ok: true, at: iso(T0 - 35e3) } };
   const h = judgeHealth(T0, ok as never);
-  assertEquals([h.ok, h.checks.tickBeat.ageS, h.checks.tickTurn.ageS], [true, 62, -50]);
+  assertEquals([h.ok, h.checks.quotes.ageS], [true, 35]);
   for (const name of HEALTH_NAMES) {
     const late = judgeHealth(T0, { ...ok, [name]: { ok: true, at: iso(T0 - (HEALTH_LIMITS_S[name] + 1) * 1e3) } } as never);
     assertEquals([late.ok, late.checks[name].ok], [false, false], name);
@@ -423,33 +420,29 @@ Deno.test("health: each reading against its limit of three minutes; a failed rea
   }
 });
 
-Deno.test("health: the three reads go to the tick's beat, its lease and PR5's state, read-only (live-prep's and the decisions' off since 2026-10-28)", async () => {
-  // 10-02, 13:05:02 UTC, inside the stall: the tick last started at 12:57, PR5's executor last finished at 12:57:27.
+Deno.test("health: the one read goes to PR5's state, read-only, and the 10-02 stall still fails it (the tick's readings off since 2026-10-29)", async () => {
+  // 10-02, 13:05:02 UTC, inside the stall: PR5's executor last finished at 12:57:27, the tick last started at 12:57.
   const rest = fakeRest({
-    beats: [{ minute: "2026-10-02T12:57:00+00:00", path: TICK_BEAT_KEY }, { minute: "2026-10-02T13:05:00+00:00", path: "monitor?action=deadman" }],
+    beats: [{ minute: "2026-10-02T12:57:00+00:00", path: "agents?action=tick" }, { minute: "2026-10-02T13:05:00+00:00", path: "monitor?action=deadman" }],
     locks: [{ name: "tick", lease_until: "2026-10-02T12:57:00.558+00:00", holder: null }, { name: "quotes-live", lease_until: "2026-10-02T13:04:00+00:00", holder: null }],
     state: [{ id: 1, updated_at: "2026-10-02T12:57:27.000+00:00" }],
-    decisions: [{ id: 1440, ts: "2026-10-02T12:00:03.728+00:00" }, { id: 1441, ts: "2026-10-02T12:00:04.001+00:00" }],
+    decisions: [{ id: 1441, ts: "2026-10-02T12:00:04.001+00:00" }],
   });
   const h = await runHealth(SB, "service-key", () => T0, rest.fetch);
   assertEquals(rest.calls.every((c) => c.startsWith("GET ")), true);
   assertEquals(rest.calls.sort(), [...Object.values(HEALTH_QUERIES).map((q) => `GET ${q.path}`), `GET ${DB_SIZE_PATH}`].sort());
-  // 13:05:02 less 12:57:00, 12:57:00.558 and 12:57:27. The decisions table is not read (0158 retired every row that decides).
-  assertEquals([h.checks.tickBeat.ageS, h.checks.tickTurn.ageS, h.checks.quotes.ageS], [482, 481, 455]);
-  assertEquals(["pmLp" in h.checks, "decisions" in h.checks], [false, false]);
-  assertEquals(rest.calls.some((c) => c.includes("agent_decisions")), false);
-  assertEquals([h.ok, h.checks.tickBeat.ok, h.checks.quotes.ok], [false, false, false]);
-  // The monitor's own beat is not the tick's: a fresh one beside a stale tick does not make the loop look alive.
-  assertEquals(h.checks.tickBeat.at, "2026-10-02T12:57:00.000Z");
+  // 13:05:02 less 12:57:27: the stall pages on PR5's executor alone.
+  assertEquals([h.ok, h.checks.quotes.ok, h.checks.quotes.ageS], [false, false, 455]);
+  assertEquals(Object.keys(h.checks), ["quotes"]);
+  assertEquals(rest.calls.some((c) => /agent_decisions|agent_locks|edge_call_beats/.test(c)), false);
   rest.down = true;
   const down = await runHealth(SB, "service-key", () => T0, rest.fetch);
   assertEquals([down.ok, HEALTH_NAMES.every((n) => down.checks[n].error)], [false, true]);
 });
 
-// The database's size beside the three readings (review F4, 0101): shown, and never failing the loop's reading.
-Deno.test("health: the database's size is read beside the three and never fails them, over its watch line or unread", async () => {
-  const fresh = { beats: [{ minute: iso(T0 - 30e3), path: TICK_BEAT_KEY }], locks: [{ name: "tick", lease_until: iso(T0 + 20e3), holder: "x" }],
-    state: [{ id: 1, updated_at: iso(T0 - 20e3) }], decisions: [{ id: 1, ts: iso(T0 - 600e3) }] };
+// The database's size beside the reading (review F4, 0101): shown, and never failing the loop's reading.
+Deno.test("health: the database's size is read beside the reading and never fails it, over its watch line or unread", async () => {
+  const fresh = { state: [{ id: 1, updated_at: iso(T0 - 20e3) }] };
   const small = await runHealth(SB, "service-key", () => T0, fakeRest({ ...fresh, dbBytes: 1_160_000_000 }).fetch);
   assertEquals([small.ok, small.size], [true, { ok: true, bytes: 1_160_000_000, limitBytes: DB_SIZE_WATCH_BYTES, over: false }]);
   const big = await runHealth(SB, "service-key", () => T0, fakeRest({ ...fresh, dbBytes: 4_200_000_000 }).fetch);
@@ -461,15 +454,16 @@ Deno.test("health: the database's size is read beside the three and never fails 
   assertEquals(DB_SIZE_WATCH_BYTES, 4_000_000_000);
 });
 
-// 2026-10-28: Davies retired the crypto loop's three strategy rows (0158), so no row decides any more. The old reading
-// required a decision within 75 minutes and would have paged 75 minutes after the last one, every minute from then on.
-Deno.test("health: a loop that runs and has decided nothing for days is healthy — no strategy row decides since 0158", async () => {
+// 2026-10-28/29: Davies retired the crypto loop's strategy rows (0158) and the tick's call was switched off (0160). A
+// loop whose tick has not run for days, and whose newest decision is days old, is healthy while PR5's executor runs:
+// the old readings would have paged three minutes after the tick stopped, every minute from then on.
+Deno.test("health: with the tick switched off for days, a minute loop that runs PR5's executor is healthy (0158, 0160)", async () => {
   const rest = fakeRest({
-    beats: [{ minute: iso(T0 - 30e3), path: TICK_BEAT_KEY }], locks: [{ name: "tick", lease_until: iso(T0 - 25e3), holder: null }],
-    state: [{ id: 1, updated_at: iso(T0 - 20e3) }], decisions: [{ id: 9001, ts: iso(T0 - 3 * 86_400e3) }],
+    beats: [{ minute: iso(T0 - 3 * 86_400e3), path: "agents?action=tick" }], locks: [{ name: "tick", lease_until: iso(T0 - 3 * 86_400e3), holder: null }],
+    state: [{ id: 1, updated_at: iso(T0 - 20e3) }], decisions: [{ id: 9001, ts: iso(T0 - 4 * 86_400e3) }],
   });
   const h = await runHealth(SB, "service-key", () => T0, rest.fetch);
-  assertEquals([h.ok, Object.keys(h.checks).sort()], [true, ["quotes", "tickBeat", "tickTurn"]]);
+  assertEquals([h.ok, Object.keys(h.checks)], [true, ["quotes"]]);
 });
 
 // ---------------------------------------------------------------------------------------------------- reports and auth

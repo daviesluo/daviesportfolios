@@ -13,8 +13,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import worker, * as WORKER_MODULE from '../workers/monitor/src/index.js';
 import {
-  CHECKS, checkSite, DeadmanMemory, dispatchInputs, emptyState, FAILS_TO_ALERT, healthOutput, KV_KEY, MEMORY_AHEAD_MS, MEMORY_KEY, memoryOf, OUTBOX_MAX,
-  parseState, pr5Result, runMinute, stepCheck, WRITE_BUDGET,
+  CHECKS, checkSite, DeadmanMemory, dispatchInputs, emptyState, FAILS_TO_ALERT, HEALTH_LABELS, healthOutput, KV_KEY, loopResult, MEMORY_AHEAD_MS, MEMORY_KEY,
+  memoryOf, OUTBOX_MAX, parseState, pr5Result, runMinute, stepCheck, WRITE_BUDGET,
 } from '../workers/monitor/src/monitor.js';
 import { SB_ANON, SB_URL } from './app/supabase_config.js';
 
@@ -47,13 +47,14 @@ function fakeKv() {
   return kv;
 }
 
+// The health action's answer as `monitor/health.ts` gives it since the tick's call was switched off (0160): one reading.
 const HEALTHY = {
   at: 't', ok: true,
-  checks: { tickBeat: { ok: true, ageS: 5, limitS: 180 }, tickTurn: { ok: true, ageS: -50, limitS: 180 }, quotes: { ok: true, ageS: 35, limitS: 180 }, decisions: { ok: true, ageS: 300, limitS: 4500 } },
+  checks: { quotes: { ok: true, ageS: 35, limitS: 180 } },
 };
 const STALE_LOOP = {
   at: 't', ok: false,
-  checks: { ...HEALTHY.checks, tickBeat: { ok: false, ageS: 482, limitS: 180 }, quotes: { ok: false, ageS: 455, limitS: 180 } },
+  checks: { quotes: { ok: false, ageS: 455, limitS: 180 } },
 };
 const FRESH = { verdict: 'fresh', why: "PR5's executor finished a turn 35 s ago", at: '2026-10-02T13:05:00.412Z', acted: false, listed: null, orders: [], error: null, recorded: null };
 /** 10-07's shape: the state's read timed out, and a read 2 min before had found the executor fresh. */
@@ -195,7 +196,7 @@ describe('a minute of the Worker', () => {
     const [box] = net.reports();
     expect(box).toEqual([{
       kind: 'monitor.alert', check: 'loop',
-      message: "Supabase's minute loop failing since 13:06 UTC: the tick's call last started 8 min 02 s ago (limit 3 min 00 s); PR5's executor last finished a turn 7 min 35 s ago (limit 3 min 00 s) (13:07 UTC)",
+      message: "Supabase's minute loop failing since 13:06 UTC: PR5's executor last finished a turn 7 min 35 s ago (limit 3 min 00 s) (13:07 UTC)",
       context: { at: '2026-10-02T13:07:00.000Z', worker: 'daviesportfolios-monitor', github: 'an issue is dispatched to GitHub' },
     }]);
     // … and to GitHub, as one dispatch of the alert workflow.
@@ -509,5 +510,16 @@ describe('the record it shares with the Edge Function', () => {
     const list = (name) => JSON.parse(/** @type {RegExpMatchArray} */ (test.match(new RegExp(`const ${name} = (\\[[^\\]]*\\]);`)))[1]);
     expect([list('KINDS_0052'), list('KINDS_0086')]).toEqual([k52, k86]);
     expect(read('supabase/functions/monitor/deadman.ts')).toContain('kind: "deadman"');
+  });
+
+  // 0160 switched the tick's call off (2026-10-29): its beat and turn left the health action, which reads PR5's executor
+  // alone. The Worker names each reading the function sends, and no other.
+  it("names the health action's readings, and only those: PR5's executor since the tick's call stopped (0160)", () => {
+    const limits = /export const HEALTH_LIMITS_S = \{([^}]*)\}/.exec(read('supabase/functions/monitor/health.ts'))?.[1] ?? '';
+    const names = [...limits.matchAll(/(\w+):/g)].map((m) => m[1]);
+    expect(names).toEqual(['quotes']);
+    expect(Object.keys(HEALTH_LABELS)).toEqual(names);
+    expect(loopResult({ ok: true, status: 200, json: STALE_LOOP, text: '' })).toEqual({ ok: false, detail: "PR5's executor last finished a turn 7 min 35 s ago (limit 3 min 00 s)" });
+    expect(loopResult({ ok: true, status: 200, json: HEALTHY, text: '' })).toEqual({ ok: true, detail: 'every reading within its limit' });
   });
 });

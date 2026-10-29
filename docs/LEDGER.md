@@ -762,8 +762,15 @@ Facts a fresh session would otherwise rediscover:
 
 Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's archive, each batch under a heading
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
-first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-28 23:27 UTC section (archived
-2026-10-29, third).
+first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-28 23:33 UTC section (archived
+2026-10-29, fourth).
+
+### [2026-10-29 00:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The monitor stops reading the tick** (sub-agent; commit, not pushed; step 1 of 2 for switching the tick's call off, the
+  coordinator's call on Davies' "你来决定"): `monitor/health.ts` drops `tickBeat` and `tickTurn`; PR5's executor (`quotes`,
+  every minute of the same job, 1,434 beats in 24 h) is the loop's one reading, so a stalled minute job or database still
+  pages. The Worker's labels and comment follow (`monitor-deploy.yml`). Pins fail on the old files (4 Deno, 1 vitest). Push
+  and let `monitor` deploy BEFORE `0160`. The 23:33 section archived.
 
 ### [2026-10-29 00:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Reverted `b4f64394`: the IG recorder reads only its own three demo secrets again.** One demo login cannot hold two
@@ -782,11 +789,3 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
   修复"): close as IG `LIMIT` FOK with no reference; five-day close retried; nothing foreign touched; IG budget across
   isolates (`0159`); missing closes wait; hour bars + scorer; prereg baseline m*; prompt answers and wake schedule. 18 pins.
   The 23:27 section archived.
-
-### [2026-10-28 23:33 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **The crypto loop's three rows retire: `0158`** (sub-agent; commit, not pushed; step 2 of 2, push AFTER the monitor
-  commit has deployed; Davies, 10-28): `trend-4h-live`, `trend-4h`, `trend-1h` paused with `retired_at`, records kept;
-  `agent_risk.live_confirmed_at` cleared (`global_pause` not: it would stop PR5, GROKPM, IGBOT); refuses while the live
-  row holds a coin or has an order in flight. Read at ~23:00–23:30 UTC: all flat, no open order, no watched probe. Pin in
-  `tick.test.ts`. EX-GAP and MX-1 closed undecided (`reviews/2026-10-28-trend-rows-retired.md`; reference item 65).
-  Docs: map, guide, README, agents CLAUDE, live-watch. Items 3, 5a.2, 5a.7 rewritten. No `src/` change.

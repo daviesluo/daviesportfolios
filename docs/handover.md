@@ -47079,3 +47079,13 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   would page 75 min after the crypto loop's last row stops deciding; the tick's beat and turn stay. Pinned (three tests
   fail on the old file). Push and let `edge-functions.yml` deploy `monitor` BEFORE step 2's migration (`0158`). The 22:30
   section archived.
+
+## LEDGER.md, archived 2026-10-29 (fourth) — the 2026-10-28 23:33 UTC history section
+
+### [2026-10-28 23:33 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The crypto loop's three rows retire: `0158`** (sub-agent; commit, not pushed; step 2 of 2, push AFTER the monitor
+  commit has deployed; Davies, 10-28): `trend-4h-live`, `trend-4h`, `trend-1h` paused with `retired_at`, records kept;
+  `agent_risk.live_confirmed_at` cleared (`global_pause` not: it would stop PR5, GROKPM, IGBOT); refuses while the live
+  row holds a coin or has an order in flight. Read at ~23:00–23:30 UTC: all flat, no open order, no watched probe. Pin in
+  `tick.test.ts`. EX-GAP and MX-1 closed undecided (`reviews/2026-10-28-trend-rows-retired.md`; reference item 65).
+  Docs: map, guide, README, agents CLAUDE, live-watch. Items 3, 5a.2, 5a.7 rewritten. No `src/` change.

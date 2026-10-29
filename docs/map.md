@@ -445,8 +445,9 @@ How the less obvious parts work, and why they are built the way they are.
   database stalled for 80 minutes and nothing alerted: GitHub had run the
   10-minute health check 9 times in 48 hours). It checks the live site's
   shell and app chunk, Supabase's minute loop (the `monitor` function's
-  read-only health action: the tick's beat and finished turn, and PR5's
-  executor) and PR5's dead-man switch, which cancels
+  read-only health action: PR5's executor finished a turn within three
+  minutes, the minute job's one call it reads since the tick's call
+  stopped) and PR5's dead-man switch, which cancels
   every resting order on PR5's Revolut X sub-account when its executor has
   missed three turns, or when its state cannot be read and no read in the
   last three minutes found it fresh (the Worker remembers that read in a
@@ -1090,7 +1091,7 @@ pg_cron → pg_net → Edge Functions (no browser needed; one job queues every c
 
 Cloudflare Worker daviesportfolios-monitor (its own cron, every minute: outside GitHub and pg_cron)
  ├─ daviesluo.com                    the shell 200, and the app-*.js it names 200 JavaScript
- ├─ monitor ?action=health           the minute loop's readings (tick beat and turn, PR5's executor), read-only
+ ├─ monitor ?action=health           the minute loop's reading (PR5's executor finished a turn), read-only
  ├─ monitor ?action=deadman          PR5's executor quiet > 3 min, or unreadable with no fresh read in 3 min (DeadmanMemory) → every resting order on its sub-account cancelled → agent_quote_live_events, ops_errors
  ├─ monitor ?action=report           its alerts and recoveries → ops_errors (the errors box); queued in KV while Supabase is down
  └─ GitHub workflow_dispatch         monitor-alert.yml → the issue labelled monitor (opened, or commented on)
