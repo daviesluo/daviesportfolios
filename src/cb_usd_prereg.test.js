@@ -38,7 +38,7 @@ describe('the Coinbase arms in whole dollars', () => {
     expect(u).toContain('export const CB_USDC_RUNG = 25;');
     for (const [f, src] of [['cb_quotes.ts', q], ['cb_hold.ts', h], ['cb_usdc.ts', u]]) {
       expect(src, f).toContain('cbUsdSwitch(st, first, ');
-      expect(src, f).toContain('median(window), cbInUsd(st, t));');
+      expect(src, f).toContain('coinU, cbInUsd(st, t));');
     }
     // The page funds each arm with a whole number of dollars.
     const idx = read(A + 'index.ts');

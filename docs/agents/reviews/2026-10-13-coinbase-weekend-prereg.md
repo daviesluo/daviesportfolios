@@ -239,3 +239,61 @@ This arm takes the base test's Deviation 4 unchanged. That deviation has the rul
 | `supabase/functions/agents/cb_hold.ts` | `ea081c57918d6c0e6500da7dced0c2a3c57ccd0e8a2e09d9c2cdc06c9aa34fd9` |
 | `supabase/functions/agents/cb_hold.test.ts` | `37fece912426eaf8e5af71d45f2c95c3980094d020044a7c991e0e3f8bee5bc8` |
 | `supabase/functions/agents/cb_quotes.ts` | `fe88387e54abad68ff3fe5a02fb8f2a768a09ccea860b4ab4a46cbbdd262c465` |
+
+**Deviation 4 (2026-10-29, before the reading): Coinbase's own coin price, as the base test's.** Davies, 2026-10-29, verbatim, after the CB/OKX fair-price study:
+
+> 目前coinbase的测试策略全部直接改用coinbase自己的币价而不是revolutx的
+
+(every Coinbase test strategy switches straight to Coinbase's own coin price instead of Revolut X's).
+
+This arm takes the base test's Deviation 5 unchanged (`cbLiveSwitch`, `cbCoinFair` from cb_quotes.ts, on the minutes the base call
+stores):
+
+- **The change.** From the switch the coin's dollar value (fairU) is the CB/OKX fair-price study's `cb_live`
+  (`reviews/2026-10-29-cb-okx-fair-price-study.md` §3, `backtests/fair_price_cb_okx/scripts/prod.py` and `hist.py`), in place of
+  the median of Revolut X UK's USDC-USD or USDT-USD hourly closes (F3). The FX bar, the rungs, the fill rule, the stop and the
+  release blackout are unchanged; `stepMinute` (quotes.ts) is not touched, so Revolut X's rows are byte for byte as they were.
+  - **USDC is 1** (Coinbase converts USDC to dollars 1:1 and lists no USDC-USD book).
+  - **USDT is Coinbase USDT-USD's own price**: the close of the latest one-minute candle that started in [t − 10 min, t − 1 min]
+    (`fxBarAt`, the study's `bar_at`). The base test's call fetches Coinbase's public candles each minute (keyless,
+    `api.exchange.coinbase.com/products/USDT-USD/candles?granularity=60`, completed minutes only, `fetchCbUsdtUsd`). It stores them
+    in `cb_quote_inputs` (kind `cb:USDT-USD`), and every Coinbase arm reads them there.
+  - **Stale:** with no candle in those ten minutes, the USDT book's minute is dark, as the study's fair was None. No last value is
+    held longer, even on the weekend arm, whose study replay also read USDT for ten minutes and held only the FX bar.
+- **The de-peg guard (not in the study, which modelled no de-peg; its stated risk).** A coin value more than **50 bps** from an
+  outside reference darkens the minute, and so does a missing reference (`cbCoinFair`, `CB_DEPEG`).
+  - The reference is Revolut X's F3, the value the fair used before the switch.
+  - A dark minute places no entry. A resting exit stays and can fill, a due exit waits for a lit minute, and the 24-hour stop
+    runs, as in a release blackout.
+  - USDC is guarded too: |1 ÷ F3 − 1| > 50 bps is a USDC de-peg.
+  - F3 is a 24-hour median, so it survives an outage of PR5's paper inputs of up to about a day. Only then do the rows go dark,
+    as they would have before.
+  - On the study's own production inputs (2026-10-10 → 10-29, 27,360 minutes) the guard would never have fired: the largest gap
+    was 13.5 bps for USDT and 14.0 for USDC. A USDT candle was within ten minutes in every minute. So on that record this rule is
+    the study's `cb_live` exactly.
+- **The instant.** The first minute each row decides at or after 2026-10-29 08:00 UTC (`CB_LIVE_NOT_BEFORE`): in practice the
+  first minute after the deploy. It is written once into the row's state as `liveFrom` (`cbLiveSwitch`). There is no backfill: the
+  record before it stays as it ran, and nothing on the page is rescaled (sizes did not change).
+- **Why** (the study, in sample and out):
+  - The fair had sat below the market on every book (weekday median of the touch mid over the fair: +2.2 bps USDC-GBP, +5.6
+    USDT-GBP, +5.9 USDC-EUR, +8.9 USDT-EUR). 2 to 5 bps of that was Revolut X's dollar price, which traded under Coinbase's.
+  - That is why 136 of 137 USDT fills were asks, and why 32 of 146 base trips ended at the stop.
+  - `cb_live` on history out of sample: +£6.1 a year on £2,400 [−14.5, +27.5]; the weekend arm +£13.0 [−9.2, +36.4]. Stops fell
+    60 → 7 and the worst day went −£3.10 → −£1.40. On the 19 production days: +£13.8 a year [−39, +73] and +£17.9 [−45, +90],
+    stops 32 / 40 → 0 / 4.
+  - None of these is significant. The case is the bias removed, the stops, and the rows no longer reading PR5's Revolut X inputs
+    for their price.
+- **The reading is read on the record as it ran.** The minute record's `fair` is the fair the minute was decided on (the new one
+  from the switch). So the replay of bar 1 reproduces the engine without knowing the rule changed, and every threshold, window and
+  seed is unchanged. The report says where the switch fell and what share of the window it covered.
+- **Bar 6** pairs this arm with the base rule by weekend. Both switch by the same rule, so they still differ only in the closure.
+  `cb_hold.test.ts` pins that on a world after the switch the two write the same trips, events and minutes. Its base arm is this
+  record with the closure minutes darkened, read as it ran.
+- **Frozen bytes** (`docs/agents/backtests/cbwk/MANIFEST.json`, groups "this arm's" and "the release blackout's", which keep their
+  names; `src/cb_hold_prereg.test.js`, `src/cb_live_prereg.test.js`):
+
+| file | sha256 |
+|---|---|
+| `supabase/functions/agents/cb_hold.ts` | `85d86a0181ff7004b8aff0c437883f01b085b45023605cab3fb789c0b8e97511` |
+| `supabase/functions/agents/cb_hold.test.ts` | `212db02f5592b83f37222258fd05c0dba761008e79d3b328f0cb8c46be31512d` |
+| `supabase/functions/agents/cb_quotes.ts` | `3d267f849a8aeec704c880dc9a7da20ac19b5653117778cedff828615b468a6c` |

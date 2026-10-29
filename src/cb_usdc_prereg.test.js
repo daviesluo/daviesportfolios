@@ -19,10 +19,15 @@ const FROZEN_2026_10_26 = {
   'supabase/functions/agents/cb_hold.ts': '3795b05c5c3b38b30065c13c6c907e6c684fafe195055d3792d3290b25d365f8',
   'supabase/functions/agents/cb_quotes.ts': '3929d8a9a47d0ac240d865fec3fd56c4b08e6912b10c72e6fe8d7ee31eebd808',
 };
-/** Deviation 1's sha256 of the two files its Deviation 2 (2026-10-29, $50 a rung) changed again. */
-const DEV1_2026_10_29 = {
-  'supabase/functions/agents/cb_usdc.ts': '4fdf89c16b92ac7279b9593ee7946a209276de2b1a44ad8ae1b91d0f89d704a2',
-  'supabase/functions/agents/cb_usdc.test.ts': 'dfa42316993faec080a5bd8c9ab0fa5361e29c0351db47af1d04cb3a059fe2db',
+/**
+ * The bytes each later deviation named, in order, after §5's: Deviation 1 ($25, all four files), Deviation 2 ($50, cb_usdc.ts and
+ * its test), Deviation 3 (Coinbase's own coin price, all four again; each file must be that last one).
+ */
+const LATER = {
+  'supabase/functions/agents/cb_usdc.ts': ['4fdf89c16b92ac7279b9593ee7946a209276de2b1a44ad8ae1b91d0f89d704a2', '0f54887c0e5b96941b697b76390214cfeea7045c96f7f41f41eca8d70d09d7b9'],
+  'supabase/functions/agents/cb_usdc.test.ts': ['dfa42316993faec080a5bd8c9ab0fa5361e29c0351db47af1d04cb3a059fe2db', '80ce8b868077dd63a8d292999ddb6e571d32f7ffe4a1ce1153ce4a27c0dc1dc5'],
+  'supabase/functions/agents/cb_hold.ts': ['ea081c57918d6c0e6500da7dced0c2a3c57ccd0e8a2e09d9c2cdc06c9aa34fd9'],
+  'supabase/functions/agents/cb_quotes.ts': ['fe88387e54abad68ff3fe5a02fb8f2a768a09ccea860b4ab4a46cbbdd262c465'],
 };
 const named = (f) => [...DOC.matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
 
@@ -32,14 +37,14 @@ describe('the USDC arm of the Coinbase paper test', () => {
     expect(DOC).toContain('**Status: FROZEN**');
   });
 
-  it("names Deviation 1's bytes after §5's, and Deviation 2's after those, and each file is the last one named", () => {
-    const dev = DOC.indexOf('**Deviation 1 (2026-10-29'), dev2 = DOC.indexOf('**Deviation 2 (2026-10-29');
+  it("names §5's bytes, then each deviation's in order, and each file is the last one named, in Deviation 3", () => {
+    const dev = DOC.indexOf('**Deviation 1 (2026-10-29'), dev2 = DOC.indexOf('**Deviation 2 (2026-10-29'), dev3 = DOC.indexOf('**Deviation 3 (2026-10-29');
     expect(dev).toBeGreaterThan(DOC.indexOf('## 7. Deviations'));
     expect(dev2).toBeGreaterThan(dev);
+    expect(dev3).toBeGreaterThan(dev2);
     for (const [f, frozen] of Object.entries(FROZEN_2026_10_26)) {
-      const again = DEV1_2026_10_29[f];
-      expect(named(f), f).toEqual(again ? [frozen, again, sha(f)] : [frozen, sha(f)]);
-      expect(DOC.indexOf(`| \`${f}\` | ${sha(f)} |`), f).toBeGreaterThan(again ? dev2 : dev);
+      expect(named(f), f).toEqual([frozen, ...LATER[f], sha(f)]);
+      expect(DOC.lastIndexOf(`| \`${f}\` | ${sha(f)} |`), f).toBeGreaterThan(dev3);
     }
     const d2 = DOC.slice(dev2);
     for (const w of ['建USDC 那个线索，在with euro-2的基础上开-3，只做300美元的USDC-GBP；另外把目前的-2数字*2做600美元funded', '**$600 on the two books**',

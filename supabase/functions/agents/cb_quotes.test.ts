@@ -8,6 +8,7 @@ import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@
 import {
   CB_BOOK, CB_CAPITAL, CB_RUNG_USD, CB_TAKER, CB_USD_NOT_BEFORE, cbCapitalGbp, cbInUsd, cbMinuteInputs, cbMinuteRow, cbPrint, cbStopExit, cbTripInPounds, cbTripRow,
   cbUsdFactors, cbUsdSwitch, runCbQuotes, type CbQuoteState,
+  CB_DEPEG, CB_LIVE_NOT_BEFORE, CB_USDT_KIND, cbCoinFair, cbIsLive, cbLiveSwitch, fetchCbUsdtUsd,
 } from "./cb_quotes.ts";
 import { CB_PRODUCTS, type CbCursor, type CbProduct } from "./cb_rec.ts";
 import { QUOTE_FEE, QUOTE_HALF_SPREAD, quoteTicks, type Trip } from "./quotes.ts";
@@ -394,3 +395,79 @@ Deno.test("Deviation 4 through the driver: a rung filled before the switch keeps
   assertAlmostEquals(u.costUsd, 100, 1e-9);
   assertAlmostEquals(u.valueUsd - u.costUsd, 100 * v.openOrders, 1e-9);
 });
+
+// Deviation 5 (2026-10-29; Davies: "目前coinbase的测试策略全部直接改用coinbase自己的币价而不是revolutx的"): from the switch the coin's
+// dollar value is the CB/OKX fair-price study's `cb_live` (USDC 1, USDT Coinbase USDT-USD's latest one-minute close of a candle that
+// started in [t − 10, t − 1]), under a de-peg guard against Revolut X's F3 (50 bps). Revolut X's rows are untouched: quotes.ts is
+// not changed (its sha256 is held by docs/agents/backtests/cbwk/MANIFEST.json and the USDC and nudge pre-registrations).
+Deno.test("Deviation 5: cb_live, USDC at 1 and USDT at Coinbase's last minute, under a 50 bps de-peg guard against Revolut X's F3", () => {
+  assertEquals([CB_LIVE_NOT_BEFORE, CB_DEPEG, CB_USDT_KIND], [Date.UTC(2026, 9, 29, 8), 0.005, "cb:USDT-USD"]);
+  const t = Date.UTC(2026, 9, 29, 10, 0);
+  const st = { lastMinute: 0, startedAt: 0, books: {}, fed: {} } as unknown as CbQuoteState;
+  const usdt: Array<[number, number]> = [[t - 12 * M, 0.9990], [t - 3 * M, 1.0004], [t, 1.0010]];
+  // Before the switch: Revolut X's F3, whatever Coinbase says.
+  assertEquals(cbCoinFair(st, t, "USDT", 0.9995, usdt), { fairU: 0.9995, live: false, depeg: false });
+  cbLiveSwitch(st, CB_LIVE_NOT_BEFORE - M);
+  assertEquals(st.liveFrom, undefined);
+  cbLiveSwitch(st, t);
+  cbLiveSwitch(st, t + 9 * M);
+  assertEquals([st.liveFrom, cbIsLive(st, t - M), cbIsLive(st, t)], [t, false, true]);
+  // From it: USDC 1; USDT the candle of t − 3 (the one of t is not complete before t).
+  assertEquals(cbCoinFair(st, t, "USDC", 0.9998, usdt), { fairU: 1, live: true, depeg: false });
+  assertEquals(cbCoinFair(st, t, "USDT", 0.9995, usdt), { fairU: 1.0004, live: true, depeg: false });
+  // No candle that started in the last ten minutes: dark.
+  assertEquals(cbCoinFair(st, t, "USDT", 0.9995, [[t - 11 * M, 1.0]]).fairU, null);
+  // The guard: 49 bps from Revolut X's F3 is quoted, 51 bps is not, and no reference is not.
+  assertEquals(cbCoinFair(st, t, "USDT", 1.0004 / 1.0049, usdt).depeg, false);
+  assertEquals(cbCoinFair(st, t, "USDT", 1.0004 / 1.0051, usdt), { fairU: null, live: true, depeg: true });
+  assertEquals(cbCoinFair(st, t, "USDC", 1 / 0.9940, usdt), { fairU: null, live: true, depeg: true });
+  assertEquals(cbCoinFair(st, t, "USDC", null, usdt), { fairU: null, live: true, depeg: true });
+});
+
+Deno.test("fetchCbUsdtUsd reads Coinbase's public USDT-USD candles: [time, low, high, open, close, volume], completed minutes, oldest first", async () => {
+  const now = Date.UTC(2026, 9, 29, 10, 0, 30), m = (k: number) => (Date.UTC(2026, 9, 29, 10, 0) + k * M) / 1000;
+  let asked = "";
+  const f = ((url: string) => { asked = String(url); return Promise.resolve(new Response(JSON.stringify([[m(0), 1, 1, 1, 1.0001, 5], [m(-1), 1, 1, 1, 1.0003, 7], [m(-2), 1, 1, 1, 0, 1]]), { status: 200 })); }) as unknown as typeof fetch;
+  assertEquals(await fetchCbUsdtUsd(now, f), [[m(-1) * 1000, 1.0003]]);         // the forming minute and a zero close are left out
+  assertEquals(asked, "https://api.exchange.coinbase.com/products/USDT-USD/candles?granularity=60");
+  const bad = (() => Promise.resolve(new Response("{}", { status: 200 }))) as unknown as typeof fetch;
+  let thrown = "";
+  try { await fetchCbUsdtUsd(now, bad); } catch (e) { thrown = String(e); }
+  assert(thrown.includes("not a list"));
+});
+
+Deno.test("Deviation 5 through the driver: from 08:00 the USDT books price on Coinbase's own USDT-USD, the USDC books at 1, a de-peg darkens", async () => {
+  const t0 = Date.UTC(2026, 9, 29, 10, 0);
+  const run = async (usdtUsd: number | null) => {
+    const w = world(t0, []);
+    // Revolut X's F3 for USDT at 0.9995 (the old value), Coinbase's USDT-USD as given; Coinbase's candle list is what the call stores.
+    w.tables.agent_quote_inputs = w.tables.agent_quote_inputs.map((r) => (r.kind === "fair:USDT-USD" ? { ...r, value: 0.9995 } : r));
+    const candles = usdtUsd == null ? [] : Array.from({ length: 30 }, (_, i) => [(t0 - 20 * M + i * M) / 1000, 1, 1, 1, usdtUsd, 10]);
+    const fetchImpl = ((url: string) => Promise.resolve(new Response(String(url).includes("/candles") ? JSON.stringify(candles)
+      : JSON.stringify({ chart: { result: [{ timestamp: [], indicators: { quote: [{ close: [] }] } }] } }), { status: 200 }))) as unknown as typeof fetch;
+    const r = await runCbQuotes({ db: w.db, now: t0 + 6 * M, holder: "h", fetchImpl, rec: w.rec });
+    assertEquals(r.errors, []);
+    const fair = (b: string) => w.tables.cb_quote_minutes.find((x) => x.book === b && x.minute === iso(t0 + 2 * M))!.fair;
+    return { w, fair, st: w.tables.cb_quote_state[0].state as CbQuoteState };
+  };
+  // 4 bps over Revolut X's F3 for USDT (1.0004 / 0.9995 − 1 = 9 bps): quoted on Coinbase's value.
+  const a = await run(1.0004);
+  assertEquals(a.st.liveFrom, t0);
+  assertAlmostEquals(Number(a.fair("USDT-GBP")), 1.0004 / 1.25, 1e-12);
+  assertAlmostEquals(Number(a.fair("USDT-EUR")), 1.0004 / 1.1, 1e-12);
+  assertAlmostEquals(Number(a.fair("USDC-GBP")), 1 / 1.25, 1e-12);
+  // The 26 completed by the call (10:06): 09:40 to 10:05; the forming minutes are not stored.
+  assertEquals(a.w.tables.cb_quote_inputs.filter((x) => x.kind === CB_USDT_KIND).length, 26);
+  // 65 bps over it: the USDT books are dark (no entry rests), the USDC books quote on.
+  const b = await run(1.0060);
+  assertEquals([b.fair("USDT-GBP"), b.fair("USDT-EUR")], [null, null]);
+  assertAlmostEquals(Number(b.fair("USDC-EUR")), 1 / 1.1, 1e-12);
+  const placed = (book: string) => b.w.tables.cb_quote_events.filter((e) => e.book === book && e.kind === "order").length;
+  assertEquals([placed("USDT-GBP"), placed("USDT-EUR")], [0, 0]);
+  assert(placed("USDC-GBP") > 0 && placed("USDC-EUR") > 0);
+  // No Coinbase USDT-USD at all: the USDT books are dark too.
+  const c = await run(null);
+  assertEquals(c.fair("USDT-GBP"), null);
+  assertAlmostEquals(Number(c.fair("USDC-GBP")), 1 / 1.25, 1e-12);
+});
+

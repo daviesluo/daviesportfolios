@@ -54,6 +54,8 @@ Deno.test("an empty record starts at the first 00:00 UTC strictly after the call
 function world(t0: number, o: { ratesUntil: number; coveredTo: number; fairUntil?: number; prints: Array<{ book: CbProduct; id: number; at: number; price: string; size: string; side: "buy" | "sell" }>; holdStart?: number | null }) {
   const fx: Row[] = [], fair: Row[] = [], eur: Row[] = [];
   for (let t = t0 - 20 * M; t <= o.ratesUntil; t += M) { fx.push({ kind: "fx", t: iso(t), value: 1.25 }); eur.push({ kind: "fx:EURUSD", t: iso(t), value: 1.1 }); }
+  // Coinbase's own USDT-USD minutes at $1.00 (the base call stores them; read from the base test's Deviation 5, 2026-10-29 08:00).
+  for (let t = t0 - 20 * M; t <= o.ratesUntil; t += M) eur.push({ kind: "cb:USDT-USD", t: iso(t), value: 1.0 });
   for (let h = t0 - 30 * H; h < (o.fairUntil ?? t0 + 2 * H); h += H) for (const k of ["fair:USDC-USD", "fair:USDT-USD"]) fair.push({ kind: k, t: iso(h), value: 1.0 });
   const zero = Object.fromEntries(CB_PRODUCTS.map((b) => [b, 0])) as Record<CbProduct, number>;
   const start = o.holdStart === undefined ? t0 : o.holdStart;
@@ -68,7 +70,8 @@ function world(t0: number, o: { ratesUntil: number; coveredTo: number; fairUntil
   const { db, tables } = memDb(seed, { now: () => t0 });
   const cur = (): CbCursor => ({ from: 1, fromTs: iso(t0 - M + 1000), hi: 1, top: 1, topAt: 0, hole: null, coveredTo: o.coveredTo });
   const rec = { cursors: Object.fromEntries(CB_PRODUCTS.map((b) => [b, cur()])) };
-  const fetchImpl = (() => Promise.resolve(new Response(JSON.stringify({ chart: { result: [{ timestamp: [], indicators: { quote: [{ close: [] }] } }] } }), { status: 200 }))) as typeof fetch;
+  // Yahoo answers nothing new; Coinbase's candles answer nothing new either (the stored minutes stand).
+  const fetchImpl = ((url: string) => Promise.resolve(new Response(String(url).includes("/candles") ? "[]" : JSON.stringify({ chart: { result: [{ timestamp: [], indicators: { quote: [{ close: [] }] } }] } }), { status: 200 }))) as unknown as typeof fetch;
   return { db, tables, rec, fetchImpl };
 }
 

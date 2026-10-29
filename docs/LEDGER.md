@@ -776,6 +776,14 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth).
 
+### [2026-10-29 07:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Every Coinbase arm on Coinbase's own coin price** (sub-agent; commit, not pushed; Davies, 10-29: "目前coinbase的测试策略全部直接改用coinbase
+  自己的币价而不是revolutx的"; base Dev 5, weekend Dev 4, USDC Dev 3, nudge Dev 2 after 0170's Dev 1).
+  - **The rule.** The CB/OKX study's `cb_live` (`cbCoinFair`): USDC 1, USDT Coinbase USDT-USD's last minute (stored by the base call,
+    `cb_quote_inputs` `cb:USDT-USD`, ten minutes then dark), and a 50 bps de-peg guard against Revolut X's F3.
+  - **The switch.** `liveFrom`, each arm's first minute ≥ 10-29 08:00 UTC; no backfill.
+  - **Unchanged.** quotes.ts. The guard never fires on the study's 10-10 → 10-29 inputs.
+
 ### [2026-10-29 07:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Variant-7 (and its control) and Coinbase "with Euros - 3" start today at 08:00 UTC** (main session; Davies, 10-29 ~07:20:
   "你新做好的两个测试策略现在就上线"). `0170`: the twins' `start` and every rule's `from` 10-30 00:00 → 10-29 08:00 (guarded, as `0154`;

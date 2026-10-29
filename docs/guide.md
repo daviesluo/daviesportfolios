@@ -385,6 +385,10 @@ places stay when the number is not whole.
   book has moved, by half of that move. The rest of the week it quotes exactly
   as "- 2" does. A paper test of four weeks, judged against "- 2"'s pound book
   over the same days; it starts flat at the next midnight after it went up.
+  Since 29 Oct every Coinbase row prices the coins at Coinbase's own value
+  instead of Revolut X's: USDC at a dollar, USDT at Coinbase's own USDT/USD
+  price of the last few minutes. If that price strays more than half a
+  percent from Revolut X's, the row places no new quote until it comes back.
 - **Stablecoin quotes USDG/EUR and Stablecoin quotes EURC/USDC.** After Coinbase's rows, on
   OKX (its own badge and venue card): the live rules on paper on OKX's two
   euro-against-dollar stablecoin books, USDG against euros and EURC against

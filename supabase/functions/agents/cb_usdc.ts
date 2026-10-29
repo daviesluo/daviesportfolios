@@ -18,13 +18,16 @@
 // `cbUsdc50Switch`): the engine's divisor is 2 from that minute (`cbUsdcFactorAt`), and a rung held across it is rescaled in the
 // engine's units so it keeps the coins it holds. The driver is one function for every USDC arm (`runCbUsdcArm`): "with Euros - 3"
 // (cb_nudge.ts) is the same driver on USDC-GBP alone with its fair nudged (`CbUsdcArm.fairOf`), nothing else.
+// Since its Deviation 3 (2026-10-29; Davies: "目前coinbase的测试策略全部直接改用coinbase自己的币价而不是revolutx的") the coin's dollar
+// value is Coinbase's own from the switch (`cbLiveSwitch`, `cbCoinFair`, the base test's Deviation 5): USDC is 1, with the de-peg
+// guard against Revolut X's F3.
 // Everything else is the weekend variant's, imported from it: the rate bars held through a closure (`cbHoldBarAt`, 60 hours),
 // the start at the first 00:00 UTC after its first run (`cbHoldStart`), the release blackout (`cbInBlackout`), the stop's
 // Coinbase cost (`cbStopExit`) and the pounds of a trip (`cbTripInPounds`).
 
 import type { Db } from "./db.ts";
 import {
-  CB_BOOK, CB_FAIR_KIND, CB_LEASE_MS, CB_MAX_MINUTES, CB_RUNG, CB_RUNG_USD, cbEventRow, cbInUsd, cbMinuteInputs, cbMinuteRow, cbPrint, cbStopExit, cbTripInPounds, cbTripRow, cbUsdSwitch,
+  CB_BOOK, CB_FAIR_KIND, CB_LEASE_MS, CB_MAX_MINUTES, CB_RUNG, CB_RUNG_USD, cbCoinFair, cbEventRow, cbInUsd, cbLiveSwitch, cbMinuteInputs, cbMinuteRow, cbPrint, cbStopExit, cbTripInPounds, cbTripRow, cbUsdSwitch,
   type CbQuoteReport, type CbQuoteState,
 } from "./cb_quotes.ts";
 import { CB_HOLD_MS, cbHoldBarAt, cbHoldStart } from "./cb_hold.ts";
@@ -190,6 +193,8 @@ export async function runCbUsdcArm(d: { db: Db; now: number; holder: string; rec
     // Deviation 1 (2026-10-29): dollars from the switch (the engine's $100 ÷ its divisor), on the rates this run decides its first minute on.
     cbUsdSwitch(st, first, cbHoldBarAt(first, gbpBars)?.[1] ?? null, cbHoldBarAt(first, eurBars)?.[1] ?? null);
     arm.onFirst?.(st, first);
+    // Deviation 3 (2026-10-29): Coinbase's own coin value from the switch (USDC is 1), under the de-peg guard.
+    cbLiveSwitch(st, first);
     const fairOf = arm.fairOf ? await arm.fairOf(d.db, first, horizon) : null;
     const trips: ReturnType<typeof cbTripRow>[] = [], events: ReturnType<typeof cbEventRow>[] = [], minutes: Record<string, unknown>[] = [];
     for (const b of arm.products) {
@@ -203,7 +208,9 @@ export async function runCbUsdcArm(d: { db: Db; now: number; holder: string; rec
         const mine: Print[] = [];
         while (j < prints.length && prints[j].ts < t + M) { mine.push(prints[j]); j++; }
         const bar = cbHoldBarAt(t, gbpBars), eb = cbHoldBarAt(t, eurBars), window = fairHours(t, hours);
-        const io = cbMinuteInputs(b, bar ? bar[1] : null, eb ? eb[1] : null, median(window), cbInUsd(st, t));
+        // Every USDC arm's books are USDC (1 from Deviation 3), so no USDT-USD minutes are read: a USDT book here would be dark.
+        const coinU = cbCoinFair(st, t, CB_BOOK[b].coin, median(window), []).fairU;
+        const io = cbMinuteInputs(b, bar ? bar[1] : null, eb ? eb[1] : null, coinU, cbInUsd(st, t));
         const own = fairOf ? fairOf(st, t, b, io) : { fairU: io.fairU, extra: {} };
         const inp: MinuteInputs = { ...io, fairU: cbInBlackout(t) ? null : own.fairU, prints: mine };
         const out = stepMinute(st.books[b], t, inp);

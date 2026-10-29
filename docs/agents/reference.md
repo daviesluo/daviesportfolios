@@ -4437,6 +4437,17 @@ Davies, 2026-10-13: "周末变体写预注册然后上线paper trading 策略wit
     $300. Its fair is nudged inside FX closures by Revolut X's recorded mid: fair + ½ (g − EMA₂₄ₕ(g)), g = RX − fair, the REVX-FAIR
     lead mirrored as that study's §8 replayed it (+0.21 bps of $300 a day in closures, P ≤ 0 0.01; every minute −0.14).
 
+- **Addendum 2026-10-29 (later still): every Coinbase arm on Coinbase's own coin price** (Davies: "目前coinbase的测试策略全部直接改用
+  coinbase自己的币价而不是revolutx的"; base Deviation 5, weekend 4, USDC 3, nudge 1).
+  - **The rule.** From each arm's switch (`liveFrom`, the first minute at or after 2026-10-29 08:00 UTC) the coin's dollar value is
+    the CB/OKX study's `cb_live`: USDC 1; USDT the close of Coinbase USDT-USD's latest one-minute candle started in
+    [t − 10, t − 1]. That replaces Revolut X's F3.
+  - **Its inputs.** The base call stores the candles (`cb_quote_inputs` kind `cb:USDT-USD`). Without a candle in ten minutes, the
+    USDT book is dark.
+  - **The guard.** A de-peg guard against Revolut X's F3 darkens a minute more than 50 bps away, or one with no F3.
+  - **On the study's 10-10 → 10-29 inputs** it never fired (largest gap 13.5 / 14.0 bps), so there the rule is `cb_live` exactly.
+  - **Unchanged.** `stepMinute` and Revolut X's rows are untouched (quotes.ts' sha256 unchanged).
+
 61. **Every paper Reward quotes test stops; live-prep live and pm-rec keep running (2026-10-13, migration `0120`).**
 Davies, 2026-10-13: "目前paper testing里的reward quotes全关了吧？感觉都不赚钱没什么意义？如果你实在觉得还有用的话就转到后台记录，不用在网站上显示了"
 (switch off every Reward quotes in paper testing; if one is still useful, record it in the background, off the site). The

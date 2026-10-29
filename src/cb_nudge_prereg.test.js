@@ -11,14 +11,21 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => fs.readFileSync(path.join(ROOT, p));
 const sha = (p) => crypto.createHash('sha256').update(read(p)).digest('hex');
 const DOC = read('docs/agents/reviews/2026-10-29-cb-usdc-nudge-prereg.md').toString('utf8');
+/** §5's sha256 of cb_usdc.ts, before its Deviation 2 (2026-10-29, Coinbase's own coin price) changed it. */
+const USDC_FROZEN_2026_10_29 = '0f54887c0e5b96941b697b76390214cfeea7045c96f7f41f41eca8d70d09d7b9';
 const named = (f) => [...DOC.matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
 
 describe('"Stablecoin quotes with Euros - 3"', () => {
   it('names the sha256 of each file it froze, once, and each file is that one', () => {
     for (const f of [
       'supabase/migrations/0168_cb_usdc_nudge.sql', 'supabase/functions/agents/cb_nudge.ts', 'supabase/functions/agents/cb_nudge.test.ts',
-      'supabase/functions/agents/cb_usdc.ts', 'supabase/functions/agents/quotes_weekend.ts', 'supabase/functions/agents/quotes.ts',
+      'supabase/functions/agents/quotes_weekend.ts', 'supabase/functions/agents/quotes.ts',
     ]) expect(named(f), f).toEqual([sha(f)]);
+    // cb_usdc.ts: §5's bytes, then its Deviation 2's (Coinbase's own coin price), which the file is.
+    const dev = DOC.indexOf('**Deviation 2 (2026-10-29');
+    expect(dev).toBeGreaterThan(DOC.indexOf('## 7. Deviations'));
+    expect(named('supabase/functions/agents/cb_usdc.ts')).toEqual([USDC_FROZEN_2026_10_29, sha('supabase/functions/agents/cb_usdc.ts')]);
+    expect(DOC.lastIndexOf(`| \`supabase/functions/agents/cb_usdc.ts\` | ${sha('supabase/functions/agents/cb_usdc.ts')} |`)).toBeGreaterThan(dev);
     expect(DOC).toContain('**Status: FROZEN**');
     // Deviation 1 (0170, Davies 2026-10-29: "你新做好的两个测试策略现在就上线"): the start moved to 2026-10-29 08:00 UTC, and only that.
     expect(DOC).toMatch(/## 7\. Deviations\n\n- \*\*Deviation 1 \(2026-10-29, before the start; migration `0170`\): the start moves to 2026-10-29 08:00 UTC\.\*\*/);

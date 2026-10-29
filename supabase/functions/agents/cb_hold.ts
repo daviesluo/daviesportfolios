@@ -27,11 +27,15 @@
 // currency from the switch, as the base test's (its Deviation 4, `cbUsdSwitch` and `cbInUsd` from cb_quotes.ts): a third change,
 // made to both arms alike.
 //
+// Since 2026-10-29 (Deviation 4; Davies: "目前coinbase的测试策略全部直接改用coinbase自己的币价而不是revolutx的") the coin's dollar
+// value is Coinbase's own from the switch, with the de-peg guard (`cbLiveSwitch`, `cbCoinFair` from cb_quotes.ts, the base test's
+// Deviation 5): USDT's candles are read for ten minutes, as the study's weekend arm did; only the FX bar is held.
+//
 // Its call is its own (`agents?action=cbhold`, a row of `edge_calls`): a fault of this arm never touches the base test's call.
 
 import type { Db } from "./db.ts";
 import {
-  CB_BOOK, CB_FAIR_KIND, CB_LEASE_MS, CB_MAX_MINUTES, cbEventRow, cbInUsd, cbMinuteInputs, cbMinuteRow, cbPrint, cbStopExit, cbTripInPounds, cbTripRow, cbUsdSwitch,
+  CB_BOOK, CB_FAIR_KIND, CB_LEASE_MS, CB_MAX_MINUTES, CB_USDT_KIND, cbCoinFair, cbEventRow, cbInUsd, cbLiveSwitch, cbMinuteInputs, cbMinuteRow, cbPrint, cbStopExit, cbTripInPounds, cbTripRow, cbUsdSwitch,
   type CbQuoteReport, type CbQuoteState,
 } from "./cb_quotes.ts";
 import { CB_PRODUCTS, type CbProduct, type CbRecState } from "./cb_rec.ts";
@@ -123,6 +127,9 @@ export async function runCbHold(d: { db: Db; now: number; holder: string; rec: C
     const hours = { USDC: await series("agent_quote_inputs", CB_FAIR_KIND.USDC, first - DAY), USDT: await series("agent_quote_inputs", CB_FAIR_KIND.USDT, first - DAY) };
     // Deviation 3 (2026-10-29): $100 a rung from the switch, on the rates this run decides its first minute on.
     cbUsdSwitch(st, first, cbHoldBarAt(first, gbpBars)?.[1] ?? null, cbHoldBarAt(first, eurBars)?.[1] ?? null);
+    // Deviation 4 (2026-10-29): Coinbase's own coin value from the switch, the base call's stored USDT-USD minutes.
+    cbLiveSwitch(st, first);
+    const usdtBars = await series("cb_quote_inputs", CB_USDT_KIND, first - QUOTE_FX_LOOKBACK_MS);
     const trips: ReturnType<typeof cbTripRow>[] = [], events: ReturnType<typeof cbEventRow>[] = [], minutes: ReturnType<typeof cbMinuteRow>[] = [];
     for (const b of CB_PRODUCTS) {
       const pRows = await d.db.selectAll<{ trade_id: number; ts: string; price: number; size: number; side: string }>("cb_trades",
@@ -134,7 +141,8 @@ export async function runCbHold(d: { db: Db; now: number; holder: string; rec: C
         const mine: Print[] = [];
         while (j < prints.length && prints[j].ts < t + M) { mine.push(prints[j]); j++; }
         const bar = cbHoldBarAt(t, gbpBars), eb = cbHoldBarAt(t, eurBars), window = fairHours(t, hours[CB_BOOK[b].coin]);
-        const io = cbMinuteInputs(b, bar ? bar[1] : null, eb ? eb[1] : null, median(window), cbInUsd(st, t));
+        const coinU = cbCoinFair(st, t, CB_BOOK[b].coin, median(window), usdtBars).fairU;
+        const io = cbMinuteInputs(b, bar ? bar[1] : null, eb ? eb[1] : null, coinU, cbInUsd(st, t));
         // Deviation 2 (2026-10-15): the same release blackout as the base test's (cb_releases.ts): in the minutes around a scheduled release the fair is withheld.
         const inp: MinuteInputs = { ...io, fairU: cbInBlackout(t) ? null : io.fairU, prints: mine };
         const out = stepMinute(st.books[b], t, inp);

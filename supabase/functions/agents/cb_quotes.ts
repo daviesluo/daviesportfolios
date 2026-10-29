@@ -31,6 +31,14 @@
 //     `stepMinute`'s rung of 100 is $100 of the book's currency (`CB_RUNG_USD`) and its cap 10 % of the minute in dollars.
 //     Its fair (fairU / X) is the same number as before, and the driver's pounds (`cbTripInPounds`, which reads the X a trip
 //     closed at from the trip itself) are unchanged. The record before the switch stays as it ran; the page scales it.
+//   * Coinbase's own coin price (Deviation 5, 2026-10-29; Davies: "目前coinbase的测试策略全部直接改用coinbase自己的币价而不是revolutx的").
+//     From the switch (`liveFrom` in the state, `cbLiveSwitch`) the coin's dollar value is the CB/OKX fair-price study's
+//     `cb_live` (docs/agents/reviews/2026-10-29-cb-okx-fair-price-study.md, its prod.py and hist.py): USDC 1, USDT the close of
+//     Coinbase USDT-USD's latest one-minute candle that started in [t − 10 min, t − 1 min] (`fxBarAt`, as the study's `bar_at`),
+//     none (the USDT books dark) without one. This call stores those candles (`fetchCbUsdtUsd`, `cb_quote_inputs` kind
+//     `cb:USDT-USD`) and every Coinbase arm reads them. A de-peg guard against an outside reference, Revolut X's F3 (the median
+//     of its USD book's hourly closes, the value before the switch): a coin value more than 50 bps from it, or no reference,
+//     darkens the minute (`cbCoinFair`). Revolut X's own rows and `stepMinute` are untouched.
 // Fills therefore need a print strictly THROUGH a resting quote, as PR5's do. The driver runs one minute behind the
 // recorder's coverage, so a minute's prints are complete before it is decided.
 
@@ -39,7 +47,7 @@ import {
   fairHours, fetchFx, fxBarAt, median, newBookState, QUOTE_FEE, QUOTE_FX_LOOKBACK_MS, QUOTE_HALF_SPREAD, QUOTE_TICK, stepMinute,
   type BookState, type MinuteInputs, type Print, type QuoteBook, type QuoteEvent, type Trip,
 } from "./quotes.ts";
-import { CB_PRODUCTS, type CbProduct, type CbRecState } from "./cb_rec.ts";
+import { CB_API, CB_PRODUCTS, CB_TIMEOUT_MS, type CbProduct, type CbRecState } from "./cb_rec.ts";
 import { cbInBlackout } from "./cb_releases.ts";
 import { faultKey, reportDue } from "./pm_book_rec.ts";
 
@@ -86,6 +94,52 @@ export function cbUsdSwitch(st: CbQuoteState, first: number, gbp: number | null,
 }
 /** Whether minute `t` is decided in dollars: at or after the switch. */
 export const cbInUsd = (st: CbQuoteState, t: number) => st.usdFrom != null && t >= st.usdFrom;
+
+/** Deviation 5: no minute before 2026-10-29 08:00 UTC is priced on Coinbase's own coin value (earlier worlds keep their rule). */
+export const CB_LIVE_NOT_BEFORE = Date.UTC(2026, 9, 29, 8);
+/** Where this call stores Coinbase USDT-USD's one-minute closes (`cb_quote_inputs`), and where every Coinbase arm reads them. */
+export const CB_USDT_KIND = "cb:USDT-USD";
+/** The de-peg guard: the coin value may stand at most 50 bps from Revolut X's F3. */
+export const CB_DEPEG = 0.005;
+
+/** Deviation 5's switch, written once into the state at `first`, the run's first minute, if it is not before `CB_LIVE_NOT_BEFORE`. */
+export function cbLiveSwitch(st: CbQuoteState, first: number): void {
+  if (st.liveFrom == null && first >= CB_LIVE_NOT_BEFORE) st.liveFrom = first;
+}
+/** Whether minute `t` prices the coin at Coinbase's own value: at or after Deviation 5's switch. */
+export const cbIsLive = (st: CbQuoteState, t: number) => st.liveFrom != null && t >= st.liveFrom;
+
+/**
+ * The coin's dollar value a minute `t` is decided on. Before Deviation 5's switch, Revolut X's F3 (`f3`, the median of its USD
+ * book's hourly closes: the engine's value since the start). From it, the study's `cb_live`: USDC 1, USDT the latest Coinbase
+ * USDT-USD close of a candle that started in [t − 10 min, t − 1 min] (`usdt`, `fxBarAt`), null without one; and the de-peg
+ * guard: a value more than `CB_DEPEG` from `f3`, or no `f3` to check it against, is null (the minute is dark: no entry is
+ * placed, a resting exit stays and can fill, a due exit waits, the 24-hour stop runs).
+ */
+export function cbCoinFair(st: CbQuoteState, t: number, coin: "USDC" | "USDT", f3: number | null, usdt: Array<[number, number]>): { fairU: number | null; live: boolean; depeg: boolean } {
+  if (!cbIsLive(st, t)) return { fairU: f3, live: false, depeg: false };
+  const v = coin === "USDC" ? 1 : fxBarAt(t, usdt)?.[1] ?? null;
+  if (v == null) return { fairU: null, live: true, depeg: false };
+  const depeg = !f3 || Math.abs(v / f3 - 1) > CB_DEPEG;
+  return { fairU: depeg ? null : v, live: true, depeg };
+}
+
+/** Coinbase USDT-USD's one-minute candles (keyless, the newest 300), completed minutes only: [minute start ms, close]. */
+export async function fetchCbUsdtUsd(now: number, f: typeof fetch): Promise<Array<[number, number]>> {
+  const res = await f(`${CB_API}/products/USDT-USD/candles?granularity=60`, {
+    headers: { accept: "application/json", "user-agent": "daviesportfolios-cb-quotes/1.0 (public data only)" }, signal: AbortSignal.timeout(CB_TIMEOUT_MS),
+  });
+  if (!res.ok) throw new Error(`coinbase USDT-USD candles → ${res.status}`);
+  const j = await res.json();
+  if (!Array.isArray(j)) throw new Error("coinbase USDT-USD candles: not a list");
+  const out: Array<[number, number]> = [];
+  for (const c of j) {
+    if (!Array.isArray(c)) continue;
+    const start = Number(c[0]) * 1000, close = Number(c[4]);
+    if (Number.isFinite(start) && close > 0 && start % M === 0 && start + M <= now) out.push([start, close]);
+  }
+  return out.sort((a, b) => a[0] - b[0]);
+}
 /** The USD book PR5 reads each coin's fair from (its stored hourly closes, `agent_quote_inputs`). */
 export const CB_FAIR_KIND: Record<"USDC" | "USDT", string> = { USDC: "fair:USDC-USD", USDT: "fair:USDT-USD" };
 /** Minutes decided in one call at most (a call's 30 s), and where an empty record starts at the latest. */
@@ -211,6 +265,8 @@ export type CbQuoteState = {
   usdGbpusd?: number;
   usdEurusd?: number;
   usdFactor?: { GBP: number; EUR: number };
+  /** Deviation 5's switch (`cbLiveSwitch`): the first minute priced on Coinbase's own coin value. */
+  liveFrom?: number;
 };
 export type CbQuoteReport = {
   skipped?: string; minutes: number; from: number | null; to: number | null; prints: number; fills: number; exits: number; stops: number;
@@ -258,6 +314,15 @@ export async function runCbQuotes(d: CbQuoteDeps): Promise<CbQuoteReport> {
     const eurBars = await series("cb_quote_inputs", "fx:EURUSD", first - QUOTE_FX_LOOKBACK_MS);
     const hours = { USDC: await series("agent_quote_inputs", CB_FAIR_KIND.USDC, first - DAY), USDT: await series("agent_quote_inputs", CB_FAIR_KIND.USDT, first - DAY) };
     cbUsdSwitch(st, first, fxBarAt(first, gbpBars)?.[1] ?? null, fxBarAt(first, eurBars)?.[1] ?? null);
+    // Deviation 5: Coinbase's USDT-USD minutes, stored for every Coinbase arm, once this run can be priced on them.
+    if (horizon >= CB_LIVE_NOT_BEFORE) {
+      try {
+        const u = await fetchCbUsdtUsd(d.now, f);
+        if (u.length) await d.db.upsert("cb_quote_inputs", u.map(([t, v]) => ({ kind: CB_USDT_KIND, t: iso(t), value: v })), "kind,t");
+      } catch (e) { report.errors.push(`cbusdt: ${msg(e)}`); }
+    }
+    cbLiveSwitch(st, first);
+    const usdtBars = await series("cb_quote_inputs", CB_USDT_KIND, first - QUOTE_FX_LOOKBACK_MS);
     const trips: ReturnType<typeof cbTripRow>[] = [], events: ReturnType<typeof cbEventRow>[] = [], minutes: ReturnType<typeof cbMinuteRow>[] = [];
     for (const b of CB_PRODUCTS) {
       const pRows = await d.db.selectAll<{ trade_id: number; ts: string; price: number; size: number; side: string }>("cb_trades",
@@ -269,7 +334,8 @@ export async function runCbQuotes(d: CbQuoteDeps): Promise<CbQuoteReport> {
         const mine: Print[] = [];
         while (j < prints.length && prints[j].ts < t + M) { mine.push(prints[j]); j++; }
         const bar = fxBarAt(t, gbpBars), eb = fxBarAt(t, eurBars), window = fairHours(t, hours[CB_BOOK[b].coin]);
-        const io = cbMinuteInputs(b, bar ? bar[1] : null, eb ? eb[1] : null, median(window), cbInUsd(st, t));
+        const coinU = cbCoinFair(st, t, CB_BOOK[b].coin, median(window), usdtBars).fairU;
+        const io = cbMinuteInputs(b, bar ? bar[1] : null, eb ? eb[1] : null, coinU, cbInUsd(st, t));
         // Deviation 3 (2026-10-15): in the minutes around a scheduled release (cb_releases.ts) the fair is withheld, as in any dark minute.
         const inp: MinuteInputs = { ...io, fairU: cbInBlackout(t) ? null : io.fairU, prints: mine };
         const out = stepMinute(st.books[b], t, inp);

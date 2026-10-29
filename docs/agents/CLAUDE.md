@@ -366,6 +366,8 @@ that follow from that evidence, in short:
   from a keyless recorder, on paper, £100 a rung on a GBP book and €100 on a
   EUR book (its Deviation 1), **$100 a rung since its Deviation 4 of 2026-10-29** ("Coinbase策略中funded数字怎么那么奇怪，都改成整数调整";
   its weekend variant's Deviation 3 the same; FUNDED $2,400, the record before the switch × its book's factor on the page, `readCoinbaseUsd`), its own Coinbase card;
+  **every Coinbase arm prices the coin at Coinbase's own value since 2026-10-29** ("目前coinbase的测试策略全部直接改用coinbase自己的币价而不是revolutx的";
+  the CB/OKX study's `cb_live`, `cbCoinFair`: USDC 1, USDT Coinbase's stored USDT-USD minute, dark when more than 50 bps from Revolut X's F3);
   pre-registered in `reviews/2026-10-10-coinbase-paper-prereg.md`. Its weekend variant **"Stablecoin quotes with Euros - 2"**
   (`0118`, `agents/cb_hold.ts`, reference §4 item 60; Davies 2026-10-13) holds the interbank rates through a closure, up to 60
   hours, and changes nothing else; its own call, tables and window, pre-registered in
