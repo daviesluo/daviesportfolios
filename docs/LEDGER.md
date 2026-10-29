@@ -792,6 +792,16 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth).
 
+### [2026-10-29 19:16 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **HOLDMIN verdict: variant-4's £1 holding line is basically certain positive** (sub-agent; commit, not pushed; Davies, 10-29:
+  "那你研究下variant-4的结果，如果基本可以肯定效果正面的话，加入实盘live的规则里…"; step 1 of 3). `reviews/2026-10-29-holdmin-verdict.md`,
+  `backtests/compare/revx/scripts/holdmin_live.py`. LIVE's own days replayed with it: USDT-GBP +0.62 bps/day before the haircut
+  (P 0.002), +9.96 after (17 days ahead, 0 behind); USDC-GBP +0.14 (P 0.10, never behind). Long replays: USDT-GBP +5.3 / +3.0 / +1.9
+  %/yr since 09-01, +2.0 / +1.1 / +0.8 out of sample (P 0.000 each); USDC-GBP +0.1 to +0.2. LIVE: 149 of 277 USDT-GBP entry fills
+  since 10-01 under £1, 7.5 dust trips a day. No mechanism downside found (one extra stop in 55 days at £2,400 USDT-GBP; carried
+  coin under £1 a rung). The twin is 21 hours old: no evidence either way. Step 2 (LIVE + every twin, variant-4 retired) waits for
+  the main session.
+
 ### [2026-10-29 18:43 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **STRATEGY-COMPARE Revolut X: the £1 holding line and the ranked view** (sub-agent; commit, not pushed; the main session's ask).
   Each rule set also run with variant-4's `holdMin {gbp: 1}` (LIVE does not run it): since 09-01 LIVE + holdMin gains +5.3 / +3.0

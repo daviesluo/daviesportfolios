@@ -1,0 +1,86 @@
+{
+ "USDC-GBP": {
+  "as_live": {
+   "bps_day_after_haircut": 3.185,
+   "bps_day_raw": 3.983,
+   "dust_trips": 3,
+   "dust_trips_day": 0.11,
+   "mean_hold_min": 116.7,
+   "stops": 1,
+   "trips": 125
+  },
+  "diff_after_haircut": {
+   "bps_day": 0.141,
+   "days_ahead": 2,
+   "days_behind": 0,
+   "p10": 0.0,
+   "p90": 0.26,
+   "p_le0": 0.1046
+  },
+  "diff_raw": {
+   "bps_day": 0.049,
+   "days_ahead": 2,
+   "days_behind": 0,
+   "p10": 0.0,
+   "p90": 0.1,
+   "p_le0": 0.1046
+  },
+  "hold1": {
+   "bps_day_after_haircut": 3.326,
+   "bps_day_raw": 4.031,
+   "dust_trips": 0,
+   "dust_trips_day": 0.0,
+   "mean_hold_min": 117.0,
+   "stops": 1,
+   "trips": 124
+  }
+ },
+ "USDT-GBP": {
+  "as_live": {
+   "bps_day_after_haircut": -4.306,
+   "bps_day_raw": 6.327,
+   "dust_trips": 138,
+   "dust_trips_day": 5.05,
+   "mean_hold_min": 81.5,
+   "stops": 2,
+   "trips": 284
+  },
+  "diff_after_haircut": {
+   "bps_day": 9.963,
+   "days_ahead": 17,
+   "days_behind": 0,
+   "p10": 6.31,
+   "p90": 13.76,
+   "p_le0": 0.0
+  },
+  "diff_raw": {
+   "bps_day": 0.616,
+   "days_ahead": 11,
+   "days_behind": 6,
+   "p10": 0.28,
+   "p90": 0.98,
+   "p_le0": 0.0017
+  },
+  "hold1": {
+   "bps_day_after_haircut": 5.656,
+   "bps_day_raw": 6.943,
+   "dust_trips": 1,
+   "dust_trips_day": 0.04,
+   "mean_hold_min": 115.6,
+   "stops": 2,
+   "trips": 169
+  }
+ },
+ "days": [
+  "2026-10-01",
+  "2026-10-28"
+ ],
+ "haircut": {
+  "e": 0.825,
+  "e_pooled_raw": 0.825,
+  "penny_gbp_per_dust_trip": -0.0242,
+  "replay_dust_gbp_trip": 0.00014,
+  "twin_dust_gbp_trip": -0.0241
+ },
+ "n_days": 28
+}
