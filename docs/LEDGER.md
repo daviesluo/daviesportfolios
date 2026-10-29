@@ -803,6 +803,12 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   from the server, `agents?action=grokpmjournal&before=&skip=&limit=` (≤ 50, `readGrokPmJournal`, ties at one instant by `skip`
   ids): production holds 1,237 decisions (2.1 MB), too many for the minute's payload. Fixture: 6 older no-action entries (14).
 
+### [2026-10-29 20:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **USDT-ONLY study** (sub-agent; commit, not pushed; Davies, 10-29: "…研究下Revolut X的USDT-GBP近期是不是也完全超过USDC…把live全换成只做
+  USDT-GBP的…"). `reviews/2026-10-29-usdt-only.md`, `compare/revx/scripts/usdt_only.py`: USDT-GBP alone beats LIVE's two books at
+  £600 since 09-01 by +7.1 % a year (P 0.014), every month since May; P 0.019 at £1,200, 0.051 at £2,400; last 30 days alone not
+  significant (P 0.17). Book for book USDT-GBP leads USDC-GBP by +21 % a year (P 0.0004). Phase B (the switch) follows.
+
 ### [2026-10-29 20:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Coinbase client signs Ed25519 too** (sub-agent; commit, not pushed; the main session's ask: Davies' CDP key is Ed25519, not a
   PEM). `_shared/coinbase.ts`: `cbKeyKind` ("pem-ec" ES256 | "ed25519" EdDSA | "unknown", refused), `importCbSigner` (base64 of a
