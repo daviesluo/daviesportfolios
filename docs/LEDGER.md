@@ -794,7 +794,7 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 01:24 UTC section (archived
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
-and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second).
+and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third).
 
 ### [2026-10-29 20:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Coinbase client signs Ed25519 too** (sub-agent; commit, not pushed; the main session's ask: Davies' CDP key is Ed25519, not a
@@ -908,39 +908,3 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   19:00; `live600` beside, no bar. Expectation (`backtests/revx_lag/scripts/power.py`): +1.20 bps/day OOS (+0.27 Sep–Oct); 94 % of
   28-day windows pass (86 % ending Sep–Oct); caveats named (fade, LIVE's fills in the tape, F3's contrary replay, `exitTicksOnBook`
   not in the replay). Deno pin of the offset composing with `exitTicksOnBook`; fixture regenerated; map, guide, reference, CLAUDE.md.
-
-### [2026-10-29 10:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **REVX-LAG: can LIVE's rules use Revolut X's lag against the fair?** (sub-agent; commit, not pushed; Davies, 10-29: "这个有办法解决吗？有的话仔细研究").
-  `reviews/2026-10-29-revx-lag-study.md`, `backtests/revx_lag/`; PR5-OPT's engine unchanged, every print since the listings, inputs as of
-  t + 60 s, bar written first. The book's next prints are forecastable (OOS R² 0.42 / 0.26, mostly Coinbase's premium) but every lean
-  on it loses £60–330/yr OOS on live600, live1200, take50 and variant-5; variant-7's nudge over the history −£5 OOS; taking the lag
-  −20 to −42 bps a trade on recorded books. Only exits one tick beyond fair pass every row (live600 +£26/yr OOS [+16, +37], all fill
-  assumptions; ~0 in Sep–Oct; the 10-09 F3 replay disagreed). Recommended: an `exitOffset` 1-tick twin of LIVE's rules; LIVE unchanged.
-
-### [2026-10-29 09:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Coinbase USDT books dark 08:00–~09:50: `cb_quote_inputs` refused `cb:USDT-USD`** (main session, found in the post-deploy
-  error read). 0112's kind check admitted only `fx:EURUSD`, so the `cb_live` switch's USDT-USD minutes were refused 13 times from
-  08:02 and the base and weekend arms' USDT books had no coin value (dark: no entries; nothing wrong traded). `0174` widens the
-  check; `src/cb_quote_inputs_kinds.test.js` replays the migrations' kind checks against the code's kinds. **After the push:**
-  `select count(*) from cb_quote_inputs where kind = 'cb:USDT-USD'` growing; no more `agents.cb_rec` "cbusdt" errors.
-
-### [2026-10-29 09:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **FX-SPEED-RX: the long fast-X backtest on Revolut X: no row passes, nothing changed** (sub-agent; commit, not pushed; Davies, 10-29:
-  "同样的长期回测在revolut x的live和几个有代表性的testing策略也测一遍…没有的话解释下为什么"). Review §9, `backtests/fx_speed/` (`revx_long.py`, `why.py`).
-  PR5-OPT's engine unchanged on Revolut X's every print, 2025-11-26 → 10-29; X read at the decision (t + 85 s, 1 s of age) vs Yahoo's
-  timing; bar written first. OOS £/yr: live600 −2.0 [−13.2, +9.3] P 0.61; live1200 −4.6; take50 (maker side) −1.8; n600usdt3 +4.0
-  P 0.33; u300nudge 15 days, no evidence; the go-live bound earns nothing too. Why: X error median 0.67 bps on both venues, but
-  Revolut X's GBP books carry 2 % of a rate move in a minute (Coinbase ~20 %) on 79/587 prints a day, so stale quotes are not picked off.
-
-### [2026-10-29 09:22 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Every Coinbase arm on the rate at second resolution** (sub-agent; commit, not pushed; Davies, 10-29: "…如果还是正向优化的话把所有coinbase
-  策略的汇率数据源从yahoo换为刚才研究的最佳秒级数据源+fallbacks"; §8 passed). `agents/cb_fx.ts`, called by `cb_quotes.ts`, `cb_hold.ts` and
-  `cb_usdc.ts` (so "- 2" too); migration `0173` (`fx_src` on the four minute records).
-  - **Rule:** from `fxFrom` (first minute ≥ 2026-10-29 10:00 UTC) X = the newest `fx_ticks` read ARRIVED by t + 58 s, TrueFX's or
-    Kraken's marked one when newer (unmarked never), raw mid, used while ≤ 120 s old (`FX_STALE_MS`); else Yahoo's `fxBarAt`; else
-    dark (base) / the held bar's minutes holding the last fast read when no older than that bar (held arms). Lit minutes outside a
-    fresh read are exactly today's. `fx_src` per minute, `fxCount` per state; no backfill.
-  - **Pins:** `cb_fx.test.ts` (cap t + 58 / t + 59 s, order and marking, 120 s, Yahoo when empty, held closure, the 10-29 world
-    through the base driver, a Friday close through all four arms with lit minutes equal to a no-`fx_ticks` run);
-    `src/cb_fx_prereg.test.js` (deviations, constants, drivers, quotes.ts `0782ed81…`, only the three drivers import cb_fx.ts).
-  - Prereg deviations: base 7, weekend 6, USDC 5, nudge 4; usdc and nudge hash chains moved; cbwk MANIFEST rebuilt.
