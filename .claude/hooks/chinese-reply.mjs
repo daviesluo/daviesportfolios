@@ -61,6 +61,8 @@ export function verdict(input, lines) {
 if (import.meta.url === `file://${process.argv[1]}`) {
   let input = {};
   try { input = JSON.parse(readFileSync(0, "utf8") || "{}"); } catch { /* no input: nothing to judge */ }
+  // A sub-agent's own notes are not read by Davies (they come back as a hand-back the main thread retells in Chinese).
+  if (input.agent_id) process.exit(0);
   let lines = [];
   try { lines = readFileSync(input.transcript_path ?? "", "utf8").split("\n"); } catch { process.exit(0); }
   const reason = verdict(input, lines);

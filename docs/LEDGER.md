@@ -775,6 +775,10 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth).
 
+### [2026-10-29 03:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The Chinese hooks skip sub-agents** (`input.agent_id`): Davies reads only the main thread; the pre-tool gate had been
+  refusing sub-agents' English working notes, so one wrote its hand-back in Chinese to get past it.
+
 ### [2026-10-29 03:24 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Venue colours: Coinbase's blue lighter, the share bar in the theme colours** (sub-agent; commit, not pushed; Davies, 10-29: "Coinbase蓝现在有点太深了
   ... 用VENUES下面那个占比栏里面的蓝色吧，另外请统一那个占比栏中的颜色和币所主题色"). The 35 % slice he pointed at composites to `#0e2f6a`

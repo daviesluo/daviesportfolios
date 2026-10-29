@@ -1,5 +1,6 @@
 // The Stop hook that keeps replies to Davies in Chinese (.claude/hooks/chinese-reply.mjs; Davies, 2026-10-29:
 // "你可以给你发出的消息加gate吗").
+import fs from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { isEnglish, turnTexts, verdict } from '../.claude/hooks/chinese-reply.mjs';
 
@@ -67,5 +68,14 @@ describe('chinese-pretool hook refuses a note once', async () => {
     const first = onceOnly(decide(lines), lines, new Set());
     expect(first.out?.hookSpecificOutput.permissionDecision).toBe('deny');
     expect(onceOnly(decide(lines), lines, new Set([first.key])).out).toBeNull();
+  });
+});
+
+describe('the Chinese hooks leave sub-agents alone', () => {
+  it('skips a sub-agent call: Davies reads only the main thread', () => {
+    for (const f of ['chinese-pretool.mjs', 'chinese-reply.mjs', 'chinese-remind.mjs']) {
+      const src = fs.readFileSync(new URL(`../.claude/hooks/${f}`, import.meta.url), 'utf8');
+      expect(src, f).toMatch(/if \(input\.agent_id\) process\.exit\(0\);/);
+    }
   });
 });

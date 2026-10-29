@@ -17,6 +17,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   try {
     const input = JSON.parse(readFileSync(0, "utf8") || "{}");
     if (typeof input.hook_event_name === "string") event = input.hook_event_name;
+    // A sub-agent works in English for the repository; Davies reads only the main thread.
+    if (input.agent_id) process.exit(0);
   } catch { /* no input: the default event */ }
   process.stdout.write(JSON.stringify(remind(event)));
 }
