@@ -790,7 +790,7 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 01:24 UTC section (archived
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
-and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth).
+and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first).
 
 ### [2026-10-29 19:16 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **HOLDMIN verdict: variant-4's £1 holding line is basically certain positive** (sub-agent; commit, not pushed; Davies, 10-29:
@@ -908,25 +908,3 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   (Dukascopy reset the connection twice). Yahoo's bar is the price of mid-minute (best match t + 28 s); EURUSD=X +2.82 bps over Exness.
   Engines unchanged, X read 2 s before go-live: Revolut X −£6/yr on £600 [−£29, +£15]; Coinbase "with Euros" +£66/yr on £2,400 [+£10,
   +£149], "- 1" +£44 [−£56, +£162]; OKX too short. The CB/OKX "+£38 look-ahead" is the price at go-live: reachable, but a rule change.
-
-### [2026-10-29 07:58 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Second-level GBP/USD and EUR/USD recorded beside Yahoo** (sub-agent; commit, not pushed; Davies, 10-29: "并行记录秒级汇率
-  并研究下最佳数据源并且要有fallback"). `0172`, `agents/fx_rec.ts` (`agents?action=fxrec`), `reviews/2026-10-29-fx-second-sources.md`,
-  `backtests/fx_second/`. TrueFX's keyless snapshot every second (primary), Kraken's GBPUSD/EURUSD ticker every 5 s and every
-  2 s as the marked fallback; one call a minute answering at once, reads to 58 s under `waitUntil`; 160 ms CPU a minute;
-  ≤ 5 MB a weekday, 42 days. No strategy reads it; nothing to do for Davies. Yahoo's EURUSD=X moves in 1.1 bps steps.
-
-### [2026-10-29 07:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Every Coinbase arm on Coinbase's own coin price** (sub-agent; commit, not pushed; Davies, 10-29: "目前coinbase的测试策略全部直接改用coinbase
-  自己的币价而不是revolutx的"; base Dev 5, weekend Dev 4, USDC Dev 3, nudge Dev 2 after 0170's Dev 1).
-  - **The rule.** The CB/OKX study's `cb_live` (`cbCoinFair`): USDC 1, USDT Coinbase USDT-USD's last minute (stored by the base call,
-    `cb_quote_inputs` `cb:USDT-USD`, ten minutes then dark), and a 50 bps de-peg guard against Revolut X's F3.
-  - **The switch.** `liveFrom`, each arm's first minute ≥ 10-29 08:00 UTC; no backfill.
-  - **Unchanged.** quotes.ts. The guard never fires on the study's 10-10 → 10-29 inputs.
-
-### [2026-10-29 07:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Variant-7 (and its control) and Coinbase "with Euros - 3" start today at 08:00 UTC** (main session; Davies, 10-29 ~07:20:
-  "你新做好的两个测试策略现在就上线"). `0170`: the twins' `start` and every rule's `from` 10-30 00:00 → 10-29 08:00 (guarded, as `0154`;
-  their state tables were empty), and `cb_nudge_state`'s `startedAt`/`lastMinute` to 08:00/07:59 (guarded on the old start; opened
-  at 07:22 with flat books). Windows now 10-29 08:00 → 11-26 08:00. Each prereg's §7 Deviation 1; fixture regenerated; pins moved.
-  **After the push:** read `cb_nudge_state` startedAt = 08:00 and minutes from 08:00, and both twins' state tables filling.

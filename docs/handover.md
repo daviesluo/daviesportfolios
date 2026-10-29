@@ -47440,3 +47440,27 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
     `okx_basis.test.ts`). The page lists it right after USDG/EUR (`okxRowsWithBasis`; `QUOTES_OKX_NAMES.okxusdgb`). `dist/` rebuilt.
   - **Check after landing**: `select startedAt, lastMinute from okx_basis_state`, `agents?action=okxbasis` beating, no
     `agents.okx_basis` in `ops_errors`; the reading on or after startedAt + 29 days 00:30 UTC.
+
+## LEDGER.md, archived 2026-10-29 (twenty-first) — the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 UTC history sections, oldest first
+
+### [2026-10-29 07:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Variant-7 (and its control) and Coinbase "with Euros - 3" start today at 08:00 UTC** (main session; Davies, 10-29 ~07:20:
+  "你新做好的两个测试策略现在就上线"). `0170`: the twins' `start` and every rule's `from` 10-30 00:00 → 10-29 08:00 (guarded, as `0154`;
+  their state tables were empty), and `cb_nudge_state`'s `startedAt`/`lastMinute` to 08:00/07:59 (guarded on the old start; opened
+  at 07:22 with flat books). Windows now 10-29 08:00 → 11-26 08:00. Each prereg's §7 Deviation 1; fixture regenerated; pins moved.
+  **After the push:** read `cb_nudge_state` startedAt = 08:00 and minutes from 08:00, and both twins' state tables filling.
+
+### [2026-10-29 07:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Every Coinbase arm on Coinbase's own coin price** (sub-agent; commit, not pushed; Davies, 10-29: "目前coinbase的测试策略全部直接改用coinbase
+  自己的币价而不是revolutx的"; base Dev 5, weekend Dev 4, USDC Dev 3, nudge Dev 2 after 0170's Dev 1).
+  - **The rule.** The CB/OKX study's `cb_live` (`cbCoinFair`): USDC 1, USDT Coinbase USDT-USD's last minute (stored by the base call,
+    `cb_quote_inputs` `cb:USDT-USD`, ten minutes then dark), and a 50 bps de-peg guard against Revolut X's F3.
+  - **The switch.** `liveFrom`, each arm's first minute ≥ 10-29 08:00 UTC; no backfill.
+  - **Unchanged.** quotes.ts. The guard never fires on the study's 10-10 → 10-29 inputs.
+
+### [2026-10-29 07:58 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Second-level GBP/USD and EUR/USD recorded beside Yahoo** (sub-agent; commit, not pushed; Davies, 10-29: "并行记录秒级汇率
+  并研究下最佳数据源并且要有fallback"). `0172`, `agents/fx_rec.ts` (`agents?action=fxrec`), `reviews/2026-10-29-fx-second-sources.md`,
+  `backtests/fx_second/`. TrueFX's keyless snapshot every second (primary), Kraken's GBPUSD/EURUSD ticker every 5 s and every
+  2 s as the marked fallback; one call a minute answering at once, reads to 58 s under `waitUntil`; 160 ms CPU a minute;
+  ≤ 5 MB a weekday, 42 days. No strategy reads it; nothing to do for Davies. Yahoo's EURUSD=X moves in 1.1 bps steps.
