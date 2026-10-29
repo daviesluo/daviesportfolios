@@ -47391,3 +47391,52 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
       (every minute).
     - It starts at the first 00:00 UTC after its first run. Its reading is 28 days against "- 2"'s USDC-GBP book: a 3-day block
       bootstrap, P(mean ≤ 0) < 0.10.
+
+## LEDGER.md, archived 2026-10-29 (twentieth) — the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 UTC history sections, oldest first
+
+### [2026-10-29 06:56 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The fair price of the Coinbase and OKX quote rows, studied** (sub-agent; commit, not pushed; Davies, 10-29: "…你仔细深度研究下这个价格的计算还有没有
+  优化和改进的空间…不同币所和币也可以结论不同"). `reviews/2026-10-29-cb-okx-fair-price-study.md`, `backtests/fair_price_cb_okx/`; not blind,
+  no reading run or pre-empted, nothing in production or any frozen file changed.
+  - **Coinbase's fair sat 2–9 bps under the book** (weekday median USDC-GBP +2.2, USDT-GBP +5.6, USDC-EUR +5.9, USDT-EUR +8.9 bps):
+    it prices the coin at Revolut X's USD-book F3, which ran 2–5 bps under Coinbase's own (6 bps from 10-20). So the USDT books
+    filled asks only (136 of 137) and stopped; that, not the market, is their loss. Replay reproduces the engine exactly.
+  - **Candidates** (history IS 2025-11-21 → 05-15, OOS → 10-09, then production): Coinbase's own coin price (`cb_live`) OOS +£6/yr on
+    £2,400 [−15, +28], stops 60 → 7, worst day halved: proposed for the next Coinbase arm or a paper twin, not the running rows.
+    Venue-only fairs, sibling-implied FX, inventory skew, weekend drift: no. FX timing bound: −£11 (a minute staler) to +£38 (look-ahead).
+  - **OKX**: USDG/EUR trades +4.4 bps over par; a half-weight 24 h basis adds +£0.070/day per £300 book in OKX history OOS
+    [+0.039, +0.102]: proposed as a paper twin. EURC/USDC: keep par. OKX's own record (from 10-28 22:00) supports no verdict.
+
+### [2026-10-29 07:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **"Stablecoin quotes variant-7" built** (sub-agent; commit, not pushed; Davies, 10-29: "…这个开testing variant-7，在目前实盘的基础上做300美元funded").
+  `0169`: `u300nudge` (USDC-GBP alone, LIVE's rules, $300 = £225.33 at 1.3314, rungs £37.55, REVX-FAIR's Coinbase nudge,
+  `agents/quotes_nudge.ts`) and its hidden control `u300ctl`, from **2026-10-30 00:00 UTC**; each minute in `agent_quote_twin_nudge`.
+  Prereg `reviews/2026-10-29-revx-usdc-nudge-twin-prereg.md`: 28 days, read from 11-28 against the control, bar mean > 0
+  and P(≤0) < 0.10. The driver change is the eight running twin preregs' deviation, recorded apart
+  (`reviews/2026-10-29-variant7-frozen-files-deviation.md`); their pins read it. **After deploy:** both rows turn nothing
+  before 10-30 00:01; then the record grows a row a minute.
+  The 2026-10-29 02:30 to 03:12 sections archived (sixteenth) on landing.
+
+### [2026-10-29 07:26 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The fair-price study's addendum: USDG/EUR's basis fair on OKX's own engine, and Coinbase's coin price by book** (sub-agent;
+  commit, not pushed; Davies, 10-29: "…你先按okx的研究下，还成立的话再上线", "…那usdc呢？"). `reviews/2026-10-29-cb-okx-fair-price-study.md`
+  Addendum, `backtests/fair_price_cb_okx/` (OKX's keyless daily trade archive, 55,837 USDG-EUR prints 02-22 → 10-29).
+  - `stepOkxMinute` unchanged, par against fair = par × (1 + ½ × the 24 h trailing median basis): 07-01 → 10-29 +€0.168 a day
+    [+0.099, +0.234], P(≤ 0) 0.000, +26 % on par (PR5's simulator had +13 %); 02-23 → 07-01 flat on almost no trading. It holds.
+  - Coinbase `cb_live` by book, out of sample: USDT-GBP +£10/yr (weekend arm +£18, P(≤ 0) 0.02), USDC-GBP +£0.3, USDC-EUR −£2,
+    USDT-EUR −£3; stops fall on every book. So the coin-price change belongs on the GBP books.
+
+### [2026-10-29 07:31 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **"Stablecoin quotes USDG/EUR - 1" built, paper, on OKX** (sub-agent; commit, not pushed; Davies, 10-29: "okx usdg/eur可以按你说的做一个 -1",
+  then "…你先按okx的研究下，还成立的话再上线": it held, the study's Addendum A1). Migration `0171` (after main's 0170; the FX recorder takes 0172
+  after it, so they land in order), `agents/okx_basis.ts`, `agents?action=okxbasis` (an `edge_calls` row, its beat first,
+  `retry` true), `okx_basis_*` tables, prune `okx-basis-prune` 10:56.
+  - **The rule**: `stepOkxMinute` unchanged on USDG-EUR, fair par × (1 + ½ b), b the median of (each printed minute's last print ÷
+    par − 1) over [t − 24 h, t − 1 min], 0 with fewer than five minutes; $100 a rung as the USDG/EUR row's euros; its own loss stop
+    on its $600. Starts flat at the first 00:00 UTC after its first run.
+  - **Its reading** (`reviews/2026-10-29-okx-usdg-basis-prereg.md`, frozen, pinned by `src/okx_basis_prereg.test.js`): 28 days
+    against the USDG/EUR row's USDG-EUR trips, day bootstrap P(mean daily difference ≤ 0) < 0.10; expectation +€0.168 a day.
+  - **The OKX twins are untouched**: their frozen files' sha256 pinned again; a run writes nothing to `okx_quote_*` (pinned in
+    `okx_basis.test.ts`). The page lists it right after USDG/EUR (`okxRowsWithBasis`; `QUOTES_OKX_NAMES.okxusdgb`). `dist/` rebuilt.
+  - **Check after landing**: `select startedAt, lastMinute from okx_basis_state`, `agents?action=okxbasis` beating, no
+    `agents.okx_basis` in `ops_errors`; the reading on or after startedAt + 29 days 00:30 UTC.
