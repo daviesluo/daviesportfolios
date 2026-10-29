@@ -47464,3 +47464,32 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   `backtests/fx_second/`. TrueFX's keyless snapshot every second (primary), Kraken's GBPUSD/EURUSD ticker every 5 s and every
   2 s as the marked fallback; one call a minute answering at once, reads to 58 s under `waitUntil`; 160 ms CPU a minute;
   ≤ 5 MB a weekday, 42 days. No strategy reads it; nothing to do for Davies. Yahoo's EURUSD=X moves in 1.1 bps steps.
+
+## LEDGER.md, archived 2026-10-29 (twenty-second) — the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 UTC history sections, oldest first
+
+### [2026-10-29 08:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **FX-SPEED: what a faster X than Yahoo's bar would have earned** (sub-agent; commit, not pushed; Davies, 10-29: "…用历史数据仔细审读回测下目前我们用的
+  yahoo来判断对我们的策略回报能提升多少"). `reviews/2026-10-29-fx-second-sources.md` §7, `backtests/fx_speed/`. Exness's keyless tick archives
+  (Dukascopy reset the connection twice). Yahoo's bar is the price of mid-minute (best match t + 28 s); EURUSD=X +2.82 bps over Exness.
+  Engines unchanged, X read 2 s before go-live: Revolut X −£6/yr on £600 [−£29, +£15]; Coinbase "with Euros" +£66/yr on £2,400 [+£10,
+  +£149], "- 1" +£44 [−£56, +£162]; OKX too short. The CB/OKX "+£38 look-ahead" is the price at go-live: reachable, but a rule change.
+
+### [2026-10-29 08:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Coinbase rows renamed, the base test off the page** (sub-agent; commit, not pushed; Davies, 10-29: "coinbase quotes with euros删了吧，因为加周末
+  表现更好应该已经很明显了吧，然后把-1改成coinbase quotes with euros，-2和-3都减小一个数字").
+  - **Names** (display only, `cb_page.ts`; frozen files keep theirs): `coinbasehold` "with Euros", `coinbaseusdc` "- 1",
+    `coinbasenudge` "- 2".
+  - **The base test** (cb_quotes.ts) is no longer read by the dashboard (no row, card or sum). It decides on in `cbrec` as the
+    weekend reading's control; item 12b has the switch-off after 11-10.
+  - **The sweep** serves the weekend fixture under the new name and checks one Coinbase row.
+  - **Prereg notes:** base Dev 6, weekend Dev 5, USDC Dev 4, nudge Dev 3.
+
+### [2026-10-29 09:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **FX-SPEED-LONG: a fast X passes on every Coinbase arm over two years** (sub-agent; commit, not pushed; Davies, 10-29: "coinbase的所有策略用
+  更多秒级数据更长时间再深度回测验证下…"). `reviews/2026-10-29-fx-second-sources.md` §8, `backtests/fx_speed/` (`cb_long*.py`, `exness_long.py`).
+  52 Exness monthly archives (2024-09 → 2026-10), PR5's frozen simulator, each arm as it runs from 10-29 ($ rungs, `cb_live`, releases).
+  Rule (b) = the `fx_ticks` read received by t + 58 s, 1 s of source age (L3), against Yahoo's bar t − 1 rebuilt (t − 32 s, its level).
+  Out of sample 2025-11-21 → 10-08, £/yr: base +25.5 [+12.9, +40.3], "- 1" +31.3 [+17.9, +46.8], "- 2" +5.9 [+2.2, +10.1],
+  "- 3" (= "- 2"'s USDC-GBP; the nudge is closures-only) +3.2 [+0.3, +6.4]; all P(≤ 0) < 0.04, 23 of 25 months positive (20 on "- 3"),
+  in sample +70.5/+77.9/+19.5/+7.3. Level (Yahoo's or TrueFX's) a tie. 19 production days agree in sign only. Engines unchanged: the
+  switch is a separate build (a deviation per arm).
