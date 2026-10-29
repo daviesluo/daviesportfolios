@@ -16,7 +16,7 @@ import { SurfaceBoundary } from '../app/surface_boundary.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, cbLiveRow, FXW_ROW_ID, fmtFx, fxwAudRow, fxwTiles, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokTestRow, grokTestOf, grokTestTiles, grokTestLayerCells, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmDaysAnnualPct, GROKPM_DAYS_ANNUAL_TITLE, GROKPM_JOURNAL_STEP, fetchGrokPmJournal, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtFeeIn4, fmtGbp, fmtGbp4, fmtIn, fmtIn4, quotesDetailInCcy, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_NUDGE_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesPageFor, quotesOkxName, quotesOkxOf, quotesOkxRow, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quoteDaysRecent, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwShareText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows,
+  AGENT_TABS, cbLiveRow, FXW_ROW_ID, fmtFx, fxwAudRow, fxwTiles, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokTestRow, grokTestOf, grokTestTiles, grokTestLayerCells, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmDaysAnnualPct, GROKPM_DAYS_ANNUAL_TITLE, GROKPM_JOURNAL_STEP, fetchGrokPmJournal, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtFeeIn4, fmtGbp, fmtGbp4, fmtIn, fmtIn4, quotesDetailInCcy, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_NUDGE_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesPageFor, quotesShowBook, quotesOkxName, quotesOkxOf, quotesOkxRow, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quoteDaysRecent, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwShareText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -536,32 +536,34 @@ function Qty({ qty, book, m }) {
  * the venue, buy or sell and nothing more, its price and size, and its state, with its reason on a line of its own under
  * its row — a sentence, which in a column of its own wrapped five deep and ran out of the table. A 24-hour stop says so
  * under its time, as its round trip does.
- * @param {{ title: string, cls: string, orders: any[], m: (s: string) => string, empty: string | null }} props
+ * Its Book column only while the page shows it (`quotesShowBook`: a strategy of one book drops it, Davies 2026-10-29).
+ * @param {{ title: string, cls: string, orders: any[], m: (s: string) => string, empty: string | null, showBook?: boolean }} props
  */
-function LiveOrdersTable({ title, cls, orders, m, empty }) {
+function LiveOrdersTable({ title, cls, orders, m, empty, showBook = true }) {
+  const cols = showBook ? 7 : 6;
   return (
     <section className={`ag-section ${cls} ag-ql-tables`}>
       <div className="ag-section-title mono">{title}</div>
       <div className="hl-scroll">
         <table className="hl-table ag-table ag-log mono">
           <thead><tr>
-            <th className="hl-th">Sent ({UK_TZ})</th><th className="hl-th">Book</th><th className="hl-th ag-ph">Rung</th><th className="hl-th">Side</th>
+            <th className="hl-th">Sent ({UK_TZ})</th>{showBook && <th className="hl-th">Book</th>}<th className="hl-th ag-ph">Rung</th><th className="hl-th">Side</th>
             <th className="hl-th">Price</th><th className="hl-th">Size</th><th className="hl-th">State</th>
           </tr></thead>
           <tbody>
-            {orders.length === 0 && <tr><td className="hl-empty dim" colSpan={7}>{empty ?? 'No order yet.'}</td></tr>}
+            {orders.length === 0 && <tr><td className="hl-empty dim" colSpan={cols}>{empty ?? 'No order yet.'}</td></tr>}
             {orders.map((o) => (
               <React.Fragment key={o.id}>
                 <tr className={`txn-row txn-row-${o.venueSide ?? 'buy'}${o.reason ? ' ag-ql-has-sub' : ''}`}>
                   <td className="dim"><Stamp iso={o.ts} />{o.leg === 'stop' ? <>{' '}<span className="hl-sub dim">24-hour stop</span></> : null}</td>
-                  <td className="hl-strong"><BookName book={o.book} /></td>
+                  {showBook && <td className="hl-strong"><BookName book={o.book} /></td>}
                   <td className="ag-ph dim">{`${o.side} ${quoteRungLabel(o.k)}`}</td>
                   <td><RungSide side={o.venueSide}>{o.venueSide ?? '—'}</RungSide></td>
                   <td>{m(fmtQuotePrice(o.price, o.book))}</td>
                   <td><Qty qty={o.base} book={o.book} m={m} /></td>
                   <td><span className={`ag-state-pill ag-state-${o.state}`}>{orderStateText(o.state)}</span></td>
                 </tr>
-                {o.reason && <tr className="ag-ql-sub-row"><td colSpan={7}><span className="ag-ql-sub">{m(o.reason)}</span></td></tr>}
+                {o.reason && <tr className="ag-ql-sub-row"><td colSpan={cols}><span className="ag-ql-sub">{m(o.reason)}</span></td></tr>}
               </React.Fragment>
             ))}
           </tbody>
@@ -606,6 +608,8 @@ export function QuotesLiveDetail({ q, m, at, nowMs, twin = false, coinbase: cbOn
   const trips = d?.trips ?? [], orders = d?.orders ?? [];
   const exitOrders = orders.filter((/** @type {any} */ o) => o.leg === 'exit' || o.leg === 'stop');
   const entryOrders = orders.filter((/** @type {any} */ o) => o.leg === 'entry');
+  // One book going forward, and every row shown of it: no Book column in its tables (Davies, 2026-10-29; `quotesShowBook`).
+  const showBook = quotesShowBook(qc, [...trips, ...exitOrders, ...entryOrders]);
   const empty = d ? null : 'Not in this answer: the next refresh brings it.';
   return (
     <div className={`ag-detail ${cbLive ? 'ag-quotes-cblive-detail' : okx ? 'ag-quotes-okx-detail' : coinbase ? 'ag-quotes-cb-detail' : twin ? 'ag-quotes-twin-detail' : 'ag-quotes-live-detail'}`}>
@@ -661,15 +665,15 @@ export function QuotesLiveDetail({ q, m, at, nowMs, twin = false, coinbase: cbOn
         <div className="hl-scroll">
           <table className="hl-table ag-table ag-log mono">
             <thead><tr>
-              <th className="hl-th">Closed ({UK_TZ})</th><th className="hl-th">Book</th><th className="hl-th">First</th><th className="hl-th ag-ph">Rung</th>
+              <th className="hl-th">Closed ({UK_TZ})</th>{showBook && <th className="hl-th">Book</th>}<th className="hl-th">First</th><th className="hl-th ag-ph">Rung</th>
               <th className="hl-th">Entry</th><th className="hl-th">Exit</th><th className="hl-th">Size</th><th className="hl-th ag-ph">Fees</th><th className="hl-th">P&amp;L</th>
             </tr></thead>
             <tbody>
-              {trips.length === 0 && <tr><td className="hl-empty dim" colSpan={9}>{empty ?? 'No round trip yet.'}</td></tr>}
+              {trips.length === 0 && <tr><td className="hl-empty dim" colSpan={showBook ? 9 : 8}>{empty ?? 'No round trip yet.'}</td></tr>}
               {trips.map((t) => (
                 <tr key={`${t.book}|${t.side}|${t.k}|${t.tEntry}`} className={`txn-row txn-row-${t.side === 'bid' ? 'buy' : 'sell'}`}>
                   <td className="dim"><Stamp iso={t.tExit} />{t.how === 'stop' ? <>{' '}<span className="hl-sub dim">24-hour stop</span></> : null}</td>
-                  <td className="hl-strong"><BookName book={t.book} /></td>
+                  {showBook && <td className="hl-strong"><BookName book={t.book} /></td>}
                   <td><RungSide side={t.side}>{t.side === 'bid' ? 'bought' : 'sold'}</RungSide></td>
                   <td className="ag-ph dim">{quoteRungLabel(t.k)}</td>
                   <td>{m(fmtQuotePrice(t.entry, t.book))}</td>
@@ -685,8 +689,8 @@ export function QuotesLiveDetail({ q, m, at, nowMs, twin = false, coinbase: cbOn
       </section>
       {/* Exits first, and only when there are any; then the entries (Davies, 2026-10-01). The conversions that bought the
           asks' coins are neither, and are not listed. */}
-      {exitOrders.length > 0 && <LiveOrdersTable title="EXIT ORDERS" cls="ag-ql-exits" orders={exitOrders} m={m} empty={empty} />}
-      <LiveOrdersTable title="ENTRY ORDERS" cls="ag-ql-entries" orders={entryOrders} m={m} empty={empty} />
+      {exitOrders.length > 0 && <LiveOrdersTable title="EXIT ORDERS" cls="ag-ql-exits" orders={exitOrders} m={m} empty={empty} showBook={showBook} />}
+      <LiveOrdersTable title="ENTRY ORDERS" cls="ag-ql-entries" orders={entryOrders} m={m} empty={empty} showBook={showBook} />
       <div className="ag-updated dim mono ag-ql-foot">as of {when(at)} {UK_TZ} · refreshes every minute</div>
     </div>
   );

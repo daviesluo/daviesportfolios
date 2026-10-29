@@ -1434,6 +1434,8 @@ const readQuotesBookPage = (page, rootSel) => page.evaluate((rootSel) => {
       colWidths: ['.ag-ql-exits', '.ag-ql-entries'].map((sel) => [...root.querySelectorAll(`${sel} thead th`)]
         .filter((x) => getComputedStyle(x).display !== 'none').map((x) => [txt(x), Math.round(x.getBoundingClientRect().width)])),
       notes: root.querySelectorAll('.ag-ql-note').length,
+      // Whether ROUND TRIPS, EXIT ORDERS and ENTRY ORDERS head a Book column (Davies, 2026-10-29: a strategy of one book drops it).
+      bookCols: ['.ag-ql-trips', '.ag-ql-exits', '.ag-ql-entries'].map((sel) => [...root.querySelectorAll(`${sel} thead th`)].some((th) => txt(th) === 'Book')),
       foot: txt(root.querySelector('.ag-ql-foot')), overflow: root.scrollWidth - root.clientWidth,
       // How far the widest table runs past its box, and the reasons' lines: each inside the screen.
       tableOverflow: Math.max(0, ...[...root.querySelectorAll('.hl-scroll')].map((el) => el.scrollWidth - el.clientWidth)),
@@ -4807,6 +4809,10 @@ async function run() {
       if (lp && lp.paperPage === 0 && lp.title === 'Stablecoin quotes USDT/GBP' && lp.modals === 2 && lp.head === 'LIVE Revolut X' && lp.status === 'running' && lp.tested === 'live 1d 14h') {
         ok(T('pr5-page'), "LIVE's Stablecoin quotes opens its own page over the list: LIVE, Revolut X, running · live 1d 14h, and the paper test's page is not open");
       } else fail(T('pr5-page'), `LIVE's Stablecoin quotes opened ${lp ? `the live page with the paper page ${lp.paperPage}× beside it, title "${lp.title}", ${lp.modals} modals, head "${lp.head}", status "${lp.status}" "${lp.tested}"` : 'no live page'}`);
+      // Two books, USDC and USDT rows among them: its tables keep their Book column (Davies, 2026-10-29: only a strategy of one
+      // book, every row shown of it, drops it).
+      if (lp && lp.bookCols.every(Boolean)) ok(T('pr5-book-col'), 'a page of two books keeps the Book column in ROUND TRIPS, EXIT ORDERS and ENTRY ORDERS');
+      else fail(T('pr5-book-col'), `Book column per table ${JSON.stringify(lp?.bookCols)}`);
       // Its scoreboard is the LIVE row's, in pounds (Davies, 2026-10-01): the same today, unrealised and realised as the
       // row it was opened from. The fixture by hand: deployed is every pound at work (Davies, 2026-10-01: "每一笔钱都quote
       // 出去了"), the coins at the index, 263.6436 USDC at £0.7575 and 527.6436 USDT at £0.7570 (£599.14), and the pounds in
@@ -5477,6 +5483,10 @@ async function run() {
           && cv.entries.at(-1)?.endsWith('filled') && !/403|PERMISSION|rejected|refused|POST_ONLY/i.test(cText)) {
           ok(CT('tables'), `INVENTORY ${cv.balances.join(' ')}; DAYS "${cv.annual}" ${JSON.stringify(cv.days)}; ${cv.trips.length} round trips (the newest by its 24-hour stop); ${cv.exits.length} exit and ${cv.entries.length} entries, no refused order listed`);
         } else fail(CT('tables'), `balances ${JSON.stringify(cv?.balances)}, days ${JSON.stringify(cv?.days)} "${cv?.annual}" (${annual}), trips ${JSON.stringify(cv?.trips)}, exits ${JSON.stringify(cv?.exits)}, entries ${JSON.stringify(cv?.entries)}, refused shown ${/403|PERMISSION|rejected|refused|POST_ONLY/i.test(cText)}`);
+        // One book, every row of it: no Book column in its tables (Davies, 2026-10-29: "如果这个策略只有一个币种，就把页面里的tables中的book列删了").
+        if (cv && cv.bookCols.length === 3 && cv.bookCols.every((x) => !x) && /^\S.* \| (sold|bought) \| 0\.2 %/.test(cv.trips[0] ?? '')) {
+          ok(CT('book-col'), `one book (USDC/GBP), every row of it: ROUND TRIPS, EXIT ORDERS and ENTRY ORDERS have no Book column ("${cv.trips[0]}")`);
+        } else fail(CT('book-col'), `Book column per table ${JSON.stringify(cv?.bookCols)}, trips ${JSON.stringify(cv?.trips)}`);
         if (cv && cv.overflow <= 1 && cv.liveTablesOverflow <= 1 && cv.subsOff === 0 && cv.sizeShown.every(Boolean)) ok(CT('width'), `nothing on its page is wider than the screen (page ${cv.overflow}px, tables ${cv.liveTablesOverflow}px), Size shown in every table`);
         else fail(CT('width'), `page overflow ${cv?.overflow}, tables ${cv?.liveTablesOverflow}, reasons off ${cv?.subsOff}, size ${JSON.stringify(cv?.sizeShown)}`);
         await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));

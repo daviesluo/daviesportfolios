@@ -1518,6 +1518,10 @@
      }
     ]
    },
+   "books": [
+    "USDC-GBP",
+    "USDT-GBP"
+   ],
    "twin": {
     "id": "live600",
     "name": "Stablecoin quotes USDT/GBP LIVE twin",
@@ -2066,6 +2070,10 @@
      }
     ]
    },
+   "books": [
+    "USDC-GBP",
+    "USDT-GBP"
+   ],
    "twin": {
     "id": "rxu120",
     "name": "Stablecoin quotes USDC/GBP LIVE twin",
@@ -2614,6 +2622,10 @@
      }
     ]
    },
+   "books": [
+    "USDC-GBP",
+    "USDT-GBP"
+   ],
    "twin": {
     "id": "live1200",
     "name": "Stablecoin quotes variant-1",
@@ -3162,6 +3174,10 @@
      }
     ]
    },
+   "books": [
+    "USDC-GBP",
+    "USDT-GBP"
+   ],
    "twin": {
     "id": "take50",
     "name": "Stablecoin quotes variant-2",
@@ -3710,6 +3726,10 @@
      }
     ]
    },
+   "books": [
+    "USDC-GBP",
+    "USDT-GBP"
+   ],
    "twin": {
     "id": "n600no03",
     "name": "Stablecoin quotes variant-3",
@@ -4258,6 +4278,10 @@
      }
     ]
    },
+   "books": [
+    "USDC-GBP",
+    "USDT-GBP"
+   ],
    "twin": {
     "id": "n600usdt2",
     "name": "Stablecoin quotes USDT 2:1 from 10-28",
@@ -4806,6 +4830,10 @@
      }
     ]
    },
+   "books": [
+    "USDC-GBP",
+    "USDT-GBP"
+   ],
    "twin": {
     "id": "n600usdt",
     "name": "Stablecoin quotes variant-4",
@@ -5354,6 +5382,10 @@
      }
     ]
    },
+   "books": [
+    "USDC-GBP",
+    "USDT-GBP"
+   ],
    "twin": {
     "id": "n600nudge",
     "name": "Stablecoin quotes variant-5",
@@ -5902,6 +5934,10 @@
      }
     ]
    },
+   "books": [
+    "USDC-GBP",
+    "USDT-GBP"
+   ],
    "twin": {
     "id": "live600x1",
     "name": "Stablecoin quotes variant-6",
@@ -6450,6 +6486,10 @@
      }
     ]
    },
+   "books": [
+    "USDC-GBP",
+    "USDT-GBP"
+   ],
    "twin": {
     "id": "live600ctl",
     "name": "Stablecoin quotes LIVE control from 10-29",

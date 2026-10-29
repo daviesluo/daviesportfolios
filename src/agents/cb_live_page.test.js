@@ -19,6 +19,11 @@ const m = (/** @type {string} */ s) => s;
 const txt = (/** @type {Element | null | undefined} */ el) => (el?.textContent || '').replace(/\s+/g, ' ').trim();
 const view = (/** @type {any} */ q = c) => render(React.createElement(QuotesLiveDetail, { q, m, at: fixture.now, nowMs: NOW, cbLive: true })).container;
 /** @param {Element} root @param {string} sel */
+/** A row less its first cell, the time. @param {string} r */
+const rest = (r) => r.split(' | ').slice(1).join(' | ');
+/** @param {Element} root @param {string} sel */
+const heads = (root, sel) => [...root.querySelectorAll(`${sel} thead th`)].map(txt);
+/** @param {Element} root @param {string} sel */
 const rows = (root, sel) => [...root.querySelectorAll(`${sel} tbody tr:not(.ag-ql-sub-row)`)].map((tr) => [...tr.querySelectorAll('td')].map(txt).join(' | '));
 
 describe('the Coinbase live page', () => {
@@ -59,15 +64,18 @@ describe('the Coinbase live page', () => {
     expect(rows(page, '.ag-quote-days')).toEqual(['17 Sep · today | 8 | 1 | 1 · 0 % won | -£0.0500', '16 Sep | 4 | 2 | 1 · 100 % won | +£0.0402', '15 Sep | 5 | 0 | 0 | £0']);
     expect(txt(page.querySelector('.ag-quote-days-annual'))).toBe(`- 7-day realised, annualised +${((0.04017 / 120) * (365 / 2) * 100).toFixed(1)}%`);
     // ROUND TRIPS, newest first: the 24-hour stop, then the exit.
-    expect(rows(page, '.ag-ql-trips').map((r) => r.replace(/^.*? \| USDC/, 'USDC'))).toEqual([
-      'USDC/GBP | sold | 0.2 % | £0.7495 | £0.7510 | 26.68 USDC | £0.0100 | -£0.0500',
-      'USDC/GBP | bought | 0.1 % | £0.7466 | £0.7481 | 26.78 USDC | £0 | +£0.0402',
+    expect(rows(page, '.ag-ql-trips').map(rest)).toEqual([
+      'sold | 0.2 % | £0.7495 | £0.7510 | 26.68 USDC | £0.0100 | -£0.0500',
+      'bought | 0.1 % | £0.7466 | £0.7481 | 26.78 USDC | £0 | +£0.0402',
     ]);
+    // One book, every row of it: no Book column in its tables (Davies, 2026-10-29: "如果这个策略只有一个币种，就把页面里的tables中的book列删了").
+    for (const sel of ['.ag-ql-trips', '.ag-ql-exits', '.ag-ql-entries']) expect(heads(page, sel)).not.toContain('Book');
+    expect(heads(page, '.ag-ql-trips').slice(1)).toEqual(['First', 'Rung', 'Entry', 'Exit', 'Size', 'Fees', 'P&L']);
     // ORDERS: exits first, then entries; no 403, no refusal, no conversion, no cancel that filled nothing.
-    expect(rows(page, '.ag-ql-exits').map((r) => r.replace(/^.*? \| USDC/, 'USDC'))).toEqual(['USDC/GBP | bid 0.2 % | sell | £0.7474 | 26.81 USDC | open']);
-    expect(rows(page, '.ag-ql-entries').map((r) => r.replace(/^.*? \| USDC/, 'USDC'))).toEqual([
-      'USDC/GBP | bid 0.3 % | buy | £0.7451 | 26.84 USDC | open', 'USDC/GBP | ask 0.3 % | sell | £0.7502 | 26.65 USDC | open',
-      'USDC/GBP | ask 0.1 % | sell | £0.7487 | 26.71 USDC | open', 'USDC/GBP | bid 0.2 % | buy | £0.7459 | 26.81 USDC | filled',
+    expect(rows(page, '.ag-ql-exits').map(rest)).toEqual(['bid 0.2 % | sell | £0.7474 | 26.81 USDC | open']);
+    expect(rows(page, '.ag-ql-entries').map(rest)).toEqual([
+      'bid 0.3 % | buy | £0.7451 | 26.84 USDC | open', 'ask 0.3 % | sell | £0.7502 | 26.65 USDC | open',
+      'ask 0.1 % | sell | £0.7487 | 26.71 USDC | open', 'bid 0.2 % | buy | £0.7459 | 26.81 USDC | filled',
     ]);
     expect(txt(page)).not.toMatch(/403|PERMISSION|refused|rejected|POST_ONLY/);
   });

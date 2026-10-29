@@ -262,8 +262,8 @@ import { youtubeProbe } from "./youtube.ts";
 import { runViews } from "./views.ts";
 import { QUOTE_BOOKS, QUOTE_RUNGS, QUOTE_TICK, runQuotes, type QuoteBook, type QuoteReport, type Side } from "./quotes.ts";
 import {
-  coinOf, markedGbp, QUOTE_LIVE_LOSS_FRACTION, QUOTE_LIVE_USDT_ONLY_FROM, QUOTE_RXU_INSTANCE, rungBook, rungGbpOf, runQuotesConvert, runQuotesLive,
-  type LiveLeg, type QuoteLiveDeps, type QuoteLiveReport, type RungBook, type RungFill,
+  coinOf, markedGbp, QUOTE_LIVE_INSTANCE, QUOTE_LIVE_LOSS_FRACTION, QUOTE_LIVE_USDT_ONLY_FROM, QUOTE_RXU_INSTANCE, rungBook, rungGbpOf, rungWeight, runQuotesConvert, runQuotesLive,
+  type LiveLeg, type QuoteLiveInstance, type QuoteLiveDeps, type QuoteLiveReport, type RungBook, type RungFill,
 } from "./quotes_live.ts";
 import { stepLiveWeekendPaper, type LiveWeekendReport } from "./quotes_live_weekend.ts";
 import { runLiveCompound, type CompoundReport } from "./quotes_compound.ts";
@@ -2013,6 +2013,17 @@ export function twinMeta(spec: TwinSpec, s: TwinDriverState, row: Pick<TwinSimRo
  * "variant-6改为usdc和usdt 1:1作为两个币都做的对比（追踪usdt和usdc的年化比率…）"). The ratio is null while USDC-GBP has made
  * nothing or lost; the whole is null before the instant.
  */
+/**
+ * The books an instance quotes from `now` on, for its page (Davies, 2026-10-29: "如果这个策略只有一个币种，就把页面里的tables中的book列删了"):
+ * every book until its weights are in force, then those with a rung of any weight (LIVE from the USDT-only switch: USDT-GBP alone).
+ * The page drops its tables' Book column only when this is one book and every row it shows is of that book (`quotesShowBook`).
+ */
+export function quoteBooksTraded(inst: Pick<QuoteLiveInstance, "weights" | "rungs">, now: number): QuoteBook[] {
+  const w = inst.weights;
+  if (!w || now < w.from) return [...QUOTE_BOOKS];
+  return QUOTE_BOOKS.filter((b) => (["bid", "ask"] as const).some((side) => inst.rungs.some((k) => rungWeight(w, b, side, k) > 0)));
+}
+
 export function twinBookRatio(trips: ReadonlyArray<Pick<LiveTrip, "book" | "tExit" | "pnlGbp">>, weights: { from: number; book?: Partial<Record<QuoteBook, number>> }, capitalGbp: number, now: number) {
   if (!(now > weights.from)) return null;
   const w = (b: QuoteBook) => Number(weights.book?.[b] ?? 1), sum = QUOTE_BOOKS.reduce((a, b) => a + w(b), 0);
@@ -2063,7 +2074,7 @@ export async function readQuotesTwin(d: Db, spec: TwinSpec, now: number, dayStar
     const ratio = I.weights && I.weights.from === QUOTE_LIVE_USDT_ONLY_FROM && QUOTE_BOOKS.every((b) => !(Number(I.weights!.book?.[b] ?? 1) === 0))
       ? twinBookRatio(liveRungs(orders, base.paper, dayStartMs, base.state?.state.dust, I.rungs).flatMap((r) => liveRungTrips(r, dayStartMs)), I.weights, spec.capitalGbp, now)
       : null;
-    return { ...summary, detail, twin: { ...twinMeta(spec, ds, sim[0]), converting, ...(ratio ? { bookRatio: ratio } : {}) } };
+    return { ...summary, detail, books: quoteBooksTraded(I, now), twin: { ...twinMeta(spec, ds, sim[0]), converting, ...(ratio ? { bookRatio: ratio } : {}) } };
   } catch { return null; }
 }
 
@@ -2558,7 +2569,7 @@ async function dashboard(now: number) {
               return quotesLiveDetail({ ...base, open, recent, capitalHistory });
             } catch { return null; }
           })();
-          return { ...summary, detail };
+          return { ...summary, detail, books: quoteBooksTraded(QUOTE_LIVE_INSTANCE, now) };
         } catch { return null; }
       })();
       return summary && { ...summary, live };

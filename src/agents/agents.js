@@ -2020,6 +2020,21 @@ export const fmtFeeGbp4 = (n) => {
 export const orderStateText = (state) => (state === 'new' ? 'open' : String(state ?? '—').replace('_', ' '));
 
 /**
+ * Whether a Stablecoin quotes page's tables (ROUND TRIPS, EXIT ORDERS, ENTRY ORDERS) show their Book column (Davies, 2026-10-29:
+ * "如果这个策略只有一个币种，就把页面里的tables中的book列删了"). The strategy's books going forward are the payload's `books` (what
+ * it quotes from now on: LIVE's weights, a twin's, `quoteBooksTraded`), else its BOOKS cards (a Coinbase arm's or an OKX twin's
+ * products, the Coinbase live book). The column goes only when that is one book AND every row the page shows is of that book, so
+ * a row never hides which coin it is: LIVE's USDC trips from before its USDT-only switch keep the column while they are listed.
+ * @param {any} q  the page's payload (`quotes.live`, a twin, a Coinbase or OKX arm, `cbLive`)
+ * @param {Array<{ book?: string | null }>} rows  every row its tables show
+ */
+export function quotesShowBook(q, rows) {
+  const books = Array.isArray(q?.books) ? q.books : (q?.detail?.books ?? []).map((/** @type {any} */ b) => b.book);
+  const only = new Set(books).size === 1 ? books[0] : null;
+  return !(only && rows.every((r) => r?.book === only));
+}
+
+/**
  * The live page's BOOKS (Davies, 2026-10-01: the paper test's BOOKS, clearer than its RUNGS): each book's card in the
  * paper page's shape, so `quoteLadderRows` lays out its six rungs as the paper's: a rung holding coins is held at its
  * average entry, with what it has made at the book's last trade; one with an order resting quotes that order's price

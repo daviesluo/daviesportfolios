@@ -798,6 +798,14 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth).
 
+### [2026-10-29 22:43 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Stablecoin quotes pages: no Book column for a one-coin strategy** (sub-agent; commit, not pushed; Davies, 10-29 22:21: "…如果这个
+  策略只有一个币种，就把页面里的tables中的book列删了"). Rule (`quotesShowBook`): ROUND TRIPS and EXIT/ENTRY ORDERS drop Book only when
+  the strategy's books going forward are one AND every row shown is of it, so no row hides its coin. Books going forward: the
+  payload's new `books` (LIVE and each twin, `quoteBooksTraded` from the instance's weights in force: LIVE USDT-GBP alone since
+  22:30), else its BOOKS cards (Coinbase arms, OKX, Coinbase LIVE). LIVE keeps the column while pre-switch USDC rows are listed.
+  Twin fixture regenerated (+`books` only). INVENTORY untouched (a88's).
+
 ### [2026-10-29 22:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **RX-USDC study + "Stablecoin quotes USDC/GBP" on Revolut X, built dry-run and unarmed** (sub-agent; commit, not pushed; Davies,
   10-29 ~22:05: "…也上线一个revolut x的Stablecoin quotes USDC/GBP 策略，账户api用之前叫你退役的那个trend 4h的api…"). Verdict
