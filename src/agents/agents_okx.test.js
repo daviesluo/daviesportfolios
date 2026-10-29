@@ -47,6 +47,21 @@ describe('the OKX twins', () => {
     expect([venueLabel('okx'), typeof VENUE_HUES.okx]).toEqual(['OKX', 'string']);
   });
 
+  // "Stablecoin quotes USDG/EUR - 1" (okx_basis.ts, 0171; Davies, 2026-10-29: "okx usdg/eur可以按你说的做一个 -1"): the server sends it
+  // right after the USDG/EUR twin; the page keeps that order, names it, says what differs, and counts it on OKX's card.
+  it("show 'Stablecoin quotes USDG/EUR - 1' right after the USDG/EUR row, its basis fair said, on OKX's card", () => {
+    const d3 = { ...dash, quotesOkx: [dash.quotesOkx[0], twin('okxusdgb', 'Stablecoin quotes USDG/EUR - 1', { capitalUsd: 600 }), dash.quotesOkx[1]] };
+    const rows = quotesOkxRows(d3);
+    expect(rows.map((r) => r.name)).toEqual(['Stablecoin quotes USDG/EUR', 'Stablecoin quotes USDG/EUR - 1', 'Stablecoin quotes EURC/USDC']);
+    expect(rows[1].status.detail).toContain("its fair moved half-way to the book's 24-hour basis");
+    expect(rows[0].status.detail).not.toContain('basis');
+    expect(quotesPageFor(`${QUOTES_OKX_ROW_PREFIX}okxusdgb`, d3)).toBe('okx');
+    expect(paperTestRows(d3).map((r) => r.id).slice(-3)).toEqual(rows.map((r) => r.id));
+    const okx = venueRows(d3, 'testing', rows).find((c) => c.id === 'okx');
+    expect(okx).toMatchObject({ tests: 3 });
+    expect(okx?.capitalUsd).toBeCloseTo(670.4 + 600, 6);
+  });
+
   it('show each book in its own currency: euros on USDG-EUR, dollars on EURC-USDC, pounds as before', () => {
     expect([fmtQuotePrice(0.8941, 'USDG-EUR'), fmtQuotePrice(1.118, 'EURC-USDC'), fmtQuotePrice(0.7568, 'USDC-GBP'), fmtQuotePrice(0.75)])
       .toEqual(['€0.8941', '$1.1180', '£0.7568', '£0.7500']);

@@ -1377,7 +1377,7 @@ export const QUOTES_OKX_ROW_PREFIX = '__quotes_okx_';
  * (`OKX_SPEC` in okx_quotes.ts): that file's sha256 is named in the frozen pre-registration (okx_prereg.test.js), so the name is
  * changed here, for display only; a twin the table does not know keeps the server's name.
  */
-const QUOTES_OKX_NAMES = /** @type {Record<string, string>} */ ({ okxusdg: 'Stablecoin quotes USDG/EUR', okxeurc: 'Stablecoin quotes EURC/USDC' });
+const QUOTES_OKX_NAMES = /** @type {Record<string, string>} */ ({ okxusdg: 'Stablecoin quotes USDG/EUR', okxusdgb: 'Stablecoin quotes USDG/EUR - 1', okxeurc: 'Stablecoin quotes EURC/USDC' });
 /** The name of an OKX twin on the page. @param {any} twin  a dashboard `quotesOkx` item's `twin` */
 export const quotesOkxName = (twin) => QUOTES_OKX_NAMES[String(twin?.id)] ?? String(twin?.name);
 
@@ -1385,7 +1385,9 @@ export const quotesOkxName = (twin) => QUOTES_OKX_NAMES[String(twin?.id)] ?? Str
  * "Stablecoin quotes USDG/EUR" and "Stablecoin quotes EURC/USDC" as rows of TESTING (okx_quotes.ts, 0150; Davies, 2026-10-27:
  * "…可以的话就加盘口记录器和开testings策略（目前live的rules？）"): PR5's rule as LIVE carries it out, on paper, on OKX's USDG-EUR and
  * EURC-USDC from its recorder's prints, a twin a book in Coinbase's shape and in pounds (€50 or 50 USDC a rung), on a card of
- * OKX's own. `paperTestRows` puts them after Coinbase's. null before the record has decided a minute.
+ * OKX's own. `paperTestRows` puts them after Coinbase's. null before the record has decided a minute. "Stablecoin quotes USDG/EUR - 1"
+ * (`okxusdgb`, okx_basis.ts, 0171) is the USDG/EUR rule with its fair moved half-way to the book's trailing 24-hour basis; the
+ * server places it right after the USDG/EUR row.
  * @param {any} q  one of the dashboard's `quotesOkx`
  */
 export function quotesOkxRow(q) {
@@ -1398,7 +1400,7 @@ export function quotesOkxRow(q) {
     mode: 'paper',
     ...quoteBookCells(q),
     status: q.running
-      ? { label: 'paper', running: true, tone: 'running', detail: `PR5's rule as LIVE runs it, on OKX's recorded prints · last minute ${Number(q.lagMinutes) || 0} min ago` }
+      ? { label: 'paper', running: true, tone: 'running', detail: `PR5's rule as LIVE runs it, on OKX's recorded prints${q.twin.id === 'okxusdgb' ? ", its fair moved half-way to the book's 24-hour basis" : ''} · last minute ${Number(q.lagMinutes) || 0} min ago` }
       : { label: 'paper', running: false, tone: 'stale', detail: `its last decided minute was ${q.lagMinutes ?? '?'} min ago` },
   };
 }

@@ -359,6 +359,9 @@ that follow from that evidence, in short:
   1 % loss stop), in a file of its own because `stepMinute` cannot fill by print size or price on a 0.001 grid; one call
   (`agents?action=okxrec`), pre-registered in `reviews/2026-10-27-okx-paper-prereg.md` (28 days). Whether Davies' UK OKX account
   may trade these books and at what maker fee is unconfirmed (that review's §1): nothing goes live there without his in-app check.
+  **"Stablecoin quotes USDG/EUR - 1"** (`0171`, `agents/okx_basis.ts`, 2026-10-29; Davies: "okx usdg/eur可以按你说的做一个 -1") is the
+  USDG/EUR rule with its fair moved half-way to the book's 24-hour trailing basis, its own tables, call and lease, right after
+  USDG/EUR on the page; 28 days against it, P(≤ 0) < 0.10 (`reviews/2026-10-29-okx-usdg-basis-prereg.md`).
   The names above are their history. TESTING's scoreboard and the
   Revolut X card include them. **"Stablecoin quotes with Euros"** (`0112`,
   reference §4 item 58; "Stablecoin quotes Coinbase" until 2026-10-10) follows

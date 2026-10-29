@@ -4527,6 +4527,16 @@ fails too still reported (`edge-watchdog.retry`). In the three days before, 1,34
     - **Davies' UK account is not settled** (that pre-registration's §1): which OKX entity serves UK retail, whether it lists
       these books or EUR/EURC, and its maker fee on them could not be read from public pages (OKX's "Spot Stablecoins" fee group
       is 0 % / 0.05 % where it applies; third parties quote 0.08 % / 0.10 % for UK regular spot). He reads it in the app.
+    - **"Stablecoin quotes USDG/EUR - 1"** (2026-10-29, migration `0171`, `agents/okx_basis.ts`; Davies: "okx usdg/eur可以按你说的做一个
+      -1", after "…你先按okx的研究下，还成立的话再上线"): `stepOkxMinute` unchanged on USDG-EUR alone, its fair par × (1 + ½ × b), b the median
+      over the minutes of the last 24 hours with a print of (the minute's last print ÷ par − 1), par of a past minute the newest
+      EUR/USD bar before it, 0 with fewer than five minutes (`okxBasisAt`); given to the engine as x' = EUR/USD ÷ (1 + ½ b) with the
+      rung $100 ÷ (1 + ½ b), so the euros a rung are the USDG/EUR row's. Its own tables (`okx_basis_*`), lease, call
+      (`agents?action=okxbasis`) and loss stop (its own trips against 1 % of $600); from the first 00:00 UTC after its first run.
+      Why: the fair-price study (`reviews/2026-10-29-cb-okx-fair-price-study.md` §4 and Addendum A1), the OKX twins' own engine on
+      OKX's archived prints 07-01 → 10-29: +€0.168 a day on par [+0.099, +0.234], P(≤ 0) 0.000, +26 % (PR5's simulator had +13 %).
+      Bar (`reviews/2026-10-29-okx-usdg-basis-prereg.md`, frozen): 28 days against the USDG/EUR row's USDG-EUR trips, the day
+      bootstrap's P(mean daily difference ≤ 0) < 0.10.
 
 65. **The crypto loop's strategy rows retire (2026-10-28, migration `0158`).** Davies: "把实盘的Trend 4h和测试的Trend 1h Trend 4h删了吧，
     那一整套都表现太差了感觉不值得做". `trend-4h-live`, `trend-4h` and `trend-1h` are paused in place with `retired_at`, flat, their

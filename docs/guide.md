@@ -401,6 +401,13 @@ places stay when the number is not whole.
   midnight after it went up, its rule for judging it written down first.
   Whether Davies' UK OKX account can trade these books is checked in the
   app before any money goes there.
+- **Stablecoin quotes USDG/EUR - 1.** Right after USDG/EUR, on OKX: the same
+  rules on the same book, $100 a rung, $600, with one change. Its fair price
+  is not exactly one euro's worth of dollars but moved half-way towards where
+  USDG has actually traded over the last 24 hours, because USDG usually
+  trades a few hundredths of a percent above it. A 28-day paper test against
+  USDG/EUR over the same days; it starts flat at the next midnight after it
+  went up.
 - **Crypto analyst.** After OKX's rows, on Hyperliquid (a plain badge and
   its own venue card): an outside Grok agent forecasting and trading bitcoin,
   ether and solana, up or down, on paper, against Hyperliquid's live public

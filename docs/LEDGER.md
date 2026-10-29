@@ -801,6 +801,21 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   before 10-30 00:01; then the record grows a row a minute.
   The 2026-10-29 02:30 to 03:12 sections archived (sixteenth) on landing.
 
+### [2026-10-29 07:31 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **"Stablecoin quotes USDG/EUR - 1" built, paper, on OKX** (sub-agent; commit, not pushed; Davies, 10-29: "okx usdg/eur可以按你说的做一个 -1",
+  then "…你先按okx的研究下，还成立的话再上线": it held, the study's Addendum A1). Migration `0171` (after main's 0170; the FX recorder takes 0172
+  after it, so they land in order), `agents/okx_basis.ts`, `agents?action=okxbasis` (an `edge_calls` row, its beat first,
+  `retry` true), `okx_basis_*` tables, prune `okx-basis-prune` 10:56.
+  - **The rule**: `stepOkxMinute` unchanged on USDG-EUR, fair par × (1 + ½ b), b the median of (each printed minute's last print ÷
+    par − 1) over [t − 24 h, t − 1 min], 0 with fewer than five minutes; $100 a rung as the USDG/EUR row's euros; its own loss stop
+    on its $600. Starts flat at the first 00:00 UTC after its first run.
+  - **Its reading** (`reviews/2026-10-29-okx-usdg-basis-prereg.md`, frozen, pinned by `src/okx_basis_prereg.test.js`): 28 days
+    against the USDG/EUR row's USDG-EUR trips, day bootstrap P(mean daily difference ≤ 0) < 0.10; expectation +€0.168 a day.
+  - **The OKX twins are untouched**: their frozen files' sha256 pinned again; a run writes nothing to `okx_quote_*` (pinned in
+    `okx_basis.test.ts`). The page lists it right after USDG/EUR (`okxRowsWithBasis`; `QUOTES_OKX_NAMES.okxusdgb`). `dist/` rebuilt.
+  - **Check after landing**: `select startedAt, lastMinute from okx_basis_state`, `agents?action=okxbasis` beating, no
+    `agents.okx_basis` in `ops_errors`; the reading on or after startedAt + 29 days 00:30 UTC.
+
 ### [2026-10-29 07:26 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The fair-price study's addendum: USDG/EUR's basis fair on OKX's own engine, and Coinbase's coin price by book** (sub-agent;
   commit, not pushed; Davies, 10-29: "…你先按okx的研究下，还成立的话再上线", "…那usdc呢？"). `reviews/2026-10-29-cb-okx-fair-price-study.md`
