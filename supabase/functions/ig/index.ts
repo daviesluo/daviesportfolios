@@ -20,6 +20,9 @@
 //   POST ?action=quotes   G4's recorder by REST: in the weekend windows (`windows.ts`), two snapshots a minute of each
 //        live account's epics → `ig_quotes` (a row when a quote changes) and `ig_quote_runs` (every run). A row of the
 //        one-minute job (0122), switched on only around the windows.
+//   POST ?action=fxw   "AUD weekend (FXW-AUD)" on paper (fxw.ts): the frozen FXW-AUD rule on the live recorder's own
+//        quotes, one `ig_fxw_weekends` row a weekend. Reads the database only: no IG call, no IG secret. Every five minutes
+//        (0162).
 //
 // Auth: `Authorization: Bearer <CRON_SECRET>` (pg_net with the Vault `cron_secret`) or an admin `x-app-token`; deployed
 // --no-verify-jwt (PUBLIC_FNS in edge-functions.yml). Secrets: IG_API_KEY_LIVE, IG_LIVE_USERNAME, IG_LIVE_PASSWORD; never
@@ -34,6 +37,7 @@ import {
   QUOTES_FORCE_SWITCH_AFTER_LOGIN, QUOTES_LOGIN_WAIT_MS, QUOTES_LOGOUT, QUOTES_RELOGIN_WAIT_MS, QUOTES_MAX_REQUESTS, QUOTES_SWITCH_WAIT_MS, QUOTES_TOKEN_RETRIES, QUOTES_TOKEN_RETRY_WAIT_MS,
   restClient, runFacts, runHistory, runQuotes, type AccountKind, type Rest,
 } from "./actions.ts";
+import { runFxw } from "./fxw.ts";
 import { HISTORY_PLANS } from "./windows.ts";
 
 const json = (status: number, body: unknown) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
@@ -78,6 +82,16 @@ export async function handle(req: Request, d: Deps): Promise<Response> {
   if (req.method !== "POST") return json(405, { error: "POST only" });
   const url = new URL(req.url);
   const action = url.searchParams.get("action") ?? "";
+  // FXW-AUD's paper book (fxw.ts): the database only, no IG call and no IG secret.
+  if (action === "fxw") {
+    try {
+      return json(200, await runFxw({ rest: d.rest, now: d.now }));
+    } catch (e) {
+      const message = String(e instanceof Error ? e.message : e).slice(0, 300);
+      await d.report("ig.fxw", `crashed: ${message}`, { action }).catch(() => {});
+      return json(500, { error: "ig crashed", message });
+    }
+  }
   const creds = liveCreds(d.env);
   if ("missing" in creds) return json(503, { error: "IG live credentials not set", missing: creds.missing });
   const secrets = [creds.key, creds.username, creds.password];

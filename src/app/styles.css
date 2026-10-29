@@ -2008,6 +2008,7 @@ body {
 .ag-venue-polymarket { color: #7d8bff; border-color: rgba(125,139,255,0.4); background: rgba(125,139,255,0.1); }
 .ag-venue-coinbase { color: #9fd8c8; border-color: rgba(159,216,200,0.4); background: rgba(159,216,200,0.1); }
 .ag-venue-okx { color: #dfe3ea; border-color: rgba(223,227,234,0.4); background: rgba(223,227,234,0.1); }
+.ag-venue-ig { color: #d6a2e8; border-color: rgba(214,162,232,0.4); background: rgba(214,162,232,0.1); }
 .ag-venue-signal { font-weight: 500; letter-spacing: 0; opacity: 0.8; }
 .ag-venues { margin-bottom: 14px; }
 .ag-share-bar { display: flex; height: 18px; border-radius: 4px; overflow: hidden; background: rgba(255,255,255,0.04); border: 1px solid var(--line); margin-bottom: 8px; }
@@ -2398,6 +2399,11 @@ a.ag-gpm-market:hover, a.ag-gpm-market:focus-visible { text-decoration-color: va
 /* OKX's card and slice (VENUE_HUES.okx, #dfe3ea: OKX's own black-and-white mark, a cool silver beside the cream text; its lime would read as --gain): its two paper twins, 0150. */
 .ag-venue-card-okx { border-left-color: rgba(223,227,234,0.75); }
 .ag-share-okx { background: rgba(223,227,234,0.35); color: #f7f8fa; }
+/* IG's card and slice (VENUE_HUES.ig, #d6a2e8: an orchid apart from the blues, the mint, the gold and the gain/loss pair): "AUD weekend (FXW-AUD)", 0162. */
+.ag-venue-card-ig { border-left-color: rgba(214,162,232,0.75); }
+.ag-share-ig { background: rgba(214,162,232,0.35); color: #f8eefb; }
+/* Its weekends table: the quotes a fill used sit under the price, one per line. */
+.ag-fxw-detail .hl-sub { display: block; }
 
 /* RW's bar: where the run is, then four tiles — the total and its rewards and orders, the pessimistic total, the
    fills against the 100 it needs, the best market's share. Polymarket's blue marks the run and the fills. */

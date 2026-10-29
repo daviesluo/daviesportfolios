@@ -14,6 +14,8 @@ export type Rest = {
   /** Every row a query names, paged past PostgREST's 1,000-row cap; or, with `limit`, at most that many in one read. */
   select<T>(table: string, query: string, limit?: number): Promise<T[]>;
   rpc<T>(fn: string, args: Record<string, unknown>): Promise<T>;
+  /** Insert, or merge into the row with the same `onConflict` key. */
+  upsert(table: string, row: Record<string, unknown>, onConflict: string): Promise<void>;
 };
 
 export function restClient(sbUrl: string, serviceKey: string, fetchImpl: typeof fetch = fetch): Rest {
@@ -43,6 +45,13 @@ export function restClient(sbUrl: string, serviceKey: string, fetchImpl: typeof 
         out.push(...page);
         if (page.length < 1000) return out;
       }
+    },
+    async upsert(table, row, onConflict) {
+      const res = await fetchImpl(`${sbUrl}/rest/v1/${table}?on_conflict=${encodeURIComponent(onConflict)}`, {
+        method: "POST", headers: { ...h, Prefer: "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify(row), signal: AbortSignal.timeout(10_000),
+      });
+      await check(res, `upsert ${table}`);
+      await res.body?.cancel();
     },
     async rpc<T>(fn: string, args: Record<string, unknown>): Promise<T> {
       const res = await fetchImpl(`${sbUrl}/rest/v1/rpc/${fn}`, { method: "POST", headers: h, body: JSON.stringify(args), signal: AbortSignal.timeout(15_000) });

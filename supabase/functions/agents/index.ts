@@ -255,6 +255,7 @@ import { CB_HOLD_ID, CB_HOLD_TABLES, runCbHold } from "./cb_hold.ts";
 import { readCbUsdc, runCbUsdc } from "./cb_usdc.ts";
 import { runOkxRec } from "./okx_rec.ts";
 import { readOkxQuotes, runOkxQuotes } from "./okx_quotes.ts";
+import { readFxw } from "./fxw_view.ts";
 import { CB_HOLD_PAGE_NAME, readCoinbaseArm } from "./cb_page.ts";
 import { runEconcal } from "./econcal.ts";
 import { dayOpenOf, dayPnl, decisionBarMs, isOffBook, jevViewOf, resolveBook, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
@@ -2211,6 +2212,8 @@ async function dashboard(now: number) {
   // "Stablecoin quotes OKX USDG" and "Stablecoin quotes OKX EURC" (0150, okx_quotes.ts): PR5's rule as LIVE carries it out, on
   // paper, on OKX's two books, a twin each in Coinbase's shape with `venue` "okx"; none before the record decides a minute.
   const quotesOkxRead = readOkxQuotes(d, now, dayStartMs).catch(() => []);
+  // "AUD weekend (FXW-AUD)" on paper (fxw_view.ts; the `ig` function's `fxw` run writes it): null before its first run.
+  const fxwAudRead = readFxw(d, now, dayStartMs).catch(() => null);
 
   // "Stablecoin quotes - variant" (`0071`), read beside PR5's: its own tables; missing ones (before the migration), or no
   // state yet, leave it off the page, and a failed read leaves the rest of the page as it is.
@@ -2344,6 +2347,11 @@ async function dashboard(now: number) {
      * on paper, on OKX's USDG-EUR and EURC-USDC, one twin a book (`twin.id` "okxusdg", "okxeurc"); empty until it has decided a minute.
      */
     quotesOkx: await quotesOkxRead,
+    /**
+     * "AUD weekend (FXW-AUD)" (`0162`, fxw_view.ts): the frozen FXW-AUD rule on paper on the live IG recorder's quotes, in
+     * pounds, one row a weekend; null before the `ig` function's first `fxw` run.
+     */
+    fxwAud: await fxwAudRead,
     // `rw`, `rwe`, `rwx`, `prep`, `prepMid`, `prepLp`: the paper Reward quotes rows, not sent since 0120 (above).
     /**
      * "Reward quotes live-prep"'s real money (`pm_lp_live_view.ts`): a row of LIVE, its figures from the path's live rows

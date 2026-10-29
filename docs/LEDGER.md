@@ -772,6 +772,12 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 00:40 UTC section (archived
 2026-10-29, seventh) and the 00:34 and 00:42 ones (eighth).
 
+### [2026-10-29 01:24 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **"AUD weekend (FXW-AUD)" on TESTING, paper** (sub-agent; commit, not pushed; Davies, 10-29: "…澳元策略都上线…确保模拟一切
+  真实"): the frozen rule on the live recorder's `ig_quotes`, £1,000 at £1.50 a pip, no stop (search-3 §5). `ig?action=fxw`
+  every 5 min (`0162`, no IG call) writes `ig_fxw_weekends`; fills at recorded bid/offer only, a minute uncovered after the open
+  is MISSED, 5 % margin, close-out at half, 0.22 bps a weekday night. First weekend Fri 30 Oct 21:35 UK. Fill/funding pins by hand.
+
 ### [2026-10-29 00:59 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The `ig` recorder moves to IG's LIVE login, prices only** (sub-agent; commit, not pushed; item 18; Davies, 10-29:
   "同意，按方案1改"). `ig/client.ts` calls only `api.ig.com/gateway/deal`, refuses the demo host, reads only

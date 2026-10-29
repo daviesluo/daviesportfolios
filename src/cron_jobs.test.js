@@ -1027,7 +1027,7 @@ describe('pg_cron jobs', () => {
   it('keeps the ig function on the live host for prices only: no demo host, no demo or IGBOT secret, no dealing path', () => {
     const dir = path.join(ROOT, 'supabase/functions/ig');
     const files = fs.readdirSync(dir).filter((f) => f.endsWith('.ts') && !f.endsWith('.test.ts'));
-    expect(files.sort()).toEqual(['actions.ts', 'client.ts', 'epics.ts', 'index.ts', 'windows.ts']);
+    expect(files.sort()).toEqual(['actions.ts', 'client.ts', 'epics.ts', 'fxw.ts', 'index.ts', 'windows.ts']);
     for (const f of files) {
       const code = fs.readFileSync(path.join(dir, f), 'utf8').replace(/\/\/[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
       expect(code, f).not.toMatch(/IG_API_KEY_DEMO|IG_DEMO_|_DEMO\b|IGBOT_|demo-api/);
@@ -1075,6 +1075,27 @@ describe('pg_cron jobs', () => {
     expect(actions).toContain('`select=id,at,account_kind,account_id,ok,selected&environment=eq.${IG_ENVIRONMENT}&account_kind=eq.${kind}&ok=eq.true&order=id.desc`');
     expect(actions).toContain('&environment=eq.${IG_ENVIRONMENT}&account_kind=eq.${kind}&order=id.asc`');
     expect(fs.readFileSync(path.join(ROOT, 'supabase/functions/ig/index.ts'), 'utf8')).toContain('d.rest.insert("ig_action_log", { environment: IG_ENVIRONMENT, action, params,');
+  });
+
+  // 0162 (Davies, 2026-10-29: "在testing列表中把IG Trader和澳元策略都上线…确保模拟一切真实"): "AUD weekend (FXW-AUD)" on paper, a
+  // call of the minute job every five minutes that reads the database only.
+  it("adds FXW-AUD's paper run to the list (0162): every five minutes, its beat first, every other row as it was, no IG call", () => {
+    const T = FILES.find((f) => /^\d{4}_ig_fxw_paper\.sql$/.test(f)) ?? '';
+    expect(T).toBe('0162_ig_fxw_paper.sql');
+    const before = replayList(sqlsOf(FILES.filter((f) => f < T)));
+    const after = replayList(sqlsOf(FILES.filter((f) => f <= T)));
+    expect(after.slice(0, before.length)).toEqual(before);
+    expect(after.slice(before.length).map((r) => [r.path, r.timeout, r.every, r.lastHour, r.retry])).toEqual([['ig?action=fxw', 30000, 5, 23, true]]);
+    const sql = fs.readFileSync(path.join(DIR, T), 'utf8').replace(/--[^\n]*/g, '');
+    for (const t of ['ig_fxw_weekends', 'ig_fxw_state']) expect(sql).toMatch(new RegExp(`alter table public\\.${t} +enable row level security;`));
+    expect(sql).not.toMatch(/grant [^;]* to (anon|authenticated)|create policy/i);
+    expect(norm(sql)).toContain("stake_gbp numeric check (stake_gbp >= 0.5)");
+    // The run reads the database only: fxw.ts holds no client, no fetch and no secret.
+    const fxw = fs.readFileSync(path.join(ROOT, 'supabase/functions/ig/fxw.ts'), 'utf8').replace(/\/\/[^\n]*/g, '');
+    expect(fxw).not.toMatch(/IgClient|fetch\(|Deno\.env|liveCreds/);
+    const idx = fs.readFileSync(path.join(ROOT, 'supabase/functions/ig/index.ts'), 'utf8');
+    expect(idx.indexOf('if (action === "fxw")')).toBeGreaterThan(idx.indexOf('await d.beat(beatKeyOfRequest("ig", req.url))'));
+    expect(idx.indexOf('if (action === "fxw")')).toBeLessThan(idx.indexOf('const creds = liveCreds(d.env);'));
   });
 
   it("keeps the three order paths' dry-run record 14 days and watches the database's size, by jobs that call nothing (0101)", () => {

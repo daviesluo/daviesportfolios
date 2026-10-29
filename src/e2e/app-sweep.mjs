@@ -906,7 +906,7 @@ const AGENTS_NOT_READY = {
  * `rw-cents` (RW's figures where each part rounds on its own), `rwc-warmup` (a dashboard that still sends RW-C in its
  * warm-up, which adds no row), `rwc-running` (from RW-C's first minute: every Reward quotes row reads RW-C's run) and `quotesv` (the quote test's variant beside it).
  */
-let agentsMode = /** @type {'ok' | 'notReady' | 'error' | 'paused' | 'live' | 'live-unarmed' | 'rw-cents' | 'pr5-live' | 'pr5-live-noexit' | 'rwx-waiting' | 'rwc-warmup' | 'rwc-running' | 'quotesv' | 'prep' | 'mid' | 'lp' | 'lp-live' | 'lp-live-off' | 'lp-live-nopay' | 'grokpm' | 'grokpm-waiting' | 'grokpm-lp-off' | 'rq-fees'} */ ('ok');
+let agentsMode = /** @type {'ok' | 'notReady' | 'error' | 'paused' | 'live' | 'live-unarmed' | 'rw-cents' | 'pr5-live' | 'pr5-live-noexit' | 'rwx-waiting' | 'rwc-warmup' | 'rwc-running' | 'quotesv' | 'prep' | 'mid' | 'lp' | 'lp-live' | 'lp-live-off' | 'lp-live-nopay' | 'grokpm' | 'grokpm-waiting' | 'grokpm-lp-off' | 'rq-fees' | 'fxw'} */ ('ok');
 /**
  * The reload section's levers: the book the `data` function hands back (a
  * server row's prices are those of its last SAVE, not what the page showed),
@@ -1238,6 +1238,28 @@ const LP_LIVE_FIXTURE = JSON.parse(fs.readFileSync(new URL('./lp_live_fixture.js
  * filling. Served alone (`grokpm`, `grokpm-waiting`), so LIVE lists it beside the base payload's rows.
  */
 const GROKPM_FIXTURE = JSON.parse(fs.readFileSync(new URL('./grokpm_fixture.json', import.meta.url), 'utf8'));
+/**
+ * "AUD weekend (FXW-AUD)" (0162): the dashboard's own answer (`fxwView`) for the agents Deno test's first case, worked by
+ * hand there: GBP 1,000 funded; a closed long from 0.65800 to 0.66000, +20 pips x 1.5 = +GBP 30; an open long from 0.65800
+ * marked at 0.65900, +GBP 15 less GBP 0.22 of funding = +GBP 14.78, on a margin of GBP 493.50; today +GBP 29.78; equity
+ * GBP 1,044.78; GBP/USD 1.30.
+ */
+const FXW_FIXTURE = {
+  name: 'AUD weekend (FXW-AUD)', started: true, running: true, lagMinutes: 2, lastError: null, startAt: '2026-09-11T21:35:00.000Z', stakeGbp: 1.5,
+  daysRun: 9, trades: 1, weekends: 2, equityGbp: 1044.78,
+  capitalGbp: 1000, valueGbp: 493.5, costGbp: 493.5, realisedGbp: 30, unrealisedGbp: 14.78, todayGbp: 29.78, feesGbp: 0,
+  capitalUsd: 1300, valueUsd: 641.55, costUsd: 641.55, realisedUsd: 39, unrealisedUsd: 19.21, todayUsd: 38.71, feesUsd: 0, gbpusd: 1.3,
+  open: { friday: '2026-09-11', side: 'long', entryTs: '2026-09-13T20:00:05.000Z', entryPrice: 0.658, markTs: '2026-09-14T06:55:00.000Z', markPrice: 0.659, marginGbp: 493.5, netGbp: 14.78 },
+  nextText: "exit at Friday's mid, or +24 h",
+  rows: [
+    { friday: '2026-09-11', status: 'open', reason: null, friTs: '2026-09-11T20:58:00.000Z', friBid: 0.6599, friOffer: 0.6601, friMid: 0.66,
+      decTs: '2026-09-13T20:00:05.000Z', decBid: 0.6578, decOffer: 0.658, gapBps: -31.87, side: 'long', stakeGbp: 1.5, entryTs: '2026-09-13T20:00:05.000Z', entryPrice: 0.658, marginGbp: 493.5,
+      exitTs: null, exitBid: null, exitOffer: null, exitPrice: null, exitReason: null, markTs: '2026-09-14T06:55:00.000Z', markPrice: 0.659, pnlGbp: 15, fundingGbp: 0.22, netGbp: 14.78, equityBefore: 1030 },
+    { friday: '2026-09-04', status: 'closed', reason: null, friTs: '2026-09-04T20:58:00.000Z', friBid: 0.6599, friOffer: 0.6601, friMid: 0.66,
+      decTs: '2026-09-06T20:00:05.000Z', decBid: 0.6578, decOffer: 0.658, gapBps: -31.87, side: 'long', stakeGbp: 1.5, entryTs: '2026-09-06T20:00:05.000Z', entryPrice: 0.658, marginGbp: 493.5,
+      exitTs: '2026-09-06T22:10:00.000Z', exitBid: 0.66, exitOffer: 0.6602, exitPrice: 0.66, exitReason: "target: Friday's mid", markTs: '2026-09-06T22:10:00.000Z', markPrice: 0.66, pnlGbp: 30, fundingGbp: 0, netGbp: 30, equityBefore: 1000 },
+  ],
+};
 const AGENTS_LP_LIVE = (/** @type {false | 'output' | 'noPayout'} */ which) => ({ ...AGENTS_PR5_LIVE(), prepLp: LP_FIXTURE.output, ...(which ? { lpLive: LP_LIVE_FIXTURE[which] } : {}) });
 const AGENTS_PR5_LIVE = () => {
   const d = AGENTS_DASHBOARD;
@@ -1602,6 +1624,7 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
       if (agentsMode === 'lp-live' || agentsMode === 'lp-live-off' || agentsMode === 'lp-live-nopay') return json(AGENTS_LP_LIVE(agentsMode === 'lp-live' ? 'output' : agentsMode === 'lp-live-nopay' ? 'noPayout' : false));
       if (agentsMode === 'grokpm' || agentsMode === 'grokpm-waiting') return json({ ...AGENTS_DASHBOARD, grokPm: GROKPM_FIXTURE[agentsMode === 'grokpm' ? 'output' : 'waiting'] });
       // Production since 2026-10-17: live-prep liquidated and disarmed (it traded live), beside the analyst before its go.
+      if (agentsMode === 'fxw') return json({ ...AGENTS_DASHBOARD, fxwAud: FXW_FIXTURE });
       if (agentsMode === 'grokpm-lp-off') return json({ ...AGENTS_DASHBOARD, lpLive: { ...LP_LIVE_FIXTURE.output, armed: false }, grokPm: GROKPM_FIXTURE.waiting });
       if (agentsMode === 'error') {
         return route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ error: 'agents crashed', message: 'db GET agent_strategies → 500: {"code":"57014","message":"canceling statement due to statement timeout"}' }) });
@@ -5311,6 +5334,60 @@ async function run() {
         await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
         await closeBy(page, () => page.keyboard.press('Escape'));
         await toggleHidden(page);
+        agentsMode = 'ok';
+      }
+
+      // ---- "AUD weekend (FXW-AUD)", the frozen FXW-AUD rule on paper on IG's recorded live quotes (0162) ----------------
+      // Davies, 2026-10-29: "在testing列表中把IG Trader和澳元策略都上线…确保模拟一切真实". The last row of TESTING, after OKX's, on IG
+      // (its own badge and card), every figure in pounds as the other paper rows' are; nothing wider than the screen. Its page
+      // over the list: PAPER and IG in the head, the scoreboard every paper page has, STATUS (equity, trades, the open
+      // position, days run, the stake), and WEEKENDS with the quotes each fill used.
+      {
+        const FT = (n) => S(`fxw/${n}`);
+        const NAME = FXW_FIXTURE.name;
+        agentsMode = 'fxw';
+        await openAgentsPage(page);
+        await clickTab('testing');
+        await waitFor(async () => (await page.locator('.ag-strategies-testing .ag-row').count()) === TESTING.rows + 1);
+        await atRest(page);
+        const fp = await readAgentsPanel(page);
+        const fo = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+        const last = fp.rows.at(-1);
+        const card = fp.venues.find((v) => v.id === 'ig');
+        if (last && last.name === NAME && last.venue === 'IG' && last.sub === '1 open · £1,000 cap' && last.gl.length === 3 && last.gl.every((t) => t.includes('£') && !t.includes('$'))
+          && last.gl[2].startsWith('+£30') && last.next === "exit at Friday's mid, or +24 h" && card && fo <= 0) {
+          ok(FT('row'), `the last TESTING row, on IG with a card of its own, in pounds: ${last.sub}; ${last.gl.join(', ')}; next "${last.next}"`);
+        } else fail(FT('row'), `row ${JSON.stringify(last)}, IG card ${JSON.stringify(card)}, page overflow ${fo}`);
+        await shot(page, 'agents-fxw-row');
+        await page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, NAME) }).first().click();
+        await settled(page, '.ag-fxw-detail');
+        const fv = await page.evaluate(() => {
+          const txt = (/** @type {Element | null | undefined} */ el) => (el?.textContent || '').replace(/\s+/g, ' ').trim();
+          const root = document.querySelector('.ag-fxw-detail');
+          if (!root) return null;
+          const vw = document.documentElement.clientWidth;
+          return {
+            head: [...root.querySelectorAll('.ag-detail-head .ag-badge, .ag-detail-head .ag-venue')].map(txt).join(' '),
+            sb: [...root.querySelectorAll(':scope > .ag-scoreboard .ag-sb-cell')].map((c) => `${txt(c.querySelector('.ag-sb-name'))}=${txt(c.querySelector('.sb-value'))}`),
+            tiles: [...root.querySelectorAll('.ag-fxw-bar .ag-rw-tile')].map((t) => `${txt(t.querySelector('.ag-rw-tile-k'))}=${txt(t.querySelector('.ag-rw-tile-v'))}`).join(' | '),
+            weekends: [...root.querySelectorAll('.ag-fxw-weekends tbody tr')].map((tr) => [...tr.querySelectorAll('td')].map(txt).join(' | ')),
+            sections: [...root.querySelectorAll('.ag-section > .ag-section-title')].map(txt).join(','),
+            off: [...root.querySelectorAll('.ag-scoreboard, .ag-rw-tile, .ag-section-title, .hl-scroll, .ag-updated')]
+              .map((el) => el.getBoundingClientRect()).filter((r) => r.width > 0 && (r.left < -1 || r.right > vw + 1)).length,
+            pageOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+          };
+        });
+        await shot(page, 'agents-fxw-page');
+        const TILES = 'EQUITY=£1,045 | TRADES=1 | OPEN POSITION=long @ 0.65800 | DAYS RUN=9 | STAKE=£1.50 a pip';
+        if (fv && fv.head === 'PAPER IG' && fv.sb[0] === 'FUNDED=£1,000' && fv.sb.map((c) => c.split('=')[0]).join(',') === 'FUNDED,DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L'
+          && fv.tiles === TILES && fv.sections === 'STATUS,WEEKENDS' && fv.weekends.length === 2
+          && fv.weekends[0].startsWith('2026-09-11open | 0.66000') && fv.weekends[0].includes('0.65780 / 0.65800') && fv.weekends[0].includes('mark 0.65900')
+          && fv.weekends[1].includes("0.66000 / 0.66020") && fv.weekends[1].includes("target: Friday's mid") && fv.weekends[1].includes('+£30')
+          && fv.off === 0 && fv.pageOverflow <= 0) {
+          ok(FT('page'), `its page: ${fv.head}; ${fv.sb.join(' | ')}; ${fv.tiles}; ${fv.weekends.length} weekends with the quotes each fill used`);
+        } else fail(FT('page'), JSON.stringify(fv));
+        await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
+        await closeBy(page, () => page.keyboard.press('Escape'));
         agentsMode = 'ok';
       }
 

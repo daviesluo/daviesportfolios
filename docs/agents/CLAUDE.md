@@ -678,6 +678,10 @@ that follow from that evidence, in short:
     `MARKET`; the five-day close waits for an open market and retries; IG's allowance is held for the whole function
     (`igbot_requests.ig_calls`, 24 a minute); the sync records IG's hour bars (`igbot_bars`) and the reading's scorer is
     `docs/agents/backtests/igbot/score.mjs`.
+- **"AUD weekend (FXW-AUD)", paper on TESTING** (`ig/fxw.ts`, `agents/fxw_view.ts`, `0162`; Davies, 2026-10-29): the frozen
+  FXW-AUD rule on the live IG recorder's own quotes (`ig_quotes`, `environment = 'live'`), £1,000 at £1.50 a pip, no stop. It
+  never calls IG; fills only at a recorded bid or offer, a minute after the open with no recorded quote makes the weekend
+  MISSED. Its rules are frozen with the spec: a change is a new proposal to Davies, never an edit of `fxw.ts`' constants.
 - **RW — quotes for Polymarket's liquidity rewards — runs on PAPER for
   fourteen days** (§3.33, §4 item 36, migration `0053`, 2026-09-24 on
   Davies' word): 2026-09-25 → 10-09 UTC, the spec frozen at

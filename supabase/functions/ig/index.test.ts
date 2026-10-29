@@ -217,6 +217,13 @@ function fakeRest() {
       if (/order=id\.desc/.test(query)) rows.sort((a, b) => Number(b.id) - Number(a.id));
       return Promise.resolve((limit ? rows.slice(0, limit) : rows) as T[]);
     },
+    upsert(table, row, key) {
+      const t = (tables[table] ??= []);
+      const i = t.findIndex((r) => r[key] === row[key]);
+      if (i >= 0) t[i] = { ...t[i], ...row };
+      else t.push({ id: ++id, ...row });
+      return Promise.resolve();
+    },
     rpc<T>(fn: string, args: Record<string, unknown>): Promise<T> {
       rpcs.push({ fn, args });
       return Promise.resolve(((args.samples as unknown[])?.length ?? 0) as T);
@@ -1165,4 +1172,21 @@ Deno.test("2026-10-29: a live login with one account type records that one and s
   assertEquals([r.ok, r.snapshots, r.error, r.missing_accounts], [true, 2, null, ["cfd"]]);
   assertEquals(r.accounts.sb.snapshots, 2);
   assertEquals(r.accounts.cfd, undefined);
+});
+
+Deno.test("fxw: the paper book's call needs no IG secret, calls IG never, and writes its beat first", async () => {
+  const calls: string[] = [];
+  const fetchImpl = ((input: string | URL | Request) => { calls.push(String(input)); return Promise.reject(new Error("no IG call expected")); }) as typeof fetch;
+  const { rest, tables } = fakeRest();
+  const d = deps({ env: { CRON_SECRET: ENV.CRON_SECRET }, rest, fetchImpl, now: () => Date.UTC(2026, 10, 2, 8) });
+  const r = await handle(req("fxw", { authorization: `Bearer ${ENV.CRON_SECRET}` }), d);
+  assertEquals(r.status, 200);
+  assertEquals((await r.json()).action, "fxw");
+  assertEquals(d.order[0], "beat:ig?action=fxw");
+  assertEquals(calls, []);
+  // No facts row on live: the run says so in its state row, and nothing is written for the weekend.
+  assertEquals(tables.ig_fxw_weekends ?? [], []);
+  assert(String(tables.ig_fxw_state?.[0]?.last_error).includes("no live facts row"));
+  // Unauthorised: nothing runs.
+  assertEquals((await handle(req("fxw", {}), deps())).status, 401);
 });

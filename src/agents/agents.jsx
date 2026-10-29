@@ -16,7 +16,7 @@ import { SurfaceBoundary } from '../app/surface_boundary.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesPageFor, quotesOkxOf, quotesOkxRow, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quoteDaysRecent, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwShareText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows,
+  AGENT_TABS, FXW_ROW_ID, fmtFx, fxwAudRow, fxwTiles, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesPageFor, quotesOkxOf, quotesOkxRow, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quoteDaysRecent, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwShareText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -703,6 +703,84 @@ function LpLiveDetail({ l, m, at, nowMs }) {
       <RwQuotesTable markets={lpLiveQuoteRows(l.quotes)} m={m} usd={usd} live waiting="Nothing resting and nothing held right now." />
       <RwFillsTable recent={fills} m={m} />
       <div className="ag-updated dim mono ag-lpl-foot">as of {when(at)} {UK_TZ} · refreshes every minute</div>
+    </div>
+  );
+}
+
+/**
+ * "AUD weekend (FXW-AUD)", the frozen FXW-AUD rule on paper on IG's recorded live quotes (Davies, 2026-10-29:
+ * "在testing列表中把IG Trader和澳元策略都上线…确保模拟一切真实"; `supabase/functions/ig/fxw.ts`): its head (PAPER, IG, the list's
+ * light), the quotes pages' scoreboard from its LIST row (`rowMoney(fxwAudRow(f))`) so the row and the page read the same
+ * figures (REALIZED G/L net of funding), STATUS (equity, trades, open position, days run, stake), then WEEKENDS, newest
+ * first: each weekend's Friday mid and the quote it came from, Sunday's decision quote and the gap, the entry and the exit
+ * with the bid and offer each filled against, why it closed, funding and P&L. Money in pounds.
+ * @param {{ f: any, m: (s: string) => string, at: any, nowMs: number }} props
+ */
+function FxwDetail({ f, m, at, nowMs }) {
+  const row = fxwAudRow(f);
+  if (!row) return null;
+  const money = rowMoney(row);
+  const gbp = (/** @type {unknown} */ x) => (x == null ? '—' : m(fmtGbp(Number(x), true)));
+  /** @param {unknown} bid @param {unknown} offer */
+  const quote = (bid, offer) => `${m(fmtFx(/** @type {number} */ (bid)))} / ${m(fmtFx(/** @type {number} */ (offer)))}`;
+  const rows = f.rows ?? [];
+  return (
+    <div className="ag-detail ag-fxw-detail">
+      <div className="ag-detail-head">
+        <ModeBadge mode="paper" />
+        <VenueBadge id="ig" />
+        <StatusDot status={row.status} since={f.started ? f.startAt : null} nowMs={nowMs} toned />
+      </div>
+      <h3 className="ag-detail-title mono sr-only">{row.name}</h3>
+      <div className="ag-scoreboard ag-scoreboard-sm">
+        <FundedCells fundedUsd={money.capital} deployedUsd={money.value} m={m} ccy={money.ccy} />
+        <div className="ag-sb-divider" />
+        <GlCell label="TODAY" usd={money.today} pct={money.todayPct} m={m} ccy={money.ccy} />
+        <div className="ag-sb-divider" />
+        <GlCell label="UNREALIZED G/L" usd={money.unrealised} pct={money.unrealisedPct} m={m} ccy={money.ccy} />
+        <div className="ag-sb-divider" />
+        <GlCell label="REALIZED G/L" usd={money.realised} pct={money.realisedPct} m={m} ccy={money.ccy} cls="ag-sb-realised" aside={`(incl. funding ${m(fmtIn(money.fees ?? 0, money.ccy))})`} />
+      </div>
+      {!row.status.running && <div className="ag-warn-line">{row.status.detail}</div>}
+      {f.lastError && <div className="ag-warn-line">run: {String(f.lastError)}</div>}
+      <section className="ag-section ag-rw-bar ag-fxw-bar">
+        <div className="ag-section-title mono">STATUS</div>
+        <div className="ag-rw-tiles">
+          {fxwTiles(f, m).map((t) => (
+            <div key={t.k} className="ag-rw-tile">
+              <div className="ag-rw-tile-k mono">{t.k}</div>
+              <div className="ag-rw-tile-v mono">{t.v}</div>
+              {t.note ? <div className="ag-rw-tile-note dim mono">{t.note}</div> : null}
+            </div>
+          ))}
+        </div>
+      </section>
+      <section className="ag-section ag-fxw-weekends">
+        <div className="ag-section-title mono">WEEKENDS</div>
+        <div className="hl-scroll">
+          <table className="hl-table ag-table ag-log mono">
+            <thead><tr>
+              <th className="hl-th">Friday</th><th className="hl-th">Friday mid</th><th className="hl-th">Sunday quote</th><th className="hl-th">Entry</th><th className="hl-th">Exit</th><th className="hl-th">Net</th>
+            </tr></thead>
+            <tbody>
+              {rows.length === 0 && <tr><td className="hl-empty dim" colSpan={6}>No weekend yet: the first starts {when(f.startAt)} {UK_TZ}.</td></tr>}
+              {rows.map((/** @type {any} */ w) => (
+                <tr key={w.friday}>
+                  <td className="dim">{w.friday}<span className="hl-sub dim">{w.status === 'no_trade' ? 'no trade' : w.status}</span></td>
+                  <td>{w.friMid == null ? '—' : m(fmtFx(w.friMid))}{w.friTs ? <span className="hl-sub dim">{quote(w.friBid, w.friOffer)} · {when(w.friTs)}</span> : null}</td>
+                  <td>{w.gapBps == null ? '—' : `${w.gapBps > 0 ? '+' : ''}${Number(w.gapBps).toFixed(1)} bps`}{w.decTs ? <span className="hl-sub dim">{quote(w.decBid, w.decOffer)} · {when(w.decTs)}</span> : null}</td>
+                  <td>{w.entryPrice == null ? <span className="dim">{w.reason ?? '—'}</span> : <>{w.side} {m(fmtFx(w.entryPrice))}<span className="hl-sub dim">{m(fmtGbp(Number(w.stakeGbp) || 0))} a pip · margin {m(fmtGbp(Number(w.marginGbp) || 0))}</span></>}</td>
+                  <td>{w.exitPrice != null
+                    ? <>{m(fmtFx(w.exitPrice))}<span className="hl-sub dim">{quote(w.exitBid, w.exitOffer)} · {when(w.exitTs)} · {w.exitReason}</span></>
+                    : w.status === 'open' ? <>open<span className="hl-sub dim">mark {m(fmtFx(w.markPrice))} · {when(w.markTs)}</span></> : '—'}</td>
+                  <td className="ag-gl" style={w.netGbp == null ? undefined : { color: pctColor(Number(w.netGbp)) }}>{gbp(w.netGbp)}{w.fundingGbp ? <span className="hl-sub dim">funding {m(fmtGbp(Number(w.fundingGbp)))}</span> : null}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <div className="ag-updated dim mono">as of {when(at)} {UK_TZ} · its run every five minutes</div>
     </div>
   );
 }
@@ -1693,6 +1771,7 @@ function AgentsModal({ hideValues, onClose }) {
   const okxOpen = quotesPage === 'okx' ? quotesOkxOf(selected, dash) : null;
   const lpLiveOpen = selected === LP_LIVE_ROW_ID && !!lpLiveRow(dash?.lpLive);
   const grokPmOpen = selected === GROKPM_ROW_ID && !!grokPmRow(dash?.grokPm);
+  const fxwOpen = selected === FXW_ROW_ID && !!fxwAudRow(dash?.fxwAud);
   const notReady = !!dash?.notReady;
   const tabRows = tab === 'live' ? liveRows : testing;
 
@@ -1785,6 +1864,19 @@ function AgentsModal({ hideValues, onClose }) {
         </header>
         <div className="modal-body ag-body">
           <PageGuard gen={gen}><GrokPmDetail g={dash.grokPm} m={m} at={dash.at} nowMs={now} /></PageGuard>
+        </div>
+      </Modal>
+    )}
+    {fxwOpen && (
+      <Modal onClose={() => setSelected(null)} size="lg">
+        <header className="modal-head">
+          <div>
+            <h2 className="modal-title mono"><NameText name={String(dash.fxwAud.name)} /></h2>
+          </div>
+          <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
+        </header>
+        <div className="modal-body ag-body">
+          <PageGuard gen={gen}><FxwDetail f={dash.fxwAud} m={m} at={dash.at} nowMs={now} /></PageGuard>
         </div>
       </Modal>
     )}

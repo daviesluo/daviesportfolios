@@ -379,6 +379,19 @@ places stay when the number is not whole.
   midnight after it went up, its rule for judging it written down first.
   Whether Davies' UK OKX account can trade these books is checked in the
   app before any money goes there.
+- **AUD weekend (FXW-AUD).** After OKX's rows, on IG (its own badge and
+  venue card), from Friday 30 October: the AUD/USD weekend rule on paper, on
+  the quotes IG's live login records every weekend. It notes Friday's last
+  mid before 22:00. At Sunday's 21:00 open, if the first tradable quote is 20
+  basis points or more away from it, it bets the other way: it buys at the
+  offer after a fall and sells at the bid after a rise. It closes when the
+  price gets back to Friday's mid, or after 24 hours, at the bid or offer
+  recorded then. If the recorder missed a minute after the open, that
+  weekend's entry counts as missed. A £1,000 spread-bet account at £1.50 a
+  pip, no stop, IG's 5 % margin and its close-out at half of it, and IG's
+  overnight funding. Every figure is in pounds. Its page lists each weekend:
+  Friday's mid, Sunday's quote and the gap, the entry and the exit with the
+  quotes used, and the result.
 - **No paper Reward quotes since 13 October.** The paper tests of quoting
   for Polymarket's liquidity rewards (Reward quotes, its variant-1 to
   variant-4, and Reward quotes mid-pool) left TESTING and stopped on
