@@ -47135,3 +47135,19 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   after logging in, and IGBOT's sync failed the same way at 00:19 and 00:21. Davies had his Grok bot restore
   `IG_API_KEY_DEMO`/`IG_DEMO_USERNAME`/`IG_DEMO_PASSWORD`; they must be a DIFFERENT demo login from IGBOT's, or the weekend
   recorder and IGBOT will log each other out every minute of the weekend windows.
+
+## LEDGER.md, archived 2026-10-29 (eighth) — the 2026-10-29 00:34 and 00:42 UTC history sections, oldest first
+
+### [2026-10-29 00:34 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The recorder's restored demo secrets are IGBOT's own login** (item 18): after the revert deployed, one `ig?action=facts`
+  at 00:30:59 landed on `Z6F18K`, the account the recorder used on 10-15 and IGBOT's. IG holds one session per login, and
+  the recorder's window (Fri 21:35-22:20, Sat 07:40 to Mon 22:20 UK) covers IGBOT's Sunday scan and all of Monday, so no time
+  split works: IGBOT needs a second demo login (its four `IGBOT_DEMO_*` values changed by Davies) before Fri 21:35 UK.
+  IGBOT's sync was refused six times 00:15-00:26 by logins from outside the server; clean since 00:27. The prompt now forbids
+  logging in with the bot's login and says when Claude reads the desk ledger (23:17 UK). The tick's `0160` pushed (d0459396). The 23:55, 00:15 and 00:18 sections archived.
+
+### [2026-10-29 00:42 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **CXBOT audited before any build** (sub-agent; commit, not pushed; item 19; Davies, 10-29): Hyperliquid first for the strategy
+  (keyless proof of the book, sign-only key, 1.5/4.5 bps, mark stops); IGBOT-style scoring passed no-skill forecasters in
+  8–32 % of simulated crypto windows (unresolved brackets excluded): a timeout now scores at its fraction, on assigned
+  brackets; scripts in `backtests/cxbot/`; desk-ledger seed. Landed by the main session, which re-ran `falsepass.py` on seed 777 (80 windows): design A passed no-skill forecasters 8.7–21.2 %, design B 0. The 00:40 section archived.

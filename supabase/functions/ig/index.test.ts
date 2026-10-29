@@ -1,9 +1,9 @@
-// Pins for the `ig` function: demo host only, the read-only list, no secret in any output, the beat first, the windows,
+// Pins for the `ig` function: the live host only (prices, never dealing; 2026-10-29), the read-only list, no secret in any output, the beat first, the windows,
 // the allowance discipline, and the recorder's shape. Run: deno test --allow-env supabase/functions/
 import { assert, assertEquals, assertRejects, assertThrows } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import frozen from "../../../docs/agents/backtests/ig_deepdive/params/g2_s1a_frozen.json" with { type: "json" };
 import {
-  adoptTokens, assertAllowed, demoCreds, IG_DEMO_BASE, IG_DEMO_SECRET_NAMES, IG_ENVIRONMENT, IgClient, IgRefused, scrubDeep, stripBalances,
+  adoptTokens, assertAllowed, IG_ENVIRONMENT, IG_LIVE_BASE, IG_LIVE_SECRET_NAMES, IgClient, IgRefused, liveCreds, scrubDeep, stripBalances,
 } from "./client.ts";
 import { candidates, expiryOrder, parsePins, pickEpics, type SearchMarket } from "./epics.ts";
 import {
@@ -13,13 +13,13 @@ import {
 import {
   QUOTES_FORCE_SWITCH_AFTER_LOGIN, QUOTES_GAP_MS, QUOTES_LOGIN_WAIT_MS, QUOTES_MAX_RELOGINS, QUOTES_MAX_REQUESTS, QUOTES_SWITCH_WAIT_MS,
   QUOTES_TOKEN_RETRIES, QUOTES_TOKEN_RETRY_WAIT_MS,
-  accountOf, ALLOWANCE_RESERVE, knownAllowance, quoteEpics, runFacts, runHistory, runQuotes, samplesOf, shouldReport, inSundayOpenGuard, REPORT_PREV_RUN_MS, reportReason, type Rest,
+  accountOf, ALLOWANCE_RESERVE, EXPECTED_DEMO_ACCOUNTS, knownAllowance, latestFacts, quoteEpics, runFacts, runHistory, runQuotes, samplesOf, shouldReport, inSundayOpenGuard, REPORT_PREV_RUN_MS, reportReason, type Rest,
 } from "./actions.ts";
 import { authorise, handle, type Deps } from "./index.ts";
 
-const CREDS = { key: "demo-key-0123456789abcdef", username: "davies-demo-user", password: "p@ss w0rd/secret" };
+const CREDS = { key: "live-key-0123456789abcdef", username: "davies-live-user", password: "p@ss w0rd/secret" };
 const ENV = {
-  [IG_DEMO_SECRET_NAMES.key]: CREDS.key, [IG_DEMO_SECRET_NAMES.username]: CREDS.username, [IG_DEMO_SECRET_NAMES.password]: CREDS.password,
+  [IG_LIVE_SECRET_NAMES.key]: CREDS.key, [IG_LIVE_SECRET_NAMES.username]: CREDS.username, [IG_LIVE_SECRET_NAMES.password]: CREDS.password,
   CRON_SECRET: "cron-secret-for-tests",
 };
 const CST = "CST-token-abcdef0123456789";
@@ -37,7 +37,7 @@ function assertClean(v: unknown, where: string) {
 
 type Call = { method: string; url: string; headers: Record<string, string>; body: string | null };
 
-/** A fake IG demo API. Each answer echoes what a careless server might: the username, and the CST in an error. */
+/** A fake IG API (host-blind: the client's guard is what keeps it on the live host). Each answer echoes what a careless server might: the username, and the CST in an error. */
 function fakeIg(o: {
   markets?: Record<string, SearchMarket[]>;
   prices?: (epic: string, q: URLSearchParams) => { status: number; body: unknown };
@@ -73,6 +73,8 @@ function fakeIg(o: {
    *  (client-token-invalid), and the older one dies `dieAfterMs` after that login; a login after it has died is good.
    *  The model the recorder's 10-18 runs fit (fix 6), not a documented IG rule. */
   oneGoodSession?: { dieAfterMs: number };
+  /** The login's account types (default both): a live login may hold only one of them. */
+  accountTypes?: ("CFD" | "SPREADBET")[];
 } = {}) {
   const calls: Call[] = [];
   let account = o.startAccount ?? "Z6F18J";
@@ -133,7 +135,7 @@ function fakeIg(o: {
         accounts: [
           { accountId: "Z6F18J", accountName: "CFD", accountType: "CFD", preferred: true },
           { accountId: "Z6F18K", accountName: "Spread bet", accountType: "SPREADBET", preferred: false },
-        ],
+        ].filter((a) => (o.accountTypes ?? ["CFD", "SPREADBET"]).includes(a.accountType as "CFD" | "SPREADBET")),
         echo: `welcome ${CREDS.username}`,
       }, { CST: cst, "X-SECURITY-TOKEN": accountToken });
     }
@@ -226,49 +228,58 @@ function fakeRest() {
 const noSleep = () => Promise.resolve();
 
 // ---------------------------------------------------------------------------------------------------------------------
-// The guard: demo host only, read-only list only, before fetch.
+// The guard: live host only (prices), read-only list only, before fetch.
 
-Deno.test("assertAllowed takes the demo host's listed calls and nothing else", () => {
+Deno.test("assertAllowed takes the live host's listed calls and nothing else, and refuses IGBOT's demo host (2026-10-29)", () => {
   const ok: [string, string][] = [
     ["POST", "/session"], ["PUT", "/session"], ["DELETE", "/session"], ["GET", "/accounts"], ["GET", "/markets?epics=CS.D.AUDUSD.TODAY.IP&filter=SNAPSHOT_ONLY"],
     ["GET", "/markets?searchTerm=AUD%2FUSD"], ["GET", "/markets/IX.D.SPTRD.DAILY.IP"], ["GET", "/marketnavigation"], ["GET", "/marketnavigation/123"],
     ["GET", "/prices/CS.D.AUDUSD.TODAY.IP?resolution=HOUR&from=2026-10-09T17:00:00&to=2026-10-12T23:00:00&pageSize=0"],
     ["GET", "/clientsentiment/AUDUSD"],
   ];
-  for (const [m, p] of ok) assertAllowed(m, IG_DEMO_BASE + p);
+  for (const [m, p] of ok) assertAllowed(m, IG_LIVE_BASE + p);
   const refused: [string, string][] = [
-    // The live host, any other host, scheme or port.
-    ["POST", "https://api.ig.com/gateway/deal/session"], ["GET", "https://api.ig.com/gateway/deal/markets/CS.D.AUDUSD.TODAY.IP"],
-    ["GET", "http://demo-api.ig.com/gateway/deal/accounts"], ["GET", "https://demo-api.ig.com:8443/gateway/deal/accounts"],
-    ["GET", "https://demo-api.ig.com.evil.example/gateway/deal/accounts"], ["GET", "https://demo-api.ig.com/gateway/other/accounts"],
+    // The demo host (IGBOT's login lives there since 2026-10-29), for every listed call; any other host, scheme or port.
+    ...ok.map(([m, p]) => [m, "https://demo-api.ig.com/gateway/deal" + p] as [string, string]),
+    ["GET", "http://api.ig.com/gateway/deal/accounts"], ["GET", "https://api.ig.com:8443/gateway/deal/accounts"],
+    ["GET", "https://api.ig.com.evil.example/gateway/deal/accounts"], ["GET", "https://api.ig.com/gateway/other/accounts"],
+    ["GET", "https://deal.ig.com/gateway/deal/accounts"], ["GET", "https://user:pw@api.ig.com/gateway/deal/accounts"],
     // Every dealing, position, order, watchlist, history and application path, whatever the method.
-    ["POST", IG_DEMO_BASE + "/positions/otc"], ["DELETE", IG_DEMO_BASE + "/positions/otc"], ["PUT", IG_DEMO_BASE + "/positions/otc/DIAAAA"],
-    ["GET", IG_DEMO_BASE + "/positions"], ["POST", IG_DEMO_BASE + "/workingorders/otc"], ["GET", IG_DEMO_BASE + "/workingorders"],
-    ["GET", IG_DEMO_BASE + "/confirms/REF1"], ["POST", IG_DEMO_BASE + "/watchlists"], ["PUT", IG_DEMO_BASE + "/watchlists/1"],
-    ["DELETE", IG_DEMO_BASE + "/watchlists/1/CS.D.AUDUSD.TODAY.IP"], ["GET", IG_DEMO_BASE + "/history/activity"],
-    ["POST", IG_DEMO_BASE + "/operations/application"], ["PUT", IG_DEMO_BASE + "/operations/application/disable"],
-    ["GET", IG_DEMO_BASE + "/session"], ["POST", IG_DEMO_BASE + "/session/refresh-token"], ["DELETE", IG_DEMO_BASE + "/session?x=1"],
-    ["DELETE", IG_DEMO_BASE + "/session/1"],
-    ["POST", IG_DEMO_BASE + "/markets"], ["POST", IG_DEMO_BASE + "/prices/CS.D.AUDUSD.TODAY.IP"],
-    ["POST", IG_DEMO_BASE + "/indicativecostsandcharges/open"], ["GET", IG_DEMO_BASE + "/client-sentiment/AUDUSD"],
+    ["POST", IG_LIVE_BASE + "/positions/otc"], ["DELETE", IG_LIVE_BASE + "/positions/otc"], ["PUT", IG_LIVE_BASE + "/positions/otc/DIAAAA"],
+    ["GET", IG_LIVE_BASE + "/positions"], ["POST", IG_LIVE_BASE + "/workingorders/otc"], ["GET", IG_LIVE_BASE + "/workingorders"],
+    ["GET", IG_LIVE_BASE + "/confirms/REF1"], ["POST", IG_LIVE_BASE + "/watchlists"], ["PUT", IG_LIVE_BASE + "/watchlists/1"],
+    ["DELETE", IG_LIVE_BASE + "/watchlists/1/CS.D.AUDUSD.TODAY.IP"], ["GET", IG_LIVE_BASE + "/history/activity"],
+    ["POST", IG_LIVE_BASE + "/operations/application"], ["PUT", IG_LIVE_BASE + "/operations/application/disable"],
+    ["GET", IG_LIVE_BASE + "/session"], ["POST", IG_LIVE_BASE + "/session/refresh-token"], ["DELETE", IG_LIVE_BASE + "/session?x=1"],
+    ["DELETE", IG_LIVE_BASE + "/session/1"],
+    ["POST", IG_LIVE_BASE + "/markets"], ["POST", IG_LIVE_BASE + "/prices/CS.D.AUDUSD.TODAY.IP"],
+    ["POST", IG_LIVE_BASE + "/indicativecostsandcharges/open"], ["GET", IG_LIVE_BASE + "/client-sentiment/AUDUSD"],
     // Tricks: traversal, a query on a write, an unlisted query parameter.
-    ["GET", IG_DEMO_BASE + "/markets/../positions"], ["POST", IG_DEMO_BASE + "/session?x=1"], ["GET", IG_DEMO_BASE + "/accounts?x=1"],
-    ["GET", IG_DEMO_BASE + "/markets?epics=A.B.C.D&dealId=1"],
+    ["GET", IG_LIVE_BASE + "/markets/../positions"], ["POST", IG_LIVE_BASE + "/session?x=1"], ["GET", IG_LIVE_BASE + "/accounts?x=1"],
+    ["GET", IG_LIVE_BASE + "/markets?epics=A.B.C.D&dealId=1"],
   ];
   for (const [m, u] of refused) assertThrows(() => assertAllowed(m, u), IgRefused, undefined, `${m} ${u}`);
 });
 
-Deno.test("the client refuses an order path and a live host before fetch is reached", async () => {
+Deno.test("the client refuses every dealing path before fetch is reached, and calls the live host only", async () => {
   const ig = fakeIg();
   const client = new IgClient({ creds: CREDS, fetchImpl: ig.impl, maxRequests: 10, minGapMs: 0, sleep: noSleep });
   await client.login();
   const before = ig.calls.length;
-  for (const [m, p] of [["POST", "/positions/otc"], ["DELETE", "/positions/otc"], ["POST", "/workingorders/otc"], ["PUT", "/positions/otc/X"], ["GET", "/history/transactions"]]) {
+  for (const [m, p] of [
+    ["POST", "/positions/otc"], ["DELETE", "/positions/otc"], ["PUT", "/positions/otc/X"], ["GET", "/positions"], ["GET", "/positions/X"],
+    ["POST", "/workingorders/otc"], ["DELETE", "/workingorders/otc/X"], ["PUT", "/workingorders/otc/X"], ["GET", "/workingorders"],
+    ["GET", "/confirms/REF"], ["POST", "/watchlists"], ["PUT", "/watchlists/1"], ["DELETE", "/watchlists/1"], ["GET", "/watchlists"],
+    ["GET", "/history/transactions"], ["GET", "/history/activity"], ["POST", "/operations/application"], ["GET", "/operations/application"],
+    ["PUT", "/operations/application/disable"], ["POST", "/indicativecostsandcharges/open"], ["GET", "/session/encryptionKey"],
+    ["POST", "/session/refresh-token"], ["POST", "/accounts"], ["PUT", "/accounts/preferences"], ["GET", "/accounts/preferences"],
+  ]) {
     await assertRejects(() => client.call(m, p, { version: 1, body: { epic: "CS.D.AUDUSD.TODAY.IP", direction: "BUY", size: 1 } }), IgRefused);
   }
   assertEquals(ig.calls.length, before);
-  // The base is a constant; a path cannot escape it.
-  assertEquals(IG_DEMO_BASE, "https://demo-api.ig.com/gateway/deal");
+  // The base is a constant, the live gateway; a path cannot escape it.
+  assertEquals(IG_LIVE_BASE, "https://api.ig.com/gateway/deal");
+  for (const c of ig.calls) assert(c.url.startsWith(IG_LIVE_BASE + "/"), c.url);
   await assertRejects(() => client.get("/../positions", 1), IgRefused);
   assertEquals(ig.calls.length, before);
   // And the budget: the eleventh request is refused, not sent.
@@ -279,12 +290,42 @@ Deno.test("the client refuses an order path and a live host before fetch is reac
   assertEquals(ig.calls.length, n);
 });
 
-Deno.test("only the demo secrets are read", () => {
-  assertEquals(IG_ENVIRONMENT, "demo");
-  assertEquals(IG_DEMO_SECRET_NAMES, { key: "IG_API_KEY_DEMO", username: "IG_DEMO_USERNAME", password: "IG_DEMO_PASSWORD" });
-  const c = demoCreds({ ...ENV, IG_API_KEY_LIVE: "live-key", IG_LIVE_USERNAME: "live-user", IG_LIVE_PASSWORD: "live-pass" });
-  assertEquals(c, CREDS);
-  assertEquals(demoCreds({ IG_API_KEY_LIVE: "live-key", IG_LIVE_USERNAME: "u", IG_LIVE_PASSWORD: "p" }), { missing: ["IG_API_KEY_DEMO", "IG_DEMO_USERNAME", "IG_DEMO_PASSWORD"] });
+/** Every name of IG's demo login and of IGBOT's, present in the environment: none may be read. */
+const OTHER_IG = {
+  IG_API_KEY_DEMO: "demo-key-xxxx", IG_DEMO_USERNAME: "demo-user-xxxx", IG_DEMO_PASSWORD: "demo-pass-xxxx",
+  IGBOT_DEMO_API_KEY: "igbot-key-xxxx", IGBOT_DEMO_USERNAME: "igbot-user-xxxx", IGBOT_DEMO_PASSWORD: "igbot-pass-xxxx",
+  IGBOT_DEMO_ACCOUNT_ID: "IGBOTACCT9", IGBOT_TOKEN: "igbot-token-xxxx",
+};
+
+Deno.test("only the three live secrets are read, never a demo name or an IGBOT_ one (2026-10-29)", async () => {
+  assertEquals(IG_ENVIRONMENT, "live");
+  assertEquals(IG_LIVE_SECRET_NAMES, { key: "IG_API_KEY_LIVE", username: "IG_LIVE_USERNAME", password: "IG_LIVE_PASSWORD" });
+  assertEquals(liveCreds({ ...OTHER_IG, ...ENV }), CREDS);
+  assertEquals(liveCreds(OTHER_IG), { missing: ["IG_API_KEY_LIVE", "IG_LIVE_USERNAME", "IG_LIVE_PASSWORD"] });
+  // The handler, through every action, reads no environment name but the cron secret and the three live ones.
+  const read = new Set<string>();
+  const env = new Proxy({ ...OTHER_IG, ...ENV } as Record<string, string | undefined>, {
+    get(t, k) {
+      if (typeof k === "string") read.add(k);
+      return t[k as string];
+    },
+    ownKeys() {
+      throw new Error("the environment was enumerated");
+    },
+  });
+  const ig = fakeIg({ markets: SEARCH });
+  const { rest } = fakeRest();
+  await factsFor(rest, "sb");
+  for (const a of ["facts&account=sb", "history&account=sb&plan=probe", "quotes"]) {
+    const d = deps({ env, rest, fetchImpl: ig.impl, now: () => Date.UTC(2026, 9, 18, 20, 0, 0, 400) });
+    await handle(req(a, { authorization: `Bearer ${ENV.CRON_SECRET}` }), d);
+    await Promise.all(d.kept);
+  }
+  assertEquals([...read].sort(), ["CRON_SECRET", "IG_API_KEY_LIVE", "IG_LIVE_PASSWORD", "IG_LIVE_USERNAME"]);
+  // And the IGBOT and demo values never reached IG.
+  const sent = JSON.stringify(ig.calls);
+  for (const v of Object.values(OTHER_IG)) assert(!sent.includes(v), v);
+  assert(ig.calls.length > 0 && ig.calls.every((c) => c.url.startsWith(IG_LIVE_BASE + "/")));
 });
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -381,7 +422,9 @@ Deno.test("facts reads one account, strips balances, picks epics and stores one 
   const row = tables.ig_facts[0] as Record<string, unknown> & { payload: Record<string, unknown>; selected: Record<string, string> };
   assertEquals(row.ok, true);
   assertEquals(row.selected.fx_audusd, "CS.D.AUDUSD.TODAY.IP");
-  assertEquals(row.payload.expected_account_matches, true);
+  // The row says it is the live login's, and expects no account id (demo's are informational only).
+  assertEquals(row.environment, "live");
+  assert(!("expected_account" in row.payload));
   const s = JSON.stringify(row);
   for (const k of ['"balance"', '"available"', '"accountInfo"', '"clientId"']) assert(!s.includes(k), `facts row keeps ${k}`);
   assertClean(row, "facts row");
@@ -476,7 +519,7 @@ Deno.test("the history plans are the frozen parameters, window for window", () =
 // history (G2).
 
 async function factsFor(rest: Rest, kind: "sb" | "cfd") {
-  await rest.insert("ig_facts", { account_kind: kind, account_id: kind === "sb" ? "Z6F18K" : "Z6F18J", ok: true, selected: { fx_audusd: "CS.D.AUDUSD.TODAY.IP", wknd_wallst: "IX.D.SUNDOW.DAILY.IP", us500: "IX.D.SPTRD.DAILY.IP" } });
+  await rest.insert("ig_facts", { environment: "live", account_kind: kind, account_id: kind === "sb" ? "Z6F18K" : "Z6F18J", ok: true, selected: { fx_audusd: "CS.D.AUDUSD.TODAY.IP", wknd_wallst: "IX.D.SUNDOW.DAILY.IP", us500: "IX.D.SPTRD.DAILY.IP" } });
 }
 
 Deno.test("history: the probe first, then bulk within the allowance less the reserve, each answer stored raw and scrubbed", async () => {
@@ -517,7 +560,7 @@ Deno.test("history: the probe first, then bulk within the allowance less the res
     if (c.url.includes("/prices/")) assertEquals(new URL(c.url).searchParams.get("resolution"), "HOUR");
   }
   // The reserve: with 560 left, a window that may cost 79 is not asked for.
-  await rest.insert("ig_price_pulls", { account_kind: "sb", window_key: "fxw:x", epic: "e", ok: false, remaining_allowance: 560, allowance_expiry_s: 600000 });
+  await rest.insert("ig_price_pulls", { environment: "live", account_kind: "sb", window_key: "fxw:x", epic: "e", ok: false, remaining_allowance: 560, allowance_expiry_s: 600000 });
   const c = await runHistory({ client: mk(), rest, kind: "sb", plan: "fxw", max: 6, dry: false, now });
   assertEquals((c.pulled as unknown[]).length, 0);
   assert(String(c.stop).includes("reserve"));
@@ -641,10 +684,11 @@ Deno.test("the beat is written before anything else, and only the cron bearer or
   assertEquals((await handle(req("history&account=live", { "x-app-token": "admin-token" }), deps())).status, 400);
   assertEquals((await handle(req("order", { "x-app-token": "admin-token" }), deps())).status, 404);
   assertEquals(await authorise(req("x", { authorization: `Bearer ${ENV.CRON_SECRET}` }), ENV.CRON_SECRET), "cron");
-  // Without the demo secrets nothing is called, and the answer names what is missing.
-  const r = await handle(req("quotes", { authorization: `Bearer ${ENV.CRON_SECRET}` }), deps({ env: { CRON_SECRET: ENV.CRON_SECRET, IG_API_KEY_LIVE: "live" } }));
+  // Without the live secrets nothing is called, and the answer names what is missing: the demo ones and IGBOT's do not
+  // stand in for them.
+  const r = await handle(req("quotes", { authorization: `Bearer ${ENV.CRON_SECRET}` }), deps({ env: { CRON_SECRET: ENV.CRON_SECRET, ...OTHER_IG } }));
   assertEquals(r.status, 503);
-  assertEquals((await r.json()).missing, ["IG_API_KEY_DEMO", "IG_DEMO_USERNAME", "IG_DEMO_PASSWORD"]);
+  assertEquals((await r.json()).missing, ["IG_API_KEY_LIVE", "IG_LIVE_USERNAME", "IG_LIVE_PASSWORD"]);
 });
 
 Deno.test("facts and history answer 202 at once, run on under keepAlive, and log a clean report; a crash logs no secret", async () => {
@@ -813,8 +857,8 @@ Deno.test("a fresh token refused for a moment is waited for, not logged in again
 Deno.test("after a login the recorder switches to the spread-bet account even when the login names another (10-18)", async () => {
   const { rest } = fakeRest();
   // Each account's own epics, as production's facts rows have them.
-  await rest.insert("ig_facts", { account_kind: "sb", account_id: "Z6F18K", ok: true, selected: { fx_audusd: "CS.D.AUDUSD.TODAY.IP" } });
-  await rest.insert("ig_facts", { account_kind: "cfd", account_id: "Z6F18J", ok: true, selected: { fx_audusd: "CS.D.AUDUSD.CFD.IP" } });
+  await rest.insert("ig_facts", { environment: "live", account_kind: "sb", account_id: "Z6F18K", ok: true, selected: { fx_audusd: "CS.D.AUDUSD.TODAY.IP" } });
+  await rest.insert("ig_facts", { environment: "live", account_kind: "cfd", account_id: "Z6F18J", ok: true, selected: { fx_audusd: "CS.D.AUDUSD.CFD.IP" } });
   let t = Date.UTC(2026, 9, 18, 20, 0, 0, 400);
   // The user was left on the spread-bet account; the login still answers "current: CFD".
   const ig = fakeIg({
@@ -1050,4 +1094,75 @@ Deno.test("audit 2026-10-20: a failed run after a clean one, away from Sunday's 
   assertEquals(reports.length, 0);
   assertEquals(tables.ig_quote_runs.length, 2);
   assertEquals([tables.ig_quote_runs[1].ok, tables.ig_quote_runs[1].reported], [false, false]);
+});
+
+// ---------------------------------------------------------------------------------------------------------------------
+// The live login (Davies, 2026-10-29: "同意，按方案1改"): every row says which environment wrote it, and the recorder reads the
+// live login's own facts only, so a demo account id (IGBOT's `Z6F18K` among them) is never tried on the live login.
+
+Deno.test("2026-10-29: the facts lookup reads the live rows only, so a newer demo row's account is never used", async () => {
+  const { rest, tables, rpcs } = fakeRest();
+  // A live row, then a NEWER demo row for the same kind (as production holds: ids 1-5 are demo).
+  await rest.insert("ig_facts", { environment: "live", account_kind: "sb", account_id: "LIVESB", ok: true, selected: { fx_audusd: "CS.D.AUDUSD.TODAY.IP" } });
+  await rest.insert("ig_facts", { environment: "demo", account_kind: "sb", account_id: "Z6F18K", ok: true, selected: { fx_audusd: "CS.D.AUDUSD.DEMO.IP" } });
+  await rest.insert("ig_facts", { environment: "demo", account_kind: "cfd", account_id: "Z6F18J", ok: true, selected: { fx_audusd: "CS.D.AUDUSD.CFD.IP" } });
+  const f = await latestFacts(rest);
+  assertEquals(f.sb?.account_id, "LIVESB");
+  assertEquals(f.cfd, undefined);
+  // The query itself names the environment (PostgREST filters on it in production).
+  const queries: string[] = [];
+  await latestFacts({ ...rest, select: (t, q, l) => { queries.push(`${t}?${q}`); return rest.select(t, q, l); } });
+  assert(queries.length === 2 && queries.every((q) => q.startsWith("ig_facts?") && q.includes("environment=eq.live")), queries.join(" "));
+  // The recorder switches to the live account only, and reads the live epic.
+  const ig = fakeIg({ accountTypes: ["SPREADBET"] });
+  let t = Date.UTC(2026, 9, 18, 20, 0, 0, 400);
+  const d = deps({ rest, fetchImpl: ig.impl, now: () => t, sleep: (ms) => { t += ms; return Promise.resolve(); } });
+  const r = await (await handle(req("quotes", { authorization: `Bearer ${ENV.CRON_SECRET}` }), d)).json();
+  const switches = ig.calls.filter((c) => c.method === "PUT").map((c) => JSON.parse(c.body!).accountId);
+  assert(switches.length > 0 && switches.every((a) => a === "LIVESB"), switches.join(","));
+  // The demo accounts (IGBOT's spread-bet one among them) are informational only: never switched to on the live login.
+  assertEquals(EXPECTED_DEMO_ACCOUNTS, { cfd: "Z6F18J", sb: "Z6F18K" });
+  assert(!switches.some((a) => Object.values(EXPECTED_DEMO_ACCOUNTS).includes(a)));
+  const epics = ig.calls.filter((c) => c.url.includes("epics=")).map((c) => new URL(c.url).searchParams.get("epics"));
+  assert(epics.every((e) => e === "CS.D.AUDUSD.TODAY.IP"), epics.join(","));
+  assertEquals(r.environment, "live");
+  // The samples and the run row say live.
+  assert((rpcs[0].args.samples as { environment: string }[]).every((s) => s.environment === "live"));
+  assertEquals(tables.ig_quote_runs.at(-1)?.environment, "live");
+});
+
+Deno.test("2026-10-29: facts, history and the action log write environment 'live' on every row, history reads the live pulls only", async () => {
+  const ig = fakeIg({ markets: SEARCH });
+  const { rest, tables } = fakeRest();
+  const d = deps({ rest, fetchImpl: ig.impl });
+  await handle(req("facts&account=sb", { authorization: `Bearer ${ENV.CRON_SECRET}` }), d);
+  await Promise.all(d.kept);
+  // A demo pull of the probe's first window, ok: it must not count as done for the live login.
+  await rest.insert("ig_price_pulls", { environment: "demo", account_kind: "sb", window_key: "probe:fx_audusd:2026-10-09", epic: "CS.D.AUDUSD.TODAY.IP", ok: true, at: "2026-10-16T00:00:00Z", remaining_allowance: 9000, allowance_expiry_s: 600000 });
+  const d2 = deps({ rest, fetchImpl: ig.impl });
+  await handle(req("history&account=sb&plan=probe", { authorization: `Bearer ${ENV.CRON_SECRET}` }), d2);
+  await Promise.all(d2.kept);
+  const live = tables.ig_price_pulls.filter((r) => r.environment === "live");
+  // Both probe windows are pulled on live, the one demo already pulled included.
+  assertEquals(live.map((r) => r.window_key).sort(), ["probe:fx_audusd:2026-10-09", "probe:wknd_wallst:2026-10-09"]);
+  assertEquals(tables.ig_facts.map((r) => r.environment), ["live"]);
+  assertEquals(tables.ig_action_log.map((r) => r.environment), ["live", "live"]);
+});
+
+Deno.test("2026-10-29: a live login with one account type records that one and says the other is missing, without failing", async () => {
+  const ig = fakeIg({ markets: SEARCH, accountTypes: ["SPREADBET"] });
+  const { rest, tables } = fakeRest();
+  // facts for each kind: the spread-bet one works, the CFD one says the login has none.
+  const sb = await runFacts({ client: new IgClient({ creds: CREDS, fetchImpl: ig.impl, maxRequests: 36, minGapMs: 0, sleep: noSleep }), rest, kind: "sb", pin: null });
+  const cfd = await runFacts({ client: new IgClient({ creds: CREDS, fetchImpl: ig.impl, maxRequests: 36, minGapMs: 0, sleep: noSleep }), rest, kind: "cfd", pin: null });
+  assertEquals([sb.ok, cfd.ok, cfd.account_id], [true, false, null]);
+  assertEquals(cfd.errors, ["the live login lists no CFD account"]);
+  assertEquals(tables.ig_facts.map((r) => [r.environment, r.account_kind, r.ok]), [["live", "sb", true], ["live", "cfd", false]]);
+  // The recorder then reads the spread-bet account alone: an ok run, and the answer names the missing kind.
+  let t = Date.UTC(2026, 9, 18, 20, 0, 0, 400);
+  const d = deps({ rest, fetchImpl: ig.impl, now: () => t, sleep: (ms) => { t += ms; return Promise.resolve(); } });
+  const r = await (await handle(req("quotes", { authorization: `Bearer ${ENV.CRON_SECRET}` }), d)).json();
+  assertEquals([r.ok, r.snapshots, r.error, r.missing_accounts], [true, 2, null, ["cfd"]]);
+  assertEquals(r.accounts.sb.snapshots, 2);
+  assertEquals(r.accounts.cfd, undefined);
 });

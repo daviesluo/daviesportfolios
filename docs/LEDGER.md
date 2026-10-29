@@ -640,8 +640,10 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
     before the arm, read the demo key's own allowances (`GET /operations/application`) and confirm on the first demo deals:
     a close as `LIMIT` fill-or-kill, how IG's stop or limit close shows in `/history/activity`, and that a filled working
     order's position keeps our `IGB-` reference (else `account_shared` refuses opens, safely). The release list ends
-    2026-12-31 (opens refused after it). **Open (2026-10-29):** the recorder's `IG_*` demo secrets are the same login as
-    IGBOT's (`Z6F18K`); one login holds one session, so Davies registers a second demo login for IGBOT before Fri 21:35 UK.
+    2026-12-31 (opens refused after it). **Settled 2026-10-29 ("同意，按方案1改"):** the `ig` recorder reads
+    IG's LIVE login for prices only (`IG_*_LIVE`, `0161`'s `environment`; `DEVIATION-2-live-prices.md`); the demo login is
+    IGBOT's alone. **Before Fri 21:35 UK, after `0161` and `ig` deploy:** run `facts` on live for `sb` and `cfd` and read back
+    `ig_action_log` and `igbot_requests` (the SQL: `reviews/2026-10-15-ig-verification.md` §11).
 
 19. **CXBOT, a Grok crypto bot, long and short: researched and AUDITED, nothing built** (Davies, 2026-10-28: "…币所的买卖交易也做成一套…
     long和short都可以做"; 2026-10-29: "…只判断对策略来说最优的币所…确保一切设定最佳"; `reviews/2026-10-29-crypto-grok-bot-research.md`,
@@ -768,18 +770,14 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's archive, each batch under a heading
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 00:40 UTC section (archived
-2026-10-29, seventh).
+2026-10-29, seventh) and the 00:34 and 00:42 ones (eighth).
 
-### [2026-10-29 00:42 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **CXBOT audited before any build** (sub-agent; commit, not pushed; item 19; Davies, 10-29): Hyperliquid first for the strategy
-  (keyless proof of the book, sign-only key, 1.5/4.5 bps, mark stops); IGBOT-style scoring passed no-skill forecasters in
-  8–32 % of simulated crypto windows (unresolved brackets excluded): a timeout now scores at its fraction, on assigned
-  brackets; scripts in `backtests/cxbot/`; desk-ledger seed. Landed by the main session, which re-ran `falsepass.py` on seed 777 (80 windows): design A passed no-skill forecasters 8.7–21.2 %, design B 0. The 00:40 section archived.
-
-### [2026-10-29 00:34 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **The recorder's restored demo secrets are IGBOT's own login** (item 18): after the revert deployed, one `ig?action=facts`
-  at 00:30:59 landed on `Z6F18K`, the account the recorder used on 10-15 and IGBOT's. IG holds one session per login, and
-  the recorder's window (Fri 21:35-22:20, Sat 07:40 to Mon 22:20 UK) covers IGBOT's Sunday scan and all of Monday, so no time
-  split works: IGBOT needs a second demo login (its four `IGBOT_DEMO_*` values changed by Davies) before Fri 21:35 UK.
-  IGBOT's sync was refused six times 00:15-00:26 by logins from outside the server; clean since 00:27. The prompt now forbids
-  logging in with the bot's login and says when Claude reads the desk ledger (23:17 UK). The tick's `0160` pushed (d0459396). The 23:55, 00:15 and 00:18 sections archived.
+### [2026-10-29 00:59 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The `ig` recorder moves to IG's LIVE login, prices only** (sub-agent; commit, not pushed; item 18; Davies, 10-29:
+  "同意，按方案1改"). `ig/client.ts` calls only `api.ig.com/gateway/deal`, refuses the demo host, reads only
+  `IG_API_KEY_LIVE`/`IG_LIVE_USERNAME`/`IG_LIVE_PASSWORD`; the read-only list is unchanged. `0161`: `environment` (default
+  `demo`) on the five `ig_*` tables; quotes' key, done pulls and `ig_quotes_record` per environment (checked on PGlite: demo
+  rows kept, a live quote never extends a demo row, replay safe); facts and pulls are read on live only; a one-type login
+  records that type and says `missing_accounts`. Spec untouched (sha in `MANIFEST.json`); amendment and S1b deviation in
+  `DEVIATION-2-live-prices.md`; review §11 holds the operator's facts calls and read-backs. `ig` Deno tests 37, two
+  counterfactuals fail without the live filters.

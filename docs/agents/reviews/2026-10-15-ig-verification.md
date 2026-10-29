@@ -365,3 +365,30 @@ uncovered stretch may run longer than 5 minutes. The run-level success rate is r
 - **The spec is unchanged.**
 - **The first weekend so far** (read 10-19 03:17 UTC): 448 of 448 minutes covered, first TRADEABLE quote at 21:00:05 UK.
 - **Runs ok:** 338 of 448.
+
+## 11. The live login for prices: Deviation 2 (2026-10-29)
+
+On Davies' word of 2026-10-29 ("同意，按方案1改"): `backtests/ig_deepdive/DEVIATION-2-live-prices.md`. The `ig` function
+moves from IG's demo login to the live login, for reading prices only. IG's demo login is IGBOT's alone: one login holds
+one current account, and the recorder and IGBOT refused each other (401 account-token-invalid, `igbot_requests`,
+2026-10-29 00:15-00:31 UTC). Hard rule 1 is amended there, with its old text kept: the recorder may log in to the live
+environment to read prices; dealing stays impossible (the client's list is unchanged and refuses the demo host now).
+- **The spec is unchanged.** Every row carries `environment` (`0161`): the rows so far say `demo`, the function writes `live`.
+- **Disclosed deviation for S1b.** The weekends recorded so far (2026-10-16/19 and 10-23/26) come from demo quotes. From
+  the first live run (Friday 2026-10-30, 21:35 UK) the weekends come from live quotes. Both are kept, told apart by
+  `environment`, and each reading says which it used and reports the demo and live weekends apart as well as together.
+
+**Operator steps after the deploy, before Friday 2026-10-30 21:35 UK** (read-only checks; the two calls are G1's `facts`).
+1. Confirm `0161` is applied (`select version from supabase_migrations.schema_migrations where version = '0161'`) and the
+   `ig` function shows the new deploy in the Edge Functions list. The recorder's row stays off until Friday 21:35 UK
+   (`public.ig_quotes_window`).
+2. Run `facts` on the live login, the spread-bet account first, then the CFD account about two minutes later (one call
+   takes about 90 s):
+   `select net.http_post(url := 'https://flmvxigozjuizpckllvk.supabase.co/functions/v1/ig?action=facts&account=sb', headers := jsonb_build_object('Authorization', concat('Bearer ', (select decrypted_secret from vault.decrypted_secrets where name = 'cron_secret'))), body := '{}'::jsonb, timeout_milliseconds := 10000);`
+   and the same with `&account=cfd`.
+3. Read back `select id, at, environment, result->>'ok' as ok, result->>'account_id' as account, result->'selected' as selected, result->'errors' as errors from public.ig_action_log order by id desc limit 2;`.
+   Each should say `live`, `ok` true, an account id, and an AUD/USD epic for `fx_audusd`. A login with no CFD account
+   answers `ok` false with "the live login lists no CFD account"; the recorder then records the spread-bet account alone.
+   Also `select id, at, account_kind, account_id, ok, selected from public.ig_facts where environment = 'live' order by id desc;`.
+4. Confirm IGBOT stayed clean meanwhile: `select at, action, status, error from public.igbot_requests where at >= '<the first call's time>' and (status >= 400 or error is not null) order by at;`
+   should return no row (no `401 account-token-invalid`), and its sync rows should keep their usual cadence.

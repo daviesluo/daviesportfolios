@@ -1,28 +1,41 @@
-// The IG REST client for the demo verification, and the two limits that make it read-only and demo-only.
+// The IG REST client for the verification and its recorder, and the limits that make it read-only: LIVE login, READ-ONLY
+// prices; no dealing path exists.
 //
 // Davies, 2026-10-15: "ig我的账户开好了，api也加了" and "FXW-AUD你继续验证研究并记录…". The spec it serves is
-// `docs/agents/backtests/ig_deepdive/SPEC-for-verification.md` (hard rules 1, 2 and 8). What this file guarantees:
+// `docs/agents/backtests/ig_deepdive/SPEC-for-verification.md` (hard rules 1, 2 and 8), amended for hard rule 1 by
+// `DEVIATION-2-live-prices.md` beside it. Until 2026-10-29 this client was demo-only. Davies, 2026-10-29: "同意，按方案1改":
+// it moved to IG's LIVE login, to read prices only, because IG's demo login now belongs to IGBOT alone
+// (`supabase/functions/igbot/`, its own `IGBOT_DEMO_*` secrets). IG keeps one current account per user and the recorder
+// switches between the spread-bet and CFD accounts every minute; the restored demo secrets were IGBOT's own login
+// (`Z6F18K`), and two programs on one login refused each other (401 error.security.account-token-invalid,
+// `igbot_requests`, 2026-10-29 00:15-00:31 UTC). A second demo login cannot get an API key (IG creates demo keys only from
+// the live login, one per account). The live login is a different user, so it cannot clash with IGBOT. What this file
+// guarantees:
 //
-//   * One host. Every request is built on `IG_DEMO_BASE` and checked by `assertAllowed` before `fetch` is reached: any
-//     other origin (the live host `api.ig.com` above all), scheme, port or path prefix throws `IgRefused`. Nothing here
-//     reads the live credentials; the only secrets read are the three demo names in `IG_DEMO_SECRET_NAMES`.
-//   * One list of calls. `POST /session` (log in), `PUT /session` (switch between the two demo accounts) and
-//     `DELETE /session` (log out, 2026-10-18: the recorder ends every session it opens), and GET on `/accounts`,
+//   * One host. Every request is built on `IG_LIVE_BASE` and checked by `assertAllowed` before `fetch` is reached: any
+//     other origin (the demo host `demo-api.ig.com`, IGBOT's, above all), scheme, port or path prefix throws `IgRefused`.
+//     The only secrets read are the three live names in `IG_LIVE_SECRET_NAMES`; nothing here reads a demo name or an
+//     `IGBOT_` one.
+//   * One list of calls, read-only. `POST /session` (log in), `PUT /session` (switch between the login's spread-bet and CFD
+//     accounts, never changing the default) and `DELETE /session` (log out, 2026-10-18), and GET on `/accounts`,
 //     `/markets` (by epics or a search term), `/markets/{epic}`, `/marketnavigation[/{node}]`, `/prices/{epic}` and
 //     `/clientsentiment[/{marketId}]`. Every other method or path throws before fetch: positions, working orders,
-//     confirms, watchlists, history, costs, applications. There is no order code, and none can be sent through this
-//     client: a DELETE anywhere but `/session`, a POST anywhere but `/session`, a PUT anywhere but `/session` are refused.
-//   * No secret leaves. The API key, username, password and both session tokens are scrubbed (`scrubDeep`) from every
-//     error, every stored payload and every answer; the session tokens live only in this isolate's memory.
+//     confirms, watchlists, history, transactions, costs, funding, applications. There is no order code, and none can be
+//     sent through this client: a DELETE anywhere but `/session`, a POST anywhere but `/session`, a PUT anywhere but
+//     `/session` are refused.
+//   * No secret leaves, and no balance is recorded. The API key, username, password and both session tokens are scrubbed
+//     (`scrubDeep`) from every error, every stored payload and every answer; the session tokens live only in this
+//     isolate's memory. Every session and `/accounts` answer loses its balances and client id (`stripBalances`) before
+//     anything keeps it: no balance of the real account is ever recorded.
 //   * A budget of requests per run (`maxRequests`) and a gap between them (`minGapMs`), so a run stays inside IG's
 //     30 non-trading requests a minute per account (IG Labs FAQ, "Limits").
 
-/** The only host this code calls. */
-export const IG_DEMO_BASE = "https://demo-api.ig.com/gateway/deal";
-/** Hard rule 1: the environment is demo, and nothing in this folder can say otherwise. */
-export const IG_ENVIRONMENT = "demo" as const;
-/** The three Edge secrets read, all demo. */
-export const IG_DEMO_SECRET_NAMES = { key: "IG_API_KEY_DEMO", username: "IG_DEMO_USERNAME", password: "IG_DEMO_PASSWORD" } as const;
+/** The only host this code calls: IG's live gateway, for prices only. */
+export const IG_LIVE_BASE = "https://api.ig.com/gateway/deal";
+/** The environment every row this function writes is tagged with (`environment`, migration 0161). */
+export const IG_ENVIRONMENT = "live" as const;
+/** The three Edge secrets read, all the live login's (stored by Davies on 2026-10-15). */
+export const IG_LIVE_SECRET_NAMES = { key: "IG_API_KEY_LIVE", username: "IG_LIVE_USERNAME", password: "IG_LIVE_PASSWORD" } as const;
 
 const EPIC = "[A-Za-z0-9._]{6,30}";
 /** Method and path (after `/gateway/deal`) of every call this client may make. Nothing else is sent. */
@@ -55,7 +68,7 @@ export class IgRefused extends Error {
 }
 
 /**
- * The guard: the URL must be on the demo host under `/gateway/deal`, and its method and path on the list. Returns the
+ * The guard: the URL must be on the live host under `/gateway/deal`, and its method and path on the list. Returns the
  * path after the base. Throws `IgRefused` otherwise, before anything is sent.
  */
 export function assertAllowed(method: string, url: string): string {
@@ -65,9 +78,9 @@ export function assertAllowed(method: string, url: string): string {
   } catch {
     throw new IgRefused("refused: not a URL");
   }
-  const base = new URL(IG_DEMO_BASE);
+  const base = new URL(IG_LIVE_BASE);
   if (u.protocol !== "https:" || u.host !== base.host || u.username || u.password) {
-    throw new IgRefused(`refused: host ${u.protocol}//${u.host} is not the IG demo host`);
+    throw new IgRefused(`refused: host ${u.protocol}//${u.host} is not the IG live host`);
   }
   if (!u.pathname.startsWith(base.pathname + "/")) throw new IgRefused(`refused: path ${u.pathname} is outside ${base.pathname}`);
   const path = u.pathname.slice(base.pathname.length);
@@ -124,15 +137,15 @@ export function stripBalances<T>(value: T): T {
 }
 
 export type IgCreds = { key: string; username: string; password: string };
-/** The demo credentials from the environment, or the names that are missing. */
-export function demoCreds(env: Record<string, string | undefined>): IgCreds | { missing: string[] } {
-  const key = (env[IG_DEMO_SECRET_NAMES.key] ?? "").trim();
-  const username = (env[IG_DEMO_SECRET_NAMES.username] ?? "").trim();
-  const password = env[IG_DEMO_SECRET_NAMES.password] ?? "";
+/** The live login's credentials from the environment, or the names that are missing. Reads those three names only. */
+export function liveCreds(env: Record<string, string | undefined>): IgCreds | { missing: string[] } {
+  const key = (env[IG_LIVE_SECRET_NAMES.key] ?? "").trim();
+  const username = (env[IG_LIVE_SECRET_NAMES.username] ?? "").trim();
+  const password = env[IG_LIVE_SECRET_NAMES.password] ?? "";
   const missing: string[] = [];
-  if (!key) missing.push(IG_DEMO_SECRET_NAMES.key);
-  if (!username) missing.push(IG_DEMO_SECRET_NAMES.username);
-  if (!password) missing.push(IG_DEMO_SECRET_NAMES.password);
+  if (!key) missing.push(IG_LIVE_SECRET_NAMES.key);
+  if (!username) missing.push(IG_LIVE_SECRET_NAMES.username);
+  if (!password) missing.push(IG_LIVE_SECRET_NAMES.password);
   return missing.length ? { missing } : { key, username, password };
 }
 
@@ -263,7 +276,7 @@ export class IgClient {
   }
 
   private async raw(method: string, path: string, o: { query?: Record<string, string>; body?: unknown; version: number; auth: boolean; logout?: boolean }): Promise<{ answer: IgAnswer; headers: Headers }> {
-    const url = new URL(IG_DEMO_BASE + path);
+    const url = new URL(IG_LIVE_BASE + path);
     for (const [k, v] of Object.entries(o.query ?? {})) url.searchParams.set(k, v);
     assertAllowed(method, url.toString());
     if (this.requests >= this.opts.maxRequests) throw new IgRefused(`refused: this run's budget of ${this.opts.maxRequests} requests is spent`);
@@ -386,7 +399,7 @@ export class IgClient {
     return a.body;
   }
 
-  /** `PUT /session` to a demo account, unless it is the current one. `defaultAccount` false: the default is left alone. */
+  /** `PUT /session` to one of the login's accounts, unless it is the current one. `defaultAccount` false: the default is left alone. */
   async switchTo(accountId: string, force = false): Promise<void> {
     if (!this.session) await this.login();
     // `force`: send the switch even when the session says it is on that account already. A login's `currentAccountId`

@@ -1021,17 +1021,21 @@ describe('pg_cron jobs', () => {
     expect(sql).toMatch(/revoke all on function public\.ig_quotes_record\(jsonb\) from public, anon, authenticated;/);
   });
 
-  // The `ig` function reads the demo secrets and calls the demo host only, and holds no order code (spec hard rules 1-2).
-  it('keeps the ig function demo-only and read-only in its source: no live host, no live secret, no dealing path', () => {
+  // The `ig` function reads the LIVE login's three secrets and calls the live host only, for prices, and holds no order
+  // code (spec hard rules 1-2, hard rule 1 amended by DEVIATION-2; Davies, 2026-10-29: "同意，按方案1改"). IG's demo login is
+  // IGBOT's alone: no demo name and no IGBOT_ name is read, and the demo host is not in the source.
+  it('keeps the ig function on the live host for prices only: no demo host, no demo or IGBOT secret, no dealing path', () => {
     const dir = path.join(ROOT, 'supabase/functions/ig');
     const files = fs.readdirSync(dir).filter((f) => f.endsWith('.ts') && !f.endsWith('.test.ts'));
     expect(files.sort()).toEqual(['actions.ts', 'client.ts', 'epics.ts', 'index.ts', 'windows.ts']);
     for (const f of files) {
       const code = fs.readFileSync(path.join(dir, f), 'utf8').replace(/\/\/[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
-      expect(code, f).not.toMatch(/IG_API_KEY_LIVE|IG_LIVE_|_LIVE\b/);
-      // Every IG URL is the demo one.
+      expect(code, f).not.toMatch(/IG_API_KEY_DEMO|IG_DEMO_|_DEMO\b|IGBOT_|demo-api/);
+      // Every IG URL is the live gateway.
       const hosts = [...code.matchAll(/https?:\/\/[a-z0-9.-]*ig\.com[^"'`\s]*/g)].map((m) => m[0]);
-      expect(hosts.every((h) => h === 'https://demo-api.ig.com/gateway/deal'), f).toBe(true);
+      expect(hosts.every((h) => h === 'https://api.ig.com/gateway/deal'), f).toBe(true);
+      // No environment name is read but through the one `liveCreds` and the cron secret.
+      expect([...code.matchAll(/env\[\s*"([A-Z_]+)"\s*\]|env\.([A-Z_]+)/g)].map((m) => m[1] ?? m[2]).filter((n) => n !== 'CRON_SECRET'), f).toEqual([]);
       // DELETE only as the log-out of the client's own session (2026-10-18): the list entry and the one call.
       const noLogout = code.replace('["DELETE", /^\\/session$/]', '').replace('this.raw("DELETE", "/session"', '');
       expect(noLogout, f).not.toMatch(/\/positions|\/workingorders|\/confirms|\/watchlists|\/operations|\/history\/|dealReference|"DELETE"/);
@@ -1039,10 +1043,38 @@ describe('pg_cron jobs', () => {
     const client = fs.readFileSync(path.join(dir, 'client.ts'), 'utf8');
     expect(client).toContain('["DELETE", /^\\/session$/]');
     expect(client.match(/"DELETE"/g)?.length).toBe(2);
-    expect(fs.readFileSync(path.join(dir, 'client.ts'), 'utf8')).toContain('export const IG_DEMO_BASE = "https://demo-api.ig.com/gateway/deal";');
+    expect(client).toContain('export const IG_LIVE_BASE = "https://api.ig.com/gateway/deal";');
+    expect(client).toContain('export const IG_LIVE_SECRET_NAMES = { key: "IG_API_KEY_LIVE", username: "IG_LIVE_USERNAME", password: "IG_LIVE_PASSWORD" } as const;');
+    expect(client).toContain('export const IG_ENVIRONMENT = "live" as const;');
     // Deployed like the other bearer-checked functions.
     const yml = fs.readFileSync(path.join(ROOT, '.github/workflows/edge-functions.yml'), 'utf8');
     expect(/PUBLIC_FNS="([^"]*)"/.exec(yml)?.[1].split(' ')).toContain('ig');
+  });
+
+  // 0161 (Davies, 2026-10-29: "同意，按方案1改"): every row of the ig tables says which IG environment wrote it. The rows from
+  // before are the demo login's and keep 'demo'; the function writes 'live'; the record function's newest-row lookup and
+  // key are per environment, so a live quote never extends a demo row (checked on PGlite in the ledger's entry).
+  it('tags every ig row with its environment, demo by default, and keeps quotes and done pulls apart per environment (0161)', () => {
+    const T = FILES.find((f) => /^\d{4}_ig_environment\.sql$/.test(f)) ?? '';
+    expect(T).toBe('0161_ig_environment.sql');
+    const sql = norm(fs.readFileSync(path.join(DIR, T), 'utf8').replace(/--[^\n]*/g, ''));
+    for (const t of ['ig_facts', 'ig_price_pulls', 'ig_quotes', 'ig_quote_runs', 'ig_action_log']) {
+      expect(sql).toMatch(new RegExp(`alter table public\\.${t} +add column if not exists environment text not null default 'demo' check \\(environment in \\('demo', 'live'\\)\\);`));
+    }
+    expect(sql).toContain('alter table public.ig_quotes add constraint ig_quotes_pkey primary key (environment, account_kind, epic, ts);');
+    expect(sql).toContain('create unique index if not exists ig_price_pulls_done on public.ig_price_pulls (environment, account_kind, epic, window_key) where ok;');
+    expect(sql).toContain('create index if not exists ig_facts_env_kind_id on public.ig_facts (environment, account_kind, id desc);');
+    const fn = norm(/function public\.ig_quotes_record\(samples jsonb\)[\s\S]*?\$fn\$([\s\S]*?)\$fn\$/.exec(sql)?.[1] ?? '');
+    expect(fn).toContain("env := coalesce(s->>'environment', 'demo');");
+    expect(fn).toContain("where q.environment = env and q.account_kind = s->>'account_kind' and q.epic = s->>'epic'");
+    expect(fn).toContain('on conflict (environment, account_kind, epic, ts) do nothing;');
+    expect(sql).toContain('revoke all on function public.ig_quotes_record(jsonb) from public, anon, authenticated;');
+    expect(sql).not.toMatch(/grant [^;]* to (anon|authenticated)|create policy|drop table|delete from|truncate/i);
+    // The function writes 'live' on every table it writes, and reads its facts and its pulls on live only.
+    const actions = fs.readFileSync(path.join(ROOT, 'supabase/functions/ig/actions.ts'), 'utf8');
+    expect(actions).toContain('`select=id,at,account_kind,account_id,ok,selected&environment=eq.${IG_ENVIRONMENT}&account_kind=eq.${kind}&ok=eq.true&order=id.desc`');
+    expect(actions).toContain('&environment=eq.${IG_ENVIRONMENT}&account_kind=eq.${kind}&order=id.asc`');
+    expect(fs.readFileSync(path.join(ROOT, 'supabase/functions/ig/index.ts'), 'utf8')).toContain('d.rest.insert("ig_action_log", { environment: IG_ENVIRONMENT, action, params,');
   });
 
   it("keeps the three order paths' dry-run record 14 days and watches the database's size, by jobs that call nothing (0101)", () => {

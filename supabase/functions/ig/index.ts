@@ -1,10 +1,13 @@
-// ig — IG's demo REST API for the FXW / WKND verification, READ-ONLY and DEMO-ONLY (spec:
-// docs/agents/backtests/ig_deepdive/SPEC-for-verification.md; review: docs/agents/reviews/2026-10-15-ig-verification.md).
+// ig — IG's REST API for the FXW / WKND verification: LIVE login, READ-ONLY prices; no dealing path exists (spec:
+// docs/agents/backtests/ig_deepdive/SPEC-for-verification.md, hard rule 1 amended by DEVIATION-2-live-prices.md beside it;
+// review: docs/agents/reviews/2026-10-15-ig-verification.md).
 //
 // Davies, 2026-10-15: "ig我的账户开好了，api也加了" — the demo and live keys are Edge secrets he stored and tested — and
 // "FXW-AUD你继续验证研究并记录". The spec's hard rule 3 reserved an Edge Function for his ask; the secrets live only in
-// Supabase, so reaching IG from here is the only way that never prints or moves them. This function reads the three
-// DEMO secrets and nothing else of IG's; the live ones are read by no code in this folder (a vitest pins that).
+// Supabase, so reaching IG from here is the only way that never prints or moves them. Until 2026-10-29 it read the demo
+// login; Davies, 2026-10-29: "同意，按方案1改": it reads the three LIVE secrets and nothing else of IG's, because IG's demo
+// login is IGBOT's alone and one login holds one session (client.ts). No demo name and no `IGBOT_` name is read (a vitest
+// and the Deno test pin it). Every row it writes says `environment = 'live'` (0161); the rows from before say 'demo'.
 //
 //   POST ?action=facts&account=sb|cfd[&pin=role:EPIC,…]   G1: the session's accounts (balances stripped), the market
 //        navigation's root, IG's search answers for the roles, the chosen epics and their `/markets/{epic}` details, and
@@ -15,17 +18,17 @@
 //        probe plan runs first. Each answer, raw, → `ig_price_pulls`; answered 202 at once as `facts` is. `dry=1` lists
 //        what would be pulled, calls nothing, and answers with it.
 //   POST ?action=quotes   G4's recorder by REST: in the weekend windows (`windows.ts`), two snapshots a minute of each
-//        demo account's epics → `ig_quotes` (a row when a quote changes) and `ig_quote_runs` (every run). A row of the
+//        live account's epics → `ig_quotes` (a row when a quote changes) and `ig_quote_runs` (every run). A row of the
 //        one-minute job (0122), switched on only around the windows.
 //
 // Auth: `Authorization: Bearer <CRON_SECRET>` (pg_net with the Vault `cron_secret`) or an admin `x-app-token`; deployed
-// --no-verify-jwt (PUBLIC_FNS in edge-functions.yml). Secrets: IG_API_KEY_DEMO, IG_DEMO_USERNAME, IG_DEMO_PASSWORD; never
+// --no-verify-jwt (PUBLIC_FNS in edge-functions.yml). Secrets: IG_API_KEY_LIVE, IG_LIVE_USERNAME, IG_LIVE_PASSWORD; never
 // echoed, and scrubbed with the session tokens from every answer, row and error.
 
 import { reportServerError } from "../_shared/ops.ts";
 import { constantTimeEqual, verifyToken } from "../_shared/token.ts";
 import { beatKeyOfRequest, writeBeat } from "../_shared/beats.ts";
-import { demoCreds, IgClient, scrubDeep, type IgSession } from "./client.ts";
+import { IG_ENVIRONMENT, IgClient, liveCreds, scrubDeep, type IgSession } from "./client.ts";
 import {
   FACTS_GAP_MS, FACTS_MAX_REQUESTS, HISTORY_GAP_MS, HISTORY_MAX_REQUESTS, HISTORY_MAX_WINDOWS, QUOTES_GAP_MS, QUOTES_MAX_LOGINS, QUOTES_MAX_RELOGINS,
   QUOTES_FORCE_SWITCH_AFTER_LOGIN, QUOTES_LOGIN_WAIT_MS, QUOTES_LOGOUT, QUOTES_RELOGIN_WAIT_MS, QUOTES_MAX_REQUESTS, QUOTES_SWITCH_WAIT_MS, QUOTES_TOKEN_RETRIES, QUOTES_TOKEN_RETRY_WAIT_MS,
@@ -75,8 +78,8 @@ export async function handle(req: Request, d: Deps): Promise<Response> {
   if (req.method !== "POST") return json(405, { error: "POST only" });
   const url = new URL(req.url);
   const action = url.searchParams.get("action") ?? "";
-  const creds = demoCreds(d.env);
-  if ("missing" in creds) return json(503, { error: "IG demo credentials not set", missing: creds.missing });
+  const creds = liveCreds(d.env);
+  if ("missing" in creds) return json(503, { error: "IG live credentials not set", missing: creds.missing });
   const secrets = [creds.key, creds.username, creds.password];
   const kindParam = url.searchParams.get("account") ?? "sb";
   try {
@@ -99,7 +102,7 @@ export async function handle(req: Request, d: Deps): Promise<Response> {
         return await runHistory({ client, rest: d.rest, kind, plan, max, dry, now: d.now });
       };
       const scrubbed = (v: unknown) => scrubDeep(v, client ? (client as IgClient).secrets() : secrets);
-      const log = (result: unknown) => d.rest.insert("ig_action_log", { action, params, result: scrubbed(result) }).catch(() => {});
+      const log = (result: unknown) => d.rest.insert("ig_action_log", { environment: IG_ENVIRONMENT, action, params, result: scrubbed(result) }).catch(() => {});
       if (dry) {
         const out = scrubbed(await work());
         return json(200, out);

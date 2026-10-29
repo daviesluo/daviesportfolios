@@ -7,6 +7,10 @@
    "sha256": "2ae648001d29d0d7a7b814cb0dcfc0dab7ce7fe4aa285b55f17a05216aa96775"
   },
   {
+   "path": "DEVIATION-2-live-prices.md",
+   "sha256": "87b9353ca5e65bd38f2408018aa53e39dfc14297e72762e7651450d00c19fa25"
+  },
+  {
    "path": "SPEC-for-verification.md",
    "sha256": "5adacf70708e6a643dff7dfb40b12f9fd85888758e1aab9599ce341eeb7f62d1"
   },

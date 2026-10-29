@@ -2,7 +2,7 @@
 // Each writes what it read to its own table and returns a short report; none can place, amend or close anything,
 // because the client it is given cannot (`client.ts`).
 
-import { IgClient, IgHttpError, IgRefused, isTokenError, stripBalances, type IgSession } from "./client.ts";
+import { IG_ENVIRONMENT, IgClient, IgHttpError, IgRefused, isTokenError, stripBalances, type IgSession } from "./client.ts";
 import { keepSearch, parsePins, pickEpics, ROLES, SEARCH_TERMS, type SearchMarket } from "./epics.ts";
 import { activeWindows, historyWindows, HISTORY_PLANS, type HistoryPlanId, ukClock } from "./windows.ts";
 
@@ -53,11 +53,16 @@ export function restClient(sbUrl: string, serviceKey: string, fetchImpl: typeof 
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
-// The two demo accounts (Davies, 2026-10-15): CFD `Z6F18J`, spread betting `Z6F18K`. A role's account is found by its
-// type in the session's own list; these ids are only checked against it, and a difference is recorded, not obeyed.
+// The login's two accounts, found by their type in the session's own list (`accountOf`). Since 2026-10-29 the login is the
+// LIVE one (client.ts says why), and its account ids are whatever its `facts` finds: no id is expected or invented for
+// live. A login with only one of the two types records that one, and the other kind's `facts` row says it is missing.
 
 export type AccountKind = "sb" | "cfd";
 export const ACCOUNT_KINDS: readonly AccountKind[] = ["sb", "cfd"];
+/**
+ * Informational, demo only: the two demo accounts the `environment = 'demo'` rows name (Davies, 2026-10-15: CFD `Z6F18J`,
+ * spread betting `Z6F18K`, the latter IGBOT's since 2026-10-29). Nothing compares a live account with them.
+ */
 export const EXPECTED_DEMO_ACCOUNTS: Record<AccountKind, string> = { cfd: "Z6F18J", sb: "Z6F18K" };
 const ACCOUNT_TYPE: Record<AccountKind, string> = { cfd: "CFD", sb: "SPREADBET" };
 
@@ -92,9 +97,7 @@ export async function runFacts(o: { client: IgClient; rest: Rest; kind: AccountK
     await client.login();
     payload.session = client.sessionInfo;
     accountId = accountOf(client.sessionInfo, kind);
-    payload.expected_account = EXPECTED_DEMO_ACCOUNTS[kind];
-    payload.expected_account_matches = accountId === EXPECTED_DEMO_ACCOUNTS[kind];
-    if (!accountId) throw new Error(`the session lists no ${ACCOUNT_TYPE[kind]} account`);
+    if (!accountId) throw new Error(`the ${IG_ENVIRONMENT} login lists no ${ACCOUNT_TYPE[kind]} account`);
     await client.switchTo(accountId);
     payload.accounts = stripBalances(await client.get("/accounts", 1));
     try {
@@ -147,18 +150,21 @@ export async function runFacts(o: { client: IgClient; rest: Rest; kind: AccountK
   }
   const ok = Object.keys(selected).length > 0;
   const row = client.scrub({
-    account_kind: kind, account_id: accountId, ok, selected, payload, errors, requests: client.requests,
+    environment: IG_ENVIRONMENT, account_kind: kind, account_id: accountId, ok, selected, payload, errors, requests: client.requests,
     clock_offset_ms: client.clockOffsetMs,
   });
   await rest.insert("ig_facts", row);
-  return { action: "facts", account_kind: kind, account_id: accountId, ok, selected, missing: payload.missing ?? null, errors, requests: client.requests };
+  return { action: "facts", environment: IG_ENVIRONMENT, account_kind: kind, account_id: accountId, ok, selected, missing: payload.missing ?? null, errors, requests: client.requests };
 }
 
-/** The newest successful `facts` row of each account kind. */
+/**
+ * The newest successful `facts` row of each account kind, in this function's environment only: a demo row's account id
+ * is never tried on the live login (2026-10-29).
+ */
 export async function latestFacts(rest: Rest): Promise<Partial<Record<AccountKind, FactsRow>>> {
   const out: Partial<Record<AccountKind, FactsRow>> = {};
   for (const kind of ACCOUNT_KINDS) {
-    const rows = await rest.select<FactsRow>("ig_facts", `select=id,at,account_kind,account_id,ok,selected&account_kind=eq.${kind}&ok=eq.true&order=id.desc`, 1);
+    const rows = await rest.select<FactsRow>("ig_facts", `select=id,at,account_kind,account_id,ok,selected&environment=eq.${IG_ENVIRONMENT}&account_kind=eq.${kind}&ok=eq.true&order=id.desc`, 1);
     if (rows[0]) out[kind] = rows[0];
   }
   return out;
@@ -198,7 +204,8 @@ export async function runHistory(o: {
   const facts = (await latestFacts(rest))[kind];
   if (!facts) return { action: "history", plan, error: `no facts row for ${kind}: run ?action=facts&account=${kind} first` };
   const windows = historyWindows(plan).filter((w) => facts.selected[w.role]);
-  const pulls = await rest.select<PullRow>("ig_price_pulls", `select=window_key,epic,ok,at,remaining_allowance,allowance_expiry_s&account_kind=eq.${kind}&order=id.asc`);
+  // This environment's pulls only: the demo login's windows and allowance are not the live login's.
+  const pulls = await rest.select<PullRow>("ig_price_pulls", `select=window_key,epic,ok,at,remaining_allowance,allowance_expiry_s&environment=eq.${IG_ENVIRONMENT}&account_kind=eq.${kind}&order=id.asc`);
   const done = new Set(pulls.filter((p) => p.ok).map((p) => `${p.window_key}|${p.epic}`));
   const pending = windows.filter((w) => !done.has(`${w.key}|${facts.selected[w.role]}`));
   const allowance = knownAllowance(pulls, o.now());
@@ -225,7 +232,7 @@ export async function runHistory(o: {
     }
     const epic = facts.selected[w.role];
     const row: Record<string, unknown> = {
-      account_kind: kind, account_id: facts.account_id, plan, role: w.role, epic, resolution: "HOUR", window_key: w.key,
+      environment: IG_ENVIRONMENT, account_kind: kind, account_id: facts.account_id, plan, role: w.role, epic, resolution: "HOUR", window_key: w.key,
       from_param: w.from, to_param: w.to, ok: false,
     };
     try {
@@ -333,7 +340,7 @@ export const SECOND_SAMPLE_MS = 30_000;
 export const SECOND_SAMPLE_LATEST_START_MS = 40_000;
 
 export type QuoteSample = {
-  account_kind: AccountKind; account_id: string; epic: string; received_at: string;
+  environment: typeof IG_ENVIRONMENT; account_kind: AccountKind; account_id: string; epic: string; received_at: string;
   bid: number | null; offer: number | null; market_status: string; update_time: string | null; update_time_utc: string | null; delay_time: number | null;
 };
 
@@ -345,7 +352,7 @@ export function samplesOf(body: unknown, kind: AccountKind, accountId: string, r
     const s = m?.snapshot ?? {};
     const num = (x: unknown) => (typeof x === "number" && Number.isFinite(x) ? x : null);
     return {
-      account_kind: kind, account_id: accountId, epic: String(m?.instrument?.epic ?? ""), received_at: receivedAt,
+      environment: IG_ENVIRONMENT, account_kind: kind, account_id: accountId, epic: String(m?.instrument?.epic ?? ""), received_at: receivedAt,
       bid: num(s.bid), offer: num(s.offer), market_status: typeof s.marketStatus === "string" ? s.marketStatus : "UNKNOWN",
       update_time: typeof s.updateTime === "string" ? s.updateTime : null,
       update_time_utc: typeof s.updateTimeUTC === "string" ? s.updateTimeUTC : null,
@@ -424,9 +431,13 @@ export async function runQuotes(o: {
   let snapshots = 0;
   let changed: number | null = null;
   let plan: ReturnType<typeof quoteEpics> = [];
+  // Account kinds with no facts row naming an epic for these windows (a login with one account type has one): the run
+  // records the others and says which are missing; it does not fail for it.
+  let missingAccounts: AccountKind[] = [];
   try {
     plan = quoteEpics(await latestFacts(o.rest), roles);
-    if (!plan.length) throw new Error("no facts row names an epic for these windows: run ?action=facts for each account");
+    missingAccounts = ACCOUNT_KINDS.filter((k) => !plan.some((p) => p.kind === k));
+    if (!plan.length) throw new Error(`no ${IG_ENVIRONMENT} facts row names an epic for these windows: run ?action=facts for each account`);
     // The spread-bet account first (S1b's FX); `quoteEpics` lists it first.
     plan = [...plan].sort((a, b) => ACCOUNT_KINDS.indexOf(a.kind) - ACCOUNT_KINDS.indexOf(b.kind));
     client.reloginAllowed = () => o.now() - start <= QUOTES_RELOGIN_LATEST_MS;
@@ -478,7 +489,7 @@ export async function runQuotes(o: {
   }
   const ok = snapshots > 0 && errors.length === 0;
   const run: Record<string, unknown> = client.scrub({
-    started_at: new Date(start).toISOString(), windows: ids, ok, snapshots, samples: samples.length, changed,
+    environment: IG_ENVIRONMENT, started_at: new Date(start).toISOString(), windows: ids, ok, snapshots, samples: samples.length, changed,
     requests: client.requests, logins: client.logins, switches: client.switches, clock_offset_ms: client.clockOffsetMs,
     ms: o.now() - start, error: errors.length ? errors.join("; ").slice(0, 1000) : null, reported: false,
   });
@@ -501,7 +512,10 @@ export async function runQuotes(o: {
   }
   // The same-token retries are in the answer, not the row (ig_quote_runs has no column for them; `requests` counts them).
   return {
-    result: { action: "quotes", ...run, token_retries: client.tokenRetriesUsed, logouts: client.logouts, accounts: client.scrub(perAccount) },
+    result: {
+      action: "quotes", ...run, token_retries: client.tokenRetriesUsed, logouts: client.logouts, accounts: client.scrub(perAccount),
+      missing_accounts: missingAccounts,
+    },
     session: client.session,
   };
 }
