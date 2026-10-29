@@ -5,7 +5,7 @@
 //
 //   * One host. Every request is built on `IG_DEMO_BASE` and checked by `assertAllowed` before `fetch` is reached: any
 //     other origin (the live host `api.ig.com` above all), scheme, port or path prefix throws `IgRefused`. Nothing here
-//     reads the live credentials; the only secrets read are the three demo names in `IG_DEMO_SECRET_NAMES`.
+//     reads the live credentials; the only secrets read are the demo names in `IG_DEMO_SHARED_SECRET_NAMES` / `IG_DEMO_SECRET_NAMES`.
 //   * One list of calls. `POST /session` (log in), `PUT /session` (switch between the two demo accounts) and
 //     `DELETE /session` (log out, 2026-10-18: the recorder ends every session it opens), and GET on `/accounts`,
 //     `/markets` (by epics or a search term), `/markets/{epic}`, `/marketnavigation[/{node}]`, `/prices/{epic}` and
@@ -23,6 +23,12 @@ export const IG_DEMO_BASE = "https://demo-api.ig.com/gateway/deal";
 export const IG_ENVIRONMENT = "demo" as const;
 /** The three Edge secrets read, all demo. */
 export const IG_DEMO_SECRET_NAMES = { key: "IG_API_KEY_DEMO", username: "IG_DEMO_USERNAME", password: "IG_DEMO_PASSWORD" } as const;
+/**
+ * The demo login IGBOT holds (2026-10-29: the three names above were deleted from Supabase when IGBOT's were added, and the
+ * new login is the one IG accepts with this key). Read first; the old names only when these are not all set. Read-only
+ * here, as ever: this function places nothing, and it logs in to its own session.
+ */
+export const IG_DEMO_SHARED_SECRET_NAMES = { key: "IGBOT_DEMO_API_KEY", username: "IGBOT_DEMO_USERNAME", password: "IGBOT_DEMO_PASSWORD" } as const;
 
 const EPIC = "[A-Za-z0-9._]{6,30}";
 /** Method and path (after `/gateway/deal`) of every call this client may make. Nothing else is sent. */
@@ -124,16 +130,19 @@ export function stripBalances<T>(value: T): T {
 }
 
 export type IgCreds = { key: string; username: string; password: string };
-/** The demo credentials from the environment, or the names that are missing. */
+/** The demo credentials from the environment (IGBOT's names first, then the old ones), or the names that are missing. */
 export function demoCreds(env: Record<string, string | undefined>): IgCreds | { missing: string[] } {
-  const key = (env[IG_DEMO_SECRET_NAMES.key] ?? "").trim();
-  const username = (env[IG_DEMO_SECRET_NAMES.username] ?? "").trim();
-  const password = env[IG_DEMO_SECRET_NAMES.password] ?? "";
-  const missing: string[] = [];
-  if (!key) missing.push(IG_DEMO_SECRET_NAMES.key);
-  if (!username) missing.push(IG_DEMO_SECRET_NAMES.username);
-  if (!password) missing.push(IG_DEMO_SECRET_NAMES.password);
-  return missing.length ? { missing } : { key, username, password };
+  for (const names of [IG_DEMO_SHARED_SECRET_NAMES, IG_DEMO_SECRET_NAMES]) {
+    const key = (env[names.key] ?? "").trim();
+    const username = (env[names.username] ?? "").trim();
+    const password = env[names.password] ?? "";
+    if (key && username && password) return { key, username, password };
+  }
+  const names = IG_DEMO_SHARED_SECRET_NAMES, missing: string[] = [];
+  if (!(env[names.key] ?? "").trim()) missing.push(names.key);
+  if (!(env[names.username] ?? "").trim()) missing.push(names.username);
+  if (!env[names.password]) missing.push(names.password);
+  return { missing };
 }
 
 export type IgSession = { cst: string; xst: string; accountId: string; at: number };
