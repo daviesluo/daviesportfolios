@@ -1,0 +1,79 @@
+{
+ "study": "REVX-FAIR, docs/agents/reviews/2026-10-29-revx-fair-price-study.md",
+ "pulled": "2026-10-29 05:40-05:50 UTC, SELECT only (sql/pulls.sql)",
+ "rows_end": "2026-10-29T00:00:00Z",
+ "data": {
+  "data/prints.txt.gz": {
+   "lines": 16808,
+   "db_md5_of_text": "58deb4b0c10966f4631cf591f8ebd043",
+   "sha256": "5a87293c51b106edef0ad122115e33f4244a241d6762050aecb9d24afc8b1b15"
+  },
+  "data/minutes.txt.gz": {
+   "lines": 97910,
+   "db_md5_of_text": "276f4430d448083fd3861d485301e167",
+   "sha256": "03cfb2a607e973d45fbeea4845cdabdc08297f2e409784164c4d96e3cf584898"
+  },
+  "data/hours.txt.gz": {
+   "lines": 1744,
+   "db_md5_of_text": "fcaac3688663709ecc5447267a656228",
+   "sha256": "4a8f6bf1eec920a211223134944248532b9a68177b710efe3d6f32269ccb4127"
+  },
+  "data/book_USDC-GBP.txt.gz": {
+   "lines": 37267,
+   "db_md5_of_text": "1779b6956e75fd48ff8893c465b3024a",
+   "sha256": "38d9160b6446ae57457d817b820cae03af999bb2af4656017a55762fa181104c"
+  },
+  "data/book_USDT-GBP.txt.gz": {
+   "lines": 36470,
+   "db_md5_of_text": "7e6214c79dd56e60aec0870bf7ee4a94",
+   "sha256": "9cd9e2238d8209fab7fd68c2a46b27fc6c9317ded249a32a55829f4ab3bf4621"
+  },
+  "data/book_USDC-USD.txt.gz": {
+   "lines": 13546,
+   "db_md5_of_text": "ef7a3199f8f0aa9819ebff055c4776d6",
+   "sha256": "eaf5af390015cca7ebfd8fd3bdea9a864bc0a140ec9b05fce46b268e4f67ec00"
+  },
+  "data/book_USDT-USD.txt.gz": {
+   "lines": 16763,
+   "db_md5_of_text": "7bd9115991bf7f205b1b3361791ef79e",
+   "sha256": "57416c3c5c741dc0f0c4b8b767d2b830ee62881e5e9ad0d4500a36c93af2f736"
+  },
+  "data/cb_USDC-GBP.txt.gz": {
+   "lines": 27091,
+   "db_md5_of_text": "6c8cdf55e52d06fb29ac25bd5fcb2365",
+   "sha256": "38f073c8f7a5b38a34cabee69d0004717bdbe740ff85741de3ee703e9ca07606"
+  },
+  "data/cb_USDT-GBP.txt.gz": {
+   "lines": 27091,
+   "db_md5_of_text": "bcf1f2890ce2b423cd8e49e7ae959961",
+   "sha256": "8d9dd8abafa590bfc20811827de65396cbd47b9929c73981dfa9fa6055cced37"
+  }
+ },
+ "not_committed": {
+  "live_orders": {
+   "lines": 9522,
+   "db_md5_of_text": "0cd06ea25edb2bcaa60eb2ff35d3ead5",
+   "why": "LIVE's own orders carry the live account's sizes; the scripts read them from $FP_LIVE"
+  }
+ },
+ "scripts": {
+  "scripts/fp_data.py": "8f350f7776b8c31024f5a62ddc729d330d07ff6199cbef0652a37553bbee543c",
+  "scripts/lead.py": "48ddb347ba89e124f122488fc79a48e2c8e45dd17ed76ae37255111c79b7555a",
+  "scripts/measure.py": "fe013f893519924ca2686130e7f3dd8ae17077d2c1c302f809e92dc7469dba12",
+  "scripts/replay.py": "4d05b6fff14593c1a3b04fbe57378c542f3613c6dca7160b458066772a3691e2"
+ },
+ "engine": {
+  "../pr5_opt/scripts/sim.py": "1750cd7b3e4578f02bac810f1e0e1377b8bc1e4c76d58830edb084c9d8763526"
+ },
+ "results": {
+  "results/lead_usdc_cb.json": "017af31ec353e0f820763ff4146f946ba7f73c7ba4f46e6190bd003a509b7f64",
+  "results/measure.json": "c4d82146a8a48466c26d359785287ac4ce976c17481e1a10ba6c01387ca7d8f9",
+  "results/replay.json": "b4e5891f0f7df487b8cb03e2ed89a4e26db4c07a50c449f9bcd0e9eea30cd0a7"
+ },
+ "run": [
+  "FP_LIVE=<live_orders.txt> python3 -I scripts/measure.py",
+  "FP_LIVE=<live_orders.txt> python3 -I scripts/replay.py",
+  "FP_LIVE=<live_orders.txt> python3 -I scripts/lead.py",
+  "python3 -I scripts/manifest.py"
+ ]
+}

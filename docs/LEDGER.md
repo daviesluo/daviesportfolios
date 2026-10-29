@@ -776,6 +776,17 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth).
 
+### [2026-10-29 06:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **REVX-FAIR: Revolut X's stablecoin fair studied** (sub-agent; commit, not pushed; Davies, 10-29: "…你仔细深度研究下这个价格的计算还有没有优化和改进的空间…").
+  `reviews/2026-10-29-revx-fair-price-study.md`, `backtests/fair_price/`; not blind, read-only, nothing changed in production.
+  - **Found.** Every Revolut X row prices off one fair: the USD book's 24 h median ÷ Yahoo's X, held through closures.
+    The clean book sits a median −1.4 / +0.8 bps from it (USDC / USDT). LIVE's 380 entry fills: +12.5 bps against fair, +8.3
+    against the mid at the fill.
+  - **Replays.** Sixteen candidate fairs on PR5-OPT's engine. None beats today's on both books out of sample. Par (no peg term)
+    costs −3.06 bps a day, all of it USDT.
+  - **One lead, USDC-GBP only:** a nudge by Coinbase's USDC-GBP deviation, +0.64 / +0.58 bps a day (P ≤ 0 0.09 / 0.08), 18 days.
+  - **For Davies:** keep the fair; a paper twin of the USDC nudge if he wants one. No live change.
+
 ### [2026-10-29 05:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **GROKPM's money limits as percentages, D19** (landed 13dfb422, deployed 10-29 ~06:00 UTC; the day's basis read back from `state.dayOpen`; a follow-up
   swapped a pinned cents row that matched the live book for $107.37, moving the prereg sha to `f7ec205c…`; Davies, 10-29: "把polymarket的策略里的钱全换成百分比，
