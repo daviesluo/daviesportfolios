@@ -82,7 +82,8 @@ Every minute the call `agents?action=cblive` takes the turn's lease `cb-live`. I
 - **Daily loss stop.** Realised plus marked over the day's trips at −1 % of £120 (£1.20): no entries for the rest of the UTC day.
 - **POST governor.** Entries off at 1,500 a UTC day, stops only at 1,800. CB-LIVE-RULES counted about 211 decisions a day, and
   re-placing before an order's end adds about 600.
-- **Stale or dark inputs.** No entries when the paper's newest decided minute is more than five minutes old, or its fair is
+- **Stale or dark inputs.** No entries when the paper's newest decided minute is more than seven minutes old (it is normally
+  3–4 minutes old when the executor reads it; at five, one lost paper run withdrew every entry, 2026-10-29 20:26), or its fair is
   dark. Exits keep their price.
 - **Trading flags.** No entries when the product is `trading_disabled` or `cancel_only`.
 
@@ -159,12 +160,15 @@ conversion it will make.
    - No IP allow-list.
    - A dedicated portfolio is best. **Never trade by hand in that portfolio**: the executor books only its own fills, but its
      inventory checks read the whole balance.
-2. **The probe.** `agents?action=cblive&mode=probe` answers `ok: true` with:
+2. **The probe.** `agents?action=cblive&mode=probe&preview=1` answers `ok: true` with (`preview=1` adds Coinbase's order
+   preview of a small post-only buy far under the bid, which places nothing; it is the one POST the probe sends):
    - `secrets.key` "pem-ec" or "ed25519" (never "unknown"), and `jwt` "accepted";
    - `can_transfer` false;
    - GBP about 120;
    - USDC-GBP `online`, not `trading_disabled` or `cancel_only`;
-   - a maker fee as he expects.
+   - a maker fee as he expects;
+   - `preview.ok` true: no `errs`, and no 401 or 403. On 2026-10-29 20:54 every live order came back 403 "User is not allowed
+     to buy crypto", an account restriction the reads could not show.
 3. **The dry-run check** (§5), for at least 30 minutes of a weekday session.
 4. **He says go**, in the conversation. Then §7 is run.
 
@@ -241,3 +245,24 @@ select kind, detail, at from public.cb_live_events order by id desc limit 20;
 - The start conversion.
 - The loss stop, the governor, and stale inputs.
 - LIVE's row reader.
+
+## 9. Found at the go (2026-10-29)
+
+Armed 20:51:31 UTC on Davies' word; disarmed 20:55:57 (`dry_run` true, `armed_at` null).
+
+- **The dry rows held the rungs.** The dry-run's rows matched the paper's decisions, so the first armed turns kept them as the
+  rungs' orders and sent nothing for two turns. Fixed: an order of the other mode is never a rung's or a top-up's. Armed, a dry
+  row is withdrawn (reason "armed") and the live order placed in the same turn; back in dry-run, a live entry is cancelled
+  ("dry-run") and a live top-up ("disarmed"). Pinned both ways (`cb_live.test.ts`). The main session retired the four rows by
+  hand at the time.
+- **Coinbase refused every order: 403 PERMISSION_DENIED "User is not allowed to buy crypto".** An account restriction on
+  Davies' side, not the code's. The executor had left the four rows `pending` as unknowns. Fixed: a 4xx with Coinbase's body is
+  a refusal, `rejected`, its reason "http <status>: <body>", an event; a 401 or 403 stops the turn's placing and is an error
+  for the errors box; that paper decision, or a top-up, is not sent again for 15 minutes (`CB_LIVE_DENIED_MS`). A 5xx, a
+  timeout or a lost reply stays a pending unknown. The probe's `preview=1` now asks Coinbase first.
+- **Staleness.** At 20:26 every dry entry was withdrawn and written again a minute later at the same prices: the paper's 20:25
+  run timed out, and its newest minute was 5 min 0.8 s old against a 5-minute limit. Live, that is a cancel and a re-post of
+  every order. The limit is now seven minutes: two lost runs.
+- **The top-up's day cap counted a refused top-up.** Re-armed 21:45:01 after Davies completed Coinbase's questionnaire, the
+  executor bought only 13.37 USDC: the 403-rejected top-up (80.31 at 0.7472, about £60) had been counted against the £70
+  cap. It now counts only what Coinbase took: a resting top-up at its size, an ended one at what filled (`convertSpentGbp`).

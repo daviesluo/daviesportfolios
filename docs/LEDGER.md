@@ -676,7 +676,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
 
 21. **Coinbase live, "Stablecoin quotes USDC/GBP": built dry-run and unarmed** (Davies, 10-29; `agents/cb_live.ts`, `0177`,
     `reviews/2026-10-29-cb-live-design.md`). "with Euros - 2"'s decisions at £20 a rung of £120. **Go only on Davies' word:** the
-    probe `ok`, a 30-minute dry-run check (design §5), then §7's guarded statement; its undo is in the same section.
+    probe `ok` (with `preview=1`), a 30-minute dry-run check (design §5), then §7's guarded statement; its undo is in the same
+    section. **Armed 20:51 and disarmed 20:55:57 on 10-29: Coinbase answered 403 "User is not allowed to buy crypto"** (Davies'
+    account must allow buying crypto before the next go; design §9).
 
 ## Machine and platform setup
 
@@ -805,6 +807,15 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   (variant-4); new `n600nudge` variant-5 (prereg `reviews/2026-10-29-usdt-only-twins-prereg.md`); n600usdt3, u300nudge, u300ctl
   off; live600x1 variant-6. Deviation `reviews/2026-10-29-usdt-only-deviation.md`. Nothing moves before 00:00 but n600no03's
   0.3 % rungs and n600usdt's USDC side; to cancel the switch, revert before 00:00.
+
+### [2026-10-29 21:07 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Coinbase live: what the go found, fixed** (sub-agent; commit, not pushed; armed 20:51:31, disarmed 20:55:57). `cb_live.ts`: an
+  order of the other mode is never a rung's or a top-up's (the dry rows had held the rungs for two turns); a 4xx on create is
+  `rejected` with Coinbase's reason, a 401/403 stops the turn and is an error, its decision held 15 min (four 403 "User is not
+  allowed to buy crypto" had stayed `pending`); staleness 7 min, not 5 (one lost paper run at 20:25 withdrew and re-wrote every
+  entry). Probe `preview=1`: Coinbase's order preview, the read-only client's one POST. The top-up's £70 day cap counts only top-ups
+  Coinbase took (`convertSpentGbp`; the 403-rejected £60 one had left £10 at the 21:45 re-arm). Pins fail on the old code. Design §9.
+
 
 ### [2026-10-29 20:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Polymarket analyst: the JOURNAL ten at a time, "Load more"** (sub-agent; commit, not pushed; Davies, 10-29: "…JOURNAL也默认只显示

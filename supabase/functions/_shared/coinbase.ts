@@ -28,6 +28,8 @@ import { b64ToBytes, toArrayBuffer } from "./bytes.ts";
 export const CB_ADV_HOST = "api.coinbase.com";
 export const CB_ADV_BASE = `https://${CB_ADV_HOST}`;
 export const CB_ADV_PATH = "/api/v3/brokerage";
+/** The order preview (`POST …/orders/preview`): it places nothing, and is the one POST a read-only client may send. */
+export const CB_PREVIEW_PATH = `${CB_ADV_PATH}/orders/preview`;
 /** The secrets' names (Supabase Edge Function secrets, as Davies stored them on 2026-10-29). */
 export const CB_KEY_NAME_SECRET = "COINBASE_API_KEY_NAME";
 export const CB_PRIVATE_KEY_SECRET = "COINBASE_API_PRIVATE_KEY";
@@ -212,7 +214,8 @@ export type CbClient = ReturnType<typeof cbClient>;
 export function cbClient(o: { key: CryptoKey; keyName: string; alg?: CbAlg; fetchImpl?: typeof fetch; now?: () => number; post: boolean }) {
   const f = o.fetchImpl ?? fetch, now = o.now ?? Date.now;
   const call = async <T>(method: "GET" | "POST", path: string, body?: unknown): Promise<T> => {
-    if (method !== "GET" && !o.post) throw new Error(`coinbase ${method} ${path} refused: this client is read-only (dry-run or probe)`);
+    // A read-only client sends GETs and one POST, the order preview, which places nothing.
+    if (method !== "GET" && !o.post && path !== CB_PREVIEW_PATH) throw new Error(`coinbase ${method} ${path} refused: this client is read-only (dry-run or probe)`);
     const jwt = await cbJwt(o.key, o.keyName, method, path, now(), undefined, o.alg ?? "ES256");
     const res = await f(`${CB_ADV_BASE}${path}`, {
       method, headers: { authorization: `Bearer ${jwt}`, "content-type": "application/json", accept: "application/json" },
@@ -273,6 +276,8 @@ export function cbClient(o: { key: CryptoKey; keyName: string; alg?: CbAlg; fetc
       return out;
     },
     create: (body: CbCreateBody) => call<CbCreateResult>("POST", `${P}/orders`, body),
+    /** What Coinbase would say to an order, placing nothing (`errs`: the failure reasons it would have). */
+    preview: (body: Omit<CbCreateBody, "client_order_id">) => call<{ errs?: string[]; warning?: string[]; preview_id?: string; order_total?: string; commission_total?: string }>("POST", CB_PREVIEW_PATH, body),
     cancel: async (orderIds: string[]) => (await call<{ results?: Array<{ success: boolean; order_id: string; failure_reason?: string }> }>("POST", `${P}/orders/batch_cancel`, { order_ids: orderIds })).results ?? [],
   };
 }

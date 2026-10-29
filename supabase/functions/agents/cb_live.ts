@@ -47,7 +47,7 @@
 // `convert_max_gbp_day` a UTC day, good for 30 minutes: no conversion at a loss, Davies' rule for Revolut X).
 
 import {
-  CB_DONE, cbClientFromEnv, type CbCreateBody, type CbFill, type CbOrder, type CbOrderStatus, type CbProductInfo, type CbSide,
+  CB_DONE, cbClientFromEnv, CbHttpError, type CbCreateBody, type CbFill, type CbOrder, type CbOrderStatus, type CbProductInfo, type CbSide,
 } from "../_shared/coinbase.ts";
 import type { Db } from "./db.ts";
 import { exitTicks, QUOTE_REPRICE, QUOTE_STOP_MS, QUOTE_TICK, type BookState, type Rung, type Side } from "./quotes.ts";
@@ -68,8 +68,16 @@ export const CB_LIVE_PRODUCT = "USDC-GBP";
 export const CB_LIVE_GTD_MS = 20 * M;
 /** … and is re-placed when less than this is left. */
 export const CB_LIVE_REFRESH_MS = 5 * M;
-/** The arm's newest decided minute older than this: no entries. */
-export const CB_LIVE_STALE_MS = 4 * M;
+/**
+ * The arm's newest decided minute older than this: no entries. The paper decides minute t at about t + 2 min, one minute
+ * behind the recorder's coverage, and this call may run before it in the same minute, so its newest minute is normally 3–4
+ * minutes old when the executor reads it; one paper run lost (2026-10-29 20:25, "Signal timed out") made it 5 min 0.8 s
+ * against the old limit of 5, and every entry was withdrawn and posted again a minute later. Seven minutes allows two lost
+ * runs.
+ */
+export const CB_LIVE_STALE_MS = 7 * M;
+/** After Coinbase refuses an order with 401 or 403, that paper decision (or a top-up) is not sent again for this long. */
+export const CB_LIVE_DENIED_MS = 15 * M;
 /** The 24-hour stop's IOC: at most this far through fair. */
 export const CB_LIVE_STOP_BAND = 0.005;
 /** A stop that came back unfilled is tried again this much later. */
@@ -187,6 +195,20 @@ export function orderBody(o: { client_order_id: string; side: CbSide; price: num
       : { limit_limit_gtd: { base_size: size, limit_price: price, end_time: iso(o.endMs!).replace(/\.\d{3}Z$/, "Z"), post_only: true } },
   };
 }
+/**
+ * What a top-up spent of the day's cap, in pounds: a live one only once Coinbase has it (a venue id), resting at its whole
+ * size, ended at what filled; a refused, rejected or unseen one nothing (2026-10-29 21:45: a 403-rejected £60 top-up left
+ * £10 of the £70 cap, less than one ask). A dry one at its size, as dry-run spends it.
+ */
+export function convertSpentGbp(o: Pick<OrderRow, "mode" | "state" | "venue_order_id" | "price" | "base_size" | "filled_size" | "avg_price">): number {
+  if (o.mode === "dry_run") return o.state === "dry" || o.state === "dry_withdrawn" ? Number(o.price) * Number(o.base_size) : 0;
+  if (!o.venue_order_id) return 0;
+  if (o.state === "open" || o.state === "cancelling") return Number(o.price) * Number(o.base_size);
+  if (o.state === "filled" || o.state === "cancelled" || o.state === "expired") return Number(o.filled_size) * Number(o.avg_price ?? o.price);
+  return 0;
+}
+/** Was a row refused by Coinbase with 401 or 403 (its reason as `place` writes it)? */
+export const isDenied = (o: { state: string; reason: string | null }) => o.state === "rejected" && /^http 40[13]\b/.test(o.reason ?? "");
 /** The venue's status as an order row's. */
 export function rowState(s: CbOrderStatus): OrderRow["state"] {
   return s === "FILLED" ? "filled" : s === "CANCELLED" ? "cancelled" : s === "EXPIRED" ? "expired" : s === "FAILED" ? "rejected" : "open";
@@ -290,7 +312,7 @@ export async function runCbLive(d: CbLiveDeps): Promise<CbLiveReport> {
     const mRow = lastMinute == null ? null
       : (await d.db.select<{ fair: number | null }>(paper.minutes, `book=eq.${paper.book}&minute=eq.${enc(lastMinute)}&select=fair`))[0] ?? null;
     const fair = mRow?.fair != null ? Number(mRow.fair) : null;
-    const stale = lastMinute == null || now - lastMinute > CB_LIVE_STALE_MS + M;
+    const stale = lastMinute == null || now - lastMinute > CB_LIVE_STALE_MS;
     const x = book?.lastX ?? null;
     rep.gbpUsd = x;                                                          // the page's dollars; the rule's money is pounds
     let product = CB_LIVE_PRODUCT_FALLBACK, touch: { bid: number | null; ask: number | null } = { bid: null, ask: null };
@@ -358,7 +380,8 @@ export async function runCbLive(d: CbLiveDeps): Promise<CbLiveReport> {
       if (!pe || !entriesOk) { wants.set(key, null); continue; }
       const px = pe.ticks * QUOTE_TICK, qty = rungQty(cfg.rung_gbp, px, step);
       if (qty < minSize) { wants.set(key, null); ev("entry_below_min", { key, qty }); continue; }
-      const refusedBefore = orders.some((o) => o.paper_key === pe.key && o.rung_side === r.side && o.k === r.k && (o.state === "refused" || o.state === "rejected"));
+      const refusedBefore = orders.some((o) => o.paper_key === pe.key && o.rung_side === r.side && o.k === r.k && (o.state === "refused" || o.state === "rejected")
+        && (!isDenied(o) || now - msOf(o.created_at) < CB_LIVE_DENIED_MS));
       if (refusedBefore) { wants.set(key, null); continue; }
       const cur = orders.filter((o) => o.leg === "entry" && o.rung_side === r.side && o.k === r.k && o.paper_key === pe.key && (o.state === "open" || o.state === "pending" || o.state === "dry")).at(-1);
       wants.set(key, { leg: "entry", rungSide: r.side, k: r.k, side: sideOf(r.side), price: Number(px.toFixed(4)), size: qty, trip: cur?.trip ?? uuid(), paperKey: pe.key, fair, ioc: false });
@@ -391,9 +414,15 @@ export async function runCbLive(d: CbLiveDeps): Promise<CbLiveReport> {
       } catch (e) { rep.errors.push(`cancel ${o.client_order_id}: ${msg(e)}`); return false; }
     };
     // An entry or a top-up is live only when armed; an exit or a stop belongs to a live trip, so it is live (trips come from
-    // live fills alone).
+    // live fills alone). A resting order of the other mode is never a rung's order: armed, a dry row is withdrawn and the live
+    // order placed in the same turn (2026-10-29 20:51, the go: the dry rows matched the paper's decisions and nothing went out
+    // for two turns); back in dry-run, a live entry is cancelled.
+    const wantMode = (w: Want): OrderRow["mode"] => (w.leg === "exit" || w.leg === "stop" ? "live" : armed ? "live" : "dry_run");
+    // Coinbase refused with 401 or 403 this turn: nothing more is sent until the next (2026-10-29 20:54, "User is not allowed to
+    // buy crypto" on all four POSTs).
+    let denied: string | null = null;
     const place = async (w: Want) => {
-      const mode: OrderRow["mode"] = w.leg === "exit" || w.leg === "stop" ? "live" : armed ? "live" : "dry_run";
+      const mode = wantMode(w);
       const id = uuid(), endMs = w.ioc ? null : now + (w.leg === "convert" ? CB_LIVE_CONVERT_MS : CB_LIVE_GTD_MS);
       const body = orderBody({ client_order_id: id, side: w.side, price: w.price, size: w.size, endMs, ioc: w.ioc }, product);
       const row: OrderRow = { client_order_id: id, venue_order_id: null, mode, leg: w.leg, trip: w.leg === "convert" ? null : w.leg === "entry" ? id : w.trip, rung_side: w.leg === "convert" ? null : w.rungSide,
@@ -406,6 +435,7 @@ export async function runCbLive(d: CbLiveDeps): Promise<CbLiveReport> {
       }
       if (mode === "dry_run") { await d.db.insert(T.orders, [row], false); orders.push(row); return; }
       if (govStopsOnly && w.leg !== "stop") { ev("governor_skip", { leg: w.leg }); return; }
+      if (denied) { ev("denied_skip", { leg: w.leg, side: w.side }); return; }
       await d.db.insert(T.orders, [row], false); orders.push(row);              // the claim, before the venue is called
       rep.placed++; rep.posts++;
       try {
@@ -417,7 +447,19 @@ export async function runCbLive(d: CbLiveDeps): Promise<CbLiveReport> {
           ev("venue_refused", { leg: w.leg, reason: why });
         }
       } catch (e) {
-        // A lost reply or a 5xx is an unknown, not a rejection: the row stays pending and is reconciled by its client id.
+        if (e instanceof CbHttpError && e.status >= 400 && e.status < 500) {
+          // A 4xx with Coinbase's error body is its answer: the order was refused, not lost (2026-10-29 20:54: four 403s were
+          // left pending as unknowns). 401 and 403 stop this turn's placing and go to the errors box.
+          const reason = `http ${e.status}: ${msg(e).replace(/^coinbase POST \S+ → \d+: /, "")}`;
+          await save(row, { state: "rejected", reason, response: { status: e.status } });
+          ev("venue_rejected", { leg: w.leg, side: w.side, status: e.status, reason: reason.slice(0, 200) });
+          if (e.status === 401 || e.status === 403 || /PERMISSION_DENIED/.test(reason)) {
+            denied = reason;
+            rep.errors.push(`coinbase refused to place (${reason.slice(0, 160)}): nothing more is sent this turn`);
+          }
+          return;
+        }
+        // A lost reply, a timeout or a 5xx is an unknown, not a rejection: the row stays pending and is reconciled by its client id.
         await save(row, { reason: `unknown: ${msg(e)}` });
         rep.errors.push(`create ${id}: ${msg(e)}`);
       }
@@ -431,13 +473,13 @@ export async function runCbLive(d: CbLiveDeps): Promise<CbLiveReport> {
         continue;                                                              // nothing new on a rung until its order is final
       }
       // An entry is the paper decision at its price (its size was fixed when it was placed); an exit its price and what is left.
-      const same = cur && w && cur.leg === w.leg && cur.side === w.side && Math.abs(cur.price - w.price) < 1e-9 &&
+      const same = cur && w && cur.mode === wantMode(w) && cur.leg === w.leg && cur.side === w.side && Math.abs(cur.price - w.price) < 1e-9 &&
         (w.leg === "entry" ? cur.paper_key === w.paperKey : Math.abs(cur.base_size - cur.filled_size - w.size) < 1e-9);
       const expiring = cur && cur.mode === "live" && cur.end_time != null && msOf(cur.end_time) - now < CB_LIVE_REFRESH_MS;
       if (cur && same && !expiring) continue;
       if (cur) {
-        if (cur.mode === "dry_run") await save(cur, { state: "dry_withdrawn", reason: w ? "replaced" : "withdrawn" });
-        else if (!(await cancelLive(cur, !w ? "withdrawn" : expiring && same ? "refresh" : "replaced"))) continue;
+        if (cur.mode === "dry_run") await save(cur, { state: "dry_withdrawn", reason: armed ? "armed" : w ? "replaced" : "withdrawn" });
+        else if (!(await cancelLive(cur, !w ? "withdrawn" : expiring && same ? "refresh" : w && wantMode(w) === "dry_run" ? "dry-run" : "replaced"))) continue;
       }
       if (!w) continue;
       if (!covered(w)) {
@@ -449,10 +491,17 @@ export async function runCbLive(d: CbLiveDeps): Promise<CbLiveReport> {
     }
 
     // 6. Live and paused alike: an order on no rung (a top-up) is cancelled under the pause; an armed account tops its USDC up.
-    const convOpen = orders.filter((o) => o.leg === "convert" && (o.state === "open" || o.state === "pending" || o.state === "dry" || o.state === "cancelling"));
-    if (paused) for (const o of convOpen) if (o.mode === "live") await cancelLive(o, "global pause");
-    if (!paused && usdcShort > 0 && !convOpen.length && touch.bid != null) {
-      const spent = orders.filter((o) => o.leg === "convert" && msOf(o.created_at) >= dayStart && o.mode === (armed ? "live" : "dry_run")).reduce((s, o) => s + o.price * o.base_size, 0);
+    // A top-up of the other mode is not this mode's: armed, a dry one is withdrawn; disarmed, a live one is cancelled.
+    const convMode: OrderRow["mode"] = armed ? "live" : "dry_run";
+    for (const o of orders.filter((o) => o.leg === "convert" && (o.state === "open" || o.state === "pending" || o.state === "dry" || o.state === "cancelling"))) {
+      if (o.mode === convMode && !paused) continue;
+      if (o.mode === "dry_run") await save(o, { state: "dry_withdrawn", reason: armed ? "armed" : "withdrawn" });
+      else if (o.state !== "pending") await cancelLive(o, paused ? "global pause" : "disarmed");
+    }
+    const convOpen = orders.filter((o) => o.leg === "convert" && o.mode === convMode && (o.state === "open" || o.state === "pending" || o.state === "dry" || o.state === "cancelling"));
+    const convDenied = orders.some((o) => o.leg === "convert" && o.mode === "live" && isDenied(o) && now - msOf(o.created_at) < CB_LIVE_DENIED_MS);
+    if (!paused && usdcShort > 0 && !convOpen.length && !convDenied && touch.bid != null) {
+      const spent = orders.filter((o) => o.leg === "convert" && msOf(o.created_at) >= dayStart && o.mode === (armed ? "live" : "dry_run")).reduce((s, o) => s + convertSpentGbp(o), 0);
       // The asks' shortfall and 2 % over, at most what the pounds the bids leave free and the day's cap allow.
       const px = touch.bid;
       const room = Math.min(cfg.convert_max_gbp_day - spent, freeGbp ?? Infinity) / px;

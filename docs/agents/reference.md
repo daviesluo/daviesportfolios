@@ -4627,6 +4627,11 @@ fails too still reported (`edge-watchdog.retry`). In the three days before, 1,34
     day).
   - **Dry-run** (as built) POSTs nothing: a read-only client, a row per decision it would send. LIVE's row (`cbLiveRow`) appears
     from the arm or the first live order.
+  - **The go, 2026-10-29 20:51 UTC, and what it found** (design §9; disarmed 20:55:57). The dry rows held the rungs for two
+    turns (fixed: an order of the other mode is never a rung's or a top-up's); Coinbase answered every order 403 "User is not
+    allowed to buy crypto", an account restriction (fixed: a 4xx is `rejected`, a 401/403 stops the turn's placing, reaches the
+    errors box and holds that decision 15 minutes; the probe's `preview=1` asks Coinbase's order preview, which places
+    nothing); and one lost paper run tripped the 5-minute staleness (now seven).
 
 ### Twin variants
 

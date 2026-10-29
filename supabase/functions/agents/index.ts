@@ -134,7 +134,9 @@
 //                             client that cannot POST: the key's permissions
 //                             (a key that can transfer is a warning), GBP,
 //                             USDC and EUR balances, USDC-GBP's product, touch
-//                             and fees, in the response only. Cron or admin.
+//                             and fees, in the response only; `&preview=1`
+//                             adds Coinbase's order preview (places nothing),
+//                             its one POST. Cron or admin.
 //   POST ?action=okxrec     — OKX's recorder and its paper twins (okx_rec.ts,
 //                             okx_quotes.ts, 0150): every minute, every new print
 //                             of USDG-EUR and EURC-USDC by trade id and their top
@@ -3090,7 +3092,7 @@ async function route(req: Request, who: Exclude<Who, null>, url: URL, action: st
   // "Stablecoin quotes with Euros - 3" (cb_nudge.ts, 0168): "- 2"'s rule on USDC-GBP with the nudged fair, decided from the database alone.
   if (action === "cbnudge" && req.method === "POST" && operator) return json(200, await runCbNudgeAction());
   // The Coinbase key's probe (cb_live_probe.ts): GETs only; its answer goes to the caller alone, never to a log or a table.
-  if (action === "cblive" && req.method === "POST" && operator && url.searchParams.get("mode") === "probe") return json(200, await runCbLiveProbe((n) => Deno.env.get(n)));
+  if (action === "cblive" && req.method === "POST" && operator && url.searchParams.get("mode") === "probe") return json(200, await runCbLiveProbe((n) => Deno.env.get(n), undefined, undefined, { preview: url.searchParams.get("preview") === "1" }));
   // "Stablecoin quotes USDC/GBP" (cb_live.ts, 0177): one turn of the Coinbase live executor, dry-run until Davies arms it.
   if (action === "cblive" && req.method === "POST" && operator && !url.searchParams.get("mode")) return json(200, await runCbLiveAction());
   // OKX's recorder and its paper twins (okx_rec.ts, okx_quotes.ts, 0150): keyless reads, then the paper rule on the database.

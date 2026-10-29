@@ -21,15 +21,21 @@ async function freshSec1(): Promise<string> {
   return `-----BEGIN EC PRIVATE KEY-----\\n${btoa(s)}\\n-----END EC PRIVATE KEY-----`;      // literal "\n", as a secret often is
 }
 
-function venue(o: { perms?: Record<string, unknown>; status?: number } = {}) {
+function venue(o: { perms?: Record<string, unknown>; status?: number; preview?: { status?: number; errs?: string[] } } = {}) {
   const calls: Array<{ method: string; path: string; uri: string }> = [];
   const fetchImpl = ((url: string, init: RequestInit) => {
     const u = new URL(url), method = init.method ?? "GET";
-    if (method !== "GET") throw new Error(`the probe sent ${method} ${u.pathname}`);
+    if (method !== "GET" && u.pathname !== "/api/v3/brokerage/orders/preview") throw new Error(`the probe sent ${method} ${u.pathname}`);
     const jwt = new Headers(init.headers).get("authorization")!.replace(/^Bearer /, "");
     calls.push({ method, path: u.pathname, uri: JSON.parse(new TextDecoder().decode(b64ToBytes(jwt.split(".")[1]))).uri });
     if (o.status) return Promise.resolve(new Response('{"error":"unauthorized"}', { status: o.status }));
     const p = u.pathname.replace("/api/v3/brokerage", "");
+    if (p === "/orders/preview") {
+      if (o.preview?.status) return Promise.resolve(new Response('{"error":"PERMISSION_DENIED","message":"User is not allowed to buy crypto"}', { status: o.preview.status }));
+      const b = JSON.parse(String(init.body));
+      if ("client_order_id" in b) throw new Error("a preview carries no client order id");
+      return Promise.resolve(new Response(JSON.stringify({ errs: o.preview?.errs ?? [], warning: [], order_total: "1", commission_total: "0", base_size: "1", quote_size: "0.67", best_bid: "0.7512", best_ask: "0.7513", is_max: false }), { status: 200 }));
+    }
     const body = p === "/key_permissions" ? (o.perms ?? { can_view: true, can_trade: true, can_transfer: false, portfolio_uuid: "p-1", portfolio_type: "DEFAULT" })
       : p === "/accounts" ? { accounts: [
         { currency: "GBP", available_balance: { value: "10.5", currency: "GBP" }, hold: { value: "0", currency: "GBP" } },
@@ -106,4 +112,24 @@ Deno.test("an Ed25519 secret: the probe signs EdDSA (each GET verifies under its
   assertEquals([u.ok, (u.secrets as { key: string }).key, u.alg, w.calls.length], [false, "unknown", null, 0]);
   assert((u.warnings as string[]).some((x) => x.startsWith("COINBASE_API_PRIVATE_KEY is neither")));
   assert(!JSON.stringify(u).includes("c29tZXRoaW5n"));
+});
+
+Deno.test("preview=1: the order preview, the one POST the probe sends, places nothing; a 403 there is a loud warning and not ok", async () => {
+  const pem = await freshSec1();
+  const env: Record<string, string> = { [CB_KEY_NAME_SECRET]: KEY_NAME, [CB_PRIVATE_KEY_SECRET]: pem };
+  const v = venue();
+  const r = await runCbLiveProbe((n) => env[n], v.fetchImpl, () => Date.UTC(2026, 9, 29, 12), { preview: true });
+  assertEquals(r.preview, { ok: true, errs: [], warning: [], price: "0.6760" });            // 10 % under the 0.7512 bid
+  assertEquals(v.calls.filter((c) => c.method === "POST").map((c) => c.path), ["/api/v3/brokerage/orders/preview"]);
+  // Without the flag, no POST at all.
+  const g = venue();
+  await runCbLiveProbe((n) => env[n], g.fetchImpl);
+  assertEquals(g.calls.filter((c) => c.method !== "GET").length, 0);
+  // Coinbase would refuse: its reasons are warnings; a 403 is the WARNING that makes ok false.
+  const e = await runCbLiveProbe((n) => env[n], venue({ preview: { errs: ["PREVIEW_INSUFFICIENT_FUND"] } }).fetchImpl, undefined, { preview: true });
+  assertEquals((e.preview as { ok: boolean }).ok, false);
+  assert((e.warnings as string[]).some((w) => w.includes("PREVIEW_INSUFFICIENT_FUND")));
+  const d = await runCbLiveProbe((n) => env[n], venue({ preview: { status: 403 } }).fetchImpl, undefined, { preview: true });
+  assertEquals(d.ok, false);
+  assert((d.warnings as string[]).some((w) => w.startsWith("WARNING: the order preview was refused (403)")));
 });

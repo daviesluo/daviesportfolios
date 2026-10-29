@@ -94,6 +94,11 @@ Deno.test("a read-only client refuses a POST before any request; a GET carries a
   await assertRejects(() => c.create({ client_order_id: "x", product_id: "USDC-GBP", side: "BUY", order_configuration: { limit_limit_gtc: { base_size: "1", limit_price: "0.75", post_only: true } } }), Error, "read-only");
   await assertRejects(() => c.cancel(["id"]), Error, "read-only");
   assertEquals(calls.length, 0);
+  // The one POST it may send is the order preview, which places nothing.
+  await c.preview({ product_id: "USDC-GBP", side: "BUY", order_configuration: { limit_limit_gtc: { base_size: "1", limit_price: "0.6", post_only: true } } });
+  assertEquals(calls.map((x) => [x.method, x.url]), [["POST", "https://api.coinbase.com/api/v3/brokerage/orders/preview"]]);
+  calls.length = 0;
+  assertEquals(calls.length, 0);
   await c.accounts();
   assertEquals(calls.map((x) => [x.method, x.url]), [["GET", "https://api.coinbase.com/api/v3/brokerage/accounts?limit=250"]]);
   const jwt = calls[0].auth!.replace(/^Bearer /, "");

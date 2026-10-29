@@ -12,7 +12,7 @@
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { b64ToBytes } from "../_shared/bytes.ts";
 import { CB_KEY_NAME_SECRET, CB_PRIVATE_KEY_SECRET } from "../_shared/coinbase.ts";
-import { CB_LIVE_GTD_MS, CB_LIVE_NAME, isDust, readCbLive, runCbLive, rungQty, tripPnl, tripsOf, type FillRow } from "./cb_live.ts";
+import { CB_LIVE_GTD_MS, CB_LIVE_NAME, convertSpentGbp, isDust, readCbLive, runCbLive, rungQty, tripPnl, tripsOf, type FillRow } from "./cb_live.ts";
 import { exitTicks, newBookState, quoteTicks, QUOTE_TICK, type BookState } from "./quotes.ts";
 import { memDb, type Row } from "./testing.ts";
 
@@ -43,7 +43,7 @@ function paperBook(fair: number, live: number, oid0 = 1): BookState {
 
 type VOrder = { order_id: string; client_order_id: string; product_id: string; side: "BUY" | "SELL"; status: string; filled_size: string; average_filled_price: string; total_fees: string; created_time: string; cfg: Record<string, unknown> };
 /** An in-memory Coinbase: its orders, fills, balances and touch; `post` false fails on any POST. */
-function venue(o: { post: boolean; gbp?: number; usdc?: number; touch?: { bid: string; ask: string }; onCreate?: (b: Record<string, unknown>) => "ok" | "refuse" | "throw" }) {
+function venue(o: { post: boolean; gbp?: number; usdc?: number; touch?: { bid: string; ask: string }; onCreate?: (b: Record<string, unknown>) => "ok" | "refuse" | "throw" | "403" | "503" }) {
   const orders: VOrder[] = [], fills: Record<string, unknown>[] = [], calls: string[] = [];
   const bal = { GBP: o.gbp ?? 120, USDC: o.usdc ?? 100 };
   let n = 0, clock = T0;
@@ -62,6 +62,8 @@ function venue(o: { post: boolean; gbp?: number; usdc?: number; touch?: { bid: s
       if (seen) return ok({ success: true, success_response: { order_id: seen.order_id } });
       const what = o.onCreate?.(b) ?? "ok";
       if (what === "throw") throw new Error("socket hang up");
+      if (what === "403") return new Response('{"error":"PERMISSION_DENIED","error_details":"User is not allowed to buy crypto","message":"User is not allowed to buy crypto"}', { status: 403 });
+      if (what === "503") return new Response("upstream connect error", { status: 503 });
       if (what === "refuse") return ok({ success: false, error_response: { error: "INVALID_LIMIT_PRICE_POST_ONLY", new_order_failure_reason: "INVALID_LIMIT_PRICE_POST_ONLY" } });
       const v: VOrder = { order_id: `v${++n}`, client_order_id: b.client_order_id, product_id: b.product_id, side: b.side, status: "OPEN", filled_size: "0", average_filled_price: "0", total_fees: "0", created_time: iso(clock), cfg: b.order_configuration };
       orders.push(v);
@@ -289,4 +291,95 @@ Deno.test("LIVE's row of it reads its own tables: its name, the arm, what it hol
   assertAlmostEquals(c.realisedGbp, -0.001, 1e-12);
   const none = memDb({}, { now: () => T0 });
   assertEquals(await readCbLive(none.db, T0), null);
+});
+
+// ------------------------------------------------------------------------------------------- found at the go, 2026-10-29
+
+Deno.test("the go: a dry-run turn, then armed, the next turn places the three live bids and the live top-up (the dry rows withdrawn)", async () => {
+  const w = world({ dry: true }), v = venue({ post: true, gbp: 120, usdc: 0 });
+  await turn(w, v, T0 + 10e3);
+  assertEquals([rows(w).filter((x) => x.state === "dry" && x.leg === "entry").length, rows(w).filter((x) => x.state === "dry" && x.leg === "convert").length], [3, 1]);
+  assertEquals(v.orders.length, 0);
+  w.tables.cb_live_config[0].dry_run = false;
+  w.tables.cb_live_config[0].armed_at = iso(T0 + 30e3);
+  const r = await turn(w, v, T0 + 70e3);
+  assertEquals([r.mode, r.armed, r.errors], ["live", true, []]);
+  assertEquals(v.orders.map((x) => x.side).sort(), ["BUY", "BUY", "BUY", "BUY"]);
+  assertEquals(rows(w).filter((x) => x.mode === "live" && x.state === "open").map((x) => x.leg).sort(), ["convert", "entry", "entry", "entry"]);
+  assertEquals(new Set(rows(w).filter((x) => x.mode === "dry_run").map((x) => `${x.state}|${x.reason}`)), new Set(["dry_withdrawn|armed"]));
+});
+
+Deno.test("back to dry-run: live entries are cancelled and the decisions written as dry rows; nothing is sent but the cancels", async () => {
+  const w = world({ dry: false, armed: true }), v = venue({ post: true, gbp: 120, usdc: 0 });
+  await turn(w, v, T0 + 10e3);
+  const placed = v.orders.length;
+  w.tables.cb_live_config[0].dry_run = true;
+  w.tables.cb_live_config[0].armed_at = null;
+  const before = v.calls.filter((c) => c === "POST /orders").length;
+  const r = await turn(w, v, T0 + 70e3);
+  assertEquals(r.errors, []);
+  assertEquals(v.calls.filter((c) => c === "POST /orders").length, before);              // no new order
+  assertEquals(v.orders.filter((x) => x.status === "OPEN").length, 0);
+  assertEquals(v.orders.length, placed);
+  assertEquals(rows(w).filter((x) => x.mode === "live" && x.leg === "entry").map((x) => x.reason), ["dry-run", "dry-run", "dry-run"]);
+  assertEquals(rows(w).filter((x) => x.mode === "live" && x.leg === "convert").map((x) => `${x.state}|${x.reason}`), ["cancelled|disarmed"]);
+  assertEquals(rows(w).filter((x) => x.state === "dry" && x.leg === "entry").length, 3);
+});
+
+Deno.test("a 403 from Coinbase is a refusal, not a lost reply: rejected with its reason, the turn's other orders not sent, an error raised", async () => {
+  const w = world({ dry: false, armed: true }), v = venue({ post: true, gbp: 120, usdc: 0, onCreate: () => "403" });
+  const r = await turn(w, v, T0 + 10e3);
+  assertEquals(v.calls.filter((c) => c === "POST /orders").length, 1);
+  const rej = rows(w).filter((x) => x.mode === "live");
+  assertEquals(rej.length, 1);
+  assertEquals(rej[0].state, "rejected");
+  assert(String(rej[0].reason).startsWith("http 403: ") && String(rej[0].reason).includes("User is not allowed to buy crypto"));
+  assert(r.events.includes("venue_rejected") && r.events.includes("denied_skip"));
+  assert(r.errors.some((e) => e.startsWith("coinbase refused to place (http 403")));
+  assertEquals(r.report, true);
+  // A minute on, the same paper decisions wait out the cool-down; a top-up too. Fifteen minutes on, they are tried again.
+  const fresh = (t: number) => { w.tables.cb_nudge_state[0].last_minute = iso(t - 2 * M); w.tables.cb_nudge_minutes.push({ book: "USDC-GBP", minute: iso(t - 2 * M), fair: FAIR }); };
+  fresh(T0 + 70e3);
+  const r2 = await turn(w, v, T0 + 70e3);
+  // The other two bids were never sent, so the first of them goes now and is refused: one POST a turn at most.
+  assertEquals(v.calls.filter((c) => c === "POST /orders").length, 2);
+  assert(r2.events.includes("denied_skip"));
+  fresh(T0 + 3 * M); await turn(w, v, T0 + 3 * M); fresh(T0 + 4 * M); await turn(w, v, T0 + 4 * M);
+  const sent = v.calls.filter((c) => c === "POST /orders").length;
+  fresh(T0 + 6 * M); await turn(w, v, T0 + 6 * M);
+  assertEquals(v.calls.filter((c) => c === "POST /orders").length, sent);                 // every decision now in its cool-down
+  fresh(T0 + 17 * M); await turn(w, v, T0 + 17 * M);
+  assertEquals(v.calls.filter((c) => c === "POST /orders").length, sent + 1);
+  // A 503 is still an unknown: pending, reconciled by its client id.
+  const w5 = world({ dry: false, armed: true }), v5 = venue({ post: true, onCreate: () => "503" });
+  await turn(w5, v5, T0 + 10e3);
+  assert(rows(w5).every((x) => x.state === "pending" && String(x.reason).startsWith("unknown: ")));
+});
+
+Deno.test("staleness: the paper's newest minute six minutes old still quotes (one run lost); past seven it does not", async () => {
+  for (const [age, n] of [[6 * M, 6], [7.5 * M, 0]] as const) {
+    const w = world({ dry: false, armed: true, last: T0 + 10e3 - age });
+    assertEquals((await turn(w, venue({ post: true }), T0 + 10e3)).placed, n, `age ${age / M} min`);
+  }
+});
+
+Deno.test("the top-up's daily cap counts only what reached Coinbase: a 403-rejected £60 top-up leaves the whole £70", async () => {
+  const w = world({ dry: false, armed: true }), v = venue({ post: true, gbp: 120, usdc: 0 });
+  // Today's earlier top-up, refused 403 (2026-10-29 20:54): 80.31 USDC at 0.7472, never on the book.
+  w.tables.cb_live_orders.push({ id: 1, client_order_id: crypto.randomUUID(), venue_order_id: null, mode: "live", leg: "convert", trip: null, rung_side: null, k: null, side: "BUY", price: 0.7472,
+    base_size: 80.31, end_time: null, state: "rejected", paper_key: null, fair: null, filled_size: 0, avg_price: null, fees_gbp: 0, reason: "http 403: User is not allowed to buy crypto",
+    request: null, response: { status: 403 }, created_at: iso(T0 - 50 * M), updated_at: iso(T0 - 50 * M) });
+  await turn(w, v, T0 + 10e3);
+  const conv = rows(w).filter((x) => x.leg === "convert" && x.mode === "live" && x.state === "open");
+  assertEquals(conv.length, 1);
+  const asksNeed = [0.001, 0.002, 0.003].reduce((s, k) => s + rungQty(20, quoteTicks(FAIR, k, "ask") * QUOTE_TICK, 0.01), 0);
+  assert(Number(conv[0].base_size) > 26.7 * 2, `bought ${conv[0].base_size}`);              // enough for the asks, not £10's worth
+  assert(Number(conv[0].base_size) <= Math.ceil(asksNeed * 1.02 * 100) / 100 + 1e-9);
+  // What counts: on the book at its size, ended at what filled; refused, rejected or never seen, nothing.
+  const base = { mode: "live" as const, price: 0.75, base_size: 10, filled_size: 4, avg_price: 0.7501 };
+  assertEquals([
+    convertSpentGbp({ ...base, state: "open", venue_order_id: "v" }), convertSpentGbp({ ...base, state: "filled", venue_order_id: "v" }),
+    convertSpentGbp({ ...base, state: "rejected", venue_order_id: null }), convertSpentGbp({ ...base, state: "pending", venue_order_id: null }),
+    convertSpentGbp({ ...base, state: "refused", venue_order_id: null }),
+  ], [7.5, 4 * 0.7501, 0, 0, 0]);
 });
