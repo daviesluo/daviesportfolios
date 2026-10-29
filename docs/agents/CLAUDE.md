@@ -348,7 +348,8 @@ that follow from that evidence, in short:
   the two USDC books at £25/€25 a rung (`agents/cb_usdc.ts`, `reviews/2026-10-26-cb-usdc-prereg.md`).
   **"Stablecoin quotes USDG/EUR" and "… EURC/USDC"** (`0150`, `agents/okx_rec.ts`, `agents/okx_quotes.ts`, reference §4 item 64;
   Davies, 2026-10-27: "…可以的话就加盘口记录器和开testings策略（目前live的rules？）"): a keyless recorder of OKX's USDG-EUR and EURC-USDC
-  and a paper twin a book on LIVE's rules (€50 a rung, LIVE's "at" fill, the weekend on the held EUR/USD, de-peg, the account's
+  and a paper twin a book on LIVE's rules ($100 a rung, $600 a book, since its Deviation 2 of 2026-10-29: "C，coinbase的也是改用美元";
+  €50 before, shown × the factor in dollars; LIVE's "at" fill, the weekend on the held EUR/USD, de-peg, the account's
   1 % loss stop), in a file of its own because `stepMinute` cannot fill by print size or price on a 0.001 grid; one call
   (`agents?action=okxrec`), pre-registered in `reviews/2026-10-27-okx-paper-prereg.md` (28 days). Whether Davies' UK OKX account
   may trade these books and at what maker fee is unconfirmed (that review's §1): nothing goes live there without his in-app check.
@@ -357,7 +358,7 @@ that follow from that evidence, in short:
   reference §4 item 58; "Stablecoin quotes Coinbase" until 2026-10-10) follows
   them: PR5's `stepMinute`, unchanged, on Coinbase's four GBP and EUR books
   from a keyless recorder, on paper, £100 a rung on a GBP book and €100 on a
-  EUR book (its Deviation 1), counted in pounds, its own Coinbase card;
+  EUR book (its Deviation 1), counted in pounds and shown in dollars since 2026-10-29 (`coinbaseInUsd`, the page only), its own Coinbase card;
   pre-registered in `reviews/2026-10-10-coinbase-paper-prereg.md`. Its weekend variant **"Stablecoin quotes with Euros - 2"**
   (`0118`, `agents/cb_hold.ts`, reference §4 item 60; Davies 2026-10-13) holds the interbank rates through a closure, up to 60
   hours, and changes nothing else; its own call, tables and window, pre-registered in

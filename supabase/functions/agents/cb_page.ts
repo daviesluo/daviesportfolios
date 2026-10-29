@@ -35,3 +35,32 @@ export async function readCoinbaseArm(d: Db, now: number, dayStartMs: number, t:
     return v && as ? { ...v, twin: { ...v.twin, id: as.id, name: as.name } } : v;
   } catch { return null; }
 }
+
+/**
+ * A Coinbase arm's page in DOLLARS (Davies, 2026-10-29: "C，coinbase的也是改用美元"): the same view with `ccy` "USD", and each
+ * figure the detail shows in pounds given beside it in dollars (a trip's P&L and fees, a day's and a book's realised, a held
+ * rung's cost and unrealised), at the view's own GBP/USD (its `capitalUsd` over its `capitalGbp`, PR5's last stored rate, as
+ * the scoreboard's dollars already are). Only the page's currency changes: sizes, prices, the rule and its record are as they
+ * were. Applied after `cbUsdcView`, so the USDC arm's sizes are already its own. null stays null.
+ */
+// deno-lint-ignore no-explicit-any
+export function coinbaseInUsd(v: any) {
+  if (!v) return v;
+  const rate = Number(v.capitalGbp) > 0 ? Number(v.capitalUsd) / Number(v.capitalGbp) : 0;
+  const usd = (gbp: unknown) => (gbp == null ? null : Number(gbp) * rate);
+  const d = v.detail ?? {};
+  return {
+    ...v, ccy: "USD" as const,
+    detail: {
+      ...d,
+      // deno-lint-ignore no-explicit-any
+      books: (d.books ?? []).map((b: any) => ({ ...b, realisedUsd: usd(b.realisedGbp) })),
+      // deno-lint-ignore no-explicit-any
+      rungs: (d.rungs ?? []).map((r: any) => (r.held ? { ...r, held: { ...r.held, costUsd: usd(r.held.costGbp), unrealisedUsd: usd(r.held.unrealisedGbp) } } : r)),
+      // deno-lint-ignore no-explicit-any
+      days: (d.days ?? []).map((x: any) => ({ ...x, realisedUsd: usd(x.realisedGbp) })),
+      // deno-lint-ignore no-explicit-any
+      trips: (d.trips ?? []).map((t: any) => ({ ...t, pnlUsd: usd(t.pnlGbp), feesUsd: usd(t.feesGbp) })),
+    },
+  };
+}

@@ -775,6 +775,16 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth).
 
+### [2026-10-29 03:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **OKX paper twins at $100 a rung, and the OKX and Coinbase quote rows in dollars** (sub-agent; commit, not pushed; Davies,
+  10-29: "OKX每个策略为什么是250usd？改成600吧？正好6个档每个50，目前的数字按倍率乘", then "C，coinbase的也是改用美元"). The
+  "250" was €300 a book (6 × €50) shown in pounds, about £251. OKX prereg §8 Deviation 2: 6 rungs of $100, $600 a book; the
+  switch is the first minute the deployed code decides, written into `okx_quote_state.state` (`usdFrom`, `usdEurusd`,
+  `usdFactor` = 600 ÷ (300 × EUR/USD), 1.793 at 1.1152); a resting €50 entry is re-sized once; the loss stop on $1,200.
+  The page reads both rows in dollars and scales what came before the switch × the factor in the view only (linear in size;
+  no migration). Coinbase's three rows (`coinbaseInUsd`, `cb_page.ts`) show dollars at the page's own pound rate; their
+  sizing and prereg untouched; every other row stays in pounds. `src/okx_prereg.test.js` holds §7's original hashes and
+  Deviation 2's. The OKX reading quotes `usdFrom` and the factor from the state.
 ### [2026-10-29 03:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The Chinese hooks skip sub-agents** (`input.agent_id`): Davies reads only the main thread; the pre-tool gate had been
   refusing sub-agents' English working notes, so one wrote its hand-back in Chinese to get past it.

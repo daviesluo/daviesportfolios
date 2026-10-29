@@ -4485,7 +4485,9 @@ fails too still reported (`edge-watchdog.retry`). In the three days before, 1,34
       against USDC, USD, USDG or RLUSD, one book each; the instrument ids stay `USDG-EUR` and `EURC-USDC`. So both are EUR/USD
       books: fair 1 / EUR/USD euros a USDG, EUR/USD dollars a EURC, each coin at par.
     - **The twins** ("Stablecoin quotes OKX USDG", "… OKX EURC"): PR5's rungs, re-price, exit at fair and 24-hour stop, carried
-      out as LIVE does: each book's own grid (EURC-USDC's 0.001), €50 a rung (€600 ÷ 12), a post-only order refused against the
+      out as LIVE does: each book's own grid (EURC-USDC's 0.001), €50 a rung (€600 ÷ 12; **$100 a rung, $600 a book, from its
+      Deviation 2 of 2026-10-29**, the page in dollars with the record before × $600 ÷ the €300 book's dollars at the switch,
+      about 1.79), a post-only order refused against the
       recorded book, LIVE's "at" fill by the print's quantity, the weekend on the held EUR/USD, the 50 bps de-peg guard and the
       account's 1 % daily loss stop on both books. Not `stepMinute` (frozen; it cannot), pinned rule by rule in
       `okx_quotes.test.ts`, eight mutations each failing a pin, and equal to `stepMinute`'s placements on PR5's grid with no fill.

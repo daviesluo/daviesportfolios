@@ -1242,7 +1242,9 @@ function quoteBookCells(q) {
     todayUsd: Number(q.todayUsd) || 0, todayPct: pct(q.todayUsd, capital),
     unrealisedUsd: Number(q.unrealisedUsd) || 0, unrealisedPct: pct(q.unrealisedUsd, cost),
     realisedUsd: Number(q.realisedUsd) || 0, realisedPct: pct(q.realisedUsd, capital),
-    ccy: 'GBP',
+    // In pounds, as every stablecoin row, unless the payload says dollars (Davies, 2026-10-29: "C，coinbase的也是改用美元": the
+    // OKX and Coinbase rows, `ccy` "USD"); its dollars are the fields above.
+    ccy: q.ccy === 'USD' ? 'USD' : 'GBP',
     gbp: {
       capital: Number(q.capitalGbp) || 0, value: Number(q.valueGbp) || 0,
       today: Number(q.todayGbp) || 0, todayPct: pct(q.todayGbp, Number(q.capitalGbp) || 0),
@@ -1252,6 +1254,38 @@ function quoteBookCells(q) {
     },
     nextText: 'every minute',
     openPositions: Number(q.heldRungs) || 0, openOrders: Number(q.openOrders) || 0,
+  };
+}
+
+/** A trip's, a rung's or a day's P&L to four places in a row's currency (`fmtGbp4`, `fmtUsd4`). @param {number | null | undefined} n @param {string | undefined} ccy */
+export const fmtIn4 = (n, ccy) => (ccy === 'USD' ? fmtUsd4(n) : fmtGbp4(n));
+/** A fee to four places in a row's currency (`fmtFeeGbp4`; dollars unsigned the same way). @param {number | null | undefined} n @param {string | undefined} ccy */
+export const fmtFeeIn4 = (n, ccy) => {
+  if (ccy !== 'USD') return fmtFeeGbp4(n);
+  const s = fmtMoney(n, { compact: false, precision: 4 });
+  return /^\$0[.,]0000$/.test(s) ? '$0' : s;
+};
+
+/**
+ * A quote page's detail in its row's currency: for a row in dollars (`ccy` "USD", the OKX and Coinbase rows since 2026-10-29),
+ * each money figure its pages draw from `*Gbp` fields (a book's realised, a held rung's unrealised, a day's realised, a trip's
+ * P&L and fees) is replaced by the payload's dollars beside it, so the pages draw one field in the row's currency; a row in
+ * pounds comes back as it is. Prices, sizes and counts are never touched.
+ * @param {any} q  a quote row's payload (`quotes.live`, a twin, a Coinbase or OKX arm)
+ */
+export function quotesDetailInCcy(q) {
+  if (q?.ccy !== 'USD' || !q.detail) return q;
+  const d = q.detail;
+  const pick = (/** @type {unknown} */ usd, /** @type {unknown} */ gbp) => (usd != null ? usd : gbp);
+  return {
+    ...q,
+    detail: {
+      ...d,
+      books: (d.books ?? []).map((/** @type {any} */ b) => ({ ...b, realisedGbp: pick(b.realisedUsd, b.realisedGbp) })),
+      rungs: (d.rungs ?? []).map((/** @type {any} */ r) => (r.held ? { ...r, held: { ...r.held, unrealisedGbp: pick(r.held.unrealisedUsd, r.held.unrealisedGbp), costGbp: pick(r.held.costUsd, r.held.costGbp) } } : r)),
+      days: (d.days ?? []).map((/** @type {any} */ x) => ({ ...x, realisedGbp: pick(x.realisedUsd, x.realisedGbp) })),
+      trips: (d.trips ?? []).map((/** @type {any} */ t) => ({ ...t, pnlGbp: pick(t.pnlUsd, t.pnlGbp), feesGbp: pick(t.feesUsd, t.feesGbp) })),
+    },
   };
 }
 

@@ -347,8 +347,9 @@ places stay when the number is not whole.
   books, USDC and USDT against pounds and against euros, from Coinbase's own
   public trades recorded every minute since 10 Oct. £100 a rung on the two
   pound books and €100 a rung on the two euro books, six a book: £1,200 plus
-  €1,200, counted in pounds at the latest euro rate. Every money figure is in
-  pounds; a euro book's prices are shown in euros. Its page is the twins'
+  €1,200. Since 29 Oct every money figure of the Coinbase rows is shown in
+  dollars (at the latest pound rate the page reads; the sizes are unchanged);
+  a pound book's prices are in pounds and a euro book's in euros. Its page is the twins'
   page without INVENTORY, since a paper test holds no coins of its own (what
   a rung holds is in BOOKS), so its DAYS and 7-day realised, annualised figure read
   straight beside the live row's on Revolut X.
@@ -372,9 +373,11 @@ places stay when the number is not whole.
 - **Stablecoin quotes USDG/EUR and Stablecoin quotes EURC/USDC.** After Coinbase's rows, on
   OKX (its own badge and venue card): the live rules on paper on OKX's two
   euro-against-dollar stablecoin books, USDG against euros and EURC against
-  dollars, from OKX's public trades recorded every minute. €50 a rung, six a
-  book, €600 on the two, every money figure in pounds; USDG/EUR's prices in
-  euros, EURC/USDC's in dollars. It quotes through the weekend on Friday's
+  dollars, from OKX's public trades recorded every minute. $100 a rung, six a
+  book, $600 a row, every money figure in dollars, since 29 Oct (€50 a rung
+  before; what it made then is shown scaled up to the $100 size, assuming it
+  would have filled the same way); USDG/EUR's prices in euros, EURC/USDC's
+  in dollars. It quotes through the weekend on Friday's
   euro rate, as the live account does. A 28-day paper test from the first
   midnight after it went up, its rule for judging it written down first.
   Whether Davies' UK OKX account can trade these books is checked in the

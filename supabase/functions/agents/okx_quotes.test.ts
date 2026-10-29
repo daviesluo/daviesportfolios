@@ -9,8 +9,8 @@
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   newOkxBookState, OKX_CAPITAL_EUR, OKX_DEPEG, OKX_LOSS_STOP, OKX_MAKER, OKX_REPRICE, OKX_RUNG_EUR, OKX_RUNGS, OKX_SPEC, OKX_STOP_MS, OKX_TABLES, OKX_TAKER,
-  okxAccountMinute, okxAccountTrips, okxCapitalGbp, okxExitTicks, okxFair, okxGbpPerQuote, okxNewState, okxQuoteTicks, okxRungQuote, type OkxMinuteInputs,
-  type OkxTapePrint, readOkxQuotes, runOkxQuotes, stepOkxMinute,
+  okxAccountMinute, okxAccountTrips, okxBookView, okxCapitalGbp, okxExitTicks, okxFair, okxGbpPerQuote, okxNewState, okxQuoteTicks, okxRungQuote, okxUsdFactor,
+  okxUsdPerQuote, type OkxMinuteInputs, type OkxTapePrint, OKX_BOOK_USD, OKX_RESIZE, OKX_RUNG_USD, readOkxQuotes, runOkxQuotes, stepOkxMinute,
 } from "./okx_quotes.ts";
 import { exitTicks, newBookState, QUOTE_REPRICE, QUOTE_RUNGS, quoteTicks, stepMinute } from "./quotes.ts";
 import { memDb, type Row } from "./testing.ts";
@@ -186,13 +186,52 @@ Deno.test("the daily loss stop is the account's: both books' closed trips that d
   assertEquals(s.rungs.find((r) => r.side === "bid" && r.k === 0.001)!.o!.state, "live");
 });
 
-Deno.test("the driver decides what the recorder has covered on both books, upserts its rows, and the page reads one twin a book", async () => {
+Deno.test("Deviation 2: from usdFrom a rung is $100, six a book, $600; on USDG-EUR $100 in euros, on EURC-USDC 100 USDC", () => {
+  assertEquals([OKX_RUNG_USD, OKX_BOOK_USD, OKX_RESIZE], [100, 600, 0.05]);
+  assertAlmostEquals(okxUsdFactor(EU), 600 / (300 * 1.1172), 1e-12);               // 1.79019: $600 over €300 in dollars
+  assertEquals([okxUsdPerQuote("USDG-EUR", EU), okxUsdPerQuote("EURC-USDC", EU)], [EU, 1]);
+  const u = newOkxBookState("USDG-EUR"), e = newOkxBookState("EURC-USDC");
+  stepOkxMinute(u, T0, lit([], { rungUsd: 100 }));
+  stepOkxMinute(e, T0, lit([], { rungUsd: 100 }));
+  // USDG-EUR's 0.1 % bid 0.8941: $100 = €89.5094 at 1.1172, 100.1112 USDG in 0.0001 lots; EURC-USDC's 1.116 bid: 89.605 EURC.
+  assertEquals(u.rungs.find((r) => r.side === "bid" && r.k === 0.001)!.o!.qty, 100.1112);
+  assertEquals(e.rungs.find((r) => r.side === "bid" && r.k === 0.001)!.o!.qty, 89.605);
+  // Six rungs a book, and every one of them is worth $100 (within a lot).
+  for (const st of [u, e]) {
+    assertEquals(st.rungs.filter((r) => r.mode === "quote").length, 6);
+    for (const r of st.rungs) assertAlmostEquals(r.o!.qty * r.o!.ticks * OKX_SPEC[st.book].tick * okxUsdPerQuote(st.book, EU)!, 100, 0.002);
+  }
+});
+
+Deno.test("Deviation 2: an entry resting at €50 is re-sized to $100 once at the switch, and never for a small move of EUR/USD", () => {
+  const s = newOkxBookState("EURC-USDC");
+  stepOkxMinute(s, T0, lit());                                                        // €50 rungs: 55.86 USDC
+  const bid = s.rungs.find((r) => r.side === "bid" && r.k === 0.001)!;
+  assertEquals(bid.o!.qty, 50.053);                                                   // 55.86 / 1.116
+  stepOkxMinute(s, T0 + M, lit());
+  const sw = stepOkxMinute(s, T0 + 2 * M, lit([], { rungUsd: 100 }));
+  assertEquals(sw.events.filter((x) => x.detail.what === "resize").length, 6);
+  assertEquals([bid.o!.qty, bid.o!.state, bid.o!.live, bid.o!.ticks], [89.605, "pending", T0 + 3 * M, 1116]);
+  // A minute later, EUR/USD 0.01 % higher: nothing is re-sized (EURC-USDC's rung is 100 USDC whatever EUR/USD does).
+  const next = stepOkxMinute(s, T0 + 3 * M, lit([], { rungUsd: 100, eurusd: 1.1173 }));
+  assertEquals(next.events.filter((x) => x.detail.what === "resize").length, 0);
+  // On USDG-EUR the dollar rung is euros at EUR/USD: a 1 % move of EUR/USD is inside the 5 % band.
+  const u = newOkxBookState("USDG-EUR");
+  stepOkxMinute(u, T0, lit([], { rungUsd: 100 }));
+  stepOkxMinute(u, T0 + M, lit([], { rungUsd: 100 }));
+  const moved = stepOkxMinute(u, T0 + 2 * M, lit([], { rungUsd: 100, eurusd: 1.1172 * 1.0004 }));
+  assertEquals(moved.events.filter((x) => x.detail.what === "resize").length, 0);
+});
+
+Deno.test("the driver switches to $100 rungs at its first decided minute, and the page reads $600 a book with the record before × the factor", async () => {
   const NOW = T0 + 11 * M;
   const eur: Row[] = [], fx: Row[] = [];
   for (let t = T0 - 20 * M; t <= T0 + 12 * M; t += M) { eur.push({ kind: "fx:EURUSD", t: iso(t), value: EU }); fx.push({ kind: "fx", t: iso(t), value: GU }); }
   const trades = [
-    { book: "USDG-EUR", trade_id: 7000001, ts: iso(T0 + 2 * M + 5e3), price: 0.8941, size: 100, side: "sell" },   // the 0.1 % bid, live from T0 + 1 min
+    { book: "USDG-EUR", trade_id: 7000001, ts: iso(T0 + 2 * M + 5e3), price: 0.8941, size: 100, side: "sell" },   // the 0.1 % bid at €50, before the switch
     { book: "USDG-EUR", trade_id: 7000002, ts: iso(T0 + 4 * M + 5e3), price: 0.8951, size: 100, side: "buy" },    // its exit at fair
+    { book: "USDG-EUR", trade_id: 7000003, ts: iso(T0 + 6 * M + 5e3), price: 0.8941, size: 200, side: "sell" },   // the same rung at $100, after it
+    { book: "USDG-EUR", trade_id: 7000004, ts: iso(T0 + 8 * M + 5e3), price: 0.8951, size: 200, side: "buy" },
     { book: "EURC-USDC", trade_id: 7000001, ts: iso(T0 + 5 * M + 5e3), price: 1.118, size: 3, side: "buy" },     // inside its quotes
   ];
   const books: Row[] = [];
@@ -200,35 +239,73 @@ Deno.test("the driver decides what the recorder has covered on both books, upser
     books.push({ book: "USDG-EUR", ts: iso(t + 40e3), bid: 0.8948, ask: 0.8958 });
     books.push({ book: "EURC-USDC", ts: iso(t + 40e3), bid: 1.117, ask: 1.119 });
   }
+  // The switch at T0 + 3 min (`usdFrom`, as a first run of this code would have written it there): €50 rungs before, $100 after.
+  const seed = { ...okxNewState(T0 + M, { "USDG-EUR": 0, "EURC-USDC": 0 }), usdFrom: T0 + 3 * M, usdEurusd: EU, usdFactor: okxUsdFactor(EU) };
   const { db, tables } = memDb({
     agent_locks: [{ name: "okx-quotes", lease_until: iso(0), holder: null }],
     agent_quote_inputs: fx, cb_quote_inputs: eur, okx_trades: trades, okx_books: books,
-    okx_quote_state: [{ id: 1, state: okxNewState(T0 + M, { "USDG-EUR": 0, "EURC-USDC": 0 }), last_minute: iso(T0), updated_at: iso(0), last_error: null }],
+    okx_quote_state: [{ id: 1, state: seed, last_minute: iso(T0), updated_at: iso(0), last_error: null }],
     okx_quote_events: [], okx_quote_trips: [], okx_quote_minutes: [], okx_quote_days: [],
   }, { now: () => NOW });
-  const cur = (coveredTo: number) => ({ from: 1, hi: 7000003, top: 7000003, topAt: coveredTo, hole: null, coveredTo });
-  const rec = { cursors: { "USDG-EUR": cur(T0 + 10 * M + 30e3), "EURC-USDC": cur(T0 + 10 * M + 30e3) } };
-  const r = await runOkxQuotes({ db, now: NOW, holder: "h", rec });
-  assertEquals([r.errors, r.minutes, r.from, r.to, r.prints, r.fills, r.exits], [[], 9, T0 + M, T0 + 9 * M, 3, 1, 1]);
-  assertEquals(tables.okx_quote_trips.length, 1);
-  const trip = tables.okx_quote_trips[0];
-  assertEquals([trip.book, trip.side, trip.k, trip.entry, trip.exit, trip.qty, trip.how], ["USDG-EUR", "bid", 0.001, 0.8941, 0.8951, 55.9221, "maker"]);
-  assertAlmostEquals(Number(trip.pnl_quote), 55.9221 * 0.001, 1e-9);
-  assertEquals(tables.okx_quote_minutes.length, 18);
-  const [st] = tables.okx_quote_state;
-  assertEquals([st.last_minute, (st.state as { fed: Record<string, number> }).fed], [iso(T0 + 9 * M), { "USDG-EUR": 7000002, "EURC-USDC": 7000001 }]);
-  // A second run in the same minute decides nothing new.
-  const again = await runOkxQuotes({ db, now: NOW + 1e3, holder: "h2", rec });
-  assertEquals(again.skipped, "nothing new to decide");
-  // The page: a twin a book, in Coinbase's shape, on OKX.
-  tables.okx_quote_days = [{ book: "USDG-EUR", day: "2026-10-27", orders: 9, fills: 1, trips: 1, won: 1, realised_gbp: Number(trip.pnl_gbp) }];
+  const cur = (coveredTo: number) => ({ from: 1, hi: 7000005, top: 7000005, topAt: coveredTo, hole: null, coveredTo });
+  const r = await runOkxQuotes({ db, now: NOW, holder: "h", rec: { cursors: { "USDG-EUR": cur(T0 + 10 * M + 30e3), "EURC-USDC": cur(T0 + 10 * M + 30e3) } } });
+  assertEquals([r.errors, r.from, r.to], [[], T0 + M, T0 + 9 * M]);
+  const trips = [...tables.okx_quote_trips].sort((a, b) => String(a.t_entry).localeCompare(String(b.t_entry)));
+  assertEquals(trips.map((t) => [t.t_entry, t.qty, t.entry, t.exit]), [[iso(T0 + 2 * M), 55.9221, 0.8941, 0.8951], [iso(T0 + 6 * M), 100.1112, 0.8941, 0.8951]]);
+  // The resting entries met the switch at T0 + 3 min and were re-sized once; the next time a rung opens it is $100.
+  const resized = tables.okx_quote_events.filter((e) => (e.detail as { what?: string }).what === "resize");
+  assertEquals([resized.length, resized.every((e) => e.minute === iso(T0 + 3 * M))], [11, true]);   // USDG's 5 resting and EURC's 6
+  // The page: $600 a book, in dollars; the €50 trip × the factor (2 × its euros, at 1.1172), the $100 one as it is.
+  tables.okx_quote_days = [{ book: "USDG-EUR", day: "2026-10-27", orders: 20, fills: 2, trips: 2, won: 2, realised_gbp: 0 }];
   const views = await readOkxQuotes(db, NOW, Date.parse("2026-10-27T00:00:00Z"));
-  assertEquals(views.map((v) => [v!.venue, v!.twin.id, v!.twin.name, v!.detail.tripCount]), [["okx", "okxusdg", "Stablecoin quotes OKX USDG", 1], ["okx", "okxeurc", "Stablecoin quotes OKX EURC", 0]]);
-  assertAlmostEquals(views[0]!.realisedGbp, 55.9221 * 0.001 * EU / GU, 1e-9);
-  assertAlmostEquals(views[0]!.capitalGbp, 300 * EU / GU, 1e-9);
-  assertAlmostEquals(views[1]!.capitalGbp, 300 * EU / GU, 1e-9);
-  assertEquals(views[0]!.detail.days.length, 1);
+  assertEquals(views.map((v) => [v!.venue, v!.ccy, v!.twin.id, v!.capitalUsd, v!.detail.tripCount]), [["okx", "USD", "okxusdg", 600, 2], ["okx", "USD", "okxeurc", 600, 0]]);
+  const before = 55.9221 * 0.001 * EU * okxUsdFactor(EU), after = 100.1112 * 0.001 * EU;
+  assertAlmostEquals(before, 55.9221 * 0.001 * 2, 1e-9);
+  assertAlmostEquals(views[0]!.realisedUsd, before + after, 1e-9);
+  assertAlmostEquals(views[0]!.realisedGbp, (before + after) / GU, 1e-9);
+  assertAlmostEquals(views[0]!.detail.days[0].realisedUsd, before + after, 1e-9);
+  const shown = views[0]!.detail.trips;
+  assertAlmostEquals(shown[1].pnlUsd, before, 1e-9);                                  // the older trip, listed second
+  assertAlmostEquals(shown[1].qty, 55.9221 * okxUsdFactor(EU), 1e-9);                 // its size × the factor
+  assertAlmostEquals(shown[0].pnlUsd, after, 1e-9);
+  assertEquals([shown[0].qty, shown[0].entry, shown[0].exit], [100.1112, 0.8941, 0.8951]); // prices never scaled
+  assertEquals(views[0]!.usdFrom, iso(T0 + 3 * M));
   assertEquals(OKX_TABLES.days, "okx_quote_days");
+});
+
+Deno.test("the driver's first run writes the switch: usdFrom its first decided minute, the EUR/USD there and the factor", async () => {
+  const eur: Row[] = [], fx: Row[] = [];
+  for (let t = T0 - 20 * M; t <= T0 + 5 * M; t += M) { eur.push({ kind: "fx:EURUSD", t: iso(t), value: EU }); fx.push({ kind: "fx", t: iso(t), value: GU }); }
+  const { db, tables } = memDb({
+    agent_locks: [{ name: "okx-quotes", lease_until: iso(0), holder: null }],
+    agent_quote_inputs: fx, cb_quote_inputs: eur, okx_trades: [], okx_books: [],
+    okx_quote_state: [{ id: 1, state: okxNewState(T0 + M, { "USDG-EUR": 0, "EURC-USDC": 0 }), last_minute: iso(T0), updated_at: iso(0), last_error: null }],
+    okx_quote_events: [], okx_quote_trips: [], okx_quote_minutes: [], okx_quote_days: [],
+  }, { now: () => T0 + 5 * M });
+  const cur = { from: 1, hi: 1, top: 1, topAt: T0 + 4 * M, hole: null, coveredTo: T0 + 4 * M + 30e3 };
+  const r = await runOkxQuotes({ db, now: T0 + 5 * M, holder: "h", rec: { cursors: { "USDG-EUR": cur, "EURC-USDC": cur } } });
+  assertEquals([r.errors, r.from], [[], T0 + M]);
+  const st = tables.okx_quote_state[0].state as { usdFrom: number; usdEurusd: number; usdFactor: number; books: Record<string, { rungs: Array<{ o: { qty: number } | null }> }> };
+  assertEquals([st.usdFrom, st.usdEurusd], [T0 + M, EU]);
+  assertAlmostEquals(st.usdFactor, 600 / (300 * 1.1172), 1e-12);
+  assertEquals(st.books["EURC-USDC"].rungs[0].o!.qty, 89.605);                         // the 0.1 % bid at $100 from the first minute
+});
+
+Deno.test("Deviation 2's scale in the page: × the factor strictly before usdFrom, × 1 at and after it", () => {
+  const from = T0 + 60 * M, factor = okxUsdFactor(EU);
+  const state = { ...okxNewState(T0, { "USDG-EUR": 0, "EURC-USDC": 0 }), usdFrom: from, usdEurusd: EU, usdFactor: factor };
+  const trip = (tEntry: number, pnlQuote: number) => ({ book: "EURC-USDC", side: "bid", k: 0.001, t_entry: iso(tEntry), t_exit: iso(tEntry + 5 * M), entry: 1.116, exit: 1.117,
+    qty: 50, how: "maker", pnl_gbp: 0, pnl_quote: pnlQuote });
+  const v = okxBookView({
+    book: "EURC-USDC", st: { state, last_minute: iso(from + 30 * M), last_error: null },
+    trips: [trip(from - M, 0.05), trip(from, 0.05), trip(from + M, 0.05)], days: [], events: [
+      { book: "EURC-USDC", minute: iso(from - M), side: "bid", k: 0.001, kind: "order", ticks: 1116, detail: { leg: "entry", qty: 50 } },
+      { book: "EURC-USDC", minute: iso(from), side: "bid", k: 0.001, kind: "order", ticks: 1116, detail: { leg: "entry", qty: 89.605 } },
+    ], minute: null, nowMs: from + 31 * M, dayStartMs: Math.floor(from / DAY) * DAY, gbpusd: GU, eurusd: EU,
+  })!;
+  assertAlmostEquals(v.realisedUsd, 0.05 * factor + 0.05 + 0.05, 1e-12);             // USDC is dollars: only the factor
+  assertEquals(v.detail.orders.map((o) => o.base), [50 * factor, 89.605]);
+  assertEquals([v.capitalUsd, v.ccy, v.feesUsd], [600, "USD", 0]);
 });
 
 Deno.test("an empty record starts at the next 00:00 UTC, flat, from the newest trade id each book has", async () => {

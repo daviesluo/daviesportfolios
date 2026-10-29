@@ -39,6 +39,13 @@
 //   pounds: a trip's quote-currency P&L at the book's pounds per unit when it closed (EUR/USD ÷ GBP/USD, or 1 ÷ GBP/USD), GBP/USD
 //   PR5's stored minute.
 //
+// DEVIATION 2 (2026-10-29; Davies: "OKX每个策略为什么是250usd？改成600吧？正好6个档每个50，目前的数字按倍率乘", then "C，coinbase的也是
+// 改用美元"): from the first minute this code decides (`usdFrom`, written into the state with the EUR/USD of that minute and the
+// factor $600 ÷ (€300 × EUR/USD)), each rung is $100 (`OKX_RUNG_USD`: on USDG-EUR $100 in euros at the minute's EUR/USD, on
+// EURC-USDC 100 USDC), six a book, $600 a book; an entry resting at the old size is re-sized once. The page counts these rows
+// in dollars, and everything entered before `usdFrom` is shown × the factor (`okxBookView`), assuming fills and fees scale with
+// size. The pre-registration's §8 has it.
+//
 // One call a minute (`agents?action=okxquotes`, 0150, a row of `edge_calls` under the watchdog), both books, its own tables
 // (`okx_quote_*`) and lease (`okx-quotes`). It reads the recorder's tables and the stored rates; it calls no venue and holds no
 // key. An empty record starts at the first 00:00 UTC after its first run.
@@ -63,6 +70,15 @@ export const OKX_REPRICE = 0.0005;
 /** One rung, in euros, on either book (€50 on USDG-EUR; on EURC-USDC €50 at the minute's EUR/USD): the capital, €600, ÷ 12. */
 export const OKX_RUNG_EUR = 50;
 export const OKX_CAPITAL_EUR = 12 * OKX_RUNG_EUR;
+/** Deviation 2: one rung, in dollars, from `usdFrom` on: six a book, $600 a book (Davies, 2026-10-29). */
+export const OKX_RUNG_USD = 100;
+export const OKX_BOOK_USD = 6 * OKX_RUNG_USD;
+/** An entry resting at a size this far from its rung's is re-sized (once, at Deviation 2's switch; EUR/USD rarely moves 5 %). */
+export const OKX_RESIZE = 0.05;
+/** Dollars a unit of the book's quote currency: EUR/USD for euros, 1 for USDC. */
+export const okxUsdPerQuote = (book: OkxBook, eurusd: number | null) => (OKX_SPEC[book].quote === "EUR" ? eurusd : 1);
+/** Deviation 2's factor: $600 over the €300 book's dollar value at EUR/USD. */
+export const okxUsdFactor = (eurusd: number) => OKX_BOOK_USD / (6 * OKX_RUNG_EUR * eurusd);
 export const OKX_STOP_MS = DAY;
 /** LIVE's de-peg guard (`QUOTE_LIVE_DEPEG`, quotes_live.ts): 50 bps between the last print and fair. */
 export const OKX_DEPEG = 0.005;
@@ -115,6 +131,8 @@ export type OkxMinuteInputs = {
   eurusd: number | null; gbpusd: number | null; prints: OkxTapePrint[]; touchStart: OkxTouch | null; touchEnd: OkxTouch | null;
   /** The account's loss stop has stopped today's entries (`okxAccountTrips`). */
   stopped?: boolean;
+  /** Deviation 2: the rung in dollars from `usdFrom` on; absent, the €50 rung. */
+  rungUsd?: number | null;
 };
 export type OkxTrip = {
   book: OkxBook; side: OkxSide; k: number; tEntry: number; fillTs: number; fillId: number; entry: number; qty: number;
@@ -197,7 +215,10 @@ export function stepOkxMinute(s: OkxBookState, t: number, inp: OkxMinuteInputs):
   const lp = s.lastPrint;
   const guard = f === null ? "dark" : inp.stopped ? "loss stop" : lp && Math.abs(lp.ticks * tick / f - 1) > OKX_DEPEG ? "de-peg" : null;
   const newOrder = (side: OkxSide, ticks: number, qty: number, fairAt: number): OkxOrder => ({ side, ticks, qty, fairAt, live: t + M, state: "pending", oid: s.nextOid++ });
-  const entryQty = (ticks: number) => r9(lotFloor(okxRungQuote(s.book, x ?? 0) / (ticks * tick), spec.lot));
+  const rungQuote = inp.rungUsd ? (spec.quote === "EUR" ? (x ? inp.rungUsd / x : 0) : inp.rungUsd) : okxRungQuote(s.book, x ?? 0);
+  const entryQty = (ticks: number) => r9(lotFloor(rungQuote / (ticks * tick), spec.lot));
+  // Deviation 2: an entry resting at a size more than 5 % from its rung's is re-sized (the switch to $100 rungs, once).
+  const offSize = (o: OkxOrder) => inp.rungUsd != null && entryQty(o.ticks) > 0 && Math.abs(o.qty / entryQty(o.ticks) - 1) > OKX_RESIZE;
   // 1. the turn at the start of minute t
   for (const r of s.rungs) {
     if (r.mode === "idle" || r.mode === "quote") {
@@ -216,12 +237,16 @@ export function stepOkxMinute(s: OkxBookState, t: number, inp: OkxMinuteInputs):
       }
       if (o.state === "rejected") {
         if (Math.abs(fair / o.fairAt - 1) > OKX_REPRICE) { o.ticks = okxQuoteTicks(fair, r.k, r.side, tick); o.qty = entryQty(o.ticks); o.fairAt = fair; }
+        if (offSize(o)) o.qty = entryQty(o.ticks);
         if (!okxCrosses(o.side, o.ticks, tick, inp.touchStart, lp)) { o.live = t + M; o.state = "pending"; orders++; ev(r, "order", o.ticks, { what: "replace", leg: "entry", oid: o.oid, qty: o.qty, fair, x, held }); }
         continue;
       }
       if (Math.abs(fair / o.fairAt - 1) > OKX_REPRICE) {
         o.ticks = okxQuoteTicks(fair, r.k, r.side, tick); o.qty = entryQty(o.ticks); o.fairAt = fair; o.live = t + M; o.state = "pending"; orders++;
         ev(r, "order", o.ticks, { what: "reprice", leg: "entry", oid: o.oid, qty: o.qty, fair, x, held });
+      } else if (offSize(o)) {
+        o.qty = entryQty(o.ticks); o.live = t + M; o.state = "pending"; orders++;
+        ev(r, "order", o.ticks, { what: "resize", leg: "entry", oid: o.oid, qty: o.qty, fair, x, held });
       }
     } else {
       const o = r.o;                                   // the exit, null until a fair exists
@@ -306,6 +331,10 @@ export type OkxQuoteState = {
   gbpusd?: number | null;
   /** The account's daily loss stop, both books. */
   account?: OkxAccount;
+  /** Deviation 2: the first minute decided at $100 a rung, the EUR/USD it was switched at, and the factor before it. */
+  usdFrom?: number;
+  usdEurusd?: number;
+  usdFactor?: number;
   fault?: { key: string; at: number };
 };
 export type OkxQuoteReport = { minutes: number; from: number | null; to: number | null; prints: number; fills: number; exits: number; stops: number; orders: number; refused: number; errors: string[]; report: boolean; skipped?: string };
@@ -374,17 +403,26 @@ export async function runOkxQuotes(d: { db: Db; now: number; holder: string; rec
     }
     let gbpusd = st.gbpusd ?? null;
     let acct: OkxAccount = st.account ?? { day: null, dayGbp: 0, stopped: false };
+    // Deviation 2: the first minute this code decides is the switch to $100 rungs, at its EUR/USD (the latest bar at or
+    // before it, else the books' last); with no rate yet it waits for one.
+    if (st.usdFrom == null) {
+      const before = eurBars.filter(([at]) => at <= first).at(-1)?.[1] ?? st.books["EURC-USDC"].lastX ?? st.books["USDG-EUR"].lastX;
+      if (before) { st.usdFrom = first; st.usdEurusd = before; st.usdFactor = okxUsdFactor(before); }
+    }
     for (let t = first; t <= horizon; t += M) {
       const eb = fxBarAt(t, eurBars), gb = fxBarAt(t, gbpBars);
       if (gb) gbpusd = gb[1];
       acct = okxAccountMinute(acct, t);
+      const usd = st.usdFrom != null && t >= st.usdFrom;
       for (const b of OKX_BOOKS) {
         const tp = tape[b], tick = OKX_SPEC[b].tick;
         const mine: OkxTapePrint[] = [];
         while (tp.j < tp.prints.length && tp.prints[tp.j].ts < t + M) { mine.push(tp.prints[tp.j]); tp.j++; }
-        const out = stepOkxMinute(st.books[b], t, { eurusd: eb ? eb[1] : null, gbpusd, prints: mine, touchStart: okxTouchAt(tp.touches, t), touchEnd: okxTouchAt(tp.touches, t + M - 1), stopped: acct.stopped });
+        const out = stepOkxMinute(st.books[b], t, { eurusd: eb ? eb[1] : null, gbpusd, prints: mine, touchStart: okxTouchAt(tp.touches, t), touchEnd: okxTouchAt(tp.touches, t + M - 1), stopped: acct.stopped,
+          rungUsd: usd ? OKX_RUNG_USD : null });
         const eurGbp = out.x && gbpusd ? out.x / gbpusd : null;            // EUR/USD ÷ GBP/USD
-        acct = okxAccountTrips(acct, out.trips, eurGbp == null ? null : okxCapitalGbp(eurGbp, 12));
+        const capGbp = usd ? (gbpusd ? 2 * OKX_BOOK_USD / gbpusd : null) : eurGbp == null ? null : okxCapitalGbp(eurGbp, 12);
+        acct = okxAccountTrips(acct, out.trips, capGbp);
         const last = st.books[b].lastPrint, ts = okxTouchAt(tp.touches, t);
         minutes.push({
           book: b, minute: iso(t), x: out.x, x_held: out.held, fair: out.fair, gbp_per_quote: out.gbpq, guard: out.guard,
@@ -441,14 +479,17 @@ async function save(d: { db: Db; now: number }, st: OkxQuoteState, report: OkxQu
 /** How many round trips and orders a page lists, newest first. */
 export const OKX_PAGE_ROWS = 30;
 
-type TripRow = { book: string; side: string; k: number | string; t_entry: string; t_exit: string; entry: number | string; exit: number | string; qty: number | string; how: string; pnl_gbp: number | string };
+type TripRow = { book: string; side: string; k: number | string; t_entry: string; t_exit: string; entry: number | string; exit: number | string; qty: number | string; how: string; pnl_gbp: number | string; pnl_quote: number | string };
 type DayRow = { book: string; day: string; orders: number; fills: number; trips: number; won: number; realised_gbp: number | string };
 type EventRow = { book: string; minute: string; side: string; k: number | string; kind: string; ticks: number | null; detail: Record<string, unknown> };
 type MinuteRow = { book: string; minute: string; fair: number | string | null; last: number | string | null; gbp_per_quote: number | string | null };
 
 /**
  * One book's twin for the Agents page, in the shape Coinbase's arms have (`cbQuotesView`), so TESTING's row and its page are
- * theirs: money in pounds, prices in the book's own currency, `venue` "okx". null before the record has decided a minute.
+ * theirs, prices in the book's own currency, `venue` "okx". Since Deviation 2 its money is in DOLLARS (`ccy` "USD"): $600 a
+ * book, each trip's P&L in its quote currency at the dollars a unit (EUR/USD for euros, 1 for USDC), and everything entered
+ * before `usdFrom` (trips, held rungs, order sizes) × `usdFactor`. Pounds beside them at the last GBP/USD. Prices, counts and
+ * percentages are not scaled. null before the record has decided a minute.
  */
 export function okxBookView(input: {
   book: OkxBook; st: { state: OkxQuoteState | Record<string, never>; last_minute: string | null; last_error: string | null } | null;
@@ -458,59 +499,69 @@ export function okxBookView(input: {
   if (!st?.last_minute || !s || !("books" in s)) return null;
   const b = input.book, spec = OKX_SPEC[b], bs = s.books[b];
   if (!bs) return null;
-  const gq = Number(input.minute?.gbp_per_quote) || okxGbpPerQuote(b, input.eurusd, input.gbpusd) || 0;
-  const usd = (gbp: number) => (input.gbpusd ? gbp * input.gbpusd : 0);
+  const upq = okxUsdPerQuote(b, input.eurusd) ?? 0;
+  const from = s.usdFrom ?? Infinity, factor = s.usdFactor ?? 1;
+  const scale = (tEntryMs: number) => (tEntryMs < from ? factor : 1);
+  const gbp = (usd: number) => (input.gbpusd ? usd / input.gbpusd : 0);
+  const tripUsd = (t: TripRow) => Number(t.pnl_quote) * upq * scale(Date.parse(t.t_entry));
   const trips = input.trips.filter((t) => t.book === b).sort((a, c) => Date.parse(c.t_exit) - Date.parse(a.t_exit) || Date.parse(c.t_entry) - Date.parse(a.t_entry));
-  const realisedGbp = trips.reduce((a, t) => a + Number(t.pnl_gbp), 0);
-  const todayGbp = trips.filter((t) => Date.parse(t.t_exit) >= input.dayStartMs).reduce((a, t) => a + Number(t.pnl_gbp), 0);
-  const eurGbp = spec.quote === "EUR" ? gq : (input.eurusd && input.gbpusd ? input.eurusd / input.gbpusd : 0);
-  const capitalGbp = okxCapitalGbp(eurGbp);
+  const realisedUsd = trips.reduce((a, t) => a + tripUsd(t), 0);
+  const todayUsd = trips.filter((t) => Date.parse(t.t_exit) >= input.dayStartMs).reduce((a, t) => a + tripUsd(t), 0);
+  const capitalUsd = OKX_BOOK_USD;
   const lastPx = input.minute?.last != null ? Number(input.minute.last) : bs.lastPrint ? bs.lastPrint.ticks * spec.tick : null;
   const px = (ticks: number) => Number((ticks * spec.tick).toFixed(6));
   const rungs: Array<Record<string, unknown>> = [];
-  let held = 0, quoting = 0, costGbp = 0, unrealisedGbp = 0, quotingGbp = 0;
+  let held = 0, quoting = 0, costUsd = 0, unrealisedUsd = 0, quotingUsd = 0;
   for (const r of bs.rungs) {
     if (r.mode === "position") {
       held++;
-      const cost = r.entry! * r.qty! * (r.xEntry ?? gq);
-      costGbp += cost;
-      const made = lastPx == null ? null : (r.side === "bid" ? r.qty! * (lastPx - r.entry!) : r.qty! * (r.entry! - lastPx)) * gq;
-      if (made != null) unrealisedGbp += made;
+      const k = scale(r.tEntry ?? 0);
+      const cost = r.entry! * r.qty! * upq * k;
+      costUsd += cost;
+      const made = lastPx == null ? null : (r.side === "bid" ? r.qty! * (lastPx - r.entry!) : r.qty! * (r.entry! - lastPx)) * upq * k;
+      if (made != null) unrealisedUsd += made;
       rungs.push({ book: b, side: r.side, k: r.k, order: r.o ? { price: px(r.o.ticks), leg: "exit", state: r.o.state } : null,
-        held: { base: r.qty, avgEntry: r.entry, since: r.tEntry != null ? iso(r.tEntry) : null, costGbp: cost, unrealisedGbp: made } });
+        held: { base: r.qty! * k, avgEntry: r.entry, since: r.tEntry != null ? iso(r.tEntry) : null, costUsd: cost, unrealisedUsd: made, costGbp: gbp(cost), unrealisedGbp: made == null ? null : gbp(made) } });
     } else if (r.mode === "quote" && r.o) {
       quoting++;
-      quotingGbp += OKX_RUNG_EUR * eurGbp;
+      quotingUsd += OKX_RUNG_USD;
       rungs.push({ book: b, side: r.side, k: r.k, order: { price: px(r.o.ticks), leg: "entry", state: r.o.state }, held: null });
     } else rungs.push({ book: b, side: r.side, k: r.k, order: null, held: null });
   }
-  const valueGbp = costGbp + quotingGbp;
+  const valueUsd = costUsd + quotingUsd;
   const lagMinutes = Math.round((input.nowMs - Date.parse(st.last_minute)) / M);
   const today = new Date(input.dayStartMs).toISOString().slice(0, 10);
-  const days = input.days.filter((d) => d.book === b).map((d) => ({ day: String(d.day).slice(0, 10), orders: Number(d.orders), fills: Number(d.fills), trips: Number(d.trips),
-    won: Number(d.won), realisedGbp: Number(d.realised_gbp), today: String(d.day).slice(0, 10) === today })).sort((a, c) => (a.day < c.day ? 1 : -1));
+  const dayUsd = (day: string) => trips.filter((t) => t.t_exit.slice(0, 10) === day || new Date(Date.parse(t.t_exit)).toISOString().slice(0, 10) === day).reduce((a, t) => a + tripUsd(t), 0);
+  const days = input.days.filter((d) => d.book === b).map((d) => {
+    const day = String(d.day).slice(0, 10), usd = dayUsd(day);
+    return { day, orders: Number(d.orders), fills: Number(d.fills), trips: Number(d.trips), won: Number(d.won), realisedUsd: usd, realisedGbp: gbp(usd), today: day === today };
+  }).sort((a, c) => (a.day < c.day ? 1 : -1));
   return {
-    venue: "okx" as const,
+    venue: "okx" as const, ccy: "USD" as const,
     running: lagMinutes <= 5, lagMinutes, lastError: st.last_error,
-    capitalGbp, costGbp, valueGbp, unrealisedGbp, realisedGbp, todayGbp, feesGbp: 0,
-    capitalUsd: usd(capitalGbp), costUsd: usd(costGbp), valueUsd: usd(valueGbp), unrealisedUsd: usd(unrealisedGbp), realisedUsd: usd(realisedGbp),
-    todayUsd: usd(todayGbp), feesUsd: 0,
+    capitalUsd, costUsd, valueUsd, unrealisedUsd, realisedUsd, todayUsd, feesUsd: 0,
+    capitalGbp: gbp(capitalUsd), costGbp: gbp(costUsd), valueGbp: gbp(valueUsd), unrealisedGbp: gbp(unrealisedUsd), realisedGbp: gbp(realisedUsd),
+    todayGbp: gbp(todayUsd), feesGbp: 0,
+    usdFrom: Number.isFinite(from) ? iso(from) : null, usdFactor: s.usdFactor ?? null,
     heldRungs: held, openOrders: quoting,
     detail: {
       books: [{ book: b, lastPrice: lastPx, fair: input.minute?.fair != null ? Number(input.minute.fair) : null, index: null,
-        realisedGbp, trips: trips.length, won: trips.filter((t) => Number(t.pnl_gbp) > 0).length }],
+        realisedUsd, realisedGbp: gbp(realisedUsd), trips: trips.length, won: trips.filter((t) => Number(t.pnl_gbp) > 0).length }],
       rungs, inventory: null, days,
-      trips: trips.slice(0, OKX_PAGE_ROWS).map((t) => ({
-        book: t.book, side: t.side, k: Number(t.k), tEntry: t.t_entry, tExit: t.t_exit, entry: Number(t.entry), exit: Number(t.exit), qty: Number(t.qty),
-        how: t.how === "taker" ? "stop" : "maker", feesGbp: 0, pnlGbp: Number(t.pnl_gbp),
-      })),
+      trips: trips.slice(0, OKX_PAGE_ROWS).map((t) => {
+        const k = scale(Date.parse(t.t_entry)), usd = tripUsd(t);
+        return {
+          book: t.book, side: t.side, k: Number(t.k), tEntry: t.t_entry, tExit: t.t_exit, entry: Number(t.entry), exit: Number(t.exit), qty: Number(t.qty) * k,
+          how: t.how === "taker" ? "stop" : "maker", feesUsd: 0, feesGbp: 0, pnlUsd: usd, pnlGbp: gbp(usd),
+        };
+      }),
       tripCount: trips.length, tripsWon: trips.filter((t) => Number(t.pnl_gbp) > 0).length,
       orders: input.events.filter((e) => e.book === b && (e.kind === "order" || e.kind === "refused")).slice(0, OKX_PAGE_ROWS).map((e) => {
         const leg = String(e.detail?.leg ?? "entry");
         return {
           id: `${e.book}|${e.minute}|${e.side}|${e.k}|${e.kind}`, ts: e.minute, book: e.book, side: e.side, k: Number(e.k), leg,
           venueSide: (e.side === "bid") === (leg !== "exit") ? "buy" : "sell",
-          price: e.ticks == null ? null : px(e.ticks), base: e.detail?.qty != null ? Number(e.detail.qty) : null,
+          price: e.ticks == null ? null : px(e.ticks), base: e.detail?.qty != null ? Number(e.detail.qty) * scale(Date.parse(e.minute)) : null,
           state: e.kind === "refused" ? "rejected" : "new", reason: e.kind === "refused" ? "post-only: it would have crossed the book" : null,
         };
       }),
@@ -524,7 +575,7 @@ export async function readOkxQuotes(d: Db, now: number, dayStartMs: number) {
   try {
     const [st, trips, days, events, fx, eurFx] = await Promise.all([
       d.select<{ state: OkxQuoteState | Record<string, never>; last_minute: string | null; last_error: string | null }>(OKX_TABLES.state, "id=eq.1&select=state,last_minute,last_error"),
-      d.selectAll<TripRow>(OKX_TABLES.trips, "select=book,side,k,t_entry,t_exit,entry,exit,qty,how,pnl_gbp&order=book.asc,side.asc,k.asc,t_entry.asc"),
+      d.selectAll<TripRow>(OKX_TABLES.trips, "select=book,side,k,t_entry,t_exit,entry,exit,qty,how,pnl_gbp,pnl_quote&order=book.asc,side.asc,k.asc,t_entry.asc"),
       d.select<DayRow>(OKX_TABLES.days, "select=book,day,orders,fills,trips,won,realised_gbp&order=day.desc&limit=120"),
       d.select<EventRow>(OKX_TABLES.events, `kind=in.(order,refused)&select=book,minute,side,k,kind,ticks,detail&order=minute.desc&limit=${OKX_PAGE_ROWS * 2}`),
       d.select<{ value: number }>("agent_quote_inputs", "kind=eq.fx&select=value&order=t.desc&limit=1"),

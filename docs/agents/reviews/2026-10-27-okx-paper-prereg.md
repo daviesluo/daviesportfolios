@@ -163,3 +163,42 @@ both books idle, `okx_quote_minutes` empty. `startedAt` and `lastMinute` in `okx
 catches up from 22:00 on the recorder's prints since 19:53. §4's 28 UTC days run 2026-10-28 22:00 → 2026-11-25 22:00 and §6's
 `:start` is the new `startedAt`; the first and last UTC days are partial (2 h and 22 h), the daily loss stop still resets at
 00:00 UTC. The rule, the bar and §7's files are unchanged.
+
+**Deviation 2 (2026-10-29): $100 a rung, $600 a book, the record counted in dollars.** Davies, 2026-10-29, verbatim:
+
+> OKX每个策略为什么是250usd？改成600吧？正好6个档每个50，目前的数字按倍率乘
+
+and, asked which reading he meant (6 rungs of 50 make 300, and "250" was the page's pounds: €300 a book at about £0.84 a
+euro, £251), with the choice of each row at 600 in pounds, 300 in pounds, or in dollars:
+
+> C，coinbase的也是改用美元
+
+So each book quotes 6 rungs of **$100** from the switch: **$600 a book, $1,200 on the two** (on USDG-EUR $100 in euros at the
+minute's EUR/USD, on EURC-USDC 100 USDC). The rows are counted in dollars. Coinbase's rows change their page's currency only;
+their pre-registrations are not touched.
+
+- **The instant.** The first minute the deployed code decides (`okx_quote_state.state.usdFrom`). The run writes it with that
+  minute's EUR/USD, the latest stored bar at or before it (`usdEurusd`), and the factor (`usdFactor`). The deploy follows the
+  push, so the reading quotes the three values from the state; this text cannot name them in advance.
+- **The factor.** $600 ÷ (€300 × EUR/USD at the instant). At 1.1152 (the stored EUR/USD of 2026-10-29 03:23 UTC) that is
+  600 ÷ 334.56 = **1.793**. Every amount entered before the instant is shown × that factor on the page: a trip's P&L and size,
+  a held rung's cost and P&L and size, an order's size. Prices, counts and percentages are not scaled.
+- **The assumption.** Fills and fees scale linearly with size. That ignores the book's depth: a print that filled a whole €50
+  rung (about $56) may fill only part of a $100 one, so the scaled record overstates what $100 rungs would have done wherever
+  prints were smaller than the rung. The record before the instant is short (the window opened at 2026-10-28 22:00 UTC; one
+  round trip by 2026-10-29 03:23 UTC).
+- **The switch itself.** An entry resting at the old size is re-sized once at the instant (more than 5 % off its rung,
+  `OKX_RESIZE`; the change is 1.79×), counted as one order. A rung held at the instant exits what it holds, as before.
+- **LIVE's loss stop** counts −1 % of $1,200 (in pounds at the minute's GBP/USD) from the instant.
+- **The bar, read in dollars.** A trip's dollars are its quote-currency P&L (`okx_quote_trips.pnl_quote`) × the dollars a unit:
+  for EURC-USDC 1, for USDG-EUR the window's mean EUR/USD (`okx_quote_minutes.x` where not null). A trip entered before the
+  instant is also × the factor.
+  - §5's conditions 1 and 4 read those dollars (the bootstrap on the 28 daily dollar totals).
+  - Condition 5 is total dollars ÷ 28 ÷ $1,200 ≥ 0.0005.
+  - Conditions 2 and 3 count trips and are unchanged; so are the window and the void rules.
+- **Frozen bytes this deviation names** (held by `src/okx_prereg.test.js`, which still holds §7's originals as they were):
+
+| file | sha256 (Deviation 2) |
+|---|---|
+| `supabase/functions/agents/okx_quotes.ts` | 257e8ccb4d302ce5b26c51f5ca8d9bdcee11a52e0c8253d467fda3df57f832e7 |
+| `supabase/functions/agents/okx_quotes.test.ts` | 619ecdad56ee20805dfc5ae4826865060ea142a02b751ced37f0f0a1d3612210 |

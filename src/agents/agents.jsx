@@ -16,7 +16,7 @@ import { SurfaceBoundary } from '../app/surface_boundary.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, FXW_ROW_ID, fmtFx, fxwAudRow, fxwTiles, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokTestRow, grokTestOf, grokTestTiles, grokTestLayerCells, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesPageFor, quotesOkxName, quotesOkxOf, quotesOkxRow, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quoteDaysRecent, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwShareText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows,
+  AGENT_TABS, FXW_ROW_ID, fmtFx, fxwAudRow, fxwTiles, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokTestRow, grokTestOf, grokTestTiles, grokTestLayerCells, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtFeeIn4, fmtGbp, fmtGbp4, fmtIn, fmtIn4, quotesDetailInCcy, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesPageFor, quotesOkxName, quotesOkxOf, quotesOkxRow, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quoteDaysRecent, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwShareText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -347,14 +347,14 @@ function VenueSplit({ dash, tab, m, tests = [] }) {
 
 
 
-/** One side of a rung in the ladder: idle, the price it quotes, or what it holds and has made at the last print, in pounds. */
-function LadderCell({ c, m, book = null }) {
+/** One side of a rung in the ladder: idle, the price it quotes, or what it holds and has made at the last print, in the row's currency. */
+function LadderCell({ c, m, book = null, ccy = 'GBP' }) {
   if (c.state === 'idle') return <span className="dim">idle</span>;
   if (c.state === 'quoting') return <span>{m(fmtQuotePrice(c.price, book))}</span>;
   return (
     <span className="ag-qheld">
       <span className="ag-state-pill ag-state-filled">held</span> {m(fmtQuotePrice(c.price, book))}
-      {c.unrealisedGbp != null && <span className="ag-gl" style={{ color: pctColor(c.unrealisedGbp) }}> {m(fmtGbp4(c.unrealisedGbp))}</span>}
+      {c.unrealisedGbp != null && <span className="ag-gl" style={{ color: pctColor(c.unrealisedGbp) }}> {m(fmtIn4(c.unrealisedGbp, ccy))}</span>}
     </span>
   );
 }
@@ -364,9 +364,9 @@ function LadderCell({ c, m, book = null }) {
  * its round trips and what it has realised, in pounds. A held rung's P&L is at the index price while one is fresh, as
  * Revolut X values coins, else at the last trade. The paper page and the live page show the same section (Davies,
  * 2026-10-01: the paper page's BOOKS read more clearly than the live page's RUNGS).
- * @param {{ books: any[], m: (s: string) => string, empty?: string | null }} props
+ * @param {{ books: any[], m: (s: string) => string, empty?: string | null, ccy?: string }} props
  */
-function QuoteBooks({ books, m, empty = null }) {
+function QuoteBooks({ books, m, empty = null, ccy = 'GBP' }) {
   return (
     <section className="ag-section ag-quote-books">
       <div className="ag-section-title mono">BOOKS</div>
@@ -382,13 +382,13 @@ function QuoteBooks({ books, m, empty = null }) {
               <thead><tr><th className="dim">Rung</th><th className="dim">Bid</th><th className="dim">Ask</th></tr></thead>
               <tbody>
                 {quoteLadderRows(b).map((r) => (
-                  <tr key={r.k}><td className="dim">{r.label}</td><td><LadderCell c={r.bid} m={m} book={b.book} /></td><td><LadderCell c={r.ask} m={m} book={b.book} /></td></tr>
+                  <tr key={r.k}><td className="dim">{r.label}</td><td><LadderCell c={r.bid} m={m} book={b.book} ccy={ccy} /></td><td><LadderCell c={r.ask} m={m} book={b.book} ccy={ccy} /></td></tr>
                 ))}
               </tbody>
             </table>
             <div className="ag-quotes-grid mono">
               <span className="dim">round trips</span><span>{b.trips ? `${b.trips} · ${Math.round((100 * b.won) / b.trips)} % won` : '0'}</span>
-              <span className="dim">realised</span><span className="ag-gl" style={{ color: pctColor(b.realisedGbp) }}>{m(fmtGbp4(b.realisedGbp ?? 0))}</span>
+              <span className="dim">realised</span><span className="ag-gl" style={{ color: pctColor(b.realisedGbp) }}>{m(fmtIn4(b.realisedGbp ?? 0, ccy))}</span>
             </div>
           </div>
         ))}
@@ -404,9 +404,10 @@ function QuoteBooks({ books, m, empty = null }) {
  * named for what it is (`QUOTE_DAYS_ANNUAL_LABEL`, its tooltip `QUOTE_DAYS_ANNUAL_TITLE`; 2026-10-26). By default only
  * today's open row and the seven closed days the figure sums show (`quoteDaysRecent`, its own window; Davies, 2026-10-28), with "Load full history" under the
  * table for the rest and "Show last 7 days" to fold it back. Every Stablecoin quotes page (live, twins, Coinbase, OKX) draws it.
- * @param {{ days: any[], m: (s: string) => string, empty?: string | null, capitalGbp?: number | null, nowMs?: number }} props
+ * In the row's currency (`ccy`; its days' `realisedGbp` are in it, `quotesDetailInCcy`), the capital in the same.
+ * @param {{ days: any[], m: (s: string) => string, empty?: string | null, capitalGbp?: number | null, nowMs?: number, ccy?: string }} props
  */
-export function QuoteDaysTable({ days, m, empty = null, capitalGbp = null, nowMs = Date.now() }) {
+export function QuoteDaysTable({ days, m, empty = null, capitalGbp = null, nowMs = Date.now(), ccy = 'GBP' }) {
   const annual = quoteDaysAnnualPct(days, capitalGbp, nowMs);
   const [full, setFull] = React.useState(false);
   const recent = quoteDaysRecent(days, nowMs);
@@ -430,7 +431,7 @@ export function QuoteDaysTable({ days, m, empty = null, capitalGbp = null, nowMs
                 <td className="ag-ph">{d.orders}</td>
                 <td className="ag-ph">{d.fills}</td>
                 <td>{d.trips ? `${d.trips} · ${Math.round((100 * d.won) / d.trips)} % won` : '0'}</td>
-                <td className="ag-gl" style={{ color: pctColor(d.realisedGbp) }}>{m(fmtGbp4(d.realisedGbp))}</td>
+                <td className="ag-gl" style={{ color: pctColor(d.realisedGbp) }}>{m(fmtIn4(d.realisedGbp, ccy))}</td>
               </tr>
             ))}
           </tbody>
@@ -539,7 +540,9 @@ function QuotesLiveDetail({ q, m, at, nowMs, twin = false, coinbase: cbOnly = fa
   if (!row) return null;
   const lines = twin || coinbase ? quotesTwinLines(q, m) : null;
   const x = rowMoney(row);
-  const d = q.detail ?? null;
+  // A row in dollars (the OKX and Coinbase rows, 2026-10-29) draws its detail's dollars (`quotesDetailInCcy`).
+  const qc = quotesDetailInCcy(q);
+  const d = qc.detail ?? null;
   const inv = quotesLiveInventory(q, m);
   const trips = d?.trips ?? [], orders = d?.orders ?? [];
   const exitOrders = orders.filter((/** @type {any} */ o) => o.leg === 'exit' || o.leg === 'stop');
@@ -565,7 +568,7 @@ function QuotesLiveDetail({ q, m, at, nowMs, twin = false, coinbase: cbOnly = fa
       {lines?.waiting.map((w) => <div key={w} className="ag-twin-line ag-twin-waiting dim">{w}</div>)}
       {!q.running && <div className="ag-warn-line">{row.status.detail}</div>}
       {q.lastError && <div className="ag-warn-line">last turn: {m(String(q.lastError))}</div>}
-      <QuoteBooks books={quotesLiveBooks(q)} m={m} empty={empty} />
+      <QuoteBooks books={quotesLiveBooks(qc)} m={m} empty={empty} ccy={x.ccy} />
       {!coinbase && <section className="ag-section ag-ql-inventory">
         <div className="ag-section-title mono">INVENTORY</div>
         {inv ? (
@@ -585,7 +588,7 @@ function QuotesLiveDetail({ q, m, at, nowMs, twin = false, coinbase: cbOnly = fa
           </div>
         ) : <div className="ag-empty dim">{empty ?? 'Its last turn could not read the account.'}</div>}
       </section>}
-      <QuoteDaysTable days={d?.days ?? []} m={m} empty={empty} capitalGbp={x.ccy === 'GBP' ? x.capital : null} nowMs={nowMs} />
+      <QuoteDaysTable days={d?.days ?? []} m={m} empty={empty} capitalGbp={x.capital} nowMs={nowMs} ccy={x.ccy} />
       <section className="ag-section ag-ql-trips ag-ql-tables">
         <div className="ag-section-title mono">ROUND TRIPS</div>
         <div className="hl-scroll">
@@ -605,8 +608,8 @@ function QuotesLiveDetail({ q, m, at, nowMs, twin = false, coinbase: cbOnly = fa
                   <td>{m(fmtQuotePrice(t.entry, t.book))}</td>
                   <td>{m(fmtQuotePrice(t.exit, t.book))}</td>
                   <td className="dim"><Qty qty={t.qty} book={t.book} m={m} /></td>
-                  <td className="ag-ph dim">{m(fmtFeeGbp4(t.feesGbp))}</td>
-                  <td className="ag-gl" style={{ color: pctColor(t.pnlGbp) }}>{m(fmtGbp4(t.pnlGbp))}</td>
+                  <td className="ag-ph dim">{m(fmtFeeIn4(t.feesGbp, x.ccy))}</td>
+                  <td className="ag-gl" style={{ color: pctColor(t.pnlGbp) }}>{m(fmtIn4(t.pnlGbp, x.ccy))}</td>
                 </tr>
               ))}
             </tbody>

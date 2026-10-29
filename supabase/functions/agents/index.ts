@@ -257,7 +257,7 @@ import { readCbUsdc, runCbUsdc } from "./cb_usdc.ts";
 import { runOkxRec } from "./okx_rec.ts";
 import { readOkxQuotes, runOkxQuotes } from "./okx_quotes.ts";
 import { readFxw } from "./fxw_view.ts";
-import { CB_HOLD_PAGE_NAME, readCoinbaseArm } from "./cb_page.ts";
+import { CB_HOLD_PAGE_NAME, coinbaseInUsd, readCoinbaseArm } from "./cb_page.ts";
 import { runEconcal } from "./econcal.ts";
 import { dayOpenOf, dayPnl, decisionBarMs, isOffBook, jevViewOf, resolveBook, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
 
@@ -2334,17 +2334,17 @@ async function dashboard(now: number) {
      * "Stablecoin quotes with Euros" (`0112`, cb_quotes.ts): PR5's rule on paper on Coinbase's four GBP and EUR stablecoin
      * books, in a twin's shape with `venue: "coinbase"`; null until it has decided a minute.
      */
-    quotesCoinbase: await quotesCoinbaseRead,
+    quotesCoinbase: coinbaseInUsd(await quotesCoinbaseRead),
     /**
      * "Stablecoin quotes with Euros - 1" (`0118`, cb_hold.ts; "- 2" until `0142`): the same paper test with the interbank rates held through a
      * closure, in the same shape as `quotesCoinbase` (`twin.id` "coinbasehold"); null until it has decided a minute.
      */
-    quotesCoinbaseHold: await quotesCoinbaseHoldRead,
+    quotesCoinbaseHold: coinbaseInUsd(await quotesCoinbaseHoldRead),
     /**
      * "Stablecoin quotes with Euros - 2" (`0142`, cb_usdc.ts): the weekend variant's rule on Coinbase's two USDC books at 25 a
      * rung, in the same shape (`twin.id` "coinbaseusdc"; `readCbUsdc`); null until it has decided a minute.
      */
-    quotesCoinbaseUsdc: await quotesCoinbaseUsdcRead,
+    quotesCoinbaseUsdc: coinbaseInUsd(await quotesCoinbaseUsdcRead),
     /**
      * "Stablecoin quotes OKX USDG" and "Stablecoin quotes OKX EURC" (`0150`, okx_quotes.ts): PR5's rule as LIVE carries it out,
      * on paper, on OKX's USDG-EUR and EURC-USDC, one twin a book (`twin.id` "okxusdg", "okxeurc"); empty until it has decided a minute.
