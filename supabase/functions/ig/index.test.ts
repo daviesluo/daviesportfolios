@@ -3,7 +3,7 @@
 import { assert, assertEquals, assertRejects, assertThrows } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import frozen from "../../../docs/agents/backtests/ig_deepdive/params/g2_s1a_frozen.json" with { type: "json" };
 import {
-  adoptTokens, assertAllowed, demoCreds, IG_DEMO_BASE, IG_DEMO_SECRET_NAMES, IG_DEMO_SHARED_SECRET_NAMES, IG_ENVIRONMENT, IgClient, IgRefused, scrubDeep, stripBalances,
+  adoptTokens, assertAllowed, demoCreds, IG_DEMO_BASE, IG_DEMO_SECRET_NAMES, IG_ENVIRONMENT, IgClient, IgRefused, scrubDeep, stripBalances,
 } from "./client.ts";
 import { candidates, expiryOrder, parsePins, pickEpics, type SearchMarket } from "./epics.ts";
 import {
@@ -284,13 +284,7 @@ Deno.test("only the demo secrets are read", () => {
   assertEquals(IG_DEMO_SECRET_NAMES, { key: "IG_API_KEY_DEMO", username: "IG_DEMO_USERNAME", password: "IG_DEMO_PASSWORD" });
   const c = demoCreds({ ...ENV, IG_API_KEY_LIVE: "live-key", IG_LIVE_USERNAME: "live-user", IG_LIVE_PASSWORD: "live-pass" });
   assertEquals(c, CREDS);
-  assertEquals(demoCreds({ IG_API_KEY_LIVE: "live-key", IG_LIVE_USERNAME: "u", IG_LIVE_PASSWORD: "p" }), { missing: ["IGBOT_DEMO_API_KEY", "IGBOT_DEMO_USERNAME", "IGBOT_DEMO_PASSWORD"] });
-  // 2026-10-29: the old names were deleted and IGBOT's demo login added; IGBOT's names are read first, the old ones after.
-  assertEquals(IG_DEMO_SHARED_SECRET_NAMES, { key: "IGBOT_DEMO_API_KEY", username: "IGBOT_DEMO_USERNAME", password: "IGBOT_DEMO_PASSWORD" });
-  const shared = { IGBOT_DEMO_API_KEY: "k2", IGBOT_DEMO_USERNAME: "u2", IGBOT_DEMO_PASSWORD: "p2", IGBOT_DEMO_ACCOUNT_ID: "X8K" };
-  assertEquals(demoCreds({ ...shared, IG_API_KEY_LIVE: "live-key" }), { key: "k2", username: "u2", password: "p2" });
-  assertEquals(demoCreds({ ...ENV, ...shared }), { key: "k2", username: "u2", password: "p2" });
-  assertEquals(demoCreds({ ...ENV, IGBOT_DEMO_API_KEY: "k2" }), CREDS);
+  assertEquals(demoCreds({ IG_API_KEY_LIVE: "live-key", IG_LIVE_USERNAME: "u", IG_LIVE_PASSWORD: "p" }), { missing: ["IG_API_KEY_DEMO", "IG_DEMO_USERNAME", "IG_DEMO_PASSWORD"] });
 });
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -650,7 +644,7 @@ Deno.test("the beat is written before anything else, and only the cron bearer or
   // Without the demo secrets nothing is called, and the answer names what is missing.
   const r = await handle(req("quotes", { authorization: `Bearer ${ENV.CRON_SECRET}` }), deps({ env: { CRON_SECRET: ENV.CRON_SECRET, IG_API_KEY_LIVE: "live" } }));
   assertEquals(r.status, 503);
-  assertEquals((await r.json()).missing, ["IGBOT_DEMO_API_KEY", "IGBOT_DEMO_USERNAME", "IGBOT_DEMO_PASSWORD"]);
+  assertEquals((await r.json()).missing, ["IG_API_KEY_DEMO", "IG_DEMO_USERNAME", "IG_DEMO_PASSWORD"]);
 });
 
 Deno.test("facts and history answer 202 at once, run on under keepAlive, and log a clean report; a crash logs no secret", async () => {

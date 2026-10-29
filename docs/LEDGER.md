@@ -765,12 +765,12 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-28 23:27 UTC section (archived
 2026-10-29, third).
 
-### [2026-10-29 00:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **IGBOT's demo secrets verified; the `ig` recorder moved onto them.** Davies (via his Grok bot) set the five `IGBOT_*`
-  secrets and deleted `IG_API_KEY_DEMO`/`IG_DEMO_USERNAME`/`IG_DEMO_PASSWORD`, which the weekend recorder (S1b, `ig?action=quotes`,
-  last good 10-26 22:04) reads. Read-only 00:15: `igbot` sync 200 each minute (3–9 IG calls), bars for all six epics, demo
-  spread-bet account clean (no position or working order), `dry_run`. `ig/client.ts` now reads IGBOT's three demo names first,
-  the old ones after (pinned). Shared key: the recorder's ~7 calls a minute run only in weekend windows, when IGBOT opens nothing.
+### [2026-10-29 00:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Reverted `b4f64394`: the IG recorder reads only its own three demo secrets again.** One demo login cannot hold two
+  sessions: an `ig?action=facts` test at 00:20:59 on IGBOT's login was refused `401 error.security.account-token-invalid`
+  after logging in, and IGBOT's sync failed the same way at 00:19 and 00:21. Davies had his Grok bot restore
+  `IG_API_KEY_DEMO`/`IG_DEMO_USERNAME`/`IG_DEMO_PASSWORD`; they must be a DIFFERENT demo login from IGBOT's, or the weekend
+  recorder and IGBOT will log each other out every minute of the weekend windows.
 
 ### [2026-10-28 23:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **A Grok crypto bot, long and short, researched** (sub-agent; commit, not pushed; item 19): `reviews/2026-10-29-crypto-grok-bot-research.md`.

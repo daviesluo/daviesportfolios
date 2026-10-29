@@ -19,7 +19,7 @@
 //        one-minute job (0122), switched on only around the windows.
 //
 // Auth: `Authorization: Bearer <CRON_SECRET>` (pg_net with the Vault `cron_secret`) or an admin `x-app-token`; deployed
-// --no-verify-jwt (PUBLIC_FNS in edge-functions.yml). Secrets: IGBOT_DEMO_API_KEY, IGBOT_DEMO_USERNAME, IGBOT_DEMO_PASSWORD (2026-10-29), else IG_API_KEY_DEMO, IG_DEMO_USERNAME, IG_DEMO_PASSWORD; never
+// --no-verify-jwt (PUBLIC_FNS in edge-functions.yml). Secrets: IG_API_KEY_DEMO, IG_DEMO_USERNAME, IG_DEMO_PASSWORD; never
 // echoed, and scrubbed with the session tokens from every answer, row and error.
 
 import { reportServerError } from "../_shared/ops.ts";
