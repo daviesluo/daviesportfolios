@@ -1,8 +1,8 @@
-// Pins for the Agents page's "AUD weekend (FXW-AUD)" figures (fxw_view.ts), each worked by hand in its comment.
+// Pins for the Agents page's "FXW-AUD weekend" figures (fxw_view.ts), each worked by hand in its comment.
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { type FxwRow, fxwView } from "./fxw_view.ts";
 
-const STATE = { last_run: "2026-11-09T07:58:00Z", last_error: null, name: "AUD weekend (FXW-AUD)", funded_gbp: 1000, stake_gbp: 1.5, start_at: "2026-10-30T21:35:00Z" };
+const STATE = { last_run: "2026-11-09T07:58:00Z", last_error: null, name: "FXW-AUD weekend", funded_gbp: 1000, stake_gbp: 1.5, start_at: "2026-10-30T21:35:00Z" };
 const base: FxwRow = {
   friday: "", status: "closed", reason: null, epic: "CS.D.AUDUSD.TODAY.IP", fri_ts: null, fri_bid: null, fri_offer: null, fri_mid: 0.66,
   dec_ts: null, dec_bid: null, dec_offer: null, gap_bps: null, side: "long", stake_gbp: 1.5, entry_ts: null, entry_price: 0.658, margin_gbp: 493.5,

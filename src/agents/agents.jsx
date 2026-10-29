@@ -16,7 +16,7 @@ import { SurfaceBoundary } from '../app/surface_boundary.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, FXW_ROW_ID, fmtFx, fxwAudRow, fxwTiles, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokTestRow, grokTestOf, grokTestTiles, grokTestLayerCells, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesPageFor, quotesOkxOf, quotesOkxRow, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quoteDaysRecent, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwShareText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows,
+  AGENT_TABS, FXW_ROW_ID, fmtFx, fxwAudRow, fxwTiles, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokTestRow, grokTestOf, grokTestTiles, grokTestLayerCells, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesPageFor, quotesOkxName, quotesOkxOf, quotesOkxRow, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quoteDaysRecent, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwShareText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -708,10 +708,10 @@ function LpLiveDetail({ l, m, at, nowMs }) {
 }
 
 /**
- * "AUD weekend (FXW-AUD)", the frozen FXW-AUD rule on paper on IG's recorded live quotes (Davies, 2026-10-29:
+ * "FXW-AUD weekend", the frozen FXW-AUD rule on paper on IG's recorded live quotes (Davies, 2026-10-29:
  * "在testing列表中把IG Trader和澳元策略都上线…确保模拟一切真实"; `supabase/functions/ig/fxw.ts`): its head (PAPER, IG, the list's
  * light), the quotes pages' scoreboard from its LIST row (`rowMoney(fxwAudRow(f))`) so the row and the page read the same
- * figures (REALIZED G/L net of funding), STATUS (equity, trades, open position, days run, stake), then WEEKENDS, newest
+ * figures (REALIZED G/L net of funding), STATUS (equity, trades, open position, stake), then WEEKENDS, newest
  * first: each weekend's Friday mid and the quote it came from, Sunday's decision quote and the gap, the entry and the exit
  * with the bid and offer each filled against, why it closed, funding and P&L. Money in pounds.
  * @param {{ f: any, m: (s: string) => string, at: any, nowMs: number }} props
@@ -801,7 +801,7 @@ function FxwDetail({ f, m, at, nowMs }) {
 /**
  * An outside-Grok test's page (CXBOT "Crypto analyst", IGBOT "IG Trader"; Davies, 2026-10-29), in the Grok rows' style: its
  * head (DRY-RUN until the test starts, then PAPER or DEMO, and the list's own status light), the scoreboard from its LIST
- * row (`rowMoney(grokTestRow(g))`, so the row and the page read the same figures), STATUS (mode, days run, trades, open,
+ * row (`rowMoney(grokTestRow(g))`, so the row and the page read the same figures), STATUS (mode, trades, open,
  * equity against the budget), POSITIONS with their stop and limit, and SCORES per layer: the agent's Brier against the
  * baseline's and D, positive when the agent is better. Everything is the dashboard's `cxbot` or `igbot` (`grok_tests_view.ts`).
  * @param {{ g: any, m: (s: string) => string, nowMs: number }} props
@@ -963,7 +963,7 @@ function GrokPmDetail({ g, m, at, nowMs }) {
         <div className="ag-section-title mono">DAYS</div>
         <div className="hl-scroll">
           <table className="hl-table ag-table ag-log mono">
-            <thead><tr><th className="hl-th">Day (UTC)</th><th className="hl-th">Record</th><th className="hl-th">Agent says</th><th className="hl-th">Trades</th><th className="hl-th" aria-label="mismatch" /></tr></thead>
+            <thead><tr><th className="hl-th">Day (UTC)</th><th className="hl-th">Trades</th><th className="hl-th">Agent says</th><th className="hl-th">Record</th><th className="hl-th" aria-label="mismatch" /></tr></thead>
             <tbody>
               {days.length === 0 && <tr><td className="hl-empty dim" colSpan={5}>No day yet: the first starts when the funding arrives.</td></tr>}
               {days.map((/** @type {any} */ d) => {
@@ -971,9 +971,9 @@ function GrokPmDetail({ g, m, at, nowMs }) {
                 return (
                   <tr key={d.day}>
                     <td className="dim">{dayLabel(d.day)}{d.today ? ' · today' : ''}</td>
-                    <td className="ag-gl" style={c.recordUsd == null ? undefined : { color: pctColor(c.recordUsd) }}>{c.record}</td>
-                    <td>{c.agent}</td>
                     <td>{c.trades}</td>
+                    <td>{c.agent}</td>
+                    <td className="ag-gl" style={c.recordUsd == null ? undefined : { color: pctColor(c.recordUsd) }}>{c.record}</td>
                     <td className="ag-gpm-flag">{c.flag}</td>
                   </tr>
                 );
@@ -2021,7 +2021,7 @@ function AgentsModal({ hideValues, onClose }) {
       <Modal onClose={() => setSelected(null)} size="lg">
         <header className="modal-head">
           <div>
-            <h2 className="modal-title mono"><NameText name={String(okxOpen.twin.name)} /></h2>
+            <h2 className="modal-title mono"><NameText name={quotesOkxName(okxOpen.twin)} /></h2>
           </div>
           <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
         </header>

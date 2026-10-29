@@ -1,4 +1,4 @@
-// "AUD weekend (FXW-AUD)" for the Agents page: the dashboard's `fxwAud`, made from what `ig?action=fxw` wrote
+// "FXW-AUD weekend" for the Agents page: the dashboard's `fxwAud`, made from what `ig?action=fxw` wrote
 // (`ig_fxw_weekends`, `ig_fxw_state`; migration 0162; the rule and its fills in `supabase/functions/ig/fxw.ts`). Paper: a
 // row of TESTING, in pounds (the spread-bet account's own), with dollars at the books' last GBP/USD for the scoreboard.
 // Davies, 2026-10-29: "在testing列表中把IG Trader和澳元策略都上线，funded金额按照你推荐的来定，确保模拟一切真实".
@@ -68,7 +68,7 @@ export function fxwView(o: { state: FxwState | null; rows: readonly FxwRow[]; gb
   const last = [...rows].reverse()[0] ?? null;
   const usd = (gbp: number) => (o.gbpusd ? r2(gbp * o.gbpusd) : 0);
   return {
-    name: String(st.name ?? "AUD weekend (FXW-AUD)"),
+    name: String(st.name ?? "FXW-AUD weekend"),
     started, running, lagMinutes: Number.isFinite(lastRun) ? Math.max(0, Math.round((o.nowMs - lastRun) / 60_000)) : null,
     lastError: st.last_error ?? null, startAt: st.start_at, stakeGbp: n(st.stake_gbp),
     daysRun: started ? Math.floor((o.nowMs - startMs) / 86_400_000) : 0,

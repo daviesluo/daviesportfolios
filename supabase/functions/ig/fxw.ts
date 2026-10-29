@@ -1,4 +1,4 @@
-// FXW-AUD on paper: "AUD weekend (FXW-AUD)" on the Agents page's TESTING list, computed from the live recorder's own IG
+// FXW-AUD on paper: "FXW-AUD weekend" on the Agents page's TESTING list, computed from the live recorder's own IG
 // quotes. It never calls IG: it reads `ig_quotes` (environment 'live', the spread-bet account's AUD/USD epic) and writes
 // one row a weekend to `ig_fxw_weekends` (migration 0162).
 //
@@ -32,7 +32,7 @@ import { latestFacts, type Rest } from "./actions.ts";
 import { ukClock, ukToUtcMs } from "./windows.ts";
 
 export const FXW = {
-  name: "AUD weekend (FXW-AUD)",
+  name: "FXW-AUD weekend",
   fundedGbp: 1000,
   stakeGbp: 1.5,
   minStakeGbp: 0.5,

@@ -1077,7 +1077,7 @@ describe('pg_cron jobs', () => {
     expect(fs.readFileSync(path.join(ROOT, 'supabase/functions/ig/index.ts'), 'utf8')).toContain('d.rest.insert("ig_action_log", { environment: IG_ENVIRONMENT, action, params,');
   });
 
-  // 0162 (Davies, 2026-10-29: "在testing列表中把IG Trader和澳元策略都上线…确保模拟一切真实"): "AUD weekend (FXW-AUD)" on paper, a
+  // 0162 (Davies, 2026-10-29: "在testing列表中把IG Trader和澳元策略都上线…确保模拟一切真实"): "FXW-AUD weekend" on paper, a
   // call of the minute job every five minutes that reads the database only.
   it("adds FXW-AUD's paper run to the list (0162): every five minutes, its beat first, every other row as it was, no IG call", () => {
     const T = FILES.find((f) => /^\d{4}_ig_fxw_paper\.sql$/.test(f)) ?? '';

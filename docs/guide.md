@@ -369,7 +369,7 @@ places stay when the number is not whole.
   Since 15 October the Coinbase tests also step aside for seven minutes
   around each scheduled data release (US inflation and jobs, the Fed, the ECB,
   the Bank of England), when the market jumps faster than a quote can follow.
-- **Stablecoin quotes OKX USDG and OKX EURC.** After Coinbase's rows, on
+- **Stablecoin quotes USDG/EUR and Stablecoin quotes EURC/USDC.** After Coinbase's rows, on
   OKX (its own badge and venue card): the live rules on paper on OKX's two
   euro-against-dollar stablecoin books, USDG against euros and EURC against
   dollars, from OKX's public trades recorded every minute. €50 a rung, six a
@@ -388,7 +388,7 @@ places stay when the number is not whole.
   questions for three of their strikes; it may also open trades of its own,
   each with a stop and a target, filled by a cautious paper model. Its page
   shows the equity against the budget, today, what is open with its stop
-  and target, the days run, and how its forecasts score against the
+  and target, and how its forecasts score against the
   market's own baseline in each of those three parts (D above zero means it
   did better). Until Davies starts it, it reads "dry-run": it records the
   market and books nothing. When the test is over it reads "ended": nothing
@@ -397,9 +397,9 @@ places stay when the number is not whole.
   demo account (play money), funded with its £1,000 budget; its money is
   that budget plus what it has made or lost since it was switched on, never
   the demo account's own balance. Its page shows what is open with its stop
-  and limit, today, trades, the days run and how the trades it closed
+  and limit, today, trades and how the trades it closed
   forecast against their baseline. It stays "dry-run" until Davies' word.
-- **AUD weekend (FXW-AUD).** Last, on IG (its own badge and
+- **FXW-AUD weekend.** Last, on IG (its own badge and
   venue card), from Friday 30 October: the AUD/USD weekend rule on paper, on
   the quotes IG's live login records every weekend. It notes Friday's last
   mid before 22:00. At Sunday's 21:00 open, if the first tradable quote is 20
@@ -515,8 +515,8 @@ places stay when the number is not whole.
   more than $1. STATUS shows the open positions, the cash, how well its
   probabilities scored against the market's prices on the markets that have
   resolved (the Brier score: lower is better, its own first), and how many
-  have resolved. Then POSITIONS from the record; DAYS, each day's result
-  from the record beside the one it reported; and last the JOURNAL, its
+  have resolved. Then POSITIONS from the record; DAYS, each day's trades,
+  the result the agent reported and, last, the result from the record; and last the JOURNAL, its
   latest decisions, each with its time in UTC, what it did, the market's
   title as an underlined link to that market on Polymarket ("market title
   pending" until the site has read it), the probability it gave against the

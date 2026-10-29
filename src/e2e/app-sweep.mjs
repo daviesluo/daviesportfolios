@@ -1239,13 +1239,13 @@ const LP_LIVE_FIXTURE = JSON.parse(fs.readFileSync(new URL('./lp_live_fixture.js
  */
 const GROKPM_FIXTURE = JSON.parse(fs.readFileSync(new URL('./grokpm_fixture.json', import.meta.url), 'utf8'));
 /**
- * "AUD weekend (FXW-AUD)" (0162): the dashboard's own answer (`fxwView`) for the agents Deno test's first case, worked by
+ * "FXW-AUD weekend" (0162): the dashboard's own answer (`fxwView`) for the agents Deno test's first case, worked by
  * hand there: GBP 1,000 funded; a closed long from 0.65800 to 0.66000, +20 pips x 1.5 = +GBP 30; an open long from 0.65800
  * marked at 0.65900, +GBP 15 less GBP 0.22 of funding = +GBP 14.78, on a margin of GBP 493.50; today +GBP 29.78; equity
  * GBP 1,044.78; GBP/USD 1.30.
  */
 const FXW_FIXTURE = {
-  name: 'AUD weekend (FXW-AUD)', started: true, running: true, lagMinutes: 2, lastError: null, startAt: '2026-09-11T21:35:00.000Z', stakeGbp: 1.5,
+  name: 'FXW-AUD weekend', started: true, running: true, lagMinutes: 2, lastError: null, startAt: '2026-09-11T21:35:00.000Z', stakeGbp: 1.5,
   daysRun: 9, trades: 1, weekends: 2, equityGbp: 1044.78,
   capitalGbp: 1000, valueGbp: 493.5, costGbp: 493.5, realisedGbp: 30, unrealisedGbp: 14.78, todayGbp: 29.78, feesGbp: 0,
   capitalUsd: 1300, valueUsd: 641.55, costUsd: 641.55, realisedUsd: 39, unrealisedUsd: 19.21, todayUsd: 38.71, feesUsd: 0, gbpusd: 1.3,
@@ -4175,12 +4175,32 @@ async function run() {
           bg: getComputedStyle(el).backgroundColor, w: el.getBoundingClientRect().width, bar: el.parentElement?.clientWidth ?? 0,
         };
       }));
-      // Every slice is painted, Coinbase's in its badge's green, and the slices fill the bar (Davies, 2026-10-10:
-      // "testing页面venue中最上面的占比条里没有coinbase").
+      // Every slice is painted, Coinbase's in its brand blue, and the slices fill the bar (Davies, 2026-10-10:
+      // "testing页面venue中最上面的占比条里没有coinbase"; 2026-10-29: Coinbase its blue #0052ff, much darker than Revolut X's).
       const painted = shareGeom.every((g) => g.bg && g.bg !== 'rgba(0, 0, 0, 0)' && g.bg !== 'transparent')
-        && shareGeom.find((g) => g.id === 'ag-share-coinbase')?.bg === 'rgba(159, 216, 200, 0.35)'
+        && shareGeom.find((g) => g.id === 'ag-share-coinbase')?.bg === 'rgba(0, 82, 255, 0.35)'
         && (shareGeom.find((g) => g.id === 'ag-share-coinbase')?.w ?? 0) > 0
         && Math.abs(shareGeom.reduce((a, g) => a + g.w, 0) - (shareGeom[0]?.bar ?? 0)) <= 2;
+      // Coinbase's blue must stay legible on the dark page: its badge text and its slice's text, each against what is behind it
+      // (WCAG contrast, 4.5), and its badge fill clearly darker than Revolut X's.
+      const hue = await page.evaluate(() => {
+        /** @param {string} c */
+        const rgba = (c) => { const m = c.match(/[\d.]+/g) || []; return { r: +m[0], g: +m[1], b: +m[2], a: m[3] === undefined ? 1 : +m[3] }; };
+        const lin = (/** @type {number} */ v) => { const x = v / 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; };
+        const lum = (/** @type {{r:number,g:number,b:number}} */ c) => 0.2126 * lin(c.r) + 0.7152 * lin(c.g) + 0.0722 * lin(c.b);
+        const page = rgba(getComputedStyle(document.body).backgroundColor);
+        const over = (/** @type {any} */ f, /** @type {any} */ b) => ({ r: f.a * f.r + (1 - f.a) * b.r, g: f.a * f.g + (1 - f.a) * b.g, b: f.a * f.b + (1 - f.a) * b.b, a: 1 });
+        const ratio = (/** @type {Element | null} */ el) => {
+          if (!el) return null;
+          const cs = getComputedStyle(el), bg = over(rgba(cs.backgroundColor), page), fg = over(rgba(cs.color), bg);
+          const [hi, lo] = [lum(fg), lum(bg)].sort((x, y) => y - x);
+          return { ratio: (hi + 0.05) / (lo + 0.05), bgLum: lum(bg) };
+        };
+        return { badge: ratio(document.querySelector('.ag-venue-coinbase')), slice: ratio(document.querySelector('.ag-share-coinbase')), revx: ratio(document.querySelector('.ag-venue-revx')) };
+      });
+      if (hue.badge && hue.slice && hue.badge.ratio >= 4.5 && hue.slice.ratio >= 4.5 && (!hue.revx || hue.badge.bgLum < hue.revx.bgLum))
+        ok(S('agents'), `Coinbase's blue is legible: badge text ${hue.badge.ratio.toFixed(1)}:1, slice text ${hue.slice.ratio.toFixed(1)}:1, and its badge fill darker than Revolut X's`);
+      else fail(S('agents'), `Coinbase's blue contrast ${JSON.stringify(hue)}`);
       if (painted) ok(S('agents'), `every share-bar slice is painted and they fill the bar: ${shareGeom.map((g) => `${g.id.slice(9)} ${g.w.toFixed(0)}px`).join(', ')} of ${shareGeom[0]?.bar}px`);
       else fail(S('agents'), `share bar slices ${JSON.stringify(shareGeom.map((g) => ({ id: g.id, bg: g.bg, w: g.w, bar: g.bar })))}`);
       const shareOk = shareGeom.length === 3 && shareGeom[0].id === 'ag-share-revx' && shareGeom[1].id === 'ag-share-binance' && shareGeom[2].id === 'ag-share-coinbase'
@@ -5195,6 +5215,8 @@ async function run() {
             // The dry-run line under the scoreboard is gone (Davies, 2026-10-17: "这行也删了"), and its armed sibling with it.
             waiting: /Dry-run: the server checks|Its \$100 book starts|Armed: its own book counts/.test(root.textContent || '') ? 'present' : '',
             tiles: [...root.querySelectorAll('.ag-gpm-bar .ag-rw-tile')].map((t) => `${txt(t.querySelector('.ag-rw-tile-k'))}=${txt(t.querySelector('.ag-rw-tile-v'))}`).join(' | '),
+            // The whole STATUS text: a tile's note ("on 2 resolved", Davies, 2026-10-29: "on 1 resolved删了") is not in `tiles`.
+            statusText: txt(root.querySelector('.ag-gpm-bar')),
             sections: [...root.querySelectorAll('.ag-section > .ag-section-title')].map(txt).join(','),
             positions: rows('.ag-gpm-positions'), days: rows('.ag-gpm-days'),
             entries: [...root.querySelectorAll('.ag-gpm-entry')].map((e) => txt(e)),
@@ -5234,7 +5256,7 @@ async function run() {
           mismatch: "the agent's numbers differ from the record by more than $1: its 22:31 UTC report says $100.10 (+$0.10), the record $102.30 (+$2.30)",
           positions: ['Will the bill be signed by September 30? | 25 No | 60¢ | 56¢ | $14 | -$1', 'Will the Fed cut rates in October? | 20 Yes | 40¢ | 46¢ | $9.20 | +$1.20',
             'Will the nominee be confirmed?resolved · to redeem | 10 Yes | 70¢ | 100¢ | $10 | $0'],
-          days: ['17 Sep · today | +$0.70 | — | — | ', '16 Sep | +$1.60 | +$1.50 | 3 | '],
+          days: ['17 Sep · today | — | — | +$0.70 | ', '16 Sep | 3 | +$1.50 | +$1.60 | '],
           markets: ['Will the Fed cut rates in October? https://polymarket.com/market/will-the-fed-cut-rates-in-october underline',
             'Will the bill be signed by September 30? none', 'Will the summit take place by September 17? none', 'Will the summit take place by September 17? none',
             'Will the nominee be confirmed? https://polymarket.com/market/will-the-nominee-be-confirmed underline',
@@ -5276,10 +5298,10 @@ async function run() {
             ok(GT('scoreboard'), `its scoreboard is the stablecoin quotes' live page's, cell for cell (${gv.sbShape.split(' | ').filter((c) => !c.startsWith('ag-sb-divider')).map((c) => c.split(':')[1]).join(', ')}; ${gv.sbCols} columns, "${gsb}")`);
           } else fail(GT('scoreboard'), `GROKPM ${gv.sbShape} (${gv.sbCols} columns, "${gsb}") against PR5's ${pr5?.shape} (${pr5?.cols} columns, "${pr5?.cls}")`);
         } else fail(GT('page'), `page ${JSON.stringify(gv && { title: gv.title, modals: gv.modals, head: gv.head, headDot: gv.headDot, sb: gv.scoreboard, stop: gv.stop, mismatch: gv.mismatch, waiting: gv.waiting })}, wanted ${SB}`);
-        if (gv && gv.sections === WANT.sections && gv.tiles === WANT.tiles && JSON.stringify(gv.positions) === JSON.stringify(WANT.positions) && JSON.stringify(gv.days) === JSON.stringify(WANT.days)
+        if (gv && gv.sections === WANT.sections && gv.tiles === WANT.tiles && !/\bon \d+ resolved/.test(gv.statusText) && JSON.stringify(gv.positions) === JSON.stringify(WANT.positions) && JSON.stringify(gv.days) === JSON.stringify(WANT.days)
           && gv.entries.length === 8 && JSON.stringify(gv.heads) === JSON.stringify(WANT.heads) && /^as of \d{1,2} \w{3} \d{2}:\d{2} [A-Z]+ · armed · read every 5 min · refreshes every minute$/.test(gv.foot)) {
           ok(GT('page'), `its sections are ${WANT.sections}: STATUS ${gv.tiles}; POSITIONS from the record (3, one resolved); JOURNAL newest first (8 entries, each head "${gv.heads[1]}"); DAYS ${JSON.stringify(gv.days)}`);
-        } else fail(GT('page'), `sections ${gv?.sections}, tiles "${gv?.tiles}", positions ${JSON.stringify(gv?.positions)}, days ${JSON.stringify(gv?.days)}, heads ${JSON.stringify(gv?.heads)}, foot "${gv?.foot}"`);
+        } else fail(GT('page'), `sections ${gv?.sections}, tiles "${gv?.tiles}", status "${gv?.statusText}", positions ${JSON.stringify(gv?.positions)}, days ${JSON.stringify(gv?.days)}, heads ${JSON.stringify(gv?.heads)}, foot "${gv?.foot}"`);
         // The JOURNAL (Davies, 2026-10-17): titles linked and underlined, never a condition id; sources named by their domain.
         const e5 = gv?.entries[5] ?? '', x2 = gv?.entries[6] ?? '';
         if (gv && JSON.stringify(gv.markets) === JSON.stringify(WANT.markets) && JSON.stringify(gv.links) === JSON.stringify(WANT.links) && !gv.hex && gv.linkAttrs
@@ -5327,7 +5349,7 @@ async function run() {
         const cellsAt = (/** @type {string[]} */ rows, /** @type {number[]} */ at) => rows.flatMap((r) => at.map((i) => r.split(' | ')[i] ?? ''));
         const hiddenOk = !!hv && !!hRow && !/\$\d/.test(hv.scoreboard) && !/\$\d/.test(hv.stop) && !/\$\d/.test(hv.mismatch.replace('by more than $1:', '')) && !hRow.gl.some((t) => /\$\d/.test(t)) && !/\$\d/.test(hRow.sub)
           && hv.tiles.startsWith('OPEN POSITIONS=2 | CASH=$') && !/CASH=\$\d/.test(hv.tiles) && hv.tiles.includes('BRIER YOU / MARKET=0.106 / 0.084') && hv.tiles.endsWith('RESOLVED=2')
-          && !cellsAt(hv.positions, [2, 3, 4, 5]).some(digits) && !cellsAt(hv.days, [1, 2]).some(digits) && hv.entries[5].includes('p 90¢ vs market 71¢')
+          && !cellsAt(hv.positions, [2, 3, 4, 5]).some(digits) && !cellsAt(hv.days, [2, 3]).some(digits) && hv.entries[5].includes('p 90¢ vs market 71¢')
           && hv.heads.every((h) => !/\d+ @ \d/.test(h)) && hv.heads[1].endsWith('•• @ ••¢');
         if (hiddenOk) ok(GT('hidden'), 'hide-values masks its row and page: scoreboard, stops, mismatch, cash, positions, days, prices and sizes; its counts, probabilities and Brier stay');
         else fail(GT('hidden'), `under the mask: row ${JSON.stringify(hRow)}, page ${JSON.stringify(hv)}`);
@@ -5337,7 +5359,7 @@ async function run() {
         agentsMode = 'ok';
       }
 
-      // ---- "AUD weekend (FXW-AUD)", the frozen FXW-AUD rule on paper on IG's recorded live quotes (0162) ----------------
+      // ---- "FXW-AUD weekend", the frozen FXW-AUD rule on paper on IG's recorded live quotes (0162) ----------------
       // Davies, 2026-10-29: "在testing列表中把IG Trader和澳元策略都上线…确保模拟一切真实". The last row of TESTING, after OKX's, on IG
       // (its own badge and card), every figure in pounds as the other paper rows' are; nothing wider than the screen. Its page
       // over the list: PAPER and IG in the head, the scoreboard every paper page has, STATUS (equity, trades, the open
@@ -5378,7 +5400,7 @@ async function run() {
           };
         });
         await shot(page, 'agents-fxw-page');
-        const TILES = 'EQUITY=£1,045 | TRADES=1 | OPEN POSITION=long @ 0.65800 | DAYS RUN=9 | STAKE=£1.50 a pip';
+        const TILES = 'EQUITY=£1,045 | TRADES=1 | OPEN POSITION=long @ 0.65800 | STAKE=£1.50 a pip';
         if (fv && fv.head === 'PAPER IG' && fv.sb[0] === 'FUNDED=£1,000' && fv.sb.map((c) => c.split('=')[0]).join(',') === 'FUNDED,DEPLOYED,TODAY,UNREALIZED G/L,REALIZED G/L'
           && fv.tiles === TILES && fv.sections === 'STATUS,WEEKENDS' && fv.weekends.length === 2
           && fv.weekends[0].startsWith('2026-09-11open | 0.66000') && fv.weekends[0].includes('0.65780 / 0.65800') && fv.weekends[0].includes('mark 0.65900')

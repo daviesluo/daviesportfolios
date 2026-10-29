@@ -20,7 +20,7 @@
 //   POST ?action=quotes   G4's recorder by REST: in the weekend windows (`windows.ts`), two snapshots a minute of each
 //        live account's epics → `ig_quotes` (a row when a quote changes) and `ig_quote_runs` (every run). A row of the
 //        one-minute job (0122), switched on only around the windows.
-//   POST ?action=fxw   "AUD weekend (FXW-AUD)" on paper (fxw.ts): the frozen FXW-AUD rule on the live recorder's own
+//   POST ?action=fxw   "FXW-AUD weekend" on paper (fxw.ts): the frozen FXW-AUD rule on the live recorder's own
 //        quotes, one `ig_fxw_weekends` row a weekend. Reads the database only: no IG call, no IG secret. Every five minutes
 //        (0162).
 //

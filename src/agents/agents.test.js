@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-  defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fmtBps, fmtFees, FULL_HISTORY_LIMIT, historyLimitOf, lastChangeText, showFullHistory, symbolOrderRows, fmtFrac, fmtPct2, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView, strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows, VENUE_LABELS, agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard, newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwBarTileKeys, fmtUsd4, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, paperTestRows, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokPmModeTag, grokPmTiles, linkDomain, utcStamp, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmJournalView, fmtProb, fmtBrier, LP_LIVE_ROW_ID, fmtR, lpStopRoomText, liveExtraRows, lpEstimateTexts, lpLiveDayCells, lpLiveQuoteRows, lpLiveRow, quoteDaysAnnualPct, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, lpLiveStatus, AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney, QUOTES_COINBASE_ROW_ID, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesCoinbaseRow,
+  defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fmtBps, fmtFees, FULL_HISTORY_LIMIT, historyLimitOf, lastChangeText, showFullHistory, symbolOrderRows, fmtFrac, fmtPct2, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView, strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows, VENUE_LABELS, VENUE_HUES, agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard, newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwBarTileKeys, fmtUsd4, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, paperTestRows, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokPmModeTag, grokPmTiles, linkDomain, utcStamp, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmJournalView, fmtProb, fmtBrier, LP_LIVE_ROW_ID, fmtR, lpStopRoomText, liveExtraRows, lpEstimateTexts, lpLiveDayCells, lpLiveQuoteRows, lpLiveRow, quoteDaysAnnualPct, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, lpLiveStatus, AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney, QUOTES_COINBASE_ROW_ID, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesCoinbaseRow,
 } from './agents.js';
 // The live quotes page's fixture: what the dashboard serves for a book worked out by hand (the agents function's test
 // proves it is the server's own answer for its rows; the browser test serves it).
@@ -1700,10 +1700,10 @@ describe('grokPmRow and its page (GROKPM, "Polymarket analyst" on LIVE, 2026-10-
   });
   it('its STATUS tiles, stop room and mismatch line, every dollar through the mask and no probability masked', () => {
     expect(grokPmTiles(g, (x) => x)).toEqual([
-      { k: 'OPEN POSITIONS', v: '2' }, { k: 'CASH', v: '$69.10' }, { k: 'BRIER YOU / MARKET', v: '0.106 / 0.084', note: 'on 2 resolved' }, { k: 'RESOLVED', v: '2' },
+      { k: 'OPEN POSITIONS', v: '2' }, { k: 'CASH', v: '$69.10' }, { k: 'BRIER YOU / MARKET', v: '0.106 / 0.084' }, { k: 'RESOLVED', v: '2' },
     ]);
     expect(grokPmTiles(g, mask)[1].v).toBe('$••.••');
-    expect(grokPmTiles(w, (x) => x)[2]).toEqual({ k: 'BRIER YOU / MARKET', v: '—', note: null });
+    expect(grokPmTiles(w, (x) => x)[2]).toEqual({ k: 'BRIER YOU / MARKET', v: '—' });
     expect(grokPmStopText(g, (x) => x)).toBe('total stop at -$30: $32.30 of room · day stop at -$10: $10.70 of room');
     expect(grokPmMismatchText(g, (x) => x)).toBe("the agent's numbers differ from the record by more than $1: its 22:31 UTC report says $100.10 (+$0.10), the record $102.30 (+$2.30)");
     expect(grokPmMismatchText({ ...g, mismatch: false }, (x) => x)).toBe(null);
@@ -1715,6 +1715,12 @@ describe('grokPmRow and its page (GROKPM, "Polymarket analyst" on LIVE, 2026-10-
       { record: '+$1.60', recordUsd: 1.6, agent: '+$1.50', agentUsd: 1.5, trades: '3', flag: '' },
     ]);
     expect(grokPmDayCells({ ...g.days[1], mismatch: true }, (x) => x).flag).toBe('differs');
+    // The page's DAYS columns (Davies, 2026-10-29: "DAYS里trades和record调换位置"): day, trades, agent says, record, each header over its own cell.
+    const jsx = fs.readFileSync(path.join(path.dirname(new URL(import.meta.url).pathname), 'agents.jsx'), 'utf8');
+    const daysTable = jsx.slice(jsx.indexOf('ag-gpm-days'));
+    expect([...daysTable.slice(0, daysTable.indexOf('</thead>')).matchAll(/<th className="hl-th">([^<]+)<\/th>/g)].map((x) => x[1])).toEqual(['Day (UTC)', 'Trades', 'Agent says', 'Record']);
+    const cells = daysTable.slice(daysTable.indexOf('<tr key={d.day}>'), daysTable.indexOf('</tr>', daysTable.indexOf('<tr key={d.day}>')));
+    expect([...cells.matchAll(/\{(c\.\w+)\}/g)].map((x) => x[1])).toEqual(['c.trades', 'c.agent', 'c.record', 'c.flag']);
     const v = grokPmJournalView(g.journal[5], (x) => x);
     expect(v).toEqual({
       time: '16 Sep 10:58 UTC', action: 'open', tone: 'open', category: 'cat A', side: 'buy Yes', trade: '10 @ 70¢',
@@ -1759,5 +1765,22 @@ describe('grokPmRow and its page (GROKPM, "Polymarket analyst" on LIVE, 2026-10-
       .toEqual(['example.co.uk', 'sub.example.org', null, null, null]);
     expect([utcStamp('2026-10-16T15:38:04+00:00'), utcStamp('2026-01-05T00:07:00Z'), utcStamp('nope'), utcStamp(null)]).toEqual(['16 Oct 15:38 UTC', '5 Jan 00:07 UTC', '', '']);
     expect([fmtProb(0.835), fmtProb(null), fmtBrier(0.10625)]).toEqual(['83.5¢', '—', '0.106']);
+  });
+});
+
+describe('the venue hues (Davies, 2026-10-29: Hyperliquid its mint, Coinbase its blue)', () => {
+  it('are in the table and in the badge, card and share-bar rules, Coinbase darker than Revolut X', () => {
+    const css = fs.readFileSync(path.join(path.dirname(new URL(import.meta.url).pathname), '..', 'app', 'styles.css'), 'utf8');
+    expect([VENUE_HUES.hyperliquid, VENUE_HUES.coinbase, VENUE_HUES.revx]).toEqual(['#97fce4', '#0052ff', '#8ec5ff']);
+    const lum = (/** @type {string} */ h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)).reduce((a, c, i) => a + c * [0.2126, 0.7152, 0.0722][i], 0);
+    expect(lum(VENUE_HUES.coinbase)).toBeLessThan(lum(VENUE_HUES.revx) / 2);
+    expect(css).toContain('.ag-venue-hyperliquid { color: #97fce4; border-color: rgba(151,252,228,0.4); background: rgba(151,252,228,0.1); }');
+    expect(css).toContain('.ag-venue-card-hyperliquid { border-left-color: rgba(151,252,228,0.75); }');
+    expect(css).toContain('.ag-share-hyperliquid { background: rgba(151,252,228,0.35);');
+    // Coinbase's text is a lighter tint of its blue (the blue itself is 3.1:1 on the page); border, fill, card and slice are the blue.
+    expect(css).toContain('.ag-venue-coinbase { color: #4d8bff; border-color: rgba(0,82,255,0.4); background: rgba(0,82,255,0.1); }');
+    expect(css).toContain('.ag-venue-card-coinbase { border-left-color: rgba(0,82,255,0.75); }');
+    expect(css).toContain('.ag-share-coinbase { background: rgba(0,82,255,0.35);');
+    expect(css).not.toContain('159,216,200');
   });
 });

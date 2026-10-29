@@ -1,4 +1,4 @@
-// Pins for "AUD weekend (FXW-AUD)" on paper (fxw.ts): every case's figures worked by hand in its comment.
+// Pins for "FXW-AUD weekend" on paper (fxw.ts): every case's figures worked by hand in its comment.
 // Run: deno test --allow-env supabase/functions/
 import { assert, assertEquals, assertThrows } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {

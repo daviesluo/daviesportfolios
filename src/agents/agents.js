@@ -12,16 +12,17 @@ import { fmtChartStamp } from './agents_chart.js';
 // Kraken keeps its label, not a place on the page: it is the signal venue every rule reads candles from, and nothing
 // trades there since `0046`. VENUES shows Revolut X, where the loop executes, and Binance, the account it may use next.
 // Polymarket is the venue of RW's paper test, a row of TESTING STRATEGIES; it has no card in VENUES.
-// Hyperliquid (CXBOT's paper tape) carries no hue of its own: its badge says the name, on the neutral fallback (`venueHue`).
 export const VENUE_LABELS = { revx: 'Revolut X', binance: 'Binance', kraken: 'Kraken', polymarket: 'Polymarket', coinbase: 'Coinbase', okx: 'OKX', ig: 'IG', hyperliquid: 'Hyperliquid' };
 export const KIND_LABELS = { 'trend-4h': 'Trend 4h', 'trend-1h': 'Trend 1h', 'momentum-1d': 'Momentum 30d', 'rotation-1d': 'Rotation', 'dislocation-1m': 'Dislocation' };
 /**
  * The venue hues the badges, the share bar and the detail chart all share. Binance's is its own yellow, which is why
  * PAPER is not gold any more. Polymarket's is its own blue, lifted for the dark page: ΔE 15.6 from Revolut X's with full
  * colour vision and 15.7 under deuteranopia, and further from Binance's, the gain green and the loss red (checked with
- * the dataviz validator, 2026-09-24). Every badge also says the venue's name.
+ * the dataviz validator, 2026-09-24). Every badge also says the venue's name. Coinbase's is its own blue, much deeper than
+ * Revolut X's, and Hyperliquid's its own mint (Davies, 2026-10-29: "hyperliquid ... 应该是他们的主题绿才对 ... Coinbase应该改成他们的主题蓝");
+ * Coinbase's badge text is a lighter tint of its blue (`.ag-venue-coinbase`, 5.4:1 on the page), its fills and borders the blue itself.
  */
-export const VENUE_HUES = { revx: '#8ec5ff', binance: '#f0b90b', polymarket: '#7d8bff', coinbase: '#9fd8c8', okx: '#dfe3ea', ig: '#d6a2e8' };
+export const VENUE_HUES = { revx: '#8ec5ff', binance: '#f0b90b', polymarket: '#7d8bff', coinbase: '#0052ff', okx: '#dfe3ea', ig: '#d6a2e8', hyperliquid: '#97fce4' };
 
 /** @param {string} id */
 export const venueLabel = (id) => VENUE_LABELS[id] ?? id;
@@ -1330,7 +1331,17 @@ export function quotesCoinbaseRow(q) {
 export const QUOTES_OKX_ROW_PREFIX = '__quotes_okx_';
 
 /**
- * "Stablecoin quotes OKX USDG" and "Stablecoin quotes OKX EURC" as rows of TESTING (okx_quotes.ts, 0150; Davies, 2026-10-27:
+ * What the page calls the OKX twins (Davies, 2026-10-29: "“Stablecoin quotes OKX USDG”改名为Stablecoin quotes USDG/EUR，“Stablecoin quotes
+ * OKX EURC”改名为Stablecoin quotes EURC/USDC"), by the twin's id. The server still sends "Stablecoin quotes OKX USDG" and "… OKX EURC"
+ * (`OKX_SPEC` in okx_quotes.ts): that file's sha256 is named in the frozen pre-registration (okx_prereg.test.js), so the name is
+ * changed here, for display only; a twin the table does not know keeps the server's name.
+ */
+const QUOTES_OKX_NAMES = /** @type {Record<string, string>} */ ({ okxusdg: 'Stablecoin quotes USDG/EUR', okxeurc: 'Stablecoin quotes EURC/USDC' });
+/** The name of an OKX twin on the page. @param {any} twin  a dashboard `quotesOkx` item's `twin` */
+export const quotesOkxName = (twin) => QUOTES_OKX_NAMES[String(twin?.id)] ?? String(twin?.name);
+
+/**
+ * "Stablecoin quotes USDG/EUR" and "Stablecoin quotes EURC/USDC" as rows of TESTING (okx_quotes.ts, 0150; Davies, 2026-10-27:
  * "…可以的话就加盘口记录器和开testings策略（目前live的rules？）"): PR5's rule as LIVE carries it out, on paper, on OKX's USDG-EUR and
  * EURC-USDC from its recorder's prints, a twin a book in Coinbase's shape and in pounds (€50 or 50 USDC a rung), on a card of
  * OKX's own. `paperTestRows` puts them after Coinbase's. null before the record has decided a minute.
@@ -1340,7 +1351,7 @@ export function quotesOkxRow(q) {
   if (!q?.twin) return null;
   return {
     id: `${QUOTES_OKX_ROW_PREFIX}${q.twin.id}`,
-    name: String(q.twin.name),
+    name: quotesOkxName(q.twin),
     venue: venueLabel('okx'),
     venueId: 'okx',
     mode: 'paper',
@@ -1351,11 +1362,11 @@ export function quotesOkxRow(q) {
   };
 }
 
-/** "AUD weekend (FXW-AUD)"'s id among TESTING's rows (0162). */
+/** "FXW-AUD weekend"'s id among TESTING's rows (0162). */
 export const FXW_ROW_ID = '__fxw_aud';
 
 /**
- * "AUD weekend (FXW-AUD)" as a row of TESTING (Davies, 2026-10-29: "在testing列表中把IG Trader和澳元策略都上线，funded金额按照你推荐的来定，
+ * "FXW-AUD weekend" as a row of TESTING (Davies, 2026-10-29: "在testing列表中把IG Trader和澳元策略都上线，funded金额按照你推荐的来定，
  * 确保模拟一切真实"): the frozen FXW-AUD rule on paper on the live IG recorder's quotes, a GBP 1,000 spread-bet account at
  * GBP 1.50 a pip (`supabase/functions/ig/fxw.ts`, the dashboard's `fxwAud` from `agents/fxw_view.ts`). In pounds, the
  * account's own; dollars at the books' last GBP/USD for the scoreboard and IG's card. Deployed is the open position's
@@ -1400,7 +1411,7 @@ export function fxwAudRow(f) {
 export const fmtFx = (p) => (p == null || !Number.isFinite(Number(p)) ? '—' : Number(p).toFixed(5));
 
 /**
- * The STATUS tiles of "AUD weekend (FXW-AUD)"'s page: its equity, trades, open position and days run, then its stake and
+ * The STATUS tiles of "FXW-AUD weekend"'s page: its equity, trades and open position, then its stake and
  * margin rule. Money in pounds.
  * @param {any} f  the dashboard's `fxwAud`
  * @param {(s: string) => string} [m]
@@ -1415,7 +1426,6 @@ export function fxwTiles(f, m = (s) => s) {
       v: o ? `${o.side} @ ${m(fmtFx(o.entryPrice))}` : 'none',
       note: o ? `mark ${m(fmtFx(o.markPrice))} · margin ${m(fmtGbp(Number(o.marginGbp) || 0))}` : null,
     },
-    { k: 'DAYS RUN', v: String(Number(f?.daysRun) || 0), note: f?.started ? null : 'not started' },
     { k: 'STAKE', v: `${m(fmtGbp(Number(f?.stakeGbp) || 0))} a pip`, note: 'no stop · margin 5 %' },
   ];
 }
@@ -1629,7 +1639,7 @@ export function grokPmTiles(g, m) {
   return [
     { k: 'OPEN POSITIONS', v: String(Number(s.open) || 0) },
     { k: 'CASH', v: g?.cashUsd == null ? '—' : m(fmtUsd(Number(g.cashUsd))) },
-    { k: 'BRIER YOU / MARKET', v: Number(s.scored) > 0 ? `${fmtBrier(s.brierAgent)} / ${fmtBrier(s.brierMarket)}` : '—', note: Number(s.scored) > 0 ? `on ${s.scored} resolved` : null },
+    { k: 'BRIER YOU / MARKET', v: Number(s.scored) > 0 ? `${fmtBrier(s.brierAgent)} / ${fmtBrier(s.brierMarket)}` : '—' },
     { k: 'RESOLVED', v: String(Number(s.resolved) || 0) },
   ];
 }
@@ -2144,7 +2154,7 @@ export function grokTestOf(selected, dash) {
 }
 
 /**
- * The STATUS tiles of an outside-Grok test's page: the mode, the days run, trades, open positions, and the equity against its
+ * The STATUS tiles of an outside-Grok test's page: the mode, trades, open positions, and the equity against its
  * budget (through `m`, the hide-values mask).
  * @param {any} g @param {(s: string) => string} m
  */
@@ -2152,7 +2162,6 @@ export function grokTestTiles(g, m) {
   const fmt = (/** @type {number} */ x) => (g.ccy === 'GBP' ? fmtGbp(x) : fmtUsd(x));
   return [
     { k: 'MODE', v: g.mode === 'dry_run' ? (g.id === 'cxbot' && g.startedAt ? 'ENDED' : 'DRY-RUN') : g.id === 'igbot' ? 'DEMO' : 'PAPER', note: g.shakedown ? 'shakedown' : null },
-    { k: 'DAYS RUN', v: g.daysRun == null ? '—' : String(g.daysRun) },
     { k: 'TRADES', v: String(Number(g.trades) || 0) },
     { k: 'OPEN', v: String((g.positions ?? []).length), note: Number(g.resting) ? `${g.resting} resting` : null },
     { k: 'EQUITY', v: m(fmt(Number(g.equity) || 0)), note: `of ${m(fmt(Number(g.budget) || 0))}` },

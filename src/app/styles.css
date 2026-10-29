@@ -2006,11 +2006,12 @@ body {
 .ag-venue-revx { color: #8ec5ff; border-color: rgba(142,197,255,0.35); background: rgba(142,197,255,0.1); }
 .ag-venue-binance { color: #f0b90b; border-color: rgba(240,185,11,0.4); background: rgba(240,185,11,0.1); }
 .ag-venue-polymarket { color: #7d8bff; border-color: rgba(125,139,255,0.4); background: rgba(125,139,255,0.1); }
-.ag-venue-coinbase { color: #9fd8c8; border-color: rgba(159,216,200,0.4); background: rgba(159,216,200,0.1); }
+/* Coinbase's blue (VENUE_HUES.coinbase, #0052ff) is too deep for text on the dark page (3.1:1): the badge's text is a lighter tint of it (#4d8bff, 5.4:1), its border and fill the blue itself. */
+.ag-venue-coinbase { color: #4d8bff; border-color: rgba(0,82,255,0.4); background: rgba(0,82,255,0.1); }
 .ag-venue-okx { color: #dfe3ea; border-color: rgba(223,227,234,0.4); background: rgba(223,227,234,0.1); }
 .ag-venue-ig { color: #d6a2e8; border-color: rgba(214,162,232,0.4); background: rgba(214,162,232,0.1); }
-/* Hyperliquid (CXBOT's paper tape): the neutral fallback hue (`venueHue`), the name on the badge. */
-.ag-venue-hyperliquid { color: rgba(244,239,227,0.85); border-color: rgba(244,239,227,0.35); background: rgba(244,239,227,0.06); }
+/* Hyperliquid (CXBOT's paper tape): its own mint (VENUE_HUES.hyperliquid, #97fce4), the name on the badge. */
+.ag-venue-hyperliquid { color: #97fce4; border-color: rgba(151,252,228,0.4); background: rgba(151,252,228,0.1); }
 .ag-grok-note { margin-top: 6px; font-size: 11px; line-height: 1.45; }
 .ag-venue-signal { font-weight: 500; letter-spacing: 0; opacity: 0.8; }
 .ag-venues { margin-bottom: 14px; }
@@ -2395,20 +2396,21 @@ a.ag-gpm-market:hover, a.ag-gpm-market:focus-visible { text-decoration-color: va
 .ag-venue-col > span.dim.ag-fig-sub { padding-left: 12px; }
 .ag-venue-card-polymarket { border-left-color: rgba(125,139,255,0.75); }
 .ag-share-polymarket { background: rgba(125,139,255,0.35); color: #eef0ff; }
-/* Coinbase's card and its slice of the share bar, in its badge's green (VENUE_HUES.coinbase, #9fd8c8). Without them its
+/* Coinbase's card and its slice of the share bar, in its brand blue (VENUE_HUES.coinbase, #0052ff). Without them its
    slice was drawn with no colour at all (Davies, 2026-10-10: "testing页面venue中最上面的占比条里没有coinbase"). */
-.ag-venue-card-coinbase { border-left-color: rgba(159,216,200,0.75); }
-.ag-share-coinbase { background: rgba(159,216,200,0.35); color: #eafaf5; }
+.ag-venue-card-coinbase { border-left-color: rgba(0,82,255,0.75); }
+.ag-share-coinbase { background: rgba(0,82,255,0.35); color: #eaf1ff; }
 /* OKX's card and slice (VENUE_HUES.okx, #dfe3ea: OKX's own black-and-white mark, a cool silver beside the cream text; its lime would read as --gain): its two paper twins, 0150. */
 .ag-venue-card-okx { border-left-color: rgba(223,227,234,0.75); }
 .ag-share-okx { background: rgba(223,227,234,0.35); color: #f7f8fa; }
-/* IG's card and slice (VENUE_HUES.ig, #d6a2e8: an orchid apart from the blues, the mint, the gold and the gain/loss pair): "AUD weekend (FXW-AUD)", 0162. */
+/* IG's card and slice (VENUE_HUES.ig, #d6a2e8: an orchid apart from the blues, the mint, the gold and the gain/loss pair): "FXW-AUD weekend", 0162. */
 .ag-venue-card-ig { border-left-color: rgba(214,162,232,0.75); }
 .ag-share-ig { background: rgba(214,162,232,0.35); color: #f8eefb; }
 /* Its weekends table: the quotes a fill used sit under the price, one per line. */
 .ag-fxw-detail .hl-sub { display: block; }
-/* Hyperliquid's slice: the neutral fallback hue. */
-.ag-share-hyperliquid { background: rgba(244,239,227,0.22); color: #f7f8fa; }
+/* Hyperliquid's card and slice: its mint (VENUE_HUES.hyperliquid, #97fce4). */
+.ag-venue-card-hyperliquid { border-left-color: rgba(151,252,228,0.75); }
+.ag-share-hyperliquid { background: rgba(151,252,228,0.35); color: #effffb; }
 
 /* RW's bar: where the run is, then four tiles — the total and its rewards and orders, the pessimistic total, the
    fills against the 100 it needs, the best market's share. Polymarket's blue marks the run and the fills. */

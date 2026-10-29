@@ -2213,7 +2213,7 @@ async function dashboard(now: number) {
   // "Stablecoin quotes OKX USDG" and "Stablecoin quotes OKX EURC" (0150, okx_quotes.ts): PR5's rule as LIVE carries it out, on
   // paper, on OKX's two books, a twin each in Coinbase's shape with `venue` "okx"; none before the record decides a minute.
   const quotesOkxRead = readOkxQuotes(d, now, dayStartMs).catch(() => []);
-  // "AUD weekend (FXW-AUD)" on paper (fxw_view.ts; the `ig` function's `fxw` run writes it): null before its first run.
+  // "FXW-AUD weekend" on paper (fxw_view.ts; the `ig` function's `fxw` run writes it): null before its first run.
   const fxwAudRead = readFxw(d, now, dayStartMs).catch(() => null);
 
   // "Stablecoin quotes - variant" (`0071`), read beside PR5's: its own tables; missing ones (before the migration), or no
@@ -2351,7 +2351,7 @@ async function dashboard(now: number) {
      */
     quotesOkx: await quotesOkxRead,
     /**
-     * "AUD weekend (FXW-AUD)" (`0162`, fxw_view.ts): the frozen FXW-AUD rule on paper on the live IG recorder's quotes, in
+     * "FXW-AUD weekend" (`0162`, fxw_view.ts): the frozen FXW-AUD rule on paper on the live IG recorder's quotes, in
      * pounds, one row a weekend; null before the `ig` function's first `fxw` run.
      */
     fxwAud: await fxwAudRead,

@@ -775,6 +775,19 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth).
 
+### [2026-10-29 03:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Agents page: display names and tiles** (sub-agent; commit, not pushed; Davies, 10-29: "“AUD weekend (FXW-AUD)”改名为 FXW-AUD
+  weekend … Stablecoin quotes USDG/EUR … EURC/USDC … on 1 resolved删了 … trades和record调换位置"). "AUD weekend (FXW-AUD)" is
+  "FXW-AUD weekend" in `ig/fxw.ts` (`FXW.name`, which the run writes to `ig_fxw_state.name`), `fxw_view.ts`' fallback, the docs, and
+  `0166` renames the stored row, guarded by the old name. The OKX twins' names stay in `okx_quotes.ts` (its sha256 is in the frozen
+  OKX pre-registration, `okx_prereg.test.js`): the page maps the twin id to "Stablecoin quotes USDG/EUR" and "Stablecoin quotes
+  EURC/USDC" (`quotesOkxName`). DAYS RUN is gone from the STATUS of FXW-AUD weekend, IG Trader and Crypto analyst; the Polymarket
+  analyst's Brier tile lost its "on N resolved" note (the only such note), and its DAYS table reads Day, Trades, Agent says,
+  Record. Pins: `agents.test.js`, `agents_fxw.test.js` (also the name in the migration), `agents_okx.test.js`,
+  `grok_tests.test.js`; the sweep's GROKPM days, status text and mask check, and FXW tiles. Also (Davies, 10-29: "hyperliquid的主题颜色不对吧
+  ... Coinbase应该改成他们的主题蓝"): `VENUE_HUES` Hyperliquid `#97fce4` (badge, card border, share slice) and Coinbase `#0052ff` (card
+  border, slice, badge fill; badge text the tint `#4d8bff`, 5.4:1 on the page); pinned in `agents.test.js` and by a contrast check in the
+  sweep's agents section at both widths. `dist/` rebuilt.
 ### [2026-10-29 02:49 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **One daily review at 23:45 London for all three Grok desks** (Davies, 10-29: "每天23:45的复盘把这两个也加上"): the
   GROKPM trigger `trig_0165DPcrxXo6NhdDZdjDsmZ8` now checks GROKPM, IGBOT and CXBOT; the separate 23:17 (IGBOT) and 23:27

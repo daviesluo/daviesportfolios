@@ -51,7 +51,9 @@ describe('the outside-Grok TESTING rows', () => {
   it('the page: STATUS tiles through the mask, the layer cells with D signed', () => {
     const m = (s) => s.replace(/\d/g, '•');
     const t = Object.fromEntries(grokTestTiles(CX, m).map((x) => [x.k, x]));
-    expect([t.MODE.v, t['DAYS RUN'].v, t.TRADES.v, t.OPEN.v, t.OPEN.note]).toEqual(['PAPER', '10', '2', '1', '1 resting']);
+    expect([t.MODE.v, t.TRADES.v, t.OPEN.v, t.OPEN.note]).toEqual(['PAPER', '2', '1', '1 resting']);
+    // No DAYS RUN tile (Davies, 2026-10-29: "IG Trader和Crypto analyst里的DAYS RUN也删了").
+    expect(Object.keys(t)).toEqual(['MODE', 'TRADES', 'OPEN', 'EQUITY']);
     expect(t.EQUITY.v).not.toMatch(/\d/);
     expect(grokTestTiles(IG, (s) => s)[0].v).toBe('DRY-RUN');
     expect(grokTestLayerCells(CX.layers[0])).toEqual({ label: 'Assigned brackets', scored: '1 of 1 answered, 2 issued', brier: '0.250 / 0.444', base: 'm', d: '+0.194', dTone: 'gain' });

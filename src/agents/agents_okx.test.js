@@ -1,8 +1,8 @@
-// "Stablecoin quotes OKX USDG" and "Stablecoin quotes OKX EURC" (okx_quotes.ts, 0150): a row each on TESTING after Coinbase's,
+// "Stablecoin quotes USDG/EUR" and "Stablecoin quotes EURC/USDC" (okx_quotes.ts, 0150; the server still names them "… OKX USDG" and "… OKX EURC"): a row each on TESTING after Coinbase's,
 // on a card of OKX's own, opening the paper page Coinbase's arms open; prices in each book's own currency.
 import { describe, it, expect } from 'vitest';
 import {
-  fmtQuotePrice, paperTestRows, QUOTES_OKX_ROW_PREFIX, quotesOkxOf, quotesOkxRow, quotesOkxRows, quotesPageFor, venueLabel, VENUE_HUES, venueRows,
+  fmtQuotePrice, paperTestRows, QUOTES_OKX_ROW_PREFIX, quotesOkxName, quotesOkxOf, quotesOkxRow, quotesOkxRows, quotesPageFor, venueLabel, VENUE_HUES, venueRows,
 } from './agents.js';
 
 /** A twin as `okxBookView` sends it, cut to what the rows read. */
@@ -20,8 +20,8 @@ describe('the OKX twins', () => {
   it('are a row each on TESTING, after the others, paper, on OKX', () => {
     const rows = quotesOkxRows(dash);
     expect(rows.map((r) => [r.id, r.name, r.venue, r.venueId, r.mode])).toEqual([
-      [`${QUOTES_OKX_ROW_PREFIX}okxusdg`, 'Stablecoin quotes OKX USDG', 'OKX', 'okx', 'paper'],
-      [`${QUOTES_OKX_ROW_PREFIX}okxeurc`, 'Stablecoin quotes OKX EURC', 'OKX', 'okx', 'paper'],
+      [`${QUOTES_OKX_ROW_PREFIX}okxusdg`, 'Stablecoin quotes USDG/EUR', 'OKX', 'okx', 'paper'],
+      [`${QUOTES_OKX_ROW_PREFIX}okxeurc`, 'Stablecoin quotes EURC/USDC', 'OKX', 'okx', 'paper'],
     ]);
     expect(rows[0].status.running).toBe(true);
     expect(rows[1].status).toMatchObject({ running: false, tone: 'stale', detail: 'its last decided minute was 12 min ago' });
@@ -32,7 +32,9 @@ describe('the OKX twins', () => {
 
   it('open the paper page, each its own twin; a row whose twin is gone opens nothing', () => {
     expect(quotesPageFor(`${QUOTES_OKX_ROW_PREFIX}okxeurc`, dash)).toBe('okx');
-    expect(quotesOkxOf(`${QUOTES_OKX_ROW_PREFIX}okxeurc`, dash).twin.name).toBe('Stablecoin quotes OKX EURC');
+    expect(quotesOkxName(quotesOkxOf(`${QUOTES_OKX_ROW_PREFIX}okxeurc`, dash).twin)).toBe('Stablecoin quotes EURC/USDC');
+    // A twin the table does not know keeps the server's name.
+    expect(quotesOkxName({ id: 'okxnew', name: 'Stablecoin quotes OKX NEW' })).toBe('Stablecoin quotes OKX NEW');
     expect(quotesPageFor(`${QUOTES_OKX_ROW_PREFIX}okxgone`, dash)).toBe(null);
     expect(quotesOkxOf('__quotes_coinbase', dash)).toBe(null);
   });

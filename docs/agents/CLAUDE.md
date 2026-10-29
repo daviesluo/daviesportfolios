@@ -346,7 +346,7 @@ that follow from that evidence, in short:
   10-28 22:00 (`0154` moved 0152's 10-29 06:00 start in place: "现在就开始") as `n600no03` … `n600usdt`, the `o600*` rows off (their start conversions went out at 05:50, before their rules;
   the driver now turns no twin before the minute after its start; the prereg's deviation 1). Since `0142` the Coinbase weekend variant is "with Euros - 1" and "with Euros - 2" is its rule on
   the two USDC books at £25/€25 a rung (`agents/cb_usdc.ts`, `reviews/2026-10-26-cb-usdc-prereg.md`).
-  **"Stablecoin quotes OKX USDG" and "… OKX EURC"** (`0150`, `agents/okx_rec.ts`, `agents/okx_quotes.ts`, reference §4 item 64;
+  **"Stablecoin quotes USDG/EUR" and "… EURC/USDC"** (`0150`, `agents/okx_rec.ts`, `agents/okx_quotes.ts`, reference §4 item 64;
   Davies, 2026-10-27: "…可以的话就加盘口记录器和开testings策略（目前live的rules？）"): a keyless recorder of OKX's USDG-EUR and EURC-USDC
   and a paper twin a book on LIVE's rules (€50 a rung, LIVE's "at" fill, the weekend on the held EUR/USD, de-peg, the account's
   1 % loss stop), in a file of its own because `stepMinute` cannot fill by print size or price on a 0.001 grid; one call
@@ -685,7 +685,7 @@ that follow from that evidence, in short:
     nothing IG accepts), one isolate at a time logs in (`login_until`), a login waits and always switches, a refusal is
     retried on the same tokens before one re-login, and only a refused session is logged out (as the `ig` recorder's
     `QUOTES_*`). A trading request goes again only after IG refused its tokens, which it does before dealing.
-- **"AUD weekend (FXW-AUD)", paper on TESTING** (`ig/fxw.ts`, `agents/fxw_view.ts`, `0162`; Davies, 2026-10-29): the frozen
+- **"FXW-AUD weekend", paper on TESTING** (`ig/fxw.ts`, `agents/fxw_view.ts`, `0162`; Davies, 2026-10-29): the frozen
   FXW-AUD rule on the live IG recorder's own quotes (`ig_quotes`, `environment = 'live'`), £1,000 at £1.50 a pip, no stop. It
   never calls IG; fills only at a recorded bid or offer, a minute after the open with no recorded quote makes the weekend
   MISSED. Its rules are frozen with the spec: a change is a new proposal to Davies, never an edit of `fxw.ts`' constants.
