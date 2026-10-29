@@ -678,6 +678,10 @@ that follow from that evidence, in short:
     `MARKET`; the five-day close waits for an open market and retries; IG's allowance is held for the whole function
     (`igbot_requests.ig_calls`, 24 a minute); the sync records IG's hour bars (`igbot_bars`) and the reading's scorer is
     `docs/agents/backtests/igbot/score.mjs`.
+  - **It watches FXW-AUD for Davies** (2026-10-29: "我想让ig trader bot帮我也盯着澳元策略的记录和run的情况"): `GET ?action=fxw_watch`
+    (`igbot/fxw_watch.ts`) answers the strategy's book, weekends, the live recorder's runs, the window, the live facts (account
+    ids masked), its calls' beats and `problems`, from the database only (no IG call, no IG secret, under 8 KB). The agent
+    reports a problem to Davies in Chinese and in the desk ledger's "Grok → Claude"; it never fixes or trades it.
   - **One IG session for the whole function** (`0165`, `IGBOT_SESSION` in `igbot/client.ts`, 2026-10-29): its first
     demo hours refused the minute's sync in 14 of 58 minutes that logged in (401 account-token-invalid on the switch):
     the session lived in one isolate's memory and a fresh isolate's three reads logged in three times at once. The

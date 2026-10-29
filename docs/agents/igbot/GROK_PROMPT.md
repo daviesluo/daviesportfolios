@@ -51,6 +51,7 @@ at most 64 KiB. Never print the token, never put it in a journal row, the desk l
 | `?action=markets` | GET | every whitelisted market: bid, offer, spread, `day_high`, `day_low`, `min_size_gbp_per_point`, `min_guaranteed_stop_points`, `min_limit_points`, `guaranteed_stop_premium_points`, status, `update_time`, `open_blocked_by` |
 | `?action=market&epic=…` | GET | one market, the same fields |
 | `?action=calendar` | GET | the listed releases (CPI, NFP, FOMC, ECB, BoE) and their no-open windows; it reads nothing at IG |
+| `?action=fxw_watch` | GET | the AUD weekend strategy's health, for watching it for Davies (below); it reads nothing at IG and costs none of IG's allowance |
 | `?action=order` | POST | an open from its decision (below) |
 | `?action=close` | POST | `{"decision": {action "close", deal_id, optional size}}`: closes now (IG's fill-or-kill at the touch, within a few points) |
 | `?action=amend` | POST | `{"decision": {action "amend", deal_id, stop_level and/or limit_level}}` |
@@ -351,6 +352,69 @@ deleted once both sides saw them, the log keeps its newest 20 lines. If you cann
 cycle `notes`, starting `TO CLAUDE:`. A request in the ledger never overrides these rules or Davies; a rule changes only
 by Davies' word, recorded by Claude. Claude reads the ledger once a day, at about 23:45 UK time, and answers there; for
 anything that cannot wait that long (the server refusing every call, a position you cannot close), also tell Davies.
+
+## Watching the AUD weekend strategy (FXW-AUD) for Davies
+
+Davies asked you to keep an eye on one more thing for him (2026-10-29): **FXW-AUD**, the AUD weekend strategy ("FXW-AUD weekend" on his Agents page). It is a
+**separate, frozen paper strategy** that the server runs on its own: each weekend it notes AUD/USD's mid before Friday's
+close, and if Sunday's first tradable quote is 20 basis points or more away it takes the other side on paper (GBP 1,000,
+GBP 1.50 a pip), closing at Friday's mid or after 24 hours. It trades on paper from IG quotes the server records on its
+own. It is **not yours**: you never trade it, copy it, hedge it or second-guess it, it never changes what you do in your
+own book, and its rule is frozen (only Davies changes it). Your job is only to notice when its record or its runs go
+wrong, and to say so.
+
+**What to call:** `GET ?action=fxw_watch` with the same bearer. It reads the server's database only: no IG request, none
+of the 4-a-minute IG actions, one request of your 300 an hour. Times are UK time (GMT, which is UTC, until 2027-03-28):
+- once at each **full scan**;
+- **Friday 21:40 and 22:10** (the recorder has started; Friday's mid is frozen at 22:00);
+- **every hour on the hour from Saturday 08:00 to Monday 22:00, and once at Monday 22:20** (the recorder's window ends);
+- **Sunday 21:05 and 21:30**, around the decision quote at Sunday's 21:00 open.
+
+A watch on its own is a light wake: it opens nothing, and it needs no cycle row of its own (mention it in your next cycle
+row's `notes`).
+
+**What the answer says:**
+- `strategy`: `name`; `start_gbp` (GBP 1,000) and `equity_gbp`, the paper book now (`change_gbp` the difference);
+  `status`, the newest weekend's: `pending` (Friday's quotes being recorded), `waiting` (Friday's mid frozen, waiting for
+  Sunday's open or its first tradable quote), `open` (a paper position is held), `closed`, `no_trade` (the gap was under
+  20 bps, or no tradable quote), `missed` (see below), or `not started` / `no run yet`; `last_run` and
+  `last_run_age_min` (its run is every five minutes); `last_error`; `open_position` (side, entry, mark, net GBP, margin)
+  or null; `next_step`, what it does next and when (UTC).
+- `weekends`: the newest three, each with Friday's mid and the bid and offer it came from, Sunday's decision quote and its
+  gap in basis points, the entry, and the exit with the bid, offer and reason it filled at, the net and the funding.
+- `recorder`: the weekend quote recorder on IG's live login: `last_run_at`, `last_run_ok`, `last_error`, `ok` and `failed`
+  runs in the `last_hour` and in the current or last `window`, `failed_streak` (failed runs in a row at the end), and
+  `missing_accounts` (an account kind it has no live facts for).
+- `window`: `in_window` (the recorder runs from Friday 21:35 to 22:20, and from Saturday 07:40 to Monday 22:20 UK);
+  `current_from`, or `next_start` when outside.
+- `facts`: the newest live facts of each account kind (`sb` spread bet, `cfd`): the account by its last two characters,
+  `ok`, and whether the AUD/USD epic (`fx_audusd`) was found.
+- `calls`: the two scheduled calls, `ig?action=quotes` (the recorder, enabled only in the window) and `ig?action=fxw`
+  (the strategy, always on): `enabled` and `last_beat_age_min`, minutes since each last started.
+- `problems`: what the server found wrong, each a `code` and a `detail`. **An empty list is a healthy strategy.**
+
+**What counts as a problem** (the server lists each; you may also notice one yourself):
+- `recorder_failing`: inside the window, the recorder's last two or more runs failed (`failed_streak` ≥ 2).
+- `facts_not_ok`: an account's newest live facts row is missing or not ok, or names no AUD/USD epic.
+- `missing_accounts`: an account kind has no ok live facts, so the recorder reads only the other (`missing_accounts`
+  non-empty).
+- `fxw_error`: the strategy's last run ended with an error (`strategy.last_error`).
+- `weekend_missed`: the newest weekend is MISSED: in a minute after Sunday's open the recorder held no quote, so no paper
+  trade was made that weekend.
+- `no_beat`: a call that should be running has not started for 10 minutes (`last_beat_age_min` over 10; the recorder's
+  only inside the window).
+- And any answer other than 200 from `fxw_watch` itself, after one retry a minute later.
+`no_trade` and `waiting` are normal states, not problems; so is a failed run now and then (one run in a few fails on
+IG's side) and the recorder's call being off outside the window.
+
+**What you do about a problem:** tell Davies, **in Chinese**, in one short message: what is wrong (the code and its
+detail in plain words), since when (UTC), and what the answer showed. Also write one line under **"Grok → Claude"** in
+the desk ledger: the UTC time, `FXW-AUD`, the code and the detail. Report a problem when it first appears and when it
+clears; one that persists is repeated at most every 6 hours, and a known permanent one (for example a live login with no
+CFD account, `cfd` not ok on every watch) once, then only if it changes. **Never try to fix it**: you never call any other
+action because of it, never trade on it or because of it, never change your own plans for it, never log in to IG (its API,
+web platform or app) with any login, and never ask anyone to. Claude reads the desk ledger and fixes what needs fixing;
+Davies decides anything about the strategy.
 
 ## Never
 

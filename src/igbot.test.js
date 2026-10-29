@@ -73,7 +73,7 @@ describe('IGBOT, the demo-only IG path', () => {
 
   it('knows no IG host but the demo gateway and reads no secret but its own demo ones', () => {
     const files = fs.readdirSync(DIR).filter((f) => f.endsWith('.ts') && !f.endsWith('.test.ts')).sort();
-    expect(files).toEqual(['client.ts', 'exec.ts', 'index.ts', 'ingest.ts', 'rules.ts', 'schema.ts']);
+    expect(files).toEqual(['client.ts', 'exec.ts', 'fxw_watch.ts', 'index.ts', 'ingest.ts', 'rules.ts', 'schema.ts']);
     for (const f of files) {
       const code = stripComments(fs.readFileSync(path.join(DIR, f), 'utf8'));
       const hosts = [...code.matchAll(/https?:\/\/[a-z0-9.-]*ig\.com[^"'`\s]*/g)].map((m) => m[0]);
@@ -124,6 +124,43 @@ describe('IGBOT, the demo-only IG path', () => {
     // The wake schedule: event wakes before T−5 (the blackout), holding checks every 10 minutes.
     expect(PROMPT).toContain('| T−60, T−20, T+5, T+15, T+60, T+180 |');
     expect(PROMPT).toContain('every 10 minutes while you hold a position or a working order');
+  });
+
+  // Davies, 2026-10-29: "我想让ig trader bot帮我也盯着澳元策略的记录和run的情况". The agent reads FXW-AUD's health through one
+  // read-only action; the prompt names it and every problem it can report, exactly as the code does.
+  it('serves the AUD weekend watch read-only, and the prompt names its action and every problem as the code does', () => {
+    const src = read('supabase/functions/igbot/fxw_watch.ts');
+    const code = stripComments(src);
+    // The database only: no client, no fetch, no environment, no secret name, and from the ig function only its pure windows.
+    expect(code).not.toMatch(/IgbotClient|igbotCreds|IgClient|liveCreds|fetch\(|Deno\.env|IG_API_KEY|IG_LIVE|IGBOT_DEMO|_DEMO_/);
+    expect([...code.matchAll(/from "([^"]+)"/g)].map((m) => m[1]).sort()).toEqual(['../agents/db.ts', '../ig/windows.ts']);
+    // Its copy of the strategy's terms is fxw.ts' own.
+    const fxw = read('supabase/functions/ig/fxw.ts');
+    expect(fxw).toContain('fundedGbp: 1000,');
+    expect(fxw).toContain('horizonMs: 24 * 3_600_000,');
+    expect(fxw).toContain('startFriday: "2026-10-30",');
+    expect(fxw).toContain('startUk: { hh: 21, mm: 35 },');
+    expect(code).toContain('fundedGbp: 1000, horizonMs: 24 * 3_600_000, startFriday: "2026-10-30"');
+    // The handler: a GET, answered before IG's client (and its secrets) is built.
+    const idx = read('supabase/functions/igbot/index.ts');
+    expect(idx).toMatch(/fxw_watch: "GET"/);
+    expect(src).toContain('export const FXW_WATCH_ACTION = "fxw_watch";');
+    const branch = idx.indexOf('if (action === FXW_WATCH_ACTION)');
+    expect(branch).toBeGreaterThan(idx.indexOf('const rate = rateVerdict(last, 0, t, true);'));
+    expect(branch).toBeLessThan(idx.indexOf('const x = { ...deps.exec(t), igBudget'));
+    // The prompt: the action in the server's table and in its own section, and the codes both ways.
+    expect(PROMPT).toContain('| `?action=fxw_watch` | GET |');
+    const at = PROMPT.indexOf('## Watching the AUD weekend strategy (FXW-AUD) for Davies');
+    expect(at).toBeGreaterThan(0);
+    const section = PROMPT.slice(at, PROMPT.indexOf('\n## ', at + 5));
+    expect(section).toContain('`GET ?action=fxw_watch`');
+    const codes = [...(/FXW_WATCH_PROBLEMS = \{([\s\S]*?)\} as const;/.exec(src)?.[1] ?? '').matchAll(/^\s*(\w+):/gm)].map((m) => m[1]).sort();
+    expect(codes).toEqual(['facts_not_ok', 'fxw_error', 'missing_accounts', 'no_beat', 'recorder_failing', 'weekend_missed']);
+    const named = [...section.matchAll(/^- `(\w+)`:/gm)].map((m) => m[1]).filter((c) => !['strategy', 'weekends', 'recorder', 'window', 'facts', 'calls', 'problems'].includes(c)).sort();
+    expect(named).toEqual(codes);
+    // Its schedule and its one way of acting on a problem.
+    for (const t of ['once at each **full scan**', '**Friday 21:40 and 22:10**', '**every hour on the hour from Saturday 08:00 to Monday 22:00, and once at Monday 22:20**', '**Sunday 21:05 and 21:30**',
+      '**in Chinese**', '**"Grok → Claude"**', '**Never try to fix it**', 'never log in to IG', '**separate, frozen paper strategy**']) expect(section).toContain(t);
   });
 
   it('seeds a desk ledger under 10 KB', () => {

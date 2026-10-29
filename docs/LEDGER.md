@@ -775,6 +775,14 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth).
 
+### [2026-10-29 03:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **IGBOT's agent watches FXW-AUD for Davies** (sub-agent; commit, not pushed; item 18; Davies, 10-29: "我想让ig trader bot帮我也盯着澳元策略的记录和run的情况"):
+  `GET /igbot?action=fxw_watch` (`igbot/fxw_watch.ts`), the bearer's, read-only from the database before IG's client is built:
+  the book, the newest 3 weekends with their quotes, the live recorder's runs and streak, the window, live facts (ids masked to 2
+  chars), the two calls' beats, and `problems` (six codes). GROK_PROMPT gains "Watching the AUD weekend strategy (FXW-AUD) for
+  Davies" (when to call, each field, each problem; report in Chinese and in "Grok → Claude"; never fix, trade or log in).
+  Davies forwards the section to Grok as an addendum. Deno 3 new tests, a vitest pin of the prompt against the code.
+
 ### [2026-10-29 03:07 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **IGBOT armed on IG demo and CXBOT started on paper** (Davies, 10-29: "请检查状态，并且确保没问题后testing列表中的策略现在就上线";
   both Grok agents had their prompts and answered the ping). Checked first: IGBOT's sync clean since 0165 (32 minutes, 0
@@ -801,6 +809,7 @@ and the 2026-10-29 02:13 one (fifteenth).
   ... Coinbase应该改成他们的主题蓝"): `VENUE_HUES` Hyperliquid `#97fce4` (badge, card border, share slice) and Coinbase `#0052ff` (card
   border, slice, badge fill; badge text the tint `#4d8bff`, 5.4:1 on the page); pinned in `agents.test.js` and by a contrast check in the
   sweep's agents section at both widths. `dist/` rebuilt.
+
 ### [2026-10-29 02:49 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **One daily review at 23:45 London for all three Grok desks** (Davies, 10-29: "每天23:45的复盘把这两个也加上"): the
   GROKPM trigger `trig_0165DPcrxXo6NhdDZdjDsmZ8` now checks GROKPM, IGBOT and CXBOT; the separate 23:17 (IGBOT) and 23:27

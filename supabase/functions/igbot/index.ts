@@ -12,6 +12,9 @@
 //   GET  ?action=markets   every whitelisted market's quote and dealing rules, in one IG request.
 //   GET  ?action=market    one market by `epic`.
 //   GET  ?action=calendar  the listed releases ahead and their blackout windows (no IG read).
+//   GET  ?action=fxw_watch the AUD weekend strategy's health (FXW-AUD, a frozen paper strategy the agent watches for Davies
+//                          and never trades): its book, weekends, the live recorder's runs, the window, the live facts, its
+//                          calls' beats and the problems found (`fxw_watch.ts`). The database only: no IG call, no IG secret.
 //   POST ?action=order     an open from its decision: `entry` market (the level is the worst fill), limit or stop (a working
 //                          order with `good_till`); always a guaranteed stop and a limit.
 //   POST ?action=close     close a position (`decision.deal_id`, whole or `size`).
@@ -44,6 +47,7 @@ import {
   IGBOT_ACTION_IG_COST, IGBOT_IG_CALLS_PER_MINUTE, IGBOT_MAX_BODY_BYTES, IGBOT_MAX_ERRORS, IGBOT_MAX_ROWS_PER_HOUR, igCallsLastMinute, isAuthorised, isObj, rateVerdict,
   type RequestRow, validateBatch,
 } from "./ingest.ts";
+import { FXW_WATCH_ACTION, readFxwWatch } from "./fxw_watch.ts";
 import { bracketOf, IGBOT_RELEASE_MS, IGBOT_RULES } from "./rules.ts";
 
 const JSON_HEADERS = { "Content-Type": "application/json", "Cache-Control": "no-store" };
@@ -51,7 +55,7 @@ const json = (status: number, body: unknown, extra: Record<string, string> = {})
 
 /** The actions besides the journal, and the method each takes. */
 export const ACTIONS: Record<string, "GET" | "POST"> = {
-  account: "GET", markets: "GET", market: "GET", calendar: "GET", order: "POST", close: "POST", amend: "POST", cancel: "POST", cancel_all: "POST", sync: "POST",
+  account: "GET", markets: "GET", market: "GET", calendar: "GET", fxw_watch: "GET", order: "POST", close: "POST", amend: "POST", cancel: "POST", cancel_all: "POST", sync: "POST",
 };
 
 export type HandleDeps = {
@@ -82,6 +86,12 @@ export async function handle(req: Request, deps: HandleDeps): Promise<Response> 
     if (action) {
       const rate = rateVerdict(last, 0, t, true);
       if (!rate.ok) { await log(429, 0, "rate"); return json(429, { error: "rate limited", retry_after_s: rate.retryAfterS }, { "Retry-After": String(rate.retryAfterS) }); }
+      // The AUD weekend strategy's health: answered from the database before IG's client (and its secrets) is ever built.
+      if (action === FXW_WATCH_ACTION) {
+        const body = await readFxwWatch(db, t);
+        await log(200, 0, null);
+        return json(200, body);
+      }
       const used = igCallsLastMinute(last, t), cost = IGBOT_ACTION_IG_COST[action] ?? 0;
       if (cost > 0 && used + cost > IGBOT_IG_CALLS_PER_MINUTE) {
         await log(429, 0, "ig allowance");
