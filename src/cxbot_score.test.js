@@ -46,7 +46,7 @@ describe("CXBOT's reading", () => {
     expect(c.d_c).toBeCloseTo(0.03125, 12);
     expect(c.d_p05).toBeLessThanOrEqual(c.d_p95);
     expect(calibration(rows, { resamples: 200 })).toEqual(c);
-    expect([SEED, RESAMPLES, BLOCK_DAYS, SHAKEDOWN_MS, BAR.answeredShare, BAR.minOwn]).toEqual([20261029, 10000, 3, 48 * H, 0.9, 60]);
+    expect([SEED, RESAMPLES, BLOCK_DAYS, SHAKEDOWN_MS, BAR.answeredShare, BAR.minOwn]).toEqual([20261029, 10000, 7, 48 * H, 0.9, 60]);
     expect(mulberry32(7)()).toBe(mulberry32(7)());
   });
 
@@ -181,7 +181,7 @@ describe("CXBOT's reading", () => {
     expect(Object.keys(r.bar)).toEqual(['a_answered_90', 'a_passes_stop_first', 'a_passes_limit_first', 'c_own_60', 'c_d_and_d_c_positive', 'pnl_positive', 'total_stop_never', 'no_liquidation']);
     expect(futile({ layer_a: { stop_first: { n: 10, d_p95: -0.001 } } })).toBe(true);
     expect(futile({ layer_a: { stop_first: { n: 10, d_p95: 0.001 } } })).toBe(false);
-    for (const words of ['mulberry32', '20261029', '10,000 resamples', 'circular blocks of 3 consecutive UTC days', 'D_c', 'docs/agents/backtests/cxbot/score.mjs', 'at least 90 %', 'at least 60 scored brackets', 'the first 48 hours']) {
+    for (const words of ['mulberry32', '20261029', '10,000 resamples', 'circular blocks of 7 consecutive UTC days', 'D_c', 'docs/agents/backtests/cxbot/score.mjs', 'at least 90 %', 'at least 60 scored brackets', 'the first 48 hours']) {
       expect(PREREG, words).toContain(words);
     }
   });

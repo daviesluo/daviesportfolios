@@ -31,6 +31,11 @@ describe('the outside-Grok TESTING rows', () => {
     expect([r.status.label, r.status.tone, r.status.running]).toEqual(['dry-run', 'stale', false]);
     expect(r.status.detail).toBe("dry-run on IG's demo: orders checked and journalled, none sent");
     expect(grokTestRow({ ...IG, usdPerUnit: null })?.fundedKnown).toBe(false);
+    // Back in dry-run after a start the test has ENDED (the CXBOT audit, 2026-10-29), not "dry-run".
+    const ended = /** @type {any} */ (grokTestRow({ ...CX, mode: 'dry_run', daysRun: 58 }));
+    expect([ended.status.label, ended.status.tone]).toEqual(['ended', 'stale']);
+    expect(ended.status.detail).toContain('ended after 58 days');
+    expect(grokTestTiles({ ...CX, mode: 'dry_run' }, (s) => s)[0].v).toBe('ENDED');
     expect(venueLabel('ig')).toBe('IG');
   });
 

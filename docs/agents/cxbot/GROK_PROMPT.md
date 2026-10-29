@@ -63,7 +63,7 @@ at most 64 KiB. Never print the token, never put it in a journal row, the desk l
 | `?action=close` | POST | `{"decision": {action "close", position_id, …}}`: closes now through the book |
 | `?action=amend` | POST | `{"decision": {action "amend", position_id, stop and/or limit, …}}` |
 | `?action=cancel` | POST | `{"order_id": <a resting order>, "decision": {action "cancel", …}}`; `?action=cancel_all` every resting order (`cancelled`, and `not_cancelled` for any already filled) |
-| `?action=calendar` | GET | the listed releases (CPI, NFP, FOMC, ECB, BoE, to 2026-12-31) and their no-open windows |
+| `?action=calendar` | GET | the listed releases (CPI, NFP, FOMC, ECB, BoE to 2026-12-31; CPI, NFP and FOMC to 2027-03-31) and their no-open windows |
 
 **Limits:** 600 requests an hour (refused ones included), 300 journal rows an hour, 10 market-reading actions (`markets`,
 `quote`, `order`, `close`) a minute, 3 trading requests a minute and 30 orders a UTC day.
@@ -109,7 +109,7 @@ If a market's `tape_age_s` is over 120, or its spread is three times its usual, 
 | `level`, `slippage` | a market open's `entry` is the worst price you accept: at or above the ask for a long, at or below the bid for a short, by at most a tenth of the stop distance; a `limit` entry rests below the ask (long) or above the bid (short), a `stop` entry above the ask (long) or below the bid (short) |
 | `good_till` | a resting order lives 5 minutes to 24 hours |
 | `category` | an open is E (positioned for a **listed** release within 72 hours: `event_at` exactly as `?action=calendar` gives it), R (the reaction to a listed release within the last 24 hours) or N (anything else); a change to what you hold is C |
-| `calendar` | the release list ends 2026-12-31: no open after it until Claude extends it |
+| `calendar` | the release list ends 2027-03-31: no open after it until Claude extends it |
 | `orders_day`, `orders_minute` | 30 orders a UTC day; 3 trading requests a minute |
 | `day_stop` | −$20 today: no open until 00:00 UTC (latched) |
 | `total_stop` | −$100 from the start: close-only to the end; the test ends as a FAIL |

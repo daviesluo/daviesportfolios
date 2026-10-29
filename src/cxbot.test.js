@@ -93,8 +93,10 @@ describe('CXBOT, the paper path', () => {
     }
     expect(PROMPT).toContain('−$20 today');
     expect(PROMPT).toContain('−$100 from the start');
-    expect(RULES).toContain('export const CXBOT_CALENDAR_UNTIL_MS = Date.parse("2027-01-01T00:00:00Z");');
-    expect(PROMPT).toContain('the release list ends 2026-12-31');
+    expect(RULES).toContain('export const CXBOT_CALENDAR_UNTIL_MS = Date.parse("2027-04-01T00:00:00Z");');
+    expect(RULES).toContain('export const CXBOT_CALENDAR_ENDS = "2027-03-31";');
+    expect(PROMPT).toContain('the release list ends 2027-03-31');
+    expect(PROMPT).toContain('CPI, NFP and FOMC to 2027-03-31');
   });
 
   it('names in the prompt every rule the server can refuse by', () => {

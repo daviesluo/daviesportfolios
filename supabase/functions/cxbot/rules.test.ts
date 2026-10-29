@@ -3,9 +3,10 @@
 // (docs/agents/cxbot/GROK_PROMPT.md prints exactly these; `src/cxbot.test.js` checks it) against the server's own checks.
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import examples from "../../../docs/agents/cxbot/examples.json" with { type: "json" };
+import { CB_RELEASE_MS } from "../agents/cb_releases.ts";
 import { answerOf, cycleOf, dailyOf, decisionOf, validateAnswers, validateBatch } from "./ingest.ts";
 import {
-  assignedBracket, blackoutWithin, bracketOf, costsOf, CXBOT_RULES, decompose, entryEvent, fractionOf, inBlackout, kellyRisk, leverageFor, liquidationPrice,
+  assignedBracket, blackoutWithin, bracketOf, costsOf, CXBOT_RELEASE_MS, CXBOT_RELEASES_2027Q1, CXBOT_RULES, decompose, entryEvent, fractionOf, inBlackout, kellyRisk, leverageFor, liquidationPrice,
   type MarketState, type Minute, normCdf, openRefusals, type OpenRequest, positionEvent, resolveOnTape, roundSize, sizeMax, stopEntryFill, stopFill, walkBook, liqReached,
 } from "./rules.ts";
 
@@ -80,7 +81,7 @@ Deno.test("an open that keeps every rule passes; each rule refuses on its own", 
   assertEquals(rules({}, { ordersToday: 30 }), ["orders_day"]);
   assertEquals(rules({}, { ordersLastMinute: 3 }), ["orders_minute"]);
   assertEquals(rules({}, { nowMs: Date.parse("2026-11-06T13:25:00Z") }), ["blackout"]);
-  assertEquals(rules({}, { nowMs: Date.parse("2027-01-02T00:00:00Z") }).includes("calendar"), true);
+  assertEquals(rules({}, { nowMs: Date.parse("2027-04-02T00:00:00Z") }).includes("calendar"), true);
   assertEquals(rules({ category: "E", eventAt: Date.parse("2026-11-06T13:30:00Z") }), []);
   assertEquals(rules({ category: "E", eventAt: Date.parse("2026-11-06T13:31:00Z") }), ["category"]);
   assertEquals(rules({ category: "R", eventAt: Date.parse("2026-11-06T13:30:00Z") }), ["category"]);
@@ -98,6 +99,20 @@ Deno.test("an open that keeps every rule passes; each rule refuses on its own", 
   assertEquals(rules({ entryType: "limit", entry: 81000, goodTill: T + 20 * H }), []);
   assertEquals(rules({ entryType: "limit", entry: 81300, goodTill: T + 6 * H }).includes("level"), true);
   assertEquals(rules({ entryType: "stop", entry: 81300, goodTill: T + 6 * H, stop: 79650, limit: 84600 }), []);
+});
+
+Deno.test("CXBOT's own 2027 Q1 list (Davies, 2026-10-29): a January CPI blackout refuses an open, outside it one is allowed; the shared list is untouched", () => {
+  const cpi = Date.parse("2027-01-13T13:30:00Z");
+  assertEquals(rules({}, { nowMs: cpi - 5 * M }), ["blackout"]);
+  assertEquals(rules({}, { nowMs: cpi + 30 * M }), []);
+  assertEquals(rules({}, { nowMs: Date.parse("2027-01-02T00:00:00Z") }), []); // the calendar no longer ends 2026-12-31
+  assertEquals(rules({ category: "E", eventAt: cpi }, { nowMs: cpi - 2 * H }), []);
+  assertEquals(rules({}, { nowMs: Date.parse("2027-03-17T17:55:00Z") }), ["blackout"]); // the March FOMC at 18:00 UTC (EDT)
+  assertEquals(CXBOT_RELEASES_2027Q1.length, 8);
+  assertEquals(CB_RELEASE_MS.length, 10);
+  assert(CB_RELEASE_MS.every((t) => t < Date.parse("2027-01-01T00:00:00Z")));
+  assert(CXBOT_RELEASE_MS.every((t, i) => i === 0 || t > CXBOT_RELEASE_MS[i - 1]), "ascending: the blackout's search needs it");
+  assertEquals(CXBOT_RELEASE_MS.length, 18);
 });
 
 Deno.test("the blackout window: T−10 to T+5 minutes of a listed release; a resting order may not live into one", () => {

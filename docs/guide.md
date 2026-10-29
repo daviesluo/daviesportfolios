@@ -391,7 +391,8 @@ places stay when the number is not whole.
   and target, the days run, and how its forecasts score against the
   market's own baseline in each of those three parts (D above zero means it
   did better). Until Davies starts it, it reads "dry-run": it records the
-  market and books nothing.
+  market and books nothing. When the test is over it reads "ended": nothing
+  new opens, and its result stays on the page.
 - **IG Trader.** Next, on IG: the same kind of agent trading IG spread bets on IG's
   demo account (play money), funded with its £1,000 budget; its money is
   that budget plus what it has made or lost since it was switched on, never

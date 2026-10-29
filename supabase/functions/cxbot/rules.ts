@@ -73,9 +73,32 @@ export const CXBOT_MAINTENANCE: Record<Coin, number> = { BTC: 0.0125, ETH: 0.02,
 /** Size decimals (Hyperliquid's `szDecimals`, read 2026-10-29). */
 export const CXBOT_SZ_DECIMALS: Record<Coin, number> = { BTC: 5, ETH: 4, SOL: 2 };
 
-/** The release list (`agents/cb_releases.ts`) ends 2026-12-31: no open after it until the list is extended. */
-export const CXBOT_CALENDAR_UNTIL_MS = Date.parse("2027-01-01T00:00:00Z");
-export const CXBOT_RELEASE_MS: readonly number[] = CB_RELEASE_MS;
+/**
+ * CXBOT's own releases after the shared list (`agents/cb_releases.ts`, frozen for the Coinbase tests) ends on 2026-12-31:
+ * CPI, the jobs report (NFP) and the FOMC statement to 2027-03-31, so a go after about 2026-11-03 can run its 56 days into
+ * 2027 (Davies, 2026-10-29: "你说的那三件事全按你的建议来", the independent audit's §3). Used by CXBOT's blackout and its
+ * categories E and R only. Read 2026-10-29 from the official schedules:
+ *   CPI   https://www.bls.gov/schedule/news_release/cpi.htm      Jan. 13, Feb. 11, Mar. 10, 2027, 08:30 AM (ET)
+ *   NFP   https://www.bls.gov/schedule/news_release/empsit.htm   Jan. 08, Feb. 05, Mar. 05, 2027, 08:30 AM (ET)
+ *   FOMC  https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm   January 26-27, March 16-17* 2027 (tentative
+ *         until the meeting before confirms it); the statement at 2:00 PM ET on the second day.
+ * In UTC: 08:30 ET is 13:30 under EST; US summer time starts Sunday 2027-03-14, so the March FOMC's 14:00 EDT is 18:00.
+ */
+export const CXBOT_RELEASES_2027Q1: ReadonlyArray<readonly [string, "cpi" | "nfp" | "fomc"]> = [
+  ["2027-01-08T13:30:00Z", "nfp"],
+  ["2027-01-13T13:30:00Z", "cpi"],
+  ["2027-01-27T19:00:00Z", "fomc"],
+  ["2027-02-05T13:30:00Z", "nfp"],
+  ["2027-02-11T13:30:00Z", "cpi"],
+  ["2027-03-05T13:30:00Z", "nfp"],
+  ["2027-03-10T13:30:00Z", "cpi"],
+  ["2027-03-17T18:00:00Z", "fomc"],
+];
+/** The release list ends 2027-03-31: no open after it until the list is extended. */
+export const CXBOT_CALENDAR_UNTIL_MS = Date.parse("2027-04-01T00:00:00Z");
+export const CXBOT_CALENDAR_ENDS = "2027-03-31";
+/** Every listed release CXBOT sits out, ascending: the shared list, then CXBOT's own. */
+export const CXBOT_RELEASE_MS: readonly number[] = [...CB_RELEASE_MS, ...CXBOT_RELEASES_2027Q1.map(([t]) => Date.parse(t))];
 
 /** The assigned questions (prereg §5): every 4 hours, both directions of each coin; stop 1 day-sd, limit 2; 72 h. */
 export const CXBOT_QUESTIONS = {
@@ -210,7 +233,7 @@ export function openRefusals(req: OpenRequest, x: OpenContext): { refusals: Refu
   const releases = x.releases ?? CXBOT_RELEASE_MS;
   if (x.totalStopHit) no("total_stop", "the total stop is reached: close-only to the end");
   if (x.dayStopHit) no("day_stop", "the day stop is reached: no open until 00:00 UTC");
-  if (x.nowMs >= CXBOT_CALENDAR_UNTIL_MS) no("calendar", "the release list ends 2026-12-31: no open until it is extended");
+  if (x.nowMs >= CXBOT_CALENDAR_UNTIL_MS) no("calendar", `the release list ends ${CXBOT_CALENDAR_ENDS}: no open until it is extended`);
   if (x.ordersToday >= x.maxOrdersDay) no("orders_day", `${x.ordersToday} orders today, at most ${x.maxOrdersDay}`);
   if (x.ordersLastMinute >= R.maxOrdersPerMinute) no("orders_minute", `at most ${R.maxOrdersPerMinute} trading requests a minute`);
   const br = bracketOf(req.dir, req.entry, req.stop, req.limit);

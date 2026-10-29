@@ -6,7 +6,7 @@ import type { Db } from "../agents/db.ts";
 import { type Book, type CoinCtx, makeReader, type Reader, tapeOf } from "./client.ts";
 import { type Answer, type Decision, decisionOf, isObj } from "./ingest.ts";
 import {
-  assignedBracket, type BookItem, bracketOf, type Coin, COINS, costsOf, CXBOT_CALENDAR_UNTIL_MS, CXBOT_FEES, CXBOT_QUESTIONS,
+  assignedBracket, type BookItem, bracketOf, type Coin, COINS, costsOf, CXBOT_CALENDAR_ENDS, CXBOT_CALENDAR_UNTIL_MS, CXBOT_FEES, CXBOT_QUESTIONS,
   CXBOT_RELEASE_MS, CXBOT_RULES, decompose, type Dir, entryEvent, inBlackout, kellyRisk, leverageFor, liqReached, liquidationPrice, type Minute,
   normCdf, openRefusals, type OpenRequest, positionEvent, type Refusal, resolveOnTape, riskOf, sizeMax, stopEntryFill, stopFill, type Venue, walkBook,
 } from "./rules.ts";
@@ -789,7 +789,7 @@ export async function accountView(x: Deps) {
   const dayOpen = (state.dayOpen as { day: string; equity: number } | undefined);
   return {
     now: iso(x.now), mode: cfg.mode, venue: cfg.venue, started_at: cfg.started_at,
-    gates: { global_pause: await globalPaused(x.db), day_stop: stops.dayStopHit, total_stop: stops.totalStopHit, calendar_ends: "2026-12-31" },
+    gates: { global_pause: await globalPaused(x.db), day_stop: stops.dayStopHit, total_stop: stops.totalStopHit, calendar_ends: CXBOT_CALENDAR_ENDS },
     budget: {
       budget_usd: cfg.budget_usd, equity_usd: r2(e.equity), pnl_total_usd: r2(e.equity - cfg.budget_usd),
       pnl_today_usd: dayOpen && dayOpen.day === today.slice(0, 10) ? r2(e.equity - dayOpen.equity) : null,
@@ -1098,7 +1098,7 @@ export async function cancelOrders(x: Deps, body: unknown, all: boolean, owner: 
 }
 
 export const calendarView = (now: number) => ({
-  now: iso(now), listed_until: "2026-12-31", calendar_ends_ms: CXBOT_CALENDAR_UNTIL_MS,
+  now: iso(now), listed_until: CXBOT_CALENDAR_ENDS, calendar_ends_ms: CXBOT_CALENDAR_UNTIL_MS,
   releases: CXBOT_RELEASE_MS.filter((t) => t > now - CXBOT_RULES.blackoutTrailMs).map((t) => ({ at: iso(t), no_open_from: iso(t - CXBOT_RULES.blackoutLeadMs), no_open_until: iso(t + CXBOT_RULES.blackoutTrailMs) })),
 });
 

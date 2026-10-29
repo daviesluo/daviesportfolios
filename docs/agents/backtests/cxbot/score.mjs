@@ -10,7 +10,7 @@
 //   * y: 1 when a minute's trades reach the limit first, 0 the stop; a minute reaching both is ambiguous and the reading
 //     runs twice, stop-first and limit-first; neither by the hold: the close of the last minute inside it, as its
 //     fraction between stop (0) and limit (1) (the audit's §5.1: E[y] = m for a fair price, so the baseline needs no model);
-//   * layer A, the assigned brackets: D = Brier(m) − Brier(p) on the answered ones, its circular 3-day-block bootstrap
+//   * layer A, the assigned brackets: D = Brier(m) − Brier(p) on the answered ones, its circular 7-day-block bootstrap
 //     (10,000 resamples, mulberry32 seeded 20261029), D_c against m moved per (coin, direction) by that cell's mean (y − m);
 //   * layer B, Polymarket's strikes: Brier of p against the market's mid and its last trade, a bootstrap of event days;
 //   * layer C, the agent's own brackets (real paper opens on their ORIGINAL levels, shadows from their first reachable
@@ -26,7 +26,9 @@
 
 export const SEED = 20261029;
 export const RESAMPLES = 10000;
-export const BLOCK_DAYS = 3;
+// Seven days, not three (Davies, 2026-10-29: "你说的那三件事全按你的建议来"; the independent audit's F20: three-day blocks
+// came out 10–25 % narrower than D's true spread when a forecaster's luck runs in spells of one to two weeks).
+export const BLOCK_DAYS = 7;
 export const SHAKEDOWN_MS = 48 * 3600e3;
 export const BAR = { answeredShare: 0.9, minOwn: 60 };
 const M = 60e3, H = 3600e3, DAY = 86400e3;

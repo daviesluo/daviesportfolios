@@ -15,6 +15,10 @@ blind. **Money: none.** Phase 1 holds no key, no wallet and no session at any ve
 - **Freezing needs:** Davies' word to start (quoted here with its date), `CXBOT_TOKEN` stored, the server's `reach` probe
   showing Hyperliquid's `/info` answering from eu-west-2 (else §2's venue becomes Binance USDⓈ-M by a deviation written
   before the start), and the shakedown of §3.1.
+- **Settled before the freeze** (Davies, 2026-10-29: "你说的那三件事全按你的建议来", on the independent audit's §3,
+  `reviews/2026-10-29-cxbot-independent-audit.md`): the bootstrap's blocks are 7 days (§5); CXBOT carries its own list of
+  2027 releases to 2027-03-31 (CPI, NFP, FOMC; §2), so a go after early November runs its 56 days into 2027; and bar (c)
+  counts the P&L from the shakedown's end, the whole run's beside it (§5).
 - Ours: this file, the `cxbot` function, its tables and its minute calls. Not ours: the Grok agent, its platform and its
   schedule. Grok holds no credential of any venue; it acts only through the server.
 
@@ -44,7 +48,9 @@ Frozen as the code stands at the freeze commit; a change is a deviation (§9). T
   3× and what keeps the paper liquidation price ≥ 2.5 stop distances beyond the stop).
 - **Funding**: no open whose side pays more than 0.01 %/h on the current or the predicted rate.
 - **Blackouts and freshness**: no open from T−10 to T+5 minutes of a listed CPI, NFP, FOMC, ECB or BoE release
-  (`agents/cb_releases.ts`), none after 2026-12-31 until the list is extended, none while the tape is over 2 minutes old or the
+  (`agents/cb_releases.ts`, to 2026-12-31) and of CXBOT's own list of CPI, NFP and FOMC to 2027-03-31
+  (`cxbot/rules.ts`, `CXBOT_RELEASES_2027Q1`, from bls.gov's and federalreserve.gov's schedules), none after 2027-03-31
+  until the list is extended, none while the tape is over 2 minutes old or the
   spread is over 5 bps (BTC, ETH) or 10 bps (SOL).
 - **Orders**: `market` (IOC, worst price ≤ the touch ± 0.1 × the stop distance), `limit` (rests 5 min–24 h), `stop` entry
   (5 min–24 h); a stop may only tighten; the server closes a position at 7 days.
@@ -105,7 +111,7 @@ Frozen as the code stands at the freeze commit; a change is a deviation (§9). T
   is scored (the first by that clock); none while a real one in that coin is open. Every real bracket is scored.
 - **Brier**: mean (p − y)² against mean (m − y)², p and m clamped to [0.001, 0.999]. **D** = Brier(m) − Brier(p): positive,
   Grok is better. **D_c**: the same with each (coin, direction) cell's m moved by that cell's mean (y − m), clamped.
-- **The bootstrap**: circular blocks of 3 consecutive UTC days of the brackets' start days, 10,000 resamples, the generator
+- **The bootstrap**: circular blocks of 7 consecutive UTC days of the brackets' start days, 10,000 resamples, the generator
   mulberry32 seeded 20261029; its 5th and 95th percentiles of D.
 - **P&L**: the paper equity at the end less the paper equity at the shakedown's end (the newest snapshot at or before it;
   §3.1: nothing of the shakedown is scored), fees, slippage and funding included; in dollars and in units of $10. The whole
@@ -147,8 +153,9 @@ monitor).
 - The agent's platform, scheduler and prompt beyond what the record shows.
 - Whether Davies' venue accounts may trade these products; tax.
 - The bootstrap's own width: on simulated martingale paths a no-skill forecaster whose luck runs in spells of one to two
-  weeks makes the 3-day-block bootstrap 10–25 % narrower than D's true spread; such a forecaster still passes layer A's
-  part of the bar in at most about 6 % of 56-day windows, because it pays its leaning in Brier (the independent audit,
+  weeks made a 3-day-block bootstrap 10–25 % narrower than D's true spread (passing layer A's part of the bar in up to
+  5.8 % of 56-day windows); 7-day blocks, chosen for that reason (§0), narrow the gap a little and held the worst case to
+  5.0 %, because such a forecaster pays its leaning in Brier (the independent audit,
   `docs/agents/backtests/cxbot/blockcheck.py`). A pass is evidence at about that level, not more.
 
 ## 9. Deviations

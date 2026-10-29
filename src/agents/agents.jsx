@@ -816,7 +816,7 @@ function GrokTestDetail({ g, m, nowMs }) {
   return (
     <div className="ag-detail ag-gpm-detail ag-grok-detail">
       <div className="ag-detail-head">
-        <ModeBadge mode={g.mode === 'dry_run' ? 'dry-run' : 'paper'} />
+        <ModeBadge mode={g.mode === 'dry_run' && !(g.id === 'cxbot' && g.startedAt) ? 'dry-run' : 'paper'} />
         <VenueBadge id={g.venueId} />
         <StatusDot status={row.status} since={g.startedAt ?? null} nowMs={nowMs} toned />
       </div>

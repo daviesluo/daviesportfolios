@@ -47218,3 +47218,15 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   `ts` (journal takes 7 days back), now from `received_at`. High: close/amend/cancel on minutes the engine had not booked
   (`pending_exit`/`pending_fill`); double fills/funding past the lease (`0164` `funded_through`, lease-held state); a tape
   gap skipped a stop (engine waits). Prompt changed: resend to Grok. The 2026-10-29 01:45, 2026-10-29 01:57 section(s) archived (thirteenth).
+
+## LEDGER.md, archived 2026-10-29 (fifteenth) — the 2026-10-29 02:13 UTC history section
+
+### [2026-10-29 02:13 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **IGBOT keeps one IG session for the whole function** (sub-agent; commit, not pushed; item 18; `0165`): from 00:16 to
+  02:00 UTC the minute's sync was refused in 14 of the 58 minutes that logged in (401 account-token-invalid on the switch,
+  `igbot_requests`). The session lived in one isolate's memory (57 of 115 minutes reused it, never refused), and a fresh
+  isolate's three reads each logged in at once (9 calls ok, 6 or 8 refused); after a minute that logged in the next login
+  failed 13 times in 17, after a reused one 0 in 28. Now the session is shared through `igbot_exec_state.session_box`
+  (sealed, AES-GCM), one login at a time (`login_until`), waits, an always-sent switch, same-token retry, one re-login
+  18 s after a refused login, a refused session logged out (`IGBOT_SESSION`). 7 pins on a mock IG fail on the old client.
+  The prompt's login rule now gives the real cause. The 2026-10-29 02:19 section(s) archived (fourteenth).

@@ -187,9 +187,26 @@ pass is worth.
 3. **The P&L bar from the shakedown's end (F11)** is a change of definition that follows §3.1; if Davies wants the whole
    run counted instead, it is one line of `score.mjs`.
 
+### Decided (Davies, 2026-10-29: "你说的那三件事全按你的建议来")
+
+1. **7-day blocks.** `score.mjs`'s `BLOCK_DAYS` is 7 and the prereg's §5 and §8 say so. In `blockcheck.py` the worst
+   no-skill case passed layer A's part of the bar in 5.0 % of windows with 7-day blocks, 5.8 % with 3.
+2. **CXBOT's own 2027 release list.** `cxbot/rules.ts`, `CXBOT_RELEASES_2027Q1`, covers CPI on 01-13, 02-11 and 03-10, NFP
+   on 01-08, 02-05 and 03-05, and the FOMC statement on 01-27 (19:00 UTC) and 03-17 (18:00 UTC, after US summer time starts
+   on 03-14). The CPI and NFP dates are read from bls.gov's CPI and Employment Situation schedules (08:30 ET); the FOMC
+   dates are from federalreserve.gov's FOMC calendar (tentative until the meeting before confirms them). It is appended to
+   the shared list for CXBOT's blackout and its E and R categories only, and the calendar rule now ends 2027-03-31.
+   `agents/cb_releases.ts` is untouched: it stays frozen for the Coinbase tests, and so does its comment's wording ("the
+   third-Friday rule", the BLS dates "unconfirmed"). The BLS's own schedule now confirms those dates (§2). Pinned in
+   `rules.test.ts`: an open in the 2027-01-13 CPI blackout is refused, one outside it is allowed, and the shared list keeps its 10.
+3. **Bar (c) from the shakedown's end** (F11) is recorded in the prereg's §0.
+
+The TESTING row of an ended test (mode back to dry-run after a start) now reads "ended" (`grokTestRow`, its MODE tile
+"ENDED"), not "dry-run".
+
 ## 4. What this audit did not check
 
 The Grok platform, its scheduler and its git access; fills against a live book (paper is not a fill); Hyperliquid's
 behaviour in a crash beyond the documented formulas; the front-end rows at both breakpoints (no file under `src/` changed:
-the page's numbers come from `agents/grok_tests_view.ts`). After the end the row's status still reads "dry-run" (a label
-in `src/agents/agents.js`), while its numbers are now the test's.
+the page's numbers come from `agents/grok_tests_view.ts`; the follow-up's "ended" label is a two-line change to
+`src/agents/agents.js` and `agents.jsx`, checked by `src/agents/grok_tests.test.js`).

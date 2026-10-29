@@ -2107,6 +2107,8 @@ export function grokTestRow(g) {
   const pct = (x, base) => (base > 0 ? (x / base) * 100 : null);
   const open = (g.positions ?? []).length;
   const dry = g.mode === 'dry_run';
+  // Back in dry-run after a start: the test has ended (its money stays the paper engine's), not "dry-run".
+  const ended = dry && g.id === 'cxbot' && !!g.startedAt;
   const where = g.id === 'igbot' ? "IG's demo" : 'paper';
   return {
     id: `${GROK_TEST_ROW_PREFIX}${g.id}`, name: String(g.name), venue: venueLabel(g.venueId), venueId: g.venueId, mode: 'paper',
@@ -2118,7 +2120,9 @@ export function grokTestRow(g) {
       gbp: { capital: budget, value: deployed, today, todayPct: pct(today, budget), unrealised, unrealisedPct: pct(unrealised, deployed), realised, realisedPct: pct(realised, budget), fees },
     } : {}),
     nextText: 'every minute', openPositions: open, openOrders: Number(g.resting) || 0,
-    status: dry
+    status: ended
+      ? { label: 'ended', running: false, tone: 'stale', detail: `the test has ended after ${g.daysRun ?? 0} days: no new open; anything still held runs to its stop, limit or close` }
+      : dry
       ? { label: 'dry-run', running: false, tone: 'stale', detail: g.id === 'igbot' ? "dry-run on IG's demo: orders checked and journalled, none sent" : 'dry-run: the market recorded; orders checked and journalled, none booked; the test starts on Davies\u2019 word' }
       : !g.running
         ? { label: 'paper', running: false, tone: 'stale', detail: g.lagMinutes == null ? 'its record has not read the market yet' : `its record last read the market ${g.lagMinutes} min ago` }
@@ -2147,7 +2151,7 @@ export function grokTestOf(selected, dash) {
 export function grokTestTiles(g, m) {
   const fmt = (/** @type {number} */ x) => (g.ccy === 'GBP' ? fmtGbp(x) : fmtUsd(x));
   return [
-    { k: 'MODE', v: g.mode === 'dry_run' ? 'DRY-RUN' : g.id === 'igbot' ? 'DEMO' : 'PAPER', note: g.shakedown ? 'shakedown' : null },
+    { k: 'MODE', v: g.mode === 'dry_run' ? (g.id === 'cxbot' && g.startedAt ? 'ENDED' : 'DRY-RUN') : g.id === 'igbot' ? 'DEMO' : 'PAPER', note: g.shakedown ? 'shakedown' : null },
     { k: 'DAYS RUN', v: g.daysRun == null ? '—' : String(g.daysRun) },
     { k: 'TRADES', v: String(Number(g.trades) || 0) },
     { k: 'OPEN', v: String((g.positions ?? []).length), note: Number(g.resting) ? `${g.resting} resting` : null },

@@ -654,8 +654,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
     is not 200 from eu-west-2, `update public.cxbot_config set venue = 'binance'` (then OKX) before the go, never routed
     round; create `cxbot-ledger` from the seed; the daily desk check (~23:27 UK). **Davies:** the secret `CXBOT_TOKEN` (32+
     chars, to Grok only), the name, then the go (0163's statement; 48 h shakedown, 56 days).
-    **Independent audit 2026-10-29** (`reviews/2026-10-29-cxbot-independent-audit.md` §3): Davies picks the block length and
-    whether to extend the release list past 12-31; the prompt changed (resend); `0164` before the function deploys.
+    **Independent audit 2026-10-29** (`reviews/2026-10-29-cxbot-independent-audit.md`), its §3 settled by Davies: 7-day blocks,
+    CXBOT's own 2027 Q1 releases (opens to 2027-03-31), P&L from the shakedown's end. Prompt changed: resend it to Grok.
 
 ## Machine and platform setup
 
@@ -772,18 +772,16 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's archive, each batch under a heading
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 01:24 UTC section (archived
-2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), and the 2026-10-29 02:19 one(s) (fourteenth).
+2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
+and the 2026-10-29 02:13 one (fifteenth).
+
+### [2026-10-29 02:36 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **CXBOT: Davies' three audit decisions** (sub-agent; commit, not pushed; item 19; "你说的那三件事全按你的建议来"):
+  7-day bootstrap blocks; `CXBOT_RELEASES_2027Q1` (CPI, NFP, FOMC to 03-31, from bls.gov and federalreserve.gov), for CXBOT's
+  blackout only, `cb_releases.ts` untouched; P&L from the shakedown's end, in prereg §0. An ended test's row reads "ended";
+  `dist/`. Prompt changed (calendar to 2027-03-31). The 02:13 section archived (fifteenth).
 
 ### [2026-10-29 02:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The ledger's budget is 100 KiB, not 80** (Davies, 10-29: "交接记录目前限制是80kb吗？改为100kb吧"): `bin/hooks/pre-commit`
   (`LEDGER_BUDGET=102400`), `src/ledger_budget.test.js`, `.claude/CLAUDE.md`, the live-watch skill and this file's header.
 
-### [2026-10-29 02:13 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **IGBOT keeps one IG session for the whole function** (sub-agent; commit, not pushed; item 18; `0165`): from 00:16 to
-  02:00 UTC the minute's sync was refused in 14 of the 58 minutes that logged in (401 account-token-invalid on the switch,
-  `igbot_requests`). The session lived in one isolate's memory (57 of 115 minutes reused it, never refused), and a fresh
-  isolate's three reads each logged in at once (9 calls ok, 6 or 8 refused); after a minute that logged in the next login
-  failed 13 times in 17, after a reused one 0 in 28. Now the session is shared through `igbot_exec_state.session_box`
-  (sealed, AES-GCM), one login at a time (`login_until`), waits, an always-sent switch, same-token retry, one re-login
-  18 s after a refused login, a refused session logged out (`IGBOT_SESSION`). 7 pins on a mock IG fail on the old client.
-  The prompt's login rule now gives the real cause. The 2026-10-29 02:19 section(s) archived (fourteenth).
