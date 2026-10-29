@@ -23,6 +23,12 @@ const holdNamed = (f) => {
 };
 
 /** The USDT-only deviation (0178), recorded apart: the files as they are, under this pre-registration's own heading. */
+/** LIVE's exit-tick deviation (0181), recorded apart: the files as they are, under a pre-registration's own heading. */
+const DX1 = read('docs/agents/reviews/2026-10-29-live-exit-tick-deviation.md').toString('utf8');
+const namedX1 = (head, f) => {
+  const s = DX1.indexOf('### `docs/agents/reviews/' + head + '`'), rest = s < 0 ? '' : DX1.slice(s + 1), e = rest.search(/\n##/);
+  return [...rest.slice(0, e < 0 ? undefined : e).matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
+};
 /** The USDC/GBP executor's deviation (0180), recorded apart: the files as they are, under a pre-registration's own heading. */
 const DRXU = read('docs/agents/reviews/2026-10-29-rx-usdc-live-deviation.md').toString('utf8');
 const namedRxu = (head, f) => {
@@ -76,8 +82,8 @@ describe("variant-7's pre-registration", () => {
     // The deviation of 2026-10-29 (0176: variant-4's £1 holding line on LIVE and every twin), recorded apart: the executor as it is.
     const live = 'supabase/functions/agents/quotes_live.ts';
     // Then the USDT-only deviation of 2026-10-29 (0178: LIVE on USDT-GBP alone, the coin rebooked), recorded apart.
-    expect([...named(live), ...holdNamed(live), ...usdtNamed(live), ...named2230('2026-10-29-revx-usdc-nudge-twin-prereg.md', live), ...namedRxu('2026-10-29-revx-usdc-nudge-twin-prereg.md', live)], live).toEqual([
-      '12e3dad7cc9058cedc7cd840fc4ac5d3396b955c842e39fd70f22f18cfad25eb', '99ce22c051431df2fc179ebaf93717460b953f95f87d109466d6f91d55d40bd8', 'eb9790f61931636ca0ee58d7d4fbbb0d2d515fd2e2dc197303fd8f805d79136a', 'aa770ef6fc40301e4d7bbfbf4f9f2e66f6e7a8b010f4c4a8b5646cc1075d80cc', sha(live)]);
+    expect([...named(live), ...holdNamed(live), ...usdtNamed(live), ...named2230('2026-10-29-revx-usdc-nudge-twin-prereg.md', live), ...namedRxu('2026-10-29-revx-usdc-nudge-twin-prereg.md', live), ...namedX1('2026-10-29-revx-usdc-nudge-twin-prereg.md', live)], live).toEqual([
+      '12e3dad7cc9058cedc7cd840fc4ac5d3396b955c842e39fd70f22f18cfad25eb', '99ce22c051431df2fc179ebaf93717460b953f95f87d109466d6f91d55d40bd8', 'eb9790f61931636ca0ee58d7d4fbbb0d2d515fd2e2dc197303fd8f805d79136a', 'aa770ef6fc40301e4d7bbfbf4f9f2e66f6e7a8b010f4c4a8b5646cc1075d80cc', 'd683bb5a4f1accf144c630a7d69bd565953a23879be847eade2ce2868d8bc86c', sha(live)]);
   });
 
   it('holds its bar and its comparison as written', () => {

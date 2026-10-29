@@ -192,6 +192,8 @@ Deno.test("the live account's instance: the frozen rule's sizes, retirements and
   const U = Date.parse("2026-10-29T22:30:00Z");
   assertEquals([Now.QUOTE_LIVE_USDT_ONLY_FROM, Now.QUOTE_LIVE_REBOOK_SINCE, I.weights, I.rebook], [U, U, { from: U, book: { "USDC-GBP": 0, "USDT-GBP": 1 } }, undefined]);
   assertEquals([Now.rebookOn(I, U - 1), Now.rebookOn(I, U), Now.rebookOn(I, U + 72 * H - 1), Now.rebookOn(I, U + 72 * H)], [false, true, true, false]);
+  // Variant-6's exit a tick beyond fair from QUOTE_LIVE_EXIT_OFFSET_FROM (docs/agents/reviews/2026-10-29-live-exit-tick-deviation.md).
+  assertEquals([Now.QUOTE_LIVE_EXIT_OFFSET_FROM, I.exitOffset], [Date.parse("2026-10-30T00:00:00Z"), { ticks: 1, from: Date.parse("2026-10-30T00:00:00Z") }]);
   // Variant-4's £1 holding line from QUOTE_LIVE_HOLD_MIN_FROM (docs/agents/reviews/2026-10-29-holdmin-deviation.md).
   assertEquals([Now.QUOTE_LIVE_HOLD_MIN_FROM, I.holdMin], [Date.parse("2026-10-29T22:00:00Z"), { from: Date.parse("2026-10-29T22:00:00Z"), gbp: 1 }]);
   for (const now of [0, Date.parse("2026-10-29T00:00:00Z"), U - 1]) {

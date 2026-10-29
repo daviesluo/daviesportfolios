@@ -383,7 +383,14 @@ places stay when the number is not whole.
   withdrew the rest of the rung's order. Now the rung keeps its order resting
   and carries the few pence into its next trip; a rung holding more than £1
   sells it back as before.
-- **Stablecoin quotes variant-6.** From 29 Oct 19:00 UTC (variant-8, then
+- **Every exit a tick further in our favour, from 30 Oct 00:00 UTC.** The
+  live account and every test copy of its rules now rest each exit (the
+  order that closes a filled rung) one tick further in our favour than
+  before. Replayed on USDT/GBP alone at £600 it added about 1.5 % a year
+  since September and more before that; an exit that would cross the book
+  still rests one tick inside it. Variant-6, the test copy that tried it, has
+  stopped: it is now the same as the LIVE twin.
+- **Stablecoin quotes variant-6 (stopped 30 Oct).** From 29 Oct 19:00 UTC (variant-8, then
   variant-7, until 30 Oct): the live account's
   rules exactly, £600 on both books, except that every exit (the order that
   closes a filled rung) rests one tick further in our favour than the live

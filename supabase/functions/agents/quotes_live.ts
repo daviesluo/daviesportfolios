@@ -122,7 +122,9 @@ export type QuoteLiveInstance = {
    * The exit `ticks` beyond the rule's own (`exitTicks`) in the position's favour, from `from` (ms): a long sells that many
    * ticks over fair rounded up, a short buys back that many under fair rounded down, both when the exit is placed and when
    * it is re-priced; the 24-hour stop is not moved. "Stablecoin quotes variant-3" (`p50x1`,
-   * docs/agents/reviews/2026-10-09-p50x1-prereg.md) the first. The live account's instance has none: offset 0, the rule's.
+   * docs/agents/reviews/2026-10-09-p50x1-prereg.md) the first. The live account's instance has it, one tick, from
+   * QUOTE_LIVE_EXIT_OFFSET_FROM (2026-10-30 00:00 UTC; offset 0, the rule's, before). The offset price is the rule's price
+   * `exitTicksOnBook` meets the book with, so an exit it would put across the book still rests one tick inside it.
    */
   exitOffset?: { ticks: number; from: number };
   /**
@@ -228,6 +230,14 @@ export const QUOTE_LIVE_HOLD_MIN_FROM = Date.parse("2026-10-29T22:00:00Z");
  */
 export const QUOTE_LIVE_USDT_ONLY_FROM = Date.parse("2026-10-29T22:30:00Z");
 /**
+ * From this instant every exit of the live account rests a tick beyond the rule's price in the position's favour
+ * (`QuoteLiveInstance.exitOffset`, variant-6's rule; Davies, 2026-10-29 ~23:00 UTC, "加进 LIVE", on
+ * docs/agents/reviews/2026-10-29-usdt-no03.md: on USDT-GBP alone at £600, +1.49 % a year since 09-01, P(≤ 0) 0.048, out of
+ * sample +4.63, P 0.000). Every twin on LIVE's rules takes it at the same instant (migration 0181); recorded in
+ * docs/agents/reviews/2026-10-29-live-exit-tick-deviation.md.
+ */
+export const QUOTE_LIVE_EXIT_OFFSET_FROM = Date.parse("2026-10-30T00:00:00Z");
+/**
  * The coin rebook (`rebookOn`): an instance whose weights come into force at this instant or later rebalances its coin to
  * them for QUOTE_LIVE_REBOOK_MS from that instant, by maker orders alone. Weights that came into force earlier (PR5-OPT's
  * twins of 2026-10-28) are as they were.
@@ -247,6 +257,7 @@ export const QUOTE_LIVE_INSTANCE: QuoteLiveInstance = {
   convertRepeg: { from: Date.parse("2026-10-28T00:00:00Z") },
   holdMin: { from: QUOTE_LIVE_HOLD_MIN_FROM, gbp: 1 },
   weights: { from: QUOTE_LIVE_USDT_ONLY_FROM, book: { "USDC-GBP": 0, "USDT-GBP": 1 } },
+  exitOffset: { ticks: 1, from: QUOTE_LIVE_EXIT_OFFSET_FROM },
 };
 /**
  * "Stablecoin quotes USDC/GBP" on Revolut X (Davies, 2026-10-29: "也上线一个revolut x的Stablecoin quotes USDC/GBP 策略，账户api用之前叫你退役的
@@ -1636,7 +1647,7 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
     }
     return base;
   };
-  /** The exit's price: the rule's (`exitTicks`), moved by the instance's `exitOffset` from its instant; none for the live account. */
+  /** The exit's price: the rule's (`exitTicks`), moved by the instance's `exitOffset` from its instant (the live account's from QUOTE_LIVE_EXIT_OFFSET_FROM). */
   const exitAt = (fair: number, side: Side): number => {
     const off = inst.exitOffset && d.now >= inst.exitOffset.from ? inst.exitOffset.ticks : 0;
     return exitTicks(fair, side) + (side === "bid" ? off : -off);

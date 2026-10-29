@@ -905,6 +905,7 @@ before touching migration state.
 | `0178_quote_twins_usdt_only.sql` | LIVE's USDT-GBP-alone weights from 2026-10-30 00:00 on every twin on LIVE's rules; variant-4 USDC:USDT 1:1; the 3:1 twin and the $300 nudge off; the nudge as a new variant-5 on the 1:1 rules; renames. |
 | `0179_quote_twins_usdt_only_2230.sql` | Every instant 0178 set to 2026-10-30 00:00 moved to 2026-10-29 22:30, guarded on the old value: the seven twins' weights and the new variant-5's start and rules. |
 | `0180_quotes_rx_usdc_live.sql` | "Stablecoin quotes USDC/GBP" on Revolut X: the second live executor's tables (dry-run, unarmed, £120), its lock, and its paper twin under the USDT/GBP LIVE twin. |
+| `0181_quote_twins_exit_tick.sql` | The exit a tick beyond fair (`exitOffset` 1) on every running twin on LIVE's rules from 2026-10-30 00:00 UTC, as on LIVE; variant-6 and its control off. |
 | `0166_fxw_display_name.sql` | Renames the stored display name of the AUD weekend paper book to "FXW-AUD weekend" (`ig_fxw_state.name`), guarded by its old value; no key or table changes. |
 | `0163_cxbot.sql` | CXBOT's tables (its config held to dry-run or paper and a venue, the tape, the context, the assigned questions and answers, the journal, the paper orders, positions and snapshots, the reach probe's reads, its state), RLS on with no grant, and its minute call. |
 | `0165_igbot_session.sql` | IGBOT's IG session shared by every isolate of its function, sealed, and the claim that lets one isolate at a time log in. |

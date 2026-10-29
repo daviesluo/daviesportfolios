@@ -18,6 +18,12 @@ const DOC = read('docs/agents/reviews/2026-10-29-usdt-only-twins-prereg.md').toS
 const DEV = read('docs/agents/reviews/2026-10-29-usdt-only-deviation.md').toString('utf8');
 const namedIn = (doc, f) => [...doc.matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
 const U = '2026-10-30T00:00:00Z';
+/** LIVE's exit-tick deviation (0181), recorded apart: the files as they are, under a pre-registration's own heading. */
+const DX1 = read('docs/agents/reviews/2026-10-29-live-exit-tick-deviation.md').toString('utf8');
+const namedX1 = (head, f) => {
+  const s = DX1.indexOf('### `docs/agents/reviews/' + head + '`'), rest = s < 0 ? '' : DX1.slice(s + 1), e = rest.search(/\n##/);
+  return [...rest.slice(0, e < 0 ? undefined : e).matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
+};
 /** The USDC/GBP executor's deviation (0180), recorded apart: the files as they are, under a pre-registration's own heading. */
 const DRXU = read('docs/agents/reviews/2026-10-29-rx-usdc-live-deviation.md').toString('utf8');
 const namedRxu = (head, f) => {
@@ -54,7 +60,7 @@ describe("variant-5's pre-registration (the USDC-GBP nudge on USDC:USDT 1:1)", (
     ]) expect(namedIn(DOC, f), f).toEqual([sha(f)]);
     // The executor as frozen, then as the 22:30 deviation (0179) names it.
     const live = 'supabase/functions/agents/quotes_live.ts';
-    expect([...namedIn(DOC, live), ...named2230('2026-10-29-usdt-only-twins-prereg.md', live), ...namedRxu('2026-10-29-usdt-only-twins-prereg.md', live)], live).toEqual(['eb9790f61931636ca0ee58d7d4fbbb0d2d515fd2e2dc197303fd8f805d79136a', 'aa770ef6fc40301e4d7bbfbf4f9f2e66f6e7a8b010f4c4a8b5646cc1075d80cc', sha(live)]);
+    expect([...namedIn(DOC, live), ...named2230('2026-10-29-usdt-only-twins-prereg.md', live), ...namedRxu('2026-10-29-usdt-only-twins-prereg.md', live), ...namedX1('2026-10-29-usdt-only-twins-prereg.md', live)], live).toEqual(['eb9790f61931636ca0ee58d7d4fbbb0d2d515fd2e2dc197303fd8f805d79136a', 'aa770ef6fc40301e4d7bbfbf4f9f2e66f6e7a8b010f4c4a8b5646cc1075d80cc', 'd683bb5a4f1accf144c630a7d69bd565953a23879be847eade2ce2868d8bc86c', sha(live)]);
   });
 
   it('holds its bar and its comparison as written', () => {
@@ -73,7 +79,9 @@ describe('the USDT-only deviation (0178)', () => {
     for (const h of ['2026-10-29-usdt-only-twins-prereg.md', '2026-10-29-revx-usdc-nudge-twin-prereg.md', '2026-10-29-revx-exit-tick-twin-prereg.md']) {
       expect(named2230(h, live), h).toEqual(['aa770ef6fc40301e4d7bbfbf4f9f2e66f6e7a8b010f4c4a8b5646cc1075d80cc']);
       // Then the USDC/GBP executor's deviation (0180): the executor as it is.
-      expect(namedRxu(h, live), h).toEqual([sha(live)]);
+      expect(namedRxu(h, live), h).toEqual(['d683bb5a4f1accf144c630a7d69bd565953a23879be847eade2ce2868d8bc86c']);
+      // Then LIVE's exit-tick deviation (0181): the executor as it is.
+      expect(namedX1(h, live), h).toEqual([sha(live)]);
     }
     expect(DRXU).toContain('the executor was `aa770ef6fc40301e4d7bbfbf4f9f2e66f6e7a8b010f4c4a8b5646cc1075d80cc` before this change');
     expect(D2230).toContain('the executor was `eb9790f61931636ca0ee58d7d4fbbb0d2d515fd2e2dc197303fd8f805d79136a` before this change');

@@ -796,7 +796,15 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 01:24 UTC section (archived
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
-and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth).
+and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth).
+
+### [2026-10-29 23:13 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LIVE's exits a tick beyond fair from 2026-10-30 00:00 UTC, and every twin on its rules** (sub-agent; commit, not pushed;
+  Davies, ~23:00: "加进 LIVE", on USDT-NO03). `QUOTE_LIVE_INSTANCE.exitOffset {ticks 1, from QUOTE_LIVE_EXIT_OFFSET_FROM}`; a
+  crossing exit still rests a tick inside (`exitTicksOnBook`). `0181`: `exitOffset` from 00:00 on `live600`, `live1200`, `take50`,
+  `n600no03`, `n600usdt2`, `n600usdt`, `n600nudge`; `live600x1` ("exit +1 tick from 10-29") and `live600ctl` off, variant-6's
+  prereg closed early (adopted). Deviation `reviews/2026-10-29-live-exit-tick-deviation.md` (executor sha chains), design
+  addendum, fixture regenerated. Undo: drop `exitOffset` from the instance (a commit). Archived 19:16-19:31 (twenty-fifth).
 
 ### [2026-10-29 22:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **USDT-NO03: LIVE's USDT-GBP book without its 0.3 % rung** (sub-agent; read-only study, commit, not pushed; Davies, 22:45:
@@ -902,46 +910,3 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
     (Coinbase's own dead-man), exits at fair, the 24 h stop an IOC within 50 bps, sub-£1 remainders carried.
   - **Limits:** kill switch `armed_at`, global pause, −1 % daily loss stop, governor 1,500 / 1,800, stale inputs, inventory, a
     post-only start conversion of the asks' USDC (≤ £70 a day). Pins: `cb_live.test.ts`, `src/agents/cb_live_row.test.js`.
-
-### [2026-10-29 19:31 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **The £1 holding line on LIVE and every twin from 2026-10-29 22:00 UTC; variant-4 retired, the rest renumbered** (sub-agent;
-  commit, not pushed; Davies, 10-29: "…如果基本可以肯定效果正面的话，加入实盘live的规则里和所有测试策略包括所有variant里，并且把variant-4删了，之后的数字都-1",
-  on the HOLDMIN verdict). LIVE: `QUOTE_LIVE_INSTANCE.holdMin {gbp: 1, from: QUOTE_LIVE_HOLD_MIN_FROM}` (`quotes_live.ts`; nothing else;
-  `quotes_live_frozen.ts` untouched, the instance test still turn for turn before the instant). `0176`: `rules.holdMin` from 22:00 on
-  the eleven enabled twins (live600, live1200, take50, n600no03, n600usdt2, n600usdt3, n600usdt, u300nudge, u300ctl, live600x1,
-  live600ctl), both arms of every pair together; `n600hold1` off and hidden ("hold £1 from 10-28", reading superseded); names
-  variant-5→4 (n600usdt3), 6→5 (n600usdt), 7→6 (u300nudge), 8→7 (live600x1). Deviation recorded apart
-  (`reviews/2026-10-29-holdmin-deviation.md`; the variant-7 and -8 pins read it for the executor's new hash), the live design's
-  addendum, guide, map, reference, CLAUDE.md, fixture, tests. Watch after 22:00: LIVE's USDT-GBP entries under £1 should no longer
-  be followed by an exit, and carried coin stays under £1 a rung.
-
-### [2026-10-29 19:28 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Coinbase's live path, part 1: the client and the key's probe** (sub-agent; commit, not pushed; Davies, 10-29: "Coinbase做好实盘搭建并且准备
-  with Euros - 2这个策略的live上线"). `_shared/coinbase.ts` (ES256 JWT per request, Coinbase's documented shape; reads; POSTs only on
-  a client built to send) and `agents/cb_live_probe.ts` (`agents?action=cblive&mode=probe`, cron or admin, GETs only).
-  - **Secrets:** `COINBASE_API_KEY_NAME`, `COINBASE_API_PRIVATE_KEY` (Davies stored them 10-29); SEC1 or PKCS#8 PEM, real or literal `\n`.
-  - **The probe answers** the secrets' forms (no values), whether the JWT was accepted, `key_permissions` (can_transfer is a
-    WARNING), GBP/USDC/EUR balances, USDC-GBP's product, touch, fee tier and resting orders, to the caller only.
-  - **Pins:** `_shared/coinbase.test.ts` (an OpenSSL-signed vector, SEC1 import with both newline forms, read-only refuses a
-    POST before any request), `agents/cb_live_probe.test.ts` (GETs only, each signed for its path; transfer warning; 401).
-  - **Next:** run the probe once landed; the executor (dry-run, inert, migration `0176`) follows as part 2.
-
-### [2026-10-29 19:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **CB-LIVE-RULES: take "with Euros - 2" live as it runs** (sub-agent; commit, not pushed; Davies, 10-29: "Coinbase做好实盘搭建并且准备with Euros
-  - 2这个策略的live上线（…确保这个策略一切最优）"). `reviews/2026-10-29-cb-live-rules.md`, `backtests/cb_live_rules/` (`vsim.py`: PR5's simulator with
-  parameters, checked equal at defaults). USDC-GBP, 2024-10-01 → 10-28, STRATEGY-COMPARE's method × e 0.825: "- 2" 30.2 %/yr since 09-01
-  [27.3, 33.1], £68 on $300; 22.0 % if a print must clear a tick (queue), blend 14.4 %. No single change passes the bar (dropping the
-  0.3 % rung is one month short; exit a tick beyond, re-price, stop length, wider/no blackout, nudge changes all fail; weekend dark
-  −£19/yr since 09-01). No 0.3 % rung + no blackout passes but was chosen after the first pass: paper twin. Size nearly linear (£517
-  at $400 rungs); USDC-EUR not before USDC-GBP grows; keep three asks (FX £7/yr against £68); post-only crossing 0.18 %; fee tier to
-  read authenticated before the go.
-
-### [2026-10-29 19:16 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **HOLDMIN verdict: variant-4's £1 holding line is basically certain positive** (sub-agent; commit, not pushed; Davies, 10-29:
-  "那你研究下variant-4的结果，如果基本可以肯定效果正面的话，加入实盘live的规则里…"; step 1 of 3). `reviews/2026-10-29-holdmin-verdict.md`,
-  `backtests/compare/revx/scripts/holdmin_live.py`. LIVE's own days replayed with it: USDT-GBP +0.62 bps/day before the haircut
-  (P 0.002), +9.96 after (17 days ahead, 0 behind); USDC-GBP +0.14 (P 0.10, never behind). Long replays: USDT-GBP +5.3 / +3.0 / +1.9
-  %/yr since 09-01, +2.0 / +1.1 / +0.8 out of sample (P 0.000 each); USDC-GBP +0.1 to +0.2. LIVE: 149 of 277 USDT-GBP entry fills
-  since 10-01 under £1, 7.5 dust trips a day. No mechanism downside found (one extra stop in 55 days at £2,400 USDT-GBP; carried
-  coin under £1 a rung). The twin is 21 hours old: no evidence either way. Step 2 (LIVE + every twin, variant-4 retired) waits for
-  the main session.

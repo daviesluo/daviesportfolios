@@ -415,3 +415,14 @@ LIVE's rules takes the same weights at the same instant (`0178`; `reviews/2026-1
 
 **Moved to 2026-10-29 22:30 UTC** (Davies, 21:59 UTC: "现在就生效吧 或者22:00生效"; `0179`, `reviews/2026-10-29-usdt-only-2230-deviation.md`):
 `QUOTE_LIVE_USDT_ONLY_FROM` and `QUOTE_LIVE_REBOOK_SINCE` are 22:30, the rebook runs to 2026-11-01 22:30; nothing else changed.
+
+## Addendum (2026-10-29, 23:00): every exit a tick beyond fair from 2026-10-30 00:00 UTC
+
+Davies, 2026-10-29 ~23:00 UTC: "加进 LIVE", on USDT-NO03 (`reviews/2026-10-29-usdt-no03.md`: every exit a tick beyond fair, alone,
++1.49 % a year at £600 on USDT-GBP since 09-01, P(≤ 0) 0.048; out of sample +4.63, P 0.000). `QUOTE_LIVE_INSTANCE.exitOffset =
+{ ticks: 1, from: QUOTE_LIVE_EXIT_OFFSET_FROM }` (2026-10-30 00:00 UTC): from the instant every exit, placed or re-priced, rests a
+tick beyond the rule's price in the position's favour; the 24-hour stop is not moved; an exit the book shows crossing still rests
+one tick inside it (`exitTicksOnBook`, this design's addendum of 2026-10-28). Before the instant nothing changes, and the frozen
+executor's comparison runs as before. Every twin on LIVE's rules takes it at the same minute (`0181`); the deviation of the
+pre-registrations is `reviews/2026-10-29-live-exit-tick-deviation.md`. Undo: a commit setting `exitOffset` back off the live
+instance (no database switch holds it).
