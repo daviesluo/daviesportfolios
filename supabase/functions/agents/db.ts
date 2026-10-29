@@ -37,6 +37,8 @@ const PAGED_KEYS: Record<string, string> = {
   // The USDC-GBP nudge's warm-up and touches (quotes_twin.ts `warmNudge`, `touchesBetween`; 0169): PR5's minutes (0055's
   // primary key) and Coinbase's touch (0112's).
   agent_quote_minutes: "book,minute", cb_touch: "product,ts",
+  // The recorder's second-level FX reads (0172), read by the Coinbase arms' rate (cb_fx.ts `readCbFx`): its primary key.
+  fx_ticks: "source,pair,minute",
   // RW-C's (0069): RW's shapes under its own names, read by the same engine and replays.
   pm_rwc_minutes: "minute,cond", pm_rwc_fills: "cond,minute,print_id",
   yt_video_reads: "video_id,ts", yt_channel_reads: "channel_id,ts", pm_view_books: "token,ts",

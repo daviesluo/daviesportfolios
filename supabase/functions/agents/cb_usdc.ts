@@ -21,6 +21,10 @@
 // Since its Deviation 3 (2026-10-29; Davies: "目前coinbase的测试策略全部直接改用coinbase自己的币价而不是revolutx的") the coin's dollar
 // value is Coinbase's own from the switch (`cbLiveSwitch`, `cbCoinFair`, the base test's Deviation 5): USDC is 1, with the de-peg
 // guard against Revolut X's F3.
+// Since its Deviation 5 (2026-10-29; Davies: "…把所有coinbase策略的汇率数据源从yahoo换为刚才研究的最佳秒级数据源+fallbacks") GBP/USD
+// and EUR/USD are read at second resolution from the switch (`fxFrom`, cb_fx.ts `cbRatesAt`), the closures held as before, as
+// the weekend variant's Deviation 6: the newest TrueFX (or Kraken's marked fallback) read arrived by t + 58 s while no more than
+// 120 s old, else Yahoo's bar, else the held bar. Every arm on this driver ("- 2" as well) takes it.
 // Everything else is the weekend variant's, imported from it: the rate bars held through a closure (`cbHoldBarAt`, 60 hours),
 // the start at the first 00:00 UTC after its first run (`cbHoldStart`), the release blackout (`cbInBlackout`), the stop's
 // Coinbase cost (`cbStopExit`) and the pounds of a trip (`cbTripInPounds`).
@@ -34,6 +38,7 @@ import { CB_HOLD_MS, cbHoldBarAt, cbHoldStart } from "./cb_hold.ts";
 import type { CbProduct, CbRecState } from "./cb_rec.ts";
 import { cbInBlackout } from "./cb_releases.ts";
 import { faultKey, reportDue } from "./pm_book_rec.ts";
+import { cbFxCount, cbFxSwitch, cbRatesAt, emptyFx, readCbFx } from "./cb_fx.ts";
 import { fairHours, median, newBookState, QUOTE_FX_LOOKBACK_MS, stepMinute, type BookState, type MinuteInputs, type Print, type QuoteBook, type Trip } from "./quotes.ts";
 
 const M = 60e3, DAY = 86400e3;
@@ -195,6 +200,9 @@ export async function runCbUsdcArm(d: { db: Db; now: number; holder: string; rec
     arm.onFirst?.(st, first);
     // Deviation 3 (2026-10-29): Coinbase's own coin value from the switch (USDC is 1), under the de-peg guard.
     cbLiveSwitch(st, first);
+    // Deviation 5 (2026-10-29): the rates at second resolution from the switch, the closures held as before (cb_fx.ts).
+    cbFxSwitch(st, first);
+    const fx = st.fxFrom != null ? await readCbFx(d.db, first, horizon, CB_HOLD_MS) : emptyFx();
     const fairOf = arm.fairOf ? await arm.fairOf(d.db, first, horizon) : null;
     const trips: ReturnType<typeof cbTripRow>[] = [], events: ReturnType<typeof cbEventRow>[] = [], minutes: Record<string, unknown>[] = [];
     for (const b of arm.products) {
@@ -207,7 +215,9 @@ export async function runCbUsdcArm(d: { db: Db; now: number; holder: string; rec
         const f = arm.factorAt(st, t);
         const mine: Print[] = [];
         while (j < prints.length && prints[j].ts < t + M) { mine.push(prints[j]); j++; }
-        const bar = cbHoldBarAt(t, gbpBars), eb = cbHoldBarAt(t, eurBars), window = fairHours(t, hours);
+        const { bar, eb, gbpSrc, eurSrc } = cbRatesAt(st, t, gbpBars, eurBars, fx, cbHoldBarAt, true), window = fairHours(t, hours);
+        const fxSrc = st.fxFrom != null && t >= st.fxFrom ? (CB_BOOK[b].quote === "GBP" ? gbpSrc : eurSrc) : undefined;
+        if (fxSrc !== undefined) cbFxCount(st, fxSrc);
         // Every USDC arm's books are USDC (1 from Deviation 3), so no USDT-USD minutes are read: a USDT book here would be dark.
         const coinU = cbCoinFair(st, t, CB_BOOK[b].coin, median(window), []).fairU;
         const io = cbMinuteInputs(b, bar ? bar[1] : null, eb ? eb[1] : null, coinU, cbInUsd(st, t));
@@ -215,7 +225,7 @@ export async function runCbUsdcArm(d: { db: Db; now: number; holder: string; rec
         const inp: MinuteInputs = { ...io, fairU: cbInBlackout(t) ? null : own.fairU, prints: mine };
         const out = stepMinute(st.books[b], t, inp);
         // The minute's record at this arm's size: the printed value as recorded (the engine saw it × its divisor).
-        const row = cbMinuteRow(b, t, bar, CB_BOOK[b].quote === "EUR" ? eb : null, window.length, inp, io.xGbp);
+        const row = cbMinuteRow(b, t, bar, CB_BOOK[b].quote === "EUR" ? eb : null, window.length, inp, io.xGbp, fxSrc);
         minutes.push({ ...row, vol: Number(row.vol) / f, ...own.extra });
         if (io.xGbp != null) st.xGbp = { ...st.xGbp, [b]: io.xGbp };
         const xNow = st.xGbp?.[b] ?? (CB_BOOK[b].quote === "GBP" ? 1 : null);

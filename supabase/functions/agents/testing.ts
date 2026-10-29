@@ -835,9 +835,12 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
       // PostgREST's `or=(a.op.v,b.op.v)`: a row passes when any of its conditions does (a realistic twin's page reads its
       // orders that filled or rest this way).
       if (k === "or") { const any = orConditions(v); filters.push((r) => any.some((f) => f(r))); continue; }
-      const m = v.match(/^(eq|in|gte|gt|lte|lt|is)\.(.*)$/);
+      const m = v.match(/^(eq|in|gte|gt|lte|lt|is|cs)\.(.*)$/);
       if (!m) throw new Error(`stub db: unsupported filter ${part}`);
       const val = decodeURIComponent(m[2]);
+      // An array column that contains every element of `{a,b}` (PostgREST's `cs`, `@>`): the Coinbase arms' rate finds
+      // Kraken's newest row with a marked read this way (cb_fx.ts `readCbFx`, `fallback=cs.{true}`).
+      if (m[1] === "cs") { const want = val.slice(1, -1).split(","); filters.push((r) => Array.isArray(r[k]) && want.every((w) => (r[k] as unknown[]).some((x) => String(x) === w))); }
       if (m[1] === "is") { if (val !== "null" && val !== "not.null") throw new Error(`stub db: unsupported filter ${part}`); filters.push((r) => (r[k] == null) === (val === "null")); }
       if (m[1] === "eq") filters.push((r) => String(r[k]) === val);
       if (m[1] === "in") { const set = val.slice(1, -1).split(","); filters.push((r) => set.includes(String(r[k]))); }

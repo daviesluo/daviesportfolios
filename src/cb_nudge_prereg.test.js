@@ -13,6 +13,8 @@ const sha = (p) => crypto.createHash('sha256').update(read(p)).digest('hex');
 const DOC = read('docs/agents/reviews/2026-10-29-cb-usdc-nudge-prereg.md').toString('utf8');
 /** §5's sha256 of cb_usdc.ts, before its Deviation 2 (2026-10-29, Coinbase's own coin price) changed it. */
 const USDC_FROZEN_2026_10_29 = '0f54887c0e5b96941b697b76390214cfeea7045c96f7f41f41eca8d70d09d7b9';
+/** The bytes its Deviation 2 named, before Deviation 4 (2026-10-29, the rate at second resolution) changed them. */
+const USDC_DEV2 = '87e4b3bb832b072027ac53affee6716451d2933af06681dbf8aa8d6640ae2771';
 const named = (f) => [...DOC.matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
 
 describe('"Stablecoin quotes with Euros - 3"', () => {
@@ -21,10 +23,12 @@ describe('"Stablecoin quotes with Euros - 3"', () => {
       'supabase/migrations/0168_cb_usdc_nudge.sql', 'supabase/functions/agents/cb_nudge.ts', 'supabase/functions/agents/cb_nudge.test.ts',
       'supabase/functions/agents/quotes_weekend.ts', 'supabase/functions/agents/quotes.ts',
     ]) expect(named(f), f).toEqual([sha(f)]);
-    // cb_usdc.ts: §5's bytes, then its Deviation 2's (Coinbase's own coin price), which the file is.
-    const dev = DOC.indexOf('**Deviation 2 (2026-10-29');
-    expect(dev).toBeGreaterThan(DOC.indexOf('## 7. Deviations'));
-    expect(named('supabase/functions/agents/cb_usdc.ts')).toEqual([USDC_FROZEN_2026_10_29, sha('supabase/functions/agents/cb_usdc.ts')]);
+    // cb_usdc.ts: §5's bytes, then its Deviation 2's (Coinbase's own coin price), then its Deviation 4's (the rate at second
+    // resolution), which the file is.
+    const dev = DOC.indexOf('**Deviation 4 (2026-10-29');
+    expect(dev).toBeGreaterThan(DOC.indexOf('**Deviation 2 (2026-10-29'));
+    expect(DOC.indexOf('**Deviation 2 (2026-10-29')).toBeGreaterThan(DOC.indexOf('## 7. Deviations'));
+    expect(named('supabase/functions/agents/cb_usdc.ts')).toEqual([USDC_FROZEN_2026_10_29, USDC_DEV2, sha('supabase/functions/agents/cb_usdc.ts')]);
     expect(DOC.lastIndexOf(`| \`supabase/functions/agents/cb_usdc.ts\` | ${sha('supabase/functions/agents/cb_usdc.ts')} |`)).toBeGreaterThan(dev);
     expect(DOC).toContain('**Status: FROZEN**');
     // Deviation 1 (0170, Davies 2026-10-29: "你新做好的两个测试策略现在就上线"): the start moved to 2026-10-29 08:00 UTC, and only that.

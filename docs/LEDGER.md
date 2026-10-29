@@ -665,9 +665,14 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
     `agents/fx_rec.ts`, `reviews/2026-10-29-fx-second-sources.md`). TrueFX every second, Kraken the marked fallback, into
     `fx_ticks`; no strategy reads it. **After the deploy:** `fx_rec_state.last_report` each minute (59 TrueFX reads, 12 Kraken,
     `primaryHealthy` true), `fx_ticks.failed` low, no `agents.fx_rec` in `ops_errors`. The comparison (that review's §4) reads
-    14 days from the first full day; then the switch-off statement there unless its bar is met. **Backtest done (§7,
-    FX-SPEED):** a faster X is worth nothing on Revolut X and about +£66/yr on Coinbase's £2,400 (19 days); using it is a rule
-    change (X read at placement), so a pre-registration and Davies' word, after the comparison.
+    14 days from the first full day. **Backtest done (§7,
+    FX-SPEED):** a faster X is worth nothing on Revolut X and about +£66/yr on Coinbase's £2,400 (19 days). **§8 (FX-SPEED-LONG)
+    passed every Coinbase arm, and every Coinbase arm now prices its rate on `fx_ticks`** (`agents/cb_fx.ts`, `0173`; base Dev 7,
+    weekend 6, USDC 5, nudge 4): so the recorder is no longer research only, and its switch-off statement must not run without
+    Davies' word (the arms would fall back to Yahoo). **After that deploy:** apply `0173` before or with it (a run that writes
+    `fx_src` before the column exists is refused and re-decided by the next); each arm's state gets `fxFrom` (its first minute at
+    or after 10:00 UTC, after the deploy) and `fxCount`; `cb_*_minutes.fx_src` mostly `truefx` on a weekday, `yahoo`/`kraken`
+    a few, `dark` (base) or `held:*` from Friday 21:00 UTC.
 
 ## Machine and platform setup
 
@@ -786,6 +791,19 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 01:24 UTC section (archived
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth).
+
+### [2026-10-29 09:22 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Every Coinbase arm on the rate at second resolution** (sub-agent; commit, not pushed; Davies, 10-29: "…如果还是正向优化的话把所有coinbase
+  策略的汇率数据源从yahoo换为刚才研究的最佳秒级数据源+fallbacks"; §8 passed). `agents/cb_fx.ts`, called by `cb_quotes.ts`, `cb_hold.ts` and
+  `cb_usdc.ts` (so "- 2" too); migration `0173` (`fx_src` on the four minute records).
+  - **Rule:** from `fxFrom` (first minute ≥ 2026-10-29 10:00 UTC) X = the newest `fx_ticks` read ARRIVED by t + 58 s, TrueFX's or
+    Kraken's marked one when newer (unmarked never), raw mid, used while ≤ 120 s old (`FX_STALE_MS`); else Yahoo's `fxBarAt`; else
+    dark (base) / the held bar's minutes holding the last fast read when no older than that bar (held arms). Lit minutes outside a
+    fresh read are exactly today's. `fx_src` per minute, `fxCount` per state; no backfill.
+  - **Pins:** `cb_fx.test.ts` (cap t + 58 / t + 59 s, order and marking, 120 s, Yahoo when empty, held closure, the 10-29 world
+    through the base driver, a Friday close through all four arms with lit minutes equal to a no-`fx_ticks` run);
+    `src/cb_fx_prereg.test.js` (deviations, constants, drivers, quotes.ts `0782ed81…`, only the three drivers import cb_fx.ts).
+  - Prereg deviations: base 7, weekend 6, USDC 5, nudge 4; usdc and nudge hash chains moved; cbwk MANIFEST rebuilt.
 
 ### [2026-10-29 09:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **FX-SPEED-LONG: a fast X passes on every Coinbase arm over two years** (sub-agent; commit, not pushed; Davies, 10-29: "coinbase的所有策略用

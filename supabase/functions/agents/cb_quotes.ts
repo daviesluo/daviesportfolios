@@ -39,6 +39,11 @@
 //     `cb:USDT-USD`) and every Coinbase arm reads them. A de-peg guard against an outside reference, Revolut X's F3 (the median
 //     of its USD book's hourly closes, the value before the switch): a coin value more than 50 bps from it, or no reference,
 //     darkens the minute (`cbCoinFair`). Revolut X's own rows and `stepMinute` are untouched.
+//   * The rate at second resolution (Deviation 7, 2026-10-29; Davies: "coinbase的所有策略用更多秒级数据更长时间再深度回测验证下，如果还是
+//     正向优化的话把所有coinbase策略的汇率数据源从yahoo换为刚才研究的最佳秒级数据源+fallbacks"). From the switch (`fxFrom` in the state,
+//     `cbFxSwitch`) GBP/USD and EUR/USD are the recorder's newest TrueFX read (or Kraken's marked fallback read) that ARRIVED by
+//     t + 58 s, while it is no more than 120 s old, else Yahoo's bar as before, else dark (cb_fx.ts, `cbRatesAt`). Each minute
+//     records which source priced its book's own pair (`fx_src`, 0173) and the state counts them (`fxCount`).
 // Fills therefore need a print strictly THROUGH a resting quote, as PR5's do. The driver runs one minute behind the
 // recorder's coverage, so a minute's prints are complete before it is decided.
 
@@ -50,6 +55,7 @@ import {
 import { CB_API, CB_PRODUCTS, CB_TIMEOUT_MS, type CbProduct, type CbRecState } from "./cb_rec.ts";
 import { cbInBlackout } from "./cb_releases.ts";
 import { faultKey, reportDue } from "./pm_book_rec.ts";
+import { cbFxCount, cbFxSwitch, cbRatesAt, emptyFx, readCbFx, type CbFxSrc } from "./cb_fx.ts";
 
 const M = 60e3, DAY = 86400e3;
 const iso = (ms: number) => new Date(ms).toISOString();
@@ -225,7 +231,7 @@ export function cbEventRow(book: CbProduct, e: QuoteEvent) {
  * volume in the book's currency), all PR5's simulator reads of a minute (docs/agents/backtests/scq_venues/scripts/bars.py,
  * proven equal to the prints), so the test can be replayed after the prints are pruned.
  */
-export function cbMinuteRow(book: CbProduct, t: number, bar: [number, number] | null, eurBar: [number, number] | null, hoursN: number, inp: MinuteInputs, xGbp: number | null) {
+export function cbMinuteRow(book: CbProduct, t: number, bar: [number, number] | null, eurBar: [number, number] | null, hoursN: number, inp: MinuteInputs, xGbp: number | null, fxSrc?: CbFxSrc | null) {
   const s = CB_BOOK[book].scale, tick = CB_BOOK[book].tick;
   const ps = inp.prints;
   const px = (p: Print) => Number((p.ticks * tick).toFixed(8));
@@ -243,6 +249,8 @@ export function cbMinuteRow(book: CbProduct, t: number, bar: [number, number] | 
     vol: ps.reduce((a, p) => a + p.qty * s * px(p), 0),
     sell_lo: ext("sell", Math.min), sell_hi: ext("sell", Math.max), buy_lo: ext("buy", Math.min), buy_hi: ext("buy", Math.max),
     last: last ? px(last) : null, last_side: last?.side ?? null,
+    // Deviation 7 (0173): which source priced the book's own pair (GBP/USD, or EUR/USD), from the switch; before it, no key.
+    ...(fxSrc !== undefined ? { fx_src: fxSrc ?? "dark" } : {}),
   };
 }
 
@@ -267,6 +275,10 @@ export type CbQuoteState = {
   usdFactor?: { GBP: number; EUR: number };
   /** Deviation 5's switch (`cbLiveSwitch`): the first minute priced on Coinbase's own coin value. */
   liveFrom?: number;
+  /** Deviation 7's switch (`cbFxSwitch`, cb_fx.ts): the first minute whose rates are read at second resolution. */
+  fxFrom?: number;
+  /** From it, how many book-minutes each source priced (the book's own pair): truefx, kraken, yahoo or dark. */
+  fxCount?: Record<string, number>;
 };
 export type CbQuoteReport = {
   skipped?: string; minutes: number; from: number | null; to: number | null; prints: number; fills: number; exits: number; stops: number;
@@ -322,6 +334,9 @@ export async function runCbQuotes(d: CbQuoteDeps): Promise<CbQuoteReport> {
       } catch (e) { report.errors.push(`cbusdt: ${msg(e)}`); }
     }
     cbLiveSwitch(st, first);
+    // Deviation 7: the rates at second resolution from the switch (cb_fx.ts).
+    cbFxSwitch(st, first);
+    const fx = st.fxFrom != null ? await readCbFx(d.db, first, horizon, null) : emptyFx();
     const usdtBars = await series("cb_quote_inputs", CB_USDT_KIND, first - QUOTE_FX_LOOKBACK_MS);
     const trips: ReturnType<typeof cbTripRow>[] = [], events: ReturnType<typeof cbEventRow>[] = [], minutes: ReturnType<typeof cbMinuteRow>[] = [];
     for (const b of CB_PRODUCTS) {
@@ -333,13 +348,15 @@ export async function runCbQuotes(d: CbQuoteDeps): Promise<CbQuoteReport> {
       for (let t = first; t <= horizon; t += M) {
         const mine: Print[] = [];
         while (j < prints.length && prints[j].ts < t + M) { mine.push(prints[j]); j++; }
-        const bar = fxBarAt(t, gbpBars), eb = fxBarAt(t, eurBars), window = fairHours(t, hours[CB_BOOK[b].coin]);
+        const { bar, eb, gbpSrc, eurSrc } = cbRatesAt(st, t, gbpBars, eurBars, fx, fxBarAt, false), window = fairHours(t, hours[CB_BOOK[b].coin]);
+        const fxSrc = st.fxFrom != null && t >= st.fxFrom ? (CB_BOOK[b].quote === "GBP" ? gbpSrc : eurSrc) : undefined;
+        if (fxSrc !== undefined) cbFxCount(st, fxSrc);
         const coinU = cbCoinFair(st, t, CB_BOOK[b].coin, median(window), usdtBars).fairU;
         const io = cbMinuteInputs(b, bar ? bar[1] : null, eb ? eb[1] : null, coinU, cbInUsd(st, t));
         // Deviation 3 (2026-10-15): in the minutes around a scheduled release (cb_releases.ts) the fair is withheld, as in any dark minute.
         const inp: MinuteInputs = { ...io, fairU: cbInBlackout(t) ? null : io.fairU, prints: mine };
         const out = stepMinute(st.books[b], t, inp);
-        minutes.push(cbMinuteRow(b, t, bar, CB_BOOK[b].quote === "EUR" ? eb : null, window.length, inp, io.xGbp));
+        minutes.push(cbMinuteRow(b, t, bar, CB_BOOK[b].quote === "EUR" ? eb : null, window.length, inp, io.xGbp, fxSrc));
         // Pounds (Deviation 1): a trip closing at the book's last known pounds per unit, from the one its rung filled at.
         if (io.xGbp != null) st.xGbp = { ...st.xGbp, [b]: io.xGbp };
         const xNow = st.xGbp?.[b] ?? (CB_BOOK[b].quote === "GBP" ? 1 : null);

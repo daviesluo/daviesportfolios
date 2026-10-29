@@ -386,6 +386,14 @@ places stay when the number is not whole.
   instead of Revolut X's: USDC at a dollar, USDT at Coinbase's own USDT/USD
   price of the last few minutes. If that price strays more than half a
   percent from Revolut X's, the row places no new quote until it comes back.
+  Also since 29 Oct (from 10:00 UTC) every Coinbase row reads the pound and
+  euro exchange rates second by second instead of from Yahoo's one-minute
+  price: the newest quote from TrueFX that had arrived two seconds before its
+  orders go live, or Kraken's when TrueFX has stopped. When neither has a
+  quote from the last two minutes it falls back to Yahoo's as before, and over
+  the weekend the rows keep their old rule (the first one dark, the others on
+  the last rate). A two-year backtest found every Coinbase row earning more
+  this way.
 - **Stablecoin quotes USDG/EUR and Stablecoin quotes EURC/USDC.** After Coinbase's rows, on
   OKX (its own badge and venue card): the live rules on paper on OKX's two
   euro-against-dollar stablecoin books, USDG against euros and EURC against

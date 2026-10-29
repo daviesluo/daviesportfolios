@@ -151,7 +151,7 @@
 //   POST ?action=fxrec      — GBP/USD and EUR/USD at second resolution
 //                             (fx_rec.ts, 0172): TrueFX every second, Kraken
 //                             the fallback, into `fx_ticks` beside Yahoo's
-//                             bar; no strategy reads it. Answers at once and
+//                             bar; every Coinbase arm's rate (cb_fx.ts, 0173). Answers at once and
 //                             reads on to 58 s into the minute. Keyless
 //                             public reads only. Cron or admin.
 //   POST ?action=grokpmrec  — GROKPM's independent record (grokpm_rec.ts,
@@ -3004,7 +3004,7 @@ async function route(req: Request, who: Exclude<Who, null>, url: URL, action: st
   if (action === "econcal" && req.method === "POST" && who === "cron") return json(200, await runEconcal({ from: url.searchParams.get("from"), to: url.searchParams.get("to"), key: Deno.env.get("FINNHUB_API_KEY") }));
   // Coinbase's order books (cb_books.ts, 0114): the top ten levels a side, 30 s into the minute. Keyless reads.
   if (action === "cbbooks" && req.method === "POST" && operator) return json(200, await runCbBooksAction(url.searchParams.get("wait") !== "0"));
-  // GBP/USD and EUR/USD at second resolution (fx_rec.ts, 0172): answers at once, reads on to 58 s. Keyless reads; no strategy reads it.
+  // GBP/USD and EUR/USD at second resolution (fx_rec.ts, 0172): answers at once, reads on to 58 s. Keyless reads; the Coinbase arms' rate (cb_fx.ts).
   if (action === "fxrec" && req.method === "POST" && operator) return json(200, startFxRecAction());
   // GROKPM's independent record (grokpm_rec.ts, 0124): the outside agent's wallet, every five minutes. Keyless reads.
   if (action === "grokpmrec" && req.method === "POST" && operator) return json(200, await runGrokPmRecAction());

@@ -21,13 +21,15 @@ const FROZEN_2026_10_26 = {
 };
 /**
  * The bytes each later deviation named, in order, after §5's: Deviation 1 ($25, all four files), Deviation 2 ($50, cb_usdc.ts and
- * its test), Deviation 3 (Coinbase's own coin price, all four again; each file must be that last one).
+ * its test), Deviation 3 (Coinbase's own coin price, all four again), Deviation 5 (the rate at second resolution, the three
+ * drivers; its test unchanged); each file must be the last one named.
  */
 const LATER = {
-  'supabase/functions/agents/cb_usdc.ts': ['4fdf89c16b92ac7279b9593ee7946a209276de2b1a44ad8ae1b91d0f89d704a2', '0f54887c0e5b96941b697b76390214cfeea7045c96f7f41f41eca8d70d09d7b9'],
+  'supabase/functions/agents/cb_usdc.ts': ['4fdf89c16b92ac7279b9593ee7946a209276de2b1a44ad8ae1b91d0f89d704a2', '0f54887c0e5b96941b697b76390214cfeea7045c96f7f41f41eca8d70d09d7b9',
+    '87e4b3bb832b072027ac53affee6716451d2933af06681dbf8aa8d6640ae2771'],
   'supabase/functions/agents/cb_usdc.test.ts': ['dfa42316993faec080a5bd8c9ab0fa5361e29c0351db47af1d04cb3a059fe2db', '80ce8b868077dd63a8d292999ddb6e571d32f7ffe4a1ce1153ce4a27c0dc1dc5'],
-  'supabase/functions/agents/cb_hold.ts': ['ea081c57918d6c0e6500da7dced0c2a3c57ccd0e8a2e09d9c2cdc06c9aa34fd9'],
-  'supabase/functions/agents/cb_quotes.ts': ['fe88387e54abad68ff3fe5a02fb8f2a768a09ccea860b4ab4a46cbbdd262c465'],
+  'supabase/functions/agents/cb_hold.ts': ['ea081c57918d6c0e6500da7dced0c2a3c57ccd0e8a2e09d9c2cdc06c9aa34fd9', '85d86a0181ff7004b8aff0c437883f01b085b45023605cab3fb789c0b8e97511'],
+  'supabase/functions/agents/cb_quotes.ts': ['fe88387e54abad68ff3fe5a02fb8f2a768a09ccea860b4ab4a46cbbdd262c465', '3d267f849a8aeec704c880dc9a7da20ac19b5653117778cedff828615b468a6c'],
 };
 const named = (f) => [...DOC.matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
 
@@ -37,7 +39,7 @@ describe('the USDC arm of the Coinbase paper test', () => {
     expect(DOC).toContain('**Status: FROZEN**');
   });
 
-  it("names §5's bytes, then each deviation's in order, and each file is the last one named, in Deviation 3", () => {
+  it("names §5's bytes, then each deviation's in order, and each file is the last one named, in Deviation 3 or later", () => {
     const dev = DOC.indexOf('**Deviation 1 (2026-10-29'), dev2 = DOC.indexOf('**Deviation 2 (2026-10-29'), dev3 = DOC.indexOf('**Deviation 3 (2026-10-29');
     expect(dev).toBeGreaterThan(DOC.indexOf('## 7. Deviations'));
     expect(dev2).toBeGreaterThan(dev);

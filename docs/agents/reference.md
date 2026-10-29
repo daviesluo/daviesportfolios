@@ -4455,6 +4455,22 @@ Davies, 2026-10-13: "周末变体写预注册然后上线paper trading 策略wit
   - **The base test** (cb_quotes.ts) is not read by the dashboard. Its call decides on as the weekend reading's control (bar 6,
     2026-11-10) and is switched off after it. Its input fetches (EUR/USD, Coinbase USDT-USD), which every arm reads, stay.
 
+- **Addendum 2026-10-29 (night): every Coinbase arm on the rate at second resolution** (Davies: "coinbase的所有策略用更多秒级数据更长时间再
+  深度回测验证下，如果还是正向优化的话把所有coinbase策略的汇率数据源从yahoo换为刚才研究的最佳秒级数据源+fallbacks"; base Deviation 7, weekend 6,
+  USDC 5, nudge 4; `agents/cb_fx.ts`, migration `0173`).
+  - **The evidence.** FX-SPEED-LONG (`reviews/2026-10-29-fx-second-sources.md` §8): 738 days of Exness ticks, the rule (b) "L3"
+    against today's Yahoo-timed X, out of sample 2025-11-21 → 10-08: base +£25.5 a year (P ≤ 0 0.0000), weekend +£31.3 (0.0000),
+    USDC +£5.9 (0.003), nudge by proxy +£3.2 (0.03); 20–23 of 25 months positive.
+  - **The rule.** From each arm's switch (`fxFrom`, its first minute at or after 2026-10-29 10:00 UTC) GBP/USD and EUR/USD at
+    minute t are the newest `fx_ticks` read that ARRIVED by t + 58 s (a read at t + 59 s is not used; the call decides t at about
+    t + 120 s): TrueFX's, or Kraken's marked fallback read when newer, never an unmarked one; at the source's own mid (raw level,
+    no Yahoo alignment: §8.1's tie). Used while no more than 120 s old (the recorder's `FX_STALE_MS`); else Yahoo's bar as before
+    (`fxBarAt`); else dark on the base test, and on the held arms their held bar's minutes, holding the last fast read when it
+    is no older than that bar (§8's carry), else the bar.
+  - **Recorded.** `fx_src` on each minute record (`0173`) and `fxCount` in each state. No backfill.
+  - **Unchanged.** `stepMinute` (quotes.ts' sha256 `0782ed81…`), Revolut X's and OKX's rows, the recorder, the base call's Yahoo
+    EUR/USD and Coinbase USDT-USD fetches (the fallback needs them).
+
 61. **Every paper Reward quotes test stops; live-prep live and pm-rec keep running (2026-10-13, migration `0120`).**
 Davies, 2026-10-13: "目前paper testing里的reward quotes全关了吧？感觉都不赚钱没什么意义？如果你实在觉得还有用的话就转到后台记录，不用在网站上显示了"
 (switch off every Reward quotes in paper testing; if one is still useful, record it in the background, off the site). The
@@ -4563,7 +4579,7 @@ fails too still reported (`edge-watchdog.retry`). In the three days before, 1,34
     open, not Friday 21:00 → Sunday 22:00 UTC).
     Into `fx_ticks` (a row per source, pair and minute, the reads as arrays; the view `fx_tick_reads` a row per read), 42 days.
     TrueFX unhealthy five minutes, the fallback failing a minute it was needed, or a failed write goes to `ops_errors` as
-    `agents.fx_rec`, then hourly while it lasts. **No strategy reads it**: every quote row keeps Yahoo's bar. The sources, their
+    `agents.fx_rec`, then hourly while it lasts. **No strategy read it until `0173`**: every Revolut X and OKX row keeps Yahoo's bar; every Coinbase arm prices its rate on it since (item 60's addendum "every Coinbase arm on the rate at second resolution"). The sources, their
     measurement and the 2–4-week comparison plan are `reviews/2026-10-29-fx-second-sources.md`. Its §7 (FX-SPEED, `backtests/fx_speed/`) replays the engines unchanged on Exness's keyless ticks: X read 2 s before each order goes live, against Yahoo's bar (about the price of t − 32 s), is worth nothing on Revolut X (−£6 a year on £600, 90 % −£29 to +£15) and +£66 a year on Coinbase's £2,400 "with Euros" (+£10 to +£149, 19 days, mostly the first half); the CB/OKX study's "+£38 look-ahead bound" is the price at go-live, reachable by a feed read at placement, and capturing it is a rule change.
 
 ### Twin variants

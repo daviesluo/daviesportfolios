@@ -31,6 +31,11 @@
 // value is Coinbase's own from the switch, with the de-peg guard (`cbLiveSwitch`, `cbCoinFair` from cb_quotes.ts, the base test's
 // Deviation 5): USDT's candles are read for ten minutes, as the study's weekend arm did; only the FX bar is held.
 //
+// Since 2026-10-29 (Deviation 6; Davies: "…把所有coinbase策略的汇率数据源从yahoo换为刚才研究的最佳秒级数据源+fallbacks") the rates
+// are read at second resolution from the switch (`cbFxSwitch`, `cbRatesAt` from cb_fx.ts, the base test's Deviation 7): in session
+// the newest TrueFX (or Kraken's marked fallback) read arrived by t + 58 s while no more than 120 s old, else Yahoo's bar; in a
+// closure the held bar's minutes stay the lit ones, holding the last fast read when it is no older than that bar, else the bar.
+//
 // Its call is its own (`agents?action=cbhold`, a row of `edge_calls`): a fault of this arm never touches the base test's call.
 
 import type { Db } from "./db.ts";
@@ -41,6 +46,7 @@ import {
 import { CB_PRODUCTS, type CbProduct, type CbRecState } from "./cb_rec.ts";
 import { cbInBlackout } from "./cb_releases.ts";
 import { faultKey, reportDue } from "./pm_book_rec.ts";
+import { cbFxCount, cbFxSwitch, cbRatesAt, emptyFx, readCbFx } from "./cb_fx.ts";
 import { fairHours, median, newBookState, QUOTE_FX_LOOKBACK_MS, stepMinute, type BookState, type MinuteInputs, type Print, type QuoteBook } from "./quotes.ts";
 
 const M = 60e3, H = 3600e3, DAY = 86400e3;
@@ -129,6 +135,9 @@ export async function runCbHold(d: { db: Db; now: number; holder: string; rec: C
     cbUsdSwitch(st, first, cbHoldBarAt(first, gbpBars)?.[1] ?? null, cbHoldBarAt(first, eurBars)?.[1] ?? null);
     // Deviation 4 (2026-10-29): Coinbase's own coin value from the switch, the base call's stored USDT-USD minutes.
     cbLiveSwitch(st, first);
+    // Deviation 6 (2026-10-29): the rates at second resolution from the switch, the closures held as before (cb_fx.ts).
+    cbFxSwitch(st, first);
+    const fx = st.fxFrom != null ? await readCbFx(d.db, first, horizon, CB_HOLD_MS) : emptyFx();
     const usdtBars = await series("cb_quote_inputs", CB_USDT_KIND, first - QUOTE_FX_LOOKBACK_MS);
     const trips: ReturnType<typeof cbTripRow>[] = [], events: ReturnType<typeof cbEventRow>[] = [], minutes: ReturnType<typeof cbMinuteRow>[] = [];
     for (const b of CB_PRODUCTS) {
@@ -140,13 +149,15 @@ export async function runCbHold(d: { db: Db; now: number; holder: string; rec: C
       for (let t = first; t <= horizon; t += M) {
         const mine: Print[] = [];
         while (j < prints.length && prints[j].ts < t + M) { mine.push(prints[j]); j++; }
-        const bar = cbHoldBarAt(t, gbpBars), eb = cbHoldBarAt(t, eurBars), window = fairHours(t, hours[CB_BOOK[b].coin]);
+        const { bar, eb, gbpSrc, eurSrc } = cbRatesAt(st, t, gbpBars, eurBars, fx, cbHoldBarAt, true), window = fairHours(t, hours[CB_BOOK[b].coin]);
+        const fxSrc = st.fxFrom != null && t >= st.fxFrom ? (CB_BOOK[b].quote === "GBP" ? gbpSrc : eurSrc) : undefined;
+        if (fxSrc !== undefined) cbFxCount(st, fxSrc);
         const coinU = cbCoinFair(st, t, CB_BOOK[b].coin, median(window), usdtBars).fairU;
         const io = cbMinuteInputs(b, bar ? bar[1] : null, eb ? eb[1] : null, coinU, cbInUsd(st, t));
         // Deviation 2 (2026-10-15): the same release blackout as the base test's (cb_releases.ts): in the minutes around a scheduled release the fair is withheld.
         const inp: MinuteInputs = { ...io, fairU: cbInBlackout(t) ? null : io.fairU, prints: mine };
         const out = stepMinute(st.books[b], t, inp);
-        minutes.push(cbMinuteRow(b, t, bar, CB_BOOK[b].quote === "EUR" ? eb : null, window.length, inp, io.xGbp));
+        minutes.push(cbMinuteRow(b, t, bar, CB_BOOK[b].quote === "EUR" ? eb : null, window.length, inp, io.xGbp, fxSrc));
         // Pounds, as the base test: a trip closing at the book's last known pounds per unit, from the one its rung filled at.
         if (io.xGbp != null) st.xGbp = { ...st.xGbp, [b]: io.xGbp };
         const xNow = st.xGbp?.[b] ?? (CB_BOOK[b].quote === "GBP" ? 1 : null);

@@ -225,3 +225,67 @@ value is 1, under the de-peg guard:
 **"Stablecoin quotes with Euros - 1"** from today ("- 2" until then; `CB_USDC_PAGE_NAME` in cb_page.ts). Display only: its id
 (`coinbaseusdc`), tables, call, lease, rule and reading are unchanged, and `cb_usdc.ts` keeps the name it was frozen with. No bytes
 named.
+
+**Deviation 5 (2026-10-29, before the reading): the rate at second resolution, as the base test's, the closure held as before.** Davies, 2026-10-29, verbatim:
+
+> coinbase的所有策略用更多秒级数据更长时间再深度回测验证下，如果还是正向优化的话把所有coinbase策略的汇率数据源从yahoo换为刚才研究的最佳秒级数据源+fallbacks
+
+(backtest every Coinbase strategy again on more second-level data over a longer time; if it is still an improvement, switch every
+Coinbase strategy's FX source from Yahoo to the best second-level source just studied, with its fallbacks).
+
+The long backtest passed on every arm (`reviews/2026-10-29-fx-second-sources.md` §8, where this arm is "- 2", its name until
+today). This arm takes the base test's Deviation 7 with the weekend variant's hold (its Deviation 6; `cbFxSwitch`, `cbRatesAt`):
+
+- **The change.** From the switch, GBP/USD and EUR/USD at minute t are read from the second-level recorder's `fx_ticks` (0172)
+  in place of Yahoo's one-minute bar (`agents/cb_fx.ts`, `cbRatesAt`, called by every Coinbase driver):
+  - **The cap.** The newest read that ARRIVED at or before **t + 58 s** (`CB_FX_CUTOFF_MS`), two seconds before minute t's
+    orders go live at t + 60 s. A read that arrived at t + 59 s is not used. The call decides minute t at about t + 120 s
+    (§8.3: 08:26 decided at 08:28:00.5), so without the cap it would read quotes from after go-live.
+  - **The source.** TrueFX's read; Kraken's read only where the recorder marked it `fallback` (TrueFX unhealthy with the market
+    open, `fx_rec.ts`), and only when it is newer than TrueFX's newest. Kraken's routine, unmarked reads are never used.
+  - **The level is raw.** The source's own mid, (bid + ask) / 2: nothing is carried over from Yahoo. §8.1 found raw against
+    Yahoo-aligned a tie (£0.2–3.5 a year either way); raw drops the Yahoo dependency and Yahoo's +2.82 bps over the tick sources
+    on EUR/USD. At TrueFX's level this arm's figure is +£4.5 a year out of sample [+0.0, +9.4], P(≤ 0) 0.049 (in sample +£19.3).
+  - **Fresh.** That read is used while it arrived no more than **120 s** before t + 58 s (`CB_FX_FRESH_MS`, the recorder's own
+    `FX_STALE_MS`, after which it turns to Kraken).
+  - **The fallback.** No fresh read for the pair: Yahoo's bar by today's rule (`fxBarAt`, the newest bar started in
+    [t − 10 min, t − 1 min], bar t − 1 in practice). The call that fetches Yahoo's EUR/USD and Coinbase's USDT-USD each minute
+    keeps fetching both, and PR5's paper engine keeps storing GBP/USD.
+  - **Closures.** The held minutes are today's, exactly: where no fresh read and no Yahoo bar in ten minutes price a minute, it is
+    lit wherever its held bar (`cbHoldBarAt`, 60 hours) is, as before. What it holds is the last fast read if that arrived no
+    earlier than the held bar started (`held:truefx`, or `held:kraken`), else the bar itself (`held:yahoo`), as §8 held it.
+- **Recorded.** Each minute's record says which source priced its book's own pair (`fx_src`, migration 0173: `truefx`,
+  `kraken`, `yahoo`, `held:truefx`, `held:kraken`, `held:yahoo` or `dark`), and the state counts them (`fxCount`). `x_t` (and a
+  EUR book's `eur_t`) is now the instant the read arrived, or the bar's start where Yahoo priced the minute.
+- **The instant.** The first minute each row decides at or after **2026-10-29 10:00 UTC** (`CB_FX_NOT_BEFORE`): in practice
+  the first minute after the deploy. It is written once into the row's state as `fxFrom` (`cbFxSwitch`). There is no backfill:
+  the record before it stays as it ran, on Yahoo's bars.
+- **Unchanged.** `stepMinute` (quotes.ts, sha256 `0782ed8140a2e490f19b9e92fe7093c2cb9a6f205866180314f609537277f517`) is not
+  touched, so Revolut X's rows are byte for byte as they were; so are the coin value and its de-peg guard, the release
+  blackout, the rungs, the stop and the pounds of a trip. Only the rate's source changes.
+- **Why** (§8, 738 days of Exness ticks, the bar fixed before any run was read):
+  - Out of sample (2025-11-21 → 2026-10-08): **+£5.9 a year [+2.2, +10.1], P(≤ 0) 0.003**; in sample +£19.5 [+11.6, +27.7];
+    **23 of 25 months positive**.
+  - This arm's own record out of sample: £26.04 → £31.22, 1,434 → 773 trips, 4.95 → 11.01 bps a trip, stops 85 → 91.
+  - Both books positive in both halves: USDC-GBP +£3.2 a year (P 0.032), USDC-EUR +£2.6 (P 0.010).
+  - On the production record (10-13 → 10-28, against Yahoo's real bars): +£5.7 a year [−17.8, +30.1], P 0.36.
+- **What §8 does not show (§8.7).** TrueFX's history is Exness's ticks in the backtest, not TrueFX's own; L5 (3 s of source age)
+  passes every arm too, so a feed up to about 3 s slower than modelled loses nothing measurable. The Kraken fallback was not
+  modelled separately (2 s behind TrueFX, EUR/USD 1.3 bps under: inside L5's age and the level tie). The production weeks
+  (§8.5) agree in sign and decide nothing alone.
+- **The reading is read on the record as it ran.** The minute record's `fair` is the fair the minute was decided on (from the
+  switch, on the fast rate). So the replay reproduces the engine without knowing the rule changed, and every threshold, window
+  and seed is unchanged. The report says where the switch fell, what share of the window it covered, and how many minutes each
+  source priced (`fx_src`).
+- **"with Euros - 2"** (the nudge arm) runs this file's driver, so it switches by the same rule. Its own deviation says so.
+- **Frozen bytes this deviation names** (`src/cb_usdc_prereg.test.js`, which holds every earlier set as well, and
+  `src/cb_fx_prereg.test.js`):
+
+| file | sha256 (Deviation 5) |
+|---|---|
+| `supabase/functions/agents/cb_fx.ts` | c575baf137989e404dc1241303625fa827d6b8614b9fe5d802b057007ee3ab36 |
+| `supabase/functions/agents/cb_fx.test.ts` | 3ad6920e4034521873593a156f24f4d84df9b84a69258565f484eaf7958d53f1 |
+| `supabase/functions/agents/cb_usdc.ts` | c44e9261cdbaf0e745ac24a83e823a02f87f0be94c3ed98e21da0e320e582f9b |
+| `supabase/functions/agents/cb_hold.ts` | a2459029da2f9e1e35d80087cdf4a0aeb78dc2790e86daca4aaaa7855402470c |
+| `supabase/functions/agents/cb_quotes.ts` | 63f9c34912f337ee4ce707068850cf4fb4f564dd53a14596af7734c1b487f9a6 |
+| `supabase/migrations/0173_cb_fx_src.sql` | badcc26a09de690874f4bf6d65e2f202067335c70989abc94044bde8c4944e08 |

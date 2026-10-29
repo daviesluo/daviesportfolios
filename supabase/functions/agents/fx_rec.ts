@@ -4,8 +4,10 @@
 // WHAT IT IS FOR. Every stablecoin quote row prices its fair on Yahoo's one-minute GBPUSD=X / EURUSD=X bar, and the
 // Coinbase/OKX fair-price study (docs/agents/reviews/2026-10-29-cb-okx-fair-price-study.md §2.6, §5) found about 40 % of a
 // minute's move reaching Yahoo a bar late. Before anything is decided about a faster rate, 2–4 weeks of one are recorded
-// here and compared with Yahoo and with the books (docs/agents/reviews/2026-10-29-fx-second-sources.md, its plan). NOTHING
-// READS THIS TABLE BUT THAT STUDY: no strategy's input changes, and this file imports nothing of any engine.
+// here and compared with Yahoo and with the books (docs/agents/reviews/2026-10-29-fx-second-sources.md, its plan). This file
+// imports nothing of any engine. SINCE 2026-10-29 (0173) EVERY COINBASE ARM PRICES ITS RATE ON THIS TABLE (cb_fx.ts: TrueFX's
+// reads, and Kraken's only where marked `fallback`, by when each ARRIVED): a change to what is kept, marked or when is a
+// change to those arms' input, and goes through their pre-registrations.
 //
 // THE SOURCES (chosen in that review, measured from a container 2026-10-29). Both are keyless public reads:
 //   truefx   the PRIMARY: TrueFX's unauthenticated snapshot (`webrates.truefx.com/rates/connect.html?f=csv`), both pairs in
