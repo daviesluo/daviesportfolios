@@ -40,7 +40,9 @@ he had to say it again: "请保持说中文，别再忘了".
 On 2026-10-29 it happened again and again in one session, the progress notes between tool calls and
 replies to sub-agent reports above all, and he asked for a gate: "你可以给你发出的消息加gate吗". The Stop hook
 `.claude/hooks/chinese-reply.mjs` now blocks the end of any turn whose own text is mostly English; when it
-fires, write the whole answer again in Chinese. Write the progress notes in Chinese from the start.
+fires, write the whole answer again in Chinese. Write the progress notes in Chinese from the start: the gate judges a
+turn only after the English is on his screen ("怎么又有英文了，你之前设置的gate不行啊"), so `chinese-remind.mjs` also
+repeats the rule when he writes and after every tool call.
 
 ## What "done" means to him
 

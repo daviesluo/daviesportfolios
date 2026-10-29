@@ -30,3 +30,14 @@ describe('chinese-reply hook', () => {
     expect(verdict({ stop_hook_active: true }, [...lines, said('Still English at the end of the turn, which must not pass.')])).toMatch(/英文/);
   });
 });
+
+describe('chinese-remind hook', async () => {
+  const { REMINDER, remind } = await import('../.claude/hooks/chinese-remind.mjs');
+  it('puts the rule in front of the model when Davies writes and after every tool call', () => {
+    for (const event of ['UserPromptSubmit', 'PostToolUse']) {
+      expect(remind(event)).toEqual({ hookSpecificOutput: { hookEventName: event, additionalContext: REMINDER } });
+    }
+    expect(REMINDER).toMatch(/只用中文/);
+    expect(isEnglish(REMINDER)).toBe(false);
+  });
+});

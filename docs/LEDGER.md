@@ -768,7 +768,15 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's archive, each batch under a heading
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 01:24 UTC section (archived
-2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh).
+2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth).
+
+### [2026-10-29 01:57 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The Chinese gate gets a first half** (Davies, 10-29: "怎么又有英文了，你之前设置的gate不行啊": the Stop hook judges a turn
+  only after its English is on his screen): `.claude/hooks/chinese-remind.mjs` adds the rule as context when he writes
+  (UserPromptSubmit) and after every tool call (PostToolUse). Pinned in `src/chinese_reply_hook.test.js`.
+- **The IG recorder's live login works** (item 18): `facts` on live at 01:56:45 UTC found the spread-bet account and every
+  role's epic but `wknd_gbpusd` (AUD/USD `CS.D.AUDUSD.TODAY.IP`); the first try at 01:34 had stale secrets
+  (`invalid-details`), which Davies replaced. IGBOT's sync stayed clean throughout. The 2026-10-29 01:33 section archived (twelfth).
 
 ### [2026-10-29 01:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **A Stop hook keeps replies to Davies in Chinese** (Davies, 10-29: "你可以给你发出的消息加gate吗", after English came back
@@ -776,8 +784,3 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
   turn whose own text (code, paths and links taken out) is mostly English. On this session's transcript it flagged 51 of 235
   text blocks, all English, and no Chinese one. `src/chinese_reply_hook.test.js` pins it. CLAUDE.md, the skill and its
   Cursor copy say so. A session reads hooks from its primary checkout: keep it on `origin/main`. The 2026-10-29 01:32, 2026-10-29 01:31 section(s) archived (eleventh).
-
-### [2026-10-29 01:33 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Crypto analyst and IG Trader on TESTING** (sub-agent; commit, not pushed; items 18, 19; Davies, 10-29: "在testing列表中把IG
-  Trader…都上线"): `agents/grok_tests_view.ts` (mode, budget and equity, today, open with stop and limit, trades, days, scores
-  per layer; IG Trader £1,000 + the demo's change since the arm, never its balance), page rows and pages, `dist/`. 7 pins.

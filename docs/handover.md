@@ -47185,3 +47185,10 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
 - **IGBOT F11** (sub-agent; commit, not pushed; item 18; the main session's decision on the CXBOT audit's F11): a bracket
   that times out, and one the agent or server closes or amends, scores where its price stands between stop (0) and limit
   (1), never dropped. `score.mjs`, `export.sql`, prereg §5 and its F11 note, the prompt's scoring paragraph; 2 pins added.
+
+## LEDGER.md, archived 2026-10-29 (twelfth) — the 2026-10-29 01:33 UTC history section
+
+### [2026-10-29 01:33 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Crypto analyst and IG Trader on TESTING** (sub-agent; commit, not pushed; items 18, 19; Davies, 10-29: "在testing列表中把IG
+  Trader…都上线"): `agents/grok_tests_view.ts` (mode, budget and equity, today, open with stop and limit, trades, days, scores
+  per layer; IG Trader £1,000 + the demo's change since the arm, never its balance), page rows and pages, `dist/`. 7 pins.
