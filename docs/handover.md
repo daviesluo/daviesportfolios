@@ -47327,3 +47327,32 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   Each slice is its venue's hue (`VENUE_HUES`; Coinbase `#4d8bff`, Hyperliquid `#97fce4`) at one alpha, 0.35, over the bar, with the old light
   text; badges and card borders unchanged. Pinned in `agents.test.js` (rgb = hue, alpha 0.35, text 4.5:1 on the composited fill at both page
   backgrounds) and by the sweep's agents section at both widths. `dist/` rebuilt.
+
+## LEDGER.md, archived 2026-10-29 (eighteenth) — the 2026-10-29 04:18, 2026-10-29 05:50 UTC history sections, oldest first
+
+### [2026-10-29 04:18 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The three Coinbase arms in whole dollars** (sub-agent; commit, not pushed; Davies, 10-29: "Coinbase策略中funded数字怎么那么奇怪，都改成整数调整").
+  FUNDED had been £1,200 + €1,200 (or £150 + €150) in dollars, about $2,937 and $367. Now $100 a rung, $2,400 for "with Euros"
+  and "- 1", and $25 a rung, $300 for "- 2" (the USDC arm keeps its quarter size).
+  - **The prereg deviations.** Base Deviation 4, weekend Deviation 3, USDC Deviation 1. Each quotes Davies, gives its bytes, and
+    reads its bar in dollars. The cbwk MANIFEST is regenerated with its groups unchanged. The USDC test holds §5's originals and the
+    new bytes.
+  - **How.** `stepMinute` is untouched: X is the dollar rate and fairU the dollar fair (`cbMinuteInputs(…, usd)`), so the fair is
+    the same number.
+  - **The switch.** Each arm's first minute ≥ 2026-10-29 00:00 UTC with both rates (`cbUsdSwitch`). It is written to
+    `cb_*_state.state` (`usdFrom`, `usdGbpusd`, `usdEurusd`, `usdFactor`).
+  - **The page** (`readCoinbaseUsd`) scales what came before the switch by its book's factor: 1/GBP/USD or 1/EUR/USD, 0.7505 and
+    0.8968 at 04:06 UTC, 0.817 an arm. No migration. The readings quote `usdFrom` and the factors from each state.
+
+### [2026-10-29 05:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM's money limits as percentages, D19** (landed 13dfb422, deployed 10-29 ~06:00 UTC; the day's basis read back from `state.dayOpen`; a follow-up
+  swapped a pinned cents row that matched the live book for $107.37, moving the prereg sha to `f7ec205c…`; Davies, 10-29: "把polymarket的策略里的钱全换成百分比，
+  这样的话可以有效实现盈利资金的再利用"; item 15).
+  - **The basis** is the day stop's own opening equity (`state.dayOpen`: the first reading of the UTC day, the agent's own book), so a cap
+    holds still within a day and compounds day to day. Market 10 %, theme 25 %, cash kept 30 %, D15 5 %, D18 10 %, day stop −10 %
+    (`_shared/grokpm_public.ts`, `grokpmCaps`; caps and the day stop to the cent down, the cash kept up). Total stop −$30 of FUNDED unchanged.
+  - **Pinned** (`grokpm/exec.test.ts`, "D19: …"): $100 gives today's dollars exactly; $150 gives 15 / 37.50 / 45 / 7.50 / 15 and −15; $80
+    gives 8 / 20 / 24 / 4 / 8 and −8; a win raising the next day's caps; a loss tripping the day stop at −$8.
+  - **Reads.** `?action=account` adds `cap_basis_usd` and the `*_pct` fields, `checks.caps` records each order's basis, and a refusal names
+    "$15 (10 % of the $150 cap basis)". The page's day stop is 10 % of the record's day open (fixture, sweep and test now $10.16, $10.86 of room).
+  - **Docs.** Prereg §9 D19 (sha `4c49e5e2…`), map row, guide, `docs/agents/CLAUDE.md`. No migration.

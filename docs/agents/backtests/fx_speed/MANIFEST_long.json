@@ -1,0 +1,385 @@
+{
+ "derived": {
+  "data/cb_usdtusd_1m_2024-09-29_2025-11-19.json.gz": {
+   "by": "python3 -I ../fair_price_cb_okx/scripts/fetch_cb_usdt.py 2024-09-29T00:00:00Z 2025-11-19T00:00:00Z OUT (keyless, 2026-10-29 08:27-08:45 UTC)",
+   "minutes": 596584
+  },
+  "exness_long.txt.gz (not committed: 17.9 MB)": {
+   "by": "python3 -I scripts/exness_long.py build <zips> exness_long.txt.gz",
+   "bytes_uncompressed": 68358676,
+   "lines": 1552699,
+   "sha256_uncompressed": "f36f8de82a5b75b5b085420decf42b8a470f1ecc980314dc43bedf62d522e1b2"
+  },
+  "results/cb_long.json": {
+   "by": "python3 -I scripts/cb_long.py exness_long.txt.gz runs.json.gz; python3 -I scripts/cb_long_stats.py runs.json.gz results/cb_long.json"
+  }
+ },
+ "read": "2026-10-29 08:28-08:30 UTC, keyless GET, no login (the 2026-09 and 2026-10 files are FX-SPEED's of 07:54, same sha256)",
+ "study": "FX-SPEED-LONG, docs/agents/reviews/2026-10-29-fx-second-sources.md \u00a78",
+ "zips": {
+  "Exness_EURUSD_2024_09.zip": {
+   "bytes": 7526071,
+   "dropped_ask_below_bid": 0,
+   "sha256": "a25ead7009481fa04834d8c31508690780baaf2fed6dde0c2d5015cd3c911a32",
+   "ticks": 1082145,
+   "url": "https://ticks.ex2archive.com/ticks/EURUSD/2024/09/Exness_EURUSD_2024_09.zip"
+  },
+  "Exness_EURUSD_2024_10.zip": {
+   "bytes": 7873978,
+   "dropped_ask_below_bid": 0,
+   "sha256": "9b72eb52e77b639e89b6f5e11c8124857a285f889bcea39cea4cc9f70ddae33a",
+   "ticks": 1137276,
+   "url": "https://ticks.ex2archive.com/ticks/EURUSD/2024/10/Exness_EURUSD_2024_10.zip"
+  },
+  "Exness_EURUSD_2024_11.zip": {
+   "bytes": 10575547,
+   "dropped_ask_below_bid": 0,
+   "sha256": "c5adbfab6cda52ed26756d9e79084aeb4a18f824494c12d0c1cec0b3bead1082",
+   "ticks": 1527897,
+   "url": "https://ticks.ex2archive.com/ticks/EURUSD/2024/11/Exness_EURUSD_2024_11.zip"
+  },
+  "Exness_EURUSD_2024_12.zip": {
+   "bytes": 9400111,
+   "dropped_ask_below_bid": 0,
+   "sha256": "c79f73e1a3d8d5c057ebe9339e3da3a27963f2224abc36d6c55039a4e9ed55e2",
+   "ticks": 1364707,
+   "url": "https://ticks.ex2archive.com/ticks/EURUSD/2024/12/Exness_EURUSD_2024_12.zip"
+  },
+  "Exness_EURUSD_2025_01.zip": {
+   "bytes": 11337963,
+   "dropped_ask_below_bid": 0,
+   "sha256": "70086d27f7c52dc4c1c23358720cd82a69b1fae8a54c5dd7858b61c1652fd8a3",
+   "ticks": 1654850,
+   "url": "https://ticks.ex2archive.com/ticks/EURUSD/2025/01/Exness_EURUSD_2025_01.zip"
+  },
+  "Exness_EURUSD_2025_02.zip": {
+   "bytes": 9598001,
+   "dropped_ask_below_bid": 0,
+   "sha256": "049e10b6b480f8de1ac435923c0d9e40ca90ecd1062769626c2624dcf8e9626b",
+   "ticks": 1399064,
+   "url": "https://ticks.ex2archive.com/ticks/EURUSD/2025/02/Exness_EURUSD_2025_02.zip"
+  },
+  "Exness_EURUSD_2025_03.zip": {
+   "bytes": 11277923,
+   "dropped_ask_below_bid": 0,
+   "sha256": "a753b92ef8bde09d3fc30bd52c333ed4c2d10cd215d2e3ed182cce7dc5471f89",
+   "ticks": 1641241,
+   "url": "https://ticks.ex2archive.com/ticks/EURUSD/2025/03/Exness_EURUSD_2025_03.zip"
+  },
+  "Exness_EURUSD_2025_04.zip": {
+   "bytes": 20474422,
+   "dropped_ask_below_bid": 0,
+   "sha256": "4b3f0499ecd33cec2bce3a00d4a32b00f39fbe0b1a783532981b086aa2bacd6a",
+   "ticks": 3041385,
+   "url": "https://ticks.ex2archive.com/ticks/EURUSD/2025/04/Exness_EURUSD_2025_04.zip"
+  },
+  "Exness_EURUSD_2025_05.zip": {
+   "bytes": 12903873,
+   "dropped_ask_below_bid": 0,
+   "sha256": "59234822537f196f8244cb3edaad34672f16c3181aea44a201e4bf60a50e2051",
+   "ticks": 1887292,
+   "url": "https://ticks.ex2archive.com/ticks/EURUSD/2025/05/Exness_EURUSD_2025_05.zip"
+  },
+  "Exness_EURUSD_2025_06.zip": {
+   "bytes": 10945509,
+   "dropped_ask_below_bid": 0,
+   "sha256": "bf19c4f5d38bbc89f4ffe83a8c4557cf06dd526c609de5c1cf164a233d4b06ed",
+   "ticks": 1591795,
+   "url": "https://ticks.ex2archive.com/ticks/EURUSD/2025/06/Exness_EURUSD_2025_06.zip"
+  },
+  "Exness_EURUSD_2025_07.zip": {
+   "bytes": 10219866,
+   "dropped_ask_below_bid": 0,
+   "sha256": "065779532551f0c42760f04c886a4bd05ac078bae63a4fe3332426a805b59454",
+   "ticks": 1491075,
+   "url": "https://ticks.ex2archive.com/ticks/EURUSD/2025/07/Exness_EURUSD_2025_07.zip"
+  },
+  "Exness_EURUSD_2025_08.zip": {
+   "bytes": 8519456,
+   "dropped_ask_below_bid": 0,
+   "sha256": "726db0b42046700499acc738fe03ba50e41a62d765fb9a7f7d6efbee26eaec60",
+   "ticks": 1246792,
+   "url": "https://ticks.ex2archive.com/ticks/EURUSD/2025/08/Exness_EURUSD_2025_08.zip"
+  },
+  "Exness_EURUSD_2025_09.zip": {
+   "bytes": 7586602,
+   "dropped_ask_below_bid": 0,
+   "sha256": "7c4270f5df118ba171dae6dcc7b6acce2bcd7ef0ed5e8ae64705a569b8c3e607",
+   "ticks": 1173327,
+   "url": "https://ticks.ex2archive.com/ticks/EURUSD/2025/09/Exness_EURUSD_2025_09.zip"
+  },
+  "Exness_EURUSD_2025_10.zip": {
+   "bytes": 7782940,
+   "dropped_ask_below_bid": 0,
+   "sha256": "acf15ce5f50c81cf62072be1ba4eefcf33f28f45be8f97317dbf8fa5a6ab8705",
+   "ticks": 1212030,
+   "url": "https://ticks.ex2archive.com/ticks/EURUSD/2025/10/Exness_EURUSD_2025_10.zip"
+  },
+  "Exness_EURUSD_2025_11.zip": {
+   "bytes": 5373035,
+   "dropped_ask_below_bid": 0,
+   "sha256": "51364ba2c2129fca4a0dfb5355dba73999028b05222796e34d61b8569e7381c7",
+   "ticks": 824106,
+   "url": "https://ticks.ex2archive.com/ticks/EURUSD/2025/11/Exness_EURUSD_2025_11.zip"
+  },
+  "Exness_EURUSD_2025_12.zip": {
+   "bytes": 5651770,
+   "dropped_ask_below_bid": 0,
+   "sha256": "d2e560f6209c1964333f9cac1209c681158ecc4fdbdaa9eeae07575ee33a7cbc",
+   "ticks": 862848,
+   "url": "https://ticks.ex2archive.com/ticks/EURUSD/2025/12/Exness_EURUSD_2025_12.zip"
+  },
+  "Exness_EURUSD_2026_01.zip": {
+   "bytes": 7515516,
+   "dropped_ask_below_bid": 0,
+   "sha256": "a83502472db7504bf7137e447739ef86330bf1d6fc0032d258b5dae311942405",
+   "ticks": 1164811,
+   "url": "https://ticks.ex2archive.com/ticks/EURUSD/2026/01/Exness_EURUSD_2026_01.zip"
+  },
+  "Exness_EURUSD_2026_02.zip": {
+   "bytes": 6287560,
+   "dropped_ask_below_bid": 0,
+   "sha256": "d05a01821819f83a9433ef021cd1351d32761f2126cf011b3c5c84a407443d7c",
+   "ticks": 965887,
+   "url": "https://ticks.ex2archive.com/ticks/EURUSD/2026/02/Exness_EURUSD_2026_02.zip"
+  },
+  "Exness_EURUSD_2026_03.zip": {
+   "bytes": 11670227,
+   "dropped_ask_below_bid": 0,
+   "sha256": "f3461bf0284dc407a78756862cf723828de50245c0297cda0f3d9ec4de89f548",
+   "ticks": 1828309,
+   "url": "https://ticks.ex2archive.com/ticks/EURUSD/2026/03/Exness_EURUSD_2026_03.zip"
+  },
+  "Exness_EURUSD_2026_04.zip": {
+   "bytes": 7229161,
+   "dropped_ask_below_bid": 0,
+   "sha256": "5737197e72c96022b1bd5fa232d157c33b9c4631a48cbbc90ac9e990ac835685",
+   "ticks": 1120236,
+   "url": "https://ticks.ex2archive.com/ticks/EURUSD/2026/04/Exness_EURUSD_2026_04.zip"
+  },
+  "Exness_EURUSD_2026_05.zip": {
+   "bytes": 5741214,
+   "dropped_ask_below_bid": 0,
+   "sha256": "aab518d31cb7e22467f79be6d20a3510f69fbdb0779949b2cb1418c3983f16cf",
+   "ticks": 879101,
+   "url": "https://ticks.ex2archive.com/ticks/EURUSD/2026/05/Exness_EURUSD_2026_05.zip"
+  },
+  "Exness_EURUSD_2026_06.zip": {
+   "bytes": 6099097,
+   "dropped_ask_below_bid": 0,
+   "sha256": "cfa36e1dcdc5daaf39c0d0490321da63613ac9a99ec7f55a7dd4a3d6d18482d6",
+   "ticks": 937966,
+   "url": "https://ticks.ex2archive.com/ticks/EURUSD/2026/06/Exness_EURUSD_2026_06.zip"
+  },
+  "Exness_EURUSD_2026_07.zip": {
+   "bytes": 5965838,
+   "dropped_ask_below_bid": 0,
+   "sha256": "c1f76419abfce2f7d41df4fd3820853ecc399b31ad33ec8e99622de1e9897755",
+   "ticks": 913364,
+   "url": "https://ticks.ex2archive.com/ticks/EURUSD/2026/07/Exness_EURUSD_2026_07.zip"
+  },
+  "Exness_EURUSD_2026_08.zip": {
+   "bytes": 4670617,
+   "dropped_ask_below_bid": 0,
+   "sha256": "90026b4f341a6359753409f8a5209ccda19229d71b69d590b94c4625f9ab72f3",
+   "ticks": 711604,
+   "url": "https://ticks.ex2archive.com/ticks/EURUSD/2026/08/Exness_EURUSD_2026_08.zip"
+  },
+  "Exness_EURUSD_2026_09.zip": {
+   "bytes": 5467945,
+   "dropped_ask_below_bid": 0,
+   "sha256": "67f15e7d270e211ee234c3531b880173f094511654023110dd6a37914e5c51cc",
+   "ticks": 822037,
+   "url": "https://ticks.ex2archive.com/ticks/EURUSD/2026/09/Exness_EURUSD_2026_09.zip"
+  },
+  "Exness_EURUSD_2026_10.zip": {
+   "bytes": 6131376,
+   "dropped_ask_below_bid": 0,
+   "sha256": "a7c99294636a3013ad3493c8ba41d68260ac844d714f58de5d2b63734d1e08a3",
+   "ticks": 928924,
+   "url": "https://ticks.ex2archive.com/ticks/EURUSD/2026/10/Exness_EURUSD_2026_10.zip"
+  },
+  "Exness_GBPUSD_2024_09.zip": {
+   "bytes": 10086630,
+   "dropped_ask_below_bid": 0,
+   "sha256": "87e9396eba7579ab5c5e815a7dedcae034c9fd1b70cbbc6a34faa20180c4a61c",
+   "ticks": 1434256,
+   "url": "https://ticks.ex2archive.com/ticks/GBPUSD/2024/09/Exness_GBPUSD_2024_09.zip"
+  },
+  "Exness_GBPUSD_2024_10.zip": {
+   "bytes": 11265094,
+   "dropped_ask_below_bid": 0,
+   "sha256": "85eabf217c440d37dfe29b20defc7d0404897e80ff88019fdd75300e867afd31",
+   "ticks": 1604619,
+   "url": "https://ticks.ex2archive.com/ticks/GBPUSD/2024/10/Exness_GBPUSD_2024_10.zip"
+  },
+  "Exness_GBPUSD_2024_11.zip": {
+   "bytes": 12064289,
+   "dropped_ask_below_bid": 0,
+   "sha256": "3f0a8dab49ec8d1c17d3663e3608c52cf0d2f594ccb91bac7769b49a0a3471f2",
+   "ticks": 1712454,
+   "url": "https://ticks.ex2archive.com/ticks/GBPUSD/2024/11/Exness_GBPUSD_2024_11.zip"
+  },
+  "Exness_GBPUSD_2024_12.zip": {
+   "bytes": 10481827,
+   "dropped_ask_below_bid": 0,
+   "sha256": "af4a5b42107ff2b743de8635e6c7d7f51140aaaa2934033450bb4d47055d9d85",
+   "ticks": 1484482,
+   "url": "https://ticks.ex2archive.com/ticks/GBPUSD/2024/12/Exness_GBPUSD_2024_12.zip"
+  },
+  "Exness_GBPUSD_2025_01.zip": {
+   "bytes": 13593730,
+   "dropped_ask_below_bid": 0,
+   "sha256": "e4190ed9253dd624843b54732ec10ea25bbf65dbe65f1d63c33eac7a688f5534",
+   "ticks": 1936452,
+   "url": "https://ticks.ex2archive.com/ticks/GBPUSD/2025/01/Exness_GBPUSD_2025_01.zip"
+  },
+  "Exness_GBPUSD_2025_02.zip": {
+   "bytes": 11121207,
+   "dropped_ask_below_bid": 0,
+   "sha256": "d8be96d301f31b54584e16d9d0c60308df8ca1100b90983818ab23d7c1133fc3",
+   "ticks": 1583983,
+   "url": "https://ticks.ex2archive.com/ticks/GBPUSD/2025/02/Exness_GBPUSD_2025_02.zip"
+  },
+  "Exness_GBPUSD_2025_03.zip": {
+   "bytes": 11415936,
+   "dropped_ask_below_bid": 0,
+   "sha256": "baeed9cb775f57ddeb4eb6b59a0b0edc7b1592472cea83b074ceebd724c5a927",
+   "ticks": 1624420,
+   "url": "https://ticks.ex2archive.com/ticks/GBPUSD/2025/03/Exness_GBPUSD_2025_03.zip"
+  },
+  "Exness_GBPUSD_2025_04.zip": {
+   "bytes": 17764826,
+   "dropped_ask_below_bid": 0,
+   "sha256": "4666ad979ddfccc42d294ecf42896fd040379a87cb803d6758ee965e29a30aa3",
+   "ticks": 2557257,
+   "url": "https://ticks.ex2archive.com/ticks/GBPUSD/2025/04/Exness_GBPUSD_2025_04.zip"
+  },
+  "Exness_GBPUSD_2025_05.zip": {
+   "bytes": 12210286,
+   "dropped_ask_below_bid": 0,
+   "sha256": "464f656e09dcbed94a0cd49b7d1a4af471791f5bfce0a5b17cd1b8479bb69c11",
+   "ticks": 1734563,
+   "url": "https://ticks.ex2archive.com/ticks/GBPUSD/2025/05/Exness_GBPUSD_2025_05.zip"
+  },
+  "Exness_GBPUSD_2025_06.zip": {
+   "bytes": 11307800,
+   "dropped_ask_below_bid": 0,
+   "sha256": "213b8a1c1e5c3a0ff1ab24fed82578db96d76cab1b4bb3786175b2041cf3058f",
+   "ticks": 1609620,
+   "url": "https://ticks.ex2archive.com/ticks/GBPUSD/2025/06/Exness_GBPUSD_2025_06.zip"
+  },
+  "Exness_GBPUSD_2025_07.zip": {
+   "bytes": 11457922,
+   "dropped_ask_below_bid": 0,
+   "sha256": "33f3cf11016a343d21a5d696414da19098a776f083df2e72ac80f10a62d9a018",
+   "ticks": 1641243,
+   "url": "https://ticks.ex2archive.com/ticks/GBPUSD/2025/07/Exness_GBPUSD_2025_07.zip"
+  },
+  "Exness_GBPUSD_2025_08.zip": {
+   "bytes": 9305326,
+   "dropped_ask_below_bid": 0,
+   "sha256": "f36af769eab51aaea7641c801f48ee47a3313e579f7b5e7a198e770ca54c624f",
+   "ticks": 1342571,
+   "url": "https://ticks.ex2archive.com/ticks/GBPUSD/2025/08/Exness_GBPUSD_2025_08.zip"
+  },
+  "Exness_GBPUSD_2025_09.zip": {
+   "bytes": 8503420,
+   "dropped_ask_below_bid": 0,
+   "sha256": "e546d1e7b25648cb079bd27f7672dd2680708c779948a6b267e361bc213b45c8",
+   "ticks": 1296040,
+   "url": "https://ticks.ex2archive.com/ticks/GBPUSD/2025/09/Exness_GBPUSD_2025_09.zip"
+  },
+  "Exness_GBPUSD_2025_10.zip": {
+   "bytes": 9338948,
+   "dropped_ask_below_bid": 0,
+   "sha256": "d827c3e6eb858d7b4f22433c322f6b83c0e23ad2bda9901cb57de8c2d285a5ec",
+   "ticks": 1432349,
+   "url": "https://ticks.ex2archive.com/ticks/GBPUSD/2025/10/Exness_GBPUSD_2025_10.zip"
+  },
+  "Exness_GBPUSD_2025_11.zip": {
+   "bytes": 8140897,
+   "dropped_ask_below_bid": 0,
+   "sha256": "95186f1a5e946372b74f08b7f08d055b3c64d1ce584860b9ceb186731823ad82",
+   "ticks": 1257793,
+   "url": "https://ticks.ex2archive.com/ticks/GBPUSD/2025/11/Exness_GBPUSD_2025_11.zip"
+  },
+  "Exness_GBPUSD_2025_12.zip": {
+   "bytes": 7806176,
+   "dropped_ask_below_bid": 0,
+   "sha256": "093f75b7d440d05b8e558f2baf67278707ba02c0e9b4df28afaf79550619d048",
+   "ticks": 1186219,
+   "url": "https://ticks.ex2archive.com/ticks/GBPUSD/2025/12/Exness_GBPUSD_2025_12.zip"
+  },
+  "Exness_GBPUSD_2026_01.zip": {
+   "bytes": 9636492,
+   "dropped_ask_below_bid": 0,
+   "sha256": "b4e3771de830adeb0879c5bf0bfa78d819b1d23400cfee2945f0d139ffb249a7",
+   "ticks": 1486763,
+   "url": "https://ticks.ex2archive.com/ticks/GBPUSD/2026/01/Exness_GBPUSD_2026_01.zip"
+  },
+  "Exness_GBPUSD_2026_02.zip": {
+   "bytes": 8755544,
+   "dropped_ask_below_bid": 0,
+   "sha256": "5977a7d7d590d8ee35fc606c21184d68e55502500b8166ff7910f5e3eaec29f7",
+   "ticks": 1337121,
+   "url": "https://ticks.ex2archive.com/ticks/GBPUSD/2026/02/Exness_GBPUSD_2026_02.zip"
+  },
+  "Exness_GBPUSD_2026_03.zip": {
+   "bytes": 14738961,
+   "dropped_ask_below_bid": 0,
+   "sha256": "734b0b5b19757b8d86853c5dd5c04883f1e1ef361f4805e48c61ce39fca02306",
+   "ticks": 2282434,
+   "url": "https://ticks.ex2archive.com/ticks/GBPUSD/2026/03/Exness_GBPUSD_2026_03.zip"
+  },
+  "Exness_GBPUSD_2026_04.zip": {
+   "bytes": 9800526,
+   "dropped_ask_below_bid": 0,
+   "sha256": "a8ea26d3054b67160895ff999ca122b9d51f61eb354b7ac1215463e34e0eb368",
+   "ticks": 1510569,
+   "url": "https://ticks.ex2archive.com/ticks/GBPUSD/2026/04/Exness_GBPUSD_2026_04.zip"
+  },
+  "Exness_GBPUSD_2026_05.zip": {
+   "bytes": 8583671,
+   "dropped_ask_below_bid": 0,
+   "sha256": "bde0d34215eb0f15289a9241ab7c277130ca0288c83f07317e2a8e2d99c5de16",
+   "ticks": 1312645,
+   "url": "https://ticks.ex2archive.com/ticks/GBPUSD/2026/05/Exness_GBPUSD_2026_05.zip"
+  },
+  "Exness_GBPUSD_2026_06.zip": {
+   "bytes": 8700909,
+   "dropped_ask_below_bid": 0,
+   "sha256": "8769b4c0538d68a52b5cf543a70335280a30aee7bb97ad5f06db155889b40e7e",
+   "ticks": 1334189,
+   "url": "https://ticks.ex2archive.com/ticks/GBPUSD/2026/06/Exness_GBPUSD_2026_06.zip"
+  },
+  "Exness_GBPUSD_2026_07.zip": {
+   "bytes": 8783874,
+   "dropped_ask_below_bid": 0,
+   "sha256": "d9c712f15a6e65ca44cdbd8296e4b8499d83aa079ce69d351bd7639b5195d7bf",
+   "ticks": 1338660,
+   "url": "https://ticks.ex2archive.com/ticks/GBPUSD/2026/07/Exness_GBPUSD_2026_07.zip"
+  },
+  "Exness_GBPUSD_2026_08.zip": {
+   "bytes": 6869440,
+   "dropped_ask_below_bid": 0,
+   "sha256": "8a319848ef8c9d6c23f3a0070820cf3266168c7e2ff220ed72d752639b78de36",
+   "ticks": 1046555,
+   "url": "https://ticks.ex2archive.com/ticks/GBPUSD/2026/08/Exness_GBPUSD_2026_08.zip"
+  },
+  "Exness_GBPUSD_2026_09.zip": {
+   "bytes": 8031262,
+   "dropped_ask_below_bid": 0,
+   "sha256": "1a99ad6e93d966a1e54827402f6cf35a8f60f7e3c96ac17160a581f0d8ed0806",
+   "ticks": 1200423,
+   "url": "https://ticks.ex2archive.com/ticks/GBPUSD/2026/09/Exness_GBPUSD_2026_09.zip"
+  },
+  "Exness_GBPUSD_2026_10.zip": {
+   "bytes": 7699439,
+   "dropped_ask_below_bid": 0,
+   "sha256": "74b99567b8369d35c2d187b953902bb1f7e40f7728d28235ce6d0050b62490d1",
+   "ticks": 1149677,
+   "url": "https://ticks.ex2archive.com/ticks/GBPUSD/2026/10/Exness_GBPUSD_2026_10.zip"
+  }
+ }
+}

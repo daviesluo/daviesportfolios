@@ -380,3 +380,211 @@ the recording, backtest carefully on history how much better our strategies woul
   `okx_replay_summary.py` → `results/okx_runs.json`, `results/okx_summary.json`.
 
 No production table was read for this part beyond the studies' committed pulls. Paper money only.
+
+## 8. The long backtest: every Coinbase arm, two years of ticks (FX-SPEED-LONG)
+
+Davies, 2026-10-29: "coinbase的所有策略用更多秒级数据更长时间再深度回测验证下，如果还是正向优化的话把所有coinbase策略的汇率数据源从yahoo换为刚才研究的最佳秒级数据源+fallbacks"
+(backtest every Coinbase strategy again on more second-level data over a longer time; if it is still an improvement, switch every
+Coinbase strategy's FX source from Yahoo to the second-level source with its fallbacks). §7.5 had 19 and 16 days. This is two
+years, every arm as it runs from 2026-10-29, and the rule a switch could actually run. No engine was changed: the switch is a
+separate build.
+
+### 8.1 Answers first
+
+**A switch passes on every Coinbase arm.** The rule (b): read the newest `fx_ticks` quote received by t + 58 s, modelled with
+1 s of source age (L3). Compared with today's Yahoo-timed X (a), on 738 days of history:
+
+| arm | in sample, 2024-10-01 → 2025-11-20 (416 days) | **out of sample, 2025-11-21 → 2026-10-08 (322 days)**, £/yr [90 %], P(≤ 0) | months positive | verdict |
+|---|---|---|---|---|
+| "with Euros" (base, 4 books, $100 a rung) | +£70.5 [+47.2, +95.6] | **+£25.5 [+12.9, +40.3], 0.0000** | 23 of 25 | **switch** |
+| "- 1" (weekend hold, 4 books, $100) | +£77.9 [+52.1, +105.8] | **+£31.3 [+17.9, +46.8], 0.0000** | 23 of 25 | **switch** |
+| "- 2" (USDC books, $50) | +£19.5 [+11.6, +27.7] | **+£5.9 [+2.2, +10.1], 0.0029** | 23 of 25 | **switch** |
+| "- 3" (nudge, USDC-GBP, $50) | +£7.3 [+2.4, +12.4] | **+£3.2 [+0.3, +6.4], 0.032** ("- 2"'s USDC-GBP, §8.6) | 20 of 25 | **switch** (by proxy) |
+
+- **The bar was fixed before any run was read** (`cb_long_stats.py`'s docstring): L3 beats (a) out of sample with P(≤ 0) < 0.10,
+  its mean is above zero in sample too, and at least two thirds of the calendar months are positive. All four arms clear it.
+  So do L5 (3 s of source age), L2, L0 and L3 at TrueFX's own level, on every arm (§8.4).
+- **The size of it.** On the base arm the fast X adds about a fifth: the arm made £129 a year out of sample on (a) and
+  £155 on L3 (£405 and £476 in sample). It fills less often and better: 3,325 → 1,862 trips out of sample, 4.8 → 10.3 bps a trip.
+- **It is not front-loaded over two years.** The monthly gain is positive in 23 of 25 months on the base arm. It is largest in
+  volatile months (April 2025, +£23.7 in the month) and small since December 2025 (+£0.3 to +£8.3 a month, one month
+  −£0.32). The 19-day window of §7.5 sat at the small end, and production confirms only the sign (§8.5).
+- **The level is a tie.** Exness's level (TrueFX's, what `fx_ticks` brings as it is) and Yahoo's (+2.82 bps on EUR/USD) differ
+  by £0.2–3.5 a year in sample: base raw +£73.0 against aligned +£70.5; "- 1" aligned +£77.9 against +£74.4; "- 2" +£19.5
+  against +£19.3. The stated rule reads the level on the in-sample half alone. Aligned wins two arms of three, by too little to
+  matter. Raw drops Yahoo altogether and passes every arm too (§8.4).
+
+### 8.2 The data (all keyless, read-only)
+
+- **Exness's tick archives, GBPUSD and EURUSD, 2024-09 → 2026-10**: 52 monthly zips, 491 MB, 72,847,426 ticks, none with its ask
+  under its bid (`MANIFEST_long.json` has each URL, sha256, size and count).
+  - Plain GETs, no headers changed. The September and October 2026 files are §7's, with the same sha256.
+  - `scripts/exness_long.py build` turns the zips into one per-minute file (17.9 MB, not committed; its uncompressed sha256 is in
+    the manifest). For each minute it holds the tick count and the last mid at 0, 28, 30, 45, 55, 57 and 58 s, '-' past ten
+    minutes old.
+- **Coinbase USDT-USD one-minute closes** for `cb_live`, 2024-09-29 → 2025-11-19: 596,584 minutes, through the CB/OKX study's
+  `fetch_cb_usdt.py` (`data/cb_usdtusd_1m_2024-09-29_2025-11-19.json.gz`). Its two committed files continue them to 10-29.
+- **Coinbase's four books**: SCQ-VENUES' minute bars, 2024-10-01 → 10-08, proven to replay as the prints do. **The production
+  record** 10-10 → 10-28: the CB/OKX study's pulls.
+- **The release calendar**: `cbreview/inputs/release_calendar.json`, 2024-10 → 2026-12, the list `cb_releases.ts` was cut from.
+- **Revolut X's USDC-GBP book** for "- 3": REVX-FAIR's `rx_mid_USDC-GBP.txt.gz`. It is recorded only from 2026-10-09.
+- **Yahoo** answered this machine 429, so its history was not read. The request was not repeated.
+
+### 8.3 What the engine reads, and when (the timing, exactly)
+
+- **When minute t is decided.** `stepMinute` prices minute t's orders on data before t. They go live at t + 60 s (`live: t + M`),
+  where they face minute t + 1's prints. The paper call decides minute t only once the recorder has covered it.
+  `cb_quote_state` showed minute 08:26 decided at 08:28:00.5 UTC on 2026-10-29: t + 120.5 s.
+- **(a) Today.** `fxBarAt` reads Yahoo's newest bar that started in [t − 10 min, t − 1 min]: bar t − 1 in 18,158 of 18,573 lit
+  USDC-GBP minutes of 10-10 → 10-28, an older bar in the rest (`cb_quote_minutes.x_t`). That bar is the price of about t − 32 s
+  (§7.2).
+  - **Reconstruction:** Exness at (t − 1 min) + 28 s, × (1 + 0.33 bps) for GBP/USD and × (1 + 2.82 bps) for EUR/USD. These are
+    §7.2's levels, taken as constant over the two years because Yahoo's older bars could not be read.
+  - A bar exists when Exness has a tick in its minute. The base arm goes dark ten minutes after the newest bar; the held arms
+    hold it up to 60 hours.
+  - **The reconstruction against the real bars, 10-10 → 10-28:** 0.36 bps mean absolute on GBP/USD (p95 0.99) and 0.69 on
+    EUR/USD (p95 1.12; Yahoo moves EUR/USD in 1.1 bps steps). Mean error −0.04 and −0.10 bps.
+  - The reconstruction against the real bars in P&L (§8.5): base +£5.4 a year [−£13.4, +£24.3], "- 1" −£20.5 [−£72.0, +£24.7].
+    Unbiased within noise.
+- **(b) The switch, as it could run.** The paper call runs after t + 60 s, so `fx_ticks` then already holds quotes from after
+  go-live. Reading the newest row would look ahead into the prints the orders face. The implementable rule therefore caps what
+  it reads: the newest TrueFX (or marked fallback) read **received at or before t + 58 s**.
+  - That read carries its source's age: TrueFX's quote was a median 1.4 s old on arrival, and it steps every 2–3 s (§2).
+  - Modelled on Exness's ticks (about one every 2 s in London hours, so every instant already carries a tick's age):
+    - **L3**: Exness's last tick at or before t + 57 s, the rule with 1 s of age. This is (b).
+    - **L5**: at t + 55 s, 3 s of age, the slow edge.
+    - **L2**: at t + 58 s, §7's primary, no age.
+  - A missing value (no tick for ten minutes) is the last one known. Inside a closure every X is held as its arm holds it.
+- **(c) The bound, L0**: Exness at t + 60 s, the price as the orders go live.
+- **L60**: Exness at t. This is what the CB/OKX study's history engine read (its minute close of bar t − 1).
+- **Levels.** "Aligned" carries Yahoo's level (the constants above). "Raw" (`L3_raw`, `L2_raw`, `L0_raw`) is Exness's level,
+  which is TrueFX's (§2: EURUSD=X +2.87 bps over TrueFX, +2.82 over Exness): what `fx_ticks` brings with nothing carried over.
+
+### 8.4 Method and results
+
+- **The engine: PR5's frozen `pr5_sim.simulate`, imported unchanged**, through SCQ-VENUES' `BarBook` on the history and the
+  faithfulness check's `MinuteBook` on the production record.
+  - **Anchor:** on the CB/OKX study's terms (£/€100 a rung, Yahoo, `cb_live`), the production replay reproduces its committed
+    runs trip for trip on all eight arm-book pairs.
+- **The arms as they run from 2026-10-29.**
+  - A rung in dollars: $100 on the base and "- 1", $50 on "- 2" and "- 3". The sizing X is the currency's dollar rate,
+    Exness at the minute's start, the same for every candidate.
+  - **The coin:** `cb_live`, with the 50 bps de-peg guard against Revolut X's F3 from 2025-11-22. Before that there is no
+    reference, so no guard. Over the two years, 852 USDT minutes had no coin value: no candle in ten minutes, or the guard.
+  - **The releases:** the [T − 1, T + 5] blackout around every listed release, 665 minutes.
+  - Coinbase's taker plus half the touch on a stop. P&L in pounds at the exit minute's GBP/USD.
+  - Only F, the fair, differs between candidates. Each arm's dark minutes are the same for all of them.
+- **Scoring.**
+  - Paired with (a) by the UTC day of each trip's exit, a day with no trip counting zero. Bootstrap: 3-day circular blocks,
+    10,000 draws, seed 20261029.
+  - **In sample** is 2024-10-01 → 2025-11-20; nothing was chosen on it but the level (§8.1). **Out of sample** is 2025-11-21 →
+    2026-10-08, the CB/OKX study's history window, which no FX-timing choice here had read.
+  - The windows were fixed in `cb_long.py` before any run.
+- **Runs.** 100 runs on the history (1,062,720 minutes a book) and 121 on the production record, plus the 8 anchors. About six minutes on four cores.
+
+**All books, £/yr against (a), out of sample [90 %] and P(≤ 0)** (in sample in brackets after):
+
+| candidate | base | "- 1" | "- 2" |
+|---|---|---|---|
+| a_raw (timing of (a), Exness's level) | +11.8 [+2.9, +21.2] 0.012 (IS +7.0) | — | — |
+| L60 (Exness at t) | +13.1 [+2.8, +23.5] 0.016 (IS +21.6) | — | — |
+| **L3 = (b)** | **+25.5 [+12.9, +40.3] 0.0000 (IS +70.5)** | **+31.3 [+17.9, +46.8] 0.0000 (IS +77.9)** | **+5.9 [+2.2, +10.1] 0.003 (IS +19.5)** |
+| L5 (3 s of age) | +30.8 [+18.5, +45.3] 0.0000 (IS +76.3) | +37.1 [+23.9, +52.2] 0.0000 (IS +80.9) | +7.3 [+3.2, +11.7] 0.0004 (IS +21.8) |
+| L2 | +27.8 [+14.5, +42.9] 0.0001 (IS +85.4) | +32.9 [+18.9, +48.4] 0.0000 (IS +92.5) | +6.3 [+2.2, +10.8] 0.004 (IS +23.1) |
+| L0, the bound (c) | +24.1 [+10.9, +39.9] 0.0001 (IS +77.8) | +29.8 [+15.9, +46.2] 0.0000 (IS +83.6) | +3.9 [+0.2, +8.4] 0.042 (IS +18.7) |
+| L3_raw (TrueFX's level) | +26.8 [+12.9, +42.6] 0.0001 (IS +73.0) | +28.0 [+12.4, +45.5] 0.0005 (IS +74.4) | +4.5 [+0.0, +9.4] 0.049 (IS +19.3) |
+
+- **L0, L2, L3 and L5 are one plateau.** Their differences are inside the noise: L5 above L0 is not a real effect. As in §7.7,
+  a quote read within a few seconds of go-live captures the bound. A mid-minute bar (Yahoo's) and a minute close (L60) capture
+  much less of it.
+- **The CB/OKX study's history engine read L60.** Its absolute figures were therefore about £13–22 a year better than
+  production's real timing on the base arm. Its comparisons between fairs are unaffected: every fair there shared the same X.
+
+**Each arm's own record** (L3 against (a); out of sample, then in sample):
+
+| arm | (a): £, trips, stops, bps a trip, worst day | L3: £, trips, stops, bps a trip, worst day |
+|---|---|---|
+| base, OOS | £114.03, 3,325, 82, 4.80, −£4.76 | £136.54, 1,862, 95, 10.31, −£0.76 |
+| base, IS | £461.51, 9,402, 200, 6.51, −£4.31 | £541.86, 5,837, 219, 12.21, −£4.27 |
+| "- 1", OOS | £154.72, 3,977, 215, 5.46, −£4.76 | £182.35, 2,489, 230, 10.38, −£2.00 |
+| "- 1", IS | £552.35, 10,440, 425, 7.03, −£4.04 | £641.14, 6,829, 454, 12.40, −£3.47 |
+| "- 2", OOS | £26.04, 1,434, 85, 4.95, −£1.34 | £31.22, 773, 91, 11.01, −£0.50 |
+| "- 2", IS | £106.19, 4,302, 222, 6.52, −£0.95 | £128.43, 2,697, 227, 12.56, −£0.97 |
+
+- Stops rise slightly, by 2 to 16 %. Their cost is inside the figures above.
+
+**By book, L3 against (a), £/yr out of sample [90 %], P(≤ 0); months positive of 25:**
+
+| book | base | "- 1" | "- 2" |
+|---|---|---|---|
+| USDC-GBP | +7.2 [+1.7, +13.4] 0.013; 20 | +6.4 [+0.5, +12.8] 0.035; 20 | +3.2 [+0.3, +6.4] 0.032; 20 |
+| USDT-GBP | +5.2 [−0.4, +11.3] 0.064; 16 | +8.5 [+2.3, +15.0] 0.012; 18 | — |
+| USDC-EUR | +4.3 [+0.9, +8.2] 0.015; 19 | +5.2 [+1.5, +9.4] 0.010; 20 | +2.6 [+0.7, +4.7] 0.010; 20 |
+| USDT-EUR | +8.8 [+4.0, +13.7] 0.0005; 19 | +11.2 [+6.1, +16.5] 0.0000; 20 | — |
+
+- Every book is positive in both halves. The weakest is the base arm's USDT-GBP: 16 of 25 months, just short of two thirds,
+  and P 0.064.
+- The level matters most on USDT-EUR. Its 0.00001 step resolves Yahoo's 2.82 bps: today's level alone (`a_raw`) is +£9.1 a year
+  out of sample there.
+
+**By month, L3 against (a), base arm, £:**
+- 2024-10 −0.43, 11 +2.23, 12 +2.26.
+- 2025-01 +12.44, 02 +8.69, 03 +3.36, 04 +23.71, 05 +6.61, 06 +3.51, 07 +4.78, 08 +6.47, 09 +2.34, 10 +2.07, 11 +3.21,
+  12 +0.70.
+- 2026-01 +0.35, 02 +0.80, 03 +8.27, 04 +3.62, 05 +0.62, 06 +2.32, 07 −0.32, 08 +0.62, 09 +3.59, 10 (to 10-08) +1.04.
+
+"- 1" has the same shape: negative in 2024-10 and 2026-07 only. "- 2" is negative in 2024-11 and 2026-02. The gain scales with
+how much GBP/USD and EUR/USD move inside a minute, and with what the arm earns at all. Both fell from 2025 to 2026.
+
+### 8.5 The production record, 2026-10-10 (10-13) → 10-28, against Yahoo's real bars
+
+| arm | (a) reconstructed vs Yahoo | L3 vs Yahoo, £/yr [90 %], P(≤ 0) | L0 vs Yahoo | Yahoo's own record |
+|---|---|---|---|---|
+| base (19 days) | +5.4 [−13.4, +24.3] | +32.4 [−12.4, +94.2], 0.19 | +64.7 [+15.7, +136.1], 0.0000 | £6.41, 159 trips |
+| "- 1" (16 days) | −20.5 [−72.0, +24.7] | +15.0 [−60.4, +101.1], 0.41 | +51.2 [−28.7, +143.3], 0.18 | £7.29, 173 trips |
+| "- 2" (16 days) | +2.0 [−17.1, +20.8] | +5.7 [−17.8, +30.1], 0.36 | +15.5 [−6.6, +38.0], 0.14 | £3.29, 100 trips |
+| "- 3" (16 days, real nudge) | +3.3 [−3.5, +10.6] | +6.0 [−7.3, +20.3], 0.25 | +11.4 [+1.4, +22.5], 0.024 | £2.69, 66 trips |
+
+- **The signs agree with the history; the production weeks alone decide nothing.**
+- §7.5's +£66 on the base arm was L2 with a trailing Yahoo offset and £/€ rungs. Here L2 is +£12.6 on USDC-GBP and +£11.5 on
+  USDC-EUR. The differences between the two runs are the dollar rungs, the guard and the offset.
+
+### 8.6 "- 3", the nudge arm
+
+- **"- 3" is "- 2"'s USDC-GBP outside FX closures.** Its nudge acts only inside them, where every X is held, so a faster X
+  changes "- 3" only through its weekday fair.
+- **The nudge could not be replayed on the history.** Revolut X's book starts 2026-10-09; its prints, 45 a day, are not its mid.
+- **How much of "- 2"'s USDC-GBP gain falls inside closures:** for trips entered in a closure, −£0.2 a year in sample and −£0.1 out
+  of sample. For trips entered outside, +£7.4 and +£3.4.
+  - So "- 3"'s history verdict is "- 2"'s USDC-GBP: +£7.3 in sample, +£3.2 out of sample [+0.3, +6.4], P 0.032, 20 of 25 months.
+  - On the production record with its real nudge: +£6.0 against Yahoo [−£7.3, +£20.3], P 0.25.
+
+### 8.7 What this does not show, and what a build needs
+
+- **TrueFX's history is not Exness's.** The recorder's §4 comparison measures TrueFX's lag and coverage, and Kraken's, against a
+  tick reference. L5 (3 s of age) still passes every arm, so a feed up to about 3 s slower than modelled loses nothing
+  measurable.
+  - The fallback (Kraken, 2 s behind TrueFX, EUR/USD 1.3 bps under) was not modelled separately. It sits inside L5's age; its
+    level offset is smaller than the tie in §8.1.
+- **Yahoo's level before September 2026 is assumed.** 0.33 and 2.82 bps were measured on 09-20 → 10-28. The comparison on raw
+  levels (L3_raw against a_raw: the same level on both sides) is not exposed to that assumption, and it passes too.
+- **The history is minute bars,** proven equal to the prints for this simulator. The one-minute rule and the 24-hour stop are
+  the engine's. No queue, latency or fee change was modelled beyond §8.3's timing.
+- **The switch is a rule change for each arm's pre-registration.**
+  - X at t + 58 s by arrival, rather than Yahoo's bar t − 1.
+  - Darkness from `fx_ticks`' freshness: TrueFX healthy or Kraken marked.
+  - Yahoo kept, or not, for the level.
+  - It is a deviation for every Coinbase arm, a migration and an engine change. Here, nothing was changed.
+
+### 8.8 Files
+
+`backtests/fx_speed/`:
+- `scripts/exness_long.py`: fetch, build, manifest. Writes `MANIFEST_long.json`, the 52 zips' sha256 and the derived file's.
+- `scripts/cb_long.py`: the runs. Its output (4.1 MB) is not committed.
+- `scripts/cb_long_stats.py` → `results/cb_long.json`: every pairing, record, month and verdict, and the anchor.
+- `data/cb_usdtusd_1m_2024-09-29_2025-11-19.json.gz`.
+
+To run it again: `python3 -I scripts/exness_long.py fetch <dir>`, then `build <dir> X.txt.gz`, then
+`python3 -I scripts/cb_long.py X.txt.gz runs.json.gz`, then `python3 -I scripts/cb_long_stats.py runs.json.gz results/cb_long.json`.
+
+One production read was used: `cb_quote_minutes.x_t` and `cb_quote_state`, for §8.3's timing. Paper money only.

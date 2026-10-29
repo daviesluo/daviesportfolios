@@ -785,7 +785,17 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 01:24 UTC section (archived
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
-and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth).
+and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth).
+
+### [2026-10-29 09:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **FX-SPEED-LONG: a fast X passes on every Coinbase arm over two years** (sub-agent; commit, not pushed; Davies, 10-29: "coinbase的所有策略用
+  更多秒级数据更长时间再深度回测验证下…"). `reviews/2026-10-29-fx-second-sources.md` §8, `backtests/fx_speed/` (`cb_long*.py`, `exness_long.py`).
+  52 Exness monthly archives (2024-09 → 2026-10), PR5's frozen simulator, each arm as it runs from 10-29 ($ rungs, `cb_live`, releases).
+  Rule (b) = the `fx_ticks` read received by t + 58 s, 1 s of source age (L3), against Yahoo's bar t − 1 rebuilt (t − 32 s, its level).
+  Out of sample 2025-11-21 → 10-08, £/yr: base +25.5 [+12.9, +40.3], "- 1" +31.3 [+17.9, +46.8], "- 2" +5.9 [+2.2, +10.1],
+  "- 3" (= "- 2"'s USDC-GBP; the nudge is closures-only) +3.2 [+0.3, +6.4]; all P(≤ 0) < 0.04, 23 of 25 months positive (20 on "- 3"),
+  in sample +70.5/+77.9/+19.5/+7.3. Level (Yahoo's or TrueFX's) a tie. 19 production days agree in sign only. Engines unchanged: the
+  switch is a separate build (a deviation per arm).
 
 ### [2026-10-29 08:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Coinbase rows renamed, the base test off the page** (sub-agent; commit, not pushed; Davies, 10-29: "coinbase quotes with euros删了吧，因为加周末
@@ -905,30 +915,3 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
     costs −3.06 bps a day, all of it USDT.
   - **One lead, USDC-GBP only:** a nudge by Coinbase's USDC-GBP deviation, +0.64 / +0.58 bps a day (P ≤ 0 0.09 / 0.08), 18 days.
   - **For Davies:** keep the fair; a paper twin of the USDC nudge if he wants one. No live change.
-
-### [2026-10-29 05:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **GROKPM's money limits as percentages, D19** (landed 13dfb422, deployed 10-29 ~06:00 UTC; the day's basis read back from `state.dayOpen`; a follow-up
-  swapped a pinned cents row that matched the live book for $107.37, moving the prereg sha to `f7ec205c…`; Davies, 10-29: "把polymarket的策略里的钱全换成百分比，
-  这样的话可以有效实现盈利资金的再利用"; item 15).
-  - **The basis** is the day stop's own opening equity (`state.dayOpen`: the first reading of the UTC day, the agent's own book), so a cap
-    holds still within a day and compounds day to day. Market 10 %, theme 25 %, cash kept 30 %, D15 5 %, D18 10 %, day stop −10 %
-    (`_shared/grokpm_public.ts`, `grokpmCaps`; caps and the day stop to the cent down, the cash kept up). Total stop −$30 of FUNDED unchanged.
-  - **Pinned** (`grokpm/exec.test.ts`, "D19: …"): $100 gives today's dollars exactly; $150 gives 15 / 37.50 / 45 / 7.50 / 15 and −15; $80
-    gives 8 / 20 / 24 / 4 / 8 and −8; a win raising the next day's caps; a loss tripping the day stop at −$8.
-  - **Reads.** `?action=account` adds `cap_basis_usd` and the `*_pct` fields, `checks.caps` records each order's basis, and a refusal names
-    "$15 (10 % of the $150 cap basis)". The page's day stop is 10 % of the record's day open (fixture, sweep and test now $10.16, $10.86 of room).
-  - **Docs.** Prereg §9 D19 (sha `4c49e5e2…`), map row, guide, `docs/agents/CLAUDE.md`. No migration.
-
-### [2026-10-29 04:18 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **The three Coinbase arms in whole dollars** (sub-agent; commit, not pushed; Davies, 10-29: "Coinbase策略中funded数字怎么那么奇怪，都改成整数调整").
-  FUNDED had been £1,200 + €1,200 (or £150 + €150) in dollars, about $2,937 and $367. Now $100 a rung, $2,400 for "with Euros"
-  and "- 1", and $25 a rung, $300 for "- 2" (the USDC arm keeps its quarter size).
-  - **The prereg deviations.** Base Deviation 4, weekend Deviation 3, USDC Deviation 1. Each quotes Davies, gives its bytes, and
-    reads its bar in dollars. The cbwk MANIFEST is regenerated with its groups unchanged. The USDC test holds §5's originals and the
-    new bytes.
-  - **How.** `stepMinute` is untouched: X is the dollar rate and fairU the dollar fair (`cbMinuteInputs(…, usd)`), so the fair is
-    the same number.
-  - **The switch.** Each arm's first minute ≥ 2026-10-29 00:00 UTC with both rates (`cbUsdSwitch`). It is written to
-    `cb_*_state.state` (`usdFrom`, `usdGbpusd`, `usdEurusd`, `usdFactor`).
-  - **The page** (`readCoinbaseUsd`) scales what came before the switch by its book's factor: 1/GBP/USD or 1/EUR/USD, 0.7505 and
-    0.8968 at 04:06 UTC, 0.817 an arm. No migration. The readings quote `usdFrom` and the factors from each state.
