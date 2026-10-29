@@ -331,7 +331,7 @@ places stay when the number is not whole.
   A test with twice the pounds on USDT/GBP (USDT 2:1) runs behind the page and
   is not shown. The tests that ignored a fill of £1 or less and that put three
   times the pounds on USDT/GBP have stopped.
-- **Since 30 Oct 00:00 UTC the live account quotes the USDT/GBP book alone**,
+- **Since 29 Oct 22:30 UTC the live account quotes the USDT/GBP book alone**,
   and is called "Stablecoin quotes USDT/GBP": its six USDT/GBP rungs share
   all of its money (£100 a rung at £600), and USDC/GBP quotes nothing new,
   though a USDC position still sells as before. The study of 29 Oct found
@@ -342,10 +342,10 @@ places stay when the number is not whole.
   (now "Stablecoin quotes USDT/GBP LIVE twin"), variant-1, -2, -3 and -6 make
   the same switch at the same minute.
 - **Stablecoin quotes variant-4.** The live account's rules at £600 on both
-  books with the money split evenly (USDT-only until 30 Oct 00:00). Under its
-  scoreboard a line gives each book's realised return a year since 30 Oct
-  00:00 and USDT's over USDC's, so the two coins can be compared.
-- **Stablecoin quotes variant-5.** From 30 Oct 00:00 UTC: variant-4 with its
+  books with the money split evenly (USDT-only until 29 Oct 22:30). Under its
+  scoreboard a line gives each book's realised return a year since 29 Oct
+  22:30 and USDT's over USDC's, so the two coins can be compared.
+- **Stablecoin quotes variant-5.** From 29 Oct 22:30 UTC: variant-4 with its
   USDC/GBP fair price nudged each minute by half of how far Coinbase's own
   USDC/GBP price has moved off its usual gap to that fair (the fair-price
   study of 29 Oct found this the one change worth testing), compared with

@@ -76,10 +76,10 @@ describe("PR5-OPT's three twins on LIVE's rules", () => {
     expect(driver).toMatch(/\n {2}holdMin: \(v\) => \{/);
     const inst = /export const QUOTE_LIVE_INSTANCE: QuoteLiveInstance = \{([\s\S]*?)\n\};/.exec(live)?.[1] ?? '';
     expect(inst).toContain('agent_quote_live_config');
-    // Davies, 2026-10-29 (docs/agents/reviews/2026-10-29-usdt-only-deviation.md): LIVE quotes USDT-GBP alone from 2026-10-30 00:00 UTC.
+    // Davies, 2026-10-29 (docs/agents/reviews/2026-10-29-usdt-only-deviation.md): LIVE quotes USDT-GBP alone from 2026-10-29 22:30 UTC (0179).
     expect([...inst.matchAll(/weights/g)].length).toBe(1);
     expect(inst).toContain('weights: { from: QUOTE_LIVE_USDT_ONLY_FROM, book: { "USDC-GBP": 0, "USDT-GBP": 1 } },');
-    expect(live).toContain('export const QUOTE_LIVE_USDT_ONLY_FROM = Date.parse("2026-10-30T00:00:00Z");');
+    expect(live).toContain('export const QUOTE_LIVE_USDT_ONLY_FROM = Date.parse("2026-10-29T22:30:00Z");');
     // Davies, 2026-10-29 (docs/agents/reviews/2026-10-29-holdmin-deviation.md): variant-6's rule (the £1 holding line, this
     // pre-registration's) goes to LIVE from 2026-10-29 22:00 UTC, with every running twin.
     expect([...inst.matchAll(/holdMin/g)].length).toBe(1);

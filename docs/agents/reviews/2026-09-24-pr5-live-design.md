@@ -412,3 +412,6 @@ automatic conversion (`request.auto`, `request.drain`): step 1 cancels it as a t
 re-peg are untouched. The page names LIVE "Stablecoin quotes USDT/GBP" and books a sale out of the coin's lots first in, first
 out. Before the instant the executor is as it was (`quotes_live_instance.test.ts` against `quotes_live_frozen.ts`). Every twin on
 LIVE's rules takes the same weights at the same instant (`0178`; `reviews/2026-10-29-usdt-only-deviation.md`). Not blind.
+
+**Moved to 2026-10-29 22:30 UTC** (Davies, 21:59 UTC: "现在就生效吧 或者22:00生效"; `0179`, `reviews/2026-10-29-usdt-only-2230-deviation.md`):
+`QUOTE_LIVE_USDT_ONLY_FROM` and `QUOTE_LIVE_REBOOK_SINCE` are 22:30, the rebook runs to 2026-11-01 22:30; nothing else changed.

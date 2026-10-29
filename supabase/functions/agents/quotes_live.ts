@@ -217,16 +217,16 @@ export const QUOTE_LIVE_HOLD_MIN_FROM = Date.parse("2026-10-29T22:00:00Z");
  * （live策略改名为Stablecoin quotes USDT/GBP）…（换币也用挂单不要有转换损失）", on docs/agents/reviews/2026-10-29-usdt-only.md):
  * `weights` give USDC-GBP's six rungs 0 and USDT-GBP's six the whole capital, a sixth each. USDC-GBP quotes no entry from
  * then; a USDC holding still exits and stops. Its coin is sold and USDT bought by maker orders alone (`rebookOn`). Every twin
- * on LIVE's rules takes the same weights at the same instant (migration 0178); recorded in
+ * on LIVE's rules takes the same weights at the same instant (migration 0178, its instant moved by 0179); recorded in
  * docs/agents/reviews/2026-10-29-usdt-only-deviation.md.
  */
-export const QUOTE_LIVE_USDT_ONLY_FROM = Date.parse("2026-10-30T00:00:00Z");
+export const QUOTE_LIVE_USDT_ONLY_FROM = Date.parse("2026-10-29T22:30:00Z");
 /**
  * The coin rebook (`rebookOn`): an instance whose weights come into force at this instant or later rebalances its coin to
  * them for QUOTE_LIVE_REBOOK_MS from that instant, by maker orders alone. Weights that came into force earlier (PR5-OPT's
  * twins of 2026-10-28) are as they were.
  */
-export const QUOTE_LIVE_REBOOK_SINCE = Date.parse("2026-10-30T00:00:00Z");   // QUOTE_LIVE_USDT_ONLY_FROM's instant (the tests pin the two equal)
+export const QUOTE_LIVE_REBOOK_SINCE = Date.parse("2026-10-29T22:30:00Z");   // QUOTE_LIVE_USDT_ONLY_FROM's instant (the tests pin the two equal)
 /**
  * How long a rebook runs from its weights' instant. By the rule each book's asks hold a quarter of the capital in coin (three
  * asks of £50 at £600): the switch sells about £150 of USDC and buys as much USDT, a few maker orders of each, re-sent every

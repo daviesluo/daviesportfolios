@@ -183,10 +183,10 @@ for (const r of TWIN_ROWS) {
   });
 }
 
-Deno.test("the live account's instance: the frozen rule's sizes, retirements and conversion cap until 2026-10-30 00:00 UTC and USDT-GBP alone from then (0178); its holding line the venue's minimum until 2026-10-29 22:00 UTC and £1 from then (0176)", () => {
+Deno.test("the live account's instance: the frozen rule's sizes, retirements and conversion cap until 2026-10-29 22:30 UTC and USDT-GBP alone from then (0178, 0179); its holding line the venue's minimum until 2026-10-29 22:00 UTC and £1 from then (0176)", () => {
   const I = Now.QUOTE_LIVE_INSTANCE;
   // USDT-GBP alone from QUOTE_LIVE_USDT_ONLY_FROM (docs/agents/reviews/2026-10-29-usdt-only-deviation.md); the rebook runs three days from it.
-  const U = Date.parse("2026-10-30T00:00:00Z");
+  const U = Date.parse("2026-10-29T22:30:00Z");
   assertEquals([Now.QUOTE_LIVE_USDT_ONLY_FROM, Now.QUOTE_LIVE_REBOOK_SINCE, I.weights, I.rebook], [U, U, { from: U, book: { "USDC-GBP": 0, "USDT-GBP": 1 } }, undefined]);
   assertEquals([Now.rebookOn(I, U - 1), Now.rebookOn(I, U), Now.rebookOn(I, U + 72 * H - 1), Now.rebookOn(I, U + 72 * H)], [false, true, true, false]);
   // Variant-4's £1 holding line from QUOTE_LIVE_HOLD_MIN_FROM (docs/agents/reviews/2026-10-29-holdmin-deviation.md).

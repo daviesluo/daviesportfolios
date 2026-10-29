@@ -152,8 +152,8 @@ describe("the twins' spec rows", () => {
     // A rule is replaced only under its own key, and every replacement and move parses (each `jsonb_set(rules, '{key}'` is one).
     for (const n of OPS.filter((x) => x.kind === 'set')) expect(n.guard, n.id).toBe(n.key);
     for (const f of FILES) expect([...sqlOf(f).matchAll(RULE_SET)].length, f).toBe((sqlOf(f).match(/jsonb_set\(rules, '\{\w+\}'/g) ?? []).length);
-    expect(FILES.filter((f) => [...sqlOf(f).matchAll(RULE_MOVE)].length).map((f) => f.slice(0, 4))).toEqual(['0090', '0154', '0170']);
-    expect(FILES.filter((f) => [...sqlOf(f).matchAll(START)].length).map((f) => f.slice(0, 4))).toEqual(['0154', '0170']);
+    expect(FILES.filter((f) => [...sqlOf(f).matchAll(RULE_MOVE)].length).map((f) => f.slice(0, 4))).toEqual(['0090', '0154', '0170', '0179']);
+    expect(FILES.filter((f) => [...sqlOf(f).matchAll(START)].length).map((f) => f.slice(0, 4))).toEqual(['0154', '0170', '0179']);
     // Every rule move matches the parser that applies it.
     for (const f of FILES) expect([...sqlOf(f).matchAll(RULE_MOVE_OP)].length, f).toBe([...sqlOf(f).matchAll(RULE_MOVE)].length);
     expect(renames.map((n) => [n.file.slice(0, 4), n.id, n.from, n.to])).toEqual([
@@ -318,7 +318,7 @@ describe("the twins' spec rows", () => {
     // 0178 (Davies, 2026-10-29: "把live全换成只做USDT-GBP的…variant-1，2，3，5，7和8也改为在新的实盘基础上做"): LIVE's weights at LIVE's own instant
     // (QUOTE_LIVE_USDT_ONLY_FROM) on every twin on LIVE's rules, both arms of the exit-tick test together; variant-3 keeps its
     // 0.3 % rung at 0 within them; variant-4 and variant-5 USDC:USDT 1:1 from the same instant.
-    const U = '2026-10-30T00:00:00Z', ONLY = { 'USDC-GBP': 0, 'USDT-GBP': 1 }, BOTH = { 'USDC-GBP': 1, 'USDT-GBP': 1 };
+    const U = '2026-10-29T22:30:00Z', ONLY = { 'USDC-GBP': 0, 'USDT-GBP': 1 }, BOTH = { 'USDC-GBP': 1, 'USDT-GBP': 1 };
     const byId = (id) => ROWS.find((r) => r.id === id);
     for (const id of ['live600', 'live1200', 'take50', 'live600x1', 'live600ctl']) expect(byId(id).rules.weights, id).toEqual({ from: U, book: ONLY });
     expect(byId('n600no03').rules.weights).toEqual({ from: U, book: ONLY, k: { '0.001': 1, '0.002': 1, '0.003': 0 } });

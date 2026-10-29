@@ -23,6 +23,12 @@ const holdNamed = (f) => {
 };
 
 /** The USDT-only deviation (0178), recorded apart: the files as they are, under this pre-registration's own heading. */
+/** The 22:30 deviation (0179), recorded apart: the files as they are, under a pre-registration's own heading. */
+const D2230 = read('docs/agents/reviews/2026-10-29-usdt-only-2230-deviation.md').toString('utf8');
+const named2230 = (head, f) => {
+  const s = D2230.indexOf('### `docs/agents/reviews/' + head + '`'), rest = s < 0 ? '' : D2230.slice(s + 1), e = rest.search(/\n##/);
+  return [...rest.slice(0, e < 0 ? undefined : e).matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
+};
 const USDT = read('docs/agents/reviews/2026-10-29-usdt-only-deviation.md').toString('utf8');
 const usdtNamed = (f) => {
   const s = USDT.indexOf('### `docs/agents/reviews/2026-10-29-revx-exit-tick-twin-prereg.md`'), rest = s < 0 ? '' : USDT.slice(s + 1), e = rest.search(/\n##/);
@@ -80,8 +86,8 @@ describe("variant-8's pre-registration", () => {
     // The deviation of 2026-10-29 (0176: variant-4's £1 holding line on LIVE and every twin), recorded apart: the executor as it is.
     const live = 'supabase/functions/agents/quotes_live.ts';
     // Then the USDT-only deviation of 2026-10-29 (0178: LIVE on USDT-GBP alone, the coin rebooked), recorded apart.
-    expect([...named(live), ...holdNamed(live), ...usdtNamed(live)], live).toEqual([
-      '12e3dad7cc9058cedc7cd840fc4ac5d3396b955c842e39fd70f22f18cfad25eb', '99ce22c051431df2fc179ebaf93717460b953f95f87d109466d6f91d55d40bd8', sha(live)]);
+    expect([...named(live), ...holdNamed(live), ...usdtNamed(live), ...named2230('2026-10-29-revx-exit-tick-twin-prereg.md', live)], live).toEqual([
+      '12e3dad7cc9058cedc7cd840fc4ac5d3396b955c842e39fd70f22f18cfad25eb', '99ce22c051431df2fc179ebaf93717460b953f95f87d109466d6f91d55d40bd8', 'eb9790f61931636ca0ee58d7d4fbbb0d2d515fd2e2dc197303fd8f805d79136a', sha(live)]);
     const v7 = read('docs/agents/reviews/2026-10-29-revx-usdc-nudge-twin-prereg.md').toString('utf8');
     for (const f of ['quotes_twin.ts', 'quotes_live.ts', 'revx_sim.ts', 'quotes_weekend.ts']) {
       expect(v7, f).toContain(`| \`supabase/functions/agents/${f}\` | ${named(`supabase/functions/agents/${f}`)[0]} |`);

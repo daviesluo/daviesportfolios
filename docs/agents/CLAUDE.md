@@ -355,7 +355,7 @@ that follow from that evidence, in short:
   resting, its coin carried, no exit; LIVE's `QUOTE_LIVE_HOLD_MIN_FROM`, the twins' `rules.holdMin`, both arms of every paired test
   at the same minute; the verdict `reviews/2026-10-29-holdmin-verdict.md`, the deviation `reviews/2026-10-29-holdmin-deviation.md`):
   `n600hold1` is off and hidden ("hold £1 from 10-28", its reading superseded) and the page names moved down by one, `n600usdt3`
-  "variant-4", `n600usdt` "-5", `u300nudge` "-6", `live600x1` "-7". **Since `0178` (2026-10-30 00:00 UTC; Davies, 2026-10-29: "…把live全换成只做USDT-GBP的（live策略改名为Stablecoin quotes USDT/GBP）…（换币也用挂单不要有转换损失）")
+  "variant-4", `n600usdt` "-5", `u300nudge` "-6", `live600x1` "-7". **Since `0178` (2026-10-29 22:30 UTC since `0179`, Davies: "现在就生效吧 或者22:00生效"; Davies, 2026-10-29: "…把live全换成只做USDT-GBP的（live策略改名为Stablecoin quotes USDT/GBP）…（换币也用挂单不要有转换损失）")
   LIVE quotes USDT-GBP alone** ("Stablecoin quotes USDT/GBP"; `QUOTE_LIVE_INSTANCE.weights`, USDC-GBP 0, from `QUOTE_LIVE_USDT_ONLY_FROM`;
   its coin rebooked for 72 hours by post-only sales never under fair and uncapped maker top-ups, `rebookOn`; the study
   `reviews/2026-10-29-usdt-only.md`, the deviation `reviews/2026-10-29-usdt-only-deviation.md`), and so do, at the same minute,
@@ -420,7 +420,7 @@ that follow from that evidence, in short:
   recorded refused and never sent, 2026-10-02, but for an exit, which from 2026-10-29 rests one tick inside the book
   instead, never worse than its rule's price (`exitTicksOnBook`, every instance); from 2026-10-29 22:00 UTC a rung holding £1
   of coin or less is not held (variant-4's `holdMin`, `QUOTE_LIVE_HOLD_MIN_FROM`, `0176`): its entry keeps resting and no exit
-  goes out for a few pence; from 2026-10-30 00:00 UTC it quotes USDT-GBP alone (`weights`, `0178`), its USDC sold and USDT
+  goes out for a few pence; from 2026-10-29 22:30 UTC it quotes USDT-GBP alone (`weights`, `0178`, `0179`), its USDC sold and USDT
   bought by maker orders alone for 72 hours (`rebookOn`, `planDrains`); and a **dead-man switch**
   outside Supabase, 2026-10-02 on Davies' word: when the executor has not
   finished a turn for three minutes, or its state cannot be read and no

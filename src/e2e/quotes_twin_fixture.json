@@ -26,7 +26,7 @@
      "gbp": 1
     },
     "weights": {
-     "from": "2026-10-30T00:00:00Z",
+     "from": "2026-10-29T22:30:00Z",
      "book": {
       "USDC-GBP": 0,
       "USDT-GBP": 1
@@ -61,7 +61,7 @@
      "gbp": 1
     },
     "weights": {
-     "from": "2026-10-30T00:00:00Z",
+     "from": "2026-10-29T22:30:00Z",
      "book": {
       "USDC-GBP": 0,
       "USDT-GBP": 1
@@ -92,7 +92,7 @@
      "gbp": 1
     },
     "weights": {
-     "from": "2026-10-30T00:00:00Z",
+     "from": "2026-10-29T22:30:00Z",
      "book": {
       "USDC-GBP": 0,
       "USDT-GBP": 1
@@ -128,7 +128,7 @@
      "from": "2026-10-28T22:00:00Z"
     },
     "weights": {
-     "from": "2026-10-30T00:00:00Z",
+     "from": "2026-10-29T22:30:00Z",
      "book": {
       "USDC-GBP": 0,
       "USDT-GBP": 1
@@ -204,7 +204,7 @@
      "from": "2026-10-28T22:00:00Z"
     },
     "weights": {
-     "from": "2026-10-30T00:00:00Z",
+     "from": "2026-10-29T22:30:00Z",
      "book": {
       "USDC-GBP": 1,
       "USDT-GBP": 1
@@ -227,30 +227,30 @@
    "engine": "pr5",
    "capital_gbp": 600,
    "gov": "account",
-   "start": "2026-10-30T00:00:00Z",
+   "start": "2026-10-29T22:30:00Z",
    "table_prefix": "agent_quote_twin_n600nudge",
    "lease": "quotes-twin-n600nudge",
    "rules": {
     "fill": {
      "model": "at",
-     "from": "2026-10-30T00:00:00Z"
+     "from": "2026-10-29T22:30:00Z"
     },
     "weekend": {
-     "from": "2026-10-30T00:00:00Z"
+     "from": "2026-10-29T22:30:00Z"
     },
     "holdMin": {
-     "from": "2026-10-30T00:00:00Z",
+     "from": "2026-10-29T22:30:00Z",
      "gbp": 1
     },
     "weights": {
-     "from": "2026-10-30T00:00:00Z",
+     "from": "2026-10-29T22:30:00Z",
      "book": {
       "USDC-GBP": 1,
       "USDT-GBP": 1
      }
     },
     "fairNudge": {
-     "from": "2026-10-30T00:00:00Z",
+     "from": "2026-10-29T22:30:00Z",
      "book": "USDC-GBP",
      "w": 0.5,
      "halfLifeMin": 1440
@@ -289,7 +289,7 @@
      "gbp": 1
     },
     "weights": {
-     "from": "2026-10-30T00:00:00Z",
+     "from": "2026-10-29T22:30:00Z",
      "book": {
       "USDC-GBP": 0,
       "USDT-GBP": 1
@@ -325,7 +325,7 @@
      "gbp": 1
     },
     "weights": {
-     "from": "2026-10-30T00:00:00Z",
+     "from": "2026-10-29T22:30:00Z",
      "book": {
       "USDC-GBP": 0,
       "USDT-GBP": 1

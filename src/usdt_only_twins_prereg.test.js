@@ -18,6 +18,12 @@ const DOC = read('docs/agents/reviews/2026-10-29-usdt-only-twins-prereg.md').toS
 const DEV = read('docs/agents/reviews/2026-10-29-usdt-only-deviation.md').toString('utf8');
 const namedIn = (doc, f) => [...doc.matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
 const U = '2026-10-30T00:00:00Z';
+/** The 22:30 deviation (0179), recorded apart: the files as they are, under a pre-registration's own heading. */
+const D2230 = read('docs/agents/reviews/2026-10-29-usdt-only-2230-deviation.md').toString('utf8');
+const named2230 = (head, f) => {
+  const s = D2230.indexOf('### `docs/agents/reviews/' + head + '`'), rest = s < 0 ? '' : D2230.slice(s + 1), e = rest.search(/\n##/);
+  return [...rest.slice(0, e < 0 ? undefined : e).matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
+};
 
 describe("variant-5's pre-registration (the USDC-GBP nudge on USDC:USDT 1:1)", () => {
   it('shows the row 0178 inserts, frozen: variant-4\'s rules from the switch, both books 1:1, and the nudge on USDC-GBP', () => {
@@ -38,8 +44,11 @@ describe("variant-5's pre-registration (the USDC-GBP nudge on USDC:USDT 1:1)", (
   it('names the sha256 of each file it froze, once, and each file is that one', () => {
     for (const f of [
       `supabase/migrations/${M}`, 'supabase/functions/agents/quotes_nudge.ts', 'supabase/functions/agents/quotes_twin.ts',
-      'supabase/functions/agents/quotes_live.ts', 'supabase/functions/agents/revx_sim.ts', 'supabase/functions/agents/quotes_weekend.ts',
+      'supabase/functions/agents/revx_sim.ts', 'supabase/functions/agents/quotes_weekend.ts',
     ]) expect(namedIn(DOC, f), f).toEqual([sha(f)]);
+    // The executor as frozen, then as the 22:30 deviation (0179) names it.
+    const live = 'supabase/functions/agents/quotes_live.ts';
+    expect([...namedIn(DOC, live), ...named2230('2026-10-29-usdt-only-twins-prereg.md', live)], live).toEqual(['eb9790f61931636ca0ee58d7d4fbbb0d2d515fd2e2dc197303fd8f805d79136a', sha(live)]);
   });
 
   it('holds its bar and its comparison as written', () => {
@@ -53,7 +62,10 @@ describe("variant-5's pre-registration (the USDC-GBP nudge on USDC:USDT 1:1)", (
 describe('the USDT-only deviation (0178)', () => {
   it('names the executor as it is under every pre-registration that froze it, and the executor before it', () => {
     const live = 'supabase/functions/agents/quotes_live.ts';
-    expect(namedIn(DEV, live)).toEqual([sha(live), sha(live), sha(live)]);
+    expect(namedIn(DEV, live)).toEqual(['eb9790f61931636ca0ee58d7d4fbbb0d2d515fd2e2dc197303fd8f805d79136a', 'eb9790f61931636ca0ee58d7d4fbbb0d2d515fd2e2dc197303fd8f805d79136a', 'eb9790f61931636ca0ee58d7d4fbbb0d2d515fd2e2dc197303fd8f805d79136a']);
+    // Then the 22:30 deviation (0179): the executor as it is, under each pre-registration that froze it.
+    for (const h of ['2026-10-29-usdt-only-twins-prereg.md', '2026-10-29-revx-usdc-nudge-twin-prereg.md', '2026-10-29-revx-exit-tick-twin-prereg.md']) expect(named2230(h, live), h).toEqual([sha(live)]);
+    expect(D2230).toContain('the executor was `eb9790f61931636ca0ee58d7d4fbbb0d2d515fd2e2dc197303fd8f805d79136a` before this change');
     expect(DEV).toContain('the executor was `99ce22c051431df2fc179ebaf93717460b953f95f87d109466d6f91d55d40bd8` before this change');
     // The frozen executor beside which the live instance still runs, unchanged.
     expect(sha('supabase/functions/agents/quotes_live_frozen.ts')).toBe('60d3f33f2bb8d328fe14693d570396afdffcc2cae9b75e05e2d4eed5ea459a52');
