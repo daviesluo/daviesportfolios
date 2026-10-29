@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-10-28",
+  "asOf": "2026-10-29",
   "risks": {
     "AAPL": [
       {
@@ -74,8 +74,8 @@
         "text": "unsecured debt yields ~15%, 5y CDS ~1,067bp (10/21)"
       },
       {
-        "text": "earnings ~11/10–11/16 (est.)",
-        "until": "2026-11-16"
+        "text": "earnings 11/10",
+        "until": "2026-11-10"
       }
     ],
     "GOOGL": [
@@ -86,8 +86,7 @@
         "text": "search judgment under appeal"
       },
       {
-        "text": "earnings 10/28",
-        "until": "2026-10-28"
+        "text": "Q3 FCF −$9.1B on $51.4B capex; 2027 capex up significantly (10/28)"
       }
     ],
     "HOOD": [
@@ -111,8 +110,7 @@
     ],
     "MSFT": [
       {
-        "text": "earnings 10/28",
-        "until": "2026-10-28"
+        "text": "FQ1 capex $45.2B; some 3P GPU contracts delayed to H2 (10/28)"
       },
       {
         "text": "OpenAI ~45% of commercial backlog (analyst est.)"
@@ -189,11 +187,10 @@
         "text": "S&P BBB− since 7/9 (one notch above junk)"
       },
       {
-        "text": "total debt ~$130B (5/2026)"
+        "text": "notes and borrowings $125.3B (8/31)"
       },
       {
-        "text": "investor day 10/28",
-        "until": "2026-10-28"
+        "text": "$20B cap on new equity+debt to FY30; FCF positive 2H FY28 (10/28)"
       }
     ],
     "PLTR": [
