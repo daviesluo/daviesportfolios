@@ -1,0 +1,322 @@
+{
+ "base|USDC-EUR|IS": {
+  "cb_live": {
+   "gbp_per_year": 32.26,
+   "stops": 8,
+   "trips": 224,
+   "worst_day": -0.456
+  },
+  "delta_gbp_per_year": {
+   "mean": -2.22,
+   "p05": -16.16,
+   "p95": 10.61,
+   "p_le_0": 0.603
+  },
+  "engine": {
+   "gbp_per_year": 34.47,
+   "stops": 43,
+   "trips": 313,
+   "worst_day": -0.901
+  }
+ },
+ "base|USDC-EUR|OOS": {
+  "cb_live": {
+   "gbp_per_year": 17.72,
+   "stops": 3,
+   "trips": 133,
+   "worst_day": -0.822
+  },
+  "delta_gbp_per_year": {
+   "mean": -1.93,
+   "p05": -8.07,
+   "p95": 3.86,
+   "p_le_0": 0.694
+  },
+  "engine": {
+   "gbp_per_year": 19.66,
+   "stops": 16,
+   "trips": 163,
+   "worst_day": -0.611
+  }
+ },
+ "base|USDC-GBP|IS": {
+  "cb_live": {
+   "gbp_per_year": 19.44,
+   "stops": 10,
+   "trips": 318,
+   "worst_day": -2.592
+  },
+  "delta_gbp_per_year": {
+   "mean": 6.65,
+   "p05": -6.93,
+   "p95": 20.61,
+   "p_le_0": 0.218
+  },
+  "engine": {
+   "gbp_per_year": 12.8,
+   "stops": 41,
+   "trips": 372,
+   "worst_day": -3.046
+  }
+ },
+ "base|USDC-GBP|OOS": {
+  "cb_live": {
+   "gbp_per_year": 36.94,
+   "stops": 0,
+   "trips": 182,
+   "worst_day": -0.539
+  },
+  "delta_gbp_per_year": {
+   "mean": 0.3,
+   "p05": -8.56,
+   "p95": 9.06,
+   "p_le_0": 0.515
+  },
+  "engine": {
+   "gbp_per_year": 36.63,
+   "stops": 10,
+   "trips": 206,
+   "worst_day": -1.376
+  }
+ },
+ "base|USDT-EUR|IS": {
+  "cb_live": {
+   "gbp_per_year": 38.25,
+   "stops": 10,
+   "trips": 415,
+   "worst_day": -0.513
+  },
+  "delta_gbp_per_year": {
+   "mean": 2.41,
+   "p05": -12.25,
+   "p95": 17.77,
+   "p_le_0": 0.415
+  },
+  "engine": {
+   "gbp_per_year": 35.84,
+   "stops": 45,
+   "trips": 476,
+   "worst_day": -2.373
+  }
+ },
+ "base|USDT-EUR|OOS": {
+  "cb_live": {
+   "gbp_per_year": 6.37,
+   "stops": 4,
+   "trips": 142,
+   "worst_day": -0.634
+  },
+  "delta_gbp_per_year": {
+   "mean": -2.62,
+   "p05": -11.36,
+   "p95": 6.12,
+   "p_le_0": 0.704
+  },
+  "engine": {
+   "gbp_per_year": 8.99,
+   "stops": 18,
+   "trips": 255,
+   "worst_day": -1.094
+  }
+ },
+ "base|USDT-GBP|IS": {
+  "cb_live": {
+   "gbp_per_year": 137.14,
+   "stops": 3,
+   "trips": 776,
+   "worst_day": -2.27
+  },
+  "delta_gbp_per_year": {
+   "mean": -2.84,
+   "p05": -17.91,
+   "p95": 12.2,
+   "p_le_0": 0.589
+  },
+  "engine": {
+   "gbp_per_year": 139.97,
+   "stops": 21,
+   "trips": 798,
+   "worst_day": -0.808
+  }
+ },
+ "base|USDT-GBP|OOS": {
+  "cb_live": {
+   "gbp_per_year": 60.42,
+   "stops": 0,
+   "trips": 276,
+   "worst_day": -0.27
+  },
+  "delta_gbp_per_year": {
+   "mean": 10.33,
+   "p05": -3.09,
+   "p95": 26.29,
+   "p_le_0": 0.116
+  },
+  "engine": {
+   "gbp_per_year": 50.09,
+   "stops": 16,
+   "trips": 329,
+   "worst_day": -1.664
+  }
+ },
+ "weekend|USDC-EUR|IS": {
+  "delta_gbp_per_year": {
+   "mean": -2.83,
+   "p05": -19.68,
+   "p95": 13.53,
+   "p_le_0": 0.639
+  },
+  "hold:cb_live": {
+   "gbp_per_year": 30.19,
+   "stops": 24,
+   "trips": 282,
+   "worst_day": -1.459
+  },
+  "hold:engine": {
+   "gbp_per_year": 33.02,
+   "stops": 60,
+   "trips": 364,
+   "worst_day": -2.342
+  }
+ },
+ "weekend|USDC-EUR|OOS": {
+  "delta_gbp_per_year": {
+   "mean": -2.78,
+   "p05": -8.99,
+   "p95": 3.32,
+   "p_le_0": 0.781
+  },
+  "hold:cb_live": {
+   "gbp_per_year": 22.49,
+   "stops": 13,
+   "trips": 166,
+   "worst_day": -0.822
+  },
+  "hold:engine": {
+   "gbp_per_year": 25.27,
+   "stops": 27,
+   "trips": 202,
+   "worst_day": -0.611
+  }
+ },
+ "weekend|USDC-GBP|IS": {
+  "delta_gbp_per_year": {
+   "mean": 4.79,
+   "p05": -9.78,
+   "p95": 19.47,
+   "p_le_0": 0.31
+  },
+  "hold:cb_live": {
+   "gbp_per_year": 26.18,
+   "stops": 23,
+   "trips": 384,
+   "worst_day": -2.592
+  },
+  "hold:engine": {
+   "gbp_per_year": 21.39,
+   "stops": 49,
+   "trips": 445,
+   "worst_day": -3.046
+  }
+ },
+ "weekend|USDC-GBP|OOS": {
+  "delta_gbp_per_year": {
+   "mean": 2.37,
+   "p05": -8.48,
+   "p95": 13.01,
+   "p_le_0": 0.389
+  },
+  "hold:cb_live": {
+   "gbp_per_year": 61.77,
+   "stops": 14,
+   "trips": 256,
+   "worst_day": -0.539
+  },
+  "hold:engine": {
+   "gbp_per_year": 59.4,
+   "stops": 27,
+   "trips": 280,
+   "worst_day": -1.376
+  }
+ },
+ "weekend|USDT-EUR|IS": {
+  "delta_gbp_per_year": {
+   "mean": 3.17,
+   "p05": -12.93,
+   "p95": 18.6,
+   "p_le_0": 0.386
+  },
+  "hold:cb_live": {
+   "gbp_per_year": 41.94,
+   "stops": 27,
+   "trips": 475,
+   "worst_day": -0.88
+  },
+  "hold:engine": {
+   "gbp_per_year": 38.77,
+   "stops": 62,
+   "trips": 532,
+   "worst_day": -2.373
+  }
+ },
+ "weekend|USDT-EUR|OOS": {
+  "delta_gbp_per_year": {
+   "mean": -4.47,
+   "p05": -13.58,
+   "p95": 4.66,
+   "p_le_0": 0.803
+  },
+  "hold:cb_live": {
+   "gbp_per_year": 15.72,
+   "stops": 15,
+   "trips": 190,
+   "worst_day": -0.634
+  },
+  "hold:engine": {
+   "gbp_per_year": 20.19,
+   "stops": 31,
+   "trips": 297,
+   "worst_day": -1.094
+  }
+ },
+ "weekend|USDT-GBP|IS": {
+  "delta_gbp_per_year": {
+   "mean": -2.91,
+   "p05": -18.95,
+   "p95": 13.28,
+   "p_le_0": 0.595
+  },
+  "hold:cb_live": {
+   "gbp_per_year": 174.01,
+   "stops": 13,
+   "trips": 938,
+   "worst_day": -2.27
+  },
+  "hold:engine": {
+   "gbp_per_year": 176.92,
+   "stops": 49,
+   "trips": 954,
+   "worst_day": -0.99
+  }
+ },
+ "weekend|USDT-GBP|OOS": {
+  "delta_gbp_per_year": {
+   "mean": 17.93,
+   "p05": 2.89,
+   "p95": 34.97,
+   "p_le_0": 0.023
+  },
+  "hold:cb_live": {
+   "gbp_per_year": 104.01,
+   "stops": 12,
+   "trips": 394,
+   "worst_day": -0.27
+  },
+  "hold:engine": {
+   "gbp_per_year": 86.09,
+   "stops": 30,
+   "trips": 454,
+   "worst_day": -1.664
+  }
+ }
+}

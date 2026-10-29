@@ -1,0 +1,308 @@
+{
+ "arms_meta": {
+  "basis": {
+   "fills": 2213,
+   "guards": {
+    "dark": 2192,
+    "de-peg": 1173
+   },
+   "open": 1,
+   "orders": 38817,
+   "refused": 1780
+  },
+  "basis_carry": {
+   "fills": 2210,
+   "guards": {
+    "dark": 2192,
+    "de-peg": 1149
+   },
+   "open": 1,
+   "orders": 38889,
+   "refused": 1770
+  },
+  "par": {
+   "fills": 1936,
+   "guards": {
+    "dark": 2192,
+    "de-peg": 1450
+   },
+   "open": 1,
+   "orders": 38008,
+   "refused": 1776
+  }
+ },
+ "basis_quantiles": {
+  "lit_minutes_with_5": 245613,
+  "median": 0.0006807429999999837,
+  "p10": 0.00014642650000007418,
+  "p90": 0.0010229700000001785
+ },
+ "loss_stop_days": {
+  "basis": [],
+  "basis_carry": [],
+  "par": []
+ },
+ "prints": 55837,
+ "windows": {
+  "IS 02-23 \u2192 07-01": {
+   "arms": {
+    "basis": {
+     "asks": 59,
+     "bids": 131,
+     "bps_per_trip": 5.55,
+     "eur_per_day": 0.0367,
+     "pnl_eur": 4.7029,
+     "stop_pnl_eur": -0.9222,
+     "stops": 25,
+     "trips": 190,
+     "vs_par": {
+      "gain_pct_of_par": 5.5,
+      "mean_day": 0.0019,
+      "p05": -0.01725,
+      "p95": 0.02034,
+      "p_le_0": 0.431
+     },
+     "worst_day_eur": -0.5904
+    },
+    "basis_carry": {
+     "asks": 57,
+     "bids": 130,
+     "bps_per_trip": 5.85,
+     "eur_per_day": 0.0396,
+     "pnl_eur": 5.0707,
+     "stop_pnl_eur": -0.6358,
+     "stops": 24,
+     "trips": 187,
+     "vs_par": {
+      "gain_pct_of_par": 13.7,
+      "mean_day": 0.00478,
+      "p05": -0.01578,
+      "p95": 0.02436,
+      "p_le_0": 0.3415
+     },
+     "worst_day_eur": -0.5904
+    },
+    "par": {
+     "asks": 114,
+     "bids": 53,
+     "bps_per_trip": 5.29,
+     "eur_per_day": 0.0348,
+     "pnl_eur": 4.4592,
+     "stop_pnl_eur": -1.1373,
+     "stops": 41,
+     "trips": 167,
+     "worst_day_eur": -0.4705
+    }
+   },
+   "days": 128
+  },
+  "OOS 07-01 \u2192 10-29": {
+   "arms": {
+    "basis": {
+     "asks": 1497,
+     "bids": 525,
+     "bps_per_trip": 16.88,
+     "eur_per_day": 0.806,
+     "pnl_eur": 97.5242,
+     "stop_pnl_eur": -0.317,
+     "stops": 7,
+     "trips": 2022,
+     "vs_par": {
+      "gain_pct_of_par": 26.4,
+      "mean_day": 0.16812,
+      "p05": 0.09897,
+      "p95": 0.23447,
+      "p_le_0": 0.0
+     },
+     "worst_day_eur": -0.1341
+    },
+    "basis_carry": {
+     "asks": 1497,
+     "bids": 525,
+     "bps_per_trip": 16.88,
+     "eur_per_day": 0.806,
+     "pnl_eur": 97.5242,
+     "stop_pnl_eur": -0.317,
+     "stops": 7,
+     "trips": 2022,
+     "vs_par": {
+      "gain_pct_of_par": 26.4,
+      "mean_day": 0.16812,
+      "p05": 0.09897,
+      "p95": 0.23447,
+      "p_le_0": 0.0
+     },
+     "worst_day_eur": -0.1341
+    },
+    "par": {
+     "asks": 1492,
+     "bids": 276,
+     "bps_per_trip": 16.09,
+     "eur_per_day": 0.6379,
+     "pnl_eur": 77.1812,
+     "stop_pnl_eur": -0.4944,
+     "stops": 22,
+     "trips": 1768,
+     "worst_day_eur": -0.224
+    }
+   },
+   "days": 121
+  },
+  "all": {
+   "arms": {
+    "basis": {
+     "asks": 1556,
+     "bids": 656,
+     "bps_per_trip": 15.44,
+     "eur_per_day": 0.4106,
+     "pnl_eur": 102.2272,
+     "stop_pnl_eur": -1.2392,
+     "stops": 32,
+     "trips": 2212,
+     "vs_par": {
+      "gain_pct_of_par": 25.2,
+      "mean_day": 0.08268,
+      "p05": 0.04793,
+      "p95": 0.11858,
+      "p_le_0": 0.0
+     },
+     "worst_day_eur": -0.5904
+    },
+    "basis_carry": {
+     "asks": 1554,
+     "bids": 655,
+     "bps_per_trip": 15.45,
+     "eur_per_day": 0.412,
+     "pnl_eur": 102.5949,
+     "stop_pnl_eur": -0.9528,
+     "stops": 31,
+     "trips": 2209,
+     "vs_par": {
+      "gain_pct_of_par": 25.7,
+      "mean_day": 0.08415,
+      "p05": 0.04909,
+      "p95": 0.12006,
+      "p_le_0": 0.0
+     },
+     "worst_day_eur": -0.5904
+    },
+    "par": {
+     "asks": 1606,
+     "bids": 329,
+     "bps_per_trip": 14.48,
+     "eur_per_day": 0.3279,
+     "pnl_eur": 81.6404,
+     "stop_pnl_eur": -1.6316,
+     "stops": 63,
+     "trips": 1935,
+     "worst_day_eur": -0.4705
+    }
+   },
+   "days": 249
+  },
+  "first half by date": {
+   "arms": {
+    "basis": {
+     "asks": 59,
+     "bids": 123,
+     "bps_per_trip": 5.14,
+     "eur_per_day": 0.0324,
+     "pnl_eur": 4.0472,
+     "stop_pnl_eur": -0.9222,
+     "stops": 25,
+     "trips": 182,
+     "vs_par": {
+      "gain_pct_of_par": 3.4,
+      "mean_day": 0.00106,
+      "p05": -0.01862,
+      "p95": 0.02013,
+      "p_le_0": 0.4445
+     },
+     "worst_day_eur": -0.5904
+    },
+    "basis_carry": {
+     "asks": 57,
+     "bids": 122,
+     "bps_per_trip": 5.48,
+     "eur_per_day": 0.0353,
+     "pnl_eur": 4.4149,
+     "stop_pnl_eur": -0.6358,
+     "stops": 24,
+     "trips": 179,
+     "vs_par": {
+      "gain_pct_of_par": 12.8,
+      "mean_day": 0.004,
+      "p05": -0.0166,
+      "p95": 0.02419,
+      "p_le_0": 0.3555
+     },
+     "worst_day_eur": -0.5904
+    },
+    "par": {
+     "asks": 114,
+     "bids": 47,
+     "bps_per_trip": 4.94,
+     "eur_per_day": 0.0313,
+     "pnl_eur": 3.9145,
+     "stop_pnl_eur": -1.1373,
+     "stops": 41,
+     "trips": 161,
+     "worst_day_eur": -0.4705
+    }
+   },
+   "days": 125
+  },
+  "second half by date": {
+   "arms": {
+    "basis": {
+     "asks": 1497,
+     "bids": 533,
+     "bps_per_trip": 16.82,
+     "eur_per_day": 0.7854,
+     "pnl_eur": 98.1799,
+     "stop_pnl_eur": -0.317,
+     "stops": 7,
+     "trips": 2030,
+     "vs_par": {
+      "gain_pct_of_par": 26.3,
+      "mean_day": 0.16363,
+      "p05": 0.10085,
+      "p95": 0.23392,
+      "p_le_0": 0.0
+     },
+     "worst_day_eur": -0.1341
+    },
+    "basis_carry": {
+     "asks": 1497,
+     "bids": 533,
+     "bps_per_trip": 16.82,
+     "eur_per_day": 0.7854,
+     "pnl_eur": 98.1799,
+     "stop_pnl_eur": -0.317,
+     "stops": 7,
+     "trips": 2030,
+     "vs_par": {
+      "gain_pct_of_par": 26.3,
+      "mean_day": 0.16363,
+      "p05": 0.10085,
+      "p95": 0.23392,
+      "p_le_0": 0.0
+     },
+     "worst_day_eur": -0.1341
+    },
+    "par": {
+     "asks": 1492,
+     "bids": 282,
+     "bps_per_trip": 16.04,
+     "eur_per_day": 0.6218,
+     "pnl_eur": 77.7259,
+     "stop_pnl_eur": -0.4944,
+     "stops": 22,
+     "trips": 1774,
+     "worst_day_eur": -0.224
+    }
+   },
+   "days": 125
+  }
+ }
+}

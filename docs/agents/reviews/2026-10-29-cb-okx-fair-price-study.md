@@ -493,3 +493,102 @@ EURC agrees with history: the basis term costs and par is right. USDG's day and 
 - **OKX.** USDG/EUR trades a few bps above the price the test assumes. Letting the fair follow that half-way earned 13 % more over
   the past four months in the history. EURC/USDC's fair is fine as it is. OKX's own record is one day old, so a paper twin is the
   way to check.
+
+## Addendum (2026-10-29, later the same day): the USDG/EUR basis fair on OKX's own engine, and the Coinbase coin price by book
+
+Davies, on §4.2's "+13 %" (it came from PR5's simulator, not OKX's own fill rule): "这个你先按okx的研究下，还成立的话再上线" (study it on
+OKX's own rules first; go live only if it still holds). And: "你测试的Coinbase上USDT换成Coinbase价格就更好，那usdc呢？" (Coinbase's own
+price helped USDT; what about USDC?). Not blind, like the rest of this review.
+
+### A1. USDG/EUR on the OKX twins' own engine
+
+**The tape.**
+- OKX's keyless daily trade archive for USDG-EUR, 2026-02-20 → 10-28: 55,748 prints, 248 of 251 days' files
+  (`scripts/fetch_okx_archive.py` → `inputs/okx_usdgeur_archive.json.gz`, every print with its trade id, time, price, size and
+  taker side).
+- The recorder's own tape (`okx_trades`, 10-26 → 10-29) on top of it, de-duplicated by trade id: 55,837 prints from 2026-02-22.
+- EUR/USD: SCQ-VENUES' minutes to 10-08 (Exness, then Yahoo from 10-01), then the stored Yahoo minutes the twins read.
+- The recorded book from 2026-10-28 19:53. Before it, a post-only order is judged by the last print, as the engine does without a
+  read (`okxCrosses`), in both arms alike.
+
+**The engine.** `stepOkxMinute` (`okx_quotes.ts`), imported read-only and called unchanged, minute by minute
+(`scripts/okx_usdg_basis_prep.py`, `scripts/okx_usdg_basis_replay.ts`).
+- LIVE's "at" fill by each print's size, $100 a rung, the 24-hour stop, the dark and de-peg guards, the closure holding the last
+  rate: all the engine's.
+- Three arms on the same tape:
+  - **par**: the USDG/EUR row's rule.
+  - **basis**: fair = par × (1 + ½ b), the rule a "- 1" row would run. b is the median over the minutes of the last 24 hours with
+    a print of (the minute's last print ÷ par − 1); with fewer than five such minutes, b = 0. The rung stays the par arm's euros.
+  - **basis_carry**: the same, carrying the last median instead of falling back to par (this review's replay rule).
+- The incremental median was checked against a direct scan at 359 minutes; all equal.
+- The account's 1 % daily loss stop is left out of all three. No UTC day of any arm closed −1 % of $600, so it would never have
+  fired.
+- The setting was fixed before this ran (½, 24 hours): nothing was chosen on the earlier half.
+
+**The basis itself.** Over the lit minutes it was +6.8 bps at the median (10th percentile +1.5, 90th +10.2): USDG traded above
+par almost all the time.
+
+**Results** (`scripts/okx_usdg_basis_summary.py` → `results/okx_usdg_basis_okxengine.json`; P&L in euros by entry minute; Δ is
+the paired day-block bootstrap of basis − par, 2,000 draws, seed 20261029; P(≤ 0) is the share of draws at or below zero):
+
+| window | arm | trips (bids / asks) | € | € a day | bps a trip | stops | worst day € | Δ € a day [p5, p95] | P(≤ 0) | gain on par |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 02-23 → 07-01 (128 days) | par | 167 (53 / 114) | 4.46 | 0.035 | 5.29 | 41 | −0.47 | | | |
+| | basis | 190 (131 / 59) | 4.70 | 0.037 | 5.55 | 25 | −0.59 | +0.002 [−0.017, +0.020] | 0.43 | +5.5 % |
+| **07-01 → 10-29 05:30 (121 days)** | par | 1,768 (276 / 1,492) | 77.18 | 0.638 | 16.09 | 22 | −0.22 | | | |
+| | **basis** | 2,022 (525 / 1,497) | 97.52 | 0.806 | 16.88 | 7 | −0.13 | **+0.168 [+0.099, +0.234]** | **0.000** | **+26.4 %** |
+| second half by date (06-11 12:00 →) | basis | 2,030 | 98.18 | 0.785 | 16.82 | 7 | −0.13 | +0.164 [+0.101, +0.234] | 0.000 | +26.3 % |
+| first half by date | basis | 182 | 4.05 | 0.032 | 5.14 | 25 | −0.59 | +0.001 [−0.019, +0.020] | 0.44 | +3.4 % |
+| whole span | basis | 2,212 | 102.23 | 0.411 | 15.44 | 32 | −0.59 | +0.083 [+0.048, +0.119] | 0.000 | +25.2 % |
+
+The carry rule gives the same later half to the cent (the window never had fewer than five minutes there). In the thin first half
+it gives +13.7 % against the fallback's +5.5 %.
+
+**Verdict: it holds, and more strongly than on PR5's simulator.**
+- **The later half** is +€0.168 a day out of sample, P(≤ 0) = 0.000, +26 % on par. §4.2 had +£0.070 a day on a £300 book, +13 %.
+- **Per year** that is about €61 on a $600 book, roughly 12 % of its capital.
+- **Why.** The basis lets the bids fill (525 against 276) where par sold USDG into the premium and waited. It earns more a trip
+  (16.9 against 16.1 bps) and cuts the stops (7 against 22).
+- **The earlier half had almost no trading** (0.035 € a day) and is flat: nothing there argues either way.
+- **The caveat that remains.** Before 10-28 the replay had no recorded book, so post-only refusals are judged by the last print,
+  as the engine does when a read is missing. Both arms carry the same simplification.
+
+### A2. Coinbase's own coin price, book by book (`scripts/cb_live_by_book.py` → `results/cb_live_by_book.json`)
+
+`cb_live` (USDC at 1, USDT at Coinbase USDT-USD's last minute) against today's fair (Revolut X's F3), from §3's history runs.
+£ a year per book on its £600; Δ is the paired day-block bootstrap of `cb_live` − today, with P(≤ 0).
+
+| book | arm | IS: today → `cb_live`, Δ [p5, p95] | OOS: today → `cb_live`, Δ [p5, p95], P(≤ 0) | stops OOS | worst day OOS, £ |
+|---|---|---|---|---|---|
+| USDC-GBP | base | 12.8 → 19.4, +6.7 [−6.9, +20.6] | 36.6 → 36.9, **+0.3 [−8.6, +9.1], 0.52** | 10 → 0 | −1.38 → −0.54 |
+| USDC-GBP | weekend | 21.4 → 26.2, +4.8 | 59.4 → 61.8, +2.4 [−8.5, +13.0], 0.39 | 27 → 14 | −1.38 → −0.54 |
+| USDC-EUR | base | 34.5 → 32.3, −2.2 | 19.7 → 17.7, **−1.9 [−8.1, +3.9], 0.69** | 16 → 3 | −0.61 → −0.82 |
+| USDC-EUR | weekend | 33.0 → 30.2, −2.8 | 25.3 → 22.5, −2.8 [−9.0, +3.3], 0.78 | 27 → 13 | −0.61 → −0.82 |
+| USDT-GBP | base | 140.0 → 137.1, −2.8 | 50.1 → 60.4, **+10.3 [−3.1, +26.3], 0.12** | 16 → 0 | −1.66 → −0.27 |
+| USDT-GBP | weekend | 176.9 → 174.0, −2.9 | 86.1 → 104.0, **+17.9 [+2.9, +35.0], 0.02** | 30 → 12 | −1.66 → −0.27 |
+| USDT-EUR | base | 35.8 → 38.3, +2.4 | 9.0 → 6.4, −2.6 [−11.4, +6.1], 0.70 | 18 → 4 | −1.09 → −0.63 |
+| USDT-EUR | weekend | 38.8 → 41.9, +3.2 | 20.2 → 15.7, −4.5 [−13.6, +4.7], 0.80 | 31 → 15 | −1.09 → −0.63 |
+
+**The answer on USDC:** Coinbase's own price (par, which is what USDC is on Coinbase) makes **no difference on USDC-GBP** out of
+sample (+£0.3 a year; in sample +£6.7). It **costs a little on USDC-EUR** (−£1.9 to −2.8 a year, both halves).
+
+**Where the gain is:** USDT-GBP (+£10 a year on the base rule, +£18 on the weekend arm, P(≤ 0) 0.12 and 0.02 out of sample). The
+EUR books lose a little on every coin: Coinbase's EUR books sit a few bps rich against Yahoo's EUR/USD (§2.1). A fair at the
+coin's true dollar price therefore sits under them, as Revolut X's discount used to offset by chance.
+
+**Stops fall on every book**, and the worst day improves on three of four.
+
+**So §5's first recommendation narrows.** Take Coinbase's own coin price on the GBP books, where it gains (USDT-GBP) or costs
+nothing (USDC-GBP). Leave the EUR books on today's fair, or give them the venue's own EUR level too (§3.1's basis term), which
+this table does not test book by book.
+
+### A3. What follows
+
+- **USDG/EUR.** The condition Davies set holds: the later half is positive with P(≤ 0) < 0.10 on OKX's own engine, and larger than
+  on PR5's simulator. The "- 1" paper row goes ahead (its pre-registration, `2026-10-29-okx-usdg-basis-prereg.md`, carries these
+  numbers as its expectation).
+- **Coinbase.** As above.
+- **Files.** `scripts/fetch_okx_archive.py`, `scripts/okx_usdg_basis_prep.py`, `scripts/okx_usdg_basis_replay.ts` (run from the
+  repository root with `npx --yes deno@1.46.3 run --allow-read --allow-write`), `scripts/okx_usdg_basis_summary.py`,
+  `scripts/cb_live_by_book.py`; `inputs/okx_usdgeur_archive.json.gz`; `results/okx_usdg_basis_okxengine.json`,
+  `results/cb_live_by_book.json`.

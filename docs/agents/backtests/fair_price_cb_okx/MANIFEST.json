@@ -8,6 +8,10 @@
    "sha256": "4be6c414e879c3326f8fa2d965ad705068674190314093b0809545db5754b1da",
    "bytes": 3527278
   },
+  "inputs/okx_usdgeur_archive.json.gz": {
+   "sha256": "e5cecc34686328593f6eefc0950b65c189c7bc6402de78af54fc63891ce1dd83",
+   "bytes": 506774
+  },
   "inputs/prod/events_daily.txt.gz": {
    "sha256": "7630f04fe2903936a02b617db5bc9833130982b703a83d25b6bdb7950d89db53",
    "bytes": 984
@@ -68,6 +72,10 @@
    "sha256": "3824046b2d3cca62654cd3766638ce5481c37d46eee4d9ec255773404b632356",
    "bytes": 23569
   },
+  "results/cb_live_by_book.json": {
+   "sha256": "213c5ed755f89db69b2a80504c9f8eb0c54be53a68f96620abf757da81fb1c81",
+   "bytes": 5391
+  },
   "results/measure.json": {
    "sha256": "d8cde835f7207fab3d44681dda45524b4997450f60ed1882f1205a5b92c03d79",
    "bytes": 53064
@@ -87,6 +95,10 @@
   "results/okx_replay_summary.json": {
    "sha256": "06839a614ef8e31238a4a73acd0f598cd9f53fe18664f25d23e633e84269d3ab",
    "bytes": 2924
+  },
+  "results/okx_usdg_basis_okxengine.json": {
+   "sha256": "553197237d4c576fd0b863ff9caa98d8653d6221f7c5260e81dec4dbce323583",
+   "bytes": 6072
   },
   "results/peg_gap.json": {
    "sha256": "9931bb39208ddfb2f42a74f24d6eecb7e66e7a8e86ea68e37debaebd66fd89b2",
@@ -112,9 +124,17 @@
    "sha256": "0f3abcb48fbbc43cbb582e73f98ad16436f9ebe5a086b20e11c2d94d95c38f5d",
    "bytes": 7305
   },
+  "scripts/cb_live_by_book.py": {
+   "sha256": "970ada14bbe7a8cf1437506fccca440d39e0c67964f6bf993e30eedbd2959958",
+   "bytes": 2724
+  },
   "scripts/fetch_cb_usdt.py": {
    "sha256": "3891c6772cc3400c92586149eeed48bd1c88a39635dde936d11d4df350435b50",
    "bytes": 2092
+  },
+  "scripts/fetch_okx_archive.py": {
+   "sha256": "dd06e064e89e70bd062e90557e304b6cfde21f7abd82255877019f4737d2ebb0",
+   "bytes": 2458
   },
   "scripts/fpc.py": {
    "sha256": "934d078ef6216d88fd4dc19c5a02ffec4ebde4c45bc5fc70403cbfe11ea55e94",
@@ -151,6 +171,18 @@
   "scripts/okx_replay_summary.py": {
    "sha256": "e1b08358d2ba6934d015b9168ede5bde63f7e6f4e0eed9d3ac126e79e939583c",
    "bytes": 2261
+  },
+  "scripts/okx_usdg_basis_prep.py": {
+   "sha256": "d38e4becaf13e50efc802a3206742449253a8281287dc4e6d91fe1d6b0fe91b6",
+   "bytes": 2445
+  },
+  "scripts/okx_usdg_basis_replay.ts": {
+   "sha256": "d53a2ab4f4f14a7e9aa762105a11bdc756e7a3b454c4baba1cde362acaecefa0",
+   "bytes": 6729
+  },
+  "scripts/okx_usdg_basis_summary.py": {
+   "sha256": "ce1c9ec4811971597e5763f19c32ca2c2a34ea09f36b48021beb85f178afc81a",
+   "bytes": 3852
   },
   "scripts/peg_gap.py": {
    "sha256": "a90803f0fc2da3e3088d86441f2e102566fd32590ef76be7166a88c120f9bf93",

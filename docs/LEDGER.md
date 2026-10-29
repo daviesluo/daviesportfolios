@@ -801,6 +801,15 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   before 10-30 00:01; then the record grows a row a minute.
   The 2026-10-29 02:30 to 03:12 sections archived (sixteenth) on landing.
 
+### [2026-10-29 07:26 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The fair-price study's addendum: USDG/EUR's basis fair on OKX's own engine, and Coinbase's coin price by book** (sub-agent;
+  commit, not pushed; Davies, 10-29: "…你先按okx的研究下，还成立的话再上线", "…那usdc呢？"). `reviews/2026-10-29-cb-okx-fair-price-study.md`
+  Addendum, `backtests/fair_price_cb_okx/` (OKX's keyless daily trade archive, 55,837 USDG-EUR prints 02-22 → 10-29).
+  - `stepOkxMinute` unchanged, par against fair = par × (1 + ½ × the 24 h trailing median basis): 07-01 → 10-29 +€0.168 a day
+    [+0.099, +0.234], P(≤ 0) 0.000, +26 % on par (PR5's simulator had +13 %); 02-23 → 07-01 flat on almost no trading. It holds.
+  - Coinbase `cb_live` by book, out of sample: USDT-GBP +£10/yr (weekend arm +£18, P(≤ 0) 0.02), USDC-GBP +£0.3, USDC-EUR −£2,
+    USDT-EUR −£3; stops fall on every book. So the coin-price change belongs on the GBP books.
+
 ### [2026-10-29 06:56 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The fair price of the Coinbase and OKX quote rows, studied** (sub-agent; commit, not pushed; Davies, 10-29: "…你仔细深度研究下这个价格的计算还有没有
   优化和改进的空间…不同币所和币也可以结论不同"). `reviews/2026-10-29-cb-okx-fair-price-study.md`, `backtests/fair_price_cb_okx/`; not blind,
