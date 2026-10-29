@@ -1,0 +1,4 @@
+{"source": "sql/trip_buckets.sql on agent_quote_twin_live_orders (the £120 LIVE twin: twelve rungs of £10, LIVE's rules, LIVE's fill rule, weekends from 10-30 21:00), trips closed 2026-10-01 16:29:53 to 2026-10-27 00:00 UTC; read 2026-10-29",
+ "days": 25.31,
+ "USDC-GBP": {"dust": [1, -0.009], "normal": [82, 0.924]},
+ "USDT-GBP": {"dust": [132, -3.197], "normal": [91, 1.882]}}

@@ -792,6 +792,21 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth).
 
+### [2026-10-29 18:33 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **STRATEGY-COMPARE, Revolut X half** (sub-agent; commit, not pushed; Davies, 10-29: "测一下目前最新的revolut x的live以及variant7和8
+  以及7和8的结合，与最新的coinbase的…每个策略都按单币种分开测，分别按600磅和1200磅 2400磅…需真实反映未来12个月的期待"; the Coinbase half is
+  another agent's, merged by the main session). `reviews/2026-10-29-strategy-compare-revx.md`, `backtests/compare/revx/`: LIVE,
+  variant-7, variant-8, 7+8, one book at a time at £600/£1,200/£2,400 (£100/£200/£400 rungs) on PR5-OPT's engine unchanged,
+  every print since the listings. Headline = the days since 09-01 after the live haircut (the books tightened late August: USDT-GBP
+  ~108 %/yr in Aug → 39 % Sep, 31 % Oct; the shared ½ OOS + ½ last-3-months blend, reported beside it, gives ~85 % and overstates).
+  Headline %/yr, LIVE: USDC-GBP 18.7 / 16.4 / 13.6, USDT-GBP 34.7 / 32.0 / 28.0; variant-8 ahead of LIVE on every row (USDT-GBP
+  +1.4–1.7, P 0.03–0.06), variant-7 behind on USDT-GBP. Haircut from LIVE's own October record (ratios only committed; LIVE's
+  figures read from SQL, never written): trips of £1+ × 0.825, and a Revolut X penny cost of £0.0242 per "dust" trip (a 0.133-coin
+  print fills a rung, its exit loses ~2p to whole-penny rounding; ~5 a day on USDT-GBP since October; why LIVE's USDT-GBP trailed
+  the replay in October at £10 rungs). Risk: the £600 USDT-weighted twins ran 8 dust trips a day at 6p in their first 20 h → USDT-GBP headline
+  ~+7 / +18 / +21 %; PR5-OPT's £1 holding line (`n600hold1`) booked its dust at £0. GBP/USD on the asks' coin ±3.1 % of capital a
+  year, not in P&L.
+
 ### [2026-10-29 18:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **CMP-CB: the Coinbase half of the strategy comparison** (sub-agent; commit, not pushed; Davies, 10-29: "测一下目前最新的revolut x的live以及
   variant7和8…与最新的coinbase的 with euros和with euros-2…每个策略都按单币种分开测，分别按600磅和1200磅 2400磅…"). `reviews/2026-10-29-strategy-compare-cb.md`,

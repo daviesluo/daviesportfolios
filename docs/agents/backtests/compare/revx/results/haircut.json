@@ -1,0 +1,49 @@
+{
+ "USDC-GBP": {
+  "all_trips_live_over_replay_daily": {
+   "p10": 0.603,
+   "p90": 0.894,
+   "point": 0.762
+  },
+  "dust_live_trips_day": 0.07,
+  "dust_replay_gbp_trip_120": 0.00016,
+  "dust_replay_trips_day_120": 0.04,
+  "dust_twin_gbp_day": -0.0004,
+  "dust_twin_gbp_trip": -0.009,
+  "dust_twin_trips_day": 0.04,
+  "e_live_over_replay_normal": 0.558,
+  "e_twin_over_replay_normal_120": 0.78,
+  "live_normal_trips": 101,
+  "replay_normal_trips": 122
+ },
+ "USDT-GBP": {
+  "all_trips_live_over_replay_daily": {
+   "p10": -1.919,
+   "p90": -0.175,
+   "point": -1.011
+  },
+  "dust_live_trips_day": 7.51,
+  "dust_replay_gbp_trip_120": 0.00014,
+  "dust_replay_trips_day_120": 5.18,
+  "dust_twin_gbp_day": -0.1263,
+  "dust_twin_gbp_trip": -0.0242,
+  "dust_twin_trips_day": 5.22,
+  "e_live_over_replay_normal": 1.004,
+  "e_twin_over_replay_normal_120": 0.987,
+  "live_normal_trips": 125,
+  "replay_normal_trips": 146
+ },
+ "applied": {
+  "e": 0.825,
+  "e_pooled_raw": 0.825,
+  "penny_gbp_per_dust_trip": -0.0242,
+  "replay_dust_gbp_trip": 0.00014,
+  "twin_dust_gbp_trip": -0.0241
+ },
+ "days": [
+  "2026-10-01",
+  "2026-10-28"
+ ],
+ "dust_below_gbp": 1.0,
+ "twin_days": 25.31
+}
