@@ -8,8 +8,8 @@
 // $14.00, 333 10 redeemable at its payout 1 = $10.00: $33.20. Equity $102.30, total +$2.30. Unrealised: 20 × (0.46 − 0.40)
 // + 25 × (0.56 − 0.60) = +$0.20 (333 is redeemable: settled, not unrealised). Realised +$2.10 = 333's 10 × 0.30 + 444's
 // 15 × (0.25 − 0.31). Cost of what it holds 8 + 15 + 7 = $30. The day: 09-17 opened at $101.60 (cash 92.10 + 333 at 0.95),
-// so today +$0.70 and 09-16 +$1.60 (from FUNDED), which add up to the total. Stop room: 30 + 2.30 = $32.30, 10 + 0.70 =
-// $10.70. Brier on the two resolved entries: the agent (0.90 − 1)² and (0.45 − 0)², mean 0.10625; the market (0.72 − 1)²
+// so today +$0.70 and 09-16 +$1.60 (from FUNDED), which add up to the total. Stop room: 30 + 2.30 = $32.30; the day stop
+// is 10 % of the day's open (Deviation D19), $10.16, so 10.16 + 0.70 = $10.86. Brier on the two resolved entries: the agent (0.90 − 1)² and (0.45 − 0)², mean 0.10625; the market (0.72 − 1)²
 // and (0.30 − 0)², mean 0.0842. The agent's last cycle says $69.10 + $31.00 = $100.10 and +$0.10 where the record at its
 // slot says $102.30 and +$2.30: a mismatch. Its 09-16 summary says +$1.50 against the record's +$1.60: within $1.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
@@ -32,7 +32,9 @@ Deno.test("every figure matches the arithmetic worked by hand", () => {
   const o = grokPmSummary(input)!;
   close(o.fundedUsd, 100); close(o.equityUsd, 102.3); close(o.cashUsd, 69.1); close(o.positionsValueUsd, 33.2);
   close(o.totalUsd, 2.3); close(o.todayUsd, 0.7); close(o.unrealisedUsd, 0.2); close(o.realisedUsd, 2.1); close(o.costUsd, 30);
-  close(o.stop.totalRoomUsd, 32.3); close(o.stop.dayRoomUsd, 10.7);
+  close(o.stop.totalRoomUsd, 32.3); close(o.stop.dayLimitUsd, 10.16); close(o.stop.dayRoomUsd, 10.86);
+  // Before the start the day stop is 10 % of FUNDED.
+  assertEquals(grokPmSummary(waitingInput)!.stop.dayLimitUsd, 10);
   assertEquals([o.stop.totalTripped, o.stop.dayTripped], [false, false]);
   close(o.status.brierAgent, 0.10625); close(o.status.brierMarket, 0.0842);
   assertEquals([o.status.open, o.status.scored, o.status.resolved], [2, 2, 2]);

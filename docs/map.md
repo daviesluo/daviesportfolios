@@ -718,7 +718,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 | `_shared/ops.ts` | Server-side error reports into `ops_errors`. |
 | `_shared/beats.ts` | A cron call's beat, the first thing it writes: its function and action and the minute, which `edge-watchdog` reads to find a call whose worker never started. |
 | `_shared/grokpm_schema.ts` | GROKPM's tables as 0124, 0125, 0126 and 0128 leave them (columns and keys), which its test doubles hold every write to. |
-| `_shared/grokpm_public.ts` | GROKPM's pure helpers that its server and its recorder share: a resolution counts only at a final payout (0, ½ or 1), and a market's last public trade before a moment as one outcome's price. |
+| `_shared/grokpm_public.ts` | GROKPM's pure helpers that its server, its recorder and its page share: its money limits as shares of the day's opening equity (Deviation D19), a resolution counts only at a final payout (0, ½ or 1), and a market's last public trade before a moment as one outcome's price. |
 | `_shared/us_market_calendar.ts` | US market holidays and early closes, worked out by rule for any year. |
 | `_shared/us_overnight_session.ts` | The US overnight session the overnight recorder records: 20:00-04:00 ET, less the weekend and holiday sessions. |
 | `_shared/recorder_watch.ts` | The price recorders' daily audit of each other: buckets owed by the calendar against buckets written, reported to `ops_errors` when short. |

@@ -636,7 +636,9 @@ that follow from that evidence, in short:
   book (its orders and fills only: `grokpm_orders`, `grokpm_fills`; live-prep's dust and the account's pUSD never count,
   and it can never sell a token it did not buy), journals it with its decision, and only then signs and sends it with
   the order paths' client. A BUY is post-only; only a category-C close may take. It cancels its own orders one by one,
-  never the venue's cancel-all.
+  never the venue's cancel-all. Since D19 (2026-10-29) its money limits are shares of its equity at the start of the UTC
+  day (10 % a market, 25 % a theme, 30 % cash kept, D15's 5 % and D18's 10 %, the day stop −10 %: `grokpmCaps`); the
+  total stop stays −$30 of the FUNDED $100.
   - **The arm.** `grokpm_config` (`dry_run` true, `armed_at` null) is the arm. Disarmed, everything is checked and journalled
     and nothing is sent; disarmed or under the global pause, the minute's sync cancels its live resting orders (D4). The
     go statement is in 0125's header, and only Davies' word in the conversation runs it.

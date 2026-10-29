@@ -1232,7 +1232,7 @@ const LP_LIVE_FIXTURE = JSON.parse(fs.readFileSync(new URL('./lp_live_fixture.js
  * worked out by hand at this sweep's clock (`grokpm_fixture.json`; grokpm_view.test.ts pins that its `output` is the
  * function's answer for its `input` and every figure below against the arithmetic): funded $100, value $102.30 (cash $69.10
  * + $33.20 held), total +$2.30, today +$0.70, unrealised +$0.20 on a cost of $30, realised +$2.10; stop room $32.30 and
- * $10.70; Brier 0.106 against the market's 0.084 on 2 resolved; the agent's 22:31 report ($100.10, +$0.10) off the record
+ * $10.86 (the day stop 10 % of the day's $101.60 open since D19); Brier 0.106 against the market's 0.084 on 2 resolved; the agent's 22:31 report ($100.10, +$0.10) off the record
  * ($102.30, +$2.30) by more than $1; a journal of 8 entries whose markets are titled by Gamma (0126) and linked, by the record
  * unlinked, or pending. `waiting` is the same account before the go, in dry-run, its $100 funded and its journal already
  * filling. Served alone (`grokpm`, `grokpm-waiting`), so LIVE lists it beside the base payload's rows.
@@ -5266,7 +5266,7 @@ async function run() {
         const WANT = {
           sections: 'STATUS,POSITIONS,DAYS,JOURNAL',
           tiles: 'OPEN POSITIONS=2 | CASH=$69.10 | BRIER YOU / MARKET=0.106 / 0.084 | RESOLVED=2',
-          stop: 'total stop at -$30: $32.30 of room · day stop at -$10: $10.70 of room',
+          stop: 'total stop at -$30: $32.30 of room · day stop at -$10.16: $10.86 of room',
           mismatch: "the agent's numbers differ from the record by more than $1: its 22:31 UTC report says $100.10 (+$0.10), the record $102.30 (+$2.30)",
           positions: ['Will the bill be signed by September 30? | 25 No | 60¢ | 56¢ | $14 | -$1', 'Will the Fed cut rates in October? | 20 Yes | 40¢ | 46¢ | $9.20 | +$1.20',
             'Will the nominee be confirmed?resolved · to redeem | 10 Yes | 70¢ | 100¢ | $10 | $0'],

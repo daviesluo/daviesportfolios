@@ -1711,7 +1711,7 @@ describe('grokPmRow and its page (GROKPM, "Polymarket analyst" on LIVE, 2026-10-
     ]);
     expect(grokPmTiles(g, mask)[1].v).toBe('$••.••');
     expect(grokPmTiles(w, (x) => x)[2]).toEqual({ k: 'BRIER YOU / MARKET', v: '—' });
-    expect(grokPmStopText(g, (x) => x)).toBe('total stop at -$30: $32.30 of room · day stop at -$10: $10.70 of room');
+    expect(grokPmStopText(g, (x) => x)).toBe('total stop at -$30: $32.30 of room · day stop at -$10.16: $10.86 of room');
     expect(grokPmMismatchText(g, (x) => x)).toBe("the agent's numbers differ from the record by more than $1: its 22:31 UTC report says $100.10 (+$0.10), the record $102.30 (+$2.30)");
     expect(grokPmMismatchText({ ...g, mismatch: false }, (x) => x)).toBe(null);
     expect(/\d/.test(grokPmMismatchText(g, mask)?.replace('22:31', '').replace('$1:', '') ?? '')).toBe(false);

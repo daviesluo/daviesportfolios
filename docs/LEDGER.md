@@ -598,7 +598,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    - **First orders verified 10-27** (`reviews/2026-10-27-grokpm-first-orders.md`; Davies: "下了几单，你也仔细验证下"): 15 orders,
      3 fills, all OK. V1 (`0143`) stores each order's `event_at` and checks. **P1 and P2 decided 10-27** (Davies: "剩下两点由你
      权衡后来做出最优选择"; no money note, "台账里的金额无所谓"): D16, a B bid lives 65 min; D17 (`0147`), one cap per
-     negative-risk event. **After the deploy:** post C-008 (the review's §5.3), and append D16 and D17 to §9 after D15. **Utilisation review 10-28:** keep every rule; funds wait (new prereg). **D18 (Davies, 10-28): D15's $5 is $10 at an edge of 0.20+**, in §9 with D15–D17 (their texts were still unwritten); **after the deploy:** post C-010 on the desk ledger (Grok's note on D18; drafted, held until the deploy is confirmed).
+     negative-risk event. **After the deploy:** post C-008 (the review's §5.3), and append D16 and D17 to §9 after D15. **Utilisation review 10-28:** keep every rule; funds wait (new prereg). **D18 (Davies, 10-28): D15's $5 is $10 at an edge of 0.20+**, in §9 with D15–D17 (their texts were still unwritten); **after the deploy:** post C-010 on the desk ledger (Grok's note on D18; drafted, held until the deploy is confirmed). **D19 (Davies, 10-29: "把polymarket的策略里的钱全换成百分比，这样的话可以有效实现盈利资金的再利用")**: every money limit is a share of the agent's equity at the start of the UTC day (10 % a market or event, 25 % a theme, 30 % cash kept, D15 5 %, D18 10 %, day stop −10 %; `grokpmCaps`); the total stop stays −$30 of FUNDED; no migration (`daily_loss_usd` no longer read); §9's D19 (pin `4c49e5e2…`). **After the deploy:** `?action=account` shows `cap_basis_usd` and the `*_pct` fields; then post C-011 on the desk ledger (drafted in the hand-back).
    - **Automatic redemption (D6, `0128`, `grokpm/redeem.ts`; Davies: "加上吧 全部都自动化掉")**: hourly, one gasless relayed
      transaction for up to five of the shared account's redeemable markets (pUSD back; losing tokens cleared), a dry run
      while `redeem_enabled` is false (its plan in `grokpm_exec_state.redeem_state`). **Davies does:** polymarket.com →
@@ -775,6 +775,18 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 01:24 UTC section (archived
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth).
+
+### [2026-10-29 05:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **GROKPM's money limits as percentages, D19** (sub-agent; commit, not pushed; Davies, 10-29: "把polymarket的策略里的钱全换成百分比，
+  这样的话可以有效实现盈利资金的再利用"; item 15).
+  - **The basis** is the day stop's own opening equity (`state.dayOpen`: the first reading of the UTC day, the agent's own book), so a cap
+    holds still within a day and compounds day to day. Market 10 %, theme 25 %, cash kept 30 %, D15 5 %, D18 10 %, day stop −10 %
+    (`_shared/grokpm_public.ts`, `grokpmCaps`; caps and the day stop to the cent down, the cash kept up). Total stop −$30 of FUNDED unchanged.
+  - **Pinned** (`grokpm/exec.test.ts`, "D19: …"): $100 gives today's dollars exactly; $150 gives 15 / 37.50 / 45 / 7.50 / 15 and −15; $80
+    gives 8 / 20 / 24 / 4 / 8 and −8; a win raising the next day's caps; a loss tripping the day stop at −$8.
+  - **Reads.** `?action=account` adds `cap_basis_usd` and the `*_pct` fields, `checks.caps` records each order's basis, and a refusal names
+    "$15 (10 % of the $150 cap basis)". The page's day stop is 10 % of the record's day open (fixture, sweep and test now $10.16, $10.86 of room).
+  - **Docs.** Prereg §9 D19 (sha `4c49e5e2…`), map row, guide, `docs/agents/CLAUDE.md`. No migration.
 
 ### [2026-10-29 04:18 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The three Coinbase arms in whole dollars** (sub-agent; commit, not pushed; Davies, 10-29: "Coinbase策略中funded数字怎么那么奇怪，都改成整数调整").

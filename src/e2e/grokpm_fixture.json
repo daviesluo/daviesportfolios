@@ -430,8 +430,8 @@
   "costUsd": 30,
   "feesUsd": 0,
   "stop": {
-   "dayLimitUsd": 10,
-   "dayRoomUsd": 10.7,
+   "dayLimitUsd": 10.16,
+   "dayRoomUsd": 10.86,
    "dayTripped": false,
    "totalLimitUsd": 30,
    "totalRoomUsd": 32.3,

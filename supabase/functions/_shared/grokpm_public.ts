@@ -1,12 +1,40 @@
-// GROKPM's pure helpers shared by its server (`grokpm/exec.ts`) and its keyless recorder (`agents/grokpm_rec.ts`), so the
-// two never hold different copies (the server may import nothing of `agents/` but the database client and live-prep's
-// pure helpers: `src/grokpm_prereg.test.js`).
+// GROKPM's pure helpers shared by its server (`grokpm/exec.ts`), its keyless recorder (`agents/grokpm_rec.ts`) and its page
+// (`agents/grokpm_view.ts`), so they never hold different copies (the server may import nothing of `agents/` but the
+// database client and live-prep's pure helpers: `src/grokpm_prereg.test.js`).
 //
+//   - The money limits as shares of the cap basis (Deviation D19, 2026-10-29; Davies: "把polymarket的策略里的钱全换成百分比，
+//     这样的话可以有效实现盈利资金的再利用"): the agent's own equity at the start of the UTC day, so a cap holds still within a
+//     day and grows or shrinks with the book from one day to the next.
 //   - A resolution counts only at a final payout: 0, 1/2 or 1 (Deviation D14, 2026-10-24, the optimisation review's P4;
 //     F1 already held the shadow forecasts' outcomes to it). Gamma can call a market closed while its price is still
 //     short of the outcome (0.9995): such a market waits, unsettled, until a later read shows the payout.
 //   - A market's last public trade at or before a moment, as one outcome token's price (F2's, now also the `market`
 //     read's `last_trade`, Deviation D12).
+
+/**
+ * Deviation D19: each money limit of the pre-registration's §2 (and D15's, D18's) as a share of the cap basis. At a basis
+ * of $100 they are §2's dollars exactly: $10 a market (an event under D17), $25 a theme, $30 of cash kept, D15's $5 and
+ * D18's $10, and the day stop at −$10. The total stop is not here: it stays −$30 of the FUNDED $100, the test's FAIL.
+ */
+export const GROKPM_CAP_PCT = { market: 10, theme: 25, cashFloor: 30, thin: 5, thinBigEdge: 10, dayStop: 10 } as const;
+/** D19's limits in dollars for one cap basis, and the basis they were taken from. */
+export type GrokPmCaps = {
+  basisUsd: number; marketCapUsd: number; themeCapUsd: number; cashFloorUsd: number; thinCapUsd: number; thinCapBigEdgeUsd: number; dayStopUsd: number;
+};
+/**
+ * D19's limits for a cap basis (the agent's equity at the start of the UTC day; none under 0), to the cent and each the
+ * careful way: a cap and the day stop's size are rounded down, the cash kept is rounded up. A basis that is not a number
+ * gives every limit 0, so nothing opens on it.
+ */
+export function grokpmCaps(basisUsd: number): GrokPmCaps {
+  const b = Number.isFinite(basisUsd) ? Math.max(0, basisUsd) : 0, P = GROKPM_CAP_PCT;
+  // In cents, with a hair's room for binary fractions: 0.1 × 150 is 15.000000000000002, 0.3 × 107.59 is 32.277.
+  const down = (pct: number) => Math.floor(b * pct + 1e-6) / 100, up = (pct: number) => Math.ceil(b * pct - 1e-6) / 100;
+  return {
+    basisUsd: r6(b), marketCapUsd: down(P.market), themeCapUsd: down(P.theme), cashFloorUsd: up(P.cashFloor), thinCapUsd: down(P.thin),
+    thinCapBigEdgeUsd: down(P.thinBigEdge), dayStopUsd: down(P.dayStop),
+  };
+}
 
 /** The payouts a resolution may carry: anything else is not an outcome yet. */
 export const GROKPM_FINAL_PAYOUTS: readonly number[] = [0, 0.5, 1];

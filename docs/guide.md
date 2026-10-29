@@ -495,8 +495,10 @@ places stay when the number is not whole.
   $100 budget on Polymarket on information: outcomes already confirmed while
   the price lags, and researched mispricings in quiet markets. It holds no
   key: it asks this site's server in Ireland, which checks every order
-  against its fixed limits (a few dollars a market, six positions, a cash
-  floor, a daily and a total stop, no long shots, no near-certain favourites
+  against its limits (at most a tenth of its book's value at the start of
+  the UTC day in one market, so profits are put back to work the next day;
+  six positions; a cash floor and a daily stop sized the same way; a total
+  stop at −$30 of the $100; no long shots, no near-certain favourites
   unless the outcome is already confirmed, no thin books, no buy unless its
   own probability beats the price by 8 points for a confirmed outcome or 12
   for a researched mispricing, none bigger than a quarter of the Kelly

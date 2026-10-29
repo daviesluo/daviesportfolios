@@ -8,7 +8,8 @@
 //   a BUY        rests (post-only) and opens: price ≥ 0.05; under 0.90 unless category A; its market's cost (held at cost
 //                plus resting buys plus this order) at most $10; at most 6 markets open; at most $25 a theme (the agent
 //                names the theme; a market keeps the theme of its first buy); the agent's cash after it at least $30;
-//                neither stop reached (−$10 the UTC day, −$30 in all, both from the agent's OWN book); a market that ends
+//                neither stop reached (−$10 the UTC day, −$30 in all, both from the agent's OWN book; the $10, $25, $30,
+//                D15's $5 and the day's −$10 are shares of the cap basis since D19, below); a market that ends
 //                within 30 days, is not a sport or a crypto price market ending within 7 days, accepts orders, and whose
 //                book is not thin (spread at most 5 points, and at least $500 within 5 points of the mid on the bid, the
 //                side it would exit into); and the decision carries p, m, its category, sources and its invalidation.
@@ -27,6 +28,12 @@
 //                as one market for the $10 cap and D15's $5 (`eventKeyOf`, `eventCostUsd`).
 //   D18          (2026-10-28) D15's $5 is $10 for an order whose edge (D3) is 20 points or more (`thinCapMaxUsd`); the quarter
 //                of the bid depth, the $10 market cap, quarter Kelly and every other term still bind.
+//   D19          (2026-10-29; Davies: "把polymarket的策略里的钱全换成百分比，这样的话可以有效实现盈利资金的再利用") every dollar above
+//                that is the agent's money is a share of the cap basis, the agent's equity at the start of the UTC day (the
+//                day stop's own opening equity, `dayOpen`): the market cap 10 %, the theme cap 25 %, the cash kept 30 %,
+//                D15's 5 %, D18's 10 %, the day stop 10 % (`grokpmCaps`, `_shared/grokpm_public.ts`). At a basis of $100
+//                they are the dollars above. The total stop stays −$30 of the FUNDED $100 (the test's FAIL); the $500 of
+//                depth, the venue's minimum and the request limits are the market's or the server's, not money of ours.
 // Live sends need, besides: eu-west-1, the config armed (`dry_run` false, `armed_at` set), the key loaded for the stored
 // signer, Davies' Ireland attestation current, the account's geoblock read from here answering country IE, no global
 // pause, no other order path of the account armed, and the account not closed-only (for a BUY). Disarmed, everything is
@@ -40,7 +47,7 @@
 // wire with its region and route rules) and live-prep's pure helpers (`agents/pm_live.ts`: the book's touch, a send's
 // outcome, a read-back's state, a trade's fill, the attestation; `agents/pm_fees.ts`: a taker fill's fee).
 
-import { finalPayouts, lastTradeBefore, tapeOf } from "../_shared/grokpm_public.ts";
+import { finalPayouts, GROKPM_CAP_PCT, type GrokPmCaps, grokpmCaps, lastTradeBefore, tapeOf } from "../_shared/grokpm_public.ts";
 import {
   asTickSize, buildOrder, newSalt, orderProblems, PM_GTD_EARLY_S, PM_ORDER_REGION, type PmOpenOrder, type PmReply, type PmSigner, type PmTickSize, type PmTrade,
   type PmVenue,
@@ -53,7 +60,12 @@ import { decisionOf, type Decision } from "./ingest.ts";
 const M = 60e3, DAY = 86400e3;
 /** The rules of the pre-registration's §2 that a machine checks, and the server's own limits. */
 export const GROKPM_RULES = {
-  marketCapUsd: 10, maxPositions: 6, themeCapUsd: 25, cashFloorUsd: 30,
+  /**
+   * Deviation D19 (2026-10-29): the money limits are percentages of the cap basis (`grokpmCaps`): a market (an event under
+   * D17) 10 %, a theme 25 %, the cash kept 30 %, D15's cap 5 % and D18's 10 %, the day stop 10 %.
+   */
+  capPct: GROKPM_CAP_PCT,
+  maxPositions: 6,
   favouriteMin: 0.9, longshotUnder: 0.05, maxDaysToEnd: 30, shortDays: 7,
   thinSpread: 0.05, thinDepthUsd: 500, depthBand: 0.05,
   /** An open's edge, p less the dearer of its price and the book's mid (Deviation D3): A's 8 points, B's 12. */
@@ -66,20 +78,26 @@ export const GROKPM_RULES = {
   heldMin: 0.01,
   /**
    * Deviation D15 (2026-10-26): the thin rule's capped exception. A market's cost (held at cost, resting buys and the
-   * order) at most `maxUsd` and at most `depthShare` of the bid depth within 5 points; the order's whole life before the
+   * order) at most D15's cap (`capPct.thin`, $5 at a $100 basis) and at most `depthShare` of the bid depth within 5 points; the order's whole life before the
    * cut, `cutMs` before the earlier of the market's end and the scheduled release the agent names (`event_at`); one
    * resting buy a market; at most `maxMarkets` D15 markets; none once the UTC day holds `ordersDayMax` orders (the rest
    * of the 150 stay for closes and cancels).
-   * Deviation D18 (2026-10-28): `maxUsd` is `bigEdgeMaxUsd` for an order whose edge (D3: p less the dearer of its price and
-   * the book's mid) is at least `bigEdge`; the share of the depth, the market cap and every other term are unchanged.
+   * Deviation D18 (2026-10-28): the cap is D18's (`capPct.thinBigEdge`, $10 at a $100 basis) for an order whose edge (D3: p
+   * less the dearer of its price and the book's mid) is at least `bigEdge`; the share of the depth, the market cap and every
+   * other term are unchanged. Since D19 both caps are shares of the cap basis (`capPct.thin`, `capPct.thinBigEdge`).
    */
-  thinCap: { maxUsd: 5, bigEdge: 0.20, bigEdgeMaxUsd: 10, depthShare: 0.25, cutMs: 48 * 3600e3, maxMarkets: 3, ordersDayMax: 100 },
+  thinCap: { bigEdge: 0.20, depthShare: 0.25, cutMs: 48 * 3600e3, maxMarkets: 3, ordersDayMax: 100 },
 } as const;
-/** Deviation D18: D15's cap in dollars for an order of this edge (D3's: p less the dearer of its price and the book's mid). */
-export function thinCapMaxUsd(edge: number | null | undefined): number {
-  const T = GROKPM_RULES.thinCap;
-  return typeof edge === "number" && Number.isFinite(edge) && edge >= T.bigEdge - 1e-9 ? T.bigEdgeMaxUsd : T.maxUsd;
+/** Deviation D18: D15's cap in dollars for an order of this edge (D3's: p less the dearer of its price and the book's mid), of D19's caps. */
+export function thinCapMaxUsd(edge: number | null | undefined, caps: GrokPmCaps): number {
+  return bigEdge(edge) ? caps.thinCapBigEdgeUsd : caps.thinCapUsd;
 }
+/** D18: whether an order's edge is 20 points or more (an unknown edge is not). */
+const bigEdge = (edge: number | null | undefined) => typeof edge === "number" && Number.isFinite(edge) && edge >= GROKPM_RULES.thinCap.bigEdge - 1e-9;
+/** A dollar limit as the refusals name it: "$10", "$10.75". */
+const usd = (x: number) => (Number.isInteger(x) ? `$${x}` : `$${x.toFixed(2)}`);
+/** D19: a limit with its share and the basis it was taken from, as a refusal names it: "$10 (10 % of the $100 cap basis)". */
+const ofBasis = (x: number, pct: number, caps: GrokPmCaps) => `${usd(x)} (${pct} % of the ${usd(caps.basisUsd)} cap basis)`;
 /** The last good geoblock reading is used for this long when a new read fails. */
 export const GROKPM_GEO_CACHE_MS = 10 * M;
 
@@ -330,14 +348,16 @@ export type OrderPlan = {
  */
 export function orderRefusals(p: {
   decision: Decision; theme: string | null; ledger: GrokLedger; market: GrokMarket | null; book: GrokBook | null; nowMs: number;
-  dayPnlUsd: number; dailyLossUsd: number; totalStopUsd: number; ordersToday: number; maxOrdersDay: number; expiresAt?: string | null;
+  dayPnlUsd: number; totalStopUsd: number; ordersToday: number; maxOrdersDay: number; expiresAt?: string | null;
+  /** Deviation D19: the money limits in dollars, of the day's cap basis (`grokpmCaps`); the day stop is its `dayStopUsd`. */
+  caps: GrokPmCaps;
   /** Deviation D4: a stop once reached holds (the day's until 00:00 UTC, the total's to the end), whatever the marks do after. */
   dayStopped?: boolean; totalStopped?: boolean;
   /** D15: the order body's `event_at` (an ISO time, null for none, undefined when the key was not sent). */
   eventAt?: string | null;
 }): { refusals: Refusal[]; plan: OrderPlan | null } {
   const d = p.decision, out: Refusal[] = [];
-  const R = GROKPM_RULES;
+  const R = GROKPM_RULES, K = p.caps, P = R.capPct;
   if (d.action !== "open" && d.action !== "close") return { refusals: [{ rule: "action", why: "an order's decision is an open (a BUY) or a close (a SELL)" }], plan: null };
   const side = d.side!, price = d.price!, size = d.size!, token = d.token_id!, cond = d.market_id!;
   if (p.ordersToday >= p.maxOrdersDay) out.push({ rule: "orders_day", why: `${p.ordersToday} orders today, at most ${p.maxOrdersDay}` });
@@ -356,7 +376,7 @@ export function orderRefusals(p: {
     const L = p.ledger;
     const cost = price * size;
     const inMarket = (L.costByCond[cond] ?? 0) + cost;
-    // Deviation D17: the event's outcome markets together, for the $10 cap and D15's $5.
+    // Deviation D17: the event's outcome markets together, for the market cap and D15's (D19: 10 % and 5 % of the basis).
     const eventKey = eventKeyOf(L, cond, m), inEvent = r6(eventCostUsd(L, eventKey, cond) + cost), others = inEvent > inMarket + 1e-9;
     const what = others ? `this market and the other outcomes of its event (D17) would hold $${inEvent.toFixed(2)}` : `this market would hold $${inEvent.toFixed(2)}`;
     if (price < R.longshotUnder) out.push({ rule: "longshot", why: `a buy under ${R.longshotUnder} is forbidden` });
@@ -374,11 +394,11 @@ export function orderRefusals(p: {
       if (pr > price) {
         const kellyUsd = r6(R.kellyFraction * ((pr - price) / (1 - price)) * Math.max(0, p.ledger.equityUsd));
         const smallest = b?.minSize ? b.minSize * price : 0;
-        const kellyCapUsd = Math.min(R.marketCapUsd, Math.max(kellyUsd, smallest));
+        const kellyCapUsd = Math.min(K.marketCapUsd, Math.max(kellyUsd, smallest));
         if (inMarket > kellyCapUsd + 1e-9) {
           out.push({
             rule: "kelly",
-            why: `this market would hold $${inMarket.toFixed(2)} at cost ($${(L.costByCond[cond] ?? 0).toFixed(2)} held or resting plus $${cost.toFixed(2)}), over the smaller of a quarter Kelly at p ${pr} and ${price} and $${R.marketCapUsd}: at most $${kellyCapUsd.toFixed(2)}`,
+            why: `this market would hold $${inMarket.toFixed(2)} at cost ($${(L.costByCond[cond] ?? 0).toFixed(2)} held or resting plus $${cost.toFixed(2)}), over the smaller of a quarter Kelly at p ${pr} and ${price} and ${ofBasis(K.marketCapUsd, P.market, K)}: at most $${kellyCapUsd.toFixed(2)}`,
           });
         }
       }
@@ -386,15 +406,15 @@ export function orderRefusals(p: {
     if (d.category === "C" && !Object.values(p.ledger.held).some((h) => h.cond === cond)) out.push({ rule: "adjustment", why: "category C changes a position the agent already holds: it holds nothing in this market" });
     if (L.totalUsd <= -p.totalStopUsd) out.push({ rule: "total_stop", why: `the book is ${L.totalUsd.toFixed(2)} from the budget, at or past −${p.totalStopUsd}: close only` });
     else if (p.totalStopped) out.push({ rule: "total_stop", why: `the total stop (−${p.totalStopUsd}) was reached earlier: close only to the end of the test` });
-    if (p.dayPnlUsd <= -p.dailyLossUsd) out.push({ rule: "day_stop", why: `the UTC day is ${p.dayPnlUsd.toFixed(2)}, at or past −${p.dailyLossUsd}: no new open until 00:00 UTC` });
-    else if (p.dayStopped) out.push({ rule: "day_stop", why: `the day stop (−${p.dailyLossUsd}) was reached earlier today: no new open until 00:00 UTC` });
-    if (inEvent > R.marketCapUsd + 1e-9) out.push({ rule: "market_cap", why: `${what} at cost, over ${R.marketCapUsd}` });
+    if (p.dayPnlUsd <= -K.dayStopUsd) out.push({ rule: "day_stop", why: `the UTC day is ${p.dayPnlUsd.toFixed(2)}, at or past −${ofBasis(K.dayStopUsd, P.dayStop, K)}: no new open until 00:00 UTC` });
+    else if (p.dayStopped) out.push({ rule: "day_stop", why: `the day stop (−${ofBasis(K.dayStopUsd, P.dayStop, K)}) was reached earlier today: no new open until 00:00 UTC` });
+    if (inEvent > K.marketCapUsd + 1e-9) out.push({ rule: "market_cap", why: `${what} at cost, over ${ofBasis(K.marketCapUsd, P.market, K)}` });
     if (!L.openConds.includes(cond) && L.openConds.length >= R.maxPositions) out.push({ rule: "positions", why: `${L.openConds.length} markets open, at most ${R.maxPositions}` });
     const theme = L.themeOf[cond] ?? p.theme;
     if (!p.theme) out.push({ rule: "theme", why: "an open names its theme (`theme`)" });
     else if (L.themeOf[cond] && L.themeOf[cond] !== p.theme) out.push({ rule: "theme", why: `this market is already under the theme "${L.themeOf[cond]}"` });
-    else if ((L.costByTheme[theme!] ?? 0) + cost > R.themeCapUsd + 1e-9) out.push({ rule: "theme_cap", why: `the theme "${theme}" would hold ${((L.costByTheme[theme!] ?? 0) + cost).toFixed(2)}, over ${R.themeCapUsd}` });
-    if (L.freeCashUsd - cost < R.cashFloorUsd - 1e-9) out.push({ rule: "cash_floor", why: `cash after it would be ${(L.freeCashUsd - cost).toFixed(2)}, under ${R.cashFloorUsd}` });
+    else if ((L.costByTheme[theme!] ?? 0) + cost > K.themeCapUsd + 1e-9) out.push({ rule: "theme_cap", why: `the theme "${theme}" would hold ${((L.costByTheme[theme!] ?? 0) + cost).toFixed(2)}, over ${ofBasis(K.themeCapUsd, P.theme, K)}` });
+    if (L.freeCashUsd - cost < K.cashFloorUsd - 1e-9) out.push({ rule: "cash_floor", why: `cash after it would be ${(L.freeCashUsd - cost).toFixed(2)}, under ${ofBasis(K.cashFloorUsd, P.cashFloor, K)}` });
     if (m) {
       const end = timeMs(m.endDate);
       if (end === null) out.push({ rule: "end_date", why: "the market names no end date" });
@@ -410,7 +430,7 @@ export function orderRefusals(p: {
         if (wide) out.push({ rule: "thin", why: `the spread is ${(b.spread! * 100).toFixed(1)} points, over 5` });
         // Deviation D15: thin for its depth alone, in category B, the capped exception's terms decide instead.
         if (shallow && !wide && d.category === "B") {
-          thinCap = thinCapRefusals({ cond, cost, inMarket: inEvent, eventOthers: others, depthUsd: b.bidDepthUsd, ledger: L, market: m, nowMs: p.nowMs, expirationS: exp.expiration, eventAt: p.eventAt, ordersToday: p.ordersToday, edge: edgeD3 });
+          thinCap = thinCapRefusals({ cond, cost, inMarket: inEvent, eventOthers: others, depthUsd: b.bidDepthUsd, ledger: L, market: m, nowMs: p.nowMs, expirationS: exp.expiration, eventAt: p.eventAt, ordersToday: p.ordersToday, edge: edgeD3, caps: K });
           out.push(...thinCap.refusals);
         } else if (shallow) out.push({ rule: "thin", why: `$${b.bidDepthUsd.toFixed(0)} bid within 5 points of the mid, under $${R.thinDepthUsd}` });
         if (b.bestAsk !== null && price >= b.bestAsk - 1e-9) out.push({ rule: "post_only", why: `a buy at ${price} would take the ask ${b.bestAsk}: an open rests (post-only)` });
@@ -418,11 +438,12 @@ export function orderRefusals(p: {
     }
     // A D15 market holds at most $5 at cost whatever its book is now, every buy there (category C's included); under D17,
     // every market of an event one of whose markets is a D15 market, the event's markets together. Under D18 the $5 is
-    // $10 for a buy whose own edge is 20 points or more.
+    // $10 for a buy whose own edge is 20 points or more; under D19 they are 5 % and 10 % of the cap basis.
     const thinEvent = L.thinCapConds.some((c) => c === cond || (L.eventOf[c] ?? c) === eventKey);
-    const heldCapUsd = thinCapMaxUsd(edgeD3);
+    const heldCapUsd = thinCapMaxUsd(edgeD3, K);
     if (!thinCap && thinEvent && inEvent > heldCapUsd + 1e-9) {
-      out.push({ rule: "thin_cap", why: `cap: ${L.thinCapConds.includes(cond) ? "this market holds" : "another outcome of this event holds"} a D15 position, so at most $${heldCapUsd} at cost; ${what}` });
+      const pct = bigEdge(edgeD3) ? P.thinBigEdge : P.thin;
+      out.push({ rule: "thin_cap", why: `cap: ${L.thinCapConds.includes(cond) ? "this market holds" : "another outcome of this event holds"} a D15 position, so at most ${usd(heldCapUsd)} at cost (${pct} % of the ${usd(K.basisUsd)} cap basis); ${what}` });
     }
   } else {
     const h = p.ledger.held[token];
@@ -454,6 +475,8 @@ export function thinCapRefusals(p: {
   eventAt: string | null | undefined; ordersToday: number;
   /** D18: the order's edge (D3's); 20 points or more lifts D15's $5 to $10. Absent or null: $5. */
   edge?: number | null;
+  /** D19: the money limits of the day's cap basis; D15's and D18's caps are its `thinCapUsd` and `thinCapBigEdgeUsd`. */
+  caps: GrokPmCaps;
   /** D17: `inMarket` counts the other outcome markets of its event too (worded so). */
   eventOthers?: boolean;
 }): { refusals: Refusal[]; cutMs: number | null } {
@@ -472,9 +495,10 @@ export function thinCapRefusals(p: {
   else if (goneMs > cutMs) {
     out.push({ rule: "thin_cap", why: `cut: the order would rest until ${iso(goneMs)}, past ${iso(cutMs)}, 48 hours before the market's ${event !== null && event <= (end ?? Infinity) ? "named release" : "end"}` });
   }
-  const maxUsd = thinCapMaxUsd(p.edge), capUsd = Math.min(maxUsd, T.depthShare * p.depthUsd);
+  const K = p.caps, P = GROKPM_RULES.capPct;
+  const maxUsd = thinCapMaxUsd(p.edge, K), big = bigEdge(p.edge), capUsd = Math.min(maxUsd, T.depthShare * p.depthUsd);
   if (p.inMarket > capUsd + 1e-9) {
-    out.push({ rule: "thin_cap", why: `size: this market${p.eventOthers ? " and the other outcomes of its event (D17)" : ""} would hold $${p.inMarket.toFixed(2)} at cost, over the smaller of $${maxUsd}${maxUsd > T.maxUsd ? ` (D18: $${T.maxUsd} under a ${Math.round(T.bigEdge * 100)}-point edge)` : ""} and a quarter of the $${p.depthUsd.toFixed(2)} bid depth within 5 points: at most $${capUsd.toFixed(2)}` });
+    out.push({ rule: "thin_cap", why: `size: this market${p.eventOthers ? " and the other outcomes of its event (D17)" : ""} would hold $${p.inMarket.toFixed(2)} at cost, over the smaller of ${ofBasis(maxUsd, big ? P.thinBigEdge : P.thin, K)}${big ? ` (D18: ${usd(K.thinCapUsd)} under a ${Math.round(T.bigEdge * 100)}-point edge)` : ""} and a quarter of the $${p.depthUsd.toFixed(2)} bid depth within 5 points: at most $${capUsd.toFixed(2)}` });
   }
   if (p.ledger.restingBuyConds.includes(p.cond)) out.push({ rule: "thin_cap", why: "one bid: a buy of yours already rests in this market; cancel it or let it expire first" });
   if (!p.ledger.thinCapConds.includes(p.cond) && p.ledger.thinCapConds.length >= T.maxMarkets) {
@@ -519,6 +543,8 @@ export type ExecDeps = {
 };
 export type ExecContext = {
   cfg: GrokConfig; mode: "dry_run" | "live"; gates: Gates; ledger: GrokLedger; dayPnlUsd: number; dayOpenEquityUsd: number; orders: GrokOrderRow[];
+  /** Deviation D19: the day's money limits, of its cap basis (`dayOpenEquityUsd`, the day's opening equity). */
+  caps: GrokPmCaps;
   ordersToday: number; state: Record<string, unknown>; errors: string[];
   /** When the day stop (today) and the total stop (ever, live) were first reached, or null (Deviation D4's latches). */
   dayStopAt: string | null; totalStopAt: string | null;
@@ -684,8 +710,12 @@ export async function context(deps: ExecDeps, opts: { readGeo: boolean; sync: bo
   // "close-only to the end"; computed afresh, a mark recovering a minute later would have opened them again. Live only,
   // from the agent's own book; the latch is kept in this state row (`totalStop` is cleared only by hand, on Davies' word).
   const dayPnl = r6(ledger.equityUsd - dayOpen.equityUsd);
+  // Deviation D19: the day's money limits are shares of its opening equity, the same reading the day's P&L is taken from:
+  // the first context of the UTC day (the minute's sync, just after 00:00), the start's own day at the budget. It holds
+  // still all day; the next day's is the book as it then stands. `grokpm_config.daily_loss_usd` is no longer read.
+  const caps = grokpmCaps(dayOpen.equityUsd);
   if (mode === "live") {
-    if (dayPnl <= -num(cfg.daily_loss_usd) && (st.dayStop as { day?: string } | undefined)?.day !== today) st.dayStop = { day: today, at: iso(now), dayPnlUsd: dayPnl };
+    if (dayPnl <= -caps.dayStopUsd && (st.dayStop as { day?: string } | undefined)?.day !== today) st.dayStop = { day: today, at: iso(now), dayPnlUsd: dayPnl };
     if (ledger.totalUsd <= -num(cfg.total_stop_usd) && !st.totalStop) st.totalStop = { at: iso(now), totalUsd: ledger.totalUsd };
   }
   const dayStopAt = (st.dayStop as { day?: string; at?: string } | undefined)?.day === today ? (st.dayStop as { at: string }).at : null;
@@ -693,7 +723,7 @@ export async function context(deps: ExecDeps, opts: { readGeo: boolean; sync: bo
   await db.update("grokpm_exec_state", "id=eq.1", { state: st, updated_at: iso(now), last_error: errors.length ? errors.join("; ").slice(0, 500) : null });
   const dayStart = Math.floor(now / DAY) * DAY;
   return {
-    cfg, mode, ledger, dayOpenEquityUsd: dayOpen.equityUsd, dayPnlUsd: dayPnl, orders, state: st, errors, dayStopAt, totalStopAt,
+    cfg, mode, ledger, dayOpenEquityUsd: dayOpen.equityUsd, dayPnlUsd: dayPnl, caps, orders, state: st, errors, dayStopAt, totalStopAt,
     ordersToday: orders.filter((o) => Date.parse(o.created_at) >= dayStart).length,
     gates: {
       region: deps.region, mode, armed, keyProblem: deps.signer && deps.account ? null : deps.keyProblem ?? "no signing key or account loaded",
@@ -705,8 +735,9 @@ export async function context(deps: ExecDeps, opts: { readGeo: boolean; sync: bo
 
 /** The agent's view of its own book: what `GET ?action=account` answers. Nothing of the shared wallet's own holdings. */
 export function accountView(c: ExecContext, nowMs: number) {
-  const L = c.ledger, cfg = c.cfg;
-  const dayLimit = num(cfg.daily_loss_usd), totalLimit = num(cfg.total_stop_usd);
+  const L = c.ledger, cfg = c.cfg, K = c.caps, P = GROKPM_RULES.capPct;
+  // D19: the day stop is the day's share of its cap basis; the total stop stays the configured dollars of the FUNDED budget.
+  const dayLimit = K.dayStopUsd, totalLimit = num(cfg.total_stop_usd);
   const nowS = Math.floor(nowMs / 1000);
   return {
     mode: c.mode, armed: c.gates.armed, started_at: cfg.started_at, region: c.gates.region,
@@ -715,16 +746,19 @@ export function accountView(c: ExecContext, nowMs: number) {
       other_path_armed: !!c.gates.otherArmed, key_loaded: !c.gates.keyProblem,
     },
     budget: {
-      funded_usd: L.fundedUsd, cash_usd: L.cashUsd, resting_buys_usd: L.restingBuyUsd, free_cash_usd: L.freeCashUsd, cash_floor_usd: GROKPM_RULES.cashFloorUsd,
-      spendable_usd: r6(Math.max(0, L.freeCashUsd - GROKPM_RULES.cashFloorUsd)), held_value_usd: L.heldValueUsd, equity_usd: L.equityUsd, fees_usd: L.feesUsd,
-      total_pnl_usd: L.totalUsd, day_pnl_usd: c.dayPnlUsd, day_stop_usd: -dayLimit, total_stop_usd: -totalLimit,
+      funded_usd: L.fundedUsd, cash_usd: L.cashUsd, resting_buys_usd: L.restingBuyUsd, free_cash_usd: L.freeCashUsd,
+      // Deviation D19: every money limit below is a share of this, the agent's equity at the start of the UTC day.
+      cap_basis_usd: K.basisUsd, cash_floor_usd: K.cashFloorUsd, cash_floor_pct: P.cashFloor,
+      spendable_usd: r6(Math.max(0, L.freeCashUsd - K.cashFloorUsd)), held_value_usd: L.heldValueUsd, equity_usd: L.equityUsd, fees_usd: L.feesUsd,
+      total_pnl_usd: L.totalUsd, day_pnl_usd: c.dayPnlUsd, day_stop_usd: -dayLimit, day_stop_pct: P.dayStop, total_stop_usd: -totalLimit,
       day_room_usd: r6(dayLimit + c.dayPnlUsd), total_room_usd: r6(totalLimit + L.totalUsd),
       can_open: L.totalUsd > -totalLimit && c.dayPnlUsd > -dayLimit && !c.dayStopAt && !c.totalStopAt, day_stop_hit_at: c.dayStopAt, total_stop_hit_at: c.totalStopAt,
       settled_usd: L.settledUsd, orders_today: c.ordersToday, max_orders_day: cfg.max_orders_day,
-      markets_open: L.openConds.length, max_markets: GROKPM_RULES.maxPositions, market_cap_usd: GROKPM_RULES.marketCapUsd,
-      theme_cap_usd: GROKPM_RULES.themeCapUsd, cost_by_theme: L.costByTheme, cost_by_market: L.costByCond, cost_by_event: L.costByEvent,
+      markets_open: L.openConds.length, max_markets: GROKPM_RULES.maxPositions, market_cap_usd: K.marketCapUsd, market_cap_pct: P.market,
+      theme_cap_usd: K.themeCapUsd, theme_cap_pct: P.theme, cost_by_theme: L.costByTheme, cost_by_market: L.costByCond, cost_by_event: L.costByEvent,
       // Deviation D15: the thin rule's capped exception, as the agent's account shows it.
-      thin_cap_markets: L.thinCapConds, thin_cap_max_markets: GROKPM_RULES.thinCap.maxMarkets, thin_cap_market_usd: GROKPM_RULES.thinCap.maxUsd, thin_cap_big_edge: GROKPM_RULES.thinCap.bigEdge, thin_cap_big_edge_market_usd: GROKPM_RULES.thinCap.bigEdgeMaxUsd,
+      thin_cap_markets: L.thinCapConds, thin_cap_max_markets: GROKPM_RULES.thinCap.maxMarkets, thin_cap_market_usd: K.thinCapUsd, thin_cap_market_pct: P.thin,
+      thin_cap_big_edge: GROKPM_RULES.thinCap.bigEdge, thin_cap_big_edge_market_usd: K.thinCapBigEdgeUsd, thin_cap_big_edge_market_pct: P.thinBigEdge,
     },
     positions: Object.entries(L.held).map(([token, h]) => ({
       market_id: h.cond, token_id: token, size: h.held, avg_price: h.avgCost, mark: h.mark, mark_from: h.markFrom,
@@ -865,7 +899,7 @@ export async function placeOrder(deps: ExecDeps, body: unknown): Promise<{ statu
   const market = g.ok ? marketOf((g.data?.markets ?? []).find((x) => String(x.conditionId ?? "").toLowerCase() === decision.market_id)) : null;
   const book = bk.ok ? bookOf(bk.data) : null;
   const { refusals, plan } = orderRefusals({
-    decision, theme, ledger: c.ledger, market, book, nowMs: now, dayPnlUsd: c.dayPnlUsd, dailyLossUsd: num(c.cfg.daily_loss_usd),
+    decision, theme, ledger: c.ledger, market, book, nowMs: now, dayPnlUsd: c.dayPnlUsd, caps: c.caps,
     totalStopUsd: num(c.cfg.total_stop_usd), ordersToday: c.ordersToday, maxOrdersDay: c.cfg.max_orders_day, expiresAt,
     dayStopped: !!c.dayStopAt, totalStopped: !!c.totalStopAt, eventAt,
   });
@@ -885,7 +919,7 @@ export async function placeOrder(deps: ExecDeps, body: unknown): Promise<{ statu
     mode: c.mode, created_at: iso(now), decision_id: decision.id, cond: plan.cond, token: plan.token, outcome: decision.outcome, side: plan.side, price: plan.price, size: plan.size,
     post_only: plan.postOnly, expiration: plan.expiration, neg_risk: plan.negRisk, hash: built.hash, theme: plan.side === "BUY" ? c.ledger.themeOf[plan.cond] ?? theme : theme,
     category: decision.category, state: "pending", request, thin_cap: plan.thinCap === true, cut_at: plan.cutAt ?? null,
-    event_at: typeof eventAt === "string" ? iso(Date.parse(eventAt)) : null, checks: orderChecks({ decision, book, ledger: c.ledger, plan }),
+    event_at: typeof eventAt === "string" ? iso(Date.parse(eventAt)) : null, checks: orderChecks({ decision, book, ledger: c.ledger, plan, caps: c.caps }),
     neg_risk_market_id: plan.negRiskId ?? null,
   }, true);
   if (c.mode === "dry_run") {
@@ -912,23 +946,30 @@ export async function placeOrder(deps: ExecDeps, body: unknown): Promise<{ statu
 /**
  * What the server read and computed for an order it sends (0143, the order verification's V1): the book as read, the edge
  * against the dearer of price and mid, the market's cost with the order, the quarter-Kelly cap, and for a D15 order its
- * cap and cut. A record for later checks; no rule reads it.
+ * cap and cut, and since D19 the money limits it was judged by (`caps`: the cap basis and each limit in dollars). A record
+ * for later checks; no rule reads it.
  */
-export function orderChecks(p: { decision: Decision; book: GrokBook | null; ledger: GrokLedger; plan: OrderPlan }) {
-  const { decision: d, book: b, ledger: L, plan } = p, R = GROKPM_RULES;
+export function orderChecks(p: { decision: Decision; book: GrokBook | null; ledger: GrokLedger; plan: OrderPlan; caps: GrokPmCaps }) {
+  const { decision: d, book: b, ledger: L, plan, caps: K } = p, R = GROKPM_RULES;
   const cost = plan.price * plan.size, buy = plan.side === "BUY" ? cost : 0, inMarket = r6((L.costByCond[plan.cond] ?? 0) + buy);
   const key = plan.eventKey ?? plan.cond, inEvent = r6(eventCostUsd(L, key, plan.cond) + buy);
   const pr = Number(d.p), against = Math.max(plan.price, b?.mid ?? plan.price);
-  const kelly = Number.isFinite(pr) && pr > plan.price ? r6(Math.min(R.marketCapUsd, R.kellyFraction * ((pr - plan.price) / (1 - plan.price)) * Math.max(0, L.equityUsd))) : null;
+  const kelly = Number.isFinite(pr) && pr > plan.price ? r6(Math.min(K.marketCapUsd, R.kellyFraction * ((pr - plan.price) / (1 - plan.price)) * Math.max(0, L.equityUsd))) : null;
   return {
     book: b ? { best_bid: b.bestBid, best_ask: b.bestAsk, mid: b.mid, spread: b.spread, bid_depth_usd: b.bidDepthUsd, ask_depth_usd: b.askDepthUsd } : null,
     edge: Number.isFinite(pr) ? r6(pr - against) : null, cost_usd: r6(cost), market_cost_usd: inMarket,
     event: { key, cost_usd: inEvent }, kelly_cap_usd: kelly,
-    // D18: `max_usd` is the cap that applied ($5, or $10 for an edge of 20 points or more); `cap_usd` is the smaller of it and the depth share.
+    // D18: `max_usd` is the cap that applied ($5, or $10 for an edge of 20 points or more; D19: 5 % or 10 % of the basis);
+    // `cap_usd` is the smaller of it and the depth share.
     thin_cap: plan.thinCap === true ? (() => {
-      const maxUsd = thinCapMaxUsd(Number.isFinite(pr) ? r6(pr - against) : null);
-      return { cap_usd: r6(Math.min(maxUsd, R.thinCap.depthShare * (b?.bidDepthUsd ?? 0))), max_usd: maxUsd, big_edge: maxUsd > R.thinCap.maxUsd, cut_at: plan.cutAt ?? null };
+      const edge = Number.isFinite(pr) ? r6(pr - against) : null, maxUsd = thinCapMaxUsd(edge, K);
+      return { cap_usd: r6(Math.min(maxUsd, R.thinCap.depthShare * (b?.bidDepthUsd ?? 0))), max_usd: maxUsd, big_edge: bigEdge(edge), cut_at: plan.cutAt ?? null };
     })() : null,
+    // D19: the cap basis this order was judged by, and each money limit it gave.
+    caps: {
+      basis_usd: K.basisUsd, market_cap_usd: K.marketCapUsd, theme_cap_usd: K.themeCapUsd, cash_floor_usd: K.cashFloorUsd, thin_cap_usd: K.thinCapUsd,
+      thin_cap_big_edge_usd: K.thinCapBigEdgeUsd, day_stop_usd: K.dayStopUsd,
+    },
   };
 }
 

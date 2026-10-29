@@ -7,6 +7,7 @@
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { PmOrderKey } from "../_shared/polymarket_orders.ts";
 import { GROKPM_TABLES } from "../_shared/grokpm_schema.ts";
+import { GROKPM_CAP_PCT, grokpmCaps } from "../_shared/grokpm_public.ts";
 import type { Db } from "../agents/db.ts";
 import { FakePolymarket, memDb, PM_TEST_FUNDER, PM_TEST_KEY, PM_TEST_SIGNER, type Row } from "../agents/testing.ts";
 import {
@@ -282,9 +283,9 @@ Deno.test("positions, themes, the cash floor and the day's orders, from the agen
   const market = marketOf({ conditionId: cond(3), clobTokenIds: '["311","312"]', acceptingOrders: true, endDate: iso(T0 + 5 * DAY) });
   // 6 at 0.44 = 2.64 in cond(3), theme t2: its market 7.04 (under Kelly and 10), its theme 26.64 (over 25), cash after 29.36 (under 30).
   const d = { ...(open({ market_id: cond(3), token_id: "311", size: 6 }).decision as Record<string, unknown>) } as never;
-  const r = orderRefusals({ decision: d, theme: "t2", ledger: L, market, book, nowMs: T0, dayPnlUsd: 0, dailyLossUsd: 10, totalStopUsd: 30, ordersToday: 0, maxOrdersDay: 50 });
+  const r = orderRefusals({ decision: d, theme: "t2", ledger: L, market, book, nowMs: T0, dayPnlUsd: 0, caps: grokpmCaps(100), totalStopUsd: 30, ordersToday: 0, maxOrdersDay: 50 });
   assertEquals(r.refusals.map((x) => x.rule).sort(), ["cash_floor", "theme_cap"]);
-  const day = orderRefusals({ decision: d, theme: "t2", ledger: c.ledger, market, book, nowMs: T0, dayPnlUsd: 0, dailyLossUsd: 10, totalStopUsd: 30, ordersToday: 50, maxOrdersDay: 50 });
+  const day = orderRefusals({ decision: d, theme: "t2", ledger: c.ledger, market, book, nowMs: T0, dayPnlUsd: 0, caps: grokpmCaps(100), totalStopUsd: 30, ordersToday: 50, maxOrdersDay: 50 });
   assert(day.refusals.some((x) => x.rule === "orders_day"));
 });
 
@@ -305,7 +306,7 @@ Deno.test("the stops, from the agent's own fills and marks: −$10 a day and −
   // The total stop on a ledger: −30.
   const book = bookOf({ bids: [{ price: "0.45", size: "2000" }], asks: [{ price: "0.47", size: "2000" }], tick_size: "0.01", min_order_size: "5" });
   const market = marketOf({ conditionId: C2, clobTokenIds: '["201","202"]', acceptingOrders: true, endDate: iso(T0 + 5 * DAY) });
-  const r = orderRefusals({ decision: open({ market_id: C2, token_id: "201" }).decision as never, theme: "t", ledger: { ...c.ledger, totalUsd: -30 }, market, book, nowMs: T0, dayPnlUsd: 0, dailyLossUsd: 10, totalStopUsd: 30, ordersToday: 0, maxOrdersDay: 50 });
+  const r = orderRefusals({ decision: open({ market_id: C2, token_id: "201" }).decision as never, theme: "t", ledger: { ...c.ledger, totalUsd: -30 }, market, book, nowMs: T0, dayPnlUsd: 0, caps: grokpmCaps(100), totalStopUsd: 30, ordersToday: 0, maxOrdersDay: 50 });
   assertEquals(r.refusals.map((x) => x.rule), ["total_stop"]);
   // A close is never stopped: the agent may sell what it holds.
   w.fake.tokens.set("101", 20);
@@ -750,7 +751,7 @@ Deno.test("D15: the pure terms: the depth share, the end-based cut, no end date,
   const w = thinWorld();
   const L = ledgerOf({ fundedUsd: 100, orders: [], fills: [], mids: {}, payouts: {}, nowMs: T0 });
   const market = marketOf({ conditionId: C3, clobTokenIds: '["301","302"]', endDate: iso(T0 + 5 * DAY), acceptingOrders: true });
-  const base = { cond: C3, cost: 2, inMarket: 2, depthUsd: 35.6, ledger: L, market, nowMs: T0, expirationS: Math.floor(T0 / 1000) + 60 + 35 * 60, eventAt: null, ordersToday: 0 };
+  const base = { cond: C3, cost: 2, inMarket: 2, depthUsd: 35.6, ledger: L, market, nowMs: T0, expirationS: Math.floor(T0 / 1000) + 60 + 35 * 60, eventAt: null, ordersToday: 0, caps: grokpmCaps(100) };
   assertEquals(thinCapRefusals(base), { refusals: [], cutMs: T0 + 5 * DAY - 48 * 3600e3 });
   assertEquals(thinCapRefusals({ ...base, depthUsd: 4 }).refusals.map((x) => x.why.split(":")[0]), ["size"]);   // a quarter of $4 is $1
   assertEquals(thinCapRefusals({ ...base, ordersToday: 100 }).refusals.map((x) => x.why.split(":")[0]), ["orders"]);
@@ -822,6 +823,8 @@ Deno.test("V1: a D15 order keeps its event_at and its checks (book, edge, costs,
   assertEquals(row.checks, {
     book: { best_bid: 0.45, best_ask: 0.47, mid: 0.46, spread: 0.02, bid_depth_usd: 35.6, ask_depth_usd: 38 }, edge: 0.14, cost_usd: 2.2, market_cost_usd: 2.2,
     event: { key: C3, cost_usd: 2.2 }, kelly_cap_usd: 7.142857, thin_cap: { cap_usd: 5, max_usd: 5, big_edge: false, cut_at: iso(T0 + 4 * DAY - 48 * 3600e3) },
+    // D19: the cap basis it was judged by ($100: the day opens at the budget) and every money limit in dollars.
+    caps: { basis_usd: 100, market_cap_usd: 10, theme_cap_usd: 25, cash_floor_usd: 30, thin_cap_usd: 5, thin_cap_big_edge_usd: 10, day_stop_usd: 10 },
   });
   const acct = accountView(await context(w.deps(), { readGeo: true, sync: false }), T0);
   assertEquals((acct.open_orders as Array<{ event_at: string | null }>)[0].event_at, event);
@@ -949,14 +952,14 @@ Deno.test("D17: D15's $5 is the event's: a second thin outcome gets what the fir
 
 // ── Deviation D18 (2026-10-28): D15's $5 is $10 for an order whose edge is 20 points or more ─────────────────────────
 Deno.test("D18: D15's cap is $10 at an edge of 0.20 or more and $5 under it (0.199), and $5 when the edge is unknown", () => {
-  assertEquals([0.2, 0.28, 0.199, 0.14, 0, -0.1, null, undefined, NaN].map((e) => thinCapMaxUsd(e)), [10, 10, 5, 5, 5, 5, 5, 5, 5]);
-  assertEquals([GROKPM_RULES.thinCap.bigEdge, GROKPM_RULES.thinCap.bigEdgeMaxUsd, GROKPM_RULES.thinCap.maxUsd], [0.2, 10, 5]);
+  assertEquals([0.2, 0.28, 0.199, 0.14, 0, -0.1, null, undefined, NaN].map((e) => thinCapMaxUsd(e, grokpmCaps(100))), [10, 10, 5, 5, 5, 5, 5, 5, 5]);
+  assertEquals([GROKPM_RULES.thinCap.bigEdge, GROKPM_RULES.capPct.thinBigEdge, GROKPM_RULES.capPct.thin], [0.2, 10, 5]);
 });
 
 Deno.test("D18: the pure size term: $10 at the big edge, still a quarter of the bid depth, still $5 under it", () => {
   const L = ledgerOf({ fundedUsd: 100, orders: [], fills: [], mids: {}, payouts: {}, nowMs: T0 });
   const market = marketOf({ conditionId: C3, clobTokenIds: '["301","302"]', endDate: iso(T0 + 5 * DAY), acceptingOrders: true });
-  const base = { cond: C3, cost: 8.8, inMarket: 8.8, depthUsd: 100, ledger: L, market, nowMs: T0, expirationS: Math.floor(T0 / 1000) + 60 + 35 * 60, eventAt: null, ordersToday: 0 };
+  const base = { cond: C3, cost: 8.8, inMarket: 8.8, depthUsd: 100, ledger: L, market, nowMs: T0, expirationS: Math.floor(T0 / 1000) + 60 + 35 * 60, eventAt: null, ordersToday: 0, caps: grokpmCaps(100) };
   const why = (x: Parameters<typeof thinCapRefusals>[0]) => thinCapRefusals(x).refusals.map((r) => r.why.split(":")[0]);
   assertEquals(why({ ...base, edge: 0.2 }), []);                 // $8.80 under min($10, a quarter of $100)
   assertEquals(why({ ...base, edge: 0.199 }), ["size"]);         // the same order is over $5
@@ -965,7 +968,7 @@ Deno.test("D18: the pure size term: $10 at the big edge, still a quarter of the 
   assertEquals(why({ ...base, edge: 0.3, depthUsd: 30, inMarket: 8.8 }), ["size"]);  // a quarter of $30 is $7.50: the depth share binds
   assertEquals(why({ ...base, edge: 0.3, depthUsd: 30, inMarket: 7.5 }), []);
   const r = thinCapRefusals({ ...base, edge: 0.199 }).refusals[0].why;
-  assert(r.includes("over the smaller of $5 and a quarter of the $100.00 bid depth"), r);
+  assert(r.includes("over the smaller of $5 (5 % of the $100 cap basis) and a quarter of the $100.00 bid depth"), r);
 });
 
 Deno.test("D18: an order at a 0.20 edge rests up to $10 in a thin market and records the cap that applied; at 0.199 it is refused at $5", async () => {
@@ -1013,4 +1016,104 @@ Deno.test("D18: the account answer names the big-edge terms", async () => {
   const w = thinWorld();
   const acct = accountView(await context(w.deps(), { readGeo: true, sync: false }), T0);
   assertEquals([acct.budget.thin_cap_market_usd, acct.budget.thin_cap_big_edge, acct.budget.thin_cap_big_edge_market_usd], [5, 0.2, 10]);
+});
+
+// ── Deviation D19 (2026-10-29): every money limit is a share of the cap basis, the day's opening equity ──────────────
+Deno.test("D19: at a $100 basis every limit is §2's dollars; $150 and $80 scale; cents rounded the careful way", () => {
+  assertEquals({ ...GROKPM_CAP_PCT }, { market: 10, theme: 25, cashFloor: 30, thin: 5, thinBigEdge: 10, dayStop: 10 });
+  const row = (b: number) => { const k = grokpmCaps(b); return [k.basisUsd, k.marketCapUsd, k.themeCapUsd, k.cashFloorUsd, k.thinCapUsd, k.thinCapBigEdgeUsd, k.dayStopUsd]; };
+  //                      basis  market theme  cash  D15  D18  day stop
+  assertEquals(row(100), [100, 10, 25, 30, 5, 10, 10]);
+  assertEquals(row(150), [150, 15, 37.5, 45, 7.5, 15, 15]);
+  assertEquals(row(80), [80, 8, 20, 24, 4, 8, 8]);
+  // Cents: a cap and the day stop down, the cash kept up (10.759 → 10.75, 26.8975 → 26.89, 32.277 → 32.28, 5.3795 → 5.37).
+  assertEquals(row(107.59), [107.59, 10.75, 26.89, 32.28, 5.37, 10.75, 10.75]);
+  // No basis, nothing to spend.
+  assertEquals(row(-5), [0, 0, 0, 0, 0, 0, 0]);
+  assertEquals(row(NaN), [0, 0, 0, 0, 0, 0, 0]);
+  // D18's cap follows the basis too.
+  assertEquals([thinCapMaxUsd(0.2, grokpmCaps(150)), thinCapMaxUsd(0.19, grokpmCaps(150)), thinCapMaxUsd(0.2, grokpmCaps(80)), thinCapMaxUsd(0.19, grokpmCaps(80))], [15, 7.5, 8, 4]);
+});
+
+Deno.test("D19: the basis is the day's opening equity: a win compounds the next day, held still within it; the account names each limit and its %", async () => {
+  const w = world({ armed: true });
+  // A win: 100 YES of C2 at 0.50 ($50), resolved YES: cash 150, equity 150.
+  seedFill(w, { hash: "0x" + "b1".repeat(32), cond: C2, token: "201", price: 0.5, size: 100 });
+  w.db.tables.grokpm_resolutions.push({ cond: C2, tokens: ["201", "202"], payouts: [1, 0], closed_at: iso(T0 - 600e3), read_at: iso(T0 - 300e3) });
+  // The start's own day opens at the budget: the basis is $100 and the caps are §2's.
+  const d1 = await context(w.deps(), { readGeo: true, sync: false });
+  assertEquals([d1.ledger.equityUsd, d1.caps.basisUsd, d1.caps.marketCapUsd], [150, 100, 10]);
+  // The next UTC day opens at $150.
+  w.at(T0 + DAY);
+  const d2 = await context(w.deps(), { readGeo: true, sync: false });
+  assertEquals([d2.dayOpenEquityUsd, d2.caps], [150, grokpmCaps(150)]);
+  const b = accountView(d2, T0 + DAY).budget;
+  assertEquals(
+    [b.cap_basis_usd, b.market_cap_usd, b.market_cap_pct, b.theme_cap_usd, b.theme_cap_pct, b.cash_floor_usd, b.cash_floor_pct, b.spendable_usd,
+      b.thin_cap_market_usd, b.thin_cap_market_pct, b.thin_cap_big_edge_market_usd, b.thin_cap_big_edge_market_pct, b.day_stop_usd, b.day_stop_pct, b.day_room_usd],
+    [150, 15, 10, 37.5, 25, 45, 30, 105, 7.5, 5, 15, 10, -15, 10, 15],
+  );
+  // The total stop is not a share: −$30 of the FUNDED $100, the test's FAIL.
+  assertEquals([b.funded_usd, b.total_stop_usd, b.total_room_usd], [100, -30, 80]);
+  // Category A at p 0.99 and 0.44 (a quarter Kelly of $150 is $36.83): $14.96 goes, $15.40 is over 10 % of $150.
+  const ts = iso(T0 + DAY - 60e3);
+  const over = await placeOrder(w.deps(), open({ size: 35, p: 0.99, category: "A", ts }));
+  const mc = refusalsOf(over).find((x) => x.rule === "market_cap");
+  assert(mc?.why.endsWith("this market would hold $15.40 at cost, over $15 (10 % of the $150 cap basis)"), JSON.stringify(refusalsOf(over)));
+  const ok = await placeOrder(w.deps(), open({ size: 34, p: 0.99, category: "A", ts }));
+  assertEquals(ok.status, 200, JSON.stringify(ok.body));
+  // The order records the basis it was judged by.
+  assertEquals((w.db.tables.grokpm_orders.at(-1)!.checks as { caps: unknown }).caps,
+    { basis_usd: 150, market_cap_usd: 15, theme_cap_usd: 37.5, cash_floor_usd: 45, thin_cap_usd: 7.5, thin_cap_big_edge_usd: 15, day_stop_usd: 15 });
+  // The same order on the start's day, at the $100 basis, was over $10.
+  const before = world({ armed: true });
+  seedFill(before, { hash: "0x" + "b1".repeat(32), cond: C2, token: "201", price: 0.5, size: 100 });
+  before.db.tables.grokpm_resolutions.push({ cond: C2, tokens: ["201", "202"], payouts: [1, 0], closed_at: iso(T0 - 600e3), read_at: iso(T0 - 300e3) });
+  assert(rules(await placeOrder(before.deps(), open({ size: 34, p: 0.99, category: "A" }))).includes("market_cap"));
+});
+
+Deno.test("D19: a loss shrinks the next day's limits: at an $80 basis the day stop is −$8, and the total stop is still −$30", async () => {
+  const w = world({ armed: true });
+  // 100 YES of C1 at 0.45 ($45); the mid falls to 0.25: equity 80, total −20.
+  seedFill(w, { hash: "0x" + "b2".repeat(32), cond: C1, token: "101", price: 0.45, size: 100 });
+  w.fake.markets[0].bid = 0.24; w.fake.markets[0].ask = 0.26;
+  w.at(T0 + DAY);
+  const d2 = await context(w.deps(), { readGeo: true, sync: true });
+  assertEquals([d2.ledger.equityUsd, d2.caps, d2.dayStopAt], [80, grokpmCaps(80), null]);
+  // Later that day the mid is 0.17: equity 72, the day −8 (a stop at an $80 basis, not at $100), the total −28.
+  w.fake.markets[0].bid = 0.16; w.fake.markets[0].ask = 0.18;
+  w.at(T0 + DAY + 3600e3);
+  const later = await context(w.deps(), { readGeo: true, sync: true });
+  assertEquals([later.ledger.equityUsd, later.dayPnlUsd, later.ledger.totalUsd, later.caps.basisUsd, later.dayStopAt, later.totalStopAt], [72, -8, -28, 80, iso(T0 + DAY + 3600e3), null]);
+  const r = await placeOrder(w.deps(), open({ market_id: C2, token_id: "201", size: 5, ts: iso(T0 + DAY + 3600e3 - 60e3) }));
+  const stops = refusalsOf(r).filter((x) => x.rule.endsWith("_stop"));
+  assertEquals(stops.map((x) => x.rule), ["day_stop"]);
+  assert(stops[0].why.includes("−$8 (10 % of the $80 cap basis)"), stops[0].why);
+  const b = accountView(later, T0 + DAY + 3600e3).budget;
+  assertEquals([b.day_stop_usd, b.total_stop_usd, b.can_open, b.market_cap_usd, b.theme_cap_usd, b.cash_floor_usd], [-8, -30, false, 8, 20, 24]);
+});
+
+Deno.test("D19: the theme cap and the cash kept are the basis's 25 % and 30 % (pure: the same order passes one and fails the other)", () => {
+  const book = { tick: "0.01" as const, minSize: 5, negRisk: false, bestBid: 0.45, bestAsk: 0.47, mid: 0.46, spread: 0.02, bidDepthUsd: 1000, askDepthUsd: 1000, twoSided: true };
+  const market = marketOf({ conditionId: cond(3), clobTokenIds: '["311","312"]', acceptingOrders: true, endDate: iso(T0 + 5 * DAY) });
+  const L0 = ledgerOf({ fundedUsd: 100, orders: [], fills: [], mids: {}, payouts: {}, nowMs: T0 });
+  // Theme t2 holds $34 and $47 of cash is free; the order is 6 at 0.44 = $2.64: the theme $36.64 and the cash after $44.36.
+  const L = { ...L0, freeCashUsd: 47, costByTheme: { t2: 34 } };
+  const d = { ...(open({ market_id: cond(3), token_id: "311", size: 6 }).decision as Record<string, unknown>) } as never;
+  const at = (basis: number) => orderRefusals({ decision: d, theme: "t2", ledger: L, market, book, nowMs: T0, dayPnlUsd: 0, caps: grokpmCaps(basis), totalStopUsd: 30, ordersToday: 0, maxOrdersDay: 50 }).refusals;
+  // $100: over $25 a theme, above $30 of cash. $150: under $37.50 a theme, below $45 of cash.
+  assertEquals(at(100).map((x) => [x.rule, x.why]), [["theme_cap", 'the theme "t2" would hold 36.64, over $25 (25 % of the $100 cap basis)']]);
+  assertEquals(at(150).map((x) => [x.rule, x.why]), [["cash_floor", "cash after it would be 44.36, under $45 (30 % of the $150 cap basis)"]]);
+});
+
+Deno.test("D19: D15's and D18's caps are 5 % and 10 % of the basis: at $150 a thin bid may hold $7.50, or $15 at a 0.20 edge, under the depth share", () => {
+  const L = ledgerOf({ fundedUsd: 100, orders: [], fills: [], mids: {}, payouts: {}, nowMs: T0 });
+  const market = marketOf({ conditionId: C3, clobTokenIds: '["301","302"]', endDate: iso(T0 + 5 * DAY), acceptingOrders: true });
+  const base = { cond: C3, cost: 7.5, inMarket: 7.5, depthUsd: 100, ledger: L, market, nowMs: T0, expirationS: Math.floor(T0 / 1000) + 60 + 35 * 60, eventAt: null, ordersToday: 0, caps: grokpmCaps(150) };
+  const why = (x: Parameters<typeof thinCapRefusals>[0]) => thinCapRefusals(x).refusals.map((r) => r.why);
+  assertEquals(why(base), []);                                                                   // $7.50 at $150: 5 %
+  assertEquals(why({ ...base, caps: grokpmCaps(100) }).map((x) => x.split(":")[0]), ["size"]);   // over $5 at $100
+  assertEquals(why({ ...base, cost: 15, inMarket: 15, edge: 0.2, depthUsd: 60 }), []);            // $15 at the big edge, a quarter of $60
+  const r = why({ ...base, cost: 15.01, inMarket: 15.01, edge: 0.2, depthUsd: 80 })[0];
+  assert(r.includes("over the smaller of $15 (10 % of the $150 cap basis) (D18: $7.50 under a 20-point edge) and a quarter of the $80.00 bid depth"), r);
 });

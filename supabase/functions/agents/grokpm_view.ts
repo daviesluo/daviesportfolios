@@ -18,8 +18,10 @@
 //   deployed    Σ size × average price of what it holds: its cost.
 //   fees        Σ the fees of its own fills from the go, as the order path read them back (`grokpm_fills.fee_usd`, the
 //               counted statuses only): already inside realised, whose cash is net of them; shown as "(incl. fees …)".
-//   stop room   $30 + total (the total stop) and $10 + today (the day's), as the agent's rules state them; the page only
-//               shows them, nothing here can stop the agent.
+//   stop room   $30 + total (the total stop) and the day stop + today (the day's), as the agent's rules state them; the
+//               page only shows them, nothing here can stop the agent. The day stop is 10 % of the day's opening equity
+//               since Deviation D19 (2026-10-29: $10 at $100; `grokpmCaps`), taken here from the record's open (the
+//               server takes it from its own book's, which can differ by cents); before the start, of FUNDED.
 //   Brier       on each token it bought whose market has resolved (`grokpm_entries` × `grokpm_resolutions`): the agent's p
 //               from its last `open` decision for that token before the first fill, the market's m the book's mid when the
 //               record first saw it (the agent's own m when the record has none), y its payout; the mean of (p − y)² against
@@ -29,6 +31,8 @@
 //               page then says the title is pending; it never shows the condition id).
 //   DAYS        each UTC day from the start: the record's P&L (its close, the next day's opening equity, or the latest for
 //               today, less its open) beside the agent's own daily summary; a gap over $1 is a mismatch.
+
+import { grokpmCaps } from "../_shared/grokpm_public.ts";
 
 const DAY = 86400e3, M = 60e3;
 /** The record runs every five minutes: a last snapshot older than this means it has stopped. */
@@ -143,7 +147,8 @@ export function grokPmSummary(input: {
 }) {
   const cfg = input.config;
   if (!cfg?.wallet) return null;
-  const funded = num(cfg.funded_usd), dayLimit = num(cfg.daily_loss_usd), totalLimit = num(cfg.total_stop_usd);
+  // D19: `daily_loss_usd` is no longer the day stop; it is 10 % of the day's opening equity (below). The total stays the row's.
+  const funded = num(cfg.funded_usd), totalLimit = num(cfg.total_stop_usd);
   const started = !!cfg.started_at && !!input.latest;
   const today = iso(Math.floor(input.nowMs / DAY) * DAY).slice(0, 10);
   const startDay = cfg.started_at ? dayOf(cfg.started_at) : null;
@@ -178,6 +183,7 @@ export function grokPmSummary(input: {
   const total = started ? equity! - funded : 0;
   const todayOpen = started ? dayOpen(today) : null;
   const todayUsd = started && todayOpen !== null ? equity! - todayOpen : 0;
+  const dayLimit = grokpmCaps(todayOpen ?? funded).dayStopUsd;
   const agentDay = new Map<string, GrokPmDailyRow>();
   for (const y of [...input.daily].sort((a, b) => a.received_at.localeCompare(b.received_at))) agentDay.set(dayOf(y.day), y);   // the newest summary of a day
   const days: Array<Record<string, unknown>> = [];

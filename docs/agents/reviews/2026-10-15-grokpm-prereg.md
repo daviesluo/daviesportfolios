@@ -494,6 +494,36 @@ CLOB's history (a mid-like price per five minutes), not executable books.
   `grokpm/exec.test.ts` ("D18: …": 0.20 gives $10 and 0.199 $5, the depth share and the $10 market cap still bind, a held
   D15 market takes a further buy only to its own edge's cap). D15 entries count in §6.3's category B; the reading marks
   those opened at the $10 cap.
+- **D19 (2026-10-29, after the start; no migration; §2's money limits as shares of the day's opening equity).** Davies,
+  2026-10-29: "把polymarket的策略里的钱全换成百分比，这样的话可以有效实现盈利资金的再利用" (every dollar of the strategy a
+  percentage, so that profits are put back to work).
+  - **The basis.** The agent's own equity at the start of the UTC day: the opening equity the day stop has been measured
+    from since D4 (the server's first reading of the UTC day, its own book: the budget plus what its trades realised, less
+    fees, plus what it holds at the mid, a resolved holding at its payout under D4 and D14; the start's day opened at $100).
+    It holds still within a day and is read again each day, so a profit raises the next day's limits and a loss lowers them.
+  - **The limits.** §2's $10 a market (an event under D17) is **10 %** of the basis; $25 a theme **25 %**; the $30 of cash
+    kept **30 %**; D15's $5 **5 %**; D18's $10 **10 %** (its 0.20 edge unchanged); the day stop −$10 is **−10 %**. At a
+    basis of $100 each is §2's dollars exactly. Each is taken to the cent the careful way: a cap and the day stop's size
+    down, the cash kept up. So $150 gives $15 / $37.50 / $45 / $7.50 / $15 and a −$15 day stop; $80 gives $8 / $20 / $24 /
+    $4 / $8 and −$8.
+  - **What stays in dollars.** The total stop stays **−$30 of the FUNDED $100**: it is the test's FAIL (§3), and FUNDED on
+    the page stays $100. Not money of ours: §2's $500 of bids within 5 points (a market's depth), the venue's minimum
+    order, the 150 orders a day, D15's 100, the request and row limits. Quarter Kelly already sized from equity and is
+    unchanged (still under the market cap, now 10 %). Unchanged too: 6 markets, 3 D15 markets, a quarter of the depth, one
+    bid, the 48 h cut, D16, D17, the categories, §6's bar and the end.
+  - **The reading.** §6.4's rule-keeping reads "over $10 a market", "cash under $30" and "a day already at −$10" from the
+    deploy of this commit as the limits that applied that day (each order's `checks.caps`); §2, §3 and Appendix A keep
+    their dollar wording, which is the $100 basis.
+  - **Where.** `_shared/grokpm_public.ts` (`GROKPM_CAP_PCT`, `grokpmCaps`) and `grokpm/exec.ts`. `grokpm_config.daily_loss_usd`
+    stays 10 and is no longer read. `?action=account` keeps every `*_usd` field, now computed, and adds `cap_basis_usd`,
+    `market_cap_pct`, `theme_cap_pct`, `cash_floor_pct`, `thin_cap_market_pct`, `thin_cap_big_edge_market_pct` and
+    `day_stop_pct`. A refusal names the limit in dollars with its share and basis ("over $15 (10 % of the $150 cap basis)").
+    Each order's `checks.caps` records the basis and every limit it was judged by. The page's day-stop room is 10 % of the
+    record's day open.
+  - **From the deploy of this commit; no backfill:** the orders sent before it were judged as they were. Pinned in
+    `grokpm/exec.test.ts` ("D19: …": the $100, $150, $80 and $107.59 rows, a win raising the next day's caps, a loss
+    lowering them with the day stop at −$8 and the total stop still −$30, the theme cap and the cash kept, D15's and D18's
+    caps).
 
 ## Appendix A: the journal API (paste into the prompt)
 
