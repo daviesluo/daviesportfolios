@@ -124,6 +124,11 @@
 //                             rung, its fair nudged by Revolut X's recorded
 //                             USDC-GBP book; its own tables and lease. Reads
 //                             only the database. Cron or admin.
+//   POST ?action=cblive      — "Stablecoin quotes USDC/GBP", the Coinbase live
+//                             executor (cb_live.ts, 0177): "with Euros - 2"'s
+//                             decisions on USDC-GBP at £20 a rung, £120. Built
+//                             dry-run and unarmed: in dry-run it POSTs nothing
+//                             and records what it would send. Cron or admin.
 //   POST ?action=cblive&mode=probe — the Coinbase key's probe
 //                             (cb_live_probe.ts): signed GETs only, through a
 //                             client that cannot POST: the key's permissions
@@ -280,6 +285,7 @@ import { CB_HOLD_ID, CB_HOLD_TABLES, runCbHold } from "./cb_hold.ts";
 import { CB_USDC_FACTOR_50, CB_USDC_ID, CB_USDC_RUNG_USD_50, CB_USDC_TABLES, cbUsdcFactorNow, cbUsdcView, runCbUsdc } from "./cb_usdc.ts";
 import { CB_NUDGE_ID, CB_NUDGE_PRODUCTS, CB_NUDGE_RUNG_USD, CB_NUDGE_TABLES, runCbNudge } from "./cb_nudge.ts";
 import { runCbLiveProbe } from "./cb_live_probe.ts";
+import { readCbLive, runCbLive } from "./cb_live.ts";
 import { runOkxRec, type OkxRecState } from "./okx_rec.ts";
 import { readOkxQuotes, runOkxQuotes } from "./okx_quotes.ts";
 import { okxRowsWithBasis, readOkxBasis, runOkxBasis } from "./okx_basis.ts";
@@ -777,6 +783,23 @@ export async function runCbUsdcAction(deps: { db?: Db; now?: number } = {}) {
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     await reportServerError("agents.cb_usdc", { message: message.slice(0, 500), context: { at: new Date().toISOString() } });
+    return { error: message.slice(0, 300) };
+  }
+}
+
+/**
+ * "Stablecoin quotes USDC/GBP" (cb_live.ts, 0177): one turn of the Coinbase live executor. Its faults go to `ops_errors`
+ * (`agents.cb_live`) when they are new or an hour old; its report is its state row's.
+ */
+export async function runCbLiveAction(deps: { db?: Db; now?: number; read?: (n: string) => string | undefined; fetchImpl?: typeof fetch } = {}) {
+  try {
+    const now = deps.now ?? Date.now();
+    const r = await runCbLive({ db: deps.db ?? db(), now, holder: crypto.randomUUID(), read: deps.read ?? ((n) => Deno.env.get(n)), fetchImpl: deps.fetchImpl });
+    if (r.report) await reportServerError("agents.cb_live", tickErrorReport({ errors: r.errors, at: new Date(now).toISOString() }));
+    return r;
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    await reportServerError("agents.cb_live", { message: message.slice(0, 500), context: { at: new Date().toISOString() } });
     return { error: message.slice(0, 300) };
   }
 }
@@ -2423,6 +2446,9 @@ async function dashboard(now: number) {
   // stopped and no page row shows them, so neither their tables, the programme factors (0115) that priced them nor the
   // live R they were shown at is read here. LIVE's row reads only its own (`readLpLive`).
   const lpLive = await readLpLive(d, now);
+  // "Stablecoin quotes USDC/GBP", the Coinbase live executor (cb_live.ts, 0177): a row of LIVE once armed or once it has sent
+  // a live order; its own tables alone.
+  const cbLive = await readCbLive(d, now);
   // GROKPM's row of LIVE (Davies, 2026-10-15): the independent record of the outside agent's wallet, its journal beside it.
   const grokPm = await readGrokPm(d, now);
   // The outside-Grok tests of TESTING (Davies, 2026-10-29): CXBOT on paper, IGBOT on IG's demo (grok_tests_view.ts).
@@ -2490,6 +2516,8 @@ async function dashboard(now: number) {
      * only, never added to TESTING's; null until it is armed or has sent a live order.
      */
     lpLive,
+    /** "Stablecoin quotes USDC/GBP" (cb_live.ts): LIVE's Coinbase row, in pounds with the paper arm's GBP/USD; null without 0176. */
+    cbLive,
     /**
      * "Polymarket analyst" (`grokpm_view.ts`, 0124; titles 0126): the outside agent's wallet from the independent record, its
      * journal beside it; a row of LIVE. Null until a wallet is configured.
@@ -3005,6 +3033,8 @@ async function route(req: Request, who: Exclude<Who, null>, url: URL, action: st
   if (action === "cbnudge" && req.method === "POST" && operator) return json(200, await runCbNudgeAction());
   // The Coinbase key's probe (cb_live_probe.ts): GETs only; its answer goes to the caller alone, never to a log or a table.
   if (action === "cblive" && req.method === "POST" && operator && url.searchParams.get("mode") === "probe") return json(200, await runCbLiveProbe((n) => Deno.env.get(n)));
+  // "Stablecoin quotes USDC/GBP" (cb_live.ts, 0177): one turn of the Coinbase live executor, dry-run until Davies arms it.
+  if (action === "cblive" && req.method === "POST" && operator && !url.searchParams.get("mode")) return json(200, await runCbLiveAction());
   // OKX's recorder and its paper twins (okx_rec.ts, okx_quotes.ts, 0150): keyless reads, then the paper rule on the database.
   if (action === "okxrec" && req.method === "POST" && operator) return json(200, await runOkxRecAction());
   // "Stablecoin quotes USDG/EUR - 1" (okx_basis.ts, 0171): the USDG/EUR twin's rule with the basis fair, decided from the database alone.

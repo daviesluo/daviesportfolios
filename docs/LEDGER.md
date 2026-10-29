@@ -674,6 +674,10 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
     or after 10:00 UTC, after the deploy) and `fxCount`; `cb_*_minutes.fx_src` mostly `truefx` on a weekday, `yahoo`/`kraken`
     a few, `dark` (base) or `held:*` from Friday 21:00 UTC. **Revolut X long (§9, FX-SPEED-RX): no row passes**; LIVE and its twins keep Yahoo.
 
+21. **Coinbase live, "Stablecoin quotes USDC/GBP": built dry-run and unarmed** (Davies, 10-29; `agents/cb_live.ts`, `0177`,
+    `reviews/2026-10-29-cb-live-design.md`). "with Euros - 2"'s decisions at £20 a rung of £120. **Go only on Davies' word:** the
+    probe `ok`, a 30-minute dry-run check (design §5), then §7's guarded statement; its undo is in the same section.
+
 ## Machine and platform setup
 
 A rebuilt container loses every line below. Run them before working.
@@ -792,6 +796,15 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second).
 
+### [2026-10-29 19:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Coinbase's live path, part 2: "Stablecoin quotes USDC/GBP", built dry-run and unarmed** (sub-agent; commit, not pushed; Davies,
+  10-29: "…先把"with Euros - 2"用120磅资金上限，上线后live策略名字叫Stablecoin quotes USDC/GBP"). `agents/cb_live.ts`, migration `0177`,
+  `reviews/2026-10-29-cb-live-design.md` (the go, its undo, Davies' checklist), LIVE's row `cbLiveRow`.
+  - **Rule:** the paper arm's decisions (`coinbasenudge`, a config word), £20 a rung of £120; post-only GTD orders of 20 min
+    (Coinbase's own dead-man), exits at fair, the 24 h stop an IOC within 50 bps, sub-£1 remainders carried.
+  - **Limits:** kill switch `armed_at`, global pause, −1 % daily loss stop, governor 1,500 / 1,800, stale inputs, inventory, a
+    post-only start conversion of the asks' USDC (≤ £70 a day). Pins: `cb_live.test.ts`, `src/agents/cb_live_row.test.js`.
+
 ### [2026-10-29 19:31 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The £1 holding line on LIVE and every twin from 2026-10-29 22:00 UTC; variant-4 retired, the rest renumbered** (sub-agent;
   commit, not pushed; Davies, 10-29: "…如果基本可以肯定效果正面的话，加入实盘live的规则里和所有测试策略包括所有variant里，并且把variant-4删了，之后的数字都-1",
@@ -804,15 +817,16 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   addendum, guide, map, reference, CLAUDE.md, fixture, tests. Watch after 22:00: LIVE's USDT-GBP entries under £1 should no longer
   be followed by an exit, and carried coin stays under £1 a rung.
 
-### [2026-10-29 19:16 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **HOLDMIN verdict: variant-4's £1 holding line is basically certain positive** (sub-agent; commit, not pushed; Davies, 10-29:
-  "那你研究下variant-4的结果，如果基本可以肯定效果正面的话，加入实盘live的规则里…"; step 1 of 3). `reviews/2026-10-29-holdmin-verdict.md`,
-  `backtests/compare/revx/scripts/holdmin_live.py`. LIVE's own days replayed with it: USDT-GBP +0.62 bps/day before the haircut
-  (P 0.002), +9.96 after (17 days ahead, 0 behind); USDC-GBP +0.14 (P 0.10, never behind). Long replays: USDT-GBP +5.3 / +3.0 / +1.9
-  %/yr since 09-01, +2.0 / +1.1 / +0.8 out of sample (P 0.000 each); USDC-GBP +0.1 to +0.2. LIVE: 149 of 277 USDT-GBP entry fills
-  since 10-01 under £1, 7.5 dust trips a day. No mechanism downside found (one extra stop in 55 days at £2,400 USDT-GBP; carried
-  coin under £1 a rung). The twin is 21 hours old: no evidence either way. Step 2 (LIVE + every twin, variant-4 retired) waits for
-  the main session.
+### [2026-10-29 19:28 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Coinbase's live path, part 1: the client and the key's probe** (sub-agent; commit, not pushed; Davies, 10-29: "Coinbase做好实盘搭建并且准备
+  with Euros - 2这个策略的live上线"). `_shared/coinbase.ts` (ES256 JWT per request, Coinbase's documented shape; reads; POSTs only on
+  a client built to send) and `agents/cb_live_probe.ts` (`agents?action=cblive&mode=probe`, cron or admin, GETs only).
+  - **Secrets:** `COINBASE_API_KEY_NAME`, `COINBASE_API_PRIVATE_KEY` (Davies stored them 10-29); SEC1 or PKCS#8 PEM, real or literal `\n`.
+  - **The probe answers** the secrets' forms (no values), whether the JWT was accepted, `key_permissions` (can_transfer is a
+    WARNING), GBP/USDC/EUR balances, USDC-GBP's product, touch, fee tier and resting orders, to the caller only.
+  - **Pins:** `_shared/coinbase.test.ts` (an OpenSSL-signed vector, SEC1 import with both newline forms, read-only refuses a
+    POST before any request), `agents/cb_live_probe.test.ts` (GETs only, each signed for its path; transfer warning; 401).
+  - **Next:** run the probe once landed; the executor (dry-run, inert, migration `0176`) follows as part 2.
 
 ### [2026-10-29 19:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **CB-LIVE-RULES: take "with Euros - 2" live as it runs** (sub-agent; commit, not pushed; Davies, 10-29: "Coinbase做好实盘搭建并且准备with Euros
@@ -824,16 +838,15 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   at $400 rungs); USDC-EUR not before USDC-GBP grows; keep three asks (FX £7/yr against £68); post-only crossing 0.18 %; fee tier to
   read authenticated before the go.
 
-### [2026-10-29 19:28 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Coinbase's live path, part 1: the client and the key's probe** (sub-agent; commit, not pushed; Davies, 10-29: "Coinbase做好实盘搭建并且准备
-  with Euros - 2这个策略的live上线"). `_shared/coinbase.ts` (ES256 JWT per request, Coinbase's documented shape; reads; POSTs only on
-  a client built to send) and `agents/cb_live_probe.ts` (`agents?action=cblive&mode=probe`, cron or admin, GETs only).
-  - **Secrets:** `COINBASE_API_KEY_NAME`, `COINBASE_API_PRIVATE_KEY` (Davies stored them 10-29); SEC1 or PKCS#8 PEM, real or literal `\n`.
-  - **The probe answers** the secrets' forms (no values), whether the JWT was accepted, `key_permissions` (can_transfer is a
-    WARNING), GBP/USDC/EUR balances, USDC-GBP's product, touch, fee tier and resting orders, to the caller only.
-  - **Pins:** `_shared/coinbase.test.ts` (an OpenSSL-signed vector, SEC1 import with both newline forms, read-only refuses a
-    POST before any request), `agents/cb_live_probe.test.ts` (GETs only, each signed for its path; transfer warning; 401).
-  - **Next:** run the probe once landed; the executor (dry-run, inert, migration `0176`) follows as part 2.
+### [2026-10-29 19:16 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **HOLDMIN verdict: variant-4's £1 holding line is basically certain positive** (sub-agent; commit, not pushed; Davies, 10-29:
+  "那你研究下variant-4的结果，如果基本可以肯定效果正面的话，加入实盘live的规则里…"; step 1 of 3). `reviews/2026-10-29-holdmin-verdict.md`,
+  `backtests/compare/revx/scripts/holdmin_live.py`. LIVE's own days replayed with it: USDT-GBP +0.62 bps/day before the haircut
+  (P 0.002), +9.96 after (17 days ahead, 0 behind); USDC-GBP +0.14 (P 0.10, never behind). Long replays: USDT-GBP +5.3 / +3.0 / +1.9
+  %/yr since 09-01, +2.0 / +1.1 / +0.8 out of sample (P 0.000 each); USDC-GBP +0.1 to +0.2. LIVE: 149 of 277 USDT-GBP entry fills
+  since 10-01 under £1, 7.5 dust trips a day. No mechanism downside found (one extra stop in 55 days at £2,400 USDT-GBP; carried
+  coin under £1 a rung). The twin is 21 hours old: no evidence either way. Step 2 (LIVE + every twin, variant-4 retired) waits for
+  the main session.
 
 ### [2026-10-29 18:43 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **STRATEGY-COMPARE Revolut X: the £1 holding line and the ranked view** (sub-agent; commit, not pushed; the main session's ask).

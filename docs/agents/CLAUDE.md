@@ -476,6 +476,10 @@ that follow from that evidence, in short:
   moved; `_shared/coinbase.ts` signs each request (reference §4 item 67). `agents?action=cblive&mode=probe` reads, never sends,
   and says whether the key can transfer: it must not, view and trade are all the path needs. Nothing on Coinbase is sent until
   Davies arms it in the conversation where he says go; never trade by hand in the account or portfolio that key trades.
+  **The executor is "Stablecoin quotes USDC/GBP"** (`agents/cb_live.ts`, `0177`, reference §4 item 68): "with Euros - 2"'s
+  decisions at £20 a rung of £120, post-only good-til-date orders (Coinbase ends them within 20 minutes if it stops), built
+  `dry_run` true and `armed_at` null. The go is the guarded statement in `reviews/2026-10-29-cb-live-design.md` §7, run only on
+  Davies' word; clearing `armed_at` is its kill switch (exits stay armed).
 - **The Revolut X account the key sees is the loop's alone.** The floor counts a live buy it cannot read back by
   the venue's balance beyond the settled book, and every live sell is capped at that balance (reference §4.24).
   A trade made there by hand would be counted and could be sold by the floor: never trade by hand in that

@@ -4609,6 +4609,21 @@ fails too still reported (`edge-watchdog.retry`). In the three days before, 1,34
     touch, the fee tier and the resting orders, to the caller alone. Called through `pg_net`, its answer sits in
     `net._http_response` until pg_net prunes it.
 
+68. **"Stablecoin quotes USDC/GBP": the Coinbase live executor, built dry-run and unarmed (2026-10-29, migration `0177`;
+    `agents/cb_live.ts`; the design, its go and its undo: `reviews/2026-10-29-cb-live-design.md`).** Davies: "…先把"with Euros - 2"用
+    120磅资金上限，上线后live策略名字叫Stablecoin quotes USDC/GBP".
+  - **What it carries out.** "with Euros - 2"'s decisions (`cb_live_config.paper`, a row of `CB_LIVE_PAPERS`), on USDC-GBP at £20 a
+    rung of £120, as CB-LIVE-RULES recommends (`reviews/2026-10-29-cb-live-rules.md`: the arm as it runs). The paper rung's entry
+    at its price; a held rung's exit at the paper's fair, never worse; the 24-hour stop an IOC within 50 bps.
+  - **How.** Post-only good-til-date orders of 20 minutes, re-placed when under 5 are left: Coinbase ends them itself if the
+    executor stops (its dead-man). Positions from the fills read back, trip by trip, never stored; a remainder under £1 carried.
+    Reconciled by client id; an order Coinbase shows nowhere stays pending.
+  - **Limits.** Kill switch `armed_at`; global pause; daily loss stop 1 % of £120; governor 1,500 / 1,800 POSTs a UTC day; no
+    entries on stale or dark paper inputs; inventory checks and a start conversion of the asks' USDC (post-only at the bid, ≤ £70 a
+    day).
+  - **Dry-run** (as built) POSTs nothing: a read-only client, a row per decision it would send. LIVE's row (`cbLiveRow`) appears
+    from the arm or the first live order.
+
 ### Twin variants
 
 The realistic twins, a row each of `agent_quote_twin_specs`, in the page's order. A new one is a row here in the commit

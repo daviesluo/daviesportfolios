@@ -1548,6 +1548,45 @@ export function quotesPageFor(selected, dash) {
   return quotesTwinRow(quotesTwinOf(selected, dash)) ? 'twin' : null;
 }
 
+/** "Stablecoin quotes USDC/GBP"'s id among LIVE's rows: the Coinbase live executor (cb_live.ts, 0177). */
+export const CB_LIVE_ROW_ID = '__cb_live';
+
+/**
+ * "Stablecoin quotes USDC/GBP" as a row of LIVE (Davies, 2026-10-29: "…上线后live策略名字叫Stablecoin quotes USDC/GBP"): the
+ * Coinbase live executor carrying "Stablecoin quotes with Euros - 2"'s decisions with £120 of real money; the paper arm keeps
+ * its own row on TESTING. The dashboard's `cbLive`, read from its own tables alone: in pounds, its money, and in dollars at
+ * the paper arm's last GBP/USD for the scoreboard. null while it is neither armed nor has sent a live order (built dry-run).
+ * @param {any} c  the dashboard's `cbLive`
+ */
+export function cbLiveRow(c) {
+  if (!c || !(c.tradedLive || c.armed)) return null;
+  const x = Number(c.gbpUsd) > 0 ? Number(c.gbpUsd) : 0;
+  const g = { capital: Number(c.capitalGbp) || 0, cost: Number(c.costGbp) || 0, fees: Number(c.feesGbp) || 0, today: Number(c.todayGbp) || 0,
+    unrealised: Number(c.unrealisedGbp) || 0, realised: Number(c.realisedGbp) || 0 };
+  const value = g.capital + g.realised + g.unrealised;
+  const cells = quoteBookCells({
+    capitalUsd: g.capital * x, costUsd: g.cost * x, valueUsd: value * x, feesUsd: g.fees * x, todayUsd: g.today * x, unrealisedUsd: g.unrealised * x, realisedUsd: g.realised * x,
+    capitalGbp: g.capital, costGbp: g.cost, valueGbp: value, feesGbp: g.fees, todayGbp: g.today, unrealisedGbp: g.unrealised, realisedGbp: g.realised,
+    heldRungs: c.heldRungs, openOrders: c.openOrders,
+  });
+  return {
+    id: CB_LIVE_ROW_ID,
+    name: c.name || 'Stablecoin quotes USDC/GBP',
+    venue: venueLabel('coinbase'),
+    venueId: 'coinbase',
+    mode: 'live',
+    ...cells,
+    holdsLive: (Number(c.heldRungs) || 0) > 0, armed: !!c.armed,
+    status: !c.running
+      ? { label: 'live', running: false, tone: 'stale', detail: c.lagMinutes == null ? 'it has not turned yet' : `its last turn was ${c.lagMinutes} min ago` }
+      : c.lossStopped
+        ? { label: 'live', running: true, tone: 'stale', detail: "its daily loss stop has tripped: no entries until tomorrow, its exits still run" }
+        : c.armed
+          ? { label: 'live', running: true, tone: 'running', detail: 'quoting real money' }
+          : { label: 'live', running: true, tone: 'stale', detail: 'disarmed · its exits still run' },
+  };
+}
+
 /** "Reward quotes live-prep"'s real-money book's id among LIVE's rows (its paper layer's TESTING row is `LP_ROW_ID`). */
 export const LP_LIVE_ROW_ID = '__lp_live';
 
@@ -1603,7 +1642,7 @@ export function lpLiveRow(l) {
 
 /**
  * LIVE's rows beyond its strategies, in the order the table lists them: PR5's live executor (`quotesLiveRow`) once it
- * trades real money, live-prep's live book (`lpLiveRow`) only while it is armed, and the Polymarket analyst
+ * trades real money, the Coinbase live executor (`cbLiveRow`) once armed or once it has sent a live order, live-prep's live book (`lpLiveRow`) only while it is armed, and the Polymarket analyst
  * (`grokPmRow`). LIVE's scoreboard and venue cards add each once; TESTING never does.
  *
  * Live-prep disarmed is off LIVE (Davies, 2026-10-17: "你的其他问题都按你推荐的来", on taking it off): it was liquidated and
@@ -1613,7 +1652,7 @@ export function lpLiveRow(l) {
  * @param {any} dash
  */
 export function liveExtraRows(dash) {
-  return [quotesLiveRow(dash?.quotes?.live), dash?.lpLive?.armed ? lpLiveRow(dash.lpLive) : null, grokPmRow(dash?.grokPm)].filter((r) => !!r);
+  return [quotesLiveRow(dash?.quotes?.live), cbLiveRow(dash?.cbLive), dash?.lpLive?.armed ? lpLiveRow(dash.lpLive) : null, grokPmRow(dash?.grokPm)].filter((r) => !!r);
 }
 
 /** "Polymarket analyst"'s id among LIVE's rows (GROKPM, 0124). */

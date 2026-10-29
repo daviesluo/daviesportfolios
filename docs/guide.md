@@ -259,6 +259,11 @@ places stay when the number is not whole.
   starts on 27 Oct with a fresh account. The quote test it follows keeps
   running behind the page; its own row and page are gone. The foot is when the page was read, and that it refreshes
   every minute.
+- **Stablecoin quotes USDC/GBP on LIVE.** Coinbase's live row, once Davies
+  has switched it on: "Stablecoin quotes with Euros - 2" carried out with
+  real money on Coinbase, £120 in six £20 quotes on USDC against pounds. Its
+  figures are in pounds, from its own fills on Coinbase. The paper row of
+  the same rule stays on TESTING.
 - **Stablecoin quotes on LIVE.** The live path's own row, once it has
   traded real money on its own Revolut X account. Tap it for a page of its
   own, in pounds, which shows the real-money book and nothing of the paper

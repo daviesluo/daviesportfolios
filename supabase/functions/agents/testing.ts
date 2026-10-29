@@ -711,6 +711,25 @@ const armedOf = (t: string, x: Row) => (t === "grokpm_config" ? x.armed_at != nu
  * words (the exception it raises, as a check violation). Applied to the row as stored, on INSERT, UPDATE and an
  * upsert's merge, after the row's own checks, as an AFTER trigger fires.
  */
+/**
+ * 0177's rules on the Coinbase live executor's orders and fills (cb_live.ts): one live order in flight a rung
+ * (`cb_live_orders_one_per_rung`), a unique client id, a fill only of an order that exists (its foreign key), the config's
+ * arm only out of dry-run.
+ */
+function cbLiveRefusal(tables: Record<string, Row[]>, table: string, r: Row, self: Row | null): string | null {
+  if (table === "cb_live_orders") {
+    const others = (tables[table] ?? []).filter((x) => x !== self);
+    if (others.some((x) => x.client_order_id === r.client_order_id)) return 'duplicate key value violates unique constraint "cb_live_orders_client_order_id_key"';
+    const flight = (x: Row) => x.mode === "live" && ["pending", "open", "cancelling"].includes(String(x.state)) && x.rung_side != null;
+    if (flight(r) && others.some((x) => flight(x) && x.rung_side === r.rung_side && Number(x.k) === Number(r.k))) return 'duplicate key value violates unique constraint "cb_live_orders_one_per_rung"';
+  }
+  if (table === "cb_live_fills" && !(tables.cb_live_orders ?? []).some((o) => o.client_order_id === r.client_order_id)) {
+    return 'insert or update on table "cb_live_fills" violates foreign key constraint "cb_live_fills_client_order_id_fkey"';
+  }
+  if (table === "cb_live_config" && r.armed_at != null && r.dry_run !== false) return 'new row for relation "cb_live_config" violates check constraint "cb_live_config_check"';
+  return null;
+}
+
 function oneArmedRefusal(tables: Record<string, Row[]>, table: string, r: Row): string | null {
   if (!PM_ONE_ACCOUNT_CONFIGS.includes(table) || !armedOf(table, r)) return null;
   const other = PM_ONE_ACCOUNT_CONFIGS.find((t) => t !== table && (tables[t] ?? []).some((x) => armedOf(t, x)));
@@ -910,7 +929,7 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
       }
       const list = (overTheWire(Array.isArray(rows) ? rows : [rows]) as Row[]).map((r) => withDefaults(table, r));
       for (const r of list) {
-        const why = schemaRefusal(table, r) ?? oneArmedRefusal(tables, table, r);
+        const why = schemaRefusal(table, r) ?? oneArmedRefusal(tables, table, r) ?? cbLiveRefusal(tables, table, r, null);
         if (why) return refuse("POST", table, why);
       }
       if (table === "agent_decisions") {
@@ -1007,6 +1026,8 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
         const why = schemaRefusal(table, table in PMRW_TABLES || isPmLiveTable(table) || isPmPrepTable(table) ? r : table in VIEWS_TABLES ? { ...VIEWS_TABLES[table].defaults, ...r }
           : cur ? { ...cur, ...r } : twinOrders ? withDefaults(table, r) : r);
         if (why) return refuse("POST", table, why);        // the statement fails whole: nothing is written
+        const cbWhy = cbLiveRefusal(tables, table, cur ? { ...cur, ...r } : r, cur ?? null);
+        if (cbWhy) return refuse("POST", table, cbWhy);
         // A twin's orders, upserted by their client id when a backfill is loaded: the row as stored keeps 0052's indexes.
         if (twinOrders) {
           const clash = liveQuoteOrderConflict(t, cur ? { ...cur, ...r } : withDefaults(table, r), cur ?? null, table);
@@ -1036,7 +1057,7 @@ export function memDb(seed: Record<string, Row[]>, opts: { now: () => number; ho
       if (gen) return refuse("PATCH", table, gen);
       const hit = (tables[table] ?? []).filter((r) => filters.every((f) => f(r)));
       for (const r of hit) {
-        const why = schemaRefusal(table, { ...r, ...wire }) ?? oneArmedRefusal(tables, table, { ...r, ...wire });
+        const why = schemaRefusal(table, { ...r, ...wire }) ?? oneArmedRefusal(tables, table, { ...r, ...wire }) ?? cbLiveRefusal(tables, table, { ...r, ...wire }, r);
         if (why) return refuse("PATCH", table, why);     // Postgres refuses the statement: no row changes
         if (liveQuoteShape(table) === "agent_quote_live_orders") {
           const clash = liveQuoteOrderConflict(tables[table], { ...r, ...wire }, r, table);

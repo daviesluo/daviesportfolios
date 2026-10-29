@@ -124,6 +124,8 @@ export type CbProductInfo = {
   product_id: string; base_increment: string; quote_increment: string; base_min_size: string; base_max_size?: string; quote_min_size?: string;
   status?: string; trading_disabled?: boolean; cancel_only?: boolean; limit_only?: boolean; post_only?: boolean; price?: string;
 };
+/** An order's state ends here: no fill can follow. */
+export const CB_DONE: readonly CbOrderStatus[] = ["FILLED", "CANCELLED", "EXPIRED", "FAILED"];
 export type CbKeyPermissions = { can_view?: boolean; can_trade?: boolean; can_transfer?: boolean; portfolio_uuid?: string; portfolio_type?: string };
 /** Statuses an order may still rest or fill in. */
 export const CB_ALIVE: readonly CbOrderStatus[] = ["PENDING", "OPEN", "QUEUED", "CANCEL_QUEUED", "EDIT_QUEUED"];
