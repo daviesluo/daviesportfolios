@@ -41,3 +41,21 @@ describe('chinese-remind hook', async () => {
     expect(isEnglish(REMINDER)).toBe(false);
   });
 });
+
+describe('chinese-pretool hook', async () => {
+  const { latestNote, decide } = await import('../.claude/hooks/chinese-pretool.mjs');
+  const call = (text) => JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text }, { type: 'tool_use', id: 't', name: 'Bash', input: {} }] } });
+  it('refuses the next tool call after an English note, and lets it through after a Chinese one', () => {
+    const english = [user('问题'), call('Now I am checking it against the real conversation log before I push.'), tool()];
+    expect(latestNote(english)).toEqual(['Now I am checking it against the real conversation log before I push.']);
+    expect(decide(english)?.hookSpecificOutput.permissionDecision).toBe('deny');
+    expect(decide([...english, call('用中文重写：我在用真实记录检验这个脚本。'), tool()])).toBeNull();
+  });
+  it('judges the note being written when it is already in the transcript', () => {
+    expect(decide([user('问题'), said('先看代码。'), tool(), said('Then I will run the gates and push it to main.')])?.hookSpecificOutput.permissionDecision).toBe('deny');
+  });
+  it('starts afresh at a message from Davies, and ignores sub-agents', () => {
+    expect(decide([user('问题'), call('An English note from before his message, long enough to count.'), tool(), user('新问题')])).toBeNull();
+    expect(decide([user('问题'), said('A sub-agent note in English, long enough to count here.', { isSidechain: true })])).toBeNull();
+  });
+});

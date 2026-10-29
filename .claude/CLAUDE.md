@@ -23,7 +23,10 @@ on 2026-09-23: "怎么会话又变成英文了"). Since 2026-10-29 a Stop hook e
 `.claude/hooks/chinese-reply.mjs`, wired in `.claude/settings.json`, blocks the end of a turn whose own text is
 mostly English and asks for it again in Chinese; and since that judges a turn only after the English is on his screen
 (Davies: "怎么又有英文了，你之前设置的gate不行啊"), `.claude/hooks/chinese-remind.mjs` puts the rule back in front of the
-model when he writes and after every tool call.
+model when he writes and after every tool call; and since English notes still got through, `.claude/hooks/chinese-pretool.mjs`
+refuses the next tool call after an English note until it is said again in Chinese ("还是英文…请真正彻底解决").
+What must be Chinese is the prose he reads; specific terms may stay English, and so may the short labels
+shown on tool calls (Davies: "specific terms可以用英文，文字回复之间的tasks栏可以用英文").
 
 **Sub-agents are `opus-high`, `sonnet-high` or `haiku-max`, nothing else** (Davies,
 2026-10-07: "以后sub-agent最高effort改为opus-high（重要性和难度要求最高的任务）…重要性和难度次一级的用sonnet5.5 max，

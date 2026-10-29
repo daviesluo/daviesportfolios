@@ -781,6 +781,12 @@ and the 2026-10-29 02:13 one (fifteenth).
   blackout only, `cb_releases.ts` untouched; P&L from the shakedown's end, in prereg §0. An ended test's row reads "ended";
   `dist/`. Prompt changed (calendar to 2027-03-31). The 02:13 section archived (fifteenth).
 
+### [2026-10-29 02:43 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The Chinese gate before every tool call** (Davies, 10-29: "还是英文，这个问题还是没解决，请真正彻底解决"):
+  `.claude/hooks/chinese-pretool.mjs` (PreToolUse) refuses a tool call while the latest main-thread note reads as English,
+  until it is said again in Chinese. Its first live check caught an English note the model meant to write in Chinese.
+  Pinned in `src/chinese_reply_hook.test.js` (8 cases).
+
 ### [2026-10-29 02:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The ledger's budget is 100 KiB, not 80** (Davies, 10-29: "交接记录目前限制是80kb吗？改为100kb吧"): `bin/hooks/pre-commit`
   (`LEDGER_BUDGET=102400`), `src/ledger_budget.test.js`, `.claude/CLAUDE.md`, the live-watch skill and this file's header.

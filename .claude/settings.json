@@ -33,6 +33,18 @@
           }
         ]
       }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/chinese-pretool.mjs\"",
+            "timeout": 10
+          }
+        ]
+      }
     ]
   }
 }
