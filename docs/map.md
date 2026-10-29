@@ -887,7 +887,8 @@ before touching migration state.
 | `0162_ig_fxw_paper.sql` | "FXW-AUD weekend" on paper: one row a weekend of the frozen rule's fills on the live IG quotes, its run's state, and its call of the minute job every five minutes. |
 | `0167_quote_twins_renumber.sql` | Stablecoin twins renumbered 1 to 6: the £120 twin (old variant-2) off and hidden, the USDT 2:1 twin hidden, names changed in place; no id, place or rule changes. |
 | `0168_cb_usdc_nudge.sql` | "Stablecoin quotes with Euros - 3", Coinbase's USDC-GBP with the nudged fair: its tables (the minute record with the nudge's columns), lock, call a minute and prune. |
-| `0169_quote_twin_usdc_nudge.sql` | "Stablecoin quotes variant-7", USDC-GBP at $300 with its fair nudged by Coinbase, and its hidden control, from 2026-10-30; the nudge's minute record. |
+| `0169_quote_twin_usdc_nudge.sql` | "Stablecoin quotes variant-7", USDC-GBP at $300 with its fair nudged by Coinbase, and its hidden control, from 2026-10-29 08:00 (0170); the nudge's minute record. |
+| `0170_new_twins_start_now.sql` | Starts variant-7, its control and Coinbase "with Euros - 3" at 2026-10-29 08:00 UTC instead of 10-30 00:00. |
 | `0166_fxw_display_name.sql` | Renames the stored display name of the AUD weekend paper book to "FXW-AUD weekend" (`ig_fxw_state.name`), guarded by its old value; no key or table changes. |
 | `0163_cxbot.sql` | CXBOT's tables (its config held to dry-run or paper and a venue, the tape, the context, the assigned questions and answers, the journal, the paper orders, positions and snapshots, the reach probe's reads, its state), RLS on with no grant, and its minute call. |
 | `0165_igbot_session.sql` | IGBOT's IG session shared by every isolate of its function, sealed, and the claim that lets one isolate at a time log in. |

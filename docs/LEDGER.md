@@ -776,6 +776,13 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth).
 
+### [2026-10-29 07:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Variant-7 (and its control) and Coinbase "with Euros - 3" start today at 08:00 UTC** (main session; Davies, 10-29 ~07:20:
+  "你新做好的两个测试策略现在就上线"). `0170`: the twins' `start` and every rule's `from` 10-30 00:00 → 10-29 08:00 (guarded, as `0154`;
+  their state tables were empty), and `cb_nudge_state`'s `startedAt`/`lastMinute` to 08:00/07:59 (guarded on the old start; opened
+  at 07:22 with flat books). Windows now 10-29 08:00 → 11-26 08:00. Each prereg's §7 Deviation 1; fixture regenerated; pins moved.
+  **After the push:** read `cb_nudge_state` startedAt = 08:00 and minutes from 08:00, and both twins' state tables filling.
+
 ### [2026-10-29 07:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **"Stablecoin quotes variant-7" built** (sub-agent; commit, not pushed; Davies, 10-29: "…这个开testing variant-7，在目前实盘的基础上做300美元funded").
   `0169`: `u300nudge` (USDC-GBP alone, LIVE's rules, $300 = £225.33 at 1.3314, rungs £37.55, REVX-FAIR's Coinbase nudge,

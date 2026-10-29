@@ -20,7 +20,8 @@ describe('"Stablecoin quotes with Euros - 3"', () => {
       'supabase/functions/agents/cb_usdc.ts', 'supabase/functions/agents/quotes_weekend.ts', 'supabase/functions/agents/quotes.ts',
     ]) expect(named(f), f).toEqual([sha(f)]);
     expect(DOC).toContain('**Status: FROZEN**');
-    expect(DOC).toMatch(/## 7\. Deviations\n\nNone\./);
+    // Deviation 1 (0170, Davies 2026-10-29: "你新做好的两个测试策略现在就上线"): the start moved to 2026-10-29 08:00 UTC, and only that.
+    expect(DOC).toMatch(/## 7\. Deviations\n\n- \*\*Deviation 1 \(2026-10-29, before the start; migration `0170`\): the start moves to 2026-10-29 08:00 UTC\.\*\*/);
   });
 
   it("is USDC-GBP at $50 a rung, its nudge inside closures alone on Davies' choice, and the study's numbers as the expectation", () => {

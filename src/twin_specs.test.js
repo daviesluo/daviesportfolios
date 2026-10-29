@@ -129,12 +129,13 @@ describe("the twins' spec rows", () => {
       // on the date it replaces (0090: TAKE's take.from, its Addendum 1): that names it once. A page name may change,
       // guarded on the name it replaces (0108, 0109, 0130, 0141): once. A row may be taken off by its id (0109): once.
       // 0141 adds `hidden`, one rule to one row, switches one row off and hides four: once each. 0154 moves five rows' start
-      // and their rules' instants, each guarded on the value it replaces: once each.
+      // and their rules' instants, each guarded on the value it replaces: once each. 0170 does the same for variant-7 and its
+      // control (Davies, 2026-10-29: "你新做好的两个测试策略现在就上线").
       expect(named, f).toBe(2 * inserts + moves + names + offs + later + (f === SPECS_0088 ? 5 : 0));
     }
     expect(FILES.filter((f) => [RULE_ADD, OFF, HIDE, ADD_HIDDEN].some((re) => [...sqlOf(f).matchAll(re)].length)).map((f) => f.slice(0, 4))).toEqual(['0141', '0142', '0144', '0149', '0151', '0152', '0167']);
-    expect(FILES.filter((f) => [...sqlOf(f).matchAll(RULE_MOVE)].length).map((f) => f.slice(0, 4))).toEqual(['0090', '0154']);
-    expect(FILES.filter((f) => [...sqlOf(f).matchAll(START)].length).map((f) => f.slice(0, 4))).toEqual(['0154']);
+    expect(FILES.filter((f) => [...sqlOf(f).matchAll(RULE_MOVE)].length).map((f) => f.slice(0, 4))).toEqual(['0090', '0154', '0170']);
+    expect(FILES.filter((f) => [...sqlOf(f).matchAll(START)].length).map((f) => f.slice(0, 4))).toEqual(['0154', '0170']);
     // Every rule move matches the parser that applies it.
     for (const f of FILES) expect([...sqlOf(f).matchAll(RULE_MOVE_OP)].length, f).toBe([...sqlOf(f).matchAll(RULE_MOVE)].length);
     expect(renames.map((n) => [n.file.slice(0, 4), n.id, n.from, n.to])).toEqual([
@@ -266,9 +267,10 @@ describe("the twins' spec rows", () => {
     }
     expect(opt.map((r) => Object.keys(r.rules).filter((k) => k !== 'fill' && k !== 'weekend'))).toEqual([['weights'], ['holdMin'], ['weights'], ['weights']]);
     expect(opt.map((r) => (r.rules.weights ?? r.rules.holdMin).from)).toEqual([S, S, S, S]);
-    // 0169's variant-7 and its hidden control: LIVE's fill rule and weekend from 2026-10-30 00:00, USDC-GBP alone, $300 at the
+    // 0169's variant-7 and its hidden control: LIVE's fill rule and weekend from their start, 2026-10-29 08:00 since 0170 (it was
+    // 2026-10-30 00:00), USDC-GBP alone, $300 at the
     // rate its pounds were set at, and the nudge on variant-7 alone (the control is the same row without it).
-    const N = '2026-10-30T00:00:00Z';
+    const N = '2026-10-29T08:00:00Z';
     const [nu, ctl] = ['u300nudge', 'u300ctl'].map((id) => ROWS.find((r) => r.id === id));
     for (const r of [nu, ctl]) {
       expect([r.start, r.rules.fill.from, r.rules.weekend.from, r.rules.weights.book, r.rules.usdCapital, 'take' in r.rules], r.id)

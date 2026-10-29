@@ -237,19 +237,19 @@
    "engine": "pr5",
    "capital_gbp": 225.33,
    "gov": "account",
-   "start": "2026-10-30T00:00:00Z",
+   "start": "2026-10-29T08:00:00Z",
    "table_prefix": "agent_quote_twin_u300nudge",
    "lease": "quotes-twin-u300nudge",
    "rules": {
     "fill": {
      "model": "at",
-     "from": "2026-10-30T00:00:00Z"
+     "from": "2026-10-29T08:00:00Z"
     },
     "weekend": {
-     "from": "2026-10-30T00:00:00Z"
+     "from": "2026-10-29T08:00:00Z"
     },
     "weights": {
-     "from": "2026-10-30T00:00:00Z",
+     "from": "2026-10-29T08:00:00Z",
      "book": {
       "USDC-GBP": 1,
       "USDT-GBP": 0
@@ -260,7 +260,7 @@
      "gbpusd": 1.3314
     },
     "fairNudge": {
-     "from": "2026-10-30T00:00:00Z",
+     "from": "2026-10-29T08:00:00Z",
      "book": "USDC-GBP",
      "w": 0.5,
      "halfLifeMin": 1440
@@ -279,19 +279,19 @@
    "engine": "pr5",
    "capital_gbp": 225.33,
    "gov": "account",
-   "start": "2026-10-30T00:00:00Z",
+   "start": "2026-10-29T08:00:00Z",
    "table_prefix": "agent_quote_twin_u300ctl",
    "lease": "quotes-twin-u300ctl",
    "rules": {
     "fill": {
      "model": "at",
-     "from": "2026-10-30T00:00:00Z"
+     "from": "2026-10-29T08:00:00Z"
     },
     "weekend": {
-     "from": "2026-10-30T00:00:00Z"
+     "from": "2026-10-29T08:00:00Z"
     },
     "weights": {
-     "from": "2026-10-30T00:00:00Z",
+     "from": "2026-10-29T08:00:00Z",
      "book": {
       "USDC-GBP": 1,
       "USDT-GBP": 0

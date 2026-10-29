@@ -108,4 +108,8 @@ and the nudge inside FX closures alone, after the replay of §2:
 
 ## 7. Deviations
 
-None.
+- **Deviation 1 (2026-10-29, before the start; migration `0170`): the start moves to 2026-10-29 08:00 UTC.** Davies, 2026-10-29 about 07:20 UTC: "你新做好的两个测试策略现在就上线" (the two new test strategies go live now). The row's
+  record had been opened at its first run (07:22 UTC) with `startedAt` the next 00:00; `0170` sets `startedAt` to 08:00 and
+  `lastMinute` to 07:59, guarded on the old start, before any minute was decided (flat books, no EMA yet). Its 28 days run
+  2026-10-29 08:00 → 2026-11-26 08:00 UTC, its days 08:00 → 08:00, compared with "- 2"'s USDC-GBP book over the same days;
+  everything else (the scope, the statistic, the bar, the seed, the expectation) is as frozen above.

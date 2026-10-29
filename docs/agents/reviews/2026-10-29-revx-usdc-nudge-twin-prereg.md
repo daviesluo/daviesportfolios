@@ -106,4 +106,8 @@ driver changed a file eight running pre-registrations freeze, recorded in
 
 ## 7. Deviations
 
-None.
+- **Deviation 1 (2026-10-29, before the start; migration `0170`): the start moves to 2026-10-29 08:00 UTC.** Davies, 2026-10-29 about 07:20 UTC: "你新做好的两个测试策略现在就上线" (the two new test strategies go live now). Both rows'
+  `start` and every rule's `from` move from 2026-10-30 00:00 to 2026-10-29 08:00 UTC, guarded on the old value, before either
+  twin had turned (their state tables were empty). The window becomes the 28 days 2026-10-29 08:00 → 2026-11-26 08:00 UTC, its
+  days 08:00 → 08:00, read on or after 11-26 08:00; everything else (the comparison with `u300ctl`, the statistic, the bar, the
+  seed, the expectation) is as frozen above. The EMA is still warmed on the 72 hours before the (new) start.
