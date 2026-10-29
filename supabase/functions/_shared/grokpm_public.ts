@@ -28,7 +28,7 @@ export type GrokPmCaps = {
  */
 export function grokpmCaps(basisUsd: number): GrokPmCaps {
   const b = Number.isFinite(basisUsd) ? Math.max(0, basisUsd) : 0, P = GROKPM_CAP_PCT;
-  // In cents, with a hair's room for binary fractions: 0.1 × 150 is 15.000000000000002, 0.3 × 107.59 is 32.277.
+  // In cents, with a hair's room for binary fractions: 0.1 × 150 is 15.000000000000002, 0.3 × 107.37 is 32.211.
   const down = (pct: number) => Math.floor(b * pct + 1e-6) / 100, up = (pct: number) => Math.ceil(b * pct - 1e-6) / 100;
   return {
     basisUsd: r6(b), marketCapUsd: down(P.market), themeCapUsd: down(P.theme), cashFloorUsd: up(P.cashFloor), thinCapUsd: down(P.thin),

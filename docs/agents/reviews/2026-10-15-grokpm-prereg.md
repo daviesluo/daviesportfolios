@@ -521,7 +521,7 @@ CLOB's history (a mid-like price per five minutes), not executable books.
     Each order's `checks.caps` records the basis and every limit it was judged by. The page's day-stop room is 10 % of the
     record's day open.
   - **From the deploy of this commit; no backfill:** the orders sent before it were judged as they were. Pinned in
-    `grokpm/exec.test.ts` ("D19: …": the $100, $150, $80 and $107.59 rows, a win raising the next day's caps, a loss
+    `grokpm/exec.test.ts` ("D19: …": the $100, $150, $80 and $107.37 rows, a win raising the next day's caps, a loss
     lowering them with the day stop at −$8 and the total stop still −$30, the theme cap and the cash kept, D15's and D18's
     caps).
 

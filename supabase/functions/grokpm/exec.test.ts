@@ -1026,8 +1026,8 @@ Deno.test("D19: at a $100 basis every limit is §2's dollars; $150 and $80 scale
   assertEquals(row(100), [100, 10, 25, 30, 5, 10, 10]);
   assertEquals(row(150), [150, 15, 37.5, 45, 7.5, 15, 15]);
   assertEquals(row(80), [80, 8, 20, 24, 4, 8, 8]);
-  // Cents: a cap and the day stop down, the cash kept up (10.759 → 10.75, 26.8975 → 26.89, 32.277 → 32.28, 5.3795 → 5.37).
-  assertEquals(row(107.59), [107.59, 10.75, 26.89, 32.28, 5.37, 10.75, 10.75]);
+  // Cents: a cap and the day stop down, the cash kept up (10.737 → 10.73, 26.8425 → 26.84, 32.211 → 32.22, 5.3685 → 5.36).
+  assertEquals(row(107.37), [107.37, 10.73, 26.84, 32.22, 5.36, 10.73, 10.73]);
   // No basis, nothing to spend.
   assertEquals(row(-5), [0, 0, 0, 0, 0, 0, 0]);
   assertEquals(row(NaN), [0, 0, 0, 0, 0, 0, 0]);

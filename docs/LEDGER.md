@@ -777,7 +777,8 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 and the 2026-10-29 02:13 one (fifteenth).
 
 ### [2026-10-29 05:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **GROKPM's money limits as percentages, D19** (sub-agent; commit, not pushed; Davies, 10-29: "把polymarket的策略里的钱全换成百分比，
+- **GROKPM's money limits as percentages, D19** (landed 13dfb422, deployed 10-29 ~06:00 UTC; the day's basis read back from `state.dayOpen`; a follow-up
+  swapped a pinned cents row that matched the live book for $107.37, moving the prereg sha to `f7ec205c…`; Davies, 10-29: "把polymarket的策略里的钱全换成百分比，
   这样的话可以有效实现盈利资金的再利用"; item 15).
   - **The basis** is the day stop's own opening equity (`state.dayOpen`: the first reading of the UTC day, the agent's own book), so a cap
     holds still within a day and compounds day to day. Market 10 %, theme 25 %, cash kept 30 %, D15 5 %, D18 10 %, day stop −10 %

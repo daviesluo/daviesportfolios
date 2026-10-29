@@ -49,7 +49,7 @@ describe('GROKPM pre-registration', () => {
   // (2026-10-16) added §9's D3 and three rows to A.2's refusal table; D2 before it added §9's D2 and Appendix A.2 and
   // moved the hourly request cap from 120 to 600.
   it('is frozen: its sha256', () => {
-    expect(sha(PREREG_PATH)).toBe('4c49e5e21047a21e1302b1bea2f4791854efe7fbc820c92aa893f8b10f1eed55');
+    expect(sha(PREREG_PATH)).toBe('f7ec205c3fdc4fac4bdad29d7c0b563f51478ae76933e27125904d4a456efdb0');
   });
 
   it("has its cadence study's files as its manifest names them, and quotes the study's own numbers", () => {
