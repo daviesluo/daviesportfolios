@@ -297,3 +297,17 @@ stores):
 | `supabase/functions/agents/cb_hold.ts` | `85d86a0181ff7004b8aff0c437883f01b085b45023605cab3fb789c0b8e97511` |
 | `supabase/functions/agents/cb_hold.test.ts` | `212db02f5592b83f37222258fd05c0dba761008e79d3b328f0cb8c46be31512d` |
 | `supabase/functions/agents/cb_quotes.ts` | `3d267f849a8aeec704c880dc9a7da20ac19b5653117778cedff828615b468a6c` |
+
+**Deviation 5 (2026-10-29, before the reading): its display name, and the base test off the page.** Davies, 2026-10-29, verbatim:
+
+> coinbase quotes with euros删了吧，因为加周末表现更好应该已经很明显了吧，然后把-1改成coinbase quotes with euros，-2和-3都减小一个数字
+
+(delete "coinbase quotes with euros", since adding the weekend has clearly done better; rename "- 1" to "coinbase quotes with euros"; take one off "- 2" and "- 3").
+
+- **The name.** This arm's display name is **"Stablecoin quotes with Euros"** from today ("- 2" until 0142, "- 1" until today;
+  `CB_HOLD_PAGE_NAME` in cb_page.ts). Display only: its id (`coinbasehold`), tables, call, lease, rule and reading are unchanged.
+  `cb_hold.ts` keeps the name it was frozen with.
+- **The base test** ("Stablecoin quotes with Euros" until today, cb_quotes.ts) is off the page, but its call keeps deciding, so bar
+  6 still has its control and the cross-check its record. After this test's reading the base test is switched off (its
+  Deviation 6).
+- No rule, file or threshold changes, so no bytes are named.

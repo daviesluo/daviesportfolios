@@ -346,45 +346,42 @@ places stay when the number is not whole.
   the live account's own weekends now answer its question. The £120 twin that
   mirrored the live account (variant-2 until 29 Oct) has stopped too: the
   £600 LIVE twin is that copy at the live account's size now.
-- **Stablecoin quotes with Euros.** Right after "Stablecoin quotes
-  variant-6", its name on two lines as the variants', on Coinbase (its own
-  badge and venue card): the same rule on paper on Coinbase's four stablecoin
-  books, USDC and USDT against pounds and against euros, from Coinbase's own
-  public trades recorded every minute since 10 Oct. £100 a rung on the two
-  pound books and €100 a rung on the two euro books, six a book, until 29 Oct;
-  since then $100 a rung on every book, $2,400 in all, and every money figure
-  of the Coinbase rows is in dollars. What it made before the change is shown
-  scaled to the $100 size, assuming it would have filled the same way; a pound
-  book's prices are in pounds and a euro book's in euros. Its page is the twins'
-  page without INVENTORY, since a paper test holds no coins of its own (what
-  a rung holds is in BOOKS), so its DAYS and 7-day realised, annualised figure read
-  straight beside the live row's on Revolut X.
+- **Stablecoin quotes with Euros.** Right after the last Revolut X twin,
+  its name on two lines as the variants', on Coinbase (its own badge and venue
+  card): the same rule on paper on Coinbase's four stablecoin books, USDC and
+  USDT against pounds and against euros, from Coinbase's own public trades
+  recorded every minute. It keeps quoting through the weekend on Friday's
+  exchange rates until they come back. £100 a rung on the two pound books and
+  €100 on the two euro books, six a book, until 29 Oct; since then $100 a rung
+  on every book, $2,400 in all, and every money figure of the Coinbase rows is
+  in dollars. What it made before that change is shown scaled to the $100
+  size, assuming it would have filled the same way; a pound book's prices are
+  in pounds and a euro book's in euros. Its page is the twins' page without
+  INVENTORY, since a paper test holds no coins of its own (what a rung holds is
+  in BOOKS). It was called "- 1" until 29 Oct. The first Coinbase test, which
+  went quiet over the weekend, was the row of this name until then: it left the
+  page on 29 Oct, because quoting through the weekend had clearly done better,
+  and it runs on out of sight only to be compared with this one until that
+  comparison is read on 10 Nov.
 - **Stablecoin quotes with Euros - 1.** Right after it (called "- 2" until
-  26 Oct), the same test with one change, the weekend: the first goes quiet from Friday evening to Sunday
-  evening, when the exchange rates it prices from are not published, and this
-  one keeps quoting on Friday's rates until they come back. Its name is on two
-  lines, its page is the first's, and Coinbase's card adds the rows. A paper
-  test, starting at the next midnight after it went up; the rule for judging
-  it is written down first.
-- **Stablecoin quotes with Euros - 2.** Right after it, since 26 Oct: "- 1"
-  again, weekends included, on the two USDC books alone (USDC against pounds
-  and against euros), £25 a rung on the pound book and €25 on the euro book
-  until 29 Oct, then $25 a rung, and $50 a rung ($600 in all) from midday on
-  29 Oct. What it made before is shown at the $50 size, assuming it would have
-  filled the same way. Coinbase's USDT books lost money in the first weeks
-  while its USDC books earned, so this checks forward, over two weeks, whether
-  the USDC books keep earning. It starts flat at the next midnight after it
-  went up; its page is the others', with two books.
+  29 Oct): the same, weekends included, on the two USDC books alone (USDC
+  against pounds and against euros), £25 a rung on the pound book and €25 on
+  the euro book until 29 Oct, then $25 a rung, and $50 a rung ($600 in all)
+  from midday on 29 Oct. What it made before is shown at the $50 size, assuming
+  it would have filled the same way. Coinbase's USDT books lost money in the
+  first weeks while its USDC books earned, so this checks forward, over two
+  weeks, whether the USDC books keep earning; its page is the others', with two
+  books.
   Since 15 October the Coinbase tests also step aside for seven minutes
   around each scheduled data release (US inflation and jobs, the Fed, the ECB,
   the Bank of England), when the market jumps faster than a quote can follow.
-- **Stablecoin quotes with Euros - 3.** Right after it, since 29 Oct: "- 2"
-  on the pound book alone, $50 a rung, $300 in all, with one change. When the
-  exchange rates are closed for the weekend (Friday 21:00 to Sunday 21:00 UTC,
-  and two holidays), it moves its price toward where Revolut X's own USDC/GBP
-  book has moved, by half of that move. The rest of the week it quotes exactly
-  as "- 2" does. A paper test of four weeks, judged against "- 2"'s pound book
-  over the same days; it starts flat at the next midnight after it went up.
+- **Stablecoin quotes with Euros - 2.** Right after it (called "- 3" until
+  29 Oct): "- 1" on the pound book alone, $50 a rung, $300 in all, with one
+  change. When the exchange rates are closed for the weekend (Friday 21:00 to
+  Sunday 21:00 UTC, and two holidays), it moves its price toward where Revolut
+  X's own USDC/GBP book has moved, by half of that move. The rest of the week it
+  quotes exactly as "- 1" does. A paper test of four weeks from 29 Oct 08:00 UTC,
+  judged against "- 1"'s pound book over the same days.
   Since 29 Oct every Coinbase row prices the coins at Coinbase's own value
   instead of Revolut X's: USDC at a dollar, USDT at Coinbase's own USDT/USD
   price of the last few minutes. If that price strays more than half a

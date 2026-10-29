@@ -4448,6 +4448,13 @@ Davies, 2026-10-13: "周末变体写预注册然后上线paper trading 策略wit
   - **On the study's 10-10 → 10-29 inputs** it never fired (largest gap 13.5 / 14.0 bps), so there the rule is `cb_live` exactly.
   - **Unchanged.** `stepMinute` and Revolut X's rows are untouched (quotes.ts' sha256 unchanged).
 
+- **Addendum 2026-10-29 (evening): the base test off the page, and the arms renamed** (Davies: "coinbase quotes with euros删了吧，因为加周末表现
+  更好应该已经很明显了吧，然后把-1改成coinbase quotes with euros，-2和-3都减小一个数字").
+  - **Names, display only** (`cb_page.ts`): the weekend arm `coinbasehold` is "Stablecoin quotes with Euros", the USDC arm
+    `coinbaseusdc` "- 1", the nudged arm `coinbasenudge` "- 2". Frozen files keep their names.
+  - **The base test** (cb_quotes.ts) is not read by the dashboard. Its call decides on as the weekend reading's control (bar 6,
+    2026-11-10) and is switched off after it. Its input fetches (EUR/USD, Coinbase USDT-USD), which every arm reads, stay.
+
 61. **Every paper Reward quotes test stops; live-prep live and pm-rec keep running (2026-10-13, migration `0120`).**
 Davies, 2026-10-13: "目前paper testing里的reward quotes全关了吧？感觉都不赚钱没什么意义？如果你实在觉得还有用的话就转到后台记录，不用在网站上显示了"
 (switch off every Reward quotes in paper testing; if one is still useful, record it in the background, off the site). The

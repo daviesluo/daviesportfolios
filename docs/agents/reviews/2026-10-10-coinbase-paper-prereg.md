@@ -342,3 +342,23 @@ page then showed this test's FUNDED as £1,200 + €1,200 in dollars, an odd fig
 |---|---|
 | `supabase/functions/agents/cb_quotes.ts` | `3d267f849a8aeec704c880dc9a7da20ac19b5653117778cedff828615b468a6c` |
 | `supabase/functions/agents/cb_quotes.test.ts` | `d0aa5d86649febcc14af588bbb8208984d3937e7c78ab5ac9c20d745b7087825` |
+
+### Deviation 6 (2026-10-29, before the reading): off the page, kept as the weekend test's control
+
+**On whose word.** Davies, 2026-10-29, verbatim:
+
+> coinbase quotes with euros删了吧，因为加周末表现更好应该已经很明显了吧，然后把-1改成coinbase quotes with euros，-2和-3都减小一个数字
+
+(delete "coinbase quotes with euros", since adding the weekend has clearly done better; rename "- 1" to "coinbase quotes with euros"; take one off "- 2" and "- 3").
+
+- **What changes.** This test leaves the Agents page from today. The dashboard no longer reads it (`index.ts`), so it is in no
+  TESTING row, Coinbase card total, VENUES share or FUNDED sum.
+- **What does not change.** Its call runs on (the recorder's `agents?action=cbrec` decides its minutes, `runCbQuotes`) with its
+  tables, rule and record unchanged. The weekend variant's bar 6 pairs that arm with this rule by weekend, and its reading
+  (2026-11-10) also cross-checks against this record.
+- **After that reading** this test's deciding is switched off. That needs a code or migration change and a ledger line; until then
+  it is the weekend test's control only. What the same call fetches and stores for every Coinbase arm keeps running: Yahoo's
+  EUR/USD (`fx:EURUSD`) and Coinbase's USDT-USD minutes (`cb:USDT-USD`, Deviation 5) in `cb_quote_inputs`.
+- **This test's own reading** (2026-11-08, §3) is still made on its record as it ran, and its report says the row was off the page
+  from 2026-10-29.
+- No rule, file or threshold changes, so no bytes are named.

@@ -1201,6 +1201,27 @@ describe('quoteLadderRows — a book as the page draws it', () => {
     expect(quotesPageFor(QUOTES_COINBASE_NUDGE_ROW_ID, { ...dash, quotesCoinbaseNudge: null })).toBe(null);
     expect(strategyNameParts('Stablecoin quotes with Euros - 3')).toEqual({ head: 'Stablecoin quotes', qual: 'with Euros - 3', twoLines: true });
   });
+  it('since 2026-10-29 the base Coinbase test is off the page and the three arms read "with Euros", "- 1" and "- 2", in that order, in every sum', () => {
+    // Davies, 2026-10-29: "coinbase quotes with euros删了吧，因为加周末表现更好应该已经很明显了吧，然后把-1改成coinbase quotes with euros，-2和-3都减小一个数字".
+    // The dashboard no longer sends `quotesCoinbase`; it sends the weekend, USDC and nudged arms under their page names (cb_page.ts).
+    const h0 = cbHoldFixture.quotesCoinbaseHold;
+    const h = { ...h0, twin: { ...h0.twin, name: 'Stablecoin quotes with Euros' } };
+    const u = { ...h0, twin: { ...h0.twin, id: 'coinbaseusdc', name: 'Stablecoin quotes with Euros - 1' } };
+    const n = { ...h0, twin: { ...h0.twin, id: 'coinbasenudge', name: 'Stablecoin quotes with Euros - 2' } };
+    const dash = { quotesTwins: shownTwins, quotesCoinbaseHold: h, quotesCoinbaseUsdc: u, quotesCoinbaseNudge: n };
+    const rows = paperTestRows(dash), names = rows.map((r) => r.name);
+    const at = names.indexOf('Stablecoin quotes with Euros');
+    expect(at).toBe(shownTwins.length);
+    expect(names.slice(at)).toEqual(['Stablecoin quotes with Euros', 'Stablecoin quotes with Euros - 1', 'Stablecoin quotes with Euros - 2']);
+    expect(rows.slice(at).map((r) => r.id)).toEqual([QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, QUOTES_COINBASE_NUDGE_ROW_ID]);
+    expect(rows.some((r) => r.id === QUOTES_COINBASE_ROW_ID)).toBe(false);
+    expect(quotesPageFor(QUOTES_COINBASE_ROW_ID, dash)).toBe(null);
+    expect(quotesPageFor(QUOTES_COINBASE_HOLD_ROW_ID, dash)).toBe('coinbase');
+    // Coinbase's card adds the three arms, and nothing of the base test.
+    const cb = venueRows(dash, 'testing', rows).find((r) => r.id === 'coinbase');
+    expect(cb?.capitalUsd).toBeCloseTo(h.capitalUsd + u.capitalUsd + n.capitalUsd, 6);
+    expect(strategyNameParts('Stablecoin quotes with Euros')).toEqual({ head: 'Stablecoin quotes', qual: 'with Euros', twoLines: true });
+  });
 });
 
 // The page opens on what it last drew — including the first open after a

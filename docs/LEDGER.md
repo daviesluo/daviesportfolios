@@ -481,6 +481,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
    `last_minute` is ~2 min behind. After the deploy and 15 minutes: `select state->>'startedAt', last_error from cb_hold_state`, `cbhold` beats, no
    `agents.cb_hold` errors, `last_minute` ~2 min behind. It reads `cbrec`'s stored EUR/USD and PR5's paper engine's
    `agent_quote_inputs`: both run to this window's end, past 11-08 and past PR5's 10-21 review.
+   **Since 2026-10-29 this arm is shown as "Stablecoin quotes with Euros"** (display only) and the base test is off the page,
+   deciding on as bar 6's control. **After the 11-10 reading:** switch off the base test's deciding (cb_quotes.ts' loop in
+   `cbrec`) but keep its EUR/USD and Coinbase USDT-USD fetches, which every Coinbase arm reads (base prereg Deviation 6).
 
 13. **Coinbase's order books recorded, ten levels a side: live since `96a9da37` (10-10); KEPT and used** (Davies, 2026-10-18:
    "cbbooks留着并利用起来，和revolut x的订单簿一样可以做策略研究"; this replaces the 10-18 review's "retire by 11-08 unless a study is
@@ -783,6 +786,16 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 01:24 UTC section (archived
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth).
+
+### [2026-10-29 08:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Coinbase rows renamed, the base test off the page** (sub-agent; commit, not pushed; Davies, 10-29: "coinbase quotes with euros删了吧，因为加周末
+  表现更好应该已经很明显了吧，然后把-1改成coinbase quotes with euros，-2和-3都减小一个数字").
+  - **Names** (display only, `cb_page.ts`; frozen files keep theirs): `coinbasehold` "with Euros", `coinbaseusdc` "- 1",
+    `coinbasenudge` "- 2".
+  - **The base test** (cb_quotes.ts) is no longer read by the dashboard (no row, card or sum). It decides on in `cbrec` as the
+    weekend reading's control; item 12b has the switch-off after 11-10.
+  - **The sweep** serves the weekend fixture under the new name and checks one Coinbase row.
+  - **Prereg notes:** base Dev 6, weekend Dev 5, USDC Dev 4, nudge Dev 3.
 
 ### [2026-10-29 08:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **FX-SPEED: what a faster X than Yahoo's bar would have earned** (sub-agent; commit, not pushed; Davies, 10-29: "…用历史数据仔细审读回测下目前我们用的

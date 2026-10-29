@@ -1,6 +1,7 @@
-// The Agents page's read of one Coinbase paper arm (the base test, "Stablecoin quotes with Euros", the weekend variant,
-// "Stablecoin quotes with Euros - 1", cb_hold.ts, and the USDC arm, "- 2", cb_usdc.ts): the arm's state, trips, days, newest orders and last minute from its own
-// tables, through `cbQuotesView` (cb_view.ts). The dashboard (index.ts) and the browser test's fixture (testing.ts) both call it.
+// The Agents page's read of one Coinbase paper arm (since 2026-10-29: the weekend variant, cb_hold.ts, "Stablecoin quotes with Euros";
+// the USDC arm, cb_usdc.ts, "- 1"; and "- 2", cb_nudge.ts; the base test, cb_quotes.ts, runs off the page): the arm's state, trips, days,
+// newest orders and last minute from its own tables, through `cbQuotesView` (cb_view.ts). The dashboard (index.ts) and the browser
+// test's fixture (testing.ts) both call it.
 
 import type { Db } from "./db.ts";
 import { cbQuotesView, CB_PAGE_ROWS, type CbDayRow, type CbEventRow, type CbMinuteRow, type CbStateRow, type CbTripRow } from "./cb_view.ts";
@@ -10,11 +11,18 @@ import type { CbProduct } from "./cb_rec.ts";
 export type CbArmTables = { state: string; trips: string; days: string; events: string; minutes: string };
 
 /**
- * The weekend variant's page name since 0142 (Davies, 2026-10-26: "目前的Stablecoin quotes with Euros - 2改为-1"): "with Euros - 1".
- * cb_hold.ts (frozen with its pre-registration) still names it "- 2" (`CB_HOLD_ROW_NAME`); the page reads this. Its id, tables,
- * call and reading are unchanged, and "with Euros - 2" is now the USDC arm's (cb_usdc.ts).
+ * The Coinbase arms' page names (display only: ids, tables, calls, leases and readings unchanged). Each frozen file keeps the name
+ * it was frozen with (`CB_HOLD_ROW_NAME`, `CB_USDC_ROW_NAME`, `CB_NUDGE_ROW_NAME`); the page reads these.
+ * - The weekend variant: "- 2" until 0142, "- 1" until 2026-10-29, "Stablecoin quotes with Euros" since (Davies, 2026-10-29:
+ *   "coinbase quotes with euros删了吧，因为加周末表现更好应该已经很明显了吧，然后把-1改成coinbase quotes with euros，-2和-3都减小一个数字").
+ * - The USDC arm (cb_usdc.ts): "- 2" until 2026-10-29, "- 1" since.
+ * - The nudged USDC-GBP arm (cb_nudge.ts): "- 3" until 2026-10-29, "- 2" since.
+ * The base test (cb_quotes.ts, "Stablecoin quotes with Euros" until then) is off the page from that day: it runs on as the
+ * weekend variant's control until that test's reading, and the dashboard does not read it.
  */
-export const CB_HOLD_PAGE_NAME = "Stablecoin quotes with Euros - 1";
+export const CB_HOLD_PAGE_NAME = "Stablecoin quotes with Euros";
+export const CB_USDC_PAGE_NAME = "Stablecoin quotes with Euros - 1";
+export const CB_NUDGE_PAGE_NAME = "Stablecoin quotes with Euros - 2";
 
 /** What one arm's read gives beside its view: the state row, every round trip, and the last stored GBP/USD and EUR/USD. */
 type CbArmLoad = { v: ReturnType<typeof cbQuotesView>; st: CbStateRow; trips: CbTripRow[]; gbpusd: number | null; eurusd: number | null };

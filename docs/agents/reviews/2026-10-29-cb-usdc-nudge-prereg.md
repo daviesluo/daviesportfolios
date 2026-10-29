@@ -176,3 +176,8 @@ the switch its coin value is 1 under the de-peg guard, over the same FX bar:
 |---|---|
 | `supabase/functions/agents/cb_usdc.ts` | 87e4b3bb832b072027ac53affee6716451d2933af06681dbf8aa8d6640ae2771 |
 | `supabase/functions/agents/cb_quotes.ts` | 3d267f849a8aeec704c880dc9a7da20ac19b5653117778cedff828615b468a6c |
+
+**Deviation 3 (2026-10-29): its display name.** Davies, 2026-10-29: "…-2和-3都减小一个数字". This arm's display name is
+**"Stablecoin quotes with Euros - 2"** from today ("- 3" until then; `CB_NUDGE_PAGE_NAME` in cb_page.ts). Its comparison arm,
+"- 2" in §3–§4, is now displayed as "- 1". Display only: ids (`coinbasenudge`, `coinbaseusdc`), tables, calls, rule and reading are
+unchanged, and `cb_nudge.ts` keeps the name it was frozen with. No bytes named.

@@ -1320,18 +1320,18 @@ export function quotesTwinRow(t) {
 /** The twins' rows, in the payload's order. @param {any} dash */
 export const quotesTwinRows = (dash) => (dash?.quotesTwins ?? []).map(quotesTwinRow).filter(Boolean);
 
-/** "Stablecoin quotes with Euros"'s id among TESTING's rows ("Stablecoin quotes Coinbase", then for a few hours
- * "Stablecoin quotes - with Euro", until 2026-10-10). */
+/** The base Coinbase test's id among TESTING's rows ("Stablecoin quotes with Euros" until 2026-10-29, when it left the page:
+ * the dashboard no longer sends it, Davies: "coinbase quotes with euros删了吧…"; "Stablecoin quotes Coinbase" until 2026-10-10). */
 export const QUOTES_COINBASE_ROW_ID = '__quotes_coinbase';
-/** "Stablecoin quotes with Euros - 2"'s id among TESTING's rows (the weekend variant, `cb_hold.ts`, 0118). */
+/** The weekend variant's id among TESTING's rows (`cb_hold.ts`, 0118): "Stablecoin quotes with Euros" since 2026-10-29 ("- 2", then "- 1", before). */
 export const QUOTES_COINBASE_HOLD_ROW_ID = '__quotes_coinbase_hold';
 /** The twin id the weekend variant's payload carries (`CB_HOLD_ID` in `cb_hold.ts`). */
 const COINBASE_HOLD_TWIN_ID = 'coinbasehold';
-/** "Stablecoin quotes with Euros - 2"'s id among TESTING's rows (the USDC arm, `cb_usdc.ts`, 0142; the weekend variant is "- 1" since). */
+/** The USDC arm's id among TESTING's rows (`cb_usdc.ts`, 0142): "Stablecoin quotes with Euros - 1" since 2026-10-29 ("- 2" before). */
 export const QUOTES_COINBASE_USDC_ROW_ID = '__quotes_coinbase_usdc';
 /** The twin id the USDC arm's payload carries (`CB_USDC_ID` in `cb_usdc.ts`). */
 const COINBASE_USDC_TWIN_ID = 'coinbaseusdc';
-/** "Stablecoin quotes with Euros - 3"'s id among TESTING's rows (USDC-GBP with the nudged fair, `cb_nudge.ts`, 0168). */
+/** The nudged USDC-GBP arm's id among TESTING's rows (`cb_nudge.ts`, 0168): "Stablecoin quotes with Euros - 2" since 2026-10-29 ("- 3" before). */
 export const QUOTES_COINBASE_NUDGE_ROW_ID = '__quotes_coinbase_nudge';
 /** The twin id its payload carries (`CB_NUDGE_ID` in `cb_nudge.ts`). */
 const COINBASE_NUDGE_TWIN_ID = 'coinbasenudge';

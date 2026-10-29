@@ -220,3 +220,8 @@ value is 1, under the de-peg guard:
 | `supabase/functions/agents/cb_usdc.test.ts` | 80ce8b868077dd63a8d292999ddb6e571d32f7ffe4a1ce1153ce4a27c0dc1dc5 |
 | `supabase/functions/agents/cb_hold.ts` | 85d86a0181ff7004b8aff0c437883f01b085b45023605cab3fb789c0b8e97511 |
 | `supabase/functions/agents/cb_quotes.ts` | 3d267f849a8aeec704c880dc9a7da20ac19b5653117778cedff828615b468a6c |
+
+**Deviation 4 (2026-10-29): its display name.** Davies, 2026-10-29: "…-2和-3都减小一个数字". This arm's display name is
+**"Stablecoin quotes with Euros - 1"** from today ("- 2" until then; `CB_USDC_PAGE_NAME` in cb_page.ts). Display only: its id
+(`coinbaseusdc`), tables, call, lease, rule and reading are unchanged, and `cb_usdc.ts` keeps the name it was frozen with. No bytes
+named.
