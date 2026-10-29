@@ -88,4 +88,37 @@ None. It starts flat at the first 00:00 UTC after its first run, as the weekend 
 
 ## 7. Deviations
 
-None.
+**Deviation 1 (2026-10-29, before the reading): $25 a rung, the record counted in dollars.** Davies, 2026-10-29, verbatim: first
+"C，coinbase的也是改用美元", then, of the funded figures the page showed in dollars (this arm's was £150 + €150, about $367):
+
+> Coinbase策略中funded数字怎么那么奇怪，都改成整数调整
+
+- **Size.** From the switch, a rung is **$25** of the book's currency (`CB_USDC_RUNG_USD`): **$300 on the two books**.
+  - $25, not $100, because this arm's design is the small rung: §1 makes it a quarter of the weekend variant's, and §2's case is what
+    the small rung fills that £100 does not.
+  - $25 keeps that quarter of the others' $100.
+- **How.** `cb_usdc.ts` calls the base test's `cbUsdSwitch` and `cbMinuteInputs(…, usd)`. The engine's 100 becomes $100 and is
+  still ÷ `CB_USDC_FACTOR` (4), so §1's construction holds unchanged in dollars.
+- **The instant.** The arm's first minute at or after 2026-10-29 00:00 UTC with both rates known.
+  - It is written to `cb_usdc_state.state` (`usdFrom`, `usdGbpusd`, `usdEurusd`, `usdFactor`).
+  - The reading quotes them from there.
+- **The factor.** $25 ÷ the old £25 / €25 rung's dollars at the instant: 1 / GBP/USD on USDC-GBP, 1 / EUR/USD on USDC-EUR.
+  - At GBP/USD 1.3324 and EUR/USD 1.1151 (the last stored rates when this was written, 2026-10-29 04:06–04:07 UTC) that is 0.7505 and
+    0.8968, and $300 ÷ $367.13 = **0.817** over the arm.
+- **The assumption.** Fills and fees scale linearly with size. The page shows what was entered before the instant × its book's factor;
+  prices, counts and percentages are not scaled; no row is rewritten.
+- **The bar, read in dollars.**
+  - A trip's dollars are its pounds (`cb_usdc_trips.pnl_gbp`) × the window's mean GBP/USD, × its book's factor if it was entered
+    before the instant.
+  - Bar 1 reads them.
+  - Bar 2 is realised ÷ **$300** × 365 / 14 ≥ 8 %.
+  - Bar 3 (bps a round trip, P&L ÷ notional) is a ratio and is unchanged.
+  - The comparison with the weekend variant's USDC books is per pound and unaffected: that arm switches the same way (its Deviation 3).
+- **Frozen bytes this deviation names** (§5 keeps the originals; `src/cb_usdc_prereg.test.js` holds both):
+
+| file | sha256 (Deviation 1) |
+|---|---|
+| `supabase/functions/agents/cb_usdc.ts` | 4fdf89c16b92ac7279b9593ee7946a209276de2b1a44ad8ae1b91d0f89d704a2 |
+| `supabase/functions/agents/cb_usdc.test.ts` | dfa42316993faec080a5bd8c9ab0fa5361e29c0351db47af1d04cb3a059fe2db |
+| `supabase/functions/agents/cb_hold.ts` | ea081c57918d6c0e6500da7dced0c2a3c57ccd0e8a2e09d9c2cdc06c9aa34fd9 |
+| `supabase/functions/agents/cb_quotes.ts` | fe88387e54abad68ff3fe5a02fb8f2a768a09ccea860b4ab4a46cbbdd262c465 |

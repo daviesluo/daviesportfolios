@@ -6,7 +6,8 @@
 
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
-  CB_BOOK, CB_CAPITAL, CB_TAKER, cbCapitalGbp, cbMinuteInputs, cbMinuteRow, cbPrint, cbStopExit, cbTripInPounds, cbTripRow, runCbQuotes,
+  CB_BOOK, CB_CAPITAL, CB_RUNG_USD, CB_TAKER, CB_USD_NOT_BEFORE, cbCapitalGbp, cbInUsd, cbMinuteInputs, cbMinuteRow, cbPrint, cbStopExit, cbTripInPounds, cbTripRow,
+  cbUsdFactors, cbUsdSwitch, runCbQuotes, type CbQuoteState,
 } from "./cb_quotes.ts";
 import { CB_PRODUCTS, type CbCursor, type CbProduct } from "./cb_rec.ts";
 import { QUOTE_FEE, QUOTE_HALF_SPREAD, quoteTicks, type Trip } from "./quotes.ts";
@@ -292,4 +293,104 @@ Deno.test("with no release near, the same prints fill what the unchanged rule fi
   assertEquals(fills.slice(0, 3), [["17:55", 0.001], ["17:58", 0.002], ["17:59", 0.003]]);
   assert(fills.some((f) => f[0] === "18:03"));
   assertEquals(tables.cb_quote_minutes.filter((x) => x.fair == null).length, 0);
+});
+
+// Deviation 4 (2026-10-29; Davies: "C，coinbase的也是改用美元", then "Coinbase策略中funded数字怎么那么奇怪，都改成整数调整"): $100 a rung
+// from the switch, the first minute decided at or after 2026-10-29 00:00 UTC with both rates known. GBP/USD 1.25 and EUR/USD 1.10 in
+// these worlds, so $100 is £80 on a GBP book and €90.909… on a EUR book; the factors are 1 / 1.25 = 0.8 and 1 / 1.1.
+Deno.test("Deviation 4: in dollars X is the currency's dollar rate and fairU the coin's, the same fair; the switch is written once", () => {
+  assertEquals(CB_RUNG_USD, 100);
+  assertEquals(CB_USD_NOT_BEFORE, Date.parse("2026-10-29T00:00:00Z"));
+  const g = cbMinuteInputs("USDC-GBP", 1.25, 1.1, 1.0, true);
+  assertEquals([g.x, g.xGbp], [1.25, 1]);
+  assertAlmostEquals(g.fairU! / g.x!, 0.8, 1e-12);                       // the same £0.80 a USDC
+  const e = cbMinuteInputs("USDC-EUR", 1.25, 1.1, 1.0, true);
+  assertAlmostEquals(e.x!, 1.1, 1e-12);
+  assertAlmostEquals(e.xGbp!, 0.88, 1e-12);                              // the minute record's pounds per euro, unchanged
+  assertAlmostEquals(e.fairU! / e.x!, 1 / 1.1, 1e-12);
+  const t = cbMinuteInputs("USDT-EUR", 1.25, 1.1, 1.0, true);
+  assertAlmostEquals(t.fairU! / t.x!, 10 / 1.1, 1e-12);
+  assertEquals(cbMinuteInputs("USDC-EUR", 1.25, null, 1.0, true), { x: null, fairU: null, xGbp: null });
+  const f = cbUsdFactors(1.25, 1.1);
+  assertAlmostEquals(f.GBP, 0.8, 1e-12);
+  assertAlmostEquals(f.EUR, 1 / 1.1, 1e-12);
+  // The switch: not before 2026-10-29, not without both rates, and once.
+  const st = { lastMinute: 0, startedAt: 0, books: {}, fed: {} } as unknown as CbQuoteState;
+  cbUsdSwitch(st, CB_USD_NOT_BEFORE - M, 1.25, 1.1);
+  assertEquals(st.usdFrom, undefined);
+  cbUsdSwitch(st, CB_USD_NOT_BEFORE, 1.25, null);
+  assertEquals(st.usdFrom, undefined);
+  cbUsdSwitch(st, CB_USD_NOT_BEFORE + M, 1.25, 1.1);
+  assertEquals([st.usdFrom, st.usdGbpusd, st.usdEurusd], [CB_USD_NOT_BEFORE + M, 1.25, 1.1]);
+  cbUsdSwitch(st, CB_USD_NOT_BEFORE + 9 * M, 1.3, 1.2);
+  assertEquals([st.usdFrom, st.usdGbpusd], [CB_USD_NOT_BEFORE + M, 1.25]);
+  assertEquals([cbInUsd(st, CB_USD_NOT_BEFORE), cbInUsd(st, CB_USD_NOT_BEFORE + M)], [false, true]);
+});
+
+Deno.test("Deviation 4 through the driver: a rung filled before the switch keeps its £100, one filled after it is $100; pounds and the record as before", async () => {
+  // 23:58 on 10-28. The first call is covered to 23:59 and decides 23:58 and 23:59 by the old rule; the second decides from
+  // 00:00 on 10-29, so it writes the switch at 00:00.
+  const t0 = Date.UTC(2026, 9, 28, 23, 58);
+  const { db, tables, rec, fetchImpl } = world(t0, [
+    // 23:59: a seller through USDC-GBP's 0.1 % bid (£0.7992): its £100 rung fills before the switch. 00:01: a buyer through its exit at £0.8000.
+    { book: "USDC-GBP", id: 7000001, at: t0 + M + 5000, price: "0.79900000", size: "2000.00", side: "sell" },
+    { book: "USDC-GBP", id: 7000002, at: t0 + 3 * M + 5000, price: "0.80010000", size: "10.00", side: "buy" },
+    // 00:01: a seller through USDT-EUR's 0.1 % bid (€0.90818), after the switch: $100, €90.909… (10 % of the minute is $998.9).
+    { book: "USDT-EUR", id: 7000001, at: t0 + 3 * M + 7000, price: "0.90810", size: "10000.00", side: "sell" },
+  ]);
+  const short = { cursors: Object.fromEntries(CB_PRODUCTS.map((b) => [b, { ...rec.cursors[b], coveredTo: t0 + 2.5 * M }])) };
+  const r1 = await runCbQuotes({ db, now: t0 + 6 * M, holder: "h", fetchImpl, rec: short });
+  assertEquals([r1.errors, r1.from, r1.to], [[], t0, t0 + M]);
+  assertEquals((tables.cb_quote_state[0].state as CbQuoteState).usdFrom, undefined);
+  const r2 = await runCbQuotes({ db, now: t0 + 6 * M + 10e3, holder: "h2", fetchImpl, rec });
+  assertEquals([r2.errors, r2.from, r2.to], [[], t0 + 2 * M, t0 + 4 * M]);
+  const st = tables.cb_quote_state[0].state as CbQuoteState;
+  assertEquals([st.usdFrom, st.usdGbpusd, st.usdEurusd], [t0 + 2 * M, 1.25, 1.1]);
+  assertAlmostEquals(st.usdFactor!.GBP, 0.8, 1e-12);
+  assertAlmostEquals(st.usdFactor!.EUR, 1 / 1.1, 1e-12);
+  // The GBP trip: filled at 23:59 (X = 1, £100), closed at 00:01 (X = 1.25): in pounds exactly as the old rule's.
+  const [gbp] = tables.cb_quote_trips.filter((t) => t.book === "USDC-GBP");
+  assertEquals(tables.cb_quote_trips.length, 1);
+  assertAlmostEquals(Number(gbp.qty), 100 / 0.7992, 1e-9);
+  assertAlmostEquals(Number(gbp.notional_gbp), 100, 1e-9);
+  assertAlmostEquals(Number(gbp.pnl_gbp), 100 * 0.0008 / 0.7992, 1e-9);
+  // The EUR fill after the switch: $100 of the rule's money, €90.909…, held at the end; the minute record keeps £0.88 a euro and the fair.
+  const fill = tables.cb_quote_events.find((e) => e.book === "USDT-EUR" && e.kind === "fill")!;
+  assertAlmostEquals(Number((fill.detail as { usd: number }).usd), 100, 1e-12);
+  const held = st.books["USDT-EUR"].rungs.find((x) => x.mode === "position")!;
+  assertAlmostEquals(held.nq!, 100 / 1.1, 1e-9);
+  assertAlmostEquals(held.qty! * 10, (100 / 1.1) / 0.90818, 1e-9);
+  const m = tables.cb_quote_minutes.find((x) => x.book === "USDT-EUR" && x.minute === iso(t0 + 3 * M))!;
+  assertAlmostEquals(Number(m.x), 0.88, 1e-12);
+  assertAlmostEquals(Number(m.fair), 1 / 1.1, 1e-12);
+  // No order was re-priced at the switch: the fair is the same number.
+  assertEquals(tables.cb_quote_events.filter((e) => e.kind === "order" && (e.detail as { what: string }).what === "reprice").length, 0);
+
+  // The page in whole dollars (cb_page.ts): $2,400 funded; the trip from before the switch × 0.8 (its £100 rung at $100 is £80);
+  // the EUR rung held from after it at its own cost, $100; prices unscaled.
+  const { cbQuotesView } = await import("./cb_view.ts");
+  const { coinbaseInUsd } = await import("./cb_page.ts");
+  const day = Date.UTC(2026, 9, 29);
+  const v = cbQuotesView({
+    st: tables.cb_quote_state[0] as never, trips: tables.cb_quote_trips as never, events: [], nowMs: t0 + 6 * M, dayStartMs: day, gbpusd: 1.25, eurusd: 1.1,
+    days: [{ day: "2026-10-29", orders: 30, fills: 2, trips: 1, won: 1, realised_gbp: Number(gbp.pnl_gbp) }],
+    minutes: tables.cb_quote_minutes.filter((x) => x.minute === iso(t0 + 4 * M)) as never,
+  })!;
+  const u = coinbaseInUsd(v, { state: st, trips: tables.cb_quote_trips as never, gbpusd: 1.25, eurusd: 1.1, dayStartMs: day, rungUsd: CB_RUNG_USD, books: 4 });
+  assertEquals([u.ccy, u.capitalUsd, u.capitalGbp, u.rungUsd, u.usdFrom], ["USD", 2400, 1920, 100, iso(t0 + 2 * M)]);
+  const want = 100 * 0.0008 / 0.7992;                                    // £0.1001 × $1.25 × 0.8: the $100 rung's dollars
+  assertAlmostEquals(u.realisedUsd, want, 1e-9);
+  assertAlmostEquals(u.todayUsd, want, 1e-9);
+  assertAlmostEquals(u.realisedGbp!, want / 1.25, 1e-9);
+  const trip = u.detail.trips[0];
+  assertAlmostEquals(trip.pnlUsd!, want, 1e-9);
+  assertAlmostEquals(trip.qty, 0.8 * 100 / 0.7992, 1e-9);
+  assertAlmostEquals(trip.entry, 0.7992, 1e-12);
+  assertAlmostEquals(u.detail.days[0].realisedUsd, want, 1e-9);
+  assertAlmostEquals(u.detail.books.find((b: { book: string }) => b.book === "USDC-GBP").realisedUsd, want, 1e-9);
+  const rung = u.detail.rungs.find((x: { held: unknown }) => x.held);
+  assertAlmostEquals(rung.held.costUsd, 100, 1e-9);
+  assertAlmostEquals(rung.held.base, (100 / 1.1) / 0.90818, 1e-9);
+  assertAlmostEquals(u.costUsd, 100, 1e-9);
+  assertAlmostEquals(u.valueUsd - u.costUsd, 100 * v.openOrders, 1e-9);
 });

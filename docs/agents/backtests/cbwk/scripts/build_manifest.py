@@ -16,7 +16,8 @@ FROZEN = {
         "supabase/functions/agents/cb_rec.ts", "supabase/functions/agents/cb_view.ts",
         "supabase/functions/agents/quotes.ts", "supabase/migrations/0112_cb_recorder_paper.sql", "docs/agents/backtests/cbpaper/scripts/replay.py",
     ],
-    # Deviation 3 of the base test's pre-registration and Deviation 2 of this arm's (2026-10-15): the bytes they name.
+    # Deviation 3 of the base test's pre-registration and Deviation 2 of this arm's (2026-10-15): the bytes they name. Since
+    # Deviation 4 / 3 (2026-10-29, $100 a rung) cb_quotes.ts, cb_hold.ts and their tests are the bytes those name; the groups keep their names.
     "the release blackout's, changed or added 2026-10-15": [
         "supabase/functions/agents/cb_quotes.ts", "supabase/functions/agents/cb_quotes.test.ts", "supabase/functions/agents/cb_releases.ts",
         "supabase/functions/agents/cb_releases.test.ts", "supabase/functions/agents/cb_blackout_world.ts",

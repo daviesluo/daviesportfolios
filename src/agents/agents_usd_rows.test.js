@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
 // The OKX and Coinbase stablecoin rows in DOLLARS (Davies, 2026-10-29: "C，coinbase的也是改用美元"): a row whose payload says
 // `ccy` "USD" shows its dollars on TESTING and on its page (FUNDED $600 on an OKX book), its detail in dollars
-// (`quotesDetailInCcy`), and every other stablecoin row stays in pounds.
+// (`quotesDetailInCcy`), and every other stablecoin row stays in pounds. Since "Coinbase策略中funded数字怎么那么奇怪，都改成整数调整"
+// (the same day) a Coinbase arm's FUNDED is its rungs × its dollar rung, a whole number: $2,400, or $300 for the USDC arm.
 import { describe, it, expect } from 'vitest';
 import React from 'react';
 import { render } from '@testing-library/react';
 import {
-  fmtFeeIn4, fmtIn4, quotesCoinbaseRow, quotesDetailInCcy, quotesOkxRow, quotesTwinRow, rowMoney,
+  fmtFeeIn4, fmtIn, fmtIn4, quotesCoinbaseRow, quotesDetailInCcy, quotesOkxRow, quotesTwinRow, rowMoney,
 } from './agents.js';
 import { QuoteDaysTable } from './agents.jsx';
 
@@ -25,11 +26,11 @@ const okx = {
   },
   twin: { id: 'okxusdg', name: 'Stablecoin quotes OKX USDG', startedAt: '2026-10-28T22:00:00.000Z', mode: 'running', lastTurn: '2026-10-29T10:00:00.000Z', converting: [] },
 };
-/** A Coinbase arm as `coinbaseInUsd` sends it: its pounds, its dollars at its own GBP/USD (1.32), `ccy` "USD". */
+/** A Coinbase arm as `coinbaseInUsd` sends it: $100 a rung, $2,400 funded, its pounds the dollars ÷ GBP/USD (1.25), `ccy` "USD". */
 const cb = {
   venue: 'coinbase', ccy: 'USD', running: true, lagMinutes: 1, lastError: null,
-  capitalGbp: 2250, costGbp: 0, valueGbp: 2250, unrealisedGbp: 0, realisedGbp: 1, todayGbp: 0.5, feesGbp: 0,
-  capitalUsd: 2970, costUsd: 0, valueUsd: 2970, unrealisedUsd: 0, realisedUsd: 1.32, todayUsd: 0.66, feesUsd: 0,
+  capitalGbp: 1920, costGbp: 0, valueGbp: 1920, unrealisedGbp: 0, realisedGbp: 1, todayGbp: 0.5, feesGbp: 0,
+  capitalUsd: 2400, costUsd: 0, valueUsd: 2400, unrealisedUsd: 0, realisedUsd: 1.25, todayUsd: 0.625, feesUsd: 0, rungUsd: 100,
   heldRungs: 0, openOrders: 24, detail: { books: [], rungs: [], days: [], trips: [], orders: [], inventory: null },
   twin: { id: 'coinbase', name: 'Stablecoin quotes with Euros', startedAt: null, mode: 'running', lastTurn: '2026-10-29T10:00:00.000Z', converting: [] },
 };
@@ -43,10 +44,18 @@ describe('the stablecoin rows in dollars', () => {
 
   it('a Coinbase arm in dollars reads its dollars; the same arm without `ccy` (a GBP payload) still reads pounds', () => {
     const usd = rowMoney(quotesCoinbaseRow(cb));
-    expect([usd.ccy, usd.capital, usd.realised]).toEqual(['USD', 2970, 1.32]);
+    expect([usd.ccy, usd.capital, usd.realised]).toEqual(['USD', 2400, 1.25]);
     const { ccy: _c, ...gbpPayload } = cb;
     const gbp = rowMoney(quotesCoinbaseRow(gbpPayload));
-    expect([gbp.ccy, gbp.capital, gbp.realised]).toEqual(['GBP', 2250, 1]);
+    expect([gbp.ccy, gbp.capital, gbp.realised]).toEqual(['GBP', 1920, 1]);
+  });
+
+  it("a Coinbase arm's FUNDED is a whole number of dollars, written without cents", () => {
+    expect(fmtIn(rowMoney(quotesCoinbaseRow(cb)).capital, 'USD')).toBe('$2,400');
+    const usdc = { ...cb, capitalUsd: 300, capitalGbp: 240, valueUsd: 300, twin: { ...cb.twin, id: 'coinbaseusdc', name: 'Stablecoin quotes with Euros - 2' } };
+    expect(fmtIn(rowMoney(quotesCoinbaseRow(usdc)).capital, 'USD')).toBe('$300');
+    // What the page showed before: £1,200 + €1,200 in dollars at the day's rates, an odd figure.
+    expect(fmtIn(2937.02, 'USD')).toBe('$2,937');
   });
 
   it('the twins and LIVE, which send no `ccy`, stay in pounds', () => {

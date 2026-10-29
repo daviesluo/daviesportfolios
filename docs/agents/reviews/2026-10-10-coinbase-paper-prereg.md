@@ -229,3 +229,60 @@ by `src/cb_hold_prereg.test.js`; `cb_quotes.ts` and its test moved there from "t
 | `supabase/functions/agents/cb_releases.test.ts` | `6290bd94df15293e4b9e653d176fc68ead8625d68819bcb0369141e8e699d0e2` |
 | `supabase/functions/agents/cb_blackout_world.ts` | `779d556a8c0040dbc1faaf45b06f8ec3a6afcc9e6d39d8ee9ac271e5252147cd` |
 | `docs/agents/backtests/cbreview/inputs/release_calendar.json` | `c16d1bbf3408fe66d201ec97c7f4563dcf1e87a03f33d0632eb9729c5fbf98a9` |
+
+### Deviation 4 (2026-10-29, before the reading): $100 a rung, the record counted in dollars
+
+**On whose word.** Davies, 2026-10-29, verbatim. First, on the OKX rows, "C，coinbase的也是改用美元" (Coinbase's rows in dollars too). The
+page then showed this test's FUNDED as £1,200 + €1,200 in dollars, an odd figure (about $2,937 at the day's rates), and he wrote:
+
+> Coinbase策略中funded数字怎么那么奇怪，都改成整数调整
+
+(the Coinbase strategies' funded figures look odd; adjust them all to whole numbers).
+
+**What changes.** From the switch, a rung is **$100** of the book's currency (`CB_RUNG_USD`), six a book: **$2,400 on the four books**
+(£1,200 + €1,200 before). $100 keeps Deviation 1's "100 a rung", now in the page's currency.
+- `stepMinute` (quotes.ts) is not touched. Each book's X becomes its currency's dollar rate (GBP/USD, or EUR/USD), and its fairU the coin's
+  dollar fair (`cbMinuteInputs(…, usd)`). So its rung of 100 is $100, and its 10 % cap is a tenth of the minute in dollars.
+- The fair it quotes around (fairU / X) is the same number as before, so no order is re-priced at the switch.
+- Sizes are set at the fill, so a resting order needs no re-size.
+- The trips are still kept in pounds (`cbTripInPounds` reads the X a trip closed at from the trip). The minute record is unchanged, its `x`
+  still the book's pounds per unit. Nothing else changes: the books, the prints, the lookback, the blackout, the stop and its cost.
+
+- **The instant.** The first minute the deployed code decides at or after 2026-10-29 00:00 UTC (`CB_USD_NOT_BEFORE`) with both rates known,
+  the run's first minute (`cbUsdSwitch`).
+  - It is written once into `cb_quote_state.state` as `usdFrom`, with the GBP/USD and EUR/USD bars that minute is decided on (`usdGbpusd`,
+    `usdEurusd`) and the factors they give (`usdFactor`).
+  - The deploy follows the push, so this text cannot name them. The reading quotes all four from the state.
+- **The factor.** For each book: the new $100 rung ÷ the old rung's dollars at the instant. That is **1 / GBP/USD on a GBP book** and
+  **1 / EUR/USD on a EUR book**.
+  - At the last stored rates when this was written, GBP/USD 1.3324 (`agent_quote_inputs`, 2026-10-29 04:06 UTC) and EUR/USD 1.1151
+    (`cb_quote_inputs`, 04:07 UTC), the factors are 0.7505 and 0.8968.
+  - Over the whole test that is $2,400 ÷ ($1,598.93 + $1,338.09) = **0.817**.
+  - Book by book because a GBP rung and a EUR rung moved by different amounts.
+- **The assumption.** Fills and fees scale linearly with size.
+  - The page shows every amount entered before the instant × its book's factor: a round trip by its entry, a held rung by its fill, in
+    P&L, cost and size.
+  - The factors are under 1, so a smaller rung fills a smaller share of each print: no fill is assumed that the book did not print.
+  - It still ignores that 10 % of a minute capped some old fills below £100 / €100, where the scaled trip is smaller than a $100 rung would
+    have filled.
+  - Prices, counts and percentages are never scaled.
+  - The stored rows are not changed (no migration).
+- **The reading, read in dollars on that scaled record.**
+  - A trip's dollars are its pounds (`cb_quote_trips.pnl_gbp`) × the window's mean GBP/USD (`agent_quote_inputs`, kind `fx`), × its book's
+    factor if it was entered before the instant.
+  - Bars 2 and 4 read those dollars.
+  - Bar 3 is at least 6 % a year on **$2,400**.
+  - Bar 5 compares percentages and is unchanged.
+  - Bar 1 compares `replay.py`, which sizes a rung at 100 of the book's currency, with the engine's trips at that size: a trip entered from
+    the instant ÷ its book's factor. It still counts every trip, since size never decides whether a rung fills.
+  - The window, the seed and every threshold are unchanged.
+- **The paired comparison** with "with Euros - 1" is unaffected: that arm switches the same way at its own first minute (its Deviation 3).
+  `cb_hold.test.ts` pins that on a world after the switch the two still write the same rows.
+
+**Frozen bytes this deviation names** (`docs/agents/backtests/cbwk/MANIFEST.json`, whose groups keep their names; held by
+`src/cb_hold_prereg.test.js` and `src/cb_usd_prereg.test.js`):
+
+| file | sha256 |
+|---|---|
+| `supabase/functions/agents/cb_quotes.ts` | `fe88387e54abad68ff3fe5a02fb8f2a768a09ccea860b4ab4a46cbbdd262c465` |
+| `supabase/functions/agents/cb_quotes.test.ts` | `393a844cd3070c5e5e0b110a85e071454a57b06372df6c9aafdb87dfe0072981` |

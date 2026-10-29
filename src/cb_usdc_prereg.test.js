@@ -12,14 +12,30 @@ const read = (p) => fs.readFileSync(path.join(ROOT, p));
 const sha = (p) => crypto.createHash('sha256').update(read(p)).digest('hex');
 const DOC = read('docs/agents/reviews/2026-10-26-cb-usdc-prereg.md').toString('utf8');
 
+/** §5's sha256 of the files its Deviation 1 (2026-10-29, $25 a rung) changed, as frozen on 2026-10-26. */
+const FROZEN_2026_10_26 = {
+  'supabase/functions/agents/cb_usdc.ts': '3d48794f78f8e71f51a396e16ba5ed503145ae5ffa395805c2038fcbaf9567d3',
+  'supabase/functions/agents/cb_usdc.test.ts': 'b3e2383ab6460986c3bce14bd7be15065483a0bd77a17701400844fcdbbc809e',
+  'supabase/functions/agents/cb_hold.ts': '3795b05c5c3b38b30065c13c6c907e6c684fafe195055d3792d3290b25d365f8',
+  'supabase/functions/agents/cb_quotes.ts': '3929d8a9a47d0ac240d865fec3fd56c4b08e6912b10c72e6fe8d7ee31eebd808',
+};
+const named = (f) => [...DOC.matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
+
 describe('the USDC arm of the Coinbase paper test', () => {
-  it('names the sha256 of each file it froze, once, and each file is that one', () => {
-    const named = (f) => [...DOC.matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
-    for (const f of [
-      'supabase/migrations/0142_quote_twins_take50_cb_usdc.sql', 'supabase/functions/agents/cb_usdc.ts', 'supabase/functions/agents/cb_usdc.test.ts',
-      'supabase/functions/agents/cb_hold.ts', 'supabase/functions/agents/cb_quotes.ts', 'supabase/functions/agents/quotes.ts',
-    ]) expect(named(f), f).toEqual([sha(f)]);
+  it('names the sha256 of each file it froze, once, and each unchanged file is that one', () => {
+    for (const f of ['supabase/migrations/0142_quote_twins_take50_cb_usdc.sql', 'supabase/functions/agents/quotes.ts']) expect(named(f), f).toEqual([sha(f)]);
     expect(DOC).toContain('**Status: FROZEN**');
+  });
+
+  it("names Deviation 1's bytes after §5's for the files it changed, and each file is Deviation 1's", () => {
+    const dev = DOC.indexOf('**Deviation 1 (2026-10-29');
+    expect(dev).toBeGreaterThan(DOC.indexOf('## 7. Deviations'));
+    for (const [f, frozen] of Object.entries(FROZEN_2026_10_26)) {
+      expect(named(f), f).toEqual([frozen, sha(f)]);
+      expect(DOC.indexOf(`| \`${f}\` | ${sha(f)} |`), f).toBeGreaterThan(dev);
+    }
+    for (const w of ['Coinbase策略中funded数字怎么那么奇怪，都改成整数调整', 'C，coinbase的也是改用美元', '**$300 on the two books**',
+      'Fills and fees scale linearly with size', '$300 ÷ $367.13 = **0.817**', 'realised ÷ **$300** × 365 / 14 ≥ 8 %']) expect(DOC).toContain(w);
   });
 
   it('is the two USDC books at 25 a rung, its own tables, and its bar as frozen', () => {

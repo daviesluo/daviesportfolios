@@ -776,6 +776,20 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth).
 
+### [2026-10-29 04:18 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The three Coinbase arms in whole dollars** (sub-agent; commit, not pushed; Davies, 10-29: "Coinbase策略中funded数字怎么那么奇怪，都改成整数调整").
+  FUNDED had been £1,200 + €1,200 (or £150 + €150) in dollars, about $2,937 and $367. Now $100 a rung, $2,400 for "with Euros"
+  and "- 1", and $25 a rung, $300 for "- 2" (the USDC arm keeps its quarter size).
+  - **The prereg deviations.** Base Deviation 4, weekend Deviation 3, USDC Deviation 1. Each quotes Davies, gives its bytes, and
+    reads its bar in dollars. The cbwk MANIFEST is regenerated with its groups unchanged. The USDC test holds §5's originals and the
+    new bytes.
+  - **How.** `stepMinute` is untouched: X is the dollar rate and fairU the dollar fair (`cbMinuteInputs(…, usd)`), so the fair is
+    the same number.
+  - **The switch.** Each arm's first minute ≥ 2026-10-29 00:00 UTC with both rates (`cbUsdSwitch`). It is written to
+    `cb_*_state.state` (`usdFrom`, `usdGbpusd`, `usdEurusd`, `usdFactor`).
+  - **The page** (`readCoinbaseUsd`) scales what came before the switch by its book's factor: 1/GBP/USD or 1/EUR/USD, 0.7505 and
+    0.8968 at 04:06 UTC, 0.817 an arm. No migration. The readings quote `usdFrom` and the factors from each state.
+
 ### [2026-10-29 03:49 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The VENUES share bar back to translucent** (sub-agent; commit, not pushed; Davies, 10-29: "占比栏还是改为原来那种风格吧，现在这种一致的没之前效果好，太亮了").
   Each slice is its venue's hue (`VENUE_HUES`; Coinbase `#4d8bff`, Hyperliquid `#97fce4`) at one alpha, 0.35, over the bar, with the old light

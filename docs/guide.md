@@ -344,10 +344,11 @@ places stay when the number is not whole.
   badge and venue card): the same rule on paper on Coinbase's four stablecoin
   books, USDC and USDT against pounds and against euros, from Coinbase's own
   public trades recorded every minute since 10 Oct. £100 a rung on the two
-  pound books and €100 a rung on the two euro books, six a book: £1,200 plus
-  €1,200. Since 29 Oct every money figure of the Coinbase rows is shown in
-  dollars (at the latest pound rate the page reads; the sizes are unchanged);
-  a pound book's prices are in pounds and a euro book's in euros. Its page is the twins'
+  pound books and €100 a rung on the two euro books, six a book, until 29 Oct;
+  since then $100 a rung on every book, $2,400 in all, and every money figure
+  of the Coinbase rows is in dollars. What it made before the change is shown
+  scaled to the $100 size, assuming it would have filled the same way; a pound
+  book's prices are in pounds and a euro book's in euros. Its page is the twins'
   page without INVENTORY, since a paper test holds no coins of its own (what
   a rung holds is in BOOKS), so its DAYS and 7-day realised, annualised figure read
   straight beside the live row's on Revolut X.
@@ -360,8 +361,8 @@ places stay when the number is not whole.
   it is written down first.
 - **Stablecoin quotes with Euros - 2.** Right after it, since 26 Oct: "- 1"
   again, weekends included, on the two USDC books alone (USDC against pounds
-  and against euros), £25 a rung on the pound book and €25 on the euro book,
-  about £281 in all. Coinbase's USDT books lost money in the first weeks
+  and against euros), £25 a rung on the pound book and €25 on the euro book
+  until 29 Oct, $25 a rung since ($300 in all, still a quarter of the others). Coinbase's USDT books lost money in the first weeks
   while its USDC books earned, so this checks forward, over two weeks, whether
   the USDC books keep earning. It starts flat at the next midnight after it
   went up; its page is the others', with two books.

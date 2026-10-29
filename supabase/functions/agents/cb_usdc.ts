@@ -10,21 +10,22 @@
 //     so its cap min(100, 10 % × 4 × value) is 4 × min(25, 10 % × value), and every size, notional and P&L it writes comes back
 //     ÷ 4. Its decisions (prices, fills, exits, stops) are the same as on the unscaled prints wherever the cap does not bind;
 //     where it does, the rung fills its own 10 % of the minute, as the engine's rule says. The state the engine keeps is in its
-//     own (×4) units; the page's read (`readCbUsdc`) takes them back.
+//     own (×4) units; the page's shape (`cbUsdcView`) takes them back.
 //   * Its tables (`cb_usdc_*`, 0142), lease (`cb-usdc`) and call (`agents?action=cbusdc`).
+// Since 2026-10-29 (its Deviation 1; Davies: "Coinbase策略中funded数字怎么那么奇怪，都改成整数调整") the engine's 100 is dollars from
+// the switch (`cbUsdSwitch`, `cbInUsd`, as the base test's Deviation 4 and the weekend variant's Deviation 3), so a rung is $25.
 // Everything else is the weekend variant's, imported from it: the rate bars held through a closure (`cbHoldBarAt`, 60 hours),
 // the start at the first 00:00 UTC after its first run (`cbHoldStart`), the release blackout (`cbInBlackout`), the stop's
 // Coinbase cost (`cbStopExit`) and the pounds of a trip (`cbTripInPounds`).
 
 import type { Db } from "./db.ts";
 import {
-  CB_BOOK, CB_FAIR_KIND, CB_LEASE_MS, CB_MAX_MINUTES, CB_RUNG, cbEventRow, cbMinuteInputs, cbMinuteRow, cbPrint, cbStopExit, cbTripInPounds, cbTripRow,
+  CB_BOOK, CB_FAIR_KIND, CB_LEASE_MS, CB_MAX_MINUTES, CB_RUNG, CB_RUNG_USD, cbEventRow, cbInUsd, cbMinuteInputs, cbMinuteRow, cbPrint, cbStopExit, cbTripInPounds, cbTripRow, cbUsdSwitch,
   type CbQuoteReport, type CbQuoteState,
 } from "./cb_quotes.ts";
 import { CB_HOLD_MS, cbHoldBarAt, cbHoldStart } from "./cb_hold.ts";
 import type { CbProduct, CbRecState } from "./cb_rec.ts";
 import { cbInBlackout } from "./cb_releases.ts";
-import { readCoinbaseArm } from "./cb_page.ts";
 import { faultKey, reportDue } from "./pm_book_rec.ts";
 import { fairHours, median, newBookState, QUOTE_FX_LOOKBACK_MS, stepMinute, type BookState, type MinuteInputs, type Print, type QuoteBook, type Trip } from "./quotes.ts";
 
@@ -47,6 +48,11 @@ export const CB_USDC_RUNG = 25;
 export const CB_USDC_FACTOR = CB_RUNG / CB_USDC_RUNG;
 /** Six rungs a book (three a side), as every arm. */
 export const CB_USDC_RUNGS_A_BOOK = 6;
+/**
+ * Deviation 1 (2026-10-29; Davies: "Coinbase策略中funded数字怎么那么奇怪，都改成整数调整"): $25 a rung from the switch, the
+ * base's $100 (`CB_RUNG_USD`) ÷ `CB_USDC_FACTOR`, so the arm stays a quarter of the others' size; $300 on the two books.
+ */
+export const CB_USDC_RUNG_USD = CB_RUNG_USD / CB_USDC_FACTOR;
 export const CB_USDC_LEASE = "cb-usdc";
 export const CB_USDC_TABLES = { state: "cb_usdc_state", events: "cb_usdc_events", trips: "cb_usdc_trips", minutes: "cb_usdc_minutes", days: "cb_usdc_days" } as const;
 
@@ -121,6 +127,8 @@ export async function runCbUsdc(d: { db: Db; now: number; holder: string; rec: C
     const gbpBars = await bars("agent_quote_inputs", "fx");
     const eurBars = await bars("cb_quote_inputs", "fx:EURUSD");
     const hours = await series("agent_quote_inputs", CB_FAIR_KIND.USDC, first - DAY);
+    // Deviation 1 (2026-10-29): $25 a rung from the switch (the engine's $100 ÷ 4), on the rates this run decides its first minute on.
+    cbUsdSwitch(st, first, cbHoldBarAt(first, gbpBars)?.[1] ?? null, cbHoldBarAt(first, eurBars)?.[1] ?? null);
     const trips: ReturnType<typeof cbTripRow>[] = [], events: ReturnType<typeof cbEventRow>[] = [], minutes: ReturnType<typeof cbMinuteRow>[] = [];
     for (const b of CB_USDC_PRODUCTS) {
       const pRows = await d.db.selectAll<{ trade_id: number; ts: string; price: number; size: number; side: string }>("cb_trades",
@@ -132,7 +140,7 @@ export async function runCbUsdc(d: { db: Db; now: number; holder: string; rec: C
         const mine: Print[] = [];
         while (j < prints.length && prints[j].ts < t + M) { mine.push(prints[j]); j++; }
         const bar = cbHoldBarAt(t, gbpBars), eb = cbHoldBarAt(t, eurBars), window = fairHours(t, hours);
-        const io = cbMinuteInputs(b, bar ? bar[1] : null, eb ? eb[1] : null, median(window));
+        const io = cbMinuteInputs(b, bar ? bar[1] : null, eb ? eb[1] : null, median(window), cbInUsd(st, t));
         const inp: MinuteInputs = { ...io, fairU: cbInBlackout(t) ? null : io.fairU, prints: mine };
         const out = stepMinute(st.books[b], t, inp);
         // The minute's record at this arm's size: the printed value as recorded (the engine saw it × 4).
@@ -187,17 +195,12 @@ async function save(d: { db: Db; now: number }, st: CbQuoteState, report: CbQuot
 }
 
 /**
- * The arm for the Agents page: `readCoinbaseArm` (cbQuotesView, frozen: four books at 100 a rung), then this arm's own shape.
- * Its two books alone; its capital `cbUsdcCapitalGbp` at the view's pounds a euro; what its rungs hold and quote (`costGbp`,
+ * The arm's own shape for the Agents page, over `readCoinbaseArm`'s view (cbQuotesView, frozen: four books at 100 a rung); the
+ * dashboard reads it through `readCoinbaseUsd` (cb_page.ts), in dollars, since its Deviation 1. Its two books alone; its capital `cbUsdcCapitalGbp` at the view's pounds a euro; what its rungs hold and quote (`costGbp`,
  * `valueGbp`, `unrealisedGbp`, each held rung's base, cost and unrealised) ÷ `CB_USDC_FACTOR`, since the engine's state keeps
  * them at its ×4 size; realised and today as the trips table has them (already at this arm's size). Dollars at the view's
  * own rate. null as `readCoinbaseArm` is.
  */
-export async function readCbUsdc(d: Db, now: number, dayStartMs: number) {
-  const v = await readCoinbaseArm(d, now, dayStartMs, CB_USDC_TABLES, { id: CB_USDC_ID, name: CB_USDC_ROW_NAME });
-  return v ? cbUsdcView(v) : null;
-}
-
 // deno-lint-ignore no-explicit-any
 export function cbUsdcView(v: any) {
   const f = CB_USDC_FACTOR, mine = (b: string) => (CB_USDC_PRODUCTS as readonly string[]).includes(b);

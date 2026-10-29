@@ -5,12 +5,13 @@
 // 60 hours is no bar; (4) with no closure the two arms write the same rows; (5) an empty record starts at the next 00:00 UTC and
 // reads no print before it; (6) the browser test's fixture is this driver and the page's read run again, byte for byte; (7) the release
 // blackout (Deviation 2, 2026-10-15): this arm sits out the scheduled releases as the base test does, and on a world with a release the two arms
-// write the same rows, so their comparison is unaffected.
+// write the same rows, so their comparison is unaffected; (8) dollars (Deviation 3, 2026-10-29): both arms switch to $100 a rung at
+// their first minute from 2026-10-29 and still write the same rows.
 
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { CB_HOLD_ID, CB_HOLD_MS, CB_HOLD_ROW_NAME, CB_HOLD_TABLES, cbHoldBarAt, cbHoldNewState, cbHoldStart, runCbHold } from "./cb_hold.ts";
 import { runCbHoldAction } from "./index.ts";
-import { runCbQuotes } from "./cb_quotes.ts";
+import { runCbQuotes, type CbQuoteState } from "./cb_quotes.ts";
 import { CB_PRODUCTS, type CbCursor, type CbProduct } from "./cb_rec.ts";
 import { fxBarAt, QUOTE_FX_LOOKBACK_MS } from "./quotes.ts";
 import { coinbaseHoldPageFixture, memDb, type Row } from "./testing.ts";
@@ -234,4 +235,30 @@ Deno.test("the release blackout: this arm withholds the fair around a release ex
   const same = (a: string, b: string) => assertEquals(JSON.parse(JSON.stringify(w.tables[a])), JSON.parse(JSON.stringify(w.tables[b])), `${a} is ${b}`);
   same("cb_hold_trips", "cb_quote_trips"); same("cb_hold_events", "cb_quote_events"); same("cb_hold_minutes", "cb_quote_minutes");
   assertEquals(w.tables.cb_hold_trips.length, 2);
+});
+
+Deno.test("Deviation 3: on 2026-10-29 both arms switch to $100 a rung at their first minute, and still write the same rows", async () => {
+  const t0 = Date.UTC(2026, 9, 29, 10, 0);
+  // The base test's hand-worked world, in dollars: GBP/USD 1.25 makes $100 £80 on USDC-GBP; EUR/USD 1.10 makes it €90.909… on
+  // USDT-EUR, £80 again at £0.88 a euro.
+  const prints = [
+    { book: "USDC-GBP" as CbProduct, id: 7000001, at: t0 + M + 5000, price: "0.79900000", size: "2000.00", side: "sell" as const },
+    { book: "USDC-GBP" as CbProduct, id: 7000002, at: t0 + 3 * M + 5000, price: "0.80010000", size: "10.00", side: "buy" as const },
+    { book: "USDT-EUR" as CbProduct, id: 7000001, at: t0 + M + 7000, price: "0.90810", size: "10000.00", side: "sell" as const },
+    { book: "USDT-EUR" as CbProduct, id: 7000002, at: t0 + 3 * M + 7000, price: "0.90911", size: "10.00", side: "buy" as const },
+  ];
+  const w = world(t0, { ratesUntil: t0 + 10 * M, coveredTo: t0 + 5 * M + 1000, prints });
+  const hold = await runCbHold({ db: w.db, now: t0 + 6 * M, holder: "h", rec: w.rec });
+  const base = await runCbQuotes({ db: w.db, now: t0 + 6 * M, holder: "b", fetchImpl: w.fetchImpl, rec: w.rec });
+  assertEquals([hold.errors, base.errors], [[], []]);
+  for (const t of ["cb_hold_state", "cb_quote_state"]) {
+    const st = w.tables[t][0].state as CbQuoteState;
+    assertEquals([st.usdFrom, st.usdGbpusd, st.usdEurusd], [t0, 1.25, 1.1], t);
+  }
+  const same = (a: string, b: string) => assertEquals(JSON.parse(JSON.stringify(w.tables[a])), JSON.parse(JSON.stringify(w.tables[b])), `${a} is ${b}`);
+  same("cb_hold_trips", "cb_quote_trips"); same("cb_hold_events", "cb_quote_events"); same("cb_hold_minutes", "cb_quote_minutes");
+  assertEquals(w.tables.cb_hold_trips.length, 2);
+  for (const t of w.tables.cb_hold_trips) assertAlmostEquals(Number(t.notional_gbp), 80, 1e-9, String(t.book));
+  const g = w.tables.cb_hold_trips.find((t) => t.book === "USDC-GBP")!;
+  assertAlmostEquals(Number(g.pnl_gbp), 80 * 0.0008 / 0.7992, 1e-9);
 });

@@ -4414,9 +4414,20 @@ Davies, 2026-10-13: "周末变体写预注册然后上线paper trading 策略wit
     weekend arm's minute for minute, and its per-pound return can only match or beat them; `cb_usdc.test.ts` pins this on one
     world.
   - **Its own pieces:** tables `cb_usdc_*`, lease `cb-usdc`, call `agents?action=cbusdc` (watchdog, retry), prune
-    `cb-usdc-prune`, dashboard `quotesCoinbaseUsdc` (`readCbUsdc`). It starts at the first 00:00 UTC after its first run.
+    `cb-usdc-prune`, dashboard `quotesCoinbaseUsdc` (`cbUsdcView`; `readCbUsdc` until 2026-10-29). It starts at the first 00:00 UTC after its first run.
   - **Bar over 14 days:** realised above zero, at least 8 % a year of its capital, and at least +5 bps a trip. Both thresholds
     were chosen with hindsight on 10-11 → 10-25, so this is the out-of-sample check.
+
+- **Addendum 2026-10-29: the three Coinbase arms in whole dollars** (Davies: "C，coinbase的也是改用美元", then "Coinbase策略中funded
+  数字怎么那么奇怪，都改成整数调整"; Deviation 4 of the base test, 3 of the weekend variant, 1 of the USDC arm).
+  - **Size.** From each arm's switch, $100 a rung ($2,400 on the four books) and $25 on the USDC arm ($300).
+  - **How.** `stepMinute` unchanged. X becomes the book currency's dollar rate and fairU the coin's dollar fair
+    (`cbMinuteInputs(…, usd)`), so the fair is the same number and nothing re-prices.
+  - **The switch.** Each arm's first minute at or after 2026-10-29 00:00 UTC with both rates, written to its state with the
+    rates and the factors (`cbUsdSwitch`).
+  - **The page** (`readCoinbaseUsd`, cb_page.ts) shows what came before the switch × its book's factor: 1 / GBP/USD on a GBP
+    book, 1 / EUR/USD on a EUR book, 0.7505 and 0.8968 at the rates of 04:06 UTC that day, 0.817 over an arm. That assumes
+    fills scale linearly with size. The stored rows stay as they ran.
 
 61. **Every paper Reward quotes test stops; live-prep live and pm-rec keep running (2026-10-13, migration `0120`).**
 Davies, 2026-10-13: "目前paper testing里的reward quotes全关了吧？感觉都不赚钱没什么意义？如果你实在觉得还有用的话就转到后台记录，不用在网站上显示了"

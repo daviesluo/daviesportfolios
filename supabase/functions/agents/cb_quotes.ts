@@ -25,6 +25,12 @@
 //   * The releases (Deviation 3, 2026-10-15; Davies: "目前的两个Coinbase 测试采用发布前后暂停的规则吧"). In the seven minutes from one
 //     before to five after each scheduled CPI, NFP, FOMC, ECB or BoE release (`cb_releases.ts`) the minute's fairU is null:
 //     `stepMinute` quotes nothing new and the stored minute's fair is null. Nothing else differs.
+//   * Dollars (Deviation 4, 2026-10-29; Davies: "C，coinbase的也是改用美元", then "Coinbase策略中funded数字怎么那么奇怪，都改成整数调整").
+//     From the switch (`usdFrom` in the state: the first minute decided at or after `CB_USD_NOT_BEFORE` with both rates
+//     known) a book's X is its currency's dollar rate (GBP/USD, or EUR/USD) and its fairU the coin's dollar fair, so
+//     `stepMinute`'s rung of 100 is $100 of the book's currency (`CB_RUNG_USD`) and its cap 10 % of the minute in dollars.
+//     Its fair (fairU / X) is the same number as before, and the driver's pounds (`cbTripInPounds`, which reads the X a trip
+//     closed at from the trip itself) are unchanged. The record before the switch stays as it ran; the page scales it.
 // Fills therefore need a print strictly THROUGH a resting quote, as PR5's do. The driver runs one minute behind the
 // recorder's coverage, so a minute's prints are complete before it is decided.
 
@@ -63,6 +69,23 @@ export const CB_RUNG = 100;
 export const CB_CAPITAL = { GBP: CB_RUNG * 6 * 2, EUR: CB_RUNG * 6 * 2 } as const;
 /** The capital in pounds, the euros at `eurGbp` pounds a euro. */
 export const cbCapitalGbp = (eurGbp: number) => CB_CAPITAL.GBP + CB_CAPITAL.EUR * eurGbp;
+/** Deviation 4: $100 a rung from the switch, six a book, $2,400 on the four books. */
+export const CB_RUNG_USD = 100;
+/** Deviation 4: no minute before 2026-10-29 00:00 UTC is decided in dollars (a record replayed from before keeps its rule). */
+export const CB_USD_NOT_BEFORE = Date.UTC(2026, 9, 29);
+/** Each book's factor at the switch, $100 over the dollars of its old rung of 100: 1 / GBP/USD on a GBP book, 1 / EUR/USD on a EUR book. */
+export const cbUsdFactors = (gbpusd: number, eurusd: number) => ({ GBP: 1 / gbpusd, EUR: 1 / eurusd });
+/**
+ * Deviation 4's switch, written once into the state: at `first`, the run's first minute, if it is not before
+ * `CB_USD_NOT_BEFORE` and both rates are known there (`gbp`, `eur`: the bars the run decides that minute on), with those
+ * rates and the factors they give. Otherwise nothing, and a later run writes it.
+ */
+export function cbUsdSwitch(st: CbQuoteState, first: number, gbp: number | null, eur: number | null): void {
+  if (st.usdFrom != null || first < CB_USD_NOT_BEFORE || !gbp || !eur) return;
+  st.usdFrom = first; st.usdGbpusd = gbp; st.usdEurusd = eur; st.usdFactor = cbUsdFactors(gbp, eur);
+}
+/** Whether minute `t` is decided in dollars: at or after the switch. */
+export const cbInUsd = (st: CbQuoteState, t: number) => st.usdFrom != null && t >= st.usdFrom;
 /** The USD book PR5 reads each coin's fair from (its stored hourly closes, `agent_quote_inputs`). */
 export const CB_FAIR_KIND: Record<"USDC" | "USDT", string> = { USDC: "fair:USDC-USD", USDT: "fair:USDT-USD" };
 /** Minutes decided in one call at most (a call's 30 s), and where an empty record starts at the latest. */
@@ -83,13 +106,16 @@ export function cbPrint(book: CbProduct, r: { trade_id: number | string; ts: str
  * the book's pounds per unit (`xGbp`). X is 1 (Deviation 1: the rule's money is the book's own currency) and fairU the
  * book's fair, the dollar fair over the book's currency's dollar rate, scaled with its prices, so that fairU / X is the
  * book's fair on `stepMinute`'s grid. `xGbp` is 1 for a GBP book and EUR/USD ÷ GBP/USD for a EUR book. Either rate dark,
- * the minute is dark: every book needs GBP/USD (its pounds), a EUR book EUR/USD too.
+ * the minute is dark: every book needs GBP/USD (its pounds), a EUR book EUR/USD too. `usd` (Deviation 4, from the switch):
+ * X is the book's currency's dollar rate and fairU the coin's dollar fair, scaled with its prices, so fairU / X is the same
+ * fair and `stepMinute`'s rung is $100 of the book's currency.
  */
-export function cbMinuteInputs(book: CbProduct, gbp: number | null, eur: number | null, fairU: number | null): { x: number | null; fairU: number | null; xGbp: number | null } {
+export function cbMinuteInputs(book: CbProduct, gbp: number | null, eur: number | null, fairU: number | null, usd = false): { x: number | null; fairU: number | null; xGbp: number | null } {
   const b = CB_BOOK[book];
   const xGbp = !gbp ? null : b.quote === "GBP" ? 1 : eur ? eur / gbp : null;
   if (xGbp == null) return { x: null, fairU: null, xGbp: null };
   const own = b.quote === "GBP" ? gbp! : eur!;
+  if (usd) return { x: own, fairU: fairU ? fairU * b.scale : null, xGbp };
   return { x: 1, fairU: fairU ? (fairU / own) * b.scale : null, xGbp };
 }
 
@@ -180,6 +206,11 @@ export type CbQuoteState = {
   xGbp?: Partial<Record<CbProduct, number>>;
   /** Each held rung's pounds per unit when it filled, by `side|k` (Deviation 1): its entry's cost in pounds. */
   xEntry?: Partial<Record<CbProduct, Record<string, number>>>;
+  /** Deviation 4's switch (`cbUsdSwitch`): the first minute decided in dollars, the GBP/USD and EUR/USD it was decided on, and each currency's books' factor. */
+  usdFrom?: number;
+  usdGbpusd?: number;
+  usdEurusd?: number;
+  usdFactor?: { GBP: number; EUR: number };
 };
 export type CbQuoteReport = {
   skipped?: string; minutes: number; from: number | null; to: number | null; prints: number; fills: number; exits: number; stops: number;
@@ -226,6 +257,7 @@ export async function runCbQuotes(d: CbQuoteDeps): Promise<CbQuoteReport> {
     const gbpBars = await series("agent_quote_inputs", "fx", first - QUOTE_FX_LOOKBACK_MS);
     const eurBars = await series("cb_quote_inputs", "fx:EURUSD", first - QUOTE_FX_LOOKBACK_MS);
     const hours = { USDC: await series("agent_quote_inputs", CB_FAIR_KIND.USDC, first - DAY), USDT: await series("agent_quote_inputs", CB_FAIR_KIND.USDT, first - DAY) };
+    cbUsdSwitch(st, first, fxBarAt(first, gbpBars)?.[1] ?? null, fxBarAt(first, eurBars)?.[1] ?? null);
     const trips: ReturnType<typeof cbTripRow>[] = [], events: ReturnType<typeof cbEventRow>[] = [], minutes: ReturnType<typeof cbMinuteRow>[] = [];
     for (const b of CB_PRODUCTS) {
       const pRows = await d.db.selectAll<{ trade_id: number; ts: string; price: number; size: number; side: string }>("cb_trades",
@@ -237,7 +269,7 @@ export async function runCbQuotes(d: CbQuoteDeps): Promise<CbQuoteReport> {
         const mine: Print[] = [];
         while (j < prints.length && prints[j].ts < t + M) { mine.push(prints[j]); j++; }
         const bar = fxBarAt(t, gbpBars), eb = fxBarAt(t, eurBars), window = fairHours(t, hours[CB_BOOK[b].coin]);
-        const io = cbMinuteInputs(b, bar ? bar[1] : null, eb ? eb[1] : null, median(window));
+        const io = cbMinuteInputs(b, bar ? bar[1] : null, eb ? eb[1] : null, median(window), cbInUsd(st, t));
         // Deviation 3 (2026-10-15): in the minutes around a scheduled release (cb_releases.ts) the fair is withheld, as in any dark minute.
         const inp: MinuteInputs = { ...io, fairU: cbInBlackout(t) ? null : io.fairU, prints: mine };
         const out = stepMinute(st.books[b], t, inp);

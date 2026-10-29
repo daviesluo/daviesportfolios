@@ -251,13 +251,13 @@ import { readCxbot, readIgbot } from "./grok_tests_view.ts";
 import { GROKPM_CONFIG_COLUMNS, GROKPM_CYCLE_COLUMNS, GROKPM_DAILY_COLUMNS, GROKPM_DECISION_COLUMNS, GROKPM_ENTRY_COLUMNS, GROKPM_FILL_COLUMNS, GROKPM_FILL_STATUSES, GROKPM_JOURNAL_ROWS, GROKPM_MARKET_COLUMNS, GROKPM_OPEN_COLUMNS, GROKPM_SNAPSHOT_COLUMNS, grokPmSummary, type GrokPmConfigRow, type GrokPmCycleRow, type GrokPmDailyRow, type GrokPmDayOpenRow, type GrokPmDecisionRow, type GrokPmEntryRow, type GrokPmFillRow, type GrokPmMarketRow, type GrokPmOpenRow, type GrokPmResolutionRow, type GrokPmSnapshotRow } from "./grokpm_view.ts";
 import { runCbRec, type CbRecState } from "./cb_rec.ts";
 import { cbBooksDelayMs, runCbBooks } from "./cb_books.ts";
-import { runCbQuotes } from "./cb_quotes.ts";
+import { CB_RUNG_USD, runCbQuotes } from "./cb_quotes.ts";
 import { CB_HOLD_ID, CB_HOLD_TABLES, runCbHold } from "./cb_hold.ts";
-import { readCbUsdc, runCbUsdc } from "./cb_usdc.ts";
+import { CB_USDC_ID, CB_USDC_ROW_NAME, CB_USDC_RUNG_USD, CB_USDC_TABLES, cbUsdcView, runCbUsdc } from "./cb_usdc.ts";
 import { runOkxRec } from "./okx_rec.ts";
 import { readOkxQuotes, runOkxQuotes } from "./okx_quotes.ts";
 import { readFxw } from "./fxw_view.ts";
-import { CB_HOLD_PAGE_NAME, coinbaseInUsd, readCoinbaseArm } from "./cb_page.ts";
+import { CB_HOLD_PAGE_NAME, readCoinbaseUsd } from "./cb_page.ts";
 import { runEconcal } from "./econcal.ts";
 import { dayOpenOf, dayPnl, decisionBarMs, isOffBook, jevViewOf, resolveBook, stateBarMs, tick, toFill, type OrderRow, type RiskRow, type StrategyRow } from "./tick.ts";
 
@@ -2202,14 +2202,17 @@ async function dashboard(now: number) {
   });
 
   // "Stablecoin quotes with Euros" (0112, cb_quotes.ts): the paper test of PR5's rule on Coinbase's four books, in a twin's
-  // shape (`cbQuotesView`). Missing tables (before the migration), or no decided minute yet, leave it off the page.
-  const quotesCoinbaseRead = readCoinbaseArm(d, now, dayStartMs, { state: "cb_quote_state", trips: "cb_quote_trips", days: "cb_quote_days", events: "cb_quote_events", minutes: "cb_quote_minutes" }, null);
+  // shape (`cbQuotesView`). Missing tables (before the migration), or no decided minute yet, leave it off the page. Each
+  // Coinbase arm is shown in whole dollars (`readCoinbaseUsd`, cb_page.ts): $100 a rung, $2,400 on the four books.
+  const quotesCoinbaseRead = readCoinbaseUsd(d, now, dayStartMs, { state: "cb_quote_state", trips: "cb_quote_trips", days: "cb_quote_days", events: "cb_quote_events", minutes: "cb_quote_minutes" }, null,
+    { rungUsd: CB_RUNG_USD, books: 4 });
   // "Stablecoin quotes with Euros - 1" (0118, cb_hold.ts; "- 2" until 0142, `CB_HOLD_PAGE_NAME`): the same test with the interbank rates held through a closure, from
   // its own tables, on the same page; the figures it shows are the page's own (`cbQuotesView`) under its own name and id.
-  const quotesCoinbaseHoldRead = readCoinbaseArm(d, now, dayStartMs, CB_HOLD_TABLES, { id: CB_HOLD_ID, name: CB_HOLD_PAGE_NAME });
+  const quotesCoinbaseHoldRead = readCoinbaseUsd(d, now, dayStartMs, CB_HOLD_TABLES, { id: CB_HOLD_ID, name: CB_HOLD_PAGE_NAME }, { rungUsd: CB_RUNG_USD, books: 4 });
   // "Stablecoin quotes with Euros - 2" (0142, cb_usdc.ts): the weekend variant's rule on the two USDC books at 25 a rung, in its
-  // own shape (`readCbUsdc`: two books, its capital, its rungs' sizes); null before its first decided minute.
-  const quotesCoinbaseUsdcRead = readCbUsdc(d, now, dayStartMs).catch(() => null);
+  // own shape (`cbUsdcView`: two books, its rungs' sizes), $25 a rung and $300 on the two books; null before its first decided minute.
+  const quotesCoinbaseUsdcRead = readCoinbaseUsd(d, now, dayStartMs, CB_USDC_TABLES, { id: CB_USDC_ID, name: CB_USDC_ROW_NAME },
+    { rungUsd: CB_USDC_RUNG_USD, books: 2, shape: cbUsdcView });
   // "Stablecoin quotes OKX USDG" and "Stablecoin quotes OKX EURC" (0150, okx_quotes.ts): PR5's rule as LIVE carries it out, on
   // paper, on OKX's two books, a twin each in Coinbase's shape with `venue` "okx"; none before the record decides a minute.
   const quotesOkxRead = readOkxQuotes(d, now, dayStartMs).catch(() => []);
@@ -2334,17 +2337,17 @@ async function dashboard(now: number) {
      * "Stablecoin quotes with Euros" (`0112`, cb_quotes.ts): PR5's rule on paper on Coinbase's four GBP and EUR stablecoin
      * books, in a twin's shape with `venue: "coinbase"`; null until it has decided a minute.
      */
-    quotesCoinbase: coinbaseInUsd(await quotesCoinbaseRead),
+    quotesCoinbase: await quotesCoinbaseRead,
     /**
      * "Stablecoin quotes with Euros - 1" (`0118`, cb_hold.ts; "- 2" until `0142`): the same paper test with the interbank rates held through a
      * closure, in the same shape as `quotesCoinbase` (`twin.id` "coinbasehold"); null until it has decided a minute.
      */
-    quotesCoinbaseHold: coinbaseInUsd(await quotesCoinbaseHoldRead),
+    quotesCoinbaseHold: await quotesCoinbaseHoldRead,
     /**
      * "Stablecoin quotes with Euros - 2" (`0142`, cb_usdc.ts): the weekend variant's rule on Coinbase's two USDC books at 25 a
-     * rung, in the same shape (`twin.id` "coinbaseusdc"; `readCbUsdc`); null until it has decided a minute.
+     * rung, in the same shape (`twin.id` "coinbaseusdc"; `cbUsdcView`), in dollars; null until it has decided a minute.
      */
-    quotesCoinbaseUsdc: coinbaseInUsd(await quotesCoinbaseUsdcRead),
+    quotesCoinbaseUsdc: await quotesCoinbaseUsdcRead,
     /**
      * "Stablecoin quotes OKX USDG" and "Stablecoin quotes OKX EURC" (`0150`, okx_quotes.ts): PR5's rule as LIVE carries it out,
      * on paper, on OKX's USDG-EUR and EURC-USDC, one twin a book (`twin.id` "okxusdg", "okxeurc"); empty until it has decided a minute.

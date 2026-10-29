@@ -205,3 +205,37 @@ test's pre-registration, which has the rule, the list, its sources and its limit
 | `supabase/functions/agents/cb_hold.ts` | `3795b05c5c3b38b30065c13c6c907e6c684fafe195055d3792d3290b25d365f8` |
 | `supabase/functions/agents/cb_hold.test.ts` | `e88b82a4f20ba92256d54278013bee83348d79ef3dc58cd1a95c62d31f3245b5` |
 | `supabase/functions/agents/cb_releases.ts` | `fa882d0559d90828d9e4530bf4a640db3454a6be1be70b94ada42bd0ca0b5a63` |
+
+**Deviation 3 (2026-10-29, before the reading): $100 a rung, the record counted in dollars, as the base test's.** Davies, 2026-10-29,
+verbatim: first "C，coinbase的也是改用美元", then, of the funded figures the page showed in dollars:
+
+> Coinbase策略中funded数字怎么那么奇怪，都改成整数调整
+
+This arm takes the base test's Deviation 4 unchanged. That deviation has the rule, the factor and the assumption in full.
+- **Size.** From the switch, a rung is **$100** of the book's currency: **$2,400 on the four books**.
+- **How.** `cb_hold.ts` calls the same `cbUsdSwitch` and `cbMinuteInputs(…, usd)` from `cb_quotes.ts`, on the bars it decides its minute on
+  (`cbHoldBarAt`, the rates held through a closure).
+- **The instant.** This arm's own first minute at or after 2026-10-29 00:00 UTC with both rates known.
+  - It is written to `cb_hold_state.state` (`usdFrom`, `usdGbpusd`, `usdEurusd`, `usdFactor`).
+  - The reading quotes them from there.
+- **The factor.** 1 / GBP/USD on a GBP book, 1 / EUR/USD on a EUR book, at the instant.
+  - At GBP/USD 1.3324 and EUR/USD 1.1151 (the last stored rates when this was written, 2026-10-29 04:06–04:07 UTC) that is 0.7505 and
+    0.8968, and $2,400 ÷ $2,937.02 = **0.817** over the arm.
+- **The assumption.** Fills and fees scale linearly with size. The page shows what was entered before the instant × its book's factor;
+  prices, counts and percentages are not scaled; no row is rewritten.
+- **The reading, in dollars, as the base test's Deviation 4 reads its own.**
+  - Bars 2 and 4 read a trip's pounds × the window's mean GBP/USD, × its book's factor before the instant.
+  - Bar 3 is at least 6 % a year on **$2,400**.
+  - Bars 1 and 6 compare `replay_wk.py`'s replay, which sizes a rung at 100 of the book's currency, with this arm's trips at that size:
+    a trip entered from the instant ÷ its book's factor. Bar 6's weekend sums are read the same way.
+  - Bar 5 and every threshold, the window and the seed are unchanged.
+- **The paired comparison is unaffected.** Both arms switch by the same rule. `cb_hold.test.ts` pins that on a world after 2026-10-29
+  the two write the same trips, events and minutes, each switching at its first minute.
+- **Frozen bytes** (`docs/agents/backtests/cbwk/MANIFEST.json`, groups "this arm's" and "the release blackout's", which keep their names;
+  `src/cb_hold_prereg.test.js`, `src/cb_usd_prereg.test.js`):
+
+| file | sha256 |
+|---|---|
+| `supabase/functions/agents/cb_hold.ts` | `ea081c57918d6c0e6500da7dced0c2a3c57ccd0e8a2e09d9c2cdc06c9aa34fd9` |
+| `supabase/functions/agents/cb_hold.test.ts` | `37fece912426eaf8e5af71d45f2c95c3980094d020044a7c991e0e3f8bee5bc8` |
+| `supabase/functions/agents/cb_quotes.ts` | `fe88387e54abad68ff3fe5a02fb8f2a768a09ccea860b4ab4a46cbbdd262c465` |

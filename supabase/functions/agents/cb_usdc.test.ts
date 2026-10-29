@@ -3,15 +3,17 @@
 // beside the weekend variant ("with Euros - 1", cb_hold.ts) on the same prints and rates, it decides the same round trips on the
 // USDC books (same entry minute, prices and exit) at 25 where that arm has 100, the same return per pound, and nothing on a USDT
 // book; (3) the page's read: two books, its own capital, what its rungs hold at its size; (4) an empty record starts at the next
-// 00:00 UTC, as the weekend variant's does; (5) its call reads the recorder's state as the weekend variant's does.
+// 00:00 UTC, as the weekend variant's does; (5) its call reads the recorder's state as the weekend variant's does; (6) dollars (its
+// Deviation 1, 2026-10-29): from the switch a rung is $25, and the page shows $300 funded.
 
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { CB_HOLD_TABLES, cbHoldNewState, runCbHold } from "./cb_hold.ts";
 import {
-  CB_USDC_FACTOR, CB_USDC_ID, CB_USDC_PRODUCTS, CB_USDC_ROW_NAME, CB_USDC_RUNG, CB_USDC_TABLES, cbUsdcCapitalGbp, cbUsdcEventDetail, cbUsdcNewState, cbUsdcPrint,
+  CB_USDC_FACTOR, CB_USDC_ID, CB_USDC_PRODUCTS, CB_USDC_ROW_NAME, CB_USDC_RUNG, CB_USDC_RUNG_USD, CB_USDC_TABLES, cbUsdcCapitalGbp, cbUsdcEventDetail, cbUsdcNewState, cbUsdcPrint,
   cbUsdcTrip, cbUsdcView, runCbUsdc,
 } from "./cb_usdc.ts";
-import { readCoinbaseArm } from "./cb_page.ts";
+import { readCoinbaseArm, readCoinbaseUsd } from "./cb_page.ts";
+import type { CbQuoteState } from "./cb_quotes.ts";
 import { runCbUsdcAction } from "./index.ts";
 import { CB_PRODUCTS, type CbProduct } from "./cb_rec.ts";
 import type { Trip } from "./quotes.ts";
@@ -132,4 +134,39 @@ Deno.test("its call is the weekend variant's: it reads the recorder's state row,
   assertEquals([r.skipped, r.errors], ["the recorder has not covered every book yet", []]);
   assertEquals(tables.cb_usdc_state, []);
   assertEquals(CB_HOLD_TABLES.trips, "cb_hold_trips");
+});
+
+Deno.test("Deviation 1: from the switch on 2026-10-29 a rung is $25 (£20 at GBP/USD 1.25), and the page shows $300 funded", async () => {
+  assertEquals(CB_USDC_RUNG_USD, 25);
+  const t0 = Date.UTC(2026, 9, 29, 10, 0), now = t0 + 6 * M;
+  const fx: Row[] = [], eur: Row[] = [], fair: Row[] = [];
+  for (let t = t0 - 20 * M; t <= t0 + 10 * M; t += M) { fx.push({ kind: "fx", t: iso(t), value: 1.25 }); eur.push({ kind: "fx:EURUSD", t: iso(t), value: 1.1 }); }
+  for (let h = t0 - 30 * H; h < t0; h += H) fair.push({ kind: "fair:USDC-USD", t: iso(h), value: 1.0 });
+  const { db, tables } = memDb({
+    agent_locks: [{ name: "cb-usdc", lease_until: iso(0), holder: null }],
+    agent_quote_inputs: [...fx, ...fair], cb_quote_inputs: eur,
+    cb_usdc_state: [{ id: 1, state: cbUsdcNewState(t0, { "USDC-GBP": 0, "USDC-EUR": 0 }), last_minute: iso(t0 - M), updated_at: iso(0), last_error: null }],
+    cb_usdc_events: [], cb_usdc_trips: [], cb_usdc_minutes: [], cb_usdc_days: [],
+    // A seller through USDC-GBP's 0.1 % bid (£0.7992; 10 % of the minute is £159.80, over the rung), then a buyer through its exit at £0.8000.
+    cb_trades: [
+      { product: "USDC-GBP", trade_id: 1, ts: iso(t0 + M + 5000), price: "0.79900000", size: "2000.00", side: "sell" },
+      { product: "USDC-GBP", trade_id: 2, ts: iso(t0 + 3 * M + 5000), price: "0.80010000", size: "10.00", side: "buy" },
+    ],
+  }, { now: () => now });
+  const cur = { from: 1, fromTs: iso(t0 - M + 1000), hi: 1, top: 1, topAt: 0, hole: null, coveredTo: t0 + 5 * M + 1000 };
+  const r = await runCbUsdc({ db, now, holder: "h", rec: { cursors: Object.fromEntries(CB_USDC_PRODUCTS.map((b) => [b, cur])) } });
+  assertEquals(r.errors, []);
+  assertEquals((tables.cb_usdc_state[0].state as CbQuoteState).usdFrom, t0);
+  assertEquals(tables.cb_usdc_trips.length, 1);
+  const t = tables.cb_usdc_trips[0];
+  assertAlmostEquals(Number(t.notional_gbp), 20, 1e-9);                   // $25 at $1.25 a pound
+  assertAlmostEquals(Number(t.qty), 20 / 0.7992, 1e-9);
+  assertAlmostEquals(Number(t.pnl_gbp), 20 * 0.0008 / 0.7992, 1e-9);
+  // The page: whole dollars, $25 × 6 × 2 funded; the trip from after the switch is not scaled.
+  const u = await readCoinbaseUsd(db, now, Date.UTC(2026, 9, 29), CB_USDC_TABLES, { id: CB_USDC_ID, name: CB_USDC_ROW_NAME }, { rungUsd: CB_USDC_RUNG_USD, books: 2, shape: cbUsdcView });
+  assert(u);
+  assertEquals([u.ccy, u.capitalUsd, u.capitalGbp, u.twin.id], ["USD", 300, 240, "coinbaseusdc"]);
+  assertAlmostEquals(u.realisedUsd, 25 * 0.0008 / 0.7992, 1e-9);
+  assertEquals(u.detail.books.map((b: { book: string }) => b.book), ["USDC-GBP", "USDC-EUR"]);
+  assertAlmostEquals(u.valueUsd, 25 * u.openOrders, 1e-9);
 });

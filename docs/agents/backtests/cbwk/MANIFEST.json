@@ -9,8 +9,8 @@
    "sha256": "3511be812b62579b88309187b5936f04cfce2baa1a8a50485210b9aefebcef9f"
   },
   "scripts/build_manifest.py": {
-   "bytes": 3426,
-   "sha256": "70fcc88a718e3dd02fd9d47e67e07b9b9809d55b7d053b1728c8d787e25a7478"
+   "bytes": 3576,
+   "sha256": "58d9173825ddcbff9a6aefda84f836d5600eb69f6cda2ecb39f0d8deb634e79e"
   },
   "scripts/closure_world.ts": {
    "bytes": 4846,
@@ -32,8 +32,8 @@
   "the release blackout's, changed or added 2026-10-15": {
    "docs/agents/backtests/cbreview/inputs/release_calendar.json": "c16d1bbf3408fe66d201ec97c7f4563dcf1e87a03f33d0632eb9729c5fbf98a9",
    "supabase/functions/agents/cb_blackout_world.ts": "779d556a8c0040dbc1faaf45b06f8ec3a6afcc9e6d39d8ee9ac271e5252147cd",
-   "supabase/functions/agents/cb_quotes.test.ts": "76a02c0dbaac0254089731db120da86c8069e4dc013483b16764b71f231dbe2f",
-   "supabase/functions/agents/cb_quotes.ts": "3929d8a9a47d0ac240d865fec3fd56c4b08e6912b10c72e6fe8d7ee31eebd808",
+   "supabase/functions/agents/cb_quotes.test.ts": "393a844cd3070c5e5e0b110a85e071454a57b06372df6c9aafdb87dfe0072981",
+   "supabase/functions/agents/cb_quotes.ts": "fe88387e54abad68ff3fe5a02fb8f2a768a09ccea860b4ab4a46cbbdd262c465",
    "supabase/functions/agents/cb_releases.test.ts": "6290bd94df15293e4b9e653d176fc68ead8625d68819bcb0369141e8e699d0e2",
    "supabase/functions/agents/cb_releases.ts": "fa882d0559d90828d9e4530bf4a640db3454a6be1be70b94ada42bd0ca0b5a63"
   },
@@ -42,8 +42,8 @@
    "docs/agents/backtests/cbwk/results/closure_world_reading.json": "3511be812b62579b88309187b5936f04cfce2baa1a8a50485210b9aefebcef9f",
    "docs/agents/backtests/cbwk/scripts/closure_world.ts": "1244fcf0d41b4e571a5f81a5f0f321a818c33db1e3919307b0f683e70b66d927",
    "docs/agents/backtests/cbwk/scripts/replay_wk.py": "f3124599d1b74600729de1caa03829764fbc0b52cddbf92dc8cc8fa9a99c18ee",
-   "supabase/functions/agents/cb_hold.test.ts": "e88b82a4f20ba92256d54278013bee83348d79ef3dc58cd1a95c62d31f3245b5",
-   "supabase/functions/agents/cb_hold.ts": "3795b05c5c3b38b30065c13c6c907e6c684fafe195055d3792d3290b25d365f8",
+   "supabase/functions/agents/cb_hold.test.ts": "37fece912426eaf8e5af71d45f2c95c3980094d020044a7c991e0e3f8bee5bc8",
+   "supabase/functions/agents/cb_hold.ts": "ea081c57918d6c0e6500da7dced0c2a3c57ccd0e8a2e09d9c2cdc06c9aa34fd9",
    "supabase/migrations/0118_cb_hold.sql": "5d1b77254c1307a36feb3b1373fa3780f92512f710d749e0001f18a48980bd53"
   }
  },
