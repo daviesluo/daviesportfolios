@@ -643,7 +643,9 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
     2026-12-31 (opens refused after it). Shown on TESTING as "IG Trader" (dry-run until armed). **Settled 2026-10-29 ("同意，按方案1改"):** the `ig` recorder reads
     IG's LIVE login for prices only (`IG_*_LIVE`, `0161`'s `environment`; `DEVIATION-2-live-prices.md`); the demo login is
     IGBOT's alone. **Before Fri 21:35 UK, after `0161` and `ig` deploy:** run `facts` on live for `sb` and `cfd` and read back
-    `ig_action_log` and `igbot_requests` (the SQL: `reviews/2026-10-15-ig-verification.md` §11).
+    `ig_action_log` and `igbot_requests` (the SQL: `reviews/2026-10-15-ig-verification.md` §11). **Session fix (10-29, `0165`):**
+    land 0165 with the function; after the deploy `igbot_requests` (action `sync`) should read `ig_calls` 3 a quiet minute,
+    a login (5 calls) only when IG drops the session, and no `account switch refused`.
 
 19. **CXBOT, "Crypto analyst": BUILT, paper only, dry-run until Davies' go** (Davies, 2026-10-28/29; the audit
     `reviews/2026-10-29-crypto-grok-bot-audit.md`, prereg DRAFT `reviews/2026-10-29-cxbot-phase1-prereg.md`, prompt
@@ -770,11 +772,14 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's archive, each batch under a heading
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 01:24 UTC section (archived
-2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth).
+2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), and the 2026-10-29 02:19 one(s) (fourteenth).
 
-### [2026-10-29 02:19 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **CXBOT independent audit** (sub-agent; commit, not pushed; item 19; Davies, 10-29: "…交给一个独立subagents仔细深度审核"):
-  `reviews/2026-10-29-cxbot-independent-audit.md`, 20 findings, 19 fixed with pins. Critical: a shadow scored from its own
-  `ts` (journal takes 7 days back), now from `received_at`. High: close/amend/cancel on minutes the engine had not booked
-  (`pending_exit`/`pending_fill`); double fills/funding past the lease (`0164` `funded_through`, lease-held state); a tape
-  gap skipped a stop (engine waits). Prompt changed: resend to Grok. The 2026-10-29 01:45, 2026-10-29 01:57 section(s) archived (thirteenth).
+### [2026-10-29 02:13 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **IGBOT keeps one IG session for the whole function** (sub-agent; commit, not pushed; item 18; `0165`): from 00:16 to
+  02:00 UTC the minute's sync was refused in 14 of the 58 minutes that logged in (401 account-token-invalid on the switch,
+  `igbot_requests`). The session lived in one isolate's memory (57 of 115 minutes reused it, never refused), and a fresh
+  isolate's three reads each logged in at once (9 calls ok, 6 or 8 refused); after a minute that logged in the next login
+  failed 13 times in 17, after a reused one 0 in 28. Now the session is shared through `igbot_exec_state.session_box`
+  (sealed, AES-GCM), one login at a time (`login_until`), waits, an always-sent switch, same-token retry, one re-login
+  18 s after a refused login, a refused session logged out (`IGBOT_SESSION`). 7 pins on a mock IG fail on the old client.
+  The prompt's login rule now gives the real cause. The 2026-10-29 02:19 section(s) archived (fourteenth).

@@ -47209,3 +47209,12 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
 - **The IG recorder's live login works** (item 18): `facts` on live at 01:56:45 UTC found the spread-bet account and every
   role's epic but `wknd_gbpusd` (AUD/USD `CS.D.AUDUSD.TODAY.IP`); the first try at 01:34 had stale secrets
   (`invalid-details`), which Davies replaced. IGBOT's sync stayed clean throughout. The 2026-10-29 01:33 section archived (twelfth).
+
+## LEDGER.md, archived 2026-10-29 (fourteenth) — the 2026-10-29 02:19 UTC history section(s), oldest first
+
+### [2026-10-29 02:19 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **CXBOT independent audit** (sub-agent; commit, not pushed; item 19; Davies, 10-29: "…交给一个独立subagents仔细深度审核"):
+  `reviews/2026-10-29-cxbot-independent-audit.md`, 20 findings, 19 fixed with pins. Critical: a shadow scored from its own
+  `ts` (journal takes 7 days back), now from `received_at`. High: close/amend/cancel on minutes the engine had not booked
+  (`pending_exit`/`pending_fill`); double fills/funding past the lease (`0164` `funded_through`, lease-held state); a tape
+  gap skipped a stop (engine waits). Prompt changed: resend to Grok. The 2026-10-29 01:45, 2026-10-29 01:57 section(s) archived (thirteenth).

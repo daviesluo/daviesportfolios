@@ -884,6 +884,7 @@ before touching migration state.
 | `0161_ig_environment.sql` | Which IG environment (demo or live) wrote each row of the `ig` tables, demo for the rows before; the quote key, the done-pull index and the quote-recording function per environment. |
 | `0162_ig_fxw_paper.sql` | "AUD weekend (FXW-AUD)" on paper: one row a weekend of the frozen rule's fills on the live IG quotes, its run's state, and its call of the minute job every five minutes. |
 | `0163_cxbot.sql` | CXBOT's tables (its config held to dry-run or paper and a venue, the tape, the context, the assigned questions and answers, the journal, the paper orders, positions and snapshots, the reach probe's reads, its state), RLS on with no grant, and its minute call. |
+| `0165_igbot_session.sql` | IGBOT's IG session shared by every isolate of its function, sealed, and the claim that lets one isolate at a time log in. |
 | `0164_cxbot_audit.sql` | CXBOT's independent audit: `cxbot_positions.funded_through`, the hour up to which a paper position's funding is booked, so a minute run twice books no hour twice. |
 | `0159_igbot_audit.sql` | IGBOT's audit: each request's IG calls (the function's minute budget) and IG's hour bars for the reading, RLS on with no grant. |
 | `0096_pm_rw_x_tb1_arms.sql` | Lets the variants' day tables, RW's and RW-C's, take TB1's two arms on x1 (tb1-skip, tb1-back). |

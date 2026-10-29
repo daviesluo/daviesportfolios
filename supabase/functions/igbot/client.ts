@@ -14,7 +14,9 @@
 //     body), amend its stop or limit (`PUT /positions/otc/{dealId}`), place and delete a working order. Nothing else:
 //     no watchlist, no application, no transfer, no funds path.
 //   * No secret leaves. The API key, username, password and both session tokens are scrubbed (`scrubDeep`, shared with
-//     the read-only `ig` function) from every answer and error; the session tokens live only in this isolate's memory.
+//     the read-only `ig` function) from every answer and error. The session tokens live in memory and, for the other
+//     isolates, in the database only sealed (AES-GCM under a key derived from the demo secrets, `IGBOT_SESSION`): a reader
+//     of the row holds nothing IG would accept.
 //   * IG's allowances (IG Labs FAQ, "Limits"): 30 non-trading and 100 trading requests a minute per account on live; the
 //     demo's are lower and IG changes them without notice (trading-ig's FAQ; IG reports a key's own as
 //     `allowanceAccountOverall` and `allowanceAccountTrading` from `GET /operations/application`, which this client does
@@ -103,7 +105,8 @@ export function igbotCreds(env: Record<string, string | undefined>): IgbotCreds 
   return missing.length ? { missing } : { key, username, password, accountId };
 }
 
-export type IgbotSession = { cst: string; xst: string; accountId: string; accountType: string | null };
+/** A session: its tokens, the account they are on, when it was logged in, and whether its switch to the account is done. */
+export type IgbotSession = { cst: string; xst: string; accountId: string; accountType: string | null; at: number; ready: boolean };
 export type IgbotAnswer = { status: number; body: unknown; ms: number };
 
 export class IgbotHttpError extends Error {
@@ -122,13 +125,97 @@ export class IgbotHttpError extends Error {
  * names the current account, so `PUT /session` answers with a new one and no CST (the `ig` function's lesson of
  * 2026-10-15).
  */
-export function withTokens(s: IgbotSession, headers: Headers): IgbotSession {
+export function withTokens<S extends { cst: string; xst: string }>(s: S, headers: Headers): S {
   const cst = headers.get("CST"), xst = headers.get("X-SECURITY-TOKEN");
   return { ...s, ...(cst ? { cst } : {}), ...(xst ? { xst } : {}) };
 }
 
-/** A session kept between requests of one isolate (memory only: never stored, never returned). */
-const isolateSession: { s: IgbotSession | null } = { s: null };
+/**
+ * How the session is handled (2026-10-29). In its first two hours on the demo the minute's sync was refused in 14 of the
+ * 58 minutes that logged in, every time on the account switch right after the login (401
+ * `error.security.account-token-invalid`; `igbot_requests` 00:16-02:00 UTC). The session lived only in an isolate's
+ * memory and about half the minutes land in a fresh isolate (57 of 115 reused one: three IG calls, no login, never
+ * refused), and a fresh isolate's sync logged in THREE times at once: its three reads (accounts, positions, working
+ * orders) each found no session and each logged in and switched (nine calls a minute ok, six when all three switches
+ * were refused, eight when one was). After a minute that had logged in, the next minute's logins were refused 13 times in
+ * 17; after a minute that reused its session, 0 in 28. IG keeps one good session per login, and these were IGBOT's own
+ * logins fighting each other. So, as the `ig` recorder learnt on 10-16..18 (`ig/actions.ts`, `QUOTES_*`):
+ *
+ *   * one session for the whole function: kept between isolates by the keeper (`igbot_exec_state.session_box`, 0165),
+ *     sealed with AES-GCM under a key derived from the demo secrets, so the database holds no usable token; a request
+ *     logs in only when there is none or IG refuses it;
+ *   * one login at a time: the reads of a request share one login, and across isolates the login is claimed
+ *     (`igbot_exec_state.login_until`); a request that finds another logging in waits for its session;
+ *   * a wait after a login and after the switch, since a token IG has just issued is sometimes refused for a moment, and
+ *     on a refusal the same tokens are tried again before anything logs in again;
+ *   * after every login the switch to the configured account, even when the login names it as current: IG keeps one
+ *     current account per user;
+ *   * a refused session is logged out before the re-login (at most one session of ours alive), the re-login no sooner than
+ *     18 s after the refused one's own login, and at most one re-login a request. A good session is never logged out.
+ */
+export const IGBOT_SESSION = {
+  loginWaitMs: 2_000,
+  switchWaitMs: 1_000,
+  tokenRetries: 1,
+  tokenRetryWaitMs: 3_000,
+  reloginWaitMs: 18_000,
+  /** A request's first login and one re-login. */
+  maxLogins: 2,
+  /** How long an isolate holds the right to log in; longer than a login with its waits and one re-login. */
+  loginClaimMs: 30_000,
+  /** How long a request waits for another isolate's login to store its session, and how often it looks. */
+  adoptWaitMs: 20_000,
+  adoptPollMs: 1_000,
+} as const;
+
+/** Where the session is kept between isolates, sealed (`igbotSessionKeeper` in `index.ts`: one row of `igbot_exec_state`). */
+export type IgbotSessionKeeper = {
+  /** The sealed session, or null. */
+  load(): Promise<string | null>;
+  save(box: string): Promise<void>;
+  /** Forgets the sealed session only while it is still this one (another isolate's newer one stays). */
+  clear(box: string): Promise<void>;
+  /** The right to log in, for `IGBOT_SESSION.loginClaimMs`: a claim to release, or null while another isolate holds it. */
+  claimLogin(now: number): Promise<string | null>;
+  releaseLogin(claim: string): Promise<void>;
+};
+
+const enc = new TextEncoder();
+const b64u = (b: Uint8Array) => btoa(String.fromCharCode(...b)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+const unb64u = (s: string) => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((s.length + 3) % 4)), (ch) => ch.charCodeAt(0));
+
+/** The sealing key: SHA-256 of the four demo secrets. It never leaves the function; a new password makes old boxes unreadable. */
+async function sessionKey(c: IgbotCreds): Promise<CryptoKey> {
+  const raw = await crypto.subtle.digest("SHA-256", enc.encode(["igbot-session-v1", c.key, c.username, c.password, c.accountId].join("\n")));
+  return await crypto.subtle.importKey("raw", raw, "AES-GCM", false, ["encrypt", "decrypt"]);
+}
+const aad = (c: IgbotCreds) => enc.encode(`igbot-session|${c.accountId}`);
+
+/** A ready session sealed for the keeper: `v1.<iv>.<ciphertext>`, base64url. */
+export async function sealSession(s: IgbotSession, c: IgbotCreds): Promise<string> {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const plain = enc.encode(JSON.stringify({ cst: s.cst, xst: s.xst, accountId: s.accountId, at: s.at }));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv, additionalData: aad(c) }, await sessionKey(c), plain));
+  return `v1.${b64u(iv)}.${b64u(ct)}`;
+}
+
+/** A sealed session opened, or null when it is not one this login sealed for this account. Never throws. */
+export async function openSession(box: string, c: IgbotCreds): Promise<IgbotSession | null> {
+  try {
+    const [v, iv, ct, extra] = box.split(".");
+    if (v !== "v1" || !iv || !ct || extra !== undefined) return null;
+    const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: unb64u(iv), additionalData: aad(c) }, await sessionKey(c), unb64u(ct));
+    const o = JSON.parse(new TextDecoder().decode(plain)) as Record<string, unknown>;
+    if (typeof o.cst !== "string" || !o.cst || typeof o.xst !== "string" || !o.xst || o.accountId !== c.accountId || typeof o.at !== "number") return null;
+    return { cst: o.cst, xst: o.xst, accountId: c.accountId, accountType: "SPREADBET", at: o.at, ready: true };
+  } catch {
+    return null;
+  }
+}
+
+export type IgbotSessionStore = { s: IgbotSession | null; box?: string | null };
+/** This isolate's copy of the session (and of the sealed box it came from): memory only, never returned. */
+const isolateSession: IgbotSessionStore = { s: null };
 /** Every IG request this isolate sent in the last minute, whichever client sent it. */
 const isolateSent: Array<{ at: number; trading: boolean }> = [];
 
@@ -136,25 +223,40 @@ export type IgbotClientOpts = {
   creds: IgbotCreds;
   fetchImpl?: typeof fetch;
   now?: () => number;
+  sleep?: (ms: number) => Promise<void>;
   timeoutMs?: number;
-  /** Where the session is kept; this isolate's memory unless a test gives its own. */
-  store?: { s: IgbotSession | null };
+  /** Where the session is kept in this isolate; this isolate's memory unless a test gives its own. */
+  store?: IgbotSessionStore;
+  /** Where it is kept between isolates (production: the database, sealed); none, and it lives in `store` alone. */
+  keeper?: IgbotSessionKeeper;
   /** Where the minute's requests are counted; this isolate's list unless a test gives its own. */
   sent?: Array<{ at: number; trading: boolean }>;
 };
 
+const refusedTokens = (a: IgbotAnswer) => isTokenError(a.status, igErrorCode(a.body));
+
 /**
- * One isolate's client. Logs in when it has no session, puts the session on the configured demo account (refusing any
- * account that is not a spread-bet account), logs in again once when IG calls the tokens invalid (weekend maintenance
- * invalidates every token), and counts every request a minute at a time.
+ * One request's client. Takes the function's session (this isolate's, else the keeper's), logs in only when there is none
+ * or IG refuses it (`IGBOT_SESSION`), puts it on the configured demo account (refusing any account that is not a
+ * spread-bet account), and counts every request a minute at a time.
  */
 export class IgbotClient {
   readonly opts: IgbotClientOpts;
-  private store: { s: IgbotSession | null };
+  private store: IgbotSessionStore;
   private sent: Array<{ at: number; trading: boolean }>;
   private tokensSeen: string[] = [];
+  /** Session work (adopting, logging in, renewing) runs one at a time: the reads of a request share one login. */
+  private queue: Promise<unknown> = Promise.resolve();
+  private checked = false;
+  /** A login that failed for a reason other than refused tokens ends logging in for this client. */
+  private loginError: Error | null = null;
   requests = 0;
   logins = 0;
+  switches = 0;
+  logouts = 0;
+  tokenRetriesUsed = 0;
+  /** Sessions taken from the keeper (another isolate's login). */
+  adopted = 0;
 
   constructor(opts: IgbotClientOpts) {
     this.opts = opts;
@@ -171,8 +273,20 @@ export class IgbotClient {
     return scrubDeep(v, this.secrets());
   }
 
+  private now(): number {
+    return (this.opts.now ?? Date.now)();
+  }
+  private async pause(ms: number): Promise<void> {
+    if (ms > 0) await (this.opts.sleep ?? ((x: number) => new Promise<void>((r) => setTimeout(r, x))))(ms);
+  }
+  private exclusive<T>(fn: () => Promise<T>): Promise<T> {
+    const run = this.queue.then(fn);
+    this.queue = run.catch(() => {});
+    return run;
+  }
+
   private budget(trading: boolean): void {
-    const now = (this.opts.now ?? Date.now)();
+    const now = this.now();
     // Pruned in place: the list is shared by every client of the isolate.
     for (let i = this.sent.length - 1; i >= 0; i--) if (this.sent[i].at <= now - 60e3) this.sent.splice(i, 1);
     const n = this.sent.filter((r) => r.trading === trading).length;
@@ -181,7 +295,7 @@ export class IgbotClient {
     this.sent.push({ at: now, trading });
   }
 
-  private async raw(method: string, path: string, o: { query?: Record<string, string>; body?: unknown; version: number; auth: boolean; override?: "DELETE" }) {
+  private async raw(method: string, path: string, o: { query?: Record<string, string>; body?: unknown; version: number; session: IgbotSession | null; override?: "DELETE" }) {
     const url = new URL(IGBOT_DEMO_BASE + path);
     for (const [k, v] of Object.entries(o.query ?? {})) url.searchParams.set(k, v);
     const { trading } = assertIgbotAllowed(method, url.toString());
@@ -192,13 +306,11 @@ export class IgbotClient {
     };
     if (o.body !== undefined) headers["Content-Type"] = "application/json; charset=UTF-8";
     if (o.override) headers["_method"] = o.override;
-    const s = this.store.s;
-    if (o.auth && s) {
-      headers["CST"] = s.cst;
-      headers["X-SECURITY-TOKEN"] = s.xst;
+    if (o.session) {
+      headers["CST"] = o.session.cst;
+      headers["X-SECURITY-TOKEN"] = o.session.xst;
     }
-    const now = this.opts.now ?? Date.now;
-    const t0 = now();
+    const t0 = this.now();
     const res = await (this.opts.fetchImpl ?? fetch)(url.toString(), {
       method, headers, body: o.body === undefined ? undefined : JSON.stringify(o.body), signal: AbortSignal.timeout(this.opts.timeoutMs ?? 10_000),
     });
@@ -209,59 +321,175 @@ export class IgbotClient {
     } catch {
       body = { unparsed: text.slice(0, 300) };
     }
-    return { answer: { status: res.status, body, ms: now() - t0 } as IgbotAnswer, headers: res.headers };
+    return { answer: { status: res.status, body, ms: this.now() - t0 } as IgbotAnswer, headers: res.headers };
   }
 
-  /** `POST /session` (version 2), then `PUT /session` onto the configured account unless the login is already on it. */
-  async login(): Promise<IgbotSession> {
+  private usable(): boolean {
+    const s = this.store.s;
+    return !!s && s.ready && s.accountId === this.opts.creds.accountId;
+  }
+
+  /** The keeper's session when it holds one this isolate does not have; true when taken. */
+  private async adoptStored(): Promise<boolean> {
+    const k = this.opts.keeper;
+    if (!k) return false;
+    const box = await k.load().catch(() => null);
+    if (!box || box === this.store.box) return false;
+    const s = await openSession(box, this.opts.creds);
+    if (!s) return false;
+    this.store.s = s;
+    this.store.box = box;
+    this.adopted += 1;
+    this.secrets();
+    return true;
+  }
+
+  private async keep(): Promise<void> {
+    const k = this.opts.keeper, s = this.store.s;
+    if (!k || !s?.ready) return;
+    const box = await sealSession(s, this.opts.creds);
+    this.store.box = box;
+    await k.save(box).catch(() => {});
+  }
+
+  /** The session to call on: this isolate's, else the keeper's, else a login. One at a time, so concurrent reads share it. */
+  private async ensure(): Promise<IgbotSession> {
+    await this.exclusive(async () => {
+      if (!this.checked) {
+        this.checked = true;
+        await this.adoptStored();
+      }
+      if (!this.usable()) await this.logIn();
+    });
+    return this.store.s!;
+  }
+
+  /** A session IG refused on `used`: taken over by a newer one when a call beside it or another isolate has one, else replaced. */
+  private async renew(used: IgbotSession): Promise<void> {
+    await this.exclusive(async () => {
+      if (this.usable() && this.store.s!.xst !== used.xst) return;
+      if (await this.adoptStored()) return;
+      await this.logIn();
+    });
+  }
+
+  /** A login under the function's claim, with one re-login when IG refuses the new tokens. Runs inside `exclusive`. */
+  private async logIn(): Promise<void> {
+    if (this.loginError) throw this.loginError;
+    const k = this.opts.keeper;
+    // An unreadable claim does not stop the login: the keeper's database is down, and the session cannot be shared anyway.
+    const claim = k ? await k.claimLogin(this.now()).catch(() => "") : "";
+    if (claim === null) {
+      // Another isolate is logging in: two logins at once are what IG refuses, so its session is this request's too.
+      const until = this.now() + IGBOT_SESSION.adoptWaitMs;
+      while (this.now() < until) {
+        await this.pause(IGBOT_SESSION.adoptPollMs);
+        if (await this.adoptStored()) return;
+      }
+      throw (this.loginError = new IgbotRefused("refused: another request was logging in to IG and stored no session in time"));
+    }
+    try {
+      let last: Error | null = null;
+      while (this.logins < IGBOT_SESSION.maxLogins) {
+        const refused = this.store.s;
+        if (refused) {
+          // The refused session first: the re-login no sooner than `reloginWaitMs` after its own login, then it is logged
+          // out, so at most one session of ours is alive.
+          await this.pause(refused.at + IGBOT_SESSION.reloginWaitMs - this.now());
+          await this.logout();
+        }
+        try {
+          await this.loginOnce();
+          await this.keep();
+          return;
+        } catch (e) {
+          if (!(e instanceof IgbotHttpError && isTokenError(e.status, e.code))) throw (this.loginError = e as Error);
+          last = e;
+        }
+      }
+      // Refused to the end: the last session is logged out too, so nothing of ours is left alive for the next login.
+      await this.logout();
+      throw (this.loginError = last ?? new IgbotRefused(`refused: this request's ${IGBOT_SESSION.maxLogins} logins are spent`));
+    } finally {
+      if (k && claim) await k.releaseLogin(claim).catch(() => {});
+    }
+  }
+
+  /** `POST /session` (version 2), a pause, `PUT /session` onto the configured account (always), a pause. */
+  private async loginOnce(): Promise<void> {
     const c = this.opts.creds;
     this.logins += 1;
-    const { answer, headers } = await this.raw("POST", "/session", { version: 2, auth: false, body: { identifier: c.username, password: c.password, encryptedPassword: false } });
+    this.store.s = null;
+    this.store.box = null;
+    const { answer, headers } = await this.raw("POST", "/session", { version: 2, session: null, body: { identifier: c.username, password: c.password, encryptedPassword: false } });
     const cst = headers.get("CST") ?? "", xst = headers.get("X-SECURITY-TOKEN") ?? "";
     if (answer.status !== 200 || !cst || !xst) {
       const code = igErrorCode(answer.body);
       throw new IgbotHttpError(answer.status, code, this.scrub(`login refused: ${answer.status} ${code || JSON.stringify(answer.body).slice(0, 200)}`));
     }
     const b = (answer.body ?? {}) as { currentAccountId?: string; accounts?: Array<{ accountId?: string; accountType?: string }> };
+    const s: IgbotSession = { cst, xst, accountId: String(b.currentAccountId ?? ""), accountType: null, at: this.now(), ready: false };
+    this.store.s = s;
+    this.secrets();
     const target = (b.accounts ?? []).find((a) => a.accountId === c.accountId);
     if (!target) {
-      this.store.s = { cst, xst, accountId: String(b.currentAccountId ?? ""), accountType: null };
       await this.logout();
       throw new IgbotRefused("refused: the configured demo account is not one of this login's accounts");
     }
     if (target.accountType !== "SPREADBET") {
-      this.store.s = { cst, xst, accountId: String(b.currentAccountId ?? ""), accountType: null };
       await this.logout();
       throw new IgbotRefused(`refused: the configured demo account is a ${String(target.accountType ?? "unknown").slice(0, 20)} account, not a spread-bet account`);
     }
-    this.store.s = { cst, xst, accountId: String(b.currentAccountId ?? ""), accountType: "SPREADBET" };
-    this.secrets();
-    if (this.store.s.accountId !== c.accountId) {
-      const sw = await this.raw("PUT", "/session", { version: 1, auth: true, body: { accountId: c.accountId, defaultAccount: false } });
-      const code = igErrorCode(sw.answer.body);
-      if (sw.answer.status !== 200 && code !== "error.switch.accountId-must-be-different") {
-        throw new IgbotHttpError(sw.answer.status, code, this.scrub(`account switch refused: ${sw.answer.status} ${code}`));
-      }
-      this.store.s = { ...withTokens(this.store.s, sw.headers), accountId: c.accountId, accountType: "SPREADBET" };
-      this.secrets();
+    s.accountType = "SPREADBET";
+    await this.pause(IGBOT_SESSION.loginWaitMs);
+    const put = () => {
+      this.switches += 1;
+      return this.raw("PUT", "/session", { version: 1, session: s, body: { accountId: c.accountId, defaultAccount: false } });
+    };
+    let sw = await put();
+    for (let i = 0; i < IGBOT_SESSION.tokenRetries && refusedTokens(sw.answer); i++) {
+      this.tokenRetriesUsed += 1;
+      await this.pause(IGBOT_SESSION.tokenRetryWaitMs);
+      sw = await put();
     }
-    return this.store.s;
+    const code = igErrorCode(sw.answer.body);
+    if (sw.answer.status !== 200 && code !== "error.switch.accountId-must-be-different") {
+      throw new IgbotHttpError(sw.answer.status, code, this.scrub(`account switch refused: ${sw.answer.status} ${code}`));
+    }
+    this.store.s = { ...withTokens(s, sw.headers), accountId: c.accountId, ready: true };
+    this.secrets();
+    await this.pause(IGBOT_SESSION.switchWaitMs);
   }
 
-  /** A request on the session: logs in first when there is none, and once more when IG calls the tokens invalid. */
+  /**
+   * A request on the function's session. When IG refuses the tokens the same tokens are tried again after a pause, then the
+   * session is renewed once (`renew`) and the request sent again. IG refuses tokens before it deals, so a trading request
+   * answered so was not carried out and goes again with the same body, an open's deal reference included; any other
+   * answer (a rejection, a 5xx) is returned and an error (no answer, a timeout) thrown, never sent again here.
+   */
   async call(method: string, path: string, o: { query?: Record<string, string>; body?: unknown; version: number; override?: "DELETE" }): Promise<IgbotAnswer> {
-    if (!this.store.s || this.store.s.accountId !== this.opts.creds.accountId) await this.login();
-    let { answer, headers } = await this.raw(method, path, { ...o, auth: true });
-    if (isTokenError(answer.status, igErrorCode(answer.body))) {
-      this.store.s = null;
-      await this.login();
-      ({ answer, headers } = await this.raw(method, path, { ...o, auth: true }));
+    let used = await this.ensure();
+    let r = await this.raw(method, path, { ...o, session: used });
+    for (let i = 0; i < IGBOT_SESSION.tokenRetries && refusedTokens(r.answer) && this.store.s?.xst === used.xst; i++) {
+      this.tokenRetriesUsed += 1;
+      await this.pause(IGBOT_SESSION.tokenRetryWaitMs);
+      r = await this.raw(method, path, { ...o, session: used });
     }
-    if (this.store.s) {
-      this.store.s = withTokens(this.store.s, headers);
-      this.secrets();
+    if (refusedTokens(r.answer)) {
+      await this.renew(used);
+      used = this.store.s!;
+      r = await this.raw(method, path, { ...o, session: used });
     }
-    return this.scrub(answer);
+    // Tokens an answer carries replace the session's, and are kept for the other isolates.
+    if (this.store.s && this.store.s.xst === used.xst && (r.headers.get("CST") || r.headers.get("X-SECURITY-TOKEN"))) {
+      const next = withTokens(this.store.s, r.headers);
+      if (next.cst !== used.cst || next.xst !== used.xst) {
+        this.store.s = next;
+        this.secrets();
+        await this.keep();
+      }
+    }
+    return this.scrub(r.answer);
   }
 
   /** A GET whose answer must be 200; anything else throws with IG's error code, scrubbed. */
@@ -274,13 +502,21 @@ export class IgbotClient {
     return a.body;
   }
 
-  /** `DELETE /session`: ends this client's session at IG whatever it answers, and forgets the tokens. Never throws. */
+  /**
+   * `DELETE /session`: ends this client's session at IG whatever it answers, forgets the tokens, and takes them from the
+   * keeper while it still holds them. Never throws. Used only on a session IG refused or the client refuses: logging out a
+   * good session made IG refuse the next login (the `ig` recorder, 10-18, `QUOTES_RELOGIN_WAIT_MS`).
+   */
   async logout(): Promise<void> {
-    if (!this.store.s) return;
+    const s = this.store.s, box = this.store.box;
+    if (!s) return;
+    this.logouts += 1;
     try {
       this.secrets();
-      await this.raw("DELETE", "/session", { version: 1, auth: true });
+      await this.raw("DELETE", "/session", { version: 1, session: s });
     } catch { /* the session lapses at IG on its own */ }
     this.store.s = null;
+    this.store.box = null;
+    if (box && this.opts.keeper) await this.opts.keeper.clear(box).catch(() => {});
   }
 }

@@ -678,6 +678,13 @@ that follow from that evidence, in short:
     `MARKET`; the five-day close waits for an open market and retries; IG's allowance is held for the whole function
     (`igbot_requests.ig_calls`, 24 a minute); the sync records IG's hour bars (`igbot_bars`) and the reading's scorer is
     `docs/agents/backtests/igbot/score.mjs`.
+  - **One IG session for the whole function** (`0165`, `IGBOT_SESSION` in `igbot/client.ts`, 2026-10-29): its first
+    demo hours refused the minute's sync in 14 of 58 minutes that logged in (401 account-token-invalid on the switch):
+    the session lived in one isolate's memory and a fresh isolate's three reads logged in three times at once. The
+    session is now kept in `igbot_exec_state.session_box`, sealed (AES-GCM, a key from the demo secrets: the row holds
+    nothing IG accepts), one isolate at a time logs in (`login_until`), a login waits and always switches, a refusal is
+    retried on the same tokens before one re-login, and only a refused session is logged out (as the `ig` recorder's
+    `QUOTES_*`). A trading request goes again only after IG refused its tokens, which it does before dealing.
 - **"AUD weekend (FXW-AUD)", paper on TESTING** (`ig/fxw.ts`, `agents/fxw_view.ts`, `0162`; Davies, 2026-10-29): the frozen
   FXW-AUD rule on the live IG recorder's own quotes (`ig_quotes`, `environment = 'live'`), £1,000 at £1.50 a pip, no stop. It
   never calls IG; fills only at a recorded bid or offer, a minute after the open with no recorded quote makes the weekend

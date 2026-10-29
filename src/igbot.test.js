@@ -14,6 +14,8 @@ const SQL = read('supabase/migrations/0157_igbot.sql');
 const SQL_NC = SQL.replace(/--[^\n]*/g, '');
 // 0159 (the 2026-10-29 audit): a column on igbot_requests and the hour bars' table.
 const SQL2_NC = read('supabase/migrations/0159_igbot_audit.sql').replace(/--[^\n]*/g, '');
+// 0165: the IG session every isolate shares, sealed, and the claim that lets one isolate at a time log in.
+const SQL3_NC = read('supabase/migrations/0165_igbot_session.sql').replace(/--[^\n]*/g, '');
 const SCHEMA = read('supabase/functions/igbot/schema.ts');
 const RULES = read('supabase/functions/igbot/rules.ts');
 const PROMPT = read('docs/agents/igbot/GROK_PROMPT.md');
@@ -41,7 +43,8 @@ function schemaOf(src) {
 
 describe('IGBOT, the demo-only IG path', () => {
   it("writes only the migrations' columns: schema.ts lists every table of 0157 and 0159 with exactly its columns", () => {
-    const t = tablesOf(SQL_NC, SQL2_NC), s = schemaOf(SCHEMA);
+    const t = tablesOf(SQL_NC, SQL2_NC, SQL3_NC), s = schemaOf(SCHEMA);
+    expect(t.igbot_exec_state.slice(-2)).toEqual(['session_box', 'login_until']);
     expect(Object.keys(t).sort()).toEqual(Object.keys(s).sort());
     expect(Object.keys(t).length).toBe(11);
     expect(t.igbot_requests.at(-1)).toBe('ig_calls');
@@ -53,6 +56,7 @@ describe('IGBOT, the demo-only IG path', () => {
     expect(SQL_NC).not.toMatch(/\bgrant\b|create policy/i);
     expect(SQL2_NC).toMatch(/alter table public\.igbot_bars enable row level security;/);
     expect(SQL2_NC).not.toMatch(/\bgrant\b|create policy|edge_calls|igbot_config/i);
+    expect(SQL3_NC).not.toMatch(/\bgrant\b|create policy|edge_calls|igbot_config|create table/i);
   });
 
   it("holds the environment to the demo, starts in dry-run, ties the arm to the mode, and adds one call a minute", () => {

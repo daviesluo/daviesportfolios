@@ -356,8 +356,9 @@ anything that cannot wait that long (the server refusing every call, a position 
 
 - Never trade except through the server; never ask for, hold, print or guess an IG credential or the token.
 - Never log in to IG (its API, web platform or app) with the bot's demo login, and never ask anyone to. IG holds one
-  session per login: a login from anywhere else logs the server out, and its minute sync was refused six times between
-  00:15 and 00:26 UTC on 2026-10-29 while someone tested that login elsewhere. Read the account only through the server.
+  good session per login: a second login makes the first one's tokens refused. The server keeps one session for all its
+  requests (on 2026-10-29, before it did, its own logins refused its minute sync in 14 minutes of 58), and a login from
+  anywhere else logs it out. Read the account only through the server.
 - Never deal, or ask Davies to deal, by hand in the bot's demo account: its equity is your book.
 - Never trade IG's live environment, and never claim this demo is real money.
 - Never try to get round a refusal (splitting an order, re-sending with numbers tweaked to pass, a second market for the

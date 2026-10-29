@@ -36,7 +36,7 @@ import { beatKeyOfRequest, writeBeat } from "../_shared/beats.ts";
 import { constantTimeEqual } from "../_shared/token.ts";
 import { igErrorCode } from "../ig/client.ts";
 import { type Db, makeDb } from "../agents/db.ts";
-import { IGBOT_ENVIRONMENT, type IgbotAnswer, IgbotClient, igbotCreds } from "./client.ts";
+import { IGBOT_ENVIRONMENT, IGBOT_SESSION, type IgbotAnswer, IgbotClient, igbotCreds, type IgbotSessionKeeper } from "./client.ts";
 import {
   accountView, amendPosition, cancelOrders, closePosition, context, type ExecDeps, type IgApi, type IgSend, marketOf, marketOut, placeOrder, syncAll,
 } from "./exec.ts";
@@ -247,12 +247,31 @@ export function igApiOf(client: IgbotClient): IgApi {
   };
 }
 
-/** The production dependencies: the database, and IG's demo client when its four secrets are set. */
+/**
+ * The session's keeper (0165): one row of `igbot_exec_state` holds the sealed session every isolate shares
+ * (`session_box`) and the claim that lets one isolate at a time log in (`login_until`, a compare-and-set as the lease's).
+ */
+export function igbotSessionKeeper(db: Db): IgbotSessionKeeper {
+  const at = (ms: number) => new Date(ms).toISOString();
+  return {
+    load: async () => (await db.select<{ session_box: string | null }>("igbot_exec_state", "id=eq.1&select=session_box"))[0]?.session_box ?? null,
+    save: (box) => db.update("igbot_exec_state", "id=eq.1", { session_box: box }),
+    clear: (box) => db.update("igbot_exec_state", `id=eq.1&session_box=eq.${encodeURIComponent(box)}`, { session_box: null }),
+    claimLogin: async (now) => {
+      const until = at(now + IGBOT_SESSION.loginClaimMs);
+      const rows = await db.claim("igbot_exec_state", `id=eq.1&or=(login_until.is.null,login_until.lt.${encodeURIComponent(at(now))})`, { login_until: until });
+      return rows.length === 1 ? until : null;
+    },
+    releaseLogin: (claim) => db.update("igbot_exec_state", `id=eq.1&login_until=eq.${encodeURIComponent(claim)}`, { login_until: null }),
+  };
+}
+
+/** The production dependencies: the database, and IG's demo client (its session kept in the database, sealed) when its four secrets are set. */
 export function productionExec(t: number): ExecDeps {
   const db = makeDb(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "");
   const creds = igbotCreds(Deno.env.toObject());
   if ("missing" in creds) return { db, now: t, ig: null, credsProblem: `IG's demo secrets are not set: ${creds.missing.join(", ")}`, accountId: null };
-  const client = new IgbotClient({ creds });
+  const client = new IgbotClient({ creds, keeper: igbotSessionKeeper(db) });
   return { db, now: t, ig: igApiOf(client), credsProblem: null, accountId: creds.accountId, igCalls: () => client.requests };
 }
 

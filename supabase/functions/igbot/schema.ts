@@ -1,4 +1,4 @@
-// IGBOT's tables as 0157 creates them and 0159 extends them: each table's columns and the key a write conflicts on. The Deno test's database
+// IGBOT's tables as 0157 creates them and 0159 and 0165 extend them: each table's columns and the key a write conflicts on. The Deno test's database
 // double refuses a write that names a column the table does not have, as PostgREST does, so a test cannot certify a write
 // production would refuse (the lesson of 2026-09-22 in docs/agents/CLAUDE.md). `src/igbot.test.js` holds this list to the
 // migration's text, column for column.
@@ -31,7 +31,8 @@ export const IGBOT_TABLES: Record<string, { key: string; columns: readonly strin
     key: "slot",
     columns: ["slot", "at", "ok", "equity_gbp", "balance_gbp", "upl_gbp", "margin_gbp", "available_gbp", "open_risk_gbp", "positions", "working", "error"],
   },
-  igbot_exec_state: { key: "id", columns: ["id", "state", "lease_until", "lease_owner", "updated_at", "last_error"] },
+  // 0165: the IG session every isolate shares, sealed, and the claim that lets one isolate at a time log in.
+  igbot_exec_state: { key: "id", columns: ["id", "state", "lease_until", "lease_owner", "updated_at", "last_error", "session_box", "login_until"] },
   // 0159 (the 2026-10-29 audit): IG's HOUR bars for the reading, keyed on the market and the hour.
   igbot_bars: {
     key: "epic,hour",

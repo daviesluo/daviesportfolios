@@ -6,12 +6,12 @@
 // have is refused, as PostgREST refuses it.
 import { assert, assertEquals, assertRejects, assertThrows } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import type { Db } from "../agents/db.ts";
-import { assertIgbotAllowed, IGBOT_DEMO_BASE, IgbotClient, igbotCreds, IgbotRefused, type IgbotSession } from "./client.ts";
+import { assertIgbotAllowed, IGBOT_DEMO_BASE, IGBOT_SESSION, IgbotClient, igbotCreds, IgbotRefused, type IgbotSession, openSession } from "./client.ts";
 import {
   accountOf, barsOf, closedPnl, closeOf, confirmOf, type ExecDeps, type IgApi, IGBOT_MISSING_GRACE_MS, type IgSend, marketOf, positionsOf, premiumOf, workingOf,
 } from "./exec.ts";
 import { IGBOT_IG_CALLS_PER_MINUTE, rateVerdict } from "./ingest.ts";
-import { handle } from "./index.ts";
+import { handle, igbotSessionKeeper } from "./index.ts";
 import { IGBOT_TABLES } from "./schema.ts";
 
 const T0 = Date.parse("2026-11-03T15:00:00Z");
@@ -595,6 +595,7 @@ Deno.test("only the four IGBOT demo secrets are read, missing ones named, never 
 });
 
 const CREDS = { key: "key-SECRET-123", username: "user-SECRET", password: "pass-SECRET", accountId: "ZSB1" };
+const NO_WAIT = () => Promise.resolve();
 function fakeIgHttp(o: { accounts: Array<{ accountId: string; accountType: string }>; current: string; echo?: boolean }) {
   const seen: string[] = [];
   const f = (url: string | URL | Request, init?: RequestInit) => {
@@ -616,7 +617,7 @@ function fakeIgHttp(o: { accounts: Array<{ accountId: string; accountType: strin
 Deno.test("the client logs in, moves onto the configured spread-bet account, and scrubs every secret from what it returns", async () => {
   const x = fakeIgHttp({ accounts: [{ accountId: "ZCFD1", accountType: "CFD" }, { accountId: "ZSB1", accountType: "SPREADBET" }], current: "ZCFD1", echo: true });
   const store: { s: IgbotSession | null } = { s: null };
-  const c = new IgbotClient({ creds: CREDS, fetchImpl: x.f, store });
+  const c = new IgbotClient({ creds: CREDS, fetchImpl: x.f, store, sleep: NO_WAIT });
   const err = await assertRejects(() => c.get("/positions", 2));
   assertEquals(x.seen, ["POST /session", "PUT /session", "GET /positions"]);
   for (const s of ["SECRET", "TOKEN"]) assertEquals((err as Error).message.includes(s), false, (err as Error).message);
@@ -626,7 +627,7 @@ Deno.test("the client logs in, moves onto the configured spread-bet account, and
 Deno.test("the client refuses an account that is not a spread-bet account, or not this login's, and logs out", async () => {
   for (const accounts of [[{ accountId: "ZSB1", accountType: "CFD" }], [{ accountId: "OTHER", accountType: "SPREADBET" }]]) {
     const x = fakeIgHttp({ accounts, current: accounts[0].accountId });
-    const c = new IgbotClient({ creds: CREDS, fetchImpl: x.f, store: { s: null } });
+    const c = new IgbotClient({ creds: CREDS, fetchImpl: x.f, store: { s: null }, sleep: NO_WAIT });
     await assertRejects(() => c.get("/positions", 2), IgbotRefused);
     assertEquals(x.seen, ["POST /session", "DELETE /session"]);
   }
@@ -635,10 +636,10 @@ Deno.test("the client refuses an account that is not a spread-bet account, or no
 Deno.test("the client's minute budget is the isolate's: a second client counts what the first sent (the 2026-10-29 audit)", async () => {
   const x = fakeIgHttp({ accounts: [{ accountId: "ZSB1", accountType: "SPREADBET" }], current: "ZSB1" });
   const t = Date.now() + 365 * 86400e3; // past every other test's clock, so their entries in the isolate's list have aged out
-  const a = new IgbotClient({ creds: CREDS, fetchImpl: x.f, store: { s: null }, now: () => t });
-  for (let i = 0; i < 20; i++) await a.get("/positions", 2); // with the login, 21 non-trading requests
-  const b = new IgbotClient({ creds: CREDS, fetchImpl: x.f, store: { s: null }, now: () => t });
-  for (let i = 0; i < 2; i++) await b.get("/positions", 2); // b logs in too: 24
+  const a = new IgbotClient({ creds: CREDS, fetchImpl: x.f, store: { s: null }, now: () => t, sleep: NO_WAIT });
+  for (let i = 0; i < 19; i++) await a.get("/positions", 2); // with the login and its switch, 21 non-trading requests
+  const b = new IgbotClient({ creds: CREDS, fetchImpl: x.f, store: { s: null }, now: () => t, sleep: NO_WAIT });
+  await b.get("/positions", 2); // b logs in too: 24
   await assertRejects(() => b.get("/positions", 2), IgbotRefused, "non-trading");
   assertEquals(assertIgbotAllowed("GET", `${IGBOT_DEMO_BASE}/prices/${US500}?resolution=HOUR&max=2&pageSize=0`).trading, false);
   assertThrows(() => assertIgbotAllowed("GET", `${IGBOT_DEMO_BASE}/prices/${US500}?from=2026-01-01`), IgbotRefused);
@@ -646,7 +647,189 @@ Deno.test("the client's minute budget is the isolate's: a second client counts w
 
 Deno.test("the client's minute budget sits under IG's allowances", async () => {
   const x = fakeIgHttp({ accounts: [{ accountId: "ZSB1", accountType: "SPREADBET" }], current: "ZSB1" });
-  const c = new IgbotClient({ creds: CREDS, fetchImpl: x.f, store: { s: null }, now: () => T0, sent: [] });
-  for (let i = 0; i < 23; i++) await c.get("/positions", 2); // with the login, 24 non-trading requests
+  const c = new IgbotClient({ creds: CREDS, fetchImpl: x.f, store: { s: null }, now: () => T0, sent: [], sleep: NO_WAIT });
+  for (let i = 0; i < 22; i++) await c.get("/positions", 2); // with the login and its switch, 24 non-trading requests
   await assertRejects(() => c.get("/positions", 2), IgbotRefused, "non-trading");
+});
+
+// ── the session, against IG's demo as the sync met it on 2026-10-29 ─────────────────────────────────────────────────
+
+/**
+ * IG's demo session as `igbot_requests` showed it on 2026-10-29: one good session per login (an older login's tokens
+ * answer 401 account-token-invalid once a newer login exists), a token refused for a moment after its login
+ * (`freshRefusedMs`), switches refused for given logins (`refuseSwitchOf`), sessions IG drops (`drop`), and every request
+ * recorded with the CST it carried and the clock it was sent at. An open is dealt only when its tokens are accepted.
+ */
+function demoIg(clock: { t: number }, o: { freshRefusedMs?: number; refuseSwitchOf?: number[]; current?: string } = {}) {
+  const seen: Array<{ call: string; cst: string | null; body: string | null; at: number }> = [];
+  const sessions = new Map<string, { n: number; at: number }>();
+  const dropped = new Set<number>();
+  const deals: string[] = [];
+  let logins = 0;
+  let failNext: "throw" | 500 | null = null;
+  const reply = (status: number, body: unknown, h = new Headers()) => {
+    h.set("Content-Type", "application/json");
+    return Promise.resolve(new Response(status === 204 ? null : JSON.stringify(body), { status, headers: h }));
+  };
+  const f = (url: string | URL | Request, init?: RequestInit): Promise<Response> => {
+    const u = new URL(String(url)), m = init?.method ?? "GET", h = new Headers(init?.headers);
+    const path = u.pathname.replace("/gateway/deal", "");
+    seen.push({ call: `${m} ${path}`, cst: h.get("CST"), body: typeof init?.body === "string" ? init.body : null, at: clock.t });
+    if (path === "/session" && m === "POST") {
+      logins += 1;
+      sessions.set(`cst-${logins}`, { n: logins, at: clock.t });
+      const accounts = [{ accountId: "ZCFD1", accountType: "CFD" }, { accountId: "ZSB1", accountType: "SPREADBET" }];
+      // The login names the spread-bet account as current unless told otherwise: the client switches either way.
+      return reply(200, { currentAccountId: o.current ?? "ZSB1", accounts }, new Headers({ CST: `cst-${logins}`, "X-SECURITY-TOKEN": `xst-${logins}` }));
+    }
+    const s = sessions.get(h.get("CST") ?? "");
+    if (path === "/session" && m === "DELETE") {
+      if (s) dropped.add(s.n);
+      return reply(204, null);
+    }
+    const refused = !s || s.n !== logins || dropped.has(s.n) || clock.t - s.at < (o.freshRefusedMs ?? 0) ||
+      (path === "/session" && m === "PUT" && (o.refuseSwitchOf ?? []).includes(s.n));
+    if (!s || refused) return reply(401, { errorCode: "error.security.account-token-invalid" });
+    if (path === "/session" && m === "PUT") return reply(200, {}, new Headers({ "X-SECURITY-TOKEN": `xst-${s.n}-sb` }));
+    if (path === "/positions/otc") {
+      const fail = failNext;
+      failNext = null;
+      if (fail === "throw") return Promise.reject(new DOMException("timed out", "TimeoutError"));
+      if (fail === 500) return reply(500, { errorCode: "system.error" });
+      deals.push(String(init?.body));
+      return reply(200, { dealReference: (JSON.parse(String(init?.body)) as { dealReference?: string }).dealReference ?? "IGREF" });
+    }
+    return reply(200, { positions: [] });
+  };
+  return {
+    f: f as typeof fetch, seen, deals, calls: () => seen.map((x) => x.call), drop: (n: number) => dropped.add(n),
+    fail: (x: "throw" | 500) => { failNext = x; },
+  };
+}
+/** A clock the client's waits move (each wait also yields, so two clients interleave as two isolates would). */
+function clockOf() {
+  const c = { t: T0 };
+  return { c, now: () => c.t, sleep: (ms: number) => { c.t += ms; return new Promise<void>((r) => setTimeout(r, 0)); } };
+}
+function sessionClient(ig: ReturnType<typeof demoIg>, k: ReturnType<typeof clockOf>, keeper?: ReturnType<typeof igbotSessionKeeper>, store: { s: IgbotSession | null } = { s: null }) {
+  return new IgbotClient({ creds: CREDS, fetchImpl: ig.f, now: k.now, sleep: k.sleep, store, keeper, sent: [] });
+}
+
+Deno.test("a fresh isolate's three reads share one login, and the login is always followed by the switch (2026-10-29: three logins at once)", async () => {
+  // As in production: the login lands on the other account. Until this fix each read logged in and switched on its own,
+  // and the older logins' switches were refused (the 01:28 UTC row: eight calls, one read refused).
+  const k = clockOf(), ig = demoIg(k.c, { current: "ZCFD1" });
+  const c = sessionClient(ig, k);
+  const got = await Promise.allSettled([c.get("/accounts", 1), c.get("/positions", 2), c.get("/workingorders", 2)]);
+  assertEquals(got.map((g) => g.status === "rejected" ? String(g.reason) : g.status), ["fulfilled", "fulfilled", "fulfilled"]);
+  assertEquals(ig.calls(), ["POST /session", "PUT /session", "GET /accounts", "GET /positions", "GET /workingorders"]);
+  assertEquals(c.logins, 1);
+  // The same on the spread-bet account the login names: the switch is sent all the same.
+  const k2 = clockOf(), ig2 = demoIg(k2.c);
+  await sessionClient(ig2, k2).get("/positions", 2);
+  assertEquals(ig2.calls(), ["POST /session", "PUT /session", "GET /positions"]);
+});
+
+Deno.test("a token IG has just issued is refused for a moment: the switch waits, goes again on the same tokens, and nothing logs in again", async () => {
+  const k = clockOf(), ig = demoIg(k.c, { freshRefusedMs: 4_000 });
+  const c = sessionClient(ig, k);
+  await c.get("/positions", 2);
+  assertEquals(ig.seen.map((x) => [x.call, x.at - T0]), [["POST /session", 0], ["PUT /session", 2_000], ["PUT /session", 5_000], ["GET /positions", 6_000]]);
+  assertEquals([c.logins, c.tokenRetriesUsed], [1, 1]);
+});
+
+Deno.test("a switch IG keeps refusing: the refused session is logged out and the one re-login waits 18 s from its login; refused again, nothing is left alive", async () => {
+  const k = clockOf(), ig = demoIg(k.c, { refuseSwitchOf: [1] });
+  const c = sessionClient(ig, k);
+  await c.get("/positions", 2);
+  assertEquals(ig.seen.map((x) => [x.call, x.at - T0]), [
+    ["POST /session", 0], ["PUT /session", 2_000], ["PUT /session", 5_000], ["DELETE /session", IGBOT_SESSION.reloginWaitMs], ["POST /session", 18_000],
+    ["PUT /session", 20_000], ["GET /positions", 21_000],
+  ]);
+  assertEquals([c.logins, c.logouts], [2, 1]);
+  // Both logins refused: the request fails, both sessions are logged out, and the keeper holds nothing.
+  const k2 = clockOf(), ig2 = demoIg(k2.c, { refuseSwitchOf: [1, 2] }), db = new FakeDb();
+  const c2 = sessionClient(ig2, k2, igbotSessionKeeper(db));
+  await assertRejects(() => c2.get("/positions", 2), Error, "account switch refused: 401 error.security.account-token-invalid");
+  assertEquals(ig2.calls().filter((x) => x === "POST /session" || x === "DELETE /session"), ["POST /session", "DELETE /session", "POST /session", "DELETE /session"]);
+  assertEquals(ig2.calls().includes("GET /positions"), false);
+  assertEquals([db.t.igbot_exec_state[0].session_box ?? null, db.t.igbot_exec_state[0].login_until], [null, null]);
+});
+
+Deno.test("the session is kept for the next minute's isolate, sealed: it reads with no login, and the row holds nothing IG would accept", async () => {
+  const k = clockOf(), ig = demoIg(k.c), db = new FakeDb(), keeper = igbotSessionKeeper(db);
+  const a = sessionClient(ig, k, keeper);
+  await a.get("/positions", 2);
+  const box = String(db.t.igbot_exec_state[0].session_box);
+  assert(box.startsWith("v1."), box);
+  for (const s of ["cst-", "xst-", "SECRET", "ZSB1"]) assertEquals(box.includes(s), false, s);
+  assertEquals((await openSession(box, CREDS))?.cst, "cst-1");
+  assertEquals((await openSession(box, CREDS))?.xst, "xst-1-sb");
+  assertEquals(await openSession(box, { ...CREDS, password: "another" }), null);
+  assertEquals(await openSession(box, { ...CREDS, accountId: "ZSB2" }), null);
+  assertEquals(await openSession(box.slice(0, -2) + (box.endsWith("AA") ? "BB" : "AA"), CREDS), null);
+  assertEquals(db.t.igbot_exec_state[0].login_until, null);
+  k.c.t += 60e3;
+  const b = sessionClient(ig, k, keeper);
+  await b.get("/positions", 2);
+  assertEquals(ig.calls(), ["POST /session", "PUT /session", "GET /positions", "GET /positions"]);
+  assertEquals(ig.seen.at(-1)!.cst, "cst-1");
+  assertEquals([b.logins, b.adopted], [0, 1]);
+});
+
+Deno.test("a session IG drops is replaced once by the isolate that meets the refusal, and every other isolate takes the new one from the keeper", async () => {
+  const k = clockOf(), ig = demoIg(k.c), db = new FakeDb(), keeper = igbotSessionKeeper(db);
+  const warm: { s: IgbotSession | null } = { s: null };
+  await sessionClient(ig, k, keeper, warm).get("/positions", 2);
+  ig.drop(1);
+  k.c.t += 60e3;
+  const c = sessionClient(ig, k, keeper);
+  await c.get("/positions", 2);
+  // The kept session, refused; the same tokens again 3 s later, refused; that session logged out; one login.
+  assertEquals(ig.calls().slice(3), ["GET /positions", "GET /positions", "DELETE /session", "POST /session", "PUT /session", "GET /positions"]);
+  assertEquals([c.adopted, c.logins, c.logouts, c.tokenRetriesUsed], [1, 1, 1, 1]);
+  // The warm isolate still holds the dropped session in memory: its next request takes the keeper's and sends nothing on it.
+  const n = ig.seen.length;
+  const w = sessionClient(ig, k, keeper, warm);
+  await w.get("/positions", 2);
+  assertEquals(ig.seen.slice(n).map((x) => [x.call, x.cst]), [["GET /positions", "cst-2"]]);
+  assertEquals([w.logins, w.adopted], [0, 1]);
+});
+
+Deno.test("two isolates with no session at once: one logs in, the other waits for its session (one login at a time across the function)", async () => {
+  const k = clockOf(), ig = demoIg(k.c), db = new FakeDb(), keeper = igbotSessionKeeper(db);
+  const a = sessionClient(ig, k, keeper), b = sessionClient(ig, k, keeper);
+  await Promise.all([a.get("/positions", 2), b.get("/workingorders", 2)]);
+  assertEquals(ig.calls().filter((x) => x === "POST /session").length, 1);
+  assertEquals([a.logins + b.logins, a.adopted + b.adopted], [1, 1]);
+  assertEquals(ig.seen.filter((x) => x.call.startsWith("GET")).map((x) => x.cst), ["cst-1", "cst-1"]);
+  assertEquals(db.t.igbot_exec_state[0].login_until, null);
+});
+
+Deno.test("an order is never sent twice on a retry: only IG's refusal of the tokens, made before it deals, sends the same body again", async () => {
+  const k = clockOf(), ig = demoIg(k.c), db = new FakeDb(), keeper = igbotSessionKeeper(db);
+  await sessionClient(ig, k, keeper).get("/positions", 2);
+  ig.drop(1);
+  k.c.t += 60e3;
+  const body = {
+    dealReference: "IGBOTtest1", epic: US500, expiry: "DFB", direction: "BUY", size: 0.24, orderType: "MARKET", guaranteedStop: true, stopLevel: 6761, limitLevel: 6881,
+    currencyCode: "GBP", forceOpen: true,
+  };
+  const a = await sessionClient(ig, k, keeper).call("POST", "/positions/otc", { version: 2, body });
+  assertEquals(a.status, 200);
+  const sends = ig.seen.filter((x) => x.call === "POST /positions/otc");
+  // Refused twice on the dropped session (IG dealt neither), then dealt once on the new one: one body, one deal reference.
+  assertEquals(sends.map((x) => x.cst), ["cst-1", "cst-1", "cst-2"]);
+  assertEquals(new Set(sends.map((x) => x.body)).size, 1);
+  assertEquals(ig.deals.length, 1);
+  // No answer (a timeout) or IG's 5xx: sent once, never again here; the order path's `unknown` state settles it.
+  for (const fail of ["throw", 500] as const) {
+    const n = ig.seen.length;
+    ig.fail(fail);
+    const c = sessionClient(ig, k, keeper);
+    if (fail === "throw") await assertRejects(() => c.call("POST", "/positions/otc", { version: 2, body }));
+    else assertEquals((await c.call("POST", "/positions/otc", { version: 2, body })).status, 500);
+    assertEquals(ig.seen.slice(n).map((x) => x.call), ["POST /positions/otc"]);
+  }
+  assertEquals(ig.deals.length, 1);
 });
