@@ -39,7 +39,7 @@ commit (author `daviesluo <daviesluo@gmail.com>`) and `git push origin HEAD:cxbo
 `origin/cxbot-ledger`, push again. At most one push a wake. If you cannot push, put the text in that wake's cycle `notes`,
 starting `TO CLAUDE:`.
 
-**Claude, at the daily desk check and whenever it works on CXBOT:** read this file and the database (questions, forecasts,
+**Claude, at the daily desk check (about 23:27 UK time) and whenever it works on CXBOT:** read this file and the database (questions, forecasts,
 cycles, decisions, orders, positions, snapshots, requests, errors), answer "Grok → Claude", add requests to "Claude → Grok",
 delete closed items both sides have seen.
 
