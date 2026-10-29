@@ -1226,7 +1226,7 @@ const LP_LIVE_FIXTURE = JSON.parse(fs.readFileSync(new URL('./lp_live_fixture.js
  * function's answer for its `input` and every figure below against the arithmetic): funded $100, value $102.30 (cash $69.10
  * + $33.20 held), total +$2.30, today +$0.70, unrealised +$0.20 on a cost of $30, realised +$2.10; stop room $32.30 and
  * $10.86 (the day stop 10 % of the day's $101.60 open since D19); Brier 0.106 against the market's 0.084 on 2 resolved; the agent's 22:31 report ($100.10, +$0.10) off the record
- * ($102.30, +$2.30) by more than $1; a journal of 8 entries whose markets are titled by Gamma (0126) and linked, by the record
+ * ($102.30, +$2.30) by more than $1; a journal of 14 entries (10 shown, then "Load more"; the 6 oldest did nothing) whose markets are titled by Gamma (0126) and linked, by the record
  * unlinked, or pending. `waiting` is the same account before the go, in dry-run, its $100 funded and its journal already
  * filling. Served alone (`grokpm`, `grokpm-waiting`), so LIVE lists it beside the base payload's rows.
  */
@@ -5208,6 +5208,8 @@ async function run() {
             annual: txt(root.querySelector('.ag-gpm-days .ag-quote-days-annual')), daysMore: root.querySelectorAll('.ag-gpm-days .ag-more').length,
             positions: rows('.ag-gpm-positions'), days: rows('.ag-gpm-days'),
             entries: [...root.querySelectorAll('.ag-gpm-entry')].map((e) => txt(e)),
+            // The JOURNAL's "Load more" (Davies, 2026-10-29: "默认只显示前10条…每点一次多加载10条"): DAYS' button.
+            journalMore: [...root.querySelectorAll('.ag-gpm-journal button.btn-ghost.ag-more')].map(txt).join(','),
             heads: [...root.querySelectorAll('.ag-gpm-entry-head')].map((e) => [...e.querySelectorAll('.ag-gpm-time, .ag-gpm-chip, .ag-gpm-meta')].map(txt).join(' | ')),
             // Every scoreboard cell inside the scoreboard: REALIZED, the sixth, fell into a column of no width and was cut off.
             sbClipped: (() => {
@@ -5259,7 +5261,9 @@ async function run() {
             'cmegroup.com https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html noopener noreferrer nofollow _blank underline'],
           heads: ['17 Sep 22:30 UTC | no action', '17 Sep 14:00 UTC | open | cat B | buy Yes | 20 @ 40¢', '17 Sep 09:00 UTC | open | cat B | buy No | 25 @ 60¢',
             '16 Sep 16:00 UTC | close | cat C | sell Yes | 15 @ 25¢', '16 Sep 13:55 UTC | open | cat B | buy Yes | 15 @ 31¢', '16 Sep 10:58 UTC | open | cat A | buy Yes | 10 @ 70¢',
-            '16 Sep 10:40 UTC | open | cat B | buy Yes | 5 @ 85¢', '16 Sep 10:20 UTC | cancel | cat C'],
+            '16 Sep 10:40 UTC | open | cat B | buy Yes | 5 @ 85¢', '16 Sep 10:20 UTC | cancel | cat C', '16 Sep 09:50 UTC | no action', '16 Sep 09:20 UTC | no action'],
+          // Past the first ten, after one "Load more": the fixture's four oldest, then no button (all fourteen are shown).
+          moreHeads: ['16 Sep 08:50 UTC | no action', '16 Sep 08:20 UTC | no action', '16 Sep 07:50 UTC | no action', '16 Sep 07:20 UTC | no action'],
         };
         if (gv && gv.title === NAME && gv.modals === 2 && gv.head === 'LIVE Polymarket' && /is-running/.test(await page.locator('.ag-gpm-detail .ag-detail-head .ag-status').getAttribute('class') ?? '')
           && gv.scoreboard === SB && gv.stop === WANT.stop && gv.mismatch === WANT.mismatch && gv.waiting === '') {
@@ -5290,9 +5294,9 @@ async function run() {
           } else fail(GT('scoreboard'), `GROKPM ${gv.sbShape} (${gv.sbCols} columns, "${gsb}") against PR5's ${pr5?.shape} (${pr5?.cols} columns, "${pr5?.cls}")`);
         } else fail(GT('page'), `page ${JSON.stringify(gv && { title: gv.title, modals: gv.modals, head: gv.head, headDot: gv.headDot, sb: gv.scoreboard, stop: gv.stop, mismatch: gv.mismatch, waiting: gv.waiting })}, wanted ${SB}`);
         if (gv && gv.sections === WANT.sections && gv.tiles === WANT.tiles && !/\bon \d+ resolved/.test(gv.statusText) && JSON.stringify(gv.positions) === JSON.stringify(WANT.positions) && JSON.stringify(gv.days) === JSON.stringify(WANT.days) && gv.annual === WANT.annual && gv.daysMore === 0
-          && gv.entries.length === 8 && JSON.stringify(gv.heads) === JSON.stringify(WANT.heads) && /^as of \d{1,2} \w{3} \d{2}:\d{2} [A-Z]+ · armed · read every 5 min · refreshes every minute$/.test(gv.foot)) {
-          ok(GT('page'), `its sections are ${WANT.sections}: STATUS ${gv.tiles}; POSITIONS from the record (3, one resolved); JOURNAL newest first (8 entries, each head "${gv.heads[1]}"); DAYS "${gv.annual}" ${JSON.stringify(gv.days)}, both days in view and no "Load full history"`);
-        } else fail(GT('page'), `sections ${gv?.sections}, tiles "${gv?.tiles}", status "${gv?.statusText}", positions ${JSON.stringify(gv?.positions)}, days ${JSON.stringify(gv?.days)} "${gv?.annual}" (${WANT.annual}) more ${gv?.daysMore}, heads ${JSON.stringify(gv?.heads)}, foot "${gv?.foot}"`);
+          && gv.entries.length === 10 && gv.journalMore === 'Load more' && JSON.stringify(gv.heads) === JSON.stringify(WANT.heads) && /^as of \d{1,2} \w{3} \d{2}:\d{2} [A-Z]+ · armed · read every 5 min · refreshes every minute$/.test(gv.foot)) {
+          ok(GT('page'), `its sections are ${WANT.sections}: STATUS ${gv.tiles}; POSITIONS from the record (3, one resolved); JOURNAL newest first (its first 10 of ${GROKPM_FIXTURE.output.journal.length} and "${gv.journalMore}", each head "${gv.heads[1]}"); DAYS "${gv.annual}" ${JSON.stringify(gv.days)}, both days in view and no "Load full history"`);
+        } else fail(GT('page'), `sections ${gv?.sections}, tiles "${gv?.tiles}", status "${gv?.statusText}", positions ${JSON.stringify(gv?.positions)}, days ${JSON.stringify(gv?.days)} "${gv?.annual}" (${WANT.annual}) more ${gv?.daysMore}, heads ${JSON.stringify(gv?.heads)} (${gv?.entries.length}, button "${gv?.journalMore}"), foot "${gv?.foot}"`);
         // The JOURNAL (Davies, 2026-10-17): titles linked and underlined, never a condition id; sources named by their domain.
         const e5 = gv?.entries[5] ?? '', x2 = gv?.entries[6] ?? '';
         if (gv && JSON.stringify(gv.markets) === JSON.stringify(WANT.markets) && JSON.stringify(gv.links) === JSON.stringify(WANT.links) && !gv.hex && gv.linkAttrs
@@ -5301,6 +5305,12 @@ async function run() {
           && x2.includes('p 85¢ vs market 86.5¢ (edge \u22121.5)') && gv.entries[7].includes('market title pending')) {
           ok(GT('journal'), `the JOURNAL names every market (${gv.markets.length}: 3 linked and underlined, 3 by title, 1 pending), shows no condition id, and its ${gv.links.length} sources as underlined domains on one line each (${gv.links.map((l) => l.split(' ')[0]).join(', ')})`);
         } else fail(GT('journal'), `markets ${JSON.stringify(gv?.markets)}, links ${JSON.stringify(gv?.links)}, hex ${gv?.hex}, attrs ${gv?.linkAttrs}, source lines ${JSON.stringify(gv?.sourceLines)}, entries ${JSON.stringify(gv?.entries)}`);
+        // One "Load more": ten more wanted, the four left shown, and the button gone; nothing asked of the server (its thirty hold all).
+        await page.locator('.ag-gpm-detail .ag-gpm-journal button.ag-more').first().click().catch(() => {});
+        const gm = await readUntil(page, readGrokPage, (r) => r?.entries.length === 14);
+        if (gm && gm.journalMore === '' && JSON.stringify(gm.heads) === JSON.stringify([...WANT.heads, ...WANT.moreHeads]) && JSON.stringify(gm.markets) === JSON.stringify(WANT.markets)) {
+          ok(GT('journal-more'), `one "Load more" shows the JOURNAL's other ${gm.entries.length - 10} (${gm.heads.slice(10).map((h) => h.split(' | ')[0]).join(', ')}), all ${gm.entries.length} in view and the button gone`);
+        } else fail(GT('journal-more'), `after one click: ${gm ? `${gm.entries.length} entries, button "${gm.journalMore}", heads ${JSON.stringify(gm.heads)}` : 'never 14 entries'}`);
         if (gv && gv.overflow <= 1 && gv.pageOverflow <= 1 && gv.off === 0 && gv.sbClipped === 0) ok(GT('width'), `nothing on its page is wider than the screen (page ${gv.overflow}px, document ${gv.pageOverflow}px), and all six scoreboard cells show whole`);
         else fail(GT('width'), `page overflow ${gv?.overflow}, document ${gv?.pageOverflow}, boxes outside ${gv?.off}, scoreboard cells cut off ${gv?.sbClipped}`);
         await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
@@ -5319,7 +5329,7 @@ async function run() {
         await shot(page, 'agents-grokpm-waiting-journal');
         if (gw && gw.title === NAME && gw.head === 'DRY-RUN Polymarket' && /\bag-dot-stale\b/.test(gw.headDot) && !/LIVE/.test(gw.head) && gw.headStatus.startsWith('dry-run')
           && gw.waiting === '' && gw.stop === '' && gw.mismatch === '' && gw.scoreboard.startsWith(`FUNDED=$100 | DEPLOYED=$0(0%) | TODAY=${TW.gl(0, 100).replace(' ', '')} | `)
-          && gw.positions.length === 1 && gw.days.length === 1 && gw.entries.length === 8 && !gw.hex && gw.markets.filter((x) => x.startsWith('market title pending')).length === 2
+          && gw.positions.length === 1 && gw.days.length === 1 && gw.entries.length === 10 && gw.journalMore === 'Load more' && !gw.hex && gw.markets.filter((x) => x.startsWith('market title pending')).length === 2
           && gw.overflow <= 1 && gw.pageOverflow <= 1 && gw.off === 0 && gw.sbClipped === 0) {
           ok(GT('waiting'), `before the go the head reads "${gw.head}" with the amber light ("${gw.headStatus}"), FUNDED $100 (${gw.scoreboard}), no dry-run line, no stop line, its journal titled`);
         } else fail(GT('waiting'), `waiting page ${JSON.stringify(gw)}`);

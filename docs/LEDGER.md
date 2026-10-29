@@ -796,6 +796,13 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third).
 
+### [2026-10-29 20:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Polymarket analyst: the JOURNAL ten at a time, "Load more"** (sub-agent; commit, not pushed; Davies, 10-29: "…JOURNAL也默认只显示
+  前10条…"Load more"，然后每点一次多加载10条"). `useLoadMore` (agents.jsx, DAYS' `ag-more` button and `useDaysWindow`'s shape): 10,
+  +10 a click, no button once all are shown. The dashboard still carries 30 (reads 31 for `journalMore`); past them a click pages
+  from the server, `agents?action=grokpmjournal&before=&skip=&limit=` (≤ 50, `readGrokPmJournal`, ties at one instant by `skip`
+  ids): production holds 1,237 decisions (2.1 MB), too many for the minute's payload. Fixture: 6 older no-action entries (14).
+
 ### [2026-10-29 20:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Coinbase client signs Ed25519 too** (sub-agent; commit, not pushed; the main session's ask: Davies' CDP key is Ed25519, not a
   PEM). `_shared/coinbase.ts`: `cbKeyKind` ("pem-ec" ES256 | "ed25519" EdDSA | "unknown", refused), `importCbSigner` (base64 of a

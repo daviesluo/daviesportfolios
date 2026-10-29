@@ -16,7 +16,7 @@ import { SurfaceBoundary } from '../app/surface_boundary.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, FXW_ROW_ID, fmtFx, fxwAudRow, fxwTiles, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokTestRow, grokTestOf, grokTestTiles, grokTestLayerCells, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmDaysAnnualPct, GROKPM_DAYS_ANNUAL_TITLE, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtFeeIn4, fmtGbp, fmtGbp4, fmtIn, fmtIn4, quotesDetailInCcy, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_NUDGE_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesPageFor, quotesOkxName, quotesOkxOf, quotesOkxRow, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quoteDaysRecent, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwShareText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows,
+  AGENT_TABS, FXW_ROW_ID, fmtFx, fxwAudRow, fxwTiles, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokTestRow, grokTestOf, grokTestTiles, grokTestLayerCells, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmDaysAnnualPct, GROKPM_DAYS_ANNUAL_TITLE, GROKPM_JOURNAL_STEP, fetchGrokPmJournal, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtFeeIn4, fmtGbp, fmtGbp4, fmtIn, fmtIn4, quotesDetailInCcy, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_NUDGE_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesPageFor, quotesOkxName, quotesOkxOf, quotesOkxRow, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quoteDaysRecent, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwShareText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -467,6 +467,35 @@ function useDaysWindow(days, nowMs) {
     ? <button type="button" className="btn-ghost ag-more" onClick={() => setFull((f) => !f)}>{full ? 'Show last 7 days' : 'Load full history'}</button>
     : null;
   return { shown: full ? days : recent, more };
+}
+
+/**
+ * Rows shown `step` at a time, as DAYS' window is (`useDaysWindow`'s shape: the rows to draw and the button under them, the
+ * same `ag-more` button): the first `step`, then `step` more a click on "Load more", no button once every row is shown.
+ * `fetchMore(n)`, when given, loads older rows the page does not hold yet when a click wants more than it has, and answers
+ * whether any remain beyond them; a failed fetch leaves the button for another click.
+ * @template T
+ * @param {T[]} rows
+ * @param {number} step
+ * @param {((n: number) => Promise<boolean>) | null} [fetchMore]
+ */
+function useLoadMore(rows, step, fetchMore = null) {
+  const [n, setN] = React.useState(step);
+  const [busy, setBusy] = React.useState(false);
+  const [done, setDone] = React.useState(false);
+  const canFetch = !!fetchMore && !done;
+  const click = async () => {
+    const want = n + step;
+    if (rows.length < want && canFetch && fetchMore) {
+      setBusy(true);
+      try { if (!(await fetchMore(want - rows.length))) setDone(true); } catch { /* nothing loaded: the button stays */ } finally { setBusy(false); }
+    }
+    setN(want);
+  };
+  const more = rows.length > n || canFetch
+    ? <button type="button" className="btn-ghost ag-more" onClick={click} disabled={busy}>{busy ? 'Loading…' : 'Load more'}</button>
+    : null;
+  return { shown: rows.slice(0, n), more };
 }
 
 /** A closed UTC day as the page names it: "25 Sep", in the site's own month table (en-GB alone writes "Sept"). @param {string} day */
@@ -969,7 +998,7 @@ function GrokPmDetail({ g, m, at, nowMs }) {
   const usd = (x) => m(fmtUsd(Number(x) || 0, true));
   const money = rowMoney(row);
   const stop = grokPmStopText(g, m), mismatch = grokPmMismatchText(g, m);
-  const positions = g.positions ?? [], journal = g.journal ?? [];
+  const positions = g.positions ?? [];
   return (
     <div className="ag-detail ag-gpm-detail">
       <div className="ag-detail-head">
@@ -1027,11 +1056,37 @@ function GrokPmDetail({ g, m, at, nowMs }) {
         </div>
       </section>
       <GrokPmDays g={g} m={m} nowMs={nowMs} />
+      <GrokPmJournal g={g} m={m} />
+      <div className="ag-updated dim mono ag-gpm-foot">as of {when(at)} {UK_TZ} · {g.mode === 'live' ? 'armed' : 'dry-run'} · read every 5 min · refreshes every minute</div>
+    </div>
+  );
+}
+
+/**
+ * "Polymarket analyst"'s JOURNAL, newest first (Davies, 2026-10-29: "…JOURNAL也默认只显示前10条，然后加个和上面days类似的按钮叫"Load more"，
+ * 然后每点一次多加载10条"): the first ten, ten more a click (`useLoadMore`). The dashboard carries the newest thirty and says
+ * whether older ones exist (`journalMore`); past those the page asks the server for the next ones (`fetchGrokPmJournal`), a
+ * click at a time, and keeps them while it is open.
+ * @param {{ g: any, m: (s: string) => string, fetchImpl?: typeof fetch }} props
+ */
+export function GrokPmJournal({ g, m, fetchImpl = undefined }) {
+  const base = g?.journal ?? [];
+  const [older, setOlder] = React.useState(/** @type {any[]} */ ([]));
+  const have = new Set(base.map((/** @type {any} */ j) => j.id));
+  const journal = [...base, ...older.filter((j) => !have.has(j.id))];
+  const fetchMore = g?.journalMore && journal.length ? async (/** @type {number} */ n) => {
+    const last = journal[journal.length - 1];
+    const page = await fetchGrokPmJournal(last.ts, journal.filter((j) => j.ts === last.ts).map((j) => j.id), Math.max(n, GROKPM_JOURNAL_STEP), fetchImpl);
+    setOlder((o) => [...o, ...page.journal]);
+    return page.more;
+  } : null;
+  const { shown, more } = useLoadMore(journal, GROKPM_JOURNAL_STEP, fetchMore);
+  return (
       <section className="ag-section ag-gpm-journal">
         <div className="ag-section-title mono">JOURNAL</div>
         {journal.length === 0 && <div className="hl-empty dim ag-gpm-empty">Nothing reported yet.</div>}
         <ol className="ag-gpm-entries">
-          {journal.map((/** @type {any} */ j) => {
+          {shown.map((/** @type {any} */ j) => {
             const v = grokPmJournalView(j, m);
             return (
               <li key={j.id} className={`ag-gpm-entry is-${v.tone}`}>
@@ -1061,9 +1116,8 @@ function GrokPmDetail({ g, m, at, nowMs }) {
             );
           })}
         </ol>
+        {more}
       </section>
-      <div className="ag-updated dim mono ag-gpm-foot">as of {when(at)} {UK_TZ} · {g.mode === 'live' ? 'armed' : 'dry-run'} · read every 5 min · refreshes every minute</div>
-    </div>
   );
 }
 

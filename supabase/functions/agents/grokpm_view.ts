@@ -117,6 +117,44 @@ export function safeLinks(x: unknown): string[] {
   }).slice(0, 10);
 }
 
+/** A condition id as the journal's maps key it. */
+const condKey = (c: unknown) => String(c ?? "").trim().toLowerCase();
+
+/**
+ * The journal's entries as the page reads them, each with its market's title and link: Gamma's question and slug
+ * (`marketOf`, by lower-case condition id), else the record's own title (`titleOf`), else none. One function for the
+ * dashboard's first thirty and the older pages `grokpmjournal` serves, so a page loaded later reads as the first.
+ */
+export function grokPmJournalRows(decisions: GrokPmDecisionRow[], marketOf: Map<string, GrokPmMarketRow>, titleOf: Map<string, string>) {
+  return decisions.map((x) => {
+    const mk = x.market_id ? marketOf.get(condKey(x.market_id)) : undefined;
+    return {
+      id: x.id, ts: x.ts, action: x.action, category: x.category, title: mk?.question || (x.market_id && titleOf.get(condKey(x.market_id))) || null,
+      url: marketUrl(mk?.slug), marketId: x.market_id,
+      outcome: x.outcome, side: x.side, price: nz(x.price), size: nz(x.size), p: nz(x.p), m: nz(x.m), reason: String(x.reason ?? ""),
+      invalidation: x.invalidation ?? null, sources: safeLinks(x.sources),
+    };
+  });
+}
+
+/** The page loads the journal ten entries a click (Davies, 2026-10-29); a server page holds at most this many. */
+export const GROKPM_JOURNAL_PAGE_MAX = 50;
+
+/**
+ * Older journal entries, for "Load more" past the dashboard's thirty: the decisions at or before `before` (newest first), less
+ * those the page already holds at that instant (`skip`, their ids), at most `limit`; and whether any older remain. Titles as
+ * `grokPmJournalRows` gives them, from Gamma's markets and the record's entries for those markets.
+ */
+export function grokPmJournalPage(p: { decisions: GrokPmDecisionRow[]; skip: string[]; limit: number; markets: GrokPmMarketRow[]; entries: Array<{ cond: string; title: string | null }> }) {
+  const skip = new Set(p.skip);
+  const rows = p.decisions.filter((x) => !skip.has(x.id));
+  const page = rows.slice(0, p.limit);
+  const marketOf = new Map(p.markets.filter((x) => x.question).map((x) => [condKey(x.cond), x]));
+  const titleOf = new Map<string, string>();
+  for (const e of p.entries) if (e.title) titleOf.set(condKey(e.cond), e.title);
+  return { journal: grokPmJournalRows(page, marketOf, titleOf), more: rows.length > p.limit };
+}
+
 /**
  * The Brier comparison on every resolved entry (see the header): each entry once, the agent's p from its last `open` of
  * that token at or before its first fill (else its first `open` of it), the market's m the record's mid when first seen
@@ -241,15 +279,9 @@ export function grokPmSummary(input: {
   }
 
   const brier = brierOf(input.entries, input.resolutions, input.opens);
-  const journal = input.decisions.slice(0, GROKPM_JOURNAL_ROWS).map((x) => {
-    const mk = x.market_id ? marketOf.get(key(x.market_id)) : undefined;
-    return {
-      id: x.id, ts: x.ts, action: x.action, category: x.category, title: mk?.question || (x.market_id && titleOf.get(key(x.market_id))) || null,
-      url: marketUrl(mk?.slug), marketId: x.market_id,
-      outcome: x.outcome, side: x.side, price: nz(x.price), size: nz(x.size), p: nz(x.p), m: nz(x.m), reason: String(x.reason ?? ""),
-      invalidation: x.invalidation ?? null, sources: safeLinks(x.sources),
-    };
-  });
+  const journal = grokPmJournalRows(input.decisions.slice(0, GROKPM_JOURNAL_ROWS), marketOf, titleOf);
+  // The page shows ten and loads ten more a click (2026-10-29); beyond these thirty it pages from the server (`grokpmjournal`).
+  const journalMore = input.decisions.length > GROKPM_JOURNAL_ROWS;
 
   const lastAt = input.latest?.at ?? input.recState?.updated_at ?? null;
   const lagMinutes = lastAt ? Math.max(0, Math.round((input.nowMs - Date.parse(lastAt)) / M)) : null;
@@ -269,7 +301,7 @@ export function grokPmSummary(input: {
     },
     lastSnapshotAt: input.latest?.at ?? null, lagMinutes, running: lagMinutes !== null && lagMinutes <= GROKPM_STALE_MINUTES, lastError: input.recState?.last_error ?? null,
     status: { open: positions.filter((p) => !p.redeemable).length, brierAgent: brier.agent, brierMarket: brier.market, scored: brier.n, resolved: brier.resolved },
-    positions, journal, days, cycle,
+    positions, journal, journalMore, days, cycle,
     mismatch: !!cycle?.mismatch || days.some((d) => d.mismatch),
   };
 }

@@ -12,7 +12,7 @@ import {
   QUOTE_TICKER_FRESH_MS,
   QUOTE_LIVE_REASON_COLUMNS, QUOTE_LIVE_SUMMARY_COLUMNS, QUOTES_LIVE_KNOWN_REFUSALS, QUOTES_LIVE_ORDERS_FILTER, QUOTES_LIVE_PAGE_ROWS, type QuoteLiveRecentRow, withConversionFees,
   liveDays, readQuotesTwin, twinInUsd, twinsDelayMs, twinsOnPage, TWINS_START_MS,
-  deadmanBeatAt, DEADMAN_BEAT_KEY, runSelectKeptAlive, runQuotesAction, quotesPaperErrorReport,
+  deadmanBeatAt, DEADMAN_BEAT_KEY, runSelectKeptAlive, runQuotesAction, quotesPaperErrorReport, readGrokPmJournal,
 } from "./index.ts";
 import { QUOTE_LEASE_STEP, runQuotes, type QuoteReport } from "./quotes.ts";
 import type { QuoteLiveReport } from "./quotes_live.ts";
@@ -1622,4 +1622,29 @@ Deno.test("econcal: the key is used for the request and appears in no answer; Fi
   assertEquals((await runEconcal({ from: "2026-10-14", to: "2026-10-15", key: undefined, fetchImpl: never })).error, "FINNHUB_API_KEY is not set");
   assertEquals((await runEconcal({ from: "x", to: "y", key, fetchImpl: never })).ok, false);
   assertEquals(asked, 0);
+});
+
+Deno.test("Polymarket analyst's JOURNAL past the dashboard's thirty: pages from the server, newest first, skipping what the page holds (2026-10-29)", async () => {
+  // Davies, 2026-10-29: "…JOURNAL也默认只显示前10条…"Load more"，然后每点一次多加载10条". 45 entries, two of them at the same instant.
+  const C = "0x" + "a1".repeat(32);
+  const ts = (i: number) => new Date(Date.UTC(2026, 9, 20) + i * 60e3).toISOString();
+  const rows = Array.from({ length: 45 }, (_, i) => ({ id: `d${String(i).padStart(2, "0")}`, ts: ts(i === 44 ? 43 : i), action: "no_action", market_id: i === 5 ? C : null,
+    token_id: null, outcome: null, side: null, price: null, size: null, p: null, m: null, category: null, sources: [], reason: `r${i}`, invalidation: null }));
+  const { db } = memDb({ grokpm_decisions: rows, grokpm_markets: [{ cond: C, question: "Will A?", slug: "will-a", updated_at: ts(0) }], grokpm_entries: [] }, { now: () => 0 });
+  // The dashboard held d44, d43 (both at ts 43) … d14: the next page starts at ts 14 and skips d14.
+  const p1 = await readGrokPmJournal(db, ts(14), ["d14"], 10) as { journal: Array<{ id: string; title: string | null }>; more: boolean };
+  assertEquals(p1.journal.map((x) => x.id), ["d13", "d12", "d11", "d10", "d09", "d08", "d07", "d06", "d05", "d04"]);
+  assertEquals(p1.journal.find((x) => x.id === "d05")!.title, "Will A?");
+  assertEquals(p1.more, true);
+  const p2 = await readGrokPmJournal(db, ts(4), ["d04"], 10) as { journal: Array<{ id: string }>; more: boolean };
+  assertEquals([p2.journal.map((x) => x.id), p2.more], [["d03", "d02", "d01", "d00"], false]);
+  // Two at one instant: skipping the one the page has leaves the other.
+  const p3 = await readGrokPmJournal(db, ts(43), ["d44"], 2) as { journal: Array<{ id: string }> };
+  assertEquals(p3.journal.map((x) => x.id), ["d43", "d42"]);
+  // A page asks for at most fifty (500 is read as 50), and a bad instant is refused.
+  const big = await readGrokPmJournal(db, ts(44), [], 500) as { journal: unknown[]; more: boolean };
+  assertEquals([big.journal.length, big.more], [45, false]);
+  const capped = await readGrokPmJournal(memDb({ grokpm_decisions: Array.from({ length: 60 }, (_, i) => ({ ...rows[0], id: `e${i}`, ts: ts(i) })), grokpm_markets: [], grokpm_entries: [] }, { now: () => 0 }).db, ts(60), [], 500) as { journal: unknown[]; more: boolean };
+  assertEquals([capped.journal.length, capped.more], [50, true]);
+  assertEquals(await readGrokPmJournal(db, "yesterday", [], 10), { error: "before must be a time" });
 });

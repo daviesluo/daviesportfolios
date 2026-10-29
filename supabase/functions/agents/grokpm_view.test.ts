@@ -14,7 +14,7 @@
 // slot says $102.30 and +$2.30: a mismatch. Its 09-16 summary says +$1.50 against the record's +$1.60: within $1.
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import fixture from "../../../src/e2e/grokpm_fixture.json" with { type: "json" };
-import { brierOf, GROKPM_MISMATCH_USD, grokPmSummary, marketUrl, safeLinks } from "./grokpm_view.ts";
+import { brierOf, GROKPM_JOURNAL_ROWS, GROKPM_MISMATCH_USD, grokPmSummary, marketUrl, safeLinks } from "./grokpm_view.ts";
 
 // deno-lint-ignore no-explicit-any
 const input = fixture.input as any;
@@ -53,7 +53,9 @@ Deno.test("every figure matches the arithmetic worked by hand", () => {
   // The account's address never reaches the page (D2): only the order path's mode.
   assertEquals(["wallet" in o, o.mode, fixture.waiting.mode], [false, "live", "dry_run"]);
   // The journal: newest first, and only http(s) links.
-  assertEquals(o.journal.map((j) => j.id), ["d-6", "d-5", "d-4", "d-3", "d-2", "d-1", "x-2", "x-1"]);
+  // Fourteen, past the page's first ten (its "Load more" shows the rest), and all the dashboard carries: no more on the server.
+  assertEquals(o.journal.map((j) => j.id), ["d-6", "d-5", "d-4", "d-3", "d-2", "d-1", "x-2", "x-1", "o-1", "o-2", "o-3", "o-4", "o-5", "o-6"]);
+  assertEquals([o.journalMore, fixture.waiting.journalMore], [false, false]);
   assertEquals(o.journal[5].sources, ["https://www.senate.gov/legislative/votes.htm"]);
   assertEquals(o.journal[0].title, null);
 });
@@ -73,6 +75,8 @@ Deno.test("journal titles: Gamma's (0126) with its link, else the record's own u
     ["x-2", "Will there be no change in Fed interest rates after the October 2026 meeting?", "https://polymarket.com/market/will-there-be-no-change-in-fed-interest-rates-after-the-october-2026-meeting"],
     // Named nowhere yet: no title, and the page says it is pending.
     ["x-1", null, null],
+    // Cycles that did nothing name no market.
+    ...[1, 2, 3, 4, 5, 6].map((i) => [`o-${i}`, null, null]),
   ]);
   for (const j of [...o.journal, ...fixture.waiting.journal]) assert(!/0x[0-9a-f]{6}/i.test(String(j.title ?? "") + String(j.url ?? "")), j.id);
   // The old page found titles only among what the agent held: without grokpm_markets x-2 has none.
@@ -81,7 +85,7 @@ Deno.test("journal titles: Gamma's (0126) with its link, else the record's own u
   const upper = grokPmSummary({ ...input, decisions: [{ ...input.decisions[6], market_id: input.decisions[6].market_id.toUpperCase().replace("0X", "0x") }] })!;
   assertEquals(upper.journal[0].url, o.journal[6].url);
   // In dry-run, before any entry, Gamma's titles still name the journal's markets; d-4's market has none yet.
-  assertEquals(fixture.waiting.journal.map((j) => j.title === null), [true, false, true, false, false, false, false, true]);
+  assertEquals(fixture.waiting.journal.map((j) => j.title === null), [true, false, true, false, false, false, false, true, true, true, true, true, true, true]);
   // A position the record holds without a title takes Gamma's.
   const untitled = grokPmSummary({ ...input, latest: { ...input.latest, positions: input.latest.positions.map((p: Record<string, unknown>) => ({ ...p, title: null })) } })!;
   assertEquals(untitled.positions.map((p) => p.title).sort(), ["", "Will the Fed cut rates in October?", "Will the nominee be confirmed?"]);
@@ -138,4 +142,13 @@ Deno.test("Brier takes the agent's last open before the first fill, and the reco
 Deno.test("links", () => {
   assertEquals(safeLinks(["https://a.b/c", "ftp://x", "javascript:alert(1)", 3, "http://ok.example/"]), ["https://a.b/c", "http://ok.example/"]);
   assertEquals(safeLinks("https://a.b"), []);
+});
+
+Deno.test("the journal carries its newest thirty and says when the server holds more (the page's \"Load more\", 2026-10-29)", () => {
+  // The dashboard reads thirty-one: thirty to show, the thirty-first only to say there are more.
+  const many = (n: number) => Array.from({ length: n }, (_, i) => ({ ...input.decisions[13], id: `m-${i}`, ts: new Date(Date.parse("2026-09-17T22:00:00Z") - i * 60e3).toISOString() }));
+  const at = (n: number) => grokPmSummary({ ...input, decisions: many(n) })!;
+  assertEquals(GROKPM_JOURNAL_ROWS, 30);
+  assertEquals([at(31).journal.length, at(31).journalMore, at(31).journal[29].id], [30, true, "m-29"]);
+  assertEquals([at(30).journal.length, at(30).journalMore], [30, false]);
 });

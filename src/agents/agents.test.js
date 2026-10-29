@@ -1798,6 +1798,8 @@ describe('grokPmRow and its page (GROKPM, "Polymarket analyst" on LIVE, 2026-10-
       ['Will the nominee be confirmed?', 'https://polymarket.com/market/will-the-nominee-be-confirmed'],
       ['Will there be no change in Fed interest rates after the October 2026 meeting?', 'https://polymarket.com/market/will-there-be-no-change-in-fed-interest-rates-after-the-october-2026-meeting'],
       ['market title pending', null],
+      // The fixture's six older cycles that did nothing (2026-10-29, for "Load more"): no market.
+      null, null, null, null, null, null,
     ]);
     expect(JSON.stringify(views)).not.toMatch(/0x[0-9a-f]{4}/i);
     // A link only in the server's shape: anything else leaves the title unlinked.

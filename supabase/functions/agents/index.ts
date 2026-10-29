@@ -276,7 +276,7 @@ import { PM_REC_VENUE_TIMEOUT_MS, pmRecStorage, runPmRec, runPmRecMeta } from ".
 import { runCjRec } from "./cj_rec.ts";
 import { runGrokPmRec } from "./grokpm_rec.ts";
 import { readCxbot, readIgbot } from "./grok_tests_view.ts";
-import { GROKPM_CONFIG_COLUMNS, GROKPM_CYCLE_COLUMNS, GROKPM_DAILY_COLUMNS, GROKPM_DECISION_COLUMNS, GROKPM_ENTRY_COLUMNS, GROKPM_FILL_COLUMNS, GROKPM_FILL_STATUSES, GROKPM_JOURNAL_ROWS, GROKPM_MARKET_COLUMNS, GROKPM_OPEN_COLUMNS, GROKPM_SNAPSHOT_COLUMNS, grokPmSummary, type GrokPmConfigRow, type GrokPmCycleRow, type GrokPmDailyRow, type GrokPmDayOpenRow, type GrokPmDecisionRow, type GrokPmEntryRow, type GrokPmOpenSnapRow, type GrokPmFillRow, type GrokPmMarketRow, type GrokPmOpenRow, type GrokPmResolutionRow, type GrokPmSnapshotRow } from "./grokpm_view.ts";
+import { GROKPM_CONFIG_COLUMNS, GROKPM_CYCLE_COLUMNS, GROKPM_DAILY_COLUMNS, GROKPM_DECISION_COLUMNS, GROKPM_ENTRY_COLUMNS, GROKPM_FILL_COLUMNS, GROKPM_FILL_STATUSES, GROKPM_JOURNAL_PAGE_MAX, GROKPM_JOURNAL_ROWS, GROKPM_MARKET_COLUMNS, GROKPM_OPEN_COLUMNS, GROKPM_SNAPSHOT_COLUMNS, grokPmJournalPage, grokPmSummary, type GrokPmConfigRow, type GrokPmCycleRow, type GrokPmDailyRow, type GrokPmDayOpenRow, type GrokPmDecisionRow, type GrokPmEntryRow, type GrokPmOpenSnapRow, type GrokPmFillRow, type GrokPmMarketRow, type GrokPmOpenRow, type GrokPmResolutionRow, type GrokPmSnapshotRow } from "./grokpm_view.ts";
 import { runCbRec, type CbRecState } from "./cb_rec.ts";
 import { cbBooksDelayMs, runCbBooks } from "./cb_books.ts";
 import { runFxRec, type FxRecReport } from "./fx_rec.ts";
@@ -2152,7 +2152,8 @@ export async function readGrokPm(d: Db, now: number) {
     const [latest, dayOpens, decisions, cycles, daily, entries, resolutions, opens, rec, markets, fills] = await Promise.all([
       d.select<GrokPmSnapshotRow>("grokpm_snapshots", `select=${GROKPM_SNAPSHOT_COLUMNS}&order=slot.desc&limit=1`),
       d.select<GrokPmDayOpenRow>("grokpm_day_opens", "select=day,slot,equity_usd&order=day.desc&limit=120"),
-      d.select<GrokPmDecisionRow>("grokpm_decisions", `select=${GROKPM_DECISION_COLUMNS}&order=ts.desc,id.desc&limit=${GROKPM_JOURNAL_ROWS}`),
+      // One past the page's thirty, so it knows whether "Load more" has older entries to page from the server.
+      d.select<GrokPmDecisionRow>("grokpm_decisions", `select=${GROKPM_DECISION_COLUMNS}&order=ts.desc,id.desc&limit=${GROKPM_JOURNAL_ROWS + 1}`),
       d.select<GrokPmCycleRow>("grokpm_cycles", `select=${GROKPM_CYCLE_COLUMNS}&order=ts.desc,id.desc&limit=1`),
       d.select<GrokPmDailyRow>("grokpm_daily", `select=${GROKPM_DAILY_COLUMNS}&order=day.desc,received_at.desc&limit=200`),
       d.select<GrokPmEntryRow>("grokpm_entries", `select=${GROKPM_ENTRY_COLUMNS}&order=asset.asc&limit=1000`),
@@ -2183,6 +2184,28 @@ export async function readGrokPm(d: Db, now: number) {
       openSnaps,
     });
   } catch { return null; }
+}
+
+/**
+ * "Polymarket analyst"'s JOURNAL past the dashboard's thirty (Davies, 2026-10-29: "…JOURNAL也默认只显示前10条…"Load more"，然后每点一次
+ * 多加载10条"): `GET ?action=grokpmjournal&before=<ISO>&skip=<id,id>&limit=<n>`, the entries at or before `before` that the page
+ * does not already hold (`skip`: its ids at that instant), newest first, at most `limit` (≤ `GROKPM_JOURNAL_PAGE_MAX`), and
+ * `more` when older ones remain. 1,237 entries (2.1 MB) by 10-29 are too many to send every minute, so the page asks for them
+ * only on a click. Read-only; the same access as the dashboard.
+ */
+export async function readGrokPmJournal(d: Db, beforeIso: string, skip: string[], limitIn: number) {
+  const before = Date.parse(beforeIso);
+  if (!Number.isFinite(before)) return { error: "before must be a time" };
+  const limit = Math.max(1, Math.min(GROKPM_JOURNAL_PAGE_MAX, Math.floor(Number(limitIn) || 10)));
+  const ids = skip.filter((s) => /^[A-Za-z0-9._:-]{1,64}$/.test(s)).slice(0, 50);   // the shape 0124 gives an id
+  const decisions = await d.select<GrokPmDecisionRow>("grokpm_decisions",
+    `ts=lte.${encodeURIComponent(new Date(before).toISOString())}&select=${GROKPM_DECISION_COLUMNS}&order=ts.desc,id.desc&limit=${limit + ids.length + 1}`);
+  const conds = [...new Set(decisions.map((x) => String(x.market_id ?? "").toLowerCase()).filter((c) => /^0x[0-9a-f]{64}$/.test(c)))];
+  const [markets, entries] = conds.length ? await Promise.all([
+    d.select<GrokPmMarketRow>("grokpm_markets", `cond=in.(${conds.join(",")})&select=${GROKPM_MARKET_COLUMNS}&limit=${conds.length}`).catch(() => [] as GrokPmMarketRow[]),
+    d.select<{ cond: string; title: string | null }>("grokpm_entries", `cond=in.(${conds.join(",")})&select=cond,title&limit=1000`).catch(() => [] as Array<{ cond: string; title: string | null }>),
+  ]) : [[], []];
+  return grokPmJournalPage({ decisions, skip: ids, limit, markets, entries });
 }
 
 export async function runDashboard(now = Date.now()) {
@@ -3082,6 +3105,10 @@ async function route(req: Request, who: Exclude<Who, null>, url: URL, action: st
     const strategy = url.searchParams.get("strategy") ?? "", symbol = url.searchParams.get("symbol") ?? "";
     if (!strategy || !symbol) return json(400, { error: "strategy and symbol required" });
     return json(200, await runChart(strategy, symbol));
+  }
+  if (action === "grokpmjournal" && req.method === "GET") {
+    const skip = (url.searchParams.get("skip") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+    return json(200, await readGrokPmJournal(db(), url.searchParams.get("before") ?? "", skip, Number(url.searchParams.get("limit") ?? 10)));
   }
   if (action === "log" && req.method === "GET") {
     const strategy = url.searchParams.get("strategy") ?? "";

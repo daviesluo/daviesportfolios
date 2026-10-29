@@ -579,7 +579,8 @@ places stay when the number is not whole.
   pages (what its closed trades and resolved markets made over the last seven
   closed days, on its $100, as a year), today and the last seven days shown
   and "Load full history" for the rest; and last the JOURNAL, its
-  latest decisions, each with its time in UTC, what it did, the market's
+  decisions newest first, ten at a time ("Load more" under them shows ten
+  older ones a click, all the way back to its first), each with its time in UTC, what it did, the market's
   title as an underlined link to that market on Polymarket ("market title
   pending" until the site has read it), the probability it gave against the
   market's price it saw and the difference in points, its reason, what would

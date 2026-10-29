@@ -261,6 +261,30 @@ export function historyLimitOf(chart) {
   return Number.isFinite(n) && n > 0 ? Math.min(500, Math.floor(n)) : FULL_HISTORY_LIMIT;
 }
 
+/**
+ * "Polymarket analyst"'s JOURNAL, ten entries a click (Davies, 2026-10-29: "…JOURNAL也默认只显示前10条，然后加个和上面days类似的按钮叫"Load
+ * more"，然后每点一次多加载10条"): the page shows this many at first and this many more a click.
+ */
+export const GROKPM_JOURNAL_STEP = 10;
+/**
+ * Older journal entries than the page holds, from the server (`?action=grokpmjournal`, `readGrokPmJournal`): those at or
+ * before `before` less the ids the page already has at that instant (`skip`), newest first, at most `limit`.
+ * @param {string} before
+ * @param {string[]} skip
+ * @param {number} [limit]
+ * @param {typeof fetch} [fetchImpl]
+ * @returns {Promise<{ journal: any[], more: boolean }>}
+ */
+export async function fetchGrokPmJournal(before, skip, limit = GROKPM_JOURNAL_STEP, fetchImpl = fetch) {
+  const q = `action=grokpmjournal&before=${encodeURIComponent(before)}&skip=${skip.map(encodeURIComponent).join(',')}&limit=${limit}`;
+  const res = await fetchImpl(`${EDGE_AGENTS_URL}?${q}`, { headers: headers() });
+  const text = await res.text();
+  if (!res.ok) throw agentsFetchError('grokpmjournal', res.status, text);
+  const body = JSON.parse(text);
+  if (!Array.isArray(body?.journal)) throw agentsFetchError('grokpmjournal', res.status, text);
+  return { journal: body.journal, more: !!body.more };
+}
+
 export async function fetchAgentsLog(strategyId, limit = 200, fetchImpl = fetch) {
   const res = await fetchImpl(`${EDGE_AGENTS_URL}?action=log&strategy=${encodeURIComponent(strategyId)}&limit=${limit}`, { headers: headers() });
   const text = await res.text();
