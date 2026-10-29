@@ -8,13 +8,13 @@ import {
   STATE_VOCAB, strategyBooks, SYMBOLS, probeSummary, quotesDelayMs, quotesSummary, quoteDays, QUOTES_CAPITAL_USD, QUOTES_RECENT_TRIPS, tickErrorReport, crashReport, type ProbeSummaryRow,
   REVX_KEY_NAMES, REVX2_PROBE_SYMBOLS, runProbe, PROBE_PARTS, newestDecisions, quotesLiveSummary, type QuoteLiveOrderView, quotesVariantSummary, quotesRuledSummary,
   serveRequest, type ServeDeps, type Who,
-  exitOverbuy, liveBookGbp, liveCoinBooks, liveConversionShares, liveIndexPrices, liveOrderReason, liveRestingBuysGbp, liveRungs, liveRungTrips, quotesLiveDetail, dayCapitalGbp, tripEnds, QUOTE_LIVE_ORDER_COLUMNS,
+  exitOverbuy, twinBookRatio, liveBookGbp, liveCoinBooks, liveConversionShares, liveIndexPrices, liveOrderReason, liveRestingBuysGbp, liveRungs, liveRungTrips, quotesLiveDetail, dayCapitalGbp, tripEnds, QUOTE_LIVE_ORDER_COLUMNS,
   QUOTE_TICKER_FRESH_MS,
   QUOTE_LIVE_REASON_COLUMNS, QUOTE_LIVE_SUMMARY_COLUMNS, QUOTES_LIVE_KNOWN_REFUSALS, QUOTES_LIVE_ORDERS_FILTER, QUOTES_LIVE_PAGE_ROWS, type QuoteLiveRecentRow, withConversionFees,
   liveDays, readQuotesTwin, twinInUsd, twinsDelayMs, twinsOnPage, TWINS_START_MS,
   deadmanBeatAt, DEADMAN_BEAT_KEY, runSelectKeptAlive, runQuotesAction, quotesPaperErrorReport, readGrokPmJournal,
 } from "./index.ts";
-import { QUOTE_LEASE_STEP, runQuotes, type QuoteReport } from "./quotes.ts";
+import { QUOTE_LEASE_STEP, runQuotes, type QuoteBook, type QuoteReport } from "./quotes.ts";
 import type { QuoteLiveReport } from "./quotes_live.ts";
 import { beatKeyOfRequest } from "../_shared/beats.ts";
 import { memDb, pickRow, selectItems, twinFixtureTables } from "./testing.ts";
@@ -1083,6 +1083,49 @@ Deno.test("liveConversionShares: an ask's coins come out of the conversions firs
   // A conversion bought after an ask's fill gave that fill nothing.
   const late = liveConversionShares([o(3, { filled_base: 6 }), o(4, { rung_side: null, k: null, leg: "convert", filled_base: 10, fee_gbp: 0.01 })]);
   assertEquals(late.size, 0);
+});
+
+// The coin rebook (0178; quotes_live.ts `planDrains`): a conversion that SELLS the coin. It is no lot: it takes its coins out of
+// the lots first in, first out, as an ask does, their fees with them, and the account's coin book counts its coins and pounds out.
+Deno.test("a rebook's sale: no lot, its coins out of the lots first in, first out; the coin book counts it out at what it sold for", () => {
+  const day = Date.UTC(2026, 9, 1), h = 3600e3;
+  const o = (id: number, over: Partial<QuoteLiveOrderView>): QuoteLiveOrderView => ({
+    id, ts: new Date(day + id * h).toISOString(), mode: "live", book: "USDC-GBP", rung_side: "ask", k: 0.001, leg: "entry", state: "filled",
+    filled_base: 0, avg_fill_price: 0.76, price: 0.76, fee_gbp: 0, filled_at: new Date(day + id * h).toISOString(), ...over,
+  });
+  const orders = [
+    o(1, { rung_side: null, k: null, leg: "convert", side: "buy", filled_base: 10, fee_gbp: 0.01 }),    // £0.001 a coin
+    o(2, { rung_side: null, k: null, leg: "convert", side: "buy", filled_base: 20, fee_gbp: 0.04 }),    // £0.002 a coin
+    o(3, { rung_side: null, k: null, leg: "convert", side: "sell", filled_base: 12, avg_fill_price: 0.765 }), // the first's 10 and 2 of the second
+    o(4, { filled_base: 6 }),                                                                            // 6 of the second
+  ];
+  const s = liveConversionShares(orders);
+  assertEquals([...s.keys()], [4]);
+  assertAlmostEquals(s.get(4)!, 6 * 0.002, 1e-15);
+  const paper = { state: { books: { "USDC-GBP": { lastX: 1.3, lastPrint: { ticks: 7600 } }, "USDT-GBP": { lastX: 1.3, lastPrint: { ticks: 7550 } } } }, last_minute: null, updated_at: "", last_error: null };
+  // deno-lint-ignore no-explicit-any
+  const rungs = liveRungs(orders, paper as any, day);
+  const usdc = liveCoinBooks(orders, rungs, null).find((c) => c.coin === "USDC")!;
+  // 30 bought, 12 sold, 6 sold short by the ask: 12 coins. Cost: £22.85 paid with fees, less £9.18 the sale took in, less the
+  // short's £4.56; its fee is the open short's, not a closed trip's, so none is booked out yet.
+  assertEquals(usdc.coins, 12);
+  assertAlmostEquals(usdc.costGbp, (10 * 0.76 + 0.01 + 20 * 0.76 + 0.04) - 12 * 0.765 - 6 * 0.76, 1e-12);
+});
+
+// A twin on both books from the USDT-only switch (0178): each book's realised a year on its half since then, and the ratio.
+Deno.test("twinBookRatio: each book's realised a year on its share of the capital from the weights' instant; USDT's over USDC's", () => {
+  const from = Date.parse("2026-10-30T00:00:00Z"), day = 864e5;
+  const trip = (book: QuoteBook, at: number, pnlGbp: number) => ({ book, tExit: new Date(at).toISOString(), pnlGbp });
+  const trips = [trip("USDT-GBP", from - 1, 99), trip("USDT-GBP", from + 3600e3, 0.2), trip("USDT-GBP", from + 2 * day, 0.1), trip("USDC-GBP", from + day, 0.15)];
+  const r = twinBookRatio(trips, { from, book: { "USDC-GBP": 1, "USDT-GBP": 1 } }, 600, from + 10 * day)!;
+  assertEquals([r.from, r.books["USDT-GBP"].trips, r.books["USDC-GBP"].trips, r.books["USDT-GBP"].shareGbp], ["2026-10-30T00:00:00.000Z", 2, 1, 300]);
+  // £0.30 on £300 over 10 days: 0.1 % × 36.5 = 3.65 % a year; USDC's £0.15, 1.825 %: twice.
+  assertAlmostEquals(r.books["USDT-GBP"].pctYear!, 3.65, 1e-9);
+  assertAlmostEquals(r.books["USDC-GBP"].pctYear!, 1.825, 1e-9);
+  assertAlmostEquals(r.usdtOverUsdc!, 2, 1e-12);
+  // USDC-GBP at a loss: no ratio; before the instant: nothing.
+  assertEquals(twinBookRatio([trip("USDC-GBP", from + day, -0.1)], { from }, 600, from + 2 * day)!.usdtOverUsdc, null);
+  assertEquals(twinBookRatio(trips, { from }, 600, from), null);
 });
 
 Deno.test("withConversionFees: a trip's conversion fee goes on the fill that brings its rung back to flat, never on one still open", () => {

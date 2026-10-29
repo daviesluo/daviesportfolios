@@ -237,7 +237,7 @@ places stay when the number is not whole.
   The crypto loop's trend strategies (Trend 4h on real money, Trend 4h and
   Trend 1h on paper) were retired on 28 Oct 2026, each holding nothing:
   they are on neither tab any more, and their records are kept.
-- **Stablecoin quotes LIVE twin.** The first of the tests, after the testing
+- **Stablecoin quotes USDT/GBP LIVE twin** ("LIVE twin" until 30 Oct). The first of the tests, after the testing
   strategies, since 27 Oct: the live stablecoin quotes' own code, every rule
   the real-money account runs by, trading a simulated Revolut X account of
   £300, £25 a rung, the size the live account is about to take: resting
@@ -325,19 +325,32 @@ places stay when the number is not whole.
   exits like any other fill. The live account's own taker switch is checked
   against its takes. A variant's name in the table is two lines, and the
   first is the whole of "Stablecoin quotes".
-- **Stablecoin quotes variant-3 to -5.** After it, from 28 Oct 22:00 UTC
-  (started again then: on 27 Oct their coins were bought before their own
-  rules applied, so the weighted ones held the wrong coins):
-  tests of the live account's rules at £600, each with one change, read
-  against the £600 LIVE twin after four weeks. Variant-3 quotes nothing at
-  0.3 % and puts that money on the 0.1 % and 0.2 % rungs (£75 each).
-  Variant-4 puts three times the pounds on the USDT/GBP book's rungs as on
-  USDC/GBP's, and variant-5 quotes USDT/GBP alone (£100 a rung, all its coin
-  in USDT). Each is the same page with its own figures. A test with twice the
-  pounds on USDT/GBP (USDT 2:1) runs behind the page and is not shown. The
-  test that ignored a fill of £1 or less (variant-4 until 29 Oct) has stopped:
-  its rule now runs everywhere (below), and the numbers after it moved down by
-  one.
+- **Stablecoin quotes variant-3.** After it, from 28 Oct 22:00 UTC: the live
+  account's rules at £600 with nothing quoted at 0.3 %, that money on the
+  0.1 % and 0.2 % rungs, read against the £600 LIVE twin after four weeks.
+  A test with twice the pounds on USDT/GBP (USDT 2:1) runs behind the page and
+  is not shown. The tests that ignored a fill of £1 or less and that put three
+  times the pounds on USDT/GBP have stopped.
+- **Since 30 Oct 00:00 UTC the live account quotes the USDT/GBP book alone**,
+  and is called "Stablecoin quotes USDT/GBP": its six USDT/GBP rungs share
+  all of its money (£100 a rung at £600), and USDC/GBP quotes nothing new,
+  though a USDC position still sells as before. The study of 29 Oct found
+  USDT/GBP clearly ahead of USDC/GBP, and USDT/GBP alone ahead of both books
+  at the live account's size. For three days after the switch the account
+  sells its spare USDC and buys USDT with resting orders only, never selling
+  under the interbank rate, so the change costs nothing to trade. The LIVE twin
+  (now "Stablecoin quotes USDT/GBP LIVE twin"), variant-1, -2, -3 and -6 make
+  the same switch at the same minute.
+- **Stablecoin quotes variant-4.** The live account's rules at £600 on both
+  books with the money split evenly (USDT-only until 30 Oct 00:00). Under its
+  scoreboard a line gives each book's realised return a year since 30 Oct
+  00:00 and USDT's over USDC's, so the two coins can be compared.
+- **Stablecoin quotes variant-5.** From 30 Oct 00:00 UTC: variant-4 with its
+  USDC/GBP fair price nudged each minute by half of how far Coinbase's own
+  USDC/GBP price has moved off its usual gap to that fair (the fair-price
+  study of 29 Oct found this the one change worth testing), compared with
+  variant-4 day by day after four weeks; it has the same line. The $300 test
+  of the nudge on USDC/GBP alone, and its copy, have stopped.
 - **Since 29 Oct 22:00 UTC, every stablecoin quote, live and test, ignores a
   fill of £1 or less.** Many trades on USDT/GBP are £0.10, the venue's
   smallest. Before, one of them filling a rung made the rung switch to selling
@@ -345,16 +358,8 @@ places stay when the number is not whole.
   withdrew the rest of the rung's order. Now the rung keeps its order resting
   and carries the few pence into its next trip; a rung holding more than £1
   sells it back as before.
-- **Stablecoin quotes variant-6.** From 29 Oct 08:00 UTC (variant-7 until
-  29 Oct): the live account's
-  rules on the USDC/GBP book alone, $300 funded (its money is shown in
-  dollars), six rungs of about $50, with its fair price nudged each minute by
-  half of how far Coinbase's own USDC/GBP price has moved off its usual gap to
-  that fair (the fair-price study of 29 Oct found this the one change worth
-  testing). A copy without the nudge runs behind the page on the same money,
-  and after four weeks the two are compared day by day.
-- **Stablecoin quotes variant-7.** From 29 Oct 19:00 UTC (variant-8 until
-  29 Oct): the live account's
+- **Stablecoin quotes variant-6.** From 29 Oct 19:00 UTC (variant-8, then
+  variant-7, until 30 Oct): the live account's
   rules exactly, £600 on both books, except that every exit (the order that
   closes a filled rung) rests one tick further in our favour than the live
   rule puts it. The lag study of 29 Oct found this the one change that would

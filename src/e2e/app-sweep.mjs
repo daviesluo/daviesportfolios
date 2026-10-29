@@ -4763,7 +4763,7 @@ async function run() {
       const pNames = (await page.locator('.ag-strategies-live .ag-row .ag-name-btn').allTextContents()).map((t) => t.trim());
       const sb0 = sbText(p0);
       // AGENTS_PR5_LIVE's figures, worked by hand there.
-      if (opened(p0) === 'live' && barText(p0) === `LIVE 1 Real money · trading armed / ${TESTING_BAR}` && pNames.join(',') === 'Stablecoin quotes'
+      if (opened(p0) === 'live' && barText(p0) === `LIVE 1 Real money · trading armed / ${TESTING_BAR}` && pNames.join(',') === 'Stablecoin quotes USDT/GBP'
         // In dollars, LIVE's adding up: £999.14 at work (£599.14 of coins at the index and £400.00 in buys), £0.227106
         // today, -£0.1330 unrealised, -£0.0345 realised with £0.1797 of fees, at 1.32.
         && sb0 === 'FUNDED=$1,584 | DEPLOYED=$1,319(83.26%) | TODAY=+$0.30(+0.02%) | UNREALIZED G/L=-$0.18(-0.02%) | REALIZED G/L [(incl. fees $0.24)]=-$0.05(0%)') {
@@ -4774,7 +4774,7 @@ async function run() {
       // The live executor's real-money book and nothing of the paper engine's record, every figure the fixture's, worked by
       // hand (AGENTS_PR5_LIVE); its scoreboard is its LIVE row's own. A phone keeps each table's story columns.
       const readLivePage = () => readQuotesBookPage(page, '.ag-quotes-live-detail');
-      const liveRowEl = page.locator('.ag-strategies-live .ag-row', { has: nameBtn(page, 'Stablecoin quotes') });
+      const liveRowEl = page.locator('.ag-strategies-live .ag-row', { has: nameBtn(page, 'Stablecoin quotes USDT/GBP') });
       const liveRowGl = p0.rows[0]?.gl ?? [];
       await liveRowEl.first().click();
       await settled(page, '.ag-quotes-live-detail');
@@ -4787,7 +4787,7 @@ async function run() {
       }
       const phoneView = vpWidth <= 760;
       // Opened from LIVE, the page is the live executor's, and the paper test's is not open anywhere.
-      if (lp && lp.paperPage === 0 && lp.title === 'Stablecoin quotes' && lp.modals === 2 && lp.head === 'LIVE Revolut X' && lp.status === 'running' && lp.tested === 'live 1d 14h') {
+      if (lp && lp.paperPage === 0 && lp.title === 'Stablecoin quotes USDT/GBP' && lp.modals === 2 && lp.head === 'LIVE Revolut X' && lp.status === 'running' && lp.tested === 'live 1d 14h') {
         ok(T('pr5-page'), "LIVE's Stablecoin quotes opens its own page over the list: LIVE, Revolut X, running · live 1d 14h, and the paper test's page is not open");
       } else fail(T('pr5-page'), `LIVE's Stablecoin quotes opened ${lp ? `the live page with the paper page ${lp.paperPage}× beside it, title "${lp.title}", ${lp.modals} modals, head "${lp.head}", status "${lp.status}" "${lp.tested}"` : 'no live page'}`);
       // Its scoreboard is the LIVE row's, in pounds (Davies, 2026-10-01): the same today, unrealised and realised as the
@@ -4879,7 +4879,7 @@ async function run() {
       await closeBy(page, () => page.keyboard.press('Escape'));
       await openAgentsPage(page);
       await waitFor(async () => (await page.locator('#ag-modetab-live .ag-modetab-count').textContent()) === '1');
-      await page.locator('.ag-strategies-live .ag-row', { has: nameBtn(page, 'Stablecoin quotes') }).first().click();
+      await page.locator('.ag-strategies-live .ag-row', { has: nameBtn(page, 'Stablecoin quotes USDT/GBP') }).first().click();
       await page.waitForSelector('.ag-quotes-live-detail', { timeout: 5_000 }).catch(() => {});
       await waitFor(async () => (await page.locator('.ag-quotes-live-detail .ag-ql-exits').count()) === 0);
       const ln = await readLivePage();
@@ -4909,7 +4909,7 @@ async function run() {
       await toggleHidden(page);
       await openAgentsPage(page);
       await waitFor(async () => (await page.locator('#ag-modetab-live .ag-modetab-count').textContent()) === '1');
-      await page.locator('.ag-strategies-live .ag-row', { has: nameBtn(page, 'Stablecoin quotes') }).first().click();
+      await page.locator('.ag-strategies-live .ag-row', { has: nameBtn(page, 'Stablecoin quotes USDT/GBP') }).first().click();
       await settled(page, '.ag-quotes-live-detail');
       const hp = await readLivePage();
       const digits = (/** @type {string} */ t) => /\d/.test(t);
@@ -4950,7 +4950,7 @@ async function run() {
         const q0 = await readAgentsPanel(page);
         await shot(page, 'agents-lp-live-list');
         const lpr = q0.rows.find((r) => r.name === 'Reward quotes');
-        if (opened(q0) === 'live' && barText(q0).startsWith('LIVE 2 Real money · trading armed / ') && q0.rows.map((r) => r.name).join(',') === 'Stablecoin quotes,Reward quotes'
+        if (opened(q0) === 'live' && barText(q0).startsWith('LIVE 2 Real money · trading armed / ') && q0.rows.map((r) => r.name).join(',') === 'Stablecoin quotes USDT/GBP,Reward quotes'
           && lpr && lpr.badges === 0 && lpr.venue === 'Polymarket' && lpr.sub === '3 open · $320 cap' && JSON.stringify(lpr.gl.map((t) => t.replace(/\s+/g, ' '))) === JSON.stringify(LP_GL)) {
           ok(LT('row'), `LIVE opens on two books, PR5's and live-prep's: "Reward quotes", no badge, Polymarket, 3 open · $320 cap, ${LP_GL.join(' / ')}`);
         } else fail(LT('row'), `open ${opened(q0)}, bar ${barText(q0)}, rows ${JSON.stringify(q0.rows.map((r) => [r.name, r.badges, r.venue, r.sub, r.gl]))}, wanted ${LP_GL.join(' / ')}`);
@@ -5274,7 +5274,7 @@ async function run() {
           agentsMode = 'pr5-live';
           await openAgentsPage(page);
           await clickTab('live');
-          await page.locator('.ag-strategies-live .ag-row', { has: nameBtn(page, 'Stablecoin quotes') }).first().click();
+          await page.locator('.ag-strategies-live .ag-row', { has: nameBtn(page, 'Stablecoin quotes USDT/GBP') }).first().click();
           await settled(page, '.ag-quotes-live-detail');
           const pr5 = await page.evaluate(() => {
             const txt = (/** @type {Element | null | undefined} */ el) => (el?.textContent || '').replace(/\s+/g, ' ').trim();

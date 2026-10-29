@@ -394,3 +394,21 @@ end (`pennyExit` and `exitTicksOnBook` as before). The 24-hour stop counts from 
 no exit and no stop of its own: at most £1 a rung, marked in the day's P&L. Before the instant the executor is as it was
 (`quotes_live_instance.test.ts` against `quotes_live_frozen.ts`, unchanged). Every running twin takes it from the same instant
 (`0176`; the deviation of their pre-registrations, recorded apart in `reviews/2026-10-29-holdmin-deviation.md`). Not blind.
+
+## Addendum (2026-10-29): USDT-GBP alone from 2026-10-30 00:00 UTC, the coin rebooked by maker orders
+
+Davies, 2026-10-29: "…基本可以肯定效果正面的话，把live全换成只做USDT-GBP的（live策略改名为Stablecoin quotes USDT/GBP）…（换币也用挂单不要有转换损失）".
+The study (`reviews/2026-10-29-usdt-only.md`): on LIVE's rules with the £1 holding line, USDT-GBP alone beat both books at £600
+since 09-01 by +7.1 % a year (P(≤ 0) 0.014), ahead every month since May; book for book USDT-GBP led USDC-GBP by +21 % a year.
+
+From 2026-10-30 00:00 UTC (`QUOTE_LIVE_USDT_ONLY_FROM`) the live account's instance carries PR5-OPT's weights (code unchanged
+since `0148`): USDC-GBP 0, USDT-GBP 1. USDT-GBP's six rungs share the capital (£100 each at £600); USDC-GBP quotes no entry, its
+resting entries are withdrawn, and a USDC holding still exits and stops. For 72 hours from then the coin is rebooked
+(`rebookOn`): a book holding more coin beyond its longs than its asks need and the top-ups' 2 % buffer sells the surplus by one
+post-only order at a time at the top of the asks, never under fair rounded up, cancelled after 30 minutes unfilled and sent
+again at the book as it then stands (`planDrains`; a surplus under the venue's minimum is carried); the short book's maker
+top-ups have the capital, not £5, for their day. No taker order, nothing that crosses, no sale under fair. A sale is an
+automatic conversion (`request.auto`, `request.drain`): step 1 cancels it as a top-up, and an operator's conversion and its
+re-peg are untouched. The page names LIVE "Stablecoin quotes USDT/GBP" and books a sale out of the coin's lots first in, first
+out. Before the instant the executor is as it was (`quotes_live_instance.test.ts` against `quotes_live_frozen.ts`). Every twin on
+LIVE's rules takes the same weights at the same instant (`0178`; `reviews/2026-10-29-usdt-only-deviation.md`). Not blind.

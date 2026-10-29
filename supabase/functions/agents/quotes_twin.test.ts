@@ -410,8 +410,10 @@ Deno.test("weights and holdMin (PR5-OPT's rules, docs/agents/reviews/2026-10-27-
   assertEquals(r.refused[4].why, `twin wbad5: its rule weights leave no rung any pounds`);
   assertEquals(r.refused[5].why, `twin hbad1: its rule holdMin needs "gbp", a number from 0.1 to 100`);
   for (const x of [TWINS.pr5, TWINS.p50, TWINS.d]) assertEquals([x.instance.weights, x.instance.holdMin], [undefined, undefined], x.id);
-  // The live account: no weights; the holding line from 2026-10-29 22:00 UTC (0176, variant-4's rule on LIVE and every twin).
-  assertEquals([QUOTE_LIVE_INSTANCE.weights, QUOTE_LIVE_INSTANCE.holdMin], [undefined, { from: Date.parse("2026-10-29T22:00:00Z"), gbp: 1 }]);
+  // The live account: USDT-GBP alone from 2026-10-30 00:00 UTC (0178, docs/agents/reviews/2026-10-29-usdt-only-deviation.md); the
+  // holding line from 2026-10-29 22:00 UTC (0176, variant-4's rule on LIVE and every twin).
+  assertEquals([QUOTE_LIVE_INSTANCE.weights, QUOTE_LIVE_INSTANCE.holdMin], [
+    { from: Date.parse("2026-10-30T00:00:00Z"), book: { "USDC-GBP": 0, "USDT-GBP": 1 } }, { from: Date.parse("2026-10-29T22:00:00Z"), gbp: 1 }]);
 });
 
 Deno.test("weights: a twin's start conversions buy each book's own asks' worth (USDT-GBP 2:1 at £1,200: £399.99 and £199.98), where equal rungs buy a quarter of the capital each", async () => {

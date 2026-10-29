@@ -619,6 +619,7 @@ function QuotesLiveDetail({ q, m, at, nowMs, twin = false, coinbase: cbOnly = fa
         <div className="ag-sb-divider" />
         <GlCell label="REALIZED G/L" usd={x.realised} pct={x.realisedPct} m={m} ccy={x.ccy} cls="ag-sb-realised" aside={`(incl. fees ${m(fmtIn(x.fees, x.ccy))})`} />
       </div>
+      {lines?.ratio && <div className="ag-twin-line ag-twin-ratio dim">{lines.ratio}</div>}
       {lines?.waiting.map((w) => <div key={w} className="ag-twin-line ag-twin-waiting dim">{w}</div>)}
       {!q.running && <div className="ag-warn-line">{row.status.detail}</div>}
       {q.lastError && <div className="ag-warn-line">last turn: {m(String(q.lastError))}</div>}
@@ -2030,7 +2031,7 @@ function AgentsModal({ hideValues, onClose }) {
       <Modal onClose={() => setSelected(null)} size="lg">
         <header className="modal-head">
           <div>
-            <h2 className="modal-title mono">Stablecoin quotes</h2>
+            <h2 className="modal-title mono">Stablecoin quotes USDT/GBP</h2>
           </div>
           <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
         </header>

@@ -41,6 +41,14 @@ const ADD_HIDDEN = /alter table public\.agent_quote_twin_specs add column if not
  */
 const RULE_MOVE_OP = /update public\.agent_quote_twin_specs\s+set rules = jsonb_set\(rules, '\{(\w+),from\}', '"([0-9T:Z-]+)"'::jsonb\)\s+where id = '(\w+)' and rules->'(\w+)'->>'from' = '([0-9T:Z-]+)';/g;
 const START = /update public\.agent_quote_twin_specs\s+set start = '([0-9T:Z-]+)'\s+where id = '(\w+)' and start = '([0-9T:Z-]+)';/g;
+/**
+ * Since 0178 (Davies, 2026-10-29: LIVE on USDT-GBP alone, the twins with it): a rule replaced whole, guarded on the rule it
+ * replaces (jsonb equality: the same keys and values in any order), and a row's place moved, guarded on the place it leaves.
+ */
+const RULE_SET = /update public\.agent_quote_twin_specs\s+set rules = jsonb_set\(rules, '\{(\w+)\}', '(\{[^']*\})'::jsonb\)\s+where id = '(\w+)' and rules->'(\w+)' = '(\{[^']*\})'::jsonb;/g;
+const PLACE = /update public\.agent_quote_twin_specs\s+set display_order = (\d+)\s+where id = '(\w+)' and display_order = (\d+);/g;
+/** A value with its keys sorted at every depth: two jsonb values are equal when these are. */
+const canon = (v) => JSON.stringify(v, (_k, x) => (x && typeof x === 'object' && !Array.isArray(x) ? Object.fromEntries(Object.entries(x).sort(([a], [b]) => (a < b ? -1 : 1))) : x));
 const renames = FILES.flatMap((file) => [...sqlOf(file).matchAll(RENAME)].map((m) => ({ file, to: m[1], id: m[2], from: m[3] })));
 const deletes = FILES.flatMap((file) => [...sqlOf(file).matchAll(DELETE)].map((m) => ({ file, id: m[1] })));
 /**
@@ -55,6 +63,8 @@ const OPS = FILES.flatMap((file) => [
   ...[...sqlOf(file).matchAll(HIDE)].map((m) => ({ at: m.index ?? 0, op: { kind: 'hide', hidden: m[1] === 'true', ids: m[2].split(',').map((x) => x.trim().replace(/^'|'$/g, '')) } })),
   ...[...sqlOf(file).matchAll(RULE_MOVE_OP)].map((m) => ({ at: m.index ?? 0, op: { kind: 'move', key: m[1], to: m[2], id: m[3], from: m[5] } })),
   ...[...sqlOf(file).matchAll(START)].map((m) => ({ at: m.index ?? 0, op: { kind: 'start', to: m[1], id: m[2], from: m[3] } })),
+  ...[...sqlOf(file).matchAll(RULE_SET)].map((m) => ({ at: m.index ?? 0, op: { kind: 'set', key: m[1], to: JSON.parse(m[2]), id: m[3], guard: m[4], from: JSON.parse(m[5]) } })),
+  ...[...sqlOf(file).matchAll(PLACE)].map((m) => ({ at: m.index ?? 0, op: { kind: 'place', to: Number(m[1]), id: m[2], from: Number(m[3]) } })),
 ].sort((a, b) => a.at - b.at).map((x) => x.op));
 /**
  * The rows as the migrations leave them: the first insert of an id stands (`on conflict do nothing`), each rename and
@@ -66,6 +76,8 @@ const ROWS = OPS.reduce((rows, n) => n.kind === 'delete' ? rows.filter((r) => r.
   : n.kind === 'hide' ? rows.map((r) => (n.ids.includes(r.id) ? { ...r, hidden: n.hidden } : r))
   : n.kind === 'move' ? rows.map((r) => (r.id === n.id && r.rules?.[n.key]?.from === n.from ? { ...r, rules: { ...r.rules, [n.key]: { ...r.rules[n.key], from: n.to } } } : r))
   : n.kind === 'start' ? rows.map((r) => (r.id === n.id && Date.parse(r.start) === Date.parse(n.from) ? { ...r, start: n.to } : r))
+  : n.kind === 'set' ? rows.map((r) => (r.id === n.id && n.key === n.guard && canon(r.rules?.[n.key]) === canon(n.from) ? { ...r, rules: { ...r.rules, [n.key]: n.to } } : r))
+  : n.kind === 'place' ? rows.map((r) => (r.id === n.id && r.display_order === n.from ? { ...r, display_order: n.to } : r))
   : rows.map((r) => (n.id === r.id && n.from === r.display_name ? { ...r, display_name: n.to } : r)),
 inserted.filter((x, i) => inserted.findIndex((y) => y.row.id === x.row.id) === i).map((x) => ({ ...x.row })))
   .sort((a, b) => a.display_order - b.display_order);
@@ -123,7 +135,7 @@ describe("the twins' spec rows", () => {
       const moves = [...sql.matchAll(RULE_MOVE)].length + [...sql.matchAll(START)].length;
       const names = [...sql.matchAll(RENAME)].length;
       const offs = [...sql.matchAll(DELETE)].length;
-      const later = [RULE_ADD, OFF, HIDE, ADD_HIDDEN].reduce((a, re) => a + [...sql.matchAll(re)].length, 0);
+      const later = [RULE_ADD, OFF, HIDE, ADD_HIDDEN, RULE_SET, PLACE].reduce((a, re) => a + [...sql.matchAll(re)].length, 0);
       // An insert names the table twice; 0088 also creates it, enables its row level security, and its function reads it
       // (its type, its select and its refusal). A pre-registration's addendum may move one rule's date of one row, guarded
       // on the date it replaces (0090: TAKE's take.from, its Addendum 1): that names it once. A page name may change,
@@ -131,10 +143,15 @@ describe("the twins' spec rows", () => {
       // 0141 adds `hidden`, one rule to one row, switches one row off and hides four: once each. 0154 moves five rows' start
       // and their rules' instants, each guarded on the value it replaces: once each. 0170 does the same for variant-7 and its
       // control (Davies, 2026-10-29: "你新做好的两个测试策略现在就上线"). 0176 adds one rule to each of eleven rows, switches one
-      // off, hides it and renames five: once each.
+      // off, hides it and renames five: once each. 0178 adds a rule to five rows, replaces one in two, switches three off, hides two,
+      // renames five, moves one row's place and inserts one: once each (twice the insert).
       expect(named, f).toBe(2 * inserts + moves + names + offs + later + (f === SPECS_0088 ? 5 : 0));
     }
-    expect(FILES.filter((f) => [RULE_ADD, OFF, HIDE, ADD_HIDDEN].some((re) => [...sqlOf(f).matchAll(re)].length)).map((f) => f.slice(0, 4))).toEqual(['0141', '0142', '0144', '0149', '0151', '0152', '0167', '0176']);
+    expect(FILES.filter((f) => [RULE_ADD, OFF, HIDE, ADD_HIDDEN].some((re) => [...sqlOf(f).matchAll(re)].length)).map((f) => f.slice(0, 4))).toEqual(['0141', '0142', '0144', '0149', '0151', '0152', '0167', '0176', '0178']);
+    expect(FILES.filter((f) => [RULE_SET, PLACE].some((re) => [...sqlOf(f).matchAll(re)].length)).map((f) => f.slice(0, 4))).toEqual(['0178']);
+    // A rule is replaced only under its own key, and every replacement and move parses (each `jsonb_set(rules, '{key}'` is one).
+    for (const n of OPS.filter((x) => x.kind === 'set')) expect(n.guard, n.id).toBe(n.key);
+    for (const f of FILES) expect([...sqlOf(f).matchAll(RULE_SET)].length, f).toBe((sqlOf(f).match(/jsonb_set\(rules, '\{\w+\}'/g) ?? []).length);
     expect(FILES.filter((f) => [...sqlOf(f).matchAll(RULE_MOVE)].length).map((f) => f.slice(0, 4))).toEqual(['0090', '0154', '0170']);
     expect(FILES.filter((f) => [...sqlOf(f).matchAll(START)].length).map((f) => f.slice(0, 4))).toEqual(['0154', '0170']);
     // Every rule move matches the parser that applies it.
@@ -163,6 +180,12 @@ describe("the twins' spec rows", () => {
       ['0176', 'n600hold1', 'Stablecoin quotes variant-4', 'Stablecoin quotes hold £1 from 10-28'],
       ['0176', 'n600usdt3', 'Stablecoin quotes variant-5', 'Stablecoin quotes variant-4'], ['0176', 'n600usdt', 'Stablecoin quotes variant-6', 'Stablecoin quotes variant-5'],
       ['0176', 'u300nudge', 'Stablecoin quotes variant-7', 'Stablecoin quotes variant-6'], ['0176', 'live600x1', 'Stablecoin quotes variant-8', 'Stablecoin quotes variant-7'],
+      // 0178 (Davies, 2026-10-29: LIVE on USDT-GBP alone; "原 variant-5 …这个可以删了"; "原 variant-7 …在…USDC:USDT 1:1…这个基础上做"):
+      // the 3:1 twin and the $300 nudge named for what they were, the rest down the chain, the LIVE twin named as LIVE is.
+      ['0178', 'n600usdt3', 'Stablecoin quotes variant-4', 'Stablecoin quotes USDT 3:1 from 10-28'],
+      ['0178', 'u300nudge', 'Stablecoin quotes variant-6', 'Stablecoin quotes USDC nudge $300 from 10-29'],
+      ['0178', 'n600usdt', 'Stablecoin quotes variant-5', 'Stablecoin quotes variant-4'], ['0178', 'live600x1', 'Stablecoin quotes variant-7', 'Stablecoin quotes variant-6'],
+      ['0178', 'live600', 'Stablecoin quotes LIVE twin', 'Stablecoin quotes USDT/GBP LIVE twin'],
     ]);
     expect(deletes.map((n) => [n.file.slice(0, 4), n.id])).toEqual([['0109', 'p50x1']]);
     // Names are unique, so a rename comes before an insert in the same migration that takes the old name (0108), and a
@@ -236,6 +259,17 @@ describe("the twins' spec rows", () => {
     expect(/capital_gbp\s*=|display_order\s*=/.test(sql0176)).toBe(false);
     expect((sql0176.match(/set rules = /g) ?? []).length).toBe((sql0176.match(/set rules = rules \|\| '\{"holdMin": /g) ?? []).length);
     expect((sql0176.match(/set rules = /g) ?? []).length).toBe(11);
+    // 0178 (Davies, 2026-10-29: LIVE on USDT-GBP alone, the twins on its new rules): each rename after the one that frees its name,
+    // the place 52 freed before the new variant-5 takes it, and its name freed before its insert; no capital changes.
+    const sql0178 = sqlOf('0178_quote_twins_usdt_only.sql');
+    const from0178 = (t) => sql0178.indexOf(`set display_name = '${t}'`);
+    expect(from0178('Stablecoin quotes USDT 3:1 from 10-28')).toBeLessThan(from0178('Stablecoin quotes variant-4'));
+    expect(from0178('Stablecoin quotes USDC nudge $300 from 10-29')).toBeLessThan(from0178('Stablecoin quotes variant-6'));
+    expect(from0178('Stablecoin quotes variant-4')).toBeLessThan(sql0178.search(INSERT));
+    expect(sql0178.indexOf('set display_order = 56')).toBeLessThan(sql0178.search(INSERT));
+    for (const id of ['n600usdt3', 'u300nudge', 'u300ctl']) expect(sql0178).toContain(`set enabled = false\n where id = '${id}';`);
+    expect(sql0178).toContain("set hidden = true\n where id in ('n600usdt3', 'u300nudge');");
+    expect(/capital_gbp\s*=/.test(sql0178)).toBe(false);
     expect(sql0109.search(DELETE)).toBeGreaterThanOrEqual(0);
     expect(sql0109.search(DELETE)).toBeLessThan(sql0109.search(RENAME));
     expect(new Set(ROWS.map((r) => r.display_name)).size).toBe(ROWS.length);
@@ -250,10 +284,10 @@ describe("the twins' spec rows", () => {
     }
   });
 
-  it("are, as they stand, the stablecoin twins in Davies' order (2026-10-27, as 0167 renumbered it on 10-29: the LIVE twin £600 as LIVE, variant-1 £1,200 the next step, variant-2 TAKE's twin, variant-3 to -6 four of PR5-OPT's five, from 2026-10-28 22:00 since 0154, the USDT weightings last, the £120 twin off and the USDT 2:1 twin hidden; the £300 and weekend twins, 0148's three and 0149's five off; the three hidden ones off since 0151, their 10-28 readouts written)", () => {
+  it("are, as they stand, the stablecoin twins in Davies' order (2026-10-27, renumbered 0167, 0176 and 0178 on 10-29: the USDT/GBP LIVE twin £600 as LIVE, variant-1 £1,200 the next step, variant-2 TAKE's twin, variant-3 PR5-OPT's no-0.3 %, variant-4 USDC:USDT 1:1 and variant-5 the same with the USDC-GBP nudge, variant-6 the exit a tick beyond; all on LIVE's USDT-GBP alone from 2026-10-30 00:00 but the two on both books; the rest off or hidden)", () => {
     expect(ROWS.map((r) => [r.id, r.display_name, r.display_order, Number(r.capital_gbp), r.enabled, r.hidden === true])).toEqual([
       ['pr5', 'Stablecoin quotes', 10, 1200, false, true], ['live300', 'Stablecoin quotes 300 twin', 11, 300, false, false],
-      ['live600', 'Stablecoin quotes LIVE twin', 12, 600, true, false], ['live1200', 'Stablecoin quotes variant-1', 13, 1200, true, false],
+      ['live600', 'Stablecoin quotes USDT/GBP LIVE twin', 12, 600, true, false], ['live1200', 'Stablecoin quotes variant-1', 13, 1200, true, false],
       ['live', 'Stablecoin quotes £120 twin', 15, 120, false, true],
       ['p50', 'Stablecoin quotes size twin', 20, 600, false, true], ['take50', 'Stablecoin quotes variant-2', 30, 600, true, false],
       ['live600usdt2', 'Stablecoin quotes USDT 2:1 from 10-29', 31, 600, false, false], ['live600no03', 'Stablecoin quotes no 0.3 % from 10-29', 32, 600, false, false],
@@ -264,63 +298,63 @@ describe("the twins' spec rows", () => {
       ['o600usdt', 'Stablecoin quotes USDT only from 10-27', 45, 600, false, false], ['n600no03', 'Stablecoin quotes variant-3', 46, 600, true, false],
       // 0176 (Davies, 2026-10-29): variant-4 (the £1 holding line's own twin) off and hidden, its rule now everyone's; the rest down by one.
       ['n600hold1', 'Stablecoin quotes hold £1 from 10-28', 47, 600, false, true], ['n600usdt2', 'Stablecoin quotes USDT 2:1 from 10-28', 48, 600, true, true],
-      ['n600usdt3', 'Stablecoin quotes variant-4', 49, 600, true, false], ['n600usdt', 'Stablecoin quotes variant-5', 50, 600, true, false],
-      // 0169 (Davies, 2026-10-29: REVX-FAIR's USDC-GBP lead "开testing variant-7…做300美元funded"): $300 at 1.3314, and its control, hidden.
-      ['u300nudge', 'Stablecoin quotes variant-6', 51, 225.33, true, false], ['u300ctl', 'Stablecoin quotes USDC control from 10-30', 52, 225.33, true, true],
+      // 0178 (Davies, 2026-10-29: "原 variant-5 …这个可以删了"): the USDT 3:1 twin off and hidden; the USDT-only twin now USDC:USDT 1:1.
+      ['n600usdt3', 'Stablecoin quotes USDT 3:1 from 10-28', 49, 600, false, true], ['n600usdt', 'Stablecoin quotes variant-4', 50, 600, true, false],
+      // 0169's $300 nudge and its control, off since 0178 (the nudge goes on at £600 on the 1:1 twin's rules, `n600nudge`).
+      ['u300nudge', 'Stablecoin quotes USDC nudge $300 from 10-29', 51, 225.33, false, true],
+      ['n600nudge', 'Stablecoin quotes variant-5', 52, 600, true, false],
       // 0175 (Davies, 2026-10-29: REVX-LAG's one pass, "好的，建 variant-8，在实盘live的基础上"): LIVE's rules with every exit a tick beyond fair, and its control, hidden.
-      ['live600x1', 'Stablecoin quotes variant-7', 53, 600, true, false], ['live600ctl', 'Stablecoin quotes LIVE control from 10-29', 54, 600, true, true],
+      ['live600x1', 'Stablecoin quotes variant-6', 53, 600, true, false], ['live600ctl', 'Stablecoin quotes LIVE control from 10-29', 54, 600, true, true],
+      ['u300ctl', 'Stablecoin quotes USDC control from 10-30', 56, 225.33, false, true],
     ]);
-    // The page shows the two on LIVE's rules, each with LIVE's fill rule and, from the closure of 2026-10-30 21:00 UTC,
-    // LIVE's weekend; none takes (LIVE's take is in shadow, which sends nothing).
     const onPage = ROWS.filter((r) => r.enabled && !r.hidden);
-    expect(onPage.map((r) => r.id)).toEqual(['live600', 'live1200', 'take50', 'n600no03', 'n600usdt3', 'n600usdt', 'u300nudge', 'live600x1']);
-    // TAKE's twin keeps its own rule (a take from 2026-10-04 16:00); the others on LIVE's rules do not take.
+    expect(onPage.map((r) => r.id)).toEqual(['live600', 'live1200', 'take50', 'n600no03', 'n600usdt', 'n600nudge', 'live600x1']);
+    // TAKE's twin keeps its own rule (a take from 2026-10-04 16:00); the others on LIVE's rules do not take. The two first carry
+    // LIVE's fill rule and, from the closure of 2026-10-30 21:00 UTC, LIVE's weekend.
     expect(onPage[2].rules.take).toBeTruthy();
     for (const r of onPage.slice(0, 2)) {
       expect([r.rules.fill.model, r.rules.weekend.from, 'take' in r.rules], r.id).toEqual(['at', '2026-10-30T21:00:00Z', false]);
     }
-    // PR5-OPT's five (0149, restarted by 0152, started at once by 0154; the USDT 2:1 one hidden by 0167, the holding line's off by
-    // 0176, so three are on the page): LIVE's fill rule and weekend from their start, 2026-10-28 22:00, and one rule each from it.
+    // 0178 (Davies, 2026-10-29: "把live全换成只做USDT-GBP的…variant-1，2，3，5，7和8也改为在新的实盘基础上做"): LIVE's weights at LIVE's own instant
+    // (QUOTE_LIVE_USDT_ONLY_FROM) on every twin on LIVE's rules, both arms of the exit-tick test together; variant-3 keeps its
+    // 0.3 % rung at 0 within them; variant-4 and variant-5 USDC:USDT 1:1 from the same instant.
+    const U = '2026-10-30T00:00:00Z', ONLY = { 'USDC-GBP': 0, 'USDT-GBP': 1 }, BOTH = { 'USDC-GBP': 1, 'USDT-GBP': 1 };
+    const byId = (id) => ROWS.find((r) => r.id === id);
+    for (const id of ['live600', 'live1200', 'take50', 'live600x1', 'live600ctl']) expect(byId(id).rules.weights, id).toEqual({ from: U, book: ONLY });
+    expect(byId('n600no03').rules.weights).toEqual({ from: U, book: ONLY, k: { '0.001': 1, '0.002': 1, '0.003': 0 } });
+    for (const id of ['n600usdt', 'n600nudge']) expect(byId(id).rules.weights, id).toEqual({ from: U, book: BOTH });
+    // The hidden USDT 2:1 twin keeps its own weights from 10-28.
     const S = '2026-10-28T22:00:00Z';
-    const opt = onPage.slice(3, 6);
-    for (const r of opt) {
-      expect([r.start, r.rules.fill.model, r.rules.fill.from, r.rules.weekend.from, 'take' in r.rules], r.id).toEqual([S, 'at', S, S, false]);
-    }
-    expect(opt.map((r) => Object.keys(r.rules).filter((k) => !['fill', 'weekend', 'holdMin'].includes(k)))).toEqual([['weights'], ['weights'], ['weights']]);
-    expect(opt.map((r) => r.rules.weights.from)).toEqual([S, S, S]);
-    // 0169's variant-7 and its hidden control: LIVE's fill rule and weekend from their start, 2026-10-29 08:00 since 0170 (it was
-    // 2026-10-30 00:00), USDC-GBP alone, $300 at the
-    // rate its pounds were set at, and the nudge on variant-7 alone (the control is the same row without it).
-    const N = '2026-10-29T08:00:00Z';
-    const [nu, ctl] = ['u300nudge', 'u300ctl'].map((id) => ROWS.find((r) => r.id === id));
-    for (const r of [nu, ctl]) {
-      expect([r.start, r.rules.fill.from, r.rules.weekend.from, r.rules.weights.book, r.rules.usdCapital, 'take' in r.rules], r.id)
-        .toEqual([N, N, N, { 'USDC-GBP': 1, 'USDT-GBP': 0 }, { usd: 300, gbpusd: 1.3314 }, false]);
-      expect(Math.round((300 / 1.3314) * 100) / 100, r.id).toBe(Number(r.capital_gbp));
-    }
-    expect(nu.rules.fairNudge).toEqual({ from: N, book: 'USDC-GBP', w: 0.5, halfLifeMin: 1440 });
-    expect('fairNudge' in ctl.rules).toBe(false);
-    // 0175's variant-8 and its hidden control: £600 on both books, LIVE's fill rule from their start (2026-10-29 19:00), LIVE's
-    // weekend from the LIVE twin's own instant, and the offset on variant-8 alone (the control is the same row without it).
+    expect(byId('n600usdt2').rules.weights).toEqual({ from: S, book: { 'USDC-GBP': 1, 'USDT-GBP': 2 } });
+    // Variant-5 is variant-4's rules from its start with the nudge (0169's) on USDC-GBP: the 1:1 twin is its control.
+    const [nn, ctl] = ['n600nudge', 'n600usdt'].map(byId);
+    expect([nn.start, nn.rules.fill, nn.rules.weekend.from, nn.rules.holdMin, Number(nn.capital_gbp)]).toEqual([U, { model: 'at', from: U }, U, { from: U, gbp: 1 }, Number(ctl.capital_gbp)]);
+    expect(nn.rules.fairNudge).toEqual({ from: U, book: 'USDC-GBP', w: 0.5, halfLifeMin: 1440 });
+    expect(Object.keys(nn.rules).sort()).toEqual(['fairNudge', 'fill', 'holdMin', 'weekend', 'weights']);
+    expect(Object.keys(ctl.rules).sort()).toEqual(['fill', 'holdMin', 'weekend', 'weights']);
+    expect([ctl.rules.fill.model, ctl.rules.weekend.from, ctl.rules.holdMin.gbp]).toEqual(['at', S, 1]);
+    // 0175's variant-8 (variant-6 since 0178) and its hidden control: £600, LIVE's fill rule from their start (2026-10-29 19:00),
+    // LIVE's weekend from the LIVE twin's own instant, the offset on variant-6 alone, the same weights.
     const X = '2026-10-29T19:00:00Z';
-    const live600 = ROWS.find((r) => r.id === 'live600');
-    const [x1, xctl] = ['live600x1', 'live600ctl'].map((id) => ROWS.find((r) => r.id === id));
+    const live600 = byId('live600');
+    const [x1, xctl] = ['live600x1', 'live600ctl'].map(byId);
     for (const r of [x1, xctl]) {
-      expect([r.start, r.rules.fill, r.rules.weekend, Number(r.capital_gbp), 'take' in r.rules, 'weights' in r.rules], r.id)
-        .toEqual([X, { model: 'at', from: X }, live600.rules.weekend, Number(live600.capital_gbp), false, false]);
+      expect([r.start, r.rules.fill, r.rules.weekend, Number(r.capital_gbp), 'take' in r.rules, r.rules.weights], r.id)
+        .toEqual([X, { model: 'at', from: X }, live600.rules.weekend, Number(live600.capital_gbp), false, live600.rules.weights]);
     }
     expect(x1.rules.exitOffset).toEqual({ ticks: 1, from: X });
     expect('exitOffset' in xctl.rules).toBe(false);
-    // 0176 (Davies, 2026-10-29: "…加入实盘live的规则里和所有测试策略包括所有variant里"): every running twin takes variant-4's £1
-    // holding line at LIVE's own instant (QUOTE_LIVE_HOLD_MIN_FROM), both arms of every paired test together; variant-4's own
-    // row keeps the line it had from its start.
+    // 0176 (Davies, 2026-10-29: "…加入实盘live的规则里和所有测试策略包括所有variant里"): every twin running then took variant-4's £1
+    // holding line at LIVE's own instant (QUOTE_LIVE_HOLD_MIN_FROM); 0178's new twin has it from its start.
     const H = { from: '2026-10-29T22:00:00Z', gbp: 1 };
     const running = ROWS.filter((r) => r.enabled);
-    expect(running.map((r) => r.id)).toEqual(['live600', 'live1200', 'take50', 'n600no03', 'n600usdt2', 'n600usdt3', 'n600usdt', 'u300nudge', 'u300ctl', 'live600x1', 'live600ctl']);
-    for (const r of running) expect(r.rules.holdMin, r.id).toEqual(H);
-    expect(ROWS.find((r) => r.id === 'n600hold1').rules.holdMin).toEqual({ from: S, gbp: 1 });
+    expect(running.map((r) => r.id)).toEqual(['live600', 'live1200', 'take50', 'n600no03', 'n600usdt2', 'n600usdt', 'n600nudge', 'live600x1', 'live600ctl']);
+    for (const r of running.filter((x) => x.id !== 'n600nudge')) expect(r.rules.holdMin, r.id).toEqual(H);
+    expect(byId('n600hold1').rules.holdMin).toEqual({ from: S, gbp: 1 });
     const live = read('supabase/functions/agents/quotes_live.ts').toString('utf8');
     expect(live).toContain(`export const QUOTE_LIVE_HOLD_MIN_FROM = Date.parse("${H.from}");`);
+    expect(live).toContain(`export const QUOTE_LIVE_USDT_ONLY_FROM = Date.parse("${U}");`);
+    expect(live).toContain('weights: { from: QUOTE_LIVE_USDT_ONLY_FROM, book: { "USDC-GBP": 0, "USDT-GBP": 1 } },');
   });
 
   it("make the browser test's fixture as they stand: every enabled row, in the page's order, a hidden one too (it still runs)", () => {

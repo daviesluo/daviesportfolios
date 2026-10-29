@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-  defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fmtBps, fmtFees, FULL_HISTORY_LIMIT, historyLimitOf, lastChangeText, showFullHistory, symbolOrderRows, fmtFrac, fmtPct2, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView, strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows, VENUE_LABELS, VENUE_HUES, agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard, newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwBarTileKeys, fmtUsd4, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, paperTestRows, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokPmModeTag, grokPmTiles, linkDomain, utcStamp, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmJournalView, fmtProb, fmtBrier, LP_LIVE_ROW_ID, fmtR, lpStopRoomText, liveExtraRows, lpEstimateTexts, lpLiveDayCells, lpLiveQuoteRows, lpLiveRow, quoteDaysAnnualPct, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, lpLiveStatus, AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney, QUOTES_COINBASE_ROW_ID, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, QUOTES_COINBASE_NUDGE_ROW_ID, quotesCoinbaseRow,
+  defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fmtBps, fmtFees, FULL_HISTORY_LIMIT, historyLimitOf, lastChangeText, showFullHistory, symbolOrderRows, fmtFrac, fmtPct2, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView, strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows, VENUE_LABELS, VENUE_HUES, agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard, newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinRatioLine, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwBarTileKeys, fmtUsd4, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, paperTestRows, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokPmModeTag, grokPmTiles, linkDomain, utcStamp, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmJournalView, fmtProb, fmtBrier, LP_LIVE_ROW_ID, fmtR, lpStopRoomText, liveExtraRows, lpEstimateTexts, lpLiveDayCells, lpLiveQuoteRows, lpLiveRow, quoteDaysAnnualPct, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, lpLiveStatus, AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney, QUOTES_COINBASE_ROW_ID, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, QUOTES_COINBASE_NUDGE_ROW_ID, quotesCoinbaseRow,
 } from './agents.js';
 // The live quotes page's fixture: what the dashboard serves for a book worked out by hand (the agents function's test
 // proves it is the server's own answer for its rows; the browser test serves it).
@@ -964,18 +964,19 @@ describe("the realistic twins as rows of TESTING (Davies, 2026-10-02: the live e
     expect(strategyNameParts('Reward quotes variant-1')).toEqual({ head: 'Reward quotes variant-1', qual: null, twoLines: false });
     expect(strategyNameParts('Reward quotes (no same-day)')).toEqual({ head: 'Reward quotes', qual: '(no same-day)', twoLines: false });
   });
-  it('is "Stablecoin quotes LIVE twin" (live600, LIVE\'s size since 2026-10-27) and "variant-1" (live1200, the next step) on LIVE\'s rules (0144), on two lines, the first two', () => {
+  it('is "Stablecoin quotes USDT/GBP LIVE twin" (live600, LIVE\'s size since 2026-10-27; named as LIVE is since 0178) and "variant-1" (live1200, the next step) on LIVE\'s rules (0144), on two lines, the first two', () => {
     const r6 = /** @type {any} */ (quotesTwinRow(t600)), r12 = /** @type {any} */ (quotesTwinRow(t1200));
-    expect([r6.id, r6.name, rowMoney(r6).capital, r6.capitalUsd, r6.venueId, r6.mode]).toEqual([`${QUOTES_TWIN_ROW_PREFIX}live600`, 'Stablecoin quotes LIVE twin', 600, 792, 'revx', 'paper']);
+    expect([r6.id, r6.name, rowMoney(r6).capital, r6.capitalUsd, r6.venueId, r6.mode]).toEqual([`${QUOTES_TWIN_ROW_PREFIX}live600`, 'Stablecoin quotes USDT/GBP LIVE twin', 600, 792, 'revx', 'paper']);
     expect([r12.id, r12.name, rowMoney(r12).capital, r12.venueId, r12.mode]).toEqual([`${QUOTES_TWIN_ROW_PREFIX}live1200`, 'Stablecoin quotes variant-1', 1200, 'revx', 'paper']);
-    expect(strategyNameParts(r6.name)).toEqual({ head: 'Stablecoin quotes', qual: 'LIVE twin', twoLines: true });
+    expect(strategyNameParts(r6.name)).toEqual({ head: 'Stablecoin quotes', qual: 'USDT/GBP LIVE twin', twoLines: true });
     expect(strategyNameParts(r12.name)).toEqual({ head: 'Stablecoin quotes', qual: 'variant-1', twoLines: true });
     // The fixture drops the switched-off twins (the £300 twin, the weekend twin, 0148's three, and since 0151 pr5, p50 and d).
     const names = quotesTwinRows({ quotesTwins: shownTwins }).map((x) => x.name);
     // Since 0167 (Davies, 2026-10-29): the £120 twin is off, the USDT 2:1 twin hidden, and the visible variants count 1 to 6.
-    expect(names).toEqual(['Stablecoin quotes LIVE twin', 'Stablecoin quotes variant-1', 'Stablecoin quotes variant-2', 'Stablecoin quotes variant-3',
-      'Stablecoin quotes variant-4', 'Stablecoin quotes variant-5', 'Stablecoin quotes variant-6', 'Stablecoin quotes variant-7']);
-    // 0176: variant-4 (the £1 holding line's twin) off, the rest numbered down by one: still 1 to 7, no gap.
+    expect(names).toEqual(['Stablecoin quotes USDT/GBP LIVE twin', 'Stablecoin quotes variant-1', 'Stablecoin quotes variant-2', 'Stablecoin quotes variant-3',
+      'Stablecoin quotes variant-4', 'Stablecoin quotes variant-5', 'Stablecoin quotes variant-6']);
+    // 0176: variant-4 (the £1 holding line's twin) off, the rest numbered down by one. 0178 (Davies, 2026-10-29: "原 variant-5
+    // …这个可以删了"): the USDT 3:1 twin and the $300 nudge off, the nudge again as variant-5 on the 1:1 twin: 1 to 6, no gap.
     // 0169: variant-7's control runs hidden, as the USDT 2:1 twin does; 0175: so does variant-8's.
     expect(names).not.toContain('Stablecoin quotes USDC control from 10-30');
     expect(names).not.toContain('Stablecoin quotes LIVE control from 10-29');
@@ -995,10 +996,10 @@ describe("the realistic twins as rows of TESTING (Davies, 2026-10-02: the live e
   });
   it('lists the twins in the payload\'s order, opens each on its page, and is absent before its record is loaded', () => {
     const dash = { quotesTwins: [t600, null, t50], quotes: { live: liveFixture.live } };
-    expect(quotesTwinRows(dash).map((r) => r.name)).toEqual(['Stablecoin quotes LIVE twin', 'Stablecoin quotes variant-2']);
+    expect(quotesTwinRows(dash).map((r) => r.name)).toEqual(['Stablecoin quotes USDT/GBP LIVE twin', 'Stablecoin quotes variant-2']);
     // Three of the dashboard's twins in its order; one not loaded yet is no row.
     const three = { quotesTwins: [t600, t1200, t50] };
-    expect(quotesTwinRows(three).map((r) => r.name)).toEqual(['Stablecoin quotes LIVE twin', 'Stablecoin quotes variant-1', 'Stablecoin quotes variant-2']);
+    expect(quotesTwinRows(three).map((r) => r.name)).toEqual(['Stablecoin quotes USDT/GBP LIVE twin', 'Stablecoin quotes variant-1', 'Stablecoin quotes variant-2']);
     expect([quotesTwinOf(`${QUOTES_TWIN_ROW_PREFIX}live1200`, three), quotesPageFor(`${QUOTES_TWIN_ROW_PREFIX}live1200`, three)]).toEqual([t1200, 'twin']);
     expect(quotesTwinOf(`${QUOTES_TWIN_ROW_PREFIX}take50`, dash)).toBe(t50);
     expect(quotesPageFor(`${QUOTES_TWIN_ROW_PREFIX}live600`, dash)).toBe('twin');
@@ -1014,11 +1015,25 @@ describe("the realistic twins as rows of TESTING (Davies, 2026-10-02: the live e
   });
   it('says on its page which asks wait for the coin a maker conversion is buying', () => {
     const mask = (/** @type {string} */ s) => s.replace(/\d/g, '•');
-    expect(quotesTwinLines(t1200)).toEqual({ waiting: [] });
-    expect(quotesTwinLines(t600)).toEqual({ waiting: [] });
+    expect(quotesTwinLines(t1200)).toEqual({ waiting: [], ratio: null });
+    expect(quotesTwinLines(t600)).toEqual({ waiting: [], ratio: null });
     const waiting = { ...t600, twin: { ...t600.twin, converting: [{ book: 'USDT-GBP', ts: '2026-09-17T22:40:00Z', price: 0.7566, base: 594.79, filledBase: 120.5 }] } };
     expect(quotesTwinLines(waiting).waiting).toEqual(['USDT asks wait for their coin: a maker conversion rests at £0.7566, 120.50 of 594.79 filled']);
     expect(quotesTwinLines(waiting, mask).waiting).toEqual(['USDT asks wait for their coin: a maker conversion rests at £•.••••, •••.•• of •••.•• filled']);
+    // A coin rebook's sale (0178): the coin is being sold for pounds, not waited for.
+    const selling = { ...t600, twin: { ...t600.twin, converting: [{ book: 'USDC-GBP', side: 'sell', ts: '2026-09-17T22:40:00Z', price: 0.7551, base: 19.55408, filledBase: 0 }] } };
+    expect(quotesTwinLines(selling).waiting).toEqual(['USDC is being sold for pounds: a maker sale rests at £0.7551, 0.00 of 19.55 filled']);
+  });
+  it("says on a both-books twin's page each book's realised a year since the USDT-only switch, and USDT's over USDC's (Davies, 2026-10-29: \"追踪usdt和usdc的年化比率\")", () => {
+    const bookRatio = { from: '2026-10-30T00:00:00.000Z', usdtOverUsdc: 1.7512,
+      books: { 'USDC-GBP': { trips: 12, realisedGbp: 0.5, shareGbp: 300, pctYear: 20.04 }, 'USDT-GBP': { trips: 19, realisedGbp: 0.9, shareGbp: 300, pctYear: 35.1 } } };
+    const t = { ...t600, twin: { ...t600.twin, bookRatio } };
+    expect(quotesTwinLines(t).ratio).toBe("Realised a year on each book's half since 10-30 00:00 UTC: USDT 35.1 % (19 trips), USDC 20.0 % (12 trips) · USDT/USDC 1.75×");
+    // Percentages are not money: masked the same.
+    expect(quotesTwinLines(t, (s) => s.replace(/\d/g, '•')).ratio).toBe(quotesTwinLines(t).ratio);
+    const none = { ...bookRatio, usdtOverUsdc: null, books: { ...bookRatio.books, 'USDC-GBP': { trips: 0, realisedGbp: 0, shareGbp: 300, pctYear: 0 } } };
+    expect(quotesTwinRatioLine(none)).toBe("Realised a year on each book's half since 10-30 00:00 UTC: USDT 35.1 % (19 trips), USDC 0.0 % (0 trips) · USDT/USDC –");
+    expect(quotesTwinRatioLine(undefined)).toBe(null);
   });
 });
 
@@ -1098,7 +1113,7 @@ describe('quoteLadderRows — a book as the page draws it', () => {
     // A EUR book's in euros, USDT-EUR's to its five-place step (Coinbase, 0112).
     expect([fmtQuotePrice(0.8649, 'USDC-EUR'), fmtQuotePrice(0.86493, 'USDT-EUR'), fmtQuotePrice(0.7568, 'USDC-GBP')]).toEqual(['€0.8649', '€0.86493', '£0.7568']);
   });
-  it('"Stablecoin quotes with Euros" is the TESTING row right after the last twin, "Stablecoin quotes variant-7" in the fixture (0175, renumbered by 0176), on Coinbase, in pounds, and opens its own page', () => {
+  it('"Stablecoin quotes with Euros" is the TESTING row right after the last twin, "Stablecoin quotes variant-6" in the fixture (0175, renumbered by 0176 and 0178), on Coinbase, in pounds, and opens its own page', () => {
     const q = cbFixture.quotesCoinbase;
     const row = quotesCoinbaseRow(q);
     expect(row).toMatchObject({ id: QUOTES_COINBASE_ROW_ID, name: 'Stablecoin quotes with Euros', venue: 'Coinbase', venueId: 'coinbase', mode: 'paper', ccy: 'GBP' });
@@ -1109,7 +1124,7 @@ describe('quoteLadderRows — a book as the page draws it', () => {
     const dash = { quotesTwins: shownTwins, quotesCoinbase: q };
     const names = paperTestRows(dash).map((r) => r.name);
     expect(names.indexOf('Stablecoin quotes with Euros')).toBe(shownTwins.length);
-    expect(names[names.indexOf('Stablecoin quotes with Euros') - 1]).toBe('Stablecoin quotes variant-7');
+    expect(names[names.indexOf('Stablecoin quotes with Euros') - 1]).toBe('Stablecoin quotes variant-6');
     // On two lines, as the variants are: the same run of rows.
     expect(strategyNameParts(String(row?.name))).toEqual({ head: 'Stablecoin quotes', qual: 'with Euros', twoLines: true });
     expect(quotesPageFor(QUOTES_COINBASE_ROW_ID, dash)).toBe('coinbase');
@@ -1132,6 +1147,11 @@ describe('quoteLadderRows — a book as the page draws it', () => {
     }
     expect(quotesPageFor(QUOTES_COINBASE_ROW_ID, { quotesTwins: [] })).toBe(null);
     expect(quotesCoinbaseRow(null)).toBe(null);
+  });
+  it('"Stablecoin quotes USDT/GBP LIVE twin" (0178) is on two lines as the LIVE twin was; LIVE\'s own "Stablecoin quotes USDT/GBP" on one, as Coinbase\'s USDC/GBP', () => {
+    expect(strategyNameParts('Stablecoin quotes USDT/GBP LIVE twin')).toEqual({ head: 'Stablecoin quotes', qual: 'USDT/GBP LIVE twin', twoLines: true });
+    expect(strategyNameParts('Stablecoin quotes USDT/GBP')).toEqual({ head: 'Stablecoin quotes USDT/GBP', qual: null, twoLines: false });
+    expect(strategyNameParts('Stablecoin quotes USDC/GBP')).toEqual({ head: 'Stablecoin quotes USDC/GBP', qual: null, twoLines: false });
   });
   it('"Stablecoin quotes with Euros - 2" (the weekend variant, 0118) is the TESTING row right after "Stablecoin quotes with Euros", on Coinbase, and opens its own page', () => {
     const q = cbFixture.quotesCoinbase, h = cbHoldFixture.quotesCoinbaseHold;
@@ -1328,7 +1348,7 @@ describe("PR5's live executor on LIVE (Davies, 2026-09-26)", () => {
   it('is a LIVE row from its first real order, in USD, with its percents on its own bases; dry-run keeps it off', () => {
     const r = quotesLiveRow(ql);
     if (!r) throw new Error('no row');
-    expect([r.id, r.name, r.mode, r.venueId, r.capitalUsd, r.openPositions, r.holdsLive, r.armed]).toEqual([QUOTES_LIVE_ROW_ID, 'Stablecoin quotes', 'live', 'revx', 67.5, 1, true, true]);
+    expect([r.id, r.name, r.mode, r.venueId, r.capitalUsd, r.openPositions, r.holdsLive, r.armed]).toEqual([QUOTES_LIVE_ROW_ID, 'Stablecoin quotes USDT/GBP', 'live', 'revx', 67.5, 1, true, true]);
     expect(r.unrealisedPct).toBeCloseTo(0.0135 / 4.97475 * 100, 9);
     expect(r.realisedPct).toBeCloseTo(0.0135 / 67.5 * 100, 9);
     // Shown in pounds, the book's own (Davies, 2026-10-01), its percents on the same bases.

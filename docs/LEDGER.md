@@ -796,6 +796,16 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third).
 
+### [2026-10-29 21:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LIVE on USDT-GBP alone from 2026-10-30 00:00 UTC, built dry** (sub-agent; commit, not pushed; Davies' USDT-ONLY word above,
+  then "原 variant-5…可以删了" / "原 variant-7…在…1:1…基础上做"). `quotes_live.ts`: `QUOTE_LIVE_USDT_ONLY_FROM`, LIVE's `weights` USDC-GBP 0;
+  `rebookOn` 72 h: surplus coin sold post-only at the top of the asks never under fair (`planDrains`, `makerSellTicks`), the
+  short book's top-ups uncapped and partial. `index.ts`: a sale is no conversion lot; `twinBookRatio` (USDT/USDC line).
+  `0178`: LIVE's weights on live600 ("USDT/GBP LIVE twin"), live1200, take50, n600no03, live600x1, live600ctl; n600usdt 1:1
+  (variant-4); new `n600nudge` variant-5 (prereg `reviews/2026-10-29-usdt-only-twins-prereg.md`); n600usdt3, u300nudge, u300ctl
+  off; live600x1 variant-6. Deviation `reviews/2026-10-29-usdt-only-deviation.md`. Nothing moves before 00:00 but n600no03's
+  0.3 % rungs and n600usdt's USDC side; to cancel the switch, revert before 00:00.
+
 ### [2026-10-29 20:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Polymarket analyst: the JOURNAL ten at a time, "Load more"** (sub-agent; commit, not pushed; Davies, 10-29: "…JOURNAL也默认只显示
   前10条…"Load more"，然后每点一次多加载10条"). `useLoadMore` (agents.jsx, DAYS' `ag-more` button and `useDaysWindow`'s shape): 10,

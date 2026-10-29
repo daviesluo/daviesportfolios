@@ -85,12 +85,15 @@ describe("PR5-OPT's five twins on LIVE's rules from 06:00", () => {
     ]) expect([...named(f), ...v7Named(f)], f).toEqual(before[f] ? [...before[f], sha(f)] : [sha(f)]);
   });
 
-  it("answers a weighted book with no pounds 'already holds', where the live account's instance has no weights", () => {
+  it("answers a weighted book with no pounds 'already holds', where the live account's instance has weights only from 0178's instant (USDT-GBP alone)", () => {
     const live = read('supabase/functions/agents/quotes_live.ts').toString('utf8');
     expect(live).toMatch(/if \(weightsOn\(inst, d\.now\) && !\(cap > 0\)\) return \{ error: `the account already holds what /);
     const inst = /export const QUOTE_LIVE_INSTANCE: QuoteLiveInstance = \{([\s\S]*?)\n\};/.exec(live)?.[1] ?? '';
     expect(inst).toContain('agent_quote_live_config');
-    expect(/weights/.test(inst)).toBe(false);
+    // Davies, 2026-10-29 (docs/agents/reviews/2026-10-29-usdt-only-deviation.md): LIVE quotes USDT-GBP alone from 2026-10-30 00:00 UTC.
+    expect([...inst.matchAll(/weights/g)].length).toBe(1);
+    expect(inst).toContain('weights: { from: QUOTE_LIVE_USDT_ONLY_FROM, book: { "USDC-GBP": 0, "USDT-GBP": 1 } },');
+    expect(live).toContain('export const QUOTE_LIVE_USDT_ONLY_FROM = Date.parse("2026-10-30T00:00:00Z");');
     // Variant-4's holding line goes to LIVE from 2026-10-29 22:00 UTC (0176; docs/agents/reviews/2026-10-29-holdmin-deviation.md).
     expect(inst).toContain('holdMin: { from: QUOTE_LIVE_HOLD_MIN_FROM, gbp: 1 },');
   });

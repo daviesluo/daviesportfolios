@@ -260,7 +260,7 @@ import { youtubeProbe } from "./youtube.ts";
 import { runViews } from "./views.ts";
 import { QUOTE_BOOKS, QUOTE_RUNGS, QUOTE_TICK, runQuotes, type QuoteBook, type QuoteReport, type Side } from "./quotes.ts";
 import {
-  coinOf, markedGbp, QUOTE_LIVE_LOSS_FRACTION, rungBook, rungGbpOf, runQuotesConvert, runQuotesLive,
+  coinOf, markedGbp, QUOTE_LIVE_LOSS_FRACTION, QUOTE_LIVE_USDT_ONLY_FROM, rungBook, rungGbpOf, runQuotesConvert, runQuotesLive,
   type LiveLeg, type QuoteLiveDeps, type QuoteLiveReport, type RungBook, type RungFill,
 } from "./quotes_live.ts";
 import { stepLiveWeekendPaper, type LiveWeekendReport } from "./quotes_live_weekend.ts";
@@ -1496,9 +1496,11 @@ export function liveConversionShares(orders: QuoteLiveOrderView[]): Map<number, 
   const byTime = (a: QuoteLiveOrderView, b: QuoteLiveOrderView) => at(a) - at(b) || a.id - b.id;
   const shares = new Map<number, number>();
   for (const b of QUOTE_BOOKS) {
-    const lots = filled.filter((o) => o.book === b && o.leg === "convert").sort(byTime)
+    // A conversion that buys is a lot; one that sells (a coin rebook's sale, 2026-10-29, `isDrain`) takes coins out of the lots
+    // as an ask entry does, first in, first out, and their fees with them: they stay in the book's cost (`liveCoinBooks`), no trip's.
+    const lots = filled.filter((o) => o.book === b && o.leg === "convert" && o.side !== "sell").sort(byTime)
       .map((o) => ({ at: at(o), left: Number(o.filled_base), perCoin: Number(o.fee_gbp || 0) / Number(o.filled_base) }));
-    for (const o of filled.filter((x) => x.book === b && x.rung_side === "ask" && x.leg === "entry").sort(byTime)) {
+    for (const o of filled.filter((x) => x.book === b && ((x.rung_side === "ask" && x.leg === "entry") || (x.leg === "convert" && x.side === "sell"))).sort(byTime)) {
       let need = Number(o.filled_base), fee = 0;
       for (const lot of lots) {
         if (lot.at > at(o) || need <= 0) break;
@@ -1507,7 +1509,7 @@ export function liveConversionShares(orders: QuoteLiveOrderView[]): Map<number, 
         need -= take;
         fee += take * lot.perCoin;
       }
-      if (fee > 0) shares.set(o.id, fee);
+      if (fee > 0 && o.leg === "entry") shares.set(o.id, fee);
     }
   }
   return shares;
@@ -1600,8 +1602,11 @@ export function liveCoinBooks(orders: QuoteLiveOrderView[], rungs: LiveRung[], b
     const mine = rungs.filter((r) => r.book === b);
     const lots = conversions.filter((o) => o.book === b);
     const signed = (r: LiveRung) => (r.side === "bid" ? 1 : -1) * r.rb.held;
-    const ownCount = lots.reduce((a, o) => a + Number(o.filled_base), 0) + mine.reduce((a, r) => a + signed(r) + (r.overCoins ?? 0), 0);
-    const paid = lots.reduce((a, o) => a + Number(o.filled_base) * Number(o.avg_fill_price ?? o.price) + Number(o.fee_gbp || 0), 0);
+    // A conversion that sells (a coin rebook's sale, `isDrain`) takes its coins out and its pounds, less its fee, off the cost: what
+    // the coins it sold made or lost against what they cost stays in the book's cost, and so in its unrealised, as before the sale.
+    const sign = (o: QuoteLiveOrderView) => (o.side === "sell" ? -1 : 1);
+    const ownCount = lots.reduce((a, o) => a + sign(o) * Number(o.filled_base), 0) + mine.reduce((a, r) => a + signed(r) + (r.overCoins ?? 0), 0);
+    const paid = lots.reduce((a, o) => a + sign(o) * Number(o.filled_base) * Number(o.avg_fill_price ?? o.price) + Number(o.fee_gbp || 0), 0);
     const costGbp = paid - mine.reduce((a, r) => a + r.convFeesGbp, 0) + mine.reduce((a, r) => a + signed(r) * r.rb.avgEntry + (r.overGbp ?? 0), 0);
     const read = balances?.[coinOf(b)];
     const coins = read != null && Number.isFinite(Number(read)) ? Number(read) : ownCount;
@@ -1936,6 +1941,25 @@ export function twinMeta(spec: TwinSpec, s: TwinDriverState, row: Pick<TwinSimRo
 }
 
 /**
+ * Each book's realised a year on its share of the capital (its weight over the books', `weights.book`, a weight not named 1)
+ * from the weights' instant, the round trips that closed since then, and USDT-GBP's over USDC-GBP's (Davies, 2026-10-29:
+ * "variant-6改为usdc和usdt 1:1作为两个币都做的对比（追踪usdt和usdc的年化比率…）"). The ratio is null while USDC-GBP has made
+ * nothing or lost; the whole is null before the instant.
+ */
+export function twinBookRatio(trips: ReadonlyArray<Pick<LiveTrip, "book" | "tExit" | "pnlGbp">>, weights: { from: number; book?: Partial<Record<QuoteBook, number>> }, capitalGbp: number, now: number) {
+  if (!(now > weights.from)) return null;
+  const w = (b: QuoteBook) => Number(weights.book?.[b] ?? 1), sum = QUOTE_BOOKS.reduce((a, b) => a + w(b), 0);
+  const years = (now - weights.from) / (365 * 864e5);
+  const books = Object.fromEntries(QUOTE_BOOKS.map((b) => {
+    const mine = trips.filter((t) => t.book === b && Date.parse(t.tExit) >= weights.from);
+    const realisedGbp = mine.reduce((a, t) => a + t.pnlGbp, 0), shareGbp = sum > 0 ? capitalGbp * w(b) / sum : 0;
+    return [b, { trips: mine.length, realisedGbp, shareGbp, pctYear: shareGbp > 0 ? 100 * realisedGbp / shareGbp / years : null }];
+  })) as Record<QuoteBook, { trips: number; realisedGbp: number; shareGbp: number; pctYear: number | null }>;
+  const c = books["USDC-GBP"].pctYear, t = books["USDT-GBP"].pctYear;
+  return { from: isoOf(weights.from), books, usdtOverUsdc: c != null && t != null && c > 0 ? t / c : null };
+}
+
+/**
  * A realistic twin for the page (`quotes_twin.ts`, `0087`): the live executor's own record on its simulated account, read
  * and summed exactly as the live account's is (`quotesLiveSummary`, `quotesLiveDetail`, on the twin's rungs), with what
  * the twin says of itself (`twinMeta`). Null before its record is loaded, or when a read fails.
@@ -1963,11 +1987,16 @@ export async function readQuotesTwin(d: Db, spec: TwinSpec, now: number, dayStar
     ]);
     const ds = s as TwinDriverState;
     const detail = quotesLiveDetail({ ...base, open, recent, knownRefusals: new Set(), ordersByDay: ds.days ?? {} });
-    // The operator's conversions still resting: the asks of their book wait for their coin (the page says so).
+    // The conversions still resting: the asks of their book wait for their coin, or a rebook sells its surplus (the page says so).
     const converting = open.filter((o) => o.mode === "live" && o.leg === "convert").map((o) => ({
-      book: o.book, ts: o.ts, price: Number(o.price), base: Number(o.base_size), filledBase: Number(o.filled_base),
+      book: o.book, side: o.side === "sell" ? "sell" : "buy", ts: o.ts, price: Number(o.price), base: Number(o.base_size), filledBase: Number(o.filled_base),
     }));
-    return { ...summary, detail, twin: { ...twinMeta(spec, ds, sim[0]), converting } };
+    // A twin on both books at once from the USDT-only switch (0178: variant-4, USDC:USDT 1:1, and variant-5 with the nudge): each
+    // book's realised a year on its share of the capital since then, and USDT-GBP's over USDC-GBP's (Davies, 2026-10-29).
+    const ratio = I.weights && I.weights.from === QUOTE_LIVE_USDT_ONLY_FROM && QUOTE_BOOKS.every((b) => !(Number(I.weights!.book?.[b] ?? 1) === 0))
+      ? twinBookRatio(liveRungs(orders, base.paper, dayStartMs, base.state?.state.dust, I.rungs).flatMap((r) => liveRungTrips(r, dayStartMs)), I.weights, spec.capitalGbp, now)
+      : null;
+    return { ...summary, detail, twin: { ...twinMeta(spec, ds, sim[0]), converting, ...(ratio ? { bookRatio: ratio } : {}) } };
   } catch { return null; }
 }
 

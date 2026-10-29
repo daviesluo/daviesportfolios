@@ -22,6 +22,13 @@ const holdNamed = (f) => {
   return [...rest.slice(0, e < 0 ? undefined : e).matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
 };
 
+/** The USDT-only deviation (0178), recorded apart: the files as they are, under this pre-registration's own heading. */
+const USDT = read('docs/agents/reviews/2026-10-29-usdt-only-deviation.md').toString('utf8');
+const usdtNamed = (f) => {
+  const s = USDT.indexOf('### `docs/agents/reviews/2026-10-29-revx-exit-tick-twin-prereg.md`'), rest = s < 0 ? '' : USDT.slice(s + 1), e = rest.search(/\n##/);
+  return [...rest.slice(0, e < 0 ? undefined : e).matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
+};
+
 describe("variant-8's pre-registration", () => {
   it('shows the rows 0175 inserts, frozen; the two are the same but for the offset, its id, name, place, tables, lease and hiding', () => {
     const rows = rowsOf(M);
@@ -72,7 +79,9 @@ describe("variant-8's pre-registration", () => {
     ]) expect(named(f), f).toEqual([sha(f)]);
     // The deviation of 2026-10-29 (0176: variant-4's £1 holding line on LIVE and every twin), recorded apart: the executor as it is.
     const live = 'supabase/functions/agents/quotes_live.ts';
-    expect([...named(live), ...holdNamed(live)], live).toEqual(['12e3dad7cc9058cedc7cd840fc4ac5d3396b955c842e39fd70f22f18cfad25eb', sha(live)]);
+    // Then the USDT-only deviation of 2026-10-29 (0178: LIVE on USDT-GBP alone, the coin rebooked), recorded apart.
+    expect([...named(live), ...holdNamed(live), ...usdtNamed(live)], live).toEqual([
+      '12e3dad7cc9058cedc7cd840fc4ac5d3396b955c842e39fd70f22f18cfad25eb', '99ce22c051431df2fc179ebaf93717460b953f95f87d109466d6f91d55d40bd8', sha(live)]);
     const v7 = read('docs/agents/reviews/2026-10-29-revx-usdc-nudge-twin-prereg.md').toString('utf8');
     for (const f of ['quotes_twin.ts', 'quotes_live.ts', 'revx_sim.ts', 'quotes_weekend.ts']) {
       expect(v7, f).toContain(`| \`supabase/functions/agents/${f}\` | ${named(`supabase/functions/agents/${f}`)[0]} |`);

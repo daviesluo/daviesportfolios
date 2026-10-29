@@ -45,6 +45,14 @@ const HIDE = /update public\.agent_quote_twin_specs\s+set hidden = (true|false)\
 /** A rule's instant, and a row's start, moved, each guarded on the value it replaces (0090, 0154), as src/twin_specs.test.js reads them. */
 const RULE_MOVE = /update public\.agent_quote_twin_specs\s+set rules = jsonb_set\(rules, '\{(\w+),from\}', '"([0-9T:Z-]+)"'::jsonb\)\s+where id = '(\w+)' and rules->'(\w+)'->>'from' = '([0-9T:Z-]+)';/g;
 const START = /update public\.agent_quote_twin_specs\s+set start = '([0-9T:Z-]+)'\s+where id = '(\w+)' and start = '([0-9T:Z-]+)';/g;
+/**
+ * Since 0178: a rule replaced whole, guarded on the rule it replaces (jsonb equality: keys in any order), and a row's place
+ * moved, guarded on the place it leaves, as src/twin_specs.test.js reads them.
+ */
+const RULE_SET = /update public\.agent_quote_twin_specs\s+set rules = jsonb_set\(rules, '\{(\w+)\}', '(\{[^']*\})'::jsonb\)\s+where id = '(\w+)' and rules->'(\w+)' = '(\{[^']*\})'::jsonb;/g;
+const PLACE = /update public\.agent_quote_twin_specs\s+set display_order = (\d+)\s+where id = '(\w+)' and display_order = (\d+);/g;
+/** A value with its keys sorted at every depth: two jsonb values are equal when these are. */
+const canon = (v: unknown) => JSON.stringify(v, (_k, x) => (x && typeof x === "object" && !Array.isArray(x) ? Object.fromEntries(Object.entries(x).sort(([a], [b]) => (a < b ? -1 : 1))) : x));
 const MIGRATIONS = new URL("../../../../../supabase/migrations/", import.meta.url);
 type Op = { at: number; apply: (rows: Array<Record<string, unknown> & { id: string; display_name: string }>) => typeof rows };
 const asTheyStand = async <T extends { id: string; display_name: string }>(first: T[]): Promise<T[]> => {
@@ -70,10 +78,16 @@ const asTheyStand = async <T extends { id: string; display_name: string }>(first
         return r.id === m[3] && rules[m[1]]?.from === m[5] ? { ...r, rules: { ...rules, [m[1]]: { ...rules[m[1]], from: m[2] } } } : r;
       }) })),
       ...[...sql.matchAll(START)].map((m): Op => ({ at: m.index ?? 0, apply: (rs) => rs.map((r) => (r.id === m[2] && Date.parse(String(r.start)) === Date.parse(m[3]) ? { ...r, start: m[1] } : r)) })),
+      ...[...sql.matchAll(RULE_SET)].map((m): Op => ({ at: m.index ?? 0, apply: (rs) => rs.map((r) => {
+        const rules = (r.rules ?? {}) as Record<string, unknown>;
+        return r.id === m[3] && m[1] === m[4] && canon(rules[m[4]]) === canon(JSON.parse(m[5])) ? { ...r, rules: { ...rules, [m[1]]: JSON.parse(m[2]) } } : r;
+      }) })),
+      ...[...sql.matchAll(PLACE)].map((m): Op => ({ at: m.index ?? 0, apply: (rs) => rs.map((r) => (r.id === m[2] && Number(r.display_order) === Number(m[3]) ? { ...r, display_order: Number(m[1]) } : r)) })),
     ].sort((a, b) => a.at - b.at);
     for (const op of ops) rows = op.apply(rows);
   }
-  return rows as unknown as T[];
+  // In the page's order, as a moved place leaves it (0178).
+  return (rows as unknown as T[]).sort((a, b) => Number((a as Record<string, unknown>).display_order) - Number((b as Record<string, unknown>).display_order));
 };
 const rows = (await asTheyStand(await specRowsOfMigrations())).filter((r) => r.enabled);
 const starts: Record<string, string> = {}, sims: Record<string, unknown> = {}, twins: unknown[] = [];

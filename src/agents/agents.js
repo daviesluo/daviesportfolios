@@ -1263,9 +1263,9 @@ export function positionLines(s) {
  * @returns {{ head: string, qual: string | null, twoLines: boolean }}
  */
 export function strategyNameParts(name) {
-  // The stablecoin quotes' variants, Coinbase's "with Euros" (Davies, 2026-10-10) and the LIVE twin (0136, 2026-10-21), on two
-  // lines in the same run.
-  const variant = /^(Stablecoin quotes) (variant-\d+|with Euros(?: - \d+)?|LIVE twin)$/.exec(name);
+  // The stablecoin quotes' variants, Coinbase's "with Euros" (Davies, 2026-10-10) and the LIVE twin (0136, 2026-10-21; "USDT/GBP
+  // LIVE twin" since 0178), on two lines in the same run.
+  const variant = /^(Stablecoin quotes) (variant-\d+|with Euros(?: - \d+)?|(?:USDT\/GBP )?LIVE twin)$/.exec(name);
   if (variant) return { head: variant[1], qual: variant[2], twoLines: true };
   const q = /^(.*\S)\s+(\([^()]*\))$/.exec(name);
   if (q) return { head: q[1], qual: q[2], twoLines: false };
@@ -1537,17 +1537,35 @@ export function quotesTwinOf(selected, dash) {
 /**
  * What a twin's page says under its scoreboard: one line for each book whose asks wait for the coin a resting
  * conversion is buying (Davies, 2026-10-02: the conversions are makers, and an ask has no coin until its conversion
- * fills). The lines saying what the twin is, and how far its replica differs from its engine, were taken off on
- * Davies' word (2026-10-04).
+ * fills), or whose surplus a rebook's maker sale is selling (0178); and, on a twin quoting both books from the USDT-only
+ * switch (`twin.bookRatio`: variant-4, USDC:USDT 1:1, and variant-5), each book's realised a year since then and USDT's
+ * over USDC's (Davies, 2026-10-29: "追踪usdt和usdc的年化比率，在它子页面的score board下加一行文字更新这个"). The lines
+ * saying what the twin is, and how far its replica differs from its engine, were taken off on Davies' word (2026-10-04).
  * @param {any} t  one of the dashboard's `quotesTwins`
  * @param {(s: string) => string} [m]
- * @returns {{ waiting: string[] }}
+ * @returns {{ waiting: string[], ratio: string | null }}
  */
 export function quotesTwinLines(t, m = (s) => s) {
   const tw = t?.twin ?? {};
-  const waiting = (tw.converting ?? []).map((/** @type {any} */ c) =>
-    `${quoteBookLabel(c.book).split('/')[0]} asks wait for their coin: a maker conversion rests at ${m(fmtQuotePrice(c.price))}, ${m(Number(c.filledBase).toFixed(2))} of ${m(Number(c.base).toFixed(2))} filled`);
-  return { waiting };
+  const waiting = (tw.converting ?? []).map((/** @type {any} */ c) => c.side === 'sell'
+    ? `${quoteBookLabel(c.book).split('/')[0]} is being sold for pounds: a maker sale rests at ${m(fmtQuotePrice(c.price))}, ${m(Number(c.filledBase).toFixed(2))} of ${m(Number(c.base).toFixed(2))} filled`
+    : `${quoteBookLabel(c.book).split('/')[0]} asks wait for their coin: a maker conversion rests at ${m(fmtQuotePrice(c.price))}, ${m(Number(c.filledBase).toFixed(2))} of ${m(Number(c.base).toFixed(2))} filled`);
+  return { waiting, ratio: quotesTwinRatioLine(tw.bookRatio) };
+}
+
+/**
+ * The USDT/USDC line of a twin on both books from the USDT-only switch (`twin.bookRatio`): each book's realised a year on
+ * its half of the capital since the switch, and the ratio; a percentage is not money, so it is not masked. Null without one.
+ * @param {any} r
+ * @returns {string | null}
+ */
+export function quotesTwinRatioLine(r) {
+  if (!r?.books) return null;
+  const pct = (/** @type {any} */ b) => (b?.pctYear == null ? '–' : `${Number(b.pctYear).toFixed(1)} %`);
+  const t = r.books['USDT-GBP'], c = r.books['USDC-GBP'];
+  const since = String(r.from ?? '').slice(5, 16).replace('T', ' ');
+  const ratio = r.usdtOverUsdc == null ? 'USDT/USDC –' : `USDT/USDC ${Number(r.usdtOverUsdc).toFixed(2)}×`;
+  return `Realised a year on each book's half since ${since} UTC: USDT ${pct(t)} (${t?.trips ?? 0} trips), USDC ${pct(c)} (${c?.trips ?? 0} trips) · ${ratio}`;
 }
 
 /** PR5's live executor's id among LIVE's rows. */
@@ -1564,7 +1582,8 @@ export function quotesLiveRow(q) {
   if (!q || !(q.tradedLive || q.entryBook === 'live')) return null;
   return {
     id: QUOTES_LIVE_ROW_ID,
-    name: 'Stablecoin quotes',
+    // Davies, 2026-10-29: "live策略改名为Stablecoin quotes USDT/GBP" (LIVE quotes USDT-GBP alone from 2026-10-30 00:00 UTC, 0178).
+    name: 'Stablecoin quotes USDT/GBP',
     venue: venueLabel('revx'),
     venueId: 'revx',
     mode: 'live',

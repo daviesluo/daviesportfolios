@@ -183,17 +183,28 @@ for (const r of TWIN_ROWS) {
   });
 }
 
-Deno.test("the live account's instance has no PR5-OPT weights, so its sizes, retirements and conversion cap are the frozen rule's; its holding line is the venue's minimum until 2026-10-29 22:00 UTC and £1 from then (0176)", () => {
+Deno.test("the live account's instance: the frozen rule's sizes, retirements and conversion cap until 2026-10-30 00:00 UTC and USDT-GBP alone from then (0178); its holding line the venue's minimum until 2026-10-29 22:00 UTC and £1 from then (0176)", () => {
   const I = Now.QUOTE_LIVE_INSTANCE;
-  assertEquals(I.weights, undefined);
+  // USDT-GBP alone from QUOTE_LIVE_USDT_ONLY_FROM (docs/agents/reviews/2026-10-29-usdt-only-deviation.md); the rebook runs three days from it.
+  const U = Date.parse("2026-10-30T00:00:00Z");
+  assertEquals([Now.QUOTE_LIVE_USDT_ONLY_FROM, Now.QUOTE_LIVE_REBOOK_SINCE, I.weights, I.rebook], [U, U, { from: U, book: { "USDC-GBP": 0, "USDT-GBP": 1 } }, undefined]);
+  assertEquals([Now.rebookOn(I, U - 1), Now.rebookOn(I, U), Now.rebookOn(I, U + 72 * H - 1), Now.rebookOn(I, U + 72 * H)], [false, true, true, false]);
   // Variant-4's £1 holding line from QUOTE_LIVE_HOLD_MIN_FROM (docs/agents/reviews/2026-10-29-holdmin-deviation.md).
   assertEquals([Now.QUOTE_LIVE_HOLD_MIN_FROM, I.holdMin], [Date.parse("2026-10-29T22:00:00Z"), { from: Date.parse("2026-10-29T22:00:00Z"), gbp: 1 }]);
-  for (const now of [0, Date.parse("2026-10-29T00:00:00Z"), Date.parse("2030-01-01T00:00:00Z")]) {
+  for (const now of [0, Date.parse("2026-10-29T00:00:00Z"), U - 1]) {
     for (const b of QUOTE_BOOKS) for (const side of ["bid", "ask"] as const) for (const k of I.rungs) {
       assertEquals(Now.rungGbpOf(I, 600, b, side, k, now), Now.rungGbp(600, I.rungs));
       assertEquals(Now.weightRetired(I, now, b, side, k), false);
     }
     for (const b of QUOTE_BOOKS) assertEquals(Now.convertCapGbp(I, 600, b, now), 600 * Now.QUOTE_LIVE_CONVERT_MAX_FRACTION);
+  }
+  // From it: USDT-GBP's six rungs £100 each at £600, USDC-GBP's none (no entry; a holding still exits), a conversion of USDT up to its asks' £300.
+  for (const now of [U, Date.parse("2030-01-01T00:00:00Z")]) {
+    for (const side of ["bid", "ask"] as const) for (const k of I.rungs) {
+      assertEquals([Now.rungGbpOf(I, 600, "USDT-GBP", side, k, now), Now.rungGbpOf(I, 600, "USDC-GBP", side, k, now)], [100, 0]);
+      assertEquals([Now.weightRetired(I, now, "USDT-GBP", side, k), Now.weightRetired(I, now, "USDC-GBP", side, k)], [false, true]);
+    }
+    assertEquals([Now.convertCapGbp(I, 600, "USDT-GBP", now), Now.convertCapGbp(I, 600, "USDC-GBP", now)], [300, 0]);
   }
   // Before the instant the line is the venue's minimum, as the frozen executor's; from it, £1 of coin at the price.
   assertEquals(Now.holdLineBase(I, Now.QUOTE_LIVE_HOLD_MIN_FROM - 1, 0.1337, 0.748), 0.1337);
@@ -236,6 +247,58 @@ Deno.test("PR5-OPT's weights through the executor: USDT-GBP's entries twice USDC
   assertEquals(Object.keys(no03).filter((k) => k.endsWith(" 0.003")), []);
   for (const [key, gbp] of Object.entries(no03)) assert(Math.abs(gbp - 15) <= 0.01, `${key}: £${gbp}`);
   assertEquals(Object.keys(no03).length, 8);
+});
+
+// The coin rebook (`rebookOn`; Davies, 2026-10-29: "换币也用挂单不要有转换损失"): weights that come into force at the rebook's
+// instant or later sell the book's surplus coin by a post-only order at the top of the asks, never under fair, and top up the
+// book that is short with no £5 cap; weights from before the rebook's instant (PR5-OPT's twins) do neither.
+Deno.test("the coin rebook through the executor: USDC sold post-only at or over fair, USDT bought past the £5 cap, USDC quoting no entry; none before its instant", async () => {
+  const run = async (instance: Now.QuoteLiveInstance, minutes = 4) => {
+    const w = world(Now, instance);
+    w.sim.st.balances.USDC = 60; w.sim.st.balances.USDT = 0;
+    const books = Object.fromEntries(QUOTE_BOOKS.map((bk) => [bk, newBookState(bk, { id: "seed", ts: T0 - 30e3, ticks: bk === "USDC-GBP" ? 7553 : 7551, qty: 10, side: "sell" })])) as Record<QuoteBook, BookState>;
+    for (let t = T0; t < T0 + minutes * M; t += M) {
+      const prints: Record<QuoteBook, Print[]> = { "USDC-GBP": [], "USDT-GBP": [] };
+      // A buyer of 100 USDC well over fair at minute 2: it fills a resting sale.
+      if (t === T0 + 2 * M) prints["USDC-GBP"].push({ id: "buyer", ts: t + 20e3, ticks: 7570, qty: 100, side: "buy" });
+      for (const bk of QUOTE_BOOKS) for (const p of prints[bk]) w.print(bk, p);
+      for (const bk of QUOTE_BOOKS) stepMinute(books[bk], t, { x: 1.3238, fairU: 1.0, prints: prints[bk] });
+      await w.mem.db.upsert("agent_quote_state", [{ id: 1, state: { lastMinute: t, books: JSON.parse(JSON.stringify(books)), fetchedTo: {}, hourFetchedFor: 0 }, last_minute: iso(t), updated_at: iso(t), last_error: null }], "id");
+      await w.turn(t + M + 30e3);
+    }
+    const orders = w.mem.tables.agent_quote_live_orders as Row[];
+    return {
+      drains: orders.filter((o) => o.leg === "convert" && o.side === "sell"),
+      topUps: orders.filter((o) => o.leg === "convert" && o.side === "buy"),
+      usdcEntries: orders.filter((o) => o.leg === "entry" && o.book === "USDC-GBP"),
+      balances: w.sim.st.balances,
+    };
+  };
+  const weights = { from: T0, book: { "USDC-GBP": 0, "USDT-GBP": 1 } };
+  const on = await run({ ...Now.QUOTE_LIVE_INSTANCE, weights, rebook: { since: T0 } });
+  const fair = 1 / 1.3238;
+  assert(on.drains.length >= 1, JSON.stringify(on.drains));
+  for (const o of on.drains) {
+    const req = o.request as Record<string, unknown>;
+    assertEquals([o.book, req.auto, req.drain, req.postOnly, req.marketable], ["USDC-GBP", true, true, true, false]);
+    assert(Math.round(Number(o.price) / 1e-4) >= Math.ceil(fair / 1e-4 - 1e-9), `sold under fair: ${o.price}`);
+  }
+  // Its asks need none of it: every USDC the account holds is surplus, and the first sale offers all 60.
+  assertEquals(Number(on.drains[0].base_size), 60);
+  // The buyer at 0.7570 filled it: no USDC left, its pounds credited.
+  assert(Number(on.drains[0].filled_base) > 0, JSON.stringify(on.drains[0]));
+  assert(on.balances.USDC < 1e-9, JSON.stringify(on.balances));
+  // USDT-GBP's asks, £20 each at £120, need about 79 USDT: one top-up buys it, far past the £5 a day.
+  assert(on.topUps.length >= 1 && Number(on.topUps[0].base_size) * Number(on.topUps[0].price) > Now.QUOTE_LIVE_TOPUP_MAX_GBP_DAY, JSON.stringify(on.topUps));
+  assertEquals(on.usdcEntries, []);
+  // Weights from before the rebook's instant (the default instant, after these hours): no sale, top-ups capped at £5 a day.
+  const off = await run({ ...Now.QUOTE_LIVE_INSTANCE, weights });
+  assertEquals(off.drains, []);
+  for (const o of off.topUps) assert(Number(o.base_size) * Number(o.price) <= Now.QUOTE_LIVE_TOPUP_MAX_GBP_DAY + 0.01, JSON.stringify(o));
+  assertEquals(off.usdcEntries, []);
+  // The rebook ends QUOTE_LIVE_REBOOK_MS after the weights' instant.
+  const I = { ...Now.QUOTE_LIVE_INSTANCE, weights, rebook: { since: T0 } };
+  assertEquals([Now.rebookOn(I, T0 - 1), Now.rebookOn(I, T0), Now.rebookOn(I, T0 + Now.QUOTE_LIVE_REBOOK_MS - 1), Now.rebookOn(I, T0 + Now.QUOTE_LIVE_REBOOK_MS)], [false, true, true, false]);
 });
 
 Deno.test("PR5-OPT's holding line through the executor: a £0.10 nibble leaves the rung unheld (no exit, its coin carried); the next fill takes it over and the exit buys back the whole", async () => {

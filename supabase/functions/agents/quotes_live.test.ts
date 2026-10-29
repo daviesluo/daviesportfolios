@@ -16,7 +16,7 @@ import {
 import {
   bookInputs, crossesBook, dustBase, entryBookOf, pennyExit, entryGuards, exitMayGo, governorLevel, lossStopHit, markedGbp, paperEntryTarget, paperRefused, parseBook, postsOf, QUOTE_LIVE_429_WAIT_MS, QUOTE_LIVE_CANCEL_REREAD_MS,
   QUOTE_LIVE_ENTRY_POSTS, QUOTE_LIVE_POST_GAP_MS, QUOTE_LIVE_STOPS_ONLY_POSTS, rungBase, rungBook, rungGbp, runQuotesConvert, runQuotesLive, stopDue, stopLimitTicks,
-  venueSideOf, wasRateLimited, wasSent, asksNeedOf, makerBuyTicks, planTopUps, isAutoConvert, QUOTE_LIVE_TOPUP_REST_MS,
+  venueSideOf, wasRateLimited, wasSent, asksNeedOf, makerBuyTicks, planTopUps, isAutoConvert, QUOTE_LIVE_TOPUP_REST_MS, makerSellTicks, planDrains, isDrain,
   deadmanWatchReason, QUOTE_LIVE_DEADMAN_WATCH_MS, pennyUp, faultLineKey, liveAlerts, QUOTE_LIVE_ALERT_EVERY_MS, QUOTE_LIVE_RECOVERED_AFTER_MS, type LiveFault,
   exitInsideOn, exitTicksOnBook, QUOTE_LIVE_EXIT_INSIDE_FROM,
   convertFirstAt, convertRepegDue, repegBase, CONVERT_REPEG_REASON, QUOTE_LIVE_CONVERT_REPEG_MS, QUOTE_LIVE_CONVERT_REST_MS, QUOTE_LIVE_INSTANCE, type QuoteLiveInstance,
@@ -1334,6 +1334,37 @@ Deno.test("planTopUps: each short book's shortfall first, at least the venue's m
   assertEquals((planTopUps([at({ beyond: 39.6, spentTodayGbp: 5 - 0.4 })], 120, 0.11)[0] as { base: string }).base, "0.14573");
   assertEquals(planTopUps([at({ beyond: 39.7 })], 120, 10), [{ book: "USDT-GBP", skip: "it holds its three asks' worth" }]);
   assertEquals(planTopUps([at({ bestBid: null })], 120, 10), [{ book: "USDT-GBP", skip: "the order book is unreadable" }]);
+});
+
+// The coin rebook (`rebookOn`; Davies, 2026-10-29: "换币也用挂单不要有转换损失"), worked by hand at fair 0.7550 and £120: the asks
+// need 39.65286 coins, 40.44592 with the top-ups' 2 % buffer (40.4459172). A book holding 60 beyond its longs, all free, sells
+// 19.55408 (60 − 40.4459172, floored to the step) at the top of the asks: a tick under a best ask two or more ticks over the
+// bid, never under fair rounded up (7550), so never at a loss to fair and never crossing.
+Deno.test("planDrains: a rebook sells only the surplus over the asks and the buffer, post-only at the top of the asks and never under fair; under the venue's minimum it is carried", () => {
+  const fair = 0.755;
+  const at = (over: Partial<Parameters<typeof planDrains>[0][number]> = {}) => ({ book: "USDC-GBP" as const, fair, pair: PAIR, bestBid: 0.7547, bestAsk: 0.7552, beyond: 60, free: 60, ...over });
+  assertEquals([makerSellTicks(0.7547, 0.7552, fair), makerSellTicks(0.7547, 0.7548, fair), makerSellTicks(0.7500, 0.7505, fair), makerSellTicks(0.7560, 0.7565, fair)], [7551, 7550, 7550, 7564]);
+  assertEquals(planDrains([at()], 120), [{ book: "USDC-GBP", ticks: 7551, base: "19.55408", fair, asksNeed: asksNeedOf(fair, 120, PAIR), beyond: 60 }]);
+  // No more than the account holds free (another sale, an exit or a long's coin already spoken for).
+  assertEquals((planDrains([at({ free: 5 })], 120)[0] as { base: string }).base, floorToStep(5, PAIR.base_step));
+  // A book whose weights give its asks nothing (LIVE's USDC-GBP from the switch) sells everything it holds free.
+  assertEquals(planDrains([at()], 120, QUOTE_RUNGS, [], () => 0)[0], { book: "USDC-GBP", ticks: 7551, base: floorToStep(60, PAIR.base_step), fair, asksNeed: 0, beyond: 60 });
+  // A surplus of 0.1 coin (£0.0755, under the venue's £0.10) is carried; none, nothing; an unreadable book, nothing.
+  assert(("skip" in planDrains([at({ beyond: 40.4459172 + 0.1 })], 120)[0]) && String((planDrains([at({ beyond: 40.4459172 + 0.1 })], 120)[0] as { skip: string }).skip).startsWith("its surplus of 0.10000 USDC"));
+  assertEquals(planDrains([at({ beyond: 40 })], 120), [{ book: "USDC-GBP", skip: "it holds no more than its three asks' worth" }]);
+  assertEquals(planDrains([at({ bestAsk: null })], 120), [{ book: "USDC-GBP", skip: "the order book is unreadable" }]);
+  // While a rebook runs the short book's top-up has the capital for its day: one order to its asks' worth and the buffer.
+  const short = { book: "USDT-GBP" as const, fair, pair: PAIR, bestBid: 0.7547, bestAsk: 0.7552, beyond: 0, spentTodayGbp: 0 };
+  assertEquals(planTopUps([short], 120, 100), [{ book: "USDT-GBP", skip: "today's top-ups would pass £5: £0.00 so far, £29.93 short" }]);
+  assertEquals(planTopUps([short], 120, 100, QUOTE_RUNGS, [], undefined, 120), [{ book: "USDT-GBP", ticks: 7548, base: "40.44591", gbp: 30.53, fair, asksNeed: asksNeedOf(fair, 120, PAIR), beyond: 0 }]);
+  // With £10 free of the £29.93 the shortfall needs, a rebook's top-up buys what £10 buys (13.24854 at 0.7548, held as £10.00);
+  // outside a rebook the book waits for the whole shortfall's pounds.
+  assertEquals(planTopUps([short], 120, 10, QUOTE_RUNGS, [], undefined, 120, true), [{ book: "USDT-GBP", ticks: 7548, base: "13.24854", gbp: 10, fair, asksNeed: asksNeedOf(fair, 120, PAIR), beyond: 0 }]);
+  assertEquals(planTopUps([short], 120, 10, QUOTE_RUNGS, [], undefined, 120), [{ book: "USDT-GBP", skip: "its shortfall needs £29.93 and £10.00 of GBP is free: the account needs more GBP" }]);
+  assertEquals(planTopUps([short], 120, 0.05, QUOTE_RUNGS, [], undefined, 120, true), [{ book: "USDT-GBP", skip: "its shortfall needs £29.93 and £0.05 of GBP is free: the account needs more GBP" }]);
+  // A rebook's sale is an automatic conversion (step 1 cancels it after 30 minutes) that the top-ups' day leaves out.
+  const drain = { leg: "convert", request: { auto: true, drain: true } }, topUp = { leg: "convert", request: { auto: true } };
+  assertEquals([isAutoConvert(drain), isDrain(drain), isAutoConvert(topUp), isDrain(topUp), isDrain({ leg: "convert", request: { drain: true } })], [true, true, true, false, false]);
 });
 
 Deno.test("inventory: an ask short of coin tops its book up itself — a maker conversion at the top of the bids, one at a time, and the ask goes out once it fills", async () => {
