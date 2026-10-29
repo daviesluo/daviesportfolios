@@ -266,8 +266,9 @@ places stay when the number is not whole.
   the same rule stays on TESTING. Tap it for its page, laid out as the
   Revolut X live page below: the same scoreboard as its row, with its day's
   loss stop beside today; BOOKS, its one USDC/GBP book; INVENTORY, its pounds
-  and its USDC as its own record has them (the USDC it bought to quote its
-  asks is there, valued at the rule's fair price); DAYS with the 7-day
+  and its USDC as Coinbase last reported them, read as the Revolut X page's
+  below (the USDC it bought to quote its asks is there, valued at the rule's
+  fair price); DAYS with the 7-day
   figure; its round trips; then its exit and entry orders. Orders Coinbase
   refused, and conversions, are not listed.
 - **Stablecoin quotes on LIVE.** The live path's own row, once it has
@@ -284,9 +285,15 @@ places stay when the number is not whole.
   Then BOOKS: a card per book, its last trade, fair and index price, and a
   ladder of its rungs, each with the price of the order resting on it, or
   what it holds and has made at the index; under it the book's round trips
-  and what they realised. INVENTORY: the pounds and coins in the account, each coin also
+  and what they realised. INVENTORY: the pounds and coins in the account as
+  the exchange last reported them ("balance as of" gives the minute), each
+  the whole balance with what is on hold in orders beside it, each coin also
   in pounds at the index price shown beside it, and with its unrealised;
-  their unrealised add up to the scoreboard's. DAYS: each UTC day's orders, entry
+  their unrealised add up to the scoreboard's, which stays on the book's own
+  count. The book's own count follows each balance; where the two differ by
+  more than £0.05 it is shown in red ("book … ≠ balance"): a trade made by
+  hand, or a fill the book has not booked yet. Before the exchange has been
+  read, INVENTORY shows the book's own count alone. DAYS: each UTC day's orders, entry
   fills, round trips and what it realised, which add up to realised; its
   heading shows what the round trips of the seven full days before today
   realised (a day with no trading counts as nothing), as a simple yearly

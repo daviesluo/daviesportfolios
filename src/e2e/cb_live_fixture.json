@@ -23,6 +23,23 @@
     "state": {
      "lastReport": {
       "lossStopped": false
+     },
+     "balances": {
+      "at": "2026-09-17T22:59:00.000Z",
+      "ccy": {
+       "GBP": {
+        "available": 20.21,
+        "hold": 20.0
+       },
+       "USDC": {
+        "available": 80.0,
+        "hold": 26.81
+       },
+       "EUR": {
+        "available": 0,
+        "hold": 0
+       }
+      }
      }
     }
    }
@@ -1004,6 +1021,23 @@
      "reason": null
     }
    ]
+  },
+  "balances": {
+   "at": "2026-09-17T22:59:00.000Z",
+   "ccy": {
+    "GBP": {
+     "available": 20.21,
+     "hold": 20.0
+    },
+    "USDC": {
+     "available": 80.0,
+     "hold": 26.81
+    },
+    "EUR": {
+     "available": 0,
+     "hold": 0
+    }
+   }
   }
  }
 }

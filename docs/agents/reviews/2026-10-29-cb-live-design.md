@@ -92,6 +92,8 @@ Every minute the call `agents?action=cblive` takes the turn's lease `cb-live`. I
 - Its client is built read-only: a POST throws before any request.
 - Each order it would send is a row (`state` 'dry'), written when the decision changes.
 - The turn's report (`cb_live_state.state.lastReport.would`) says what every rung would rest.
+- Every turn that reads the accounts, dry or live, saves the GBP, USDC and EUR it read (`state.balances`, available and
+  on hold, 2026-10-29); a turn that cannot read them keeps the last. The page's INVENTORY shows them beside the book's count.
 - With the key stored it reads balances and the touch, so the inventory checks and the start conversion are dry-run too.
 - `dry_run` does not abandon a live book it already holds: live trips keep their exits and stops.
 

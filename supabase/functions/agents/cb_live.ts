@@ -86,6 +86,19 @@ export const CB_LIVE_STOP_RETRY_MS = H;
 export const CB_LIVE_CONVERT_MS = 30 * M;
 /** Fills older than this are not read back into the turn: the 24-hour stop closes every trip well inside it. */
 export const CB_LIVE_TRIP_WINDOW_MS = 7 * DAY;
+/**
+ * The venue's balances as a LIVE page shows them, the shape every live executor's reader passes on as `balances` (Coinbase's
+ * here; the Revolut X executors' in quotes_live.ts): when they were read, and per currency what is available and what is on
+ * hold in orders (Davies, 2026-10-29: "都加上吧，revolut也一样": INVENTORY shows the account, not the book's own count).
+ */
+export type VenueBalances = { at: string; ccy: Record<string, { available: number; hold: number }> };
+/** The currencies the Coinbase executor keeps in its state: the book's two and the euros the account may hold. */
+export const CB_LIVE_BALANCE_CCYS = ["GBP", "USDC", "EUR"] as const;
+/** Pure: the balances of `ccys` from Coinbase's accounts (summed across accounts of a currency), read at `nowMs`. */
+export function venueBalances(acc: Array<{ currency: string; available_balance?: { value: string }; hold?: { value: string } }>, ccys: readonly string[], nowMs: number): VenueBalances {
+  const sum = (c: string, k: "available_balance" | "hold") => acc.filter((a) => a.currency === c).reduce((s, a) => s + (Number(a[k]?.value ?? 0) || 0), 0);
+  return { at: iso(nowMs), ccy: Object.fromEntries(ccys.map((c) => [c, { available: sum(c, "available_balance"), hold: sum(c, "hold") }])) };
+}
 /** A remainder worth less than this is carried, not exited. */
 export const CB_LIVE_DUST_GBP = 1;
 /** Its name on LIVE (Davies, 2026-10-29); the paper arm keeps its own on TESTING. */
@@ -230,7 +243,8 @@ export async function runCbLive(d: CbLiveDeps): Promise<CbLiveReport> {
   if (!held.length) return { ...rep, skipped: "another run holds the lease" };
   const evs: Array<{ at: string; kind: string; detail: Record<string, unknown> }> = [];
   const ev = (kind: string, detail: Record<string, unknown> = {}) => { evs.push({ at: iso(now), kind, detail }); rep.events.push(kind); };
-  let stateRow: { fault?: { key: string; at: number } } = {};
+  let stateRow: { fault?: { key: string; at: number }; balances?: VenueBalances } = {};
+  let balances: VenueBalances | null = null;
   try {
     const cfg = (await d.db.select<CbLiveConfig>(T.config, "id=eq.1&select=*"))[0];
     if (!cfg) return { ...rep, skipped: "no config row (migration 0177)" };
@@ -324,6 +338,7 @@ export async function runCbLive(d: CbLiveDeps): Promise<CbLiveReport> {
         const acc = await client.accounts();
         const av = (c: string) => acc.filter((a) => a.currency === c).reduce((s, a) => s + Number(a.available_balance?.value ?? 0), 0);
         gbp = av("GBP"); usdc = av("USDC");
+        balances = venueBalances(acc, CB_LIVE_BALANCE_CCYS, now);
       } catch (e) { rep.errors.push(`accounts: ${msg(e)}`); }
     }
     const step = Number(product.base_increment), minSize = Number(product.base_min_size);
@@ -520,7 +535,9 @@ export async function runCbLive(d: CbLiveDeps): Promise<CbLiveReport> {
       const key = faultKey(rep.errors);
       rep.report = reportDue(stateRow.fault ?? null, key, now);
       const fault = !key ? undefined : rep.report ? { key, at: now } : stateRow.fault;
-      await d.db.upsert(CB_LIVE_TABLES.state, [{ id: 1, state: { fault, lastReport: { ...rep, events: rep.events.slice(0, 50) } }, updated_at: iso(now), last_error: rep.errors.length ? rep.errors.join(" | ").slice(0, 500) : null }], "id");
+      // The account as this turn read it (`balances`); a turn that could not read it keeps the last reading, its `at` saying when.
+      const bal = balances ?? stateRow.balances ?? null;
+      await d.db.upsert(CB_LIVE_TABLES.state, [{ id: 1, state: { fault, lastReport: { ...rep, events: rep.events.slice(0, 50) }, ...(bal ? { balances: bal } : {}) }, updated_at: iso(now), last_error: rep.errors.length ? rep.errors.join(" | ").slice(0, 500) : null }], "id");
     } catch { /* the lease still expires */ }
     try { await d.db.update("agent_locks", `name=eq.${CB_LIVE_LEASE}&holder=eq.${encodeURIComponent(d.holder)}`, { lease_until: iso(now), holder: null }); } catch { /* it expires */ }
   }
@@ -690,7 +707,7 @@ export async function readCbLive(db: Db, now: number) {
   try {
     const cfg = (await db.select<CbLiveConfig>(T.config, "id=eq.1&select=*"))[0];
     if (!cfg) return null;
-    const st = (await db.select<{ updated_at: string | null; last_error?: string | null; state: { lastReport?: CbLiveReport } }>(T.state, "id=eq.1&select=updated_at,last_error,state"))[0] ?? null;
+    const st = (await db.select<{ updated_at: string | null; last_error?: string | null; state: { lastReport?: CbLiveReport; balances?: VenueBalances } }>(T.state, "id=eq.1&select=updated_at,last_error,state"))[0] ?? null;
     const [live, recent, notSent, fills] = await Promise.all([
       db.selectAll<CbLivePageOrder>(T.orders, `mode=eq.live&select=${CB_LIVE_ORDER_COLUMNS}&order=id.asc`),
       db.select<CbLivePageOrder>(T.orders, `mode=eq.live&select=${CB_LIVE_RECENT_COLUMNS}&order=id.desc&limit=${CB_LIVE_PAGE_ROWS}`),
@@ -718,6 +735,8 @@ export async function readCbLive(db: Db, now: number) {
       openOrders: live.filter((o) => IN_FLIGHT.includes(o.state)).length,
       lossStopped: !!st?.state?.lastReport?.lossStopped,
       detail: v.detail,
+      // The venue's own balances as the last turn that could read them saw them (the LIVE pages' INVENTORY; Davies, 2026-10-29).
+      balances: st?.state?.balances ?? null,
     };
   } catch {
     return null;

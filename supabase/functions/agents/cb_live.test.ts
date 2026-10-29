@@ -12,7 +12,7 @@
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { b64ToBytes } from "../_shared/bytes.ts";
 import { CB_KEY_NAME_SECRET, CB_PRIVATE_KEY_SECRET } from "../_shared/coinbase.ts";
-import { CB_LIVE_GTD_MS, CB_LIVE_NAME, convertSpentGbp, isDust, readCbLive, runCbLive, rungQty, tripPnl, tripsOf, type FillRow } from "./cb_live.ts";
+import { CB_LIVE_GTD_MS, CB_LIVE_NAME, convertSpentGbp, isDust, venueBalances, readCbLive, runCbLive, rungQty, tripPnl, tripsOf, type FillRow } from "./cb_live.ts";
 import { exitTicks, newBookState, quoteTicks, QUOTE_TICK, type BookState } from "./quotes.ts";
 import { memDb, type Row } from "./testing.ts";
 
@@ -43,7 +43,7 @@ function paperBook(fair: number, live: number, oid0 = 1): BookState {
 
 type VOrder = { order_id: string; client_order_id: string; product_id: string; side: "BUY" | "SELL"; status: string; filled_size: string; average_filled_price: string; total_fees: string; created_time: string; cfg: Record<string, unknown> };
 /** An in-memory Coinbase: its orders, fills, balances and touch; `post` false fails on any POST. */
-function venue(o: { post: boolean; gbp?: number; usdc?: number; touch?: { bid: string; ask: string }; onCreate?: (b: Record<string, unknown>) => "ok" | "refuse" | "throw" | "403" | "503" }) {
+function venue(o: { post: boolean; gbp?: number; usdc?: number; holdGbp?: number; holdUsdc?: number; accountsFail?: boolean; touch?: { bid: string; ask: string }; onCreate?: (b: Record<string, unknown>) => "ok" | "refuse" | "throw" | "403" | "503" }) {
   const orders: VOrder[] = [], fills: Record<string, unknown>[] = [], calls: string[] = [];
   const bal = { GBP: o.gbp ?? 120, USDC: o.usdc ?? 100 };
   let n = 0, clock = T0;
@@ -55,7 +55,11 @@ function venue(o: { post: boolean; gbp?: number; usdc?: number; touch?: { bid: s
     const ok = (b: unknown) => new Response(JSON.stringify(b), { status: 200 });
     if (p === "/products/USDC-GBP") return ok({ product_id: "USDC-GBP", base_increment: "0.01", quote_increment: "0.0001", base_min_size: "1" });
     if (p === "/best_bid_ask") return ok({ pricebooks: [{ product_id: "USDC-GBP", bids: [{ price: o.touch?.bid ?? "0.7499" }], asks: [{ price: o.touch?.ask ?? "0.7501" }] }] });
-    if (p === "/accounts") return ok({ accounts: [{ currency: "GBP", available_balance: { value: String(bal.GBP), currency: "GBP" } }, { currency: "USDC", available_balance: { value: String(bal.USDC), currency: "USDC" } }], has_next: false });
+    if (p === "/accounts") {
+      if (o.accountsFail) return new Response("upstream", { status: 503 });
+      return ok({ accounts: [{ currency: "GBP", available_balance: { value: String(bal.GBP), currency: "GBP" }, hold: { value: String(o.holdGbp ?? 0), currency: "GBP" } },
+        { currency: "USDC", available_balance: { value: String(bal.USDC), currency: "USDC" }, hold: { value: String(o.holdUsdc ?? 0), currency: "USDC" } }], has_next: false });
+    }
     if (p === "/orders" && method === "POST") {
       const b = JSON.parse(String(init.body));
       const seen = orders.find((x) => x.client_order_id === b.client_order_id);
@@ -382,4 +386,21 @@ Deno.test("the top-up's daily cap counts only what reached Coinbase: a 403-rejec
     convertSpentGbp({ ...base, state: "rejected", venue_order_id: null }), convertSpentGbp({ ...base, state: "pending", venue_order_id: null }),
     convertSpentGbp({ ...base, state: "refused", venue_order_id: null }),
   ], [7.5, 4 * 0.7501, 0, 0, 0]);
+});
+
+Deno.test("the venue's balances: each turn saves what it read (available and on hold, GBP, USDC, EUR); a turn that cannot read keeps the last; LIVE's row passes them on", async () => {
+  const w = world({ dry: true });
+  await turn(w, venue({ post: false, gbp: 61.25, usdc: 40.5, holdGbp: 58.75, holdUsdc: 12 }), T0 + 10e3);
+  const want = { at: iso(T0 + 10e3), ccy: { GBP: { available: 61.25, hold: 58.75 }, USDC: { available: 40.5, hold: 12 }, EUR: { available: 0, hold: 0 } } };
+  assertEquals((w.tables.cb_live_state[0].state as { balances: unknown }).balances, want);
+  await turn(w, venue({ post: false, accountsFail: true }), T0 + 70e3);
+  assertEquals((w.tables.cb_live_state[0].state as { balances: unknown }).balances, want);
+  assertEquals((await readCbLive(w.db, T0 + 80e3))!.balances, want);
+  // Without the key nothing is read and nothing is invented.
+  const k = world({ dry: true });
+  await turn(k, venue({ post: false }), T0 + 10e3, {});
+  assertEquals((k.tables.cb_live_state[0].state as { balances?: unknown }).balances, undefined);
+  assertEquals((await readCbLive(k.db, T0 + 20e3))!.balances, null);
+  assertEquals(venueBalances([{ currency: "USDC", available_balance: { value: "1.5" }, hold: { value: "2" } }, { currency: "USDC", available_balance: { value: "3" } }], ["USDC", "GBP"], T0),
+    { at: iso(T0), ccy: { USDC: { available: 4.5, hold: 2 }, GBP: { available: 0, hold: 0 } } });
 });

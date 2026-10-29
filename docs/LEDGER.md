@@ -798,6 +798,14 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth).
 
+### [2026-10-29 22:27 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LIVE pages' INVENTORY from the venue's own balances** (sub-agent; commit, not pushed; Davies, 22:20: "都加上吧，revolut也一样").
+  `cb_live.ts` saves each turn's GBP/USDC/EUR reading as `cb_live_state.state.balances` (`venueBalances`; a failed read keeps the
+  last), `readCbLive` passes it on; the shape `balances: {at, ccy: {CODE: {available, hold}}} | null` is the one the Revolut X
+  reader passes (`quotes_live.ts`, another agent's). `quotesLiveInventory`: total = available + hold, "in orders", the book's
+  count beside it, red beyond £0.05 (`INVENTORY_MISMATCH_GBP`), "balance as of HH:MM UTC"; no balances, the book's count as
+  before. The scoreboard stays on the book. Sweep: the RX fixture JSON untouched, its balances merged in when served.
+
 ### [2026-10-29 22:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **USDT-only switch moved to 2026-10-29 22:30 UTC** (sub-agent; commit, not pushed; Davies, 21:59: "现在就生效吧 或者22:00生效").
   `QUOTE_LIVE_USDT_ONLY_FROM` / `QUOTE_LIVE_REBOOK_SINCE` 22:30 (rebook to 11-01 22:30); `0179` moves every 0178 instant (seven

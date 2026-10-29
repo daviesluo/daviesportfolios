@@ -2509,6 +2509,9 @@ a.ag-gpm-market:hover, a.ag-gpm-market:focus-visible { text-decoration-color: va
 /* The live quotes' own page (Davies, 2026-10-01): the paper page's BOOKS and DAYS as they are, its inventory in a card
    of the quote cards' rules, and an order's reason on a line under its row, read from the left. */
 .ag-ql-balances { margin-bottom: 10px; }
+/* INVENTORY from the venue's balances (2026-10-29): when they were read, and the book's count where it differs. */
+.ag-ql-balance-at { margin-top: 6px; font-size: 11px; text-align: right; }
+.ag-ql-mismatch { color: var(--loss); }
 .ag-quotes-live-detail .hl-sub, .ag-quotes-twin-detail .hl-sub, .ag-quotes-cb-detail .hl-sub, .ag-quotes-okx-detail .hl-sub, .ag-quotes-cblive-detail .hl-sub { display: block; }
 .ag-table tr.ag-ql-has-sub td { border-bottom: none; padding-bottom: 2px; }
 /* The live page's round trips and orders on a phone: every column inside the screen, Size included (Davies,

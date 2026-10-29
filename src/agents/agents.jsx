@@ -641,10 +641,17 @@ export function QuotesLiveDetail({ q, m, at, nowMs, twin = false, coinbase: cbOn
                     {a.amount}{a.gbp ? <span className="dim"> · {a.gbp}</span> : null}
                     {a.price ? <span className="dim" title={a.priceFrom === 'index' ? "Revolut X's index price, as its account page values the coin" : a.priceFrom === 'fair' ? "the paper arm's fair price, as its trips are marked" : "the book's last trade: no fresh index price"}> at {a.price}</span> : null}
                     {a.unrealisedGbp != null ? <span className="ag-gl" style={{ color: pctColor(a.unrealisedGbp) }}> {m(fmtGbp4(a.unrealisedGbp))}</span> : null}
+                    {a.inOrders ? <span className="dim ag-ql-hold"> · {a.inOrders} in orders</span> : null}
+                    {a.book != null ? (
+                      a.mismatch
+                        ? <span className="ag-ql-mismatch is-warn" title="The venue's balance and the book's own count differ by more than £0.05: a trade made by hand, or a fill the book has not booked"> · book {a.book} ≠ balance</span>
+                        : <span className="dim ag-ql-book"> · book {a.book}</span>
+                    ) : null}
                   </span>
                 </React.Fragment>
               ))}
             </div>
+            {inv.source === 'venue' && inv.at ? <div className="ag-ql-balance-at dim mono">balance as of {inv.at}</div> : null}
           </div>
         ) : <div className="ag-empty dim">{empty ?? 'Its last turn could not read the account.'}</div>}
       </section>}

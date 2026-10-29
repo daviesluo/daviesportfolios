@@ -1184,6 +1184,13 @@ function readAgentsPanel(page) {
  */
 const QUOTES_LIVE_FIXTURE = JSON.parse(fs.readFileSync(new URL('./quotes_live_fixture.json', import.meta.url), 'utf8'));
 /**
+ * The venue's own balances beside it (Davies, 2026-10-29: "都加上吧，revolut也一样": INVENTORY shows the account, the book's own
+ * count beside it), invented as every fixture's, in the shape every live executor's reader passes on (`balances`): read at
+ * 22:59; £600.70 with £400 of it on hold in the four resting buys; 263.64 USDC, 132 on hold under B's exit, as the book counts;
+ * and 528.64 USDT where the book counts 527.6436, a coin more: 0.9964 × £0.7570 = £0.75 apart, over the £0.05 the page flags.
+ */
+const QUOTES_LIVE_BALANCES = { at: '2026-09-17T22:59:00.000Z', ccy: { GBP: { available: 200.7, hold: 400 }, USDC: { available: 131.64, hold: 132 }, USDT: { available: 528.64, hold: 0 } } };
+/**
  * "Reward quotes mini-pool" (`0077`): the dashboard's own answer (`prepSummary`) for a record worked out by hand at this
  * sweep's clock (`prep_fixture.json`, made by `pm_prep_view.ts`, whose page and test left on 2026-10-20; kept as the
  * payload an older deploy sent): capital $320, held $8.77 at the mids against $8.35, today +$1.47 (the total +$2.37 less 16 Sep's +$0.90),
@@ -1264,7 +1271,7 @@ const FXW_FIXTURE = {
 const AGENTS_LP_LIVE = (/** @type {false | 'output' | 'noPayout'} */ which) => ({ ...AGENTS_PR5_LIVE(), prepLp: LP_FIXTURE.output, ...(which ? { lpLive: LP_LIVE_FIXTURE[which] } : {}) });
 const AGENTS_PR5_LIVE = () => {
   const d = AGENTS_DASHBOARD;
-  return { ...d, quotes: { ...d.quotes, live: QUOTES_LIVE_FIXTURE.live } };
+  return { ...d, quotes: { ...d.quotes, live: { ...QUOTES_LIVE_FIXTURE.live, balances: QUOTES_LIVE_BALANCES } } };
 };
 /** The same book's newest orders with none of its exits among them: its page then has no EXIT ORDERS at all. */
 const AGENTS_PR5_LIVE_NO_EXIT = () => {
@@ -1409,6 +1416,7 @@ const readQuotesBookPage = (page, rootSel) => page.evaluate((rootSel) => {
       })),
       oldRungs: root.querySelectorAll('.ag-ql-rungs, tr.ag-ql-rung').length,
       balances: [...root.querySelectorAll('.ag-ql-balances .ag-ql-grid > span')].map(txt),
+      balanceAt: txt(root.querySelector('.ag-ql-balance-at')), mismatches: root.querySelectorAll('.ag-ql-mismatch').length,
       days: rows('.ag-quote-days'),
       conversions: rows('.ag-ql-conversions'), trips: rows('.ag-ql-trips'), fills: rows('.ag-ql-fills'), events: rows('.ag-ql-events'),
       exits: rows('.ag-ql-exits'), entries: rows('.ag-ql-entries'), oldOrders: root.querySelectorAll('.ag-ql-orders').length,
@@ -4836,9 +4844,13 @@ async function run() {
       // INVENTORY: each coin in pounds at the index and against its cost. USDC: B's +£0.2112 and the conversion's 395.6436
       // × (0.7575 − 0.7574) less its £0.2699 fee, -£0.0192; USDT: E's +£0.0660 and 395.6436 × (0.7570 − 0.7570) less the
       // £0.1798 of its fee D has not taken, -£0.1138. Together the scoreboard's UNREALIZED, -£0.1330.
-      if (lp && lp.balances.join('|') === 'GBP|£600.70|USDC|263.64 USDC · £199.71 at £0.7575 -£0.0192|USDT|527.64 USDT · £399.43 at £0.7570 -£0.1138') {
-        ok(T('pr5-page'), 'INVENTORY: £600.70, 263.64 USDC (£199.71 at the index £0.7575, -£0.0192) and 527.64 USDT (£399.43 at £0.7570, -£0.1138), each coin against what it cost');
-      } else fail(T('pr5-page'), `balances ${JSON.stringify(lp?.balances)}`);
+      // From the venue's balances (QUOTES_LIVE_BALANCES): each total with what is on hold in orders and the book's own count
+      // beside it; USDT's 528.64 against the book's 527.64 (£0.75 at £0.7570) is flagged; the reading's minute under them.
+      const INV = 'GBP|£600.70 · £400 in orders · book £600.70|USDC|263.64 USDC · £199.71 at £0.7575 -£0.0192 · 132.00 USDC in orders · book 263.64 USDC'
+        + '|USDT|528.64 USDT · £400.18 at £0.7570 -£0.1138 · book 527.64 USDT ≠ balance';
+      if (lp && lp.balances.join('|') === INV && lp.balanceAt === 'balance as of 22:59 UTC' && lp.mismatches === 1) {
+        ok(T('pr5-page'), "INVENTORY: the account's own balances, £600.70 (£400 in orders), 263.64 USDC (£199.71 at the index, -£0.0192) and 528.64 USDT, each with the book's count, USDT's a coin apart flagged; balance as of 22:59 UTC");
+      } else fail(T('pr5-page'), `balances ${JSON.stringify(lp?.balances)}, at ${lp?.balanceAt}, flagged ${lp?.mismatches}`);
       // DAYS: today 18 orders, 3 entry fills, A and C closed (-£0.0633); 16 Sep 6 orders (the conversions among them), 2
       // entry fills, D (+£0.0288). They add up to REALIZED, -£0.0345.
       const DAYS = ['17 Sep · today | 18 | 3 | 2 · 50 % won | -£0.0633', '16 Sep | 6 | 2 | 1 · 100 % won | +£0.0288'];
@@ -5458,8 +5470,10 @@ async function run() {
           ok(CT('scoreboard'), `PR5 LIVE's page in pounds: ${cv.scoreboard}; ${cv.sections.join(', ')}; one book, ${cv.cards[0].head} (${cv.cards[0].meta}), its ladder ${JSON.stringify(cv.cards[0].ladder)}`);
         } else fail(CT('scoreboard'), `scoreboard ${cv?.scoreboard} (wanted ${SB}), sections ${JSON.stringify(cv?.sections)}, cards ${JSON.stringify(cv?.cards)}`);
         const DAYS = ['17 Sep · today | 8 | 1 | 1 · 0 % won | -£0.0500', '16 Sep | 4 | 2 | 1 · 100 % won | +£0.0402', '15 Sep | 5 | 0 | 0 | £0'];
-        if (cv && JSON.stringify(cv.days) === JSON.stringify(DAYS) && cv.annual === annual && cv.balances.join(' ') .includes('USDC 106.81 USDC · £79.86 at £0.7477 +£0.0803')
-          && cv.balances[0] === 'GBP' && cv.balances[1] === '£40.21' && cv.trips.length === 2 && cv.trips[0].includes('24-hour stop') && cv.exits.length === 1 && cv.entries.length === 4
+        // INVENTORY from Coinbase's balances (the fixture's invented reading at 22:59): £40.21, £20 of it on hold, and 106.81 USDC,
+        // 26.81 on hold under C's exit, each as the book counts, so nothing flagged.
+        if (cv && JSON.stringify(cv.days) === JSON.stringify(DAYS) && cv.annual === annual && cv.balances.join(' ') .includes('USDC 106.81 USDC · £79.86 at £0.7477 +£0.0803 · 26.81 USDC in orders · book 106.81 USDC')
+          && cv.balances[0] === 'GBP' && cv.balances[1] === '£40.21 · £20 in orders · book £40.21' && cv.balances.length === 4 && cv.balanceAt === 'balance as of 22:59 UTC' && cv.mismatches === 0 && cv.trips.length === 2 && cv.trips[0].includes('24-hour stop') && cv.exits.length === 1 && cv.entries.length === 4
           && cv.entries.at(-1)?.endsWith('filled') && !/403|PERMISSION|rejected|refused|POST_ONLY/i.test(cText)) {
           ok(CT('tables'), `INVENTORY ${cv.balances.join(' ')}; DAYS "${cv.annual}" ${JSON.stringify(cv.days)}; ${cv.trips.length} round trips (the newest by its 24-hour stop); ${cv.exits.length} exit and ${cv.entries.length} entries, no refused order listed`);
         } else fail(CT('tables'), `balances ${JSON.stringify(cv?.balances)}, days ${JSON.stringify(cv?.days)} "${cv?.annual}" (${annual}), trips ${JSON.stringify(cv?.trips)}, exits ${JSON.stringify(cv?.exits)}, entries ${JSON.stringify(cv?.entries)}, refused shown ${/403|PERMISSION|rejected|refused|POST_ONLY/i.test(cText)}`);

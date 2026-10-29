@@ -2024,27 +2024,73 @@ export function quotesLiveBooks(q) {
   }));
 }
 
+/** A difference between the venue's balance and the book's own count worth more than this is flagged on INVENTORY. */
+export const INVENTORY_MISMATCH_GBP = 0.05;
+
 /**
- * The live page's INVENTORY: the account's pounds and coins as the executor last read them (balances, so what rests in
- * orders is included), each coin also in pounds at the price it is valued at — its ticker's index price, as Revolut X's
- * account page values it, or its book's last trade while no fresh index is to hand — and with its unrealised against
- * what it cost (Davies, 2026-10-01: his account page shows it), which add up to the scoreboard's. Null when the turn
- * could not read them.
- * @param {any} q  the dashboard's `quotes.live`
+ * The live page's INVENTORY. With the venue's own balances (`q.balances`, `{at, ccy: {CODE: {available, hold}}}`, the shape
+ * every live executor's reader passes on; Davies, 2026-10-29: "都加上吧，revolut也一样"): each currency the account holds, or
+ * the book counts, at its total (available plus on hold), what is on hold in orders, a coin in pounds at the price the book
+ * values it at (its index or last trade, else its book's fair), the book's own count beside it, and a flag where the two
+ * differ by more than £0.05 (a trade made by hand, or a fill the book has not booked); `at` is when the venue was read.
+ * Without them (an older answer, or a reader that has none), the book's own count exactly as before: the account's pounds
+ * and coins as the executor last read them, each coin in pounds at its index price or last trade and with its unrealised
+ * (Davies, 2026-10-01), which add up to the scoreboard's. Null when there is neither.
+ * @param {any} q  the dashboard's `quotes.live` or `cbLive`
  * @param {(s: string) => string} [m]
  */
 export function quotesLiveInventory(q, m = (s) => s) {
   const inv = q?.detail?.inventory;
+  const bal = q?.balances;
+  const fmtAmount = (/** @type {string} */ asset, /** @type {number} */ n) => (asset === 'GBP' ? m(fmtGbp(n)) : m(fmtQuoteQty(n, asset)));
+  if (bal?.ccy && Object.keys(bal.ccy).length) {
+    /** @type {Map<string, any>} */
+    const book = new Map((inv?.assets ?? []).map((/** @type {any} */ a) => [a.asset, a]));
+    const fairOf = (/** @type {string} */ c) => {
+      const b = (q?.detail?.books ?? []).find((/** @type {any} */ x) => x.book === `${c}-GBP`);
+      return b?.fair ?? b?.index ?? b?.lastPrice ?? null;
+    };
+    const codes = [...new Set([...Object.keys(bal.ccy), ...book.keys()])]
+      .filter((c) => c === 'GBP' || book.has(c) || (Number(bal.ccy[c]?.available) || 0) + (Number(bal.ccy[c]?.hold) || 0) > 0)
+      .sort((a, b) => (a === 'GBP' ? -1 : b === 'GBP' ? 1 : a.localeCompare(b)));
+    return {
+      at: bal.at ? `${String(bal.at).slice(11, 16)} UTC` : null,
+      source: /** @type {'venue' | 'book'} */ ('venue'),
+      rows: codes.map((c) => {
+        const v = bal.ccy[c], mine = book.get(c) ?? null;
+        const total = v ? (Number(v.available) || 0) + (Number(v.hold) || 0) : null;
+        const hold = v ? Number(v.hold) || 0 : 0;
+        const price = c === 'GBP' ? 1 : mine?.price ?? fairOf(c);
+        const bookAmount = mine?.amount != null ? Number(mine.amount) : null;
+        const diffGbp = total != null && bookAmount != null && price != null ? Math.abs(total - bookAmount) * Number(price) : null;
+        return {
+          asset: c,
+          amount: total == null ? '—' : fmtAmount(c, total),
+          inOrders: hold > 0 ? fmtAmount(c, hold) : null,
+          gbp: c === 'GBP' || total == null || price == null ? null : m(fmtGbp(total * Number(price))),
+          price: c === 'GBP' || price == null ? null : m(fmtQuotePrice(price)),
+          priceFrom: c === 'GBP' ? null : mine?.priceFrom ?? (price == null ? null : 'fair'),
+          unrealisedGbp: c === 'GBP' || mine?.unrealisedGbp == null ? null : Number(mine.unrealisedGbp),
+          book: bookAmount == null ? null : fmtAmount(c, bookAmount),
+          mismatch: diffGbp != null && diffGbp > INVENTORY_MISMATCH_GBP,
+        };
+      }),
+    };
+  }
   if (!inv?.assets) return null;
   return {
     at: inv.at ? fmtChartStamp(inv.at) : null,
+    source: /** @type {'venue' | 'book'} */ ('book'),
     rows: inv.assets.map((/** @type {any} */ a) => ({
       asset: a.asset,
-      amount: a.asset === 'GBP' ? m(fmtGbp(a.amount)) : m(fmtQuoteQty(a.amount, a.asset)),
+      amount: fmtAmount(a.asset, a.amount),
+      inOrders: null,
       gbp: a.asset === 'GBP' || a.gbp == null ? null : m(fmtGbp(a.gbp)),
       price: a.asset === 'GBP' || a.price == null ? null : m(fmtQuotePrice(a.price)),
       priceFrom: a.asset === 'GBP' ? null : a.priceFrom ?? null,
       unrealisedGbp: a.asset === 'GBP' || a.unrealisedGbp == null ? null : Number(a.unrealisedGbp),
+      book: null,
+      mismatch: false,
     })),
   };
 }
