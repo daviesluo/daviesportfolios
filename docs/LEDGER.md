@@ -792,6 +792,16 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth).
 
+### [2026-10-29 18:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **CMP-CB: the Coinbase half of the strategy comparison** (sub-agent; commit, not pushed; Davies, 10-29: "测一下目前最新的revolut x的live以及
+  variant7和8…与最新的coinbase的 with euros和with euros-2…每个策略都按单币种分开测，分别按600磅和1200磅 2400磅…"). `reviews/2026-10-29-strategy-compare-cb.md`,
+  `backtests/compare/cb/`. PR5's frozen simulator on 2024-10-01 → 10-28 (bars, then the engines' record), one book at a time, six
+  rungs of a sixth, `cb_live` + guard, releases, the t + 58 s rate (Exness at t + 57 s). Headline = the rate since 2026-09-01, × e
+  0.825 (RX LIVE ÷ its replay), %/yr at £600: USDC-GBP 29.6 [26.8, 32.5] ("- 2" the same: its nudge has 20 days of Revolut X book),
+  USDT-GBP 1.7, USDC-EUR 10.2, USDT-EUR 6.6; the ½ OOS + ½ 3-month blend 14.2 / 11.9 / 5.5 / 4.3 beside it. Coinbase breaks at
+  09-01 too, opposite ways: GBP flow moved from USDT (21 → 2 %/yr) to USDC (3 → 36). £2,400 costs ≤ 1.2 points (no queue in
+  the model: a floor). No dust (Coinbase steps 0.01 coin); the coin the asks hold is not marked (±3.5–4 %/yr of FX).
+
 ### [2026-10-29 17:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **"Stablecoin quotes variant-8" built** (sub-agent; commit, not pushed; Davies, 10-29: "好的，建 variant-8，在实盘live的基础上").
   `0175`: `live600x1` (LIVE's rules exactly as `live600`: £600 both books, "at" fill, weekend from 10-30 21:00, exits meeting the
