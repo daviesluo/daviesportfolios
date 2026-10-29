@@ -263,7 +263,13 @@ places stay when the number is not whole.
   has switched it on: "Stablecoin quotes with Euros - 2" carried out with
   real money on Coinbase, £120 in six £20 quotes on USDC against pounds. Its
   figures are in pounds, from its own fills on Coinbase. The paper row of
-  the same rule stays on TESTING.
+  the same rule stays on TESTING. Tap it for its page, laid out as the
+  Revolut X live page below: the same scoreboard as its row, with its day's
+  loss stop beside today; BOOKS, its one USDC/GBP book; INVENTORY, its pounds
+  and its USDC as its own record has them (the USDC it bought to quote its
+  asks is there, valued at the rule's fair price); DAYS with the 7-day
+  figure; its round trips; then its exit and entry orders. Orders Coinbase
+  refused, and conversions, are not listed.
 - **Stablecoin quotes on LIVE.** The live path's own row, once it has
   traded real money on its own Revolut X account. Tap it for a page of its
   own, in pounds, which shows the real-money book and nothing of the paper

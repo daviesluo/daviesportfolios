@@ -1601,10 +1601,13 @@ export function quotesLiveRow(q) {
  * nothing to show: the live page needs its LIVE row (`quotesLiveRow`), a twin's page its twin.
  * @param {string | null} selected  the row opened
  * @param {any} dash
- * @returns {'live' | 'twin' | 'coinbase' | 'okx' | null}
+ * LIVE's "Stablecoin quotes USDC/GBP" opens the same page on its own Coinbase book (`cblive`; Davies, 2026-10-29: "网页中live的
+ * coinbase策略子页面打不开，点了没反应": it had no page).
+ * @returns {'live' | 'cblive' | 'twin' | 'coinbase' | 'okx' | null}
  */
 export function quotesPageFor(selected, dash) {
   if (selected === QUOTES_LIVE_ROW_ID) return quotesLiveRow(dash?.quotes?.live) ? 'live' : null;
+  if (selected === CB_LIVE_ROW_ID) return cbLiveRow(dash?.cbLive) ? 'cblive' : null;
   if (selected === QUOTES_COINBASE_ROW_ID) return quotesCoinbaseRow(dash?.quotesCoinbase) ? 'coinbase' : null;
   if (selected === QUOTES_COINBASE_HOLD_ROW_ID) return quotesCoinbaseRow(dash?.quotesCoinbaseHold) ? 'coinbase' : null;
   if (selected === QUOTES_COINBASE_USDC_ROW_ID) return quotesCoinbaseRow(dash?.quotesCoinbaseUsdc) ? 'coinbase' : null;
@@ -1628,7 +1631,9 @@ export function cbLiveRow(c) {
   const x = Number(c.gbpUsd) > 0 ? Number(c.gbpUsd) : 0;
   const g = { capital: Number(c.capitalGbp) || 0, cost: Number(c.costGbp) || 0, fees: Number(c.feesGbp) || 0, today: Number(c.todayGbp) || 0,
     unrealised: Number(c.unrealisedGbp) || 0, realised: Number(c.realisedGbp) || 0 };
-  const value = g.capital + g.realised + g.unrealised;
+  // DEPLOYED is what its quotes have at work, as PR5 LIVE's: its coins at fair and the pounds resting in its buys (`valueGbp`,
+  // cb_live.ts `cbLiveDetail`); a payload from before it sent one, its capital and what it has made.
+  const value = c.valueGbp != null && Number.isFinite(Number(c.valueGbp)) ? Number(c.valueGbp) : g.capital + g.realised + g.unrealised;
   const cells = quoteBookCells({
     capitalUsd: g.capital * x, costUsd: g.cost * x, valueUsd: value * x, feesUsd: g.fees * x, todayUsd: g.today * x, unrealisedUsd: g.unrealised * x, realisedUsd: g.realised * x,
     capitalGbp: g.capital, costGbp: g.cost, valueGbp: value, feesGbp: g.fees, todayGbp: g.today, unrealisedGbp: g.unrealised, realisedGbp: g.realised,

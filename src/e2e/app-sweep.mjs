@@ -1232,6 +1232,14 @@ const LP_LIVE_FIXTURE = JSON.parse(fs.readFileSync(new URL('./lp_live_fixture.js
  */
 const GROKPM_FIXTURE = JSON.parse(fs.readFileSync(new URL('./grokpm_fixture.json', import.meta.url), 'utf8'));
 /**
+ * "Stablecoin quotes USDC/GBP", the Coinbase live executor (cb_live.ts, 0177): the dashboard's own answer (`readCbLive`) for
+ * its tables at this sweep's clock (`cb_live_fixture.json`; cb_live_page.test.ts pins that its `output` is the function's answer
+ * for its `input` and every figure below against the arithmetic). £120 armed on 15 Sep: four 403 refusals and a top-up of 80
+ * USDC at 0.7473 that night; trip A (bid 0.1 %) +£0.04017 on 16 Sep; trip B (ask 0.2 %) bought back by its 24-hour stop on 17 Sep,
+ * -£0.05002 with its £0.01 fee; trip C (bid 0.2 %) 26.81 held at 0.7459, its exit resting; three entries resting; fair 0.7477.
+ */
+const CB_LIVE_FIXTURE = JSON.parse(fs.readFileSync(new URL('./cb_live_fixture.json', import.meta.url), 'utf8'));
+/**
  * "FXW-AUD weekend" (0162): the dashboard's own answer (`fxwView`) for the agents Deno test's first case, worked by
  * hand there: GBP 1,000 funded; a closed long from 0.65800 to 0.66000, +20 pips x 1.5 = +GBP 30; an open long from 0.65800
  * marked at 0.65900, +GBP 15 less GBP 0.22 of funding = +GBP 14.78, on a margin of GBP 493.50; today +GBP 29.78; equity
@@ -1618,6 +1626,7 @@ async function newPage(browser, { width, height }, errors, tokenMisses, opts = {
       if (agentsMode === 'grokpm' || agentsMode === 'grokpm-waiting') return json({ ...AGENTS_DASHBOARD, grokPm: GROKPM_FIXTURE[agentsMode === 'grokpm' ? 'output' : 'waiting'] });
       // Production since 2026-10-17: live-prep liquidated and disarmed (it traded live), beside the analyst before its go.
       if (agentsMode === 'fxw') return json({ ...AGENTS_DASHBOARD, fxwAud: FXW_FIXTURE });
+      if (agentsMode === 'cb-live') return json({ ...AGENTS_DASHBOARD, cbLive: CB_LIVE_FIXTURE.output });
       if (agentsMode === 'grokpm-lp-off') return json({ ...AGENTS_DASHBOARD, lpLive: { ...LP_LIVE_FIXTURE.output, armed: false }, grokPm: GROKPM_FIXTURE.waiting });
       if (agentsMode === 'error') {
         return route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ error: 'agents crashed', message: 'db GET agent_strategies → 500: {"code":"57014","message":"canceling statement due to statement timeout"}' }) });
@@ -5409,6 +5418,53 @@ async function run() {
           && fv.off === 0 && fv.pageOverflow <= 0) {
           ok(FT('page'), `its page: ${fv.head}; ${fv.sb.join(' | ')}; ${fv.tiles}; ${fv.weekends.length} weekends with the quotes each fill used`);
         } else fail(FT('page'), JSON.stringify(fv));
+        await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
+        await closeBy(page, () => page.keyboard.press('Escape'));
+        agentsMode = 'ok';
+      }
+
+      // ---- "Stablecoin quotes USDC/GBP", the Coinbase live executor's page (Davies, 2026-10-29: "网页中live的coinbase策略子页面打不开，
+      // 点了没反应": its LIVE row opened nothing). Its row opens PR5 LIVE's page on its own Coinbase book (CB_LIVE_FIXTURE, worked
+      // by hand in cb_live_page.test.ts): LIVE, Coinbase, the row's scoreboard in pounds with its loss stop beside TODAY; BOOKS,
+      // one card; INVENTORY, its pounds and its USDC (the top-up there); DAYS with the 7-day figure; ROUND TRIPS; EXIT ORDERS then
+      // ENTRY ORDERS, no refused order (the four 403s, the post-only one), no conversion, no cancel that filled nothing.
+      {
+        const CT = (n) => S(`cb-live/${n}`);
+        const NAME = 'Stablecoin quotes USDC/GBP';
+        agentsMode = 'cb-live';
+        await openAgentsPage(page);
+        await clickTab('live');
+        await page.locator('.ag-strategies-live .ag-row', { has: nameBtn(page, NAME) }).first().click();
+        await settled(page, '.ag-quotes-cblive-detail');
+        const cv = await readQuotesBookPage(page, '.ag-quotes-cblive-detail');
+        const cText = await page.evaluate(() => document.querySelector('.ag-quotes-cblive-detail')?.textContent ?? '');
+        await shot(page, 'agents-cb-live');
+        for (const [sel, name] of [['.ag-ql-inventory', 'agents-cb-live-inventory'], ['.ag-ql-entries', 'agents-cb-live-entries']]) {
+          await page.locator(`.ag-quotes-cblive-detail ${sel}`).first().scrollIntoViewIfNeeded().catch(() => {});
+          await shot(page, name);
+        }
+        // By hand: DEPLOYED 106.81 USDC at 0.7477 and the bid resting for 26.84 at 0.7451, £99.86 of £120; TODAY B's -£0.05002 and
+        // C's +£0.048258 marked (-£0.001762, £0 to the penny); UNREALIZED the top-up's 80 × 0.0004 and C's 26.81 × 0.0018 on a cost of
+        // £79.78; REALIZED -£0.00985. BOOKS' ladder: C held at 0.7459, +£0.0483 at fair; the three entries resting; two rungs idle.
+        const SB = 'FUNDED=£120 | DEPLOYED=£99.86(83.22%) | TODAY [(loss stop -£1.20)]=£0(0%) | UNREALIZED G/L=+£0.08(+0.10%) | REALIZED G/L [(incl. fees £0.01)]=-£0.01(-0.01%)';
+        const LADDER = ['0.1 % | idle | £0.7487', '0.2 % | held £0.7459 +£0.0483 | idle', '0.3 % | £0.7451 | £0.7502'];
+        const annual = `- 7-day realised, annualised +${((0.04017 / 120) * (365 / 2) * 100).toFixed(1)}%`;
+        if (cv && cv.title === NAME && cv.modals === 2 && cv.head === 'LIVE Coinbase' && cv.livePages === 0 && cv.paperPage === 0) {
+          ok(CT('page'), `its LIVE row opens its own page over the list: "${cv.title}", ${cv.head}, ${cv.status}`);
+        } else fail(CT('page'), `opened ${cv ? JSON.stringify({ title: cv.title, modals: cv.modals, head: cv.head, live: cv.livePages, paper: cv.paperPage }) : 'no page'}`);
+        if (cv && cv.scoreboard === SB && JSON.stringify(cv.sections) === JSON.stringify(['BOOKS', 'INVENTORY', 'DAYS', 'ROUND TRIPS', 'EXIT ORDERS', 'ENTRY ORDERS'])
+          && cv.cards.length === 1 && cv.cards[0].head === 'USDC/GBP' && cv.cards[0].meta === 'last trade £0.7476 · fair £0.7477'
+          && JSON.stringify(cv.cards[0].ladder) === JSON.stringify(LADDER) && cv.cards[0].grid.join(' ') === 'round trips 2 · 50 % won realised -£0.0099') {
+          ok(CT('scoreboard'), `PR5 LIVE's page in pounds: ${cv.scoreboard}; ${cv.sections.join(', ')}; one book, ${cv.cards[0].head} (${cv.cards[0].meta}), its ladder ${JSON.stringify(cv.cards[0].ladder)}`);
+        } else fail(CT('scoreboard'), `scoreboard ${cv?.scoreboard} (wanted ${SB}), sections ${JSON.stringify(cv?.sections)}, cards ${JSON.stringify(cv?.cards)}`);
+        const DAYS = ['17 Sep · today | 8 | 1 | 1 · 0 % won | -£0.0500', '16 Sep | 4 | 2 | 1 · 100 % won | +£0.0402', '15 Sep | 5 | 0 | 0 | £0'];
+        if (cv && JSON.stringify(cv.days) === JSON.stringify(DAYS) && cv.annual === annual && cv.balances.join(' ') .includes('USDC 106.81 USDC · £79.86 at £0.7477 +£0.0803')
+          && cv.balances[0] === 'GBP' && cv.balances[1] === '£40.21' && cv.trips.length === 2 && cv.trips[0].includes('24-hour stop') && cv.exits.length === 1 && cv.entries.length === 4
+          && cv.entries.at(-1)?.endsWith('filled') && !/403|PERMISSION|rejected|refused|POST_ONLY/i.test(cText)) {
+          ok(CT('tables'), `INVENTORY ${cv.balances.join(' ')}; DAYS "${cv.annual}" ${JSON.stringify(cv.days)}; ${cv.trips.length} round trips (the newest by its 24-hour stop); ${cv.exits.length} exit and ${cv.entries.length} entries, no refused order listed`);
+        } else fail(CT('tables'), `balances ${JSON.stringify(cv?.balances)}, days ${JSON.stringify(cv?.days)} "${cv?.annual}" (${annual}), trips ${JSON.stringify(cv?.trips)}, exits ${JSON.stringify(cv?.exits)}, entries ${JSON.stringify(cv?.entries)}, refused shown ${/403|PERMISSION|rejected|refused|POST_ONLY/i.test(cText)}`);
+        if (cv && cv.overflow <= 1 && cv.liveTablesOverflow <= 1 && cv.subsOff === 0 && cv.sizeShown.every(Boolean)) ok(CT('width'), `nothing on its page is wider than the screen (page ${cv.overflow}px, tables ${cv.liveTablesOverflow}px), Size shown in every table`);
+        else fail(CT('width'), `page overflow ${cv?.overflow}, tables ${cv?.liveTablesOverflow}, reasons off ${cv?.subsOff}, size ${JSON.stringify(cv?.sizeShown)}`);
         await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
         await closeBy(page, () => page.keyboard.press('Escape'));
         agentsMode = 'ok';

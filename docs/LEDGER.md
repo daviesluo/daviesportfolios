@@ -823,6 +823,14 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   Coinbase took (`convertSpentGbp`; the 403-rejected £60 one had left £10 at the 21:45 re-arm). Pins fail on the old code. Design §9.
 
 
+### [2026-10-29 22:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Stablecoin quotes USDC/GBP: its LIVE row opens a page** (sub-agent; commit, not pushed; Davies, 10-29: "网页中live的coinbase
+  策略子页面打不开，点了没反应": no page existed). PR5 LIVE's `QuotesLiveDetail` with `cbLive` (LIVE, Coinbase, pounds); `readCbLive`
+  now sends `detail` in `quotesLiveDetail`'s shape (`cbLiveDetail`, cb_live.ts tail only, executor untouched): BOOKS, INVENTORY (its
+  pounds and USDC from its own fills, not a balance read: the executor keeps no balances), DAYS, ROUND TRIPS, EXIT/ENTRY ORDERS
+  without refusals, 403s, conversions or empty cancels. UNREALIZED now includes the top-up USDC's mark and DEPLOYED is coins at
+  fair plus resting buys, as PR5's. Fixture `src/e2e/cb_live_fixture.json`, sweep `cb-live/*` at both widths.
+
 ### [2026-10-29 20:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Polymarket analyst: the JOURNAL ten at a time, "Load more"** (sub-agent; commit, not pushed; Davies, 10-29: "…JOURNAL也默认只显示
   前10条…"Load more"，然后每点一次多加载10条"). `useLoadMore` (agents.jsx, DAYS' `ag-more` button and `useDaysWindow`'s shape): 10,

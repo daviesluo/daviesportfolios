@@ -16,7 +16,7 @@ import { SurfaceBoundary } from '../app/surface_boundary.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, FXW_ROW_ID, fmtFx, fxwAudRow, fxwTiles, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokTestRow, grokTestOf, grokTestTiles, grokTestLayerCells, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmDaysAnnualPct, GROKPM_DAYS_ANNUAL_TITLE, GROKPM_JOURNAL_STEP, fetchGrokPmJournal, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtFeeIn4, fmtGbp, fmtGbp4, fmtIn, fmtIn4, quotesDetailInCcy, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_NUDGE_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesPageFor, quotesOkxName, quotesOkxOf, quotesOkxRow, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quoteDaysRecent, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwShareText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows,
+  AGENT_TABS, cbLiveRow, FXW_ROW_ID, fmtFx, fxwAudRow, fxwTiles, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokTestRow, grokTestOf, grokTestTiles, grokTestLayerCells, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmDaysAnnualPct, GROKPM_DAYS_ANNUAL_TITLE, GROKPM_JOURNAL_STEP, fetchGrokPmJournal, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtFeeIn4, fmtGbp, fmtGbp4, fmtIn, fmtIn4, quotesDetailInCcy, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_NUDGE_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesPageFor, quotesOkxName, quotesOkxOf, quotesOkxRow, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quoteDaysRecent, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwShareText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -586,11 +586,16 @@ function LiveOrdersTable({ title, cls, orders, m, empty }) {
  * sweep tells them apart by it. "Stablecoin quotes with Euros" (`coinbase`, 0112) opens the same page as a twin, on
  * Coinbase: a paper test with no account and no coin of its own, so no INVENTORY, and each EUR book's prices in euros. The OKX
  * twins (`okx`, 0150) open it the same way, on OKX.
- * @param {{ q: any, m: (s: string) => string, at: any, nowMs: number, twin?: boolean, coinbase?: boolean, okx?: boolean }} props
+ *
+ * LIVE's "Stablecoin quotes USDC/GBP" (`cbLive`, the Coinbase live executor, cb_live.ts) opens it too, as the live page it is
+ * (Davies, 2026-10-29: "网页中live的coinbase策略子页面打不开，点了没反应"): LIVE, Coinbase, its LIVE row's scoreboard (`cbLiveRow`),
+ * in pounds on its £120; its INVENTORY is its pounds and its USDC as its own record has them (its top-up conversions there, as
+ * PR5's are), the USDC at the paper arm's fair. The dashboard's `cbLive.detail` is in this page's shape (`cbLiveDetail`).
+ * @param {{ q: any, m: (s: string) => string, at: any, nowMs: number, twin?: boolean, coinbase?: boolean, okx?: boolean, cbLive?: boolean }} props
  */
-function QuotesLiveDetail({ q, m, at, nowMs, twin = false, coinbase: cbOnly = false, okx = false }) {
+export function QuotesLiveDetail({ q, m, at, nowMs, twin = false, coinbase: cbOnly = false, okx = false, cbLive = false }) {
   const coinbase = cbOnly || okx;
-  const row = okx ? quotesOkxRow(q) : coinbase ? quotesCoinbaseRow(q) : twin ? quotesTwinRow(q) : quotesLiveRow(q);
+  const row = cbLive ? cbLiveRow(q) : okx ? quotesOkxRow(q) : coinbase ? quotesCoinbaseRow(q) : twin ? quotesTwinRow(q) : quotesLiveRow(q);
   if (!row) return null;
   const lines = twin || coinbase ? quotesTwinLines(q, m) : null;
   const x = rowMoney(row);
@@ -603,10 +608,10 @@ function QuotesLiveDetail({ q, m, at, nowMs, twin = false, coinbase: cbOnly = fa
   const entryOrders = orders.filter((/** @type {any} */ o) => o.leg === 'entry');
   const empty = d ? null : 'Not in this answer: the next refresh brings it.';
   return (
-    <div className={`ag-detail ${okx ? 'ag-quotes-okx-detail' : coinbase ? 'ag-quotes-cb-detail' : twin ? 'ag-quotes-twin-detail' : 'ag-quotes-live-detail'}`}>
+    <div className={`ag-detail ${cbLive ? 'ag-quotes-cblive-detail' : okx ? 'ag-quotes-okx-detail' : coinbase ? 'ag-quotes-cb-detail' : twin ? 'ag-quotes-twin-detail' : 'ag-quotes-live-detail'}`}>
       <div className="ag-detail-head">
         <ModeBadge mode={twin || coinbase ? 'paper' : 'live'} />
-        <VenueBadge id={okx ? 'okx' : coinbase ? 'coinbase' : 'revx'} />
+        <VenueBadge id={okx ? 'okx' : coinbase || cbLive ? 'coinbase' : 'revx'} />
         <StatusDot status={row.status} since={twin || coinbase ? q.twin?.startedAt ?? null : q.armed ? q.armedAt : null} nowMs={nowMs} live={!twin && !coinbase} />
       </div>
       <h3 className="ag-detail-title mono sr-only">{row.name}</h3>
@@ -634,7 +639,7 @@ function QuotesLiveDetail({ q, m, at, nowMs, twin = false, coinbase: cbOnly = fa
                   <span className="dim">{a.asset}</span>
                   <span>
                     {a.amount}{a.gbp ? <span className="dim"> · {a.gbp}</span> : null}
-                    {a.price ? <span className="dim" title={a.priceFrom === 'index' ? "Revolut X's index price, as its account page values the coin" : "the book's last trade: no fresh index price"}> at {a.price}</span> : null}
+                    {a.price ? <span className="dim" title={a.priceFrom === 'index' ? "Revolut X's index price, as its account page values the coin" : a.priceFrom === 'fair' ? "the paper arm's fair price, as its trips are marked" : "the book's last trade: no fresh index price"}> at {a.price}</span> : null}
                     {a.unrealisedGbp != null ? <span className="ag-gl" style={{ color: pctColor(a.unrealisedGbp) }}> {m(fmtGbp4(a.unrealisedGbp))}</span> : null}
                   </span>
                 </React.Fragment>
@@ -1961,6 +1966,7 @@ function AgentsModal({ hideValues, onClose }) {
   // twin's row its twin's, laid out as the live executor's (Davies, 2026-10-02).
   const quotesPage = quotesPageFor(selected, dash);
   const quotesLiveOpen = quotesPage === 'live';
+  const cbLiveOpen = quotesPage === 'cblive';
   const twinOpen = quotesPage === 'twin' ? quotesTwinOf(selected, dash) : null;
   const coinbaseOpen = quotesPage === 'coinbase'
     ? (selected === QUOTES_COINBASE_HOLD_ROW_ID ? dash.quotesCoinbaseHold : selected === QUOTES_COINBASE_USDC_ROW_ID ? dash.quotesCoinbaseUsdc
@@ -2037,6 +2043,19 @@ function AgentsModal({ hideValues, onClose }) {
         </header>
         <div className="modal-body ag-body">
           <PageGuard gen={gen}><QuotesLiveDetail q={dash.quotes.live} m={m} at={dash.at} nowMs={now} /></PageGuard>
+        </div>
+      </Modal>
+    )}
+    {cbLiveOpen && (
+      <Modal onClose={() => setSelected(null)} size="lg">
+        <header className="modal-head">
+          <div>
+            <h2 className="modal-title mono ag-title-wraps">{cbLiveRow(dash.cbLive)?.name}</h2>
+          </div>
+          <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
+        </header>
+        <div className="modal-body ag-body">
+          <PageGuard gen={gen}><QuotesLiveDetail q={dash.cbLive} m={m} at={dash.at} nowMs={now} cbLive /></PageGuard>
         </div>
       </Modal>
     )}

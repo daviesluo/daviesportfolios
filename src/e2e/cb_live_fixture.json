@@ -1,0 +1,1009 @@
+{
+ "now": "2026-09-17T23:00:00.000Z",
+ "input": {
+  "cb_live_config": [
+   {
+    "id": 1,
+    "paper": "coinbasenudge",
+    "dry_run": false,
+    "armed_at": "2026-09-15T21:45:01.000Z",
+    "rung_gbp": 20,
+    "capital_gbp": 120,
+    "daily_loss_pct": 0.01,
+    "gov_entry_posts": 1500,
+    "gov_stops_only_posts": 1800,
+    "convert_max_gbp_day": 70
+   }
+  ],
+  "cb_live_state": [
+   {
+    "id": 1,
+    "updated_at": "2026-09-17T22:59:00.000Z",
+    "last_error": null,
+    "state": {
+     "lastReport": {
+      "lossStopped": false
+     }
+    }
+   }
+  ],
+  "cb_live_orders": [
+   {
+    "id": 1,
+    "client_order_id": "00000000-0000-4000-8000-000000000001",
+    "venue_order_id": null,
+    "mode": "live",
+    "leg": "entry",
+    "trip": null,
+    "rung_side": "bid",
+    "k": 0.001,
+    "side": "BUY",
+    "price": 0.7466,
+    "base_size": 26.78,
+    "end_time": null,
+    "state": "rejected",
+    "paper_key": null,
+    "fair": 0.7477,
+    "filled_size": 0,
+    "avg_price": null,
+    "fees_gbp": 0,
+    "reason": "403 PERMISSION_DENIED: User is not allowed to buy crypto (before the questionnaire is completed)",
+    "request": {
+     "client_order_id": "00000000-0000-4000-8000-000000000001"
+    },
+    "response": {
+     "success": false
+    },
+    "created_at": "2026-09-15T20:54:00.000Z",
+    "updated_at": "2026-09-15T20:54:00.000Z",
+    "at": "2026-09-15T20:54:00.000Z"
+   },
+   {
+    "id": 2,
+    "client_order_id": "00000000-0000-4000-8000-000000000002",
+    "venue_order_id": null,
+    "mode": "live",
+    "leg": "entry",
+    "trip": null,
+    "rung_side": "bid",
+    "k": 0.002,
+    "side": "BUY",
+    "price": 0.7459,
+    "base_size": 26.81,
+    "end_time": null,
+    "state": "rejected",
+    "paper_key": null,
+    "fair": 0.7477,
+    "filled_size": 0,
+    "avg_price": null,
+    "fees_gbp": 0,
+    "reason": "403 PERMISSION_DENIED: User is not allowed to buy crypto (before the questionnaire is completed)",
+    "request": {
+     "client_order_id": "00000000-0000-4000-8000-000000000002"
+    },
+    "response": {
+     "success": false
+    },
+    "created_at": "2026-09-15T20:54:00.000Z",
+    "updated_at": "2026-09-15T20:54:00.000Z",
+    "at": "2026-09-15T20:54:00.000Z"
+   },
+   {
+    "id": 3,
+    "client_order_id": "00000000-0000-4000-8000-000000000003",
+    "venue_order_id": null,
+    "mode": "live",
+    "leg": "entry",
+    "trip": null,
+    "rung_side": "bid",
+    "k": 0.003,
+    "side": "BUY",
+    "price": 0.7451,
+    "base_size": 26.84,
+    "end_time": null,
+    "state": "rejected",
+    "paper_key": null,
+    "fair": 0.7477,
+    "filled_size": 0,
+    "avg_price": null,
+    "fees_gbp": 0,
+    "reason": "403 PERMISSION_DENIED: User is not allowed to buy crypto (before the questionnaire is completed)",
+    "request": {
+     "client_order_id": "00000000-0000-4000-8000-000000000003"
+    },
+    "response": {
+     "success": false
+    },
+    "created_at": "2026-09-15T20:54:00.000Z",
+    "updated_at": "2026-09-15T20:54:00.000Z",
+    "at": "2026-09-15T20:54:00.000Z"
+   },
+   {
+    "id": 4,
+    "client_order_id": "00000000-0000-4000-8000-000000000004",
+    "venue_order_id": null,
+    "mode": "live",
+    "leg": "convert",
+    "trip": null,
+    "rung_side": null,
+    "k": null,
+    "side": "BUY",
+    "price": 0.7472,
+    "base_size": 80.31,
+    "end_time": null,
+    "state": "rejected",
+    "paper_key": null,
+    "fair": 0.7477,
+    "filled_size": 0,
+    "avg_price": null,
+    "fees_gbp": 0,
+    "reason": "403 PERMISSION_DENIED: User is not allowed to buy crypto (before the questionnaire is completed)",
+    "request": {
+     "client_order_id": "00000000-0000-4000-8000-000000000004"
+    },
+    "response": {
+     "success": false
+    },
+    "created_at": "2026-09-15T20:54:00.000Z",
+    "updated_at": "2026-09-15T20:54:00.000Z",
+    "at": "2026-09-15T20:54:00.000Z"
+   },
+   {
+    "id": 5,
+    "client_order_id": "00000000-0000-4000-8000-000000000005",
+    "venue_order_id": "v-5",
+    "mode": "live",
+    "leg": "convert",
+    "trip": null,
+    "rung_side": null,
+    "k": null,
+    "side": "BUY",
+    "price": 0.7473,
+    "base_size": 80,
+    "end_time": null,
+    "state": "filled",
+    "paper_key": null,
+    "fair": 0.7477,
+    "filled_size": 80,
+    "avg_price": 0.7473,
+    "fees_gbp": 0,
+    "reason": null,
+    "request": {
+     "client_order_id": "00000000-0000-4000-8000-000000000005"
+    },
+    "response": {
+     "success": true
+    },
+    "created_at": "2026-09-15T21:46:00.000Z",
+    "updated_at": "2026-09-15T21:46:00.000Z",
+    "at": "2026-09-15T21:46:00.000Z"
+   },
+   {
+    "id": 6,
+    "client_order_id": "00000000-0000-4000-8000-000000000006",
+    "venue_order_id": "v-6",
+    "mode": "live",
+    "leg": "entry",
+    "trip": "00000000-0000-4000-8000-000000000006",
+    "rung_side": "bid",
+    "k": 0.001,
+    "side": "BUY",
+    "price": 0.7466,
+    "base_size": 26.78,
+    "end_time": null,
+    "state": "filled",
+    "paper_key": null,
+    "fair": 0.7477,
+    "filled_size": 26.78,
+    "avg_price": 0.7466,
+    "fees_gbp": 0,
+    "reason": null,
+    "request": {
+     "client_order_id": "00000000-0000-4000-8000-000000000006"
+    },
+    "response": {
+     "success": true
+    },
+    "created_at": "2026-09-16T02:00:00.000Z",
+    "updated_at": "2026-09-16T02:00:00.000Z",
+    "at": "2026-09-16T02:00:00.000Z"
+   },
+   {
+    "id": 7,
+    "client_order_id": "00000000-0000-4000-8000-000000000007",
+    "venue_order_id": "v-7",
+    "mode": "live",
+    "leg": "exit",
+    "trip": "00000000-0000-4000-8000-000000000006",
+    "rung_side": "bid",
+    "k": 0.001,
+    "side": "SELL",
+    "price": 0.7481,
+    "base_size": 26.78,
+    "end_time": null,
+    "state": "filled",
+    "paper_key": null,
+    "fair": 0.7477,
+    "filled_size": 26.78,
+    "avg_price": 0.7481,
+    "fees_gbp": 0,
+    "reason": null,
+    "request": {
+     "client_order_id": "00000000-0000-4000-8000-000000000007"
+    },
+    "response": {
+     "success": true
+    },
+    "created_at": "2026-09-16T02:11:00.000Z",
+    "updated_at": "2026-09-16T02:11:00.000Z",
+    "at": "2026-09-16T02:11:00.000Z"
+   },
+   {
+    "id": 8,
+    "client_order_id": "00000000-0000-4000-8000-000000000008",
+    "venue_order_id": "v-8",
+    "mode": "live",
+    "leg": "entry",
+    "trip": "00000000-0000-4000-8000-000000000008",
+    "rung_side": "ask",
+    "k": 0.002,
+    "side": "SELL",
+    "price": 0.7495,
+    "base_size": 26.68,
+    "end_time": null,
+    "state": "filled",
+    "paper_key": null,
+    "fair": 0.7477,
+    "filled_size": 26.68,
+    "avg_price": 0.7495,
+    "fees_gbp": 0,
+    "reason": null,
+    "request": {
+     "client_order_id": "00000000-0000-4000-8000-000000000008"
+    },
+    "response": {
+     "success": true
+    },
+    "created_at": "2026-09-16T09:50:00.000Z",
+    "updated_at": "2026-09-16T09:50:00.000Z",
+    "at": "2026-09-16T09:50:00.000Z"
+   },
+   {
+    "id": 9,
+    "client_order_id": "00000000-0000-4000-8000-000000000009",
+    "venue_order_id": "v-9",
+    "mode": "live",
+    "leg": "exit",
+    "trip": "00000000-0000-4000-8000-000000000008",
+    "rung_side": "ask",
+    "k": 0.002,
+    "side": "BUY",
+    "price": 0.7488,
+    "base_size": 26.68,
+    "end_time": null,
+    "state": "cancelled",
+    "paper_key": null,
+    "fair": 0.7477,
+    "filled_size": 0,
+    "avg_price": null,
+    "fees_gbp": 0,
+    "reason": "replaced",
+    "request": {
+     "client_order_id": "00000000-0000-4000-8000-000000000009"
+    },
+    "response": {
+     "success": true
+    },
+    "created_at": "2026-09-16T10:01:00.000Z",
+    "updated_at": "2026-09-16T10:01:00.000Z",
+    "at": "2026-09-16T10:01:00.000Z"
+   },
+   {
+    "id": 10,
+    "client_order_id": "00000000-0000-4000-8000-000000000010",
+    "venue_order_id": "v-10",
+    "mode": "live",
+    "leg": "stop",
+    "trip": "00000000-0000-4000-8000-000000000008",
+    "rung_side": "ask",
+    "k": 0.002,
+    "side": "BUY",
+    "price": 0.751,
+    "base_size": 26.68,
+    "end_time": null,
+    "state": "filled",
+    "paper_key": null,
+    "fair": 0.7477,
+    "filled_size": 26.68,
+    "avg_price": 0.751,
+    "fees_gbp": 0.01,
+    "reason": null,
+    "request": {
+     "client_order_id": "00000000-0000-4000-8000-000000000010"
+    },
+    "response": {
+     "success": true
+    },
+    "created_at": "2026-09-17T10:05:00.000Z",
+    "updated_at": "2026-09-17T10:05:00.000Z",
+    "at": "2026-09-17T10:05:00.000Z"
+   },
+   {
+    "id": 11,
+    "client_order_id": "00000000-0000-4000-8000-000000000011",
+    "venue_order_id": "v-11",
+    "mode": "live",
+    "leg": "entry",
+    "trip": "00000000-0000-4000-8000-000000000011",
+    "rung_side": "bid",
+    "k": 0.002,
+    "side": "BUY",
+    "price": 0.7459,
+    "base_size": 26.81,
+    "end_time": null,
+    "state": "filled",
+    "paper_key": null,
+    "fair": 0.7477,
+    "filled_size": 26.81,
+    "avg_price": 0.7459,
+    "fees_gbp": 0,
+    "reason": null,
+    "request": {
+     "client_order_id": "00000000-0000-4000-8000-000000000011"
+    },
+    "response": {
+     "success": true
+    },
+    "created_at": "2026-09-17T19:55:00.000Z",
+    "updated_at": "2026-09-17T19:55:00.000Z",
+    "at": "2026-09-17T19:55:00.000Z"
+   },
+   {
+    "id": 12,
+    "client_order_id": "00000000-0000-4000-8000-000000000012",
+    "venue_order_id": "v-12",
+    "mode": "live",
+    "leg": "exit",
+    "trip": "00000000-0000-4000-8000-000000000011",
+    "rung_side": "bid",
+    "k": 0.002,
+    "side": "SELL",
+    "price": 0.7474,
+    "base_size": 26.81,
+    "end_time": "2026-09-17T23:10:00.000Z",
+    "state": "open",
+    "paper_key": null,
+    "fair": 0.7477,
+    "filled_size": 0,
+    "avg_price": null,
+    "fees_gbp": 0,
+    "reason": null,
+    "request": {
+     "client_order_id": "00000000-0000-4000-8000-000000000012"
+    },
+    "response": {
+     "success": true
+    },
+    "created_at": "2026-09-17T20:01:00.000Z",
+    "updated_at": "2026-09-17T20:01:00.000Z",
+    "at": "2026-09-17T20:01:00.000Z"
+   },
+   {
+    "id": 13,
+    "client_order_id": "00000000-0000-4000-8000-000000000013",
+    "venue_order_id": "v-13",
+    "mode": "live",
+    "leg": "entry",
+    "trip": "00000000-0000-4000-8000-000000000013",
+    "rung_side": "ask",
+    "k": 0.001,
+    "side": "SELL",
+    "price": 0.7489,
+    "base_size": 26.7,
+    "end_time": null,
+    "state": "cancelled",
+    "paper_key": null,
+    "fair": 0.7477,
+    "filled_size": 0,
+    "avg_price": null,
+    "fees_gbp": 0,
+    "reason": "replaced",
+    "request": {
+     "client_order_id": "00000000-0000-4000-8000-000000000013"
+    },
+    "response": {
+     "success": true
+    },
+    "created_at": "2026-09-17T22:40:00.000Z",
+    "updated_at": "2026-09-17T22:40:00.000Z",
+    "at": "2026-09-17T22:40:00.000Z"
+   },
+   {
+    "id": 14,
+    "client_order_id": "00000000-0000-4000-8000-000000000014",
+    "venue_order_id": "v-14",
+    "mode": "live",
+    "leg": "entry",
+    "trip": "00000000-0000-4000-8000-000000000014",
+    "rung_side": "ask",
+    "k": 0.003,
+    "side": "SELL",
+    "price": 0.7476,
+    "base_size": 26.75,
+    "end_time": null,
+    "state": "refused",
+    "paper_key": null,
+    "fair": 0.7477,
+    "filled_size": 0,
+    "avg_price": null,
+    "fees_gbp": 0,
+    "reason": "INVALID_LIMIT_PRICE_POST_ONLY",
+    "request": {
+     "client_order_id": "00000000-0000-4000-8000-000000000014"
+    },
+    "response": {
+     "success": true
+    },
+    "created_at": "2026-09-17T22:45:00.000Z",
+    "updated_at": "2026-09-17T22:45:00.000Z",
+    "at": "2026-09-17T22:45:00.000Z"
+   },
+   {
+    "id": 15,
+    "client_order_id": "00000000-0000-4000-8000-000000000015",
+    "venue_order_id": null,
+    "mode": "live",
+    "leg": "entry",
+    "trip": "00000000-0000-4000-8000-000000000015",
+    "rung_side": "ask",
+    "k": 0.003,
+    "side": "SELL",
+    "price": 0.7476,
+    "base_size": 26.75,
+    "end_time": null,
+    "state": "refused",
+    "paper_key": null,
+    "fair": 0.7477,
+    "filled_size": 0,
+    "avg_price": null,
+    "fees_gbp": 0,
+    "reason": "the touch it met shows it crossing: post-only, not sent",
+    "request": {
+     "client_order_id": "00000000-0000-4000-8000-000000000015"
+    },
+    "response": null,
+    "created_at": "2026-09-17T22:50:00.000Z",
+    "updated_at": "2026-09-17T22:50:00.000Z",
+    "at": "2026-09-17T22:50:00.000Z"
+   },
+   {
+    "id": 16,
+    "client_order_id": "00000000-0000-4000-8000-000000000016",
+    "venue_order_id": "v-16",
+    "mode": "live",
+    "leg": "entry",
+    "trip": "00000000-0000-4000-8000-000000000016",
+    "rung_side": "ask",
+    "k": 0.001,
+    "side": "SELL",
+    "price": 0.7487,
+    "base_size": 26.71,
+    "end_time": "2026-09-17T23:15:00.000Z",
+    "state": "open",
+    "paper_key": null,
+    "fair": 0.7477,
+    "filled_size": 0,
+    "avg_price": null,
+    "fees_gbp": 0,
+    "reason": null,
+    "request": {
+     "client_order_id": "00000000-0000-4000-8000-000000000016"
+    },
+    "response": {
+     "success": true
+    },
+    "created_at": "2026-09-17T22:55:00.000Z",
+    "updated_at": "2026-09-17T22:55:00.000Z",
+    "at": "2026-09-17T22:55:00.000Z"
+   },
+   {
+    "id": 17,
+    "client_order_id": "00000000-0000-4000-8000-000000000017",
+    "venue_order_id": "v-17",
+    "mode": "live",
+    "leg": "entry",
+    "trip": "00000000-0000-4000-8000-000000000017",
+    "rung_side": "ask",
+    "k": 0.003,
+    "side": "SELL",
+    "price": 0.7502,
+    "base_size": 26.65,
+    "end_time": "2026-09-17T23:15:00.000Z",
+    "state": "open",
+    "paper_key": null,
+    "fair": 0.7477,
+    "filled_size": 0,
+    "avg_price": null,
+    "fees_gbp": 0,
+    "reason": null,
+    "request": {
+     "client_order_id": "00000000-0000-4000-8000-000000000017"
+    },
+    "response": {
+     "success": true
+    },
+    "created_at": "2026-09-17T22:55:00.000Z",
+    "updated_at": "2026-09-17T22:55:00.000Z",
+    "at": "2026-09-17T22:55:00.000Z"
+   },
+   {
+    "id": 18,
+    "client_order_id": "00000000-0000-4000-8000-000000000018",
+    "venue_order_id": "v-18",
+    "mode": "live",
+    "leg": "entry",
+    "trip": "00000000-0000-4000-8000-000000000018",
+    "rung_side": "bid",
+    "k": 0.003,
+    "side": "BUY",
+    "price": 0.7451,
+    "base_size": 26.84,
+    "end_time": "2026-09-17T23:16:00.000Z",
+    "state": "open",
+    "paper_key": null,
+    "fair": 0.7477,
+    "filled_size": 0,
+    "avg_price": null,
+    "fees_gbp": 0,
+    "reason": null,
+    "request": {
+     "client_order_id": "00000000-0000-4000-8000-000000000018"
+    },
+    "response": {
+     "success": true
+    },
+    "created_at": "2026-09-17T22:56:00.000Z",
+    "updated_at": "2026-09-17T22:56:00.000Z",
+    "at": "2026-09-17T22:56:00.000Z"
+   }
+  ],
+  "cb_live_fills": [
+   {
+    "entry_id": "e-5-2026-09-15T21:46:49Z",
+    "trade_id": "t-5",
+    "order_id": "v-5",
+    "client_order_id": "00000000-0000-4000-8000-000000000005",
+    "trip": null,
+    "leg": "convert",
+    "rung_side": null,
+    "k": null,
+    "side": "BUY",
+    "price": 0.7473,
+    "size": 80,
+    "commission": 0,
+    "liquidity": "MAKER",
+    "trade_time": "2026-09-15T21:46:49.000Z"
+   },
+   {
+    "entry_id": "e-6-2026-09-16T02:10:00Z",
+    "trade_id": "t-6",
+    "order_id": "v-6",
+    "client_order_id": "00000000-0000-4000-8000-000000000006",
+    "trip": "00000000-0000-4000-8000-000000000006",
+    "leg": "entry",
+    "rung_side": "bid",
+    "k": 0.001,
+    "side": "BUY",
+    "price": 0.7466,
+    "size": 26.78,
+    "commission": 0,
+    "liquidity": "MAKER",
+    "trade_time": "2026-09-16T02:10:00.000Z"
+   },
+   {
+    "entry_id": "e-7-2026-09-16T05:30:00Z",
+    "trade_id": "t-7",
+    "order_id": "v-7",
+    "client_order_id": "00000000-0000-4000-8000-000000000007",
+    "trip": "00000000-0000-4000-8000-000000000006",
+    "leg": "exit",
+    "rung_side": "bid",
+    "k": 0.001,
+    "side": "SELL",
+    "price": 0.7481,
+    "size": 26.78,
+    "commission": 0,
+    "liquidity": "MAKER",
+    "trade_time": "2026-09-16T05:30:00.000Z"
+   },
+   {
+    "entry_id": "e-8-2026-09-16T10:00:00Z",
+    "trade_id": "t-8",
+    "order_id": "v-8",
+    "client_order_id": "00000000-0000-4000-8000-000000000008",
+    "trip": "00000000-0000-4000-8000-000000000008",
+    "leg": "entry",
+    "rung_side": "ask",
+    "k": 0.002,
+    "side": "SELL",
+    "price": 0.7495,
+    "size": 26.68,
+    "commission": 0,
+    "liquidity": "MAKER",
+    "trade_time": "2026-09-16T10:00:00.000Z"
+   },
+   {
+    "entry_id": "e-10-2026-09-17T10:05:01Z",
+    "trade_id": "t-10",
+    "order_id": "v-10",
+    "client_order_id": "00000000-0000-4000-8000-000000000010",
+    "trip": "00000000-0000-4000-8000-000000000008",
+    "leg": "stop",
+    "rung_side": "ask",
+    "k": 0.002,
+    "side": "BUY",
+    "price": 0.751,
+    "size": 26.68,
+    "commission": 0.01,
+    "liquidity": "TAKER",
+    "trade_time": "2026-09-17T10:05:01.000Z"
+   },
+   {
+    "entry_id": "e-11-2026-09-17T20:00:00Z",
+    "trade_id": "t-11",
+    "order_id": "v-11",
+    "client_order_id": "00000000-0000-4000-8000-000000000011",
+    "trip": "00000000-0000-4000-8000-000000000011",
+    "leg": "entry",
+    "rung_side": "bid",
+    "k": 0.002,
+    "side": "BUY",
+    "price": 0.7459,
+    "size": 26.81,
+    "commission": 0,
+    "liquidity": "MAKER",
+    "trade_time": "2026-09-17T20:00:00.000Z"
+   }
+  ],
+  "cb_nudge_state": [
+   {
+    "id": 1,
+    "last_minute": "2026-09-17T22:58:00.000Z",
+    "state": {
+     "books": {
+      "USDC-GBP": {
+       "book": "USDC-GBP",
+       "rungs": [
+        {
+         "side": "bid",
+         "k": 0.001,
+         "mode": "idle",
+         "o": null
+        },
+        {
+         "side": "bid",
+         "k": 0.002,
+         "mode": "idle",
+         "o": null
+        },
+        {
+         "side": "bid",
+         "k": 0.003,
+         "mode": "idle",
+         "o": null
+        },
+        {
+         "side": "ask",
+         "k": 0.001,
+         "mode": "idle",
+         "o": null
+        },
+        {
+         "side": "ask",
+         "k": 0.002,
+         "mode": "idle",
+         "o": null
+        },
+        {
+         "side": "ask",
+         "k": 0.003,
+         "mode": "idle",
+         "o": null
+        }
+       ],
+       "lastX": 1.3376,
+       "lastPrint": {
+        "ts": 1789685850000,
+        "ticks": 7476,
+        "qty": 120,
+        "side": "buy",
+        "id": "p1"
+       },
+       "nextOid": 1
+      }
+     }
+    }
+   }
+  ],
+  "cb_nudge_minutes": [
+   {
+    "book": "USDC-GBP",
+    "minute": "2026-09-17T22:58:00.000Z",
+    "fair": 0.7477
+   }
+  ]
+ },
+ "output": {
+  "name": "Stablecoin quotes USDC/GBP",
+  "paper": "coinbasenudge",
+  "dryRun": false,
+  "armed": true,
+  "armedAt": "2026-09-15T21:45:01.000Z",
+  "tradedLive": true,
+  "running": true,
+  "lagMinutes": 1,
+  "lastError": null,
+  "capitalGbp": 120,
+  "rungGbp": 20,
+  "gbpUsd": 1.3376,
+  "lossStopGbp": -1.2,
+  "realisedGbp": -0.009850000000000005,
+  "unrealisedGbp": 0.08025800000001482,
+  "todayGbp": -0.001761999999997925,
+  "costGbp": 79.781579,
+  "valueGbp": 99.860321,
+  "feesGbp": 0.01,
+  "heldRungs": 1,
+  "openOrders": 4,
+  "lossStopped": false,
+  "detail": {
+   "books": [
+    {
+     "book": "USDC-GBP",
+     "lastPrice": 0.7476,
+     "fair": 0.7477,
+     "index": null,
+     "realisedGbp": -0.009850000000000005,
+     "trips": 2,
+     "won": 1
+    }
+   ],
+   "rungs": [
+    {
+     "book": "USDC-GBP",
+     "side": "bid",
+     "k": 0.001,
+     "order": null,
+     "held": null,
+     "realisedGbp": 0.040169999999998554
+    },
+    {
+     "book": "USDC-GBP",
+     "side": "bid",
+     "k": 0.002,
+     "order": {
+      "id": 12,
+      "leg": "exit",
+      "price": 0.7474,
+      "state": "new"
+     },
+     "held": {
+      "base": 26.81,
+      "avgEntry": 0.7459,
+      "since": "2026-09-17T20:00:00.000Z",
+      "costGbp": 19.997578999999998,
+      "valueGbp": 20.045837,
+      "unrealisedGbp": 0.048258000000000634
+     },
+     "realisedGbp": 0
+    },
+    {
+     "book": "USDC-GBP",
+     "side": "bid",
+     "k": 0.003,
+     "order": {
+      "id": 18,
+      "leg": "entry",
+      "price": 0.7451,
+      "state": "new"
+     },
+     "held": null,
+     "realisedGbp": 0
+    },
+    {
+     "book": "USDC-GBP",
+     "side": "ask",
+     "k": 0.001,
+     "order": {
+      "id": 16,
+      "leg": "entry",
+      "price": 0.7487,
+      "state": "new"
+     },
+     "held": null,
+     "realisedGbp": 0
+    },
+    {
+     "book": "USDC-GBP",
+     "side": "ask",
+     "k": 0.002,
+     "order": null,
+     "held": null,
+     "realisedGbp": -0.05001999999999856
+    },
+    {
+     "book": "USDC-GBP",
+     "side": "ask",
+     "k": 0.003,
+     "order": {
+      "id": 17,
+      "leg": "entry",
+      "price": 0.7502,
+      "state": "new"
+     },
+     "held": null,
+     "realisedGbp": 0
+    }
+   ],
+   "inventory": {
+    "at": "2026-09-17T22:59:00.000Z",
+    "assets": [
+     {
+      "asset": "GBP",
+      "amount": 40.20857099999999,
+      "gbp": 40.20857099999999,
+      "price": null,
+      "priceFrom": null,
+      "costGbp": null,
+      "unrealisedGbp": null
+     },
+     {
+      "asset": "USDC",
+      "amount": 106.81,
+      "gbp": 79.86183700000001,
+      "price": 0.7477,
+      "priceFrom": "fair",
+      "costGbp": 79.781579,
+      "unrealisedGbp": 0.08025800000001482
+     }
+    ]
+   },
+   "days": [
+    {
+     "day": "2026-09-17",
+     "today": true,
+     "orders": 8,
+     "fills": 1,
+     "trips": 1,
+     "won": 0,
+     "realisedGbp": -0.05001999999999856
+    },
+    {
+     "day": "2026-09-16",
+     "today": false,
+     "orders": 4,
+     "fills": 2,
+     "trips": 1,
+     "won": 1,
+     "realisedGbp": 0.040169999999998554
+    },
+    {
+     "day": "2026-09-15",
+     "today": false,
+     "orders": 5,
+     "fills": 0,
+     "trips": 0,
+     "won": 0,
+     "realisedGbp": 0
+    }
+   ],
+   "trips": [
+    {
+     "book": "USDC-GBP",
+     "side": "ask",
+     "k": 0.002,
+     "tEntry": "2026-09-16T10:00:00.000Z",
+     "tExit": "2026-09-17T10:05:01.000Z",
+     "entry": 0.7495,
+     "exit": 0.751,
+     "qty": 26.68,
+     "how": "stop",
+     "feesGbp": 0.01,
+     "pnlGbp": -0.05001999999999856
+    },
+    {
+     "book": "USDC-GBP",
+     "side": "bid",
+     "k": 0.001,
+     "tEntry": "2026-09-16T02:10:00.000Z",
+     "tExit": "2026-09-16T05:30:00.000Z",
+     "entry": 0.7466,
+     "exit": 0.7481,
+     "qty": 26.78,
+     "how": "exit",
+     "feesGbp": 0,
+     "pnlGbp": 0.040169999999998554
+    }
+   ],
+   "tripCount": 2,
+   "tripsWon": 1,
+   "orders": [
+    {
+     "id": 18,
+     "ts": "2026-09-17T22:56:00.000Z",
+     "book": "USDC-GBP",
+     "side": "bid",
+     "k": 0.003,
+     "leg": "entry",
+     "venueSide": "buy",
+     "price": 0.7451,
+     "base": 26.84,
+     "state": "new",
+     "filledBase": 0,
+     "avgPrice": null,
+     "reason": null
+    },
+    {
+     "id": 17,
+     "ts": "2026-09-17T22:55:00.000Z",
+     "book": "USDC-GBP",
+     "side": "ask",
+     "k": 0.003,
+     "leg": "entry",
+     "venueSide": "sell",
+     "price": 0.7502,
+     "base": 26.65,
+     "state": "new",
+     "filledBase": 0,
+     "avgPrice": null,
+     "reason": null
+    },
+    {
+     "id": 16,
+     "ts": "2026-09-17T22:55:00.000Z",
+     "book": "USDC-GBP",
+     "side": "ask",
+     "k": 0.001,
+     "leg": "entry",
+     "venueSide": "sell",
+     "price": 0.7487,
+     "base": 26.71,
+     "state": "new",
+     "filledBase": 0,
+     "avgPrice": null,
+     "reason": null
+    },
+    {
+     "id": 12,
+     "ts": "2026-09-17T20:01:00.000Z",
+     "book": "USDC-GBP",
+     "side": "bid",
+     "k": 0.002,
+     "leg": "exit",
+     "venueSide": "sell",
+     "price": 0.7474,
+     "base": 26.81,
+     "state": "new",
+     "filledBase": 0,
+     "avgPrice": null,
+     "reason": null
+    },
+    {
+     "id": 11,
+     "ts": "2026-09-17T19:55:00.000Z",
+     "book": "USDC-GBP",
+     "side": "bid",
+     "k": 0.002,
+     "leg": "entry",
+     "venueSide": "buy",
+     "price": 0.7459,
+     "base": 26.81,
+     "state": "filled",
+     "filledBase": 26.81,
+     "avgPrice": 0.7459,
+     "reason": null
+    }
+   ]
+  }
+ }
+}

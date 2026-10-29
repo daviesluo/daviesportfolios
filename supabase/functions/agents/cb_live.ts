@@ -526,41 +526,198 @@ export async function runCbLive(d: CbLiveDeps): Promise<CbLiveReport> {
   }
 }
 
+// ------------------------------------------------------------------------------------------------------------ the page
+
+/** Its page's DAYS go back this far, its ORDERS list this many of the newest, its ROUND TRIPS this many: PR5 LIVE's page's. */
+export const CB_LIVE_PAGE_DAYS = 60;
+export const CB_LIVE_PAGE_ROWS = 50;
+export const CB_LIVE_PAGE_TRIPS = 20;
+/** The columns of a live order its row and page read for every order, and for the newest, what says why each ended so. */
+export const CB_LIVE_ORDER_COLUMNS = "id,client_order_id,leg,trip,rung_side,k,side,price,base_size,filled_size,avg_price,state,created_at";
+export const CB_LIVE_RECENT_COLUMNS = `${CB_LIVE_ORDER_COLUMNS},reason`;
+
+/** A live order as the page reads it. */
+export type CbLivePageOrder = Pick<OrderRow, "client_order_id" | "leg" | "trip" | "rung_side" | "k" | "side" | "price" | "base_size" | "filled_size" | "avg_price" | "state" | "created_at">
+  & { id: number; reason?: string | null };
+
+const IN_FLIGHT: ReadonlyArray<OrderRow["state"]> = ["pending", "open", "cancelling"];
+const D = 86400e3;
+
+/** Pure: the realised pounds of every trip the fills make (`tripPnl`), the figure DAYS splits by the day. */
+const realisedOf = (fills: FillRow[]) => [...tripsOf(fills).values()].reduce((a, t) => a + tripPnl(t, null).realised, 0);
+
 /**
- * LIVE's row of it (`cbLive` on the dashboard): from its own tables alone, null-safe, never a call to Coinbase. In pounds
- * (its capital is £120) with GBP/USD (`gbpUsd`, the paper arm's last rate) for the page's dollars. `tradedLive` is true from
- * its first live order; the page shows the row from then, or while it is armed.
+ * Pure: a live order in the words PR5 LIVE's page uses (`orderStateText`, its state pills): resting is "new" (open), resting
+ * with a part filled "partially_filled", a good-til-date that ran out "cancelled" as a cancel is; and why it is where it is,
+ * or null for an order resting or filled as sent.
+ */
+export function cbLiveOrderView(o: CbLivePageOrder) {
+  const filled = Number(o.filled_size) || 0, size = Number(o.base_size) || 0;
+  const state = o.state === "open" || o.state === "cancelling" ? (filled > 0 ? "partially_filled" : "new")
+    : o.state === "expired" ? "cancelled" : o.state;
+  const reason = o.state === "pending" ? "sent; the venue's answer is read next turn"
+    : o.state === "cancelling" ? `cancel sent (${o.reason || "no reason recorded"}); not confirmed yet`
+    : (o.state === "cancelled" || o.state === "expired") && filled > 0 && filled < size
+      ? `filled in part; the rest ${o.state === "expired" ? "ran out at its good-til-date" : "was cancelled"}` : null;
+  return {
+    id: o.id, ts: o.created_at, book: CB_LIVE_PRODUCT, side: o.rung_side, k: o.k == null ? null : Number(o.k), leg: o.leg,
+    venueSide: String(o.side).toLowerCase(), price: Number(o.price), base: size, state, filledBase: filled,
+    avgPrice: o.avg_price == null ? null : Number(o.avg_price), reason,
+  };
+}
+
+/**
+ * Pure: "Stablecoin quotes USDC/GBP"'s figures and its page, in the shape of PR5 LIVE's (`quotesLiveDetail` in index.ts), so the
+ * same page draws both (Davies, 2026-10-29: "网页中live的coinbase策略子页面打不开，点了没反应"). Everything is from its own record:
+ *   * Trips from the fills read back from Coinbase (`tripsOf`); one is still held while its remainder is not dust (`isDust`, at
+ *     fair, as the executor judges it), and is a ROUND TRIP once it has exited and holds no more than dust.
+ *   * The coins (USDC) are what every live fill bought less what it sold, its top-up conversions included, and they cost what
+ *     the conversions paid (fee included) and what the trips holding paid or took in: valued at the arm's fair (else its last
+ *     print), value less cost is UNREALIZED, the held trips' marks and the conversions' own. DEPLOYED is that value and the
+ *     pounds resting in live buys.
+ *   * Its pounds are its capital as its own record moves them (the fills' pounds and fees), not a balance read from the venue.
+ *   * DAYS: each UTC day from its first live order, the orders sent (an order refused at the touch it met, never sent, is not
+ *     one), the entries that filled, the round trips that closed and what the trips realised that day; the days add up to
+ *     REALIZED.
+ *   * ORDERS: the newest, less the top-up conversions (in INVENTORY, as PR5's are), less what the venue refused (a post-only
+ *     price that crossed, the 403s of its first night) or the executor refused before sending, less a cancel that filled
+ *     nothing, and less the orders of a round trip already closed (ROUND TRIPS has them).
+ * TODAY is the figure its daily loss stop reads (the trips touched today, realised and marked), as PR5's is.
+ */
+export function cbLiveDetail(input: {
+  capitalGbp: number; orders: CbLivePageOrder[]; recent: CbLivePageOrder[]; notSent: ReadonlySet<number>; fills: FillRow[];
+  book: BookState | null; fair: number | null; now: number; at: string | null; minSize?: number;
+}) {
+  const { now, fills } = input;
+  const minSize = input.minSize ?? Number(CB_LIVE_PRODUCT_FALLBACK.base_min_size);
+  const lastPrice = input.book?.lastPrint?.ticks != null ? Number((input.book.lastPrint.ticks * QUOTE_TICK).toFixed(6)) : null;
+  const mark = input.fair ?? lastPrice;
+  const dayStart = Date.parse(`${dayOf(now)}T00:00:00Z`);
+  const all = [...tripsOf(fills).values()];
+  const stopped = new Set(fills.filter((f) => f.leg === "stop" && f.trip).map((f) => f.trip!));
+  const open = all.filter((t) => !isDust(tripHeld(t), input.fair ?? t.entryAvg, minSize));
+  const closed = all.filter((t) => !open.includes(t) && t.exitQty > 0).sort((a, b) => b.lastFill - a.lastFill || b.firstFill - a.firstFill);
+  const pnl = new Map(all.map((t) => [t.trip, tripPnl(t, input.fair)]));
+  let realised = 0, today = 0, fees = 0;
+  for (const t of all) {
+    const p = pnl.get(t.trip)!;
+    realised += p.realised; fees += t.fees;
+    if (t.lastFill >= dayStart || tripHeld(t) > 0) today += p.realised + p.marked;
+  }
+  // The coins: what every fill bought less what it sold; their cost, the conversions' pounds and the trips' signed holdings.
+  const conv = fills.filter((f) => f.leg === "convert");
+  const coins = fills.reduce((a, f) => a + (f.side === "BUY" ? 1 : -1) * Number(f.size), 0);
+  const cost = conv.reduce((a, f) => a + (f.side === "BUY" ? 1 : -1) * Number(f.size) * Number(f.price) + (Number(f.commission) || 0), 0)
+    + all.reduce((a, t) => a + (t.rungSide === "bid" ? 1 : -1) * (t.entryQty - t.exitQty) * t.entryAvg, 0);
+  const coinsValue = mark == null ? cost : coins * mark;
+  const unrealised = mark == null ? 0 : coinsValue - cost;
+  const restingBuys = input.orders.filter((o) => o.side === "BUY" && IN_FLIGHT.includes(o.state))
+    .reduce((a, o) => a + Math.max(0, Number(o.base_size) - Number(o.filled_size || 0)) * Number(o.price), 0);
+  const pounds = input.capitalGbp + fills.reduce((a, f) => a + (f.side === "SELL" ? 1 : -1) * Number(f.size) * Number(f.price) - (Number(f.commission) || 0), 0);
+
+  const onRung = (o: CbLivePageOrder, side: Side, k: number) => o.rung_side === side && Number(o.k) === k;
+  const rungs = (input.book?.rungs ?? []).map((r) => {
+    const t = open.filter((x) => x.rungSide === r.side && x.k === r.k).at(-1) ?? null;
+    const o = input.orders.filter((x) => onRung(x, r.side, r.k) && IN_FLIGHT.includes(x.state)).at(-1) ?? null;
+    const held = t && tripHeld(t), dir = r.side === "bid" ? 1 : -1;
+    return {
+      book: CB_LIVE_PRODUCT, side: r.side, k: r.k,
+      order: o && { id: o.id, leg: o.leg, price: Number(o.price), state: cbLiveOrderView(o).state },
+      held: t && held != null ? {
+        base: held, avgEntry: t.entryAvg, since: iso(t.firstFill), costGbp: held * t.entryAvg, valueGbp: held * (mark ?? t.entryAvg),
+        unrealisedGbp: mark == null ? null : dir * held * (mark - t.entryAvg),
+      } : null,
+      realisedGbp: all.filter((x) => x.rungSide === r.side && x.k === r.k).reduce((a, x) => a + pnl.get(x.trip)!.realised, 0),
+    };
+  });
+
+  // DAYS, newest first, from the first live order's day.
+  const sent = input.orders.filter((o) => !input.notSent.has(o.id));
+  const firstMs = Math.min(...input.orders.map((o) => msOf(o.created_at)), ...fills.map((f) => msOf(f.trade_time)));
+  const days = [];
+  const upTo = (t: number) => realisedOf(fills.filter((f) => msOf(f.trade_time) < t));
+  for (let d = dayStart; Number.isFinite(firstMs) && d >= Math.floor(firstMs / D) * D && days.length < CB_LIVE_PAGE_DAYS; d -= D) {
+    const inDay = (ms: number) => ms >= d && ms < d + D;
+    const shut = closed.filter((t) => inDay(t.lastFill));
+    days.push({
+      day: iso(d).slice(0, 10), today: d === dayStart,
+      orders: sent.filter((o) => inDay(msOf(o.created_at))).length,
+      fills: new Set(fills.filter((f) => f.leg === "entry" && inDay(msOf(f.trade_time))).map((f) => f.client_order_id)).size,
+      trips: shut.length, won: shut.filter((t) => pnl.get(t.trip)!.realised > 0).length,
+      realisedGbp: upTo(d + D) - upTo(d),
+    });
+  }
+
+  const shutIds = new Set(closed.map((t) => t.trip));
+  const orders = input.recent
+    .filter((o) => o.leg !== "convert" && o.state !== "rejected" && o.state !== "refused" && !input.notSent.has(o.id) && !(o.trip && shutIds.has(o.trip)))
+    .filter((o) => !((o.state === "cancelled" || o.state === "expired") && !(Number(o.filled_size) > 0)))
+    .map(cbLiveOrderView);
+  return {
+    realisedGbp: realised, unrealisedGbp: unrealised, todayGbp: today, costGbp: cost, valueGbp: coinsValue + restingBuys, feesGbp: fees, heldRungs: open.length,
+    detail: {
+      books: [{
+        book: CB_LIVE_PRODUCT, lastPrice, fair: input.fair, index: null, realisedGbp: realised,
+        trips: closed.length, won: closed.filter((t) => pnl.get(t.trip)!.realised > 0).length,
+      }],
+      rungs,
+      inventory: {
+        at: input.at,
+        assets: [
+          { asset: "GBP", amount: pounds, gbp: pounds, price: null, priceFrom: null, costGbp: null, unrealisedGbp: null },
+          { asset: "USDC", amount: coins, gbp: mark == null ? null : coinsValue, price: mark, priceFrom: input.fair != null ? "fair" : mark != null ? "last trade" : null, costGbp: cost, unrealisedGbp: mark == null ? null : unrealised },
+        ],
+      },
+      days,
+      trips: closed.slice(0, CB_LIVE_PAGE_TRIPS).map((t) => ({
+        book: CB_LIVE_PRODUCT, side: t.rungSide, k: t.k, tEntry: iso(t.firstFill), tExit: iso(t.lastFill), entry: t.entryAvg, exit: t.exitAvg, qty: t.entryQty,
+        how: stopped.has(t.trip) ? "stop" : "exit", feesGbp: t.fees, pnlGbp: pnl.get(t.trip)!.realised,
+      })),
+      tripCount: closed.length, tripsWon: closed.filter((t) => pnl.get(t.trip)!.realised > 0).length,
+      orders,
+    },
+  };
+}
+
+/**
+ * LIVE's row of it and its page (`cbLive` on the dashboard): from its own tables alone, null-safe, never a call to Coinbase. In
+ * pounds (its capital is £120) with GBP/USD (`gbpUsd`, the paper arm's last rate) for the page's dollars. `tradedLive` is true
+ * from its first live order; the page shows the row from then, or while it is armed. Its figures and its page are one walk
+ * (`cbLiveDetail`), so the page cannot show a figure the row does not add up to.
  */
 export async function readCbLive(db: Db, now: number) {
   const T = CB_LIVE_TABLES;
   try {
     const cfg = (await db.select<CbLiveConfig>(T.config, "id=eq.1&select=*"))[0];
     if (!cfg) return null;
-    const st = (await db.select<{ updated_at: string | null; state: { lastReport?: CbLiveReport } }>(T.state, "id=eq.1&select=updated_at,state"))[0] ?? null;
-    const live = await db.select<OrderRow>(T.orders, "mode=eq.live&select=client_order_id,leg,state,created_at&order=id.desc&limit=200");
-    const fills = await db.selectAll<FillRow>(T.fills, "select=*&order=entry_id.asc");
+    const st = (await db.select<{ updated_at: string | null; last_error?: string | null; state: { lastReport?: CbLiveReport } }>(T.state, "id=eq.1&select=updated_at,last_error,state"))[0] ?? null;
+    const [live, recent, notSent, fills] = await Promise.all([
+      db.selectAll<CbLivePageOrder>(T.orders, `mode=eq.live&select=${CB_LIVE_ORDER_COLUMNS}&order=id.asc`),
+      db.select<CbLivePageOrder>(T.orders, `mode=eq.live&select=${CB_LIVE_RECENT_COLUMNS}&order=id.desc&limit=${CB_LIVE_PAGE_ROWS}`),
+      // Refused at the touch it met and never sent (no venue answer): not a POST, not one of the day's orders.
+      db.select<{ id: number }>(T.orders, "mode=eq.live&state=eq.refused&response=is.null&select=id&order=id.asc"),
+      db.selectAll<FillRow>(T.fills, "select=*&order=entry_id.asc"),
+    ]);
     const paper = CB_LIVE_PAPERS[cfg.paper];
     const pRow = paper ? (await db.select<{ state: { books?: Record<string, BookState> }; last_minute: string | null }>(paper.state, "id=eq.1&select=state,last_minute"))[0] : undefined;
-    const x = pRow?.state?.books?.[paper!.book]?.lastX ?? null;
+    const book = pRow?.state?.books?.[paper!.book] ?? null;
+    const x = book?.lastX ?? null;
     const fair = pRow?.last_minute
       ? (await db.select<{ fair: number | null }>(paper!.minutes, `book=eq.${paper!.book}&minute=eq.${enc(msOf(pRow.last_minute))}&select=fair`))[0]?.fair ?? null : null;
-    const trips = [...tripsOf(fills).values()];
-    const dayStart = Date.parse(`${dayOf(now)}T00:00:00Z`);
-    let realised = 0, unrealised = 0, today = 0, cost = 0, fees = 0, held = 0;
-    for (const t of trips) {
-      const p = tripPnl(t, fair == null ? null : Number(fair));
-      realised += p.realised; unrealised += p.marked; fees += t.fees;
-      if (t.lastFill >= dayStart || tripHeld(t) > 0) today += p.realised + p.marked;
-      if (tripHeld(t) > 0) { cost += tripHeld(t) * t.entryAvg; held++; }
-    }
+    const v = cbLiveDetail({ capitalGbp: Number(cfg.capital_gbp), orders: live, recent, notSent: new Set(notSent.map((r) => Number(r.id))), fills, book,
+      fair: fair == null ? null : Number(fair), now, at: st?.updated_at ?? null });
     const updated = st?.updated_at ? msOf(st.updated_at) : null;
     return {
       name: CB_LIVE_NAME, paper: cfg.paper, dryRun: cfg.dry_run, armed: !cfg.dry_run && cfg.armed_at != null, armedAt: cfg.armed_at,
       tradedLive: live.length > 0, running: updated != null && now - updated < 3 * M, lagMinutes: updated == null ? null : Math.round((now - updated) / M),
+      lastError: st?.last_error ?? null,
       capitalGbp: Number(cfg.capital_gbp), rungGbp: Number(cfg.rung_gbp), gbpUsd: x,
-      realisedGbp: realised, unrealisedGbp: unrealised, todayGbp: today, costGbp: cost, feesGbp: fees, heldRungs: held,
-      openOrders: live.filter((o) => o.state === "open" || o.state === "pending" || o.state === "cancelling").length,
+      // Its daily loss stop in pounds (the config's share of its capital), beside TODAY as PR5 LIVE's page shows its own.
+      lossStopGbp: -Number(cfg.daily_loss_pct) * Number(cfg.capital_gbp),
+      realisedGbp: v.realisedGbp, unrealisedGbp: v.unrealisedGbp, todayGbp: v.todayGbp, costGbp: v.costGbp, valueGbp: v.valueGbp, feesGbp: v.feesGbp, heldRungs: v.heldRungs,
+      openOrders: live.filter((o) => IN_FLIGHT.includes(o.state)).length,
       lossStopped: !!st?.state?.lastReport?.lossStopped,
+      detail: v.detail,
     };
   } catch {
     return null;
