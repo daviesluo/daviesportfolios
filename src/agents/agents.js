@@ -18,11 +18,12 @@ export const KIND_LABELS = { 'trend-4h': 'Trend 4h', 'trend-1h': 'Trend 1h', 'mo
  * The venue hues the badges, the share bar and the detail chart all share. Binance's is its own yellow, which is why
  * PAPER is not gold any more. Polymarket's is its own blue, lifted for the dark page: ΔE 15.6 from Revolut X's with full
  * colour vision and 15.7 under deuteranopia, and further from Binance's, the gain green and the loss red (checked with
- * the dataviz validator, 2026-09-24). Every badge also says the venue's name. Coinbase's is its own blue, much deeper than
- * Revolut X's, and Hyperliquid's its own mint (Davies, 2026-10-29: "hyperliquid ... 应该是他们的主题绿才对 ... Coinbase应该改成他们的主题蓝");
- * Coinbase's badge text is a lighter tint of its blue (`.ag-venue-coinbase`, 5.4:1 on the page), its fills and borders the blue itself.
+ * the dataviz validator, 2026-09-24). Every badge also says the venue's name. Coinbase's is its blue, deeper than
+ * Revolut X's, and Hyperliquid's its own mint (Davies, 2026-10-29: "hyperliquid ... 应该是他们的主题绿才对 ... Coinbase应该改成他们的主题蓝").
+ * Coinbase's brand #0052ff is 3.3:1 on the page, too dark for its badge's text (and the 35 % slice it was drawn as only 1.5:1), so its
+ * hue is that blue lifted to 4.5:1, #4d8bff. The share bar's slices are these hues, solid (styles.css).
  */
-export const VENUE_HUES = { revx: '#8ec5ff', binance: '#f0b90b', polymarket: '#7d8bff', coinbase: '#0052ff', okx: '#dfe3ea', ig: '#d6a2e8', hyperliquid: '#97fce4' };
+export const VENUE_HUES = { revx: '#8ec5ff', binance: '#f0b90b', polymarket: '#7d8bff', coinbase: '#4d8bff', okx: '#dfe3ea', ig: '#d6a2e8', hyperliquid: '#97fce4' };
 
 /** @param {string} id */
 export const venueLabel = (id) => VENUE_LABELS[id] ?? id;

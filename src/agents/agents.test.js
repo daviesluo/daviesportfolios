@@ -1116,7 +1116,7 @@ describe('quoteLadderRows — a book as the page draws it', () => {
     expect(cbSeg?.title).toMatch(/^Coinbase: \d+% of deployed value$/);
     const css = fs.readFileSync(path.join(process.cwd(), 'app/styles.css'), 'utf8');
     for (const id of Object.keys(VENUE_LABELS).filter((v) => v !== 'kraken')) {
-      expect([id, /background:\s*rgba\(/.test(new RegExp(`\\.ag-share-${id} \\{([^}]*)\\}`).exec(css)?.[1] ?? '')]).toEqual([id, true]);
+      expect([id, /background:\s*(rgba\(|#[0-9a-f]{6}\b)/.test(new RegExp(`\\.ag-share-${id} \\{([^}]*)\\}`).exec(css)?.[1] ?? '')]).toEqual([id, true]);
     }
     expect(quotesPageFor(QUOTES_COINBASE_ROW_ID, { quotesTwins: [] })).toBe(null);
     expect(quotesCoinbaseRow(null)).toBe(null);
@@ -1768,19 +1768,37 @@ describe('grokPmRow and its page (GROKPM, "Polymarket analyst" on LIVE, 2026-10-
   });
 });
 
-describe('the venue hues (Davies, 2026-10-29: Hyperliquid its mint, Coinbase its blue)', () => {
-  it('are in the table and in the badge, card and share-bar rules, Coinbase darker than Revolut X', () => {
-    const css = fs.readFileSync(path.join(path.dirname(new URL(import.meta.url).pathname), '..', 'app', 'styles.css'), 'utf8');
-    expect([VENUE_HUES.hyperliquid, VENUE_HUES.coinbase, VENUE_HUES.revx]).toEqual(['#97fce4', '#0052ff', '#8ec5ff']);
-    const lum = (/** @type {string} */ h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)).reduce((a, c, i) => a + c * [0.2126, 0.7152, 0.0722][i], 0);
-    expect(lum(VENUE_HUES.coinbase)).toBeLessThan(lum(VENUE_HUES.revx) / 2);
-    expect(css).toContain('.ag-venue-hyperliquid { color: #97fce4; border-color: rgba(151,252,228,0.4); background: rgba(151,252,228,0.1); }');
-    expect(css).toContain('.ag-venue-card-hyperliquid { border-left-color: rgba(151,252,228,0.75); }');
-    expect(css).toContain('.ag-share-hyperliquid { background: rgba(151,252,228,0.35);');
-    // Coinbase's text is a lighter tint of its blue (the blue itself is 3.1:1 on the page); border, fill, card and slice are the blue.
-    expect(css).toContain('.ag-venue-coinbase { color: #4d8bff; border-color: rgba(0,82,255,0.4); background: rgba(0,82,255,0.1); }');
-    expect(css).toContain('.ag-venue-card-coinbase { border-left-color: rgba(0,82,255,0.75); }');
-    expect(css).toContain('.ag-share-coinbase { background: rgba(0,82,255,0.35);');
+describe('the venue hues (Davies, 2026-10-29: Hyperliquid its mint, Coinbase its blue, the share bar in the theme colours)', () => {
+  const css = fs.readFileSync(path.join(path.dirname(new URL(import.meta.url).pathname), '..', 'app', 'styles.css'), 'utf8');
+  const rgb = (/** @type {string} */ h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const lum = (/** @type {number[]} */ c) => c.map((v) => { const x = v / 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; }).reduce((a, v, i) => a + v * [0.2126, 0.7152, 0.0722][i], 0);
+  const ratio = (/** @type {number[]} */ a, /** @type {number[]} */ b) => { const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x); return (hi + 0.05) / (lo + 0.05); };
+  const over = (/** @type {number[]} */ f, /** @type {number} */ a, /** @type {number[]} */ b) => f.map((v, i) => a * v + (1 - a) * b[i]);
+  const PAGES = [rgb('#0c1310'), rgb('#14201b')];  // the page's background, its flat colour and the top of its gradient
+
+  it('are in the table: Hyperliquid its mint, Coinbase its blue, darker than Revolut X and lighter than its brand #0052ff', () => {
+    expect([VENUE_HUES.hyperliquid, VENUE_HUES.coinbase, VENUE_HUES.revx]).toEqual(['#97fce4', '#4d8bff', '#8ec5ff']);
+    expect(lum(rgb(VENUE_HUES.coinbase))).toBeGreaterThan(lum(rgb('#0052ff')));
+    expect(lum(rgb(VENUE_HUES.coinbase))).toBeLessThan(lum(rgb(VENUE_HUES.revx)) / 1.5);
+  });
+
+  it("every venue's badge, card and share-bar slice is its hue, the slice solid with dark text of 4.5:1 or more", () => {
+    for (const [id, hue] of Object.entries(VENUE_HUES)) {
+      const [r, g, b] = rgb(hue);
+      expect(css, id).toContain(`.ag-venue-${id} { color: ${hue}; border-color: rgba(${r},${g},${b},`);
+      const slice = new RegExp(`\\.ag-share-${id} \\{ background: (#[0-9a-f]{6}); color: (#[0-9a-f]{6}); \\}`).exec(css);
+      expect(slice?.[1], `${id} slice`).toBe(hue);
+      expect(ratio(rgb(slice?.[2] ?? '#000000'), rgb(hue)), `${id} slice text`).toBeGreaterThanOrEqual(4.5);
+      expect(new RegExp(`\\.ag-venue-card-${id}\\b[^{]*\\{ border-left-color: rgba\\(${r},${g},${b},0\\.75?\\); \\}`).test(css), `${id} card`).toBe(true);
+    }
+  });
+
+  it("Coinbase's badge text holds 4.5:1 on its own fill over the page, at both of the page's backgrounds", () => {
+    const c = rgb(VENUE_HUES.coinbase);
+    for (const page of PAGES) expect(ratio(c, over(c, 0.1, page))).toBeGreaterThanOrEqual(4.5);
+    // The brand blue and the old 35 % slice are the shades this replaced: neither would hold.
+    expect(ratio(rgb('#0052ff'), PAGES[0])).toBeLessThan(4.5);
+    expect(css).not.toContain('0,82,255');
     expect(css).not.toContain('159,216,200');
   });
 });

@@ -775,6 +775,14 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth).
 
+### [2026-10-29 03:24 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Venue colours: Coinbase's blue lighter, the share bar in the theme colours** (sub-agent; commit, not pushed; Davies, 10-29: "Coinbase蓝现在有点太深了
+  ... 用VENUES下面那个占比栏里面的蓝色吧，另外请统一那个占比栏中的颜色和币所主题色"). The 35 % slice he pointed at composites to `#0e2f6a`
+  (1.5:1 on the page), darker than `#0052ff` and unreadable as text, so it could not be used as asked: `VENUE_HUES.coinbase` is the brand
+  blue lifted to `#4d8bff` (4.5:1 or more on its own badge fill at both of the page's backgrounds; Revolut X's is `#8ec5ff`). Every share-bar
+  slice is now its venue's theme hex, solid, with the page's dark `#0c1310` text (4.5:1 or more on each); pinned in `agents.test.js`, and the
+  sweep's agents section checks every slice on the bar at both widths. `dist/` rebuilt.
+
 ### [2026-10-29 03:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **IGBOT's agent watches FXW-AUD for Davies** (sub-agent; commit, not pushed; item 18; Davies, 10-29: "我想让ig trader bot帮我也盯着澳元策略的记录和run的情况"):
   `GET /igbot?action=fxw_watch` (`igbot/fxw_watch.ts`), the bearer's, read-only from the database before IG's client is built:
