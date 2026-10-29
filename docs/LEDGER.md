@@ -281,6 +281,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      (10-28 readouts); `take50wk` off. `0142`: `take50` "variant-3" on the page; Coinbase "with Euros - 1" (hold, 11-10) and
      "- 2", the USDC arm at £25/€25 (prereg `cb-usdc`, 14 days, bar > 0, ≥ 8 %/yr, ≥ 5 bps a trip).
      **PR5-OPT 10-27** (`reviews/2026-10-27-pr5-rules-optimisation.md` §4): five twins on LIVE's rules against `live600`,
+     (**renumbered by `0167`, 10-29**: the page counts 1 to 6, `live1200` 1, `take50` 2, `n600no03` 3, `n600hold1` 4, `n600usdt3` 5, `n600usdt` 6; `live` off and hidden, `n600usdt2` hidden and running)
      variant-4 to -8, restarted by `0152` as `n600no03`, `n600hold1`, `n600usdt2`, `n600usdt3`, `n600usdt`, started at once
      by `0154` from 10-28 22:00, read on or after 11-25 22:00 (prereg `pr5-opt-twins-now`, deviations 1-2; history 10-28 19:56,
      21:00); 0148's three and 0149's five (`o600*`, start conversions unweighted) off. After deploy: each `n600*` turns nothing before 22:01 on 10-28, then
@@ -785,6 +786,14 @@ and the 2026-10-29 02:13 one (fifteenth).
   no migration). Coinbase's three rows (`coinbaseInUsd`, `cb_page.ts`) show dollars at the page's own pound rate; their
   sizing and prereg untouched; every other row stays in pounds. `src/okx_prereg.test.js` holds §7's original hashes and
   Deviation 2's. The OKX reading quotes `usdFrom` and the factor from the state.
+### [2026-10-29 03:39 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The stablecoin twins renumbered 1 to 6: `0167`** (sub-agent; commit, not pushed; Davies, 10-29: "变体2直接删了吧，不就是目前的Stablecoin quotes LIVE
+  twin么 / 变体 7隐藏 / 数字依然用变体1-6", then "还是这个隐藏吧，变体 5改为变体 7（USDT 3:1）"). `live` (the £120 twin, old variant-2): `enabled = false`,
+  `hidden = true`, named "Stablecoin quotes £120 twin"; `n600usdt2` (USDT 2:1): hidden, still running, "Stablecoin quotes USDT 2:1 from 10-28";
+  the visible ones `live1200` 1, `take50` 2, `n600no03` 3, `n600hold1` 4, `n600usdt3` 5, `n600usdt` 6. Names are unique, so the renames run in the
+  order that frees each name (pinned in `twin_specs.test.js`, with the rows as they stand). The page already drops a disabled or hidden row
+  (`twinSpecs`, `twinsOnPage`): no code change. The browser fixture is made again (`fixture.ts`: no `live`); the sweep serves it without the hidden row.
+
 ### [2026-10-29 03:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The Chinese hooks skip sub-agents** (`input.agent_id`): Davies reads only the main thread; the pre-tool gate had been
   refusing sub-agents' English working notes, so one wrote its hand-back in Chinese to get past it.

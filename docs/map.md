@@ -883,6 +883,7 @@ before touching migration state.
 | `0160_tick_call_off.sql` | Switches the crypto loop's tick call off once `0158` left it nothing to decide; its row, tables and records stay. |
 | `0161_ig_environment.sql` | Which IG environment (demo or live) wrote each row of the `ig` tables, demo for the rows before; the quote key, the done-pull index and the quote-recording function per environment. |
 | `0162_ig_fxw_paper.sql` | "FXW-AUD weekend" on paper: one row a weekend of the frozen rule's fills on the live IG quotes, its run's state, and its call of the minute job every five minutes. |
+| `0167_quote_twins_renumber.sql` | Stablecoin twins renumbered 1 to 6: the £120 twin (old variant-2) off and hidden, the USDT 2:1 twin hidden, names changed in place; no id, place or rule changes. |
 | `0166_fxw_display_name.sql` | Renames the stored display name of the AUD weekend paper book to "FXW-AUD weekend" (`ig_fxw_state.name`), guarded by its old value; no key or table changes. |
 | `0163_cxbot.sql` | CXBOT's tables (its config held to dry-run or paper and a venue, the tape, the context, the assigned questions and answers, the journal, the paper orders, positions and snapshots, the reach probe's reads, its state), RLS on with no grant, and its minute call. |
 | `0165_igbot_session.sql` | IGBOT's IG session shared by every isolate of its function, sealed, and the claim that lets one isolate at a time log in. |

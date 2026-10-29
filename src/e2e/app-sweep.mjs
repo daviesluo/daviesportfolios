@@ -622,20 +622,20 @@ const AGENTS_RWE_RWC = (dayStartMs) => ({ ...AGENTS_RW_RWC(dayStartMs), lastMinu
  * The realistic twins (`quotes_twin.ts`, 0087; Davies, 2026-10-02; rows of `agent_quote_twin_specs` since 0088): the
  * dashboard's own answer (`readQuotesTwin`) for the live fixture's book run as each twin's tables
  * (`quotes_twin_fixture.json`, made from the spec rows by docs/agents/backtests/twins/scripts/fixture.ts, which the agents
- * function's test proves is that function's answer), in the page's order: "Stablecoin quotes" at its £1,200, every figure
- * the live fixture's (below, at QUOTES_LIVE_FIXTURE); "Stablecoin quotes variant-1" (p50, 2026-10-03), PR5's rule at
- * £600; variant-2 (TAKE) and variant-3 (take50wk, TAKE with PR5-W's weekend rule, 0130) at £600 too; "Stablecoin quotes
- * variant-4" (rule D; variant-1 until 2026-10-03, variant-3 until 0130 on 2026-10-18 but for a few hours of 2026-10-09)
- * at £1,800, the same fills on three of its nine rungs a side. Each has the same money on its own capital. Their starts are moved before this sweep's clock.
+ * function's test proves is that function's answer), in the page's order: every enabled row of the spec table as the
+ * migrations leave it (LIVE's £600 twin, variant-1 at £1,200, variant-2 TAKE's twin, variant-3 to -6 PR5-OPT's four on the
+ * page, 0167), each with the same money on its own capital. Their starts are moved before this sweep's clock. A row the
+ * table hides (`hidden`, 0141: still running, nothing of it on the page) is in the fixture and is not served to the page.
  */
 const QUOTES_TWIN_FIXTURE = JSON.parse(fs.readFileSync(new URL('./quotes_twin_fixture.json', import.meta.url), 'utf8'));
+const QUOTES_TWINS_SHOWN = QUOTES_TWIN_FIXTURE.twins.filter((t) => !QUOTES_TWIN_FIXTURE.specs.some((s) => s.id === t.twin.id && s.hidden));
 /**
  * What the page must show of the twins, worked out here from the fixture's own figures with the page's rules written out
  * apart from its code (money in whole units with grouping from 1,000, else to two places; percents signed to two places;
  * ".00" dropped and a zero unsigned): every check of a twin's row or page, and every total a twin enters, holds for
  * whichever twins the spec rows give, a row each, in their order. Nothing below is written for one variant.
  */
-const TWINS = QUOTES_TWIN_FIXTURE.twins;
+const TWINS = QUOTES_TWINS_SHOWN;
 const TW = (() => {
   const drop00 = (s) => s.replace(/(\d)\.00(?!\d)/g, '$1').replace(/[+-]([$£])?0(?![\d.,])/g, (_, sym) => `${sym || ''}0`);
   const money = (n, sym = '$', signed = false) => {
@@ -831,7 +831,7 @@ const AGENTS_DASHBOARD = (() => {
         postsToday: { dryRun: 12, live: 0 }, lossStopped: false, capitalGbp: 50, x: 1.35, capitalUsd: 67.5, tradedLive: false,
         openOrders: 0, heldRungs: 0, unmarked: 0, pending: [], fills: 0, realisedUsd: 0, todayUsd: 0, unrealisedUsd: 0, costUsd: 0, valueUsd: 0, feesUsd: 0 } }),
     // The twins: the stablecoin rows of TESTING since 2026-10-02, in place of the paper test above, its variants and rule D.
-    quotesTwins: QUOTES_TWIN_FIXTURE.twins,
+    quotesTwins: QUOTES_TWINS_SHOWN,
     // "Stablecoin quotes with Euros" (0112), the row after the twins: right after "Stablecoin quotes variant-4".
     quotesCoinbase: QUOTES_COINBASE_FIXTURE.quotesCoinbase,
     // "Stablecoin quotes with Euros - 2" (0118), the weekend variant: the row right after it.

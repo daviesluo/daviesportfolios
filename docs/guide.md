@@ -313,36 +313,34 @@ places stay when the number is not whole.
   account's own rules can be read beside the others before the live account
   grows further. Each variant is the same page with its own figures, and the
   variants are listed in the table of twin variants in the agents' reference.
-- **Stablecoin quotes variant-2.** After it: the same twin at the live
-  account's own £120 (£10 a rung), the simulation that mirrors the live
-  account itself (called the LIVE twin until 26 Oct). Its record from 1 Oct
-  is the live account's life replayed, its outages included; from 21 Oct it
-  runs on its own, and from Friday 30 Oct it quotes through the weekends as
-  the live account has since 23 Oct. It is there to be checked against the
-  live account's realised pounds. A variant's name in the table is two
-  lines, and the first is the whole of "Stablecoin quotes".
-- **Stablecoin quotes variant-3.** After it, since 26 Oct (the taker twin,
-  on the page again): the quote test's rule on £600, £50 a rung, which since
-  5 Oct also buys or sells at once, as a taker, when the order book has moved
-  past a rung by at least the taker's fee, then exits like any other fill.
-  The live account's own taker switch is checked against its takes.
-- **Stablecoin quotes variant-4 to -8.** After it, from 28 Oct 22:00 UTC
+- **Stablecoin quotes variant-2.** After it, since 26 Oct (the taker twin,
+  on the page again; variant-3 until 29 Oct): the quote test's rule on £600,
+  £50 a rung, which since 5 Oct also buys or sells at once, as a taker, when
+  the order book has moved past a rung by at least the taker's fee, then
+  exits like any other fill. The live account's own taker switch is checked
+  against its takes. A variant's name in the table is two lines, and the
+  first is the whole of "Stablecoin quotes".
+- **Stablecoin quotes variant-3 to -6.** After it, from 28 Oct 22:00 UTC
   (started again then: on 27 Oct their coins were bought before their own
   rules applied, so the weighted ones held the wrong coins):
-  five tests of the live account's rules at £600, each with one change, read
-  against the £600 LIVE twin after four weeks. Variant-4 quotes nothing at
+  four tests of the live account's rules at £600, each with one change, read
+  against the £600 LIVE twin after four weeks. Variant-3 quotes nothing at
   0.3 % and puts that money on the 0.1 % and 0.2 % rungs (£75 each);
-  variant-5 ignores a fill of £1 or less (the many £0.10 trades on
+  variant-4 ignores a fill of £1 or less (the many £0.10 trades on
   USDT/GBP) and keeps its order resting instead of switching to selling it
-  back. Variant-6 puts twice the pounds on the USDT/GBP book's rungs as on
-  USDC/GBP's, variant-7 three times, and variant-8 quotes USDT/GBP alone
-  (£100 a rung, all its coin in USDT). Each is the same page with its own figures.
+  back. Variant-5 puts three times the pounds on the USDT/GBP book's rungs as
+  on USDC/GBP's, and variant-6 quotes USDT/GBP alone (£100 a rung, all its
+  coin in USDT). Each is the same page with its own figures. A fifth test,
+  with twice the pounds on USDT/GBP (USDT 2:1), runs behind the page and is
+  not shown (29 Oct); the numbers on the page stay 1 to 6.
 - **Older stablecoin twins, off the page.** The £1,200 twin, the £50-a-rung
   size twin and the nine-rung rule's twin ("rule-D twin" since 27 Oct) keep running behind the page until
   their readings, then stop; the weekend twin of 18 Oct has stopped, since
-  the live account's own weekends now answer its question.
+  the live account's own weekends now answer its question. The £120 twin that
+  mirrored the live account (variant-2 until 29 Oct) has stopped too: the
+  £600 LIVE twin is that copy at the live account's size now.
 - **Stablecoin quotes with Euros.** Right after "Stablecoin quotes
-  variant-8", its name on two lines as the variants', on Coinbase (its own
+  variant-6", its name on two lines as the variants', on Coinbase (its own
   badge and venue card): the same rule on paper on Coinbase's four stablecoin
   books, USDC and USDT against pounds and against euros, from Coinbase's own
   public trades recorded every minute since 10 Oct. £100 a rung on the two

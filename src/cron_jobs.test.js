@@ -914,6 +914,24 @@ describe('pg_cron jobs', () => {
     expect(norm(sql)).toMatch(/^set lock_timeout = '3s'; update public\.edge_calls set enabled = false where path in \([^)]*\); reset lock_timeout;$/);
   });
 
+  // 0167 (Davies, 2026-10-29: "变体2直接删了吧…变体 7隐藏 / 数字依然用变体1-6", then the USDT 2:1 twin hidden instead): the stablecoin twins renumbered, the
+  // £120 twin off and hidden, one twin hidden; page names and two flags of the spec rows and nothing else, no call or job moved.
+  it("renames and hides stablecoin twins in place and touches no call, job, table, grant or policy (0167)", () => {
+    const T = FILES.find((f) => /^0167_quote_twins_renumber\.sql$/.test(f)) ?? '';
+    expect(T).not.toBe('');
+    const listBefore = replayList(sqlsOf(FILES.filter((f) => f < T))), listAfter = replayList(sqlsOf(FILES.filter((f) => f <= T)));
+    expect(listAfter).toEqual(listBefore);
+    const jobsBefore = cronJobs(FILES.filter((f) => f < T)), jobsAfter = cronJobs(FILES.filter((f) => f <= T));
+    expect([...jobsAfter.keys()].sort()).toEqual([...jobsBefore.keys()].sort());
+    const sql = fs.readFileSync(path.join(DIR, T), 'utf8').replace(/--[^\n]*/g, '');
+    expect(sql).not.toMatch(/\b(insert|delete|truncate|drop|alter|create|grant|policy)\b/i);
+    const statements = norm(sql).split(';').map((x) => x.trim()).filter(Boolean);
+    expect(statements).toHaveLength(9);
+    // Every statement updates the spec table's name or one flag, guarded by an id; each rename also by the old name.
+    for (const st of statements) expect(st).toMatch(/^update public\.agent_quote_twin_specs set (display_name = '[^']+'|enabled = false|hidden = true) where id (= '\w+'( and display_name = '[^']+')?|in \('\w+', '\w+'\))$/);
+    expect(statements.filter((st) => /set display_name/.test(st) && !/ and display_name = /.test(st))).toEqual([]);
+  });
+
   // 0160 (Davies, 2026-10-28, on the tick once 0158 had retired its rows: "你来决定"): the tick's call off; nothing else
   // moves, PR5's executor (the monitor's one reading of the minute loop since the commit before) stays on.
   it("turns the tick's call off and nothing else, PR5's executor kept (0160)", () => {

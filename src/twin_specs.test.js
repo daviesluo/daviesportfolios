@@ -132,7 +132,7 @@ describe("the twins' spec rows", () => {
       // and their rules' instants, each guarded on the value it replaces: once each.
       expect(named, f).toBe(2 * inserts + moves + names + offs + later + (f === SPECS_0088 ? 5 : 0));
     }
-    expect(FILES.filter((f) => [RULE_ADD, OFF, HIDE, ADD_HIDDEN].some((re) => [...sqlOf(f).matchAll(re)].length)).map((f) => f.slice(0, 4))).toEqual(['0141', '0142', '0144', '0149', '0151', '0152']);
+    expect(FILES.filter((f) => [RULE_ADD, OFF, HIDE, ADD_HIDDEN].some((re) => [...sqlOf(f).matchAll(re)].length)).map((f) => f.slice(0, 4))).toEqual(['0141', '0142', '0144', '0149', '0151', '0152', '0167']);
     expect(FILES.filter((f) => [...sqlOf(f).matchAll(RULE_MOVE)].length).map((f) => f.slice(0, 4))).toEqual(['0090', '0154']);
     expect(FILES.filter((f) => [...sqlOf(f).matchAll(START)].length).map((f) => f.slice(0, 4))).toEqual(['0154']);
     // Every rule move matches the parser that applies it.
@@ -153,6 +153,10 @@ describe("the twins' spec rows", () => {
       ['0152', 'o600usdt2', 'Stablecoin quotes variant-6', 'Stablecoin quotes USDT 2:1 from 10-27'],
       ['0152', 'o600usdt3', 'Stablecoin quotes variant-7', 'Stablecoin quotes USDT 3:1 from 10-27'],
       ['0152', 'o600usdt', 'Stablecoin quotes variant-8', 'Stablecoin quotes USDT only from 10-27'],
+      ['0167', 'live', 'Stablecoin quotes variant-2', 'Stablecoin quotes £120 twin'], ['0167', 'n600usdt2', 'Stablecoin quotes variant-6', 'Stablecoin quotes USDT 2:1 from 10-28'],
+      ['0167', 'take50', 'Stablecoin quotes variant-3', 'Stablecoin quotes variant-2'], ['0167', 'n600no03', 'Stablecoin quotes variant-4', 'Stablecoin quotes variant-3'],
+      ['0167', 'n600hold1', 'Stablecoin quotes variant-5', 'Stablecoin quotes variant-4'], ['0167', 'n600usdt3', 'Stablecoin quotes variant-7', 'Stablecoin quotes variant-5'],
+      ['0167', 'n600usdt', 'Stablecoin quotes variant-8', 'Stablecoin quotes variant-6'],
     ]);
     expect(deletes.map((n) => [n.file.slice(0, 4), n.id])).toEqual([['0109', 'p50x1']]);
     // Names are unique, so a rename comes before an insert in the same migration that takes the old name (0108), and a
@@ -201,6 +205,18 @@ describe("the twins' spec rows", () => {
       expect(sql0152.indexOf(`set enabled = false\n where id = '${id}';`), id).toBeLessThan(sql0152.search(INSERT));
     }
     expect(/capital_gbp\s*=/.test(sql0152)).toBe(false);
+    // 0167 (Davies, 2026-10-29: "变体2直接删了吧 / 变体 7隐藏 / 数字依然用变体1-6", then "还是这个隐藏吧，变体 5改为变体 7"): variant-2 (`live`)
+    // switched off and hidden, the USDT 2:1 twin (`n600usdt2`) hidden and still on, the USDT 3:1 twin variant-5; each rename follows the one that frees its name; no capital, place or rule changes.
+    const sql0167 = sqlOf('0167_quote_twins_renumber.sql');
+    const from0167 = (t) => sql0167.indexOf(`set display_name = '${t}'`);
+    expect(from0167('Stablecoin quotes £120 twin')).toBeLessThan(from0167('Stablecoin quotes variant-2'));
+    expect(from0167('Stablecoin quotes variant-2')).toBeLessThan(from0167('Stablecoin quotes variant-3'));
+    expect(from0167('Stablecoin quotes variant-3')).toBeLessThan(from0167('Stablecoin quotes variant-4'));
+    expect(from0167('Stablecoin quotes variant-4')).toBeLessThan(from0167('Stablecoin quotes variant-5'));
+    expect(from0167('Stablecoin quotes variant-5')).toBeLessThan(from0167('Stablecoin quotes variant-6'));
+    expect(sql0167).toContain("set enabled = false\n where id = 'live';");
+    expect(sql0167).toContain("set hidden = true\n where id in ('live', 'n600usdt2');");
+    expect(/capital_gbp\s*=|display_order\s*=|rules\s*=/.test(sql0167)).toBe(false);
     expect(sql0109.search(DELETE)).toBeGreaterThanOrEqual(0);
     expect(sql0109.search(DELETE)).toBeLessThan(sql0109.search(RENAME));
     expect(new Set(ROWS.map((r) => r.display_name)).size).toBe(ROWS.length);
@@ -215,38 +231,38 @@ describe("the twins' spec rows", () => {
     }
   });
 
-  it("are, as they stand, the stablecoin twins in Davies' order (2026-10-27: the LIVE twin £600 as LIVE, variant-1 £1,200 the next step, variant-2 the £120 twin, variant-3 TAKE's twin, variant-4 to -8 PR5-OPT's five, from 2026-10-29 06:00 since 0152, the USDT weightings last; the £300 and weekend twins, 0148's three and 0149's five off; the three hidden ones off since 0151, their 10-28 readouts written)", () => {
+  it("are, as they stand, the stablecoin twins in Davies' order (2026-10-27, as 0167 renumbered it on 10-29: the LIVE twin £600 as LIVE, variant-1 £1,200 the next step, variant-2 TAKE's twin, variant-3 to -6 four of PR5-OPT's five, from 2026-10-28 22:00 since 0154, the USDT weightings last, the £120 twin off and the USDT 2:1 twin hidden; the £300 and weekend twins, 0148's three and 0149's five off; the three hidden ones off since 0151, their 10-28 readouts written)", () => {
     expect(ROWS.map((r) => [r.id, r.display_name, r.display_order, Number(r.capital_gbp), r.enabled, r.hidden === true])).toEqual([
       ['pr5', 'Stablecoin quotes', 10, 1200, false, true], ['live300', 'Stablecoin quotes 300 twin', 11, 300, false, false],
       ['live600', 'Stablecoin quotes LIVE twin', 12, 600, true, false], ['live1200', 'Stablecoin quotes variant-1', 13, 1200, true, false],
-      ['live', 'Stablecoin quotes variant-2', 15, 120, true, false],
-      ['p50', 'Stablecoin quotes size twin', 20, 600, false, true], ['take50', 'Stablecoin quotes variant-3', 30, 600, true, false],
+      ['live', 'Stablecoin quotes £120 twin', 15, 120, false, true],
+      ['p50', 'Stablecoin quotes size twin', 20, 600, false, true], ['take50', 'Stablecoin quotes variant-2', 30, 600, true, false],
       ['live600usdt2', 'Stablecoin quotes USDT 2:1 from 10-29', 31, 600, false, false], ['live600no03', 'Stablecoin quotes no 0.3 % from 10-29', 32, 600, false, false],
       ['live600hold1', 'Stablecoin quotes hold £1 from 10-29', 33, 600, false, false],
       ['take50wk', 'Stablecoin quotes weekend twin', 35, 600, false, false], ['d', 'Stablecoin quotes rule-D twin', 40, 1800, false, true],
       ['o600no03', 'Stablecoin quotes no 0.3 % from 10-27', 41, 600, false, false], ['o600hold1', 'Stablecoin quotes hold £1 from 10-27', 42, 600, false, false],
       ['o600usdt2', 'Stablecoin quotes USDT 2:1 from 10-27', 43, 600, false, false], ['o600usdt3', 'Stablecoin quotes USDT 3:1 from 10-27', 44, 600, false, false],
-      ['o600usdt', 'Stablecoin quotes USDT only from 10-27', 45, 600, false, false], ['n600no03', 'Stablecoin quotes variant-4', 46, 600, true, false],
-      ['n600hold1', 'Stablecoin quotes variant-5', 47, 600, true, false], ['n600usdt2', 'Stablecoin quotes variant-6', 48, 600, true, false],
-      ['n600usdt3', 'Stablecoin quotes variant-7', 49, 600, true, false], ['n600usdt', 'Stablecoin quotes variant-8', 50, 600, true, false],
+      ['o600usdt', 'Stablecoin quotes USDT only from 10-27', 45, 600, false, false], ['n600no03', 'Stablecoin quotes variant-3', 46, 600, true, false],
+      ['n600hold1', 'Stablecoin quotes variant-4', 47, 600, true, false], ['n600usdt2', 'Stablecoin quotes USDT 2:1 from 10-28', 48, 600, true, true],
+      ['n600usdt3', 'Stablecoin quotes variant-5', 49, 600, true, false], ['n600usdt', 'Stablecoin quotes variant-6', 50, 600, true, false],
     ]);
-    // The page shows the three on LIVE's rules, each with LIVE's fill rule and, from the closure of 2026-10-30 21:00 UTC,
+    // The page shows the two on LIVE's rules, each with LIVE's fill rule and, from the closure of 2026-10-30 21:00 UTC,
     // LIVE's weekend; none takes (LIVE's take is in shadow, which sends nothing).
     const onPage = ROWS.filter((r) => r.enabled && !r.hidden);
-    expect(onPage.map((r) => r.id)).toEqual(['live600', 'live1200', 'live', 'take50', 'n600no03', 'n600hold1', 'n600usdt2', 'n600usdt3', 'n600usdt']);
-    // TAKE's twin keeps its own rule (a take from 2026-10-04 16:00); the six on LIVE's rules do not take.
-    expect(onPage[3].rules.take).toBeTruthy();
-    for (const r of onPage.slice(0, 3)) {
+    expect(onPage.map((r) => r.id)).toEqual(['live600', 'live1200', 'take50', 'n600no03', 'n600hold1', 'n600usdt3', 'n600usdt']);
+    // TAKE's twin keeps its own rule (a take from 2026-10-04 16:00); the others on LIVE's rules do not take.
+    expect(onPage[2].rules.take).toBeTruthy();
+    for (const r of onPage.slice(0, 2)) {
       expect([r.rules.fill.model, r.rules.weekend.from, 'take' in r.rules], r.id).toEqual(['at', '2026-10-30T21:00:00Z', false]);
     }
-    // PR5-OPT's five (0149, restarted by 0152, started at once by 0154): LIVE's fill rule and weekend from their start,
+    // PR5-OPT's five (0149, restarted by 0152, started at once by 0154; the USDT 2:1 one hidden by 0167, so four are on the page): LIVE's fill rule and weekend from their start,
     // 2026-10-28 22:00, and one rule each from it.
     const S = '2026-10-28T22:00:00Z';
-    for (const r of onPage.slice(4)) {
+    for (const r of onPage.slice(3)) {
       expect([r.start, r.rules.fill.model, r.rules.fill.from, r.rules.weekend.from, 'take' in r.rules], r.id).toEqual([S, 'at', S, S, false]);
     }
-    expect(onPage.slice(4).map((r) => Object.keys(r.rules).filter((k) => k !== 'fill' && k !== 'weekend'))).toEqual([['weights'], ['holdMin'], ['weights'], ['weights'], ['weights']]);
-    expect(onPage.slice(4).map((r) => (r.rules.weights ?? r.rules.holdMin).from)).toEqual([S, S, S, S, S]);
+    expect(onPage.slice(3).map((r) => Object.keys(r.rules).filter((k) => k !== 'fill' && k !== 'weekend'))).toEqual([['weights'], ['holdMin'], ['weights'], ['weights']]);
+    expect(onPage.slice(3).map((r) => (r.rules.weights ?? r.rules.holdMin).from)).toEqual([S, S, S, S]);
   });
 
   it("make the browser test's fixture as they stand: every enabled row, in the page's order, a hidden one too (it still runs)", () => {
