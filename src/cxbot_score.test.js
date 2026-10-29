@@ -75,10 +75,10 @@ describe("CXBOT's reading", () => {
       started_at: iso(start),
       positions: [{ id: 1, coin: 'BTC', direction: 'long', entry: 100, stop0: 98, limit0: 104, p: 0.45, opened_at: iso(t1 + 10 * M + 5e3), closed_at: iso(t1 + 12 * M) }],
       decisions: [
-        { id: 's1', action: 'no_action', ts: iso(t1), coin: 'SOL', direction: 'long', entry: 182.5, stop: 176.9, limit_px: 194, p: 0.38 },
-        { id: 's2', action: 'no_action', ts: iso(t1 + H), coin: 'SOL', direction: 'long', entry: 181, stop: 176, limit_px: 191, p: 0.38 },
-        { id: 's3', action: 'no_action', ts: iso(t1 + 11 * M), coin: 'BTC', direction: 'short', entry: 100, stop: 102, limit_px: 96, p: 0.4 },
-        { id: 's4', action: 'no_action', ts: iso(t1 + 5 * H), coin: 'SOL', direction: 'long', entry: 300, stop: 290, limit_px: 320, p: 0.4 },
+        { id: 's1', action: 'no_action', ts: iso(t1), received_at: iso(t1), coin: 'SOL', direction: 'long', entry: 182.5, stop: 176.9, limit_px: 194, p: 0.38 },
+        { id: 's2', action: 'no_action', ts: iso(t1 + H), received_at: iso(t1 + H), coin: 'SOL', direction: 'long', entry: 181, stop: 176, limit_px: 191, p: 0.38 },
+        { id: 's3', action: 'no_action', ts: iso(t1 + 11 * M), received_at: iso(t1 + 11 * M), coin: 'BTC', direction: 'short', entry: 100, stop: 102, limit_px: 96, p: 0.4 },
+        { id: 's4', action: 'no_action', ts: iso(t1 + 5 * H), received_at: iso(t1 + 5 * H), coin: 'SOL', direction: 'long', entry: 300, stop: 290, limit_px: 320, p: 0.4 },
       ],
       tape,
     };
@@ -89,6 +89,34 @@ describe("CXBOT's reading", () => {
     // s1 is reached at minute 30 (182.6 ≥ 182.5); then a week of 179.5–180.5: a timeout at 180 between 176.9 and 194.
     expect(by.s1.y).toBeCloseTo((180 - 176.9) / (194 - 176.9), 12);
     expect(c.excluded).toEqual({ dedupe: 1, real_open: 1, never_filled: 1 });
+  });
+
+  it('audit F1: a shadow runs on the server\'s receipt, never on the ts the agent writes (the journal takes one 7 days old)', () => {
+    const start = Date.parse('2026-11-01T00:00:00Z'), t1 = start + 3 * DAY;
+    const tape = [];
+    // SOL reaches 182.5 at minute 30 and its limit (194) at minute 60; after two hours it sits at 180.
+    for (let k = 0; k < 8 * 24 * 60; k++) tape.push({ coin: 'SOL', t: iso(t1 + k * M), o: 180, h: k === 30 ? 182.6 : k === 60 ? 195 : 180.5, l: 179.5, c: 180 });
+    const shadow = { id: 'late', action: 'no_action', ts: iso(t1), received_at: iso(t1 + 2 * H), coin: 'SOL', direction: 'long', entry: 182.5, stop: 176.9, limit_px: 194, p: 0.95 };
+    const c = layerC({ started_at: iso(start), decisions: [shadow], tape }, tapeOf(tape));
+    // On its own ts it would score y = 1 at p 0.95: a move already made, booked as a forecast.
+    expect(c.rows).toEqual([]);
+    expect(c.excluded).toEqual({ never_filled: 1 });
+    expect(layerC({ started_at: iso(start), decisions: [{ ...shadow, received_at: undefined }], tape }, tapeOf(tape)).excluded).toEqual({ no_receipt: 1 });
+  });
+
+  it('audit F9, F10, F11: a fill on a minute boundary starts there; a voided question is not issued; the P&L counts from the shakedown\'s end', () => {
+    const start = Date.parse('2026-11-01T00:00:00Z'), t1 = start + 3 * DAY;
+    const tape = [];
+    for (let k = 0; k < 8 * 24 * 60; k++) tape.push({ coin: 'BTC', t: iso(t1 + k * M), o: 100, h: 100.5, l: k === 10 ? 97 : 99.5, c: 100 });
+    const pos = { id: 1, coin: 'BTC', direction: 'long', entry: 100, stop0: 98, limit0: 104, p: 0.45, opened_at: iso(t1 + 10 * M), closed_at: null };
+    const c = layerC({ started_at: iso(start), positions: [pos], tape }, tapeOf(tape));
+    expect([c.rows[0].y, c.rows[0].day]).toEqual([0, '2026-11-04']); // the stop in the fill's own (first) minute
+    const q = (id, o = {}) => ({ id, layer: 'A', issued_at: iso(t1), coin: 'BTC', direction: 'long', start_at: iso(t1 + 20 * M), entry: 100, stop: 98, limit_px: 104, hold_ms: 2 * H, state: 'scoring', ...o });
+    const a = layerA({ started_at: iso(start), questions: [q('a'), q('v', { state: 'void', start_at: null })], forecasts: [{ question_id: 'a', p: 0.4 }] }, tapeOf(tape));
+    expect([a.issued, a.answered, a.voided]).toEqual([1, 1, 1]);
+    const snaps = [{ slot: iso(start + H), equity_usd: 990 }, { slot: iso(start + 47 * H), equity_usd: 985 }, { slot: iso(start + 50 * H), equity_usd: 992 }, { slot: iso(start + 60 * H), equity_usd: 995 }];
+    const m = score({ started_at: iso(start), questions: [], tape: [], snapshots: snaps }, { resamples: 20 }).money;
+    expect([m.equity_at_start_usd, m.pnl_usd, m.pnl_whole_run_usd, m.worst_drawdown_usd]).toEqual([985, 10, -5, 0]);
   });
 
   // A simulated world: martingale minute paths for three coins, the assigned brackets every four hours (1 and 2 day-sd, 72 h),

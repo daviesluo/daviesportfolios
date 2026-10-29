@@ -13,8 +13,8 @@ select json_build_object(
     select id, layer, issued_at, deadline, coin, direction, hold_ms, start_at, entry, stop, limit_px, m, pm_slug, pm_end, pm_mid, pm_last, deribit_p, state, y, y_alt
     from public.cxbot_questions) q),
   'forecasts', (select coalesce(json_agg(f order by f.question_id), '[]'::json) from (select question_id, p, received_at from public.cxbot_forecasts) f),
-  'decisions', (select coalesce(json_agg(d order by d.ts, d.id), '[]'::json) from (
-    select id, ts, action, category, coin, direction, entry, stop, limit_px, p from public.cxbot_decisions where action in ('open', 'no_action')) d),
+  'decisions', (select coalesce(json_agg(d order by d.received_at, d.id), '[]'::json) from (
+    select id, ts, received_at, action, category, coin, direction, entry, stop, limit_px, p from public.cxbot_decisions where action in ('open', 'no_action')) d),
   'positions', (select coalesce(json_agg(p order by p.id), '[]'::json) from (
     select id, decision_id, coin, direction, entry, stop0, limit0, p, opened_at, closed_at, close_how, pnl_usd from public.cxbot_positions) p),
   'snapshots', (select coalesce(json_agg(s order by s.slot), '[]'::json) from (select slot, equity_usd from public.cxbot_snapshots) s),

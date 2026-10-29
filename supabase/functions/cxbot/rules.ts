@@ -182,7 +182,7 @@ export function blackoutWithin(from: number, to: number, releases: readonly numb
 }
 
 /** One open or resting bracket of the book, as the rules count it. */
-export type BookItem = { coin: Coin; dir: Dir; size: number; entry: number; stop: number; pending?: boolean };
+export type BookItem = { coin: Coin; dir: Dir; size: number; entry: number; stop: number; pending?: boolean; leverage?: number | null };
 export const riskOf = (b: BookItem) => b.size * Math.abs(b.entry - b.stop);
 
 export type OpenRequest = {
@@ -289,7 +289,8 @@ export function openRefusals(req: OpenRequest, x: OpenContext): { refusals: Refu
   else {
     checks.leverage = lev;
     checks.liq_price = r6(liquidationPrice(req.coin, req.dir, req.entry, lev));
-    const margin = book.reduce((s, b) => s + (b.size * b.entry) / R.maxLeverage, 0) + notional / lev;
+    // Each held or resting bracket at its own leverage (the server's, stored on it); 3× only when none is known.
+    const margin = book.reduce((s, b) => s + (b.size * b.entry) / (b.leverage && b.leverage > 0 ? b.leverage : R.maxLeverage), 0) + notional / lev;
     if (margin > R.maxMarginFrac * x.equity + 1e-6) no("leverage", `margin in use would be $${margin.toFixed(0)}, at most half the equity`);
   }
   return { refusals: out, checks };
@@ -332,12 +333,26 @@ export function resolveOnTape(b: { dir: Dir; start: number; stop: number; limit:
 }
 
 /**
- * The paper fill of a protective stop: the worse of the stop less `stopSlippage` and the next minute's open (a gap fills
- * there). A long sells: min; a short buys back: max.
+ * The paper fill of a protective stop reached in a minute: the worst of the stop less `stopSlippage`, the minute's own open
+ * (a minute that OPENS beyond the stop has gapped through it: the first trade there is the open, not the stop), and the
+ * next minute's open. A long sells: min; a short buys back: max. (Independent audit 2026-10-29, F6: the minute's open was
+ * left out, so a gap through the stop that recovered inside its minute filled at the stop.)
  */
-export function stopFill(dir: Dir, stop: number, nextOpen: number): number {
-  return dir === "long" ? Math.min(stop * (1 - CXBOT_RULES.stopSlippage), nextOpen) : Math.max(stop * (1 + CXBOT_RULES.stopSlippage), nextOpen);
+export function stopFill(dir: Dir, stop: number, minuteOpen: number, nextOpen: number): number {
+  return dir === "long"
+    ? Math.min(stop * (1 - CXBOT_RULES.stopSlippage), minuteOpen, nextOpen)
+    : Math.max(stop * (1 + CXBOT_RULES.stopSlippage), minuteOpen, nextOpen);
 }
+
+/** The paper fill of a resting stop ENTRY reached in a minute: the mirror of `stopFill` (a long buys: the worst is the highest). */
+export function stopEntryFill(dir: Dir, entry: number, minuteOpen: number, nextOpen: number): number {
+  return dir === "long"
+    ? Math.max(entry * (1 + CXBOT_RULES.stopSlippage), minuteOpen, nextOpen)
+    : Math.min(entry * (1 - CXBOT_RULES.stopSlippage), minuteOpen, nextOpen);
+}
+
+/** Whether a position's liquidation price is reached in a minute (on trades: conservative against Hyperliquid's mark). */
+export const liqReached = (dir: Dir, liq: number, mi: Minute) => (dir === "long" ? mi.l <= liq : mi.h >= liq);
 
 /** Which side of an open position a recorded minute reaches: the stop first when both (conservative for money). */
 export function positionEvent(dir: Dir, stop: number, limit: number, mi: Minute): "stop" | "limit" | null {

@@ -15,7 +15,14 @@
 //   * layer B, Polymarket's strikes: Brier of p against the market's mid and its last trade, a bootstrap of event days;
 //   * layer C, the agent's own brackets (real paper opens on their ORIGINAL levels, shadows from their first reachable
 //     minute), one per coin per four hours, none beside a real one: the same D and D_c;
-//   * the money: the paper equity's last snapshot less the budget; and the bar.
+//   * the money: the paper equity's last snapshot less its value at the shakedown's end; and the bar.
+//
+// The independent audit (docs/agents/reviews/2026-10-29-cxbot-independent-audit.md) changed four things before any
+// record exists: a shadow's clock is the server's receipt (`received_at`), never the agent's own `ts`, which the journal
+// takes up to 7 days old (F1: a backdated shadow on a move already made scored as a forecast); a real bracket starts at the
+// first whole minute at or after its fill (F9: a fill booked on a minute boundary skipped a minute); a question the server
+// voided counts neither issued nor answered (F10); and the P&L counts from the shakedown's end, which §3 says is not
+// scored (F11).
 
 export const SEED = 20261029;
 export const RESAMPLES = 10000;
@@ -119,8 +126,9 @@ export function layerA(x, tape) {
   const out = { issued: 0, answered: 0, rows: /** @type {any[]} */ ([]), pending: 0, voided: 0 };
   for (const q of x.questions ?? []) {
     if (q.layer !== 'A' || ms(q.issued_at) < t0 || ms(q.issued_at) >= tEnd) continue;
+    // A question the server could not start (no tape at its deadline) is no question: neither issued nor answered (F10).
+    if (q.state === 'void' || q.start_at === null || q.start_at === undefined) { out.voided++; continue; }
     out.issued++;
-    if (q.state === 'void' || q.start_at === null) { out.voided++; continue; }
     const pv = p.get(q.id);
     if (pv === undefined || pv === null) continue;
     out.answered++;
@@ -155,7 +163,7 @@ export function layerC(x, tape) {
   for (const pos of x.positions ?? []) {
     const opened = ms(pos.opened_at);
     if (opened < t0 || opened >= tEnd) continue;
-    const start = Math.floor(opened / M) * M + M;
+    const start = Math.ceil(opened / M) * M; // the first whole minute at or after the fill (F9)
     real.push({ coin: pos.coin, from: opened, to: pos.closed_at ? ms(pos.closed_at) : Infinity });
     const b = { dir: pos.direction, start, stop: num(pos.stop0), limit: num(pos.limit0), holdMs: OWN_HOLD };
     const r = resolve(b, tape[pos.coin] ?? []);
@@ -163,10 +171,13 @@ export function layerC(x, tape) {
     rows.push({ id: `pos-${pos.id}`, kind: 'real', p: num(pos.p), m: mOf(b.dir, num(pos.entry), b.stop, b.limit), y: r.y, yAlt: r.yAlt ?? r.y, cell: `${pos.coin}-${pos.direction}`, day: dayOf(start) });
   }
   const lastShadow = new Map();
+  // A shadow's clock: the later of its `ts` and the server's receipt (F1). Without `received_at` it is not scored.
+  const clock = (d) => (d.received_at ? Math.max(ms(d.ts), ms(d.received_at)) : NaN);
   const shadows = (x.decisions ?? []).filter((d) => d.action === 'no_action' && d.coin && d.direction && [d.entry, d.stop, d.limit_px, d.p].every((v) => num(v) !== null))
-    .sort((a, b) => ms(a.ts) - ms(b.ts));
+    .sort((a, b) => clock(a) - clock(b) || String(a.id).localeCompare(String(b.id)));
   for (const d of shadows) {
-    const ts = ms(d.ts);
+    const ts = clock(d);
+    if (!Number.isFinite(ts)) { ex('no_receipt'); continue; }
     if (ts < t0 || ts >= tEnd) continue;
     if (real.some((r) => r.coin === d.coin && ts >= r.from && ts <= r.to)) { ex('real_open'); continue; }
     const prev = lastShadow.get(d.coin);
@@ -187,14 +198,24 @@ export function layerC(x, tape) {
   return { rows, excluded };
 }
 
-/** The money: the last snapshot's equity less the budget, the worst drawdown. */
-export function money(snapshots, budget = 1000) {
-  const s = (snapshots ?? []).map((r) => ({ t: r.slot, e: num(r.equity_usd) })).filter((r) => r.e !== null);
-  if (!s.length) return { snapshots: 0, pnl_usd: 0 };
-  let peak = s[0].e, dd = 0;
+/**
+ * The money: the last snapshot's equity less its value at `t0` (the shakedown's end: the newest snapshot at or before it,
+ * else the budget), the worst drawdown after `t0`, and, beside them, the whole run's P&L from the budget.
+ */
+export function money(snapshots, budget = 1000, t0 = -Infinity) {
+  const all = (snapshots ?? []).map((r) => ({ t: r.slot, at: ms(r.slot), e: num(r.equity_usd) })).filter((r) => r.e !== null).sort((a, b) => a.at - b.at);
+  if (!all.length) return { snapshots: 0, pnl_usd: 0 };
+  const before = all.filter((r) => r.at <= t0);
+  const base = before.length ? before[before.length - 1].e : budget;
+  const s = all.filter((r) => r.at > t0);
+  const last = all[all.length - 1].e;
+  let peak = base, dd = 0;
   for (const r of s) { peak = Math.max(peak, r.e); dd = Math.min(dd, r.e - peak); }
-  const pnl = s[s.length - 1].e - budget;
-  return { snapshots: s.length, from: s[0].t, to: s[s.length - 1].t, pnl_usd: Math.round(pnl * 100) / 100, pnl_units: Math.round(pnl * 10) / 100, worst_drawdown_usd: Math.round(dd * 100) / 100 };
+  const pnl = last - base;
+  return {
+    snapshots: s.length, from: s[0]?.t ?? null, to: all[all.length - 1].t, equity_at_start_usd: base, pnl_usd: Math.round(pnl * 100) / 100,
+    pnl_units: Math.round(pnl * 10) / 100, worst_drawdown_usd: Math.round(dd * 100) / 100, pnl_whole_run_usd: Math.round((last - budget) * 100) / 100,
+  };
 }
 
 const passes = (c) => c.n > 0 && c.d > 0 && c.d_p05 > 0 && c.d_c > 0;
@@ -207,7 +228,7 @@ export function score(x, opts = {}) {
   const B = layerB(x);
   const C = layerC(x, tape);
   const cStop = calibration(C.rows, opts), cLimit = calibration(C.rows.map((r) => ({ ...r, y: r.yAlt })), opts);
-  const m = money(x.snapshots, num(x.budget_usd) ?? 1000);
+  const m = money(x.snapshots, num(x.budget_usd) ?? 1000, ms(x.started_at) + SHAKEDOWN_MS);
   const answered = A.issued ? A.answered / A.issued : 0;
   const bar = {
     a_answered_90: answered >= BAR.answeredShare,

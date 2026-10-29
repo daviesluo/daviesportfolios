@@ -7,9 +7,9 @@
 import { assert, assertAlmostEquals, assertEquals, assertRejects } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { assertPagedOrder, type Db } from "../agents/db.ts";
 import { assertCxbotAllowed, CxbotRefused, makeReader } from "./client.ts";
-import { makeDeps, sd24Of } from "./engine.ts";
+import { makeDeps, sd24Of, writeStateHeld } from "./engine.ts";
 import { handle } from "./index.ts";
-import { CXBOT_RULES, stopFill } from "./rules.ts";
+import { CXBOT_RULES, stopEntryFill, stopFill } from "./rules.ts";
 import { CXBOT_TABLES } from "./schema.ts";
 
 const M = 60e3, H = 3600e3;
@@ -128,6 +128,8 @@ const BASE: Record<string, number> = { BTC: 81200, ETH: 2400, SOL: 182 };
 const BARS: Record<string, Record<number, { o: number; h: number; l: number; c: number }>> = { BTC: {}, ETH: {}, SOL: {} };
 const bar = (coin: string, t: number) => BARS[coin][t] ?? { o: BASE[coin], h: BASE[coin], l: BASE[coin], c: BASE[coin] };
 let calls: string[] = [];
+/** When set, Hyperliquid's one-minute candles fail (a recorder fault in that minute). */
+let FAIL_CANDLES = false;
 const ok = (b: unknown) => new Response(JSON.stringify(b), { status: 200 });
 async function fakeFetch(input: string | URL | Request, init?: RequestInit): Promise<Response> {
   const url = new URL(String(input));
@@ -136,6 +138,7 @@ async function fakeFetch(input: string | URL | Request, init?: RequestInit): Pro
     const b = JSON.parse(String(init?.body));
     if (b.type === "candleSnapshot") {
       const { coin, interval, startTime, endTime } = b.req;
+      if (interval === "1m" && FAIL_CANDLES) return new Response("busy", { status: 500 });
       if (interval === "1h") return ok(Array.from({ length: 169 }, (_, i) => ({ t: i, c: String(BASE[coin] * (1 + 0.004 * Math.sin(i))) })));
       const out = [];
       for (let t = Math.ceil(startTime / M) * M; t <= Math.min(endTime, NOW); t += M) {
@@ -149,8 +152,8 @@ async function fakeFetch(input: string | URL | Request, init?: RequestInit): Pro
     }
     if (b.type === "predictedFundings") return ok(["BTC", "ETH", "SOL"].map((c) => [c, [["HlPerp", { fundingRate: "0.0000125", fundingIntervalHours: 1 }], ["BinPerp", { fundingRate: "0.0001", fundingIntervalHours: 8 }]]]));
     if (b.type === "l2Book") {
-      const p = BASE[b.coin];
-      return ok({ levels: [[{ px: String(p - 1), sz: "5" }, { px: String(p - 2), sz: "5" }], [{ px: String(p + 1), sz: "5" }, { px: String(p + 2), sz: "5" }]] });
+      const p = BASE[b.coin], d = b.coin === "BTC" ? 1 : p * 0.0001; // BTC a dollar each side; ETH and SOL 1 bp
+      return ok({ levels: [[{ px: String(p - d), sz: "5" }, { px: String(p - 2 * d), sz: "5" }], [{ px: String(p + d), sz: "5" }, { px: String(p + 2 * d), sz: "5" }]] });
     }
     if (b.type === "meta") return ok({ universe: [] });
   }
@@ -168,6 +171,7 @@ const GAMMA: Record<string, unknown[]> = {};
 function world() {
   const db = new FakeDb();
   calls = [];
+  FAIL_CANDLES = false;
   for (const c of Object.keys(BARS)) BARS[c] = {};
   const beats: string[] = [];
   const h = {
@@ -292,7 +296,7 @@ Deno.test("paper: a market open fills through the book; the stop fills at the wo
   BARS.BTC[Date.parse("2026-11-04T09:03:00Z")] = { o: 79400, h: 79450, l: 79400, c: 79450 };
   await w.tick(Date.parse("2026-11-04T09:05:30Z"));
   const closed = w.db.t.cxbot_positions[0];
-  assertEquals([closed.state, closed.close_how, closed.close_price], ["closed", "stop", stopFill("long", 79600, 79400)]);
+  assertEquals([closed.state, closed.close_how, closed.close_price], ["closed", "stop", stopFill("long", 79600, 81200, 79400)]);
   const fees = 0.0054 * 81202 * 0.00045 + 0.0054 * 79400 * 0.00045;
   assertAlmostEquals(Number(closed.pnl_usd), (79400 - 81202) * 0.0054 - fees, 1e-3);
   const acc = await (await w.call("account")).json();
@@ -347,4 +351,167 @@ Deno.test("reach: one public read of each target from this region, stored; the s
 
 Deno.test("the rules' constants the prompt states", () => {
   assertEquals([CXBOT_RULES.maxOrdersDay, CXBOT_RULES.maxOpen, CXBOT_RULES.edgeMin, CXBOT_RULES.maxLeverage], [30, 3, 0.08, 3]);
+});
+
+// ── the independent audit (docs/agents/reviews/2026-10-29-cxbot-independent-audit.md): each fails on the code before it ──
+
+/** A paper world at 09:00:30 with the BTC long of `dec()` filled at the market (81,202), the engine's minute at 09:00. */
+async function paperWithLong() {
+  const w = world();
+  await w.tick(Date.parse("2026-11-04T08:58:30Z"));
+  w.db.t.cxbot_config[0].mode = "paper";
+  w.db.t.cxbot_config[0].started_at = "2026-11-04T08:59:00.000Z";
+  await w.tick(Date.parse("2026-11-04T08:59:30Z"));
+  NOW = Date.parse("2026-11-04T09:00:30Z");
+  const r = await (await w.call("order", { body: { decision: dec(), entry_type: "market" } })).json();
+  assertEquals(r.state, "filled", JSON.stringify(r));
+  return w;
+}
+const ethLimit = (o: Record<string, unknown> = {}) => dec({ coin: "ETH", entry: 2390, stop: 2330, limit: 2490, size: 0.15, p: 0.5, ...o });
+
+Deno.test("audit F2: a stop already reached in a minute the engine has not booked cannot be escaped by a close or an amend", async () => {
+  const w = await paperWithLong();
+  await w.tick(Date.parse("2026-11-04T09:02:10Z")); // the engine decides to 09:00
+  // 09:02 trades through the stop (79,580) and is back at 81,200 by its close: the agent sees it at 09:03:20.
+  BARS.BTC[Date.parse("2026-11-04T09:02:00Z")] = { o: 81200, h: 81200, l: 79500, c: 81200 };
+  NOW = Date.parse("2026-11-04T09:03:20Z");
+  const pid = w.db.t.cxbot_positions[0].id;
+  const c = await (await w.call("close", { body: { decision: { id: "c-late", ts: iso(NOW), action: "close", category: "C", position_id: pid, reason: "r" } } })).json();
+  assertEquals(c.refusals?.[0]?.rule, "pending_exit", JSON.stringify(c));
+  const a = await (await w.call("amend", { body: { decision: { id: "a-late", ts: iso(NOW), action: "amend", category: "C", position_id: pid, stop: 80500, reason: "r" } } })).json();
+  assertEquals(a.refusals?.[0]?.rule, "pending_exit", JSON.stringify(a));
+  // The engine books the stop where it was, at the conservative fill.
+  await w.tick(Date.parse("2026-11-04T09:04:30Z"));
+  const p = w.db.t.cxbot_positions[0];
+  assertEquals([p.state, p.close_how, p.close_price], ["closed", "stop", stopFill("long", 79580, 81200, 81200)]);
+});
+
+Deno.test("audit F2: an amend may not move a limit in to a level already traded in an undecided minute", async () => {
+  const w = await paperWithLong();
+  await w.tick(Date.parse("2026-11-04T09:02:10Z"));
+  BARS.BTC[Date.parse("2026-11-04T09:02:00Z")] = { o: 81200, h: 82600, l: 81200, c: 81200 };
+  NOW = Date.parse("2026-11-04T09:03:20Z");
+  const pid = w.db.t.cxbot_positions[0].id;
+  const a = await (await w.call("amend", { body: { decision: { id: "a-lim", ts: iso(NOW), action: "amend", category: "C", position_id: pid, limit: 82500, reason: "r" } } })).json();
+  assertEquals(a.refusals?.[0]?.rule, "pending_exit", JSON.stringify(a));
+  assertEquals(w.db.t.cxbot_positions[0].limit_px, 84450);
+});
+
+Deno.test("audit F2: a resting entry already reached in an undecided minute cannot be cancelled; it fills", async () => {
+  const w = world();
+  await w.tick(Date.parse("2026-11-04T08:58:30Z"));
+  w.db.t.cxbot_config[0].mode = "paper";
+  w.db.t.cxbot_config[0].started_at = "2026-11-04T08:59:00.000Z";
+  await w.tick(Date.parse("2026-11-04T08:59:30Z"));
+  NOW = Date.parse("2026-11-04T09:00:30Z");
+  const r = await (await w.call("order", { body: { decision: ethLimit(), entry_type: "limit", good_till: iso(NOW + 6 * H) } })).json();
+  assertEquals(r.state, "resting", JSON.stringify(r));
+  await w.tick(Date.parse("2026-11-04T09:02:10Z"));
+  BARS.ETH[Date.parse("2026-11-04T09:02:00Z")] = { o: 2400, h: 2400, l: 2385, c: 2350 };
+  BARS.ETH[Date.parse("2026-11-04T09:03:00Z")] = { o: 2350, h: 2350, l: 2350, c: 2350 };
+  NOW = Date.parse("2026-11-04T09:03:20Z");
+  const c = await (await w.call("cancel", { body: { order_id: r.order_id, decision: { id: "c-1", ts: iso(NOW), action: "cancel", category: "C", reason: "gone" } } })).json();
+  assertEquals(c.refusals?.[0]?.rule, "pending_fill", JSON.stringify(c));
+  const all = await (await w.call("cancel_all", { body: {} })).json();
+  assertEquals([all.cancelled, all.not_cancelled?.[0]?.rule], [[], "pending_fill"]);
+  await w.tick(Date.parse("2026-11-04T09:04:30Z"));
+  assertEquals([w.db.t.cxbot_orders[0].state, w.db.t.cxbot_positions[0]?.entry], ["filled", 2390]);
+});
+
+Deno.test("audit F5: a resting entry filled in a minute that also reaches its stop is stopped in that minute", async () => {
+  const w = world();
+  await w.tick(Date.parse("2026-11-04T08:58:30Z"));
+  w.db.t.cxbot_config[0].mode = "paper";
+  w.db.t.cxbot_config[0].started_at = "2026-11-04T08:59:00.000Z";
+  await w.tick(Date.parse("2026-11-04T08:59:30Z"));
+  NOW = Date.parse("2026-11-04T09:00:30Z");
+  await w.call("order", { body: { decision: ethLimit(), entry_type: "limit", good_till: iso(NOW + 6 * H) } });
+  // 09:02 falls from 2,400 through the entry (2,390) and the stop (2,330), and closes back at 2,395.
+  BARS.ETH[Date.parse("2026-11-04T09:02:00Z")] = { o: 2400, h: 2400, l: 2320, c: 2395 };
+  BARS.ETH[Date.parse("2026-11-04T09:03:00Z")] = { o: 2396, h: 2396, l: 2396, c: 2396 };
+  await w.tick(Date.parse("2026-11-04T09:04:30Z"));
+  const p = w.db.t.cxbot_positions[0];
+  assertEquals([p.state, p.entry, p.close_how, p.close_price], ["closed", 2390, "stop", stopFill("long", 2330, 2400, 2396)]);
+  assert(Number(p.pnl_usd) < -8, String(p.pnl_usd));
+});
+
+Deno.test("audit F6: a stop entry and a stop that a minute's open gaps through fill at that open", () => {
+  assertEquals(stopFill("long", 79580, 79000, 81000), 79000);
+  assertEquals(stopEntryFill("long", 81300, 81500, 81250), 81500);
+});
+
+Deno.test("audit F4: a minute the recorder missed is waited for, not stepped over: the stop inside it is booked", async () => {
+  const w = await paperWithLong();
+  BARS.BTC[Date.parse("2026-11-04T09:01:00Z")] = { o: 81200, h: 81200, l: 79500, c: 81200 }; // the stop
+  await w.tick(Date.parse("2026-11-04T09:02:10Z")); // 09:01 recorded; the engine decides to 09:00
+  FAIL_CANDLES = true;
+  const r = await w.tick(Date.parse("2026-11-04T09:03:30Z")); // 09:02 not recorded: 09:01's stop fill needs its open
+  assert(r.body.errors > 0);
+  assertEquals(w.db.t.cxbot_positions[0].state, "open");
+  assertEquals((w.db.t.cxbot_exec_state[0].state as Record<string, unknown>).engineMinute, Date.parse("2026-11-04T09:00:00Z"));
+  FAIL_CANDLES = false;
+  await w.tick(Date.parse("2026-11-04T09:04:30Z"));
+  const p = w.db.t.cxbot_positions[0];
+  assertEquals([p.state, p.close_how], ["closed", "stop"]);
+});
+
+Deno.test("audit F7: after the test (mode back to dry-run) held positions still run to their stop; resting orders are cancelled", async () => {
+  const w = await paperWithLong();
+  await w.call("order", { body: { decision: ethLimit(), entry_type: "limit", good_till: iso(NOW + 6 * H) } });
+  await w.tick(Date.parse("2026-11-04T09:02:10Z"));
+  w.db.t.cxbot_config[0].mode = "dry_run";
+  w.db.t.cxbot_config[0].ended_at = "2026-11-04T09:02:30.000Z";
+  BARS.BTC[Date.parse("2026-11-04T09:03:00Z")] = { o: 81200, h: 81200, l: 79000, c: 79100 };
+  BARS.ETH[Date.parse("2026-11-04T09:03:00Z")] = { o: 2400, h: 2400, l: 2380, c: 2385 };
+  await w.tick(Date.parse("2026-11-04T09:05:30Z"));
+  const p = w.db.t.cxbot_positions.find((x) => x.coin === "BTC")!;
+  assertEquals([p.state, p.close_how], ["closed", "stop"]);
+  assertEquals(w.db.t.cxbot_orders.find((o) => o.coin === "ETH")!.state, "cancelled");
+  assertEquals(w.db.t.cxbot_positions.filter((x) => x.coin === "ETH").length, 0);
+  assert(w.db.t.cxbot_snapshots.length > 0);
+});
+
+Deno.test("audit F3: an hour's funding is booked once, even when the engine runs its minutes again", async () => {
+  const w = await paperWithLong();
+  await w.tick(Date.parse("2026-11-04T09:59:30Z")); // the minute job's read of 09:59: the rate for the 10:00 payment
+  await w.tick(Date.parse("2026-11-04T10:02:30Z"));
+  const once = Number(w.db.t.cxbot_positions[0].funding_usd);
+  assertAlmostEquals(once, Math.round(0.0000125 * 0.0054 * 81200 * 1e4) / 1e4, 1e-9);
+  assertEquals(w.db.t.cxbot_positions[0].funded_through, "2026-11-04T10:00:00.000Z");
+  // A run that died before writing its state: the next one starts from the old minute and meets 10:00 again.
+  w.db.t.cxbot_exec_state[0].state = { ...w.db.t.cxbot_exec_state[0].state as Record<string, unknown>, engineMinute: Date.parse("2026-11-04T09:58:00Z") };
+  await w.tick(Date.parse("2026-11-04T10:02:40Z"));
+  assertEquals(Number(w.db.t.cxbot_positions[0].funding_usd), once);
+});
+
+Deno.test("audit F3: the state is written only by the lease's holder", async () => {
+  const w = world();
+  w.db.t.cxbot_exec_state[0].lease_owner = "other";
+  assertEquals(await writeStateHeld(w.db, { engineMinute: 1 }, NOW, "me"), false);
+  assertEquals(w.db.t.cxbot_exec_state[0].state, {});
+  assertEquals(await writeStateHeld(w.db, { engineMinute: 1 }, NOW, "other"), true);
+});
+
+Deno.test("audit F8: a Polymarket horizon issues its three strikes once, however the mids move inside the issue window", async () => {
+  const w = world();
+  const slug = "bitcoin-above-on-november-5-2026";
+  const ev = (mids: Record<number, number>) => [{
+    endDate: "2026-11-05T17:00:00Z",
+    markets: Object.entries(mids).map(([k, m]) => ({ id: `m${k}`, groupItemTitle: Number(k).toLocaleString("en-US"), question: `Will the price of Bitcoin be above $${k} on November 5?`, bestBid: m - 0.005, bestAsk: m + 0.005, lastTradePrice: m, closed: false, outcomePrices: "[\"0.5\", \"0.5\"]" })),
+  }];
+  GAMMA[slug] = ev({ 78000: 0.9, 80000: 0.75, 81000: 0.5, 82000: 0.25, 84000: 0.05 });
+  try {
+    await w.tick(Date.parse("2026-11-04T16:57:30Z"));
+    w.db.t.cxbot_config[0].mode = "paper";
+    w.db.t.cxbot_config[0].started_at = "2026-11-04T16:58:00.000Z";
+    await w.tick(Date.parse("2026-11-04T17:00:30Z"));
+    const first = w.db.t.cxbot_questions.filter((q) => q.layer === "B").map((q) => q.pm_strike).sort();
+    assertEquals(first, [80000, 81000, 82000]);
+    GAMMA[slug] = ev({ 78000: 0.75, 80000: 0.5, 81000: 0.25, 82000: 0.1, 84000: 0.02 });
+    await w.tick(Date.parse("2026-11-04T17:05:30Z"));
+    await w.tick(Date.parse("2026-11-04T17:07:30Z"));
+    assertEquals(w.db.t.cxbot_questions.filter((q) => q.layer === "B").length, 3);
+  } finally {
+    delete GAMMA[slug];
+  }
 });

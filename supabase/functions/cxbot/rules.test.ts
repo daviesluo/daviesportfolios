@@ -6,7 +6,7 @@ import examples from "../../../docs/agents/cxbot/examples.json" with { type: "js
 import { answerOf, cycleOf, dailyOf, decisionOf, validateAnswers, validateBatch } from "./ingest.ts";
 import {
   assignedBracket, blackoutWithin, bracketOf, costsOf, CXBOT_RULES, decompose, entryEvent, fractionOf, inBlackout, kellyRisk, leverageFor, liquidationPrice,
-  type MarketState, type Minute, normCdf, openRefusals, type OpenRequest, positionEvent, resolveOnTape, roundSize, sizeMax, stopFill, walkBook,
+  type MarketState, type Minute, normCdf, openRefusals, type OpenRequest, positionEvent, resolveOnTape, roundSize, sizeMax, stopEntryFill, stopFill, walkBook, liqReached,
 } from "./rules.ts";
 
 const M = 60e3, H = 3600e3;
@@ -137,10 +137,16 @@ Deno.test("an outcome on the tape: the first side reached, an ambiguous minute b
   assertAlmostEquals(g.y, 1.5 / 7.5, 1e-12);
 });
 
-Deno.test("paper fills: a stop at the worse of its level less 5 bps and the next open; a limit only strictly through; entries", () => {
-  assertEquals(stopFill("long", 100, 99.99), 99.95);
-  assertEquals(stopFill("long", 100, 98), 98);
-  assertEquals(stopFill("short", 100, 101), 101);
+Deno.test("paper fills: a stop at the worst of its level less 5 bps, a gap's open and the next open; a limit only strictly through; entries", () => {
+  assertEquals(stopFill("long", 100, 100.5, 99.99), 99.95);
+  assertEquals(stopFill("long", 100, 100.5, 98), 98);
+  assertEquals(stopFill("short", 100, 99.5, 101), 101);
+  // F6 (independent audit): a minute that OPENS through the stop has gapped: it fills at that open even when the price is
+  // back above the stop by the next minute (the old rule, the stop less 5 bps, booked 99.95 here instead of 98).
+  assertEquals(stopFill("long", 100, 98, 100.5), 98);
+  assertEquals(stopFill("short", 100, 102, 99.5), 102);
+  assertEquals([stopEntryFill("long", 100, 99.5, 100.01), stopEntryFill("long", 100, 101, 100), stopEntryFill("short", 100, 99, 100.5)], [100.05, 101, 99]);
+  assertEquals([liqReached("long", 70, mi(T, 80, 81, 70, 75)), liqReached("short", 130, mi(T, 120, 129.9, 119, 125))], [true, false]);
   assertEquals(positionEvent("long", 97.5, 105, mi(T, 100, 105, 99, 104)), null);
   assertEquals(positionEvent("long", 97.5, 105, mi(T, 100, 105.01, 99, 104)), "limit");
   assertEquals(positionEvent("long", 97.5, 105, mi(T, 100, 106, 97.5, 104)), "stop");

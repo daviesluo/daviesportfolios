@@ -12,6 +12,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
 const SQL_NC = read('supabase/migrations/0163_cxbot.sql').replace(/--[^\n]*/g, '');
+const SQL64_NC = read('supabase/migrations/0164_cxbot_audit.sql').replace(/--[^\n]*/g, '');
 const SCHEMA = read('supabase/functions/cxbot/schema.ts');
 const RULES = read('supabase/functions/cxbot/rules.ts');
 const PROMPT = read('docs/agents/cxbot/GROK_PROMPT.md');
@@ -19,11 +20,13 @@ const EXAMPLES = JSON.parse(read('docs/agents/cxbot/examples.json'));
 const DIR = 'supabase/functions/cxbot';
 const stripComments = (s) => s.replace(/\/\/[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
 
-function tablesOf(sql) {
+function tablesOf(sql, ...later) {
   const out = {};
   for (const m of sql.matchAll(/create table if not exists public\.(\w+) \(([\s\S]*?)\n\);/g)) {
     out[m[1]] = m[2].split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('constraint') && !l.startsWith('primary key')).map((l) => l.split(/\s+/)[0]);
   }
+  // A later migration's added columns, in its order.
+  for (const s of later) for (const m of s.matchAll(/alter table public\.(\w+) add column if not exists (\w+)/g)) out[m[1]].push(m[2]);
   return out;
 }
 function schemaOf(src) {
@@ -34,7 +37,7 @@ function schemaOf(src) {
 
 describe('CXBOT, the paper path', () => {
   it("writes only the migration's columns: schema.ts lists every table of 0163 with exactly its columns", () => {
-    const t = tablesOf(SQL_NC), s = schemaOf(SCHEMA);
+    const t = tablesOf(SQL_NC, SQL64_NC), s = schemaOf(SCHEMA);
     expect(Object.keys(t).sort()).toEqual(Object.keys(s).sort());
     expect(Object.keys(t).length).toBe(14);
     for (const k of Object.keys(t)) expect([k, t[k]]).toEqual([k, s[k]]);
@@ -43,6 +46,7 @@ describe('CXBOT, the paper path', () => {
   it('locks every table to the service role: row level security on, no grant and no policy', () => {
     for (const k of Object.keys(tablesOf(SQL_NC))) expect(SQL_NC).toMatch(new RegExp(`alter table public\\.${k} +enable row level security;`));
     expect(SQL_NC).not.toMatch(/\bgrant\b|create policy/i);
+    expect(SQL64_NC).not.toMatch(/\bgrant\b|create policy|cxbot_config/i);
   });
 
   it('can only be dry-run or paper, starts in dry-run, and ties paper to a start; one call a minute', () => {
@@ -105,6 +109,9 @@ describe('CXBOT, the paper path', () => {
       '`CXBOT_LEDGER.md` on the branch **`cxbot-ledger`**', 'Keep it under 10 KB (10,240 bytes)', 'about 23:27 UK time',
       'where the price then stands between the stop (0) and the limit (1)', 'Never log in to, or use, any exchange account, API key, wallet or session the server or its recorder uses',
       '00:00, 04:00, 08:00, 12:00, 16:00, 20:00', 'T−60, T−20, T+5, T+15, T+60', 'every 30 minutes while you hold',
+      // The independent audit (2026-10-29): the geoblock rule, the shadow's clock, the gap and same-minute fills.
+      "Never route round a venue's or a site's geoblock or access rule: no VPN, proxy, relay", 'from the moment the server **receives** them',
+      "that minute's open if it opened\nbeyond the stop (a gap)", 'A resting entry\nfilled in a minute that also reaches its stop is stopped in that minute',
     ]) expect(PROMPT, words).toContain(words);
     const seed = read('docs/agents/cxbot/ledger_seed.md');
     expect(Buffer.byteLength(seed)).toBeLessThan(10240);

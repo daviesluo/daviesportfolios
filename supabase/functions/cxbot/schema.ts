@@ -1,4 +1,4 @@
-// CXBOT's tables as 0163 creates them: each table's columns and the key a write conflicts on. The Deno test's database
+// CXBOT's tables as 0163 creates them (and 0164 adds `cxbot_positions.funded_through`): each table's columns and the key a write conflicts on. The Deno test's database
 // double refuses a write naming a column the table does not have, as PostgREST does (docs/agents/CLAUDE.md: a test double
 // at least as strict as what it stands in for); `src/cxbot.test.js` holds this list to the migration, column for column.
 
@@ -32,7 +32,7 @@ export const CXBOT_TABLES: Record<string, { key: string; columns: readonly strin
     key: "id",
     columns: [
       "id", "order_id", "decision_id", "coin", "direction", "size", "entry", "stop", "limit_px", "stop0", "limit0", "p", "leverage", "liq_price", "opened_at",
-      "fee_open_usd", "funding_usd", "state", "closed_at", "close_price", "close_how", "fee_close_usd", "pnl_usd", "updated_at",
+      "fee_open_usd", "funding_usd", "state", "closed_at", "close_price", "close_how", "fee_close_usd", "pnl_usd", "updated_at", "funded_through",
     ],
   },
   cxbot_snapshots: { key: "slot", columns: ["slot", "at", "equity_usd", "realised_usd", "unrealised_usd", "fees_usd", "funding_usd", "open_risk_usd", "positions"] },

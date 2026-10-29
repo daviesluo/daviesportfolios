@@ -62,7 +62,7 @@ at most 64 KiB. Never print the token, never put it in a journal row, the desk l
 | `?action=order` | POST | `{"decision": {…}, "entry_type": "market"|"limit"|"stop", "good_till"?}`: an open |
 | `?action=close` | POST | `{"decision": {action "close", position_id, …}}`: closes now through the book |
 | `?action=amend` | POST | `{"decision": {action "amend", position_id, stop and/or limit, …}}` |
-| `?action=cancel` | POST | `{"order_id": <a resting order>, "decision": {action "cancel", …}}`; `?action=cancel_all` every resting order |
+| `?action=cancel` | POST | `{"order_id": <a resting order>, "decision": {action "cancel", …}}`; `?action=cancel_all` every resting order (`cancelled`, and `not_cancelled` for any already filled) |
 | `?action=calendar` | GET | the listed releases (CPI, NFP, FOMC, ECB, BoE, to 2026-12-31) and their no-open windows |
 
 **Limits:** 600 requests an hour (refused ones included), 300 journal rows an hour, 10 market-reading actions (`markets`,
@@ -76,6 +76,7 @@ at most 64 KiB. Never print the token, never put it in a journal row, the desk l
 | 200, `state` `filled` | the paper engine filled your market open at `fill_price` through the book | note its `position_id` in your next cycle row |
 | 200, `state` `resting` | your limit or stop entry rests; it fills only when later trades reach it (a limit strictly through) | note its `order_id` |
 | 200, `"duplicate": true` | that decision id was already carried out | nothing; it is the earlier order |
+| 422 `refused`, `pending_exit` or `pending_fill` | your stop or limit (or a resting entry) was already reached in a minute the paper engine has not booked yet | nothing: it closes (or fills) there within about two minutes; read `?action=account` at your next wake |
 | 409 `busy` | the server's minute holds the book | wait 5 to 10 seconds and send the **same body** again, at most 3 times |
 | 409 (a journal id) | that decision id is already a journal row | use a new id |
 | 422 `invalid` | a field is wrong (`errors` names it) | fix it and resend |
@@ -114,11 +115,14 @@ If a market's `tape_age_s` is over 120, or its spread is three times its usual, 
 | `total_stop` | −$100 from the start: close-only to the end; the test ends as a FAIL |
 | `global_pause` | the project's switch: no open |
 | `not_held`, `stop_wider`, `stop_through`, `limit_through` | close or amend only your own position; a stop only moves toward the price and never through it; a limit stays on the profit side |
+| `pending_exit`, `pending_fill` | the paper engine books each minute about two minutes after it ends. A close or amend of a position whose stop or limit (or the amend's new level) was already reached in a minute it has not booked yet is refused, and so is a cancel of a resting order whose entry was already reached: what has happened on the tape stands |
 | `forecast_window`, `forecast_duplicate`, `forecast_unknown` | an answer before its question's deadline, once, to a question that exists |
 
 The server closes any position held 7 days. Between your wakes the paper engine holds your stop and limit: a stop is
-triggered when a minute's trades reach it and filled at the worse of the stop less 5 bps and the next minute's open; a
-limit fills only when trades go strictly through it. Funding is charged or paid every hour at Hyperliquid's rate.
+triggered when a minute's trades reach it and filled at the worst of the stop less 5 bps, that minute's open if it opened
+beyond the stop (a gap), and the next minute's open; a limit fills only when trades go strictly through it. A resting entry
+filled in a minute that also reaches its stop is stopped in that minute. Funding is charged or paid every hour at
+Hyperliquid's rate read in the hour before.
 
 ## Data and probability sources: what each number is, and how to turn a view into p
 
@@ -177,7 +181,8 @@ touches, a known premium, not a free edge.
 
 ## Assigned questions
 
-- **Brackets** (layer A): at 00:00, 04:00, 08:00, 12:00, 16:00 and 20:00 UTC, six brackets: BTC, ETH and SOL, long and short;
+- **Brackets** (layer A): at 00:00, 04:00, 08:00, 12:00, 16:00 and 20:00 UTC (the server issues them in its first minute
+  after the hour: call `?action=questions` from a minute past; if it is empty, call again a minute later), six brackets: BTC, ETH and SOL, long and short;
   stop 1 × and limit 2 × the coin's one-day volatility (so m is a third), hold 72 hours. **Answer `p` for all six within 20
   minutes.** The bracket starts at the deadline from that minute's open, its distances kept, so a move during your 20 minutes
   neither helps nor hurts. Your p for the long and for the short are separate forecasts and need not add to anything.
@@ -238,7 +243,8 @@ Every request that trades carries its decision; the server journals it. Each dec
 
 **Shadow brackets.** For **every candidate you research to a number** and do not open (it fails the bar, a rule, or your
 nerve), post a `no_action` decision with the full bracket and your p, formed before `quote`. These are scored like real
-brackets. At most one per coin per four hours is counted, and none in a coin you hold. Post them as you go.
+brackets, from the moment the server **receives** them (a `ts` earlier than that changes nothing: a bracket on a move already
+made is not a forecast). At most one per coin per four hours is counted, and none in a coin you hold. Post them as you go.
 
 <!-- example:order -->
 ```json
@@ -431,7 +437,9 @@ these rules or Davies; a rule changes only by Davies' word, recorded by Claude.
 - Never trade except through the server; never ask for, hold, print or guess a key, a wallet, a password or the token.
 - Never log in to, or use, any exchange account, API key, wallet or session the server or its recorder uses, and never ask
   anyone to: a venue may hold one session per login, and a second one breaks the record. This phase uses none at all.
-- Never claim this paper book is real money, and never trade any real account for this test.
+- Never route round a venue's or a site's geoblock or access rule: no VPN, proxy, relay or someone else's account, for any
+  read or any trade. If a source refuses you, do without it and say so in your notes.
+- Never claim this paper book is real money, and never trade any real account for this test; paper is all this phase is.
 - Never try to get round a refusal (splitting, re-sending with numbers tweaked to pass, a second coin for the same bet, a new
   id for an order already sent). Fix a genuine mistake; otherwise accept it and journal why.
 - Never widen a stop, average down, add to a position, hedge one with another, chase a move, or open in a blackout.

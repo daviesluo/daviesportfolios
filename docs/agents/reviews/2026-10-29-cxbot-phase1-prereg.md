@@ -35,7 +35,7 @@ Frozen as the code stands at the freeze commit; a change is a deviation (§9). T
 - **Venue and instruments**: Hyperliquid perpetuals BTC, ETH, SOL; paper only; the tape is Hyperliquid's public data.
 - **Every open is a bracket**: stop and limit; reward ≥ 1.5 × risk; stop distance 0.75–5 × the coin's one-day volatility
   (the server's figure) and ≥ 1 %; p ≥ p\* + 0.08, p\* = m + c / (d_stop + d_limit), c the server's costs (fees, stop
-  slippage, funding at the predicted rate); at least one source and an invalidation; category E (a listed release within
+  slippage, 72 hours' funding at the dearer of the current and the predicted rate); at least one source and an invalidation; category E (a listed release within
   72 h ahead, `event_at` exactly as the calendar gives it), R (one within 24 h behind), N, or C (a change).
 - **Size**: risk at the stop, costs included, ≤ 1 % of the $1,000 notional budget and ≤ ¼ Kelly of the paper equity; size
   in Hyperliquid's size decimals, rounded down.
@@ -63,16 +63,20 @@ Frozen as the code stands at the freeze commit; a change is a deviation (§9). T
 
 ## 4. The record
 
-- `cxbot_tape`: each minute's Hyperliquid 1-minute candle (open, high, low, close, volume, trades), mark, oracle, mid, touch,
-  depth within 5/10/20 bps, funding and open interest, for each coin, written by `record`; a minute it could not read is
-  recorded missing.
-- `cxbot_questions`: every assigned question with its issue time, deadline, geometry or Polymarket market, and the
-  server's m, costs and decomposition at the deadline; `cxbot_forecasts`: every answer as received.
-- `cxbot_decisions`, `cxbot_orders`, `cxbot_positions`, `cxbot_fills`, `cxbot_funding`, `cxbot_snapshots` (paper equity every
-  5 minutes), `cxbot_outcomes` (every question's and bracket's y, written by `sync`), `cxbot_cycles`, `cxbot_daily`,
-  `cxbot_requests` (every refusal by rule).
+- `cxbot_tape`: each complete minute's candle of each coin on the venue (open, high, low, close, volume, trades), written by
+  the minute job's recorder, which re-reads from its newest minute (at most six hours back), so a minute it missed is
+  filled at its next run; and, on the minute it was read, the book's touch, the mark, the oracle (index), funding (per
+  hour), open interest and premium. A minute never recorded stays absent: the outcomes skip it (§5) and the paper engine
+  waits ten minutes for it, then steps over it.
+- `cxbot_questions`: every assigned question with its issue time, deadline, geometry or Polymarket market, the server's m
+  and numbers at issue, its start, its outcome as the server read it and its state (a question the server could not start,
+  or never resolve, is `void`); `cxbot_forecasts`: every answer as received.
+- `cxbot_decisions` (each with the server's `received_at`), `cxbot_orders`, `cxbot_positions` (fills, fees, funding and how
+  each closed are columns of these two), `cxbot_snapshots` (the paper equity, written every minute into its 5-minute slot),
+  `cxbot_cycles`, `cxbot_daily`, `cxbot_requests` (every request's status and, when refused, its rules).
 - `cxbot_ctx`: Deribit, Polymarket, Binance spot and the slower context, as handed to Grok.
-- The money is the paper engine's (`cxbot_snapshots`), never the agent's journal.
+- The money is the paper engine's (`cxbot_snapshots`), never the agent's journal. The reading recomputes every outcome
+  from the tape (`score.mjs`), never from the server's `y`.
 
 ## 5. Definitions
 
@@ -83,24 +87,29 @@ Frozen as the code stands at the freeze commit; a change is a deviation (§9). T
   run twice, once with it stop-first and once limit-first, and must pass both. A missing minute is skipped; a level crossed
   in a gap is reached at the first recorded minute after it.
 - **Layer A (assigned brackets)**: issued at 00, 04, 08, 12, 16 and 20 UTC for each coin, a long and a short; stop 1 × and
-  limit 2 × the coin's one-day volatility (7 days of recorded hourly returns, × √24, at least 1 %); H = 72 hours; the
-  answer is due 20 minutes after issue; the bracket STARTS at the deadline, its e the mid then (distances unchanged). An
-  answer after the deadline or a second answer is refused; a question with no answer is **missed** (counted).
+  limit 2 × the coin's one-day volatility (the venue's last 7 days of hourly candles, the sd of their log returns × √24;
+  the stop at least 1 %); H = 72 hours; the answer is due 20 minutes after issue; the bracket STARTS at the deadline, its
+  e the open of the deadline's minute on the tape (distances unchanged). An answer after the deadline or a second answer is
+  refused; a question with no answer is **missed** (counted). A question the server voided (no tape at its deadline) is not
+  counted as issued.
 - **Layer B (Polymarket)**: for each daily "Bitcoin above ___" and "Ethereum above ___" question, at 24 h, 8 h and 2 h
   before its resolution, the three strikes whose mid is nearest 0.25, 0.50 and 0.75 at issue; due 15 minutes later; its
   baselines the mid and the last trade at the deadline; y the question's resolution (0 or 1).
-- **Layer C (own brackets)**: a real bracket is a paper open the server filled; its start is the minute after its fill, e
-  the fill price; it is scored on its ORIGINAL levels on the tape, whatever the position later did (closed, amended, the 7-day close: those
+- **Layer C (own brackets)**: a real bracket is a paper open the server filled; its start is the first whole minute at or
+  after its fill, e the fill price; it is scored on its ORIGINAL levels on the tape, whatever the position later did (closed, amended, the 7-day close: those
   change the money, not the forecast), with H = 7 days. A shadow bracket is a `no_action` decision with coin, direction,
-  level, stop, limit and p; it is reached in the first minute within 24 h of its `ts` whose trades span its level (never:
-  not scored, counted), resolves from the minute after, and is excluded (counted) if that first minute already reached its
-  stop or limit; H = 7 days. At most one bracket per coin per four hours is scored (the first); none while a real one in
-  that coin is open.
+  level, stop, limit and p; its clock is the server's receipt (`received_at`, or its `ts` if later: the journal takes a `ts`
+  up to 7 days old, and a bracket on a move already made is not a forecast); it is reached in the first minute within 24 h
+  of that clock whose trades span its level (never: not scored, counted), resolves from the minute after, and is excluded
+  (counted) if that first minute already reached its stop or limit; H = 7 days. At most one shadow per coin per four hours
+  is scored (the first by that clock); none while a real one in that coin is open. Every real bracket is scored.
 - **Brier**: mean (p − y)² against mean (m − y)², p and m clamped to [0.001, 0.999]. **D** = Brier(m) − Brier(p): positive,
   Grok is better. **D_c**: the same with each (coin, direction) cell's m moved by that cell's mean (y − m), clamped.
 - **The bootstrap**: circular blocks of 3 consecutive UTC days of the brackets' start days, 10,000 resamples, the generator
   mulberry32 seeded 20261029; its 5th and 95th percentiles of D.
-- **P&L**: the paper equity at the end less $1,000, fees, slippage and funding included; in dollars and in units of $10.
+- **P&L**: the paper equity at the end less the paper equity at the shakedown's end (the newest snapshot at or before it;
+  §3.1: nothing of the shakedown is scored), fees, slippage and funding included; in dollars and in units of $10. The whole
+  run's P&L from $1,000 is reported beside it; the total stop counts from $1,000.
 
 ## 6. The reading
 
@@ -115,7 +124,8 @@ audit's `falsepass.py`).
    Deribit's digital at the deadline beside them; log loss beside Brier.
 4. **Discipline**: refusals by rule; journal against the record; cycles against the schedule; missed questions.
 
-**Bar to propose a live pre-registration (all of):** (a) layer A: at least 90 % of issued questions answered, D > 0, the
+**Bar to propose a live pre-registration (all of):** (a) layer A: at least 90 % of issued questions answered (a voided
+question is not issued), D > 0, the
 bootstrap's 5th percentile > 0 and D_c > 0, under both ambiguous conventions; (b) layer C: at least 60 scored brackets,
 D > 0 and D_c > 0; (c) paper P&L > 0; (d) the total stop never reached and no paper liquidation. Otherwise the test stops,
 and a different design is a new pre-registration. Passing proposes; it decides nothing. **Power** (audit §5.4): a calibrated
@@ -136,6 +146,10 @@ monitor).
   measured against live fills.
 - The agent's platform, scheduler and prompt beyond what the record shows.
 - Whether Davies' venue accounts may trade these products; tax.
+- The bootstrap's own width: on simulated martingale paths a no-skill forecaster whose luck runs in spells of one to two
+  weeks makes the 3-day-block bootstrap 10–25 % narrower than D's true spread; such a forecaster still passes layer A's
+  part of the bar in at most about 6 % of 56-day windows, because it pays its leaning in Brier (the independent audit,
+  `docs/agents/backtests/cxbot/blockcheck.py`). A pass is evidence at about that level, not more.
 
 ## 9. Deviations
 

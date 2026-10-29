@@ -44,6 +44,14 @@ Deno.test("Crypto analyst: dry-run shows the budget and nothing else; paper its 
   assertEquals(s.layers[2].scored, 1);
   assertAlmostEquals(s.layers[2].brierP!, (0.4 - 2 / 3) ** 2, 1e-4);
   assertEquals(s.deployed, Math.round((0.005 * 80000 / 3) * 100) / 100);
+  // After the end (mode back to dry-run, ended_at set) the row keeps the test's money and its days, and a voided question
+  // is not counted as issued (independent audit 2026-10-29).
+  const ended = cxbotSummary({
+    ...base, config: { mode: "dry_run", started_at: started, ended_at: "2026-11-08T00:00:00Z", budget_usd: 1000 }, snapshot: { equity_usd: 987.4, unrealised_usd: 0, fees_usd: 3.1 },
+    questions: [{ id: "A-1", layer: "A", issued_at: "2026-11-05T04:00:00Z", state: "resolved", m: 1 / 3, y: 1 }, { id: "A-v", layer: "A", issued_at: "2026-11-05T08:00:00Z", state: "void", m: 1 / 3, y: null }],
+    forecasts: [{ question_id: "A-1", p: 0.5 }],
+  })!;
+  assertEquals([ended.mode, ended.equity, ended.realised, ended.daysRun, ended.layers[0].issued], ["dry_run", 987.4, -12.6, 8, 1]);
 });
 
 Deno.test("IG Trader: the £1,000 budget plus the change since the arm, never the demo account's balance; F11 on its closed brackets", () => {

@@ -7,8 +7,8 @@ import { type Book, type CoinCtx, makeReader, type Reader, tapeOf } from "./clie
 import { type Answer, type Decision, decisionOf, isObj } from "./ingest.ts";
 import {
   assignedBracket, type BookItem, bracketOf, type Coin, COINS, costsOf, CXBOT_CALENDAR_UNTIL_MS, CXBOT_FEES, CXBOT_QUESTIONS,
-  CXBOT_RELEASE_MS, CXBOT_RULES, decompose, type Dir, entryEvent, inBlackout, kellyRisk, leverageFor, liquidationPrice, type Minute,
-  normCdf, openRefusals, type OpenRequest, positionEvent, type Refusal, resolveOnTape, riskOf, sizeMax, stopFill, type Venue, walkBook,
+  CXBOT_RELEASE_MS, CXBOT_RULES, decompose, type Dir, entryEvent, inBlackout, kellyRisk, leverageFor, liqReached, liquidationPrice, type Minute,
+  normCdf, openRefusals, type OpenRequest, positionEvent, type Refusal, resolveOnTape, riskOf, sizeMax, stopEntryFill, stopFill, type Venue, walkBook,
 } from "./rules.ts";
 
 const M = 60e3, H = 3600e3, DAY = 86400e3;
@@ -24,8 +24,18 @@ export type Config = {
   mode: "dry_run" | "paper"; venue: Venue; started_at: string | null; ended_at: string | null; budget_usd: number; day_stop_usd: number;
   total_stop_usd: number; max_orders_day: number;
 };
-export type Deps = { db: Db; now: number; reader: Reader; region?: string | null };
-export const makeDeps = (db: Db, now: number, fetchImpl?: typeof fetch): Deps => ({ db, now, reader: makeReader(fetchImpl), region: null });
+/** `clock` is the wall clock the minute's time budget is measured on (`now` stays the instant the request arrived). */
+export type Deps = { db: Db; now: number; reader: Reader; region?: string | null; clock?: () => number };
+export const makeDeps = (db: Db, now: number, fetchImpl?: typeof fetch): Deps => ({ db, now, reader: makeReader(fetchImpl), region: null, clock: Date.now });
+
+/**
+ * The minute's budget (independent audit 2026-10-29, F15): the book, the questions and the snapshot run first; the context's
+ * refresh starts no new kind after this long, and each kind's reads go out together, so one slow host (8 s a read) cannot
+ * hold the call past its 50 s, past the 45 s lease, or the pg_net batch every other minute call waits behind.
+ */
+export const CXBOT_TICK_CTX_BUDGET_MS = 25e3;
+/** A gap in the tape younger than this may still be filled by the recorder (it re-reads from its newest minute): the engine waits at it (F4). */
+export const CXBOT_ENGINE_WAIT_MS = 10 * M;
 
 export async function readConfig(db: Db): Promise<Config> {
   const c = (await db.select<Record<string, unknown>>("cxbot_config", "id=eq.1&select=mode,venue,started_at,ended_at,budget_usd,day_stop_usd,total_stop_usd,max_orders_day"))[0];
@@ -46,8 +56,9 @@ type State = Record<string, unknown>;
 export async function readState(db: Db): Promise<State> {
   return (await db.select<{ state: State | null }>("cxbot_exec_state", "id=eq.1&select=state"))[0]?.state ?? {};
 }
-export async function writeState(db: Db, state: State, now: number) {
-  await db.update("cxbot_exec_state", "id=eq.1", { state, updated_at: iso(now) });
+/** Write the state only while `owner` still holds the lease (F3): a minute that outran its lease must not move the engine back. */
+export async function writeStateHeld(db: Db, state: State, now: number, owner: string): Promise<boolean> {
+  return (await db.claim("cxbot_exec_state", `id=eq.1&lease_owner=eq.${encodeURIComponent(owner)}`, { state, updated_at: iso(now) })).length === 1;
 }
 
 /** The 20-second lease two requests (the agent's and the minute's) take before deciding on one book. */
@@ -81,7 +92,8 @@ export async function record(x: Deps, cfg: Config) {
   const tape = tapeOf(cfg.venue, x.reader);
   const now = x.now, cur = floorTo(now, M);
   const did = { minutes: 0, reads: 0 };
-  for (const coin of COINS) {
+  // The three coins at once (F15): sequential reads at 8 s each could take the minute past its budget.
+  await Promise.all(COINS.map(async (coin) => {
     const last = (await x.db.select<{ t: string }>("cxbot_tape", `venue=eq.${cfg.venue}&coin=eq.${coin}&c=not.is.null&select=t&order=t.desc&limit=1`))[0];
     const from = Math.max(last ? ms(last.t) + M : 0, cur - 6 * H);
     if (from < cur) {
@@ -91,9 +103,8 @@ export async function record(x: Deps, cfg: Config) {
         did.minutes += bars.length;
       }
     }
-  }
-  const ctx = await tape.ctx();
-  const books = await Promise.all(COINS.map((c) => tape.book(c).catch(() => null)));
+  }));
+  const [ctx, books] = await Promise.all([tape.ctx(), Promise.all(COINS.map((c) => tape.book(c).catch(() => null)))]);
   const rows = COINS.map((coin, i) => {
     const b = books[i], c: CoinCtx | undefined = ctx[coin];
     return {
@@ -233,40 +244,47 @@ export async function readPmEvent(r: Reader, slug: string, coin: "BTC" | "ETH"):
 
 /** Refresh what is due: Deribit, Polymarket's daily events and Binance's spot every 5 minutes; volatility, predicted
  * funding and liquidations hourly; flows and stablecoins daily. Each kind its own row (kind, slot). */
-export async function refreshCtx(x: Deps, cfg: Config, state: State) {
+export async function refreshCtx(x: Deps, cfg: Config, state: State, late: () => boolean = () => false) {
   const now = x.now, at = (state.ctxAt ?? {}) as Record<string, number>;
-  const due = (kind: string, every: number) => !(at[kind] && floorTo(at[kind], every) === floorTo(now, every));
   const errors: string[] = [];
+  const skipped: string[] = [];
+  // A kind not refreshed because the minute's budget is spent stays due: the next minute reads it.
+  const due = (kind: string, every: number) => {
+    if (at[kind] && floorTo(at[kind], every) === floorTo(now, every)) return false;
+    if (late()) { skipped.push(kind); return false; }
+    return true;
+  };
   const put = async (kind: string, data: unknown, every: number) => {
     await x.db.upsert("cxbot_ctx", [{ kind, at: iso(floorTo(now, every)), data }], "kind,at");
     at[kind] = now;
   };
   const tryDo = async (kind: string, f: () => Promise<void>) => { try { await f(); } catch (e) { errors.push(`${kind}: ${(e as Error).message.slice(0, 120)}`); } };
-  if (due("deribit", 5 * M)) await tryDo("deribit", async () => put("deribit", { BTC: await readDeribit(x.reader, "BTC", now), ETH: await readDeribit(x.reader, "ETH", now) }, 5 * M));
+  if (due("deribit", 5 * M)) await tryDo("deribit", async () => {
+    const [BTC, ETH] = await Promise.all([readDeribit(x.reader, "BTC", now), readDeribit(x.reader, "ETH", now)]);
+    await put("deribit", { BTC, ETH }, 5 * M);
+  });
   if (due("polymarket", 5 * M)) await tryDo("polymarket", async () => {
-    const events: PmEvent[] = [];
-    for (const coin of ["BTC", "ETH"] as const) {
-      for (let d = 0; d <= 2; d++) {
-        const ev = await readPmEvent(x.reader, pmSlug(coin, now + d * DAY), coin).catch(() => null);
-        if (ev && ms(ev.end) > now) events.push(ev);
-      }
-    }
+    const keys = (["BTC", "ETH"] as const).flatMap((coin) => [0, 1, 2].map((d) => [coin, pmSlug(coin, now + d * DAY)] as const));
+    const read = await Promise.all(keys.map(([coin, slug]) => readPmEvent(x.reader, slug, coin).catch(() => null)));
+    const events = read.filter((ev): ev is PmEvent => !!ev && ms(ev.end) > now);
     await put("polymarket", { events }, 5 * M);
   });
   if (due("spot", 5 * M)) await tryDo("spot", async () => {
     const out: Record<string, unknown> = {};
-    for (const [coin, sym] of [["BTC", "BTCUSDT"], ["ETH", "ETHUSDT"], ["SOL", "SOLUSDT"]]) {
-      const b = await x.reader.get(`https://data-api.binance.vision/api/v3/ticker/bookTicker?symbol=${sym}`);
+    const pairs = [["BTC", "BTCUSDT"], ["ETH", "ETHUSDT"], ["SOL", "SOLUSDT"]];
+    const read = await Promise.all(pairs.map(([, sym]) => x.reader.get(`https://data-api.binance.vision/api/v3/ticker/bookTicker?symbol=${sym}`)));
+    pairs.forEach(([coin], i) => {
+      const b = read[i];
       if (isObj(b)) { const bid = n(b.bidPrice), ask = n(b.askPrice); out[coin] = { bid, ask, mid: bid !== null && ask !== null ? (bid + ask) / 2 : null }; }
-    }
+    });
     await put("spot", out, 5 * M);
   });
   if (due("vol", H)) await tryDo("vol", async () => {
     const tape = tapeOf(cfg.venue, x.reader);
     const sd: Record<string, number | null> = {}, sd1h: Record<string, number | null> = {};
-    for (const coin of COINS) {
-      const closes = await tape.hourCloses(coin, 168);
-      const v = sd24Of(closes);
+    const allCloses = await Promise.all(COINS.map((coin) => tape.hourCloses(coin, 168)));
+    for (const [i, coin] of COINS.entries()) {
+      const v = sd24Of(allCloses[i]);
       sd[coin] = v === null ? null : r4(v);
       sd1h[coin] = v === null ? null : r4(v / Math.sqrt(24));
     }
@@ -289,8 +307,9 @@ export async function refreshCtx(x: Deps, cfg: Config, state: State) {
   if (due("liquidations", H)) await tryDo("liquidations", async () => {
     const out: Record<string, { long_usd: number; short_usd: number }> = {};
     const ct: Record<string, number> = { BTC: 0.01, ETH: 0.1, SOL: 1 };
-    for (const coin of COINS) {
-      const a = await x.reader.get(`https://www.okx.com/api/v5/public/liquidation-orders?instType=SWAP&uly=${coin}-USDT&state=filled&limit=100`);
+    const reads = await Promise.all(COINS.map((coin) => x.reader.get(`https://www.okx.com/api/v5/public/liquidation-orders?instType=SWAP&uly=${coin}-USDT&state=filled&limit=100`)));
+    for (const [i, coin] of COINS.entries()) {
+      const a = reads[i];
       const rows = isObj(a) && Array.isArray(a.data) && isObj(a.data[0]) && Array.isArray(a.data[0].details) ? a.data[0].details as unknown[] : [];
       let lu = 0, su = 0;
       for (const d of rows) {
@@ -313,7 +332,7 @@ export async function refreshCtx(x: Deps, cfg: Config, state: State) {
     await put("stablecoins", { source: "defillama (USDT)", rows }, DAY);
   });
   state.ctxAt = at;
-  return errors;
+  return { errors, skipped };
 }
 
 // ── the paper book ────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -321,13 +340,13 @@ export async function refreshCtx(x: Deps, cfg: Config, state: State) {
 export type Position = {
   id: number; order_id: number; decision_id: string; coin: Coin; direction: Dir; size: number; entry: number; stop: number; limit_px: number;
   stop0: number; limit0: number; p: number | null; leverage: number; liq_price: number; opened_at: string; fee_open_usd: number; funding_usd: number;
-  state: "open" | "closed"; closed_at: string | null; close_price: number | null; close_how: string | null; fee_close_usd: number | null; pnl_usd: number | null;
+  funded_through: string | null; state: "open" | "closed"; closed_at: string | null; close_price: number | null; close_how: string | null; fee_close_usd: number | null; pnl_usd: number | null;
 };
 export type Order = {
   id: number; created_at: string; mode: string; decision_id: string; kind: string; coin: Coin; direction: Dir | null; entry_type: string | null; size: number | null;
   entry: number | null; stop: number | null; limit_px: number | null; p: number | null; good_till: string | null; state: string; leverage: number | null;
 };
-const POS_COLS = "id,order_id,decision_id,coin,direction,size,entry,stop,limit_px,stop0,limit0,p,leverage,liq_price,opened_at,fee_open_usd,funding_usd,state,closed_at,close_price,close_how,fee_close_usd,pnl_usd";
+const POS_COLS = "id,order_id,decision_id,coin,direction,size,entry,stop,limit_px,stop0,limit0,p,leverage,liq_price,opened_at,fee_open_usd,funding_usd,funded_through,state,closed_at,close_price,close_how,fee_close_usd,pnl_usd";
 const ORD_COLS = "id,created_at,mode,decision_id,kind,coin,direction,entry_type,size,entry,stop,limit_px,p,good_till,state,leverage";
 const numPos = (p: Record<string, unknown>): Position => ({
   ...(p as unknown as Position), size: Number(p.size), entry: Number(p.entry), stop: Number(p.stop), limit_px: Number(p.limit_px), stop0: Number(p.stop0),
@@ -342,9 +361,19 @@ export const restingOrders = async (db: Db) => (await db.select<Record<string, u
 
 /** The rules' view of the book: open positions at their stops and resting orders at theirs. */
 export const bookOf = (pos: Position[], rest: Order[]): BookItem[] => [
-  ...pos.map((p) => ({ coin: p.coin, dir: p.direction, size: p.size, entry: p.entry, stop: p.stop })),
-  ...rest.filter((o) => o.kind === "open").map((o) => ({ coin: o.coin, dir: o.direction as Dir, size: o.size ?? 0, entry: o.entry ?? 0, stop: o.stop ?? 0, pending: true })),
+  ...pos.map((p) => ({ coin: p.coin, dir: p.direction, size: p.size, entry: p.entry, stop: p.stop, leverage: p.leverage })),
+  ...rest.filter((o) => o.kind === "open").map((o) => ({ coin: o.coin, dir: o.direction as Dir, size: o.size ?? 0, entry: o.entry ?? 0, stop: o.stop ?? 0, pending: true, leverage: o.leverage })),
 ];
+
+/** The newest recorded mid of each coin (the paper equity's prices). */
+export async function midsOf(db: Db, venue: Venue): Promise<Partial<Record<Coin, number>>> {
+  const prices: Partial<Record<Coin, number>> = {};
+  for (const coin of COINS) {
+    const r = await lastRead(db, venue, coin);
+    if (r?.bid != null && r?.ask != null) prices[coin] = (Number(r.bid) + Number(r.ask)) / 2;
+  }
+  return prices;
+}
 
 /** A position's P&L at a price, fees and funding included. */
 export const pnlAt = (p: Position, price: number, feeClose: number) => sgn(p.direction) * (price - p.entry) * p.size - p.fee_open_usd - feeClose - p.funding_usd;
@@ -367,11 +396,13 @@ async function closePos(db: Db, p: Position, price: number, how: string, at: num
   return pnl;
 }
 
-async function openPos(db: Db, o: Order, price: number, at: number, venue: Venue, maker: boolean) {
+async function openPos(db: Db, o: Order, price: number, at: number, venue: Venue, maker: boolean, fromResting: boolean) {
   const dir = o.direction as Dir, size = o.size ?? 0;
   const br = bracketOf(dir, price, o.stop ?? 0, o.limit_px ?? 0);
   const lev = o.leverage ?? (br.ok ? leverageFor(o.coin, dir, br.dStop) : null) ?? 1;
   const fee = size * price * (maker ? CXBOT_FEES[venue].maker : CXBOT_FEES[venue].taker);
+  // A resting order is claimed before its position is written (F3): two runs of one minute open it once.
+  if (fromResting && !(await db.claim("cxbot_orders", `id=eq.${o.id}&state=eq.resting`, { state: "filled", fill_price: price, filled_at: iso(at), fee_usd: r4(fee), updated_at: iso(at) })).length) return null;
   const [row] = await db.insert<Record<string, unknown>>("cxbot_positions", [{
     order_id: o.id, decision_id: o.decision_id, coin: o.coin, direction: dir, size, entry: price, stop: o.stop, limit_px: o.limit_px, stop0: o.stop, limit0: o.limit_px,
     p: o.p, leverage: lev, liq_price: r4(liquidationPrice(o.coin, dir, price, lev)), opened_at: iso(at), fee_open_usd: r4(fee), funding_usd: 0, state: "open", updated_at: iso(at),
@@ -384,23 +415,50 @@ async function openPos(db: Db, o: Order, price: number, at: number, venue: Venue
  * The paper engine, minute by minute from the one it last decided to the last complete minute that has a recorded minute
  * after it (a stop's fill needs the next open): resting entries fill or expire; positions meet their stop (first, when a
  * minute reaches both), their limit (strictly through), liquidation, or the 7-day close; funding is paid on each hour.
+ *
+ * The independent audit (2026-10-29) made it safe and conservative where it was neither:
+ *   F4  a coin it holds with a minute missing from the tape: the engine WAITS at a gap younger than `CXBOT_ENGINE_WAIT_MS`
+ *       (the recorder re-reads from its newest minute next time) instead of stepping over it for good, which let a stop
+ *       inside the gap go unbooked; an older gap is stepped over (the record has no minute there);
+ *   F5  a resting entry filled in a minute whose range also reaches its stop is stopped in that minute (the old engine
+ *       judged it only from the next minute, so a limit long filled on a fall through its stop survived the fall);
+ *   F3  a resting order is claimed before its position is written and each hour's funding is booked once per position
+ *       (`funded_through`), so a minute run twice (a retry, a lease outrun) books nothing twice;
+ *   F7  outside the test (dry-run; the end of the test) it cancels every resting order and runs the held positions to their
+ *       stop, limit or 7-day close, as the prereg's §3 says; before, the end froze them.
  */
 export async function stepBook(x: Deps, cfg: Config, state: State) {
   const now = x.now, last = floorTo(now, M) - 2 * M; // the last minute that has a complete minute after it
   let from = Number(state.engineMinute ?? NaN);
   if (!Number.isFinite(from)) from = last; // the first run decides from now on
-  const did = { minutes: 0, filled: 0, closed: 0, expired: 0, funded: 0 };
+  const did = { minutes: 0, filled: 0, closed: 0, expired: 0, cancelled: 0, funded: 0, waiting: null as string | null };
   if (from >= last) { state.engineMinute = from; return did; }
   const pos = await openPositions(x.db), rest = await restingOrders(x.db);
+  if (cfg.mode !== "paper") {
+    for (const o of rest) {
+      await x.db.update("cxbot_orders", `id=eq.${o.id}&state=eq.resting`, { state: "cancelled", updated_at: iso(now) });
+      o.state = "cancelled"; did.cancelled++;
+    }
+  }
   const tapes: Partial<Record<Coin, Minute[]>> = {};
   const fundingRows: Partial<Record<Coin, TapeRow[]>> = {};
   for (const coin of COINS) {
-    if (!pos.some((p) => p.coin === coin) && !rest.some((o) => o.coin === coin)) continue;
+    if (!pos.some((p) => p.coin === coin) && !rest.some((o) => o.coin === coin && o.state === "resting")) continue;
     tapes[coin] = await minutesOf(x.db, cfg.venue, coin, from + M, last + 2 * M);
-    fundingRows[coin] = await x.db.select<TapeRow>("cxbot_tape", `venue=eq.${cfg.venue}&coin=eq.${coin}&t=gt.${encodeURIComponent(iso(from - H))}&t=lte.${encodeURIComponent(iso(last))}&funding=not.is.null&select=t,funding,idx,mark&order=t.asc`);
+    fundingRows[coin] = await x.db.select<TapeRow>("cxbot_tape", `venue=eq.${cfg.venue}&coin=eq.${coin}&t=gte.${encodeURIComponent(iso(from - H))}&t=lte.${encodeURIComponent(iso(last))}&funding=not.is.null&select=t,funding,idx,mark&order=t.asc`);
   }
-  const at = (coin: Coin, t: number) => (tapes[coin] ?? []).find((m) => m.t === t) ?? null;
-  for (let t = from + M; t <= last; t += M) {
+  const byT: Partial<Record<Coin, Map<number, Minute>>> = Object.fromEntries(Object.entries(tapes).map(([c, ms_]) => [c, new Map(ms_!.map((m) => [m.t, m]))]));
+  const at = (coin: Coin, t: number) => byT[coin]?.get(t) ?? null;
+  const close = async (p: Position, price: number, how: string, t: number, maker: boolean) => {
+    await closePos(x.db, p, price, how, t, cfg.venue, maker);
+    p.state = "closed"; did.closed++;
+  };
+  let done = from;
+  minutes: for (let t = from + M; t <= last; t += M) {
+    for (const coin of COINS) {
+      if (!tapes[coin] || (at(coin, t) && at(coin, t + M))) continue;
+      if (now - (t + 2 * M) < CXBOT_ENGINE_WAIT_MS) { did.waiting = `${coin} ${iso(t)}`; break minutes; }
+    }
     for (const coin of COINS) {
       const mi = at(coin, t);
       if (!mi) continue;
@@ -415,47 +473,55 @@ export async function stepBook(x: Deps, cfg: Config, state: State) {
         }
         if (ms(o.created_at) >= t) continue;
         const type = o.entry_type === "stop" ? "stop" : "limit";
-        if (!entryEvent(o.direction as Dir, type, o.entry ?? 0, mi)) continue;
-        const price = type === "limit" ? (o.entry ?? 0) : (o.direction === "long" ? Math.max((o.entry ?? 0) * (1 + CXBOT_RULES.stopSlippage), next.o) : Math.min((o.entry ?? 0) * (1 - CXBOT_RULES.stopSlippage), next.o));
-        const row = await openPos(x.db, o, price, t + M, cfg.venue, type === "limit");
-        o.state = "filled"; did.filled++;
-        if (row) pos.push(numPos(row));
+        const dir = o.direction as Dir;
+        if (!entryEvent(dir, type, o.entry ?? 0, mi)) continue;
+        const price = type === "limit" ? (o.entry ?? 0) : stopEntryFill(dir, o.entry ?? 0, mi.o, next.o);
+        const row = await openPos(x.db, o, price, t + M, cfg.venue, type === "limit", true);
+        o.state = "filled";
+        if (!row) continue;
+        did.filled++;
+        const p = numPos(row);
+        // F5: the minute that filled it also reached its stop (or its liquidation): stopped there, at the conservative fill.
+        if (positionEvent(dir, p.stop, p.limit_px, mi) === "stop" || liqReached(dir, p.liq_price, mi)) {
+          const fill = stopFill(dir, p.stop, mi.o, next.o);
+          const beyond = dir === "long" ? fill <= p.liq_price : fill >= p.liq_price;
+          await close(p, beyond ? p.liq_price : fill, beyond ? "liquidation" : "stop", t + M, false);
+        } else pos.push(p);
       }
       for (const p of pos.filter((p) => p.coin === coin && p.state === "open")) {
         if (ms(p.opened_at) >= t + M) continue;
         if (ms(p.opened_at) > t) continue; // a fill inside minute t is judged from the next minute
-        if (t % H === 0) {
-          const f = [...(fundingRows[coin] ?? [])].reverse().find((r) => ms(r.t) <= t && ms(r.t) > t - H);
+        if (t % H === 0 && !(p.funded_through && ms(p.funded_through) >= t)) {
+          // The rate read in the hour BEFORE the payment (Hyperliquid's `funding` is the coming hour's predicted rate; a read
+          // taken on the hour already shows the next one).
+          const f = [...(fundingRows[coin] ?? [])].reverse().find((r) => ms(r.t) < t && ms(r.t) >= t - H);
           const rate = f ? n(f.funding) : null, px = f ? (n(f.idx) ?? n(f.mark) ?? mi.o) : mi.o;
           if (rate !== null) {
             const pay = sgn(p.direction) * rate * p.size * px;
-            p.funding_usd = r4(p.funding_usd + pay);
-            await x.db.update("cxbot_positions", `id=eq.${p.id}`, { funding_usd: p.funding_usd, updated_at: iso(now) });
-            did.funded++;
+            const next_ = r4(p.funding_usd + pay);
+            const got = await x.db.claim("cxbot_positions", `id=eq.${p.id}&or=(funded_through.is.null,funded_through.lt.${encodeURIComponent(iso(t))})`, { funding_usd: next_, funded_through: iso(t), updated_at: iso(now) });
+            if (got.length) { p.funding_usd = next_; p.funded_through = iso(t); did.funded++; }
+            else { const cur = (await x.db.select<{ funding_usd: number }>("cxbot_positions", `id=eq.${p.id}&select=funding_usd`))[0]; if (cur) p.funding_usd = Number(cur.funding_usd); }
           }
         }
-        const liqHit = p.direction === "long" ? mi.l <= p.liq_price : mi.h >= p.liq_price;
         const ev = positionEvent(p.direction, p.stop, p.limit_px, mi);
         if (ev === "stop") {
-          const fill = stopFill(p.direction, p.stop, next.o);
+          const fill = stopFill(p.direction, p.stop, mi.o, next.o);
           const beyond = p.direction === "long" ? fill <= p.liq_price : fill >= p.liq_price;
-          await closePos(x.db, p, beyond ? p.liq_price : fill, beyond ? "liquidation" : "stop", t + M, cfg.venue, false);
-          p.state = "closed"; did.closed++;
-        } else if (liqHit) {
-          await closePos(x.db, p, p.liq_price, "liquidation", t + M, cfg.venue, false);
-          p.state = "closed"; did.closed++;
+          await close(p, beyond ? p.liq_price : fill, beyond ? "liquidation" : "stop", t + M, false);
+        } else if (liqReached(p.direction, p.liq_price, mi)) {
+          await close(p, p.liq_price, "liquidation", t + M, false);
         } else if (ev === "limit") {
-          await closePos(x.db, p, p.limit_px, "limit", t + M, cfg.venue, true);
-          p.state = "closed"; did.closed++;
+          await close(p, p.limit_px, "limit", t + M, true);
         } else if (t + M - ms(p.opened_at) >= CXBOT_RULES.maxHoldMs) {
-          await closePos(x.db, p, next.o, "server", t + M, cfg.venue, false);
-          p.state = "closed"; did.closed++;
+          await close(p, next.o, "server", t + M, false);
         }
       }
     }
     did.minutes++;
+    done = t;
   }
-  state.engineMinute = last;
+  state.engineMinute = done;
   return did;
 }
 
@@ -543,7 +609,12 @@ export async function issueA(x: Deps, cfg: Config) {
   return fresh.length;
 }
 
-/** Issue layer B: at 24, 8 and 2 hours before each daily "above" question, the three strikes nearest 0.25, 0.50, 0.75. */
+/**
+ * Issue layer B: at 24, 8 and 2 hours before each daily "above" question, the three strikes nearest 0.25, 0.50, 0.75.
+ * One question per event, horizon and target (its id names the target, F8): the issue window is ten minutes, and the old id
+ * named the strike, so a tick later in the window whose mids had moved issued a FOURTH, FIFTH… strike with a later
+ * deadline. A strike an earlier tick took for one target is not taken again for another.
+ */
 export async function issueB(x: Deps, cfg: Config) {
   const now = x.now, q = CXBOT_QUESTIONS;
   if (cfg.mode !== "paper") return 0;
@@ -554,13 +625,17 @@ export async function issueB(x: Deps, cfg: Config) {
     for (const h of q.pmHorizonsH) {
       const t = end - h * H;
       if (!(now >= t && now < t + 10 * M)) continue;
-      const used = new Set<string>();
+      const idOf = (target: number) => `B-${ev.slug}-${h}h-q${Math.round(target * 100)}`.slice(0, 96);
+      const before = await x.db.select<{ id: string; pm_market: string }>("cxbot_questions", `id=in.(${q.pmTargets.map((g) => `"${idOf(g)}"`).join(",")})&select=id,pm_market`);
+      const used = new Set<string>(before.map((b) => String(b.pm_market)));
+      const taken = new Set<string>(before.map((b) => b.id));
       for (const target of q.pmTargets) {
+        if (taken.has(idOf(target))) continue;
         const pick = ev.markets.filter((m) => m.mid !== null && !used.has(m.id) && !m.closed).sort((a, b) => Math.abs((a.mid ?? 0) - target) - Math.abs((b.mid ?? 0) - target))[0];
         if (!pick) continue;
         used.add(pick.id);
         rows.push({
-          id: `B-${ev.slug}-${h}h-${pick.strike}`.slice(0, 96), layer: "B", issued_at: iso(now), deadline: iso(now + q.pmAnswerMs), coin: ev.coin, pm_slug: ev.slug,
+          id: idOf(target), layer: "B", issued_at: iso(now), deadline: iso(now + q.pmAnswerMs), coin: ev.coin, pm_slug: ev.slug,
           pm_market: pick.id, pm_strike: pick.strike, pm_question: pick.question, pm_end: iso(end), numbers: { mid_at_issue: pick.mid, horizon_h: h, target }, state: "open",
         });
       }
@@ -613,16 +688,24 @@ export async function resolveQuestions(x: Deps, cfg: Config) {
   for (const q of open) {
     if (q.layer === "A") {
       const start = ms(q.start_at), hold = Number(q.hold_ms);
-      const mins = await minutesOf(x.db, cfg.venue, q.coin, start, Math.min(start + hold, floorTo(now, M)));
+      // Read ten minutes past the hold (F18): a minute after it proves the tape covers the end even when the hold's last
+      // minute is missing, which before left the question 'scoring' for good (and 200 such starved every later one).
+      const mins = await minutesOf(x.db, cfg.venue, q.coin, start, Math.min(start + hold + 10 * M, floorTo(now, M)));
       const r = resolveOnTape({ dir: q.direction as Dir, start, stop: Number(q.stop), limit: Number(q.limit_px), holdMs: hold }, mins);
-      if ("pending" in r) continue;
+      if ("pending" in r) {
+        if (now > start + hold + DAY) { await x.db.update("cxbot_questions", `id=eq.${q.id}&state=eq.scoring`, { state: "void", how: "no tape to resolve on", resolved_at: iso(now) }); resolved++; }
+        continue;
+      }
       await x.db.update("cxbot_questions", `id=eq.${q.id}&state=eq.scoring`, { y: r4(r.y), y_alt: r.yAlt ?? null, how: r.how, resolved_at: iso(now), state: "resolved" });
       resolved++;
     } else if (now > ms(q.pm_end) + 10 * M) {
       const slug = String(q.pm_slug);
       if (!pmCache.has(slug)) pmCache.set(slug, await readPmEvent(x.reader, slug, q.coin as "BTC" | "ETH").catch(() => null));
       const m = pmCache.get(slug)?.markets.find((k) => k.id === q.pm_market);
-      if (!m || m.yes === null) continue;
+      if (!m || m.yes === null) {
+        if (now > ms(q.pm_end) + 7 * DAY) { await x.db.update("cxbot_questions", `id=eq.${q.id}&state=eq.scoring`, { state: "void", how: "no 0/1 resolution in 7 days", resolved_at: iso(now) }); resolved++; }
+        continue;
+      }
       await x.db.update("cxbot_questions", `id=eq.${q.id}&state=eq.scoring`, { y: m.yes, how: "resolved", resolved_at: iso(now), state: "resolved" });
       resolved++;
     }
@@ -630,27 +713,35 @@ export async function resolveQuestions(x: Deps, cfg: Config) {
   return resolved;
 }
 
-/** The minute: record, context, the book, the questions, the snapshot. Each part's fault is collected, never fatal to the rest. */
+/**
+ * The minute: record, then under the lease the book, the questions and the snapshot, then the context within the minute's
+ * budget (F15). Each part's fault is collected, never fatal to the rest. The book and the snapshot run in paper mode and,
+ * after it, while anything is still held (F7). The state is written only while the lease is still this run's (F3).
+ */
 export async function tick(x: Deps, owner: string) {
   const errors: string[] = [];
+  const clock = x.clock ?? Date.now, t0 = clock();
   const cfg = await readConfig(x.db);
   const did: Record<string, unknown> = { mode: cfg.mode, venue: cfg.venue };
   try { did.record = (await record(x, cfg)).did; } catch (e) { errors.push(`record: ${(e as Error).message.slice(0, 160)}`); }
   if (!(await takeLease(x.db, owner, x.now, 45e3))) return { did, errors, busy: true };
   try {
     const state = await readState(x.db);
-    errors.push(...await refreshCtx(x, cfg, state));
+    const held = cfg.mode === "paper" || (await openPositions(x.db)).length > 0 || (await restingOrders(x.db)).length > 0;
     const parts: Array<[string, () => Promise<unknown>]> = [
-      ["book", () => cfg.mode === "paper" ? stepBook(x, cfg, state) : Promise.resolve(null)],
+      ["book", () => held ? stepBook(x, cfg, state) : Promise.resolve(null)],
       ["issueA", () => issueA(x, cfg)], ["issueB", () => issueB(x, cfg)],
       ["start", () => startQuestions(x, cfg)], ["resolve", () => resolveQuestions(x, cfg)],
-      ["snapshot", () => cfg.mode === "paper" ? snapshot(x, cfg, state) : Promise.resolve(null)],
+      ["snapshot", () => held ? snapshot(x, cfg, state) : Promise.resolve(null)],
     ];
     for (const [k, f] of parts) {
       try { did[k] = await f(); } catch (e) { errors.push(`${k}: ${(e as Error).message.slice(0, 160)}`); }
     }
-    if (cfg.mode !== "paper") state.engineMinute = floorTo(x.now, M) - 2 * M;
-    await writeState(x.db, state, x.now);
+    if (!held) state.engineMinute = floorTo(x.now, M) - 2 * M;
+    const c = await refreshCtx(x, cfg, state, () => clock() - t0 > CXBOT_TICK_CTX_BUDGET_MS);
+    errors.push(...c.errors);
+    if (c.skipped.length) did.ctx_skipped = c.skipped;
+    if (!(await writeStateHeld(x.db, state, x.now, owner))) errors.push("state: the lease was lost before the state was written; this minute's state is dropped");
   } finally {
     await dropLease(x.db, owner);
   }
@@ -689,8 +780,7 @@ const depthBands = (b: Book | null, mid: number) => {
 export async function accountView(x: Deps) {
   const cfg = await readConfig(x.db), state = await readState(x.db);
   const open = await openPositions(x.db), closed = await closedPositions(x.db), rest = await restingOrders(x.db);
-  const prices: Partial<Record<Coin, number>> = {};
-  for (const coin of COINS) { const r = await lastRead(x.db, cfg.venue, coin); if (r?.bid != null && r?.ask != null) prices[coin] = (Number(r.bid) + Number(r.ask)) / 2; }
+  const prices = await midsOf(x.db, cfg.venue);
   const e = equityOf(cfg.budget_usd, closed, open, prices);
   const stops = stopsOf(state, x.now);
   const book = bookOf(open, rest);
@@ -778,7 +868,7 @@ export async function quoteView(x: Deps, q: URLSearchParams): Promise<Out> {
   const digitals = der && c !== "SOL" ? [stop, limit].map((K) => ({ level: K, p_above_at_hold_end: (() => { const v = digitalAbove(der[c], x.now, x.now + holdMs, K, scale); return v === null ? null : r4(v); })() })) : null;
   const state = await readState(x.db), stops = stopsOf(state, x.now);
   const open = await openPositions(x.db), rest = await restingOrders(x.db), closed = await closedPositions(x.db);
-  const eq = equityOf(cfg.budget_usd, closed, open, {}).equity;
+  const eq = equityOf(cfg.budget_usd, closed, open, await midsOf(x.db, cfg.venue)).equity;
   const br = bracketOf(d, entry, stop, limit);
   const size = br.ok && p !== null ? sizeMax({ coin: c, entry, dStop: br.dStop, costs: Number(numbers.costs_bps.total) / 1e4, p, rr: br.rewardRisk, budget: cfg.budget_usd, equity: eq }) : null;
   const rules = s && p !== null && size !== null && size > 0 ? openRefusals({ coin: c, dir: d, entryType: "market", entry, stop, limit, size, p, category: "N", eventAt: null, goodTill: null }, {
@@ -854,7 +944,8 @@ export async function placeOrder(x: Deps, body: unknown, owner: string, ordersLa
     const s = await marketState(x, cfg, coin, book);
     if (!s) return { status: 503, body: { error: "tape_stale", detail: "the market could not be read" } };
     const open = await openPositions(x.db), rest = await restingOrders(x.db), closed = await closedPositions(x.db);
-    const prices = { [coin]: s.mid } as Partial<Record<Coin, number>>;
+    // Every held coin at its newest mid, this coin at the book read now (F16: the others counted at their entry before).
+    const prices = { ...(await midsOf(x.db, cfg.venue)), [coin]: s.mid } as Partial<Record<Coin, number>>;
     const eq = equityOf(cfg.budget_usd, closed, open, prices).equity;
     const today = iso(floorTo(x.now, DAY));
     const ordersToday = (await x.db.select<{ id: number }>("cxbot_orders", `kind=eq.open&created_at=gte.${encodeURIComponent(today)}&select=id`)).length;
@@ -876,7 +967,7 @@ export async function placeOrder(x: Deps, body: unknown, owner: string, ordersLa
     }]);
     if (cfg.mode === "dry_run") return ok({ sent: false, would_fill: fill, state: "dry_run", checks: v.checks, order_id: o?.id ?? null });
     if (et === "market" && o) {
-      const pos = await openPos(x.db, numOrd(o), fill!, x.now, cfg.venue, false);
+      const pos = await openPos(x.db, numOrd(o), fill!, x.now, cfg.venue, false, false);
       return ok({ sent: true, state: "filled", fill_price: fill, position_id: pos?.id ?? null, leverage: lev, liq_price: v.checks.liq_price, checks: v.checks });
     }
     return ok({ sent: true, state: "resting", order_id: o?.id ?? null, checks: v.checks });
@@ -884,6 +975,27 @@ export async function placeOrder(x: Deps, body: unknown, owner: string, ordersLa
     await dropLease(x.db, owner);
   }
 }
+
+/**
+ * The minutes the paper engine has not decided yet for a coin from `startMs` (it decides each minute about two minutes
+ * after it ends), read from the venue now, the minute in progress included; null when the venue cannot be read.
+ *
+ * Independent audit 2026-10-29, F2: the agent sees those minutes (`markets`' `last_minute`, any chart) before the engine
+ * books them. Without this check it could close at today's better price a position whose stop a minute ago had already
+ * hit (or whose limit it had passed), tighten a stop to a better fill after the fact, move a limit in to a level already
+ * traded, or cancel a resting entry that had already filled into a loss: an option on outcomes it can see.
+ */
+async function undecidedMinutes(x: Deps, cfg: Config, coin: Coin, startMs: number): Promise<Minute[] | null> {
+  const em = Number((await readState(x.db)).engineMinute ?? NaN);
+  const from = Math.max(Number.isFinite(em) ? em + M : floorTo(x.now, M) - 2 * M, startMs);
+  if (from > x.now) return [];
+  try { return (await tapeOf(cfg.venue, x.reader).candles(coin, from, x.now)).filter((m) => m.t >= from); } catch { return null; }
+}
+const firstFrom = (p: Position) => Math.ceil(ms(p.opened_at) / M) * M; // the engine judges a position from this minute
+/** The first undecided minute in which a position's stop or limit (or its liquidation) was already reached. */
+const exitReached = (p: Position, mins: Minute[], stop = p.stop, limit = p.limit_px) =>
+  mins.find((mi) => positionEvent(p.direction, stop, limit, mi) !== null || liqReached(p.direction, p.liq_price, mi)) ?? null;
+const pendingExit = (mi: Minute): Refusal => ({ rule: "pending_exit", why: `the position's stop or limit was reached in the minute from ${iso(mi.t)}, which the paper engine books within about two minutes; it closes there` });
 
 /** `?action=close`: a position of the bot's, at the touch through the book now, a taker. */
 export async function closePosition(x: Deps, body: unknown, owner: string): Promise<Out> {
@@ -899,6 +1011,10 @@ export async function closePosition(x: Deps, body: unknown, owner: string): Prom
     const cfg = await readConfig(x.db);
     const p = (await openPositions(x.db)).find((k) => k.id === d.position_id);
     if (!p) return { status: 422, body: { error: "refused", refusals: [{ rule: "not_held", why: "no open position of yours has that id" }] } };
+    const mins = await undecidedMinutes(x, cfg, p.coin, firstFrom(p));
+    if (mins === null) return { status: 503, body: { error: "tape_stale", detail: "the minutes since the engine's last could not be read; the stop and limit stand" } };
+    const hit = exitReached(p, mins);
+    if (hit) return { status: 422, body: { error: "refused", refusals: [pendingExit(hit)] } };
     const book = await tapeOf(cfg.venue, x.reader).book(p.coin).catch(() => null);
     const price = book ? walkBook(p.direction === "long" ? book.bids : book.asks, p.size, book.tick, p.direction !== "long") : null;
     if (price === null) return { status: 503, body: { error: "tape_stale", detail: "the book could not be read; the stop and limit stand" } };
@@ -934,6 +1050,12 @@ export async function amendPosition(x: Deps, body: unknown, owner: string): Prom
     }
     if (d.limit !== null && s && (up ? d.limit <= s.ask : d.limit >= s.bid)) refusals.push({ rule: "limit_through", why: "the limit stays on the profit side of the price" });
     if (refusals.length) return { status: 422, body: { error: "refused", refusals } };
+    // An amend applies to every minute the engine has not decided yet: refused when the old levels or the new ones were
+    // already reached in one of them (F2).
+    const mins = await undecidedMinutes(x, cfg, p.coin, firstFrom(p));
+    if (mins === null) return { status: 503, body: { error: "tape_stale", detail: "the minutes since the engine's last could not be read; the stop and limit stand" } };
+    const hit = exitReached(p, mins) ?? exitReached(p, mins, d.stop ?? p.stop, d.limit ?? p.limit_px);
+    if (hit) return { status: 422, body: { error: "refused", refusals: [pendingExit(hit)] } };
     await x.db.insert("cxbot_decisions", [decisionRow({ ...d, coin: p.coin, direction: p.direction }, null, body.decision)], false);
     await x.db.insert("cxbot_orders", [{ mode: cfg.mode, decision_id: d.id, kind: "amend", coin: p.coin, direction: p.direction, stop: d.stop, limit_px: d.limit, position_id: p.id, state: "done" }], false);
     await x.db.update("cxbot_positions", `id=eq.${p.id}&state=eq.open`, { ...(d.stop !== null ? { stop: d.stop } : {}), ...(d.limit !== null ? { limit_px: d.limit } : {}), updated_at: iso(x.now) });
@@ -956,9 +1078,20 @@ export async function cancelOrders(x: Deps, body: unknown, all: boolean, owner: 
   try {
     const rest = (await restingOrders(x.db)).filter((o) => all || o.id === id);
     if (!all && !rest.length) return { status: 422, body: { error: "refused", refusals: [{ rule: "not_held", why: "no resting order of yours has that id" }] } };
+    // A resting entry already reached in a minute the engine has not decided yet has filled: it is not cancelled (F2).
+    const cfg = await readConfig(x.db);
+    const pending: Refusal[] = [], go: Order[] = [];
+    for (const o of rest) {
+      const mins = await undecidedMinutes(x, cfg, o.coin, floorTo(ms(o.created_at), M) + M);
+      if (mins === null) return { status: 503, body: { error: "tape_stale", detail: "the minutes since the engine's last could not be read; nothing was cancelled" } };
+      const hit = mins.find((mi) => (!o.good_till || mi.t < ms(o.good_till)) && entryEvent(o.direction as Dir, o.entry_type === "stop" ? "stop" : "limit", o.entry ?? 0, mi));
+      if (hit) pending.push({ rule: "pending_fill", why: `order ${o.id}: its entry was reached in the minute from ${iso(hit.t)}, which the paper engine books within about two minutes; it fills there` });
+      else go.push(o);
+    }
+    if (!all && pending.length) return { status: 422, body: { error: "refused", refusals: pending } };
     if (d && !(await x.db.select("cxbot_decisions", `id=eq.${encodeURIComponent(d.id)}&select=id`)).length) await x.db.insert("cxbot_decisions", [decisionRow(d, null, b.decision)], false);
-    for (const o of rest) await x.db.update("cxbot_orders", `id=eq.${o.id}&state=eq.resting`, { state: "cancelled", updated_at: iso(x.now) });
-    return ok({ cancelled: rest.map((o) => o.id) });
+    for (const o of go) await x.db.update("cxbot_orders", `id=eq.${o.id}&state=eq.resting`, { state: "cancelled", updated_at: iso(x.now) });
+    return ok({ cancelled: go.map((o) => o.id), ...(pending.length ? { not_cancelled: pending } : {}) });
   } finally {
     await dropLease(x.db, owner);
   }

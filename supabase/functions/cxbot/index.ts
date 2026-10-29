@@ -34,7 +34,7 @@ import { type Db, makeDb } from "../agents/db.ts";
 import { reachAll } from "./client.ts";
 import {
   accountView, amendPosition, calendarView, cancelOrders, closePosition, contextView, type Deps, forecast, lastRead, makeDeps, marketsView, placeOrder, questionsView,
-  quoteView, readConfig, readState, tick, writeState,
+  quoteView, readConfig, tick,
 } from "./engine.ts";
 import { CXBOT_MAX_BODY_BYTES, CXBOT_MAX_ERRORS, CXBOT_MAX_ROWS_PER_HOUR, isAuthorised, isObj, rateVerdict, type RequestRow, TRADING_ACTIONS, validateAnswers, validateBatch } from "./ingest.ts";
 import { bracketOf, COINS } from "./rules.ts";
@@ -178,11 +178,14 @@ async function handleCron(req: Request, h: HandleDeps, t: number, action: string
     const r = await tick(x, (h.owner ?? (() => crypto.randomUUID()))());
     if (r.errors.length) {
       const key = r.errors.map((e) => e.replace(/\d+(\.\d+)?/g, "#")).sort().join(" | ").slice(0, 400);
-      const st = await readState(x.db);
-      const lastRep = st.tickReport as { key: string; at: number } | undefined;
+      // The last report is kept in its own column, never in the engine's state: a write of the state from here, after the
+      // minute dropped its lease, could put back an older engine minute over a newer run's (independent audit, F3).
+      const row = (await x.db.select<{ last_error: string | null }>("cxbot_exec_state", "id=eq.1&select=last_error"))[0];
+      let lastRep: { key: string; at: number } | null = null;
+      try { lastRep = row?.last_error ? JSON.parse(row.last_error) : null; } catch { lastRep = null; }
       if (!lastRep || lastRep.key !== key || t - lastRep.at >= 3600e3) {
         await (h.report ?? reportServerError)("cxbot.tick", { message: r.errors.join("; ").slice(0, 500) });
-        await writeState(x.db, { ...st, tickReport: { key, at: t } }, t);
+        await x.db.update("cxbot_exec_state", "id=eq.1", { last_error: JSON.stringify({ key, at: t }) });
       }
     }
     return json(200, { ok: !r.errors.length, busy: r.busy, ...r.did, errors: r.errors.length });

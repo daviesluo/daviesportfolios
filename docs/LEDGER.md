@@ -652,6 +652,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
     is not 200 from eu-west-2, `update public.cxbot_config set venue = 'binance'` (then OKX) before the go, never routed
     round; create `cxbot-ledger` from the seed; the daily desk check (~23:27 UK). **Davies:** the secret `CXBOT_TOKEN` (32+
     chars, to Grok only), the name, then the go (0163's statement; 48 h shakedown, 56 days).
+    **Independent audit 2026-10-29** (`reviews/2026-10-29-cxbot-independent-audit.md` §3): Davies picks the block length and
+    whether to extend the release list past 12-31; the prompt changed (resend); `0164` before the function deploys.
 
 ## Machine and platform setup
 
@@ -768,19 +770,11 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's archive, each batch under a heading
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 01:24 UTC section (archived
-2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth).
+2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth).
 
-### [2026-10-29 01:57 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **The Chinese gate gets a first half** (Davies, 10-29: "怎么又有英文了，你之前设置的gate不行啊": the Stop hook judges a turn
-  only after its English is on his screen): `.claude/hooks/chinese-remind.mjs` adds the rule as context when he writes
-  (UserPromptSubmit) and after every tool call (PostToolUse). Pinned in `src/chinese_reply_hook.test.js`.
-- **The IG recorder's live login works** (item 18): `facts` on live at 01:56:45 UTC found the spread-bet account and every
-  role's epic but `wknd_gbpusd` (AUD/USD `CS.D.AUDUSD.TODAY.IP`); the first try at 01:34 had stale secrets
-  (`invalid-details`), which Davies replaced. IGBOT's sync stayed clean throughout. The 2026-10-29 01:33 section archived (twelfth).
-
-### [2026-10-29 01:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **A Stop hook keeps replies to Davies in Chinese** (Davies, 10-29: "你可以给你发出的消息加gate吗", after English came back
-  in one session again and again): `.claude/hooks/chinese-reply.mjs`, wired in `.claude/settings.json`, blocks the end of a
-  turn whose own text (code, paths and links taken out) is mostly English. On this session's transcript it flagged 51 of 235
-  text blocks, all English, and no Chinese one. `src/chinese_reply_hook.test.js` pins it. CLAUDE.md, the skill and its
-  Cursor copy say so. A session reads hooks from its primary checkout: keep it on `origin/main`. The 2026-10-29 01:32, 2026-10-29 01:31 section(s) archived (eleventh).
+### [2026-10-29 02:19 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **CXBOT independent audit** (sub-agent; commit, not pushed; item 19; Davies, 10-29: "…交给一个独立subagents仔细深度审核"):
+  `reviews/2026-10-29-cxbot-independent-audit.md`, 20 findings, 19 fixed with pins. Critical: a shadow scored from its own
+  `ts` (journal takes 7 days back), now from `received_at`. High: close/amend/cancel on minutes the engine had not booked
+  (`pending_exit`/`pending_fill`); double fills/funding past the lease (`0164` `funded_through`, lease-held state); a tape
+  gap skipped a stop (engine waits). Prompt changed: resend to Grok. The 2026-10-29 01:45, 2026-10-29 01:57 section(s) archived (thirteenth).

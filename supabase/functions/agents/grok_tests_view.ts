@@ -1,6 +1,6 @@
 // The two outside-Grok test rows of TESTING (Davies, 2026-10-29: "在testing列表中把IG Trader…都上线", and the standing
 // instruction that a verified build is shown in TESTING): "Crypto analyst" (CXBOT, paper on Hyperliquid's public tape,
-// `cxbot_*`, 0161) and "IG Trader" (IGBOT, spread bets on IG's demo, `igbot_*`, 0157). Each is summarised in one shape the
+// `cxbot_*`, 0163) and "IG Trader" (IGBOT, spread bets on IG's demo, `igbot_*`, 0157). Each is summarised in one shape the
 // page draws as a row and a page (`grokTestRow`, `GrokTestDetail` in src/agents): the mode, the budget and the equity
 // against it, today, the open positions with their stop and limit, trades, the days run, and the scores per layer.
 //
@@ -56,17 +56,21 @@ export function cxbotSummary(x: CxbotInput): GrokTest | null {
   if (!x.config) return null;
   const budget = num(x.config.budget_usd) ?? 1000;
   const startedAt = (x.config.started_at as string) ?? null;
+  const endedAt = (x.config.ended_at as string) ?? null;
   const paper = x.config.mode === "paper";
-  const eq = paper ? num(x.snapshot?.equity_usd) ?? budget : budget;
-  const unrealised = paper ? num(x.snapshot?.unrealised_usd) ?? 0 : 0;
-  const fees = paper ? num(x.snapshot?.fees_usd) ?? 0 : 0;
+  // Once the test has started its money is the paper engine's, during it and after its end (independent audit 2026-10-29:
+  // the end puts the mode back to dry-run, and the row then showed the bare budget, hiding the test's result).
+  const ran = !!startedAt;
+  const eq = ran ? num(x.snapshot?.equity_usd) ?? budget : budget;
+  const unrealised = ran ? num(x.snapshot?.unrealised_usd) ?? 0 : 0;
+  const fees = ran ? num(x.snapshot?.fees_usd) ?? 0 : 0;
   const open = x.positions.filter((p) => p.state === "open");
   const closed = x.positions.filter((p) => p.state === "closed");
   const lag = x.lastFetchedAt ? Math.round((x.nowMs - ms(x.lastFetchedAt)) / 60e3) : null;
   // Layer A: the assigned brackets the server resolved and the agent answered; B: Polymarket's strikes against the mid.
   const p = new Map(x.forecasts.map((f) => [String(f.question_id), num(f.p)]));
   const t0 = startedAt ? ms(startedAt) + 2 * DAY : Infinity;
-  const aIssued = x.questions.filter((q) => q.layer === "A" && ms(q.issued_at) >= t0);
+  const aIssued = x.questions.filter((q) => q.layer === "A" && ms(q.issued_at) >= t0 && q.state !== "void"); // a voided question is none (the scorer's F10)
   const aRows = aIssued.filter((q) => q.state === "resolved" && p.get(String(q.id)) != null).map((q) => ({ p: p.get(String(q.id))!, base: Number(q.m), y: Number(q.y) }));
   const bRows = x.questions.filter((q) => q.layer === "B" && ms(q.issued_at) >= t0 && q.state === "resolved" && p.get(String(q.id)) != null && num(q.pm_mid) !== null)
     .map((q) => ({ p: p.get(String(q.id))!, base: Number(q.pm_mid), y: Number(q.y) }));
@@ -79,10 +83,10 @@ export function cxbotSummary(x: CxbotInput): GrokTest | null {
   const answered = aIssued.filter((q) => p.get(String(q.id)) != null).length;
   return {
     id: "cxbot", name: "Crypto analyst", venueId: "hyperliquid", ccy: "USD", usdPerUnit: 1,
-    mode: paper ? "paper" : "dry_run", startedAt, daysRun: paper ? daysSince(startedAt, x.nowMs) : null,
+    mode: paper ? "paper" : "dry_run", startedAt, daysRun: ran ? daysSince(startedAt, endedAt && !paper ? Math.min(x.nowMs, ms(endedAt)) : x.nowMs) : null,
     shakedown: paper && !!startedAt && x.nowMs < ms(startedAt) + 2 * DAY, running: lag !== null && lag <= 3, lagMinutes: lag,
     budget, equity: r2(eq), realised: r2(eq - budget - unrealised), unrealised: r2(unrealised), fees: r2(fees),
-    today: paper && x.dayOpen !== null ? r2(eq - x.dayOpen) : 0,
+    today: ran && x.dayOpen !== null ? r2(eq - x.dayOpen) : 0,
     deployed: r2(open.reduce((s, q) => s + (Number(q.size) * Number(q.entry)) / (Number(q.leverage) || 1), 0)),
     positions: open.map((q) => {
       const mid = x.mids[String(q.coin)];
@@ -104,7 +108,7 @@ export function cxbotSummary(x: CxbotInput): GrokTest | null {
 
 export async function readCxbot(d: Db, now: number): Promise<GrokTest | null> {
   try {
-    const cfg = (await d.select<Record<string, unknown>>("cxbot_config", "id=eq.1&select=mode,venue,started_at,budget_usd"))[0] ?? null;
+    const cfg = (await d.select<Record<string, unknown>>("cxbot_config", "id=eq.1&select=mode,venue,started_at,ended_at,budget_usd"))[0] ?? null;
     if (!cfg) return null;
     const venue = String(cfg.venue);
     const day = new Date(now - (now % DAY)).toISOString();
