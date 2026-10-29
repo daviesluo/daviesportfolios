@@ -792,6 +792,18 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second).
 
+### [2026-10-29 19:31 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The £1 holding line on LIVE and every twin from 2026-10-29 22:00 UTC; variant-4 retired, the rest renumbered** (sub-agent;
+  commit, not pushed; Davies, 10-29: "…如果基本可以肯定效果正面的话，加入实盘live的规则里和所有测试策略包括所有variant里，并且把variant-4删了，之后的数字都-1",
+  on the HOLDMIN verdict). LIVE: `QUOTE_LIVE_INSTANCE.holdMin {gbp: 1, from: QUOTE_LIVE_HOLD_MIN_FROM}` (`quotes_live.ts`; nothing else;
+  `quotes_live_frozen.ts` untouched, the instance test still turn for turn before the instant). `0176`: `rules.holdMin` from 22:00 on
+  the eleven enabled twins (live600, live1200, take50, n600no03, n600usdt2, n600usdt3, n600usdt, u300nudge, u300ctl, live600x1,
+  live600ctl), both arms of every pair together; `n600hold1` off and hidden ("hold £1 from 10-28", reading superseded); names
+  variant-5→4 (n600usdt3), 6→5 (n600usdt), 7→6 (u300nudge), 8→7 (live600x1). Deviation recorded apart
+  (`reviews/2026-10-29-holdmin-deviation.md`; the variant-7 and -8 pins read it for the executor's new hash), the live design's
+  addendum, guide, map, reference, CLAUDE.md, fixture, tests. Watch after 22:00: LIVE's USDT-GBP entries under £1 should no longer
+  be followed by an exit, and carried coin stays under £1 a rung.
+
 ### [2026-10-29 19:16 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **HOLDMIN verdict: variant-4's £1 holding line is basically certain positive** (sub-agent; commit, not pushed; Davies, 10-29:
   "那你研究下variant-4的结果，如果基本可以肯定效果正面的话，加入实盘live的规则里…"; step 1 of 3). `reviews/2026-10-29-holdmin-verdict.md`,

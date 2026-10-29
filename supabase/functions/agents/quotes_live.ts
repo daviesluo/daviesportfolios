@@ -154,7 +154,7 @@ export type QuoteLiveInstance = {
    * venue's minimum, `gbp` of coin at fair), so a fill under it (the £0.10 prints on USDT-GBP since 2026-10-08) leaves the
    * rung's entry resting and its coin carried into the trip; over it, the exit sells the whole holding, and an exit once
    * resting runs to the venue's minimum. The 24-hour stop counts from the fill that crossed the line. The live account's
-   * instance has none.
+   * instance has it, £1, from QUOTE_LIVE_HOLD_MIN_FROM (2026-10-29 22:00 UTC; it had none before).
    */
   holdMin?: { from: number; gbp: number };
   /**
@@ -194,12 +194,21 @@ export function nudgedInputs(i: BookInputs, book: QuoteBook, T: number, rule: Fa
 }
 /** The weights of `QuoteLiveInstance.weights`: by book, by side and by rung distance (the key is `String(k)`, "0.001"). */
 export type RungWeights = { from: number; book?: Partial<Record<QuoteBook, number>>; side?: Partial<Record<Side, number>>; k?: Record<string, number> };
+/**
+ * From this instant the live account runs PR5-OPT's £1 holding line (`QuoteLiveInstance.holdMin`, variant-4's rule; Davies,
+ * 2026-10-29: "如果基本可以肯定效果正面的话，加入实盘live的规则里和所有测试策略包括所有variant里", on the verdict of
+ * docs/agents/reviews/2026-10-29-holdmin-verdict.md): a £0.10 print at a rung's price no longer makes it held and sends an exit
+ * that loses pennies to the venue's rounding. Every running twin takes it at the same instant (migration 0176), so they keep
+ * mirroring LIVE; recorded in docs/agents/reviews/2026-10-29-holdmin-deviation.md.
+ */
+export const QUOTE_LIVE_HOLD_MIN_FROM = Date.parse("2026-10-29T22:00:00Z");
 /** The live account: PR5's own sub-account, the paper engine's own state, three rungs, one key. */
 export const QUOTE_LIVE_INSTANCE: QuoteLiveInstance = {
   config: "agent_quote_live_config", orders: "agent_quote_live_orders", events: "agent_quote_live_events", state: "agent_quote_live_state",
   migration: "0052", paper: "agent_quote_state", lease: "quotes-live", rungs: QUOTE_RUNGS, exitReprice: QUOTE_REPRICE, govKey: () => "account",
   liveSwitches: { wkPaper: "agent_quote_live_wkpaper" },
   convertRepeg: { from: Date.parse("2026-10-28T00:00:00Z") },
+  holdMin: { from: QUOTE_LIVE_HOLD_MIN_FROM, gbp: 1 },
 };
 /** The rungs an instance has retired at `now` (`QuoteLiveInstance.retired`): none for the live account. */
 export const retiredAt = (inst: QuoteLiveInstance, now: number): readonly number[] => (inst.retired && now >= inst.retired.from ? inst.retired.ks : []);
@@ -1383,8 +1392,8 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
     const pair = pairs[LIVE_SYMBOL[b]];
     const px = inputs[b]?.f ?? lastPrintPx(b) ?? 0;
     const dust = pair && px > 0 ? dustBase(pair, px) : 0;
-    // `holdMin` (PR5-OPT; none on the live account's instance, whose line is the venue's dust): the line a holding must pass to
-    // count, and once its exit or stop is open, the venue's dust again, so the exit runs to the end.
+    // `holdMin` (PR5-OPT's; the live account's from QUOTE_LIVE_HOLD_MIN_FROM, its line the venue's dust before): the line a holding
+    // must pass to count, and once its exit or stop is open, the venue's dust again, so the exit runs to the end.
     const line = holdLineBase(inst, d.now, dust, px);
     const exiting = line > dust && open.some((o) => isOpen(o) && o.mode === "live" && o.book === b && o.rung_side === side && Number(o.k) === k && o.leg !== "entry");
     const live = rungBook(side, mine, dayStart, line);

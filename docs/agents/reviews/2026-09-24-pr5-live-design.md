@@ -377,3 +377,20 @@ rule's, and it never crosses the book it was read from; the rule's price is kept
 re-priced as any exit, when fair moves past the rule's step. An exit the book still shows crossing is a skip in the turn's
 report, not a row, and a refused-for-crossing row from before the instant holds nothing back. A real venue refusal is
 still a row and still waits. LIVE's twins take it from the same instant (their pre-registrations' deviations). Not blind.
+
+## Addendum (2026-10-29): a fill of £1 or less does not make a rung held
+
+Davies, 2026-10-29: "那你研究下variant-4的结果，如果基本可以肯定效果正面的话，加入实盘live的规则里和所有测试策略包括所有variant里，并且把variant-4删了，
+之后的数字都-1". The verdict (`reviews/2026-10-29-holdmin-verdict.md`) found variant-4's £1 holding line basically certain positive
+on USDT-GBP and harmless on USDC-GBP. On LIVE's own record since go-live, 149 of 277 USDT-GBP entry fills were under £1 (a print
+of the venue's minimum, £0.10, at a rung's price); each made the rung held, withdrew the rest of its entry and sent an exit for a
+few pence that lost a penny or two to the venue's whole-penny settlement, 7.5 such trips a day. LIVE's own days replayed with the
+line: +0.62 bps of capital a day before the haircut (P(≤ 0) 0.002), never behind on a day.
+
+From 2026-10-29 22:00 UTC (`QUOTE_LIVE_HOLD_MIN_FROM`; `QUOTE_LIVE_INSTANCE.holdMin {gbp: 1}`, PR5-OPT's rule, unchanged) a rung
+counts as held only above £1 of coin at fair. Under it the rung's entry keeps resting and its coin is carried into the next trip;
+over it one exit takes the whole holding, and once that exit rests the line is the venue's minimum again, so the exit runs to the
+end (`pennyExit` and `exitTicksOnBook` as before). The 24-hour stop counts from the fill that crossed £1. Coin under the line has
+no exit and no stop of its own: at most £1 a rung, marked in the day's P&L. Before the instant the executor is as it was
+(`quotes_live_instance.test.ts` against `quotes_live_frozen.ts`, unchanged). Every running twin takes it from the same instant
+(`0176`; the deviation of their pre-registrations, recorded apart in `reviews/2026-10-29-holdmin-deviation.md`). Not blind.

@@ -90,7 +90,9 @@ describe("PR5-OPT's five twins on LIVE's rules from 06:00", () => {
     expect(live).toMatch(/if \(weightsOn\(inst, d\.now\) && !\(cap > 0\)\) return \{ error: `the account already holds what /);
     const inst = /export const QUOTE_LIVE_INSTANCE: QuoteLiveInstance = \{([\s\S]*?)\n\};/.exec(live)?.[1] ?? '';
     expect(inst).toContain('agent_quote_live_config');
-    expect(/weights|holdMin/.test(inst)).toBe(false);
+    expect(/weights/.test(inst)).toBe(false);
+    // Variant-4's holding line goes to LIVE from 2026-10-29 22:00 UTC (0176; docs/agents/reviews/2026-10-29-holdmin-deviation.md).
+    expect(inst).toContain('holdMin: { from: QUOTE_LIVE_HOLD_MIN_FROM, gbp: 1 },');
   });
 
   it("start again from 2026-10-29 06:00 under 0152 (deviation 1): each its 0149 row but for id, display order (41-45 stay with the old rows: the column is unique), tables, lease, start, rules' dates and migration; 0149's five off and renamed first", () => {

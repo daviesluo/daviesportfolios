@@ -15,6 +15,12 @@ const sqlOf = (f) => read(`supabase/migrations/${f}`).toString('utf8').replace(/
 const rowsOf = (f) => JSON.parse(/null::public\.agent_quote_twin_specs, \$json\$(\[[\s\S]*?\])\$json\$/.exec(sqlOf(f))?.[1] ?? '[]');
 const DOC = read('docs/agents/reviews/2026-10-29-revx-exit-tick-twin-prereg.md').toString('utf8');
 const named = (f) => [...DOC.matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
+/** The holding-line deviation (0176), recorded apart: the files as they are, under this pre-registration's own heading. */
+const HOLD = read('docs/agents/reviews/2026-10-29-holdmin-deviation.md').toString('utf8');
+const holdNamed = (f) => {
+  const s = HOLD.indexOf('### `docs/agents/reviews/2026-10-29-revx-exit-tick-twin-prereg.md`'), rest = s < 0 ? '' : HOLD.slice(s + 1), e = rest.search(/\n##/);
+  return [...rest.slice(0, e < 0 ? undefined : e).matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
+};
 
 describe("variant-8's pre-registration", () => {
   it('shows the rows 0175 inserts, frozen; the two are the same but for the offset, its id, name, place, tables, lease and hiding', () => {
@@ -58,12 +64,15 @@ describe("variant-8's pre-registration", () => {
     expect(/capital_gbp\s*=|agent_quote_live_config|edge_calls|take_mode|weekend_mode|cron\.|\bgrant\b|create policy|\bupdate\b|\bdelete\b|create table/i.test(sql)).toBe(false);
   });
 
-  it('names the sha256 of each file it froze, once, and each file is that one; the driver and executor are the bytes variant-7 froze', () => {
+  it('names the sha256 of each file it froze, once, and each file is that one (the executor as the holding-line deviation names it); the driver and executor were the bytes variant-7 froze', () => {
     for (const f of [
-      `supabase/migrations/${M}`, 'supabase/functions/agents/quotes_twin.ts', 'supabase/functions/agents/quotes_live.ts',
+      `supabase/migrations/${M}`, 'supabase/functions/agents/quotes_twin.ts',
       'supabase/functions/agents/revx_sim.ts', 'supabase/functions/agents/quotes_weekend.ts',
       'docs/agents/backtests/revx_lag/scripts/power.py', 'docs/agents/backtests/revx_lag/results/power.json',
     ]) expect(named(f), f).toEqual([sha(f)]);
+    // The deviation of 2026-10-29 (0176: variant-4's £1 holding line on LIVE and every twin), recorded apart: the executor as it is.
+    const live = 'supabase/functions/agents/quotes_live.ts';
+    expect([...named(live), ...holdNamed(live)], live).toEqual(['12e3dad7cc9058cedc7cd840fc4ac5d3396b955c842e39fd70f22f18cfad25eb', sha(live)]);
     const v7 = read('docs/agents/reviews/2026-10-29-revx-usdc-nudge-twin-prereg.md').toString('utf8');
     for (const f of ['quotes_twin.ts', 'quotes_live.ts', 'revx_sim.ts', 'quotes_weekend.ts']) {
       expect(v7, f).toContain(`| \`supabase/functions/agents/${f}\` | ${named(`supabase/functions/agents/${f}`)[0]} |`);

@@ -899,6 +899,7 @@ before touching migration state.
 | `0173_cb_fx_src.sql` | The source that priced each Coinbase minute's rate (`fx_src` on the four arms' minute records), from their switch to second-level FX. |
 | `0174_cb_quote_inputs_usdt.sql` | Lets `cb_quote_inputs` store Coinbase's USDT-USD minutes (`cb:USDT-USD`) beside Yahoo's EUR/USD. |
 | `0175_quote_twin_exit_tick.sql` | "Stablecoin quotes variant-8", LIVE's rules at £600 with every exit a tick beyond fair (`exitOffset`), and its hidden control, from 2026-10-29 19:00. |
+| `0176_quote_twins_hold_min.sql` | Variant-4's £1 holding line (`holdMin`) on every running stablecoin twin from 2026-10-29 22:00, as on LIVE; variant-4 off and hidden, the variants after it numbered down by one. |
 | `0166_fxw_display_name.sql` | Renames the stored display name of the AUD weekend paper book to "FXW-AUD weekend" (`ig_fxw_state.name`), guarded by its old value; no key or table changes. |
 | `0163_cxbot.sql` | CXBOT's tables (its config held to dry-run or paper and a venue, the tape, the context, the assigned questions and answers, the journal, the paper orders, positions and snapshots, the reach probe's reads, its state), RLS on with no grant, and its minute call. |
 | `0165_igbot_session.sql` | IGBOT's IG session shared by every isolate of its function, sealed, and the claim that lets one isolate at a time log in. |

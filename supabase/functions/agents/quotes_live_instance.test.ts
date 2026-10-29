@@ -183,17 +183,22 @@ for (const r of TWIN_ROWS) {
   });
 }
 
-Deno.test("the live account's instance has neither PR5-OPT option, and its sizes, retirements, conversion cap and holding line are the frozen rule's", () => {
+Deno.test("the live account's instance has no PR5-OPT weights, so its sizes, retirements and conversion cap are the frozen rule's; its holding line is the venue's minimum until 2026-10-29 22:00 UTC and £1 from then (0176)", () => {
   const I = Now.QUOTE_LIVE_INSTANCE;
-  assertEquals([I.weights, I.holdMin], [undefined, undefined]);
+  assertEquals(I.weights, undefined);
+  // Variant-4's £1 holding line from QUOTE_LIVE_HOLD_MIN_FROM (docs/agents/reviews/2026-10-29-holdmin-deviation.md).
+  assertEquals([Now.QUOTE_LIVE_HOLD_MIN_FROM, I.holdMin], [Date.parse("2026-10-29T22:00:00Z"), { from: Date.parse("2026-10-29T22:00:00Z"), gbp: 1 }]);
   for (const now of [0, Date.parse("2026-10-29T00:00:00Z"), Date.parse("2030-01-01T00:00:00Z")]) {
     for (const b of QUOTE_BOOKS) for (const side of ["bid", "ask"] as const) for (const k of I.rungs) {
       assertEquals(Now.rungGbpOf(I, 600, b, side, k, now), Now.rungGbp(600, I.rungs));
       assertEquals(Now.weightRetired(I, now, b, side, k), false);
     }
     for (const b of QUOTE_BOOKS) assertEquals(Now.convertCapGbp(I, 600, b, now), 600 * Now.QUOTE_LIVE_CONVERT_MAX_FRACTION);
-    assertEquals(Now.holdLineBase(I, now, 0.1337, 0.748), 0.1337);
   }
+  // Before the instant the line is the venue's minimum, as the frozen executor's; from it, £1 of coin at the price.
+  assertEquals(Now.holdLineBase(I, Now.QUOTE_LIVE_HOLD_MIN_FROM - 1, 0.1337, 0.748), 0.1337);
+  assertEquals(Now.holdLineBase(I, Now.QUOTE_LIVE_HOLD_MIN_FROM, 0.1337, 0.748), 1 / 0.748);
+  assertEquals(Now.holdLineBase(I, Date.parse("2030-01-01T00:00:00Z"), 0.1337, 0.748), 1 / 0.748);
 });
 
 Deno.test("PR5-OPT's weights size each rung by its weight's share and retire a rung of weight 0; the conversion cap is the book's asks", () => {

@@ -1,5 +1,5 @@
 {
- "about": "The realistic twins' rows as the dashboard serves them (`readQuotesTwin`), made by docs/agents/backtests/twins/scripts/fixture.ts from the twins' spec rows (`specs`), in the page's order: \"Stablecoin quotes LIVE twin\" (`live600`, £600), \"Stablecoin quotes variant-1\" (`live1200`, £1,200), \"Stablecoin quotes variant-2\" (`take50`, £600), \"Stablecoin quotes variant-3\" (`n600no03`, £600), \"Stablecoin quotes variant-4\" (`n600hold1`, £600), \"Stablecoin quotes USDT 2:1 from 10-28\" (`n600usdt2`, £600), \"Stablecoin quotes variant-5\" (`n600usdt3`, £600), \"Stablecoin quotes variant-6\" (`n600usdt`, £600), \"Stablecoin quotes variant-7\" (`u300nudge`, £225.33), \"Stablecoin quotes USDC control from 10-30\" (`u300ctl`, £225.33), \"Stablecoin quotes variant-8\" (`live600x1`, £600), \"Stablecoin quotes LIVE control from 10-29\" (`live600ctl`, £600). Each is the live quotes fixture's book (quotes_live_fixture.json: no real balance or fill) run as its tables at its capital, beside a driver state of its engine's (`sims`: its account, mode, turns, replica check, backfill and orders sent each day, with its operator's quarter of its capital), its start (`starts`) moved before the browser test's clock, 2026-09-17 23:00 UTC. `twins` is the function's answer, which the agents function's test asserts and the browser test serves.",
+ "about": "The realistic twins' rows as the dashboard serves them (`readQuotesTwin`), made by docs/agents/backtests/twins/scripts/fixture.ts from the twins' spec rows (`specs`), in the page's order: \"Stablecoin quotes LIVE twin\" (`live600`, £600), \"Stablecoin quotes variant-1\" (`live1200`, £1,200), \"Stablecoin quotes variant-2\" (`take50`, £600), \"Stablecoin quotes variant-3\" (`n600no03`, £600), \"Stablecoin quotes USDT 2:1 from 10-28\" (`n600usdt2`, £600), \"Stablecoin quotes variant-4\" (`n600usdt3`, £600), \"Stablecoin quotes variant-5\" (`n600usdt`, £600), \"Stablecoin quotes variant-6\" (`u300nudge`, £225.33), \"Stablecoin quotes USDC control from 10-30\" (`u300ctl`, £225.33), \"Stablecoin quotes variant-7\" (`live600x1`, £600), \"Stablecoin quotes LIVE control from 10-29\" (`live600ctl`, £600). Each is the live quotes fixture's book (quotes_live_fixture.json: no real balance or fill) run as its tables at its capital, beside a driver state of its engine's (`sims`: its account, mode, turns, replica check, backfill and orders sent each day, with its operator's quarter of its capital), its start (`starts`) moved before the browser test's clock, 2026-09-17 23:00 UTC. `twins` is the function's answer, which the agents function's test asserts and the browser test serves.",
  "nowMs": 1789686000000,
  "dayStartMs": 1789603200000,
  "specs": [
@@ -20,6 +20,10 @@
     },
     "weekend": {
      "from": "2026-10-30T21:00:00Z"
+    },
+    "holdMin": {
+     "from": "2026-10-29T22:00:00Z",
+     "gbp": 1
     }
    },
    "backfill": null,
@@ -44,6 +48,10 @@
     },
     "weekend": {
      "from": "2026-10-30T21:00:00Z"
+    },
+    "holdMin": {
+     "from": "2026-10-29T22:00:00Z",
+     "gbp": 1
     }
    },
    "backfill": null,
@@ -64,6 +72,10 @@
    "rules": {
     "take": {
      "from": "2026-10-04T16:00:00Z"
+    },
+    "holdMin": {
+     "from": "2026-10-29T22:00:00Z",
+     "gbp": 1
     }
    },
    "backfill": {
@@ -101,33 +113,9 @@
       "0.002": 1,
       "0.003": 0
      }
-    }
-   },
-   "backfill": null,
-   "prereg": "docs/agents/reviews/2026-10-27-pr5-opt-twins-now-prereg.md",
-   "migration": "0152",
-   "enabled": true
-  },
-  {
-   "id": "n600hold1",
-   "display_name": "Stablecoin quotes variant-4",
-   "display_order": 47,
-   "engine": "pr5",
-   "capital_gbp": 600,
-   "gov": "account",
-   "start": "2026-10-28T22:00:00Z",
-   "table_prefix": "agent_quote_twin_n600hold1",
-   "lease": "quotes-twin-n600hold1",
-   "rules": {
-    "fill": {
-     "model": "at",
-     "from": "2026-10-28T22:00:00Z"
-    },
-    "weekend": {
-     "from": "2026-10-28T22:00:00Z"
     },
     "holdMin": {
-     "from": "2026-10-28T22:00:00Z",
+     "from": "2026-10-29T22:00:00Z",
      "gbp": 1
     }
    },
@@ -160,6 +148,10 @@
       "USDC-GBP": 1,
       "USDT-GBP": 2
      }
+    },
+    "holdMin": {
+     "from": "2026-10-29T22:00:00Z",
+     "gbp": 1
     }
    },
    "backfill": null,
@@ -170,7 +162,7 @@
   },
   {
    "id": "n600usdt3",
-   "display_name": "Stablecoin quotes variant-5",
+   "display_name": "Stablecoin quotes variant-4",
    "display_order": 49,
    "engine": "pr5",
    "capital_gbp": 600,
@@ -192,6 +184,10 @@
       "USDC-GBP": 1,
       "USDT-GBP": 3
      }
+    },
+    "holdMin": {
+     "from": "2026-10-29T22:00:00Z",
+     "gbp": 1
     }
    },
    "backfill": null,
@@ -201,7 +197,7 @@
   },
   {
    "id": "n600usdt",
-   "display_name": "Stablecoin quotes variant-6",
+   "display_name": "Stablecoin quotes variant-5",
    "display_order": 50,
    "engine": "pr5",
    "capital_gbp": 600,
@@ -223,6 +219,10 @@
       "USDC-GBP": 0,
       "USDT-GBP": 1
      }
+    },
+    "holdMin": {
+     "from": "2026-10-29T22:00:00Z",
+     "gbp": 1
     }
    },
    "backfill": null,
@@ -232,7 +232,7 @@
   },
   {
    "id": "u300nudge",
-   "display_name": "Stablecoin quotes variant-7",
+   "display_name": "Stablecoin quotes variant-6",
    "display_order": 51,
    "engine": "pr5",
    "capital_gbp": 225.33,
@@ -264,6 +264,10 @@
      "book": "USDC-GBP",
      "w": 0.5,
      "halfLifeMin": 1440
+    },
+    "holdMin": {
+     "from": "2026-10-29T22:00:00Z",
+     "gbp": 1
     }
    },
    "backfill": null,
@@ -300,6 +304,10 @@
     "usdCapital": {
      "usd": 300,
      "gbpusd": 1.3314
+    },
+    "holdMin": {
+     "from": "2026-10-29T22:00:00Z",
+     "gbp": 1
     }
    },
    "backfill": null,
@@ -310,7 +318,7 @@
   },
   {
    "id": "live600x1",
-   "display_name": "Stablecoin quotes variant-8",
+   "display_name": "Stablecoin quotes variant-7",
    "display_order": 53,
    "engine": "pr5",
    "capital_gbp": 600,
@@ -329,6 +337,10 @@
     "exitOffset": {
      "ticks": 1,
      "from": "2026-10-29T19:00:00Z"
+    },
+    "holdMin": {
+     "from": "2026-10-29T22:00:00Z",
+     "gbp": 1
     }
    },
    "backfill": null,
@@ -354,6 +366,10 @@
     },
     "weekend": {
      "from": "2026-10-30T21:00:00Z"
+    },
+    "holdMin": {
+     "from": "2026-10-29T22:00:00Z",
+     "gbp": 1
     }
    },
    "backfill": null,
@@ -368,7 +384,6 @@
   "live1200": "2026-09-16T15:09:00.000Z",
   "take50": "2026-09-16T15:09:00.000Z",
   "n600no03": "2026-09-16T15:09:00.000Z",
-  "n600hold1": "2026-09-16T15:09:00.000Z",
   "n600usdt2": "2026-09-16T15:09:00.000Z",
   "n600usdt3": "2026-09-16T15:09:00.000Z",
   "n600usdt": "2026-09-16T15:09:00.000Z",
@@ -560,65 +575,6 @@
    }
   },
   "n600no03": {
-   "id": 1,
-   "updated_at": "2026-09-17T22:59:25.000Z",
-   "last_error": null,
-   "state": {
-    "venue": {
-     "v": 1,
-     "seq": 412,
-     "balances": {
-      "GBP": 600.696306,
-      "USDC": 263.6436,
-      "USDT": 527.6436
-     },
-     "orders": [],
-     "applied": {},
-     "lastTurnAt": 1789685965000,
-     "deadmen": [
-      {
-       "at": 1789660800000,
-       "cancelled": 11
-      }
-     ]
-    },
-    "mode": "forward",
-    "turns": 1910,
-    "started": 1789571425000,
-    "paperCheck": {
-     "through": 1789685880000,
-     "minutes": 1910,
-     "events": 3480,
-     "mismatches": 0,
-     "first": null
-    },
-    "origin": {
-     "kind": "fresh"
-    },
-    "lastReport": null,
-    "operator": {
-     "USDC-GBP": {
-      "cid": null,
-      "at": "2026-09-16T15:09:00.000Z",
-      "gbp": 150,
-      "sent": 1,
-      "done": true
-     },
-     "USDT-GBP": {
-      "cid": null,
-      "at": "2026-09-16T15:09:00.000Z",
-      "gbp": 150,
-      "sent": 1,
-      "done": true
-     }
-    },
-    "days": {
-     "2026-09-16": 6,
-     "2026-09-17": 18
-    }
-   }
-  },
-  "n600hold1": {
    "id": 1,
    "updated_at": "2026-09-17T22:59:25.000Z",
    "last_error": null,
@@ -3805,553 +3761,6 @@
     ]
    },
    "twin": {
-    "id": "n600hold1",
-    "name": "Stablecoin quotes variant-4",
-    "engine": "pr5",
-    "rungsASide": 3,
-    "rungGbp": 50,
-    "keys": 1,
-    "startedAt": "2026-09-16T15:09:00.000Z",
-    "mode": "forward",
-    "origin": "fresh",
-    "backfillUntil": null,
-    "lastTurn": "2026-09-17T22:59:25.000Z",
-    "turns": 1910,
-    "deadmen": 1,
-    "paperCheck": {
-     "through": "2026-09-17T22:58:00.000Z",
-     "events": 3480,
-     "mismatches": 0
-    },
-    "lastError": null,
-    "converting": []
-   }
-  },
-  {
-   "dryRun": false,
-   "armed": true,
-   "armedAt": "2026-09-16T09:00:00.000Z",
-   "entryBook": "live",
-   "why": "live: dry_run is off and live_confirmed_at is set",
-   "running": true,
-   "lagMinutes": 1,
-   "lastError": null,
-   "postsToday": {
-    "dryRun": 0,
-    "live": 18
-   },
-   "lossStopped": false,
-   "capitalGbp": 600,
-   "x": 1.32,
-   "capitalUsd": 792,
-   "lossStopGbp": -6,
-   "tradedLive": true,
-   "openOrders": 7,
-   "heldRungs": 2,
-   "unmarked": 0,
-   "pending": [],
-   "fills": 10,
-   "realisedUsd": -0.04554872698228582,
-   "todayUsd": 0.29977991999999265,
-   "unrealisedUsd": -0.1755008490177204,
-   "costUsd": 791.0353273530177,
-   "valueUsd": 1318.8640307766,
-   "feesUsd": 0.23721272698228407,
-   "realisedGbp": -0.03450661135021653,
-   "todayGbp": 0.22710599999999442,
-   "unrealisedGbp": -0.13295518864978817,
-   "costGbp": 599.2691873886497,
-   "valueGbp": 999.139417255,
-   "feesGbp": 0.1797066113502152,
-   "coinsGbp": 599.1362322,
-   "detail": {
-    "books": [
-     {
-      "book": "USDC-GBP",
-      "lastPrice": 0.7576,
-      "lastPrintAt": "2026-09-17T22:58:50.000Z",
-      "fair": 0.75766,
-      "index": 0.7575,
-      "realisedGbp": 0.10560000000000302,
-      "realisedUsd": 0.139392000000004,
-      "trips": 1,
-      "won": 1
-     },
-     {
-      "book": "USDT-GBP",
-      "lastPrice": 0.7572,
-      "lastPrintAt": "2026-09-17T22:58:20.000Z",
-      "fair": 0.75727,
-      "index": 0.757,
-      "realisedGbp": -0.14010661135021957,
-      "realisedUsd": -0.18494072698228983,
-      "trips": 2,
-      "won": 1
-     }
-    ],
-    "rungs": [
-     {
-      "book": "USDC-GBP",
-      "side": "bid",
-      "k": 0.001,
-      "order": {
-       "id": 115,
-       "leg": "entry",
-       "price": 0.7569,
-       "state": "new"
-      },
-      "held": null,
-      "realisedGbp": 0.10560000000000302,
-      "realisedUsd": 0.139392000000004,
-      "fills": 2
-     },
-     {
-      "book": "USDC-GBP",
-      "side": "bid",
-      "k": 0.002,
-      "order": {
-       "id": 116,
-       "leg": "entry",
-       "price": 0.7561,
-       "state": "new"
-      },
-      "held": null,
-      "realisedGbp": 0,
-      "realisedUsd": 0,
-      "fills": 0
-     },
-     {
-      "book": "USDC-GBP",
-      "side": "bid",
-      "k": 0.003,
-      "order": {
-       "id": 117,
-       "leg": "entry",
-       "price": 0.7553,
-       "state": "new"
-      },
-      "held": null,
-      "realisedGbp": 0,
-      "realisedUsd": 0,
-      "fills": 0
-     },
-     {
-      "book": "USDC-GBP",
-      "side": "ask",
-      "k": 0.001,
-      "order": {
-       "id": 118,
-       "leg": "entry",
-       "price": 0.7585,
-       "state": "new"
-      },
-      "held": null,
-      "realisedGbp": 0,
-      "realisedUsd": 0,
-      "fills": 0
-     },
-     {
-      "book": "USDC-GBP",
-      "side": "ask",
-      "k": 0.002,
-      "order": {
-       "id": 111,
-       "leg": "exit",
-       "price": 0.7576,
-       "state": "new"
-      },
-      "held": {
-       "base": 132,
-       "avgEntry": 0.7591,
-       "since": "2026-09-17T20:00:00.000Z",
-       "costGbp": 100.2012,
-       "valueGbp": 100.0032,
-       "unrealisedGbp": 0.21120000000000605,
-       "unrealisedUsd": 0.278784000000008
-      },
-      "realisedGbp": 0,
-      "realisedUsd": 0,
-      "fills": 1
-     },
-     {
-      "book": "USDC-GBP",
-      "side": "ask",
-      "k": 0.003,
-      "order": {
-       "id": 119,
-       "leg": "entry",
-       "price": 0.76,
-       "state": "new"
-      },
-      "held": null,
-      "realisedGbp": 0,
-      "realisedUsd": 0,
-      "fills": 0
-     },
-     {
-      "book": "USDT-GBP",
-      "side": "bid",
-      "k": 0.001,
-      "order": {
-       "id": 113,
-       "leg": "exit",
-       "price": 0.7573,
-       "state": "new"
-      },
-      "held": {
-       "base": 132,
-       "avgEntry": 0.7565,
-       "since": "2026-09-17T22:00:00.000Z",
-       "costGbp": 99.85799999999999,
-       "valueGbp": 99.9504,
-       "unrealisedGbp": 0.06600000000000739,
-       "unrealisedUsd": 0.08712000000000976
-      },
-      "realisedGbp": 0,
-      "realisedUsd": 0,
-      "fills": 1
-     },
-     {
-      "book": "USDT-GBP",
-      "side": "bid",
-      "k": 0.002,
-      "order": null,
-      "held": null,
-      "realisedGbp": 0,
-      "realisedUsd": 0,
-      "fills": 0
-     },
-     {
-      "book": "USDT-GBP",
-      "side": "bid",
-      "k": 0.003,
-      "order": null,
-      "held": null,
-      "realisedGbp": -0.16889400000000593,
-      "realisedUsd": -0.22294008000000784,
-      "fills": 2
-     },
-     {
-      "book": "USDT-GBP",
-      "side": "ask",
-      "k": 0.001,
-      "order": null,
-      "held": null,
-      "realisedGbp": 0.028787388649786375,
-      "realisedUsd": 0.037999353017718014,
-      "fills": 2
-     },
-     {
-      "book": "USDT-GBP",
-      "side": "ask",
-      "k": 0.002,
-      "order": null,
-      "held": null,
-      "realisedGbp": 0,
-      "realisedUsd": 0,
-      "fills": 0
-     },
-     {
-      "book": "USDT-GBP",
-      "side": "ask",
-      "k": 0.003,
-      "order": null,
-      "held": null,
-      "realisedGbp": 0,
-      "realisedUsd": 0,
-      "fills": 0
-     }
-    ],
-    "inventory": {
-     "at": "2026-09-17T22:59:26.000Z",
-     "assets": [
-      {
-       "asset": "GBP",
-       "amount": 600.696306,
-       "gbp": 600.696306,
-       "price": null,
-       "priceFrom": null,
-       "costGbp": null,
-       "unrealisedGbp": null,
-       "unrealisedUsd": null
-      },
-      {
-       "asset": "USDC",
-       "amount": 263.6436,
-       "gbp": 199.71002699999997,
-       "price": 0.7575,
-       "priceFrom": "index",
-       "costGbp": 199.72919999999996,
-       "unrealisedGbp": -0.019172999999995,
-       "unrealisedUsd": -0.0253083599999934
-      },
-      {
-       "asset": "USDT",
-       "amount": 527.6436,
-       "gbp": 399.42620519999997,
-       "price": 0.757,
-       "priceFrom": "index",
-       "costGbp": 399.53998738864976,
-       "unrealisedGbp": -0.11378218864979317,
-       "unrealisedUsd": -0.150192489017727
-      }
-     ]
-    },
-    "days": [
-     {
-      "day": "2026-09-17",
-      "today": true,
-      "orders": 18,
-      "fills": 3,
-      "trips": 2,
-      "won": 1,
-      "realisedGbp": -0.0632940000000029,
-      "realisedUsd": -0.08354808000000384
-     },
-     {
-      "day": "2026-09-16",
-      "today": false,
-      "orders": 6,
-      "fills": 2,
-      "trips": 1,
-      "won": 1,
-      "realisedGbp": 0.028787388649786375,
-      "realisedUsd": 0.037999353017718014
-     }
-    ],
-    "trips": [
-     {
-      "book": "USDT-GBP",
-      "side": "bid",
-      "k": 0.003,
-      "tEntry": "2026-09-16T20:00:00.000Z",
-      "tExit": "2026-09-17T20:00:30.000Z",
-      "entry": 0.7556,
-      "exit": 0.755,
-      "qty": 132,
-      "how": "stop",
-      "feesGbp": 0.089694,
-      "pnlGbp": -0.16889400000000593,
-      "feesUsd": 0.11839608,
-      "pnlUsd": -0.22294008000000784
-     },
-     {
-      "book": "USDC-GBP",
-      "side": "bid",
-      "k": 0.001,
-      "tEntry": "2026-09-17T10:00:00.000Z",
-      "tExit": "2026-09-17T10:30:00.000Z",
-      "entry": 0.7568,
-      "exit": 0.7576,
-      "qty": 132,
-      "how": "exit",
-      "feesGbp": 0,
-      "pnlGbp": 0.10560000000000302,
-      "feesUsd": 0,
-      "pnlUsd": 0.139392000000004
-     },
-     {
-      "book": "USDT-GBP",
-      "side": "ask",
-      "k": 0.001,
-      "tEntry": "2026-09-16T12:00:00.000Z",
-      "tExit": "2026-09-16T13:00:00.000Z",
-      "entry": 0.758,
-      "exit": 0.7571,
-      "qty": 132,
-      "how": "exit",
-      "feesGbp": 0.0900126113502152,
-      "pnlGbp": 0.028787388649786375,
-      "feesUsd": 0.11881664698228407,
-      "pnlUsd": 0.037999353017718014
-     }
-    ],
-    "tripCount": 3,
-    "tripsWon": 2,
-    "orders": [
-     {
-      "id": 119,
-      "ts": "2026-09-17T22:31:04.000Z",
-      "book": "USDC-GBP",
-      "side": "ask",
-      "k": 0.003,
-      "leg": "entry",
-      "venueSide": "sell",
-      "price": 0.76,
-      "base": 131.57894,
-      "state": "new",
-      "filledBase": 0,
-      "avgPrice": null,
-      "reason": null
-     },
-     {
-      "id": 118,
-      "ts": "2026-09-17T22:31:03.000Z",
-      "book": "USDC-GBP",
-      "side": "ask",
-      "k": 0.001,
-      "leg": "entry",
-      "venueSide": "sell",
-      "price": 0.7585,
-      "base": 131.83915,
-      "state": "new",
-      "filledBase": 0,
-      "avgPrice": null,
-      "reason": null
-     },
-     {
-      "id": 117,
-      "ts": "2026-09-17T22:31:02.000Z",
-      "book": "USDC-GBP",
-      "side": "bid",
-      "k": 0.003,
-      "leg": "entry",
-      "venueSide": "buy",
-      "price": 0.7553,
-      "base": 132.39772,
-      "state": "new",
-      "filledBase": 0,
-      "avgPrice": null,
-      "reason": null
-     },
-     {
-      "id": 116,
-      "ts": "2026-09-17T22:31:01.000Z",
-      "book": "USDC-GBP",
-      "side": "bid",
-      "k": 0.002,
-      "leg": "entry",
-      "venueSide": "buy",
-      "price": 0.7561,
-      "base": 132.25763,
-      "state": "new",
-      "filledBase": 0,
-      "avgPrice": null,
-      "reason": null
-     },
-     {
-      "id": 115,
-      "ts": "2026-09-17T22:31:00.000Z",
-      "book": "USDC-GBP",
-      "side": "bid",
-      "k": 0.001,
-      "leg": "entry",
-      "venueSide": "buy",
-      "price": 0.7569,
-      "base": 132.11784,
-      "state": "new",
-      "filledBase": 0,
-      "avgPrice": null,
-      "reason": null
-     },
-     {
-      "id": 114,
-      "ts": "2026-09-17T22:30:00.000Z",
-      "book": "USDC-GBP",
-      "side": "bid",
-      "k": 0.001,
-      "leg": "entry",
-      "venueSide": "buy",
-      "price": 0.757,
-      "base": 132.10039,
-      "state": "rejected",
-      "filledBase": 0,
-      "avgPrice": null,
-      "reason": "refused by the venue: post-only order would cross the book"
-     },
-     {
-      "id": 113,
-      "ts": "2026-09-17T22:01:00.000Z",
-      "book": "USDT-GBP",
-      "side": "bid",
-      "k": 0.001,
-      "leg": "exit",
-      "venueSide": "sell",
-      "price": 0.7573,
-      "base": 132,
-      "state": "new",
-      "filledBase": 0,
-      "avgPrice": null,
-      "reason": null
-     },
-     {
-      "id": 112,
-      "ts": "2026-09-17T21:30:00.000Z",
-      "book": "USDT-GBP",
-      "side": "bid",
-      "k": 0.001,
-      "leg": "entry",
-      "venueSide": "buy",
-      "price": 0.7565,
-      "base": 132,
-      "state": "filled",
-      "filledBase": 132,
-      "avgPrice": 0.7565,
-      "reason": null
-     },
-     {
-      "id": 111,
-      "ts": "2026-09-17T20:01:00.000Z",
-      "book": "USDC-GBP",
-      "side": "ask",
-      "k": 0.002,
-      "leg": "exit",
-      "venueSide": "buy",
-      "price": 0.7576,
-      "base": 132,
-      "state": "new",
-      "filledBase": 0,
-      "avgPrice": null,
-      "reason": null
-     },
-     {
-      "id": 109,
-      "ts": "2026-09-17T19:30:00.000Z",
-      "book": "USDC-GBP",
-      "side": "ask",
-      "k": 0.002,
-      "leg": "entry",
-      "venueSide": "sell",
-      "price": 0.7591,
-      "base": 132,
-      "state": "filled",
-      "filledBase": 132,
-      "avgPrice": 0.7591,
-      "reason": null
-     },
-     {
-      "id": 102,
-      "ts": "2026-09-16T09:03:00.000Z",
-      "book": "USDC-GBP",
-      "side": null,
-      "k": null,
-      "leg": "convert",
-      "venueSide": "buy",
-      "price": 0.7611,
-      "base": 396,
-      "state": "filled",
-      "filledBase": 395.6436,
-      "avgPrice": 0.7574,
-      "reason": null
-     },
-     {
-      "id": 101,
-      "ts": "2026-09-16T09:02:00.000Z",
-      "book": "USDT-GBP",
-      "side": null,
-      "k": null,
-      "leg": "convert",
-      "venueSide": "buy",
-      "price": 0.7607,
-      "base": 396,
-      "state": "filled",
-      "filledBase": 395.6436,
-      "avgPrice": 0.757,
-      "reason": null
-     }
-    ]
-   },
-   "twin": {
     "id": "n600usdt2",
     "name": "Stablecoin quotes USDT 2:1 from 10-28",
     "engine": "pr5",
@@ -4900,7 +4309,7 @@
    },
    "twin": {
     "id": "n600usdt3",
-    "name": "Stablecoin quotes variant-5",
+    "name": "Stablecoin quotes variant-4",
     "engine": "pr5",
     "rungsASide": 3,
     "rungGbp": 50,
@@ -5447,7 +4856,7 @@
    },
    "twin": {
     "id": "n600usdt",
-    "name": "Stablecoin quotes variant-6",
+    "name": "Stablecoin quotes variant-5",
     "engine": "pr5",
     "rungsASide": 3,
     "rungGbp": 50,
@@ -5994,7 +5403,7 @@
    },
    "twin": {
     "id": "u300nudge",
-    "name": "Stablecoin quotes variant-7",
+    "name": "Stablecoin quotes variant-6",
     "engine": "pr5",
     "rungsASide": 3,
     "rungGbp": 18.7775,
@@ -7088,7 +6497,7 @@
    },
    "twin": {
     "id": "live600x1",
-    "name": "Stablecoin quotes variant-8",
+    "name": "Stablecoin quotes variant-7",
     "engine": "pr5",
     "rungsASide": 3,
     "rungGbp": 50,

@@ -130,10 +130,11 @@ describe("the twins' spec rows", () => {
       // guarded on the name it replaces (0108, 0109, 0130, 0141): once. A row may be taken off by its id (0109): once.
       // 0141 adds `hidden`, one rule to one row, switches one row off and hides four: once each. 0154 moves five rows' start
       // and their rules' instants, each guarded on the value it replaces: once each. 0170 does the same for variant-7 and its
-      // control (Davies, 2026-10-29: "你新做好的两个测试策略现在就上线").
+      // control (Davies, 2026-10-29: "你新做好的两个测试策略现在就上线"). 0176 adds one rule to each of eleven rows, switches one
+      // off, hides it and renames five: once each.
       expect(named, f).toBe(2 * inserts + moves + names + offs + later + (f === SPECS_0088 ? 5 : 0));
     }
-    expect(FILES.filter((f) => [RULE_ADD, OFF, HIDE, ADD_HIDDEN].some((re) => [...sqlOf(f).matchAll(re)].length)).map((f) => f.slice(0, 4))).toEqual(['0141', '0142', '0144', '0149', '0151', '0152', '0167']);
+    expect(FILES.filter((f) => [RULE_ADD, OFF, HIDE, ADD_HIDDEN].some((re) => [...sqlOf(f).matchAll(re)].length)).map((f) => f.slice(0, 4))).toEqual(['0141', '0142', '0144', '0149', '0151', '0152', '0167', '0176']);
     expect(FILES.filter((f) => [...sqlOf(f).matchAll(RULE_MOVE)].length).map((f) => f.slice(0, 4))).toEqual(['0090', '0154', '0170']);
     expect(FILES.filter((f) => [...sqlOf(f).matchAll(START)].length).map((f) => f.slice(0, 4))).toEqual(['0154', '0170']);
     // Every rule move matches the parser that applies it.
@@ -158,6 +159,10 @@ describe("the twins' spec rows", () => {
       ['0167', 'take50', 'Stablecoin quotes variant-3', 'Stablecoin quotes variant-2'], ['0167', 'n600no03', 'Stablecoin quotes variant-4', 'Stablecoin quotes variant-3'],
       ['0167', 'n600hold1', 'Stablecoin quotes variant-5', 'Stablecoin quotes variant-4'], ['0167', 'n600usdt3', 'Stablecoin quotes variant-7', 'Stablecoin quotes variant-5'],
       ['0167', 'n600usdt', 'Stablecoin quotes variant-8', 'Stablecoin quotes variant-6'],
+      // 0176 (Davies, 2026-10-29: "…并且把variant-4删了，之后的数字都-1"): variant-4 named for what it was, the rest down by one.
+      ['0176', 'n600hold1', 'Stablecoin quotes variant-4', 'Stablecoin quotes hold £1 from 10-28'],
+      ['0176', 'n600usdt3', 'Stablecoin quotes variant-5', 'Stablecoin quotes variant-4'], ['0176', 'n600usdt', 'Stablecoin quotes variant-6', 'Stablecoin quotes variant-5'],
+      ['0176', 'u300nudge', 'Stablecoin quotes variant-7', 'Stablecoin quotes variant-6'], ['0176', 'live600x1', 'Stablecoin quotes variant-8', 'Stablecoin quotes variant-7'],
     ]);
     expect(deletes.map((n) => [n.file.slice(0, 4), n.id])).toEqual([['0109', 'p50x1']]);
     // Names are unique, so a rename comes before an insert in the same migration that takes the old name (0108), and a
@@ -218,6 +223,19 @@ describe("the twins' spec rows", () => {
     expect(sql0167).toContain("set enabled = false\n where id = 'live';");
     expect(sql0167).toContain("set hidden = true\n where id in ('live', 'n600usdt2');");
     expect(/capital_gbp\s*=|display_order\s*=|rules\s*=/.test(sql0167)).toBe(false);
+    // 0176 (Davies, 2026-10-29: "…并且把variant-4删了，之后的数字都-1"): variant-4 gives up its name before variant-5 takes it, and so
+    // down the chain; it is switched off and hidden; the holding line is added to rows' rules, nothing else of a row changes.
+    const sql0176 = sqlOf('0176_quote_twins_hold_min.sql');
+    const from0176 = (t) => sql0176.indexOf(`set display_name = '${t}'`);
+    expect(from0176('Stablecoin quotes hold £1 from 10-28')).toBeLessThan(from0176('Stablecoin quotes variant-4'));
+    expect(from0176('Stablecoin quotes variant-4')).toBeLessThan(from0176('Stablecoin quotes variant-5'));
+    expect(from0176('Stablecoin quotes variant-5')).toBeLessThan(from0176('Stablecoin quotes variant-6'));
+    expect(from0176('Stablecoin quotes variant-6')).toBeLessThan(from0176('Stablecoin quotes variant-7'));
+    expect(sql0176).toContain("set enabled = false\n where id = 'n600hold1';");
+    expect(sql0176).toContain("set hidden = true\n where id in ('n600hold1');");
+    expect(/capital_gbp\s*=|display_order\s*=/.test(sql0176)).toBe(false);
+    expect((sql0176.match(/set rules = /g) ?? []).length).toBe((sql0176.match(/set rules = rules \|\| '\{"holdMin": /g) ?? []).length);
+    expect((sql0176.match(/set rules = /g) ?? []).length).toBe(11);
     expect(sql0109.search(DELETE)).toBeGreaterThanOrEqual(0);
     expect(sql0109.search(DELETE)).toBeLessThan(sql0109.search(RENAME));
     expect(new Set(ROWS.map((r) => r.display_name)).size).toBe(ROWS.length);
@@ -244,31 +262,32 @@ describe("the twins' spec rows", () => {
       ['o600no03', 'Stablecoin quotes no 0.3 % from 10-27', 41, 600, false, false], ['o600hold1', 'Stablecoin quotes hold £1 from 10-27', 42, 600, false, false],
       ['o600usdt2', 'Stablecoin quotes USDT 2:1 from 10-27', 43, 600, false, false], ['o600usdt3', 'Stablecoin quotes USDT 3:1 from 10-27', 44, 600, false, false],
       ['o600usdt', 'Stablecoin quotes USDT only from 10-27', 45, 600, false, false], ['n600no03', 'Stablecoin quotes variant-3', 46, 600, true, false],
-      ['n600hold1', 'Stablecoin quotes variant-4', 47, 600, true, false], ['n600usdt2', 'Stablecoin quotes USDT 2:1 from 10-28', 48, 600, true, true],
-      ['n600usdt3', 'Stablecoin quotes variant-5', 49, 600, true, false], ['n600usdt', 'Stablecoin quotes variant-6', 50, 600, true, false],
+      // 0176 (Davies, 2026-10-29): variant-4 (the £1 holding line's own twin) off and hidden, its rule now everyone's; the rest down by one.
+      ['n600hold1', 'Stablecoin quotes hold £1 from 10-28', 47, 600, false, true], ['n600usdt2', 'Stablecoin quotes USDT 2:1 from 10-28', 48, 600, true, true],
+      ['n600usdt3', 'Stablecoin quotes variant-4', 49, 600, true, false], ['n600usdt', 'Stablecoin quotes variant-5', 50, 600, true, false],
       // 0169 (Davies, 2026-10-29: REVX-FAIR's USDC-GBP lead "开testing variant-7…做300美元funded"): $300 at 1.3314, and its control, hidden.
-      ['u300nudge', 'Stablecoin quotes variant-7', 51, 225.33, true, false], ['u300ctl', 'Stablecoin quotes USDC control from 10-30', 52, 225.33, true, true],
+      ['u300nudge', 'Stablecoin quotes variant-6', 51, 225.33, true, false], ['u300ctl', 'Stablecoin quotes USDC control from 10-30', 52, 225.33, true, true],
       // 0175 (Davies, 2026-10-29: REVX-LAG's one pass, "好的，建 variant-8，在实盘live的基础上"): LIVE's rules with every exit a tick beyond fair, and its control, hidden.
-      ['live600x1', 'Stablecoin quotes variant-8', 53, 600, true, false], ['live600ctl', 'Stablecoin quotes LIVE control from 10-29', 54, 600, true, true],
+      ['live600x1', 'Stablecoin quotes variant-7', 53, 600, true, false], ['live600ctl', 'Stablecoin quotes LIVE control from 10-29', 54, 600, true, true],
     ]);
     // The page shows the two on LIVE's rules, each with LIVE's fill rule and, from the closure of 2026-10-30 21:00 UTC,
     // LIVE's weekend; none takes (LIVE's take is in shadow, which sends nothing).
     const onPage = ROWS.filter((r) => r.enabled && !r.hidden);
-    expect(onPage.map((r) => r.id)).toEqual(['live600', 'live1200', 'take50', 'n600no03', 'n600hold1', 'n600usdt3', 'n600usdt', 'u300nudge', 'live600x1']);
+    expect(onPage.map((r) => r.id)).toEqual(['live600', 'live1200', 'take50', 'n600no03', 'n600usdt3', 'n600usdt', 'u300nudge', 'live600x1']);
     // TAKE's twin keeps its own rule (a take from 2026-10-04 16:00); the others on LIVE's rules do not take.
     expect(onPage[2].rules.take).toBeTruthy();
     for (const r of onPage.slice(0, 2)) {
       expect([r.rules.fill.model, r.rules.weekend.from, 'take' in r.rules], r.id).toEqual(['at', '2026-10-30T21:00:00Z', false]);
     }
-    // PR5-OPT's five (0149, restarted by 0152, started at once by 0154; the USDT 2:1 one hidden by 0167, so four are on the page): LIVE's fill rule and weekend from their start,
-    // 2026-10-28 22:00, and one rule each from it.
+    // PR5-OPT's five (0149, restarted by 0152, started at once by 0154; the USDT 2:1 one hidden by 0167, the holding line's off by
+    // 0176, so three are on the page): LIVE's fill rule and weekend from their start, 2026-10-28 22:00, and one rule each from it.
     const S = '2026-10-28T22:00:00Z';
-    const opt = onPage.slice(3, 7);
+    const opt = onPage.slice(3, 6);
     for (const r of opt) {
       expect([r.start, r.rules.fill.model, r.rules.fill.from, r.rules.weekend.from, 'take' in r.rules], r.id).toEqual([S, 'at', S, S, false]);
     }
-    expect(opt.map((r) => Object.keys(r.rules).filter((k) => k !== 'fill' && k !== 'weekend'))).toEqual([['weights'], ['holdMin'], ['weights'], ['weights']]);
-    expect(opt.map((r) => (r.rules.weights ?? r.rules.holdMin).from)).toEqual([S, S, S, S]);
+    expect(opt.map((r) => Object.keys(r.rules).filter((k) => !['fill', 'weekend', 'holdMin'].includes(k)))).toEqual([['weights'], ['weights'], ['weights']]);
+    expect(opt.map((r) => r.rules.weights.from)).toEqual([S, S, S]);
     // 0169's variant-7 and its hidden control: LIVE's fill rule and weekend from their start, 2026-10-29 08:00 since 0170 (it was
     // 2026-10-30 00:00), USDC-GBP alone, $300 at the
     // rate its pounds were set at, and the nudge on variant-7 alone (the control is the same row without it).
@@ -292,6 +311,16 @@ describe("the twins' spec rows", () => {
     }
     expect(x1.rules.exitOffset).toEqual({ ticks: 1, from: X });
     expect('exitOffset' in xctl.rules).toBe(false);
+    // 0176 (Davies, 2026-10-29: "…加入实盘live的规则里和所有测试策略包括所有variant里"): every running twin takes variant-4's £1
+    // holding line at LIVE's own instant (QUOTE_LIVE_HOLD_MIN_FROM), both arms of every paired test together; variant-4's own
+    // row keeps the line it had from its start.
+    const H = { from: '2026-10-29T22:00:00Z', gbp: 1 };
+    const running = ROWS.filter((r) => r.enabled);
+    expect(running.map((r) => r.id)).toEqual(['live600', 'live1200', 'take50', 'n600no03', 'n600usdt2', 'n600usdt3', 'n600usdt', 'u300nudge', 'u300ctl', 'live600x1', 'live600ctl']);
+    for (const r of running) expect(r.rules.holdMin, r.id).toEqual(H);
+    expect(ROWS.find((r) => r.id === 'n600hold1').rules.holdMin).toEqual({ from: S, gbp: 1 });
+    const live = read('supabase/functions/agents/quotes_live.ts').toString('utf8');
+    expect(live).toContain(`export const QUOTE_LIVE_HOLD_MIN_FROM = Date.parse("${H.from}");`);
   });
 
   it("make the browser test's fixture as they stand: every enabled row, in the page's order, a hidden one too (it still runs)", () => {

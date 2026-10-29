@@ -15,6 +15,12 @@ const sqlOf = (f) => read(`supabase/migrations/${f}`).toString('utf8').replace(/
 const rowsOf = (f) => JSON.parse(/null::public\.agent_quote_twin_specs, \$json\$(\[[\s\S]*?\])\$json\$/.exec(sqlOf(f))?.[1] ?? '[]');
 const DOC = read('docs/agents/reviews/2026-10-29-revx-usdc-nudge-twin-prereg.md').toString('utf8');
 const named = (f) => [...DOC.matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
+/** The holding-line deviation (0176), recorded apart: the files as they are, under this pre-registration's own heading. */
+const HOLD = read('docs/agents/reviews/2026-10-29-holdmin-deviation.md').toString('utf8');
+const holdNamed = (f) => {
+  const s = HOLD.indexOf('### `docs/agents/reviews/2026-10-29-revx-usdc-nudge-twin-prereg.md`'), rest = s < 0 ? '' : HOLD.slice(s + 1), e = rest.search(/\n##/);
+  return [...rest.slice(0, e < 0 ? undefined : e).matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
+};
 
 describe("variant-7's pre-registration", () => {
   it('shows the rows 0169 inserts, frozen; the two are the same but for the nudge, its id, name, place, tables, lease and hiding', () => {
@@ -43,11 +49,14 @@ describe("variant-7's pre-registration", () => {
     expect(/capital_gbp\s*=|agent_quote_live_config|edge_calls|take_mode|weekend_mode|cron\.|\bgrant\b|create policy/i.test(sql)).toBe(false);
   });
 
-  it('names the sha256 of each file it froze, once, and each file is that one', () => {
+  it('names the sha256 of each file it froze, once, and each file is that one (the executor as the holding-line deviation names it)', () => {
     for (const f of [
       `supabase/migrations/${M}`, 'supabase/functions/agents/quotes_nudge.ts', 'supabase/functions/agents/quotes_twin.ts',
-      'supabase/functions/agents/quotes_live.ts', 'supabase/functions/agents/revx_sim.ts', 'supabase/functions/agents/quotes_weekend.ts',
+      'supabase/functions/agents/revx_sim.ts', 'supabase/functions/agents/quotes_weekend.ts',
     ]) expect(named(f), f).toEqual([sha(f)]);
+    // The deviation of 2026-10-29 (0176: variant-4's £1 holding line on LIVE and every twin), recorded apart: the executor as it is.
+    const live = 'supabase/functions/agents/quotes_live.ts';
+    expect([...named(live), ...holdNamed(live)], live).toEqual(['12e3dad7cc9058cedc7cd840fc4ac5d3396b955c842e39fd70f22f18cfad25eb', sha(live)]);
   });
 
   it('holds its bar and its comparison as written', () => {
