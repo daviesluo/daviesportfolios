@@ -895,6 +895,7 @@ before touching migration state.
 | `0171_okx_usdg_basis.sql` | "Stablecoin quotes USDG/EUR - 1", OKX's USDG-EUR with the basis fair: its tables (the minute record with par, the basis and its count), the days view, lock, call a minute and prune. |
 | `0172_fx_ticks.sql` | The second-level FX recorder: its reads table (42 days), the per-read view, its state row, its row of the one-minute job and its daily prune. |
 | `0173_cb_fx_src.sql` | The source that priced each Coinbase minute's rate (`fx_src` on the four arms' minute records), from their switch to second-level FX. |
+| `0174_cb_quote_inputs_usdt.sql` | Lets `cb_quote_inputs` store Coinbase's USDT-USD minutes (`cb:USDT-USD`) beside Yahoo's EUR/USD. |
 | `0166_fxw_display_name.sql` | Renames the stored display name of the AUD weekend paper book to "FXW-AUD weekend" (`ig_fxw_state.name`), guarded by its old value; no key or table changes. |
 | `0163_cxbot.sql` | CXBOT's tables (its config held to dry-run or paper and a venue, the tape, the context, the assigned questions and answers, the journal, the paper orders, positions and snapshots, the reach probe's reads, its state), RLS on with no grant, and its minute call. |
 | `0165_igbot_session.sql` | IGBOT's IG session shared by every isolate of its function, sealed, and the claim that lets one isolate at a time log in. |

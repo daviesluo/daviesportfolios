@@ -792,6 +792,13 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth).
 
+### [2026-10-29 09:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Coinbase USDT books dark 08:00–~09:50: `cb_quote_inputs` refused `cb:USDT-USD`** (main session, found in the post-deploy
+  error read). 0112's kind check admitted only `fx:EURUSD`, so the `cb_live` switch's USDT-USD minutes were refused 13 times from
+  08:02 and the base and weekend arms' USDT books had no coin value (dark: no entries; nothing wrong traded). `0174` widens the
+  check; `src/cb_quote_inputs_kinds.test.js` replays the migrations' kind checks against the code's kinds. **After the push:**
+  `select count(*) from cb_quote_inputs where kind = 'cb:USDT-USD'` growing; no more `agents.cb_rec` "cbusdt" errors.
+
 ### [2026-10-29 09:22 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Every Coinbase arm on the rate at second resolution** (sub-agent; commit, not pushed; Davies, 10-29: "…如果还是正向优化的话把所有coinbase
   策略的汇率数据源从yahoo换为刚才研究的最佳秒级数据源+fallbacks"; §8 passed). `agents/cb_fx.ts`, called by `cb_quotes.ts`, `cb_hold.ts` and
