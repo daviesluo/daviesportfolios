@@ -122,3 +122,45 @@ None. It starts flat at the first 00:00 UTC after its first run, as the weekend 
 | `supabase/functions/agents/cb_usdc.test.ts` | dfa42316993faec080a5bd8c9ab0fa5361e29c0351db47af1d04cb3a059fe2db |
 | `supabase/functions/agents/cb_hold.ts` | ea081c57918d6c0e6500da7dced0c2a3c57ccd0e8a2e09d9c2cdc06c9aa34fd9 |
 | `supabase/functions/agents/cb_quotes.ts` | fe88387e54abad68ff3fe5a02fb8f2a768a09ccea860b4ab4a46cbbdd262c465 |
+
+**Deviation 2 (2026-10-29, before the reading): $50 a rung, $600, the record before shown × 2.** Davies, 2026-10-29, verbatim:
+
+> 建USDC 那个线索，在with euro-2的基础上开-3，只做300美元的USDC-GBP；另外把目前的-2数字*2做600美元funded
+
+(the second half: double "- 2"'s figures, $600 funded; the first half is "with Euros - 3", pre-registered in
+`2026-10-29-cb-usdc-nudge-prereg.md`).
+
+- **Size.** From the switch, a rung is **$50** (`CB_USDC_RUNG_USD_50`): **$600 on the two books**. The engine's $100 is divided by 2
+  instead of 4 (`CB_USDC_FACTOR_50`, `cbUsdcFactorAt`). §1's construction holds unchanged at the new divisor.
+- **The instant.** The first minute "- 2" decides at or after **2026-10-29 12:00 UTC** (`CB_USDC_50_NOT_BEFORE`), once Deviation 1
+  has switched (`cbUsdc50Switch`).
+  - It is written once into `cb_usdc_state.state` as `usd50From`, with `usd50Factor` = 2.
+  - If the deploy lands after 12:00, it is the first minute decided after the deploy. The reading quotes it from the state.
+- **A rung held across the switch** keeps the coins it holds: the engine keeps sizes × its divisor, so its size and notional
+  are halved in the engine's units at the switch. Resting orders carry no size, since a fill sizes itself.
+- **The record before the switch** is shown × 2 on the page: a trip by its entry, a held rung by its fill, in P&L, cost and size.
+  - This stacks on Deviation 1's factor for what came before that switch.
+  - Prices, counts and percentages are not scaled. No stored row is rewritten (no migration).
+- **Where × 2 is not exact.** Linear scaling assumes each fill would have been twice the size. The engine caps a rung at 10 % of
+  the minute's printed value, and that cap binds sooner at $50 than at $25.
+  - Of the 15 entry fills to 2026-10-29 06:23 UTC, the cap bound on none at $25 (each filled a whole rung).
+  - At $50 (£37.5 or €44.8 at the day's rates) it would have bound on **one**: USDC-GBP at 2026-10-28 01:03 UTC. That minute
+    printed £261, so the rung would have filled £26.1, not £37.5. The scaled record overstates that trip by about 1.44×.
+  - Fills between then and the switch are counted the same way at the reading: an entry fill whose minute's printed value
+    × 10 % (`cb_usdc_events.detail.minuteGbp`, in the book's currency) is under the $50 rung in that currency.
+  - From the switch the engine runs at $50 for real, cap included.
+- **The bar, read on $600.**
+  - Bar 2 is realised ÷ **$600** × 365 / 14 ≥ 8 %, on the record as the page shows it (× 2 before the switch, and Deviation 1's
+    factor before that one).
+  - Bar 1 (above zero) and bar 3 (bps a round trip, P&L ÷ notional, a ratio) are unchanged.
+  - Bar 3 is read on the record as it ran, since the cap makes the scaled notional of the one trip above inexact.
+  - The comparison with the weekend variant's USDC books is per pound and is unaffected.
+- **"with Euros - 3" runs this file's driver** (`runCbUsdcArm`, the same steps; "- 2" is `CB_USDC_ARM`). `cb_usdc.test.ts` pins
+  that "- 2"'s rows are as they were on every earlier world. `cb_nudge.test.ts` pins that with no Revolut X book, "- 3" writes
+  exactly "- 2"'s USDC-GBP rows.
+- **Frozen bytes this deviation names** (`src/cb_usdc_prereg.test.js`, which holds §5's and Deviation 1's as well):
+
+| file | sha256 (Deviation 2) |
+|---|---|
+| `supabase/functions/agents/cb_usdc.ts` | 0f54887c0e5b96941b697b76390214cfeea7045c96f7f41f41eca8d70d09d7b9 |
+| `supabase/functions/agents/cb_usdc.test.ts` | 80ce8b868077dd63a8d292999ddb6e571d32f7ffe4a1ce1153ce4a27c0dc1dc5 |

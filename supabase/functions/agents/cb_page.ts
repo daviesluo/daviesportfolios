@@ -44,9 +44,13 @@ export async function readCoinbaseArm(d: Db, now: number, dayStartMs: number, t:
   try { return (await loadCoinbaseArm(d, now, dayStartMs, t, as))?.v ?? null; } catch { return null; }
 }
 
-/** How an arm is shown in dollars: its rung, its books, and its own shape over the base view (the USDC arm's `cbUsdcView`). */
+/**
+ * How an arm is shown in dollars: its rung, its books, its own shape over the base view (the USDC arms' `cbUsdcView`, given the
+ * arm's state), and `resizeFactor`, a later change of its dollar rung ("- 2"'s Deviation 2: × 2): what was entered before that
+ * switch (`usd50From` in the state; everything, until the arm has made it) is shown × it as well.
+ */
 // deno-lint-ignore no-explicit-any
-export type CbUsdArm = { rungUsd: number; books: number; shape?: (v: any) => any };
+export type CbUsdArm = { rungUsd: number; books: number; shape?: (v: any, state: any) => any; resizeFactor?: number };
 
 /**
  * One Coinbase arm for the Agents page in DOLLARS (`readCoinbaseArm`, then `coinbaseInUsd` on the arm's own state and every
@@ -56,7 +60,7 @@ export async function readCoinbaseUsd(d: Db, now: number, dayStartMs: number, t:
   try {
     const l = await loadCoinbaseArm(d, now, dayStartMs, t, as);
     if (!l?.v) return null;
-    const v = arm.shape ? arm.shape(l.v) : l.v;
+    const v = arm.shape ? arm.shape(l.v, l.st.state) : l.v;
     return coinbaseInUsd(v, { state: l.st.state as CbQuoteState, trips: l.trips, gbpusd: l.gbpusd, eurusd: l.eurusd, dayStartMs, ...arm });
   } catch { return null; }
 }
@@ -79,18 +83,21 @@ const dayOf = (ts: string) => new Date(Date.parse(ts)).toISOString().slice(0, 10
 export function coinbaseInUsd(
   // deno-lint-ignore no-explicit-any
   v: any,
-  b: CbUsdArm & { state: CbQuoteState | null; trips: CbTripRow[]; gbpusd: number | null; eurusd: number | null; dayStartMs: number },
+  b: CbUsdArm & { state: (CbQuoteState & { usd50From?: number; usd50Factor?: number }) | null; trips: CbTripRow[]; gbpusd: number | null; eurusd: number | null; dayStartMs: number },
 ) {
   if (!v) return v;
   const R = b.gbpusd && b.gbpusd > 0 ? b.gbpusd : Number(v.capitalGbp) > 0 ? Number(v.capitalUsd) / Number(v.capitalGbp) : 0;
-  const s = b.state ?? ({} as Partial<CbQuoteState>);
+  const s = b.state ?? ({} as Partial<CbQuoteState & { usd50From?: number; usd50Factor?: number }>);
   const from = s.usdFrom ?? null;
   const fac = s.usdFactor ?? { GBP: R ? 1 / R : 1, EUR: b.eurusd ? 1 / b.eurusd : 1 };
-  // A book's scale for an amount entered at `at`: its factor before the switch, 1 from it.
+  // A later resize ("- 2"'s Deviation 2): its switch and factor from the state, the arm's own until it has switched.
+  const rFrom = b.resizeFactor ? s.usd50From ?? null : null, rf = b.resizeFactor ? s.usd50Factor ?? b.resizeFactor : 1;
+  // A book's scale for an amount entered at `at`: its factor before the dollar switch, 1 from it; × the resize before its switch.
   const k = (book: string, at: string | number | null | undefined) => {
     const ms = typeof at === "number" ? at : at ? Date.parse(at) : NaN;
-    if (from != null && Number.isFinite(ms) && ms >= from) return 1;
-    return CB_BOOK[book as CbProduct]?.quote === "EUR" ? fac.EUR : fac.GBP;
+    const resized = rf !== 1 && !(rFrom != null && Number.isFinite(ms) && ms >= rFrom) ? rf : 1;
+    if (from != null && Number.isFinite(ms) && ms >= from) return resized;
+    return (CB_BOOK[book as CbProduct]?.quote === "EUR" ? fac.EUR : fac.GBP) * resized;
   };
   const usd = (gbp: unknown, book: string, at: string | number | null | undefined) => (gbp == null ? null : Number(gbp) * R * k(book, at));
   const gbp = (x: number | null) => (x == null ? null : R ? x / R : 0);
@@ -119,6 +126,7 @@ export function coinbaseInUsd(
   return {
     ...v, ccy: "USD" as const,
     rungUsd: b.rungUsd, usdFrom: from == null ? null : new Date(from).toISOString(), usdFactor: fac,
+    ...(b.resizeFactor ? { resizeFrom: rFrom == null ? null : new Date(rFrom).toISOString(), resizeFactor: rf } : {}),
     capitalUsd, costUsd, valueUsd, unrealisedUsd, realisedUsd, todayUsd, feesUsd: 0,
     capitalGbp: gbp(capitalUsd), costGbp: gbp(costUsd), valueGbp: gbp(valueUsd), unrealisedGbp: gbp(unrealisedUsd), realisedGbp: gbp(realisedUsd), todayGbp: gbp(todayUsd), feesGbp: 0,
     detail: {

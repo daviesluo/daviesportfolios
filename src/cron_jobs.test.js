@@ -743,6 +743,36 @@ describe('pg_cron jobs', () => {
     expect(sql).toContain("insert into public.agent_locks (name) values ('cb-usdc') on conflict (name) do nothing;");
   });
 
+  // "Stablecoin quotes with Euros - 3" (Davies, 2026-10-29: "建USDC 那个线索，在with euro-2的基础上开-3，只做300美元的USDC-GBP"): as 0142 added
+  // "- 2", one call a minute, its beat first, every other row as it was, and a prune of SQL alone.
+  it("adds 'Stablecoin quotes with Euros - 3' as one call a minute (0168), its beat first, every other row as it was, and a prune of SQL alone", () => {
+    const T = FILES.find((f) => /^0168_cb_usdc_nudge\.sql$/.test(f)) ?? '';
+    expect(T).not.toBe('');
+    const before = replayList(sqlsOf(FILES.filter((f) => f < T))), after = replayList(sqlsOf(FILES.filter((f) => f <= T)));
+    expect(after.slice(0, before.length)).toEqual(before);
+    const shape = ({ path: p, timeout, every, lastHour, enabled, retry }) => ({ path: p, timeout, every, lastHour, enabled, retry });
+    expect(after.slice(before.length).map(shape)).toEqual([
+      { path: 'agents?action=cbnudge', timeout: 30000, every: 1, lastHour: 23, enabled: true, retry: true },
+    ]);
+    expect(beatKeyOfPath(after.at(-1).path)).toBe('agents?action=cbnudge');
+    const src = fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/index.ts'), 'utf8');
+    expect(src).toContain('if (action === "cbnudge" && req.method === "POST" && operator) return json(200, await runCbNudgeAction());');
+    const jobsBefore = cronJobs(FILES.filter((f) => f < T)), jobsAfter = cronJobs(FILES.filter((f) => f <= T));
+    expect([...jobsAfter.keys()].filter((n) => !jobsBefore.has(n))).toEqual(['cb-nudge-prune']);
+    const prune = jobsAfter.get('cb-nudge-prune');
+    expect(prune.command.trim()).toBe("delete from public.cb_nudge_minutes where minute < now() - interval '120 days';");
+    expect(Number(prune.schedule.split(' ')[0]) % 5).not.toBe(0);
+    expect([...jobsBefore.values()].some((j) => j.schedule === prune.schedule)).toBe(false);
+    expect(httpJobs(jobsAfter).map(([n]) => n)).toEqual(['edge-calls-every-minute']);
+    for (const [n, j] of jobsBefore) expect([n, jobsAfter.get(n)]).toEqual([n, j]);
+    // Its tables hold USDC-GBP alone; no grant, no policy; row level security on every table.
+    const sql = fs.readFileSync(path.join(DIR, T), 'utf8').replace(/--[^\n]*/g, '');
+    expect(count(sql, "check (book in ('USDC-GBP'))")).toBe(3);
+    for (const t of ['cb_nudge_state', 'cb_nudge_events', 'cb_nudge_trips', 'cb_nudge_minutes']) expect(sql).toMatch(new RegExp(`alter table public\\.${t} +enable row level security;`));
+    expect(sql).not.toMatch(/\bgrant\b|create policy/i);
+    expect(sql).toContain("insert into public.agent_locks (name) values ('cb-nudge') on conflict (name) do nothing;");
+  });
+
   // OKX's recorder and its paper twins (Davies, 2026-10-27: "…可以的话就加盘口记录器和开testings策略（目前live的rules？）"): as 0112
   // added Coinbase's, one call a minute that records and then decides, its beat first, every other row as it was, a prune of SQL.
   it("adds OKX's recorder and its paper twins as one call a minute (0150), its beat first, every other row as it was, and a prune of SQL alone", () => {

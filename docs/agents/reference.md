@@ -4429,6 +4429,14 @@ Davies, 2026-10-13: "周末变体写预注册然后上线paper trading 策略wit
     book, 1 / EUR/USD on a EUR book, 0.7505 and 0.8968 at the rates of 04:06 UTC that day, 0.817 over an arm. That assumes
     fills scale linearly with size. The stored rows stay as they ran.
 
+- **Addendum 2026-10-29 (later): "- 2" doubled, and "- 3"** (Davies: "建USDC 那个线索，在with euro-2的基础上开-3，只做300美元的USDC-GBP；另外把目前的-2
+  数字*2做600美元funded", then "-3 只在休市时用").
+  - **"- 2"** is $50 a rung, $600, from its Deviation 2's switch (the first minute at or after 2026-10-29 12:00 UTC, `usd50From`).
+    Its record before is shown × 2. The 10 %-of-the-minute cap would have bound on one of its first 15 fills at $50.
+  - **"- 3"** (`0168`, `agents/cb_nudge.ts`, `reviews/2026-10-29-cb-usdc-nudge-prereg.md`) is "- 2"'s driver on USDC-GBP at $50,
+    $300. Its fair is nudged inside FX closures by Revolut X's recorded mid: fair + ½ (g − EMA₂₄ₕ(g)), g = RX − fair, the REVX-FAIR
+    lead mirrored as that study's §8 replayed it (+0.21 bps of $300 a day in closures, P ≤ 0 0.01; every minute −0.14).
+
 61. **Every paper Reward quotes test stops; live-prep live and pm-rec keep running (2026-10-13, migration `0120`).**
 Davies, 2026-10-13: "目前paper testing里的reward quotes全关了吧？感觉都不赚钱没什么意义？如果你实在觉得还有用的话就转到后台记录，不用在网站上显示了"
 (switch off every Reward quotes in paper testing; if one is still useful, record it in the background, off the site). The

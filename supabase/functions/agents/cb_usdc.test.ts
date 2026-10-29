@@ -4,12 +4,13 @@
 // USDC books (same entry minute, prices and exit) at 25 where that arm has 100, the same return per pound, and nothing on a USDT
 // book; (3) the page's read: two books, its own capital, what its rungs hold at its size; (4) an empty record starts at the next
 // 00:00 UTC, as the weekend variant's does; (5) its call reads the recorder's state as the weekend variant's does; (6) dollars (its
-// Deviation 1, 2026-10-29): from the switch a rung is $25, and the page shows $300 funded.
+// Deviation 1, 2026-10-29): from the switch a rung is $25, and the page shows $300 funded; (7) its Deviation 2 (2026-10-29): $50 a
+// rung from a second switch, a rung held across it keeps its coins, and the page shows $600 with what came before × 2.
 
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { CB_HOLD_TABLES, cbHoldNewState, runCbHold } from "./cb_hold.ts";
 import {
-  CB_USDC_FACTOR, CB_USDC_ID, CB_USDC_PRODUCTS, CB_USDC_ROW_NAME, CB_USDC_RUNG, CB_USDC_RUNG_USD, CB_USDC_TABLES, cbUsdcCapitalGbp, cbUsdcEventDetail, cbUsdcNewState, cbUsdcPrint,
+  CB_USDC_50_NOT_BEFORE, CB_USDC_FACTOR, CB_USDC_ID, CB_USDC_PRODUCTS, CB_USDC_ROW_NAME, CB_USDC_RUNG, CB_USDC_RUNG_USD, CB_USDC_RUNG_USD_50, CB_USDC_TABLES, cbUsdcFactorNow, type CbUsdcState, cbUsdcCapitalGbp, cbUsdcEventDetail, cbUsdcNewState, cbUsdcPrint,
   cbUsdcTrip, cbUsdcView, runCbUsdc,
 } from "./cb_usdc.ts";
 import { readCoinbaseArm, readCoinbaseUsd } from "./cb_page.ts";
@@ -170,3 +171,62 @@ Deno.test("Deviation 1: from the switch on 2026-10-29 a rung is $25 (£20 at GBP
   assertEquals(u.detail.books.map((b: { book: string }) => b.book), ["USDC-GBP", "USDC-EUR"]);
   assertAlmostEquals(u.valueUsd, 25 * u.openOrders, 1e-9);
 });
+
+/** A USDC world from minute `t0`: GBP/USD 1.25, EUR/USD 1.10, the coin at $1.00 (USDC-GBP's fair £0.80), the prints given. */
+function usdcWorld(t0: number, now: number, prints: Array<[CbProduct, number, number, string, string, "buy" | "sell"]>, extra: Record<string, Row[]> = {}) {
+  const fx: Row[] = [], eur: Row[] = [], fair: Row[] = [];
+  for (let t = t0 - 20 * M; t <= t0 + 20 * M; t += M) { fx.push({ kind: "fx", t: iso(t), value: 1.25 }); eur.push({ kind: "fx:EURUSD", t: iso(t), value: 1.1 }); }
+  for (let h = t0 - 30 * H; h < t0; h += H) fair.push({ kind: "fair:USDC-USD", t: iso(h), value: 1.0 });
+  return memDb({
+    agent_locks: [{ name: "cb-usdc", lease_until: iso(0), holder: null }, { name: "cb-nudge", lease_until: iso(0), holder: null }],
+    agent_quote_inputs: [...fx, ...fair], cb_quote_inputs: eur,
+    cb_usdc_state: [{ id: 1, state: cbUsdcNewState(t0, { "USDC-GBP": 0, "USDC-EUR": 0 }), last_minute: iso(t0 - M), updated_at: iso(0), last_error: null }],
+    cb_usdc_events: [], cb_usdc_trips: [], cb_usdc_minutes: [], cb_usdc_days: [],
+    cb_trades: prints.map(([book, id, at, price, size, side]) => ({ product: book, trade_id: id, ts: iso(at), price, size, side })),
+    ...extra,
+  }, { now: () => now });
+}
+const cursors = (books: readonly CbProduct[], to: number) => ({ cursors: Object.fromEntries(books.map((b) => [b, { from: 1, fromTs: iso(0), hi: 1, top: 1, topAt: 0, hole: null, coveredTo: to }])) });
+
+Deno.test("Deviation 2: $50 a rung from 2026-10-29 12:00 UTC, a rung held across the switch keeps its coins, and the page shows $600 with the record before × 2", async () => {
+  assertEquals([CB_USDC_RUNG_USD_50, CB_USDC_50_NOT_BEFORE], [50, Date.UTC(2026, 9, 29, 12)]);
+  // 11:58. The first call is covered to 11:59 and decides 11:58 and 11:59 at $25 (£20); the second decides from 12:00 at $50.
+  const t0 = Date.UTC(2026, 9, 29, 11, 58), now = t0 + 9 * M;
+  const { db, tables } = usdcWorld(t0, now, [
+    ["USDC-GBP", 1, t0 + M + 5000, "0.79900000", "2000.00", "sell"],     // 11:59, through the 0.1 % bid (£0.7992): $25 before the switch
+    ["USDC-GBP", 2, t0 + 3 * M + 5000, "0.80010000", "10.00", "buy"],    // 12:01, through its exit at fair (£0.8000)
+    ["USDC-GBP", 3, t0 + 5 * M + 5000, "0.79900000", "2000.00", "sell"], // 12:03, through the bid placed again: $50 after it
+  ]);
+  const r1 = await runCbUsdc({ db, now, holder: "a", rec: cursors(CB_USDC_PRODUCTS, t0 + 2.5 * M) });
+  assertEquals([r1.errors, r1.from, r1.to], [[], t0, t0 + M]);
+  let st = tables.cb_usdc_state[0].state as CbUsdcState;
+  assertEquals([st.usdFrom, st.usd50From], [t0, undefined]);
+  const heldBefore = st.books["USDC-GBP"].rungs.find((x) => x.mode === "position")!;
+  assertAlmostEquals(heldBefore.nq! / CB_USDC_FACTOR, 20, 1e-9);              // £20 = $25, kept × 4 by the engine
+  const r2 = await runCbUsdc({ db, now: now + 1000, holder: "b", rec: cursors(CB_USDC_PRODUCTS, t0 + 6.5 * M) });
+  assertEquals([r2.errors, r2.from, r2.to], [[], t0 + 2 * M, t0 + 5 * M]);
+  st = tables.cb_usdc_state[0].state as CbUsdcState;
+  assertEquals([st.usd50From, st.usd50Factor, cbUsdcFactorNow(st)], [t0 + 2 * M, 2, 2]);
+  // The trip filled before the switch and closed after it: its £20, its coins, its P&L as the $25 rung made them.
+  assertEquals(tables.cb_usdc_trips.length, 1);
+  const t = tables.cb_usdc_trips[0];
+  assertAlmostEquals(Number(t.qty), 20 / 0.7992, 1e-9);
+  assertAlmostEquals(Number(t.notional_gbp), 20, 1e-9);
+  assertAlmostEquals(Number(t.pnl_gbp), 20 * 0.0008 / 0.7992, 1e-9);
+  // The fill after the switch: $50, £40, held at the end at the engine's new divisor.
+  const fills = tables.cb_usdc_events.filter((e) => e.kind === "fill").map((e) => Number((e.detail as { usd: number }).usd));
+  assertEquals(fills.map((x) => Number(x.toFixed(9))), [25, 50]);
+  const held = st.books["USDC-GBP"].rungs.find((x) => x.mode === "position")!;
+  assertAlmostEquals(held.nq! / 2, 40, 1e-9);
+  // The page: $600 funded; the trip from before the switch × 2 ($0.05005, a $50 rung's), the rung held from after it at its $50.
+  const u = await readCoinbaseUsd(db, now, Date.UTC(2026, 9, 29), CB_USDC_TABLES, { id: CB_USDC_ID, name: CB_USDC_ROW_NAME },
+    { rungUsd: CB_USDC_RUNG_USD_50, books: 2, resizeFactor: 2, shape: (v, s) => cbUsdcView(v, { factor: cbUsdcFactorNow(s) }) });
+  assert(u);
+  assertEquals([u.capitalUsd, u.capitalGbp, u.resizeFrom, u.resizeFactor], [600, 480, iso(t0 + 2 * M), 2]);
+  assertAlmostEquals(u.realisedUsd, 50 * 0.0008 / 0.7992, 1e-9);
+  assertAlmostEquals(u.detail.trips[0].qty, 2 * 20 / 0.7992, 1e-9);
+  const rung = u.detail.rungs.find((x: { held: unknown }) => x.held);
+  assertAlmostEquals(rung.held.costUsd, 50, 1e-9);
+  assertAlmostEquals(rung.held.base, 40 / 0.7992, 1e-9);
+});
+

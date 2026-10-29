@@ -43,6 +43,7 @@ describe('the Coinbase arms in whole dollars', () => {
     // The page funds each arm with a whole number of dollars.
     const idx = read(A + 'index.ts');
     expect(idx).toContain('{ rungUsd: CB_RUNG_USD, books: 4 }');
-    expect(idx).toContain('{ rungUsd: CB_USDC_RUNG_USD, books: 2, shape: cbUsdcView }');
+    // "- 2" at $50 since its Deviation 2 (cb_usdc_prereg.test.js), $600, what came before × 2.
+    expect(idx).toContain('{ rungUsd: CB_USDC_RUNG_USD_50, books: 2, resizeFactor: 2, shape: (v, st) => cbUsdcView(v, { factor: cbUsdcFactorNow(st) }) }');
   });
 });

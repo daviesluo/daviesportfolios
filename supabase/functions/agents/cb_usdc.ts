@@ -14,6 +14,10 @@
 //   * Its tables (`cb_usdc_*`, 0142), lease (`cb-usdc`) and call (`agents?action=cbusdc`).
 // Since 2026-10-29 (its Deviation 1; Davies: "Coinbase策略中funded数字怎么那么奇怪，都改成整数调整") the engine's 100 is dollars from
 // the switch (`cbUsdSwitch`, `cbInUsd`, as the base test's Deviation 4 and the weekend variant's Deviation 3), so a rung is $25.
+// Since its Deviation 2 (2026-10-29; Davies: "…把目前的-2数字*2做600美元funded") a rung is $50 from a second switch (`usd50From`,
+// `cbUsdc50Switch`): the engine's divisor is 2 from that minute (`cbUsdcFactorAt`), and a rung held across it is rescaled in the
+// engine's units so it keeps the coins it holds. The driver is one function for every USDC arm (`runCbUsdcArm`): "with Euros - 3"
+// (cb_nudge.ts) is the same driver on USDC-GBP alone with its fair nudged (`CbUsdcArm.fairOf`), nothing else.
 // Everything else is the weekend variant's, imported from it: the rate bars held through a closure (`cbHoldBarAt`, 60 hours),
 // the start at the first 00:00 UTC after its first run (`cbHoldStart`), the release blackout (`cbInBlackout`), the stop's
 // Coinbase cost (`cbStopExit`) and the pounds of a trip (`cbTripInPounds`).
@@ -53,27 +57,31 @@ export const CB_USDC_RUNGS_A_BOOK = 6;
  * base's $100 (`CB_RUNG_USD`) ÷ `CB_USDC_FACTOR`, so the arm stays a quarter of the others' size; $300 on the two books.
  */
 export const CB_USDC_RUNG_USD = CB_RUNG_USD / CB_USDC_FACTOR;
+/** Deviation 2 (2026-10-29): $50 a rung from its switch, $600 on the two books; the engine's $100 ÷ this. */
+export const CB_USDC_FACTOR_50 = 2;
+export const CB_USDC_RUNG_USD_50 = CB_RUNG_USD / CB_USDC_FACTOR_50;
+/** Deviation 2: no minute before 2026-10-29 12:00 UTC is decided at $50 (the push lands after it is written). */
+export const CB_USDC_50_NOT_BEFORE = Date.UTC(2026, 9, 29, 12);
 export const CB_USDC_LEASE = "cb-usdc";
 export const CB_USDC_TABLES = { state: "cb_usdc_state", events: "cb_usdc_events", trips: "cb_usdc_trips", minutes: "cb_usdc_minutes", days: "cb_usdc_days" } as const;
 
 /** Its capital in pounds: £25 × 6 on the GBP book and €25 × 6 on the EUR book at `eurGbp` pounds a euro (≈ £281 at 0.875). */
 export const cbUsdcCapitalGbp = (eurGbp: number) => CB_USDC_RUNG * CB_USDC_RUNGS_A_BOOK * (1 + eurGbp);
 
-/** A print as the engine reads it at this arm's size: `cbPrint`'s, its size × `CB_USDC_FACTOR`. */
-export function cbUsdcPrint(book: CbProduct, r: { trade_id: number | string; ts: string; price: number | string; size: number | string; side: string }): Print {
+/** A print as the engine reads it at this arm's size: `cbPrint`'s, its size × the divisor `f` (`CB_USDC_FACTOR`, or 2 from Deviation 2). */
+export function cbUsdcPrint(book: CbProduct, r: { trade_id: number | string; ts: string; price: number | string; size: number | string; side: string }, f: number = CB_USDC_FACTOR): Print {
   const p = cbPrint(book, r);
-  return { ...p, qty: p.qty * CB_USDC_FACTOR };
+  return { ...p, qty: p.qty * f };
 }
 
-/** A round trip the engine wrote at its (×4) size, back at this arm's: coins, notional and P&L ÷ `CB_USDC_FACTOR`; prices as they are. */
-export function cbUsdcTrip(t: Trip): Trip {
-  const f = CB_USDC_FACTOR;
+/** A round trip the engine wrote at its (× f) size, back at this arm's: coins, notional and P&L ÷ `f`; prices as they are. */
+export function cbUsdcTrip(t: Trip, f: number = CB_USDC_FACTOR): Trip {
   return { ...t, qty: t.qty / f, nq: t.nq / f, notionalUsd: t.notionalUsd / f, pnlUsd: t.pnlUsd / f };
 }
 
-/** An event's sizes at this arm's: a fill's pounds, the minute's printed value and every print's size ÷ `CB_USDC_FACTOR`. */
-export function cbUsdcEventDetail(detail: Record<string, unknown>): Record<string, unknown> {
-  const f = CB_USDC_FACTOR, out: Record<string, unknown> = { ...detail };
+/** An event's sizes at this arm's: a fill's money, the minute's printed value and every print's size ÷ `f`. */
+export function cbUsdcEventDetail(detail: Record<string, unknown>, f: number = CB_USDC_FACTOR): Record<string, unknown> {
+  const out: Record<string, unknown> = { ...detail };
   if (typeof out.usd === "number") out.usd = out.usd / f;
   if (typeof out.minuteGbp === "number") out.minuteGbp = out.minuteGbp / f;
   const p = out.print as { qty?: number } | undefined;
@@ -83,39 +91,91 @@ export function cbUsdcEventDetail(detail: Record<string, unknown>): Record<strin
 
 /** An empty record starting at `start`: flat rungs on the two books, `fed` the newest trade id each had. */
 export function cbUsdcNewState(start: number, fed: Record<string, number>): CbQuoteState {
-  return {
-    lastMinute: start - M, startedAt: start,
-    books: Object.fromEntries(CB_USDC_PRODUCTS.map((b) => [b, newBookState(b as unknown as QuoteBook)])) as unknown as Record<CbProduct, BookState>,
-    fed: fed as Record<CbProduct, number>,
-  };
+  return cbUsdcArmNewState(CB_USDC_ARM, start, fed);
 }
+
+/** A USDC arm's state: the base test's, with Deviation 2's switch, and what an arm's own fair keeps (-3's nudge). */
+export type CbUsdcState = CbQuoteState & { usd50From?: number; usd50Factor?: number; nudge?: { ema: number | null; last: number | null } };
+
+/** The engine's divisor at minute `t`: 4 ($25 a rung) until Deviation 2's switch, 2 ($50) from it. */
+export const cbUsdcFactorAt = (st: CbUsdcState, t: number) => (st.usd50From != null && t >= st.usd50From ? CB_USDC_FACTOR_50 : CB_USDC_FACTOR);
+
+/**
+ * Deviation 2's switch, written once into the state at `first`, the run's first minute: when it is not before
+ * `CB_USDC_50_NOT_BEFORE` and Deviation 1's dollar switch has been made. A rung held across it keeps the coins it holds: the
+ * engine keeps sizes × its divisor, so its size and notional go × 2 / 4. Resting orders carry no size (a fill sizes itself).
+ */
+export function cbUsdc50Switch(st: CbUsdcState, first: number, products: readonly CbProduct[]): void {
+  if (st.usd50From != null || st.usdFrom == null || first < st.usdFrom || first < CB_USDC_50_NOT_BEFORE) return;
+  const k = CB_USDC_FACTOR_50 / CB_USDC_FACTOR;
+  for (const b of products) for (const r of st.books[b]?.rungs ?? []) {
+    if (r.mode !== "position") continue;
+    if (r.qty != null) r.qty *= k;
+    if (r.nq != null) r.nq *= k;
+  }
+  // The page shows what came before × usd50Factor, the new rung over the old: 2.
+  st.usd50From = first; st.usd50Factor = CB_USDC_FACTOR / CB_USDC_FACTOR_50;
+}
+
+/** What an arm's own fair adds to a minute: its fairU (in place of the minute's) and the columns its minute record keeps. */
+export type CbUsdcFair = (st: CbUsdcState, t: number, b: CbProduct, io: { x: number | null; fairU: number | null; xGbp: number | null }) => { fairU: number | null; extra: Record<string, unknown> };
+
+/** One USDC arm: its tables, lease, books and divisor; "- 2"'s Deviation 2 switch; and an arm's own fair, read once a run. */
+export type CbUsdcArm = {
+  tables: { state: string; events: string; trips: string; minutes: string; days: string };
+  lease: string;
+  products: readonly CbProduct[];
+  factorAt: (st: CbUsdcState, t: number) => number;
+  onFirst?: (st: CbUsdcState, first: number) => void;
+  fairOf?: (db: Db, first: number, horizon: number) => Promise<CbUsdcFair>;
+};
+
+/** "Stablecoin quotes with Euros - 2": the two USDC books, $25 a rung to Deviation 2's switch and $50 from it. */
+export const CB_USDC_ARM: CbUsdcArm = {
+  tables: CB_USDC_TABLES, lease: CB_USDC_LEASE, products: CB_USDC_PRODUCTS, factorAt: cbUsdcFactorAt,
+  onFirst: (st, first) => cbUsdc50Switch(st, first, CB_USDC_PRODUCTS),
+};
 
 /**
  * Decide every minute the recorder has covered for the two USDC books and not yet decided, at most `CB_MAX_MINUTES`, one
  * minute behind that coverage, with the rates held through a closure. Idempotent by natural keys, as `runCbHold` is.
  */
-export async function runCbUsdc(d: { db: Db; now: number; holder: string; rec: CbRecState | null }): Promise<CbQuoteReport> {
-  const T = CB_USDC_TABLES;
+export function runCbUsdc(d: { db: Db; now: number; holder: string; rec: CbRecState | null }): Promise<CbQuoteReport> {
+  return runCbUsdcArm(d, CB_USDC_ARM);
+}
+
+/** An empty record of `arm` starting at `start`: flat rungs on its books, `fed` the newest trade id each had. */
+export function cbUsdcArmNewState(arm: CbUsdcArm, start: number, fed: Record<string, number>): CbUsdcState {
+  return {
+    lastMinute: start - M, startedAt: start,
+    books: Object.fromEntries(arm.products.map((b) => [b, newBookState(b as unknown as QuoteBook)])) as unknown as Record<CbProduct, BookState>,
+    fed: fed as Record<CbProduct, number>,
+  };
+}
+
+/** The driver of every USDC arm: `runCbHold`'s steps on `arm.products`, at `arm.factorAt`'s size, on `arm.fairOf`'s fair when it has one. */
+export async function runCbUsdcArm(d: { db: Db; now: number; holder: string; rec: CbRecState | null }, arm: CbUsdcArm): Promise<CbQuoteReport> {
+  const T = arm.tables;
   const report: CbQuoteReport = { minutes: 0, from: null, to: null, prints: 0, fills: 0, exits: 0, stops: 0, orders: 0, refused: 0, errors: [], report: false };
-  const held = await d.db.claim("agent_locks", `name=eq.${CB_USDC_LEASE}&lease_until=lt.${enc(d.now)}`, { lease_until: iso(d.now + CB_LEASE_MS), holder: d.holder });
+  const held = await d.db.claim("agent_locks", `name=eq.${arm.lease}&lease_until=lt.${enc(d.now)}`, { lease_until: iso(d.now + CB_LEASE_MS), holder: d.holder });
   if (!held.length) return { ...report, skipped: "another run holds the lease" };
   try {
     const curs = d.rec?.cursors ?? {};
-    if (!CB_USDC_PRODUCTS.every((b) => curs[b])) return { ...report, skipped: "the recorder has not covered every book yet" };
-    const covered = Math.min(...CB_USDC_PRODUCTS.map((b) => curs[b]!.coveredTo));
+    if (!arm.products.every((b) => curs[b])) return { ...report, skipped: "the recorder has not covered every book yet" };
+    const covered = Math.min(...arm.products.map((b) => curs[b]!.coveredTo));
     const horizonAll = minuteOf(covered) - M;
-    const rows = await d.db.select<{ state: CbQuoteState | Record<string, never> }>(T.state, "id=eq.1&select=state");
-    let st = rows[0]?.state as CbQuoteState | undefined;
+    const rows = await d.db.select<{ state: CbUsdcState | Record<string, never> }>(T.state, "id=eq.1&select=state");
+    let st = rows[0]?.state as CbUsdcState | undefined;
     if (!st || !("books" in st)) {
       const fed: Record<string, number> = {};
-      for (const b of CB_USDC_PRODUCTS) {
+      for (const b of arm.products) {
         const top = await d.db.select<{ trade_id: number }>("cb_trades", `product=eq.${b}&select=trade_id&order=trade_id.desc&limit=1`);
         fed[b] = top[0] ? Number(top[0].trade_id) : 0;
       }
-      st = cbUsdcNewState(cbHoldStart(d.now), fed);
+      st = cbUsdcArmNewState(arm, cbHoldStart(d.now), fed);
     }
     const first = st.lastMinute + M, horizon = Math.min(horizonAll, st.lastMinute + CB_MAX_MINUTES * M, minuteOf(d.now) - M);
-    if (horizon < first) { await save(d, st, report); return { ...report, skipped: "nothing new to decide" }; }
+    if (horizon < first) { await save(d, T.state, st, report); return { ...report, skipped: "nothing new to decide" }; }
     const series = async (table: string, kind: string, from: number) => (await d.db.selectAll<{ t: string; value: number }>(table,
       `kind=eq.${encodeURIComponent(kind)}&t=gte.${enc(from)}&t=lte.${enc(horizon)}&select=t,value&order=kind.asc,t.asc`)).map((r) => [msOf(r.t), Number(r.value)] as [number, number]);
     const bars = async (table: string, kind: string) => {
@@ -127,30 +187,34 @@ export async function runCbUsdc(d: { db: Db; now: number; holder: string; rec: C
     const gbpBars = await bars("agent_quote_inputs", "fx");
     const eurBars = await bars("cb_quote_inputs", "fx:EURUSD");
     const hours = await series("agent_quote_inputs", CB_FAIR_KIND.USDC, first - DAY);
-    // Deviation 1 (2026-10-29): $25 a rung from the switch (the engine's $100 ÷ 4), on the rates this run decides its first minute on.
+    // Deviation 1 (2026-10-29): dollars from the switch (the engine's $100 ÷ its divisor), on the rates this run decides its first minute on.
     cbUsdSwitch(st, first, cbHoldBarAt(first, gbpBars)?.[1] ?? null, cbHoldBarAt(first, eurBars)?.[1] ?? null);
-    const trips: ReturnType<typeof cbTripRow>[] = [], events: ReturnType<typeof cbEventRow>[] = [], minutes: ReturnType<typeof cbMinuteRow>[] = [];
-    for (const b of CB_USDC_PRODUCTS) {
+    arm.onFirst?.(st, first);
+    const fairOf = arm.fairOf ? await arm.fairOf(d.db, first, horizon) : null;
+    const trips: ReturnType<typeof cbTripRow>[] = [], events: ReturnType<typeof cbEventRow>[] = [], minutes: Record<string, unknown>[] = [];
+    for (const b of arm.products) {
       const pRows = await d.db.selectAll<{ trade_id: number; ts: string; price: number; size: number; side: string }>("cb_trades",
         `product=eq.${b}&trade_id=gt.${st.fed[b]}&ts=gte.${enc(first)}&ts=lt.${enc(horizon + M)}&select=trade_id,ts,price,size,side&order=product.asc,trade_id.asc`);
-      const prints = pRows.map((r) => cbUsdcPrint(b, r)).filter((p) => p.ts >= first);
+      const prints = pRows.map((r) => cbUsdcPrint(b, r, arm.factorAt(st!, minuteOf(msOf(r.ts))))).filter((p) => p.ts >= first);
       report.prints += prints.length;
       let j = 0;
       for (let t = first; t <= horizon; t += M) {
+        const f = arm.factorAt(st, t);
         const mine: Print[] = [];
         while (j < prints.length && prints[j].ts < t + M) { mine.push(prints[j]); j++; }
         const bar = cbHoldBarAt(t, gbpBars), eb = cbHoldBarAt(t, eurBars), window = fairHours(t, hours);
         const io = cbMinuteInputs(b, bar ? bar[1] : null, eb ? eb[1] : null, median(window), cbInUsd(st, t));
-        const inp: MinuteInputs = { ...io, fairU: cbInBlackout(t) ? null : io.fairU, prints: mine };
+        const own = fairOf ? fairOf(st, t, b, io) : { fairU: io.fairU, extra: {} };
+        const inp: MinuteInputs = { ...io, fairU: cbInBlackout(t) ? null : own.fairU, prints: mine };
         const out = stepMinute(st.books[b], t, inp);
-        // The minute's record at this arm's size: the printed value as recorded (the engine saw it × 4).
+        // The minute's record at this arm's size: the printed value as recorded (the engine saw it × its divisor).
         const row = cbMinuteRow(b, t, bar, CB_BOOK[b].quote === "EUR" ? eb : null, window.length, inp, io.xGbp);
-        minutes.push({ ...row, vol: Number(row.vol) / CB_USDC_FACTOR });
+        minutes.push({ ...row, vol: Number(row.vol) / f, ...own.extra });
         if (io.xGbp != null) st.xGbp = { ...st.xGbp, [b]: io.xGbp };
         const xNow = st.xGbp?.[b] ?? (CB_BOOK[b].quote === "GBP" ? 1 : null);
         const entered = (st.xEntry ??= {})[b] ??= {};
         for (const x0 of out.trips) {
-          const x = cbUsdcTrip(x0);
+          const x = cbUsdcTrip(x0, f);
           const key = `${x.side}|${x.k}`;
           const xe = entered[key] ?? x.xEntry;
           delete entered[key];
@@ -160,7 +224,7 @@ export async function runCbUsdc(d: { db: Db; now: number; holder: string; rec: C
         for (const e of out.events) if (e.kind === "fill" && xNow != null) entered[`${e.side}|${e.k}`] = xNow;
         events.push(...out.events.map((e) => {
           const r = cbEventRow(b, e);
-          return { ...r, detail: cbUsdcEventDetail(r.detail as Record<string, unknown>) };
+          return { ...r, detail: cbUsdcEventDetail(r.detail as Record<string, unknown>, f) };
         }));
         report.orders += out.orders;
       }
@@ -175,35 +239,36 @@ export async function runCbUsdc(d: { db: Db; now: number; holder: string; rec: C
     if (trips.length) await d.db.upsert(T.trips, trips, "book,side,k,t_entry");
     if (minutes.length) await d.db.upsert(T.minutes, minutes, "book,minute");
     st.lastMinute = horizon;
-    await save(d, st, report);
+    await save(d, T.state, st, report);
     return report;
   } catch (e) {
     report.errors.push(msg(e));
     report.report = true;
     return report;
   } finally {
-    try { await d.db.update("agent_locks", `name=eq.${CB_USDC_LEASE}&holder=eq.${encodeURIComponent(d.holder)}`, { lease_until: iso(d.now), holder: null }); } catch { /* it expires */ }
+    try { await d.db.update("agent_locks", `name=eq.${arm.lease}&holder=eq.${encodeURIComponent(d.holder)}`, { lease_until: iso(d.now), holder: null }); } catch { /* it expires */ }
   }
 }
 
-async function save(d: { db: Db; now: number }, st: CbQuoteState, report: CbQuoteReport) {
+async function save(d: { db: Db; now: number }, table: string, st: CbQuoteState, report: CbQuoteReport) {
   const key = faultKey(report.errors);
   report.report = reportDue(st.fault ?? null, key, d.now);
   if (!key) delete st.fault; else if (report.report) st.fault = { key, at: d.now };
   const errors = report.errors;
-  await d.db.upsert(CB_USDC_TABLES.state, [{ id: 1, state: st, last_minute: iso(st.lastMinute), updated_at: iso(d.now), last_error: errors.length ? errors.join(" | ").slice(0, 500) : null }], "id");
+  await d.db.upsert(table, [{ id: 1, state: st, last_minute: iso(st.lastMinute), updated_at: iso(d.now), last_error: errors.length ? errors.join(" | ").slice(0, 500) : null }], "id");
 }
 
 /**
  * The arm's own shape for the Agents page, over `readCoinbaseArm`'s view (cbQuotesView, frozen: four books at 100 a rung); the
  * dashboard reads it through `readCoinbaseUsd` (cb_page.ts), in dollars, since its Deviation 1. Its two books alone; its capital `cbUsdcCapitalGbp` at the view's pounds a euro; what its rungs hold and quote (`costGbp`,
- * `valueGbp`, `unrealisedGbp`, each held rung's base, cost and unrealised) ÷ `CB_USDC_FACTOR`, since the engine's state keeps
- * them at its ×4 size; realised and today as the trips table has them (already at this arm's size). Dollars at the view's
- * own rate. null as `readCoinbaseArm` is.
+ * `valueGbp`, `unrealisedGbp`, each held rung's base, cost and unrealised) ÷ the engine's divisor now (`o.factor`:
+ * `CB_USDC_FACTOR`, 2 once Deviation 2 has switched, `cbUsdcFactorNow`), since the engine's state keeps them at its size; realised
+ * and today as the trips table has them (already at this arm's size). `o.products`: the arm's books ("- 3": USDC-GBP alone).
+ * Dollars at the view's own rate. null as `readCoinbaseArm` is.
  */
 // deno-lint-ignore no-explicit-any
-export function cbUsdcView(v: any) {
-  const f = CB_USDC_FACTOR, mine = (b: string) => (CB_USDC_PRODUCTS as readonly string[]).includes(b);
+export function cbUsdcView(v: any, o: { factor?: number; products?: readonly string[] } = {}) {
+  const f = o.factor ?? CB_USDC_FACTOR, books = o.products ?? CB_USDC_PRODUCTS, mine = (b: string) => (books as readonly string[]).includes(b);
   const rate = v.capitalGbp > 0 ? v.capitalUsd / v.capitalGbp : 0;
   const capitalGbp = cbUsdcCapitalGbp(Number(v.eurGbp) || 0);
   const costGbp = v.costGbp / f, valueGbp = v.valueGbp / f, unrealisedGbp = v.unrealisedGbp / f;
@@ -221,3 +286,6 @@ export function cbUsdcView(v: any) {
     },
   };
 }
+
+/** The engine's divisor the state's held rungs are kept at now: 2 once Deviation 2 has switched, 4 before. */
+export const cbUsdcFactorNow = (st: CbUsdcState | null | undefined) => (st?.usd50From != null ? CB_USDC_FACTOR_50 : CB_USDC_FACTOR);

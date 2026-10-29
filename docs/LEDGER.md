@@ -776,6 +776,19 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth).
 
+### [2026-10-29 06:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Coinbase "with Euros - 2" doubled to $50 a rung ($600), and "with Euros - 3" built** (sub-agent; commit, not pushed; Davies, 10-29:
+  "建USDC 那个线索，在with euro-2的基础上开-3，只做300美元的USDC-GBP；另外把目前的-2数字*2做600美元funded", then "-3 只在休市时用").
+  - **"- 2" (USDC prereg Deviation 2).** $50 a rung from its first minute ≥ 2026-10-29 12:00 UTC (`usd50From` in `cb_usdc_state`).
+    A rung held across the switch keeps its coins. The page shows the record before × 2. The 10 % cap would have bound on 1 of the
+    first 15 fills at $50 (USDC-GBP 10-28 01:03 UTC).
+  - **"- 3" (`0168`, `cb_nudge.ts`, prereg `2026-10-29-cb-usdc-nudge-prereg.md`).** "- 2"'s driver (`runCbUsdcArm`, shared) on USDC-GBP at
+    $50, $300. Its fair is nudged inside FX closures alone by Revolut X's recorded mid, as REVX-FAIR §8 replayed it.
+    - Checked against that replay's own data (98d94c49): RX equal in 27,360 of 27,360 minutes; trips 65/65 (closures) and 67/67
+      (every minute).
+    - It starts at the first 00:00 UTC after its first run. Its reading is 28 days against "- 2"'s USDC-GBP book: a 3-day block
+      bootstrap, P(mean ≤ 0) < 0.10.
+
 ### [2026-10-29 06:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **REVX-FAIR addendum: the USDC-GBP lead mirrored onto Coinbase** (sub-agent; commit, not pushed; Davies, 10-29:
   "建USDC 那个线索，在with euro-2的基础上开-3，只做300美元的USDC-GBP"). Review §8, `backtests/fair_price/scripts/cb_mirror.*`.

@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-  defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fmtBps, fmtFees, FULL_HISTORY_LIMIT, historyLimitOf, lastChangeText, showFullHistory, symbolOrderRows, fmtFrac, fmtPct2, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView, strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows, VENUE_LABELS, VENUE_HUES, agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard, newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwBarTileKeys, fmtUsd4, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, paperTestRows, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokPmModeTag, grokPmTiles, linkDomain, utcStamp, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmJournalView, fmtProb, fmtBrier, LP_LIVE_ROW_ID, fmtR, lpStopRoomText, liveExtraRows, lpEstimateTexts, lpLiveDayCells, lpLiveQuoteRows, lpLiveRow, quoteDaysAnnualPct, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, lpLiveStatus, AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney, QUOTES_COINBASE_ROW_ID, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesCoinbaseRow,
+  defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fmtBps, fmtFees, FULL_HISTORY_LIMIT, historyLimitOf, lastChangeText, showFullHistory, symbolOrderRows, fmtFrac, fmtPct2, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView, strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows, VENUE_LABELS, VENUE_HUES, agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard, newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwBarTileKeys, fmtUsd4, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, paperTestRows, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokPmModeTag, grokPmTiles, linkDomain, utcStamp, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmJournalView, fmtProb, fmtBrier, LP_LIVE_ROW_ID, fmtR, lpStopRoomText, liveExtraRows, lpEstimateTexts, lpLiveDayCells, lpLiveQuoteRows, lpLiveRow, quoteDaysAnnualPct, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, lpLiveStatus, AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney, QUOTES_COINBASE_ROW_ID, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, QUOTES_COINBASE_NUDGE_ROW_ID, quotesCoinbaseRow,
 } from './agents.js';
 // The live quotes page's fixture: what the dashboard serves for a book worked out by hand (the agents function's test
 // proves it is the server's own answer for its rows; the browser test serves it).
@@ -1164,7 +1164,7 @@ describe('quoteLadderRows — a book as the page draws it', () => {
     const row = quotesCoinbaseRow(u);
     expect(row).toMatchObject({ id: QUOTES_COINBASE_USDC_ROW_ID, name: 'Stablecoin quotes with Euros - 2', venueId: 'coinbase', mode: 'paper', ccy: 'GBP' });
     expect(new Set([QUOTES_COINBASE_ROW_ID, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID]).size).toBe(3);
-    expect(row?.status.detail).toMatch(/the USDC books at 25 a rung, the interbank rates held through a closure/);
+    expect(row?.status.detail).toMatch(/the USDC books at \$50 a rung, the interbank rates held through a closure/);
     expect(quotesCoinbaseRow(h)?.status.detail).not.toMatch(/USDC/);
     expect(row?.gbp.capital).toBe(281.25);
     const dash = { quotesTwins: shownTwins, quotesCoinbase: q, quotesCoinbaseHold: h, quotesCoinbaseUsdc: u };
@@ -1178,6 +1178,26 @@ describe('quoteLadderRows — a book as the page draws it', () => {
     // Coinbase's card adds the three rows.
     const cb = venueRows(dash, 'testing', paperTestRows(dash)).find((r) => r.id === 'coinbase');
     expect(cb?.capitalUsd).toBeCloseTo(q.capitalUsd + h.capitalUsd + u.capitalUsd, 6);
+  });
+  it('"Stablecoin quotes with Euros - 3" (cb_nudge.ts, 0168) follows "- 2" in TESTING, $300 funded, and opens its own Coinbase page', () => {
+    // Davies, 2026-10-29: "建USDC 那个线索，在with euro-2的基础上开-3，只做300美元的USDC-GBP". The dashboard sends it as `quotesCoinbaseNudge`, twin id `coinbasenudge`.
+    const q = cbFixture.quotesCoinbase, h0 = cbHoldFixture.quotesCoinbaseHold;
+    const h = { ...h0, twin: { ...h0.twin, name: 'Stablecoin quotes with Euros - 1' } };
+    const u = { ...h0, twin: { ...h0.twin, id: 'coinbaseusdc', name: 'Stablecoin quotes with Euros - 2' } };
+    const n = { ...h0, ccy: 'USD', capitalUsd: 300, capitalGbp: 225, twin: { ...h0.twin, id: 'coinbasenudge', name: 'Stablecoin quotes with Euros - 3' } };
+    const row = quotesCoinbaseRow(n);
+    expect(row).toMatchObject({ id: QUOTES_COINBASE_NUDGE_ROW_ID, name: 'Stablecoin quotes with Euros - 3', venueId: 'coinbase', mode: 'paper', ccy: 'USD' });
+    expect(row?.status.detail).toMatch(/USDC-GBP at \$50 a rung, its fair nudged by Revolut X's book in FX closures/);
+    expect(new Set([QUOTES_COINBASE_ROW_ID, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, QUOTES_COINBASE_NUDGE_ROW_ID]).size).toBe(4);
+    const dash = { quotesTwins: shownTwins, quotesCoinbase: q, quotesCoinbaseHold: h, quotesCoinbaseUsdc: u, quotesCoinbaseNudge: n };
+    const names = paperTestRows(dash).map((r) => r.name);
+    const at = names.indexOf('Stablecoin quotes with Euros - 2');
+    expect(names[at + 1]).toBe('Stablecoin quotes with Euros - 3');
+    expect(paperTestRows({ ...dash, quotesCoinbaseNudge: null }).map((r) => r.name)).not.toContain('Stablecoin quotes with Euros - 3');
+    expect(rowMoney(row).capital).toBe(300);
+    expect(quotesPageFor(QUOTES_COINBASE_NUDGE_ROW_ID, dash)).toBe('coinbase');
+    expect(quotesPageFor(QUOTES_COINBASE_NUDGE_ROW_ID, { ...dash, quotesCoinbaseNudge: null })).toBe(null);
+    expect(strategyNameParts('Stablecoin quotes with Euros - 3')).toEqual({ head: 'Stablecoin quotes', qual: 'with Euros - 3', twoLines: true });
   });
 });
 

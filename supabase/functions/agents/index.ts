@@ -116,8 +116,14 @@
 //                             Reads only the database. Cron or admin.
 //   POST ?action=cbusdc     — "Stablecoin quotes with Euros - 2" (cb_usdc.ts,
 //                             0142): the weekend variant's rule on the two USDC
-//                             books at 25 a rung; its own tables and lease.
-//                             Reads only the database. Cron or admin.
+//                             books, $50 a rung since its Deviation 2; its own
+//                             tables and lease. Reads only the database. Cron
+//                             or admin.
+//   POST ?action=cbnudge    — "Stablecoin quotes with Euros - 3" (cb_nudge.ts,
+//                             0168): "- 2"'s driver on USDC-GBP alone at $50 a
+//                             rung, its fair nudged by Revolut X's recorded
+//                             USDC-GBP book; its own tables and lease. Reads
+//                             only the database. Cron or admin.
 //   POST ?action=okxrec     — OKX's recorder and its paper twins (okx_rec.ts,
 //                             okx_quotes.ts, 0150): every minute, every new print
 //                             of USDG-EUR and EURC-USDC by trade id and their top
@@ -253,7 +259,8 @@ import { runCbRec, type CbRecState } from "./cb_rec.ts";
 import { cbBooksDelayMs, runCbBooks } from "./cb_books.ts";
 import { CB_RUNG_USD, runCbQuotes } from "./cb_quotes.ts";
 import { CB_HOLD_ID, CB_HOLD_TABLES, runCbHold } from "./cb_hold.ts";
-import { CB_USDC_ID, CB_USDC_ROW_NAME, CB_USDC_RUNG_USD, CB_USDC_TABLES, cbUsdcView, runCbUsdc } from "./cb_usdc.ts";
+import { CB_USDC_FACTOR_50, CB_USDC_ID, CB_USDC_ROW_NAME, CB_USDC_RUNG_USD_50, CB_USDC_TABLES, cbUsdcFactorNow, cbUsdcView, runCbUsdc } from "./cb_usdc.ts";
+import { CB_NUDGE_ID, CB_NUDGE_PRODUCTS, CB_NUDGE_ROW_NAME, CB_NUDGE_RUNG_USD, CB_NUDGE_TABLES, runCbNudge } from "./cb_nudge.ts";
 import { runOkxRec } from "./okx_rec.ts";
 import { readOkxQuotes, runOkxQuotes } from "./okx_quotes.ts";
 import { readFxw } from "./fxw_view.ts";
@@ -706,6 +713,23 @@ export async function runCbUsdcAction(deps: { db?: Db; now?: number } = {}) {
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     await reportServerError("agents.cb_usdc", { message: message.slice(0, 500), context: { at: new Date().toISOString() } });
+    return { error: message.slice(0, 300) };
+  }
+}
+
+/** "Stablecoin quotes with Euros - 3" (cb_nudge.ts, 0168): the recorder's state row, then "- 2"'s driver on USDC-GBP with the nudge. */
+export async function runCbNudgeAction(deps: { db?: Db; now?: number } = {}) {
+  try {
+    const dbi = deps.db ?? db();
+    const now = deps.now ?? Date.now();
+    const recRow = await dbi.select<{ state: CbRecState | Record<string, never> }>("cb_rec_state", "id=eq.1&select=state");
+    const rec = recRow[0]?.state && "cursors" in recRow[0].state ? recRow[0].state as CbRecState : null;
+    const r = await runCbNudge({ db: dbi, now, holder: crypto.randomUUID(), rec });
+    if (r.report) await reportServerError("agents.cb_nudge", tickErrorReport({ errors: r.errors, at: new Date(now).toISOString() }));
+    return r;
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    await reportServerError("agents.cb_nudge", { message: message.slice(0, 500), context: { at: new Date().toISOString() } });
     return { error: message.slice(0, 300) };
   }
 }
@@ -2210,9 +2234,14 @@ async function dashboard(now: number) {
   // its own tables, on the same page; the figures it shows are the page's own (`cbQuotesView`) under its own name and id.
   const quotesCoinbaseHoldRead = readCoinbaseUsd(d, now, dayStartMs, CB_HOLD_TABLES, { id: CB_HOLD_ID, name: CB_HOLD_PAGE_NAME }, { rungUsd: CB_RUNG_USD, books: 4 });
   // "Stablecoin quotes with Euros - 2" (0142, cb_usdc.ts): the weekend variant's rule on the two USDC books at 25 a rung, in its
-  // own shape (`cbUsdcView`: two books, its rungs' sizes), $25 a rung and $300 on the two books; null before its first decided minute.
+  // own shape (`cbUsdcView`: two books, its rungs' sizes at the engine's divisor now), $50 a rung and $600 on the two books since
+  // its Deviation 2, what came before shown × 2 (`resizeFactor`); null before its first decided minute.
   const quotesCoinbaseUsdcRead = readCoinbaseUsd(d, now, dayStartMs, CB_USDC_TABLES, { id: CB_USDC_ID, name: CB_USDC_ROW_NAME },
-    { rungUsd: CB_USDC_RUNG_USD, books: 2, shape: cbUsdcView });
+    { rungUsd: CB_USDC_RUNG_USD_50, books: 2, resizeFactor: 2, shape: (v, st) => cbUsdcView(v, { factor: cbUsdcFactorNow(st) }) });
+  // "Stablecoin quotes with Euros - 3" (0168, cb_nudge.ts): "- 2"'s rule on USDC-GBP alone, $50 a rung, $300, its fair nudged by
+  // Revolut X's book; null before its first decided minute.
+  const quotesCoinbaseNudgeRead = readCoinbaseUsd(d, now, dayStartMs, CB_NUDGE_TABLES, { id: CB_NUDGE_ID, name: CB_NUDGE_ROW_NAME },
+    { rungUsd: CB_NUDGE_RUNG_USD, books: 1, shape: (v) => cbUsdcView(v, { factor: CB_USDC_FACTOR_50, products: CB_NUDGE_PRODUCTS }) });
   // "Stablecoin quotes OKX USDG" and "Stablecoin quotes OKX EURC" (0150, okx_quotes.ts): PR5's rule as LIVE carries it out, on
   // paper, on OKX's two books, a twin each in Coinbase's shape with `venue` "okx"; none before the record decides a minute.
   const quotesOkxRead = readOkxQuotes(d, now, dayStartMs).catch(() => []);
@@ -2348,6 +2377,11 @@ async function dashboard(now: number) {
      * rung, in the same shape (`twin.id` "coinbaseusdc"; `cbUsdcView`), in dollars; null until it has decided a minute.
      */
     quotesCoinbaseUsdc: await quotesCoinbaseUsdcRead,
+    /**
+     * "Stablecoin quotes with Euros - 3" (`0168`, cb_nudge.ts): "- 2"'s rule on USDC-GBP alone at $50 a rung, its fair nudged by
+     * Revolut X's USDC-GBP book, in the same shape (`twin.id` "coinbasenudge"), in dollars; null until it has decided a minute.
+     */
+    quotesCoinbaseNudge: await quotesCoinbaseNudgeRead,
     /**
      * "Stablecoin quotes OKX USDG" and "Stablecoin quotes OKX EURC" (`0150`, okx_quotes.ts): PR5's rule as LIVE carries it out,
      * on paper, on OKX's USDG-EUR and EURC-USDC, one twin a book (`twin.id` "okxusdg", "okxeurc"); empty until it has decided a minute.
@@ -2875,6 +2909,8 @@ async function route(req: Request, who: Exclude<Who, null>, url: URL, action: st
   if (action === "cbhold" && req.method === "POST" && operator) return json(200, await runCbHoldAction());
   // "Stablecoin quotes with Euros - 2" (cb_usdc.ts, 0142): the USDC arm, decided from the database alone.
   if (action === "cbusdc" && req.method === "POST" && operator) return json(200, await runCbUsdcAction());
+  // "Stablecoin quotes with Euros - 3" (cb_nudge.ts, 0168): "- 2"'s rule on USDC-GBP with the nudged fair, decided from the database alone.
+  if (action === "cbnudge" && req.method === "POST" && operator) return json(200, await runCbNudgeAction());
   // OKX's recorder and its paper twins (okx_rec.ts, okx_quotes.ts, 0150): keyless reads, then the paper rule on the database.
   if (action === "okxrec" && req.method === "POST" && operator) return json(200, await runOkxRecAction());
   // Finnhub's economic calendar, read only (econcal.ts, 2026-10-15): the events of a window for the Coinbase blackout's release list. Cron bearer only; the key stays here.

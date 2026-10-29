@@ -61,6 +61,7 @@ const PAGED_KEYS: Record<string, string> = {
   cb_hold_events: "book,minute,side,k,kind", cb_hold_minutes: "book,minute", cb_hold_trips: "book,side,k,t_entry",
   // The USDC arm's tables (0142), the same shapes: the page reads its trips.
   cb_usdc_events: "book,minute,side,k,kind", cb_usdc_minutes: "book,minute", cb_usdc_trips: "book,side,k,t_entry",
+  cb_nudge_events: "book,minute,side,k,kind", cb_nudge_minutes: "book,minute", cb_nudge_trips: "book,side,k,t_entry",
   // OKX's recorder and its paper twins (0150): prints by trade id, book reads by time, the twins' events, minutes and trips.
   okx_trades: "book,trade_id", okx_books: "book,ts", okx_quote_events: "book,minute,side,k,kind", okx_quote_minutes: "book,minute",
   okx_quote_trips: "book,side,k,t_entry",

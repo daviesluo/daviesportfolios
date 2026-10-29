@@ -1331,6 +1331,10 @@ const COINBASE_HOLD_TWIN_ID = 'coinbasehold';
 export const QUOTES_COINBASE_USDC_ROW_ID = '__quotes_coinbase_usdc';
 /** The twin id the USDC arm's payload carries (`CB_USDC_ID` in `cb_usdc.ts`). */
 const COINBASE_USDC_TWIN_ID = 'coinbaseusdc';
+/** "Stablecoin quotes with Euros - 3"'s id among TESTING's rows (USDC-GBP with the nudged fair, `cb_nudge.ts`, 0168). */
+export const QUOTES_COINBASE_NUDGE_ROW_ID = '__quotes_coinbase_nudge';
+/** The twin id its payload carries (`CB_NUDGE_ID` in `cb_nudge.ts`). */
+const COINBASE_NUDGE_TWIN_ID = 'coinbasenudge';
 
 /**
  * "Stablecoin quotes with Euros" as a row of TESTING (`cb_quotes.ts`, 0112; Davies, 2026-10-10: "先建起来吧，并且和Revolute X
@@ -1343,21 +1347,23 @@ const COINBASE_USDC_TWIN_ID = 'coinbaseusdc';
  * the first (`paperTestRows`), the dashboard's `quotesCoinbaseHold`, `twin.id` `coinbasehold`; "with Euros - 1" since 0142.
  * "Stablecoin quotes with Euros - 2" since 0142 (`cb_usdc.ts`; Davies, 2026-10-26: "…-2改为你说的这个新策略在-1（含周末）的基础上做")
  * is the same row for the USDC arm, right after "- 1": the weekend variant's rule on the two USDC books at 25 a rung, the
- * dashboard's `quotesCoinbaseUsdc`, `twin.id` `coinbaseusdc`.
- * @param {any} q  the dashboard's `quotesCoinbase`, `quotesCoinbaseHold` or `quotesCoinbaseUsdc`
+ * dashboard's `quotesCoinbaseUsdc`, `twin.id` `coinbaseusdc` ($50 a rung since its Deviation 2). "Stablecoin quotes with Euros - 3"
+ * (`cb_nudge.ts`, 0168; Davies, 2026-10-29: "建USDC 那个线索，在with euro-2的基础上开-3，只做300美元的USDC-GBP") is the same row right
+ * after "- 2": its rule on USDC-GBP alone at $50 a rung, the fair nudged by Revolut X's book, `quotesCoinbaseNudge`, `coinbasenudge`.
+ * @param {any} q  the dashboard's `quotesCoinbase`, `quotesCoinbaseHold`, `quotesCoinbaseUsdc` or `quotesCoinbaseNudge`
  */
 export function quotesCoinbaseRow(q) {
   if (!q?.twin) return null;
-  const hold = q.twin.id === COINBASE_HOLD_TWIN_ID, usdc = q.twin.id === COINBASE_USDC_TWIN_ID;
+  const hold = q.twin.id === COINBASE_HOLD_TWIN_ID, usdc = q.twin.id === COINBASE_USDC_TWIN_ID, nudge = q.twin.id === COINBASE_NUDGE_TWIN_ID;
   return {
-    id: usdc ? QUOTES_COINBASE_USDC_ROW_ID : hold ? QUOTES_COINBASE_HOLD_ROW_ID : QUOTES_COINBASE_ROW_ID,
+    id: nudge ? QUOTES_COINBASE_NUDGE_ROW_ID : usdc ? QUOTES_COINBASE_USDC_ROW_ID : hold ? QUOTES_COINBASE_HOLD_ROW_ID : QUOTES_COINBASE_ROW_ID,
     name: String(q.twin.name),
     venue: venueLabel('coinbase'),
     venueId: 'coinbase',
     mode: 'paper',
     ...quoteBookCells(q),
     status: q.running
-      ? { label: 'paper', running: true, tone: 'running', detail: `PR5's rule on Coinbase's recorded prints${usdc ? ', the USDC books at 25 a rung' : ''}${hold || usdc ? ', the interbank rates held through a closure' : ''} · last minute ${Number(q.lagMinutes) || 0} min ago` }
+      ? { label: 'paper', running: true, tone: 'running', detail: `PR5's rule on Coinbase's recorded prints${usdc ? ', the USDC books at $50 a rung' : ''}${nudge ? ', USDC-GBP at $50 a rung, its fair nudged by Revolut X\'s book in FX closures' : ''}${hold || usdc || nudge ? ', the interbank rates held through a closure' : ''} · last minute ${Number(q.lagMinutes) || 0} min ago` }
       : { label: 'paper', running: false, tone: 'stale', detail: `its last decided minute was ${q.lagMinutes ?? '?'} min ago` },
   };
 }
@@ -1535,6 +1541,7 @@ export function quotesPageFor(selected, dash) {
   if (selected === QUOTES_COINBASE_ROW_ID) return quotesCoinbaseRow(dash?.quotesCoinbase) ? 'coinbase' : null;
   if (selected === QUOTES_COINBASE_HOLD_ROW_ID) return quotesCoinbaseRow(dash?.quotesCoinbaseHold) ? 'coinbase' : null;
   if (selected === QUOTES_COINBASE_USDC_ROW_ID) return quotesCoinbaseRow(dash?.quotesCoinbaseUsdc) ? 'coinbase' : null;
+  if (selected === QUOTES_COINBASE_NUDGE_ROW_ID) return quotesCoinbaseRow(dash?.quotesCoinbaseNudge) ? 'coinbase' : null;
   if (selected?.startsWith(QUOTES_OKX_ROW_PREFIX)) return quotesOkxRow(quotesOkxOf(selected, dash)) ? 'okx' : null;
   return quotesTwinRow(quotesTwinOf(selected, dash)) ? 'twin' : null;
 }
@@ -2128,7 +2135,7 @@ export function rwFillView(f) {
 export function paperTestRows(dash) {
   const one = (/** @type {any} */ row) => (row ? [row] : []);
   return [
-    ...quotesTwinRows(dash), ...one(quotesCoinbaseRow(dash?.quotesCoinbase)), ...one(quotesCoinbaseRow(dash?.quotesCoinbaseHold)), ...one(quotesCoinbaseRow(dash?.quotesCoinbaseUsdc)),
+    ...quotesTwinRows(dash), ...one(quotesCoinbaseRow(dash?.quotesCoinbase)), ...one(quotesCoinbaseRow(dash?.quotesCoinbaseHold)), ...one(quotesCoinbaseRow(dash?.quotesCoinbaseUsdc)), ...one(quotesCoinbaseRow(dash?.quotesCoinbaseNudge)),
     ...quotesOkxRows(dash), ...grokTestRows(dash), ...one(fxwAudRow(dash?.fxwAud)),
   ];
 }

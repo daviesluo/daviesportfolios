@@ -362,13 +362,22 @@ places stay when the number is not whole.
 - **Stablecoin quotes with Euros - 2.** Right after it, since 26 Oct: "- 1"
   again, weekends included, on the two USDC books alone (USDC against pounds
   and against euros), £25 a rung on the pound book and €25 on the euro book
-  until 29 Oct, $25 a rung since ($300 in all, still a quarter of the others). Coinbase's USDT books lost money in the first weeks
+  until 29 Oct, then $25 a rung, and $50 a rung ($600 in all) from midday on
+  29 Oct. What it made before is shown at the $50 size, assuming it would have
+  filled the same way. Coinbase's USDT books lost money in the first weeks
   while its USDC books earned, so this checks forward, over two weeks, whether
   the USDC books keep earning. It starts flat at the next midnight after it
   went up; its page is the others', with two books.
   Since 15 October the Coinbase tests also step aside for seven minutes
   around each scheduled data release (US inflation and jobs, the Fed, the ECB,
   the Bank of England), when the market jumps faster than a quote can follow.
+- **Stablecoin quotes with Euros - 3.** Right after it, since 29 Oct: "- 2"
+  on the pound book alone, $50 a rung, $300 in all, with one change. When the
+  exchange rates are closed for the weekend (Friday 21:00 to Sunday 21:00 UTC,
+  and two holidays), it moves its price toward where Revolut X's own USDC/GBP
+  book has moved, by half of that move. The rest of the week it quotes exactly
+  as "- 2" does. A paper test of four weeks, judged against "- 2"'s pound book
+  over the same days; it starts flat at the next midnight after it went up.
 - **Stablecoin quotes USDG/EUR and Stablecoin quotes EURC/USDC.** After Coinbase's rows, on
   OKX (its own badge and venue card): the live rules on paper on OKX's two
   euro-against-dollar stablecoin books, USDG against euros and EURC against
