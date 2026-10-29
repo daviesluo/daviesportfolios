@@ -806,6 +806,39 @@ describe('pg_cron jobs', () => {
     expect(sql).toContain("insert into public.agent_locks (name) values ('okx-basis') on conflict (name) do nothing;");
   });
 
+  // GBP/USD and EUR/USD at second resolution beside Yahoo (Davies, 2026-10-29: "并行记录秒级汇率 并研究下最佳数据源并且要有fallback"):
+  // one call a minute that answers at once and reads on under `waitUntil`, its beat first, every other row as it was, a prune.
+  it("adds the second-level FX recorder as one call a minute (fx_ticks), its beat first, every other row as it was, and a prune of SQL alone", () => {
+    const T = FILES.find((f) => /^\d{4}_fx_ticks\.sql$/.test(f)) ?? '';
+    expect(T).not.toBe('');
+    const before = replayList(sqlsOf(FILES.filter((f) => f < T))), after = replayList(sqlsOf(FILES.filter((f) => f <= T)));
+    expect(after.slice(0, before.length)).toEqual(before);
+    const shape = ({ path: p, timeout, every, lastHour, enabled, retry }) => ({ path: p, timeout, every, lastHour, enabled, retry });
+    // A 10 s timeout: the call answers at once; its reads run on to 58 s into the minute without holding the job's batch.
+    expect(after.slice(before.length).map(shape)).toEqual([
+      { path: 'agents?action=fxrec', timeout: 10000, every: 1, lastHour: 23, enabled: true, retry: true },
+    ]);
+    expect(beatKeyOfPath(after.at(-1).path)).toBe('agents?action=fxrec');
+    const src = fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/index.ts'), 'utf8');
+    expect(src).toContain('if (action === "fxrec" && req.method === "POST" && operator) return json(200, startFxRecAction());');
+    const jobsBefore = cronJobs(FILES.filter((f) => f < T)), jobsAfter = cronJobs(FILES.filter((f) => f <= T));
+    expect([...jobsAfter.keys()].filter((n) => !jobsBefore.has(n))).toEqual(['fx-ticks-prune']);
+    const prune = jobsAfter.get('fx-ticks-prune');
+    expect(prune.command.trim()).toBe("delete from public.fx_ticks where minute < now() - interval '42 days';");
+    expect(Number(prune.schedule.split(' ')[0]) % 5).not.toBe(0);
+    expect([...jobsBefore.values()].some((j) => j.schedule === prune.schedule)).toBe(false);
+    expect(httpJobs(jobsAfter).map(([n]) => n)).toEqual(['edge-calls-every-minute']);
+    for (const [n, j] of jobsBefore) expect([n, jobsAfter.get(n)]).toEqual([n, j]);
+    // Its checks hold the sources and pairs the module writes; no grant, no policy; row level security on both tables.
+    const sql = fs.readFileSync(path.join(DIR, T), 'utf8').replace(/--[^\n]*/g, '');
+    const mod = fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/fx_rec.ts'), 'utf8');
+    const list = (name) => JSON.parse(new RegExp(`^export const ${name} = (\\[[^\\]]*\\]) as const;$`, 'm').exec(mod)?.[1] ?? 'null').map((x) => `'${x}'`).join(', ');
+    expect(sql).toContain(`source      text not null check (source in (${list('FX_SOURCES')}))`);
+    expect(sql).toContain(`pair        text not null check (pair in (${list('FX_PAIRS')}))`);
+    for (const t of ['fx_ticks', 'fx_rec_state']) expect(sql).toMatch(new RegExp(`alter table public\\.${t} +enable row level security;`));
+    expect(sql).not.toMatch(/\bgrant\b|create policy/i);
+  });
+
   // OKX's recorder and its paper twins (Davies, 2026-10-27: "…可以的话就加盘口记录器和开testings策略（目前live的rules？）"): as 0112
   // added Coinbase's, one call a minute that records and then decides, its beat first, every other row as it was, a prune of SQL.
   it("adds OKX's recorder and its paper twins as one call a minute (0150), its beat first, every other row as it was, and a prune of SQL alone", () => {

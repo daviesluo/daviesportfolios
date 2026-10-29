@@ -658,6 +658,13 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
     **Independent audit 2026-10-29** (`reviews/2026-10-29-cxbot-independent-audit.md`), its §3 settled by Davies: 7-day blocks,
     CXBOT's own 2027 Q1 releases (opens to 2027-03-31), P&L from the shakedown's end. Prompt changed: resend it to Grok.
 
+20. **Second-level FX recorded beside Yahoo** (Davies, 10-29: "并行记录秒级汇率 并研究下最佳数据源并且要有fallback"; `0172`,
+    `agents/fx_rec.ts`, `reviews/2026-10-29-fx-second-sources.md`). TrueFX every second, Kraken the marked fallback, into
+    `fx_ticks`; no strategy reads it. **After the deploy:** `fx_rec_state.last_report` each minute (59 TrueFX reads, 12 Kraken,
+    `primaryHealthy` true), `fx_ticks.failed` low, no `agents.fx_rec` in `ops_errors`. The comparison (that review's §4) reads
+    14 days from the first full day; then the switch-off statement there unless its bar is met. The historical backtest of a
+    faster X (Davies' addition) follows as its own commit.
+
 ## Machine and platform setup
 
 A rebuilt container loses every line below. Run them before working.
@@ -774,7 +781,14 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 01:24 UTC section (archived
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
-and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth).
+and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth).
+
+### [2026-10-29 07:58 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Second-level GBP/USD and EUR/USD recorded beside Yahoo** (sub-agent; commit, not pushed; Davies, 10-29: "并行记录秒级汇率
+  并研究下最佳数据源并且要有fallback"). `0172`, `agents/fx_rec.ts` (`agents?action=fxrec`), `reviews/2026-10-29-fx-second-sources.md`,
+  `backtests/fx_second/`. TrueFX's keyless snapshot every second (primary), Kraken's GBPUSD/EURUSD ticker every 5 s and every
+  2 s as the marked fallback; one call a minute answering at once, reads to 58 s under `waitUntil`; 160 ms CPU a minute;
+  ≤ 5 MB a weekday, 42 days. No strategy reads it; nothing to do for Davies. Yahoo's EURUSD=X moves in 1.1 bps steps.
 
 ### [2026-10-29 07:52 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Every Coinbase arm on Coinbase's own coin price** (sub-agent; commit, not pushed; Davies, 10-29: "目前coinbase的测试策略全部直接改用coinbase
@@ -897,39 +911,3 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
     `cb_*_state.state` (`usdFrom`, `usdGbpusd`, `usdEurusd`, `usdFactor`).
   - **The page** (`readCoinbaseUsd`) scales what came before the switch by its book's factor: 1/GBP/USD or 1/EUR/USD, 0.7505 and
     0.8968 at 04:06 UTC, 0.817 an arm. No migration. The readings quote `usdFrom` and the factors from each state.
-
-### [2026-10-29 03:49 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **The VENUES share bar back to translucent** (sub-agent; commit, not pushed; Davies, 10-29: "占比栏还是改为原来那种风格吧，现在这种一致的没之前效果好，太亮了").
-  Each slice is its venue's hue (`VENUE_HUES`; Coinbase `#4d8bff`, Hyperliquid `#97fce4`) at one alpha, 0.35, over the bar, with the old light
-  text; badges and card borders unchanged. Pinned in `agents.test.js` (rgb = hue, alpha 0.35, text 4.5:1 on the composited fill at both page
-  backgrounds) and by the sweep's agents section at both widths. `dist/` rebuilt.
-
-### [2026-10-29 03:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **OKX paper twins at $100 a rung, and the OKX and Coinbase quote rows in dollars** (sub-agent; commit, not pushed; Davies,
-  10-29: "OKX每个策略为什么是250usd？改成600吧？正好6个档每个50，目前的数字按倍率乘", then "C，coinbase的也是改用美元"). The
-  "250" was €300 a book (6 × €50) shown in pounds, about £251. OKX prereg §8 Deviation 2: 6 rungs of $100, $600 a book; the
-  switch is the first minute the deployed code decides, written into `okx_quote_state.state` (`usdFrom`, `usdEurusd`,
-  `usdFactor` = 600 ÷ (300 × EUR/USD), 1.793 at 1.1152); a resting €50 entry is re-sized once; the loss stop on $1,200.
-  The page reads both rows in dollars and scales what came before the switch × the factor in the view only (linear in size;
-  no migration). Coinbase's three rows (`coinbaseInUsd`, `cb_page.ts`) show dollars at the page's own pound rate; their
-  sizing and prereg untouched; every other row stays in pounds. `src/okx_prereg.test.js` holds §7's original hashes and
-  Deviation 2's. The OKX reading quotes `usdFrom` and the factor from the state.
-### [2026-10-29 03:39 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **The stablecoin twins renumbered 1 to 6: `0167`** (sub-agent; commit, not pushed; Davies, 10-29: "变体2直接删了吧，不就是目前的Stablecoin quotes LIVE
-  twin么 / 变体 7隐藏 / 数字依然用变体1-6", then "还是这个隐藏吧，变体 5改为变体 7（USDT 3:1）"). `live` (the £120 twin, old variant-2): `enabled = false`,
-  `hidden = true`, named "Stablecoin quotes £120 twin"; `n600usdt2` (USDT 2:1): hidden, still running, "Stablecoin quotes USDT 2:1 from 10-28";
-  the visible ones `live1200` 1, `take50` 2, `n600no03` 3, `n600hold1` 4, `n600usdt3` 5, `n600usdt` 6. Names are unique, so the renames run in the
-  order that frees each name (pinned in `twin_specs.test.js`, with the rows as they stand). The page already drops a disabled or hidden row
-  (`twinSpecs`, `twinsOnPage`): no code change. The browser fixture is made again (`fixture.ts`: no `live`); the sweep serves it without the hidden row.
-
-### [2026-10-29 03:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **The Chinese hooks skip sub-agents** (`input.agent_id`): Davies reads only the main thread; the pre-tool gate had been
-  refusing sub-agents' English working notes, so one wrote its hand-back in Chinese to get past it.
-
-### [2026-10-29 03:24 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Venue colours: Coinbase's blue lighter, the share bar in the theme colours** (sub-agent; commit, not pushed; Davies, 10-29: "Coinbase蓝现在有点太深了
-  ... 用VENUES下面那个占比栏里面的蓝色吧，另外请统一那个占比栏中的颜色和币所主题色"). The 35 % slice he pointed at composites to `#0e2f6a`
-  (1.5:1 on the page), darker than `#0052ff` and unreadable as text, so it could not be used as asked: `VENUE_HUES.coinbase` is the brand
-  blue lifted to `#4d8bff` (4.5:1 or more on its own badge fill at both of the page's backgrounds; Revolut X's is `#8ec5ff`). Every share-bar
-  slice is now its venue's theme hex, solid, with the page's dark `#0c1310` text (4.5:1 or more on each); pinned in `agents.test.js`, and the
-  sweep's agents section checks every slice on the bar at both widths. `dist/` rebuilt.

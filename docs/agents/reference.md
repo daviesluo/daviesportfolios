@@ -4548,6 +4548,17 @@ fails too still reported (`edge-watchdog.retry`). In the three days before, 1,34
     on its own rule read early because no event can be added (2 pairs of the 8 EX-GAP needs; 7 eligible exits of the 60
     MX-1 needs): `reviews/2026-10-28-trend-rows-retired.md`, their deviation 1.
 
+66. **A second-level GBP/USD and EUR/USD is recorded beside Yahoo (2026-10-29, migration `0172`; `agents/fx_rec.ts`).**
+    Davies: "并行记录秒级汇率 并研究下最佳数据源并且要有fallback". `agents?action=fxrec`, a row of `edge_calls`, answers at once
+    and reads on under `waitUntil` to 58 s into its minute: TrueFX's keyless snapshot every second (both pairs, their own
+    millisecond times, bid and ask), Kraken's spot GBP/USD and EUR/USD ticker every 5 s, and every 2 s, marked `fallback`,
+    while TrueFX is unhealthy (three failed reads in a row, or a pair's own time over 120 s behind with the market surely
+    open, not Friday 21:00 → Sunday 22:00 UTC).
+    Into `fx_ticks` (a row per source, pair and minute, the reads as arrays; the view `fx_tick_reads` a row per read), 42 days.
+    TrueFX unhealthy five minutes, the fallback failing a minute it was needed, or a failed write goes to `ops_errors` as
+    `agents.fx_rec`, then hourly while it lasts. **No strategy reads it**: every quote row keeps Yahoo's bar. The sources, their
+    measurement and the 2–4-week comparison plan are `reviews/2026-10-29-fx-second-sources.md`.
+
 ### Twin variants
 
 The realistic twins, a row each of `agent_quote_twin_specs`, in the page's order. A new one is a row here in the commit

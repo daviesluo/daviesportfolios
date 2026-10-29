@@ -148,6 +148,12 @@
 //                             placement; the paper test reads none of it.
 //                             Keyless public reads only. Cron or admin
 //                             (`wait=0`: read at once).
+//   POST ?action=fxrec      — GBP/USD and EUR/USD at second resolution
+//                             (fx_rec.ts, 0172): TrueFX every second, Kraken
+//                             the fallback, into `fx_ticks` beside Yahoo's
+//                             bar; no strategy reads it. Answers at once and
+//                             reads on to 58 s into the minute. Keyless
+//                             public reads only. Cron or admin.
 //   POST ?action=grokpmrec  — GROKPM's independent record (grokpm_rec.ts,
 //                             0124): every five minutes, the outside Grok
 //                             agent's wallet as Polymarket's public data API
@@ -262,6 +268,7 @@ import { readCxbot, readIgbot } from "./grok_tests_view.ts";
 import { GROKPM_CONFIG_COLUMNS, GROKPM_CYCLE_COLUMNS, GROKPM_DAILY_COLUMNS, GROKPM_DECISION_COLUMNS, GROKPM_ENTRY_COLUMNS, GROKPM_FILL_COLUMNS, GROKPM_FILL_STATUSES, GROKPM_JOURNAL_ROWS, GROKPM_MARKET_COLUMNS, GROKPM_OPEN_COLUMNS, GROKPM_SNAPSHOT_COLUMNS, grokPmSummary, type GrokPmConfigRow, type GrokPmCycleRow, type GrokPmDailyRow, type GrokPmDayOpenRow, type GrokPmDecisionRow, type GrokPmEntryRow, type GrokPmFillRow, type GrokPmMarketRow, type GrokPmOpenRow, type GrokPmResolutionRow, type GrokPmSnapshotRow } from "./grokpm_view.ts";
 import { runCbRec, type CbRecState } from "./cb_rec.ts";
 import { cbBooksDelayMs, runCbBooks } from "./cb_books.ts";
+import { runFxRec, type FxRecReport } from "./fx_rec.ts";
 import { CB_RUNG_USD, runCbQuotes } from "./cb_quotes.ts";
 import { CB_HOLD_ID, CB_HOLD_TABLES, runCbHold } from "./cb_hold.ts";
 import { CB_USDC_FACTOR_50, CB_USDC_ID, CB_USDC_ROW_NAME, CB_USDC_RUNG_USD_50, CB_USDC_TABLES, cbUsdcFactorNow, cbUsdcView, runCbUsdc } from "./cb_usdc.ts";
@@ -630,6 +637,28 @@ export async function runCbBooksAction(wait: boolean, deps: { db?: Db; fetchImpl
     await reportServerError("agents.cb_books", { message: message.slice(0, 500), context: { at: new Date().toISOString() } });
     return { error: message.slice(0, 300) };
   }
+}
+
+/**
+ * The second-level FX recorder (fx_rec.ts, 0172): answered at once, its minute's reads run on under `waitUntil` (`keep`),
+ * so the one-minute job's batch is not held for its 58 s. A fault goes to `ops_errors` as `agents.fx_rec` when it first
+ * appears and at most hourly while it lasts; nothing throws past here.
+ */
+export function startFxRecAction(
+  deps: { run?: () => Promise<FxRecReport>; keep?: (p: Promise<unknown>) => void; report?: typeof reportServerError } = {},
+): { started: string } {
+  const report = deps.report ?? reportServerError;
+  const work = (async () => {
+    try {
+      const r = await (deps.run ?? (() => runFxRec({ db: db(), now: Date.now() })))();
+      if (r.report) await report("agents.fx_rec", tickErrorReport(r));
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      await report("agents.fx_rec", { message: message.slice(0, 500), context: { at: new Date().toISOString() } });
+    }
+  })();
+  (deps.keep ?? keepAlive)(work);
+  return { started: new Date().toISOString() };
 }
 
 /**
@@ -2981,6 +3010,8 @@ async function route(req: Request, who: Exclude<Who, null>, url: URL, action: st
   if (action === "econcal" && req.method === "POST" && who === "cron") return json(200, await runEconcal({ from: url.searchParams.get("from"), to: url.searchParams.get("to"), key: Deno.env.get("FINNHUB_API_KEY") }));
   // Coinbase's order books (cb_books.ts, 0114): the top ten levels a side, 30 s into the minute. Keyless reads.
   if (action === "cbbooks" && req.method === "POST" && operator) return json(200, await runCbBooksAction(url.searchParams.get("wait") !== "0"));
+  // GBP/USD and EUR/USD at second resolution (fx_rec.ts, 0172): answers at once, reads on to 58 s. Keyless reads; no strategy reads it.
+  if (action === "fxrec" && req.method === "POST" && operator) return json(200, startFxRecAction());
   // GROKPM's independent record (grokpm_rec.ts, 0124): the outside agent's wallet, every five minutes. Keyless reads.
   if (action === "grokpmrec" && req.method === "POST" && operator) return json(200, await runGrokPmRecAction());
   // Polymarket's order path (pm_live.ts, 0074): its dry-run, called from eu-west-1 by the one-minute job. Cron bearer only.
