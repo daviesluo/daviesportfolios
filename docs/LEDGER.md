@@ -792,6 +792,13 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth).
 
+### [2026-10-29 18:43 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **STRATEGY-COMPARE Revolut X: the £1 holding line and the ranked view** (sub-agent; commit, not pushed; the main session's ask).
+  Each rule set also run with variant-4's `holdMin {gbp: 1}` (LIVE does not run it): since 09-01 LIVE + holdMin gains +5.3 / +3.0
+  / +1.9 points a year on USDT-GBP at £600 / £1,200 / £2,400 (dust trips 2.4 → 0.02 a day; 3.6 of the 5.3 is the penny cost
+  recovered), +0.2 on USDC-GBP; the same with each variant. The review gains a ranked table, one line a rule set × book × size
+  (`pairs.json` `ranked`): top LIVE + holdMin USDT-GBP £600 +40.0 %, bottom variant-7 USDC-GBP £2,400 +13.5 %.
+
 ### [2026-10-29 18:33 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **STRATEGY-COMPARE, Revolut X half** (sub-agent; commit, not pushed; Davies, 10-29: "测一下目前最新的revolut x的live以及variant7和8
   以及7和8的结合，与最新的coinbase的…每个策略都按单币种分开测，分别按600磅和1200磅 2400磅…需真实反映未来12个月的期待"; the Coinbase half is

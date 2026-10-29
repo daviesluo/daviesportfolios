@@ -17,6 +17,1016 @@
   },
   "trips_day": 8.24
  },
+ "live_h1|USDC-GBP|1200": {
+  "oos": {
+   "diff_pct_yr": 0.09,
+   "p10": 0.03,
+   "p90": 0.16,
+   "p_le0": 0.0
+  },
+  "post": {
+   "diff_pct_yr": 0.18,
+   "p10": 0.01,
+   "p90": 0.34,
+   "p_le0": 0.042
+  },
+  "vs_without_hold_line": {
+   "oos": {
+    "diff_pct_yr": 0.09,
+    "p10": 0.03,
+    "p90": 0.16,
+    "p_le0": 0.0
+   },
+   "post": {
+    "diff_pct_yr": 0.18,
+    "p10": 0.01,
+    "p90": 0.34,
+    "p_le0": 0.042
+   }
+  }
+ },
+ "live_h1|USDC-GBP|2400": {
+  "oos": {
+   "diff_pct_yr": 0.06,
+   "p10": 0.02,
+   "p90": 0.12,
+   "p_le0": 0.0
+  },
+  "post": {
+   "diff_pct_yr": 0.15,
+   "p10": 0.01,
+   "p90": 0.29,
+   "p_le0": 0.042
+  },
+  "vs_without_hold_line": {
+   "oos": {
+    "diff_pct_yr": 0.06,
+    "p10": 0.02,
+    "p90": 0.12,
+    "p_le0": 0.0
+   },
+   "post": {
+    "diff_pct_yr": 0.15,
+    "p10": 0.01,
+    "p90": 0.29,
+    "p_le0": 0.042
+   }
+  }
+ },
+ "live_h1|USDC-GBP|600": {
+  "oos": {
+   "diff_pct_yr": 0.14,
+   "p10": 0.07,
+   "p90": 0.22,
+   "p_le0": 0.0
+  },
+  "post": {
+   "diff_pct_yr": 0.23,
+   "p10": 0.03,
+   "p90": 0.44,
+   "p_le0": 0.042
+  },
+  "vs_without_hold_line": {
+   "oos": {
+    "diff_pct_yr": 0.14,
+    "p10": 0.07,
+    "p90": 0.22,
+    "p_le0": 0.0
+   },
+   "post": {
+    "diff_pct_yr": 0.23,
+    "p10": 0.03,
+    "p90": 0.44,
+    "p_le0": 0.042
+   }
+  }
+ },
+ "live_h1|USDT-GBP|1200": {
+  "oos": {
+   "diff_pct_yr": 1.12,
+   "p10": 0.63,
+   "p90": 1.66,
+   "p_le0": 0.0
+  },
+  "post": {
+   "diff_pct_yr": 3.01,
+   "p10": 1.69,
+   "p90": 4.39,
+   "p_le0": 0.0
+  },
+  "vs_without_hold_line": {
+   "oos": {
+    "diff_pct_yr": 1.12,
+    "p10": 0.63,
+    "p90": 1.66,
+    "p_le0": 0.0
+   },
+   "post": {
+    "diff_pct_yr": 3.01,
+    "p10": 1.69,
+    "p90": 4.39,
+    "p_le0": 0.0
+   }
+  }
+ },
+ "live_h1|USDT-GBP|2400": {
+  "oos": {
+   "diff_pct_yr": 0.77,
+   "p10": 0.39,
+   "p90": 1.19,
+   "p_le0": 0.0
+  },
+  "post": {
+   "diff_pct_yr": 1.94,
+   "p10": 0.9,
+   "p90": 3.05,
+   "p_le0": 0.0
+  },
+  "vs_without_hold_line": {
+   "oos": {
+    "diff_pct_yr": 0.77,
+    "p10": 0.39,
+    "p90": 1.19,
+    "p_le0": 0.0
+   },
+   "post": {
+    "diff_pct_yr": 1.94,
+    "p10": 0.9,
+    "p90": 3.05,
+    "p_le0": 0.0
+   }
+  }
+ },
+ "live_h1|USDT-GBP|600": {
+  "oos": {
+   "diff_pct_yr": 1.96,
+   "p10": 1.13,
+   "p90": 2.9,
+   "p_le0": 0.0
+  },
+  "post": {
+   "diff_pct_yr": 5.25,
+   "p10": 3.02,
+   "p90": 7.6,
+   "p_le0": 0.0
+  },
+  "vs_without_hold_line": {
+   "oos": {
+    "diff_pct_yr": 1.96,
+    "p10": 1.13,
+    "p90": 2.9,
+    "p_le0": 0.0
+   },
+   "post": {
+    "diff_pct_yr": 5.25,
+    "p10": 3.02,
+    "p90": 7.6,
+    "p_le0": 0.0
+   }
+  }
+ },
+ "ranked": [
+  {
+   "blend_pct_yr": 91.17,
+   "book": "USDT-GBP",
+   "capital_gbp": 600,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 249,
+   "headline_pct_yr": 41.46,
+   "key": "v8_h1|USDT-GBP|600",
+   "oos_pct_yr": 112.61,
+   "p10": 32.13,
+   "p90": 51.24,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-8 + holdMin \u00a31"
+  },
+  {
+   "blend_pct_yr": 87.35,
+   "book": "USDT-GBP",
+   "capital_gbp": 600,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 240,
+   "headline_pct_yr": 39.97,
+   "key": "live_h1|USDT-GBP|600",
+   "oos_pct_yr": 107.97,
+   "p10": 31.05,
+   "p90": 49.29,
+   "p_year_below_0": 0.0,
+   "strategy": "LIVE + holdMin \u00a31"
+  },
+  {
+   "blend_pct_yr": 88.33,
+   "book": "USDT-GBP",
+   "capital_gbp": 600,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 239,
+   "headline_pct_yr": 39.86,
+   "key": "v78_h1|USDT-GBP|600",
+   "oos_pct_yr": 109.4,
+   "p10": 30.99,
+   "p90": 49.13,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-7+8 + holdMin \u00a31"
+  },
+  {
+   "blend_pct_yr": 83.12,
+   "book": "USDT-GBP",
+   "capital_gbp": 600,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 226,
+   "headline_pct_yr": 37.7,
+   "key": "v7_h1|USDT-GBP|600",
+   "oos_pct_yr": 103.16,
+   "p10": 29.36,
+   "p90": 46.4,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-7 + holdMin \u00a31"
+  },
+  {
+   "blend_pct_yr": 76.27,
+   "book": "USDT-GBP",
+   "capital_gbp": 1200,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 440,
+   "headline_pct_yr": 36.7,
+   "key": "v8_h1|USDT-GBP|1200",
+   "oos_pct_yr": 93.23,
+   "p10": 28.69,
+   "p90": 45.16,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-8 + holdMin \u00a31"
+  },
+  {
+   "blend_pct_yr": 88.59,
+   "book": "USDT-GBP",
+   "capital_gbp": 600,
+   "dust_stress_pct_yr": 8.0,
+   "gbp_yr": 218,
+   "headline_pct_yr": 36.4,
+   "key": "v8|USDT-GBP|600",
+   "oos_pct_yr": 110.71,
+   "p10": 27.63,
+   "p90": 45.71,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-8"
+  },
+  {
+   "blend_pct_yr": 74.93,
+   "book": "USDT-GBP",
+   "capital_gbp": 1200,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 428,
+   "headline_pct_yr": 35.7,
+   "key": "v78_h1|USDT-GBP|1200",
+   "oos_pct_yr": 92.15,
+   "p10": 27.78,
+   "p90": 43.94,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-7+8 + holdMin \u00a31"
+  },
+  {
+   "blend_pct_yr": 85.93,
+   "book": "USDT-GBP",
+   "capital_gbp": 600,
+   "dust_stress_pct_yr": 6.7,
+   "gbp_yr": 211,
+   "headline_pct_yr": 35.23,
+   "key": "v78|USDT-GBP|600",
+   "oos_pct_yr": 107.53,
+   "p10": 27.05,
+   "p90": 43.64,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-7+8"
+  },
+  {
+   "blend_pct_yr": 73.03,
+   "book": "USDT-GBP",
+   "capital_gbp": 1200,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 420,
+   "headline_pct_yr": 35.04,
+   "key": "live_h1|USDT-GBP|1200",
+   "oos_pct_yr": 89.5,
+   "p10": 27.57,
+   "p90": 42.86,
+   "p_year_below_0": 0.0,
+   "strategy": "LIVE + holdMin \u00a31"
+  },
+  {
+   "blend_pct_yr": 84.68,
+   "book": "USDT-GBP",
+   "capital_gbp": 600,
+   "dust_stress_pct_yr": 6.6,
+   "gbp_yr": 208,
+   "headline_pct_yr": 34.72,
+   "key": "live|USDT-GBP|600",
+   "oos_pct_yr": 106.01,
+   "p10": 26.22,
+   "p90": 43.63,
+   "p_year_below_0": 0.0,
+   "strategy": "LIVE"
+  },
+  {
+   "blend_pct_yr": 74.73,
+   "book": "USDT-GBP",
+   "capital_gbp": 1200,
+   "dust_stress_pct_yr": 19.4,
+   "gbp_yr": 404,
+   "headline_pct_yr": 33.69,
+   "key": "v8|USDT-GBP|1200",
+   "oos_pct_yr": 92.06,
+   "p10": 26.11,
+   "p90": 41.67,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-8"
+  },
+  {
+   "blend_pct_yr": 70.1,
+   "book": "USDT-GBP",
+   "capital_gbp": 1200,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 403,
+   "headline_pct_yr": 33.55,
+   "key": "v7_h1|USDT-GBP|1200",
+   "oos_pct_yr": 86.51,
+   "p10": 26.07,
+   "p90": 41.38,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-7 + holdMin \u00a31"
+  },
+  {
+   "blend_pct_yr": 73.65,
+   "book": "USDT-GBP",
+   "capital_gbp": 1200,
+   "dust_stress_pct_yr": 18.8,
+   "gbp_yr": 398,
+   "headline_pct_yr": 33.16,
+   "key": "v78|USDT-GBP|1200",
+   "oos_pct_yr": 91.18,
+   "p10": 25.63,
+   "p90": 40.96,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-7+8"
+  },
+  {
+   "blend_pct_yr": 80.39,
+   "book": "USDT-GBP",
+   "capital_gbp": 600,
+   "dust_stress_pct_yr": 4.5,
+   "gbp_yr": 194,
+   "headline_pct_yr": 32.35,
+   "key": "v7|USDT-GBP|600",
+   "oos_pct_yr": 101.07,
+   "p10": 24.65,
+   "p90": 40.35,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-7"
+  },
+  {
+   "blend_pct_yr": 71.51,
+   "book": "USDT-GBP",
+   "capital_gbp": 1200,
+   "dust_stress_pct_yr": 17.9,
+   "gbp_yr": 384,
+   "headline_pct_yr": 32.03,
+   "key": "live|USDT-GBP|1200",
+   "oos_pct_yr": 88.38,
+   "p10": 24.88,
+   "p90": 39.57,
+   "p_year_below_0": 0.0,
+   "strategy": "LIVE"
+  },
+  {
+   "blend_pct_yr": 61.64,
+   "book": "USDT-GBP",
+   "capital_gbp": 2400,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 755,
+   "headline_pct_yr": 31.44,
+   "key": "v8_h1|USDT-GBP|2400",
+   "oos_pct_yr": 75.05,
+   "p10": 24.84,
+   "p90": 38.28,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-8 + holdMin \u00a31"
+  },
+  {
+   "blend_pct_yr": 68.6,
+   "book": "USDT-GBP",
+   "capital_gbp": 1200,
+   "dust_stress_pct_yr": 16.6,
+   "gbp_yr": 367,
+   "headline_pct_yr": 30.59,
+   "key": "v7|USDT-GBP|1200",
+   "oos_pct_yr": 85.36,
+   "p10": 23.41,
+   "p90": 38.04,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-7"
+  },
+  {
+   "blend_pct_yr": 60.47,
+   "book": "USDT-GBP",
+   "capital_gbp": 2400,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 725,
+   "headline_pct_yr": 30.2,
+   "key": "v78_h1|USDT-GBP|2400",
+   "oos_pct_yr": 74.21,
+   "p10": 23.18,
+   "p90": 37.44,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-7+8 + holdMin \u00a31"
+  },
+  {
+   "blend_pct_yr": 58.75,
+   "book": "USDT-GBP",
+   "capital_gbp": 2400,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 718,
+   "headline_pct_yr": 29.91,
+   "key": "live_h1|USDT-GBP|2400",
+   "oos_pct_yr": 71.72,
+   "p10": 23.56,
+   "p90": 36.56,
+   "p_year_below_0": 0.0,
+   "strategy": "LIVE + holdMin \u00a31"
+  },
+  {
+   "blend_pct_yr": 60.59,
+   "book": "USDT-GBP",
+   "capital_gbp": 2400,
+   "dust_stress_pct_yr": 22.2,
+   "gbp_yr": 706,
+   "headline_pct_yr": 29.41,
+   "key": "v8|USDT-GBP|2400",
+   "oos_pct_yr": 74.22,
+   "p10": 23.17,
+   "p90": 35.94,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-8"
+  },
+  {
+   "blend_pct_yr": 56.72,
+   "book": "USDT-GBP",
+   "capital_gbp": 2400,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 689,
+   "headline_pct_yr": 28.69,
+   "key": "v7_h1|USDT-GBP|2400",
+   "oos_pct_yr": 69.93,
+   "p10": 22.19,
+   "p90": 35.5,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-7 + holdMin \u00a31"
+  },
+  {
+   "blend_pct_yr": 59.62,
+   "book": "USDT-GBP",
+   "capital_gbp": 2400,
+   "dust_stress_pct_yr": 21.3,
+   "gbp_yr": 685,
+   "headline_pct_yr": 28.56,
+   "key": "v78|USDT-GBP|2400",
+   "oos_pct_yr": 73.53,
+   "p10": 21.88,
+   "p90": 35.52,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-7+8"
+  },
+  {
+   "blend_pct_yr": 57.76,
+   "book": "USDT-GBP",
+   "capital_gbp": 2400,
+   "dust_stress_pct_yr": 20.8,
+   "gbp_yr": 671,
+   "headline_pct_yr": 27.97,
+   "key": "live|USDT-GBP|2400",
+   "oos_pct_yr": 70.95,
+   "p10": 21.83,
+   "p90": 34.45,
+   "p_year_below_0": 0.0,
+   "strategy": "LIVE"
+  },
+  {
+   "blend_pct_yr": 55.82,
+   "book": "USDT-GBP",
+   "capital_gbp": 2400,
+   "dust_stress_pct_yr": 19.8,
+   "gbp_yr": 646,
+   "headline_pct_yr": 26.91,
+   "key": "v7|USDT-GBP|2400",
+   "oos_pct_yr": 69.23,
+   "p10": 20.58,
+   "p90": 33.55,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-7"
+  },
+  {
+   "blend_pct_yr": 22.56,
+   "book": "USDC-GBP",
+   "capital_gbp": 600,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 116,
+   "headline_pct_yr": 19.29,
+   "key": "v8_h1|USDC-GBP|600",
+   "oos_pct_yr": 24.48,
+   "p10": 15.14,
+   "p90": 23.59,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-8 + holdMin \u00a31"
+  },
+  {
+   "blend_pct_yr": 24.04,
+   "book": "USDC-GBP",
+   "capital_gbp": 600,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 115,
+   "headline_pct_yr": 19.11,
+   "key": "v78_h1|USDC-GBP|600",
+   "oos_pct_yr": 25.54,
+   "p10": 15.43,
+   "p90": 22.84,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-7+8 + holdMin \u00a31"
+  },
+  {
+   "blend_pct_yr": 22.46,
+   "book": "USDC-GBP",
+   "capital_gbp": 600,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 115,
+   "headline_pct_yr": 19.11,
+   "key": "v8|USDC-GBP|600",
+   "oos_pct_yr": 24.43,
+   "p10": 14.97,
+   "p90": 23.35,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-8"
+  },
+  {
+   "blend_pct_yr": 23.81,
+   "book": "USDC-GBP",
+   "capital_gbp": 600,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 114,
+   "headline_pct_yr": 18.98,
+   "key": "v78|USDC-GBP|600",
+   "oos_pct_yr": 25.35,
+   "p10": 15.32,
+   "p90": 22.69,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-7+8"
+  },
+  {
+   "blend_pct_yr": 20.94,
+   "book": "USDC-GBP",
+   "capital_gbp": 600,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 114,
+   "headline_pct_yr": 18.94,
+   "key": "live_h1|USDC-GBP|600",
+   "oos_pct_yr": 22.53,
+   "p10": 15.02,
+   "p90": 22.97,
+   "p_year_below_0": 0.0,
+   "strategy": "LIVE + holdMin \u00a31"
+  },
+  {
+   "blend_pct_yr": 20.79,
+   "book": "USDC-GBP",
+   "capital_gbp": 600,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 112,
+   "headline_pct_yr": 18.7,
+   "key": "live|USDC-GBP|600",
+   "oos_pct_yr": 22.39,
+   "p10": 14.85,
+   "p90": 22.66,
+   "p_year_below_0": 0.0,
+   "strategy": "LIVE"
+  },
+  {
+   "blend_pct_yr": 22.24,
+   "book": "USDC-GBP",
+   "capital_gbp": 600,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 106,
+   "headline_pct_yr": 17.7,
+   "key": "v7_h1|USDC-GBP|600",
+   "oos_pct_yr": 23.95,
+   "p10": 14.27,
+   "p90": 21.19,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-7 + holdMin \u00a31"
+  },
+  {
+   "blend_pct_yr": 22.13,
+   "book": "USDC-GBP",
+   "capital_gbp": 600,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 105,
+   "headline_pct_yr": 17.57,
+   "key": "v7|USDC-GBP|600",
+   "oos_pct_yr": 23.84,
+   "p10": 14.16,
+   "p90": 21.03,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-7"
+  },
+  {
+   "blend_pct_yr": 20.46,
+   "book": "USDC-GBP",
+   "capital_gbp": 1200,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 209,
+   "headline_pct_yr": 17.44,
+   "key": "v78_h1|USDC-GBP|1200",
+   "oos_pct_yr": 20.77,
+   "p10": 14.04,
+   "p90": 20.9,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-7+8 + holdMin \u00a31"
+  },
+  {
+   "blend_pct_yr": 20.33,
+   "book": "USDC-GBP",
+   "capital_gbp": 1200,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 209,
+   "headline_pct_yr": 17.38,
+   "key": "v78|USDC-GBP|1200",
+   "oos_pct_yr": 20.68,
+   "p10": 13.99,
+   "p90": 20.83,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-7+8"
+  },
+  {
+   "blend_pct_yr": 19.03,
+   "book": "USDC-GBP",
+   "capital_gbp": 1200,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 199,
+   "headline_pct_yr": 16.6,
+   "key": "v8_h1|USDC-GBP|1200",
+   "oos_pct_yr": 20.03,
+   "p10": 12.7,
+   "p90": 20.58,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-8 + holdMin \u00a31"
+  },
+  {
+   "blend_pct_yr": 17.78,
+   "book": "USDC-GBP",
+   "capital_gbp": 1200,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 199,
+   "headline_pct_yr": 16.56,
+   "key": "live_h1|USDC-GBP|1200",
+   "oos_pct_yr": 18.5,
+   "p10": 13.11,
+   "p90": 20.11,
+   "p_year_below_0": 0.0,
+   "strategy": "LIVE + holdMin \u00a31"
+  },
+  {
+   "blend_pct_yr": 19.14,
+   "book": "USDC-GBP",
+   "capital_gbp": 1200,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 198,
+   "headline_pct_yr": 16.46,
+   "key": "v7_h1|USDC-GBP|1200",
+   "oos_pct_yr": 19.66,
+   "p10": 13.29,
+   "p90": 19.68,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-7 + holdMin \u00a31"
+  },
+  {
+   "blend_pct_yr": 18.93,
+   "book": "USDC-GBP",
+   "capital_gbp": 1200,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 197,
+   "headline_pct_yr": 16.44,
+   "key": "v8|USDC-GBP|1200",
+   "oos_pct_yr": 19.94,
+   "p10": 12.55,
+   "p90": 20.38,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-8"
+  },
+  {
+   "blend_pct_yr": 19.1,
+   "book": "USDC-GBP",
+   "capital_gbp": 1200,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 197,
+   "headline_pct_yr": 16.4,
+   "key": "v7|USDC-GBP|1200",
+   "oos_pct_yr": 19.63,
+   "p10": 13.23,
+   "p90": 19.61,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-7"
+  },
+  {
+   "blend_pct_yr": 17.68,
+   "book": "USDC-GBP",
+   "capital_gbp": 1200,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 197,
+   "headline_pct_yr": 16.39,
+   "key": "live|USDC-GBP|1200",
+   "oos_pct_yr": 18.41,
+   "p10": 12.96,
+   "p90": 19.88,
+   "p_year_below_0": 0.0,
+   "strategy": "LIVE"
+  },
+  {
+   "blend_pct_yr": 16.58,
+   "book": "USDC-GBP",
+   "capital_gbp": 2400,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 344,
+   "headline_pct_yr": 14.35,
+   "key": "v78_h1|USDC-GBP|2400",
+   "oos_pct_yr": 16.41,
+   "p10": 11.32,
+   "p90": 17.43,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-7+8 + holdMin \u00a31"
+  },
+  {
+   "blend_pct_yr": 16.49,
+   "book": "USDC-GBP",
+   "capital_gbp": 2400,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 344,
+   "headline_pct_yr": 14.32,
+   "key": "v78|USDC-GBP|2400",
+   "oos_pct_yr": 16.36,
+   "p10": 11.3,
+   "p90": 17.4,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-7+8"
+  },
+  {
+   "blend_pct_yr": 15.55,
+   "book": "USDC-GBP",
+   "capital_gbp": 2400,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 341,
+   "headline_pct_yr": 14.2,
+   "key": "v8_h1|USDC-GBP|2400",
+   "oos_pct_yr": 15.74,
+   "p10": 11.07,
+   "p90": 17.39,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-8 + holdMin \u00a31"
+  },
+  {
+   "blend_pct_yr": 15.47,
+   "book": "USDC-GBP",
+   "capital_gbp": 2400,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 337,
+   "headline_pct_yr": 14.05,
+   "key": "v8|USDC-GBP|2400",
+   "oos_pct_yr": 15.68,
+   "p10": 10.97,
+   "p90": 17.2,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-8"
+  },
+  {
+   "blend_pct_yr": 14.51,
+   "book": "USDC-GBP",
+   "capital_gbp": 2400,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 329,
+   "headline_pct_yr": 13.72,
+   "key": "live_h1|USDC-GBP|2400",
+   "oos_pct_yr": 14.58,
+   "p10": 10.77,
+   "p90": 16.71,
+   "p_year_below_0": 0.0,
+   "strategy": "LIVE + holdMin \u00a31"
+  },
+  {
+   "blend_pct_yr": 14.43,
+   "book": "USDC-GBP",
+   "capital_gbp": 2400,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 326,
+   "headline_pct_yr": 13.57,
+   "key": "live|USDC-GBP|2400",
+   "oos_pct_yr": 14.52,
+   "p10": 10.64,
+   "p90": 16.52,
+   "p_year_below_0": 0.0,
+   "strategy": "LIVE"
+  },
+  {
+   "blend_pct_yr": 15.6,
+   "book": "USDC-GBP",
+   "capital_gbp": 2400,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 324,
+   "headline_pct_yr": 13.49,
+   "key": "v7_h1|USDC-GBP|2400",
+   "oos_pct_yr": 15.67,
+   "p10": 10.64,
+   "p90": 16.38,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-7 + holdMin \u00a31"
+  },
+  {
+   "blend_pct_yr": 15.59,
+   "book": "USDC-GBP",
+   "capital_gbp": 2400,
+   "dust_stress_pct_yr": null,
+   "gbp_yr": 323,
+   "headline_pct_yr": 13.46,
+   "key": "v7|USDC-GBP|2400",
+   "oos_pct_yr": 15.68,
+   "p10": 10.62,
+   "p90": 16.35,
+   "p_year_below_0": 0.0,
+   "strategy": "variant-7"
+  }
+ ],
+ "v78_h1|USDC-GBP|1200": {
+  "oos": {
+   "diff_pct_yr": 2.35,
+   "p10": 1.06,
+   "p90": 3.66,
+   "p_le0": 0.01
+  },
+  "post": {
+   "diff_pct_yr": 1.06,
+   "p10": -0.83,
+   "p90": 2.88,
+   "p_le0": 0.23
+  },
+  "vs_without_hold_line": {
+   "oos": {
+    "diff_pct_yr": 0.09,
+    "p10": -0.01,
+    "p90": 0.21,
+    "p_le0": 0.127
+   },
+   "post": {
+    "diff_pct_yr": 0.06,
+    "p10": 0.03,
+    "p90": 0.1,
+    "p_le0": 0.007
+   }
+  }
+ },
+ "v78_h1|USDC-GBP|2400": {
+  "oos": {
+   "diff_pct_yr": 1.89,
+   "p10": 0.78,
+   "p90": 2.99,
+   "p_le0": 0.015
+  },
+  "post": {
+   "diff_pct_yr": 0.78,
+   "p10": -0.66,
+   "p90": 2.24,
+   "p_le0": 0.248
+  },
+  "vs_without_hold_line": {
+   "oos": {
+    "diff_pct_yr": 0.04,
+    "p10": -0.05,
+    "p90": 0.15,
+    "p_le0": 0.328
+   },
+   "post": {
+    "diff_pct_yr": 0.03,
+    "p10": 0.01,
+    "p90": 0.04,
+    "p_le0": 0.01
+   }
+  }
+ },
+ "v78_h1|USDC-GBP|600": {
+  "oos": {
+   "diff_pct_yr": 3.15,
+   "p10": 1.52,
+   "p90": 4.81,
+   "p_le0": 0.006
+  },
+  "post": {
+   "diff_pct_yr": 0.41,
+   "p10": -1.8,
+   "p90": 2.51,
+   "p_le0": 0.398
+  },
+  "vs_without_hold_line": {
+   "oos": {
+    "diff_pct_yr": 0.19,
+    "p10": 0.08,
+    "p90": 0.32,
+    "p_le0": 0.0
+   },
+   "post": {
+    "diff_pct_yr": 0.13,
+    "p10": 0.05,
+    "p90": 0.21,
+    "p_le0": 0.007
+   }
+  }
+ },
+ "v78_h1|USDT-GBP|1200": {
+  "oos": {
+   "diff_pct_yr": 3.77,
+   "p10": 1.57,
+   "p90": 6.04,
+   "p_le0": 0.017
+  },
+  "post": {
+   "diff_pct_yr": 3.67,
+   "p10": 0.82,
+   "p90": 6.61,
+   "p_le0": 0.046
+  },
+  "vs_without_hold_line": {
+   "oos": {
+    "diff_pct_yr": 0.97,
+    "p10": 0.53,
+    "p90": 1.47,
+    "p_le0": 0.0
+   },
+   "post": {
+    "diff_pct_yr": 2.54,
+    "p10": 1.34,
+    "p90": 3.84,
+    "p_le0": 0.0
+   }
+  }
+ },
+ "v78_h1|USDT-GBP|2400": {
+  "oos": {
+   "diff_pct_yr": 3.26,
+   "p10": 1.21,
+   "p90": 5.36,
+   "p_le0": 0.023
+  },
+  "post": {
+   "diff_pct_yr": 2.22,
+   "p10": -0.11,
+   "p90": 4.65,
+   "p_le0": 0.11
+  },
+  "vs_without_hold_line": {
+   "oos": {
+    "diff_pct_yr": 0.68,
+    "p10": 0.37,
+    "p90": 1.02,
+    "p_le0": 0.0
+   },
+   "post": {
+    "diff_pct_yr": 1.64,
+    "p10": 0.82,
+    "p90": 2.54,
+    "p_le0": 0.0
+   }
+  }
+ },
+ "v78_h1|USDT-GBP|600": {
+  "oos": {
+   "diff_pct_yr": 3.39,
+   "p10": 0.82,
+   "p90": 6.01,
+   "p_le0": 0.045
+  },
+  "post": {
+   "diff_pct_yr": 5.14,
+   "p10": 0.93,
+   "p90": 9.43,
+   "p_le0": 0.059
+  },
+  "vs_without_hold_line": {
+   "oos": {
+    "diff_pct_yr": 1.87,
+    "p10": 1.09,
+    "p90": 2.73,
+    "p_le0": 0.0
+   },
+   "post": {
+    "diff_pct_yr": 4.63,
+    "p10": 2.54,
+    "p90": 6.94,
+    "p_le0": 0.0
+   }
+  }
+ },
  "v78|USDC-GBP|1200": {
   "oos": {
    "diff_pct_yr": 2.26,
@@ -101,6 +1111,174 @@
    "p_le0": 0.391
   }
  },
+ "v7_h1|USDC-GBP|1200": {
+  "oos": {
+   "diff_pct_yr": 1.25,
+   "p10": -0.07,
+   "p90": 2.58,
+   "p_le0": 0.114
+  },
+  "post": {
+   "diff_pct_yr": 0.08,
+   "p10": -1.8,
+   "p90": 1.92,
+   "p_le0": 0.481
+  },
+  "vs_without_hold_line": {
+   "oos": {
+    "diff_pct_yr": 0.03,
+    "p10": 0.0,
+    "p90": 0.06,
+    "p_le0": 0.08
+   },
+   "post": {
+    "diff_pct_yr": 0.06,
+    "p10": 0.03,
+    "p90": 0.1,
+    "p_le0": 0.007
+   }
+  }
+ },
+ "v7_h1|USDC-GBP|2400": {
+  "oos": {
+   "diff_pct_yr": 1.15,
+   "p10": 0.06,
+   "p90": 2.27,
+   "p_le0": 0.09
+  },
+  "post": {
+   "diff_pct_yr": -0.08,
+   "p10": -1.54,
+   "p90": 1.45,
+   "p_le0": 0.55
+  },
+  "vs_without_hold_line": {
+   "oos": {
+    "diff_pct_yr": -0.0,
+    "p10": -0.04,
+    "p90": 0.03,
+    "p_le0": 0.537
+   },
+   "post": {
+    "diff_pct_yr": 0.03,
+    "p10": 0.01,
+    "p90": 0.04,
+    "p_le0": 0.01
+   }
+  }
+ },
+ "v7_h1|USDC-GBP|600": {
+  "oos": {
+   "diff_pct_yr": 1.56,
+   "p10": 0.01,
+   "p90": 3.11,
+   "p_le0": 0.098
+  },
+  "post": {
+   "diff_pct_yr": -1.0,
+   "p10": -3.13,
+   "p90": 0.97,
+   "p_le0": 0.731
+  },
+  "vs_without_hold_line": {
+   "oos": {
+    "diff_pct_yr": 0.11,
+    "p10": 0.07,
+    "p90": 0.15,
+    "p_le0": 0.0
+   },
+   "post": {
+    "diff_pct_yr": 0.13,
+    "p10": 0.05,
+    "p90": 0.21,
+    "p_le0": 0.007
+   }
+  }
+ },
+ "v7_h1|USDT-GBP|1200": {
+  "oos": {
+   "diff_pct_yr": -1.87,
+   "p10": -3.79,
+   "p90": 0.1,
+   "p_le0": 0.887
+  },
+  "post": {
+   "diff_pct_yr": 1.52,
+   "p10": -1.02,
+   "p90": 4.07,
+   "p_le0": 0.227
+  },
+  "vs_without_hold_line": {
+   "oos": {
+    "diff_pct_yr": 1.15,
+    "p10": 0.65,
+    "p90": 1.7,
+    "p_le0": 0.0
+   },
+   "post": {
+    "diff_pct_yr": 2.96,
+    "p10": 1.63,
+    "p90": 4.41,
+    "p_le0": 0.0
+   }
+  }
+ },
+ "v7_h1|USDT-GBP|2400": {
+  "oos": {
+   "diff_pct_yr": -1.02,
+   "p10": -2.78,
+   "p90": 0.77,
+   "p_le0": 0.767
+  },
+  "post": {
+   "diff_pct_yr": 0.71,
+   "p10": -1.14,
+   "p90": 2.69,
+   "p_le0": 0.326
+  },
+  "vs_without_hold_line": {
+   "oos": {
+    "diff_pct_yr": 0.7,
+    "p10": 0.39,
+    "p90": 1.04,
+    "p_le0": 0.0
+   },
+   "post": {
+    "diff_pct_yr": 1.78,
+    "p10": 0.94,
+    "p90": 2.69,
+    "p_le0": 0.0
+   }
+  }
+ },
+ "v7_h1|USDT-GBP|600": {
+  "oos": {
+   "diff_pct_yr": -2.85,
+   "p10": -5.23,
+   "p90": -0.35,
+   "p_le0": 0.93
+  },
+  "post": {
+   "diff_pct_yr": 2.98,
+   "p10": -0.9,
+   "p90": 6.85,
+   "p_le0": 0.161
+  },
+  "vs_without_hold_line": {
+   "oos": {
+    "diff_pct_yr": 2.09,
+    "p10": 1.2,
+    "p90": 3.1,
+    "p_le0": 0.0
+   },
+   "post": {
+    "diff_pct_yr": 5.35,
+    "p10": 2.92,
+    "p90": 7.99,
+    "p_le0": 0.0
+   }
+  }
+ },
  "v7|USDC-GBP|1200": {
   "oos": {
    "diff_pct_yr": 1.22,
@@ -183,6 +1361,174 @@
    "p10": -4.96,
    "p90": 0.13,
    "p_le0": 0.887
+  }
+ },
+ "v8_h1|USDC-GBP|1200": {
+  "oos": {
+   "diff_pct_yr": 1.62,
+   "p10": 0.86,
+   "p90": 2.42,
+   "p_le0": 0.002
+  },
+  "post": {
+   "diff_pct_yr": 0.21,
+   "p10": -0.75,
+   "p90": 1.09,
+   "p_le0": 0.375
+  },
+  "vs_without_hold_line": {
+   "oos": {
+    "diff_pct_yr": 0.08,
+    "p10": 0.03,
+    "p90": 0.15,
+    "p_le0": 0.0
+   },
+   "post": {
+    "diff_pct_yr": 0.16,
+    "p10": 0.0,
+    "p90": 0.32,
+    "p_le0": 0.128
+   }
+  }
+ },
+ "v8_h1|USDC-GBP|2400": {
+  "oos": {
+   "diff_pct_yr": 1.22,
+   "p10": 0.64,
+   "p90": 1.86,
+   "p_le0": 0.002
+  },
+  "post": {
+   "diff_pct_yr": 0.63,
+   "p10": -0.01,
+   "p90": 1.24,
+   "p_le0": 0.103
+  },
+  "vs_without_hold_line": {
+   "oos": {
+    "diff_pct_yr": 0.06,
+    "p10": 0.02,
+    "p90": 0.12,
+    "p_le0": 0.0
+   },
+   "post": {
+    "diff_pct_yr": 0.15,
+    "p10": 0.0,
+    "p90": 0.29,
+    "p_le0": 0.128
+   }
+  }
+ },
+ "v8_h1|USDC-GBP|600": {
+  "oos": {
+   "diff_pct_yr": 2.09,
+   "p10": 1.15,
+   "p90": 3.04,
+   "p_le0": 0.003
+  },
+  "post": {
+   "diff_pct_yr": 0.59,
+   "p10": -0.27,
+   "p90": 1.38,
+   "p_le0": 0.183
+  },
+  "vs_without_hold_line": {
+   "oos": {
+    "diff_pct_yr": 0.05,
+    "p10": -0.1,
+    "p90": 0.2,
+    "p_le0": 0.297
+   },
+   "post": {
+    "diff_pct_yr": 0.19,
+    "p10": 0.0,
+    "p90": 0.37,
+    "p_le0": 0.128
+   }
+  }
+ },
+ "v8_h1|USDT-GBP|1200": {
+  "oos": {
+   "diff_pct_yr": 4.85,
+   "p10": 3.61,
+   "p90": 6.13,
+   "p_le0": 0.0
+  },
+  "post": {
+   "diff_pct_yr": 4.67,
+   "p10": 2.23,
+   "p90": 7.22,
+   "p_le0": 0.002
+  },
+  "vs_without_hold_line": {
+   "oos": {
+    "diff_pct_yr": 1.17,
+    "p10": 0.66,
+    "p90": 1.74,
+    "p_le0": 0.0
+   },
+   "post": {
+    "diff_pct_yr": 3.0,
+    "p10": 1.61,
+    "p90": 4.49,
+    "p_le0": 0.0
+   }
+  }
+ },
+ "v8_h1|USDT-GBP|2400": {
+  "oos": {
+   "diff_pct_yr": 4.09,
+   "p10": 3.0,
+   "p90": 5.23,
+   "p_le0": 0.0
+  },
+  "post": {
+   "diff_pct_yr": 3.46,
+   "p10": 1.49,
+   "p90": 5.49,
+   "p_le0": 0.006
+  },
+  "vs_without_hold_line": {
+   "oos": {
+    "diff_pct_yr": 0.83,
+    "p10": 0.42,
+    "p90": 1.29,
+    "p_le0": 0.0
+   },
+   "post": {
+    "diff_pct_yr": 2.03,
+    "p10": 0.93,
+    "p90": 3.25,
+    "p_le0": 0.001
+   }
+  }
+ },
+ "v8_h1|USDT-GBP|600": {
+  "oos": {
+   "diff_pct_yr": 6.6,
+   "p10": 5.09,
+   "p90": 8.11,
+   "p_le0": 0.0
+  },
+  "post": {
+   "diff_pct_yr": 6.75,
+   "p10": 3.82,
+   "p90": 9.83,
+   "p_le0": 0.0
+  },
+  "vs_without_hold_line": {
+   "oos": {
+    "diff_pct_yr": 1.9,
+    "p10": 1.07,
+    "p90": 2.82,
+    "p_le0": 0.0
+   },
+   "post": {
+    "diff_pct_yr": 5.06,
+    "p10": 2.83,
+    "p90": 7.46,
+    "p_le0": 0.0
+   }
   }
  },
  "v8|USDC-GBP|1200": {

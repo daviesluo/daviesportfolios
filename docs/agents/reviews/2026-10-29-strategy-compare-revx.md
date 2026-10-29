@@ -38,8 +38,21 @@ Scripts and results: `docs/agents/backtests/compare/revx/` (`scripts/compare.py`
    these (1.9–2.6 a day on one USDT-GBP book since September); in their first 20 hours PR5-OPT's £600 twins weighted to USDT-GBP
    ran about 8 a day a book at 6p each. At that rate USDT-GBP's headline falls to about **+7 % at £600, +18 % at £1,200, +21 % at
    £2,400** (LIVE's rules). PR5-OPT's £1 holding line (`n600hold1`, variant-4 on the page) booked its two dust trips at £0.000:
-   it is the rule that removes this cost.
-5. **The variants against LIVE, the same book, size and days** (`scripts/pairs.py`; the days since 09-01, % a year, [80 %],
+   it is the rule that removes this cost (point 5).
+5. **The fix is variant-4's rule, not a new one: `holdMin {gbp: 1}`** (`TWIN_RULES.holdMin`, `holdLineBase` in
+   `agents/quotes_live.ts`; PR5-OPT's pre-registration, `n600hold1` since 2026-10-28 22:00, read on 11-25). A rung counts as
+   held only above £1 of coin, so a minimum-size print fills part of the entry, which keeps resting, and no exit follows. LIVE does
+   not run it. Replayed as **"LIVE + holdMin £1"** (the engine's `hold_min_gbp` 1.0), since 09-01, % a year
+   (`results/pairs.json`, against LIVE on the same days, [80 %]):
+   - **USDT-GBP: +5.3 [+3.0, +7.6] at £600, +3.0 [+1.7, +4.4] at £1,200, +1.9 [+0.9, +3.1] at £2,400** (P(≤ 0) 0.000 each;
+     about £31, £36 and £47 a year). Dust trips fall from 2.4 a day to 0.02. Of the +5.3 at £600, 3.6 is the penny charge the
+     haircut no longer books (all of it) and the rest is the entry that keeps resting its full size (+2.1 before the haircut).
+     Under the stress of point 4 the line takes all of the extra dust cost too: its own twin's dust trips booked £0.000.
+   - **USDC-GBP: +0.2 at every size** (+0.23 [+0.03, +0.44] at £600; P 0.04): there is almost no dust there to recover.
+   - **With the variants** it recovers the same (USDT-GBP at £600: variant-7 +5.4, variant-8 +5.1, 7+8 +4.6 against the same
+     rule set without it; USDC-GBP +0.03 to +0.19), and the variants' order is unchanged, so they are reported with it too: in
+     `compare.json` and `pairs.json` as `v7_h1`, `v8_h1`, `v78_h1` (variant-8 + holdMin £1 on USDT-GBP: +41.5, +36.7, +31.4 %).
+6. **The variants against LIVE, the same book, size and days** (`scripts/pairs.py`; the days since 09-01, % a year, [80 %],
    P(≤ 0)):
    - **variant-8 is ahead on both books at every size, clearly only on USDT-GBP.** USDT-GBP +1.7 [+0.5, +2.9] P 0.03 at £600,
      +1.7 at £1,200 (P 0.06), +1.4 at £2,400 (P 0.05); USDC-GBP +0.4, +0.05, +0.5 (P 0.16–0.46). Out of sample it is ahead on all
@@ -50,11 +63,52 @@ Scripts and results: `docs/agents/backtests/compare/revx/` (`scripts/compare.py`
    - **7 + 8** is variant-8 with variant-7's drag: +0.3 to +1.1 since September (P 0.24–0.43).
    - Every difference since September is a fraction of the interval of each row: on these figures the choice of book and size
      moves the return ten times more than the choice of variant.
-6. **What it means.** On Revolut X the best expected return a year is USDT-GBP alone, with variant-8's exit a little better,
+7. **What it means.** On Revolut X the best expected return a year is USDT-GBP alone, with variant-8's exit a little better,
    about +28 to +36 % on paper after the haircut, falling with size; but that book is also where the dust risk sits, and where
-   LIVE's October record fell furthest short of the replay (§3) at £10 rungs. USDC-GBP alone is about +14 to +19 %, with almost no dust risk. Variant-8 is the one change worth
-   its twin's 28 days (already running since 10-29 19:00); variant-7 is not, on either book. Nothing here is a change to LIVE:
-   that is Davies' decision, each on its own record.
+   LIVE's October record fell furthest short of the replay (§3) at £10 rungs. The £1 holding line (variant-4's rule) both removes
+   that risk and adds 2–5 points on USDT-GBP, more than variant-8 does. USDC-GBP alone is about +14 to +19 %, with almost no dust
+   risk. Variant-8 is the one change of the two Davies named worth its twin's 28 days (running from 10-29 19:00); variant-7 is
+   not, on either book. Nothing here is a change to LIVE: that is Davies' decision, each on its own record (variant-4's reading
+   is due on 11-25).
+
+## Ranked: one line a rule set × book × size, by the headline
+
+The headline is since 2026-09-01 after the haircut (e 0.825 and the dust cost); £ a year is the headline × the capital; P(year
+< 0) is 0.000 on every line; the dust stress is §0 point 4 (USDT-GBP rows without the holding line). From `results/pairs.json`
+`ranked`, which also holds variant-7, variant-8 and 7+8 with the holding line.
+
+| # | rule set | book | capital | headline %/yr [80 %] | P(yr<0) | £/yr | shared blend | OOS | dust stress |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | LIVE + holdMin £1 | USDT-GBP | £600 | **+40.0** [+31.1, +49.3] | 0.000 | £240 | +87.3 | +108.0 |  |
+| 2 | variant-8 | USDT-GBP | £600 | **+36.4** [+27.6, +45.7] | 0.000 | £218 | +88.6 | +110.7 | +8.0 |
+| 3 | variant-7+8 | USDT-GBP | £600 | **+35.2** [+27.1, +43.6] | 0.000 | £211 | +85.9 | +107.5 | +6.7 |
+| 4 | LIVE + holdMin £1 | USDT-GBP | £1,200 | **+35.0** [+27.6, +42.9] | 0.000 | £420 | +73.0 | +89.5 |  |
+| 5 | LIVE | USDT-GBP | £600 | **+34.7** [+26.2, +43.6] | 0.000 | £208 | +84.7 | +106.0 | +6.6 |
+| 6 | variant-8 | USDT-GBP | £1,200 | **+33.7** [+26.1, +41.7] | 0.000 | £404 | +74.7 | +92.1 | +19.4 |
+| 7 | variant-7+8 | USDT-GBP | £1,200 | **+33.2** [+25.6, +41.0] | 0.000 | £398 | +73.7 | +91.2 | +18.8 |
+| 8 | variant-7 | USDT-GBP | £600 | **+32.4** [+24.6, +40.4] | 0.000 | £194 | +80.4 | +101.1 | +4.5 |
+| 9 | LIVE | USDT-GBP | £1,200 | **+32.0** [+24.9, +39.6] | 0.000 | £384 | +71.5 | +88.4 | +17.9 |
+| 10 | variant-7 | USDT-GBP | £1,200 | **+30.6** [+23.4, +38.0] | 0.000 | £367 | +68.6 | +85.4 | +16.6 |
+| 11 | LIVE + holdMin £1 | USDT-GBP | £2,400 | **+29.9** [+23.6, +36.6] | 0.000 | £718 | +58.8 | +71.7 |  |
+| 12 | variant-8 | USDT-GBP | £2,400 | **+29.4** [+23.2, +35.9] | 0.000 | £706 | +60.6 | +74.2 | +22.2 |
+| 13 | variant-7+8 | USDT-GBP | £2,400 | **+28.6** [+21.9, +35.5] | 0.000 | £685 | +59.6 | +73.5 | +21.3 |
+| 14 | LIVE | USDT-GBP | £2,400 | **+28.0** [+21.8, +34.5] | 0.000 | £671 | +57.8 | +71.0 | +20.8 |
+| 15 | variant-7 | USDT-GBP | £2,400 | **+26.9** [+20.6, +33.5] | 0.000 | £646 | +55.8 | +69.2 | +19.8 |
+| 16 | variant-8 | USDC-GBP | £600 | **+19.1** [+15.0, +23.4] | 0.000 | £115 | +22.5 | +24.4 |  |
+| 17 | variant-7+8 | USDC-GBP | £600 | **+19.0** [+15.3, +22.7] | 0.000 | £114 | +23.8 | +25.4 |  |
+| 18 | LIVE + holdMin £1 | USDC-GBP | £600 | **+18.9** [+15.0, +23.0] | 0.000 | £114 | +20.9 | +22.5 |  |
+| 19 | LIVE | USDC-GBP | £600 | **+18.7** [+14.8, +22.7] | 0.000 | £112 | +20.8 | +22.4 |  |
+| 20 | variant-7 | USDC-GBP | £600 | **+17.6** [+14.2, +21.0] | 0.000 | £105 | +22.1 | +23.8 |  |
+| 21 | variant-7+8 | USDC-GBP | £1,200 | **+17.4** [+14.0, +20.8] | 0.000 | £209 | +20.3 | +20.7 |  |
+| 22 | LIVE + holdMin £1 | USDC-GBP | £1,200 | **+16.6** [+13.1, +20.1] | 0.000 | £199 | +17.8 | +18.5 |  |
+| 23 | variant-8 | USDC-GBP | £1,200 | **+16.4** [+12.6, +20.4] | 0.000 | £197 | +18.9 | +19.9 |  |
+| 24 | variant-7 | USDC-GBP | £1,200 | **+16.4** [+13.2, +19.6] | 0.000 | £197 | +19.1 | +19.6 |  |
+| 25 | LIVE | USDC-GBP | £1,200 | **+16.4** [+13.0, +19.9] | 0.000 | £197 | +17.7 | +18.4 |  |
+| 26 | variant-7+8 | USDC-GBP | £2,400 | **+14.3** [+11.3, +17.4] | 0.000 | £344 | +16.5 | +16.4 |  |
+| 27 | variant-8 | USDC-GBP | £2,400 | **+14.1** [+11.0, +17.2] | 0.000 | £337 | +15.5 | +15.7 |  |
+| 28 | LIVE + holdMin £1 | USDC-GBP | £2,400 | **+13.7** [+10.8, +16.7] | 0.000 | £329 | +14.5 | +14.6 |  |
+| 29 | LIVE | USDC-GBP | £2,400 | **+13.6** [+10.6, +16.5] | 0.000 | £326 | +14.4 | +14.5 |  |
+| 30 | variant-7 | USDC-GBP | £2,400 | **+13.5** [+10.6, +16.4] | 0.000 | £323 | +15.6 | +15.7 |  |
 
 ## 1. The method (shared with the Coinbase half)
 
@@ -67,7 +121,9 @@ Scripts and results: `docs/agents/backtests/compare/revx/` (`scripts/compare.py`
     Coinbase's own price of that coin in pounds: its last print of each minute to 2026-10-08 (SCQ-VENUES' bars, from 2024-10, so
     the whole Revolut X history is covered, USDT-GBP included), then the recorder's touch from 10-10;
   - **variant-8**: plus every exit one tick beyond fair (`exitOffset` 1);
-  - **7+8**: both.
+  - **7+8**: both;
+  - and each of the four **+ holdMin £1** (added at the main session's ask): variant-4's £1 holding line (`rules.holdMin`),
+    the engine's `hold_min_gbp` 1.0 (§0 point 5).
 - **One book at a time**, all the capital on it: six rungs (3 a side), each a sixth of the capital, so **£100, £200 and £400 a
   rung** at £600, £1,200 and £2,400 (LIVE's £600 over both books is £50 a rung). The engine fills a resting order by the size of
   the prints that reach it, so a bigger rung does not fill proportionally more.
@@ -193,11 +249,12 @@ LIVE's figures are real money and are not written here or committed; only ratios
 
 - `scripts/compare.py` → `results/compare.json` (every row's figures) and `results/daily.json.gz` (each row's days, before and
   after the haircut).
-- `scripts/pairs.py` → `results/pairs.json`: each variant against LIVE, the same book, size and days.
+- `scripts/pairs.py` → `results/pairs.json`: each variant against LIVE, the same book, size and days; each rule set with the
+  holding line against itself without it; the dust stress; the ranked lines (`ranked`).
 - `scripts/haircut.py` → `results/haircut.json`. It reads LIVE's trips through `sql/live_days.sql` and `sql/trip_buckets.sql`
   (LIVE_DAYS, LIVE_TRIPS: real money, not committed) and the £120 twin's from `inputs/twin_trips.json` (paper).
 - `compare.py` and `haircut.py` import REVX-LAG's `lag_data.py` (the engine's inputs and Coinbase's price series, all committed);
-  `compare.py` reads `results/haircut.json` and needs nothing else, about 15 minutes on four cores; `pairs.py` reads
+  `compare.py` reads `results/haircut.json` and needs nothing else, about half an hour on four cores for its 48 rows; `pairs.py` reads
   `compare.py`'s results.
 
 Production reads (read-only SQL, 2026-10-29): LIVE's and the twins' filled orders, aggregated by the two queries in `sql/`.

@@ -11,6 +11,8 @@ Four rule sets, each on ONE book with all its capital, at £600, £1,200 and £2
         minute's end), the recorder's touch from 10-10 (REVX-FAIR's `cb_*.txt`); USDT-GBP has both too.
   v8    live + every exit one tick beyond fair (`exitOffset` 1).
   v78   both.
+  *_h1  each of the four with PR5-OPT's £1 holding line (variant-4's rule `holdMin {gbp: 1}`, `holdLineBase`; the engine's
+        `hold_min_gbp`): a fill makes the rung held only above £1 of coin, so a minimum-size print no longer makes a dust trip.
 Six rungs on the one book (3 a side), each capital ÷ 6: £100, £200, £400. The engine fills a resting order by the size of the
 prints that reach it, so a bigger rung does not fill proportionally more: that is what the three sizes measure.
 The engine is the PR5-OPT simulator unchanged (`pr5_opt/scripts/sim.py`) on Revolut X UK's every public print: the committed
@@ -52,7 +54,11 @@ import lag_data as L  # noqa: E402
 
 M, H, DAY = L.M, L.H, L.DAY
 BOOKS, SIZES = L.BOOKS, (600.0, 1200.0, 2400.0)
-ARMS = {"live": {}, "v7": {"nudge": True}, "v8": {"exit_off": 1}, "v78": {"nudge": True, "exit_off": 1}}
+ARMS = {"live": {}, "v7": {"nudge": True}, "v8": {"exit_off": 1}, "v78": {"nudge": True, "exit_off": 1},
+        # each with PR5-OPT's £1 holding line (variant-4's rule, `rules.holdMin {gbp: 1}`, `holdLineBase` in quotes_live.ts: a
+        # rung is held only above £1 of coin), which LIVE does not run: the dust trips' fix (added at the main session's ask)
+        "live_h1": {"hold_min": 1.0}, "v7_h1": {"nudge": True, "hold_min": 1.0}, "v8_h1": {"exit_off": 1, "hold_min": 1.0},
+        "v78_h1": {"nudge": True, "exit_off": 1, "hold_min": 1.0}}
 RUNGS = (0.001, 0.002, 0.003)
 NUDGE = {"w": 0.5, "hl": 1440, "stale": 5 * M, "cap": 0.005, "warm": 72 * H}
 SPLIT = L.day(L.SPLIT)
@@ -98,6 +104,7 @@ def job(a):
     stats = collections.Counter()
     if ARMS[arm].get("nudge"): kw["fair_adj"] = nudge_adj(book, stats)
     if ARMS[arm].get("exit_off"): kw["exit_off"] = ARMS[arm]["exit_off"]
+    if ARMS[arm].get("hold_min"): kw["hold_min_gbp"] = ARMS[arm]["hold_min"]
     marks = {}
     tr, _ = L.sim.run({book: mins[book]}, prints, win[0], win[1], marks=marks, **kw)
     return a, ([(x["tEntry"], x["tExit"], x["pnl"], x["gbp"], x["how"]) for x in tr], marks), dict(stats)
