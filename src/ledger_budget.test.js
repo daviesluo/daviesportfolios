@@ -1,6 +1,6 @@
 // @vitest-environment node
 // The ledger stays small (review F15, 2026-10-08): every resume reads it whole, and it had grown to 373 KB, about
-// 93,000 tokens a wake. The commit hook's gate 3 refuses a commit that leaves it over 80 KiB, naming the move to make;
+// 93,000 tokens a wake. The commit hook's gate 3 refuses a commit that leaves it over 100 KiB, naming the move to make;
 // here the hook itself runs in a scratch repository, and the repository's own ledger is held under the budget.
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { spawnSync, execFileSync } from 'node:child_process';
@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const HOOKS = path.join(ROOT, 'bin/hooks');
-const BUDGET = 81920;
+const BUDGET = 102400;
 
 /** @type {string} */ let dir;
 const git = (/** @type {string[]} */ args, env = {}) => spawnSync('git',

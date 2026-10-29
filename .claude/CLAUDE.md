@@ -160,7 +160,7 @@ cuts off first.
 **The hook enforces it.** `bin/hooks/pre-commit`, reached through
 `core.hooksPath`, refuses a commit whose ledger is two behind, refuses
 a new history section that does not open with a source header, and
-refuses a ledger over 80 KiB (2026-10-08: it had reached 373 KB): move
+refuses a ledger over 100 KiB (2026-10-08: it had reached 373 KB; 80 KiB until Davies raised it on 2026-10-29: "改为100kb吧"): move
 closed history sections into the archive, or `LEDGER_BUDGET_OK=1` for
 a commit that cannot wait.
 Both are per-clone config a rebuilt container loses — the commands are

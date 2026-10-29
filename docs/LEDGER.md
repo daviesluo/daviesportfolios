@@ -7,7 +7,7 @@ The live handover record for this repository, under the ledger protocol
 in `.agents/skills/ledger/SKILL.md`. Read this file first on any resume; it is kept
 small on purpose. The deep record — the full decision log and the raw
 session transcripts — is `docs/handover.md`, which is this ledger's ARCHIVE
-and is opened only when a closed item is reopened or audited. The commit hook refuses it over 80 KiB
+and is opened only when a closed item is reopened or audited. The commit hook refuses it over 100 KiB
 (`bin/hooks/pre-commit`, gate 3): before that, move closed history sections into the archive.
 
 ## What remains right now
@@ -773,6 +773,10 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 01:24 UTC section (archived
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), and the 2026-10-29 02:19 one(s) (fourteenth).
+
+### [2026-10-29 02:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The ledger's budget is 100 KiB, not 80** (Davies, 10-29: "交接记录目前限制是80kb吗？改为100kb吧"): `bin/hooks/pre-commit`
+  (`LEDGER_BUDGET=102400`), `src/ledger_budget.test.js`, `.claude/CLAUDE.md`, the live-watch skill and this file's header.
 
 ### [2026-10-29 02:13 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **IGBOT keeps one IG session for the whole function** (sub-agent; commit, not pushed; item 18; `0165`): from 00:16 to

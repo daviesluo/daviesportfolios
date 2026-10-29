@@ -366,7 +366,7 @@ git switch main && git pull --ff-only origin main
    ```
    The pre-commit hook may refuse:
    - "ledger behind": add the ledger section.
-   - "over 80 KiB": move the oldest closed history sections into `docs/handover.md` verbatim (§6).
+   - "over 100 KiB": move the oldest closed history sections into `docs/handover.md` verbatim (§6).
    Never use `--no-verify`.
 9. **Verify the deploy.**
    - Edge Functions deploy through `.github/workflows/edge-functions.yml`, about 4–6 minutes after the push. The page deploys through `pages-deploy.yml` after `check.yml` passes.
@@ -387,7 +387,7 @@ git switch main && git pull --ff-only origin main
   ```
   Use the platform and model you actually are. If a rule forbids naming the model, write `Model: not recorded (session policy)`.
 - Update the "What remains right now" item it touches, in the same commit.
-- The file must stay under 80 KiB. To make room, move whole closed history sections, oldest first, verbatim, to the end of `docs/handover.md` under a heading `## LEDGER.md, archived <date> — every history section from <first> to <last>`. Then update the archive sentence under "## History, newest first".
+- The file must stay under 100 KiB. To make room, move whole closed history sections, oldest first, verbatim, to the end of `docs/handover.md` under a heading `## LEDGER.md, archived <date> — every history section from <first> to <last>`. Then update the archive sentence under "## History, newest first".
 - Never copy live balances out of the ledger into any other file.
 
 ## 7. Proposing a rule change (what Davies approves)
