@@ -36,6 +36,11 @@ A fifth time on 2026-09-28: deep in a long task, with sub-agents
 reporting back in English, the progress notes slipped into English and
 he had to say it again: "请保持说中文，别再忘了".
 
+On 2026-10-29 it happened again and again in one session, the progress notes between tool calls and
+replies to sub-agent reports above all, and he asked for a gate: "你可以给你发出的消息加gate吗". The Stop hook
+`.claude/hooks/chinese-reply.mjs` now blocks the end of any turn whose own text is mostly English; when it
+fires, write the whole answer again in Chinese. Write the progress notes in Chinese from the start.
+
 ## What "done" means to him
 
 **Push it.** "直接改好直接推main" — fix it and push to main, don't come

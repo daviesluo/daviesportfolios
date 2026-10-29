@@ -47171,3 +47171,17 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   真实"): the frozen rule on the live recorder's `ig_quotes`, £1,000 at £1.50 a pip, no stop (search-3 §5). `ig?action=fxw`
   every 5 min (`0162`, no IG call) writes `ig_fxw_weekends`; fills at recorded bid/offer only, a minute uncovered after the open
   is MISSED, 5 % margin, close-out at half, 0.22 bps a weekday night. First weekend Fri 30 Oct 21:35 UK. Fill/funding pins by hand.
+
+## LEDGER.md, archived 2026-10-29 (eleventh) — the 2026-10-29 01:32, 2026-10-29 01:31 UTC history section(s), oldest first
+
+### [2026-10-29 01:32 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **CXBOT built** (sub-agent; commit, not pushed; item 19): `cxbot` (public reads only, `reach`, recorder, context, assigned
+  questions, paper engine, quote), `0163` (dry-run), scorer `backtests/cxbot/score.mjs`, prompt + `examples.json`; 20 Deno, 15
+  vitest pins. Reach after deploy: `select net.http_post(url := 'https://flmvxigozjuizpckllvk.supabase.co/functions/v1/cxbot?action=reach',
+  headers := jsonb_build_object('Authorization', concat('Bearer ', (select decrypted_secret from vault.decrypted_secrets where name = 'cron_secret')), 'Content-Type', 'application/json'), body := '{}'::jsonb, timeout_milliseconds := 30000);`
+  then `select * from public.cxbot_reach order by id desc;`.
+
+### [2026-10-29 01:31 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **IGBOT F11** (sub-agent; commit, not pushed; item 18; the main session's decision on the CXBOT audit's F11): a bracket
+  that times out, and one the agent or server closes or amends, scores where its price stands between stop (0) and limit
+  (1), never dropped. `score.mjs`, `export.sql`, prereg §5 and its F11 note, the prompt's scoring paragraph; 2 pins added.

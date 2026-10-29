@@ -768,21 +768,16 @@ Facts a fresh session would otherwise rediscover:
 Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's archive, each batch under a heading
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 01:24 UTC section (archived
-2026-10-29, tenth).
+2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh).
+
+### [2026-10-29 01:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **A Stop hook keeps replies to Davies in Chinese** (Davies, 10-29: "你可以给你发出的消息加gate吗", after English came back
+  in one session again and again): `.claude/hooks/chinese-reply.mjs`, wired in `.claude/settings.json`, blocks the end of a
+  turn whose own text (code, paths and links taken out) is mostly English. On this session's transcript it flagged 51 of 235
+  text blocks, all English, and no Chinese one. `src/chinese_reply_hook.test.js` pins it. CLAUDE.md, the skill and its
+  Cursor copy say so. A session reads hooks from its primary checkout: keep it on `origin/main`. The 2026-10-29 01:32, 2026-10-29 01:31 section(s) archived (eleventh).
 
 ### [2026-10-29 01:33 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Crypto analyst and IG Trader on TESTING** (sub-agent; commit, not pushed; items 18, 19; Davies, 10-29: "在testing列表中把IG
   Trader…都上线"): `agents/grok_tests_view.ts` (mode, budget and equity, today, open with stop and limit, trades, days, scores
   per layer; IG Trader £1,000 + the demo's change since the arm, never its balance), page rows and pages, `dist/`. 7 pins.
-
-### [2026-10-29 01:32 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **CXBOT built** (sub-agent; commit, not pushed; item 19): `cxbot` (public reads only, `reach`, recorder, context, assigned
-  questions, paper engine, quote), `0163` (dry-run), scorer `backtests/cxbot/score.mjs`, prompt + `examples.json`; 20 Deno, 15
-  vitest pins. Reach after deploy: `select net.http_post(url := 'https://flmvxigozjuizpckllvk.supabase.co/functions/v1/cxbot?action=reach',
-  headers := jsonb_build_object('Authorization', concat('Bearer ', (select decrypted_secret from vault.decrypted_secrets where name = 'cron_secret')), 'Content-Type', 'application/json'), body := '{}'::jsonb, timeout_milliseconds := 30000);`
-  then `select * from public.cxbot_reach order by id desc;`.
-
-### [2026-10-29 01:31 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **IGBOT F11** (sub-agent; commit, not pushed; item 18; the main session's decision on the CXBOT audit's F11): a bracket
-  that times out, and one the agent or server closes or amends, scores where its price stands between stop (0) and limit
-  (1), never dropped. `score.mjs`, `export.sql`, prereg §5 and its F11 note, the prompt's scoring paragraph; 2 pins added.

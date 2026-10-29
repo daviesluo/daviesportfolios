@@ -18,7 +18,10 @@ calls, and above all the first lines after a context compaction, whose
 summary is written in English. Everything committed stays English. The
 rule is here and not only in the skill because the skill is cut short
 when a context is compacted, and English came back four times (the last
-on 2026-09-23: "怎么会话又变成英文了").
+on 2026-09-23: "怎么会话又变成英文了"). Since 2026-10-29 a Stop hook enforces it
+(Davies: "你可以给你发出的消息加gate吗", after English slipped back into one session again and again):
+`.claude/hooks/chinese-reply.mjs`, wired in `.claude/settings.json`, blocks the end of a turn whose own text is
+mostly English and asks for it again in Chinese.
 
 **Sub-agents are `opus-high`, `sonnet-high` or `haiku-max`, nothing else** (Davies,
 2026-10-07: "以后sub-agent最高effort改为opus-high（重要性和难度要求最高的任务）…重要性和难度次一级的用sonnet5.5 max，
