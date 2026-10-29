@@ -21,6 +21,8 @@ this is not legal or tax advice.
 **The repository is public.** No balance or P&L of Davies' accounts is written here: a live figure is `[•]`. Paper and
 backtest figures, counts, public prices, fees and strategy settings stay.
 
+**[audit 2026-10-29]** An independent audit (`reviews/2026-10-29-crypto-grok-bot-audit.md`) checked this review on 2026-10-29; its corrections are marked "[audit 2026-10-29]" below and its design supersedes §4.4, §5.5–§5.7, §5.12 and §6 where they differ. Davies, the same day: he holds international accounts at Binance, Bybit, OKX and Hyperliquid that can short, whether his use complies with each venue's terms is his decision, and the venue is chosen for the strategy alone (the audit's §2: Hyperliquid, then Binance USDⓈ-M, OKX, Bybit); and Phase 1 (paper on live public data, no keys) starts now, with the forecast layer inside it (the audit's §4).
+
 **Sources.** The venue survey (`docs/agents/venue-survey.md`, 2026-09-22/23, with its `[S…]` tags) and the agents reference
 (`docs/agents/reference.md` §2, §2b, §3.3–§3.45, §3.55, §6) are the base; this review re-read what moves and says where it
 changed. GROKPM's record is its pre-registration and reviews to `reviews/2026-10-28-grokpm-utilisation.md`; IGBOT's is
@@ -47,6 +49,7 @@ from memory says so.
      no new UK users since 2023-10-16, and a group of 1,692 UK investors filed a High Court claim (reported 2026-07-01)
      alleging it sold derivatives to UK retail without authorisation. What his account may do under Binance's terms is his
      to confirm in the account; nothing here is designed around it.
+   - **[audit 2026-10-29]** Superseded by Davies' word (2026-10-29): his international accounts at Bybit and OKX can short; the audit ranks all four for the strategy.
    - **Excluded by their own terms or the venue's UK service:** Bybit (UK spot only, derivatives unavailable), OKX (UK users
      get OKX UK: no API, no derivatives), dYdX (its help centre lists the UK as restricted, close-only), Deribit (no UK
      retail), IG and Coinbase derivatives (professional clients only).
@@ -113,11 +116,11 @@ from memory says so.
 |---|---|---|---|---|
 | long / short | both, perpetuals | both, perpetuals | long spot; short by borrowing the coin; ETH/BTC both ways | long |
 | fees (entry tier) | 0.015 % maker / 0.045 % taker (tier 1 at $5M of 14-day volume) | 0.02 % / 0.05 % (Binance FAQ, 2026-04-28) | 0.40 % / 0.80 %; margin open + per 4 h: BTC 0.01–0.02 %, alts 0.02–0.04 %, USD 0.025–0.05 % | 0 % / 0.09 % |
-| funding / carry | hourly, peer to peer, cap 4 % an hour; interest floor 0.01 % per 8 h, paid by longs at zero premium (BTC read 0.00125 % an hour today: ~3 bps a day) | every 8 h (from memory) | rollover as above, on the borrowed asset | none |
+| funding / carry | hourly, peer to peer, cap 4 % an hour; interest floor 0.01 % per 8 h, paid by longs at zero premium (BTC read 0.00125 % an hour today: ~3 bps a day) | every 8 h (**[audit 2026-10-29]** confirmed for BTC/ETH/SOL by Hyperliquid's `predictedFundings`; the same 0.01 %/8 h interest term, so the same ~3 bps a day to longs at a zero premium) | rollover as above, on the borrowed asset | none |
 | liquidation | at maintenance margin = half the initial margin at max leverage (BTC max 40×: 1.25 %); book first, then the liquidator vault below 2/3 of maintenance; **no liquidation fee**; triggered on the mark price | isolated or cross; fee and ADL (from memory) | margin call 80 %, liquidation 40 % (margin level); **2 % fee** | — |
 | max leverage today | BTC 40×, ETH 25×, SOL 20×, XRP 20× (`metaAndAssetCtxs`) | not read | 2–10× (USD pairs), 2–5× (GBP pairs); **2× is the minimum** for a margin order | — |
 | isolated margin | per position (`updateLeverage`, `isCross` false) | per symbol (`marginType` ISOLATED) | margin positions share the account's collateral | — |
-| liquidity today | BTC 0.12 bps, $3.7M bid / $6.8M ask within 10 bps, $2.28B a day; ETH 0.42 bps, $11.8M / $13.8M, $758M; SOL 0.98 bps, $2.3M a side, $154M | not read (futures endpoint 451 from this container) | BTC 0.01 bps, ~$2.5M within 5 bps (reference §2b, 2026-09-20) | BTC 1.5–1.7 bps (reference §2.2) |
+| liquidity today | BTC 0.12 bps, $3.7M bid / $6.8M ask within 10 bps (**[audit 2026-10-29]** these sum Hyperliquid's 20 full-precision levels, which span about 2.5 bps; within 10 bps it held $26.4M / $27.9M on 2026-10-29 00:14 UTC), $2.28B a day; ETH 0.42 bps, $11.8M / $13.8M, $758M; SOL 0.98 bps, $2.3M a side, $154M | not read (futures endpoint 451 from this container) | BTC 0.01 bps, ~$2.5M within 5 bps (reference §2b, 2026-09-20) | BTC 1.5–1.7 bps (reference §2.2) |
 | API | REST + WebSocket; EIP-712 signatures (secp256k1); 1,200 request-weight a minute per IP; per address 10,000 actions to start plus 1 per USDC traded; 1,000 open orders | REST + WebSocket, HMAC or Ed25519 keys | REST (HMAC-SHA512); `leverage`, `reduce_only`, conditional `close[ordertype]`, `validate=true` | REST (Ed25519); 1,000 orders a day |
 | orders the venue holds | stop market, stop limit, take profit, position TP/SL, reduce-only, post-only (ALO), IOC, GTC | `STOP_MARKET`, `TAKE_PROFIT_MARKET`, `closePosition`, reduce-only (from memory) | stop-loss, take-profit, trailing stops, conditional closes | `conditional`, `tpsl` |
 | test environment | **testnet, same API** (`api.hyperliquid-testnet.xyz`, 200 today, 213 markets); thin books, for integration not fills | **futures testnet** (`testnet.binancefuture.com`, 200 today) | none for spot (`validate=true` only); the futures demo now 301s to a marketing page | none |
@@ -240,6 +243,7 @@ published work on retrieval-augmented LLM forecasters, which reports results nea
   mean −0.010, sd about 0.099: **about 400 independent forecasts give t ≈ 2**; with no skill the same disagreements give
   +0.010. Clustered by day, 400 independent forecasts is about 8 weeks of three coins at three horizons, or about 4 with the
   barrier family. A short run can show a gross failure, which is what most likely ends it.
+- **[audit 2026-10-29]** **Scoring.** Excluding brackets that neither side reaches within the hold biases y down on crypto (a 2.5 %/5 % 72 h BTC bracket: P(limit first | resolved) 0.166 against m 0.333), and no-skill forecasters passed such a bar in 8–32 % of simulated windows. The audit's §5 scores a timeout at its fraction between stop and limit (E[y] = m exactly), on assigned brackets the forecaster does not choose.
 - **Phase 1 brackets.** As IGBOT: every open is an entry, a stop and a limit; m from the server's levels, p\* with the cost;
   Grok's p must clear p\* + 0.08. Each real and shadow bracket resolves on the recorded tape. P&L needs far more: at +0.2 R a
   trade and a per-trade sd of about 1.5 R, t = 2 needs about 225 trades. **A six-week paper run cannot prove an edge in
@@ -391,7 +395,7 @@ GROKPM's and IGBOT's.
 Grok has tokens to spare, but more wakes do not buy speed against bots; they buy **forecasts**.
 
 - **Phase 0:** wakes anchored to the questions: 24 h, 8 h and 2 h before each daily resolution (16:00 UTC for the "above ___"
-  family as listed today), plus one every 4 hours for the barrier family. Each wake forecasts every open strike.
+  family as listed today; **[audit 2026-10-29]** 17:00 UTC from 2026-11-01, when US summer time ends: the questions resolve at 12:00 ET), plus one every 4 hours for the barrier family. Each wake forecasts every open strike.
 - **Phase 1:** every 30 minutes, plus T−60, T+15 and T+60 minutes of each listed release. Risk does not depend on the wake:
   stops rest on the venue (testnet, live) or in the paper engine.
 - Spend tokens on research depth and shadow brackets, which give the test its power.
@@ -414,8 +418,8 @@ Grok has tokens to spare, but more wakes do not buy speed against bots; they buy
   his to read in the account; the UK's view of a UK resident trading offshore perpetuals is general information here, not
   advice. Tax on perpetuals' gains and funding, and on margin shorts: for an adviser.
 - **Reachability from `eu-west-2`** of Hyperliquid's API and Binance's futures endpoint: not measured (this container is in
-  the US). A deployed read-only probe would be the build's first check.
-- Hyperliquid: whether a stop trigger fires on the mark or the last price (the order-types page does not say); whether an
+  the US). **[audit 2026-10-29]** OKX's public API is measured from our Edge (its recorder, 60 of 60 minutes); Bybit's is not; the build's first step is a keyless `reach` probe. A deployed read-only probe would be the build's first check.
+- Hyperliquid: whether a stop trigger fires on the mark or the last price (the order-types page does not say; **[audit 2026-10-29]** settled: the mark, per its FAQ and "robust price indices" page); whether an
   API wallet's approval can carry an expiry; the bridge's and validators' security (from memory); the testnet faucet's
   conditions (from memory: a mainnet deposit history). The API-wallet withdrawal limit rests on third-party SDK docs and
   Hyperliquid's "only used to sign".
@@ -432,6 +436,7 @@ Grok has tokens to spare, but more wakes do not buy speed against bots; they buy
 
 - **Now: choose.** Phase 0 (recommended), or stop here. Name the bot. Say which venue route he prefers for later
   (Hyperliquid, Kraken, or long-only Revolut X), having read §2.2.
+- **[audit 2026-10-29]** **Phase 1 needs only `CXBOT_TOKEN`**: the testnet rehearsal moves to Phase 2's preparation, so no testnet key either.
 - **Phase 0 and Phase 1: one secret**, `CXBOT_TOKEN` (32+ random characters), as a Supabase Edge Function secret, given only
   to Grok. For the Phase 1 testnet rehearsal, a **testnet** API wallet's key, `CXBOT_HL_TESTNET_AGENT_KEY`, and the testnet
   account address, `CXBOT_HL_TESTNET_ACCOUNT` (play money; the agent wallet is approved from a testnet account he controls).

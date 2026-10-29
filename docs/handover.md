@@ -47126,3 +47126,12 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   the coordinator's call on Davies' "你来决定"): `agents?action=tick` `enabled = false`, row and records kept. Its writes
   (`agent_basis`, `agent_candles`, `agent_observations`) have no reader the page shows or a reading needs; no code waits on
   its lease. `cron_jobs.test.js` pins it. Item 3 rewritten; the 23:47 section archived.
+
+## LEDGER.md, archived 2026-10-29 (seventh) — the 2026-10-29 00:40 UTC history section
+
+### [2026-10-29 00:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Reverted `b4f64394`: the IG recorder reads only its own three demo secrets again.** One demo login cannot hold two
+  sessions: an `ig?action=facts` test at 00:20:59 on IGBOT's login was refused `401 error.security.account-token-invalid`
+  after logging in, and IGBOT's sync failed the same way at 00:19 and 00:21. Davies had his Grok bot restore
+  `IG_API_KEY_DEMO`/`IG_DEMO_USERNAME`/`IG_DEMO_PASSWORD`; they must be a DIFFERENT demo login from IGBOT's, or the weekend
+  recorder and IGBOT will log each other out every minute of the weekend windows.

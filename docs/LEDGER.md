@@ -643,10 +643,15 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
     2026-12-31 (opens refused after it). **Open (2026-10-29):** the recorder's `IG_*` demo secrets are the same login as
     IGBOT's (`Z6F18K`); one login holds one session, so Davies registers a second demo login for IGBOT before Fri 21:35 UK.
 
-19. **CXBOT, a Grok crypto bot, long and short: researched, nothing built** (Davies, 2026-10-28: "…币所的买卖交易也做成一套…
-    long和short都可以做", then "交易所不限…币安 hyperliquid等都是可以做空的"; `reviews/2026-10-29-crypto-grok-bot-research.md`).
-    No edge shown, so **Phase 0** first: keyless forecasts scored against Polymarket's crypto prices. Then paper
-    plus a Hyperliquid testnet rehearsal; live is a new prereg. **Davies:** choose Phase 0 or stop, and a venue.
+19. **CXBOT, a Grok crypto bot, long and short: researched and AUDITED, nothing built** (Davies, 2026-10-28: "…币所的买卖交易也做成一套…
+    long和short都可以做"; 2026-10-29: "…只判断对策略来说最优的币所…确保一切设定最佳"; `reviews/2026-10-29-crypto-grok-bot-research.md`,
+    the audit `reviews/2026-10-29-crypto-grok-bot-audit.md`, prereg DRAFT `reviews/2026-10-29-cxbot-phase1-prereg.md`, prompt DRAFT
+    `docs/agents/cxbot/GROK_PROMPT_DRAFT.md`, ledger seed `docs/agents/cxbot/ledger_seed.md`). Venue for the strategy: Hyperliquid,
+    then Binance USDⓈ-M (reference/history), OKX, Bybit. Phase 1 = paper on Hyperliquid's public tape, three scored layers
+    (assigned brackets every 4 h, primary; Polymarket daily strikes; own brackets), a timeout scored at its fraction, 56 days.
+    **Main session:** verify the audit; build `cxbot` with `reach` first (Hyperliquid, Binance futures, Bybit unmeasured from
+    eu-west-2; fallback Binance, then OKX, never routed round); `cxbot-ledger` from the seed; a daily desk check; the scorer
+    pinned before the start; decide whether IGBOT's draft takes the same y (audit F11). **Davies:** `CXBOT_TOKEN` only, a name, go.
 
 ## Machine and platform setup
 
@@ -762,8 +767,14 @@ Facts a fresh session would otherwise rediscover:
 
 Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's archive, each batch under a heading
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
-first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 00:18 UTC section (archived
-2026-10-29, sixth).
+first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 00:40 UTC section (archived
+2026-10-29, seventh).
+
+### [2026-10-29 00:42 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **CXBOT audited before any build** (sub-agent; commit, not pushed; item 19; Davies, 10-29): Hyperliquid first for the strategy
+  (keyless proof of the book, sign-only key, 1.5/4.5 bps, mark stops); IGBOT-style scoring passed no-skill forecasters in
+  8–32 % of simulated crypto windows (unresolved brackets excluded): a timeout now scores at its fraction, on assigned
+  brackets; scripts in `backtests/cxbot/`; desk-ledger seed. Landed by the main session, which re-ran `falsepass.py` on seed 777 (80 windows): design A passed no-skill forecasters 8.7–21.2 %, design B 0. The 00:40 section archived.
 
 ### [2026-10-29 00:34 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The recorder's restored demo secrets are IGBOT's own login** (item 18): after the revert deployed, one `ig?action=facts`
@@ -772,10 +783,3 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
   split works: IGBOT needs a second demo login (its four `IGBOT_DEMO_*` values changed by Davies) before Fri 21:35 UK.
   IGBOT's sync was refused six times 00:15-00:26 by logins from outside the server; clean since 00:27. The prompt now forbids
   logging in with the bot's login and says when Claude reads the desk ledger (23:17 UK). The tick's `0160` pushed (d0459396). The 23:55, 00:15 and 00:18 sections archived.
-
-### [2026-10-29 00:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Reverted `b4f64394`: the IG recorder reads only its own three demo secrets again.** One demo login cannot hold two
-  sessions: an `ig?action=facts` test at 00:20:59 on IGBOT's login was refused `401 error.security.account-token-invalid`
-  after logging in, and IGBOT's sync failed the same way at 00:19 and 00:21. Davies had his Grok bot restore
-  `IG_API_KEY_DEMO`/`IG_DEMO_USERNAME`/`IG_DEMO_PASSWORD`; they must be a DIFFERENT demo login from IGBOT's, or the weekend
-  recorder and IGBOT will log each other out every minute of the weekend windows.
