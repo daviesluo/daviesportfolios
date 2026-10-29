@@ -4176,9 +4176,9 @@ async function run() {
         };
       }));
       // Every slice is painted, Coinbase's in its brand blue, and the slices fill the bar (Davies, 2026-10-10:
-      // "testing页面venue中最上面的占比条里没有coinbase"; 2026-10-29: Coinbase its blue #4d8bff, and every slice its venue's solid theme colour: "统一那个占比栏中的颜色和币所主题色").
+      // "testing页面venue中最上面的占比条里没有coinbase"; 2026-10-29: Coinbase its blue #4d8bff, and every slice its venue's theme colour at one alpha, 0.35: "统一那个占比栏中的颜色和币所主题色", then "还是改为原来那种风格", not solid).
       const painted = shareGeom.every((g) => g.bg && g.bg !== 'rgba(0, 0, 0, 0)' && g.bg !== 'transparent')
-        && shareGeom.find((g) => g.id === 'ag-share-coinbase')?.bg === 'rgb(77, 139, 255)'
+        && shareGeom.find((g) => g.id === 'ag-share-coinbase')?.bg === 'rgba(77, 139, 255, 0.35)'
         && (shareGeom.find((g) => g.id === 'ag-share-coinbase')?.w ?? 0) > 0
         && Math.abs(shareGeom.reduce((a, g) => a + g.w, 0) - (shareGeom[0]?.bar ?? 0)) <= 2;
       // Coinbase's blue must stay legible on the dark page: its badge text and its slice's text, each against what is behind it
@@ -4196,20 +4196,24 @@ async function run() {
           const [hi, lo] = [lum(fg), lum(bg)].sort((x, y) => y - x);
           return { ratio: (hi + 0.05) / (lo + 0.05), bgLum: lum(bg) };
         };
-        // Every slice on the bar: solid, its text's contrast on it, and its fill the very colour its venue's badge text has.
+        // Every slice on the bar: its rgb the colour its venue's badge text has, at the one alpha 0.35, and its text's contrast on the
+        // fill as it shows (the slice over the bar over the page).
         const slices = [...document.querySelectorAll('.ag-share')].map((el) => {
           const id = [...el.classList].find((c) => c.startsWith('ag-share-') && c !== 'ag-share')?.slice(9) ?? '';
-          const cs = getComputedStyle(el), fill = rgba(cs.backgroundColor), badge = document.querySelector(`.ag-venue-${id}`);
-          const fg = rgba(cs.color), [hi, lo] = [lum(fg), lum(fill)].sort((x, y) => y - x);
-          return { id, solid: fill.a === 1, ratio: (hi + 0.05) / (lo + 0.05), matchesBadge: !badge || getComputedStyle(badge).color === cs.backgroundColor };
+          const cs = getComputedStyle(el), slice = rgba(cs.backgroundColor), badge = document.querySelector(`.ag-venue-${id}`);
+          const bar = over(rgba(getComputedStyle(el.parentElement ?? el).backgroundColor), page), fill = over(slice, bar);
+          const fg = over(rgba(cs.color), fill), [hi, lo] = [lum(fg), lum(fill)].sort((x, y) => y - x);
+          const hueRgb = badge ? rgba(getComputedStyle(badge).color) : null;
+          return { id, alpha: slice.a, ratio: (hi + 0.05) / (lo + 0.05), matchesBadge: !hueRgb || (hueRgb.r === slice.r && hueRgb.g === slice.g && hueRgb.b === slice.b) };
         });
-        return { badge: ratio(document.querySelector('.ag-venue-coinbase')), slice: ratio(document.querySelector('.ag-share-coinbase')), revx: ratio(document.querySelector('.ag-venue-revx')), slices };
+        return { badge: ratio(document.querySelector('.ag-venue-coinbase')), revx: ratio(document.querySelector('.ag-venue-revx')), slices };
       });
-      if (hue.badge && hue.slice && hue.badge.ratio >= 4.5 && hue.slice.ratio >= 4.5 && (!hue.revx || hue.badge.bgLum < hue.revx.bgLum))
-        ok(S('agents'), `Coinbase's blue is legible: badge text ${hue.badge.ratio.toFixed(1)}:1, slice text ${hue.slice.ratio.toFixed(1)}:1, and its badge fill darker than Revolut X's`);
+      const cbSlice = hue.slices.find((x) => x.id === 'coinbase');
+      if (hue.badge && cbSlice && hue.badge.ratio >= 4.5 && cbSlice.ratio >= 4.5 && (!hue.revx || hue.badge.bgLum < hue.revx.bgLum))
+        ok(S('agents'), `Coinbase's blue is legible: badge text ${hue.badge.ratio.toFixed(1)}:1, slice text ${cbSlice.ratio.toFixed(1)}:1, and its badge fill darker than Revolut X's`);
       else fail(S('agents'), `Coinbase's blue contrast ${JSON.stringify(hue)}`);
-      if (hue.slices.length >= 3 && hue.slices.every((x) => x.solid && x.ratio >= 4.5 && x.matchesBadge))
-        ok(S('agents'), `every share-bar slice is its venue's solid theme colour with legible text: ${hue.slices.map((x) => `${x.id} ${x.ratio.toFixed(1)}:1`).join(', ')}`);
+      if (hue.slices.length >= 3 && hue.slices.every((x) => x.alpha === 0.35 && x.ratio >= 4.5 && x.matchesBadge))
+        ok(S('agents'), `every share-bar slice is its venue's theme colour at the one alpha 0.35, with legible text: ${hue.slices.map((x) => `${x.id} ${x.ratio.toFixed(1)}:1`).join(', ')}`);
       else fail(S('agents'), `share-bar slice colours ${JSON.stringify(hue.slices)}`);
       if (painted) ok(S('agents'), `every share-bar slice is painted and they fill the bar: ${shareGeom.map((g) => `${g.id.slice(9)} ${g.w.toFixed(0)}px`).join(', ')} of ${shareGeom[0]?.bar}px`);
       else fail(S('agents'), `share bar slices ${JSON.stringify(shareGeom.map((g) => ({ id: g.id, bg: g.bg, w: g.w, bar: g.bar })))}`);

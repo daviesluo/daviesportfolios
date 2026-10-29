@@ -1789,13 +1789,17 @@ describe('the venue hues (Davies, 2026-10-29: Hyperliquid its mint, Coinbase its
     expect(lum(rgb(VENUE_HUES.coinbase))).toBeLessThan(lum(rgb(VENUE_HUES.revx)) / 1.5);
   });
 
-  it("every venue's badge, card and share-bar slice is its hue, the slice solid with dark text of 4.5:1 or more", () => {
+  it("every venue's badge, card and share-bar slice is its hue, the slice at the one alpha 0.35 with light text of 4.5:1 or more on the composited fill", () => {
     for (const [id, hue] of Object.entries(VENUE_HUES)) {
       const [r, g, b] = rgb(hue);
       expect(css, id).toContain(`.ag-venue-${id} { color: ${hue}; border-color: rgba(${r},${g},${b},`);
-      const slice = new RegExp(`\\.ag-share-${id} \\{ background: (#[0-9a-f]{6}); color: (#[0-9a-f]{6}); \\}`).exec(css);
-      expect(slice?.[1], `${id} slice`).toBe(hue);
-      expect(ratio(rgb(slice?.[2] ?? '#000000'), rgb(hue)), `${id} slice text`).toBeGreaterThanOrEqual(4.5);
+      const slice = new RegExp(`\\.ag-share-${id} \\{ background: rgba\\((\\d+),(\\d+),(\\d+),([\\d.]+)\\); color: (#[0-9a-f]{6}); \\}`).exec(css);
+      expect([slice?.[1], slice?.[2], slice?.[3], slice?.[4]].map(Number), `${id} slice`).toEqual([r, g, b, 0.35]);
+      // The fill as it shows: the hue at 0.35 over the bar (white at 0.04 over the page), at either of the page's backgrounds.
+      for (const page of PAGES) {
+        const fill = over([r, g, b], 0.35, over([255, 255, 255], 0.04, page));
+        expect(ratio(rgb(slice?.[5] ?? '#000000'), fill), `${id} slice text`).toBeGreaterThanOrEqual(4.5);
+      }
       expect(new RegExp(`\\.ag-venue-card-${id}\\b[^{]*\\{ border-left-color: rgba\\(${r},${g},${b},0\\.75?\\); \\}`).test(css), `${id} card`).toBe(true);
     }
   });

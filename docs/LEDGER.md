@@ -776,6 +776,12 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth).
 
+### [2026-10-29 03:49 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The VENUES share bar back to translucent** (sub-agent; commit, not pushed; Davies, 10-29: "占比栏还是改为原来那种风格吧，现在这种一致的没之前效果好，太亮了").
+  Each slice is its venue's hue (`VENUE_HUES`; Coinbase `#4d8bff`, Hyperliquid `#97fce4`) at one alpha, 0.35, over the bar, with the old light
+  text; badges and card borders unchanged. Pinned in `agents.test.js` (rgb = hue, alpha 0.35, text 4.5:1 on the composited fill at both page
+  backgrounds) and by the sweep's agents section at both widths. `dist/` rebuilt.
+
 ### [2026-10-29 03:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **OKX paper twins at $100 a rung, and the OKX and Coinbase quote rows in dollars** (sub-agent; commit, not pushed; Davies,
   10-29: "OKX每个策略为什么是250usd？改成600吧？正好6个档每个50，目前的数字按倍率乘", then "C，coinbase的也是改用美元"). The

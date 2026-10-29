@@ -2017,9 +2017,11 @@ body {
 .ag-venues { margin-bottom: 14px; }
 .ag-share-bar { display: flex; height: 18px; border-radius: 4px; overflow: hidden; background: rgba(255,255,255,0.04); border: 1px solid var(--line); margin-bottom: 8px; }
 .ag-share { display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; white-space: nowrap; overflow: hidden; transition: width 0.4s; font-family: var(--font-mono); }
-/* Every slice is its venue's theme colour, solid (VENUE_HUES; Davies, 2026-10-29: "统一那个占比栏中的颜色和币所主题色"), with the page's own dark for the text: 4.5:1 or more on each (agents.test.js and the sweep check it). */
-.ag-share-revx { background: #8ec5ff; color: #0c1310; }
-.ag-share-binance { background: #f0b90b; color: #0c1310; }
+/* Every slice is its venue's theme colour (VENUE_HUES) at the one alpha, 0.35, over the bar, with light text: 4.5:1 or more on the composited fill
+   (agents.test.js and the sweep check it). Davies, 2026-10-29: the colours of the badges ("统一那个占比栏中的颜色和币所主题色"), but not solid:
+   "刚才说的占比栏还是改为原来那种风格吧，现在这种一致的没之前效果好，太亮了". */
+.ag-share-revx { background: rgba(142,197,255,0.35); color: #e6f2ff; }
+.ag-share-binance { background: rgba(240,185,11,0.35); color: #fff6d6; }
 .ag-venue-cards, .ag-quotes-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .ag-venue-card, .ag-quotes-card, .ag-ql-card { padding: 10px 12px; border: 1px solid var(--line); border-radius: 4px; background: rgba(255,255,255,0.02); border-left-width: 3px; }
 .ag-venue-card-revx, .ag-quotes-card, .ag-ql-card { border-left-color: rgba(142,197,255,0.7); }
@@ -2396,22 +2398,22 @@ a.ag-gpm-market:hover, a.ag-gpm-market:focus-visible { text-decoration-color: va
 .ag-venue-col > .ag-fig-sub { font-size: 11px; }
 .ag-venue-col > span.dim.ag-fig-sub { padding-left: 12px; }
 .ag-venue-card-polymarket { border-left-color: rgba(125,139,255,0.75); }
-.ag-share-polymarket { background: #7d8bff; color: #0c1310; }
+.ag-share-polymarket { background: rgba(125,139,255,0.35); color: #eef0ff; }
 /* Coinbase's card and its slice of the share bar, in its blue (VENUE_HUES.coinbase, #4d8bff). Without them its
    slice was drawn with no colour at all (Davies, 2026-10-10: "testing页面venue中最上面的占比条里没有coinbase"). */
 .ag-venue-card-coinbase { border-left-color: rgba(77,139,255,0.75); }
-.ag-share-coinbase { background: #4d8bff; color: #0c1310; }
+.ag-share-coinbase { background: rgba(77,139,255,0.35); color: #eaf1ff; }
 /* OKX's card and slice (VENUE_HUES.okx, #dfe3ea: OKX's own black-and-white mark, a cool silver beside the cream text; its lime would read as --gain): its two paper twins, 0150. */
 .ag-venue-card-okx { border-left-color: rgba(223,227,234,0.75); }
-.ag-share-okx { background: #dfe3ea; color: #0c1310; }
+.ag-share-okx { background: rgba(223,227,234,0.35); color: #f7f8fa; }
 /* IG's card and slice (VENUE_HUES.ig, #d6a2e8: an orchid apart from the blues, the mint, the gold and the gain/loss pair): "FXW-AUD weekend", 0162. */
 .ag-venue-card-ig { border-left-color: rgba(214,162,232,0.75); }
-.ag-share-ig { background: #d6a2e8; color: #0c1310; }
+.ag-share-ig { background: rgba(214,162,232,0.35); color: #f8eefb; }
 /* Its weekends table: the quotes a fill used sit under the price, one per line. */
 .ag-fxw-detail .hl-sub { display: block; }
 /* Hyperliquid's card and slice: its mint (VENUE_HUES.hyperliquid, #97fce4). */
 .ag-venue-card-hyperliquid { border-left-color: rgba(151,252,228,0.75); }
-.ag-share-hyperliquid { background: #97fce4; color: #0c1310; }
+.ag-share-hyperliquid { background: rgba(151,252,228,0.35); color: #effffb; }
 
 /* RW's bar: where the run is, then four tiles — the total and its rewards and orders, the pessimistic total, the
    fills against the 100 it needs, the best market's share. Polymarket's blue marks the run and the fills. */
