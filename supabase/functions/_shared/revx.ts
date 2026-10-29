@@ -472,6 +472,8 @@ export function toOrderView(vo: VenueOrder): OrderView {
  * fell out of the week-long window seven days after the fixture's date, and two tick tests failed from 2026-09-30.
  */
 export function revxVenue(env: RevxEnv | null, fetchImpl: typeof fetch = fetch, region: RevxRegion = REVX_REGION, now: () => number = Date.now): Venue {
+  /** The last balances read's available and on-hold amounts (`Venue.balanceDetail`). */
+  let lastDetail: Record<string, { available: number; hold: number }> | null = null;
   return {
     id: "revx",
     canTrade: !!env,
@@ -528,9 +530,15 @@ export function revxVenue(env: RevxEnv | null, fetchImpl: typeof fetch = fetch, 
       const r = await balances(env, fetchImpl);
       if (!r.ok) throw new Error(`revx balances → ${r.status} ${r.error}`);
       const out: Record<string, number> = {};
-      for (const b of r.data ?? []) out[b.currency] = Number(b.total);
+      const detail: Record<string, { available: number; hold: number }> = {};
+      for (const b of r.data ?? []) {
+        out[b.currency] = Number(b.total);
+        detail[b.currency] = { available: Number(b.available), hold: Number(b.reserved) };
+      }
+      lastDetail = detail;
       return out;
     },
+    balanceDetail: () => lastDetail,
     async findOrder(clientOrderId, symbol, sinceMs) {
       if (!env) return { ok: false, error: "no Revolut X credentials" };
       const end = now(), start = Math.max(sinceMs - 60e3, end - 7 * 86400e3 + 60e3);

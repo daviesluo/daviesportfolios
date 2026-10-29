@@ -73,7 +73,10 @@ function world(mod: Mod, instance?: Now.QuoteLiveInstance) {
     turn(at: number) { clock.now = at; return mod.runQuotesLive(deps(at)); },
     convert(at: number, body: Record<string, unknown>) { clock.now = at; return mod.runQuotesConvert(deps(at), body); },
     print(book: QuoteBook, p: Print) { clock.now = p.ts; sim.applyPrint(book, p); },
-    snapshot: () => JSON.stringify({ tables: mem.tables, account: sim.st }),
+    // The state's `venueBalances` (2026-10-29: the venue's available and on-hold amounts for the LIVE page, `venueBalancesOf`)
+    // is a write of what the turn read, which the frozen file does not make and nothing decides on: it is left out of the
+    // comparison, and pinned on its own below.
+    snapshot: () => JSON.stringify({ tables: mem.tables, account: sim.st }, (k, v) => (k === "venueBalances" ? undefined : v)),
   };
 }
 
@@ -247,6 +250,68 @@ Deno.test("PR5-OPT's weights through the executor: USDT-GBP's entries twice USDC
   assertEquals(Object.keys(no03).filter((k) => k.endsWith(" 0.003")), []);
   for (const [key, gbp] of Object.entries(no03)) assert(Math.abs(gbp - 15) <= 0.01, `${key}: £${gbp}`);
   assertEquals(Object.keys(no03).length, 8);
+});
+
+// "Stablecoin quotes USDC/GBP" on Revolut X (0180; docs/agents/reviews/2026-10-29-rx-usdc-live.md): RX-USDC's rules on its own
+// tables, lease and governed key: USDC-GBP alone, the 0.3 % rungs quoting nothing (£30 on each 0.1 % and 0.2 % rung at £120),
+// every exit a tick beyond fair, LIVE's £1 line and weekend replica; its asks' first coin bought by top-ups of up to £65 a day.
+Deno.test("the USDC/GBP executor's instance: USDC-GBP's 0.1 % and 0.2 % rungs at £30 of £120, exits a tick beyond fair, its own tables, top-ups to £65 a day", () => {
+  const R = Now.QUOTE_RXU_INSTANCE, L = Now.QUOTE_LIVE_INSTANCE;
+  assertEquals([R.config, R.orders, R.events, R.state, R.lease, R.paper, R.migration], ["agent_quote_rxu_config", "agent_quote_rxu_orders", "agent_quote_rxu_events", "agent_quote_rxu_state", "quotes-live-rxu", L.paper, "0180"]);
+  for (const k of ["config", "orders", "events", "state", "lease"] as const) assert(R[k] !== L[k], k);
+  const now = Date.parse("2026-10-30T12:00:00Z");
+  const gbp = (b: QuoteBook, s: "bid" | "ask", k: number) => Now.rungGbpOf(R, 120, b, s, k, now);
+  for (const s of ["bid", "ask"] as const) {
+    assertEquals([gbp("USDC-GBP", s, 0.001), gbp("USDC-GBP", s, 0.002), gbp("USDC-GBP", s, 0.003), gbp("USDT-GBP", s, 0.001)], [30, 30, 0, 0]);
+    assertEquals([Now.weightRetired(R, now, "USDC-GBP", s, 0.003), Now.weightRetired(R, now, "USDT-GBP", s, 0.001), Now.weightRetired(R, now, "USDC-GBP", s, 0.001)], [true, true, false]);
+  }
+  assertEquals([R.exitOffset, R.holdMin, R.topUps, R.liveSwitches, R.convertRepeg, R.fairNudge], [{ ticks: 1, from: 0 }, { from: 0, gbp: 1 }, { maxGbpDay: 65 }, L.liveSwitches, undefined, undefined]);
+  // No rebook (its weights are from before the rebook's instant): the top-ups' own day is the instance's £65.
+  assertEquals(Now.rebookOn(R, now), false);
+});
+Deno.test("the USDC/GBP executor through the simulated account: from pounds alone it quotes USDC-GBP's two inner rungs a side, and buys its asks' coin by one maker top-up past £5", async () => {
+  const L = Now.QUOTE_LIVE_INSTANCE;
+  const inst = { ...Now.QUOTE_RXU_INSTANCE, config: L.config, orders: L.orders, events: L.events, state: L.state, lease: L.lease };
+  const w = world(Now, inst);
+  w.sim.st.balances.USDC = 0;
+  const books = Object.fromEntries(QUOTE_BOOKS.map((bk) => [bk, newBookState(bk, { id: "seed", ts: T0 - 30e3, ticks: bk === "USDC-GBP" ? 7553 : 7551, qty: 10, side: "sell" })])) as Record<QuoteBook, BookState>;
+  for (let t = T0; t < T0 + 3 * M; t += M) {
+    for (const bk of QUOTE_BOOKS) stepMinute(books[bk], t, { x: 1.3238, fairU: 1.0, prints: [] });
+    await w.mem.db.upsert("agent_quote_state", [{ id: 1, state: { lastMinute: t, books: JSON.parse(JSON.stringify(books)), fetchedTo: {}, hourFetchedFor: 0 }, last_minute: iso(t), updated_at: iso(t), last_error: null }], "id");
+    await w.turn(t + M + 30e3);
+  }
+  const orders = w.mem.tables.agent_quote_live_orders as Row[];
+  const entries = orders.filter((o) => o.leg === "entry");
+  assertEquals([...new Set(entries.map((o) => `${o.book} ${o.rung_side} ${Number(o.k)}`))].sort(), ["USDC-GBP bid 0.001", "USDC-GBP bid 0.002"]);
+  for (const o of entries) assert(Math.abs(Number(o.base_size) * Number(o.price) - 30) <= 0.01, JSON.stringify(o));
+  const conv = orders.filter((o) => o.leg === "convert");
+  assertEquals(conv.map((o) => [o.book, o.side, (o.request as Record<string, unknown>).postOnly, (o.request as Record<string, unknown>).auto]), [["USDC-GBP", "buy", true, true]]);
+  const gbp = Number(conv[0].base_size) * Number(conv[0].price);
+  assert(gbp > Now.QUOTE_LIVE_TOPUP_MAX_GBP_DAY && gbp <= 65, `£${gbp}`);
+});
+
+// The venue's balances for the LIVE page (Davies, 2026-10-29 22:20, "revolut也一样"): each turn that read them saves the
+// account's available and on-hold amounts of GBP, USDC and USDT as the venue gave them, `{ at, ccy: { CODE: { available, hold } } }`.
+Deno.test("each turn saves the venue's balances, available and on hold, for the LIVE page: GBP, USDC and USDT as the venue gave them", async () => {
+  const w = world(Now);
+  w.sim.st.balances.USDC = 40;
+  const books = Object.fromEntries(QUOTE_BOOKS.map((bk) => [bk, newBookState(bk, { id: "seed", ts: T0 - 30e3, ticks: bk === "USDC-GBP" ? 7553 : 7551, qty: 10, side: "sell" })])) as Record<QuoteBook, BookState>;
+  for (let t = T0; t < T0 + 2 * M; t += M) {
+    for (const bk of QUOTE_BOOKS) stepMinute(books[bk], t, { x: 1.3238, fairU: 1.0, prints: [] });
+    await w.mem.db.upsert("agent_quote_state", [{ id: 1, state: { lastMinute: t, books: JSON.parse(JSON.stringify(books)), fetchedTo: {}, hourFetchedFor: 0 }, last_minute: iso(t), updated_at: iso(t), last_error: null }], "id");
+    await w.turn(t + M + 30e3);
+  }
+  const st = (w.mem.tables.agent_quote_live_state as Row[])[0].state as { venueBalances?: { at: string; ccy: Record<string, { available: number; hold: number }> }; balances?: Record<string, number> };
+  const vb = st.venueBalances!;
+  assertEquals([vb.at, Object.keys(vb.ccy).sort()], [iso(T0 + 2 * M + 30e3), ["GBP", "USDC"]]);
+  for (const c of ["GBP", "USDC"]) {
+    assertEquals(Object.keys(vb.ccy[c]).sort(), ["available", "hold"]);
+    // available + on hold is the total the turn's coin book reads (`balances`, unchanged).
+    assertAlmostEquals(vb.ccy[c].available + vb.ccy[c].hold, st.balances![c], 1e-9);
+  }
+  assert(vb.ccy.GBP.hold > 0, JSON.stringify(vb));   // the bids rest on the account's pounds
+  assertEquals(Now.venueBalancesOf("t", null), null);
+  assertEquals(Now.venueBalancesOf("t", { GBP: { available: 1, hold: 2 }, BTC: { available: 3, hold: 0 }, USDT: { available: NaN, hold: 0 } }), { at: "t", ccy: { GBP: { available: 1, hold: 2 } } });
 });
 
 // The coin rebook (`rebookOn`; Davies, 2026-10-29: "换币也用挂单不要有转换损失"): weights that come into force at the rebook's

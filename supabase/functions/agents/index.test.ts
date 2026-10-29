@@ -12,7 +12,7 @@ import {
   QUOTE_TICKER_FRESH_MS,
   QUOTE_LIVE_REASON_COLUMNS, QUOTE_LIVE_SUMMARY_COLUMNS, QUOTES_LIVE_KNOWN_REFUSALS, QUOTES_LIVE_ORDERS_FILTER, QUOTES_LIVE_PAGE_ROWS, type QuoteLiveRecentRow, withConversionFees,
   liveDays, readQuotesTwin, twinInUsd, twinsDelayMs, twinsOnPage, TWINS_START_MS,
-  deadmanBeatAt, DEADMAN_BEAT_KEY, runSelectKeptAlive, runQuotesAction, quotesPaperErrorReport, readGrokPmJournal,
+  deadmanBeatAt, DEADMAN_BEAT_KEY, runSelectKeptAlive, runQuotesAction, RXU_TABLES_MISSING, quotesPaperErrorReport, readGrokPmJournal,
 } from "./index.ts";
 import { QUOTE_LEASE_STEP, runQuotes, type QuoteBook, type QuoteReport } from "./quotes.ts";
 import type { QuoteLiveReport } from "./quotes_live.ts";
@@ -853,6 +853,27 @@ Deno.test("runQuotesAction — a paper minute that decides writes no agents.quot
   });
   assertEquals(reports, ["agents.quotes_live", "agents.quotes_live"]);
   assertEquals((thrown as { live: { error: string } }).live, { error: "revx2 unreadable" });
+});
+
+// "Stablecoin quotes USDC/GBP" on Revolut X (0180): its turn runs in the same minute as LIVE's, its faults are its own kind
+// (`agents.quotes_rxu`), and a minute before its tables exist (the deploy before 0180 applies) is no fault.
+Deno.test("runQuotesAction — the USDC/GBP executor's turn beside LIVE's: its own report kind; its tables not there yet is no fault", async () => {
+  const paper: QuoteReport = { minutes: 1, from: 0, to: 0, prints: 0, fills: 0, exits: 0, stops: 0, orders: 0, refused: 0, snapshots: 0, recorded: 2, errors: [] };
+  const run = async (rxu: () => Promise<QuoteLiveReport>) => {
+    const reports: string[] = [];
+    const out = await runQuotesAction(false, { paper: () => Promise.resolve(paper), live: () => Promise.resolve(liveTurn()), rxu, report: (k) => { reports.push(k); return Promise.resolve(); } });
+    return { reports, out: out as { rxu?: unknown; live: unknown } };
+  };
+  const ok = await run(() => Promise.resolve(liveTurn(["rxu: balances unreadable"])));
+  assertEquals(ok.reports, ["agents.quotes_rxu"]);
+  assertEquals((ok.out.rxu as QuoteLiveReport).errors, ["rxu: balances unreadable"]);
+  const missing = await run(() => Promise.reject(new Error("select agent_quote_rxu_config → 404 {\"code\":\"PGRST205\",\"message\":\"Could not find the table 'public.agent_quote_rxu_config' in the schema cache\"}")));
+  assertEquals(missing.reports, []);
+  const fault = await run(() => Promise.reject(new Error("revx unreadable")));
+  assertEquals([fault.reports, fault.out.rxu], [["agents.quotes_rxu"], { error: "revx unreadable" }]);
+  assert(RXU_TABLES_MISSING.test('relation "public.agent_quote_rxu_state" does not exist') && !RXU_TABLES_MISSING.test("revx unreadable"));
+  // Stubbing the paper or the live turn runs no USDC/GBP turn unless it is given.
+  assertEquals((await runQuotesAction(false, { paper: () => Promise.resolve(paper), live: () => Promise.resolve(liveTurn()), report: () => Promise.resolve() }) as { rxu?: unknown }).rxu, undefined);
 });
 
 Deno.test("runQuotesAction — the errors box hears the live executor's alerts, not every error of every turn (2026-10-20: 606 rows)", async () => {

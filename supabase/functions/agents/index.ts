@@ -262,7 +262,7 @@ import { youtubeProbe } from "./youtube.ts";
 import { runViews } from "./views.ts";
 import { QUOTE_BOOKS, QUOTE_RUNGS, QUOTE_TICK, runQuotes, type QuoteBook, type QuoteReport, type Side } from "./quotes.ts";
 import {
-  coinOf, markedGbp, QUOTE_LIVE_LOSS_FRACTION, QUOTE_LIVE_USDT_ONLY_FROM, rungBook, rungGbpOf, runQuotesConvert, runQuotesLive,
+  coinOf, markedGbp, QUOTE_LIVE_LOSS_FRACTION, QUOTE_LIVE_USDT_ONLY_FROM, QUOTE_RXU_INSTANCE, rungBook, rungGbpOf, runQuotesConvert, runQuotesLive,
   type LiveLeg, type QuoteLiveDeps, type QuoteLiveReport, type RungBook, type RungFill,
 } from "./quotes_live.ts";
 import { stepLiveWeekendPaper, type LiveWeekendReport } from "./quotes_live_weekend.ts";
@@ -486,6 +486,9 @@ export function quotesPaperErrorReport(e: unknown, at: string) {
   };
 }
 
+/** A read of a table that does not exist yet (PostgREST's PGRST205, Postgres' 42P01): "Stablecoin quotes USDC/GBP" before 0180. */
+export const RXU_TABLES_MISSING = /PGRST205|42P01|agent_quote_rxu_\w+" does not exist|Could not find the table 'public\.agent_quote_rxu_/;
+
 export type QuotesActionDeps = {
   paper?: () => Promise<QuoteReport>;
   live?: () => Promise<QuoteLiveReport>;
@@ -493,6 +496,8 @@ export type QuotesActionDeps = {
   weekend?: () => Promise<LiveWeekendReport>;
   /** LIVE's capital compounding (0146, quotes_compound.ts), off until its config says so; a test that stubs a turn runs none. */
   compound?: () => Promise<CompoundReport>;
+  /** "Stablecoin quotes USDC/GBP"'s turn (0180); a test that stubs the paper or the live turn runs none. */
+  rxu?: () => Promise<QuoteLiveReport>;
   report?: (kind: string, o: { message?: string; context?: unknown }) => Promise<void>;
   now?: () => number;
 };
@@ -536,6 +541,21 @@ export async function runQuotesAction(wait: boolean, deps: QuotesActionDeps = {}
   // Then the live executor (`quotes_live.ts`), on the minute the paper engine just saved: the same decisions, carried to
   // PR5's own sub-account — in dry-run until `agent_quote_live_config` says otherwise. It runs after the paper engine has
   // finished and on its own lease, so nothing it does can change what the paper test decides or records.
+  // "Stablecoin quotes USDC/GBP" on Revolut X (0180, `QUOTE_RXU_INSTANCE`): the same minute's decisions on its own account,
+  // tables and lease, run beside LIVE's turn (they share nothing a turn writes) so the call is not twice as long. It never
+  // throws past here; a fault is one `agents.quotes_rxu` row, LIVE's turn unaffected.
+  const rxuTurn = (deps.rxu ?? (deps.paper || deps.live ? undefined : async () => runQuotesLive(await quotesLiveDeps("rxu"))))?.()
+    .then(async (r) => {
+      const alerts = r.alerts ?? r.errors;
+      if (alerts.length) await report("agents.quotes_rxu", tickErrorReport({ errors: alerts, at: r.at }));
+      return r as QuoteLiveReport | { error: string };
+    })
+    .catch(async (e) => {
+      const error = e instanceof Error ? e.message : String(e);
+      // Before 0180 has applied its tables are not there: that minute is not a fault (the deploy and the migration land apart).
+      if (!RXU_TABLES_MISSING.test(error)) await report("agents.quotes_rxu", { message: error.slice(0, 500), context: { at: new Date(now()).toISOString() } });
+      return { error } as QuoteLiveReport | { error: string };
+    });
   let live: QuoteLiveReport | { error: string };
   try {
     live = await (deps.live ?? (async () => runQuotesLive(await quotesLiveDeps())))();
@@ -547,7 +567,8 @@ export async function runQuotesAction(wait: boolean, deps: QuotesActionDeps = {}
     live = { error: e instanceof Error ? e.message : String(e) };
     await report("agents.quotes_live", { message: live.error.slice(0, 500), context: { at: new Date(now()).toISOString() } });
   }
-  return { ...paper, live };
+  const rxu = rxuTurn ? await rxuTurn : undefined;
+  return { ...paper, live, ...(rxu ? { rxu } : {}) };
 }
 
 /**
@@ -852,12 +873,47 @@ async function runQuotesTwinsAction(wait: boolean) {
   }
 }
 
-/** The live executor's dependencies: PR5's own sub-account (`revx2`) when its key loads, and nothing keyed otherwise. */
-async function quotesLiveDeps(): Promise<QuoteLiveDeps> {
-  const rx2 = await loadRevx("revx2");
+/**
+ * "Stablecoin quotes USDC/GBP" on Revolut X (`QUOTE_RXU_INSTANCE`, 0180) for the page, read and summed exactly as LIVE's
+ * executor is (`quotesLiveSummary`, `quotesLiveDetail`): its row of LIVE once armed or once it has sent a live order, its page
+ * beside it. Null before its tables exist or when a read fails.
+ */
+export async function readQuotesRxu(d: Db, now: number, dayStartMs: number, tickers: Promise<QuoteTickerRow[]> | QuoteTickerRow[]) {
+  const I = QUOTE_RXU_INSTANCE;
+  try {
+    const [cfg, lst, orders, paper, tk] = await Promise.all([
+      d.select<QuoteLiveConfigRow>(I.config, "id=eq.1&select=dry_run,live_confirmed_at,capital_gbp"),
+      d.select<QuoteLiveStateRow>(I.state, "id=eq.1&select=state,updated_at,last_error"),
+      d.selectAll<QuoteLiveOrderView>(I.orders, `mode=eq.live&select=${QUOTE_LIVE_SUMMARY_COLUMNS}&order=id.asc`),
+      d.select<QuoteStateRow>(I.paper, "id=eq.1&select=state,last_minute,updated_at,last_error"),
+      tickers,
+    ]);
+    const base = { config: cfg[0] ?? null, state: lst[0] ?? null, orders, paper: paper[0] ?? null, nowMs: now, dayStartMs, tickers: tk };
+    const summary = quotesLiveSummary(base);
+    if (!summary) return null;
+    const detail = !summary.tradedLive && summary.entryBook !== "live" ? null : await (async () => {
+      try {
+        const [open, recent] = await Promise.all([
+          d.select<QuoteLiveOrderView>(I.orders, `mode=eq.live&state=in.(pending,new,partially_filled)&select=${QUOTE_LIVE_ORDER_COLUMNS}&order=id.asc`),
+          d.select<QuoteLiveRecentRow>(I.orders, `mode=eq.live&${QUOTES_LIVE_ORDERS_FILTER}&select=${QUOTE_LIVE_REASON_COLUMNS}&order=id.desc&limit=${QUOTES_LIVE_PAGE_ROWS}`),
+        ]);
+        return quotesLiveDetail({ ...base, open, recent, knownRefusals: new Set() });
+      } catch { return null; }
+    })();
+    return { ...summary, detail };
+  } catch { return null; }
+}
+
+/**
+ * The live executor's dependencies: PR5's own sub-account (`revx2`) when its key loads, and nothing keyed otherwise; or, for
+ * "Stablecoin quotes USDC/GBP" (`rxu`, 0180), the sub-account the retired trend loop traded (`revx`) and its own instance.
+ */
+async function quotesLiveDeps(which: "live" | "rxu" = "live"): Promise<QuoteLiveDeps> {
+  const rx2 = await loadRevx(which === "rxu" ? "revx" : "revx2");
   const d = db();
   return {
     db: d, now: Date.now(), holder: crypto.randomUUID(), uuid: () => crypto.randomUUID(),
+    ...(which === "rxu" ? { instance: QUOTE_RXU_INSTANCE } : {}),
     account: "error" in rx2 ? null : revxVenue(rx2.env), accountNote: "error" in rx2 ? rx2.error : null,
     // The dead-man switch's newest beat: the live account quotes no entry while it is stale (QUOTE_LIVE_DEADMAN_WATCH_MS).
     deadmanBeatAt: () => deadmanBeatAt(d),
@@ -1686,7 +1742,16 @@ export function quotesLiveSummary(input: {
     // In pounds, the book's own currency: what its page and its LIVE row show (Davies, 2026-10-01); the dollars above are
     // what LIVE's scoreboard adds up.
     realisedGbp: realised, todayGbp: today, unrealisedGbp: unrealised, costGbp: cost, valueGbp: value, feesGbp: fees, coinsGbp,
+    // The account's balances as the venue last gave them (`venueBalancesOf` in quotes_live.ts): `{ at, ccy: { CODE: { available,
+    // hold } } }`, for its page's INVENTORY; null before the executor has saved any (Davies, 2026-10-29: "revolut也一样").
+    balances: liveVenueBalancesOf(input.state),
   };
+}
+
+/** The venue balances an executor's state holds (`venueBalances`), as the page reads them, or null. */
+export function liveVenueBalancesOf(state: QuoteLiveStateRow | null): { at: string; ccy: Record<string, { available: number; hold: number }> } | null {
+  const v = (state?.state as { venueBalances?: unknown } | undefined)?.venueBalances as { at?: unknown; ccy?: unknown } | null | undefined;
+  return v && typeof v.at === "string" && v.ccy && typeof v.ccy === "object" ? { at: v.at, ccy: v.ccy as Record<string, { available: number; hold: number }> } : null;
 }
 
 /** A completed round trip of one live rung: from the fill that took it off flat to the one that brought it back. */
@@ -2509,6 +2574,8 @@ async function dashboard(now: number) {
   // "Stablecoin quotes USDC/GBP", the Coinbase live executor (cb_live.ts, 0177): a row of LIVE once armed or once it has sent
   // a live order; its own tables alone.
   const cbLive = await readCbLive(d, now);
+  // "Stablecoin quotes USDC/GBP" on Revolut X (0180): LIVE's reader on its own tables, beside PR5's paper engine's state.
+  const quotesRxu = await readQuotesRxu(d, now, dayStartMs, quoteTickersRead);
   // GROKPM's row of LIVE (Davies, 2026-10-15): the independent record of the outside agent's wallet, its journal beside it.
   const grokPm = await readGrokPm(d, now);
   // The outside-Grok tests of TESTING (Davies, 2026-10-29): CXBOT on paper, IGBOT on IG's demo (grok_tests_view.ts).
@@ -2578,6 +2645,7 @@ async function dashboard(now: number) {
     lpLive,
     /** "Stablecoin quotes USDC/GBP" (cb_live.ts): LIVE's Coinbase row, in pounds with the paper arm's GBP/USD; null without 0176. */
     cbLive,
+    quotesRxu,
     /**
      * "Polymarket analyst" (`grokpm_view.ts`, 0124; titles 0126): the outside agent's wallet from the independent record, its
      * journal beside it; a row of LIVE. Null until a wallet is configured.
@@ -2861,7 +2929,8 @@ export async function runProbe(only: Set<string> | null = null, f: typeof fetch 
 
   // --- Revolut X: the strategy rows' account, and PR5's own ------------------
   const rx = want("revx") ? await loadRevx("revx") : null;
-  if (rx) out.revx = "error" in rx ? { error: rx.error } : await probeRevxAccount(rx, symbols, "BTC/USD", f);
+  // Since 0180 the strategy rows' account is "Stablecoin quotes USDC/GBP"'s: its book's pair, and its orders on that book.
+  if (rx) out.revx = "error" in rx ? { error: rx.error } : await probeRevxAccount(rx, [...new Set([...symbols, "USDC/GBP"])], "USDC/GBP", f);
   const rx2 = want("revx2") ? await loadRevx("revx2") : null;
   if (rx2) out.revx2 = "error" in rx2 ? { error: rx2.error } : await probeRevxAccount(rx2, [...REVX2_PROBE_SYMBOLS], "USDC/GBP", f);
 

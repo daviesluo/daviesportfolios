@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-  defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fmtBps, fmtFees, FULL_HISTORY_LIMIT, historyLimitOf, lastChangeText, showFullHistory, symbolOrderRows, fmtFrac, fmtPct2, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView, strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows, VENUE_LABELS, VENUE_HUES, agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard, newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinRatioLine, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwBarTileKeys, fmtUsd4, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, paperTestRows, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokPmModeTag, grokPmTiles, linkDomain, utcStamp, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmJournalView, fmtProb, fmtBrier, LP_LIVE_ROW_ID, fmtR, lpStopRoomText, liveExtraRows, lpEstimateTexts, lpLiveDayCells, lpLiveQuoteRows, lpLiveRow, quoteDaysAnnualPct, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, lpLiveStatus, AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney, QUOTES_COINBASE_ROW_ID, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, QUOTES_COINBASE_NUDGE_ROW_ID, quotesCoinbaseRow,
+  defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fmtBps, fmtFees, FULL_HISTORY_LIMIT, historyLimitOf, lastChangeText, showFullHistory, symbolOrderRows, fmtFrac, fmtPct2, fmtPctSigned, fmtUsd, kindLabel, liveStateRows, nextDecisionText, observationAgeMs, observationAgeText, observationView, orderView, strategyRows, strategyStatus, totalsView, untilText, venueHue, venueRows, VENUE_LABELS, VENUE_HUES, agentsAlerts, agentsErrorView, parseAgentsErrorBody, shortErrorMessage, positionLines, shareSegments, paperOnly, strategyNameParts, quoteLadderRows, quoteRungLabel, quoteBookLabel, fmtQuotePrice, countdownText, prefetchAgentsDashboard, readAgentsCache, readChartCache, glText, scoreboardView, strategyScoreboard, newestWins, sizeText, dashboardInFlight, _reloadAgentsCache, QUOTES_LIVE_ROW_ID, quotesLiveRow, QUOTES_RXU_ROW_ID, quotesRxuRow, QUOTES_TWIN_ROW_PREFIX, quotesTwinLines, quotesTwinRatioLine, quotesTwinOf, quotesTwinRow, quotesTwinRows, fmtQuoteQty, testedForText, rwBarTileKeys, fmtUsd4, fmtCents, rwHeldText, rwHeldOf, rwFillView, rwShareText, venueLabel, paperTestRows, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokPmModeTag, grokPmTiles, linkDomain, utcStamp, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmJournalView, fmtProb, fmtBrier, LP_LIVE_ROW_ID, fmtR, lpStopRoomText, liveExtraRows, lpEstimateTexts, lpLiveDayCells, lpLiveQuoteRows, lpLiveRow, quoteDaysAnnualPct, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, lpLiveStatus, AGENT_TABS, agentsTabsView, alertsFor, defaultAgentsTab, liveArming, pctOf, splitCents, splitStrategyRows, strategyTab, tabStrategies, fmtFeeGbp4, fmtGbp, fmtGbp4, fmtIn, glTextIn, orderStateText, quotesLiveBooks, quotesLiveInventory, quotesPageFor, rowMoney, QUOTES_COINBASE_ROW_ID, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, QUOTES_COINBASE_NUDGE_ROW_ID, quotesCoinbaseRow,
 } from './agents.js';
 // The live quotes page's fixture: what the dashboard serves for a book worked out by hand (the agents function's test
 // proves it is the server's own answer for its rows; the browser test serves it).
@@ -973,7 +973,8 @@ describe("the realistic twins as rows of TESTING (Davies, 2026-10-02: the live e
     // The fixture drops the switched-off twins (the £300 twin, the weekend twin, 0148's three, and since 0151 pr5, p50 and d).
     const names = quotesTwinRows({ quotesTwins: shownTwins }).map((x) => x.name);
     // Since 0167 (Davies, 2026-10-29): the £120 twin is off, the USDT 2:1 twin hidden, and the visible variants count 1 to 6.
-    expect(names).toEqual(['Stablecoin quotes USDT/GBP LIVE twin', 'Stablecoin quotes variant-1', 'Stablecoin quotes variant-2', 'Stablecoin quotes variant-3',
+    // 0180: the USDC/GBP LIVE twin right under the USDT/GBP one.
+    expect(names).toEqual(['Stablecoin quotes USDT/GBP LIVE twin', 'Stablecoin quotes USDC/GBP LIVE twin', 'Stablecoin quotes variant-1', 'Stablecoin quotes variant-2', 'Stablecoin quotes variant-3',
       'Stablecoin quotes variant-4', 'Stablecoin quotes variant-5', 'Stablecoin quotes variant-6']);
     // 0176: variant-4 (the £1 holding line's twin) off, the rest numbered down by one. 0178 (Davies, 2026-10-29: "原 variant-5
     // …这个可以删了"): the USDT 3:1 twin and the $300 nudge off, the nudge again as variant-5 on the 1:1 twin: 1 to 6, no gap.
@@ -1147,6 +1148,18 @@ describe('quoteLadderRows — a book as the page draws it', () => {
     }
     expect(quotesPageFor(QUOTES_COINBASE_ROW_ID, { quotesTwins: [] })).toBe(null);
     expect(quotesCoinbaseRow(null)).toBe(null);
+  });
+  it('"Stablecoin quotes USDC/GBP" on Revolut X (0180) is a row of LIVE once it trades or is armed, after USDT/GBP, on Revolut X (so it reads apart from Coinbase\'s), and opens the live page on its own book', () => {
+    const live = liveFixture.live;
+    expect(quotesRxuRow(null)).toBe(null);
+    expect(quotesRxuRow({ ...live, tradedLive: false, entryBook: 'dry_run' })).toBe(null);
+    const r = quotesRxuRow({ ...live, tradedLive: true });
+    expect([r?.id, r?.name, r?.venue, r?.venueId, r?.mode]).toEqual([QUOTES_RXU_ROW_ID, 'Stablecoin quotes USDC/GBP', 'Revolut X', 'revx', 'live']);
+    expect(quotesLiveRow(live)?.name).toBe('Stablecoin quotes USDT/GBP');
+    const dash = { quotes: { live }, quotesRxu: { ...live, tradedLive: true } };
+    expect(liveExtraRows(dash).map((x) => [x.id, x.venueId])).toEqual([[QUOTES_LIVE_ROW_ID, 'revx'], [QUOTES_RXU_ROW_ID, 'revx']]);
+    expect([quotesPageFor(QUOTES_RXU_ROW_ID, dash), quotesPageFor(QUOTES_RXU_ROW_ID, { quotes: { live } })]).toEqual(['rxu', null]);
+    expect(strategyNameParts('Stablecoin quotes USDC/GBP LIVE twin')).toEqual({ head: 'Stablecoin quotes', qual: 'USDC/GBP LIVE twin', twoLines: true });
   });
   it('"Stablecoin quotes USDT/GBP LIVE twin" (0178) is on two lines as the LIVE twin was; LIVE\'s own "Stablecoin quotes USDT/GBP" on one, as Coinbase\'s USDC/GBP', () => {
     expect(strategyNameParts('Stablecoin quotes USDT/GBP LIVE twin')).toEqual({ head: 'Stablecoin quotes', qual: 'USDT/GBP LIVE twin', twoLines: true });

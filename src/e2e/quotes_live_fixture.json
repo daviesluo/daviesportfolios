@@ -826,6 +826,7 @@
     "dryRun": false,
     "armed": true,
     "armedAt": "2026-09-16T09:00:00.000Z",
+    "balances": null,
     "entryBook": "live",
     "why": "live: dry_run is off and live_confirmed_at is set",
     "running": true,

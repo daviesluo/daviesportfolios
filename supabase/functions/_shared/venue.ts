@@ -53,6 +53,11 @@ export type Venue = {
   order(venueOrderId: string): Promise<{ ok: true; view: OrderView } | { ok: false; error: string }>;
   /** currency → total, e.g. { USD: 100, BTC: 0.0002 }. Empty without credentials. */
   balances(): Promise<Record<string, number>>;
+  /**
+   * What the last `balances()` read said of each currency, available and on hold (in orders), with no call of its own; null
+   * before a read, or on a venue that does not say. Shown on a LIVE page beside the book's own count (2026-10-29).
+   */
+  balanceDetail?(): Record<string, { available: number; hold: number }> | null;
   /** Every order resting at the venue, by OUR client order id — how a `pending` row finds the order it may have placed. */
   activeOrders(): Promise<{ ok: true; byClientId: Record<string, { venueOrderId: string; view: OrderView }> } | { ok: false; error: string }>;
   /**

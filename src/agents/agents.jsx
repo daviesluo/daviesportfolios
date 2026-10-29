@@ -1972,7 +1972,8 @@ function AgentsModal({ hideValues, onClose }) {
   // LIVE's "Stablecoin quotes" opens the live executor's own page (Davies, 2026-10-01: it opened the paper test's), a
   // twin's row its twin's, laid out as the live executor's (Davies, 2026-10-02).
   const quotesPage = quotesPageFor(selected, dash);
-  const quotesLiveOpen = quotesPage === 'live';
+  // "Stablecoin quotes USDC/GBP" on Revolut X (0180) opens the same page on its own book (`quotesRxu`).
+  const quotesLiveOpen = quotesPage === 'live' || quotesPage === 'rxu';
   const cbLiveOpen = quotesPage === 'cblive';
   const twinOpen = quotesPage === 'twin' ? quotesTwinOf(selected, dash) : null;
   const coinbaseOpen = quotesPage === 'coinbase'
@@ -2044,12 +2045,12 @@ function AgentsModal({ hideValues, onClose }) {
       <Modal onClose={() => setSelected(null)} size="lg">
         <header className="modal-head">
           <div>
-            <h2 className="modal-title mono">Stablecoin quotes USDT/GBP</h2>
+            <h2 className="modal-title mono">{quotesPage === 'rxu' ? 'Stablecoin quotes USDC/GBP' : 'Stablecoin quotes USDT/GBP'}</h2>
           </div>
           <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
         </header>
         <div className="modal-body ag-body">
-          <PageGuard gen={gen}><QuotesLiveDetail q={dash.quotes.live} m={m} at={dash.at} nowMs={now} /></PageGuard>
+          <PageGuard gen={gen}><QuotesLiveDetail q={quotesPage === 'rxu' ? dash.quotesRxu : dash.quotes.live} m={m} at={dash.at} nowMs={now} /></PageGuard>
         </div>
       </Modal>
     )}

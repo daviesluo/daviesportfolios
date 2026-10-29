@@ -13,7 +13,7 @@ import { REVX_KEY_NAMES } from "../agents/index.ts";
 import {
   ago, cancelEvery, DEADMAN_CANCEL_REREAD_MS, DEADMAN_DEADLINE_MS, DEADMAN_GRACE_AHEAD_MS, DEADMAN_GRACE_MS, DEADMAN_READ_RETRY_MS, DEADMAN_STALE_MS,
   type DeadmanReport, type DeadmanVenue, graceOf, judge,
-  PR5_KEY_NAMES, pr5KeyFrom, readState, readStateOnce, recordRows, revxDeadmanVenue, runDeadman, type StateRead, summary, writeRecord,
+  PR5_KEY_NAMES, PR5_TARGET, pr5KeyFrom, readState, readStateOnce, recordRows, revxDeadmanVenue, runDeadman, RXU_KEY_NAMES, RXU_TARGET, type StateRead, summary, writeRecord,
 } from "./deadman.ts";
 import { DB_SIZE_PATH, DB_SIZE_WATCH_BYTES, HEALTH_LIMITS_S, HEALTH_NAMES, HEALTH_QUERIES, judgeHealth, type Reading, runHealth } from "./health.ts";
 import { handle, type HandlerDeps, insertReports, isAuthorised, lastFreshOf, reportRows, SECRET_HEADER } from "./index.ts";
@@ -397,6 +397,27 @@ Deno.test("PR5's key is read by the executor's own names, as envAny reads them",
   assertEquals(pr5KeyFrom(env({ REVOLUT_X_API_KEY_2: "  ", Revolut_X_API_kEY_2: "b", Revolut_X_Private_Key_2: "p" })), { apiKey: "b", priv: "p" });
   assertEquals(pr5KeyFrom(env({ REVOLUT_X_PRIVATE_KEY_2: "p" })), { error: "REVOLUT_X_API_KEY_2 missing" });
   assertEquals(pr5KeyFrom(env({ REVOLUT_X_API_KEY_2: "a" })), { error: "REVOLUT_X_PRIVATE_KEY_2 missing" });
+});
+
+// "Stablecoin quotes USDC/GBP" (0180): its dead-man reads its own account (the retired trend loop's, never PR5's `_2`), its own
+// state and events, and records under its own symbol; PR5's is as it was.
+Deno.test("the USDC/GBP executor's dead-man: its key by the executor's names for `revx`, its own tables, its own words", async () => {
+  assertEquals(RXU_KEY_NAMES.apiKey, [...REVX_KEY_NAMES.revx.apiKey]);
+  assertEquals(RXU_KEY_NAMES.priv, [...REVX_KEY_NAMES.revx.priv]);
+  const env = (m: Record<string, string>) => (n: string) => m[n];
+  assertEquals(pr5KeyFrom(env({ Revolut_X_API_kEY: "id", REVOLUT_X_PRIVATE_KEY: "pem", Revolut_X_API_kEY_2: "x", REVOLUT_X_PRIVATE_KEY_2: "y" }), RXU_KEY_NAMES), { apiKey: "id", priv: "pem" });
+  assertEquals([RXU_TARGET.state, RXU_TARGET.events, RXU_TARGET.symbol, PR5_TARGET.state, PR5_TARGET.events, PR5_TARGET.symbol],
+    ["agent_quote_rxu_state", "agent_quote_rxu_events", "rxu", "agent_quote_live_state", "agent_quote_live_events", "pr5"]);
+  assertEquals(judge({ ok: true, updatedAt: iso(T0 - 300e3) }, T0, RXU_TARGET.label).why.startsWith("The USDC/GBP executor last finished a turn 5 min"), true);
+  assertEquals(judge({ ok: true, updatedAt: iso(T0 - 300e3) }, T0).why.startsWith("PR5's executor last finished"), true);
+  const r: DeadmanReport = { verdict: "stale", ageS: 300, stateAt: iso(T0 - 300e3), why: "w", at: iso(T0), lastFreshAt: null, grace: null, acted: true, listed: 0, error: null, recorded: null, orders: [] };
+  assertEquals(recordRows(r, RXU_TARGET).ops.symbol, "rxu");
+  const urls: string[] = [];
+  const f = ((u: string) => { urls.push(String(u)); return Promise.resolve(new Response("[]", { status: 201 })); }) as unknown as typeof fetch;
+  await readStateOnce("https://x.supabase.co", "k", f, 1000, RXU_TARGET.state);
+  await writeRecord(r, "https://x.supabase.co", "k", f, 1000, RXU_TARGET);
+  assert(urls[0].includes("/rest/v1/agent_quote_rxu_state?"), urls[0]);
+  assert(urls.some((u) => u.includes("/rest/v1/agent_quote_rxu_events?on_conflict=")), urls.join(" "));
 });
 
 Deno.test("a cancel is read again after the executor's own pauses", () => {

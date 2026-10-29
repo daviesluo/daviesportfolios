@@ -271,6 +271,14 @@ places stay when the number is not whole.
   fair price); DAYS with the 7-day
   figure; its round trips; then its exit and entry orders. Orders Coinbase
   refused, and conversions, are not listed.
+- **Stablecoin quotes USDC/GBP on Revolut X, on LIVE.** A second live row on
+  Revolut X, once Davies has switched it on: the same rules on its own £120
+  account, on USDC against pounds alone, with no quote at 0.3 % (£30 on each
+  0.1 % and 0.2 % quote) and every exit a tick in our favour, which the
+  study of 29 Oct found best on that book. Its row says Revolut X, so it
+  reads apart from Coinbase's USDC/GBP row, and its page is laid out as the
+  live page below. Its paper copy, "Stablecoin quotes USDC/GBP LIVE twin",
+  runs on TESTING right under the USDT/GBP LIVE twin from 30 Oct.
 - **Stablecoin quotes on LIVE.** The live path's own row, once it has
   traded real money on its own Revolut X account. Tap it for a page of its
   own, in pounds, which shows the real-money book and nothing of the paper

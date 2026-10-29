@@ -12,7 +12,9 @@
 //                    (the body's `lastFreshAt`, which the Worker remembers), every resting order on its Revolut X
 //                    sub-account is cancelled and read back. Fresh, or unreadable inside that grace, it touches nothing.
 //                    It writes its call's beat beside the work (`edge_call_beats`, key `monitor?action=deadman`), so the
-//                    Worker's minutes show in the database.
+//                    Worker's minutes show in the database. Since 0180 the same call runs the dead-man of "Stablecoin
+//                    quotes USDC/GBP" (`RXU_TARGET`, its own account and tables) beside PR5's, answered under `rxu`; the
+//                    Worker remembers no fresh read for it, so its unreadable state has no grace and cancels.
 //   ?action=health   is Supabase's minute loop alive (`health.ts`): five read-only freshness readings with limits.
 //   ?action=report   the Worker's alerts into `ops_errors`, which the site's errors box reads (`ops-error`'s summary):
 //                    kinds `monitor.*` only. A report the database does not take answers 503, and the Worker keeps it
@@ -30,7 +32,7 @@ import { beatKeyOfRequest, writeBeat } from "../_shared/beats.ts";
 import { loadPrivateKey } from "../_shared/revx.ts";
 import { constantTimeEqual } from "../_shared/token.ts";
 import {
-  type DeadmanReport, type DeadmanVenue, pr5KeyFrom, readState, readStateOnce, revxDeadmanVenue, runDeadman, writeRecord,
+  type DeadmanReport, type DeadmanVenue, pr5KeyFrom, readState, readStateOnce, revxDeadmanVenue, runDeadman, RXU_KEY_NAMES, RXU_TARGET, writeRecord,
 } from "./deadman.ts";
 import { type HealthReport, runHealth } from "./health.ts";
 
@@ -132,9 +134,9 @@ export async function handle(req: Request, d: HandlerDeps): Promise<Response> {
   return json(404, { error: "action: deadman, health or report" });
 }
 
-/** PR5's sub-account for the dead-man, or why there is none (the reason names a secret, never its value). */
-async function pr5Venue(): Promise<{ venue: DeadmanVenue | null; note: string | null }> {
-  const k = pr5KeyFrom((n) => Deno.env.get(n));
+/** PR5's sub-account for the dead-man (or, with `RXU_KEY_NAMES`, the USDC/GBP executor's), or why there is none (the reason names a secret, never its value). */
+async function pr5Venue(names?: typeof RXU_KEY_NAMES): Promise<{ venue: DeadmanVenue | null; note: string | null }> {
+  const k = pr5KeyFrom((n) => Deno.env.get(n), names);
   if ("error" in k) return { venue: null, note: k.error };
   try {
     const { key } = await loadPrivateKey(k.priv);
@@ -153,13 +155,21 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
       beat: (k) => writeBeat(k),
       // One line a call in the function's log: what each minute found, without a venue or a database read to ask.
       deadman: async (lastFreshAt) => {
+        // "Stablecoin quotes USDC/GBP" (0180) beside PR5's: its own account, state and events; no grace (the Worker keeps none for it).
+        const rxuRun = runDeadman({
+          now: () => Date.now(), pause, venue: () => pr5Venue(RXU_KEY_NAMES), lastFreshAt: null, target: RXU_TARGET,
+          readState: () => readState(() => readStateOnce(sbUrl, key, fetch, undefined, RXU_TARGET.state), pause),
+          record: (rec) => writeRecord(rec, sbUrl, key, fetch, undefined, RXU_TARGET),
+        }).catch((e): DeadmanReport | null => { console.log(`deadman rxu crashed ${msg(e)}`); return null; });
         const r = await runDeadman({
           now: () => Date.now(), pause, venue: pr5Venue, lastFreshAt,
           readState: () => readState(() => readStateOnce(sbUrl, key), pause),
           record: (rec) => writeRecord(rec, sbUrl, key),
         });
+        const rxu = await rxuRun;
+        if (rxu) console.log(`deadman rxu ${rxu.verdict} age=${rxu.ageS ?? "-"}s listed=${rxu.listed ?? "-"} outcomes=${rxu.orders.map((o) => o.outcome).join(",") || "-"}${rxu.error ? ` error=${rxu.error.slice(0, 120)}` : ""}`);
         console.log(`deadman ${r.verdict} age=${r.ageS ?? "-"}s lastFresh=${r.lastFreshAt ?? "-"}${r.grace ? ` grace=${r.grace.hold ? "hold" : "none"}` : ""} listed=${r.listed ?? "-"} outcomes=${r.orders.map((o) => o.outcome).join(",") || "-"}${r.error ? ` error=${r.error.slice(0, 120)}` : ""}`);
-        return r;
+        return rxu ? { ...r, rxu } : r;
       },
       health: async () => {
         const h = await runHealth(sbUrl, key, () => Date.now());

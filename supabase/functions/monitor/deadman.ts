@@ -85,6 +85,21 @@ export const PR5_KEY_NAMES = {
   apiKey: ["REVOLUT_X_API_KEY_2", "Revolut_X_API_kEY_2"],
   priv: ["REVOLUT_X_PRIVATE_KEY_2", "Revolut_X_Private_Key_2"],
 } as const;
+/**
+ * "Stablecoin quotes USDC/GBP"'s account (0180, `QUOTE_RXU_INSTANCE` in agents/quotes_live.ts): the sub-account the retired
+ * trend loop traded, its key by the names `agents/index.ts` reads it under (`REVX_KEY_NAMES.revx`; equal, pinned by the test).
+ */
+export const RXU_KEY_NAMES = {
+  apiKey: ["REVOLUT_X_API_KEY", "Revolut_X_API_kEY", "REVOLUT_X_API_KEY_ID"],
+  priv: ["REVOLUT_X_PRIVATE_KEY", "Revolut_X_Private_Key", "REVX_PRIVATE_KEY"],
+} as const;
+/**
+ * Whose dead-man a run is: the executor's name in what it says, its state and events tables, and the `ops_errors` symbol.
+ * PR5's LIVE by default; "Stablecoin quotes USDC/GBP" (0180) the second, run beside it in the same call.
+ */
+export type DeadmanTarget = { label: string; state: string; events: string; symbol: string };
+export const PR5_TARGET: DeadmanTarget = { label: "PR5's executor", state: "agent_quote_live_state", events: "agent_quote_live_events", symbol: "pr5" };
+export const RXU_TARGET: DeadmanTarget = { label: "The USDC/GBP executor", state: "agent_quote_rxu_state", events: "agent_quote_rxu_events", symbol: "rxu" };
 
 const iso = (ms: number) => new Date(ms).toISOString();
 const msg = (e: unknown) => (e instanceof Error ? e.message : String(e)).slice(0, 300);
@@ -102,18 +117,18 @@ export function ago(seconds: number): string {
 }
 
 /** Fresh, stale or unreadable, from one read of the state and the clock. A time ahead of the clock is fresh. */
-export function judge(read: StateRead, now: number): Verdict {
-  if (!read.ok) return { verdict: "unreadable", ageS: null, stateAt: null, why: `PR5's executor state could not be read (${read.error})` };
+export function judge(read: StateRead, now: number, who = PR5_TARGET.label): Verdict {
+  if (!read.ok) return { verdict: "unreadable", ageS: null, stateAt: null, why: `${who} state could not be read (${read.error})` };
   const t = read.updatedAt == null ? NaN : Date.parse(read.updatedAt);
   if (!Number.isFinite(t)) {
     return {
       verdict: "unreadable", ageS: null, stateAt: read.updatedAt,
-      why: read.updatedAt == null ? "PR5's executor has no state row" : `PR5's executor state has an unreadable time ${JSON.stringify(read.updatedAt).slice(0, 40)}`,
+      why: read.updatedAt == null ? `${who} has no state row` : `${who} state has an unreadable time ${JSON.stringify(read.updatedAt).slice(0, 40)}`,
     };
   }
   const ageMs = now - t, ageS = Math.round(ageMs / 1000), stateAt = iso(t);
-  if (ageMs > DEADMAN_STALE_MS) return { verdict: "stale", ageS, stateAt, why: `PR5's executor last finished a turn ${ago(ageS)} ago (${stateAt.slice(11, 19)} UTC)` };
-  return { verdict: "fresh", ageS, stateAt, why: `PR5's executor finished a turn ${ago(Math.max(0, ageS))} ago` };
+  if (ageMs > DEADMAN_STALE_MS) return { verdict: "stale", ageS, stateAt, why: `${who} last finished a turn ${ago(ageS)} ago (${stateAt.slice(11, 19)} UTC)` };
+  return { verdict: "fresh", ageS, stateAt, why: `${who} finished a turn ${ago(Math.max(0, ageS))} ago` };
 }
 
 /** What the grace makes of the last fresh read, for a state that could not be read: hold (cancel nothing) or not, and why. */
@@ -265,6 +280,8 @@ export type DeadmanDeps = {
   venue: () => Promise<{ venue: DeadmanVenue | null; note: string | null }>;
   record: (r: DeadmanReport) => Promise<{ events: boolean; ops: boolean }>;
   pause: (ms: number) => Promise<void>;
+  /** Whose dead-man this is (`PR5_TARGET` when left out). */
+  target?: DeadmanTarget;
 };
 
 /** A line for a person: what the dead-man found and did. */
@@ -289,7 +306,8 @@ export function summary(r: DeadmanReport): string {
 export async function runDeadman(d: DeadmanDeps): Promise<DeadmanReport> {
   const t0 = d.now();
   const read = await d.readState();
-  const v = judge(read, t0);
+  const target = d.target ?? PR5_TARGET;
+  const v = judge(read, t0, target.label);
   const lastFreshAt = typeof d.lastFreshAt === "string" && d.lastFreshAt ? d.lastFreshAt.slice(0, 40) : null;
   const report: DeadmanReport = { ...v, at: iso(t0), lastFreshAt, grace: null, acted: false, listed: null, orders: [], error: null, recorded: null };
   if (v.verdict === "fresh") return report;
@@ -307,7 +325,7 @@ export async function runDeadman(d: DeadmanDeps): Promise<DeadmanReport> {
   const { venue, note } = await d.venue().catch((e) => ({ venue: null, note: msg(e) }));
   if (!venue) {
     // Nothing can be cancelled, and saying so every minute would bury the errors box: the Worker alerts on it instead.
-    report.error = `PR5's Revolut X key is not loaded (${note ?? "no key"}): nothing can be cancelled`;
+    report.error = `${target === PR5_TARGET ? "PR5's" : `${target.label}'s`} Revolut X key is not loaded (${note ?? "no key"}): nothing can be cancelled`;
     return report;
   }
   const list = await venue.listActive().catch((e) => ({ ok: false as const, error: msg(e) }));
@@ -330,10 +348,10 @@ export async function runDeadman(d: DeadmanDeps): Promise<DeadmanReport> {
 const restHeaders = (key: string) => ({ apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" });
 
 /** One read of `agent_quote_live_state.updated_at`, given up after `timeoutMs`. */
-export async function readStateOnce(sbUrl: string, key: string, f: typeof fetch = fetch, timeoutMs = DEADMAN_READ_TIMEOUT_MS): Promise<StateRead> {
+export async function readStateOnce(sbUrl: string, key: string, f: typeof fetch = fetch, timeoutMs = DEADMAN_READ_TIMEOUT_MS, table = PR5_TARGET.state): Promise<StateRead> {
   if (!sbUrl || !key) return { ok: false, error: "the function has no database URL or service key" };
   try {
-    const res = await f(`${sbUrl}/rest/v1/agent_quote_live_state?id=eq.1&select=updated_at`, { headers: restHeaders(key), signal: AbortSignal.timeout(timeoutMs) });
+    const res = await f(`${sbUrl}/rest/v1/${table}?id=eq.1&select=updated_at`, { headers: restHeaders(key), signal: AbortSignal.timeout(timeoutMs) });
     const text = await res.text();
     if (!res.ok) return { ok: false, error: `${res.status} ${text.slice(0, 160)}` };
     const rows = JSON.parse(text);
@@ -353,7 +371,7 @@ export async function readState(once: () => Promise<StateRead>, pause: (ms: numb
 }
 
 /** The record rows, as the schema takes them: an `agent_quote_live_events` row (0052, kind `deadman` since 0086) and an `ops_errors` row. */
-export function recordRows(r: DeadmanReport): { event: Record<string, unknown>; ops: Record<string, unknown> } {
+export function recordRows(r: DeadmanReport, target: DeadmanTarget = PR5_TARGET): { event: Record<string, unknown>; ops: Record<string, unknown> } {
   const minute = iso(Math.floor(Date.parse(r.at) / 60e3) * 60e3);
   const orders = r.orders.map((o) => ({
     id: o.id, clientOrderId: o.clientOrderId, symbol: o.symbol, side: o.side, price: o.price, quantity: o.quantity,
@@ -364,7 +382,7 @@ export function recordRows(r: DeadmanReport): { event: Record<string, unknown>; 
   const context = { verdict: r.verdict, stateAt: r.stateAt, ageS: r.ageS, ...grace, listed: r.listed, outcomes: r.orders.map((o) => o.outcome) };
   return {
     event: { mode: "live", minute, book: "-", rung_side: "-", k: 0, kind: "deadman", detail },
-    ops: { kind: "monitor.deadman", symbol: "pr5", message: summary(r).slice(0, 512), context, ip: "monitor" },
+    ops: { kind: "monitor.deadman", symbol: target.symbol, message: summary(r).slice(0, 512), context, ip: "monitor" },
   };
 }
 
@@ -372,9 +390,9 @@ export function recordRows(r: DeadmanReport): { event: Record<string, unknown>; 
  * Write the record, each row on its own and best-effort: what the database took. A held minute did nothing on the
  * account, so it writes only its `ops_errors` row, the reason it held; the events row is for what was done there.
  */
-export async function writeRecord(r: DeadmanReport, sbUrl: string, key: string, f: typeof fetch = fetch, timeoutMs = DEADMAN_READ_TIMEOUT_MS): Promise<{ events: boolean; ops: boolean }> {
+export async function writeRecord(r: DeadmanReport, sbUrl: string, key: string, f: typeof fetch = fetch, timeoutMs = DEADMAN_READ_TIMEOUT_MS, target: DeadmanTarget = PR5_TARGET): Promise<{ events: boolean; ops: boolean }> {
   if (!sbUrl || !key) return { events: false, ops: false };
-  const { event, ops } = recordRows(r);
+  const { event, ops } = recordRows(r, target);
   const post = async (path: string, body: unknown, prefer: string) => {
     try {
       const res = await f(`${sbUrl}/rest/v1/${path}`, { method: "POST", headers: { ...restHeaders(key), Prefer: prefer }, body: JSON.stringify(body), signal: AbortSignal.timeout(timeoutMs) });
@@ -386,17 +404,17 @@ export async function writeRecord(r: DeadmanReport, sbUrl: string, key: string, 
   };
   const [events, opsOk] = await Promise.all([
     r.verdict === "held" ? Promise.resolve(false)
-      : post("agent_quote_live_events?on_conflict=mode,minute,book,rung_side,k,kind", [event], "resolution=merge-duplicates,return=minimal"),
+      : post(`${target.events}?on_conflict=mode,minute,book,rung_side,k,kind`, [event], "resolution=merge-duplicates,return=minimal"),
     post("ops_errors", ops, "return=minimal"),
   ]);
   return { events, ops: opsOk };
 }
 
 /** PR5's key from the store, by the executor's names and as `envAny` reads them: the first one set of each, trimmed. */
-export function pr5KeyFrom(get: (name: string) => string | undefined): { apiKey: string; priv: string } | { error: string } {
-  const first = (names: readonly string[]) => { for (const n of names) { const v = get(n); if (v && v.trim()) return v.trim(); } return ""; };
-  const apiKey = first(PR5_KEY_NAMES.apiKey), priv = first(PR5_KEY_NAMES.priv);
-  if (!apiKey) return { error: `${PR5_KEY_NAMES.apiKey[0]} missing` };
-  if (!priv) return { error: `${PR5_KEY_NAMES.priv[0]} missing` };
+export function pr5KeyFrom(get: (name: string) => string | undefined, names: { apiKey: readonly string[]; priv: readonly string[] } = PR5_KEY_NAMES): { apiKey: string; priv: string } | { error: string } {
+  const first = (ns: readonly string[]) => { for (const n of ns) { const v = get(n); if (v && v.trim()) return v.trim(); } return ""; };
+  const apiKey = first(names.apiKey), priv = first(names.priv);
+  if (!apiKey) return { error: `${names.apiKey[0]} missing` };
+  if (!priv) return { error: `${names.priv[0]} missing` };
   return { apiKey, priv };
 }

@@ -479,6 +479,16 @@ that follow from that evidence, in short:
   (`paper_exposure_usd`) and daily loss limit (`paper_daily_loss_limit_usd`,
   `0066`) so they measure independently. The pre-live
   review that found these is `docs/agents/reviews/`, its status §4.17.
+- **"Stablecoin quotes USDC/GBP" on Revolut X** (`0180`, `QUOTE_RXU_INSTANCE` in `agents/quotes_live.ts`; Davies, 2026-10-29: "…也上线一个revolut x的
+  Stablecoin quotes USDC/GBP 策略，账户api用之前叫你退役的那个trend 4h的api，我把那个账户改为了120磅"): a second instance of LIVE's executor on the
+  retired trend loop's sub-account (`Revolut_X_API_kEY` / `REVOLUT_X_PRIVATE_KEY`, `REVX_KEY_NAMES.revx`; never `_2`), USDC-GBP alone at £120 in its
+  own config, the 0.3 % rungs quoting nothing (£30 on each 0.1 % and 0.2 % rung) and every exit a tick beyond fair (RX-USDC,
+  `reviews/2026-10-29-rx-usdc-live.md`; the Coinbase nudge was not positive on the long data and is not in it). Its own tables
+  (`agent_quote_rxu_*`) and lease, run beside LIVE's turn in PR5's minute call; its dead-man beside PR5's in `monitor?action=deadman`.
+  Built `dry_run` true and `live_confirmed_at` null: the go and its undo are `reviews/2026-10-29-rx-usdc-live-design.md` §5, run only on
+  Davies' word. Never trade by hand in that account: its executor books the account's balance as its own. Its twin `rxu120`
+  "Stablecoin quotes USDC/GBP LIVE twin" (`reviews/2026-10-29-rx-usdc-live-prereg.md`). Every executor's state carries the venue's
+  balances (`venueBalances`, available and on hold) for its LIVE page since 2026-10-29.
 - **Coinbase's live path is being built for "Stablecoin quotes with Euros - 2" (2026-10-29, Davies: "Coinbase做好实盘搭建并且准备with Euros - 2这个策略的live上线").**
   Its key is the function's secrets `COINBASE_API_KEY_NAME` and `COINBASE_API_PRIVATE_KEY` (a CDP key, ECDSA or Ed25519), never printed or
   moved; `_shared/coinbase.ts` signs each request (reference §4 item 67). `agents?action=cblive&mode=probe` reads, never sends,

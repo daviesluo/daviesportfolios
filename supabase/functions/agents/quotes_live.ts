@@ -180,6 +180,12 @@ export type QuoteLiveInstance = {
    */
   rebook?: { since: number };
   /**
+   * The automatic top-ups' day (`planTopUps`): at most `maxGbpDay` a book in a UTC day (QUOTE_LIVE_TOPUP_MAX_GBP_DAY, £5, when
+   * left out), and, with it set, a shortfall the free GBP cannot cover buys what that GBP buys. "Stablecoin quotes USDC/GBP"
+   * (0180) buys its asks' first coin this way, by maker orders at the top of the bids, from an account that starts in pounds.
+   */
+  topUps?: { maxGbpDay: number };
+  /**
    * REVX-FAIR's USDC-GBP nudge (quotes_nudge.ts; "Stablecoin quotes variant-7", 0169): from `from` (ms), the rule's book prices
    * its exits, its stop's bound and its guards off the fair its replica nudged for the minute carried out (`nudgedInputs`), as
    * the replica's own quotes do. A twin's rule alone: the live account's instance has none, and without it nothing changes.
@@ -242,6 +248,42 @@ export const QUOTE_LIVE_INSTANCE: QuoteLiveInstance = {
   holdMin: { from: QUOTE_LIVE_HOLD_MIN_FROM, gbp: 1 },
   weights: { from: QUOTE_LIVE_USDT_ONLY_FROM, book: { "USDC-GBP": 0, "USDT-GBP": 1 } },
 };
+/**
+ * "Stablecoin quotes USDC/GBP" on Revolut X (Davies, 2026-10-29: "也上线一个revolut x的Stablecoin quotes USDC/GBP 策略，账户api用之前叫你退役的
+ * 那个trend 4h的api，我把那个账户改为了120磅"; migration 0180; the rules RX-USDC's, docs/agents/reviews/2026-10-29-rx-usdc-live.md):
+ * PR5's paper engine's decisions on USDC-GBP alone, on the sub-account the retired trend loop traded (`REVX_KEY_NAMES.revx` in
+ * index.ts, never PR5's `_2`), £120 in its own config, its own tables and lease. LIVE's rules (its fills, the £1 holding line,
+ * exits meeting the book, its weekend replica's decisions inside an FX closure while its own `weekend_mode` is 'live'), with
+ * the 0.3 % rungs quoting nothing (£30 on each 0.1 % and 0.2 % rung) and every exit a tick beyond fair. Its asks' first coin
+ * is bought by the top-ups, the day's cap its asks' pounds. Built dry-run and unarmed: its go is Davies' word
+ * (docs/agents/reviews/2026-10-29-rx-usdc-live-design.md).
+ */
+export const QUOTE_RXU_INSTANCE: QuoteLiveInstance = {
+  config: "agent_quote_rxu_config", orders: "agent_quote_rxu_orders", events: "agent_quote_rxu_events", state: "agent_quote_rxu_state",
+  migration: "0180", paper: "agent_quote_state", lease: "quotes-live-rxu", rungs: QUOTE_RUNGS, exitReprice: QUOTE_REPRICE, govKey: () => "account",
+  liveSwitches: { wkPaper: "agent_quote_live_wkpaper" },
+  holdMin: { from: 0, gbp: 1 },
+  weights: { from: 0, book: { "USDC-GBP": 1, "USDT-GBP": 0 }, k: { "0.003": 0 } },
+  exitOffset: { ticks: 1, from: 0 },
+  topUps: { maxGbpDay: 65 },
+};
+/** The currencies a LIVE page shows of its account (`venueBalancesOf`). */
+export const VENUE_BALANCE_CCYS = ["GBP", "USDC", "USDT"] as const;
+/**
+ * The account's balances as the venue gave them this turn, for its LIVE page (Davies, 2026-10-29 22:20: the real venue
+ * balances on the LIVE pages, "revolut也一样"): `{ at, ccy: { GBP|USDC|USDT: { available, hold } } }`, each currency the venue
+ * listed. Written to the state as `venueBalances` (its `balances` stays the totals the page's coin books read); a turn that
+ * read no balances writes none. A state write only: nothing the executor decides reads it.
+ */
+export function venueBalancesOf(at: string, detail: Record<string, { available: number; hold: number }> | null | undefined) {
+  if (!detail) return null;
+  const ccy: Record<string, { available: number; hold: number }> = {};
+  for (const c of VENUE_BALANCE_CCYS) {
+    const d = detail[c];
+    if (d && Number.isFinite(d.available) && Number.isFinite(d.hold)) ccy[c] = { available: d.available, hold: d.hold };
+  }
+  return { at, ccy };
+}
 /** The rungs an instance has retired at `now` (`QuoteLiveInstance.retired`): none for the live account. */
 export const retiredAt = (inst: QuoteLiveInstance, now: number): readonly number[] => (inst.retired && now >= inst.retired.from ? inst.retired.ks : []);
 /** Does this instance govern more than one key? The live account's one key is every POST it sends. */
@@ -1983,8 +2025,9 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
       }
       const topUpGbpOf = weightsOn(inst, d.now) ? (b: QuoteBook, k: number) => rungGbpOf(inst, capital, b, "ask", k, d.now) : undefined;
       // While a rebook runs (`rebookOn`), a book short of its asks' coin is bought up to it in one go: the day's cap is the capital.
-      const maxDay = rebookOn(inst, d.now) ? capital : QUOTE_LIVE_TOPUP_MAX_GBP_DAY;
-      for (const p of planTopUps(cases, capital, free.GBP ?? 0, inst.rungs, retiredAt(inst, d.now), topUpGbpOf, maxDay, rebookOn(inst, d.now))) {
+      // An instance's own day (`topUps`, "Stablecoin quotes USDC/GBP") buys part of a shortfall too.
+      const maxDay = rebookOn(inst, d.now) ? capital : inst.topUps?.maxGbpDay ?? QUOTE_LIVE_TOPUP_MAX_GBP_DAY;
+      for (const p of planTopUps(cases, capital, free.GBP ?? 0, inst.rungs, retiredAt(inst, d.now), topUpGbpOf, maxDay, rebookOn(inst, d.now) || !!inst.topUps)) {
         if ("skip" in p) { report.skippedEntries.push({ mode: "live", rung: `${p.book}|convert`, reason: `top-up: ${p.skip}` }); continue; }
         const row = await placeOrder(ctx, { mode: "live", book: p.book, rungSide: null, k: null, leg: "convert", side: "buy", ticks: p.ticks, base: p.base,
           marketable: false, fair: p.fair, extra: { auto: true, asksNeed: p.asksNeed, coinBeyondLongs: p.beyond } });
@@ -2027,6 +2070,8 @@ async function turn(d: QuoteLiveDeps, report: QuoteLiveReport, inst: QuoteLiveIn
         // An instance with several keys (rule D's four, a book and a side each) also keeps each key's count and level.
         ...(multiKey ? { keyPosts: ctx.keyPosts, keyGovernor: Object.fromEntries(Object.entries(ctx.keyPosts.live).map(([k, n]) => [k, governorLevel(n)])) } : {}),
         dayPnlGbp: report.dayPnlGbp, lossStopped, balances: bal, capitalGbp: capital,
+        // The venue's own available and on-hold amounts, for the LIVE page (`venueBalancesOf`), when this turn read them.
+        ...(bal && acct?.balanceDetail ? { venueBalances: venueBalancesOf(nowIso, acct.balanceDetail()) } : {}),
         held: rungs.filter((r) => r.live.held > 0).map((r) => ({ rung: r.label, held: r.live.held, avgEntry: r.live.avgEntry, openedAt: r.live.openedAt != null ? iso(r.live.openedAt) : null })),
         // Each book's dust this turn (`dustBase` at its price): at or under it a rung is flat here, so the page closes a
         // round trip, and calls a rung empty, where this executor does (Davies, 2026-10-01: an exit trimmed to the penny

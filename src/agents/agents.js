@@ -1265,7 +1265,7 @@ export function positionLines(s) {
 export function strategyNameParts(name) {
   // The stablecoin quotes' variants, Coinbase's "with Euros" (Davies, 2026-10-10) and the LIVE twin (0136, 2026-10-21; "USDT/GBP
   // LIVE twin" since 0178), on two lines in the same run.
-  const variant = /^(Stablecoin quotes) (variant-\d+|with Euros(?: - \d+)?|(?:USDT\/GBP )?LIVE twin)$/.exec(name);
+  const variant = /^(Stablecoin quotes) (variant-\d+|with Euros(?: - \d+)?|(?:USD[CT]\/GBP )?LIVE twin)$/.exec(name);
   if (variant) return { head: variant[1], qual: variant[2], twoLines: true };
   const q = /^(.*\S)\s+(\([^()]*\))$/.exec(name);
   if (q) return { head: q[1], qual: q[2], twoLines: false };
@@ -1578,12 +1578,12 @@ export const QUOTES_LIVE_ROW_ID = '__quotes_live';
  * (today is the figure its own daily loss stop reads). null while it is dry-run only.
  * @param {any} q  the dashboard's `quotes.live`
  */
-export function quotesLiveRow(q) {
+export function quotesLiveRow(q, as = { id: QUOTES_LIVE_ROW_ID, name: 'Stablecoin quotes USDT/GBP' }) {
   if (!q || !(q.tradedLive || q.entryBook === 'live')) return null;
   return {
-    id: QUOTES_LIVE_ROW_ID,
-    // Davies, 2026-10-29: "live策略改名为Stablecoin quotes USDT/GBP" (LIVE quotes USDT-GBP alone from 2026-10-30 00:00 UTC, 0178).
-    name: 'Stablecoin quotes USDT/GBP',
+    id: as.id,
+    // Davies, 2026-10-29: "live策略改名为Stablecoin quotes USDT/GBP" (LIVE quotes USDT-GBP alone from 2026-10-29 22:30 UTC, 0178/0179).
+    name: as.name,
     venue: venueLabel('revx'),
     venueId: 'revx',
     mode: 'live',
@@ -1603,17 +1603,31 @@ export function quotesLiveRow(q) {
  * @param {any} dash
  * LIVE's "Stablecoin quotes USDC/GBP" opens the same page on its own Coinbase book (`cblive`; Davies, 2026-10-29: "网页中live的
  * coinbase策略子页面打不开，点了没反应": it had no page).
- * @returns {'live' | 'cblive' | 'twin' | 'coinbase' | 'okx' | null}
+ * @returns {'live' | 'cblive' | 'rxu' | 'twin' | 'coinbase' | 'okx' | null}
  */
 export function quotesPageFor(selected, dash) {
   if (selected === QUOTES_LIVE_ROW_ID) return quotesLiveRow(dash?.quotes?.live) ? 'live' : null;
   if (selected === CB_LIVE_ROW_ID) return cbLiveRow(dash?.cbLive) ? 'cblive' : null;
+  if (selected === QUOTES_RXU_ROW_ID) return quotesRxuRow(dash?.quotesRxu) ? 'rxu' : null;
   if (selected === QUOTES_COINBASE_ROW_ID) return quotesCoinbaseRow(dash?.quotesCoinbase) ? 'coinbase' : null;
   if (selected === QUOTES_COINBASE_HOLD_ROW_ID) return quotesCoinbaseRow(dash?.quotesCoinbaseHold) ? 'coinbase' : null;
   if (selected === QUOTES_COINBASE_USDC_ROW_ID) return quotesCoinbaseRow(dash?.quotesCoinbaseUsdc) ? 'coinbase' : null;
   if (selected === QUOTES_COINBASE_NUDGE_ROW_ID) return quotesCoinbaseRow(dash?.quotesCoinbaseNudge) ? 'coinbase' : null;
   if (selected?.startsWith(QUOTES_OKX_ROW_PREFIX)) return quotesOkxRow(quotesOkxOf(selected, dash)) ? 'okx' : null;
   return quotesTwinRow(quotesTwinOf(selected, dash)) ? 'twin' : null;
+}
+
+/** "Stablecoin quotes USDC/GBP" on Revolut X's id among LIVE's rows: PR5's second live executor (`QUOTE_RXU_INSTANCE`, 0180). */
+export const QUOTES_RXU_ROW_ID = '__quotes_rxu';
+
+/**
+ * "Stablecoin quotes USDC/GBP" on Revolut X as a row of LIVE (Davies, 2026-10-29: "也上线一个revolut x的Stablecoin quotes USDC/GBP
+ * 策略"): the dashboard's `quotesRxu`, LIVE's executor's reader on its own tables, shown as LIVE's executor is (`quotesLiveRow`):
+ * once it has sent a live order or carries its decisions live (armed). Its venue tells it from Coinbase's "USDC/GBP" row.
+ * @param {any} q  the dashboard's `quotesRxu`
+ */
+export function quotesRxuRow(q) {
+  return quotesLiveRow(q, { id: QUOTES_RXU_ROW_ID, name: 'Stablecoin quotes USDC/GBP' });
 }
 
 /** "Stablecoin quotes USDC/GBP"'s id among LIVE's rows: the Coinbase live executor (cb_live.ts, 0177). */
@@ -1722,7 +1736,7 @@ export function lpLiveRow(l) {
  * @param {any} dash
  */
 export function liveExtraRows(dash) {
-  return [quotesLiveRow(dash?.quotes?.live), cbLiveRow(dash?.cbLive), dash?.lpLive?.armed ? lpLiveRow(dash.lpLive) : null, grokPmRow(dash?.grokPm)].filter((r) => !!r);
+  return [quotesLiveRow(dash?.quotes?.live), quotesRxuRow(dash?.quotesRxu), cbLiveRow(dash?.cbLive), dash?.lpLive?.armed ? lpLiveRow(dash.lpLive) : null, grokPmRow(dash?.grokPm)].filter((r) => !!r);
 }
 
 /** "Polymarket analyst"'s id among LIVE's rows (GROKPM, 0124). */
