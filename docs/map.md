@@ -616,7 +616,7 @@ Deno. Each function's tests sit beside it as `index.test.ts`.
 
 | Function | What it does |
 |---|---|
-| `auth` | Checks a password and returns a signed token; locks an IP out after three wrong tries, for longer each time. |
+| `auth` | Checks a password and returns a signed token; locks an IP out after three wrong tries, for longer each time. For the operator (cron bearer) it mints a 30-minute read-only token from the stored viewer password, for checking the real site. |
 | `data` | Loads and saves the portfolio, refusing a save from a stale tab, and serves the recorded prices. |
 | `prices` | Live quotes for every holding and market card from Yahoo, and Chinese funds from Eastmoney. |
 | `chart` | Price bars for the charts, from Yahoo or Eastmoney. |
@@ -948,6 +948,7 @@ before touching migration state.
 | `bin/setup.sh` | One-time setup for a clone: the ledger hook, the ledger path, `npm ci` in `src/`. |
 | `bin/gates.sh` | The CI gates a change can break, chosen by the paths it touches (`--full`: every gate): the source checks at once, then the bundle's line, its freshness among them; `--run` takes a check run by hand through the same lock. |
 | `bin/edge-test.mjs` | The Edge Functions' tests for the gates, split over three Deno processes at once and balanced by the last run's seconds. |
+| `bin/site-check.mjs` | Opens the real site as a viewer with an operator-minted read-only token (`SITE_VIEWER_TOKEN`), goes to an Agents tab and row, and writes a text snapshot and screenshots at both widths into a scratch folder outside the repository. |
 | `bin/edge-changed.sh` | The functions a push to main deploys: those changed since the deploy workflow's last successful run. |
 | `bin/knip-edge.sh`, `supabase/knip.json` | knip for the Edge Functions. knip reads only code under the folder holding its `package.json`, which is `src/`, so the functions are checked in a scratch copy against their own settings. |
 | `bin/hooks/pre-commit` | The ledger's commit hook: the ledger moves with the work, a history section opens with a source header, and the ledger stays under 80 KiB. |

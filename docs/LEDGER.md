@@ -798,6 +798,21 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth).
 
+### [2026-10-29 23:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The real site, checked as a viewer** (sub-agent; commit, not pushed; Davies, 23:17: "以后每次页面改动等你都去网站实际验证").
+  `auth?action=viewer-token` (cron bearer): a 30-minute `ro` token, minted only when the Edge secret `DAVIESLUO_VIEWER_PASSWORD`
+  is the read-only password (never admin); the password never leaves the function, no lockout row is touched.
+  `bin/site-check.mjs` (`SITE_VIEWER_TOKEN`): daviesluo.com at both widths, `--tab`/`--row`, values hidden, snapshot and
+  shots outside the repo. Dry runs: local `dist/` `--offline`, and the real site with an unsigned token (password form,
+  reported). Not yet run with a real token: the route deploys with the push. Rule in working-with-davies (three copies).
+
+### [2026-10-29 23:24 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Stablecoin quotes pages show their conversions** (sub-agent; commit, not pushed; Davies, 23:12: "我没看正在挂售？testing的那几个
+  要换的也一样"). The readers already sent convert orders in `detail.orders`; the page dropped them. Now CONVERSIONS (resting and the
+  last 8, newest first: for, side, price, size, filled, state) above the order tables, and a BOOKS card line for a resting one
+  (`quoteConversions`, `quoteConversionLine`: a sell of a book no longer in `books` is "switching to USDT"). Coinbase LIVE now lists
+  its top-ups too (`cbLiveDetail`; fixture output recomputed). Sweep `pr5-switch` at both widths.
+
 ### [2026-10-29 23:13 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **LIVE's exits a tick beyond fair from 2026-10-30 00:00 UTC, and every twin on its rules** (sub-agent; commit, not pushed;
   Davies, ~23:00: "加进 LIVE", on USDT-NO03). `QUOTE_LIVE_INSTANCE.exitOffset {ticks 1, from QUOTE_LIVE_EXIT_OFFSET_FROM}`; a
@@ -812,13 +827,6 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   09-01: no 0.3 % rung −1.09 % a year (P 0.67; £100/£200 and £200/£100 no better), with exit +1 tick +0.97 (P 0.31), exit +1
   tick alone +1.49 (P 0.048; out of sample +4.63, P 0.000): keep the 0.3 % rung on USDT; only the exit tick is near-certain.
   Twins too short: `n600no03` one day, −£0.43 realised vs `live600`, both books still; variant-6 +£0.05 vs control in 3 h 49 min.
-
-### [2026-10-29 23:24 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Stablecoin quotes pages show their conversions** (sub-agent; commit, not pushed; Davies, 23:12: "我没看正在挂售？testing的那几个
-  要换的也一样"). The readers already sent convert orders in `detail.orders`; the page dropped them. Now CONVERSIONS (resting and the
-  last 8, newest first: for, side, price, size, filled, state) above the order tables, and a BOOKS card line for a resting one
-  (`quoteConversions`, `quoteConversionLine`: a sell of a book no longer in `books` is "switching to USDT"). Coinbase LIVE now lists
-  its top-ups too (`cbLiveDetail`; fixture output recomputed). Sweep `pr5-switch` at both widths.
 
 ### [2026-10-29 22:43 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Stablecoin quotes pages: no Book column for a one-coin strategy** (sub-agent; commit, not pushed; Davies, 10-29 22:21: "…如果这个
@@ -845,6 +853,13 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   count beside it, red beyond £0.05 (`INVENTORY_MISMATCH_GBP`), "balance as of HH:MM UTC"; no balances, the book's count as
   before. The scoreboard stays on the book. Sweep: the RX fixture JSON untouched, its balances merged in when served.
 
+### [2026-10-29 22:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Stablecoin quotes USDC/GBP: its LIVE row opens a page** (sub-agent; commit, not pushed; Davies, 10-29: "网页中live的coinbase
+  策略子页面打不开，点了没反应": no page existed). PR5 LIVE's `QuotesLiveDetail` with `cbLive` (LIVE, Coinbase, pounds); `readCbLive`
+  now sends `detail` in `quotesLiveDetail`'s shape (`cbLiveDetail`, cb_live.ts tail only, executor untouched): BOOKS, INVENTORY (its
+  pounds and USDC from its own fills, not a balance read: the executor keeps no balances), DAYS, ROUND TRIPS, EXIT/ENTRY ORDERS
+  without refusals, 403s, conversions or empty cancels. UNREALIZED now includes the top-up USDC's mark and DEPLOYED is coins at
+  fair plus resting buys, as PR5's. Fixture `src/e2e/cb_live_fixture.json`, sweep `cb-live/*` at both widths.
 
 ### [2026-10-29 22:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **USDT-only switch moved to 2026-10-29 22:30 UTC** (sub-agent; commit, not pushed; Davies, 21:59: "现在就生效吧 或者22:00生效").
@@ -869,15 +884,6 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   allowed to buy crypto" had stayed `pending`); staleness 7 min, not 5 (one lost paper run at 20:25 withdrew and re-wrote every
   entry). Probe `preview=1`: Coinbase's order preview, the read-only client's one POST. The top-up's £70 day cap counts only top-ups
   Coinbase took (`convertSpentGbp`; the 403-rejected £60 one had left £10 at the 21:45 re-arm). Pins fail on the old code. Design §9.
-
-
-### [2026-10-29 22:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Stablecoin quotes USDC/GBP: its LIVE row opens a page** (sub-agent; commit, not pushed; Davies, 10-29: "网页中live的coinbase
-  策略子页面打不开，点了没反应": no page existed). PR5 LIVE's `QuotesLiveDetail` with `cbLive` (LIVE, Coinbase, pounds); `readCbLive`
-  now sends `detail` in `quotesLiveDetail`'s shape (`cbLiveDetail`, cb_live.ts tail only, executor untouched): BOOKS, INVENTORY (its
-  pounds and USDC from its own fills, not a balance read: the executor keeps no balances), DAYS, ROUND TRIPS, EXIT/ENTRY ORDERS
-  without refusals, 403s, conversions or empty cancels. UNREALIZED now includes the top-up USDC's mark and DEPLOYED is coins at
-  fair plus resting buys, as PR5's. Fixture `src/e2e/cb_live_fixture.json`, sweep `cb-live/*` at both widths.
 
 ### [2026-10-29 20:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Polymarket analyst: the JOURNAL ten at a time, "Load more"** (sub-agent; commit, not pushed; Davies, 10-29: "…JOURNAL也默认只显示

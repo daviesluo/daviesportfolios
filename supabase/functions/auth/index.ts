@@ -9,6 +9,17 @@
 //   401 Unauthorized
 //   429 Too Many Requests   { lockoutUntil: number }
 //
+// POST /functions/v1/auth?action=viewer-token   Authorization: Bearer <CRON_SECRET>
+//   The operator's route (Davies, 2026-10-29: "以后每次页面改动等你都去网站实际验证"): a read-only token for checking
+//   the real site as a viewer sees it (`bin/site-check.mjs`). It reads DAVIESLUO_VIEWER_PASSWORD here, on the server,
+//   and mints a token only when that password IS the site's read-only one (APP_RO_PWD): the role the login would give,
+//   never admin, for 30 minutes rather than the login's 24 hours.
+//     200 { token, role: "ro", exp }   the token alone: the password is never returned or logged
+//     401 without the cron bearer (after the same 500 ms as a wrong password; no lockout row is read or written,
+//         so this route can neither trip nor clear an IP's lockout)
+//     409 the stored password is not the read-only one, or is the admin one: no token
+//     503 DAVIESLUO_VIEWER_PASSWORD or CRON_SECRET not set
+//
 // Lockout state lives in `public.auth_attempts` (ip primary key, attempts
 // counter, lockout_until unix ms). Anon role has NO access — we only read
 // and write via the auto-injected SUPABASE_SERVICE_ROLE_KEY. Three wrong
@@ -30,7 +41,7 @@
 // SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are auto-injected.
 
 import { reportServerError } from "../_shared/ops.ts";
-import { b64url, sign } from "../_shared/token.ts";
+import { b64url, constantTimeEqual, sign } from "../_shared/token.ts";
 import { clientIpFromHeaders } from "../_shared/ip.ts";
 
 // Re-exported so this function's index.test.ts keeps pinning the exact
@@ -54,6 +65,11 @@ const RO_PWD       = Deno.env.get("APP_RO_PWD") ?? "";
 const SECRET       = Deno.env.get("APP_AUTH_SECRET") ?? "";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const CRON_SECRET  = Deno.env.get("CRON_SECRET") ?? "";
+const VIEWER_PWD   = Deno.env.get("DAVIESLUO_VIEWER_PASSWORD") ?? "";
+
+/** How long a token minted for the operator's site check lives: a check takes minutes, and a leaked one lapses soon. */
+export const VIEWER_TOKEN_TTL_MS = 30 * 60 * 1000;
 
 // b64url / sign live in ../_shared/token.ts (imported + re-exported
 // above) — the same module the verifying functions (data / trading212 /
@@ -63,6 +79,47 @@ export async function makeToken(role: "admin" | "ro", secret = SECRET, ttlMs = T
   const payload = b64url(JSON.stringify({ role, exp: Date.now() + ttlMs }));
   const signature = await sign(payload, secret);
   return `${payload}.${signature}`;
+}
+
+export type ViewerTokenEnv = { cronSecret: string; viewerPwd: string; roPwd: string; adminPwd: string; secret: string };
+
+/**
+ * The operator's viewer token (`?action=viewer-token`): the cron bearer, then the stored viewer password checked
+ * against the read-only one, both in constant time, then a read-only token of VIEWER_TOKEN_TTL_MS. The reply carries
+ * the token alone; no branch puts a password, or how it differs, into a body.
+ */
+export async function viewerToken(authorization: string | null, env: ViewerTokenEnv): Promise<{ status: number; body: Record<string, unknown> }> {
+  const auth = authorization ?? "";
+  if (!env.cronSecret) return { status: 503, body: { error: "CRON_SECRET not set" } };
+  if (!auth.startsWith("Bearer ") || !constantTimeEqual(auth.slice(7).trim(), env.cronSecret)) {
+    return { status: 401, body: { error: "unauthorised" } };
+  }
+  if (!env.secret || !env.roPwd) return { status: 500, body: { error: "auth not configured" } };
+  if (!env.viewerPwd) return { status: 503, body: { error: "DAVIESLUO_VIEWER_PASSWORD not set" } };
+  if (env.adminPwd && constantTimeEqual(env.viewerPwd, env.adminPwd)) {
+    return { status: 409, body: { error: "the stored viewer password is the admin one: no token is minted for it" } };
+  }
+  if (!constantTimeEqual(env.viewerPwd, env.roPwd)) {
+    return { status: 409, body: { error: "the stored viewer password is not the site's read-only password" } };
+  }
+  const token = await makeToken("ro", env.secret, VIEWER_TOKEN_TTL_MS);
+  const payload = token.split(".")[0].replace(/-/g, "+").replace(/_/g, "/");
+  const exp = JSON.parse(atob(payload + "=".repeat((4 - payload.length % 4) % 4))).exp as number;
+  return { status: 200, body: { token, role: "ro", exp } };
+}
+
+/**
+ * The route itself: null for any request that is not `?action=viewer-token` (the password form goes on), else the
+ * reply, never cached, a refused bearer answered only after the wrong-password delay.
+ */
+export async function viewerTokenResponse(req: Request, env: ViewerTokenEnv): Promise<Response | null> {
+  if (new URL(req.url).searchParams.get("action") !== "viewer-token") return null;
+  const out = await viewerToken(req.headers.get("authorization"), env);
+  if (out.status === 401) await new Promise((r) => setTimeout(r, WRONG_PASSWORD_DELAY_MS));
+  return new Response(JSON.stringify(out.body), {
+    status: out.status,
+    headers: { ...CORS, "Content-Type": "application/json", "Cache-Control": "no-store" },
+  });
 }
 
 // clientIpFromHeaders lives in ../_shared/ip.ts (imported +
@@ -150,6 +207,12 @@ if (import.meta.main) Deno.serve(async (req: Request) => {
   try {
     if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
     if (req.method !== "POST")    return json(405, { error: "method not allowed" });
+
+    // The operator's viewer token, before anything of the password form: it reads no body and touches no lockout row.
+    const vt = await viewerTokenResponse(req, {
+      cronSecret: CRON_SECRET, viewerPwd: VIEWER_PWD, roPwd: RO_PWD, adminPwd: ADMIN_PWD, secret: SECRET,
+    });
+    if (vt) return vt;
 
     if (!SECRET || !ADMIN_PWD || !RO_PWD) {
       return json(500, { error: "auth not configured" });

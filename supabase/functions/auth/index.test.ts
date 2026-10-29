@@ -13,6 +13,9 @@ import {
   makeToken,
   clientIpFromHeaders,
   WRONG_PASSWORD_DELAY_MS,
+  VIEWER_TOKEN_TTL_MS,
+  viewerToken,
+  viewerTokenResponse,
 } from "./index.ts";
 import { verifyToken } from "../data/index.ts";
 
@@ -120,4 +123,69 @@ Deno.test("WRONG_PASSWORD_DELAY_MS is on (regressions to 0 would re-open the bru
   // is the secondary defense. Pin it on so a future refactor that
   // accidentally drops the await would break CI.
   assert(WRONG_PASSWORD_DELAY_MS >= 200);
+});
+
+// ---- The operator's viewer token (`?action=viewer-token`; Davies, 2026-10-29) --------------------------------------
+// Invented secrets, as every fixture's.
+const VT_ENV = { cronSecret: "cron-test-secret", viewerPwd: "ro-pass-test", roPwd: "ro-pass-test", adminPwd: "admin-pass-test", secret: "sign-test-secret" };
+const leaks = (body: Record<string, unknown>) =>
+  [VT_ENV.cronSecret, VT_ENV.viewerPwd, VT_ENV.roPwd, VT_ENV.adminPwd, VT_ENV.secret].filter((v) => JSON.stringify(body).includes(v));
+
+Deno.test("viewerToken: only the cron bearer gets one; a missing, wrong or empty bearer is 401 and says nothing else", async () => {
+  for (const auth of [null, "", "Bearer ", "Bearer wrong", "cron-test-secret", "Basic cron-test-secret", `Bearer ${VT_ENV.cronSecret}x`]) {
+    const out = await viewerToken(auth, VT_ENV);
+    assertEquals(out.status, 401, String(auth));
+    assertEquals(out.body, { error: "unauthorised" });
+  }
+  // No CRON_SECRET configured: nothing, not even an empty bearer, opens it.
+  assertEquals((await viewerToken("Bearer ", { ...VT_ENV, cronSecret: "" })).status, 503);
+});
+
+Deno.test("viewerToken: a read-only token of 30 minutes that the verifying functions accept, and never a password", async () => {
+  const t0 = Date.now();
+  const out = await viewerToken(`Bearer ${VT_ENV.cronSecret}`, VT_ENV);
+  assertEquals(out.status, 200);
+  assertEquals(Object.keys(out.body).sort(), ["exp", "role", "token"]);
+  assertEquals(out.body.role, "ro");
+  const v = await verifyToken(out.body.token as string, VT_ENV.secret);
+  assertEquals(v?.role, "ro");
+  assertEquals(v?.exp, out.body.exp);
+  assert(VIEWER_TOKEN_TTL_MS <= 30 * 60 * 1000);
+  assert((out.body.exp as number) >= t0 + VIEWER_TOKEN_TTL_MS && (out.body.exp as number) <= Date.now() + VIEWER_TOKEN_TTL_MS);
+  // Signed with the app's secret, so another secret's check refuses it.
+  assertEquals(await verifyToken(out.body.token as string, "another-secret"), null);
+  assertEquals(leaks(out.body), []);
+});
+
+Deno.test("viewerToken: no token unless the stored password IS the read-only one; never admin", async () => {
+  const bearer = `Bearer ${VT_ENV.cronSecret}`;
+  const admin = await viewerToken(bearer, { ...VT_ENV, viewerPwd: VT_ENV.adminPwd });
+  assertEquals(admin.status, 409);
+  const other = await viewerToken(bearer, { ...VT_ENV, viewerPwd: "something-else" });
+  assertEquals(other.status, 409);
+  const unset = await viewerToken(bearer, { ...VT_ENV, viewerPwd: "" });
+  assertEquals(unset.status, 503);
+  const unconfigured = await viewerToken(bearer, { ...VT_ENV, secret: "" });
+  assertEquals(unconfigured.status, 500);
+  for (const o of [admin, other, unset, unconfigured]) {
+    assertEquals(o.body.token, undefined);
+    assertEquals(leaks(o.body), []);
+  }
+});
+
+Deno.test("viewer-token route: other requests go on to the password form; a refusal waits, nothing is cached", async () => {
+  assertEquals(await viewerTokenResponse(new Request("https://x/auth", { method: "POST" }), VT_ENV), null);
+  assertEquals(await viewerTokenResponse(new Request("https://x/auth?action=other", { method: "POST" }), VT_ENV), null);
+  const t0 = Date.now();
+  const refused = await viewerTokenResponse(new Request("https://x/auth?action=viewer-token", { method: "POST", headers: { authorization: "Bearer nope" } }), VT_ENV);
+  assertEquals(refused?.status, 401);
+  assert(Date.now() - t0 >= WRONG_PASSWORD_DELAY_MS - 5);
+  assertEquals(refused?.headers.get("cache-control"), "no-store");
+  await refused?.body?.cancel();
+  const ok = await viewerTokenResponse(new Request("https://x/auth?action=viewer-token", { method: "POST", headers: { authorization: `Bearer ${VT_ENV.cronSecret}` } }), VT_ENV);
+  assertEquals(ok?.status, 200);
+  assertEquals(ok?.headers.get("cache-control"), "no-store");
+  const body = await ok!.json();
+  assertEquals(body.role, "ro");
+  assertEquals(leaks(body), []);
 });

@@ -189,6 +189,17 @@ What works:
    account had moved exactly £60.00 (Revolut X moves whole pennies and
    reports them as `filled_amount`), while the reference said the
    books were right.
+6. **Every page change is checked on the real site, as a viewer,
+   before it is reported done** (Davies, 2026-10-29: "以后每次页面改动等你
+   都去网站实际验证，不要再出现类似的问题了"). The LIVE page had hidden the
+   USDC conversion orders, so the USDC read as unsold, while the fixtures
+   and the sweep passed: a fixture shows what it was given, the real page
+   shows what production sends. After the change is deployed, mint a
+   read-only token (`auth?action=viewer-token`, cron bearer, 30 minutes;
+   the viewer password `DAVIESLUO_VIEWER_PASSWORD` never leaves Supabase)
+   and run `bin/site-check.mjs` at both widths on the page changed; read
+   its snapshot against what the change meant to show. The usage, and
+   the SQL that mints the token, are in the script's header.
 
 Harnesses from past sessions worth rebuilding: a flat-book test (a
 portfolio that doesn't move must draw a flat line and read 0.00% on
