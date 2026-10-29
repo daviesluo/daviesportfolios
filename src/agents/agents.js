@@ -2019,6 +2019,38 @@ export const fmtFeeGbp4 = (n) => {
  */
 export const orderStateText = (state) => (state === 'new' ? 'open' : String(state ?? '—').replace('_', ' '));
 
+/** How many conversions a Stablecoin quotes page lists, newest first: the resting ones and the last few that ended. */
+export const QUOTE_CONVERSION_ROWS = 8;
+/** A live order's states while it rests on the book (PR5's words; the Coinbase executor's are mapped to them). */
+const RESTING = ['pending', 'new', 'partially_filled'];
+
+/**
+ * A Stablecoin quotes page's conversions (Davies, 2026-10-29, after LIVE's USDT-only switch: "我没看正在挂售？testing的那几个要换的
+ * 也一样"): the payload's newest orders of leg `convert`, newest first, `QUOTE_CONVERSION_ROWS` at most, each with what it is for.
+ * A buy is a top-up, coin for a book's asks; a sell of a book the strategy no longer quotes (`books`, its books going forward)
+ * is its switch to the book it now quotes; any other sell sells a surplus (a rebook). `resting` while it is on the book.
+ * @param {any} q  the page's payload
+ */
+export function quoteConversions(q) {
+  const ahead = Array.isArray(q?.books) ? q.books : null;
+  return (q?.detail?.orders ?? []).filter((/** @type {any} */ o) => o.leg === 'convert').slice(0, QUOTE_CONVERSION_ROWS).map((/** @type {any} */ o) => {
+    const sell = o.venueSide === 'sell';
+    const to = sell && ahead && !ahead.includes(o.book) && ahead.length ? ahead.map((/** @type {string} */ b) => b.split('-')[0]).join('/') : null;
+    return { ...o, resting: RESTING.includes(o.state), purpose: !sell ? 'top-up' : to ? 'switch' : 'surplus', to };
+  });
+}
+
+/**
+ * A conversion as its BOOKS card says it: "selling 201.51 USDC @ £0.7466 (switching to USDT)", "buying 26.40 USDT @ £0.7570
+ * (top-up), 12.00 filled".
+ * @param {any} c  one of `quoteConversions` @param {(s: string) => string} [m]
+ */
+export function quoteConversionLine(c, m = (s) => s) {
+  const why = c.purpose === 'switch' ? `switching to ${c.to}` : c.purpose === 'surplus' ? 'selling a surplus' : 'top-up';
+  const filled = Number(c.filledBase) > 0 ? `, ${m(Number(c.filledBase).toFixed(2))} filled` : '';
+  return `${c.venueSide === 'sell' ? 'selling' : 'buying'} ${m(fmtQuoteQty(c.base, c.book))} @ ${m(fmtQuotePrice(c.price, c.book))} (${why})${filled}`;
+}
+
 /**
  * Whether a Stablecoin quotes page's tables (ROUND TRIPS, EXIT ORDERS, ENTRY ORDERS) show their Book column (Davies, 2026-10-29:
  * "如果这个策略只有一个币种，就把页面里的tables中的book列删了"). The strategy's books going forward are the payload's `books` (what
@@ -2044,7 +2076,10 @@ export function quotesShowBook(q, rows) {
 export function quotesLiveBooks(q) {
   const d = q?.detail;
   if (!d) return [];
+  const resting = quoteConversions(q).filter((c) => c.resting);
   return (d.books ?? []).map((/** @type {any} */ b) => ({
+    // A conversion resting on the book (Davies, 2026-10-29: "我没看正在挂售？"): its card says so (`quoteConversionLine`).
+    converting: resting.filter((c) => c.book === b.book),
     book: b.book, lastPrice: b.lastPrice, fair: b.fair, index: b.index ?? null, trips: Number(b.trips) || 0, won: Number(b.won) || 0,
     realisedGbp: Number(b.realisedGbp) || 0,
     rungs: (d.rungs ?? []).filter((/** @type {any} */ r) => r.book === b.book).map((/** @type {any} */ r) => (r.held

@@ -2028,6 +2028,8 @@ body {
 .ag-venue-card-binance { border-left-color: rgba(240,185,11,0.75); }
 .ag-venue-card.is-warn, .ag-quotes-card.is-warn { border-color: var(--loss-dim); }
 .ag-venue-head, .ag-quotes-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 11px; margin-bottom: 8px; }
+/* A conversion resting on a book (Davies, 2026-10-29: "我没看正在挂售？"): one line under its card's head, above the ladder. */
+.ag-quotes-converting { font-size: 11px; margin: -2px 0 8px; overflow-wrap: anywhere; }
 .ag-quotes-grid, .ag-ql-grid { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; font-size: 12px; align-items: baseline; }
 /* A venue card's two groups (holds, made), one under the other; side by side where the card has the width to itself. */
 .ag-venue-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 3px 36px; font-size: 12px; align-items: start; }

@@ -269,8 +269,8 @@ places stay when the number is not whole.
   and its USDC as Coinbase last reported them, read as the Revolut X page's
   below (the USDC it bought to quote its asks is there, valued at the rule's
   fair price); DAYS with the 7-day
-  figure; its round trips; then its exit and entry orders. Orders Coinbase
-  refused, and conversions, are not listed.
+  figure; its round trips; its conversions; then its exit and entry orders.
+  Orders Coinbase refused are not listed.
 - **Stablecoin quotes USDC/GBP on Revolut X, on LIVE.** A second live row on
   Revolut X, once Davies has switched it on: the same rules on its own £120
   account, on USDC against pounds alone, with no quote at 0.3 % (£30 on each
@@ -326,7 +326,14 @@ places stay when the number is not whole.
   out, since ROUND TRIPS shows it, so the tables hold what is still
   working: orders resting, and the entries a rung still holds. A cancel
   that filled nothing is left out too, since every re-price makes one,
-  and so are the conversions that bought the coins. On any Stablecoin
+  and so are the conversions, which have a table of their own above the
+  orders: CONVERSIONS lists the ones resting on the book and the last few
+  that ended, newest first, each with what it is for (a top-up buying coin
+  for the asks, a switch selling a coin the strategy no longer quotes, or a
+  surplus), its side, price, size, how much has filled and its state, so a
+  switch can be followed from its first order to its last; and the BOOKS
+  card of a book with one resting says so ("selling 201.51 USDC @ £0.7466
+  (switching to USDT)"). On any Stablecoin
   quotes page (live or testing) of a strategy that now trades one coin,
   these tables drop their Book column, but only while every row they list
   is of that coin: LIVE keeps it while USDC rows from before its switch to

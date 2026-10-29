@@ -57,9 +57,9 @@ Deno.test("its figures match the record worked by hand, and the page's parts add
   close(d.days[1].realisedGbp, 26.78 * 0.0015);
   // ROUND TRIPS, newest first: B by its 24-hour stop, then A.
   assertEquals(d.trips.map((t) => [t.side, t.k, t.how, t.entry, t.exit, t.qty, t.feesGbp]), [["ask", 0.002, "stop", 0.7495, 0.751, 26.68, 0.01], ["bid", 0.001, "exit", 0.7466, 0.7481, 26.78, 0]]);
-  // ORDERS: what rests, and C's entry that filled; no conversion, no refusal (the 403s, the post-only one, the one never sent),
+  // ORDERS: what rests, C's entry that filled and the top-up conversion (the page lists it under CONVERSIONS); no refusal (the 403s, the post-only one, the one never sent),
   // no cancel that filled nothing, nothing of a closed trip.
-  assertEquals(d.orders.map((x) => [x.id, x.leg, x.venueSide, x.state]), [[18, "entry", "buy", "new"], [17, "entry", "sell", "new"], [16, "entry", "sell", "new"], [12, "exit", "sell", "new"], [11, "entry", "buy", "filled"]]);
+  assertEquals(d.orders.map((x) => [x.id, x.leg, x.venueSide, x.state]), [[18, "entry", "buy", "new"], [17, "entry", "sell", "new"], [16, "entry", "sell", "new"], [12, "exit", "sell", "new"], [11, "entry", "buy", "filled"], [5, "convert", "buy", "filled"]]);
 });
 
 Deno.test("its first night as production has it: one top-up filled, four 403s, nothing else to list", async () => {
@@ -69,7 +69,9 @@ Deno.test("its first night as production has it: one top-up filled, four 403s, n
   input.cb_live_orders = input.cb_live_orders.filter((o) => keep.has(o.id)).map((o) => (o.id === 5 ? { ...o, base_size: 13.37, filled_size: 13.37 } : o));
   input.cb_live_fills = input.cb_live_fills.filter((f) => f.leg === "convert").map((f) => ({ ...f, size: 13.37 }));
   const o = await read(input);
-  assertEquals([o.realisedGbp, o.feesGbp, o.heldRungs, o.openOrders, o.detail.orders.length, o.detail.trips.length], [0, 0, 0, 0, 0, 0]);
+  assertEquals([o.realisedGbp, o.feesGbp, o.heldRungs, o.openOrders, o.detail.trips.length], [0, 0, 0, 0, 0]);
+  // Its one order listed is the top-up, filled; the four 403s are not.
+  assertEquals(o.detail.orders.map((x) => [x.leg, x.venueSide, x.base, x.state]), [["convert", "buy", 13.37, "filled"]]);
   close(o.unrealisedGbp, 13.37 * 0.0004);
   close(o.valueGbp, 13.37 * 0.7477);
   assertEquals(o.detail.inventory.assets[1].amount, 13.37);

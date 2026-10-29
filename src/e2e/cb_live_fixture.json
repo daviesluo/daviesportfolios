@@ -29,10 +29,10 @@
       "ccy": {
        "GBP": {
         "available": 20.21,
-        "hold": 20.0
+        "hold": 20
        },
        "USDC": {
-        "available": 80.0,
+        "available": 80,
         "hold": 26.81
        },
        "EUR": {
@@ -1019,6 +1019,21 @@
      "filledBase": 26.81,
      "avgPrice": 0.7459,
      "reason": null
+    },
+    {
+     "id": 5,
+     "ts": "2026-09-15T21:46:00.000Z",
+     "book": "USDC-GBP",
+     "side": null,
+     "k": null,
+     "leg": "convert",
+     "venueSide": "buy",
+     "price": 0.7473,
+     "base": 80,
+     "state": "filled",
+     "filledBase": 80,
+     "avgPrice": 0.7473,
+     "reason": null
     }
    ]
   },
@@ -1027,10 +1042,10 @@
    "ccy": {
     "GBP": {
      "available": 20.21,
-     "hold": 20.0
+     "hold": 20
     },
     "USDC": {
-     "available": 80.0,
+     "available": 80,
      "hold": 26.81
     },
     "EUR": {

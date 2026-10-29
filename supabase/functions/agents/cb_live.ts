@@ -596,7 +596,7 @@ export function cbLiveOrderView(o: CbLivePageOrder) {
  *   * DAYS: each UTC day from its first live order, the orders sent (an order refused at the touch it met, never sent, is not
  *     one), the entries that filled, the round trips that closed and what the trips realised that day; the days add up to
  *     REALIZED.
- *   * ORDERS: the newest, less the top-up conversions (in INVENTORY, as PR5's are), less what the venue refused (a post-only
+ *   * ORDERS: the newest, its top-up conversions among them (the page lists them apart, CONVERSIONS), less what the venue refused (a post-only
  *     price that crossed, the 403s of its first night) or the executor refused before sending, less a cancel that filled
  *     nothing, and less the orders of a round trip already closed (ROUND TRIPS has them).
  * TODAY is the figure its daily loss stop reads (the trips touched today, realised and marked), as PR5's is.
@@ -667,7 +667,7 @@ export function cbLiveDetail(input: {
 
   const shutIds = new Set(closed.map((t) => t.trip));
   const orders = input.recent
-    .filter((o) => o.leg !== "convert" && o.state !== "rejected" && o.state !== "refused" && !input.notSent.has(o.id) && !(o.trip && shutIds.has(o.trip)))
+    .filter((o) => o.state !== "rejected" && o.state !== "refused" && !input.notSent.has(o.id) && !(o.trip && shutIds.has(o.trip)))
     .filter((o) => !((o.state === "cancelled" || o.state === "expired") && !(Number(o.filled_size) > 0)))
     .map(cbLiveOrderView);
   return {

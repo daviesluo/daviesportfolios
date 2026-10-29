@@ -48,7 +48,7 @@ describe('the Coinbase live page', () => {
     const page = /** @type {HTMLElement} */ (root.querySelector('.ag-quotes-cblive-detail'));
     expect(page).toBeTruthy();
     expect(txt(page.querySelector('.ag-detail-head'))).toMatch(/^LIVE\s*Coinbase/);
-    expect([...page.querySelectorAll('.ag-section-title')].map((e) => txt(e).replace(/ - 7-day.*$/, ''))).toEqual(['BOOKS', 'INVENTORY', 'DAYS', 'ROUND TRIPS', 'EXIT ORDERS', 'ENTRY ORDERS']);
+    expect([...page.querySelectorAll('.ag-section-title')].map((e) => txt(e).replace(/ - 7-day.*$/, ''))).toEqual(['BOOKS', 'INVENTORY', 'DAYS', 'ROUND TRIPS', 'CONVERSIONS', 'EXIT ORDERS', 'ENTRY ORDERS']);
     const sb = txt(page.querySelector('.ag-scoreboard'));
     expect(sb).toContain('£120');
     expect(sb).toContain('£99.86');
@@ -78,6 +78,9 @@ describe('the Coinbase live page', () => {
       'ask 0.1 % | sell | £0.7487 | 26.71 USDC | open', 'bid 0.2 % | buy | £0.7459 | 26.81 USDC | filled',
     ]);
     expect(txt(page)).not.toMatch(/403|PERMISSION|refused|rejected|POST_ONLY/);
+    // CONVERSIONS: the top-up of its first night, filled (Davies, 2026-10-29: "我没看正在挂售？"); nothing resting, so no BOOKS line.
+    expect(rows(page, '.ag-ql-conversions').map(rest)).toEqual(['top-up | buy | £0.7473 | 80.00 USDC | 80.00 | filled']);
+    expect(page.querySelector('.ag-quotes-converting')).toBeNull();
   });
 
   it('its first night as production has it: the top-up in INVENTORY, no order listed, no exit table', () => {

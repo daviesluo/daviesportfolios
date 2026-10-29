@@ -813,6 +813,13 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   tick alone +1.49 (P 0.048; out of sample +4.63, P 0.000): keep the 0.3 % rung on USDT; only the exit tick is near-certain.
   Twins too short: `n600no03` one day, −£0.43 realised vs `live600`, both books still; variant-6 +£0.05 vs control in 3 h 49 min.
 
+### [2026-10-29 23:24 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Stablecoin quotes pages show their conversions** (sub-agent; commit, not pushed; Davies, 23:12: "我没看正在挂售？testing的那几个
+  要换的也一样"). The readers already sent convert orders in `detail.orders`; the page dropped them. Now CONVERSIONS (resting and the
+  last 8, newest first: for, side, price, size, filled, state) above the order tables, and a BOOKS card line for a resting one
+  (`quoteConversions`, `quoteConversionLine`: a sell of a book no longer in `books` is "switching to USDT"). Coinbase LIVE now lists
+  its top-ups too (`cbLiveDetail`; fixture output recomputed). Sweep `pr5-switch` at both widths.
+
 ### [2026-10-29 22:43 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Stablecoin quotes pages: no Book column for a one-coin strategy** (sub-agent; commit, not pushed; Davies, 10-29 22:21: "…如果这个
   策略只有一个币种，就把页面里的tables中的book列删了"). Rule (`quotesShowBook`): ROUND TRIPS and EXIT/ENTRY ORDERS drop Book only when
