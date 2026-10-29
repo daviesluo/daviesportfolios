@@ -1,0 +1,717 @@
+{
+ "capitalUsd": 300.0,
+ "repro": {
+  "repro_hold": {
+   "pnl_record": 5.6231,
+   "pnl_replay": 5.6278,
+   "record": 56,
+   "record_only": [
+    [
+     "ask",
+     0.001,
+     1792137300000,
+     1792154040000,
+     0.751,
+     0.7493,
+     "maker"
+    ],
+    [
+     "ask",
+     0.001,
+     1792164120000,
+     1792173360000,
+     0.7492,
+     0.7501,
+     "maker"
+    ],
+    [
+     "ask",
+     0.001,
+     1792324260000,
+     1792349280000,
+     0.7505,
+     0.7501,
+     "maker"
+    ],
+    [
+     "ask",
+     0.001,
+     1792507800000,
+     1792509600000,
+     0.747,
+     0.7472,
+     "maker"
+    ],
+    [
+     "ask",
+     0.001,
+     1793185740000,
+     1793217600000,
+     0.753,
+     0.7497,
+     "maker"
+    ],
+    [
+     "ask",
+     0.002,
+     1792580760000,
+     1792580940000,
+     0.748,
+     0.7468,
+     "maker"
+    ],
+    [
+     "bid",
+     0.001,
+     1792173360000,
+     1792234380000,
+     0.7493,
+     0.7502,
+     "maker"
+    ],
+    [
+     "bid",
+     0.001,
+     1792546560000,
+     1792570560000,
+     0.747,
+     0.7469,
+     "maker"
+    ]
+   ],
+   "replay": 59,
+   "replay_only": [
+    [
+     "ask",
+     0.001,
+     1792071180000,
+     1792071420000,
+     0.7547,
+     0.7542,
+     "maker"
+    ],
+    [
+     "ask",
+     0.001,
+     1792135920000,
+     1792155840000,
+     0.7508,
+     0.7497,
+     "maker"
+    ],
+    [
+     "ask",
+     0.001,
+     1792164120000,
+     1792173360000,
+     0.7492,
+     0.7504,
+     "maker"
+    ],
+    [
+     "ask",
+     0.001,
+     1792324260000,
+     1792340220000,
+     0.7505,
+     0.7501,
+     "maker"
+    ],
+    [
+     "ask",
+     0.001,
+     1792507500000,
+     1792508700000,
+     0.7465,
+     0.747,
+     "maker"
+    ],
+    [
+     "ask",
+     0.001,
+     1793185740000,
+     1793212560000,
+     0.753,
+     0.7506,
+     "maker"
+    ],
+    [
+     "ask",
+     0.001,
+     1793213040000,
+     1793217600000,
+     0.7497,
+     0.7497,
+     "maker"
+    ],
+    [
+     "ask",
+     0.002,
+     1792965360000,
+     1793011260000,
+     0.7483,
+     0.7487,
+     "maker"
+    ],
+    [
+     "bid",
+     0.001,
+     1792173360000,
+     1792234380000,
+     0.7496,
+     0.7502,
+     "maker"
+    ],
+    [
+     "bid",
+     0.001,
+     1792546560000,
+     1792570560000,
+     0.7468,
+     0.7469,
+     "maker"
+    ]
+   ],
+   "same_trip": 48
+  },
+  "repro_usdc": {
+   "pnl_record": 0.1872,
+   "pnl_replay": 0.1872,
+   "record": 8,
+   "record_only": [],
+   "replay": 8,
+   "replay_only": [],
+   "same_trip": 8
+  }
+ },
+ "runs": {
+  "base": {
+   "bpsDay": 5.574,
+   "closureEntryBpsDay": 1.543,
+   "open": 3,
+   "orders": 2524,
+   "perTripBps": 10.21,
+   "refused": 17,
+   "stops": 6,
+   "trips": 64,
+   "weekdayEntryBpsDay": 4.031
+  },
+  "w0.25|hl1440|all|raw": {
+   "boot90_pLe0": [
+    -1.95,
+    0.391,
+    0.8578
+   ],
+   "bpsDay": 4.814,
+   "closureEntryBpsDay": 1.317,
+   "daysAhead": 8,
+   "daysBehind": 9,
+   "diffBpsDay": -0.76,
+   "h1": -0.28,
+   "h1_boot90_pLe0": [
+    -1.166,
+    0.446,
+    0.6611
+   ],
+   "h2": -1.24,
+   "h2_boot90_pLe0": [
+    -3.233,
+    0.879,
+    0.8949
+   ],
+   "nudgedMinutes": 27188,
+   "open": 3,
+   "orders": 2213,
+   "perTripBps": 9.12,
+   "refused": 31,
+   "stops": 6,
+   "trips": 62,
+   "weekdayEntryBpsDay": 3.497
+  },
+  "w0.25|hl2880|all|raw": {
+   "boot90_pLe0": [
+    -1.781,
+    0.812,
+    0.7333
+   ],
+   "bpsDay": 5.091,
+   "closureEntryBpsDay": 1.28,
+   "daysAhead": 8,
+   "daysBehind": 9,
+   "diffBpsDay": -0.483,
+   "h1": -0.036,
+   "h1_boot90_pLe0": [
+    -1.014,
+    0.881,
+    0.5162
+   ],
+   "h2": -0.929,
+   "h2_boot90_pLe0": [
+    -2.989,
+    1.447,
+    0.7373
+   ],
+   "nudgedMinutes": 27188,
+   "open": 3,
+   "orders": 2232,
+   "perTripBps": 9.48,
+   "refused": 28,
+   "stops": 6,
+   "trips": 64,
+   "weekdayEntryBpsDay": 3.812
+  },
+  "w0.25|hl360|all|raw": {
+   "boot90_pLe0": [
+    -1.064,
+    1.45,
+    0.4651
+   ],
+   "bpsDay": 5.692,
+   "closureEntryBpsDay": 1.576,
+   "daysAhead": 10,
+   "daysBehind": 7,
+   "diffBpsDay": 0.118,
+   "h1": -0.053,
+   "h1_boot90_pLe0": [
+    -0.534,
+    0.436,
+    0.6172
+   ],
+   "h2": 0.29,
+   "h2_boot90_pLe0": [
+    -2.075,
+    2.872,
+    0.4302
+   ],
+   "nudgedMinutes": 27188,
+   "open": 3,
+   "orders": 2297,
+   "perTripBps": 10.07,
+   "refused": 21,
+   "stops": 5,
+   "trips": 68,
+   "weekdayEntryBpsDay": 4.116
+  },
+  "w0.5|hl1440|all|clean": {
+   "boot90_pLe0": [
+    -2.081,
+    0.367,
+    0.8736
+   ],
+   "bpsDay": 4.713,
+   "closureEntryBpsDay": 1.244,
+   "daysAhead": 8,
+   "daysBehind": 8,
+   "diffBpsDay": -0.861,
+   "h1": 0.276,
+   "h1_boot90_pLe0": [
+    -0.937,
+    1.468,
+    0.3017
+   ],
+   "h2": -1.998,
+   "h2_boot90_pLe0": [
+    -3.302,
+    -0.44,
+    0.9852
+   ],
+   "nudgedMinutes": 26979,
+   "open": 3,
+   "orders": 2737,
+   "perTripBps": 9.52,
+   "refused": 44,
+   "stops": 5,
+   "trips": 58,
+   "weekdayEntryBpsDay": 3.47
+  },
+  "w0.5|hl1440|all|raw": {
+   "boot90_pLe0": [
+    -1.612,
+    1.252,
+    0.5552
+   ],
+   "bpsDay": 5.438,
+   "closureEntryBpsDay": 1.632,
+   "daysAhead": 9,
+   "daysBehind": 8,
+   "diffBpsDay": -0.136,
+   "h1": 1.229,
+   "h1_boot90_pLe0": [
+    -0.25,
+    2.517,
+    0.0938
+   ],
+   "h2": -1.501,
+   "h2_boot90_pLe0": [
+    -3.131,
+    -0.118,
+    0.9584
+   ],
+   "nudgedMinutes": 27188,
+   "open": 3,
+   "orders": 2656,
+   "perTripBps": 9.32,
+   "refused": 36,
+   "stops": 5,
+   "trips": 68,
+   "weekdayEntryBpsDay": 3.806
+  },
+  "w0.5|hl1440|closure|raw": {
+   "boot90_pLe0": [
+    0.05,
+    0.388,
+    0.0098
+   ],
+   "bpsDay": 5.786,
+   "closureEntryBpsDay": 1.669,
+   "daysAhead": 5,
+   "daysBehind": 1,
+   "diffBpsDay": 0.212,
+   "h1": 0.226,
+   "h1_boot90_pLe0": [
+    -0.024,
+    0.5,
+    0.09
+   ],
+   "h2": 0.198,
+   "h2_boot90_pLe0": [
+    0.0,
+    0.396,
+    0.0928
+   ],
+   "nudgedMinutes": 8460,
+   "open": 3,
+   "orders": 2979,
+   "perTripBps": 10.13,
+   "refused": 25,
+   "stops": 6,
+   "trips": 66,
+   "weekdayEntryBpsDay": 4.117
+  },
+  "w0.5|hl1440|weekday|raw": {
+   "boot90_pLe0": [
+    -1.803,
+    1.052,
+    0.6689
+   ],
+   "bpsDay": 5.201,
+   "closureEntryBpsDay": 1.394,
+   "daysAhead": 7,
+   "daysBehind": 8,
+   "diffBpsDay": -0.373,
+   "h1": 1.126,
+   "h1_boot90_pLe0": [
+    -0.472,
+    2.437,
+    0.1105
+   ],
+   "h2": -1.872,
+   "h2_boot90_pLe0": [
+    -3.255,
+    -0.651,
+    1.0
+   ],
+   "nudgedMinutes": 18728,
+   "open": 3,
+   "orders": 2214,
+   "perTripBps": 9.16,
+   "refused": 26,
+   "stops": 5,
+   "trips": 67,
+   "weekdayEntryBpsDay": 3.807
+  },
+  "w0.5|hl2880|all|raw": {
+   "boot90_pLe0": [
+    -1.215,
+    1.544,
+    0.4615
+   ],
+   "bpsDay": 5.679,
+   "closureEntryBpsDay": 1.222,
+   "daysAhead": 9,
+   "daysBehind": 8,
+   "diffBpsDay": 0.105,
+   "h1": 1.343,
+   "h1_boot90_pLe0": [
+    -0.288,
+    3.06,
+    0.1019
+   ],
+   "h2": -1.133,
+   "h2_boot90_pLe0": [
+    -2.086,
+    0.043,
+    0.9428
+   ],
+   "nudgedMinutes": 27188,
+   "open": 3,
+   "orders": 2630,
+   "perTripBps": 9.38,
+   "refused": 28,
+   "stops": 5,
+   "trips": 73,
+   "weekdayEntryBpsDay": 4.457
+  },
+  "w0.5|hl360|all|raw": {
+   "boot90_pLe0": [
+    -1.837,
+    0.759,
+    0.7434
+   ],
+   "bpsDay": 5.045,
+   "closureEntryBpsDay": 1.458,
+   "daysAhead": 8,
+   "daysBehind": 8,
+   "diffBpsDay": -0.528,
+   "h1": 0.54,
+   "h1_boot90_pLe0": [
+    -0.769,
+    1.711,
+    0.2246
+   ],
+   "h2": -1.597,
+   "h2_boot90_pLe0": [
+    -3.012,
+    -0.02,
+    0.9521
+   ],
+   "nudgedMinutes": 27188,
+   "open": 3,
+   "orders": 2529,
+   "perTripBps": 8.71,
+   "refused": 31,
+   "stops": 5,
+   "trips": 70,
+   "weekdayEntryBpsDay": 3.588
+  },
+  "w0.75|hl1440|all|raw": {
+   "boot90_pLe0": [
+    -2.725,
+    -0.239,
+    0.9761
+   ],
+   "bpsDay": 4.089,
+   "closureEntryBpsDay": 1.223,
+   "daysAhead": 6,
+   "daysBehind": 11,
+   "diffBpsDay": -1.485,
+   "h1": -0.993,
+   "h1_boot90_pLe0": [
+    -2.025,
+    -0.055,
+    0.9549
+   ],
+   "h2": -1.977,
+   "h2_boot90_pLe0": [
+    -3.825,
+    0.148,
+    0.9315
+   ],
+   "nudgedMinutes": 27188,
+   "open": 3,
+   "orders": 4046,
+   "perTripBps": 6.48,
+   "refused": 47,
+   "stops": 4,
+   "trips": 78,
+   "weekdayEntryBpsDay": 2.866
+  },
+  "w0.75|hl2880|all|raw": {
+   "boot90_pLe0": [
+    -2.523,
+    -0.349,
+    0.9826
+   ],
+   "bpsDay": 4.08,
+   "closureEntryBpsDay": 1.223,
+   "daysAhead": 8,
+   "daysBehind": 9,
+   "diffBpsDay": -1.494,
+   "h1": -1.585,
+   "h1_boot90_pLe0": [
+    -2.678,
+    -0.353,
+    0.9829
+   ],
+   "h2": -1.404,
+   "h2_boot90_pLe0": [
+    -2.805,
+    0.233,
+    0.8951
+   ],
+   "nudgedMinutes": 27188,
+   "open": 3,
+   "orders": 4033,
+   "perTripBps": 6.47,
+   "refused": 41,
+   "stops": 3,
+   "trips": 79,
+   "weekdayEntryBpsDay": 2.856
+  },
+  "w0.75|hl360|all|raw": {
+   "boot90_pLe0": [
+    -3.27,
+    -0.439,
+    0.9873
+   ],
+   "bpsDay": 3.822,
+   "closureEntryBpsDay": 1.484,
+   "daysAhead": 6,
+   "daysBehind": 11,
+   "diffBpsDay": -1.752,
+   "h1": -0.944,
+   "h1_boot90_pLe0": [
+    -2.109,
+    0.22,
+    0.9007
+   ],
+   "h2": -2.56,
+   "h2_boot90_pLe0": [
+    -4.727,
+    -0.583,
+    0.9877
+   ],
+   "nudgedMinutes": 27188,
+   "open": 3,
+   "orders": 4078,
+   "perTripBps": 5.94,
+   "refused": 69,
+   "stops": 5,
+   "trips": 78,
+   "weekdayEntryBpsDay": 2.338
+  },
+  "w1|hl1440|all|clean": {
+   "boot90_pLe0": [
+    -3.317,
+    -0.224,
+    0.9755
+   ],
+   "bpsDay": 3.801,
+   "closureEntryBpsDay": 1.076,
+   "daysAhead": 7,
+   "daysBehind": 10,
+   "diffBpsDay": -1.773,
+   "h1": -1.007,
+   "h1_boot90_pLe0": [
+    -3.19,
+    1.193,
+    0.7739
+   ],
+   "h2": -2.539,
+   "h2_boot90_pLe0": [
+    -4.405,
+    -0.454,
+    0.9867
+   ],
+   "nudgedMinutes": 26979,
+   "open": 3,
+   "orders": 6440,
+   "perTripBps": 6.56,
+   "refused": 88,
+   "stops": 4,
+   "trips": 69,
+   "weekdayEntryBpsDay": 2.725
+  },
+  "w1|hl1440|all|raw": {
+   "boot90_pLe0": [
+    -2.615,
+    -0.2,
+    0.9726
+   ],
+   "bpsDay": 4.159,
+   "closureEntryBpsDay": 1.286,
+   "daysAhead": 5,
+   "daysBehind": 12,
+   "diffBpsDay": -1.415,
+   "h1": -1.044,
+   "h1_boot90_pLe0": [
+    -2.771,
+    0.551,
+    0.8391
+   ],
+   "h2": -1.786,
+   "h2_boot90_pLe0": [
+    -3.507,
+    0.037,
+    0.9432
+   ],
+   "nudgedMinutes": 27188,
+   "open": 3,
+   "orders": 5163,
+   "perTripBps": 6.1,
+   "refused": 78,
+   "stops": 4,
+   "trips": 84,
+   "weekdayEntryBpsDay": 2.873
+  },
+  "w1|hl2880|all|raw": {
+   "boot90_pLe0": [
+    -2.107,
+    -0.196,
+    0.9775
+   ],
+   "bpsDay": 4.436,
+   "closureEntryBpsDay": 1.383,
+   "daysAhead": 6,
+   "daysBehind": 11,
+   "diffBpsDay": -1.138,
+   "h1": -1.092,
+   "h1_boot90_pLe0": [
+    -2.634,
+    0.472,
+    0.8695
+   ],
+   "h2": -1.185,
+   "h2_boot90_pLe0": [
+    -2.428,
+    -0.097,
+    0.9729
+   ],
+   "nudgedMinutes": 27188,
+   "open": 3,
+   "orders": 5112,
+   "perTripBps": 6.96,
+   "refused": 74,
+   "stops": 4,
+   "trips": 81,
+   "weekdayEntryBpsDay": 3.053
+  },
+  "w1|hl360|all|raw": {
+   "boot90_pLe0": [
+    -1.66,
+    0.396,
+    0.8186
+   ],
+   "bpsDay": 4.999,
+   "closureEntryBpsDay": 1.666,
+   "daysAhead": 10,
+   "daysBehind": 7,
+   "diffBpsDay": -0.575,
+   "h1": -0.136,
+   "h1_boot90_pLe0": [
+    -0.842,
+    0.573,
+    0.6093
+   ],
+   "h2": -1.015,
+   "h2_boot90_pLe0": [
+    -2.719,
+    0.62,
+    0.8538
+   ],
+   "nudgedMinutes": 27188,
+   "open": 3,
+   "orders": 5193,
+   "perTripBps": 7.04,
+   "refused": 106,
+   "stops": 6,
+   "trips": 86,
+   "weekdayEntryBpsDay": 3.332
+  }
+ },
+ "window": [
+  "2026-10-11",
+  "2026-10-29",
+  "2026-10-20"
+ ]
+}

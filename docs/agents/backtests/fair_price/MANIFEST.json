@@ -47,6 +47,21 @@
    "lines": 27091,
    "db_md5_of_text": "bcf1f2890ce2b423cd8e49e7ae959961",
    "sha256": "8d9dd8abafa590bfc20811827de65396cbd47b9929c73981dfa9fa6055cced37"
+  },
+  "data/cb_print_minutes_USDC-GBP.txt.gz": {
+   "lines": 23816,
+   "db_md5_of_text": "90b0174ed39f64d52b0cc14e7d991403",
+   "sha256": "c3156dd8578c9a5c0ac2b80e3fa27ba430a1dfbe8bf05a8f8a6badb1267ab580"
+  },
+  "data/fx.txt.gz": {
+   "lines": 36919,
+   "db_md5_of_text": "9b9875aed722ff4a81c8012ddb565aa7",
+   "sha256": "b00f24f8dfbe4ba389666d772eadc7efdfd790a842b267903c79a2d4e20239fb"
+  },
+  "data/cb_engine_trips_USDC-GBP.txt.gz": {
+   "lines": 64,
+   "db_md5_of_text": "9891181138c44da1ca270209eedc88e1",
+   "sha256": "4bf2553728d3abb3d4eb771789d0b84981ec8d521980305942d0967a567e455e"
   }
  },
  "not_committed": {
@@ -56,7 +71,15 @@
    "why": "LIVE's own orders carry the live account's sizes; the scripts read them from $FP_LIVE"
   }
  },
+ "derived": {
+  "data/rx_mid_USDC-GBP.txt.gz": {
+   "sha256": "e54491321a42e3680aaef31970ba4ecef1ebf0d228f09bd5c9d8ee83bc4c00e3"
+  }
+ },
  "scripts": {
+  "scripts/cb_mirror.py": "f233164ec8e93219f3ae9fabca9ee55660fc04157c97d3b8c08a1699ba868f74",
+  "scripts/cb_mirror.ts": "33612ae733855da8bf12fbc71b27f11342fb40d9d64c8245e202be68fd02e333",
+  "scripts/cb_mirror_prep.py": "edddb51ef6b16c1defda055e0e0995dcf9f5641a99941528c654780d17987d68",
   "scripts/fp_data.py": "8f350f7776b8c31024f5a62ddc729d330d07ff6199cbef0652a37553bbee543c",
   "scripts/lead.py": "48ddb347ba89e124f122488fc79a48e2c8e45dd17ed76ae37255111c79b7555a",
   "scripts/measure.py": "fe013f893519924ca2686130e7f3dd8ae17077d2c1c302f809e92dc7469dba12",
@@ -66,6 +89,8 @@
   "../pr5_opt/scripts/sim.py": "1750cd7b3e4578f02bac810f1e0e1377b8bc1e4c76d58830edb084c9d8763526"
  },
  "results": {
+  "results/cb_mirror.json": "7f2d956c1d3e5685e245629e10c70140bace96594242398c9c016cdcece223e6",
+  "results/cb_mirror_trips.json": "102364ae924797a2b1978d28e9396e667f8561f8b263618576ba51107dd6736c",
   "results/lead_usdc_cb.json": "017af31ec353e0f820763ff4146f946ba7f73c7ba4f46e6190bd003a509b7f64",
   "results/measure.json": "c4d82146a8a48466c26d359785287ac4ce976c17481e1a10ba6c01387ca7d8f9",
   "results/replay.json": "b4e5891f0f7df487b8cb03e2ed89a4e26db4c07a50c449f9bcd0e9eea30cd0a7"
@@ -74,6 +99,9 @@
   "FP_LIVE=<live_orders.txt> python3 -I scripts/measure.py",
   "FP_LIVE=<live_orders.txt> python3 -I scripts/replay.py",
   "FP_LIVE=<live_orders.txt> python3 -I scripts/lead.py",
+  "FP_LIVE=<live_orders.txt> python3 -I scripts/cb_mirror_prep.py (rewrites data/rx_mid_USDC-GBP.txt; gzip -n -9 it)",
+  "npx --yes deno@1.46.3 run --allow-read --allow-write docs/agents/backtests/fair_price/scripts/cb_mirror.ts (from the repository root)",
+  "python3 -I scripts/cb_mirror.py",
   "python3 -I scripts/manifest.py"
  ]
 }

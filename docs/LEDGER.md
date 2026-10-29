@@ -776,6 +776,15 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth).
 
+### [2026-10-29 06:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **REVX-FAIR addendum: the USDC-GBP lead mirrored onto Coinbase** (sub-agent; commit, not pushed; Davies, 10-29:
+  "建USDC 那个线索，在with euro-2的基础上开-3，只做300美元的USDC-GBP"). Review §8, `backtests/fair_price/scripts/cb_mirror.*`.
+  - **How.** -2's own `stepMinute` at $50 a rung, nudged by Revolut X's USDC-GBP mid (`agent_book_levels`, a median 18.7 s
+    old). It reproduces -2's 8 trips exactly and 48 of -1's 56.
+  - **Result.** As specified (w 0.5, 24 h): −0.14 bps of $300 a day (−1.61 to +1.25, P≤0 0.56); 13 of 16 settings are below
+    the base. One-way: Coinbase leads Revolut X.
+  - **The exception.** Closures only: +0.21 (+0.05 to +0.39, P≤0 0.01).
+
 ### [2026-10-29 06:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **REVX-FAIR: Revolut X's stablecoin fair studied** (sub-agent; commit, not pushed; Davies, 10-29: "…你仔细深度研究下这个价格的计算还有没有优化和改进的空间…").
   `reviews/2026-10-29-revx-fair-price-study.md`, `backtests/fair_price/`; not blind, read-only, nothing changed in production.

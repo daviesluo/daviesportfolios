@@ -40,3 +40,18 @@ select id, concat_ws('|', id, (extract(epoch from ts)*1000)::bigint, mode, book,
  coalesce(((extract(epoch from filled_at)*1000)::bigint)::text,''), coalesce(((extract(epoch from cancelled_at)*1000)::bigint)::text,''), coalesce(((extract(epoch from updated_at)*1000)::bigint)::text,''),
  coalesce(((extract(epoch from paper_live)*1000)::bigint)::text,''), coalesce(fee_gbp::text,'')) l
 from agent_quote_live_orders where ts < '2026-10-29T00:00:00Z') s;
+
+-- ADDENDUM (the Coinbase mirror of the USDC-GBP lead), 2026-10-29 06:20-06:26 UTC, cut the same way.
+-- A1. Coinbase's USDC-GBP prints as the recorder summarises each minute (cb_print_minutes, from 2026-10-09 19:57; cb_trades
+-- keeps only its last ten days): minute ms|seconds|prices in 0.0001|aggressor buy 1/0|counts|sizes in 0.01 coin.
+select json_build_object('table','cb_print_minutes_USDC-GBP','n',count(*),'md5',md5(string_agg(l, E'\n' order by ms)),'text',string_agg(l, E'\n' order by ms)) payload from (
+select (extract(epoch from minute)*1000)::bigint ms, (extract(epoch from minute)*1000)::bigint||'|'||array_to_string(sec,',')||'|'||array_to_string(px,',')||'|'||array_to_string(array(select case when b then 1 else 0 end from unnest(buy) b),',')||'|'||array_to_string(n,',')||'|'||array_to_string(sz,',') l
+from cb_print_minutes where product='USDC-GBP' and minute < '2026-10-29T00:00:00Z') s;
+-- A2. Yahoo's GBP/USD minute bars, the rate the Coinbase arms hold through a closure: bar start ms|close.
+select json_build_object('table','fx','n',count(*),'md5',md5(string_agg(l, E'\n' order by ms)),'text',string_agg(l, E'\n' order by ms)) payload from (
+select (extract(epoch from t)*1000)::bigint ms, (extract(epoch from t)*1000)::bigint||'|'||value l from agent_quote_inputs where kind = 'fx' and t < '2026-10-29T00:00:00Z') s;
+-- A3. The engines' own USDC-GBP round trips, for the reproduction: src|side|k|t_entry ms|t_exit ms|entry|exit|how|qty|pnl_gbp.
+select json_build_object('table','cb_engine_trips_USDC-GBP','n',count(*),'md5',md5(string_agg(l, E'\n' order by l)),'text',string_agg(l, E'\n' order by l)) payload from (
+select concat_ws('|', src, side, k, te, tx, entry, exit, how, qty, pnl) l from (
+ select 'hold' src, side, k, (extract(epoch from t_entry)*1000)::bigint te, (extract(epoch from t_exit)*1000)::bigint tx, entry, exit, how, round(qty::numeric,6) qty, round(pnl_gbp::numeric,6) pnl from cb_hold_trips where book='USDC-GBP' and t_exit < '2026-10-29'
+ union all select 'usdc', side, k, (extract(epoch from t_entry)*1000)::bigint, (extract(epoch from t_exit)*1000)::bigint, entry, exit, how, round(qty::numeric,6), round(pnl_gbp::numeric,6) from cb_usdc_trips where book='USDC-GBP' and t_exit < '2026-10-29') a) s;

@@ -314,3 +314,95 @@ It is a reason for a paper twin, not for a live change.
   GBP/USD was recorded, so a cleaner FX test was not possible.
 - **Not run.** Inventory skew was not re-run (PR5-OPT: worse). The paper engine's own trips were not re-scored apart (the
   replay's paper layer is that engine). Coinbase and OKX rows are the other study's.
+
+## 8. Addendum (2026-10-29, later the same morning): the lead mirrored onto Coinbase
+
+Davies, 2026-10-29: "建USDC 那个线索，在with euro-2的基础上开-3，只做300美元的USDC-GBP". The lead is being built (by another
+agent) as a Coinbase paper row, "with Euros - 3": `cb_usdc.ts`'s engine on USDC-GBP alone, $50 a rung, $300 in all.
+
+On Coinbase the nudge is §5's mirror, as the coordinator specified it:
+- d(t) = (RX(t) − cbFair(t)) − EMA(RX − cbFair) over 24 hours, where RX is Revolut X's USDC-GBP mid;
+- cbFair′ = cbFair + 0.5 × d;
+- cbFair unchanged when RX is over 5 minutes old.
+
+This addendum replays exactly that, with -2's own engine, to ask whether the nudge helps on Coinbase too. It is not blind,
+it is read-only, and nothing in production changed.
+
+**Where Revolut X's mid comes from** (`scripts/cb_mirror_prep.py`, `data/rx_mid_USDC-GBP.txt.gz`):
+- **The table.** `agent_book_levels`, `book = 'USDC-GBP'`: the Revolut X recorder's five-level snapshots.
+  - The minute's turn reads the latest snapshot stamped before the minute.
+  - The recorder writes a row when the book changes and extends `seen_until` while it does not, about once a minute at ~:40 s.
+- **Freshness, 2026-10-09 → 10-29** (28,800 minutes):
+  - the snapshot read is a median 18.7 s old by its stamp (25th–75th percentile 17.5–19.9 s, 85th 78 s, 95th 140 s);
+  - its last sighting (`seen_until`) is a median 17.5 s before the minute;
+  - no snapshot seen within 5 minutes in 162 minutes (0.56 %), where the fair falls back.
+- **The mid.** "Raw" is the snapshot's own best bid and ask, LIVE's resting orders included: what a production reader of the
+  table sees, and the headline here. "Clean" is the mid with LIVE's orders taken out (§2), shown beside it.
+
+**The engine** (`scripts/cb_mirror.ts`, run on Deno 1.46.3 against production's own modules).
+- **Imported from production:** `stepMinute`, driven as `runCbUsdc` drives it:
+  - GBP/USD held up to 60 hours (`cbHoldBarAt`);
+  - fairU from the median of Revolut X's USDC-USD hourly closes over the last day;
+  - the dollar rule of `cbMinuteInputs`;
+  - the release blackout (`cbInBlackout`);
+  - the prints at the arm's size (`stepMinute`'s 100 ÷ 2 = $50 a rung);
+  - the stop at Coinbase's cost (`cbStopExit`).
+- **The fill model is the engine's:** a print strictly through, the rung capped at 10 % of the minute's printed value.
+- **The prints** are the recorder's minute summary, `cb_print_minutes` (from 10-09 19:57). `cb_trades` keeps only its last ten days.
+- **The windows.** Run 10-10 → 10-29 (10-10 warms the EMA), scored 10-11 → 10-29 (18 days); halves 10-11 → 10-20 | 10-20 → 10-29.
+- **The statistics.** Paired with the base by exit day in bps of the $300 a day; a circular 3-day block bootstrap, 10,000
+  resamples, seed 20261029, 90 %.
+- **The EMA** uses a 24-hour half-life, as §5's did; a 24-hour time constant (about a 17-hour half-life) lies between the
+  6 h and 24 h rows below.
+
+**The replay reproduces the engines** (`results/cb_mirror.json`, `repro`), in pounds as they ran:
+- "- 2"'s 8 USDC-GBP trips since 10-27: all 8 identical, P&L equal.
+- "- 1"'s since 10-13: 48 of its 56 trips identical, 59 replayed, total P&L within 0.1 %. The rest differ by a minute or a
+  tick, where the minute summary orders and sizes a second's prints differently from `cb_trades`.
+
+**Base** (-3 as specified without the nudge):
+- 5.57 bps of the $300 a day;
+- 64 trips, 10.21 bps a trip, 6 stops, 3 still open at the end;
+- trips entered in a closure 1.54 bps a day, weekday entries 4.03.
+
+**The nudge, against the base** (difference in bps of $300 a day; band; P ≤ 0; halves; trips; bps a trip):
+
+| setting | difference | band | P ≤ 0 | halves | trips | per trip |
+|---|---|---|---|---|---|---|
+| w 0.25, 6 h | +0.12 | −1.06 to +1.45 | 0.47 | −0.05 / +0.29 | 68 | 10.07 |
+| w 0.25, 24 h | −0.76 | −1.95 to +0.39 | 0.86 | −0.28 / −1.24 | 62 | 9.12 |
+| w 0.25, 48 h | −0.48 | −1.78 to +0.81 | 0.73 | −0.04 / −0.93 | 64 | 9.48 |
+| w 0.5, 6 h | −0.53 | −1.84 to +0.76 | 0.74 | +0.54 / −1.60 | 70 | 8.71 |
+| **w 0.5, 24 h (-3 as specified)** | **−0.14** | **−1.61 to +1.25** | **0.56** | **+1.23 / −1.50** | **68** | **9.32** |
+| w 0.5, 48 h | +0.11 | −1.22 to +1.54 | 0.46 | +1.34 / −1.13 | 73 | 9.38 |
+| w 0.75, 6 h | −1.75 | −3.27 to −0.44 | 0.99 | −0.94 / −2.56 | 78 | 5.94 |
+| w 0.75, 24 h | −1.49 | −2.73 to −0.24 | 0.98 | −0.99 / −1.98 | 78 | 6.48 |
+| w 0.75, 48 h | −1.49 | −2.52 to −0.35 | 0.98 | −1.59 / −1.40 | 79 | 6.47 |
+| w 1, 6 h | −0.58 | −1.66 to +0.40 | 0.82 | −0.14 / −1.02 | 86 | 7.04 |
+| w 1, 24 h | −1.42 | −2.62 to −0.20 | 0.97 | −1.04 / −1.79 | 84 | 6.10 |
+| w 1, 48 h | −1.14 | −2.11 to −0.20 | 0.98 | −1.09 / −1.19 | 81 | 6.96 |
+| w 0.5, 24 h, weekdays only | −0.37 | −1.80 to +1.05 | 0.67 | +1.13 / −1.87 | 67 | 9.16 |
+| **w 0.5, 24 h, closures only** | **+0.21** | **+0.05 to +0.39** | **0.01** | **+0.23 / +0.20** | **66** | **10.13** |
+| w 0.5, 24 h, clean mid | −0.86 | −2.08 to +0.37 | 0.87 | +0.28 / −2.00 | 58 | 9.52 |
+| w 1, 24 h, clean mid | −1.77 | −3.32 to −0.22 | 0.98 | −1.01 / −2.54 | 69 | 6.56 |
+
+**What it says.**
+- **On Coinbase the nudge does not help.**
+  - At the specified setting it is −0.14 bps a day: ahead in the first half, behind in the second, P ≤ 0 0.56.
+  - 13 of the 16 runs are below the base, and every weight of 0.75 or more loses (P ≤ 0 0.97–0.99).
+  - It buys more fills at worse prices: from 10.2 bps a trip to 9.3 at half weight, and 6–7 at full weight.
+- **So the relation is one-way: Coinbase leads Revolut X on USDC-GBP.** Coinbase's move off its usual gap foretells where
+  Revolut X's book should be quoted (§5: all 42 runs positive). Revolut X's move off its usual gap is, for Coinbase, mostly
+  noise or lag.
+- **The one exception is the closures.** With the nudge on only inside an FX closure, it adds +0.21 bps a day (+0.05 to
+  +0.39, P ≤ 0 0.01), the same in both halves. Over a weekend the held GBP/USD freezes Coinbase's fair, and Revolut X's
+  book is the one live sterling price it can hear. The gain is small: about a twentieth of the base's 5.6 bps a day.
+- **The sample is thin.** -3's book filled 64 times in 18 days. Every interval above is wide, and only the closure-only
+  setting clears zero.
+
+**For the -3 row** (Davies' call; it is paper):
+- As specified (half weight, 24 h, every minute), this replay expects no gain: −0.14 bps of $300 a day, band −1.61 to +1.25.
+  It remains a fair forward test of the idea.
+- If -3 should test the setting the replay supports, that is the nudge inside closures only.
+- Either way, §6's Revolut X twin is the test of the lead where it was found. Coinbase reading Revolut X is a different
+  question, and this replay answers it mostly no.
