@@ -93,10 +93,12 @@ that follow from that evidence, in short:
   `retired_at`, all flat, their records kept; `agent_risk.live_confirmed_at` cleared (no row is labelled live; a future
   live row is armed again only in the conversation where Davies says go; `global_pause` was NOT set, it would stop PR5,
   GROKPM and IGBOT). The migration refuses to run while the live row holds a coin or has an order in flight, since a
-  retired row that holds something keeps its exits (`windingDown`) and a live exit is a real sell. The tick still runs:
-  it decides nothing, and records the two venues' quotes, the basis every fifth minute and Kraken's candles for the
-  rows' coins; nothing live or pre-registered reads them any more, so switching its call off is Davies' call (the
-  monitor's `tickBeat`/`tickTurn` readings go first, as `decisions` went before `0158`). EX-GAP and MX-1 closed the same
+  retired row that holds something keeps its exits (`windingDown`) and a live exit is a real sell. **The tick's call is
+  off since `0160` (2026-10-29; Davies, on the tick: "你来决定")**: it decided nothing, and what it still recorded (the
+  venues' quotes, the basis, Kraken's candles) nothing live or pre-registered read. The monitor stopped reading its beat
+  and lease first and watches the minute loop by PR5's executor alone (`monitor/health.ts`); turning the tick back on is
+  a migration, with a monitor reading of it in the same push. Its code, tables and records stay; the daily prune keeps
+  the basis and the observations to 30 days as before. EX-GAP and MX-1 closed the same
   day, undecided (`reviews/2026-10-28-trend-rows-retired.md`). The paragraphs below are the loop's history while it ran.
 - **The set that is live is ONE row**: `trend-4h-live` ("Trend 4h ·
   live"; no name says its venue since `0061`) on Revolut X, BTC/ETH/SOL/AVAX, four equal $25

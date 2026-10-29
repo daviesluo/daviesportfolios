@@ -101,7 +101,7 @@ Functions written in Deno: auth, data, prices, chart, fundamentals,
 trading212, overnight-fetch, ops-error and agents. Separately, pg_cron
 calls scheduled Edge Functions with no browser open: snapshot-record
 every five minutes, overnight-record every five minutes through the US
-overnight session, and the agents trading loop every minute, paper first.
+overnight session, and the agents' live quotes and paper tests every minute.
 Both kinds of function read and write Postgres, which keeps the
 portfolio, five-minute prices, overnight quotes, broker fills, error
 reports and every agents decision, order and fill. Outside services —

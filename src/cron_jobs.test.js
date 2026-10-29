@@ -914,6 +914,26 @@ describe('pg_cron jobs', () => {
     expect(norm(sql)).toMatch(/^set lock_timeout = '3s'; update public\.edge_calls set enabled = false where path in \([^)]*\); reset lock_timeout;$/);
   });
 
+  // 0160 (Davies, 2026-10-28, on the tick once 0158 had retired its rows: "你来决定"): the tick's call off; nothing else
+  // moves, PR5's executor (the monitor's one reading of the minute loop since the commit before) stays on.
+  it("turns the tick's call off and nothing else, PR5's executor kept (0160)", () => {
+    const T = FILES.find((f) => /^0160_tick_call_off\.sql$/.test(f)) ?? '';
+    expect(T).not.toBe('');
+    const listBefore = replayList(sqlsOf(FILES.filter((f) => f < T))), listAfter = replayList(sqlsOf(FILES.filter((f) => f <= T)));
+    const OFF = ['agents?action=tick'];
+    expect(OFF.map((p) => listBefore.find((r) => r.path === p)?.enabled)).toEqual([true]);
+    expect(listAfter).toEqual(listBefore.map((r) => (OFF.includes(r.path) ? { ...r, enabled: false } : r)));
+    expect(listAfter.find((r) => r.path === 'agents?action=quotes')?.enabled).toBe(true);
+    const jobsBefore = cronJobs(FILES.filter((f) => f < T)), jobsAfter = cronJobs(FILES.filter((f) => f <= T));
+    expect([...jobsAfter.keys()].sort()).toEqual([...jobsBefore.keys()].sort());
+    const sql = fs.readFileSync(path.join(DIR, T), 'utf8').replace(/--[^\n]*/g, '');
+    expect(sql).not.toMatch(/\b(insert|delete|truncate|drop|alter|create)\b/i);
+    expect(norm(sql)).toMatch(/^set lock_timeout = '3s'; update public\.edge_calls set enabled = false where path in \([^)]*\); reset lock_timeout;$/);
+    // The monitor no longer reads the tick (its beat and lease), so nothing pages when it stops.
+    const health = fs.readFileSync(path.join(ROOT, 'supabase/functions/monitor/health.ts'), 'utf8');
+    expect(health).not.toMatch(/agent_locks\?name=eq\.tick|agents%3Faction%3Dtick|TICK_BEAT_KEY =/);
+  });
+
   // 0153 (Davies, 2026-10-28: "这个关掉"): live-prep's two calls off after its 14-day readout failed; nothing else moves.
   it("turns live-prep's order path and its reserve off and nothing else (0153)", () => {
     const T = FILES.find((f) => /^0153_pm_lp_calls_off\.sql$/.test(f)) ?? '';

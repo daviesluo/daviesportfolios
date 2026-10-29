@@ -47089,3 +47089,20 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   row holds a coin or has an order in flight. Read at ~23:00–23:30 UTC: all flat, no open order, no watched probe. Pin in
   `tick.test.ts`. EX-GAP and MX-1 closed undecided (`reviews/2026-10-28-trend-rows-retired.md`; reference item 65).
   Docs: map, guide, README, agents CLAUDE, live-watch. Items 3, 5a.2, 5a.7 rewritten. No `src/` change.
+
+## LEDGER.md, archived 2026-10-29 (fifth) — "What remains" item 3 as it stood before `0160`, and the 2026-10-28 23:47 UTC history section, oldest first
+
+3. **`trend-4h-live`, `trend-4h`, `trend-1h`: RETIRED by `0158`** (Davies, 2026-10-28: "把实盘的Trend 4h和测试的Trend 1h Trend 4h删了吧，
+   那一整套都表现太差了感觉不值得做"). Push order: the monitor commit first (drops `decisions`), wait for `edge-functions.yml`
+   to deploy `monitor`, then the migration (`migrations.yml`); `0158` refuses while the live row holds a coin or has an
+   order in flight (re-run once flat). After it applies, read back: three rows `paused` with `retired_at`,
+   `agent_risk.live_confirmed_at` null, no new `agent_decisions` row from the next turn, no `agents.tick` error, and the
+   page's LIVE/TESTING without them. The tick still records quotes, basis and Kraken candles that nothing live or
+   pre-registered reads: switching its call off is Davies' call, and the monitor's `tickBeat`/`tickTurn` go first. This
+   item, 5a.2 and 5a.7 as they stood before: `docs/handover.md`, "LEDGER.md, archived 2026-10-28 (eleventh)".
+
+### [2026-10-28 23:47 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **IGBOT audited before the prompt goes out** (sub-agent; commit, not pushed; item 18; Davies, 10-28: "有任何问题或漏洞的话指出并
+  修复"): close as IG `LIMIT` FOK with no reference; five-day close retried; nothing foreign touched; IG budget across
+  isolates (`0159`); missing closes wait; hour bars + scorer; prereg baseline m*; prompt answers and wake schedule. 18 pins.
+  The 23:27 section archived.

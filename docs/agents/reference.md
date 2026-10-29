@@ -4502,7 +4502,7 @@ fails too still reported (`edge-watchdog.retry`). In the three days before, 1,34
     the live row holds a coin or has an order in flight (a retired row that holds something keeps its exits, and a live exit
     is a real sell); pinned in `tick.test.ts` (the three rows as `0158` leaves them decide and send nothing, and the same
     rows un-retired do decide). The monitor's `decisions` reading went first. The tick keeps recording the venues' quotes,
-    the basis and Kraken's candles; nothing live or pre-registered reads them now. **EX-GAP and MX-1 close undecided**, each
+    the basis and Kraken's candles; nothing live or pre-registered reads them now. The tick's call was switched off by `0160` the next day, after the monitor stopped reading its beat and lease. **EX-GAP and MX-1 close undecided**, each
     on its own rule read early because no event can be added (2 pairs of the 8 EX-GAP needs; 7 eligible exits of the 60
     MX-1 needs): `reviews/2026-10-28-trend-rows-retired.md`, their deviation 1.
 

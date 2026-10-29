@@ -213,14 +213,13 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
      tool; revoking that tool's token is his). A path's first live day reads how soon a cancel shows on the venue (the
      calibration doc's "Not verified" query).
 
-3. **`trend-4h-live`, `trend-4h`, `trend-1h`: RETIRED by `0158`** (Davies, 2026-10-28: "把实盘的Trend 4h和测试的Trend 1h Trend 4h删了吧，
-   那一整套都表现太差了感觉不值得做"). Push order: the monitor commit first (drops `decisions`), wait for `edge-functions.yml`
-   to deploy `monitor`, then the migration (`migrations.yml`); `0158` refuses while the live row holds a coin or has an
-   order in flight (re-run once flat). After it applies, read back: three rows `paused` with `retired_at`,
-   `agent_risk.live_confirmed_at` null, no new `agent_decisions` row from the next turn, no `agents.tick` error, and the
-   page's LIVE/TESTING without them. The tick still records quotes, basis and Kraken candles that nothing live or
-   pre-registered reads: switching its call off is Davies' call, and the monitor's `tickBeat`/`tickTurn` go first. This
-   item, 5a.2 and 5a.7 as they stood before: `docs/handover.md`, "LEDGER.md, archived 2026-10-28 (eleventh)".
+3. **The crypto loop: rows RETIRED (`0158`, applied 10-28), its tick call OFF (`0160`)** (Davies, 10-28: "把实盘的Trend 4h和测试的
+   Trend 1h Trend 4h删了吧…"; on the tick, "你来决定"). Push order: the monitor commit first (drops `tickBeat`/`tickTurn`;
+   PR5's `quotes` is the loop's one reading), wait for `edge-functions.yml` to deploy `monitor` and `monitor-deploy.yml`
+   the Worker, then `0160` (`migrations.yml`). After it applies: `edge_calls` row 1 `enabled = false`; no
+   `agents?action=tick` beat after it; the Worker's loop check green; `agents.tick` silent. The day PR5's call goes off,
+   the monitor needs another loop reading in the same push. This item as it stood: `docs/handover.md`, "LEDGER.md,
+   archived 2026-10-29 (fifth)".
 4. **PR5 (GBP stablecoin quotes): live executor LIVE since 2026-10-01 16:29:53 UTC at £10 a rung; the paper test decides
    PR5 on 2026-10-21** (spec `reviews/2026-09-23-pr5-paper-test-spec.md`, six conditions; wake
    `trig_01QsXPKHc6Nt6NK3BJmbB2RY`, 10-21 15:40). Every verdict below says the paper tests ran beside a live executor
@@ -762,8 +761,14 @@ Facts a fresh session would otherwise rediscover:
 
 Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's archive, each batch under a heading
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
-first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-28 23:33 UTC section (archived
-2026-10-29, fourth).
+first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-28 23:47 UTC section (archived
+2026-10-29, fifth).
+
+### [2026-10-29 00:18 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The tick's call off: `0160`** (sub-agent; commit, not pushed; step 2 of 2, push AFTER the monitor commit has deployed;
+  the coordinator's call on Davies' "你来决定"): `agents?action=tick` `enabled = false`, row and records kept. Its writes
+  (`agent_basis`, `agent_candles`, `agent_observations`) have no reader the page shows or a reading needs; no code waits on
+  its lease. `cron_jobs.test.js` pins it. Item 3 rewritten; the 23:47 section archived.
 
 ### [2026-10-29 00:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The monitor stops reading the tick** (sub-agent; commit, not pushed; step 1 of 2 for switching the tick's call off, the
@@ -783,9 +788,3 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 - **A Grok crypto bot, long and short, researched** (sub-agent; commit, not pushed; item 19): `reviews/2026-10-29-crypto-grok-bot-research.md`.
   Long+short: Kraken margin (UK) or Hyperliquid perps (terms exclude US/Ontario, not the UK; trade-only API wallet).
   No edge shown, so Phase 0 first: Grok against Polymarket crypto prices. The 22:30 section archived.
-
-### [2026-10-28 23:47 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **IGBOT audited before the prompt goes out** (sub-agent; commit, not pushed; item 18; Davies, 10-28: "有任何问题或漏洞的话指出并
-  修复"): close as IG `LIMIT` FOK with no reference; five-day close retried; nothing foreign touched; IG budget across
-  isolates (`0159`); missing closes wait; hour bars + scorer; prereg baseline m*; prompt answers and wake schedule. 18 pins.
-  The 23:27 section archived.

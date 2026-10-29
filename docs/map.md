@@ -20,9 +20,9 @@ How the less obvious parts work, and why they are built the way they are.
   its 1-hour variant ran until `0158` retired all three on 2026-10-28,
   on Davies' word, flat and with their records kept (a 30-day momentum
   row ran on paper until `0129` retired it, 2026-10-18, and `0133`
-  deleted it, 2026-10-20). Since then the tick decides nothing and only
-  records the two venues' quotes, the basis and Kraken's candles. The
-  rest of this note says how the loop worked while it ran. The loop
+  deleted it, 2026-10-20). With nothing left to decide, the tick's call
+  was switched off by `0160` (2026-10-29); its code, tables and records
+  stay. The rest of this note says how the loop worked while it ran. The loop
   runs every minute: quotes, order management, a protective floor under
   cost checked against the bid, and the state on the forming bar (shown
   live on the page); entries wait for closed bars. TypeSafe's **Jev
@@ -877,6 +877,7 @@ before touching migration state.
 | `0156_pr5v_ruled_calls_off.sql` | Switches off PR5V's and rule D's paper engines after their 10-28 readings, as both pre-registrations say; records stay. |
 | `0157_igbot.sql` | IGBOT's tables (its config held to IG's demo and starting in dry-run, the whitelist, the journal, its orders, positions, five-minute snapshots and state), RLS on with no grant, and its read-back call every minute. |
 | `0158_retire_trend_rows.sql` | Retires the crypto loop's last three rows in place (`trend-4h-live`, `trend-4h`, `trend-1h`: paused, `retired_at`) and clears the loop's live confirmation; refuses to run while the live row holds a coin or has an order in flight. Records stay. |
+| `0160_tick_call_off.sql` | Switches the crypto loop's tick call off once `0158` left it nothing to decide; its row, tables and records stay. |
 | `0159_igbot_audit.sql` | IGBOT's audit: each request's IG calls (the function's minute budget) and IG's hour bars for the reading, RLS on with no grant. |
 | `0096_pm_rw_x_tb1_arms.sql` | Lets the variants' day tables, RW's and RW-C's, take TB1's two arms on x1 (tb1-skip, tb1-back). |
 | `0086_quote_live_deadman.sql` | Adds the kind `deadman` to `agent_quote_live_events`, for the row the monitor's dead-man switch writes when it cancels PR5's resting orders. |
@@ -1068,7 +1069,7 @@ pg_cron → pg_net → Edge Functions (no browser needed; one job queues every c
  ├─ edge-watchdog      every minute, at :13   a due call with no beat (its worker never started) run again, once → edge_call_retries
  ├─ snapshot-record    every 5 min   board prices → price_snapshots
  ├─ overnight-record   every 5 min, 00:00–09:55 UTC   T212 quotes → overnight_intraday_points
- ├─ agents ?action=tick  every minute   quotes and the basis, Kraken's candles → agent_* tables (no strategy row decides since 0158)
+ ├─ agents ?action=tick  off since 0160 (2026-10-29)   was: quotes, orders, stops, decisions → agent_* tables
  ├─ agents ?action=quotes  every minute   PR5's paper quotes → agent_quote_*, then its live executor → agent_quote_live_*
  ├─ agents ?action=quotesv  every minute   PR5's stored minutes replayed through the variant's rule, two arms → agent_quotev_*
  ├─ agents ?action=pmrw  every minute   RW's paper quotes on Polymarket (public reads) → pm_rw_*
