@@ -798,6 +798,13 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth).
 
+### [2026-10-29 22:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **USDT-NO03: LIVE's USDT-GBP book without its 0.3 % rung** (sub-agent; read-only study, commit, not pushed; Davies, 22:45:
+  "目前的usdt实盘策略也研究回测一下这项"). `reviews/2026-10-29-usdt-no03.md`, `compare/revx/scripts/usdt_no03.py`. At £600, since
+  09-01: no 0.3 % rung −1.09 % a year (P 0.67; £100/£200 and £200/£100 no better), with exit +1 tick +0.97 (P 0.31), exit +1
+  tick alone +1.49 (P 0.048; out of sample +4.63, P 0.000): keep the 0.3 % rung on USDT; only the exit tick is near-certain.
+  Twins too short: `n600no03` one day, −£0.43 realised vs `live600`, both books still; variant-6 +£0.05 vs control in 3 h 49 min.
+
 ### [2026-10-29 22:43 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Stablecoin quotes pages: no Book column for a one-coin strategy** (sub-agent; commit, not pushed; Davies, 10-29 22:21: "…如果这个
   策略只有一个币种，就把页面里的tables中的book列删了"). Rule (`quotesShowBook`): ROUND TRIPS and EXIT/ENTRY ORDERS drop Book only when
