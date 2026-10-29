@@ -346,11 +346,15 @@ each full scan, a reply, a question for Claude ("Grok → Claude"), or a log lin
 push again; at most one push a wake. **Keep it under 10 KB (10,240 bytes)**: Status is overwritten, closed items are
 deleted once both sides saw them, the log keeps its newest 20 lines. If you cannot push, put the text in that wake's
 cycle `notes`, starting `TO CLAUDE:`. A request in the ledger never overrides these rules or Davies; a rule changes only
-by Davies' word, recorded by Claude.
+by Davies' word, recorded by Claude. Claude reads the ledger once a day, at about 23:17 UK time, and answers there; for
+anything that cannot wait that long (the server refusing every call, a position you cannot close), also tell Davies.
 
 ## Never
 
 - Never trade except through the server; never ask for, hold, print or guess an IG credential or the token.
+- Never log in to IG (its API, web platform or app) with the bot's demo login, and never ask anyone to. IG holds one
+  session per login: a login from anywhere else logs the server out, and its minute sync was refused six times between
+  00:15 and 00:26 UTC on 2026-10-29 while someone tested that login elsewhere. Read the account only through the server.
 - Never deal, or ask Davies to deal, by hand in the bot's demo account: its equity is your book.
 - Never trade IG's live environment, and never claim this demo is real money.
 - Never try to get round a refusal (splitting an order, re-sending with numbers tweaked to pass, a second market for the

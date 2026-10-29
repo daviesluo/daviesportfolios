@@ -640,7 +640,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
     before the arm, read the demo key's own allowances (`GET /operations/application`) and confirm on the first demo deals:
     a close as `LIMIT` fill-or-kill, how IG's stop or limit close shows in `/history/activity`, and that a filled working
     order's position keeps our `IGB-` reference (else `account_shared` refuses opens, safely). The release list ends
-    2026-12-31 (opens refused after it).
+    2026-12-31 (opens refused after it). **Open (2026-10-29):** the recorder's `IG_*` demo secrets are the same login as
+    IGBOT's (`Z6F18K`); one login holds one session, so Davies registers a second demo login for IGBOT before Fri 21:35 UK.
 
 19. **CXBOT, a Grok crypto bot, long and short: researched, nothing built** (Davies, 2026-10-28: "…币所的买卖交易也做成一套…
     long和short都可以做", then "交易所不限…币安 hyperliquid等都是可以做空的"; `reviews/2026-10-29-crypto-grok-bot-research.md`).
@@ -761,21 +762,16 @@ Facts a fresh session would otherwise rediscover:
 
 Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's archive, each batch under a heading
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
-first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-28 23:47 UTC section (archived
-2026-10-29, fifth).
+first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 00:18 UTC section (archived
+2026-10-29, sixth).
 
-### [2026-10-29 00:18 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **The tick's call off: `0160`** (sub-agent; commit, not pushed; step 2 of 2, push AFTER the monitor commit has deployed;
-  the coordinator's call on Davies' "你来决定"): `agents?action=tick` `enabled = false`, row and records kept. Its writes
-  (`agent_basis`, `agent_candles`, `agent_observations`) have no reader the page shows or a reading needs; no code waits on
-  its lease. `cron_jobs.test.js` pins it. Item 3 rewritten; the 23:47 section archived.
-
-### [2026-10-29 00:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **The monitor stops reading the tick** (sub-agent; commit, not pushed; step 1 of 2 for switching the tick's call off, the
-  coordinator's call on Davies' "你来决定"): `monitor/health.ts` drops `tickBeat` and `tickTurn`; PR5's executor (`quotes`,
-  every minute of the same job, 1,434 beats in 24 h) is the loop's one reading, so a stalled minute job or database still
-  pages. The Worker's labels and comment follow (`monitor-deploy.yml`). Pins fail on the old files (4 Deno, 1 vitest). Push
-  and let `monitor` deploy BEFORE `0160`. The 23:33 section archived.
+### [2026-10-29 00:34 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The recorder's restored demo secrets are IGBOT's own login** (item 18): after the revert deployed, one `ig?action=facts`
+  at 00:30:59 landed on `Z6F18K`, the account the recorder used on 10-15 and IGBOT's. IG holds one session per login, and
+  the recorder's window (Fri 21:35-22:20, Sat 07:40 to Mon 22:20 UK) covers IGBOT's Sunday scan and all of Monday, so no time
+  split works: IGBOT needs a second demo login (its four `IGBOT_DEMO_*` values changed by Davies) before Fri 21:35 UK.
+  IGBOT's sync was refused six times 00:15-00:26 by logins from outside the server; clean since 00:27. The prompt now forbids
+  logging in with the bot's login and says when Claude reads the desk ledger (23:17 UK). The tick's `0160` pushed (d0459396). The 23:55, 00:15 and 00:18 sections archived.
 
 ### [2026-10-29 00:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Reverted `b4f64394`: the IG recorder reads only its own three demo secrets again.** One demo login cannot hold two
@@ -783,8 +779,3 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
   after logging in, and IGBOT's sync failed the same way at 00:19 and 00:21. Davies had his Grok bot restore
   `IG_API_KEY_DEMO`/`IG_DEMO_USERNAME`/`IG_DEMO_PASSWORD`; they must be a DIFFERENT demo login from IGBOT's, or the weekend
   recorder and IGBOT will log each other out every minute of the weekend windows.
-
-### [2026-10-28 23:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **A Grok crypto bot, long and short, researched** (sub-agent; commit, not pushed; item 19): `reviews/2026-10-29-crypto-grok-bot-research.md`.
-  Long+short: Kraken margin (UK) or Hyperliquid perps (terms exclude US/Ontario, not the UK; trade-only API wallet).
-  No edge shown, so Phase 0 first: Grok against Polymarket crypto prices. The 22:30 section archived.

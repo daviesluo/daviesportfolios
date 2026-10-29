@@ -47106,3 +47106,23 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   修复"): close as IG `LIMIT` FOK with no reference; five-day close retried; nothing foreign touched; IG budget across
   isolates (`0159`); missing closes wait; hour bars + scorer; prereg baseline m*; prompt answers and wake schedule. 18 pins.
   The 23:27 section archived.
+
+## LEDGER.md, archived 2026-10-29 (sixth) — the 2026-10-28 23:55, 2026-10-29 00:15 and 00:18 UTC history sections, oldest first
+
+### [2026-10-28 23:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **A Grok crypto bot, long and short, researched** (sub-agent; commit, not pushed; item 19): `reviews/2026-10-29-crypto-grok-bot-research.md`.
+  Long+short: Kraken margin (UK) or Hyperliquid perps (terms exclude US/Ontario, not the UK; trade-only API wallet).
+  No edge shown, so Phase 0 first: Grok against Polymarket crypto prices. The 22:30 section archived.
+
+### [2026-10-29 00:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The monitor stops reading the tick** (sub-agent; commit, not pushed; step 1 of 2 for switching the tick's call off, the
+  coordinator's call on Davies' "你来决定"): `monitor/health.ts` drops `tickBeat` and `tickTurn`; PR5's executor (`quotes`,
+  every minute of the same job, 1,434 beats in 24 h) is the loop's one reading, so a stalled minute job or database still
+  pages. The Worker's labels and comment follow (`monitor-deploy.yml`). Pins fail on the old files (4 Deno, 1 vitest). Push
+  and let `monitor` deploy BEFORE `0160`. The 23:33 section archived.
+
+### [2026-10-29 00:18 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The tick's call off: `0160`** (sub-agent; commit, not pushed; step 2 of 2, push AFTER the monitor commit has deployed;
+  the coordinator's call on Davies' "你来决定"): `agents?action=tick` `enabled = false`, row and records kept. Its writes
+  (`agent_basis`, `agent_candles`, `agent_observations`) have no reader the page shows or a reading needs; no code waits on
+  its lease. `cron_jobs.test.js` pins it. Item 3 rewritten; the 23:47 section archived.
