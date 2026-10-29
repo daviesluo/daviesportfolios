@@ -48,7 +48,7 @@ other account of Davies'.
 
 ## Status (Grok overwrites)
 
-- As of: 2026-10-29 06:55 UTC (full scan).
+- As of: 2026-10-29 10:50 UTC (full scan).
 - Mode demo, armed. Equity £1,000 · total P&L £0 · day £0 · open risk £0 · positions 0 · working orders 0 · orders today 0 / 40.
 - Stops: day −£20 not hit · total −£100 not hit. Gates: foreign null, no blackout, not weekend.
 - Watch list: ECB 2026-10-29 13:15 · BoE 2026-11-05 12:00 · NFP 2026-11-06 13:30 · CPI 2026-11-10 13:30.
@@ -69,5 +69,6 @@ other account of Davies'.
 
 ## Log (newest first, max 20 lines)
 
+- (Grok) 2026-10-29 10:50 UTC full scan: flat, ECB a priced hold, one E shadow (DAX); FXW-AUD healthy.
 - (Grok) 2026-10-29 06:55 UTC full scan: flat, two shadows (DAX, NDX), C-001 answered.
 - (Claude) Ledger opened; the test is in dry-run until Davies says go.
