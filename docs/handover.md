@@ -47356,3 +47356,38 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   - **Reads.** `?action=account` adds `cap_basis_usd` and the `*_pct` fields, `checks.caps` records each order's basis, and a refusal names
     "$15 (10 % of the $150 cap basis)". The page's day stop is 10 % of the record's day open (fixture, sweep and test now $10.16, $10.86 of room).
   - **Docs.** Prereg §9 D19 (sha `4c49e5e2…`), map row, guide, `docs/agents/CLAUDE.md`. No migration.
+
+## LEDGER.md, archived 2026-10-29 (nineteenth) — the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 UTC history sections, oldest first
+
+### [2026-10-29 06:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **REVX-FAIR: Revolut X's stablecoin fair studied** (sub-agent; commit, not pushed; Davies, 10-29: "…你仔细深度研究下这个价格的计算还有没有优化和改进的空间…").
+  `reviews/2026-10-29-revx-fair-price-study.md`, `backtests/fair_price/`; not blind, read-only, nothing changed in production.
+  - **Found.** Every Revolut X row prices off one fair: the USD book's 24 h median ÷ Yahoo's X, held through closures.
+    The clean book sits a median −1.4 / +0.8 bps from it (USDC / USDT). LIVE's 380 entry fills: +12.5 bps against fair, +8.3
+    against the mid at the fill.
+  - **Replays.** Sixteen candidate fairs on PR5-OPT's engine. None beats today's on both books out of sample. Par (no peg term)
+    costs −3.06 bps a day, all of it USDT.
+  - **One lead, USDC-GBP only:** a nudge by Coinbase's USDC-GBP deviation, +0.64 / +0.58 bps a day (P ≤ 0 0.09 / 0.08), 18 days.
+  - **For Davies:** keep the fair; a paper twin of the USDC nudge if he wants one. No live change.
+
+### [2026-10-29 06:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **REVX-FAIR addendum: the USDC-GBP lead mirrored onto Coinbase** (sub-agent; commit, not pushed; Davies, 10-29:
+  "建USDC 那个线索，在with euro-2的基础上开-3，只做300美元的USDC-GBP"). Review §8, `backtests/fair_price/scripts/cb_mirror.*`.
+  - **How.** -2's own `stepMinute` at $50 a rung, nudged by Revolut X's USDC-GBP mid (`agent_book_levels`, a median 18.7 s
+    old). It reproduces -2's 8 trips exactly and 48 of -1's 56.
+  - **Result.** As specified (w 0.5, 24 h): −0.14 bps of $300 a day (−1.61 to +1.25, P≤0 0.56); 13 of 16 settings are below
+    the base. One-way: Coinbase leads Revolut X.
+  - **The exception.** Closures only: +0.21 (+0.05 to +0.39, P≤0 0.01).
+
+### [2026-10-29 06:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Coinbase "with Euros - 2" doubled to $50 a rung ($600), and "with Euros - 3" built** (sub-agent; commit, not pushed; Davies, 10-29:
+  "建USDC 那个线索，在with euro-2的基础上开-3，只做300美元的USDC-GBP；另外把目前的-2数字*2做600美元funded", then "-3 只在休市时用").
+  - **"- 2" (USDC prereg Deviation 2).** $50 a rung from its first minute ≥ 2026-10-29 12:00 UTC (`usd50From` in `cb_usdc_state`).
+    A rung held across the switch keeps its coins. The page shows the record before × 2. The 10 % cap would have bound on 1 of the
+    first 15 fills at $50 (USDC-GBP 10-28 01:03 UTC).
+  - **"- 3" (`0168`, `cb_nudge.ts`, prereg `2026-10-29-cb-usdc-nudge-prereg.md`).** "- 2"'s driver (`runCbUsdcArm`, shared) on USDC-GBP at
+    $50, $300. Its fair is nudged inside FX closures alone by Revolut X's recorded mid, as REVX-FAIR §8 replayed it.
+    - Checked against that replay's own data (98d94c49): RX equal in 27,360 of 27,360 minutes; trips 65/65 (closures) and 67/67
+      (every minute).
+    - It starts at the first 00:00 UTC after its first run. Its reading is 28 days against "- 2"'s USDC-GBP book: a 3-day block
+      bootstrap, P(mean ≤ 0) < 0.10.

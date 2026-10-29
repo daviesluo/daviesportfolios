@@ -1,0 +1,13 @@
+{
+ "study": "FX-SPEED-RX, docs/agents/reviews/2026-10-29-fx-second-sources.md §9",
+ "zips": "the twelve Exness_GBPUSD_2025_11 … Exness_GBPUSD_2026_10 archives of MANIFEST_long.json (same URLs, sha256 and counts)",
+ "derived": {
+  "rx_ex.txt.gz": {
+   "by": "python3 -I scripts/revx_long_ex.py EXN_DIR rx_ex.txt.gz",
+   "lines_uncompressed": 350019,
+   "sha256_uncompressed": "2c660e7cf86e806ad5759ce8584e554a248a47b5eb62541d0913490d2f1083a8",
+   "committed": false
+  }
+ },
+ "revolut_x": "docs/agents/backtests/inputs/pr5_2026-09-23 (the committed tape, 2025-10-01 → 2026-09-23 prints; scored from the listings, USDC-GBP 2025-11-26, USDT-GBP 2025-12-16) and docs/agents/backtests/fair_price/data (2026-09-26 → 10-29)"
+}

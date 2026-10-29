@@ -50,6 +50,11 @@ here needs one. Public data only; no figure of Davies' own accounts.
      2 s before go-live gets +£66 of the +£73. The steps between reading 0, 2, 5 and 15 s early are inside the noise.
    - A real feed would capture about nine-tenths of the gap to the bound, on Coinbase only. This is 19 days of one paper
      arm. It earns nothing on Revolut X, and nothing changes before the recorder's comparison (§4) and a pre-registration.
+9. **The long backtests (§8, §9).** Over two years a fast X passes on every Coinbase arm (§8). Over Revolut X's whole history
+   (2025-11-26 → 2026-10-29) it passes on no Revolut X row: LIVE −£2.0 a year out of sample [−£13.2, +£9.3], the testing rows
+   −£4.6 to +£4.0, and even the bound earns nothing (§9). The X error is the same small size on both venues. Coinbase's
+   books carry a fifth of a rate move within the minute, so a stale quote gets picked off; Revolut X's carry 2 %, so it does
+   not.
 
 ## 1. The candidates
 
@@ -588,3 +593,148 @@ To run it again: `python3 -I scripts/exness_long.py fetch <dir>`, then `build <d
 `python3 -I scripts/cb_long.py X.txt.gz runs.json.gz`, then `python3 -I scripts/cb_long_stats.py runs.json.gz results/cb_long.json`.
 
 One production read was used: `cb_quote_minutes.x_t` and `cb_quote_state`, for §8.3's timing. Paper money only.
+
+## 9. The long backtest on Revolut X: LIVE and four testing rows (FX-SPEED-RX)
+
+Davies, 2026-10-29: "同样的长期回测在revolut x的live和几个有代表性的testing策略也测一遍，看看有没有优化，有的话也全面改，没有的话解释下为什么"
+(run the same long backtest on Revolut X's LIVE and a few representative testing strategies; if it improves them, change them
+all, and if not, explain why).
+
+### 9.1 Answers first
+
+**No Revolut X row passes, and nothing is changed.** For the rule as it could run (b), the change against today's X (a) is
+inside ±£8 a year on every row, out of sample and in sample alike:
+
+| row | in sample, 2025-11-26 → 2026-05-12 | **out of sample, 2026-05-12 → 10-29**, £/yr [90 %], P(≤ 0) | months positive | verdict |
+|---|---|---|---|---|
+| LIVE's rules, £600 (`live600`) | +£1.5 | **−£2.0 [−13.2, +9.3], 0.61** | 4 of 12 | no |
+| variant-1, £1,200 (`live1200`) | +£2.2 | **−£4.6 [−26.5, +17.8], 0.64** | 4 of 12 | no |
+| variant-2, TAKE's maker side (`take50`) | −£7.5 | **−£1.8 [−8.2, +4.6], 0.68** | 4 of 12 | no |
+| variant-5, USDT 3:1 (`n600usdt3`) | +£2.8 | **+£4.0 [−10.3, +18.5], 0.33** | 7 of 12 | no |
+| variant-7, the Coinbase nudge (`u300nudge`), 10-14 → 10-29 only | — | −£0.9 [−10.1, +8.8], 0.57 (15 days) | — | no evidence |
+
+- **Even the bound earns nothing.** L0, the price as the orders go live (c), gives LIVE −£1.2 a year out of sample
+  [−13.1, +10.9]. No feed, however fast, can beat that.
+- **Nothing else passes either.** The other timings run, by row out of sample: (b) at TrueFX's level, 3 s of age, the
+  executor's own turn, and a minute close. They range from −£6.4 to +£7.2 a year, and every P(≤ 0) is 0.14 or more, so
+  none clears the bar.
+- **The scale.** LIVE's rules made £370 in sample and £250 out of sample on (a) in this replay. The fast X moves that by
+  under 1 %.
+- **Its own record barely moves.** LIVE in sample: 4,951 → 4,923 trips, 16.61 → 16.77 bps a trip, stops 53 → 53. On
+  Coinbase the same switch cut trips by 44 % and doubled the bps a trip (§8.4).
+- **Why Coinbase gains and Revolut X does not** (§9.4): the X error is equally small on both venues (median 0.6–0.7 bps),
+  but on Coinbase the counterparties trade on that error and on Revolut X they do not.
+  - Coinbase's GBP books carry a fifth of a GBP/USD move within the minute and print 3,300–4,300 times a day, so a stale
+    quote is picked off.
+  - Revolut X's carry 2 % in the first minute and 7–16 % in two. They print 79 (USDC-GBP) and 587 (USDT-GBP) times a day,
+    and their fills do not follow the minute's FX move.
+
+### 9.2 The history and how it is filled
+
+- **Revolut X UK's every public print**, read keylessly from `/api/1.0/public/trades/all`. It is the committed nine-month tape
+  (`inputs/pr5_2026-09-23`: prints from 2025-10-01; scored from the listings, USDC-GBP 2025-11-26 and USDT-GBP 2025-12-16,
+  to 2026-09-23).
+- **Then the recorded minute record and prints of 2026-09-26 → 10-29** (REVX-FAIR's `fair_price/data`). Two days,
+  09-23 → 09-26, are missing between them. There is nothing before the listings.
+- **No candle is used.** Revolut X's minute candles move on quotes while nothing trades. Every fill here is a public print
+  through a resting price (or at it, LIVE's "at"), by the print's own size, as the PR5-OPT engine fills.
+  - What the tape lacks is the book. A post-only refusal is judged against the last print, not a recorded touch.
+  - TAKE's taker leg cannot be replayed at all: 13 IOCs in 36 days, each needing a recorded book. Only its maker side is
+    here.
+- **fairU** is the USD books' 24-hour median of hourly closes: the tape's candles, then the minute record's.
+- **GBP/USD** is Exness's ticks, the same archives as §8 (`MANIFEST_rx.json`): 16.4 M GBPUSD ticks, 2025-11 → 2026-10.
+
+### 9.3 What LIVE reads, and when
+
+- **The paper turn of minute t** uses data to t − 1. The paper call decides it 25 s into the next minute, at t + 85 s
+  (`QUOTES_START_MS`).
+- **LIVE's executor sends the orders about 30 s into that minute.** In production, 1,584 live orders in the 7 days to
+  2026-10-29 went a median 32.4 s after `paper_live` (= t + 60 s), 5 %–95 % 29.5–91 s. The replay rests them at t + 90 s.
+- **(a) today:** Yahoo's bar of t − 1, the price of about t − 32 s (§7.2), × (1 + 0.33 bps). That is 122 s before the order
+  rests.
+  - Checked against the real bars on the recorded window: the real Yahoo X made LIVE £19 a year more than the reconstruction
+    [−£1, +£41] over 33 days. The other rows: +£33, +£10, −£12. So the reconstruction is unbiased only to within ±£20 a year
+    over five weeks. That is about the size of everything below, so the recorded window cannot settle anything alone.
+- **(b) the switch as it could run:** the newest `fx_ticks` read received by the decision at t + 85 s, with 1 s of TrueFX's
+  age: Exness at t + 84 s, at Yahoo's level. This is the primary, named before any run.
+  - Also run: b_raw (TrueFX's level), b_slow (t + 82 s, 3 s of age), b_turn (t + 87 s, read at the executor's own turn).
+- **(c) the bound:** t + 90 s, as the orders go live. **x60**: t + 60 s, a minute close read at the paper turn.
+- **The bar, written before any run** (`scripts/revx_long.py`, as §8's):
+  - out of sample, mean > 0 and P(≤ 0) < 0.10 (3-day circular blocks, 10,000 draws, seed 20261029);
+  - in sample, mean > 0;
+  - at least two thirds of the calendar months positive.
+- **The rows, as `agent_quote_twin_specs` has them:**
+  - `live600`: LIVE's rules, £600, "at", the weekend on the held X.
+  - `live1200`: the same at £1,200.
+  - `take50`: PR5's paper rules at £600, fill through only, no weekend.
+  - `n600usdt3`: LIVE's rules, USDT-GBP £75 a rung, USDC-GBP £25.
+  - `u300nudge`: LIVE's rules on USDC-GBP alone at £37.555 a rung, with REVX-FAIR's Coinbase nudge on top of each
+    candidate's fair. Coinbase's touch exists only from 10-10, so it runs 10-14 → 10-29 after 72 h of warm-up, and no bar
+    applies.
+
+### 9.4 Why: the numbers (`scripts/why.py` → `results/revx_why.json`)
+
+- **What moves with X.** Fair = fairU / X.
+  - fairU is a 24-hour median of hourly closes: it changes at most once an hour and by fractions of a bp.
+  - X is the only fast part, so the whole difference between (a) and (b) is X's change between t − 32 s and t + 84–90 s.
+- **That change is small, and the same size on both venues.** Over 318,822 weekday minutes:
+  - Yahoo's timing against go-live is a median 0.67 bps for Revolut X (t + 90) and 0.60 for Coinbase (t + 60).
+  - p90 2.3 / 2.0, p99 5.1 / 4.5 bps.
+  - It passes the 5 bps re-price step (0.05 %) in 1.1 % of minutes and the nearest rung, 10 bps, in 0.10 %.
+  - The book's step is 1.33 bps. Most minutes the faster X leaves every resting order where it was, on either venue.
+- **What differs is who trades against the quote.** The share of a GBP/USD move of 2 bps or more carried by the book's
+  prints, 2026-10-10 → 10-28 (slope of the coin's pound price on −ΔX):
+
+| after | 1 min | 2 min | 5 min | 15 min | 60 min |
+|---|---|---|---|---|---|
+| Revolut X USDC-GBP | 0.02 | 0.07 | 0.18 | 0.34 | 1.23 |
+| Revolut X USDT-GBP | 0.02 | 0.16 | 0.41 | 0.60 | 0.87 |
+| Coinbase USDC-GBP | 0.20 | 0.22 | 0.30 | 0.34 | 0.46 |
+| Coinbase USDT-GBP | 0.24 | 0.27 | 0.39 | 0.40 | 0.54 |
+
+  - Over Revolut X's whole tape (16,500–17,900 moves): 0.02 / 0.04 at one minute and 0.11 / 0.15 at five.
+  - Coinbase's minute record stamps each minute's last print at the minute's end. Its one-minute figure is therefore if
+    anything late, not early.
+  - **Prints a day** (10-10 → 10-28): Revolut X 79 (USDC-GBP; a print in 43 minutes of the day) and 587 (USDT-GBP; 351
+    minutes); Coinbase 4,332 and 3,340 (1,236 and 946 minutes).
+- **So on Coinbase a stale quote is picked off.** When interbank moves, Coinbase's arbitrageurs carry a fifth of it into the
+  book within the minute. They take the quote the move has made cheap. The fresh X moves that quote first: −44 % of trips,
+  +5.5 bps each (§8.4).
+- **On Revolut X nobody races the rate.** Its prints arrive a few dozen times an hour, from flow that follows GBP/USD over
+  quarter-hours, not the minute. A quote a bp stale is filled no more often, and no worse, than a fresh one: trips −0.6 %,
+  +0.16 bps a trip. The gain the fast X could have is the size of the noise, and it does not show.
+- **The 09-28 fast-X study and REVX-FAIR found the same** (§7.7): a faster X worth about nothing on Revolut X.
+
+### 9.5 Per book
+
+| row: (b) out of sample, £/yr [90 %], P(≤ 0); months | USDC-GBP | USDT-GBP |
+|---|---|---|
+| live600 | −0.6 [−6.9, +6.1], 0.57; 6 of 12 | −1.4 [−11.7, +8.9], 0.59; 5 of 11 |
+| live1200 | −2.3 [−14.6, +9.9], 0.63; 5 of 12 | −2.3 [−21.4, +17.2], 0.58; 5 of 11 |
+| take50 | −3.4 [−7.9, +0.9], 0.90; 2 of 12 | +1.6 [−4.5, +7.7], 0.33; 5 of 11 |
+| n600usdt3 | +1.5 [−2.4, +5.5], 0.28; 6 of 12 | +2.5 [−11.3, +16.5], 0.39; 5 of 11 |
+
+### 9.6 What it means for a build
+
+- **Nothing is built for Revolut X.** LIVE and its twins keep Yahoo's bar.
+  - The recorder (§3) goes on recording, and its comparison (§4) still runs: it is what tells the Coinbase switch whether
+    TrueFX's live behaviour matches §8's model.
+  - On Revolut X, a faster X is one more source to keep alive for nothing.
+- **If anything on Revolut X is to price faster, it is not the FX rate.** The pass-through table says Revolut X's GBP books
+  lag interbank by minutes. That is a different question, the venue's own lag against the fair, and the REVX-FAIR study
+  (`2026-10-29-revx-fair-price-study.md`) priced the candidates for it.
+
+### 9.7 Files
+
+`backtests/fx_speed/`:
+- `scripts/revx_long_ex.py`: the GBPUSD instants from §8's archives. `MANIFEST_rx.json` holds the derived file's sha256; the
+  file itself is not committed.
+- `scripts/revx_long.py` → `results/revx_long.json`: every run, pairing, month, book, record and verdict. About 4.5 minutes
+  on four cores.
+- `scripts/why.py` → `results/revx_why.json`: the pass-through, prints and X error.
+
+To run it again: `python3 -I scripts/revx_long_ex.py <zips> rx_ex.txt.gz`, then
+`RX_EX=rx_ex.txt.gz python3 -I scripts/revx_long.py results/revx_long.json` and
+`RX_EX=rx_ex.txt.gz python3 -I scripts/why.py results/revx_why.json`.
+
+One production read: `agent_quote_live_orders` (`ts`, `paper_live`) and `agent_quote_twin_specs`, for §9.3. Paper money only.

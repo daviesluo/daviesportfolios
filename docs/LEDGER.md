@@ -672,7 +672,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
     Davies' word (the arms would fall back to Yahoo). **After that deploy:** apply `0173` before or with it (a run that writes
     `fx_src` before the column exists is refused and re-decided by the next); each arm's state gets `fxFrom` (its first minute at
     or after 10:00 UTC, after the deploy) and `fxCount`; `cb_*_minutes.fx_src` mostly `truefx` on a weekday, `yahoo`/`kraken`
-    a few, `dark` (base) or `held:*` from Friday 21:00 UTC.
+    a few, `dark` (base) or `held:*` from Friday 21:00 UTC. **Revolut X long (§9, FX-SPEED-RX): no row passes**; LIVE and its twins keep Yahoo.
 
 ## Machine and platform setup
 
@@ -790,7 +790,7 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 01:24 UTC section (archived
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
-and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth).
+and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth).
 
 ### [2026-10-29 09:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Coinbase USDT books dark 08:00–~09:50: `cb_quote_inputs` refused `cb:USDT-USD`** (main session, found in the post-deploy
@@ -798,6 +798,14 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   08:02 and the base and weekend arms' USDT books had no coin value (dark: no entries; nothing wrong traded). `0174` widens the
   check; `src/cb_quote_inputs_kinds.test.js` replays the migrations' kind checks against the code's kinds. **After the push:**
   `select count(*) from cb_quote_inputs where kind = 'cb:USDT-USD'` growing; no more `agents.cb_rec` "cbusdt" errors.
+
+### [2026-10-29 09:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **FX-SPEED-RX: the long fast-X backtest on Revolut X: no row passes, nothing changed** (sub-agent; commit, not pushed; Davies, 10-29:
+  "同样的长期回测在revolut x的live和几个有代表性的testing策略也测一遍…没有的话解释下为什么"). Review §9, `backtests/fx_speed/` (`revx_long.py`, `why.py`).
+  PR5-OPT's engine unchanged on Revolut X's every print, 2025-11-26 → 10-29; X read at the decision (t + 85 s, 1 s of age) vs Yahoo's
+  timing; bar written first. OOS £/yr: live600 −2.0 [−13.2, +9.3] P 0.61; live1200 −4.6; take50 (maker side) −1.8; n600usdt3 +4.0
+  P 0.33; u300nudge 15 days, no evidence; the go-live bound earns nothing too. Why: X error median 0.67 bps on both venues, but
+  Revolut X's GBP books carry 2 % of a rate move in a minute (Coinbase ~20 %) on 79/587 prints a day, so stale quotes are not picked off.
 
 ### [2026-10-29 09:22 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Every Coinbase arm on the rate at second resolution** (sub-agent; commit, not pushed; Davies, 10-29: "…如果还是正向优化的话把所有coinbase
@@ -907,36 +915,3 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
     Venue-only fairs, sibling-implied FX, inventory skew, weekend drift: no. FX timing bound: −£11 (a minute staler) to +£38 (look-ahead).
   - **OKX**: USDG/EUR trades +4.4 bps over par; a half-weight 24 h basis adds +£0.070/day per £300 book in OKX history OOS
     [+0.039, +0.102]: proposed as a paper twin. EURC/USDC: keep par. OKX's own record (from 10-28 22:00) supports no verdict.
-
-### [2026-10-29 06:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Coinbase "with Euros - 2" doubled to $50 a rung ($600), and "with Euros - 3" built** (sub-agent; commit, not pushed; Davies, 10-29:
-  "建USDC 那个线索，在with euro-2的基础上开-3，只做300美元的USDC-GBP；另外把目前的-2数字*2做600美元funded", then "-3 只在休市时用").
-  - **"- 2" (USDC prereg Deviation 2).** $50 a rung from its first minute ≥ 2026-10-29 12:00 UTC (`usd50From` in `cb_usdc_state`).
-    A rung held across the switch keeps its coins. The page shows the record before × 2. The 10 % cap would have bound on 1 of the
-    first 15 fills at $50 (USDC-GBP 10-28 01:03 UTC).
-  - **"- 3" (`0168`, `cb_nudge.ts`, prereg `2026-10-29-cb-usdc-nudge-prereg.md`).** "- 2"'s driver (`runCbUsdcArm`, shared) on USDC-GBP at
-    $50, $300. Its fair is nudged inside FX closures alone by Revolut X's recorded mid, as REVX-FAIR §8 replayed it.
-    - Checked against that replay's own data (98d94c49): RX equal in 27,360 of 27,360 minutes; trips 65/65 (closures) and 67/67
-      (every minute).
-    - It starts at the first 00:00 UTC after its first run. Its reading is 28 days against "- 2"'s USDC-GBP book: a 3-day block
-      bootstrap, P(mean ≤ 0) < 0.10.
-
-### [2026-10-29 06:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **REVX-FAIR addendum: the USDC-GBP lead mirrored onto Coinbase** (sub-agent; commit, not pushed; Davies, 10-29:
-  "建USDC 那个线索，在with euro-2的基础上开-3，只做300美元的USDC-GBP"). Review §8, `backtests/fair_price/scripts/cb_mirror.*`.
-  - **How.** -2's own `stepMinute` at $50 a rung, nudged by Revolut X's USDC-GBP mid (`agent_book_levels`, a median 18.7 s
-    old). It reproduces -2's 8 trips exactly and 48 of -1's 56.
-  - **Result.** As specified (w 0.5, 24 h): −0.14 bps of $300 a day (−1.61 to +1.25, P≤0 0.56); 13 of 16 settings are below
-    the base. One-way: Coinbase leads Revolut X.
-  - **The exception.** Closures only: +0.21 (+0.05 to +0.39, P≤0 0.01).
-
-### [2026-10-29 06:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **REVX-FAIR: Revolut X's stablecoin fair studied** (sub-agent; commit, not pushed; Davies, 10-29: "…你仔细深度研究下这个价格的计算还有没有优化和改进的空间…").
-  `reviews/2026-10-29-revx-fair-price-study.md`, `backtests/fair_price/`; not blind, read-only, nothing changed in production.
-  - **Found.** Every Revolut X row prices off one fair: the USD book's 24 h median ÷ Yahoo's X, held through closures.
-    The clean book sits a median −1.4 / +0.8 bps from it (USDC / USDT). LIVE's 380 entry fills: +12.5 bps against fair, +8.3
-    against the mid at the fill.
-  - **Replays.** Sixteen candidate fairs on PR5-OPT's engine. None beats today's on both books out of sample. Par (no peg term)
-    costs −3.06 bps a day, all of it USDT.
-  - **One lead, USDC-GBP only:** a nudge by Coinbase's USDC-GBP deviation, +0.64 / +0.58 bps a day (P ≤ 0 0.09 / 0.08), 18 days.
-  - **For Davies:** keep the fair; a paper twin of the USDC nudge if he wants one. No live change.
