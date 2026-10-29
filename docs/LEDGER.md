@@ -652,7 +652,7 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
     `docs/agents/cxbot/GROK_PROMPT.md`, seed `docs/agents/cxbot/ledger_seed.md`; `cxbot` function, `0163`). No key of any venue.
     **Main session after the deploy:** fire `reach` once (SQL in the 01:32 history line) and read `cxbot_reach`: if Hyperliquid
     is not 200 from eu-west-2, `update public.cxbot_config set venue = 'binance'` (then OKX) before the go, never routed
-    round; create `cxbot-ledger` from the seed; the daily desk check (~23:27 UK). **Davies:** the secret `CXBOT_TOKEN` (32+
+    round; create `cxbot-ledger` from the seed; the daily desk check (23:45 UK, with GROKPM and IGBOT). **Davies:** the secret `CXBOT_TOKEN` (32+
     chars, to Grok only), the name, then the go (0163's statement; 48 h shakedown, 56 days).
     **Independent audit 2026-10-29** (`reviews/2026-10-29-cxbot-independent-audit.md`), its §3 settled by Davies: 7-day blocks,
     CXBOT's own 2027 Q1 releases (opens to 2027-03-31), P&L from the shakedown's end. Prompt changed: resend it to Grok.
@@ -774,6 +774,11 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 01:24 UTC section (archived
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth).
+
+### [2026-10-29 02:49 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **One daily review at 23:45 London for all three Grok desks** (Davies, 10-29: "每天23:45的复盘把这两个也加上"): the
+  GROKPM trigger `trig_0165DPcrxXo6NhdDZdjDsmZ8` now checks GROKPM, IGBOT and CXBOT; the separate 23:17 (IGBOT) and 23:27
+  (CXBOT) triggers are deleted. The IGBOT and CXBOT prompts and the CXBOT seed say 23:45; prompts resent to Davies.
 
 ### [2026-10-29 02:36 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **CXBOT: Davies' three audit decisions** (sub-agent; commit, not pushed; item 19; "你说的那三件事全按你的建议来"):

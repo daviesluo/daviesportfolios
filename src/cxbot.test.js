@@ -108,7 +108,7 @@ describe('CXBOT, the paper path', () => {
 
   it('carries the desk ledger, the wake schedule, the scoring of a timeout and the session rule', () => {
     for (const words of [
-      '`CXBOT_LEDGER.md` on the branch **`cxbot-ledger`**', 'Keep it under 10 KB (10,240 bytes)', 'about 23:27 UK time',
+      '`CXBOT_LEDGER.md` on the branch **`cxbot-ledger`**', 'Keep it under 10 KB (10,240 bytes)', 'about 23:45 UK time',
       'where the price then stands between the stop (0) and the limit (1)', 'Never log in to, or use, any exchange account, API key, wallet or session the server or its recorder uses',
       '00:00, 04:00, 08:00, 12:00, 16:00, 20:00', 'T−60, T−20, T+5, T+15, T+60', 'every 30 minutes while you hold',
       // The independent audit (2026-10-29): the geoblock rule, the shadow's clock, the gap and same-minute fills.
