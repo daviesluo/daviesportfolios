@@ -248,11 +248,13 @@ describe("the twins' spec rows", () => {
       ['n600usdt3', 'Stablecoin quotes variant-5', 49, 600, true, false], ['n600usdt', 'Stablecoin quotes variant-6', 50, 600, true, false],
       // 0169 (Davies, 2026-10-29: REVX-FAIR's USDC-GBP lead "开testing variant-7…做300美元funded"): $300 at 1.3314, and its control, hidden.
       ['u300nudge', 'Stablecoin quotes variant-7', 51, 225.33, true, false], ['u300ctl', 'Stablecoin quotes USDC control from 10-30', 52, 225.33, true, true],
+      // 0175 (Davies, 2026-10-29: REVX-LAG's one pass, "好的，建 variant-8，在实盘live的基础上"): LIVE's rules with every exit a tick beyond fair, and its control, hidden.
+      ['live600x1', 'Stablecoin quotes variant-8', 53, 600, true, false], ['live600ctl', 'Stablecoin quotes LIVE control from 10-29', 54, 600, true, true],
     ]);
     // The page shows the two on LIVE's rules, each with LIVE's fill rule and, from the closure of 2026-10-30 21:00 UTC,
     // LIVE's weekend; none takes (LIVE's take is in shadow, which sends nothing).
     const onPage = ROWS.filter((r) => r.enabled && !r.hidden);
-    expect(onPage.map((r) => r.id)).toEqual(['live600', 'live1200', 'take50', 'n600no03', 'n600hold1', 'n600usdt3', 'n600usdt', 'u300nudge']);
+    expect(onPage.map((r) => r.id)).toEqual(['live600', 'live1200', 'take50', 'n600no03', 'n600hold1', 'n600usdt3', 'n600usdt', 'u300nudge', 'live600x1']);
     // TAKE's twin keeps its own rule (a take from 2026-10-04 16:00); the others on LIVE's rules do not take.
     expect(onPage[2].rules.take).toBeTruthy();
     for (const r of onPage.slice(0, 2)) {
@@ -279,6 +281,17 @@ describe("the twins' spec rows", () => {
     }
     expect(nu.rules.fairNudge).toEqual({ from: N, book: 'USDC-GBP', w: 0.5, halfLifeMin: 1440 });
     expect('fairNudge' in ctl.rules).toBe(false);
+    // 0175's variant-8 and its hidden control: £600 on both books, LIVE's fill rule from their start (2026-10-29 19:00), LIVE's
+    // weekend from the LIVE twin's own instant, and the offset on variant-8 alone (the control is the same row without it).
+    const X = '2026-10-29T19:00:00Z';
+    const live600 = ROWS.find((r) => r.id === 'live600');
+    const [x1, xctl] = ['live600x1', 'live600ctl'].map((id) => ROWS.find((r) => r.id === id));
+    for (const r of [x1, xctl]) {
+      expect([r.start, r.rules.fill, r.rules.weekend, Number(r.capital_gbp), 'take' in r.rules, 'weights' in r.rules], r.id)
+        .toEqual([X, { model: 'at', from: X }, live600.rules.weekend, Number(live600.capital_gbp), false, false]);
+    }
+    expect(x1.rules.exitOffset).toEqual({ ticks: 1, from: X });
+    expect('exitOffset' in xctl.rules).toBe(false);
   });
 
   it("make the browser test's fixture as they stand: every enabled row, in the page's order, a hidden one too (it still runs)", () => {

@@ -1877,6 +1877,32 @@ Deno.test("an exit the book shows crossing rests one tick inside it, no refused 
   assertEquals(was.w.rx.resting("USDT/GBP").filter((o) => exitIds(was.w).has(o.client_order_id)).length, 0);
 });
 
+// Variant-8 (0175, docs/agents/reviews/2026-10-29-revx-exit-tick-twin-prereg.md): `exitOffset` and the exits meeting the book
+// together, as the twin runs them. The offset moves the rule's price a tick in the position's favour first; the book then
+// moves a price it shows crossing one tick inside the opposite best, as it does any exit's.
+Deno.test("exitOffset with the exits meeting the book (variant-8): a tick beyond the rule's where the book allows it, one inside the touch where the offset price still crosses", async () => {
+  const rule = exitTicks(1 / X, "ask");                                // a short's buy-back
+  const run = async (book: { bid: number; ask: number }, offset: boolean) => {
+    const w = makeWorld({ live: true, armed: true, balances: { GBP: 50 }, instance: { ...QUOTE_LIVE_INSTANCE, exitInside: { from: T0 - DAY }, ...(offset ? { exitOffset: { ticks: 1, from: T0 - DAY } } : {}) } });
+    await w.seed({ mode: "live", book: "USDT-GBP", rung_side: "ask", k: 0.001, leg: "entry", side: "sell", price: 0.7562, base_size: 5, filled_base: 5, avg_fill_price: 0.7562, ts: iso(T0 - H), filled_at: iso(T0 - H) });
+    w.rx.gbpBooks["USDT/GBP"] = { bid: book.bid * QUOTE_TICK, ask: book.ask * QUOTE_TICK };
+    const r = await w.step(T0);
+    assertEquals(r.errors, []);
+    return w.orders().filter((o) => o.leg === "exit" && o.book === "USDT-GBP")
+      .map((o) => [ticks(o), o.state, (o.request as Record<string, unknown>).ruleTicks ?? null]);
+  };
+  // A wide book: nothing crosses; the offset rests a tick under the rule's buy-back, the control at the rule's.
+  const wide = { bid: rule - 8, ask: rule + 4 };
+  assertEquals([await run(wide, false), await run(wide, true)], [[[rule, "new", null]], [[rule - 1, "new", null]]]);
+  // The best ask a tick under the rule's price: the rule's crosses and rests at the ask less a tick; the offset's (the ask
+  // itself) crosses too and rests at the same price, its own price kept in the request.
+  const tight = { bid: rule - 6, ask: rule - 1 };
+  assertEquals([await run(tight, false), await run(tight, true)], [[[rule - 2, "new", rule]], [[rule - 2, "new", rule - 1]]]);
+  // The best ask at the rule's own price: the rule's crosses and moves inside; the offset's does not cross and rests where it is.
+  const atRule = { bid: rule - 6, ask: rule };
+  assertEquals([await run(atRule, false), await run(atRule, true)], [[[rule - 1, "new", rule]], [[rule - 1, "new", null]]]);
+});
+
 Deno.test("at the instant, an exit refused for crossing before it holds nothing back: the next turn rests it inside the book", async () => {
   const rule = exitTicks(1 / X, "ask");
   const w = makeWorld({ live: true, armed: true, balances: { GBP: 50 }, instance: { ...QUOTE_LIVE_INSTANCE, exitInside: { from: T0 + M + 45e3 } } });

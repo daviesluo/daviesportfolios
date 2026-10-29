@@ -792,6 +792,18 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth).
 
+### [2026-10-29 17:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **"Stablecoin quotes variant-8" built** (sub-agent; commit, not pushed; Davies, 10-29: "好的，建 variant-8，在实盘live的基础上").
+  `0175`: `live600x1` (LIVE's rules exactly as `live600`: £600 both books, "at" fill, weekend from 10-30 21:00, exits meeting the
+  book; plus `rules.exitOffset` 1 tick) and its hidden control `live600ctl` (the same without it), both flat from **2026-10-29 19:00
+  UTC**, no backfill; a later apply catches up from 19:00. No code change: `exitOffset` exists since 0108 and the driver, executor,
+  simulator and weekend rule are byte for byte variant-7's frozen files, so no frozen-files deviation. Prereg
+  `reviews/2026-10-29-revx-exit-tick-twin-prereg.md` (frozen, pin `src/exit_tick_twin_prereg.test.js`): 28 days 10-29 19:00 →
+  11-26 19:00 vs the control, d in bps of £600, 3-day block bootstrap, PASS mean > 0 and P(≤ 0) < 0.10; read on or after 11-27
+  19:00; `live600` beside, no bar. Expectation (`backtests/revx_lag/scripts/power.py`): +1.20 bps/day OOS (+0.27 Sep–Oct); 94 % of
+  28-day windows pass (86 % ending Sep–Oct); caveats named (fade, LIVE's fills in the tape, F3's contrary replay, `exitTicksOnBook`
+  not in the replay). Deno pin of the offset composing with `exitTicksOnBook`; fixture regenerated; map, guide, reference, CLAUDE.md.
+
 ### [2026-10-29 10:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **REVX-LAG: can LIVE's rules use Revolut X's lag against the fair?** (sub-agent; commit, not pushed; Davies, 10-29: "这个有办法解决吗？有的话仔细研究").
   `reviews/2026-10-29-revx-lag-study.md`, `backtests/revx_lag/`; PR5-OPT's engine unchanged, every print since the listings, inputs as of

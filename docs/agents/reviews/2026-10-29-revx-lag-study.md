@@ -257,8 +257,11 @@ On the recorded books (2026-09-26 → 10-29, LIVE's own orders removed), at each
   and the tape-only taker.
 - `scripts/robust.py` → `results/robust.json`: exit1 under four fill assumptions, exit2, and the taker on the recorded books.
 - `scripts/nudge.py` → `results/nudge.json`: variant-7's nudge over the whole history.
+- `scripts/power.py` → `results/power.json` (added with variant-8, 2026-10-29; it needs no `RX_EX`): exit1's daily difference
+  for live600 in bps of £600 and how often a 28-day window passes variant-8's bar
+  (`reviews/2026-10-29-revx-exit-tick-twin-prereg.md` §2).
 
-They need `RX_EX`, FX-SPEED-RX's derived Exness file (`fx_speed/scripts/revx_long_ex.py`; its sha256 in
+The others need `RX_EX`, FX-SPEED-RX's derived Exness file (`fx_speed/scripts/revx_long_ex.py`; its sha256 in
 `fx_speed/MANIFEST_rx.json`). `robust.py`'s taker also reads `FP_LIVE`, LIVE's order pull (not committed), to take LIVE's own
 orders out of the recorded books. Each replay takes 5–10 minutes on four cores.
 
