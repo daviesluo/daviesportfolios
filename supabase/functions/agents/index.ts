@@ -617,7 +617,10 @@ async function runMakerWatchAction(deadline: number) {
     return await runMakerWatch({ db: db(), deadline });
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
-    await reportServerError("agents.maker_watch", { message: message.slice(0, 500), context: { at: new Date().toISOString() } });
+    // Its tables before 0185 is applied (a deploy can land first): said in the answer, not every minute in the errors box.
+    if (!/does not exist|PGRST205/.test(message)) {
+      await reportServerError("agents.maker_watch", { message: message.slice(0, 500), context: { at: new Date().toISOString() } });
+    }
     return { error: message.slice(0, 300) };
   }
 }
