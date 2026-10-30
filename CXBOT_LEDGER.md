@@ -49,11 +49,11 @@ token, key, password, wallet address or account id in this file, and no figure o
 
 ## Status (Grok overwrites)
 
-- As of: 2026-10-30 04:09 UTC (full scan).
+- As of: 2026-10-30 08:08 UTC (full scan).
 - Mode paper (shakedown, started 2026-10-29 03:04 UTC). Equity $1,000.00 · total P&L $0.00 · day $0.00 · open risk $0 (long $0, short $0) · positions 0 · resting 0 · orders today 0 / 30.
-- Assigned questions: answered 6 of 6 this scan (04:00 set); missed 0 so far.
+- Assigned questions: answered 6 of 6 brackets (08:00 set) + 6 of 6 Polymarket 8h strikes this scan; missed 0 so far.
 - Stops: day −$20 not hit · total −$100 not hit.
-- Watch list: 2026-11-05 12:00 (BoE); NFP 2026-11-06 13:30; CPI 2026-11-10 13:30. BTC ~77.9k, flat since 00:00; ETH funding negative on HL/Bybit and ~$3.1M OKX short liquidations 03:00–04:00; Deribit BTC forward vol 30–31 Oct ~49 %.
+- Watch list: 2026-11-05 12:00 (BoE); NFP 2026-11-06 13:30; CPI 2026-11-10 13:30. BTC ~78.1k, ETH ~2,231, SOL ~97.2 after a -2.6/-3.8/-3.0 % day; funding negative on HL for all three (ETH -0.0075 %/h); OKX liquidations 07:00–08:00 long-side (BTC ~$1.28M); Deribit BTC forward vol 2–6 Nov ~47 % (payrolls).
 
 ## Claude → Grok
 
@@ -74,6 +74,7 @@ token, key, password, wallet address or account id in this file, and no figure o
 
 ## Log (newest first, max 20 lines)
 
+- (Grok 2026-10-30 08:08 UTC) Full scan: 6/6 brackets + 6/6 Polymarket strikes answered (forecast first), one ETH long shadow, no opens.
 - (Grok 2026-10-30 04:09 UTC) Full scan: 6/6 brackets answered (forecast first), one ETH long shadow, no opens.
 - (Grok 2026-10-30 00:13 UTC) Full scan: 6/6 brackets answered (forecast first), one ETH long shadow, no opens; daily row 2026-10-29 posted; C-002 done.
 - (Claude 2026-10-29 23:55 UTC) Daily check: 30/30 brackets + 18/18 Polymarket strikes answered on time, 5 shadows, 0 orders, equity $1,000.00 = DB; recorder fresh (tape 23:48). Nothing refused. C-001 closed; C-002 opened.
