@@ -1,13 +1,13 @@
 // @vitest-environment jsdom
 // The Stablecoin quotes pages' conversions (Davies, 2026-10-29 23:12, LIVE after its USDT-only switch: INVENTORY showed 201.53
 // USDC, "我没看正在挂售？testing的那几个要换的也一样"): a resting conversion is a line on its book's BOOKS card ("selling 201.51 USDC
-// @ £0.7466 (switching to USDT)", "buying … (top-up)"), and CONVERSIONS lists the resting ones and the last that ended, newest
-// first, so a switch can be followed end to end. The order tables still hold entries and exits alone.
+// @ £0.7466 (switching to USDT)", "buying … (top-up)"). The CONVERSIONS table that listed them went on 2026-10-30 ("CONVERSIONS表
+// 也删了没必要"); the order tables hold entries and exits alone.
 import { describe, it, expect, afterEach } from 'vitest';
 import React from 'react';
 import { render, cleanup } from '@testing-library/react';
 import { QuotesLiveDetail } from './agents.jsx';
-import { QUOTE_CONVERSION_ROWS, quoteConversionLine, quoteConversions } from './agents.js';
+import { quoteConversionLine, quoteConversions } from './agents.js';
 
 afterEach(cleanup);
 
@@ -39,30 +39,20 @@ describe('conversions on a Stablecoin quotes page', () => {
     // A sell of a book it still quotes sells a surplus; with no books going forward known, the same.
     expect(quoteConversions({ ...live, books: ['USDC-GBP', 'USDT-GBP'] })[1].purpose).toBe('surplus');
     expect(quoteConversions({ detail: live.detail })[1].purpose).toBe('surplus');
-    // At most QUOTE_CONVERSION_ROWS, newest first as the payload gives them.
-    const many = Array.from({ length: 12 }, (_, i) => order({ id: i, state: 'cancelled', filledBase: 1 }));
-    expect(quoteConversions({ detail: { orders: many } })).toHaveLength(QUOTE_CONVERSION_ROWS);
   });
 
-  it('BOOKS says what rests on each book, CONVERSIONS lists them and the last that ended, and the order tables keep entries alone', () => {
+  it('BOOKS says what rests on each book; there is no CONVERSIONS table (Davies, 2026-10-30: "CONVERSIONS表也删了没必要")', () => {
     const root = render(React.createElement(QuotesLiveDetail, { q: live, m, at: '2026-10-29T23:12:00Z', nowMs: NOW })).container;
     const cards = [...root.querySelectorAll('.ag-quotes-card')];
     expect(cards.map((c) => txt(c.querySelector('.ag-quotes-converting')))).toEqual(['selling 201.51 USDC @ £0.7466 (switching to USDT)', 'buying 66.00 USDT @ £0.7570 (top-up), 12.00 filled']);
-    expect(rows(root, '.ag-ql-conversions')).toEqual([
-      'top-up | buy | £0.7570 | 66.00 USDT | 12.00 | partially filled',
-      'switch to USDT | sell | £0.7466 | 201.51 USDC | 0.00 | open',
-      'switch to USDT | sell | £0.7466 | 201.51 USDC | 0.02 | cancelled',
-    ]);
-    expect(txt(root.querySelector('.ag-ql-conversions .ag-ql-sub'))).toBe('filled in part; the rest was cancelled');
+    expect(root.querySelector('.ag-ql-conversions')).toBeNull();
     expect(rows(root, '.ag-ql-entries')).toHaveLength(1);
     expect(root.querySelector('.ag-ql-exits')).toBeNull();
-    // CONVERSIONS comes before the order tables.
-    expect([...root.querySelectorAll('.ag-section-title')].map(txt).slice(-3)).toEqual(['ROUND TRIPS', 'CONVERSIONS', 'ENTRY ORDERS']);
+    expect([...root.querySelectorAll('.ag-section-title')].map(txt).slice(-2)).toEqual(['ROUND TRIPS', 'ENTRY ORDERS']);
   });
 
-  it('no conversion, no table and no line', () => {
+  it('nothing resting, no line', () => {
     const root = render(React.createElement(QuotesLiveDetail, { q: { ...live, detail: { ...live.detail, orders: [orders[3]] } }, m, at: '2026-10-29T23:12:00Z', nowMs: NOW })).container;
-    expect(root.querySelector('.ag-ql-conversions')).toBeNull();
     expect(root.querySelector('.ag-quotes-converting')).toBeNull();
   });
 });

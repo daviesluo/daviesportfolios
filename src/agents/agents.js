@@ -2019,21 +2019,20 @@ export const fmtFeeGbp4 = (n) => {
  */
 export const orderStateText = (state) => (state === 'new' ? 'open' : String(state ?? '—').replace('_', ' '));
 
-/** How many conversions a Stablecoin quotes page lists, newest first: the resting ones and the last few that ended. */
-export const QUOTE_CONVERSION_ROWS = 8;
 /** A live order's states while it rests on the book (PR5's words; the Coinbase executor's are mapped to them). */
 const RESTING = ['pending', 'new', 'partially_filled'];
 
 /**
  * A Stablecoin quotes page's conversions (Davies, 2026-10-29, after LIVE's USDT-only switch: "我没看正在挂售？testing的那几个要换的
- * 也一样"): the payload's newest orders of leg `convert`, newest first, `QUOTE_CONVERSION_ROWS` at most, each with what it is for.
+ * 也一样"): the payload's newest orders of leg `convert`, newest first, each with what it is for; a resting one is a line on its
+ * book's BOOKS card (`quoteConversionLine`; the CONVERSIONS table went on 2026-10-30: "CONVERSIONS表也删了没必要").
  * A buy is a top-up, coin for a book's asks; a sell of a book the strategy no longer quotes (`books`, its books going forward)
  * is its switch to the book it now quotes; any other sell sells a surplus (a rebook). `resting` while it is on the book.
  * @param {any} q  the page's payload
  */
 export function quoteConversions(q) {
   const ahead = Array.isArray(q?.books) ? q.books : null;
-  return (q?.detail?.orders ?? []).filter((/** @type {any} */ o) => o.leg === 'convert').slice(0, QUOTE_CONVERSION_ROWS).map((/** @type {any} */ o) => {
+  return (q?.detail?.orders ?? []).filter((/** @type {any} */ o) => o.leg === 'convert').map((/** @type {any} */ o) => {
     const sell = o.venueSide === 'sell';
     const to = sell && ahead && !ahead.includes(o.book) && ahead.length ? ahead.map((/** @type {string} */ b) => b.split('-')[0]).join('/') : null;
     return { ...o, resting: RESTING.includes(o.state), purpose: !sell ? 'top-up' : to ? 'switch' : 'surplus', to };
@@ -2090,6 +2089,12 @@ export function quotesLiveBooks(q) {
 
 /** A difference between the venue's balance and the book's own count worth more than this is flagged on INVENTORY. */
 export const INVENTORY_MISMATCH_GBP = 0.05;
+/**
+ * A coin INVENTORY does not list as a row of its own (Davies, 2026-10-30, LIVE's 0.02 USDC after its switch): worth less than the
+ * venue's smallest order, Revolut X's £0.10 of quote, or under Coinbase's base minimum (USDC-GBP's 1 USDC, `base_min_size`). It
+ * still counts in every total; a row whose balance and book differ (`INVENTORY_MISMATCH_GBP`) is listed however small.
+ */
+export const INVENTORY_DUST = { revx: { minGbp: 0.1 }, coinbase: { minBase: 1 } };
 
 /**
  * The live page's INVENTORY. With the venue's own balances (`q.balances`, `{at, ccy: {CODE: {available, hold}}}`, the shape
@@ -2099,11 +2104,16 @@ export const INVENTORY_MISMATCH_GBP = 0.05;
  * differ by more than £0.05 (a trade made by hand, or a fill the book has not booked); `at` is when the venue was read.
  * Without them (an older answer, or a reader that has none), the book's own count exactly as before: the account's pounds
  * and coins as the executor last read them, each coin in pounds at its index price or last trade and with its unrealised
- * (Davies, 2026-10-01), which add up to the scoreboard's. Null when there is neither.
+ * (Davies, 2026-10-01), which add up to the scoreboard's. Null when there is neither. A coin under `dust` (`INVENTORY_DUST`:
+ * worth less than `minGbp`, or fewer than `minBase` coins) is left out unless its row is flagged.
  * @param {any} q  the dashboard's `quotes.live` or `cbLive`
  * @param {(s: string) => string} [m]
+ * @param {{ minGbp?: number, minBase?: number }} [dust]
  */
-export function quotesLiveInventory(q, m = (s) => s) {
+export function quotesLiveInventory(q, m = (s) => s, dust = {}) {
+  /** @param {string} asset @param {number | null} amount @param {number | null | undefined} price @param {boolean} flagged */
+  const isDust = (asset, amount, price, flagged) => asset !== 'GBP' && !flagged && amount != null
+    && ((dust.minBase != null && Math.abs(amount) < dust.minBase) || (dust.minGbp != null && price != null && Math.abs(amount) * Number(price) < dust.minGbp));
   const inv = q?.detail?.inventory;
   const bal = q?.balances;
   const fmtAmount = (/** @type {string} */ asset, /** @type {number} */ n) => (asset === 'GBP' ? m(fmtGbp(n)) : m(fmtQuoteQty(n, asset)));
@@ -2120,7 +2130,14 @@ export function quotesLiveInventory(q, m = (s) => s) {
     return {
       at: bal.at ? `${String(bal.at).slice(11, 16)} UTC` : null,
       source: /** @type {'venue' | 'book'} */ ('venue'),
-      rows: codes.map((c) => {
+      rows: codes.filter((c) => {
+        const v = bal.ccy[c], mine = book.get(c) ?? null;
+        const total = v ? (Number(v.available) || 0) + (Number(v.hold) || 0) : null;
+        const price = mine?.price ?? fairOf(c);
+        const bookAmount = mine?.amount != null ? Number(mine.amount) : null;
+        const flagged = total != null && bookAmount != null && price != null && Math.abs(total - bookAmount) * Number(price) > INVENTORY_MISMATCH_GBP;
+        return !isDust(c, total ?? bookAmount, price, flagged);
+      }).map((c) => {
         const v = bal.ccy[c], mine = book.get(c) ?? null;
         const total = v ? (Number(v.available) || 0) + (Number(v.hold) || 0) : null;
         const hold = v ? Number(v.hold) || 0 : 0;
@@ -2145,7 +2162,7 @@ export function quotesLiveInventory(q, m = (s) => s) {
   return {
     at: inv.at ? fmtChartStamp(inv.at) : null,
     source: /** @type {'venue' | 'book'} */ ('book'),
-    rows: inv.assets.map((/** @type {any} */ a) => ({
+    rows: inv.assets.filter((/** @type {any} */ a) => !isDust(a.asset, a.amount == null ? null : Number(a.amount), a.price, false)).map((/** @type {any} */ a) => ({
       asset: a.asset,
       amount: fmtAmount(a.asset, a.amount),
       inOrders: null,

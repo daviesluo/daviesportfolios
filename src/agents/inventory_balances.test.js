@@ -3,7 +3,7 @@
 // plus on hold), what is on hold in orders, a coin in pounds at the book's price, the book's own count beside it, a flag
 // beyond £0.05, and when the venue was read; without it, the book's own count exactly as before. Invented numbers.
 import { describe, expect, it } from 'vitest';
-import { INVENTORY_MISMATCH_GBP, quotesLiveInventory } from './agents.js';
+import { INVENTORY_DUST, INVENTORY_MISMATCH_GBP, quotesLiveInventory } from './agents.js';
 import liveFixture from '../e2e/quotes_live_fixture.json';
 import cbFixture from '../e2e/cb_live_fixture.json';
 
@@ -51,5 +51,26 @@ describe("INVENTORY from the venue's balances", () => {
       ['GBP', '£40.21', '£20', null, null, null, '£40.21', false],
       ['USDC', '106.81 USDC', '26.81 USDC', '£79.86', '£0.7477', 'fair', '106.81 USDC', false],
     ]);
+  });
+
+  it('a coin worth less than the venue\'s smallest order is not a row of its own, unless its balance and book differ (2026-10-30)', () => {
+    // Davies, 2026-10-30, LIVE after its switch: "USDC 0.02 USDC · £0.02 …". Revolut X's smallest order is £0.10 of quote.
+    const after = { ...BAL, ccy: { GBP: { available: 0.05, hold: 551.58 }, USDC: { available: 0.02, hold: 0 }, USDT: { available: 69.14, hold: 0 } } };
+    const book = { ...q, detail: { ...q.detail, inventory: { ...q.detail.inventory, assets: q.detail.inventory.assets.map((/** @type {any} */ a) => ({ ...a, amount: a.asset === 'USDC' ? 0.02 : a.asset === 'USDT' ? 69.14 : a.amount })) } } };
+    const revx = { minGbp: INVENTORY_DUST.revx.minGbp };
+    expect(INVENTORY_DUST).toEqual({ revx: { minGbp: 0.1 }, coinbase: { minBase: 1 } });
+    expect(quotesLiveInventory({ ...book, balances: after }, undefined, revx)?.rows.map((r) => r.asset)).toEqual(['GBP', 'USDT']);
+    // Without the floor every coin shows, as before; pounds are never dust.
+    expect(quotesLiveInventory({ ...book, balances: after })?.rows.map((r) => r.asset)).toEqual(['GBP', 'USDC', 'USDT']);
+    expect(quotesLiveInventory({ ...book, balances: { ...after, ccy: { ...after.ccy, GBP: { available: 0.01, hold: 0 } } } }, undefined, revx)?.rows[0].asset).toBe('GBP');
+    // 0.02 USDC on the venue and 0.2 in the book (£0.135 apart): flagged, so listed however small.
+    const off = { ...book, detail: { ...book.detail, inventory: { ...book.detail.inventory, assets: book.detail.inventory.assets.map((/** @type {any} */ a) => (a.asset === 'USDC' ? { ...a, amount: 0.2 } : a)) } } };
+    expect(quotesLiveInventory({ ...off, balances: after }, undefined, revx)?.rows.find((r) => r.asset === 'USDC')?.mismatch).toBe(true);
+    // The book's own count without balances: the same floor.
+    expect(quotesLiveInventory(book, undefined, revx)?.rows.map((r) => r.asset)).toEqual(['GBP', 'USDT']);
+    // Coinbase: under its base minimum, 1 USDC.
+    const cb = { ...cbFixture.output, balances: { ...cbFixture.output.balances, ccy: { ...cbFixture.output.balances.ccy, USDC: { available: 0.5, hold: 0 } } },
+      detail: { ...cbFixture.output.detail, inventory: { ...cbFixture.output.detail.inventory, assets: cbFixture.output.detail.inventory.assets.map((a) => (a.asset === 'USDC' ? { ...a, amount: 0.5 } : a)) } } };
+    expect(quotesLiveInventory(cb, undefined, { minBase: INVENTORY_DUST.coinbase.minBase })?.rows.map((r) => r.asset)).toEqual(['GBP']);
   });
 });

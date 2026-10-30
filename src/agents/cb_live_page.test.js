@@ -48,7 +48,7 @@ describe('the Coinbase live page', () => {
     const page = /** @type {HTMLElement} */ (root.querySelector('.ag-quotes-cblive-detail'));
     expect(page).toBeTruthy();
     expect(txt(page.querySelector('.ag-detail-head'))).toMatch(/^LIVE\s*Coinbase/);
-    expect([...page.querySelectorAll('.ag-section-title')].map((e) => txt(e).replace(/ - 7-day.*$/, ''))).toEqual(['BOOKS', 'INVENTORY', 'DAYS', 'ROUND TRIPS', 'CONVERSIONS', 'EXIT ORDERS', 'ENTRY ORDERS']);
+    expect([...page.querySelectorAll('.ag-section-title')].map((e) => txt(e).replace(/ - 7-day.*$/, ''))).toEqual(['BOOKS', 'INVENTORY', 'DAYS', 'ROUND TRIPS', 'EXIT ORDERS', 'ENTRY ORDERS']);
     const sb = txt(page.querySelector('.ag-scoreboard'));
     expect(sb).toContain('£120');
     expect(sb).toContain('£99.86');
@@ -60,6 +60,9 @@ describe('the Coinbase live page', () => {
     const inv = txt(page.querySelector('.ag-ql-inventory'));
     expect(inv).toContain('GBP£40.21');
     expect(inv).toContain('USDC106.81 USDC · £79.86 at £0.7477 +£0.0803');
+    // No "· book X" when the book agrees with Coinbase, and no "balance as of" line (Davies, 2026-10-30: "后面还加一个book把前面的值再
+    // 重复一遍，删了吧，最后一行的时间也删了").
+    expect(inv).not.toMatch(/ book |balance as of/);
     // DAYS: the three days and the 7-day figure, 16 Sep's +£0.04017 over two closed days on £120, a year.
     expect(rows(page, '.ag-quote-days')).toEqual(['17 Sep · today | 8 | 1 | 1 · 0 % won | -£0.0500', '16 Sep | 4 | 2 | 1 · 100 % won | +£0.0402', '15 Sep | 5 | 0 | 0 | £0']);
     expect(txt(page.querySelector('.ag-quote-days-annual'))).toBe(`- 7-day realised, annualised +${((0.04017 / 120) * (365 / 2) * 100).toFixed(1)}%`);
@@ -78,9 +81,9 @@ describe('the Coinbase live page', () => {
       'ask 0.1 % | sell | £0.7487 | 26.71 USDC | open', 'bid 0.2 % | buy | £0.7459 | 26.81 USDC | filled',
     ]);
     expect(txt(page)).not.toMatch(/403|PERMISSION|refused|rejected|POST_ONLY/);
-    // CONVERSIONS: the top-up of its first night, filled (Davies, 2026-10-29: "我没看正在挂售？"); nothing resting, so no BOOKS line.
-    expect(rows(page, '.ag-ql-conversions').map(rest)).toEqual(['top-up | buy | £0.7473 | 80.00 USDC | 80.00 | filled']);
+    // Its first night's top-up filled long ago: nothing rests, so no BOOKS line, and no CONVERSIONS table (Davies, 2026-10-30).
     expect(page.querySelector('.ag-quotes-converting')).toBeNull();
+    expect(page.querySelector('.ag-ql-conversions')).toBeNull();
   });
 
   it('its first night as production has it: the top-up in INVENTORY, no order listed, no exit table', () => {

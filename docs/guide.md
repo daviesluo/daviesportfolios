@@ -269,8 +269,8 @@ places stay when the number is not whole.
   and its USDC as Coinbase last reported them, read as the Revolut X page's
   below (the USDC it bought to quote its asks is there, valued at the rule's
   fair price); DAYS with the 7-day
-  figure; its round trips; its conversions; then its exit and entry orders.
-  Orders Coinbase refused are not listed.
+  figure; its round trips; then its exit and entry orders. Orders Coinbase
+  refused are not listed.
 - **Stablecoin quotes USDC/GBP on Revolut X, on LIVE.** A second live row on
   Revolut X, once Davies has switched it on: the same rules on its own £120
   account, on USDC against pounds alone, with no quote at 0.3 % (£30 on each
@@ -294,17 +294,20 @@ places stay when the number is not whole.
   ladder of its rungs, each with the price of the order resting on it, or
   what it holds and has made at the index; under it the book's round trips
   and what they realised. INVENTORY: the pounds and coins in the account as
-  the exchange last reported them ("balance as of" gives the minute), each
-  the whole balance with what is on hold in orders beside it, each coin also
-  in pounds at the index price shown beside it, and with its unrealised;
-  their unrealised add up to the scoreboard's, which stays on the book's own
-  count. When the strategy sells a coin it no longer trades (as the live
-  account sold its USDC on 29 Oct), what that sale made or lost against what
-  the coins cost, oldest first, counts as realised on the day it filled, and
-  the few coins left carry only their own cost. The book's own count follows each balance; where the two differ by
-  more than £0.05 it is shown in red ("book … ≠ balance"): a trade made by
-  hand, or a fill the book has not booked yet. Before the exchange has been
-  read, INVENTORY shows the book's own count alone. DAYS: each UTC day's orders, entry
+  the exchange last reported them, each the whole balance with what is on
+  hold in orders beside it, each coin also in pounds at the index price
+  shown beside it, and with its unrealised; their unrealised add up to the
+  scoreboard's, which stays on the book's own count. When the strategy sells
+  a coin it no longer trades (as the live account sold its USDC on 29 Oct),
+  what that sale made or lost against what the coins cost, oldest first,
+  counts as realised on the day it filled, and the few coins left carry only
+  their own cost. Where the book's own
+  count differs from the balance by more than £0.05, it follows the balance
+  in red ("≠ book …"): a trade made by hand, or a fill the book has not
+  booked yet; when they agree nothing more is shown. A coin worth less than
+  the exchange's smallest order (£0.10 on Revolut X, 1 USDC on Coinbase) has
+  no row of its own, though it still counts in the totals. Before the
+  exchange has been read, INVENTORY shows the book's own count alone. DAYS: each UTC day's orders, entry
   fills, round trips and what it realised, which add up to realised; its
   heading shows what the round trips of the seven full days before today
   realised (a day with no trading counts as nothing), as a simple yearly
@@ -329,13 +332,9 @@ places stay when the number is not whole.
   out, since ROUND TRIPS shows it, so the tables hold what is still
   working: orders resting, and the entries a rung still holds. A cancel
   that filled nothing is left out too, since every re-price makes one,
-  and so are the conversions, which have a table of their own above the
-  orders: CONVERSIONS lists the ones resting on the book and the last few
-  that ended, newest first, each with what it is for (a top-up buying coin
-  for the asks, a switch selling a coin the strategy no longer quotes, or a
-  surplus), its side, price, size, how much has filled and its state, so a
-  switch can be followed from its first order to its last; and the BOOKS
-  card of a book with one resting says so ("selling 201.51 USDC @ £0.7466
+  and so are the conversions; a conversion resting on the book (a top-up
+  buying coin for the asks, or a coin the strategy no longer quotes on
+  sale) is a line on its book's BOOKS card ("selling 201.51 USDC @ £0.7466
   (switching to USDT)"). On any Stablecoin
   quotes page (live or testing) of a strategy that now trades one coin,
   these tables drop their Book column, but only while every row they list

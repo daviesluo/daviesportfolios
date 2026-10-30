@@ -1290,7 +1290,10 @@ const AGENTS_PR5_LIVE_SWITCH = () => {
     conv({ id: 9001, ts: '2026-09-17T22:01:00Z', book: 'USDC-GBP', venueSide: 'sell', price: 0.7466, base: 201.5116, state: 'new', filledBase: 0 }),
     ...live.detail.orders,
   ];
-  return { ...d, quotes: { ...d.quotes, live: { ...live, books: ['USDT-GBP'], detail: { ...live.detail, orders } } } };
+  // Its USDC sold down to 0.02 (Davies, 2026-10-30: LIVE's "USDC 0.02 USDC"), on the venue and in the book alike: dust, no row.
+  const balances = { ...live.balances, ccy: { ...live.balances.ccy, USDC: { available: 0.02, hold: 0 } } };
+  const inventory = { ...live.detail.inventory, assets: live.detail.inventory.assets.map((/** @type {any} */ a) => (a.asset === 'USDC' ? { ...a, amount: 0.02 } : a)) };
+  return { ...d, quotes: { ...d.quotes, live: { ...live, books: ['USDT-GBP'], balances, detail: { ...live.detail, orders, inventory } } } };
 };
 
 const AGENTS_RW_CENTS = () => {
@@ -4083,7 +4086,7 @@ async function run() {
       if (tp && tp.title === TW1200.name && tp.modals === 2 && tp.head === 'PAPER Revolut X' && tp.status === 'running' && tp.tested === 'tested 1d 7h' && tp.livePages === 0 && tp.paperPage === 0
         && tp.scoreboard === 'FUNDED=£1,200 | DEPLOYED=£999.14(83.26%) | TODAY [(loss stop -£12)]=+£0.23(+0.02%) | UNREALIZED G/L=-£0.13(-0.02%) | REALIZED G/L [(incl. fees £0.18)]=-£0.03(0%)'
         && tp.twinLines.length === 0 && tp.warns.length === 0
-        && tp.sections.join(',') === 'BOOKS,INVENTORY,DAYS,ROUND TRIPS,CONVERSIONS,EXIT ORDERS,ENTRY ORDERS' && tp.conversions.length === 2 && tp.cards.length === 2 && tp.cards.every((c) => c.ladder.length === 3)
+        && tp.sections.join(',') === 'BOOKS,INVENTORY,DAYS,ROUND TRIPS,EXIT ORDERS,ENTRY ORDERS' && tp.conversions.length === 0 && tp.cards.length === 2 && tp.cards.every((c) => c.ladder.length === 3)
         && tp.cards[0].ladder.join(' / ') === '0.1 % | £0.7569 | £0.7585 / 0.2 % | £0.7561 | held £0.7591 +£0.2112 / 0.3 % | £0.7553 | £0.7600'
         && tp.balances.join('|') === 'GBP|£600.70|USDC|263.64 USDC · £199.71 at £0.7575 -£0.0192|USDT|527.64 USDT · £399.43 at £0.7570 -£0.1138'
         && JSON.stringify(tp.days) === JSON.stringify(TWIN_DAYS) && JSON.stringify(tp.trips) === JSON.stringify(TWIN_TRIPS) && tp.exits.length === 2 && tp.entries.length === 8
@@ -4108,7 +4111,7 @@ async function run() {
         await shot(page, `agents-quotes-twin-${TWINS[i].twin.id}`);
         const pageOk = !!x && x.title === p.title && x.modals === 2 && x.head === 'PAPER Revolut X' && x.status === 'running' && x.tested === p.tested && x.livePages === 0
           && x.scoreboard === p.scoreboard && x.twinLines.join(' / ') === p.line && x.warns.length === 0
-          && x.sections.join(',') === `BOOKS,INVENTORY,DAYS,ROUND TRIPS,${x.conversions.length ? 'CONVERSIONS,' : ''}EXIT ORDERS,ENTRY ORDERS` && x.conversions.every((c) => / \| (top-up|surplus|switch to \w+) \| (buy|sell) \| /.test(c)) && x.cards.length === 2 && x.cards.every((c) => c.ladder.length === p.rungs) && x.overflow <= 1;
+          && x.sections.join(',') === 'BOOKS,INVENTORY,DAYS,ROUND TRIPS,EXIT ORDERS,ENTRY ORDERS' && x.conversions.length === 0 && x.cards.length === 2 && x.cards.every((c) => c.ladder.length === p.rungs) && x.overflow <= 1;
         if (!pageOk) twinPageBad.push(`${p.title}: ${JSON.stringify(x && { ...x, cards: x.cards.map((c) => c.ladder.join(' / ')) })}`);
         await closeBy(page, () => page.locator('.ag-detail-close').click().catch(() => {}));
         if (await page.locator('.ag-quotes-twin-detail').count() !== 0 || await page.locator('.ag-strategies .ag-row').count() !== TESTING.rows) twinPageBad.push(`${p.title}: did not close back to the list`);
@@ -4841,13 +4844,13 @@ async function run() {
         ok(T('pr5-page'), `its scoreboard is its LIVE row's figures, in pounds, the conversion fee D used among its fees: ${lp.scoreboard}`);
       } else fail(T('pr5-page'), `live page scoreboard "${lp?.scoreboard}", LIVE row ${JSON.stringify(liveRowGl)}`);
       // Davies, 2026-10-01: no STATUS tiles, guard lines, inventory note, FILLS or EVENTS; the paper page's BOOKS in place of
-      // RUNGS, and DAYS under INVENTORY. Its conversions are back (2026-10-29: "我没看正在挂售？"), CONVERSIONS before the order
+      // RUNGS, and DAYS under INVENTORY. No CONVERSIONS table (2026-10-30: "CONVERSIONS表也删了没必要"); a resting one is a BOOKS line,
       // tables: the fixture's two top-ups of 16 Sep, filled, nothing resting (no BOOKS line).
-      const PR5_CONV = ['16 Sep 10:03 | top-up | buy | £0.7611 | 396.00 USDC | 395.64 | filled', '16 Sep 10:02 | top-up | buy | £0.7607 | 396.00 USDT | 395.64 | filled'];
-      if (lp && lp.sections.join(',') === 'BOOKS,INVENTORY,DAYS,ROUND TRIPS,CONVERSIONS,EXIT ORDERS,ENTRY ORDERS' && lp.tiles.length === 0 && lp.guards.length === 0
-        && lp.events.length === 0 && lp.notes === 0 && JSON.stringify(lp.conversions) === JSON.stringify(PR5_CONV) && lp.convLines.every((x) => x === '')
+      // and the fixture has none resting.
+      if (lp && lp.sections.join(',') === 'BOOKS,INVENTORY,DAYS,ROUND TRIPS,EXIT ORDERS,ENTRY ORDERS' && lp.tiles.length === 0 && lp.guards.length === 0
+        && lp.events.length === 0 && lp.notes === 0 && lp.conversions.length === 0 && lp.convLines.every((x) => x === '')
         && lp.fills.length === 0 && lp.oldRungs === 0 && lp.oldOrders === 0) {
-        ok(T('pr5-page'), `its sections are BOOKS, INVENTORY, DAYS, ROUND TRIPS, CONVERSIONS, EXIT ORDERS and ENTRY ORDERS: no STATUS, RUNGS, FILLS or EVENTS; CONVERSIONS ${JSON.stringify(lp.conversions)}`);
+        ok(T('pr5-page'), 'its sections are BOOKS, INVENTORY, DAYS, ROUND TRIPS, EXIT ORDERS and ENTRY ORDERS: no STATUS, RUNGS, CONVERSIONS, FILLS or EVENTS');
       // DAYS' heading carries the last seven closed days a year over the capital (Davies, 2026-10-09: "days表格标题days旁边加上
       // 近七天平均年化收益率"). By hand: one closed day, 16 Sep's +£0.0288 (17 Sep is today), over £1,200 a year of such
       // days: 0.0288 / 1,200 × 365 × 100 = 0.876 %, printed +0.9%.
@@ -4869,12 +4872,13 @@ async function run() {
       // INVENTORY: each coin in pounds at the index and against its cost. USDC: B's +£0.2112 and the conversion's 395.6436
       // × (0.7575 − 0.7574) less its £0.2699 fee, -£0.0192; USDT: E's +£0.0660 and 395.6436 × (0.7570 − 0.7570) less the
       // £0.1798 of its fee D has not taken, -£0.1138. Together the scoreboard's UNREALIZED, -£0.1330.
-      // From the venue's balances (QUOTES_LIVE_BALANCES): each total with what is on hold in orders and the book's own count
-      // beside it; USDT's 528.64 against the book's 527.64 (£0.75 at £0.7570) is flagged; the reading's minute under them.
-      const INV = 'GBP|£600.70 · £400 in orders · book £600.70|USDC|263.64 USDC · £199.71 at £0.7575 -£0.0192 · 132.00 USDC in orders · book 263.64 USDC'
-        + '|USDT|528.64 USDT · £400.18 at £0.7570 -£0.1138 · book 527.64 USDT ≠ balance';
-      if (lp && lp.balances.join('|') === INV && lp.balanceAt === 'balance as of 22:59 UTC' && lp.mismatches === 1) {
-        ok(T('pr5-page'), "INVENTORY: the account's own balances, £600.70 (£400 in orders), 263.64 USDC (£199.71 at the index, -£0.0192) and 528.64 USDT, each with the book's count, USDT's a coin apart flagged; balance as of 22:59 UTC");
+      // From the venue's balances (QUOTES_LIVE_BALANCES): each total with what is on hold in orders; the book's own count only where
+      // it differs (Davies, 2026-10-30: "后面还加一个book把前面的值再重复一遍，删了吧，最后一行的时间也删了"): USDT's 528.64 against the
+      // book's 527.64 (£0.75 at £0.7570), "≠ book 527.64 USDT"; no "balance as of" line.
+      const INV = 'GBP|£600.70 · £400 in orders|USDC|263.64 USDC · £199.71 at £0.7575 -£0.0192 · 132.00 USDC in orders'
+        + '|USDT|528.64 USDT · £400.18 at £0.7570 -£0.1138 ≠ book 527.64 USDT';
+      if (lp && lp.balances.join('|') === INV && lp.balanceAt === '' && lp.mismatches === 1) {
+        ok(T('pr5-page'), "INVENTORY: the account's own balances, £600.70 (£400 in orders), 263.64 USDC (£199.71 at the index, -£0.0192) and 528.64 USDT, the book's count only where it differs (USDT, a coin apart), no reading time");
       } else fail(T('pr5-page'), `balances ${JSON.stringify(lp?.balances)}, at ${lp?.balanceAt}, flagged ${lp?.mismatches}`);
       // DAYS: today 18 orders, 3 entry fills, A and C closed (-£0.0633); 16 Sep 6 orders (the conversions among them), 2
       // entry fills, D (+£0.0288). They add up to REALIZED, -£0.0345.
@@ -4929,11 +4933,12 @@ async function run() {
       await page.waitForSelector('.ag-quotes-live-detail', { timeout: 5_000 }).catch(() => {});
       await waitFor(async () => (await page.locator('.ag-quotes-live-detail .ag-ql-exits').count()) === 0);
       const ln = await readLivePage();
-      if (ln && ln.sections.join(',') === 'BOOKS,INVENTORY,DAYS,ROUND TRIPS,CONVERSIONS,ENTRY ORDERS' && ln.exits.length === 0 && ln.entries.length === 8) {
-        ok(T('pr5-page'), 'with no exit order, no EXIT ORDERS: its entries alone, under ROUND TRIPS and CONVERSIONS');
+      if (ln && ln.sections.join(',') === 'BOOKS,INVENTORY,DAYS,ROUND TRIPS,ENTRY ORDERS' && ln.exits.length === 0 && ln.entries.length === 8) {
+        ok(T('pr5-page'), 'with no exit order, no EXIT ORDERS: its entries alone, under ROUND TRIPS');
       } else fail(T('pr5-page'), `no exits: sections ${ln?.sections.join(',')}, exits ${ln?.exits.length}, entries ${ln?.entries.length}`);
       // Switching to USDT-GBP alone (AGENTS_PR5_LIVE_SWITCH; Davies, 2026-10-29 23:12: "我没看正在挂售？"): the USDC card says its coin
-      // is on sale, the USDT card its top-up, and CONVERSIONS lists both resting above the filled top-ups; entries and exits as before.
+      // is on sale, the USDT card its top-up; no CONVERSIONS table; the 0.02 USDC left is not a row of INVENTORY (worth less than
+      // Revolut X's £0.10 smallest order, 2026-10-30); entries and exits as before.
       agentsMode = 'pr5-live-switch';
       await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
       await closeBy(page, () => page.keyboard.press('Escape'));
@@ -4941,15 +4946,14 @@ async function run() {
       await waitFor(async () => (await page.locator('#ag-modetab-live .ag-modetab-count').textContent()) === '1');
       await page.locator('.ag-strategies-live .ag-row', { has: nameBtn(page, 'Stablecoin quotes USDT/GBP') }).first().click();
       await page.waitForSelector('.ag-quotes-live-detail', { timeout: 5_000 }).catch(() => {});
-      const lw = await readUntil(page, readLivePage, (v) => (v?.conversions.length ?? 0) === 4);
-      await page.locator('.ag-quotes-live-detail .ag-ql-conversions').first().scrollIntoViewIfNeeded().catch(() => {});
+      const lw = await readUntil(page, readLivePage, (v) => (v?.convLines ?? []).every((x) => x !== ''));
       await shot(page, 'agents-quotes-live-switch');
       const SWITCH_LINES = ['selling 201.51 USDC @ £0.7466 (switching to USDT)', 'buying 66.00 USDT @ £0.7570 (top-up), 12.00 filled'];
-      const SWITCH_CONV = ['17 Sep 23:05 | top-up | buy | £0.7570 | 66.00 USDT | 12.00 | partially filled', '17 Sep 23:01 | switch to USDT | sell | £0.7466 | 201.51 USDC | 0.00 | open', ...PR5_CONV];
-      if (lw && JSON.stringify(lw.convLines) === JSON.stringify(SWITCH_LINES) && JSON.stringify(lw.conversions) === JSON.stringify(SWITCH_CONV) && lw.exits.length === 2 && lw.entries.length === 8
+      const SWITCH_INV = 'GBP|£600.70 · £400 in orders|USDT|528.64 USDT · £400.18 at £0.7570 -£0.1138 ≠ book 527.64 USDT';
+      if (lw && JSON.stringify(lw.convLines) === JSON.stringify(SWITCH_LINES) && lw.conversions.length === 0 && lw.balances.join('|') === SWITCH_INV && lw.exits.length === 2 && lw.entries.length === 8
         && lw.tableOverflow <= 1 && lw.overflow <= 1) {
-        ok(T('pr5-switch'), `switching to USDT: BOOKS says ${JSON.stringify(lw.convLines)}; CONVERSIONS ${JSON.stringify(lw.conversions.slice(0, 2))} above the filled top-ups; nothing wider than the screen`);
-      } else fail(T('pr5-switch'), `lines ${JSON.stringify(lw?.convLines)}, conversions ${JSON.stringify(lw?.conversions)}, exits ${lw?.exits.length}, entries ${lw?.entries.length}, overflow ${lw?.overflow}/${lw?.tableOverflow}`);
+        ok(T('pr5-switch'), `switching to USDT: BOOKS says ${JSON.stringify(lw.convLines)}; no CONVERSIONS table; INVENTORY without the 0.02 USDC (${lw.balances.join(' ')}); nothing wider than the screen`);
+      } else fail(T('pr5-switch'), `lines ${JSON.stringify(lw?.convLines)}, conversions ${JSON.stringify(lw?.conversions)}, inventory ${JSON.stringify(lw?.balances)}, exits ${lw?.exits.length}, entries ${lw?.entries.length}, overflow ${lw?.overflow}/${lw?.tableOverflow}`);
       agentsMode = 'pr5-live';
       await closeBy(page, () => page.locator('.ag-detail-close').last().click().catch(() => {}));
 
@@ -5507,17 +5511,16 @@ async function run() {
         if (cv && cv.title === NAME && cv.modals === 2 && cv.head === 'LIVE Coinbase' && cv.livePages === 0 && cv.paperPage === 0) {
           ok(CT('page'), `its LIVE row opens its own page over the list: "${cv.title}", ${cv.head}, ${cv.status}`);
         } else fail(CT('page'), `opened ${cv ? JSON.stringify({ title: cv.title, modals: cv.modals, head: cv.head, live: cv.livePages, paper: cv.paperPage }) : 'no page'}`);
-        if (cv && cv.scoreboard === SB && JSON.stringify(cv.sections) === JSON.stringify(['BOOKS', 'INVENTORY', 'DAYS', 'ROUND TRIPS', 'CONVERSIONS', 'EXIT ORDERS', 'ENTRY ORDERS'])
-          && JSON.stringify(cv.conversions) === JSON.stringify(['15 Sep 22:46 | top-up | buy | £0.7473 | 80.00 USDC | 80.00 | filled'])
+        if (cv && cv.scoreboard === SB && JSON.stringify(cv.sections) === JSON.stringify(['BOOKS', 'INVENTORY', 'DAYS', 'ROUND TRIPS', 'EXIT ORDERS', 'ENTRY ORDERS']) && cv.conversions.length === 0
           && cv.cards.length === 1 && cv.cards[0].head === 'USDC/GBP' && cv.cards[0].meta === 'last trade £0.7476 · fair £0.7477'
           && JSON.stringify(cv.cards[0].ladder) === JSON.stringify(LADDER) && cv.cards[0].grid.join(' ') === 'round trips 2 · 50 % won realised -£0.0099') {
           ok(CT('scoreboard'), `PR5 LIVE's page in pounds: ${cv.scoreboard}; ${cv.sections.join(', ')}; one book, ${cv.cards[0].head} (${cv.cards[0].meta}), its ladder ${JSON.stringify(cv.cards[0].ladder)}`);
         } else fail(CT('scoreboard'), `scoreboard ${cv?.scoreboard} (wanted ${SB}), sections ${JSON.stringify(cv?.sections)}, cards ${JSON.stringify(cv?.cards)}`);
         const DAYS = ['17 Sep · today | 8 | 1 | 1 · 0 % won | -£0.0500', '16 Sep | 4 | 2 | 1 · 100 % won | +£0.0402', '15 Sep | 5 | 0 | 0 | £0'];
         // INVENTORY from Coinbase's balances (the fixture's invented reading at 22:59): £40.21, £20 of it on hold, and 106.81 USDC,
-        // 26.81 on hold under C's exit, each as the book counts, so nothing flagged.
-        if (cv && JSON.stringify(cv.days) === JSON.stringify(DAYS) && cv.annual === annual && cv.balances.join(' ') .includes('USDC 106.81 USDC · £79.86 at £0.7477 +£0.0803 · 26.81 USDC in orders · book 106.81 USDC')
-          && cv.balances[0] === 'GBP' && cv.balances[1] === '£40.21 · £20 in orders · book £40.21' && cv.balances.length === 4 && cv.balanceAt === 'balance as of 22:59 UTC' && cv.mismatches === 0 && cv.trips.length === 2 && cv.trips[0].includes('24-hour stop') && cv.exits.length === 1 && cv.entries.length === 4
+        // 26.81 on hold under C's exit, each as the book counts, so nothing flagged and no book count shown; no reading time.
+        if (cv && JSON.stringify(cv.days) === JSON.stringify(DAYS) && cv.annual === annual && cv.balances.join(' ') === 'GBP £40.21 · £20 in orders USDC 106.81 USDC · £79.86 at £0.7477 +£0.0803 · 26.81 USDC in orders'
+          && cv.balanceAt === '' && cv.mismatches === 0 && cv.trips.length === 2 && cv.trips[0].includes('24-hour stop') && cv.exits.length === 1 && cv.entries.length === 4
           && cv.entries.at(-1)?.endsWith('filled') && !/403|PERMISSION|rejected|refused|POST_ONLY/i.test(cText)) {
           ok(CT('tables'), `INVENTORY ${cv.balances.join(' ')}; DAYS "${cv.annual}" ${JSON.stringify(cv.days)}; ${cv.trips.length} round trips (the newest by its 24-hour stop); ${cv.exits.length} exit and ${cv.entries.length} entries, no refused order listed`);
         } else fail(CT('tables'), `balances ${JSON.stringify(cv?.balances)}, days ${JSON.stringify(cv?.days)} "${cv?.annual}" (${annual}), trips ${JSON.stringify(cv?.trips)}, exits ${JSON.stringify(cv?.exits)}, entries ${JSON.stringify(cv?.entries)}, refused shown ${/403|PERMISSION|rejected|refused|POST_ONLY/i.test(cText)}`);

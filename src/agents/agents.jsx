@@ -16,7 +16,7 @@ import { SurfaceBoundary } from '../app/surface_boundary.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, cbLiveRow, FXW_ROW_ID, fmtFx, fxwAudRow, fxwTiles, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokTestRow, grokTestOf, grokTestTiles, grokTestLayerCells, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmDaysAnnualPct, GROKPM_DAYS_ANNUAL_TITLE, GROKPM_JOURNAL_STEP, fetchGrokPmJournal, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtFeeIn4, fmtGbp, fmtGbp4, fmtIn, fmtIn4, quotesDetailInCcy, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_NUDGE_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesPageFor, quotesShowBook, quoteConversions, quoteConversionLine, quotesOkxName, quotesOkxOf, quotesOkxRow, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quoteDaysRecent, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwShareText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows,
+  AGENT_TABS, cbLiveRow, FXW_ROW_ID, fmtFx, fxwAudRow, fxwTiles, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokTestRow, grokTestOf, grokTestTiles, grokTestLayerCells, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmDaysAnnualPct, GROKPM_DAYS_ANNUAL_TITLE, GROKPM_JOURNAL_STEP, fetchGrokPmJournal, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtFeeIn4, fmtGbp, fmtGbp4, fmtIn, fmtIn4, quotesDetailInCcy, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_NUDGE_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesPageFor, quotesShowBook, quoteConversionLine, INVENTORY_DUST, quotesOkxName, quotesOkxOf, quotesOkxRow, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quoteDaysRecent, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwShareText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -533,45 +533,6 @@ function Qty({ qty, book, m }) {
 }
 
 /**
- * A Stablecoin quotes page's CONVERSIONS (Davies, 2026-10-29: "我没看正在挂售？testing的那几个要换的也一样"): the coin it buys for its
- * asks (top-up) and the coin it sells when it switches book or holds a surplus, each with when it was placed, what it is for, its
- * side, price, size, how much has filled and its state, newest first; a switch can be followed from its first order to its last.
- * Its size names the coin, so it has no Book column.
- * @param {{ rows: any[], m: (s: string) => string }} props
- */
-function ConversionsTable({ rows, m }) {
-  return (
-    <section className="ag-section ag-ql-conversions ag-ql-tables">
-      <div className="ag-section-title mono">CONVERSIONS</div>
-      <div className="hl-scroll">
-        <table className="hl-table ag-table ag-log mono">
-          <thead><tr>
-            <th className="hl-th">Placed ({UK_TZ})</th><th className="hl-th ag-ph">For</th><th className="hl-th">Side</th>
-            <th className="hl-th">Price</th><th className="hl-th">Size</th><th className="hl-th">Filled</th><th className="hl-th">State</th>
-          </tr></thead>
-          <tbody>
-            {rows.map((c) => (
-              <React.Fragment key={c.id}>
-                <tr className={`txn-row txn-row-${c.venueSide ?? 'buy'}${c.reason ? ' ag-ql-has-sub' : ''}`}>
-                  <td className="dim"><Stamp iso={c.ts} /></td>
-                  <td className="ag-ph dim">{c.purpose === 'switch' ? `switch to ${c.to}` : c.purpose === 'surplus' ? 'surplus' : 'top-up'}</td>
-                  <td><RungSide side={c.venueSide}>{c.venueSide ?? '—'}</RungSide></td>
-                  <td>{m(fmtQuotePrice(c.price, c.book))}</td>
-                  <td><Qty qty={c.base} book={c.book} m={m} /></td>
-                  <td className="dim">{m(Number(c.filledBase || 0).toFixed(2))}</td>
-                  <td><span className={`ag-state-pill ag-state-${c.state}`}>{orderStateText(c.state)}</span></td>
-                </tr>
-                {c.reason && <tr className="ag-ql-sub-row"><td colSpan={7}><span className="ag-ql-sub">{m(c.reason)}</span></td></tr>}
-              </React.Fragment>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </section>
-  );
-}
-
-/**
  * One of the live page's two order tables, its exits or its entries (Davies, 2026-10-01): each order's rung, its side on
  * the venue, buy or sell and nothing more, its price and size, and its state, with its reason on a line of its own under
  * its row — a sentence, which in a column of its own wrapped five deep and ran out of the table. A 24-hour stop says so
@@ -644,13 +605,14 @@ export function QuotesLiveDetail({ q, m, at, nowMs, twin = false, coinbase: cbOn
   // A row in dollars (the OKX and Coinbase rows, 2026-10-29) draws its detail's dollars (`quotesDetailInCcy`).
   const qc = quotesDetailInCcy(q);
   const d = qc.detail ?? null;
-  const inv = quotesLiveInventory(q, m);
+  // A coin worth less than the venue's smallest order is not a row of its own (Davies, 2026-10-30): Revolut X's £0.10, Coinbase's
+  // base minimum.
+  const inv = quotesLiveInventory(q, m, cbLive ? { minBase: INVENTORY_DUST.coinbase.minBase } : { minGbp: INVENTORY_DUST.revx.minGbp });
   const trips = d?.trips ?? [], orders = d?.orders ?? [];
   const exitOrders = orders.filter((/** @type {any} */ o) => o.leg === 'exit' || o.leg === 'stop');
   const entryOrders = orders.filter((/** @type {any} */ o) => o.leg === 'entry');
   // One book going forward, and every row shown of it: no Book column in its tables (Davies, 2026-10-29; `quotesShowBook`).
   const showBook = quotesShowBook(qc, [...trips, ...exitOrders, ...entryOrders]);
-  const conversions = quoteConversions(qc);
   const empty = d ? null : 'Not in this answer: the next refresh brings it.';
   return (
     <div className={`ag-detail ${cbLive ? 'ag-quotes-cblive-detail' : okx ? 'ag-quotes-okx-detail' : coinbase ? 'ag-quotes-cb-detail' : twin ? 'ag-quotes-twin-detail' : 'ag-quotes-live-detail'}`}>
@@ -687,16 +649,15 @@ export function QuotesLiveDetail({ q, m, at, nowMs, twin = false, coinbase: cbOn
                     {a.price ? <span className="dim" title={a.priceFrom === 'index' ? "Revolut X's index price, as its account page values the coin" : a.priceFrom === 'fair' ? "the paper arm's fair price, as its trips are marked" : "the book's last trade: no fresh index price"}> at {a.price}</span> : null}
                     {a.unrealisedGbp != null ? <span className="ag-gl" style={{ color: pctColor(a.unrealisedGbp) }}> {m(fmtGbp4(a.unrealisedGbp))}</span> : null}
                     {a.inOrders ? <span className="dim ag-ql-hold"> · {a.inOrders} in orders</span> : null}
-                    {a.book != null ? (
-                      a.mismatch
-                        ? <span className="ag-ql-mismatch is-warn" title="The venue's balance and the book's own count differ by more than £0.05: a trade made by hand, or a fill the book has not booked"> · book {a.book} ≠ balance</span>
-                        : <span className="dim ag-ql-book"> · book {a.book}</span>
-                    ) : null}
+                    {/* The book's own count only when it differs from the venue's balance (Davies, 2026-10-30: "后面还加一个book把前面的值再
+                        重复一遍，删了吧"). */}
+                    {a.book != null && a.mismatch
+                      ? <span className="ag-ql-mismatch is-warn" title="The venue's balance and the book's own count differ by more than £0.05: a trade made by hand, or a fill the book has not booked"> ≠ book {a.book}</span>
+                      : null}
                   </span>
                 </React.Fragment>
               ))}
             </div>
-            {inv.source === 'venue' && inv.at ? <div className="ag-ql-balance-at dim mono">balance as of {inv.at}</div> : null}
           </div>
         ) : <div className="ag-empty dim">{empty ?? 'Its last turn could not read the account.'}</div>}
       </section>}
@@ -728,9 +689,8 @@ export function QuotesLiveDetail({ q, m, at, nowMs, twin = false, coinbase: cbOn
           </table>
         </div>
       </section>
-      {/* The conversions, while there are any (Davies, 2026-10-29: "我没看正在挂售？"): resting first as they come, then those that
-          ended, newest first. Then the exits, only when there are any; then the entries (Davies, 2026-10-01). */}
-      {conversions.length > 0 && <ConversionsTable rows={conversions} m={m} />}
+      {/* Exits first, and only when there are any; then the entries (Davies, 2026-10-01). A resting conversion is a line on its
+          book's BOOKS card; the CONVERSIONS table went (Davies, 2026-10-30: "CONVERSIONS表也删了没必要"). */}
       {exitOrders.length > 0 && <LiveOrdersTable title="EXIT ORDERS" cls="ag-ql-exits" orders={exitOrders} m={m} empty={empty} showBook={showBook} />}
       <LiveOrdersTable title="ENTRY ORDERS" cls="ag-ql-entries" orders={entryOrders} m={m} empty={empty} showBook={showBook} />
       <div className="ag-updated dim mono ag-ql-foot">as of {when(at)} {UK_TZ} · refreshes every minute</div>

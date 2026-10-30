@@ -806,6 +806,14 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   the RX USDC instance); `cb_live` never sells a conversion and is unchanged. The executor's loss stop is unchanged (rungs only).
   Pin: `index.test.ts` "a rebook's full sale…", worked by hand.
 
+### [2026-10-30 00:17 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Stablecoin quotes pages: INVENTORY tidied, CONVERSIONS table gone** (sub-agent; commit, not pushed; Davies, 10-30 00:06: "这里为
+  什么后面还加一个book把前面的值再重复一遍，删了吧，最后一行的时间也删了…CONVERSIONS表也删了没必要"). INVENTORY: no "· book X" unless it
+  differs by over £0.05 (then a red "≠ book X"), no "balance as of" line; a coin worth less than the venue's smallest order
+  (`INVENTORY_DUST`: Revolut X £0.10, Coinbase 1 USDC) is no row unless flagged, still counted in totals. CONVERSIONS table removed
+  (7fecce6e); the BOOKS-card line for a resting conversion stays. The 0.02 USDC's −£1.0090 unrealised is ac627's server fix.
+
+
 ### [2026-10-29 23:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **The real site, checked as a viewer** (sub-agent; commit, not pushed; Davies, 23:17: "以后每次页面改动等你都去网站实际验证").
   `auth?action=viewer-token` (cron bearer): a 30-minute `ro` token, minted only when the Edge secret `DAVIESLUO_VIEWER_PASSWORD`
