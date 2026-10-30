@@ -286,7 +286,14 @@ places stay when the number is not whole.
   traded real money on its own Revolut X account. Tap it for a page of its
   own, in pounds, which shows the real-money book and nothing of the paper
   test: the same scoreboard as its row, with the day's loss stop (1 % of
-  the capital) beside today. Deployed is every pound at work: the coins in
+  the capital) beside today. Under the scoreboard, one line about the other
+  maker on its book (the automated trader that rests about 5,000 coins a
+  side): "absent since …" and for how long, or "present since …", how many
+  ticks apart its bid and ask are and how far each is from fair. The
+  USDT/GBP page reads USDT/GBP, the Revolut X USDC/GBP page USDC/GBP. A
+  short gap does not count: it is called absent after 15 minutes without
+  it, and back after 3 with it. If the watch has not written a minute for
+  ten minutes, the line says it is behind. Deployed is every pound at work: the coins in
   the account at Revolut X's index price (the price the account values them
   at; the last trade when the index is more than ten minutes old) and the
   pounds its resting buys tie up. Unrealised is those coins at the index

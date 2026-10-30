@@ -2442,6 +2442,8 @@ a.ag-gpm-market:hover, a.ag-gpm-market:focus-visible { text-decoration-color: va
 .ag-rw-warmup-day td { opacity: 0.6; }
 /* A realistic twin's lines under its scoreboard: what it is, and each book whose asks wait for their coin. */
 .ag-twin-line { font-size: 11px; line-height: 1.45; margin: 6px 0; }
+/* The other maker on a Revolut X live page's book (maker_watch.ts, 0185): one line under the scoreboard. */
+.ag-maker-line { font-size: 11px; line-height: 1.45; margin: 6px 0; }
 /* Shares and price are the same width; the question takes the rest. */
 .ag-rw-fills .ag-table { table-layout: fixed; width: 100%; }
 .ag-rw-fills .ag-col-shares, .ag-rw-fills .ag-col-price { width: 14%; }

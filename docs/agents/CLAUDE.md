@@ -515,6 +515,12 @@ that follow from that evidence, in short:
   Davies, 2026-10-30: "要做"): 'paper' (the default) follows the paper arm order for order; 'self' decides every minute with that
   arm's own rule and code on its own state and fills, reading nothing of the paper arm's. While it follows, the shadow
   (`cb_live_shadow`) records what 'self' would rest; the switch to 'self' is Davies' word after reading it (design §10).
+- **The other maker's watch** (`0185`, `agents/maker_watch.ts`, `reviews/2026-10-30-maker-absent.md`; Davies, 2026-10-30: "我们能不能
+  对他加个监控，实时观察和记录他的行为"): the automated maker that rests about 5,000 coins a side on Revolut X's GBP books, read from the
+  book recorder's own snapshots inside its call (`agents?action=books`, no new `edge_calls` row), into `agent_maker_minutes` (a row a
+  book a minute), `agent_maker_events` (appeared after 3 minutes, disappeared after 15, width, size) and `agent_maker_state`, from
+  2026-09-26; a line on the two Revolut X live pages. It reads and writes nothing of any executor, twin or recorder. Its thresholds
+  are pinned in its tests and its history in `backtests/mmcomp/results/maker_history.json` is its own code's: change one, run both.
 - **What every Stablecoin quotes strategy realises is put back to work** (`0183`, `reviews/2026-10-30-compounding.md`; Davies,
   2026-10-30: "…都能有效做到盈利金额再利用吗？如果不能请研究实现"): LIVE's `0146` rule for all, once a UTC day the capital = what was put in +
   what was realised since 2026-10-31 00:00 UTC to the day's 00:00, in whole units (a pound or a dollar a rung), between half and twice,

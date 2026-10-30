@@ -1281,9 +1281,17 @@ const FXW_FIXTURE = {
   ],
 };
 const AGENTS_LP_LIVE = (/** @type {false | 'output' | 'noPayout'} */ which) => ({ ...AGENTS_PR5_LIVE(), prepLp: LP_FIXTURE.output, ...(which ? { lpLive: LP_LIVE_FIXTURE[which] } : {}) });
+/**
+ * The other maker's watch (maker_watch.ts, 0185) as the dashboard sends it, invented: on LIVE's book (USDT-GBP) gone since
+ * 17:16 UTC (18:16 UK, BST), its last minute written 22:59, a minute before the sweep's clock; on USDC-GBP there, 12 ticks wide.
+ */
+const MAKER_WATCH = {
+  'USDT-GBP': { book: 'USDT-GBP', at: '2026-09-17T22:59:00.000Z', status: 'absent', since: '2026-09-17T17:16:00.000Z', present: 'none', width: 5, bid: null, ask: null, bidBps: null, askBps: null, size: 5007 },
+  'USDC-GBP': { book: 'USDC-GBP', at: '2026-09-17T22:59:00.000Z', status: 'present', since: '2026-09-17T20:44:00.000Z', present: 'both', width: 12, bid: 0.7531, ask: 0.7543, bidBps: 6.14, askBps: 9.8, size: 5001 },
+};
 const AGENTS_PR5_LIVE = () => {
   const d = AGENTS_DASHBOARD;
-  return { ...d, quotes: { ...d.quotes, live: { ...QUOTES_LIVE_FIXTURE.live, balances: QUOTES_LIVE_BALANCES } } };
+  return { ...d, makerWatch: MAKER_WATCH, quotes: { ...d.quotes, live: { ...QUOTES_LIVE_FIXTURE.live, balances: QUOTES_LIVE_BALANCES } } };
 };
 /** The same book's newest orders with none of its exits among them: its page then has no EXIT ORDERS at all. */
 const AGENTS_PR5_LIVE_NO_EXIT = () => {
@@ -1474,6 +1482,8 @@ const readQuotesBookPage = (page, rootSel) => page.evaluate((rootSel) => {
       // The live executor's page and the twins' are each its own container: which are open.
       livePages: document.querySelectorAll('.ag-quotes-live-detail').length, twinPages: document.querySelectorAll('.ag-quotes-twin-detail').length,
       twinLines: [...root.querySelectorAll('.ag-twin-line')].map(txt), warns: [...root.querySelectorAll(':scope > .ag-warn-line')].map(txt),
+      // The line about the other maker (maker_watch.ts, 0185), and whether it sits right under the scoreboard.
+      maker: txt(root.querySelector('.ag-maker-line')), makerUnderScoreboard: !!root.querySelector('.ag-scoreboard + .ag-maker-line'),
     };
 }, rootSel);
 
@@ -4842,6 +4852,10 @@ async function run() {
       if (lp && lp.paperPage === 0 && lp.title === 'Stablecoin quotes USDT/GBP' && lp.modals === 2 && lp.head === 'LIVE Revolut X' && lp.status === 'running' && lp.tested === 'live 1d 14h') {
         ok(T('pr5-page'), "LIVE's Stablecoin quotes opens its own page over the list: LIVE, Revolut X, running · live 1d 14h, and the paper test's page is not open");
       } else fail(T('pr5-page'), `LIVE's Stablecoin quotes opened ${lp ? `the live page with the paper page ${lp.paperPage}× beside it, title "${lp.title}", ${lp.modals} modals, head "${lp.head}", status "${lp.status}" "${lp.tested}"` : 'no live page'}`);
+      // The other maker on its book (Davies, 2026-10-30: "我们能不能对他加个监控，实时观察和记录他的行为"): LIVE's page reads USDT-GBP's watch,
+      // gone since 17:16 UTC, 18:16 UK, 5 h 44 min before the sweep's 23:00 UTC; right under the scoreboard.
+      if (lp?.maker === 'Other maker: absent since 17 Sep 18:16 UK (5 h 44 min)' && lp.makerUnderScoreboard) ok(T('pr5-page'), `the other maker's line under the scoreboard: "${lp.maker}"`);
+      else fail(T('pr5-page'), `the other maker's line "${lp?.maker}", under the scoreboard ${lp?.makerUnderScoreboard}`);
       // Two books, USDC and USDT rows among them: its tables keep their Book column (Davies, 2026-10-29: only a strategy of one
       // book, every row shown of it, drops it).
       if (lp && lp.bookCols.every(Boolean)) ok(T('pr5-book-col'), 'a page of two books keeps the Book column in ROUND TRIPS, EXIT ORDERS and ENTRY ORDERS');

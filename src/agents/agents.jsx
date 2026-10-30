@@ -16,7 +16,7 @@ import { SurfaceBoundary } from '../app/surface_boundary.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, venueParts, cbLiveRow, quotesRxuRow, FXW_ROW_ID, fmtFx, fxwAudRow, fxwTiles, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokTestRow, grokTestOf, grokTestTiles, grokTestLayerCells, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmDaysAnnualPct, GROKPM_DAYS_ANNUAL_TITLE, GROKPM_JOURNAL_STEP, fetchGrokPmJournal, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtFeeIn4, fmtGbp, fmtGbp4, fmtIn, fmtIn4, quotesDetailInCcy, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_NUDGE_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesPageFor, quotesShowBook, quoteConversionLine, INVENTORY_DUST, quotesOkxName, quotesOkxOf, quotesOkxRow, quotesXhedgeOf, quotesXhedgeRow, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quoteDaysRecent, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwShareText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows,
+  AGENT_TABS, venueParts, cbLiveRow, quotesRxuRow, makerWatchLine, MAKER_WATCH_BOOK, FXW_ROW_ID, fmtFx, fxwAudRow, fxwTiles, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokTestRow, grokTestOf, grokTestTiles, grokTestLayerCells, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmDaysAnnualPct, GROKPM_DAYS_ANNUAL_TITLE, GROKPM_JOURNAL_STEP, fetchGrokPmJournal, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtFeeIn4, fmtGbp, fmtGbp4, fmtIn, fmtIn4, quotesDetailInCcy, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_NUDGE_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesPageFor, quotesShowBook, quoteConversionLine, INVENTORY_DUST, quotesOkxName, quotesOkxOf, quotesOkxRow, quotesXhedgeOf, quotesXhedgeRow, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quoteDaysRecent, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwShareText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -606,15 +606,18 @@ function LiveOrdersTable({ title, cls, orders, m, empty, showBook = true }) {
  * LIVE's "Stablecoin quotes USDC/GBP" on Revolut X (`rxu`, 0180) opens it as LIVE's executor's page, under its own row
  * (`quotesRxuRow`): its name, not LIVE's (Davies, 2026-10-30: the page named "Stablecoin quotes USDT/GBP" under "running live").
  * "Stablecoin quotes RX↔Coinbase hedge" and "… - 1" (`xhedge`, 0184) open it as a twin's page, both venues' badges, INVENTORY its two accounts.
- * @param {{ q: any, m: (s: string) => string, at: any, nowMs: number, twin?: boolean, coinbase?: boolean, okx?: boolean, cbLive?: boolean, rxu?: boolean, xhedge?: boolean }} props
+ * The two Revolut X live pages carry a line under the scoreboard about the other maker on their book (`maker`, the dashboard's
+ * `makerWatch[book]`; Davies, 2026-10-30: "我们能不能对他加个监控，实时观察和记录他的行为"): present or absent, since when, how wide.
+ * @param {{ q: any, m: (s: string) => string, at: any, nowMs: number, twin?: boolean, coinbase?: boolean, okx?: boolean, cbLive?: boolean, rxu?: boolean, xhedge?: boolean, maker?: any }} props
  */
-export function QuotesLiveDetail({ q, m, at, nowMs, twin: twinOnly = false, coinbase: cbOnly = false, okx = false, cbLive = false, rxu = false, xhedge = false }) {
+export function QuotesLiveDetail({ q, m, at, nowMs, twin: twinOnly = false, coinbase: cbOnly = false, okx = false, cbLive = false, rxu = false, xhedge = false, maker = null }) {
   const coinbase = cbOnly || okx;
   // "Stablecoin quotes RX↔Coinbase hedge" (0184) opens as a twin's page: paper, its lines, and INVENTORY its two accounts.
   const twin = twinOnly || xhedge;
   const row = xhedge ? quotesXhedgeRow(q) : cbLive ? cbLiveRow(q) : okx ? quotesOkxRow(q) : coinbase ? quotesCoinbaseRow(q) : twin ? quotesTwinRow(q) : rxu ? quotesRxuRow(q) : quotesLiveRow(q);
   if (!row) return null;
   const lines = twin || coinbase ? quotesTwinLines(q, m) : null;
+  const makerLine = maker ? makerWatchLine(maker, nowMs) : null;
   const x = rowMoney(row);
   // A row in dollars (the OKX and Coinbase rows, 2026-10-29) draws its detail's dollars (`quotesDetailInCcy`).
   const qc = quotesDetailInCcy(q);
@@ -647,6 +650,7 @@ export function QuotesLiveDetail({ q, m, at, nowMs, twin: twinOnly = false, coin
         <GlCell label="REALIZED G/L" usd={x.realised} pct={x.realisedPct} m={m} ccy={x.ccy} cls="ag-sb-realised" aside={`(incl. fees ${m(fmtIn(x.fees, x.ccy))})`} />
       </div>
       {lines?.ratio && <div className="ag-twin-line ag-twin-ratio dim">{lines.ratio}</div>}
+      {makerLine && <div className={`ag-maker-line dim${maker?.status === 'absent' ? ' is-absent' : ''}`}>{makerLine}</div>}
       {lines?.waiting.map((w) => <div key={w} className="ag-twin-line ag-twin-waiting dim">{w}</div>)}
       {!q.running && <div className="ag-warn-line">{row.status.detail}</div>}
       {q.lastError && <div className="ag-warn-line">last turn: {m(String(q.lastError))}</div>}
@@ -2073,7 +2077,8 @@ function AgentsModal({ hideValues, onClose }) {
           <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
         </header>
         <div className="modal-body ag-body">
-          <PageGuard gen={gen}><QuotesLiveDetail q={quotesPage === 'rxu' ? dash.quotesRxu : dash.quotes.live} m={m} at={dash.at} nowMs={now} rxu={quotesPage === 'rxu'} /></PageGuard>
+          <PageGuard gen={gen}><QuotesLiveDetail q={quotesPage === 'rxu' ? dash.quotesRxu : dash.quotes.live} m={m} at={dash.at} nowMs={now} rxu={quotesPage === 'rxu'}
+            maker={dash.makerWatch?.[MAKER_WATCH_BOOK[quotesPage === 'rxu' ? 'rxu' : 'live']] ?? null} /></PageGuard>
         </div>
       </Modal>
     )}

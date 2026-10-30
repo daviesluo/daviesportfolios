@@ -1711,6 +1711,46 @@ export function quotesPageFor(selected, dash) {
 /** "Stablecoin quotes USDC/GBP" on Revolut X's id among LIVE's rows: PR5's second live executor (`QUOTE_RXU_INSTANCE`, 0180). */
 export const QUOTES_RXU_ROW_ID = '__quotes_rxu';
 
+/** The book each Revolut X live page trades, for its line about the other maker: LIVE's USDT-GBP, RX USDC/GBP's USDC-GBP. */
+export const MAKER_WATCH_BOOK = /** @type {const} */ ({ live: 'USDT-GBP', rxu: 'USDC-GBP' });
+/** Past this, the watch's last minute is old news and the line says so instead of a status. */
+export const MAKER_WATCH_STALE_MS = 10 * 60e3;
+
+/** "5 h 32 min", "2 d 3 h", "12 min": how long a state has held. @param {number} ms */
+export function heldForText(ms) {
+  const min = Math.max(0, Math.floor(ms / 60e3));
+  if (min < 60) return `${min} min`;
+  const h = Math.floor(min / 60);
+  if (h < 48) return `${h} h ${min % 60} min`;
+  return `${Math.floor(h / 24)} d ${h % 24} h`;
+}
+
+/**
+ * The line under a Revolut X live page's scoreboard about the other maker on its book (Davies, 2026-10-30: "我们能不能对他加个
+ * 监控，实时观察和记录他的行为"): the dashboard's `makerWatch[book]` (maker_watch.ts, 0185), UK times.
+ *   "Other maker: absent since 29 Oct 21:17 UK (5 h 32 min)"
+ *   "Other maker: present since 30 Oct 09:12 UK (2 h 5 min), 12 ticks wide, its bid 6.1 bps and ask 5.9 bps from fair"
+ * One side only, or not in the book's top five levels this minute, is said after the width; a watch more than ten minutes
+ * behind says that instead. Null when the watch has nothing for the book.
+ * @param {any} w  the dashboard's `makerWatch[book]`
+ * @param {number} nowMs
+ */
+export function makerWatchLine(w, nowMs) {
+  if (!w || !w.status || !w.since) return null;
+  const at = Date.parse(String(w.at));
+  if (!isFinite(at) || nowMs - at > MAKER_WATCH_STALE_MS) return `Other maker: the watch is behind, its last minute ${isFinite(at) ? fmtChartStamp(at) : '—'} UK`;
+  const since = Date.parse(String(w.since));
+  const head = `Other maker: ${w.status} since ${fmtChartStamp(since)} UK (${heldForText(nowMs - since)})`;
+  if (w.status !== 'present') return head;
+  const parts = [head];
+  if (w.width != null) parts.push(`${w.width} ticks wide`);
+  if (w.present === 'bid' || w.present === 'ask') parts.push(`${w.present} only this minute`);
+  else if (w.present === 'none') parts.push('not in the top five levels this minute');
+  const bps = (/** @type {any} */ v) => Number(v).toFixed(1);
+  if (w.present === 'both' && w.bidBps != null && w.askBps != null) parts.push(`its bid ${bps(w.bidBps)} bps and ask ${bps(w.askBps)} bps from fair`);
+  return parts.join(', ');
+}
+
 /**
  * "Stablecoin quotes USDC/GBP" on Revolut X as a row of LIVE (Davies, 2026-10-29: "也上线一个revolut x的Stablecoin quotes USDC/GBP
  * 策略"): the dashboard's `quotesRxu`, LIVE's executor's reader on its own tables, shown as LIVE's executor is (`quotesLiveRow`):

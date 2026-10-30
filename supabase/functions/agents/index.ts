@@ -283,6 +283,7 @@ import { runPmrw, runPmrwSelect, RWC_INSTANCE, type RwSelectReport } from "./pmr
 import { runPmrwE, RWCE_REPLAY } from "./pmrw_e.ts";
 import { parseRwxSpecs, researchRwx, runPmrwX, RWCX_REPLAY } from "./pmrw_x.ts";
 import { booksDelayMs, runBooks } from "./books.ts";
+import { MW_TABLES, mwStatusOf, runMakerWatch } from "./maker_watch.ts";
 import { PM_REC_VENUE_TIMEOUT_MS, pmRecStorage, runPmRec, runPmRecMeta } from "./pm_book_rec.ts";
 import { runCjRec } from "./cj_rec.ts";
 import { runGrokPmRec } from "./grokpm_rec.ts";
@@ -596,8 +597,29 @@ export async function runQuotesAction(wait: boolean, deps: QuotesActionDeps = {}
  * time.
  */
 async function runBooksAction(wait: boolean) {
+  // The other maker's watch (maker_watch.ts, 0185) uses the wait: it writes the minutes since its last run (its first runs, the
+  // history from 2026-09-26), and stops by MAKER_WATCH_BY_MS into the minute so the reads still start on time. A call that
+  // arrives too late for that runs it after the reads, for a few seconds.
+  const into = Date.now() % 60e3;
+  let watch = wait && into < MAKER_WATCH_BY_MS ? await runMakerWatchAction(Date.now() - into + MAKER_WATCH_BY_MS) : null;
   if (wait) await new Promise((r) => setTimeout(r, booksDelayMs(Date.now())));
-  return await runBooks({ db: db() });
+  const books = await runBooks({ db: db() });
+  watch ??= await runMakerWatchAction(Date.now() + 4e3);
+  return { ...books, watch };
+}
+
+/** How far into the minute the watch may run before the recorder's reads (they start at `BOOKS_START_MS`, 40 s). */
+const MAKER_WATCH_BY_MS = 32e3;
+
+/** The watch, never past here: a fault goes to `ops_errors` as `agents.maker_watch` and leaves the recorder's minute alone. */
+async function runMakerWatchAction(deadline: number) {
+  try {
+    return await runMakerWatch({ db: db(), deadline });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    await reportServerError("agents.maker_watch", { message: message.slice(0, 500), context: { at: new Date().toISOString() } });
+    return { error: message.slice(0, 300) };
+  }
 }
 
 /**
@@ -2672,6 +2694,9 @@ async function dashboard(now: number) {
   const cbLive = await readCbLive(d, now);
   // "Stablecoin quotes USDC/GBP" on Revolut X (0180): LIVE's reader on its own tables, beside PR5's paper engine's state.
   const quotesRxu = await readQuotesRxu(d, now, dayStartMs, quoteTickersRead);
+  // The other maker's watch (maker_watch.ts, 0185): a line on the two Revolut X LIVE pages. Before its table exists, nothing.
+  const makerWatch = await d.select<{ book: string; cursor: string | null; memo: never; last: never }>(MW_TABLES.state, "select=book,cursor,memo,last")
+    .then(mwStatusOf).catch(() => null);
   // GROKPM's row of LIVE (Davies, 2026-10-15): the independent record of the outside agent's wallet, its journal beside it.
   const grokPm = await readGrokPm(d, now);
   // The outside-Grok tests of TESTING (Davies, 2026-10-29): CXBOT on paper, IGBOT on IG's demo (grok_tests_view.ts).
@@ -2751,6 +2776,11 @@ async function dashboard(now: number) {
     /** "Stablecoin quotes USDC/GBP" (cb_live.ts): LIVE's Coinbase row, in pounds with the paper arm's GBP/USD; null without 0176. */
     cbLive,
     quotesRxu,
+    /**
+     * The other maker on Revolut X's GBP books (maker_watch.ts, 0185), a book each ("USDT-GBP", "USDC-GBP"): present or absent
+     * and since when, its width in ticks and its prices at the last minute written; null before its table exists.
+     */
+    makerWatch,
     /**
      * "Polymarket analyst" (`grokpm_view.ts`, 0124; titles 0126): the outside agent's wallet from the independent record, its
      * journal beside it; a row of LIVE. Null until a wallet is configured.
