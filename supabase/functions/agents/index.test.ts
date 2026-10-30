@@ -8,7 +8,7 @@ import {
   STATE_VOCAB, strategyBooks, SYMBOLS, probeSummary, quotesDelayMs, quotesSummary, quoteDays, QUOTES_CAPITAL_USD, QUOTES_RECENT_TRIPS, tickErrorReport, crashReport, type ProbeSummaryRow,
   REVX_KEY_NAMES, REVX2_PROBE_SYMBOLS, runProbe, PROBE_PARTS, newestDecisions, quotesLiveSummary, type QuoteLiveOrderView, quotesVariantSummary, quotesRuledSummary,
   serveRequest, type ServeDeps, type Who,
-  exitOverbuy, twinBookRatio, liveBookGbp, liveCoinBooks, liveConversionShares, liveIndexPrices, liveOrderReason, liveRestingBuysGbp, liveRungs, liveRungTrips, quotesLiveDetail, dayCapitalGbp, tripEnds, QUOTE_LIVE_ORDER_COLUMNS,
+  exitOverbuy, twinBookRatio, liveBookGbp, liveCoinBooks, conversionSales, liveConversionShares, liveIndexPrices, liveOrderReason, liveRestingBuysGbp, liveRungs, liveRungTrips, quotesLiveDetail, dayCapitalGbp, tripEnds, QUOTE_LIVE_ORDER_COLUMNS,
   QUOTE_TICKER_FRESH_MS,
   QUOTE_LIVE_REASON_COLUMNS, QUOTE_LIVE_SUMMARY_COLUMNS, QUOTES_LIVE_KNOWN_REFUSALS, QUOTES_LIVE_ORDERS_FILTER, QUOTES_LIVE_PAGE_ROWS, type QuoteLiveRecentRow, withConversionFees,
   liveDays, readQuotesTwin, twinInUsd, twinsDelayMs, twinsOnPage, TWINS_START_MS,
@@ -1127,10 +1127,59 @@ Deno.test("a rebook's sale: no lot, its coins out of the lots first in, first ou
   // deno-lint-ignore no-explicit-any
   const rungs = liveRungs(orders, paper as any, day);
   const usdc = liveCoinBooks(orders, rungs, null).find((c) => c.coin === "USDC")!;
-  // 30 bought, 12 sold, 6 sold short by the ask: 12 coins. Cost: £22.85 paid with fees, less £9.18 the sale took in, less the
-  // short's £4.56; its fee is the open short's, not a closed trip's, so none is booked out yet.
+  // 30 bought, 12 sold, 6 sold short by the ask: 12 coins. Cost (since 2026-10-30, `conversionSales`): £22.85 paid with fees,
+  // less what the 12 sold cost first in, first out (12 × £0.76 = £9.12; the buys' fees stay in the cost), less the short's
+  // £4.56; its fee is the open short's, not a closed trip's, so none is booked out yet. The sale realised £9.18 − £9.12 = £0.06.
   assertEquals(usdc.coins, 12);
-  assertAlmostEquals(usdc.costGbp, (10 * 0.76 + 0.01 + 20 * 0.76 + 0.04) - 12 * 0.765 - 6 * 0.76, 1e-12);
+  assertAlmostEquals(usdc.costGbp, (10 * 0.76 + 0.01 + 20 * 0.76 + 0.04) - 12 * 0.76 - 6 * 0.76, 1e-12);
+  assertAlmostEquals(usdc.realisedGbp, 12 * 0.765 - 12 * 0.76, 1e-12);
+});
+
+// LIVE, 2026-10-30 (Davies: "USDC [•] USDC · £[•] at £0.7470 -£[•]"): the USDT-only switch's rebook sold the whole USDC
+// book but a few pence of it, and the coin row showed the sale's loss as unrealised on those. Worked by hand: bought 100 at £0.75 and 50
+// at £0.76, no fees; sold 149.98 at £0.745, no fee. First in, first out the sale took the 100 (£75) and 49.98 of the 50
+// (£37.9848): £112.9848. It took in 149.98 × £0.745 = £111.7351: realised −£1.2497. Left: 0.02 of the £0.76 lot, £0.0152; at
+// £0.745 they are worth £0.0149: unrealised −£0.0003. The old cost (£113 paid less £111.7351 taken in) was £1.2649, its
+// unrealised −£1.25 on 0.02 coins.
+Deno.test("a rebook's full sale: what it lost is realised, first in, first out, and the 0.02 coins left carry their own cost", () => {
+  const day = Date.UTC(2026, 9, 29), h = 3600e3;
+  const o = (id: number, over: Partial<QuoteLiveOrderView>): QuoteLiveOrderView => ({
+    id, ts: new Date(day + id * h).toISOString(), mode: "live", book: "USDC-GBP", rung_side: null, k: null, leg: "convert", state: "filled",
+    filled_base: 0, avg_fill_price: 0.75, price: 0.75, fee_gbp: 0, filled_at: new Date(day + id * h).toISOString(), ...over,
+  });
+  const orders = [
+    o(1, { side: "buy", filled_base: 100, avg_fill_price: 0.75 }),
+    o(2, { side: "buy", filled_base: 50, avg_fill_price: 0.76 }),
+    o(23, { side: "sell", filled_base: 149.98, avg_fill_price: 0.745 }),                     // the rebook's sale
+  ];
+  const sales = conversionSales(orders);
+  assertEquals(sales.map((x) => [x.id, x.book, x.at]), [[23, "USDC-GBP", day + 23 * h]]);
+  assertAlmostEquals(sales[0].realisedGbp, 149.98 * 0.745 - (100 * 0.75 + 49.98 * 0.76), 1e-9);
+  assertAlmostEquals(sales[0].realisedGbp, -1.2497, 1e-9);
+  const paper = { state: { books: { "USDC-GBP": { lastX: 1.3, lastPrint: { ticks: 7450 } }, "USDT-GBP": { lastX: 1.3, lastPrint: { ticks: 7470 } } } }, last_minute: null, updated_at: "", last_error: null };
+  // deno-lint-ignore no-explicit-any
+  const rungs = liveRungs(orders, paper as any, day);
+  const books = liveCoinBooks(orders, rungs, { USDC: 0.02, USDT: 0 }, { "USDC-GBP": 0.745 }, day);
+  const usdc = books.find((c) => c.coin === "USDC")!;
+  assertEquals(usdc.coins, 0.02);
+  assertAlmostEquals(usdc.costGbp, 0.0152, 1e-9);
+  assertAlmostEquals(usdc.valueGbp, 0.0149, 1e-9);
+  assertAlmostEquals(usdc.unrealisedGbp!, -0.0003, 1e-9);
+  assertAlmostEquals(usdc.realisedGbp, -1.2497, 1e-9);
+  assertAlmostEquals(usdc.realisedTodayGbp, -1.2497, 1e-9);
+  // The row's realised and today carry it (the rungs made nothing), its unrealised only the coins left.
+  const t = liveBookGbp(rungs, books);
+  assertAlmostEquals(t.realised, -1.2497, 1e-9);
+  assertAlmostEquals(t.today, -1.2497, 1e-9);
+  assertAlmostEquals(t.unrealised, -0.0003, 1e-9);
+  // A day that starts after the sale: realised, not today's.
+  assertEquals(liveCoinBooks(orders, rungs, { USDC: 0.02 }, { "USDC-GBP": 0.745 }, day + 86400e3).find((c) => c.coin === "USDC")!.realisedTodayGbp, 0);
+  // DAYS puts it on the day it filled, so the days add up to the row.
+  const days = liveDays(orders, rungs, [], day, undefined, sales);
+  assertAlmostEquals(days[0].realisedGbp, -1.2497, 1e-9);
+  // A sale beyond what the conversions bought takes the excess at its own price: it realises nothing on it.
+  const over = conversionSales([o(1, { side: "buy", filled_base: 10, avg_fill_price: 0.75 }), o(2, { side: "sell", filled_base: 12, avg_fill_price: 0.77, fee_gbp: 0.01 })]);
+  assertAlmostEquals(over[0].realisedGbp, 10 * (0.77 - 0.75) - 0.01, 1e-12);
 });
 
 // A twin on both books from the USDT-only switch (0178): each book's realised a year on its half since then, and the ratio.

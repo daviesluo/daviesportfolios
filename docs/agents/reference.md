@@ -4648,7 +4648,10 @@ USDC-GBP 0 from `QUOTE_LIVE_USDT_ONLY_FROM`, the twins' `rules.weights` at the s
 variant-1，2，3，5，7和8也改为在新的实盘基础上做，variant-6改为usdc和usdt 1:1…"; the study `reviews/2026-10-29-usdt-only.md`, the deviation
 `reviews/2026-10-29-usdt-only-deviation.md`): `live600`, `live1200`, `take50`, `n600no03` (its 0.3 % rung still 0), `live600x1` and
 `live600ctl`. For 72 hours from weights that start then or later each instance rebooks its coin by maker orders alone (`rebookOn`:
-a surplus sold post-only at the top of the asks, never under fair; the short book's top-ups uncapped). `n600usdt` is USDC:USDT 1:1
+a surplus sold post-only at the top of the asks, never under fair; the short book's top-ups uncapped). What such a sale made or
+lost against the conversion lots it sold, first in, first out, is realised (the row's REALIZED, TODAY on its day, DAYS and the
+book's realised; `conversionSales`, 2026-10-30), and the coin row's cost and unrealised are the coins still held; the executor's
+loss stop still counts the rungs alone. `n600usdt` is USDC:USDT 1:1
 and `n600nudge` the same with the USDC-GBP nudge, each page with a USDT/USDC line (`twinBookRatio`); the USDT 3:1 twin and the $300
 nudge with its control are off.
 **From 2026-10-30 00:00 UTC every exit of LIVE rests a tick beyond fair, and so does every running twin on its rules** (`0181`;

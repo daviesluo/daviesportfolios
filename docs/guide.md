@@ -298,7 +298,10 @@ places stay when the number is not whole.
   the whole balance with what is on hold in orders beside it, each coin also
   in pounds at the index price shown beside it, and with its unrealised;
   their unrealised add up to the scoreboard's, which stays on the book's own
-  count. The book's own count follows each balance; where the two differ by
+  count. When the strategy sells a coin it no longer trades (as the live
+  account sold its USDC on 29 Oct), what that sale made or lost against what
+  the coins cost, oldest first, counts as realised on the day it filled, and
+  the few coins left carry only their own cost. The book's own count follows each balance; where the two differ by
   more than £0.05 it is shown in red ("book … ≠ balance"): a trade made by
   hand, or a fill the book has not booked yet. Before the exchange has been
   read, INVENTORY shows the book's own count alone. DAYS: each UTC day's orders, entry

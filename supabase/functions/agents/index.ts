@@ -1636,11 +1636,46 @@ export function liveRungs(orders: QuoteLiveOrderView[], paper: QuoteStateRow | n
   return out;
 }
 
-/** A book's coins in the account, against what they cost (`liveCoinBooks`). */
+/** A book's coins in the account, against what they cost (`liveCoinBooks`); what its conversions' sales realised (`conversionSales`). */
 export type LiveCoinBook = {
   book: QuoteBook; coin: string; coins: number; mark: number | null; markFrom: "index" | "last trade" | null;
   costGbp: number; valueGbp: number; unrealisedGbp: number | null;
+  realisedGbp: number; realisedTodayGbp: number;
 };
+
+/** A conversion that sold coin (a rebook's sale, `isDrain`), realised against what the coins it sold cost (`conversionSales`). */
+export type ConversionSale = { id: number; book: QuoteBook; at: number; realisedGbp: number };
+/**
+ * What each conversion that sold coin realised (Davies, 2026-10-30, LIVE's page after the USDT-only switch sold its USDC at
+ * 23:34 UTC: "USDC [•] USDC · £[•] at £0.7470 -£[•]"). Each book's conversions are walked in the order they filled: one
+ * that buys is a lot, at its price; one that sells takes its coins from the lots, first in, first out, and realises its pounds,
+ * less its fee, less what those coins cost. Coins it sold beyond what the conversions bought (a rung's leftovers) are taken at the
+ * sale's own price: they realise nothing here. A buy's fee is not a lot's cost: it stays in the coins' cost, less what closed
+ * trips carry (`withConversionFees`), as before. Before this, a sale only took its pounds off the cost, so what the coins it sold
+ * made or lost stayed in the cost of the few left, as unrealised on about 0 coins.
+ */
+export function conversionSales(orders: QuoteLiveOrderView[]): ConversionSale[] {
+  const at = (o: QuoteLiveOrderView) => Date.parse(o.filled_at ?? o.ts);
+  const conv = orders.filter((o) => o.mode === "live" && o.leg === "convert" && Number(o.filled_base) > 0)
+    .sort((a, b) => at(a) - at(b) || a.id - b.id);
+  const out: ConversionSale[] = [];
+  for (const b of QUOTE_BOOKS) {
+    const lots: { left: number; px: number }[] = [];
+    for (const o of conv.filter((x) => x.book === b)) {
+      const q = Number(o.filled_base), px = Number(o.avg_fill_price ?? o.price);
+      if (o.side !== "sell") { lots.push({ left: q, px }); continue; }
+      let need = q, cost = 0;
+      for (const lot of lots) {
+        if (need <= 0) break;
+        const take = Math.min(lot.left, need);
+        lot.left -= take; need -= take; cost += take * lot.px;
+      }
+      cost += need * px;
+      out.push({ id: o.id, book: b, at: at(o), realisedGbp: q * px - Number(o.fee_gbp || 0) - cost });
+    }
+  }
+  return out;
+}
 
 /**
  * Each book's coins as the account holds them, against what they cost (Davies, 2026-10-01: his account page shows each
@@ -1654,30 +1689,37 @@ export type LiveCoinBook = {
  * rungs' marks, and the conversions' own (their price, their fee and the pound's moves since). A book with neither price
  * is valued at its cost, its unrealised unknown.
  */
-export function liveCoinBooks(orders: QuoteLiveOrderView[], rungs: LiveRung[], balances: Record<string, number> | null | undefined, index: Partial<Record<QuoteBook, number>> = {}): LiveCoinBook[] {
+export function liveCoinBooks(orders: QuoteLiveOrderView[], rungs: LiveRung[], balances: Record<string, number> | null | undefined, index: Partial<Record<QuoteBook, number>> = {}, dayStartMs = Infinity): LiveCoinBook[] {
   const conversions = orders.filter((o) => o.mode === "live" && o.leg === "convert" && Number(o.filled_base) > 0);
+  const sales = conversionSales(orders);
   return QUOTE_BOOKS.map((b) => {
     const mine = rungs.filter((r) => r.book === b);
     const lots = conversions.filter((o) => o.book === b);
     const signed = (r: LiveRung) => (r.side === "bid" ? 1 : -1) * r.rb.held;
-    // A conversion that sells (a coin rebook's sale, `isDrain`) takes its coins out and its pounds, less its fee, off the cost: what
-    // the coins it sold made or lost against what they cost stays in the book's cost, and so in its unrealised, as before the sale.
+    // A conversion that sells (a coin rebook's sale, `isDrain`) takes its coins out, and what they cost, first in, first out
+    // (`conversionSales`): what they made or lost against that is realised, the book's, not left in the cost of the coins still
+    // held (2026-10-30: before, its pounds came off the cost, and a full sale left its gain or loss as unrealised on a few pence of USDC).
     const sign = (o: QuoteLiveOrderView) => (o.side === "sell" ? -1 : 1);
+    const sold = sales.filter((x) => x.book === b);
+    const realisedGbp = sold.reduce((a, x) => a + x.realisedGbp, 0);
+    const realisedTodayGbp = sold.filter((x) => x.at >= dayStartMs).reduce((a, x) => a + x.realisedGbp, 0);
     const ownCount = lots.reduce((a, o) => a + sign(o) * Number(o.filled_base), 0) + mine.reduce((a, r) => a + signed(r) + (r.overCoins ?? 0), 0);
-    const paid = lots.reduce((a, o) => a + sign(o) * Number(o.filled_base) * Number(o.avg_fill_price ?? o.price) + Number(o.fee_gbp || 0), 0);
+    const paid = lots.reduce((a, o) => a + sign(o) * Number(o.filled_base) * Number(o.avg_fill_price ?? o.price) + Number(o.fee_gbp || 0), 0) + realisedGbp;
     const costGbp = paid - mine.reduce((a, r) => a + r.convFeesGbp, 0) + mine.reduce((a, r) => a + signed(r) * r.rb.avgEntry + (r.overGbp ?? 0), 0);
     const read = balances?.[coinOf(b)];
     const coins = read != null && Number.isFinite(Number(read)) ? Number(read) : ownCount;
     const mark = index[b] ?? mine[0]?.mark ?? null;
     const markFrom = index[b] != null ? "index" as const : mark != null ? "last trade" as const : null;
     const valueGbp = mark == null ? costGbp : coins * mark;
-    return { book: b, coin: coinOf(b), coins, mark, markFrom, costGbp, valueGbp, unrealisedGbp: mark == null ? null : valueGbp - costGbp };
+    return { book: b, coin: coinOf(b), coins, mark, markFrom, costGbp, valueGbp, unrealisedGbp: mark == null ? null : valueGbp - costGbp, realisedGbp, realisedTodayGbp };
   });
 }
 
 /**
  * The live book's totals in GBP: realised, fees and today added up rung by rung in the walk's order (TODAY is what the
- * executor's loss stop reads); what it holds — deployed, its cost and its unrealised — the coins of `liveCoinBooks`.
+ * executor's loss stop reads); what it holds — deployed, its cost and its unrealised — the coins of `liveCoinBooks`. What a
+ * conversion's sale realised (`conversionSales`) is in realised, and in today on the day it filled; the executor's loss stop
+ * counts the rungs alone, so on such a day TODAY differs from the stop's figure by that sale.
  */
 export function liveBookGbp(rungs: LiveRung[], coins: LiveCoinBook[]) {
   let realised = 0, today = 0, fees = 0, heldRungs = 0, unmarked = 0;
@@ -1690,6 +1732,10 @@ export function liveBookGbp(rungs: LiveRung[], coins: LiveCoinBook[]) {
       heldRungs++;
       if (r.mark == null) unmarked++;
     }
+  }
+  for (const c of coins) {
+    realised += c.realisedGbp ?? 0;
+    today += c.realisedTodayGbp ?? 0;
   }
   const unrealised = coins.reduce((a, c) => a + (c.unrealisedGbp ?? 0), 0);
   const cost = coins.reduce((a, c) => a + c.costGbp, 0), value = coins.reduce((a, c) => a + c.valueGbp, 0);
@@ -1718,7 +1764,7 @@ export function quotesLiveSummary(input: {
   const x = liveRateOf(input.paper);
   const rungs = liveRungs(input.orders, input.paper, input.dayStartMs, input.state?.state.dust, input.rungs);
   const { realised, today, unrealised, cost, value: coinsGbp, fees, heldRungs, unmarked } = liveBookGbp(rungs,
-    liveCoinBooks(input.orders, rungs, liveBalancesOf(input.state), liveIndexPrices(input.tickers ?? [], input.nowMs)));
+    liveCoinBooks(input.orders, rungs, liveBalancesOf(input.state), liveIndexPrices(input.tickers ?? [], input.nowMs), input.dayStartMs));
   // Deployed: what its quotes have at work, the coins and the pounds resting in buys.
   const value = coinsGbp + liveRestingBuysGbp(live);
   const usd = (gbp: number) => (x == null ? null : gbp * x);
@@ -1834,7 +1880,7 @@ export function liveOrderReason(o: QuoteLiveRecentRow, nowMs: number): string | 
  * `ordersByDay` gives each day's orders where `orders` holds only those that filled or rest (a realistic twin's: its
  * driver counts what it sends, `TwinDriverState.days`, and the page reads no order that neither filled nor rests).
  */
-export function liveDays(orders: QuoteLiveOrderView[], rungs: LiveRung[], trips: LiveTrip[], dayStartMs: number, ordersByDay?: Record<string, number>) {
+export function liveDays(orders: QuoteLiveOrderView[], rungs: LiveRung[], trips: LiveTrip[], dayStartMs: number, ordersByDay?: Record<string, number>, sales: ConversionSale[] = []) {
   const live = orders.filter((o) => o.mode === "live");
   const D = 86400e3;
   const counted = Object.keys(ordersByDay ?? {}).map((d) => Date.parse(`${d}T00:00:00Z`)).filter(Number.isFinite);
@@ -1850,7 +1896,8 @@ export function liveDays(orders: QuoteLiveOrderView[], rungs: LiveRung[], trips:
       orders: ordersByDay ? ordersByDay[isoOf(d).slice(0, 10)] ?? 0 : live.filter((o) => inDay(Date.parse(o.ts), d) && o.not_sent !== true).length,
       fills: live.filter((o) => o.leg === "entry" && Number(o.filled_base) > 0 && inDay(Date.parse(o.filled_at ?? o.ts), d)).length,
       trips: closed.length, won: closed.filter((t) => t.pnlGbp > 0).length,
-      realisedGbp: from(d) - from(d + D),
+      // A conversion's sale realises on the day it filled (`conversionSales`), as the row's realised counts it.
+      realisedGbp: from(d) - from(d + D) + sales.filter((x) => inDay(x.at, d)).reduce((a, x) => a + x.realisedGbp, 0),
     });
   }
   return out;
@@ -1912,15 +1959,17 @@ export function quotesLiveDetail(input: {
   const inTrips = new Set(trips.flatMap((t) => t.ids));
   const balances = liveBalancesOf(input.state);
   const index = liveIndexPrices(input.tickers ?? [], input.nowMs);
-  const coinBooks = liveCoinBooks(input.orders, rungs, balances, index);
+  const coinBooks = liveCoinBooks(input.orders, rungs, balances, index, input.dayStartMs);
+  const sales = conversionSales(input.orders);
+  const bookRealised = (b: QuoteBook) => rungs.filter((r) => r.book === b).reduce((a, r) => a + r.rb.realisedGbp, 0)
+    + sales.filter((x) => x.book === b).reduce((a, x) => a + x.realisedGbp, 0);
   return {
     books: QUOTE_BOOKS.map((b) => {
       const v = paperBooks[b] ? quoteBookView(b, paperBooks[b], []) : null;
       const mine = trips.filter((t) => t.book === b);
       return {
         book: b, lastPrice: v?.lastPrice ?? null, lastPrintAt: v?.lastPrintAt ?? null, fair: v?.fair ?? null, index: index[b] ?? null,
-        realisedGbp: rungs.filter((r) => r.book === b).reduce((a, r) => a + r.rb.realisedGbp, 0),
-        realisedUsd: usd(rungs.filter((r) => r.book === b).reduce((a, r) => a + r.rb.realisedGbp, 0)),
+        realisedGbp: bookRealised(b), realisedUsd: usd(bookRealised(b)),
         trips: mine.length, won: mine.filter((t) => t.pnlGbp > 0).length,
       };
     }),
@@ -1956,7 +2005,7 @@ export function quotesLiveDetail(input: {
         })),
       ],
     },
-    days: liveDays(input.orders, rungs, trips, input.dayStartMs, input.ordersByDay).map(({ realisedGbp, ...d }) => {
+    days: liveDays(input.orders, rungs, trips, input.dayStartMs, input.ordersByDay, sales).map(({ realisedGbp, ...d }) => {
       const capitalGbp = input.capitalHistory?.length ? dayCapitalGbp(input.capitalHistory, d.day) : null;
       return { ...d, realisedGbp, realisedUsd: usd(realisedGbp), ...(capitalGbp != null ? { capitalGbp } : {}) };
     }),
