@@ -345,6 +345,74 @@ reading LIVE's record.
     (D4): the exit must sell exactly the net coin and leave no remnant.
   * The entry has no paper order. Check that LIVE's row books its fill, fee and exit at fair, and that the paper rung's
     own fill opens no second entry while LIVE holds.
+* 2026-10-30 18:00 UTC, the take shadow read again (10-18 05:17 → 10-30 ~18:00; read-only SQL, not blind):
+  **47 `take_shadow` events, all on USDT-GBP's asks, all sells, all at £50 a rung (before the USDT-only switch).** They are
+  44 on k 0.2 % (10-28 18:42 → 19:38), 1 on k 0.3 % (10-28 18:52), and 2 on k 0.1 % (10-29 15:22 and 15:28). None has
+  happened since LIVE went USDT-only (10-29 22:30), so none was taken under today's rules.
+  **They are 2 take opportunities, not 47:**
+  * **10-28.** USDT-GBP's book sat about 30 bps over PR5's fair for an hour (fair 0.7488–0.7495; maker ask 0.7518; best
+    bid 0.7517). That best bid was one order of 49.91 coins, shrinking to 48.45 by 19:37 under £0.10 sales.
+  * **10-29 15:22.** A bid of 647.29 coins at 0.7482 against fair 0.74677.
+  * **Why the rows repeat.** A shadow sends nothing, so the rung stays flat and the same test passes the next minute and
+    is written again: by design, not a bug (`canonJson` stops only identical details, and `at`/`fair` change). Every row
+    has `replaces` null, because the paper rung's own post-only entry crossed the bid and was refused (LIVE 9335, 9352,
+    9396…, `rejected`).
+  * **What 'live' would have sent: 3 IOCs, not 47.**
+    * 10-28 18:42: an IOC on k 0.2 % at 0.7516. It takes the whole 49.78-coin bid at 0.7517 (≈ £37.42; the rest dies, the
+      next bid being 0.7505); the rung holds, so no more k 0.2 % takes.
+    * 10-28 18:52: an IOC on k 0.3 % at 0.7517 finds that bid gone and dies unfilled (the rung idles that turn).
+    * 10-29 15:22: an IOC on k 0.1 % at 0.7482 fills whole (66.83 coins from 647). The rung holds until its exit, so there
+      is no 15:28 take; variant-2's exit filled at 15:43.
+
+  **Criteria:**
+  1. **Matched by a variant-2 take: PASS on the 3 distinct takes.** Variant-2 (`agent_quote_twin_take50_orders`,
+     `request.take`) took at each, with the same book, rung, minute and limit:
+     * 10832, 10-28 18:42, k 0.2 %, 0.7516;
+     * 10864, 18:52, k 0.3 %, 0.7517;
+     * 11518, 10-29 15:22, k 0.1 %, 0.7482.
+     The other 44 rows have no variant-2 take. The gap, named: variant-2's take had filled and its rung was held (10832
+     until its exit at 0.7494 at 10-29 01:59; 11518 until 15:43), while the shadow holds nothing by design.
+     Variant-2's 10864 filled 49.65 coins from the same 49.8-coin bid its 10832 had already taken, because the twin does
+     not take its own fills out of the recorded book. Its 10-28 pair is therefore one fill counted twice; LIVE would have
+     had one.
+  2. **`fundsOk` true: PASS**, 47 of 47 (a sell needs 66.5–66.8 USDT, which the account held).
+  3. **LIVE as 'off': PASS.**
+     * 3,657 live orders since 05:17 on 10-18, none with `request.take`.
+     * Every entry, exit and conversion was post-only GTC (2,975, 665 and 15); the 2 IOCs were 24-hour stops.
+     * `ops_errors` has no `take shadow`, `take:` or "recorded book is unreadable" line.
+     * RX USDC/GBP's `take_mode` is 'off', and it has no take row.
+  4. **Each would-be take inside its limit at the read's touch: PASS.**
+     * The read's best bid ≥ the limit on all 47 (0.7517 against 0.7510–0.7517 on 10-28; 0.7482 against 0.7482 on 10-29).
+     * Every read was 46–49 s old, inside the 90 s.
+     * 10-28's depth was 49.8 coins against 66.5 wanted, so that take fills about three quarters.
+
+  **What changed since Davies' word of 10-18, against the code (`quotes_live.ts`, step 6):**
+  * **Size: right.** `takeTurn` sizes by `gbpOf`, the weights' share of `capital_gbp`. Since 10-29 22:30 a USDT rung is £100
+    (£600 / 6, not £50), and USDC's rungs (weight 0) are not `allowed`.
+  * **Compounding: followed.** It moves `capital_gbp` once a UTC day from 10-31 (`quotes_compound.ts`), and the take's size
+    follows it.
+  * **Limit: unchanged.** It is `takeLimitTicks(fair, k, side)` = k + 0.09 % from fair, independent of `exitOffset`.
+  * **Exit and holding: the same path as any entry.** A filled take is held and exits by step 5, now a tick beyond fair
+    (`exitOffset`) and never crossing (`exitTicksOnBook`); its 24-hour stop is the same.
+  * **`holdMin` £1:** an IOC that fills £1 or less leaves the rung unheld, and the next minute may send another IOC
+    (bounded by the governor).
+  * **The rebook (until 11-01 22:30):** an ask take spends free USDT that the rebook's top-ups also count. It is checked
+    against `free` before sending, so it can be skipped (a `take:` line), never sent short.
+  * **Twin comparison:**
+    * Variant-2 (`take50`) is on LIVE's rules for weights, `holdMin`, `exitOffset` and (from 10-31) compounding.
+    * It has no `fill: at` (LIVE fills 'at'), so its holding can differ from LIVE's.
+    * It has no `weekend` rule. LIVE quotes closures (`weekend_mode` 'live'), and with `take_mode` 'live' it would also take
+      inside a closure, where variant-2 is dark and the 10-18 pricing never looked.
+
+  **Verdict: all four criteria pass, on 2 opportunities in 12 days and none yet under today's rules.**
+  * Variant-2's replays of them: +£0.0745 (10832, held 7 h 17 min) and +£0.0369 (11518, 21 min) after the 0.09 %, at £50.
+  * Recommendation: the switch is ready on Davies' word. Rung size and the rules have changed since his 10-18 word, so
+    it is his again.
+  * If he wants evidence under today's rules first, keep 'shadow' until one USDT-only event.
+  * The statement (one row, the next turn; undo `set take_mode = 'shadow'` or `'off'`):
+    `update public.agent_quote_live_config set take_mode = 'live', updated_at = now() where id = 1;`
+  * **To watch on the first live take:** the IOC's partial fill, its fee in pounds, the exit a tick beyond fair, and no
+    second IOC on the same rung while it holds.
 
 ## Addendum (2026-10-28): the operator's conversion follows the bid
 

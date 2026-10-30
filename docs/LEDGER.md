@@ -802,7 +802,15 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 01:24 UTC section (archived
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
-and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth), and the 2026-10-29 19:50, 2026-10-29 19:55, 2026-10-29 20:00, 2026-10-29 20:15 ones (twenty-sixth), and the 2026-10-29 20:41, 2026-10-29 21:07 ones (twenty-seventh), and the 2026-10-29 21:30, 2026-10-29 22:10 ones (twenty-eighth), and the 2026-10-29 22:12, 2026-10-29 22:27 ones (twenty-ninth), and the 2026-10-29 22:40, 2026-10-29 22:43 ones (thirtieth), and the 2026-10-29 22:55, 2026-10-29 23:13 ones (thirty-first), and the 2026-10-29 23:24, 2026-10-29 23:30 ones (thirty-second), and the 2026-10-30 00:17, 2026-10-30 00:30 ones (thirty-third).
+and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth), and the 2026-10-29 19:50, 2026-10-29 19:55, 2026-10-29 20:00, 2026-10-29 20:15 ones (twenty-sixth), and the 2026-10-29 20:41, 2026-10-29 21:07 ones (twenty-seventh), and the 2026-10-29 21:30, 2026-10-29 22:10 ones (twenty-eighth), and the 2026-10-29 22:12, 2026-10-29 22:27 ones (twenty-ninth), and the 2026-10-29 22:40, 2026-10-29 22:43 ones (thirtieth), and the 2026-10-29 22:55, 2026-10-29 23:13 ones (thirty-first), and the 2026-10-29 23:24, 2026-10-29 23:30 ones (thirty-second), and the 2026-10-30 00:17, 2026-10-30 00:30 ones (thirty-third), and the 2026-10-30 00:35, 2026-10-30 00:57 ones (thirty-fourth).
+
+### [2026-10-30 18:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **PR5 take shadow read again, 10-18 05:17 → 10-30 18:00** (sub-agent; commit, not pushed; routine "PR5 take-shadow
+  re-check"). 47 `take_shadow` rows are 2 opportunities (10-28 18:42, one 49.8-coin bid ~30 bps over fair repeated each
+  minute because the shadow holds nothing, by design; 10-29 15:22); 'live' would have sent 3 IOCs (2 filling). Criteria
+  (a)–(d) pass; none since USDT-only. Size, limit and exit follow USDT-only weights, compounding, exitOffset and holdMin;
+  take50's twin lacks `fill: at` and weekends. take_mode stays 'shadow' until Davies' word (statement in the 10-18
+  addendum's log). Moved the 00:35, 00:57 sections to handover (thirty-fourth).
 
 ### [2026-10-30 05:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Dashboard speed, round 2; the Agents list stays in its rows' own currency** (sub-agent, landed by the main session; Davies,
@@ -932,19 +940,3 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   $50 a rung from its first minute ≥ 10-30 01:00, weekend prereg Deviation 7; usdc Dev 6, nudge Dev 5). "- 1"/"- 2" show each
   book's and coin's realised a year under the scoreboard (`book_ratio.ts`, RX twins' reading). Same-name rows go by id and venue
   (`site-check --venue`). No config or migration.
-
-### [2026-10-30 00:57 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Coinbase LIVE can decide for itself; lands following, shadow on** (sub-agent; commit, not pushed; Davies, 10-30 ~00:45: "要做").
-  `cb_live_config.decide` ('paper' default, 'self'; `0182`): 'self' steps the arm's rule on its own copy (`cbLiveSelfStep`: the
-  driver's fair composed of its own functions, `cbLiveMinuteFair`, cb_usdc.ts being frozen; `stepMinute` without prints), two
-  minutes behind the clock, held rungs from live's fills, post-only refusals retried next turn; reads no `cb_nudge_*` table.
-  While 'paper', `cb_live_shadow` (14 days) logs per rung what 'self' would rest, the follower's want and what rested; SQL in
-  design §10. Pins: `cb_live.test.ts` (fair and quotes minute for minute against the paper arm's run inside a closure,
-  counterfactual without the nudge fails; the follower unchanged with the shadow on).
-
-### [2026-10-30 00:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **site-check after its first real run** (sub-agent; commit, not pushed). The 00:15 desktop pass did reach Agents: its
-  `agents?action=dashboard` preflight was refused (not HTTP ok) and the page showed "Could not reach the server"; phone, a
-  moment later, read fine. Now the script presses the card's "Try again" twice at most, names the step that failed in the
-  `-failed` snapshot, reads the topmost page, and files a viewer's expected lines (CSP beacon, CORS-proxy fallbacks,
-  admin-only 401s, aborted calls, address-less console lines) under "expected", apart from the real problems.

@@ -47779,3 +47779,21 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   at its own lot's price), `liveBookGbp` adds it to REALIZED and TODAY, DAYS and BOOKS on its day. All LIVE readers (LIVE, twins,
   the RX USDC instance); `cb_live` never sells a conversion and is unchanged. The executor's loss stop is unchanged (rungs only).
   Pin: `index.test.ts` "a rebook's full sale…", worked by hand.
+
+## LEDGER.md, archived 2026-10-30 (thirty-fourth) — the 2026-10-30 00:35, 2026-10-30 00:57 UTC history sections, oldest first
+
+### [2026-10-30 00:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **site-check after its first real run** (sub-agent; commit, not pushed). The 00:15 desktop pass did reach Agents: its
+  `agents?action=dashboard` preflight was refused (not HTTP ok) and the page showed "Could not reach the server"; phone, a
+  moment later, read fine. Now the script presses the card's "Try again" twice at most, names the step that failed in the
+  `-failed` snapshot, reads the topmost page, and files a viewer's expected lines (CSP beacon, CORS-proxy fallbacks,
+  admin-only 401s, aborted calls, address-less console lines) under "expected", apart from the real problems.
+
+### [2026-10-30 00:57 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Coinbase LIVE can decide for itself; lands following, shadow on** (sub-agent; commit, not pushed; Davies, 10-30 ~00:45: "要做").
+  `cb_live_config.decide` ('paper' default, 'self'; `0182`): 'self' steps the arm's rule on its own copy (`cbLiveSelfStep`: the
+  driver's fair composed of its own functions, `cbLiveMinuteFair`, cb_usdc.ts being frozen; `stepMinute` without prints), two
+  minutes behind the clock, held rungs from live's fills, post-only refusals retried next turn; reads no `cb_nudge_*` table.
+  While 'paper', `cb_live_shadow` (14 days) logs per rung what 'self' would rest, the follower's want and what rested; SQL in
+  design §10. Pins: `cb_live.test.ts` (fair and quotes minute for minute against the paper arm's run inside a closure,
+  counterfactual without the nudge fails; the follower unchanged with the shadow on).
