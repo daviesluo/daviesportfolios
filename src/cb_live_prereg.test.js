@@ -12,6 +12,12 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
 const sha = (p) => crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, p))).digest('hex');
 const A = 'supabase/functions/agents/';
+/** The compounding deviation (2026-10-30, 0183), recorded apart: under each pre-registration's own heading, the files as they are. */
+const APART = read('docs/agents/reviews/2026-10-30-compounding-deviation.md');
+const apartFor = (doc) => {
+  const s = APART.indexOf('### `' + doc + '`'), rest = s < 0 ? '' : APART.slice(s + 1), e = rest.search(/\n##/);
+  return rest.slice(0, e < 0 ? undefined : e);
+};
 const QUOTE = '目前coinbase的测试策略全部直接改用coinbase自己的币价而不是revolutx的';
 const DEVS = [
   { doc: 'docs/agents/reviews/2026-10-10-coinbase-paper-prereg.md', head: '### Deviation 5 (2026-10-29', files: ['cb_quotes.ts', 'cb_quotes.test.ts'] },
@@ -28,7 +34,8 @@ describe("the Coinbase arms on Coinbase's own coin price", () => {
       const dev = doc.slice(at);
       for (const w of [QUOTE, '**USDC is 1**', "**USDT is Coinbase USDT-USD's own price**", '[t − 10 min, t − 1 min]', '**50 bps**', '`liveFrom`',
         '2026-10-29 08:00 UTC', 'There is no backfill', '60 → 7']) expect(dev, w).toContain(w);
-      for (const f of d.files) expect(dev, f).toContain(sha(A + f));
+      // A file changed since, by the compounding (0183), is named as it is in that deviation, recorded apart.
+      for (const f of d.files) expect(dev + apartFor(d.doc), f).toContain(sha(A + f));
     });
   }
 

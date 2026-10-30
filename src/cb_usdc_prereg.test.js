@@ -32,6 +32,13 @@ const LATER = {
     'a2459029da2f9e1e35d80087cdf4a0aeb78dc2790e86daca4aaaa7855402470c'],
   'supabase/functions/agents/cb_quotes.ts': ['fe88387e54abad68ff3fe5a02fb8f2a768a09ccea860b4ab4a46cbbdd262c465', '3d267f849a8aeec704c880dc9a7da20ac19b5653117778cedff828615b468a6c'],
 };
+const HEAD = 'docs/agents/reviews/2026-10-26-cb-usdc-prereg.md';
+/** The compounding deviation (2026-10-30, 0183), recorded apart: the files as they are, under this pre-registration's heading. */
+const APART = read('docs/agents/reviews/2026-10-30-compounding-deviation.md').toString('utf8');
+const namedApart = (f) => {
+  const s = APART.indexOf('### `' + HEAD + '`'), rest = s < 0 ? '' : APART.slice(s + 1), e = rest.search(/\n##/);
+  return [...rest.slice(0, e < 0 ? undefined : e).matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
+};
 const named = (f) => [...DOC.matchAll(new RegExp('\\| `' + f.replace(/[.]/g, '\\.') + '` \\| ([0-9a-f]{64}) \\|', 'g'))].map((m) => m[1]);
 
 describe('the USDC arm of the Coinbase paper test', () => {
@@ -45,10 +52,15 @@ describe('the USDC arm of the Coinbase paper test', () => {
     expect(dev).toBeGreaterThan(DOC.indexOf('## 7. Deviations'));
     expect(dev2).toBeGreaterThan(dev);
     expect(dev3).toBeGreaterThan(dev2);
+    // Then the compounding deviation (2026-10-30, 0183), recorded apart: cb_usdc.ts and cb_hold.ts as they are, the last named
+    // in this file the bytes before it.
     for (const [f, frozen] of Object.entries(FROZEN_2026_10_26)) {
-      expect(named(f), f).toEqual([frozen, ...LATER[f], sha(f)]);
-      expect(DOC.lastIndexOf(`| \`${f}\` | ${sha(f)} |`), f).toBeGreaterThan(dev3);
+      const apart = namedApart(f), here = apart.length ? named(f).at(-1) : sha(f);
+      expect([...named(f), ...apart], f).toEqual([frozen, ...LATER[f], here, ...(apart.length ? [sha(f)] : [])]);
+      expect(DOC.lastIndexOf(`| \`${f}\` | ${here} |`), f).toBeGreaterThan(dev3);
     }
+    expect(namedApart('supabase/functions/agents/cb_usdc.ts')).toEqual([sha('supabase/functions/agents/cb_usdc.ts')]);
+    expect(namedApart('supabase/functions/agents/cb_hold.ts')).toEqual([sha('supabase/functions/agents/cb_hold.ts')]);
     const d2 = DOC.slice(dev2);
     for (const w of ['建USDC 那个线索，在with euro-2的基础上开-3，只做300美元的USDC-GBP；另外把目前的-2数字*2做600美元funded', '**$600 on the two books**',
       '**2026-10-29 12:00 UTC**', 'USDC-GBP at 2026-10-28 01:03 UTC', 'realised ÷ **$600** × 365 / 14 ≥ 8 %']) expect(d2).toContain(w);

@@ -44,6 +44,12 @@
 // agree). A rung held across the switch keeps the coins it holds: its size and notional go × 2 in the engine's units. Before the
 // switch the divisor is 1 and nothing differs.
 //
+// Since 2026-10-31 00:00 UTC (the compounding deviation, recorded apart in reviews/2026-10-30-compounding-deviation.md; Davies,
+// 2026-10-30: "另外再确认一下目前所有的live和testing的Stablecoin quotes都能有效做到盈利金额再利用吗？如果不能请研究实现") what it realises is
+// put back to work (cb_compound.ts): its divisor is ÷ its capital over its funded $1,200, set at each UTC day's first minute, and a
+// run never decides past 23:59. The base test, this arm's weekend control, does not compound: the reading divides this arm's days
+// by the day's multiplier (the deviation says how).
+//
 // Its call is its own (`agents?action=cbhold`, a row of `edge_calls`): a fault of this arm never touches the base test's call.
 
 import type { Db } from "./db.ts";
@@ -56,6 +62,7 @@ import { cbInBlackout } from "./cb_releases.ts";
 import { faultKey, reportDue } from "./pm_book_rec.ts";
 import { cbFxCount, cbFxSwitch, cbRatesAt, emptyFx, readCbFx } from "./cb_fx.ts";
 import { fairHours, median, newBookState, QUOTE_FX_LOOKBACK_MS, stepMinute, type BookState, type MinuteInputs, type Print, type QuoteBook, type Trip } from "./quotes.ts";
+import { cbCompoundAt, cbCompoundHorizon, cbCompoundMult, cbCompoundMultNow, cbCompoundTrip, type CbCompoundState } from "./cb_compound.ts";
 
 const M = 60e3, H = 3600e3, DAY = 86400e3;
 const iso = (ms: number) => new Date(ms).toISOString();
@@ -81,12 +88,12 @@ export const CB_HOLD_RUNG_USD_50 = CB_RUNG_USD / CB_HOLD_FACTOR_50;
 export const CB_HOLD_50_NOT_BEFORE = Date.UTC(2026, 9, 30, 1);
 
 /** The arm's state: the base test's, with Deviation 7's switch (`usd50From`) and the factor the page shows what came before at. */
-export type CbHoldState = CbQuoteState & { usd50From?: number; usd50Factor?: number };
+export type CbHoldState = CbQuoteState & { usd50From?: number; usd50Factor?: number; compound?: CbCompoundState };
 
 /** The engine's divisor at minute `t`: 1 ($100 a rung) until Deviation 7's switch, 2 ($50) from it. */
 export const cbHoldFactorAt = (st: CbHoldState, t: number) => (st.usd50From != null && t >= st.usd50From ? CB_HOLD_FACTOR_50 : 1);
 /** The divisor the state's held rungs are kept at now: 2 once Deviation 7 has switched, 1 before. */
-export const cbHoldFactorNow = (st: CbHoldState | null | undefined) => (st?.usd50From != null ? CB_HOLD_FACTOR_50 : 1);
+export const cbHoldFactorNow = (st: CbHoldState | null | undefined) => (st?.usd50From != null ? CB_HOLD_FACTOR_50 : 1) / cbCompoundMultNow(st);
 
 /**
  * Deviation 7's switch, written once into the state at `first`, the run's first minute: when it is not before
@@ -171,7 +178,8 @@ export async function runCbHold(d: { db: Db; now: number; holder: string; rec: C
       }
       st = cbHoldNewState(cbHoldStart(d.now), fed);
     }
-    const first = st.lastMinute + M, horizon = Math.min(horizonAll, st.lastMinute + CB_MAX_MINUTES * M, minuteOf(d.now) - M);
+    // The compounding (2026-10-31): a run never decides past the 23:59 of the day it starts in, so a day's capital is set first.
+    const first = st.lastMinute + M, horizon = cbCompoundHorizon(CB_HOLD_LEASE, first, Math.min(horizonAll, st.lastMinute + CB_MAX_MINUTES * M, minuteOf(d.now) - M));
     if (horizon < first) { await save(d, st, report); return { ...report, skipped: "nothing new to decide" }; }
     const series = async (table: string, kind: string, from: number) => (await d.db.selectAll<{ t: string; value: number }>(table,
       `kind=eq.${encodeURIComponent(kind)}&t=gte.${enc(from)}&t=lte.${enc(horizon)}&select=t,value&order=kind.asc,t.asc`)).map((r) => [msOf(r.t), Number(r.value)] as [number, number]);
@@ -193,6 +201,9 @@ export async function runCbHold(d: { db: Db; now: number; holder: string; rec: C
     cbLiveSwitch(st, first);
     // Deviation 6 (2026-10-29): the rates at second resolution from the switch, the closures held as before (cb_fx.ts).
     cbFxSwitch(st, first);
+    // The compounding (2026-10-31): the day's capital at its first minute, held rungs rescaled to keep their coins; the divisor ÷ it.
+    cbCompoundAt(st, CB_HOLD_LEASE, first, CB_PRODUCTS);
+    const fAt = (t: number) => cbHoldFactorAt(st!, t) / cbCompoundMult(st!, t);
     const fx = st.fxFrom != null ? await readCbFx(d.db, first, horizon, CB_HOLD_MS) : emptyFx();
     const usdtBars = await series("cb_quote_inputs", CB_USDT_KIND, first - QUOTE_FX_LOOKBACK_MS);
     const trips: ReturnType<typeof cbTripRow>[] = [], events: ReturnType<typeof cbEventRow>[] = [], minutes: Record<string, unknown>[] = [];
@@ -201,13 +212,13 @@ export async function runCbHold(d: { db: Db; now: number; holder: string; rec: C
         `product=eq.${b}&trade_id=gt.${st.fed[b]}&ts=gte.${enc(first)}&ts=lt.${enc(horizon + M)}&select=trade_id,ts,price,size,side&order=product.asc,trade_id.asc`);
       // Each print's size × the engine's divisor at its minute (Deviation 7: 1, then 2).
       const prints = pRows.map((r) => {
-        const p = cbPrint(b, r), f = cbHoldFactorAt(st!, minuteOf(msOf(r.ts)));
+        const p = cbPrint(b, r), f = fAt(minuteOf(msOf(r.ts)));
         return f === 1 ? p : { ...p, qty: p.qty * f };
       }).filter((p) => p.ts >= first);
       report.prints += prints.length;
       let j = 0;
       for (let t = first; t <= horizon; t += M) {
-        const f = cbHoldFactorAt(st, t);
+        const f = fAt(t);
         const mine: Print[] = [];
         while (j < prints.length && prints[j].ts < t + M) { mine.push(prints[j]); j++; }
         const { bar, eb, gbpSrc, eurSrc } = cbRatesAt(st, t, gbpBars, eurBars, fx, cbHoldBarAt, true), window = fairHours(t, hours[CB_BOOK[b].coin]);
@@ -231,6 +242,7 @@ export async function runCbHold(d: { db: Db; now: number; holder: string; rec: C
           const xe = entered[key] ?? x.xEntry;
           delete entered[key];
           const c = cbStopExit(x, b);
+          cbCompoundTrip(st, c);
           trips.push(cbTripRow(b, xNow == null ? c : cbTripInPounds(c, xNow, xe)));
         }
         for (const e of out.events) if (e.kind === "fill" && xNow != null) entered[`${e.side}|${e.k}`] = xNow;

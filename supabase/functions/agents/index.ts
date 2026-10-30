@@ -268,7 +268,8 @@ import {
   type LiveLeg, type QuoteLiveInstance, type QuoteLiveDeps, type QuoteLiveReport, type RungBook, type RungFill,
 } from "./quotes_live.ts";
 import { stepLiveWeekendPaper, type LiveWeekendReport } from "./quotes_live_weekend.ts";
-import { runLiveCompound, type CompoundReport } from "./quotes_compound.ts";
+import { COMPOUND_RXU, conversionSales, runLiveCompound, runTwinsCompound, type CompoundReport, type ConversionSale } from "./quotes_compound.ts";
+import { cbCompoundMultNow } from "./cb_compound.ts";
 import { runQuotesVariant, VARIANT_ARMS, VARIANT_KEYS, VARIANT_START, variantCapitalUsd, type VariantArmName } from "./quotes_variant.ts";
 import { runQuotesRuled, RULED_ARMS } from "./quotes_ruled.ts";
 import { runQuotesTwins, twinSpecs, type TwinDriverState, type TwinSpec } from "./quotes_twin.ts";
@@ -498,6 +499,8 @@ export type QuotesActionDeps = {
   weekend?: () => Promise<LiveWeekendReport>;
   /** LIVE's capital compounding (0146, quotes_compound.ts), off until its config says so; a test that stubs a turn runs none. */
   compound?: () => Promise<CompoundReport>;
+  /** The USDC/GBP executor's (0183), the same rule on its own config, off until it says so; a test that stubs a turn runs none. */
+  compoundRxu?: () => Promise<CompoundReport>;
   /** "Stablecoin quotes USDC/GBP"'s turn (0180); a test that stubs the paper or the live turn runs none. */
   rxu?: () => Promise<QuoteLiveReport>;
   report?: (kind: string, o: { message?: string; context?: unknown }) => Promise<void>;
@@ -539,6 +542,12 @@ export async function runQuotesAction(wait: boolean, deps: QuotesActionDeps = {}
   if (compoundStep) {
     const c = await compoundStep();
     if (c.error) await report("agents.quotes_compound", { message: c.error, context: { at: new Date(now()).toISOString(), day: c.day ?? null } });
+  }
+  // And the USDC/GBP executor's (0183): the same rule on its own config and record, before its turn below.
+  const compoundRxuStep = deps.compoundRxu ?? (deps.paper || deps.live ? undefined : () => runLiveCompound(db(), Date.now(), COMPOUND_RXU));
+  if (compoundRxuStep) {
+    const c = await compoundRxuStep();
+    if (c.error) await report("agents.quotes_compound", { message: `rxu: ${c.error}`, context: { at: new Date(now()).toISOString(), day: c.day ?? null } });
   }
   // Then the live executor (`quotes_live.ts`), on the minute the paper engine just saved: the same decisions, carried to
   // PR5's own sub-account — in dry-run until `agent_quote_live_config` says otherwise. It runs after the paper engine has
@@ -858,9 +867,24 @@ export function twinsDelayMs(nowMs: number): number {
   const into = nowMs % 60e3;
   return into < TWINS_START_MS ? TWINS_START_MS - into : 0;
 }
+/**
+ * The twins' compounding (0183, `runTwinsCompound`): each twin with a row on has its capital set for the day before its turns, as
+ * its live strategy's is before the executor's. Its faults are the call's to report; it never throws.
+ */
+export async function twinsCompoundStep(d: Db, nowMs: number): Promise<string[]> {
+  try {
+    const { specs } = await twinSpecs(d);
+    const out = await runTwinsCompound(d, nowMs, specs.map((s) => ({ id: s.id, config: s.instance.config, orders: s.instance.orders, sim: s.sim })));
+    return out.filter((r) => r.error).map((r) => `${r.twin}: compounding: ${r.error}`);
+  } catch (e) {
+    return [`compounding: ${(e instanceof Error ? e.message : String(e)).slice(0, 300)}`];
+  }
+}
 async function runQuotesTwinsAction(wait: boolean) {
   if (wait) await new Promise((r) => setTimeout(r, twinsDelayMs(Date.now())));
   try {
+    const compoundFaults = await twinsCompoundStep(db(), Date.now());
+    if (compoundFaults.length) await reportServerError("agents.quotes_twins", tickErrorReport({ errors: compoundFaults, at: new Date().toISOString() }));
     const key = (await crypto.subtle.generateKey({ name: "Ed25519" }, false, ["sign", "verify"]) as CryptoKeyPair).privateKey;
     const r = await runQuotesTwins({ db: db(), now: Date.now(), holder: crypto.randomUUID(), signingKey: key, fetch });
     const faults = r.twins.flatMap((t) => t.errors.map((e) => `${t.twin}: ${e}`));
@@ -1646,39 +1670,8 @@ export type LiveCoinBook = {
   realisedGbp: number; realisedTodayGbp: number;
 };
 
-/** A conversion that sold coin (a rebook's sale, `isDrain`), realised against what the coins it sold cost (`conversionSales`). */
-export type ConversionSale = { id: number; book: QuoteBook; at: number; realisedGbp: number };
-/**
- * What each conversion that sold coin realised (Davies, 2026-10-30, LIVE's page after the USDT-only switch sold its USDC at
- * 23:34 UTC: "USDC [•] USDC · £[•] at £0.7470 -£[•]"). Each book's conversions are walked in the order they filled: one
- * that buys is a lot, at its price; one that sells takes its coins from the lots, first in, first out, and realises its pounds,
- * less its fee, less what those coins cost. Coins it sold beyond what the conversions bought (a rung's leftovers) are taken at the
- * sale's own price: they realise nothing here. A buy's fee is not a lot's cost: it stays in the coins' cost, less what closed
- * trips carry (`withConversionFees`), as before. Before this, a sale only took its pounds off the cost, so what the coins it sold
- * made or lost stayed in the cost of the few left, as unrealised on about 0 coins.
- */
-export function conversionSales(orders: QuoteLiveOrderView[]): ConversionSale[] {
-  const at = (o: QuoteLiveOrderView) => Date.parse(o.filled_at ?? o.ts);
-  const conv = orders.filter((o) => o.mode === "live" && o.leg === "convert" && Number(o.filled_base) > 0)
-    .sort((a, b) => at(a) - at(b) || a.id - b.id);
-  const out: ConversionSale[] = [];
-  for (const b of QUOTE_BOOKS) {
-    const lots: { left: number; px: number }[] = [];
-    for (const o of conv.filter((x) => x.book === b)) {
-      const q = Number(o.filled_base), px = Number(o.avg_fill_price ?? o.price);
-      if (o.side !== "sell") { lots.push({ left: q, px }); continue; }
-      let need = q, cost = 0;
-      for (const lot of lots) {
-        if (need <= 0) break;
-        const take = Math.min(lot.left, need);
-        lot.left -= take; need -= take; cost += take * lot.px;
-      }
-      cost += need * px;
-      out.push({ id: o.id, book: b, at: at(o), realisedGbp: q * px - Number(o.fee_gbp || 0) - cost });
-    }
-  }
-  return out;
-}
+// `conversionSales` and `ConversionSale` live in quotes_compound.ts since 0183 (the compounding counts them too); re-exported here.
+export { conversionSales, type ConversionSale };
 
 /**
  * Each book's coins as the account holds them, against what they cost (Davies, 2026-10-01: his account page shows each
@@ -2555,7 +2548,7 @@ async function dashboard(now: number) {
   // the paper arm Coinbase LIVE follows, the USDC arm's rule on USDC-GBP alone, $50 a rung, $300, its fair nudged by Revolut X's book;
   // null before its first decided minute.
   const quotesCoinbaseNudgeRead = readCoinbaseUsd(d, now, dayStartMs, CB_NUDGE_TABLES, { id: CB_NUDGE_ID, name: CB_NUDGE_PAGE_NAME },
-    { rungUsd: CB_NUDGE_RUNG_USD, books: 1, shape: (v) => cbUsdcView(v, { factor: CB_USDC_FACTOR_50, products: CB_NUDGE_PRODUCTS }) });
+    { rungUsd: CB_NUDGE_RUNG_USD, books: 1, shape: (v, st) => cbUsdcView(v, { factor: CB_USDC_FACTOR_50 / cbCompoundMultNow(st), products: CB_NUDGE_PRODUCTS }) });
   // "Stablecoin quotes OKX USDG" and "Stablecoin quotes OKX EURC" (0150, okx_quotes.ts): PR5's rule as LIVE carries it out, on
   // paper, on OKX's two books, a twin each in Coinbase's shape with `venue` "okx"; none before the record decides a minute.
   const quotesOkxRead = readOkxQuotes(d, now, dayStartMs).catch(() => []);

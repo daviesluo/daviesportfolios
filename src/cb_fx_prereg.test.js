@@ -13,6 +13,12 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
 const sha = (p) => crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, p))).digest('hex');
 const A = 'supabase/functions/agents/';
+/** The compounding deviation (2026-10-30, 0183), recorded apart: under each pre-registration's own heading, the files as they are. */
+const APART = read('docs/agents/reviews/2026-10-30-compounding-deviation.md');
+const apartFor = (doc) => {
+  const s = APART.indexOf('### `' + doc + '`'), rest = s < 0 ? '' : APART.slice(s + 1), e = rest.search(/\n##/);
+  return rest.slice(0, e < 0 ? undefined : e);
+};
 const MIG = 'supabase/migrations/0173_cb_fx_src.sql';
 const QUOTE = 'coinbase的所有策略用更多秒级数据更长时间再深度回测验证下，如果还是正向优化的话把所有coinbase策略的汇率数据源从yahoo换为刚才研究的最佳秒级数据源+fallbacks';
 const DEVS = [
@@ -36,7 +42,8 @@ describe('the Coinbase arms on the rate at second resolution', () => {
         '**The level is raw.**', '+2.82 bps', '**120 s**', '`FX_STALE_MS`', '`fxBarAt`', '[t − 10 min, t − 1 min]', '`fx_src`', '`fxCount`', '`fxFrom`',
         '**2026-10-29 10:00 UTC**', 'There is no backfill', 'keeps fetching both', '0782ed8140a2e490f19b9e92fe7093c2cb9a6f205866180314f609537277f517',
         'read on the record as it ran', d.closure, ...d.figures]) expect(dev, w).toContain(w);
-      for (const f of d.files) expect(dev, f).toContain(sha(A + f));
+      // A file changed since, by the compounding (0183), is named as it is in that deviation, recorded apart.
+      for (const f of d.files) expect(dev + apartFor(d.doc), f).toContain(sha(A + f));
       expect(dev, MIG).toContain(sha(MIG));
     });
   }

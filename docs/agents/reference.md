@@ -4643,6 +4643,9 @@ fails too still reported (`edge-watchdog.retry`). In the three days before, 1,34
     allowed to buy crypto", an account restriction (fixed: a 4xx is `rejected`, a 401/403 stops the turn's placing, reaches the
     errors box and holds that decision 15 minutes; the probe's `preview=1` asks Coinbase's order preview, which places
     nothing); and one lost paper run tripped the 5-minute staleness (now seven).
+  - **Compounding (2026-10-30, `0183`; `reviews/2026-10-30-compounding.md`).** Its rung is a sixth of a capital that may follow what
+    it realises: `compound_mode` on `cb_live_config` ('off' until Davies' word), the Revolut X rule (`compoundPlan`) on its own trips,
+    a £6 unit, £60 to £240, the start top-up's £70 in proportion.
   - **It may decide for itself (2026-10-30, `0182`; design §10).** Davies: "要做", on the recommendation that LIVE decide as the
     two Revolut X live executors do. The follower goes dark on a rung while the paper rung is held and live's is not, on a paper
     post-only refusal and on a lost paper run; it cannot take a live-only rule; and it follows a $300 record with £120.

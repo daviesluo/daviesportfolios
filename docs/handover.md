@@ -47656,3 +47656,20 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   USDT-GBP的…"). `reviews/2026-10-29-usdt-only.md`, `compare/revx/scripts/usdt_only.py`: USDT-GBP alone beats LIVE's two books at
   £600 since 09-01 by +7.1 % a year (P 0.014), every month since May; P 0.019 at £1,200, 0.051 at £2,400; last 30 days alone not
   significant (P 0.17). Book for book USDT-GBP leads USDC-GBP by +21 % a year (P 0.0004). Phase B (the switch) follows.
+
+## LEDGER.md, archived 2026-10-30 (twenty-seventh) — the 2026-10-29 20:41, 2026-10-29 21:07 UTC history sections, oldest first
+
+### [2026-10-29 20:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Polymarket analyst: the JOURNAL ten at a time, "Load more"** (sub-agent; commit, not pushed; Davies, 10-29: "…JOURNAL也默认只显示
+  前10条…"Load more"，然后每点一次多加载10条"). `useLoadMore` (agents.jsx, DAYS' `ag-more` button and `useDaysWindow`'s shape): 10,
+  +10 a click, no button once all are shown. The dashboard still carries 30 (reads 31 for `journalMore`); past them a click pages
+  from the server, `agents?action=grokpmjournal&before=&skip=&limit=` (≤ 50, `readGrokPmJournal`, ties at one instant by `skip`
+  ids): production holds 1,237 decisions (2.1 MB), too many for the minute's payload. Fixture: 6 older no-action entries (14).
+
+### [2026-10-29 21:07 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Coinbase live: what the go found, fixed** (sub-agent; commit, not pushed; armed 20:51:31, disarmed 20:55:57). `cb_live.ts`: an
+  order of the other mode is never a rung's or a top-up's (the dry rows had held the rungs for two turns); a 4xx on create is
+  `rejected` with Coinbase's reason, a 401/403 stops the turn and is an error, its decision held 15 min (four 403 "User is not
+  allowed to buy crypto" had stayed `pending`); staleness 7 min, not 5 (one lost paper run at 20:25 withdrew and re-wrote every
+  entry). Probe `preview=1`: Coinbase's order preview, the read-only client's one POST. The top-up's £70 day cap counts only top-ups
+  Coinbase took (`convertSpentGbp`; the 403-rejected £60 one had left £10 at the 21:45 re-arm). Pins fail on the old code. Design §9.

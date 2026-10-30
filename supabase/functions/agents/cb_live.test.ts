@@ -597,3 +597,36 @@ Deno.test("the shadow: written only while the follower decides, a row a rung a t
   // The shadow's record carries into 'self': its book and EMA go on from the shadow's minutes, not from a fresh start.
   assertEquals(selfOf(w).lastMinute, T0);
 });
+
+Deno.test("compounding (0183): off, £20 rungs; on, the day's capital from the realised trips before 00:00, its sixth a rung and the top-up cap in proportion", async () => {
+  // A trip on 10-29: 1,000 USDC bought at £0.7500 and sold at £0.7566: £6.60 realised; one after 00:00 today is not this day's.
+  const trip = (id: string, at: number, buy: number, sell: number) => {
+    const cid = crypto.randomUUID();
+    const order = { client_order_id: cid, venue_order_id: `v-${id}`, mode: "live", leg: "entry", trip: cid, rung_side: "bid", k: 0.001, side: "BUY", price: buy, base_size: 1000,
+      end_time: null, state: "filled", paper_key: null, fair: null, filled_size: 1000, avg_price: buy, fees_gbp: 0, reason: null, request: null, response: null, created_at: iso(at), updated_at: iso(at) };
+    const fill = (leg: string, side: string, px: number, t: number, n: number) => ({ entry_id: `${id}-${n}`, trade_id: `${id}-${n}`, order_id: `v-${id}`, client_order_id: cid, trip: cid, leg,
+      rung_side: "bid", k: 0.001, side, price: px, size: 1000, commission: 0, liquidity: "MAKER", trade_time: iso(t) });
+    return { order, fills: [fill("entry", "BUY", buy, at, 1), fill("exit", "SELL", sell, at + H, 2)] };
+  };
+  const a = trip("a", Date.UTC(2026, 9, 29, 9), 0.75, 0.7566), b = trip("b", T0 - 2 * H, 0.75, 0.7600);
+  const on = { compound_mode: "realised", compound_base_gbp: 120, compound_from: "2026-10-29T00:00:00Z", compound_cap_gbp: 240, compound_floor_gbp: 60, compound_step_gbp: 6, compound_unit_gbp: 6, compound_on: null };
+  for (const mode of ["off", "realised"]) {
+    const w = world({ dry: true, cfg: mode === "off" ? { ...on, compound_mode: "off" } : on });
+    w.tables.cb_live_orders.push(a.order, b.order);
+    w.tables.cb_live_fills.push(...a.fills, ...b.fills);
+    const r = await turn(w, venue({ post: false }), T0 + 10e3);
+    assertEquals(r.errors, []);
+    const cfg = w.tables.cb_live_config[0];
+    const dry = rows(w).filter((x) => x.state === "dry" && x.leg === "entry");
+    const rung = mode === "off" ? 20 : 21;
+    assertEquals([mode, Number(cfg.capital_gbp), Number(cfg.rung_gbp), Number(cfg.convert_max_gbp_day)], [mode, mode === "off" ? 120 : 126, rung, mode === "off" ? 70 : 73.5]);
+    assertEquals(dry.length, 6);
+    for (const x of dry) assertEquals(Number(x.base_size), rungQty(rung, Number(x.price), 0.01));
+    if (mode === "realised") {
+      assertEquals([cfg.compound_on, (r.compound as { equity: number }).equity], ["2026-10-30", 126.6]);
+      // Once a day: the next turn changes nothing more.
+      await turn(w, venue({ post: false }), T0 + 70e3);
+      assertEquals(Number(w.tables.cb_live_config[0].capital_gbp), 126);
+    }
+  }
+});

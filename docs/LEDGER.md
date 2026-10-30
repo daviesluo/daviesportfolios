@@ -681,6 +681,11 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
     account must allow buying crypto before the next go; design §9). **'self' (`0182`, design §10; Davies 10-30: "要做"):** lands
     `decide` 'paper' with the shadow on; read §10's SQL after a few hours of `cb_live_shadow`, then the switch only on his word.
 
+22. **Compounding for every Stablecoin quotes (`0183`, `reviews/2026-10-30-compounding.md`; Davies 10-30: "…盈利金额再利用…").** Twins
+    and Coinbase paper arms compound from 10-31 00:00 UTC on landing. LIVE, the RX USDC/GBP and Coinbase executors: `compound_mode`
+    'off' until his word, then design §6's statement each (same `compound_from` as the twins). After 11-01 00:00 read
+    `agent_quote_twin_compound.last` and the arms' `state.compound`. OKX twins and the base Coinbase test not covered (§1).
+
 ## Machine and platform setup
 
 A rebuilt container loses every line below. Run them before working.
@@ -797,7 +802,14 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 01:24 UTC section (archived
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
-and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth), and the 2026-10-29 19:50, 2026-10-29 19:55, 2026-10-29 20:00, 2026-10-29 20:15 ones (twenty-sixth).
+and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth), and the 2026-10-29 19:50, 2026-10-29 19:55, 2026-10-29 20:00, 2026-10-29 20:15 ones (twenty-sixth), and the 2026-10-29 20:41, 2026-10-29 21:07 ones (twenty-seventh).
+
+### [2026-10-30 01:48 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Profit put back to work: the audit, the rule for all, live behind switches** (sub-agent; commit, not pushed; Davies, 10-30 ~01:35:
+  "另外再确认一下目前所有的live和testing的Stablecoin quotes都能有效做到盈利金额再利用吗？如果不能请研究实现"). None reused it (LIVE's `0146` off).
+  `0183`: `0146`'s rule (`quotes_compound.ts`, realised to 00:00 incl. conversion sales) on every enabled twin (`agent_quote_twin_compound`,
+  `runTwinsCompound`) and the Coinbase arms (`cb_compound.ts`, frozen drivers changed, deviation recorded apart with pin tests) from
+  10-31 00:00; RX USDC/GBP and `cb_live` columns 'off'. Replay (`backtests/compound/`): +2.4 points a year on ~22 %, none in a month.
 
 ### [2026-10-30 01:45 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Quotes pages show only what is quoted** (sub-agent; not pushed; Davies, ~01:20). BOOKS: traded books, rungs by weight
@@ -935,18 +947,3 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   (variant-4); new `n600nudge` variant-5 (prereg `reviews/2026-10-29-usdt-only-twins-prereg.md`); n600usdt3, u300nudge, u300ctl
   off; live600x1 variant-6. Deviation `reviews/2026-10-29-usdt-only-deviation.md`. Nothing moves before 00:00 but n600no03's
   0.3 % rungs and n600usdt's USDC side; to cancel the switch, revert before 00:00.
-
-### [2026-10-29 21:07 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Coinbase live: what the go found, fixed** (sub-agent; commit, not pushed; armed 20:51:31, disarmed 20:55:57). `cb_live.ts`: an
-  order of the other mode is never a rung's or a top-up's (the dry rows had held the rungs for two turns); a 4xx on create is
-  `rejected` with Coinbase's reason, a 401/403 stops the turn and is an error, its decision held 15 min (four 403 "User is not
-  allowed to buy crypto" had stayed `pending`); staleness 7 min, not 5 (one lost paper run at 20:25 withdrew and re-wrote every
-  entry). Probe `preview=1`: Coinbase's order preview, the read-only client's one POST. The top-up's £70 day cap counts only top-ups
-  Coinbase took (`convertSpentGbp`; the 403-rejected £60 one had left £10 at the 21:45 re-arm). Pins fail on the old code. Design §9.
-
-### [2026-10-29 20:41 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Polymarket analyst: the JOURNAL ten at a time, "Load more"** (sub-agent; commit, not pushed; Davies, 10-29: "…JOURNAL也默认只显示
-  前10条…"Load more"，然后每点一次多加载10条"). `useLoadMore` (agents.jsx, DAYS' `ag-more` button and `useDaysWindow`'s shape): 10,
-  +10 a click, no button once all are shown. The dashboard still carries 30 (reads 31 for `journalMore`); past them a click pages
-  from the server, `agents?action=grokpmjournal&before=&skip=&limit=` (≤ 50, `readGrokPmJournal`, ties at one instant by `skip`
-  ids): production holds 1,237 decisions (2.1 MB), too many for the minute's payload. Fixture: 6 older no-action entries (14).

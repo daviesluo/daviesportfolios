@@ -68,6 +68,7 @@ import { CB_HOLD_MS, cbHoldBarAt } from "./cb_hold.ts";
 import { cbFxCount, cbRatesAt, readCbFx, type CbFxPair, type CbFxReads } from "./cb_fx.ts";
 import { CB_BOOK, CB_FAIR_KIND, cbCoinFair, cbInUsd, cbMinuteInputs } from "./cb_quotes.ts";
 import { cbInBlackout } from "./cb_releases.ts";
+import { compoundDay, compoundPlan, compoundRefusal, type CompoundSettings } from "./quotes_compound.ts";
 import { fairHours, median, QUOTE_FX_LOOKBACK_MS } from "./quotes.ts";
 
 const M = 60e3, H = 3600e3, DAY = 86400e3;
@@ -140,7 +141,59 @@ export type CbLiveDecide = "paper" | "self";
 export type CbLiveConfig = {
   id: number; paper: string; dry_run: boolean; armed_at: string | null; rung_gbp: number; capital_gbp: number; daily_loss_pct: number;
   gov_entry_posts: number; gov_stops_only_posts: number; convert_max_gbp_day: number; decide?: CbLiveDecide;
+} & Partial<CbLiveCompoundCols>;
+
+/**
+ * Its compounding (0183; Davies, 2026-10-30: "另外再确认一下目前所有的live和testing的Stablecoin quotes都能有效做到盈利金额再利用吗？如果不能请
+ * 研究实现"), off until he turns it on: the Revolut X executors' rule (`compoundPlan`, quotes_compound.ts) on its own record. Once a
+ * UTC day, with `compound_mode` 'realised', the capital is the base plus every trip's realised P&L, fees included, of the trips
+ * entered from `compound_from` and filled before the day's 00:00 (`cbLiveRealisedSince`), in whole `compound_unit_gbp` (£6: a
+ * pound a rung), between the floor and the cap, moved only a step or more away. The rung is a sixth of it (to the penny) and the
+ * day's top-up cap moves with it in proportion; the loss stop is a share of the capital already. Its start conversion buys
+ * nothing it does not need: the top-up still buys only what the asks lack.
+ */
+export type CbLiveCompoundCols = {
+  compound_mode: string; compound_base_gbp: number | string | null; compound_from: string | null; compound_cap_gbp: number | string | null;
+  compound_floor_gbp: number | string | null; compound_step_gbp: number | string | null; compound_unit_gbp: number | string | null; compound_on: string | null;
 };
+/** Pure: the realised pounds the compounding counts, of the trips entered from `fromMs` whose fills came before `untilMs`. */
+export function cbLiveRealisedSince(fills: FillRow[], fromMs: number, untilMs: number): number {
+  let sum = 0;
+  for (const t of tripsOf(fills.filter((f) => msOf(f.trade_time) < untilMs)).values()) {
+    if (!(t.entryQty > 0) || t.firstFill < fromMs) continue;
+    sum += tripPnl(t, null).realised;
+  }
+  return sum;
+}
+/** Pure: the config a compounded capital `target` sets: the capital, its sixth a rung (to the penny), the top-up cap in proportion. */
+export function cbLiveCompoundSizes(cfg: Pick<CbLiveConfig, "capital_gbp" | "convert_max_gbp_day">, target: number) {
+  const k = target / Number(cfg.capital_gbp);
+  return { capital_gbp: target, rung_gbp: Math.floor(target / 6 * 100 + 1e-9) / 100, convert_max_gbp_day: Math.round(Number(cfg.convert_max_gbp_day) * k * 100) / 100 };
+}
+/**
+ * Once a UTC day, the compounding: reads the fills since the start (not only the trip window's) and writes the day's sizes into
+ * the config and into `cfg`, so this turn sizes from them. Off, before 0183, or done for the day: nothing. A fault is a report
+ * error, nothing changed.
+ */
+async function cbLiveCompound(d: CbLiveDeps, cfg: CbLiveConfig, rep: CbLiveReport): Promise<void> {
+  if ((cfg.compound_mode ?? "off") === "off") return;
+  const { day, start } = compoundDay(d.now);
+  if (cfg.compound_on && cfg.compound_on >= day) return;
+  const s: CompoundSettings = {
+    mode: String(cfg.compound_mode), base: Number(cfg.compound_base_gbp), fromMs: cfg.compound_from ? Date.parse(cfg.compound_from) : NaN,
+    cap: Number(cfg.compound_cap_gbp), floor: Number(cfg.compound_floor_gbp), step: Number(cfg.compound_step_gbp), unit: Number(cfg.compound_unit_gbp), on: cfg.compound_on ?? null,
+  };
+  const refused = compoundRefusal(s);
+  if (refused) { rep.errors.push(`compounding: ${refused}`); return; }
+  const fills = await d.db.selectAll<FillRow>(CB_LIVE_TABLES.fills, `trade_time=gte.${enc(s.fromMs - CB_LIVE_TRIP_WINDOW_MS)}&trade_time=lt.${enc(start)}&select=*&order=entry_id.asc`);
+  const current = Number(cfg.capital_gbp);
+  const plan = compoundPlan({ base: s.base, realised: cbLiveRealisedSince(fills, s.fromMs, start), current, cap: s.cap, floor: s.floor, step: s.step, unit: s.unit });
+  const last = { day, at: iso(d.now), equity: Math.round(plan.equity * 100) / 100, target: plan.target, from: current, changed: plan.change, why: plan.why };
+  const sizes = plan.change ? cbLiveCompoundSizes(cfg, plan.target) : {};
+  await d.db.update(CB_LIVE_TABLES.config, "id=eq.1", { ...sizes, compound_on: day, compound_last: last, updated_at: iso(d.now) });
+  Object.assign(cfg, sizes, { compound_on: day });
+  rep.compound = last;
+}
 
 /**
  * The rule each paper arm decides with, which 'self' runs on its own: the arm's own driver pieces (cb_usdc.ts' `CbUsdcArm`, its
@@ -261,6 +314,7 @@ export type Trip = {
 };
 export type CbLiveReport = {
   skipped?: string; mode: "dry_run" | "live" | "wind_down" | "paused"; armed: boolean; decide?: CbLiveDecide; self?: { minute: number; fair: number | null } | null;
+  compound?: Record<string, unknown>;
   posts: number; placed: number; cancelled: number; would: Record<string, unknown>;
   held: Record<string, number>; gbpUsd: number | null; realisedTodayGbp: number; markedGbp: number; lossStopped: boolean; errors: string[]; events: string[]; report: boolean;
 };
@@ -445,6 +499,9 @@ export async function runCbLive(d: CbLiveDeps): Promise<CbLiveReport> {
         } catch (e) { rep.errors.push(`fills: ${msg(e)}`); }
       }
     }
+
+    // The day's capital (0183), once a UTC day while its compounding is on, after the fills are read back and before any size.
+    try { await cbLiveCompound(d, cfg, rep); } catch (e) { rep.errors.push(`compounding: ${msg(e)}`); }
 
     // 2. The decision source, the product, the touch and the account. The follower ('paper') reads the paper arm's state and
     // its newest minute's fair; 'self' reads neither (`cbLiveSelfStep`, below, once the fills say what the account holds).

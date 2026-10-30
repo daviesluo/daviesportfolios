@@ -504,6 +504,14 @@ that follow from that evidence, in short:
   Davies, 2026-10-30: "要做"): 'paper' (the default) follows the paper arm order for order; 'self' decides every minute with that
   arm's own rule and code on its own state and fills, reading nothing of the paper arm's. While it follows, the shadow
   (`cb_live_shadow`) records what 'self' would rest; the switch to 'self' is Davies' word after reading it (design §10).
+- **What every Stablecoin quotes strategy realises is put back to work** (`0183`, `reviews/2026-10-30-compounding.md`; Davies,
+  2026-10-30: "…都能有效做到盈利金额再利用吗？如果不能请研究实现"): LIVE's `0146` rule for all, once a UTC day the capital = what was put in +
+  what was realised since 2026-10-31 00:00 UTC to the day's 00:00, in whole units (a pound or a dollar a rung), between half and twice,
+  moved a unit or more. The Revolut X twins (`agent_quote_twin_compound`, `runTwinsCompound`) and the Coinbase paper arms
+  (`cb_compound.ts`) compound from that instant, recorded apart as each pre-registration's deviation
+  (`reviews/2026-10-30-compounding-deviation.md`: a reading in money reads each trip ÷ its day's multiplier). LIVE, the USDC/GBP
+  executor and Coinbase's executor have it behind `compound_mode`, 'off' until Davies turns each on with the design's §6 statement;
+  never change a compounding config's capital by hand while it is on, and set the base again after a deposit or withdrawal.
 - **The Revolut X account the key sees is the loop's alone.** The floor counts a live buy it cannot read back by
   the venue's balance beyond the settled book, and every live sell is capped at that balance (reference §4.24).
   A trade made there by hand would be counted and could be sold by the floor: never trade by hand in that

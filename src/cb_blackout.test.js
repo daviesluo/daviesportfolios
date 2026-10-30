@@ -11,6 +11,12 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
 const sha = (p) => crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, p))).digest('hex');
+/** The compounding deviation (2026-10-30, 0183), recorded apart: under each pre-registration's own heading, the files as they are. */
+const APART = read('docs/agents/reviews/2026-10-30-compounding-deviation.md');
+const apartFor = (doc) => {
+  const s = APART.indexOf('### `' + doc + '`'), rest = s < 0 ? '' : APART.slice(s + 1), e = rest.search(/\n##/);
+  return rest.slice(0, e < 0 ? undefined : e);
+};
 const MOD = read('supabase/functions/agents/cb_releases.ts');
 const CAL = JSON.parse(read('docs/agents/backtests/cbreview/inputs/release_calendar.json'));
 const BASE = read('docs/agents/reviews/2026-10-10-coinbase-paper-prereg.md');
@@ -72,6 +78,8 @@ describe('the release blackout', () => {
       'supabase/functions/agents/cb_quotes.ts', 'supabase/functions/agents/cb_releases.test.ts', 'supabase/functions/agents/cb_releases.ts',
     ]);
     for (const p of files) expect(d3, p).toContain(sha(p));
-    for (const p of ['supabase/functions/agents/cb_hold.ts', 'supabase/functions/agents/cb_hold.test.ts', 'supabase/functions/agents/cb_releases.ts']) expect(d2, p).toContain(sha(p));
+    // cb_hold.ts changed since, by the compounding (0183): named as it is in that deviation, recorded apart.
+    const d2now = d2 + apartFor('docs/agents/reviews/2026-10-13-coinbase-weekend-prereg.md');
+    for (const p of ['supabase/functions/agents/cb_hold.ts', 'supabase/functions/agents/cb_hold.test.ts', 'supabase/functions/agents/cb_releases.ts']) expect(d2now, p).toContain(sha(p));
   });
 });

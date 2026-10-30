@@ -25,6 +25,10 @@
 // and EUR/USD are read at second resolution from the switch (`fxFrom`, cb_fx.ts `cbRatesAt`), the closures held as before, as
 // the weekend variant's Deviation 6: the newest TrueFX (or Kraken's marked fallback) read arrived by t + 58 s while no more than
 // 120 s old, else Yahoo's bar, else the held bar. Every arm on this driver ("- 2" as well) takes it.
+// Since 2026-10-31 00:00 UTC (the compounding deviation, recorded apart in reviews/2026-10-30-compounding-deviation.md; Davies,
+// 2026-10-30: "另外再确认一下目前所有的live和testing的Stablecoin quotes都能有效做到盈利金额再利用吗？如果不能请研究实现") every arm on this
+// driver puts what it realises back to work (cb_compound.ts): its divisor is ÷ its capital over its funded, set at each UTC day's
+// first minute, and a run never decides past 23:59.
 // Everything else is the weekend variant's, imported from it: the rate bars held through a closure (`cbHoldBarAt`, 60 hours),
 // the start at the first 00:00 UTC after its first run (`cbHoldStart`), the release blackout (`cbInBlackout`), the stop's
 // Coinbase cost (`cbStopExit`) and the pounds of a trip (`cbTripInPounds`).
@@ -40,6 +44,7 @@ import { cbInBlackout } from "./cb_releases.ts";
 import { faultKey, reportDue } from "./pm_book_rec.ts";
 import { cbFxCount, cbFxSwitch, cbRatesAt, emptyFx, readCbFx } from "./cb_fx.ts";
 import { fairHours, median, newBookState, QUOTE_FX_LOOKBACK_MS, stepMinute, type BookState, type MinuteInputs, type Print, type QuoteBook, type Trip } from "./quotes.ts";
+import { cbCompoundAt, cbCompoundHorizon, cbCompoundMult, cbCompoundMultNow, cbCompoundTrip, type CbCompoundState } from "./cb_compound.ts";
 
 const M = 60e3, DAY = 86400e3;
 const iso = (ms: number) => new Date(ms).toISOString();
@@ -103,7 +108,7 @@ export function cbUsdcNewState(start: number, fed: Record<string, number>): CbQu
 }
 
 /** A USDC arm's state: the base test's, with Deviation 2's switch, and what an arm's own fair keeps (-3's nudge). */
-export type CbUsdcState = CbQuoteState & { usd50From?: number; usd50Factor?: number; nudge?: { ema: number | null; last: number | null } };
+export type CbUsdcState = CbQuoteState & { usd50From?: number; usd50Factor?: number; nudge?: { ema: number | null; last: number | null }; compound?: CbCompoundState };
 
 /** The engine's divisor at minute `t`: 4 ($25 a rung) until Deviation 2's switch, 2 ($50) from it. */
 export const cbUsdcFactorAt = (st: CbUsdcState, t: number) => (st.usd50From != null && t >= st.usd50From ? CB_USDC_FACTOR_50 : CB_USDC_FACTOR);
@@ -182,7 +187,8 @@ export async function runCbUsdcArm(d: { db: Db; now: number; holder: string; rec
       }
       st = cbUsdcArmNewState(arm, cbHoldStart(d.now), fed);
     }
-    const first = st.lastMinute + M, horizon = Math.min(horizonAll, st.lastMinute + CB_MAX_MINUTES * M, minuteOf(d.now) - M);
+    // The compounding (2026-10-31): a run never decides past the 23:59 of the day it starts in, so a day's capital is set first.
+    const first = st.lastMinute + M, horizon = cbCompoundHorizon(arm.lease, first, Math.min(horizonAll, st.lastMinute + CB_MAX_MINUTES * M, minuteOf(d.now) - M));
     if (horizon < first) { await save(d, T.state, st, report); return { ...report, skipped: "nothing new to decide" }; }
     const series = async (table: string, kind: string, from: number) => (await d.db.selectAll<{ t: string; value: number }>(table,
       `kind=eq.${encodeURIComponent(kind)}&t=gte.${enc(from)}&t=lte.${enc(horizon)}&select=t,value&order=kind.asc,t.asc`)).map((r) => [msOf(r.t), Number(r.value)] as [number, number]);
@@ -202,17 +208,20 @@ export async function runCbUsdcArm(d: { db: Db; now: number; holder: string; rec
     cbLiveSwitch(st, first);
     // Deviation 5 (2026-10-29): the rates at second resolution from the switch, the closures held as before (cb_fx.ts).
     cbFxSwitch(st, first);
+    // The compounding (2026-10-31): the day's capital at its first minute, held rungs rescaled to keep their coins; the divisor ÷ it.
+    cbCompoundAt(st, arm.lease, first, arm.products);
+    const fAt = (t: number) => arm.factorAt(st!, t) / cbCompoundMult(st!, t);
     const fx = st.fxFrom != null ? await readCbFx(d.db, first, horizon, CB_HOLD_MS) : emptyFx();
     const fairOf = arm.fairOf ? await arm.fairOf(d.db, first, horizon) : null;
     const trips: ReturnType<typeof cbTripRow>[] = [], events: ReturnType<typeof cbEventRow>[] = [], minutes: Record<string, unknown>[] = [];
     for (const b of arm.products) {
       const pRows = await d.db.selectAll<{ trade_id: number; ts: string; price: number; size: number; side: string }>("cb_trades",
         `product=eq.${b}&trade_id=gt.${st.fed[b]}&ts=gte.${enc(first)}&ts=lt.${enc(horizon + M)}&select=trade_id,ts,price,size,side&order=product.asc,trade_id.asc`);
-      const prints = pRows.map((r) => cbUsdcPrint(b, r, arm.factorAt(st!, minuteOf(msOf(r.ts))))).filter((p) => p.ts >= first);
+      const prints = pRows.map((r) => cbUsdcPrint(b, r, fAt(minuteOf(msOf(r.ts))))).filter((p) => p.ts >= first);
       report.prints += prints.length;
       let j = 0;
       for (let t = first; t <= horizon; t += M) {
-        const f = arm.factorAt(st, t);
+        const f = fAt(t);
         const mine: Print[] = [];
         while (j < prints.length && prints[j].ts < t + M) { mine.push(prints[j]); j++; }
         const { bar, eb, gbpSrc, eurSrc } = cbRatesAt(st, t, gbpBars, eurBars, fx, cbHoldBarAt, true), window = fairHours(t, hours);
@@ -236,6 +245,7 @@ export async function runCbUsdcArm(d: { db: Db; now: number; holder: string; rec
           const xe = entered[key] ?? x.xEntry;
           delete entered[key];
           const c = cbStopExit(x, b);
+          cbCompoundTrip(st, c);
           trips.push(cbTripRow(b, xNow == null ? c : cbTripInPounds(c, xNow, xe)));
         }
         for (const e of out.events) if (e.kind === "fill" && xNow != null) entered[`${e.side}|${e.k}`] = xNow;
@@ -305,4 +315,4 @@ export function cbUsdcView(v: any, o: { factor?: number; products?: readonly str
 }
 
 /** The engine's divisor the state's held rungs are kept at now: 2 once Deviation 2 has switched, 4 before. */
-export const cbUsdcFactorNow = (st: CbUsdcState | null | undefined) => (st?.usd50From != null ? CB_USDC_FACTOR_50 : CB_USDC_FACTOR);
+export const cbUsdcFactorNow = (st: CbUsdcState | null | undefined) => (st?.usd50From != null ? CB_USDC_FACTOR_50 : CB_USDC_FACTOR) / cbCompoundMultNow(st);

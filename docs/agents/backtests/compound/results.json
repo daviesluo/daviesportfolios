@@ -1,0 +1,139 @@
+{
+ "_note": "COMPOUND (2026-10-30): what reinvesting the realised P&L would have changed on the recorded history.",
+ "series": {
+  "pr5": {
+   "days": 37,
+   "realised_pct_of_capital": 2.269,
+   "a_year_simple_pct": 22.38,
+   "targets": {
+    "LIVE USDT/GBP (Revolut X, £600)": {
+     "recorded": {
+      "fixed_pct": 2.269,
+      "compounded_pct": 2.269,
+      "gain_pct_points": 0.0,
+      "capital_end": 612,
+      "first_step_day": 37
+     },
+     "a_year": {
+      "fixed_pct": 22.08,
+      "compounded_pct": 24.44,
+      "gain_pct_points": 2.36,
+      "capital_end": 744
+     }
+    },
+    "USDC/GBP (Revolut X, £120)": {
+     "recorded": {
+      "fixed_pct": 2.269,
+      "compounded_pct": 2.269,
+      "gain_pct_points": 0.0,
+      "capital_end": 120,
+      "first_step_day": null
+     },
+     "a_year": {
+      "fixed_pct": 22.08,
+      "compounded_pct": 24.28,
+      "gain_pct_points": 2.2,
+      "capital_end": 148
+     }
+    },
+    "USDC/GBP (Coinbase, £120)": {
+     "recorded": {
+      "fixed_pct": 2.269,
+      "compounded_pct": 2.269,
+      "gain_pct_points": 0.0,
+      "capital_end": 120,
+      "first_step_day": null
+     },
+     "a_year": {
+      "fixed_pct": 22.08,
+      "compounded_pct": 24.1,
+      "gain_pct_points": 2.02,
+      "capital_end": 144
+     }
+    },
+    "variant-1 (£1,200)": {
+     "recorded": {
+      "fixed_pct": 2.269,
+      "compounded_pct": 2.269,
+      "gain_pct_points": 0.0,
+      "capital_end": 1224,
+      "first_step_day": 37
+     },
+     "a_year": {
+      "fixed_pct": 22.08,
+      "compounded_pct": 24.44,
+      "gain_pct_points": 2.36,
+      "capital_end": 1488
+     }
+    }
+   }
+  },
+  "cbhold": {
+   "days": 17,
+   "realised_pct_of_capital": 0.474,
+   "a_year_simple_pct": 10.18,
+   "targets": {
+    "LIVE USDT/GBP (Revolut X, £600)": {
+     "recorded": {
+      "fixed_pct": 0.474,
+      "compounded_pct": 0.471,
+      "gain_pct_points": -0.003,
+      "capital_end": 600,
+      "first_step_day": 2
+     },
+     "a_year": {
+      "fixed_pct": 10.11,
+      "compounded_pct": 10.53,
+      "gain_pct_points": 0.42,
+      "capital_end": 660
+     }
+    },
+    "USDC/GBP (Revolut X, £120)": {
+     "recorded": {
+      "fixed_pct": 0.474,
+      "compounded_pct": 0.469,
+      "gain_pct_points": -0.006,
+      "capital_end": 120,
+      "first_step_day": 2
+     },
+     "a_year": {
+      "fixed_pct": 10.11,
+      "compounded_pct": 10.45,
+      "gain_pct_points": 0.35,
+      "capital_end": 132
+     }
+    },
+    "USDC/GBP (Coinbase, £120)": {
+     "recorded": {
+      "fixed_pct": 0.474,
+      "compounded_pct": 0.466,
+      "gain_pct_points": -0.008,
+      "capital_end": 120,
+      "first_step_day": 2
+     },
+     "a_year": {
+      "fixed_pct": 10.11,
+      "compounded_pct": 10.37,
+      "gain_pct_points": 0.26,
+      "capital_end": 132
+     }
+    },
+    "variant-1 (£1,200)": {
+     "recorded": {
+      "fixed_pct": 0.474,
+      "compounded_pct": 0.471,
+      "gain_pct_points": -0.003,
+      "capital_end": 1200,
+      "first_step_day": 2
+     },
+     "a_year": {
+      "fixed_pct": 10.11,
+      "compounded_pct": 10.53,
+      "gain_pct_points": 0.42,
+      "capital_end": 1320
+     }
+    }
+   }
+  }
+ }
+}

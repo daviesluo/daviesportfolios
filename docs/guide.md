@@ -405,6 +405,16 @@ places stay when the number is not whole.
   since September and more before that; an exit that would cross the book
   still rests one tick inside it. Variant-6, the test copy that tried it, has
   stopped: it is now the same as the LIVE twin.
+- **Profit put back to work, from 31 Oct 00:00 UTC.** Every stablecoin test
+  on Revolut X and on Coinbase now sizes its quotes from what was put in plus
+  what it has made since 31 Oct, set once a day in whole pounds (or dollars)
+  a quote: a test that earns £12 on £600 quotes £2 more on each of its six
+  quotes the next day, and a losing day shrinks them the same way, never
+  below half or above twice what was put in. On a Revolut X test FUNDED is
+  that day's figure; on a Coinbase test FUNDED stays what was put in. The
+  three live accounts have the same rule built and switched off until
+  Davies turns it on. Over a year it adds about a tenth to the profit; in
+  the first month it changes nothing.
 - **Stablecoin quotes variant-6 (stopped 30 Oct).** From 29 Oct 19:00 UTC (variant-8, then
   variant-7, until 30 Oct): the live account's
   rules exactly, £600 on both books, except that every exit (the order that

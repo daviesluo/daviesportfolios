@@ -12,6 +12,12 @@ const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
 const sha = (p) => crypto.createHash('sha256').update(fs.readFileSync(path.join(ROOT, p))).digest('hex');
 const MANIFEST = JSON.parse(read('docs/agents/backtests/cbwk/MANIFEST.json'));
 const PREREG = read('docs/agents/reviews/2026-10-13-coinbase-weekend-prereg.md');
+/** The compounding deviation (2026-10-30, 0183), recorded apart: cb_hold.ts as it is, and the bytes before it (the manifest's). */
+const APART = read('docs/agents/reviews/2026-10-30-compounding-deviation.md');
+const apartHold = (() => {
+  const s = APART.indexOf('### `docs/agents/reviews/2026-10-13-coinbase-weekend-prereg.md`'), rest = APART.slice(s + 1), e = rest.search(/\n##/);
+  return rest.slice(0, e < 0 ? undefined : e);
+})();
 const sql = (f) => read(`supabase/migrations/${f}`).replace(/--[^\n]*/g, '');
 const table = (text, name) => new RegExp(`create table if not exists public\\.${name} \\(([\\s\\S]*?)\\n\\);`).exec(text)?.[1].replace(/\s+/g, ' ').trim();
 
@@ -21,7 +27,13 @@ describe('the weekend variant of the Coinbase paper test', () => {
     expect(groups.map(([g]) => g)).toEqual(["the base test's, unchanged by 0118 and by the release blackout", "the release blackout's, changed or added 2026-10-15", "this arm's"].sort());
     for (const [, files] of groups) {
       expect(Object.keys(files).length).toBeGreaterThan(4);
-      for (const [p, h] of Object.entries(files)) expect([p, sha(p)]).toEqual([p, h]);
+      for (const [p, h] of Object.entries(files)) {
+        if (p === 'supabase/functions/agents/cb_hold.ts') {
+          // Changed by the compounding (0183): the manifest's bytes are named there as the ones before it, and the file is as named.
+          expect(apartHold).toContain(`The bytes before it, Deviation 7's: \`${h}\``);
+          expect(apartHold).toContain(`| \`${p}\` | ${sha(p)} |`);
+        } else expect([p, sha(p)]).toEqual([p, h]);
+      }
     }
     // The pre-registration names every one of this arm's files.
     for (const p of ['cb_hold.ts', 'cb_hold.test.ts', '0118_cb_hold.sql', 'replay_wk.py']) expect(PREREG).toContain(p);
