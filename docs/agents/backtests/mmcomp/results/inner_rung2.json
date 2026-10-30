@@ -1,0 +1,242 @@
+{
+ "live_prints_removed": {
+  "USDC-GBP": 206,
+  "USDT-GBP": 607
+ },
+ "runs": {
+  "USDC-GBP|at": {
+   "base_bpsDay": 4.321,
+   "before_10_13": -0.021,
+   "boot": [
+    -0.22,
+    0.863,
+    0.1656
+   ],
+   "boot_before": [
+    -0.591,
+    0.515,
+    0.5109
+   ],
+   "boot_from": [
+    -0.198,
+    1.592,
+    0.1046
+   ],
+   "days_ahead": 21,
+   "days_behind": 12,
+   "diff": 0.317,
+   "from_10_13": 0.677,
+   "inner_bpsDay": 4.638,
+   "inner_bps_per_trip": 5.53,
+   "inner_trips": 184
+  },
+  "USDC-GBP|at_half": {
+   "base_bpsDay": 4.168,
+   "before_10_13": 0.162,
+   "boot": [
+    -0.121,
+    0.947,
+    0.0996
+   ],
+   "boot_before": [
+    -0.466,
+    0.727,
+    0.3222
+   ],
+   "boot_from": [
+    -0.177,
+    1.55,
+    0.0963
+   ],
+   "days_ahead": 21,
+   "days_behind": 12,
+   "diff": 0.415,
+   "from_10_13": 0.684,
+   "inner_bpsDay": 4.583,
+   "inner_bps_per_trip": 5.29,
+   "inner_trips": 182
+  },
+  "USDC-GBP|through": {
+   "base_bpsDay": 2.95,
+   "before_10_13": 0.184,
+   "boot": [
+    -0.304,
+    0.606,
+    0.2944
+   ],
+   "boot_before": [
+    -0.391,
+    0.716,
+    0.2839
+   ],
+   "boot_from": [
+    -0.613,
+    0.846,
+    0.408
+   ],
+   "days_ahead": 19,
+   "days_behind": 14,
+   "diff": 0.153,
+   "from_10_13": 0.12,
+   "inner_bpsDay": 3.103,
+   "inner_bps_per_trip": 4.59,
+   "inner_trips": 151
+  },
+  "USDT-GBP|at": {
+   "base_bpsDay": 9.127,
+   "before_10_13": -0.247,
+   "boot": [
+    -0.575,
+    1.033,
+    0.2992
+   ],
+   "boot_before": [
+    -1.299,
+    0.631,
+    0.6379
+   ],
+   "boot_from": [
+    -0.339,
+    1.903,
+    0.1218
+   ],
+   "days_ahead": 19,
+   "days_behind": 14,
+   "diff": 0.259,
+   "from_10_13": 0.797,
+   "inner_bpsDay": 9.386,
+   "inner_bps_per_trip": 5.87,
+   "inner_trips": 266
+  },
+  "USDT-GBP|at_half": {
+   "base_bpsDay": 9.026,
+   "before_10_13": -0.267,
+   "boot": [
+    -0.541,
+    1.016,
+    0.2853
+   ],
+   "boot_before": [
+    -1.283,
+    0.586,
+    0.6591
+   ],
+   "boot_from": [
+    -0.244,
+    1.875,
+    0.0966
+   ],
+   "days_ahead": 18,
+   "days_behind": 15,
+   "diff": 0.273,
+   "from_10_13": 0.846,
+   "inner_bpsDay": 9.299,
+   "inner_bps_per_trip": 5.9,
+   "inner_trips": 258
+  },
+  "USDT-GBP|through": {
+   "base_bpsDay": 7.236,
+   "before_10_13": -0.461,
+   "boot": [
+    -1.166,
+    0.64,
+    0.5953
+   ],
+   "boot_before": [
+    -2.164,
+    0.861,
+    0.6681
+   ],
+   "boot_from": [
+    -0.701,
+    0.905,
+    0.3589
+   ],
+   "days_ahead": 17,
+   "days_behind": 16,
+   "diff": -0.169,
+   "from_10_13": 0.143,
+   "inner_bpsDay": 7.067,
+   "inner_bps_per_trip": 5.61,
+   "inner_trips": 170
+  },
+  "both|at": {
+   "base_bpsDay": 13.448,
+   "before_10_13": -0.269,
+   "boot": [
+    -0.492,
+    1.709,
+    0.2012
+   ],
+   "boot_before": [
+    -1.448,
+    0.789,
+    0.6406
+   ],
+   "boot_from": [
+    -0.032,
+    3.286,
+    0.0545
+   ],
+   "days_ahead": 17,
+   "days_behind": 16,
+   "diff": 0.576,
+   "from_10_13": 1.474,
+   "inner_bpsDay": 14.024,
+   "inner_bps_per_trip": 5.74,
+   "inner_trips": 450
+  },
+  "both|at_half": {
+   "base_bpsDay": 13.194,
+   "before_10_13": -0.105,
+   "boot": [
+    -0.371,
+    1.767,
+    0.1473
+   ],
+   "boot_before": [
+    -1.38,
+    1.005,
+    0.5424
+   ],
+   "boot_from": [
+    0.152,
+    3.18,
+    0.0268
+   ],
+   "days_ahead": 17,
+   "days_behind": 16,
+   "diff": 0.688,
+   "from_10_13": 1.53,
+   "inner_bpsDay": 13.882,
+   "inner_bps_per_trip": 5.65,
+   "inner_trips": 440
+  },
+  "both|through": {
+   "base_bpsDay": 10.186,
+   "before_10_13": -0.278,
+   "boot": [
+    -1.154,
+    0.98,
+    0.4927
+   ],
+   "boot_before": [
+    -2.138,
+    1.314,
+    0.5737
+   ],
+   "boot_from": [
+    -0.655,
+    1.407,
+    0.3663
+   ],
+   "days_ahead": 17,
+   "days_behind": 16,
+   "diff": -0.016,
+   "from_10_13": 0.263,
+   "inner_bpsDay": 10.171,
+   "inner_bps_per_trip": 5.14,
+   "inner_trips": 321
+  }
+ }
+}

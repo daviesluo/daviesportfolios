@@ -802,7 +802,25 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 01:24 UTC section (archived
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
-and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth), and the 2026-10-29 19:50, 2026-10-29 19:55, 2026-10-29 20:00, 2026-10-29 20:15 ones (twenty-sixth), and the 2026-10-29 20:41, 2026-10-29 21:07 ones (twenty-seventh).
+and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth), and the 2026-10-29 19:50, 2026-10-29 19:55, 2026-10-29 20:00, 2026-10-29 20:15 ones (twenty-sixth), and the 2026-10-29 20:41, 2026-10-29 21:07 ones (twenty-seventh), and the 2026-10-29 21:30, 2026-10-29 22:10 ones (twenty-eighth).
+
+### [2026-10-30 02:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Compounding ON for the three live executors** (main session; Davies, 10-30 ~02:10: "打开"). `0183`/`0146`'s statements run
+  as written in `reviews/2026-10-30-compounding.md` §6: `agent_quote_live_config` (base £600), `agent_quote_rxu_config` (base £120),
+  `cb_live_config` (base £120, £20 rungs), each `compound_mode` 'realised' from 2026-10-31 00:00 UTC, one row each. A deposit or
+  withdrawal of £D moves `compound_base_gbp` by D. Off: `set compound_mode = 'off'`. OKX twins next (a1cb); the base Coinbase test
+  stays uncompounded as the weekend reading's control. Research MMCOMP-2 landed (A: paper proposed, awaits Davies; B: no).
+
+### [2026-10-30 02:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **MMCOMP-2: the two strategies in depth, and the maker's takings** (sub-agent; commit, not pushed; Davies, 10-30 ~02:00:
+  "这两个策略你深入研究下…可以完全自动化实现吗？…这里说的这个做市商的盈利水平如何？我们有机会赢他吗？"). `reviews/2026-10-30-mmcomp-2.md`,
+  `backtests/mmcomp/` (xhedge, inner_rung2, maker_pnl). A (one tick inside the maker on Revolut X, hedged on Coinbase): the
+  hedge's delay 0–90 s changes nothing (the basis, not speed); transfers (Revolut X £3 + network, no withdrawal API) eat it, so
+  run without: USDT-GBP £0.72/day on £600, £1.08 on £1,200 (+6.3/+6.7 bps a fill net, 15/16 days), USDC-GBP £0.30/£0.44;
+  MMCOMP's £10/day was without inventory limits. Revolut X's daily order limit does not apply to sub-accounts (its docs): a new
+  sub-account of Davies', never a family member's. Paper engine plan + prereg sketch. B (0.05 % inner rung) without LIVE's 813
+  prints: USDT-GBP −0.17/+0.26 bps/day (P 0.60/0.30): not built. The maker: ~£6–7/day a book on its own fills (4.2–5.2 bps at
+  30 min, adverse 1–1.6 bps), ≤ ~£21; one tick inside takes 10–37 % of it. Nothing live changes.
 
 ### [2026-10-30 01:48 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Profit put back to work: the audit, the rule for all, live behind switches** (sub-agent; commit, not pushed; Davies, 10-30 ~01:35:
@@ -931,19 +949,3 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   pounds and USDC from its own fills, not a balance read: the executor keeps no balances), DAYS, ROUND TRIPS, EXIT/ENTRY ORDERS
   without refusals, 403s, conversions or empty cancels. UNREALIZED now includes the top-up USDC's mark and DEPLOYED is coins at
   fair plus resting buys, as PR5's. Fixture `src/e2e/cb_live_fixture.json`, sweep `cb-live/*` at both widths.
-
-### [2026-10-29 22:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **USDT-only switch moved to 2026-10-29 22:30 UTC** (sub-agent; commit, not pushed; Davies, 21:59: "现在就生效吧 或者22:00生效").
-  `QUOTE_LIVE_USDT_ONLY_FROM` / `QUOTE_LIVE_REBOOK_SINCE` 22:30 (rebook to 11-01 22:30); `0179` moves every 0178 instant (seven
-  weights, `n600nudge`'s start and rules), guarded on 00:00; a past `from` takes effect at a twin's next turn. Variant-5's window
-  10-29 22:30 → 11-26 22:30 (`reviews/2026-10-29-usdt-only-2230-deviation.md`; 0178 and the frozen prereg untouched).
-
-### [2026-10-29 21:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **LIVE on USDT-GBP alone from 2026-10-30 00:00 UTC, built dry** (sub-agent; commit, not pushed; Davies' USDT-ONLY word above,
-  then "原 variant-5…可以删了" / "原 variant-7…在…1:1…基础上做"). `quotes_live.ts`: `QUOTE_LIVE_USDT_ONLY_FROM`, LIVE's `weights` USDC-GBP 0;
-  `rebookOn` 72 h: surplus coin sold post-only at the top of the asks never under fair (`planDrains`, `makerSellTicks`), the
-  short book's top-ups uncapped and partial. `index.ts`: a sale is no conversion lot; `twinBookRatio` (USDT/USDC line).
-  `0178`: LIVE's weights on live600 ("USDT/GBP LIVE twin"), live1200, take50, n600no03, live600x1, live600ctl; n600usdt 1:1
-  (variant-4); new `n600nudge` variant-5 (prereg `reviews/2026-10-29-usdt-only-twins-prereg.md`); n600usdt3, u300nudge, u300ctl
-  off; live600x1 variant-6. Deviation `reviews/2026-10-29-usdt-only-deviation.md`. Nothing moves before 00:00 but n600no03's
-  0.3 % rungs and n600usdt's USDC side; to cancel the switch, revert before 00:00.

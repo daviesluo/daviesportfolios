@@ -8,6 +8,9 @@ The four questions: (1) did another market maker tighten the books, so that we n
 prints tiny trades built to harvest makers like us? (3) can we run something like it? (4) the same on Coinbase and the
 other venues. His idea is treated as a hypothesis and tested against the alternatives.
 
+**Superseded in part by `reviews/2026-10-30-mmcomp-2.md`:** A's figures here count no inventory limit and no transfer
+cost; with both, A earns about £0.7–1.1 a day on £600–1,200 (USDT-GBP), and B, re-run without LIVE's own prints, clears nothing.
+
 **Not blind, research only.** Every record was read; no pre-registered reading was run or pre-empted (QUEUE 11-02, PR5-W
 11-25, the LIVE-rule twins). Nothing was changed in production: no order, config, twin, migration or frozen file.
 **Public repository:** LIVE appears only in counts, shares and basis points. Every pound figure is a replay's (paper money).

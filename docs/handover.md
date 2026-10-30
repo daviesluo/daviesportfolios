@@ -47673,3 +47673,21 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   allowed to buy crypto" had stayed `pending`); staleness 7 min, not 5 (one lost paper run at 20:25 withdrew and re-wrote every
   entry). Probe `preview=1`: Coinbase's order preview, the read-only client's one POST. The top-up's £70 day cap counts only top-ups
   Coinbase took (`convertSpentGbp`; the 403-rejected £60 one had left £10 at the 21:45 re-arm). Pins fail on the old code. Design §9.
+
+## LEDGER.md, archived 2026-10-30 (twenty-eighth) — the 2026-10-29 21:30, 2026-10-29 22:10 UTC history sections, oldest first
+
+### [2026-10-29 21:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LIVE on USDT-GBP alone from 2026-10-30 00:00 UTC, built dry** (sub-agent; commit, not pushed; Davies' USDT-ONLY word above,
+  then "原 variant-5…可以删了" / "原 variant-7…在…1:1…基础上做"). `quotes_live.ts`: `QUOTE_LIVE_USDT_ONLY_FROM`, LIVE's `weights` USDC-GBP 0;
+  `rebookOn` 72 h: surplus coin sold post-only at the top of the asks never under fair (`planDrains`, `makerSellTicks`), the
+  short book's top-ups uncapped and partial. `index.ts`: a sale is no conversion lot; `twinBookRatio` (USDT/USDC line).
+  `0178`: LIVE's weights on live600 ("USDT/GBP LIVE twin"), live1200, take50, n600no03, live600x1, live600ctl; n600usdt 1:1
+  (variant-4); new `n600nudge` variant-5 (prereg `reviews/2026-10-29-usdt-only-twins-prereg.md`); n600usdt3, u300nudge, u300ctl
+  off; live600x1 variant-6. Deviation `reviews/2026-10-29-usdt-only-deviation.md`. Nothing moves before 00:00 but n600no03's
+  0.3 % rungs and n600usdt's USDC side; to cancel the switch, revert before 00:00.
+
+### [2026-10-29 22:10 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **USDT-only switch moved to 2026-10-29 22:30 UTC** (sub-agent; commit, not pushed; Davies, 21:59: "现在就生效吧 或者22:00生效").
+  `QUOTE_LIVE_USDT_ONLY_FROM` / `QUOTE_LIVE_REBOOK_SINCE` 22:30 (rebook to 11-01 22:30); `0179` moves every 0178 instant (seven
+  weights, `n600nudge`'s start and rules), guarded on 00:00; a past `from` takes effect at a twin's next turn. Variant-5's window
+  10-29 22:30 → 11-26 22:30 (`reviews/2026-10-29-usdt-only-2230-deviation.md`; 0178 and the frozen prereg untouched).

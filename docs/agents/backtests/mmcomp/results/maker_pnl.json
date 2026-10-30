@@ -1,0 +1,143 @@
+{
+ "USDC-GBP": {
+  "one_tick_inside": {
+   "Q100": {
+    "fills": 587,
+    "gbp_per_day": 1365,
+    "gbp_per_day_30m": 0.504,
+    "realised_30m_bps": 3.69,
+    "share_of_maker_gbp": 0.099
+   },
+   "Q500": {
+    "fills": 587,
+    "gbp_per_day": 4611,
+    "gbp_per_day_30m": 1.691,
+    "realised_30m_bps": 3.67,
+    "share_of_maker_gbp": 0.335
+   }
+  },
+  "shared": {
+   "buys": 216,
+   "captured_vs_cb_mid_bps": 17.75,
+   "captured_vs_fair_bps": 12.69,
+   "fills": 296,
+   "fills_per_day": 9.0,
+   "gbp_per_day": 12890,
+   "gbp_per_day_1m": 11.09,
+   "gbp_per_day_30m": 13.81,
+   "gbp_per_day_5m": 13.85,
+   "gbp_per_day_60m": 16.8,
+   "realised_1m_bps": 8.61,
+   "realised_1m_bps_before_10_13": 3.01,
+   "realised_1m_bps_from_10_13": 11.0,
+   "realised_30m_bps": 10.71,
+   "realised_30m_bps_before_10_13": 3.89,
+   "realised_30m_bps_from_10_13": 13.63,
+   "realised_5m_bps": 10.74,
+   "realised_5m_bps_before_10_13": 7.22,
+   "realised_5m_bps_from_10_13": 12.25,
+   "realised_60m_bps": 13.04,
+   "realised_60m_bps_before_10_13": 10.5,
+   "realised_60m_bps_from_10_13": 14.12,
+   "sells": 80,
+   "vs_cb_fills": 198
+  },
+  "sure": {
+   "buys": 379,
+   "captured_vs_cb_mid_bps": 9.13,
+   "captured_vs_fair_bps": 6.77,
+   "fills": 587,
+   "fills_per_day": 17.8,
+   "gbp_per_day": 13761,
+   "gbp_per_day_1m": 5.34,
+   "gbp_per_day_30m": 7.14,
+   "gbp_per_day_5m": 6.39,
+   "gbp_per_day_60m": 6.8,
+   "realised_1m_bps": 3.88,
+   "realised_1m_bps_before_10_13": 2.34,
+   "realised_1m_bps_from_10_13": 5.08,
+   "realised_30m_bps": 5.19,
+   "realised_30m_bps_before_10_13": 4.09,
+   "realised_30m_bps_from_10_13": 6.05,
+   "realised_5m_bps": 4.64,
+   "realised_5m_bps_before_10_13": 3.2,
+   "realised_5m_bps_from_10_13": 5.76,
+   "realised_60m_bps": 4.95,
+   "realised_60m_bps_before_10_13": 3.15,
+   "realised_60m_bps_from_10_13": 6.34,
+   "sells": 208,
+   "vs_cb_fills": 368
+  }
+ },
+ "USDT-GBP": {
+  "one_tick_inside": {
+   "Q100": {
+    "fills": 691,
+    "gbp_per_day": 1701,
+    "gbp_per_day_30m": 0.414,
+    "realised_30m_bps": 2.43,
+    "share_of_maker_gbp": 0.112
+   },
+   "Q500": {
+    "fills": 691,
+    "gbp_per_day": 5552,
+    "gbp_per_day_30m": 1.454,
+    "realised_30m_bps": 2.62,
+    "share_of_maker_gbp": 0.367
+   }
+  },
+  "shared": {
+   "buys": 247,
+   "captured_vs_cb_mid_bps": 4.28,
+   "captured_vs_fair_bps": 3.73,
+   "fills": 943,
+   "fills_per_day": 28.6,
+   "gbp_per_day": 21762,
+   "gbp_per_day_1m": 9.22,
+   "gbp_per_day_30m": 12.51,
+   "gbp_per_day_5m": 9.33,
+   "gbp_per_day_60m": 9.47,
+   "realised_1m_bps": 4.24,
+   "realised_1m_bps_before_10_13": 5.61,
+   "realised_1m_bps_from_10_13": 0.98,
+   "realised_30m_bps": 5.94,
+   "realised_30m_bps_before_10_13": 8.06,
+   "realised_30m_bps_from_10_13": 1.13,
+   "realised_5m_bps": 4.29,
+   "realised_5m_bps_before_10_13": 5.7,
+   "realised_5m_bps_from_10_13": 0.93,
+   "realised_60m_bps": 4.38,
+   "realised_60m_bps_before_10_13": 4.78,
+   "realised_60m_bps_from_10_13": 3.42,
+   "sells": 696,
+   "vs_cb_fills": 471
+  },
+  "sure": {
+   "buys": 381,
+   "captured_vs_cb_mid_bps": 9.19,
+   "captured_vs_fair_bps": 5.17,
+   "fills": 691,
+   "fills_per_day": 20.9,
+   "gbp_per_day": 15129,
+   "gbp_per_day_1m": 5.53,
+   "gbp_per_day_30m": 6.28,
+   "gbp_per_day_5m": 5.44,
+   "gbp_per_day_60m": 5.39,
+   "realised_1m_bps": 3.65,
+   "realised_1m_bps_before_10_13": 2.12,
+   "realised_1m_bps_from_10_13": 5.45,
+   "realised_30m_bps": 4.15,
+   "realised_30m_bps_before_10_13": 2.57,
+   "realised_30m_bps_from_10_13": 6.0,
+   "realised_5m_bps": 3.6,
+   "realised_5m_bps_before_10_13": 1.97,
+   "realised_5m_bps_from_10_13": 5.51,
+   "realised_60m_bps": 3.56,
+   "realised_60m_bps_before_10_13": 1.62,
+   "realised_60m_bps_from_10_13": 5.83,
+   "sells": 310,
+   "vs_cb_fills": 334
+  }
+ },
+ "window": "2026-09-26 -> 2026-10-29 00:00 UTC"
+}

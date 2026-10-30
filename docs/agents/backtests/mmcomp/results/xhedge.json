@@ -1,0 +1,2633 @@
+{
+ "USDC-GBP": {
+  "cb_gaps_over_120s": 0,
+  "cb_longest_gap_s": 103,
+  "cb_reads": 53750,
+  "delay_queue_C5000_Q100_m2_fee0.45": {
+   "d0|first": {
+    "blocked_prints": {
+     "bid": 435
+    },
+    "days_positive": "11/19",
+    "edge_bps": 6.3,
+    "fills_per_day": 22.5,
+    "gbp_per_day": 1367,
+    "gross_gbp_per_day": 0.992,
+    "halves_net_gbp_per_day": [
+     -0.438,
+     -0.145
+    ],
+    "net_bps_per_fill": -2.19,
+    "net_gbp_per_day": -0.299,
+    "net_pct_year": -2.2,
+    "rx_orders_per_day": 773,
+    "transfer_bps_per_fill": 9.44,
+    "transfer_gbp_per_day": 1.291,
+    "transfers": 8
+   },
+   "d0|half": {
+    "blocked_prints": {
+     "bid": 427
+    },
+    "days_positive": "8/19",
+    "edge_bps": 6.49,
+    "fills_per_day": 22.9,
+    "gbp_per_day": 1219,
+    "gross_gbp_per_day": 0.921,
+    "halves_net_gbp_per_day": [
+     -0.502,
+     -1.241
+    ],
+    "net_bps_per_fill": -7.0,
+    "net_gbp_per_day": -0.854,
+    "net_pct_year": -6.2,
+    "rx_orders_per_day": 773,
+    "transfer_bps_per_fill": 14.55,
+    "transfer_gbp_per_day": 1.775,
+    "transfers": 11
+   },
+   "d0|through": {
+    "blocked_prints": {
+     "bid": 411
+    },
+    "days_positive": "8/19",
+    "edge_bps": 6.46,
+    "fills_per_day": 21.4,
+    "gbp_per_day": 1317,
+    "gross_gbp_per_day": 0.983,
+    "halves_net_gbp_per_day": [
+     -0.469,
+     -1.146
+    ],
+    "net_bps_per_fill": -6.01,
+    "net_gbp_per_day": -0.792,
+    "net_pct_year": -5.8,
+    "rx_orders_per_day": 772,
+    "transfer_bps_per_fill": 13.48,
+    "transfer_gbp_per_day": 1.775,
+    "transfers": 11
+   },
+   "d15|first": {
+    "blocked_prints": {
+     "bid": 435
+    },
+    "days_positive": "11/19",
+    "edge_bps": 6.17,
+    "fills_per_day": 22.5,
+    "gbp_per_day": 1367,
+    "gross_gbp_per_day": 0.984,
+    "halves_net_gbp_per_day": [
+     -0.459,
+     -0.14
+    ],
+    "net_bps_per_fill": -2.25,
+    "net_gbp_per_day": -0.307,
+    "net_pct_year": -2.2,
+    "rx_orders_per_day": 773,
+    "transfer_bps_per_fill": 9.44,
+    "transfer_gbp_per_day": 1.291,
+    "transfers": 8
+   },
+   "d15|half": {
+    "blocked_prints": {
+     "bid": 427
+    },
+    "days_positive": "8/19",
+    "edge_bps": 6.35,
+    "fills_per_day": 22.9,
+    "gbp_per_day": 1219,
+    "gross_gbp_per_day": 0.913,
+    "halves_net_gbp_per_day": [
+     -0.515,
+     -1.243
+    ],
+    "net_bps_per_fill": -7.07,
+    "net_gbp_per_day": -0.862,
+    "net_pct_year": -6.3,
+    "rx_orders_per_day": 773,
+    "transfer_bps_per_fill": 14.55,
+    "transfer_gbp_per_day": 1.775,
+    "transfers": 11
+   },
+   "d15|through": {
+    "blocked_prints": {
+     "bid": 411
+    },
+    "days_positive": "8/19",
+    "edge_bps": 6.29,
+    "fills_per_day": 21.4,
+    "gbp_per_day": 1317,
+    "gross_gbp_per_day": 0.97,
+    "halves_net_gbp_per_day": [
+     -0.493,
+     -1.147
+    ],
+    "net_bps_per_fill": -6.11,
+    "net_gbp_per_day": -0.805,
+    "net_pct_year": -5.9,
+    "rx_orders_per_day": 772,
+    "transfer_bps_per_fill": 13.48,
+    "transfer_gbp_per_day": 1.775,
+    "transfers": 11
+   },
+   "d30|first": {
+    "blocked_prints": {
+     "bid": 435
+    },
+    "days_positive": "11/19",
+    "edge_bps": 6.17,
+    "fills_per_day": 22.4,
+    "gbp_per_day": 1367,
+    "gross_gbp_per_day": 0.988,
+    "halves_net_gbp_per_day": [
+     -0.455,
+     -0.134
+    ],
+    "net_bps_per_fill": -2.21,
+    "net_gbp_per_day": -0.302,
+    "net_pct_year": -2.2,
+    "rx_orders_per_day": 773,
+    "transfer_bps_per_fill": 9.44,
+    "transfer_gbp_per_day": 1.291,
+    "transfers": 8
+   },
+   "d30|half": {
+    "blocked_prints": {
+     "bid": 427
+    },
+    "days_positive": "8/19",
+    "edge_bps": 6.36,
+    "fills_per_day": 22.9,
+    "gbp_per_day": 1219,
+    "gross_gbp_per_day": 0.919,
+    "halves_net_gbp_per_day": [
+     -0.51,
+     -1.237
+    ],
+    "net_bps_per_fill": -7.02,
+    "net_gbp_per_day": -0.856,
+    "net_pct_year": -6.3,
+    "rx_orders_per_day": 773,
+    "transfer_bps_per_fill": 14.55,
+    "transfer_gbp_per_day": 1.775,
+    "transfers": 11
+   },
+   "d30|through": {
+    "blocked_prints": {
+     "bid": 411
+    },
+    "days_positive": "8/19",
+    "edge_bps": 6.31,
+    "fills_per_day": 21.4,
+    "gbp_per_day": 1317,
+    "gross_gbp_per_day": 0.973,
+    "halves_net_gbp_per_day": [
+     -0.493,
+     -1.141
+    ],
+    "net_bps_per_fill": -6.09,
+    "net_gbp_per_day": -0.802,
+    "net_pct_year": -5.9,
+    "rx_orders_per_day": 772,
+    "transfer_bps_per_fill": 13.48,
+    "transfer_gbp_per_day": 1.775,
+    "transfers": 11
+   },
+   "d60|first": {
+    "blocked_prints": {
+     "bid": 435
+    },
+    "days_positive": "11/19",
+    "edge_bps": 6.22,
+    "fills_per_day": 22.5,
+    "gbp_per_day": 1367,
+    "gross_gbp_per_day": 0.99,
+    "halves_net_gbp_per_day": [
+     -0.446,
+     -0.141
+    ],
+    "net_bps_per_fill": -2.2,
+    "net_gbp_per_day": -0.301,
+    "net_pct_year": -2.2,
+    "rx_orders_per_day": 773,
+    "transfer_bps_per_fill": 9.44,
+    "transfer_gbp_per_day": 1.291,
+    "transfers": 8
+   },
+   "d60|half": {
+    "blocked_prints": {
+     "bid": 427
+    },
+    "days_positive": "8/19",
+    "edge_bps": 6.4,
+    "fills_per_day": 22.9,
+    "gbp_per_day": 1219,
+    "gross_gbp_per_day": 0.918,
+    "halves_net_gbp_per_day": [
+     -0.502,
+     -1.246
+    ],
+    "net_bps_per_fill": -7.03,
+    "net_gbp_per_day": -0.857,
+    "net_pct_year": -6.3,
+    "rx_orders_per_day": 773,
+    "transfer_bps_per_fill": 14.55,
+    "transfer_gbp_per_day": 1.775,
+    "transfers": 11
+   },
+   "d60|through": {
+    "blocked_prints": {
+     "bid": 411
+    },
+    "days_positive": "8/19",
+    "edge_bps": 6.36,
+    "fills_per_day": 21.4,
+    "gbp_per_day": 1317,
+    "gross_gbp_per_day": 0.978,
+    "halves_net_gbp_per_day": [
+     -0.482,
+     -1.143
+    ],
+    "net_bps_per_fill": -6.05,
+    "net_gbp_per_day": -0.797,
+    "net_pct_year": -5.8,
+    "rx_orders_per_day": 772,
+    "transfer_bps_per_fill": 13.48,
+    "transfer_gbp_per_day": 1.775,
+    "transfers": 11
+   },
+   "d90|first": {
+    "blocked_prints": {
+     "bid": 435
+    },
+    "days_positive": "11/19",
+    "edge_bps": 6.24,
+    "fills_per_day": 22.5,
+    "gbp_per_day": 1367,
+    "gross_gbp_per_day": 0.997,
+    "halves_net_gbp_per_day": [
+     -0.429,
+     -0.144
+    ],
+    "net_bps_per_fill": -2.15,
+    "net_gbp_per_day": -0.294,
+    "net_pct_year": -2.1,
+    "rx_orders_per_day": 773,
+    "transfer_bps_per_fill": 9.44,
+    "transfer_gbp_per_day": 1.291,
+    "transfers": 8
+   },
+   "d90|half": {
+    "blocked_prints": {
+     "bid": 427
+    },
+    "days_positive": "8/19",
+    "edge_bps": 6.45,
+    "fills_per_day": 22.9,
+    "gbp_per_day": 1219,
+    "gross_gbp_per_day": 0.929,
+    "halves_net_gbp_per_day": [
+     -0.488,
+     -1.238
+    ],
+    "net_bps_per_fill": -6.93,
+    "net_gbp_per_day": -0.845,
+    "net_pct_year": -6.2,
+    "rx_orders_per_day": 773,
+    "transfer_bps_per_fill": 14.55,
+    "transfer_gbp_per_day": 1.775,
+    "transfers": 11
+   },
+   "d90|through": {
+    "blocked_prints": {
+     "bid": 411
+    },
+    "days_positive": "8/19",
+    "edge_bps": 6.4,
+    "fills_per_day": 21.4,
+    "gbp_per_day": 1317,
+    "gross_gbp_per_day": 0.987,
+    "halves_net_gbp_per_day": [
+     -0.465,
+     -1.142
+    ],
+    "net_bps_per_fill": -5.98,
+    "net_gbp_per_day": -0.788,
+    "net_pct_year": -5.8,
+    "rx_orders_per_day": 772,
+    "transfer_bps_per_fill": 13.48,
+    "transfer_gbp_per_day": 1.775,
+    "transfers": 11
+   }
+  },
+  "margin_C1200_Q100_none": {
+   "m0": {
+    "blocked_prints": {
+     "ask": 17,
+     "bid": 540
+    },
+    "days_positive": "19/19",
+    "edge_bps": 3.74,
+    "fills_per_day": 22.9,
+    "gbp_per_day": 1315,
+    "gross_gbp_per_day": 0.619,
+    "halves_net_gbp_per_day": [
+     0.481,
+     0.771
+    ],
+    "net_bps_per_fill": 4.71,
+    "net_gbp_per_day": 0.619,
+    "net_pct_year": 18.8,
+    "rx_orders_per_day": 759,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "m2": {
+    "blocked_prints": {
+     "ask": 5,
+     "bid": 585
+    },
+    "days_positive": "15/15",
+    "edge_bps": 4.7,
+    "fills_per_day": 14.2,
+    "gbp_per_day": 773,
+    "gross_gbp_per_day": 0.439,
+    "halves_net_gbp_per_day": [
+     0.311,
+     0.579
+    ],
+    "net_bps_per_fill": 5.68,
+    "net_gbp_per_day": 0.439,
+    "net_pct_year": 13.4,
+    "rx_orders_per_day": 765,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "m4": {
+    "blocked_prints": {
+     "ask": 4,
+     "bid": 596
+    },
+    "days_positive": "12/12",
+    "edge_bps": 6.15,
+    "fills_per_day": 8.7,
+    "gbp_per_day": 484,
+    "gross_gbp_per_day": 0.346,
+    "halves_net_gbp_per_day": [
+     0.133,
+     0.579
+    ],
+    "net_bps_per_fill": 7.14,
+    "net_gbp_per_day": 0.346,
+    "net_pct_year": 10.5,
+    "rx_orders_per_day": 766,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   }
+  },
+  "sizes_d30_first_m2": {
+   "C1200|Q100|batch2000|fee0.1": {
+    "blocked_prints": {
+     "ask": 5,
+     "bid": 585
+    },
+    "days_positive": "15/15",
+    "edge_bps": 5.05,
+    "fills_per_day": 14.2,
+    "gbp_per_day": 773,
+    "gross_gbp_per_day": 0.466,
+    "halves_net_gbp_per_day": [
+     0.335,
+     0.609
+    ],
+    "net_bps_per_fill": 6.03,
+    "net_gbp_per_day": 0.466,
+    "net_pct_year": 14.2,
+    "rx_orders_per_day": 765,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C1200|Q100|batch2000|fee0.45": {
+    "blocked_prints": {
+     "ask": 5,
+     "bid": 585
+    },
+    "days_positive": "15/15",
+    "edge_bps": 4.7,
+    "fills_per_day": 14.2,
+    "gbp_per_day": 773,
+    "gross_gbp_per_day": 0.439,
+    "halves_net_gbp_per_day": [
+     0.311,
+     0.579
+    ],
+    "net_bps_per_fill": 5.68,
+    "net_gbp_per_day": 0.439,
+    "net_pct_year": 13.4,
+    "rx_orders_per_day": 765,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C1200|Q100|batch500|fee0.1": {
+    "blocked_prints": {
+     "ask": 5,
+     "bid": 585
+    },
+    "days_positive": "15/15",
+    "edge_bps": 5.05,
+    "fills_per_day": 14.2,
+    "gbp_per_day": 773,
+    "gross_gbp_per_day": 0.466,
+    "halves_net_gbp_per_day": [
+     0.335,
+     0.609
+    ],
+    "net_bps_per_fill": 6.03,
+    "net_gbp_per_day": 0.466,
+    "net_pct_year": 14.2,
+    "rx_orders_per_day": 765,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C1200|Q100|batch500|fee0.45": {
+    "blocked_prints": {
+     "ask": 5,
+     "bid": 585
+    },
+    "days_positive": "15/15",
+    "edge_bps": 4.7,
+    "fills_per_day": 14.2,
+    "gbp_per_day": 773,
+    "gross_gbp_per_day": 0.439,
+    "halves_net_gbp_per_day": [
+     0.311,
+     0.579
+    ],
+    "net_bps_per_fill": 5.68,
+    "net_gbp_per_day": 0.439,
+    "net_pct_year": 13.4,
+    "rx_orders_per_day": 765,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C1200|Q100|none|fee0.1": {
+    "blocked_prints": {
+     "ask": 5,
+     "bid": 585
+    },
+    "days_positive": "15/15",
+    "edge_bps": 5.05,
+    "fills_per_day": 14.2,
+    "gbp_per_day": 773,
+    "gross_gbp_per_day": 0.466,
+    "halves_net_gbp_per_day": [
+     0.335,
+     0.609
+    ],
+    "net_bps_per_fill": 6.03,
+    "net_gbp_per_day": 0.466,
+    "net_pct_year": 14.2,
+    "rx_orders_per_day": 765,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C1200|Q100|none|fee0.45": {
+    "blocked_prints": {
+     "ask": 5,
+     "bid": 585
+    },
+    "days_positive": "15/15",
+    "edge_bps": 4.7,
+    "fills_per_day": 14.2,
+    "gbp_per_day": 773,
+    "gross_gbp_per_day": 0.439,
+    "halves_net_gbp_per_day": [
+     0.311,
+     0.579
+    ],
+    "net_bps_per_fill": 5.68,
+    "net_gbp_per_day": 0.439,
+    "net_pct_year": 13.4,
+    "rx_orders_per_day": 765,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C20000|Q500|batch2000|fee0.1": {
+    "blocked_prints": {
+     "bid": 416
+    },
+    "days_positive": "12/19",
+    "edge_bps": 6.73,
+    "fills_per_day": 23.4,
+    "gbp_per_day": 4553,
+    "gross_gbp_per_day": 3.617,
+    "halves_net_gbp_per_day": [
+     1.506,
+     2.549
+    ],
+    "net_bps_per_fill": 4.4,
+    "net_gbp_per_day": 2.004,
+    "net_pct_year": 3.7,
+    "rx_orders_per_day": 774,
+    "transfer_bps_per_fill": 3.54,
+    "transfer_gbp_per_day": 1.614,
+    "transfers": 10
+   },
+   "C20000|Q500|batch2000|fee0.45": {
+    "blocked_prints": {
+     "bid": 416
+    },
+    "days_positive": "12/19",
+    "edge_bps": 6.38,
+    "fills_per_day": 23.4,
+    "gbp_per_day": 4553,
+    "gross_gbp_per_day": 3.458,
+    "halves_net_gbp_per_day": [
+     1.367,
+     2.367
+    ],
+    "net_bps_per_fill": 4.05,
+    "net_gbp_per_day": 1.844,
+    "net_pct_year": 3.4,
+    "rx_orders_per_day": 774,
+    "transfer_bps_per_fill": 3.54,
+    "transfer_gbp_per_day": 1.614,
+    "transfers": 10
+   },
+   "C20000|Q500|batch500|fee0.1": {
+    "blocked_prints": {
+     "bid": 427
+    },
+    "days_positive": "11/19",
+    "edge_bps": 6.65,
+    "fills_per_day": 22.9,
+    "gbp_per_day": 4501,
+    "gross_gbp_per_day": 3.542,
+    "halves_net_gbp_per_day": [
+     0.692,
+     1.595
+    ],
+    "net_bps_per_fill": 2.49,
+    "net_gbp_per_day": 1.122,
+    "net_pct_year": 2.0,
+    "rx_orders_per_day": 773,
+    "transfer_bps_per_fill": 5.38,
+    "transfer_gbp_per_day": 2.42,
+    "transfers": 16
+   },
+   "C20000|Q500|batch500|fee0.45": {
+    "blocked_prints": {
+     "bid": 427
+    },
+    "days_positive": "11/19",
+    "edge_bps": 6.3,
+    "fills_per_day": 22.9,
+    "gbp_per_day": 4501,
+    "gross_gbp_per_day": 3.385,
+    "halves_net_gbp_per_day": [
+     0.559,
+     1.41
+    ],
+    "net_bps_per_fill": 2.14,
+    "net_gbp_per_day": 0.965,
+    "net_pct_year": 1.8,
+    "rx_orders_per_day": 773,
+    "transfer_bps_per_fill": 5.38,
+    "transfer_gbp_per_day": 2.42,
+    "transfers": 16
+   },
+   "C20000|Q500|none|fee0.1": {
+    "blocked_prints": {
+     "bid": 575
+    },
+    "days_positive": "15/15",
+    "edge_bps": 5.33,
+    "fills_per_day": 15.0,
+    "gbp_per_day": 2588,
+    "gross_gbp_per_day": 1.797,
+    "halves_net_gbp_per_day": [
+     1.127,
+     2.533
+    ],
+    "net_bps_per_fill": 6.94,
+    "net_gbp_per_day": 1.797,
+    "net_pct_year": 3.3,
+    "rx_orders_per_day": 766,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C20000|Q500|none|fee0.45": {
+    "blocked_prints": {
+     "bid": 575
+    },
+    "days_positive": "15/15",
+    "edge_bps": 4.98,
+    "fills_per_day": 15.0,
+    "gbp_per_day": 2588,
+    "gross_gbp_per_day": 1.707,
+    "halves_net_gbp_per_day": [
+     1.054,
+     2.423
+    ],
+    "net_bps_per_fill": 6.59,
+    "net_gbp_per_day": 1.707,
+    "net_pct_year": 3.1,
+    "rx_orders_per_day": 766,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C2400|Q100|batch2000|fee0.1": {
+    "blocked_prints": {
+     "bid": 574
+    },
+    "days_positive": "15/15",
+    "edge_bps": 5.31,
+    "fills_per_day": 15.1,
+    "gbp_per_day": 832,
+    "gross_gbp_per_day": 0.533,
+    "halves_net_gbp_per_day": [
+     0.341,
+     0.744
+    ],
+    "net_bps_per_fill": 6.41,
+    "net_gbp_per_day": 0.533,
+    "net_pct_year": 8.1,
+    "rx_orders_per_day": 766,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C2400|Q100|batch2000|fee0.45": {
+    "blocked_prints": {
+     "bid": 574
+    },
+    "days_positive": "15/15",
+    "edge_bps": 4.96,
+    "fills_per_day": 15.1,
+    "gbp_per_day": 832,
+    "gross_gbp_per_day": 0.504,
+    "halves_net_gbp_per_day": [
+     0.316,
+     0.71
+    ],
+    "net_bps_per_fill": 6.06,
+    "net_gbp_per_day": 0.504,
+    "net_pct_year": 7.7,
+    "rx_orders_per_day": 766,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C2400|Q100|batch500|fee0.1": {
+    "blocked_prints": {
+     "bid": 519
+    },
+    "days_positive": "12/19",
+    "edge_bps": 5.89,
+    "fills_per_day": 18.0,
+    "gbp_per_day": 1034,
+    "gross_gbp_per_day": 0.719,
+    "halves_net_gbp_per_day": [
+     -0.702,
+     -0.088
+    ],
+    "net_bps_per_fill": -3.97,
+    "net_gbp_per_day": -0.41,
+    "net_pct_year": -6.2,
+    "rx_orders_per_day": 769,
+    "transfer_bps_per_fill": 10.92,
+    "transfer_gbp_per_day": 1.129,
+    "transfers": 7
+   },
+   "C2400|Q100|batch500|fee0.45": {
+    "blocked_prints": {
+     "bid": 519
+    },
+    "days_positive": "12/19",
+    "edge_bps": 5.54,
+    "fills_per_day": 18.0,
+    "gbp_per_day": 1034,
+    "gross_gbp_per_day": 0.683,
+    "halves_net_gbp_per_day": [
+     -0.735,
+     -0.128
+    ],
+    "net_bps_per_fill": -4.32,
+    "net_gbp_per_day": -0.446,
+    "net_pct_year": -6.8,
+    "rx_orders_per_day": 769,
+    "transfer_bps_per_fill": 10.92,
+    "transfer_gbp_per_day": 1.129,
+    "transfers": 7
+   },
+   "C2400|Q100|none|fee0.1": {
+    "blocked_prints": {
+     "bid": 574
+    },
+    "days_positive": "15/15",
+    "edge_bps": 5.31,
+    "fills_per_day": 15.1,
+    "gbp_per_day": 832,
+    "gross_gbp_per_day": 0.533,
+    "halves_net_gbp_per_day": [
+     0.341,
+     0.744
+    ],
+    "net_bps_per_fill": 6.41,
+    "net_gbp_per_day": 0.533,
+    "net_pct_year": 8.1,
+    "rx_orders_per_day": 766,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C2400|Q100|none|fee0.45": {
+    "blocked_prints": {
+     "bid": 574
+    },
+    "days_positive": "15/15",
+    "edge_bps": 4.96,
+    "fills_per_day": 15.1,
+    "gbp_per_day": 832,
+    "gross_gbp_per_day": 0.504,
+    "halves_net_gbp_per_day": [
+     0.316,
+     0.71
+    ],
+    "net_bps_per_fill": 6.06,
+    "net_gbp_per_day": 0.504,
+    "net_pct_year": 7.7,
+    "rx_orders_per_day": 766,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C5000|Q100|batch2000|fee0.1": {
+    "blocked_prints": {
+     "bid": 564
+    },
+    "days_positive": "15/15",
+    "edge_bps": 5.29,
+    "fills_per_day": 15.6,
+    "gbp_per_day": 865,
+    "gross_gbp_per_day": 0.549,
+    "halves_net_gbp_per_day": [
+     0.368,
+     0.748
+    ],
+    "net_bps_per_fill": 6.35,
+    "net_gbp_per_day": 0.549,
+    "net_pct_year": 4.0,
+    "rx_orders_per_day": 766,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C5000|Q100|batch2000|fee0.45": {
+    "blocked_prints": {
+     "bid": 564
+    },
+    "days_positive": "15/15",
+    "edge_bps": 4.94,
+    "fills_per_day": 15.6,
+    "gbp_per_day": 865,
+    "gross_gbp_per_day": 0.519,
+    "halves_net_gbp_per_day": [
+     0.34,
+     0.714
+    ],
+    "net_bps_per_fill": 6.0,
+    "net_gbp_per_day": 0.519,
+    "net_pct_year": 3.8,
+    "rx_orders_per_day": 766,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C5000|Q100|batch500|fee0.1": {
+    "blocked_prints": {
+     "bid": 435
+    },
+    "days_positive": "11/19",
+    "edge_bps": 6.52,
+    "fills_per_day": 22.4,
+    "gbp_per_day": 1367,
+    "gross_gbp_per_day": 1.036,
+    "halves_net_gbp_per_day": [
+     -0.411,
+     -0.082
+    ],
+    "net_bps_per_fill": -1.86,
+    "net_gbp_per_day": -0.255,
+    "net_pct_year": -1.9,
+    "rx_orders_per_day": 773,
+    "transfer_bps_per_fill": 9.44,
+    "transfer_gbp_per_day": 1.291,
+    "transfers": 8
+   },
+   "C5000|Q100|batch500|fee0.45": {
+    "blocked_prints": {
+     "bid": 435
+    },
+    "days_positive": "11/19",
+    "edge_bps": 6.17,
+    "fills_per_day": 22.4,
+    "gbp_per_day": 1367,
+    "gross_gbp_per_day": 0.988,
+    "halves_net_gbp_per_day": [
+     -0.455,
+     -0.134
+    ],
+    "net_bps_per_fill": -2.21,
+    "net_gbp_per_day": -0.302,
+    "net_pct_year": -2.2,
+    "rx_orders_per_day": 773,
+    "transfer_bps_per_fill": 9.44,
+    "transfer_gbp_per_day": 1.291,
+    "transfers": 8
+   },
+   "C5000|Q100|none|fee0.1": {
+    "blocked_prints": {
+     "bid": 564
+    },
+    "days_positive": "15/15",
+    "edge_bps": 5.29,
+    "fills_per_day": 15.6,
+    "gbp_per_day": 865,
+    "gross_gbp_per_day": 0.549,
+    "halves_net_gbp_per_day": [
+     0.368,
+     0.748
+    ],
+    "net_bps_per_fill": 6.35,
+    "net_gbp_per_day": 0.549,
+    "net_pct_year": 4.0,
+    "rx_orders_per_day": 766,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C5000|Q100|none|fee0.45": {
+    "blocked_prints": {
+     "bid": 564
+    },
+    "days_positive": "15/15",
+    "edge_bps": 4.94,
+    "fills_per_day": 15.6,
+    "gbp_per_day": 865,
+    "gross_gbp_per_day": 0.519,
+    "halves_net_gbp_per_day": [
+     0.34,
+     0.714
+    ],
+    "net_bps_per_fill": 6.0,
+    "net_gbp_per_day": 0.519,
+    "net_pct_year": 3.8,
+    "rx_orders_per_day": 766,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C5000|Q500|batch2000|fee0.1": {
+    "blocked_prints": {
+     "ask": 12,
+     "bid": 610
+    },
+    "days_positive": "15/15",
+    "edge_bps": 4.93,
+    "fills_per_day": 12.5,
+    "gbp_per_day": 2191,
+    "gross_gbp_per_day": 1.493,
+    "halves_net_gbp_per_day": [
+     0.853,
+     2.197
+    ],
+    "net_bps_per_fill": 6.82,
+    "net_gbp_per_day": 1.493,
+    "net_pct_year": 10.9,
+    "rx_orders_per_day": 763,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C5000|Q500|batch2000|fee0.45": {
+    "blocked_prints": {
+     "ask": 12,
+     "bid": 610
+    },
+    "days_positive": "15/15",
+    "edge_bps": 4.58,
+    "fills_per_day": 12.5,
+    "gbp_per_day": 2191,
+    "gross_gbp_per_day": 1.417,
+    "halves_net_gbp_per_day": [
+     0.797,
+     2.097
+    ],
+    "net_bps_per_fill": 6.47,
+    "net_gbp_per_day": 1.417,
+    "net_pct_year": 10.3,
+    "rx_orders_per_day": 763,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C5000|Q500|batch500|fee0.1": {
+    "blocked_prints": {
+     "ask": 14,
+     "bid": 580
+    },
+    "days_positive": "11/19",
+    "edge_bps": 5.63,
+    "fills_per_day": 14.0,
+    "gbp_per_day": 2453,
+    "gross_gbp_per_day": 1.83,
+    "halves_net_gbp_per_day": [
+     -0.483,
+     1.665
+    ],
+    "net_bps_per_fill": 2.2,
+    "net_gbp_per_day": 0.539,
+    "net_pct_year": 3.9,
+    "rx_orders_per_day": 765,
+    "transfer_bps_per_fill": 5.26,
+    "transfer_gbp_per_day": 1.291,
+    "transfers": 10
+   },
+   "C5000|Q500|batch500|fee0.45": {
+    "blocked_prints": {
+     "ask": 14,
+     "bid": 580
+    },
+    "days_positive": "11/19",
+    "edge_bps": 5.28,
+    "fills_per_day": 14.0,
+    "gbp_per_day": 2453,
+    "gross_gbp_per_day": 1.744,
+    "halves_net_gbp_per_day": [
+     -0.545,
+     1.553
+    ],
+    "net_bps_per_fill": 1.85,
+    "net_gbp_per_day": 0.454,
+    "net_pct_year": 3.3,
+    "rx_orders_per_day": 765,
+    "transfer_bps_per_fill": 5.26,
+    "transfer_gbp_per_day": 1.291,
+    "transfers": 10
+   },
+   "C5000|Q500|none|fee0.1": {
+    "blocked_prints": {
+     "ask": 12,
+     "bid": 610
+    },
+    "days_positive": "15/15",
+    "edge_bps": 4.93,
+    "fills_per_day": 12.5,
+    "gbp_per_day": 2191,
+    "gross_gbp_per_day": 1.493,
+    "halves_net_gbp_per_day": [
+     0.853,
+     2.197
+    ],
+    "net_bps_per_fill": 6.82,
+    "net_gbp_per_day": 1.493,
+    "net_pct_year": 10.9,
+    "rx_orders_per_day": 763,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C5000|Q500|none|fee0.45": {
+    "blocked_prints": {
+     "ask": 12,
+     "bid": 610
+    },
+    "days_positive": "15/15",
+    "edge_bps": 4.58,
+    "fills_per_day": 12.5,
+    "gbp_per_day": 2191,
+    "gross_gbp_per_day": 1.417,
+    "halves_net_gbp_per_day": [
+     0.797,
+     2.097
+    ],
+    "net_bps_per_fill": 6.47,
+    "net_gbp_per_day": 1.417,
+    "net_pct_year": 10.3,
+    "rx_orders_per_day": 763,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C600|Q100|batch2000|fee0.1": {
+    "blocked_prints": {
+     "ask": 34,
+     "bid": 613
+    },
+    "days_positive": "15/15",
+    "edge_bps": 4.51,
+    "fills_per_day": 11.2,
+    "gbp_per_day": 591,
+    "gross_gbp_per_day": 0.316,
+    "halves_net_gbp_per_day": [
+     0.257,
+     0.381
+    ],
+    "net_bps_per_fill": 5.35,
+    "net_gbp_per_day": 0.316,
+    "net_pct_year": 19.2,
+    "rx_orders_per_day": 762,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C600|Q100|batch2000|fee0.45": {
+    "blocked_prints": {
+     "ask": 34,
+     "bid": 613
+    },
+    "days_positive": "15/15",
+    "edge_bps": 4.16,
+    "fills_per_day": 11.2,
+    "gbp_per_day": 591,
+    "gross_gbp_per_day": 0.296,
+    "halves_net_gbp_per_day": [
+     0.237,
+     0.36
+    ],
+    "net_bps_per_fill": 5.0,
+    "net_gbp_per_day": 0.296,
+    "net_pct_year": 18.0,
+    "rx_orders_per_day": 762,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C600|Q100|batch500|fee0.1": {
+    "blocked_prints": {
+     "ask": 34,
+     "bid": 613
+    },
+    "days_positive": "15/15",
+    "edge_bps": 4.51,
+    "fills_per_day": 11.2,
+    "gbp_per_day": 591,
+    "gross_gbp_per_day": 0.316,
+    "halves_net_gbp_per_day": [
+     0.257,
+     0.381
+    ],
+    "net_bps_per_fill": 5.35,
+    "net_gbp_per_day": 0.316,
+    "net_pct_year": 19.2,
+    "rx_orders_per_day": 762,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C600|Q100|batch500|fee0.45": {
+    "blocked_prints": {
+     "ask": 34,
+     "bid": 613
+    },
+    "days_positive": "15/15",
+    "edge_bps": 4.16,
+    "fills_per_day": 11.2,
+    "gbp_per_day": 591,
+    "gross_gbp_per_day": 0.296,
+    "halves_net_gbp_per_day": [
+     0.237,
+     0.36
+    ],
+    "net_bps_per_fill": 5.0,
+    "net_gbp_per_day": 0.296,
+    "net_pct_year": 18.0,
+    "rx_orders_per_day": 762,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C600|Q100|none|fee0.1": {
+    "blocked_prints": {
+     "ask": 34,
+     "bid": 613
+    },
+    "days_positive": "15/15",
+    "edge_bps": 4.51,
+    "fills_per_day": 11.2,
+    "gbp_per_day": 591,
+    "gross_gbp_per_day": 0.316,
+    "halves_net_gbp_per_day": [
+     0.257,
+     0.381
+    ],
+    "net_bps_per_fill": 5.35,
+    "net_gbp_per_day": 0.316,
+    "net_pct_year": 19.2,
+    "rx_orders_per_day": 762,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C600|Q100|none|fee0.45": {
+    "blocked_prints": {
+     "ask": 34,
+     "bid": 613
+    },
+    "days_positive": "15/15",
+    "edge_bps": 4.16,
+    "fills_per_day": 11.2,
+    "gbp_per_day": 591,
+    "gross_gbp_per_day": 0.296,
+    "halves_net_gbp_per_day": [
+     0.237,
+     0.36
+    ],
+    "net_bps_per_fill": 5.0,
+    "net_gbp_per_day": 0.296,
+    "net_pct_year": 18.0,
+    "rx_orders_per_day": 762,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C600|Q50|batch2000|fee0.1": {
+    "blocked_prints": {
+     "ask": 6,
+     "bid": 578
+    },
+    "days_positive": "15/15",
+    "edge_bps": 5.19,
+    "fills_per_day": 14.5,
+    "gbp_per_day": 465,
+    "gross_gbp_per_day": 0.27,
+    "halves_net_gbp_per_day": [
+     0.189,
+     0.357
+    ],
+    "net_bps_per_fill": 5.8,
+    "net_gbp_per_day": 0.27,
+    "net_pct_year": 16.4,
+    "rx_orders_per_day": 765,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C600|Q50|batch2000|fee0.45": {
+    "blocked_prints": {
+     "ask": 6,
+     "bid": 578
+    },
+    "days_positive": "15/15",
+    "edge_bps": 4.84,
+    "fills_per_day": 14.5,
+    "gbp_per_day": 465,
+    "gross_gbp_per_day": 0.253,
+    "halves_net_gbp_per_day": [
+     0.174,
+     0.34
+    ],
+    "net_bps_per_fill": 5.45,
+    "net_gbp_per_day": 0.253,
+    "net_pct_year": 15.4,
+    "rx_orders_per_day": 765,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C600|Q50|batch500|fee0.1": {
+    "blocked_prints": {
+     "ask": 6,
+     "bid": 578
+    },
+    "days_positive": "15/15",
+    "edge_bps": 5.19,
+    "fills_per_day": 14.5,
+    "gbp_per_day": 465,
+    "gross_gbp_per_day": 0.27,
+    "halves_net_gbp_per_day": [
+     0.189,
+     0.357
+    ],
+    "net_bps_per_fill": 5.8,
+    "net_gbp_per_day": 0.27,
+    "net_pct_year": 16.4,
+    "rx_orders_per_day": 765,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C600|Q50|batch500|fee0.45": {
+    "blocked_prints": {
+     "ask": 6,
+     "bid": 578
+    },
+    "days_positive": "15/15",
+    "edge_bps": 4.84,
+    "fills_per_day": 14.5,
+    "gbp_per_day": 465,
+    "gross_gbp_per_day": 0.253,
+    "halves_net_gbp_per_day": [
+     0.174,
+     0.34
+    ],
+    "net_bps_per_fill": 5.45,
+    "net_gbp_per_day": 0.253,
+    "net_pct_year": 15.4,
+    "rx_orders_per_day": 765,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C600|Q50|none|fee0.1": {
+    "blocked_prints": {
+     "ask": 6,
+     "bid": 578
+    },
+    "days_positive": "15/15",
+    "edge_bps": 5.19,
+    "fills_per_day": 14.5,
+    "gbp_per_day": 465,
+    "gross_gbp_per_day": 0.27,
+    "halves_net_gbp_per_day": [
+     0.189,
+     0.357
+    ],
+    "net_bps_per_fill": 5.8,
+    "net_gbp_per_day": 0.27,
+    "net_pct_year": 16.4,
+    "rx_orders_per_day": 765,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C600|Q50|none|fee0.45": {
+    "blocked_prints": {
+     "ask": 6,
+     "bid": 578
+    },
+    "days_positive": "15/15",
+    "edge_bps": 4.84,
+    "fills_per_day": 14.5,
+    "gbp_per_day": 465,
+    "gross_gbp_per_day": 0.253,
+    "halves_net_gbp_per_day": [
+     0.174,
+     0.34
+    ],
+    "net_bps_per_fill": 5.45,
+    "net_gbp_per_day": 0.253,
+    "net_pct_year": 15.4,
+    "rx_orders_per_day": 765,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   }
+  }
+ },
+ "USDT-GBP": {
+  "cb_gaps_over_120s": 2,
+  "cb_longest_gap_s": 120,
+  "cb_reads": 53218,
+  "delay_queue_C5000_Q100_m2_fee0.45": {
+   "d0|first": {
+    "blocked_prints": {
+     "ask": 87,
+     "bid": 326
+    },
+    "days_positive": "7/19",
+    "edge_bps": 7.31,
+    "fills_per_day": 36.3,
+    "gbp_per_day": 2481,
+    "gross_gbp_per_day": 1.891,
+    "halves_net_gbp_per_day": [
+     -2.14,
+     1.195
+    ],
+    "net_bps_per_fill": -2.24,
+    "net_gbp_per_day": -0.555,
+    "net_pct_year": -4.0,
+    "rx_orders_per_day": 704,
+    "transfer_bps_per_fill": 9.86,
+    "transfer_gbp_per_day": 2.446,
+    "transfers": 13
+   },
+   "d0|half": {
+    "blocked_prints": {
+     "ask": 85,
+     "bid": 313
+    },
+    "days_positive": "7/19",
+    "edge_bps": 7.35,
+    "fills_per_day": 37.1,
+    "gbp_per_day": 2137,
+    "gross_gbp_per_day": 1.632,
+    "halves_net_gbp_per_day": [
+     -2.257,
+     0.779
+    ],
+    "net_bps_per_fill": -3.81,
+    "net_gbp_per_day": -0.813,
+    "net_pct_year": -5.9,
+    "rx_orders_per_day": 705,
+    "transfer_bps_per_fill": 11.44,
+    "transfer_gbp_per_day": 2.445,
+    "transfers": 13
+   },
+   "d0|through": {
+    "blocked_prints": {
+     "ask": 84,
+     "bid": 312
+    },
+    "days_positive": "7/19",
+    "edge_bps": 7.23,
+    "fills_per_day": 34.5,
+    "gbp_per_day": 2295,
+    "gross_gbp_per_day": 1.719,
+    "halves_net_gbp_per_day": [
+     -2.239,
+     0.942
+    ],
+    "net_bps_per_fill": -3.17,
+    "net_gbp_per_day": -0.727,
+    "net_pct_year": -5.3,
+    "rx_orders_per_day": 702,
+    "transfer_bps_per_fill": 10.65,
+    "transfer_gbp_per_day": 2.445,
+    "transfers": 13
+   },
+   "d15|first": {
+    "blocked_prints": {
+     "ask": 87,
+     "bid": 326
+    },
+    "days_positive": "7/19",
+    "edge_bps": 7.24,
+    "fills_per_day": 36.3,
+    "gbp_per_day": 2481,
+    "gross_gbp_per_day": 1.882,
+    "halves_net_gbp_per_day": [
+     -2.151,
+     1.186
+    ],
+    "net_bps_per_fill": -2.27,
+    "net_gbp_per_day": -0.564,
+    "net_pct_year": -4.1,
+    "rx_orders_per_day": 704,
+    "transfer_bps_per_fill": 9.86,
+    "transfer_gbp_per_day": 2.446,
+    "transfers": 13
+   },
+   "d15|half": {
+    "blocked_prints": {
+     "ask": 85,
+     "bid": 313
+    },
+    "days_positive": "7/19",
+    "edge_bps": 7.29,
+    "fills_per_day": 37.1,
+    "gbp_per_day": 2137,
+    "gross_gbp_per_day": 1.626,
+    "halves_net_gbp_per_day": [
+     -2.264,
+     0.776
+    ],
+    "net_bps_per_fill": -3.83,
+    "net_gbp_per_day": -0.819,
+    "net_pct_year": -6.0,
+    "rx_orders_per_day": 705,
+    "transfer_bps_per_fill": 11.44,
+    "transfer_gbp_per_day": 2.445,
+    "transfers": 13
+   },
+   "d15|through": {
+    "blocked_prints": {
+     "ask": 84,
+     "bid": 312
+    },
+    "days_positive": "7/19",
+    "edge_bps": 7.17,
+    "fills_per_day": 34.5,
+    "gbp_per_day": 2295,
+    "gross_gbp_per_day": 1.71,
+    "halves_net_gbp_per_day": [
+     -2.25,
+     0.936
+    ],
+    "net_bps_per_fill": -3.2,
+    "net_gbp_per_day": -0.735,
+    "net_pct_year": -5.4,
+    "rx_orders_per_day": 702,
+    "transfer_bps_per_fill": 10.65,
+    "transfer_gbp_per_day": 2.445,
+    "transfers": 13
+   },
+   "d30|first": {
+    "blocked_prints": {
+     "ask": 87,
+     "bid": 326
+    },
+    "days_positive": "7/19",
+    "edge_bps": 7.22,
+    "fills_per_day": 36.3,
+    "gbp_per_day": 2481,
+    "gross_gbp_per_day": 1.874,
+    "halves_net_gbp_per_day": [
+     -2.155,
+     1.175
+    ],
+    "net_bps_per_fill": -2.3,
+    "net_gbp_per_day": -0.572,
+    "net_pct_year": -4.2,
+    "rx_orders_per_day": 704,
+    "transfer_bps_per_fill": 9.86,
+    "transfer_gbp_per_day": 2.446,
+    "transfers": 13
+   },
+   "d30|half": {
+    "blocked_prints": {
+     "ask": 85,
+     "bid": 313
+    },
+    "days_positive": "7/19",
+    "edge_bps": 7.26,
+    "fills_per_day": 37.1,
+    "gbp_per_day": 2137,
+    "gross_gbp_per_day": 1.619,
+    "halves_net_gbp_per_day": [
+     -2.273,
+     0.77
+    ],
+    "net_bps_per_fill": -3.87,
+    "net_gbp_per_day": -0.826,
+    "net_pct_year": -6.0,
+    "rx_orders_per_day": 705,
+    "transfer_bps_per_fill": 11.44,
+    "transfer_gbp_per_day": 2.445,
+    "transfers": 13
+   },
+   "d30|through": {
+    "blocked_prints": {
+     "ask": 84,
+     "bid": 312
+    },
+    "days_positive": "7/19",
+    "edge_bps": 7.14,
+    "fills_per_day": 34.5,
+    "gbp_per_day": 2295,
+    "gross_gbp_per_day": 1.699,
+    "halves_net_gbp_per_day": [
+     -2.258,
+     0.92
+    ],
+    "net_bps_per_fill": -3.25,
+    "net_gbp_per_day": -0.747,
+    "net_pct_year": -5.5,
+    "rx_orders_per_day": 702,
+    "transfer_bps_per_fill": 10.65,
+    "transfer_gbp_per_day": 2.445,
+    "transfers": 13
+   },
+   "d60|first": {
+    "blocked_prints": {
+     "ask": 87,
+     "bid": 326
+    },
+    "days_positive": "7/19",
+    "edge_bps": 7.24,
+    "fills_per_day": 36.3,
+    "gbp_per_day": 2481,
+    "gross_gbp_per_day": 1.882,
+    "halves_net_gbp_per_day": [
+     -2.159,
+     1.196
+    ],
+    "net_bps_per_fill": -2.27,
+    "net_gbp_per_day": -0.564,
+    "net_pct_year": -4.1,
+    "rx_orders_per_day": 704,
+    "transfer_bps_per_fill": 9.86,
+    "transfer_gbp_per_day": 2.446,
+    "transfers": 13
+   },
+   "d60|half": {
+    "blocked_prints": {
+     "ask": 85,
+     "bid": 313
+    },
+    "days_positive": "7/19",
+    "edge_bps": 7.28,
+    "fills_per_day": 37.1,
+    "gbp_per_day": 2137,
+    "gross_gbp_per_day": 1.625,
+    "halves_net_gbp_per_day": [
+     -2.275,
+     0.784
+    ],
+    "net_bps_per_fill": -3.84,
+    "net_gbp_per_day": -0.82,
+    "net_pct_year": -6.0,
+    "rx_orders_per_day": 705,
+    "transfer_bps_per_fill": 11.44,
+    "transfer_gbp_per_day": 2.445,
+    "transfers": 13
+   },
+   "d60|through": {
+    "blocked_prints": {
+     "ask": 84,
+     "bid": 312
+    },
+    "days_positive": "7/19",
+    "edge_bps": 7.16,
+    "fills_per_day": 34.5,
+    "gbp_per_day": 2295,
+    "gross_gbp_per_day": 1.707,
+    "halves_net_gbp_per_day": [
+     -2.259,
+     0.939
+    ],
+    "net_bps_per_fill": -3.22,
+    "net_gbp_per_day": -0.738,
+    "net_pct_year": -5.4,
+    "rx_orders_per_day": 702,
+    "transfer_bps_per_fill": 10.65,
+    "transfer_gbp_per_day": 2.445,
+    "transfers": 13
+   },
+   "d90|first": {
+    "blocked_prints": {
+     "ask": 87,
+     "bid": 326
+    },
+    "days_positive": "7/19",
+    "edge_bps": 7.28,
+    "fills_per_day": 36.3,
+    "gbp_per_day": 2481,
+    "gross_gbp_per_day": 1.888,
+    "halves_net_gbp_per_day": [
+     -2.172,
+     1.222
+    ],
+    "net_bps_per_fill": -2.25,
+    "net_gbp_per_day": -0.558,
+    "net_pct_year": -4.1,
+    "rx_orders_per_day": 704,
+    "transfer_bps_per_fill": 9.86,
+    "transfer_gbp_per_day": 2.446,
+    "transfers": 13
+   },
+   "d90|half": {
+    "blocked_prints": {
+     "ask": 85,
+     "bid": 313
+    },
+    "days_positive": "7/19",
+    "edge_bps": 7.31,
+    "fills_per_day": 37.1,
+    "gbp_per_day": 2137,
+    "gross_gbp_per_day": 1.627,
+    "halves_net_gbp_per_day": [
+     -2.287,
+     0.804
+    ],
+    "net_bps_per_fill": -3.83,
+    "net_gbp_per_day": -0.818,
+    "net_pct_year": -6.0,
+    "rx_orders_per_day": 705,
+    "transfer_bps_per_fill": 11.44,
+    "transfer_gbp_per_day": 2.445,
+    "transfers": 13
+   },
+   "d90|through": {
+    "blocked_prints": {
+     "ask": 84,
+     "bid": 312
+    },
+    "days_positive": "7/19",
+    "edge_bps": 7.18,
+    "fills_per_day": 34.5,
+    "gbp_per_day": 2295,
+    "gross_gbp_per_day": 1.711,
+    "halves_net_gbp_per_day": [
+     -2.273,
+     0.963
+    ],
+    "net_bps_per_fill": -3.2,
+    "net_gbp_per_day": -0.734,
+    "net_pct_year": -5.4,
+    "rx_orders_per_day": 702,
+    "transfer_bps_per_fill": 10.65,
+    "transfer_gbp_per_day": 2.445,
+    "transfers": 13
+   }
+  },
+  "margin_C1200_Q100_none": {
+   "m0": {
+    "blocked_prints": {
+     "ask": 294,
+     "bid": 332
+    },
+    "days_positive": "17/18",
+    "edge_bps": 4.56,
+    "fills_per_day": 44.6,
+    "gbp_per_day": 3010,
+    "gross_gbp_per_day": 1.392,
+    "halves_net_gbp_per_day": [
+     0.748,
+     2.1
+    ],
+    "net_bps_per_fill": 4.63,
+    "net_gbp_per_day": 1.392,
+    "net_pct_year": 42.4,
+    "rx_orders_per_day": 677,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "m2": {
+    "blocked_prints": {
+     "ask": 154,
+     "bid": 478
+    },
+    "days_positive": "15/16",
+    "edge_bps": 6.49,
+    "fills_per_day": 24.8,
+    "gbp_per_day": 1613,
+    "gross_gbp_per_day": 1.078,
+    "halves_net_gbp_per_day": [
+     0.475,
+     1.74
+    ],
+    "net_bps_per_fill": 6.68,
+    "net_gbp_per_day": 1.078,
+    "net_pct_year": 32.8,
+    "rx_orders_per_day": 692,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "m4": {
+    "blocked_prints": {
+     "ask": 135,
+     "bid": 489
+    },
+    "days_positive": "13/13",
+    "edge_bps": 7.77,
+    "fills_per_day": 16.3,
+    "gbp_per_day": 1032,
+    "gross_gbp_per_day": 0.83,
+    "halves_net_gbp_per_day": [
+     0.196,
+     1.527
+    ],
+    "net_bps_per_fill": 8.04,
+    "net_gbp_per_day": 0.83,
+    "net_pct_year": 25.2,
+    "rx_orders_per_day": 711,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   }
+  },
+  "sizes_d30_first_m2": {
+   "C1200|Q100|batch2000|fee0.1": {
+    "blocked_prints": {
+     "ask": 154,
+     "bid": 478
+    },
+    "days_positive": "15/16",
+    "edge_bps": 6.84,
+    "fills_per_day": 24.8,
+    "gbp_per_day": 1613,
+    "gross_gbp_per_day": 1.134,
+    "halves_net_gbp_per_day": [
+     0.508,
+     1.822
+    ],
+    "net_bps_per_fill": 7.03,
+    "net_gbp_per_day": 1.134,
+    "net_pct_year": 34.5,
+    "rx_orders_per_day": 692,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C1200|Q100|batch2000|fee0.45": {
+    "blocked_prints": {
+     "ask": 154,
+     "bid": 478
+    },
+    "days_positive": "15/16",
+    "edge_bps": 6.49,
+    "fills_per_day": 24.8,
+    "gbp_per_day": 1613,
+    "gross_gbp_per_day": 1.078,
+    "halves_net_gbp_per_day": [
+     0.475,
+     1.74
+    ],
+    "net_bps_per_fill": 6.68,
+    "net_gbp_per_day": 1.078,
+    "net_pct_year": 32.8,
+    "rx_orders_per_day": 692,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C1200|Q100|batch500|fee0.1": {
+    "blocked_prints": {
+     "ask": 154,
+     "bid": 478
+    },
+    "days_positive": "15/16",
+    "edge_bps": 6.84,
+    "fills_per_day": 24.8,
+    "gbp_per_day": 1613,
+    "gross_gbp_per_day": 1.134,
+    "halves_net_gbp_per_day": [
+     0.508,
+     1.822
+    ],
+    "net_bps_per_fill": 7.03,
+    "net_gbp_per_day": 1.134,
+    "net_pct_year": 34.5,
+    "rx_orders_per_day": 692,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C1200|Q100|batch500|fee0.45": {
+    "blocked_prints": {
+     "ask": 154,
+     "bid": 478
+    },
+    "days_positive": "15/16",
+    "edge_bps": 6.49,
+    "fills_per_day": 24.8,
+    "gbp_per_day": 1613,
+    "gross_gbp_per_day": 1.078,
+    "halves_net_gbp_per_day": [
+     0.475,
+     1.74
+    ],
+    "net_bps_per_fill": 6.68,
+    "net_gbp_per_day": 1.078,
+    "net_pct_year": 32.8,
+    "rx_orders_per_day": 692,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C1200|Q100|none|fee0.1": {
+    "blocked_prints": {
+     "ask": 154,
+     "bid": 478
+    },
+    "days_positive": "15/16",
+    "edge_bps": 6.84,
+    "fills_per_day": 24.8,
+    "gbp_per_day": 1613,
+    "gross_gbp_per_day": 1.134,
+    "halves_net_gbp_per_day": [
+     0.508,
+     1.822
+    ],
+    "net_bps_per_fill": 7.03,
+    "net_gbp_per_day": 1.134,
+    "net_pct_year": 34.5,
+    "rx_orders_per_day": 692,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C1200|Q100|none|fee0.45": {
+    "blocked_prints": {
+     "ask": 154,
+     "bid": 478
+    },
+    "days_positive": "15/16",
+    "edge_bps": 6.49,
+    "fills_per_day": 24.8,
+    "gbp_per_day": 1613,
+    "gross_gbp_per_day": 1.078,
+    "halves_net_gbp_per_day": [
+     0.475,
+     1.74
+    ],
+    "net_bps_per_fill": 6.68,
+    "net_gbp_per_day": 1.078,
+    "net_pct_year": 32.8,
+    "rx_orders_per_day": 692,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C20000|Q500|batch2000|fee0.1": {
+    "blocked_prints": {
+     "ask": 70,
+     "bid": 329
+    },
+    "days_positive": "15/19",
+    "edge_bps": 7.56,
+    "fills_per_day": 37.1,
+    "gbp_per_day": 7729,
+    "gross_gbp_per_day": 5.847,
+    "halves_net_gbp_per_day": [
+     1.942,
+     6.709
+    ],
+    "net_bps_per_fill": 5.45,
+    "net_gbp_per_day": 4.214,
+    "net_pct_year": 7.7,
+    "rx_orders_per_day": 705,
+    "transfer_bps_per_fill": 2.11,
+    "transfer_gbp_per_day": 1.633,
+    "transfers": 9
+   },
+   "C20000|Q500|batch2000|fee0.45": {
+    "blocked_prints": {
+     "ask": 70,
+     "bid": 329
+    },
+    "days_positive": "15/19",
+    "edge_bps": 7.21,
+    "fills_per_day": 37.1,
+    "gbp_per_day": 7729,
+    "gross_gbp_per_day": 5.576,
+    "halves_net_gbp_per_day": [
+     1.747,
+     6.356
+    ],
+    "net_bps_per_fill": 5.1,
+    "net_gbp_per_day": 3.943,
+    "net_pct_year": 7.2,
+    "rx_orders_per_day": 705,
+    "transfer_bps_per_fill": 2.11,
+    "transfer_gbp_per_day": 1.633,
+    "transfers": 9
+   },
+   "C20000|Q500|batch500|fee0.1": {
+    "blocked_prints": {
+     "ask": 65,
+     "bid": 308
+    },
+    "days_positive": "12/19",
+    "edge_bps": 7.63,
+    "fills_per_day": 38.5,
+    "gbp_per_day": 8027,
+    "gross_gbp_per_day": 6.172,
+    "halves_net_gbp_per_day": [
+     0.502,
+     5.773
+    ],
+    "net_bps_per_fill": 3.75,
+    "net_gbp_per_day": 3.012,
+    "net_pct_year": 5.5,
+    "rx_orders_per_day": 706,
+    "transfer_bps_per_fill": 3.94,
+    "transfer_gbp_per_day": 3.16,
+    "transfers": 17
+   },
+   "C20000|Q500|batch500|fee0.45": {
+    "blocked_prints": {
+     "ask": 65,
+     "bid": 308
+    },
+    "days_positive": "12/19",
+    "edge_bps": 7.28,
+    "fills_per_day": 38.5,
+    "gbp_per_day": 8027,
+    "gross_gbp_per_day": 5.891,
+    "halves_net_gbp_per_day": [
+     0.3,
+     5.406
+    ],
+    "net_bps_per_fill": 3.4,
+    "net_gbp_per_day": 2.731,
+    "net_pct_year": 5.0,
+    "rx_orders_per_day": 706,
+    "transfer_bps_per_fill": 3.94,
+    "transfer_gbp_per_day": 3.16,
+    "transfers": 17
+   },
+   "C20000|Q500|none|fee0.1": {
+    "blocked_prints": {
+     "ask": 79,
+     "bid": 428
+    },
+    "days_positive": "15/16",
+    "edge_bps": 7.51,
+    "fills_per_day": 31.4,
+    "gbp_per_day": 6542,
+    "gross_gbp_per_day": 4.826,
+    "halves_net_gbp_per_day": [
+     1.966,
+     7.969
+    ],
+    "net_bps_per_fill": 7.38,
+    "net_gbp_per_day": 4.826,
+    "net_pct_year": 8.8,
+    "rx_orders_per_day": 699,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C20000|Q500|none|fee0.45": {
+    "blocked_prints": {
+     "ask": 79,
+     "bid": 428
+    },
+    "days_positive": "15/16",
+    "edge_bps": 7.16,
+    "fills_per_day": 31.4,
+    "gbp_per_day": 6542,
+    "gross_gbp_per_day": 4.597,
+    "halves_net_gbp_per_day": [
+     1.83,
+     7.638
+    ],
+    "net_bps_per_fill": 7.03,
+    "net_gbp_per_day": 4.597,
+    "net_pct_year": 8.4,
+    "rx_orders_per_day": 699,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C2400|Q100|batch2000|fee0.1": {
+    "blocked_prints": {
+     "ask": 111,
+     "bid": 433
+    },
+    "days_positive": "15/16",
+    "edge_bps": 6.92,
+    "fills_per_day": 29.4,
+    "gbp_per_day": 1962,
+    "gross_gbp_per_day": 1.39,
+    "halves_net_gbp_per_day": [
+     0.632,
+     2.223
+    ],
+    "net_bps_per_fill": 7.09,
+    "net_gbp_per_day": 1.39,
+    "net_pct_year": 21.1,
+    "rx_orders_per_day": 697,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C2400|Q100|batch2000|fee0.45": {
+    "blocked_prints": {
+     "ask": 111,
+     "bid": 433
+    },
+    "days_positive": "15/16",
+    "edge_bps": 6.57,
+    "fills_per_day": 29.4,
+    "gbp_per_day": 1962,
+    "gross_gbp_per_day": 1.321,
+    "halves_net_gbp_per_day": [
+     0.591,
+     2.124
+    ],
+    "net_bps_per_fill": 6.74,
+    "net_gbp_per_day": 1.321,
+    "net_pct_year": 20.1,
+    "rx_orders_per_day": 697,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C2400|Q100|batch500|fee0.1": {
+    "blocked_prints": {
+     "ask": 121,
+     "bid": 404
+    },
+    "days_positive": "11/19",
+    "edge_bps": 7.29,
+    "fills_per_day": 30.4,
+    "gbp_per_day": 2043,
+    "gross_gbp_per_day": 1.541,
+    "halves_net_gbp_per_day": [
+     -1.262,
+     1.4
+    ],
+    "net_bps_per_fill": 0.02,
+    "net_gbp_per_day": 0.004,
+    "net_pct_year": 0.1,
+    "rx_orders_per_day": 698,
+    "transfer_bps_per_fill": 7.52,
+    "transfer_gbp_per_day": 1.537,
+    "transfers": 8
+   },
+   "C2400|Q100|batch500|fee0.45": {
+    "blocked_prints": {
+     "ask": 121,
+     "bid": 404
+    },
+    "days_positive": "11/19",
+    "edge_bps": 6.94,
+    "fills_per_day": 30.4,
+    "gbp_per_day": 2043,
+    "gross_gbp_per_day": 1.469,
+    "halves_net_gbp_per_day": [
+     -1.306,
+     1.297
+    ],
+    "net_bps_per_fill": -0.33,
+    "net_gbp_per_day": -0.067,
+    "net_pct_year": -1.0,
+    "rx_orders_per_day": 698,
+    "transfer_bps_per_fill": 7.52,
+    "transfer_gbp_per_day": 1.537,
+    "transfers": 8
+   },
+   "C2400|Q100|none|fee0.1": {
+    "blocked_prints": {
+     "ask": 111,
+     "bid": 433
+    },
+    "days_positive": "15/16",
+    "edge_bps": 6.92,
+    "fills_per_day": 29.4,
+    "gbp_per_day": 1962,
+    "gross_gbp_per_day": 1.39,
+    "halves_net_gbp_per_day": [
+     0.632,
+     2.223
+    ],
+    "net_bps_per_fill": 7.09,
+    "net_gbp_per_day": 1.39,
+    "net_pct_year": 21.1,
+    "rx_orders_per_day": 697,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C2400|Q100|none|fee0.45": {
+    "blocked_prints": {
+     "ask": 111,
+     "bid": 433
+    },
+    "days_positive": "15/16",
+    "edge_bps": 6.57,
+    "fills_per_day": 29.4,
+    "gbp_per_day": 1962,
+    "gross_gbp_per_day": 1.321,
+    "halves_net_gbp_per_day": [
+     0.591,
+     2.124
+    ],
+    "net_bps_per_fill": 6.74,
+    "net_gbp_per_day": 1.321,
+    "net_pct_year": 20.1,
+    "rx_orders_per_day": 697,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C5000|Q100|batch2000|fee0.1": {
+    "blocked_prints": {
+     "ask": 89,
+     "bid": 407
+    },
+    "days_positive": "15/16",
+    "edge_bps": 7.35,
+    "fills_per_day": 32.0,
+    "gbp_per_day": 2143,
+    "gross_gbp_per_day": 1.622,
+    "halves_net_gbp_per_day": [
+     0.641,
+     2.699
+    ],
+    "net_bps_per_fill": 7.57,
+    "net_gbp_per_day": 1.622,
+    "net_pct_year": 11.8,
+    "rx_orders_per_day": 699,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C5000|Q100|batch2000|fee0.45": {
+    "blocked_prints": {
+     "ask": 89,
+     "bid": 407
+    },
+    "days_positive": "15/16",
+    "edge_bps": 7.0,
+    "fills_per_day": 32.0,
+    "gbp_per_day": 2143,
+    "gross_gbp_per_day": 1.547,
+    "halves_net_gbp_per_day": [
+     0.598,
+     2.59
+    ],
+    "net_bps_per_fill": 7.22,
+    "net_gbp_per_day": 1.547,
+    "net_pct_year": 11.3,
+    "rx_orders_per_day": 699,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C5000|Q100|batch500|fee0.1": {
+    "blocked_prints": {
+     "ask": 87,
+     "bid": 326
+    },
+    "days_positive": "7/19",
+    "edge_bps": 7.57,
+    "fills_per_day": 36.3,
+    "gbp_per_day": 2481,
+    "gross_gbp_per_day": 1.961,
+    "halves_net_gbp_per_day": [
+     -2.095,
+     1.291
+    ],
+    "net_bps_per_fill": -1.95,
+    "net_gbp_per_day": -0.485,
+    "net_pct_year": -3.5,
+    "rx_orders_per_day": 704,
+    "transfer_bps_per_fill": 9.86,
+    "transfer_gbp_per_day": 2.446,
+    "transfers": 13
+   },
+   "C5000|Q100|batch500|fee0.45": {
+    "blocked_prints": {
+     "ask": 87,
+     "bid": 326
+    },
+    "days_positive": "7/19",
+    "edge_bps": 7.22,
+    "fills_per_day": 36.3,
+    "gbp_per_day": 2481,
+    "gross_gbp_per_day": 1.874,
+    "halves_net_gbp_per_day": [
+     -2.155,
+     1.175
+    ],
+    "net_bps_per_fill": -2.3,
+    "net_gbp_per_day": -0.572,
+    "net_pct_year": -4.2,
+    "rx_orders_per_day": 704,
+    "transfer_bps_per_fill": 9.86,
+    "transfer_gbp_per_day": 2.446,
+    "transfers": 13
+   },
+   "C5000|Q100|none|fee0.1": {
+    "blocked_prints": {
+     "ask": 89,
+     "bid": 407
+    },
+    "days_positive": "15/16",
+    "edge_bps": 7.35,
+    "fills_per_day": 32.0,
+    "gbp_per_day": 2143,
+    "gross_gbp_per_day": 1.622,
+    "halves_net_gbp_per_day": [
+     0.641,
+     2.699
+    ],
+    "net_bps_per_fill": 7.57,
+    "net_gbp_per_day": 1.622,
+    "net_pct_year": 11.8,
+    "rx_orders_per_day": 699,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C5000|Q100|none|fee0.45": {
+    "blocked_prints": {
+     "ask": 89,
+     "bid": 407
+    },
+    "days_positive": "15/16",
+    "edge_bps": 7.0,
+    "fills_per_day": 32.0,
+    "gbp_per_day": 2143,
+    "gross_gbp_per_day": 1.547,
+    "halves_net_gbp_per_day": [
+     0.598,
+     2.59
+    ],
+    "net_bps_per_fill": 7.22,
+    "net_gbp_per_day": 1.547,
+    "net_pct_year": 11.3,
+    "rx_orders_per_day": 699,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C5000|Q500|batch2000|fee0.1": {
+    "blocked_prints": {
+     "ask": 138,
+     "bid": 492
+    },
+    "days_positive": "15/16",
+    "edge_bps": 6.86,
+    "fills_per_day": 24.9,
+    "gbp_per_day": 5177,
+    "gross_gbp_per_day": 3.433,
+    "halves_net_gbp_per_day": [
+     1.669,
+     5.371
+    ],
+    "net_bps_per_fill": 6.63,
+    "net_gbp_per_day": 3.433,
+    "net_pct_year": 25.1,
+    "rx_orders_per_day": 692,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C5000|Q500|batch2000|fee0.45": {
+    "blocked_prints": {
+     "ask": 138,
+     "bid": 492
+    },
+    "days_positive": "15/16",
+    "edge_bps": 6.51,
+    "fills_per_day": 24.9,
+    "gbp_per_day": 5177,
+    "gross_gbp_per_day": 3.252,
+    "halves_net_gbp_per_day": [
+     1.556,
+     5.115
+    ],
+    "net_bps_per_fill": 6.28,
+    "net_gbp_per_day": 3.252,
+    "net_pct_year": 23.7,
+    "rx_orders_per_day": 692,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C5000|Q500|batch500|fee0.1": {
+    "blocked_prints": {
+     "ask": 140,
+     "bid": 479
+    },
+    "days_positive": "14/19",
+    "edge_bps": 6.86,
+    "fills_per_day": 25.4,
+    "gbp_per_day": 5336,
+    "gross_gbp_per_day": 3.5,
+    "halves_net_gbp_per_day": [
+     -0.192,
+     4.331
+    ],
+    "net_bps_per_fill": 3.68,
+    "net_gbp_per_day": 1.961,
+    "net_pct_year": 14.3,
+    "rx_orders_per_day": 693,
+    "transfer_bps_per_fill": 2.88,
+    "transfer_gbp_per_day": 1.539,
+    "transfers": 8
+   },
+   "C5000|Q500|batch500|fee0.45": {
+    "blocked_prints": {
+     "ask": 140,
+     "bid": 479
+    },
+    "days_positive": "14/19",
+    "edge_bps": 6.51,
+    "fills_per_day": 25.4,
+    "gbp_per_day": 5336,
+    "gross_gbp_per_day": 3.313,
+    "halves_net_gbp_per_day": [
+     -0.308,
+     4.066
+    ],
+    "net_bps_per_fill": 3.33,
+    "net_gbp_per_day": 1.774,
+    "net_pct_year": 13.0,
+    "rx_orders_per_day": 693,
+    "transfer_bps_per_fill": 2.88,
+    "transfer_gbp_per_day": 1.539,
+    "transfers": 8
+   },
+   "C5000|Q500|none|fee0.1": {
+    "blocked_prints": {
+     "ask": 138,
+     "bid": 492
+    },
+    "days_positive": "15/16",
+    "edge_bps": 6.86,
+    "fills_per_day": 24.9,
+    "gbp_per_day": 5177,
+    "gross_gbp_per_day": 3.433,
+    "halves_net_gbp_per_day": [
+     1.669,
+     5.371
+    ],
+    "net_bps_per_fill": 6.63,
+    "net_gbp_per_day": 3.433,
+    "net_pct_year": 25.1,
+    "rx_orders_per_day": 692,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C5000|Q500|none|fee0.45": {
+    "blocked_prints": {
+     "ask": 138,
+     "bid": 492
+    },
+    "days_positive": "15/16",
+    "edge_bps": 6.51,
+    "fills_per_day": 24.9,
+    "gbp_per_day": 5177,
+    "gross_gbp_per_day": 3.252,
+    "halves_net_gbp_per_day": [
+     1.556,
+     5.115
+    ],
+    "net_bps_per_fill": 6.28,
+    "net_gbp_per_day": 3.252,
+    "net_pct_year": 23.7,
+    "rx_orders_per_day": 692,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C600|Q100|batch2000|fee0.1": {
+    "blocked_prints": {
+     "ask": 223,
+     "bid": 557
+    },
+    "days_positive": "15/16",
+    "edge_bps": 6.4,
+    "fills_per_day": 16.9,
+    "gbp_per_day": 1145,
+    "gross_gbp_per_day": 0.757,
+    "halves_net_gbp_per_day": [
+     0.352,
+     1.201
+    ],
+    "net_bps_per_fill": 6.61,
+    "net_gbp_per_day": 0.757,
+    "net_pct_year": 46.0,
+    "rx_orders_per_day": 684,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C600|Q100|batch2000|fee0.45": {
+    "blocked_prints": {
+     "ask": 223,
+     "bid": 557
+    },
+    "days_positive": "15/16",
+    "edge_bps": 6.05,
+    "fills_per_day": 16.9,
+    "gbp_per_day": 1145,
+    "gross_gbp_per_day": 0.717,
+    "halves_net_gbp_per_day": [
+     0.328,
+     1.143
+    ],
+    "net_bps_per_fill": 6.26,
+    "net_gbp_per_day": 0.717,
+    "net_pct_year": 43.6,
+    "rx_orders_per_day": 684,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C600|Q100|batch500|fee0.1": {
+    "blocked_prints": {
+     "ask": 223,
+     "bid": 557
+    },
+    "days_positive": "15/16",
+    "edge_bps": 6.4,
+    "fills_per_day": 16.9,
+    "gbp_per_day": 1145,
+    "gross_gbp_per_day": 0.757,
+    "halves_net_gbp_per_day": [
+     0.352,
+     1.201
+    ],
+    "net_bps_per_fill": 6.61,
+    "net_gbp_per_day": 0.757,
+    "net_pct_year": 46.0,
+    "rx_orders_per_day": 684,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C600|Q100|batch500|fee0.45": {
+    "blocked_prints": {
+     "ask": 223,
+     "bid": 557
+    },
+    "days_positive": "15/16",
+    "edge_bps": 6.05,
+    "fills_per_day": 16.9,
+    "gbp_per_day": 1145,
+    "gross_gbp_per_day": 0.717,
+    "halves_net_gbp_per_day": [
+     0.328,
+     1.143
+    ],
+    "net_bps_per_fill": 6.26,
+    "net_gbp_per_day": 0.717,
+    "net_pct_year": 43.6,
+    "rx_orders_per_day": 684,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C600|Q100|none|fee0.1": {
+    "blocked_prints": {
+     "ask": 223,
+     "bid": 557
+    },
+    "days_positive": "15/16",
+    "edge_bps": 6.4,
+    "fills_per_day": 16.9,
+    "gbp_per_day": 1145,
+    "gross_gbp_per_day": 0.757,
+    "halves_net_gbp_per_day": [
+     0.352,
+     1.201
+    ],
+    "net_bps_per_fill": 6.61,
+    "net_gbp_per_day": 0.757,
+    "net_pct_year": 46.0,
+    "rx_orders_per_day": 684,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C600|Q100|none|fee0.45": {
+    "blocked_prints": {
+     "ask": 223,
+     "bid": 557
+    },
+    "days_positive": "15/16",
+    "edge_bps": 6.05,
+    "fills_per_day": 16.9,
+    "gbp_per_day": 1145,
+    "gross_gbp_per_day": 0.717,
+    "halves_net_gbp_per_day": [
+     0.328,
+     1.143
+    ],
+    "net_bps_per_fill": 6.26,
+    "net_gbp_per_day": 0.717,
+    "net_pct_year": 43.6,
+    "rx_orders_per_day": 684,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C600|Q50|batch2000|fee0.1": {
+    "blocked_prints": {
+     "ask": 162,
+     "bid": 488
+    },
+    "days_positive": "15/16",
+    "edge_bps": 6.77,
+    "fills_per_day": 23.8,
+    "gbp_per_day": 887,
+    "gross_gbp_per_day": 0.611,
+    "halves_net_gbp_per_day": [
+     0.27,
+     0.986
+    ],
+    "net_bps_per_fill": 6.89,
+    "net_gbp_per_day": 0.611,
+    "net_pct_year": 37.2,
+    "rx_orders_per_day": 691,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C600|Q50|batch2000|fee0.45": {
+    "blocked_prints": {
+     "ask": 162,
+     "bid": 488
+    },
+    "days_positive": "15/16",
+    "edge_bps": 6.42,
+    "fills_per_day": 23.8,
+    "gbp_per_day": 887,
+    "gross_gbp_per_day": 0.58,
+    "halves_net_gbp_per_day": [
+     0.252,
+     0.941
+    ],
+    "net_bps_per_fill": 6.54,
+    "net_gbp_per_day": 0.58,
+    "net_pct_year": 35.3,
+    "rx_orders_per_day": 691,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C600|Q50|batch500|fee0.1": {
+    "blocked_prints": {
+     "ask": 162,
+     "bid": 488
+    },
+    "days_positive": "15/16",
+    "edge_bps": 6.77,
+    "fills_per_day": 23.8,
+    "gbp_per_day": 887,
+    "gross_gbp_per_day": 0.611,
+    "halves_net_gbp_per_day": [
+     0.27,
+     0.986
+    ],
+    "net_bps_per_fill": 6.89,
+    "net_gbp_per_day": 0.611,
+    "net_pct_year": 37.2,
+    "rx_orders_per_day": 691,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C600|Q50|batch500|fee0.45": {
+    "blocked_prints": {
+     "ask": 162,
+     "bid": 488
+    },
+    "days_positive": "15/16",
+    "edge_bps": 6.42,
+    "fills_per_day": 23.8,
+    "gbp_per_day": 887,
+    "gross_gbp_per_day": 0.58,
+    "halves_net_gbp_per_day": [
+     0.252,
+     0.941
+    ],
+    "net_bps_per_fill": 6.54,
+    "net_gbp_per_day": 0.58,
+    "net_pct_year": 35.3,
+    "rx_orders_per_day": 691,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C600|Q50|none|fee0.1": {
+    "blocked_prints": {
+     "ask": 162,
+     "bid": 488
+    },
+    "days_positive": "15/16",
+    "edge_bps": 6.77,
+    "fills_per_day": 23.8,
+    "gbp_per_day": 887,
+    "gross_gbp_per_day": 0.611,
+    "halves_net_gbp_per_day": [
+     0.27,
+     0.986
+    ],
+    "net_bps_per_fill": 6.89,
+    "net_gbp_per_day": 0.611,
+    "net_pct_year": 37.2,
+    "rx_orders_per_day": 691,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   },
+   "C600|Q50|none|fee0.45": {
+    "blocked_prints": {
+     "ask": 162,
+     "bid": 488
+    },
+    "days_positive": "15/16",
+    "edge_bps": 6.42,
+    "fills_per_day": 23.8,
+    "gbp_per_day": 887,
+    "gross_gbp_per_day": 0.58,
+    "halves_net_gbp_per_day": [
+     0.252,
+     0.941
+    ],
+    "net_bps_per_fill": 6.54,
+    "net_gbp_per_day": 0.58,
+    "net_pct_year": 35.3,
+    "rx_orders_per_day": 691,
+    "transfer_bps_per_fill": 0.0,
+    "transfer_gbp_per_day": 0.0,
+    "transfers": 0
+   }
+  }
+ },
+ "days": 18.9,
+ "window": "2026-10-10 02:00 -> 2026-10-29 00:00 UTC"
+}
