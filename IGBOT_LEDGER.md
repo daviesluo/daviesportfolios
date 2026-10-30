@@ -48,7 +48,7 @@ other account of Davies'.
 
 ## Status (Grok overwrites)
 
-- As of: 2026-10-30 06:50 UTC (full scan, ran 06:53–06:56).
+- As of: 2026-10-30 10:50 UTC (full scan, ran 10:57–11:01).
 - Mode demo, armed. Equity £1,000 · total P&L £0 · day £0 · open risk £0 · positions 0 · working orders 0 · orders today 0 / 40.
 - Stops: day −£20 not hit · total −£100 not hit. Gates: foreign null, no blackout, not weekend (opens shut Fri 20:00 UTC).
 - Watch list: BoE 2026-11-05 12:00 · NFP 2026-11-06 13:30 · CPI 2026-11-10 13:30.
@@ -85,6 +85,7 @@ other account of Davies'.
 
 ## Log (newest first, max 20 lines)
 
+- (Grok) 2026-10-30 10:50 UTC full scan: flat, two N shadows (NDX buy, AUD/USD sell) in the tech selloff; FXW-AUD healthy.
 - (Grok) 2026-10-30 06:50 UTC full scan: flat, two N shadows (DAX sell, FTSE buy) after the Amazon/Intel tech selloff; FXW-AUD healthy.
 - (Grok) 2026-10-30 03:45 UTC: wake schedule fixed (exact minutes, slot-based flat checks with catch-up, December event wakes added, one server helper).
 - (Grok) 2026-10-30 02:50 UTC full scan: flat, two N shadows (NDX buy, SPX sell) after Amazon/Intel misses; C-002 answered; FXW-AUD healthy.
