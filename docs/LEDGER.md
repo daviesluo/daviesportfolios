@@ -802,7 +802,15 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 01:24 UTC section (archived
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
-and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth), and the 2026-10-29 19:50, 2026-10-29 19:55, 2026-10-29 20:00, 2026-10-29 20:15 ones (twenty-sixth), and the 2026-10-29 20:41, 2026-10-29 21:07 ones (twenty-seventh), and the 2026-10-29 21:30, 2026-10-29 22:10 ones (twenty-eighth).
+and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth), and the 2026-10-29 19:50, 2026-10-29 19:55, 2026-10-29 20:00, 2026-10-29 20:15 ones (twenty-sixth), and the 2026-10-29 20:41, 2026-10-29 21:07 ones (twenty-seventh), and the 2026-10-29 21:30, 2026-10-29 22:10 ones (twenty-eighth), and the 2026-10-29 22:12, 2026-10-29 22:27 ones (twenty-ninth).
+
+### [2026-10-30 02:17 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Coinbase LIVE now decides for itself** (main session; Davies, 10-30 ~02:15: the switch is mine to decide, "这个你来做决定不用问我").
+  Shadow 01:20-02:15 (47 turns, `cb_live_shadow`): no rung where one side quoted and the other did not, no crossing, no
+  `shadow_error`; self's fair 0.8 min fresher and 0.6 bps (max 2.2) from the paper's; the 0.2/0.3 % asks 1-2 ticks apart from
+  each side's own re-price anchor (same fair, same price). `update cb_live_config set decide = 'self'` at 02:16:16; the 02:17 turn
+  re-placed those two asks at self's prices, no error. Back: `set decide = 'paper'`. A (RX↔Coinbase hedge) goes to paper on
+  Davies' word ("做成实时纸面测试加到testing里"); a5a02 builds it.
 
 ### [2026-10-30 02:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Compounding ON for the three live executors** (main session; Davies, 10-30 ~02:10: "打开"). `0183`/`0146`'s statements run
@@ -938,19 +946,3 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   (−2.1, P 0.83). `QUOTE_RXU_INSTANCE` (`revx` key, `agent_quote_rxu_*`, `0180`), run beside LIVE in the quotes call; its dead-man in
   `monitor`; LIVE row + page (`quotesRxu`); twin `rxu120` under the USDT/GBP LIVE twin from 10-30 00:00. Every executor saves
   `venueBalances` (available/hold) for its page (Davies 22:20). Go/undo: `reviews/2026-10-29-rx-usdc-live-design.md` §5.
-
-### [2026-10-29 22:27 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **LIVE pages' INVENTORY from the venue's own balances** (sub-agent; commit, not pushed; Davies, 22:20: "都加上吧，revolut也一样").
-  `cb_live.ts` saves each turn's GBP/USDC/EUR reading as `cb_live_state.state.balances` (`venueBalances`; a failed read keeps the
-  last), `readCbLive` passes it on; the shape `balances: {at, ccy: {CODE: {available, hold}}} | null` is the one the Revolut X
-  reader passes (`quotes_live.ts`, another agent's). `quotesLiveInventory`: total = available + hold, "in orders", the book's
-  count beside it, red beyond £0.05 (`INVENTORY_MISMATCH_GBP`), "balance as of HH:MM UTC"; no balances, the book's count as
-  before. The scoreboard stays on the book. Sweep: the RX fixture JSON untouched, its balances merged in when served.
-
-### [2026-10-29 22:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Stablecoin quotes USDC/GBP: its LIVE row opens a page** (sub-agent; commit, not pushed; Davies, 10-29: "网页中live的coinbase
-  策略子页面打不开，点了没反应": no page existed). PR5 LIVE's `QuotesLiveDetail` with `cbLive` (LIVE, Coinbase, pounds); `readCbLive`
-  now sends `detail` in `quotesLiveDetail`'s shape (`cbLiveDetail`, cb_live.ts tail only, executor untouched): BOOKS, INVENTORY (its
-  pounds and USDC from its own fills, not a balance read: the executor keeps no balances), DAYS, ROUND TRIPS, EXIT/ENTRY ORDERS
-  without refusals, 403s, conversions or empty cancels. UNREALIZED now includes the top-up USDC's mark and DEPLOYED is coins at
-  fair plus resting buys, as PR5's. Fixture `src/e2e/cb_live_fixture.json`, sweep `cb-live/*` at both widths.

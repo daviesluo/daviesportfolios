@@ -47691,3 +47691,21 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   `QUOTE_LIVE_USDT_ONLY_FROM` / `QUOTE_LIVE_REBOOK_SINCE` 22:30 (rebook to 11-01 22:30); `0179` moves every 0178 instant (seven
   weights, `n600nudge`'s start and rules), guarded on 00:00; a past `from` takes effect at a twin's next turn. Variant-5's window
   10-29 22:30 → 11-26 22:30 (`reviews/2026-10-29-usdt-only-2230-deviation.md`; 0178 and the frozen prereg untouched).
+
+## LEDGER.md, archived 2026-10-30 (twenty-ninth) — the 2026-10-29 22:12, 2026-10-29 22:27 UTC history sections, oldest first
+
+### [2026-10-29 22:12 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Stablecoin quotes USDC/GBP: its LIVE row opens a page** (sub-agent; commit, not pushed; Davies, 10-29: "网页中live的coinbase
+  策略子页面打不开，点了没反应": no page existed). PR5 LIVE's `QuotesLiveDetail` with `cbLive` (LIVE, Coinbase, pounds); `readCbLive`
+  now sends `detail` in `quotesLiveDetail`'s shape (`cbLiveDetail`, cb_live.ts tail only, executor untouched): BOOKS, INVENTORY (its
+  pounds and USDC from its own fills, not a balance read: the executor keeps no balances), DAYS, ROUND TRIPS, EXIT/ENTRY ORDERS
+  without refusals, 403s, conversions or empty cancels. UNREALIZED now includes the top-up USDC's mark and DEPLOYED is coins at
+  fair plus resting buys, as PR5's. Fixture `src/e2e/cb_live_fixture.json`, sweep `cb-live/*` at both widths.
+
+### [2026-10-29 22:27 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LIVE pages' INVENTORY from the venue's own balances** (sub-agent; commit, not pushed; Davies, 22:20: "都加上吧，revolut也一样").
+  `cb_live.ts` saves each turn's GBP/USDC/EUR reading as `cb_live_state.state.balances` (`venueBalances`; a failed read keeps the
+  last), `readCbLive` passes it on; the shape `balances: {at, ccy: {CODE: {available, hold}}} | null` is the one the Revolut X
+  reader passes (`quotes_live.ts`, another agent's). `quotesLiveInventory`: total = available + hold, "in orders", the book's
+  count beside it, red beyond £0.05 (`INVENTORY_MISMATCH_GBP`), "balance as of HH:MM UTC"; no balances, the book's count as
+  before. The scoreboard stays on the book. Sweep: the RX fixture JSON untouched, its balances merged in when served.
