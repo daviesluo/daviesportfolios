@@ -1,0 +1,4169 @@
+{
+ "window": "2026-09-26 00:00 -> 2026-10-30 03:00 UTC",
+ "code": "supabase/functions/agents/maker_watch.ts mwStep",
+ "events": [
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-09-26T18:26:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": null,
+    "ask": 0.7548,
+    "size": 5000.075,
+    "firstStatus": null
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-09-26T18:47:00.000Z",
+   "kind": "size",
+   "from_value": null,
+   "to_value": 5000,
+   "detail": {
+    "sightings": 10
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-09-26T18:56:00.000Z",
+   "kind": "width",
+   "from_value": null,
+   "to_value": 5,
+   "detail": {
+    "window": 20
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-09-27T14:12:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7517,
+       156.08,
+       1
+      ],
+      [
+       0.7516,
+       7660.72378,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.752,
+       1463.51063,
+       1
+      ],
+      [
+       0.7536,
+       5939.21,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 5
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-09-27T14:52:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": null,
+    "ask": 0.7556,
+    "size": 5000.1,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-09-27T15:11:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7516,
+       1648.52549,
+       1
+      ],
+      [
+       0.7515,
+       430031.175,
+       2
+      ]
+     ],
+     "asks": [
+      [
+       0.7523,
+       20915.77826,
+       1
+      ],
+      [
+       0.7524,
+       2640.05636,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 5
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-09-27T20:58:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": null,
+    "ask": 0.7557,
+    "size": 5000.22501,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-09-28T07:40:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7546,
+       2925.19588,
+       2
+      ],
+      [
+       0.7535,
+       52.67793,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.7547,
+       20005.3014,
+       1
+      ],
+      [
+       0.7551,
+       4521.26,
+       2
+      ]
+     ]
+    },
+    "lastWidth": 5
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-09-28T08:02:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": null,
+    "ask": 0.7537,
+    "size": 5001.27532,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-09-29T20:53:00.000Z",
+   "kind": "size",
+   "from_value": 5000,
+   "to_value": 5024,
+   "detail": {
+    "sightings": 30
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-09-29T21:07:00.000Z",
+   "kind": "size",
+   "from_value": 5024,
+   "to_value": 5002,
+   "detail": {
+    "sightings": 30
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-03T09:08:00.000Z",
+   "kind": "size",
+   "from_value": 5002,
+   "to_value": 5040,
+   "detail": {
+    "sightings": 30
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-03T09:12:00.000Z",
+   "kind": "size",
+   "from_value": 5040,
+   "to_value": 5001,
+   "detail": {
+    "sightings": 30
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-03T09:29:00.000Z",
+   "kind": "size",
+   "from_value": 5001,
+   "to_value": 5040,
+   "detail": {
+    "sightings": 30
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-03T09:39:00.000Z",
+   "kind": "size",
+   "from_value": 5040,
+   "to_value": 5001,
+   "detail": {
+    "sightings": 30
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-03T21:33:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7526,
+       4517.98854,
+       1
+      ],
+      [
+       0.7525,
+       14643.24631,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.755,
+       2026.35851,
+       1
+      ],
+      [
+       0.7553,
+       101.43685,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 5
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-03T22:33:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": null,
+    "ask": 0.7558,
+    "size": 6000.92517,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-05T15:19:00.000Z",
+   "kind": "width",
+   "from_value": 5,
+   "to_value": 8,
+   "detail": {
+    "window": 60
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-05T18:35:00.000Z",
+   "kind": "width",
+   "from_value": 8,
+   "to_value": 5,
+   "detail": {
+    "window": 60
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-06T15:11:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7531,
+       385.8,
+       1
+      ],
+      [
+       0.7519,
+       13.29964,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.7542,
+       13.25909,
+       1
+      ],
+      [
+       0.7543,
+       22980.06098,
+       2
+      ]
+     ]
+    },
+    "lastWidth": 5
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-06T15:51:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": 6,
+    "bid": 0.7525,
+    "ask": 0.7531,
+    "size": 5000.62507,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-07T02:45:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7519,
+       115008.3375,
+       1
+      ],
+      [
+       0.7508,
+       315022.8375,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.7543,
+       12888.8523,
+       1
+      ],
+      [
+       0.7544,
+       13.26883,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 5
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-07T03:07:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": 4,
+    "bid": 0.754,
+    "ask": 0.7544,
+    "size": 5001.72559,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-07T07:45:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7542,
+       20008.70378,
+       1
+      ],
+      [
+       0.7535,
+       500,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.7543,
+       18565.3667,
+       2
+      ],
+      [
+       0.755,
+       1074.25,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 5
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-07T08:49:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": 0.7542,
+    "ask": null,
+    "size": 5002.22599,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-07T15:57:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7549,
+       20011.80696,
+       1
+      ],
+      [
+       0.7542,
+       454.53,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.755,
+       23260.95366,
+       2
+      ],
+      [
+       0.7556,
+       7046.13,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 5
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-07T20:43:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": null,
+    "ask": 0.7568,
+    "size": 5003.02683,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-08T04:26:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7549,
+       20015.31171,
+       1
+      ],
+      [
+       0.7546,
+       13.25205,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.755,
+       33752.80815,
+       2
+      ],
+      [
+       0.7557,
+       6781.19,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 5
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-08T04:42:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": null,
+    "ask": 0.7568,
+    "size": 5003.62763,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-11T04:37:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7549,
+       18.89459,
+       1
+      ],
+      [
+       0.7548,
+       2218.34,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.7552,
+       820.25952,
+       1
+      ],
+      [
+       0.7553,
+       13478.18481,
+       3
+      ]
+     ]
+    },
+    "lastWidth": 5
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-11T05:08:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": null,
+    "ask": 0.7552,
+    "size": 5578.59353,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-11T05:50:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7549,
+       17.83462,
+       1
+      ],
+      [
+       0.7548,
+       2036.88705,
+       2
+      ]
+     ],
+     "asks": [
+      [
+       0.7552,
+       42.96865,
+       1
+      ],
+      [
+       0.7553,
+       13478.48536,
+       3
+      ]
+     ]
+    },
+    "lastWidth": 5
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-11T06:24:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": null,
+    "ask": 0.7552,
+    "size": 5004.72946,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-11T17:07:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7524,
+       47570.605,
+       2
+      ],
+      [
+       0.7523,
+       115008.3375,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.7546,
+       6804.5612,
+       2
+      ],
+      [
+       0.7548,
+       8381.14478,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 5
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-11T17:32:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": null,
+    "ask": 0.7547,
+    "size": 3093.72,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-12T17:29:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7536,
+       4305.95,
+       1
+      ],
+      [
+       0.7535,
+       2000145.03,
+       4
+      ]
+     ],
+     "asks": [
+      [
+       0.755,
+       718.1289,
+       2
+      ],
+      [
+       0.7551,
+       14296.65879,
+       3
+      ]
+     ]
+    },
+    "lastWidth": 5
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-12T18:12:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": null,
+    "ask": 0.7565,
+    "size": 5005.45594,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-12T18:31:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.755,
+       20022.72579,
+       1
+      ],
+      [
+       0.7535,
+       2000145.03,
+       4
+      ]
+     ],
+     "asks": [
+      [
+       0.7551,
+       13088.69633,
+       4
+      ],
+      [
+       0.7557,
+       699.07,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 5
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-12T19:00:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": null,
+    "ask": 0.7566,
+    "size": 5005.53111,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-12T19:05:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7539,
+       26528.71733,
+       1
+      ],
+      [
+       0.7538,
+       115008.3375,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.7551,
+       12657.00524,
+       3
+      ],
+      [
+       0.756,
+       1748.54,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 5
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-12T19:20:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": null,
+    "ask": 0.7566,
+    "size": 5005.33067,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-12T19:42:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7543,
+       4301.96,
+       1
+      ],
+      [
+       0.7539,
+       26528.58469,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.7551,
+       12650.91328,
+       3
+      ],
+      [
+       0.7558,
+       699.07,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 5
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-13T04:53:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": null,
+    "ask": 0.7561,
+    "size": 5005.18036,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-13T09:12:00.000Z",
+   "kind": "width",
+   "from_value": 5,
+   "to_value": 12,
+   "detail": {
+    "window": 20
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-14T15:01:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7578,
+       20040.94373,
+       2
+      ],
+      [
+       0.7576,
+       6026.92,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.7579,
+       3855.14186,
+       2
+      ],
+      [
+       0.758,
+       153.57519,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 12
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-14T16:50:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": 13,
+    "bid": 0.7584,
+    "ask": 0.7597,
+    "size": 5024.26387,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-15T19:44:00.000Z",
+   "kind": "width",
+   "from_value": 12,
+   "to_value": 2,
+   "detail": {
+    "window": 60
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-15T21:07:00.000Z",
+   "kind": "width",
+   "from_value": 2,
+   "to_value": 12,
+   "detail": {
+    "window": 60
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-18T05:07:00.000Z",
+   "kind": "width",
+   "from_value": 12,
+   "to_value": 9,
+   "detail": {
+    "window": 60
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-18T06:52:00.000Z",
+   "kind": "width",
+   "from_value": 9,
+   "to_value": 12,
+   "detail": {
+    "window": 60
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-18T16:02:00.000Z",
+   "kind": "width",
+   "from_value": 12,
+   "to_value": 4,
+   "detail": {
+    "window": 60
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-19T06:10:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7479,
+       24034.32452,
+       2
+      ],
+      [
+       0.7475,
+       13.37792,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.748,
+       17724.32013,
+       2
+      ],
+      [
+       0.7489,
+       1755.73498,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 4
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-19T07:20:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": 0.7491,
+    "ask": null,
+    "size": 5045.8063,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-19T14:41:00.000Z",
+   "kind": "width",
+   "from_value": 4,
+   "to_value": 12,
+   "detail": {
+    "window": 20
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-20T11:34:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7485,
+       3013.48966,
+       1
+      ],
+      [
+       0.7481,
+       87.15766,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.7494,
+       13.34401,
+       1
+      ],
+      [
+       0.7502,
+       13.32978,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 12
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-20T16:34:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": 12,
+    "bid": 0.7458,
+    "ask": 0.747,
+    "size": 5006.15757,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-21T11:53:00.000Z",
+   "kind": "size",
+   "from_value": 5001,
+   "to_value": 5046,
+   "detail": {
+    "sightings": 30
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-21T12:14:00.000Z",
+   "kind": "width",
+   "from_value": 12,
+   "to_value": 6,
+   "detail": {
+    "window": 60
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-21T12:25:00.000Z",
+   "kind": "size",
+   "from_value": 5046,
+   "to_value": 5007,
+   "detail": {
+    "sightings": 30
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-21T13:10:00.000Z",
+   "kind": "width",
+   "from_value": 6,
+   "to_value": 11,
+   "detail": {
+    "window": 60
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-22T11:13:00.000Z",
+   "kind": "size",
+   "from_value": 5007,
+   "to_value": 4984,
+   "detail": {
+    "sightings": 30
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-22T14:17:00.000Z",
+   "kind": "size",
+   "from_value": 4984,
+   "to_value": 5006,
+   "detail": {
+    "sightings": 30
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-22T14:51:00.000Z",
+   "kind": "width",
+   "from_value": 11,
+   "to_value": 17,
+   "detail": {
+    "window": 60
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-22T15:06:00.000Z",
+   "kind": "width",
+   "from_value": 17,
+   "to_value": 20,
+   "detail": {
+    "window": 60
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-22T16:32:00.000Z",
+   "kind": "size",
+   "from_value": 5006,
+   "to_value": 5020,
+   "detail": {
+    "sightings": 30
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-22T22:33:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7461,
+       2400.64134,
+       1
+      ],
+      [
+       0.746,
+       4021.44772,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.7462,
+       2921.8388,
+       2
+      ],
+      [
+       0.7469,
+       2777.76,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 20
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-22T23:07:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": 0.746,
+    "ask": null,
+    "size": 4021.44772,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-23T02:47:00.000Z",
+   "kind": "size",
+   "from_value": 5020,
+   "to_value": 5007,
+   "detail": {
+    "sightings": 30
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-23T12:46:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7467,
+       5697.86216,
+       1
+      ],
+      [
+       0.7466,
+       1395.29868,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.7484,
+       3550.61436,
+       1
+      ],
+      [
+       0.7486,
+       8158.12556,
+       3
+      ]
+     ]
+    },
+    "lastWidth": 20
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-23T13:08:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": 0.7455,
+    "ask": null,
+    "size": 5006.20769,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-23T14:09:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7469,
+       5789.03,
+       1
+      ],
+      [
+       0.7468,
+       1394.25549,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.7485,
+       7241.77727,
+       1
+      ],
+      [
+       0.7486,
+       8158.12556,
+       3
+      ]
+     ]
+    },
+    "lastWidth": 20
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-23T14:25:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": 12,
+    "bid": 0.7455,
+    "ask": 0.7467,
+    "size": 5006.95967,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-23T14:55:00.000Z",
+   "kind": "width",
+   "from_value": 20,
+   "to_value": 12,
+   "detail": {
+    "window": 20
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-24T07:36:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7461,
+       12.57204,
+       1
+      ],
+      [
+       0.7459,
+       12691.52043,
+       2
+      ]
+     ],
+     "asks": [
+      [
+       0.7481,
+       4442.29198,
+       1
+      ],
+      [
+       0.7482,
+       1000,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 12
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-24T07:59:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": 0.7458,
+    "ask": null,
+    "size": 5006.30794,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-24T11:48:00.000Z",
+   "kind": "width",
+   "from_value": 12,
+   "to_value": 37,
+   "detail": {
+    "window": 20
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-24T15:49:00.000Z",
+   "kind": "width",
+   "from_value": 37,
+   "to_value": 12,
+   "detail": {
+    "window": 60
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-25T09:46:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7463,
+       12.85007,
+       1
+      ],
+      [
+       0.746,
+       7204.76338,
+       2
+      ]
+     ],
+     "asks": [
+      [
+       0.7472,
+       6879.70989,
+       2
+      ],
+      [
+       0.7476,
+       15019.2246,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 12
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-25T10:13:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": 12,
+    "bid": 0.7463,
+    "ask": 0.7475,
+    "size": 5006.30794,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-25T22:50:00.000Z",
+   "kind": "size",
+   "from_value": 5007,
+   "to_value": 5027,
+   "detail": {
+    "sightings": 30
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-25T23:09:00.000Z",
+   "kind": "size",
+   "from_value": 5027,
+   "to_value": 5007,
+   "detail": {
+    "sightings": 30
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-26T11:04:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7469,
+       9965.03097,
+       3
+      ],
+      [
+       0.7466,
+       15022.90994,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.747,
+       4363.73496,
+       1
+      ],
+      [
+       0.7471,
+       50.15393,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 12
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-26T11:43:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": 0.7468,
+    "ask": null,
+    "size": 4909.42,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-26T13:44:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7467,
+       20030.94781,
+       1
+      ],
+      [
+       0.7461,
+       13.40302,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.7468,
+       1505.46646,
+       2
+      ],
+      [
+       0.747,
+       2495.66261,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 12
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-26T14:46:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": 0.7467,
+    "ask": null,
+    "size": 5008.23855,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-26T23:12:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7484,
+       49.22506,
+       1
+      ],
+      [
+       0.7483,
+       177.01,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.7497,
+       3734.62993,
+       1
+      ],
+      [
+       0.7498,
+       662.09245,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 12
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-27T00:03:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": 0.747,
+    "ask": null,
+    "size": 5008.71516,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-27T00:46:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7483,
+       49.65924,
+       1
+      ],
+      [
+       0.7482,
+       177.01,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.7484,
+       79.52031,
+       2
+      ],
+      [
+       0.7497,
+       3732.89,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 12
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-27T01:10:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": 0.7476,
+    "ask": null,
+    "size": 5008.51447,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-27T02:07:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7485,
+       49.37876,
+       1
+      ],
+      [
+       0.7483,
+       177.01,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.7486,
+       2062.21159,
+       2
+      ],
+      [
+       0.7497,
+       3699.78,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 12
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-27T02:24:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": 0.7472,
+    "ask": null,
+    "size": 5021.79742,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-27T03:40:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7484,
+       207.48272,
+       2
+      ],
+      [
+       0.7482,
+       133.34,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.7485,
+       4729.92667,
+       2
+      ],
+      [
+       0.7486,
+       176.0351,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 12
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-27T04:35:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": null,
+    "ask": 0.7486,
+    "size": 5218.71437,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-27T04:41:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7485,
+       182.86932,
+       2
+      ],
+      [
+       0.7484,
+       159.00587,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.7487,
+       4139.47509,
+       3
+      ],
+      [
+       0.7498,
+       662.09245,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 12
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-27T04:57:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": null,
+    "ask": 0.7493,
+    "size": 2637.16,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-28T08:47:00.000Z",
+   "kind": "width",
+   "from_value": 12,
+   "to_value": 9,
+   "detail": {
+    "window": 60
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-28T11:56:00.000Z",
+   "kind": "width",
+   "from_value": 9,
+   "to_value": 12,
+   "detail": {
+    "window": 60
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-28T15:46:00.000Z",
+   "kind": "width",
+   "from_value": 12,
+   "to_value": 6,
+   "detail": {
+    "window": 60
+   }
+  },
+  {
+   "book": "USDT-GBP",
+   "ts": "2026-10-29T21:17:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7467,
+       38.85397,
+       1
+      ],
+      [
+       0.7466,
+       66.74256,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.7493,
+       100182.33505,
+       1
+      ],
+      [
+       0.7495,
+       1903464.36595,
+       3
+      ]
+     ]
+    },
+    "lastWidth": 6
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-09-26T18:16:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": 5,
+    "bid": 0.7543,
+    "ask": 0.7548,
+    "size": 5000.35002,
+    "firstStatus": null
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-09-26T18:20:00.000Z",
+   "kind": "size",
+   "from_value": null,
+   "to_value": 5000,
+   "detail": {
+    "sightings": 10
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-09-26T18:43:00.000Z",
+   "kind": "width",
+   "from_value": null,
+   "to_value": 5,
+   "detail": {
+    "window": 20
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-09-26T21:15:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7545,
+       4423.50762,
+       1
+      ],
+      [
+       0.753,
+       115017.25,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.755,
+       1478.527,
+       1
+      ],
+      [
+       0.7552,
+       11627.25526,
+       2
+      ]
+     ]
+    },
+    "lastWidth": 5
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-09-26T21:30:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": null,
+    "ask": 0.7553,
+    "size": 5000.37502,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-09-26T22:15:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7545,
+       4379.63732,
+       1
+      ],
+      [
+       0.753,
+       115017.25,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.755,
+       1278.527,
+       1
+      ],
+      [
+       0.7552,
+       11627.45527,
+       2
+      ]
+     ]
+    },
+    "lastWidth": 5
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-09-26T23:26:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": null,
+    "ask": 0.7551,
+    "size": 5000.65006,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-09-27T01:17:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7545,
+       4379.63732,
+       1
+      ],
+      [
+       0.753,
+       115017.25,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.755,
+       878.527,
+       1
+      ],
+      [
+       0.7552,
+       11627.38026,
+       2
+      ]
+     ]
+    },
+    "lastWidth": 5
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-09-27T01:52:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": null,
+    "ask": 0.7553,
+    "size": 5000.65006,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-09-27T03:56:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7545,
+       4379.63732,
+       1
+      ],
+      [
+       0.753,
+       115017.25,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.755,
+       878.527,
+       1
+      ],
+      [
+       0.7552,
+       11627.5553,
+       2
+      ]
+     ]
+    },
+    "lastWidth": 5
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-09-27T04:30:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": null,
+    "ask": 0.7553,
+    "size": 5000.55005,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-09-27T18:53:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7531,
+       430064.51,
+       2
+      ],
+      [
+       0.753,
+       585087.77,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.7554,
+       20149.17856,
+       3
+      ],
+      [
+       0.7559,
+       15001.27511,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 5
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-09-27T20:23:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": null,
+    "ask": 0.7553,
+    "size": 5000.50003,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-03T18:16:00.000Z",
+   "kind": "size",
+   "from_value": 5000,
+   "to_value": 4987,
+   "detail": {
+    "sightings": 30
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-03T18:17:00.000Z",
+   "kind": "size",
+   "from_value": 4987,
+   "to_value": 5000,
+   "detail": {
+    "sightings": 30
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-03T19:06:00.000Z",
+   "kind": "size",
+   "from_value": 5000,
+   "to_value": 4987,
+   "detail": {
+    "sightings": 30
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-03T19:07:00.000Z",
+   "kind": "size",
+   "from_value": 4987,
+   "to_value": 4954,
+   "detail": {
+    "sightings": 30
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-03T20:23:00.000Z",
+   "kind": "size",
+   "from_value": 4954,
+   "to_value": 4966,
+   "detail": {
+    "sightings": 30
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-04T03:36:00.000Z",
+   "kind": "size",
+   "from_value": 4966,
+   "to_value": 5000,
+   "detail": {
+    "sightings": 30
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-04T03:41:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7537,
+       16233.47485,
+       1
+      ],
+      [
+       0.7536,
+       115017.25,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.7558,
+       10968.15887,
+       2
+      ],
+      [
+       0.7562,
+       9430.28523,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 5
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-04T04:59:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": null,
+    "ask": 0.7557,
+    "size": 5000.40011,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-04T05:27:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7537,
+       16233.47485,
+       1
+      ],
+      [
+       0.7536,
+       115017.25,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.7558,
+       5967.80876,
+       1
+      ],
+      [
+       0.7562,
+       9430.28523,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 5
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-04T07:50:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": null,
+    "ask": 0.7565,
+    "size": 5000.20007,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-04T16:06:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7537,
+       18562.19884,
+       2
+      ],
+      [
+       0.7535,
+       315047.26,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.7558,
+       7879.74698,
+       3
+      ],
+      [
+       0.7562,
+       15001.50033,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 5
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-04T16:53:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": null,
+    "ask": 0.7557,
+    "size": 5000.40012,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-04T19:02:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7537,
+       12012.95317,
+       1
+      ],
+      [
+       0.7535,
+       315047.26,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.7557,
+       6505.38016,
+       2
+      ],
+      [
+       0.7558,
+       2879.24688,
+       2
+      ]
+     ]
+    },
+    "lastWidth": 5
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-04T20:05:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": null,
+    "ask": 0.7556,
+    "size": 5000.35015,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-05T02:28:00.000Z",
+   "kind": "width",
+   "from_value": 5,
+   "to_value": 8,
+   "detail": {
+    "window": 60
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-05T03:36:00.000Z",
+   "kind": "width",
+   "from_value": 8,
+   "to_value": 5,
+   "detail": {
+    "window": 60
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-06T15:11:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7521,
+       13.2961,
+       1
+      ],
+      [
+       0.7514,
+       430077.81849,
+       3
+      ]
+     ],
+     "asks": [
+      [
+       0.753,
+       2228.98038,
+       1
+      ],
+      [
+       0.7535,
+       1000,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 5
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-06T15:53:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": 5,
+    "bid": 0.7526,
+    "ask": 0.7531,
+    "size": 5000.6001,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-07T02:45:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7531,
+       430064.51,
+       2
+      ],
+      [
+       0.753,
+       585134.25074,
+       3
+      ]
+     ],
+     "asks": [
+      [
+       0.7534,
+       461.78781,
+       1
+      ],
+      [
+       0.7535,
+       999.86728,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 5
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-07T03:07:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": null,
+    "ask": 0.7546,
+    "size": 5000.77544,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-08T16:05:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7539,
+       10,
+       1
+      ],
+      [
+       0.7488,
+       712.81053,
+       2
+      ]
+     ],
+     "asks": [
+      [
+       0.7646,
+       545.1003,
+       1
+      ],
+      [
+       0.765,
+       3403.58998,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 5
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-08T16:27:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": 5,
+    "bid": 0.7567,
+    "ask": 0.7572,
+    "size": 5000.87765,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-09T01:17:00.000Z",
+   "kind": "width",
+   "from_value": 5,
+   "to_value": 8,
+   "detail": {
+    "window": 60
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-09T02:10:00.000Z",
+   "kind": "width",
+   "from_value": 8,
+   "to_value": 13,
+   "detail": {
+    "window": 60
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-09T02:55:00.000Z",
+   "kind": "width",
+   "from_value": 13,
+   "to_value": 5,
+   "detail": {
+    "window": 60
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-12T17:29:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7558,
+       13.23101,
+       1
+      ],
+      [
+       0.7556,
+       430064.51,
+       2
+      ]
+     ],
+     "asks": [
+      [
+       0.7565,
+       2013.36092,
+       1
+      ],
+      [
+       0.7573,
+       42.66107,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 5
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-12T17:49:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": null,
+    "ask": 0.7574,
+    "size": 5000.6053,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-12T19:05:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7558,
+       430077.74101,
+       3
+      ],
+      [
+       0.7557,
+       585087.77,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.7565,
+       2013.36092,
+       1
+      ],
+      [
+       0.7578,
+       148.79476,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 5
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-12T19:20:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": null,
+    "ask": 0.7573,
+    "size": 5000.65536,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-12T21:02:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7564,
+       13.22051,
+       1
+      ],
+      [
+       0.7556,
+       13.23451,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.7565,
+       1286.32853,
+       1
+      ],
+      [
+       0.7571,
+       160.50725,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 5
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-13T04:17:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": null,
+    "ask": 0.7567,
+    "size": 5000.55514,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-13T08:24:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.756,
+       33.06878,
+       1
+      ],
+      [
+       0.7553,
+       2533.37158,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.7561,
+       15636.11439,
+       3
+      ],
+      [
+       0.7562,
+       15001.67913,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 5
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-13T08:44:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": 0.7552,
+    "ask": null,
+    "size": 5000.53466,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-13T09:45:00.000Z",
+   "kind": "width",
+   "from_value": 5,
+   "to_value": 12,
+   "detail": {
+    "window": 20
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-20T06:06:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7482,
+       115017.25,
+       1
+      ],
+      [
+       0.7481,
+       900135.03,
+       2
+      ]
+     ],
+     "asks": [
+      [
+       0.7501,
+       3329.33812,
+       1
+      ],
+      [
+       0.7506,
+       13.32268,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 12
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-20T16:34:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": 12,
+    "bid": 0.7466,
+    "ask": 0.7478,
+    "size": 5000.9316,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-22T10:47:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7461,
+       11862.95705,
+       2
+      ],
+      [
+       0.746,
+       430064.51,
+       2
+      ]
+     ],
+     "asks": [
+      [
+       0.7462,
+       17483.81124,
+       1
+      ],
+      [
+       0.747,
+       2338.1386,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 12
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-22T11:03:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": 0.7469,
+    "ask": null,
+    "size": 5000.60616,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-22T13:30:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7466,
+       13326.63993,
+       2
+      ],
+      [
+       0.7463,
+       15002.63896,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.7467,
+       0.29463,
+       1
+      ],
+      [
+       0.7476,
+       935.03465,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 12
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-22T14:17:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": 0.7472,
+    "ask": null,
+    "size": 5000.98037,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-24T07:25:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7467,
+       8446.85505,
+       2
+      ],
+      [
+       0.7464,
+       13.39764,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.7479,
+       62.27865,
+       1
+      ],
+      [
+       0.748,
+       13.36899,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 12
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-24T07:59:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": 0.7466,
+    "ask": null,
+    "size": 5000.80706,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-24T10:15:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7466,
+       13623.79929,
+       3
+      ],
+      [
+       0.7464,
+       13.39764,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.748,
+       13.36899,
+       1
+      ],
+      [
+       0.7488,
+       13.35471,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 12
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-24T10:45:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": 0.7465,
+    "ask": null,
+    "size": 5000.95727,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-24T11:08:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7472,
+       4.67076,
+       2
+      ],
+      [
+       0.7466,
+       13623.69951,
+       3
+      ]
+     ],
+     "asks": [
+      [
+       0.7491,
+       10314.0935,
+       3
+      ],
+      [
+       0.7492,
+       115017.25,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 12
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-24T12:09:00.000Z",
+   "kind": "appeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "width": null,
+    "bid": 0.7465,
+    "ask": null,
+    "size": 5001.00809,
+    "firstStatus": "absent"
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-28T15:41:00.000Z",
+   "kind": "width",
+   "from_value": 12,
+   "to_value": 7,
+   "detail": {
+    "window": 60
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-28T17:34:00.000Z",
+   "kind": "width",
+   "from_value": 7,
+   "to_value": 4,
+   "detail": {
+    "window": 60
+   }
+  },
+  {
+   "book": "USDC-GBP",
+   "ts": "2026-10-29T21:52:00.000Z",
+   "kind": "disappeared",
+   "from_value": null,
+   "to_value": null,
+   "detail": {
+    "top": {
+     "bids": [
+      [
+       0.7466,
+       200.42859,
+       3
+      ],
+      [
+       0.7456,
+       67.06008,
+       1
+      ]
+     ],
+     "asks": [
+      [
+       0.7501,
+       600307.6725,
+       1
+      ],
+      [
+       0.7502,
+       1000512.7875,
+       1
+      ]
+     ]
+    },
+    "lastWidth": 4
+   }
+  }
+ ],
+ "absences": [
+  {
+   "book": "USDT-GBP",
+   "from": "2026-09-27T14:12:00.000Z",
+   "to": "2026-09-27T14:52:00.000Z",
+   "hours": 0.67
+  },
+  {
+   "book": "USDT-GBP",
+   "from": "2026-09-27T15:11:00.000Z",
+   "to": "2026-09-27T20:58:00.000Z",
+   "hours": 5.78
+  },
+  {
+   "book": "USDT-GBP",
+   "from": "2026-09-28T07:40:00.000Z",
+   "to": "2026-09-28T08:02:00.000Z",
+   "hours": 0.37
+  },
+  {
+   "book": "USDT-GBP",
+   "from": "2026-10-03T21:33:00.000Z",
+   "to": "2026-10-03T22:33:00.000Z",
+   "hours": 1
+  },
+  {
+   "book": "USDT-GBP",
+   "from": "2026-10-06T15:11:00.000Z",
+   "to": "2026-10-06T15:51:00.000Z",
+   "hours": 0.67
+  },
+  {
+   "book": "USDT-GBP",
+   "from": "2026-10-07T02:45:00.000Z",
+   "to": "2026-10-07T03:07:00.000Z",
+   "hours": 0.37
+  },
+  {
+   "book": "USDT-GBP",
+   "from": "2026-10-07T07:45:00.000Z",
+   "to": "2026-10-07T08:49:00.000Z",
+   "hours": 1.07
+  },
+  {
+   "book": "USDT-GBP",
+   "from": "2026-10-07T15:57:00.000Z",
+   "to": "2026-10-07T20:43:00.000Z",
+   "hours": 4.77
+  },
+  {
+   "book": "USDT-GBP",
+   "from": "2026-10-08T04:26:00.000Z",
+   "to": "2026-10-08T04:42:00.000Z",
+   "hours": 0.27
+  },
+  {
+   "book": "USDT-GBP",
+   "from": "2026-10-11T04:37:00.000Z",
+   "to": "2026-10-11T05:08:00.000Z",
+   "hours": 0.52
+  },
+  {
+   "book": "USDT-GBP",
+   "from": "2026-10-11T05:50:00.000Z",
+   "to": "2026-10-11T06:24:00.000Z",
+   "hours": 0.57
+  },
+  {
+   "book": "USDT-GBP",
+   "from": "2026-10-11T17:07:00.000Z",
+   "to": "2026-10-11T17:32:00.000Z",
+   "hours": 0.42
+  },
+  {
+   "book": "USDT-GBP",
+   "from": "2026-10-12T17:29:00.000Z",
+   "to": "2026-10-12T18:12:00.000Z",
+   "hours": 0.72
+  },
+  {
+   "book": "USDT-GBP",
+   "from": "2026-10-12T18:31:00.000Z",
+   "to": "2026-10-12T19:00:00.000Z",
+   "hours": 0.48
+  },
+  {
+   "book": "USDT-GBP",
+   "from": "2026-10-12T19:05:00.000Z",
+   "to": "2026-10-12T19:20:00.000Z",
+   "hours": 0.25
+  },
+  {
+   "book": "USDT-GBP",
+   "from": "2026-10-12T19:42:00.000Z",
+   "to": "2026-10-13T04:53:00.000Z",
+   "hours": 9.18
+  },
+  {
+   "book": "USDT-GBP",
+   "from": "2026-10-14T15:01:00.000Z",
+   "to": "2026-10-14T16:50:00.000Z",
+   "hours": 1.82
+  },
+  {
+   "book": "USDT-GBP",
+   "from": "2026-10-19T06:10:00.000Z",
+   "to": "2026-10-19T07:20:00.000Z",
+   "hours": 1.17
+  },
+  {
+   "book": "USDT-GBP",
+   "from": "2026-10-20T11:34:00.000Z",
+   "to": "2026-10-20T16:34:00.000Z",
+   "hours": 5
+  },
+  {
+   "book": "USDT-GBP",
+   "from": "2026-10-22T22:33:00.000Z",
+   "to": "2026-10-22T23:07:00.000Z",
+   "hours": 0.57
+  },
+  {
+   "book": "USDT-GBP",
+   "from": "2026-10-23T12:46:00.000Z",
+   "to": "2026-10-23T13:08:00.000Z",
+   "hours": 0.37
+  },
+  {
+   "book": "USDT-GBP",
+   "from": "2026-10-23T14:09:00.000Z",
+   "to": "2026-10-23T14:25:00.000Z",
+   "hours": 0.27
+  },
+  {
+   "book": "USDT-GBP",
+   "from": "2026-10-24T07:36:00.000Z",
+   "to": "2026-10-24T07:59:00.000Z",
+   "hours": 0.38
+  },
+  {
+   "book": "USDT-GBP",
+   "from": "2026-10-25T09:46:00.000Z",
+   "to": "2026-10-25T10:13:00.000Z",
+   "hours": 0.45
+  },
+  {
+   "book": "USDT-GBP",
+   "from": "2026-10-26T11:04:00.000Z",
+   "to": "2026-10-26T11:43:00.000Z",
+   "hours": 0.65
+  },
+  {
+   "book": "USDT-GBP",
+   "from": "2026-10-26T13:44:00.000Z",
+   "to": "2026-10-26T14:46:00.000Z",
+   "hours": 1.03
+  },
+  {
+   "book": "USDT-GBP",
+   "from": "2026-10-26T23:12:00.000Z",
+   "to": "2026-10-27T00:03:00.000Z",
+   "hours": 0.85
+  },
+  {
+   "book": "USDT-GBP",
+   "from": "2026-10-27T00:46:00.000Z",
+   "to": "2026-10-27T01:10:00.000Z",
+   "hours": 0.4
+  },
+  {
+   "book": "USDT-GBP",
+   "from": "2026-10-27T02:07:00.000Z",
+   "to": "2026-10-27T02:24:00.000Z",
+   "hours": 0.28
+  },
+  {
+   "book": "USDT-GBP",
+   "from": "2026-10-27T03:40:00.000Z",
+   "to": "2026-10-27T04:35:00.000Z",
+   "hours": 0.92
+  },
+  {
+   "book": "USDT-GBP",
+   "from": "2026-10-27T04:41:00.000Z",
+   "to": "2026-10-27T04:57:00.000Z",
+   "hours": 0.27
+  },
+  {
+   "book": "USDT-GBP",
+   "from": "2026-10-29T21:17:00.000Z",
+   "to": null,
+   "hours": 5.72
+  },
+  {
+   "book": "USDC-GBP",
+   "from": "2026-09-26T21:15:00.000Z",
+   "to": "2026-09-26T21:30:00.000Z",
+   "hours": 0.25
+  },
+  {
+   "book": "USDC-GBP",
+   "from": "2026-09-26T22:15:00.000Z",
+   "to": "2026-09-26T23:26:00.000Z",
+   "hours": 1.18
+  },
+  {
+   "book": "USDC-GBP",
+   "from": "2026-09-27T01:17:00.000Z",
+   "to": "2026-09-27T01:52:00.000Z",
+   "hours": 0.58
+  },
+  {
+   "book": "USDC-GBP",
+   "from": "2026-09-27T03:56:00.000Z",
+   "to": "2026-09-27T04:30:00.000Z",
+   "hours": 0.57
+  },
+  {
+   "book": "USDC-GBP",
+   "from": "2026-09-27T18:53:00.000Z",
+   "to": "2026-09-27T20:23:00.000Z",
+   "hours": 1.5
+  },
+  {
+   "book": "USDC-GBP",
+   "from": "2026-10-04T03:41:00.000Z",
+   "to": "2026-10-04T04:59:00.000Z",
+   "hours": 1.3
+  },
+  {
+   "book": "USDC-GBP",
+   "from": "2026-10-04T05:27:00.000Z",
+   "to": "2026-10-04T07:50:00.000Z",
+   "hours": 2.38
+  },
+  {
+   "book": "USDC-GBP",
+   "from": "2026-10-04T16:06:00.000Z",
+   "to": "2026-10-04T16:53:00.000Z",
+   "hours": 0.78
+  },
+  {
+   "book": "USDC-GBP",
+   "from": "2026-10-04T19:02:00.000Z",
+   "to": "2026-10-04T20:05:00.000Z",
+   "hours": 1.05
+  },
+  {
+   "book": "USDC-GBP",
+   "from": "2026-10-06T15:11:00.000Z",
+   "to": "2026-10-06T15:53:00.000Z",
+   "hours": 0.7
+  },
+  {
+   "book": "USDC-GBP",
+   "from": "2026-10-07T02:45:00.000Z",
+   "to": "2026-10-07T03:07:00.000Z",
+   "hours": 0.37
+  },
+  {
+   "book": "USDC-GBP",
+   "from": "2026-10-08T16:05:00.000Z",
+   "to": "2026-10-08T16:27:00.000Z",
+   "hours": 0.37
+  },
+  {
+   "book": "USDC-GBP",
+   "from": "2026-10-12T17:29:00.000Z",
+   "to": "2026-10-12T17:49:00.000Z",
+   "hours": 0.33
+  },
+  {
+   "book": "USDC-GBP",
+   "from": "2026-10-12T19:05:00.000Z",
+   "to": "2026-10-12T19:20:00.000Z",
+   "hours": 0.25
+  },
+  {
+   "book": "USDC-GBP",
+   "from": "2026-10-12T21:02:00.000Z",
+   "to": "2026-10-13T04:17:00.000Z",
+   "hours": 7.25
+  },
+  {
+   "book": "USDC-GBP",
+   "from": "2026-10-13T08:24:00.000Z",
+   "to": "2026-10-13T08:44:00.000Z",
+   "hours": 0.33
+  },
+  {
+   "book": "USDC-GBP",
+   "from": "2026-10-20T06:06:00.000Z",
+   "to": "2026-10-20T16:34:00.000Z",
+   "hours": 10.47
+  },
+  {
+   "book": "USDC-GBP",
+   "from": "2026-10-22T10:47:00.000Z",
+   "to": "2026-10-22T11:03:00.000Z",
+   "hours": 0.27
+  },
+  {
+   "book": "USDC-GBP",
+   "from": "2026-10-22T13:30:00.000Z",
+   "to": "2026-10-22T14:17:00.000Z",
+   "hours": 0.78
+  },
+  {
+   "book": "USDC-GBP",
+   "from": "2026-10-24T07:25:00.000Z",
+   "to": "2026-10-24T07:59:00.000Z",
+   "hours": 0.57
+  },
+  {
+   "book": "USDC-GBP",
+   "from": "2026-10-24T10:15:00.000Z",
+   "to": "2026-10-24T10:45:00.000Z",
+   "hours": 0.5
+  },
+  {
+   "book": "USDC-GBP",
+   "from": "2026-10-24T11:08:00.000Z",
+   "to": "2026-10-24T12:09:00.000Z",
+   "hours": 1.02
+  },
+  {
+   "book": "USDC-GBP",
+   "from": "2026-10-29T21:52:00.000Z",
+   "to": null,
+   "hours": 5.13
+  }
+ ],
+ "days": {
+  "USDT-GBP": {
+   "2026-09-26": {
+    "both": 120,
+    "bid": 0,
+    "ask": 173,
+    "none": 36,
+    "unseen": 1111,
+    "width_median": 5
+   },
+   "2026-09-27": {
+    "both": 90,
+    "bid": 13,
+    "ask": 897,
+    "none": 440,
+    "unseen": 0,
+    "width_median": 5
+   },
+   "2026-09-28": {
+    "both": 429,
+    "bid": 47,
+    "ask": 848,
+    "none": 116,
+    "unseen": 0,
+    "width_median": 5
+   },
+   "2026-09-29": {
+    "both": 872,
+    "bid": 186,
+    "ask": 362,
+    "none": 20,
+    "unseen": 0,
+    "width_median": 5
+   },
+   "2026-09-30": {
+    "both": 1046,
+    "bid": 343,
+    "ask": 37,
+    "none": 14,
+    "unseen": 0,
+    "width_median": 5
+   },
+   "2026-10-01": {
+    "both": 733,
+    "bid": 133,
+    "ask": 553,
+    "none": 21,
+    "unseen": 0,
+    "width_median": 5
+   },
+   "2026-10-02": {
+    "both": 1034,
+    "bid": 161,
+    "ask": 112,
+    "none": 24,
+    "unseen": 109,
+    "width_median": 5
+   },
+   "2026-10-03": {
+    "both": 591,
+    "bid": 404,
+    "ask": 292,
+    "none": 153,
+    "unseen": 0,
+    "width_median": 5
+   },
+   "2026-10-04": {
+    "both": 175,
+    "bid": 86,
+    "ask": 1123,
+    "none": 56,
+    "unseen": 0,
+    "width_median": 6
+   },
+   "2026-10-05": {
+    "both": 778,
+    "bid": 371,
+    "ask": 237,
+    "none": 54,
+    "unseen": 0,
+    "width_median": 5
+   },
+   "2026-10-06": {
+    "both": 1025,
+    "bid": 124,
+    "ask": 160,
+    "none": 131,
+    "unseen": 0,
+    "width_median": 5
+   },
+   "2026-10-07": {
+    "both": 289,
+    "bid": 160,
+    "ask": 466,
+    "none": 476,
+    "unseen": 49,
+    "width_median": 5
+   },
+   "2026-10-08": {
+    "both": 548,
+    "bid": 297,
+    "ask": 438,
+    "none": 157,
+    "unseen": 0,
+    "width_median": 5
+   },
+   "2026-10-09": {
+    "both": 777,
+    "bid": 560,
+    "ask": 70,
+    "none": 33,
+    "unseen": 0,
+    "width_median": 5
+   },
+   "2026-10-10": {
+    "both": 833,
+    "bid": 309,
+    "ask": 277,
+    "none": 21,
+    "unseen": 0,
+    "width_median": 5
+   },
+   "2026-10-11": {
+    "both": 358,
+    "bid": 94,
+    "ask": 752,
+    "none": 235,
+    "unseen": 1,
+    "width_median": 4
+   },
+   "2026-10-12": {
+    "both": 643,
+    "bid": 175,
+    "ask": 221,
+    "none": 401,
+    "unseen": 0,
+    "width_median": 5
+   },
+   "2026-10-13": {
+    "both": 614,
+    "bid": 181,
+    "ask": 294,
+    "none": 351,
+    "unseen": 0,
+    "width_median": 12
+   },
+   "2026-10-14": {
+    "both": 997,
+    "bid": 127,
+    "ask": 173,
+    "none": 143,
+    "unseen": 0,
+    "width_median": 12
+   },
+   "2026-10-15": {
+    "both": 1271,
+    "bid": 139,
+    "ask": 19,
+    "none": 11,
+    "unseen": 0,
+    "width_median": 12
+   },
+   "2026-10-16": {
+    "both": 1163,
+    "bid": 216,
+    "ask": 48,
+    "none": 13,
+    "unseen": 0,
+    "width_median": 12
+   },
+   "2026-10-17": {
+    "both": 1196,
+    "bid": 156,
+    "ask": 63,
+    "none": 25,
+    "unseen": 0,
+    "width_median": 12
+   },
+   "2026-10-18": {
+    "both": 1100,
+    "bid": 67,
+    "ask": 268,
+    "none": 5,
+    "unseen": 0,
+    "width_median": 8
+   },
+   "2026-10-19": {
+    "both": 503,
+    "bid": 800,
+    "ask": 9,
+    "none": 128,
+    "unseen": 0,
+    "width_median": 12
+   },
+   "2026-10-20": {
+    "both": 707,
+    "bid": 220,
+    "ask": 36,
+    "none": 309,
+    "unseen": 168,
+    "width_median": 12
+   },
+   "2026-10-21": {
+    "both": 741,
+    "bid": 651,
+    "ask": 23,
+    "none": 23,
+    "unseen": 2,
+    "width_median": 12
+   },
+   "2026-10-22": {
+    "both": 370,
+    "bid": 977,
+    "ask": 25,
+    "none": 68,
+    "unseen": 0,
+    "width_median": 11
+   },
+   "2026-10-23": {
+    "both": 124,
+    "bid": 1208,
+    "ask": 6,
+    "none": 102,
+    "unseen": 0,
+    "width_median": 12
+   },
+   "2026-10-24": {
+    "both": 590,
+    "bid": 807,
+    "ask": 4,
+    "none": 39,
+    "unseen": 0,
+    "width_median": 12
+   },
+   "2026-10-25": {
+    "both": 1294,
+    "bid": 73,
+    "ask": 32,
+    "none": 41,
+    "unseen": 0,
+    "width_median": 12
+   },
+   "2026-10-26": {
+    "both": 581,
+    "bid": 625,
+    "ask": 53,
+    "none": 181,
+    "unseen": 0,
+    "width_median": 10
+   },
+   "2026-10-27": {
+    "both": 661,
+    "bid": 563,
+    "ask": 51,
+    "none": 165,
+    "unseen": 0,
+    "width_median": 12
+   },
+   "2026-10-28": {
+    "both": 970,
+    "bid": 336,
+    "ask": 92,
+    "none": 42,
+    "unseen": 0,
+    "width_median": 8
+   },
+   "2026-10-29": {
+    "both": 1057,
+    "bid": 175,
+    "ask": 36,
+    "none": 172,
+    "unseen": 0,
+    "width_median": 5
+   },
+   "2026-10-30": {
+    "both": 0,
+    "bid": 0,
+    "ask": 0,
+    "none": 180,
+    "unseen": 0,
+    "width_median": null
+   }
+  },
+  "USDC-GBP": {
+   "2026-09-26": {
+    "both": 140,
+    "bid": 3,
+    "ask": 56,
+    "none": 137,
+    "unseen": 1104,
+    "width_median": 4
+   },
+   "2026-09-27": {
+    "both": 117,
+    "bid": 0,
+    "ask": 1017,
+    "none": 306,
+    "unseen": 0,
+    "width_median": 5
+   },
+   "2026-09-28": {
+    "both": 488,
+    "bid": 2,
+    "ask": 939,
+    "none": 11,
+    "unseen": 0,
+    "width_median": 5
+   },
+   "2026-09-29": {
+    "both": 1150,
+    "bid": 21,
+    "ask": 262,
+    "none": 7,
+    "unseen": 0,
+    "width_median": 5
+   },
+   "2026-09-30": {
+    "both": 1310,
+    "bid": 39,
+    "ask": 88,
+    "none": 3,
+    "unseen": 0,
+    "width_median": 5
+   },
+   "2026-10-01": {
+    "both": 1347,
+    "bid": 24,
+    "ask": 65,
+    "none": 4,
+    "unseen": 0,
+    "width_median": 5
+   },
+   "2026-10-02": {
+    "both": 1295,
+    "bid": 14,
+    "ask": 19,
+    "none": 3,
+    "unseen": 109,
+    "width_median": 5
+   },
+   "2026-10-03": {
+    "both": 1177,
+    "bid": 118,
+    "ask": 124,
+    "none": 21,
+    "unseen": 0,
+    "width_median": 5
+   },
+   "2026-10-04": {
+    "both": 192,
+    "bid": 2,
+    "ask": 822,
+    "none": 424,
+    "unseen": 0,
+    "width_median": 8
+   },
+   "2026-10-05": {
+    "both": 1238,
+    "bid": 28,
+    "ask": 170,
+    "none": 4,
+    "unseen": 0,
+    "width_median": 5
+   },
+   "2026-10-06": {
+    "both": 1142,
+    "bid": 99,
+    "ask": 145,
+    "none": 54,
+    "unseen": 0,
+    "width_median": 5
+   },
+   "2026-10-07": {
+    "both": 422,
+    "bid": 505,
+    "ask": 418,
+    "none": 48,
+    "unseen": 47,
+    "width_median": 5
+   },
+   "2026-10-08": {
+    "both": 987,
+    "bid": 263,
+    "ask": 138,
+    "none": 52,
+    "unseen": 0,
+    "width_median": 5
+   },
+   "2026-10-09": {
+    "both": 1136,
+    "bid": 129,
+    "ask": 166,
+    "none": 9,
+    "unseen": 0,
+    "width_median": 5
+   },
+   "2026-10-10": {
+    "both": 979,
+    "bid": 222,
+    "ask": 215,
+    "none": 24,
+    "unseen": 0,
+    "width_median": 5
+   },
+   "2026-10-11": {
+    "both": 473,
+    "bid": 22,
+    "ask": 806,
+    "none": 139,
+    "unseen": 0,
+    "width_median": 5
+   },
+   "2026-10-12": {
+    "both": 927,
+    "bid": 31,
+    "ask": 243,
+    "none": 239,
+    "unseen": 0,
+    "width_median": 5
+   },
+   "2026-10-13": {
+    "both": 820,
+    "bid": 56,
+    "ask": 231,
+    "none": 333,
+    "unseen": 0,
+    "width_median": 12
+   },
+   "2026-10-14": {
+    "both": 1350,
+    "bid": 37,
+    "ask": 39,
+    "none": 14,
+    "unseen": 0,
+    "width_median": 12
+   },
+   "2026-10-15": {
+    "both": 1322,
+    "bid": 73,
+    "ask": 33,
+    "none": 12,
+    "unseen": 0,
+    "width_median": 12
+   },
+   "2026-10-16": {
+    "both": 1336,
+    "bid": 45,
+    "ask": 51,
+    "none": 8,
+    "unseen": 0,
+    "width_median": 12
+   },
+   "2026-10-17": {
+    "both": 1252,
+    "bid": 80,
+    "ask": 99,
+    "none": 9,
+    "unseen": 0,
+    "width_median": 12
+   },
+   "2026-10-18": {
+    "both": 874,
+    "bid": 386,
+    "ask": 143,
+    "none": 37,
+    "unseen": 0,
+    "width_median": 12
+   },
+   "2026-10-19": {
+    "both": 459,
+    "bid": 908,
+    "ask": 20,
+    "none": 53,
+    "unseen": 0,
+    "width_median": 12
+   },
+   "2026-10-20": {
+    "both": 738,
+    "bid": 41,
+    "ask": 25,
+    "none": 470,
+    "unseen": 166,
+    "width_median": 12
+   },
+   "2026-10-21": {
+    "both": 885,
+    "bid": 515,
+    "ask": 20,
+    "none": 19,
+    "unseen": 1,
+    "width_median": 12
+   },
+   "2026-10-22": {
+    "both": 35,
+    "bid": 1230,
+    "ask": 0,
+    "none": 175,
+    "unseen": 0,
+    "width_median": 14
+   },
+   "2026-10-23": {
+    "both": 87,
+    "bid": 1204,
+    "ask": 21,
+    "none": 128,
+    "unseen": 0,
+    "width_median": 12
+   },
+   "2026-10-24": {
+    "both": 327,
+    "bid": 919,
+    "ask": 7,
+    "none": 187,
+    "unseen": 0,
+    "width_median": 12
+   },
+   "2026-10-25": {
+    "both": 1120,
+    "bid": 153,
+    "ask": 154,
+    "none": 13,
+    "unseen": 0,
+    "width_median": 12
+   },
+   "2026-10-26": {
+    "both": 640,
+    "bid": 743,
+    "ask": 32,
+    "none": 25,
+    "unseen": 0,
+    "width_median": 12
+   },
+   "2026-10-27": {
+    "both": 570,
+    "bid": 818,
+    "ask": 25,
+    "none": 27,
+    "unseen": 0,
+    "width_median": 12
+   },
+   "2026-10-28": {
+    "both": 766,
+    "bid": 618,
+    "ask": 23,
+    "none": 33,
+    "unseen": 0,
+    "width_median": 5
+   },
+   "2026-10-29": {
+    "both": 1079,
+    "bid": 84,
+    "ask": 128,
+    "none": 149,
+    "unseen": 0,
+    "width_median": 5
+   },
+   "2026-10-30": {
+    "both": 0,
+    "bid": 0,
+    "ask": 0,
+    "none": 180,
+    "unseen": 0,
+    "width_median": null
+   }
+  }
+ },
+ "minutes_from": "2026-09-26T00:00:00.000Z",
+ "minutes": {
+  "USDT-GBP": "uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuaauuuuaauaBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaaBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaaaaaBBBBBBBBBBBBBBBBBBBBBBBBBBBnnannnnnaaaaaannaannBaaannanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaannnaaaaanaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaanaaananaaannnnnnaanaanannanannaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaannnannaaaaaaaaaaaaaaaaanaaaaaaaaaaaaannaannanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaannnnnnnaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaanaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaannnnnnnnnnnnnnnnnnnnnannnnnnnnnnnnnnnnnnaaaannnnnnnnnnaaaaannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnaaaaaaaaannnannnnaannnnnnaaaaaaannnnnaananaaaaaaaaaaaaaaaaaanaaaababaaBaBaBBBBBaBBBBBBBBBBaaBBBBBBBBBBBBBBBBBBBBBBBBBBaBBaBBBBBBBBBaBBBBBBBBBBBaBbbbbbbbbBnBaBBBBBbBBBBBBBBBBBBBBBBBbbnnBBBBbBBBBbBBbBbBBbbBBbBBBBbBBBBBbBBBBBBBbbbbabbBBbbbBBBBBBbBBBBBBBBBBBBBBBbBbbbabbbBBbaBBbbbBBaBBBbbbbbBBBbBbnnBbBBBBaBannanaannnaaaaannnaanaaaannnnnnaaaaannnnnnnnnnaannaaaaaaaaaaaaaaaannnnnnaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaannaaaaaaaaaaaaaaaaaaaaaaaannnnnnaaaaaaaaaaaaaaaaaaaaaannnaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaanaaaaaaaaaaaaaaaannaaannnnnaaaanannaaaaaaabnnnnnnaaaaaaaaaaaaannnaaaaaaaaaannnnnnnnnnnnnnnnnnnnnnaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaanaaaanaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaanannaaaaaananaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaananaaaaaaaaaaaaaaaaBaaanaaaaaaaaaaaaaanaaanaaaaaaBBBBBnBBBBBBBBBBBBBaBBBBBBaBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBnBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBaBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBbabBBBbBBBBBBBBBBBBBBBBnBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBaaaaBBBBBBBBBaaaaaaaaaaaaaaaaaaaaaaaaBBBBBBBBBBBBBaaBBaaaaaaaaaaaaaaaaaaaaaaaaaaaaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaaBBBBBBBBBBBBBBBBBBBBBBBaaaaaaaaaaaaaaaaaaaaaaaaaaaaaBBbbbbBbBBBBBBBBaaBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBbbBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBaaaaaaaaaBBBBBBBBBBBBBBbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbbbBBBBaBBBbbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBbBBBBBBBBBBBBBabBbbBbBBbBBBBBBBBbBaBBBBBaBaaBbBBBBBbbabbbbbbbBBBBbBBbBBBbbbbbbbbbBBBBBbbbbBBBBaBBBBBBaBBBBBBBBBBbBBBBBBBBBBBBBBBBBaBnBBBBBBbBbbBBBBBBBBBBBBBBBBbBBBBbBBbBbBBbbBbbbbbbbBbBBBbBbbbbBBBbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBnbBBBBBBnBBBnbBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBbbbbbbBbbbbbbBBBBBBBbBBbbBBBBbbbBBBbbBBBbBBBBBbBbBbBBBBBBBBBBBBBBBBbbbaBbbbBBBbbBbBbbbbbbbbbbbbbbbbbbbbbbbbbbBBBBBBBBBBBBbbBbBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBbBBBBaaanaaabaabbaaaaaaaaaaaaanaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaanaaaaaanaaaaaaaaaaaaannaaaaaaaananaaaaaaaaaaaaaaanaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbBBbbbBBBBBBBBBbBBBBBBBBBBBBBBBBBbBBBBbBBBBBBBBBBBBBBBBBBBbbBBBBBBBBBBBBBbBBBBBBBBBBBBBbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBbBBBBBBBBBBbBBBBBbbbBbbbbbbbBbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBbBBBBBBBBBBBbBBBbbBBBBBBBBBBBbBbBBBBBBBbbbbbBBBbBBBBBBBBBBBBBBBBBBBBBBBBbbbBBBBBBBBBBBBBbbBBbbbbbbbbbBBBbBbBbbBBbBBBBBBBBBBBBBBBBBBBBBBBBbbbBBBBBBBBBBBBBBbBBBBBBBbbbBBbbBBBBBbbBBBBbbbBBBBbBBBBbBbbbbbbbbbbbbbBBBbbbbbbbbBBbbBBBBBBBBBBBBBaaBBBBBBBBBaaBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBanbbbbBBbbbBBBbBbBBbBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnBBaaaaaaaBBBbbbbbbbbbbbbbbbbbbBbbbbbBBaBBbbbBaBaaaaBBaBBaBBBBBnBaaBaaaBBBBaBaaBBbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBnBBBBBBBBBBBBBbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBaBBBBBBBBBnBaaBBBBBbnBBBBbBBBbBBBBBBBBBBBBBBBBBBbBBBnBBbBBBBBBBBBBBBBBBBBBBbBBBBbBBBBBBbBBBbBBBBBBBnBBBBBBBBBbbBBBBBBBBBBBnBBBBBBBBBBBBBBnBBbBBBBBBnBBBBBBBBBBbBBBBBBBBBBBBBaBBBBBBBBBbbBbBbBBBBBbbbbbbbbbbBBBbbbBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBbbbbbbBbbBbbBBnbBBBBBbBbbbBBBBBbBbBBBBabBbbbBbBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBbbBBBbbbbbbBbbbbbbbbbbbbbbbbbbbbBbbBBbbbbbbbbbbbbbbbbbbBBBBBbBBBBBBBBbBBBBBBBbBBbBbbbbbbbbbbbBbbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBbBbBBBBBBBBBBBBBBBBBBBBBbBBbbBBBBBbBbbBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBnnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBbbbbbBBBBBBBBBBBBBBBBBbbbbBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbBBBBBBBBBBBBBBBBBBbbbbbbbbbbbbbBbbbbbbbbBBbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbBBBBBBBbbbbbbbBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbBBbBBBBBBBBBBBbbbbBbBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnBnBBBBBbBBaBBBBBBBBBBBBBBaBBBBBBBBbbBBBBBBBBBBBBbbbBbnbbbBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBbbBBBBBBbbbbBBbbBBBBBbBBbBBBBBBaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaBaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaBBBBBBBBBBBBBbbbBbbBbBBBBBBBBBBBBbBBBBBBaBaabBBBBBBBBBBBBBBBBBBaBaaabBaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaBBBBBBBaBBBBBBaaaaaaaBaaaaaaaaaaaaaaaaaaaaaaaaBaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaanaaaaaanaaaaaaaaaaaaaaaaaaaaabBBBBBBBBBBBbaBBBBBBbBBBBbBBBbBbBBBBBBBBBBnBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBaBBBBBaBBaaaabBBBBBBaaabBBBBanBBBBBaBabnBaBBBBBBBBBBBBaBBBBaaaBBbBBBbbBnBBBBbBnnanbBBbBBBBabnBBBBBBBBBBBBBBBaaaaBBaanBBBBBaBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaaaaBaBaBBBBaBBBBBBaaBBaBBBBBBBaaBBaaaaaaaaaBaaBBaaBBBBBaBaaaaaBBBBBBBBBBBBBBBnaBbBBBBBBBBBbBaBBBaBBBaaBBBBBBBaBBBBaBaaaBBaaaaaaBBaaaaBBBBBBBBaaaaaaaanaBBBBaaBBaaaaaaaaaBBBBaaaaaaaBBBBBBBBBBBBBaaBBBBBBBaaaaaaaaaaanaaaaaaBaaaaaaaBBBBaaaaBBaaBBBBBaaaannaaBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBbbbbbbbbbBBBBBBBBBnbbaaaanbbaaaaaaaaaaaaaaaaaaaaaaaaBBBbBBBBBBBBBBBBBBBBBBBBBBBBbbBBBBBBbaaaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaaBBBBBBBBBBaBBbBBBBBBBBbbBBBBBBBbbBBBbbbbBbbbbbbbbbBBBBBBBbBbBBbBbbBbbbBBBBbBBBBBBBbBBBbbbbbbbbBbbbbBbBBbBBBBbBBBBBbbbbbbbbbbbBBBbbbBBbbbbBBbbbBBBBBBBBBBBBBBBBBbBBBbbbBBbBbBBBbbBBBbBBBBBBBBBbbbBaBbBBbBbBBBbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbBBBBBbbBnBBBBbBbbbaBBBBBBbbbBBBbBBBBbbbBBBBaBBBBBBBBBBBBBBBbBbBbBBBBnbBBBBBBBBbBBBBBBBBBBBBBBBaBBBaabnaBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBaaBaaaaBBBBBaaaBBBBBbBbbbBBbbBaBbbbbbbbBBBbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBanBBanBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBbbbbbabbbnBaBBBBBbBBBBbBBBBBBBBBBBnBBBBBnnuuuuuBBuuuuuuuuunnuuuuuuuuuuuuuuBBuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuBBuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuBBBBBBBBuuBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBaBBBBBBBbaaaaaaaaaaaaaaanaaaaaaaaanaaaaaaaanaaaaaaaaaBBBBBBBBnbBBBBnBBaBbBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBbBbBnBBBBBBBBBBBBBBBBBBBBnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBbBBBBBnBBaBBBBBBbBbBBBBBBBBBBBBBBBBBBBBBBBBBbBbBBBBBBBBBBBBBBBBBaBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBnBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnnBBbBBBBBBBBBBBbBaBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBaBBBBBBBBbBBbBBbBBbBBBBBBBBBBBBBBBBBBBBBBBBBnBBBBBBBbbbBBBBBBBBBBBBBBBBBBBBBbBBbbBBBBaBBBBBBBbBbBBBBBbBbBBBBBBBBBbBBBBBbBbBbBBBBBBBBBBBBBBBBBBbbBBBBBbBbbbBbbbbbbbbbbbbBbbbbBnbBbbbbbBbbbbbbbbbbbBBBBBBbbbbbbbbbbbbnbbbbnbbnbbbbbbbbbbbbbbbbbbbbbnbbbbbbnnbBbbbnbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbBbBBBbbbBbbbbbBbbbbbbnnbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbnbnbnbbbbbbbbbbbbbbbbbnbbBBbbbbBbBbnbnbbBbbbnbbnbbbbbbbbbnbBbBBBBbbbbBbbnnnbbbnnbnbbnbbbnbbbbnbbbbbbBbbbBBBbBBBBBBBbbBBBBBBBBnBbBBBBBBBBBbBBBbBBnBBBBBBBBBBBBBBBBBBbbnbBbbbnbbbnBbBBBBBBBBBBBbBBBaBBBBaBBBBBBBBBBaBBBBBBBBaaBBBBBBBBbBBbbbBBBBbbBbBBbbbBBbBBBBbbbBBBBBBBBbBBBBBBBBBBBBbBBbBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBbBBbBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBaBBbBBBBBbBaBbBBaBBBabbBBBBBBbBBBBBBBBBBBaBbBBbBbBBbBbBBBbbBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaBaaBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBaBaBBBBBBBBBBBBBBBBBBBbbbbbbbBbbbbbBBaBnbbBBBaBaBBBBBBBBBaBbbbbbbnbbbbbbnbbbbbbbbbbbbbnbbbBbbbbbbbbbbbbbBBBnBaBbbbbbbBBBbbbbbbbbbbbbnnbbBBaaaaanaaaaaannaaaaaaanaaaaaaaaaaaaaaaaaaananannnnnnnnaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaannnaannnnnannnnnnnnnnnnnnnnaannnnnnnnnannnnnnnnnnnnnnnaannnnnnnnannnnnnaaaaaannnannnnnnnnnnaaaanaaaanaaaaaannanaaaanaaaaaaaannaaaannnnnnnanaaaaaaaaaaaaaaanaannnaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaanaaanaannaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaBaaaaaaaaaaaaaBaaaBaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnnnnaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaBBBaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaannnnnnaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaannnanaannaaaaaanaanaaannnnnnbnnnnnnnnnnnnnaaaaaaaaaaaaaaannaaaaBBBBBBBBBBbbBbBBBBBBBBBBbBBBBBBBBBBBBBBBBbBBBBBBBBBBbBbBbbBbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbBBbBBBnnbbbbBaaabBBbBBBBBBBBBBBBBBBBBBBBBBBbbbbbbbbbBbbBbnaaaannnBBBaaaaaaaaaaaaBbBBbBBbbbaBaaaaBbbbbBbbbbbbBBBbbbbbBBbbbbbbbbbBBbbbBBbBbbbbbbbBBBbbbbbbbBbbbbbbbbbbbbbbBBbBBbBBBBBbbBBbBBbbBbBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbBBBBBBbBBBbbBBbbBbbbbbBBbBBbBbBbBBaanaanaaanaBBbbBBBBBBBbBBBaaaBbbBBBaaaaaaaaaaaaaaaaaaaaaaaaanaaannaaaaaaaaanaaaaanaaaaaaaaananaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaBBaaaaaaBbBBBBBBBBbbBBBBBBBBBBBBBBBBBnBBBBBBBBBBBBBanaababBbbBaaaaaaBBBBBBBBBBBBBBBBBBBBnnBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBbBBBBbbBBBBbBbBBBBBBbbbBBBBBBBbBBBBBBBbbbbbbbbbbBBBbBbbBBBBBBBBBBBbBbBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbBbBBBBBbBBBBBBBbBBBBbBBBBBBBBBBBbBBBbBbbbbBBBBBBbbBbBBBBBbbbbBbbBbBBbBBbBBBBBbaBBBaBBaaBBbBBbBBBBbbBBbBbBBBbBBBBBBBBBBBBBBBBBBBBBBBbbBbBbbBBbbbbbbbBBbbbbBBbbBbbBBBBBBBBbbBbbbbBBbbBBBBBBBbBBBBBbBBBBbbbBbbBBaBBBBBbBbbbBbbbbbbnBBBBnBBbBbbbbbbBBBbBabanbbBbBannnbBBbBBBBBBBBaBBBBBBBBBbaaaaaaaaaaaaaaaaaaaaaaaaaanaaannannnnBaBbbBbbBBBbbBBBBBBbbBBBBBbbBBBBaBBBBbBbbBbBBBBBaBBaBBanbBBBBBBBBBBBbBBBBBBBbBBBbBbbBBBbBBBBBBBbBbbbBBBBBBBBBBBBBBBBBBBBBBbBbbbbbbbbbbbbBBbbbbbbbbbbbbbbBBBbBBBBBbbbBbbBBbbbbbbbBbBbbbBbbbbBBBBBBBaBBBBBBBBBBBBBBBbBBBBBBBbbBbBBBBBBBBBbbBBBBBBaaBBBBBBBBBBBBBBBBBBbbbBBBBBBBBBBBBBBBBBBBBBaaaaaaaBBaaBBBBBbbBBBBBBBBBBBBBbbbbbbbbBbBBBbbbbbbbbbbbbbbBBbbbbbbBbBbbBBaanbbnnbbBBbBBBBBBBbbBbbbBannannannaaaaaaaaaaaBaaaBaaaaaBBaBBBBBBBBBBaBBBBabbbbbbbbbbbbbbbbbbbbbbbbbBBbBbbbbbBBbnbbbbbbbBaaBBBBBBBBBBBBBBaaBBBBBBBBaaBBBBaaaaaaaaaaaaanaaaaaannnnnbnnnnnnnbnbbnnbbbbbBaBBBaaaaaaaaaaaaaBBBBBBBBaBBBBbbbbbbbbBBBBnnBBBBBBBBBBBBBBBBBbBbBBBBBBBBBBbBBbbBBBBBbBbbbbbbbbbbbbbbbbannnnabbbbbBbBanannaanbbBbBaaaaaBaaaaaaabbBaabnanaananabBaaannaanaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaBBBBBBBBBBBBBBBBBBBBnBBBBBBBBBBBBBbnaaBBbnaannbbbaBaaannnnnnnnannBBBBBBBBBBbbBBnbbbbbnbbbnaBBaBnnannnnnnbbbnbBBBBbBnnnnbbnaannnannnBBaanannanaaaaaaaaaBBBaaannnnnbaBBBBBaaaBBaanbBbannbbnaBBaBBBBBBBBBBBaBBaBBBBBBBBBBBaBaaBBBBBBBbBBBBBaBBaBBBBBBBBBBBBBBBbnnbbBnnaBBBbBbbBbaBBBBBBnBbaBBaaaaBannnnnaBBbaaaaaaaaBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBaBaaaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBbbnbBBBBBBBBBBaBBBBBbbbbbbbbbbbbbBBBbbbbbbbbBBBBBBbbbBBBBbnbBBbaBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBbBBBbbbbbbbbbbbbBBBBBBBBBBaaBBBBBBBBBBBaaaaaBBBaaBBBBBaBBBBBBBBBBBBBBBBBnBBBBBaaaaBaBaBaaBnBBBBBBBBBBBaBBbBBBBBBBBbBBBBBBBBBBBBBBBBnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnBBBBnBBBaBBBnBBBBBBBnBbBBBBBBBBBBBBBBBBBBBBBBBnnBBBBBBBBBBBaBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBbBBBnbBBBBBBBBnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBbbBBBBBBBBBBBBBbbbbbbbBbBBBBBBBBBBBBbBBBBBBBBbbbBBnBBBBBBbBaBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBaBBBBnnnnnnnnnnnnnnnnnnnnunBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBuBBBBBuBBuBBBBBBBBBBBBBBBBBuBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBuBBBBBBBBBBBBBbbbbbbBbbBBBbbBnbbbbBBBBBBBBBBBBbbbbbbbbbbbubbbbuuubbbbbbbbbbbbunnnnbbbbubbbbbbbbbbbuubbbbbbbbbbbbbbbbbbbbbbbbbbbbbnnnnnnnbbbbbbbbbbbbbbbnbnnnbbbnnnnnnnnnnnnnnnnnnnbnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnbbnbbbbbnbnbnnnnbnbnbbbbbbbbbbbbbbbbbbbbbbbbbnnnnnnnanaannnanbnaanannnaBBaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaannnnnnnnnnnnnnanannnnnnnaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaannaaaaannnnnnnnnnaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaannaaaannnaanannnnanaaannnaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaauaaaaaaaaaaaauuaaaaaaaaaaaannaanaaaaaaaaaauannnnnnuuaannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnunnnnnnnnnnnnnnnnunnnnnnnnuuannnnaannnnnnuunnnnunnnnnnnnnnnnnunnnnnnnnnnnnnnuaaunannnnnnnunnnnnnnnnnnnnnnnnunnnnnnnnnnnnnnnnnnnnuunnnnnnunnnnnnnnnnnunnuunnnnuunnunnnnnnnnnnnnnnnnnnnnnnnnnnnnunnnnnnnnnnnnnnnnnunnnnnnnnnnnunnnnnnuuuunnnnnnnnnnunnnnnaaaaannnnnaaannanaannanannnnnaaannaaaaaaaaaaaaaaaaaaaaanaaaanaaaaaaaaaaaanaaaaananaannnnnannnanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaannnnnnnnaaanaannnnnaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaannnnnnnnnnaaaaaannaaaaaaanaannaaaannannaaaaaaaaaaanaaaaaaaannnnaaaaaaaaaaanaaaaaannannaaaaaaaaaaaannnnaaaaaaannaaaaaaaannnnaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaanaaaannnaaaaanaannnnnnnnnnnnnnnnaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaannaannnananaannannanaaaaaaaaaaaaaaaaaaannnnnnaaaaaaanaaanaannannaaaaaaaaaaaanaaaaaaaaaaaaaaaaanaaaBbnnBaaaaaBaBBBBBBBBBbBBBBBBbBBBBBaBBBBBBbbbBBBBBBbaBBaaBBbBbBbnnanBBBBaBBaBBBnnBBnanbBBBBBBBBBBaaBBBBBanaBBBBBBBBBBBabBbBbBBBbaBBBBBbbbbBBaanbaaaBBannabBBBBBBBBbbbbnnbBbBanannnBBaBBBBBBBBBBaBBBBBbBBBBBBbBnBBBBBbBaBbbbBBbBbBaBaBBBBBBannBaBBBbbbbbnbBbbBBBBBBBBBBBBbbbbbbbbbbbbbbbbbbbbbBbbbbbbbbnbbnbbbbbbbbbnBbbnbBbbbbbbbbbnbbbbbbbbbbnnnbBaBBBBBBBBBBBBBBaBaBBBBBBBBBBBBbbbbnbbbbbbbnbbbbbbbbbbbnbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbnabBbBBBbBBBBBBBBBbbBbBBBBnBBBBBbBBBBBBBBbBBBbbbbnanaanannaaaaaaaaaaanaaanaaanBaaaanaaaaaaaBBBBBBBBaBBBnBbBBBBbbBBbBbBBBBBBBbBBBBBBBBBBBBBnBBBBBBBBBBBBbBBBBBBBBBBBBnnBBBBBBBBBBBBBBbBBBBbBBbBbBBBnBBBBBBBBBBBBBBBBbBBBbbbbbbBBbBBBBBBBBBBBnBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBnBBBBnBBBBBbBbbbBBbbbbbBBbBBbbbbBBbbBbBBBBBBBBnBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBaaBBBBBBBBBBBbBBBBbBbbbbbBBBBBBbbbBbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbBBBBBBBBBBBBBBBBbBBBBBBBbbbbbbbbBBBBBBBBBBBBBBBBBBBBBBBaaBBBBBBBBBBBBBBBBBaaBBBBBBaBBBBBBBBBBBBBBBBBBBBBbbbbbbbbbbbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnBBBBBBBBBBBBBBbbbbbBBBBBBbbbbbbbbbbBbbbBbbbbbbbbBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBbbbbbbbbbbbbbbbbbbbbbbbbbbBBBBBBBBbBBBBBBBBBBaBbbbbbbbBBBBBBBBBBBBBBBBBBBnBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbnbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbBBBBBBbBBBBBBBBBBBBBBBBBBBBBaannaaaannnnaaanaaaaaaaaaaaaaaBBbBBBnBBnBBBBBBBaBBBBBBBBBBbBbBBBBBBnbBbbBbnBBbbBBBBBBbBbbbnaBaBBbBBBbBBBbBBBBBBBBabaaaBbBBBBBBBbBBbBBBbBBBBbBbBBBBBBBbBBBbaBBbBnBBBBBBBbnbaBBBBbbBbBBBBBbbbbBBBBbbbBBBBBBbbbBBBnBBBBBBBBBbabbbbbbbbnbbbbbbbbbbbbbbbBBbbbbBBbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbBaBBnbBBbbbbbbBbbBbbbbBbbBBBBbbbbbbbBBBBbbBBbbbbbbBbBbbbbbbbbbbbBbbbbbbbbbbbbbbbbbbbbbbbbbbbbbBbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbBBBBbbbbBBBBBBBBBBBBBaaaabnnbaaaaaaaaaBaaaaaBBBBBBBBaBBBBBBBBabbnbBbBbBbBbbbbbbbbbbBbbBBBBBbbbbbbbbbbbbbbnbBBBBbbbbbbBBanbbbbbBbbabbbBnbbbbbbBBBBbbbbbBBbbbbbbBaBBBbbBBBbnBbBBBBBBBBBBBbBBBBbBBBBBBBBBBBBBBaBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBaBBBaBaBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBbBBBBBBBBBBBBBBBBBBBBBBBBBbbbbbBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaaBBBBBBBBBBBBBBBBBbBbBBBBBbBBBBBBBBBBBBBBBBBbBBBBBbBBBBBBBBaBBbbbBbbnbBbbbbbbbbbBBbbbbbbbbbbbbbBbbbbbbbbbBBBBbbbbbbbbbbnbbbnbbbbbnbBbbBbBbBBBbBbbbBbbbBbBBBbBBBBaBBBBBBBbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbBBaBaBBBaBBBBaBBBBBbbbBBBbbBBbBBBBBBBBaBBBBBBBBBBBBBBBBBBaBBBBBBBBBaaBBBBBBBBBBBbBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBaBBBBBBBaBBBbBBBBbBBBBBBBBBBBBBaBBBBBBbBBBBBBbbbbbbbbbbbbbBbbbbBbBBbbbbBBbbbbbbbnbbbbbbbbbbbbBbbbbbbbbbbbbbbbbbbbbbbbbbbnBBbbbbbbbbbbbbbbbbbbbbBBbbbbbbbbbbBBbBBBBBBBBbBBBBbbbBBbbbbbbnbbbbBBBBBBBBbbbbbbbbbbbbbbbbbbbbBBbbBBbbbBbbBBBBBBabbBBBBBBBBBBBbBBBbnBBbBBBBBBaaaaaaaaaaaaaaaaBBBBBBBBBBbBBaBnbBaBbbbBaaBaaBaBaaaaaaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaaaaaBaaaBBBaBbbBbbnbbnBBBaBbbbbbbbaaaaBBBBBaaaaBBaaaaaaanaaaBBBaaaBBaaaaabBBBBBBBBBBBBBBBBBBBBBBBBaBaaaaanaaaaBaaaaaaaaaaaaBBBBBBBBBBBBBbbbnnnnbnbbbbbbbbbbBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaannnnaaBBbbbbbbBbbbbbbbbbBBbBBBbnnnnnnnnnnnnnnnnnnnnnnnnnnnnnanaaaaaaaannaanannaaaaaaaaaannnnnnannnnnnnaannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaBaBaBBBaaaaaaaaaBaBaaaaaaaaaaaanBaaaaananBBBBBBBBaaaaaaaaaBaaBaaaaaBBBbBBBBBBBBBBBBBbBBBBaBbbnnaBBBBbbBbbbbbBBBBBBBBbBBBBBBBBBBBBBBbBBaBBBBBBBBBBBBBBbBBBBBBbBBBbbbBnbbbBBBBBbbbbbbbbbbbbBBBBBbBbBBBBBBBBBbbbbbbbbbBBBBBBbBanBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBbBBBBBBBBBbBBBaBBBBBbBBBBBBBBBaaBBBBBBBBBBBBBBBaaaaaaBBBBBBbBBbBBbBBbBBBBBBBBBBBBBBBbBBBbBbBBBBBBBBBbBBBBbBBBBbBBBbbbbBBBBBBbBBBbBaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaannaannnnnaaaaaaananaaaaaaaaaannanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaannnnunnnnnnnnnnnnnnnnnnnnaaaaaaanaaaaannnaaaaaaaaaanaaaaaaaaaaaaanaaaannnnnnnnnnnnnnaaaannnnnnnnnnnanaannnaannnnannnannnnnnnnnnnnnannnnnnnnnnanaaanaaaaaannnnannnnnnnnaaaaaaaaaaaaananaannaannnaanaanaaaaaaaaaaaaaaaaaannnannnnaaaaaaaaaanaanaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbnbnbbbbbbbBbnbBbBBaaaanBBaaaaBBBBBBBBBnnnnbbnnbBBBBBBaaaaannbBBbnaanBBBbnnnBbbbbaaanBBBaBbbBBbbaabbbbbbbBBaaaBbbbBBBbBbBBBBBBBBBBBBnBBBBBBBBBBBBBBaaBbBaaBBBBBaanBBabnbnbbbbbaaanaaaaannannnnnnaaaaaaBBBBBBBBBBBBBBBBBBBBBbbBBaBBBBbbBBBBBBBBBBBBBBBBbbBBBBBBBBBBBBBBbbbbBaaaaBBbBbbBbbbbbbbbbbBBBBbBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBabBBbbbBbbbBBBBBbbBBbBaaaBBBaBBBBBBBBBBBBBBBaabbbbBBbBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBbaaBbBBBBBBBBBBBBBbBBBBBBBBBaaBBBBBBBBBbbbbBbBBbbbbbbbbbbbbBBBBbbbBBBbbbbBbBBbbBBBBBBBBbbbbBbbbbBBBBBBBBnbbBBbbbbbbbbBBBBbbBbbbbbbBbBBBBBBBBBBBBbBBBBbBBBBBBBBBaBBbBBBBBBBBBBBBBBBBBBBbbbaBBBBBBnbBBBBBBbBBBBaaBaBBBBBBBBBBBBbBbbBBbbbbbbbbbbbbbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaBBBbbbbbbBBBBBbBBBBBBBBBBBBBBnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBbBBBBBBBBBBBbBBBBBBBBnaaBaBBBBnBBaBBbbbBBBBBBBBBbaBBBBBnBBBBBaaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBannnannnnnnnaaaaaaaaaaBBBBBBBBBBBBBBBBBBBBaaaannnaaaaaaaaaaaaaaaaaaaaaaaaaaaaaannaaaanaaaannnnnnnnaaaaaaaaaaaaanaaaaaanaaaaanaaaaaaaaaaaaaaaaaaaaaaaannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnaaaaaaaaaaaaaannaaannnnnnnnnnnnnnnnnnnnnnaanaannaaaaannnnnnnnnnnnnnnaaaaanaaaaaaaaaaaaaaaannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnannnnnnnnnnnnnnnnnannnnnnnnnnnnnnannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnaannnnnnnnnnnnnnnaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaananaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaannnnaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaannaaanaaaaanaannaanaaaaaannnannnaaaannnnnnnaanaaaaannaaaaaaaaaaaaaaaaanaaaaaBnaBBBaBBBBBBBbbBBBBaBaBBBBBBBbBBnBBBBBBBBBBBBBBBBBBnBBBBBBBaanBBBBBBBBBaBBBBaBBBBBanaBBnBnnnnbBBBBabBBBBbnaaaaBnnnbBBBBBBBBaaBBBBBaBBBaBBaBaaaaaBBaBBBbBBBBbBbBaaaaaaaaanaaBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBbbbBbbbbbbbbbbbbbBBBbbbbBBBBBBBBBBBBBBBBBbBbBBBbBbbbbbbbBBBbbBbBbBbBbbBBBBBBBBBBBBBBBBBBBBBBBbBBbBBBBBBBBBBBBBbBbBBBBBBBBBBBBBBBBBBBBBBBBBbbBbBbBBBBBBBBBBBBBBBbBbbbbBBbbbBbBbBBBBBBBBBBBBBBBBBBBBBBbBBBbBBBBBBBbBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBbbBBBBBbBBBBBBBBBBBBBBBBBBBBBbBBBBBBnBBBBBBbBBBBBBBBBBBBBBBbBBBBBBBBBbBBBBBBBBBBBBBBnBBnBBbBBBBBBBBBBbnBBBbBbbnnBBBBbBBbBBBBBBBBBBBBaaBBBaBBBBBBBBBBBBBbBBbbbbbbbbbBBBBBBBBBBBBBBBbbBbbBbBBnBbbbbbBBBbBBBBBBBBBBBBbbBBBBbbbbbBBBBbbBBbBBBBaaaanbnnbbnnbBBBBBBBBbannaabaaBaaBabbbbBaBBBBBBaBaBBBBBBBaBBBBBBBBBBBaBBaBBBBBaBBBBBBBBBBBBBBBBBBBBaBBbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbBbbbbbbbbaBaaBaaaaaaaaaaaaaaaaaaaaaaaaaaBBBBnBBbbbBbbbbBbbBbbbbbbbbBBBBnaBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBbBaaaBBBBBBBBBBbBBBBBBBBBBBBBBBaBBnBBBBBaaBBbBBBBBBBBBBBBBBaBBBBBaBBBBBaBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBbBBaBBaaaaBaaBBaaaaBBBBBBBBBBBBBBBBBBBBBaaaaanBaaBBBBBBaBBBBBBBaaBBabaaBBabbBBBBBBBBBBBBabaaaaanBBBaBBBBBBBbbbbbaBbaaaBaaaBBnaBBBBBabbabbbbbBBBBBBBBbbBbbbbBbbbbbBBbbbbbbbbbbBBBBBbbBBBbbbbBBBbBbbbBBBBBBBBBBBbBnBBBBBBBBBBBBBBBBBBBBBbbbaBBbaaBBnaBBaaBBaaaaabbbbBbaaaaaaaaaaBaBaBBaaaaaabBaabbbbBbbaabBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBnnnnnnnnaaaaanaanaaaaaaaaaaaaaaaaaanaaaanaaaaaaaaannnaaaaanaaaaaaaaaaaaaaaaaaannnaaaaBBbbBbbbbBBBBBBaaBBBbbbBBBBBBBBBBBBBBBaBBBaBbBBBBBBBnBnbbbbbbbbbbbnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnBBBbnnbbbBBbbbbBBBBBaBbbBbbBBBBBaaaBBBBBBBBBBaBBBBBBBBBBBBBBaaBaBaaaaBBBBBBbbBBBBbbbbBBBbbBBBBBBBBBbBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBbBBBBnBBBbBBBBBBaBBBnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBbBBBBBBnBBBBBBBBBBBBBBBBBBBbbbBBBBBBbBBBBBBBBBbBBbbBBnnBbBBBbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBanBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnBBBBBBBBBBnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBbBBBBBBBBBBBBbBBbBBBBBBBBBBBBBBBBbbBbbBBBBBbbBbBbBBBBBBbBBBBBBBBBBBBbBBBBBbbbBBBBBBBBBBBaBBBBBBanBBbbBBBBBBBBBbaBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBaaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBbBbBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBbBbbbBBaBBBBBBBBBBBbbbbbbbbbBbbbbBbbBBBbbbbbbbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBbBnBnbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBbBBBBBBBbbnBBBBBBBBBBBBBBBBBBBBbaBBbBBBbBaBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBaBBaBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBbBBBBBBbBBBBBBBbBBBBBBBbBbBbBBBbbbbbbbbbbbbbBBBBbBBBBbbbBbBBbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbbbbbbbbbbbbbBBBbbbBBbbnbbbbbbbbbbnBBBaBbBBBBBBBBBBBBBBBBbbBBBBBBBBBBbBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBbbbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBnnBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBbbbbbBBBBBBBBBBBBBBBBbbbbBBBBBBBBBBBBBBBbbbbbBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnBBBBbBBBBBBBBbBBBbBabBBBBBBBBBbBaBbBBbBaaBBbBBBBbBBBBBBBBBBBBbBBBBBbbbBBBBbbbbbBbBbBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBbbnBbbBBBBBBbBBBBbBBBBbBBbBBBBBBBBbBbaBbbBBBBBBBBBBBbBBBbbBBBBBbBBbBbBbbbBBbBBBBBbbBbBBBBBbBbBBBBBbbBBBBbbBbbBBbbbbbbanaaBBBbaaBBabbBBBBBBBBBBBnnBBaBBBBBBBaBBaBBBaBBBBBBbBBBaBbbbBbBBBBBbbBBbBBbBBbBBBBBBbnBBbBBbbbBBBBnBBaBnBBaaBaBBaBBabBBBBaBBBBbBBBbBbbBBBBBBBBBBBBBBBbbbbBBBBBBBBBBBbBBbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbBBBbBBBBBBBBBbBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBbBBBBBbBBBBbBbbBBBBbBBBBbBbBbbBBbbBBBBBBBBBBBBBBBBBBBBBBBBbBnBBBBBBBBBBBBBBBBbBBBbBBbBBBBbBBBbbBBBBbBBBbBBBBBBbBBBBBBBBBBBBBBnBBBBBbBBBBBbbBbbbbbbbbBBBBBbBBBBBBBBaBBBBBBBBaaBbBBBbbaBBBBBBBBaBBBBBBBBBBBBBBBBaanBBBBBBBBBBBBaaBBBBBBBBBBBBBBBBBBBBbbbbbbbbbBaaBBBbbbbbBBBaBaBaabBBBbBBBaBBBBaBBBBBBBBBBBbbBBBBBBBBBBbBbBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbbbbbbbbbbbbbnnBBBaBBBBBBBBBbbBBBBBBnBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBbBBBBBBBabBBBBBBbbBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBbbBBBbBBBBBBBBBBBBBbbbBBBbBBBBBBBBbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBaBBBBBBBBaaBBBBBBBBBaaaBBBBBBBBBBBBBBBBBBaBBBBBBBBBaBBBBBBBBBBbBBnnnBBbnbaBBBBBBBBBBBBBBBBBBBBBbbbbbBbbBBBbbbbbbbBBBBBbbbBbbbbbbbbbbBbbbbbbbbbbBbbnbbbbBbBBBbbbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBnBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbbbbBBbbBBBBBBBBBBBBBBaBbBBbBbbaBBbBBBBBbBBbbBBBbnbnbbBBbbBBBBBBBBBBBBbbBBBBBBBBBBBBbbbbbbBbbBBBnbnnnBbbbBbnnnnBnnbnbBBBBaBBaaaaaaaaaaaaaaannnbbbbbbbbBaBBBaaaBaaBaaBBBBaaaaaaBBBBaBaaBBBaBBBBaaBBBBaBBBBaBaBBBBBBBBBBBBaBBBaaBBBBBBBBBBBBBBbbBbbbbbbbBbbbbBBbbbbbbbbbbBBbbBbbbbbbbbbbnnbbbbBbBBBBBnnaBbbbbbbbbbbbbbbBbBBBBBBBBBBBBBBBBBBaBBBBBBBBBBbBBbBBBbabbBBBBBBnBBBbaBBBBBBBBBbaBbbbbbBbbbbBBbbbBabbbbbbbbbbBaabBBBBBBaBbbaBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBaBBBBBBBaBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBaBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaBBaBaBaaaaaBaaaaaaaaaaaaBaaaaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaaaaaaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBaaaaBBBBBaaaaaaBaaBBaaaaaaBaaaaaaaaaaaaaBBBaBaaBaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaBBBaaaBBaBaBBBBBaBBBBBaBBBBBBBBBaaBaaBaBaaBaaaaaaaaaaaBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaBBBaBaBBaaaBaBaaBaaaaBBBaaaaBBBBBBBBBBBBBBBBBBBBBBaBBBBBaBaaBBaBBBBBaaBBBBaaBaaaaaaaBaaBBBBBBBBBBaaaaBBaaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaBBBaBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaBaaBBBBBBBBBbbbbBBBBBBBBBaBBBaBBBBBBbbbbBbBBBBaaBBBaaBaaaBBBBBaBBBBaBBBBBBBaaaBBBBBBBBbBBBBBBBBBBbbbbBBBBBBBBBBBBBBBBBBaaBBaBBBBBBBBBBBBBBBBbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbabbbbBbbbbBBBBBBBbBBBBbbnanBbBaaBBBnnnnnannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbnbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbnnbbbnbnbnnnnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbnnnnnnbbbnbbbbbbnbbbbbnnbbbbnbbbbbbbbbbbbnnbbbbbbbbbbbbbbbbbbbbbbbnnbbbbbbbbbbbbbbnbbbbbbbbbbbbnbbbbbnbbbbbbbbbbbbbbbbbbbnnbbbbbbbbbbbbbbbbbbbbbnbbbbbbbnnnbnbbbbbbbbbbbbbbbbbBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBnbBBBBBBBBBBBBBBBBbBBBBBBBBBBBBbBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbbBBBBBBBBBBbbbbbBBBBBBbBbbBbBBBbbbbbbbbbBBbbbbbbbbbbbBBBBBBBbBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbbbbbbbbbbbbbbBbbbBBbBbBbbbbbbbbbbbnbBBBBBBbBBBBBnnnnnbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbbbbbbbbbbbbbbbbbbbbbBBBbBBbBBBbbBbbBBaaBBBBbaBaaaBBBBBBBBBBbBbnbBnaBbBBbBbabaBBBBBBBBBBBBBBBBBBBBBBBBBbBBbbBBaBannbbabBbaaaBBaaaabBBBBBBBbnnnnnBBBBBBBBBbbBBBBBBBBBbbbBBBBbbbbbBBBBBBbbbbBbbbbbbbbbbbbbbbBBBaaBanaBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBuuuBbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuunnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnbnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBaaaBaaaBaBBBBaBBBBBBBBBBBbBBBBBBBbBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBbBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBnnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBbbbbBBBBBBBBBbBBBBBbBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBbBBBbBBBBbbBBBBBBBBBBbBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBbBBBBBBBBBBBBBBBBBbbbbbBBBBBBBBBBBBBBBBBbbBbbbBbBbbbbbbbbBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBbBBBBBBaBBBBBBBBBBBaBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBaaBBBBBBBBaBBaBBaBBBBBnBaaBBBBBBBBBBBBbbBBBBaBbBBBBaBBBBbbBBBbBBbbbBnbBbbBBBBBBBBBBBBBBBBBbBbBBBBBBBBBBBBBBBBBBBBBbBBBbBBbBbBBbBBBbBBBBBbbBBBBBbbbBBBbbBBBbbBBbBBBbbbBbbbBBBBBbbbbbbBBBBBbBBBBBbBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBaBBBBbBBBBBBBBBBBBBBBBBBBBBbBBBBBBBbBbbBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaBBbBnBBaaaaaBBBBBBBBBBBBBaBBBBBBbBbBBBBBBBbBbBBBBbBbBbBBBbBBbbBbBBBBBBbBbbBbbbBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBbbBbbbBBbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnnnbnnnbnbbbbbbbbbbbbnbbbnnnbbnnnnbbbbbbnnnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbubbbbbbbbbbbbbbbbbbbbbbbbbbbbbubbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnnnnnnnnnnbbbbbbbbbbbbbnnnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbnnbbbbbbbbbbbbbbbbbbbbbbbbbbbnbnnbnnnbbbbbbbbbbbbbbbbbbbbbbbbbbnnnbbbbbbbbbbbnnbBBBBBbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBaaaaaaBBBBBaaaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBbbbBBBBaBBBBBBBBaBBBBBBBBBBBBBBBBBBBaaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaBaaaaBaBBBBBBBBBBBBaaaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbBBbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnnnbbbnnnbnnnnbbBnnnnnnbnnnnbbbbbbbbbbbbbbbbbbbbbbnnnnnbnbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnnbbbbbbbbnbbbbbbbbbbbbbnbnnnnbbbnbbnbbnnbnnnbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbBBBBBBBBBaannnbnnnnbnbbbbbbbbnnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnnnnnnnnnnnnnnnnnnbnnnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnnbnnnbbbbbbnbnbbbbbbbnnnnnnnnnnnnnnnnbbBBbBbbbbbBBBBbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBbBBBBBBBBBBaaBBBBaaBBBBBBBBBBBBBBBBBBBbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbnbnnnbbbbbbbbbnnnbbbnnnnnnnnnnnnnnnnnnnbbnnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbnbbbbbbbbbbbbbnnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbBBBBBBaaBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbbbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbBbBbbbBbbbBBbbbbBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBbbbbbbbbbbBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbbbbbbbbBBbBBBbbbBBBBBBBBBBBbBBBbbBBBBbbbbbBBBBBbbBbbbbbbbbbbbbbbbbbbbbbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBbBBbBBBBBBBBbbbBbbbBBbBBBBBBBBBBBBbBBBBBnnnbnbnbnnnnnnnnnnnnnnnnnnnnnnnnnnnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnBaaaaaaBaBBBBBBBBBBbBBBbBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBbBanBBBBBBBaBBBBBBBBBBbBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBbBBaBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBaBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBnBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBbBbbBBBBBBBBbbBBbbbBbbbbbBBBbbbbbbbBbbbbbbbbBbbbbBBnBBBBbBBbBBBBBBBbBbabbBBbBbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnnBBBBBBbBBBBBBBBBBBBbaBBBBaBBBBnBBaBBBBBBBBBBBBBBBBBBBBBBnBBBBBBBBBBBBBBBBBnBBBBBBBBBBaaaaBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBaaaaaaBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbBbbbbbbbbBbbBBBBBBBBBBBBBBBBBBBBBBBBBBbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbbbBbBbBbBBBBBBBBBBBBBBBBbbbbbBbbBBbbbBBBBBBBbbbbbBBBbBBBBBbbbbbbbbbbbbbbbbbbbbbbbbbbbBBbBBBBBBBBbbbbBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBbbBbBBBBBBBBBBBBBbbbbBbBBBBbbBbBBBBBBBBBBBBBBBBBBbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBbbbBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaaBBBBBBBBBBbBBBBBBBBBaaBaaaaaBBBBBBBBBBBBBBBaBBanaaaBBBbaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBbbBBbBbbbbbbbnnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnbbbbbbnnnbnbbbbbbbbbbbbbbbbbbbbbbbbbnnbbbbbbbbnbbbnnnbbbbbbbbbbbbbbbnnnbnbbBBBBBBBbbBBaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbBbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbbbbbbbbbbbbbbbBBBBBBBBBBBbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnnnnnnnbnnnnnnnbbbbbnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbnnnnnnnnnnnnnnnnnnnnnnnnbbbbbbbbbbbbbbbbbnnnbbnnnnnnnnnnnnnnbbbbnnbbbbbbbbbbbbbbbnnnnnnnnnnnnnnnnnbbbBBBBBaaannnnnnaaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaaaaaaannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnaaaaaannnnnnnnnnnnnnnnaaaanaannaabbBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbBbbBbbbbbbbbbbbbnbbbbbbnbnbbnbnbnbbbbbbbbbbbbbbbnbbnnbbbbbbbbbbbbbbbbbbbbbbnBbbbbbbbbbBBbbbbBbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbBBBbBBbbbBBBBBBBbbbbbbbbbbbBBBBBBBBbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnnbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbBBbbbbbBBbnbbbbbbnbbbbbbbbbbBBBBBBbBBBBBBBBaBaaBBaBBBBBBBBBbBBbaBanBBBBBBBBBBBBBBaBBBBBBBBBBBaaBBbnBBbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBaBBBBBBBBBBBBBaBaaBBBBBBBBBBBBBBBbBBBbBBbbbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaaaBaBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbBBBBBbBBBBBBBBBBBBnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBbBBBBBBBBBBBBBBBBnBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBaBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbbbBBbBBBBBBBBBBBBBbBBBbBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnnbbnbbbbbbbbbbbnnnnnnbbbbbbbbbbbbbbbbbbbBBBBBBBBaaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBaBBBaaBBaaBBBBBBBBaBaaaBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaaBBBBaBBBBaBBBBBBaaBaaaBBaaaaaaaaBBBBBBBBBBBBBaBaBBBaaaaBBBBBBBBbbbbbbbbbbbbnbnbbbbbbbbbBBBBBBBBBbBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBaaaBBBbBBBbbbBBBBBaaBaabbaabBBBBBBBBBBBBBaBaaBaaaaBBBBBBBbbBBBbbbBbBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaaBaBBBaaaBaBBBaBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbnnnnnbbbbbbbbbnbbbbbbBBBBBBBBBBaBBBbBBBBaBBBBBBBBaBBaBBaBBBBBBBBaBBBBBBBBBBBBBBbBBBBBBBBBBBaaaaaBBaaaBabBBBBBbaBBBBBBBBbbnaanbBBBBBBBBBBBbbbBbBbbaaaaaaBBBaaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbbnnbbbbbbbbbbbbbbbnnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbBBBBBBBBBBBBBBBBBBBBBbbBBBBBBbbBbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbbBBbnBBBBBBBBBBaBBBBBBBBBbBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBbnBBBBanBBBnBBBbBBBBBBBBBBBBBBaBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBnBBBBBBBBBBBBBBBBBBBBBBBBBbbbbnbbbbnnnnnnbnbbbnbbbBbbnnBBaBBBBBBBBBBBBbbbBBBBBBBBBBBBBbBBBBBBBbBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBnBBbbbbbbbbbbbbbBBBBBBBBBBBBBBbanbbbbbbBBBBBbBBBBBBBBbBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBbBBBBBbBBbBBBbbBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBbbbBBBBBbbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbBbBBbbBBBBBBBBBBBbbBBBBBbBBBBBBBBBBBbBbBBBBBBBBbBbbbbBBBbBBBBbbbBbbbbbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBaBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBbBBBBBbBBBBbbbBBBBbBBBBBBBBbBBbbbbBBBBBBBBbBBBBBBBBBBBBBBBbBBBBBBBBBBbBBBBBbbbBBBbbbbbbbbbbBbBBBBBBBBBBBBBBbBbBBBBbBbBBbBbBbbBbBBBBBbBBBBBBBBBBbBBBBBbBBBBBBBbBBBBBBBBBBBBBBBBbbBBBBBBBBBbbbbBBbBBBbBBBBbBaBBBBBBBBBBBBBBBBBBBbBBBBBBBbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbaaaaaanaaaaaaaaaaaaaBBaBBbBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBaaBBBBBBBBBBBBBBBBBBBaBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbBBBBBBBBBBbaBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBbBBBBBBBBaBBbBBBBBBBBbBBBBBBBaBBBBBbnbbbbnnnBnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn",
+  "USDC-GBP": "uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuBBBBBBBBBuuuuuuBBuuBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBbBBBBnnnnnnnannnnnaannnannnnnanaannnnnnnnnnnnnnnaaaannanaaannnnnnnanaanaaanaanannnaanaannnnnannnnnnnnnnnnnnnnnnnnnnannnananaannnaannnnnannnnnnnnnnnnannnaannnnnannnnaaannnnnnnnnnnnannannaannanaaaaaaannannaannanaanaanaaaannaaaaaaaaaaaannaaaaaaannnaaaaanaaaanannnnaaannnnnannnaannnnnnnnnnnnnnnnnannaannnnnnnnnnnnnaaannnnnnnnanannnnnnnnnannnanannnnannnnnnaanaaaaaaanaaannnnnnnnnanaaaaannnnannnnnnnaannaaaaaaannnaaaaaaaaannnanaannnnaaaaaaannnnnnnnnnnnnnnnnnnannanannnnnnaanaaaaaaaaaaaaaanaannnnnaaananaaaaaaaaaaaaannnnaannnaaannaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaanaaaaaaaaaaaaaaaanaaaaaaaaannaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaanaaaanaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaanaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaannnannnnnannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnaannnnnnnnnnnnnnnnnnnnnnaanaaanannnnannnnnnnnnnnnaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaBaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaaaaaaaaaaaaaaaBBBBBBBBBBBBBnnBBaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaBBBBBBBBBBBBBBBBnnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBaaaaBBBaaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbbBBBBBBBBBBBBBBBbBbbBBBBBBBBBBBBBBBBBBBBaaaaaaaaaaaaaaaaaaaaaaaaaaaaaBBBaaaaaaaaaaaaaaaaaaaaaaaaBBBaaaBBBBaaaaaaaaaBBBBBBBBBBBBBBBBBBBBBBBBBaaaaaaaaaaaaaaaaaaaaaaaaaaaBaBaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbbbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbbBBBBBBBBBBBBBBBBBBBbbbbbbbBBBbBBBbbbBbBBBBBBbBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBbBBBBbbBBBBBBbbbbBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBaBBBBBBBBBBBbaBBBBBBBBBBBBBBbbbBBBBBaaBaBBBBBBBBBaaaaaBBBBBBBBBBBBBBBBBBabaaaaaaaaBaBaaaaaaaaaaaaaBaaaaaaaaaaaaaaaaaaaBaaaaaaaaaaaaaaaaaaaaaaaaaaaaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBaBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBaaBBaaaaaaaaBaaaaBBBBBBaBaaaaaBBBBBaaaaaaaaaaaaaaaaaaaaaaaaaaaBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBbBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBnnBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbBBBBBBBBBBBBaBBBBBBBBBbBbBBBBBBBBbbBBBBBBBBBBBBBBBbbBBBbBbbbBBBBbbBBBBBbBBBBBBBBbaBBbbBbaBBBBaBBBBBBBaaBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBaBBBaBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBaBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaaBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBnBBBnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBuuuuuBBuuuuuuuuuaauuuuuuuuuuuuuuBBuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuBBuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuBBBBBBBBuuBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBaBBBaBBBBBBBBaBaBBBbBBBBBBBBBBBBBBBBBBBBBBBBBbBBbbBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnnBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBbBBBbBbBbBBBbBBBBBBBbBBBBbBBBBBBBBBBBBBnBBBBBaBBBBbBBBBBBBBBBbBbBaBBBBBBBBBBaBBBBBBaBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaBBBBBaBaBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBbBbBaBaBBBBBBBBBBBBBBBaBBBBBBBbBBBBBBBBBBbBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBaBBBBBbBBBBBBBBBBBBBaBaBBBBBBBBBbBBBBBBaBBbaaBBBBBbbBBBBBBbBBBBBBBBBBBBBbBBbBBBBBBBBBBbBBbbBbbBBbbbbbBbBbbbBBBBBBBBBBBBBaaBBBBBBBBbBBBBaBBBaBBBBBBBBBBbaBBaBBBBBBBBBBaaBBBBBBBBaBBBBBBBaBBBbBBBbbbbbbbbbbbbbBBBBbbbBbBBBaBBBBBaaBBaabbbbbbbbbbbbbbBbbbbbbbbbbbbbbbbBbbbbbbbbbbbbbbbabaBBBBBBBBBBbbBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBbBBbBBbBbbBBBnnnnnaannnnnannnnnaaannaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaannnaaaaaaaaaaaaaaaaannnnnnnnnnnnnnnnnnnnnnnnnnnnnnannanaannnnnnnnnnnnnnnnnnnnannnnnnnnnnnannnnnnnnaaaaaaaaannanannnnnnnnnnnnnannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnananananannnnnnnnnnannnnnnnnnnnannnnannnnnnnnnnnannnnnnnnnnnnannnnnnnnnnaaaaannnnaaaaaaaaaaaaaanaaaaaaananaaaaaaaaanaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaannnaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaanaanaaaaaaaaaaaaaaaaaanaaaaaaaaaannaannannaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaanaaaaaaaaaaaaaaaaaanaanaaaanaaaaaanaaaaanaaaaaananaaannanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaannaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaanaaannnnnnaaaaannnnnnnnnnnnannaananannnaannaannnnnnnnnnnnnnnannnnnnnnnnnnnnnnannannnnnnnnnnnaaannnnnanannnaaaaaaaaaannnaanaaaaannnnnanaaaaanaaannaaaaaaaaananaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaannnnannnnnnnnnnnnnnnnnnannnnanaanaannnaanaannnnnnnnnnbnnnnnnnnnnnnnnaaaanaaaanaaaaaaaaaaaaaaBBBBBBBBBBBBaaaaaanaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaaaaaaaaaanBBBnnBBBBBaBBBBaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaBBaBaBBBBBBBBBBBBaaaBaaaaBaaBaaaaaaaaaaaaaaaaaaaaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBbaBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBaBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBaBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBbBBBBBBBBBBaBBBBbBBBBBBBbbBBbBbBBBBBBBbbbbbBBbBBBBbBBbBbbbBBBBBBBBBBbBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBaBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbbbbbbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBaaaaanaaBBBBBBBBBaaBaaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBaBBBBBBBBBBBnBBBBaBBBBBBBnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBaBBBBBbbbBBbBBBBBBBBbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbBbbBBBBBBBBBBBbbBBBBBBBBbBBBaaBBBBBBBBBBaaaaaaaaaaaaaaaaaaaaaaaaBBBBBBBBBBbbBBBaaaaaaaaaaaaanaaaaaBBBaaaaaaBBBBbBBBBBBBBBBBBBBBBBBBBBnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnBnBBBBBBBBBBnbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnnBbBBBbbBbBBBBBBBBBBBBBBBBBBBBBBBaBaaaaaaBBaaaaBaaBaaaaBBBBbBBbbBBBBbbbbBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbBBBBBBBaBBBBBBBBBBBBBbBBBBbBanaaaaaaaaBnBBBBBBBBnnBBBBBBBbbBBBBBBBbbbbbBBbbbbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaannaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaBaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaannnnnnnnnnnnnnnnnnnnunaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaauaaaaauaauaaaaaaaaaaaaaaaaauaaaaaaaaaaaaaaaaaaauaaaaaaaaaaaauaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaannnunnnnnnnubbbbuuubbbbbbbbbbbbubbbbbbbbubbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbubbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbBBBbbbbbBBBBBBbbbbBBbbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBaBBBBaBBaBBaBBBBBBBBBaaBBbbbbbbbbbbbbbBbbbbbbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBnnBBBBBbbbbbbbbbnaaaaaanaaaaaaaaaaaaaaaanaaaaaaaaBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaanBBaaaaaaaaaaaaaaaaaaaBBBBBBBBBBBBBBbBBbBBBaaaaBBBBBBBBBaBBBBBBuBBBBBBBBBBBBuuBBBBBbbBBBBBbbBBBBBBbbBBBBBuBBBBBBBBuBBBBbbbbbbbbbbbbbbbbbnbbbbbbbbbbbnbbbbbbbubbbbbbbbbbbbbbbbubbbbbbbbuubbbbbbbbbbbubbubbbbubbbbbbbbbbbbbubbbbbbbbbbbbbbuBBuBBBBbbbbbubbbbbbbbbbbbbbbbbubbbnbbbbbbbbbbbbnbbbuubbbbbbubbbbbbbbbbbubbuubbbbuubbubbbbbbbbbbbbbbbbbbbbbbbbbbbbubbbbbbbbbbbbbbbbbubbbbbbbbbbbubbbnnnuubbbbbbbbbbubbbbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaaaaaaaaaaaaaaaaaaannaanaaaaaaaaaaaaaaaaaaaaaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBaBBBBbbBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBbbBBBbBbbbbBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBbbbBBBBBBbBBbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBabnnbbbbbbBbBbbbbbbbbbbbbbbbbbbbBbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbnbbbbbbbbnbnbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbBBBBBBBBbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbBBBBBBBaBBBBBBBBBBBBBBBBBnBBBBBBBBBBBBBbBBBBbbbbbBBBBBBnnnnnnnnnnnnnnnnnnnnnnBBBBBnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbBBBBBBBBBBBBBBBBBBBBBBBBBBBaBaaaaBBBaaBBBBBBnnBBBBbBBBBBnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaaaaBBBBBBBBBBBBBBBBBBBaBBBBBaaBBaBBBBaBBaaaaabaBBBBBBBaaBBaaaaaBBBBBbBaBBBBBBBBaaaaaaaaBBaBBBBBBBBBaBBBBBBaBbnnnnaaaaaBBBbBbnnbnnnnaaaaaBBBaaBBBBaBBBBBBBBBBBaBBaBBBBBBBBBBBBBaBBBBBBBaaaaaaaaaaaaBBaaaaaaaaaaaaaaaaaaaBBBBaBBBBBBBBBBBBBBBBBBBBBBaaaaBBBaBaBaBaBBBaBBBaBBBBBBBBBBBBBBBBBaaBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbnbbBBnbbbbbnbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBaBBBBBBBBaBBBBBBBBaBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBaBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBaBBaBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBaBBBBBBbbbBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaBBBaaaBaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaBBBBBBBaaBaaaaaaaaaaaaaBBBBBBBaBBBabBBBBaBBBbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBbBBbBBBBBBbbbbBBbbbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbnbbbbbbbbbbnbbbBBBbbBBbbbbbbbbbbbbbbbbbbbbBBBBBBBBbbbbBBbbbbnbbbbBBBBBBBBBaBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBaBBBBBBBBnBBBBaBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBaBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBbBBBBbaBBbBBBBBbBBBBBBaBBBaBBBBBbBBBBBBBBBBBBBBBBBBBBaBBBaBBBBBBBBbBBBBBBBBBBBnBBBBBBBaBBBaBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBaBBBBBBBnnBBaBaBaBBbBBBaBBBBBnBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbBBBBBaBBbBBBBBBBBBBBBbBBBBBBbBbBBbBBBBBbBBBbBBBaaBBBBBBBBBbbBbBBBBBBBBbbBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBbbbBBBBbBBBBbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbBnbBnbbbbbbbbbbbbbbbbbbbbbbbbbBBBbbbbbbbbbbbbbbbBbBBBabbnbbbBBBBBBBBbBBBBBBBBBBBBBbbBBBBbbbBbbbbbbbbbnbbbbbbbbbbbbbnBbbBaBBBBbbbbbbbbbbbbnbbbbbbbbbnbbbbbbbbbbBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBabBBBBBBBBbBabBBBBBbBBbBBBBBBBBBBBBbBBBBBBBBaBBBBBaBBBbBBBBBBBBBBBnBBBBBbBBBBBBBBBBBBBBBBBBBBBBbaBBBBBBBaBBbaBBBaBBBBBBBBBbBBBBBBBanBBBBBBBaBBBBBBBBBBBbBBBBBbaBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBnBBBBBBBBBBBBBBBaBBBbBBBaBBbBBBBBBBBaBBBBBBBBaBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBabBaBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBbBBbBbBBBaBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBbbBBBBBBBBbBbBBbBBBBBBBBBBBBBBBBBBBBBBBBBbBbBBBBBBBBBBbBBBBBBBaBBaBBaBBBBBBBBBBBBBBBBbBBBBBBBBBBbBaBBBBBBBbBBBBBBBBBBBBBBBaBaBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBbBaBBBBBBBBaBBaaBBBbBBBBBBBBaaBaBBBBaBBBaBbbBBBBBBBBBbBBBBBBBBBBBBBBBBBbBbaBBaBBBBBBBBBBBaBaBBBBBBbBBBBBbBBbBBBBBBBBbBBBBBBaBBBBaBBBBaBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBaaaaanaaaaaaaaaaaaaaaaaaanaaaaaanaaaanaaaaaaanaaaaaaaaaaaaaananaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaannnaaaanaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaanaaaaaaaaaanaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaanaaaaaaaaaaaanaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaananaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaBBBBBBBBBBBBBaBaBBBBBBaBBBbBBBBBBbaBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBnBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBaBBBBBBBBBBaBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBbbBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBnBaBBBbBbBbBBBBBbBBBBBBBBBBbBBBBBBBBBaBBBBBBBBBBBBbBBBBBBBBaBBnBBBBBBBBBBBBBaaBBBBBBBBBBbBBBBBBaBBBBnBaBBBBBBBBBBBBBBBBBBBBBBbBBBBBBaaaaaaaaaaaaaaanaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaananaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaBBaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaanaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaannnnannnnnnnannnnnnnnanannnnannnaannannnaaaaaaaaanaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaanaaaanaaaaannaanaaaaaaaaaaaaannnnnannnnnnnannnnnnnnannnannaannanaaannaanaaaaanannannnnnnnnannnaannaannnannnnnnnnaaaaaaaaanaaaannaaaaaanaaaaaaaaaaaaaaanaaaaaaaaaaaaanaaaaaaaaBBBBBbBBBabBBBBBBBBBBBbnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBbBBBBBBBaBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnBBBBBBBBBnnBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBbBBBBbBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBaBBBbBBBBBBBBBBBBBbBBBBBBBBBBBBbBBBBaBBBBBBBBbBBBBBBBnBBbBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBaBBBBBaBBaBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBbBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBbBBBBBBBBBBBBBbBBBBBBBBBBbnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBbBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnBBBBBBBBBBBBBBBBBBBBBBabBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBbBBBBnBBbBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBbBBBBBBBBBBBaBBBBBBBBBBbBBBBBBBBBnBBBBBBBBBBBnBbBBbBBBBBBBBBBBBBBBBBBBBBBaBBaBBBBBnBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBaBBBBBBBBBBBbbbBBBBBBBBBBBBBBBBBBaBBBBBbBaBBBBBBBBaBBBBBBBBnaanaaaaaBaaaaaaaaaaaaaaaBBBaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaBaaaanaaBBBBbBBBBBBBaaBBBBBaannnnnnnnnnnnnnnnnnnnaaaaaaaaaaaaaaaaBBBaaaBBbaaaaaaaaaaaannaaanaaaananaaaaaaaaannaanaanaannaaanannnnnnnnnnnnnnnaaaaaaaaaaaaaaaBbBBaBBBBaBaBBBBBBBBBBBBbBBaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaannnnnanannnnnnnnnanaaaaaaaaaaaaaaaaaaaaaaaaannannnaaaaaannnaaanaaannanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaannnnnnnnaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaananannnaaannnnnnnnnnnnnnnnnnnnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbBaBBBBBBBBaBBBBBBBBBBBBBnBBabBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBaBBBBBBBBaBBBBBBBBBaBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnBBBnBBBnnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBnBBBBBBBBaBBBBBBbBBaBBBBnBBBaBBBBBBBBBBBBaBBBaBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBnBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBbBBBBBBBBBBBBBaBBBbBBBBBBBBBBBBBBBBBBbBBBBBBBaBBBBBBBBBBBBBBBBbBBBaBBBBBBBBBBnBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBaBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBnBBBBBBBBBBBBBBBBBBBBBBBBBBnnBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBanBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBnBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBaBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBnBBBBbBBBBBBBBBnBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBaBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBaBBBBBBBBBBBBBBBBBBBbBBBBBBBabBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBnBBaBBBBBBBBBBBBabBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBbBbBBBBBBBBBBBBBBBBBBBbBBabBBBnBBBBBBbBBBBBBBBBBBBBBBabBBBBBBBBBBaBBBBBBBBBBBBBBBBBbBBBBBBBBabBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBnBbBBBBbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBaBBBBBBBBaBaBBBBBBBBBBBBBBaaBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBnnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBaBBBBBBBBBBBBBBBBBBBBBbBBBBBBbBBBBBBBBBBbBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBaBBBBBBBBBBBBBnbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBaBBBBBBBBnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBabbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnBBBBBBBBBBbBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBbBBBBBBBBBBBBBBBBbBbBBBBBBBnnBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBnBBBBBBBBBBBBBBBBBBBBnBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBaBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBnBBBBBBBBBBBBBBBBbBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBbBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBaBbBBBBbbBBBBBBBBBnBBBBBBBBBBBBbBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBnnBbBBBBaBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBaBBBBBBbBBBBnBBBBBBBBaBBBBBBBaBBBBBBBnBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBabBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBbBBBBBBBBBBBBBBBBbBbBBBBBBbBBBBBBbBBBBBaBBBBBBaBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBbBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBbBBBBbbbbbbBBBBBBBBBbBBBBBbbbbbBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBbBBBBBBBBBBBnBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBnbBBBBBBBbbbbbbbbbBBbbbbbbbbbbBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBaBBBBBBaBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBbBBnnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnbBBBBBBBBBBBBBBaBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBbBBBBBBBBBBBBBBBBBBBBBaaBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBaaaaaaaBaaaBBaaaBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnBBBBBBBBBBBBBnBBBBBBBBBBBBBBBBBbbBBBaBBBBBBBBBBBBBBBaBBBBBBBBBBBBBbBBBBBBBBBBBBBaBBBBBBBBBBbBBBBBBBBBBBBBBBnBBBBBBBBaBBBBbbbbnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbbbBBbbbbBBBaBBBBBBBBbBbBBBBBBBbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBaBBBBBBBBBBBBBBBBBaBBBBaBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBaBBBBBBBbBBBBBBBBBBBBBBaBBBaBBBBBBBBBBBBBaBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBaBBBBBBBBBBBBBbBBBBBBBBBBBBBaBBBBBBBBBBBBbBBBBBBBbBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBbBBBBBBBBBbBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBaBBBBBBBBBBBBBBBbBBBBBBaBBBaBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBaBBBnnBBBBBBBbBBBaBBBBBBbBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBaBBBBBBBBnBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBbBBBBBBBBbBaBBBBaBBBnBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBaBBBBBBBBBBBBBnBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBbBbBBBBbBBBBBBBBBbBBBBBBBBBBBBBBBaBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBbbbBBBBBBabbBBBBBBBBBBBBaBBBBBBBaBBBBBbBBBBbBBbBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBaBBBBBBBBBBbBBBbabbbbbbBBbbbbbbbbbbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBaBBBBBBbBBBBBBbBBBBnBBBBBaBBBBBBBBBBaBBBBbBBBBBBBBaBBBBBBBBBbBBbBBBBBnbBbnbBbBBBBaBBbbbBbBBbbbBBbBBBbbBBaBBBBBBBBaBBBbBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBaaaaaaaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBbBBBBBBBBBBBBbbaBaaaBaBBaaaaaaaaaaaBaaBBBBaBBaaBBBaBaBBBBBBBaBBBBBBabaaBBaaBaaabBBBaBaBBaBaBBBaaBbBBBBBBBaBBBBBBBabaBBaBaBBBBBBBBBBBBBBBBBBBaBbBBBBBBBBBBBBBBBBBBBBBaBbBBBBBBBBBaBBBBBaBBBaBaaBaBbaaBBaaBBBBanBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBaBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBaBBBBbBBBBBbBBBBBBBBbBBBBBBBBBBBBBBBBnnbBBBBBBBBBBBBBBBBBBaBBBBBBBBBbBaBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBaaaBbBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBabbbBBBBBBBBBBBBBbbbbbbBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBaaBBBBBBBBBBBBbBBBBBBBBaBBaBBBBBBBBBBbBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBnBBBBBBBBBBBBBbBaBBBBBBBBBBbBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBbBBBBbBaBBBBBBBBBBBBBBBBBBBBaaBBBBBBBBBBBBBBBbBBBBBBBBbBBBBBBaBBBBbBBBBBBBBBBBBBBBBBBBBBBBaaBBbBBBBBaaaBBaaaBaaaaaaaBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBnBBBBBBBBBbbBBbbbbbbbbbbbbbbbbnbbBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBbBBBBBBBBBBBBBBnBBBbBaBBBBBBBBbBBbBBBBBbBBBBbbbbBbbaBbBbbBBBBBBBBbBBaBBBBbbBbBbBBBBbbbBBBbbBBBaBBbBBBBBBBBBBBBBbbBbbBbBBBBBBBBBBbbbbbbbbbbbbBbbBbBbbbbbbbbbbbBBBbbbbbbBBbbbbbbbbbbbBBbbbbbbbbBbBBBbBBbbbbbbbbbbBabnbbbbbbbbbbbbbnbbbabbbbbbBBbBBbbbbbbbbbbbbBbbbbbbbbbbbbbbbbbbbbbbBBbbbbbbbbbbbbaaabbBaabbbbbabbbbbbnbbbbbbbbaabaababbbbBaaaaaaaaaBbabbbbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaaaaaaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBaBBBaaBaBBBaaaaaBaaaaaaaaaBaBBBBBBBBBBaBBBBBBBBBBBBBBBBBaBBBBaaBaaaaaBaaBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBaBBBBBBaaaaaaaaaaaaaaaaaaaaaaaaaaaBBBBBBaaBBBBBaBBBBBBBBBBBBBBBBBBaBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBaaaaaaaaabnnnnnbnnnbbbbbbbnbbbbbbbbbbnbbnbnnnnnnnnnnnnnbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbnnbbnbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbnbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbBBBBBBBBBBBaBBBBbBBbBbbbbbbBBBbBbBbBBbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbnnnnbbbbbbbbbbbbbbbbnbbbnnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbnnnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbnbbbbbbbbbbbbbbbbbnbbbbbnbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbnbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbnbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbnbbbnbaaanBnaBnBBBBBaBaBBBBBBbBBBBBBBBBBBBBBBBBBBaBBBBBaBBBBBBBBBBBbBbBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBaBbBBBBBBBBBBBBBBBBBBBBBBBBBBbbbBBBBBBBBBBaBBBBBBbBBBBBBBBBbnbBBBBBBBaBBBbbBbBBBBBaBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBbbbbbBBBBBBBBBBBBbBBBBBBBBBBBbbBBBaBBBBBBBBBBBBBBBBBbBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbbnbBBaBBBBBBBBBBBbBBBBBBBbBbBBnBBBBaBBBBBBbBBaBBBBBBBBBBBBBbbbbbnbbBbbbbBbbBbbBBBBbbbbbbbbbbbbbbbbBbbbBbbbbbBBbBbnbbbbbbbbbbbBBBBBBbbbbbbBbBBbbbbbbBbBBBBBBBBBBBBBBbBBBBBBBBbbBBBBBbbnbbbbbbbbbBBBBBBnbbbbbbabbbnnBBBBbbBbBBBBBaBBBBBBBBBbBBBBBBBBBBbBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBbBBBBBBaBBBBBBBBBbbbbbBBbbBbbbbbBBBBBBBaBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBaBBBBBBBBBBbBBBBBBBBBBBBbBBbBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBbBBBBBBBBBBBbBBBBBBbBBnnuBnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuunnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnBBBBBBBBBBBBBBaBBBBBBBBBBbBBBBBBBBBBBBBbBBBBBBBBBBBBaBBBBBBBBaBBBaBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBbaaBBBBaBBbBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBaBBBBBBBBBbBBBBbBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBaBBBBBBBBbBBBBBBBBBBBaBBBBBBBBbBBBBBBbbBBBBBBBnBaBBBBBBBBBBBBBaBbBBBBBBBBBBBnBBBBBBBBbBbBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBaBBBbBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBbBBbBBBBBBBBBBBBBbBBBBBbBBBBBBBBBBBBBBBBbBBBBBBBBbBBBBbBBBBBBBBbBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBbBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBnBBBBBBBBBBBBaBBBBBBBBBBBBBbaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBaBBBbaBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBaBBBbBBBBBbBaBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBaBBBaBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbnbBbbBbbbbBbbbbBbbBBbbbbbbbbbbbbbbbBBbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbnnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbBbBbbbbbbbbBbnbbbbbbBBBbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbnbbbbbbbbBbbbnbbbbbbbbbBBBBBBBBBBBBBBBBBBbbbbbbBBbbbbbnbbbbbbbbnbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbBBBBbBBBbbBBBBBBubbBBbbbbbbbbbbbnbbbbbbbbbbbbbnbbbbbbbbbbbnbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbBBbbbbbbbbbbbbbbbbbbbbbbbBBBbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbnbbbBBbBBBBBbbbbbBBBBBBbbbBBnbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbnbbbnbbnbbbbbbbbbbbbbbbnbbbbbbbbbbbnnbbbnbbbbnbbbbbbnbbbbbbbbbbbbbbbbnbbbbbbbbbbnnnbbbbbbbbbnnnbbbbnbnbbnnnnnbnbbnbbbbbbbbbbbbbbnnbbnnnnbbbbbbbbbbbbbbbbbbbbnnnbnbbbbbbbbbbbbbbbbbbbbbnbbbbbbnbnbbnnbbbbbbbbbbbbbbbbbbbbbBBBBBBBBBBBBBBBbbbnnnnbnbbnbbbbbbbbnnbbbbbbbbbbbbbbbbbnnbbnnnnnbnnnnnnnnnbbnnnnnnnnnnnnnnnnbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbnbbnnnnnnbbbnbbbbbnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbnnbbbbbbbbbbbbnbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbnbbbnnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnnbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbnnnbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbnbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbnbbbbnbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbnnbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnnbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnnbbbbnbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnnnbnnbnbnbbbbnnnnnnnnnnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnnnnnnbbnnnbnbbnbnnbnbbnbnnnnnnnbbbnbbbbbbBBBBbbbbbBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBaBBBBBaaBBBBBBBBBBBaaBBaBBaBBBBBBBaBanBBaBBBBBBBBBBBBaBBaaaaBanaaaaBBnbbbbbbbbnaBnnnBbbbbbbbbbbbbbbbbbbnnbbbbbbbnnnnnnnnnnnnbbbbbnbbbbbbbbbbbbbnbnnbbnnbbbnbbbbbbbbbbbbbbbbbnbnbbbbbbbbbbbbbbbbbbbnnnnnnnnnnnnnnbbbbnnnbnnnbbnnnnnbbbbbbbbbbbbbbbbbbbbbbbbbnbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnnnnnnnbbbnbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnnnnnnnnnbbnnnnnnnnnnnnbbnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnbbbbbbbbbbbbbbbbbbbbbnbbbbbnbbnbbbbnnbbbbbbbbbbbnnnnnnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnnnnbnnnnnnnnnnnnnnnnnnbnnnnnnnnnnnbbbnbbbbbbbbbbbnbbbnbbbnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnbnnbnnnnnnnnnnnnnnnnnnnnnnnnnnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnnbbbbbbbbbbbbbbbbbbbbnbbbbbbbbnbbbbbbbbbbbbbbbbbbbnnbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBbBBBaBaBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBaBBBBBBBBBBBBbBBBBBBBBBaBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBbBBBBBBBBbBBBBBBBBBBBBbBBBBBBBBBnBBBBBBBBBBBBBbBBBBBBBBBBBBbBBbBbBbbbbbbbbbBBbbBbbbbBBBBBBbbBBBbbbbbbBBBBbbbbbBbBbbbbBbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbBbbbbbbBbabbbbbBBBBBbBBBbbbbbBbbbbbbbbbbnbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbnbbbnbbbbbbbbbbbbbbbbbbbbBbbbbbnbbBBBBBBBBBbBBBBBnbBBBaBBBbBBBBbbbbbBBBBBBBBaBBaBBBBBBBBBBBBBBBBbBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBaBBBBBBBBBBBBBnBBBBaaaBBBBBaaabBBBBBBBbBaaaaaBBBBaaBBaBaaaaaaaaaaanaBaaBBBBaaaaaBBBBBBBBBBBaaBBaaBBBBBBBBBBBBBBbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBaBBBBBbBaBBBBBBBBBBBBBBBBaBBBBBaBBBBBBBBBaBBBBBBBBBBBBaBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBaBBBBbaBaaBBBBBBBBBBBbaBBBBBBBBBBBBaaBBBBanBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBaBBbbBbbBbbbbBbBbbBbaabBbbBBBbBBBbbBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBaBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBaBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBaBBBBBBBBBBBBBBBBBBBbbanbbbbbbbbbBaBbaaaanaaaaaaaaaaaaaaaaaaaaaaaaanaaaaabbbbBbbbbBbbbBbBBbbbbbnbbabbbbbbbbbbbbbbnaaaaaaBbnnbbbbbbbbbbbbbbbbbbbbBnbbBbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbaBBBBBBBBBBBBbBBbBBBBBaBBBBBBBBBBBBBBBBBBBBBaaaBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBbBBBBBBBBbBBBBBBBBBBBBBBBBaBBBBBBBBBaBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBaBBaBBBBBBBBBaaBBBBaBaBaaBBBBBBBaBBaBBaBaBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBaaaaaaaaBaBBBBaBBBBBBaBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBbBBbbbbBBBBBBBBBBBbbbbbbbbbbbbbbBBBBbbBBBBbBBbbbbBBnBBbbbbbBbBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBaBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBbBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaaaBaBBaaBaaBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaabBBBBBBBBBBBBBaBBBBBBBaaBBBBaBBBBBBaBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnnnnbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbnbbBbbbbbbbbbbbbbbbbbbbbbBBBBBBbbBBbBBbbbbbnbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbBbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbnbnbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbBaBBBbBBBBaBBBbBaBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbnbbbbnbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbnbbbbbbbbnbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbnbbbnbbbbbbbbnbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbBBBBBbBBBBBBBBBBBBBBBBbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbBBbbbbbBBbbnbbbbbbbbbbbbnbbbBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBaBBBBBBBBBBbBBBBBBBBBBBbBBBBBBBBBBBBBBBBBbBBBBBBBBBBBbBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBnbBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBbBBBbBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBnBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBbBBBBBBBBBBBaBBaaaaaaaaaaaaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBbBBBBBBBBBBnBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBaBBBBBbBBBBaBBBBBBbBBBBBBBBBBaBBBBBBabBBBbBBBBBBBBBbBBBBBBBBBBBbBBBBBBBBbBBBBBBBBBBBBBBBBBBBnnBBBaBBBbBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBbBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbBBBBBBBbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbBBBBBBBBBBBBbbbbbbbbnbbbbbbbbbbbbbbbbbbnbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbBBBBBBBBBBBBBBBBBBBbbbbbBBbbbbbbbbbbbbbbBBbbbbBbbbbbBBaBbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBaBbBBBBBBBBBBBBBBnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbnbbbbbbbbbbbbbbbbbbnbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbnbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnnnnnbbbbbbbbbnbbbbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbbbBBBBBBBBBBBBBBBBBBBBBBbbbBBBBBBBBBBBBBBBBBBBBBBBbbbBbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBaaaaBBBBBBBBBbBBbaaBBaBBBBBbBaBBBBBBaBBBBaBBBaBBBBBBBBBBBBbBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBaBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBnBBBBBBbBBBBBBBBBBBBbbBBBBBBBBBBnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBnnBBBBBnBBBnBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBnnBBBBBBBaBBBBBBBbbBBBBBBaBBBBBBBBaBBBBBBBbbbBbbBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBnBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBaBBBBBBBBBBBBBBBBBbBBBBBBbBBBBBBBBBBbBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaaBBBBBBBaBBBBBBaBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBaBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBaBBBBBBbBBBBBBBBBbbBBBBBBBBBBBBBBbbbBBBabnBBBBBBBBaBBBBBaBBBbBBBbaBBBaBBBbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBaBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBaBBBBbBBaBBbBaBBBBBBBBBBBBBaBBbbBbBaBbBBBBBBBBBBBBBBBBBBBaBBaBBBBBBaBBBBBBBBBbBBBBBBBnbBbbbbbbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBBBBaBBBBBBBBBaBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBbBBBbbBBBaBBBBBBBaBBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBBaBBBBaBBBaBBBBBBBBaBBBBBBBBBBBBBaBBabaaanaaaaaaaaanaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaanaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaBBBBBBBBBaBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBaBaBBBBBBbBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBaBBBBaBBBBBBBBBBBBBbBBBBBBBBBBBBbBBBBBBBBBBBBaBBBBBBBBBBBBBBBBBBaBBBBBBBBaBBBBBBBBBBaBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBbBabBBbbbbbnBnnnbbbbbbbbbbbbbbbbnnnnnnnnbbbbbbbbnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn"
+ }
+}

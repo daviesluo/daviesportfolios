@@ -47728,3 +47728,20 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   payload's new `books` (LIVE and each twin, `quoteBooksTraded` from the instance's weights in force: LIVE USDT-GBP alone since
   22:30), else its BOOKS cards (Coinbase arms, OKX, Coinbase LIVE). LIVE keeps the column while pre-switch USDC rows are listed.
   Twin fixture regenerated (+`books` only). INVENTORY untouched (a88's).
+
+## LEDGER.md, archived 2026-10-30 (thirty-first) — the 2026-10-29 22:55, 2026-10-29 23:13 UTC history sections, oldest first
+
+### [2026-10-29 22:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **USDT-NO03: LIVE's USDT-GBP book without its 0.3 % rung** (sub-agent; read-only study, commit, not pushed; Davies, 22:45:
+  "目前的usdt实盘策略也研究回测一下这项"). `reviews/2026-10-29-usdt-no03.md`, `compare/revx/scripts/usdt_no03.py`. At £600, since
+  09-01: no 0.3 % rung −1.09 % a year (P 0.67; £100/£200 and £200/£100 no better), with exit +1 tick +0.97 (P 0.31), exit +1
+  tick alone +1.49 (P 0.048; out of sample +4.63, P 0.000): keep the 0.3 % rung on USDT; only the exit tick is near-certain.
+  Twins too short: `n600no03` one day, −£0.43 realised vs `live600`, both books still; variant-6 +£0.05 vs control in 3 h 49 min.
+
+### [2026-10-29 23:13 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LIVE's exits a tick beyond fair from 2026-10-30 00:00 UTC, and every twin on its rules** (sub-agent; commit, not pushed;
+  Davies, ~23:00: "加进 LIVE", on USDT-NO03). `QUOTE_LIVE_INSTANCE.exitOffset {ticks 1, from QUOTE_LIVE_EXIT_OFFSET_FROM}`; a
+  crossing exit still rests a tick inside (`exitTicksOnBook`). `0181`: `exitOffset` from 00:00 on `live600`, `live1200`, `take50`,
+  `n600no03`, `n600usdt2`, `n600usdt`, `n600nudge`; `live600x1` ("exit +1 tick from 10-29") and `live600ctl` off, variant-6's
+  prereg closed early (adopted). Deviation `reviews/2026-10-29-live-exit-tick-deviation.md` (executor sha chains), design
+  addendum, fixture regenerated. Undo: drop `exitOffset` from the instance (a commit). Archived 19:16-19:31 (twenty-fifth).

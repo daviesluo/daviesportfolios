@@ -802,7 +802,16 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 01:24 UTC section (archived
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
-and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth), and the 2026-10-29 19:50, 2026-10-29 19:55, 2026-10-29 20:00, 2026-10-29 20:15 ones (twenty-sixth), and the 2026-10-29 20:41, 2026-10-29 21:07 ones (twenty-seventh), and the 2026-10-29 21:30, 2026-10-29 22:10 ones (twenty-eighth), and the 2026-10-29 22:12, 2026-10-29 22:27 ones (twenty-ninth), and the 2026-10-29 22:40, 2026-10-29 22:43 ones (thirtieth).
+and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth), and the 2026-10-29 19:50, 2026-10-29 19:55, 2026-10-29 20:00, 2026-10-29 20:15 ones (twenty-sixth), and the 2026-10-29 20:41, 2026-10-29 21:07 ones (twenty-seventh), and the 2026-10-29 21:30, 2026-10-29 22:10 ones (twenty-eighth), and the 2026-10-29 22:12, 2026-10-29 22:27 ones (twenty-ninth), and the 2026-10-29 22:40, 2026-10-29 22:43 ones (thirtieth), and the 2026-10-29 22:55, 2026-10-29 23:13 ones (thirty-first).
+
+### [2026-10-30 04:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The other maker's watch, and MAKER-ABSENT** (sub-agent; commit, not pushed; Davies, 10-30 ~03:25: "我们如何趁他不在时最大化收益？",
+  "我们能不能对他加个监控，实时观察和记录他的行为"). `0185` + `agents/maker_watch.ts`: inside the books call's wait (no new `edge_calls`
+  row), `agent_maker_minutes`/`_events`/`_state` from 09-26 (backfill ~50 min after deploy; check `agent_maker_state` then), a line
+  on both Revolut X live pages. History (`mmcomp/results/maker_history.json`): 5 ticks to 10-12, 12 from 10-13, narrow again from
+  10-28 ~15:45; USDT-GBP absent 47 h in 32 spells, now since 10-29 21:17. `reviews/2026-10-30-maker-absent.md`: today's rules earn
+  ~3× an hour while it is away (LIVE £2.87/day vs £0.90-1.06); nearer rungs worse; exit +3 ticks while absent +£0.24 (P 0.28-0.36,
+  five active windows): no twin; £1,200 earns 1.85× (P 0.005), bids all held 31 % of absent minutes. Archived 22:55, 23:13 (thirty-first).
 
 ### [2026-10-30 04:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Hedge rows: no own card** (sub-agent; not pushed; Davies ~03:45): each venue's half (funded, deployed, P&L by leg) on its own
@@ -941,18 +950,3 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   last 8, newest first: for, side, price, size, filled, state) above the order tables, and a BOOKS card line for a resting one
   (`quoteConversions`, `quoteConversionLine`: a sell of a book no longer in `books` is "switching to USDT"). Coinbase LIVE now lists
   its top-ups too (`cbLiveDetail`; fixture output recomputed). Sweep `pr5-switch` at both widths.
-
-### [2026-10-29 23:13 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **LIVE's exits a tick beyond fair from 2026-10-30 00:00 UTC, and every twin on its rules** (sub-agent; commit, not pushed;
-  Davies, ~23:00: "加进 LIVE", on USDT-NO03). `QUOTE_LIVE_INSTANCE.exitOffset {ticks 1, from QUOTE_LIVE_EXIT_OFFSET_FROM}`; a
-  crossing exit still rests a tick inside (`exitTicksOnBook`). `0181`: `exitOffset` from 00:00 on `live600`, `live1200`, `take50`,
-  `n600no03`, `n600usdt2`, `n600usdt`, `n600nudge`; `live600x1` ("exit +1 tick from 10-29") and `live600ctl` off, variant-6's
-  prereg closed early (adopted). Deviation `reviews/2026-10-29-live-exit-tick-deviation.md` (executor sha chains), design
-  addendum, fixture regenerated. Undo: drop `exitOffset` from the instance (a commit). Archived 19:16-19:31 (twenty-fifth).
-
-### [2026-10-29 22:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **USDT-NO03: LIVE's USDT-GBP book without its 0.3 % rung** (sub-agent; read-only study, commit, not pushed; Davies, 22:45:
-  "目前的usdt实盘策略也研究回测一下这项"). `reviews/2026-10-29-usdt-no03.md`, `compare/revx/scripts/usdt_no03.py`. At £600, since
-  09-01: no 0.3 % rung −1.09 % a year (P 0.67; £100/£200 and £200/£100 no better), with exit +1 tick +0.97 (P 0.31), exit +1
-  tick alone +1.49 (P 0.048; out of sample +4.63, P 0.000): keep the 0.3 % rung on USDT; only the exit tick is near-certain.
-  Twins too short: `n600no03` one day, −£0.43 realised vs `live600`, both books still; variant-6 +£0.05 vs control in 3 h 49 min.
