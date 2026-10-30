@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-10-29",
+  "asOf": "2026-10-30",
   "risks": {
     "AAPL": [
       {
@@ -12,8 +12,7 @@
     ],
     "AMZN": [
       {
-        "text": "earnings 10/29",
-        "until": "2026-10-29"
+        "text": "Q4 op income guide $28.5–33.5B; 2026 capex ~$220B (10/29)"
       },
       {
         "text": "FTC monopoly trial 3/29/27; delay refused 10/9"
@@ -60,7 +59,7 @@
         "text": "CLARITY Act failed cloture 49–50 (9/2026): no US market-structure law this year"
       },
       {
-        "text": "spot ETF outflows $450M that day"
+        "text": "spot ETFs: 4th straight inflow day, +$17.2M (10/29)"
       },
       {
         "text": "trades with rates and risk appetite"
@@ -121,8 +120,7 @@
     ],
     "MSTR": [
       {
-        "text": "earnings 10/29",
-        "until": "2026-10-29"
+        "text": "848,517 BTC at $75,446 avg cost (10/25)"
       },
       {
         "text": "mNAV ~1.0x (8/21)"
@@ -148,8 +146,8 @@
         "text": "converts ~$4.3B (3/2026) + ~$5.75B (8/2026)"
       },
       {
-        "text": "earnings ~11/11 (est.)",
-        "until": "2026-11-11"
+        "text": "earnings 11/12",
+        "until": "2026-11-12"
       }
     ],
     "NET": [
