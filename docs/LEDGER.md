@@ -802,7 +802,16 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 01:24 UTC section (archived
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
-and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth), and the 2026-10-29 19:50, 2026-10-29 19:55, 2026-10-29 20:00, 2026-10-29 20:15 ones (twenty-sixth), and the 2026-10-29 20:41, 2026-10-29 21:07 ones (twenty-seventh), and the 2026-10-29 21:30, 2026-10-29 22:10 ones (twenty-eighth), and the 2026-10-29 22:12, 2026-10-29 22:27 ones (twenty-ninth), and the 2026-10-29 22:40, 2026-10-29 22:43 ones (thirtieth), and the 2026-10-29 22:55, 2026-10-29 23:13 ones (thirty-first), and the 2026-10-29 23:24, 2026-10-29 23:30 ones (thirty-second).
+and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth), and the 2026-10-29 19:50, 2026-10-29 19:55, 2026-10-29 20:00, 2026-10-29 20:15 ones (twenty-sixth), and the 2026-10-29 20:41, 2026-10-29 21:07 ones (twenty-seventh), and the 2026-10-29 21:30, 2026-10-29 22:10 ones (twenty-eighth), and the 2026-10-29 22:12, 2026-10-29 22:27 ones (twenty-ninth), and the 2026-10-29 22:40, 2026-10-29 22:43 ones (thirtieth), and the 2026-10-29 22:55, 2026-10-29 23:13 ones (thirty-first), and the 2026-10-29 23:24, 2026-10-29 23:30 ones (thirty-second), and the 2026-10-30 00:17, 2026-10-30 00:30 ones (thirty-third).
+
+### [2026-10-30 05:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Dashboard speed, round 2; the Agents list stays in its rows' own currency** (sub-agent, landed by the main session; Davies,
+  ~05:30: "…和策略列表里加起来还是不一致", "好的接着优化"; then, told the list prints pound rows in pounds while the scoreboard and
+  cards add their dollars: "原来如此，是我之前没看清，不用改了，你确保数字能对的上就行"). On real data the scoreboard, the cards and
+  the rows' dollars agree to the cent per tab; the list-in-dollars change was dropped. The dashboard no longer reads PR5V, rule D
+  or PR5's paper test (unused; their days views ~0.95 s each), nor live-prep's book while disarmed; `serverMs` taken after every
+  read, `stagesMs` per read; 0186 indexes the arms' minute tables by minute and `agent_decisions` by ts. Moved the 00:17, 00:30
+  sections to handover (thirty-third).
 
 ### [2026-10-30 05:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Quotes pages: TODAY is DAYS' today; the board refreshes the Agents pages; a faster dashboard; ↔ drawn** (sub-agent; not
@@ -939,18 +948,3 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   moment later, read fine. Now the script presses the card's "Try again" twice at most, names the step that failed in the
   `-failed` snapshot, reads the topmost page, and files a viewer's expected lines (CSP beacon, CORS-proxy fallbacks,
   admin-only 401s, aborted calls, address-less console lines) under "expected", apart from the real problems.
-
-### [2026-10-30 00:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **A rebook's sale is realised, first in, first out** (sub-agent; commit, not pushed; Davies saw LIVE's USDC row after the 23:34
-  drain: "USDC [•] USDC · £[•] at £0.7470 -£[•]"). `conversionSales` (index.ts): a conversion that sells takes its coins from the
-  conversion lots FIFO and realises proceeds − fee − their cost; `liveCoinBooks` keeps only the coins still held in the cost (dust
-  at its own lot's price), `liveBookGbp` adds it to REALIZED and TODAY, DAYS and BOOKS on its day. All LIVE readers (LIVE, twins,
-  the RX USDC instance); `cb_live` never sells a conversion and is unchanged. The executor's loss stop is unchanged (rungs only).
-  Pin: `index.test.ts` "a rebook's full sale…", worked by hand.
-
-### [2026-10-30 00:17 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Stablecoin quotes pages: INVENTORY tidied, CONVERSIONS table gone** (sub-agent; commit, not pushed; Davies, 10-30 00:06: "这里为
-  什么后面还加一个book把前面的值再重复一遍，删了吧，最后一行的时间也删了…CONVERSIONS表也删了没必要"). INVENTORY: no "· book X" unless it
-  differs by over £0.05 (then a red "≠ book X"), no "balance as of" line; a coin worth less than the venue's smallest order
-  (`INVENTORY_DUST`: Revolut X £0.10, Coinbase 1 USDC) is no row unless flagged, still counted in totals. CONVERSIONS table removed
-  (7fecce6e); the BOOKS-card line for a resting conversion stays. The 0.02 USDC's −£1.0090 unrealised is ac627's server fix.

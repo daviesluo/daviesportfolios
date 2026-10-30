@@ -47762,3 +47762,20 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   `bin/site-check.mjs` (`SITE_VIEWER_TOKEN`): daviesluo.com at both widths, `--tab`/`--row`, values hidden, snapshot and
   shots outside the repo. Dry runs: local `dist/` `--offline`, and the real site with an unsigned token (password form,
   reported). Not yet run with a real token: the route deploys with the push. Rule in working-with-davies (three copies).
+
+## LEDGER.md, archived 2026-10-30 (thirty-third) — the 2026-10-30 00:17, 2026-10-30 00:30 UTC history sections, oldest first
+
+### [2026-10-30 00:17 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Stablecoin quotes pages: INVENTORY tidied, CONVERSIONS table gone** (sub-agent; commit, not pushed; Davies, 10-30 00:06: "这里为
+  什么后面还加一个book把前面的值再重复一遍，删了吧，最后一行的时间也删了…CONVERSIONS表也删了没必要"). INVENTORY: no "· book X" unless it
+  differs by over £0.05 (then a red "≠ book X"), no "balance as of" line; a coin worth less than the venue's smallest order
+  (`INVENTORY_DUST`: Revolut X £0.10, Coinbase 1 USDC) is no row unless flagged, still counted in totals. CONVERSIONS table removed
+  (7fecce6e); the BOOKS-card line for a resting conversion stays. The 0.02 USDC's −£1.0090 unrealised is ac627's server fix.
+
+### [2026-10-30 00:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **A rebook's sale is realised, first in, first out** (sub-agent; commit, not pushed; Davies saw LIVE's USDC row after the 23:34
+  drain: "USDC [•] USDC · £[•] at £0.7470 -£[•]"). `conversionSales` (index.ts): a conversion that sells takes its coins from the
+  conversion lots FIFO and realises proceeds − fee − their cost; `liveCoinBooks` keeps only the coins still held in the cost (dust
+  at its own lot's price), `liveBookGbp` adds it to REALIZED and TODAY, DAYS and BOOKS on its day. All LIVE readers (LIVE, twins,
+  the RX USDC instance); `cb_live` never sells a conversion and is unchanged. The executor's loss stop is unchanged (rungs only).
+  Pin: `index.test.ts` "a rebook's full sale…", worked by hand.

@@ -167,9 +167,12 @@ Deno.test("the dashboard reads live-prep's live book from its live rows only: no
   const out = await readLpLive(db, I.nowMs);
   assertEquals(JSON.parse(JSON.stringify(out)), F.output);
   assertEquals([...db.touched].sort(), [...reads].sort());
-  // Never armed and no live order (a dry-run one aside): no row.
+  // Disarmed (here never armed, a dry-run order aside): off alone, and nothing of its book is read (2026-10-30: the page lists it
+  // only while armed, so its fills, markets, minutes and hours view were read every minute for no row).
   const quiet = memDb({ [T.config]: [{ id: 1, ...I.config, dry_run: true, live_confirmed_at: null }], [T.state]: [], [T.orders]: [{ ...dryOrder, mode: "dry_run" }] }, { now: () => I.nowMs });
-  assertEquals(await readLpLive(quiet.db, I.nowMs), null);
+  const quietDb = onlyTables(quiet.db, [T.config], { readOnly: [T.config] });
+  assertEquals(await readLpLive(quietDb, I.nowMs), { armed: false, dryRun: true, off: true });
+  assertEquals([...quietDb.touched], [T.config]);
   // A read that fails leaves the row off, never the page.
   const broken: typeof mem.db = { ...mem.db, select: (t, q) => (t === T.markets ? Promise.reject(new Error(`db GET ${t} → 500`)) : mem.db.select(t, q)), selectAll: (t, q) => (t === T.markets ? Promise.reject(new Error(`db GET ${t} → 500`)) : mem.db.selectAll(t, q)) };
   assertEquals(await readLpLive(broken, I.nowMs), null);
@@ -194,7 +197,7 @@ Deno.test("the dashboard's live-hours read pages to the end: today's formula pas
     [LP_LIVE_HOURS_VIEW]: [...filler, ...I.hours],
   }, { now: () => I.nowMs });
   const out = await readLpLive(mem.db, I.nowMs);
-  assertEquals(out!.estimate.soFar, F.output.estimate.soFar);
+  assertEquals(out && !("off" in out) ? out.estimate.soFar : null, F.output.estimate.soFar);
 });
 
 // ------------------------------------------------------------------ DAYS' Orders

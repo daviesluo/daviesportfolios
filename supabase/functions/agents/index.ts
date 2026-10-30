@@ -2313,11 +2313,19 @@ export function dayOpensFrom(rows: { venue: string; symbol: string; open: number
  * and orders before the state that follows them. Null while it has never been armed nor sent a live order, or when a
  * read fails: the rest of the page stands without it.
  */
+/** Live-prep's book is armed: its config's own rule (`lpLiveSummary`), live and confirmed. */
+export const lpLiveArmed = (cfg: Pick<LpLiveConfigRow, "dry_run" | "live_confirmed_at">) => cfg.dry_run === false && !!cfg.live_confirmed_at;
+/** What the dashboard sends for live-prep's book while it is disarmed: that alone, which the page shows as no row. */
+export const lpLiveOff = (cfg: Pick<LpLiveConfigRow, "dry_run">) => ({ armed: false as const, dryRun: !!cfg.dry_run, off: true as const });
+
 export async function readLpLive(d: Db, now: number) {
   const T = PM_LP_INSTANCE.tables;
   try {
     const cfg = await d.select<LpLiveConfigRow>(T.config, "id=eq.1&select=dry_run,live_confirmed_at,cap_total_usd,loss_total_usd");
     if (!cfg[0]) return null;
+    // Disarmed, it is no row of LIVE (`liveExtraRows` lists it only while armed, since 2026-10-17) and its page cannot be opened,
+    // so its fills, markets, minutes and hours view (0.33 s a call, the view alone) are not read (2026-10-30).
+    if (!lpLiveArmed(cfg[0])) return lpLiveOff(cfg[0]);
     const st = await d.select<LpLiveStateRow>(T.state, "id=eq.1&select=state,updated_at,last_error");
     const first = await d.select<{ ts: string }>(T.orders, "mode=eq.live&select=ts&order=id.asc&limit=1");
     const firstDay = (lpLiveSince(cfg[0], first[0]?.ts ?? null) ?? new Date(now).toISOString()).slice(0, 10);
@@ -2471,6 +2479,14 @@ async function dashboard(now: number) {
   // A read that fails here is caught where it is awaited, as before; `handled` only keeps an early failure from being an
   // unhandled rejection while the loop's reads run.
   const handled = <T,>(p: Promise<T>): Promise<T> => { p.catch(() => {}); return p; };
+  // When each read settled, in ms from the start, sent as `stagesMs` (2026-10-30, the second round of the speed work): the
+  // slowest of them is the call's critical path, read off the live page instead of guessed.
+  const stages: Record<string, number> = {};
+  const timed = <T,>(name: string, p: Promise<T>): Promise<T> => {
+    const done = () => { stages[name] = Date.now() - t0; };
+    p.then(done, done);
+    return p;
+  };
   // The GBP books' index prices (0078), read once for every stablecoin quotes test: what their coins and held rungs are
   // valued at. Before the table exists, or if it cannot be read, they are valued at the last trade.
   const quoteTickersRead = d.select<QuoteTickerRow>("agent_quote_tickers", "select=book,index_price,ts").catch(() => [] as QuoteTickerRow[]);
@@ -2518,50 +2534,21 @@ async function dashboard(now: number) {
   // "FXW-AUD weekend" on paper (fxw_view.ts; the `ig` function's `fxw` run writes it): null before its first run.
   const fxwAudRead = readFxw(d, now, dayStartMs).catch(() => null);
 
-  // "Stablecoin quotes - variant" (`0071`), read beside PR5's: its own tables; missing ones (before the migration), or no
-  // state yet, leave it off the page, and a failed read leaves the rest of the page as it is.
-  const quotesVariantRead = (async () => {
-    try {
-      const st = await d.select<QuoteVariantStateRow>("agent_quotev_state", "id=eq.1&select=state,last_minute,updated_at,last_error");
-      if (!st[0]) return null;
-      const [trips, days] = await Promise.all([
-        d.selectAll<QuoteVariantTripRow>("agent_quotev_trips", "select=arm,book,side,k,t_entry,entry,exit,how,t_exit,pnl_usd,notional_usd,qty&order=id.asc"),
-        d.select<QuoteVariantDayRow>("agent_quotev_days", "select=arm,day,orders,fills,trips,won,realised_usd&order=day.desc,arm.asc&limit=120"),
-      ]);
-      return quotesVariantSummary({ state: st[0], trips, days, nowMs: now, dayStartMs, index: await quoteIndexRead });
-    } catch { return null; }
-  })();
+  // "Stablecoin quotes - variant" (`0071`) and rule D's paper test (`0072`), off the page since 0087, are not read since 2026-10-30
+  // (Davies: "好的接着优化"): no page drew them, and their two days views were the slowest reads of every call (about 0.95 s each
+  // in pg_stat_statements). Their calls, tables and summaries stay.
 
-  // Rule D's paper test (`0072`), read beside the variant: its own tables. A failed read leaves the page as it is.
-  const quotesRuledRead = (async () => {
-    try {
-      const st = await d.select<QuoteRuledStateRow>("agent_quoted_state", "id=eq.1&select=state,last_minute,updated_at,last_error");
-      if (!st[0]) return null;
-      const [trips, days] = await Promise.all([
-        d.selectAll<QuoteVariantTripRow>("agent_quoted_trips", "arm=eq.d&select=arm,book,side,k,t_entry,entry,exit,how,t_exit,pnl_usd,notional_usd,qty&order=id.asc"),
-        d.select<QuoteVariantDayRow>("agent_quoted_days", "arm=eq.d&select=arm,day,orders,fills,trips,won,realised_usd&order=day.desc&limit=60"),
-      ]);
-      return quotesRuledSummary({ state: st[0], trips, days, nowMs: now, dayStartMs, index: await quoteIndexRead });
-    } catch { return null; }
-  })();
-
-  // The paper quote test (`0051`). Its own tables; missing ones (before the migration) leave it off the page.
+  // PR5's live executor (`0052`), LIVE's "Stablecoin quotes USDT/GBP", as `quotes.live`. The paper quote test (`0051`) whose
+  // state it reads (the GBP/USD its book is valued at) is off the page since 0087: its trips, today's events, its first event
+  // and its days are not read since 2026-10-30, as no page drew them.
   const quotesRead = (async () => {
     try {
-      const [st, trips, today, first] = await Promise.all([
-        d.select<QuoteStateRow>("agent_quote_state", "id=eq.1&select=state,last_minute,updated_at,last_error"),
-        d.select<QuoteTripRow>("agent_quote_trips", "select=book,side,k,t_entry,entry,exit,how,t_exit,pnl_usd,notional_usd,qty&order=t_exit.desc&limit=1000"),
-        d.selectAll<{ kind: string }>("agent_quote_events", `minute=gte.${encodeURIComponent(new Date(dayStartMs).toISOString())}&kind=in.(order,fill)&select=kind&order=book.asc,minute.asc,side.asc,k.asc,kind.asc`),
-        d.select<{ minute: string }>("agent_quote_events", "select=minute&order=minute.asc&limit=1"),
-      ]);
-      // Its days (`0070`), read apart: before the view exists, the page shows the test without them.
-      const days = await d.select<QuoteDayRow>("agent_quote_days", "select=day,orders,fills,trips,won,realised_usd&order=day.desc&limit=60").catch(() => [] as QuoteDayRow[]);
-      const summary = quotesSummary(st[0] ?? null, trips, today, first[0]?.minute ?? null, now, dayStartMs, days, QUOTES_CAPITAL_USD, await quoteIndexRead);
       // Its live executor (`0052`): the real-money book it trades, once it trades one. Its own tables; before they
       // exist, the page shows the paper test alone.
       const live = await (async () => {
         try {
-          const [cfg, lst, orders, tickers] = await Promise.all([
+          const [st, cfg, lst, orders, tickers] = await Promise.all([
+            d.select<QuoteStateRow>("agent_quote_state", "id=eq.1&select=state,last_minute,updated_at,last_error"),
             d.select<QuoteLiveConfigRow>("agent_quote_live_config", "id=eq.1&select=dry_run,live_confirmed_at,capital_gbp"),
             d.select<QuoteLiveStateRow>("agent_quote_live_state", "id=eq.1&select=state,updated_at,last_error"),
             d.selectAll<QuoteLiveOrderView>("agent_quote_live_orders", `mode=eq.live&select=${QUOTE_LIVE_SUMMARY_COLUMNS}&order=id.asc`),
@@ -2588,7 +2575,7 @@ async function dashboard(now: number) {
           return { ...summary, detail, books: quoteBooksTraded(QUOTE_LIVE_INSTANCE, now), rungsTraded: quoteRungsTraded(QUOTE_LIVE_INSTANCE, now) };
         } catch { return null; }
       })();
-      return summary && { ...summary, live };
+      return { live };
     } catch { return null; }
   })();
 
@@ -2610,9 +2597,13 @@ async function dashboard(now: number) {
   const grokPmRead = readGrokPm(d, now);
   // The outside-Grok tests of TESTING (Davies, 2026-10-29): CXBOT on paper, IGBOT on IG's demo (grok_tests_view.ts).
   const grokTestsRead = Promise.all([readCxbot(d, now), readIgbot(d, now)]);
-  for (const p of [quotesRead, lpLiveRead, cbLiveRead, quotesRxuRead, grokPmRead, grokTestsRead, quotesVariantRead, quotesRuledRead, quotesTwinsRead,
-    quotesCoinbaseHoldRead, quotesCoinbaseUsdcRead, quotesCoinbaseNudgeRead, quotesOkxRead, quotesOkxBasisRead, quotesXhedgeRead, fxwAudRead] as Promise<unknown>[]) handled(p);
-  const [strategies, riskRows, filled, open, today, probeRows, decisions24h, recentDecisions, recentOrders, backtests, basis24h, { venues, notes }] = await Promise.all([
+  const pageReads: Record<string, Promise<unknown>> = {
+    quotesLive: quotesRead, lpLive: lpLiveRead, cbLive: cbLiveRead, quotesRxu: quotesRxuRead, grokPm: grokPmRead, grokTests: grokTestsRead,
+    makerWatch: makerWatchRead, quotesTwins: quotesTwinsRead, quotesCoinbaseHold: quotesCoinbaseHoldRead, quotesCoinbaseUsdc: quotesCoinbaseUsdcRead,
+    quotesCoinbaseNudge: quotesCoinbaseNudgeRead, quotesOkx: quotesOkxRead, quotesOkxBasis: quotesOkxBasisRead, quotesXhedge: quotesXhedgeRead, fxwAud: fxwAudRead,
+  };
+  for (const [name, p] of Object.entries(pageReads)) handled(timed(name, p));
+  const [strategies, riskRows, filled, open, today, probeRows, decisions24h, recentDecisions, recentOrders, backtests, basis24h, { venues, notes }] = await timed("loop", Promise.all([
     // Retired rows are read too and filtered below: one that is FLAT leaves the page (`0038`), one
     // that still holds something stays on it, marked `windingDown`. `0043` retired three rows that
     // were still long, and a position nobody can see is a position nobody will notice is stuck.
@@ -2630,7 +2621,7 @@ async function dashboard(now: number) {
     d.select<{ id: string; strategy_id: string; ran_at: string; method: string; summary: unknown }>("agent_backtests", "select=id,strategy_id,ran_at,method,summary&order=ran_at.desc"),
     d.select<{ ts: string; symbol: string; basis_bps: number; revx_bid: number; revx_ask: number; kraken_bid: number; kraken_ask: number }>("agent_basis", `ts=gte.${since24h}&select=ts,symbol,basis_bps,revx_bid,revx_ask,kraken_bid,kraken_ask&order=ts.desc&limit=2000`),
     loadVenues(),
-  ]);
+  ]));
   // Today's opening price per VENUE and symbol, from the cached daily candles: each strategy is marked from its own signal
   // venue's day open, exactly as the tick's loss breaker marks it, so the page's "today" and the loop's are one figure.
   // Yesterday's candle is read too: until the venue publishes today's, today opened at yesterday's CLOSE (`dayOpenOf`,
@@ -2649,6 +2640,7 @@ async function dashboard(now: number) {
   // reads quantities, never marks), so its symbols are not quoted. Every row of the loop is retired since 0158 and flat, so
   // the page asks the venues nothing; before 2026-10-30 it asked them for every retired row's symbols, one venue after
   // another, and read Revolut X's balances, which no page shows, on every call.
+  stages.loopCandlesObservations = Date.now() - t0;
   const { onPage, symbolsByVenue } = venueAsks(strategies, filled, dayStartMs);
   const marks: Record<string, Record<string, number>> = {};
   const venueErrors: Record<string, string | null> = { revx: notes.revx, kraken: notes.kraken, binance: notes.binance };
@@ -2714,6 +2706,7 @@ async function dashboard(now: number) {
   });
 
   // The book by venue: what each account holds and has made, live and paper apart.
+  stages.loopVenuesDecisions = Date.now() - t0;
   const byVenue: Record<string, { costUsd: number; valueUsd: number; unrealisedUsd: number; realisedUsd: number; feesUsd: number; todayUsd: number; capitalUsd: number; strategies: number; live: number }> = {};
   for (const s of out) {
     const v = (byVenue[s.venue] ??= { costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, todayUsd: 0, capitalUsd: 0, strategies: 0, live: 0 });
@@ -2733,13 +2726,20 @@ async function dashboard(now: number) {
     Object.assign(basisBySymbol[sym], { n: abs.length, absP50: q(0.5), absP95: q(0.95), absMax: abs[abs.length - 1], over20: abs.filter((x) => x > 20).length, over40: abs.filter((x) => x > 40).length, over80: abs.filter((x) => x > 80).length });
   }
 
-  const [quotes, lpLive, cbLive, quotesRxu, grokPm, [cxbot, igbot], quotesVariant, quotesRuled, makerWatch] = await Promise.all([
-    quotesRead, lpLiveRead, cbLiveRead, quotesRxuRead, grokPmRead, grokTestsRead, quotesVariantRead, quotesRuledRead, makerWatchRead]);
+  const [quotes, lpLive, cbLive, quotesRxu, grokPm, [cxbot, igbot], makerWatch, quotesTwins, quotesCoinbaseHold, quotesCoinbaseUsdc, quotesCoinbaseNudge,
+    quotesOkx, quotesOkxBasis, quotesXhedge, fxwAud] = await Promise.all([
+    quotesRead, lpLiveRead, cbLiveRead, quotesRxuRead, grokPmRead, grokTestsRead, makerWatchRead, quotesTwinsRead, quotesCoinbaseHoldRead,
+    quotesCoinbaseUsdcRead, quotesCoinbaseNudgeRead, quotesOkxRead, quotesOkxBasisRead, quotesXhedgeRead, fxwAudRead]);
+  // Measured after every read has settled: the object below awaits nothing (until 2026-10-30 it awaited the twins and the
+  // Coinbase, OKX and hedge pages inside it, after `serverMs` was taken, so it read short).
+  const serverMs = Date.now() - t0;
 
   return {
     at: new Date(now).toISOString(),
-    // How long this answer took to make, in the function (the page's slowness, measured where it is spent; 2026-10-30).
-    serverMs: Date.now() - t0,
+    // How long this answer took to make, in the function (the page's slowness, measured where it is spent; 2026-10-30), and when
+    // each read settled, in ms from the start (`stagesMs`): the last of them is the call's critical path.
+    serverMs,
+    stagesMs: stages,
     dayStart: new Date(dayStartMs).toISOString(),
     risk: riskRows[0] ?? null,
     totals: { ...totals, byMode },
@@ -2753,41 +2753,37 @@ async function dashboard(now: number) {
     /** The adverse-selection notebook (`0042`, reference §3.13): is 0 % maker actually free here? */
     makerProbes: probeSummary(probeRows),
     jev24h: jevStats(decisions24h),
-    /** PR5's quotes on paper (`0051`, reference §4 item 31); null until its tables exist and it has run. */
+    /** PR5's live executor as `quotes.live` (its paper test, `0051`, is not sent since 2026-10-30); null when its read fails. */
     quotes,
-    /** PR5V on paper (`0071`, reference §4 item 45; off the page since 0087): arm main in `quotes`' shape; null until it has run. */
-    quotesVariant,
-    /** Rule D on paper (`0072`, reference §4 item 47; off the page since 0087): arm d in `quotes`' shape; null until it has run. */
-    quotesRuled,
     /**
      * The realistic twins of PR5's live executor (`0087`, `0088`, quotes_twin.ts), in the page's order: TESTING's
      * "Stablecoin quotes" (PR5's rule), "…variant-1" (PR5's rule at £50 a rung) and "…variant-3" (rule D), each in the
      * live executor's shape (`quotesLiveSummary`, its `detail`) with `twin`; a twin not yet loaded is null.
      */
-    quotesTwins: await quotesTwinsRead,
+    quotesTwins,
     /**
      * "Stablecoin quotes with Euros - 2" (`0118`, cb_hold.ts; "- 2" until `0142`, "- 1" until 2026-10-29, "with Euros" until 2026-10-30): the
      * Coinbase paper test of PR5's rule with the interbank rates held through a closure, $50 a rung since its Deviation 7, in a twin's shape with `venue: "coinbase"` (`twin.id` "coinbasehold");
      * null until it has decided a minute. The base test (`quotesCoinbase`, cb_quotes.ts) is not sent since 2026-10-29.
      */
-    quotesCoinbaseHold: await quotesCoinbaseHoldRead,
+    quotesCoinbaseHold,
     /**
      * "Stablecoin quotes with Euros - 1" (`0142`, cb_usdc.ts; "- 2" until 2026-10-29): the weekend variant's rule on Coinbase's two USDC books at 25 a
      * rung, in the same shape (`twin.id` "coinbaseusdc"; `cbUsdcView`), in dollars; null until it has decided a minute.
      */
-    quotesCoinbaseUsdc: await quotesCoinbaseUsdcRead,
+    quotesCoinbaseUsdc,
     /**
      * "Stablecoin quotes USDC/GBP LIVE twin" (`0168`, cb_nudge.ts; "- 3" until 2026-10-29, "- 2" until 2026-10-30): the paper arm Coinbase LIVE
      * follows, the USDC arm's rule on USDC-GBP alone at $50 a rung, its fair nudged by
      * Revolut X's USDC-GBP book, in the same shape (`twin.id` "coinbasenudge"), in dollars; null until it has decided a minute.
      */
-    quotesCoinbaseNudge: await quotesCoinbaseNudgeRead,
+    quotesCoinbaseNudge,
     /**
      * "Stablecoin quotes OKX USDG" and "Stablecoin quotes OKX EURC" (`0150`, okx_quotes.ts): PR5's rule as LIVE carries it out,
      * on paper, on OKX's USDG-EUR and EURC-USDC, one twin a book (`twin.id` "okxusdg", "okxeurc"); empty until it has decided a minute.
      * With them, right after "okxusdg", "Stablecoin quotes USDG/EUR - 1" (`0171`, okx_basis.ts, `twin.id` "okxusdgb") once it has.
      */
-    quotesOkx: okxRowsWithBasis(await quotesOkxRead, await quotesOkxBasisRead),
+    quotesOkx: okxRowsWithBasis(quotesOkx, quotesOkxBasis),
     /**
      * "Stablecoin quotes RX↔Coinbase hedge" and "… - 1" (`0184`, xhedge.ts): strategy A's two arms on paper, one tick inside
      * Revolut X's other maker (`twin.id` "xhedge") and 10 bps from Coinbase's mid behind it ("xhedgebehind"), each hedged at
@@ -2795,12 +2791,12 @@ async function dashboard(now: number) {
      * Its money is both venues' (xhedge_page.ts): FUNDED both venues' funding, DEPLOYED the coin on both and the pounds in
      * resting bids, TODAY what both hold against 00:00; `venues` ["revx", "coinbase"] and `byVenue` each venue's part.
      */
-    quotesXhedge: await quotesXhedgeRead,
+    quotesXhedge,
     /**
      * "FXW-AUD weekend" (`0162`, fxw_view.ts): the frozen FXW-AUD rule on paper on the live IG recorder's quotes, in
      * pounds, one row a weekend; null before the `ig` function's first `fxw` run.
      */
-    fxwAud: await fxwAudRead,
+    fxwAud,
     // `rw`, `rwe`, `rwx`, `prep`, `prepMid`, `prepLp`: the paper Reward quotes rows, not sent since 0120 (above).
     /**
      * "Reward quotes live-prep"'s real money (`pm_lp_live_view.ts`): a row of LIVE, its figures from the path's live rows

@@ -915,6 +915,7 @@ before touching migration state.
 | `0183_quotes_compound_all.sql` | Compounding for every Stablecoin quotes strategy: the USDC/GBP and Coinbase executors' switches (off, beside LIVE's 0146) and the twins' table, every enabled twin on from 2026-10-31 00:00 UTC. |
 | `0184_xhedge_paper.sql` | "Stablecoin quotes RX↔Coinbase hedge" and "… - 1" on paper: their tables (each arm's and book's minute, fills, round trips), the days view with each side's blocked minutes, lock, call a minute (`agents?action=xhedge`, under the watchdog) and prune. |
 | `0185_maker_watch.sql` | The other maker's watch: its minutes, events and state tables, filled by the book recorder's call from 2026-09-26 on. |
+| `0186_dashboard_read_indexes.sql` | Indexes for the Agents page's slowest reads: each Coinbase and OKX arm's minute table by minute, and the loop's decisions by time. |
 | `0182_cb_live_decide.sql` | The Coinbase live executor's decision source (`cb_live_config.decide`, 'paper' by default, 'self' only for a USDC arm) and its shadow table (`cb_live_shadow`, 14 days' prune). |
 | `0181_quote_twins_exit_tick.sql` | The exit a tick beyond fair (`exitOffset` 1) on every running twin on LIVE's rules from 2026-10-30 00:00 UTC, as on LIVE; variant-6 and its control off. |
 | `0166_fxw_display_name.sql` | Renames the stored display name of the AUD weekend paper book to "FXW-AUD weekend" (`ig_fxw_state.name`), guarded by its old value; no key or table changes. |

@@ -8,7 +8,7 @@ import {
   STATE_VOCAB, strategyBooks, SYMBOLS, probeSummary, quotesDelayMs, quotesSummary, quoteDays, QUOTES_CAPITAL_USD, QUOTES_RECENT_TRIPS, tickErrorReport, crashReport, type ProbeSummaryRow,
   REVX_KEY_NAMES, REVX2_PROBE_SYMBOLS, runProbe, PROBE_PARTS, newestDecisions, quotesLiveSummary, type QuoteLiveOrderView, quotesVariantSummary, quotesRuledSummary,
   serveRequest, type ServeDeps, type Who,
-  exitOverbuy, venueAsks, twinBookRatio, quoteRungsTraded, liveBookGbp, liveCoinBooks, conversionSales, liveConversionShares, liveIndexPrices, liveOrderReason, liveRestingBuysGbp, liveRungs, liveRungTrips, quotesLiveDetail, dayCapitalGbp, tripEnds, QUOTE_LIVE_ORDER_COLUMNS,
+  exitOverbuy, venueAsks, lpLiveArmed, lpLiveOff, twinBookRatio, quoteRungsTraded, liveBookGbp, liveCoinBooks, conversionSales, liveConversionShares, liveIndexPrices, liveOrderReason, liveRestingBuysGbp, liveRungs, liveRungTrips, quotesLiveDetail, dayCapitalGbp, tripEnds, QUOTE_LIVE_ORDER_COLUMNS,
   QUOTE_TICKER_FRESH_MS,
   QUOTE_LIVE_REASON_COLUMNS, QUOTE_LIVE_SUMMARY_COLUMNS, QUOTES_LIVE_KNOWN_REFUSALS, QUOTES_LIVE_ORDERS_FILTER, QUOTES_LIVE_PAGE_ROWS, type QuoteLiveRecentRow, withConversionFees,
   liveDays, readQuotesTwin, twinInUsd, twinsDelayMs, twinsOnPage, TWINS_START_MS,
@@ -1788,4 +1788,12 @@ Deno.test("venueAsks: the dashboard asks the venues only for the rows on the pag
   // An active row: its symbols, whatever it holds.
   a = venueAsks([r("paper", null, "kraken")], [], DAY);
   assertEquals([...a.symbolsByVenue].map(([v, s]) => [v, [...s]]), [["kraken", ["BTC/USD"]]]);
+});
+
+Deno.test("readLpLive: disarmed, live-prep's book is sent as off alone, its book not read; armed only when live and confirmed (2026-10-30)", () => {
+  assertEquals(lpLiveArmed({ dry_run: false, live_confirmed_at: "2026-10-09T08:00:00Z" }), true);
+  assertEquals(lpLiveArmed({ dry_run: true, live_confirmed_at: "2026-10-09T08:00:00Z" }), false);
+  assertEquals(lpLiveArmed({ dry_run: false, live_confirmed_at: null }), false);
+  // What the page reads of it while disarmed: `armed` false, so `liveExtraRows` lists no row and nothing opens its page.
+  assertEquals(lpLiveOff({ dry_run: true }), { armed: false, dryRun: true, off: true });
 });

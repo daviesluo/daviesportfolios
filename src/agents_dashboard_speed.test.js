@@ -23,11 +23,36 @@ describe('the dashboard call', () => {
     }
     // None of them awaited alone any more.
     expect(dash).not.toMatch(/= await (readLpLive|readCbLive|readQuotesRxu|readGrokPm)\(/);
-    expect(dash).toContain('await Promise.all([\n    quotesRead, lpLiveRead, cbLiveRead, quotesRxuRead, grokPmRead, grokTestsRead, quotesVariantRead, quotesRuledRead, makerWatchRead]);');
+    expect(dash).toContain('= await Promise.all([\n    quotesRead, lpLiveRead, cbLiveRead, quotesRxuRead, grokPmRead, grokTestsRead, makerWatchRead, quotesTwinsRead, quotesCoinbaseHoldRead,');
     // The venues: only for the rows on the page, asked at once.
     expect(dash).toContain('venueAsks(strategies, filled, dayStartMs)');
     expect(dash).toContain('await Promise.all([...symbolsByVenue].map(async ([vid, syms]) => {');
-    expect(dash).toContain('serverMs: Date.now() - t0,');
+    // Taken once every read has settled, never inside the answer's object while it still awaits pages (it read short so).
+    const taken = dash.indexOf('const serverMs = Date.now() - t0;');
+    expect(taken).toBeGreaterThan(dash.indexOf('fxwAudRead]);'));
+    expect(dash.slice(taken)).not.toMatch(/: await /);
+    expect(dash).toContain('stagesMs: stages,');
+  });
+
+  // The second round (Davies, 2026-10-30: "好的接着优化"). pg_stat_statements put two reads of pages nobody draws at the top of
+  // every call (the variant's and rule D's days views, ~0.95 s each), PR5's paper test's trips and events beside them, and
+  // live-prep's whole book while it is disarmed and off LIVE (its hours view, 0.33 s).
+  it('reads no page nobody draws', () => {
+    for (const gone of ['agent_quotev_days', 'agent_quoted_days', 'agent_quotev_trips', 'agent_quoted_trips', 'quotesVariantSummary(', 'quotesRuledSummary(',
+      '"agent_quote_trips"', '"agent_quote_days"', 'quotesSummary(']) expect(dash, gone).not.toContain(gone);
+    expect(dash).toContain('return { live };');
+    const lp = src.slice(src.indexOf('export async function readLpLive('), src.indexOf('export async function readGrokPm('));
+    const off = lp.indexOf('if (!lpLiveArmed(cfg[0])) return lpLiveOff(cfg[0]);');
+    expect(off).toBeGreaterThan(0);
+    expect(off).toBeLessThan(lp.indexOf('LP_LIVE_HOURS_VIEW'));
+  });
+
+  it('has the indexes its minute and decision reads need (0186)', () => {
+    const sql = fs.readFileSync(path.join(ROOT, 'supabase/migrations/0186_dashboard_read_indexes.sql'), 'utf8');
+    for (const t of ['cb_hold_minutes', 'cb_usdc_minutes', 'cb_nudge_minutes', 'okx_quote_minutes', 'okx_basis_minutes']) {
+      expect(sql).toContain(`on public.${t} (minute);`);
+    }
+    expect(sql).toContain('on public.agent_decisions (ts desc);');
   });
 
   it('lets the browser keep its preflight for two hours', () => {
