@@ -25,14 +25,23 @@ export const KIND_LABELS = { 'trend-4h': 'Trend 4h', 'trend-1h': 'Trend 1h', 'mo
  */
 export const VENUE_HUES = { revx: '#8ec5ff', binance: '#f0b90b', polymarket: '#7d8bff', coinbase: '#4d8bff', okx: '#dfe3ea', ig: '#d6a2e8', hyperliquid: '#97fce4' };
 
+/**
+ * A row on two venues at once has one id for both, which names its own card on TESTING (`venueRows` gives a venue no strategy
+ * trades on a card of its own) and shows both badges: "Stablecoin quotes RX↔Coinbase hedge" and "… - 1" rest on Revolut X and
+ * hedge on Coinbase (xhedge_page.ts; Davies, 2026-10-30: "…在venue列两个币所都加上，funded和deployed资金按两个币所实际的来"). Its
+ * money is both venues', so it is counted on neither venue's own card.
+ */
+export const VENUE_PAIRS = /** @type {Record<string, string[]>} */ ({ 'revx-coinbase': ['revx', 'coinbase'] });
+/** The venues an id stands for: a pair's two, or the one. @param {string} id */
+export const venueParts = (id) => VENUE_PAIRS[id] ?? [id];
 /** @param {string} id */
-export const venueLabel = (id) => VENUE_LABELS[id] ?? id;
+export const venueLabel = (id) => VENUE_LABELS[id] ?? (VENUE_PAIRS[id] ? VENUE_PAIRS[id].map((v) => VENUE_LABELS[v] ?? v).join(' + ') : id);
 /** The region the dashboard runs in: London, where the database lives (and where Binance answers, for a Binance row). */
 export const DASHBOARD_REGION = 'eu-west-2';
 /** @param {string} kind */
 export const kindLabel = (kind) => KIND_LABELS[kind] ?? kind;
-/** @param {string} id */
-export const venueHue = (id) => VENUE_HUES[id] ?? 'rgba(244,239,227,0.6)';
+/** A pair's hue is its first venue's. @param {string} id */
+export const venueHue = (id) => VENUE_HUES[id] ?? VENUE_HUES[VENUE_PAIRS[id]?.[0] ?? ''] ?? 'rgba(244,239,227,0.6)';
 
 /** Signed USD. A whole number of dollars is an integer ("$100", "$0"); cents stay ("+$1.50"). */
 export const fmtUsd = (n, signed = false) => dropDot00(fmtMoney(n, { signed, compact: false }));
@@ -1433,13 +1442,18 @@ export const QUOTES_XHEDGE_ROW_PREFIX = '__quotes_xhedge_';
 export function quotesXhedgeRow(q) {
   if (!q?.twin) return null;
   const where = q.twin.arm === 'behind' ? "10 bps from Coinbase's mid, behind Revolut X's other maker" : "one tick inside Revolut X's other maker";
+  const cells = quoteBookCells(q);
   return {
     id: `${QUOTES_XHEDGE_ROW_PREFIX}${q.twin.id}`,
     name: String(q.twin.name),
-    venue: `${venueLabel('revx')} + ${venueLabel('coinbase')}`,
-    venueId: 'revx',
+    // Both venues (Davies, 2026-10-30: "在venue列两个币所都加上"): both badges, and a card of its own, so neither venue's card
+    // counts the other's half. FUNDED, DEPLOYED and the P&L are both venues' (xhedge_page.ts), each percent on FUNDED.
+    venue: venueLabel('revx-coinbase'),
+    venueId: 'revx-coinbase',
     mode: 'paper',
-    ...quoteBookCells(q),
+    ...cells,
+    // Its card's unrealised percent, two arms summed, on the same base as each row's: FUNDED.
+    unrealisedBaseUsd: cells.costUsd,
     status: q.running
       ? { label: 'paper', running: true, tone: 'running', detail: `${where}, hedged at Coinbase, no transfers · last minute ${Number(q.lagMinutes) || 0} min ago` }
       : { label: 'paper', running: false, tone: 'stale', detail: `its last decided minute was ${q.lagMinutes ?? '?'} min ago` },
@@ -1591,8 +1605,9 @@ export function quotesTwinLines(t, m = (s) => s) {
   const waiting = (tw.converting ?? []).map((/** @type {any} */ c) => c.side === 'sell'
     ? `${quoteBookLabel(c.book).split('/')[0]} is being sold for pounds: a maker sale rests at ${m(fmtQuotePrice(c.price))}, ${m(Number(c.filledBase).toFixed(2))} of ${m(Number(c.base).toFixed(2))} filled`
     : `${quoteBookLabel(c.book).split('/')[0]} asks wait for their coin: a maker conversion rests at ${m(fmtQuotePrice(c.price))}, ${m(Number(c.filledBase).toFixed(2))} of ${m(Number(c.base).toFixed(2))} filled`);
-  // "Stablecoin quotes RX↔Coinbase hedge" (0184) says, a line a book, which sides quote and how long each was off today.
-  const notes = Array.isArray(tw.notes) ? tw.notes.map(String) : [];
+  // "Stablecoin quotes RX↔Coinbase hedge" (0184) says, a line a book, which sides quote and how long each was off today, and a
+  // line a venue, its FUNDED and DEPLOYED (`venueNotes`, xhedge_page.ts; money, so masked with the rest of the page's figures).
+  const notes = [...(Array.isArray(tw.notes) ? tw.notes.map(String) : []), ...(Array.isArray(tw.venueNotes) ? tw.venueNotes.map((/** @type {unknown} */ s) => m(String(s))) : [])];
   return { waiting: [...waiting, ...notes], ratio: quotesTwinRatioLine(tw.bookRatio) };
 }
 

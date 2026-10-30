@@ -4744,9 +4744,12 @@ and its control are off, its pre-registration closed early, adopted.
       of `edge_calls` under the watchdog), prune after 120
       days. It decides three minutes behind the clock (so a fill's hedge read exists) and starts at the first 00:00 UTC after its
       first run.
-    - **The page:** TESTING's rows "Stablecoin quotes RX↔Coinbase hedge" and "… - 1" on Revolut X's card, venue "Revolut X +
-      Coinbase", and a Stablecoin quotes page each (`QuotesLiveDetail`'s `xhedge`):
-      - scoreboard on £2,400;
+    - **The page:** TESTING's rows "Stablecoin quotes RX↔Coinbase hedge" and "… - 1", venue "Revolut X + Coinbase" (both
+      badges, `VENUE_PAIRS`, and a card of their own since 2026-10-30 ~03:30, Davies: "…在venue列两个币所都加上，funded和deployed资金按两个币所实际的来，
+      盈利状况也一样"), and a Stablecoin quotes page each (`QuotesLiveDetail`'s `xhedge`):
+      - scoreboard across both venues (`xhedge_page.ts`, outside the frozen engine): FUNDED £2,400 (£1,200 a venue), DEPLOYED the
+        coin on both and the pounds in resting Revolut X bids, TODAY what both hold against the last minute before 00:00, REALIZED
+        both legs of every trip, each percent on FUNDED; a line a venue with its FUNDED and DEPLOYED;
       - BOOKS, Coinbase's mid as the fair and the ladder's one rung "inside";
       - a line a book for each side's state and today's blocked minutes;
       - INVENTORY, each venue's pounds and coins;

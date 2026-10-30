@@ -16,7 +16,7 @@ import { SurfaceBoundary } from '../app/surface_boundary.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, cbLiveRow, quotesRxuRow, FXW_ROW_ID, fmtFx, fxwAudRow, fxwTiles, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokTestRow, grokTestOf, grokTestTiles, grokTestLayerCells, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmDaysAnnualPct, GROKPM_DAYS_ANNUAL_TITLE, GROKPM_JOURNAL_STEP, fetchGrokPmJournal, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtFeeIn4, fmtGbp, fmtGbp4, fmtIn, fmtIn4, quotesDetailInCcy, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_NUDGE_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesPageFor, quotesShowBook, quoteConversionLine, INVENTORY_DUST, quotesOkxName, quotesOkxOf, quotesOkxRow, quotesXhedgeOf, quotesXhedgeRow, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quoteDaysRecent, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwShareText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows,
+  AGENT_TABS, venueParts, cbLiveRow, quotesRxuRow, FXW_ROW_ID, fmtFx, fxwAudRow, fxwTiles, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokTestRow, grokTestOf, grokTestTiles, grokTestLayerCells, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmDaysAnnualPct, GROKPM_DAYS_ANNUAL_TITLE, GROKPM_JOURNAL_STEP, fetchGrokPmJournal, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtFeeIn4, fmtGbp, fmtGbp4, fmtIn, fmtIn4, quotesDetailInCcy, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_NUDGE_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesPageFor, quotesShowBook, quoteConversionLine, INVENTORY_DUST, quotesOkxName, quotesOkxOf, quotesOkxRow, quotesXhedgeOf, quotesXhedgeRow, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quoteDaysRecent, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwShareText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -77,8 +77,15 @@ function ModeBadge({ mode }) {
   return <span className={`ag-badge ag-badge-${mode}`}>{mode.toUpperCase()}</span>;
 }
 
-/** The venue, as a coloured badge: every position and every order says where it is. */
-function VenueBadge({ id, signal = null }) {
+/**
+ * The venue, as a coloured badge: every position and every order says where it is. A row on two venues (`VENUE_PAIRS`, the
+ * RX↔Coinbase hedge) shows both badges.
+ * @param {{ id: string, signal?: string | null }} props
+ */
+export function VenueBadge({ id, signal = null }) {
+  // A row on two venues (`VENUE_PAIRS`): a badge each, side by side, wrapping on a phone.
+  const parts = venueParts(id);
+  if (parts.length > 1) return <span className="ag-venue-pair">{parts.map((p) => <VenueBadge key={p} id={p} />)}</span>;
   return (
     <span className={`ag-venue ag-venue-${id}`} title={signal && signal !== id ? `signals from ${venueLabel(signal)}` : undefined}>
       {venueLabel(id)}{signal && signal !== id ? <span className="ag-venue-signal"> ← {venueLabel(signal)}</span> : null}

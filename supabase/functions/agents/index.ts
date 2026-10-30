@@ -300,7 +300,8 @@ import { readCbLive, runCbLive } from "./cb_live.ts";
 import { runOkxRec, type OkxRecState } from "./okx_rec.ts";
 import { readOkxQuotes, runOkxQuotes } from "./okx_quotes.ts";
 import { okxRowsWithBasis, readOkxBasis, runOkxBasis } from "./okx_basis.ts";
-import { readXhedge, runXhedge } from "./xhedge.ts";
+import { runXhedge } from "./xhedge.ts";
+import { readXhedgePage } from "./xhedge_page.ts";
 import { readFxw } from "./fxw_view.ts";
 import { CB_HOLD_PAGE_NAME, CB_NUDGE_PAGE_NAME, CB_USDC_PAGE_NAME, readCoinbaseUsd } from "./cb_page.ts";
 import { runEconcal } from "./econcal.ts";
@@ -2580,8 +2581,9 @@ async function dashboard(now: number) {
   // "Stablecoin quotes USDG/EUR - 1" (0171, okx_basis.ts): the USDG/EUR twin with the basis fair, placed right after it; null
   // before its first decided minute.
   const quotesOkxBasisRead = readOkxBasis(d, now, dayStartMs).catch(() => null);
-  // "Stablecoin quotes RX↔Coinbase hedge" and "… - 1" (0184, xhedge.ts): an arm appears once it has decided a minute.
-  const quotesXhedgeRead = readXhedge(d, now, dayStartMs).catch(() => []);
+  // "Stablecoin quotes RX↔Coinbase hedge" and "… - 1" (0184, xhedge.ts): an arm appears once it has decided a minute, its money
+  // across both venues (xhedge_page.ts).
+  const quotesXhedgeRead = readXhedgePage(d, now, dayStartMs).catch(() => []);
   // "FXW-AUD weekend" on paper (fxw_view.ts; the `ig` function's `fxw` run writes it): null before its first run.
   const fxwAudRead = readFxw(d, now, dayStartMs).catch(() => null);
 
@@ -2731,6 +2733,8 @@ async function dashboard(now: number) {
      * "Stablecoin quotes RX↔Coinbase hedge" and "… - 1" (`0184`, xhedge.ts): strategy A's two arms on paper, one tick inside
      * Revolut X's other maker (`twin.id` "xhedge") and 10 bps from Coinbase's mid behind it ("xhedgebehind"), each hedged at
      * Coinbase, in the Stablecoin quotes pages' shape (`twin.notes` each book's sides); an arm appears once it decides a minute.
+     * Its money is both venues' (xhedge_page.ts): FUNDED both venues' funding, DEPLOYED the coin on both and the pounds in
+     * resting bids, TODAY what both hold against 00:00; `venues` ["revx", "coinbase"] and `byVenue` each venue's part.
      */
     quotesXhedge: await quotesXhedgeRead,
     /**

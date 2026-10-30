@@ -481,8 +481,10 @@ places stay when the number is not whole.
   the weekend the rows keep their old rule (the first one dark, the others on
   the last rate). A two-year backtest found every Coinbase row earning more
   this way.
-- **Stablecoin quotes RX↔Coinbase hedge and "- 1".** After Revolut X's twins, on
-  its card (the venue reads "Revolut X + Coinbase"): on paper, an order on each
+- **Stablecoin quotes RX↔Coinbase hedge and "- 1".** After Revolut X's twins,
+  with both venues' badges in the venue column and a card of their own,
+  "Revolut X + Coinbase" (so Revolut X's and Coinbase's own cards count none of
+  their money): on paper, an order on each
   side of Revolut X's USDT/GBP and USDC/GBP books, never dearer than Coinbase's
   price allows. The first sits one tick better than the big order that usually
   sits at the front; "- 1" stays behind that order, 0.1 % from Coinbase's price,
@@ -492,7 +494,12 @@ places stay when the number is not whole.
   nothing is ever moved between them. A side whose money or coin has run
   out on either venue stops until trades the other way refill it; the line
   under the scoreboard says which sides are on and how long each was off
-  today. INVENTORY shows both venues' pounds and coins. ROUND TRIPS pairs
+  today, and a line for each venue says what it was funded with and what is at
+  work there. FUNDED is both venues' money; DEPLOYED is the coin on both venues
+  plus the pounds in resting Revolut X buys; TODAY is how much more both venues
+  hold than at midnight; REALIZED counts both trades of every round trip and
+  Coinbase's fee; each percent is on FUNDED. INVENTORY shows both venues' pounds
+  and coins. ROUND TRIPS pairs
   each Revolut X fill with its Coinbase trade. Each is a 28-day paper test from
   the first midnight after it went up, its rule for judging it written down
   first.
