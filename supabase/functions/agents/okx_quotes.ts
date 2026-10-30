@@ -46,6 +46,11 @@
 // in dollars, and everything entered before `usdFrom` is shown × the factor (`okxBookView`), assuming fills and fees scale with
 // size. The pre-registration's §8 has it.
 //
+// THE COMPOUNDING (2026-10-31 00:00 UTC; Davies, 2026-10-30: "…你觉得需要做的话就做"; recorded apart in
+// docs/agents/reviews/2026-10-30-okx-compounding-deviation.md): each book's rung is its $100 × its capital over its $600, the capital
+// set at each UTC day's first minute from what that book has realised since (okx_compound.ts, LIVE's rule), and the loss stop counts
+// against the two books' capitals. Before the instant nothing differs.
+//
 // One call a minute (`agents?action=okxquotes`, 0150, a row of `edge_calls` under the watchdog), both books, its own tables
 // (`okx_quote_*`) and lease (`okx-quotes`). It reads the recorder's tables and the stored rates; it calls no venue and holds no
 // key. An empty record starts at the first 00:00 UTC after its first run.
@@ -55,6 +60,7 @@ import { faultKey, reportDue } from "./pm_book_rec.ts";
 import { fxBarAt } from "./quotes.ts";
 import { inQuoteClosure } from "./quotes_weekend.ts";
 import { OKX_BOOKS, type OkxBook, type OkxRecState } from "./okx_rec.ts";
+import { okxCompoundMinute, okxCompoundTrip, type OkxCompound } from "./okx_compound.ts";
 
 const M = 60e3, DAY = 86400e3;
 const iso = (ms: number) => new Date(ms).toISOString();
@@ -335,6 +341,8 @@ export type OkxQuoteState = {
   usdFrom?: number;
   usdEurusd?: number;
   usdFactor?: number;
+  /** The compounding (2026-10-31): each book's capital, what it has realised since, and each day's capital (okx_compound.ts). */
+  compound?: OkxCompound;
   fault?: { key: string; at: number };
 };
 export type OkxQuoteReport = { minutes: number; from: number | null; to: number | null; prints: number; fills: number; exits: number; stops: number; orders: number; refused: number; errors: string[]; report: boolean; skipped?: string };
@@ -414,14 +422,16 @@ export async function runOkxQuotes(d: { db: Db; now: number; holder: string; rec
       if (gb) gbpusd = gb[1];
       acct = okxAccountMinute(acct, t);
       const usd = st.usdFrom != null && t >= st.usdFrom;
+      // The compounding (2026-10-31): each book's capital over its funded, set at the day's first minute (1 before the start).
+      const mult = Object.fromEntries(OKX_BOOKS.map((b) => [b, okxCompoundMinute(st!, b, t)])) as Record<OkxBook, number>;
       for (const b of OKX_BOOKS) {
         const tp = tape[b], tick = OKX_SPEC[b].tick;
         const mine: OkxTapePrint[] = [];
         while (tp.j < tp.prints.length && tp.prints[tp.j].ts < t + M) { mine.push(tp.prints[tp.j]); tp.j++; }
         const out = stepOkxMinute(st.books[b], t, { eurusd: eb ? eb[1] : null, gbpusd, prints: mine, touchStart: okxTouchAt(tp.touches, t), touchEnd: okxTouchAt(tp.touches, t + M - 1), stopped: acct.stopped,
-          rungUsd: usd ? OKX_RUNG_USD : null });
+          rungUsd: usd ? OKX_RUNG_USD * mult[b] : null });
         const eurGbp = out.x && gbpusd ? out.x / gbpusd : null;            // EUR/USD ÷ GBP/USD
-        const capGbp = usd ? (gbpusd ? 2 * OKX_BOOK_USD / gbpusd : null) : eurGbp == null ? null : okxCapitalGbp(eurGbp, 12);
+        const capGbp = usd ? (gbpusd ? OKX_BOOK_USD * (mult["USDG-EUR"] + mult["EURC-USDC"]) / gbpusd : null) : eurGbp == null ? null : okxCapitalGbp(eurGbp, 12);
         acct = okxAccountTrips(acct, out.trips, capGbp);
         const last = st.books[b].lastPrint, ts = okxTouchAt(tp.touches, t);
         minutes.push({
@@ -429,7 +439,10 @@ export async function runOkxQuotes(d: { db: Db; now: number; holder: string; rec
           prints_n: mine.length, vol: r9(mine.reduce((a, p) => a + p.qty * p.ticks * tick, 0)), last: last ? r9(last.ticks * tick) : null,
           bid: ts?.bid ?? null, ask: ts?.ask ?? null,
         });
-        for (const x of out.trips) trips.push(okxTripRow(x));
+        for (const x of out.trips) {
+          trips.push(okxTripRow(x));
+          okxCompoundTrip(st, b, x.tExit, x.pnlQuote * (okxUsdPerQuote(b, out.x) ?? NaN));
+        }
         events.push(...out.events.map(okxEventRow));
         report.orders += out.orders;
       }

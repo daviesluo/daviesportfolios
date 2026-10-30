@@ -681,10 +681,10 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
     account must allow buying crypto before the next go; design §9). **'self' (`0182`, design §10; Davies 10-30: "要做"):** lands
     `decide` 'paper' with the shadow on; read §10's SQL after a few hours of `cb_live_shadow`, then the switch only on his word.
 
-22. **Compounding for every Stablecoin quotes (`0183`, `reviews/2026-10-30-compounding.md`; Davies 10-30: "…盈利金额再利用…").** Twins
-    and Coinbase paper arms compound from 10-31 00:00 UTC on landing. LIVE, the RX USDC/GBP and Coinbase executors: `compound_mode`
-    'off' until his word, then design §6's statement each (same `compound_from` as the twins). After 11-01 00:00 read
-    `agent_quote_twin_compound.last` and the arms' `state.compound`. OKX twins and the base Coinbase test not covered (§1).
+22. **Compounding for every Stablecoin quotes (`0183`, `reviews/2026-10-30-compounding.md`; Davies 10-30: "…盈利金额再利用…").** Twins,
+    Coinbase and OKX paper arms compound from 10-31 00:00 UTC. LIVE, the RX USDC/GBP and Coinbase executors: turned on ~02:10 UTC
+    10-30 ("打开", §6's statements, `compound_from` 10-31 00:00). After 11-01 00:00 read each config's `compound_last`,
+    `agent_quote_twin_compound.last` and the arms' `state.compound`. The base Coinbase test stays uncompounded (a control).
 
 ## Machine and platform setup
 
@@ -810,6 +810,11 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   `cb_live_config` (base £120, £20 rungs), each `compound_mode` 'realised' from 2026-10-31 00:00 UTC, one row each. A deposit or
   withdrawal of £D moves `compound_base_gbp` by D. Off: `set compound_mode = 'off'`. OKX twins next (a1cb); the base Coinbase test
   stays uncompounded as the weekend reading's control. Research MMCOMP-2 landed (A: paper proposed, awaits Davies; B: no).
+
+### [2026-10-30 02:11 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **OKX paper twins compound too** (sub-agent; commit, not pushed; Davies, 10-30: "…你觉得需要做的话就做"). `okx_compound.ts`: each book's
+  `rungUsd` and loss stop × capital/$600 from 10-31 00:00 (LIVE's rule, $6 units, `days` kept); deviation apart with pin tests;
+  base Coinbase test left as a control. Design doc records the three live flips (~02:10, "打开").
 
 ### [2026-10-30 02:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **MMCOMP-2: the two strategies in depth, and the maker's takings** (sub-agent; commit, not pushed; Davies, 10-30 ~02:00:

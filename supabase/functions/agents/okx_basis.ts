@@ -23,6 +23,11 @@
 // EUR/USD ÷ (1 + ½ b) ÷ GBP/USD, so a trip's `pnl_gbp` carries the factor 1 / (1 + ½ b) (a few bps of the P&L); the reading uses
 // `pnl_quote`, in euros. The daily loss stop is this book's alone, its trips against 1 % of its own $600.
 //
+// THE COMPOUNDING (2026-10-31 00:00 UTC; Davies, 2026-10-30: "…你觉得需要做的话就做"; recorded apart in
+// docs/agents/reviews/2026-10-30-okx-compounding-deviation.md): its rung is the USDG/EUR row's × its capital over its $600, the
+// capital set at each UTC day's first minute from what this book has realised since (okx_compound.ts, LIVE's rule; a trip's euros
+// at the minute's EUR/USD), and its loss stop counts against that capital. Before the instant nothing differs.
+//
 // Its own tables (`okx_basis_*`, the OKX twins' shapes with the minute's par, b and its count), lease (`okx-basis`) and call
 // (`agents?action=okxbasis`, a row of `edge_calls`, its beat first). It reads the recorder's tables and the stored rates; it calls
 // no venue and holds no key. An empty record starts at the first 00:00 UTC after its first run, flat; no backfill.
@@ -35,6 +40,7 @@ import {
   newOkxBookState, OKX_BOOK_USD, OKX_MAX_MINUTES, OKX_RUNG_USD, OKX_SPEC, OKX_TOUCH_MAX_AGE_MS, okxAccountMinute, okxAccountTrips, okxBookView,
   okxEventRow, okxStart, okxTouchAt, okxTripRow, stepOkxMinute, type OkxAccount, type OkxQuoteState, type OkxTapePrint, type OkxTouch,
 } from "./okx_quotes.ts";
+import { okxCompoundMinute, okxCompoundTrip } from "./okx_compound.ts";
 
 const M = 60e3, DAY = 86400e3;
 const iso = (ms: number) => new Date(ms).toISOString();
@@ -160,15 +166,20 @@ export async function runOkxBasis(d: { db: Db; now: number; holder: string; rec:
       const { b: basis, n } = okxBasisAt(t, all, eurBars);
       const inp = okxBasisInputs(eb ? eb[1] : null, basis, st.lastB ?? 0);
       if (eb) st.lastB = basis;
-      const out = stepOkxMinute(st.books[b], t, { eurusd: inp.x, gbpusd, prints: mine, touchStart: okxTouchAt(touches, t), touchEnd: okxTouchAt(touches, t + M - 1), stopped: acct.stopped, rungUsd: inp.rungUsd });
-      acct = okxAccountTrips(acct, out.trips, gbpusd ? OKX_BOOK_USD / gbpusd : null);
+      // The compounding (2026-10-31): the book's capital over its funded, set at the day's first minute (1 before the start).
+      const mult = okxCompoundMinute(st, b, t);
+      const out = stepOkxMinute(st.books[b], t, { eurusd: inp.x, gbpusd, prints: mine, touchStart: okxTouchAt(touches, t), touchEnd: okxTouchAt(touches, t + M - 1), stopped: acct.stopped, rungUsd: inp.rungUsd * mult });
+      acct = okxAccountTrips(acct, out.trips, gbpusd ? OKX_BOOK_USD * mult / gbpusd : null);
       const last = st.books[b].lastPrint, ts = okxTouchAt(touches, t);
       minutes.push({
         book: b, minute: iso(t), x: eb ? eb[1] : null, x_held: out.held, fair: out.fair, gbp_per_quote: out.gbpq, guard: out.guard,
         prints_n: mine.length, vol: r9(mine.reduce((a, p) => a + p.qty * p.ticks * tick, 0)), last: last ? r9(last.ticks * tick) : null,
         bid: ts?.bid ?? null, ask: ts?.ask ?? null, par: eb ? 1 / eb[1] : null, basis: eb ? basis : null, basis_n: n,
       });
-      for (const x of out.trips) trips.push(okxTripRow(x));
+      for (const x of out.trips) {
+        trips.push(okxTripRow(x));
+        okxCompoundTrip(st, b, x.tExit, x.pnlQuote * (eb ? eb[1] : out.x ?? NaN));
+      }
       events.push(...out.events.map(okxEventRow));
       report.orders += out.orders;
     }

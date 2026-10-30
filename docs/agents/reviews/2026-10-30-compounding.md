@@ -1,6 +1,10 @@
 # Putting what the Stablecoin quotes earn back to work: the audit, the rule and the go (COMPOUND, 2026-10-30)
 
-**Status: built.** The twins and the Coinbase paper arms compound from 2026-10-31 00:00 UTC. The three live executors have the rule
+**Status: built, and on.** The three live executors were turned on at ~02:10 UTC on 2026-10-30, on Davies' word "打开", with
+§6's three statements (each returned one row; `compound_from` 2026-10-31 00:00 UTC), so their first step can come at 2026-11-01
+00:00. The OKX paper twins compound from the same instant since the same day (§1, on his "…你觉得需要做的话就做").
+
+**As built.** The twins and the Coinbase paper arms compound from 2026-10-31 00:00 UTC. The three live executors have the rule
 behind a switch each, **off**, until Davies turns it on in the conversation where he says so (§6).
 
 ## 0. On whose word
@@ -23,9 +27,12 @@ coin, and never sizes anything.
 | **Revolut X twins** (`agent_quote_twin_specs`: USDT/GBP LIVE twin `live600`, USDC/GBP LIVE twin `rxu120`, variant-1 `live1200`, -2 `take50`, -3 `n600no03`, -4 `n600usdt`, -5 `n600nudge`, hidden `n600usdt2`) | the live executor's own code on its twin config's `capital_gbp` | the spec row's capital, written once at the start | idle in the simulated account | the executor's own limits, as LIVE's; the simulated account's balances |
 | **Coinbase paper arms** (USDC/GBP LIVE twin `coinbasenudge`, "with Euros - 1" `coinbaseusdc`, "- 2" `coinbasehold`) | PR5's frozen `stepMinute` rung (its 100) ÷ a fixed divisor: $50 | FUNDED $300 / $600 / $1,200, constants | in the paper record; never sizes anything | the engine's 10 % of a minute's printed value |
 
-Not in the request's list and not changed: the OKX paper twins ("Stablecoin quotes USDG/EUR", "EURC/USDC", "USDG/EUR - 1",
+Not in the request's list at first: the OKX paper twins ("Stablecoin quotes USDG/EUR", "EURC/USDC", "USDG/EUR - 1",
 `okx_quotes.ts`, `okx_basis.ts`; $100 a rung, fixed), and the base Coinbase test (`cb_quotes.ts`, the weekend reading's control, off
-the page). They do not reuse their profit either.
+the page). Neither reused its profit. **The OKX twins compound from 2026-10-31 00:00 UTC too** (Davies, 2026-10-30: "…你觉得需要做的话就做";
+`okx_compound.ts`: each book on its own record, the engine's `rungUsd` $100 × capital ÷ $600, $6 a unit, $300 to $1,200, the loss stop
+on the capital; the deviation recorded apart, `reviews/2026-10-30-okx-compounding-deviation.md`). **The base Coinbase test stays
+uncompounded**: a pre-registered control stays as it was frozen, and the weekend reading divides "- 2"'s trips by its day's multiplier.
 
 ## 2. The rule, for every one
 

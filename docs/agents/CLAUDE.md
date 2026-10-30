@@ -510,8 +510,10 @@ that follow from that evidence, in short:
   moved a unit or more. The Revolut X twins (`agent_quote_twin_compound`, `runTwinsCompound`) and the Coinbase paper arms
   (`cb_compound.ts`) compound from that instant, recorded apart as each pre-registration's deviation
   (`reviews/2026-10-30-compounding-deviation.md`: a reading in money reads each trip ÷ its day's multiplier). LIVE, the USDC/GBP
-  executor and Coinbase's executor have it behind `compound_mode`, 'off' until Davies turns each on with the design's §6 statement;
-  never change a compounding config's capital by hand while it is on, and set the base again after a deposit or withdrawal.
+  executor and Coinbase's executor have it behind `compound_mode`, turned on by Davies ("打开") at ~02:10 UTC on 2026-10-30 with the
+  design's §6 statements; the OKX paper twins compound from the same instant (`okx_compound.ts`, their deviation recorded apart in
+  `reviews/2026-10-30-okx-compounding-deviation.md`); the base Coinbase test, a pre-registered control, does not. Never change a
+  compounding config's capital by hand while it is on, and set the base again after a deposit or withdrawal.
 - **The Revolut X account the key sees is the loop's alone.** The floor counts a live buy it cannot read back by
   the venue's balance beyond the settled book, and every live sell is capped at that balance (reference §4.24).
   A trade made there by hand would be counted and could be sold by the floor: never trade by hand in that
