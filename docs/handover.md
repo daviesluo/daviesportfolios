@@ -47622,3 +47622,37 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   (`reviews/2026-10-29-holdmin-deviation.md`; the variant-7 and -8 pins read it for the executor's new hash), the live design's
   addendum, guide, map, reference, CLAUDE.md, fixture, tests. Watch after 22:00: LIVE's USDT-GBP entries under £1 should no longer
   be followed by an exit, and carried coin stays under £1 a rung.
+
+## LEDGER.md, archived 2026-10-30 (twenty-sixth) — the 2026-10-29 19:50, 2026-10-29 19:55, 2026-10-29 20:00, 2026-10-29 20:15 UTC history sections, oldest first
+
+### [2026-10-29 19:50 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Coinbase's live path, part 2: "Stablecoin quotes USDC/GBP", built dry-run and unarmed** (sub-agent; commit, not pushed; Davies,
+  10-29: "…先把"with Euros - 2"用120磅资金上限，上线后live策略名字叫Stablecoin quotes USDC/GBP"). `agents/cb_live.ts`, migration `0177`,
+  `reviews/2026-10-29-cb-live-design.md` (the go, its undo, Davies' checklist), LIVE's row `cbLiveRow`.
+  - **Rule:** the paper arm's decisions (`coinbasenudge`, a config word), £20 a rung of £120; post-only GTD orders of 20 min
+    (Coinbase's own dead-man), exits at fair, the 24 h stop an IOC within 50 bps, sub-£1 remainders carried.
+  - **Limits:** kill switch `armed_at`, global pause, −1 % daily loss stop, governor 1,500 / 1,800, stale inputs, inventory, a
+    post-only start conversion of the asks' USDC (≤ £70 a day). Pins: `cb_live.test.ts`, `src/agents/cb_live_row.test.js`.
+
+### [2026-10-29 19:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Polymarket analyst: a redeemed position leaves POSITIONS; DAYS gets the 7-day figure and the last-7 default** (sub-agent;
+  commit, not pushed; Davies, 10-29: "…Vertiv…resolved · to redeem - 这个怎么没有自动redeem？…是不是有问题", then "…days和Stablecoin quotes的live
+  页面一样在days旁边加上"- 7-day realised, annualised"…默认只显示今天+过去7天和"Load full history"按钮"). Vertiv was redeemed on chain at
+  10-28 11:57:47, 9 s after its market closed: Polymarket's own redemption, not ours (no `grokpm_redeems` row after 10-18; the hourly
+  run is healthy, `redeem_enabled`, its 19:00 plan empty, no error; the "positions: 429" report key is from 10-23). The record
+  (`grokpm_rec.ts` `agentBook`) now counts the account's REDEEM of an agent token, its share (min(held, redeemed), payout pro rata)
+  into cash: equity unchanged ($[•], equal to the server's cycle), POSITIONS empty. DAYS: each day's realised (P&L less Δunrealised
+  from day-open snapshots), `quoteDaysAnnualPct` on FUNDED $100, `useDaysWindow`/`DaysTitle` shared with the quote pages.
+
+### [2026-10-29 20:00 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Coinbase client signs Ed25519 too** (sub-agent; commit, not pushed; the main session's ask: Davies' CDP key is Ed25519, not a
+  PEM). `_shared/coinbase.ts`: `cbKeyKind` ("pem-ec" ES256 | "ed25519" EdDSA | "unknown", refused), `importCbSigner` (base64 of a
+  64-byte seed + public key, checked consistent, or the 32-byte seed; an Ed25519 PKCS#8 PEM). The probe reports `secrets.key` and
+  `alg`; `ok` false for an unknown key. Pins: RFC 8032 TEST 1 to its signature and a JWT byte for byte OpenSSL's; generated keys'
+  both forms verify; the ES256 pins unchanged. Whether Advanced Trade takes Ed25519: the probe, once deployed.
+
+### [2026-10-29 20:15 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **USDT-ONLY study** (sub-agent; commit, not pushed; Davies, 10-29: "…研究下Revolut X的USDT-GBP近期是不是也完全超过USDC…把live全换成只做
+  USDT-GBP的…"). `reviews/2026-10-29-usdt-only.md`, `compare/revx/scripts/usdt_only.py`: USDT-GBP alone beats LIVE's two books at
+  £600 since 09-01 by +7.1 % a year (P 0.014), every month since May; P 0.019 at £1,200, 0.051 at £2,400; last 30 days alone not
+  significant (P 0.17). Book for book USDT-GBP leads USDC-GBP by +21 % a year (P 0.0004). Phase B (the switch) follows.
