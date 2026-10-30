@@ -381,3 +381,54 @@ today). This arm takes the base test's Deviation 7 (`cbFxSwitch`, `cbRatesAt` fr
 | `supabase/functions/agents/cb_hold.test.ts` | `212db02f5592b83f37222258fd05c0dba761008e79d3b328f0cb8c46be31512d` |
 | `supabase/functions/agents/cb_quotes.ts` | `63f9c34912f337ee4ce707068850cf4fb4f564dd53a14596af7734c1b487f9a6` |
 | `supabase/migrations/0173_cb_fx_src.sql` | `badcc26a09de690874f4bf6d65e2f202067335c70989abc94044bde8c4944e08` |
+
+**Deviation 7 (2026-10-30, before the reading): its display name back to "- 2", and $50 a rung.** Davies, 2026-10-30 00:40 UTC, verbatim:
+
+> 然后把测试策略改名为live twin和revolut那两个命名规则一样然后放在coinbase里第一个，“Stablecoin quotes with Euros”改为“Stablecoin quotes with Euros - 2”放在-1之后并且改为每档50，-1和-2都像revolut那几个一样在scoreboard底下加上不同币的performace对比
+
+(rename the test strategy [the arm Coinbase LIVE follows] "LIVE twin", by the rule of the two on Revolut X, and put it first among
+Coinbase's; rename "Stablecoin quotes with Euros" to "Stablecoin quotes with Euros - 2", place it after "- 1" and make it 50 a rung;
+under the scoreboard of "- 1" and "- 2", as on the Revolut X ones, add the comparison of each coin's performance).
+
+- **The name.** This arm's display name is **"Stablecoin quotes with Euros - 2"** from today, right after "- 1" (`CB_HOLD_PAGE_NAME`,
+  cb_page.ts; "- 2" until 0142, "- 1" until 2026-10-29, "Stablecoin quotes with Euros" until today). It is the name this file was
+  frozen with, and the one `cb_hold.ts` keeps (`CB_HOLD_ROW_NAME`). Display only: its id (`coinbasehold`), tables, call and lease
+  are unchanged.
+- **Size.** A rung is **$50** from the switch (it was **$100**, Deviation 3): **$1,200 on the four books** (it was $2,400). The
+  amount is in dollars, as every Coinbase arm's has been since Deviation 3.
+- **How.** As the USDC arm's Deviation 2 halved its own divisor, without touching `stepMinute` (quotes.ts, sha256
+  `0782ed8140a2e490f19b9e92fe7093c2cb9a6f205866180314f609537277f517`), whose rung is its 100:
+  - from the switch `cb_hold.ts` gives the engine every print's size × **2** (`CB_HOLD_FACTOR_50`, `cbHoldFactorAt`), so its cap
+    min(100, 10 % × 2 × value) is 2 × min(50, 10 % × value);
+  - every size, notional and P&L the engine writes comes back ÷ 2 (`cbHoldTrip`, `cbHoldEventDetail`, the minute's printed value),
+    exactly as `cb_usdc.ts` divides its own (`cb_hold.test.ts` pins that the two agree);
+  - a rung held across the switch keeps the coins it holds: its size and notional go × 2 in the engine's units
+    (`cbHold50Switch`). Resting orders carry no size.
+  Its decisions (prices, fills, exits, stops) are the same as at $100 wherever the cap does not bind; where it does, the rung fills
+  its own 10 % of the minute, as the engine's rule says.
+- **The instant.** This arm's own first decided minute at or after **2026-10-30 01:00 UTC** (`CB_HOLD_50_NOT_BEFORE`), after
+  Deviation 3's switch: in practice the first run after the deploy. It is written to `cb_hold_state.state` (`usd50From`, and
+  `usd50Factor` 0.5, the new rung over the old).
+- **The page.** FUNDED $1,200; what was entered before the instant is shown × 1/2 (`resizeFactor`, as the USDC arm's × 2),
+  everything until the arm has made the switch. No stored row is rewritten.
+- **The assumption.** Fills and fees scale linearly with size, as Deviation 3 assumed.
+- **The reading, at the frozen size.** Every bar is read with a trip entered from the instant **× 2** (÷ `usd50Factor`), so each
+  trip is at Deviation 3's $100 a rung, where the bars and the base test's record are:
+  - bars 2 and 4 read a trip's pounds × the window's mean GBP/USD, × its book's factor before Deviation 3's instant, × 2 from this one;
+  - bar 3 stays at least 6 % a year on **$2,400**;
+  - bars 1 and 6 compare `replay_wk.py`'s replay (100 of the book's currency a rung) with this arm's trips at that size: a trip
+    entered from Deviation 3's instant ÷ its book's factor, and one from this instant × 2 as well. Bar 6's weekend sums are read
+    the same way;
+  - bar 5, every threshold, the window and the seed are unchanged.
+- **The paired comparison.** The base test stays at $100; this arm's trips from the instant are compared at × 2, so bar 6 compares
+  like with like wherever the cap does not bind. In a minute whose printed value is under $1,000 the base test's $100 rung is capped
+  at 10 % of it, and this arm's $50 rung under $500: there a trip × 2 is not the base test's. The report counts those minutes.
+- **The per-coin line.** Its page shows each book's and each coin's realised a year since its start, and USDT's over USDC's, under
+  the scoreboard (`twin.bookRatio`, book_ratio.ts). Display only.
+- **Frozen bytes** (`docs/agents/backtests/cbwk/MANIFEST.json`, group "this arm's"; `src/cb_hold_prereg.test.js`):
+
+| file | sha256 (Deviation 7) |
+|---|---|
+| `supabase/functions/agents/cb_hold.ts` | a8ac3ecb3b3511f14dc7f5cfa7ae2b7bc636634a897951b1ca839c645a30a91c |
+| `supabase/functions/agents/cb_hold.test.ts` | 441d9bd9f0f90c7e72e003b490508d355ed31d79231d4306f462e3173f643146 |
+| `supabase/functions/agents/cb_quotes.ts` | 63f9c34912f337ee4ce707068850cf4fb4f564dd53a14596af7734c1b487f9a6 |

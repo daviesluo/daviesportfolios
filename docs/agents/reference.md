@@ -4471,6 +4471,17 @@ Davies, 2026-10-13: "周末变体写预注册然后上线paper trading 策略wit
   - **Unchanged.** `stepMinute` (quotes.ts' sha256 `0782ed81…`), Revolut X's and OKX's rows, the recorder, the base call's Yahoo
     EUR/USD and Coinbase USDT-USD fetches (the fallback needs them).
 
+- **Addendum 2026-10-30: the names again, this arm at $50, and a per-coin line** (Davies: "然后把测试策略改名为live twin和revolut那两个命名规则一样然后放在
+  coinbase里第一个，“Stablecoin quotes with Euros”改为“Stablecoin quotes with Euros - 2”放在-1之后并且改为每档50，-1和-2都像revolut那几个一样在scoreboard底下加上
+  不同币的performace对比"; weekend Deviation 7, USDC Deviation 6, nudge Deviation 5).
+  - **Names and order** (`cb_page.ts`): "Stablecoin quotes USDC/GBP LIVE twin" (`coinbasenudge`, the arm Coinbase LIVE follows by id), then
+    "with Euros - 1" (`coinbaseusdc`), then "with Euros - 2" (this arm). Revolut X's `rxu120` has the same name: rows go by id and venue.
+  - **$50 a rung, $1,200** from this arm's first minute at or after 2026-10-30 01:00 UTC (`usd50From`), as the USDC arm's Deviation 2 did it:
+    prints × 2 into `stepMinute` (unchanged), sizes ÷ 2 out, a held rung × 2 in the engine's units; the page shows what came before × 1/2.
+    The reading counts a trip from the switch × 2, at the $100 its bars and its control are at.
+  - **The per-coin line** under "- 1"'s and "- 2"'s scoreboard: each book's and each coin's realised a year on its share since the arm
+    began, and USDT's over USDC's (`book_ratio.ts`, the reading Revolut X's both-coin twins' line uses; `twin.bookRatio`).
+
 61. **Every paper Reward quotes test stops; live-prep live and pm-rec keep running (2026-10-13, migration `0120`).**
 Davies, 2026-10-13: "目前paper testing里的reward quotes全关了吧？感觉都不赚钱没什么意义？如果你实在觉得还有用的话就转到后台记录，不用在网站上显示了"
 (switch off every Reward quotes in paper testing; if one is still useful, record it in the background, off the site). The

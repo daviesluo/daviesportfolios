@@ -42,8 +42,8 @@
    "docs/agents/backtests/cbwk/results/closure_world_reading.json": "3511be812b62579b88309187b5936f04cfce2baa1a8a50485210b9aefebcef9f",
    "docs/agents/backtests/cbwk/scripts/closure_world.ts": "1244fcf0d41b4e571a5f81a5f0f321a818c33db1e3919307b0f683e70b66d927",
    "docs/agents/backtests/cbwk/scripts/replay_wk.py": "f3124599d1b74600729de1caa03829764fbc0b52cddbf92dc8cc8fa9a99c18ee",
-   "supabase/functions/agents/cb_hold.test.ts": "212db02f5592b83f37222258fd05c0dba761008e79d3b328f0cb8c46be31512d",
-   "supabase/functions/agents/cb_hold.ts": "a2459029da2f9e1e35d80087cdf4a0aeb78dc2790e86daca4aaaa7855402470c",
+   "supabase/functions/agents/cb_hold.test.ts": "441d9bd9f0f90c7e72e003b490508d355ed31d79231d4306f462e3173f643146",
+   "supabase/functions/agents/cb_hold.ts": "a8ac3ecb3b3511f14dc7f5cfa7ae2b7bc636634a897951b1ca839c645a30a91c",
    "supabase/migrations/0118_cb_hold.sql": "5d1b77254c1307a36feb3b1373fa3780f92512f710d749e0001f18a48980bd53"
   }
  },

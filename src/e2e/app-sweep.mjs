@@ -695,7 +695,19 @@ const cbRow = (/** @type {any} */ q) => {
     annual: `- 7-day realised, annualised ${annual > 0 ? '+' : ''}${annual.toFixed(1)}%`,
   };
 };
-const CB_HOLD_SERVED = { ...QUOTES_COINBASE_HOLD_FIXTURE.quotesCoinbaseHold, twin: { ...QUOTES_COINBASE_HOLD_FIXTURE.quotesCoinbaseHold.twin, name: 'Stablecoin quotes with Euros' } };
+/**
+ * Since 2026-10-30 (Davies: "…“Stablecoin quotes with Euros”改为“Stablecoin quotes with Euros - 2”放在-1之后…-1和-2都像revolut那几个一样在
+ * scoreboard底下加上不同币的performace对比") the weekend variant is "with Euros - 2", and its page has the per-coin line under the
+ * scoreboard: the server's reading (book_ratio.ts, pinned in cb_page.test.ts), served here with invented figures as `twin.bookRatio`.
+ */
+const CB_HOLD_RATIO = {
+  from: '2026-09-16T17:00:00.000Z', ccy: 'USD', order: ['USDC-GBP', 'USDT-GBP', 'USDC-EUR', 'USDT-EUR'], usdtOverUsdc: 0,
+  books: { 'USDC-GBP': { trips: 2, pctYear: 12.34 }, 'USDT-GBP': { trips: 0, pctYear: 0 }, 'USDC-EUR': { trips: 1, pctYear: 5.6 }, 'USDT-EUR': { trips: 0, pctYear: 0 } },
+  coins: { USDC: { trips: 3, pctYear: 8.97 }, USDT: { trips: 0, pctYear: 0 } },
+};
+const CB_HOLD_RATIO_LINE = "Realised a year on each book's quarter since 09-16 17:00 UTC: USDC/GBP 12.3 % (2 trips), USDT/GBP 0.0 % (0 trips), USDC/EUR 5.6 % (1 trips), "
+  + 'USDT/EUR 0.0 % (0 trips) · USDC 9.0 %, USDT 0.0 % · USDT/USDC 0.00×';
+const CB_HOLD_SERVED = { ...QUOTES_COINBASE_HOLD_FIXTURE.quotesCoinbaseHold, twin: { ...QUOTES_COINBASE_HOLD_FIXTURE.quotesCoinbaseHold.twin, name: 'Stablecoin quotes with Euros - 2', bookRatio: CB_HOLD_RATIO } };
 const CBQ = cbRow(CB_HOLD_SERVED);
 /** Coinbase's card: its one row on the page. */
 const CBALL = { capitalUsd: CBQ.q.capitalUsd, valueUsd: CBQ.q.valueUsd, realisedUsd: CBQ.q.realisedUsd, todayUsd: CBQ.q.todayUsd };
@@ -4039,7 +4051,9 @@ async function run() {
       // (QUOTES_TWIN_FIXTURE): 2 open (B's short and E's long), deployed £999.14 (the coins at the index and the pounds in
       // four resting buys), today +£0.23, unrealised -£0.13, realised -£0.03, each percent on its own capital; a variant's
       // name on two lines. The paper test, PR5V and rule D, which the payload still carries, are no rows.
-      const twinRowOf = (/** @type {string} */ name) => page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, name) });
+      // A row by its name and its venue's badge: two venues' rows may share a name (since 2026-10-30, Revolut X's and Coinbase's
+      // "Stablecoin quotes USDC/GBP LIVE twin"), so a twin is looked for on Revolut X and a Coinbase arm on Coinbase.
+      const twinRowOf = (/** @type {string} */ name, venue = 'revx') => page.locator('.ag-strategies-testing .ag-row', { has: nameBtn(page, name) }).filter({ has: page.locator(`.ag-venue-${venue}`) });
       // The first twin row is "Stablecoin quotes LIVE twin" since 0151 (2026-10-28) switched "Stablecoin quotes" (pr5), the size
       // twin and rule D's twin off; the £1,200 twin whose page is worked by hand below is LIVE's rules at £1,200 (variant-1).
       const twinRow = twinRowOf(TW1200.name);
@@ -4061,10 +4075,10 @@ async function run() {
       } else fail(S('agents'), `twin rows at ${twinAt} of ${testingNames.join(' | ')}: ${twinBad.join(' / ')}; old card sections ${oldCard}`);
       // "Stablecoin quotes with Euros" (the weekend variant since 2026-10-29): the row after the twins, on Coinbase, in pounds,
       // in a twin's cells, on two lines; the base test is off the page, and no row is called "- 3" any more.
-      const cbRowEl = twinRowOf(CBQ.name);
+      const cbRowEl = twinRowOf(CBQ.name, 'coinbase');
       const cbText = ` ${(await cbRowEl.first().innerText().catch(() => '')).replace(/\s+/g, ' ')} `;
       const cbParts = await nameParts(cbRowEl);
-      if (await cbRowEl.count() === 1 && testingNames[twinAt + TW.n] === CBQ.name && cbParts.join('|') === 'Stablecoin quotes|with Euros'
+      if (await cbRowEl.count() === 1 && testingNames[twinAt + TW.n] === CBQ.name && cbParts.join('|') === 'Stablecoin quotes|with Euros - 2'
         && testingNames.filter((n) => /^Stablecoin quotes with Euros/.test(n)).length === 1 && /Coinbase/.test(cbText) && !/Revolut X/.test(cbText) && cbText.includes(CBQ.open)
         && cbText.includes(` ${CBQ.deployed} `) && cbText.includes(CBQ.today) && cbText.includes(CBQ.unrealised) && cbText.includes(CBQ.realised) && /every minute/.test(cbText) && !/\$/.test(cbText)
         && await cbRowEl.first().locator('.ag-venue-coinbase').count() === 1) {
@@ -4133,8 +4147,8 @@ async function run() {
         && cp.scoreboard === CBQ.scoreboard && cp.sections[0] === 'BOOKS' && !cp.sections.includes('INVENTORY') && cp.sections.includes('DAYS') && cp.sections.includes('ROUND TRIPS')
         && cp.annual === CBQ.annual && cp.cards.length === 4 && cp.cards.every((c) => c.ladder.length === 3) && /^last trade £/.test(cbCard('USDC-GBP')?.meta ?? '')
         && /€0\.\d{5} · fair €0\.\d{5}$/.test(cbCard('USDT-EUR')?.meta ?? '') && cp.trips.length === 3 && cp.trips.some((t) => t.includes('| USDC/EUR |') && t.includes('€0.8649'))
-        && cp.days.length === 2 && cp.overflow <= 1) {
-        ok(S('agents'), `"${CBQ.name}"'s page: PAPER Coinbase, running · ${CBQ.tested}, ${CBQ.scoreboard.split(' | ')[0]}, four books (euros on the EUR books), no INVENTORY, DAYS ${CBQ.annual}, three round trips`);
+        && cp.days.length === 2 && cp.overflow <= 1 && cp.twinLines.join(' / ') === CB_HOLD_RATIO_LINE) {
+        ok(S('agents'), `"${CBQ.name}"'s page: PAPER Coinbase, running · ${CBQ.tested}, ${CBQ.scoreboard.split(' | ')[0]}, four books (euros on the EUR books), no INVENTORY, DAYS ${CBQ.annual}, three round trips; under its scoreboard "${CB_HOLD_RATIO_LINE}"`);
       } else fail(S('agents'), `Coinbase page ${JSON.stringify(cp && { ...cp, cards: cp.cards.map((c) => `${c.head} ${c.meta} :: ${c.ladder.join(' / ')}`) })}`);
       await closeBy(page, () => page.locator('.ag-detail-close').click().catch(() => {}));
       if (await page.locator('.ag-quotes-cb-detail').count() === 0 && await page.locator('.ag-strategies .ag-row').count() === TESTING.rows) ok(S('agents'), 'closing the Coinbase page returns to the list');

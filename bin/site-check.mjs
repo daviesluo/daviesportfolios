@@ -5,7 +5,7 @@
 // (`?action=viewer-token`, cron bearer, 30 minutes), goes to the page named, waits until what it shows has stopped
 // changing, and writes a text snapshot of it and screenshots into a scratch folder outside the repository.
 //
-//   SITE_VIEWER_TOKEN=<token> node bin/site-check.mjs <out-dir> [--tab live|testing] [--row "<strategy name>"]
+//   SITE_VIEWER_TOKEN=<token> node bin/site-check.mjs <out-dir> [--tab live|testing] [--row "<strategy name>"] [--venue revx|coinbase|okx|…]
 //       [--width desktop|phone|both] [--page agents|board] [--url https://daviesluo.com] [--show-values] [--offline]
 //
 // The token, minted by the database with its own cron bearer (the reply holds the token alone; it lapses in 30 minutes):
@@ -16,6 +16,9 @@
 //     body := '{}'::jsonb) as id;
 //   select status_code, content::jsonb ->> 'token' as token from net._http_response where id = <id>;
 // A 409 there means DAVIESLUO_VIEWER_PASSWORD is not the site's read-only password; a 503 that it is not set.
+//
+// Two rows may share a name (since 2026-10-30 "Stablecoin quotes USDC/GBP LIVE twin" is both Revolut X's twin and Coinbase's): `--venue`
+// picks the one on that venue (its badge, `.ag-venue-<id>`), and without it a name on two rows is refused, never guessed.
 //
 // `--offline` stops every call to Supabase, for a dry run against a local `dist/` (`--url http://127.0.0.1:<port>`):
 // it checks the script's own path (the browser, the token in place, the menu, the snapshot and the shots), not the page.
@@ -38,7 +41,7 @@ export const TOKEN_ENV = 'SITE_VIEWER_TOKEN';
 const SETTLE_MS = 20_000;
 
 /**
- * @typedef {{ out: string | null, tab: string | null, row: string | null, widths: string[], page: string, url: string, showValues: boolean, offline: boolean }} Options
+ * @typedef {{ out: string | null, tab: string | null, row: string | null, venue: string | null, widths: string[], page: string, url: string, showValues: boolean, offline: boolean }} Options
  */
 
 /**
@@ -48,13 +51,14 @@ const SETTLE_MS = 20_000;
  */
 export function parseArgs(argv) {
   /** @type {Options} */
-  const o = { out: null, tab: null, row: null, widths: ['desktop', 'phone'], page: 'agents', url: 'https://daviesluo.com', showValues: false, offline: false };
+  const o = { out: null, tab: null, row: null, venue: null, widths: ['desktop', 'phone'], page: 'agents', url: 'https://daviesluo.com', showValues: false, offline: false };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     const val = () => { const v = argv[++i]; if (v == null) throw new Error(`${a} needs a value`); return v; };
     try {
       if (a === '--tab') o.tab = val();
       else if (a === '--row') o.row = val();
+      else if (a === '--venue') o.venue = val();
       else if (a === '--width') { const w = val(); o.widths = w === 'both' ? ['desktop', 'phone'] : [w]; }
       else if (a === '--page') o.page = val();
       else if (a === '--url') o.url = val();
@@ -70,6 +74,7 @@ export function parseArgs(argv) {
   if (!o.widths.every((w) => w in WIDTHS)) return { error: '--width is desktop, phone or both' };
   if (!['agents', 'board'].includes(o.page)) return { error: '--page is agents or board' };
   if (o.page === 'board' && (o.tab || o.row)) return { error: '--tab and --row are the Agents page\'s' };
+  if (o.venue != null && (!o.row || !/^[a-z0-9]+$/.test(o.venue))) return { error: '--venue is a venue id (revx, coinbase, okx, …) and goes with --row' };
   if (!/^https:\/\//.test(o.url) && !/^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?(\/|$)/.test(o.url)) return { error: '--url is an https address, or a local one' };
   return o;
 }
@@ -94,6 +99,22 @@ export function checkToken(token, now = Date.now()) {
 export function insideRepo(dir, repo = REPO) {
   const rel = path.relative(repo, path.resolve(dir));
   return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel));
+}
+
+/**
+ * Which of a tab's rows `--row` (and `--venue`) names: its index, or `{ error }` that lists what is there. A name on more than one
+ * row needs its venue; nothing is guessed.
+ * @param {Array<{ name: string, venue: string }>} rows @param {string} name @param {string | null} venue
+ * @returns {{ index: number } | { error: string }}
+ */
+export function pickRow(rows, name, venue) {
+  const named = rows.map((r, i) => ({ ...r, i })).filter((r) => r.name === name);
+  const list = () => rows.map((r) => `${r.name} (${r.venue || '?'})`).join(' / ') || 'none';
+  if (!named.length) return { error: `no row "${name}"; its rows: ${list()}` };
+  const mine = venue ? named.filter((r) => r.venue === venue) : named;
+  if (!mine.length) return { error: `no row "${name}" on ${venue}; it is on ${named.map((r) => r.venue || '?').join(', ')}` };
+  if (mine.length > 1) return { error: `${mine.length} rows are named "${name}" (on ${mine.map((r) => r.venue || '?').join(', ')}): pass --venue` };
+  return { index: mine[0].i };
 }
 
 /** A file name's part for a strategy's name. @param {string} s */
@@ -275,12 +296,20 @@ async function checkWidth(browser, o, width, token) {
       if (o.row) {
         trail.push(o.row);
         step = `find the row "${o.row}"`;
-        const names = (await page.locator('.ag-modepanel .ag-row .ag-name-btn').allTextContents()).map((t) => t.trim());
-        if (!names.includes(o.row)) throw new Error(`no row "${o.row}" on ${o.tab ? o.tab.toUpperCase() : 'the tab the page opened on'}; its rows: ${names.join(' / ') || 'none'}`);
+        // Each row's name (a two-line name's two parts joined) and the venue on its badge.
+        const rows = await page.evaluate(() => [...document.querySelectorAll('.ag-modepanel .ag-row')].map((r) => {
+          const btn = r.querySelector('.ag-name-btn');
+          const parts = [...(btn?.querySelectorAll('.ag-name-head, .ag-name-qual') ?? [])].map((x) => x.textContent ?? '');
+          const name = (parts.length ? parts.join(' ') : btn?.textContent ?? '').replace(/\s+/g, ' ').trim();
+          const venue = /\bag-venue-([a-z0-9]+)\b/.exec(r.querySelector('.ag-venue')?.className ?? '')?.[1] ?? '';
+          return { name, venue };
+        }));
+        const pick = pickRow(rows, o.row, o.venue);
+        if ('error' in pick) throw new Error(`${pick.error} (on ${o.tab ? o.tab.toUpperCase() : 'the tab the page opened on'})`);
+        if (o.venue) trail.push(o.venue);
         step = `open the row "${o.row}"`;
         const before = await topModal(page);
-        const esc = o.row.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        await page.locator('.ag-modepanel .ag-row', { has: page.locator('.ag-name-btn', { hasText: new RegExp(`^\\s*${esc}\\s*$`) }) }).first().click();
+        await page.locator('.ag-modepanel .ag-row').nth(pick.index).click();
         await page.waitForFunction((n) => document.querySelectorAll('.modal').length > n, before, { timeout: 15_000 });
       }
     } else {
@@ -295,7 +324,7 @@ async function checkWidth(browser, o, width, token) {
       problems.push(`the row's page shows an error card: "${(await page.locator('.modal').last().locator('.ag-errorcard').first().innerText()).replace(/\s+/g, ' ').trim()}"`);
     }
     step = 'write the snapshot and screenshots';
-    const base = [width, o.page === 'agents' ? (o.tab ?? 'agents') : 'board', o.row ? slug(o.row) : null].filter(Boolean).join('-');
+    const base = [width, o.page === 'agents' ? (o.tab ?? 'agents') : 'board', o.row ? slug(o.row) : null, o.venue].filter(Boolean).join('-');
     const files = [];
     const txt = path.join(o.out, `${base}.txt`);
     fs.writeFileSync(txt, snapshotText({ url: o.url, width, size, hidden: !o.showValues, at: new Date().toISOString(), trail, text: await readTop(page), problems }));

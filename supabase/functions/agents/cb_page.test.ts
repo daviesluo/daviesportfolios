@@ -4,7 +4,9 @@
 // prices and counts unscaled; each pound field the dollar one ÷ GBP/USD.
 
 import { assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { coinbaseInUsd } from "./cb_page.ts";
+import { CB_HOLD_PAGE_NAME, CB_NUDGE_PAGE_NAME, CB_USDC_PAGE_NAME, coinbaseInUsd } from "./cb_page.ts";
+import { booksAYear } from "./book_ratio.ts";
+import { twinBookRatio } from "./index.ts";
 import type { CbQuoteState } from "./cb_quotes.ts";
 
 const SWITCH = Date.parse("2026-10-29T05:00:00Z"), G = 1.3324, E = 1.1152;
@@ -65,4 +67,60 @@ Deno.test("coinbaseInUsd before the arm has switched: everything is shown at the
   assertEquals(coinbaseInUsd(null, { ...arm, state }), null);
   // The USDC arm: $25 a rung on two books.
   assertEquals(coinbaseInUsd(view(), { ...arm, state, rungUsd: 25, books: 2 }).capitalUsd, 300);
+});
+
+// ---- 2026-10-30 (Davies: "…“Stablecoin quotes with Euros”改为“Stablecoin quotes with Euros - 2”放在-1之后并且改为每档50，-1和-2都像revolut那几个
+// 一样在scoreboard底下加上不同币的performace对比"): the names, the weekend variant at $50, and each book's and coin's realised a year.
+
+Deno.test("the Coinbase arms' page names since 2026-10-30: the LIVE twin, then \"with Euros - 1\" and \"- 2\"", () => {
+  assertEquals([CB_NUDGE_PAGE_NAME, CB_USDC_PAGE_NAME, CB_HOLD_PAGE_NAME], ["Stablecoin quotes USDC/GBP LIVE twin", "Stablecoin quotes with Euros - 1", "Stablecoin quotes with Euros - 2"]);
+});
+
+Deno.test("coinbaseInUsd on two books or more: each book's and coin's realised a year on its share since the arm began, in dollars", () => {
+  const from = Date.parse("2026-10-28T00:00:00Z"), now = Date.parse("2026-10-30T00:00:00Z"), years = 2 / 365;
+  const st = { ...state, startedAt: from } as unknown as CbQuoteState;
+  const v = { ...view(), twin: { id: "coinbaseusdc", name: CB_USDC_PAGE_NAME } };
+  const u = coinbaseInUsd(v, { ...arm, state: st, rungUsd: 100, books: 2, nowMs: now });
+  const r = u.twin.bookRatio;
+  assertEquals([r.from, r.ccy, r.order, u.capitalUsd], ["2026-10-28T00:00:00.000Z", "USD", ["USDC-GBP", "USDC-EUR"], 1200]);
+  // Each book's share is half the $1,200; its trips are the dollar ones above (before the switch × the book's factor).
+  const gbp = 0.1 + 0.05 * G, eur = 0.08 * G / E;
+  assertEquals([r.books["USDC-GBP"].trips, r.books["USDC-EUR"].trips, r.coins.USDC.trips], [2, 1, 3]);
+  assertAlmostEquals(r.books["USDC-GBP"].pctYear, 100 * gbp / 600 / years, 1e-9);
+  assertAlmostEquals(r.books["USDC-EUR"].pctYear, 100 * eur / 600 / years, 1e-9);
+  assertAlmostEquals(r.coins.USDC.pctYear, 100 * (gbp + eur) / 1200 / years, 1e-9);
+  assertEquals(r.usdtOverUsdc, null);
+  // One book (the LIVE twin), no clock, or no start: no line.
+  assertEquals(coinbaseInUsd({ ...v, detail: { ...v.detail, books: [v.detail.books[0]] } }, { ...arm, state: st, books: 1, nowMs: now }).twin.bookRatio, undefined);
+  assertEquals(coinbaseInUsd(v, { ...arm, state: st, books: 2 }).twin.bookRatio, undefined);
+  assertEquals(coinbaseInUsd(v, { ...arm, state, books: 2, nowMs: now }).twin.bookRatio, undefined);
+});
+
+Deno.test("booksAYear: USDT's over USDC's from each coin's books together; Revolut X's two-book reading is unchanged by it", () => {
+  const from = Date.parse("2026-10-30T00:00:00Z"), now = from + 10 * 864e5, yr = 10 / 365;
+  const t = (book: string, pnl: number, at = from + 864e5) => ({ book, tExit: new Date(at).toISOString(), pnl });
+  const r = booksAYear([t("USDC-GBP", 1), t("USDC-EUR", 1), t("USDT-GBP", 3), t("USDT-EUR", 1), t("USDT-EUR", 9, from - 1)], { from, now, capital: 1200, books: ["USDC-GBP", "USDT-GBP", "USDC-EUR", "USDT-EUR"] })!;
+  assertEquals(Object.keys(r.coins), ["USDC", "USDT"]);
+  assertEquals([r.coins.USDC.trips, r.coins.USDT.trips, r.coins.USDC.share, r.books["USDT-EUR"].trips], [2, 2, 600, 1]);
+  assertAlmostEquals(r.coins.USDC.pctYear!, 100 * 2 / 600 / yr, 1e-9);
+  assertAlmostEquals(r.usdtOverUsdc!, 4 / 2, 1e-12);
+  assertEquals(booksAYear([], { from, now: from, capital: 1, books: ["USDC-GBP"] }), null);
+  // Revolut X's both-books twin, as `twinBookRatio` reads it: the payload's shape in pounds, its ratio the books' own.
+  const x = twinBookRatio([{ book: "USDC-GBP", tExit: new Date(from + 864e5).toISOString(), pnlGbp: 2 }, { book: "USDT-GBP", tExit: new Date(from + 864e5).toISOString(), pnlGbp: 3 }],
+    { from, book: { "USDC-GBP": 1, "USDT-GBP": 1 } }, 600, now)!;
+  assertEquals(Object.keys(x.books["USDC-GBP"]).sort(), ["pctYear", "realisedGbp", "shareGbp", "trips"]);
+  assertAlmostEquals(x.usdtOverUsdc!, x.books["USDT-GBP"].pctYear! / x.books["USDC-GBP"].pctYear!, 1e-12);
+  assertEquals(x.from, "2026-10-30T00:00:00.000Z");
+});
+
+Deno.test("the weekend variant at $50 (its Deviation 7): FUNDED $1,200, what came before its switch × 1/2, after it as it is", () => {
+  const R50 = Date.parse("2026-10-29T06:30:00Z");
+  const st = { ...state, usd50From: R50, usd50Factor: 0.5 } as unknown as CbQuoteState;
+  const u = coinbaseInUsd(view(), { ...arm, state: st, rungUsd: 50, books: 4, resizeFactor: 0.5 });
+  assertEquals([u.capitalUsd, u.rungUsd, u.resizeFrom, u.resizeFactor], [1200, 50, "2026-10-29T06:30:00.000Z", 0.5]);
+  // All three trips were entered before the resize: each × 1/2 on top of its dollar factor.
+  assertAlmostEquals(u.realisedUsd, (0.1 + 0.08 * G / E + 0.05 * G) / 2, 1e-12);
+  // Before the arm has switched, everything is shown × 1/2.
+  const pre = coinbaseInUsd(view(), { ...arm, state, rungUsd: 50, books: 4, resizeFactor: 0.5 });
+  assertAlmostEquals(pre.realisedUsd, u.realisedUsd, 1e-12);
 });

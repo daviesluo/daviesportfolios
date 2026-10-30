@@ -799,6 +799,13 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth), and the 2026-10-29 19:50, 2026-10-29 19:55, 2026-10-29 20:00, 2026-10-29 20:15 ones (twenty-sixth).
 
+### [2026-10-30 01:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Coinbase rows renamed, "- 2" at $50, a per-coin line** (sub-agent; commit, not pushed; Davies, 00:40). TESTING's Coinbase rows:
+  "Stablecoin quotes USDC/GBP LIVE twin" (`coinbasenudge`, first; cb_live untouched), "with Euros - 1", "with Euros - 2" (`cb_hold`,
+  $50 a rung from its first minute ≥ 10-30 01:00, weekend prereg Deviation 7; usdc Dev 6, nudge Dev 5). "- 1"/"- 2" show each
+  book's and coin's realised a year under the scoreboard (`book_ratio.ts`, RX twins' reading). Same-name rows go by id and venue
+  (`site-check --venue`). No config or migration.
+
 ### [2026-10-30 00:57 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Coinbase LIVE can decide for itself; lands following, shadow on** (sub-agent; commit, not pushed; Davies, 10-30 ~00:45: "要做").
   `cb_live_config.decide` ('paper' default, 'self'; `0182`): 'self' steps the arm's rule on its own copy (`cbLiveSelfStep`: the

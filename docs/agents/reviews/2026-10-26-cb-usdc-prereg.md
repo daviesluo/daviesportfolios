@@ -289,3 +289,20 @@ today). This arm takes the base test's Deviation 7 with the weekend variant's ho
 | `supabase/functions/agents/cb_hold.ts` | a2459029da2f9e1e35d80087cdf4a0aeb78dc2790e86daca4aaaa7855402470c |
 | `supabase/functions/agents/cb_quotes.ts` | 63f9c34912f337ee4ce707068850cf4fb4f564dd53a14596af7734c1b487f9a6 |
 | `supabase/migrations/0173_cb_fx_src.sql` | badcc26a09de690874f4bf6d65e2f202067335c70989abc94044bde8c4944e08 |
+
+**Deviation 6 (2026-10-30): the weekend arm's file changed under it, and a per-coin line on its page.** Davies, 2026-10-30 00:40 UTC, verbatim:
+
+> 然后把测试策略改名为live twin和revolut那两个命名规则一样然后放在coinbase里第一个，“Stablecoin quotes with Euros”改为“Stablecoin quotes with Euros - 2”放在-1之后并且改为每档50，-1和-2都像revolut那几个一样在scoreboard底下加上不同币的performace对比
+
+- **Nothing of this arm's rule, size or reading changes.** Its name stays **"Stablecoin quotes with Euros - 1"**; on the page it now
+  comes after "Stablecoin quotes USDC/GBP LIVE twin" (the nudged arm, `cb_nudge.ts`, "- 2" until today) and before "- 2" (the weekend
+  arm, "Stablecoin quotes with Euros" until today).
+- **`cb_hold.ts` changed** (the weekend arm's Deviation 7: $50 a rung from 2026-10-30 01:00 UTC). This arm imports three things from it,
+  `CB_HOLD_MS`, `cbHoldBarAt` and `cbHoldStart`, and none of the three changed; its own driver (`cb_usdc.ts`) is unchanged. The
+  new bytes are named below so the chain of this file's frozen bytes stays whole.
+- **The per-coin line.** Its page shows, under the scoreboard, each book's realised a year on its half of the $600 since its start
+  (USDC-GBP and USDC-EUR), from the round trips as the page shows them in dollars (`twin.bookRatio`, book_ratio.ts). Display only.
+
+| file | sha256 (Deviation 6) |
+|---|---|
+| `supabase/functions/agents/cb_hold.ts` | a8ac3ecb3b3511f14dc7f5cfa7ae2b7bc636634a897951b1ca839c645a30a91c |

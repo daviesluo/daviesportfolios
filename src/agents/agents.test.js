@@ -1208,9 +1208,10 @@ describe('quoteLadderRows — a book as the page draws it', () => {
     expect(quotesCoinbaseRow(h)?.status.detail).not.toMatch(/USDC/);
     expect(row?.gbp.capital).toBe(281.25);
     const dash = { quotesTwins: shownTwins, quotesCoinbase: q, quotesCoinbaseHold: h, quotesCoinbaseUsdc: u };
-    const names = paperTestRows(dash).map((r) => r.name);
-    const at = names.indexOf('Stablecoin quotes with Euros');
-    expect(names.slice(at, at + 3)).toEqual(['Stablecoin quotes with Euros', 'Stablecoin quotes with Euros - 1', 'Stablecoin quotes with Euros - 2']);
+    const rows0 = paperTestRows(dash);
+    const at = rows0.findIndex((r) => r.id === QUOTES_COINBASE_ROW_ID);
+    // In the order of 2026-10-30 (cb_page.ts): the USDC arm before the weekend variant.
+    expect(rows0.slice(at, at + 3).map((r) => r.id)).toEqual([QUOTES_COINBASE_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, QUOTES_COINBASE_HOLD_ROW_ID]);
     expect(paperTestRows({ ...dash, quotesCoinbaseUsdc: null }).map((r) => r.name)).not.toContain('Stablecoin quotes with Euros - 2');
     for (const n of ['with Euros - 1', 'with Euros - 2']) expect(strategyNameParts(`Stablecoin quotes ${n}`)).toEqual({ head: 'Stablecoin quotes', qual: n, twoLines: true });
     expect(quotesPageFor(QUOTES_COINBASE_USDC_ROW_ID, dash)).toBe('coinbase');
@@ -1230,35 +1231,61 @@ describe('quoteLadderRows — a book as the page draws it', () => {
     expect(row?.status.detail).toMatch(/USDC-GBP at \$50 a rung, its fair nudged by Revolut X's book in FX closures/);
     expect(new Set([QUOTES_COINBASE_ROW_ID, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, QUOTES_COINBASE_NUDGE_ROW_ID]).size).toBe(4);
     const dash = { quotesTwins: shownTwins, quotesCoinbase: q, quotesCoinbaseHold: h, quotesCoinbaseUsdc: u, quotesCoinbaseNudge: n };
-    const names = paperTestRows(dash).map((r) => r.name);
-    const at = names.indexOf('Stablecoin quotes with Euros - 2');
-    expect(names[at + 1]).toBe('Stablecoin quotes with Euros - 3');
+    const ids = paperTestRows(dash).map((r) => r.id);
+    // In the order of 2026-10-30 (cb_page.ts): the nudged arm, Coinbase LIVE's twin, first of Coinbase's rows.
+    const at = ids.indexOf(QUOTES_COINBASE_ROW_ID);
+    expect(ids.slice(at, at + 4)).toEqual([QUOTES_COINBASE_ROW_ID, QUOTES_COINBASE_NUDGE_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, QUOTES_COINBASE_HOLD_ROW_ID]);
     expect(paperTestRows({ ...dash, quotesCoinbaseNudge: null }).map((r) => r.name)).not.toContain('Stablecoin quotes with Euros - 3');
     expect(rowMoney(row).capital).toBe(300);
     expect(quotesPageFor(QUOTES_COINBASE_NUDGE_ROW_ID, dash)).toBe('coinbase');
     expect(quotesPageFor(QUOTES_COINBASE_NUDGE_ROW_ID, { ...dash, quotesCoinbaseNudge: null })).toBe(null);
     expect(strategyNameParts('Stablecoin quotes with Euros - 3')).toEqual({ head: 'Stablecoin quotes', qual: 'with Euros - 3', twoLines: true });
   });
-  it('since 2026-10-29 the base Coinbase test is off the page and the three arms read "with Euros", "- 1" and "- 2", in that order, in every sum', () => {
-    // Davies, 2026-10-29: "coinbase quotes with euros删了吧，因为加周末表现更好应该已经很明显了吧，然后把-1改成coinbase quotes with euros，-2和-3都减小一个数字".
-    // The dashboard no longer sends `quotesCoinbase`; it sends the weekend, USDC and nudged arms under their page names (cb_page.ts).
+  it('since 2026-10-30 Coinbase\'s rows read "USDC/GBP LIVE twin", "with Euros - 1" and "with Euros - 2", in that order, in every sum', () => {
+    // Davies, 2026-10-30: "然后把测试策略改名为live twin和revolut那两个命名规则一样然后放在coinbase里第一个，“Stablecoin quotes with Euros”改为
+    // “Stablecoin quotes with Euros - 2”放在-1之后并且改为每档50". The dashboard sends the three arms under their page names (cb_page.ts).
     const h0 = cbHoldFixture.quotesCoinbaseHold;
-    const h = { ...h0, twin: { ...h0.twin, name: 'Stablecoin quotes with Euros' } };
+    const h = { ...h0, twin: { ...h0.twin, name: 'Stablecoin quotes with Euros - 2' } };
     const u = { ...h0, twin: { ...h0.twin, id: 'coinbaseusdc', name: 'Stablecoin quotes with Euros - 1' } };
-    const n = { ...h0, twin: { ...h0.twin, id: 'coinbasenudge', name: 'Stablecoin quotes with Euros - 2' } };
+    const n = { ...h0, twin: { ...h0.twin, id: 'coinbasenudge', name: 'Stablecoin quotes USDC/GBP LIVE twin' } };
     const dash = { quotesTwins: shownTwins, quotesCoinbaseHold: h, quotesCoinbaseUsdc: u, quotesCoinbaseNudge: n };
     const rows = paperTestRows(dash), names = rows.map((r) => r.name);
-    const at = names.indexOf('Stablecoin quotes with Euros');
-    expect(at).toBe(shownTwins.length);
-    expect(names.slice(at)).toEqual(['Stablecoin quotes with Euros', 'Stablecoin quotes with Euros - 1', 'Stablecoin quotes with Euros - 2']);
-    expect(rows.slice(at).map((r) => r.id)).toEqual([QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, QUOTES_COINBASE_NUDGE_ROW_ID]);
+    const at = shownTwins.length;
+    expect(names.slice(at)).toEqual(['Stablecoin quotes USDC/GBP LIVE twin', 'Stablecoin quotes with Euros - 1', 'Stablecoin quotes with Euros - 2']);
+    expect(rows.slice(at).map((r) => [r.id, r.venueId])).toEqual([[QUOTES_COINBASE_NUDGE_ROW_ID, 'coinbase'], [QUOTES_COINBASE_USDC_ROW_ID, 'coinbase'], [QUOTES_COINBASE_HOLD_ROW_ID, 'coinbase']]);
     expect(rows.some((r) => r.id === QUOTES_COINBASE_ROW_ID)).toBe(false);
-    expect(quotesPageFor(QUOTES_COINBASE_ROW_ID, dash)).toBe(null);
-    expect(quotesPageFor(QUOTES_COINBASE_HOLD_ROW_ID, dash)).toBe('coinbase');
+    expect(names.filter((x) => /^Stablecoin quotes with Euros$|with Euros - 3/.test(x))).toEqual([]);
+    expect(quotesCoinbaseRow(h)?.status.detail).toMatch(/the four books at \$50 a rung, the interbank rates held through a closure/);
     // Coinbase's card adds the three arms, and nothing of the base test.
     const cb = venueRows(dash, 'testing', rows).find((r) => r.id === 'coinbase');
     expect(cb?.capitalUsd).toBeCloseTo(h.capitalUsd + u.capitalUsd + n.capitalUsd, 6);
-    expect(strategyNameParts('Stablecoin quotes with Euros')).toEqual({ head: 'Stablecoin quotes', qual: 'with Euros', twoLines: true });
+    expect(strategyNameParts('Stablecoin quotes with Euros - 2')).toEqual({ head: 'Stablecoin quotes', qual: 'with Euros - 2', twoLines: true });
+  });
+  it("two rows may share a name (Revolut X's USDC/GBP twin and Coinbase's): each is found, opened and summed by its id and venue", () => {
+    const h0 = cbHoldFixture.quotesCoinbaseHold, NAME = 'Stablecoin quotes USDC/GBP LIVE twin';
+    const n = { ...h0, twin: { ...h0.twin, id: 'coinbasenudge', name: NAME } };
+    const rx = { ...shownTwins[0], twin: { ...shownTwins[0].twin, id: 'rxu120', name: NAME } };
+    const dash = { quotesTwins: [rx], quotesCoinbaseNudge: n };
+    const rows = paperTestRows(dash);
+    expect(rows.map((r) => [r.id, r.name, r.venueId])).toEqual([[`${QUOTES_TWIN_ROW_PREFIX}rxu120`, NAME, 'revx'], [QUOTES_COINBASE_NUDGE_ROW_ID, NAME, 'coinbase']]);
+    expect(quotesPageFor(`${QUOTES_TWIN_ROW_PREFIX}rxu120`, dash)).toBe('twin');
+    expect(quotesTwinOf(`${QUOTES_TWIN_ROW_PREFIX}rxu120`, dash)?.twin.id).toBe('rxu120');
+    expect(quotesPageFor(QUOTES_COINBASE_NUDGE_ROW_ID, dash)).toBe('coinbase');
+    const v = venueRows(dash, 'testing', rows);
+    expect(v.find((r) => r.id === 'coinbase')?.capitalUsd).toBeCloseTo(n.capitalUsd, 6);
+  });
+  it("a Coinbase arm's per-coin line under its scoreboard: each book in full, each coin, and USDT's over USDC's when it quotes both", () => {
+    // "- 2", the four books (cb_page.ts sends `order` and `coins`; book_ratio.ts computes them): invented figures.
+    const four = { from: '2026-10-16T00:00:00.000Z', ccy: 'USD', order: ['USDC-GBP', 'USDT-GBP', 'USDC-EUR', 'USDT-EUR'], usdtOverUsdc: 1.5,
+      books: { 'USDC-GBP': { trips: 10, pctYear: 4 }, 'USDT-GBP': { trips: 8, pctYear: 9 }, 'USDC-EUR': { trips: 3, pctYear: 2 }, 'USDT-EUR': { trips: 1, pctYear: null } },
+      coins: { USDC: { trips: 13, pctYear: 3 }, USDT: { trips: 9, pctYear: 4.5 } } };
+    expect(quotesTwinRatioLine(four)).toBe("Realised a year on each book's quarter since 10-16 00:00 UTC: USDC/GBP 4.0 % (10 trips), USDT/GBP 9.0 % (8 trips), USDC/EUR 2.0 % (3 trips), USDT/EUR – (1 trips) · USDC 3.0 %, USDT 4.5 % · USDT/USDC 1.50×");
+    // "- 1", USDC alone on two currencies: the two books, and no coin ratio.
+    const two = { from: '2026-10-27T00:00:00.000Z', ccy: 'USD', order: ['USDC-GBP', 'USDC-EUR'], usdtOverUsdc: null,
+      books: { 'USDC-GBP': { trips: 5, pctYear: 6.25 }, 'USDC-EUR': { trips: 2, pctYear: -1 } }, coins: { USDC: { trips: 7, pctYear: 2.6 } } };
+    expect(quotesTwinRatioLine(two)).toBe("Realised a year on each book's half since 10-27 00:00 UTC: USDC/GBP 6.3 % (5 trips), USDC/EUR -1.0 % (2 trips)");
+    const t = { ...cbHoldFixture.quotesCoinbaseHold, twin: { ...cbHoldFixture.quotesCoinbaseHold.twin, bookRatio: two } };
+    expect(quotesTwinLines(t).ratio).toBe(quotesTwinRatioLine(two));
   });
 });
 

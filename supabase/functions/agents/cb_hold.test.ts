@@ -6,14 +6,19 @@
 // reads no print before it; (6) the browser test's fixture is this driver and the page's read run again, byte for byte; (7) the release
 // blackout (Deviation 2, 2026-10-15): this arm sits out the scheduled releases as the base test does, and on a world with a release the two arms
 // write the same rows, so their comparison is unaffected; (8) dollars (Deviation 3, 2026-10-29): both arms switch to $100 a rung at
-// their first minute from 2026-10-29 and still write the same rows.
+// their first minute from 2026-10-29 and still write the same rows; (9) $50 a rung (Deviation 7, 2026-10-30): from its switch the arm's
+// rows are the base test's at half the size, a held rung keeps its coins, and the sizes are divided exactly as the USDC arm's are.
 
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { CB_HOLD_ID, CB_HOLD_MS, CB_HOLD_ROW_NAME, CB_HOLD_TABLES, cbHoldBarAt, cbHoldNewState, cbHoldStart, runCbHold } from "./cb_hold.ts";
+import {
+  CB_HOLD_50_NOT_BEFORE, CB_HOLD_FACTOR_50, CB_HOLD_ID, CB_HOLD_MS, CB_HOLD_ROW_NAME, CB_HOLD_RUNG_USD_50, CB_HOLD_TABLES, cbHold50Switch, cbHoldBarAt, cbHoldEventDetail,
+  cbHoldFactorAt, cbHoldFactorNow, cbHoldNewState, cbHoldStart, cbHoldTrip, runCbHold, type CbHoldState,
+} from "./cb_hold.ts";
+import { cbUsdcEventDetail, cbUsdcTrip } from "./cb_usdc.ts";
 import { runCbHoldAction } from "./index.ts";
 import { runCbQuotes, type CbQuoteState } from "./cb_quotes.ts";
 import { CB_PRODUCTS, type CbCursor, type CbProduct } from "./cb_rec.ts";
-import { fxBarAt, QUOTE_FX_LOOKBACK_MS } from "./quotes.ts";
+import { fxBarAt, QUOTE_FX_LOOKBACK_MS, type Trip } from "./quotes.ts";
 import { coinbaseHoldPageFixture, memDb, type Row } from "./testing.ts";
 import { BLACKOUT_T0, blackoutPrints } from "./cb_blackout_world.ts";
 
@@ -264,4 +269,72 @@ Deno.test("Deviation 3: on 2026-10-29 both arms switch to $100 a rung at their f
   for (const t of w.tables.cb_hold_trips) assertAlmostEquals(Number(t.notional_gbp), 80, 1e-9, String(t.book));
   const g = w.tables.cb_hold_trips.find((t) => t.book === "USDC-GBP")!;
   assertAlmostEquals(Number(g.pnl_gbp), 80 * 0.0008 / 0.7992, 1e-9);
+});
+
+Deno.test("Deviation 7: from 2026-10-30 01:00 UTC a rung is $50: the base test's own round trips at half the size, the same decisions", async () => {
+  const t0 = Date.UTC(2026, 9, 30, 10, 0);
+  const prints = [
+    { book: "USDC-GBP" as CbProduct, id: 7000001, at: t0 + M + 5000, price: "0.79900000", size: "2000.00", side: "sell" as const },
+    { book: "USDC-GBP" as CbProduct, id: 7000002, at: t0 + 3 * M + 5000, price: "0.80010000", size: "10.00", side: "buy" as const },
+    { book: "USDT-EUR" as CbProduct, id: 7000001, at: t0 + M + 7000, price: "0.90810", size: "10000.00", side: "sell" as const },
+    { book: "USDT-EUR" as CbProduct, id: 7000002, at: t0 + 3 * M + 7000, price: "0.90911", size: "10.00", side: "buy" as const },
+  ];
+  const w = world(t0, { ratesUntil: t0 + 10 * M, coveredTo: t0 + 5 * M + 1000, prints });
+  const hold = await runCbHold({ db: w.db, now: t0 + 6 * M, holder: "h", rec: w.rec });
+  const base = await runCbQuotes({ db: w.db, now: t0 + 6 * M, holder: "b", fetchImpl: w.fetchImpl, rec: w.rec });
+  assertEquals([hold.errors, base.errors, hold.fills, base.fills], [[], [], 2, 2]);
+  const st = w.tables.cb_hold_state[0].state as CbHoldState;
+  assertEquals([st.usdFrom, st.usd50From, st.usd50Factor], [t0, t0, 0.5]);
+  assertEquals((w.tables.cb_quote_state[0].state as CbHoldState).usd50From, undefined);
+  const key = (r: Row) => `${r.book}|${r.side}|${r.k}|${r.t_entry}`;
+  const byKey = (rows: Row[]) => new Map(rows.map((r) => [key(r), r]));
+  const h = byKey(w.tables.cb_hold_trips), b = byKey(w.tables.cb_quote_trips);
+  assertEquals([...h.keys()].sort(), [...b.keys()].sort());
+  for (const [k, x] of h) {
+    const y = b.get(k)!;
+    for (const f of ["entry", "exit", "how", "t_exit", "fill_trade_id", "exit_trade_id"]) assertEquals(x[f], y[f], `${k} ${f}`);
+    // $80 of the base test's $100 rung on USDC-GBP at GBP/USD 1.25 is £40 here: half the coins, the notional and the P&L.
+    for (const f of ["qty", "notional_gbp", "pnl_gbp"]) assertAlmostEquals(Number(x[f]) * 2, Number(y[f]), 1e-9, `${k} ${f}`);
+  }
+  assertAlmostEquals(Number(h.get([...h.keys()].find((k) => k.startsWith("USDC-GBP"))!)!.notional_gbp), 40, 1e-9);
+  // The same events, a fill's money halved; the same minutes, the printed value as recorded (the engine saw it × 2).
+  const strip = (rows: Row[]) => rows.map((r) => ({ ...r, detail: undefined }));
+  assertEquals(strip(w.tables.cb_hold_events), strip(w.tables.cb_quote_events));
+  let fills = 0;
+  w.tables.cb_hold_events.forEach((e, i) => {
+    const u = (e.detail as Row).usd, v = (w.tables.cb_quote_events[i].detail as Row).usd;
+    if (typeof v === "number") { fills++; assertAlmostEquals(Number(u) * 2, v, 1e-9); }
+  });
+  assert(fills > 0);
+  assertEquals(JSON.parse(JSON.stringify(w.tables.cb_hold_minutes)), JSON.parse(JSON.stringify(w.tables.cb_quote_minutes)));
+});
+
+Deno.test("Deviation 7's switch: once, at a first minute from 2026-10-30 01:00 UTC after the dollar switch; a held rung keeps its coins", () => {
+  const zero = Object.fromEntries(CB_PRODUCTS.map((b) => [b, 0])) as Record<CbProduct, number>;
+  const st = cbHoldNewState(Date.UTC(2026, 9, 30), zero) as CbHoldState;
+  cbHold50Switch(st, CB_HOLD_50_NOT_BEFORE);
+  assertEquals(st.usd50From, undefined, "not before the dollar switch");
+  st.usdFrom = Date.UTC(2026, 9, 29);
+  cbHold50Switch(st, CB_HOLD_50_NOT_BEFORE - M);
+  assertEquals(st.usd50From, undefined, "not before 01:00");
+  // deno-lint-ignore no-explicit-any
+  const held = st.books["USDC-GBP"].rungs[0] as any, flat = st.books["USDT-EUR"].rungs[0];
+  Object.assign(held, { mode: "position", qty: 100, nq: 80 });
+  const flatBefore = JSON.stringify(flat);
+  cbHold50Switch(st, CB_HOLD_50_NOT_BEFORE);
+  assertEquals([st.usd50From, st.usd50Factor, held.qty, held.nq, JSON.stringify(flat)], [CB_HOLD_50_NOT_BEFORE, 0.5, 200, 160, flatBefore]);
+  cbHold50Switch(st, CB_HOLD_50_NOT_BEFORE + DAY);
+  assertEquals([st.usd50From, held.qty], [CB_HOLD_50_NOT_BEFORE, 200], "once");
+  assertEquals([cbHoldFactorAt(st, CB_HOLD_50_NOT_BEFORE - M), cbHoldFactorAt(st, CB_HOLD_50_NOT_BEFORE), cbHoldFactorNow(st), cbHoldFactorNow(null)], [1, 2, 2, 1]);
+  assertEquals([CB_HOLD_FACTOR_50, CB_HOLD_RUNG_USD_50, CB_HOLD_50_NOT_BEFORE], [2, 50, Date.parse("2026-10-30T01:00:00Z")]);
+});
+
+Deno.test("Deviation 7's sizes are the USDC arm's: a trip and an event ÷ the divisor exactly as cb_usdc.ts's, and nothing at 1", () => {
+  const t = { book: "USDC-GBP", side: "bid", k: 0.001, tEntry: 1, fillTs: 1, fillId: "1", entry: 7992, qty: 250, nq: 200, xEntry: 1, fairEntry: null, entryOid: 1,
+    tExit: 2, exit: 8000, how: "maker", exitPrintId: null, exitOid: null, notionalUsd: 200, pnlUsd: 0.2 } as unknown as Trip;
+  assertEquals(cbHoldTrip(t, 2), cbUsdcTrip(t, 2));
+  assertEquals(cbHoldTrip(t, 1), t);
+  const d = { usd: 100, minuteGbp: 3000, print: { qty: 50, id: "9" }, px: 0.8 };
+  assertEquals(cbHoldEventDetail(d, 2), cbUsdcEventDetail(d, 2));
+  assertEquals(cbHoldEventDetail(d, 1), d);
 });

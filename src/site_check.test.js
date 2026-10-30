@@ -4,7 +4,7 @@
 // built `dist/` (the ledger records it), since it needs the site or a server.
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { checkToken, expectedReason, insideRepo, parseArgs, slug, snapshotText, TOKEN_ENV, WIDTHS } from '../bin/site-check.mjs';
+import { checkToken, expectedReason, insideRepo, parseArgs, pickRow, slug, snapshotText, TOKEN_ENV, WIDTHS } from '../bin/site-check.mjs';
 
 const tok = (/** @type {object} */ claims) => `${Buffer.from(JSON.stringify(claims)).toString('base64url')}.c2lnbmF0dXJl`;
 const NOW = Date.UTC(2026, 9, 29, 23, 30);
@@ -31,7 +31,7 @@ describe('site-check', () => {
 
   it('reads its options', () => {
     expect(parseArgs(['/tmp/x', '--tab', 'live', '--row', 'Stablecoin quotes USDT/GBP', '--width', 'phone'])).toEqual({
-      out: '/tmp/x', tab: 'live', row: 'Stablecoin quotes USDT/GBP', widths: ['phone'], page: 'agents', url: 'https://daviesluo.com', showValues: false, offline: false,
+      out: '/tmp/x', tab: 'live', row: 'Stablecoin quotes USDT/GBP', venue: null, widths: ['phone'], page: 'agents', url: 'https://daviesluo.com', showValues: false, offline: false,
     });
     expect(parseArgs(['/tmp/x', '--url', 'http://127.0.0.1:4173', '--offline'])).toMatchObject({ url: 'http://127.0.0.1:4173', offline: true });
     expect(parseArgs(['/tmp/x'])).toMatchObject({ widths: ['desktop', 'phone'], page: 'agents' });
@@ -39,6 +39,8 @@ describe('site-check', () => {
     for (const bad of [[], ['/tmp/x', '--tab', 'paper'], ['/tmp/x', '--width', 'tablet'], ['/tmp/x', '--row'], ['/tmp/x', '--url', 'http://x'], ['/tmp/x', '--url', 'http://example.com'], ['/tmp/x', '--page', 'board', '--tab', 'live'], ['/tmp/x', '--nope'], ['/tmp/x', '/tmp/y']]) {
       expect(parseArgs(bad)).toHaveProperty('error');
     }
+    expect(parseArgs(['/tmp/x', '--row', 'R', '--venue', 'coinbase'])).toMatchObject({ row: 'R', venue: 'coinbase' });
+    for (const bad of [['/tmp/x', '--venue', 'coinbase'], ['/tmp/x', '--row', 'R', '--venue', 'Coin base']]) expect(parseArgs(bad)).toHaveProperty('error');
     expect(WIDTHS).toEqual({ desktop: { width: 1400, height: 1000 }, phone: { width: 390, height: 844 } });
   });
 
@@ -86,5 +88,16 @@ describe('site-check', () => {
     expect(expected).toContain("### the browser's own line for a load that failed, which names no address (the calls are listed by address) (2)");
     expect(expected).toContain('console: Failed to load resource: the server responded with a status of 401 (Unauthorized) (×2)');
     expect(expected).toContain("### the board's CORS-proxy fallbacks (Yahoo, the CN funds): one refuses, the next is tried (3)");
+  });
+
+  it("picks a row by its name, and by its venue when two share one (Revolut X's and Coinbase's USDC/GBP LIVE twin, 2026-10-30)", () => {
+    const N = 'Stablecoin quotes USDC/GBP LIVE twin';
+    const rows = [{ name: 'Stablecoin quotes USDT/GBP LIVE twin', venue: 'revx' }, { name: N, venue: 'revx' }, { name: 'Stablecoin quotes variant-1', venue: 'revx' }, { name: N, venue: 'coinbase' }];
+    expect(pickRow(rows, 'Stablecoin quotes variant-1', null)).toEqual({ index: 2 });
+    expect(pickRow(rows, N, 'coinbase')).toEqual({ index: 3 });
+    expect(pickRow(rows, N, 'revx')).toEqual({ index: 1 });
+    expect(pickRow(rows, N, null)).toEqual({ error: `2 rows are named "${N}" (on revx, coinbase): pass --venue` });
+    expect(pickRow(rows, N, 'okx')).toEqual({ error: `no row "${N}" on okx; it is on revx, coinbase` });
+    expect(pickRow(rows, 'nope', null)).toHaveProperty('error');
   });
 });

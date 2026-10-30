@@ -42,7 +42,9 @@ describe('the Coinbase arms in whole dollars', () => {
     }
     // The page funds each arm with a whole number of dollars.
     const idx = read(A + 'index.ts');
-    expect(idx).toContain('{ rungUsd: CB_RUNG_USD, books: 4 }');
+    // The weekend arm at $50 since its Deviation 7 (2026-10-30), $1,200, what came before × 1/2; its rows in the engine's units now.
+    expect(idx).toContain('{ rungUsd: CB_HOLD_RUNG_USD_50, books: 4, resizeFactor: 1 / CB_HOLD_FACTOR_50, shape: (v, st) => cbUsdcView(v, { factor: cbHoldFactorNow(st), products: CB_PRODUCTS }) }');
+    expect(h).toContain('export const CB_HOLD_RUNG_USD_50 = CB_RUNG_USD / CB_HOLD_FACTOR_50;');
     // "- 2" at $50 since its Deviation 2 (cb_usdc_prereg.test.js), $600, what came before × 2.
     expect(idx).toContain('{ rungUsd: CB_USDC_RUNG_USD_50, books: 2, resizeFactor: 2, shape: (v, st) => cbUsdcView(v, { factor: cbUsdcFactorNow(st) }) }');
   });

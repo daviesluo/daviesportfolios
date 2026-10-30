@@ -1369,7 +1369,8 @@ export const quotesTwinRows = (dash) => (dash?.quotesTwins ?? []).map(quotesTwin
 /** The base Coinbase test's id among TESTING's rows ("Stablecoin quotes with Euros" until 2026-10-29, when it left the page:
  * the dashboard no longer sends it, Davies: "coinbase quotes with euros删了吧…"; "Stablecoin quotes Coinbase" until 2026-10-10). */
 export const QUOTES_COINBASE_ROW_ID = '__quotes_coinbase';
-/** The weekend variant's id among TESTING's rows (`cb_hold.ts`, 0118): "Stablecoin quotes with Euros" since 2026-10-29 ("- 2", then "- 1", before). */
+/** The weekend variant's id among TESTING's rows (`cb_hold.ts`, 0118): "Stablecoin quotes with Euros - 2" since 2026-10-30, at $50 a rung, right
+ * after "- 1" ("- 2" until 0142, "- 1" until 2026-10-29, "Stablecoin quotes with Euros" until 2026-10-30). */
 export const QUOTES_COINBASE_HOLD_ROW_ID = '__quotes_coinbase_hold';
 /** The twin id the weekend variant's payload carries (`CB_HOLD_ID` in `cb_hold.ts`). */
 const COINBASE_HOLD_TWIN_ID = 'coinbasehold';
@@ -1377,7 +1378,9 @@ const COINBASE_HOLD_TWIN_ID = 'coinbasehold';
 export const QUOTES_COINBASE_USDC_ROW_ID = '__quotes_coinbase_usdc';
 /** The twin id the USDC arm's payload carries (`CB_USDC_ID` in `cb_usdc.ts`). */
 const COINBASE_USDC_TWIN_ID = 'coinbaseusdc';
-/** The nudged USDC-GBP arm's id among TESTING's rows (`cb_nudge.ts`, 0168): "Stablecoin quotes with Euros - 2" since 2026-10-29 ("- 3" before). */
+/** The nudged USDC-GBP arm's id among TESTING's rows (`cb_nudge.ts`, 0168), the paper arm Coinbase LIVE follows: "Stablecoin quotes USDC/GBP LIVE
+ * twin" since 2026-10-30, first of Coinbase's rows ("- 3" until 2026-10-29, "- 2" until 2026-10-30). Revolut X's USDC/GBP twin has the
+ * same name: rows are told apart by their ids, never by their names. */
 export const QUOTES_COINBASE_NUDGE_ROW_ID = '__quotes_coinbase_nudge';
 /** The twin id its payload carries (`CB_NUDGE_ID` in `cb_nudge.ts`). */
 const COINBASE_NUDGE_TWIN_ID = 'coinbasenudge';
@@ -1396,6 +1399,8 @@ const COINBASE_NUDGE_TWIN_ID = 'coinbasenudge';
  * dashboard's `quotesCoinbaseUsdc`, `twin.id` `coinbaseusdc` ($50 a rung since its Deviation 2). "Stablecoin quotes with Euros - 3"
  * (`cb_nudge.ts`, 0168; Davies, 2026-10-29: "建USDC 那个线索，在with euro-2的基础上开-3，只做300美元的USDC-GBP") is the same row right
  * after "- 2": its rule on USDC-GBP alone at $50 a rung, the fair nudged by Revolut X's book, `quotesCoinbaseNudge`, `coinbasenudge`.
+ * Those are the names of their day. Since 2026-10-30 (cb_page.ts) Coinbase's rows read, in this order: "Stablecoin quotes USDC/GBP LIVE
+ * twin" (`coinbasenudge`, the arm Coinbase LIVE follows), "with Euros - 1" (`coinbaseusdc`) and "with Euros - 2" (`coinbasehold`, $50 a rung).
  * @param {any} q  the dashboard's `quotesCoinbase`, `quotesCoinbaseHold`, `quotesCoinbaseUsdc` or `quotesCoinbaseNudge`
  */
 export function quotesCoinbaseRow(q) {
@@ -1409,7 +1414,7 @@ export function quotesCoinbaseRow(q) {
     mode: 'paper',
     ...quoteBookCells(q),
     status: q.running
-      ? { label: 'paper', running: true, tone: 'running', detail: `PR5's rule on Coinbase's recorded prints${usdc ? ', the USDC books at $50 a rung' : ''}${nudge ? ', USDC-GBP at $50 a rung, its fair nudged by Revolut X\'s book in FX closures' : ''}${hold || usdc || nudge ? ', the interbank rates held through a closure' : ''} · last minute ${Number(q.lagMinutes) || 0} min ago` }
+      ? { label: 'paper', running: true, tone: 'running', detail: `PR5's rule on Coinbase's recorded prints${hold ? ', the four books at $50 a rung' : ''}${usdc ? ', the USDC books at $50 a rung' : ''}${nudge ? ', USDC-GBP at $50 a rung, its fair nudged by Revolut X\'s book in FX closures' : ''}${hold || usdc || nudge ? ', the interbank rates held through a closure' : ''} · last minute ${Number(q.lagMinutes) || 0} min ago` }
       : { label: 'paper', running: false, tone: 'stale', detail: `its last decided minute was ${q.lagMinutes ?? '?'} min ago` },
   };
 }
@@ -1554,18 +1559,29 @@ export function quotesTwinLines(t, m = (s) => s) {
 }
 
 /**
- * The USDT/USDC line of a twin on both books from the USDT-only switch (`twin.bookRatio`): each book's realised a year on
- * its half of the capital since the switch, and the ratio; a percentage is not money, so it is not masked. Null without one.
+ * The per-coin line under a Stablecoin quotes page's scoreboard (`twin.bookRatio`, the server's one reading, book_ratio.ts): each
+ * book's realised a year on its share of the capital since the instant, then, where a coin has more than one book, each coin's,
+ * and USDT's over USDC's where the strategy quotes both. A Revolut X twin on both books from the USDT-only switch sends its two
+ * GBP books (USDT first, by coin alone); a Coinbase arm on two books or more (Davies, 2026-10-30: "-1和-2都像revolut那几个一样在
+ * scoreboard底下加上不同币的performace对比") sends `order` and `coins`, its books named in full when their currencies differ. A
+ * percentage is not money, so it is not masked. Null without one.
  * @param {any} r
  * @returns {string | null}
  */
 export function quotesTwinRatioLine(r) {
   if (!r?.books) return null;
   const pct = (/** @type {any} */ b) => (b?.pctYear == null ? '–' : `${Number(b.pctYear).toFixed(1)} %`);
-  const t = r.books['USDT-GBP'], c = r.books['USDC-GBP'];
+  /** @type {string[]} */
+  const books = (Array.isArray(r.order) && r.order.length ? r.order : ['USDT-GBP', 'USDC-GBP']).filter((/** @type {string} */ b) => r.books[b]);
+  const quotes = new Set(books.map((b) => b.split('-')[1]));
+  const label = (/** @type {string} */ b) => (quotes.size === 1 ? b.split('-')[0] : quoteBookLabel(b));
+  const part = /** @type {Record<number, string>} */ ({ 2: 'half', 3: 'third', 4: 'quarter' })[books.length] ?? 'share';
   const since = String(r.from ?? '').slice(5, 16).replace('T', ' ');
-  const ratio = r.usdtOverUsdc == null ? 'USDT/USDC –' : `USDT/USDC ${Number(r.usdtOverUsdc).toFixed(2)}×`;
-  return `Realised a year on each book's half since ${since} UTC: USDT ${pct(t)} (${t?.trips ?? 0} trips), USDC ${pct(c)} (${c?.trips ?? 0} trips) · ${ratio}`;
+  const coins = r.coins ? Object.keys(r.coins) : [];
+  const perCoin = coins.length > 1 && coins.length < books.length ? ` · ${coins.map((c) => `${c} ${pct(r.coins[c])}`).join(', ')}` : '';
+  const both = !r.coins || (coins.includes('USDT') && coins.includes('USDC'));
+  const ratio = !both ? '' : r.usdtOverUsdc == null ? ' · USDT/USDC –' : ` · USDT/USDC ${Number(r.usdtOverUsdc).toFixed(2)}×`;
+  return `Realised a year on each book's ${part} since ${since} UTC: ${books.map((b) => `${label(b)} ${pct(r.books[b])} (${r.books[b]?.trips ?? 0} trips)`).join(', ')}${perCoin}${ratio}`;
 }
 
 /** PR5's live executor's id among LIVE's rows. */
@@ -2373,7 +2389,8 @@ export function rwFillView(f) {
 export function paperTestRows(dash) {
   const one = (/** @type {any} */ row) => (row ? [row] : []);
   return [
-    ...quotesTwinRows(dash), ...one(quotesCoinbaseRow(dash?.quotesCoinbase)), ...one(quotesCoinbaseRow(dash?.quotesCoinbaseHold)), ...one(quotesCoinbaseRow(dash?.quotesCoinbaseUsdc)), ...one(quotesCoinbaseRow(dash?.quotesCoinbaseNudge)),
+    // Coinbase's rows (Davies, 2026-10-30: "…放在coinbase里第一个…放在-1之后"): its LIVE twin first, then "with Euros - 1", then "- 2".
+    ...quotesTwinRows(dash), ...one(quotesCoinbaseRow(dash?.quotesCoinbase)), ...one(quotesCoinbaseRow(dash?.quotesCoinbaseNudge)), ...one(quotesCoinbaseRow(dash?.quotesCoinbaseUsdc)), ...one(quotesCoinbaseRow(dash?.quotesCoinbaseHold)),
     ...quotesOkxRows(dash), ...grokTestRows(dash), ...one(fxwAudRow(dash?.fxwAud)),
   ];
 }

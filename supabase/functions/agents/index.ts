@@ -109,23 +109,24 @@
 //                             id and their touch, then PR5's rule on them on
 //                             paper. Keyless reads of Coinbase Exchange's public
 //                             market data only. Cron or admin.
-//   POST ?action=cbhold     — "Stablecoin quotes with Euros" (cb_hold.ts,
+//   POST ?action=cbhold     — "Stablecoin quotes with Euros - 2" (cb_hold.ts,
 //                             0118): the Coinbase paper test again with the
 //                             interbank rates held through a closure, on the
-//                             recorder's prints; its own tables and lease.
+//                             recorder's prints, $50 a rung since its
+//                             Deviation 7; its own tables and lease.
 //                             Reads only the database. Cron or admin.
 //   POST ?action=cbusdc     — "Stablecoin quotes with Euros - 1" (cb_usdc.ts,
 //                             0142): the weekend variant's rule on the two USDC
 //                             books, $50 a rung since its Deviation 2; its own
 //                             tables and lease. Reads only the database. Cron
 //                             or admin.
-//   POST ?action=cbnudge    — "Stablecoin quotes with Euros - 2" (cb_nudge.ts,
-//                             0168): "- 2"'s driver on USDC-GBP alone at $50 a
+//   POST ?action=cbnudge    — "Stablecoin quotes USDC/GBP LIVE twin" (cb_nudge.ts,
+//                             0168): "- 1"'s driver on USDC-GBP alone at $50 a
 //                             rung, its fair nudged by Revolut X's recorded
 //                             USDC-GBP book; its own tables and lease. Reads
 //                             only the database. Cron or admin.
 //   POST ?action=cblive      — "Stablecoin quotes USDC/GBP", the Coinbase live
-//                             executor (cb_live.ts, 0177): "with Euros - 2"'s
+//                             executor (cb_live.ts, 0177): its LIVE twin's
 //                             decisions on USDC-GBP at £20 a rung, £120. Built
 //                             dry-run and unarmed: in dry-run it POSTs nothing
 //                             and records what it would send. Cron or admin.
@@ -257,6 +258,7 @@ import type { Venue, VenueId } from "../_shared/venue.ts";
 import { binancePaperVenue, binanceProbe, toBinanceSymbol } from "./binance.ts";
 import { ALL_QUESTION_VERSIONS, isRowQuestionVersion, questionsFor, ROW_QUESTION_KIND, type AnyQuestionVersion } from "./jev_rows.ts";
 import { makeDb, type Db } from "./db.ts";
+import { booksAYear } from "./book_ratio.ts";
 import { deribitProbe } from "./deribit.ts";
 import { youtubeProbe } from "./youtube.ts";
 import { runViews } from "./views.ts";
@@ -279,11 +281,11 @@ import { runCjRec } from "./cj_rec.ts";
 import { runGrokPmRec } from "./grokpm_rec.ts";
 import { readCxbot, readIgbot } from "./grok_tests_view.ts";
 import { GROKPM_CONFIG_COLUMNS, GROKPM_CYCLE_COLUMNS, GROKPM_DAILY_COLUMNS, GROKPM_DECISION_COLUMNS, GROKPM_ENTRY_COLUMNS, GROKPM_FILL_COLUMNS, GROKPM_FILL_STATUSES, GROKPM_JOURNAL_PAGE_MAX, GROKPM_JOURNAL_ROWS, GROKPM_MARKET_COLUMNS, GROKPM_OPEN_COLUMNS, GROKPM_SNAPSHOT_COLUMNS, grokPmJournalPage, grokPmSummary, type GrokPmConfigRow, type GrokPmCycleRow, type GrokPmDailyRow, type GrokPmDayOpenRow, type GrokPmDecisionRow, type GrokPmEntryRow, type GrokPmOpenSnapRow, type GrokPmFillRow, type GrokPmMarketRow, type GrokPmOpenRow, type GrokPmResolutionRow, type GrokPmSnapshotRow } from "./grokpm_view.ts";
-import { runCbRec, type CbRecState } from "./cb_rec.ts";
+import { CB_PRODUCTS, runCbRec, type CbRecState } from "./cb_rec.ts";
 import { cbBooksDelayMs, runCbBooks } from "./cb_books.ts";
 import { runFxRec, type FxRecReport } from "./fx_rec.ts";
-import { CB_RUNG_USD, runCbQuotes } from "./cb_quotes.ts";
-import { CB_HOLD_ID, CB_HOLD_TABLES, runCbHold } from "./cb_hold.ts";
+import { runCbQuotes } from "./cb_quotes.ts";
+import { CB_HOLD_FACTOR_50, CB_HOLD_ID, CB_HOLD_RUNG_USD_50, CB_HOLD_TABLES, cbHoldFactorNow, runCbHold } from "./cb_hold.ts";
 import { CB_USDC_FACTOR_50, CB_USDC_ID, CB_USDC_RUNG_USD_50, CB_USDC_TABLES, cbUsdcFactorNow, cbUsdcView, runCbUsdc } from "./cb_usdc.ts";
 import { CB_NUDGE_ID, CB_NUDGE_PRODUCTS, CB_NUDGE_RUNG_USD, CB_NUDGE_TABLES, runCbNudge } from "./cb_nudge.ts";
 import { runCbLiveProbe } from "./cb_live_probe.ts";
@@ -2074,16 +2076,13 @@ export function quoteBooksTraded(inst: Pick<QuoteLiveInstance, "weights" | "rung
 }
 
 export function twinBookRatio(trips: ReadonlyArray<Pick<LiveTrip, "book" | "tExit" | "pnlGbp">>, weights: { from: number; book?: Partial<Record<QuoteBook, number>> }, capitalGbp: number, now: number) {
-  if (!(now > weights.from)) return null;
-  const w = (b: QuoteBook) => Number(weights.book?.[b] ?? 1), sum = QUOTE_BOOKS.reduce((a, b) => a + w(b), 0);
-  const years = (now - weights.from) / (365 * 864e5);
-  const books = Object.fromEntries(QUOTE_BOOKS.map((b) => {
-    const mine = trips.filter((t) => t.book === b && Date.parse(t.tExit) >= weights.from);
-    const realisedGbp = mine.reduce((a, t) => a + t.pnlGbp, 0), shareGbp = sum > 0 ? capitalGbp * w(b) / sum : 0;
-    return [b, { trips: mine.length, realisedGbp, shareGbp, pctYear: shareGbp > 0 ? 100 * realisedGbp / shareGbp / years : null }];
-  })) as Record<QuoteBook, { trips: number; realisedGbp: number; shareGbp: number; pctYear: number | null }>;
-  const c = books["USDC-GBP"].pctYear, t = books["USDT-GBP"].pctYear;
-  return { from: isoOf(weights.from), books, usdtOverUsdc: c != null && t != null && c > 0 ? t / c : null };
+  // The one reading every venue's page uses (book_ratio.ts), in this payload's shape (pounds).
+  const r = booksAYear(trips.map((t) => ({ book: t.book, tExit: t.tExit, pnl: t.pnlGbp })),
+    { from: weights.from, now, capital: capitalGbp, books: QUOTE_BOOKS, weight: (b) => Number(weights.book?.[b as QuoteBook] ?? 1) });
+  if (!r) return null;
+  const books = Object.fromEntries(QUOTE_BOOKS.map((b) => [b, { trips: r.books[b].trips, realisedGbp: r.books[b].realised, shareGbp: r.books[b].share, pctYear: r.books[b].pctYear }])) as
+    Record<QuoteBook, { trips: number; realisedGbp: number; shareGbp: number; pctYear: number | null }>;
+  return { from: r.from, books, usdtOverUsdc: r.usdtOverUsdc };
 }
 
 /**
@@ -2529,17 +2528,21 @@ async function dashboard(now: number) {
 
   // The base Coinbase test (0112, cb_quotes.ts) is off the page since 2026-10-29 (Davies: "coinbase quotes with euros删了吧…"): its call
   // runs on as the weekend variant's control until that reading, and the dashboard does not read it.
-  // "Stablecoin quotes with Euros" (0118, cb_hold.ts; "- 2" until 0142, "- 1" until 2026-10-29, `CB_HOLD_PAGE_NAME`): the Coinbase
-  // test with the interbank rates held through a closure, from its own tables, in a twin's shape (`cbQuotesView`) under its own
-  // name and id, in whole dollars (`readCoinbaseUsd`, cb_page.ts): $100 a rung, $2,400 on the four books.
-  const quotesCoinbaseHoldRead = readCoinbaseUsd(d, now, dayStartMs, CB_HOLD_TABLES, { id: CB_HOLD_ID, name: CB_HOLD_PAGE_NAME }, { rungUsd: CB_RUNG_USD, books: 4 });
+  // "Stablecoin quotes with Euros - 2" (0118, cb_hold.ts; "- 2" until 0142, "- 1" until 2026-10-29, "with Euros" until 2026-10-30,
+  // `CB_HOLD_PAGE_NAME`): the Coinbase test with the interbank rates held through a closure, from its own tables, in a twin's shape
+  // (`cbQuotesView`, its held rungs at the engine's divisor now through `cbUsdcView` on its four books) under its own name and id, in
+  // whole dollars (`readCoinbaseUsd`, cb_page.ts): $50 a rung and $1,200 on the four books since its Deviation 7, what came before
+  // shown × 1/2 (`resizeFactor`).
+  const quotesCoinbaseHoldRead = readCoinbaseUsd(d, now, dayStartMs, CB_HOLD_TABLES, { id: CB_HOLD_ID, name: CB_HOLD_PAGE_NAME },
+    { rungUsd: CB_HOLD_RUNG_USD_50, books: 4, resizeFactor: 1 / CB_HOLD_FACTOR_50, shape: (v, st) => cbUsdcView(v, { factor: cbHoldFactorNow(st), products: CB_PRODUCTS }) });
   // "Stablecoin quotes with Euros - 1" (0142, cb_usdc.ts; "- 2" until 2026-10-29, `CB_USDC_PAGE_NAME`): the weekend variant's rule on the two USDC books, in its
   // own shape (`cbUsdcView`: two books, its rungs' sizes at the engine's divisor now), $50 a rung and $600 on the two books since
   // its Deviation 2, what came before shown × 2 (`resizeFactor`); null before its first decided minute.
   const quotesCoinbaseUsdcRead = readCoinbaseUsd(d, now, dayStartMs, CB_USDC_TABLES, { id: CB_USDC_ID, name: CB_USDC_PAGE_NAME },
     { rungUsd: CB_USDC_RUNG_USD_50, books: 2, resizeFactor: 2, shape: (v, st) => cbUsdcView(v, { factor: cbUsdcFactorNow(st) }) });
-  // "Stablecoin quotes with Euros - 2" (0168, cb_nudge.ts; "- 3" until 2026-10-29, `CB_NUDGE_PAGE_NAME`): the USDC arm's rule on
-  // USDC-GBP alone, $50 a rung, $300, its fair nudged by Revolut X's book; null before its first decided minute.
+  // "Stablecoin quotes USDC/GBP LIVE twin" (0168, cb_nudge.ts; "- 3" until 2026-10-29, "- 2" until 2026-10-30, `CB_NUDGE_PAGE_NAME`):
+  // the paper arm Coinbase LIVE follows, the USDC arm's rule on USDC-GBP alone, $50 a rung, $300, its fair nudged by Revolut X's book;
+  // null before its first decided minute.
   const quotesCoinbaseNudgeRead = readCoinbaseUsd(d, now, dayStartMs, CB_NUDGE_TABLES, { id: CB_NUDGE_ID, name: CB_NUDGE_PAGE_NAME },
     { rungUsd: CB_NUDGE_RUNG_USD, books: 1, shape: (v) => cbUsdcView(v, { factor: CB_USDC_FACTOR_50, products: CB_NUDGE_PRODUCTS }) });
   // "Stablecoin quotes OKX USDG" and "Stablecoin quotes OKX EURC" (0150, okx_quotes.ts): PR5's rule as LIVE carries it out, on
@@ -2671,8 +2674,8 @@ async function dashboard(now: number) {
      */
     quotesTwins: await quotesTwinsRead,
     /**
-     * "Stablecoin quotes with Euros" (`0118`, cb_hold.ts; "- 2" until `0142`, "- 1" until 2026-10-29): the Coinbase paper test of PR5's
-     * rule with the interbank rates held through a closure, in a twin's shape with `venue: "coinbase"` (`twin.id` "coinbasehold");
+     * "Stablecoin quotes with Euros - 2" (`0118`, cb_hold.ts; "- 2" until `0142`, "- 1" until 2026-10-29, "with Euros" until 2026-10-30): the
+     * Coinbase paper test of PR5's rule with the interbank rates held through a closure, $50 a rung since its Deviation 7, in a twin's shape with `venue: "coinbase"` (`twin.id` "coinbasehold");
      * null until it has decided a minute. The base test (`quotesCoinbase`, cb_quotes.ts) is not sent since 2026-10-29.
      */
     quotesCoinbaseHold: await quotesCoinbaseHoldRead,
@@ -2682,7 +2685,8 @@ async function dashboard(now: number) {
      */
     quotesCoinbaseUsdc: await quotesCoinbaseUsdcRead,
     /**
-     * "Stablecoin quotes with Euros - 2" (`0168`, cb_nudge.ts; "- 3" until 2026-10-29): the USDC arm's rule on USDC-GBP alone at $50 a rung, its fair nudged by
+     * "Stablecoin quotes USDC/GBP LIVE twin" (`0168`, cb_nudge.ts; "- 3" until 2026-10-29, "- 2" until 2026-10-30): the paper arm Coinbase LIVE
+     * follows, the USDC arm's rule on USDC-GBP alone at $50 a rung, its fair nudged by
      * Revolut X's USDC-GBP book, in the same shape (`twin.id` "coinbasenudge"), in dollars; null until it has decided a minute.
      */
     quotesCoinbaseNudge: await quotesCoinbaseNudgeRead,

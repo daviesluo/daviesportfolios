@@ -245,3 +245,14 @@ one book is USDC-GBP, so from the switch its GBP/USD is read at second resolutio
 | `supabase/functions/agents/cb_usdc.ts` | c44e9261cdbaf0e745ac24a83e823a02f87f0be94c3ed98e21da0e320e582f9b |
 | `supabase/functions/agents/cb_quotes.ts` | 63f9c34912f337ee4ce707068850cf4fb4f564dd53a14596af7734c1b487f9a6 |
 | `supabase/migrations/0173_cb_fx_src.sql` | badcc26a09de690874f4bf6d65e2f202067335c70989abc94044bde8c4944e08 |
+
+**Deviation 5 (2026-10-30): its display name, and first of Coinbase's rows.** Davies, 2026-10-30 00:40 UTC, verbatim:
+
+> 然后把测试策略改名为live twin和revolut那两个命名规则一样然后放在coinbase里第一个，“Stablecoin quotes with Euros”改为“Stablecoin quotes with Euros - 2”放在-1之后并且改为每档50，-1和-2都像revolut那几个一样在scoreboard底下加上不同币的performace对比
+
+This arm's display name is **"Stablecoin quotes USDC/GBP LIVE twin"** from today ("- 3" until 2026-10-29, "- 2" until today;
+`CB_NUDGE_PAGE_NAME` in cb_page.ts), after the live strategy that follows it (Coinbase LIVE, "Stablecoin quotes USDC/GBP", cb_live.ts),
+as Revolut X's twins are named; it is the first of Coinbase's rows. Its comparison arm in §3–§4 is still displayed as "- 1". Display
+only: its id (`coinbasenudge`, which `cb_live_config.paper` and `CB_LIVE_PAPERS` name), tables, call, lease, rule and reading are
+unchanged, and `cb_nudge.ts` keeps the name it was frozen with. Revolut X's own USDC/GBP twin (`rxu120`, 0180) has the same name;
+the page tells the two apart by their ids and venues. No bytes named.

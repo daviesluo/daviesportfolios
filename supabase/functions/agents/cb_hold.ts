@@ -36,18 +36,26 @@
 // the newest TrueFX (or Kraken's marked fallback) read arrived by t + 58 s while no more than 120 s old, else Yahoo's bar; in a
 // closure the held bar's minutes stay the lit ones, holding the last fast read when it is no older than that bar, else the bar.
 //
+// Since 2026-10-30 (Deviation 7; Davies: "…“Stablecoin quotes with Euros”改为“Stablecoin quotes with Euros - 2”放在-1之后并且改为每档50")
+// a rung is $50, not $100, from a second switch (`usd50From`, `cbHold50Switch`), as the USDC arm's Deviation 2 made its own: the
+// engine still sizes a rung at its 100 (`stepMinute` is frozen), and is given every print's size × `CB_HOLD_FACTOR_50` (2) from that
+// minute (`cbHoldFactorAt`), so every size, notional and P&L it writes comes back ÷ 2 (the trips, the events' money and the minutes'
+// printed value; `cb_usdc.ts`' `cbUsdcPrint`, `cbUsdcTrip` and `cbUsdcEventDetail` do the same, and `cb_hold.test.ts` pins that they
+// agree). A rung held across the switch keeps the coins it holds: its size and notional go × 2 in the engine's units. Before the
+// switch the divisor is 1 and nothing differs.
+//
 // Its call is its own (`agents?action=cbhold`, a row of `edge_calls`): a fault of this arm never touches the base test's call.
 
 import type { Db } from "./db.ts";
 import {
-  CB_BOOK, CB_FAIR_KIND, CB_LEASE_MS, CB_MAX_MINUTES, CB_USDT_KIND, cbCoinFair, cbEventRow, cbInUsd, cbLiveSwitch, cbMinuteInputs, cbMinuteRow, cbPrint, cbStopExit, cbTripInPounds, cbTripRow, cbUsdSwitch,
+  CB_BOOK, CB_FAIR_KIND, CB_LEASE_MS, CB_MAX_MINUTES, CB_RUNG_USD, CB_USDT_KIND, cbCoinFair, cbEventRow, cbInUsd, cbLiveSwitch, cbMinuteInputs, cbMinuteRow, cbPrint, cbStopExit, cbTripInPounds, cbTripRow, cbUsdSwitch,
   type CbQuoteReport, type CbQuoteState,
 } from "./cb_quotes.ts";
 import { CB_PRODUCTS, type CbProduct, type CbRecState } from "./cb_rec.ts";
 import { cbInBlackout } from "./cb_releases.ts";
 import { faultKey, reportDue } from "./pm_book_rec.ts";
 import { cbFxCount, cbFxSwitch, cbRatesAt, emptyFx, readCbFx } from "./cb_fx.ts";
-import { fairHours, median, newBookState, QUOTE_FX_LOOKBACK_MS, stepMinute, type BookState, type MinuteInputs, type Print, type QuoteBook } from "./quotes.ts";
+import { fairHours, median, newBookState, QUOTE_FX_LOOKBACK_MS, stepMinute, type BookState, type MinuteInputs, type Print, type QuoteBook, type Trip } from "./quotes.ts";
 
 const M = 60e3, H = 3600e3, DAY = 86400e3;
 const iso = (ms: number) => new Date(ms).toISOString();
@@ -65,6 +73,52 @@ export const CB_HOLD_MS = 60 * H;
 export const CB_HOLD_LEASE = "cb-hold";
 /** The tables of the arm, in the shape of 0112's. */
 export const CB_HOLD_TABLES = { state: "cb_hold_state", events: "cb_hold_events", trips: "cb_hold_trips", minutes: "cb_hold_minutes", days: "cb_hold_days" } as const;
+
+/** Deviation 7 (2026-10-30): $50 a rung from its switch, $1,200 on the four books; the engine's $100 ÷ this. */
+export const CB_HOLD_FACTOR_50 = 2;
+export const CB_HOLD_RUNG_USD_50 = CB_RUNG_USD / CB_HOLD_FACTOR_50;
+/** Deviation 7: no minute before 2026-10-30 01:00 UTC is decided at $50 (the push lands after it is written). */
+export const CB_HOLD_50_NOT_BEFORE = Date.UTC(2026, 9, 30, 1);
+
+/** The arm's state: the base test's, with Deviation 7's switch (`usd50From`) and the factor the page shows what came before at. */
+export type CbHoldState = CbQuoteState & { usd50From?: number; usd50Factor?: number };
+
+/** The engine's divisor at minute `t`: 1 ($100 a rung) until Deviation 7's switch, 2 ($50) from it. */
+export const cbHoldFactorAt = (st: CbHoldState, t: number) => (st.usd50From != null && t >= st.usd50From ? CB_HOLD_FACTOR_50 : 1);
+/** The divisor the state's held rungs are kept at now: 2 once Deviation 7 has switched, 1 before. */
+export const cbHoldFactorNow = (st: CbHoldState | null | undefined) => (st?.usd50From != null ? CB_HOLD_FACTOR_50 : 1);
+
+/**
+ * Deviation 7's switch, written once into the state at `first`, the run's first minute: when it is not before
+ * `CB_HOLD_50_NOT_BEFORE` and Deviation 3's dollar switch has been made. A rung held across it keeps the coins it holds: the
+ * engine keeps sizes × its divisor, so its size and notional go × 2. Resting orders carry no size (a fill sizes itself). The page
+ * shows what came before × `usd50Factor`, the new rung over the old: 1/2.
+ */
+export function cbHold50Switch(st: CbHoldState, first: number): void {
+  if (st.usd50From != null || st.usdFrom == null || first < st.usdFrom || first < CB_HOLD_50_NOT_BEFORE) return;
+  for (const b of CB_PRODUCTS) for (const r of st.books[b]?.rungs ?? []) {
+    if (r.mode !== "position") continue;
+    if (r.qty != null) r.qty *= CB_HOLD_FACTOR_50;
+    if (r.nq != null) r.nq *= CB_HOLD_FACTOR_50;
+  }
+  st.usd50From = first; st.usd50Factor = 1 / CB_HOLD_FACTOR_50;
+}
+
+/** A round trip the engine wrote at its (× f) size, back at this arm's: coins, notional and P&L ÷ `f`; prices as they are. */
+export function cbHoldTrip(t: Trip, f: number): Trip {
+  return f === 1 ? t : { ...t, qty: t.qty / f, nq: t.nq / f, notionalUsd: t.notionalUsd / f, pnlUsd: t.pnlUsd / f };
+}
+
+/** An event's sizes at this arm's: a fill's money, the minute's printed value and every print's size ÷ `f`. */
+export function cbHoldEventDetail(detail: Record<string, unknown>, f: number): Record<string, unknown> {
+  if (f === 1) return detail;
+  const out: Record<string, unknown> = { ...detail };
+  if (typeof out.usd === "number") out.usd = out.usd / f;
+  if (typeof out.minuteGbp === "number") out.minuteGbp = out.minuteGbp / f;
+  const p = out.print as { qty?: number } | undefined;
+  if (p && typeof p.qty === "number") out.print = { ...p, qty: p.qty / f };
+  return out;
+}
 
 /**
  * The rate bar the turn at `t` reads: the latest whose minute started in [t − hold, t − 1 min]; null means dark. With
@@ -105,8 +159,8 @@ export async function runCbHold(d: { db: Db; now: number; holder: string; rec: C
     if (!CB_PRODUCTS.every((b) => curs[b])) return { ...report, skipped: "the recorder has not covered every book yet" };
     const covered = Math.min(...CB_PRODUCTS.map((b) => curs[b]!.coveredTo));
     const horizonAll = minuteOf(covered) - M;                    // the last minute every book's prints are complete for
-    const rows = await d.db.select<{ state: CbQuoteState | Record<string, never> }>(T.state, "id=eq.1&select=state");
-    let st = rows[0]?.state as CbQuoteState | undefined;
+    const rows = await d.db.select<{ state: CbHoldState | Record<string, never> }>(T.state, "id=eq.1&select=state");
+    let st = rows[0]?.state as CbHoldState | undefined;
     if (!st || !("books" in st)) {
       // The window starts at the next 00:00 UTC; the record keeps nothing before it. The newest trade id seen now is a safe
       // floor for what is fed: every print of the window has a larger id.
@@ -133,20 +187,27 @@ export async function runCbHold(d: { db: Db; now: number; holder: string; rec: C
     const hours = { USDC: await series("agent_quote_inputs", CB_FAIR_KIND.USDC, first - DAY), USDT: await series("agent_quote_inputs", CB_FAIR_KIND.USDT, first - DAY) };
     // Deviation 3 (2026-10-29): $100 a rung from the switch, on the rates this run decides its first minute on.
     cbUsdSwitch(st, first, cbHoldBarAt(first, gbpBars)?.[1] ?? null, cbHoldBarAt(first, eurBars)?.[1] ?? null);
+    // Deviation 7 (2026-10-30): $50 a rung from its switch (the engine's $100 ÷ 2).
+    cbHold50Switch(st, first);
     // Deviation 4 (2026-10-29): Coinbase's own coin value from the switch, the base call's stored USDT-USD minutes.
     cbLiveSwitch(st, first);
     // Deviation 6 (2026-10-29): the rates at second resolution from the switch, the closures held as before (cb_fx.ts).
     cbFxSwitch(st, first);
     const fx = st.fxFrom != null ? await readCbFx(d.db, first, horizon, CB_HOLD_MS) : emptyFx();
     const usdtBars = await series("cb_quote_inputs", CB_USDT_KIND, first - QUOTE_FX_LOOKBACK_MS);
-    const trips: ReturnType<typeof cbTripRow>[] = [], events: ReturnType<typeof cbEventRow>[] = [], minutes: ReturnType<typeof cbMinuteRow>[] = [];
+    const trips: ReturnType<typeof cbTripRow>[] = [], events: ReturnType<typeof cbEventRow>[] = [], minutes: Record<string, unknown>[] = [];
     for (const b of CB_PRODUCTS) {
       const pRows = await d.db.selectAll<{ trade_id: number; ts: string; price: number; size: number; side: string }>("cb_trades",
         `product=eq.${b}&trade_id=gt.${st.fed[b]}&ts=gte.${enc(first)}&ts=lt.${enc(horizon + M)}&select=trade_id,ts,price,size,side&order=product.asc,trade_id.asc`);
-      const prints = pRows.map((r) => cbPrint(b, r)).filter((p) => p.ts >= first);
+      // Each print's size × the engine's divisor at its minute (Deviation 7: 1, then 2).
+      const prints = pRows.map((r) => {
+        const p = cbPrint(b, r), f = cbHoldFactorAt(st!, minuteOf(msOf(r.ts)));
+        return f === 1 ? p : { ...p, qty: p.qty * f };
+      }).filter((p) => p.ts >= first);
       report.prints += prints.length;
       let j = 0;
       for (let t = first; t <= horizon; t += M) {
+        const f = cbHoldFactorAt(st, t);
         const mine: Print[] = [];
         while (j < prints.length && prints[j].ts < t + M) { mine.push(prints[j]); j++; }
         const { bar, eb, gbpSrc, eurSrc } = cbRatesAt(st, t, gbpBars, eurBars, fx, cbHoldBarAt, true), window = fairHours(t, hours[CB_BOOK[b].coin]);
@@ -157,12 +218,15 @@ export async function runCbHold(d: { db: Db; now: number; holder: string; rec: C
         // Deviation 2 (2026-10-15): the same release blackout as the base test's (cb_releases.ts): in the minutes around a scheduled release the fair is withheld.
         const inp: MinuteInputs = { ...io, fairU: cbInBlackout(t) ? null : io.fairU, prints: mine };
         const out = stepMinute(st.books[b], t, inp);
-        minutes.push(cbMinuteRow(b, t, bar, CB_BOOK[b].quote === "EUR" ? eb : null, window.length, inp, io.xGbp, fxSrc));
+        // The minute's record at this arm's size: the printed value as recorded (the engine saw it × its divisor).
+        const row = cbMinuteRow(b, t, bar, CB_BOOK[b].quote === "EUR" ? eb : null, window.length, inp, io.xGbp, fxSrc);
+        minutes.push(f === 1 ? row : { ...row, vol: Number(row.vol) / f });
         // Pounds, as the base test: a trip closing at the book's last known pounds per unit, from the one its rung filled at.
         if (io.xGbp != null) st.xGbp = { ...st.xGbp, [b]: io.xGbp };
         const xNow = st.xGbp?.[b] ?? (CB_BOOK[b].quote === "GBP" ? 1 : null);
         const entered = (st.xEntry ??= {})[b] ??= {};
-        for (const x of out.trips) {
+        for (const x0 of out.trips) {
+          const x = cbHoldTrip(x0, f);
           const key = `${x.side}|${x.k}`;
           const xe = entered[key] ?? x.xEntry;
           delete entered[key];
@@ -170,7 +234,10 @@ export async function runCbHold(d: { db: Db; now: number; holder: string; rec: C
           trips.push(cbTripRow(b, xNow == null ? c : cbTripInPounds(c, xNow, xe)));
         }
         for (const e of out.events) if (e.kind === "fill" && xNow != null) entered[`${e.side}|${e.k}`] = xNow;
-        events.push(...out.events.map((e) => cbEventRow(b, e)));
+        events.push(...out.events.map((e) => {
+          const r = cbEventRow(b, e);
+          return f === 1 ? r : { ...r, detail: cbHoldEventDetail(r.detail as Record<string, unknown>, f) };
+        }));
         report.orders += out.orders;
       }
       if (pRows.length) st.fed[b] = Math.max(st.fed[b], ...pRows.filter((r) => msOf(r.ts) < horizon + M).map((r) => Number(r.trade_id)));

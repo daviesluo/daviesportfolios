@@ -1,5 +1,6 @@
-// The Agents page's read of one Coinbase paper arm (since 2026-10-29: the weekend variant, cb_hold.ts, "Stablecoin quotes with Euros";
-// the USDC arm, cb_usdc.ts, "- 1"; and "- 2", cb_nudge.ts; the base test, cb_quotes.ts, runs off the page): the arm's state, trips, days,
+// The Agents page's read of one Coinbase paper arm (since 2026-10-30: the nudged USDC-GBP arm, cb_nudge.ts, "Stablecoin quotes USDC/GBP
+// LIVE twin", first; the USDC arm, cb_usdc.ts, "with Euros - 1"; the weekend variant, cb_hold.ts, "with Euros - 2"; the base test,
+// cb_quotes.ts, runs off the page): the arm's state, trips, days,
 // newest orders and last minute from its own tables, through `cbQuotesView` (cb_view.ts). The dashboard (index.ts) and the browser
 // test's fixture (testing.ts) both call it.
 
@@ -7,6 +8,7 @@ import type { Db } from "./db.ts";
 import { cbQuotesView, CB_PAGE_ROWS, type CbDayRow, type CbEventRow, type CbMinuteRow, type CbStateRow, type CbTripRow } from "./cb_view.ts";
 import { CB_BOOK, type CbQuoteState } from "./cb_quotes.ts";
 import type { CbProduct } from "./cb_rec.ts";
+import { booksAYear } from "./book_ratio.ts";
 
 export type CbArmTables = { state: string; trips: string; days: string; events: string; minutes: string };
 
@@ -19,10 +21,18 @@ export type CbArmTables = { state: string; trips: string; days: string; events: 
  * - The nudged USDC-GBP arm (cb_nudge.ts): "- 3" until 2026-10-29, "- 2" since.
  * The base test (cb_quotes.ts, "Stablecoin quotes with Euros" until then) is off the page from that day: it runs on as the
  * weekend variant's control until that test's reading, and the dashboard does not read it.
+ *
+ * Since 2026-10-30 (Davies: "然后把测试策略改名为live twin和revolut那两个命名规则一样然后放在coinbase里第一个，“Stablecoin quotes with
+ * Euros”改为“Stablecoin quotes with Euros - 2”放在-1之后并且改为每档50"):
+ * - The nudged USDC-GBP arm, the one Coinbase LIVE ("Stablecoin quotes USDC/GBP", cb_live.ts) follows: "Stablecoin quotes USDC/GBP LIVE
+ *   twin", as Revolut X's twins are named after the live strategy they follow, and first of Coinbase's rows. Revolut X's own USDC/GBP
+ *   twin (`rxu120`, 0180) has the same name: each row is told apart by its id and its venue, never by its name.
+ * - The weekend variant: "Stablecoin quotes with Euros - 2", right after "- 1", at $50 a rung (its Deviation 7, cb_hold.ts).
+ * - The USDC arm keeps "- 1".
  */
-export const CB_HOLD_PAGE_NAME = "Stablecoin quotes with Euros";
+export const CB_HOLD_PAGE_NAME = "Stablecoin quotes with Euros - 2";
 export const CB_USDC_PAGE_NAME = "Stablecoin quotes with Euros - 1";
-export const CB_NUDGE_PAGE_NAME = "Stablecoin quotes with Euros - 2";
+export const CB_NUDGE_PAGE_NAME = "Stablecoin quotes USDC/GBP LIVE twin";
 
 /** What one arm's read gives beside its view: the state row, every round trip, and the last stored GBP/USD and EUR/USD. */
 type CbArmLoad = { v: ReturnType<typeof cbQuotesView>; st: CbStateRow; trips: CbTripRow[]; gbpusd: number | null; eurusd: number | null };
@@ -54,8 +64,10 @@ export async function readCoinbaseArm(d: Db, now: number, dayStartMs: number, t:
 
 /**
  * How an arm is shown in dollars: its rung, its books, its own shape over the base view (the USDC arms' `cbUsdcView`, given the
- * arm's state), and `resizeFactor`, a later change of its dollar rung ("- 2"'s Deviation 2: × 2): what was entered before that
- * switch (`usd50From` in the state; everything, until the arm has made it) is shown × it as well.
+ * arm's state), and `resizeFactor`, a later change of its dollar rung (the USDC arm's Deviation 2: × 2; the weekend variant's
+ * Deviation 7: × 1/2): what was entered before that switch (`usd50From` in the state; everything, until the arm has made it) is
+ * shown × it as well. An arm on two books or more also carries each book's and each coin's realised a year since its start
+ * (`twin.bookRatio`, book_ratio.ts), the line its page shows under the scoreboard.
  */
 // deno-lint-ignore no-explicit-any
 export type CbUsdArm = { rungUsd: number; books: number; shape?: (v: any, state: any) => any; resizeFactor?: number };
@@ -69,7 +81,7 @@ export async function readCoinbaseUsd(d: Db, now: number, dayStartMs: number, t:
     const l = await loadCoinbaseArm(d, now, dayStartMs, t, as);
     if (!l?.v) return null;
     const v = arm.shape ? arm.shape(l.v, l.st.state) : l.v;
-    return coinbaseInUsd(v, { state: l.st.state as CbQuoteState, trips: l.trips, gbpusd: l.gbpusd, eurusd: l.eurusd, dayStartMs, ...arm });
+    return coinbaseInUsd(v, { state: l.st.state as CbQuoteState, trips: l.trips, gbpusd: l.gbpusd, eurusd: l.eurusd, dayStartMs, nowMs: now, ...arm });
   } catch { return null; }
 }
 
@@ -91,7 +103,7 @@ const dayOf = (ts: string) => new Date(Date.parse(ts)).toISOString().slice(0, 10
 export function coinbaseInUsd(
   // deno-lint-ignore no-explicit-any
   v: any,
-  b: CbUsdArm & { state: (CbQuoteState & { usd50From?: number; usd50Factor?: number }) | null; trips: CbTripRow[]; gbpusd: number | null; eurusd: number | null; dayStartMs: number },
+  b: CbUsdArm & { state: (CbQuoteState & { usd50From?: number; usd50Factor?: number }) | null; trips: CbTripRow[]; gbpusd: number | null; eurusd: number | null; dayStartMs: number; nowMs?: number },
 ) {
   if (!v) return v;
   const R = b.gbpusd && b.gbpusd > 0 ? b.gbpusd : Number(v.capitalGbp) > 0 ? Number(v.capitalUsd) / Number(v.capitalGbp) : 0;
@@ -131,8 +143,16 @@ export function coinbaseInUsd(
   const unrealisedUsd = held.reduce((a: number, r: any) => a + (r.held.unrealisedUsd ?? 0), 0);
   const capitalUsd = b.rungUsd * 6 * b.books;
   const valueUsd = costUsd + b.rungUsd * (Number(v.openOrders) || 0);
+  // Each book's and each coin's realised a year on its share since the arm began (Davies, 2026-10-30: "-1和-2都像revolut那几个一样在
+  // scoreboard底下加上不同币的performace对比"): the reading Revolut X's twins' line is (book_ratio.ts), on the round trips in dollars above.
+  const order = (d.books ?? []).map((x: { book: string }) => x.book) as string[];
+  const startedAt = Number(s.startedAt);
+  const ratio = b.books >= 2 && order.length >= 2 && b.nowMs != null && Number.isFinite(startedAt)
+    ? booksAYear(trips.map((t) => ({ book: t.book, tExit: t.t_exit, pnl: t.usd })), { from: startedAt, now: b.nowMs, capital: capitalUsd, books: order })
+    : null;
   return {
     ...v, ccy: "USD" as const,
+    ...(ratio ? { twin: { ...v.twin, bookRatio: { ...ratio, ccy: "USD", order } } } : {}),
     rungUsd: b.rungUsd, usdFrom: from == null ? null : new Date(from).toISOString(), usdFactor: fac,
     ...(b.resizeFactor ? { resizeFrom: rFrom == null ? null : new Date(rFrom).toISOString(), resizeFactor: rf } : {}),
     capitalUsd, costUsd, valueUsd, unrealisedUsd, realisedUsd, todayUsd, feesUsd: 0,
