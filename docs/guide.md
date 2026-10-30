@@ -481,6 +481,21 @@ places stay when the number is not whole.
   the weekend the rows keep their old rule (the first one dark, the others on
   the last rate). A two-year backtest found every Coinbase row earning more
   this way.
+- **Stablecoin quotes RX↔Coinbase hedge and "- 1".** After Revolut X's twins, on
+  its card (the venue reads "Revolut X + Coinbase"): on paper, an order on each
+  side of Revolut X's USDT/GBP and USDC/GBP books, never dearer than Coinbase's
+  price allows. The first sits one tick better than the big order that usually
+  sits at the front; "- 1" stays behind that order, 0.1 % from Coinbase's price,
+  and only fills when trades go through it. When one fills, the same amount is bought or sold straight away on
+  Coinbase, where these coins trade a little higher. Each book has two
+  pretend accounts, £600 on each venue, half pounds and half coin, and
+  nothing is ever moved between them. A side whose money or coin has run
+  out on either venue stops until trades the other way refill it; the line
+  under the scoreboard says which sides are on and how long each was off
+  today. INVENTORY shows both venues' pounds and coins. ROUND TRIPS pairs
+  each Revolut X fill with its Coinbase trade. Each is a 28-day paper test from
+  the first midnight after it went up, its rule for judging it written down
+  first.
 - **Stablecoin quotes USDG/EUR and Stablecoin quotes EURC/USDC.** After Coinbase's rows, on
   OKX (its own badge and venue card): the live rules on paper on OKX's two
   euro-against-dollar stablecoin books, USDG against euros and EURC against

@@ -37,6 +37,8 @@ const PAGED_KEYS: Record<string, string> = {
   // The USDC-GBP nudge's warm-up and touches (quotes_twin.ts `warmNudge`, `touchesBetween`; 0169): PR5's minutes (0055's
   // primary key) and Coinbase's touch (0112's).
   agent_quote_minutes: "book,minute", cb_touch: "product,ts",
+  // "Stablecoin quotes RX↔Coinbase hedge" (0184) pages Revolut X's recorded book by book and time, and its own trips.
+  agent_book_levels: "book,ts", agent_xhedge_trips: "arm,book,side,t_fill,t_hedge",
   // The recorder's second-level FX reads (0172), read by the Coinbase arms' rate (cb_fx.ts `readCbFx`): its primary key.
   fx_ticks: "source,pair,minute",
   // Coinbase's live path (0177, cb_live.ts): its fills by Coinbase's entry id.

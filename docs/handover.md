@@ -47709,3 +47709,22 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   reader passes (`quotes_live.ts`, another agent's). `quotesLiveInventory`: total = available + hold, "in orders", the book's
   count beside it, red beyond £0.05 (`INVENTORY_MISMATCH_GBP`), "balance as of HH:MM UTC"; no balances, the book's count as
   before. The scoreboard stays on the book. Sweep: the RX fixture JSON untouched, its balances merged in when served.
+
+## LEDGER.md, archived 2026-10-30 (thirtieth) — the 2026-10-29 22:40, 2026-10-29 22:43 UTC history sections, oldest first
+
+### [2026-10-29 22:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **RX-USDC study + "Stablecoin quotes USDC/GBP" on Revolut X, built dry-run and unarmed** (sub-agent; commit, not pushed; Davies,
+  10-29 ~22:05: "…也上线一个revolut x的Stablecoin quotes USDC/GBP 策略，账户api用之前叫你退役的那个trend 4h的api…"). Verdict
+  (`reviews/2026-10-29-rx-usdc-live.md`, `compare/revx/scripts/rx_usdc.py`): at £120 on USDC-GBP, no 0.3 % rung + exit a tick beyond
+  fair beats LIVE's rules by +11.5 % a year since 09-01 (P 0.000, 44/8 days); the Coinbase nudge is not positive on the long data
+  (−2.1, P 0.83). `QUOTE_RXU_INSTANCE` (`revx` key, `agent_quote_rxu_*`, `0180`), run beside LIVE in the quotes call; its dead-man in
+  `monitor`; LIVE row + page (`quotesRxu`); twin `rxu120` under the USDT/GBP LIVE twin from 10-30 00:00. Every executor saves
+  `venueBalances` (available/hold) for its page (Davies 22:20). Go/undo: `reviews/2026-10-29-rx-usdc-live-design.md` §5.
+
+### [2026-10-29 22:43 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Stablecoin quotes pages: no Book column for a one-coin strategy** (sub-agent; commit, not pushed; Davies, 10-29 22:21: "…如果这个
+  策略只有一个币种，就把页面里的tables中的book列删了"). Rule (`quotesShowBook`): ROUND TRIPS and EXIT/ENTRY ORDERS drop Book only when
+  the strategy's books going forward are one AND every row shown is of it, so no row hides its coin. Books going forward: the
+  payload's new `books` (LIVE and each twin, `quoteBooksTraded` from the instance's weights in force: LIVE USDT-GBP alone since
+  22:30), else its BOOKS cards (Coinbase arms, OKX, Coinbase LIVE). LIVE keeps the column while pre-switch USDC rows are listed.
+  Twin fixture regenerated (+`books` only). INVENTORY untouched (a88's).

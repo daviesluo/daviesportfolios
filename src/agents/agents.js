@@ -1419,6 +1419,42 @@ export function quotesCoinbaseRow(q) {
   };
 }
 
+/** The RX↔Coinbase hedge arms' ids among TESTING's rows: this prefix and the arm's id (`xhedge`, `xhedgebehind`; xhedge.ts, 0184). */
+export const QUOTES_XHEDGE_ROW_PREFIX = '__quotes_xhedge_';
+
+/**
+ * "Stablecoin quotes RX↔Coinbase hedge" and "… - 1" as rows of TESTING (xhedge.ts, 0184; Davies, 2026-10-30: "如果真的可以实现的话就做成
+ * 实时纸面测试加到testing里", then "A 策略可以单独做吗…"): strategy A's two arms, one tick inside Revolut X's other maker or 10 bps from
+ * Coinbase's mid behind it, each fill hedged at Coinbase's next read, on two simulated accounts a book and no transfer between
+ * them. In pounds; on Revolut X's card (its quotes rest there), its venue named for both. `paperTestRows` puts them after
+ * Revolut X's twins. null for an arm that has not decided a minute.
+ * @param {any} q  an element of the dashboard's `quotesXhedge`
+ */
+export function quotesXhedgeRow(q) {
+  if (!q?.twin) return null;
+  const where = q.twin.arm === 'behind' ? "10 bps from Coinbase's mid, behind Revolut X's other maker" : "one tick inside Revolut X's other maker";
+  return {
+    id: `${QUOTES_XHEDGE_ROW_PREFIX}${q.twin.id}`,
+    name: String(q.twin.name),
+    venue: `${venueLabel('revx')} + ${venueLabel('coinbase')}`,
+    venueId: 'revx',
+    mode: 'paper',
+    ...quoteBookCells(q),
+    status: q.running
+      ? { label: 'paper', running: true, tone: 'running', detail: `${where}, hedged at Coinbase, no transfers · last minute ${Number(q.lagMinutes) || 0} min ago` }
+      : { label: 'paper', running: false, tone: 'stale', detail: `its last decided minute was ${q.lagMinutes ?? '?'} min ago` },
+  };
+}
+
+/** The RX↔Coinbase hedge arm a row opens, or null. @param {string | null} selected @param {any} dash */
+export function quotesXhedgeOf(selected, dash) {
+  if (!selected || !selected.startsWith(QUOTES_XHEDGE_ROW_PREFIX)) return null;
+  return (Array.isArray(dash?.quotesXhedge) ? dash.quotesXhedge : []).find((/** @type {any} */ q) => q?.twin && `${QUOTES_XHEDGE_ROW_PREFIX}${q.twin.id}` === selected) ?? null;
+}
+
+/** The RX↔Coinbase hedge arms' TESTING rows, the inside arm first. @param {any} dash */
+export const quotesXhedgeRows = (dash) => (Array.isArray(dash?.quotesXhedge) ? dash.quotesXhedge : []).map(quotesXhedgeRow).filter(Boolean);
+
 /** The OKX twins' ids among TESTING's rows: this prefix and the twin's id (`okxusdg`, `okxeurc`; okx_quotes.ts, 0150). */
 export const QUOTES_OKX_ROW_PREFIX = '__quotes_okx_';
 
@@ -1555,7 +1591,9 @@ export function quotesTwinLines(t, m = (s) => s) {
   const waiting = (tw.converting ?? []).map((/** @type {any} */ c) => c.side === 'sell'
     ? `${quoteBookLabel(c.book).split('/')[0]} is being sold for pounds: a maker sale rests at ${m(fmtQuotePrice(c.price))}, ${m(Number(c.filledBase).toFixed(2))} of ${m(Number(c.base).toFixed(2))} filled`
     : `${quoteBookLabel(c.book).split('/')[0]} asks wait for their coin: a maker conversion rests at ${m(fmtQuotePrice(c.price))}, ${m(Number(c.filledBase).toFixed(2))} of ${m(Number(c.base).toFixed(2))} filled`);
-  return { waiting, ratio: quotesTwinRatioLine(tw.bookRatio) };
+  // "Stablecoin quotes RX↔Coinbase hedge" (0184) says, a line a book, which sides quote and how long each was off today.
+  const notes = Array.isArray(tw.notes) ? tw.notes.map(String) : [];
+  return { waiting: [...waiting, ...notes], ratio: quotesTwinRatioLine(tw.bookRatio) };
 }
 
 /**
@@ -1619,7 +1657,7 @@ export function quotesLiveRow(q, as = { id: QUOTES_LIVE_ROW_ID, name: 'Stablecoi
  * @param {any} dash
  * LIVE's "Stablecoin quotes USDC/GBP" opens the same page on its own Coinbase book (`cblive`; Davies, 2026-10-29: "网页中live的
  * coinbase策略子页面打不开，点了没反应": it had no page).
- * @returns {'live' | 'cblive' | 'rxu' | 'twin' | 'coinbase' | 'okx' | null}
+ * @returns {'live' | 'cblive' | 'rxu' | 'twin' | 'coinbase' | 'okx' | 'xhedge' | null}
  */
 export function quotesPageFor(selected, dash) {
   if (selected === QUOTES_LIVE_ROW_ID) return quotesLiveRow(dash?.quotes?.live) ? 'live' : null;
@@ -1630,6 +1668,7 @@ export function quotesPageFor(selected, dash) {
   if (selected === QUOTES_COINBASE_USDC_ROW_ID) return quotesCoinbaseRow(dash?.quotesCoinbaseUsdc) ? 'coinbase' : null;
   if (selected === QUOTES_COINBASE_NUDGE_ROW_ID) return quotesCoinbaseRow(dash?.quotesCoinbaseNudge) ? 'coinbase' : null;
   if (selected?.startsWith(QUOTES_OKX_ROW_PREFIX)) return quotesOkxRow(quotesOkxOf(selected, dash)) ? 'okx' : null;
+  if (selected?.startsWith(QUOTES_XHEDGE_ROW_PREFIX)) return quotesXhedgeRow(quotesXhedgeOf(selected, dash)) ? 'xhedge' : null;
   return quotesTwinRow(quotesTwinOf(selected, dash)) ? 'twin' : null;
 }
 
@@ -2192,17 +2231,19 @@ export function quotesLiveInventory(q, m = (s) => s, dust = {}) {
     };
   }
   if (!inv?.assets) return null;
+  // Pounds, or a venue's pounds ("GBP · Revolut X", "GBP · Coinbase": the RX↔Coinbase hedge test's two accounts, 0184).
+  const isGbp = (/** @type {string} */ asset) => /^GBP\b/.test(String(asset));
   return {
     at: inv.at ? fmtChartStamp(inv.at) : null,
     source: /** @type {'venue' | 'book'} */ ('book'),
-    rows: inv.assets.filter((/** @type {any} */ a) => !isDust(a.asset, a.amount == null ? null : Number(a.amount), a.price, false)).map((/** @type {any} */ a) => ({
+    rows: inv.assets.filter((/** @type {any} */ a) => isGbp(a.asset) || !isDust(a.asset, a.amount == null ? null : Number(a.amount), a.price, false)).map((/** @type {any} */ a) => ({
       asset: a.asset,
-      amount: fmtAmount(a.asset, a.amount),
+      amount: isGbp(a.asset) ? m(fmtGbp(a.amount)) : fmtAmount(a.asset, a.amount),
       inOrders: null,
-      gbp: a.asset === 'GBP' || a.gbp == null ? null : m(fmtGbp(a.gbp)),
-      price: a.asset === 'GBP' || a.price == null ? null : m(fmtQuotePrice(a.price)),
-      priceFrom: a.asset === 'GBP' ? null : a.priceFrom ?? null,
-      unrealisedGbp: a.asset === 'GBP' || a.unrealisedGbp == null ? null : Number(a.unrealisedGbp),
+      gbp: isGbp(a.asset) || a.gbp == null ? null : m(fmtGbp(a.gbp)),
+      price: isGbp(a.asset) || a.price == null ? null : m(fmtQuotePrice(a.price)),
+      priceFrom: isGbp(a.asset) ? null : a.priceFrom ?? null,
+      unrealisedGbp: isGbp(a.asset) || a.unrealisedGbp == null ? null : Number(a.unrealisedGbp),
       book: null,
       mismatch: false,
     })),
@@ -2273,7 +2314,7 @@ export function quoteLadderRows(book) {
  * variant quotes at 0.075 % and 0.125 %, which two would print as 0.07 % and 0.13 %.
  * @param {number} k
  */
-export const quoteRungLabel = (k) => `${+(Number(k) * 100).toFixed(3)} %`;
+export const quoteRungLabel = (k) => (Number(k) === 0 ? 'inside' : `${+(Number(k) * 100).toFixed(3)} %`);
 
 /** A book's name as the page writes a pair: "USDC-GBP" → "USDC/GBP". @param {string} b */
 export const quoteBookLabel = (b) => String(b ?? '').replace('-', '/');
@@ -2407,7 +2448,7 @@ export function paperTestRows(dash) {
   const one = (/** @type {any} */ row) => (row ? [row] : []);
   return [
     // Coinbase's rows (Davies, 2026-10-30: "…放在coinbase里第一个…放在-1之后"): its LIVE twin first, then "with Euros - 1", then "- 2".
-    ...quotesTwinRows(dash), ...one(quotesCoinbaseRow(dash?.quotesCoinbase)), ...one(quotesCoinbaseRow(dash?.quotesCoinbaseNudge)), ...one(quotesCoinbaseRow(dash?.quotesCoinbaseUsdc)), ...one(quotesCoinbaseRow(dash?.quotesCoinbaseHold)),
+    ...quotesTwinRows(dash), ...quotesXhedgeRows(dash), ...one(quotesCoinbaseRow(dash?.quotesCoinbase)), ...one(quotesCoinbaseRow(dash?.quotesCoinbaseNudge)), ...one(quotesCoinbaseRow(dash?.quotesCoinbaseUsdc)), ...one(quotesCoinbaseRow(dash?.quotesCoinbaseHold)),
     ...quotesOkxRows(dash), ...grokTestRows(dash), ...one(fxwAudRow(dash?.fxwAud)),
   ];
 }

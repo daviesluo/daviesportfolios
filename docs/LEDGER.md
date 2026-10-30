@@ -802,7 +802,18 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 01:24 UTC section (archived
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
-and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth), and the 2026-10-29 19:50, 2026-10-29 19:55, 2026-10-29 20:00, 2026-10-29 20:15 ones (twenty-sixth), and the 2026-10-29 20:41, 2026-10-29 21:07 ones (twenty-seventh), and the 2026-10-29 21:30, 2026-10-29 22:10 ones (twenty-eighth), and the 2026-10-29 22:12, 2026-10-29 22:27 ones (twenty-ninth).
+and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth), and the 2026-10-29 19:50, 2026-10-29 19:55, 2026-10-29 20:00, 2026-10-29 20:15 ones (twenty-sixth), and the 2026-10-29 20:41, 2026-10-29 21:07 ones (twenty-seventh), and the 2026-10-29 21:30, 2026-10-29 22:10 ones (twenty-eighth), and the 2026-10-29 22:12, 2026-10-29 22:27 ones (twenty-ninth), and the 2026-10-29 22:40, 2026-10-29 22:43 ones (thirtieth).
+
+### [2026-10-30 02:55 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **"Stablecoin quotes RX↔Coinbase hedge" and "- 1", MMCOMP's A as a real-time paper test in two arms** (sub-agent; commit,
+  not pushed; Davies, 10-30 ~02:15: "…如果真的可以实现的话就做成实时纸面测试加到testing里…", ~02:35: "A 策略可以单独做吗…"). `agents/xhedge.ts`,
+  `0184`: USDT-GBP and USDC-GBP, each on two simulated accounts an arm (Revolut X, Coinbase; £600 a venue), one £100 order a
+  side, a tick inside Revolut X's touch (`inside`) or Coinbase's mid ∓ 10 bps never better than that touch (`behind`), capped
+  at Coinbase ± 2 bps, filled by recorded prints, hedged as a Coinbase taker at the first read ≥ fill + 30 s (0.45 bps); no
+  transfers: a side whose legs cannot carry a fill is off, its minutes counted by reason. One call `agents?action=xhedge`
+  (watchdog), starts at the first 00:00 UTC after its first run; two TESTING rows on Revolut X's card. Replay
+  (`scripts/xhedge_a2.py`): USDT-GBP £1.00/day inside, £0.46 behind. Frozen prereg `reviews/2026-10-30-xhedge-prereg.md` (28
+  days; each arm's USDT-GBP: sum > 0, P(mean ≤ 0) < 0.10, ≥ 300 / 100 fills). Nothing live.
 
 ### [2026-10-30 02:17 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Coinbase LIVE now decides for itself** (main session; Davies, 10-30 ~02:15: the switch is mine to decide, "这个你来做决定不用问我").
@@ -929,20 +940,3 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   09-01: no 0.3 % rung −1.09 % a year (P 0.67; £100/£200 and £200/£100 no better), with exit +1 tick +0.97 (P 0.31), exit +1
   tick alone +1.49 (P 0.048; out of sample +4.63, P 0.000): keep the 0.3 % rung on USDT; only the exit tick is near-certain.
   Twins too short: `n600no03` one day, −£0.43 realised vs `live600`, both books still; variant-6 +£0.05 vs control in 3 h 49 min.
-
-### [2026-10-29 22:43 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Stablecoin quotes pages: no Book column for a one-coin strategy** (sub-agent; commit, not pushed; Davies, 10-29 22:21: "…如果这个
-  策略只有一个币种，就把页面里的tables中的book列删了"). Rule (`quotesShowBook`): ROUND TRIPS and EXIT/ENTRY ORDERS drop Book only when
-  the strategy's books going forward are one AND every row shown is of it, so no row hides its coin. Books going forward: the
-  payload's new `books` (LIVE and each twin, `quoteBooksTraded` from the instance's weights in force: LIVE USDT-GBP alone since
-  22:30), else its BOOKS cards (Coinbase arms, OKX, Coinbase LIVE). LIVE keeps the column while pre-switch USDC rows are listed.
-  Twin fixture regenerated (+`books` only). INVENTORY untouched (a88's).
-
-### [2026-10-29 22:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **RX-USDC study + "Stablecoin quotes USDC/GBP" on Revolut X, built dry-run and unarmed** (sub-agent; commit, not pushed; Davies,
-  10-29 ~22:05: "…也上线一个revolut x的Stablecoin quotes USDC/GBP 策略，账户api用之前叫你退役的那个trend 4h的api…"). Verdict
-  (`reviews/2026-10-29-rx-usdc-live.md`, `compare/revx/scripts/rx_usdc.py`): at £120 on USDC-GBP, no 0.3 % rung + exit a tick beyond
-  fair beats LIVE's rules by +11.5 % a year since 09-01 (P 0.000, 44/8 days); the Coinbase nudge is not positive on the long data
-  (−2.1, P 0.83). `QUOTE_RXU_INSTANCE` (`revx` key, `agent_quote_rxu_*`, `0180`), run beside LIVE in the quotes call; its dead-man in
-  `monitor`; LIVE row + page (`quotesRxu`); twin `rxu120` under the USDT/GBP LIVE twin from 10-30 00:00. Every executor saves
-  `venueBalances` (available/hold) for its page (Davies 22:20). Go/undo: `reviews/2026-10-29-rx-usdc-live-design.md` §5.

@@ -1,0 +1,429 @@
+{
+ "USDC-GBP": {
+  "A1": {
+   "ask_blocked_min_per_day": 24,
+   "before_after_10_13_gbp_per_day": [
+    0.159,
+    0.492
+   ],
+   "bid_blocked_min_per_day": 1139,
+   "bps_per_fill": 4.65,
+   "days_positive": "14/19",
+   "fills_per_day": 14.0,
+   "gbp_per_day": 0.441,
+   "orders_per_day": 455,
+   "pct_year_on_1200": 13.4
+  },
+  "A2|behind|d10": {
+   "ask_blocked_min_per_day": 30,
+   "before_after_10_13_gbp_per_day": [
+    0.078,
+    0.298
+   ],
+   "bid_blocked_min_per_day": 1006,
+   "bps_per_fill": 8.32,
+   "days_positive": "12/19",
+   "fills_per_day": 4.7,
+   "gbp_per_day": 0.265,
+   "orders_per_day": 474,
+   "pct_year_on_1200": 8.0
+  },
+  "A2|behind|d15": {
+   "ask_blocked_min_per_day": 60,
+   "before_after_10_13_gbp_per_day": [
+    0.048,
+    0.247
+   ],
+   "bid_blocked_min_per_day": 867,
+   "bps_per_fill": 11.34,
+   "days_positive": "12/19",
+   "fills_per_day": 2.6,
+   "gbp_per_day": 0.217,
+   "orders_per_day": 512,
+   "pct_year_on_1200": 6.6
+  },
+  "A2|behind|d20": {
+   "ask_blocked_min_per_day": 0,
+   "before_after_10_13_gbp_per_day": [
+    0.068,
+    0.068
+   ],
+   "bid_blocked_min_per_day": 843,
+   "bps_per_fill": 12.89,
+   "days_positive": "5/19",
+   "fills_per_day": 0.5,
+   "gbp_per_day": 0.068,
+   "orders_per_day": 500,
+   "pct_year_on_1200": 2.1
+  },
+  "A2|behind|d3": {
+   "ask_blocked_min_per_day": 16,
+   "before_after_10_13_gbp_per_day": [
+    0.097,
+    0.246
+   ],
+   "bid_blocked_min_per_day": 906,
+   "bps_per_fill": 3.44,
+   "days_positive": "13/19",
+   "fills_per_day": 8.3,
+   "gbp_per_day": 0.224,
+   "orders_per_day": 501,
+   "pct_year_on_1200": 6.8
+  },
+  "A2|behind|d30": {
+   "ask_blocked_min_per_day": 0,
+   "before_after_10_13_gbp_per_day": [
+    0.0,
+    0.0
+   ],
+   "bid_blocked_min_per_day": 0,
+   "bps_per_fill": null,
+   "days_positive": "0/19",
+   "fills_per_day": 0.0,
+   "gbp_per_day": 0.0,
+   "orders_per_day": 750,
+   "pct_year_on_1200": 0.0
+  },
+  "A2|behind|d5": {
+   "ask_blocked_min_per_day": 16,
+   "before_after_10_13_gbp_per_day": [
+    0.096,
+    0.229
+   ],
+   "bid_blocked_min_per_day": 1117,
+   "bps_per_fill": 4.59,
+   "days_positive": "12/19",
+   "fills_per_day": 6.2,
+   "gbp_per_day": 0.209,
+   "orders_per_day": 458,
+   "pct_year_on_1200": 6.4
+  },
+  "A2|behind|d7.5": {
+   "ask_blocked_min_per_day": 13,
+   "before_after_10_13_gbp_per_day": [
+    0.114,
+    0.272
+   ],
+   "bid_blocked_min_per_day": 995,
+   "bps_per_fill": 6.58,
+   "days_positive": "12/19",
+   "fills_per_day": 5.1,
+   "gbp_per_day": 0.248,
+   "orders_per_day": 474,
+   "pct_year_on_1200": 7.5
+  },
+  "A2|free|d10": {
+   "ask_blocked_min_per_day": 44,
+   "before_after_10_13_gbp_per_day": [
+    0.081,
+    0.379
+   ],
+   "bid_blocked_min_per_day": 1208,
+   "bps_per_fill": 8.1,
+   "days_positive": "11/19",
+   "fills_per_day": 6.0,
+   "gbp_per_day": 0.334,
+   "orders_per_day": 415,
+   "pct_year_on_1200": 10.1
+  },
+  "A2|free|d15": {
+   "ask_blocked_min_per_day": 108,
+   "before_after_10_13_gbp_per_day": [
+    0.113,
+    0.304
+   ],
+   "bid_blocked_min_per_day": 974,
+   "bps_per_fill": 11.72,
+   "days_positive": "12/19",
+   "fills_per_day": 3.1,
+   "gbp_per_day": 0.275,
+   "orders_per_day": 470,
+   "pct_year_on_1200": 8.4
+  },
+  "A2|free|d20": {
+   "ask_blocked_min_per_day": 0,
+   "before_after_10_13_gbp_per_day": [
+    0.155,
+    0.058
+   ],
+   "bid_blocked_min_per_day": 972,
+   "bps_per_fill": 14.43,
+   "days_positive": "5/19",
+   "fills_per_day": 0.7,
+   "gbp_per_day": 0.073,
+   "orders_per_day": 470,
+   "pct_year_on_1200": 2.2
+  },
+  "A2|free|d3": {
+   "ask_blocked_min_per_day": 21,
+   "before_after_10_13_gbp_per_day": [
+    0.061,
+    0.18
+   ],
+   "bid_blocked_min_per_day": 1127,
+   "bps_per_fill": 1.71,
+   "days_positive": "13/19",
+   "fills_per_day": 14.5,
+   "gbp_per_day": 0.161,
+   "orders_per_day": 459,
+   "pct_year_on_1200": 4.9
+  },
+  "A2|free|d30": {
+   "ask_blocked_min_per_day": 0,
+   "before_after_10_13_gbp_per_day": [
+    0.201,
+    0.0
+   ],
+   "bid_blocked_min_per_day": 0,
+   "bps_per_fill": 29.33,
+   "days_positive": "1/19",
+   "fills_per_day": 0.1,
+   "gbp_per_day": 0.031,
+   "orders_per_day": 756,
+   "pct_year_on_1200": 0.9
+  },
+  "A2|free|d5": {
+   "ask_blocked_min_per_day": 9,
+   "before_after_10_13_gbp_per_day": [
+    0.078,
+    0.235
+   ],
+   "bid_blocked_min_per_day": 1192,
+   "bps_per_fill": 3.78,
+   "days_positive": "11/19",
+   "fills_per_day": 8.6,
+   "gbp_per_day": 0.211,
+   "orders_per_day": 433,
+   "pct_year_on_1200": 6.4
+  },
+  "A2|free|d7.5": {
+   "ask_blocked_min_per_day": 21,
+   "before_after_10_13_gbp_per_day": [
+    0.117,
+    0.337
+   ],
+   "bid_blocked_min_per_day": 1185,
+   "bps_per_fill": 6.24,
+   "days_positive": "12/19",
+   "fills_per_day": 6.8,
+   "gbp_per_day": 0.304,
+   "orders_per_day": 424,
+   "pct_year_on_1200": 9.2
+  }
+ },
+ "USDT-GBP": {
+  "A1": {
+   "ask_blocked_min_per_day": 235,
+   "before_after_10_13_gbp_per_day": [
+    0.121,
+    1.155
+   ],
+   "bid_blocked_min_per_day": 885,
+   "bps_per_fill": 6.22,
+   "days_positive": "15/19",
+   "fills_per_day": 23.6,
+   "gbp_per_day": 0.996,
+   "orders_per_day": 487,
+   "pct_year_on_1200": 30.3
+  },
+  "A2|behind|d10": {
+   "ask_blocked_min_per_day": 155,
+   "before_after_10_13_gbp_per_day": [
+    0.104,
+    0.525
+   ],
+   "bid_blocked_min_per_day": 998,
+   "bps_per_fill": 9.96,
+   "days_positive": "11/19",
+   "fills_per_day": 6.6,
+   "gbp_per_day": 0.46,
+   "orders_per_day": 460,
+   "pct_year_on_1200": 14.0
+  },
+  "A2|behind|d15": {
+   "ask_blocked_min_per_day": 359,
+   "before_after_10_13_gbp_per_day": [
+    0.145,
+    0.239
+   ],
+   "bid_blocked_min_per_day": 711,
+   "bps_per_fill": 14.16,
+   "days_positive": "9/19",
+   "fills_per_day": 1.9,
+   "gbp_per_day": 0.225,
+   "orders_per_day": 484,
+   "pct_year_on_1200": 6.8
+  },
+  "A2|behind|d20": {
+   "ask_blocked_min_per_day": 473,
+   "before_after_10_13_gbp_per_day": [
+    0.17,
+    0.133
+   ],
+   "bid_blocked_min_per_day": 711,
+   "bps_per_fill": 18.99,
+   "days_positive": "5/19",
+   "fills_per_day": 1.0,
+   "gbp_per_day": 0.139,
+   "orders_per_day": 449,
+   "pct_year_on_1200": 4.2
+  },
+  "A2|behind|d3": {
+   "ask_blocked_min_per_day": 163,
+   "before_after_10_13_gbp_per_day": [
+    0.106,
+    0.538
+   ],
+   "bid_blocked_min_per_day": 763,
+   "bps_per_fill": 4.92,
+   "days_positive": "16/19",
+   "fills_per_day": 14.4,
+   "gbp_per_day": 0.472,
+   "orders_per_day": 511,
+   "pct_year_on_1200": 14.3
+  },
+  "A2|behind|d30": {
+   "ask_blocked_min_per_day": 380,
+   "before_after_10_13_gbp_per_day": [
+    0.309,
+    0.106
+   ],
+   "bid_blocked_min_per_day": 839,
+   "bps_per_fill": 30.51,
+   "days_positive": "5/19",
+   "fills_per_day": 0.5,
+   "gbp_per_day": 0.137,
+   "orders_per_day": 433,
+   "pct_year_on_1200": 4.2
+  },
+  "A2|behind|d5": {
+   "ask_blocked_min_per_day": 153,
+   "before_after_10_13_gbp_per_day": [
+    0.059,
+    0.522
+   ],
+   "bid_blocked_min_per_day": 903,
+   "bps_per_fill": 6.4,
+   "days_positive": "13/19",
+   "fills_per_day": 11.1,
+   "gbp_per_day": 0.451,
+   "orders_per_day": 480,
+   "pct_year_on_1200": 13.7
+  },
+  "A2|behind|d7.5": {
+   "ask_blocked_min_per_day": 149,
+   "before_after_10_13_gbp_per_day": [
+    0.077,
+    0.523
+   ],
+   "bid_blocked_min_per_day": 922,
+   "bps_per_fill": 8.44,
+   "days_positive": "12/19",
+   "fills_per_day": 7.9,
+   "gbp_per_day": 0.454,
+   "orders_per_day": 481,
+   "pct_year_on_1200": 13.8
+  },
+  "A2|free|d10": {
+   "ask_blocked_min_per_day": 170,
+   "before_after_10_13_gbp_per_day": [
+    0.104,
+    0.657
+   ],
+   "bid_blocked_min_per_day": 1005,
+   "bps_per_fill": 9.19,
+   "days_positive": "11/19",
+   "fills_per_day": 9.3,
+   "gbp_per_day": 0.572,
+   "orders_per_day": 467,
+   "pct_year_on_1200": 17.4
+  },
+  "A2|free|d15": {
+   "ask_blocked_min_per_day": 359,
+   "before_after_10_13_gbp_per_day": [
+    0.145,
+    0.368
+   ],
+   "bid_blocked_min_per_day": 710,
+   "bps_per_fill": 14.34,
+   "days_positive": "9/19",
+   "fills_per_day": 3.0,
+   "gbp_per_day": 0.334,
+   "orders_per_day": 488,
+   "pct_year_on_1200": 10.2
+  },
+  "A2|free|d20": {
+   "ask_blocked_min_per_day": 488,
+   "before_after_10_13_gbp_per_day": [
+    0.17,
+    0.224
+   ],
+   "bid_blocked_min_per_day": 710,
+   "bps_per_fill": 18.79,
+   "days_positive": "6/19",
+   "fills_per_day": 1.4,
+   "gbp_per_day": 0.216,
+   "orders_per_day": 451,
+   "pct_year_on_1200": 6.6
+  },
+  "A2|free|d3": {
+   "ask_blocked_min_per_day": 233,
+   "before_after_10_13_gbp_per_day": [
+    0.121,
+    0.451
+   ],
+   "bid_blocked_min_per_day": 891,
+   "bps_per_fill": 2.37,
+   "days_positive": "15/19",
+   "fills_per_day": 24.4,
+   "gbp_per_day": 0.401,
+   "orders_per_day": 493,
+   "pct_year_on_1200": 12.2
+  },
+  "A2|free|d30": {
+   "ask_blocked_min_per_day": 383,
+   "before_after_10_13_gbp_per_day": [
+    0.309,
+    0.179
+   ],
+   "bid_blocked_min_per_day": 757,
+   "bps_per_fill": 29.17,
+   "days_positive": "6/19",
+   "fills_per_day": 0.8,
+   "gbp_per_day": 0.199,
+   "orders_per_day": 468,
+   "pct_year_on_1200": 6.1
+  },
+  "A2|free|d5": {
+   "ask_blocked_min_per_day": 201,
+   "before_after_10_13_gbp_per_day": [
+    0.05,
+    0.531
+   ],
+   "bid_blocked_min_per_day": 958,
+   "bps_per_fill": 4.61,
+   "days_positive": "13/19",
+   "fills_per_day": 15.7,
+   "gbp_per_day": 0.457,
+   "orders_per_day": 467,
+   "pct_year_on_1200": 13.9
+  },
+  "A2|free|d7.5": {
+   "ask_blocked_min_per_day": 178,
+   "before_after_10_13_gbp_per_day": [
+    0.077,
+    0.634
+   ],
+   "bid_blocked_min_per_day": 974,
+   "bps_per_fill": 7.46,
+   "days_positive": "12/19",
+   "fills_per_day": 11.0,
+   "gbp_per_day": 0.548,
+   "orders_per_day": 468,
+   "pct_year_on_1200": 16.7
+  }
+ },
+ "days": 18.9,
+ "model": "\u00a3600 a venue a book (\u00a3300 pounds, \u00a3300 coin), \u00a3100 orders, no transfers, hedge at the first Coinbase read >= fill + 30 s, 0.45 bps",
+ "window": "2026-10-10 02:00 -> 2026-10-29 00:00 UTC"
+}

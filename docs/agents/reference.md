@@ -115,7 +115,7 @@ From docs.typesafe.ai/model-jaggedness/jev-1.13:
 | Fees | **0 % maker, 0.09 % taker**, flat, no tiers | revolut.com/legal/crypto-exchange-fees |
 | Order types | `market`, `limit` (with `post_only` / `allow_taker`), `conditional`, `tpsl`. **Time in force at placement: `gtc` or `ioc` only, `gtc` when omitted, and `post_only` never with `ioc`** — the venue's own TypeScript client (`PlaceTimeInForce = "gtc" \| "ioc"`, sent as `order_configuration.limit.time_in_force`, refused otherwise by its schema) and its CLI (`--time-in-force gtc\|ioc`; `--post-only … cannot combine with ioc`). The same repository's LLM reference says the field "cannot be set during order placement"; the client and CLI that place orders are taken over that line. `fok` appears only on an order read back. | revolut-engineering/revolut-x-api `api/src/types/orders.ts`, `api/src/validation/schemas.ts`, `cli/README.md` (read 2026-09-22) |
 | Place order | `POST /1.0/orders` `{ client_order_id (uuid), symbol "BTC-USD", side, order_configuration: { limit: { base_size \| quote_size, price, execution_instructions, time_in_force } \| market: { base_size \| quote_size } } }` → `{ data: { venue_order_id, client_order_id, state } }` — an OBJECT in the schema and the LLM reference's example; an array in one older sample. The client reads both. The documented example's `state` is `new`, so a placement reply does not say whether a marketable order filled: the read-back does. | docs/x-api/place-order; `revolut-x-api-for-llm.md` |
-| Rate limits | Token buckets, **per endpoint**, verbatim from each endpoint's table on developer.revolut.com. `POST /1.0/orders` (place order): *Per-second limit 10 — 10 tokens/second — 1 token/request* AND *Per-day limit 1,000 — 1,000 tokens/day — 1 token/request*. Other authenticated endpoints: 100 tokens/s + 1,000 tokens/minute (the general “1,000 requests per minute” rule in the LLM reference). Public endpoints: 1 token/second. Authenticated candles: 500,000 tokens/s, cost `min(5,000, candle count)`. Historical queries cost 1 token per day in the requested range. 429 carries `Retry-After` in milliseconds. The day bucket refills continuously at 1,000/day rather than resetting at midnight, so it is a sustained-throughput cap of **1,000 orders per 24 h**, not a midnight lock — the constraint on the design is the same. | docs (literal table, checked 2026-09-20) |
+| Rate limits | Token buckets, **per endpoint**, verbatim from each endpoint's table on developer.revolut.com. `POST /1.0/orders` (place order): *Per-second limit 10 — 10 tokens/second — 1 token/request* AND *Per-day limit 1,000 — 1,000 tokens/day — 1 token/request*. Other authenticated endpoints: 100 tokens/s + 1,000 tokens/minute (the general “1,000 requests per minute” rule in the LLM reference). Public endpoints: 1 token/second. Authenticated candles: 500,000 tokens/s, cost `min(5,000, candle count)`. Historical queries cost 1 token per day in the requested range. 429 carries `Retry-After` in milliseconds. The day bucket refills continuously at 1,000/day rather than resetting at midnight, so it is a sustained-throughput cap of **1,000 orders per 24 h**, not a midnight lock — the constraint on the design is the same. **"The daily limit does not apply to sub-accounts"** and each sub-account has "its own independent rate limits"; at most 300 active orders an account or sub-account, 1,000 across all (the same page, read 2026-10-30, MMCOMP-2). | docs (literal table, checked 2026-09-20; sub-accounts 2026-10-30) |
 | Money values | strings, never floats | docs |
 | Symbols | dash in paths/requests (`BTC-USD`), slash in responses (`BTC/USD`) | docs |
 | Cancel | `DELETE /1.0/orders/{venue_order_id}` → 204; `DELETE /1.0/orders` cancels all | docs |
@@ -4714,6 +4714,46 @@ and its control are off, its pre-registration closed early, adopted.
 | `u300ctl` | off since `0178` (place 56), hidden, "Stablecoin quotes USDC control from 10-30" (from `0169`) | `u300nudge` | the same | the same but `rules.fairNudge` | the same; variant-6's control (variant-7's until `0176`) | the same |
 | `live600x1` | off and hidden since `0181` (2026-10-29; its rule adopted on LIVE and every twin from 10-30 00:00, its reading closed early), "Stablecoin quotes exit +1 tick from 10-29"; variant-6 from `0178`, USDT-GBP alone from 2026-10-30 00:00 as LIVE (variant-7 from `0176`, variant-8 from `0175`, 2026-10-29; Davies: "好的，建 variant-8，在实盘live的基础上") | `live600`'s rules | £600: £50 a rung, 3 a side, both books, one key | LIVE's rules as `live600` has them (its "at" fill, its weekend from 10-30 21:00, no take, exits meeting the book), and `rules.exitOffset` 1 tick from its start (REVX-LAG's one pass: every exit a tick beyond fair) | from 2026-10-29 19:00, 28 days; read on or after 11-27 19:00 against `live600ctl`, bar: daily difference above 0 with a 3-day-block bootstrap's P(≤ 0) under 0.10 | `reviews/2026-10-29-revx-exit-tick-twin-prereg.md` |
 | `live600ctl` | off since `0181`, hidden, "Stablecoin quotes LIVE control from 10-29" (from `0175`) | `live600x1` | the same | the same but `rules.exitOffset` | the same; variant-6's control (variant-7's until `0178`, variant-8's until `0176`) | the same |
+
+69. **"Stablecoin quotes RX↔Coinbase hedge" and "… - 1", a real-time paper test in two arms (2026-10-30, migration `0184`;
+    `agents/xhedge.ts`).** Davies, 2026-10-30: "怎么实现自动化？如果真的可以实现的话就做成实时纸面测试加到testing里，然后解释下不调仓的话怎么运行的？",
+    then "A 策略可以单独做吗还是只能做像你刚才说的和做市商抢生意的那个做法？". MMCOMP's strategy A (`reviews/2026-10-30-revx-mm-competition.md`,
+    `reviews/2026-10-30-mmcomp-2.md`), with and without competing with the other maker (`backtests/mmcomp/scripts/xhedge_a2.py`).
+    - **The rule:** every minute, on USDT-GBP and USDC-GBP, each on two simulated accounts (Revolut X and Coinbase, £600 each, half
+      pounds, half coin), the turn at t + 30 s:
+      - one order a side, £100, one tick inside Revolut X's recorded touch (`agent_book_levels`) in arm `inside`, or Coinbase's
+        mid ∓ 10 bps and never better than that touch in arm `behind`; never crossing it, never past Coinbase's recorded touch
+        (`cb_touch`) ± 2 bps;
+      - nothing rests while Revolut X's book is unseen for 75 s or Coinbase's touch is over 60 s old.
+    - **Fills and hedges:**
+      - fills by Revolut X's stored prints (`agent_quote_prints`): at or through our price when strictly inside the best level,
+        only through it when joining it;
+      - each fill hedged as a Coinbase taker at the first read at or after the fill + 30 s, 0.45 bps (the delay MMCOMP-2
+        found harmless, the dearest published stable-pair tier);
+      - fills under £1 wait together until £1 (Coinbase's minimum is £0.72).
+    - **No transfers.** A side quotes only while its two legs can carry a fill: a bid needs Revolut X's pounds and Coinbase's coin,
+      an ask Revolut X's coin and Coinbase's pounds. Otherwise it is off, the minute recorded with its reason, until the other
+      side's fills refill it. That is how it runs without rebalancing; what it realises stays in the accounts and is used at once.
+    - **Orders:** a placement when a side starts, moves or is emptied, counted a UTC day an arm for both books (governor 2,400).
+      A Revolut X sub-account has no daily order limit, and the replay needs about 500 a book a day.
+    - **The replay** (`results/xhedge_a2.json`, 10-10 → 10-29, £600 a venue, no transfers): `inside` USDT-GBP 23.6 fills a day,
+      6.22 bps, £1.00 a day, the bid off 885 minutes a day; `behind` USDT-GBP 6.6 fills, 9.96 bps, £0.46 a day; USDC-GBP £0.44
+      and £0.27.
+    - **Plumbing:** both arms in one call on one read, its own tables (`agent_xhedge_state`, `_minutes`, `_fills`, `_trips`, each
+      with an `arm` column, the view `_days` with each side's blocked minutes), lease `xhedge`, call `agents?action=xhedge` (a row
+      of `edge_calls` under the watchdog), prune after 120
+      days. It decides three minutes behind the clock (so a fill's hedge read exists) and starts at the first 00:00 UTC after its
+      first run.
+    - **The page:** TESTING's rows "Stablecoin quotes RX↔Coinbase hedge" and "… - 1" on Revolut X's card, venue "Revolut X +
+      Coinbase", and a Stablecoin quotes page each (`QuotesLiveDetail`'s `xhedge`):
+      - scoreboard on £2,400;
+      - BOOKS, Coinbase's mid as the fair and the ladder's one rung "inside";
+      - a line a book for each side's state and today's blocked minutes;
+      - INVENTORY, each venue's pounds and coins;
+      - ROUND TRIPS, a Revolut X fill and its hedge; DAYS.
+    - **Pre-registered and frozen:** `reviews/2026-10-30-xhedge-prereg.md` (28 days; each arm's USDT-GBP passes on a positive sum,
+      P(mean ≤ 0) < 0.10 by a 3-day block bootstrap, and 300 fills (`inside`) or 100 (`behind`); reading script
+      `backtests/mmcomp/scripts/xhedge_reading.py`).
 
 ## 5. Questions that blocked the build — answered 2026-09-20
 

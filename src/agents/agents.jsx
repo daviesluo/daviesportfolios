@@ -16,7 +16,7 @@ import { SurfaceBoundary } from '../app/surface_boundary.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, cbLiveRow, quotesRxuRow, FXW_ROW_ID, fmtFx, fxwAudRow, fxwTiles, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokTestRow, grokTestOf, grokTestTiles, grokTestLayerCells, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmDaysAnnualPct, GROKPM_DAYS_ANNUAL_TITLE, GROKPM_JOURNAL_STEP, fetchGrokPmJournal, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtFeeIn4, fmtGbp, fmtGbp4, fmtIn, fmtIn4, quotesDetailInCcy, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_NUDGE_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesPageFor, quotesShowBook, quoteConversionLine, INVENTORY_DUST, quotesOkxName, quotesOkxOf, quotesOkxRow, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quoteDaysRecent, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwShareText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows,
+  AGENT_TABS, cbLiveRow, quotesRxuRow, FXW_ROW_ID, fmtFx, fxwAudRow, fxwTiles, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokTestRow, grokTestOf, grokTestTiles, grokTestLayerCells, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmDaysAnnualPct, GROKPM_DAYS_ANNUAL_TITLE, GROKPM_JOURNAL_STEP, fetchGrokPmJournal, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtFeeIn4, fmtGbp, fmtGbp4, fmtIn, fmtIn4, quotesDetailInCcy, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_NUDGE_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesPageFor, quotesShowBook, quoteConversionLine, INVENTORY_DUST, quotesOkxName, quotesOkxOf, quotesOkxRow, quotesXhedgeOf, quotesXhedgeRow, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quoteDaysRecent, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwShareText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -598,11 +598,14 @@ function LiveOrdersTable({ title, cls, orders, m, empty, showBook = true }) {
  *
  * LIVE's "Stablecoin quotes USDC/GBP" on Revolut X (`rxu`, 0180) opens it as LIVE's executor's page, under its own row
  * (`quotesRxuRow`): its name, not LIVE's (Davies, 2026-10-30: the page named "Stablecoin quotes USDT/GBP" under "running live").
- * @param {{ q: any, m: (s: string) => string, at: any, nowMs: number, twin?: boolean, coinbase?: boolean, okx?: boolean, cbLive?: boolean, rxu?: boolean }} props
+ * "Stablecoin quotes RX↔Coinbase hedge" and "… - 1" (`xhedge`, 0184) open it as a twin's page, both venues' badges, INVENTORY its two accounts.
+ * @param {{ q: any, m: (s: string) => string, at: any, nowMs: number, twin?: boolean, coinbase?: boolean, okx?: boolean, cbLive?: boolean, rxu?: boolean, xhedge?: boolean }} props
  */
-export function QuotesLiveDetail({ q, m, at, nowMs, twin = false, coinbase: cbOnly = false, okx = false, cbLive = false, rxu = false }) {
+export function QuotesLiveDetail({ q, m, at, nowMs, twin: twinOnly = false, coinbase: cbOnly = false, okx = false, cbLive = false, rxu = false, xhedge = false }) {
   const coinbase = cbOnly || okx;
-  const row = cbLive ? cbLiveRow(q) : okx ? quotesOkxRow(q) : coinbase ? quotesCoinbaseRow(q) : twin ? quotesTwinRow(q) : rxu ? quotesRxuRow(q) : quotesLiveRow(q);
+  // "Stablecoin quotes RX↔Coinbase hedge" (0184) opens as a twin's page: paper, its lines, and INVENTORY its two accounts.
+  const twin = twinOnly || xhedge;
+  const row = xhedge ? quotesXhedgeRow(q) : cbLive ? cbLiveRow(q) : okx ? quotesOkxRow(q) : coinbase ? quotesCoinbaseRow(q) : twin ? quotesTwinRow(q) : rxu ? quotesRxuRow(q) : quotesLiveRow(q);
   if (!row) return null;
   const lines = twin || coinbase ? quotesTwinLines(q, m) : null;
   const x = rowMoney(row);
@@ -619,10 +622,11 @@ export function QuotesLiveDetail({ q, m, at, nowMs, twin = false, coinbase: cbOn
   const showBook = quotesShowBook(qc, [...trips, ...exitOrders, ...entryOrders]);
   const empty = d ? null : 'Not in this answer: the next refresh brings it.';
   return (
-    <div className={`ag-detail ${cbLive ? 'ag-quotes-cblive-detail' : okx ? 'ag-quotes-okx-detail' : coinbase ? 'ag-quotes-cb-detail' : twin ? 'ag-quotes-twin-detail' : 'ag-quotes-live-detail'}`}>
+    <div className={`ag-detail ${xhedge ? 'ag-quotes-xhedge-detail' : cbLive ? 'ag-quotes-cblive-detail' : okx ? 'ag-quotes-okx-detail' : coinbase ? 'ag-quotes-cb-detail' : twin ? 'ag-quotes-twin-detail' : 'ag-quotes-live-detail'}`}>
       <div className="ag-detail-head">
         <ModeBadge mode={twin || coinbase ? 'paper' : 'live'} />
         <VenueBadge id={okx ? 'okx' : coinbase || cbLive ? 'coinbase' : 'revx'} />
+        {xhedge && <VenueBadge id="coinbase" />}
         <StatusDot status={row.status} since={twin || coinbase ? q.twin?.startedAt ?? null : q.armed ? q.armedAt : null} nowMs={nowMs} live={!twin && !coinbase} />
       </div>
       <h3 className="ag-detail-title mono sr-only">{row.name}</h3>
@@ -1992,6 +1996,7 @@ function AgentsModal({ hideValues, onClose }) {
       : selected === QUOTES_COINBASE_NUDGE_ROW_ID ? dash.quotesCoinbaseNudge : dash.quotesCoinbase)
     : null;
   const okxOpen = quotesPage === 'okx' ? quotesOkxOf(selected, dash) : null;
+  const xhedgeOpen = quotesPage === 'xhedge' ? quotesXhedgeOf(selected, dash) : null;
   const lpLiveOpen = selected === LP_LIVE_ROW_ID && !!lpLiveRow(dash?.lpLive);
   const grokPmOpen = selected === GROKPM_ROW_ID && !!grokPmRow(dash?.grokPm);
   const fxwOpen = selected === FXW_ROW_ID && !!fxwAudRow(dash?.fxwAud);
@@ -2153,6 +2158,19 @@ function AgentsModal({ hideValues, onClose }) {
         </header>
         <div className="modal-body ag-body">
           <PageGuard gen={gen}><QuotesLiveDetail q={coinbaseOpen} m={m} at={dash.at} nowMs={now} coinbase /></PageGuard>
+        </div>
+      </Modal>
+    )}
+    {xhedgeOpen && (
+      <Modal onClose={() => setSelected(null)} size="lg">
+        <header className="modal-head">
+          <div>
+            <h2 className="modal-title mono"><NameText name={String(xhedgeOpen.twin.name)} /></h2>
+          </div>
+          <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
+        </header>
+        <div className="modal-body ag-body">
+          <PageGuard gen={gen}><QuotesLiveDetail q={xhedgeOpen} m={m} at={dash.at} nowMs={now} xhedge /></PageGuard>
         </div>
       </Modal>
     )}

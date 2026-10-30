@@ -381,6 +381,15 @@ that follow from that evidence, in short:
   **"Stablecoin quotes USDG/EUR - 1"** (`0171`, `agents/okx_basis.ts`, 2026-10-29; Davies: "okx usdg/eur可以按你说的做一个 -1") is the
   USDG/EUR rule with its fair moved half-way to the book's 24-hour trailing basis, its own tables, call and lease, right after
   USDG/EUR on the page; 28 days against it, P(≤ 0) < 0.10 (`reviews/2026-10-29-okx-usdg-basis-prereg.md`).
+  **"Stablecoin quotes RX↔Coinbase hedge" and "… - 1"** (`0184`, `agents/xhedge.ts`, reference §4 item 69, 2026-10-30; Davies: "如果真的可以实现的话就做成实时纸面测试加到testing里",
+  then "A 策略可以单独做吗还是只能做像你刚才说的和做市商抢生意的那个做法？") are MMCOMP's strategy A on paper in two arms: one £100 order a side on
+  USDT-GBP and USDC-GBP, one tick inside Revolut X's touch (`inside`) or 10 bps from Coinbase's mid and never better than Revolut
+  X's touch (`behind`), never past Coinbase's touch ± 2 bps, each fill hedged as a Coinbase taker at the first read ≥ fill + 30 s
+  (0.45 bps), on two simulated accounts an arm and book (£600 a venue) with no transfer ever: a side whose two legs cannot carry
+  a fill is off, its minutes recorded by reason, until the other side refills it. One call (`agents?action=xhedge`), lease and
+  set of tables (an `arm` column), after Revolut X's twins on the page; 28 days, each arm's USDT-GBP judged
+  (`reviews/2026-10-30-xhedge-prereg.md`). Each arm models one Revolut X sub-account of Davies' (no daily order limit), never
+  anyone else's account. The inside arm and any LIVE change that rests inside the maker would compete for the same prints.
   The names above are their history. TESTING's scoreboard and the
   Revolut X card include them. **"Stablecoin quotes with Euros"** (`0112`,
   reference §4 item 58; "Stablecoin quotes Coinbase" until 2026-10-10) follows

@@ -806,6 +806,37 @@ describe('pg_cron jobs', () => {
     expect(sql).toContain("insert into public.agent_locks (name) values ('okx-basis') on conflict (name) do nothing;");
   });
 
+  // "Stablecoin quotes RX↔Coinbase hedge" (Davies, 2026-10-30: "如果真的可以实现的话就做成实时纸面测试加到testing里"): one call a minute,
+  // its beat first, every other row as it was, a prune of SQL alone; its tables name its two books and nothing of another test's.
+  it("adds 'Stablecoin quotes RX↔Coinbase hedge' as one call a minute (0184), its beat first, every other row as it was, and a prune of SQL alone", () => {
+    const T = FILES.find((f) => /^0184_xhedge_paper\.sql$/.test(f)) ?? '';
+    expect(T).not.toBe('');
+    const before = replayList(sqlsOf(FILES.filter((f) => f < T))), after = replayList(sqlsOf(FILES.filter((f) => f <= T)));
+    expect(after.slice(0, before.length)).toEqual(before);
+    const shape = ({ path: p, timeout, every, lastHour, enabled, retry }) => ({ path: p, timeout, every, lastHour, enabled, retry });
+    expect(after.slice(before.length).map(shape)).toEqual([
+      { path: 'agents?action=xhedge', timeout: 30000, every: 1, lastHour: 23, enabled: true, retry: true },
+    ]);
+    expect(beatKeyOfPath(after.at(-1).path)).toBe('agents?action=xhedge');
+    const src = fs.readFileSync(path.join(ROOT, 'supabase/functions/agents/index.ts'), 'utf8');
+    expect(src).toContain('if (action === "xhedge" && req.method === "POST" && operator) return json(200, await runXhedgeAction());');
+    const jobsBefore = cronJobs(FILES.filter((f) => f < T)), jobsAfter = cronJobs(FILES.filter((f) => f <= T));
+    expect([...jobsAfter.keys()].filter((n) => !jobsBefore.has(n))).toEqual(['xhedge-prune']);
+    const prune = jobsAfter.get('xhedge-prune');
+    expect(prune.command.trim()).toBe("delete from public.agent_xhedge_minutes where minute < now() - interval '120 days';");
+    expect(Number(prune.schedule.split(' ')[0]) % 5).not.toBe(0);
+    expect([...jobsBefore.values()].some((j) => j.schedule === prune.schedule)).toBe(false);
+    expect(httpJobs(jobsAfter).map(([n]) => n)).toEqual(['edge-calls-every-minute']);
+    for (const [n, j] of jobsBefore) expect([n, jobsAfter.get(n)]).toEqual([n, j]);
+    const sql = fs.readFileSync(path.join(DIR, T), 'utf8').replace(/--[^\n]*/g, '');
+    expect(count(sql, "check (book in ('USDT-GBP', 'USDC-GBP'))")).toBe(3);
+    expect(count(sql, "check (arm in ('inside', 'behind'))")).toBe(4);             // the state, minutes, fills and trips: two arms
+    for (const t of ['agent_xhedge_state', 'agent_xhedge_minutes', 'agent_xhedge_fills', 'agent_xhedge_trips']) expect(sql).toMatch(new RegExp(`alter table public\\.${t} +enable row level security;`));
+    expect(sql).not.toMatch(/\bgrant\b|create policy/i);
+    expect(sql).not.toMatch(/agent_quote_live|agent_quote_twin|cb_live|agent_quote_rxu/);
+    expect(sql).toContain("insert into public.agent_locks (name) values ('xhedge') on conflict (name) do nothing;");
+  });
+
   // GBP/USD and EUR/USD at second resolution beside Yahoo (Davies, 2026-10-29: "并行记录秒级汇率 并研究下最佳数据源并且要有fallback"):
   // one call a minute that answers at once and reads on under `waitUntil`, its beat first, every other row as it was, a prune.
   it("adds the second-level FX recorder as one call a minute (fx_ticks), its beat first, every other row as it was, and a prune of SQL alone", () => {
