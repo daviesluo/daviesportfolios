@@ -678,7 +678,8 @@ blind (there is no no-peek rule; `docs/agents/CLAUDE.md`).
     `reviews/2026-10-29-cb-live-design.md`). "with Euros - 2"'s decisions at £20 a rung of £120. **Go only on Davies' word:** the
     probe `ok` (with `preview=1`), a 30-minute dry-run check (design §5), then §7's guarded statement; its undo is in the same
     section. **Armed 20:51 and disarmed 20:55:57 on 10-29: Coinbase answered 403 "User is not allowed to buy crypto"** (Davies'
-    account must allow buying crypto before the next go; design §9).
+    account must allow buying crypto before the next go; design §9). **'self' (`0182`, design §10; Davies 10-30: "要做"):** lands
+    `decide` 'paper' with the shadow on; read §10's SQL after a few hours of `cb_live_shadow`, then the switch only on his word.
 
 ## Machine and platform setup
 
@@ -797,6 +798,15 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 01:24 UTC section (archived
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth).
+
+### [2026-10-30 00:57 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Coinbase LIVE can decide for itself; lands following, shadow on** (sub-agent; commit, not pushed; Davies, 10-30 ~00:45: "要做").
+  `cb_live_config.decide` ('paper' default, 'self'; `0182`): 'self' steps the arm's rule on its own copy (`cbLiveSelfStep`: the
+  driver's fair composed of its own functions, `cbLiveMinuteFair`, cb_usdc.ts being frozen; `stepMinute` without prints), two
+  minutes behind the clock, held rungs from live's fills, post-only refusals retried next turn; reads no `cb_nudge_*` table.
+  While 'paper', `cb_live_shadow` (14 days) logs per rung what 'self' would rest, the follower's want and what rested; SQL in
+  design §10. Pins: `cb_live.test.ts` (fair and quotes minute for minute against the paper arm's run inside a closure,
+  counterfactual without the nudge fails; the follower unchanged with the shadow on).
 
 ### [2026-10-30 00:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **A rebook's sale is realised, first in, first out** (sub-agent; commit, not pushed; Davies saw LIVE's USDC row after the 23:34

@@ -6,10 +6,20 @@
 // says go (docs/agents/reviews/2026-10-29-cb-live-design.md has the go statement, its undo and his checklist). Modelled on
 // PR5 LIVE's executor (quotes_live.ts), smaller: one book, USDC-GBP.
 //
-// WHAT IT EXECUTES: a paper arm's decisions, and none of its own. The arm is a row of `CB_LIVE_PAPERS` named by the config
-// (`paper`, "coinbasenudge" by default), so a better rule is a new paper arm and a one-word config change, not a change here.
-// Every minute, after the arm has decided its minute, the executor reads the arm's state (each rung's resting order, the
-// rule's `stepMinute` book) and its newest minute record (the fair the minute was decided on), and for each of the six rungs:
+// WHO DECIDES (`cb_live_config.decide`, 0182; Davies, 2026-10-30: "要做"). 'paper', the default, is the follower below: a paper
+// arm's decisions and none of its own. 'self' decides every minute with that arm's own rule and code on its own copy of the
+// rule's state (`cbLiveSelfStep`: the fair of `cbLiveMinuteFair`, PR5's frozen `stepMinute`, two minutes behind the clock), the
+// same shared inputs, and its own fills for which rungs are held; it reads nothing of the paper arm's orders or state. Its
+// difference from the follower: a rung the account does not hold quotes the rule's entry whatever the paper rung is doing
+// (held, refused, its run lost), and a post-only refusal is tried again the next turn, as the rule re-places a refused
+// order the next minute. While 'paper' decides, 'self' runs beside it as the shadow (`cb_live_shadow`): what it would rest
+// on each rung, what the follower wanted and what rested, a row a rung a turn.
+//
+// WHAT THE FOLLOWER EXECUTES: a paper arm's decisions, and none of its own. The arm is a row of `CB_LIVE_PAPERS` named by the
+// config (`paper`, "coinbasenudge" by default), so a better rule is a new paper arm and a one-word config change, not a change
+// here. Every minute, after the arm has decided its minute, the executor reads the arm's state (each rung's resting order, the
+// rule's `stepMinute` book) and its newest minute record (the fair the minute was decided on), and for each of the six rungs
+// ('self': its own book and fair in their place):
 //   * A rung the account holds nothing on quotes exactly the paper rung's entry: its side and price (the paper's ticks), at
 //     the config's size in pounds (`rung_gbp`, £20 a rung of £120). While the paper rung quotes nothing (dark, withdrawn, its own position, a
 //     refused order) the live rung quotes nothing. A paper decision is keyed by the paper order's id and the minute it goes
@@ -50,8 +60,15 @@ import {
   CB_DONE, cbClientFromEnv, CbHttpError, type CbCreateBody, type CbFill, type CbOrder, type CbOrderStatus, type CbProductInfo, type CbSide,
 } from "../_shared/coinbase.ts";
 import type { Db } from "./db.ts";
-import { exitTicks, QUOTE_REPRICE, QUOTE_STOP_MS, QUOTE_TICK, type BookState, type Rung, type Side } from "./quotes.ts";
+import { exitTicks, newBookState, QUOTE_REPRICE, QUOTE_STOP_MS, QUOTE_TICK, stepMinute, type BookState, type Rung, type Side } from "./quotes.ts";
 import { faultKey, reportDue } from "./pm_book_rec.ts";
+import { CB_USDC_ARM, cbUsdcArmNewState, type CbUsdcArm, type CbUsdcFair, type CbUsdcState } from "./cb_usdc.ts";
+import { CB_NUDGE_ARM } from "./cb_nudge.ts";
+import { CB_HOLD_MS, cbHoldBarAt } from "./cb_hold.ts";
+import { cbFxCount, cbRatesAt, readCbFx, type CbFxPair, type CbFxReads } from "./cb_fx.ts";
+import { CB_BOOK, CB_FAIR_KIND, cbCoinFair, cbInUsd, cbMinuteInputs } from "./cb_quotes.ts";
+import { cbInBlackout } from "./cb_releases.ts";
+import { fairHours, median, QUOTE_FX_LOOKBACK_MS } from "./quotes.ts";
 
 const M = 60e3, H = 3600e3, DAY = 86400e3;
 const iso = (ms: number) => new Date(ms).toISOString();
@@ -114,10 +131,118 @@ export const CB_LIVE_PAPERS: Record<string, CbLivePaper> = {
   coinbasehold: { id: "coinbasehold", state: "cb_hold_state", minutes: "cb_hold_minutes", book: CB_LIVE_PRODUCT },
 };
 
+/**
+ * Who decides what the rungs rest (migration 0182; Davies, 2026-10-30: "要做"): 'paper', the follower, carries the paper arm's
+ * decisions as above; 'self' decides every minute with that arm's own rule and code on its own inputs and its own fills, and
+ * reads nothing of the paper arm's orders or state. Missing (before 0182) is 'paper'.
+ */
+export type CbLiveDecide = "paper" | "self";
 export type CbLiveConfig = {
   id: number; paper: string; dry_run: boolean; armed_at: string | null; rung_gbp: number; capital_gbp: number; daily_loss_pct: number;
-  gov_entry_posts: number; gov_stops_only_posts: number; convert_max_gbp_day: number;
+  gov_entry_posts: number; gov_stops_only_posts: number; convert_max_gbp_day: number; decide?: CbLiveDecide;
 };
+
+/**
+ * The rule each paper arm decides with, which 'self' runs on its own: the arm's own driver pieces (cb_usdc.ts' `CbUsdcArm`, its
+ * fair `fairOf`: "with Euros - 3"'s nudge for `coinbasenudge`). `coinbasehold` (cb_hold.ts) has no such arm and cannot decide
+ * for itself; with it, 'self' is an error and places no entry.
+ */
+export const CB_LIVE_RULES: Record<string, CbUsdcArm> = { coinbasenudge: CB_NUDGE_ARM, coinbaseusdc: CB_USDC_ARM };
+/**
+ * The minute 'self' decides at a turn at `now`: two whole minutes back. The fast-rate recorder writes minute t's reads at
+ * about t + 58 s and the rule reads only what arrived by then (cb_fx.ts), so t = the current minute − 1 would race the
+ * recorder; − 2 never does. The paper arm's newest minute is normally 3–4 minutes old when the follower reads it.
+ */
+export const CB_LIVE_SELF_LAG_MS = 2 * M;
+/** At most this many minutes are stepped in one turn (a turn after a gap starts this far back: the nudge's EMA decays by time). */
+export const CB_LIVE_SELF_MAX_MINUTES = 10;
+/** 'self''s own record of the rule, kept in `cb_live_state.state.self`: the arm it runs, the minute and fair it last decided, and the rule's state (a `stepMinute` book on USDC-GBP, the nudge's EMA, the fast-rate counts). */
+export type CbLiveSelf = { rule: string; lastMinute: number; fair: number | null; extra?: Record<string, unknown>; st: CbUsdcState };
+
+/** The stored inputs the rule prices minutes on: GBP/USD's and EUR/USD's bars, the coin's hourly closes. */
+export type CbLiveBars = { gbpBars: Array<[number, number]>; eurBars: Array<[number, number]>; hours: Array<[number, number]> };
+/**
+ * The stored bars for deciding [first, horizon], read as the paper arms' driver reads them (`runCbUsdcArm` in cb_usdc.ts, frozen
+ * by its pre-registration, so its reads are not exported from it but repeated here, and pinned equal by the minute-for-minute
+ * test in cb_live.test.ts): each rate's window from ten minutes before `first` and its newest bar inside the 60-hour hold
+ * before that (the anchor a closure holds); the coin's hourly closes from a day before `first`.
+ */
+export async function readCbLiveBars(db: Db, first: number, horizon: number): Promise<CbLiveBars> {
+  const series = async (table: string, kind: string, from: number) => (await db.selectAll<{ t: string; value: number }>(table,
+    `kind=eq.${encodeURIComponent(kind)}&t=gte.${enc(from)}&t=lte.${enc(horizon)}&select=t,value&order=kind.asc,t.asc`)).map((r) => [msOf(r.t), Number(r.value)] as [number, number]);
+  const bars = async (table: string, kind: string) => {
+    const win = await series(table, kind, first - QUOTE_FX_LOOKBACK_MS);
+    const anchor = await db.select<{ t: string; value: number }>(table,
+      `kind=eq.${encodeURIComponent(kind)}&t=lt.${enc(first - QUOTE_FX_LOOKBACK_MS)}&t=gte.${enc(first - CB_HOLD_MS)}&select=t,value&order=t.desc&limit=1`);
+    return [...anchor.map((r) => [msOf(r.t), Number(r.value)] as [number, number]), ...win];
+  };
+  return { gbpBars: await bars("agent_quote_inputs", "fx"), eurBars: await bars("cb_quote_inputs", "fx:EURUSD"), hours: await series("agent_quote_inputs", CB_FAIR_KIND.USDC, first - DAY) };
+}
+
+/**
+ * Minute `t`'s fair on USDC-GBP under a USDC arm's rule, composed of the very functions its driver calls for a minute, in its
+ * order (`runCbUsdcArm`'s loop): the rates held through closures (`cbRatesAt` with `cbHoldBarAt`), the coin's dollar value
+ * (`cbCoinFair`: USDC 1 under the de-peg guard), X and fairU (`cbMinuteInputs`), the arm's own fair on top (`fairOf`, "- 3"'s
+ * nudge, which moves its EMA in `st`), none in a release blackout. `fairU` is what `stepMinute` is given; `fxSrc` the source
+ * that priced GBP/USD (the caller counts it).
+ */
+export function cbLiveMinuteFair(st: CbUsdcState, t: number, ins: CbLiveBars & { fx: Record<CbFxPair, CbFxReads> }, fairOf: CbUsdcFair | null) {
+  const b = CB_LIVE_PRODUCT;
+  const { bar, eb, gbpSrc, eurSrc } = cbRatesAt(st, t, ins.gbpBars, ins.eurBars, ins.fx, cbHoldBarAt, true), window = fairHours(t, ins.hours);
+  const fxSrc = st.fxFrom != null && t >= st.fxFrom ? (CB_BOOK[b].quote === "GBP" ? gbpSrc : eurSrc) : undefined;
+  const coinU = cbCoinFair(st, t, CB_BOOK[b].coin, median(window), []).fairU;
+  const io = cbMinuteInputs(b, bar ? bar[1] : null, eb ? eb[1] : null, coinU, cbInUsd(st, t));
+  const own = fairOf ? fairOf(st, t, b, io) : { fairU: io.fairU, extra: {} };
+  return { fxSrc, io, own, fairU: cbInBlackout(t) ? null : own.fairU };
+}
+
+/** A fresh record of `rule` whose first decided minute is `first`: every switch of the arm's history on from it (dollars, Coinbase's own coin value, fast rates). */
+export function cbLiveSelfNew(rule: string, first: number): CbLiveSelf {
+  const arm = CB_LIVE_RULES[rule];
+  if (!arm) throw new Error(`"${rule}" has no rule the executor can run itself (${Object.keys(CB_LIVE_RULES).join(", ")})`);
+  const st = cbUsdcArmNewState({ ...arm, products: [CB_LIVE_PRODUCT] }, first, { [CB_LIVE_PRODUCT]: 0 });
+  st.usdFrom = first; st.liveFrom = first; st.fxFrom = first;
+  return { rule, lastMinute: first - M, fair: null, st };
+}
+
+/**
+ * 'self''s decision for the turn at `now`: the paper rule stepped on the executor's own copy of its state, minute by minute up to
+ * `minuteOf(now) − CB_LIVE_SELF_LAG_MS`, with the arm's own code (`cbLiveMinuteFair`: the rates held through closures, USDC 1
+ * under the de-peg guard, the arm's nudge; `stepMinute`, PR5's frozen rule) and no prints: it is told nothing of fills but
+ * the rungs the account holds (`held`, keys `rungKey`), which it does not quote (each is put back idle after every minute, so
+ * when its trip closes the rung places afresh at the minute's fair, as the paper's does after an exit). A rung never fills
+ * here and is never refused here: the venue does both. `seedNudge`, the paper arm's EMA, is taken once when the record has
+ * none and only while the follower decides (the shadow), so the comparison starts level. Returns the new record; `prev`
+ * is not changed.
+ */
+export async function cbLiveSelfStep(db: Db, now: number, prev: CbLiveSelf | null, rule: string, held: ReadonlySet<string>, seedNudge: { ema: number | null; last: number | null } | null = null): Promise<CbLiveSelf> {
+  const arm = CB_LIVE_RULES[rule];
+  if (!arm) throw new Error(`"${rule}" has no rule the executor can run itself (${Object.keys(CB_LIVE_RULES).join(", ")})`);
+  const target = Math.floor(now / M) * M - CB_LIVE_SELF_LAG_MS;
+  const s: CbLiveSelf = prev && prev.rule === rule && prev.st?.books?.[CB_LIVE_PRODUCT] ? structuredClone(prev) : cbLiveSelfNew(rule, target);
+  const first = Math.max(s.lastMinute + M, target - (CB_LIVE_SELF_MAX_MINUTES - 1) * M);
+  if (target < first) return s;
+  if (seedNudge && s.st.nudge == null && seedNudge.last != null && seedNudge.last < first) s.st.nudge = { ...seedNudge };
+  const bars = await readCbLiveBars(db, first, target);
+  const fx = await readCbFx(db, first, target, CB_HOLD_MS);
+  const fairOf = arm.fairOf ? await arm.fairOf(db, first, target) : null;
+  const book = s.st.books[CB_LIVE_PRODUCT];
+  const rest = () => { for (const r of book.rungs) if (held.has(rungKey(r.side, r.k)) || r.mode === "position") { r.mode = "idle"; r.o = null; } };
+  rest();
+  for (let t = first; t <= target; t += M) {
+    const m = cbLiveMinuteFair(s.st, t, { ...bars, fx }, fairOf);
+    if (m.fxSrc !== undefined) cbFxCount(s.st, m.fxSrc);
+    stepMinute(book, t, { x: m.io.x, fairU: m.fairU, prints: [] });
+    rest();
+    s.fair = m.io.x && m.fairU ? m.fairU / m.io.x : null;
+    s.extra = m.own.extra;
+  }
+  s.lastMinute = target; s.st.lastMinute = target;
+  return s;
+}
+
+/** The shadow (0182): one row a rung a turn while the follower decides, what 'self' would rest beside what the follower wanted and what rested. */
+export const CB_LIVE_SHADOW_TABLE = "cb_live_shadow";
 export type Leg = "entry" | "exit" | "stop" | "convert";
 export type OrderRow = {
   id?: number; client_order_id: string; venue_order_id: string | null; mode: "live" | "dry_run"; leg: Leg; trip: string | null;
@@ -135,7 +260,8 @@ export type Trip = {
   trip: string; rungSide: Side; k: number; entryQty: number; entryAvg: number; exitQty: number; exitAvg: number; fees: number; firstFill: number; lastFill: number;
 };
 export type CbLiveReport = {
-  skipped?: string; mode: "dry_run" | "live" | "wind_down" | "paused"; armed: boolean; posts: number; placed: number; cancelled: number; would: Record<string, unknown>;
+  skipped?: string; mode: "dry_run" | "live" | "wind_down" | "paused"; armed: boolean; decide?: CbLiveDecide; self?: { minute: number; fair: number | null } | null;
+  posts: number; placed: number; cancelled: number; would: Record<string, unknown>;
   held: Record<string, number>; gbpUsd: number | null; realisedTodayGbp: number; markedGbp: number; lossStopped: boolean; errors: string[]; events: string[]; report: boolean;
 };
 export type CbLiveDeps = { db: Db; now: number; holder: string; read: (n: string) => string | undefined; fetchImpl?: typeof fetch; uuid?: () => string };
@@ -243,7 +369,8 @@ export async function runCbLive(d: CbLiveDeps): Promise<CbLiveReport> {
   if (!held.length) return { ...rep, skipped: "another run holds the lease" };
   const evs: Array<{ at: string; kind: string; detail: Record<string, unknown> }> = [];
   const ev = (kind: string, detail: Record<string, unknown> = {}) => { evs.push({ at: iso(now), kind, detail }); rep.events.push(kind); };
-  let stateRow: { fault?: { key: string; at: number }; balances?: VenueBalances } = {};
+  let stateRow: { fault?: { key: string; at: number }; balances?: VenueBalances; self?: CbLiveSelf | null } = {};
+  let self: CbLiveSelf | null = null;
   let balances: VenueBalances | null = null;
   try {
     const cfg = (await d.db.select<CbLiveConfig>(T.config, "id=eq.1&select=*"))[0];
@@ -319,16 +446,18 @@ export async function runCbLive(d: CbLiveDeps): Promise<CbLiveReport> {
       }
     }
 
-    // 2. The paper arm, the product, the touch and the account.
-    const pRow = (await d.db.select<{ state: { books?: Record<string, BookState> }; last_minute: string | null }>(paper.state, "id=eq.1&select=state,last_minute"))[0];
+    // 2. The decision source, the product, the touch and the account. The follower ('paper') reads the paper arm's state and
+    // its newest minute's fair; 'self' reads neither (`cbLiveSelfStep`, below, once the fills say what the account holds).
+    const decideSelf = cfg.decide === "self";
+    rep.decide = decideSelf ? "self" : "paper";
+    const pRow = decideSelf ? undefined
+      : (await d.db.select<{ state: { books?: Record<string, BookState>; nudge?: { ema: number | null; last: number | null } }; last_minute: string | null }>(paper.state, "id=eq.1&select=state,last_minute"))[0];
     const book = pRow?.state?.books?.[paper.book] ?? null;
     const lastMinute = pRow?.last_minute ? msOf(pRow.last_minute) : null;
     const mRow = lastMinute == null ? null
       : (await d.db.select<{ fair: number | null }>(paper.minutes, `book=eq.${paper.book}&minute=eq.${enc(lastMinute)}&select=fair`))[0] ?? null;
-    const fair = mRow?.fair != null ? Number(mRow.fair) : null;
-    const stale = lastMinute == null || now - lastMinute > CB_LIVE_STALE_MS;
-    const x = book?.lastX ?? null;
-    rep.gbpUsd = x;                                                          // the page's dollars; the rule's money is pounds
+    const paperFair = mRow?.fair != null ? Number(mRow.fair) : null;
+    const paperStale = lastMinute == null || now - lastMinute > CB_LIVE_STALE_MS;
     let product = CB_LIVE_PRODUCT_FALLBACK, touch: { bid: number | null; ask: number | null } = { bid: null, ask: null };
     let gbp: number | null = null, usdc: number | null = null;
     if (client) {
@@ -344,8 +473,28 @@ export async function runCbLive(d: CbLiveDeps): Promise<CbLiveReport> {
     const step = Number(product.base_increment), minSize = Number(product.base_min_size);
     if (product.trading_disabled || product.cancel_only) ev("product_not_trading", { trading_disabled: product.trading_disabled ?? null, cancel_only: product.cancel_only ?? null });
 
-    // 3. The trips, the day's P&L and the limits.
+    // 'self''s minute: the paper rule on the executor's own record, told only which rungs the account's fills hold (judged
+    // against each trip's entry price, as no fair is known yet). While the follower decides it runs as the shadow, its EMA
+    // seeded once from the paper arm's; a failure there is an event, never the follower's error.
     const trips = tripsOf(fills);
+    const heldKeys = new Set([...trips.values()].filter((t) => !isDust(tripHeld(t), t.entryAvg, minSize)).map((t) => rungKey(t.rungSide, t.k)));
+    const prevSelf = stateRow.self ?? null;
+    if (CB_LIVE_RULES[cfg.paper] || decideSelf) {
+      try {
+        self = await cbLiveSelfStep(d.db, now, prevSelf, cfg.paper, heldKeys, decideSelf ? null : pRow?.state?.nudge ?? null);
+      } catch (e) {
+        if (decideSelf) rep.errors.push(`self decision: ${msg(e)}`); else ev("shadow_error", { error: msg(e) });
+        self = prevSelf && prevSelf.rule === cfg.paper ? prevSelf : null;
+      }
+    }
+    const selfStale = !self || now - self.lastMinute > CB_LIVE_STALE_MS;
+    rep.self = self ? { minute: self.lastMinute, fair: self.fair } : null;
+    const fair = decideSelf ? (selfStale ? null : self!.fair) : paperFair;
+    const stale = decideSelf ? selfStale : paperStale;
+    const x = decideSelf ? self?.st.books[CB_LIVE_PRODUCT]?.lastX ?? null : book?.lastX ?? null;
+    rep.gbpUsd = x;                                                          // the page's dollars; the rule's money is pounds
+
+    // 3. The trips, the day's P&L and the limits.
     const today = dayOf(now), dayStart = Date.parse(`${today}T00:00:00Z`);
     for (const t of trips.values()) {
       if (t.lastFill < dayStart && tripHeld(t) <= 0) continue;
@@ -361,46 +510,69 @@ export async function runCbLive(d: CbLiveDeps): Promise<CbLiveReport> {
     const govEntries = postsToday >= cfg.gov_entry_posts, govStopsOnly = postsToday >= cfg.gov_stops_only_posts;
     if (govEntries) ev("governor", { posts: postsToday, entries: false, stopsOnly: govStopsOnly });
     const tradable = !product.trading_disabled && !product.cancel_only;
-    const entriesOk = !paused && tradable && fair != null && !stale && !rep.lossStopped && !govEntries && (live ? armed : true);
+    /** Why no entry may rest under a fair `f` (`st`ale or not), or null when one may: the follower's gate and 'self''s alike. */
+    const gateOf = (f: number | null, st: boolean) => paused ? "paused" : !tradable ? "not_tradable" : f == null ? "dark" : st ? "stale"
+      : rep.lossStopped ? "loss_stop" : govEntries ? "governor" : live && !armed ? "unarmed" : null;
 
-    // 4. What each rung should have resting.
-    const openTrips = [...trips.values()].filter((t) => !isDust(tripHeld(t), fair ?? t.entryAvg, minSize));
-    const wants = new Map<string, Want | null>();
-    for (const r of book?.rungs ?? []) {
-      const key = rungKey(r.side, r.k);
-      const t = openTrips.find((x) => x.rungSide === r.side && x.k === r.k);
-      if (paused) { wants.set(key, null); continue; }
-      if (t) {
-        rep.held[key] = tripHeld(t);
-        const closeSide: Side = r.side === "bid" ? "ask" : "bid";
-        const qty = floorTo(tripHeld(t), step);
-        // The 24-hour stop; one that came back unfilled leaves the exit resting until it is tried again an hour later.
-        const tried = orders.filter((o) => o.trip === t.trip && o.leg === "stop" && o.mode === "live").map((o) => msOf(o.created_at));
-        if (now >= t.firstFill + QUOTE_STOP_MS && !(tried.length && now - Math.max(...tried) < CB_LIVE_STOP_RETRY_MS)) {
-          if (tried.length) ev("stop_retry", { trip: t.trip, held: tripHeld(t) });
-          const ref = fair ?? t.entryAvg;
-          const px = closeSide === "ask" ? Math.floor(ref * (1 - CB_LIVE_STOP_BAND) / QUOTE_TICK) * QUOTE_TICK : Math.ceil(ref * (1 + CB_LIVE_STOP_BAND) / QUOTE_TICK) * QUOTE_TICK;
-          wants.set(key, { leg: "stop", rungSide: r.side, k: r.k, side: sideOf(closeSide), price: Number(px.toFixed(4)), size: qty, trip: t.trip, paperKey: null, fair, ioc: true });
+    // 4. What each rung should have resting, under a decision source: its rungs, its fair and staleness, and its entry for a
+    // rung not held. A `shadow` pass has no side effect (no event, no id, nothing in the report) and says why for each rung.
+    type Src = { rungs: Rung[]; fair: number | null; stale: boolean; self: boolean; shadow: boolean };
+    const decideRungs = (src: Src) => {
+      const wants = new Map<string, Want | null>(), why = new Map<string, string>();
+      const gate = gateOf(src.fair, src.stale);
+      const openTrips = [...trips.values()].filter((t) => !isDust(tripHeld(t), src.fair ?? t.entryAvg, minSize));
+      for (const r of src.rungs) {
+        const key = rungKey(r.side, r.k);
+        const set = (w: Want | null, y: string) => { wants.set(key, w); why.set(key, y); };
+        const t = openTrips.find((x) => x.rungSide === r.side && x.k === r.k);
+        if (paused) { set(null, "paused"); continue; }
+        if (t) {
+          if (!src.shadow) rep.held[key] = tripHeld(t);
+          const closeSide: Side = r.side === "bid" ? "ask" : "bid";
+          const qty = floorTo(tripHeld(t), step);
+          // The 24-hour stop; one that came back unfilled leaves the exit resting until it is tried again an hour later.
+          const tried = orders.filter((o) => o.trip === t.trip && o.leg === "stop" && o.mode === "live").map((o) => msOf(o.created_at));
+          if (now >= t.firstFill + QUOTE_STOP_MS && !(tried.length && now - Math.max(...tried) < CB_LIVE_STOP_RETRY_MS)) {
+            if (tried.length && !src.shadow) ev("stop_retry", { trip: t.trip, held: tripHeld(t) });
+            const ref = src.fair ?? t.entryAvg;
+            const px = closeSide === "ask" ? Math.floor(ref * (1 - CB_LIVE_STOP_BAND) / QUOTE_TICK) * QUOTE_TICK : Math.ceil(ref * (1 + CB_LIVE_STOP_BAND) / QUOTE_TICK) * QUOTE_TICK;
+            set({ leg: "stop", rungSide: r.side, k: r.k, side: sideOf(closeSide), price: Number(px.toFixed(4)), size: qty, trip: t.trip, paperKey: null, fair: src.fair, ioc: true }, "stop");
+            continue;
+          }
+          const cur = orders.filter((o) => o.trip === t.trip && o.leg === "exit" && o.mode === "live" && (o.state === "open" || o.state === "pending")).at(-1);
+          let ruleFair = src.fair;
+          if (cur && cur.fair != null && (src.fair == null || Math.abs(src.fair / cur.fair - 1) <= QUOTE_REPRICE)) ruleFair = cur.fair;
+          if (ruleFair == null) {
+            if (cur) set({ leg: "exit", rungSide: r.side, k: r.k, side: cur.side, price: cur.price, size: qty, trip: t.trip, paperKey: null, fair: cur.fair, ioc: false }, "exit_kept");
+            else set(null, "no_exit_fair");
+            continue;
+          }
+          const px = exitPrice(exitTicks(ruleFair, r.side), closeSide, touch);
+          set({ leg: "exit", rungSide: r.side, k: r.k, side: sideOf(closeSide), price: px, size: qty, trip: t.trip, paperKey: null, fair: ruleFair, ioc: false }, "exit");
           continue;
         }
-        const cur = orders.filter((o) => o.trip === t.trip && o.leg === "exit" && o.mode === "live" && (o.state === "open" || o.state === "pending")).at(-1);
-        let ruleFair = fair;
-        if (cur && cur.fair != null && (fair == null || Math.abs(fair / cur.fair - 1) <= QUOTE_REPRICE)) ruleFair = cur.fair;
-        if (ruleFair == null) { if (cur) wants.set(key, { leg: "exit", rungSide: r.side, k: r.k, side: cur.side, price: cur.price, size: qty, trip: t.trip, paperKey: null, fair: cur.fair, ioc: false }); else wants.set(key, null); continue; }
-        const px = exitPrice(exitTicks(ruleFair, r.side), closeSide, touch);
-        wants.set(key, { leg: "exit", rungSide: r.side, k: r.k, side: sideOf(closeSide), price: px, size: qty, trip: t.trip, paperKey: null, fair: ruleFair, ioc: false });
-        continue;
+        const pe = paperEntry(r);
+        if (!pe) { set(null, r.mode === "position" ? "rung_held" : r.o?.state === "rejected" ? "rung_refused" : "no_quote"); continue; }
+        if (gate) { set(null, gate); continue; }
+        const ek = src.self ? `self|${pe.key}` : pe.key;
+        const px = pe.ticks * QUOTE_TICK, qty = rungQty(cfg.rung_gbp, px, step);
+        if (qty < minSize) { set(null, "below_min"); if (!src.shadow) ev("entry_below_min", { key, qty }); continue; }
+        // The follower: a paper decision refused (post-only or otherwise) is not sent again until the paper decides anew, a
+        // 401/403 for 15 minutes. 'self': a post-only refusal is tried again the next turn (the paper rule re-places a refused
+        // order the next minute); any other rejection waits for the rule's next decision (a fair move), a 401/403 15 minutes.
+        const refusedBefore = orders.some((o) => o.paper_key === ek && o.rung_side === r.side && o.k === r.k
+          && (src.self ? o.state === "rejected" : o.state === "refused" || o.state === "rejected")
+          && (!isDenied(o) || now - msOf(o.created_at) < CB_LIVE_DENIED_MS));
+        if (refusedBefore) { set(null, "refused_before"); continue; }
+        const cur = orders.filter((o) => o.leg === "entry" && o.rung_side === r.side && o.k === r.k && o.paper_key === ek && (o.state === "open" || o.state === "pending" || o.state === "dry")).at(-1);
+        set({ leg: "entry", rungSide: r.side, k: r.k, side: sideOf(r.side), price: Number(px.toFixed(4)), size: qty, trip: cur?.trip ?? (src.shadow ? "" : uuid()), paperKey: ek, fair: src.fair, ioc: false }, "quote");
       }
-      const pe = paperEntry(r);
-      if (!pe || !entriesOk) { wants.set(key, null); continue; }
-      const px = pe.ticks * QUOTE_TICK, qty = rungQty(cfg.rung_gbp, px, step);
-      if (qty < minSize) { wants.set(key, null); ev("entry_below_min", { key, qty }); continue; }
-      const refusedBefore = orders.some((o) => o.paper_key === pe.key && o.rung_side === r.side && o.k === r.k && (o.state === "refused" || o.state === "rejected")
-        && (!isDenied(o) || now - msOf(o.created_at) < CB_LIVE_DENIED_MS));
-      if (refusedBefore) { wants.set(key, null); continue; }
-      const cur = orders.filter((o) => o.leg === "entry" && o.rung_side === r.side && o.k === r.k && o.paper_key === pe.key && (o.state === "open" || o.state === "pending" || o.state === "dry")).at(-1);
-      wants.set(key, { leg: "entry", rungSide: r.side, k: r.k, side: sideOf(r.side), price: Number(px.toFixed(4)), size: qty, trip: cur?.trip ?? uuid(), paperKey: pe.key, fair, ioc: false });
-    }
+      return { wants, why };
+    };
+    // 'self' with no record (its first turn failed) still manages what the account holds: six rungs that quote nothing.
+    const rungs = decideSelf ? self?.st.books[CB_LIVE_PRODUCT]?.rungs ?? newBookState(CB_LIVE_PRODUCT).rungs : book?.rungs ?? [];
+    const main = decideRungs({ rungs, fair, stale, self: decideSelf, shadow: false });
+    const wants = main.wants;
     for (const [k, w] of wants) rep.would[k] = w && { leg: w.leg, side: w.side, price: w.price, size: w.size };
 
     // 5. Each rung's resting order against what it should be: cancel what differs, then place what is missing.
@@ -444,6 +616,10 @@ export async function runCbLive(d: CbLiveDeps): Promise<CbLiveReport> {
         k: w.leg === "convert" ? null : w.k, side: w.side, price: w.price, base_size: w.size, end_time: endMs == null ? null : iso(endMs), state: mode === "live" ? "pending" : "dry",
         paper_key: w.paperKey, fair: w.fair, filled_size: 0, avg_price: null, fees_gbp: 0, reason: null, request: body, response: null, created_at: iso(now), updated_at: iso(now) };
       if (!w.ioc && crosses(w.side, w.price, touch)) {
+        // 'self' tries a refused entry again each turn: while the touch still crosses the same price, the refusal already
+        // written stands for it (no row a minute).
+        const last = decideSelf && w.leg === "entry" ? orders.filter((o) => o.rung_side === w.rungSide && o.k === w.k).at(-1) : undefined;
+        if (last && last.state === "refused" && last.response == null && last.leg === "entry" && Math.abs(last.price - w.price) < 1e-9) return;
         row.state = "refused"; row.reason = "the touch it met shows it crossing: post-only, not sent";
         await d.db.insert(T.orders, [row], false); orders.push(row);
         ev("refused_crossing", { leg: w.leg, side: w.side, price: w.price, touch }); return;
@@ -480,7 +656,7 @@ export async function runCbLive(d: CbLiveDeps): Promise<CbLiveReport> {
       }
     };
 
-    for (const r of book?.rungs ?? []) {
+    for (const r of rungs) {
       const key = rungKey(r.side, r.k), w = wants.get(key) ?? null;
       const cur = orders.filter((o) => o.rung_side === r.side && o.k === r.k && (o.state === "open" || o.state === "pending" || o.state === "cancelling" || o.state === "dry")).at(-1) ?? null;
       if (cur?.state === "cancelling" || (cur?.state === "pending" && cur.mode === "live")) {
@@ -488,8 +664,9 @@ export async function runCbLive(d: CbLiveDeps): Promise<CbLiveReport> {
         continue;                                                              // nothing new on a rung until its order is final
       }
       // An entry is the paper decision at its price (its size was fixed when it was placed); an exit its price and what is left.
+      // 'self''s entry is its price alone: a re-decision at the same price (or the switch from the follower) moves nothing.
       const same = cur && w && cur.mode === wantMode(w) && cur.leg === w.leg && cur.side === w.side && Math.abs(cur.price - w.price) < 1e-9 &&
-        (w.leg === "entry" ? cur.paper_key === w.paperKey : Math.abs(cur.base_size - cur.filled_size - w.size) < 1e-9);
+        (w.leg === "entry" ? decideSelf || cur.paper_key === w.paperKey : Math.abs(cur.base_size - cur.filled_size - w.size) < 1e-9);
       const expiring = cur && cur.mode === "live" && cur.end_time != null && msOf(cur.end_time) - now < CB_LIVE_REFRESH_MS;
       if (cur && same && !expiring) continue;
       if (cur) {
@@ -525,6 +702,28 @@ export async function runCbLive(d: CbLiveDeps): Promise<CbLiveReport> {
         await place({ leg: "convert", rungSide: "bid", k: 0, side: "BUY", price: px, size, trip: "", paperKey: null, fair, ioc: false });
       } else ev("convert_skipped", { short: usdcShort, spent, cap: cfg.convert_max_gbp_day, freeGbp });
     }
+    // 7. The shadow (0182), only while the follower decides: what 'self' would rest on each rung, beside what the follower
+    // wanted and what rests after this turn, one row a rung a turn, so the two can be compared before the switch. It moves no
+    // order; its failure is an event.
+    if (!decideSelf && self) {
+      try {
+        const sh = decideRungs({ rungs: self.st.books[CB_LIVE_PRODUCT].rungs, fair: selfStale ? null : self.fair, stale: selfStale, self: true, shadow: true });
+        const minute = iso(Math.floor(now / M) * M), out: Record<string, unknown>[] = [];
+        for (const r of newBookState(CB_LIVE_PRODUCT).rungs) {
+          const key = rungKey(r.side, r.k), sw = sh.wants.get(key) ?? null, pw = wants.get(key) ?? null;
+          const rest = orders.filter((o) => o.rung_side === r.side && o.k === r.k && (o.state === "open" || o.state === "pending" || o.state === "cancelling" || o.state === "dry")).at(-1) ?? null;
+          out.push({
+            minute, at: iso(now), rung_side: r.side, k: r.k,
+            self_leg: sw?.leg ?? null, self_side: sw?.side ?? null, self_price: sw?.price ?? null, self_size: sw?.size ?? null, self_why: sh.why.get(key) ?? "no_rung",
+            self_crosses: sw && !sw.ioc ? crosses(sw.side, sw.price, touch) : null, self_fair: self.fair, self_minute: iso(self.lastMinute),
+            paper_leg: pw?.leg ?? null, paper_side: pw?.side ?? null, paper_price: pw?.price ?? null, paper_size: pw?.size ?? null, paper_why: main.why.get(key) ?? "no_paper_rung",
+            paper_fair: paperFair, paper_minute: lastMinute == null ? null : iso(lastMinute),
+            rested_leg: rest?.leg ?? null, rested_side: rest?.side ?? null, rested_price: rest?.price ?? null, rested_mode: rest?.mode ?? null, rested_state: rest?.state ?? null,
+          });
+        }
+        await d.db.upsert(CB_LIVE_SHADOW_TABLE, out, "minute,rung_side,k");
+      } catch (e) { ev("shadow_error", { error: msg(e) }); }
+    }
     if (evs.length) await d.db.insert(T.events, evs, false);
     return rep;
   } catch (e) {
@@ -537,7 +736,9 @@ export async function runCbLive(d: CbLiveDeps): Promise<CbLiveReport> {
       const fault = !key ? undefined : rep.report ? { key, at: now } : stateRow.fault;
       // The account as this turn read it (`balances`); a turn that could not read it keeps the last reading, its `at` saying when.
       const bal = balances ?? stateRow.balances ?? null;
-      await d.db.upsert(CB_LIVE_TABLES.state, [{ id: 1, state: { fault, lastReport: { ...rep, events: rep.events.slice(0, 50) }, ...(bal ? { balances: bal } : {}) }, updated_at: iso(now), last_error: rep.errors.length ? rep.errors.join(" | ").slice(0, 500) : null }], "id");
+      // 'self''s record, or the last one when this turn did not reach it.
+      const keep = self ?? stateRow.self ?? null;
+      await d.db.upsert(CB_LIVE_TABLES.state, [{ id: 1, state: { fault, lastReport: { ...rep, events: rep.events.slice(0, 50) }, ...(bal ? { balances: bal } : {}), ...(keep ? { self: keep } : {}) }, updated_at: iso(now), last_error: rep.errors.length ? rep.errors.join(" | ").slice(0, 500) : null }], "id");
     } catch { /* the lease still expires */ }
     try { await d.db.update("agent_locks", `name=eq.${CB_LIVE_LEASE}&holder=eq.${encodeURIComponent(d.holder)}`, { lease_until: iso(now), holder: null }); } catch { /* it expires */ }
   }

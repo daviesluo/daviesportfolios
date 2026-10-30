@@ -4632,6 +4632,15 @@ fails too still reported (`edge-watchdog.retry`). In the three days before, 1,34
     allowed to buy crypto", an account restriction (fixed: a 4xx is `rejected`, a 401/403 stops the turn's placing, reaches the
     errors box and holds that decision 15 minutes; the probe's `preview=1` asks Coinbase's order preview, which places
     nothing); and one lost paper run tripped the 5-minute staleness (now seven).
+  - **It may decide for itself (2026-10-30, `0182`; design §10).** Davies: "要做", on the recommendation that LIVE decide as the
+    two Revolut X live executors do. The follower goes dark on a rung while the paper rung is held and live's is not, on a paper
+    post-only refusal and on a lost paper run; it cannot take a live-only rule; and it follows a $300 record with £120.
+    `cb_live_config.decide` 'self' runs the arm's own rule (`cbLiveSelfStep`: the driver's per-minute fair composed of its own
+    functions, `cbLiveMinuteFair`, and PR5's frozen `stepMinute` with no prints) on the executor's own copy of the rule's state,
+    two minutes behind its clock, told only which rungs its own fills hold; a post-only refusal is tried again the next turn.
+    Landed 'paper' (nothing sent changes); the shadow (`cb_live_shadow`, 14 days) records what 'self' would rest beside the
+    follower's want and what rested, for the comparison before the switch. Pinned minute for minute against the paper arm's own
+    run, nudged inside a closure (`cb_live.test.ts`).
 
 ### Twin variants
 

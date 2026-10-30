@@ -71,7 +71,9 @@ describe('the Coinbase arms on the rate at second resolution', () => {
   it("Revolut X untouched: quotes.ts is the bytes every frozen list names, and only the three Coinbase drivers import cb_fx.ts", () => {
     expect(sha(A + 'quotes.ts')).toBe('0782ed8140a2e490f19b9e92fe7093c2cb9a6f205866180314f609537277f517');
     const importers = fs.readdirSync(path.join(ROOT, A)).filter((f) => f.endsWith('.ts') && !f.endsWith('.test.ts') && read(A + f).includes('from "./cb_fx.ts"')).sort();
-    expect(importers).toEqual(['cb_hold.ts', 'cb_quotes.ts', 'cb_usdc.ts']);
+    // cb_live.ts since 0182 (2026-10-30, Davies: "要做"): Coinbase's live executor, deciding for itself ('self'), runs the USDC
+    // driver's own minute (its rates through `cbRatesAt`, read by `readCbFx`); a Coinbase path, not Revolut X's.
+    expect(importers).toEqual(['cb_hold.ts', 'cb_live.ts', 'cb_quotes.ts', 'cb_usdc.ts']);
   });
 
   it('0173 adds the source column to the four minute records, with its values, and nothing else', () => {

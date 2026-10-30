@@ -500,7 +500,10 @@ that follow from that evidence, in short:
   **The executor is "Stablecoin quotes USDC/GBP"** (`agents/cb_live.ts`, `0177`, reference §4 item 68): "with Euros - 2"'s
   decisions at £20 a rung of £120, post-only good-til-date orders (Coinbase ends them within 20 minutes if it stops), built
   `dry_run` true and `armed_at` null. The go is the guarded statement in `reviews/2026-10-29-cb-live-design.md` §7, run only on
-  Davies' word; clearing `armed_at` is its kill switch (exits stay armed).
+  Davies' word; clearing `armed_at` is its kill switch (exits stay armed). Who decides is `cb_live_config.decide` (`0182`;
+  Davies, 2026-10-30: "要做"): 'paper' (the default) follows the paper arm order for order; 'self' decides every minute with that
+  arm's own rule and code on its own state and fills, reading nothing of the paper arm's. While it follows, the shadow
+  (`cb_live_shadow`) records what 'self' would rest; the switch to 'self' is Davies' word after reading it (design §10).
 - **The Revolut X account the key sees is the loop's alone.** The floor counts a live buy it cannot read back by
   the venue's balance beyond the settled book, and every live sell is capped at that balance (reference §4.24).
   A trade made there by hand would be counted and could be sold by the floor: never trade by hand in that

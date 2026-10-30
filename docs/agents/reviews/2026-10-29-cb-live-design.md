@@ -1,7 +1,7 @@
 # Coinbase live: "Stablecoin quotes USDC/GBP", the design and the go (CB-LIVE, 2026-10-29)
 
 **Status: built, DRY-RUN and UNARMED.** Nothing is sent to Coinbase until Davies says go in the conversation where the go
-statement (§7) is run.
+statement (§7) is run. Since 2026-10-30 it can decide for itself (§10); it lands following the paper arm, with the shadow on.
 
 ## 0. On whose word
 
@@ -268,3 +268,118 @@ Armed 20:51:31 UTC on Davies' word; disarmed 20:55:57 (`dry_run` true, `armed_at
 - **The top-up's day cap counted a refused top-up.** Re-armed 21:45:01 after Davies completed Coinbase's questionnaire, the
   executor bought only 13.37 USDC: the 403-rejected top-up (80.31 at 0.7472, about £60) had been counted against the £70
   cap. It now counts only what Coinbase took: a resting top-up at its size, an ended one at what filled (`convertSpentGbp`).
+
+## 10. It decides for itself: `decide` 'self', and the shadow first (2026-10-30, `0182`)
+
+**On whose word.** Davies, 2026-10-30 ~00:45 UTC: "要做" (do it). The recommendation was that LIVE decide for itself, as the two
+Revolut X live executors do (`quotes_live.ts`, whose paper twins are only the comparison), because the follower has four
+structural costs:
+
+1. When the paper rung is held and live's is not, live is dark on that rung until the paper exits. A paper post-only refusal
+   darkens it too.
+2. A lost paper run darkens live.
+3. A live-only rule cannot be added without changing the paper arm.
+4. The paper runs a $300 record and live £120 at £20 rungs, so their states differ anyway.
+
+**What 'self' is.** `cb_live_config.decide` is 'paper' (the follower, §1–§2, the default) or 'self'. Under 'self', every
+minute the executor steps the rule of the arm `paper` names (`coinbasenudge` by default) on its own copy of the rule's state,
+kept in `cb_live_state.state.self` (`cbLiveSelfStep` in `cb_live.ts`):
+
+- **The fair** is the paper driver's, built from the driver's own functions in its own order (`cbLiveMinuteFair`).
+  - USDC is 1 under the 50 bps de-peg guard (`cbCoinFair`).
+  - It is divided by GBP/USD at second resolution, held through closures (`cbRatesAt` with `cbHoldBarAt`).
+  - Inside closures it is nudged by Revolut X's USDC-GBP mid (the arm's `fairOf`, its EMA kept in the executor's own copy).
+  - It is dark in the release blackout.
+  - The driver itself (`runCbUsdcArm`, cb_usdc.ts) is frozen by its pre-registration, so its per-minute steps are composed
+    again in `cb_live.ts` rather than exported from it. They are pinned equal minute for minute against the paper arm's own
+    run on the same inputs, inside a closure with the nudge applied (`cb_live.test.ts`). A counterfactual without the nudge
+    fails that pin.
+- **The quotes** come from PR5's frozen `stepMinute`, given no prints.
+  - It never fills or refuses a rung there; the venue does both.
+  - The rungs the account holds, from live's own fills, are put back idle after every minute. A rung not held quotes the
+    rule's entry whatever the paper rung is doing. A held rung's trip closing makes the rung place afresh at the minute's fair,
+    as the paper's does after an exit.
+- **Its minute** is two whole minutes behind the clock (`CB_LIVE_SELF_LAG_MS`).
+  - The fast-rate recorder writes minute t at about t + 58 s, so the minute before would race it.
+  - At most 10 minutes are stepped in one turn.
+  - The paper arm's newest minute is normally 3–4 minutes old when the follower reads it, so 'self' is one to two minutes
+    fresher.
+- **Refusals on its own terms.**
+  - A post-only refusal (Coinbase's, or the crossing check at the touch) is tried again the next turn, as the rule re-places
+    a refused order the next minute. A crossing that lasts is written once.
+  - Any other rejection waits for the rule's next decision (a fair move past 0.05 %).
+  - A 401/403 waits 15 minutes, as before.
+- **It reads nothing of the paper arm's orders or state** (pinned: no select of a `cb_nudge_*` table). The shared inputs are
+  read as the paper arm reads them: `agent_quote_inputs`, `cb_quote_inputs`, `fx_ticks` and `agent_book_levels`.
+- **Everything else is the follower's, unchanged**: exits at `exitTicks` on the fair with the crossing guard, the 24-hour IOC
+  stop, inventory checks, the £70 top-up cap counting only what Coinbase took, GTD 20 minutes, kill switch, pause, lease,
+  pending-before-send and the one-per-rung index, reconciliation, positions from fills, balances in the state.
+- **Exits and P&L under 'self'** mark at its own fair. An entry resting at the same price is kept across a re-decision, and
+  across the switch from 'paper': its price alone is compared, not the paper key.
+- **`coinbasehold` has no such rule.** The migration's check refuses 'self' with it.
+
+**The shadow.** While `decide` is 'paper', the same step runs every turn as the shadow.
+
+- Its EMA is seeded once from the paper arm's, so the two start level.
+- Each turn writes one row a rung to `cb_live_shadow`, keyed by the turn's minute and kept 14 days. A row holds what 'self'
+  would rest (leg, side, price, size, why, whether the touch crossed it, its fair and minute) beside what the follower
+  wanted (the same, with the paper's fair and newest minute) and what rested after the turn.
+- It moves no order, and its failure is an event (`shadow_error`), never the errors box.
+- Landing changes nothing that is sent or would be. This is pinned: the same follower turns, with and without the inputs
+  the shadow decides on, give equal orders, venue calls and reports.
+
+**The comparison** (read-only), after a few hours of shadow:
+
+```sql
+-- 1. Per rung, the last 6 hours: minutes where 'self' would rest something other than what rested, and why.
+with s as (
+  select minute, rung_side, k, self_leg, self_price, self_why, self_crosses, paper_leg, paper_why, rested_leg, rested_price,
+         case
+           when coalesce(self_leg, '-') = coalesce(rested_leg, '-') and coalesce(self_price, -1) = coalesce(rested_price, -1) then 'same'
+           when self_leg = 'entry' and self_crosses then 'self would be refused at the touch (retried next turn)'
+           when self_leg is not null and rested_leg is null and paper_why in ('rung_held', 'rung_refused', 'no_quote') then 'paper dark: ' || paper_why
+           when self_leg is not null and rested_leg is null and paper_why in ('stale', 'dark') then 'paper inputs: ' || paper_why
+           when self_leg is not null and rested_leg is null and paper_why = 'refused_before' then 'refusal: the follower holds a refused paper decision'
+           when self_leg is not null and rested_leg is null and paper_leg is not null then 'wanted, not resting (inventory, crossing, pending)'
+           when self_leg is not null and rested_leg is null then 'follower: ' || paper_why
+           when self_leg is null and rested_leg is not null then 'self dark: ' || self_why
+           when self_leg <> rested_leg then 'leg'
+           else 'price'
+         end as why
+    from public.cb_live_shadow
+   where minute >= now() - interval '6 hours')
+select rung_side, k, why, count(*) as minutes,
+       round(100.0 * count(*) / sum(count(*)) over (partition by rung_side, k), 1) as pct_of_rung,
+       round(avg(abs(self_price - rested_price)) filter (where why = 'price') / 0.0001, 2) as avg_ticks_apart
+  from s
+ group by rung_side, k, why
+ order by rung_side, k, minutes desc;
+
+-- 2. The decisions alone (what each source wanted, before inventory and the venue), the same 6 hours.
+select rung_side, k,
+       count(*) as minutes,
+       count(*) filter (where self_leg is not distinct from paper_leg and self_price is not distinct from paper_price) as same,
+       count(*) filter (where self_leg is not null and paper_leg is null) as self_only,
+       count(*) filter (where self_leg is null and paper_leg is not null) as paper_only,
+       count(*) filter (where self_leg = paper_leg and self_price <> paper_price) as price_differs
+  from public.cb_live_shadow
+ where minute >= now() - interval '6 hours'
+ group by rung_side, k
+ order by rung_side, k;
+
+-- 3. The two fairs, a minute apart in age: 'self''s minute and the paper's, and how far apart in bps.
+select count(*) as turns,
+       round(avg(extract(epoch from (self_minute - paper_minute)) / 60), 2) as self_fresher_min,
+       round(avg(abs(self_fair / paper_fair - 1)) * 1e4, 3) as avg_bps_apart,
+       round(max(abs(self_fair / paper_fair - 1)) * 1e4, 3) as max_bps_apart
+  from public.cb_live_shadow
+ where minute >= now() - interval '6 hours' and rung_side = 'bid' and k = 0.001 and self_fair is not null and paper_fair is not null;
+```
+
+**The switch** is Davies' word after reading these, in the conversation where he says so:
+
+```sql
+update public.cb_live_config set decide = 'self', updated_at = now() where id = 1 and decide = 'paper' returning decide;
+```
+
+Its undo is the same statement with the two words swapped. Under 'self' no shadow row is written.

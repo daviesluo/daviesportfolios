@@ -7,13 +7,19 @@
 // post-only refusal is not sent again for the same paper decision; (6) a lost reply stays pending and is adopted by its
 // client id, never marked rejected; (7) the 24-hour stop is an IOC within 50 bps; (8) a remainder under £1 is carried; (9)
 // the start conversion buys the asks' USDC post-only at the bid within the pounds the bids leave; (10) the loss stop and the
-// governor stop entries; (11) LIVE's row reads the tables alone.
+// governor stop entries; (11) LIVE's row reads the tables alone. Since 0182 ('self', Davies 2026-10-30: "要做"): (12) 'self'
+// decides with the paper rule's own code, minute for minute the paper arm's fair and quotes, nudged inside a closure, and reads
+// nothing of the paper arm; (13) a rung the account does not hold quotes while the paper's is held (the follower: dark); (14)
+// a post-only refusal is tried again the next turn, a crossing written once, a 403 waits; (15) 'paper' is the follower as
+// before, the shadow changing nothing it does; (16) the shadow is written only while the follower decides.
 
 import { assert, assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { b64ToBytes } from "../_shared/bytes.ts";
 import { CB_KEY_NAME_SECRET, CB_PRIVATE_KEY_SECRET } from "../_shared/coinbase.ts";
-import { CB_LIVE_GTD_MS, CB_LIVE_NAME, convertSpentGbp, isDust, venueBalances, readCbLive, runCbLive, rungQty, tripPnl, tripsOf, type FillRow } from "./cb_live.ts";
+import { CB_LIVE_GTD_MS, CB_LIVE_NAME, convertSpentGbp, isDust, venueBalances, readCbLive, runCbLive, rungQty, tripPnl, tripsOf, type CbLiveSelf, type FillRow } from "./cb_live.ts";
 import { exitTicks, newBookState, quoteTicks, QUOTE_TICK, type BookState } from "./quotes.ts";
+import { CB_NUDGE_ARM, runCbNudge } from "./cb_nudge.ts";
+import { cbUsdcArmNewState } from "./cb_usdc.ts";
 import { memDb, type Row } from "./testing.ts";
 
 const M = 60e3, H = 3600e3;
@@ -403,4 +409,191 @@ Deno.test("the venue's balances: each turn saves what it read (available and on 
   assertEquals((await readCbLive(k.db, T0 + 20e3))!.balances, null);
   assertEquals(venueBalances([{ currency: "USDC", available_balance: { value: "1.5" }, hold: { value: "2" } }, { currency: "USDC", available_balance: { value: "3" } }], ["USDC", "GBP"], T0),
     { at: iso(T0), ccy: { USDC: { available: 4.5, hold: 2 }, GBP: { available: 0, hold: 0 } } });
+});
+
+// ------------------------------------------------------------------------------------------------ 'self' and the shadow (0182)
+
+/**
+ * A world where the paper rule's own inputs are recorded (GBP/USD 1.25, the coin $1.00: USDC-GBP's fair £0.80, as
+ * cb_nudge.test.ts' world) beside the executor's tables and the paper arm "coinbasenudge" (its state from `t0`, its own lease),
+ * with Revolut X's book `rx` for the nudge, and the executor's config (`decide` among it).
+ */
+function selfWorld(t0: number, o: { cfg?: Record<string, unknown>; armed?: boolean; dry?: boolean; rx?: Array<{ ts: number; until: number; bid: number; ask: number }>; paperBook?: BookState; paperLast?: number } = {}) {
+  const fx: Row[] = [], fair: Row[] = [], eur: Row[] = [];
+  for (let t = t0 - 20 * M; t <= t0 + 40 * M; t += M) { fx.push({ kind: "fx", t: iso(t), value: 1.25 }); eur.push({ kind: "fx:EURUSD", t: iso(t), value: 1.1 }); }
+  for (let h = t0 - 30 * H; h < t0; h += H) fair.push({ kind: "fair:USDC-USD", t: iso(h), value: 1.0 });
+  const paperSt = cbUsdcArmNewState(CB_NUDGE_ARM, t0, { "USDC-GBP": 0 });
+  if (o.paperBook) paperSt.books["USDC-GBP"] = o.paperBook;
+  return memDb({
+    cb_live_config: [{ id: 1, paper: "coinbasenudge", dry_run: o.dry ?? true, armed_at: o.armed ? iso(t0 - H) : null, rung_gbp: 20, capital_gbp: 120, daily_loss_pct: 0.01,
+      gov_entry_posts: 1500, gov_stops_only_posts: 1800, convert_max_gbp_day: 70, decide: "paper", ...o.cfg }],
+    cb_live_orders: [], cb_live_fills: [], cb_live_events: [], cb_live_state: [], cb_live_shadow: [],
+    agent_locks: [{ name: "cb-live", lease_until: iso(0), holder: null }, { name: "cb-nudge", lease_until: iso(0), holder: null }],
+    agent_risk: [{ id: 1, global_pause: false }],
+    agent_quote_inputs: [...fx, ...fair], cb_quote_inputs: eur,
+    agent_book_levels: (o.rx ?? []).map((s) => ({ book: "USDC-GBP", ts: iso(s.ts), seen_until: iso(s.until), bids: [[s.bid, 100, 1]], asks: [[s.ask, 100, 1]], reads: 1 })),
+    cb_trades: [],
+    cb_nudge_state: [{ id: 1, state: paperSt, last_minute: iso(o.paperLast ?? t0 - M), updated_at: iso(0), last_error: null }],
+    cb_nudge_events: [], cb_nudge_trips: [], cb_nudge_minutes: [], cb_nudge_days: [],
+  }, { now: () => t0 });
+}
+const TOUCH80 = { bid: "0.7999", ask: "0.8001" };
+const selfOf = (w: ReturnType<typeof selfWorld>) => (w.tables.cb_live_state[0].state as { self: CbLiveSelf }).self;
+/** Every table a select names, as the turn reads it. */
+function spy(w: ReturnType<typeof selfWorld>) {
+  const read: string[] = [];
+  const db = { ...w.db, select: (t: string, q: string) => { read.push(t); return w.db.select(t, q); }, selectAll: (t: string, q: string) => { read.push(t); return w.db.selectAll(t, q); } } as typeof w.db;
+  return { db, read };
+}
+let seq = 0;
+const ids = () => `00000000-0000-4000-8000-${String(++seq).padStart(12, "0")}`;
+
+Deno.test("'self' decides with the paper rule's own code: minute for minute its fair and its six quotes are the paper arm's, nudged inside a closure", async () => {
+  // Saturday, inside PR5-W's closure, with Revolut X's book 4 then 8 hundredths of a penny over fair: the nudge applies.
+  const sat = Date.UTC(2026, 9, 31, 10, 0);
+  const rx = [{ ts: sat - 2 * M, until: sat - 30e3, bid: 0.8002, ask: 0.8006 }, { ts: sat + M + 30e3, until: sat + 9 * M, bid: 0.8006, ask: 0.8010 }];
+  const w = selfWorld(sat, { cfg: { decide: "self" }, rx });
+  const v = venue({ post: false, touch: TOUCH80 });
+  // The paper arm decides sat … sat + 5 min; the executor decides one minute a turn, two behind its clock.
+  await runCbNudge({ db: w.db, now: sat + 7 * M, holder: "p", rec: { cursors: { "USDC-GBP": { from: 1, fromTs: iso(0), hi: 1, top: 1, topAt: 0, hole: null, coveredTo: sat + 6 * M + 1000 } } } as never });
+  const paperMin = new Map(w.tables.cb_nudge_minutes.map((m) => [m.minute, m]));
+  assertEquals(paperMin.size, 6);
+  for (let i = 0; i <= 5; i++) {
+    const r = await turn(w as never, v, sat + (2 + i) * M + 10e3);
+    assertEquals([r.errors, r.decide, r.self?.minute], [[], "self", sat + i * M]);
+    const pm = paperMin.get(iso(sat + i * M))!;
+    assertAlmostEquals(selfOf(w).fair!, Number(pm.fair), 1e-15);
+    assertEquals(selfOf(w).extra?.nudged, pm.nudged);
+  }
+  assert(Math.abs(selfOf(w).fair! - 0.8) > 1e-6, "the nudge moved the fair");
+  // The quotes: the paper arm's six rungs' entries, tick for tick, and what the executor would rest (its dry rows) at them.
+  const paper = (w.tables.cb_nudge_state[0].state as { books: Record<string, BookState> }).books["USDC-GBP"];
+  const mine = selfOf(w).st.books["USDC-GBP"];
+  assertEquals(mine.rungs.map((r) => [r.side, r.k, r.mode, r.o!.ticks, r.o!.fairAt]), paper.rungs.map((r) => [r.side, r.k, r.mode, r.o!.ticks, r.o!.fairAt]));
+  const dry = rows(w as never).filter((x) => x.state === "dry");
+  assertEquals(dry.length, 6);
+  for (const x of dry) {
+    const p = paper.rungs.find((r) => r.side === x.rung_side && r.k === Number(x.k))!;
+    assertAlmostEquals(Number(x.price), p.o!.ticks * QUOTE_TICK, 1e-12);
+    assert(String(x.paper_key).startsWith("self|"));
+  }
+  // Nothing of the paper arm's state is read for it.
+  const s = spy(w);
+  await runCbLive({ db: s.db, now: sat + 8 * M + 10e3, holder: "spy", read: (n) => ENV[n], fetchImpl: v.fetchImpl });
+  assertEquals(s.read.filter((t) => t.startsWith("cb_nudge_")), []);
+  assert(s.read.includes("agent_book_levels") && s.read.includes("agent_quote_inputs"));
+});
+
+Deno.test("'self': a rung the account does not hold quotes while the paper's rung is held; the follower leaves it dark (the counterfactual)", async () => {
+  // The paper arm holds its 0.1 % bid (a paper fill) and quotes the rest at £0.80.
+  const pb = paperBook(0.8, T0);
+  Object.assign(pb.rungs[0], { mode: "position", o: null, entry: 0.7992, tEntry: T0 - 5 * M, qty: 60, nq: 48 });
+  for (const decide of ["paper", "self"]) {
+    const w = selfWorld(T0, { cfg: { decide }, paperBook: pb, paperLast: T0 - M });
+    w.tables.cb_nudge_minutes.push({ book: "USDC-GBP", minute: iso(T0 - M), fair: 0.8 });
+    const r = await turn(w as never, venue({ post: false, touch: TOUCH80 }), T0 + 10e3);
+    assertEquals(r.errors, []);
+    const bid1 = rows(w as never).filter((x) => x.rung_side === "bid" && Number(x.k) === 0.001 && x.state === "dry");
+    assertEquals([decide, bid1.length, rows(w as never).filter((x) => x.state === "dry").length], [decide, decide === "self" ? 1 : 0, decide === "self" ? 6 : 5]);
+    if (decide === "self") assertAlmostEquals(Number(bid1[0].price), quoteTicks(0.8, 0.001, "bid") * QUOTE_TICK, 1e-12);
+  }
+  // A rung the account holds is not quoted by 'self' (its exit is, at 'self''s fair), and quotes again once its trip closes.
+  const w = selfWorld(T0, { cfg: { decide: "self" }, dry: false, armed: true }), v = venue({ post: true, touch: TOUCH80 });
+  await turn(w as never, v, T0 + 10e3);
+  const b = rows(w as never).find((x) => x.rung_side === "bid" && Number(x.k) === 0.001 && x.state === "open")!;
+  v.fill(b.venue_order_id as string, Number(b.base_size), T0 + 30e3);
+  const r = await turn(w as never, v, T0 + 70e3);
+  assertEquals(r.held["bid|0.001"], Number(b.base_size));
+  const exit = rows(w as never).find((x) => x.leg === "exit")!;
+  assertAlmostEquals(Number(exit.price), exitTicks(0.8, "bid") * QUOTE_TICK, 1e-12);
+  const rung = selfOf(w).st.books["USDC-GBP"].rungs[0];
+  assertEquals([rung.mode, rung.o], ["idle", null]);
+  v.fill(exit.venue_order_id as string, Number(exit.base_size), T0 + 90e3);
+  await turn(w as never, v, T0 + 130e3);
+  assertEquals(rows(w as never).filter((x) => x.rung_side === "bid" && Number(x.k) === 0.001 && x.leg === "entry" && x.state === "open").length, 1);
+});
+
+Deno.test("'self' tries a post-only refusal again the next turn; a crossing at the touch is written once while it lasts; a 403 waits 15 minutes", async () => {
+  let refuse = true;
+  const w = selfWorld(T0, { cfg: { decide: "self" }, dry: false, armed: true });
+  const v = venue({ post: true, touch: TOUCH80, onCreate: (b) => (refuse && b.side === "SELL" ? "refuse" : "ok") });
+  await turn(w as never, v, T0 + 10e3);
+  assertEquals(rows(w as never).filter((x) => x.state === "refused").length, 3);
+  refuse = false;
+  const r = await turn(w as never, v, T0 + 70e3);
+  assertEquals([r.placed, rows(w as never).filter((x) => x.state === "open").length], [3, 6]);
+  // The touch crosses the 0.1 % bid (£0.7992): refused before sending, one row while it lasts, placed once it does not.
+  const w2 = selfWorld(T0, { cfg: { decide: "self" }, dry: false, armed: true }), touch = { bid: "0.7990", ask: "0.7992" };
+  const v2 = venue({ post: true, touch });
+  await turn(w2 as never, v2, T0 + 10e3);
+  await turn(w2 as never, v2, T0 + 70e3);
+  const bid1 = () => rows(w2 as never).filter((x) => x.rung_side === "bid" && Number(x.k) === 0.001);
+  assertEquals(bid1().map((x) => x.state), ["refused"]);
+  touch.bid = "0.7999"; touch.ask = "0.8001";
+  await turn(w2 as never, v2, T0 + 130e3);
+  assertEquals(bid1().map((x) => x.state), ["refused", "open"]);
+  // 403: the turn stops placing; the refused decision is not sent again for 15 minutes (the others go the next turn), then it is.
+  let deny = true;
+  const w3 = selfWorld(T0, { cfg: { decide: "self" }, dry: false, armed: true }), v3 = venue({ post: true, touch: TOUCH80, onCreate: () => (deny ? "403" : "ok") });
+  await turn(w3 as never, v3, T0 + 10e3);
+  const denied = rows(w3 as never).filter((x) => x.state === "rejected");
+  assertEquals(denied.length, 1);
+  deny = false;
+  const a = await turn(w3 as never, v3, T0 + 5 * M);
+  const onDenied = () => rows(w3 as never).filter((x) => x.rung_side === denied[0].rung_side && Number(x.k) === Number(denied[0].k)).map((x) => x.state);
+  assertEquals([a.placed, onDenied()], [5, ["rejected"]]);
+  await turn(w3 as never, v3, T0 + 17 * M);
+  assertEquals(onDenied(), ["rejected", "open"]);
+});
+
+Deno.test("decide 'paper' is the follower as before: the shadow changes no order, no call and no report field the follower had", async () => {
+  // The same follower world twice: once with the rule's inputs recorded (the shadow decides), once without (it is dark).
+  const run = async (inputs: boolean) => {
+    seq = 0;
+    const w = world({ dry: false, armed: true, fair: 0.8, book: paperBook(0.8, T0), cfg: { decide: "paper" } });
+    if (inputs) Object.assign(w.tables, { agent_quote_inputs: selfWorld(T0).tables.agent_quote_inputs, cb_quote_inputs: selfWorld(T0).tables.cb_quote_inputs });
+    const v = venue({ post: true, touch: TOUCH80 });
+    const out = [];
+    for (const t of [T0 + 10e3, T0 + 70e3]) {
+      const r = await runCbLive({ db: w.db, now: t, holder: `x${t}`, read: (n) => ENV[n], fetchImpl: v.fetchImpl, uuid: ids });
+      out.push({ ...r, self: undefined, events: r.events.filter((e) => e !== "shadow_error") });
+    }
+    return { out, orders: rows(w), calls: v.calls, shadow: w.tables.cb_live_shadow ?? [] };
+  };
+  const a = await run(true), b = await run(false);
+  assertEquals(a.out, b.out);
+  assertEquals(a.orders, b.orders);
+  assertEquals(a.calls, b.calls);
+  assertEquals(a.orders.filter((x) => x.state === "open").length, 6);
+  assert(a.orders.every((x) => !String(x.paper_key).startsWith("self|")));
+  assertEquals([a.shadow.length, b.shadow.length], [12, 12]);
+});
+
+Deno.test("the shadow: written only while the follower decides, a row a rung a turn, 'self''s quote beside the follower's want and what rests", async () => {
+  const pb = paperBook(0.8, T0);
+  Object.assign(pb.rungs[0], { mode: "position", o: null, entry: 0.7992, tEntry: T0 - 5 * M, qty: 60, nq: 48 });
+  const w = selfWorld(T0, { paperBook: pb, paperLast: T0 - M });
+  w.tables.cb_nudge_minutes.push({ book: "USDC-GBP", minute: iso(T0 - M), fair: 0.8 });
+  await turn(w as never, venue({ post: false, touch: TOUCH80 }), T0 + 10e3);
+  const sh = w.tables.cb_live_shadow;
+  assertEquals(sh.length, 6);
+  for (const s of sh) {
+    const ticks = quoteTicks(0.8, Number(s.k), s.rung_side as "bid" | "ask");
+    assertEquals([s.minute, s.self_leg, s.self_why, s.self_minute, s.paper_minute], [iso(T0), "entry", "quote", iso(T0 - 2 * M), iso(T0 - M)]);
+    assertAlmostEquals(Number(s.self_price), ticks * QUOTE_TICK, 1e-12);
+    assertEquals(s.self_crosses, false);
+  }
+  const b1 = sh.find((s) => s.rung_side === "bid" && Number(s.k) === 0.001)!;
+  assertEquals([b1.paper_leg, b1.paper_why, b1.rested_leg], [null, "rung_held", null]);
+  const a1 = sh.find((s) => s.rung_side === "ask" && Number(s.k) === 0.001)!;
+  assertEquals([a1.paper_why, a1.rested_leg, a1.rested_mode, a1.rested_state], ["quote", "entry", "dry_run", "dry"]);
+  assertAlmostEquals(Number(a1.rested_price), Number(a1.self_price), 1e-12);
+  // A second turn in the next minute: six more rows. Under 'self': none.
+  await turn(w as never, venue({ post: false, touch: TOUCH80 }), T0 + 70e3);
+  assertEquals(w.tables.cb_live_shadow.length, 12);
+  w.tables.cb_live_config[0].decide = "self";
+  await turn(w as never, venue({ post: false, touch: TOUCH80 }), T0 + 130e3);
+  assertEquals(w.tables.cb_live_shadow.length, 12);
+  // The shadow's record carries into 'self': its book and EMA go on from the shadow's minutes, not from a fresh start.
+  assertEquals(selfOf(w).lastMinute, T0);
 });
