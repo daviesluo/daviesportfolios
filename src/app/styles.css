@@ -2332,6 +2332,10 @@ a.ag-gpm-market:hover, a.ag-gpm-market:focus-visible { text-decoration-color: va
    table's text-overflow drew the first dot of an ellipsis after it — the "small white dot" the owner saw. */
 .ag-strategies .ag-table td.ag-col-venue { overflow: visible; text-overflow: clip; }
 .ag-strategies .ag-table td.ag-col-next { white-space: normal; overflow: visible; text-overflow: clip; }
+/* "↔" drawn (Glyphs, agents.jsx): the site's fonts have no U+2194, so the character stays in the text, unseen, under a drawing. */
+.ag-lr { position: relative; display: inline-block; width: 1.15em; height: 1em; vertical-align: -0.14em; }
+.ag-lr-ch { position: absolute; inset: 0; opacity: 0; overflow: hidden; }
+.ag-lr-svg { position: absolute; left: 0.05em; top: 0.22em; width: 1.05em; height: 0.6em; }
 .ag-detail-title.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); margin: 0; }
 .ag-detail .hl-scroll { overflow-x: auto; scrollbar-width: none; }
 .ag-detail .hl-scroll::-webkit-scrollbar { display: none; }

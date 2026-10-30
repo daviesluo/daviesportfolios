@@ -857,7 +857,8 @@ export function cbLiveOrderView(o: CbLivePageOrder) {
  *   * ORDERS: the newest, its top-up conversions among them (the page lists them apart, CONVERSIONS), less what the venue refused (a post-only
  *     price that crossed, the 403s of its first night) or the executor refused before sending, less a cancel that filled
  *     nothing, and less the orders of a round trip already closed (ROUND TRIPS has them).
- * TODAY is the figure its daily loss stop reads (the trips touched today, realised and marked), as PR5's is.
+ * TODAY is today's realised, the figure DAYS shows for today (Davies, 2026-10-30: one number on one screen); what the open trips
+ * have made at the mark is UNREALIZED's. Its daily loss stop reads its own figure each turn (realised and marked, `lossStopped`).
  */
 export function cbLiveDetail(input: {
   capitalGbp: number; orders: CbLivePageOrder[]; recent: CbLivePageOrder[]; notSent: ReadonlySet<number>; fills: FillRow[];
@@ -873,12 +874,14 @@ export function cbLiveDetail(input: {
   const open = all.filter((t) => !isDust(tripHeld(t), input.fair ?? t.entryAvg, minSize));
   const closed = all.filter((t) => !open.includes(t) && t.exitQty > 0).sort((a, b) => b.lastFill - a.lastFill || b.firstFill - a.firstFill);
   const pnl = new Map(all.map((t) => [t.trip, tripPnl(t, input.fair)]));
-  let realised = 0, today = 0, fees = 0;
+  let realised = 0, fees = 0;
   for (const t of all) {
     const p = pnl.get(t.trip)!;
     realised += p.realised; fees += t.fees;
-    if (t.lastFill >= dayStart || tripHeld(t) > 0) today += p.realised + p.marked;
   }
+  // What the fills realised before an instant: DAYS' days are its differences, and TODAY is today's, so the two are one number.
+  const upTo = (t: number) => realisedOf(fills.filter((f) => msOf(f.trade_time) < t));
+  const today = upTo(Infinity) - upTo(dayStart);
   // The coins: what every fill bought less what it sold; their cost, the conversions' pounds and the trips' signed holdings.
   const conv = fills.filter((f) => f.leg === "convert");
   const coins = fills.reduce((a, f) => a + (f.side === "BUY" ? 1 : -1) * Number(f.size), 0);
@@ -910,7 +913,6 @@ export function cbLiveDetail(input: {
   const sent = input.orders.filter((o) => !input.notSent.has(o.id));
   const firstMs = Math.min(...input.orders.map((o) => msOf(o.created_at)), ...fills.map((f) => msOf(f.trade_time)));
   const days = [];
-  const upTo = (t: number) => realisedOf(fills.filter((f) => msOf(f.trade_time) < t));
   for (let d = dayStart; Number.isFinite(firstMs) && d >= Math.floor(firstMs / D) * D && days.length < CB_LIVE_PAGE_DAYS; d -= D) {
     const inDay = (ms: number) => ms >= d && ms < d + D;
     const shut = closed.filter((t) => inDay(t.lastFill));

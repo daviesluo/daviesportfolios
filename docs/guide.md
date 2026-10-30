@@ -293,7 +293,11 @@ places stay when the number is not whole.
   USDT/GBP page reads USDT/GBP, the Revolut X USDC/GBP page USDC/GBP. A
   short gap does not count: it is called absent after 15 minutes without
   it, and back after 3 with it. If the watch has not written a minute for
-  ten minutes, the line says it is behind. Deployed is every pound at work: the coins in
+  ten minutes, the line says it is behind. Today is what the day's round
+  trips realised, the same figure as today's line in DAYS, on this page and
+  on every Stablecoin quotes page; what the coins held have moved since is
+  in unrealised. (The loss stop itself also counts what the rungs hold at
+  their mark, as it always has.) Deployed is every pound at work: the coins in
   the account at Revolut X's index price (the price the account values them
   at; the last trade when the index is more than ten minutes old) and the
   pounds its resting buys tie up. Unrealised is those coins at the index
@@ -505,8 +509,8 @@ places stay when the number is not whole.
   today, and a line for each venue says what it was funded with, what is at
   work there and what it has made. The row and its page add the two venues up.
   FUNDED is both venues' money; DEPLOYED is the coin on both venues plus the
-  pounds in resting Revolut X buys; TODAY is how much more both venues hold
-  than at midnight; REALIZED counts both trades of every round trip and
+  pounds in resting Revolut X buys; TODAY is what today's round trips
+  realised, the same as DAYS' today; REALIZED counts both trades of every round trip and
   Coinbase's fee; each percent is on FUNDED. Split by venue, Revolut X's
   realised is what each round trip made before Coinbase's fee, and Coinbase's
   is minus that fee; each venue's unrealised is what it holds now less its
@@ -745,7 +749,11 @@ places stay when the number is not whole.
 
 The page opens on what it showed last time in this browser, the first
 time after a reload included, and refreshes behind it: as it opens, then
-every minute while it is open. Everything on it is worked out by the
+every minute while it is open. It refreshes with the board, too: the
+board's refresh button (or `r`) refreshes it and any strategy page open
+over it at once, and the board's own 30-second refresh brings it along
+about once a minute. Its own refresh button refreshes every page open
+over it, since they all show the one answer. Everything on it is worked out by the
 `agents` function; the page only formats it.
 
 ## Ticker chart

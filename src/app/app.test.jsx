@@ -211,6 +211,32 @@ describe('App — doRefresh on initial load (overnight window)', () => {
     // gating warms the anchor before the toggle is ever touched.
     await waitFor(() => expect(fetchTodayRegularClose).toHaveBeenCalled());
   });
+
+  it('announces the button and the tick to the pages opened over the board, and never the load\'s own refresh (2026-10-30)', async () => {
+    // A weekday, pinned: the tick is 30 s through the week and 5 min through the weekend.
+    vi.useFakeTimers({ shouldAdvanceTime: true, now: new Date('2026-10-06T22:30:00Z') });
+    setReadOnlyToken();
+    vi.mocked(loadPortfolioRemote).mockResolvedValueOnce(/** @type {any} */ (PORTFOLIO));
+    const heard = /** @type {boolean[]} */ ([]);
+    const h = (/** @type {Event} */ e) => heard.push(!!(/** @type {CustomEvent} */ (e).detail?.manual));
+    window.addEventListener('dp:board-refresh', h);
+    try {
+      render(<App />);
+      await waitFor(() => expect(refreshPrices).toHaveBeenCalled());
+      // The load's refresh is announced to nobody: an Agents page opened while the app loads has just fetched its
+      // dashboard (or joined the app's own fetch), and a "by hand" announce then asked for it a second time on every
+      // open after a reload (the sweep's agents-reload/open counted 2 dashboard requests).
+      await vi.advanceTimersByTimeAsync(1000);
+      expect(heard).toEqual([]);                                      // (96c52fb2 announced it as by hand: [true])
+      await vi.advanceTimersByTimeAsync(30_000);                     // the 30 s tick: the board's own
+      expect(heard).toEqual([false]);
+      await act(async () => { /** @type {any} */ (globalThis).__headerProps.onRefresh(); });   // the button: by hand
+      expect(heard).toEqual([false, true]);
+    } finally {
+      window.removeEventListener('dp:board-refresh', h);
+      vi.useRealTimers();
+    }
+  }, 20000);
 });
 
 // Pins the cold-start-latency fix: a cache-primed `portfolio` lets the

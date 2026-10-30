@@ -1190,7 +1190,8 @@ function readAgentsPanel(page) {
  * £0.7570, as the account values them (Davies, 2026-10-01).
  *   deployed: the coins, 263.6436 × 0.7575 + 527.6436 × 0.757 = £599.14, and the pounds in four resting buys, £400.00:
  *     £999.14, 83.26 % of £1,200 ($1,318.86 at 1.32)
- *   today: the executor's loss stop's reading, £0.227106 (+$0.30); its loss stop 1 % of £1,200 = −£12
+ *   today: today's realised, A and C's stop, -£0.063294 (-$0.08), the figure DAYS shows for today (Davies, 2026-10-30; until then
+ *   the loss stop's reading, £0.227106, with B's and E's marks); its loss stop 1 % of £1,200 = −£12
  *   unrealised: the coins at the index against their cost, −£0.1330 (−$0.18), −0.02 % of that cost
  *   realised: the three trips, −£0.0345 (−$0.05), with £0.1797 of fees ($0.24)
  */
@@ -3935,7 +3936,7 @@ async function run() {
       if (pctOfLines === 0) ok(S('agents'), 'no strategy card or row carries a "% of …" line');
       else fail(S('agents'), `${pctOfLines} strategy rows still say "% of …"`);
       // The stablecoin twins' rows are in pounds, their books' own (Davies, 2026-10-01): their three cells, and only those.
-      // Each is the live fixture's book, in the page's order: today £0.227106 and realised -£0.0345 on its own capital
+      // Each is the live fixture's book, in the page's order: today -£0.063294 (today's realised) and realised -£0.0345 on its own capital
       // (+0.02 % and 0 % of £1,200), unrealised -£0.1330 on the £599.27 its coins cost (-0.02 %).
       const poundCells = glCells.filter((g) => /£/.test(g)).map((g) => g.trim());
       if (glCells.length === rows * 3 && glCells.every((g) => /^[+-]?[$£][\d,.]+( \([+-]?[\d.]+%\))?$/.test(g.trim()))
@@ -3961,8 +3962,8 @@ async function run() {
       const sbToday = await page.locator('.ag-scoreboard .ag-sb-cell', { has: page.locator('.ag-sb-name:text-is("TODAY")') }).locator('.ag-sb-usd').textContent().catch(() => '');
       const rowToday = (await page.locator(vpWidth <= 760 ? '.ag-card-strategy .ag-card-today' : 'td.ag-col-today .ag-gl').allTextContents()).map((t) => t.trim());
       const signedToday = rowToday.filter((t) => /^\+\$0\.42/.test(t)).length;
-      // A row in pounds (a stablecoin twin's) counts at its dollars, the $0.29978 the scoreboard adds (£0.227106 at 1.32):
-      // its £0.23 is rounded. 0.42 + 12.50 + 4 × 7.50 and each twin's 0.29978 (TESTING.today).
+      // A row in pounds (a stablecoin twin's) counts at its dollars, the -$0.08355 the scoreboard adds (-£0.063294 at 1.32):
+      // its -£0.06 is rounded. 0.42 + 12.50 + 4 × 7.50 and each twin's -0.08355 (TESTING.today).
       const poundToday = rowToday.filter((t) => /£/.test(t));
       const rowTodaySum = Math.round((rowToday.filter((t) => !/£/.test(t)).reduce((a, t) => a + money(String(t).split('(')[0]), 0)
         + (poundToday.join(' | ') === [...TW.rows, CBQ].map((r) => r.today).join(' | ') ? TW.sum('todayUsd') + CBALL.todayUsd : NaN)) * 100);
@@ -4059,7 +4060,7 @@ async function run() {
       // "Stablecoin quotes variant-1" (PR5's rule, p50, since 2026-10-03) at £600, … and "Stablecoin quotes variant-4" (rule D;
       // variant-1 until 2026-10-03, variant-3 until 2026-10-18) at £1,800, in a strategy's cells and in pounds, each the live fixture's book
       // (QUOTES_TWIN_FIXTURE): 2 open (B's short and E's long), deployed £999.14 (the coins at the index and the pounds in
-      // four resting buys), today +£0.23, unrealised -£0.13, realised -£0.03, each percent on its own capital; a variant's
+      // four resting buys), today -£0.06 (today's realised), unrealised -£0.13, realised -£0.03, each percent on its own capital; a variant's
       // name on two lines. The paper test, PR5V and rule D, which the payload still carries, are no rows.
       // A row by its name and its venue's badge: two venues' rows may share a name (since 2026-10-30, Revolut X's and Coinbase's
       // "Stablecoin quotes USDC/GBP LIVE twin"), so a twin is looked for on Revolut X and a Coinbase arm on Coinbase.
@@ -4081,7 +4082,7 @@ async function run() {
         if (!rowOk) twinBad.push(`${r.name}: ${n} rows, "${text.trim()}", name "${head}" + "${qual}"`);
       }
       if (twinAt === 6 && twinBad.length === 0 && testingNames.filter((n) => TW.names.includes(n)).length === TW.n && oldCard === 0) {
-        ok(S('agents'), `the ${TW.n} twins are the testing rows after the strategies, in pounds, in their rows' order (${TW.rows.map((r) => `"${r.name}" ${r.open}`).join(', ')}), each deployed £999.14, today +£0.23, unrealised -£0.13, realised -£0.03 on its own capital, a variant's name on two lines; no paper test row, no card below`);
+        ok(S('agents'), `the ${TW.n} twins are the testing rows after the strategies, in pounds, in their rows' order (${TW.rows.map((r) => `"${r.name}" ${r.open}`).join(', ')}), each deployed £999.14, today -£0.03, unrealised -£0.13, realised -£0.03 on its own capital, a variant's name on two lines; no paper test row, no card below`);
       } else fail(S('agents'), `twin rows at ${twinAt} of ${testingNames.join(' | ')}: ${twinBad.join(' / ')}; old card sections ${oldCard}`);
       // "Stablecoin quotes with Euros" (the weekend variant since 2026-10-29): the row after the twins, on Coinbase, in pounds,
       // in a twin's cells, on two lines; the base test is off the page, and no row is called "- 3" any more.
@@ -4108,7 +4109,7 @@ async function run() {
         '17 Sep 11:30 | USDC/GBP | bought | 0.1 % | £0.7568 | £0.7576 | 132.00 USDC | £0 | +£0.1056',
         '16 Sep 14:00 | USDT/GBP | sold | 0.1 % | £0.7580 | £0.7571 | 132.00 USDT | £0.0900 | +£0.0288'];
       if (tp && tp.title === TW1200.name && tp.modals === 2 && tp.head === 'PAPER Revolut X' && tp.status === 'running' && tp.tested === 'tested 1d 7h' && tp.livePages === 0 && tp.paperPage === 0
-        && tp.scoreboard === 'FUNDED=£1,200 | DEPLOYED=£999.14(83.26%) | TODAY [(loss stop -£12)]=+£0.23(+0.02%) | UNREALIZED G/L=-£0.13(-0.02%) | REALIZED G/L [(incl. fees £0.18)]=-£0.03(0%)'
+        && tp.scoreboard === 'FUNDED=£1,200 | DEPLOYED=£999.14(83.26%) | TODAY [(loss stop -£12)]=-£0.06(-0.01%) | UNREALIZED G/L=-£0.13(-0.02%) | REALIZED G/L [(incl. fees £0.18)]=-£0.03(0%)'
         && tp.twinLines.length === 0 && tp.warns.length === 0
         && tp.sections.join(',') === 'BOOKS,INVENTORY,DAYS,ROUND TRIPS,EXIT ORDERS,ENTRY ORDERS' && tp.conversions.length === 0 && tp.cards.length === 2 && tp.cards.every((c) => c.ladder.length === 3)
         && tp.cards[0].ladder.join(' / ') === '0.1 % | £0.7569 | £0.7585 / 0.2 % | £0.7561 | held £0.7591 +£0.2112 / 0.3 % | £0.7553 | £0.7600'
@@ -4828,7 +4829,7 @@ async function run() {
       if (opened(p0) === 'live' && barText(p0) === `LIVE 1 Real money · trading armed / ${TESTING_BAR}` && pNames.join(',') === 'Stablecoin quotes USDT/GBP'
         // In dollars, LIVE's adding up: £999.14 at work (£599.14 of coins at the index and £400.00 in buys), £0.227106
         // today, -£0.1330 unrealised, -£0.0345 realised with £0.1797 of fees, at 1.32.
-        && sb0 === 'FUNDED=$1,584 | DEPLOYED=$1,319(83.26%) | TODAY=+$0.30(+0.02%) | UNREALIZED G/L=-$0.18(-0.02%) | REALIZED G/L [(incl. fees $0.24)]=-$0.05(0%)') {
+        && sb0 === 'FUNDED=$1,584 | DEPLOYED=$1,319(83.26%) | TODAY=-$0.08(-0.01%) | UNREALIZED G/L=-$0.18(-0.02%) | REALIZED G/L [(incl. fees $0.24)]=-$0.05(0%)') {
         ok(T('pr5-live'), `PR5 trading real money is LIVE's row, and LIVE opens on it: ${sb0}`);
       } else fail(T('pr5-live'), `open ${opened(p0)}, bar ${barText(p0)}, rows ${pNames.join(',')}, scoreboard ${sb0}`);
 
@@ -4868,7 +4869,7 @@ async function run() {
       // 132 / 395.6436 of £0.2698 (£0.0900); unrealised is the coins at the index against their cost, -£0.1330.
       const sameAsRow = !!lp && liveRowGl.length === 3 && /TODAY[^=]*=([^|]+)/.exec(lp.scoreboard)?.[1].trim() === liveRowGl[0].replace(/\s+/g, '')
         && /UNREALIZED G\/L=([^|]+)/.exec(lp.scoreboard)?.[1].trim() === liveRowGl[1].replace(/\s+/g, '') && /\| REALIZED G\/L[^=]*=(.+)$/.exec(lp.scoreboard)?.[1].trim() === liveRowGl[2].replace(/\s+/g, '');
-      if (lp?.scoreboard === 'FUNDED=£1,200 | DEPLOYED=£999.14(83.26%) | TODAY [(loss stop -£12)]=+£0.23(+0.02%) | UNREALIZED G/L=-£0.13(-0.02%) | REALIZED G/L [(incl. fees £0.18)]=-£0.03(0%)' && sameAsRow) {
+      if (lp?.scoreboard === 'FUNDED=£1,200 | DEPLOYED=£999.14(83.26%) | TODAY [(loss stop -£12)]=-£0.06(-0.01%) | UNREALIZED G/L=-£0.13(-0.02%) | REALIZED G/L [(incl. fees £0.18)]=-£0.03(0%)' && sameAsRow) {
         ok(T('pr5-page'), `its scoreboard is its LIVE row's figures, in pounds, the conversion fee D used among its fees: ${lp.scoreboard}`);
       } else fail(T('pr5-page'), `live page scoreboard "${lp?.scoreboard}", LIVE row ${JSON.stringify(liveRowGl)}`);
       // Davies, 2026-10-01: no STATUS tiles, guard lines, inventory note, FILLS or EVENTS; the paper page's BOOKS in place of
@@ -5533,7 +5534,7 @@ async function run() {
         // By hand: DEPLOYED 106.81 USDC at 0.7477 and the bid resting for 26.84 at 0.7451, £99.86 of £120; TODAY B's -£0.05002 and
         // C's +£0.048258 marked (-£0.001762, £0 to the penny); UNREALIZED the top-up's 80 × 0.0004 and C's 26.81 × 0.0018 on a cost of
         // £79.78; REALIZED -£0.00985. BOOKS' ladder: C held at 0.7459, +£0.0483 at fair; the three entries resting; two rungs idle.
-        const SB = 'FUNDED=£120 | DEPLOYED=£99.86(83.22%) | TODAY [(loss stop -£1.20)]=£0(0%) | UNREALIZED G/L=+£0.08(+0.10%) | REALIZED G/L [(incl. fees £0.01)]=-£0.01(-0.01%)';
+        const SB = 'FUNDED=£120 | DEPLOYED=£99.86(83.22%) | TODAY [(loss stop -£1.20)]=-£0.05(-0.04%) | UNREALIZED G/L=+£0.08(+0.10%) | REALIZED G/L [(incl. fees £0.01)]=-£0.01(-0.01%)';
         const LADDER = ['0.1 % | idle | £0.7487', '0.2 % | held £0.7459 +£0.0483 | idle', '0.3 % | £0.7451 | £0.7502'];
         const annual = `- 7-day realised, annualised +${((0.04017 / 120) * (365 / 2) * 100).toFixed(1)}%`;
         if (cv && cv.title === NAME && cv.modals === 2 && cv.head === 'LIVE Coinbase' && cv.livePages === 0 && cv.paperPage === 0) {

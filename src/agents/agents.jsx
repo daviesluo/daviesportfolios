@@ -10,6 +10,7 @@
 // formats. Two tabs at the top, LIVE and TESTING, each with its own
 // scoreboard, venues and table (Davies, 2026-09-24); a tab's headline is
 // its realised G/L, the way the transaction history leads with the book's.
+import { onBoardRefresh } from '../app/refresh_bus.js';
 import React from 'react';
 import { Modal } from '../board/modals.jsx';
 import { SurfaceBoundary } from '../app/surface_boundary.jsx';
@@ -26,6 +27,11 @@ import {
 const UK_TZ = ukTzAbbr(new Date());
 
 const REFRESH_MS = 60_000;
+/**
+ * The board's own tick refreshes this page when its answer is at least this much short of a minute old (`onBoardRefresh`): the
+ * board ticks every 30 s in the week, so the page refreshes with every other tick, on the board's beat, and never twice a minute.
+ */
+export const BOARD_SYNC_MS = REFRESH_MS - 20_000;
 
 /**
  * Refresh, then close — the same pair on the list and on every page opened
@@ -1305,11 +1311,40 @@ const COLUMNS = [
  * title.
  */
 /** A name on two lines when it has a qualifier: the variant's "variant-N", or a bracketed one. */
+/**
+ * Text with each "↔" drawn as an arrow (2026-10-30: "Stablecoin quotes RX↔Coinbase hedge" read "RX=Coinbase" in the table). The site's
+ * own fonts carry no U+2194 (Google's Latin subset of Inter and JetBrains Mono, `app/fonts.css`, has ↑ and ↓ but not ↔), so the
+ * character fell to whatever monospace the system had, where at that size it is two bars. The character stays in the text, so it is
+ * copied, read aloud and matched by name; the drawing stands where it is, at the text's size and colour.
+ * @param {{ text: string }} props
+ */
+export function Glyphs({ text }) {
+  const parts = String(text).split('\u2194');
+  if (parts.length === 1) return <>{text}</>;
+  return (
+    <>
+      {parts.map((p, i) => (
+        <React.Fragment key={i}>
+          {i > 0 && (
+            <span className="ag-lr">
+              <span className="ag-lr-ch">{'\u2194'}</span>
+              <svg className="ag-lr-svg" viewBox="0 0 22 12" aria-hidden="true" focusable="false">
+                <path d="M2 6H20M6 2L2 6L6 10M16 2L20 6L16 10" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </span>
+          )}
+          {p}
+        </React.Fragment>
+      ))}
+    </>
+  );
+}
+
 function NameText({ name }) {
   const { head, qual, twoLines } = strategyNameParts(name);
-  if (!qual) return <>{name}</>;
-  if (twoLines) return <><span className="ag-name-head">{head}</span> <span className="ag-name-qual">{qual}</span></>;
-  return <>{head} <span className="ag-name-qual">{qual}</span></>;
+  if (!qual) return <Glyphs text={name} />;
+  if (twoLines) return <><span className="ag-name-head"><Glyphs text={head} /></span> <span className="ag-name-qual"><Glyphs text={qual} /></span></>;
+  return <><Glyphs text={head} /> <span className="ag-name-qual"><Glyphs text={qual} /></span></>;
 }
 
 function NameCell({ r, m, onOpen }) {
@@ -1962,11 +1997,24 @@ function AgentsModal({ hideValues, onClose }) {
     fire();
     schedule();
     if (typeof document !== 'undefined') document.addEventListener('visibilitychange', onVisibility);
+    // The board's refresh is this page's too (Davies, 2026-10-30: "网页主页刷新时agent页和所有子策略页也同步刷新"), and every page opened
+    // over the list with it, since they all draw the one dashboard this page holds: its ↻ or `r` asks anew, as this page's ↻ does;
+    // its tick refreshes the page when the answer is near a minute old (`BOARD_SYNC_MS`). Either way this page's own clock starts again
+    // from it, so the two never call twice in a minute.
+    const offBoard = onBoardRefresh(({ manual }) => {
+      if (cancelled) return;
+      if (!manual && Date.now() - last < BOARD_SYNC_MS) return;
+      load(manual);
+      last = Date.now();
+      if (timer) clearTimeout(timer);
+      schedule();
+    });
     // The data comes once a minute; the CLOCK moves faster, so "seen 40 s
     // ago" creeps instead of jumping a minute at a time.
     const tick = setInterval(() => setNow(Date.now()), TICK_MS);
     return () => {
       cancelled = true;
+      offBoard();
       if (timer) clearTimeout(timer);
       clearInterval(tick);
       if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVisibility);

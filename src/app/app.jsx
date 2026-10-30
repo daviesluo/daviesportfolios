@@ -1,4 +1,5 @@
 // Main portfolio tactics board app
+import { announceBoardRefresh } from './refresh_bus.js';
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { fmtMoney, fmtPct, fmtPrice, pctColor } from './formatters.js';
 import { fxToUSD } from '../portfolio/fx.js';
@@ -606,6 +607,7 @@ function Board({ isReadOnly }) {
       if (tgt?.isContentEditable) return;
       if (e.key === 'r' || e.key === 'R') {
         e.preventDefault();
+        announceBoardRefresh(true);
         doRefreshRef.current?.();
       } else if (e.key === 'e' || e.key === 'E') {
         if (isReadOnly) return;
@@ -1233,7 +1235,12 @@ function Board({ isReadOnly }) {
   const doRefreshRef = useRef(doRefresh);
   useEffect(() => { doRefreshRef.current = doRefresh; }, [doRefresh]);
   // The refresh button also tells the performance panel to fetch its whole window again, whatever its age.
-  const refreshFromButton = useCallback((/** @type {any} */ e) => { setChartForceKey((n) => n + 1); return doRefresh(e); }, [doRefresh]);
+  // The Agents page, and every strategy page opened over it, refresh with the board (refresh_bus.js; Davies, 2026-10-30):
+  // the button and `r` announce a refresh asked for by hand, the 30 s tick (and the return to the tab) the board's own.
+  // The load's refreshes and the error retry announce nothing: a page opened while the app is still loading has just
+  // fetched (or joined the app's fetch), and a second ask then was a second dashboard request on every open after a
+  // reload (sweep agents-reload/open, 2026-10-30).
+  const refreshFromButton = useCallback((/** @type {any} */ e) => { setChartForceKey((n) => n + 1); announceBoardRefresh(true); return doRefresh(e); }, [doRefresh]);
 
   // Fires the "real load landed after a cache-primed first paint" extra
   // refresh queued by the mount-load effect above (see its comment).
@@ -1317,6 +1324,7 @@ function Board({ isReadOnly }) {
           schedule();
           return;
         }
+        announceBoardRefresh(false);
         doRefreshRef.current({ prefetch: false });
         lastRefreshMs = Date.now();
         schedule();
@@ -1331,6 +1339,7 @@ function Board({ isReadOnly }) {
       if (typeof document === 'undefined' || document.visibilityState !== 'visible') return;
       const intervalMs = isWeekendDeadZone(new Date()) ? REFRESH_MS_WEEKEND : REFRESH_MS;
       if (Date.now() - lastRefreshMs >= intervalMs) {
+        announceBoardRefresh(false);
         doRefreshRef.current({ prefetch: false });
         lastRefreshMs = Date.now();
       }

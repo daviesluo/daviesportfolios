@@ -1,9 +1,10 @@
 // "Stablecoin quotes RX↔Coinbase hedge" and "… - 1" on the page, each venue's half apart (xhedge_page.ts; Davies, 2026-10-30: "…按实际两个
 // 币所的funded和deployed和营收分别放在两个各自的里面去"). Pins, worked by hand: each venue's FUNDED, DEPLOYED, REALIZED (Revolut X's leg
 // the trip's P&L before Coinbase's fee, Coinbase's leg less the fee), UNREALIZED and TODAY, and Revolut X's half plus Coinbase's
-// equal to the arm to the bit; TODAY on the first day and with no balances at 00:00; then on the driver's own record.
+// equal to the arm to the bit; TODAY the round trips hedged today, split by leg, the DAYS' today (Davies, 2026-10-30); then on the
+// driver's own record.
 import { assertAlmostEquals, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { XH_VENUES, type XhOpenRow, type XhTripMoney, type XhView, readXhedgePage, xhHeldAt, xhPageMoney, xhRealisedByVenue } from "./xhedge_page.ts";
+import { XH_VENUES, type XhTripMoney, type XhView, readXhedgePage, xhPageMoney, xhRealisedByVenue } from "./xhedge_page.ts";
 import { runXhedge, XH_ARMS, XH_BOOKS } from "./xhedge.ts";
 import { memDb } from "./testing.ts";
 
@@ -36,15 +37,8 @@ const trips: XhTripMoney[] = [
   { pnl_gbp: 0.45, fee_gbp: 0.009, t_hedge: iso(DAY0 + 300e3) },
 ];
 
-// At 23:59: USDT-GBP Revolut X £500 + 400 coins, Coinbase £300 + 400 coins; USDC-GBP Revolut X £500, Coinbase 666 coins; mids 0.75.
-// Revolut X held £800 + £500 = £1,300; Coinbase £600 + £499.50 = £1,099.50.
-const open: XhOpenRow[] = [
-  { book: "USDT-GBP", rx_bid: 0.7499, rx_ask: 0.7501, rx_gbp: 500, rx_coin: 400, cb_gbp: 300, cb_coin: 400 },
-  { book: "USDC-GBP", rx_bid: 0.7495, rx_ask: 0.7505, rx_gbp: 500, rx_coin: 0, cb_gbp: 0, cb_coin: 666 },
-];
-
 Deno.test("each venue's half: FUNDED £1,200, DEPLOYED its coin (and Revolut X's bids), REALIZED by leg, UNREALIZED and TODAY; the two sum to the arm", () => {
-  const p = xhPageMoney(view, open, DAY0, trips);
+  const p = xhPageMoney(view, DAY0, trips);
   const [rx, cb] = p.byVenue;
   assertEquals([rx.id, cb.id, rx.capitalGbp, cb.capitalGbp, p.venues], ["revx", "coinbase", 1200, 1200, ["revx", "coinbase"]]);
   assertEquals([rx.heldGbp, cb.heldGbp], [1225, 1176.3]);
@@ -55,11 +49,13 @@ Deno.test("each venue's half: FUNDED £1,200, DEPLOYED its coin (and Revolut X's
   assertAlmostEquals(cb.realisedGbp, -0.0135, 1e-12);
   assertAlmostEquals(rx.unrealisedGbp, 23.9365, 1e-9);            // £1,225 − £1,200 − £1.0635
   assertAlmostEquals(cb.unrealisedGbp, -23.6865, 1e-9);           // £1,176.30 − £1,200 + £0.0135
-  assertEquals([rx.todayGbp, cb.todayGbp], [1225 - 1300, 1176.3 - 1099.5]);   // −£75, +£76.80
+  // TODAY: the trip hedged today, by leg (£0.459 and −£0.009): today's realised, as DAYS has it.
+  assertAlmostEquals(rx.todayGbp, 0.459, 1e-12);
+  assertAlmostEquals(cb.todayGbp, -0.009, 1e-12);
   assertEquals(rx.feesGbp, 0);                                    // Revolut X's maker fee is 0 %
   assertAlmostEquals(cb.feesGbp, 0.0135, 1e-12);
   // The arm is the two halves summed, to the bit, and those are the arm's own figures: FUNDED £2,400, DEPLOYED £955, REALIZED
-  // £1.05, UNREALIZED £0.25, TODAY £2,401.30 − £2,399.50 = £1.80.
+  // £1.05, UNREALIZED £0.25, TODAY the £0.45 trip closed today, the view's own `todayGbp`.
   for (const [k, a, b] of [["capitalGbp", "capitalGbp", "capitalGbp"], ["valueGbp", "deployedGbp", "deployedGbp"], ["realisedGbp", "realisedGbp", "realisedGbp"],
     ["unrealisedGbp", "unrealisedGbp", "unrealisedGbp"], ["todayGbp", "todayGbp", "todayGbp"], ["feesGbp", "feesGbp", "feesGbp"], ["heldGbp", "heldGbp", "heldGbp"],
     ["capitalUsd", "capitalUsd", "capitalUsd"], ["valueUsd", "deployedUsd", "deployedUsd"], ["realisedUsd", "realisedUsd", "realisedUsd"],
@@ -70,34 +66,33 @@ Deno.test("each venue's half: FUNDED £1,200, DEPLOYED its coin (and Revolut X's
   assertAlmostEquals(p.valueGbp, 955, 1e-6);
   assertAlmostEquals(p.realisedGbp, 1.05, 1e-12);
   assertAlmostEquals(p.unrealisedGbp, 0.25, 1e-9);
-  assertAlmostEquals(p.todayGbp, 1.8, 1e-9);
+  assertAlmostEquals(p.todayGbp, 0.45, 1e-12);
+  assertAlmostEquals(p.todayGbp, Number(view.todayGbp), 1e-12);
   assertAlmostEquals(p.capitalUsd, 3120, 1e-9);
   assertAlmostEquals(rx.capitalUsd, 1560, 1e-9);
   assertAlmostEquals(p.valueUsd, 1241.5, 1e-6);
   assertEquals(p.twin.venueNotes, [
-    "Revolut X: £1,200.00 funded, £400.00 deployed (coin £225.00, resting bids £175.00); realised +£1.06, unrealised +£23.94, today −£75.00",
-    "Coinbase: £1,200.00 funded, £555.00 deployed (coin £555.00); realised −£0.01, unrealised −£23.69, today +£76.80",
+    "Revolut X: £1,200.00 funded, £400.00 deployed (coin £225.00, resting bids £175.00); realised +£1.06, unrealised +£23.94, today +£0.46",
+    "Coinbase: £1,200.00 funded, £555.00 deployed (coin £555.00); realised −£0.01, unrealised −£23.69, today −£0.01",
   ]);
   assertEquals([...XH_VENUES], ["revx", "coinbase"]);
-  assertEquals(xhHeldAt(open), { revx: 1300, coinbase: 1099.5 });
   assertEquals(xhRealisedByVenue([]), { revx: 0, coinbase: 0 });
 });
 
-Deno.test("TODAY: on the first day each venue against its FUNDED; with no balances at 23:59 the trips closed today, split by leg", () => {
-  const first = xhPageMoney({ ...view, twin: { ...view.twin, startedAt: iso(DAY0) } } as XhView, [], DAY0, trips);
-  assertEquals(first.byVenue.map((x) => x.todayGbp), [25, 1176.3 - 1200]);
-  assertAlmostEquals(first.todayGbp, 1.3, 1e-9);
-  const dark = xhPageMoney(view, [], DAY0, trips);
-  assertAlmostEquals(dark.byVenue[0].todayGbp, 0.459, 1e-12);
-  assertAlmostEquals(dark.byVenue[1].todayGbp, -0.009, 1e-12);
-  assertAlmostEquals(dark.todayGbp, 0.45, 1e-12);               // the trip closed today
-  assertAlmostEquals(xhPageMoney(view, open.slice(0, 1), DAY0, trips).todayGbp, 0.45, 1e-12);   // one book's balances are not the arm's
-  assertEquals(xhHeldAt([{ ...open[0], rx_bid: null }]), null);
+Deno.test("TODAY is the round trips hedged today on every day, the first one too: never the balances' move since 00:00 (UNREALIZED's)", () => {
+  const first = xhPageMoney({ ...view, twin: { ...view.twin, startedAt: iso(DAY0) } } as XhView, DAY0, trips);
+  const later = xhPageMoney(view, DAY0, trips);
+  for (const p of [first, later]) {
+    assertAlmostEquals(p.byVenue[0].todayGbp, 0.459, 1e-12);
+    assertAlmostEquals(p.byVenue[1].todayGbp, -0.009, 1e-12);
+    assertAlmostEquals(p.todayGbp, 0.45, 1e-12);
+  }
+  assertEquals(xhPageMoney(view, DAY0, trips.slice(0, 1)).todayGbp, 0);   // nothing hedged today
   // A book not open yet holds its funding on each venue.
   const one = { ...view, detail: { ...view.detail, inventory: { ...view.detail.inventory, assets: (view.detail.inventory.assets as Array<{ asset: string }>).filter((a) => !a.asset.startsWith("USDC")) } } } as XhView;
-  assertEquals(xhPageMoney(one, [], DAY0, []).byVenue.map((x) => x.heldGbp), [1000 + 75 + 600, 621.3 + 300 + 600]);
+  assertEquals(xhPageMoney(one, DAY0, []).byVenue.map((x) => x.heldGbp), [1000 + 75 + 600, 621.3 + 300 + 600]);
   // No rate yet: the dollars are 0.
-  assertEquals(xhPageMoney({ ...view, capitalUsd: 0 } as XhView, open, DAY0, trips).valueUsd, 0);
+  assertEquals(xhPageMoney({ ...view, capitalUsd: 0 } as XhView, DAY0, trips).valueUsd, 0);
 });
 
 Deno.test("on the driver's own record: both arms, each venue £1,200, its halves summing to the arm, Coinbase's realised its fees", async () => {
@@ -123,8 +118,9 @@ Deno.test("on the driver's own record: both arms, each venue £1,200, its halves
   for (const p of pages) {
     const [rx, cb] = p.byVenue;
     assertEquals([p.valueGbp, p.realisedGbp, p.unrealisedGbp, p.todayGbp], [rx.deployedGbp + cb.deployedGbp, rx.realisedGbp + cb.realisedGbp, rx.unrealisedGbp + cb.unrealisedGbp, rx.todayGbp + cb.todayGbp]);
-    assertAlmostEquals(rx.todayGbp, rx.heldGbp - 1200.2, 1e-6);
-    assertAlmostEquals(cb.todayGbp, cb.heldGbp - 1200.2, 1e-6);
+    // TODAY is today's realised (every trip here closed today), the view's own and its DAYS' today: one number.
+    assertAlmostEquals(rx.todayGbp, rx.realisedGbp, 1e-12);
+    assertAlmostEquals(cb.todayGbp, cb.realisedGbp, 1e-12);
     assertEquals(cb.deployedGbp, cb.coinGbp);
   }
   // The inside arm's one trip: bought 133.315557926 at 0.7501, sold at 0.7504 less 0.45 bps. Revolut X's leg made 3 ticks on it,

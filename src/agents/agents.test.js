@@ -1479,12 +1479,14 @@ describe("the live quotes' own page (Davies, 2026-10-01: LIVE's row opened the p
     const r = /** @type {any} */ (quotesLiveRow(q));
     expect([r.capitalUsd, r.openPositions, r.openOrders]).toEqual([1584, 2, 7]);
     expect([r.todayUsd, r.unrealisedUsd, r.realisedUsd, r.feesUsd, r.valueUsd]).toEqual([q.todayUsd, q.unrealisedUsd, q.realisedUsd, q.feesUsd, q.valueUsd]);
-    expect(r.todayUsd).toBeCloseTo((0.1056 + 0.198 - 0.168894 + 0.0924) * 1.32, 12);
-    // …and in pounds, what the page shows: TODAY is what the executor's loss stop reads; the fees are the stop's and D's
-    // share of the USDT conversion's fee (it sold 132 of the 395.6436 coins that conversion bought).
+    expect(r.todayUsd).toBeCloseTo((0.1056 - 0.168894) * 1.32, 12);
+    // …and in pounds, what the page shows: TODAY is today's realised, A and C's stop, the figure DAYS shows for today (Davies,
+    // 2026-10-30: one number on one screen; B's and E's marks are UNREALIZED's); the fees are the stop's and D's share of the
+    // USDT conversion's fee (it sold 132 of the 395.6436 coins that conversion bought).
     const x = rowMoney(r);
     expect([x.ccy, x.capital]).toEqual(['GBP', 1200]);
-    expect(x.today).toBeCloseTo(0.1056 + 0.198 - 0.168894 + 0.0924, 12);
+    expect(x.today).toBeCloseTo(0.1056 - 0.168894, 12);
+    expect(x.today).toBeCloseTo(q.detail.days.find((/** @type {any} */ d) => d.today).realisedGbp, 12);
     expect(x.fees).toBeCloseTo(0.089694 + 132 * 0.2697948 / 395.6436, 12);
   });
 });

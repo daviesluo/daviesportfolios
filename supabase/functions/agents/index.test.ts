@@ -8,7 +8,7 @@ import {
   STATE_VOCAB, strategyBooks, SYMBOLS, probeSummary, quotesDelayMs, quotesSummary, quoteDays, QUOTES_CAPITAL_USD, QUOTES_RECENT_TRIPS, tickErrorReport, crashReport, type ProbeSummaryRow,
   REVX_KEY_NAMES, REVX2_PROBE_SYMBOLS, runProbe, PROBE_PARTS, newestDecisions, quotesLiveSummary, type QuoteLiveOrderView, quotesVariantSummary, quotesRuledSummary,
   serveRequest, type ServeDeps, type Who,
-  exitOverbuy, twinBookRatio, quoteRungsTraded, liveBookGbp, liveCoinBooks, conversionSales, liveConversionShares, liveIndexPrices, liveOrderReason, liveRestingBuysGbp, liveRungs, liveRungTrips, quotesLiveDetail, dayCapitalGbp, tripEnds, QUOTE_LIVE_ORDER_COLUMNS,
+  exitOverbuy, venueAsks, twinBookRatio, quoteRungsTraded, liveBookGbp, liveCoinBooks, conversionSales, liveConversionShares, liveIndexPrices, liveOrderReason, liveRestingBuysGbp, liveRungs, liveRungTrips, quotesLiveDetail, dayCapitalGbp, tripEnds, QUOTE_LIVE_ORDER_COLUMNS,
   QUOTE_TICKER_FRESH_MS,
   QUOTE_LIVE_REASON_COLUMNS, QUOTE_LIVE_SUMMARY_COLUMNS, QUOTES_LIVE_KNOWN_REFUSALS, QUOTES_LIVE_ORDERS_FILTER, QUOTES_LIVE_PAGE_ROWS, type QuoteLiveRecentRow, withConversionFees,
   liveDays, readQuotesTwin, twinInUsd, twinsDelayMs, twinsOnPage, TWINS_START_MS,
@@ -938,7 +938,7 @@ Deno.test("quotesLiveSummary: PR5's real-money book from its live fills, in USD 
   assertEquals(r.lossStopGbp, -0.5);                                                    // 1 % of £50
   assertAlmostEquals(r.realisedUsd!, 0.01 * 1.35, 1e-12);
   assertAlmostEquals(r.unrealisedUsd!, 5 * (0.739 - 0.737) * 1.35, 1e-12);
-  assertAlmostEquals(r.todayUsd!, (0.01 + 5 * (0.739 - 0.737)) * 1.35, 1e-12);        // the loss stop's own figure
+  assertAlmostEquals(r.todayUsd!, 0.01 * 1.35, 1e-12);        // today's realised; the holding's mark is UNREALIZED's, not TODAY's
   // No conversion and no balances read: the coins are the book's own count, the 5 the bid holds, at what they cost.
   assertAlmostEquals(r.costUsd!, 5 * 0.737 * 1.35, 1e-12);
   assertAlmostEquals(r.valueUsd!, 5 * 0.739 * 1.35, 1e-12);
@@ -985,8 +985,11 @@ Deno.test("quotesLiveDetail: the live executor's own page, for a book worked out
   const shareD = 132 * 0.2697948 / 395.6436;
   const A = 0.1056, C = -0.168894, D = 0.1188 - shareD;
   assertAlmostEquals(row.realisedUsd!, (A + C + D) * x, 1e-12);
-  assertAlmostEquals(row.todayUsd!, (A + C + 0.198 + 0.0924) * x, 1e-12);          // A, C's stop and both holdings: the stop's 0.227106
-  assertAlmostEquals(row.todayUsd! / x, f.state.state.dayPnlGbp, 1e-12);
+  // TODAY is today's realised, A and C's stop (Davies, 2026-10-30: the scoreboard's TODAY and DAYS' today are one number); the
+  // executor's loss stop reads its own figure, with both holdings marked too (0.227106, its state's `dayPnlGbp`).
+  assertAlmostEquals(row.todayUsd!, (A + C) * x, 1e-12);
+  assertAlmostEquals(row.todayGbp, d.days.find((y) => y.today)!.realisedGbp, 1e-12);
+  assertAlmostEquals(A + C + 0.198 + 0.0924, f.state.state.dayPnlGbp, 1e-12);
   assertAlmostEquals(row.feesUsd!, (0.089694 + shareD) * x, 1e-12);
   // What it holds is the account's coins against their cost: USDC 263.6436 (the conversion's less B's 132 short), cost
   // £299.9304 less what B sold for; USDT 527.6436 (the conversion's and E's 132), cost £299.772 less D's booked share plus
@@ -1770,4 +1773,19 @@ Deno.test("quoteRungsTraded: the books an instance trades and, on each, the rung
   assertEquals(quoteRungsTraded(QUOTE_LIVE_INSTANCE, QUOTE_LIVE_USDT_ONLY_FROM), { "USDT-GBP": [0.001, 0.002, 0.003] });
   // A rung retired on one side only still quotes on the other, so it is drawn.
   assertEquals(quoteRungsTraded({ rungs: [0.001, 0.003], weights: { from: 0, side: { bid: 1, ask: 1 }, k: { "0.003": 0 }, book: { "USDT-GBP": 0 } } } as never, 1), { "USDC-GBP": [0.001] });
+});
+
+Deno.test("venueAsks: the dashboard asks the venues only for the rows on the page; every row retired and flat asks nothing (2026-10-30)", () => {
+  // deno-lint-ignore no-explicit-any
+  const r = (mode: string, retired: string | null, venue = "revx") => ({ ...row(mode, retired), venue } as any);
+  const flat = [fill(1, "paper", "buy", 0.04, 400, DAY - 2 * 86400e3), fill(2, "paper", "sell", 0.04, 450, DAY - 86400e3)];
+  // Retired and flat (every row of the loop since 0158): nothing asked.
+  let a = venueAsks([r("paused", "2026-10-28T00:00:00Z")], flat, DAY);
+  assertEquals([a.onPage.size, a.symbolsByVenue.size], [0, 0]);
+  // Retired but still holding: its symbols, as its exits still run.
+  a = venueAsks([r("paused", "2026-10-28T00:00:00Z")], flat.slice(0, 1), DAY);
+  assertEquals([[...a.onPage], [...a.symbolsByVenue].map(([v, s]) => [v, [...s]])], [["row"], [["revx", ["BTC/USD"]]]]);
+  // An active row: its symbols, whatever it holds.
+  a = venueAsks([r("paper", null, "kraken")], [], DAY);
+  assertEquals([...a.symbolsByVenue].map(([v, s]) => [v, [...s]]), [["kraken", ["BTC/USD"]]]);
 });

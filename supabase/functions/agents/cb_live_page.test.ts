@@ -31,7 +31,10 @@ Deno.test("its figures match the record worked by hand, and the page's parts add
   close(o.unrealisedGbp, 80 * 0.0004 + 26.81 * 0.0018);
   close(o.costGbp, 80 * 0.7473 + 26.81 * 0.7459);
   close(o.valueGbp, 106.81 * 0.7477 + 26.84 * 0.7451);
-  close(o.todayGbp, -(26.68 * 0.0015 + 0.01) + 26.81 * 0.0018);
+  // TODAY is today's realised, B's stop on 17 Sep (Davies, 2026-10-30): the figure DAYS shows for today, never C's mark as well
+  // (it was -(26.68 × 0.0015 + 0.01) + 26.81 × 0.0018, the loss stop's reading; C's mark is UNREALIZED's).
+  close(o.todayGbp, -(26.68 * 0.0015 + 0.01));
+  close(o.todayGbp, o.detail.days.find((x) => x.today)!.realisedGbp);
   assertEquals([o.feesGbp, o.heldRungs, o.openOrders, o.lossStopGbp, o.capitalGbp, o.running, o.tradedLive, o.armed], [0.01, 1, 4, -1.2, 120, true, true, true]);
   const d = o.detail;
   // BOOKS: one book, its six rungs: C held with its exit resting, three entries quoting, two idle.

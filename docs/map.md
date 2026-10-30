@@ -515,6 +515,7 @@ Startup, the root component, sign-in, what the browser keeps, error reports, and
 |---|---|
 | `app/main.jsx` | Mounts `<App>` and registers the service worker. |
 | `app/app.jsx` | `<App>`, the password gate, and `<Board>`, the whole UI: portfolio state, the refresh loop, which modal is open. The first paint is the cached portfolio at the prices it last showed; the server's copy replaces the book, the live quotes the prices. |
+| `app/refresh_bus.js` | The board's refresh announced on a window event, so the Agents page and the strategy pages opened over it refresh with it. |
 | `app/auth.js` | Turns a password into a signed token: reads `?pwd=` once and strips it, calls the `auth` function, reuses a valid token from the session. |
 | `app/supabase_config.js` | The Supabase URL, the public anon key and each Edge Function's URL. |
 | `app/storage.js` | Everything the browser keeps under `dp.*`, with one schema version and its migrations, including the portfolio, prices, dividends and 24H chart a reload paints first. |

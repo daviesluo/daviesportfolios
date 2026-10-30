@@ -314,6 +314,9 @@ const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-app-token",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  // A browser asks again before every call without this (`x-app-token` makes each call a preflighted one): about 100 ms each, and
+  // up to 10 s when the function is cold (2026-10-29/30's logs). Chrome keeps it two hours at most, Firefox a day.
+  "Access-Control-Max-Age": "7200",
 };
 
 /** First non-empty of several spellings — the secrets store keeps whatever case a person typed. */
@@ -1763,18 +1766,21 @@ export function liveCoinBooks(orders: QuoteLiveOrderView[], rungs: LiveRung[], b
 }
 
 /**
- * The live book's totals in GBP: realised, fees and today added up rung by rung in the walk's order (TODAY is what the
- * executor's loss stop reads); what it holds — deployed, its cost and its unrealised — the coins of `liveCoinBooks`. What a
- * conversion's sale realised (`conversionSales`) is in realised, and in today on the day it filled; the executor's loss stop
- * counts the rungs alone, so on such a day TODAY differs from the stop's figure by that sale.
+ * The live book's totals in GBP: realised, fees and today added up rung by rung in the walk's order; what it holds — deployed,
+ * its cost and its unrealised — the coins of `liveCoinBooks`. What a conversion's sale realised (`conversionSales`) is in
+ * realised, and in today on the day it filled. TODAY is today's realised, the figure DAYS shows for today (`liveDays`, the
+ * same rungs' `realisedTodayGbp` and the same sales): Davies, 2026-10-30, "策略子页面的scoreboard today的金额和days列表中today的
+ * realised的金额不一致的问题也解决下". It was the executor's loss-stop figure, which also counts what the rungs hold at their
+ * mark; that move is UNREALIZED's, and the stop reads its own figure in quotes_live.ts (`stopTodayGbp` here, for the record).
  */
 export function liveBookGbp(rungs: LiveRung[], coins: LiveCoinBook[]) {
-  let realised = 0, today = 0, fees = 0, heldRungs = 0, unmarked = 0;
+  let realised = 0, today = 0, fees = 0, heldRungs = 0, unmarked = 0, marked = 0;
   for (const r of rungs) {
     if (!r.fills.length) continue;
     realised += r.rb.realisedGbp;
     fees += r.fills.reduce((a, f) => a + f.feeGbp, 0);
-    today += r.rb.realisedTodayGbp + r.marked;
+    today += r.rb.realisedTodayGbp;
+    marked += r.marked;
     if (r.held) {
       heldRungs++;
       if (r.mark == null) unmarked++;
@@ -1787,16 +1793,15 @@ export function liveBookGbp(rungs: LiveRung[], coins: LiveCoinBook[]) {
   const unrealised = coins.reduce((a, c) => a + (c.unrealisedGbp ?? 0), 0);
   const cost = coins.reduce((a, c) => a + c.costGbp, 0), value = coins.reduce((a, c) => a + c.valueGbp, 0);
   unmarked += coins.filter((c) => c.unrealisedGbp == null && c.coins > 0).length;
-  return { realised, today, unrealised, cost, value, fees, heldRungs, unmarked };
+  return { realised, today, stopToday: today + marked, unrealised, cost, value, fees, heldRungs, unmarked };
 }
 
 /**
  * PR5's live executor (`quotes_live.ts`, `0052`) for the page. In dry-run it only says so, and what it would have sent
  * today. Once it has sent a real order, the book it trades: each rung's fills by the executor's own `rungBook`, marked by
- * its own `markedGbp` at the paper engine's last print, as the paper rungs are; TODAY is the figure the executor's own
- * daily loss stop reads (realised today plus what is held, marked), as a strategy row's is its own loss limit's, less
- * the conversion fees of the trips that closed today, which the stop leaves out (`withConversionFees`: a fee a person's
- * top-up paid, under a penny a rung). Its fees and realised carry those conversion fees too. GBP becomes USD at the
+ * its own `markedGbp` at the paper engine's last print, as the paper rungs are; TODAY is today's realised, the figure its
+ * DAYS shows for today (`liveBookGbp`), with the conversion fees of the trips that closed today (`withConversionFees`: a fee
+ * a person's top-up paid, under a penny a rung). Its fees and realised carry those conversion fees too. GBP becomes USD at the
  * paper books' last GBP/USD, so LIVE can add it to the strategies.
  */
 export function quotesLiveSummary(input: {
@@ -2418,6 +2423,20 @@ export async function readGrokPmJournal(d: Db, beforeIso: string, skip: string[]
   return grokPmJournalPage({ decisions, skip: ids, limit, markets, entries });
 }
 
+/**
+ * What the dashboard asks the venues (2026-10-30): the rows on the page (a retired row only while it holds something, which
+ * `strategyBooks` reads from quantities, never marks) and, by venue, every symbol one of them or a fill of one touches.
+ */
+export function venueAsks(strategies: StrategyRow[], filled: OrderRow[], dayStartMs: number) {
+  const onPage = new Set(strategies.filter((s) => !(s as StrategyRow & { retired_at?: string | null }).retired_at
+    || strategyBooks(s, filled, {}, {}, dayStartMs).holdsAnything).map((s) => s.id));
+  const symbolsByVenue = new Map<VenueId, Set<string>>();
+  const want = (v: VenueId, sym: string) => { if (!symbolsByVenue.has(v)) symbolsByVenue.set(v, new Set()); symbolsByVenue.get(v)!.add(sym); };
+  for (const s of strategies) if (onPage.has(s.id)) for (const sym of s.symbols) want(s.venue, sym);
+  for (const o of filled) if (onPage.has(o.strategy_id)) want(o.venue, o.symbol);
+  return { onPage, symbolsByVenue };
+}
+
 export async function runDashboard(now = Date.now()) {
   try {
     return await dashboard(now);
@@ -2441,130 +2460,17 @@ export async function newestDecisions<T>(ids: string[], newest: (id: string) => 
 }
 
 async function dashboard(now: number) {
+  const t0 = Date.now();
   const d = db();
-  const dayStart = new Date(Math.floor(now / ONE_D) * ONE_D).toISOString();
-  const since24h = new Date(now - ONE_D).toISOString();
-  const [strategies, riskRows, filled, open, today, probeRows, decisions24h, recentDecisions, recentOrders, backtests, basis24h, { venues, notes }] = await Promise.all([
-    // Retired rows are read too and filtered below: one that is FLAT leaves the page (`0038`), one
-    // that still holds something stays on it, marked `windingDown`. `0043` retired three rows that
-    // were still long, and a position nobody can see is a position nobody will notice is stuck.
-    d.select<StrategyRow & { description: string; created_at: string; updated_at: string; retired_at: string | null }>("agent_strategies", "select=*&order=id.asc"),
-    d.select<RiskRow & { updated_at: string }>("agent_risk", "id=eq.1&select=*"),
-    d.selectAll<OrderRow>("agent_orders", "state=in.(filled,partially_filled)&select=*&order=ts.asc,id.asc"),   // the filled part of a working order is a position too; paged — PostgREST stops at 1,000 rows without a word
-    d.select<OrderRow & { request: unknown }>("agent_orders", "state=in.(pending,new,partially_filled)&select=*&order=ts.desc"),
-    d.select<{ id: number; strategy_id: string; venue: VenueId; state: string }>("agent_orders", `ts=gte.${dayStart}&select=id,strategy_id,venue,state`),
-    // The maker probes (`0042`), summarised below. Read whole: they are a few rows a day and the
-    // adverse-selection median needs all of them, not a window.
-    d.selectAll<ProbeSummaryRow>("agent_maker_probes", "select=venue,symbol,side,state,maker_price,taker_price,minutes_to_fill,follow_up&order=ts.asc,id.asc").catch(() => [] as ProbeSummaryRow[]),
-    d.select<{ strategy_id: string; provider: string; cost_usd: number | null; latency_ms: number | null }>("agent_decisions", `ts=gte.${since24h}&select=strategy_id,provider,cost_usd,latency_ms`),
-    d.select<DecisionRow>("agent_decisions", `${DECISION_SELECT}&order=ts.desc&limit=120`),
-    d.select<OrderRow & { request: unknown; response: unknown; cancelled_at: string | null; decision_id: number | null }>("agent_orders", "select=*&order=ts.desc&limit=120"),
-    d.select<{ id: string; strategy_id: string; ran_at: string; method: string; summary: unknown }>("agent_backtests", "select=id,strategy_id,ran_at,method,summary&order=ran_at.desc"),
-    d.select<{ ts: string; symbol: string; basis_bps: number; revx_bid: number; revx_ask: number; kraken_bid: number; kraken_ask: number }>("agent_basis", `ts=gte.${since24h}&select=ts,symbol,basis_bps,revx_bid,revx_ask,kraken_bid,kraken_ask&order=ts.desc&limit=2000`),
-    loadVenues(),
-  ]);
-  // Today's opening price per VENUE and symbol, from the cached daily candles: each strategy is marked from its own signal
-  // venue's day open, exactly as the tick's loss breaker marks it, so the page's "today" and the loop's are one figure.
   const dayStartMs = Math.floor(now / ONE_D) * ONE_D;
-  // Yesterday's candle is read too: until the venue publishes today's, today opened at yesterday's CLOSE (`dayOpenOf`,
-  // the tick's own rule — this read only today's candle, fell back to the mark, and put 0 where the breaker had a figure).
-  const dayOpenBy = dayOpensFrom(await d.select<{ venue: string; symbol: string; open: number; close: number; start: string }>("agent_candles",
-    `interval_min=eq.1440&start=gte.${new Date(dayStartMs - ONE_D).toISOString()}&select=venue,symbol,open,close,start&order=start.asc`), dayStartMs);
-  // The latest observation per strategy × symbol: what the rule sees on the forming bar, right now. One tiny
-  // indexed query each, never one window over all of them — see `latestObservationQuery`.
-  const latestObs = new Map<string, ObservationRow>();
-  await Promise.all(strategies.flatMap((s) => (s.symbols ?? []).map(async (sym) => {
-    const rows = await d.select<ObservationRow>("agent_observations", latestObservationQuery(s.id, sym));
-    if (rows[0]) latestObs.set(`${s.id}|${sym}`, rows[0]);
-  })));
-
-  // Marks: each venue's mid for every symbol any strategy or position touches.
-  const symbolsByVenue = new Map<VenueId, Set<string>>();
-  const want = (v: VenueId, s: string) => { if (!symbolsByVenue.has(v)) symbolsByVenue.set(v, new Set()); symbolsByVenue.get(v)!.add(s); };
-  for (const s of strategies) for (const sym of s.symbols) want(s.venue, sym);
-  for (const o of filled) want(o.venue, o.symbol);
-  const marks: Record<string, Record<string, number>> = {};
-  const venueErrors: Record<string, string | null> = { revx: notes.revx, kraken: notes.kraken, binance: notes.binance };
-  for (const [vid, syms] of symbolsByVenue) {
-    try {
-      const q = await venues[vid].quotes([...syms]);
-      marks[vid] = Object.fromEntries(Object.entries(q).map(([s, x]) => [s, (x.bid + x.ask) / 2]));
-    } catch (e) { venueErrors[vid] = `quotes: ${e instanceof Error ? e.message : String(e)}`; marks[vid] = {}; }
-  }
-  // Balances for the venues the page shows that the loop trades on. Kraken is the signal venue only since `0046`: its
-  // candles are read, its account is not shown, so its balances are no longer fetched for the page.
-  const balancesByVenue: Record<string, Record<string, number> | null> = {};
-  for (const vid of ["revx"] as VenueId[]) {
-    try { balancesByVenue[vid] = venues[vid].canTrade ? await venues[vid].balances() : null; }
-    catch (e) { balancesByVenue[vid] = null; venueErrors[vid] = `balances: ${e instanceof Error ? e.message : String(e)}`; }
-  }
-
-  // Positions per strategy × symbol, from fills — the one implementation, resolved by the tick's own rule (`strategyBooks`).
-  const totals = zeroTotals();
-  const byMode: Record<"paper" | "live", Totals> = { paper: zeroTotals(), live: zeroTotals() };
-  const books = new Map(strategies.map((s) => [s.id, strategyBooks(s, filled, marks[s.venue] ?? {}, dayOpenBy[s.signal_venue] ?? {}, dayStartMs)]));
-  // Which retired rows are still on the page: only the ones still holding something, in any book. Decided BEFORE the map,
-  // so a retired row that is already flat contributes nothing to `totals` or `byMode` — the page's aggregates keep the
-  // meaning they had when a retired row simply disappeared (`0038`).
-  const shown = strategies.filter((s) => !s.retired_at || books.get(s.id)!.holdsAnything);
-  const lastDecisions = await newestDecisions(shown.map((s) => s.id), (id) =>
-    d.select<DecisionRow>("agent_decisions", `strategy_id=eq.${encodeURIComponent(id)}&${DECISION_SELECT}&order=ts.desc&limit=1`));
-  const out = shown.map((s) => {
-    const b = books.get(s.id)!;
-    const positions = b.positions.map((p) => {
-      const obs = latestObs.get(`${s.id}|${p.symbol}`) ?? null;
-      return { ...p, observation: obs ? { ts: obs.ts, barStart: obs.bar_start, state: obs.state, numbers: obs.numbers } : null };
-    });
-    addTotals(totals, b.agg);
-    addTotals(byMode.paper, b.byMode.paper);
-    addTotals(byMode.live, b.byMode.live);
-    const agg = b.agg;
-    const mine = (r: { strategy_id: string }) => r.strategy_id === s.id;
-    const last = lastDecisions.get(s.id) ?? recentDecisions.find(mine) ?? null;
-    const barMs = decisionBarMs(s.kind);
-    return {
-      id: s.id, kind: s.kind, venue: s.venue, signalVenue: s.signal_venue, name: s.name, description: s.description, symbols: s.symbols, mode: s.mode,
-      // When its test began, for the page's "tested 3d 14h" (Davies, 2026-09-28): the row's own creation.
-      capitalUsd: Number(s.capital_usd), params: s.params, createdAt: s.created_at ?? null, updatedAt: s.updated_at,
-      retiredAt: s.retired_at ?? null,
-      // Retired and still holding, or holding a book it no longer trades (paused, or relabelled away from real coins): its
-      // exits run and it can never buy — the tick's own rule, so the page cannot call a row stuck that the loop is covering.
-      windingDown: b.windingDown,
-      holdsLive: b.holdsLive,
-      todayByBook: b.todayByBook,
-      otherBooks: b.otherBooks,
-      nextDecisionAt: new Date(Math.floor(now / barMs) * barMs + barMs).toISOString(),   // the next bar close
-      costUsd: agg.costUsd, valueUsd: agg.valueUsd, unrealisedUsd: agg.unrealisedUsd, realisedUsd: agg.realisedUsd, feesUsd: agg.feesUsd, todayUsd: agg.todayUsd,
-      positions,
-      openOrders: open.filter(mine).length, ordersToday: today.filter(mine).length,
-      jev24h: jevStats(decisions24h.filter(mine)),
-      lastDecision: last ? { ts: last.ts, symbol: last.symbol, action: last.final_action, ruleAction: last.rule_action, reason: last.final_reason, provider: last.provider, riskAllowed: last.risk_allowed, riskReason: last.risk_reason } : null,
-      backtest: backtests.find(mine) ?? null,
-      recentDecisions: recentDecisions.filter(mine).slice(0, 30),
-      recentOrders: recentOrders.filter(mine).slice(0, 30),
-    };
-  });
-
-  // The book by venue: what each account holds and has made, live and paper apart.
-  const byVenue: Record<string, { costUsd: number; valueUsd: number; unrealisedUsd: number; realisedUsd: number; feesUsd: number; todayUsd: number; capitalUsd: number; strategies: number; live: number }> = {};
-  for (const s of out) {
-    const v = (byVenue[s.venue] ??= { costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, todayUsd: 0, capitalUsd: 0, strategies: 0, live: 0 });
-    v.costUsd += s.costUsd; v.valueUsd += s.valueUsd; v.unrealisedUsd += s.unrealisedUsd; v.realisedUsd += s.realisedUsd; v.feesUsd += s.feesUsd; v.todayUsd += s.todayUsd;
-    v.capitalUsd += s.capitalUsd; v.strategies += 1; if (s.mode === "live") v.live += 1;
-  }
-  // The cross-venue basis over the last 24 h, per symbol: the arbitrage question, kept answered.
-  const basisBySymbol: Record<string, { latest: number | null; latestAt: string | null; n: number; absP50: number | null; absP95: number | null; absMax: number | null; over20: number; over40: number; over80: number }> = {};
-  const grouped = new Map<string, number[]>();
-  for (const b of basis24h) {
-    if (!grouped.has(b.symbol)) { grouped.set(b.symbol, []); basisBySymbol[b.symbol] = { latest: Number(b.basis_bps), latestAt: b.ts, n: 0, absP50: null, absP95: null, absMax: null, over20: 0, over40: 0, over80: 0 }; }
-    grouped.get(b.symbol)!.push(Math.abs(Number(b.basis_bps)));
-  }
-  for (const [sym, abs] of grouped) {
-    abs.sort((a, b) => a - b);
-    const q = (p: number) => abs[Math.min(abs.length - 1, Math.floor(p * abs.length))];
-    Object.assign(basisBySymbol[sym], { n: abs.length, absP50: q(0.5), absP95: q(0.95), absMax: abs[abs.length - 1], over20: abs.filter((x) => x > 20).length, over40: abs.filter((x) => x > 40).length, over80: abs.filter((x) => x > 80).length });
-  }
-
+  const dayStart = new Date(dayStartMs).toISOString();
+  const since24h = new Date(now - ONE_D).toISOString();
+  // Every page the loop's rows do not feed is read from the start, beside the loop's own reads, not after them (Davies,
+  // 2026-10-30: "agent页和子策略页点刷新加载很慢的问题也解决下"): the stablecoin quotes, the live executors, the hedge, the Grok tests.
+  // Each was awaited one after another behind the loop's reads and its venues' quotes; now the call takes the slowest of them.
+  // A read that fails here is caught where it is awaited, as before; `handled` only keeps an early failure from being an
+  // unhandled rejection while the loop's reads run.
+  const handled = <T,>(p: Promise<T>): Promise<T> => { p.catch(() => {}); return p; };
   // The GBP books' index prices (0078), read once for every stablecoin quotes test: what their coins and held rungs are
   // valued at. Before the table exists, or if it cannot be read, they are valued at the last trade.
   const quoteTickersRead = d.select<QuoteTickerRow>("agent_quote_tickers", "select=book,index_price,ts").catch(() => [] as QuoteTickerRow[]);
@@ -2640,7 +2546,7 @@ async function dashboard(now: number) {
   })();
 
   // The paper quote test (`0051`). Its own tables; missing ones (before the migration) leave it off the page.
-  const quotes = await (async () => {
+  const quotesRead = (async () => {
     try {
       const [st, trips, today, first] = await Promise.all([
         d.select<QuoteStateRow>("agent_quote_state", "id=eq.1&select=state,last_minute,updated_at,last_error"),
@@ -2691,24 +2597,149 @@ async function dashboard(now: number) {
   // are not read since 0120 (Davies, 2026-10-13: "目前paper testing里的reward quotes全关了吧？…不用在网站上显示了"): their calls
   // stopped and no page row shows them, so neither their tables, the programme factors (0115) that priced them nor the
   // live R they were shown at is read here. LIVE's row reads only its own (`readLpLive`).
-  const lpLive = await readLpLive(d, now);
+  const lpLiveRead = readLpLive(d, now);
   // "Stablecoin quotes USDC/GBP", the Coinbase live executor (cb_live.ts, 0177): a row of LIVE once armed or once it has sent
   // a live order; its own tables alone.
-  const cbLive = await readCbLive(d, now);
+  const cbLiveRead = readCbLive(d, now);
   // "Stablecoin quotes USDC/GBP" on Revolut X (0180): LIVE's reader on its own tables, beside PR5's paper engine's state.
-  const quotesRxu = await readQuotesRxu(d, now, dayStartMs, quoteTickersRead);
+  const quotesRxuRead = readQuotesRxu(d, now, dayStartMs, quoteTickersRead);
   // The other maker's watch (maker_watch.ts, 0185): a line on the two Revolut X LIVE pages. Before its table exists, nothing.
-  const makerWatch = await d.select<{ book: string; cursor: string | null; memo: never; last: never }>(MW_TABLES.state, "select=book,cursor,memo,last")
+  const makerWatchRead = d.select<{ book: string; cursor: string | null; memo: never; last: never }>(MW_TABLES.state, "select=book,cursor,memo,last")
     .then(mwStatusOf).catch(() => null);
   // GROKPM's row of LIVE (Davies, 2026-10-15): the independent record of the outside agent's wallet, its journal beside it.
-  const grokPm = await readGrokPm(d, now);
+  const grokPmRead = readGrokPm(d, now);
   // The outside-Grok tests of TESTING (Davies, 2026-10-29): CXBOT on paper, IGBOT on IG's demo (grok_tests_view.ts).
-  const [cxbot, igbot] = await Promise.all([readCxbot(d, now), readIgbot(d, now)]);
-  const quotesVariant = await quotesVariantRead;
-  const quotesRuled = await quotesRuledRead;
+  const grokTestsRead = Promise.all([readCxbot(d, now), readIgbot(d, now)]);
+  for (const p of [quotesRead, lpLiveRead, cbLiveRead, quotesRxuRead, grokPmRead, grokTestsRead, quotesVariantRead, quotesRuledRead, quotesTwinsRead,
+    quotesCoinbaseHoldRead, quotesCoinbaseUsdcRead, quotesCoinbaseNudgeRead, quotesOkxRead, quotesOkxBasisRead, quotesXhedgeRead, fxwAudRead] as Promise<unknown>[]) handled(p);
+  const [strategies, riskRows, filled, open, today, probeRows, decisions24h, recentDecisions, recentOrders, backtests, basis24h, { venues, notes }] = await Promise.all([
+    // Retired rows are read too and filtered below: one that is FLAT leaves the page (`0038`), one
+    // that still holds something stays on it, marked `windingDown`. `0043` retired three rows that
+    // were still long, and a position nobody can see is a position nobody will notice is stuck.
+    d.select<StrategyRow & { description: string; created_at: string; updated_at: string; retired_at: string | null }>("agent_strategies", "select=*&order=id.asc"),
+    d.select<RiskRow & { updated_at: string }>("agent_risk", "id=eq.1&select=*"),
+    d.selectAll<OrderRow>("agent_orders", "state=in.(filled,partially_filled)&select=*&order=ts.asc,id.asc"),   // the filled part of a working order is a position too; paged — PostgREST stops at 1,000 rows without a word
+    d.select<OrderRow & { request: unknown }>("agent_orders", "state=in.(pending,new,partially_filled)&select=*&order=ts.desc"),
+    d.select<{ id: number; strategy_id: string; venue: VenueId; state: string }>("agent_orders", `ts=gte.${dayStart}&select=id,strategy_id,venue,state`),
+    // The maker probes (`0042`), summarised below. Read whole: they are a few rows a day and the
+    // adverse-selection median needs all of them, not a window.
+    d.selectAll<ProbeSummaryRow>("agent_maker_probes", "select=venue,symbol,side,state,maker_price,taker_price,minutes_to_fill,follow_up&order=ts.asc,id.asc").catch(() => [] as ProbeSummaryRow[]),
+    d.select<{ strategy_id: string; provider: string; cost_usd: number | null; latency_ms: number | null }>("agent_decisions", `ts=gte.${since24h}&select=strategy_id,provider,cost_usd,latency_ms`),
+    d.select<DecisionRow>("agent_decisions", `${DECISION_SELECT}&order=ts.desc&limit=120`),
+    d.select<OrderRow & { request: unknown; response: unknown; cancelled_at: string | null; decision_id: number | null }>("agent_orders", "select=*&order=ts.desc&limit=120"),
+    d.select<{ id: string; strategy_id: string; ran_at: string; method: string; summary: unknown }>("agent_backtests", "select=id,strategy_id,ran_at,method,summary&order=ran_at.desc"),
+    d.select<{ ts: string; symbol: string; basis_bps: number; revx_bid: number; revx_ask: number; kraken_bid: number; kraken_ask: number }>("agent_basis", `ts=gte.${since24h}&select=ts,symbol,basis_bps,revx_bid,revx_ask,kraken_bid,kraken_ask&order=ts.desc&limit=2000`),
+    loadVenues(),
+  ]);
+  // Today's opening price per VENUE and symbol, from the cached daily candles: each strategy is marked from its own signal
+  // venue's day open, exactly as the tick's loss breaker marks it, so the page's "today" and the loop's are one figure.
+  // Yesterday's candle is read too: until the venue publishes today's, today opened at yesterday's CLOSE (`dayOpenOf`,
+  // the tick's own rule — this read only today's candle, fell back to the mark, and put 0 where the breaker had a figure).
+  const dayOpenBy = dayOpensFrom(await d.select<{ venue: string; symbol: string; open: number; close: number; start: string }>("agent_candles",
+    `interval_min=eq.1440&start=gte.${new Date(dayStartMs - ONE_D).toISOString()}&select=venue,symbol,open,close,start&order=start.asc`), dayStartMs);
+  // The latest observation per strategy × symbol: what the rule sees on the forming bar, right now. One tiny
+  // indexed query each, never one window over all of them — see `latestObservationQuery`.
+  const latestObs = new Map<string, ObservationRow>();
+  await Promise.all(strategies.flatMap((s) => (s.symbols ?? []).map(async (sym) => {
+    const rows = await d.select<ObservationRow>("agent_observations", latestObservationQuery(s.id, sym));
+    if (rows[0]) latestObs.set(`${s.id}|${sym}`, rows[0]);
+  })));
+
+  // Which rows are on the page decides what is asked of the venues: a retired row that is flat is not shown (`holdsAnything`
+  // reads quantities, never marks), so its symbols are not quoted. Every row of the loop is retired since 0158 and flat, so
+  // the page asks the venues nothing; before 2026-10-30 it asked them for every retired row's symbols, one venue after
+  // another, and read Revolut X's balances, which no page shows, on every call.
+  const { onPage, symbolsByVenue } = venueAsks(strategies, filled, dayStartMs);
+  const marks: Record<string, Record<string, number>> = {};
+  const venueErrors: Record<string, string | null> = { revx: notes.revx, kraken: notes.kraken, binance: notes.binance };
+  await Promise.all([...symbolsByVenue].map(async ([vid, syms]) => {
+    try {
+      const q = await venues[vid].quotes([...syms]);
+      marks[vid] = Object.fromEntries(Object.entries(q).map(([s, x]) => [s, (x.bid + x.ask) / 2]));
+    } catch (e) { venueErrors[vid] = `quotes: ${e instanceof Error ? e.message : String(e)}`; marks[vid] = {}; }
+  }));
+  // Balances for the venues the loop trades on, while a row on the page trades there. Kraken is the signal venue only since
+  // `0046`: its candles are read, its account is not shown, so its balances are no longer fetched for the page.
+  const balancesByVenue: Record<string, Record<string, number> | null> = {};
+  for (const vid of ["revx"] as VenueId[]) {
+    if (!strategies.some((s) => onPage.has(s.id) && s.venue === vid)) { balancesByVenue[vid] = null; continue; }
+    try { balancesByVenue[vid] = venues[vid].canTrade ? await venues[vid].balances() : null; }
+    catch (e) { balancesByVenue[vid] = null; venueErrors[vid] = `balances: ${e instanceof Error ? e.message : String(e)}`; }
+  }
+
+  // Positions per strategy × symbol, from fills — the one implementation, resolved by the tick's own rule (`strategyBooks`).
+  const totals = zeroTotals();
+  const byMode: Record<"paper" | "live", Totals> = { paper: zeroTotals(), live: zeroTotals() };
+  const books = new Map(strategies.map((s) => [s.id, strategyBooks(s, filled, marks[s.venue] ?? {}, dayOpenBy[s.signal_venue] ?? {}, dayStartMs)]));
+  // Which retired rows are still on the page: only the ones still holding something, in any book. Decided BEFORE the map,
+  // so a retired row that is already flat contributes nothing to `totals` or `byMode` — the page's aggregates keep the
+  // meaning they had when a retired row simply disappeared (`0038`).
+  const shown = strategies.filter((s) => !s.retired_at || books.get(s.id)!.holdsAnything);
+  const lastDecisions = await newestDecisions(shown.map((s) => s.id), (id) =>
+    d.select<DecisionRow>("agent_decisions", `strategy_id=eq.${encodeURIComponent(id)}&${DECISION_SELECT}&order=ts.desc&limit=1`));
+  const out = shown.map((s) => {
+    const b = books.get(s.id)!;
+    const positions = b.positions.map((p) => {
+      const obs = latestObs.get(`${s.id}|${p.symbol}`) ?? null;
+      return { ...p, observation: obs ? { ts: obs.ts, barStart: obs.bar_start, state: obs.state, numbers: obs.numbers } : null };
+    });
+    addTotals(totals, b.agg);
+    addTotals(byMode.paper, b.byMode.paper);
+    addTotals(byMode.live, b.byMode.live);
+    const agg = b.agg;
+    const mine = (r: { strategy_id: string }) => r.strategy_id === s.id;
+    const last = lastDecisions.get(s.id) ?? recentDecisions.find(mine) ?? null;
+    const barMs = decisionBarMs(s.kind);
+    return {
+      id: s.id, kind: s.kind, venue: s.venue, signalVenue: s.signal_venue, name: s.name, description: s.description, symbols: s.symbols, mode: s.mode,
+      // When its test began, for the page's "tested 3d 14h" (Davies, 2026-09-28): the row's own creation.
+      capitalUsd: Number(s.capital_usd), params: s.params, createdAt: s.created_at ?? null, updatedAt: s.updated_at,
+      retiredAt: s.retired_at ?? null,
+      // Retired and still holding, or holding a book it no longer trades (paused, or relabelled away from real coins): its
+      // exits run and it can never buy — the tick's own rule, so the page cannot call a row stuck that the loop is covering.
+      windingDown: b.windingDown,
+      holdsLive: b.holdsLive,
+      todayByBook: b.todayByBook,
+      otherBooks: b.otherBooks,
+      nextDecisionAt: new Date(Math.floor(now / barMs) * barMs + barMs).toISOString(),   // the next bar close
+      costUsd: agg.costUsd, valueUsd: agg.valueUsd, unrealisedUsd: agg.unrealisedUsd, realisedUsd: agg.realisedUsd, feesUsd: agg.feesUsd, todayUsd: agg.todayUsd,
+      positions,
+      openOrders: open.filter(mine).length, ordersToday: today.filter(mine).length,
+      jev24h: jevStats(decisions24h.filter(mine)),
+      lastDecision: last ? { ts: last.ts, symbol: last.symbol, action: last.final_action, ruleAction: last.rule_action, reason: last.final_reason, provider: last.provider, riskAllowed: last.risk_allowed, riskReason: last.risk_reason } : null,
+      backtest: backtests.find(mine) ?? null,
+      recentDecisions: recentDecisions.filter(mine).slice(0, 30),
+      recentOrders: recentOrders.filter(mine).slice(0, 30),
+    };
+  });
+
+  // The book by venue: what each account holds and has made, live and paper apart.
+  const byVenue: Record<string, { costUsd: number; valueUsd: number; unrealisedUsd: number; realisedUsd: number; feesUsd: number; todayUsd: number; capitalUsd: number; strategies: number; live: number }> = {};
+  for (const s of out) {
+    const v = (byVenue[s.venue] ??= { costUsd: 0, valueUsd: 0, unrealisedUsd: 0, realisedUsd: 0, feesUsd: 0, todayUsd: 0, capitalUsd: 0, strategies: 0, live: 0 });
+    v.costUsd += s.costUsd; v.valueUsd += s.valueUsd; v.unrealisedUsd += s.unrealisedUsd; v.realisedUsd += s.realisedUsd; v.feesUsd += s.feesUsd; v.todayUsd += s.todayUsd;
+    v.capitalUsd += s.capitalUsd; v.strategies += 1; if (s.mode === "live") v.live += 1;
+  }
+  // The cross-venue basis over the last 24 h, per symbol: the arbitrage question, kept answered.
+  const basisBySymbol: Record<string, { latest: number | null; latestAt: string | null; n: number; absP50: number | null; absP95: number | null; absMax: number | null; over20: number; over40: number; over80: number }> = {};
+  const grouped = new Map<string, number[]>();
+  for (const b of basis24h) {
+    if (!grouped.has(b.symbol)) { grouped.set(b.symbol, []); basisBySymbol[b.symbol] = { latest: Number(b.basis_bps), latestAt: b.ts, n: 0, absP50: null, absP95: null, absMax: null, over20: 0, over40: 0, over80: 0 }; }
+    grouped.get(b.symbol)!.push(Math.abs(Number(b.basis_bps)));
+  }
+  for (const [sym, abs] of grouped) {
+    abs.sort((a, b) => a - b);
+    const q = (p: number) => abs[Math.min(abs.length - 1, Math.floor(p * abs.length))];
+    Object.assign(basisBySymbol[sym], { n: abs.length, absP50: q(0.5), absP95: q(0.95), absMax: abs[abs.length - 1], over20: abs.filter((x) => x > 20).length, over40: abs.filter((x) => x > 40).length, over80: abs.filter((x) => x > 80).length });
+  }
+
+  const [quotes, lpLive, cbLive, quotesRxu, grokPm, [cxbot, igbot], quotesVariant, quotesRuled, makerWatch] = await Promise.all([
+    quotesRead, lpLiveRead, cbLiveRead, quotesRxuRead, grokPmRead, grokTestsRead, quotesVariantRead, quotesRuledRead, makerWatchRead]);
 
   return {
     at: new Date(now).toISOString(),
+    // How long this answer took to make, in the function (the page's slowness, measured where it is spent; 2026-10-30).
+    serverMs: Date.now() - t0,
     dayStart: new Date(dayStartMs).toISOString(),
     risk: riskRows[0] ?? null,
     totals: { ...totals, byMode },

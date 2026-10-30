@@ -10,8 +10,9 @@
 //     fee (it traded at the market's price); the two sum to the trip's P&L to the bit;
 //   - UNREALIZED: what the venue holds now (pounds, and coin at Revolut X's mid; a book not open yet at its funding) less its FUNDED
 //     less its REALIZED. One venue holds the coin the other sold, so these mostly offset;
-//   - TODAY: what the venue holds now less what it held at the last minute before 00:00 UTC (FUNDED on the arm's first day; the
-//     trips closed today, split the same way, when 00:00 has no balances).
+//   - TODAY: the round trips hedged today, split the same way: today's realised, the figure the page's DAYS shows for today
+//     (Davies, 2026-10-30: one number on one screen). Until then it was what the venue held now less what it held at 00:00; that
+//     move is UNREALIZED's.
 // The arm's row and page show the two halves summed, so Revolut X's half plus Coinbase's is the arm exactly; each percent is on
 // FUNDED. The halves go out as `byVenue`, for the page's lines under its scoreboard and each venue's card.
 import type { Db } from "./db.ts";
@@ -23,22 +24,8 @@ export const XH_VENUES = ["revx", "coinbase"] as const;
 export type XhVenue = typeof XH_VENUES[number];
 const VENUE_NAME: Record<XhVenue, string> = { revx: "Revolut X", coinbase: "Coinbase" };
 
-/** A book's balances after a minute, as `agent_xhedge_minutes` keeps them. */
-export type XhOpenRow = { book: string; rx_bid: number | null; rx_ask: number | null; rx_gbp: number; rx_coin: number; cb_gbp: number; cb_coin: number };
 /** A round trip as the page needs it. */
 export type XhTripMoney = { pnl_gbp: number; fee_gbp: number; t_hedge: string };
-
-/** What each venue holds at a minute's balances, coin at that minute's Revolut X mid; null when a book has no mid. */
-export function xhHeldAt(rows: XhOpenRow[]): Record<XhVenue, number> | null {
-  const held = { revx: 0, coinbase: 0 };
-  for (const r of rows) {
-    if (r.rx_bid == null || r.rx_ask == null) return null;
-    const mid = (Number(r.rx_bid) + Number(r.rx_ask)) / 2;
-    held.revx += Number(r.rx_gbp) + Number(r.rx_coin) * mid;
-    held.coinbase += Number(r.cb_gbp) + Number(r.cb_coin) * mid;
-  }
-  return held;
-}
 
 /** Each venue's realised from a set of trips: Revolut X's leg each trip's P&L before Coinbase's fee, Coinbase's leg less the fee. */
 export function xhRealisedByVenue(trips: XhTripMoney[]): Record<XhVenue, number> {
@@ -48,18 +35,15 @@ export function xhRealisedByVenue(trips: XhTripMoney[]): Record<XhVenue, number>
 }
 
 /**
- * An arm's view with its money split by venue and summed back (the file's head says how). `open` is the arm's balances at the last
- * minute before `dayStartMs`, a row a book; empty or partial when the arm had not opened every book by then. `trips` is every trip.
+ * An arm's view with its money split by venue and summed back (the file's head says how). `trips` is every trip.
  */
-export function xhPageMoney(v: XhView, open: XhOpenRow[], dayStartMs: number, trips: XhTripMoney[]) {
+export function xhPageMoney(v: XhView, dayStartMs: number, trips: XhTripMoney[]) {
   const assets = v.detail.inventory.assets as Array<{ asset: string; amount: number; gbp?: number }>;
   const coinOf = (b: string) => b.split("-")[0];
   // A book not open yet holds its funding on each venue, as the view counts it.
   const notOpen = XH_BOOKS.filter((b) => !assets.some((a) => a.asset.startsWith(`${coinOf(b)} · `))).length;
   const realised = xhRealisedByVenue(trips);
   const realisedToday = xhRealisedByVenue(trips.filter((t) => Date.parse(t.t_hedge) >= dayStartMs));
-  const openHeld = Date.parse(v.twin.startedAt) >= dayStartMs ? null : open.length === XH_BOOKS.length ? xhHeldAt(open) : null;
-  const firstDay = Date.parse(v.twin.startedAt) >= dayStartMs;
   const rate = Number(v.capitalUsd) > 0 && Number(v.capitalGbp) > 0 ? Number(v.capitalUsd) / Number(v.capitalGbp) : null;
   const usd = (gbp: number) => (rate == null ? 0 : gbp * rate);
   const fees = trips.reduce((s, t) => s + Number(t.fee_gbp), 0);
@@ -75,7 +59,7 @@ export function xhPageMoney(v: XhView, open: XhOpenRow[], dayStartMs: number, tr
     const capitalGbp = XH_VENUE_GBP * XH_BOOKS.length;
     const heldGbp = gbp + coinGbp + notOpen * XH_VENUE_GBP;
     const realisedGbp = realised[id];
-    const todayGbp = firstDay ? heldGbp - capitalGbp : openHeld ? heldGbp - openHeld[id] : realisedToday[id];
+    const todayGbp = realisedToday[id];
     const deployedGbp = coinGbp + restingGbp;
     const unrealisedGbp = heldGbp - capitalGbp - realisedGbp;
     const feesGbp = id === "coinbase" ? fees : 0;
@@ -112,13 +96,8 @@ export async function readXhedgePage(d: Db, now: number, dayStartMs: number) {
   const out = [];
   for (const v of views) {
     const arm = XH_ARMS.find((a) => a.id === v.twin.id)?.arm ?? "inside";
-    let open: XhOpenRow[] = [];
-    try {
-      open = await d.select<XhOpenRow>(XH_TABLES.minutes,
-        `arm=eq.${arm}&minute=eq.${encodeURIComponent(new Date(dayStartMs - 60e3).toISOString())}&select=book,rx_bid,rx_ask,rx_gbp,rx_coin,cb_gbp,cb_coin`);
-    } catch { /* today falls back to the trips closed today */ }
     const trips = await d.selectAll<XhTripMoney>(XH_TABLES.trips, `arm=eq.${arm}&select=pnl_gbp,fee_gbp,t_hedge&order=arm.asc,book.asc,side.asc,t_fill.asc,t_hedge.asc`);
-    out.push(xhPageMoney(v, open, dayStartMs, trips));
+    out.push(xhPageMoney(v, dayStartMs, trips));
   }
   return out;
 }

@@ -804,6 +804,14 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth), and the 2026-10-29 19:50, 2026-10-29 19:55, 2026-10-29 20:00, 2026-10-29 20:15 ones (twenty-sixth), and the 2026-10-29 20:41, 2026-10-29 21:07 ones (twenty-seventh), and the 2026-10-29 21:30, 2026-10-29 22:10 ones (twenty-eighth), and the 2026-10-29 22:12, 2026-10-29 22:27 ones (twenty-ninth), and the 2026-10-29 22:40, 2026-10-29 22:43 ones (thirtieth), and the 2026-10-29 22:55, 2026-10-29 23:13 ones (thirty-first), and the 2026-10-29 23:24, 2026-10-29 23:30 ones (thirty-second).
 
+### [2026-10-30 05:40 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Quotes pages: TODAY is DAYS' today; the board refreshes the Agents pages; a faster dashboard; ↔ drawn** (sub-agent; not
+  pushed; Davies, ~04:00). TODAY = today's realised on every page (`liveBookGbp`, `cbLiveDetail`, xhedge's split; was the loss
+  stop's realised+marked / the balance move). `refresh_bus.js`: the board's ↻/`r` and tick refresh the Agents page; its load
+  and error retry announce nothing (a by-hand announce on load made 2 dashboard requests on open, sweep agents-reload/open).
+  `dashboard`: page reads start first and are awaited together, venues asked only for rows on the page (`venueAsks`),
+  preflight cached; `serverMs` in the answer.
+
 ### [2026-10-30 05:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **LOTS: more than one lot a rung? No** (sub-agent; commit, not pushed; Davies, 10-30 ~04:30: "…目前我们每档只有一个lot，如果我们每档多做几个呢？
   …会不会提升收益？"). `reviews/2026-10-30-lots.md`, `mmcomp/scripts/lots.py`: LIVE, RX USDC/GBP, Coinbase LIVE (approx.), `live1200`,

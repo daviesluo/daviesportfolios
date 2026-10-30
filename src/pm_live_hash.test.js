@@ -324,7 +324,8 @@ describe("pm_live.ts is the bytes the pre-registrations' latest addenda name", (
     // row, so it reads no R for them: LIVE's row reads its own (`readLpLive`), and the estimate's scored R prices nothing else.
     const idx = read('supabase/functions/agents/index.ts');
     expect(idx).not.toMatch(/lpLiveR\(|atLiveR\(|atProgramme\(/);
-    expect(idx).toContain('const lpLive = await readLpLive(d, now);');
+    // Read beside the page's other reads since 2026-10-30 (the dashboard's speed), awaited with them.
+    expect(idx).toContain('const lpLiveRead = readLpLive(d, now);');
     expect(idx).not.toContain('lpLive?.estimate?.r');
   });
 
