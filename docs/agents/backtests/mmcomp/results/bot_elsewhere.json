@@ -1,0 +1,74 @@
+{
+ "BTC-GBP": {
+  "prints": 211,
+  "top_small_values": [
+   [
+    0.1,
+    57
+   ],
+   [
+    0.099,
+    5
+   ],
+   [
+    0.101,
+    4
+   ]
+  ],
+  "under_0.2": 69
+ },
+ "ETH-GBP": {
+  "prints": 143,
+  "top_small_values": [
+   [
+    0.1,
+    110
+   ],
+   [
+    0.14,
+    1
+   ]
+  ],
+  "under_0.2": 111
+ },
+ "USDC-GBP": {
+  "prints": 5,
+  "top_small_values": [
+   [
+    0.14,
+    1
+   ]
+  ],
+  "under_0.2": 1
+ },
+ "USDC-USD": {
+  "prints": 10,
+  "top_small_values": [],
+  "under_0.2": 0
+ },
+ "USDT-GBP": {
+  "prints": 151,
+  "top_small_values": [
+   [
+    0.1,
+    142
+   ],
+   [
+    0.14,
+    1
+   ]
+  ],
+  "under_0.2": 143
+ },
+ "USDT-USD": {
+  "prints": 153,
+  "top_small_values": [
+   [
+    0.1,
+    150
+   ]
+  ],
+  "under_0.2": 150
+ },
+ "window": "2026-10-28 00:00-06:00 UTC"
+}

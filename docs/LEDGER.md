@@ -799,6 +799,21 @@ first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
 and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth), and the 2026-10-29 19:50, 2026-10-29 19:55, 2026-10-29 20:00, 2026-10-29 20:15 ones (twenty-sixth).
 
+### [2026-10-30 01:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **MMCOMP: who tightened Revolut X's GBP books, the £0.10 bot, what we could copy** (sub-agent; commit, not pushed; Davies,
+  10-30 ~00:50: "…有没有可能…有其他人像我们一样来做这种类似的策略…把这个盘口才给收紧了…小单的机器人是不是专门就是为了收割像我们这种做市的人…
+  我们能不能做类似的策略？coinbase等平台也一样"). `reviews/2026-10-30-revx-mm-competition.md`, `backtests/mmcomp/`. (1) Yes in
+  substance: the week of 08-24 (not September) an automated maker arrived on both GBP books (one-order ~5,000-coin levels;
+  whole-order prints 2 / 9 in the 47 / 37 weeks before, 5–24 a week after), a fixed width, 5 ticks to 10-12, 12 ticks from 10-13
+  on both books; flow did not grow, fees unchanged, LIVE five weeks later. We fill behind it. (2) The £0.10 bot (from 10-08, ~450
+  a day, sell-bid/buy-ask pairs every ~4.6 min, also on USDT-USD, ETH-GBP, BTC-GBP) pays the spread, carries no information
+  (markouts 0.00 bps); LIVE's fills after it no worse. (3) Paper candidates: a 0.05 % inner rung on LIVE's rules (tape +0.56 bps/day
+  P 0.013 through-only; FWD +0.10 to +0.56, +0.5 to +1.2 since 10-13) and resting inside the maker on Revolut X hedged on Coinbase
+  (RX 4.7–5.3 bps under CB; +6.3 to +10.3 bps a fill, 19/19 days, before transfers; needs Davies' check of Coinbase's taker fee,
+  Revolut X's withdrawal fee, two-venue inventory). FX lead-lag taker −6 to −10 bps: no. (4) Coinbase's and Kraken's GBP books
+  were one tick wide every week June → October (no August change: Revolut X's alone); Coinbase's touch holds ~15k-coin orders,
+  no room inside. Nothing live changes.
+
 ### [2026-10-30 01:05 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **Coinbase rows renamed, "- 2" at $50, a per-coin line** (sub-agent; commit, not pushed; Davies, 00:40). TESTING's Coinbase rows:
   "Stablecoin quotes USDC/GBP LIVE twin" (`coinbasenudge`, first; cb_live untouched), "with Euros - 1", "with Euros - 2" (`cb_hold`,

@@ -1,0 +1,323 @@
+{
+ "USDC-GBP": {
+  "A_taker_cross": {
+   "best_buyRX": 30.45,
+   "best_sellRX": 17.42,
+   "excess_bps_median": 1.27,
+   "gap_buyRX_sellCB_p99": 13.37,
+   "gap_sellRX_buyCB_p99": 2.68,
+   "gbp_per_trade_median": 500,
+   "minutes_buyRX_sellCB_over_fees": 1126,
+   "minutes_sellRX_buyCB_over_fees": 23,
+   "pnl_gbp_per_day_at_500": 1.544,
+   "trades_5min_apart": 269
+  },
+  "B_rest_rx_hedge_cb": {
+   "m0_Q100": {
+    "by_side": {
+     "ask": 254,
+     "bid": 734
+    },
+    "days_positive": "19/19",
+    "edge_bps_mean": 6.78,
+    "edge_bps_p10": -0.45,
+    "fills": 988,
+    "fills_per_day": 52.3,
+    "gbp_per_day": 3600,
+    "halves_gbp_per_day": [
+     1.472,
+     4.073
+    ],
+    "net_coins_into_rx_gbp_per_day": 2194,
+    "nohedge_edge_bps_mean": 4.4,
+    "nohedge_pnl_gbp_per_day": 1.73,
+    "pnl_gbp_per_day": 2.773
+   },
+   "m0_Q500": {
+    "by_side": {
+     "ask": 254,
+     "bid": 734
+    },
+    "days_positive": "19/19",
+    "edge_bps_mean": 6.78,
+    "edge_bps_p10": -0.45,
+    "fills": 988,
+    "fills_per_day": 52.3,
+    "gbp_per_day": 12187,
+    "halves_gbp_per_day": [
+     5.239,
+     14.191
+    ],
+    "net_coins_into_rx_gbp_per_day": 8276,
+    "nohedge_edge_bps_mean": 4.4,
+    "nohedge_pnl_gbp_per_day": 5.803,
+    "pnl_gbp_per_day": 9.715
+   },
+   "m2_Q100": {
+    "by_side": {
+     "ask": 152,
+     "bid": 706
+    },
+    "days_positive": "19/19",
+    "edge_bps_mean": 8.05,
+    "edge_bps_p10": 2.21,
+    "fills": 858,
+    "fills_per_day": 45.4,
+    "gbp_per_day": 3219,
+    "halves_gbp_per_day": [
+     1.527,
+     4.128
+    ],
+    "net_coins_into_rx_gbp_per_day": 2450,
+    "nohedge_edge_bps_mean": 4.74,
+    "nohedge_pnl_gbp_per_day": 1.627,
+    "pnl_gbp_per_day": 2.827
+   },
+   "m2_Q500": {
+    "by_side": {
+     "ask": 152,
+     "bid": 706
+    },
+    "days_positive": "19/19",
+    "edge_bps_mean": 8.05,
+    "edge_bps_p10": 2.21,
+    "fills": 858,
+    "fills_per_day": 45.4,
+    "gbp_per_day": 11104,
+    "halves_gbp_per_day": [
+     5.371,
+     14.364
+    ],
+    "net_coins_into_rx_gbp_per_day": 8947,
+    "nohedge_edge_bps_mean": 4.74,
+    "nohedge_pnl_gbp_per_day": 5.558,
+    "pnl_gbp_per_day": 9.867
+   },
+   "m4_Q100": {
+    "by_side": {
+     "ask": 98,
+     "bid": 667
+    },
+    "days_positive": "19/19",
+    "edge_bps_mean": 9.04,
+    "edge_bps_p10": 3.57,
+    "fills": 765,
+    "fills_per_day": 40.5,
+    "gbp_per_day": 2966,
+    "halves_gbp_per_day": [
+     1.5,
+     4.146
+    ],
+    "net_coins_into_rx_gbp_per_day": 2480,
+    "nohedge_edge_bps_mean": 5.16,
+    "nohedge_pnl_gbp_per_day": 1.575,
+    "pnl_gbp_per_day": 2.823
+   },
+   "m4_Q500": {
+    "by_side": {
+     "ask": 98,
+     "bid": 667
+    },
+    "days_positive": "19/19",
+    "edge_bps_mean": 9.04,
+    "edge_bps_p10": 3.57,
+    "fills": 765,
+    "fills_per_day": 40.5,
+    "gbp_per_day": 10353,
+    "halves_gbp_per_day": [
+     5.271,
+     14.454
+    ],
+    "net_coins_into_rx_gbp_per_day": 8892,
+    "nohedge_edge_bps_mean": 5.16,
+    "nohedge_pnl_gbp_per_day": 5.418,
+    "pnl_gbp_per_day": 9.862
+   }
+  },
+  "C_fx_leadlag_taker": {
+   "m0": {
+    "net_bps_mean": -8.08,
+    "net_bps_median": -9.67,
+    "per_day": 4.66,
+    "trades": 88,
+    "won": 12
+   },
+   "m3": {
+    "net_bps_mean": -6.08,
+    "net_bps_median": -9.67,
+    "per_day": 2.38,
+    "trades": 45,
+    "won": 9
+   }
+  },
+  "basis_rx_mid_vs_cb_mid_bps": {
+   "median": -5.31,
+   "minutes": 26743,
+   "p10": -11.39,
+   "p90": 0.66
+  }
+ },
+ "USDT-GBP": {
+  "A_taker_cross": {
+   "best_buyRX": 39.78,
+   "best_sellRX": 45.53,
+   "excess_bps_median": 5.28,
+   "gap_buyRX_sellCB_p99": 21.37,
+   "gap_sellRX_buyCB_p99": 18.77,
+   "gbp_per_trade_median": 500,
+   "minutes_buyRX_sellCB_over_fees": 2197,
+   "minutes_sellRX_buyCB_over_fees": 682,
+   "pnl_gbp_per_day_at_500": 9.599,
+   "trades_5min_apart": 626
+  },
+  "B_rest_rx_hedge_cb": {
+   "m0_Q100": {
+    "by_side": {
+     "ask": 689,
+     "bid": 762
+    },
+    "days_positive": "19/19",
+    "edge_bps_mean": 6.33,
+    "edge_bps_p10": -0.45,
+    "fills": 1451,
+    "fills_per_day": 76.8,
+    "gbp_per_day": 5294,
+    "halves_gbp_per_day": [
+     2.509,
+     4.438
+    ],
+    "net_coins_into_rx_gbp_per_day": 83,
+    "nohedge_edge_bps_mean": 4.41,
+    "nohedge_pnl_gbp_per_day": 2.496,
+    "pnl_gbp_per_day": 3.474
+   },
+   "m0_Q500": {
+    "by_side": {
+     "ask": 689,
+     "bid": 762
+    },
+    "days_positive": "19/19",
+    "edge_bps_mean": 6.33,
+    "edge_bps_p10": -0.45,
+    "fills": 1451,
+    "fills_per_day": 76.8,
+    "gbp_per_day": 16428,
+    "halves_gbp_per_day": [
+     8.663,
+     13.034
+    ],
+    "net_coins_into_rx_gbp_per_day": 1864,
+    "nohedge_edge_bps_mean": 4.41,
+    "nohedge_pnl_gbp_per_day": 7.15,
+    "pnl_gbp_per_day": 10.849
+   },
+   "m2_Q100": {
+    "by_side": {
+     "ask": 369,
+     "bid": 707
+    },
+    "days_positive": "19/19",
+    "edge_bps_mean": 8.9,
+    "edge_bps_p10": 2.21,
+    "fills": 1076,
+    "fills_per_day": 56.9,
+    "gbp_per_day": 3940,
+    "halves_gbp_per_day": [
+     2.584,
+     4.676
+    ],
+    "net_coins_into_rx_gbp_per_day": 1143,
+    "nohedge_edge_bps_mean": 5.2,
+    "nohedge_pnl_gbp_per_day": 2.149,
+    "pnl_gbp_per_day": 3.63
+   },
+   "m2_Q500": {
+    "by_side": {
+     "ask": 369,
+     "bid": 707
+    },
+    "days_positive": "19/19",
+    "edge_bps_mean": 8.9,
+    "edge_bps_p10": 2.21,
+    "fills": 1076,
+    "fills_per_day": 56.9,
+    "gbp_per_day": 12526,
+    "halves_gbp_per_day": [
+     8.953,
+     13.895
+    ],
+    "net_coins_into_rx_gbp_per_day": 4843,
+    "nohedge_edge_bps_mean": 5.2,
+    "nohedge_pnl_gbp_per_day": 6.265,
+    "pnl_gbp_per_day": 11.424
+   },
+   "m4_Q100": {
+    "by_side": {
+     "ask": 276,
+     "bid": 636
+    },
+    "days_positive": "19/19",
+    "edge_bps_mean": 10.34,
+    "edge_bps_p10": 3.57,
+    "fills": 912,
+    "fills_per_day": 48.2,
+    "gbp_per_day": 3331,
+    "halves_gbp_per_day": [
+     2.479,
+     4.664
+    ],
+    "net_coins_into_rx_gbp_per_day": 1314,
+    "nohedge_edge_bps_mean": 5.82,
+    "nohedge_pnl_gbp_per_day": 2.005,
+    "pnl_gbp_per_day": 3.571
+   },
+   "m4_Q500": {
+    "by_side": {
+     "ask": 276,
+     "bid": 636
+    },
+    "days_positive": "19/19",
+    "edge_bps_mean": 10.34,
+    "edge_bps_p10": 3.57,
+    "fills": 912,
+    "fills_per_day": 48.2,
+    "gbp_per_day": 10770,
+    "halves_gbp_per_day": [
+     8.665,
+     13.937
+    ],
+    "net_coins_into_rx_gbp_per_day": 5277,
+    "nohedge_edge_bps_mean": 5.82,
+    "nohedge_pnl_gbp_per_day": 5.88,
+    "pnl_gbp_per_day": 11.301
+   }
+  },
+  "C_fx_leadlag_taker": {
+   "m0": {
+    "net_bps_mean": -10.21,
+    "net_bps_median": -9.67,
+    "per_day": 8.57,
+    "trades": 162,
+    "won": 14
+   },
+   "m3": {
+    "net_bps_mean": -9.13,
+    "net_bps_median": -9.67,
+    "per_day": 5.87,
+    "trades": 111,
+    "won": 13
+   }
+  },
+  "basis_rx_mid_vs_cb_mid_bps": {
+   "median": -4.67,
+   "minutes": 26751,
+   "p10": -11.92,
+   "p90": 6.69
+  }
+ },
+ "fees_bps": {
+  "cb_taker": 0.45,
+  "rx_taker": 9.0
+ },
+ "window": "2026-10-10 02:00 -> 2026-10-29 00:00 UTC"
+}
