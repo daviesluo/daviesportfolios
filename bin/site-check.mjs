@@ -107,17 +107,52 @@ export function tally(list) {
 }
 
 /**
- * The snapshot's text: a header, then what the page shows (a table's cells joined by " | "), then what went wrong.
- * @param {{ url: string, width: string, size: { width: number, height: number }, hidden: boolean, at: string, trail: string[], text: string, problems: string[] }} s
+ * What a viewer's page is expected to report, so that a real problem stands out (the first real run, 2026-10-30: a
+ * failed Agents call sat among 400 such lines). Each is kept in the snapshot, under "expected", with its reason.
+ * @type {Array<[RegExp, string]>}
+ */
+export const EXPECTED = [
+  [/^\(offline\) /, '--offline stops every call to Supabase on purpose'],
+  [/static\.cloudflareinsights\.com/, "Cloudflare's analytics beacon, refused by the site's own Content-Security-Policy"],
+  [/(cors\.eu\.org|api\.cors\.lol|corsproxy\.io|api\.allorigins\.win|api\.codetabs\.com)/, "the board's CORS-proxy fallbacks (Yahoo, the CN funds): one refuses, the next is tried"],
+  [/\/functions\/v1\/(ops-error\?action=summary|trading212\?action=probe) answered 401$/, 'an admin-only read, refused to a viewer'],
+  [/ failed: net::ERR_ABORTED$/, 'cancelled by the page itself: a newer request replaced it, or the page moved on'],
+  [/^console: Failed to load resource: /, "the browser's own line for a load that failed, which names no address (the calls are listed by address)"],
+];
+
+/** The reason a problem line is expected, or null when it is a real one. @param {string} line */
+export function expectedReason(line) {
+  for (const [re, why] of EXPECTED) if (re.test(line)) return why;
+  return null;
+}
+
+/**
+ * The snapshot's text: a header, the step that failed (if one did), then what the page shows (a table's cells joined
+ * by " | "), then the real problems, then the expected ones under their reasons.
+ * @param {{ url: string, width: string, size: { width: number, height: number }, hidden: boolean, at: string, trail: string[], text: string, problems: string[], failed?: string }} s
  */
 export function snapshotText(s) {
   const body = s.text.split('\n').map((l) => l.replace(/\t+/g, ' | ').replace(/[  ]+/g, ' ').trim()).filter((l, i, a) => l !== '' || (a[i - 1] ?? '') !== '').join('\n');
+  const real = s.problems.filter((p) => !expectedReason(p));
+  /** @type {Map<string, string[]>} */
+  const byWhy = new Map();
+  for (const p of s.problems) {
+    const why = expectedReason(p);
+    if (why) byWhy.set(why, [...(byWhy.get(why) ?? []), p.length > 200 ? `${p.slice(0, 200)}…` : p]);
+  }
+  const expected = [...byWhy].flatMap(([why, lines]) => {
+    const t = tally(lines);
+    return [`### ${why} (${lines.length})`, ...t.slice(0, 5), ...(t.length > 5 ? [`… and ${t.length - 5} more like these`] : [])];
+  });
   return [
     `# site-check ${s.url} · ${s.width} ${s.size.width}×${s.size.height} · values ${s.hidden ? 'hidden' : 'shown'} · read ${s.at}`,
+    ...(s.failed ? [`## FAILED at ${s.failed}`] : []),
     `## ${s.trail.join(' › ')}`,
     body.trim(),
     '## problems',
-    ...(s.problems.length ? tally(s.problems) : ['none seen']),
+    ...(real.length ? tally(real) : ['none seen']),
+    '## expected (a viewer\'s page, and the board\'s fallbacks)',
+    ...(expected.length ? expected : ['none seen']),
     '',
   ].join('\n');
 }
@@ -142,10 +177,42 @@ async function settle(read, inflight, ms = SETTLE_MS) {
 
 /** @param {any} page */
 const topModal = (page) => page.evaluate(() => document.querySelectorAll('.modal').length);
+/** The open page's own text: the topmost modal's, else the board's. @param {any} page @returns {Promise<string>} */
+const readTop = (page) => page.evaluate(() => {
+  const modals = document.querySelectorAll('.modal');
+  return /** @type {HTMLElement} */ (modals[modals.length - 1] ?? document.body).innerText;
+});
+/** An address without its query, but the action a function was asked for. @param {string} u */
+const where = (u) => {
+  try {
+    const x = new URL(u);
+    const act = x.searchParams.get('action');
+    return `${x.host}${x.pathname}${act ? `?action=${act}` : ''}`;
+  } catch { return u.slice(0, 120); }
+};
+
+/**
+ * Waits for the Agents page to draw its tab bar. When it shows its error card instead (a call that never answered:
+ * the first real run's desktop pass met a refused preflight on `agents?action=dashboard`), the card goes into the
+ * problems and its "Try again" is pressed, as a person would, twice at most.
+ * @param {any} page @param {string[]} problems
+ */
+async function agentsLoaded(page, problems) {
+  for (let attempt = 0; ; attempt++) {
+    await page.locator('.modal .ag-modebar, .modal .ag-errorcard').first().waitFor({ state: 'visible', timeout: 30_000 });
+    if (await page.locator('.modal .ag-modebar').count()) return;
+    const card = (await page.locator('.modal .ag-errorcard').first().innerText().catch(() => '')).replace(/\s+/g, ' ').replace(/ Try again.*$/, '').trim();
+    problems.push(`the Agents page showed its error card: "${card}"`);
+    if (attempt >= 2) throw new Error(`the Agents page showed its error card three times: "${card}"`);
+    await page.locator('.modal .ag-errorcard-actions button', { hasText: 'Try again' }).first().click();
+    // The card leaves while it asks again, then the tab bar or a card comes back: wait for the card to go first.
+    await page.locator('.modal .ag-errorcard').first().waitFor({ state: 'detached', timeout: 10_000 }).catch(() => {});
+  }
+}
 
 /**
  * One width: sign in, go where asked, settle, write the snapshot and screenshots. Returns the files written, or throws
- * an Error whose message says what was not found.
+ * an Error that names the step that failed.
  * @param {any} browser @param {Options & { out: string }} o @param {string} width @param {string} token
  */
 async function checkWidth(browser, o, width, token) {
@@ -164,18 +231,22 @@ async function checkWidth(browser, o, width, token) {
   let inflight = 0;
   const isCall = (/** @type {any} */ r) => /\/functions\/v1\//.test(r.url());
   page.on('request', (r) => { if (isCall(r)) inflight++; });
-  page.on('requestfinished', async (r) => {
-    if (!isCall(r)) return;
-    inflight--;
-    const res = await r.response().catch(() => null);
-    if (res && res.status() >= 400) problems.push(`call ${new URL(r.url()).pathname}${new URL(r.url()).search} answered ${res.status()}`);
+  page.on('requestfinished', (r) => { if (isCall(r)) inflight--; });
+  page.on('requestfailed', (r) => {
+    if (isCall(r)) inflight--;
+    problems.push(`${o.offline && /supabase\.co/.test(r.url()) ? '(offline) ' : ''}${r.method()} ${where(r.url())} failed: ${r.failure()?.errorText}`);
   });
-  page.on('requestfailed', (r) => { if (isCall(r)) { inflight--; problems.push(`call ${new URL(r.url()).pathname} failed: ${r.failure()?.errorText}`); } });
+  page.on('response', (res) => { if (res.status() >= 400) problems.push(`${res.request().method()} ${where(res.url())} answered ${res.status()}`); });
   page.on('console', (m) => { if (m.type() === 'error') problems.push(`console: ${m.text().slice(0, 300)}`); });
   page.on('pageerror', (e) => problems.push(`page error: ${String(e.message).slice(0, 300)}`));
   const trail = [o.url];
+  const signedOut = async () => {
+    if (await page.locator('input[type="password"]').count()) throw new Error('the site signed out to its password form: the token was refused (a 401) or has lapsed');
+  };
+  let step = 'open the site';
   try {
     await page.goto(o.url, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    step = 'sign in';
     // Signed in (the header's menu) or refused (the password form, which a 401 to the token brings back).
     const signedIn = await Promise.race([
       page.waitForSelector('.header-menu-btn', { timeout: 30_000 }).then(() => true),
@@ -184,20 +255,29 @@ async function checkWidth(browser, o, width, token) {
     if (signedIn !== true) throw new Error(signedIn === false ? 'the site showed its password form: the token was refused or has lapsed' : 'the page drew neither the board nor the password form in 30 s');
     if (o.page === 'agents') {
       trail.push('Agents');
+      step = 'open the menu';
       await page.locator('.header-menu-btn').first().click();
-      await page.locator('.header-menu-item:text-is("Agents (beta)")').first().click({ timeout: 10_000 });
-      await page.waitForSelector('.ag-modebar', { timeout: 20_000 });
+      const item = page.locator('.header-menu-item:text-is("Agents (beta)")').first();
+      await item.waitFor({ state: 'visible', timeout: 10_000 });
+      step = 'open Agents (beta)';
+      await item.click();
+      step = 'load the Agents page';
+      await agentsLoaded(page, problems);
       if (o.tab) {
         trail.push(o.tab.toUpperCase());
+        step = `switch to ${o.tab.toUpperCase()}`;
         await page.locator(`#ag-modetab-${o.tab}`).click();
         await page.waitForFunction((id) => document.getElementById(`ag-modetab-${id}`)?.getAttribute('aria-selected') === 'true', o.tab, { timeout: 10_000 });
       }
+      step = 'wait for the tab to settle';
       await settle(() => page.evaluate(() => document.querySelector('.ag-modepanel')?.textContent ?? ''), () => inflight);
-      if (await page.locator('input[type="password"]').count()) throw new Error('the site signed out to its password form: the token was refused (a 401) or has lapsed');
+      await signedOut();
       if (o.row) {
         trail.push(o.row);
+        step = `find the row "${o.row}"`;
         const names = (await page.locator('.ag-modepanel .ag-row .ag-name-btn').allTextContents()).map((t) => t.trim());
         if (!names.includes(o.row)) throw new Error(`no row "${o.row}" on ${o.tab ? o.tab.toUpperCase() : 'the tab the page opened on'}; its rows: ${names.join(' / ') || 'none'}`);
+        step = `open the row "${o.row}"`;
         const before = await topModal(page);
         const esc = o.row.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         await page.locator('.ag-modepanel .ag-row', { has: page.locator('.ag-name-btn', { hasText: new RegExp(`^\\s*${esc}\\s*$`) }) }).first().click();
@@ -206,18 +286,19 @@ async function checkWidth(browser, o, width, token) {
     } else {
       trail.push('board');
     }
-    const read = () => page.evaluate(() => {
-      const modals = document.querySelectorAll('.modal');
-      return /** @type {HTMLElement} */ (modals[modals.length - 1] ?? document.body).innerText;
-    });
-    const settled = await settle(read, () => inflight);
+    step = 'wait for the page to settle';
+    const settled = await settle(() => readTop(page), () => inflight);
     // A token the functions refuse signs the page out: the password form comes back after the first calls answer.
-    if (await page.locator('input[type="password"]').count()) throw new Error('the site signed out to its password form: the token was refused (a 401) or has lapsed');
+    await signedOut();
     if (!settled) problems.push(`the page was still changing after ${SETTLE_MS / 1000} s: the snapshot is the last reading`);
+    if (o.row && await page.locator('.modal').last().locator('.ag-errorcard').count()) {
+      problems.push(`the row's page shows an error card: "${(await page.locator('.modal').last().locator('.ag-errorcard').first().innerText()).replace(/\s+/g, ' ').trim()}"`);
+    }
+    step = 'write the snapshot and screenshots';
     const base = [width, o.page === 'agents' ? (o.tab ?? 'agents') : 'board', o.row ? slug(o.row) : null].filter(Boolean).join('-');
     const files = [];
     const txt = path.join(o.out, `${base}.txt`);
-    fs.writeFileSync(txt, snapshotText({ url: o.url, width, size, hidden: !o.showValues, at: new Date().toISOString(), trail, text: await read(), problems }));
+    fs.writeFileSync(txt, snapshotText({ url: o.url, width, size, hidden: !o.showValues, at: new Date().toISOString(), trail, text: await readTop(page), problems }));
     files.push(txt);
     // Screenshots: the window, then each further screenful of the open page's own scroller (a modal scrolls inside
     // itself, so a full-page shot would show only its first screen).
@@ -253,12 +334,14 @@ async function checkWidth(browser, o, width, token) {
     }
     return { files, problems };
   } catch (e) {
-    // What the page showed when it went wrong, beside the reason: a snapshot and a shot named `-failed`.
+    // What the page showed when it went wrong (its topmost page's text, as a person would see it), the step that
+    // failed and why: a snapshot and a shot named `-failed`.
+    const why = `"${step}": ${String(/** @type {Error} */ (e).message).split('\n')[0]}`;
     const base = path.join(o.out, `${width}-failed`);
-    const text = await page.evaluate(() => document.body?.innerText ?? '').catch(() => '');
-    fs.writeFileSync(`${base}.txt`, snapshotText({ url: o.url, width, size, hidden: !o.showValues, at: new Date().toISOString(), trail, text, problems: [/** @type {Error} */ (e).message, ...problems] }));
+    const text = await readTop(page).catch(() => '');
+    fs.writeFileSync(`${base}.txt`, snapshotText({ url: o.url, width, size, hidden: !o.showValues, at: new Date().toISOString(), trail, text, problems, failed: why }));
     await page.screenshot({ path: `${base}.png` }).catch(() => {});
-    throw new Error(`${/** @type {Error} */ (e).message} (what it showed: ${base}.txt, .png)`);
+    throw new Error(`failed at ${why} (what it showed: ${base}.txt, .png)`);
   } finally {
     await ctx.close();
   }
@@ -305,7 +388,8 @@ async function main() {
     for (const w of o.widths) {
       try {
         const r = await checkWidth(browser, /** @type {any} */ (o), w, /** @type {string} */ (token));
-        console.log(`  ${w}: ${r.files.join(', ')}${r.problems.length ? `\n    ${r.problems.length} problem(s): ${tally(r.problems).slice(0, 5).join(' / ')}` : ''}`);
+        const real = r.problems.filter((p) => !expectedReason(p));
+        console.log(`  ${w}: ${r.files.join(', ')}\n    ${real.length ? `${real.length} problem(s): ${tally(real).slice(0, 5).join(' / ')}` : 'no problem'}; ${r.problems.length - real.length} expected`);
       } catch (e) {
         failed++;
         console.error(`  ${w}: ${/** @type {Error} */ (e).message}`);

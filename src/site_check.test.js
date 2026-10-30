@@ -4,7 +4,7 @@
 // built `dist/` (the ledger records it), since it needs the site or a server.
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { checkToken, insideRepo, parseArgs, slug, snapshotText, TOKEN_ENV, WIDTHS } from '../bin/site-check.mjs';
+import { checkToken, expectedReason, insideRepo, parseArgs, slug, snapshotText, TOKEN_ENV, WIDTHS } from '../bin/site-check.mjs';
 
 const tok = (/** @type {object} */ claims) => `${Buffer.from(JSON.stringify(claims)).toString('base64url')}.c2lnbmF0dXJl`;
 const NOW = Date.UTC(2026, 9, 29, 23, 30);
@@ -52,8 +52,39 @@ describe('site-check', () => {
       '# site-check https://daviesluo.com · phone 390×844 · values hidden · read 2026-10-29T23:30:00.000Z',
       '## https://daviesluo.com › Agents › LIVE › Stablecoin quotes USDT/GBP',
       'INVENTORY\n\nGBP | £•••.••\nTIME | SIDE | PRICE\n23:01 | SELL | •.••••',
-      '## problems', 'none seen', '',
+      '## problems', 'none seen', "## expected (a viewer's page, and the board's fallbacks)", 'none seen', '',
     ].join('\n'));
     expect(slug('Stablecoin quotes USDT/GBP')).toBe('stablecoin-quotes-usdt-gbp');
+  });
+
+  // Lines from the first real run (2026-10-30 00:15 UTC), shortened: the viewer's expected noise, and the one real
+  // problem among it, the Agents call whose preflight was refused.
+  const AGENTS = "console: Access to fetch at 'https://flmvxigozjuizpckllvk.supabase.co/functions/v1/agents?action=dashboard&forceFunctionRegion=eu-west-2' from origin 'https://daviesluo.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: It does not have HTTP ok status.";
+  const NOISE = [
+    "console: Refused to load the script 'https://static.cloudflareinsights.com/beacon.min.js/v1' because it violates the following Content Security Policy directive",
+    "console: Access to fetch at 'https://cors.eu.org/https://query1.finance.yahoo.com/v8/finance/chart/AAPL?interval=5m' from origin 'https://daviesluo.com' has been blocked by CORS policy",
+    "console: Access to fetch at 'https://api.cors.lol/?url=https%3A%2F%2Fdanjuanapp.com%2Fdjapi%2Ffund' from origin 'https://daviesluo.com' has been blocked by CORS policy",
+    'GET api.cors.lol/ answered 403',
+    'GET flmvxigozjuizpckllvk.supabase.co/functions/v1/ops-error?action=summary answered 401',
+    'GET flmvxigozjuizpckllvk.supabase.co/functions/v1/chart failed: net::ERR_ABORTED',
+    'console: Failed to load resource: the server responded with a status of 401 (Unauthorized)',
+  ];
+
+  it('sorts the expected lines of a viewer\'s page from the real problems', () => {
+    for (const l of NOISE) expect(expectedReason(l), l).not.toBeNull();
+    for (const l of [AGENTS, 'GET flmvxigozjuizpckllvk.supabase.co/functions/v1/agents?action=dashboard failed: net::ERR_FAILED',
+      'GET flmvxigozjuizpckllvk.supabase.co/functions/v1/data answered 401', 'GET flmvxigozjuizpckllvk.supabase.co/functions/v1/agents?action=dashboard answered 503',
+      'page error: x is undefined', 'the Agents page showed its error card: "Could not reach the server"']) {
+      expect(expectedReason(l), l).toBeNull();
+    }
+    const s = snapshotText({ url: 'https://daviesluo.com', width: 'desktop', size: WIDTHS.desktop, hidden: true, at: 'T', trail: ['u', 'Agents'], text: 'x',
+      problems: [...NOISE, NOISE[6], AGENTS], failed: '"load the Agents page": the Agents page showed its error card three times' });
+    const [head, rest] = s.split('## problems\n');
+    expect(head).toContain('## FAILED at "load the Agents page"');
+    const [real, expected] = rest.split("## expected (a viewer's page, and the board's fallbacks)\n");
+    expect(real.trim()).toBe(AGENTS);
+    expect(expected).toContain("### the browser's own line for a load that failed, which names no address (the calls are listed by address) (2)");
+    expect(expected).toContain('console: Failed to load resource: the server responded with a status of 401 (Unauthorized) (×2)');
+    expect(expected).toContain("### the board's CORS-proxy fallbacks (Yahoo, the CN funds): one refuses, the next is tried (3)");
   });
 });

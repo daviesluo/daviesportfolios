@@ -808,6 +808,13 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   design §10. Pins: `cb_live.test.ts` (fair and quotes minute for minute against the paper arm's run inside a closure,
   counterfactual without the nudge fails; the follower unchanged with the shadow on).
 
+### [2026-10-30 00:35 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **site-check after its first real run** (sub-agent; commit, not pushed). The 00:15 desktop pass did reach Agents: its
+  `agents?action=dashboard` preflight was refused (not HTTP ok) and the page showed "Could not reach the server"; phone, a
+  moment later, read fine. Now the script presses the card's "Try again" twice at most, names the step that failed in the
+  `-failed` snapshot, reads the topmost page, and files a viewer's expected lines (CSP beacon, CORS-proxy fallbacks,
+  admin-only 401s, aborted calls, address-less console lines) under "expected", apart from the real problems.
+
 ### [2026-10-30 00:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **A rebook's sale is realised, first in, first out** (sub-agent; commit, not pushed; Davies saw LIVE's USDC row after the 23:34
   drain: "USDC [•] USDC · £[•] at £0.7470 -£[•]"). `conversionSales` (index.ts): a conversion that sells takes its coins from the
