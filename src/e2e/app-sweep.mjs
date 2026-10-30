@@ -4886,13 +4886,13 @@ async function run() {
       // INVENTORY: each coin in pounds at the index and against its cost. USDC: B's +£0.2112 and the conversion's 395.6436
       // × (0.7575 − 0.7574) less its £0.2699 fee, -£0.0192; USDT: E's +£0.0660 and 395.6436 × (0.7570 − 0.7570) less the
       // £0.1798 of its fee D has not taken, -£0.1138. Together the scoreboard's UNREALIZED, -£0.1330.
-      // From the venue's balances (QUOTES_LIVE_BALANCES): each total with what is on hold in orders; the book's own count only where
+      // From the venue's balances (QUOTES_LIVE_BALANCES): each total, nothing of what is on hold in orders (Davies, 2026-10-30); the book's own count only where
       // it differs (Davies, 2026-10-30: "后面还加一个book把前面的值再重复一遍，删了吧，最后一行的时间也删了"): USDT's 528.64 against the
       // book's 527.64 (£0.75 at £0.7570), "≠ book 527.64 USDT"; no "balance as of" line.
-      const INV = 'GBP|£600.70 · £400 in orders|USDC|263.64 USDC · £199.71 at £0.7575 -£0.0192 · 132.00 USDC in orders'
+      const INV = 'GBP|£600.70|USDC|263.64 USDC · £199.71 at £0.7575 -£0.0192'
         + '|USDT|528.64 USDT · £400.18 at £0.7570 -£0.1138 ≠ book 527.64 USDT';
       if (lp && lp.balances.join('|') === INV && lp.balanceAt === '' && lp.mismatches === 1) {
-        ok(T('pr5-page'), "INVENTORY: the account's own balances, £600.70 (£400 in orders), 263.64 USDC (£199.71 at the index, -£0.0192) and 528.64 USDT, the book's count only where it differs (USDT, a coin apart), no reading time");
+        ok(T('pr5-page'), "INVENTORY: the account's own balances, £600.70, 263.64 USDC (£199.71 at the index, -£0.0192) and 528.64 USDT, the book's count only where it differs (USDT, a coin apart), no reading time");
       } else fail(T('pr5-page'), `balances ${JSON.stringify(lp?.balances)}, at ${lp?.balanceAt}, flagged ${lp?.mismatches}`);
       // DAYS: today 18 orders, 3 entry fills, A and C closed (-£0.0633); 16 Sep 6 orders (the conversions among them), 2
       // entry fills, D (+£0.0288). They add up to REALIZED, -£0.0345.
@@ -4963,7 +4963,7 @@ async function run() {
       const lw = await readUntil(page, readLivePage, (v) => (v?.convLines ?? []).every((x) => x !== ''));
       await shot(page, 'agents-quotes-live-switch');
       const SWITCH_LINES = ['selling 201.51 USDC @ £0.7466 (switching to USDT)', 'buying 66.00 USDT @ £0.7570 (top-up), 12.00 filled'];
-      const SWITCH_INV = 'GBP|£600.70 · £400 in orders|USDT|528.64 USDT · £400.18 at £0.7570 -£0.1138 ≠ book 527.64 USDT';
+      const SWITCH_INV = 'GBP|£600.70|USDT|528.64 USDT · £400.18 at £0.7570 -£0.1138 ≠ book 527.64 USDT';
       if (lw && JSON.stringify(lw.convLines) === JSON.stringify(SWITCH_LINES) && lw.conversions.length === 0 && lw.balances.join('|') === SWITCH_INV && lw.exits.length === 2 && lw.entries.length === 8
         && lw.tableOverflow <= 1 && lw.overflow <= 1) {
         ok(T('pr5-switch'), `switching to USDT: BOOKS says ${JSON.stringify(lw.convLines)}; no CONVERSIONS table; INVENTORY without the 0.02 USDC (${lw.balances.join(' ')}); nothing wider than the screen`);
@@ -5533,7 +5533,7 @@ async function run() {
         const DAYS = ['17 Sep · today | 8 | 1 | 1 · 0 % won | -£0.0500', '16 Sep | 4 | 2 | 1 · 100 % won | +£0.0402', '15 Sep | 5 | 0 | 0 | £0'];
         // INVENTORY from Coinbase's balances (the fixture's invented reading at 22:59): £40.21, £20 of it on hold, and 106.81 USDC,
         // 26.81 on hold under C's exit, each as the book counts, so nothing flagged and no book count shown; no reading time.
-        if (cv && JSON.stringify(cv.days) === JSON.stringify(DAYS) && cv.annual === annual && cv.balances.join(' ') === 'GBP £40.21 · £20 in orders USDC 106.81 USDC · £79.86 at £0.7477 +£0.0803 · 26.81 USDC in orders'
+        if (cv && JSON.stringify(cv.days) === JSON.stringify(DAYS) && cv.annual === annual && cv.balances.join(' ') === 'GBP £40.21 USDC 106.81 USDC · £79.86 at £0.7477 +£0.0803'
           && cv.balanceAt === '' && cv.mismatches === 0 && cv.trips.length === 2 && cv.trips[0].includes('24-hour stop') && cv.exits.length === 1 && cv.entries.length === 4
           && cv.entries.at(-1)?.endsWith('filled') && !/403|PERMISSION|rejected|refused|POST_ONLY/i.test(cText)) {
           ok(CT('tables'), `INVENTORY ${cv.balances.join(' ')}; DAYS "${cv.annual}" ${JSON.stringify(cv.days)}; ${cv.trips.length} round trips (the newest by its 24-hour stop); ${cv.exits.length} exit and ${cv.entries.length} entries, no refused order listed`);

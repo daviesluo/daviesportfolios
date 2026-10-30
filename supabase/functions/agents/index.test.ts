@@ -8,14 +8,14 @@ import {
   STATE_VOCAB, strategyBooks, SYMBOLS, probeSummary, quotesDelayMs, quotesSummary, quoteDays, QUOTES_CAPITAL_USD, QUOTES_RECENT_TRIPS, tickErrorReport, crashReport, type ProbeSummaryRow,
   REVX_KEY_NAMES, REVX2_PROBE_SYMBOLS, runProbe, PROBE_PARTS, newestDecisions, quotesLiveSummary, type QuoteLiveOrderView, quotesVariantSummary, quotesRuledSummary,
   serveRequest, type ServeDeps, type Who,
-  exitOverbuy, twinBookRatio, liveBookGbp, liveCoinBooks, conversionSales, liveConversionShares, liveIndexPrices, liveOrderReason, liveRestingBuysGbp, liveRungs, liveRungTrips, quotesLiveDetail, dayCapitalGbp, tripEnds, QUOTE_LIVE_ORDER_COLUMNS,
+  exitOverbuy, twinBookRatio, quoteRungsTraded, liveBookGbp, liveCoinBooks, conversionSales, liveConversionShares, liveIndexPrices, liveOrderReason, liveRestingBuysGbp, liveRungs, liveRungTrips, quotesLiveDetail, dayCapitalGbp, tripEnds, QUOTE_LIVE_ORDER_COLUMNS,
   QUOTE_TICKER_FRESH_MS,
   QUOTE_LIVE_REASON_COLUMNS, QUOTE_LIVE_SUMMARY_COLUMNS, QUOTES_LIVE_KNOWN_REFUSALS, QUOTES_LIVE_ORDERS_FILTER, QUOTES_LIVE_PAGE_ROWS, type QuoteLiveRecentRow, withConversionFees,
   liveDays, readQuotesTwin, twinInUsd, twinsDelayMs, twinsOnPage, TWINS_START_MS,
   deadmanBeatAt, DEADMAN_BEAT_KEY, runSelectKeptAlive, runQuotesAction, RXU_TABLES_MISSING, quotesPaperErrorReport, readGrokPmJournal,
 } from "./index.ts";
 import { QUOTE_LEASE_STEP, runQuotes, type QuoteBook, type QuoteReport } from "./quotes.ts";
-import type { QuoteLiveReport } from "./quotes_live.ts";
+import { QUOTE_LIVE_INSTANCE, QUOTE_LIVE_USDT_ONLY_FROM, QUOTE_RXU_INSTANCE, type QuoteLiveReport } from "./quotes_live.ts";
 import { beatKeyOfRequest } from "../_shared/beats.ts";
 import { memDb, pickRow, selectItems, twinFixtureTables } from "./testing.ts";
 import { specFromRow, TWIN_SPEC_ROWS, TWINS, type TwinSpecRow } from "./quotes_twin.ts";
@@ -1760,4 +1760,14 @@ Deno.test("Polymarket analyst's JOURNAL past the dashboard's thirty: pages from 
   const capped = await readGrokPmJournal(memDb({ grokpm_decisions: Array.from({ length: 60 }, (_, i) => ({ ...rows[0], id: `e${i}`, ts: ts(i) })), grokpm_markets: [], grokpm_entries: [] }, { now: () => 0 }).db, ts(60), [], 500) as { journal: unknown[]; more: boolean };
   assertEquals([capped.journal.length, capped.more], [50, true]);
   assertEquals(await readGrokPmJournal(db, "yesterday", [], 10), { error: "before must be a time" });
+});
+
+Deno.test("quoteRungsTraded: the books an instance trades and, on each, the rungs its weights quote (Davies, 2026-10-30: \"这里不做0.3 %和usdt就删掉不显示\")", () => {
+  // Revolut X's USDC/GBP (0180): USDC-GBP alone, no 0.3 % rung, from its start.
+  assertEquals(quoteRungsTraded(QUOTE_RXU_INSTANCE, Date.parse("2026-10-30T12:00:00Z")), { "USDC-GBP": [0.001, 0.002] });
+  // LIVE: both books and every rung before its USDT-only switch, USDT-GBP's three rungs from it.
+  assertEquals(quoteRungsTraded(QUOTE_LIVE_INSTANCE, QUOTE_LIVE_USDT_ONLY_FROM - 60e3), { "USDC-GBP": [0.001, 0.002, 0.003], "USDT-GBP": [0.001, 0.002, 0.003] });
+  assertEquals(quoteRungsTraded(QUOTE_LIVE_INSTANCE, QUOTE_LIVE_USDT_ONLY_FROM), { "USDT-GBP": [0.001, 0.002, 0.003] });
+  // A rung retired on one side only still quotes on the other, so it is drawn.
+  assertEquals(quoteRungsTraded({ rungs: [0.001, 0.003], weights: { from: 0, side: { bid: 1, ask: 1 }, k: { "0.003": 0 }, book: { "USDT-GBP": 0 } } } as never, 1), { "USDC-GBP": [0.001] });
 });

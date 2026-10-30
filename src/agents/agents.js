@@ -2086,21 +2086,38 @@ export function quotesShowBook(q, rows) {
  * paper page's shape, so `quoteLadderRows` lays out its six rungs as the paper's: a rung holding coins is held at its
  * average entry, with what it has made at the book's last trade; one with an order resting quotes that order's price
  * (its exit, when it holds nothing); any other is idle. Pounds, the book's own currency.
+ *
+ * Only what the strategy quotes (Davies, 2026-10-30, on "Stablecoin quotes USDC/GBP": "这里不做0.3 %和usdt就删掉不显示，类似的策略也一样"):
+ * with the books it trades going forward (`q.books`) and each one's rungs (`q.rungsTraded`, from its instance's weights), a rung it
+ * does not quote is not a row, unless it still holds coin or has an order resting (a retired rung's exit); a book it no longer
+ * trades keeps its card only while it has round trips to account for (LIVE's USDC-GBP before its USDT-only switch: its round
+ * trips and realised, so the page still adds up), a held or resting rung, or a resting conversion, and shows no idle rung. A
+ * payload without them (Coinbase's and OKX's arms, which quote every rung of every book) draws everything, as before.
  * @param {any} q  the dashboard's `quotes.live`
  */
 export function quotesLiveBooks(q) {
   const d = q?.detail;
   if (!d) return [];
   const resting = quoteConversions(q).filter((c) => c.resting);
-  return (d.books ?? []).map((/** @type {any} */ b) => ({
-    // A conversion resting on the book (Davies, 2026-10-29: "我没看正在挂售？"): its card says so (`quoteConversionLine`).
-    converting: resting.filter((c) => c.book === b.book),
-    book: b.book, lastPrice: b.lastPrice, fair: b.fair, index: b.index ?? null, trips: Number(b.trips) || 0, won: Number(b.won) || 0,
-    realisedGbp: Number(b.realisedGbp) || 0,
-    rungs: (d.rungs ?? []).filter((/** @type {any} */ r) => r.book === b.book).map((/** @type {any} */ r) => (r.held
-      ? { side: r.side, k: r.k, mode: 'position', entry: r.held.avgEntry, heldSince: r.held.since, unrealisedGbp: r.held.unrealisedGbp ?? null }
-      : r.order ? { side: r.side, k: r.k, mode: 'quote', price: r.order.price } : { side: r.side, k: r.k, mode: 'idle' })),
-  }));
+  const traded = Array.isArray(q?.books) ? new Set(q.books) : null;
+  /** @type {Record<string, number[]> | null} */
+  const rungsTraded = q?.rungsTraded && typeof q.rungsTraded === 'object' ? q.rungsTraded : null;
+  return (d.books ?? []).map((/** @type {any} */ b) => {
+    const quoted = !traded || traded.has(b.book);
+    const ks = quoted && Array.isArray(rungsTraded?.[b.book]) ? new Set(rungsTraded[b.book].map(Number)) : null;
+    const busy = (/** @type {any} */ r) => !!(r.held || r.order);
+    return {
+      // A conversion resting on the book (Davies, 2026-10-29: "我没看正在挂售？"): its card says so (`quoteConversionLine`).
+      converting: resting.filter((c) => c.book === b.book),
+      book: b.book, lastPrice: b.lastPrice, fair: b.fair, index: b.index ?? null, trips: Number(b.trips) || 0, won: Number(b.won) || 0,
+      realisedGbp: Number(b.realisedGbp) || 0,
+      quoted,
+      rungs: (d.rungs ?? []).filter((/** @type {any} */ r) => r.book === b.book && (busy(r) || (quoted && (!ks || ks.has(Number(r.k))))))
+        .map((/** @type {any} */ r) => (r.held
+          ? { side: r.side, k: r.k, mode: 'position', entry: r.held.avgEntry, heldSince: r.held.since, unrealisedGbp: r.held.unrealisedGbp ?? null }
+          : r.order ? { side: r.side, k: r.k, mode: 'quote', price: r.order.price } : { side: r.side, k: r.k, mode: 'idle' })),
+    };
+  }).filter((b) => b.quoted || b.trips > 0 || b.rungs.length > 0 || b.converting.length > 0);
 }
 
 /** A difference between the venue's balance and the book's own count worth more than this is flagged on INVENTORY. */

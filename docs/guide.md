@@ -293,12 +293,15 @@ places stay when the number is not whole.
   against what they cost: the pounds the conversions paid for them, fee
   included, and what the rungs holding paid or sold for. The fees beside
   realised include the conversion fee of the coins each round trip sold.
-  Then BOOKS: a card per book, its last trade, fair and index price, and a
-  ladder of its rungs, each with the price of the order resting on it, or
-  what it holds and has made at the index; under it the book's round trips
-  and what they realised. INVENTORY: the pounds and coins in the account as
-  the exchange last reported them, each the whole balance with what is on
-  hold in orders beside it, each coin also in pounds at the index price
+  Then BOOKS: a card per book it trades, its last trade, fair and index
+  price, and a ladder of the rungs it quotes (no 0.3 % row where it quotes
+  none), each with the price of the order resting on it, or what it holds and
+  has made at the index; under it the book's round trips and what they
+  realised. A book it no longer trades keeps its card while it has round
+  trips, without the ladder, so the page still adds up; and the same holds
+  on every Stablecoin quotes page. INVENTORY: the pounds and coins in the
+  account as the exchange last reported them, each the whole balance, each
+  coin also in pounds at the index price
   shown beside it, and with its unrealised; their unrealised add up to the
   scoreboard's, which stays on the book's own count. When the strategy sells
   a coin it no longer trades (as the live account sold its USDC on 29 Oct),

@@ -16,7 +16,7 @@ import { SurfaceBoundary } from '../app/surface_boundary.jsx';
 import { fmtDayMonth, maskDigits, pctColor } from '../app/formatters.js';
 import { ukTzAbbr } from '../prices/market_hours.js';
 import {
-  AGENT_TABS, cbLiveRow, FXW_ROW_ID, fmtFx, fxwAudRow, fxwTiles, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokTestRow, grokTestOf, grokTestTiles, grokTestLayerCells, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmDaysAnnualPct, GROKPM_DAYS_ANNUAL_TITLE, GROKPM_JOURNAL_STEP, fetchGrokPmJournal, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtFeeIn4, fmtGbp, fmtGbp4, fmtIn, fmtIn4, quotesDetailInCcy, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_NUDGE_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesPageFor, quotesShowBook, quoteConversionLine, INVENTORY_DUST, quotesOkxName, quotesOkxOf, quotesOkxRow, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quoteDaysRecent, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwShareText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows,
+  AGENT_TABS, cbLiveRow, quotesRxuRow, FXW_ROW_ID, fmtFx, fxwAudRow, fxwTiles, GROKPM_ROW_ID, GROKPM_ROW_NAME, grokPmRow, grokTestRow, grokTestOf, grokTestTiles, grokTestLayerCells, grokPmModeTag, grokPmTiles, grokPmStopText, grokPmMismatchText, grokPmDayCells, grokPmDaysAnnualPct, GROKPM_DAYS_ANNUAL_TITLE, GROKPM_JOURNAL_STEP, fetchGrokPmJournal, grokPmJournalView, fmtProb, LP_LIVE_ROW_ID, LP_R_TILE, lpStopRoomText, lpEstimateTexts, lpLiveDayCells, lpLiveStatus, liveExtraRows, lpLiveRow, agentsErrorView, agentsTabsView, alertsFor, countdownText, dashboardInFlight, defaultAgentsTab, defaultChartSymbol, fetchAgentsChart, fetchAgentsDashboard, fetchAgentsLog, fmtBps, fmtCents, fmtFees, fmtFeeGbp4, fmtFeeIn4, fmtGbp, fmtGbp4, fmtIn, fmtIn4, quotesDetailInCcy, fmtPct2, fmtPctSigned, fmtQuotePrice, fmtQuoteQty, fmtUsd, glText, glTextIn, historyLimitOf, lastChangeText, liveStateRows, newestWins, quoteBookLabel, quoteLadderRows, quoteRungLabel, orderStateText, quotesLiveBooks, quotesLiveInventory, QUOTES_COINBASE_HOLD_ROW_ID, QUOTES_COINBASE_NUDGE_ROW_ID, QUOTES_COINBASE_USDC_ROW_ID, quotesPageFor, quotesShowBook, quoteConversionLine, INVENTORY_DUST, quotesOkxName, quotesOkxOf, quotesOkxRow, positionLines, readAgentsCache, readChartCache, quoteDaysAnnualPct, quoteDaysRecent, QUOTE_DAYS_ANNUAL_LABEL, QUOTE_DAYS_ANNUAL_TITLE, quotesLiveRow, quotesTwinLines, quotesTwinOf, quotesTwinRow, quotesCoinbaseRow, rowMoney, rwBarTileKeys, rwFillView, lpLiveQuoteRows, rwHeldOf, rwShareText, scoreboardView, shareSegments, showFullHistory, sizeText, splitCents, splitStrategyRows, strategyName, strategyNameParts, strategyRows, strategyScoreboard, symbolOrderRows, testedForText, venueHue, venueLabel, venueRows, paperTestRows,
 } from './agents.js';
 import {
   CHART_PAD, CHART_PAD_SM, chartGeometry, fmtChartPrice, fmtChartStamp, hoverPoint, markPath, plotLabelY, tooltipBox, windowText,
@@ -379,14 +379,15 @@ function QuoteBooks({ books, m, empty = null, ccy = 'GBP' }) {
               <span className="dim mono ag-venue-meta">last trade {m(fmtQuotePrice(b.lastPrice, b.book))}{b.fair != null ? ` · fair ${m(fmtQuotePrice(b.fair, b.book))}` : ''}{b.index != null ? ` · index ${m(fmtQuotePrice(b.index, b.book))}` : ''}</span>
             </div>
             {(b.converting ?? []).map((/** @type {any} */ c) => <div key={c.id} className="ag-quotes-converting mono">{quoteConversionLine(c, m)}</div>)}
-            <table className="ag-ladder mono">
+            {/* No rung table on a book the strategy no longer quotes and holds nothing on (`quotesLiveBooks`): its round trips alone. */}
+            {(b.rungs ?? []).length > 0 && <table className="ag-ladder mono">
               <thead><tr><th className="dim">Rung</th><th className="dim">Bid</th><th className="dim">Ask</th></tr></thead>
               <tbody>
                 {quoteLadderRows(b).map((r) => (
                   <tr key={r.k}><td className="dim">{r.label}</td><td><LadderCell c={r.bid} m={m} book={b.book} ccy={ccy} /></td><td><LadderCell c={r.ask} m={m} book={b.book} ccy={ccy} /></td></tr>
                 ))}
               </tbody>
-            </table>
+            </table>}
             <div className="ag-quotes-grid mono">
               <span className="dim">round trips</span><span>{b.trips ? `${b.trips} · ${Math.round((100 * b.won) / b.trips)} % won` : '0'}</span>
               <span className="dim">realised</span><span className="ag-gl" style={{ color: pctColor(b.realisedGbp) }}>{m(fmtIn4(b.realisedGbp ?? 0, ccy))}</span>
@@ -594,11 +595,14 @@ function LiveOrdersTable({ title, cls, orders, m, empty, showBook = true }) {
  * (Davies, 2026-10-29: "网页中live的coinbase策略子页面打不开，点了没反应"): LIVE, Coinbase, its LIVE row's scoreboard (`cbLiveRow`),
  * in pounds on its £120; its INVENTORY is its pounds and its USDC as its own record has them (its top-up conversions there, as
  * PR5's are), the USDC at the paper arm's fair. The dashboard's `cbLive.detail` is in this page's shape (`cbLiveDetail`).
- * @param {{ q: any, m: (s: string) => string, at: any, nowMs: number, twin?: boolean, coinbase?: boolean, okx?: boolean, cbLive?: boolean }} props
+ *
+ * LIVE's "Stablecoin quotes USDC/GBP" on Revolut X (`rxu`, 0180) opens it as LIVE's executor's page, under its own row
+ * (`quotesRxuRow`): its name, not LIVE's (Davies, 2026-10-30: the page named "Stablecoin quotes USDT/GBP" under "running live").
+ * @param {{ q: any, m: (s: string) => string, at: any, nowMs: number, twin?: boolean, coinbase?: boolean, okx?: boolean, cbLive?: boolean, rxu?: boolean }} props
  */
-export function QuotesLiveDetail({ q, m, at, nowMs, twin = false, coinbase: cbOnly = false, okx = false, cbLive = false }) {
+export function QuotesLiveDetail({ q, m, at, nowMs, twin = false, coinbase: cbOnly = false, okx = false, cbLive = false, rxu = false }) {
   const coinbase = cbOnly || okx;
-  const row = cbLive ? cbLiveRow(q) : okx ? quotesOkxRow(q) : coinbase ? quotesCoinbaseRow(q) : twin ? quotesTwinRow(q) : quotesLiveRow(q);
+  const row = cbLive ? cbLiveRow(q) : okx ? quotesOkxRow(q) : coinbase ? quotesCoinbaseRow(q) : twin ? quotesTwinRow(q) : rxu ? quotesRxuRow(q) : quotesLiveRow(q);
   if (!row) return null;
   const lines = twin || coinbase ? quotesTwinLines(q, m) : null;
   const x = rowMoney(row);
@@ -648,7 +652,8 @@ export function QuotesLiveDetail({ q, m, at, nowMs, twin = false, coinbase: cbOn
                     {a.amount}{a.gbp ? <span className="dim"> · {a.gbp}</span> : null}
                     {a.price ? <span className="dim" title={a.priceFrom === 'index' ? "Revolut X's index price, as its account page values the coin" : a.priceFrom === 'fair' ? "the paper arm's fair price, as its trips are marked" : "the book's last trade: no fresh index price"}> at {a.price}</span> : null}
                     {a.unrealisedGbp != null ? <span className="ag-gl" style={{ color: pctColor(a.unrealisedGbp) }}> {m(fmtGbp4(a.unrealisedGbp))}</span> : null}
-                    {a.inOrders ? <span className="dim ag-ql-hold"> · {a.inOrders} in orders</span> : null}
+                    {/* What is on hold in orders is not shown (Davies, 2026-10-30: "INVENTORY中“ · 160.60 USDC in orders”什么意思？没什么用的话也删了"):
+                        the total is the account's, and the orders are listed below. */}
                     {/* The book's own count only when it differs from the venue's balance (Davies, 2026-10-30: "后面还加一个book把前面的值再
                         重复一遍，删了吧"). */}
                     {a.book != null && a.mismatch
@@ -2056,7 +2061,7 @@ function AgentsModal({ hideValues, onClose }) {
           <PageActions onRefresh={() => load(true)} onClose={() => setSelected(null)} loading={loading} closeClass="ag-detail-close" />
         </header>
         <div className="modal-body ag-body">
-          <PageGuard gen={gen}><QuotesLiveDetail q={quotesPage === 'rxu' ? dash.quotesRxu : dash.quotes.live} m={m} at={dash.at} nowMs={now} /></PageGuard>
+          <PageGuard gen={gen}><QuotesLiveDetail q={quotesPage === 'rxu' ? dash.quotesRxu : dash.quotes.live} m={m} at={dash.at} nowMs={now} rxu={quotesPage === 'rxu'} /></PageGuard>
         </div>
       </Modal>
     )}

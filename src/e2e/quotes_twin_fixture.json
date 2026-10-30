@@ -1354,6 +1354,18 @@
     "USDC-GBP",
     "USDT-GBP"
    ],
+   "rungsTraded": {
+    "USDC-GBP": [
+     0.001,
+     0.002,
+     0.003
+    ],
+    "USDT-GBP": [
+     0.001,
+     0.002,
+     0.003
+    ]
+   },
    "twin": {
     "id": "live600",
     "name": "Stablecoin quotes USDT/GBP LIVE twin",
@@ -1906,6 +1918,18 @@
     "USDC-GBP",
     "USDT-GBP"
    ],
+   "rungsTraded": {
+    "USDC-GBP": [
+     0.001,
+     0.002,
+     0.003
+    ],
+    "USDT-GBP": [
+     0.001,
+     0.002,
+     0.003
+    ]
+   },
    "twin": {
     "id": "rxu120",
     "name": "Stablecoin quotes USDC/GBP LIVE twin",
@@ -2458,6 +2482,18 @@
     "USDC-GBP",
     "USDT-GBP"
    ],
+   "rungsTraded": {
+    "USDC-GBP": [
+     0.001,
+     0.002,
+     0.003
+    ],
+    "USDT-GBP": [
+     0.001,
+     0.002,
+     0.003
+    ]
+   },
    "twin": {
     "id": "live1200",
     "name": "Stablecoin quotes variant-1",
@@ -3010,6 +3046,18 @@
     "USDC-GBP",
     "USDT-GBP"
    ],
+   "rungsTraded": {
+    "USDC-GBP": [
+     0.001,
+     0.002,
+     0.003
+    ],
+    "USDT-GBP": [
+     0.001,
+     0.002,
+     0.003
+    ]
+   },
    "twin": {
     "id": "take50",
     "name": "Stablecoin quotes variant-2",
@@ -3562,6 +3610,18 @@
     "USDC-GBP",
     "USDT-GBP"
    ],
+   "rungsTraded": {
+    "USDC-GBP": [
+     0.001,
+     0.002,
+     0.003
+    ],
+    "USDT-GBP": [
+     0.001,
+     0.002,
+     0.003
+    ]
+   },
    "twin": {
     "id": "n600no03",
     "name": "Stablecoin quotes variant-3",
@@ -4114,6 +4174,18 @@
     "USDC-GBP",
     "USDT-GBP"
    ],
+   "rungsTraded": {
+    "USDC-GBP": [
+     0.001,
+     0.002,
+     0.003
+    ],
+    "USDT-GBP": [
+     0.001,
+     0.002,
+     0.003
+    ]
+   },
    "twin": {
     "id": "n600usdt2",
     "name": "Stablecoin quotes USDT 2:1 from 10-28",
@@ -4666,6 +4738,18 @@
     "USDC-GBP",
     "USDT-GBP"
    ],
+   "rungsTraded": {
+    "USDC-GBP": [
+     0.001,
+     0.002,
+     0.003
+    ],
+    "USDT-GBP": [
+     0.001,
+     0.002,
+     0.003
+    ]
+   },
    "twin": {
     "id": "n600usdt",
     "name": "Stablecoin quotes variant-4",
@@ -5218,6 +5302,18 @@
     "USDC-GBP",
     "USDT-GBP"
    ],
+   "rungsTraded": {
+    "USDC-GBP": [
+     0.001,
+     0.002,
+     0.003
+    ],
+    "USDT-GBP": [
+     0.001,
+     0.002,
+     0.003
+    ]
+   },
    "twin": {
     "id": "n600nudge",
     "name": "Stablecoin quotes variant-5",
