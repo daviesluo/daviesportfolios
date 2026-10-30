@@ -26,10 +26,10 @@ export const KIND_LABELS = { 'trend-4h': 'Trend 4h', 'trend-1h': 'Trend 1h', 'mo
 export const VENUE_HUES = { revx: '#8ec5ff', binance: '#f0b90b', polymarket: '#7d8bff', coinbase: '#4d8bff', okx: '#dfe3ea', ig: '#d6a2e8', hyperliquid: '#97fce4' };
 
 /**
- * A row on two venues at once has one id for both, which names its own card on TESTING (`venueRows` gives a venue no strategy
- * trades on a card of its own) and shows both badges: "Stablecoin quotes RX↔Coinbase hedge" and "… - 1" rest on Revolut X and
- * hedge on Coinbase (xhedge_page.ts; Davies, 2026-10-30: "…在venue列两个币所都加上，funded和deployed资金按两个币所实际的来"). Its
- * money is both venues', so it is counted on neither venue's own card.
+ * A row on two venues at once has one id for both, which shows both badges: "Stablecoin quotes RX↔Coinbase hedge" and "… - 1"
+ * rest on Revolut X and hedge on Coinbase (Davies, 2026-10-30: "…在venue列两个币所都加上…"). It has no card of its own: its
+ * `venueSplit` puts each venue's half on that venue's card (`venueRows`; "VENUES不要把两个单独新开一个放一起，按实际两个币所的funded和deployed和
+ * 营收分别放在两个各自的里面去").
  */
 export const VENUE_PAIRS = /** @type {Record<string, string[]>} */ ({ 'revx-coinbase': ['revx', 'coinbase'] });
 /** The venues an id stands for: a pair's two, or the one. @param {string} id */
@@ -1034,6 +1034,8 @@ const VENUE_CARD_IDS = ['revx', 'binance'];
  * @param {any[]} [tests]  the paper tests' rows the tab lists (`quotesTwinRow`, `rwRow`)
  */
 export function venueRows(dash, tab = null, tests = []) {
+  // A row on two venues (the RX↔Coinbase hedge) is its halves here, each on its own venue's card (`xhedgeVenueSplit`).
+  tests = tests.flatMap((t) => (Array.isArray(t?.venueSplit) && t.venueSplit.length ? t.venueSplit : [t]));
   const rows = tab ? tabStrategies(dash, tab) : (dash?.strategies ?? []);
   const ids = VENUE_CARD_IDS.filter((id) => rows.some((/** @type {any} */ s) => s?.venue === id));
   const by = Object.fromEntries(ids.map((id) => {
@@ -1446,18 +1448,37 @@ export function quotesXhedgeRow(q) {
   return {
     id: `${QUOTES_XHEDGE_ROW_PREFIX}${q.twin.id}`,
     name: String(q.twin.name),
-    // Both venues (Davies, 2026-10-30: "在venue列两个币所都加上"): both badges, and a card of its own, so neither venue's card
-    // counts the other's half. FUNDED, DEPLOYED and the P&L are both venues' (xhedge_page.ts), each percent on FUNDED.
+    // Both venues (Davies, 2026-10-30: "在venue列两个币所都加上"): both badges in the venue cell. FUNDED, DEPLOYED and the P&L are
+    // both venues' summed (xhedge_page.ts), each percent on FUNDED.
     venue: venueLabel('revx-coinbase'),
     venueId: 'revx-coinbase',
     mode: 'paper',
     ...cells,
-    // Its card's unrealised percent, two arms summed, on the same base as each row's: FUNDED.
     unrealisedBaseUsd: cells.costUsd,
+    // Each venue's half for that venue's card (`venueRows`): its FUNDED, DEPLOYED and P&L, which sum to the row's.
+    venueSplit: xhedgeVenueSplit(q),
     status: q.running
       ? { label: 'paper', running: true, tone: 'running', detail: `${where}, hedged at Coinbase, no transfers · last minute ${Number(q.lagMinutes) || 0} min ago` }
       : { label: 'paper', running: false, tone: 'stale', detail: `its last decided minute was ${q.lagMinutes ?? '?'} min ago` },
   };
+}
+
+/**
+ * An RX↔Coinbase hedge arm's two halves as rows of their venues' cards (`byVenue`, xhedge_page.ts): Revolut X's (its coin and
+ * resting bids, its legs' P&L) and Coinbase's (its coin, its legs' P&L, the hedges' fees), each percent on its own FUNDED.
+ * @param {any} q  an element of the dashboard's `quotesXhedge`
+ */
+export function xhedgeVenueSplit(q) {
+  const pct = (/** @type {number} */ usd, /** @type {number} */ base) => (base > 0 ? (usd / base) * 100 : null);
+  return (Array.isArray(q?.byVenue) ? q.byVenue : []).map((/** @type {any} */ x) => {
+    const capital = Number(x.capitalUsd) || 0;
+    return {
+      id: `${QUOTES_XHEDGE_ROW_PREFIX}${q.twin?.id}|${x.id}`, venueId: String(x.id), mode: 'paper', ccy: 'GBP',
+      capitalUsd: capital, costUsd: capital, valueUsd: Number(x.deployedUsd) || 0, unrealisedUsd: Number(x.unrealisedUsd) || 0,
+      realisedUsd: Number(x.realisedUsd) || 0, todayUsd: Number(x.todayUsd) || 0, feesUsd: Number(x.feesUsd) || 0,
+      unrealisedPct: pct(Number(x.unrealisedUsd) || 0, capital), unrealisedBaseUsd: capital,
+    };
+  });
 }
 
 /** The RX↔Coinbase hedge arm a row opens, or null. @param {string | null} selected @param {any} dash */

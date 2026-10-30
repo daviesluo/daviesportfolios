@@ -390,8 +390,8 @@ that follow from that evidence, in short:
   set of tables (an `arm` column), after Revolut X's twins on the page; 28 days, each arm's USDT-GBP judged
   (`reviews/2026-10-30-xhedge-prereg.md`). Each arm models one Revolut X sub-account of Davies' (no daily order limit), never
   anyone else's account. The inside arm and any LIVE change that rests inside the maker would compete for the same prints.
-  Their rows name both venues and have a card of their own, "Revolut X + Coinbase" (`VENUE_PAIRS`), their money both venues'
-  (`agents/xhedge_page.ts`), so neither venue's card counts them.
+  Their rows show both venues' badges (`VENUE_PAIRS`) and both venues' money summed; each venue's half goes on that venue's
+  card (`venueSplit`, `agents/xhedge_page.ts`), never on a card of its own.
   The names above are their history. TESTING's scoreboard and the
   Revolut X card include them. **"Stablecoin quotes with Euros"** (`0112`,
   reference §4 item 58; "Stablecoin quotes Coinbase" until 2026-10-10) follows

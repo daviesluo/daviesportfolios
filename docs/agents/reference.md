@@ -4745,11 +4745,13 @@ and its control are off, its pre-registration closed early, adopted.
       days. It decides three minutes behind the clock (so a fill's hedge read exists) and starts at the first 00:00 UTC after its
       first run.
     - **The page:** TESTING's rows "Stablecoin quotes RX↔Coinbase hedge" and "… - 1", venue "Revolut X + Coinbase" (both
-      badges, `VENUE_PAIRS`, and a card of their own since 2026-10-30 ~03:30, Davies: "…在venue列两个币所都加上，funded和deployed资金按两个币所实际的来，
-      盈利状况也一样"), and a Stablecoin quotes page each (`QuotesLiveDetail`'s `xhedge`):
-      - scoreboard across both venues (`xhedge_page.ts`, outside the frozen engine): FUNDED £2,400 (£1,200 a venue), DEPLOYED the
-        coin on both and the pounds in resting Revolut X bids, TODAY what both hold against the last minute before 00:00, REALIZED
-        both legs of every trip, each percent on FUNDED; a line a venue with its FUNDED and DEPLOYED;
+      badges, centred, `VENUE_PAIRS`; Davies, 2026-10-30 ~03:30 and ~03:45: "…在venue列两个币所都加上…（而且改成居中显示），但VENUES不要把两个
+      单独新开一个放一起，按实际两个币所的funded和deployed和营收分别放在两个各自的里面去"); each venue's half on that venue's VENUES card
+      (`venueSplit`); and a Stablecoin quotes page each (`QuotesLiveDetail`'s `xhedge`):
+      - money by venue, summed for the row (`xhedge_page.ts`, outside the frozen engine): FUNDED £1,200 a venue, DEPLOYED Revolut
+        X's coin and resting bids and Coinbase's coin, REALIZED by leg (Revolut X each trip's P&L before Coinbase's fee, Coinbase
+        less the fee), UNREALIZED what the venue holds less its FUNDED and REALIZED, TODAY what it holds against the last minute
+        before 00:00; each percent on FUNDED; a line a venue under the scoreboard;
       - BOOKS, Coinbase's mid as the fair and the ladder's one rung "inside";
       - a line a book for each side's state and today's blocked minutes;
       - INVENTORY, each venue's pounds and coins;

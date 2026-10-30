@@ -1378,7 +1378,7 @@ function StrategyCards({ rows, m, onOpen }) {
           <div className="ag-card-head ag-name-cell">
             <NameCell r={r} m={m} onOpen={onOpen} />
           </div>
-          <div className="ag-card-badges"><VenueBadge id={r.venueId} /></div>
+          <div className={`ag-card-badges${venueParts(r.venueId).length > 1 ? ' is-pair' : ''}`}><VenueBadge id={r.venueId} /></div>
           <div className="ag-card-gl mono">
             <FigLabel name="deployed" /><span className="ag-deployed">{m(fmtIn(x.value, x.ccy))}</span>
             <FigLabel name="today" /><span className="ag-gl ag-card-today" style={{ color: pctColor(x.today) }}>{m(glTextIn(x.today, x.todayPct, x.ccy))}</span>

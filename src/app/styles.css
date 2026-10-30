@@ -2405,10 +2405,10 @@ a.ag-gpm-market:hover, a.ag-gpm-market:focus-visible { text-decoration-color: va
    slice was drawn with no colour at all (Davies, 2026-10-10: "testing页面venue中最上面的占比条里没有coinbase"). */
 .ag-venue-card-coinbase { border-left-color: rgba(77,139,255,0.75); }
 .ag-share-coinbase { background: rgba(77,139,255,0.35); color: #eaf1ff; }
-/* A row on Revolut X and Coinbase at once (the RX↔Coinbase hedge, VENUE_PAIRS): its card and slice carry both hues, its badges sit side by side. */
-.ag-venue-card-revx-coinbase { border-left-color: rgba(142,197,255,0.75); }
-.ag-share-revx-coinbase { background: linear-gradient(90deg, rgba(142,197,255,0.35), rgba(77,139,255,0.35)); color: #eaf1ff; }
-.ag-venue-pair { display: inline-flex; flex-wrap: wrap; gap: 4px; align-items: center; max-width: 100%; }
+/* A row on Revolut X and Coinbase at once (the RX↔Coinbase hedge, VENUE_PAIRS): its two badges side by side, centred, and centred
+   again on a line of their own when the cell is too narrow for both (Davies, 2026-10-30: "…显示这两个币所（而且改成居中显示）"). */
+.ag-venue-pair { display: inline-flex; flex-wrap: wrap; gap: 4px; align-items: center; justify-content: center; max-width: 100%; }
+.ag-card-badges.is-pair { justify-content: center; }
 /* OKX's card and slice (VENUE_HUES.okx, #dfe3ea: OKX's own black-and-white mark, a cool silver beside the cream text; its lime would read as --gain): its two paper twins, 0150. */
 .ag-venue-card-okx { border-left-color: rgba(223,227,234,0.75); }
 .ag-share-okx { background: rgba(223,227,234,0.35); color: #f7f8fa; }
