@@ -47745,3 +47745,20 @@ before 2027-06-30, so no reading. Nothing failed, so nothing is carried to next 
   `n600no03`, `n600usdt2`, `n600usdt`, `n600nudge`; `live600x1` ("exit +1 tick from 10-29") and `live600ctl` off, variant-6's
   prereg closed early (adopted). Deviation `reviews/2026-10-29-live-exit-tick-deviation.md` (executor sha chains), design
   addendum, fixture regenerated. Undo: drop `exitOffset` from the instance (a commit). Archived 19:16-19:31 (twenty-fifth).
+
+## LEDGER.md, archived 2026-10-30 (thirty-second) — the 2026-10-29 23:24, 2026-10-29 23:30 UTC history sections, oldest first
+
+### [2026-10-29 23:24 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **Stablecoin quotes pages show their conversions** (sub-agent; commit, not pushed; Davies, 23:12: "我没看正在挂售？testing的那几个
+  要换的也一样"). The readers already sent convert orders in `detail.orders`; the page dropped them. Now CONVERSIONS (resting and the
+  last 8, newest first: for, side, price, size, filled, state) above the order tables, and a BOOKS card line for a resting one
+  (`quoteConversions`, `quoteConversionLine`: a sell of a book no longer in `books` is "switching to USDT"). Coinbase LIVE now lists
+  its top-ups too (`cbLiveDetail`; fixture output recomputed). Sweep `pr5-switch` at both widths.
+
+### [2026-10-29 23:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **The real site, checked as a viewer** (sub-agent; commit, not pushed; Davies, 23:17: "以后每次页面改动等你都去网站实际验证").
+  `auth?action=viewer-token` (cron bearer): a 30-minute `ro` token, minted only when the Edge secret `DAVIESLUO_VIEWER_PASSWORD`
+  is the read-only password (never admin); the password never leaves the function, no lockout row is touched.
+  `bin/site-check.mjs` (`SITE_VIEWER_TOKEN`): daviesluo.com at both widths, `--tab`/`--row`, values hidden, snapshot and
+  shots outside the repo. Dry runs: local `dist/` `--offline`, and the real site with an unsigned token (password form,
+  reported). Not yet run with a real token: the route deploys with the push. Rule in working-with-davies (three copies).

@@ -802,7 +802,14 @@ Closed operations move verbatim into `docs/handover.md` Part 2, this ledger's ar
 "LEDGER.md history, archived 2026-09-22" or "LEDGER.md, archived <date> (<n-th>)" that names the sections it holds, oldest
 first: `grep -n '^## LEDGER.md' docs/handover.md` lists them, 2026-09-05 to the 2026-10-29 01:24 UTC section (archived
 2026-10-29, tenth), and the 2026-10-29 01:32, 2026-10-29 01:31 one(s) (eleventh), and the 2026-10-29 01:33 one (twelfth), and the 2026-10-29 01:45, 2026-10-29 01:57 one(s) (thirteenth), the 2026-10-29 02:19 one(s) (fourteenth),
-and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth), and the 2026-10-29 19:50, 2026-10-29 19:55, 2026-10-29 20:00, 2026-10-29 20:15 ones (twenty-sixth), and the 2026-10-29 20:41, 2026-10-29 21:07 ones (twenty-seventh), and the 2026-10-29 21:30, 2026-10-29 22:10 ones (twenty-eighth), and the 2026-10-29 22:12, 2026-10-29 22:27 ones (twenty-ninth), and the 2026-10-29 22:40, 2026-10-29 22:43 ones (thirtieth), and the 2026-10-29 22:55, 2026-10-29 23:13 ones (thirty-first).
+and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 02:43, 2026-10-29 02:36, 2026-10-29 02:49, 2026-10-29 03:00, 2026-10-29 03:02, 2026-10-29 03:07, 2026-10-29 03:12 ones (sixteenth), and the 2026-10-29 03:24, 2026-10-29 03:30, 2026-10-29 03:39, 2026-10-29 03:41, 2026-10-29 03:49 ones (seventeenth), and the 2026-10-29 04:18, 2026-10-29 05:50 ones (eighteenth), and the 2026-10-29 06:05, 2026-10-29 06:30, 2026-10-29 06:41 ones (nineteenth), and the 2026-10-29 06:56, 2026-10-29 07:05, 2026-10-29 07:26, 2026-10-29 07:31 ones (twentieth), and the 2026-10-29 07:45, 2026-10-29 07:52, 2026-10-29 07:58 ones (twenty-first), and the 2026-10-29 08:10, 2026-10-29 08:25, 2026-10-29 09:05 ones (twenty-second), and the 2026-10-29 09:22, 2026-10-29 09:40, 2026-10-29 09:45, 2026-10-29 10:15 ones (twenty-third), and the 2026-10-29 17:10, 2026-10-29 18:20, 2026-10-29 18:33, 2026-10-29 18:43 ones (twenty-fourth), and the 2026-10-29 19:16, 2026-10-29 19:25, 2026-10-29 19:28, 2026-10-29 19:31 ones (twenty-fifth), and the 2026-10-29 19:50, 2026-10-29 19:55, 2026-10-29 20:00, 2026-10-29 20:15 ones (twenty-sixth), and the 2026-10-29 20:41, 2026-10-29 21:07 ones (twenty-seventh), and the 2026-10-29 21:30, 2026-10-29 22:10 ones (twenty-eighth), and the 2026-10-29 22:12, 2026-10-29 22:27 ones (twenty-ninth), and the 2026-10-29 22:40, 2026-10-29 22:43 ones (thirtieth), and the 2026-10-29 22:55, 2026-10-29 23:13 ones (thirty-first), and the 2026-10-29 23:24, 2026-10-29 23:30 ones (thirty-second).
+
+### [2026-10-30 05:25 UTC] Platform: Claude Code | Model: not recorded (session policy)
+- **LOTS: more than one lot a rung? No** (sub-agent; commit, not pushed; Davies, 10-30 ~04:30: "…目前我们每档只有一个lot，如果我们每档多做几个呢？
+  …会不会提升收益？"). `reviews/2026-10-30-lots.md`, `mmcomp/scripts/lots.py`: LIVE, RX USDC/GBP, Coinbase LIVE (approx.), `live1200`,
+  `n600usdt`. Stacked lots from the same pounds lose 30-75 % (P 1.00 everywhere: each print fills a smaller order); doubled rungs
+  earn 1.7-1.9×, two stacked lots of today's size 1.04-1.2× (worse markouts): bigger rungs are the lever. Same £ split into
+  lots resting together +2-3 % on USDT-GBP (a partly filled rung keeps its rest), not on USDC, 2-3× orders: K = 1, no twin.
 
 ### [2026-10-30 04:20 UTC] Platform: Claude Code | Model: not recorded (session policy)
 - **XHEDGE A1/A2 start now** (main session; Davies, 10-30 ~04:17: "A1/A2 纸面测试现在就可以上线"). Both arms' S moved from 10-31
@@ -939,19 +946,3 @@ and the 2026-10-29 02:13 one (fifteenth), and the 2026-10-29 02:30, 2026-10-29 0
   differs by over £0.05 (then a red "≠ book X"), no "balance as of" line; a coin worth less than the venue's smallest order
   (`INVENTORY_DUST`: Revolut X £0.10, Coinbase 1 USDC) is no row unless flagged, still counted in totals. CONVERSIONS table removed
   (7fecce6e); the BOOKS-card line for a resting conversion stays. The 0.02 USDC's −£1.0090 unrealised is ac627's server fix.
-
-
-### [2026-10-29 23:30 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **The real site, checked as a viewer** (sub-agent; commit, not pushed; Davies, 23:17: "以后每次页面改动等你都去网站实际验证").
-  `auth?action=viewer-token` (cron bearer): a 30-minute `ro` token, minted only when the Edge secret `DAVIESLUO_VIEWER_PASSWORD`
-  is the read-only password (never admin); the password never leaves the function, no lockout row is touched.
-  `bin/site-check.mjs` (`SITE_VIEWER_TOKEN`): daviesluo.com at both widths, `--tab`/`--row`, values hidden, snapshot and
-  shots outside the repo. Dry runs: local `dist/` `--offline`, and the real site with an unsigned token (password form,
-  reported). Not yet run with a real token: the route deploys with the push. Rule in working-with-davies (three copies).
-
-### [2026-10-29 23:24 UTC] Platform: Claude Code | Model: not recorded (session policy)
-- **Stablecoin quotes pages show their conversions** (sub-agent; commit, not pushed; Davies, 23:12: "我没看正在挂售？testing的那几个
-  要换的也一样"). The readers already sent convert orders in `detail.orders`; the page dropped them. Now CONVERSIONS (resting and the
-  last 8, newest first: for, side, price, size, filled, state) above the order tables, and a BOOKS card line for a resting one
-  (`quoteConversions`, `quoteConversionLine`: a sell of a book no longer in `books` is "switching to USDT"). Coinbase LIVE now lists
-  its top-ups too (`cbLiveDetail`; fixture output recomputed). Sweep `pr5-switch` at both widths.

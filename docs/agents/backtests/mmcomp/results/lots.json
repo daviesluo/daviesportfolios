@@ -1,0 +1,10064 @@
+{
+ "engine_check": {
+  "LIVE": {
+   "identical": true,
+   "run_lots_trips": 243,
+   "sim_run_trips": 243
+  },
+  "RXU": {
+   "identical": true,
+   "run_lots_trips": 175,
+   "sim_run_trips": 175
+  }
+ },
+ "live_prints_removed": {
+  "USDC-GBP": 225,
+  "USDT-GBP": 677
+ },
+ "runs": {
+  "CBLIVE|at|K1": {
+   "bps_cap_day": 8.78,
+   "bps_trip": 10.76,
+   "capital": 120.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.1054,
+   "held_max_gbp": {
+    "CB-USDC-GBP|ask": 60.0,
+    "CB-USDC-GBP|bid": 60.0
+   },
+   "lot_filled_share": 0.957,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 10.38,
+     "5": 10.21,
+     "60": 10.93,
+     "trips": 94
+    }
+   },
+   "orders_agg_day_mean": {
+    "CB-USDC-GBP": 132.8
+   },
+   "orders_day_max": {
+    "CB-USDC-GBP": 333
+   },
+   "orders_day_mean": {
+    "CB-USDC-GBP": 132.8
+   },
+   "orders_days_over_900": {
+    "CB-USDC-GBP": 0
+   },
+   "partial_trip_share": 0.064,
+   "pct_year": 32.05,
+   "pnl_bps_trip_by_rank": {
+    "0": 10.76
+   },
+   "side_no_entry_share": {
+    "ask": 0.0487,
+    "bid": 0.0194
+   },
+   "taker_stops": 0,
+   "trips_day": 4.95,
+   "worst_day_bps_cap": 0.0
+  },
+  "CBLIVE|at|all2": {
+   "bps_cap_day": 8.833,
+   "bps_trip": 10.76,
+   "capital": 120.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.106,
+   "held_max_gbp": {
+    "CB-USDC-GBP|ask": 60.0,
+    "CB-USDC-GBP|bid": 60.0
+   },
+   "lot_filled_share": 0.983,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 10.28,
+     "5": 10.1,
+     "60": 10.84,
+     "trips": 94
+    },
+    "1": {
+     "30": 10.52,
+     "5": 10.25,
+     "60": 11.05,
+     "trips": 90
+    }
+   },
+   "orders_agg_day_mean": {
+    "CB-USDC-GBP": 258.8
+   },
+   "orders_day_max": {
+    "CB-USDC-GBP": 666
+   },
+   "orders_day_mean": {
+    "CB-USDC-GBP": 265.3
+   },
+   "orders_days_over_900": {
+    "CB-USDC-GBP": 0
+   },
+   "partial_trip_share": 0.027,
+   "pct_year": 32.24,
+   "pnl_bps_trip_by_rank": {
+    "0": 10.66,
+    "1": 10.86
+   },
+   "side_no_entry_share": {
+    "ask": 0.0487,
+    "bid": 0.0194
+   },
+   "taker_stops": 0,
+   "trips_day": 9.68,
+   "vs_K1": {
+    "before_10_13": 0.0,
+    "boot": [
+     -0.0,
+     0.158,
+     0.3018
+    ],
+    "boot_before": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "boot_from": [
+     -0.0,
+     0.188,
+     0.2884
+    ],
+    "days_ahead": 1,
+    "days_behind": 0,
+    "diff": 0.053,
+    "from_10_13": 0.063
+   },
+   "worst_day_bps_cap": 0.0
+  },
+  "CBLIVE|at|all3": {
+   "bps_cap_day": 8.838,
+   "bps_trip": 10.75,
+   "capital": 120.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.1061,
+   "held_max_gbp": {
+    "CB-USDC-GBP|ask": 60.0,
+    "CB-USDC-GBP|bid": 60.0
+   },
+   "lot_filled_share": 0.988,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 10.25,
+     "5": 10.08,
+     "60": 10.79,
+     "trips": 94
+    },
+    "1": {
+     "30": 10.4,
+     "5": 10.1,
+     "60": 10.95,
+     "trips": 91
+    },
+    "2": {
+     "30": 10.53,
+     "5": 10.27,
+     "60": 11.05,
+     "trips": 90
+    }
+   },
+   "orders_agg_day_mean": {
+    "CB-USDC-GBP": 384.8
+   },
+   "orders_day_max": {
+    "CB-USDC-GBP": 999
+   },
+   "orders_day_mean": {
+    "CB-USDC-GBP": 397.9
+   },
+   "orders_days_over_900": {
+    "CB-USDC-GBP": 2
+   },
+   "partial_trip_share": 0.018,
+   "pct_year": 32.26,
+   "pnl_bps_trip_by_rank": {
+    "0": 10.63,
+    "1": 10.74,
+    "2": 10.88
+   },
+   "side_no_entry_share": {
+    "ask": 0.0487,
+    "bid": 0.0194
+   },
+   "taker_stops": 0,
+   "trips_day": 14.47,
+   "vs_K1": {
+    "before_10_13": 0.0,
+    "boot": [
+     -0.024,
+     0.198,
+     0.2883
+    ],
+    "boot_before": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "boot_from": [
+     -0.029,
+     0.235,
+     0.2806
+    ],
+    "days_ahead": 1,
+    "days_behind": 2,
+    "diff": 0.058,
+    "from_10_13": 0.069
+   },
+   "worst_day_bps_cap": 0.0
+  },
+  "CBLIVE|at|cap2_K1": {
+   "bps_cap_day": 16.6,
+   "bps_trip": 10.81,
+   "capital": 240.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.1992,
+   "held_max_gbp": {
+    "CB-USDC-GBP|ask": 120.0,
+    "CB-USDC-GBP|bid": 120.0
+   },
+   "lot_filled_share": 0.925,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 10.4,
+     "5": 10.35,
+     "60": 10.93,
+     "trips": 94
+    }
+   },
+   "orders_agg_day_mean": {
+    "CB-USDC-GBP": 132.8
+   },
+   "orders_day_max": {
+    "CB-USDC-GBP": 333
+   },
+   "orders_day_mean": {
+    "CB-USDC-GBP": 132.8
+   },
+   "orders_days_over_900": {
+    "CB-USDC-GBP": 0
+   },
+   "partial_trip_share": 0.138,
+   "pct_year": 60.59,
+   "pnl_bps_trip_by_rank": {
+    "0": 10.81
+   },
+   "side_no_entry_share": {
+    "ask": 0.0487,
+    "bid": 0.0194
+   },
+   "taker_stops": 0,
+   "trips_day": 4.95,
+   "vs_K1": {
+    "before_10_13": 5.815,
+    "boot": [
+     4.995,
+     10.673,
+     0.0
+    ],
+    "boot_before": [
+     5.815,
+     5.815,
+     0.0
+    ],
+    "boot_from": [
+     5.361,
+     10.808,
+     0.0
+    ],
+    "days_ahead": 17,
+    "days_behind": 0,
+    "diff": 7.821,
+    "from_10_13": 8.197
+   },
+   "worst_day_bps_cap": 0.0
+  },
+  "CBLIVE|at|cap2_seq2": {
+   "bps_cap_day": 10.45,
+   "bps_trip": 10.84,
+   "capital": 240.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.1254,
+   "held_max_gbp": {
+    "CB-USDC-GBP|ask": 80.0,
+    "CB-USDC-GBP|bid": 60.0
+   },
+   "lot_filled_share": 0.954,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 10.42,
+     "5": 10.32,
+     "60": 11.09,
+     "trips": 95
+    },
+    "1": {
+     "30": 6.29,
+     "5": 5.68,
+     "60": 8.93,
+     "trips": 19
+    }
+   },
+   "orders_agg_day_mean": {
+    "CB-USDC-GBP": 141.7
+   },
+   "orders_day_max": {
+    "CB-USDC-GBP": 352
+   },
+   "orders_day_mean": {
+    "CB-USDC-GBP": 141.8
+   },
+   "orders_days_over_900": {
+    "CB-USDC-GBP": 0
+   },
+   "partial_trip_share": 0.07,
+   "pct_year": 38.14,
+   "pnl_bps_trip_by_rank": {
+    "0": 10.83,
+    "1": 10.92
+   },
+   "side_no_entry_share": {
+    "ask": 0.0014,
+    "bid": 0.0178
+   },
+   "taker_stops": 0,
+   "trips_day": 6.0,
+   "vs_K1": {
+    "before_10_13": 1.027,
+    "boot": [
+     0.767,
+     2.66,
+     0.0
+    ],
+    "boot_before": [
+     1.027,
+     1.027,
+     0.0
+    ],
+    "boot_from": [
+     0.812,
+     2.812,
+     0.0
+    ],
+    "days_ahead": 9,
+    "days_behind": 0,
+    "diff": 1.67,
+    "from_10_13": 1.791
+   },
+   "worst_day_bps_cap": 0.0
+  },
+  "CBLIVE|at|pool": {
+   "bps_cap_day": 5.672,
+   "bps_trip": 10.73,
+   "capital": 120.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.0681,
+   "held_max_gbp": {
+    "CB-USDC-GBP|ask": 40.0,
+    "CB-USDC-GBP|bid": 33.73
+   },
+   "lot_filled_share": 0.955,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 10.27,
+     "5": 10.21,
+     "60": 11.06,
+     "trips": 97
+    },
+    "1": {
+     "30": 6.35,
+     "5": 5.82,
+     "60": 8.76,
+     "trips": 19
+    },
+    "2": {
+     "30": 5.04,
+     "5": 3.24,
+     "60": 8.63,
+     "trips": 6
+    },
+    "3": {
+     "30": 2.0,
+     "5": 2.0,
+     "60": 3.33,
+     "trips": 1
+    }
+   },
+   "orders_agg_day_mean": {
+    "CB-USDC-GBP": 143.2
+   },
+   "orders_day_max": {
+    "CB-USDC-GBP": 369
+   },
+   "orders_day_mean": {
+    "CB-USDC-GBP": 143.6
+   },
+   "orders_days_over_900": {
+    "CB-USDC-GBP": 0
+   },
+   "partial_trip_share": 0.081,
+   "pct_year": 20.7,
+   "pnl_bps_trip_by_rank": {
+    "0": 10.71,
+    "1": 10.82,
+    "2": 11.46,
+    "3": 2.66
+   },
+   "side_no_entry_share": {
+    "ask": 0.0014,
+    "bid": 0.0178
+   },
+   "taker_stops": 0,
+   "trips_day": 6.47,
+   "vs_K1": {
+    "before_10_13": -2.137,
+    "boot": [
+     -4.401,
+     -1.855,
+     1.0
+    ],
+    "boot_before": [
+     -2.137,
+     -2.137,
+     1.0
+    ],
+    "boot_from": [
+     -4.557,
+     -2.047,
+     1.0
+    ],
+    "days_ahead": 1,
+    "days_behind": 16,
+    "diff": -3.108,
+    "from_10_13": -3.29
+   },
+   "worst_day_bps_cap": 0.0
+  },
+  "CBLIVE|at|seq2": {
+   "bps_cap_day": 5.379,
+   "bps_trip": 10.75,
+   "capital": 120.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.0646,
+   "held_max_gbp": {
+    "CB-USDC-GBP|ask": 40.0,
+    "CB-USDC-GBP|bid": 30.0
+   },
+   "lot_filled_share": 0.965,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 10.33,
+     "5": 10.21,
+     "60": 11.01,
+     "trips": 96
+    },
+    "1": {
+     "30": 6.35,
+     "5": 5.82,
+     "60": 8.76,
+     "trips": 19
+    }
+   },
+   "orders_agg_day_mean": {
+    "CB-USDC-GBP": 141.9
+   },
+   "orders_day_max": {
+    "CB-USDC-GBP": 356
+   },
+   "orders_day_mean": {
+    "CB-USDC-GBP": 142.1
+   },
+   "orders_days_over_900": {
+    "CB-USDC-GBP": 0
+   },
+   "partial_trip_share": 0.061,
+   "pct_year": 19.63,
+   "pnl_bps_trip_by_rank": {
+    "0": 10.74,
+    "1": 10.82
+   },
+   "side_no_entry_share": {
+    "ask": 0.0014,
+    "bid": 0.0178
+   },
+   "taker_stops": 0,
+   "trips_day": 6.05,
+   "vs_K1": {
+    "before_10_13": -2.651,
+    "boot": [
+     -4.809,
+     -2.052,
+     1.0
+    ],
+    "boot_before": [
+     -2.651,
+     -2.651,
+     1.0
+    ],
+    "boot_from": [
+     -4.863,
+     -2.19,
+     1.0
+    ],
+    "days_ahead": 0,
+    "days_behind": 17,
+    "diff": -3.401,
+    "from_10_13": -3.541
+   },
+   "worst_day_bps_cap": 0.0
+  },
+  "CBLIVE|at|seq3": {
+   "bps_cap_day": 3.827,
+   "bps_trip": 10.71,
+   "capital": 120.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.0459,
+   "held_max_gbp": {
+    "CB-USDC-GBP|ask": 26.67,
+    "CB-USDC-GBP|bid": 20.0
+   },
+   "lot_filled_share": 0.976,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 10.3,
+     "5": 10.22,
+     "60": 11.07,
+     "trips": 97
+    },
+    "1": {
+     "30": 6.42,
+     "5": 5.89,
+     "60": 8.79,
+     "trips": 19
+    },
+    "2": {
+     "30": 4.88,
+     "5": 3.15,
+     "60": 8.51,
+     "trips": 6
+    }
+   },
+   "orders_agg_day_mean": {
+    "CB-USDC-GBP": 142.8
+   },
+   "orders_day_max": {
+    "CB-USDC-GBP": 368
+   },
+   "orders_day_mean": {
+    "CB-USDC-GBP": 143.2
+   },
+   "orders_days_over_900": {
+    "CB-USDC-GBP": 0
+   },
+   "partial_trip_share": 0.049,
+   "pct_year": 13.97,
+   "pnl_bps_trip_by_rank": {
+    "0": 10.68,
+    "1": 10.72,
+    "2": 11.16
+   },
+   "side_no_entry_share": {
+    "ask": 0.0014,
+    "bid": 0.0178
+   },
+   "taker_stops": 0,
+   "trips_day": 6.42,
+   "vs_K1": {
+    "before_10_13": -3.534,
+    "boot": [
+     -6.957,
+     -3.024,
+     1.0
+    ],
+    "boot_before": [
+     -3.534,
+     -3.534,
+     1.0
+    ],
+    "boot_from": [
+     -6.996,
+     -3.306,
+     1.0
+    ],
+    "days_ahead": 1,
+    "days_behind": 16,
+    "diff": -4.952,
+    "from_10_13": -5.218
+   },
+   "worst_day_bps_cap": 0.0
+  },
+  "CBLIVE|at|seq4": {
+   "bps_cap_day": 2.892,
+   "bps_trip": 10.64,
+   "capital": 120.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.0347,
+   "held_max_gbp": {
+    "CB-USDC-GBP|ask": 20.0,
+    "CB-USDC-GBP|bid": 18.73
+   },
+   "lot_filled_share": 0.982,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 10.33,
+     "5": 10.22,
+     "60": 11.09,
+     "trips": 97
+    },
+    "1": {
+     "30": 6.42,
+     "5": 5.89,
+     "60": 8.79,
+     "trips": 19
+    },
+    "2": {
+     "30": 4.71,
+     "5": 3.04,
+     "60": 8.44,
+     "trips": 6
+    },
+    "3": {
+     "30": 2.0,
+     "5": 2.0,
+     "60": 3.33,
+     "trips": 1
+    }
+   },
+   "orders_agg_day_mean": {
+    "CB-USDC-GBP": 143.3
+   },
+   "orders_day_max": {
+    "CB-USDC-GBP": 369
+   },
+   "orders_day_mean": {
+    "CB-USDC-GBP": 143.7
+   },
+   "orders_days_over_900": {
+    "CB-USDC-GBP": 0
+   },
+   "partial_trip_share": 0.041,
+   "pct_year": 10.56,
+   "pnl_bps_trip_by_rank": {
+    "0": 10.67,
+    "1": 10.71,
+    "2": 10.8,
+    "3": 2.66
+   },
+   "side_no_entry_share": {
+    "ask": 0.0014,
+    "bid": 0.0178
+   },
+   "taker_stops": 0,
+   "trips_day": 6.47,
+   "vs_K1": {
+    "before_10_13": -4.233,
+    "boot": [
+     -8.265,
+     -3.605,
+     1.0
+    ],
+    "boot_before": [
+     -4.233,
+     -4.233,
+     1.0
+    ],
+    "boot_from": [
+     -8.31,
+     -3.917,
+     1.0
+    ],
+    "days_ahead": 0,
+    "days_behind": 17,
+    "diff": -5.888,
+    "from_10_13": -6.198
+   },
+   "worst_day_bps_cap": 0.0
+  },
+  "CBLIVE|at|seq6": {
+   "bps_cap_day": 1.944,
+   "bps_trip": 10.47,
+   "capital": 120.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.0233,
+   "held_max_gbp": {
+    "CB-USDC-GBP|ask": 13.33,
+    "CB-USDC-GBP|bid": 20.0
+   },
+   "lot_filled_share": 0.99,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 10.31,
+     "5": 10.21,
+     "60": 11.05,
+     "trips": 97
+    },
+    "1": {
+     "30": 6.42,
+     "5": 5.89,
+     "60": 8.79,
+     "trips": 19
+    },
+    "2": {
+     "30": 4.65,
+     "5": 2.99,
+     "60": 8.42,
+     "trips": 6
+    },
+    "3": {
+     "30": 2.0,
+     "5": 0.67,
+     "60": 3.33,
+     "trips": 3
+    }
+   },
+   "orders_agg_day_mean": {
+    "CB-USDC-GBP": 143.5
+   },
+   "orders_day_max": {
+    "CB-USDC-GBP": 369
+   },
+   "orders_day_mean": {
+    "CB-USDC-GBP": 143.9
+   },
+   "orders_days_over_900": {
+    "CB-USDC-GBP": 0
+   },
+   "partial_trip_share": 0.024,
+   "pct_year": 7.1,
+   "pnl_bps_trip_by_rank": {
+    "0": 10.64,
+    "1": 10.71,
+    "2": 10.24,
+    "3": 3.99
+   },
+   "side_no_entry_share": {
+    "ask": 0.0014,
+    "bid": 0.0178
+   },
+   "taker_stops": 0,
+   "trips_day": 6.58,
+   "vs_K1": {
+    "before_10_13": -4.932,
+    "boot": [
+     -9.593,
+     -4.18,
+     1.0
+    ],
+    "boot_before": [
+     -4.932,
+     -4.932,
+     1.0
+    ],
+    "boot_from": [
+     -9.632,
+     -4.56,
+     1.0
+    ],
+    "days_ahead": 0,
+    "days_behind": 17,
+    "diff": -6.836,
+    "from_10_13": -7.193
+   },
+   "worst_day_bps_cap": 0.0
+  },
+  "CBLIVE|through|K1": {
+   "bps_cap_day": 6.193,
+   "bps_trip": 10.3,
+   "capital": 120.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.0743,
+   "held_max_gbp": {
+    "CB-USDC-GBP|ask": 60.0,
+    "CB-USDC-GBP|bid": 60.0
+   },
+   "lot_filled_share": 0.933,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 11.65,
+     "5": 11.83,
+     "60": 12.51,
+     "trips": 70
+    }
+   },
+   "orders_agg_day_mean": {
+    "CB-USDC-GBP": 131.9
+   },
+   "orders_day_max": {
+    "CB-USDC-GBP": 339
+   },
+   "orders_day_mean": {
+    "CB-USDC-GBP": 131.9
+   },
+   "orders_days_over_900": {
+    "CB-USDC-GBP": 0
+   },
+   "partial_trip_share": 0.1,
+   "pct_year": 22.6,
+   "pnl_bps_trip_by_rank": {
+    "0": 10.3
+   },
+   "side_no_entry_share": {
+    "ask": 0.0488,
+    "bid": 0.0178
+   },
+   "taker_stops": 0,
+   "trips_day": 3.68,
+   "worst_day_bps_cap": -2.9
+  },
+  "CBLIVE|through|all2": {
+   "bps_cap_day": 6.245,
+   "bps_trip": 10.31,
+   "capital": 120.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.0749,
+   "held_max_gbp": {
+    "CB-USDC-GBP|ask": 60.0,
+    "CB-USDC-GBP|bid": 60.0
+   },
+   "lot_filled_share": 0.975,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 11.42,
+     "5": 11.61,
+     "60": 12.25,
+     "trips": 70
+    },
+    "1": {
+     "30": 11.93,
+     "5": 11.93,
+     "60": 12.78,
+     "trips": 65
+    }
+   },
+   "orders_agg_day_mean": {
+    "CB-USDC-GBP": 258.2
+   },
+   "orders_day_max": {
+    "CB-USDC-GBP": 678
+   },
+   "orders_day_mean": {
+    "CB-USDC-GBP": 263.4
+   },
+   "orders_days_over_900": {
+    "CB-USDC-GBP": 0
+   },
+   "partial_trip_share": 0.044,
+   "pct_year": 22.79,
+   "pnl_bps_trip_by_rank": {
+    "0": 10.22,
+    "1": 10.41
+   },
+   "side_no_entry_share": {
+    "ask": 0.0488,
+    "bid": 0.0178
+   },
+   "taker_stops": 0,
+   "trips_day": 7.11,
+   "vs_K1": {
+    "before_10_13": 0.0,
+    "boot": [
+     0.0,
+     0.157,
+     0.0341
+    ],
+    "boot_before": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "boot_from": [
+     0.0,
+     0.187,
+     0.0304
+    ],
+    "days_ahead": 1,
+    "days_behind": 0,
+    "diff": 0.052,
+    "from_10_13": 0.062
+   },
+   "worst_day_bps_cap": -2.9
+  },
+  "CBLIVE|through|all3": {
+   "bps_cap_day": 6.263,
+   "bps_trip": 10.32,
+   "capital": 120.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.0752,
+   "held_max_gbp": {
+    "CB-USDC-GBP|ask": 60.0,
+    "CB-USDC-GBP|bid": 60.0
+   },
+   "lot_filled_share": 0.98,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 11.34,
+     "5": 11.53,
+     "60": 12.18,
+     "trips": 70
+    },
+    "1": {
+     "30": 11.71,
+     "5": 11.75,
+     "60": 12.52,
+     "trips": 67
+    },
+    "2": {
+     "30": 12.03,
+     "5": 11.98,
+     "60": 12.84,
+     "trips": 65
+    }
+   },
+   "orders_agg_day_mean": {
+    "CB-USDC-GBP": 384.4
+   },
+   "orders_day_max": {
+    "CB-USDC-GBP": 1017
+   },
+   "orders_day_mean": {
+    "CB-USDC-GBP": 395.1
+   },
+   "orders_days_over_900": {
+    "CB-USDC-GBP": 2
+   },
+   "partial_trip_share": 0.035,
+   "pct_year": 22.86,
+   "pnl_bps_trip_by_rank": {
+    "0": 10.22,
+    "1": 10.29,
+    "2": 10.45
+   },
+   "side_no_entry_share": {
+    "ask": 0.0488,
+    "bid": 0.0178
+   },
+   "taker_stops": 0,
+   "trips_day": 10.63,
+   "vs_K1": {
+    "before_10_13": 0.0,
+    "boot": [
+     0.0,
+     0.21,
+     0.0001
+    ],
+    "boot_before": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "boot_from": [
+     0.0,
+     0.249,
+     0.0007
+    ],
+    "days_ahead": 1,
+    "days_behind": 0,
+    "diff": 0.07,
+    "from_10_13": 0.083
+   },
+   "worst_day_bps_cap": -2.9
+  },
+  "CBLIVE|through|cap2_K1": {
+   "bps_cap_day": 11.867,
+   "bps_trip": 10.4,
+   "capital": 240.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.1424,
+   "held_max_gbp": {
+    "CB-USDC-GBP|ask": 120.0,
+    "CB-USDC-GBP|bid": 120.0
+   },
+   "lot_filled_share": 0.899,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 11.86,
+     "5": 12.08,
+     "60": 12.72,
+     "trips": 70
+    }
+   },
+   "orders_agg_day_mean": {
+    "CB-USDC-GBP": 131.9
+   },
+   "orders_day_max": {
+    "CB-USDC-GBP": 339
+   },
+   "orders_day_mean": {
+    "CB-USDC-GBP": 131.9
+   },
+   "orders_days_over_900": {
+    "CB-USDC-GBP": 0
+   },
+   "partial_trip_share": 0.143,
+   "pct_year": 43.32,
+   "pnl_bps_trip_by_rank": {
+    "0": 10.4
+   },
+   "side_no_entry_share": {
+    "ask": 0.0488,
+    "bid": 0.0178
+   },
+   "taker_stops": 0,
+   "trips_day": 3.68,
+   "vs_K1": {
+    "before_10_13": 5.008,
+    "boot": [
+     3.001,
+     8.26,
+     0.0001
+    ],
+    "boot_before": [
+     5.008,
+     5.008,
+     0.0
+    ],
+    "boot_from": [
+     3.202,
+     8.123,
+     0.0001
+    ],
+    "days_ahead": 12,
+    "days_behind": 2,
+    "diff": 5.675,
+    "from_10_13": 5.799
+   },
+   "worst_day_bps_cap": -5.8
+  },
+  "CBLIVE|through|cap2_seq2": {
+   "bps_cap_day": 7.209,
+   "bps_trip": 10.61,
+   "capital": 240.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.0865,
+   "held_max_gbp": {
+    "CB-USDC-GBP|ask": 80.0,
+    "CB-USDC-GBP|bid": 60.0
+   },
+   "lot_filled_share": 0.941,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 11.65,
+     "5": 11.83,
+     "60": 12.51,
+     "trips": 70
+    },
+    "1": {
+     "30": 10.08,
+     "5": 9.26,
+     "60": 12.52,
+     "trips": 9
+    }
+   },
+   "orders_agg_day_mean": {
+    "CB-USDC-GBP": 138.5
+   },
+   "orders_day_max": {
+    "CB-USDC-GBP": 350
+   },
+   "orders_day_mean": {
+    "CB-USDC-GBP": 138.6
+   },
+   "orders_days_over_900": {
+    "CB-USDC-GBP": 0
+   },
+   "partial_trip_share": 0.089,
+   "pct_year": 26.31,
+   "pnl_bps_trip_by_rank": {
+    "0": 10.3,
+    "1": 12.88
+   },
+   "side_no_entry_share": {
+    "ask": 0.0014,
+    "bid": 0.0178
+   },
+   "taker_stops": 0,
+   "trips_day": 4.16,
+   "vs_K1": {
+    "before_10_13": 0.0,
+    "boot": [
+     0.503,
+     1.589,
+     0.0003
+    ],
+    "boot_before": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "boot_from": [
+     0.637,
+     1.752,
+     0.0
+    ],
+    "days_ahead": 5,
+    "days_behind": 0,
+    "diff": 1.017,
+    "from_10_13": 1.207
+   },
+   "worst_day_bps_cap": -2.4
+  },
+  "CBLIVE|through|pool": {
+   "bps_cap_day": 3.688,
+   "bps_trip": 10.5,
+   "capital": 120.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.0443,
+   "held_max_gbp": {
+    "CB-USDC-GBP|ask": 40.0,
+    "CB-USDC-GBP|bid": 30.0
+   },
+   "lot_filled_share": 0.962,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 11.32,
+     "5": 11.59,
+     "60": 12.3,
+     "trips": 71
+    },
+    "1": {
+     "30": 10.08,
+     "5": 9.26,
+     "60": 12.52,
+     "trips": 9
+    }
+   },
+   "orders_agg_day_mean": {
+    "CB-USDC-GBP": 138.6
+   },
+   "orders_day_max": {
+    "CB-USDC-GBP": 350
+   },
+   "orders_day_mean": {
+    "CB-USDC-GBP": 138.7
+   },
+   "orders_days_over_900": {
+    "CB-USDC-GBP": 0
+   },
+   "partial_trip_share": 0.062,
+   "pct_year": 13.46,
+   "pnl_bps_trip_by_rank": {
+    "0": 10.18,
+    "1": 12.88
+   },
+   "side_no_entry_share": {
+    "ask": 0.0014,
+    "bid": 0.0178
+   },
+   "taker_stops": 0,
+   "trips_day": 4.21,
+   "vs_K1": {
+    "before_10_13": -2.504,
+    "boot": [
+     -3.778,
+     -1.224,
+     0.9999
+    ],
+    "boot_before": [
+     -2.504,
+     -2.504,
+     1.0
+    ],
+    "boot_from": [
+     -3.602,
+     -1.306,
+     0.9998
+    ],
+    "days_ahead": 2,
+    "days_behind": 12,
+    "diff": -2.504,
+    "from_10_13": -2.504
+   },
+   "worst_day_bps_cap": -1.2
+  },
+  "CBLIVE|through|seq2": {
+   "bps_cap_day": 3.653,
+   "bps_trip": 10.53,
+   "capital": 120.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.0438,
+   "held_max_gbp": {
+    "CB-USDC-GBP|ask": 40.0,
+    "CB-USDC-GBP|bid": 30.0
+   },
+   "lot_filled_share": 0.961,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 11.42,
+     "5": 11.61,
+     "60": 12.25,
+     "trips": 70
+    },
+    "1": {
+     "30": 10.08,
+     "5": 9.26,
+     "60": 12.52,
+     "trips": 9
+    }
+   },
+   "orders_agg_day_mean": {
+    "CB-USDC-GBP": 138.5
+   },
+   "orders_day_max": {
+    "CB-USDC-GBP": 350
+   },
+   "orders_day_mean": {
+    "CB-USDC-GBP": 138.7
+   },
+   "orders_days_over_900": {
+    "CB-USDC-GBP": 0
+   },
+   "partial_trip_share": 0.063,
+   "pct_year": 13.33,
+   "pnl_bps_trip_by_rank": {
+    "0": 10.22,
+    "1": 12.88
+   },
+   "side_no_entry_share": {
+    "ask": 0.0014,
+    "bid": 0.0178
+   },
+   "taker_stops": 0,
+   "trips_day": 4.16,
+   "vs_K1": {
+    "before_10_13": -2.504,
+    "boot": [
+     -3.851,
+     -1.232,
+     0.9999
+    ],
+    "boot_before": [
+     -2.504,
+     -2.504,
+     1.0
+    ],
+    "boot_from": [
+     -3.669,
+     -1.322,
+     0.9998
+    ],
+    "days_ahead": 2,
+    "days_behind": 12,
+    "diff": -2.539,
+    "from_10_13": -2.546
+   },
+   "worst_day_bps_cap": -1.2
+  },
+  "CBLIVE|through|seq3": {
+   "bps_cap_day": 2.478,
+   "bps_trip": 10.5,
+   "capital": 120.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.0297,
+   "held_max_gbp": {
+    "CB-USDC-GBP|ask": 26.67,
+    "CB-USDC-GBP|bid": 20.0
+   },
+   "lot_filled_share": 0.97,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 11.24,
+     "5": 11.52,
+     "60": 12.24,
+     "trips": 71
+    },
+    "1": {
+     "30": 10.08,
+     "5": 9.26,
+     "60": 12.52,
+     "trips": 9
+    }
+   },
+   "orders_agg_day_mean": {
+    "CB-USDC-GBP": 138.7
+   },
+   "orders_day_max": {
+    "CB-USDC-GBP": 352
+   },
+   "orders_day_mean": {
+    "CB-USDC-GBP": 138.9
+   },
+   "orders_days_over_900": {
+    "CB-USDC-GBP": 0
+   },
+   "partial_trip_share": 0.05,
+   "pct_year": 9.04,
+   "pnl_bps_trip_by_rank": {
+    "0": 10.18,
+    "1": 12.88
+   },
+   "side_no_entry_share": {
+    "ask": 0.0014,
+    "bid": 0.0178
+   },
+   "taker_stops": 0,
+   "trips_day": 4.21,
+   "vs_K1": {
+    "before_10_13": -3.339,
+    "boot": [
+     -5.52,
+     -1.887,
+     0.9999
+    ],
+    "boot_before": [
+     -3.339,
+     -3.339,
+     1.0
+    ],
+    "boot_from": [
+     -5.331,
+     -2.059,
+     0.9999
+    ],
+    "days_ahead": 2,
+    "days_behind": 12,
+    "diff": -3.715,
+    "from_10_13": -3.785
+   },
+   "worst_day_bps_cap": -0.8
+  },
+  "CBLIVE|through|seq4": {
+   "bps_cap_day": 1.871,
+   "bps_trip": 10.5,
+   "capital": 120.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.0225,
+   "held_max_gbp": {
+    "CB-USDC-GBP|ask": 20.0,
+    "CB-USDC-GBP|bid": 15.0
+   },
+   "lot_filled_share": 0.976,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 11.19,
+     "5": 11.45,
+     "60": 12.19,
+     "trips": 71
+    },
+    "1": {
+     "30": 10.08,
+     "5": 9.26,
+     "60": 12.52,
+     "trips": 9
+    }
+   },
+   "orders_agg_day_mean": {
+    "CB-USDC-GBP": 138.7
+   },
+   "orders_day_max": {
+    "CB-USDC-GBP": 352
+   },
+   "orders_day_mean": {
+    "CB-USDC-GBP": 138.9
+   },
+   "orders_days_over_900": {
+    "CB-USDC-GBP": 0
+   },
+   "partial_trip_share": 0.05,
+   "pct_year": 6.83,
+   "pnl_bps_trip_by_rank": {
+    "0": 10.19,
+    "1": 12.88
+   },
+   "side_no_entry_share": {
+    "ask": 0.0014,
+    "bid": 0.0178
+   },
+   "taker_stops": 0,
+   "trips_day": 4.21,
+   "vs_K1": {
+    "before_10_13": -3.756,
+    "boot": [
+     -6.406,
+     -2.213,
+     0.9999
+    ],
+    "boot_before": [
+     -3.756,
+     -3.756,
+     1.0
+    ],
+    "boot_from": [
+     -6.209,
+     -2.43,
+     0.9999
+    ],
+    "days_ahead": 2,
+    "days_behind": 12,
+    "diff": -4.322,
+    "from_10_13": -4.428
+   },
+   "worst_day_bps_cap": -0.6
+  },
+  "CBLIVE|through|seq6": {
+   "bps_cap_day": 1.254,
+   "bps_trip": 10.47,
+   "capital": 120.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.015,
+   "held_max_gbp": {
+    "CB-USDC-GBP|ask": 13.33,
+    "CB-USDC-GBP|bid": 10.0
+   },
+   "lot_filled_share": 0.985,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 11.14,
+     "5": 11.39,
+     "60": 12.13,
+     "trips": 71
+    },
+    "1": {
+     "30": 10.08,
+     "5": 9.26,
+     "60": 12.52,
+     "trips": 9
+    }
+   },
+   "orders_agg_day_mean": {
+    "CB-USDC-GBP": 138.7
+   },
+   "orders_day_max": {
+    "CB-USDC-GBP": 352
+   },
+   "orders_day_mean": {
+    "CB-USDC-GBP": 138.9
+   },
+   "orders_days_over_900": {
+    "CB-USDC-GBP": 0
+   },
+   "partial_trip_share": 0.037,
+   "pct_year": 4.58,
+   "pnl_bps_trip_by_rank": {
+    "0": 10.16,
+    "1": 12.88
+   },
+   "side_no_entry_share": {
+    "ask": 0.0014,
+    "bid": 0.0178
+   },
+   "taker_stops": 0,
+   "trips_day": 4.21,
+   "vs_K1": {
+    "before_10_13": -4.174,
+    "boot": [
+     -7.318,
+     -2.545,
+     0.9999
+    ],
+    "boot_before": [
+     -4.174,
+     -4.174,
+     1.0
+    ],
+    "boot_from": [
+     -7.102,
+     -2.804,
+     0.9999
+    ],
+    "days_ahead": 2,
+    "days_behind": 12,
+    "diff": -4.938,
+    "from_10_13": -5.082
+   },
+   "worst_day_bps_cap": -0.4
+  },
+  "LIVE|at|K1": {
+   "absence_pnl": [
+    0,
+    0,
+    0.5056,
+    0,
+    0.728,
+    0.4892,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1.1126,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2.8138
+   ],
+   "absent_gbp_day": 2.8715,
+   "bps_cap_day": 17.505,
+   "bps_trip": 17.08,
+   "capital": 600.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 1.0503,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 300.5,
+    "USDT-GBP|bid": 300.4
+   },
+   "lot_filled_share": 0.888,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.58,
+     "5": 7.12,
+     "60": 9.46,
+     "trips": 240
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 156.6
+   },
+   "orders_day_max": {
+    "USDT-GBP": 342
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 156.6
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.188,
+   "pct_year": 63.89,
+   "pnl_bps_trip_by_rank": {
+    "0": 17.08
+   },
+   "present_gbp_day": 0.9674,
+   "side_no_entry_share": {
+    "ask": 0.0787,
+    "bid": 0.0954
+   },
+   "taker_stops": 3,
+   "trips_day": 6.86,
+   "worst_day_bps_cap": -5.4
+  },
+  "LIVE|at|all2": {
+   "absence_pnl": [
+    0,
+    0,
+    0.5056,
+    0,
+    0.728,
+    0.4892,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1.0925,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2.8138
+   ],
+   "absent_gbp_day": 2.8612,
+   "bps_cap_day": 17.825,
+   "bps_trip": 17.11,
+   "capital": 600.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 1.0695,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 300.5,
+    "USDT-GBP|bid": 300.4
+   },
+   "lot_filled_share": 0.94,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.53,
+     "5": 7.08,
+     "60": 9.38,
+     "trips": 238
+    },
+    "1": {
+     "30": 8.47,
+     "5": 7.06,
+     "60": 9.39,
+     "trips": 223
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 289.7
+   },
+   "orders_day_max": {
+    "USDT-GBP": 682
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 311.3
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.095,
+   "pct_year": 65.06,
+   "pnl_bps_trip_by_rank": {
+    "0": 16.99,
+    "1": 17.24
+   },
+   "present_gbp_day": 0.989,
+   "side_no_entry_share": {
+    "ask": 0.077,
+    "bid": 0.0946
+   },
+   "taker_stops": 5,
+   "trips_day": 13.17,
+   "vs_K1": {
+    "before_10_13": 0.4,
+    "boot": [
+     0.156,
+     0.487,
+     0.0007
+    ],
+    "boot_before": [
+     0.127,
+     0.661,
+     0.0079
+    ],
+    "boot_from": [
+     0.055,
+     0.442,
+     0.015
+    ],
+    "days_ahead": 9,
+    "days_behind": 2,
+    "diff": 0.321,
+    "from_10_13": 0.246
+   },
+   "vs_K1_absent": {
+    "ahead": 0,
+    "behind": 1,
+    "boot_windows": [
+     -0.0603,
+     0.0,
+     1.0
+    ],
+    "sum_gbp": -0.0201
+   },
+   "worst_day_bps_cap": -5.4
+  },
+  "LIVE|at|all3": {
+   "absence_pnl": [
+    0,
+    0,
+    0.5056,
+    0,
+    0.728,
+    0.4892,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1.1171,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2.8138
+   ],
+   "absent_gbp_day": 2.8737,
+   "bps_cap_day": 17.994,
+   "bps_trip": 17.07,
+   "capital": 600.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 1.0796,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 300.5,
+    "USDT-GBP|bid": 300.4
+   },
+   "lot_filled_share": 0.954,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.49,
+     "5": 7.06,
+     "60": 9.32,
+     "trips": 238
+    },
+    "1": {
+     "30": 8.53,
+     "5": 7.07,
+     "60": 9.4,
+     "trips": 230
+    },
+    "2": {
+     "30": 8.42,
+     "5": 7.02,
+     "60": 9.32,
+     "trips": 221
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 423.0
+   },
+   "orders_day_max": {
+    "USDT-GBP": 1020
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 465.9
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 3
+   },
+   "partial_trip_share": 0.074,
+   "pct_year": 65.68,
+   "pnl_bps_trip_by_rank": {
+    "0": 16.97,
+    "1": 17.07,
+    "2": 17.19
+   },
+   "present_gbp_day": 0.9992,
+   "side_no_entry_share": {
+    "ask": 0.0769,
+    "bid": 0.0946
+   },
+   "taker_stops": 7,
+   "trips_day": 19.69,
+   "vs_K1": {
+    "before_10_13": 0.551,
+    "boot": [
+     0.311,
+     0.675,
+     0.0
+    ],
+    "boot_before": [
+     0.25,
+     0.852,
+     0.0009
+    ],
+    "boot_from": [
+     0.233,
+     0.652,
+     0.0
+    ],
+    "days_ahead": 15,
+    "days_behind": 2,
+    "diff": 0.489,
+    "from_10_13": 0.431
+   },
+   "vs_K1_absent": {
+    "ahead": 1,
+    "behind": 0,
+    "boot_windows": [
+     0.0,
+     0.0135,
+     0.36
+    ],
+    "sum_gbp": 0.0045
+   },
+   "worst_day_bps_cap": -5.4
+  },
+  "LIVE|at|cap2_K1": {
+   "absence_pnl": [
+    0,
+    0,
+    1.0113,
+    0,
+    1.499,
+    0.9731,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1.6147,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    5.3752
+   ],
+   "absent_gbp_day": 5.3235,
+   "bps_cap_day": 30.631,
+   "bps_trip": 16.91,
+   "capital": 1200.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 1.8379,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 600.5,
+    "USDT-GBP|bid": 600.4
+   },
+   "lot_filled_share": 0.819,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.67,
+     "5": 7.09,
+     "60": 9.59,
+     "trips": 230
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 156.2
+   },
+   "orders_day_max": {
+    "USDT-GBP": 337
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 156.2
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.265,
+   "pct_year": 111.8,
+   "pnl_bps_trip_by_rank": {
+    "0": 16.91
+   },
+   "present_gbp_day": 1.6746,
+   "side_no_entry_share": {
+    "ask": 0.0786,
+    "bid": 0.0969
+   },
+   "taker_stops": 3,
+   "trips_day": 6.57,
+   "vs_K1": {
+    "before_10_13": 11.541,
+    "boot": [
+     9.322,
+     17.398,
+     0.0
+    ],
+    "boot_before": [
+     6.287,
+     18.092,
+     0.0
+    ],
+    "boot_from": [
+     10.39,
+     19.45,
+     0.0
+    ],
+    "days_ahead": 30,
+    "days_behind": 3,
+    "diff": 13.126,
+    "from_10_13": 14.623
+   },
+   "vs_K1_absent": {
+    "ahead": 5,
+    "behind": 0,
+    "boot_windows": [
+     1.0114,
+     9.678,
+     0.0047
+    ],
+    "sum_gbp": 4.8241
+   },
+   "worst_day_bps_cap": -10.7
+  },
+  "LIVE|at|cap2_seq2": {
+   "absence_pnl": [
+    0,
+    0,
+    0.5056,
+    0,
+    0.728,
+    0.4892,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1.4067,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2.8138
+   ],
+   "absent_gbp_day": 3.021,
+   "bps_cap_day": 20.34,
+   "bps_trip": 17.18,
+   "capital": 1200.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 1.2204,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 600.09,
+    "USDT-GBP|bid": 600.0
+   },
+   "lot_filled_share": 0.871,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.74,
+     "5": 7.23,
+     "60": 9.66,
+     "trips": 236
+    },
+    "1": {
+     "30": 8.01,
+     "5": 6.71,
+     "60": 7.65,
+     "trips": 47
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 168.0
+   },
+   "orders_day_max": {
+    "USDT-GBP": 386
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 171.4
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.208,
+   "pct_year": 74.24,
+   "pnl_bps_trip_by_rank": {
+    "0": 17.1,
+    "1": 17.59
+   },
+   "present_gbp_day": 1.1435,
+   "side_no_entry_share": {
+    "ask": 0.0747,
+    "bid": 0.079
+   },
+   "taker_stops": 3,
+   "trips_day": 8.09,
+   "vs_K1": {
+    "before_10_13": 2.832,
+    "boot": [
+     1.84,
+     3.931,
+     0.0
+    ],
+    "boot_before": [
+     1.364,
+     4.533,
+     0.0
+    ],
+    "boot_from": [
+     1.529,
+     4.27,
+     0.0
+    ],
+    "days_ahead": 22,
+    "days_behind": 3,
+    "diff": 2.836,
+    "from_10_13": 2.839
+   },
+   "vs_K1_absent": {
+    "ahead": 1,
+    "behind": 0,
+    "boot_windows": [
+     0.0,
+     0.8823,
+     0.36
+    ],
+    "sum_gbp": 0.2941
+   },
+   "worst_day_bps_cap": -4.9
+  },
+  "LIVE|at|pool": {
+   "absence_pnl": [
+    0,
+    0,
+    0.2528,
+    0,
+    0.3425,
+    0.2473,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.8232,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1.7217
+   ],
+   "absent_gbp_day": 1.7218,
+   "bps_cap_day": 11.619,
+   "bps_trip": 17.26,
+   "capital": 600.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.6971,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 300.5,
+    "USDT-GBP|bid": 300.1
+   },
+   "lot_filled_share": 0.916,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.83,
+     "5": 7.26,
+     "60": 9.65,
+     "trips": 248
+    },
+    "1": {
+     "30": 7.76,
+     "5": 6.73,
+     "60": 7.24,
+     "trips": 46
+    },
+    "2": {
+     "30": 11.4,
+     "5": 10.31,
+     "60": 10.67,
+     "trips": 11
+    },
+    "3": {
+     "30": 4.63,
+     "5": 3.97,
+     "60": 4.63,
+     "trips": 1
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 169.9
+   },
+   "orders_day_max": {
+    "USDT-GBP": 390
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 174.0
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.124,
+   "pct_year": 42.41,
+   "pnl_bps_trip_by_rank": {
+    "0": 17.05,
+    "1": 17.87,
+    "2": 19.87,
+    "3": 10.59
+   },
+   "present_gbp_day": 0.6534,
+   "side_no_entry_share": {
+    "ask": 0.0745,
+    "bid": 0.0741
+   },
+   "taker_stops": 3,
+   "trips_day": 8.74,
+   "vs_K1": {
+    "before_10_13": -5.087,
+    "boot": [
+     -8.233,
+     -3.808,
+     1.0
+    ],
+    "boot_before": [
+     -8.254,
+     -2.432,
+     1.0
+    ],
+    "boot_from": [
+     -9.437,
+     -4.263,
+     1.0
+    ],
+    "days_ahead": 4,
+    "days_behind": 29,
+    "diff": -5.886,
+    "from_10_13": -6.639
+   },
+   "vs_K1_absent": {
+    "ahead": 0,
+    "behind": 5,
+    "boot_windows": [
+     -4.3907,
+     -0.5788,
+     1.0
+    ],
+    "sum_gbp": -2.2617
+   },
+   "worst_day_bps_cap": -2.2
+  },
+  "LIVE|at|seq2": {
+   "absence_pnl": [
+    0,
+    0,
+    0.2528,
+    0,
+    0.3425,
+    0.2473,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.7226,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1.7217
+   ],
+   "absent_gbp_day": 1.6707,
+   "bps_cap_day": 11.077,
+   "bps_trip": 17.18,
+   "capital": 600.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.6646,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 300.5,
+    "USDT-GBP|bid": 300.0
+   },
+   "lot_filled_share": 0.913,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.83,
+     "5": 7.26,
+     "60": 9.65,
+     "trips": 248
+    },
+    "1": {
+     "30": 7.76,
+     "5": 6.73,
+     "60": 7.24,
+     "trips": 46
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 168.3
+   },
+   "orders_day_max": {
+    "USDT-GBP": 389
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 171.3
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.126,
+   "pct_year": 40.43,
+   "pnl_bps_trip_by_rank": {
+    "0": 17.06,
+    "1": 17.87
+   },
+   "present_gbp_day": 0.6211,
+   "side_no_entry_share": {
+    "ask": 0.0747,
+    "bid": 0.0787
+   },
+   "taker_stops": 3,
+   "trips_day": 8.4,
+   "vs_K1": {
+    "before_10_13": -5.648,
+    "boot": [
+     -8.811,
+     -4.34,
+     1.0
+    ],
+    "boot_before": [
+     -8.776,
+     -3.06,
+     1.0
+    ],
+    "boot_from": [
+     -10.152,
+     -4.638,
+     1.0
+    ],
+    "days_ahead": 2,
+    "days_behind": 31,
+    "diff": -6.428,
+    "from_10_13": -7.165
+   },
+   "vs_K1_absent": {
+    "ahead": 0,
+    "behind": 5,
+    "boot_windows": [
+     -4.5311,
+     -0.6383,
+     1.0
+    ],
+    "sum_gbp": -2.3623
+   },
+   "worst_day_bps_cap": -2.2
+  },
+  "LIVE|at|seq3": {
+   "absence_pnl": [
+    0,
+    0,
+    0.1685,
+    0,
+    0.2215,
+    0.1666,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.5908,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1.1613
+   ],
+   "absent_gbp_day": 1.1735,
+   "bps_cap_day": 8.028,
+   "bps_trip": 17.35,
+   "capital": 600.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.4817,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 200.5,
+    "USDT-GBP|bid": 200.0
+   },
+   "lot_filled_share": 0.928,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.73,
+     "5": 7.29,
+     "60": 9.44,
+     "trips": 260
+    },
+    "1": {
+     "30": 9.15,
+     "5": 7.63,
+     "60": 8.53,
+     "trips": 41
+    },
+    "2": {
+     "30": 10.66,
+     "5": 9.26,
+     "60": 10.19,
+     "trips": 10
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 169.9
+   },
+   "orders_day_max": {
+    "USDT-GBP": 389
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 173.4
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.103,
+   "pct_year": 29.3,
+   "pnl_bps_trip_by_rank": {
+    "0": 17.14,
+    "1": 18.12,
+    "2": 19.85
+   },
+   "present_gbp_day": 0.4525,
+   "side_no_entry_share": {
+    "ask": 0.0745,
+    "bid": 0.0762
+   },
+   "taker_stops": 3,
+   "trips_day": 8.89,
+   "vs_K1": {
+    "before_10_13": -8.409,
+    "boot": [
+     -12.909,
+     -6.476,
+     1.0
+    ],
+    "boot_before": [
+     -13.148,
+     -4.619,
+     1.0
+    ],
+    "boot_from": [
+     -14.601,
+     -6.985,
+     1.0
+    ],
+    "days_ahead": 2,
+    "days_behind": 33,
+    "diff": -9.476,
+    "from_10_13": -10.484
+   },
+   "vs_K1_absent": {
+    "ahead": 0,
+    "behind": 5,
+    "boot_windows": [
+     -6.5229,
+     -0.8444,
+     1.0
+    ],
+    "sum_gbp": -3.3405
+   },
+   "worst_day_bps_cap": -1.4
+  },
+  "LIVE|at|seq4": {
+   "absence_pnl": [
+    0,
+    0,
+    0.1264,
+    0,
+    0.1661,
+    0.1263,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.5012,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.8811
+   ],
+   "absent_gbp_day": 0.9155,
+   "bps_cap_day": 6.215,
+   "bps_trip": 17.41,
+   "capital": 600.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.3729,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 150.5,
+    "USDT-GBP|bid": 150.7
+   },
+   "lot_filled_share": 0.942,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.75,
+     "5": 7.31,
+     "60": 9.38,
+     "trips": 262
+    },
+    "1": {
+     "30": 9.31,
+     "5": 7.61,
+     "60": 8.73,
+     "trips": 40
+    },
+    "2": {
+     "30": 10.66,
+     "5": 9.26,
+     "60": 10.19,
+     "trips": 10
+    },
+    "3": {
+     "30": 8.2,
+     "5": 7.75,
+     "60": 8.42,
+     "trips": 3
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 170.1
+   },
+   "orders_day_max": {
+    "USDT-GBP": 381
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 173.6
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.095,
+   "pct_year": 22.69,
+   "pnl_bps_trip_by_rank": {
+    "0": 17.14,
+    "1": 18.31,
+    "2": 19.85,
+    "3": 20.4
+   },
+   "present_gbp_day": 0.3499,
+   "side_no_entry_share": {
+    "ask": 0.0735,
+    "bid": 0.0732
+   },
+   "taker_stops": 3,
+   "trips_day": 9.0,
+   "vs_K1": {
+    "before_10_13": -10.153,
+    "boot": [
+     -15.387,
+     -7.721,
+     1.0
+    ],
+    "boot_before": [
+     -16.087,
+     -5.52,
+     1.0
+    ],
+    "boot_from": [
+     -17.111,
+     -8.331,
+     1.0
+    ],
+    "days_ahead": 1,
+    "days_behind": 34,
+    "diff": -11.29,
+    "from_10_13": -12.363
+   },
+   "vs_K1_absent": {
+    "ahead": 0,
+    "behind": 5,
+    "boot_windows": [
+     -7.5333,
+     -0.9743,
+     1.0
+    ],
+    "sum_gbp": -3.8481
+   },
+   "worst_day_bps_cap": -1.0
+  },
+  "LIVE|at|seq6": {
+   "absence_pnl": [
+    0,
+    0,
+    0.0843,
+    0,
+    0.1108,
+    0.086,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.3351,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.6009
+   ],
+   "absent_gbp_day": 0.6186,
+   "bps_cap_day": 4.244,
+   "bps_trip": 17.42,
+   "capital": 600.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.2547,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 100.5,
+    "USDT-GBP|bid": 101.7
+   },
+   "lot_filled_share": 0.955,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.53,
+     "5": 7.12,
+     "60": 9.13,
+     "trips": 264
+    },
+    "1": {
+     "30": 10.49,
+     "5": 8.39,
+     "60": 9.92,
+     "trips": 39
+    },
+    "2": {
+     "30": 10.66,
+     "5": 9.26,
+     "60": 10.19,
+     "trips": 10
+    },
+    "3": {
+     "30": 8.39,
+     "5": 7.97,
+     "60": 8.61,
+     "trips": 4
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 169.4
+   },
+   "orders_day_max": {
+    "USDT-GBP": 373
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 172.9
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.085,
+   "pct_year": 15.49,
+   "pnl_bps_trip_by_rank": {
+    "0": 17.05,
+    "1": 19.12,
+    "2": 19.85,
+    "3": 20.73
+   },
+   "present_gbp_day": 0.2393,
+   "side_no_entry_share": {
+    "ask": 0.0735,
+    "bid": 0.0719
+   },
+   "taker_stops": 3,
+   "trips_day": 9.06,
+   "vs_K1": {
+    "before_10_13": -12.059,
+    "boot": [
+     -18.031,
+     -9.101,
+     1.0
+    ],
+    "boot_before": [
+     -19.122,
+     -6.611,
+     1.0
+    ],
+    "boot_from": [
+     -19.855,
+     -9.715,
+     1.0
+    ],
+    "days_ahead": 1,
+    "days_behind": 34,
+    "diff": -13.26,
+    "from_10_13": -14.395
+   },
+   "vs_K1_absent": {
+    "ahead": 0,
+    "behind": 5,
+    "boot_windows": [
+     -8.6795,
+     -1.1807,
+     1.0
+    ],
+    "sum_gbp": -4.4321
+   },
+   "worst_day_bps_cap": -0.6
+  },
+  "LIVE|through|K1": {
+   "absence_pnl": [
+    0,
+    0,
+    0.4258,
+    0,
+    0.728,
+    0.4892,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1.1115,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2.7733
+   ],
+   "absent_gbp_day": 2.8098,
+   "bps_cap_day": 13.863,
+   "bps_trip": 16.4,
+   "capital": 600.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.8318,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 300.4,
+    "USDT-GBP|bid": 300.5
+   },
+   "lot_filled_share": 0.929,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.85,
+     "5": 7.03,
+     "60": 9.83,
+     "trips": 189
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 152.0
+   },
+   "orders_day_max": {
+    "USDT-GBP": 337
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 152.0
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.148,
+   "pct_year": 50.6,
+   "pnl_bps_trip_by_rank": {
+    "0": 16.4
+   },
+   "present_gbp_day": 0.7334,
+   "side_no_entry_share": {
+    "ask": 0.0991,
+    "bid": 0.0877
+   },
+   "taker_stops": 5,
+   "trips_day": 5.4,
+   "worst_day_bps_cap": -5.4
+  },
+  "LIVE|through|all2": {
+   "absence_pnl": [
+    0,
+    0,
+    0.4258,
+    0,
+    0.728,
+    0.4892,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1.0914,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2.7733
+   ],
+   "absent_gbp_day": 2.7995,
+   "bps_cap_day": 13.987,
+   "bps_trip": 16.5,
+   "capital": 600.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.8392,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 300.4,
+    "USDT-GBP|bid": 300.1
+   },
+   "lot_filled_share": 0.962,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.82,
+     "5": 6.97,
+     "60": 9.75,
+     "trips": 188
+    },
+    "1": {
+     "30": 8.91,
+     "5": 7.14,
+     "60": 9.99,
+     "trips": 178
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 282.2
+   },
+   "orders_day_max": {
+    "USDT-GBP": 677
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 303.1
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.068,
+   "pct_year": 51.05,
+   "pnl_bps_trip_by_rank": {
+    "0": 16.44,
+    "1": 16.55
+   },
+   "present_gbp_day": 0.7421,
+   "side_no_entry_share": {
+    "ask": 0.0894,
+    "bid": 0.0873
+   },
+   "taker_stops": 9,
+   "trips_day": 10.46,
+   "vs_K1": {
+    "before_10_13": 0.163,
+    "boot": [
+     -0.009,
+     0.291,
+     0.0752
+    ],
+    "boot_before": [
+     0.0,
+     0.489,
+     0.0021
+    ],
+    "boot_from": [
+     -0.037,
+     0.297,
+     0.2526
+    ],
+    "days_ahead": 4,
+    "days_behind": 2,
+    "diff": 0.124,
+    "from_10_13": 0.087
+   },
+   "vs_K1_absent": {
+    "ahead": 0,
+    "behind": 1,
+    "boot_windows": [
+     -0.0603,
+     0.0,
+     1.0
+    ],
+    "sum_gbp": -0.0201
+   },
+   "worst_day_bps_cap": -5.4
+  },
+  "LIVE|through|all3": {
+   "absence_pnl": [
+    0,
+    0,
+    0.4258,
+    0,
+    0.728,
+    0.4892,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1.116,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2.7733
+   ],
+   "absent_gbp_day": 2.812,
+   "bps_cap_day": 14.094,
+   "bps_trip": 16.55,
+   "capital": 600.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.8456,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 300.4,
+    "USDT-GBP|bid": 300.1
+   },
+   "lot_filled_share": 0.97,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.79,
+     "5": 6.93,
+     "60": 9.7,
+     "trips": 188
+    },
+    "1": {
+     "30": 8.89,
+     "5": 7.14,
+     "60": 9.91,
+     "trips": 184
+    },
+    "2": {
+     "30": 8.92,
+     "5": 7.15,
+     "60": 10.01,
+     "trips": 175
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 413.2
+   },
+   "orders_day_max": {
+    "USDT-GBP": 1008
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 453.6
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 3
+   },
+   "partial_trip_share": 0.051,
+   "pct_year": 51.44,
+   "pnl_bps_trip_by_rank": {
+    "0": 16.42,
+    "1": 16.6,
+    "2": 16.63
+   },
+   "present_gbp_day": 0.7484,
+   "side_no_entry_share": {
+    "ask": 0.0888,
+    "bid": 0.0873
+   },
+   "taker_stops": 12,
+   "trips_day": 15.63,
+   "vs_K1": {
+    "before_10_13": 0.217,
+    "boot": [
+     0.005,
+     0.479,
+     0.0014
+    ],
+    "boot_before": [
+     -0.0,
+     0.651,
+     0.2525
+    ],
+    "boot_from": [
+     0.002,
+     0.619,
+     0.0001
+    ],
+    "days_ahead": 6,
+    "days_behind": 1,
+    "diff": 0.231,
+    "from_10_13": 0.244
+   },
+   "vs_K1_absent": {
+    "ahead": 1,
+    "behind": 0,
+    "boot_windows": [
+     0.0,
+     0.0135,
+     0.36
+    ],
+    "sum_gbp": 0.0045
+   },
+   "worst_day_bps_cap": -5.4
+  },
+  "LIVE|through|cap2_K1": {
+   "absence_pnl": [
+    0,
+    0,
+    0.8516,
+    0,
+    1.499,
+    0.9731,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1.6156,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    5.3347
+   ],
+   "absent_gbp_day": 5.2222,
+   "bps_cap_day": 24.234,
+   "bps_trip": 16.04,
+   "capital": 1200.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 1.4541,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 600.4,
+    "USDT-GBP|bid": 600.0
+   },
+   "lot_filled_share": 0.856,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.87,
+     "5": 6.94,
+     "60": 9.92,
+     "trips": 183
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 151.1
+   },
+   "orders_day_max": {
+    "USDT-GBP": 333
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 151.1
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.23,
+   "pct_year": 88.45,
+   "pnl_bps_trip_by_rank": {
+    "0": 16.04
+   },
+   "present_gbp_day": 1.2631,
+   "side_no_entry_share": {
+    "ask": 0.0937,
+    "bid": 0.0871
+   },
+   "taker_stops": 6,
+   "trips_day": 5.23,
+   "vs_K1": {
+    "before_10_13": 10.124,
+    "boot": [
+     6.942,
+     14.299,
+     0.0
+    ],
+    "boot_before": [
+     5.436,
+     16.121,
+     0.0
+    ],
+    "boot_from": [
+     6.907,
+     14.587,
+     0.0
+    ],
+    "days_ahead": 31,
+    "days_behind": 2,
+    "diff": 10.371,
+    "from_10_13": 10.604
+   },
+   "vs_K1_absent": {
+    "ahead": 5,
+    "behind": 0,
+    "boot_windows": [
+     1.0082,
+     9.6021,
+     0.0047
+    ],
+    "sum_gbp": 4.7462
+   },
+   "worst_day_bps_cap": -10.7
+  },
+  "LIVE|through|cap2_seq2": {
+   "absence_pnl": [
+    0,
+    0,
+    0.4258,
+    0,
+    0.728,
+    0.4892,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1.4066,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2.7735
+   ],
+   "absent_gbp_day": 2.9599,
+   "bps_cap_day": 16.015,
+   "bps_trip": 16.55,
+   "capital": 1200.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.9609,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 599.69,
+    "USDT-GBP|bid": 600.0
+   },
+   "lot_filled_share": 0.919,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 9.25,
+     "5": 7.2,
+     "60": 10.29,
+     "trips": 183
+    },
+    "1": {
+     "30": 6.0,
+     "5": 6.6,
+     "60": 6.0,
+     "trips": 36
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 163.3
+   },
+   "orders_day_max": {
+    "USDT-GBP": 390
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 165.8
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.155,
+   "pct_year": 58.45,
+   "pnl_bps_trip_by_rank": {
+    "0": 16.31,
+    "1": 17.85
+   },
+   "present_gbp_day": 0.8647,
+   "side_no_entry_share": {
+    "ask": 0.0735,
+    "bid": 0.0775
+   },
+   "taker_stops": 6,
+   "trips_day": 6.26,
+   "vs_K1": {
+    "before_10_13": 2.664,
+    "boot": [
+     0.796,
+     3.856,
+     0.0001
+    ],
+    "boot_before": [
+     0.525,
+     5.913,
+     0.0011
+    ],
+    "boot_from": [
+     0.325,
+     3.234,
+     0.0075
+    ],
+    "days_ahead": 17,
+    "days_behind": 3,
+    "diff": 2.152,
+    "from_10_13": 1.668
+   },
+   "vs_K1_absent": {
+    "ahead": 2,
+    "behind": 0,
+    "boot_windows": [
+     0.0,
+     0.8855,
+     0.1252
+    ],
+    "sum_gbp": 0.2953
+   },
+   "worst_day_bps_cap": -5.4
+  },
+  "LIVE|through|pool": {
+   "absence_pnl": [
+    0,
+    0,
+    0.2129,
+    0,
+    0.3425,
+    0.2473,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.8231,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1.6815
+   ],
+   "absent_gbp_day": 1.6811,
+   "bps_cap_day": 8.908,
+   "bps_trip": 16.66,
+   "capital": 600.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.5345,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 300.1,
+    "USDT-GBP|bid": 300.1
+   },
+   "lot_filled_share": 0.951,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 9.41,
+     "5": 7.16,
+     "60": 10.31,
+     "trips": 193
+    },
+    "1": {
+     "30": 5.98,
+     "5": 6.32,
+     "60": 5.91,
+     "trips": 37
+    },
+    "2": {
+     "30": 4.54,
+     "5": 10.85,
+     "60": 2.7,
+     "trips": 4
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 163.4
+   },
+   "orders_day_max": {
+    "USDT-GBP": 382
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 165.9
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.077,
+   "pct_year": 32.51,
+   "pnl_bps_trip_by_rank": {
+    "0": 16.78,
+    "1": 17.0,
+    "2": 8.02
+   },
+   "present_gbp_day": 0.4789,
+   "side_no_entry_share": {
+    "ask": 0.0856,
+    "bid": 0.0748
+   },
+   "taker_stops": 5,
+   "trips_day": 6.69,
+   "vs_K1": {
+    "before_10_13": -4.502,
+    "boot": [
+     -6.656,
+     -3.473,
+     1.0
+    ],
+    "boot_before": [
+     -6.345,
+     -3.006,
+     1.0
+    ],
+    "boot_from": [
+     -7.636,
+     -3.39,
+     1.0
+    ],
+    "days_ahead": 2,
+    "days_behind": 31,
+    "diff": -4.955,
+    "from_10_13": -5.384
+   },
+   "vs_K1_absent": {
+    "ahead": 0,
+    "behind": 5,
+    "boot_windows": [
+     -4.336,
+     -0.5768,
+     1.0
+    ],
+    "sum_gbp": -2.2205
+   },
+   "worst_day_bps_cap": -2.6
+  },
+  "LIVE|through|seq2": {
+   "absence_pnl": [
+    0,
+    0,
+    0.2129,
+    0,
+    0.3425,
+    0.2473,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.7225,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1.6815
+   ],
+   "absent_gbp_day": 1.6299,
+   "bps_cap_day": 8.91,
+   "bps_trip": 16.89,
+   "capital": 600.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.5346,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 300.1,
+    "USDT-GBP|bid": 300.0
+   },
+   "lot_filled_share": 0.95,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 9.39,
+     "5": 7.15,
+     "60": 10.28,
+     "trips": 194
+    },
+    "1": {
+     "30": 6.14,
+     "5": 7.18,
+     "60": 6.07,
+     "trips": 37
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 163.4
+   },
+   "orders_day_max": {
+    "USDT-GBP": 381
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 165.9
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.078,
+   "pct_year": 32.52,
+   "pnl_bps_trip_by_rank": {
+    "0": 16.67,
+    "1": 18.12
+   },
+   "present_gbp_day": 0.4822,
+   "side_no_entry_share": {
+    "ask": 0.0735,
+    "bid": 0.0748
+   },
+   "taker_stops": 5,
+   "trips_day": 6.6,
+   "vs_K1": {
+    "before_10_13": -4.404,
+    "boot": [
+     -6.596,
+     -3.5,
+     1.0
+    ],
+    "boot_before": [
+     -6.114,
+     -2.994,
+     1.0
+    ],
+    "boot_from": [
+     -7.68,
+     -3.494,
+     1.0
+    ],
+    "days_ahead": 2,
+    "days_behind": 30,
+    "diff": -4.953,
+    "from_10_13": -5.471
+   },
+   "vs_K1_absent": {
+    "ahead": 0,
+    "behind": 5,
+    "boot_windows": [
+     -4.4757,
+     -0.6274,
+     1.0
+    ],
+    "sum_gbp": -2.3211
+   },
+   "worst_day_bps_cap": -2.6
+  },
+  "LIVE|through|seq3": {
+   "absence_pnl": [
+    0,
+    0,
+    0.1419,
+    0,
+    0.2215,
+    0.1666,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.5913,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1.121
+   ],
+   "absent_gbp_day": 1.1398,
+   "bps_cap_day": 6.24,
+   "bps_trip": 16.93,
+   "capital": 600.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.3744,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 200.1,
+    "USDT-GBP|bid": 221.42
+   },
+   "lot_filled_share": 0.955,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 9.32,
+     "5": 7.22,
+     "60": 10.11,
+     "trips": 202
+    },
+    "1": {
+     "30": 6.88,
+     "5": 7.71,
+     "60": 6.72,
+     "trips": 35
+    },
+    "2": {
+     "30": -0.34,
+     "5": 6.39,
+     "60": -2.11,
+     "trips": 4
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 165.3
+   },
+   "orders_day_max": {
+    "USDT-GBP": 381
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 167.8
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.066,
+   "pct_year": 22.77,
+   "pnl_bps_trip_by_rank": {
+    "0": 17.13,
+    "1": 16.82,
+    "2": 6.39
+   },
+   "present_gbp_day": 0.3377,
+   "side_no_entry_share": {
+    "ask": 0.0735,
+    "bid": 0.0719
+   },
+   "taker_stops": 4,
+   "trips_day": 6.89,
+   "vs_K1": {
+    "before_10_13": -6.992,
+    "boot": [
+     -10.322,
+     -5.254,
+     1.0
+    ],
+    "boot_before": [
+     -10.428,
+     -4.314,
+     1.0
+    ],
+    "boot_from": [
+     -11.581,
+     -5.268,
+     1.0
+    ],
+    "days_ahead": 2,
+    "days_behind": 33,
+    "diff": -7.623,
+    "from_10_13": -8.22
+   },
+   "vs_K1_absent": {
+    "ahead": 0,
+    "behind": 5,
+    "boot_windows": [
+     -6.4901,
+     -0.8291,
+     1.0
+    ],
+    "sum_gbp": -3.2855
+   },
+   "worst_day_bps_cap": -1.6
+  },
+  "LIVE|through|seq4": {
+   "absence_pnl": [
+    0,
+    0,
+    0.1065,
+    0,
+    0.1661,
+    0.1263,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.502,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.8408
+   ],
+   "absent_gbp_day": 0.8853,
+   "bps_cap_day": 4.762,
+   "bps_trip": 16.96,
+   "capital": 600.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.2857,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 150.1,
+    "USDT-GBP|bid": 171.43
+   },
+   "lot_filled_share": 0.966,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 9.39,
+     "5": 7.29,
+     "60": 10.07,
+     "trips": 204
+    },
+    "1": {
+     "30": 6.79,
+     "5": 7.55,
+     "60": 6.73,
+     "trips": 34
+    },
+    "2": {
+     "30": -0.2,
+     "5": 7.53,
+     "60": -1.53,
+     "trips": 3
+    },
+    "3": {
+     "30": -10.61,
+     "5": -10.61,
+     "60": -15.25,
+     "trips": 1
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 164.1
+   },
+   "orders_day_max": {
+    "USDT-GBP": 370
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 166.6
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.058,
+   "pct_year": 17.38,
+   "pnl_bps_trip_by_rank": {
+    "0": 17.18,
+    "1": 16.88,
+    "2": 3.99,
+    "3": 13.26
+   },
+   "present_gbp_day": 0.2568,
+   "side_no_entry_share": {
+    "ask": 0.0735,
+    "bid": 0.0719
+   },
+   "taker_stops": 3,
+   "trips_day": 6.91,
+   "vs_K1": {
+    "before_10_13": -8.467,
+    "boot": [
+     -12.459,
+     -6.177,
+     1.0
+    ],
+    "boot_before": [
+     -13.092,
+     -4.943,
+     1.0
+    ],
+    "boot_from": [
+     -13.687,
+     -6.211,
+     1.0
+    ],
+    "days_ahead": 2,
+    "days_behind": 33,
+    "diff": -9.101,
+    "from_10_13": -9.7
+   },
+   "vs_K1_absent": {
+    "ahead": 0,
+    "behind": 5,
+    "boot_windows": [
+     -7.4995,
+     -0.9288,
+     1.0
+    ],
+    "sum_gbp": -3.7861
+   },
+   "worst_day_bps_cap": -1.1
+  },
+  "LIVE|through|seq6": {
+   "absence_pnl": [
+    0,
+    0,
+    0.071,
+    0,
+    0.1108,
+    0.086,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.3352,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.5606
+   ],
+   "absent_gbp_day": 0.5915,
+   "bps_cap_day": 3.228,
+   "bps_trip": 16.98,
+   "capital": 600.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.1937,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 100.1,
+    "USDT-GBP|bid": 121.43
+   },
+   "lot_filled_share": 0.976,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 9.29,
+     "5": 7.2,
+     "60": 9.92,
+     "trips": 206
+    },
+    "1": {
+     "30": 7.17,
+     "5": 7.79,
+     "60": 7.22,
+     "trips": 33
+    },
+    "2": {
+     "30": -0.19,
+     "5": 7.54,
+     "60": -1.53,
+     "trips": 3
+    },
+    "3": {
+     "30": -10.61,
+     "5": -10.61,
+     "60": -15.25,
+     "trips": 1
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 163.6
+   },
+   "orders_day_max": {
+    "USDT-GBP": 358
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 166.1
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.045,
+   "pct_year": 11.78,
+   "pnl_bps_trip_by_rank": {
+    "0": 17.25,
+    "1": 16.53,
+    "2": 4.0,
+    "3": 13.26
+   },
+   "present_gbp_day": 0.1746,
+   "side_no_entry_share": {
+    "ask": 0.0735,
+    "bid": 0.0719
+   },
+   "taker_stops": 3,
+   "trips_day": 6.94,
+   "vs_K1": {
+    "before_10_13": -9.923,
+    "boot": [
+     -14.668,
+     -7.127,
+     1.0
+    ],
+    "boot_before": [
+     -15.742,
+     -5.567,
+     1.0
+    ],
+    "boot_from": [
+     -15.96,
+     -7.23,
+     1.0
+    ],
+    "days_ahead": 2,
+    "days_behind": 33,
+    "diff": -10.635,
+    "from_10_13": -11.307
+   },
+   "vs_K1_absent": {
+    "ahead": 0,
+    "behind": 5,
+    "boot_windows": [
+     -8.636,
+     -1.1128,
+     1.0
+    ],
+    "sum_gbp": -4.3642
+   },
+   "worst_day_bps_cap": -0.7
+  },
+  "RXU|at|K1": {
+   "absence_pnl": [
+    0,
+    0,
+    0,
+    0,
+    0.0027,
+    0,
+    0.2069,
+    0,
+    0.2308,
+    0.1237,
+    0,
+    -0.0178,
+    0,
+    0,
+    0.0,
+    0,
+    0.0802,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.1968
+   ],
+   "absent_gbp_day": 0.5209,
+   "bps_cap_day": 14.476,
+   "bps_trip": 12.84,
+   "capital": 120.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.1737,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 60.0,
+    "USDC-GBP|bid": 60.0
+   },
+   "lot_filled_share": 0.908,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.55,
+     "5": 6.87,
+     "60": 8.48,
+     "trips": 174
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 102.0
+   },
+   "orders_day_max": {
+    "USDC-GBP": 239
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 102.0
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0
+   },
+   "partial_trip_share": 0.161,
+   "pct_year": 52.84,
+   "pnl_bps_trip_by_rank": {
+    "0": 12.84
+   },
+   "present_gbp_day": 0.1615,
+   "side_no_entry_share": {
+    "ask": 0.0397,
+    "bid": 0.1368
+   },
+   "taker_stops": 3,
+   "trips_day": 4.97,
+   "worst_day_bps_cap": -7.8
+  },
+  "RXU|at|all2": {
+   "absence_pnl": [
+    0,
+    0,
+    0,
+    0,
+    0.0027,
+    0,
+    0.2069,
+    0.0338,
+    0.2308,
+    0.1237,
+    0,
+    -0.0178,
+    0,
+    0,
+    0.0,
+    0,
+    0.0802,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.1968
+   ],
+   "absent_gbp_day": 0.5423,
+   "bps_cap_day": 14.649,
+   "bps_trip": 12.87,
+   "capital": 120.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.1758,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 60.0,
+    "USDC-GBP|bid": 60.0
+   },
+   "lot_filled_share": 0.958,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.63,
+     "5": 6.89,
+     "60": 8.55,
+     "trips": 174
+    },
+    "1": {
+     "30": 8.44,
+     "5": 6.84,
+     "60": 8.36,
+     "trips": 159
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 185.6
+   },
+   "orders_day_max": {
+    "USDC-GBP": 478
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 202.9
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0
+   },
+   "partial_trip_share": 0.084,
+   "pct_year": 53.47,
+   "pnl_bps_trip_by_rank": {
+    "0": 13.0,
+    "1": 12.74
+   },
+   "present_gbp_day": 0.1627,
+   "side_no_entry_share": {
+    "ask": 0.0374,
+    "bid": 0.0964
+   },
+   "taker_stops": 5,
+   "trips_day": 9.51,
+   "vs_K1": {
+    "before_10_13": 0.166,
+    "boot": [
+     -0.022,
+     0.391,
+     0.0711
+    ],
+    "boot_before": [
+     -0.0,
+     0.498,
+     0.1947
+    ],
+    "boot_from": [
+     -0.087,
+     0.531,
+     0.2012
+    ],
+    "days_ahead": 3,
+    "days_behind": 2,
+    "diff": 0.173,
+    "from_10_13": 0.18
+   },
+   "vs_K1_absent": {
+    "ahead": 1,
+    "behind": 0,
+    "boot_windows": [
+     0.0,
+     0.1014,
+     0.3597
+    ],
+    "sum_gbp": 0.0338
+   },
+   "worst_day_bps_cap": -7.8
+  },
+  "RXU|at|all3": {
+   "absence_pnl": [
+    0,
+    0,
+    0,
+    0,
+    0.0027,
+    0,
+    0.2069,
+    0.0451,
+    0.2308,
+    0.1237,
+    0,
+    -0.0178,
+    0,
+    0,
+    0.0,
+    0,
+    0.0802,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.1968
+   ],
+   "absent_gbp_day": 0.5494,
+   "bps_cap_day": 14.67,
+   "bps_trip": 12.82,
+   "capital": 120.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.176,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 60.0,
+    "USDC-GBP|bid": 60.0
+   },
+   "lot_filled_share": 0.978,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.71,
+     "5": 6.94,
+     "60": 8.61,
+     "trips": 174
+    },
+    "1": {
+     "30": 8.49,
+     "5": 6.83,
+     "60": 8.42,
+     "trips": 162
+    },
+    "2": {
+     "30": 8.37,
+     "5": 6.86,
+     "60": 8.24,
+     "trips": 156
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 269.6
+   },
+   "orders_day_max": {
+    "USDC-GBP": 717
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 304.0
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0
+   },
+   "partial_trip_share": 0.041,
+   "pct_year": 53.55,
+   "pnl_bps_trip_by_rank": {
+    "0": 13.12,
+    "1": 12.84,
+    "2": 12.48
+   },
+   "present_gbp_day": 0.1626,
+   "side_no_entry_share": {
+    "ask": 0.0373,
+    "bid": 0.0964
+   },
+   "taker_stops": 7,
+   "trips_day": 14.06,
+   "vs_K1": {
+    "before_10_13": 0.26,
+    "boot": [
+     -0.041,
+     0.469,
+     0.0929
+    ],
+    "boot_before": [
+     0.0,
+     0.663,
+     0.033
+    ],
+    "boot_from": [
+     -0.233,
+     0.517,
+     0.2969
+    ],
+    "days_ahead": 6,
+    "days_behind": 2,
+    "diff": 0.194,
+    "from_10_13": 0.132
+   },
+   "vs_K1_absent": {
+    "ahead": 1,
+    "behind": 0,
+    "boot_windows": [
+     0.0,
+     0.1353,
+     0.3597
+    ],
+    "sum_gbp": 0.0451
+   },
+   "worst_day_bps_cap": -7.8
+  },
+  "RXU|at|cap2_K1": {
+   "absence_pnl": [
+    0,
+    0,
+    0,
+    0,
+    0.0027,
+    0,
+    0.4138,
+    0,
+    0.4615,
+    0.2474,
+    0,
+    -0.0143,
+    0,
+    0,
+    0.0,
+    0,
+    0.1604,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.3891
+   ],
+   "absent_gbp_day": 1.0506,
+   "bps_cap_day": 24.952,
+   "bps_trip": 12.43,
+   "capital": 240.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.2994,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 120.0,
+    "USDC-GBP|bid": 120.0
+   },
+   "lot_filled_share": 0.852,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.51,
+     "5": 6.81,
+     "60": 8.49,
+     "trips": 165
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 101.1
+   },
+   "orders_day_max": {
+    "USDC-GBP": 239
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 101.1
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0
+   },
+   "partial_trip_share": 0.242,
+   "pct_year": 91.08,
+   "pnl_bps_trip_by_rank": {
+    "0": 12.43
+   },
+   "present_gbp_day": 0.271,
+   "side_no_entry_share": {
+    "ask": 0.0397,
+    "bid": 0.1384
+   },
+   "taker_stops": 3,
+   "trips_day": 4.71,
+   "vs_K1": {
+    "before_10_13": 12.695,
+    "boot": [
+     6.843,
+     14.446,
+     0.0
+    ],
+    "boot_before": [
+     7.054,
+     19.276,
+     0.0
+    ],
+    "boot_from": [
+     4.024,
+     12.682,
+     0.0006
+    ],
+    "days_ahead": 27,
+    "days_behind": 5,
+    "diff": 10.477,
+    "from_10_13": 8.381
+   },
+   "vs_K1_absent": {
+    "ahead": 6,
+    "behind": 0,
+    "boot_windows": [
+     0.2906,
+     1.4528,
+     0.0011
+    ],
+    "sum_gbp": 0.8373
+   },
+   "worst_day_bps_cap": -24.5
+  },
+  "RXU|at|cap2_seq2": {
+   "absence_pnl": [
+    0,
+    0,
+    0,
+    0,
+    0.0027,
+    0,
+    0.2746,
+    0.0595,
+    0.3621,
+    0.1237,
+    0,
+    0.0717,
+    0,
+    0,
+    0.0,
+    0,
+    0.0802,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.1968
+   ],
+   "absent_gbp_day": 0.7411,
+   "bps_cap_day": 16.853,
+   "bps_trip": 12.87,
+   "capital": 240.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.2022,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 70.0,
+    "USDC-GBP|bid": 90.0
+   },
+   "lot_filled_share": 0.913,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.6,
+     "5": 6.89,
+     "60": 8.58,
+     "trips": 169
+    },
+    "1": {
+     "30": 7.98,
+     "5": 7.61,
+     "60": 9.41,
+     "trips": 32
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 109.0
+   },
+   "orders_day_max": {
+    "USDC-GBP": 239
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 110.6
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0
+   },
+   "partial_trip_share": 0.154,
+   "pct_year": 61.51,
+   "pnl_bps_trip_by_rank": {
+    "0": 12.83,
+    "1": 13.07
+   },
+   "present_gbp_day": 0.1815,
+   "side_no_entry_share": {
+    "ask": 0.0325,
+    "bid": 0.0861
+   },
+   "taker_stops": 4,
+   "trips_day": 5.74,
+   "vs_K1": {
+    "before_10_13": 2.974,
+    "boot": [
+     0.948,
+     4.064,
+     0.0008
+    ],
+    "boot_before": [
+     0.605,
+     6.104,
+     0.0027
+    ],
+    "boot_from": [
+     0.345,
+     3.1,
+     0.0245
+    ],
+    "days_ahead": 17,
+    "days_behind": 3,
+    "diff": 2.377,
+    "from_10_13": 1.814
+   },
+   "vs_K1_absent": {
+    "ahead": 4,
+    "behind": 0,
+    "boot_windows": [
+     0.0895,
+     0.6447,
+     0.0132
+    ],
+    "sum_gbp": 0.348
+   },
+   "worst_day_bps_cap": -6.4
+  },
+  "RXU|at|pool": {
+   "absence_pnl": [
+    0,
+    0,
+    0,
+    0,
+    0.0027,
+    0,
+    0.1373,
+    0.0338,
+    0.1811,
+    0.0619,
+    0,
+    0.0336,
+    0,
+    0,
+    0.0,
+    0,
+    0.0401,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.0984
+   ],
+   "absent_gbp_day": 0.3726,
+   "bps_cap_day": 9.468,
+   "bps_trip": 13.2,
+   "capital": 120.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.1136,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 30.25,
+    "USDC-GBP|bid": 60.0
+   },
+   "lot_filled_share": 0.948,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.67,
+     "5": 7.0,
+     "60": 8.54,
+     "trips": 180
+    },
+    "1": {
+     "30": 8.13,
+     "5": 7.84,
+     "60": 9.82,
+     "trips": 28
+    },
+    "2": {
+     "30": 8.19,
+     "5": 8.37,
+     "60": 8.54,
+     "trips": 4
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 109.9
+   },
+   "orders_day_max": {
+    "USDC-GBP": 239
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 111.3
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0
+   },
+   "partial_trip_share": 0.094,
+   "pct_year": 34.56,
+   "pnl_bps_trip_by_rank": {
+    "0": 13.17,
+    "1": 13.34,
+    "2": 13.29
+   },
+   "present_gbp_day": 0.1041,
+   "side_no_entry_share": {
+    "ask": 0.0325,
+    "bid": 0.081
+   },
+   "taker_stops": 4,
+   "trips_day": 6.06,
+   "vs_K1": {
+    "before_10_13": -5.09,
+    "boot": [
+     -6.546,
+     -3.503,
+     1.0
+    ],
+    "boot_before": [
+     -7.288,
+     -3.001,
+     1.0
+    ],
+    "boot_from": [
+     -7.17,
+     -2.634,
+     1.0
+    ],
+    "days_ahead": 7,
+    "days_behind": 24,
+    "diff": -5.007,
+    "from_10_13": -4.929
+   },
+   "vs_K1_absent": {
+    "ahead": 2,
+    "behind": 5,
+    "boot_windows": [
+     -0.4972,
+     0.0087,
+     0.9431
+    ],
+    "sum_gbp": -0.2344
+   },
+   "worst_day_bps_cap": -3.2
+  },
+  "RXU|at|seq2": {
+   "absence_pnl": [
+    0,
+    0,
+    0,
+    0,
+    0.0027,
+    0,
+    0.1373,
+    0.0338,
+    0.1811,
+    0.0619,
+    0,
+    0.0336,
+    0,
+    0,
+    0.0,
+    0,
+    0.0401,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.0984
+   ],
+   "absent_gbp_day": 0.3726,
+   "bps_cap_day": 9.29,
+   "bps_trip": 13.2,
+   "capital": 120.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.1115,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 30.25,
+    "USDC-GBP|bid": 45.0
+   },
+   "lot_filled_share": 0.949,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.67,
+     "5": 7.0,
+     "60": 8.54,
+     "trips": 180
+    },
+    "1": {
+     "30": 8.13,
+     "5": 7.84,
+     "60": 9.82,
+     "trips": 28
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 109.3
+   },
+   "orders_day_max": {
+    "USDC-GBP": 239
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 110.7
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0
+   },
+   "partial_trip_share": 0.091,
+   "pct_year": 33.91,
+   "pnl_bps_trip_by_rank": {
+    "0": 13.17,
+    "1": 13.34
+   },
+   "present_gbp_day": 0.1018,
+   "side_no_entry_share": {
+    "ask": 0.0325,
+    "bid": 0.0847
+   },
+   "taker_stops": 4,
+   "trips_day": 5.94,
+   "vs_K1": {
+    "before_10_13": -5.383,
+    "boot": [
+     -6.842,
+     -3.589,
+     1.0
+    ],
+    "boot_before": [
+     -7.889,
+     -3.068,
+     1.0
+    ],
+    "boot_from": [
+     -7.215,
+     -2.71,
+     1.0
+    ],
+    "days_ahead": 6,
+    "days_behind": 24,
+    "diff": -5.185,
+    "from_10_13": -4.999
+   },
+   "vs_K1_absent": {
+    "ahead": 2,
+    "behind": 5,
+    "boot_windows": [
+     -0.4972,
+     0.0087,
+     0.9431
+    ],
+    "sum_gbp": -0.2344
+   },
+   "worst_day_bps_cap": -3.2
+  },
+  "RXU|at|seq3": {
+   "absence_pnl": [
+    0,
+    0,
+    0,
+    0,
+    0.0027,
+    0,
+    0.0915,
+    0.0226,
+    0.1207,
+    0.0412,
+    0,
+    0.0224,
+    0,
+    0,
+    0.0,
+    0,
+    0.0267,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.0657
+   ],
+   "absent_gbp_day": 0.249,
+   "bps_cap_day": 6.596,
+   "bps_trip": 13.38,
+   "capital": 120.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.0792,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 20.25,
+    "USDC-GBP|bid": 40.0
+   },
+   "lot_filled_share": 0.964,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.73,
+     "5": 7.07,
+     "60": 8.58,
+     "trips": 185
+    },
+    "1": {
+     "30": 8.38,
+     "5": 7.95,
+     "60": 10.46,
+     "trips": 26
+    },
+    "2": {
+     "30": 8.14,
+     "5": 8.3,
+     "60": 8.47,
+     "trips": 4
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 109.8
+   },
+   "orders_day_max": {
+    "USDC-GBP": 239
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 111.1
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0
+   },
+   "partial_trip_share": 0.065,
+   "pct_year": 24.08,
+   "pnl_bps_trip_by_rank": {
+    "0": 13.25,
+    "1": 14.25,
+    "2": 13.29
+   },
+   "present_gbp_day": 0.073,
+   "side_no_entry_share": {
+    "ask": 0.0325,
+    "bid": 0.0811
+   },
+   "taker_stops": 4,
+   "trips_day": 6.14,
+   "vs_K1": {
+    "before_10_13": -8.121,
+    "boot": [
+     -10.355,
+     -5.561,
+     1.0
+    ],
+    "boot_before": [
+     -12.137,
+     -4.635,
+     1.0
+    ],
+    "boot_from": [
+     -10.696,
+     -4.572,
+     1.0
+    ],
+    "days_ahead": 5,
+    "days_behind": 28,
+    "diff": -7.88,
+    "from_10_13": -7.652
+   },
+   "vs_K1_absent": {
+    "ahead": 2,
+    "behind": 5,
+    "boot_windows": [
+     -0.8025,
+     -0.0928,
+     0.9852
+    ],
+    "sum_gbp": -0.4298
+   },
+   "worst_day_bps_cap": -2.1
+  },
+  "RXU|at|seq4": {
+   "absence_pnl": [
+    0,
+    0,
+    0,
+    0,
+    0.0027,
+    0,
+    0.0686,
+    0.0169,
+    0.0905,
+    0.0309,
+    0,
+    0.0168,
+    0,
+    0,
+    0.0,
+    0,
+    0.02,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.0493
+   ],
+   "absent_gbp_day": 0.1871,
+   "bps_cap_day": 5.091,
+   "bps_trip": 13.43,
+   "capital": 120.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.0611,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 15.25,
+    "USDC-GBP|bid": 37.5
+   },
+   "lot_filled_share": 0.97,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.76,
+     "5": 7.12,
+     "60": 8.63,
+     "trips": 187
+    },
+    "1": {
+     "30": 8.38,
+     "5": 7.95,
+     "60": 10.46,
+     "trips": 26
+    },
+    "2": {
+     "30": 8.14,
+     "5": 8.3,
+     "60": 8.47,
+     "trips": 4
+    },
+    "3": {
+     "30": 4.0,
+     "5": 4.33,
+     "60": 3.0,
+     "trips": 2
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 110.1
+   },
+   "orders_day_max": {
+    "USDC-GBP": 239
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 111.6
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0
+   },
+   "partial_trip_share": 0.046,
+   "pct_year": 18.58,
+   "pnl_bps_trip_by_rank": {
+    "0": 13.35,
+    "1": 14.73,
+    "2": 13.29,
+    "3": 4.03
+   },
+   "present_gbp_day": 0.0566,
+   "side_no_entry_share": {
+    "ask": 0.0325,
+    "bid": 0.0804
+   },
+   "taker_stops": 3,
+   "trips_day": 6.26,
+   "vs_K1": {
+    "before_10_13": -9.73,
+    "boot": [
+     -12.42,
+     -6.609,
+     1.0
+    ],
+    "boot_before": [
+     -14.81,
+     -5.408,
+     1.0
+    ],
+    "boot_from": [
+     -12.553,
+     -5.588,
+     1.0
+    ],
+    "days_ahead": 4,
+    "days_behind": 29,
+    "diff": -9.385,
+    "from_10_13": -9.058
+   },
+   "vs_K1_absent": {
+    "ahead": 2,
+    "behind": 5,
+    "boot_windows": [
+     -0.9614,
+     -0.1393,
+     0.9906
+    ],
+    "sum_gbp": -0.5276
+   },
+   "worst_day_bps_cap": -1.6
+  },
+  "RXU|at|seq6": {
+   "absence_pnl": [
+    0,
+    0,
+    0,
+    0,
+    0.0027,
+    0,
+    0.0458,
+    0.0113,
+    0.0604,
+    0.0206,
+    0,
+    0.0112,
+    0,
+    0,
+    0.0,
+    0,
+    0.0134,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.0329
+   ],
+   "absent_gbp_day": 0.1255,
+   "bps_cap_day": 3.499,
+   "bps_trip": 13.45,
+   "capital": 120.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.042,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 10.25,
+    "USDC-GBP|bid": 35.0
+   },
+   "lot_filled_share": 0.985,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.78,
+     "5": 7.12,
+     "60": 8.65,
+     "trips": 188
+    },
+    "1": {
+     "30": 8.56,
+     "5": 8.11,
+     "60": 10.74,
+     "trips": 25
+    },
+    "2": {
+     "30": 8.14,
+     "5": 8.3,
+     "60": 8.47,
+     "trips": 4
+    },
+    "3": {
+     "30": 3.99,
+     "5": 5.05,
+     "60": 3.46,
+     "trips": 5
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 110.3
+   },
+   "orders_day_max": {
+    "USDC-GBP": 239
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 111.9
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0
+   },
+   "partial_trip_share": 0.027,
+   "pct_year": 12.77,
+   "pnl_bps_trip_by_rank": {
+    "0": 13.46,
+    "1": 15.11,
+    "2": 13.29,
+    "3": 4.55
+   },
+   "present_gbp_day": 0.0391,
+   "side_no_entry_share": {
+    "ask": 0.0325,
+    "bid": 0.0804
+   },
+   "taker_stops": 3,
+   "trips_day": 6.34,
+   "vs_K1": {
+    "before_10_13": -11.37,
+    "boot": [
+     -14.543,
+     -7.74,
+     1.0
+    ],
+    "boot_before": [
+     -17.567,
+     -6.223,
+     1.0
+    ],
+    "boot_from": [
+     -14.551,
+     -6.751,
+     1.0
+    ],
+    "days_ahead": 3,
+    "days_behind": 30,
+    "diff": -10.977,
+    "from_10_13": -10.606
+   },
+   "vs_K1_absent": {
+    "ahead": 2,
+    "behind": 5,
+    "boot_windows": [
+     -1.1201,
+     -0.1856,
+     0.993
+    ],
+    "sum_gbp": -0.625
+   },
+   "worst_day_bps_cap": -1.1
+  },
+  "RXU|through|K1": {
+   "absence_pnl": [
+    0,
+    0,
+    0,
+    0,
+    0.0027,
+    0,
+    0.0716,
+    0,
+    0.2308,
+    0.0608,
+    0,
+    0.0391,
+    0,
+    0,
+    0.0,
+    0,
+    0.0802,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.1967
+   ],
+   "absent_gbp_day": 0.4314,
+   "bps_cap_day": 9.863,
+   "bps_trip": 10.94,
+   "capital": 120.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.1184,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 60.0,
+    "USDC-GBP|bid": 60.0
+   },
+   "lot_filled_share": 0.923,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 7.78,
+     "5": 6.24,
+     "60": 8.02,
+     "trips": 137
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 98.6
+   },
+   "orders_day_max": {
+    "USDC-GBP": 239
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 98.6
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0
+   },
+   "partial_trip_share": 0.131,
+   "pct_year": 36.0,
+   "pnl_bps_trip_by_rank": {
+    "0": 10.94
+   },
+   "present_gbp_day": 0.1063,
+   "side_no_entry_share": {
+    "ask": 0.0349,
+    "bid": 0.1408
+   },
+   "taker_stops": 6,
+   "trips_day": 3.91,
+   "worst_day_bps_cap": -14.3
+  },
+  "RXU|through|all2": {
+   "absence_pnl": [
+    0,
+    0,
+    0,
+    0,
+    0.0027,
+    0,
+    0.0716,
+    0,
+    0.2308,
+    0.0608,
+    0,
+    0.0391,
+    0,
+    0,
+    0.0,
+    0,
+    0.0802,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.1967
+   ],
+   "absent_gbp_day": 0.4314,
+   "bps_cap_day": 9.94,
+   "bps_trip": 10.98,
+   "capital": 120.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.1193,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 60.0,
+    "USDC-GBP|bid": 60.0
+   },
+   "lot_filled_share": 0.962,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 7.77,
+     "5": 6.23,
+     "60": 8.02,
+     "trips": 137
+    },
+    "1": {
+     "30": 7.73,
+     "5": 6.23,
+     "60": 7.96,
+     "trips": 127
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 180.6
+   },
+   "orders_day_max": {
+    "USDC-GBP": 478
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 196.3
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0
+   },
+   "partial_trip_share": 0.068,
+   "pct_year": 36.28,
+   "pnl_bps_trip_by_rank": {
+    "0": 11.36,
+    "1": 10.57
+   },
+   "present_gbp_day": 0.1073,
+   "side_no_entry_share": {
+    "ask": 0.0338,
+    "bid": 0.1059
+   },
+   "taker_stops": 11,
+   "trips_day": 7.54,
+   "vs_K1": {
+    "before_10_13": -0.0,
+    "boot": [
+     -0.057,
+     0.23,
+     0.1815
+    ],
+    "boot_before": [
+     -0.176,
+     0.176,
+     0.5173
+    ],
+    "boot_from": [
+     -0.053,
+     0.382,
+     0.0728
+    ],
+    "days_ahead": 6,
+    "days_behind": 4,
+    "diff": 0.077,
+    "from_10_13": 0.15
+   },
+   "vs_K1_absent": {
+    "ahead": 0,
+    "behind": 0,
+    "boot_windows": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "sum_gbp": 0.0
+   },
+   "worst_day_bps_cap": -13.3
+  },
+  "RXU|through|all3": {
+   "absence_pnl": [
+    0,
+    0,
+    0,
+    0,
+    0.0027,
+    0,
+    0.0716,
+    0,
+    0.2308,
+    0.0608,
+    0,
+    0.0391,
+    0,
+    0,
+    0.0,
+    0,
+    0.0802,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.1967
+   ],
+   "absent_gbp_day": 0.4314,
+   "bps_cap_day": 10.054,
+   "bps_trip": 11.03,
+   "capital": 120.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.1206,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 60.0,
+    "USDC-GBP|bid": 60.0
+   },
+   "lot_filled_share": 0.981,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 7.74,
+     "5": 6.23,
+     "60": 7.98,
+     "trips": 137
+    },
+    "1": {
+     "30": 7.76,
+     "5": 6.21,
+     "60": 8.0,
+     "trips": 129
+    },
+    "2": {
+     "30": 7.61,
+     "5": 6.18,
+     "60": 7.75,
+     "trips": 125
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 263.8
+   },
+   "orders_day_max": {
+    "USDC-GBP": 717
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 294.5
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0
+   },
+   "partial_trip_share": 0.038,
+   "pct_year": 36.7,
+   "pnl_bps_trip_by_rank": {
+    "0": 11.43,
+    "1": 11.1,
+    "2": 10.52
+   },
+   "present_gbp_day": 0.1088,
+   "side_no_entry_share": {
+    "ask": 0.0338,
+    "bid": 0.1059
+   },
+   "taker_stops": 16,
+   "trips_day": 11.17,
+   "vs_K1": {
+    "before_10_13": 0.039,
+    "boot": [
+     0.0,
+     0.395,
+     0.0478
+    ],
+    "boot_before": [
+     -0.195,
+     0.273,
+     0.2808
+    ],
+    "boot_from": [
+     0.063,
+     0.619,
+     0.0135
+    ],
+    "days_ahead": 9,
+    "days_behind": 4,
+    "diff": 0.191,
+    "from_10_13": 0.335
+   },
+   "vs_K1_absent": {
+    "ahead": 0,
+    "behind": 0,
+    "boot_windows": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "sum_gbp": 0.0
+   },
+   "worst_day_bps_cap": -13.0
+  },
+  "RXU|through|cap2_K1": {
+   "absence_pnl": [
+    0,
+    0,
+    0,
+    0,
+    0.0027,
+    0,
+    0.1431,
+    0,
+    0.4615,
+    0.2044,
+    0,
+    0.1461,
+    0,
+    0,
+    0.0,
+    0,
+    0.1604,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.397
+   ],
+   "absent_gbp_day": 0.9587,
+   "bps_cap_day": 17.55,
+   "bps_trip": 10.79,
+   "capital": 240.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.2106,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 120.0,
+    "USDC-GBP|bid": 120.0
+   },
+   "lot_filled_share": 0.883,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 7.87,
+     "5": 6.29,
+     "60": 8.41,
+     "trips": 129
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 97.7
+   },
+   "orders_day_max": {
+    "USDC-GBP": 239
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 97.7
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0
+   },
+   "partial_trip_share": 0.202,
+   "pct_year": 64.06,
+   "pnl_bps_trip_by_rank": {
+    "0": 10.79
+   },
+   "present_gbp_day": 0.1799,
+   "side_no_entry_share": {
+    "ask": 0.0348,
+    "bid": 0.1408
+   },
+   "taker_stops": 6,
+   "trips_day": 3.69,
+   "vs_K1": {
+    "before_10_13": 9.443,
+    "boot": [
+     4.446,
+     10.958,
+     0.0
+    ],
+    "boot_before": [
+     6.253,
+     12.932,
+     0.0
+    ],
+    "boot_from": [
+     0.661,
+     11.469,
+     0.0315
+    ],
+    "days_ahead": 24,
+    "days_behind": 6,
+    "diff": 7.687,
+    "from_10_13": 6.03
+   },
+   "vs_K1_absent": {
+    "ahead": 6,
+    "behind": 0,
+    "boot_windows": [
+     0.3221,
+     1.4062,
+     0.0011
+    ],
+    "sum_gbp": 0.8333
+   },
+   "worst_day_bps_cap": -35.0
+  },
+  "RXU|through|cap2_seq2": {
+   "absence_pnl": [
+    0,
+    0,
+    0,
+    0,
+    0.0027,
+    0,
+    0.0716,
+    0,
+    0.2308,
+    0.0608,
+    0,
+    0.0391,
+    0,
+    0,
+    0.0,
+    0,
+    0.0802,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.1967
+   ],
+   "absent_gbp_day": 0.4314,
+   "bps_cap_day": 10.353,
+   "bps_trip": 10.5,
+   "capital": 240.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.1242,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 90.25,
+    "USDC-GBP|bid": 120.0
+   },
+   "lot_filled_share": 0.928,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 7.84,
+     "5": 6.29,
+     "60": 8.26,
+     "trips": 133
+    },
+    "1": {
+     "30": 4.77,
+     "5": 5.49,
+     "60": 3.32,
+     "trips": 16
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 105.7
+   },
+   "orders_day_max": {
+    "USDC-GBP": 240
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 106.9
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0
+   },
+   "partial_trip_share": 0.128,
+   "pct_year": 37.79,
+   "pnl_bps_trip_by_rank": {
+    "0": 10.72,
+    "1": 8.73
+   },
+   "present_gbp_day": 0.1127,
+   "side_no_entry_share": {
+    "ask": 0.0325,
+    "bid": 0.0978
+   },
+   "taker_stops": 7,
+   "trips_day": 4.26,
+   "vs_K1": {
+    "before_10_13": 0.117,
+    "boot": [
+     -0.288,
+     1.359,
+     0.1574
+    ],
+    "boot_before": [
+     0.0,
+     0.351,
+     0.3274
+    ],
+    "boot_from": [
+     -0.713,
+     2.452,
+     0.1914
+    ],
+    "days_ahead": 7,
+    "days_behind": 3,
+    "diff": 0.491,
+    "from_10_13": 0.843
+   },
+   "vs_K1_absent": {
+    "ahead": 0,
+    "behind": 0,
+    "boot_windows": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "sum_gbp": 0.0
+   },
+   "worst_day_bps_cap": -15.2
+  },
+  "RXU|through|pool": {
+   "absence_pnl": [
+    0,
+    0,
+    0,
+    0,
+    0.0027,
+    0,
+    0.0358,
+    0,
+    0.1154,
+    0.0239,
+    0,
+    0.0201,
+    0,
+    0,
+    0.0,
+    0,
+    0.0401,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.0984
+   ],
+   "absent_gbp_day": 0.2128,
+   "bps_cap_day": 6.024,
+   "bps_trip": 11.5,
+   "capital": 120.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.0723,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 45.25,
+    "USDC-GBP|bid": 55.95
+   },
+   "lot_filled_share": 0.947,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 7.68,
+     "5": 6.3,
+     "60": 7.92,
+     "trips": 141
+    },
+    "1": {
+     "30": 5.04,
+     "5": 6.05,
+     "60": 4.94,
+     "trips": 13
+    },
+    "2": {
+     "30": 3.98,
+     "5": 3.98,
+     "60": 3.98,
+     "trips": 1
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 105.2
+   },
+   "orders_day_max": {
+    "USDC-GBP": 240
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 106.2
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0
+   },
+   "partial_trip_share": 0.09,
+   "pct_year": 21.99,
+   "pnl_bps_trip_by_rank": {
+    "0": 11.43,
+    "1": 12.2,
+    "2": 11.95
+   },
+   "present_gbp_day": 0.0674,
+   "side_no_entry_share": {
+    "ask": 0.0325,
+    "bid": 0.0804
+   },
+   "taker_stops": 6,
+   "trips_day": 4.43,
+   "vs_K1": {
+    "before_10_13": -4.43,
+    "boot": [
+     -5.431,
+     -2.262,
+     1.0
+    ],
+    "boot_before": [
+     -6.271,
+     -2.746,
+     1.0
+    ],
+    "boot_from": [
+     -5.871,
+     -0.696,
+     0.9844
+    ],
+    "days_ahead": 8,
+    "days_behind": 23,
+    "diff": -3.839,
+    "from_10_13": -3.28
+   },
+   "vs_K1_absent": {
+    "ahead": 0,
+    "behind": 6,
+    "boot_windows": [
+     -0.6145,
+     -0.1161,
+     1.0
+    ],
+    "sum_gbp": -0.3455
+   },
+   "worst_day_bps_cap": -3.6
+  },
+  "RXU|through|seq2": {
+   "absence_pnl": [
+    0,
+    0,
+    0,
+    0,
+    0.0027,
+    0,
+    0.0358,
+    0,
+    0.1154,
+    0.0239,
+    0,
+    0.0201,
+    0,
+    0,
+    0.0,
+    0,
+    0.0401,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.0984
+   ],
+   "absent_gbp_day": 0.2128,
+   "bps_cap_day": 5.952,
+   "bps_trip": 11.3,
+   "capital": 120.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.0714,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 45.25,
+    "USDC-GBP|bid": 60.0
+   },
+   "lot_filled_share": 0.953,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 7.72,
+     "5": 6.31,
+     "60": 7.98,
+     "trips": 141
+    },
+    "1": {
+     "30": 5.06,
+     "5": 6.0,
+     "60": 5.02,
+     "trips": 14
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 104.5
+   },
+   "orders_day_max": {
+    "USDC-GBP": 240
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 105.5
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0
+   },
+   "partial_trip_share": 0.084,
+   "pct_year": 21.73,
+   "pnl_bps_trip_by_rank": {
+    "0": 11.23,
+    "1": 11.99
+   },
+   "present_gbp_day": 0.0665,
+   "side_no_entry_share": {
+    "ask": 0.0325,
+    "bid": 0.0978
+   },
+   "taker_stops": 6,
+   "trips_day": 4.43,
+   "vs_K1": {
+    "before_10_13": -4.43,
+    "boot": [
+     -5.465,
+     -2.401,
+     1.0
+    ],
+    "boot_before": [
+     -6.271,
+     -2.746,
+     1.0
+    ],
+    "boot_from": [
+     -5.902,
+     -0.958,
+     0.9924
+    ],
+    "days_ahead": 8,
+    "days_behind": 23,
+    "diff": -3.911,
+    "from_10_13": -3.42
+   },
+   "vs_K1_absent": {
+    "ahead": 0,
+    "behind": 6,
+    "boot_windows": [
+     -0.6145,
+     -0.1161,
+     1.0
+    ],
+    "sum_gbp": -0.3455
+   },
+   "worst_day_bps_cap": -3.9
+  },
+  "RXU|through|seq3": {
+   "absence_pnl": [
+    0,
+    0,
+    0,
+    0,
+    0.0027,
+    0,
+    0.0239,
+    0,
+    0.0769,
+    0.016,
+    0,
+    0.0182,
+    0,
+    0,
+    0.0,
+    0,
+    0.0267,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.0656
+   ],
+   "absent_gbp_day": 0.1455,
+   "bps_cap_day": 4.189,
+   "bps_trip": 11.64,
+   "capital": 120.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.0503,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 30.25,
+    "USDC-GBP|bid": 40.0
+   },
+   "lot_filled_share": 0.97,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 7.75,
+     "5": 6.38,
+     "60": 7.98,
+     "trips": 143
+    },
+    "1": {
+     "30": 4.77,
+     "5": 5.39,
+     "60": 5.16,
+     "trips": 12
+    },
+    "2": {
+     "30": 3.98,
+     "5": 3.98,
+     "60": 3.98,
+     "trips": 1
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 105.1
+   },
+   "orders_day_max": {
+    "USDC-GBP": 240
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 106.1
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0
+   },
+   "partial_trip_share": 0.058,
+   "pct_year": 15.29,
+   "pnl_bps_trip_by_rank": {
+    "0": 11.69,
+    "1": 11.03,
+    "2": 11.95
+   },
+   "present_gbp_day": 0.047,
+   "side_no_entry_share": {
+    "ask": 0.0325,
+    "bid": 0.0804
+   },
+   "taker_stops": 6,
+   "trips_day": 4.46,
+   "vs_K1": {
+    "before_10_13": -5.975,
+    "boot": [
+     -7.871,
+     -3.583,
+     1.0
+    ],
+    "boot_before": [
+     -8.493,
+     -3.697,
+     1.0
+    ],
+    "boot_from": [
+     -8.977,
+     -1.849,
+     0.9969
+    ],
+    "days_ahead": 7,
+    "days_behind": 25,
+    "diff": -5.674,
+    "from_10_13": -5.389
+   },
+   "vs_K1_absent": {
+    "ahead": 0,
+    "behind": 6,
+    "boot_windows": [
+     -0.8089,
+     -0.1518,
+     1.0
+    ],
+    "sum_gbp": -0.4519
+   },
+   "worst_day_bps_cap": -2.1
+  },
+  "RXU|through|seq4": {
+   "absence_pnl": [
+    0,
+    0,
+    0,
+    0,
+    0.0027,
+    0,
+    0.0179,
+    0,
+    0.0577,
+    0.012,
+    0,
+    0.0148,
+    0,
+    0,
+    0.0,
+    0,
+    0.02,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.0492
+   ],
+   "absent_gbp_day": 0.1103,
+   "bps_cap_day": 3.197,
+   "bps_trip": 11.71,
+   "capital": 120.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.0384,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 22.75,
+    "USDC-GBP|bid": 30.0
+   },
+   "lot_filled_share": 0.981,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 7.8,
+     "5": 6.39,
+     "60": 8.02,
+     "trips": 143
+    },
+    "1": {
+     "30": 4.77,
+     "5": 5.39,
+     "60": 5.16,
+     "trips": 12
+    },
+    "2": {
+     "30": 3.98,
+     "5": 3.98,
+     "60": 3.98,
+     "trips": 1
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 105.0
+   },
+   "orders_day_max": {
+    "USDC-GBP": 240
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 105.9
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0
+   },
+   "partial_trip_share": 0.032,
+   "pct_year": 11.67,
+   "pnl_bps_trip_by_rank": {
+    "0": 11.77,
+    "1": 10.98,
+    "2": 11.95
+   },
+   "present_gbp_day": 0.0359,
+   "side_no_entry_share": {
+    "ask": 0.0325,
+    "bid": 0.0804
+   },
+   "taker_stops": 6,
+   "trips_day": 4.46,
+   "vs_K1": {
+    "before_10_13": -6.775,
+    "boot": [
+     -9.188,
+     -4.3,
+     1.0
+    ],
+    "boot_before": [
+     -9.681,
+     -4.152,
+     1.0
+    ],
+    "boot_from": [
+     -10.609,
+     -2.578,
+     0.9989
+    ],
+    "days_ahead": 7,
+    "days_behind": 25,
+    "diff": -6.666,
+    "from_10_13": -6.563
+   },
+   "vs_K1_absent": {
+    "ahead": 0,
+    "behind": 6,
+    "boot_windows": [
+     -0.91,
+     -0.1692,
+     1.0
+    ],
+    "sum_gbp": -0.5076
+   },
+   "worst_day_bps_cap": -1.6
+  },
+  "RXU|through|seq6": {
+   "absence_pnl": [
+    0,
+    0,
+    0,
+    0,
+    0.0027,
+    0,
+    0.0119,
+    0,
+    0.0385,
+    0.008,
+    0,
+    0.0099,
+    0,
+    0,
+    0.0,
+    0,
+    0.0134,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.0328
+   ],
+   "absent_gbp_day": 0.0742,
+   "bps_cap_day": 2.16,
+   "bps_trip": 11.78,
+   "capital": 120.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.0259,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 15.25,
+    "USDC-GBP|bid": 20.0
+   },
+   "lot_filled_share": 0.988,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 7.77,
+     "5": 6.36,
+     "60": 7.99,
+     "trips": 143
+    },
+    "1": {
+     "30": 4.77,
+     "5": 5.39,
+     "60": 5.16,
+     "trips": 12
+    },
+    "2": {
+     "30": 3.98,
+     "5": 3.98,
+     "60": 3.98,
+     "trips": 1
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 105.0
+   },
+   "orders_day_max": {
+    "USDC-GBP": 240
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 105.9
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0
+   },
+   "partial_trip_share": 0.026,
+   "pct_year": 7.88,
+   "pnl_bps_trip_by_rank": {
+    "0": 11.8,
+    "1": 11.57,
+    "2": 11.95
+   },
+   "present_gbp_day": 0.0243,
+   "side_no_entry_share": {
+    "ask": 0.0325,
+    "bid": 0.0804
+   },
+   "taker_stops": 4,
+   "trips_day": 4.46,
+   "vs_K1": {
+    "before_10_13": -7.63,
+    "boot": [
+     -10.545,
+     -5.061,
+     1.0
+    ],
+    "boot_before": [
+     -10.906,
+     -4.674,
+     1.0
+    ],
+    "boot_from": [
+     -12.317,
+     -3.331,
+     0.9996
+    ],
+    "days_ahead": 7,
+    "days_behind": 26,
+    "diff": -7.703,
+    "from_10_13": -7.772
+   },
+   "vs_K1_absent": {
+    "ahead": 0,
+    "behind": 6,
+    "boot_windows": [
+     -1.0109,
+     -0.1864,
+     1.0
+    ],
+    "sum_gbp": -0.5647
+   },
+   "worst_day_bps_cap": -1.1
+  },
+  "live1200|at|K1": {
+   "absence_pnl": [
+    0,
+    0,
+    1.0113,
+    0,
+    1.499,
+    0.9731,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1.6147,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    5.3752
+   ],
+   "absent_gbp_day": 5.3235,
+   "bps_cap_day": 15.315,
+   "bps_trip": 16.91,
+   "capital": 1200.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 1.8379,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 600.5,
+    "USDT-GBP|bid": 600.4
+   },
+   "lot_filled_share": 0.819,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.67,
+     "5": 7.09,
+     "60": 9.59,
+     "trips": 230
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 156.2
+   },
+   "orders_day_max": {
+    "USDT-GBP": 337
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 156.2
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.265,
+   "pct_year": 55.9,
+   "pnl_bps_trip_by_rank": {
+    "0": 16.91
+   },
+   "present_gbp_day": 1.6746,
+   "side_no_entry_share": {
+    "ask": 0.0786,
+    "bid": 0.0969
+   },
+   "taker_stops": 3,
+   "trips_day": 6.57,
+   "worst_day_bps_cap": -5.4
+  },
+  "live1200|at|all2": {
+   "absence_pnl": [
+    0,
+    0,
+    1.0113,
+    0,
+    1.499,
+    0.9731,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1.7086,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    5.3752
+   ],
+   "absent_gbp_day": 5.3713,
+   "bps_cap_day": 15.783,
+   "bps_trip": 16.85,
+   "capital": 1200.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 1.894,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 600.5,
+    "USDT-GBP|bid": 600.4
+   },
+   "lot_filled_share": 0.906,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.57,
+     "5": 7.11,
+     "60": 9.51,
+     "trips": 230
+    },
+    "1": {
+     "30": 8.6,
+     "5": 6.91,
+     "60": 9.41,
+     "trips": 200
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 289.6
+   },
+   "orders_day_max": {
+    "USDT-GBP": 672
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 309.8
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.158,
+   "pct_year": 57.61,
+   "pnl_bps_trip_by_rank": {
+    "0": 16.88,
+    "1": 16.81
+   },
+   "present_gbp_day": 1.7328,
+   "side_no_entry_share": {
+    "ask": 0.0769,
+    "bid": 0.0927
+   },
+   "taker_stops": 5,
+   "trips_day": 12.29,
+   "vs_K1": {
+    "before_10_13": 0.558,
+    "boot": [
+     0.238,
+     0.713,
+     0.0003
+    ],
+    "boot_before": [
+     0.159,
+     0.986,
+     0.011
+    ],
+    "boot_from": [
+     0.166,
+     0.617,
+     0.0
+    ],
+    "days_ahead": 17,
+    "days_behind": 4,
+    "diff": 0.468,
+    "from_10_13": 0.382
+   },
+   "vs_K1_absent": {
+    "ahead": 1,
+    "behind": 0,
+    "boot_windows": [
+     0.0,
+     0.2817,
+     0.36
+    ],
+    "sum_gbp": 0.0939
+   },
+   "worst_day_bps_cap": -5.4
+  },
+  "live1200|at|all3": {
+   "absence_pnl": [
+    0,
+    0,
+    1.0113,
+    0,
+    1.499,
+    0.9731,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1.8741,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    5.3752
+   ],
+   "absent_gbp_day": 5.4554,
+   "bps_cap_day": 15.945,
+   "bps_trip": 16.86,
+   "capital": 1200.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 1.9134,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 600.5,
+    "USDT-GBP|bid": 600.4
+   },
+   "lot_filled_share": 0.935,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.52,
+     "5": 7.09,
+     "60": 9.43,
+     "trips": 229
+    },
+    "1": {
+     "30": 8.51,
+     "5": 7.02,
+     "60": 9.42,
+     "trips": 207
+    },
+    "2": {
+     "30": 8.65,
+     "5": 6.91,
+     "60": 9.47,
+     "trips": 195
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 422.0
+   },
+   "orders_day_max": {
+    "USDT-GBP": 1003
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 462.9
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 3
+   },
+   "partial_trip_share": 0.109,
+   "pct_year": 58.2,
+   "pnl_bps_trip_by_rank": {
+    "0": 16.81,
+    "1": 16.94,
+    "2": 16.83
+   },
+   "present_gbp_day": 1.7487,
+   "side_no_entry_share": {
+    "ask": 0.0769,
+    "bid": 0.0925
+   },
+   "taker_stops": 7,
+   "trips_day": 18.03,
+   "vs_K1": {
+    "before_10_13": 0.686,
+    "boot": [
+     0.355,
+     0.915,
+     0.0002
+    ],
+    "boot_before": [
+     0.216,
+     1.165,
+     0.009
+    ],
+    "boot_from": [
+     0.292,
+     0.905,
+     0.0
+    ],
+    "days_ahead": 17,
+    "days_behind": 3,
+    "diff": 0.629,
+    "from_10_13": 0.576
+   },
+   "vs_K1_absent": {
+    "ahead": 1,
+    "behind": 0,
+    "boot_windows": [
+     0.0,
+     0.7782,
+     0.36
+    ],
+    "sum_gbp": 0.2594
+   },
+   "worst_day_bps_cap": -5.4
+  },
+  "live1200|at|cap2_K1": {
+   "absence_pnl": [
+    0,
+    0,
+    2.0226,
+    0,
+    2.9499,
+    1.766,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    3.3151,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    10.0799
+   ],
+   "absent_gbp_day": 10.2338,
+   "bps_cap_day": 26.023,
+   "bps_trip": 17.05,
+   "capital": 2400.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 3.1227,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 1200.5,
+    "USDT-GBP|bid": 1200.2
+   },
+   "lot_filled_share": 0.73,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 9.17,
+     "5": 7.36,
+     "60": 9.97,
+     "trips": 217
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 155.6
+   },
+   "orders_day_max": {
+    "USDT-GBP": 336
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 155.6
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.419,
+   "pct_year": 94.98,
+   "pnl_bps_trip_by_rank": {
+    "0": 17.05
+   },
+   "present_gbp_day": 2.7726,
+   "side_no_entry_share": {
+    "ask": 0.081,
+    "bid": 0.1017
+   },
+   "taker_stops": 4,
+   "trips_day": 6.2,
+   "vs_K1": {
+    "before_10_13": 10.385,
+    "boot": [
+     7.536,
+     14.273,
+     0.0
+    ],
+    "boot_before": [
+     5.5,
+     16.23,
+     0.0
+    ],
+    "boot_from": [
+     7.78,
+     14.113,
+     0.0
+    ],
+    "days_ahead": 28,
+    "days_behind": 4,
+    "diff": 10.707,
+    "from_10_13": 11.012
+   },
+   "vs_K1_absent": {
+    "ahead": 5,
+    "behind": 0,
+    "boot_windows": [
+     2.4933,
+     18.8081,
+     0.0047
+    ],
+    "sum_gbp": 9.6602
+   },
+   "worst_day_bps_cap": -10.7
+  },
+  "live1200|at|cap2_seq2": {
+   "absence_pnl": [
+    0,
+    0,
+    1.0113,
+    0,
+    1.499,
+    0.9731,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2.392,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    5.3752
+   ],
+   "absent_gbp_day": 5.7186,
+   "bps_cap_day": 17.928,
+   "bps_trip": 16.97,
+   "capital": 2400.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 2.1513,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 899.89,
+    "USDT-GBP|bid": 1200.0
+   },
+   "lot_filled_share": 0.802,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.98,
+     "5": 7.32,
+     "60": 9.65,
+     "trips": 224
+    },
+    "1": {
+     "30": 7.41,
+     "5": 6.08,
+     "60": 7.87,
+     "trips": 50
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 168.6
+   },
+   "orders_day_max": {
+    "USDT-GBP": 370
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 172.3
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.288,
+   "pct_year": 65.44,
+   "pnl_bps_trip_by_rank": {
+    "0": 16.99,
+    "1": 16.91
+   },
+   "present_gbp_day": 1.9916,
+   "side_no_entry_share": {
+    "ask": 0.0746,
+    "bid": 0.0768
+   },
+   "taker_stops": 3,
+   "trips_day": 7.83,
+   "vs_K1": {
+    "before_10_13": 2.96,
+    "boot": [
+     1.764,
+     3.538,
+     0.0
+    ],
+    "boot_before": [
+     1.646,
+     4.432,
+     0.0
+    ],
+    "boot_from": [
+     1.269,
+     3.389,
+     0.0
+    ],
+    "days_ahead": 23,
+    "days_behind": 3,
+    "diff": 2.612,
+    "from_10_13": 2.284
+   },
+   "vs_K1_absent": {
+    "ahead": 1,
+    "behind": 0,
+    "boot_windows": [
+     0.0,
+     2.3319,
+     0.36
+    ],
+    "sum_gbp": 0.7773
+   },
+   "worst_day_bps_cap": -5.1
+  },
+  "live1200|at|pool": {
+   "absence_pnl": [
+    0,
+    0,
+    0.5056,
+    0,
+    0.728,
+    0.4892,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1.5005,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2.8138
+   ],
+   "absent_gbp_day": 3.0686,
+   "bps_cap_day": 10.673,
+   "bps_trip": 17.24,
+   "capital": 1200.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 1.2807,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 600.09,
+    "USDT-GBP|bid": 600.8
+   },
+   "lot_filled_share": 0.874,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.74,
+     "5": 7.23,
+     "60": 9.66,
+     "trips": 236
+    },
+    "1": {
+     "30": 8.01,
+     "5": 6.71,
+     "60": 7.65,
+     "trips": 47
+    },
+    "2": {
+     "30": 10.48,
+     "5": 9.38,
+     "60": 9.74,
+     "trips": 11
+    },
+    "3": {
+     "30": 4.63,
+     "5": 3.97,
+     "60": 4.63,
+     "trips": 1
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 170.0
+   },
+   "orders_day_max": {
+    "USDT-GBP": 387
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 174.5
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.207,
+   "pct_year": 38.96,
+   "pnl_bps_trip_by_rank": {
+    "0": 17.1,
+    "1": 17.59,
+    "2": 18.87,
+    "3": 10.59
+   },
+   "present_gbp_day": 1.2062,
+   "side_no_entry_share": {
+    "ask": 0.0745,
+    "bid": 0.0744
+   },
+   "taker_stops": 3,
+   "trips_day": 8.43,
+   "vs_K1": {
+    "before_10_13": -3.818,
+    "boot": [
+     -6.47,
+     -2.986,
+     1.0
+    ],
+    "boot_before": [
+     -6.442,
+     -1.547,
+     0.9999
+    ],
+    "boot_from": [
+     -7.396,
+     -3.557,
+     1.0
+    ],
+    "days_ahead": 5,
+    "days_behind": 28,
+    "diff": -4.643,
+    "from_10_13": -5.421
+   },
+   "vs_K1_absent": {
+    "ahead": 0,
+    "behind": 5,
+    "boot_windows": [
+     -9.2719,
+     -0.8852,
+     1.0
+    ],
+    "sum_gbp": -4.4362
+   },
+   "worst_day_bps_cap": -2.5
+  },
+  "live1200|at|seq2": {
+   "absence_pnl": [
+    0,
+    0,
+    0.5056,
+    0,
+    0.728,
+    0.4892,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1.4067,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2.8138
+   ],
+   "absent_gbp_day": 3.021,
+   "bps_cap_day": 10.17,
+   "bps_trip": 17.18,
+   "capital": 1200.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 1.2204,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 600.09,
+    "USDT-GBP|bid": 600.0
+   },
+   "lot_filled_share": 0.871,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.74,
+     "5": 7.23,
+     "60": 9.66,
+     "trips": 236
+    },
+    "1": {
+     "30": 8.01,
+     "5": 6.71,
+     "60": 7.65,
+     "trips": 47
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 168.0
+   },
+   "orders_day_max": {
+    "USDT-GBP": 386
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 171.4
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.208,
+   "pct_year": 37.12,
+   "pnl_bps_trip_by_rank": {
+    "0": 17.1,
+    "1": 17.59
+   },
+   "present_gbp_day": 1.1435,
+   "side_no_entry_share": {
+    "ask": 0.0747,
+    "bid": 0.079
+   },
+   "taker_stops": 3,
+   "trips_day": 8.09,
+   "vs_K1": {
+    "before_10_13": -4.354,
+    "boot": [
+     -6.956,
+     -3.502,
+     1.0
+    ],
+    "boot_before": [
+     -6.932,
+     -2.186,
+     1.0
+    ],
+    "boot_from": [
+     -7.994,
+     -3.978,
+     1.0
+    ],
+    "days_ahead": 3,
+    "days_behind": 30,
+    "diff": -5.145,
+    "from_10_13": -5.892
+   },
+   "vs_K1_absent": {
+    "ahead": 0,
+    "behind": 5,
+    "boot_windows": [
+     -9.3826,
+     -0.979,
+     1.0
+    ],
+    "sum_gbp": -4.53
+   },
+   "worst_day_bps_cap": -2.5
+  },
+  "live1200|at|seq3": {
+   "absence_pnl": [
+    0,
+    0,
+    0.3371,
+    0,
+    0.471,
+    0.3279,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1.1161,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2.2138
+   ],
+   "absent_gbp_day": 2.27,
+   "bps_cap_day": 7.622,
+   "bps_trip": 17.37,
+   "capital": 1200.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.9146,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 400.5,
+    "USDT-GBP|bid": 533.33
+   },
+   "lot_filled_share": 0.905,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.92,
+     "5": 7.3,
+     "60": 9.79,
+     "trips": 243
+    },
+    "1": {
+     "30": 7.35,
+     "5": 6.28,
+     "60": 6.82,
+     "trips": 47
+    },
+    "2": {
+     "30": 10.46,
+     "5": 10.15,
+     "60": 9.84,
+     "trips": 13
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 170.4
+   },
+   "orders_day_max": {
+    "USDT-GBP": 396
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 174.7
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.149,
+   "pct_year": 27.82,
+   "pnl_bps_trip_by_rank": {
+    "0": 17.11,
+    "1": 17.58,
+    "2": 21.11
+   },
+   "present_gbp_day": 0.8566,
+   "side_no_entry_share": {
+    "ask": 0.0745,
+    "bid": 0.0762
+   },
+   "taker_stops": 3,
+   "trips_day": 8.66,
+   "vs_K1": {
+    "before_10_13": -6.571,
+    "boot": [
+     -10.34,
+     -5.312,
+     1.0
+    ],
+    "boot_before": [
+     -10.331,
+     -3.416,
+     1.0
+    ],
+    "boot_from": [
+     -11.909,
+     -6.041,
+     1.0
+    ],
+    "days_ahead": 3,
+    "days_behind": 30,
+    "diff": -7.694,
+    "from_10_13": -8.754
+   },
+   "vs_K1_absent": {
+    "ahead": 0,
+    "behind": 5,
+    "boot_windows": [
+     -12.0166,
+     -1.3484,
+     1.0
+    ],
+    "sum_gbp": -6.0074
+   },
+   "worst_day_bps_cap": -1.5
+  },
+  "live1200|at|seq4": {
+   "absence_pnl": [
+    0,
+    0,
+    0.2528,
+    0,
+    0.3425,
+    0.2473,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.8232,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1.7217
+   ],
+   "absent_gbp_day": 1.7218,
+   "bps_cap_day": 5.91,
+   "bps_trip": 17.37,
+   "capital": 1200.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.7091,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 300.5,
+    "USDT-GBP|bid": 350.0
+   },
+   "lot_filled_share": 0.917,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.83,
+     "5": 7.26,
+     "60": 9.65,
+     "trips": 248
+    },
+    "1": {
+     "30": 7.76,
+     "5": 6.73,
+     "60": 7.24,
+     "trips": 46
+    },
+    "2": {
+     "30": 11.33,
+     "5": 10.67,
+     "60": 10.66,
+     "trips": 12
+    },
+    "3": {
+     "30": 8.32,
+     "5": 7.88,
+     "60": 8.55,
+     "trips": 3
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 170.7
+   },
+   "orders_day_max": {
+    "USDT-GBP": 390
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 174.9
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.123,
+   "pct_year": 21.57,
+   "pnl_bps_trip_by_rank": {
+    "0": 17.05,
+    "1": 17.87,
+    "2": 20.98,
+    "3": 20.74
+   },
+   "present_gbp_day": 0.6665,
+   "side_no_entry_share": {
+    "ask": 0.0735,
+    "bid": 0.0732
+   },
+   "taker_stops": 3,
+   "trips_day": 8.83,
+   "vs_K1": {
+    "before_10_13": -8.145,
+    "boot": [
+     -12.643,
+     -6.535,
+     1.0
+    ],
+    "boot_before": [
+     -12.804,
+     -4.356,
+     1.0
+    ],
+    "boot_from": [
+     -14.354,
+     -7.356,
+     1.0
+    ],
+    "days_ahead": 2,
+    "days_behind": 31,
+    "diff": -9.406,
+    "from_10_13": -10.597
+   },
+   "vs_K1_absent": {
+    "ahead": 0,
+    "behind": 5,
+    "boot_windows": [
+     -14.0605,
+     -1.583,
+     1.0
+    ],
+    "sum_gbp": -7.0858
+   },
+   "worst_day_bps_cap": -1.1
+  },
+  "live1200|at|seq6": {
+   "absence_pnl": [
+    0,
+    0,
+    0.1685,
+    0,
+    0.2215,
+    0.1666,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.5908,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1.1613
+   ],
+   "absent_gbp_day": 1.1735,
+   "bps_cap_day": 4.064,
+   "bps_trip": 17.39,
+   "capital": 1200.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.4877,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 200.5,
+    "USDT-GBP|bid": 201.7
+   },
+   "lot_filled_share": 0.926,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.69,
+     "5": 7.24,
+     "60": 9.41,
+     "trips": 259
+    },
+    "1": {
+     "30": 9.38,
+     "5": 7.89,
+     "60": 8.77,
+     "trips": 42
+    },
+    "2": {
+     "30": 10.66,
+     "5": 9.26,
+     "60": 10.19,
+     "trips": 10
+    },
+    "3": {
+     "30": 8.29,
+     "5": 7.86,
+     "60": 8.51,
+     "trips": 4
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 170.6
+   },
+   "orders_day_max": {
+    "USDT-GBP": 389
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 174.2
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.105,
+   "pct_year": 14.83,
+   "pnl_bps_trip_by_rank": {
+    "0": 17.06,
+    "1": 18.6,
+    "2": 19.85,
+    "3": 20.57
+   },
+   "present_gbp_day": 0.459,
+   "side_no_entry_share": {
+    "ask": 0.0735,
+    "bid": 0.0719
+   },
+   "taker_stops": 3,
+   "trips_day": 9.0,
+   "vs_K1": {
+    "before_10_13": -9.897,
+    "boot": [
+     -15.106,
+     -7.872,
+     1.0
+    ],
+    "boot_before": [
+     -15.454,
+     -5.427,
+     1.0
+    ],
+    "boot_from": [
+     -16.972,
+     -8.709,
+     1.0
+    ],
+    "days_ahead": 3,
+    "days_behind": 32,
+    "diff": -11.252,
+    "from_10_13": -12.531
+   },
+   "vs_K1_absent": {
+    "ahead": 0,
+    "behind": 5,
+    "boot_windows": [
+     -16.2206,
+     -2.0478,
+     1.0
+    ],
+    "sum_gbp": -8.1646
+   },
+   "worst_day_bps_cap": -0.7
+  },
+  "live1200|through|K1": {
+   "absence_pnl": [
+    0,
+    0,
+    0.8516,
+    0,
+    1.499,
+    0.9731,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1.6156,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    5.3347
+   ],
+   "absent_gbp_day": 5.2222,
+   "bps_cap_day": 12.117,
+   "bps_trip": 16.04,
+   "capital": 1200.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 1.4541,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 600.4,
+    "USDT-GBP|bid": 600.0
+   },
+   "lot_filled_share": 0.856,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.87,
+     "5": 6.94,
+     "60": 9.92,
+     "trips": 183
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 151.1
+   },
+   "orders_day_max": {
+    "USDT-GBP": 333
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 151.1
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.23,
+   "pct_year": 44.23,
+   "pnl_bps_trip_by_rank": {
+    "0": 16.04
+   },
+   "present_gbp_day": 1.2631,
+   "side_no_entry_share": {
+    "ask": 0.0937,
+    "bid": 0.0871
+   },
+   "taker_stops": 6,
+   "trips_day": 5.23,
+   "worst_day_bps_cap": -5.4
+  },
+  "live1200|through|all2": {
+   "absence_pnl": [
+    0,
+    0,
+    0.8516,
+    0,
+    1.499,
+    0.9731,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1.7094,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    5.3347
+   ],
+   "absent_gbp_day": 5.2699,
+   "bps_cap_day": 12.307,
+   "bps_trip": 16.04,
+   "capital": 1200.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 1.4769,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 600.4,
+    "USDT-GBP|bid": 600.0
+   },
+   "lot_filled_share": 0.931,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.88,
+     "5": 7.02,
+     "60": 9.93,
+     "trips": 183
+    },
+    "1": {
+     "30": 8.85,
+     "5": 6.79,
+     "60": 9.77,
+     "trips": 159
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 281.8
+   },
+   "orders_day_max": {
+    "USDT-GBP": 663
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 300.4
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.129,
+   "pct_year": 44.92,
+   "pnl_bps_trip_by_rank": {
+    "0": 16.1,
+    "1": 15.96
+   },
+   "present_gbp_day": 1.285,
+   "side_no_entry_share": {
+    "ask": 0.0769,
+    "bid": 0.0868
+   },
+   "taker_stops": 10,
+   "trips_day": 9.77,
+   "vs_K1": {
+    "before_10_13": 0.169,
+    "boot": [
+     0.005,
+     0.412,
+     0.0419
+    ],
+    "boot_before": [
+     -0.106,
+     0.523,
+     0.1629
+    ],
+    "boot_from": [
+     0.0,
+     0.502,
+     0.0145
+    ],
+    "days_ahead": 7,
+    "days_behind": 3,
+    "diff": 0.19,
+    "from_10_13": 0.211
+   },
+   "vs_K1_absent": {
+    "ahead": 1,
+    "behind": 0,
+    "boot_windows": [
+     0.0,
+     0.2814,
+     0.36
+    ],
+    "sum_gbp": 0.0938
+   },
+   "worst_day_bps_cap": -5.4
+  },
+  "live1200|through|all3": {
+   "absence_pnl": [
+    0,
+    0,
+    0.8516,
+    0,
+    1.499,
+    0.9731,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1.875,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    5.3347
+   ],
+   "absent_gbp_day": 5.3541,
+   "bps_cap_day": 12.377,
+   "bps_trip": 16.04,
+   "capital": 1200.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 1.4853,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 600.4,
+    "USDT-GBP|bid": 600.0
+   },
+   "lot_filled_share": 0.951,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.87,
+     "5": 7.03,
+     "60": 9.89,
+     "trips": 182
+    },
+    "1": {
+     "30": 8.88,
+     "5": 6.92,
+     "60": 9.94,
+     "trips": 166
+    },
+    "2": {
+     "30": 8.84,
+     "5": 6.86,
+     "60": 9.74,
+     "trips": 157
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 411.9
+   },
+   "orders_day_max": {
+    "USDT-GBP": 993
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 449.6
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 3
+   },
+   "partial_trip_share": 0.087,
+   "pct_year": 45.18,
+   "pnl_bps_trip_by_rank": {
+    "0": 16.04,
+    "1": 16.13,
+    "2": 15.96
+   },
+   "present_gbp_day": 1.289,
+   "side_no_entry_share": {
+    "ask": 0.0768,
+    "bid": 0.0866
+   },
+   "taker_stops": 14,
+   "trips_day": 14.43,
+   "vs_K1": {
+    "before_10_13": 0.173,
+    "boot": [
+     0.038,
+     0.512,
+     0.0244
+    ],
+    "boot_before": [
+     -0.113,
+     0.494,
+     0.1663
+    ],
+    "boot_from": [
+     0.0,
+     0.686,
+     0.0432
+    ],
+    "days_ahead": 7,
+    "days_behind": 4,
+    "diff": 0.26,
+    "from_10_13": 0.342
+   },
+   "vs_K1_absent": {
+    "ahead": 1,
+    "behind": 0,
+    "boot_windows": [
+     0.0,
+     0.7782,
+     0.36
+    ],
+    "sum_gbp": 0.2594
+   },
+   "worst_day_bps_cap": -5.4
+  },
+  "live1200|through|cap2_K1": {
+   "absence_pnl": [
+    0,
+    0,
+    1.7033,
+    0,
+    2.5491,
+    1.7099,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    3.3149,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    10.0399
+   ],
+   "absent_gbp_day": 9.8188,
+   "bps_cap_day": 20.366,
+   "bps_trip": 15.96,
+   "capital": 2400.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 2.4439,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 1200.4,
+    "USDT-GBP|bid": 1200.2
+   },
+   "lot_filled_share": 0.777,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 9.12,
+     "5": 7.04,
+     "60": 10.01,
+     "trips": 170
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 149.6
+   },
+   "orders_day_max": {
+    "USDT-GBP": 332
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 149.6
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.371,
+   "pct_year": 74.34,
+   "pnl_bps_trip_by_rank": {
+    "0": 15.96
+   },
+   "present_gbp_day": 2.0592,
+   "side_no_entry_share": {
+    "ask": 0.0962,
+    "bid": 0.0891
+   },
+   "taker_stops": 5,
+   "trips_day": 4.86,
+   "vs_K1": {
+    "before_10_13": 7.831,
+    "boot": [
+     5.059,
+     11.847,
+     0.0
+    ],
+    "boot_before": [
+     3.482,
+     13.294,
+     0.0
+    ],
+    "boot_from": [
+     5.368,
+     11.887,
+     0.0
+    ],
+    "days_ahead": 28,
+    "days_behind": 5,
+    "diff": 8.249,
+    "from_10_13": 8.644
+   },
+   "vs_K1_absent": {
+    "ahead": 5,
+    "behind": 0,
+    "boot_windows": [
+     2.2104,
+     18.0821,
+     0.0047
+    ],
+    "sum_gbp": 9.0431
+   },
+   "worst_day_bps_cap": -10.7
+  },
+  "live1200|through|cap2_seq2": {
+   "absence_pnl": [
+    0,
+    0,
+    0.8516,
+    0,
+    1.499,
+    0.9731,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2.3939,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    5.3349
+   ],
+   "absent_gbp_day": 5.6179,
+   "bps_cap_day": 13.805,
+   "bps_trip": 16.02,
+   "capital": 2400.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 1.6566,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 899.49,
+    "USDT-GBP|bid": 1200.0
+   },
+   "lot_filled_share": 0.849,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 9.47,
+     "5": 7.34,
+     "60": 10.19,
+     "trips": 176
+    },
+    "1": {
+     "30": 4.64,
+     "5": 4.22,
+     "60": 5.49,
+     "trips": 35
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 162.8
+   },
+   "orders_day_max": {
+    "USDT-GBP": 371
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 165.6
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.246,
+   "pct_year": 50.39,
+   "pnl_bps_trip_by_rank": {
+    "0": 16.01,
+    "1": 16.06
+   },
+   "present_gbp_day": 1.4593,
+   "side_no_entry_share": {
+    "ask": 0.0734,
+    "bid": 0.0764
+   },
+   "taker_stops": 8,
+   "trips_day": 6.03,
+   "vs_K1": {
+    "before_10_13": 1.886,
+    "boot": [
+     0.793,
+     2.75,
+     0.0
+    ],
+    "boot_before": [
+     0.472,
+     3.767,
+     0.0011
+    ],
+    "boot_from": [
+     0.519,
+     2.644,
+     0.0046
+    ],
+    "days_ahead": 16,
+    "days_behind": 4,
+    "diff": 1.688,
+    "from_10_13": 1.5
+   },
+   "vs_K1_absent": {
+    "ahead": 2,
+    "behind": 0,
+    "boot_windows": [
+     0.0,
+     2.3351,
+     0.1252
+    ],
+    "sum_gbp": 0.7785
+   },
+   "worst_day_bps_cap": -5.4
+  },
+  "live1200|through|pool": {
+   "absence_pnl": [
+    0,
+    0,
+    0.4258,
+    0,
+    0.728,
+    0.4892,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1.5004,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2.7735
+   ],
+   "absent_gbp_day": 3.0075,
+   "bps_cap_day": 8.075,
+   "bps_trip": 16.37,
+   "capital": 1200.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.969,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 599.69,
+    "USDT-GBP|bid": 600.5
+   },
+   "lot_filled_share": 0.92,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 9.26,
+     "5": 7.21,
+     "60": 10.31,
+     "trips": 182
+    },
+    "1": {
+     "30": 6.08,
+     "5": 5.95,
+     "60": 6.1,
+     "trips": 36
+    },
+    "2": {
+     "30": 3.62,
+     "5": 8.8,
+     "60": 2.15,
+     "trips": 5
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 164.0
+   },
+   "orders_day_max": {
+    "USDT-GBP": 391
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 166.5
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.152,
+   "pct_year": 29.47,
+   "pnl_bps_trip_by_rank": {
+    "0": 16.37,
+    "1": 17.27,
+    "2": 10.68
+   },
+   "present_gbp_day": 0.8706,
+   "side_no_entry_share": {
+    "ask": 0.0735,
+    "bid": 0.0775
+   },
+   "taker_stops": 6,
+   "trips_day": 6.37,
+   "vs_K1": {
+    "before_10_13": -3.788,
+    "boot": [
+     -5.501,
+     -2.781,
+     1.0
+    ],
+    "boot_before": [
+     -5.584,
+     -2.321,
+     1.0
+    ],
+    "boot_from": [
+     -6.014,
+     -2.652,
+     1.0
+    ],
+    "days_ahead": 3,
+    "days_behind": 31,
+    "diff": -4.042,
+    "from_10_13": -4.282
+   },
+   "vs_K1_absent": {
+    "ahead": 0,
+    "behind": 5,
+    "boot_windows": [
+     -9.1924,
+     -0.8516,
+     1.0
+    ],
+    "sum_gbp": -4.3571
+   },
+   "worst_day_bps_cap": -2.7
+  },
+  "live1200|through|seq2": {
+   "absence_pnl": [
+    0,
+    0,
+    0.4258,
+    0,
+    0.728,
+    0.4892,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1.4066,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2.7735
+   ],
+   "absent_gbp_day": 2.9599,
+   "bps_cap_day": 8.007,
+   "bps_trip": 16.55,
+   "capital": 1200.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.9609,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 599.69,
+    "USDT-GBP|bid": 600.0
+   },
+   "lot_filled_share": 0.919,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 9.25,
+     "5": 7.2,
+     "60": 10.29,
+     "trips": 183
+    },
+    "1": {
+     "30": 6.0,
+     "5": 6.6,
+     "60": 6.0,
+     "trips": 36
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 163.3
+   },
+   "orders_day_max": {
+    "USDT-GBP": 390
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 165.8
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.155,
+   "pct_year": 29.23,
+   "pnl_bps_trip_by_rank": {
+    "0": 16.31,
+    "1": 17.85
+   },
+   "present_gbp_day": 0.8647,
+   "side_no_entry_share": {
+    "ask": 0.0735,
+    "bid": 0.0775
+   },
+   "taker_stops": 6,
+   "trips_day": 6.26,
+   "vs_K1": {
+    "before_10_13": -3.73,
+    "boot": [
+     -5.567,
+     -2.839,
+     1.0
+    ],
+    "boot_before": [
+     -5.457,
+     -2.316,
+     1.0
+    ],
+    "boot_from": [
+     -6.261,
+     -2.781,
+     1.0
+    ],
+    "days_ahead": 3,
+    "days_behind": 30,
+    "diff": -4.11,
+    "from_10_13": -4.468
+   },
+   "vs_K1_absent": {
+    "ahead": 0,
+    "behind": 5,
+    "boot_windows": [
+     -9.2862,
+     -0.9097,
+     1.0
+    ],
+    "sum_gbp": -4.4509
+   },
+   "worst_day_bps_cap": -2.7
+  },
+  "live1200|through|seq3": {
+   "absence_pnl": [
+    0,
+    0,
+    0.2839,
+    0,
+    0.471,
+    0.3279,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1.116,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2.1735
+   ],
+   "absent_gbp_day": 2.2224,
+   "bps_cap_day": 5.858,
+   "bps_trip": 16.69,
+   "capital": 1200.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.7029,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 400.1,
+    "USDT-GBP|bid": 533.33
+   },
+   "lot_filled_share": 0.933,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 9.38,
+     "5": 7.16,
+     "60": 10.33,
+     "trips": 190
+    },
+    "1": {
+     "30": 5.84,
+     "5": 6.09,
+     "60": 5.68,
+     "trips": 37
+    },
+    "2": {
+     "30": 5.43,
+     "5": 10.11,
+     "60": 4.27,
+     "trips": 8
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 165.7
+   },
+   "orders_day_max": {
+    "USDT-GBP": 392
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 168.5
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.115,
+   "pct_year": 21.38,
+   "pnl_bps_trip_by_rank": {
+    "0": 16.65,
+    "1": 16.77,
+    "2": 17.3
+   },
+   "present_gbp_day": 0.6291,
+   "side_no_entry_share": {
+    "ask": 0.0735,
+    "bid": 0.0719
+   },
+   "taker_stops": 6,
+   "trips_day": 6.71,
+   "vs_K1": {
+    "before_10_13": -5.897,
+    "boot": [
+     -8.435,
+     -4.368,
+     1.0
+    ],
+    "boot_before": [
+     -8.752,
+     -3.622,
+     1.0
+    ],
+    "boot_from": [
+     -9.125,
+     -4.281,
+     1.0
+    ],
+    "days_ahead": 2,
+    "days_behind": 32,
+    "diff": -6.259,
+    "from_10_13": -6.601
+   },
+   "vs_K1_absent": {
+    "ahead": 0,
+    "behind": 5,
+    "boot_windows": [
+     -11.8413,
+     -1.2904,
+     1.0
+    ],
+    "sum_gbp": -5.9017
+   },
+   "worst_day_bps_cap": -1.8
+  },
+  "live1200|through|seq4": {
+   "absence_pnl": [
+    0,
+    0,
+    0.2129,
+    0,
+    0.3425,
+    0.2473,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.8231,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1.6815
+   ],
+   "absent_gbp_day": 1.6811,
+   "bps_cap_day": 4.518,
+   "bps_trip": 16.77,
+   "capital": 1200.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.5421,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 300.1,
+    "USDT-GBP|bid": 350.0
+   },
+   "lot_filled_share": 0.947,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 9.41,
+     "5": 7.16,
+     "60": 10.31,
+     "trips": 193
+    },
+    "1": {
+     "30": 6.06,
+     "5": 6.73,
+     "60": 5.97,
+     "trips": 38
+    },
+    "2": {
+     "30": 5.76,
+     "5": 11.6,
+     "60": 4.29,
+     "trips": 5
+    },
+    "3": {
+     "30": -10.61,
+     "5": -10.61,
+     "60": -15.25,
+     "trips": 1
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 165.5
+   },
+   "orders_day_max": {
+    "USDT-GBP": 382
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 168.0
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.084,
+   "pct_year": 16.49,
+   "pnl_bps_trip_by_rank": {
+    "0": 16.78,
+    "1": 17.24,
+    "2": 13.06,
+    "3": 13.26
+   },
+   "present_gbp_day": 0.4872,
+   "side_no_entry_share": {
+    "ask": 0.0735,
+    "bid": 0.0719
+   },
+   "taker_stops": 5,
+   "trips_day": 6.77,
+   "vs_K1": {
+    "before_10_13": -7.182,
+    "boot": [
+     -10.3,
+     -5.246,
+     1.0
+    ],
+    "boot_before": [
+     -10.886,
+     -4.276,
+     1.0
+    ],
+    "boot_from": [
+     -11.071,
+     -5.222,
+     1.0
+    ],
+    "days_ahead": 2,
+    "days_behind": 32,
+    "diff": -7.599,
+    "from_10_13": -7.994
+   },
+   "vs_K1_absent": {
+    "ahead": 0,
+    "behind": 5,
+    "boot_windows": [
+     -13.9516,
+     -1.585,
+     1.0
+    ],
+    "sum_gbp": -6.9667
+   },
+   "worst_day_bps_cap": -1.3
+  },
+  "live1200|through|seq6": {
+   "absence_pnl": [
+    0,
+    0,
+    0.1419,
+    0,
+    0.2215,
+    0.1666,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0.5913,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1.121
+   ],
+   "absent_gbp_day": 1.1398,
+   "bps_cap_day": 3.116,
+   "bps_trip": 16.91,
+   "capital": 1200.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.374,
+   "held_max_gbp": {
+    "USDT-GBP|ask": 200.1,
+    "USDT-GBP|bid": 221.43
+   },
+   "lot_filled_share": 0.955,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 9.32,
+     "5": 7.22,
+     "60": 10.11,
+     "trips": 202
+    },
+    "1": {
+     "30": 6.87,
+     "5": 7.7,
+     "60": 6.71,
+     "trips": 35
+    },
+    "2": {
+     "30": -0.2,
+     "5": 7.53,
+     "60": -1.53,
+     "trips": 3
+    },
+    "3": {
+     "30": -10.61,
+     "5": -10.61,
+     "60": -15.25,
+     "trips": 1
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDT-GBP": 165.4
+   },
+   "orders_day_max": {
+    "USDT-GBP": 381
+   },
+   "orders_day_mean": {
+    "USDT-GBP": 167.9
+   },
+   "orders_days_over_900": {
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.066,
+   "pct_year": 11.38,
+   "pnl_bps_trip_by_rank": {
+    "0": 17.13,
+    "1": 16.81,
+    "2": 3.99,
+    "3": 13.26
+   },
+   "present_gbp_day": 0.3373,
+   "side_no_entry_share": {
+    "ask": 0.0735,
+    "bid": 0.0719
+   },
+   "taker_stops": 4,
+   "trips_day": 6.89,
+   "vs_K1": {
+    "before_10_13": -8.565,
+    "boot": [
+     -12.292,
+     -6.149,
+     1.0
+    ],
+    "boot_before": [
+     -13.254,
+     -4.929,
+     1.0
+    ],
+    "boot_from": [
+     -13.062,
+     -6.124,
+     1.0
+    ],
+    "days_ahead": 2,
+    "days_behind": 33,
+    "diff": -9.001,
+    "from_10_13": -9.412
+   },
+   "vs_K1_absent": {
+    "ahead": 0,
+    "behind": 5,
+    "boot_windows": [
+     -16.0779,
+     -1.9872,
+     1.0
+    ],
+    "sum_gbp": -8.0317
+   },
+   "worst_day_bps_cap": -0.8
+  },
+  "n600usdt|at|K1": {
+   "bps_cap_day": 14.301,
+   "bps_trip": 15.65,
+   "capital": 600.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.8581,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 150.0,
+    "USDC-GBP|bid": 150.0,
+    "USDT-GBP|ask": 150.5,
+    "USDT-GBP|bid": 150.4
+   },
+   "lot_filled_share": 0.903,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.9,
+     "5": 7.16,
+     "60": 9.42,
+     "trips": 422
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 151.3,
+    "USDT-GBP": 156.8
+   },
+   "orders_day_max": {
+    "USDC-GBP": 371,
+    "USDT-GBP": 344
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 151.3,
+    "USDT-GBP": 156.8
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0,
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.152,
+   "pct_year": 52.2,
+   "pnl_bps_trip_by_rank": {
+    "0": 15.65
+   },
+   "side_no_entry_share": {
+    "ask": 0.0434,
+    "bid": 0.0504
+   },
+   "taker_stops": 6,
+   "trips_day": 12.06,
+   "worst_day_bps_cap": 0.4
+  },
+  "n600usdt|at|all2": {
+   "bps_cap_day": 14.521,
+   "bps_trip": 15.62,
+   "capital": 600.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.8712,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 150.0,
+    "USDC-GBP|bid": 150.0,
+    "USDT-GBP|ask": 150.5,
+    "USDT-GBP|bid": 150.4
+   },
+   "lot_filled_share": 0.955,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.91,
+     "5": 7.17,
+     "60": 9.39,
+     "trips": 421
+    },
+    "1": {
+     "30": 8.81,
+     "5": 7.11,
+     "60": 9.29,
+     "trips": 391
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 284.8,
+    "USDT-GBP": 290.1
+   },
+   "orders_day_max": {
+    "USDC-GBP": 742,
+    "USDT-GBP": 688
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 301.0,
+    "USDT-GBP": 311.8
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0,
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.079,
+   "pct_year": 53.0,
+   "pnl_bps_trip_by_rank": {
+    "0": 15.7,
+    "1": 15.53
+   },
+   "side_no_entry_share": {
+    "ask": 0.0425,
+    "bid": 0.0502
+   },
+   "taker_stops": 10,
+   "trips_day": 23.2,
+   "vs_K1": {
+    "before_10_13": 0.207,
+    "boot": [
+     0.128,
+     0.315,
+     0.0
+    ],
+    "boot_before": [
+     0.106,
+     0.315,
+     0.0006
+    ],
+    "boot_from": [
+     0.084,
+     0.395,
+     0.0001
+    ],
+    "days_ahead": 15,
+    "days_behind": 1,
+    "diff": 0.219,
+    "from_10_13": 0.231
+   },
+   "worst_day_bps_cap": 0.4
+  },
+  "n600usdt|at|all3": {
+   "bps_cap_day": 14.634,
+   "bps_trip": 15.6,
+   "capital": 600.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.878,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 150.0,
+    "USDC-GBP|bid": 150.0,
+    "USDT-GBP|ask": 151.11,
+    "USDT-GBP|bid": 150.4
+   },
+   "lot_filled_share": 0.97,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.9,
+     "5": 7.16,
+     "60": 9.37,
+     "trips": 421
+    },
+    "1": {
+     "30": 8.81,
+     "5": 7.1,
+     "60": 9.26,
+     "trips": 397
+    },
+    "2": {
+     "30": 8.72,
+     "5": 7.06,
+     "60": 9.22,
+     "trips": 392
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 417.8,
+    "USDT-GBP": 423.0
+   },
+   "orders_day_max": {
+    "USDC-GBP": 1113,
+    "USDT-GBP": 1032
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 451.2,
+    "USDT-GBP": 466.3
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 3,
+    "USDT-GBP": 3
+   },
+   "partial_trip_share": 0.055,
+   "pct_year": 53.41,
+   "pnl_bps_trip_by_rank": {
+    "0": 15.71,
+    "1": 15.57,
+    "2": 15.51
+   },
+   "side_no_entry_share": {
+    "ask": 0.0425,
+    "bid": 0.0499
+   },
+   "taker_stops": 14,
+   "trips_day": 34.57,
+   "vs_K1": {
+    "before_10_13": 0.319,
+    "boot": [
+     0.214,
+     0.453,
+     0.0
+    ],
+    "boot_before": [
+     0.185,
+     0.456,
+     0.0
+    ],
+    "boot_from": [
+     0.161,
+     0.547,
+     0.0001
+    ],
+    "days_ahead": 18,
+    "days_behind": 0,
+    "diff": 0.332,
+    "from_10_13": 0.345
+   },
+   "worst_day_bps_cap": 0.4
+  },
+  "n600usdt|at|cap2_K1": {
+   "bps_cap_day": 25.494,
+   "bps_trip": 15.56,
+   "capital": 1200.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 1.5297,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 300.0,
+    "USDC-GBP|bid": 300.0,
+    "USDT-GBP|ask": 300.5,
+    "USDT-GBP|bid": 300.4
+   },
+   "lot_filled_share": 0.856,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.85,
+     "5": 7.09,
+     "60": 9.45,
+     "trips": 397
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 150.4,
+    "USDT-GBP": 156.6
+   },
+   "orders_day_max": {
+    "USDC-GBP": 371,
+    "USDT-GBP": 342
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 150.4,
+    "USDT-GBP": 156.6
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0,
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.227,
+   "pct_year": 93.05,
+   "pnl_bps_trip_by_rank": {
+    "0": 15.56
+   },
+   "side_no_entry_share": {
+    "ask": 0.0434,
+    "bid": 0.0543
+   },
+   "taker_stops": 6,
+   "trips_day": 11.34,
+   "vs_K1": {
+    "before_10_13": 10.7,
+    "boot": [
+     8.408,
+     14.404,
+     0.0
+    ],
+    "boot_before": [
+     7.567,
+     14.624,
+     0.0
+    ],
+    "boot_from": [
+     7.954,
+     15.88,
+     0.0
+    ],
+    "days_ahead": 33,
+    "days_behind": 2,
+    "diff": 11.193,
+    "from_10_13": 11.659
+   },
+   "worst_day_bps_cap": 0.3
+  },
+  "n600usdt|at|cap2_seq2": {
+   "bps_cap_day": 16.582,
+   "bps_trip": 15.62,
+   "capital": 1200.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.9949,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 150.0,
+    "USDC-GBP|bid": 200.0,
+    "USDT-GBP|ask": 300.5,
+    "USDT-GBP|bid": 300.0
+   },
+   "lot_filled_share": 0.895,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 9.02,
+     "5": 7.22,
+     "60": 9.54,
+     "trips": 417
+    },
+    "1": {
+     "30": 7.93,
+     "5": 7.23,
+     "60": 8.32,
+     "trips": 78
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 158.6,
+    "USDT-GBP": 168.3
+   },
+   "orders_day_max": {
+    "USDC-GBP": 371,
+    "USDT-GBP": 389
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 160.3,
+    "USDT-GBP": 171.3
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0,
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.164,
+   "pct_year": 60.53,
+   "pnl_bps_trip_by_rank": {
+    "0": 15.57,
+    "1": 15.88
+   },
+   "side_no_entry_share": {
+    "ask": 0.0414,
+    "bid": 0.0458
+   },
+   "taker_stops": 7,
+   "trips_day": 14.14,
+   "vs_K1": {
+    "before_10_13": 2.688,
+    "boot": [
+     1.595,
+     3.003,
+     0.0
+    ],
+    "boot_before": [
+     1.644,
+     3.763,
+     0.0
+    ],
+    "boot_from": [
+     1.071,
+     2.769,
+     0.0
+    ],
+    "days_ahead": 26,
+    "days_behind": 1,
+    "diff": 2.281,
+    "from_10_13": 1.896
+   },
+   "worst_day_bps_cap": 1.1
+  },
+  "n600usdt|at|pool": {
+   "bps_cap_day": 9.295,
+   "bps_trip": 15.7,
+   "capital": 600.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.5577,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 75.0,
+    "USDC-GBP|bid": 125.0,
+    "USDT-GBP|ask": 150.5,
+    "USDT-GBP|bid": 150.0
+   },
+   "lot_filled_share": 0.935,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.95,
+     "5": 7.26,
+     "60": 9.34,
+     "trips": 438
+    },
+    "1": {
+     "30": 8.72,
+     "5": 7.63,
+     "60": 9.06,
+     "trips": 70
+    },
+    "2": {
+     "30": 9.52,
+     "5": 8.66,
+     "60": 9.39,
+     "trips": 16
+    },
+    "3": {
+     "30": 4.99,
+     "5": 4.99,
+     "60": 4.49,
+     "trips": 4
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 159.8,
+    "USDT-GBP": 169.4
+   },
+   "orders_day_max": {
+    "USDC-GBP": 371,
+    "USDT-GBP": 381
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 161.5,
+    "USDT-GBP": 172.8
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0,
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.108,
+   "pct_year": 33.93,
+   "pnl_bps_trip_by_rank": {
+    "0": 15.74,
+    "1": 16.11,
+    "2": 15.03,
+    "3": 7.66
+   },
+   "side_no_entry_share": {
+    "ask": 0.0413,
+    "bid": 0.0432
+   },
+   "taker_stops": 7,
+   "trips_day": 15.09,
+   "vs_K1": {
+    "before_10_13": -4.614,
+    "boot": [
+     -6.756,
+     -3.469,
+     1.0
+    ],
+    "boot_before": [
+     -6.743,
+     -2.97,
+     1.0
+    ],
+    "boot_from": [
+     -7.705,
+     -3.214,
+     1.0
+    ],
+    "days_ahead": 3,
+    "days_behind": 32,
+    "diff": -5.007,
+    "from_10_13": -5.378
+   },
+   "worst_day_bps_cap": 0.6
+  },
+  "n600usdt|at|seq2": {
+   "bps_cap_day": 9.01,
+   "bps_trip": 15.78,
+   "capital": 600.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.5406,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 75.0,
+    "USDC-GBP|bid": 100.0,
+    "USDT-GBP|ask": 150.5,
+    "USDT-GBP|bid": 150.0
+   },
+   "lot_filled_share": 0.934,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.94,
+     "5": 7.26,
+     "60": 9.34,
+     "trips": 439
+    },
+    "1": {
+     "30": 8.7,
+     "5": 7.63,
+     "60": 9.03,
+     "trips": 71
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 158.9,
+    "USDT-GBP": 167.9
+   },
+   "orders_day_max": {
+    "USDC-GBP": 371,
+    "USDT-GBP": 381
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 160.5,
+    "USDT-GBP": 170.3
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0,
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.11,
+   "pct_year": 32.89,
+   "pnl_bps_trip_by_rank": {
+    "0": 15.73,
+    "1": 16.05
+   },
+   "side_no_entry_share": {
+    "ask": 0.0414,
+    "bid": 0.0458
+   },
+   "taker_stops": 7,
+   "trips_day": 14.57,
+   "vs_K1": {
+    "before_10_13": -4.981,
+    "boot": [
+     -7.021,
+     -3.764,
+     1.0
+    ],
+    "boot_before": [
+     -7.057,
+     -3.359,
+     1.0
+    ],
+    "boot_from": [
+     -7.963,
+     -3.393,
+     1.0
+    ],
+    "days_ahead": 2,
+    "days_behind": 33,
+    "diff": -5.291,
+    "from_10_13": -5.584
+   },
+   "worst_day_bps_cap": 0.6
+  },
+  "n600usdt|at|seq3": {
+   "bps_cap_day": 6.376,
+   "bps_trip": 15.8,
+   "capital": 600.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.3825,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 50.0,
+    "USDC-GBP|bid": 66.67,
+    "USDT-GBP|ask": 100.5,
+    "USDT-GBP|bid": 98.0
+   },
+   "lot_filled_share": 0.951,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.82,
+     "5": 7.16,
+     "60": 9.16,
+     "trips": 448
+    },
+    "1": {
+     "30": 9.35,
+     "5": 8.03,
+     "60": 9.75,
+     "trips": 67
+    },
+    "2": {
+     "30": 9.68,
+     "5": 8.77,
+     "60": 9.5,
+     "trips": 15
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 159.9,
+    "USDT-GBP": 168.8
+   },
+   "orders_day_max": {
+    "USDC-GBP": 371,
+    "USDT-GBP": 373
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 161.4,
+    "USDT-GBP": 172.1
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0,
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.094,
+   "pct_year": 23.27,
+   "pnl_bps_trip_by_rank": {
+    "0": 15.73,
+    "1": 16.27,
+    "2": 15.66
+   },
+   "side_no_entry_share": {
+    "ask": 0.0413,
+    "bid": 0.0446
+   },
+   "taker_stops": 7,
+   "trips_day": 15.14,
+   "vs_K1": {
+    "before_10_13": -7.545,
+    "boot": [
+     -10.362,
+     -5.756,
+     1.0
+    ],
+    "boot_before": [
+     -10.739,
+     -5.086,
+     1.0
+    ],
+    "boot_from": [
+     -11.495,
+     -5.326,
+     1.0
+    ],
+    "days_ahead": 2,
+    "days_behind": 33,
+    "diff": -7.926,
+    "from_10_13": -8.286
+   },
+   "worst_day_bps_cap": 0.4
+  },
+  "n600usdt|at|seq4": {
+   "bps_cap_day": 4.921,
+   "bps_trip": 15.82,
+   "capital": 600.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.2952,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 37.5,
+    "USDC-GBP|bid": 62.5,
+    "USDT-GBP|ask": 75.5,
+    "USDT-GBP|bid": 75.7
+   },
+   "lot_filled_share": 0.959,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.84,
+     "5": 7.18,
+     "60": 9.14,
+     "trips": 454
+    },
+    "1": {
+     "30": 9.55,
+     "5": 8.18,
+     "60": 9.93,
+     "trips": 66
+    },
+    "2": {
+     "30": 9.65,
+     "5": 8.75,
+     "60": 9.47,
+     "trips": 15
+    },
+    "3": {
+     "30": 6.52,
+     "5": 6.38,
+     "60": 6.25,
+     "trips": 5
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 160.3,
+    "USDT-GBP": 169.0
+   },
+   "orders_day_max": {
+    "USDC-GBP": 371,
+    "USDT-GBP": 364
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 161.9,
+    "USDT-GBP": 172.5
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0,
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.083,
+   "pct_year": 17.96,
+   "pnl_bps_trip_by_rank": {
+    "0": 15.71,
+    "1": 16.56,
+    "2": 16.52,
+    "3": 13.85
+   },
+   "side_no_entry_share": {
+    "ask": 0.0408,
+    "bid": 0.0431
+   },
+   "taker_stops": 7,
+   "trips_day": 15.43,
+   "vs_K1": {
+    "before_10_13": -8.951,
+    "boot": [
+     -12.219,
+     -6.856,
+     1.0
+    ],
+    "boot_before": [
+     -12.748,
+     -6.009,
+     1.0
+    ],
+    "boot_from": [
+     -13.512,
+     -6.384,
+     1.0
+    ],
+    "days_ahead": 2,
+    "days_behind": 33,
+    "diff": -9.381,
+    "from_10_13": -9.787
+   },
+   "worst_day_bps_cap": 0.3
+  },
+  "n600usdt|at|seq6": {
+   "bps_cap_day": 3.377,
+   "bps_trip": 15.82,
+   "capital": 600.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.2026,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 25.0,
+    "USDC-GBP|bid": 58.33,
+    "USDT-GBP|ask": 50.5,
+    "USDT-GBP|bid": 51.4
+   },
+   "lot_filled_share": 0.973,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.76,
+     "5": 7.14,
+     "60": 8.99,
+     "trips": 463
+    },
+    "1": {
+     "30": 10.0,
+     "5": 8.7,
+     "60": 10.87,
+     "trips": 61
+    },
+    "2": {
+     "30": 9.94,
+     "5": 8.98,
+     "60": 9.7,
+     "trips": 14
+    },
+    "3": {
+     "30": 5.76,
+     "5": 6.27,
+     "60": 5.52,
+     "trips": 9
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 160.7,
+    "USDT-GBP": 168.8
+   },
+   "orders_day_max": {
+    "USDC-GBP": 371,
+    "USDT-GBP": 363
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 162.3,
+    "USDT-GBP": 172.3
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0,
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.049,
+   "pct_year": 12.32,
+   "pnl_bps_trip_by_rank": {
+    "0": 15.6,
+    "1": 17.67,
+    "2": 17.97,
+    "3": 10.87
+   },
+   "side_no_entry_share": {
+    "ask": 0.0408,
+    "bid": 0.0425
+   },
+   "taker_stops": 7,
+   "trips_day": 15.63,
+   "vs_K1": {
+    "before_10_13": -10.434,
+    "boot": [
+     -14.147,
+     -8.049,
+     1.0
+    ],
+    "boot_before": [
+     -14.836,
+     -7.002,
+     1.0
+    ],
+    "boot_from": [
+     -15.623,
+     -7.536,
+     1.0
+    ],
+    "days_ahead": 1,
+    "days_behind": 34,
+    "diff": -10.925,
+    "from_10_13": -11.388
+   },
+   "worst_day_bps_cap": 0.2
+  },
+  "n600usdt|through|K1": {
+   "bps_cap_day": 11.063,
+   "bps_trip": 14.83,
+   "capital": 600.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.6638,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 150.0,
+    "USDC-GBP|bid": 150.0,
+    "USDT-GBP|ask": 150.4,
+    "USDT-GBP|bid": 150.1
+   },
+   "lot_filled_share": 0.934,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.98,
+     "5": 6.89,
+     "60": 9.72,
+     "trips": 333
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 147.6,
+    "USDT-GBP": 153.2
+   },
+   "orders_day_max": {
+    "USDC-GBP": 371,
+    "USDT-GBP": 342
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 147.6,
+    "USDT-GBP": 153.2
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0,
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.108,
+   "pct_year": 40.38,
+   "pnl_bps_trip_by_rank": {
+    "0": 14.83
+   },
+   "side_no_entry_share": {
+    "ask": 0.0485,
+    "bid": 0.0506
+   },
+   "taker_stops": 10,
+   "trips_day": 9.51,
+   "worst_day_bps_cap": -4.7
+  },
+  "n600usdt|through|all2": {
+   "bps_cap_day": 11.17,
+   "bps_trip": 14.86,
+   "capital": 600.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.6702,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 150.0,
+    "USDC-GBP|bid": 150.0,
+    "USDT-GBP|ask": 150.4,
+    "USDT-GBP|bid": 150.0
+   },
+   "lot_filled_share": 0.971,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.97,
+     "5": 6.87,
+     "60": 9.67,
+     "trips": 333
+    },
+    "1": {
+     "30": 8.99,
+     "5": 6.94,
+     "60": 9.71,
+     "trips": 313
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 280.0,
+    "USDT-GBP": 284.2
+   },
+   "orders_day_max": {
+    "USDC-GBP": 742,
+    "USDT-GBP": 684
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 294.6,
+    "USDT-GBP": 305.0
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0,
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.054,
+   "pct_year": 40.77,
+   "pnl_bps_trip_by_rank": {
+    "0": 14.86,
+    "1": 14.86
+   },
+   "side_no_entry_share": {
+    "ask": 0.0478,
+    "bid": 0.0502
+   },
+   "taker_stops": 17,
+   "trips_day": 18.46,
+   "vs_K1": {
+    "before_10_13": 0.036,
+    "boot": [
+     0.036,
+     0.182,
+     0.0047
+    ],
+    "boot_before": [
+     -0.038,
+     0.111,
+     0.2267
+    ],
+    "boot_from": [
+     0.077,
+     0.276,
+     0.0001
+    ],
+    "days_ahead": 8,
+    "days_behind": 1,
+    "diff": 0.107,
+    "from_10_13": 0.173
+   },
+   "worst_day_bps_cap": -4.3
+  },
+  "n600usdt|through|all3": {
+   "bps_cap_day": 11.218,
+   "bps_trip": 14.86,
+   "capital": 600.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.6731,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 150.0,
+    "USDC-GBP|bid": 150.0,
+    "USDT-GBP|ask": 150.4,
+    "USDT-GBP|bid": 150.0
+   },
+   "lot_filled_share": 0.977,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.96,
+     "5": 6.87,
+     "60": 9.65,
+     "trips": 333
+    },
+    "1": {
+     "30": 9.02,
+     "5": 6.91,
+     "60": 9.74,
+     "trips": 318
+    },
+    "2": {
+     "30": 8.86,
+     "5": 6.89,
+     "60": 9.57,
+     "trips": 316
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 410.4,
+    "USDT-GBP": 415.1
+   },
+   "orders_day_max": {
+    "USDC-GBP": 1113,
+    "USDT-GBP": 1026
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 441.7,
+    "USDT-GBP": 456.9
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 2,
+    "USDT-GBP": 3
+   },
+   "partial_trip_share": 0.038,
+   "pct_year": 40.95,
+   "pnl_bps_trip_by_rank": {
+    "0": 14.94,
+    "1": 14.72,
+    "2": 14.9
+   },
+   "side_no_entry_share": {
+    "ask": 0.0478,
+    "bid": 0.0499
+   },
+   "taker_stops": 25,
+   "trips_day": 27.63,
+   "vs_K1": {
+    "before_10_13": 0.083,
+    "boot": [
+     0.067,
+     0.25,
+     0.0005
+    ],
+    "boot_before": [
+     -0.025,
+     0.217,
+     0.1072
+    ],
+    "boot_from": [
+     0.108,
+     0.346,
+     0.0001
+    ],
+    "days_ahead": 11,
+    "days_behind": 1,
+    "diff": 0.156,
+    "from_10_13": 0.224
+   },
+   "worst_day_bps_cap": -4.2
+  },
+  "n600usdt|through|cap2_K1": {
+   "bps_cap_day": 19.79,
+   "bps_trip": 14.6,
+   "capital": 1200.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 1.1874,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 300.0,
+    "USDC-GBP|bid": 300.0,
+    "USDT-GBP|ask": 300.4,
+    "USDT-GBP|bid": 300.5
+   },
+   "lot_filled_share": 0.888,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.9,
+     "5": 6.84,
+     "60": 9.86,
+     "trips": 317
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 147.3,
+    "USDT-GBP": 152.0
+   },
+   "orders_day_max": {
+    "USDC-GBP": 371,
+    "USDT-GBP": 337
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 147.3,
+    "USDT-GBP": 152.0
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0,
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.199,
+   "pct_year": 72.23,
+   "pnl_bps_trip_by_rank": {
+    "0": 14.6
+   },
+   "side_no_entry_share": {
+    "ask": 0.0536,
+    "bid": 0.0504
+   },
+   "taker_stops": 11,
+   "trips_day": 9.06,
+   "vs_K1": {
+    "before_10_13": 8.629,
+    "boot": [
+     6.208,
+     11.64,
+     0.0
+    ],
+    "boot_before": [
+     5.97,
+     12.177,
+     0.0
+    ],
+    "boot_from": [
+     5.377,
+     12.62,
+     0.0
+    ],
+    "days_ahead": 30,
+    "days_behind": 4,
+    "diff": 8.727,
+    "from_10_13": 8.82
+   },
+   "worst_day_bps_cap": -1.2
+  },
+  "n600usdt|through|cap2_seq2": {
+   "bps_cap_day": 12.43,
+   "bps_trip": 14.65,
+   "capital": 1200.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.7458,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 150.25,
+    "USDC-GBP|bid": 200.0,
+    "USDT-GBP|ask": 300.1,
+    "USDT-GBP|bid": 300.0
+   },
+   "lot_filled_share": 0.929,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 9.15,
+     "5": 6.95,
+     "60": 9.97,
+     "trips": 327
+    },
+    "1": {
+     "30": 5.87,
+     "5": 6.79,
+     "60": 5.3,
+     "trips": 54
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 154.9,
+    "USDT-GBP": 163.4
+   },
+   "orders_day_max": {
+    "USDC-GBP": 371,
+    "USDT-GBP": 381
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 156.1,
+    "USDT-GBP": 165.9
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0,
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.118,
+   "pct_year": 45.37,
+   "pnl_bps_trip_by_rank": {
+    "0": 14.69,
+    "1": 14.42
+   },
+   "side_no_entry_share": {
+    "ask": 0.0408,
+    "bid": 0.0439
+   },
+   "taker_stops": 12,
+   "trips_day": 10.89,
+   "vs_K1": {
+    "before_10_13": 1.638,
+    "boot": [
+     0.474,
+     2.467,
+     0.0001
+    ],
+    "boot_before": [
+     0.266,
+     3.782,
+     0.0011
+    ],
+    "boot_from": [
+     0.183,
+     2.172,
+     0.0186
+    ],
+    "days_ahead": 18,
+    "days_behind": 2,
+    "diff": 1.367,
+    "from_10_13": 1.112
+   },
+   "worst_day_bps_cap": -3.8
+  },
+  "n600usdt|through|pool": {
+   "bps_cap_day": 6.682,
+   "bps_trip": 14.8,
+   "capital": 600.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.4009,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 75.25,
+    "USDC-GBP|bid": 100.0,
+    "USDT-GBP|ask": 150.1,
+    "USDT-GBP|bid": 150.0
+   },
+   "lot_filled_share": 0.954,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 9.06,
+     "5": 7.0,
+     "60": 9.65,
+     "trips": 343
+    },
+    "1": {
+     "30": 6.02,
+     "5": 6.35,
+     "60": 5.95,
+     "trips": 47
+    },
+    "2": {
+     "30": 2.27,
+     "5": 6.11,
+     "60": 0.67,
+     "trips": 5
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 155.3,
+    "USDT-GBP": 162.1
+   },
+   "orders_day_max": {
+    "USDC-GBP": 371,
+    "USDT-GBP": 370
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 156.4,
+    "USDT-GBP": 164.6
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0,
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.076,
+   "pct_year": 24.39,
+   "pnl_bps_trip_by_rank": {
+    "0": 14.94,
+    "1": 14.79,
+    "2": 5.85
+   },
+   "side_no_entry_share": {
+    "ask": 0.0468,
+    "bid": 0.0436
+   },
+   "taker_stops": 10,
+   "trips_day": 11.29,
+   "vs_K1": {
+    "before_10_13": -4.208,
+    "boot": [
+     -5.966,
+     -2.957,
+     1.0
+    ],
+    "boot_before": [
+     -5.807,
+     -2.916,
+     1.0
+    ],
+    "boot_from": [
+     -7.038,
+     -2.264,
+     1.0
+    ],
+    "days_ahead": 3,
+    "days_behind": 32,
+    "diff": -4.381,
+    "from_10_13": -4.545
+   },
+   "worst_day_bps_cap": -1.0
+  },
+  "n600usdt|through|seq2": {
+   "bps_cap_day": 6.697,
+   "bps_trip": 14.95,
+   "capital": 600.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.4018,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 75.25,
+    "USDC-GBP|bid": 100.0,
+    "USDT-GBP|ask": 150.1,
+    "USDT-GBP|bid": 150.0
+   },
+   "lot_filled_share": 0.954,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 9.05,
+     "5": 6.99,
+     "60": 9.64,
+     "trips": 344
+    },
+    "1": {
+     "30": 6.18,
+     "5": 6.94,
+     "60": 6.03,
+     "trips": 48
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 154.5,
+    "USDT-GBP": 162.1
+   },
+   "orders_day_max": {
+    "USDC-GBP": 371,
+    "USDT-GBP": 370
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 155.6,
+    "USDT-GBP": 164.6
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0,
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.077,
+   "pct_year": 24.45,
+   "pnl_bps_trip_by_rank": {
+    "0": 14.88,
+    "1": 15.5
+   },
+   "side_no_entry_share": {
+    "ask": 0.0408,
+    "bid": 0.0439
+   },
+   "taker_stops": 10,
+   "trips_day": 11.2,
+   "vs_K1": {
+    "before_10_13": -4.159,
+    "boot": [
+     -5.925,
+     -2.966,
+     1.0
+    ],
+    "boot_before": [
+     -5.703,
+     -2.913,
+     1.0
+    ],
+    "boot_from": [
+     -7.034,
+     -2.305,
+     1.0
+    ],
+    "days_ahead": 3,
+    "days_behind": 32,
+    "diff": -4.365,
+    "from_10_13": -4.56
+   },
+   "worst_day_bps_cap": -1.3
+  },
+  "n600usdt|through|seq3": {
+   "bps_cap_day": 4.649,
+   "bps_trip": 15.01,
+   "capital": 600.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.279,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 50.25,
+    "USDC-GBP|bid": 66.67,
+    "USDT-GBP|ask": 100.1,
+    "USDT-GBP|bid": 121.42
+   },
+   "lot_filled_share": 0.965,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.94,
+     "5": 6.96,
+     "60": 9.47,
+     "trips": 350
+    },
+    "1": {
+     "30": 6.54,
+     "5": 7.12,
+     "60": 6.42,
+     "trips": 47
+    },
+    "2": {
+     "30": 0.45,
+     "5": 5.2,
+     "60": -1.21,
+     "trips": 5
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 156.1,
+    "USDT-GBP": 163.5
+   },
+   "orders_day_max": {
+    "USDC-GBP": 371,
+    "USDT-GBP": 358
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 157.0,
+    "USDT-GBP": 165.9
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0,
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.065,
+   "pct_year": 16.97,
+   "pnl_bps_trip_by_rank": {
+    "0": 15.13,
+    "1": 14.75,
+    "2": 8.85
+   },
+   "side_no_entry_share": {
+    "ask": 0.0408,
+    "bid": 0.0425
+   },
+   "taker_stops": 10,
+   "trips_day": 11.49,
+   "vs_K1": {
+    "before_10_13": -6.097,
+    "boot": [
+     -8.719,
+     -4.341,
+     1.0
+    ],
+    "boot_before": [
+     -8.758,
+     -4.052,
+     1.0
+    ],
+    "boot_from": [
+     -10.185,
+     -3.499,
+     1.0
+    ],
+    "days_ahead": 3,
+    "days_behind": 32,
+    "diff": -6.413,
+    "from_10_13": -6.713
+   },
+   "worst_day_bps_cap": -0.3
+  },
+  "n600usdt|through|seq4": {
+   "bps_cap_day": 3.543,
+   "bps_trip": 15.03,
+   "capital": 600.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.2126,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 37.75,
+    "USDC-GBP|bid": 50.0,
+    "USDT-GBP|ask": 75.3,
+    "USDT-GBP|bid": 96.43
+   },
+   "lot_filled_share": 0.969,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.99,
+     "5": 7.02,
+     "60": 9.48,
+     "trips": 353
+    },
+    "1": {
+     "30": 6.65,
+     "5": 7.31,
+     "60": 6.75,
+     "trips": 47
+    },
+    "2": {
+     "30": 0.76,
+     "5": 6.29,
+     "60": -0.41,
+     "trips": 5
+    },
+    "3": {
+     "30": -10.61,
+     "5": -10.61,
+     "60": -15.25,
+     "trips": 1
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 155.6,
+    "USDT-GBP": 163.5
+   },
+   "orders_day_max": {
+    "USDC-GBP": 371,
+    "USDT-GBP": 357
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 156.6,
+    "USDT-GBP": 166.0
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0,
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.054,
+   "pct_year": 12.93,
+   "pnl_bps_trip_by_rank": {
+    "0": 15.1,
+    "1": 15.26,
+    "2": 6.73,
+    "3": 13.26
+   },
+   "side_no_entry_share": {
+    "ask": 0.0408,
+    "bid": 0.0425
+   },
+   "taker_stops": 9,
+   "trips_day": 11.6,
+   "vs_K1": {
+    "before_10_13": -7.107,
+    "boot": [
+     -10.233,
+     -5.066,
+     1.0
+    ],
+    "boot_before": [
+     -10.406,
+     -4.621,
+     1.0
+    ],
+    "boot_from": [
+     -11.919,
+     -4.202,
+     1.0
+    ],
+    "days_ahead": 2,
+    "days_behind": 33,
+    "diff": -7.52,
+    "from_10_13": -7.91
+   },
+   "worst_day_bps_cap": -0.1
+  },
+  "n600usdt|through|seq6": {
+   "bps_cap_day": 2.404,
+   "bps_trip": 15.06,
+   "capital": 600.0,
+   "days_under_minus_1pct": 0,
+   "gbp_day": 0.1443,
+   "held_max_gbp": {
+    "USDC-GBP|ask": 25.25,
+    "USDC-GBP|bid": 33.33,
+    "USDT-GBP|ask": 50.3,
+    "USDT-GBP|bid": 71.42
+   },
+   "lot_filled_share": 0.983,
+   "markout_bps_by_rank": {
+    "0": {
+     "30": 8.95,
+     "5": 6.99,
+     "60": 9.36,
+     "trips": 358
+    },
+    "1": {
+     "30": 6.5,
+     "5": 7.34,
+     "60": 7.0,
+     "trips": 42
+    },
+    "2": {
+     "30": 0.5,
+     "5": 5.35,
+     "60": -1.1,
+     "trips": 5
+    },
+    "3": {
+     "30": -10.61,
+     "5": -10.61,
+     "60": -15.25,
+     "trips": 1
+    }
+   },
+   "orders_agg_day_mean": {
+    "USDC-GBP": 155.4,
+    "USDT-GBP": 163.3
+   },
+   "orders_day_max": {
+    "USDC-GBP": 371,
+    "USDT-GBP": 357
+   },
+   "orders_day_mean": {
+    "USDC-GBP": 156.3,
+    "USDT-GBP": 165.8
+   },
+   "orders_days_over_900": {
+    "USDC-GBP": 0,
+    "USDT-GBP": 0
+   },
+   "partial_trip_share": 0.039,
+   "pct_year": 8.78,
+   "pnl_bps_trip_by_rank": {
+    "0": 15.15,
+    "1": 15.08,
+    "2": 8.7,
+    "3": 13.26
+   },
+   "side_no_entry_share": {
+    "ask": 0.0408,
+    "bid": 0.0425
+   },
+   "taker_stops": 9,
+   "trips_day": 11.6,
+   "vs_K1": {
+    "before_10_13": -8.105,
+    "boot": [
+     -11.759,
+     -5.848,
+     1.0
+    ],
+    "boot_before": [
+     -12.034,
+     -5.166,
+     1.0
+    ],
+    "boot_from": [
+     -13.682,
+     -5.009,
+     1.0
+    ],
+    "days_ahead": 2,
+    "days_behind": 33,
+    "diff": -8.658,
+    "from_10_13": -9.181
+   },
+   "worst_day_bps_cap": -0.0
+  }
+ },
+ "window_cb": "2026-10-10 00:00 -> 2026-10-29 00:00 UTC",
+ "window_rx": "2026-09-26 00:00 -> 2026-10-30 03:00 UTC"
+}
