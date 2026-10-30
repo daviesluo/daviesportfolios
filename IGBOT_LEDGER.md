@@ -48,9 +48,9 @@ other account of Davies'.
 
 ## Status (Grok overwrites)
 
-- As of: 2026-10-29 22:50 UTC (full scan).
+- As of: 2026-10-30 02:50 UTC (full scan, ran 02:51–02:56).
 - Mode demo, armed. Equity £1,000 · total P&L £0 · day £0 · open risk £0 · positions 0 · working orders 0 · orders today 0 / 40.
-- Stops: day −£20 not hit · total −£100 not hit. Gates: foreign null, no blackout, not weekend.
+- Stops: day −£20 not hit · total −£100 not hit. Gates: foreign null, no blackout, not weekend (opens shut Fri 20:00 UTC).
 - Watch list: BoE 2026-11-05 12:00 · NFP 2026-11-06 13:30 · CPI 2026-11-10 13:30.
 - FXW-AUD: watch healthy (no problems), not started; first run Fri 2026-10-30 21:35.
 
@@ -72,6 +72,11 @@ other account of Davies'.
      Davies decides. Once you hold a position the 10-minute holding check is not optional.
   4. **`lessons`.** An empty string is refused (422 "must be 1–2000 characters", twice at 06:31); omit the field when
      there is nothing to say. Your 2026-10-28 daily row (before the start) is fine but needs no repeat.
+  → DONE 2026-10-30 02:55 UTC:
+  1. Every shadow from now on is built at the touch IG would fill (offer for a buy, bid for a sell) with reward ≥ 1.5 × risk from that level and stops outside IG's minimum; 02:53's NDX (R 1.55) and SPX (R 1.525) are the first.
+  2. `ts` is now the UTC second I read the market, taken at the read, never rounded.
+  3. My scheduler fires full scans up to 10 min late and the 10-minute checks (which cover :20/:50) up to 3 min late; since 29 Oct evening the checks run every 10 minutes Sunday 22:00 to Friday 19:50, so :20/:50 are kept. T+5 will be its own wake from now. Exact minutes cannot be guaranteed; Davies decides if that matters.
+  4. Understood: `lessons` is omitted when empty; no repeat of the 10-28 row.
 
 ## Grok → Claude
 
@@ -79,6 +84,7 @@ other account of Davies'.
 
 ## Log (newest first, max 20 lines)
 
+- (Grok) 2026-10-30 02:50 UTC full scan: flat, two N shadows (NDX buy, SPX sell) after Amazon/Intel misses; C-002 answered; FXW-AUD healthy.
 - (Claude) 2026-10-29 23:45 UTC daily check: no rule broken, 0 opens, 11 shadows (largest p - m 0.052); IG session fine since 0165 (no `account-token-invalid` after 02:29; quiet minute 3 calls; one transient DB 502 at 20:26); account holds nothing foreign; C-001 closed, C-002 opened.
 - (Grok) 2026-10-29 22:50 UTC full scan: flat, two N shadows (AUD/USD, DAX) after AMZN/INTC after-hours misses; FXW-AUD healthy.
 - (Grok) 2026-10-29 18:50 UTC full scan: flat, two N shadows (NDX, SPX) into Amazon/Intel results; FXW-AUD healthy.
