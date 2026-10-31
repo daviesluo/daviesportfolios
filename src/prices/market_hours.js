@@ -191,6 +191,20 @@ export function isWeekendDeadZone(now = new Date()) {
   return false;
 }
 
+// The header clock's dot: `usMarketPhase`, except that nothing trading reads "closed", not "overnight". That function puts
+// weekends and holidays in the overnight bucket on purpose (the refresh cadence and the T212 night overlay key off it), so the
+// dot sat on the night colour all weekend (Davies, 2026-10-31 01:20 UTC, a Saturday: "现在都周六1:20了还是night market的颜色").
+// Closed: the weekend dead zone (Fri 20:00 → Sun 20:00 ET), a full-day holiday until its 20:00 ET, and from 20:00 ET on the
+// evening before one, when the overnight session that would lead into it does not run.
+export function usClockPhase(now = new Date()) {
+  if (isWeekendDeadZone(now)) return "closed";
+  const { hh, mm } = etHourMinuteWeekday(now);
+  const mins = hh * 60 + mm;
+  if (isUsMarketHoliday(now) && mins < 1200) return "closed";
+  if (mins >= 1200 && isUsMarketHoliday(new Date(now.getTime() + 12 * 3600e3))) return "closed";
+  return usMarketPhase(now);
+}
+
 // UK time-zone short name ('GMT' or 'BST') for the given moment.
 // Uses Intl so DST transitions (last Sun Mar / last Sun Oct) are
 // resolved by the runtime — no manual cutover dates to maintain.

@@ -7,7 +7,7 @@
 
 import { describe, it, expect } from 'vitest';
 import {
-  isWeekendDeadZone, usMarketPhase, isUsMarketHoliday, isUsTradingDateStr,
+  isWeekendDeadZone, usMarketPhase, usClockPhase, isUsMarketHoliday, isUsTradingDateStr,
   LONDON_SLOT_HOURS, londonHourUtcMs, usCloseUtcMs, fourHourSlots,
   lseIsOpen, euroExchangeIsOpen, foreignSessionIsOpen,
 } from './market_hours.js';
@@ -324,5 +324,35 @@ describe('lseIsOpen / euroExchangeIsOpen — a shut exchange on a weekend', () =
     }
     // A US ticker has no local session either way.
     expect(foreignSessionIsOpen('NVDA', FRI)).toBe(false);
+  });
+});
+
+// The header clock's dot (Davies, 2026-10-31 01:20 UTC, a Saturday: still the night colour). usMarketPhase keeps calling these
+// moments "overnight" for the refresh cadence; the dot says closed.
+describe('usClockPhase', () => {
+  it('the moment Davies saw: Sat 2026-10-31 01:20 UTC (Fri 21:20 EDT) is closed, though usMarketPhase says overnight', () => {
+    const t = utc('2026-10-31T01:20:00Z');
+    expect(usMarketPhase(t)).toBe('overnight');
+    expect(usClockPhase(t)).toBe('closed');
+  });
+  it('all of Saturday and Sunday until 20:00 ET is closed; Sunday 20:00 ET opens the overnight session', () => {
+    expect(usClockPhase(utc('2026-10-31T16:00:00Z'))).toBe('closed');      // Sat 12:00 EDT
+    expect(usClockPhase(utc('2026-11-01T23:59:00Z'))).toBe('closed');      // Sun 18:59 EST
+    expect(usClockPhase(utc('2026-11-02T01:00:00Z'))).toBe('overnight');   // Sun 20:00 EST
+  });
+  it('Friday keeps its sessions until 20:00 ET', () => {
+    expect(usClockPhase(utc('2026-10-30T14:00:00Z'))).toBe('regular');     // Fri 10:00 EDT
+    expect(usClockPhase(utc('2026-10-30T23:59:00Z'))).toBe('afterhours');  // Fri 19:59 EDT
+    expect(usClockPhase(utc('2026-10-31T00:00:00Z'))).toBe('closed');      // Fri 20:00 EDT
+  });
+  it('a weekday night is overnight, as before', () => {
+    expect(usClockPhase(utc('2026-10-29T03:00:00Z'))).toBe('overnight');   // Wed 23:00 EDT
+    expect(usClockPhase(utc('2026-10-29T09:00:00Z'))).toBe('premarket');   // Thu 05:00 EDT
+  });
+  it('Thanksgiving (2026-11-26): closed from 20:00 ET the evening before until 20:00 ET on the day', () => {
+    expect(usClockPhase(utc('2026-11-26T00:59:00Z'))).toBe('afterhours');  // Wed 19:59 EST
+    expect(usClockPhase(utc('2026-11-26T01:00:00Z'))).toBe('closed');      // Wed 20:00 EST
+    expect(usClockPhase(utc('2026-11-26T17:00:00Z'))).toBe('closed');      // Thu 12:00 EST
+    expect(usClockPhase(utc('2026-11-27T01:00:00Z'))).toBe('overnight');   // Thu 20:00 EST, into Friday's session
   });
 });

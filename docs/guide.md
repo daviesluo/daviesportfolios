@@ -36,7 +36,9 @@ theirs.
 
 - **Clock and market phase.** UK time (BST or GMT, as the season says)
   and a dot for the US market: green open, gold pre-market, purple after
-  hours, blue overnight.
+  hours, blue overnight, grey closed (the weekend from Friday 20:00 to
+  Sunday 20:00 New York time, and a US market holiday from 20:00 the
+  evening before).
 - **Extended hours.** Off, the board shows the regular session. On, the
   indices switch to their futures (`^GSPC` → `ES=F`, and so on) and the
   day's change is measured from today's regular close, so after-hours

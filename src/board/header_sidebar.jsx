@@ -15,7 +15,7 @@ import {
   pctIsFlat,
   fmtDayMonth,
 } from '../app/formatters.js';
-import { londonTimeParts, usMarketPhase, ukTzAbbr } from '../prices/market_hours.js';
+import { londonTimeParts, usClockPhase, ukTzAbbr } from '../prices/market_hours.js';
 import { isCnFund } from '../prices/ticker_class.js';
 import { Storage } from '../app/storage.js';
 import { fetchFundamentals } from '../prices/yahoo_fetch.js';
@@ -56,6 +56,7 @@ const PHASE = {
   premarket:  { color: "var(--gold)",   label: "Pre-market" },
   afterhours: { color: "#b779ff",       label: "After-hours" },
   overnight:  { color: "#5b6fb8",       label: "Overnight" },
+  closed:     { color: "var(--chalk-mute)", label: "Market Closed" },
 };
 
 function useClock(intervalMs = 1000) {
@@ -75,8 +76,8 @@ function useClock(intervalMs = 1000) {
 function HeaderTime({ extendedHours, onToggleExtended }) {
   const now = useClock(1000);
   const t = londonTimeParts(now);
-  const phase = usMarketPhase(now);
-  const phaseInfo = PHASE[phase] || PHASE.overnight;
+  const phase = usClockPhase(now);
+  const phaseInfo = PHASE[phase] || PHASE.closed;
   const tzLabel = `${ukTzAbbr(now)} TIME`;
   return (
     <>
